@@ -118,7 +118,7 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
           : '하루 중 어느 시간에 운이 오는지 — 50점이 기준선'}
       </p>
       <ResponsiveContainer width="100%" height={240}>
-        <ComposedChart data={data} margin={{ top: 26, right: 44, left: -10, bottom: 0 }}>
+        <ComposedChart data={data} margin={{ top: 14, right: 44, left: -10, bottom: 0 }}>
           <defs>
             <linearGradient id="hourSaju" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
@@ -162,7 +162,14 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
               strokeWidth={1.5}
               strokeDasharray="3 3"
             >
-              <Label value="지금" position="top" fill="#fbbf24" fontSize={10} fontWeight={700} />
+              <Label
+                value="지금"
+                position="insideTop"
+                offset={8}
+                fill="#fbbf24"
+                fontSize={10}
+                fontWeight={700}
+              />
             </ReferenceLine>
           )}
           <Area

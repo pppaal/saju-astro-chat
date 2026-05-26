@@ -73,7 +73,7 @@ export default function MonthlyDailyChart({ monthDates, viewYear, viewMonth, onD
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart
           data={data}
-          margin={{ top: 26, right: 24, left: -10, bottom: 0 }}
+          margin={{ top: 14, right: 24, left: -10, bottom: 0 }}
           onClick={(e) => {
             if (!onDayClick) return
             const p = (e as unknown as { activePayload?: Array<{ payload?: { day?: number } }> })
@@ -116,7 +116,14 @@ export default function MonthlyDailyChart({ monthDates, viewYear, viewMonth, onD
           )}
           {nowDayLabel && (
             <ReferenceLine x={nowDayLabel} stroke="#fbbf24" strokeWidth={1.5} strokeDasharray="3 3">
-              <Label value="지금" position="top" fill="#fbbf24" fontSize={10} fontWeight={700} />
+              <Label
+                value="지금"
+                position="insideTop"
+                offset={8}
+                fill="#fbbf24"
+                fontSize={10}
+                fontWeight={700}
+              />
             </ReferenceLine>
           )}
           <Area

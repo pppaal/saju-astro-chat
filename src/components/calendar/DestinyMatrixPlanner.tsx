@@ -24,7 +24,6 @@ import {
 import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
 import { ganjiToKorean } from '@/lib/saju/ganjiKo'
 import { useDateDetail } from './useDateDetail'
-import MatchedPatternsCard from './MatchedPatternsCard'
 import MonthHighlightsCard from './MonthHighlightsCard'
 import YearHighlightsCard from './YearHighlightsCard'
 import YearOverviewCard from './YearOverviewCard'
@@ -32,7 +31,6 @@ import MonthlyInterpretationCard from './MonthlyInterpretationCard'
 import DailyFlowCard from './DailyFlowCard'
 import DailyHourlyChart from './DailyHourlyChart'
 import MonthlyDailyChart from './MonthlyDailyChart'
-import WeeklyTimingChart from './WeeklyTimingChart'
 import { getGrade } from './scoreGrade'
 import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
 import { getHourThemeNarrative } from '@/lib/calendar-engine/data/hourThemeNarrative'
@@ -444,31 +442,36 @@ export default function DestinyMatrixPlanner({
           </div>
 
           <button
-            onClick={() => setIsCalendarModalOpen(true)}
-            className="p-3 bg-zinc-900/80 rounded-xl border border-white/10 text-indigo-400 hover:text-indigo-300 hover:bg-zinc-800 hover:border-indigo-500/50 transition-all shadow-lg"
+            onClick={() => setViewMode('monthly')}
+            className="px-3 py-2 bg-zinc-900/80 rounded-xl border border-white/10 text-indigo-400 hover:text-indigo-300 hover:bg-zinc-800 hover:border-indigo-500/50 transition-all shadow-lg flex items-center gap-1.5 text-sm font-bold"
+            aria-label="달력 뷰로 이동"
           >
-            <Calendar className="w-5 h-5" />
+            <Calendar className="w-4 h-4" />
+            캘린더
           </button>
         </div>
 
         {/* View Mode Toggle */}
         <div className="flex bg-zinc-900/50 rounded-xl p-1.5 border border-white/5 backdrop-blur-sm">
-          {(['yearly', 'monthly', 'daily'] as const).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all capitalize flex items-center justify-center gap-2 ${
-                viewMode === mode
-                  ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg shadow-indigo-900/50'
-                  : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              {mode === 'yearly' && <CalendarRange className="w-4 h-4" />}
-              {mode === 'monthly' && <ScrollText className="w-4 h-4" />}
-              {mode === 'daily' && <Activity className="w-4 h-4" />}
-              {mode}
-            </button>
-          ))}
+          {(['yearly', 'monthly', 'daily'] as const).map((mode) => {
+            const label = mode === 'yearly' ? '올해' : mode === 'monthly' ? '달력' : '오늘'
+            return (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                  viewMode === mode
+                    ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg shadow-indigo-900/50'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                {mode === 'yearly' && <CalendarRange className="w-4 h-4" />}
+                {mode === 'monthly' && <ScrollText className="w-4 h-4" />}
+                {mode === 'daily' && <Activity className="w-4 h-4" />}
+                {label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -609,31 +612,9 @@ export default function DestinyMatrixPlanner({
                 </div>
               </div>
 
-              {/* ── 연애 / 일·돈 날씨 뱃지 (엔진 emit) ── */}
-              {(data?.relationshipWeather || data?.workMoneyWeather) && (
-                <div className="grid grid-cols-2 gap-3">
-                  {data?.relationshipWeather && (
-                    <WeatherBadge
-                      icon={<Heart className="w-4 h-4 text-rose-400" />}
-                      label="연애 날씨"
-                      grade={data.relationshipWeather.grade}
-                      summary={data.relationshipWeather.summary}
-                      tone="rose"
-                    />
-                  )}
-                  {data?.workMoneyWeather && (
-                    <WeatherBadge
-                      icon={<Coins className="w-4 h-4 text-amber-400" />}
-                      label="일·돈 날씨"
-                      grade={data.workMoneyWeather.grade}
-                      summary={data.workMoneyWeather.summary}
-                      tone="amber"
-                    />
-                  )}
-                </div>
-              )}
-
-              {/* ── 월간 해석 — 결론 우선 카드 (점수 밴드·결론·할 일·왜 + 상세 접기) ── */}
+              {/* 월간 결론 카드 + 좋은 날/조심할 날 TOP 3.
+                  연애/일·돈 날씨 badge는 Daily view의 도메인 지수와 중복돼 제거.
+                  WeeklyTimingChart(주간 평균)은 위 MonthlyDailyChart(일별)에 흡수돼 제거. */}
               <MonthlyInterpretationCard
                 interp={
                   monthDates[0]?.monthlyInterpretation ??
@@ -645,10 +626,6 @@ export default function DestinyMatrixPlanner({
                 seed={viewYear * 12 + viewMonth}
               />
 
-              {/* ── 주간 타이밍 그래프 (saju × astro) ── */}
-              <WeeklyTimingChart monthDates={monthDates} />
-
-              {/* ── calendar-engine v2: 좋은 날/조심할 날 TOP 5 ── */}
               <MonthHighlightsCard monthDates={monthDates} onDayClick={handleDayClick} />
             </motion.div>
           )}
@@ -808,11 +785,9 @@ export default function DestinyMatrixPlanner({
                 </div>
               )}
 
-              {/* ── calendar-engine v2: 매칭 패턴 카드 (헤드라인+액션) ── */}
-              <MatchedPatternsCard patterns={selectedImportantDate?.matchedPatterns} />
-
-              {/* ── calendar-engine v2: 오늘의 활성 흐름 (글로 풀어씀) ── */}
-              {/* 기존 ActiveSignalsList 리스트 + 신살 칩 → 단일 narrative 카드로 통합 */}
+              {/* 오늘의 활성 흐름 — narrative + 신호 통합 카드.
+                  MatchedPatternsCard(★ 패턴 헤드라인)는 DailyFlowCard가 같은
+                  matchedPatterns를 narrative로 풀어쓰고 있어 중복 — 제거. */}
               <DailyFlowCard importantDate={selectedImportantDate} />
 
               <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
@@ -1056,47 +1031,6 @@ export default function DestinyMatrixPlanner({
           </div>
         </Dialog>
       </Transition>
-    </div>
-  )
-}
-
-type WeatherGrade = 'strong' | 'good' | 'neutral' | 'caution'
-const WEATHER_LABEL: Record<WeatherGrade, string> = {
-  strong: '맑음',
-  good: '맑음 한때',
-  neutral: '평이',
-  caution: '주의',
-}
-function WeatherBadge({
-  icon,
-  label,
-  grade,
-  summary,
-  tone,
-}: {
-  icon: React.ReactNode
-  label: string
-  grade: WeatherGrade
-  summary: string
-  tone: 'rose' | 'amber'
-}) {
-  const accent =
-    grade === 'strong'
-      ? 'text-emerald-300'
-      : grade === 'good'
-        ? 'text-emerald-200'
-        : grade === 'caution'
-          ? 'text-rose-300'
-          : 'text-zinc-300'
-  const border = tone === 'rose' ? 'border-rose-500/15' : 'border-amber-500/15'
-  return (
-    <div className={`bg-zinc-900/40 p-4 rounded-2xl border ${border}`}>
-      <div className="flex items-center gap-2 mb-2">
-        {icon}
-        <span className="text-xs font-bold tracking-wider text-zinc-300 uppercase">{label}</span>
-        <span className={`ml-auto text-xs font-bold ${accent}`}>{WEATHER_LABEL[grade]}</span>
-      </div>
-      <p className="text-xs text-zinc-400 leading-relaxed line-clamp-3">{summary}</p>
     </div>
   )
 }
