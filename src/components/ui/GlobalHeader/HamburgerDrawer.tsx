@@ -253,6 +253,18 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                 <span aria-hidden="true">👤</span>
                 <span className="text-sm">{isKo ? '내 정보' : 'My Info'}</span>
               </Link>
+              {isAuthed && (
+                <Link
+                  href="/tarot/history"
+                  onClick={close}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/[0.06]"
+                >
+                  <span aria-hidden="true">🔮</span>
+                  <span className="text-sm">
+                    {isKo ? '타로 리딩 기록' : 'My Tarot Readings'}
+                  </span>
+                </Link>
+              )}
               <Link
                 href="/pricing"
                 onClick={close}

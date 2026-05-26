@@ -1100,14 +1100,20 @@ export default function ProfilePage() {
 
             {/* Recent activity */}
             <section className={`mt-6 ${cardCls}`}>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <h2 className={sectionLabelCls}>
                   {locale === 'ko' ? '유료 서비스 최근 내역' : 'Paid service history'}
                 </h2>
-                <Link href="/profile/decisions" className={linkCls}>
-                  {locale === 'ko' ? '결정 기록' : 'Decision log'}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link href="/tarot/history" className={linkCls}>
+                    {locale === 'ko' ? '타로 기록' : 'Tarot log'}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                  <Link href="/profile/decisions" className={linkCls}>
+                    {locale === 'ko' ? '결정 기록' : 'Decision log'}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
               </div>
 
               {loading ? (
