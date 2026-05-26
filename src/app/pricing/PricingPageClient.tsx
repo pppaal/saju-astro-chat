@@ -177,9 +177,19 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert(data.error || pt('paymentError'))
+        // /api/checkout 의 에러 응답은 { error: { code, message, details } } 객체.
+        // 통째로 alert 하면 "[object Object]" 가 떠서 사용자에게 무의미 — code/
+        // message 를 풀어서 보여주고, 풀 응답은 console 에도 남겨서 진단 용이.
+        console.error('[checkout] error response:', data)
+        const errObj = data?.error
+        const errMsg =
+          typeof errObj === 'string'
+            ? errObj
+            : errObj?.message || errObj?.code || data?.message || pt('paymentError')
+        alert(`${errMsg}${errObj?.code ? ` (${errObj.code})` : ''}`)
       }
-    } catch {
+    } catch (err) {
+      console.error('[checkout] request failed:', err)
       alert(pt('paymentError'))
     } finally {
       setLoadingCredit(null)
