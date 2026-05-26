@@ -16,7 +16,7 @@ import { useChatSession } from './hooks/useChatSession'
 import { useChatFeedback } from './hooks/useChatFeedback'
 import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
-import { useSeedEvent, useWelcomeBack } from '@/components/chat'
+import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
@@ -253,11 +253,6 @@ const Chat = memo(function Chat({
       })
   }, [messages, sessionLoaded, lang, saju, astro, sessionIdRef])
 
-  const { showWelcome: showWelcomeBack } = useWelcomeBack({
-    shouldShow: Boolean(userContext?.persona?.sessionCount && userContext.persona.sessionCount > 1),
-    displayDuration: CHAT_TIMINGS.WELCOME_BANNER_DURATION,
-  })
-
   const returningSummary = React.useMemo(
     () => buildReturningSummary(userContext?.persona, lang),
     [userContext?.persona, lang]
@@ -436,15 +431,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         tr={tr}
         styles={styles}
       />
-
-      {showWelcomeBack && (
-        <div className={styles.welcomeBackBanner}>
-          <span className={styles.welcomeBackSpark} aria-hidden="true">
-            {'\u2728'}
-          </span>
-          <span>{tr.welcomeBack}</span>
-        </div>
-      )}
 
       <div className={styles.chatLayout}>
         <aside className={styles.historyRail} aria-label={tr.previousChats}>
@@ -658,6 +644,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onFeedback={handleFeedback}
               onFollowUp={handleFollowUp}
               styles={styles}
+              userName={profile?.name}
             />
 
             <ChatInputArea
