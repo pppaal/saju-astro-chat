@@ -711,7 +711,7 @@ describe('/api/tarot/save', () => {
         createdAt: new Date('2024-01-02'),
         question: 'Question 2',
         theme: 'Career',
-        spreadTitle: 'Celtic Cross',
+        spreadTitle: 'Seven-Card Deep',
         cards: [],
         overallMessage: 'Message 2',
         source: 'counselor',

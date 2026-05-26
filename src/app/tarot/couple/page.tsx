@@ -37,7 +37,7 @@ type CoupleReading = {
 const COUPLE_SPREADS = [
   { id: 'couple-3', name: '커플 3카드', cards: 3, icon: '💕' },
   { id: 'relationship-5', name: '관계 5카드', cards: 5, icon: '💞' },
-  { id: 'love-celtic', name: '연애 켈틱 크로스', cards: 10, icon: '🌹' },
+  { id: 'love-celtic', name: '연애 심층 7장 리딩', cards: 7, icon: '🌹' },
 ]
 
 export default function CoupleTarotPage() {

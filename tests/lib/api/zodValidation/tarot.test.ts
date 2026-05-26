@@ -298,7 +298,7 @@ describe('Tarot Request Schemas', () => {
     const validRequest = {
       categoryId: 'career',
       spreadId: 'celtic-cross',
-      spreadTitle: 'Celtic Cross Spread',
+      spreadTitle: 'Seven-Card Deep',
       cards: [
         { name: 'The Emperor', isReversed: false, position: 'Present' },
       ],
@@ -312,7 +312,7 @@ describe('Tarot Request Schemas', () => {
       const result = tarotInterpretEnhancedRequestSchema.safeParse({
         categoryId: '  career  ',
         spreadId: '  celtic-cross  ',
-        spreadTitle: '  Celtic Cross  ',
+        spreadTitle: '  Seven-Card Deep  ',
         cards: [{ name: '  The Emperor  ', isReversed: false, position: '  Present  ' }],
       })
       expect(result.success).toBe(true)
@@ -461,7 +461,7 @@ describe('Tarot Request Schemas', () => {
     const validRequest = {
       messages: [{ role: 'user', content: 'What does this mean?' }],
       context: {
-        spread_title: 'Celtic Cross',
+        spread_title: 'Seven-Card Deep',
         category: 'career',
         cards: [{ position: 'Present', name: 'The Emperor', meaning: 'Authority' }],
         overall_message: 'Leadership opportunities',

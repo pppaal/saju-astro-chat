@@ -513,7 +513,7 @@ describe('History API – GET /api/me/history', () => {
           createdAt: fakeDate('2025-06-10'),
           question: null,
           theme: null,
-          spreadTitle: 'Celtic Cross',
+          spreadTitle: 'Seven-Card Deep',
         },
       ] as any)
 
@@ -521,7 +521,7 @@ describe('History API – GET /api/me/history', () => {
       const data = await response.json()
 
       const record = data.data.history[0].records[0]
-      expect(record.summary).toBe('Celtic Cross')
+      expect(record.summary).toBe('Seven-Card Deep')
     })
 
     it('should default summary when both question and spreadTitle are null', async () => {

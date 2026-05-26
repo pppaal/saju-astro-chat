@@ -17,7 +17,7 @@ vi.mock('@/lib/tarot/tarot-spreads-data', () => ({
       spreads: [
         { id: 'single-card', title: 'Single Card', cardCount: 1 },
         { id: 'three-card', title: 'Three Card', cardCount: 3 },
-        { id: 'celtic-cross', title: 'Celtic Cross', cardCount: 10 },
+        { id: 'celtic-cross', title: 'Seven-Card Deep', cardCount: 7 },
       ],
     },
     {
@@ -92,7 +92,7 @@ describe('useInlineTarotState', () => {
       expect(spreads.length).toBe(3)
       expect(spreads[0].cardCount).toBe(1)
       expect(spreads[1].cardCount).toBe(3)
-      expect(spreads[2].cardCount).toBe(10)
+      expect(spreads[2].cardCount).toBe(7)
     })
 
     it('should fall back to default-category spreads when no suggestions are set', () => {

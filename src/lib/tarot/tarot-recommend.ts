@@ -1,5 +1,5 @@
 // 스프레드 4개만 남긴 뒤의 mini 추천기.
-// 질문의 *깊이* (길이 + 키워드) 만 보고 1·3·5·10장 중 하나로 라우팅.
+// 질문의 *깊이* (길이 + 키워드) 만 보고 1·3·5·7장 중 하나로 라우팅.
 // 도메인(연애·커리어 등)은 LLM 이 해석 단계에서 추출하므로 여기서는 따지지 않음.
 
 import { tarotThemes } from './tarot-spreads-data'
@@ -21,7 +21,7 @@ const SPREAD_BY_DEPTH = {
   shallow: 'quick-reading',       // 1장
   normal: 'past-present-future',  // 3장
   deep: 'general-cross',          // 5장
-  full: 'celtic-cross',           // 10장
+  full: 'celtic-cross',           // 7장 (심층 리딩 — ID는 과거 호환 위해 유지)
 } as const
 
 type Depth = keyof typeof SPREAD_BY_DEPTH
@@ -35,7 +35,7 @@ function classifyDepth(question: string): Depth {
   if (len <= 10) return 'shallow'
   if (/^(오늘|내일|뭐|어디|언제|누구|뭐 ?먹|뭐 ?입|뭐 ?사)/i.test(q) && len <= 25) return 'shallow'
 
-  // 깊고 무거운 질문 — 10장
+  // 깊고 무거운 질문 — 7장 심층
   if (/(인생|평생|운명|진로|소명|왜 ?사|어떻게 ?살|삶의 ?의미)/i.test(q)) return 'full'
   if (len >= 80) return 'full'
 
@@ -57,7 +57,7 @@ function pick(depth: Depth): SpreadRecommendation | null {
     shallow: { reason: 'Quick single-card answer', reasonKo: '가볍게 한 장으로 답을 봐요' },
     normal: { reason: 'Three-card flow over time', reasonKo: '과거·현재·미래 흐름으로 봐요' },
     deep: { reason: 'Five-card balanced reading', reasonKo: '5장으로 균형 잡힌 리딩' },
-    full: { reason: 'Celtic Cross — full depth', reasonKo: '켈틱 크로스로 깊게 풀어요' },
+    full: { reason: 'Seven-Card Deep — full depth', reasonKo: '7장 심층으로 깊게 풀어요' },
   }
 
   return {
