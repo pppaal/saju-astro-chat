@@ -31,15 +31,25 @@ export function drawClarifierCard(): ClarifierCard {
   }
 }
 
-// 채팅 사용자 메시지로 보낼 텍스트 — 카드 이름·방향만 짧게 알리고 LLM 에게
-// 직전 맥락에서 어떤 단서가 추가되는지 한 단락으로 풀어달라고 지시.
+// 채팅 사용자 메시지로 보낼 텍스트 — 카드 이름·방향 + 카드 이미지 마크다운
+// (채팅 렌더러가 `![alt](image)` 을 그림으로 표시) + LLM 에게 직전 맥락에서
+// 어떤 단서가 추가되는지 한 단락으로 풀어달라고 지시.
 export function buildClarifierUserMessage(card: ClarifierCard, language: 'ko' | 'en'): string {
   const isKo = language === 'ko'
   const displayName = isKo && card.nameKo ? card.nameKo : card.name
   const reversedTag = card.isReversed ? (isKo ? ' (역방향)' : ' (reversed)') : ''
+  const imageLine = `![${displayName}](${card.image})`
 
   if (isKo) {
-    return `🃏 보충 카드 한 장을 더 뽑았어요: **${displayName}${reversedTag}**\n\n방금까지의 대화·해석 흐름에 이 카드가 어떤 추가 단서를 주는지, 같은 톤으로 한 단락 정도만 설명해 주세요.`
+    return `🃏 보충 카드 한 장을 더 뽑았어요: **${displayName}${reversedTag}**
+
+${imageLine}
+
+방금까지의 대화·해석 흐름에 이 카드가 어떤 추가 단서를 주는지, 같은 톤으로 한 단락 정도만 설명해 주세요.`
   }
-  return `🃏 One more clarifier card drawn: **${displayName}${reversedTag}**\n\nIn the context of our conversation and reading so far, what extra clue does this card add? Keep the same tone — one focused paragraph.`
+  return `🃏 One more clarifier card drawn: **${displayName}${reversedTag}**
+
+${imageLine}
+
+In the context of our conversation and reading so far, what extra clue does this card add? Keep the same tone — one focused paragraph.`
 }

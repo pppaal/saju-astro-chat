@@ -18,11 +18,14 @@ import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
-import { drawClarifierCard, buildClarifierUserMessage } from '@/lib/tarot/drawClarifierCard'
+import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
 const ChartModal = dynamic(() => import('./charts/ChartModal'), { ssr: false })
+const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
+  ssr: false,
+})
 
 const Chat = memo(function Chat({
   profile,
@@ -68,6 +71,7 @@ const Chat = memo(function Chat({
   const [notice, setNotice] = React.useState<string | null>(null)
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [showChartModal, setShowChartModal] = React.useState(false)
+  const [showClarifierModal, setShowClarifierModal] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
@@ -315,15 +319,17 @@ const Chat = memo(function Chat({
 
   const goToTarot = React.useCallback(() => setShowTarotModal(true), [])
 
-  // 🃏 클래리파이어 카드 한 장 — 카드 한 장만 클라이언트에서 즉석 추첨해
-  // user 메시지로 흘려 보내면, 본 채팅의 LLM 이 직전 흐름에 맞춰 한 단락
-  // 보충 해석을 답해준다. InlineTarotModal 처럼 풀 스프레드 고를 필요 없이
-  // "한 장만 더" 가벼운 단서가 필요할 때.
-  const drawClarifier = React.useCallback(() => {
-    const card = drawClarifierCard()
-    const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
-    void handleSendRef.current?.(userText)
-  }, [effectiveLang])
+  // 🃏 클래리파이어 카드 한 장 — 작은 모달이 열려 카드 한 장이 펼쳐지고
+  // 사용자가 확인을 누르면 카드 이미지(마크다운)와 함께 채팅 메시지로
+  // 흘려보낸다. LLM 이 직전 흐름에 맞춰 한 단락 보충 해석을 답해준다.
+  const openClarifier = React.useCallback(() => setShowClarifierModal(true), [])
+  const handleClarifierConfirm = React.useCallback(
+    (card: ClarifierCard) => {
+      const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
+      void handleSendRef.current?.(userText)
+    },
+    [effectiveLang]
+  )
 
   const handleTarotComplete = (result: TarotResultSummary) => {
     const cardsSummary = result.cards
@@ -618,7 +624,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
             <button
               type="button"
               className={styles.historyRailFooterBtn}
-              onClick={drawClarifier}
+              onClick={openClarifier}
               title={
                 effectiveLang === 'ko'
                   ? '\uBCF4\uCDA9 \uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30 (\uC989\uC11D \uD074\uB798\uB9AC\uD30C\uC774\uC5B4)'
@@ -707,6 +713,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         lang={lang}
         profile={profile}
         initialConcern={followUpQuestions[0] || extractConcernFromMessages()}
+      />
+
+      <ClarifierCardModal
+        isOpen={showClarifierModal}
+        onClose={() => setShowClarifierModal(false)}
+        onConfirm={handleClarifierConfirm}
+        lang={effectiveLang}
       />
 
       <ChartModal

@@ -10,18 +10,20 @@ import MarkdownMessage from '@/components/ui/MarkdownMessage'
 import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
-import { runQuickCoupleTarot } from './runQuickCoupleTarot'
 import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
 import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
 import { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
-import { drawClarifierCard, buildClarifierUserMessage } from '@/lib/tarot/drawClarifierCard'
+import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
+
+const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
+  ssr: false,
+})
 
 // 운명상담사와 동일한 InlineTarotModal — 사용자가 질문 적고 스프레드
 // 골라 카드를 펼치는 인터랙티브 흐름. 결과는 채팅 메시지로 inject.
-// 기존 handleQuickCoupleTarot(자동 5장)은 유지, 모달은 "맞춤 타로" 옵션.
 const InlineTarotModal = dynamic(() => import('@/components/destiny-map/InlineTarotModal'), {
   ssr: false,
 })
@@ -98,6 +100,7 @@ function CompatibilityCounselorContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showChartModal, setShowChartModal] = useState(false)
   const [showTarotModal, setShowTarotModal] = useState(false)
+  const [showClarifierModal, setShowClarifierModal] = useState(false)
   // 파일 첨부 — 운명 상담사와 동일한 훅. 업로드 텍스트(cvText)는 sendMessage
   // payload 로 전달돼 라우트가 현재 턴 프롬트에 주입한다.
   const [fileNotice, setFileNotice] = useState<string | null>(null)
@@ -531,15 +534,20 @@ function CompatibilityCounselorContent() {
     }
   }
 
-  // 🃏 클래리파이어 카드 한 장 — 모달 안 띄우고 카드 한 장만 즉석 추첨해
-  // 사용자 메시지로 보내면 본 채팅의 LLM 이 직전 대화 + 두 사람 컨텍스트로
-  // 한 단락 보충 해석을 답한다.
-  const handleDrawClarifier = useCallback(() => {
+  // 🃏 클래리파이어 카드 한 장 — 작은 모달이 열려 카드 한 장이 펼쳐지고
+  // 사용자가 확인을 누르면 카드 이미지와 함께 채팅 메시지로 흘려보낸다.
+  // LLM 이 직전 대화 + 두 사람 컨텍스트로 한 단락 보충 해석을 답한다.
+  const openClarifier = useCallback(() => {
     if (isLoading || persons.length < 2) return
-    const card = drawClarifierCard()
-    const userText = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
-    sendMessage(userText)
-  }, [isLoading, persons.length, isKo, sendMessage])
+    setShowClarifierModal(true)
+  }, [isLoading, persons.length])
+  const handleClarifierConfirm = useCallback(
+    (card: ClarifierCard) => {
+      const userText = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
+      sendMessage(userText)
+    },
+    [isKo, sendMessage]
+  )
 
   // 🃏 맞춤 타로 — 운명상담사와 동일한 InlineTarotModal 흐름. 사용자가
   // 질문 적고 스프레드 골라 카드 펼치면 결과를 채팅 메시지로 inject.
@@ -579,65 +587,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
     },
     [isKo, persons]
   )
-
-  // 🎴 둘 궁합 타로 — 한 번 클릭으로 5장 관계 크로스를 펼치고 chat 에 inline 으로 풀어준다.
-  const handleQuickCoupleTarot = useCallback(async () => {
-    if (isLoading || persons.length < 2) return
-    setIsLoading(true)
-    setError(null)
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: isKo ? '둘 궁합 타로 5장 펼쳐줘' : 'Pull a 5-card couple tarot for us',
-    }
-    setMessages((prev) => [...prev, userMessage, { role: 'assistant', content: '' }])
-    try {
-      const { markdown } = await runQuickCoupleTarot({
-        persons,
-        language: isKo ? 'ko' : 'en',
-        onChunk: (partial) => {
-          setMessages((prev) => {
-            const copy = [...prev]
-            const lastIdx = copy.length - 1
-            if (lastIdx >= 0 && copy[lastIdx].role === 'assistant') {
-              copy[lastIdx] = { role: 'assistant', content: partial }
-            }
-            return copy
-          })
-        },
-      })
-      setMessages((prev) => {
-        const copy = [...prev]
-        const lastIdx = copy.length - 1
-        if (lastIdx >= 0 && copy[lastIdx].role === 'assistant') {
-          copy[lastIdx] = { role: 'assistant', content: markdown }
-        }
-        return copy
-      })
-    } catch (e) {
-      logger.error('Quick couple tarot failed:', { error: e })
-      // 크레딧 소진(402) → 인라인 에러 대신 전역 크레딧 안내 모달.
-      if (e instanceof Error && e.message.includes('HTTP 402')) {
-        showDepleted()
-      } else {
-        setError(
-          isKo
-            ? '타로 카드를 펼치지 못했어요. 잠시 후 다시 시도해 주세요.'
-            : 'Could not draw the cards. Please try again in a moment.'
-        )
-      }
-      setMessages((prev) => {
-        const copy = [...prev]
-        const lastIdx = copy.length - 1
-        if (lastIdx >= 0 && copy[lastIdx].role === 'assistant' && !copy[lastIdx].content) {
-          // 빈 placeholder 제거
-          copy.pop()
-        }
-        return copy
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }, [isLoading, persons, isKo, showDepleted])
 
   if (isInitializing || redirecting) {
     return <CounselorLoading />
@@ -681,19 +630,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
             <button
               type="button"
               className={styles.sidebarFooterBtn}
-              onClick={handleQuickCoupleTarot}
-              disabled={isLoading || persons.length < 2}
-              title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'🎴'}
-              </span>
-              {isKo ? '빠른 5장 타로' : 'Quick 5-card tarot'}
-            </button>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              onClick={handleDrawClarifier}
+              onClick={openClarifier}
               disabled={isLoading || persons.length < 2}
               title={
                 isKo
@@ -852,17 +789,21 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                     onChange={handleFileUpload}
                   />
                 </label>
-                {/* 🎴 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
+                {/* 🃏 맞춤 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
                     사이드바 푸터에 같은 둘이 있어 ≥1024px에선 중복을 피해 숨긴다. */}
                 <button
                   type="button"
-                  onClick={handleQuickCoupleTarot}
+                  onClick={() => setShowTarotModal(true)}
                   disabled={isLoading || persons.length < 2}
                   className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
-                  aria-label={isKo ? '둘 궁합 타로' : 'Couple tarot'}
-                  title={isKo ? '둘 궁합 타로 5장 즉시 보기' : 'Quick 5-card couple tarot'}
+                  aria-label={isKo ? '맞춤 타로' : 'Custom tarot'}
+                  title={
+                    isKo
+                      ? '맞춤 타로 — 질문 적고 스프레드 골라 카드 뽑기'
+                      : 'Custom tarot — pick a spread and draw'
+                  }
                 >
-                  <span className={styles.toolButtonIcon}>🎴</span>
+                  <span className={styles.toolButtonIcon}>🃏</span>
                   <span className={styles.toolButtonLabel}>{isKo ? '타로' : 'Tarot'}</span>
                 </button>
                 <button
@@ -960,6 +901,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
             ? `${persons[0]?.name || '나'}와 ${persons[1]?.name || '상대'}, 우리 관계는 어떻게 흘러갈까?`
             : `${persons[0]?.name || 'Me'} and ${persons[1]?.name || 'partner'} — where is our relationship heading?`
         }
+      />
+
+      <ClarifierCardModal
+        isOpen={showClarifierModal}
+        onClose={() => setShowClarifierModal(false)}
+        onConfirm={handleClarifierConfirm}
+        lang={isKo ? 'ko' : 'en'}
       />
 
       <CompatChartModal

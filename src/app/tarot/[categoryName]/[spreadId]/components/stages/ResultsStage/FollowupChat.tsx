@@ -1,11 +1,16 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { MessageCircle, Send, Loader2, Sparkles } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
-import { drawClarifierCard, buildClarifierUserMessage } from '@/lib/tarot/drawClarifierCard'
+import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
+
+const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
+  ssr: false,
+})
 
 interface FollowupChatProps {
   readingResult: ReadingResponse
@@ -26,6 +31,7 @@ export function FollowupChat({
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<Turn[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [showClarifierModal, setShowClarifierModal] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -136,12 +142,14 @@ export function FollowupChat({
     await sendQuestionText(q)
   }
 
-  // 🃏 클래리파이어 카드 한 장 — 즉석으로 카드를 한 장 뽑아 followup
-  // 엔드포인트에 사용자 메시지로 흘려보내면 직전 리딩 흐름에 맞춰 짧은
-  // 보충 해석을 받는다. 풀 모달 없이 즉시 단서를 더하고 싶을 때.
-  const handleDrawClarifier = async () => {
+  // 🃏 클래리파이어 카드 한 장 — 모달이 열려 카드 한 장이 펼쳐지고 사용자가
+  // 확인하면 followup 엔드포인트에 카드 이미지(마크다운)와 함께 사용자
+  // 메시지로 흘려보낸다. 직전 리딩 흐름에 맞춰 짧은 보충 해석을 받는다.
+  const openClarifier = () => {
     if (submitting) return
-    const card = drawClarifierCard()
+    setShowClarifierModal(true)
+  }
+  const handleClarifierConfirm = async (card: ClarifierCard) => {
     const text = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
     await sendQuestionText(text)
   }
@@ -183,7 +191,7 @@ export function FollowupChat({
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={handleDrawClarifier}
+          onClick={openClarifier}
           disabled={submitting}
           className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-[12px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50"
           title={
@@ -234,6 +242,12 @@ export function FollowupChat({
             : 'e.g. "Why did the 3rd card land there?", "Should I wait on the decision?"'}
         </p>
       )}
+      <ClarifierCardModal
+        isOpen={showClarifierModal}
+        onClose={() => setShowClarifierModal(false)}
+        onConfirm={handleClarifierConfirm}
+        lang={isKo ? 'ko' : 'en'}
+      />
     </section>
   )
 }
