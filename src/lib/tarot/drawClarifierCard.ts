@@ -35,6 +35,10 @@ export function drawClarifierCard(): ClarifierCard {
 // (채팅 렌더러가 `![alt](image)` 을 그림으로 표시) + LLM 에게 직전 맥락에서
 // 어떤 단서가 추가되는지 한 단락으로 풀어달라고 지시.
 export function buildClarifierUserMessage(card: ClarifierCard, language: 'ko' | 'en'): string {
+  // 사용자 버블에 보이는 메시지는 카드 선언 + 이미지만. AI 지시문은
+  // realtime route 시스템 프롬프트가 "🃏 보충 카드 패턴 감지 시 같은 톤으로
+  // 한 단락 보충 해석" 으로 처리 — 지시문이 사용자 버블에 노출되던 UX
+  // 어색함 해결.
   const isKo = language === 'ko'
   const displayName = isKo && card.nameKo ? card.nameKo : card.name
   const reversedTag = card.isReversed ? (isKo ? ' (역방향)' : ' (reversed)') : ''
@@ -43,13 +47,9 @@ export function buildClarifierUserMessage(card: ClarifierCard, language: 'ko' | 
   if (isKo) {
     return `🃏 보충 카드 한 장을 더 뽑았어요: **${displayName}${reversedTag}**
 
-${imageLine}
-
-방금까지의 대화·해석 흐름에 이 카드가 어떤 추가 단서를 주는지, 같은 톤으로 한 단락 정도만 설명해 주세요.`
+${imageLine}`
   }
   return `🃏 One more clarifier card drawn: **${displayName}${reversedTag}**
 
-${imageLine}
-
-In the context of our conversation and reading so far, what extra clue does this card add? Keep the same tone — one focused paragraph.`
+${imageLine}`
 }
