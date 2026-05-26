@@ -314,6 +314,14 @@ export async function POST(req: NextRequest) {
       if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
         parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
       }
+      // 로그인 사용자면 이름 호명을 위해 호출자 정보 주입.
+      // 응답 톤은 한국어 '{이름}님', 영어 'Hi {Name},' 형식으로 자연스럽게.
+      const userName = session?.user?.name?.trim()
+      if (userName) {
+        parts.push(
+          `# 호출자: ${userName} — 한국어로 답할 때 '${userName}님'으로 정중히 호명하고, 영어면 'Hi ${userName},' 식으로 한 번씩 자연스럽게 호명한다.`
+        )
+      }
       // ── Destiny counselor layer: SAJU (from raw) + ASTRO/CURRENT
       //    (raw→refined) + reading rules. Replaces the old formatSajuSelf /
       //    formatAstroSelf + slim chain here; compat counselor keeps those.

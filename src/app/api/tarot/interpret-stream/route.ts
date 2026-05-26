@@ -184,12 +184,29 @@ export async function POST(req: NextRequest) {
       hasQuestion: Boolean(userQuestion),
     })
 
-    const { systemPrompt, userPrompt } = buildInterpretStreamPrompts({
+    const { systemPrompt, userPrompt: rawUserPrompt } = buildInterpretStreamPrompts({
       language,
       spreadTitle,
       cards: rawCards,
       userQuestion,
     })
+
+    // 로그인 사용자면 이름 호명. 게스트는 조용히 패스.
+    let sessionUserName: string | null = null
+    try {
+      const { getServerSession } = await import('next-auth')
+      const { authOptions } = await import('@/lib/auth/authOptions')
+      const session = await getServerSession(authOptions)
+      sessionUserName = session?.user?.name?.trim() || null
+    } catch {
+      // 게스트 처리.
+    }
+    const callerHeader = sessionUserName
+      ? language === 'ko'
+        ? `[호출자] ${sessionUserName} — '${sessionUserName}님'으로 정중히 호명하라.\n\n`
+        : `[Caller] ${sessionUserName} — address as 'Hi ${sessionUserName},' naturally.\n\n`
+      : ''
+    const userPrompt = callerHeader + rawUserPrompt
 
     // Claude 없으면 정적 fallback 으로 즉시 응답 + 크레딧 환불.
     if (!isClaudeAvailable()) {
