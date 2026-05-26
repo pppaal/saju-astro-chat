@@ -13,12 +13,12 @@ const EFFECTIVE_DATE = '2026-05-19'
 
 const QUICK_SUMMARY = {
   en: [
-    'Unused credit packs (0 credits used) are fully refundable within 7 days from purchase.',
+    'Unused credit packs (0 credits used) are refundable within 7 days from purchase (the payment processing fee is withheld).',
     'Once any credit is consumed, the credit pack is non-refundable.',
     'If we fail to deliver due to our technical issue, we restore credits first and support you quickly.',
   ],
   ko: [
-    '미사용 크레딧 팩(0크레딧 사용)은 구매 후 7일 이내 전액 환불 가능합니다.',
+    '미사용 크레딧 팩(0크레딧 사용)은 구매 후 7일 이내 환불 가능합니다 (결제수수료는 차감 후 환불).',
     '1크레딧이라도 사용한 경우 해당 크레딧 팩은 환불 불가입니다.',
     '당사 기술 이슈로 제공 실패 시, 크레딧을 먼저 복구하고 빠르게 지원합니다.',
   ],
@@ -39,9 +39,11 @@ const sections: Section[] = [
 IMPORTANT - Credit Pack Refund Policy:
 
 A) UNUSED Credits (within 7 days of purchase):
-- Full refund available ONLY if zero (0) credits have been used
+- Refund available ONLY if zero (0) credits have been used
 - Refund request must be made within 7 days of purchase date
 - After 7 days, unused credits are NON-REFUNDABLE
+- The payment processing fee (~3.5% + ₩300) is withheld from the refund. This fee is not
+  returned by the payment processor (Stripe) on refunds.
 
 B) PARTIALLY USED Credits:
 - NO REFUND for partially used credit packs
@@ -67,9 +69,11 @@ D) Credit Usage Tracking:
 중요 - 크레딧 팩 환불 정책:
 
 A) 미사용 크레딧 (구매 후 7일 이내):
-- 크레딧을 단 한 개도(0개) 사용하지 않은 경우에만 전액 환불 가능
+- 크레딧을 단 한 개도(0개) 사용하지 않은 경우에만 환불 가능
 - 환불 요청은 구매일로부터 7일 이내에 해야 함
 - 7일 이후에는 미사용 크레딧도 환불 불가
+- 환불 시 결제수수료(약 3.5% + ₩300)는 차감 후 환불됩니다. Stripe 등 결제대행사가 환불 시
+  돌려주지 않는 비용으로, 부득이한 비용(전자상거래법 제17조 단서)에 해당합니다.
 
 B) 부분 사용된 크레딧:
 - 일부라도 사용한 크레딧 팩은 환불 불가
