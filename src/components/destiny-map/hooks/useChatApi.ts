@@ -11,7 +11,7 @@ import {
   getErrorMessage,
   streamProcessor,
 } from '../chat-utils'
-import { generateFollowUpQuestions } from '../chat-followups'
+import { generateFollowUpQuestions, isGenericFollowUp } from '../chat-followups'
 import type { ChatProps, ChatPayload } from '../chat-types'
 import { scoreIcpTest } from '@/lib/icpTest/scoring'
 import { analyzePersona } from '@/lib/persona/analysis'
@@ -295,19 +295,24 @@ export function useChatApi({
         )
         flushFinalMessage(normalizedContent)
 
-        // Set follow-up questions
-        if (result.followUps.length >= CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT) {
-          setFollowUpQuestions(result.followUps.slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT))
-        } else {
-          setFollowUpQuestions(
-            generateFollowUpQuestions(
-              userText,
-              lang,
-              CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT,
-              normalizedContent
-            )
-          )
-        }
+        // Set follow-up questions — 모델이 가끔 generic 질문("더 알려줘"/
+        // "tell me more")을 뱉음. 시스템 프롬프트가 금지하지만 모델이 무시하면
+        // 클라이언트에서 결정적으로 필터링 + 부족분은 테마 기반 폴백으로 보충.
+        const goodAiFollowUps = result.followUps.filter((q) => !isGenericFollowUp(q, lang))
+        const needed = CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT - goodAiFollowUps.length
+        const merged =
+          needed > 0
+            ? [
+                ...goodAiFollowUps,
+                ...generateFollowUpQuestions(
+                  userText,
+                  lang,
+                  CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT,
+                  normalizedContent
+                ).filter((q) => !goodAiFollowUps.includes(q)),
+              ].slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+            : goodAiFollowUps.slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+        setFollowUpQuestions(merged)
 
         if (onSaveMessage) {
           onSaveMessage(userText, normalizedContent)

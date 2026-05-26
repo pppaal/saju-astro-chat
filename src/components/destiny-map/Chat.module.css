@@ -1431,7 +1431,11 @@
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
+  /* 좁은 모바일에서 한 줄에 안 맞으면 자연스럽게 줄바꿈. nowrap 으로 두면
+     width:100% 칩에서도 텍스트가 오른쪽으로 튀어나옴. */
+  white-space: normal;
+  word-break: break-word;
+  text-align: left;
 }
 
 .followUpChip:hover {

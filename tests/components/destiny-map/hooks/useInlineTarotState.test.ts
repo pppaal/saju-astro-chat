@@ -103,7 +103,9 @@ describe('useInlineTarotState', () => {
       expect(result.current.recommendedSpreads.length).toBe(3)
     })
 
-    it('should prefer AI-suggested spreads when present', () => {
+    it('should prefer AI-suggested spreads first, then append remaining defaults', () => {
+      // PR #565 이후: AI 제안은 앞쪽에 정렬되고 카테고리 내 나머지 스프레드는
+      // 뒤에 붙어 항상 전체가 노출됨 (standalone 타로와 동일).
       const { result } = renderHook(() => useInlineTarotState(defaultOptions))
 
       const suggested = [
@@ -114,7 +116,11 @@ describe('useInlineTarotState', () => {
         result.current.actions.setSuggestedSpreads(suggested)
       })
 
-      expect(result.current.recommendedSpreads).toEqual(suggested)
+      expect(result.current.recommendedSpreads[0]).toEqual(suggested[0])
+      expect(result.current.recommendedSpreads.length).toBeGreaterThan(1)
+      expect(
+        result.current.recommendedSpreads.some((s) => s.id === 'relationship-spread')
+      ).toBe(true)
     })
   })
 
