@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { MessageCircle, Send, Loader2 } from 'lucide-react'
+import { MessageCircle, Send, Loader2, Sparkles } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
+import { drawClarifierCard, buildClarifierUserMessage } from '@/lib/tarot/drawClarifierCard'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 
 interface FollowupChatProps {
@@ -51,14 +52,13 @@ export function FollowupChat({
     return () => io.disconnect()
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const q = input.trim()
-    if (!q || submitting) return
+  // 본 submit 로직 — 텍스트를 받아 followup 엔드포인트로 보낸다.
+  // 키보드/버튼 submit 과 클래리파이어 카드 버튼 둘 다 이 함수를 쓴다.
+  const sendQuestionText = async (q: string) => {
+    if (!q.trim() || submitting) return
 
     const nextHistory: Turn[] = [...history, { role: 'user', content: q }]
     setHistory(nextHistory)
-    setInput('')
     setSubmitting(true)
 
     // Add placeholder assistant turn we'll fill in
@@ -103,9 +103,7 @@ export function FollowupChat({
             role: 'assistant',
             content:
               answer ||
-              (isKo
-                ? '죄송해요, 다시 한 번 물어봐 주실래요?'
-                : 'Sorry, could you ask that again?'),
+              (isKo ? '죄송해요, 다시 한 번 물어봐 주실래요?' : 'Sorry, could you ask that again?'),
           }
         }
         return copy
@@ -130,6 +128,24 @@ export function FollowupChat({
     }
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const q = input.trim()
+    if (!q || submitting) return
+    setInput('')
+    await sendQuestionText(q)
+  }
+
+  // 🃏 클래리파이어 카드 한 장 — 즉석으로 카드를 한 장 뽑아 followup
+  // 엔드포인트에 사용자 메시지로 흘려보내면 직전 리딩 흐름에 맞춰 짧은
+  // 보충 해석을 받는다. 풀 모달 없이 즉시 단서를 더하고 싶을 때.
+  const handleDrawClarifier = async () => {
+    if (submitting) return
+    const card = drawClarifierCard()
+    const text = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
+    await sendQuestionText(text)
+  }
+
   return (
     <section className="rounded-2xl bg-slate-900/50 border border-cyan-500/20 shadow-[0_0_24px_rgba(34,211,238,0.06)] p-5 md:p-6 space-y-4">
       <div className="flex items-center gap-2">
@@ -140,15 +156,9 @@ export function FollowupChat({
       </div>
 
       {history.length > 0 && (
-        <div
-          ref={scrollRef}
-          className="max-h-80 overflow-y-auto space-y-3 pr-1"
-        >
+        <div ref={scrollRef} className="max-h-80 overflow-y-auto space-y-3 pr-1">
           {history.map((t, i) => (
-            <div
-              key={i}
-              className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+            <div key={i} className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
                 className={`max-w-[88%] rounded-xl px-4 py-2.5 ${
                   t.role === 'user'
@@ -170,6 +180,23 @@ export function FollowupChat({
         </div>
       )}
 
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={handleDrawClarifier}
+          disabled={submitting}
+          className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-[12px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+          title={
+            isKo
+              ? '직전 리딩 흐름에 클래리파이어 카드 한 장 더 뽑기'
+              : 'Draw one clarifier card to add to this reading'
+          }
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          {isKo ? '카드 한 장 더 뽑기' : 'Draw one more card'}
+        </button>
+      </div>
+
       <form onSubmit={handleSubmit} className="flex items-end gap-2">
         <textarea
           ref={inputRef}
@@ -181,9 +208,7 @@ export function FollowupChat({
               handleSubmit(e)
             }
           }}
-          placeholder={
-            isKo ? '더 궁금한 점을 적어주세요' : 'Ask another question'
-          }
+          placeholder={isKo ? '더 궁금한 점을 적어주세요' : 'Ask another question'}
           rows={1}
           className="flex-1 bg-slate-800 border border-slate-700 focus:border-cyan-500 rounded-full px-4 py-2.5 text-slate-100 placeholder-slate-500 resize-none outline-none text-sm h-11 max-h-32 transition-colors leading-6"
           disabled={submitting}

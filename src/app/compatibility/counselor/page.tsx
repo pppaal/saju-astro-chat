@@ -17,6 +17,7 @@ import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
 import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
 import { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
+import { drawClarifierCard, buildClarifierUserMessage } from '@/lib/tarot/drawClarifierCard'
 
 // 운명상담사와 동일한 InlineTarotModal — 사용자가 질문 적고 스프레드
 // 골라 카드를 펼치는 인터랙티브 흐름. 결과는 채팅 메시지로 inject.
@@ -530,6 +531,16 @@ function CompatibilityCounselorContent() {
     }
   }
 
+  // 🃏 클래리파이어 카드 한 장 — 모달 안 띄우고 카드 한 장만 즉석 추첨해
+  // 사용자 메시지로 보내면 본 채팅의 LLM 이 직전 대화 + 두 사람 컨텍스트로
+  // 한 단락 보충 해석을 답한다.
+  const handleDrawClarifier = useCallback(() => {
+    if (isLoading || persons.length < 2) return
+    const card = drawClarifierCard()
+    const userText = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
+    sendMessage(userText)
+  }, [isLoading, persons.length, isKo, sendMessage])
+
   // 🃏 맞춤 타로 — 운명상담사와 동일한 InlineTarotModal 흐름. 사용자가
   // 질문 적고 스프레드 골라 카드 펼치면 결과를 채팅 메시지로 inject.
   // 본 채팅의 다음 follow-up 은 두 사람 컨텍스트를 가지고 커플 관점에서
@@ -678,6 +689,22 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 {'🎴'}
               </span>
               {isKo ? '빠른 5장 타로' : 'Quick 5-card tarot'}
+            </button>
+            <button
+              type="button"
+              className={styles.sidebarFooterBtn}
+              onClick={handleDrawClarifier}
+              disabled={isLoading || persons.length < 2}
+              title={
+                isKo
+                  ? '직전 대화 흐름에 클래리파이어 카드 한 장 더 뽑기'
+                  : 'Draw one clarifier card for the current thread'
+              }
+            >
+              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+                {'🃏'}
+              </span>
+              {isKo ? '카드 한 장 더 뽑기' : 'Draw one more card'}
             </button>
             <button
               type="button"
