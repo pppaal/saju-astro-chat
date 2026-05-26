@@ -223,7 +223,7 @@ export async function POST(req: NextRequest) {
             systemPrompt,
             userPrompt,
             model: DEFAULT_CLAUDE_MODEL,
-            maxTokens: 4000,
+            maxTokens: 6000,
             temperature: 0.7,
             timeoutMs: OPENAI_TIMEOUT_MS,
             label: 'tarot-stream',
@@ -273,14 +273,14 @@ export async function POST(req: NextRequest) {
             includeMeta,
           })
 
-        // Per-card token budget — 500 tokens / card + 500 base for chunks
-        // carrying overall/advice. Previous 2400-flat ceiling left 15-card
-        // spreads at ~244 tok/card on chunk A; Sonnet 4.5 supports much
-        // more headroom so cap at 6000 per chunk.
+        // Per-card token budget — 650 tokens / card + 500 base for chunks
+        // carrying overall/advice. Card length spec is 400-650자
+        // (≈ 500-800 tokens / card), so per-card budget tracks that.
+        // Haiku 4.5 supports plenty of headroom — cap at 7500 per chunk.
         const chunkAcards = mid
         const chunkBcards = rawCards.length - mid
-        const chunkAmaxTokens = Math.min(6000, 500 + chunkAcards * 500)
-        const chunkBmaxTokens = Math.min(6000, chunkBcards * 500 + 200)
+        const chunkAmaxTokens = Math.min(7500, 500 + chunkAcards * 650)
+        const chunkBmaxTokens = Math.min(7500, chunkBcards * 650 + 200)
 
         const safeParse = (raw: string): Record<string, unknown> | null => {
           const match = raw.match(/\{[\s\S]*\}/)
