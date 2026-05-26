@@ -1,6 +1,12 @@
 import { findTransitAspects } from '@/lib/astrology/foundation/transit'
 import type { Chart } from '@/lib/astrology/foundation/types'
-import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity, SignalLayer } from '../types'
+import type {
+  ActiveSignal,
+  ExtractorContext,
+  SignalExtractor,
+  Polarity,
+  SignalLayer,
+} from '../types'
 import { inferAspectPolarity } from '../themes/tagger'
 import { getCachedTransitChart } from '../ephe-cache'
 
@@ -19,7 +25,13 @@ const astroTransitExtractor: SignalExtractor = {
   kind: 'transit',
   async extract(ctx: ExtractorContext): Promise<ActiveSignal[]> {
     const { natal, range, cache } = ctx
-    const natalChart = natal.astro.chart
+    // 본명 카이런·릴리스를 본명 점에 합쳐 "트랜짓 → 본명 카이런/릴리스" 어스펙트도
+    // 잡는다 (extraPoints는 이 extractor에서만 사용 — 다른 extractor는 영향 없음).
+    const extraPoints = natal.astro.extraPoints ?? []
+    const natalChart =
+      extraPoints.length > 0
+        ? { ...natal.astro.chart, planets: [...natal.astro.chart.planets, ...extraPoints] }
+        : natal.astro.chart
 
     // 1) range 내 매일 정오의 트랜짓 차트 계산 — 2단 캐시 (InMemory + Redis)
     const dailyCharts: Array<{ iso: string; chart: Chart }> = []
@@ -38,7 +50,13 @@ const astroTransitExtractor: SignalExtractor = {
     }
 
     // 2) 매일 어스펙트 hits 수집 → (transit, natal, aspect) 키로 그룹핑
-    type Hit = { iso: string; orb: number; transitPlanet: string; natalPoint: string; aspectType: string }
+    type Hit = {
+      iso: string
+      orb: number
+      transitPlanet: string
+      natalPoint: string
+      aspectType: string
+    }
     const hitsByKey = new Map<string, Hit[]>()
     for (const { iso, chart } of dailyCharts) {
       const aspects = findTransitAspects(chart, natalChart)
@@ -68,7 +86,11 @@ const astroTransitExtractor: SignalExtractor = {
         const startIso = seg[0].iso
         const endIso = seg[seg.length - 1].iso
         const sample = seg[0]
-        const polarity: Polarity = inferAspectPolarity(sample.aspectType, sample.transitPlanet, sample.natalPoint)
+        const polarity: Polarity = inferAspectPolarity(
+          sample.aspectType,
+          sample.transitPlanet,
+          sample.natalPoint
+        )
         const layer: SignalLayer = transitLayer(sample.transitPlanet)
 
         signals.push({
@@ -97,8 +119,16 @@ const astroTransitExtractor: SignalExtractor = {
   },
 }
 
-function splitConsecutive(hits: Array<{ iso: string; orb: number; transitPlanet: string; natalPoint: string; aspectType: string }>) {
-  const segments: typeof hits[] = []
+function splitConsecutive(
+  hits: Array<{
+    iso: string
+    orb: number
+    transitPlanet: string
+    natalPoint: string
+    aspectType: string
+  }>
+) {
+  const segments: (typeof hits)[] = []
   let current: typeof hits = []
   for (const h of hits) {
     if (current.length === 0) {
@@ -128,16 +158,24 @@ function transitLayer(planet: string): SignalLayer {
 
 const ASPECT_BASE_WEIGHT: Record<string, number> = {
   conjunction: 1.0,
-  opposition:  0.95,
-  trine:       0.85,
-  square:      0.9,
-  sextile:     0.7,
-  quincunx:    0.6,
+  opposition: 0.95,
+  trine: 0.85,
+  square: 0.9,
+  sextile: 0.7,
+  quincunx: 0.6,
   semisextile: 0.4,
 }
 const PLANET_WEIGHT: Record<string, number> = {
-  Sun: 0.85, Moon: 0.7, Mercury: 0.6, Venus: 0.7, Mars: 0.85,
-  Jupiter: 0.95, Saturn: 1.0, Uranus: 1.0, Neptune: 1.0, Pluto: 1.0,
+  Sun: 0.85,
+  Moon: 0.7,
+  Mercury: 0.6,
+  Venus: 0.7,
+  Mars: 0.85,
+  Jupiter: 0.95,
+  Saturn: 1.0,
+  Uranus: 1.0,
+  Neptune: 1.0,
+  Pluto: 1.0,
 }
 function weightForTransit(planet: string, aspect: string, orb: number): number {
   const aspectW = ASPECT_BASE_WEIGHT[aspect] ?? 0.5
@@ -147,13 +185,38 @@ function weightForTransit(planet: string, aspect: string, orb: number): number {
 }
 
 function aspectSymbol(a: string): string {
-  return ({ conjunction: '☌', opposition: '☍', trine: '△', square: '□', sextile: '✶',
-    quincunx: '⚻', semisextile: '⚺', quintile: 'Q', biquintile: 'bQ' } as Record<string, string>)[a] ?? a
+  return (
+    (
+      {
+        conjunction: '☌',
+        opposition: '☍',
+        trine: '△',
+        square: '□',
+        sextile: '✶',
+        quincunx: '⚻',
+        semisextile: '⚺',
+        quintile: 'Q',
+        biquintile: 'bQ',
+      } as Record<string, string>
+    )[a] ?? a
+  )
 }
 function aspectKorean(a: string): string {
-  return ({ conjunction: '컨정션', opposition: '어포지션', trine: '트라인', square: '스퀘어',
-    sextile: '섹스타일', quincunx: '퀸컹스', semisextile: '세미섹스타일',
-    quintile: '퀸타일', biquintile: '바이퀸타일' } as Record<string, string>)[a] ?? a
+  return (
+    (
+      {
+        conjunction: '컨정션',
+        opposition: '어포지션',
+        trine: '트라인',
+        square: '스퀘어',
+        sextile: '섹스타일',
+        quincunx: '퀸컹스',
+        semisextile: '세미섹스타일',
+        quintile: '퀸타일',
+        biquintile: '바이퀸타일',
+      } as Record<string, string>
+    )[a] ?? a
+  )
 }
 
 export default astroTransitExtractor

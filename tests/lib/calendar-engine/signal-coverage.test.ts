@@ -59,5 +59,10 @@ describe('calendar engine signal coverage (saju×astrology cross)', () => {
 
     // 교차가 얕지 않다는 최소 다양성
     expect(kinds.length).toBeGreaterThanOrEqual(8)
+
+    // 본명 카이런·릴리스로 들어오는 트랜짓 신호가 있어야 한다 (extraPoints 배선 가드)
+    const names = signals.map((s) => String(s.name || ''))
+    expect(names.some((n) => /Chiron/.test(n))).toBe(true)
+    expect(names.some((n) => /Lilith/.test(n))).toBe(true)
   })
 })
