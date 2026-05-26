@@ -18,6 +18,7 @@ import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
+import { drawClarifierCard, buildClarifierUserMessage } from '@/lib/tarot/drawClarifierCard'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
@@ -79,7 +80,10 @@ const Chat = memo(function Chat({
     )
   }, [])
 
-  const { cvText, cvName, parsingPdf, handleFileUpload, clearFile } = useFileUpload({ lang, setNotice })
+  const { cvText, cvName, parsingPdf, handleFileUpload, clearFile } = useFileUpload({
+    lang,
+    setNotice,
+  })
 
   const {
     loading,
@@ -310,6 +314,16 @@ const Chat = memo(function Chat({
   }, [initialSessionId, loadSession, scrollToLatest])
 
   const goToTarot = React.useCallback(() => setShowTarotModal(true), [])
+
+  // 🃏 클래리파이어 카드 한 장 — 카드 한 장만 클라이언트에서 즉석 추첨해
+  // user 메시지로 흘려 보내면, 본 채팅의 LLM 이 직전 흐름에 맞춰 한 단락
+  // 보충 해석을 답해준다. InlineTarotModal 처럼 풀 스프레드 고를 필요 없이
+  // "한 장만 더" 가벼운 단서가 필요할 때.
+  const drawClarifier = React.useCallback(() => {
+    const card = drawClarifierCard()
+    const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
+    void handleSendRef.current?.(userText)
+  }, [effectiveLang])
 
   const handleTarotComplete = (result: TarotResultSummary) => {
     const cardsSummary = result.cards
@@ -600,6 +614,23 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               {effectiveLang === 'ko'
                 ? '\uB2E4\uC74C \uC9C8\uBB38 \uD0C0\uB85C\uB85C \uBCF4\uAE30'
                 : 'See your next question in tarot'}
+            </button>
+            <button
+              type="button"
+              className={styles.historyRailFooterBtn}
+              onClick={drawClarifier}
+              title={
+                effectiveLang === 'ko'
+                  ? '\uBCF4\uCDA9 \uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30 (\uC989\uC11D \uD074\uB798\uB9AC\uD30C\uC774\uC5B4)'
+                  : 'Draw one clarifier card (quick)'
+              }
+            >
+              <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
+                {'\uD83C\uDCCF'}
+              </span>
+              {effectiveLang === 'ko'
+                ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30'
+                : 'Draw one more card'}
             </button>
             <button
               type="button"
