@@ -59,7 +59,8 @@ export function CardPickingScreen({
     // 카드 수 늘어난 만큼 호 폭 1400px 로 확장 (드래그로 양옆 탐색)
     const x = normalized * 1400
     const y = Math.pow(normalized * 2, 2) * 55
-    const rotate = normalized * 45
+    // 부채꼴 각도 — 살짝만 펼쳐서 1자에 가깝게 (45 → 35)
+    const rotate = normalized * 35
     return { x, y, rotate }
   }
 
@@ -98,7 +99,7 @@ export function CardPickingScreen({
             const filled = i < selectedIndices.length
             const positionLabel = spreadInfo.positions?.[i]
             const posTitle = isKo
-              ? positionLabel?.titleKo ?? positionLabel?.title
+              ? (positionLabel?.titleKo ?? positionLabel?.title)
               : positionLabel?.title
             return (
               <div
@@ -141,100 +142,102 @@ export function CardPickingScreen({
             ? `${selectedIndices.length}/${MAX_SELECTED} · 마음이 이끄는 카드를 선택하세요`
             : `${selectedIndices.length}/${MAX_SELECTED} · Choose the cards your heart calls to`}
         </p>
+      </div>
 
-        {/* 드래그 안내 — 부채꼴을 좌우로 탐색할 수 있음을 알림 */}
+      {/* 카드 드래그 영역 — 드래그 안내 + 부채꼴 펼침. 안내문을 카드 바로
+          위에 배치해 카드와 시각적으로 가깝게 묶는다. */}
+      <div className="flex-1 w-full flex flex-col items-center mt-4 mb-24">
         <motion.p
-          className="mt-2 flex items-center gap-2 text-amber-200/45 text-[11px] md:text-xs tracking-wide font-light"
-          animate={{ opacity: [0.35, 0.85, 0.35] }}
+          className="flex items-center gap-2 text-amber-200/60 text-sm md:text-base tracking-wide font-light mb-3 z-10 pointer-events-none"
+          animate={{ opacity: [0.5, 0.95, 0.5] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
         >
           <span aria-hidden>←</span>
           {isKo ? '좌우로 드래그하세요' : 'Drag left or right'}
           <span aria-hidden>→</span>
         </motion.p>
-      </div>
 
-      {/* 카드 드래그 영역 — 부채꼴 펼침 */}
-      <div
-        ref={containerRef}
-        className="flex-1 w-full relative flex items-center justify-center mt-4 mb-24 cursor-grab active:cursor-grabbing"
-      >
-        <motion.div
-          drag="x"
-          dragConstraints={constraints}
-          dragElastic={0.2}
-          dragTransition={{ bounceStiffness: 100, bounceDamping: 15 }}
-          className="absolute flex items-center justify-center"
-          style={{ width: '100%', height: '100%' }}
+        <div
+          ref={containerRef}
+          className="flex-1 w-full relative flex items-center justify-center cursor-grab active:cursor-grabbing"
         >
-          {Array.from({ length: TOTAL_CARDS }).map((_, index) => {
-            const isPicked = selectedIndices.includes(index)
-            const sp = getCardStyle(index)
-            const pickOrder = selectionOrderMap.get(index)
+          <motion.div
+            drag="x"
+            dragConstraints={constraints}
+            dragElastic={0.2}
+            dragTransition={{ bounceStiffness: 100, bounceDamping: 15 }}
+            className="absolute flex items-center justify-center"
+            style={{ width: '100%', height: '100%' }}
+          >
+            {Array.from({ length: TOTAL_CARDS }).map((_, index) => {
+              const isPicked = selectedIndices.includes(index)
+              const sp = getCardStyle(index)
+              const pickOrder = selectionOrderMap.get(index)
 
-            return (
-              <motion.button
-                key={index}
-                type="button"
-                disabled={isPicked || selectedIndices.length >= MAX_SELECTED || isSpreading}
-                initial={{ opacity: 0, y: 150 }}
-                animate={{
-                  opacity: isPicked ? 0.15 : 1,
-                  x: sp.x,
-                  y: isPicked ? sp.y - 150 : sp.y,
-                  rotate: sp.rotate,
-                  scale: isPicked ? 0.85 : 1,
-                }}
-                // 마운트 fan-out 만 spring — hover/drag 동안에는 빠른 tween 사용 (40장 spring physics 비용 회피)
-                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={
-                  !isPicked && selectedIndices.length < MAX_SELECTED
-                    ? {
-                        y: sp.y - 40,
-                        scale: 1.08,
-                        rotate: 0,
-                        zIndex: 100,
-                        transition: { duration: 0.18, ease: 'easeOut' },
-                      }
-                    : undefined
-                }
-                onClick={() => onCardClick(index)}
-                className="absolute w-20 h-32 md:w-28 md:h-44 rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.8)] border border-amber-900/30 group"
-                style={{
-                  zIndex: index,
-                  pointerEvents: isPicked ? 'none' : 'auto',
-                  background: selectedColor.gradient,
-                  willChange: 'transform',
-                }}
-              >
-                {/* 카드 뒷면 — 선택된 덱 이미지 */}
-                <div className="absolute inset-[3px] rounded-lg overflow-hidden group-hover:brightness-125 transition-all duration-300">
-                  <Image
-                    src={selectedColor.backImage}
-                    alt={`Card ${index}`}
-                    fill
-                    sizes="(max-width: 768px) 80px, 112px"
-                    className="object-cover"
-                    priority={index < 4}
-                  />
-                </div>
-
-                {/* 픽 순서 배지 */}
-                {pickOrder !== undefined && (
-                  <div
-                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-amber-500 text-[#030308] text-[10px] font-bold flex items-center justify-center z-10"
-                    style={{ boxShadow: '0 0 8px rgba(245,158,11,0.6)' }}
-                  >
-                    {pickOrder + 1}
+              return (
+                <motion.button
+                  key={index}
+                  type="button"
+                  disabled={isPicked || selectedIndices.length >= MAX_SELECTED || isSpreading}
+                  initial={{ opacity: 0, y: 150 }}
+                  animate={{
+                    opacity: isPicked ? 0.15 : 1,
+                    x: sp.x,
+                    y: isPicked ? sp.y - 150 : sp.y,
+                    rotate: sp.rotate,
+                    scale: isPicked ? 0.85 : 1,
+                  }}
+                  // 마운트 fan-out 만 spring — hover/drag 동안에는 빠른 tween 사용 (40장 spring physics 비용 회피)
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={
+                    !isPicked && selectedIndices.length < MAX_SELECTED
+                      ? {
+                          y: sp.y - 40,
+                          scale: 1.08,
+                          rotate: 0,
+                          zIndex: 100,
+                          transition: { duration: 0.18, ease: 'easeOut' },
+                        }
+                      : undefined
+                  }
+                  onClick={() => onCardClick(index)}
+                  className="absolute w-20 h-32 md:w-28 md:h-44 rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.8)] border border-amber-900/30 group"
+                  style={{
+                    zIndex: index,
+                    pointerEvents: isPicked ? 'none' : 'auto',
+                    background: selectedColor.gradient,
+                    willChange: 'transform',
+                  }}
+                >
+                  {/* 카드 뒷면 — 선택된 덱 이미지 */}
+                  <div className="absolute inset-[3px] rounded-lg overflow-hidden group-hover:brightness-125 transition-all duration-300">
+                    <Image
+                      src={selectedColor.backImage}
+                      alt={`Card ${index}`}
+                      fill
+                      sizes="(max-width: 768px) 80px, 112px"
+                      className="object-cover"
+                      priority={index < 4}
+                    />
                   </div>
-                )}
 
-                {/* 호버 골드 글로우 */}
-                <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 shadow-[0_0_25px_rgba(245,158,11,0.15)] transition-opacity duration-300 pointer-events-none" />
-              </motion.button>
-            )
-          })}
-        </motion.div>
+                  {/* 픽 순서 배지 */}
+                  {pickOrder !== undefined && (
+                    <div
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-amber-500 text-[#030308] text-[10px] font-bold flex items-center justify-center z-10"
+                      style={{ boxShadow: '0 0 8px rgba(245,158,11,0.6)' }}
+                    >
+                      {pickOrder + 1}
+                    </div>
+                  )}
+
+                  {/* 호버 골드 글로우 */}
+                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 shadow-[0_0_25px_rgba(245,158,11,0.15)] transition-opacity duration-300 pointer-events-none" />
+                </motion.button>
+              )
+            })}
+          </motion.div>
+        </div>
       </div>
 
       {/* 하단 상태바 */}
