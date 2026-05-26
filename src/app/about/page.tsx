@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import { SERVICE_OPTIONS, type ServiceKey } from '@/app/(main)/serviceConfig'
+import ParticleCanvas from '@/app/(main)/components/ParticleCanvas'
 import styles from './about.module.css'
 
 type ServiceCard = {
@@ -128,6 +129,12 @@ export default function AboutPage() {
 
   return (
     <div className={styles.page}>
+      <div className={styles.nebulaLayer} aria-hidden>
+        <span className={`${styles.nebula} ${styles.nebulaPurple}`} />
+        <span className={`${styles.nebula} ${styles.nebulaGold}`} />
+        <span className={`${styles.nebula} ${styles.nebulaEmerald}`} />
+      </div>
+      <ParticleCanvas />
       <main className={styles.main}>
         {/* Hero */}
         <section className={styles.hero}>
