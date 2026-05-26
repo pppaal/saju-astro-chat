@@ -5,6 +5,7 @@ import type { Message, FeedbackType } from '../chat-constants'
 import type { Copy } from '../chat-i18n'
 import MessageRow from '../MessageRow'
 import { repairMojibakeText } from '@/lib/text/mojibake'
+import { pickGreeting } from '@/lib/counselor/greetingTemplates'
 
 interface MessagesPanelProps {
   visibleMessages: Message[]
@@ -19,6 +20,8 @@ interface MessagesPanelProps {
   onFeedback: (msgId: string, type: FeedbackType) => Promise<void>
   onFollowUp: (question: string) => void
   styles: Record<string, string>
+  /** 빈 채팅 hero 인사 개인화용. 없으면 generic 인사로 폴백. */
+  userName?: string
 }
 
 export const MessagesPanel = React.memo(function MessagesPanel({
@@ -34,7 +37,15 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   onFeedback,
   onFollowUp,
   styles,
+  userName,
 }: MessagesPanelProps) {
+  // 시간대 + (있으면) 이름 기반으로 풀에서 한 문구 픽. 같은 방문 안에선 안정,
+  // 새 방문/언어/이름 변경 시 다시 픽. tr.empty 는 어떤 이유로 풀이 비었을
+  // 때만 폴백.
+  const heroGreeting = React.useMemo(
+    () => pickGreeting({ lang: effectiveLang, name: userName }) || tr.empty,
+    [effectiveLang, userName, tr.empty]
+  )
   return (
     <div className={styles.messagesPanel} role="log" aria-live="polite" aria-label="Chat messages">
       {notice && (
@@ -53,7 +64,7 @@ export const MessagesPanel = React.memo(function MessagesPanel({
           <div className={styles.emptyIcon} aria-hidden="true">
             &#x2734;
           </div>
-          <p className={styles.emptyText}>{tr.empty}</p>
+          <p className={styles.emptyText}>{heroGreeting}</p>
           {/* Suggestion chips removed per user request — "나는 어떤
               사람이에요? ✨" / "올해 무슨 일이 생길까요?" / "행운의
               숫자/색깔 알려줘" felt like a fortune-app catalog when
