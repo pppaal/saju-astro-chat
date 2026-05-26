@@ -28,7 +28,6 @@ import {
   parseBirthDate,
   applyMatrixPreformatRegrade,
   formatDateForResponse,
-  rebalanceCalendarDisplayGrades,
   LOCATION_COORDS,
   type MatrixCalendarContext,
 } from './lib/helpers'
@@ -570,7 +569,7 @@ export const GET = withApiMiddleware(
     // rebalance는 augment 후로 미룬다 — augment가 displayScore를 v2 셀로 덮어쓰는데,
     // 그 전에 rank를 매기면 옛 score 기준 displayGrade가 새 displayScore와 어긋나
     // 같은 카드 안에서 배지(grade)와 숫자(score)가 불일치한다.
-    let formattedDates = matrixRegradedDates.map((d) => formatCalendarDate(d))
+    const formattedDates = matrixRegradedDates.map((d) => formatCalendarDate(d))
 
     // ── calendar-engine v2 augmentation (non-blocking, opt-in via fields) ──
     // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
@@ -795,8 +794,12 @@ export const GET = withApiMiddleware(
       )
     }
 
-    // augment가 displayScore를 덮어쓴 뒤(또는 실패해 그대로인 채) displayGrade 재배치.
-    formattedDates = rebalanceCalendarDisplayGrades(formattedDates)
+    // rank 기반 displayGrade 재배치는 카드 안 모순의 뿌리였다. yearlyDates가 이미
+    // displayScore에서 scoreToGrade로 grade를 도출해 narrative(title/description/
+    // warnings/recommendations)를 그 grade로 만든다. 그 후 별도 분포로 displayGrade를
+    // 다시 매기면 같은 카드에서 "좋음 배지(=displayGrade) + 보통 톤 본문(=grade로 만든
+    // 문구)" 모순이 다시 난다. displayGrade는 formatDateForResponse가 이미
+    // date.grade로 부착하므로 추가 작업 불필요.
 
     const presentationDomainMap = {
       career: 'career',

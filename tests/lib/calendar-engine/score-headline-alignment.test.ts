@@ -79,6 +79,28 @@ describe('calendar headline alignment (R1/R2/R3 regression guards)', () => {
     }
   })
 
+  it('displayGrade equals grade on every date (deep guard against rank-rebalance contradiction)', async () => {
+    const response = await calendarGet(
+      asNextRequest(
+        new Request(
+          'http://localhost:3000/api/calendar?birthDate=1995-02-09&birthTime=06:40&birthPlace=Seoul&year=2026&month=2026-05&locale=ko',
+          { headers: { 'x-api-token': 'public-token' } }
+        )
+      )
+    )
+    expect(response.status).toBe(200)
+    const payload = (await response.json()) as { allDates?: Array<Record<string, unknown>> }
+    const all = payload.allDates || []
+    expect(all.length).toBeGreaterThan(300)
+
+    // narrative(title/description/warnings/recommendations)는 yearlyDates가 score → grade로
+    // 만든다. displayGrade가 다른 분포로 재계산되면 같은 카드 안에서 배지(displayGrade)와
+    // 본문 톤(grade) 모순. rank-rebalance를 폐기한 deep fix가 살아 있는지 점검.
+    for (const d of all) {
+      expect(d.displayGrade).toBe(d.grade)
+    }
+  })
+
   it('emits a healthy grade distribution incl. top grade (R2 guard against silent demote)', async () => {
     const response = await calendarGet(
       asNextRequest(
