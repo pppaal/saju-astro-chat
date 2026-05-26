@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { ENABLED_SERVICES } from '@/config/enabledServices'
 
@@ -14,9 +15,13 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
   const [agreed, setAgreed] = useState(false)
   const [loginPanelOpen, setLoginPanelOpen] = useState(false)
   const { data: session, status } = useSession()
+  const pathname = usePathname()
   const isAuthed = status === 'authenticated'
   const userName = session?.user?.name || session?.user?.email || (isAuthed ? 'Account' : null)
   const isKo = locale === 'ko'
+  // 타로 컨텍스트 일 때만 '타로 리딩 기록' 노출 — 다른 페이지에서는 노이즈 X.
+  // 그 외 진입점은 프로필(/profile) 안에 있음.
+  const isInTarot = pathname?.startsWith('/tarot') ?? false
 
   // Reset the login panel collapsed state every time the drawer closes so
   // a returning user always sees the compact "로그인" row first.
@@ -105,17 +110,17 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                 type="button"
                 onClick={close}
                 aria-label={isKo ? '닫기' : 'Close'}
-                className="inline-flex items-center justify-center w-8 h-8 rounded-full
+                className="inline-flex items-center justify-center w-7 h-7 rounded-full
                   border border-white/15 bg-white/5 text-white/85
                   hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <svg
-                  width="14"
-                  height="14"
+                  width="12"
+                  height="12"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2.2"
+                  strokeWidth="2.4"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   aria-hidden="true"
@@ -130,7 +135,7 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
               <div className="px-2 pb-2">
                 {isAuthed ? (
                   <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.04] text-white/90">
-                    <span aria-hidden="true">👤</span>
+                    <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">👤</span>
                     <span className="text-sm truncate">{userName}</span>
                   </div>
                 ) : !loginPanelOpen ? (
@@ -143,7 +148,7 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                       bg-white/[0.04] text-white/90 hover:bg-white/[0.08] cursor-pointer
                       transition-colors text-left"
                   >
-                    <span aria-hidden="true">🔑</span>
+                    <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">🔑</span>
                     <span className="text-sm">{isKo ? '로그인' : 'Login'}</span>
                   </button>
                 ) : (
@@ -235,7 +240,7 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl
                     text-white/90 hover:bg-white/[0.06] transition-colors"
                 >
-                  <span aria-hidden="true" className="text-base">
+                  <span aria-hidden="true" className="inline-flex w-5 items-center justify-center text-base">
                     {service.icon}
                   </span>
                   <span className="text-sm">{isKo ? service.label.ko : service.label.en}</span>
@@ -253,12 +258,24 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                 <span aria-hidden="true">👤</span>
                 <span className="text-sm">{isKo ? '내 정보' : 'My Info'}</span>
               </Link>
+              {isAuthed && isInTarot && (
+                <Link
+                  href="/tarot/history"
+                  onClick={close}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/[0.06]"
+                >
+                  <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">🔮</span>
+                  <span className="text-sm">
+                    {isKo ? '타로 리딩 기록' : 'My Tarot Readings'}
+                  </span>
+                </Link>
+              )}
               <Link
                 href="/pricing"
                 onClick={close}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/[0.06]"
               >
-                <span aria-hidden="true">💳</span>
+                <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">💳</span>
                 <span className="text-sm">{isKo ? '크레딧 충전' : 'Recharge Credits'}</span>
               </Link>
               {isAuthed && (
@@ -271,7 +288,7 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90
                     hover:bg-white/[0.06] cursor-pointer text-left"
                 >
-                  <span aria-hidden="true">🚪</span>
+                  <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">🚪</span>
                   <span className="text-sm">{isKo ? '로그아웃' : 'Logout'}</span>
                 </button>
               )}

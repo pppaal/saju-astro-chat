@@ -289,10 +289,19 @@ export const authOptions: NextAuthOptions = {
       )
       return true
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session: updatedSession }) {
       if (user) {
         token.id = user.id ?? token.id
         token.email = user.email ?? token.email
+        token.name = user.name ?? token.name
+      }
+      // /profile 에서 이름 변경 시 useSession().update({ name }) 호출 → trigger='update'
+      // 햄버거 등 useSession 으로 name 읽는 컴포넌트가 즉시 반영되도록 token 갱신.
+      if (trigger === 'update' && updatedSession && typeof updatedSession === 'object') {
+        const next = updatedSession as { name?: unknown }
+        if (typeof next.name === 'string' && next.name.trim()) {
+          token.name = next.name.trim()
+        }
       }
       return token
     },
@@ -300,6 +309,9 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string
         session.user.email = token.email as string
+        if (typeof token.name === 'string') {
+          session.user.name = token.name
+        }
       }
       return session
     },

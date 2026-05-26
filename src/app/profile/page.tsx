@@ -274,7 +274,7 @@ function relationLabel(r: string, locale: Locale): string {
 }
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession()
+  const { data: session, status, update: updateSession } = useSession()
   const { locale: rawLocale } = useI18n()
   const locale: Locale = rawLocale === 'en' ? 'en' : 'ko'
   const signInUrl = buildSignInUrl('/profile')
@@ -679,6 +679,13 @@ export default function ProfilePage() {
                         })
                         if (res.ok) {
                           setProfile((prev) => (prev ? { ...prev, name: next } : prev))
+                          // 햄버거 등 useSession 으로 name 읽는 컴포넌트에 즉시 반영
+                          // (next-auth JWT trigger='update' → jwt 콜백 → 다음 useSession 갱신).
+                          try {
+                            await updateSession({ name: next })
+                          } catch (err) {
+                            logger.warn('[profile] session update failed', err)
+                          }
                           setEditingName(false)
                         } else {
                           setNameError(
@@ -1100,14 +1107,20 @@ export default function ProfilePage() {
 
             {/* Recent activity */}
             <section className={`mt-6 ${cardCls}`}>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <h2 className={sectionLabelCls}>
                   {locale === 'ko' ? '유료 서비스 최근 내역' : 'Paid service history'}
                 </h2>
-                <Link href="/profile/decisions" className={linkCls}>
-                  {locale === 'ko' ? '결정 기록' : 'Decision log'}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link href="/tarot/history" className={linkCls}>
+                    {locale === 'ko' ? '타로 기록' : 'Tarot log'}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                  <Link href="/profile/decisions" className={linkCls}>
+                    {locale === 'ko' ? '결정 기록' : 'Decision log'}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
               </div>
 
               {loading ? (

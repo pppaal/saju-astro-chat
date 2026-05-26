@@ -29,7 +29,7 @@ const ALL_SERVICES: readonly EnabledService[] = [
     icon: '🗺️',
     menuKey: 'menu.destinyMap',
     descriptionKey: 'services.destinyMap.desc',
-    label: { en: 'Destiny Counselor', ko: '운명 상담사' },
+    label: { en: 'East-West Astrology', ko: '동서 점성 상담사' },
     description: { en: 'AI Counseling', ko: 'AI 운명 상담' },
   },
   {
@@ -56,7 +56,7 @@ const ALL_SERVICES: readonly EnabledService[] = [
     icon: '🗓️',
     menuKey: 'menu.calendar',
     descriptionKey: 'services.calendar.desc',
-    label: { en: 'Calendar', ko: '캘린더' },
+    label: { en: 'Yearly/Monthly/Daily Fortune', ko: '일·월·년 운세' },
     description: { en: 'Important Timing Guide', ko: '중요한 타이밍 가이드' },
   },
   {
@@ -87,8 +87,8 @@ const ALL_SERVICES: readonly EnabledService[] = [
 const ACTIVE_PUBLIC_SERVICE_IDS: readonly EnabledServiceId[] = [
   'destinyMap',
   'tarot',
-  'calendar',
   'compatibility',
+  'calendar',
 ] as const
 
 const ACTIVE_SERVICE_SET = new Set<EnabledServiceId>(ACTIVE_PUBLIC_SERVICE_IDS)
