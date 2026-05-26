@@ -106,6 +106,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         if (!res.ok || cancelled) return
         const data = (await res.json()) as {
           user?: {
+            name?: string | null
             birthDate?: string | null
             birthTime?: string | null
             gender?: 'male' | 'female' | 'other' | 'prefer_not' | null
@@ -120,6 +121,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
 
         if (remoteHasFull) {
           const next: StoredBirthInfo = {
+            // 이전엔 name 이 빠져 있었음 — 메인페이지에서 모달 열면 이름 칸
+            // 비어 있는 원인. 서버 프로필의 User.name 을 그대로 전파한다.
+            name: remote!.name || undefined,
             birthDate: remote!.birthDate!,
             birthTime: remote!.birthTime!,
             gender: remote!.gender as 'male' | 'female',
@@ -270,10 +274,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           </p>
         </section>
 
-        <RecommendationChips
-          birthInfo={birthInfo}
-          locale={locale}
-        />
+        <RecommendationChips birthInfo={birthInfo} locale={locale} />
 
         <HomeChatInput
           birthInfo={birthInfo}
@@ -282,11 +283,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         />
       </div>
 
-      <SideDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        locale={locale}
-      />
+      <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} locale={locale} />
 
       <BirthInfoModal
         open={birthModalOpen}
