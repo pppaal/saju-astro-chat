@@ -471,15 +471,19 @@ export const GET = withApiMiddleware(
         birthPlace,
         gender: gender || 'Male',
       })
+      // 셀 datetime은 UTC 미드나잇 키(`isoForCell` in calendar-engine/index.ts).
+      // 서버 TZ가 UTC가 아니면 `new Date(y,m,1).toISOString()`이 전날 UTC가 돼서
+      // 셀의 slice(0,10)이 -1일 어긋남 → engineScoreByDate 키 미스로 v2 점수
+      // 주입이 통째로 비어 버린다. Date.UTC로 UTC 미드나잇을 명시해 TZ 독립으로.
       for (const offset of [-1, 0, 1]) {
-        const d = new Date(ceTargetYear, ceTargetMonth + offset, 1)
-        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-        const rangeEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
+        const start = new Date(Date.UTC(ceTargetYear, ceTargetMonth + offset, 1))
+        const end = new Date(Date.UTC(ceTargetYear, ceTargetMonth + offset + 1, 0, 23, 59, 59))
+        const monthKey = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}`
         const { cells } = await getOrBuildMonth({
           birthKey,
           monthKey,
           natal: ceNatal,
-          range: { start: d.toISOString(), end: rangeEnd.toISOString(), granularity: 'day' },
+          range: { start: start.toISOString(), end: end.toISOString(), granularity: 'day' },
           options: { includeEvidence: true },
         })
         for (const c of cells) {
@@ -563,8 +567,10 @@ export const GET = withApiMiddleware(
         matrixEvidencePackets || undefined
       )
 
-    const formattedDatesBase = matrixRegradedDates.map((d) => formatCalendarDate(d))
-    const formattedDates = rebalanceCalendarDisplayGrades(formattedDatesBase)
+    // rebalance는 augment 후로 미룬다 — augment가 displayScore를 v2 셀로 덮어쓰는데,
+    // 그 전에 rank를 매기면 옛 score 기준 displayGrade가 새 displayScore와 어긋나
+    // 같은 카드 안에서 배지(grade)와 숫자(score)가 불일치한다.
+    let formattedDates = matrixRegradedDates.map((d) => formatCalendarDate(d))
 
     // ── calendar-engine v2 augmentation (non-blocking, opt-in via fields) ──
     // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
@@ -611,23 +617,26 @@ export const GET = withApiMiddleware(
       })
 
       // 빌드 대상 3달: [prev, current, next]. 같은 본명·달이면 cell-cache에서 instant.
+      // ※ Date.UTC 사용 이유는 prescore 블록과 동일 — 셀 datetime이 UTC라 로컬
+      //   midnight으로 만들면 비-UTC 서버에서 키가 -1일 어긋난다.
       const monthsToBuild = [-1, 0, 1].map((offset) => {
-        const d = new Date(targetYear, targetMonth + offset, 1)
+        const start = new Date(Date.UTC(targetYear, targetMonth + offset, 1))
+        const end = new Date(Date.UTC(targetYear, targetMonth + offset + 1, 0, 23, 59, 59))
         return {
-          year: d.getFullYear(),
-          month: d.getMonth(),
-          monthKey: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-          rangeStart: d,
-          rangeEnd: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+          year: start.getUTCFullYear(),
+          month: start.getUTCMonth(),
+          monthKey: `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}`,
+          rangeStart: start,
+          rangeEnd: end,
         }
       })
 
-      const allCells: typeof ceCells = []
       let ceCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
       let prevMonthCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
-      const prevDate = new Date(targetYear, targetMonth - 1, 1)
-      const prevYear = prevDate.getFullYear()
-      const prevMonth = prevDate.getMonth()
+      const allCells: typeof ceCells = []
+      const prevDateUtc = new Date(Date.UTC(targetYear, targetMonth - 1, 1))
+      const prevYear = prevDateUtc.getUTCFullYear()
+      const prevMonth = prevDateUtc.getUTCMonth()
       for (const m of monthsToBuild) {
         const { cells, cached } = await getOrBuildMonth({
           birthKey,
@@ -783,6 +792,9 @@ export const GET = withApiMiddleware(
         err instanceof Error ? err.message : String(err)
       )
     }
+
+    // augment가 displayScore를 덮어쓴 뒤(또는 실패해 그대로인 채) displayGrade 재배치.
+    formattedDates = rebalanceCalendarDisplayGrades(formattedDates)
 
     const presentationDomainMap = {
       career: 'career',

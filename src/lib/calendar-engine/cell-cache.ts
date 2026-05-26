@@ -21,9 +21,15 @@ export interface BirthKeyInput {
   gender: string
 }
 
+// 엔진 시그니처 — 본명 차트에 들어가는 천체/점 셋이 바뀔 때 bump.
+// v3-chironlilith: 본명 카이런·릴리스를 트랜짓 어스펙트 대상에 추가 (PR #560).
+// bump 안 하면 기존 캐시된 사용자가 새 신호를 영원히 못 받음.
+const ENGINE_SIGNATURE = 'v3-chironlilith'
 export function makeBirthKey(input: BirthKeyInput): string {
   return createHash('sha1')
-    .update(`${input.birthDate}|${input.birthTime}|${input.birthPlace}|${input.gender}|v2`)
+    .update(
+      `${input.birthDate}|${input.birthTime}|${input.birthPlace}|${input.gender}|${ENGINE_SIGNATURE}`
+    )
     .digest('hex')
     .slice(0, 24)
 }

@@ -2033,23 +2033,39 @@ export function calculateYearlyImportantDates(
       return typeof v === 'number' ? clamp(v, 0, 100) : 50
     })()
 
-    const sajuAxisScore = Math.round(engineSub)
-    const astroAxisScore = Math.round(transitSub)
+    const sajuAxisRaw = Math.round(engineSub)
+    const astroAxisRaw = Math.round(transitSub)
+    // axisAgreement는 두 축의 raw gap으로 판정 — override가 활성돼 축 표시값을
+    // 시프트하더라도 의미(부호·일치 여부)는 raw 차이로 결정.
     const axisAgreement: 'aligned' | 'mixed' | 'opposed' =
-      Math.abs(sajuAxisScore - astroAxisScore) <= 12
+      Math.abs(sajuAxisRaw - astroAxisRaw) <= 12
         ? 'aligned'
-        : Math.abs(sajuAxisScore - astroAxisScore) <= 28
+        : Math.abs(sajuAxisRaw - astroAxisRaw) <= 28
           ? 'mixed'
           : 'opposed'
 
-    const blendedRaw = (sajuAxisScore + astroAxisScore) / 2
+    const blendedRaw = (sajuAxisRaw + astroAxisRaw) / 2
+    // dailyShift(천간충·지지형·공망 등 본명-일진 의미적 충돌의 누계 점수 영향)는
+    // 타이틀/팩터 narrative에는 반영되는데 헤드라인 점수엔 안 들어가서 "압박 들어옴"
+    // 문구와 60+ 점수가 동시에 떴다. v2 엔진 신호도 natal-day-pillar vs daily-pillar
+    // 직접 충은 부분적으로만 잡으므로 약한 보정(×0.4, ±6 clamp)을 점수에 입혀
+    // 숫자와 narrative가 한 방향을 가리키게 한다.
+    const dailyShiftAdjustment = Math.round(clamp(dailyShift * 0.4, -6, 6))
     // 화면 표시 점수(v2 calendar-engine)가 주입돼 있으면 그걸 THE 점수로 사용 →
     // grade/tier/점수밴드 문구 전부 표시 숫자와 한 점수로 정렬. 없으면 사주·점성 blend.
     const engineOverride = options?.engineScores?.[dateKey]
     const score =
       typeof engineOverride === 'number' && Number.isFinite(engineOverride)
-        ? Math.round(clamp(engineOverride, 2, 99))
-        : Math.round(clamp(blendedRaw, 2, 99))
+        ? Math.round(clamp(engineOverride + dailyShiftAdjustment, 2, 99))
+        : Math.round(clamp(blendedRaw + dailyShiftAdjustment, 2, 99))
+    // override 활성 시 두 축 표시값을 동일 delta로 시프트해 평균이 헤드라인 점수와
+    // 맞도록 정렬(축간 차이는 보존 → axisAgreement 의미 유지). override 없으면 raw 그대로.
+    const axisOffset =
+      typeof engineOverride === 'number' && Number.isFinite(engineOverride)
+        ? score - Math.round(blendedRaw)
+        : 0
+    const sajuAxisScore = Math.round(clamp(sajuAxisRaw + axisOffset, 0, 100))
+    const astroAxisScore = Math.round(clamp(astroAxisRaw + axisOffset, 0, 100))
     const grade = scoreToGrade(score)
     // tier(설명 core 톤)는 그날 등급 band 안으로 강제한다. baseTier(도메인 강도)는
     // band 안에서의 뉘앙스로만 쓰고, 등급과 반대 valence로 새지 않게 한다.
@@ -2153,7 +2169,12 @@ export function calculateYearlyImportantDates(
         if (heavyEvent && !base.includes('confusion')) base.push('confusion')
         return base
       })(),
-      confidence: Math.round(clamp(primaryStrength * 100, 0, 100)),
+      // override 활성 시 confidence를 헤드라인 점수와 정렬. primaryStrength는 도메인
+      // 강도라 점수와 무관할 수 있어 "최고점인데 신뢰도 56%" 모순이 생긴다.
+      confidence:
+        typeof engineOverride === 'number' && Number.isFinite(engineOverride)
+          ? Math.round(clamp(50 + (score - 50) * 0.6, 30, 92))
+          : Math.round(clamp(primaryStrength * 100, 0, 100)),
       confidenceNote: locale === 'ko' ? '캘린더 스코어링 기준' : 'Calendar scoring baseline',
       crossAgreementPercent,
       scoreBreakdown: {

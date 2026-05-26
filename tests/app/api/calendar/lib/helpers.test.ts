@@ -656,7 +656,7 @@ describe('Calendar Helpers', () => {
       ).toBe(true)
     })
 
-    it('surfaces mixed-signal caution via description/warning (not title) when cross agreement is very low on top grades', () => {
+    it('surfaces mixed-signal caution via warning/recommendation (not by replacing description) on top grades with very low cross agreement', () => {
       const result = formatDateForResponse(
         {
           ...baseDateData,
@@ -671,11 +671,13 @@ describe('Calendar Helpers', () => {
         enTranslations as any
       )
 
-      // Title now follows the (high) score instead of being overridden to a
-      // caution label — the mixed-signal warning surfaces in description/warnings.
+      // Title stays as the (high) default — no caution-label override.
       expect(result.title).not.toBe('Mixed signals')
       expect(result.title.length).toBeGreaterThan(0)
-      expect(result.description).toContain('Signals are mixed')
+      // Description must NOT be globally replaced with the "Signals are mixed"
+      // boilerplate — that contradicted the upbeat title. The caution surfaces
+      // through warnings + gated recommendations instead.
+      expect(result.description).not.toContain('Signals are mixed')
       // Original wedding/contract action recommendations are gated and replaced
       // with conservative caution guidance from the safety pool.
       expect(

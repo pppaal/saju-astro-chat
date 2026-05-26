@@ -703,43 +703,34 @@ export function formatDateForResponse(
       IRREVERSIBLE_RECOMMENDATION_KEYS.has(key)
     ),
   })
+  // forceConservativeMode일 때 description/summary를 "신호가 엇갈립니다"로
+  // 통째 교체하면 title은 defaultTitle("최고의 흐름")인데 본문은 정반대로 가서
+  // 같은 카드 안 모순이 다시 난다. 주의 어조는 위 warningsForResponse의
+  // conservativeWarning("커뮤니케이션 오류 가능성…")과 recommendation 게이트에서
+  // 이미 surface 되므로, description/summary는 평상시 경로로 두고 모순을 막는다.
   const finalDescription = normalizeUserFacingGuidance(
     sanitizeCalendarCopy(
-      forceConservativeMode
-        ? lang === 'ko'
-          ? '신호가 엇갈립니다. 큰 결정은 재확인 후 진행하세요.'
-          : 'Signals are mixed. Re-check major decisions before committing.'
-        : buildMatrixFirstDescription({
-            topAnchorSummary: matrixVerdict?.topAnchorSummary,
-            verdict: matrixVerdict?.verdict,
-            topClaim: matrixVerdict?.topClaim,
-            overlaySummary: matrixOverlay.summary,
-            // 매트릭스 서사가 비어 있을 땐 strict 일반문구 대신 엔진의 상담사 톤 description을 사용
-            fallbackDescription:
-              matrixHasNarrative && CALENDAR_MATRIX_STRICT_MODE
-                ? buildMatrixStrictDescriptionFallback({
-                    lang,
-                    evidence: evidenceWithVerdict,
-                    summary: finalSummary,
-                    guardrail: matrixVerdict?.guardrail,
-                  })
-                : engineDescription || getTranslation(date.descKey, translations),
-          }),
+      buildMatrixFirstDescription({
+        topAnchorSummary: matrixVerdict?.topAnchorSummary,
+        verdict: matrixVerdict?.verdict,
+        topClaim: matrixVerdict?.topClaim,
+        overlaySummary: matrixOverlay.summary,
+        // 매트릭스 서사가 비어 있을 땐 strict 일반문구 대신 엔진의 상담사 톤 description을 사용
+        fallbackDescription:
+          matrixHasNarrative && CALENDAR_MATRIX_STRICT_MODE
+            ? buildMatrixStrictDescriptionFallback({
+                lang,
+                evidence: evidenceWithVerdict,
+                summary: finalSummary,
+                guardrail: matrixVerdict?.guardrail,
+              })
+            : engineDescription || getTranslation(date.descKey, translations),
+      }),
       lang
     ),
     lang
   )
-  const summarizedBase = sanitizeCalendarCopy(
-    forceConservativeMode
-      ? dedupeTexts([
-          finalSummary,
-          lang === 'ko'
-            ? '핵심 결론: 지금은 확정보다 다시 확인하고 범위를 좁혀 움직이는 편이 안전합니다.'
-            : 'Core conclusion: low confidence/cross-alignment, so operate in review-first mode.',
-        ]).join(' ')
-      : finalSummary,
-    lang
-  )
+  const summarizedBase = sanitizeCalendarCopy(finalSummary, lang)
   const summarized = normalizeUserFacingGuidance(summarizedBase, lang)
 
   return normalizeMojibakePayload({
