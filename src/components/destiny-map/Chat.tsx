@@ -13,7 +13,6 @@ import { CHAT_TIMINGS } from './chat-constants'
 import { generateMessageId, buildReturningSummary } from './chat-utils'
 import type { ChatProps } from './chat-types'
 import { useChatSession } from './hooks/useChatSession'
-import { useChatFeedback } from './hooks/useChatFeedback'
 import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
@@ -117,12 +116,6 @@ const Chat = memo(function Chat({
     messagesEndRef,
     onSaveMessage,
     setNotice,
-  })
-
-  const { feedback, handleFeedback } = useChatFeedback({
-    sessionIdRef,
-    lang,
-    messages,
   })
 
   const handleSend = React.useCallback(
@@ -674,11 +667,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               retryCount={retryCount}
               notice={notice}
               followUpQuestions={followUpQuestions}
-              feedback={feedback}
               effectiveLang={effectiveLang}
               tr={tr}
               messagesEndRef={messagesEndRef}
-              onFeedback={handleFeedback}
               onFollowUp={handleFollowUp}
               styles={styles}
               userName={profile?.name}

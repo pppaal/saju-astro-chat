@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import type { Message, FeedbackType } from '../chat-constants'
+import type { Message } from '../chat-constants'
 import type { Copy } from '../chat-i18n'
 import MessageRow from '../MessageRow'
 import { repairMojibakeText } from '@/lib/text/mojibake'
@@ -14,11 +14,9 @@ interface MessagesPanelProps {
   retryCount: number
   notice: string | null
   followUpQuestions: string[]
-  feedback: Record<string, FeedbackType>
   effectiveLang: 'ko' | 'en'
   tr: Copy
   messagesEndRef: React.RefObject<HTMLDivElement | null>
-  onFeedback: (msgId: string, type: FeedbackType) => Promise<void>
   onFollowUp: (question: string) => void
   styles: Record<string, string>
   /** 빈 채팅 hero 인사 개인화용. 없으면 generic 인사로 폴백. */
@@ -31,11 +29,9 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   retryCount,
   notice,
   followUpQuestions,
-  feedback,
   effectiveLang,
   tr,
   messagesEndRef,
-  onFeedback,
   onFollowUp,
   styles,
   userName,
@@ -74,9 +70,7 @@ export const MessagesPanel = React.memo(function MessagesPanel({
           key={m.id || i}
           message={m}
           index={i}
-          feedback={feedback}
           lang={effectiveLang}
-          onFeedback={onFeedback}
           styles={styles}
         />
       ))}

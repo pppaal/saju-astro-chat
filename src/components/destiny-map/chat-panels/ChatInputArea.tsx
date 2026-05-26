@@ -192,7 +192,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                 title={lang === 'ko' ? '나의 운세 차트' : 'My destiny chart'}
               >
                 <span aria-hidden="true">&#x2728;</span>
-                <span className={styles.toolLabel}>{lang === 'ko' ? '운세차트' : 'Chart'}</span>
+                <span className={styles.toolLabel}>{lang === 'ko' ? '차트' : 'Chart'}</span>
               </button>
             )}
             {parsingPdf && (
