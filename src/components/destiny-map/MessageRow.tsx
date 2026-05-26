@@ -2,36 +2,30 @@
 
 import React from 'react'
 import MarkdownMessage from '@/components/ui/MarkdownMessage'
-import type { Message, FeedbackType } from './chat-constants'
+import type { Message } from './chat-constants'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
 
 interface MessageRowProps {
   message: Message
   index: number
-  feedback: Record<string, FeedbackType>
   lang: string
-  onFeedback: (id: string, type: FeedbackType) => void
   styles: Record<string, string>
 }
 
 const MessageRow = React.memo(function MessageRow({
   message,
   index,
-  feedback,
-  lang,
-  onFeedback,
+  lang: _lang,
   styles: s,
 }: MessageRowProps) {
   const isAssistant = message.role === 'assistant'
-  const isStreaming = Boolean(message.streaming)
   const repaired = repairMojibakeText(message.content || '')
   // Assistant messages: strip report-style markdown so the bubble reads
   // like a chat reply. User messages are passed through unchanged.
   const normalizedContent = isAssistant ? stripReportMarkdown(repaired) : repaired
   const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`
   const messageClass = isAssistant ? s.assistantMessage : s.userMessage
-  const hasFeedback = isAssistant && !isStreaming && message.content && message.id
 
   return (
     <div
@@ -45,29 +39,6 @@ const MessageRow = React.memo(function MessageRow({
         <div className={messageClass}>
           {isAssistant ? <MarkdownMessage content={normalizedContent} /> : normalizedContent}
         </div>
-
-        {hasFeedback && (
-          <div className={s.feedbackButtons}>
-            <button
-              type="button"
-              className={`${s.feedbackBtn} ${feedback[message.id!] === 'up' ? s.feedbackActive : ''}`}
-              onClick={() => onFeedback(message.id!, 'up')}
-              title={lang === 'ko' ? '도움이 됐어요' : 'Helpful'}
-              aria-label={lang === 'ko' ? '도움이 됐어요' : 'Helpful'}
-            >
-              {'\u{1F44D}'}
-            </button>
-            <button
-              type="button"
-              className={`${s.feedbackBtn} ${feedback[message.id!] === 'down' ? s.feedbackActive : ''}`}
-              onClick={() => onFeedback(message.id!, 'down')}
-              title={lang === 'ko' ? '아쉬워요' : 'Not helpful'}
-              aria-label={lang === 'ko' ? '아쉬워요' : 'Not helpful'}
-            >
-              {'\u{1F44E}'}
-            </button>
-          </div>
-        )}
       </div>
 
       {!isAssistant && (
