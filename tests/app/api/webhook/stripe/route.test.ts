@@ -405,7 +405,8 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
 
       expect(response.status).toBe(200)
       expect(data.received).toBe(true)
-      expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith('user-1', 15) // standard = 15
+      // standard pack = 20 credits, paymentId undefined (test session has no payment_intent)
+      expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith('user-1', 20, 'purchase', undefined)
       expect(vi.mocked(sendPaymentReceiptEmail)).toHaveBeenCalledWith(
         'user-1',
         'alice@example.com',
@@ -413,7 +414,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
           userName: 'Alice',
           amount: 9900,
           currency: 'krw',
-          productName: 'Standard (15 Credits)',
+          productName: 'Standard (20 Credits)',
           transactionId: 'cs_test_123',
         })
       )
@@ -429,10 +430,10 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
     it('should handle all credit pack types correctly', async () => {
       const packMapping: Record<string, number> = {
         mini: 5,
-        standard: 15,
-        plus: 40,
-        mega: 100,
-        ultimate: 250,
+        standard: 20,
+        plus: 50,
+        mega: 120,
+        ultimate: 280,
       }
 
       for (const [pack, expectedCredits] of Object.entries(packMapping)) {
@@ -462,7 +463,12 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
 
         const response = await POST(makeWebhookRequest())
         expect(response.status).toBe(200)
-        expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith('u1', expectedCredits)
+        expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith(
+          'u1',
+          expectedCredits,
+          'purchase',
+          undefined
+        )
       }
     })
 
@@ -590,7 +596,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
   // =========================================================================
   describe('Unhandled event types', () => {
     it('should log a warning and return 200 for unknown event types', async () => {
-      const event = makeEvent('charge.refunded', { id: 'ch_xxx' })
+      const event = makeEvent('payment_intent.created', { id: 'pi_xxx' })
       mockConstructEvent.mockReturnValue(event)
 
       const response = await POST(makeWebhookRequest())
@@ -599,7 +605,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       expect(response.status).toBe(200)
       expect(data.received).toBe(true)
       expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-        expect.stringContaining('Unhandled event type: charge.refunded')
+        expect.stringContaining('Unhandled event type: payment_intent.created')
       )
     })
   })

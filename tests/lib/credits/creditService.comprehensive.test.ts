@@ -57,7 +57,7 @@ describe('Credit Service', () => {
         plan: 'free',
         monthlyCredits: 0,
         usedCredits: 0,
-        bonusCredits: 2,
+        bonusCredits: 4,
       }
 
       ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
@@ -72,7 +72,7 @@ describe('Credit Service', () => {
             monthlyCredits: 0,
             usedCredits: 0,
             // signup bonus
-            bonusCredits: 2,
+            bonusCredits: 4,
           }),
         })
       )

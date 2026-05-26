@@ -4,7 +4,7 @@ import Stripe from 'stripe'
 import { prisma } from '@/lib/db/prisma'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
-import { addBonusCredits } from '@/lib/credits/creditService'
+import { addBonusCredits, revokeBonusCreditPurchase } from '@/lib/credits/creditService'
 import { grantReferralRewardOnFirstPurchase } from '@/lib/referral'
 import { CREDIT_PACKS } from '@/lib/config/pricing'
 import { sendPaymentReceiptEmail } from '@/lib/email'
@@ -140,8 +140,14 @@ export const POST = withApiMiddleware(
           await handleCheckoutCompleted(session)
           break
         }
+        case 'charge.refunded': {
+          const charge = event.data.object as Stripe.Charge
+          await handleChargeRefunded(charge)
+          break
+        }
         default:
-          // 구독 폐지 — 크레딧팩 일회성 결제(checkout.session.completed)만 처리한다.
+          // 구독 폐지 — 크레딧팩 일회성 결제(checkout.session.completed)와
+          // 환불(charge.refunded)만 처리한다.
           logger.warn(`[Stripe Webhook] Unhandled event type: ${event.type}`)
       }
 
@@ -256,9 +262,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return
   }
 
+  // Stripe 결제 ID — 환불(charge.refunded) 시 BonusCreditPurchase 를
+  // 찾아 잔여 크레딧을 회수하는 매칭 키. 저장 안 하면 환불 보호 불가.
+  const paymentIntentId =
+    typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id
   // 보너스 크레딧 추가
   try {
-    await addBonusCredits(userId, creditAmount)
+    await addBonusCredits(userId, creditAmount, 'purchase', paymentIntentId)
     logger.info(
       `[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`
     )
@@ -311,5 +321,36 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
   } catch (err) {
     logger.error('[Stripe Webhook] Failed to grant referral reward:', err)
+  }
+}
+
+// 환불 처리 — Stripe 가 환불(전체/부분)을 처리한 charge 가 들어오면 매칭된
+// 크레딧팩 구매의 잔여 크레딧을 회수해 사용자가 환불받은 돈으로 계속
+// 쓰지 못하게 막는다. 부분 환불도 안전하게 보수적으로(잔여 전부 회수)
+// 처리한다 — 부분 환불은 통상 어드민 수동 처리뿐이고, 회수가 과해도
+// 다시 발급하면 됨.
+async function handleChargeRefunded(charge: Stripe.Charge) {
+  // amount_refunded === 0 인 경우(이벤트 노이즈) 스킵.
+  if (!charge.amount_refunded || charge.amount_refunded <= 0) {
+    return
+  }
+
+  const paymentIntentId =
+    typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id
+
+  if (!paymentIntentId) {
+    logger.warn('[Stripe Webhook] charge.refunded without payment_intent', { chargeId: charge.id })
+    return
+  }
+
+  const result = await revokeBonusCreditPurchase(paymentIntentId)
+  if (result.revoked) {
+    logger.info(
+      `[Stripe Webhook] Revoked refunded purchase: payment=${paymentIntentId} reclaimed=${result.reclaimed} alreadyUsed=${result.alreadyUsed}`
+    )
+  } else {
+    logger.info(
+      `[Stripe Webhook] No revocation needed for refund: payment=${paymentIntentId} (no matching purchase or already revoked)`
+    )
   }
 }
