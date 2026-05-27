@@ -49,7 +49,7 @@ const REQUIRED_PAYMENTS = [
 
 // Required for AI services
 const REQUIRED_AI = [
-  "OPENAI_API_KEY",
+  "ANTHROPIC_API_KEY",
 ];
 
 // Recommended for production monitoring
@@ -75,15 +75,9 @@ function checkEmailProvider() {
   if (provider === "resend") {
     return isMissing("RESEND_API_KEY") ? "RESEND_API_KEY" : null;
   }
-  if (provider === "sendgrid") {
-    return isMissing("SENDGRID_API_KEY") ? "SENDGRID_API_KEY" : null;
-  }
-  if (provider === "nodemailer") {
-    const required = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"];
-    const missing = required.filter(isMissing);
-    return missing.length ? missing.join(", ") : null;
-  }
-  return `Unknown EMAIL_PROVIDER: ${provider}`;
+  // Only "resend" is wired in src/lib/email/providers/index.ts.
+  // SendGrid/Nodemailer hooks are stubbed for future expansion.
+  return `Unknown EMAIL_PROVIDER: ${provider} (only "resend" is currently supported)`;
 }
 
 function main() {
