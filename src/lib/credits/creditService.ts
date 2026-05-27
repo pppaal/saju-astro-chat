@@ -409,27 +409,51 @@ export async function expireBonusCredits() {
     userExpiredCredits.set(p.userId, (userExpiredCredits.get(p.userId) || 0) + p.remaining)
   }
 
-  // 트랜잭션으로 처리
-  const results = await Promise.allSettled(
-    Array.from(userExpiredCredits.entries()).map(([uid, expiredAmount]) =>
-      prisma.$transaction([
-        // 만료된 구매 건들 업데이트
-        prisma.bonusCreditPurchase.updateMany({
-          where: {
-            userId: uid,
-            expired: false,
-            expiresAt: { lte: now },
-          },
-          data: { expired: true },
-        }),
-        // UserCredits에서 만료된 크레딧 차감
-        prisma.userCredits.update({
-          where: { userId: uid },
-          data: { bonusCredits: { decrement: expiredAmount } },
-        }),
-      ])
+  // 트랜잭션으로 처리 — bonusCredits 차감은 GREATEST(0, ...) 로 음수 drift 방어.
+  const runUserExpiry = (uid: string, expiredAmount: number) =>
+    prisma.$transaction([
+      // 만료된 구매 건들 업데이트
+      prisma.bonusCreditPurchase.updateMany({
+        where: {
+          userId: uid,
+          expired: false,
+          expiresAt: { lte: now },
+        },
+        data: { expired: true },
+      }),
+      // UserCredits 에서 만료된 크레딧 차감 (atomic floor 0)
+      prisma.$executeRaw`
+        UPDATE "UserCredits"
+        SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${expiredAmount})
+        WHERE "userId" = ${uid}
+      `,
+    ])
+
+  const entries = Array.from(userExpiredCredits.entries())
+  let results = await Promise.allSettled(entries.map(([uid, amt]) => runUserExpiry(uid, amt)))
+
+  // 1회 재시도 — 일시적 connection blip / deadlock 등 회복 가능한 실패 대비.
+  // 그래도 실패하면 critical 로그로 발행해 알림 시스템(메트릭/sentry)에서
+  // 잡히도록 한다. 이전엔 단순 카운트만 하고 silent 였음.
+  const rejectedIdx = results.flatMap((r, i) => (r.status === 'rejected' ? [i] : []))
+  if (rejectedIdx.length > 0) {
+    const retryEntries = rejectedIdx.map((i) => entries[i])
+    const retryResults = await Promise.allSettled(
+      retryEntries.map(([uid, amt]) => runUserExpiry(uid, amt))
     )
-  )
+    retryResults.forEach((r, j) => {
+      const origIdx = rejectedIdx[j]
+      results = [...results.slice(0, origIdx), r, ...results.slice(origIdx + 1)]
+      if (r.status === 'rejected') {
+        const [uid, amt] = retryEntries[j]
+        logger.error('[expireBonusCredits] user expiry failed after retry', {
+          userId: uid,
+          expiredAmount: amt,
+          reason: r.reason instanceof Error ? r.reason.message : String(r.reason),
+        })
+      }
+    })
+  }
 
   const succeeded = results.filter((r) => r.status === 'fulfilled').length
   const failed = results.filter((r) => r.status === 'rejected').length
@@ -497,18 +521,19 @@ export async function revokeBonusCreditPurchase(
     const reclaim = purchase.remaining
     const alreadyUsed = purchase.amount - purchase.remaining
 
+    // 음수 방지 atomic — Prisma 의 단순 decrement 는 raw guard 가 없어
+    // 동시 차감 / 다른 경로의 0 도달 시 음수 drift 발생 가능. GREATEST 로
+    // floor 를 0 에 박아 transaction 안에서 한 줄로 처리.
     await prisma.$transaction([
       prisma.bonusCreditPurchase.update({
         where: { id: purchase.id },
         data: { remaining: 0, expired: true, expiresAt: new Date() },
       }),
-      // 음수 방지 — 다른 곳에서 이미 0 으로 떨어졌으면 더 빼지 않는다.
-      // (Prisma 는 raw guard 없이 decrement 만으로 음수 가능 → 안전하게
-      //  현재 잔액 조회 후 가능한 만큼만 차감)
-      prisma.userCredits.update({
-        where: { userId: purchase.userId },
-        data: { bonusCredits: { decrement: reclaim } },
-      }),
+      prisma.$executeRaw`
+        UPDATE "UserCredits"
+        SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${reclaim})
+        WHERE "userId" = ${purchase.userId}
+      `,
     ])
 
     logger.warn('[revokeBonusCreditPurchase] revoked refunded purchase', {
