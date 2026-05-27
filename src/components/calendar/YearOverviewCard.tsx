@@ -168,13 +168,13 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
                 </ReferenceLine>
               )}
               <Area
-                type="monotone"
+                type="natural"
                 dataKey="score"
                 stroke="#a5b4fc"
                 strokeWidth={2.5}
                 fill="url(#yearFlow)"
-                dot={{ r: 3.5, fill: '#a5b4fc', stroke: '#0a0f1e', strokeWidth: 1.5 }}
-                activeDot={{ r: 6 }}
+                dot={false}
+                activeDot={{ r: 5, fill: '#a5b4fc', stroke: '#0a0f1e', strokeWidth: 1.5 }}
               />
             </AreaChart>
           </ResponsiveContainer>

@@ -11,7 +11,6 @@ import {
   CartesianGrid,
   Legend,
   ReferenceLine,
-  ReferenceDot,
   Label,
 } from 'recharts'
 import { Clock } from 'lucide-react'
@@ -46,8 +45,8 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
     return `${String(today.getHours()).padStart(2, '0')}시`
   })()
 
-  const { data, hasAstro, crossings } = useMemo(() => {
-    const empty = { data: [] as HourPoint[], hasAstro: false, crossings: [] as Crossing[] }
+  const { data, hasAstro } = useMemo(() => {
+    const empty = { data: [] as HourPoint[], hasAstro: false }
     if (!importantDate?.engineSignals) return empty
     const hourlySignals = importantDate.engineSignals.filter((s) => s.layer === 'hourly')
     if (hourlySignals.length === 0) return empty
@@ -78,23 +77,7 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
     })
 
     const hasAstro = data.some((d) => d.astro !== 50)
-
-    // 두 라인이 위아래로 뒤바뀌는(교차) 시각 — 부호가 바뀌고 충분히 벌어진 구간만,
-    // 더 가까운 점에 마커. 너무 많아지지 않게 상한.
-    const crossings: Crossing[] = []
-    if (hasAstro) {
-      for (let i = 0; i < data.length - 1; i++) {
-        const a = data[i].saju - data[i].astro
-        const b = data[i + 1].saju - data[i + 1].astro
-        if (a !== 0 && b !== 0 && a < 0 !== b < 0 && Math.abs(a) + Math.abs(b) >= 6) {
-          const h = Math.abs(a) <= Math.abs(b) ? i : i + 1
-          crossings.push({ x: data[h].hour, y: Math.round((data[h].saju + data[h].astro) / 2) })
-        }
-      }
-    }
-    const cappedCrossings = crossings.slice(0, 8)
-
-    return { data, hasAstro, crossings: cappedCrossings }
+    return { data, hasAstro }
   }, [importantDate])
 
   if (data.length === 0) return null
@@ -114,7 +97,7 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
       </h3>
       <p className="text-xs text-zinc-500 mb-3">
         {hasAstro
-          ? '하루 중 사주·점성 흐름 — 두 선이 만나는 점이 전환 시각, 50점이 기준선'
+          ? '하루 중 사주·점성 흐름 — 두 선이 교차하는 구간이 전환 시점, 50점이 기준선'
           : '하루 중 어느 시간에 운이 오는지 — 50점이 기준선'}
       </p>
       <ResponsiveContainer width="100%" height={240}>
@@ -173,38 +156,29 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
             </ReferenceLine>
           )}
           <Area
-            type="monotone"
+            type="natural"
             dataKey="saju"
             name="사주"
             stroke="#f59e0b"
-            strokeWidth={3}
+            strokeWidth={2.5}
             fill="url(#hourSaju)"
-            dot={{ r: 4, fill: '#f59e0b', stroke: '#0a0f1e', strokeWidth: 1.5 }}
-            activeDot={{ r: 7 }}
+            dot={false}
+            activeDot={{ r: 4, fill: '#f59e0b', stroke: '#0a0f1e', strokeWidth: 1.5 }}
           />
           {hasAstro && (
             <Area
-              type="monotone"
+              type="natural"
               dataKey="astro"
               name="점성"
               stroke="#22d3ee"
-              strokeWidth={3}
+              strokeWidth={2.5}
               fill="url(#hourAstro)"
-              dot={{ r: 4, fill: '#22d3ee', stroke: '#0a0f1e', strokeWidth: 1.5 }}
-              activeDot={{ r: 7 }}
+              dot={false}
+              activeDot={{ r: 4, fill: '#22d3ee', stroke: '#0a0f1e', strokeWidth: 1.5 }}
             />
           )}
-          {crossings.map((c, i) => (
-            <ReferenceDot
-              key={`x-${i}`}
-              x={c.x}
-              y={c.y}
-              r={6}
-              fill="#fbbf24"
-              stroke="#0a0f1e"
-              strokeWidth={2}
-            />
-          ))}
+          {/* 교차 마커 ReferenceDot 제거 — 사용자 요청대로 점 제거.
+              "교차하는 구간"이 전환 시점이라는 의미는 두 area 흐름으로 충분히 표현. */}
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -216,11 +190,6 @@ interface HourPoint {
   hourNum: number
   saju: number
   astro: number
-}
-
-interface Crossing {
-  x: string
-  y: number
 }
 
 /**

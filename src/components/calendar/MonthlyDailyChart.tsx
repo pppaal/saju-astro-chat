@@ -127,13 +127,13 @@ export default function MonthlyDailyChart({ monthDates, viewYear, viewMonth, onD
             </ReferenceLine>
           )}
           <Area
-            type="monotone"
+            type="natural"
             dataKey="score"
             stroke="#a5b4fc"
             strokeWidth={2.2}
             fill="url(#monthFlow)"
-            dot={{ r: 2.4, fill: '#a5b4fc', stroke: '#0a0f1e', strokeWidth: 1 }}
-            activeDot={{ r: 5 }}
+            dot={false}
+            activeDot={{ r: 4, fill: '#a5b4fc', stroke: '#0a0f1e', strokeWidth: 1 }}
             connectNulls
           />
         </AreaChart>
