@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   withApiMiddleware,
-  createPublicStreamGuard,
+  createSimpleGuard,
   extractLocale,
   type ApiContext,
 } from '@/lib/api/middleware'
@@ -132,8 +132,8 @@ export const GET = withApiMiddleware(
       })
     }
   },
-  // /api/calendar 와 동일 강도 — 12-month fan-out 비용 같음.
-  createPublicStreamGuard({
+  // /api/calendar 와 동일 정책 — rate limit 만, token gate 없음 (회귀 방지).
+  createSimpleGuard({
     route: 'calendar-convergence',
     limit: 8,
     windowSeconds: 60,
