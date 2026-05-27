@@ -101,6 +101,20 @@ function CompatibilityCounselorContent() {
   const [showChartModal, setShowChartModal] = useState(false)
   const [showTarotModal, setShowTarotModal] = useState(false)
   const [showClarifierModal, setShowClarifierModal] = useState(false)
+  // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 사이드바 리스트의 항상 보이던
+  // 아이콘들을 대체 (운명 상담사와 동일 패턴, PR #621).
+  const [chatMenuOpen, setChatMenuOpen] = useState(false)
+  const chatMenuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!chatMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (chatMenuRef.current && !chatMenuRef.current.contains(e.target as Node)) {
+        setChatMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [chatMenuOpen])
   // 파일 첨부 — 운명 상담사와 동일한 훅. 업로드 텍스트(cvText)는 sendMessage
   // payload 로 전달돼 라우트가 현재 턴 프롬트에 주입한다.
   const [fileNotice, setFileNotice] = useState<string | null>(null)
@@ -349,6 +363,45 @@ function CompatibilityCounselorContent() {
       setInput((prev) => (prev.trim() ? prev : followUpQuestions[0]))
     }
   }, [followUpQuestions])
+
+  // 채팅 우상단 ⋮ 메뉴 핸들러 — 운명 상담사 PR #621 과 동일.
+  // 저장된 session 이 없으면 (chatSessionId undefined) 아무것도 안 함.
+  const handleChatRename = useCallback(async () => {
+    setChatMenuOpen(false)
+    if (!chatSessionId) return
+    const next = window.prompt(isKo ? '대화 이름' : 'Chat name')
+    if (!next || !next.trim()) return
+    try {
+      await fetch('/api/counselor/session/list', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: chatSessionId, title: next.trim() }),
+      })
+    } catch (err) {
+      logger.warn('[CompatCounselor] rename failed', { err })
+    }
+  }, [chatSessionId, isKo])
+
+  const handleChatDelete = useCallback(async () => {
+    setChatMenuOpen(false)
+    if (!chatSessionId) return
+    const confirmed = window.confirm(
+      isKo
+        ? '이 대화를 삭제할까요? 되돌릴 수 없어요.'
+        : 'Delete this chat? This cannot be undone.'
+    )
+    if (!confirmed) return
+    try {
+      await fetch(
+        `/api/counselor/session/list?sessionId=${encodeURIComponent(chatSessionId)}`,
+        { method: 'DELETE' }
+      )
+    } catch (err) {
+      logger.warn('[CompatCounselor] delete failed', { err })
+    }
+    setMessages([])
+    setChatSessionId(undefined)
+  }, [chatSessionId, isKo])
 
   const sendMessage = useCallback(
     async (textOverride?: string) => {
@@ -685,6 +738,44 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
 
         {/* Chat */}
         <div className={styles.chatWrapper}>
+          {messages.length > 0 && (
+            <div ref={chatMenuRef} className={styles.chatMenuArea}>
+              <button
+                type="button"
+                className={styles.chatMenuButton}
+                onClick={() => setChatMenuOpen((o) => !o)}
+                aria-label={isKo ? '대화 메뉴' : 'Chat menu'}
+                aria-expanded={chatMenuOpen}
+                aria-haspopup="menu"
+              >
+                <span aria-hidden="true">⋮</span>
+              </button>
+              {chatMenuOpen && (
+                <div role="menu" className={styles.chatMenuDropdown}>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.chatMenuItem}
+                    onClick={handleChatRename}
+                    disabled={!chatSessionId}
+                  >
+                    <span>{isKo ? '이름 변경' : 'Rename'}</span>
+                    <span aria-hidden="true" className={styles.chatMenuIcon}>✎</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
+                    onClick={handleChatDelete}
+                    disabled={!chatSessionId}
+                  >
+                    <span>{isKo ? '삭제' : 'Delete'}</span>
+                    <span aria-hidden="true" className={styles.chatMenuIcon}>🗑</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           <div className={styles.messagesContainer}>
             {messages.length === 0 && (
               <div className={styles.emptyState}>
