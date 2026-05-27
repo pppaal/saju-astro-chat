@@ -76,8 +76,8 @@ async function main() {
     SEOUL.timezone
   )
 
-  // 3) route.ts:330-342 의 [Birth Snapshot] + [Meta] 헤더 재현
-  const parts: string[] = ['[Birth Snapshot]']
+  // 3) route.ts 의 [Meta] 헤더 재현 ([Birth Snapshot] 라벨은 제거됨)
+  const parts: string[] = []
   const locTag = PERSON.birthCityUnknown
     ? '미상'
     : `${PERSON.latitude.toFixed(4)},${PERSON.longitude.toFixed(4)}`
