@@ -268,35 +268,26 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const ascLine = `ASC ${labelA} ${ascA} / ${labelB} ${ascB}`
 
   const out: string[] = ['== 시너스트리 (점성 cross) ==']
-  out.push(
-    `[고정 매핑 — 절대 바꾸지 말 것] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄의 앞쪽 행성 = ${labelA} 것, 뒤쪽 행성 = ${labelB} 것)`
-  )
-  out.push('기호: ☌결합 ☍대립 △조화 □긴장 ⚹협력 / 각 줄: A행성 (기호) B행성 오차°')
-  out.push('')
-  out.push('[CRITICAL — 반드시 해석] 개인 행성(해·달·금성·화성·ASC) 타이트 cross (오차≤3°)')
-  out.push(criticalShown.length ? criticalShown.map((c) => c.line).join('\n') : '(해당 없음)')
-  out.push('')
-  out.push(`[IMPORTANT — 맥락 보강] (오차≤5°, 상위${importantShown.length})`)
-  out.push(importantShown.length ? importantShown.map((c) => c.line).join('\n') : '(해당 없음)')
-  out.push('')
-  out.push('[참고 — 동세대/비중 낮음]')
+  out.push(`[고정] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄: A행성 기호 B행성 오차°)`)
+  if (criticalShown.length) {
+    out.push('[CRITICAL · 개인행성 cross orb≤3°]')
+    out.push(criticalShown.map((c) => c.line).join('\n'))
+  }
+  if (importantShown.length) {
+    out.push(`[IMPORTANT · orb≤5°]`)
+    out.push(importantShown.map((c) => c.line).join('\n'))
+  }
   if (generationalCount > 0) {
     out.push(
-      `외행성 동세대 컨정션 ${generationalCount}건 (${[...generationalNames].join('·')}) — 동세대 공통 신호, 해석 비중 낮음`
+      `[참고] 외행성 동세대 ${generationalCount}건 (${[...generationalNames].join('·')}) — 비중 낮음`
     )
   }
-  // House overlay 출력 — [참고] 가 아니라 별도 [CRITICAL] 블록으로 승급.
-  // (정통 점성 궁합의 핵심 신호 — A 의 Venus 가 B 의 7H 에 있으면 결혼
-  // 매력. 이전엔 비중 낮음 tier 에 묻혀 있었음.)
-  out.push(`[CRITICAL — House overlay] ${ascLine}`)
+  // House overlay — 정통 점성 궁합 핵심: A 의 Venus → B 7H = 결혼 매력.
   if (overlayLinesAtoB.length || overlayLinesBtoA.length) {
+    out.push(`[CRITICAL · House overlay] ${ascLine}`)
     out.push(...overlayLinesAtoB)
     out.push(...overlayLinesBtoA)
-  } else {
-    out.push('(개인행성 overlay 데이터 없음)')
-  }
-  if (outerDiffCount > 0) {
-    out.push(`외행성 ${outerDiffCount}건은 동세대 공통이라 생략`)
+    if (outerDiffCount > 0) out.push(`외행성 ${outerDiffCount}건 동세대 공통 생략`)
   }
 
   return out.join('\n')

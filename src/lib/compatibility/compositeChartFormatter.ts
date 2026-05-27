@@ -178,15 +178,15 @@ export function formatCompositeChart(input: CompositeInput): string {
   }
 
   const out: string[] = []
-  out.push(`== Composite Chart (관계 entity) — ${pairLabel} ==`)
+  out.push(`== Composite (관계 entity) — ${pairLabel} ==`)
   out.push(`[배치] ${placementLine}`)
   if (marriagePointLine) out.push(marriagePointLine)
   if (critical.length) {
-    out.push('[CRITICAL — 관계 entity 의 핵심 톤 (orb≤3°)]')
+    out.push('[CRITICAL · orb≤3°]')
     out.push(...critical)
   }
   if (important.length) {
-    out.push('[IMPORTANT — 보조 톤 (orb≤5°)]')
+    out.push('[IMPORTANT · orb≤5°]')
     out.push(...important.slice(0, 8)) // overflow cap
   }
   return out.join('\n')

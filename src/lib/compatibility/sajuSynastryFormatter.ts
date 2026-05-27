@@ -726,35 +726,33 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     }
   }
 
-  // ── 조립: 우선순위 티어 ──────────────────────────────────
+  // ── 조립: 우선순위 티어 ── (헤더 짧게, 빈자료 블록 생략, 빈 라인 제거)
   const out: string[] = ['== 시너스트리 (사주 cross) ==']
   if (elA && elB) {
-    out.push(`[고정 매핑 — 절대 바꾸지 말 것] ${labelA} 일간 ${aDay.stem}(${elA}) · ${labelB} 일간 ${bDay.stem}(${elB})`)
+    out.push(`[고정] ${labelA} 일간 ${aDay.stem}(${elA}) · ${labelB} 일간 ${bDay.stem}(${elB}) — 오행·방향 절대 뒤집지 말 것`)
   }
-  out.push('')
-  out.push('[CRITICAL — 반드시 해석] 일간 극·천간합·일지 충형')
-  out.push(critical.length ? critical.join('\n') : '(해당 없음)')
-  out.push('')
+  if (critical.length) {
+    out.push('[CRITICAL · 일간 극/천간합/일지 충형]')
+    out.push(critical.join('\n'))
+  }
   if (sibsinCrossLines.length) {
-    out.push('[CRITICAL — 배우자성 cross (십성)]')
+    out.push('[CRITICAL · 배우자성 (십성)]')
     out.push(...sibsinCrossLines)
-    out.push('')
   }
   if (shinsalCrossLines.length) {
-    out.push('[CRITICAL — 신살 cross (도화·홍염·백호·괴강)]')
+    out.push('[CRITICAL · 신살 (도화·홍염·백호·괴강)]')
     out.push(...shinsalCrossLines)
-    out.push('')
   }
   if (jijangganCrossLines.length) {
-    out.push('[CRITICAL — 지장간 cross (지지 깊이의 숨은 관계)]')
+    out.push('[CRITICAL · 지장간 (지지 깊이의 숨은 관계)]')
     out.push(...jijangganCrossLines)
-    out.push('')
   }
-  out.push('[IMPORTANT — 맥락 보강]')
-  out.push(important.length ? important.join('\n') : '(해당 없음)')
+  if (important.length) {
+    out.push('[IMPORTANT]')
+    out.push(important.join('\n'))
+  }
   if (chamgo.length) {
-    out.push('')
-    out.push('[참고 — 비중 낮음]')
+    out.push('[참고]')
     out.push(...chamgo)
   }
   return koreanize(out.join('\n'))
