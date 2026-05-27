@@ -869,30 +869,44 @@ export default function ProfilePage() {
                 </p>
               ) : (
                 <>
-                  <div className="mt-4 flex items-end justify-between gap-4 rounded-2xl border border-[#ece4d4] bg-gradient-to-br from-[#faf6ee] to-[#fcfbf9] px-4 py-4">
-                    <div>
-                      <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#a07a3c]">
-                        {locale === 'ko' ? '남은 크레딧' : 'Remaining'}
-                      </p>
-                      <p
-                        className="mt-1.5 text-[2.1rem] font-semibold leading-none text-[#1c1917]"
-                        style={serifStyle}
-                      >
-                        {credits.credits.remaining}
-                      </p>
-                      <p className="mt-2 text-[11.5px] text-[#8b857d]">
-                        {locale === 'ko'
-                          ? `이번 달 ${credits.credits.monthly} · 보너스 ${credits.credits.bonus}`
-                          : `Monthly ${credits.credits.monthly} · Bonus ${credits.credits.bonus}`}
-                      </p>
-                    </div>
-                    <div className="text-right text-[11px] text-[#a8a29e]">
-                      <p>{locale === 'ko' ? '다음 갱신' : 'Resets'}</p>
-                      <p className="mt-0.5 text-[12px] font-medium text-[#57534e]">
-                        {formatDateOnly(credits.periodEnd, locale)}
-                      </p>
-                    </div>
-                  </div>
+                  {(() => {
+                    // 가장 빨리 만료될 (아직 만료 안 됐고 남은 게 있는) 구매분의 만료일을
+                    // 우측에 안내. purchases 가 아직 로드 안 됐거나 없으면 안내만 표시.
+                    const upcoming = (purchases?.purchases || [])
+                      .filter((p) => !p.expired && p.remaining > 0 && p.expiresAt)
+                      .sort(
+                        (a, b) =>
+                          new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime()
+                      )[0]
+                    return (
+                      <div className="mt-4 flex items-end justify-between gap-4 rounded-2xl border border-[#ece4d4] bg-gradient-to-br from-[#faf6ee] to-[#fcfbf9] px-4 py-4">
+                        <div>
+                          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#a07a3c]">
+                            {locale === 'ko' ? '남은 크레딧' : 'Remaining'}
+                          </p>
+                          <p
+                            className="mt-1.5 text-[2.1rem] font-semibold leading-none text-[#1c1917]"
+                            style={serifStyle}
+                          >
+                            {credits.credits.remaining}
+                          </p>
+                          <p className="mt-2 text-[11.5px] text-[#8b857d]">
+                            {locale === 'ko'
+                              ? '구매 후 3개월간 사용 가능'
+                              : 'Valid for 3 months after purchase'}
+                          </p>
+                        </div>
+                        {upcoming && (
+                          <div className="text-right text-[11px] text-[#a8a29e]">
+                            <p>{locale === 'ko' ? '다음 만료' : 'Next expiry'}</p>
+                            <p className="mt-0.5 text-[12px] font-medium text-[#57534e]">
+                              {formatDateOnly(upcoming.expiresAt, locale)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </>
               )}
             </section>
