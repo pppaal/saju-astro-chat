@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
+import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
@@ -33,17 +34,20 @@ export function FollowupChat({
   const [history, setHistory] = useState<Turn[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [clarifierNotice, setClarifierNotice] = useState<string | null>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  // containerRef — 클래리파이어 confirm 직후 페이지 viewport 를 채팅 박스
+  // 시작 위치로 가져오기 위해 section 자체에 박는다.
   const containerRef = useRef<HTMLElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 — 자세한
   // 정책은 useClarifierCard hook 참조.
   const suspendAutoScrollRef = useRef(false)
 
-  useEffect(() => {
-    if (suspendAutoScrollRef.current) return
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [history])
+  // 자동 스크롤 — destiny/compat 와 같은 공통 hook. endRef 를 박스 내부
+  // 맨 끝에 박으면 hook 이 박스(parent) scrollTop 으로 따라간다.
+  const { endRef } = useChatAutoScroll({
+    messages: history,
+    suspendRef: suspendAutoScrollRef,
+  })
 
   // 결과 페이지에 채팅 박스가 처음 마운트될 때 — 텍스트영역 자동 포커스 → 모바일 키보드 자동.
   // (IntersectionObserver 로 박스가 보일 때만 focus 하면 페이지 상단에 깜빡 튀는 현상 방지)
@@ -182,7 +186,7 @@ export function FollowupChat({
       </div>
 
       {history.length > 0 && (
-        <div ref={scrollRef} className="max-h-80 overflow-y-auto space-y-3 pr-1">
+        <div className="max-h-80 overflow-y-auto space-y-3 pr-1">
           {history.map((t, i) => (
             <div
               key={i}
@@ -210,6 +214,7 @@ export function FollowupChat({
               </div>
             </div>
           ))}
+          <div ref={endRef} />
         </div>
       )}
 

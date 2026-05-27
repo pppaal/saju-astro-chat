@@ -7,9 +7,7 @@ import React, { memo } from 'react'
 import dynamic from 'next/dynamic'
 import styles from './Chat.module.css'
 import { type TarotResultSummary } from './InlineTarotModal'
-import { logger } from '@/lib/logger'
 import { CHAT_I18N } from './chat-i18n'
-import { CHAT_TIMINGS } from './chat-constants'
 import { generateMessageId } from './chat-utils'
 import type { ChatProps } from './chat-types'
 import { useChatSession } from './hooks/useChatSession'
@@ -18,6 +16,8 @@ import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
+import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
+import { useChatAutoSave } from '@/hooks/useChatAutoSave'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
@@ -74,21 +74,9 @@ const Chat = memo(function Chat({
   const [showChartModal, setShowChartModal] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
-  const messagesEndRef = React.useRef<HTMLDivElement>(null)
-
-  // Jump to the newest message once a loaded conversation has painted
-  // (past-chat open should land at the latest message, not the top).
-  const scrollToLatest = React.useCallback(() => {
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }))
-    )
-  }, [])
-
-  // 클래리파이어 직후엔 자동 스크롤 hijack 을 잠시 끈다 — 사용자가 이미
-  // 채팅 맨 하단의 "한 장 더 뽑기" 버튼을 본 상태이고, 그대로 카드 메시지/
-  // 답변이 거기 쌓이는 게 자연스러움. 일반 useEffect 의 scrollIntoView 가
-  // 답변 끝까지 매 토큰 따라가버리면 viewport 가 위로 밀려나 "왜 다시
-  // 올라가냐" 회귀.
+  const messagesEndRef = React.useRef<HTMLDivElement | null>(null)
+  // 클래리파이어 직후 자동 스크롤 hijack 끄기 — 자세한 정책은
+  // useClarifierCard 참조. 3 화면 공통.
   const suspendAutoScrollRef = React.useRef(false)
 
   const { cvText, cvName, parsingPdf, handleFileUpload, clearFile } = useFileUpload({
@@ -162,9 +150,6 @@ const Chat = memo(function Chat({
     }
   }, [followUpQuestions])
 
-  const pendingSaveRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const latestSavePayloadRef = React.useRef<string | null>(null)
-
   React.useEffect(() => {
     setActiveSessionId(sessionIdRef.current)
   }, [sessionIdRef])
@@ -177,55 +162,15 @@ const Chat = memo(function Chat({
     onSessionChange({ sessionId: activeSessionId, title: current?.title ?? null })
   }, [activeSessionId, sessionHistory, onSessionChange])
 
-  React.useEffect(() => {
-    if (!sessionLoaded || messages.length === 0) {
-      return
-    }
-
-    const payload = JSON.stringify({
-      sessionId: sessionIdRef.current,
-      locale: lang || 'ko',
-      messages: messages.filter((m) => m.role !== 'system'),
-    })
-    latestSavePayloadRef.current = payload
-
-    if (pendingSaveRef.current) {
-      clearTimeout(pendingSaveRef.current)
-    }
-
-    pendingSaveRef.current = setTimeout(async () => {
-      pendingSaveRef.current = null
-      latestSavePayloadRef.current = null
-
-      try {
-        await fetch('/api/counselor/session/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-        })
-        logger.debug('[Chat] Session auto-saved:', { messageCount: messages.length })
-      } catch (error) {
-        logger.warn('[Chat] Failed to save session:', error)
-      }
-    }, CHAT_TIMINGS.DEBOUNCE_SAVE)
-
-    return () => {
-      if (pendingSaveRef.current) {
-        clearTimeout(pendingSaveRef.current)
-      }
-    }
-  }, [messages, sessionLoaded, lang, sessionIdRef])
-
-  React.useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (latestSavePayloadRef.current) {
-        navigator.sendBeacon('/api/counselor/session/save', latestSavePayloadRef.current)
-      }
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [])
+  // 자동 저장 — 공통 hook (debounce + beforeunload sendBeacon).
+  // sessionIdRef 를 그대로 넘기면 새 채팅 시작(startNewChat) 시 ref 가 바뀌어도
+  // 다음 저장에 새 id 가 사용된다 (current 평가는 effect 안).
+  useChatAutoSave({
+    enabled: sessionLoaded,
+    sessionId: sessionIdRef,
+    locale: lang || 'ko',
+    messages,
+  })
 
   useSeedEvent({
     eventName: seedEvent,
@@ -237,15 +182,15 @@ const Chat = memo(function Chat({
     },
   })
 
-  React.useEffect(() => {
-    if (!autoScroll) {
-      return
-    }
-    if (suspendAutoScrollRef.current) {
-      return
-    }
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading, autoScroll])
+  // 자동 스크롤 — 공통 hook (3 화면 통합). messagesEndRef 는 위에서
+  // 이미 만들어 useChatApi prop 으로 전달 중이라 externalRef 로 그대로 활용.
+  const { scrollToBottomImmediate: scrollToLatest } = useChatAutoScroll({
+    messages,
+    loading,
+    enabled: autoScroll,
+    suspendRef: suspendAutoScrollRef,
+    externalRef: messagesEndRef,
+  })
 
   React.useEffect(() => {
     void loadSessionHistory()
