@@ -1,0 +1,97 @@
+'use client'
+
+/**
+ * ChatBubbleContent — 채팅 말풍선 내부 콘텐츠 단일 출처.
+ *
+ * 이전 회귀 패턴: destiny-map MessageRow / compat counselor inline JSX /
+ * tarot FollowupChat inline JSX 셋이 같은 일(텍스트 마크다운 처리 + 카드
+ * 이미지 추출)을 각자 약간 다르게 구현. 카드 이미지 표시 / 마크다운 / 모
+ * 자익 인코딩 fix 한 곳 적용하면 다른 두 곳 안 됨. Phase 2 리팩토링.
+ *
+ * 책임: 말풍선 안쪽 콘텐츠만 (텍스트 + 카드 이미지). 외부 wrapper
+ * (row class / avatar / bubble container) 는 호출자가 화면별로 유지 —
+ * 시각 회귀 최소화.
+ */
+
+import React from 'react'
+import MarkdownMessage from '@/components/ui/MarkdownMessage'
+import { repairMojibakeText } from '@/lib/text/mojibake'
+import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
+
+// 사용자 메시지에 markdown 이미지 (`![alt](src)`) 가 들어있으면 — 클래리파이어
+// 카드가 대표 — MarkdownMessage 내부 img 렌더에만 의존하지 말고 직접 추출해
+// 말풍선 안에 큼지막한 카드 그림을 그려준다 (배포/캐시/CSS 어디서 막혀도 카드
+// 는 보이도록 우회 경로). 추출한 이미지 markdown 은 본문에서 잘라 중복 방지.
+const IMAGE_PATTERN = /!\[([^\]]*)\]\(([^)]+)\)/
+
+const CARD_IMAGE_STYLE: React.CSSProperties = {
+  display: 'block',
+  maxWidth: '180px',
+  width: '70%',
+  aspectRatio: '5 / 8.5',
+  objectFit: 'cover',
+  borderRadius: '10px',
+  boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
+  background: 'rgba(255,255,255,0.06)',
+}
+
+export interface ChatBubbleContentProps {
+  // system 은 destiny 채팅 흐름에 가끔 섞여 들어옴 (returning context 등) — user 처럼 처리.
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  /** Assistant 답변 streaming 중 빈 content 인 경우 등. pendingNode 표시. */
+  pending?: boolean
+  /** pending 일 때 표시할 노드 (각 화면의 spinner UI). pending && pendingNode 일 때만 활용. */
+  pendingNode?: React.ReactNode
+  /** MarkdownMessage theme 패스스루. compat 상담사 = 'light', 나머지 = 'dark'. */
+  theme?: 'dark' | 'light'
+}
+
+const ChatBubbleContent = React.memo(function ChatBubbleContent({
+  role,
+  content,
+  pending,
+  pendingNode,
+  theme = 'dark',
+}: ChatBubbleContentProps) {
+  if (pending && pendingNode !== undefined) {
+    return <>{pendingNode}</>
+  }
+
+  const isAssistant = role === 'assistant'
+  const repaired = repairMojibakeText(content || '')
+  const normalizedContent = isAssistant ? stripReportMarkdown(repaired) : repaired
+
+  const imageMatch = !isAssistant ? normalizedContent.match(IMAGE_PATTERN) : null
+  const inlineImage = imageMatch ? { alt: imageMatch[1] || '', src: imageMatch[2] } : null
+  const textContent = inlineImage
+    ? normalizedContent.replace(IMAGE_PATTERN, '').trim()
+    : normalizedContent
+
+  // User 메시지는 평문이 기본 — markdown 토큰(이미지/굵게/제목/리스트) 있을 때만
+  // MarkdownMessage 로 렌더. 일반 평문 입력은 영향 X.
+  const userLooksLikeMarkdown = /\*\*[^*]+\*\*|^#{1,3}\s|\n[*-]\s/.test(textContent)
+  const renderAsMarkdown = isAssistant || userLooksLikeMarkdown
+
+  return (
+    <>
+      {textContent &&
+        (renderAsMarkdown ? (
+          <MarkdownMessage content={textContent} theme={theme} />
+        ) : (
+          textContent
+        ))}
+      {inlineImage && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={inlineImage.src}
+          alt={inlineImage.alt}
+          loading="lazy"
+          style={{ ...CARD_IMAGE_STYLE, marginTop: textContent ? '10px' : 0 }}
+        />
+      )}
+    </>
+  )
+})
+
+export default ChatBubbleContent

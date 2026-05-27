@@ -7,9 +7,7 @@ import React, { memo } from 'react'
 import dynamic from 'next/dynamic'
 import styles from './Chat.module.css'
 import { type TarotResultSummary } from './InlineTarotModal'
-import { logger } from '@/lib/logger'
 import { CHAT_I18N } from './chat-i18n'
-import { CHAT_TIMINGS } from './chat-constants'
 import { generateMessageId } from './chat-utils'
 import type { ChatProps } from './chat-types'
 import { useChatSession } from './hooks/useChatSession'
@@ -17,7 +15,9 @@ import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
-import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
+import { useClarifierCard } from '@/hooks/useClarifierCard'
+import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
+import { useChatAutoSave } from '@/hooks/useChatAutoSave'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
@@ -72,26 +72,11 @@ const Chat = memo(function Chat({
   const [notice, setNotice] = React.useState<string | null>(null)
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [showChartModal, setShowChartModal] = React.useState(false)
-  const [showClarifierModal, setShowClarifierModal] = React.useState(false)
-  // 한 대화당 한 장만. confirm 시 잠그고 startNewChat 에서만 푼다.
-  const [clarifierUsed, setClarifierUsed] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
-  const messagesEndRef = React.useRef<HTMLDivElement>(null)
-
-  // Jump to the newest message once a loaded conversation has painted
-  // (past-chat open should land at the latest message, not the top).
-  const scrollToLatest = React.useCallback(() => {
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }))
-    )
-  }, [])
-
-  // 클래리파이어 직후엔 자동 스크롤 hijack 을 잠시 끈다 — 사용자가 이미
-  // 채팅 맨 하단의 "한 장 더 뽑기" 버튼을 본 상태이고, 그대로 카드 메시지/
-  // 답변이 거기 쌓이는 게 자연스러움. 일반 useEffect 의 scrollIntoView 가
-  // 답변 끝까지 매 토큰 따라가버리면 viewport 가 위로 밀려나 "왜 다시
-  // 올라가냐" 회귀.
+  const messagesEndRef = React.useRef<HTMLDivElement | null>(null)
+  // 클래리파이어 직후 자동 스크롤 hijack 끄기 — 자세한 정책은
+  // useClarifierCard 참조. 3 화면 공통.
   const suspendAutoScrollRef = React.useRef(false)
 
   const { cvText, cvName, parsingPdf, handleFileUpload, clearFile } = useFileUpload({
@@ -165,9 +150,6 @@ const Chat = memo(function Chat({
     }
   }, [followUpQuestions])
 
-  const pendingSaveRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const latestSavePayloadRef = React.useRef<string | null>(null)
-
   React.useEffect(() => {
     setActiveSessionId(sessionIdRef.current)
   }, [sessionIdRef])
@@ -180,55 +162,15 @@ const Chat = memo(function Chat({
     onSessionChange({ sessionId: activeSessionId, title: current?.title ?? null })
   }, [activeSessionId, sessionHistory, onSessionChange])
 
-  React.useEffect(() => {
-    if (!sessionLoaded || messages.length === 0) {
-      return
-    }
-
-    const payload = JSON.stringify({
-      sessionId: sessionIdRef.current,
-      locale: lang || 'ko',
-      messages: messages.filter((m) => m.role !== 'system'),
-    })
-    latestSavePayloadRef.current = payload
-
-    if (pendingSaveRef.current) {
-      clearTimeout(pendingSaveRef.current)
-    }
-
-    pendingSaveRef.current = setTimeout(async () => {
-      pendingSaveRef.current = null
-      latestSavePayloadRef.current = null
-
-      try {
-        await fetch('/api/counselor/session/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-        })
-        logger.debug('[Chat] Session auto-saved:', { messageCount: messages.length })
-      } catch (error) {
-        logger.warn('[Chat] Failed to save session:', error)
-      }
-    }, CHAT_TIMINGS.DEBOUNCE_SAVE)
-
-    return () => {
-      if (pendingSaveRef.current) {
-        clearTimeout(pendingSaveRef.current)
-      }
-    }
-  }, [messages, sessionLoaded, lang, sessionIdRef])
-
-  React.useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (latestSavePayloadRef.current) {
-        navigator.sendBeacon('/api/counselor/session/save', latestSavePayloadRef.current)
-      }
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [])
+  // 자동 저장 — 공통 hook (debounce + beforeunload sendBeacon).
+  // sessionIdRef 를 그대로 넘기면 새 채팅 시작(startNewChat) 시 ref 가 바뀌어도
+  // 다음 저장에 새 id 가 사용된다 (current 평가는 effect 안).
+  useChatAutoSave({
+    enabled: sessionLoaded,
+    sessionId: sessionIdRef,
+    locale: lang || 'ko',
+    messages,
+  })
 
   useSeedEvent({
     eventName: seedEvent,
@@ -240,15 +182,15 @@ const Chat = memo(function Chat({
     },
   })
 
-  React.useEffect(() => {
-    if (!autoScroll) {
-      return
-    }
-    if (suspendAutoScrollRef.current) {
-      return
-    }
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, loading, autoScroll])
+  // 자동 스크롤 — 공통 hook (3 화면 통합). messagesEndRef 는 위에서
+  // 이미 만들어 useChatApi prop 으로 전달 중이라 externalRef 로 그대로 활용.
+  const { scrollToBottomImmediate: scrollToLatest } = useChatAutoScroll({
+    messages,
+    loading,
+    enabled: autoScroll,
+    suspendRef: suspendAutoScrollRef,
+    externalRef: messagesEndRef,
+  })
 
   React.useEffect(() => {
     void loadSessionHistory()
@@ -270,40 +212,15 @@ const Chat = memo(function Chat({
 
   const goToTarot = React.useCallback(() => setShowTarotModal(true), [])
 
-  // 🃏 클래리파이어 카드 한 장 — 작은 모달이 열려 카드 한 장이 펼쳐지고
-  // 사용자가 확인을 누르면 카드 이미지(마크다운)와 함께 채팅 메시지로
-  // 흘려보낸다. LLM 이 직전 흐름에 맞춰 한 단락 보충 해석을 답해준다.
-  const openClarifier = React.useCallback(() => {
-    // 한 대화당 한 장만. 이미 뽑았으면 모달 안 열고 안내만 노출.
-    if (clarifierUsed) {
-      setNotice(
-        effectiveLang === 'ko'
-          ? '이번 대화에서는 보충 카드를 이미 한 장 뽑았어요. 새 대화를 시작하면 다시 뽑을 수 있어요.'
-          : "You've already drawn one clarifier card in this chat. Start a new chat to draw another."
-      )
-      return
-    }
-    setShowClarifierModal((prev) => (prev ? prev : true))
-  }, [clarifierUsed, effectiveLang])
-  const handleClarifierConfirm = React.useCallback(
-    (card: ClarifierCard) => {
-      // 카드 이름 + 그림(markdown 이미지) + 해석 요청을 user 메시지로 흘려
-      // 보낸다. 한 번 뽑으면 새 대화 시작 전까지 잠금.
-      // 자동 스크롤 hijack 을 일정 시간 끈다 — "한 장 더 뽑기" 버튼이 채팅
-      // 맨 하단에 있어 사용자는 이미 그 자리를 보고 있다. 일반 useEffect 가
-      // 답변 토큰마다 messagesEnd 로 따라가버리면 사용자가 막 본 user
-      // 말풍선/카드가 viewport 위로 밀려 "다시 올라간 것" 처럼 보임.
-      // 답변 스트리밍이 끝날 만큼(~25s) 충분히 길게 잠근다.
-      suspendAutoScrollRef.current = true
-      window.setTimeout(() => {
-        suspendAutoScrollRef.current = false
-      }, 25000)
-      setClarifierUsed(true)
-      const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
-      void handleSendRef.current?.(userText)
+  // 🃏 클래리파이어 카드 — 공통 hook (compat/followup 동일). 정책 단일 출처.
+  const clarifier = useClarifierCard({
+    lang: effectiveLang,
+    onSendUserText: (text) => {
+      void handleSendRef.current?.(text)
     },
-    [effectiveLang]
-  )
+    onLockedNotice: setNotice,
+    suspendAutoScrollRef,
+  })
 
   const handleTarotComplete = (result: TarotResultSummary) => {
     const cardsSummary = result.cards
@@ -343,7 +260,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
     hookStartNewChat()
     setActiveSessionId(sessionIdRef.current)
     setFollowUpQuestions([])
-    setClarifierUsed(false)
+    clarifier.reset()
   }
 
   // ---- Rename / delete a past chat (desktop rail) ----
@@ -599,30 +516,12 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
             <button
               type="button"
               className={styles.historyRailFooterBtn}
-              onClick={openClarifier}
-              disabled={showClarifierModal}
-              aria-disabled={showClarifierModal || clarifierUsed}
-              style={clarifierUsed ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
-              title={
-                clarifierUsed
-                  ? effectiveLang === 'ko'
-                    ? '\uC774 \uB300\uD654\uC5D0\uC11C\uB294 \uC774\uBBF8 \uD55C \uC7A5 \uBF51\uC558\uC5B4\uC694'
-                    : "Already drew one in this chat"
-                  : effectiveLang === 'ko'
-                    ? '\uBCF4\uCDA9 \uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30 (\uC989\uC11D \uD074\uB798\uB9AC\uD30C\uC774\uC5B4)'
-                    : 'Draw one clarifier card (quick)'
-              }
+              {...clarifier.buttonProps}
             >
               <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
                 {'\uD83C\uDCCF'}
               </span>
-              {clarifierUsed
-                ? effectiveLang === 'ko'
-                  ? '\uD55C \uC7A5 \uB354 \uBF51\uAE30 \uBD88\uAC00'
-                  : 'No more draws'
-                : effectiveLang === 'ko'
-                  ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30'
-                  : 'Draw one more card'}
+              {clarifier.buttonLabel}
             </button>
             <button
               type="button"
@@ -670,8 +569,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onFollowUp={handleFollowUp}
               styles={styles}
               userName={profile?.name}
-              onOpenClarifier={openClarifier}
-              clarifierUsed={clarifierUsed}
+              onOpenClarifier={clarifier.buttonProps.onClick}
+              clarifierUsed={clarifier.isLocked}
             />
 
             <ChatInputArea
@@ -705,12 +604,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         initialConcern={followUpQuestions[0] || extractConcernFromMessages()}
       />
 
-      <ClarifierCardModal
-        isOpen={showClarifierModal}
-        onClose={() => setShowClarifierModal(false)}
-        onConfirm={handleClarifierConfirm}
-        lang={effectiveLang}
-      />
+      <ClarifierCardModal {...clarifier.modalProps} />
 
       <ChartModal
         open={showChartModal}

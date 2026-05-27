@@ -5,7 +5,9 @@ import dynamic from 'next/dynamic'
 import { MessageCircle, Send, Loader2, Sparkles } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
-import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
+import { useClarifierCard } from '@/hooks/useClarifierCard'
+import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
+import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
@@ -31,23 +33,21 @@ export function FollowupChat({
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<Turn[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [showClarifierModal, setShowClarifierModal] = useState(false)
-  // 한 리딩당 클래리파이어 한 장만 (운명상담사 동일 정책 PR #631).
-  const [clarifierUsed, setClarifierUsed] = useState(false)
   const [clarifierNotice, setClarifierNotice] = useState<string | null>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  // containerRef — 클래리파이어 confirm 직후 페이지 viewport 를 채팅 박스
+  // 시작 위치로 가져오기 위해 section 자체에 박는다.
   const containerRef = useRef<HTMLElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 —
-  // "카드 한 장 더 뽑기" 버튼이 채팅 박스 맨 하단이고, 사용자가 본 자리에
-  // 카드/답변이 그대로 쌓이는 게 자연스러움. 자동 scrollTo 가 답변 끝까지
-  // 따라가면 viewport/박스가 위로 밀려 회귀.
+  // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 — 자세한
+  // 정책은 useClarifierCard hook 참조.
   const suspendAutoScrollRef = useRef(false)
 
-  useEffect(() => {
-    if (suspendAutoScrollRef.current) return
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [history])
+  // 자동 스크롤 — destiny/compat 와 같은 공통 hook. endRef 를 박스 내부
+  // 맨 끝에 박으면 hook 이 박스(parent) scrollTop 으로 따라간다.
+  const { endRef } = useChatAutoScroll({
+    messages: history,
+    suspendRef: suspendAutoScrollRef,
+  })
 
   // 결과 페이지에 채팅 박스가 처음 마운트될 때 — 텍스트영역 자동 포커스 → 모바일 키보드 자동.
   // (IntersectionObserver 로 박스가 보일 때만 focus 하면 페이지 상단에 깜빡 튀는 현상 방지)
@@ -152,43 +152,26 @@ export function FollowupChat({
     await sendQuestionText(q)
   }
 
-  // 🃏 클래리파이어 카드 한 장 — 한 리딩당 한 장만. 두 번째 클릭은 모달
-  // 안 열고 안내만 띄움.
-  const openClarifier = () => {
-    if (submitting) return
-    if (clarifierUsed) {
-      setClarifierNotice(
-        isKo
-          ? '이 리딩에서는 보충 카드를 이미 한 장 뽑았어요. 새 리딩에서 다시 뽑을 수 있어요.'
-          : "You've already drawn one clarifier card for this reading."
-      )
-      return
-    }
-    setShowClarifierModal(true)
-  }
-  const handleClarifierConfirm = async (card: ClarifierCard) => {
-    // 내부 chat box 의 token-by-token 자동 스크롤은 25초 suspend
-    // (PR #644 — 답변 끝까지 따라가면 박스 viewport 가 위로 밀림 회귀).
-    // 단, "한 장 더 뽑기" 클릭 시점에 사용자 viewport 를 채팅 박스 시작
-    // 위치로 한 번 가져온다 — 안 그러면 새 클래리파이어 카드/답변이
-    // 페이지 맨 아래에 추가됐는데도 사용자는 페이지 위쪽 그대로 머물러
-    // "결과가 안 보임" 회귀 (보고된 사용자 이슈).
-    suspendAutoScrollRef.current = true
-    window.setTimeout(() => {
-      suspendAutoScrollRef.current = false
-    }, 25000)
-    setClarifierUsed(true)
-    setClarifierNotice(null)
-    const text = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
-    // 두 frame 뒤 scroll — modal close + history 갱신 commit 이 paint 된
-    // 다음에 가져와야 새 카드 메시지 위치가 정확.
-    requestAnimationFrame(() => {
+  // 🃏 클래리파이어 카드 — 공통 hook (운명상담사/궁합상담사 동일).
+  // onSendUserText 안에서 main 의 viewport scroll fix 도 함께 (사용자가
+  // 페이지 위쪽에 있을 때 클래리파이어 결과 안 보이는 회귀 방지).
+  const clarifier = useClarifierCard({
+    lang: isKo ? 'ko' : 'en',
+    onSendUserText: (text) => {
+      setClarifierNotice(null)
+      // 두 frame 뒤 scroll — modal close + history 갱신 commit 이 paint 된
+      // 다음에 가져와야 새 카드 메시지 위치가 정확.
       requestAnimationFrame(() => {
-        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        requestAnimationFrame(() => {
+          containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        })
       })
-    })
-    await sendQuestionText(text)
-  }
+      void sendQuestionText(text)
+    },
+    onLockedNotice: setClarifierNotice,
+    suspendAutoScrollRef,
+    disabled: submitting,
+  })
 
   return (
     <section
@@ -203,65 +186,35 @@ export function FollowupChat({
       </div>
 
       {history.length > 0 && (
-        <div ref={scrollRef} className="max-h-80 overflow-y-auto space-y-3 pr-1">
-          {history.map((t, i) => {
-            // 클래리파이어 user 메시지에 들어있는 카드 markdown 이미지(`![alt](src)`)는
-            // 그냥 텍스트로 두면 안 보임 — 추출해 별도 <img> 로 렌더하고 본문에서는
-            // 제거해 중복 표시 안 되게.
-            const imgMatch = t.role === 'user' ? /!\[([^\]]*)\]\(([^)]+)\)/.exec(t.content) : null
-            const inlineImage = imgMatch ? { alt: imgMatch[1] || '', src: imgMatch[2] } : null
-            const textContent = inlineImage
-              ? t.content.replace(/!\[[^\]]*\]\([^)]+\)/, '').trim()
-              : t.content
-            return (
+        <div className="max-h-80 overflow-y-auto space-y-3 pr-1">
+          {history.map((t, i) => (
+            <div
+              key={i}
+              className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
               <div
-                key={i}
-                className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`max-w-[88%] rounded-xl px-4 py-2.5 text-[17px] leading-relaxed whitespace-pre-wrap ${
+                  t.role === 'user'
+                    ? 'bg-indigo-500/15 border border-indigo-500/30 text-slate-100'
+                    : 'bg-slate-800/60 border border-slate-700 text-slate-100'
+                }`}
               >
-                <div
-                  className={`max-w-[88%] rounded-xl px-4 py-2.5 ${
-                    t.role === 'user'
-                      ? 'bg-indigo-500/15 border border-indigo-500/30 text-slate-100'
-                      : 'bg-slate-800/60 border border-slate-700 text-slate-100'
-                  }`}
-                >
-                  {t.pending ? (
+                <ChatBubbleContent
+                  role={t.role}
+                  content={t.content}
+                  pending={t.pending}
+                  pendingNode={
                     <div className="flex items-center gap-2 text-cyan-200/80 text-sm">
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       {isKo ? '답변 준비 중…' : 'Thinking…'}
                     </div>
-                  ) : (
-                    <>
-                      {textContent && (
-                        <p className="text-[17px] leading-relaxed whitespace-pre-wrap">
-                          {textContent}
-                        </p>
-                      )}
-                      {inlineImage && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={inlineImage.src}
-                          alt={inlineImage.alt}
-                          loading="lazy"
-                          style={{
-                            display: 'block',
-                            maxWidth: '180px',
-                            width: '70%',
-                            aspectRatio: '5 / 8.5',
-                            objectFit: 'cover',
-                            borderRadius: '10px',
-                            marginTop: textContent ? '10px' : 0,
-                            boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
-                            background: 'rgba(255,255,255,0.06)',
-                          }}
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
+                  }
+                  theme="dark"
+                />
               </div>
-            )
-          })}
+            </div>
+          ))}
+          <div ref={endRef} />
         </div>
       )}
 
@@ -274,29 +227,11 @@ export function FollowupChat({
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={openClarifier}
-          disabled={submitting || showClarifierModal}
-          aria-disabled={submitting || showClarifierModal || clarifierUsed}
-          style={clarifierUsed ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
+          {...clarifier.buttonProps}
           className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-[12px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-          title={
-            clarifierUsed
-              ? isKo
-                ? '이 리딩에서는 이미 한 장 뽑았어요'
-                : 'Already drew one for this reading'
-              : isKo
-                ? '직전 리딩 흐름에 클래리파이어 카드 한 장 더 뽑기'
-                : 'Draw one clarifier card to add to this reading'
-          }
         >
           <Sparkles className="h-3.5 w-3.5" />
-          {clarifierUsed
-            ? isKo
-              ? '한 장 더 뽑기 불가'
-              : 'No more draws'
-            : isKo
-              ? '카드 한 장 더 뽑기'
-              : 'Draw one more card'}
+          {clarifier.buttonLabel}
         </button>
       </div>
 
@@ -337,12 +272,7 @@ export function FollowupChat({
             : 'e.g. "Why did the 3rd card land there?", "Should I wait on the decision?"'}
         </p>
       )}
-      <ClarifierCardModal
-        isOpen={showClarifierModal}
-        onClose={() => setShowClarifierModal(false)}
-        onConfirm={handleClarifierConfirm}
-        lang={isKo ? 'ko' : 'en'}
-      />
+      <ClarifierCardModal {...clarifier.modalProps} />
     </section>
   )
 }
