@@ -392,8 +392,10 @@ function unseLine(u: UnseLike | null | undefined): string | null {
         ? `${u.year ?? '?'}-${u.month}`
         : u.year != null
           ? String(u.year)
-          : u.age != null
-            ? `${u.age}세`
+          : // 대운 전/다음 fallback — age 만 있는 entry 는 10년 cycle 임을
+            // 범위로 명시해 LLM 이 "현재 X세" 로 오인하지 않게.
+            u.age != null
+            ? `${u.age}~${u.age + 9}세`
             : ''
   return `${when ? when + ' ' : ''}${stem}${branch} ${sib}`
 }
