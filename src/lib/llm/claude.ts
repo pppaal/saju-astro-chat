@@ -31,9 +31,7 @@ function calculateUsdCost(
   return i + o + c
 }
 
-export type ClaudeModel =
-  | 'claude-haiku-4-5-20251001'
-  | 'claude-sonnet-4-5-20250929'
+export type ClaudeModel = 'claude-haiku-4-5-20251001' | 'claude-sonnet-4-5-20250929'
 
 export const DEFAULT_CLAUDE_MODEL: ClaudeModel = 'claude-haiku-4-5-20251001'
 export const PREMIUM_CLAUDE_MODEL: ClaudeModel = 'claude-sonnet-4-5-20250929'
@@ -137,9 +135,7 @@ function buildMessages(
   priorTurns?: Array<{ role: 'user' | 'assistant'; content: string }>
 ): AnthropicMessage[] {
   if (!priorTurns || priorTurns.length === 0) {
-    return [
-      { role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) },
-    ]
+    return [{ role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) }]
   }
   const messages: AnthropicMessage[] = []
   let snapshotAttached = false
@@ -257,13 +253,36 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
 
   if (data?.usage) {
     const usage = data.usage
+    // cache hit ratio = cache_read / (cache_read + uncached input). 새 prefix
+    // 첫 호출은 write 만 발생하므로 ratio=0; 같은 prefix 재방문이 일어나면
+    // ratio 가 올라간다. 엔드포인트별 가시성 확보를 위해 매 호출 로깅.
+    const cacheReadTokens = usage.cache_read_input_tokens || 0
+    const cacheCreateTokens = usage.cache_creation_input_tokens || 0
+    const uncachedInput = usage.input_tokens || 0
+    const cacheable = cacheReadTokens + uncachedInput
+    const cacheHitRatio = cacheable > 0 ? cacheReadTokens / cacheable : 0
     logger.info(`[${label}] Claude usage`, {
-      input: usage.input_tokens,
+      input: uncachedInput,
       output: usage.output_tokens,
-      cacheRead: usage.cache_read_input_tokens,
-      cacheCreate: usage.cache_creation_input_tokens,
+      cacheRead: cacheReadTokens,
+      cacheCreate: cacheCreateTokens,
+      cacheHitRatio: cacheHitRatio.toFixed(3),
       model,
     })
+    recordCounter('claude.cache.hit_ratio_x1000', Math.round(cacheHitRatio * 1000), {
+      model,
+      label,
+    })
+    // 캐시될 만한 큰 호출인데 hit ratio 가 0 이면 prefix 가 매번 달라지는
+    // (silent invalidator) 신호 — 경고로 surface.
+    if (cacheable > 2000 && cacheHitRatio < 0.05 && cacheCreateTokens === 0) {
+      logger.warn(`[${label}] Claude cache miss on large prefix`, {
+        cacheable,
+        cacheReadTokens,
+        cacheCreateTokens,
+        model,
+      })
+    }
     // 비용 모니터링 — metric 카운터로 token + USD 추적.
     // Anthropic dashboard나 외부 모니터링이 polling/scrape 가능.
     const usd = calculateUsdCost(
@@ -365,6 +384,8 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
       let buffer = ''
       let inputTokens = 0
       let outputTokens = 0
+      let cacheReadTokens = 0
+      let cacheCreateTokens = 0
       try {
         while (true) {
           const { done, value } = await reader.read()
@@ -380,17 +401,25 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
             const json = dataLine.slice(6).trim()
             if (json === '[DONE]') continue
             try {
+              type StreamUsage = {
+                input_tokens?: number
+                output_tokens?: number
+                cache_read_input_tokens?: number
+                cache_creation_input_tokens?: number
+              }
               const event = JSON.parse(json) as {
                 type?: string
                 delta?: { text?: string; type?: string }
-                message?: { usage?: { input_tokens?: number; output_tokens?: number } }
-                usage?: { input_tokens?: number; output_tokens?: number }
+                message?: { usage?: StreamUsage }
+                usage?: StreamUsage
               }
               if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
                 const text = event.delta.text || ''
                 if (text) streamController.enqueue(text)
               } else if (event.type === 'message_start' && event.message?.usage) {
                 inputTokens = event.message.usage.input_tokens || 0
+                cacheReadTokens = event.message.usage.cache_read_input_tokens || 0
+                cacheCreateTokens = event.message.usage.cache_creation_input_tokens || 0
               } else if (event.type === 'message_delta' && event.usage) {
                 outputTokens = event.usage.output_tokens || 0
               }
@@ -399,14 +428,37 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
             }
           }
         }
-        // 비용 모니터링
-        if (inputTokens || outputTokens) {
+        // 비용 + 캐시 모니터링
+        if (inputTokens || outputTokens || cacheReadTokens) {
+          const cacheable = cacheReadTokens + inputTokens
+          const cacheHitRatio = cacheable > 0 ? cacheReadTokens / cacheable : 0
+          logger.info(`[${label}] Claude stream usage`, {
+            input: inputTokens,
+            output: outputTokens,
+            cacheRead: cacheReadTokens,
+            cacheCreate: cacheCreateTokens,
+            cacheHitRatio: cacheHitRatio.toFixed(3),
+            model,
+          })
           recordCounter('claude.tokens.input', inputTokens, { model, label })
           recordCounter('claude.tokens.output', outputTokens, { model, label })
+          recordCounter('claude.tokens.cache_read', cacheReadTokens, { model, label })
+          recordCounter('claude.cache.hit_ratio_x1000', Math.round(cacheHitRatio * 1000), {
+            model,
+            label,
+          })
           recordExternalCall('anthropic', model, 'success', 0, {
             input: inputTokens,
             output: outputTokens,
           })
+          if (cacheable > 2000 && cacheHitRatio < 0.05 && cacheCreateTokens === 0) {
+            logger.warn(`[${label}] Claude stream cache miss on large prefix`, {
+              cacheable,
+              cacheReadTokens,
+              cacheCreateTokens,
+              model,
+            })
+          }
         }
       } catch (err) {
         recordExternalCall('anthropic', model, 'error', 0, {})

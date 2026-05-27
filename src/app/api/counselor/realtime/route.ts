@@ -162,6 +162,24 @@ function birthFingerprint(b: RealtimeBody): string {
   ].join('|')
 }
 
+// birthDate (YYYY-MM-DD) 기준 만 나이를 직접 계산 — saju 빌더를 거치지
+// 않고도 가능. cache 밖에서 매 턴 휘발성 userPrompt prefix 로 주입하기
+// 위한 헬퍼.
+function computeAgeYears(birthDate: string | undefined | null): number | null {
+  if (!birthDate || typeof birthDate !== 'string') return null
+  const m = birthDate.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!m) return null
+  const by = Number(m[1])
+  const bm = Number(m[2])
+  const bd = Number(m[3])
+  if (!Number.isFinite(by) || !Number.isFinite(bm) || !Number.isFinite(bd)) return null
+  const now = new Date()
+  let age = now.getFullYear() - by
+  const passed = now.getMonth() + 1 > bm || (now.getMonth() + 1 === bm && now.getDate() >= bd)
+  if (!passed) age -= 1
+  return age >= 0 && age < 150 ? age : null
+}
+
 export async function POST(req: NextRequest) {
   // 0) CSRF — this route bypasses withApiMiddleware, so guard the origin
   // explicitly. Without it, any third-party page could POST in a logged-in
@@ -247,10 +265,12 @@ export async function POST(req: NextRequest) {
   // v10: 호출자 이름(userName)을 cached context 에서 제거 → Anthropic
   // prompt cache prefix 가 차트 데이터만으로 고정. 이전 v9 엔트리에는
   // 이름이 박혀 있어 캐시 미스 증가 원인이었음.
+  // v11: 만 나이도 cached context 에서 제거 → 생일 통과 시 prefix 무효화
+  // 방지. 이름 + 나이 둘 다 휘발성 userPrompt prefix 로 옮겨감.
   const userTz = body.userTimezone || body.timezone || 'Asia/Seoul'
   const localNow = getNowInTimezone(userTz)
   const localDateKey = `${localNow.year}-${localNow.month}-${localNow.day}`
-  const ctxKey = `counselor:ctx:v10:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
+  const ctxKey = `counselor:ctx:v11:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
   let contextText: string | null = await cacheGet<string>(ctxKey)
   if (!contextText) {
     try {
@@ -315,13 +335,9 @@ export async function POST(req: NextRequest) {
       )
       if (birthTimeUnknown) parts.push('# 시간 미상 — 시주/일진/ASC/MC/하우스 인용 금지.')
       if (birthCityUnknown) parts.push('# 출생지 미상 — 위치 의존 결론 금지.')
-      // Pin the current age so the LLM stops conflating "current age"
-      // with "daeun stage start age" (e.g. 32세 대운 시작 vs 만 35세
-      // 현재). SajuNormalizerInput carries ageYears already.
-      const ageYears = (saju as { ageYears?: number }).ageYears
-      if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
-        parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
-      }
+      // (이전엔 여기서 만 나이를 parts 에 push 했음 → cached context
+      //  안에 들어가서 생일 지날 때마다 prefix 무효화. 이제 cache 밖
+      //  userPrompt prefix 로 옮김 — 아래 callerLine 인근 참조.)
       // ── Destiny counselor layer: SAJU (from raw) + ASTRO/CURRENT
       //    (raw→refined) + reading rules. Replaces the old formatSajuSelf /
       //    formatAstroSelf + slim chain here; compat counselor keeps those.
@@ -424,23 +440,32 @@ export async function POST(req: NextRequest) {
   // (or none) on the next turn doesn't get a stale cache hit.
   const attachmentText =
     typeof body.cvText === 'string' ? body.cvText.trim().slice(0, MAX_ATTACHMENT_CHARS) : ''
-  // 호출자 이름은 cachedUserContext 밖에서 주입 — DB 의 최신 User.name
-  // (session.user.name 은 JWT 캐시라 변경 즉시 반영 안 됨) 을 매 턴
-  // userPrompt 앞에 붙인다. 이전엔 캐시된 컨텍스트 안에 박혀 있어서
-  // 이름이 prompt-cache prefix 의 일부가 됐고 (a) 유저 간 캐시 공유
-  // 불가, (b) 이름 수정시 다음 세션 캐시 무효화로 cache hit ratio 가
-  // 폭락. 이제 이름은 휘발성 userPrompt prefix 라 Anthropic 의
-  // ephemeral cache prefix 가 유저 무관하게 차트 데이터만으로 안정.
+  // 호출자 이름 + 만 나이는 cachedUserContext 밖에서 주입 — 둘 다 휘발성
+  // 메타라 cache prefix 에 들어가면 prompt-cache 무효화 (이름 변경 / 생일
+  // 통과 시). 매 턴 userPrompt prefix 로 붙여 chart 데이터만으로 prefix
+  // 안정.
   const userName = await getUserDisplayName(userId)
-  const callerLine = userName
-    ? lang === 'en'
-      ? `[Caller] ${userName} — address as 'Hi ${userName},' naturally.\n\n`
-      : `[호출자] ${userName} — 한국어로 답할 때 '${userName}님'으로 정중히 호명한다.\n\n`
-    : ''
+  const ageYearsFromBirth = computeAgeYears(body.birthDate)
+  const metaParts: string[] = []
+  if (userName) {
+    metaParts.push(
+      lang === 'en'
+        ? `[Caller] ${userName} — address as 'Hi ${userName},' naturally.`
+        : `[호출자] ${userName} — 한국어로 답할 때 '${userName}님'으로 정중히 호명한다.`
+    )
+  }
+  if (typeof ageYearsFromBirth === 'number') {
+    metaParts.push(
+      lang === 'en'
+        ? `[Age today] ${ageYearsFromBirth} (use as the 'current age' anchor; do not confuse with daeun start ages).`
+        : `[오늘 기준 만나이] ${ageYearsFromBirth}세 (한국 ${ageYearsFromBirth + 1}세) — 현재 나이 앵커로 사용, 대운 시작 나이와 혼동 금지.`
+    )
+  }
+  const metaLine = metaParts.length ? `${metaParts.join('\n')}\n\n` : ''
   const userPromptBody = attachmentText
     ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserPrompt}`
     : rawUserPrompt
-  const userPrompt = `${callerLine}${userPromptBody}`
+  const userPrompt = `${metaLine}${userPromptBody}`
 
   // If we charged for a new session but the stream delivers nothing (backend
   // error or empty completion), refund the credit and drop the session marker

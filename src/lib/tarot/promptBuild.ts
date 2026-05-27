@@ -64,14 +64,9 @@ export function buildInterpretStreamPrompts(
   const hasQuestion = trimmed.length > 0
   const cardListText = renderCardList(cards, language)
 
-  // 질문이 없으면(일반 운세) "첫 문장에 질문 직접 언급" 지시가 어색해지므로
-  // 전반적 흐름으로 시작하도록 분기. 질문이 있을 때 문구는 기존과 동일.
-  const overallDirectiveKo = hasQuestion
-    ? '오프닝 + 시너지. 가벼운 질문이면 3-5문장으로 짧고 자연스럽게, 진지한 질문이면 500-750자로 깊이. 첫 문장에 사용자 질문 직접 언급'
-    : '오프닝 + 시너지, 500-750자, 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작'
-  const overallDirectiveEn = hasQuestion
-    ? 'Opening + synergy. 3-5 sentences if the question is casual, 320-450 words if serious. First sentence references the question'
-    : 'Opening + synergy, 320-450 words, open with the overall flow naturally'
+  // hasQuestion 분기 텍스트는 systemPrompt 에서 빼고 userPrompt 로 옮김
+  // (prompt-cache prefix 안정화 — 이전엔 systemPrompt 가 매 호출 다른
+  // overallDirective/openingInstruction 으로 4 variant 발생).
   const openingInstructionKo = hasQuestion
     ? '- overall 의 첫 문장은 사용자의 질문을 직접 언급하면서 시작.'
     : '- 특정 질문이 없으니 overall 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작하세요 (억지로 질문을 언급하지 말 것).'
@@ -94,9 +89,13 @@ export function buildInterpretStreamPrompts(
 - 진지한 질문(이직·연애·건강·중대한 결정 등)일수록 깊고 구체적으로.
 - 출력 순서: overall 을 먼저 완성한 뒤 cards[] 를 1번부터 순서대로 채우세요 (스트리밍 UI가 위에서부터 바로 보여줌).
 
+overall 분량 가이드:
+- 질문이 있으면: 오프닝 + 시너지. 가벼운 질문이면 3-5문장으로 짧고 자연스럽게, 진지한 질문이면 500-750자로 깊이. 첫 문장에 사용자 질문 직접 언급.
+- 질문이 없으면: 오프닝 + 시너지, 500-750자, 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작.
+
 출력 — 정확히 이 JSON 스키마 (코드펜스/주석/머리말 X):
 {
-  "overall": "${overallDirectiveKo}. 개별 카드 요약 나열이 아니라 모든 카드를 하나로 묶어 전체가 그리는 큰 흐름을 종합",
+  "overall": "위 overall 분량 가이드에 따라. 개별 카드 요약 나열이 아니라 모든 카드를 하나로 묶어 전체가 그리는 큰 흐름을 종합",
   "cards": [
     { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 그 자리 고유 관점으로. 가벼운 질문이면 2-3문장, 진지하면 400-650자. 상대 시점 앵커 포함(예: 2-3주 내·다음 달)" }
   ],
@@ -116,9 +115,13 @@ Tone and length — match the question (most important):
 - The more serious the question (career, love, health, major decisions), the deeper and more concrete.
 - Emission order: finish overall first, then fill cards[] in order from 1 (the streaming UI shows it top-down as it arrives).
 
+overall length guide:
+- If a question is asked: Opening + synergy. 3-5 sentences if the question is casual, 320-450 words if serious. First sentence references the question.
+- If no question: Opening + synergy, 320-450 words, open with the overall flow naturally.
+
 Output — exactly this JSON schema (no code fences, no preamble, no comments):
 {
-  "overall": "${overallDirectiveEn}. Synthesize ALL cards into one big-picture flow, not a list of per-card summaries",
+  "overall": "Per the overall length guide above. Synthesize ALL cards into one big-picture flow, not a list of per-card summaries",
   "cards": [
     { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, from that seat's own vantage. 2-3 sentences if the question is casual, 230-360 words if serious, with a relative time anchor (e.g. next 2-3 weeks)" }
   ],

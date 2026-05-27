@@ -6,20 +6,28 @@ function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max)
 }
 
+/**
+ * 같은 데이터가 다른 객체 키 순서로 직렬화되지 않게 sort 한다 — JSON.stringify
+ * 는 insertion order 를 따르므로, 객체를 어떻게 빌드했냐에 따라 같은 차트
+ * 데이터가 다른 바이트로 나와서 Anthropic prompt-cache prefix 가 불일치할
+ * 수 있다. 키를 알파벳순으로 정규화해 cache hit 안정.
+ */
+function sortObjectKeys(value: unknown, seen: WeakSet<object>): unknown {
+  if (value === null || typeof value !== 'object') return value
+  if (seen.has(value as object)) return '[Circular]'
+  seen.add(value as object)
+  if (Array.isArray(value)) return value.map((v) => sortObjectKeys(v, seen))
+  const obj = value as Record<string, unknown>
+  const out: Record<string, unknown> = {}
+  for (const k of Object.keys(obj).sort()) {
+    out[k] = sortObjectKeys(obj[k], seen)
+  }
+  return out
+}
+
 function stringifyForPrompt(value: unknown): string {
   try {
-    const seen = new WeakSet<object>()
-    return JSON.stringify(
-      value,
-      (_key, nested) => {
-        if (nested && typeof nested === 'object') {
-          if (seen.has(nested as object)) return '[Circular]'
-          seen.add(nested as object)
-        }
-        return nested
-      },
-      2
-    )
+    return JSON.stringify(sortObjectKeys(value, new WeakSet<object>()), null, 2)
   } catch {
     return ''
   }
@@ -98,13 +106,8 @@ function trimSajuTimeWindow(key: string, arr: unknown[]): unknown[] {
     if (!entry || typeof entry !== 'object') return false
     const e = entry as Record<string, unknown>
     if (cfg.around === 'year') return Number(e.year) === yearNow
-    if (cfg.around === 'month')
-      return Number(e.year) === yearNow && Number(e.month) === monthNow
-    return (
-      Number(e.year) === yearNow &&
-      Number(e.month) === monthNow &&
-      Number(e.day) === dayNow
-    )
+    if (cfg.around === 'month') return Number(e.year) === yearNow && Number(e.month) === monthNow
+    return Number(e.year) === yearNow && Number(e.month) === monthNow && Number(e.day) === dayNow
   })
   const center = pickIdx >= 0 ? pickIdx : 0
   const start = Math.max(0, center - cfg.before)
@@ -130,9 +133,7 @@ function trimDaeunList(daeun: Record<string, unknown>): Record<string, unknown> 
 function prunePromptContext(value: unknown, parentKey?: string): unknown {
   if (Array.isArray(value)) {
     const trimmed =
-      parentKey && PROMPT_TRIM_WINDOWS[parentKey]
-        ? trimSajuTimeWindow(parentKey, value)
-        : value
+      parentKey && PROMPT_TRIM_WINDOWS[parentKey] ? trimSajuTimeWindow(parentKey, value) : value
     return trimmed.map((v) => prunePromptContext(v))
   }
   if (value && typeof value === 'object') {
@@ -668,7 +669,11 @@ function formatTimingForPrompt(
     })
   }
 
-  const renderSide = (label: string, side: Record<string, unknown>, sideAstro?: Record<string, unknown> | null) => {
+  const renderSide = (
+    label: string,
+    side: Record<string, unknown>,
+    sideAstro?: Record<string, unknown> | null
+  ) => {
     const lines: string[] = []
     // Saju timing — 운명상담사의 [현재 시기] 패턴 mirror. 옛 빌드는
     // 여기서 daeun/saeun/wolun/ilun 을 출력했는데 "이미 cached saju
@@ -716,9 +721,7 @@ function formatTimingForPrompt(
         const major = pickTopTransits(ct.majorTransits, 5)
         const fallback = major.length > 0 ? major : pickTopTransits(ct.aspects, 5)
         if (fallback.length > 0) {
-          lines.push(
-            `${isKo ? '점성 트랜짓' : 'astro transits'}${asOf ? ` (${asOf})` : ''}:`
-          )
+          lines.push(`${isKo ? '점성 트랜짓' : 'astro transits'}${asOf ? ` (${asOf})` : ''}:`)
           fallback.forEach((line) => lines.push(`  - ${line}`))
         }
       }
@@ -731,9 +734,7 @@ function formatTimingForPrompt(
         const moon = planets?.find((p) => String(p.name).toLowerCase() === 'moon')
         const yr = sr.returnYear || ''
         const tag = `Asc ${asc || '-'}, Sun ${sun?.sign || '-'} h${sun?.house || '-'}, Moon ${moon?.sign || '-'} h${moon?.house || '-'}`
-        lines.push(
-          `${isKo ? '점성 솔라 리턴' : 'astro solar return'} ${yr}: ${tag}`
-        )
+        lines.push(`${isKo ? '점성 솔라 리턴' : 'astro solar return'} ${yr}: ${tag}`)
       }
       const lr = returns?.lunarReturn as Record<string, unknown> | undefined
       if (lr) {
@@ -743,9 +744,7 @@ function formatTimingForPrompt(
         const yr = lr.returnYear || ''
         const mo = lr.returnMonth || ''
         const tag = `Asc ${asc || '-'}, Moon ${moon?.sign || '-'} h${moon?.house || '-'}`
-        lines.push(
-          `${isKo ? '점성 루나 리턴' : 'astro lunar return'} ${yr}-${mo}: ${tag}`
-        )
+        lines.push(`${isKo ? '점성 루나 리턴' : 'astro lunar return'} ${yr}-${mo}: ${tag}`)
       }
     }
 
