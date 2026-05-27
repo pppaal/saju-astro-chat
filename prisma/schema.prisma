@@ -122,6 +122,13 @@ model UserSettings {
   // 추천 시스템
   referralCode String? @unique // 내 고유 추천 코드
 
+  // 법령 동의 — 첫 로그인 후 LegalConsentModal 에서 기록.
+  // legalAcceptedVersion 이 현재 LEGAL_VERSION 과 다르면 재동의 모달이 다시 뜬다.
+  // ageConfirmedAt 은 14세 이상 self-attest (PIPA 22조의2 방어).
+  legalAcceptedAt      DateTime?
+  legalAcceptedVersion String?
+  ageConfirmedAt       DateTime?
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([referralCode])
