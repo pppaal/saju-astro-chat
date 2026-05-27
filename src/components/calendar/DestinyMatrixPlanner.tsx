@@ -7,49 +7,29 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
-  Heart,
   ScrollText,
   Activity,
   CalendarRange,
   Moon,
   Sun,
-  Coins,
   ThumbsUp,
   ThumbsDown,
-  Clock,
   Cpu,
   X,
 } from 'lucide-react'
 
-import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
+import type { BirthInfo, CalendarData, ImportantDate } from './types'
 import { ganjiToKorean } from '@/lib/saju/ganjiKo'
 import { useDateDetail } from './useDateDetail'
 import YearHighlightsCard from './YearHighlightsCard'
-import YearOverviewCard from './YearOverviewCard'
+import YearDashboard from './premium/YearDashboard'
 import MonthlyInterpretationCard from './MonthlyInterpretationCard'
 import DailyFlowCard from './DailyFlowCard'
 import DailyHourlyChart from './DailyHourlyChart'
-import MonthlyDailyChart from './MonthlyDailyChart'
+import MonthDashboard from './premium/MonthDashboard'
+import ThemeRadar from './premium/shared/ThemeRadar'
+import Highlights from './premium/shared/Highlights'
 import { getGrade } from './scoreGrade'
-import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
-import { getHourThemeNarrative } from '@/lib/calendar-engine/data/hourThemeNarrative'
-
-// 그 날 themeScores 중 최고 테마 → 시진별 테마 한 줄 선택용
-type HourTheme = 'love' | 'money' | 'career' | 'health' | 'growth'
-const HOUR_THEME_KEYS: HourTheme[] = ['love', 'money', 'career', 'health', 'growth']
-function topHourTheme(themeScores: Partial<Record<string, number>> | undefined): HourTheme {
-  if (!themeScores) return 'growth'
-  let best: HourTheme = 'growth'
-  let bestV = -Infinity
-  for (const k of HOUR_THEME_KEYS) {
-    const v = themeScores[k]
-    if (typeof v === 'number' && v > bestV) {
-      bestV = v
-      best = k
-    }
-  }
-  return best
-}
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -215,17 +195,6 @@ export default function DestinyMatrixPlanner({
   const phaseLabel =
     data?.matrixContract?.overallPhaseLabel ?? data?.matrixContract?.overallPhase ?? null
 
-  // Month Hero — 이달 verdict + 점수를 그리드 위 큰 배너로. MonthlyInterpretationCard
-  // 안에 묻혀 있던 verdict를 tier hero로 끌어올림. grade는 monthScore 기준 동일 cutoff.
-  const monthHero = useMemo(() => {
-    if (monthDates.length === 0) return null
-    return {
-      score: monthScore,
-      grade: getGrade(monthScore),
-      summary: monthlySummaryText,
-    }
-  }, [monthDates, monthScore, monthlySummaryText])
-
   // --- Engine-derived: selected day -----------------------------------
   const selectedDateStr = useMemo(
     () =>
@@ -249,57 +218,8 @@ export default function DestinyMatrixPlanner({
   })
   const fusion = dateDetail?.fusion
 
-  // --- Daily indices: 총점 / 연애 / 재물 / 건강 ------------------------
-  // yearly /api/calendar 페이로드에는 activityScores가 들어오지 않는다
-  // (date-detail 엔드포인트에서만 계산). 그래서 도메인별 지수는
-  //  1) evidence.matrix.domain이 매칭되면 finalScoreAdjusted로 직접
-  //  2) 카테고리에 해당 도메인이 들어있으면 그 날의 최종 점수
-  //  3) 그 외엔 중립값 50 (없는 신호를 60%로 위장하지 않음)
-  // 의 정직한 우선순위로 도출한다.
-  const dailyIndices = useMemo(() => {
-    const d = selectedImportantDate
-    if (d) {
-      // 헤드라인 점수 = grid·월 점수와 동일한 v2 displayScore (백필 후 전월 일관).
-      // 도메인 바는 themeScores(v2) → fusion → matrix/카테고리 순으로 정밀도 우선.
-      const headline = Math.round(pickFinalScore(d))
-      const ts = d.themeScores ?? {}
-      const cats = new Set(d.categories)
-      const matrixDomain = d.evidence?.matrix?.domain
-      const matrixScore = d.evidence?.matrix?.finalScoreAdjusted
-      const domainScore = (
-        themeKey: 'love' | 'money' | 'health',
-        fusionKey: 'love' | 'money' | 'health',
-        categoryKey: EventCategory,
-        matrixKey: string
-      ): number => {
-        const tv = ts[themeKey]
-        if (typeof tv === 'number') return Math.round(tv)
-        const fv = fusion?.domainScores[fusionKey]
-        if (typeof fv === 'number') return Math.round(fv)
-        if (matrixDomain === matrixKey && typeof matrixScore === 'number') {
-          return Math.max(0, Math.min(100, Math.round(matrixScore)))
-        }
-        if (cats.has(categoryKey)) return headline
-        return 50
-      }
-      return {
-        score: headline,
-        love: domainScore('love', 'love', 'love', 'love'),
-        wealth: domainScore('money', 'money', 'wealth', 'money'),
-        health: domainScore('health', 'health', 'health', 'health'),
-      }
-    }
-    // 선택 날짜 entry가 없을 때만 fusion 단독, 그것도 없으면 mock.
-    if (fusion) {
-      return {
-        score: fusion.overallScore,
-        love: fusion.domainScores.love ?? 50,
-        wealth: fusion.domainScores.money ?? 50,
-        health: fusion.domainScores.health ?? 50,
-      }
-    }
-    return { score: 88, love: 65, wealth: 78, health: 60 }
-  }, [fusion, selectedImportantDate])
+  // dailyIndices (총점·연애·재물·건강 3-bar 백킹) 는 day tier ThemeRadar 도입으로
+  // 사용처 사라져 제거. 점수는 sticky today hero 가, 도메인 분포는 ThemeRadar 가 표시.
 
   // --- Daily best/worst hours (engine-precise, 24-hour analysis) -------
   // 엔진은 selectedDate가 *오늘*일 때만 시간대 분석을 yearly 응답에 끼워
@@ -343,6 +263,52 @@ export default function DestinyMatrixPlanner({
     if (h < 12) return `오전 ${h}시`
     return `오후 ${h - 12}시`
   }
+
+  // Day tier ThemeRadar — 5 도메인. year/month 와 같은 축 순서로 통일해
+  // 사용자가 형태 변화로 차이를 인식. themeScores 우선, fusion.domainScores 폴백.
+  const dayRadarThemes = useMemo(() => {
+    const ORDER: Array<'growth' | 'career' | 'money' | 'love' | 'health'> = [
+      'growth',
+      'career',
+      'money',
+      'love',
+      'health',
+    ]
+    const KO: Record<string, string> = {
+      growth: '성장',
+      career: '직업',
+      money: '재물',
+      love: '연애',
+      health: '건강',
+    }
+    const ts = selectedImportantDate?.themeScores
+    const ds = fusion?.domainScores
+    return ORDER.map((k) => {
+      const v = typeof ts?.[k] === 'number' ? ts[k] : typeof ds?.[k] === 'number' ? ds[k] : 50
+      return { name: KO[k], score: Math.round(v as number) }
+    })
+  }, [selectedImportantDate, fusion])
+
+  // Day tier Highlights — 베스트 시간 / 주의 시간. dailyHourlySlots 에서 1개씩.
+  const dayHighlights = useMemo(() => {
+    if (!dailyHourlySlots) return null
+    const best = dailyHourlySlots.best[0]
+    const caution = dailyHourlySlots.worst[0]
+    return {
+      bestCard: best
+        ? {
+            value: formatHour(best.hour),
+            description: best.reason || '에너지가 가장 좋은 시간',
+          }
+        : undefined,
+      cautionCard: caution
+        ? {
+            value: formatHour(caution.hour),
+            description: caution.reason || '한 박자 쉬어가는 시간',
+          }
+        : undefined,
+    }
+  }, [dailyHourlySlots])
 
   // --- Daily Dos / Donts ----------------------------------------------
   // 엔진이 진짜 advice를 못 만들면 카드 자체를 숨김 (Dos·Donts 모두 빈 배열일 때
@@ -572,10 +538,12 @@ export default function DestinyMatrixPlanner({
               transition={{ duration: 0.2 }}
               className="p-6 space-y-6"
             >
-              <YearOverviewCard
+              <YearDashboard
                 year={viewYear}
                 allDates={data?.allDates ?? []}
                 yearlyMonthly={yearlyMonthly}
+                birthDate={birthInfo?.birthDate}
+                currentPhaseLabel={phaseLabel}
                 onMonthClick={(monthIdx) => {
                   setViewDate(new Date(viewYear, monthIdx, 1))
                   setViewMode('monthly')
@@ -601,38 +569,21 @@ export default function DestinyMatrixPlanner({
               transition={{ duration: 0.2 }}
               className="p-6 space-y-6"
             >
-              {/* Month Hero — tier 전용 큰 배너. 이달 점수·grade·한 줄 verdict를
-                  그리드 위에 하나의 큰 시각 임팩트로. emoji anchor + heroBg + glow. */}
-              {monthHero && (
-                <div
-                  className={`rounded-3xl border ${monthHero.grade.borderClass} ${monthHero.grade.heroBgClass} ${monthHero.grade.heroShadowClass} px-5 py-5 flex items-center gap-4`}
-                >
-                  <span className="text-5xl shrink-0 leading-none" aria-hidden>
-                    {monthHero.grade.emoji}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase mb-1">
-                      {monthLabel}
-                    </div>
-                    <div className="flex items-baseline gap-2.5 leading-none">
-                      <span className={`text-6xl font-black ${monthHero.grade.colorClass}`}>
-                        {monthHero.score}
-                      </span>
-                      <span className={`text-xl font-black ${monthHero.grade.colorClass}`}>
-                        {monthHero.grade.label}
-                      </span>
-                    </div>
-                    {monthHero.summary && (
-                      <p className="text-sm text-zinc-200 mt-2.5 leading-snug line-clamp-2">
-                        {monthHero.summary}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
+              {/* Premium Dashboard — Hero + Radar + Flow + Highlights.
+                  같은 데이터 모델(monthDates, themeScores, keyEvents)을 4개
+                  시각화로 분배. */}
+              <MonthDashboard
+                year={viewYear}
+                month={viewMonth}
+                monthLabel={monthLabel}
+                monthDates={monthDates}
+                monthScore={monthScore}
+                monthSummary={monthlySummaryText}
+                onDayClick={handleDayClick}
+              />
 
-              {/* 달력 그리드 — 사용자가 일자 탭이 가장 actionable한 동작이라
-                  hero 바로 아래에. 차트/해석 카드는 그 다음. */}
+              {/* 달력 그리드 — actionable surface. 대시보드 highlights 와 함께
+                  사용자가 일자 탭으로 daily 뷰 진입. */}
               <div className="bg-zinc-900/60 p-6 rounded-3xl border border-white/5 shadow-2xl">
                 <div className="flex justify-between items-center mb-4 gap-2">
                   <button
@@ -742,16 +693,9 @@ export default function DestinyMatrixPlanner({
                 </div>
               </div>
 
-              {/* 매일 점수 area chart — 그리드 아래 흐름 보조. yearly view와 시각 일관성. */}
-              <MonthlyDailyChart
-                monthDates={monthDates}
-                viewYear={viewYear}
-                viewMonth={viewMonth}
-                onDayClick={handleDayClick}
-              />
-
-              {/* 월간 결론 카드 — verdict + 테마 강세 + 🎯베스트/💫강한 구간/⚠️피할 날.
-                  점수 정렬 TOP3(MonthHighlightsCard)는 같은 의미를 두 번 노출이라 제거. */}
+              {/* 월간 결론 카드 — 본문 sections + convergence + 전통 사주 (deep narrative).
+                  Dashboard 가 이미 verdict / 테마 / keyEvents / flow chart 를 다 표시하므로
+                  이 카드는 깊이 읽고 싶은 사용자를 위한 보조. */}
               <MonthlyInterpretationCard
                 interp={
                   monthDates[0]?.monthlyInterpretation ??
@@ -814,89 +758,10 @@ export default function DestinyMatrixPlanner({
               {/* ── 24h 시간대 교차 그래프 (saju 시진 × 점성 행성시) — 오늘 보면 현재 시각 노란 세로 가이드. */}
               <DailyHourlyChart importantDate={selectedImportantDate} dateStr={selectedDateStr} />
 
-              {(() => {
-                const todayGrade = getGrade(dailyIndices.score)
-                return (
-                  // 5-col grid 모바일 폭에서 우측 3바가 너무 좁아 % 읽기 힘들었음.
-                  // 등급 카드를 가로 배너로(점수 큰 글자 좌, 라벨/서브 우), 그 아래
-                  // 도메인 3바를 풀폭으로 깔아 가독성 확보.
-                  <div className="space-y-4">
-                    <div
-                      className={`p-4 rounded-2xl border flex items-center gap-4 shadow-lg ${todayGrade.bgClass} ${todayGrade.borderClass}`}
-                    >
-                      <div className="flex flex-col items-center justify-center min-w-[4.5rem] shrink-0">
-                        <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase">
-                          오늘의 흐름
-                        </span>
-                        <span
-                          className={`text-4xl font-black ${todayGrade.colorClass} leading-none mt-1`}
-                        >
-                          {dailyIndices.score}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div
-                          className={`text-lg font-black ${todayGrade.colorClass} leading-tight`}
-                        >
-                          {todayGrade.label}
-                        </div>
-                        <div className="text-xs text-zinc-400 mt-0.5">{todayGrade.sub}</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-zinc-900/60 p-4 rounded-2xl border border-white/5 space-y-3">
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
-                            <Heart className="w-3 h-3 text-rose-400" /> 연애 지수
-                          </span>
-                          <span className="text-xs text-rose-400">{dailyIndices.love}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
-                          <motion.div
-                            key={`love-${currentDay}-${dailyIndices.love}`}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${dailyIndices.love}%` }}
-                            className="h-full bg-rose-500 rounded-full"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
-                            <Coins className="w-3 h-3 text-amber-400" /> 재물 지수
-                          </span>
-                          <span className="text-xs text-amber-400">{dailyIndices.wealth}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
-                          <motion.div
-                            key={`wealth-${currentDay}-${dailyIndices.wealth}`}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${dailyIndices.wealth}%` }}
-                            className="h-full bg-amber-500 rounded-full"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
-                            <Activity className="w-3 h-3 text-emerald-400" /> 건강 지수
-                          </span>
-                          <span className="text-xs text-emerald-400">{dailyIndices.health}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-zinc-950 rounded-full overflow-hidden">
-                          <motion.div
-                            key={`health-${currentDay}-${dailyIndices.health}`}
-                            initial={{ width: 0 }}
-                            animate={{ width: `${dailyIndices.health}%` }}
-                            className="h-full bg-emerald-500 rounded-full"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })()}
+              {/* 5축 도메인 레이더 — 기존 등급 배너 + 3 도메인 bar 자리. year/month
+                  대시보드와 같은 시각 언어로 통일. dailyIndices.score 는 sticky
+                  today hero 가 이미 표시하므로 여기선 도메인 분포만. */}
+              <ThemeRadar themes={dayRadarThemes} caption={undefined} />
 
               {/* 엔진 자기 진단 — 디버그 성격이라 디폴트 접힘. 한 줄 chip 형태로
                   궁금한 사람만 펼치게. */}
@@ -954,104 +819,26 @@ export default function DestinyMatrixPlanner({
                   matchedPatterns를 narrative로 풀어쓰고 있어 중복 — 제거. */}
               <DailyFlowCard importantDate={selectedImportantDate} />
 
-              <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-                <h3 className="text-base font-bold text-zinc-200 flex items-center gap-2 mb-4">
-                  <Clock className="w-5 h-5 text-cyan-400" /> 좋은 시간 · 주의 시간
-                </h3>
-                {dailyHourlySlots ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <div className="text-xs font-bold text-emerald-400 mb-2 tracking-wider">
-                        ↑ BEST
-                      </div>
-                      <ul className="space-y-2">
-                        {dailyHourlySlots.best.length > 0 ? (
-                          dailyHourlySlots.best.slice(0, 4).map((s, i) => {
-                            const branch = branchFromHour(s.hour)
-                            const narrative = getHourNarrative(branch)
-                            const themeLine = getHourThemeNarrative(
-                              branch,
-                              topHourTheme(selectedImportantDate?.themeScores),
-                              'ko'
-                            )
-                            return (
-                              <li
-                                key={`best-${i}`}
-                                className="bg-emerald-900/10 border border-emerald-500/15 px-3 py-2 rounded-lg"
-                              >
-                                <div className="flex items-baseline justify-between gap-2">
-                                  <span className="text-base font-bold text-emerald-200">
-                                    {formatHour(s.hour)}
-                                  </span>
-                                </div>
-                                {/* 시진 baseline narrative — 12지지 의미를 한 줄로.
-                                  best 슬롯이라 positiveKo 사용. */}
-                                <p className="text-xs text-emerald-100/85 mt-1 leading-snug">
-                                  {narrative.positiveKo}
-                                </p>
-                                {themeLine && (
-                                  <p className="text-[11px] text-emerald-200/70 mt-1 leading-snug">
-                                    {themeLine}
-                                  </p>
-                                )}
-                                {s.reason && (
-                                  <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
-                                    {s.reason}
-                                  </p>
-                                )}
-                              </li>
-                            )
-                          })
-                        ) : (
-                          <li className="text-xs text-zinc-500">신호 없음</li>
-                        )}
-                      </ul>
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-rose-400 mb-2 tracking-wider">
-                        ↓ WORST
-                      </div>
-                      <ul className="space-y-2">
-                        {dailyHourlySlots.worst.length > 0 ? (
-                          dailyHourlySlots.worst.slice(0, 2).map((s, i) => {
-                            const branch = branchFromHour(s.hour)
-                            const narrative = getHourNarrative(branch)
-                            return (
-                              <li
-                                key={`worst-${i}`}
-                                className="bg-rose-900/10 border border-rose-500/15 px-3 py-2 rounded-lg"
-                              >
-                                <div className="flex items-baseline justify-between gap-2">
-                                  <span className="text-base font-bold text-rose-200">
-                                    {formatHour(s.hour)}
-                                  </span>
-                                </div>
-                                {/* worst 슬롯이라 cautionKo 사용 */}
-                                <p className="text-xs text-rose-100/85 mt-1 leading-snug">
-                                  {narrative.cautionKo}
-                                </p>
-                                {s.reason && (
-                                  <p className="text-[11px] text-zinc-500 mt-1 leading-snug">
-                                    {s.reason}
-                                  </p>
-                                )}
-                              </li>
-                            )
-                          })
-                        ) : (
-                          <li className="text-xs text-zinc-500">신호 없음</li>
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                ) : (
+              {/* 베스트/주의 시간대 — year/month dashboard 와 동일한 3-카드 패턴.
+                  day tier 는 convergence (수렴) 의 좋은 source 가 없어 두 카드만
+                  사용 (Highlights 컴포넌트는 undefined 카드를 placeholder 로 표시). */}
+              {dayHighlights ? (
+                <Highlights
+                  best={dayHighlights.bestCard}
+                  caution={dayHighlights.cautionCard}
+                  bestLabel="베스트 시간 (추진)"
+                  cautionLabel="주의 시간 (보류)"
+                  convergenceLabel="—"
+                />
+              ) : (
+                <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
                   <p className="text-sm text-zinc-400 leading-relaxed">
                     이 날의 시간대별 정밀 분석은{' '}
                     <span className="text-zinc-200 font-medium">달력에서 날짜를 탭</span>하면
                     상세보기에 표시됩니다.
                   </p>
-                )}
-              </div>
+                </div>
+              )}
 
               {(dailyDos.length > 0 || dailyDonts.length > 0) && (
                 <div className="grid grid-cols-2 gap-4">
