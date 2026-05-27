@@ -21,6 +21,9 @@ interface MessagesPanelProps {
   styles: Record<string, string>
   /** 빈 채팅 hero 인사 개인화용. 없으면 generic 인사로 폴백. */
   userName?: string
+  /** 응답 직후 보이는 "🃏 카드 한 장 더 뽑기" 액션 — 한 대화당 한 번. */
+  onOpenClarifier?: () => void
+  clarifierUsed?: boolean
 }
 
 export const MessagesPanel = React.memo(function MessagesPanel({
@@ -35,7 +38,17 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   onFollowUp,
   styles,
   userName,
+  onOpenClarifier,
+  clarifierUsed,
 }: MessagesPanelProps) {
+  const lastMessageIsAssistant =
+    visibleMessages.length > 0 &&
+    visibleMessages[visibleMessages.length - 1].role === 'assistant'
+  const showClarifierAction =
+    !loading &&
+    lastMessageIsAssistant &&
+    !clarifierUsed &&
+    typeof onOpenClarifier === 'function'
   // 시간대 + (있으면) 이름 기반으로 풀에서 한 문구 픽. 같은 방문 안에선 안정,
   // 새 방문/언어/이름 변경 시 다시 픽. tr.empty 는 어떤 이유로 풀이 비었을
   // 때만 폴백.
@@ -114,6 +127,21 @@ export const MessagesPanel = React.memo(function MessagesPanel({
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {showClarifierAction && (
+        <div className={styles.postAnswerActions}>
+          <button
+            type="button"
+            className={styles.clarifierActionBtn}
+            onClick={onOpenClarifier}
+          >
+            <span className={styles.clarifierActionIcon} aria-hidden="true">
+              {'\u{1F0CF}'}
+            </span>
+            {effectiveLang === 'ko' ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30' : 'Draw one more card'}
+          </button>
         </div>
       )}
 

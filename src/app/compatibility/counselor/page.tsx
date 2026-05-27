@@ -103,6 +103,7 @@ function CompatibilityCounselorContent() {
   const [showChartModal, setShowChartModal] = useState(false)
   const [showTarotModal, setShowTarotModal] = useState(false)
   const [showClarifierModal, setShowClarifierModal] = useState(false)
+  const [clarifierUsed, setClarifierUsed] = useState(false)
   // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 사이드바 리스트의 항상 보이던
   // 아이콘들을 대체 (운명 상담사와 동일 패턴, PR #621).
   const [chatMenuOpen, setChatMenuOpen] = useState(false)
@@ -164,6 +165,7 @@ function CompatibilityCounselorContent() {
               if (s?.id) {
                 setChatSessionId(s.id)
                 if (s.title) setChatTitle(s.title)
+                setClarifierUsed(false)
                 if (Array.isArray(s.messages)) {
                   setMessages(
                     s.messages.filter(
@@ -601,8 +603,13 @@ function CompatibilityCounselorContent() {
     }
   }
 
+  const openClarifier = useCallback(() => {
+    if (isLoading || persons.length < 2 || clarifierUsed) return
+    setShowClarifierModal(true)
+  }, [isLoading, persons.length, clarifierUsed])
   const handleClarifierConfirm = useCallback(
     (card: ClarifierCard) => {
+      setClarifierUsed(true)
       const userText = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
       sendMessage(userText)
     },
@@ -664,6 +671,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           setInput('')
           setChatSessionId(undefined)
           setChatTitle(null)
+          setClarifierUsed(false)
           setTimeout(() => inputRef.current?.focus(), 0)
         }}
         serviceType="compat"
@@ -805,6 +813,30 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 </div>
               </div>
             )}
+
+            {!isLoading &&
+              !clarifierUsed &&
+              persons.length >= 2 &&
+              messages.length > 0 &&
+              messages[messages.length - 1].role === 'assistant' && (
+                <div className={styles.postAnswerActions}>
+                  <button
+                    type="button"
+                    className={styles.clarifierActionBtn}
+                    onClick={openClarifier}
+                    title={
+                      isKo
+                        ? '직전 대화 흐름에 클래리파이어 카드 한 장 더 뽑기'
+                        : 'Draw one clarifier card for the current thread'
+                    }
+                  >
+                    <span className={styles.clarifierActionIcon} aria-hidden="true">
+                      {'\u{1F0CF}'}
+                    </span>
+                    {isKo ? '카드 한 장 더 뽑기' : 'Draw one more card'}
+                  </button>
+                </div>
+              )}
 
             <div ref={messagesEndRef} />
           </div>
