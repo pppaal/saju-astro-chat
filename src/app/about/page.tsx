@@ -39,29 +39,22 @@ const SERVICE_DETAILS: Partial<
 > = {
   destinyMap: {
     href: '/destiny-counselor',
-    nameKo: '운명 상담사',
-    nameEn: 'Destiny Counselor',
-    summaryKo: '질문을 입력하면 계산 근거 기반 상담 답변을 제공합니다.',
-    summaryEn: 'Provides evidence-backed counseling answers from your input.',
+    nameKo: '동서 점성 상담사',
+    nameEn: 'East-West Astrology',
+    summaryKo: '질문을 입력하면 사주·점성 계산 근거를 바탕으로 상담 답변을 제공합니다.',
+    summaryEn: 'Provides evidence-backed counseling answers grounded in Saju and astrology.',
   },
   tarot: {
     href: '/tarot',
-    nameKo: '타로',
-    nameEn: 'Tarot',
+    nameKo: '타로 상담사',
+    nameEn: 'Tarot Counselor',
     summaryKo: '스프레드 기준으로 현재 상황과 선택지를 정리합니다.',
     summaryEn: 'Organizes your current context and options by spread.',
   },
-  report: {
-    href: '/destiny-map/result',
-    nameKo: '리포트',
-    nameEn: 'Report',
-    summaryKo: '인생 5단계 × 6 테마로 풀어내는 통합 리포트.',
-    summaryEn: 'Offers free digest and premium reports for deeper interpretation.',
-  },
   calendar: {
     href: '/calendar',
-    nameKo: '캘린더',
-    nameEn: 'Calendar',
+    nameKo: '일·월·년 운세 캘린더',
+    nameEn: 'Yearly/Monthly/Daily Fortune',
     summaryKo: '날짜별 기회/주의 구간과 행동 플랜을 확인할 수 있습니다.',
     summaryEn: 'Shows date-level windows and practical action plans.',
   },
@@ -102,8 +95,8 @@ const PROCESS_STEPS: readonly ProcessStep[] = [
     id: '04',
     titleKo: '서비스별 출력',
     titleEn: 'Service adaptation',
-    descKo: '동일한 코어 판단을 상담/캘린더/리포트 화면에 맞게 출력합니다.',
-    descEn: 'The same core judgment is adapted to counselor/calendar/report outputs.',
+    descKo: '동일한 코어 판단을 상담·궁합·캘린더 화면에 맞게 출력합니다.',
+    descEn: 'The same core judgment is adapted to counselor, compatibility, and calendar outputs.',
   },
 ]
 
@@ -158,8 +151,8 @@ export default function AboutPage() {
               <Link href="/destiny-counselor" className={styles.primaryBtn}>
                 {isKo ? '무료로 내 차트 보기' : 'Get your free chart'}
               </Link>
-              <Link href="/destiny-map/result" className={styles.secondaryBtn}>
-                {isKo ? '리포트 보기' : 'View reports'}
+              <Link href="/pricing" className={styles.secondaryBtn}>
+                {isKo ? '가격 안내' : 'See pricing'}
               </Link>
             </div>
           </div>
@@ -240,8 +233,8 @@ export default function AboutPage() {
             <h2 className={styles.sectionTitle}>{isKo ? '핵심 서비스' : 'Core services'}</h2>
             <p className={styles.sectionDesc}>
               {isKo
-                ? '현재 메인에서 바로 사용할 수 있는 5개 서비스입니다.'
-                : 'These are the five services available immediately from the main page.'}
+                ? '현재 메인에서 바로 사용할 수 있는 서비스입니다.'
+                : 'Services available right from the main page.'}
             </p>
           </header>
           <div className={styles.serviceGrid}>
@@ -320,15 +313,15 @@ export default function AboutPage() {
           </h2>
           <p className={styles.ctaText}>
             {isKo
-              ? '질문을 입력해 상담을 시작하고, 필요할 때 캘린더와 리포트로 확장하세요.'
-              : 'Start from a question, then expand with calendar and reports.'}
+              ? '질문을 입력해 상담을 시작하고, 필요할 때 운세 캘린더로 흐름을 확인하세요.'
+              : 'Start from a question, then check the timing in the Fortune Calendar when you need it.'}
           </p>
           <div className={styles.heroActions}>
             <Link href="/destiny-counselor" className={styles.primaryBtn}>
-              {isKo ? '운명 상담 시작' : 'Start counseling'}
+              {isKo ? '동서 점성 상담 시작' : 'Start counseling'}
             </Link>
             <Link href="/calendar" className={styles.secondaryBtn}>
-              {isKo ? '캘린더 열기' : 'Open calendar'}
+              {isKo ? '운세 캘린더 열기' : 'Open Fortune Calendar'}
             </Link>
           </div>
         </section>
