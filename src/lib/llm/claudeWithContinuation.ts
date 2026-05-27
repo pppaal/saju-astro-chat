@@ -53,10 +53,20 @@ export async function streamClaudeWithContinuation(
         let stopReason: string | null = null
 
         // 1차: 원래 옵션 그대로. 2차+: prefillAssistant = 지금까지 누적 텍스트.
+        // ★ Anthropic API 제약: prefill assistant content 는 trailing
+        //   whitespace 금지 (위반 시 "Assistant content cannot end with
+        //   trailing whitespace" 에러). max_tokens 잘림이 token 경계에서
+        //   일어나면 마지막 chunk 가 \n / space 로 끝나는 케이스 빈번 →
+        //   반드시 trim. trim 후 빈 string 이면 prefill 의미 없음 → undefined.
+        let prefill: string | undefined
+        if (attempt > 0) {
+          const trimmed = accumulated.replace(/\s+$/, '')
+          prefill = trimmed.length > 0 ? trimmed : undefined
+        }
         const callOpts: CallClaudeOptions = {
           ...baseOpts,
           label: attempt === 0 ? label : `${label}:cont${attempt}`,
-          prefillAssistant: attempt === 0 ? undefined : accumulated,
+          prefillAssistant: prefill,
           onStreamComplete: (info) => {
             stopReason = info.stopReason
           },
