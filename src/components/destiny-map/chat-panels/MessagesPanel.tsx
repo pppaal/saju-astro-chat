@@ -41,12 +41,16 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   onOpenClarifier,
   clarifierUsed,
 }: MessagesPanelProps) {
-  const lastMessageIsAssistant =
-    visibleMessages.length > 0 &&
-    visibleMessages[visibleMessages.length - 1].role === 'assistant'
+  const lastMessage =
+    visibleMessages.length > 0 ? visibleMessages[visibleMessages.length - 1] : null
+  const lastMessageIsAssistant = lastMessage?.role === 'assistant'
+  // 마지막 메시지가 타로 결과(🃏 ...) 일 때만 "한 장 더 뽑기" 노출. 일반 채팅
+  // 응답 뒤엔 안 보임 (사용자 요청 — 위치 어색했음).
+  const lastMessageIsTarotResult =
+    lastMessageIsAssistant && (lastMessage?.content || '').trimStart().startsWith('🃏')
   const showClarifierAction =
     !loading &&
-    lastMessageIsAssistant &&
+    lastMessageIsTarotResult &&
     !clarifierUsed &&
     typeof onOpenClarifier === 'function'
   // 시간대 + (있으면) 이름 기반으로 풀에서 한 문구 픽. 같은 방문 안에선 안정,
