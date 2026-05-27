@@ -6,7 +6,7 @@ type CreditPackEntry = {
 }
 
 // Credit pack entries (one-time purchases)
-// Pack details: mini(5), standard(20), plus(50), mega(120), ultimate(280)
+// Pack details: mini(5), standard(20), plus(50), mega(120), ultimate(220)
 // (실제 수량은 src/lib/config/pricing.ts CREDIT_PACKS 가 단일 출처)
 const creditPackEntries = [
   {
