@@ -66,6 +66,15 @@ function TarotReadingPage() {
     return `${spreadKey}:${cardsKey}`
   }, [readingResult, spreadId])
 
+  // 새로고침 시 크레딧이 또 차감되던 회귀 — 같은 리딩에 대해선 해석 결과를
+  // sessionStorage 에 캐시해 두고 우선 그걸 본다. 캐시 hit 이면 API 호출 자체를
+  // 건너뛰어 토큰 차감이 없고, miss 면 정상 호출하되 idempotencyKey 헤더로
+  // 서버 측 2차 dedup 까지 동시에 끼운다.
+  const cacheKeyFor = useCallback(
+    (sig: string) => `tarot:interp:${sig}:${language}`,
+    [language]
+  )
+
   // Fetch interpretation once per reading result (prevents re-fetch loop/rewrite)
   useEffect(() => {
     if (!readingSignature) {
@@ -85,11 +94,30 @@ function TarotReadingPage() {
       return
     }
 
+    // sessionStorage 캐시 hit — 네트워크 호출 없이 즉시 적용.
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = window.sessionStorage.getItem(cacheKeyFor(readingSignature))
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          if (parsed && typeof parsed === 'object' && parsed.overall_message) {
+            requestedInterpretationKeyRef.current = readingSignature
+            setInterpretation(parsed)
+            setInterpretationFailed(false)
+            return
+          }
+        }
+      } catch {
+        // 캐시 손상 — 무시하고 정상 fetch.
+      }
+    }
+
     requestedInterpretationKeyRef.current = readingSignature
     isInterpretationFetchingRef.current = true
     let cancelled = false
 
     fetchInterpretation(readingResult, {
+      idempotencyKey: readingSignature,
       // 스트리밍 도중 overall 텍스트 누적분을 받아 즉시 UI 반영 (fallback=true 로 유지).
       onProgress: (snapshot) => {
         if (cancelled) return
@@ -108,6 +136,15 @@ function TarotReadingPage() {
           result.interpretation_source === 'emergency_fallback' ||
           (result.fallback === true && (!result.overall_message || result.overall_message.length < 40))
         setInterpretationFailed(failedToLLM)
+
+        // 성공적인 LLM 결과만 캐시 — fallback/실패는 다음에 다시 시도하도록 저장 X.
+        if (result && !failedToLLM && typeof window !== 'undefined') {
+          try {
+            window.sessionStorage.setItem(cacheKeyFor(readingSignature), JSON.stringify(result))
+          } catch {
+            // quota exceeded 등은 무시.
+          }
+        }
       })
       .catch(() => {
         if (cancelled) return
@@ -128,6 +165,7 @@ function TarotReadingPage() {
     interpretationFallback,
     setInterpretation,
     fetchInterpretation,
+    cacheKeyFor,
   ])
 
   // Card reveal with auto-scroll
@@ -164,11 +202,20 @@ function TarotReadingPage() {
   const handleReset = () => router.push('/tarot')
 
   // 재시도: ref 를 비워서 useEffect 가 다시 fetchInterpretation 트리거.
+  // 캐시는 fallback/실패는 저장 안 했지만, 사용자가 의도적으로 retry 한
+  // 이상 혹시 모를 잔여 캐시도 함께 지워서 항상 새 호출이 가도록 한다.
   const handleRetryInterpretation = useCallback(() => {
     if (!gameHook.readingResult) return
     setInterpretationFailed(false)
     requestedInterpretationKeyRef.current = null
     isInterpretationFetchingRef.current = false
+    if (typeof window !== 'undefined' && readingSignature) {
+      try {
+        window.sessionStorage.removeItem(cacheKeyFor(readingSignature))
+      } catch {
+        // ignore
+      }
+    }
     // basicInterpretation(fallback=true) 로 되돌려 useEffect 조건 만족시킴.
     setInterpretation({
       overall_message: '',
@@ -182,7 +229,7 @@ function TarotReadingPage() {
       affirmation: '',
       fallback: true,
     })
-  }, [gameHook.readingResult, setInterpretation])
+  }, [gameHook.readingResult, setInterpretation, readingSignature, cacheKeyFor])
 
   // Session loading state
   if (status === 'loading') {

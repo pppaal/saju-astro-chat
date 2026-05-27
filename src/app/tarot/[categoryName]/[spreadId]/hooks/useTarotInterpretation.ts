@@ -31,6 +31,9 @@ export interface FetchInterpretationOptions {
   // 스트리밍 중간 진행 상황을 받아서 UI 에 progressive 하게 반영하기 위한 콜백.
   // overall_message 가 토큰 단위로 누적될 때마다 호출된다.
   onProgress?: (snapshot: InterpretationResult) => void
+  // 새로고침 시 같은 리딩이 두 번 차감되지 않도록 서버에 보낼 idempotency 키.
+  // 보통 페이지 단의 readingSignature(스프레드+카드 조합 해시)를 그대로 사용.
+  idempotencyKey?: string
 }
 
 interface UseTarotInterpretationReturn {
@@ -370,12 +373,19 @@ export function useTarotInterpretation({
       }
 
       // 1) 스트리밍 엔드포인트 우선 — 깨끗한 LLM 출력 (post-processor 템플릿 없음)
+      const interpretHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+      if (options?.idempotencyKey) {
+        interpretHeaders['x-idempotency-key'] = options.idempotencyKey
+      }
+
       try {
         const response = await apiFetchWithTimeout(
           '/api/tarot/interpret-stream',
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: interpretHeaders,
             body: JSON.stringify(requestBody),
           },
           STREAM_INTERPRET_TIMEOUT_MS
