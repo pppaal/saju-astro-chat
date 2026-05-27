@@ -73,7 +73,6 @@ model User {
   savedCalendarDates    SavedCalendarDate[]
   personalityResult     PersonalityResult?
   icpResults            ICPResult[]
-  pastLifeResults       PastLifeResult[]
   compatibilityResults  CompatibilityResult[]
   destinyMatrixReports  DestinyMatrixReport[]
   tarotReadings         TarotReading[]
@@ -678,33 +677,8 @@ model ICPResult {
 }
 
 // 전생 리딩 결과
-model PastLifeResult {
-  id        String   @id @default(cuid())
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 생년월일 정보
-  birthDate String // YYYY-MM-DD
-  birthTime String? // HH:mm
-  latitude  Float?
-  longitude Float?
-  timezone  String?
-
-  // 카르마 스코어
-  karmaScore Int // 0-100
-
-  // 전생 분석 결과 (JSON)
-  analysisData Json // soulPattern, pastLife, soulJourney, karmicDebts, thisLifeMission, talentsCarried, saturnLesson
-
-  // 언어
-  locale String @default("ko")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-  @@index([karmaScore])
-}
+// PastLifeResult 모델은 2026-05-27 migration 으로 drop. 페이지 UI 가 이전에
+// 사라졌고 schema 만 orphan 으로 남아 사용자 결정으로 정리.
 
 // 성격 궁합 분석 결과
 model CompatibilityResult {
