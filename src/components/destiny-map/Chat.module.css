@@ -459,8 +459,10 @@
 /* ========== Message Rows ========== */
 .messageRow {
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+  /* compat counselor 와 통일 — avatar 가로 10px, 메시지 세로 14px 간격.
+     이전 20px 세로는 모바일 한 화면 메시지 수가 너무 적었음. */
+  gap: 10px;
+  margin-bottom: 14px;
   animation: slideInMessage 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 

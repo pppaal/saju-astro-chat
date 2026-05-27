@@ -47,6 +47,33 @@ export interface ChatBubbleContentProps {
   theme?: 'dark' | 'light'
 }
 
+// 점성 기호가 답변에 그대로 새어 나오면 사용자 화면엔 □ 같은 깨진 글자로
+// 보임 (☌ □ ⚹ △ ☍ ⚻ 등은 폰트에 없거나 가독성 X). LLM 이 system prompt
+// 의 "한국어로 풀어 써" 지시를 가끔 어겨서 직접 출력하는 케이스 — 후처리로
+// 안전망. assistant 답변에만 적용 (사용자가 직접 입력한 기호는 보존).
+const ASTRO_SYMBOL_MAP: Array<[RegExp, string, string]> = [
+  [/□/g, '긴장 결', 'tension aspect'],
+  [/☐/g, '긴장 결', 'tension aspect'],
+  [/⚺/g, '긴장 결', 'tension aspect'],
+  [/☌/g, '결합', 'conjunction'],
+  [/⚹/g, '협력', 'sextile'],
+  [/△/g, '조화', 'trine'],
+  [/☍/g, '대립', 'opposition'],
+  [/⚻/g, '미세 조정', 'quincunx'],
+]
+
+function stripAstroSymbols(text: string, theme: 'dark' | 'light'): string {
+  // light theme 는 compat 상담사 (한국어 위주) — 한국어 라벨로.
+  // dark theme 도 destiny 상담사 (한국어 위주) — 동일.
+  // 영어 답변은 미래 별도 처리 필요 (지금은 한국어로 두기 — 영문 사용자는 표 거의 없음).
+  void theme
+  let result = text
+  for (const [pattern, ko] of ASTRO_SYMBOL_MAP) {
+    result = result.replace(pattern, ko)
+  }
+  return result
+}
+
 const ChatBubbleContent = React.memo(function ChatBubbleContent({
   role,
   content,
@@ -60,7 +87,10 @@ const ChatBubbleContent = React.memo(function ChatBubbleContent({
 
   const isAssistant = role === 'assistant'
   const repaired = repairMojibakeText(content || '')
-  const normalizedContent = isAssistant ? stripReportMarkdown(repaired) : repaired
+  const stripped = isAssistant ? stripReportMarkdown(repaired) : repaired
+  // 점성 기호 자동 치환은 assistant 답변에만 — 사용자가 직접 □ 등을 입력한
+  // 경우는 보존 (디버그/테스트용).
+  const normalizedContent = isAssistant ? stripAstroSymbols(stripped, theme) : stripped
 
   const imageMatch = !isAssistant ? normalizedContent.match(IMAGE_PATTERN) : null
   const inlineImage = imageMatch ? { alt: imageMatch[1] || '', src: imageMatch[2] } : null

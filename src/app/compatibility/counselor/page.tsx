@@ -657,48 +657,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         desktopStatic
         enableGrouping
         lightTheme
-        footerSlot={
-          <>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              onClick={() => setShowTarotModal(true)}
-              disabled={isLoading || persons.length < 2}
-              title={
-                isKo
-                  ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
-                  : 'See your next question in tarot — pick a spread and draw'
-              }
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'🃏'}
-              </span>
-              {isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot'}
-            </button>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              {...clarifier.buttonProps}
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'🃏'}
-              </span>
-              {clarifier.buttonLabel}
-            </button>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              onClick={() => setShowChartModal(true)}
-              disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
-              title={isKo ? '궁합 차트 보기' : 'View couple chart'}
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'✨'}
-              </span>
-              {isKo ? '궁합 차트' : 'Couple chart'}
-            </button>
-          </>
-        }
+        /* 타로/카드 뽑기/궁합차트 버튼은 입력창 도구로 통일 — 사이드바는
+           채팅 목록 전용. (이전엔 사이드바 + 입력창 양쪽에 있어 중복 + 헷갈림.) */
       />
       <div className={styles.mainColumn}>
         {/* Header — locale toggle removed (lives on main / entry page only).
@@ -770,6 +730,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         {/* Chat */}
         <div className={styles.chatWrapper}>
           <div className={styles.messagesContainer}>
+            {/* 에러는 컨테이너 맨 위 — destiny noticeBar 와 같은 패턴.
+                메시지 뒤 인라인이면 사용자가 새 메시지로 가려 못 보던 회귀. */}
+            {error && <div className={styles.errorMessage}>{error}</div>}
             {messages.length === 0 && (
               <div className={styles.emptyState}>
                 <div className={styles.emptyIcon}>{'\u{1F495}'}</div>
@@ -814,8 +777,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 </div>
               )
             })}
-
-            {error && <div className={styles.errorMessage}>{error}</div>}
 
             {!isLoading && followUpQuestions.length > 0 && messages.length > 0 && (
               <div className={styles.followUpContainer}>
@@ -910,6 +871,17 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 >
                   <span className={styles.toolButtonIcon}>✨</span>
                   <span className={styles.toolButtonLabel}>{isKo ? '궁합차트' : 'Chart'}</span>
+                </button>
+                {/* 클래리파이어 카드 한 장 더 — 사이드바에서 옮겨와 입력창
+                    도구로 단일 진입점 (destiny 와 동일 패턴). */}
+                <button
+                  type="button"
+                  {...clarifier.buttonProps}
+                  className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
+                  aria-label={clarifier.buttonLabel}
+                >
+                  <span className={styles.toolButtonIcon}>🃏</span>
+                  <span className={styles.toolButtonLabel}>{clarifier.buttonLabel}</span>
                 </button>
                 {parsingPdf && (
                   <span className={styles.fileName}>

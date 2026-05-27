@@ -499,48 +499,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
             )}
           </div>
 
-          <div className={styles.historyRailFooter}>
-            <button
-              type="button"
-              className={styles.historyRailFooterBtn}
-              onClick={goToTarot}
-              title={tr.tarotButton}
-            >
-              <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
-                {'\uD83C\uDCCF'}
-              </span>
-              {effectiveLang === 'ko'
-                ? '\uB2E4\uC74C \uC9C8\uBB38 \uD0C0\uB85C\uB85C \uBCF4\uAE30'
-                : 'See your next question in tarot'}
-            </button>
-            <button
-              type="button"
-              className={styles.historyRailFooterBtn}
-              {...clarifier.buttonProps}
-            >
-              <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
-                {'\uD83C\uDCCF'}
-              </span>
-              {clarifier.buttonLabel}
-            </button>
-            <button
-              type="button"
-              className={styles.historyRailFooterBtn}
-              onClick={() => setShowChartModal(true)}
-              title={
-                effectiveLang === 'ko'
-                  ? '\uB098\uC758 \uC6B4\uBA85 \uCC28\uD2B8'
-                  : 'My destiny chart'
-              }
-            >
-              <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
-                {'\u2728'}
-              </span>
-              {effectiveLang === 'ko'
-                ? '\uB098\uC758 \uC6B4\uBA85 \uCC28\uD2B8'
-                : 'My destiny chart'}
-            </button>
-          </div>
+          {/* \uC0AC\uC774\uB4DC\uBC14 footer \uC758 \uD0C0\uB85C/\uCE74\uB4DC \uBF51\uAE30/\uCC28\uD2B8 \uBC84\uD2BC \uC81C\uAC70 \u2014 \uC785\uB825\uCC3D \uB3C4\uAD6C\uB85C
+              \uD1B5\uC77C (\uB2E8\uC77C \uC9C4\uC785\uC810). \uC0AC\uC774\uB4DC\uBC14\uB294 \uCC44\uD305 \uBAA9\uB85D \uC804\uC6A9. */}
         </aside>
 
         <section className={styles.chatMain}>
@@ -588,6 +548,10 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onClearFile={clearFile}
               onOpenTarot={goToTarot}
               onOpenChart={() => setShowChartModal(true)}
+              clarifierButton={{
+                props: clarifier.buttonProps,
+                label: clarifier.buttonLabel,
+              }}
               styles={styles}
               autoFocus={autoFocus}
             />
