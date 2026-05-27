@@ -69,12 +69,21 @@
     "cityPlaceholder": "Search your city..."
   },
   "success": {
-    "title": "Payment Successful!",
-    "message": "Thank you for your purchase. Your account has been upgraded and you're ready to explore your destiny.",
-    "orderRef": "Order Reference",
-    "startReading": "Start Your Reading",
-    "goHome": "Go to Home",
-    "emailNote": "A confirmation email has been sent to your registered email address."
+    "title": "Payment complete",
+    "message": "Your payment was processed.",
+    "creditsAdded": "{credits} credits have been added.",
+    "packLabel": "Pack",
+    "orderRef": "Order",
+    "startReading": "Back to your reading",
+    "goHome": "Go home",
+    "emailNote": "A confirmation email has been sent to your registered address.",
+    "packs": {
+      "mini": "Mini (5 credits)",
+      "standard": "Standard (15 credits)",
+      "plus": "Plus (40 credits)",
+      "mega": "Mega (100 credits)",
+      "ultimate": "Ultimate (250 credits)"
+    }
   },
   "common": {
     "terms": "Terms of Service",
