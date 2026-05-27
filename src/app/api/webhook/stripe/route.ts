@@ -266,13 +266,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // 찾아 잔여 크레딧을 회수하는 매칭 키. 저장 안 하면 환불 보호 불가.
   const paymentIntentId =
     typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id
-  // 보너스 크레딧 추가
+  // 보너스 크레딧 추가 — addBonusCredits 는 BonusCreditPurchase +
+  // UserCredits update 를 한 transaction 으로 처리(데이터 일관성 보장)하고,
+  // stripePaymentId 에 DB 레벨 unique 가 걸려있어 같은 결제로 두 번째
+  // 호출이 오면 P2002 가 발생한다. 그 경우 이미 1차에서 크레딧이 들어갔다는
+  // 뜻이므로 silent skip (멱등성). 그 외 에러만 상위로 던져 webhook 이
+  // 재시도되도록 한다.
   try {
     await addBonusCredits(userId, creditAmount, 'purchase', paymentIntentId)
     logger.info(
       `[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`
     )
   } catch (err) {
+    const isDuplicate =
+      err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === 'P2002'
+    if (isDuplicate) {
+      logger.info(
+        `[Stripe Webhook] Duplicate purchase webhook ignored: payment=${paymentIntentId} (already credited)`
+      )
+      recordCounter('stripe_webhook_purchase_duplicate', 1, { pack: creditPack })
+      return
+    }
     logger.error('[Stripe Webhook] Failed to add bonus credits:', err)
     throw err
   }

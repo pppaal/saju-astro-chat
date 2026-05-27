@@ -491,7 +491,10 @@ model BonusCreditPurchase {
 
   // 구매 정보
   source          String  @default("purchase") // purchase, referral, promotion, gift
-  stripePaymentId String? // Stripe 결제 ID (해당하는 경우)
+  // Stripe 결제 ID — 환불 매칭 + DB 레벨 webhook 멱등성용 unique.
+  // nullable 이라 source != 'purchase' 행들은 NULL 로 여러 개 가능
+  // (Postgres 의 nullable unique 동작).
+  stripePaymentId String? @unique
 
   @@index([userId])
   @@index([userId, expired])

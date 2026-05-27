@@ -350,25 +350,31 @@ export async function addBonusCredits(
   const expiresAt = new Date(now)
   expiresAt.setMonth(expiresAt.getMonth() + 3) // 3개월 후 만료
 
-  // BonusCreditPurchase 테이블에 기록 (만료일 추적용)
-  await prisma.bonusCreditPurchase.create({
-    data: {
-      userId,
-      amount,
-      remaining: amount,
-      expiresAt,
-      source,
-      stripePaymentId,
-    },
-  })
-
-  // UserCredits 테이블도 업데이트 (빠른 조회용)
-  return prisma.userCredits.update({
-    where: { userId },
-    data: {
-      bonusCredits: { increment: amount },
-      totalBonusReceived: { increment: amount },
-    },
+  // BonusCreditPurchase + UserCredits 업데이트를 하나의 transaction 으로.
+  // 이전엔 두 op 사이에 실패하면 구매 기록은 있는데 잔액은 안 늘거나(반대)
+  // 데이터 불일치 발생 → "결제 됐는데 크레딧 없음" 회귀의 원인. 또
+  // BonusCreditPurchase.stripePaymentId 에 unique constraint 가 걸려 있어
+  // 같은 결제(Stripe webhook 재시도)로 두 번 도착해도 두 번째는 P2002 로
+  // 막힘 — DB 레벨 멱등성. 호출자(webhook handler)는 P2002 를 잡아 silent
+  // skip 한다.
+  return prisma.$transaction(async (tx) => {
+    await tx.bonusCreditPurchase.create({
+      data: {
+        userId,
+        amount,
+        remaining: amount,
+        expiresAt,
+        source,
+        stripePaymentId,
+      },
+    })
+    return tx.userCredits.update({
+      where: { userId },
+      data: {
+        bonusCredits: { increment: amount },
+        totalBonusReceived: { increment: amount },
+      },
+    })
   })
 }
 
