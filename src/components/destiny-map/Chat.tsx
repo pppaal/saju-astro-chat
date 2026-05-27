@@ -68,20 +68,6 @@ const Chat = memo(function Chat({
   const [renamingId, setRenamingId] = React.useState<string | null>(null)
   const [renameValue, setRenameValue] = React.useState('')
 
-  // 채팅 우상단 ⋮ 메뉴 — Rename / Delete 액션. 사이드바 리스트의 항상
-  // 보이던 ✎/🗑 아이콘 대신 현재 활성 대화에 한정해서 동작.
-  const [chatMenuOpen, setChatMenuOpen] = React.useState(false)
-  const chatMenuRef = React.useRef<HTMLDivElement>(null)
-  React.useEffect(() => {
-    if (!chatMenuOpen) return
-    const handler = (e: MouseEvent) => {
-      if (chatMenuRef.current && !chatMenuRef.current.contains(e.target as Node)) {
-        setChatMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [chatMenuOpen])
 
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
@@ -167,36 +153,6 @@ const Chat = memo(function Chat({
     [setFollowUpQuestions]
   )
 
-  const handleChatRename = React.useCallback(() => {
-    setChatMenuOpen(false)
-    const currentId = sessionIdRef.current
-    if (!currentId) return
-    const current = sessionHistory.find((s) => s.id === currentId)
-    const currentTitle = current?.title || ''
-    const next = window.prompt(
-      effectiveLang === 'ko' ? '대화 이름' : 'Chat name',
-      currentTitle
-    )
-    if (next && next.trim() && next.trim() !== currentTitle) {
-      void renameSession(currentId, next.trim())
-    }
-  }, [sessionIdRef, sessionHistory, renameSession, effectiveLang])
-
-  const handleChatDelete = React.useCallback(() => {
-    setChatMenuOpen(false)
-    const currentId = sessionIdRef.current
-    if (!currentId) return
-    const confirmed = window.confirm(
-      effectiveLang === 'ko'
-        ? '이 대화를 삭제할까요? 되돌릴 수 없어요.'
-        : 'Delete this chat? This cannot be undone.'
-    )
-    if (confirmed) {
-      void deleteSession(currentId).then(() => {
-        hookStartNewChat()
-      })
-    }
-  }, [sessionIdRef, deleteSession, hookStartNewChat, effectiveLang])
 
   // #3 답변 직후 첫 후속질문을 입력창에 미리 채운다 — 사용자는 엔터로 바로 보내거나,
   // 입력창의 X(지우기)로 싹 비우고 자기 질문을 새로 쓸 수 있다. 이미 뭔가 입력 중이면
@@ -688,42 +644,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               keyboard "/" shortcut. */}
 
           <div className={styles.conversationShell}>
-            {visibleMessages.length > 0 && (
-              <div ref={chatMenuRef} className={styles.chatMenuArea}>
-                <button
-                  type="button"
-                  className={styles.chatMenuButton}
-                  onClick={() => setChatMenuOpen((o) => !o)}
-                  aria-label={effectiveLang === 'ko' ? '대화 메뉴' : 'Chat menu'}
-                  aria-expanded={chatMenuOpen}
-                  aria-haspopup="menu"
-                >
-                  <span aria-hidden="true">⋮</span>
-                </button>
-                {chatMenuOpen && (
-                  <div role="menu" className={styles.chatMenuDropdown}>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className={styles.chatMenuItem}
-                      onClick={handleChatRename}
-                    >
-                      <span>{effectiveLang === 'ko' ? '이름 변경' : 'Rename'}</span>
-                      <span aria-hidden="true" className={styles.chatMenuIcon}>✎</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
-                      onClick={handleChatDelete}
-                    >
-                      <span>{effectiveLang === 'ko' ? '삭제' : 'Delete'}</span>
-                      <span aria-hidden="true" className={styles.chatMenuIcon}>🗑</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* ⋮ 메뉴는 페이지 헤더(counselor/page.tsx)로 이동 (PR #625) —
+                여기에 있던 옛 JSX 와 chatMenuOpen/Ref/handler 들은 dead.
+                중복 렌더 + 색상 톤 충돌 회피 위해 제거. */}
 
             <ClarifierCardPanel
               ref={clarifierPanelRef}

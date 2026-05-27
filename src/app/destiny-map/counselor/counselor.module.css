@@ -430,6 +430,42 @@
   color: #1c1917;
 }
 
+/* lightTheme: 흰색 헤더 위에 ⋮ 메뉴가 안 보이던 버그. 라이트 톤 톤 (회색
+   외곽선 + 짙은 회색 아이콘) 으로 오버라이드. */
+.lightTheme .chatMenuButton {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  color: #44403c;
+}
+
+.lightTheme .chatMenuButton:hover {
+  background: #f5f5f4;
+  border-color: #d6d3d1;
+  color: #1c1917;
+}
+
+.lightTheme .chatMenuDropdown {
+  background: #ffffff;
+  border-color: #e7e5e4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.lightTheme .chatMenuItem {
+  color: #1c1917;
+}
+
+.lightTheme .chatMenuItem:hover {
+  background: #f5f5f4;
+}
+
+.lightTheme .chatMenuItemDanger {
+  color: #dc2626;
+}
+
+.lightTheme .chatMenuItemDanger:hover {
+  background: #fef2f2;
+}
+
 .lightTheme .backIcon {
   color: #57534e;
 }
