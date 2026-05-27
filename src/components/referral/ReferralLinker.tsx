@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { logger } from '@/lib/logger'
 
 // Referral wiring (login-only app — no separate signup):
 //  1) A friend opens the referral link `/?ref=CODE` (logged out). We stash the
@@ -39,7 +40,9 @@ export default function ReferralLinker() {
     if (status !== 'authenticated') return
     if (!getCookie(COOKIE)) return
     fetch('/api/referral/link', { method: 'POST' })
-      .catch(() => {})
+      .catch((err) => {
+        logger.debug('[ReferralLinker] link consume failed', { err })
+      })
       .finally(() => deleteCookie(COOKIE))
   }, [status])
 

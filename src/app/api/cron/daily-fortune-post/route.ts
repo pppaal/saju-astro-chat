@@ -45,9 +45,14 @@ export async function GET(request: NextRequest) {
 
     const { stdout, stderr } = await execFileAsync(nodePath, [scriptPath], {
       cwd: process.cwd(),
+      // 스크립트가 실제로 필요한 env 만 명시. 이전엔 ...process.env 로 전체를
+      // spread 해 STRIPE_SECRET_KEY / DATABASE_URL / ANTHROPIC_API_KEY 같은
+      // secrets 가 child process 에 전부 노출됐다 (보안 회귀). 스크립트는
+      // 현재 REPLICATE_API_TOKEN 만 쓰므로 그것만 전달.
       env: {
-        ...process.env,
         NODE_ENV: 'production',
+        PATH: process.env.PATH ?? '',
+        REPLICATE_API_TOKEN: process.env.REPLICATE_API_TOKEN ?? '',
       },
       timeout: 300000, // 5분 타임아웃
     })
