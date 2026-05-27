@@ -86,14 +86,12 @@ import {
 // 개별(self) 신살 — 각자 타고난 신살은 extras.shinsal에 이미 계산돼 있으나
 // self 블록이 voided라 궁합 프롬프트엔 안 들어가던 신호. 단, 전부 쏟으면
 // 다시 노이즈가 되므로 *관계 해석에 유효한 특수 신살만* 화이트리스트로
-// 큐레이션 + 짧은 뜻을 붙인다. 12신살(자리)은 synastry [12신살] cross가
-// 다루고, 재능·재물·건강·삼재 신살은 궁합과 무관하므로 전부 제외.
+// 큐레이션 + 짧은 뜻을 붙인다. 12신살(자리)은 synastry [12신살] cross가,
+// 도화·홍염살·백호·괴강·천을귀인은 sajuSynastryFormatter 의 신살 cross
+// 블록이 양방향 deterministic 으로 다루므로 self 중복 제거 — 여기엔
+// 오직 *cross 가 없는* personality-only 신살만 남긴다.
 const PILLAR_KO: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
 const PERSONAL_SHINSAL_KEEP: Record<string, string> = {
-  도화: '매력·이성 끌림',
-  홍염살: '색기·끌림(외도 주의)',
-  백호: '강렬·격정',
-  괴강: '강한 카리스마·고집',
   양인: '날카로움·과격',
   귀문관: '집착·예민',
   원진: '미묘한 반감',
@@ -453,7 +451,7 @@ export async function POST(req: NextRequest) {
             '- Composite [Sun-Moon midpoint = 결혼점] 줄이 있으면 관계의 가장 핵심 정서 축으로 언급 — 두 사람의 가장 단단한 묶임 지점.',
             '- 사용자가 *시기/타이밍* 을 물으면 (예: "올해 우리?", "결혼 적기?", "언제 만남?") 사주 synastry 의 [현재 대운 cross / 세운 cross] 와 점성 트랜짓을 우선 근거로. 시기 데이터 없으면 솔직히 "구체적 시기는 차트만으로 단정 못 함" 으로 안내.',
             '- 질문 의도별 frame: (a) "헤어질까/오래갈까" → 부딪힘 신호 + 풀 수 있는지에 무게, (b) "결혼 적기/시기" → timing(대운/세운/트랜짓) 위주, (c) "왜 끌리지/안 끌리지" → 끌림 메커니즘만 깊게, (d) "잘 맞아?" → 3-frame 전체. 의도 안 맞는 단락은 줄이거나 생략.',
-            '- [개별 신살 — 각자 타고난 것] 블록의 신살(도화·홍염살·백호·괴강·천을귀인·원진·귀문관 등)을 *시너스트리 cross 와 묶어* 해석한다. 예: A 가 일주에 도화 + B 의 일지가 A의 도화 자리와 충/합 → 강한 끌림. 단독 신살만 나열하지 말 것 — 관계 맥락에 묶어야 의미.',
+            '- [개별 신살 — 각자 타고난 것] 블록은 *cross 가 없는 personality 신살*(양인·귀문관·원진·고신·금여성·천덕/월덕귀인) 만 담겨 있다. 도화·홍염·백호·괴강·천을귀인 같은 cross 가능 신살은 시너스트리 신살 cross 블록에서 이미 양방향으로 다루므로 self 에선 제외됨. 이 블록은 *각자의 기질* 로 짧게 활용 (예: A 양인 → 한 번 꽂히면 끝장, B 귀문관 → 미세한 신호에 예민). 단독 나열은 피하고 관계 흐름에 묶어 한 줄 보탤 것.',
             '- 타로 클래리파이어 카드(🃏)가 도착하면 카드 일반 의미 X, 직전까지 짚은 *시너스트리 [CRITICAL] 신호 한 가지* 에 그 카드가 어떤 디테일을 더해주는지 한 단락(2-3 문장).',
             '- 두 사람의 관계 역학에 답한다. 한 명만 분석하지 말 것.',
             '- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.',
@@ -499,7 +497,7 @@ export async function POST(req: NextRequest) {
             '- Composite [Sun-Moon midpoint = 결혼점] line, if present, is the tightest emotional core of the relationship — mention as the anchor binding the two together.',
             '- When the user asks about *timing* (e.g. "this year for us?", "best time to marry?", "when do we meet?"), lean on saju synastry [current daeun cross / 세운 cross] and astro transits first. If timing data is missing, say honestly that exact timing can\'t be pinned from charts alone.',
             '- Intent-based frame: (a) "will we break up / last?" → friction signals + reparability weighted; (b) "marriage timing / when?" → timing (daeun/sewoon/transits) front; (c) "why are we drawn / not drawn?" → attraction mechanism deep only; (d) "are we good together?" → full 3-frame. Trim/skip frames irrelevant to the intent.',
-            '- Tie the per-person shinsal block ([개별 신살 — 각자 타고난 것]: 도화/홍염살/백호/괴강/천을귀인/원진/귀문관 …) *into the synastry cross* — e.g. "A has 도화 on day pillar + B\'s day branch hits that 도화 branch → magnetic attraction". Do not list shinsal in isolation — always couple it to the relationship signal.',
+            '- The per-person shinsal block ([개별 신살 — 각자 타고난 것]) contains *only cross-less personality shinsal* (양인 · 귀문관 · 원진 · 고신 · 금여성 · 천덕/월덕귀인). Cross-bearing shinsal (도화 / 홍염 / 백호 / 괴강 / 천을귀인) are already deterministically resolved both ways in the saju synastry shinsal-cross block, so they are intentionally omitted here. Use this block lightly to color *each side\'s individual temperament* (e.g. A 양인 → once locked in, all-in; B 귀문관 → hypersensitive to subtle cues). Never list shinsal in isolation — weave a single line into the dynamic.',
             '- When a tarot clarifier card (🃏) arrives: drop generic card meanings. Take *one specific [CRITICAL] synastry signal you just discussed* and add what the card sharpens about it — single paragraph (2-3 sentences).',
             '- Answer about the relationship dynamic. Never analyze only one person.',
             '- Fuse saju and astrology in one flow. No system-split.',
@@ -666,7 +664,10 @@ export async function POST(req: NextRequest) {
     })
     const metaBlock = metaLines.join('\n')
 
-    // 개별 신살 — 각자 타고난 self 신살(백호·괴강·양인·도화 등)을 1인 1줄로.
+    // 개별 신살 — 각자 타고난 self 신살 중 *cross 없는* personality 신살
+    // (양인·귀문관·원진·고신·금여성·천덕/월덕귀인) 만 1인 1줄로. 도화·홍염·
+    // 백호·괴강·천을귀인 은 sajuSynastryFormatter 가 양방향 cross 처리해
+    // 중복 제거.
     const personalShinsalLines = [
       formatPersonalShinsal(
         (persons?.[0] as { name?: string } | undefined)?.name
