@@ -7,6 +7,7 @@ import { apiClient } from '@/lib/api/ApiClient'
 import { TarotPrefetchSchema } from '@/lib/api/validator'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { logger } from '@/lib/logger'
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
@@ -40,7 +41,11 @@ export const POST = withApiMiddleware(
         },
         { timeout: 10000 }
       )
-      .catch(() => {}) // Ignore errors silently
+      // Prefetch 는 best-effort 이므로 실패해도 사용자 흐름엔 영향 X.
+      // 다만 디버깅용 debug 로그는 남긴다 (이전엔 완전 silent).
+      .catch((err) => {
+        logger.debug('[tarot/prefetch] background fetch failed', { err })
+      })
 
     return NextResponse.json({ status: 'prefetching' })
   },
