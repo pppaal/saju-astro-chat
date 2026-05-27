@@ -652,15 +652,7 @@ export async function POST(req: NextRequest) {
       ? `[개별 신살 — 각자 타고난 것 (self)]\n${personalShinsalLines.join('\n')}`
       : ''
 
-    // 로그인 사용자 호칭(궁합은 두 사람 중 화자가 누군지 명시).
-    // DB 의 최신 User.name 을 사용 — 메인페이지에서 이름 바꿔도 즉시 반영.
-    const callerName = await getUserDisplayName(context.userId)
-    const callerLine = callerName
-      ? `# 호출자(질문자): ${callerName} — 한국어로 답할 때 '${callerName}님'으로 호명하고, 영어면 'Hi ${callerName},' 형식으로 자연스럽게 한 번씩.`
-      : ''
-
     const cachedUserContext = [
-      callerLine,
       `== 참여자 정보 ==`,
       personsInfo,
       metaBlock,
@@ -678,7 +670,17 @@ export async function POST(req: NextRequest) {
     // 어떻게 얽히나"가 아니라 개인 운세라 궁합 철학과 안 맞고 토큰만 먹어 제거.
     // 관계 시기는 cached 의 사주 synastry 안 세운 cross 가 담당.
     void evidenceGuide
-    const userPrompt = userQuestion
+    // 호출자 이름은 cachedUserContext 밖에서 주입 — 이전엔 callerLine
+    // 이 cached prefix 안에 들어가서 (a) 유저 간 prompt-cache 공유 불가,
+    // (b) 이름 변경시 다음 세션 캐시 무효화. 이제 휘발성 userPrompt
+    // prefix 라 차트 데이터만으로 캐시 안정.
+    const callerName = await getUserDisplayName(context.userId)
+    const callerLine = callerName
+      ? lang === 'ko'
+        ? `[호출자(질문자)] ${callerName} — 한국어로 답할 때 '${callerName}님'으로 호명한다.\n\n`
+        : `[Caller] ${callerName} — address as 'Hi ${callerName},' naturally.\n\n`
+      : ''
+    const userPrompt = `${callerLine}${userQuestion}`
 
     try {
       return await streamClaudeAsSSE({
