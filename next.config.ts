@@ -130,10 +130,7 @@ const nextConfig = {
       './node_modules/swisseph/build/Release/**/*.node',
       './public/ephe/**/*',
     ],
-    '/app/api/tarot/**': [
-      './node_modules/swisseph/build/Release/**/*.node',
-      './public/ephe/**/*',
-    ],
+    '/app/api/tarot/**': ['./node_modules/swisseph/build/Release/**/*.node', './public/ephe/**/*'],
   },
   outputFileTracingExcludes: {
     '/app/api/**': [
@@ -334,6 +331,13 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'storage.googleapis.com',
+        pathname: '/**',
+      },
+      {
+        // Vercel Blob — 프로필 사진 (스토어별 서브도메인이라 wildcard).
+        // 예: <store-id>.public.blob.vercel-storage.com
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
         pathname: '/**',
       },
     ],
