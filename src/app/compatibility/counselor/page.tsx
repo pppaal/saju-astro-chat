@@ -16,15 +16,12 @@ import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
-import { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
+// InlineTarotModal 은 dynamic 이 아니라 직접 import — 이전엔 dynamic ssr:false
+// 였는데 첫 클릭 시 chunk download 로 모달이 "지지직" 거리며 늦게 떴음.
+// 직접 import 로 즉시 열리게. (~50KB 초기 번들 증가는 수용 — UX 우선.)
+import InlineTarotModal, { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
-  ssr: false,
-})
-
-// 운명상담사와 동일한 InlineTarotModal — 사용자가 질문 적고 스프레드
-// 골라 카드를 펼치는 인터랙티브 흐름. 결과는 채팅 메시지로 inject.
-const InlineTarotModal = dynamic(() => import('@/components/destiny-map/InlineTarotModal'), {
   ssr: false,
 })
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
