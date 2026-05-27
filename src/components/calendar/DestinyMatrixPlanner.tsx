@@ -15,6 +15,9 @@ import {
   ThumbsUp,
   ThumbsDown,
   Cpu,
+  Clock,
+  ChevronDown,
+  ChevronUp,
   X,
 } from 'lucide-react'
 
@@ -29,6 +32,25 @@ import DailyHourlyChart from './DailyHourlyChart'
 import MonthDashboard from './premium/MonthDashboard'
 import ThemeRadar from './premium/shared/ThemeRadar'
 import Highlights from './premium/shared/Highlights'
+import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
+import { getHourThemeNarrative } from '@/lib/calendar-engine/data/hourThemeNarrative'
+
+// 시진 테마 narrative 선택용 — 그 날 themeScores 의 최고 테마
+type HourTheme = 'love' | 'money' | 'career' | 'health' | 'growth'
+const HOUR_THEME_KEYS: HourTheme[] = ['love', 'money', 'career', 'health', 'growth']
+function topHourTheme(themeScores: Partial<Record<string, number>> | undefined): HourTheme {
+  if (!themeScores) return 'growth'
+  let best: HourTheme = 'growth'
+  let bestV = -Infinity
+  for (const k of HOUR_THEME_KEYS) {
+    const v = themeScores[k]
+    if (typeof v === 'number' && v > bestV) {
+      bestV = v
+      best = k
+    }
+  }
+  return best
+}
 import { getGrade } from './scoreGrade'
 
 interface DestinyMatrixPlannerProps {
@@ -72,6 +94,10 @@ export default function DestinyMatrixPlanner({
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
   // 엔진 자기 진단 카드 — 일반 사용자에겐 디버그 노이즈라 디폴트 접힘.
   const [showEngineDiag, setShowEngineDiag] = useState(false)
+  // 시간대 자세히 — 디폴트 접힘. Highlights 가 best/caution Top1 만 보여줌으로
+  // 단순화한 대신 4 best + 2 worst + 시진 narrative + theme narrative 풀
+  // 디테일은 펼치면 노출. 엔진 데이터 손실 없이 가시성만 단계화.
+  const [showHourDetail, setShowHourDetail] = useState(false)
 
   // --- View date (state — prev/next month 이동 가능) -------------------
   // 이전엔 today로 하드코딩돼 month 이동 자체가 안 됐음. 우측 상단 모달의
@@ -839,6 +865,100 @@ export default function DestinyMatrixPlanner({
                   </p>
                 </div>
               )}
+
+              {/* 시간대 자세히 — 펼치면 full best 4 + worst 2 + 시진 narrative
+                  + 시간×테마 narrative. Highlights(Top 1)에서 잘린 엔진 디테일을
+                  손실 없이 복구. */}
+              {dailyHourlySlots &&
+                (dailyHourlySlots.best.length > 1 || dailyHourlySlots.worst.length > 1) && (
+                  <div className="bg-zinc-900/30 rounded-2xl border border-white/5">
+                    <button
+                      onClick={() => setShowHourDetail((v) => !v)}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-zinc-300 text-xs font-semibold tracking-wider uppercase"
+                    >
+                      <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                      시간대 자세히 — best {dailyHourlySlots.best.length} / worst{' '}
+                      {dailyHourlySlots.worst.length}
+                      {showHourDetail ? (
+                        <ChevronUp className="w-3.5 h-3.5 ml-auto" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5 ml-auto" />
+                      )}
+                    </button>
+                    {showHourDetail && (
+                      <div className="grid grid-cols-2 gap-3 px-4 pb-4">
+                        <div>
+                          <div className="text-[11px] font-bold text-emerald-400 mb-2 tracking-wider">
+                            ↑ BEST
+                          </div>
+                          <ul className="space-y-2">
+                            {dailyHourlySlots.best.slice(0, 4).map((s, i) => {
+                              const branch = branchFromHour(s.hour)
+                              const narrative = getHourNarrative(branch)
+                              const themeLine = getHourThemeNarrative(
+                                branch,
+                                topHourTheme(selectedImportantDate?.themeScores),
+                                'ko'
+                              )
+                              return (
+                                <li
+                                  key={`best-${i}`}
+                                  className="bg-emerald-900/10 border border-emerald-500/15 px-3 py-2 rounded-lg"
+                                >
+                                  <span className="text-sm font-bold text-emerald-200">
+                                    {formatHour(s.hour)}
+                                  </span>
+                                  <p className="text-[11px] text-emerald-100/85 mt-1 leading-snug">
+                                    {narrative.positiveKo}
+                                  </p>
+                                  {themeLine && (
+                                    <p className="text-[10px] text-emerald-200/70 mt-1 leading-snug">
+                                      {themeLine}
+                                    </p>
+                                  )}
+                                  {s.reason && (
+                                    <p className="text-[10px] text-zinc-500 mt-1 leading-snug">
+                                      {s.reason}
+                                    </p>
+                                  )}
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        </div>
+                        <div>
+                          <div className="text-[11px] font-bold text-rose-400 mb-2 tracking-wider">
+                            ↓ WORST
+                          </div>
+                          <ul className="space-y-2">
+                            {dailyHourlySlots.worst.slice(0, 2).map((s, i) => {
+                              const branch = branchFromHour(s.hour)
+                              const narrative = getHourNarrative(branch)
+                              return (
+                                <li
+                                  key={`worst-${i}`}
+                                  className="bg-rose-900/10 border border-rose-500/15 px-3 py-2 rounded-lg"
+                                >
+                                  <span className="text-sm font-bold text-rose-200">
+                                    {formatHour(s.hour)}
+                                  </span>
+                                  <p className="text-[11px] text-rose-100/85 mt-1 leading-snug">
+                                    {narrative.cautionKo}
+                                  </p>
+                                  {s.reason && (
+                                    <p className="text-[10px] text-zinc-500 mt-1 leading-snug">
+                                      {s.reason}
+                                    </p>
+                                  )}
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
               {(dailyDos.length > 0 || dailyDonts.length > 0) && (
                 <div className="grid grid-cols-2 gap-4">
