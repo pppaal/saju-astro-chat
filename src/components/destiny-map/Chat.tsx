@@ -87,6 +87,13 @@ const Chat = memo(function Chat({
     )
   }, [])
 
+  // 클래리파이어 직후엔 자동 스크롤 hijack 을 잠시 끈다 — 사용자가 이미
+  // 채팅 맨 하단의 "한 장 더 뽑기" 버튼을 본 상태이고, 그대로 카드 메시지/
+  // 답변이 거기 쌓이는 게 자연스러움. 일반 useEffect 의 scrollIntoView 가
+  // 답변 끝까지 매 토큰 따라가버리면 viewport 가 위로 밀려나 "왜 다시
+  // 올라가냐" 회귀.
+  const suspendAutoScrollRef = React.useRef(false)
+
   const { cvText, cvName, parsingPdf, handleFileUpload, clearFile } = useFileUpload({
     lang,
     setNotice,
@@ -237,6 +244,9 @@ const Chat = memo(function Chat({
     if (!autoScroll) {
       return
     }
+    if (suspendAutoScrollRef.current) {
+      return
+    }
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading, autoScroll])
 
@@ -279,20 +289,18 @@ const Chat = memo(function Chat({
     (card: ClarifierCard) => {
       // 카드 이름 + 그림(markdown 이미지) + 해석 요청을 user 메시지로 흘려
       // 보낸다. 한 번 뽑으면 새 대화 시작 전까지 잠금.
+      // 자동 스크롤 hijack 을 일정 시간 끈다 — "한 장 더 뽑기" 버튼이 채팅
+      // 맨 하단에 있어 사용자는 이미 그 자리를 보고 있다. 일반 useEffect 가
+      // 답변 토큰마다 messagesEnd 로 따라가버리면 사용자가 막 본 user
+      // 말풍선/카드가 viewport 위로 밀려 "다시 올라간 것" 처럼 보임.
+      // 답변 스트리밍이 끝날 만큼(~25s) 충분히 길게 잠근다.
+      suspendAutoScrollRef.current = true
+      window.setTimeout(() => {
+        suspendAutoScrollRef.current = false
+      }, 25000)
       setClarifierUsed(true)
       const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
       void handleSendRef.current?.(userText)
-      // 모달 닫힘 + 메시지 추가 + 스트리밍 시작이 같은 frame 에 묶이면 기존
-      // messages-의존 useEffect 의 자동 scrollIntoView 가 viewport 안 옛
-      // 위치를 잡아 사용자에게는 "맨 위에서 멈춤" 으로 보였음. 모달 닫힘이
-      // 끝나고 새 user 버블 + 답변 영역이 DOM 에 충분히 그려진 뒤로 스크롤을
-      // 미뤄 카드 메시지가 화면 하단에 보이게 한다.
-      const scrollLater = (delay: number) =>
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-        }, delay)
-      scrollLater(150)
-      scrollLater(600)
     },
     [effectiveLang]
   )
