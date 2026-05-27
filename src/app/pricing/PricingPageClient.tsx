@@ -170,8 +170,20 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
         }
       )
       const data = await res.json().catch(() => null as unknown)
-      if (data && typeof data === 'object' && 'url' in data && typeof data.url === 'string') {
-        window.location.href = data.url
+      // 서버는 withApiMiddleware 봉투로 `{ success: true, data: { url } }` 형태
+      // 응답. 이전엔 data.url 만 봐서 항상 false → '결제 서비스 일시 불가' alert
+      // 뜨고 stripe 페이지로 redirect 안 됨 (실제 응답은 200 정상). 봉투 안쪽
+      // data.data.url 우선, 옛 직접 형태 data.url 도 폴백으로 지원.
+      const obj = (data ?? {}) as Record<string, unknown>
+      const inner = (obj.data ?? obj) as Record<string, unknown>
+      const checkoutUrl =
+        typeof inner.url === 'string'
+          ? inner.url
+          : typeof (obj as { url?: unknown }).url === 'string'
+            ? (obj as { url: string }).url
+            : null
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl
       } else {
         // /api/checkout 의 에러 응답은 { error: { code, message, details } } 객체.
         // 통째로 alert 하면 "[object Object]" 가 떠서 사용자에게 무의미 — code/
@@ -180,7 +192,6 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
         // 인증 미동기화 등) HTTP status 만이라도 alert 에 노출해야 사용자가
         // "결제 서비스 일시 불가" 같은 generic 메시지 보고 막막해하지 않음.
         console.error('[checkout] error response:', { status: res.status, data })
-        const obj = (data ?? {}) as Record<string, unknown>
         const errObj = (obj.error ?? obj) as Record<string, unknown> | string
         const errMsg =
           typeof errObj === 'string'
