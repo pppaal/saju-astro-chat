@@ -485,11 +485,20 @@ export const calendarQuerySchema = z.object({
 
 export type CalendarQueryValidated = z.infer<typeof calendarQuerySchema>
 
+// year 범위 — UI 가 navigates 가능한 현재 ±5년만. 1900-2100 풀 범위는 attacker
+// 가 cell-cache 를 무한히 채우는 DoS 표면 (200 yrs × 12 mo × ~150ms = ~6분 CPU
+// per birthKey). UI 가 의미 있게 보여줄 윈도우만 허용.
+const CURRENT_YEAR = new Date().getFullYear()
 export const calendarMainQuerySchema = z.object({
   birthDate: dateSchema,
   birthTime: timeSchema.optional().default('12:00'),
   birthPlace: z.string().max(100).trim().optional().default('Seoul'),
-  year: z.coerce.number().int().min(1900).max(2100).optional(),
+  year: z.coerce
+    .number()
+    .int()
+    .min(CURRENT_YEAR - 5)
+    .max(CURRENT_YEAR + 5)
+    .optional(),
   gender: genderSchema.optional().default('male'),
   locale: localeSchema.optional().default('ko'),
   category: z.enum(['wealth', 'career', 'love', 'health', 'travel', 'study', 'general']).optional(),
