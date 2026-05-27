@@ -29,6 +29,9 @@ export interface BirthFieldsClasses {
   input?: string
   row?: string
   checkboxLabel?: string
+  // 체크박스 input 자체 className. light 카드(궁합)에선 흰 박스 + 골드
+  // 체크가 자연스럽고, dark 폼에선 보라 accent 가 어울림.
+  checkbox?: string
   suggestionList?: string
   suggestionItem?: string
 }
@@ -65,6 +68,7 @@ export const birthFieldClasses: Required<BirthFieldsClasses> = {
   row: 'grid grid-cols-2 gap-2.5',
   checkboxLabel:
     'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[rgba(220,215,255,0.78)]',
+  checkbox: 'h-3.5 w-3.5 cursor-pointer accent-[#a78bfa]',
   suggestionList:
     'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-violet-400/30 bg-[#0c1024] p-1 shadow-[0_16px_40px_rgba(0,0,0,0.5)]',
   suggestionItem:
@@ -113,17 +117,15 @@ export function BirthInfoFields({
   return (
     <>
       <div className={c.field}>
-        <label htmlFor={id('date')} className={c.label}>
+        <label htmlFor={id('date-year')} className={c.label}>
           {isKo ? '생년월일' : 'Birth date'}
         </label>
-        <input
-          id={id('date')}
-          type="date"
-          className={c.input}
+        <DateThreeSelect
+          locale={locale}
+          idPrefix={id('date')}
           value={birthDate}
-          onChange={(e) => onChange({ birthDate: e.target.value })}
-          min="1900-01-01"
-          max="2100-12-31"
+          onChange={(v) => onChange({ birthDate: v })}
+          inputClass={c.input}
         />
       </div>
 
@@ -146,13 +148,13 @@ export function BirthInfoFields({
           <label className={c.checkboxLabel}>
             <input
               type="checkbox"
+              className={c.checkbox}
               checked={timeUnknown}
               onChange={(e) =>
                 onChange(
                   e.target.checked ? { timeUnknown: true, birthTime: '' } : { timeUnknown: false },
                 )
               }
-              style={{ accentColor: '#a78bfa' }}
             />
             {isKo ? '시간 모름 (00:00 처리)' : 'Unknown time (use 00:00)'}
           </label>
@@ -211,6 +213,116 @@ export function BirthInfoFields({
       )}
     </>
   )
+}
+
+/**
+ * Native <select> 3 칸으로 연/월/일 입력. 모바일에서 native date input 의
+ * 휠 피커가 "어디 눌러야 연도가 바뀌는지" 직관적이지 않다는 피드백을 받아
+ * 도입. iOS/Android 모두 익숙한 dropdown UI 로 통일.
+ *
+ * 외부 인터페이스: ISO 'YYYY-MM-DD' 문자열을 in/out 으로 그대로 사용 →
+ * 상위 폼 로직은 변경 없음.
+ */
+function DateThreeSelect({
+  locale,
+  idPrefix,
+  value,
+  onChange,
+  inputClass,
+}: {
+  locale: 'ko' | 'en'
+  idPrefix: string
+  value: string
+  onChange: (v: string) => void
+  inputClass: string
+}) {
+  const isKo = locale === 'ko'
+  const parsed = parseISODate(value)
+  const year = parsed?.y ?? ''
+  const month = parsed?.m ?? ''
+  const day = parsed?.d ?? ''
+
+  const currentYear = new Date().getFullYear()
+  // 1900 ~ 올해. 출생연도이므로 미래는 불필요. 최신 연도부터 내려가게 정렬.
+  const years: number[] = []
+  for (let y = currentYear; y >= 1900; y--) years.push(y)
+  const months = Array.from({ length: 12 }, (_, i) => i + 1)
+  const maxDay = year && month ? daysInMonth(Number(year), Number(month)) : 31
+  const days = Array.from({ length: maxDay }, (_, i) => i + 1)
+
+  const emit = (y: number | '', m: number | '', d: number | '') => {
+    if (y === '' || m === '' || d === '') {
+      onChange('')
+      return
+    }
+    // month 변경으로 day 가 새 maxDay 를 넘으면 clamp.
+    const dMax = daysInMonth(Number(y), Number(m))
+    const dClamped = Math.min(Number(d), dMax)
+    onChange(`${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(dClamped).padStart(2, '0')}`)
+  }
+
+  // select 자체는 input 과 동일 톤(border/text/bg) 으로. grid-cols-3 로 균등.
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      <select
+        id={`${idPrefix}-year`}
+        className={inputClass}
+        value={year}
+        onChange={(e) => emit(e.target.value ? Number(e.target.value) : '', month === '' ? '' : Number(month), day === '' ? '' : Number(day))}
+        aria-label={isKo ? '년' : 'Year'}
+      >
+        <option value="">{isKo ? '년' : 'Year'}</option>
+        {years.map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
+        ))}
+      </select>
+      <select
+        id={`${idPrefix}-month`}
+        className={inputClass}
+        value={month}
+        onChange={(e) => emit(year === '' ? '' : Number(year), e.target.value ? Number(e.target.value) : '', day === '' ? '' : Number(day))}
+        aria-label={isKo ? '월' : 'Month'}
+      >
+        <option value="">{isKo ? '월' : 'Month'}</option>
+        {months.map((m) => (
+          <option key={m} value={m}>
+            {isKo ? `${m}월` : m}
+          </option>
+        ))}
+      </select>
+      <select
+        id={`${idPrefix}-day`}
+        className={inputClass}
+        value={day}
+        onChange={(e) => emit(year === '' ? '' : Number(year), month === '' ? '' : Number(month), e.target.value ? Number(e.target.value) : '')}
+        aria-label={isKo ? '일' : 'Day'}
+      >
+        <option value="">{isKo ? '일' : 'Day'}</option>
+        {days.map((d) => (
+          <option key={d} value={d}>
+            {isKo ? `${d}일` : d}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+function parseISODate(v: string): { y: number; m: number; d: number } | null {
+  if (!v) return null
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v)
+  if (!m) return null
+  const y = Number(m[1])
+  const mo = Number(m[2])
+  const d = Number(m[3])
+  if (!y || !mo || !d) return null
+  return { y, m: mo, d }
+}
+
+function daysInMonth(y: number, m: number): number {
+  return new Date(y, m, 0).getDate()
 }
 
 export default BirthInfoFields

@@ -356,6 +356,19 @@
   padding-right: 0;
 }
 
+.thinkingMessage {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #78716c;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.thinkingText {
+  letter-spacing: -0.005em;
+}
+
 .typing {
   display: inline-flex;
   gap: 0.25rem;
