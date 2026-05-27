@@ -48,7 +48,7 @@ A) UNUSED Credits (within 7 days of purchase):
 B) PARTIALLY USED Credits:
 - NO REFUND for partially used credit packs
 - Once even 1 credit has been consumed, the entire pack becomes non-refundable
-- Example: If you purchase a 30-credit Plus Pack and use 1 credit, you cannot receive any refund for the remaining 29 credits
+- Example: If you purchase a 50-credit Plus Pack and use 1 credit, you cannot receive any refund for the remaining 49 credits
 
 C) Credit Validity and Expiration:
 - Purchased credits are valid for 3 months from purchase date
@@ -78,7 +78,7 @@ A) 미사용 크레딧 (구매 후 7일 이내):
 B) 부분 사용된 크레딧:
 - 일부라도 사용한 크레딧 팩은 환불 불가
 - 크레딧 1개라도 사용하면 전체 팩이 환불 불가능
-- 예시: 30크레딧 플러스팩 구매 후 1개 사용 시, 남은 29개에 대해 환불받을 수 없음
+- 예시: 50크레딧 플러스팩 구매 후 1개 사용 시, 남은 49개에 대해 환불받을 수 없음
 
 C) 크레딧 유효기간 및 만료:
 - 구매한 크레딧은 구매일로부터 3개월간 유효
