@@ -288,28 +288,9 @@ export default function CounselorSidebar({
           </Link>
         )}
 
-        {!isRenaming && !isSwiped && (
-          <div className={styles.sessionActions}>
-            <button
-              type="button"
-              className={styles.iconBtn}
-              onClick={() => startRename(s)}
-              aria-label={t('destinyMap.counselor.rename', 'Rename')}
-              title={t('destinyMap.counselor.rename', 'Rename')}
-            >
-              ✎
-            </button>
-            <button
-              type="button"
-              className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-              onClick={() => handleDelete(s.id)}
-              aria-label={t('destinyMap.counselor.delete', 'Delete')}
-              title={t('destinyMap.counselor.delete', 'Delete')}
-            >
-              🗑
-            </button>
-          </div>
-        )}
+        {/* 항상 보이던 ✎/🗑 아이콘은 제거 — Rename/Delete 는 채팅 안 우상단의
+            ⋮ 메뉴로 이동했음. .swipeActions (모바일 좌측 스와이프 시 노출)는
+            제스처 단축으로 유지. */}
       </li>
     )
   }
