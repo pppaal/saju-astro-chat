@@ -33,6 +33,7 @@ import Highlights from './premium/shared/Highlights'
 import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
 import { getHourThemeNarrative } from '@/lib/calendar-engine/data/hourThemeNarrative'
 import { getGrade } from './scoreGrade'
+import { getCalLabels, type CalLocale } from './premium/labels'
 
 // 시진 테마 narrative 선택용 — 그 날 themeScores 의 최고 테마
 type HourTheme = 'love' | 'money' | 'career' | 'health' | 'growth'
@@ -63,6 +64,8 @@ interface DestinyMatrixPlannerProps {
   /** 사용자가 캐시된 연도 밖으로 이동했을 때 parent 가 재호출하도록 신호.
    *  Dec → 다음 달이 다음 해 1월이라 빈 그리드만 보이던 회귀 차단. */
   onYearChange?: (year: number) => void
+  /** UI 라벨 locale */
+  locale?: CalLocale
 }
 
 export type YearMonthly = {
@@ -90,7 +93,9 @@ export default function DestinyMatrixPlanner({
   yearlyConvergence,
   yearlyMonthly,
   onYearChange,
+  locale,
 }: DestinyMatrixPlannerProps = {}) {
+  const t = getCalLabels(locale)
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
   // 엔진 자기 진단 카드 — 일반 사용자에겐 디버그 노이즈라 디폴트 접힘.
@@ -134,9 +139,8 @@ export default function DestinyMatrixPlanner({
     return `${y}-${m}-${d}`
   }, [today])
   const todayWeekday = useMemo(() => {
-    const days = ['일', '월', '화', '수', '목', '금', '토']
-    return days[today.getDay()]
-  }, [today])
+    return t.weekdayShort[today.getDay()]
+  }, [today, t])
   const todayHero = useMemo(() => {
     const d = data?.allDates?.find((x) => x.date === todayStr)
     if (!d) return null
@@ -146,8 +150,19 @@ export default function DestinyMatrixPlanner({
       data?.calendarDailyView?.date === todayStr
         ? (data.calendarDailyView.oneLineSummary ?? null)
         : (d.summary ?? null)
-    // 점수 분포는 sticky 헤더(공간 좁음)에서는 안 보이고 daily 뷰에서 별도 표시.
-    return { score, grade, oneLine }
+    // 점수 분포 — year/month tier hero 와 일관성. 사주/점성 raw 우선.
+    const sb = d.scoreBreakdown
+    const breakdown = sb
+      ? {
+          saju: Math.round(typeof sb.sajuAxisRaw === 'number' ? sb.sajuAxisRaw : sb.sajuAxis),
+          astro: Math.round(typeof sb.astroAxisRaw === 'number' ? sb.astroAxisRaw : sb.astroAxis),
+          agreement:
+            typeof d.evidence?.crossAgreementPercent === 'number'
+              ? Math.round(d.evidence.crossAgreementPercent)
+              : null,
+        }
+      : null
+    return { score, grade, oneLine, breakdown }
   }, [data, todayStr])
   const handleHeroClick = useCallback(() => {
     const t = new Date()
@@ -299,12 +314,7 @@ export default function DestinyMatrixPlanner({
     return null
   }, [fusion, today, selectedDateStr, data])
 
-  const formatHour = (h: number): string => {
-    if (h === 0) return '자정 12시'
-    if (h === 12) return '정오 12시'
-    if (h < 12) return `오전 ${h}시`
-    return `오후 ${h - 12}시`
-  }
+  const formatHour = (h: number): string => t.formatHour(h)
 
   // Day tier ThemeRadar — 5 도메인. year/month 와 같은 축 순서로 통일해
   // 사용자가 형태 변화로 차이를 인식. themeScores 우선, fusion.domainScores 폴백.
@@ -349,21 +359,23 @@ export default function DestinyMatrixPlanner({
     if (!dailyHourlySlots) return null
     const best = dailyHourlySlots.best[0]
     const caution = dailyHourlySlots.worst[0]
+    const bestDescFallback = locale === 'en' ? 'Strongest energy window' : '에너지가 가장 좋은 시간'
+    const cautionDescFallback = locale === 'en' ? 'A pause-worthy window' : '한 박자 쉬어가는 시간'
     return {
       bestCard: best
         ? {
-            value: formatHour(best.hour),
-            description: best.reason || '에너지가 가장 좋은 시간',
+            value: t.formatHour(best.hour),
+            description: best.reason || bestDescFallback,
           }
         : undefined,
       cautionCard: caution
         ? {
-            value: formatHour(caution.hour),
-            description: caution.reason || '한 박자 쉬어가는 시간',
+            value: t.formatHour(caution.hour),
+            description: caution.reason || cautionDescFallback,
           }
         : undefined,
     }
-  }, [dailyHourlySlots])
+  }, [dailyHourlySlots, locale, t])
 
   // --- Daily Dos / Donts ----------------------------------------------
   // 엔진이 진짜 advice를 못 만들면 카드 자체를 숨김 (Dos·Donts 모두 빈 배열일 때
@@ -439,7 +451,7 @@ export default function DestinyMatrixPlanner({
   }, [fusion, selectedImportantDate])
 
   // --- Astro identity badge for the header ---------------------------
-  // 풀 차트가 들어오면 ASC, 없으면 태양 별자리.
+  // 풀 차트가 들어오면 ASC, 없으면 태양 별자리. ko 시 한글 별자리명, en 시 영어 원문.
   const astroBadge = useMemo(() => {
     const id = data?.astroIdentity
     if (!id) return null
@@ -457,16 +469,16 @@ export default function DestinyMatrixPlanner({
       Aquarius: '물병자리',
       Pisces: '물고기자리',
     }
+    const localized = (sign: string) => (locale === 'en' ? sign : (ZODIAC_KO[sign] ?? sign))
     if (id.ascendantSign) {
-      const ko = ZODIAC_KO[id.ascendantSign]
-      return { label: ko ? `${ko} ASC` : `${id.ascendantSign} ASC`, kind: 'asc' as const }
+      return { label: `${localized(id.ascendantSign)} ASC`, kind: 'asc' as const }
     }
     if (id.sunSign) {
-      const ko = ZODIAC_KO[id.sunSign]
-      return { label: ko ? `${ko} ☉` : `${id.sunSign} Sun`, kind: 'sun' as const }
+      const suffix = locale === 'en' ? 'Sun' : '☉'
+      return { label: `${localized(id.sunSign)} ${suffix}`, kind: 'sun' as const }
     }
     return null
-  }, [data])
+  }, [data, locale])
 
   const handlePrevDay = () => setCurrentDay((prev) => (prev > 1 ? prev - 1 : daysInMonth))
   const handleNextDay = () => setCurrentDay((prev) => (prev < daysInMonth ? prev + 1 : 1))
@@ -485,10 +497,7 @@ export default function DestinyMatrixPlanner({
     setViewMode('daily')
   }
 
-  const getDayOfWeek = (day: number) => {
-    const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
-    return days[new Date(viewYear, viewMonth, day).getDay()]
-  }
+  const getDayOfWeek = (day: number) => t.weekdayFull[new Date(viewYear, viewMonth, day).getDay()]
 
   return (
     <div className="w-full max-w-md mx-auto h-screen bg-zinc-950 text-zinc-200 font-sans flex flex-col shadow-2xl overflow-hidden relative border-x border-zinc-900">
@@ -503,26 +512,23 @@ export default function DestinyMatrixPlanner({
           <div className="flex items-center gap-1.5 text-[11px] font-medium flex-wrap min-w-0">
             <span className="inline-flex items-center gap-1 text-amber-300/85">
               <Sun className="w-3 h-3" />
-              {ganjiToKorean(natalDayPillar ?? '辛未')} 일주
+              {locale === 'en'
+                ? `${natalDayPillar ?? '辛未'} pillar`
+                : `${ganjiToKorean(natalDayPillar ?? '辛未')} 일주`}
             </span>
-            {(astroBadge || !data) && <span className="text-zinc-700">·</span>}
-            {astroBadge ? (
+            {astroBadge && <span className="text-zinc-700">·</span>}
+            {astroBadge && (
               <span className="inline-flex items-center gap-1 text-cyan-300/85">
                 <Moon className="w-3 h-3" />
                 {astroBadge.label}
               </span>
-            ) : !data ? (
-              <span className="inline-flex items-center gap-1 text-cyan-300/85">
-                <Moon className="w-3 h-3" />
-                물병자리 ASC
-              </span>
-            ) : null}
+            )}
           </div>
 
           <button
             onClick={() => setViewMode('monthly')}
             className="px-3 py-2 bg-zinc-900/80 rounded-xl border border-white/10 text-indigo-400 hover:text-indigo-300 hover:bg-zinc-800 hover:border-indigo-500/50 transition-all shadow-lg flex items-center gap-1.5 text-sm font-bold"
-            aria-label="달력 뷰로 이동"
+            aria-label={t.calendarTabAria}
           >
             <Calendar className="w-4 h-4" />
             캘린더
@@ -535,7 +541,7 @@ export default function DestinyMatrixPlanner({
           <button
             onClick={handleHeroClick}
             className={`w-full text-left mb-3 rounded-2xl border ${todayHero.grade.borderClass} ${todayHero.grade.heroBgClass} ${todayHero.grade.heroShadowClass} px-4 py-3.5 flex items-center gap-4 hover:brightness-110 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400`}
-            aria-label="오늘 상세 보기"
+            aria-label={t.heroAria}
           >
             <span className="text-4xl shrink-0 leading-none" aria-hidden>
               {todayHero.grade.emoji}
@@ -554,10 +560,26 @@ export default function DestinyMatrixPlanner({
                   {todayHero.oneLine}
                 </p>
               )}
+              {/* year/month tier 와 일관 — 점수 분포 mini chip. 사주/점성 raw + 합치. */}
+              {todayHero.breakdown && (
+                <div className="flex items-center gap-1 mt-1.5 text-[10px]">
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-200">
+                    사주 <span className="font-bold">{todayHero.breakdown.saju}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-200">
+                    점성 <span className="font-bold">{todayHero.breakdown.astro}</span>
+                  </span>
+                  {todayHero.breakdown.agreement != null && (
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-300">
+                      합치 <span className="font-bold">{todayHero.breakdown.agreement}%</span>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex flex-col items-end shrink-0 leading-none">
               <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase">
-                오늘
+                {t.today}
               </span>
               <span className="text-sm font-black text-zinc-100 mt-0.5">
                 {today.getMonth() + 1}.{today.getDate()}
@@ -571,7 +593,7 @@ export default function DestinyMatrixPlanner({
         {/* View Mode Toggle */}
         <div className="flex bg-zinc-900/50 rounded-xl p-1.5 border border-white/5 backdrop-blur-sm">
           {(['yearly', 'monthly', 'daily'] as const).map((mode) => {
-            const label = mode === 'yearly' ? '올해' : mode === 'monthly' ? '달력' : '오늘'
+            const label = mode === 'yearly' ? t.tabYear : mode === 'monthly' ? t.tabMonth : t.tabDay
             return (
               <button
                 key={mode}
@@ -614,9 +636,8 @@ export default function DestinyMatrixPlanner({
                 yearlyConvergence={yearlyConvergence}
                 birthDate={birthInfo?.birthDate}
                 currentPhaseLabel={phaseLabel}
+                locale={locale}
                 onMonthClick={(monthIdx) => {
-                  // currentDay clamp — Mar 31 에서 Feb 로 점프할 때 selectedDateStr
-                  // 가 '2026-02-31' 되어 daily 카드 전체가 비어 보이던 회귀 (4차 audit).
                   const lastDay = new Date(viewYear, monthIdx + 1, 0).getDate()
                   setViewDate(new Date(viewYear, monthIdx, 1))
                   setCurrentDay((d) => Math.min(d, lastDay))
@@ -653,6 +674,7 @@ export default function DestinyMatrixPlanner({
                 monthDates={monthDates}
                 monthScore={monthScore}
                 monthSummary={monthlySummaryText}
+                locale={locale}
                 onDayClick={handleDayClick}
               />
 
@@ -663,7 +685,7 @@ export default function DestinyMatrixPlanner({
                   <button
                     onClick={goToPrevMonth}
                     className="p-2 rounded-lg bg-zinc-950/70 hover:bg-zinc-800 border border-white/5 text-zinc-300 transition shrink-0"
-                    aria-label="이전 달"
+                    aria-label={t.prevMonth}
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
@@ -673,7 +695,7 @@ export default function DestinyMatrixPlanner({
                   <button
                     onClick={goToNextMonth}
                     className="p-2 rounded-lg bg-zinc-950/70 hover:bg-zinc-800 border border-white/5 text-zinc-300 transition shrink-0"
-                    aria-label="다음 달"
+                    aria-label={t.nextMonth}
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
@@ -692,13 +714,13 @@ export default function DestinyMatrixPlanner({
                       onClick={goToThisMonth}
                       className="text-[11px] font-semibold text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-3 py-1 rounded-full border border-cyan-500/30 transition"
                     >
-                      오늘로
+                      {t.goToToday}
                     </button>
                   )}
                 </div>
 
                 <div className="grid grid-cols-7 gap-2 text-center mb-4">
-                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                  {t.weekdayShort.map((day, i) => (
                     <span
                       key={i}
                       className={`text-xs font-bold ${
@@ -722,19 +744,19 @@ export default function DestinyMatrixPlanner({
                     const grade = dayGradeMap.get(day)
                     let gradeClass =
                       'text-zinc-300 bg-zinc-950/50 hover:bg-zinc-800 border border-white/5'
-                    let gradeLabel = ''
+                    let gradeKey: 'lucky' | 'neutral' | 'unlucky' | null = null
                     if (grade === 'lucky') {
                       gradeClass =
                         'text-emerald-100 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30'
-                      gradeLabel = ', 좋은 날'
+                      gradeKey = 'lucky'
                     } else if (grade === 'unlucky') {
                       gradeClass =
                         'text-rose-100 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30'
-                      gradeLabel = ', 조심할 날'
+                      gradeKey = 'unlucky'
                     } else if (grade === 'neutral') {
                       gradeClass =
                         'text-zinc-200 bg-zinc-800/50 hover:bg-zinc-800 border border-white/5'
-                      gradeLabel = ', 보통'
+                      gradeKey = 'neutral'
                     }
                     return (
                       <motion.button
@@ -742,7 +764,12 @@ export default function DestinyMatrixPlanner({
                         whileTap={{ scale: 0.9 }}
                         key={day}
                         onClick={() => handleDayClick(day)}
-                        aria-label={`${viewMonth + 1}월 ${day}일${gradeLabel}${isSelected ? ', 선택됨' : ''}`}
+                        aria-label={t.dayCellAria(
+                          viewMonth + 1,
+                          day,
+                          gradeKey ? t.gradeLabel(gradeKey) : '',
+                          isSelected
+                        )}
                         aria-current={isSelected ? 'date' : undefined}
                         className={`aspect-square min-h-[40px] flex flex-col items-center justify-center rounded-xl text-sm relative transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                           isSelected
@@ -760,15 +787,15 @@ export default function DestinyMatrixPlanner({
                 <div className="flex items-center justify-center gap-3 mt-4 text-[10px] text-zinc-500">
                   <span className="flex items-center gap-1">
                     <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/40 border border-emerald-400/40" />
-                    좋은 날
+                    {t.legendGood}
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-2.5 h-2.5 rounded-sm bg-zinc-800/70 border border-white/10" />
-                    보통
+                    {t.legendNeutral}
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-2.5 h-2.5 rounded-sm bg-rose-500/40 border border-rose-400/40" />
-                    조심
+                    {t.legendCaution}
                   </span>
                 </div>
               </div>
@@ -809,7 +836,7 @@ export default function DestinyMatrixPlanner({
                 <button
                   type="button"
                   onClick={() => setViewMode('monthly')}
-                  aria-label={`${monthLabel} ${currentDay}일 ${getDayOfWeek(currentDay)} — 달력으로 이동`}
+                  aria-label={t.dailyHeaderAria(monthLabel, currentDay, getDayOfWeek(currentDay))}
                   className="flex flex-col items-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-xl px-2"
                 >
                   <span className="text-xs font-bold text-indigo-500/80 mb-1 tracking-widest">
@@ -847,7 +874,7 @@ export default function DestinyMatrixPlanner({
                           24h chart reference line, 이 chip 세 곳이 모두 "지금" 이라
                           충돌해 사용자가 chip 을 시각 마커로 오해할 위험 회피. */}
                       <span className="text-[10px] font-bold text-emerald-300 tracking-wider uppercase shrink-0 mt-0.5">
-                        추진
+                        {t.doNowLabel}
                       </span>
                       <p className="text-sm text-emerald-100 leading-snug">
                         {dailyActionPair.doNow}
@@ -857,7 +884,7 @@ export default function DestinyMatrixPlanner({
                   {dailyActionPair.watchOut && (
                     <div className="bg-rose-500/8 border border-rose-500/20 rounded-xl px-3 py-2 flex items-start gap-2">
                       <span className="text-[10px] font-bold text-rose-300 tracking-wider uppercase shrink-0 mt-0.5">
-                        보류
+                        {t.watchOutLabel}
                       </span>
                       <p className="text-sm text-rose-100 leading-snug">
                         {dailyActionPair.watchOut}
@@ -887,13 +914,17 @@ export default function DestinyMatrixPlanner({
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-zinc-400 text-xs font-semibold tracking-wider uppercase"
                   >
                     <Cpu className="w-3.5 h-3.5 text-indigo-400/80" />
-                    엔진 자기 진단
+                    {t.engineDiag}
                     <span className="ml-auto flex items-center gap-2 text-[11px] text-zinc-500 normal-case">
                       {dailyEngineSignal.confidence != null && (
-                        <span>신뢰 {dailyEngineSignal.confidence}%</span>
+                        <span>
+                          {t.confidence} {dailyEngineSignal.confidence}%
+                        </span>
                       )}
                       {dailyEngineSignal.sync != null && (
-                        <span>합치 {dailyEngineSignal.sync}%</span>
+                        <span>
+                          {t.agreementShort} {dailyEngineSignal.sync}%
+                        </span>
                       )}
                       {showEngineDiag ? (
                         <ChevronLeft className="w-3.5 h-3.5 rotate-90" />
@@ -905,24 +936,20 @@ export default function DestinyMatrixPlanner({
                   {showEngineDiag && (
                     <div className="grid grid-cols-2 gap-3 px-4 pb-4">
                       <div className="bg-zinc-950/60 p-4 rounded-xl border border-indigo-500/10">
-                        <div className="text-xs text-zinc-500 mb-1">신뢰도</div>
+                        <div className="text-xs text-zinc-500 mb-1">{t.confidence}</div>
                         <div className="text-2xl font-black text-indigo-300">
                           {dailyEngineSignal.confidence != null
                             ? `${dailyEngineSignal.confidence}%`
                             : '—'}
                         </div>
-                        <p className="text-xs text-zinc-500 mt-2 leading-snug">
-                          엔진이 이 예측에 부여한 자체 신뢰도
-                        </p>
+                        <p className="text-xs text-zinc-500 mt-2 leading-snug">{t.confidenceSub}</p>
                       </div>
                       <div className="bg-zinc-950/60 p-4 rounded-xl border border-cyan-500/10">
-                        <div className="text-xs text-zinc-500 mb-1">사주↔점성 합치</div>
+                        <div className="text-xs text-zinc-500 mb-1">{t.agreement}</div>
                         <div className="text-2xl font-black text-cyan-300">
                           {dailyEngineSignal.sync != null ? `${dailyEngineSignal.sync}%` : '—'}
                         </div>
-                        <p className="text-xs text-zinc-500 mt-2 leading-snug">
-                          두 시스템이 같은 방향을 가리키는 정도
-                        </p>
+                        <p className="text-xs text-zinc-500 mt-2 leading-snug">{t.agreementSub}</p>
                       </div>
                     </div>
                   )}
@@ -941,17 +968,14 @@ export default function DestinyMatrixPlanner({
                 <Highlights
                   best={dayHighlights.bestCard}
                   caution={dayHighlights.cautionCard}
-                  bestLabel="베스트 시간 (추진)"
-                  cautionLabel="주의 시간 (보류)"
+                  bestLabel={t.bestHour}
+                  cautionLabel={t.cautionHour}
                   hideConvergence
+                  locale={locale}
                 />
               ) : (
                 <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-                  <p className="text-sm text-zinc-400 leading-relaxed">
-                    이 날의 시간대별 정밀 분석은{' '}
-                    <span className="text-zinc-200 font-medium">달력에서 날짜를 탭</span>하면
-                    상세보기에 표시됩니다.
-                  </p>
+                  <p className="text-sm text-zinc-400 leading-relaxed">{t.dayDetailPlaceholder}</p>
                 </div>
               )}
 
@@ -966,8 +990,10 @@ export default function DestinyMatrixPlanner({
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-zinc-300 text-xs font-semibold tracking-wider uppercase"
                     >
                       <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                      시간대 자세히 — best {dailyHourlySlots.best.length} / worst{' '}
-                      {dailyHourlySlots.worst.length}
+                      {t.hourDetailTitle(
+                        dailyHourlySlots.best.length,
+                        dailyHourlySlots.worst.length
+                      )}
                       {showHourDetail ? (
                         <ChevronUp className="w-3.5 h-3.5 ml-auto" />
                       ) : (
@@ -978,7 +1004,7 @@ export default function DestinyMatrixPlanner({
                       <div className="grid grid-cols-2 gap-3 px-4 pb-4">
                         <div>
                           <div className="text-[11px] font-bold text-emerald-400 mb-2 tracking-wider">
-                            ↑ BEST
+                            ↑ {t.best}
                           </div>
                           <ul className="space-y-2">
                             {dailyHourlySlots.best.slice(0, 4).map((s, i) => {
@@ -987,7 +1013,7 @@ export default function DestinyMatrixPlanner({
                               const themeLine = getHourThemeNarrative(
                                 branch,
                                 topHourTheme(selectedImportantDate?.themeScores),
-                                'ko'
+                                locale === 'en' ? 'en' : 'ko'
                               )
                               return (
                                 <li
@@ -998,7 +1024,7 @@ export default function DestinyMatrixPlanner({
                                     {formatHour(s.hour)}
                                   </span>
                                   <p className="text-[11px] text-emerald-100/85 mt-1 leading-snug">
-                                    {narrative.positiveKo}
+                                    {locale === 'en' ? narrative.positiveEn : narrative.positiveKo}
                                   </p>
                                   {themeLine && (
                                     <p className="text-[10px] text-emerald-200/70 mt-1 leading-snug">
@@ -1017,7 +1043,7 @@ export default function DestinyMatrixPlanner({
                         </div>
                         <div>
                           <div className="text-[11px] font-bold text-rose-400 mb-2 tracking-wider">
-                            ↓ WORST
+                            ↓ {t.worst}
                           </div>
                           <ul className="space-y-2">
                             {dailyHourlySlots.worst.slice(0, 2).map((s, i) => {
@@ -1032,7 +1058,7 @@ export default function DestinyMatrixPlanner({
                                     {formatHour(s.hour)}
                                   </span>
                                   <p className="text-[11px] text-rose-100/85 mt-1 leading-snug">
-                                    {narrative.cautionKo}
+                                    {locale === 'en' ? narrative.cautionEn : narrative.cautionKo}
                                   </p>
                                   {s.reason && (
                                     <p className="text-[10px] text-zinc-500 mt-1 leading-snug">
@@ -1054,7 +1080,7 @@ export default function DestinyMatrixPlanner({
                   {dailyDos.length > 0 && (
                     <div className="bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-2xl">
                       <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-2 mb-3">
-                        <ThumbsUp className="w-4 h-4" /> 권장 행동 패턴
+                        <ThumbsUp className="w-4 h-4" /> {t.dosTitle}
                       </h4>
                       <ul className="space-y-2">
                         {dailyDos.map((item, idx) => (
@@ -1071,7 +1097,7 @@ export default function DestinyMatrixPlanner({
                   {dailyDonts.length > 0 && (
                     <div className="bg-rose-900/10 border border-rose-500/20 p-4 rounded-2xl">
                       <h4 className="text-sm font-bold text-rose-400 flex items-center gap-2 mb-3">
-                        <ThumbsDown className="w-4 h-4" /> 주의 행동 패턴
+                        <ThumbsDown className="w-4 h-4" /> {t.dontsTitle}
                       </h4>
                       <ul className="space-y-2">
                         {dailyDonts.map((item, idx) => (

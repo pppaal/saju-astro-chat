@@ -23,6 +23,7 @@ import {
   Label,
 } from 'recharts'
 import { TrendingUp, Star, AlertTriangle, Sparkles } from 'lucide-react'
+import { getCalLabels, type CalLocale } from '../labels'
 
 export type PointType = 'best' | 'caution' | 'convergence' | 'normal'
 
@@ -35,11 +36,11 @@ export interface FlowPoint {
 
 interface Props {
   data: FlowPoint[]
-  /** 카드 헤더 — 기본 "흐름" */
+  /** 카드 헤더 — 기본 locale */
   title?: string
   /** 카드 sub 한 줄 */
   subtitle?: string
-  /** y축 라벨 단위 — 기본 "에너지 지수" */
+  /** y축 라벨 단위 — 기본 locale */
   yLabel?: string
   /** 차트 높이 — 기본 220 */
   height?: number
@@ -49,6 +50,8 @@ interface Props {
   onPointClick?: (label: string) => void
   /** "지금" 가이드 라벨 — 데이터 X축 라벨과 정확히 일치해야 그려짐 */
   nowLabel?: string | null
+  /** UI locale */
+  locale?: CalLocale
 }
 
 interface TooltipPayload {
@@ -59,13 +62,16 @@ function CustomTooltip({
   active,
   payload,
   yLabel,
+  locale,
 }: {
   active?: boolean
   payload?: TooltipPayload[]
   yLabel: string
+  locale?: CalLocale
 }) {
   if (!active || !payload || payload.length === 0) return null
   const d = payload[0].payload
+  const t = getCalLabels(locale)
   return (
     <div className="bg-zinc-950 border border-amber-500/30 px-3 py-2 rounded-lg shadow-2xl">
       <p className="text-amber-300 font-bold text-xs mb-1">{d.fullLabel}</p>
@@ -74,17 +80,17 @@ function CustomTooltip({
       </p>
       {d.type === 'best' && (
         <p className="text-emerald-400 text-[11px] mt-1 flex items-center gap-1">
-          <Star size={11} /> 베스트
+          <Star size={11} /> {t.tooltipBest}
         </p>
       )}
       {d.type === 'caution' && (
         <p className="text-rose-400 text-[11px] mt-1 flex items-center gap-1">
-          <AlertTriangle size={11} /> 주의
+          <AlertTriangle size={11} /> {t.tooltipCaution}
         </p>
       )}
       {d.type === 'convergence' && (
         <p className="text-purple-400 text-[11px] mt-1 flex items-center gap-1">
-          <Sparkles size={11} /> 양쪽 수렴
+          <Sparkles size={11} /> {t.tooltipConvergence}
         </p>
       )}
     </div>
@@ -93,14 +99,18 @@ function CustomTooltip({
 
 export default function FlowChart({
   data,
-  title = '흐름',
+  title,
   subtitle,
-  yLabel = '에너지 지수',
+  yLabel,
   height = 220,
   xInterval = 0,
   onPointClick,
   nowLabel,
+  locale,
 }: Props) {
+  const tLabels = getCalLabels(locale)
+  const cardTitle = title ?? tLabels.flowTitle
+  const yAxisLabel = yLabel ?? tLabels.flowYLabel
   const validScores = data.map((d) => d.score).filter((s): s is number => typeof s === 'number')
   if (validScores.length === 0) return null
   const yMin = Math.max(0, Math.floor(Math.min(...validScores) / 5) * 5 - 5)
@@ -117,7 +127,7 @@ export default function FlowChart({
       <div className="flex items-baseline justify-between mb-3">
         <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-amber-400" />
-          {title}
+          {cardTitle}
         </h3>
       </div>
       {subtitle && <p className="text-xs text-zinc-500 mb-3 -mt-2">{subtitle}</p>}
@@ -155,7 +165,7 @@ export default function FlowChart({
             axisLine={false}
           />
           <Tooltip
-            content={<CustomTooltip yLabel={yLabel} />}
+            content={<CustomTooltip yLabel={yAxisLabel} locale={locale} />}
             cursor={{ stroke: '#f59e0b', strokeWidth: 1, strokeDasharray: '4 4' }}
           />
           {showNeutral50 && (
@@ -164,7 +174,7 @@ export default function FlowChart({
           {nowLabel && (
             <ReferenceLine x={nowLabel} stroke="#fbbf24" strokeWidth={1.5} strokeDasharray="3 3">
               <Label
-                value="지금"
+                value={tLabels.nowLabel}
                 position="insideTop"
                 offset={8}
                 fill="#fbbf24"

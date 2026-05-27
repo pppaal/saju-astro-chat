@@ -12,6 +12,7 @@
  * value 가 비어 있으면 그 카드는 placeholder 톤으로 fallback (UI 균형 유지).
  */
 import { Star, AlertTriangle, Calendar } from 'lucide-react'
+import { getCalLabels, type CalLocale } from '../labels'
 
 export interface HighlightCard {
   /** 큰 메인 값 — "5월 20일" / "20일" / "오후 3시" 등 */
@@ -24,7 +25,7 @@ interface Props {
   best?: HighlightCard
   caution?: HighlightCard
   convergence?: HighlightCard
-  /** 라벨 — 기본 베스트/주의/수렴, tier에 따라 바꿀 수 있음 */
+  /** 라벨 — 미지정 시 locale 기본 (베스트/주의/수렴) */
   bestLabel?: string
   cautionLabel?: string
   convergenceLabel?: string
@@ -34,6 +35,8 @@ interface Props {
   onConvergenceClick?: () => void
   /** convergence 자체를 숨김 — day tier 처럼 수렴 source 가 없는 경우 placeholder 카드를 안 그림. */
   hideConvergence?: boolean
+  /** UI locale */
+  locale?: CalLocale
 }
 
 function Card({
@@ -43,6 +46,7 @@ function Card({
   value,
   description,
   onClick,
+  emptyLabel,
 }: {
   tone: 'emerald' | 'rose' | 'purple'
   icon: React.ReactNode
@@ -50,6 +54,7 @@ function Card({
   value?: string
   description?: string
   onClick?: () => void
+  emptyLabel: string
 }) {
   const toneClasses = {
     emerald: {
@@ -86,7 +91,7 @@ function Card({
         <span>{label}</span>
       </div>
       <div className="text-xl font-black text-white leading-tight">
-        {empty ? <span className="text-zinc-600 text-base font-medium">데이터 없음</span> : value}
+        {empty ? <span className="text-zinc-600 text-base font-medium">{emptyLabel}</span> : value}
       </div>
       {description && !empty && (
         <p className={`${toneClasses.sub} text-xs leading-snug`}>{description}</p>
@@ -99,14 +104,16 @@ export default function Highlights({
   best,
   caution,
   convergence,
-  bestLabel = '베스트',
-  cautionLabel = '주의',
-  convergenceLabel = '양쪽 수렴',
+  bestLabel,
+  cautionLabel,
+  convergenceLabel,
   onBestClick,
   onCautionClick,
   onConvergenceClick,
   hideConvergence = false,
+  locale,
 }: Props) {
+  const t = getCalLabels(locale)
   return (
     <div
       className={`grid grid-cols-1 gap-3 ${hideConvergence ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}
@@ -114,27 +121,30 @@ export default function Highlights({
       <Card
         tone="emerald"
         icon={<Star size={16} />}
-        label={bestLabel}
+        label={bestLabel ?? t.tooltipBest}
         value={best?.value}
         description={best?.description}
         onClick={onBestClick}
+        emptyLabel={t.emptyHighlight}
       />
       <Card
         tone="rose"
         icon={<AlertTriangle size={16} />}
-        label={cautionLabel}
+        label={cautionLabel ?? t.tooltipCaution}
         value={caution?.value}
         description={caution?.description}
         onClick={onCautionClick}
+        emptyLabel={t.emptyHighlight}
       />
       {!hideConvergence && (
         <Card
           tone="purple"
           icon={<Calendar size={16} />}
-          label={convergenceLabel}
+          label={convergenceLabel ?? t.tooltipConvergence}
           value={convergence?.value}
           description={convergence?.description}
           onClick={onConvergenceClick}
+          emptyLabel={t.emptyHighlight}
         />
       )}
     </div>

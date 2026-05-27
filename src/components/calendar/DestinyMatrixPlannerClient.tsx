@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BrandSplash from '@/components/branding/BrandSplash'
 import DestinyMatrixPlanner from '@/components/calendar/DestinyMatrixPlanner'
 import { loadSharedBirthInfo } from '@/components/calendar/sharedBirthInfo'
 import { useI18n } from '@/i18n/I18nProvider'
+import { getCalLabels } from '@/components/calendar/premium/labels'
 import type { BirthInfo, CalendarData } from '@/components/calendar/types'
 import { getUserProfile } from '@/lib/userProfile'
 import { localizeStoredCity } from '@/lib/cities/formatter'
@@ -22,6 +23,7 @@ export default function DestinyMatrixPlannerClient() {
   const router = useRouter()
   const { locale } = useI18n()
   const lang = locale === 'en' ? 'en' : 'ko'
+  const tLabels = useMemo(() => getCalLabels(lang), [lang])
   const [birthInfo, setBirthInfo] = useState<BirthInfo>({
     birthDate: '',
     birthTime: '',
@@ -154,7 +156,7 @@ export default function DestinyMatrixPlannerClient() {
         // AbortError + !timedOut: race(새 fetch 시작) — 조용히 무시.
         if ((err as { name?: string })?.name === 'AbortError') {
           if (timedOut) {
-            setError('서버 응답이 너무 오래 걸려요. 다시 시도해 주세요.')
+            setError(tLabels.fetchTimeout)
           }
           return
         }
@@ -169,7 +171,7 @@ export default function DestinyMatrixPlannerClient() {
         }
       }
     },
-    [lang]
+    [lang, tLabels.fetchTimeout]
   )
 
   // Hydrate from shared storage / user profile / URL params
@@ -297,12 +299,14 @@ export default function DestinyMatrixPlannerClient() {
   if (error) {
     return (
       <div className="w-full max-w-md mx-auto h-screen bg-zinc-950 text-rose-400 flex flex-col items-center justify-center gap-4 p-6">
-        <p className="text-sm">엔진 호출 실패: {error}</p>
+        <p className="text-sm">
+          {tLabels.engineFailedRetry}: {error}
+        </p>
         <button
           onClick={handleRetry}
           className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-zinc-200 text-sm"
         >
-          다시 시도
+          {lang === 'en' ? 'Retry' : '다시 시도'}
         </button>
       </div>
     )
@@ -315,6 +319,7 @@ export default function DestinyMatrixPlannerClient() {
       yearlyConvergence={yearlyConvergence}
       yearlyMonthly={yearlyMonthly}
       onYearChange={handleYearChange}
+      locale={lang}
     />
   )
 }

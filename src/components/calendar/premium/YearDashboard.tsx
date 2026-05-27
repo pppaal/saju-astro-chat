@@ -26,14 +26,7 @@ import FlowChart, { type FlowPoint } from './shared/FlowChart'
 import Highlights from './shared/Highlights'
 import LifeTimeline, { type TimelineEntry } from './shared/LifeTimeline'
 import { computeLifeTimeline } from './shared/lifeTimeline'
-
-const THEME_KOREAN: Record<string, string> = {
-  growth: '성장',
-  career: '직업',
-  money: '재물',
-  love: '연애',
-  health: '건강',
-}
+import { getCalLabels, type CalLocale } from './labels'
 
 // 5축 순서 — 모든 tier 통일 (성장/직업/재물/연애/건강).
 const THEME_ORDER: Array<'growth' | 'career' | 'money' | 'love' | 'health'> = [
@@ -57,6 +50,8 @@ interface Props {
   birthDate?: string | null
   /** engine 현재 대운 라벨 */
   currentPhaseLabel?: string | null
+  /** UI 라벨 locale */
+  locale?: CalLocale
   /** 달 클릭 → 그 달 monthly 뷰로 (0-indexed) */
   onMonthClick: (monthIdx: number) => void
 }
@@ -68,9 +63,11 @@ export default function YearDashboard({
   yearlyConvergence,
   birthDate,
   currentPhaseLabel,
+  locale,
   onMonthClick,
 }: Props) {
   const [showTrad, setShowTrad] = useState(false)
+  const t = getCalLabels(locale)
 
   // 전통 사주 한 해 흐름 — seun section 텍스트 추출
   const seunText = useMemo(() => {
@@ -99,9 +96,14 @@ export default function YearDashboard({
   )
   const yearGrade = getGrade(yearScore)
 
-  // 1a. 점수 분포 — 1년 모든 일자 scoreBreakdown 평균. "이 점수 어떻게 나왔어?"
+  // 1a. 점수 분포 — raw (실제 신호 강도) 우선. shifted axis 는 final 정렬값이라
+  // chip 표시에 misleading. Raw 가 있으면 그쪽 평균, 없으면 shifted 폴백.
   let sajuSum = 0
   let astroSum = 0
+  let sajuRawSum = 0
+  let astroRawSum = 0
+  let sajuRawCount = 0
+  let astroRawCount = 0
   let agreeSum = 0
   let sbCount = 0
   let agreeCount = 0
@@ -109,6 +111,14 @@ export default function YearDashboard({
     if (d.scoreBreakdown) {
       sajuSum += d.scoreBreakdown.sajuAxis
       astroSum += d.scoreBreakdown.astroAxis
+      if (typeof d.scoreBreakdown.sajuAxisRaw === 'number') {
+        sajuRawSum += d.scoreBreakdown.sajuAxisRaw
+        sajuRawCount += 1
+      }
+      if (typeof d.scoreBreakdown.astroAxisRaw === 'number') {
+        astroRawSum += d.scoreBreakdown.astroAxisRaw
+        astroRawCount += 1
+      }
       sbCount += 1
     }
     const a = d.evidence?.crossAgreementPercent
@@ -122,6 +132,8 @@ export default function YearDashboard({
       ? {
           sajuAxis: sajuSum / sbCount,
           astroAxis: astroSum / sbCount,
+          sajuAxisRaw: sajuRawCount > 0 ? sajuRawSum / sajuRawCount : null,
+          astroAxisRaw: astroRawCount > 0 ? astroRawSum / astroRawCount : null,
           agreementPercent: agreeCount > 0 ? agreeSum / agreeCount : null,
         }
       : null
@@ -132,8 +144,8 @@ export default function YearDashboard({
   const worstM = sorted[sorted.length - 1]
   const verdict =
     bestM && worstM && bestM.month !== worstM.month
-      ? `${bestM.month}월 무렵 흐름이 가장 좋고, ${worstM.month}월은 숨 고르기 좋은 시기예요.`
-      : '한 해 흐름이 비교적 고른 편이에요.'
+      ? t.yearVerdict(bestM.month, worstM.month)
+      : t.yearVerdictFlat
 
   // 3. Theme radar — 12개월 테마 평균. 신호 없는 테마는 fabricate(50) 대신
   //    가능한 축들 평균으로 fallback + caption disclose. (Audit 회귀: 풀 펜타곤.)
@@ -147,7 +159,7 @@ export default function YearDashboard({
         cnt += 1
       }
     }
-    return { name: THEME_KOREAN[key], present: cnt > 0, score: cnt > 0 ? sum / cnt : null }
+    return { name: t.themeName(key), present: cnt > 0, score: cnt > 0 ? sum / cnt : null }
   })
   const yearPresentScores = yearThemeStats
     .filter((s) => s.score != null)
@@ -161,25 +173,19 @@ export default function YearDashboard({
   }))
   const missingYearThemes = yearThemeStats.filter((s) => !s.present).map((s) => s.name)
   const yearThemeCaption =
-    missingYearThemes.length > 0
-      ? `${missingYearThemes.join('·')} 신호 부족 — 다른 축 평균으로 표시했어요.`
-      : undefined
+    missingYearThemes.length > 0 ? t.themeMissingCaption(missingYearThemes) : undefined
 
   // 4. Flow chart — 12개월 + reference dot 타입.
   // best = 점수 1위, caution = 점수 12위, convergence = 양쪽 수렴(점성·사주
   // 둘 다 무거운) 큰 날의 월. bothSystems=false (단일축 heavy) 는 "양쪽 수렴"
-  // 의미에 부합 안 해 제외 — 카드 카피("점성·사주 겹치며")와 데이터 의미 일치.
+  // 의미에 부합 안 해 제외 — 카드 카피와 데이터 의미 일치.
   const convergenceMonths = new Set<number>()
-  let topConvergenceMeaning: string | null = null
   if (yearlyConvergence?.keyDays) {
     const bothSysDays = yearlyConvergence.keyDays.filter((d) => d.bothSystems)
     for (const day of bothSysDays) {
       const m = parseInt(day.date.slice(5, 7), 10)
       if (m >= 1 && m <= 12) convergenceMonths.add(m)
     }
-    // tone-aware description — engine 가 "기회/시험/전환" 으로 합성한 meaning 사용
-    // (이전엔 "큰 기회" 하드코딩이라 caution-toned 수렴일도 기회로 잘못 표시).
-    topConvergenceMeaning = bothSysDays[0]?.meaning ?? null
   }
 
   const flowData: FlowPoint[] = yearlyMonthly.map((m) => {
@@ -188,24 +194,24 @@ export default function YearDashboard({
     else if (worstM && m.month === worstM.month) type = 'caution'
     else if (convergenceMonths.has(m.month)) type = 'convergence'
     return {
-      label: `${m.month}월`,
+      label: locale === 'en' ? `M${m.month}` : `${m.month}월`,
       score: m.score,
       type,
-      fullLabel: `${year}년 ${m.month}월`,
+      fullLabel: locale === 'en' ? `${year} M${m.month}` : `${year}년 ${m.month}월`,
     }
   })
 
   // 5. Highlights 3 카드
   const bestCard = bestM
     ? {
-        value: `${bestM.month}월`,
-        description: `평균 ${bestM.score}점 — 큰 결정·시작에 우호적`,
+        value: locale === 'en' ? `M${bestM.month}` : `${bestM.month}월`,
+        description: t.bestMonthDesc(bestM.score),
       }
     : undefined
   const cautionCard = worstM
     ? {
-        value: `${worstM.month}월`,
-        description: `평균 ${worstM.score}점 — 숨 고르기·정리에 좋음`,
+        value: locale === 'en' ? `M${worstM.month}` : `${worstM.month}월`,
+        description: t.cautionMonthDesc(worstM.score),
       }
     : undefined
   const convergenceLabel =
@@ -213,16 +219,13 @@ export default function YearDashboard({
       ? Array.from(convergenceMonths)
           .sort((a, b) => a - b)
           .slice(0, 4)
-          .map((m) => `${m}월`)
+          .map((m) => (locale === 'en' ? `M${m}` : `${m}월`))
           .join(', ')
       : null
   const convergenceCard = convergenceLabel
     ? {
         value: convergenceLabel,
-        // tone-aware — meaning 이 있으면 engine 합성 한 줄 ("기회가 열리는/시험받는/
-        // 크게 전환되는"), 없으면 중립적 fallback. "큰 기회" 하드코딩은 caution-toned
-        // 수렴 (시험받는) 케이스에서 거짓말이 됐었음.
-        description: topConvergenceMeaning ?? '점성·사주가 같은 시기를 가리키는 큰 흐름',
+        description: t.convergenceDesc,
       }
     : undefined
 
@@ -244,16 +247,12 @@ export default function YearDashboard({
       .sort((a, b) => a.age - b.age)
       .slice(0, 6)
     timelineEntries = selected.map((p) => ({
-      ageLabel: `${p.age}세`,
+      ageLabel: locale === 'en' ? `Age ${p.age}` : `${p.age}세`,
       year: p.year,
       title: p.label,
       description:
         p.meaning ??
-        (p.bothSystems
-          ? '점성·사주 양쪽이 같은 시기를 가리키는 큰 전환'
-          : p.astro
-            ? '점성 라이프사이클 분기점'
-            : '대운 전환 — 10년 흐름의 시작'),
+        (p.bothSystems ? t.pivotBothSystems : p.astro ? t.pivotAstroOnly : t.pivotDaeunOnly),
       active: p.phase === 'current',
     }))
   } else {
@@ -267,33 +266,31 @@ export default function YearDashboard({
   return (
     <div className="space-y-6">
       <PremiumHero
-        periodLabel={`${year} 한 해`}
+        periodLabel={t.yearLabel(year)}
         verdict={verdict}
         score={yearScore}
         grade={yearGrade}
         breakdown={yearBreakdown}
+        locale={locale}
       />
 
-      {/* topClaim chip 제거 — engine matrixContract 가 코어 제거(route.ts:431)로
-          영원히 undefined. 매트릭스 코어 복구 시 다시 추가. */}
-
-      {/* 모든 테마 신호가 0이면 radar 자체를 안 그림 — 가능 축 평균이 곧 50 이라
-          풀 펜타곤 fabricate 회귀가 다시 발생. 빈 카드로 정직하게 표시. */}
       {yearPresentScores.length > 0 ? (
-        <ThemeRadar themes={themes} caption={yearThemeCaption} />
+        <ThemeRadar themes={themes} caption={yearThemeCaption} locale={locale} />
       ) : (
         <div className="bg-zinc-900/40 border border-white/10 rounded-2xl p-5 text-center text-sm text-zinc-400">
-          올해 테마 신호가 부족해요 — 차트 대신 다른 카드로 흐름을 확인하세요.
+          {t.yearThemeEmpty}
         </div>
       )}
 
       <FlowChart
         data={flowData}
-        title="월별 에너지 흐름"
-        subtitle="베스트(녹) · 주의(분홍) · 양쪽 수렴(보라)"
+        title={locale === 'en' ? 'Monthly flow' : '월별 에너지 흐름'}
+        subtitle={t.flowSubtitle}
         xInterval={0}
+        locale={locale}
         onPointClick={(label) => {
-          const m = parseInt(label.replace('월', ''), 10)
+          // M{N} (en) 또는 N월 (ko) — 둘 다 숫자만 추출.
+          const m = parseInt(label.replace(/[^0-9]/g, ''), 10)
           if (m >= 1 && m <= 12) onMonthClick(m - 1)
         }}
       />
@@ -302,14 +299,15 @@ export default function YearDashboard({
         best={bestCard}
         caution={cautionCard}
         convergence={convergenceCard}
-        bestLabel="베스트 달 (추진)"
-        cautionLabel="주의 달 (보류)"
-        convergenceLabel="수렴 달 (전환)"
+        bestLabel={t.bestMonth}
+        cautionLabel={t.cautionMonth}
+        convergenceLabel={t.convergenceMonth}
         onBestClick={bestM ? () => onMonthClick(bestM.month - 1) : undefined}
         onCautionClick={worstM ? () => onMonthClick(worstM.month - 1) : undefined}
+        locale={locale}
       />
 
-      {timelineEntries.length > 0 && <LifeTimeline entries={timelineEntries} />}
+      {timelineEntries.length > 0 && <LifeTimeline entries={timelineEntries} locale={locale} />}
 
       {seunText && (
         <div className="bg-zinc-900/40 rounded-2xl border border-white/10">
@@ -318,9 +316,9 @@ export default function YearDashboard({
             className="w-full flex items-center gap-2 px-5 py-3 text-zinc-300 text-sm font-semibold"
           >
             <Sparkles className="w-4 h-4 text-amber-300/80" />
-            전통 사주 한 해 흐름
+            {t.traditionalSajuYear}
             <span className="text-[11px] text-zinc-500 font-normal ml-2">
-              위 분석과 다를 수 있어요
+              {t.traditionalSajuYearCaveat}
             </span>
             {showTrad ? (
               <ChevronUp className="w-4 h-4 ml-auto" />
