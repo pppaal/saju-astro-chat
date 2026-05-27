@@ -106,6 +106,10 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   const toast = useToast()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [loadingCredit, setLoadingCredit] = useState<string | null>(null)
+  // 전자상거래법 §17 ②항 5호 — 디지털 콘텐츠 청약철회 제한은 사용자가
+  // 명시적으로 동의한 경우에만 적용된다. 결제 직전 체크박스로 동의를 받고
+  // 체크 안 하면 Buy 버튼이 disabled. EU CRD Art.16(m) 도 동일 요구.
+  const [withdrawalConsent, setWithdrawalConsent] = useState(false)
   const baseCreditPriceUsd = CREDIT_PACKS.mini.perCreditUsd
 
   useEffect(() => {
@@ -235,6 +239,36 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
             <p className={styles.sectionDesc}>{pt('creditPacksDesc')}</p>
           </div>
 
+          {/* 전상법 §17 ②항 5호 — 디지털 콘텐츠 제공 시작 시 청약철회가 제한
+              되는 점을 결제 직전 명시 동의 받음. 체크 안 하면 Buy 비활성. */}
+          <label className={styles.withdrawalConsent}>
+            <input
+              type="checkbox"
+              checked={withdrawalConsent}
+              onChange={(e) => setWithdrawalConsent(e.target.checked)}
+            />
+            <span>
+              {isKo ? (
+                <>
+                  AI 리딩은 생성 즉시 제공이 시작되어{' '}
+                  <Link href="/policy/refund" target="_blank" rel="noopener noreferrer">
+                    환불 정책
+                  </Link>{' '}
+                  에 따라 청약철회가 제한될 수 있음을 확인하고 동의합니다 (전상법 §17 ②항 5호).
+                </>
+              ) : (
+                <>
+                  AI readings are delivered immediately upon generation, so the right of withdrawal
+                  may be limited per our{' '}
+                  <Link href="/policy/refund" target="_blank" rel="noopener noreferrer">
+                    Refund Policy
+                  </Link>{' '}
+                  — I understand and agree.
+                </>
+              )}
+            </span>
+          </label>
+
           <div className={styles.creditGrid}>
             {creditPacks.map((pack) => {
               const discountPercent = getCreditPackDiscount(pack.id)
@@ -271,7 +305,14 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                     <button
                       className={`${styles.creditButton} ${pack.popular ? styles.creditButtonPopular : ''}`}
                       onClick={() => handleBuyCredit(pack.id)}
-                      disabled={loadingCredit !== null}
+                      disabled={loadingCredit !== null || !withdrawalConsent}
+                      title={
+                        !withdrawalConsent
+                          ? isKo
+                            ? '구매 전 청약철회 제한에 동의해 주세요'
+                            : 'Please agree to the withdrawal-right limitation before purchase'
+                          : undefined
+                      }
                     >
                       {loadingCredit === pack.id ? '...' : pt('buyNow')}
                     </button>

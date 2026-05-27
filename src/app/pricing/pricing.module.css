@@ -136,6 +136,42 @@
   margin: 0;
 }
 
+.withdrawalConsent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 1100px;
+  margin: 0 auto 28px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.withdrawalConsent:hover {
+  border-color: var(--border-strong);
+}
+
+.withdrawalConsent input[type='checkbox'] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.withdrawalConsent a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .creditGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

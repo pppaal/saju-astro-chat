@@ -1,0 +1,117 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 14, 22, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  /* 강제 동의 — 외부 클릭/ESC 로 안 닫음. pointer-events 는 살아있어야
+     체크박스 클릭 가능. */
+}
+
+.modal {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  color: #1c1917;
+  border-radius: 20px;
+  padding: 28px 26px 22px;
+  box-shadow: 0 24px 56px rgba(15, 14, 22, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #1c1917;
+}
+
+.subtitle {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #57534e;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #1c1917;
+  cursor: pointer;
+  padding: 8px 4px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.row:hover {
+  background: #faf9f7;
+}
+
+.row input[type='checkbox'] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: #a07a3c;
+  cursor: pointer;
+}
+
+.link {
+  color: #a07a3c;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link:hover {
+  color: #7e5e2a;
+}
+
+.error {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: #b04242;
+}
+
+.submit {
+  margin-top: 10px;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #1c1917;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.submit:hover:not(:disabled) {
+  background: #3a3530;
+}
+
+.submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
