@@ -16,6 +16,7 @@ import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
 import { buildDestinyContext } from '@/lib/destiny/counselorContext'
 import { getNowInTimezone } from '@/lib/datetime'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
+import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { csrfGuard } from '@/lib/security/csrf'
@@ -458,10 +459,12 @@ export async function POST(req: NextRequest) {
   const ageYearsFromBirth = computeAgeYears(body.birthDate)
   const metaParts: string[] = []
   if (userName) {
+    // 호명은 인사/강조 시에만 자연스럽게. 매 답변마다 "○○님" 박는 인공
+    // 적인 톤을 회피한다 (Sonnet 4.5 승격 후 톤 자연화).
     metaParts.push(
       lang === 'en'
-        ? `[Caller] ${userName} — address as 'Hi ${userName},' naturally.`
-        : `[호출자] ${userName} — 한국어로 답할 때 '${userName}님'으로 정중히 호명한다.`
+        ? `[Caller] ${userName} — address by name only when it feels natural (greetings, emphasis). Avoid repeating the name in every reply.`
+        : `[호출자] ${userName} — 인사·강조 시에만 '${userName}님'으로 자연스럽게 호명한다. 매 답변마다 이름 박는 인공적인 톤 금지.`
     )
   }
   if (typeof ageYearsFromBirth === 'number') {
@@ -508,8 +511,15 @@ export async function POST(req: NextRequest) {
     userPrompt,
     cachedUserContext,
     priorTurns,
+    // 운명상담사는 사주+점성 통합 reasoning 과 자연스러운 한국어 톤이
+    // 핵심이라 Haiku 4.5 → Sonnet 4.5 승격. 다른 라우트(타로 interpret-
+    // stream 등)는 Haiku 그대로. maxTokens 2500 이면 Sonnet 30~40s 안에
+    // 완료 — 기존 120s timeout 안에 여유.
+    model: PREMIUM_CLAUDE_MODEL,
     maxTokens: 2500,
-    temperature: 0.5,
+    // 0.5 → 0.7 — 비유·스토리텔링이 핵심인 채널이라 약간 풀어준다.
+    // (타로 interpret-stream 도 0.7 사용 중)
+    temperature: 0.7,
     label: 'counselor.realtime',
     onFailure,
     additionalHeaders: {
