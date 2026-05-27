@@ -7,9 +7,14 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { idParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import {
+  idParamSchema,
+  createValidationErrorResponse,
+  tarotSavePatchSchema,
+} from '@/lib/api/zodValidation'
 import { extractStoredCards, extractStoredQuestionContext } from '@/lib/tarot/savedReadingPayload'
 
 export const dynamic = 'force-dynamic'
@@ -58,6 +63,8 @@ export async function GET(request: Request, routeContext: RouteContext) {
             source: reading.source,
             locale: reading.locale,
             createdAt: reading.createdAt,
+            clarifierCard: reading.clarifierCard,
+            followupTurns: reading.followupTurns,
           },
         })
       } catch (error) {
@@ -68,6 +75,73 @@ export async function GET(request: Request, routeContext: RouteContext) {
     createAuthenticatedGuard({
       route: '/api/tarot/save/[id]',
       limit: 30,
+      windowSeconds: 60,
+    })
+  )
+
+  return handler(request as unknown as NextRequest)
+}
+
+/**
+ * 저장된 리딩에 보충 카드 / followup 채팅을 늦게 채워넣는 PATCH 엔드포인트.
+ * 초기 저장 (POST) 후 사용자가 결과 화면에서 "한 장 더 뽑기" 누르거나
+ * "이 리딩에 대해 더 묻기" 채팅을 하면 클라이언트가 이 엔드포인트로 부분
+ * 업데이트 — 새 리딩을 또 만들지 않게.
+ */
+export async function PATCH(request: Request, routeContext: RouteContext) {
+  const rawParams = await routeContext.params
+  const paramValidation = idParamSchema.safeParse(rawParams)
+  if (!paramValidation.success) {
+    return createValidationErrorResponse(paramValidation.error, {
+      route: 'tarot/save/[id]',
+    })
+  }
+  const { id } = paramValidation.data
+
+  const handler = withApiMiddleware(
+    async (req: NextRequest, context: ApiContext) => {
+      const rawBody = await req.json().catch(() => null)
+      const bodyValidation = tarotSavePatchSchema.safeParse(rawBody)
+      if (!bodyValidation.success) {
+        return apiError(ErrorCodes.VALIDATION_ERROR, 'validation_failed', {
+          details: bodyValidation.error.issues.map((e) => ({
+            path: e.path.join('.'),
+            message: e.message,
+          })),
+        })
+      }
+
+      try {
+        const reading = await prisma.tarotReading.findFirst({
+          where: { id, userId: context.userId! },
+          select: { id: true },
+        })
+        if (!reading) {
+          return apiError(ErrorCodes.NOT_FOUND, 'reading_not_found')
+        }
+
+        const updates: Prisma.TarotReadingUpdateInput = {}
+        if (bodyValidation.data.clarifierCard !== undefined) {
+          updates.clarifierCard = bodyValidation.data.clarifierCard
+        }
+        if (bodyValidation.data.followupTurns !== undefined) {
+          updates.followupTurns = bodyValidation.data.followupTurns
+        }
+
+        await prisma.tarotReading.update({
+          where: { id: reading.id },
+          data: updates,
+        })
+
+        return apiSuccess({ success: true, updated: Object.keys(updates) })
+      } catch (error) {
+        logger.error('[Tarot PATCH Error]:', error)
+        return apiError(ErrorCodes.DATABASE_ERROR, 'internal_server_error')
+      }
+    },
+    createAuthenticatedGuard({
+      route: '/api/tarot/save/[id]',
+      limit: 60,
       windowSeconds: 60,
     })
   )

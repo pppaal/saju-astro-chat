@@ -7,6 +7,7 @@ import {
   apiError,
   ErrorCodes,
 } from '@/lib/api/middleware'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { tarotSaveRequestSchema, tarotQuerySchema } from '@/lib/api/zodValidation'
@@ -78,6 +79,8 @@ export const POST = withApiMiddleware(
       counselorSessionId,
       locale = 'ko',
       questionContext,
+      clarifierCard,
+      followupTurns,
     } = body
 
     const tarotReading = await prisma.tarotReading.create({
@@ -94,6 +97,8 @@ export const POST = withApiMiddleware(
         source,
         counselorSessionId,
         locale,
+        clarifierCard: clarifierCard ?? Prisma.JsonNull,
+        followupTurns: followupTurns ?? Prisma.JsonNull,
       },
     })
 
@@ -147,6 +152,8 @@ export const GET = withApiMiddleware(
           guidance: true,
           cardInsights: true,
           source: true,
+          clarifierCard: true,
+          followupTurns: true,
         },
       }),
       prisma.tarotReading.count({ where }),

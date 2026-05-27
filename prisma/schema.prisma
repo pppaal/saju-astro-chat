@@ -559,6 +559,16 @@ model TarotReading {
 
   locale String @default("ko")
 
+  // 보충 카드 (클래리파이어) — 사용자가 결과 화면에서 "한 장 더 뽑기"
+  // 누르면 한 장 추가 추첨된 카드. 한 리딩당 한 장 한정. PATCH 로
+  // 늦게 채워질 수 있음(저장 시점엔 null).
+  clarifierCard Json? // { name, nameKo, isReversed, llmFollowupText? }
+
+  // 결과 화면의 followup 채팅 ("이 리딩에 대해 더 묻기") 내역. 사용자가
+  // 추가로 던진 질문 + LLM 답변 의 turn 배열. 저장 후에도 사용자가 더
+  // 묻으면 PATCH 로 갱신.
+  followupTurns Json? // [{ role: 'user' | 'assistant', content: string }]
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])

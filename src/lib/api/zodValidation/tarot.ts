@@ -71,6 +71,23 @@ const tarotQuestionContextSchema = z.object({
   intent_label: z.string().max(300).optional(),
 })
 
+// 보충 카드 (클래리파이어) — 한 장 한정. 자리(position) 없음.
+const tarotClarifierCardSchema = z.object({
+  name: z.string().min(1).max(120),
+  nameKo: z.string().max(120).optional(),
+  isReversed: z.boolean(),
+  // LLM 이 클래리파이어 직후 흘려준 보충 해석 (있는 경우). 카운슬러 채팅의
+  // assistant turn 과 별개로, 단독 리딩에서 채팅 안 거치고 카드 단독 저장
+  // 케이스용.
+  followupAnswer: z.string().max(3000).optional(),
+})
+
+// 결과 화면 followup 채팅의 한 turn — user 또는 assistant.
+const tarotFollowupTurnSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string().min(1).max(4000),
+})
+
 // ============ Tarot Request Schemas ============
 
 export const tarotSaveRequestSchema = z.object({
@@ -86,9 +103,29 @@ export const tarotSaveRequestSchema = z.object({
   counselorSessionId: z.string().max(100).optional(),
   locale: localeSchema.optional(),
   questionContext: tarotQuestionContextSchema.optional(),
+  clarifierCard: tarotClarifierCardSchema.optional(),
+  followupTurns: z.array(tarotFollowupTurnSchema).max(20).optional(),
 })
 
 export type TarotSaveRequestValidated = z.infer<typeof tarotSaveRequestSchema>
+
+// 보충 카드 (클래리파이어) — 결과 후 "한 장 더 뽑기" 한 장. 저장 후
+// 늦게 채워질 수 있어 PATCH 에서도 동일 schema 사용.
+export const tarotClarifierCardSchemaExport = tarotClarifierCardSchema
+
+// PATCH /api/tarot/save/[id] — 저장된 리딩의 보충 카드 / followup 채팅
+// 만 부분 업데이트. 두 필드 둘 다 optional 이지만 최소 하나는 있어야 의미
+// 있는 호출.
+export const tarotSavePatchSchema = z
+  .object({
+    clarifierCard: tarotClarifierCardSchema.optional(),
+    followupTurns: z.array(tarotFollowupTurnSchema).max(20).optional(),
+  })
+  .refine((data) => data.clarifierCard !== undefined || data.followupTurns !== undefined, {
+    message: 'At least one of clarifierCard or followupTurns must be provided',
+  })
+
+export type TarotSavePatchValidated = z.infer<typeof tarotSavePatchSchema>
 
 export const tarotQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional().default(10),
