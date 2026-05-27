@@ -35,8 +35,7 @@ export function HorizontalCardsGrid({
         const meaning = drawnCard.isReversed ? drawnCard.card.reversed : drawnCard.card.upright
         // 자리 라벨은 LLM 응답에서 명명되지만 카드 선택 단계에서는
         // 아직 응답 전 → ordinal 만 표시.
-        const positionTitle =
-          language === 'ko' ? `${index + 1}번 카드` : `Card ${index + 1}`
+        const positionTitle = language === 'ko' ? `${index + 1}번 카드` : `Card ${index + 1}`
         const revealed = isCardRevealed(index)
         const canReveal = canRevealCard(index)
 
@@ -65,7 +64,7 @@ export function HorizontalCardsGrid({
             tabIndex={revealed || canReveal ? 0 : -1}
             aria-label={
               revealed
-                ? `${positionTitle}: ${language === 'ko' ? drawnCard.card.nameKo || drawnCard.card.name : drawnCard.card.name}${drawnCard.isReversed ? ` (${language === 'ko' ? '역위' : 'reversed'})` : ''}`
+                ? `${positionTitle}: ${language === 'ko' ? drawnCard.card.nameKo || drawnCard.card.name : drawnCard.card.name}${drawnCard.isReversed ? ` (${language === 'ko' ? '역방향' : 'reversed'})` : ''}`
                 : `${positionTitle} - ${canReveal ? (language === 'ko' ? '클릭하여 공개' : 'Click to reveal') : language === 'ko' ? '잠김' : 'Locked'}`
             }
             aria-pressed={revealed}
@@ -128,9 +127,7 @@ export function HorizontalCardsGrid({
             {revealed && (
               <div className={styles.cardInfoCompact}>
                 <div className={styles.fieldGroup}>
-                  <span className={styles.fieldLabel}>
-                    {language === 'ko' ? '카드명' : 'Card'}
-                  </span>
+                  <span className={styles.fieldLabel}>{language === 'ko' ? '카드명' : 'Card'}</span>
                   <h3 className={styles.cardNameCompact}>
                     {language === 'ko'
                       ? drawnCard.card.nameKo || drawnCard.card.name

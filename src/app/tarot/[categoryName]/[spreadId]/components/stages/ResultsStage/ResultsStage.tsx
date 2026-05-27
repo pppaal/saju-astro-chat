@@ -205,12 +205,12 @@ export function ResultsStage(props: ResultsStageProps) {
               <AlertCircle className="w-5 h-5 text-rose-300 shrink-0 mt-0.5" />
               <div>
                 <div className="text-sm font-medium text-rose-100">
-                  {isKo ? 'AI 해석을 받지 못했어요' : 'AI reading could not be loaded'}
+                  {isKo ? 'AI 해석을 불러오지 못했어요' : "Couldn't load the AI reading"}
                 </div>
                 <div className="text-xs text-rose-200/70 mt-0.5 leading-snug">
                   {isKo
-                    ? '네트워크 또는 서버가 잠시 응답하지 않았어요. 다시 시도해 주세요.'
-                    : 'Network or server briefly unavailable. Please try again.'}
+                    ? '네트워크·크레딧·시간 초과로 잠시 끊겼어요. 카드 기본 의미를 표시 중이에요.'
+                    : "Network / credits / timeout briefly interrupted it. Showing each card's base meaning."}
                 </div>
               </div>
             </div>

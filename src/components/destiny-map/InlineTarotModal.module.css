@@ -627,6 +627,28 @@
   color: #92400e;
 }
 
+/* 2줄 위계 — 단독 타로 ResultsStage 의 동일 alert 와 통일 (title + subtitle). */
+.interpretErrorBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.interpretErrorTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #92400e;
+  line-height: 1.4;
+}
+
+.interpretErrorSubtitle {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #b45309;
+}
+
 .retryButton {
   flex-shrink: 0;
   padding: 8px 18px;

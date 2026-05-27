@@ -585,14 +585,20 @@ function ResultStep({
         </div>
       )}
 
-      {/* AI interpretation failed — cards show their static meaning, offer retry. */}
+      {/* AI interpretation failed — cards show their static meaning, offer retry.
+          단독 타로의 동일 alert 와 2줄 위계 (title + subtitle) + 문구 일치. */}
       {interpretFailed && (
         <div className={styles.interpretError} role="alert">
-          <span className={styles.interpretErrorText}>
-            {isKo
-              ? 'AI 해석을 불러오지 못했어요. (네트워크·크레딧·시간 초과) 카드 기본 의미를 표시 중이에요.'
-              : "Couldn't load the AI reading (network/credits/timeout). Showing each card's base meaning."}
-          </span>
+          <div className={styles.interpretErrorBody}>
+            <div className={styles.interpretErrorTitle}>
+              {isKo ? 'AI 해석을 불러오지 못했어요' : "Couldn't load the AI reading"}
+            </div>
+            <div className={styles.interpretErrorSubtitle}>
+              {isKo
+                ? '네트워크·크레딧·시간 초과로 잠시 끊겼어요. 카드 기본 의미를 표시 중이에요.'
+                : "Network / credits / timeout briefly interrupted it. Showing each card's base meaning."}
+            </div>
+          </div>
           <button type="button" className={styles.retryButton} onClick={onRetryInterpret}>
             {isKo ? '다시 시도' : 'Retry'}
           </button>
