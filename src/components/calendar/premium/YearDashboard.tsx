@@ -166,19 +166,20 @@ export default function YearDashboard({
       : undefined
 
   // 4. Flow chart — 12개월 + reference dot 타입.
-  // best = 점수 1위, caution = 점수 12위, convergence = 연간 수렴 큰 날의 월.
-  //
-  // 이전 회귀: monthlyInterpretation.keyEvents 가 한 달 빌드시 1회 만들어져
-  // 365 dates 에 broadcast 됐기 때문에 모든 cell.keyEvents.window.start 가
-  // 동일 → set 사이즈 항상 1, 보라 점 1개만 찍힘. 정직하지 않음.
-  // 수정: yearlyConvergence.keyDays (engine 가 1년 전체에서 뽑은 수렴 날)을
-  // 사용해 진짜 수렴 달 다중 표시.
+  // best = 점수 1위, caution = 점수 12위, convergence = 양쪽 수렴(점성·사주
+  // 둘 다 무거운) 큰 날의 월. bothSystems=false (단일축 heavy) 는 "양쪽 수렴"
+  // 의미에 부합 안 해 제외 — 카드 카피("점성·사주 겹치며")와 데이터 의미 일치.
   const convergenceMonths = new Set<number>()
+  let topConvergenceMeaning: string | null = null
   if (yearlyConvergence?.keyDays) {
-    for (const day of yearlyConvergence.keyDays) {
+    const bothSysDays = yearlyConvergence.keyDays.filter((d) => d.bothSystems)
+    for (const day of bothSysDays) {
       const m = parseInt(day.date.slice(5, 7), 10)
       if (m >= 1 && m <= 12) convergenceMonths.add(m)
     }
+    // tone-aware description — engine 가 "기회/시험/전환" 으로 합성한 meaning 사용
+    // (이전엔 "큰 기회" 하드코딩이라 caution-toned 수렴일도 기회로 잘못 표시).
+    topConvergenceMeaning = bothSysDays[0]?.meaning ?? null
   }
 
   const flowData: FlowPoint[] = yearlyMonthly.map((m) => {
@@ -218,7 +219,10 @@ export default function YearDashboard({
   const convergenceCard = convergenceLabel
     ? {
         value: convergenceLabel,
-        description: '점성·사주가 겹치며 큰 기회가 열리는 시기',
+        // tone-aware — meaning 이 있으면 engine 합성 한 줄 ("기회가 열리는/시험받는/
+        // 크게 전환되는"), 없으면 중립적 fallback. "큰 기회" 하드코딩은 caution-toned
+        // 수렴 (시험받는) 케이스에서 거짓말이 됐었음.
+        description: topConvergenceMeaning ?? '점성·사주가 같은 시기를 가리키는 큰 흐름',
       }
     : undefined
 

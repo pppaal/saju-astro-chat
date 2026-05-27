@@ -67,7 +67,9 @@ function aggregateMonthly(cells: CalendarCell[]): YearMonthSummary[] {
         score: Math.round(arr.reduce((a, x) => a + x, 0) / arr.length),
       }))
       .sort((a, b) => b.score - a.score)
-    const tone: YearMonthSummary['tone'] = score >= 58 ? 'up' : score <= 43 ? 'down' : 'flat'
+    // 57/43 — scoreGrade.ts ABSOLUTE cutoff 와 정렬. 이전 58 은 점수 57(="좋은
+    // 날") 인 달이 tone='flat' 으로 어긋남.
+    const tone: YearMonthSummary['tone'] = score >= 57 ? 'up' : score <= 43 ? 'down' : 'flat'
     return { month: i + 1, score, themes, tone }
   })
 }

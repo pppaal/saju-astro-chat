@@ -136,21 +136,19 @@ export default function MonthDashboard({
     const bestEntry = dayScoreList[0]
     const worstEntry = dayScoreList[dayScoreList.length - 1]
 
-    // 3. 수렴 날 — engine keyEvents 의 window/best/avoid 에서 가져옴
+    // 3. 수렴 날 — interp.convergence.keyDays (점성·사주 양쪽 무거운 날) 우선.
+    // 이전엔 keyEvents.window/best (단순 점수 기반) 를 "수렴" 으로 잘못 라벨링.
+    // bothSystems=true 만 사용해 카드 카피("점성·사주 겹치며") 와 의미 일치.
     const convergenceDays = new Set<number>()
-    for (const d of monthDates) {
-      const ke = d.monthlyInterpretation?.keyEvents
-      if (!ke) continue
-      if (ke.window) {
-        const startDay = parseInt(ke.window.start.split('-')[1] || '0', 10)
-        if (startDay >= 1 && startDay <= daysInMonth) convergenceDays.add(startDay)
-      }
-      // keyEvents.best 도 engine semantic 수렴으로 취급 가능
-      if (ke.best) {
-        const bestDay = parseInt(ke.best.date.split('-')[1] || '0', 10)
-        if (bestDay >= 1 && bestDay <= daysInMonth) convergenceDays.add(bestDay)
-      }
+    let monthConvergenceMeaning: string | null = null
+    const interp = monthDates[0]?.monthlyInterpretation
+    const monthKeyDays = interp?.convergence?.keyDays ?? []
+    const bothSysDays = monthKeyDays.filter((d) => d.bothSystems)
+    for (const day of bothSysDays) {
+      const dayNum = parseInt(day.date.slice(8, 10), 10)
+      if (dayNum >= 1 && dayNum <= daysInMonth) convergenceDays.add(dayNum)
     }
+    monthConvergenceMeaning = bothSysDays[0]?.meaning ?? null
 
     // 4. Flow chart 데이터
     const flowData: FlowPoint[] = Array.from({ length: daysInMonth }, (_, i) => {
@@ -188,7 +186,9 @@ export default function MonthDashboard({
       convergenceList.length > 0
         ? {
             value: convergenceList.map((d) => `${d}일`).join(', '),
-            description: '점성·사주가 겹치며 큰 기회·전환 가능성',
+            // tone-aware — engine 합성 meaning 있으면 그대로 ("기회/시험/전환").
+            // 하드코딩 "큰 기회" 는 caution-toned 수렴일에 거짓말.
+            description: monthConvergenceMeaning ?? '점성·사주가 같은 시기를 가리키는 큰 흐름',
           }
         : undefined
 
