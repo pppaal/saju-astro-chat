@@ -113,9 +113,6 @@ interface LabelSet {
   // Empty radar fallback
   yearThemeEmpty: string
   monthThemeEmpty: string
-  // Traditional saju (year)
-  traditionalSajuYear: string
-  traditionalSajuYearCaveat: string
   // LifeTimeline
   lifeTimelineTitle: string
   lifeInProgress: string
@@ -210,8 +207,6 @@ const KO: LabelSet = {
   convergenceDesc: '점성·사주 양쪽이 가리키는 큰 흐름 — 좋고 나쁨은 점수로',
   yearThemeEmpty: '올해 테마 신호가 부족해요 — 차트 대신 다른 카드로 흐름을 확인하세요.',
   monthThemeEmpty: '이달 테마 신호가 부족해요.',
-  traditionalSajuYear: '전통 사주 한 해 흐름',
-  traditionalSajuYearCaveat: '위 분석과 다를 수 있어요',
   lifeTimelineTitle: '인생 분기점',
   lifeInProgress: '진행 중',
   pivotBothSystems: '점성·사주 양쪽이 같은 시기를 가리키는 큰 전환',
@@ -304,8 +299,6 @@ const EN: LabelSet = {
     'Saju and astrology both peak here — see scores for whether it tilts good or hard',
   yearThemeEmpty: 'Low theme signal this year — use other cards instead.',
   monthThemeEmpty: 'Low theme signal this month.',
-  traditionalSajuYear: 'Traditional Saju yearly flow',
-  traditionalSajuYearCaveat: 'May differ from the analysis above',
   lifeTimelineTitle: 'Life pivots',
   lifeInProgress: 'In progress',
   pivotBothSystems: 'Both saju and astrology mark this period — a major turn',

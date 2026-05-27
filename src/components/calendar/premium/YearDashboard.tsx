@@ -9,14 +9,16 @@
  *   3. Flow Chart — 12 개월 area + 베스트/주의/수렴 reference dots
  *   4. Highlights — 베스트/주의/수렴 달 3 카드 (클릭 시 그 달로 점프)
  *   5. Life Timeline — 대운 + astro milestones (birthDate 기반)
- *   6. (접힘) 전통 사주 한 해 흐름 — seunText 가 있을 때만
  *
- * 데이터: yearlyMonthly(점수·테마 12개) + allDates(전통 사주 텍스트 검색용).
+ * "전통 사주 한 해 흐름" (seun section) 분리 카드는 제거 — 본 엔진이 이미 saju×astro
+ * 융합이라 별도 "전통" 라벨이 가치 제안과 맞지 않음. seun narrative 는 engine v3 룰
+ * DB 의 한 섹션이지 독립된 전통 분석이 아님.
+ *
+ * 데이터: yearlyMonthly(점수·테마 12개) + allDates(lifetimePivots 추출).
  * yearlyMonthly 가 없으면(로딩 전) 렌더 안 함 — 폴백은 부모(YearHighlightsCard).
  */
 
-import { useMemo, useState } from 'react'
-import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
+import { useMemo } from 'react'
 import type { ImportantDate } from '../types'
 import type { YearMonthly } from '../DestinyMatrixPlanner'
 import { getGrade } from '../scoreGrade'
@@ -66,17 +68,7 @@ export default function YearDashboard({
   locale,
   onMonthClick,
 }: Props) {
-  const [showTrad, setShowTrad] = useState(false)
   const t = getCalLabels(locale)
-
-  // 전통 사주 한 해 흐름 — seun section 텍스트 추출
-  const seunText = useMemo(() => {
-    for (const d of allDates) {
-      const sec = d.monthlyInterpretation?.sections?.find((s) => s.section === 'seun')
-      if (sec?.text) return sec.text.replace(/\*\*(.+?)\*\*/g, '$1').trim()
-    }
-    return null
-  }, [allDates])
 
   // 엔진 lifetimePivots — early return 위에 둬야 hooks 순서 일정.
   const engineLifetimePivots = useMemo(() => {
@@ -308,31 +300,6 @@ export default function YearDashboard({
       />
 
       {timelineEntries.length > 0 && <LifeTimeline entries={timelineEntries} locale={locale} />}
-
-      {seunText && (
-        <div className="bg-zinc-900/40 rounded-2xl border border-white/10">
-          <button
-            onClick={() => setShowTrad((v) => !v)}
-            className="w-full flex items-center gap-2 px-5 py-3 text-zinc-300 text-sm font-semibold"
-          >
-            <Sparkles className="w-4 h-4 text-amber-300/80" />
-            {t.traditionalSajuYear}
-            <span className="text-[11px] text-zinc-500 font-normal ml-2">
-              {t.traditionalSajuYearCaveat}
-            </span>
-            {showTrad ? (
-              <ChevronUp className="w-4 h-4 ml-auto" />
-            ) : (
-              <ChevronDown className="w-4 h-4 ml-auto" />
-            )}
-          </button>
-          {showTrad && (
-            <p className="px-5 pb-5 text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">
-              {seunText}
-            </p>
-          )}
-        </div>
-      )}
     </div>
   )
 }
