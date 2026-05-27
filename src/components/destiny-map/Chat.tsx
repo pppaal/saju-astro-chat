@@ -43,6 +43,7 @@ const Chat = memo(function Chat({
   autoSendSeed = false,
   autoFocus = false,
   initialSessionId,
+  onSessionChange,
 }: ChatProps) {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
@@ -205,6 +206,14 @@ const Chat = memo(function Chat({
   React.useEffect(() => {
     setActiveSessionId(sessionIdRef.current)
   }, [sessionIdRef])
+
+  // 페이지 헤더가 현재 채팅 제목 + ⋮ 메뉴를 띄울 수 있도록 활성 session 정보를
+  // 부모로 전달. activeSessionId 가 바뀔 때 + sessionHistory 가 갱신될 때마다.
+  React.useEffect(() => {
+    if (!onSessionChange || !activeSessionId) return
+    const current = sessionHistory.find((s) => s.id === activeSessionId)
+    onSessionChange({ sessionId: activeSessionId, title: current?.title ?? null })
+  }, [activeSessionId, sessionHistory, onSessionChange])
 
   React.useEffect(() => {
     if (!sessionLoaded || messages.length === 0) {

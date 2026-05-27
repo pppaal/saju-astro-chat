@@ -841,11 +841,12 @@
 .inputArea {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   position: sticky;
   bottom: 0;
   z-index: 6;
-  padding: 16px 12px 18px;
+  /* 답변창을 넓게 — 위·아래 패딩 축소 (16/18 → 8/10) */
+  padding: 8px 12px 10px;
   background: linear-gradient(
     180deg,
     rgba(8, 11, 22, 0) 0%,
@@ -878,8 +879,12 @@
 
 .inputBox .textarea {
   flex: 1;
+  /* 한 줄 기본, 타이핑하면 늘어남, 맥스는 기존 6rem 유지. resize:none 로
+     사용자 드래그 리사이즈 차단(JS auto-resize 가 담당). */
   min-height: 1.5rem;
   max-height: 6rem;
+  resize: none;
+  overflow-y: auto;
   padding: 0.25rem 0.4rem;
   background: transparent;
   border: none;

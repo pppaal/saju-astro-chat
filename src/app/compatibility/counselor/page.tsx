@@ -97,6 +97,8 @@ function CompatibilityCounselorContent() {
   // Persistent chat session id (returned by /api/counselor/chat-history
   // after the first save). Subsequent saves attach to the same row.
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
+  // 페이지 헤더에 표시할 활성 채팅 제목 (Rename/Delete + 새 채팅 시 갱신).
+  const [chatTitle, setChatTitle] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showChartModal, setShowChartModal] = useState(false)
   const [showTarotModal, setShowTarotModal] = useState(false)
@@ -147,6 +149,7 @@ function CompatibilityCounselorContent() {
               const loaded = (await res.json()) as {
                 session?: {
                   id?: string
+                  title?: string | null
                   messages?: ChatMessage[]
                   meta?: {
                     persons?: PersonData[]
@@ -160,6 +163,7 @@ function CompatibilityCounselorContent() {
               const s = loaded?.session
               if (s?.id) {
                 setChatSessionId(s.id)
+                if (s.title) setChatTitle(s.title)
                 if (Array.isArray(s.messages)) {
                   setMessages(
                     s.messages.filter(
@@ -355,6 +359,14 @@ function CompatibilityCounselorContent() {
     }
   }, [isInitializing])
 
+  // 타이핑하면 textarea 가 자라고, max-height(.input CSS 6rem) 넘으면 스크롤.
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [input])
+
   // 운명 상담사와 동일한 UX — 답변 직후 첫 후속질문을 입력창에 미리 채운다.
   // 사용자는 엔터로 바로 보내거나, 지우고 자기 질문을 새로 쓸 수 있다.
   // 이미 입력 중이면 덮어쓰지 않는다.
@@ -369,7 +381,7 @@ function CompatibilityCounselorContent() {
   const handleChatRename = useCallback(async () => {
     setChatMenuOpen(false)
     if (!chatSessionId) return
-    const next = window.prompt(isKo ? '대화 이름' : 'Chat name')
+    const next = window.prompt(isKo ? '대화 이름' : 'Chat name', chatTitle || '')
     if (!next || !next.trim()) return
     try {
       await fetch('/api/counselor/session/list', {
@@ -377,10 +389,11 @@ function CompatibilityCounselorContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: chatSessionId, title: next.trim() }),
       })
+      setChatTitle(next.trim())
     } catch (err) {
       logger.warn('[CompatCounselor] rename failed', { err })
     }
-  }, [chatSessionId, isKo])
+  }, [chatSessionId, isKo, chatTitle])
 
   const handleChatDelete = useCallback(async () => {
     setChatMenuOpen(false)
@@ -401,6 +414,7 @@ function CompatibilityCounselorContent() {
     }
     setMessages([])
     setChatSessionId(undefined)
+    setChatTitle(null)
   }, [chatSessionId, isKo])
 
   const sendMessage = useCallback(
@@ -656,6 +670,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           setError(null)
           setInput('')
           setChatSessionId(undefined)
+          setChatTitle(null)
           setTimeout(() => inputRef.current?.focus(), 0)
         }}
         serviceType="compat"
@@ -725,57 +740,61 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               <span className={styles.backIcon}>{'☰'}</span>
             </button>
             <h1 className={styles.headerTitle}>
-              <span className={styles.headerHeart} aria-hidden="true">
-                {'💕'}
-              </span>
-              {isKo ? '궁합 상담사' : 'Compatibility Counselor'}
+              {!chatTitle && (
+                <span className={styles.headerHeart} aria-hidden="true">
+                  {'💕'}
+                </span>
+              )}
+              {chatTitle?.trim() || (isKo ? '궁합 상담사' : 'Compatibility Counselor')}
             </h1>
           </div>
           <div className={styles.headerActions}>
+            {chatSessionId && (
+              <div ref={chatMenuRef} className={styles.chatMenuArea}>
+                <button
+                  type="button"
+                  className={styles.chatMenuButton}
+                  onClick={() => setChatMenuOpen((o) => !o)}
+                  aria-label={isKo ? '대화 메뉴' : 'Chat menu'}
+                  aria-expanded={chatMenuOpen}
+                  aria-haspopup="menu"
+                >
+                  <span aria-hidden="true">⋮</span>
+                </button>
+                {chatMenuOpen && (
+                  <div role="menu" className={styles.chatMenuDropdown}>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.chatMenuItem}
+                      onClick={handleChatRename}
+                    >
+                      <span>{isKo ? '이름 변경' : 'Rename'}</span>
+                      <span aria-hidden="true" className={styles.chatMenuIcon}>
+                        ✎
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
+                      onClick={handleChatDelete}
+                    >
+                      <span>{isKo ? '삭제' : 'Delete'}</span>
+                      <span aria-hidden="true" className={styles.chatMenuIcon}>
+                        🗑
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             <CreditBadge variant="compact" />
           </div>
         </header>
 
         {/* Chat */}
         <div className={styles.chatWrapper}>
-          {messages.length > 0 && (
-            <div ref={chatMenuRef} className={styles.chatMenuArea}>
-              <button
-                type="button"
-                className={styles.chatMenuButton}
-                onClick={() => setChatMenuOpen((o) => !o)}
-                aria-label={isKo ? '대화 메뉴' : 'Chat menu'}
-                aria-expanded={chatMenuOpen}
-                aria-haspopup="menu"
-              >
-                <span aria-hidden="true">⋮</span>
-              </button>
-              {chatMenuOpen && (
-                <div role="menu" className={styles.chatMenuDropdown}>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={styles.chatMenuItem}
-                    onClick={handleChatRename}
-                    disabled={!chatSessionId}
-                  >
-                    <span>{isKo ? '이름 변경' : 'Rename'}</span>
-                    <span aria-hidden="true" className={styles.chatMenuIcon}>✎</span>
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
-                    onClick={handleChatDelete}
-                    disabled={!chatSessionId}
-                  >
-                    <span>{isKo ? '삭제' : 'Delete'}</span>
-                    <span aria-hidden="true" className={styles.chatMenuIcon}>🗑</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
           <div className={styles.messagesContainer}>
             {messages.length === 0 && (
               <div className={styles.emptyState}>
@@ -863,7 +882,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 animatedPlaceholder || (isKo ? '질문을 입력하세요…' : 'Type a question…')
               }
               className={styles.input}
-              rows={3}
+              rows={1}
               maxLength={2000}
               disabled={isLoading}
             />
