@@ -330,7 +330,9 @@
   border: 0;
   color: #292524;
   font-size: 0.95rem;
-  line-height: 1.55;
+  /* destiny 운명상담사(1.75) 와 비슷한 답변 줄간격으로 — 한국어 본문 가독성
+     일관. 1.55 → 1.7 (양쪽 채팅창 줄간격 차이 통일 PR). */
+  line-height: 1.7;
   word-wrap: break-word;
   overflow-wrap: anywhere;
 }
