@@ -46,8 +46,25 @@ export default function DestinyMatrixPlannerClient() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // race + timeout 가드 — 사용자가 연도 점프하면 in-flight fetch 가 stale 응답으로
+  // 새 데이터 덮어쓰던 회귀 (5차 audit). 각 호출이 AbortController 받고, 새 호출은
+  // 이전을 abort. 20s hard timeout 으로 cold engine 행 폭주도 방어.
+  const fetchAbortRef = useRef<AbortController | null>(null)
+  const FETCH_TIMEOUT_MS = 20_000
+
   const fetchCalendar = useCallback(
     async (info: BirthInfo, targetYear?: number) => {
+      // 이전 in-flight 취소 — main + convergence 모두 같은 controller 라 둘 다 죽음.
+      fetchAbortRef.current?.abort()
+      const controller = new AbortController()
+      fetchAbortRef.current = controller
+      // timeout 으로 인한 abort 인지 race 로 인한 abort 인지 분기용 플래그.
+      let timedOut = false
+      const timeoutId = setTimeout(() => {
+        timedOut = true
+        controller.abort()
+      }, FETCH_TIMEOUT_MS)
+
       setLoading(true)
       setError(null)
       setYearlyConvergence(undefined)
@@ -66,6 +83,7 @@ export default function DestinyMatrixPlannerClient() {
 
         const res = await fetch(`/api/calendar?${params}`, {
           headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
+          signal: controller.signal,
         })
 
         type ApiResponse = Partial<CalendarData> & {
@@ -77,6 +95,9 @@ export default function DestinyMatrixPlannerClient() {
         } catch {
           json = null
         }
+
+        // race 가드 — 응답 도착 시점에 더 새로운 fetch 가 시작됐으면 무시.
+        if (controller.signal.aborted) return
 
         const looksUsable =
           !!json &&
@@ -106,32 +127,46 @@ export default function DestinyMatrixPlannerClient() {
         })
 
         // "올해 큰 날"은 1년 풀빌드라 비쌈 — 메인 응답을 막지 않게 지연 로드.
-        // 실패해도 무시(카드만 비게 됨). 캐시 적중 시 거의 즉시 채워짐.
+        // 같은 controller signal 공유라 새 fetchCalendar 가 시작되면 자동 취소.
         void (async () => {
           try {
             const cr = await fetch(`/api/calendar/convergence?${params}`, {
               headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
+              signal: controller.signal,
             })
+            if (controller.signal.aborted) return
             if (!cr.ok) return
             const cj = (await cr.json()) as {
               convergence?: YearlyConvergence
               monthly?: YearMonthly[]
               daily?: Array<{ date: string; score: number }>
             }
+            if (controller.signal.aborted) return
             if (cj?.convergence) setYearlyConvergence(cj.convergence)
             if (cj?.monthly) setYearlyMonthly(cj.monthly)
-            // daily 백필 폐기 — 메인 응답이 이미 365일 v2 점수로 채워져 있다(route.ts
-            // prescore가 윈도우를 1년 전체로 확장). 백필이 displayScore만 덮고 score는
-            // 안 덮어서 같은 날짜에 displayScore≠score 모순이 났던 lane도 함께 사라짐.
           } catch (e) {
+            if ((e as { name?: string })?.name === 'AbortError') return
             logger.debug('[CalendarPlanner] convergence lazy-load skipped', e)
           }
         })()
       } catch (err) {
+        // AbortError + timedOut: 사용자에게 타임아웃 알림.
+        // AbortError + !timedOut: race(새 fetch 시작) — 조용히 무시.
+        if ((err as { name?: string })?.name === 'AbortError') {
+          if (timedOut) {
+            setError('서버 응답이 너무 오래 걸려요. 다시 시도해 주세요.')
+          }
+          return
+        }
         logger.error('[CalendarPreview] fetch failed', err)
         setError(err instanceof Error ? err.message : 'fetch failed')
       } finally {
-        setLoading(false)
+        clearTimeout(timeoutId)
+        // 이 호출이 여전히 latest 일 때만 loading 해제 (race 시 stale 호출이
+        // 새 호출의 loading 을 끄는 버그 방지)
+        if (fetchAbortRef.current === controller) {
+          setLoading(false)
+        }
       }
     },
     [lang]
