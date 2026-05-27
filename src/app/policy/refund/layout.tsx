@@ -12,19 +12,19 @@ export async function generateMetadata(): Promise<Metadata> {
       en: {
         title: 'Refund and Payment Policy',
         description:
-          'DestinyPal Refund and Payment Policy for credit packs, subscriptions, non-refundable AI readings, and exception handling.',
+          'DestinyPal Refund and Payment Policy — one-time credit packs, non-refundable AI readings, 7-day return window, and exception handling.',
         keywords: ['refund policy', 'payment policy', 'destinypal refund', 'credits refund'],
       },
       ko: {
         title: '환불 및 결제 정책',
         description:
-          'DestinyPal의 환불 및 결제 정책. 크레딧 팩, 구독, 비환불 AI 리딩, 예외 처리 안내.',
+          'DestinyPal의 환불 및 결제 정책. 일회성 크레딧 팩, 비환불 AI 리딩, 7일 환불 보장, 예외 처리 안내.',
         keywords: ['환불 정책', '결제 정책', '디스티니팔 환불', '크레딧 환불'],
       },
       canonicalUrl: `${baseUrl}/policy/refund`,
       ogImage: '/og-image.png',
     },
-    locale,
+    locale
   )
 }
 
@@ -33,7 +33,7 @@ export default function RefundLayout({ children }: { children: ReactNode }) {
     type: 'WebPage',
     name: 'Refund and Payment Policy - DestinyPal',
     description:
-      'DestinyPal Refund and Payment Policy for subscriptions, credit packs, and exception refund scenarios.',
+      'DestinyPal Refund and Payment Policy for one-time credit packs and exception refund scenarios. No subscriptions, no auto-renewal.',
     url: `${baseUrl}/policy/refund`,
   })
 
