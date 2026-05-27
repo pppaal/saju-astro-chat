@@ -104,6 +104,40 @@ const STEM_EL: Record<string, string> = {
   '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수',
 }
 
+// 천간 음양 — 십성(sibsin) cross 계산용. 같은 음양이면 비견/식신/편재/편관/편인,
+// 다른 음양이면 겁재/상관/정재/정관/정인.
+const STEM_YIN_YANG: Record<string, '양' | '음'> = {
+  '甲': '양', '丙': '양', '戊': '양', '庚': '양', '壬': '양',
+  '乙': '음', '丁': '음', '己': '음', '辛': '음', '癸': '음',
+}
+
+// 지지 본기 천간 (지지를 천간 시각으로 보는 매핑) — 지지 십성 계산용.
+const BRANCH_MAIN_STEM: Record<string, string> = {
+  '子': '癸', '丑': '己', '寅': '甲', '卯': '乙', '辰': '戊', '巳': '丙',
+  '午': '丁', '未': '己', '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬',
+}
+
+// 오행 관계 — 상생/상극 방향. 목→화→토→금→수→목 (생). 木克土, 火克金, 土克水, 金克木, 水克火 (극).
+const EL_GEN: Record<string, string> = { '목': '화', '화': '토', '토': '금', '금': '수', '수': '목' }
+const EL_KE: Record<string, string> = { '목': '토', '화': '금', '토': '수', '금': '목', '수': '화' }
+
+/**
+ * 일간(dayStem) 기준 대상(targetStem) 의 십성(sibsin) 반환. 정재/편재 → 배우자성
+ * (남자 기준 처), 정관/편관 → 배우자성 (여자 기준 부). 궁합 cross 의 핵심 신호.
+ */
+function sibseongFor(dayStem: string, targetStem: string): string {
+  const dayEl = STEM_EL[dayStem]
+  const tgtEl = STEM_EL[targetStem]
+  if (!dayEl || !tgtEl) return ''
+  const sameYY = STEM_YIN_YANG[dayStem] === STEM_YIN_YANG[targetStem]
+  if (dayEl === tgtEl) return sameYY ? '비견' : '겁재'
+  if (EL_GEN[dayEl] === tgtEl) return sameYY ? '식신' : '상관'
+  if (EL_KE[dayEl] === tgtEl) return sameYY ? '편재' : '정재'
+  if (EL_KE[tgtEl] === dayEl) return sameYY ? '편관' : '정관'
+  if (EL_GEN[tgtEl] === dayEl) return sameYY ? '편인' : '정인'
+  return ''
+}
+
 const BRANCH_EL: Record<string, string> = {
   '寅': '목', '卯': '목', '巳': '화', '午': '화', '辰': '토',
   '戌': '토', '丑': '토', '未': '토', '申': '금', '酉': '금',
@@ -484,6 +518,53 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     }
   }
 
+  // ── 배우자성 cross (sibsin) — 정통 명리 궁합의 핵심.
+  // A 일간 시각 B 의 각 천간/지지 + B 일간 시각 A 의 각 천간/지지 매핑.
+  // 정재/편재(妻星) 와 정관/편관(夫星) 만 추출해 LLM 에 명시.
+  // 일주(=배우자궁) 에 잡히면 가장 강한 신호.
+  const spouseStars = new Set(['정재', '편재', '정관', '편관'])
+  const spouseRoleLabel: Record<string, string> = {
+    정재: '처성(안정·가정)',
+    편재: '처성(활달·유동)',
+    정관: '부성(책임·안정)',
+    편관: '부성(긴장·격정)',
+  }
+  const sibsinCrossLines: string[] = []
+  const findSpouseSignals = (
+    fromLabel: string,
+    fromDay: { stem: string },
+    other: SajuPillarInput[],
+    otherLabel: string
+  ) => {
+    const hits: string[] = []
+    other.forEach((p, idx) => {
+      if (!p.stem) return
+      const s = sibseongFor(fromDay.stem, p.stem)
+      if (spouseStars.has(s)) {
+        const where = PILLAR_LABELS[idx] // 년/월/일/시
+        const at = idx === 2 ? '일주(배우자궁)' : `${where}주`
+        hits.push(`${s}(${spouseRoleLabel[s]}) at ${otherLabel} ${at} ${p.stem}`)
+      }
+      // 지지 본기 천간으로도 체크 — 지지 십성 보완.
+      const branchStem = BRANCH_MAIN_STEM[p.branch]
+      if (branchStem) {
+        const sBr = sibseongFor(fromDay.stem, branchStem)
+        if (spouseStars.has(sBr)) {
+          const where = PILLAR_LABELS[idx]
+          const at = idx === 2 ? '일지(배우자궁)' : `${where}지`
+          hits.push(`${sBr}(${spouseRoleLabel[sBr]}) at ${otherLabel} ${at} ${p.branch}(본기 ${branchStem})`)
+        }
+      }
+    })
+    if (hits.length) {
+      sibsinCrossLines.push(`${fromLabel} 일간(${fromDay.stem}) 기준 ${otherLabel} 차트의 배우자성: ${hits.join(' · ')}`)
+    }
+  }
+  if (aDay.stem && bDay.stem) {
+    findSpouseSignals(labelA, aDay, B, labelB)
+    findSpouseSignals(labelB, bDay, A, labelA)
+  }
+
   // ── 조립: 우선순위 티어 ──────────────────────────────────
   const out: string[] = ['== 시너스트리 (사주 cross) ==']
   if (elA && elB) {
@@ -493,6 +574,11 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   out.push('[CRITICAL — 반드시 해석] 일간 극·천간합·일지 충형')
   out.push(critical.length ? critical.join('\n') : '(해당 없음)')
   out.push('')
+  if (sibsinCrossLines.length) {
+    out.push('[CRITICAL — 배우자성 cross (십성)]')
+    out.push(...sibsinCrossLines)
+    out.push('')
+  }
   out.push('[IMPORTANT — 맥락 보강]')
   out.push(important.length ? important.join('\n') : '(해당 없음)')
   if (chamgo.length) {
