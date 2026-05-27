@@ -565,6 +565,109 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     findSpouseSignals(labelB, bDay, A, labelA)
   }
 
+  // ── 신살 cross — 도화/홍염/백호/괴강. 정통 명리에 명시된 lookup table 로
+  // 결정적으로 계산 (LLM 한테 personalShinsal 추측 맡기지 않음).
+  //   - 도화 (자오묘유): A 일지의 三合 마지막 지지가 B 의 지지에 있으면 자석 끌림.
+  //   - 홍염 (일간별 특정 지지): A 일간 홍염 지지가 B 지지에 있으면 색기·끌림.
+  //   - 백호일주: 둘 다 백호 또는 한쪽 백호 + 상대 일지가 그 백호 일지와 충 → 격정.
+  //   - 괴강일주: 둘 다 괴강이면 강력 충돌·자극.
+  const DOHWA: Record<string, string> = {
+    申: '酉', 子: '酉', 辰: '酉',
+    寅: '卯', 午: '卯', 戌: '卯',
+    巳: '午', 酉: '午', 丑: '午',
+    亥: '子', 卯: '子', 未: '子',
+  }
+  const HONGYEOM: Record<string, string> = {
+    甲: '午', 乙: '申', 丙: '寅', 丁: '未', 戊: '辰',
+    己: '辰', 庚: '戌', 辛: '酉', 壬: '子', 癸: '申',
+  }
+  const BAEKHO = new Set(['甲辰', '乙未', '丙戌', '丁丑', '戊辰', '壬戌', '癸丑'])
+  const GOEGANG = new Set(['庚辰', '庚戌', '壬辰', '壬戌', '戊戌'])
+  // BRANCH_CHUNG 은 파일 상단(line ~52) 에 이미 정의됨 — 재사용.
+  const shinsalCrossLines: string[] = []
+  const aDayBr = aDay.branch
+  const bDayBr = bDay.branch
+  const otherBranches = (p: SajuPillarInput[]) =>
+    p.map((x, i) => ({ idx: i, br: x.branch })).filter((x) => !!x.br)
+  // 도화 cross — A 일지 기준
+  if (aDayBr) {
+    const aDohwa = DOHWA[aDayBr]
+    if (aDohwa) {
+      for (const { idx, br } of otherBranches(B)) {
+        if (br === aDohwa) {
+          shinsalCrossLines.push(
+            `${labelA} 일지(${aDayBr}) 기준 도화 자리(${aDohwa}) 가 ${labelB} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 자석 끌림·매력 자극`
+          )
+        }
+      }
+    }
+  }
+  if (bDayBr) {
+    const bDohwa = DOHWA[bDayBr]
+    if (bDohwa) {
+      for (const { idx, br } of otherBranches(A)) {
+        if (br === bDohwa) {
+          shinsalCrossLines.push(
+            `${labelB} 일지(${bDayBr}) 기준 도화 자리(${bDohwa}) 가 ${labelA} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 자석 끌림·매력 자극`
+          )
+        }
+      }
+    }
+  }
+  // 홍염살 cross — A 일간 기준
+  if (aDay.stem) {
+    const aHy = HONGYEOM[aDay.stem]
+    if (aHy) {
+      for (const { idx, br } of otherBranches(B)) {
+        if (br === aHy) {
+          shinsalCrossLines.push(
+            `${labelA} 일간(${aDay.stem}) 기준 홍염살(${aHy}) 이 ${labelB} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 색기·연애 강도 +`
+          )
+        }
+      }
+    }
+  }
+  if (bDay.stem) {
+    const bHy = HONGYEOM[bDay.stem]
+    if (bHy) {
+      for (const { idx, br } of otherBranches(A)) {
+        if (br === bHy) {
+          shinsalCrossLines.push(
+            `${labelB} 일간(${bDay.stem}) 기준 홍염살(${bHy}) 이 ${labelA} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 색기·연애 강도 +`
+          )
+        }
+      }
+    }
+  }
+  // 백호일주 cross
+  const aDayPair = `${aDay.stem}${aDayBr}`
+  const bDayPair = `${bDay.stem}${bDayBr}`
+  const aIsBaekho = BAEKHO.has(aDayPair)
+  const bIsBaekho = BAEKHO.has(bDayPair)
+  if (aIsBaekho && bIsBaekho) {
+    shinsalCrossLines.push(
+      `${labelA}·${labelB} 둘 다 백호 일주(${aDayPair} / ${bDayPair}) — 격정·강한 의지 충돌 가능, 한쪽이 누그러져야 안정`
+    )
+  } else if (aIsBaekho || bIsBaekho) {
+    const baekhoSide = aIsBaekho ? labelA : labelB
+    const baekhoBr = aIsBaekho ? aDayBr : bDayBr
+    const otherSide = aIsBaekho ? labelB : labelA
+    const otherDayBr = aIsBaekho ? bDayBr : aDayBr
+    if (baekhoBr && otherDayBr && BRANCH_CHUNG[baekhoBr] === otherDayBr) {
+      shinsalCrossLines.push(
+        `${baekhoSide} 백호 일주(${aIsBaekho ? aDayPair : bDayPair}) + ${otherSide} 일지가 그 백호 지지와 충(${baekhoBr}↔${otherDayBr}) — 격정 충돌 가능`
+      )
+    }
+  }
+  // 괴강일주 cross
+  const aIsGoegang = GOEGANG.has(aDayPair)
+  const bIsGoegang = GOEGANG.has(bDayPair)
+  if (aIsGoegang && bIsGoegang) {
+    shinsalCrossLines.push(
+      `${labelA}·${labelB} 둘 다 괴강 일주(${aDayPair} / ${bDayPair}) — 카리스마 강 vs 강, 서로 안 꺾이면 부딪힘`
+    )
+  }
+
   // ── 조립: 우선순위 티어 ──────────────────────────────────
   const out: string[] = ['== 시너스트리 (사주 cross) ==']
   if (elA && elB) {
@@ -577,6 +680,11 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (sibsinCrossLines.length) {
     out.push('[CRITICAL — 배우자성 cross (십성)]')
     out.push(...sibsinCrossLines)
+    out.push('')
+  }
+  if (shinsalCrossLines.length) {
+    out.push('[CRITICAL — 신살 cross (도화·홍염·백호·괴강)]')
+    out.push(...shinsalCrossLines)
     out.push('')
   }
   out.push('[IMPORTANT — 맥락 보강]')
