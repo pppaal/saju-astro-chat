@@ -344,12 +344,14 @@ export async function POST(req: NextRequest) {
         // 는 accumulated 에 안 더해짐.)
         controller.enqueue(encoder.encode(createSSEEvent({ content: '' })))
         let receivedAny = false
+        let bytesEmitted = 0
         try {
           while (true) {
             const { done, value } = await reader.read()
             if (done) break
             if (value) {
               receivedAny = true
+              bytesEmitted += typeof value === 'string' ? value.length : 0
               controller.enqueue(encoder.encode(createSSEEvent({ content: value })))
             }
           }
@@ -370,23 +372,42 @@ export async function POST(req: NextRequest) {
           logger.error('[tarot-stream] Claude stream interrupted', {
             error: streamErr instanceof Error ? streamErr.message : String(streamErr),
             receivedAny,
+            bytesEmitted,
           })
-          // 토큰이 한 번도 안 도착했다면 사용자가 받은 가치 0 → 전액 환불 +
-          // 정적 fallback 을 단일 청크로 emit 해 클라가 깔끔히 렌더.
-          if (!receivedAny) {
+          // 받은 가치 기준 환불 판단:
+          //   - 0 byte: 사용자가 본 게 없음 → 전액 환불 + 정적 fallback emit
+          //   - <600 byte (대략 한국어 overall 도 못 끝낸 수준): "사용자가 받은
+          //     게 너무 적다" 판단 → 환불 (악용 우려보다 사용자 신뢰가 우선)
+          //   - ≥600 byte: 부분이지만 의미있는 텍스트가 갔다 — error 알림만,
+          //     클라가 partial JSON 으로 복원 시도. 환불 X.
+          const PARTIAL_REFUND_THRESHOLD = 600
+          if (!receivedAny || bytesEmitted < PARTIAL_REFUND_THRESHOLD) {
             await refundOnFailure(
               creditResult,
-              'tarot_claude_stream_no_content',
+              receivedAny ? 'tarot_claude_stream_partial' : 'tarot_claude_stream_no_content',
               creditCost,
-              streamErr instanceof Error ? streamErr.message : String(streamErr)
+              `${streamErr instanceof Error ? streamErr.message : String(streamErr)} (bytes=${bytesEmitted})`
             )
-            const fallback = buildFallbackPayload(rawCards, language)
-            controller.enqueue(
-              encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) }))
-            )
+            if (!receivedAny) {
+              const fallback = buildFallbackPayload(rawCards, language)
+              controller.enqueue(
+                encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) }))
+              )
+            } else {
+              // 부분이지만 환불 처리 — error 이벤트로 알리고 클라가 partial
+              // 텍스트로 복원 + 사용자에겐 "이번 리딩은 환불됐어요" UX 가능.
+              try {
+                controller.enqueue(
+                  encoder.encode(createSSEEvent({ error: 'Stream interrupted (refunded)' }))
+                )
+              } catch {
+                /* may already be closed */
+              }
+            }
           } else {
-            // 부분 텍스트가 이미 클라이언트에 전달됨 — error 이벤트로 끊김 알림.
-            // 클라이언트는 누적 텍스트로 partial JSON 복구 시도.
+            // 부분 텍스트가 이미 클라이언트에 전달됨 (≥ threshold) — error
+            // 이벤트로 끊김 알림. 클라이언트는 누적 텍스트로 partial JSON
+            // 복구 시도. 의미 있는 양의 텍스트가 갔으므로 환불 X.
             try {
               controller.enqueue(encoder.encode(createSSEEvent({ error: 'Stream interrupted' })))
             } catch {

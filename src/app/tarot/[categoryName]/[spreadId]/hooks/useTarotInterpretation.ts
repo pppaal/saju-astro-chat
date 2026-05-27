@@ -188,10 +188,26 @@ function parseStreamedInterpretation(
 
   // 현재 스키마는 { overall, cards: [{ position, interpretation }], advice } 만 emit.
   // 자리(position) 는 LLM 이 질문 맥락에 맞춰 직접 명명 — spread.positions 무시.
-  const parsed = JSON.parse(jsonMatch[0]) as {
+  // Haiku 가 가끔 invalid JSON (trailing comma, 누락된 닫는 brace 등) 을 emit
+  // 하는데 그때는 partial parser 가 만든 overall/cards 값을 폴백으로 쓰자.
+  // outer try-catch 가 한 번 더 막아주지만, 여기서도 한 번 더 가드 — 완전
+  // 폴백(local fallback) 보다 partial 결과가 더 사용자에게 유용.
+  type ParsedShape = {
     overall?: string
     advice?: string
     cards?: Array<{ position?: string; interpretation?: string }>
+  }
+  let parsed: ParsedShape
+  try {
+    parsed = JSON.parse(jsonMatch[0]) as ParsedShape
+  } catch {
+    // 부분 파서가 누적한 텍스트로 최소 overall 은 살린다.
+    const salvagedOverall = extractPartialOverall(jsonText) || ''
+    const salvagedCardTexts = extractPartialCardTexts(jsonText)
+    parsed = {
+      overall: salvagedOverall,
+      cards: salvagedCardTexts.map((t) => ({ interpretation: t })),
+    }
   }
   const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
 
