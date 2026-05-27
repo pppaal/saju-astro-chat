@@ -34,7 +34,9 @@ import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { logger } from '@/lib/logger'
 import { ProfileEditModal } from './components/ProfileEditModal'
 import { CircleAddModal } from './components/CircleAddModal'
-import { uploadProfilePhoto } from '@/lib/firebase/storage'
+// Firebase 직접 업로드는 NextAuth/Firebase Auth 분리로 인한 CORS·규칙
+// 문제로 60초 timeout 빈발. 이제 /api/me/upload-photo (Vercel Blob 서버측
+// 업로드) 로 대체. uploadProfilePhoto import 제거.
 
 type Locale = 'ko' | 'en'
 
@@ -401,39 +403,46 @@ export default function ProfilePage() {
       return
     }
 
-    // Firebase Storage 가 설정되지 않으면 업로드 함수가 'service unavailable' 을
-    // 던지는데, 사용자는 '왜 안 되지' 모름. 환경변수 누락이면 즉시 명확한
-    // 메시지 표시(관리자가 NEXT_PUBLIC_FIREBASE_CONFIG 만 설정하면 동작).
-    if (!process.env.NEXT_PUBLIC_FIREBASE_CONFIG) {
-      logger.warn('[profile/photo] NEXT_PUBLIC_FIREBASE_CONFIG missing — upload disabled')
-      setPhotoError(
-        locale === 'ko'
-          ? '사진 업로드 서비스가 설정되지 않았어요. (관리자: NEXT_PUBLIC_FIREBASE_CONFIG 환경변수 필요)'
-          : 'Photo upload is not configured. (Admin: set NEXT_PUBLIC_FIREBASE_CONFIG env var)'
-      )
-      return
-    }
-
     setPhotoError(null)
     setPhotoUploading(true)
     setPhotoProgress(0)
     try {
-      const { url } = await uploadProfilePhoto(file, userId, (p) => {
-        setPhotoProgress(p.progress)
+      // FormData 로 서버 라우트에 전송. 서버가 NextAuth 세션 확인 후
+      // Vercel Blob 으로 putString. CORS/Firebase 규칙 우회.
+      const form = new FormData()
+      form.append('file', file)
+      // 브라우저 fetch 는 XHR/Streams API 진행률을 노출하지 않아 정확한
+      // 퍼센티지 표시가 어려워 indeterminate (50%) 만 표시.
+      setPhotoProgress(50)
+      const res = await fetch('/api/me/upload-photo', {
+        method: 'POST',
+        body: form,
       })
-      const res = await fetch('/api/me/profile', {
+      const json = await res.json().catch(() => null)
+      if (!res.ok) {
+        const msg =
+          json?.error?.message ||
+          json?.error?.code ||
+          (locale === 'ko' ? '업로드에 실패했어요.' : 'Upload failed.')
+        throw new Error(String(msg))
+      }
+      const data = (json?.data ?? json) as { url?: string }
+      const url = data?.url
+      if (!url) throw new Error('No URL returned')
+
+      const saveRes = await fetch('/api/me/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: url }),
       })
-      if (!res.ok) {
+      if (!saveRes.ok) {
         throw new Error('save_failed')
       }
       setProfile((prev) => (prev ? { ...prev, image: url } : prev))
     } catch (err) {
       logger.warn('[profile/photo] upload failed', err)
       setPhotoError(
-        err instanceof Error && err.message !== 'save_failed'
+        err instanceof Error && err.message !== 'save_failed' && err.message !== 'No URL returned'
           ? err.message
           : locale === 'ko'
             ? '사진 업로드에 실패했어요. 다시 시도해 주세요.'
@@ -884,8 +893,7 @@ export default function ProfilePage() {
                     const upcoming = (purchases?.purchases || [])
                       .filter((p) => !p.expired && p.remaining > 0 && p.expiresAt)
                       .sort(
-                        (a, b) =>
-                          new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime()
+                        (a, b) => new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime()
                       )[0]
                     return (
                       <div className="mt-4 flex items-end justify-between gap-4 rounded-2xl border border-[#ece4d4] bg-gradient-to-br from-[#faf6ee] to-[#fcfbf9] px-4 py-4">
