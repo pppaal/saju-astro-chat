@@ -770,6 +770,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         {/* Chat */}
         <div className={styles.chatWrapper}>
           <div className={styles.messagesContainer}>
+            {/* 에러는 컨테이너 맨 위 — destiny noticeBar 와 같은 패턴.
+                메시지 뒤 인라인이면 사용자가 새 메시지로 가려 못 보던 회귀. */}
+            {error && <div className={styles.errorMessage}>{error}</div>}
             {messages.length === 0 && (
               <div className={styles.emptyState}>
                 <div className={styles.emptyIcon}>{'\u{1F495}'}</div>
@@ -814,8 +817,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 </div>
               )
             })}
-
-            {error && <div className={styles.errorMessage}>{error}</div>}
 
             {!isLoading && followUpQuestions.length > 0 && messages.length > 0 && (
               <div className={styles.followUpContainer}>
