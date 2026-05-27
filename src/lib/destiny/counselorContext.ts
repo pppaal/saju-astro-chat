@@ -241,15 +241,24 @@ const ASP_SYM: Record<string, string> = {
   trine: '△',
   opposition: '☍',
 }
-// 형(刑): 丑戌未·寅巳申 삼형, 子卯 상형, 자형(辰午酉亥)
-const HYEONG_SETS = [
-  ['丑', '戌', '未'],
-  ['寅', '巳', '申'],
-  ['子', '卯'],
-]
+// 형(刑) doctrine — compat sajuSynastryFormatter 와 동일 학파 (partial 三刑
+// 인정, 단 충 페어는 충 only). 韓 명리 표준:
+//   - 丑戌未 三刑 의 페어: 丑戌·戌未 = 형, 丑未 = 충 only (형 X)
+//   - 寅巳申 三刑 의 페어: 寅巳·巳申 = 형, 寅申 = 충 only (형 X)
+//   - 子卯 상형
+//   - 자형: 辰辰/午午/酉酉/亥亥
+// 이전 코드 (HYEONG_SETS.some(...)) 는 trio 안 둘이면 무조건 형 → 丑未/寅申
+// 충 페어를 잘못 형으로 잡았음. compat 와 inconsistent 했던 doctrinal 버그 fix.
+const HYEONG_PAIR_TRIO = new Set([
+  '寅巳', '巳寅', '巳申', '申巳',
+  '丑戌', '戌丑', '戌未', '未戌',
+])
+const BRANCH_HYEONG_PAIR: Record<string, string> = { 子: '卯', 卯: '子' }
 const SELF_HYEONG = new Set(['辰', '午', '酉', '亥'])
 const hyeongPair = (a: string, b: string) =>
-  a === b ? SELF_HYEONG.has(a) : HYEONG_SETS.some((s) => s.includes(a) && s.includes(b))
+  a === b
+    ? SELF_HYEONG.has(a)
+    : BRANCH_HYEONG_PAIR[a] === b || HYEONG_PAIR_TRIO.has(a + b)
 // 천간합 → 化 element (hangul) + fiveElements key
 const STEM_HAP_EL: Record<string, string> = {}
 for (const [a, b, el] of [
