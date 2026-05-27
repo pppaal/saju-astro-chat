@@ -186,7 +186,7 @@ export default function CounselorPage() {
                 aria-expanded={chatMenuOpen}
                 aria-haspopup="menu"
               >
-                <span aria-hidden="true">\u22ee</span>
+                <span aria-hidden="true">{'\u22ee'}</span>
               </button>
               {chatMenuOpen && (
                 <div role="menu" className={styles.chatMenuDropdown}>
@@ -217,7 +217,7 @@ export default function CounselorPage() {
                   >
                     <span>{lang === 'ko' ? '\uc774\ub984 \ubcc0\uacbd' : 'Rename'}</span>
                     <span aria-hidden="true" className={styles.chatMenuIcon}>
-                      \u270e
+                      {'\u270e'}
                     </span>
                   </button>
                   <button
@@ -250,7 +250,7 @@ export default function CounselorPage() {
                   >
                     <span>{lang === 'ko' ? '\uc0ad\uc81c' : 'Delete'}</span>
                     <span aria-hidden="true" className={styles.chatMenuIcon}>
-                      \ud83d\uddd1
+                      {'\ud83d\uddd1'}
                     </span>
                   </button>
                 </div>
