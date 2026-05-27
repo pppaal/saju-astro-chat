@@ -49,6 +49,17 @@ export interface SavedTarotReading {
   categoryId: string
   spreadId: string
   deckStyle?: string
+  /** 보충 카드 (클래리파이어) — 자동 저장으로 채워짐. 한 리딩당 한 장 한정. */
+  clarifierCard?: {
+    name: string
+    nameKo?: string
+    isReversed: boolean
+  } | null
+  /** 결과 화면 followup 채팅의 turn 누적. */
+  followupTurns?: Array<{
+    role: 'user' | 'assistant'
+    content: string
+  }> | null
 }
 
 type ServerSavedReading = {
@@ -70,6 +81,15 @@ type ServerSavedReading = {
     position?: string
     card_name?: string
     interpretation?: string
+  }> | null
+  clarifierCard?: {
+    name: string
+    nameKo?: string
+    isReversed: boolean
+  } | null
+  followupTurns?: Array<{
+    role: 'user' | 'assistant'
+    content: string
   }> | null
 }
 
@@ -277,5 +297,7 @@ export function mapServerReadingToSavedReading(reading: ServerSavedReading): Sav
     },
     categoryId: reading.theme || 'general',
     spreadId: reading.spreadId || '',
+    clarifierCard: reading.clarifierCard ?? null,
+    followupTurns: reading.followupTurns ?? null,
   }
 }

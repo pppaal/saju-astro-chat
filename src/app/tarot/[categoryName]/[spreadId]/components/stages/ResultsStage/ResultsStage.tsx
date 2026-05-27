@@ -71,6 +71,9 @@ export interface ResultsStageProps {
   isSaving: boolean
   isSaved: boolean
   saveMessage: string
+  /** 서버 저장 후 부여된 ID — FollowupChat 이 PATCH 로 클래리파이어 / 채팅
+   *  turn 을 같은 row 에 추가 저장할 때 사용. null 이면 미저장 상태. */
+  readingId?: string | null
   handleSaveReading: () => Promise<void>
   handleReset: () => void
   interpretationFailed?: boolean
@@ -235,6 +238,7 @@ export function ResultsStage(props: ResultsStageProps) {
             interpretation={interpretation}
             userTopic={userTopic}
             language={language}
+            readingId={props.readingId ?? null}
           />
         )}
 
