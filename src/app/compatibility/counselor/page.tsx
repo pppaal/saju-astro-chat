@@ -103,7 +103,13 @@ function CompatibilityCounselorContent() {
   const [showChartModal, setShowChartModal] = useState(false)
   const [showTarotModal, setShowTarotModal] = useState(false)
   const [showClarifierModal, setShowClarifierModal] = useState(false)
+  // 한 대화당 한 장만. 운명 상담사와 동일 패턴 (PR #631, #644).
   const [clarifierUsed, setClarifierUsed] = useState(false)
+  // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 — "한 장 더
+  // 뽑기" 버튼이 채팅 맨 하단이라 사용자는 이미 그 자리를 보고 있어 답변
+  // 토큰마다 messagesEnd 따라가면 viewport 가 위로 밀려 "왜 다시 올라가냐"
+  // 회귀.
+  const suspendAutoScrollRef = useRef(false)
   // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 사이드바 리스트의 항상 보이던
   // 아이콘들을 대체 (운명 상담사와 동일 패턴, PR #621).
   const [chatMenuOpen, setChatMenuOpen] = useState(false)
@@ -165,7 +171,6 @@ function CompatibilityCounselorContent() {
               if (s?.id) {
                 setChatSessionId(s.id)
                 if (s.title) setChatTitle(s.title)
-                setClarifierUsed(false)
                 if (Array.isArray(s.messages)) {
                   setMessages(
                     s.messages.filter(
@@ -322,6 +327,9 @@ function CompatibilityCounselorContent() {
     // container, deferred a frame so the freshly appended chunk is
     // already in the DOM. Falls back to scrollIntoView in case the
     // ref structure ever changes.
+    if (suspendAutoScrollRef.current) {
+      return
+    }
     const end = messagesEndRef.current
     if (!end) return
     const container = end.parentElement
@@ -417,6 +425,7 @@ function CompatibilityCounselorContent() {
     setMessages([])
     setChatSessionId(undefined)
     setChatTitle(null)
+    setClarifierUsed(false)
   }, [chatSessionId, isKo])
 
   const sendMessage = useCallback(
@@ -603,12 +612,29 @@ function CompatibilityCounselorContent() {
     }
   }
 
+  // 🃏 클래리파이어 카드 한 장 — 작은 모달이 열려 카드 한 장이 펼쳐지고
+  // 사용자가 확인을 누르면 카드 이미지와 함께 채팅 메시지로 흘려보낸다.
+  // LLM 이 직전 대화 + 두 사람 컨텍스트로 한 단락 보충 해석을 답한다.
+  // 한 대화당 한 장만 — 운명상담사 동일 정책 (PR #631).
   const openClarifier = useCallback(() => {
-    if (isLoading || persons.length < 2 || clarifierUsed) return
+    if (isLoading || persons.length < 2) return
+    if (clarifierUsed) {
+      setError(
+        isKo
+          ? '이번 대화에서는 보충 카드를 이미 한 장 뽑았어요. 새 대화를 시작하면 다시 뽑을 수 있어요.'
+          : "You've already drawn one clarifier card in this chat. Start a new chat to draw another."
+      )
+      return
+    }
     setShowClarifierModal(true)
-  }, [isLoading, persons.length, clarifierUsed])
+  }, [isLoading, persons.length, clarifierUsed, isKo])
   const handleClarifierConfirm = useCallback(
     (card: ClarifierCard) => {
+      // 자동 스크롤 hijack 25초 끄기 — "그 자리에 있으면 된다" 회귀 (PR #644).
+      suspendAutoScrollRef.current = true
+      window.setTimeout(() => {
+        suspendAutoScrollRef.current = false
+      }, 25000)
       setClarifierUsed(true)
       const userText = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
       sendMessage(userText)
@@ -678,6 +704,70 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         desktopStatic
         enableGrouping
         lightTheme
+        footerSlot={
+          <>
+            <button
+              type="button"
+              className={styles.sidebarFooterBtn}
+              onClick={() => setShowTarotModal(true)}
+              disabled={isLoading || persons.length < 2}
+              title={
+                isKo
+                  ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
+                  : 'See your next question in tarot — pick a spread and draw'
+              }
+            >
+              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+                {'🃏'}
+              </span>
+              {isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot'}
+            </button>
+            <button
+              type="button"
+              className={styles.sidebarFooterBtn}
+              onClick={openClarifier}
+              disabled={isLoading || persons.length < 2 || showClarifierModal}
+              aria-disabled={
+                isLoading || persons.length < 2 || showClarifierModal || clarifierUsed
+              }
+              style={
+                clarifierUsed ? { opacity: 0.55, cursor: 'not-allowed' } : undefined
+              }
+              title={
+                clarifierUsed
+                  ? isKo
+                    ? '이 대화에서는 이미 한 장 뽑았어요'
+                    : 'Already drew one in this chat'
+                  : isKo
+                    ? '직전 대화 흐름에 클래리파이어 카드 한 장 더 뽑기'
+                    : 'Draw one clarifier card for the current thread'
+              }
+            >
+              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+                {'🃏'}
+              </span>
+              {clarifierUsed
+                ? isKo
+                  ? '한 장 더 뽑기 불가'
+                  : 'No more draws'
+                : isKo
+                  ? '카드 한 장 더 뽑기'
+                  : 'Draw one more card'}
+            </button>
+            <button
+              type="button"
+              className={styles.sidebarFooterBtn}
+              onClick={() => setShowChartModal(true)}
+              disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
+              title={isKo ? '궁합 차트 보기' : 'View couple chart'}
+            >
+              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
+                {'✨'}
+              </span>
+              {isKo ? '궁합 차트' : 'Couple chart'}
+            </button>
+          </>
+        }
       />
       <div className={styles.mainColumn}>
         {/* Header — locale toggle removed (lives on main / entry page only).
@@ -762,6 +852,21 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               const isUser = msg.role === 'user'
               const isLastAssistant = !isUser && idx === messages.length - 1
               const showTyping = isLastAssistant && isLoading && !msg.content
+
+              // 클래리파이어 카드의 markdown 이미지(`![alt](src)`)는 user 메시지
+              // 안에서 MarkdownMessage 의 img 렌더에만 의존하지 말고 직접 추출해
+              // 큼지막한 <img> 로 별도 렌더한다 — 어떤 CSS/캐시 상황에서도
+              // 카드 그림이 확실히 보이도록 (운명상담사 MessageRow 와 동일 패턴).
+              const imageMatch = isUser ? /!\[([^\]]*)\]\(([^)]+)\)/.exec(msg.content) : null
+              const inlineImage = imageMatch
+                ? { alt: imageMatch[1] || '', src: imageMatch[2] }
+                : null
+              const userText = inlineImage
+                ? msg.content.replace(/!\[[^\]]*\]\([^)]+\)/, '').trim()
+                : msg.content
+              const userLooksMd =
+                isUser && /\*\*[^*]+\*\*|^#{1,3}\s|\n[*-]\s/.test(userText)
+
               return (
                 <div key={idx} className={`${styles.message} ${isUser ? styles.userMessage : ''}`}>
                   <div className={styles.messageAvatar} aria-hidden="true">
@@ -775,14 +880,33 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                         <span />
                       </span>
                     ) : isUser ? (
-                      // 사용자 메시지에 markdown 토큰 (이미지/굵게/제목/리스트) 있으면
-                      // markdown 렌더 — 🃏 클래리파이어 카드의 이미지·카드명 표시용.
-                      // 평문 입력은 토큰 없으므로 영향 X.
-                      /!\[[^\]]*\]\([^)]+\)|\*\*[^*]+\*\*|^#{1,3}\s|\n[*-]\s/.test(msg.content) ? (
-                        <MarkdownMessage content={msg.content} theme="light" />
-                      ) : (
-                        msg.content
-                      )
+                      <>
+                        {userText &&
+                          (userLooksMd ? (
+                            <MarkdownMessage content={userText} theme="light" />
+                          ) : (
+                            userText
+                          ))}
+                        {inlineImage && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={inlineImage.src}
+                            alt={inlineImage.alt}
+                            loading="lazy"
+                            style={{
+                              display: 'block',
+                              maxWidth: '180px',
+                              width: '70%',
+                              aspectRatio: '5 / 8.5',
+                              objectFit: 'cover',
+                              borderRadius: '10px',
+                              marginTop: userText ? '10px' : 0,
+                              boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+                              background: 'rgba(255,255,255,0.06)',
+                            }}
+                          />
+                        )}
+                      </>
                     ) : (
                       <MarkdownMessage content={stripReportMarkdown(msg.content)} theme="light" />
                     )}
@@ -813,30 +937,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 </div>
               </div>
             )}
-
-            {!isLoading &&
-              !clarifierUsed &&
-              persons.length >= 2 &&
-              messages.length > 0 &&
-              messages[messages.length - 1].role === 'assistant' && (
-                <div className={styles.postAnswerActions}>
-                  <button
-                    type="button"
-                    className={styles.clarifierActionBtn}
-                    onClick={openClarifier}
-                    title={
-                      isKo
-                        ? '직전 대화 흐름에 클래리파이어 카드 한 장 더 뽑기'
-                        : 'Draw one clarifier card for the current thread'
-                    }
-                  >
-                    <span className={styles.clarifierActionIcon} aria-hidden="true">
-                      {'\u{1F0CF}'}
-                    </span>
-                    {isKo ? '카드 한 장 더 뽑기' : 'Draw one more card'}
-                  </button>
-                </div>
-              )}
 
             <div ref={messagesEndRef} />
           </div>
