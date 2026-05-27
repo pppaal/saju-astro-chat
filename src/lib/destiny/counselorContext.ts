@@ -476,7 +476,6 @@ export async function buildDestinyContext(
   } catch (err) {
     // 점성 실패 시 silent fallback 이면 운영에서 사용자가 "사주만" 답변을
     // 받아도 아무도 모름. 최소한 warn 으로 남겨 모니터링 가능하게.
-    // eslint-disable-next-line no-console
     console.warn('[buildDestinyContext] astro section build failed:', err instanceof Error ? err.message : err)
   }
 
