@@ -113,6 +113,11 @@ export function useDateDetail(input: {
   const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
+    // 이전 in-flight 항상 abort — cache hit 케이스에서도 (5차 audit 회귀).
+    // 이전엔 cache hit early-return 이 abort 전에 일어나서 prior fetch 가
+    // 살아 있다가 stale write 로 cacheRef + detail 을 덮어쓰던 버그.
+    if (abortRef.current) abortRef.current.abort()
+
     if (!enabled || !selectedDay || !birthInfo?.birthDate) {
       setDetail(null)
       setStatus('idle')
@@ -128,7 +133,6 @@ export function useDateDetail(input: {
       return
     }
 
-    if (abortRef.current) abortRef.current.abort()
     const controller = new AbortController()
     abortRef.current = controller
     setStatus('loading')

@@ -101,10 +101,16 @@ export default function DestinyMatrixPlanner({
   const [showHourDetail, setShowHourDetail] = useState(false)
 
   // --- View date (state — prev/next month 이동 가능) -------------------
-  // 이전엔 today로 하드코딩돼 month 이동 자체가 안 됐음. 우측 상단 모달의
-  // "외부 캘린더 연동 추후 추가 예정" 안내도 그래서 무력화돼 있었다.
   // API는 year 단위로 1년치 allDates를 한 번에 받으니 month 전환은 client-only.
-  const today = useMemo(() => new Date(), [])
+  //
+  // `today` 는 자정 롤오버를 따라가기 위해 1분 주기로 갱신 (5차 audit).
+  // 이전엔 useMemo([], []) 라 컴포넌트 mount 시점에 락 → 자정 지나면 어제 점수가
+  // "오늘" hero 에 박혀 있던 회귀.
+  const [today, setToday] = useState<Date>(() => new Date())
+  useEffect(() => {
+    const id = setInterval(() => setToday(new Date()), 60_000)
+    return () => clearInterval(id)
+  }, [])
   const [viewDate, setViewDate] = useState<Date>(
     () => new Date(today.getFullYear(), today.getMonth(), 1)
   )
