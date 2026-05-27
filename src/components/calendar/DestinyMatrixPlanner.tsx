@@ -25,7 +25,7 @@ import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './ty
 import { ganjiToKorean } from '@/lib/saju/ganjiKo'
 import { useDateDetail } from './useDateDetail'
 import YearHighlightsCard from './YearHighlightsCard'
-import YearOverviewCard from './YearOverviewCard'
+import YearDashboard from './premium/YearDashboard'
 import MonthlyInterpretationCard from './MonthlyInterpretationCard'
 import DailyFlowCard from './DailyFlowCard'
 import DailyHourlyChart from './DailyHourlyChart'
@@ -572,10 +572,12 @@ export default function DestinyMatrixPlanner({
               transition={{ duration: 0.2 }}
               className="p-6 space-y-6"
             >
-              <YearOverviewCard
+              <YearDashboard
                 year={viewYear}
                 allDates={data?.allDates ?? []}
                 yearlyMonthly={yearlyMonthly}
+                birthDate={birthInfo?.birthDate}
+                currentPhaseLabel={phaseLabel}
                 onMonthClick={(monthIdx) => {
                   setViewDate(new Date(viewYear, monthIdx, 1))
                   setViewMode('monthly')
