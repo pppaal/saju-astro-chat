@@ -173,11 +173,6 @@ function buildIljinWindowBlock(
   )
   return `${header}\n${lines.join('\n')}`
 }
-const GILSIN_EN: Record<string, string> = {
-  천을귀인: 'Nobleman',
-  화개: 'Flower Canopy',
-  공망: 'Void',
-}
 // branch romanization (pinyin) for English 刑/punishment labels
 const BRANCH_PY: Record<string, string> = {
   子: 'Zi',
@@ -237,32 +232,6 @@ const BRANCH_MAINQI: Record<string, string> = {
   酉: '辛',
   戌: '戊',
   亥: '壬',
-}
-const CHEONEUL: Record<string, string[]> = {
-  甲: ['丑', '未'],
-  戊: ['丑', '未'],
-  庚: ['丑', '未'],
-  乙: ['子', '申'],
-  己: ['子', '申'],
-  丙: ['亥', '酉'],
-  丁: ['亥', '酉'],
-  辛: ['寅', '午'],
-  壬: ['巳', '卯'],
-  癸: ['巳', '卯'],
-}
-const HWAGAE_OF: Record<string, string> = {
-  申: '辰',
-  子: '辰',
-  辰: '辰',
-  寅: '戌',
-  午: '戌',
-  戌: '戌',
-  巳: '丑',
-  酉: '丑',
-  丑: '丑',
-  亥: '未',
-  卯: '未',
-  未: '未',
 }
 // astro aspect symbols (v2 compact format)
 const ASP_SYM: Record<string, string> = {
