@@ -41,6 +41,54 @@ function readingCreditCost(cardCount: number): number {
   return cardCount >= LARGE_SPREAD_THRESHOLD ? 2 : 1
 }
 
+// 새로고침/뒤로가기 시 같은 리딩에 대해 크레딧이 또 차감되던 문제 방어.
+// 클라이언트가 보내는 x-idempotency-key (보통 readingSignature = 스프레드+카드 조합)
+// 를 (userId|ip) 와 함께 모듈 스코프 Map 에 6시간 TTL 로 기억해 두고, 같은 키가
+// 다시 오면 크레딧 차감만 건너뛴다. Vercel serverless 의 인스턴스 lifespan 한정
+// 효과이지만 1차 방어는 클라이언트 sessionStorage 가 담당하므로, 여기는 그걸
+// 뚫고 들어온 케이스(다른 탭/네트워크 재시도/캐시 무력화)만 잡으면 충분.
+const IDEMPOTENCY_TTL_MS = 6 * 60 * 60 * 1000
+const IDEMPOTENCY_MAX_ENTRIES = 500
+const IDEMPOTENCY_PROCESSED = new Map<string, number>()
+
+function idempotencyKeyFor(req: NextRequest, ownerKey: string): string | null {
+  const raw = req.headers.get('x-idempotency-key')?.trim()
+  if (!raw) return null
+  // 길이 가드 — 비정상 헤더 거부.
+  if (raw.length > 256) return null
+  return `${ownerKey}:${raw}`
+}
+
+function isIdempotentReplay(scopedKey: string): boolean {
+  const expiresAt = IDEMPOTENCY_PROCESSED.get(scopedKey)
+  if (!expiresAt) return false
+  if (Date.now() > expiresAt) {
+    IDEMPOTENCY_PROCESSED.delete(scopedKey)
+    return false
+  }
+  return true
+}
+
+function markIdempotent(scopedKey: string): void {
+  // size 가 너무 커지면 만료된 항목부터 청소. 만료 없이도 한계 넘으면 가장
+  // 오래된 것 일부를 절단 — 메모리 무한 증가 방지.
+  if (IDEMPOTENCY_PROCESSED.size > IDEMPOTENCY_MAX_ENTRIES) {
+    const now = Date.now()
+    for (const [k, exp] of IDEMPOTENCY_PROCESSED.entries()) {
+      if (now > exp) IDEMPOTENCY_PROCESSED.delete(k)
+    }
+    if (IDEMPOTENCY_PROCESSED.size > IDEMPOTENCY_MAX_ENTRIES) {
+      const dropCount = IDEMPOTENCY_PROCESSED.size - IDEMPOTENCY_MAX_ENTRIES
+      const it = IDEMPOTENCY_PROCESSED.keys()
+      for (let i = 0; i < dropCount; i += 1) {
+        const k = it.next().value
+        if (k !== undefined) IDEMPOTENCY_PROCESSED.delete(k)
+      }
+    }
+  }
+  IDEMPOTENCY_PROCESSED.set(scopedKey, Date.now() + IDEMPOTENCY_TTL_MS)
+}
+
 // 차감 후 Claude 호출이 실패해 사용자가 가치를 못 받은 경우 호출.
 // 로그인 사용자만 환불 (guest 는 cookie 카운터라 후속에서 별도 정책).
 async function refundOnFailure(
@@ -171,8 +219,25 @@ export async function POST(req: NextRequest) {
     }
 
     creditCost = readingCreditCost(Array.isArray(body.cards) ? body.cards.length : 0)
-    creditResult = await checkAndConsumeCredits('reading', creditCost, req)
-    if (!creditResult.allowed) return creditErrorResponse(creditResult)
+    const ownerKey = context.userId || `ip:${context.ip || 'unknown'}`
+    const scopedIdemKey = idempotencyKeyFor(req, ownerKey)
+    const idempotentReplay = scopedIdemKey ? isIdempotentReplay(scopedIdemKey) : false
+
+    if (idempotentReplay) {
+      // 같은 리딩이 짧은 시간 안에 다시 들어옴(새로고침/뒤로가기/탭 복제 등).
+      // 크레딧 차감만 건너뛰고 Claude 호출은 정상 진행 — 사용자는 해석을
+      // 다시 받지만 토큰은 안 먹는다.
+      logger.info('[tarot-stream] idempotent replay, skip credit consume', {
+        ownerKey,
+      })
+      creditResult = null
+    } else {
+      creditResult = await checkAndConsumeCredits('reading', creditCost, req)
+      if (!creditResult.allowed) return creditErrorResponse(creditResult)
+      if (scopedIdemKey) {
+        markIdempotent(scopedIdemKey)
+      }
+    }
 
     const categoryId = body.categoryId
     const spreadId = body.spreadId || ''
