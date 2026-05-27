@@ -114,7 +114,10 @@ function streamJsonPayload(
 // force-dynamic, 60s maxDuration 으로 통일.
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-export const maxDuration = 60
+// 60→90s 상향 — Haiku 4.5 가 5+ 카드 스프레드에서 6000+ 토큰 생성 시
+// 60s 한계 직전까지 가는 케이스가 있어 "예상보다 오래 걸리고 있어요"
+// 무한 루프로 보이던 회귀. compatibility/counselor (90s) 와 통일.
+export const maxDuration = 90
 
 export async function POST(req: NextRequest) {
   let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
@@ -223,10 +226,10 @@ export async function POST(req: NextRequest) {
       return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
     }
 
-    // 카드당 ~650 tokens + overall/advice 여유 1500. Haiku 4.5 default
-    // max output 8192 안에서 동작하도록 8000 cap.
-    // 현재 모든 스프레드 ≤7장이라 ~6050 tokens 로 여유 충분.
-    const maxTokens = Math.min(8000, 1500 + rawCards.length * 650)
+    // 카드당 ~500 tokens + overall/advice 여유 1200. 7장에서 ~4700 tokens
+    // → Haiku 4.5 ~30-45s 안 완료 (이전 6050 tokens 는 60s 한계 직전까지
+    // 가서 "예상보다 오래 걸리고 있어요" 무한 루프 회귀의 한 원인).
+    const maxTokens = Math.min(6000, 1200 + rawCards.length * 500)
     const claudeStartTime = Date.now()
 
     logger.info('Tarot stream Claude streaming request', {
@@ -270,6 +273,11 @@ export async function POST(req: NextRequest) {
     const reader = claudeStream.getReader()
     const sseStream = new ReadableStream({
       async start(controller) {
+        // Claude 첫 토큰까지 시간이 걸려도 SSE 자체가 살아있음을 확인할 수
+        // 있게 즉시 빈 content 이벤트 emit — Vercel/네트워크 buffering 도
+        // 깨우는 효과. (한 줄 emit 이라 클라 parser 는 무시 가능 — 빈 content
+        // 는 accumulated 에 안 더해짐.)
+        controller.enqueue(encoder.encode(createSSEEvent({ content: '' })))
         let receivedAny = false
         try {
           while (true) {
