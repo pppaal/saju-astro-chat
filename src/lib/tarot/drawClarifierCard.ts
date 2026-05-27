@@ -31,25 +31,18 @@ export function drawClarifierCard(): ClarifierCard {
   }
 }
 
-// 채팅 사용자 메시지로 보낼 텍스트 — 카드 이름·방향 + 카드 이미지 마크다운
-// (채팅 렌더러가 `![alt](image)` 을 그림으로 표시) + LLM 에게 직전 맥락에서
-// 어떤 단서가 추가되는지 한 단락으로 풀어달라고 지시.
+// 채팅 사용자 메시지로 보낼 텍스트 — 카드 이름·방향만.
+// AI 지시문은 realtime route 시스템 프롬프트가 "🃏 보충 카드 패턴 감지 시
+// 같은 톤으로 한 단락 보충 해석" 으로 처리하므로 사용자 버블엔 안 넣는다.
+// 카드 이미지는 채팅 메시지 마크다운 렌더러가 표시하지 않아, 별도
+// ClarifierCardPanel 이 채팅창 위쪽에서 그림으로 띄운다.
 export function buildClarifierUserMessage(card: ClarifierCard, language: 'ko' | 'en'): string {
-  // 사용자 버블에 보이는 메시지는 카드 선언 + 이미지만. AI 지시문은
-  // realtime route 시스템 프롬프트가 "🃏 보충 카드 패턴 감지 시 같은 톤으로
-  // 한 단락 보충 해석" 으로 처리 — 지시문이 사용자 버블에 노출되던 UX
-  // 어색함 해결.
   const isKo = language === 'ko'
   const displayName = isKo && card.nameKo ? card.nameKo : card.name
   const reversedTag = card.isReversed ? (isKo ? ' (역방향)' : ' (reversed)') : ''
-  const imageLine = `![${displayName}](${card.image})`
 
   if (isKo) {
-    return `🃏 보충 카드 한 장을 더 뽑았어요: **${displayName}${reversedTag}**
-
-${imageLine}`
+    return `🃏 보충 카드 한 장을 더 뽑았어요: **${displayName}${reversedTag}**`
   }
-  return `🃏 One more clarifier card drawn: **${displayName}${reversedTag}**
-
-${imageLine}`
+  return `🃏 One more clarifier card drawn: **${displayName}${reversedTag}**`
 }

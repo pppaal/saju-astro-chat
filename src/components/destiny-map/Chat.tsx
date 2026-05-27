@@ -18,6 +18,7 @@ import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
 import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
+import ClarifierCardPanel from './ClarifierCardPanel'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
@@ -86,6 +87,8 @@ const Chat = memo(function Chat({
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [showChartModal, setShowChartModal] = React.useState(false)
   const [showClarifierModal, setShowClarifierModal] = React.useState(false)
+  const [clarifierCard, setClarifierCard] = React.useState<ClarifierCard | null>(null)
+  const clarifierPanelRef = React.useRef<HTMLDivElement | null>(null)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
@@ -296,14 +299,28 @@ const Chat = memo(function Chat({
   // 🃏 클래리파이어 카드 한 장 — 작은 모달이 열려 카드 한 장이 펼쳐지고
   // 사용자가 확인을 누르면 카드 이미지(마크다운)와 함께 채팅 메시지로
   // 흘려보낸다. LLM 이 직전 흐름에 맞춰 한 단락 보충 해석을 답해준다.
-  const openClarifier = React.useCallback(() => setShowClarifierModal(true), [])
+  const openClarifier = React.useCallback(() => {
+    // 모달이 떠 있는 동안은 한 번만 누르도록 가드 — 더블 클릭으로 카드가
+    // 두 장 뽑히지 않게 함.
+    setShowClarifierModal((prev) => (prev ? prev : true))
+  }, [])
   const handleClarifierConfirm = React.useCallback(
     (card: ClarifierCard) => {
+      // 카드 자체는 채팅창 위쪽 패널에 그림으로 띄우고, LLM 에는 텍스트만
+      // 보내서 한 단락 해석을 받는다. 새 카드를 뽑을 때마다 패널을 덮어쓰고
+      // 자연스럽게 보이도록 그 위치로 스크롤한다.
+      setClarifierCard(card)
       const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
       void handleSendRef.current?.(userText)
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() =>
+          clarifierPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        )
+      )
     },
     [effectiveLang]
   )
+  const handleClarifierDismiss = React.useCallback(() => setClarifierCard(null), [])
 
   const handleTarotComplete = (result: TarotResultSummary) => {
     const cardsSummary = result.cards
@@ -599,6 +616,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               type="button"
               className={styles.historyRailFooterBtn}
               onClick={openClarifier}
+              disabled={showClarifierModal}
+              aria-disabled={showClarifierModal}
               title={
                 effectiveLang === 'ko'
                   ? '\uBCF4\uCDA9 \uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30 (\uC989\uC11D \uD074\uB798\uB9AC\uD30C\uC774\uC5B4)'
@@ -678,6 +697,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                 )}
               </div>
             )}
+
+            <ClarifierCardPanel
+              ref={clarifierPanelRef}
+              card={clarifierCard}
+              lang={effectiveLang}
+              onDismiss={handleClarifierDismiss}
+            />
+
             <MessagesPanel
               visibleMessages={visibleMessages}
               loading={loading}
