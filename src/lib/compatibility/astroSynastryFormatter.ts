@@ -234,21 +234,34 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   important.sort((a, b) => a.orb - b.orb)
   const importantShown = important.slice(0, IMPORTANT_TOP)
 
-  // House overlay — 개인 행성(태양~화성)만 의미. 외행성은 동세대 공통이라
-  // 14살 터울 같은 큰 갭에선 11줄 벽이 통째로 노이즈 → 개인행성만 남기고
-  // 외행성 차이는 건수로 압축.
-  const aMap = new Map<string, number>()
-  const bMap = new Map<string, number>()
-  for (const o of synastry.houseOverlaysAtoB) aMap.set(pko(o.planet), o.inHouse)
-  for (const o of synastry.houseOverlaysBtoA) bMap.set(pko(o.planet), o.inHouse)
-  const overlayDiffs: string[] = []
+  // House overlay — 정통 점성 궁합의 핵심. "A 의 금성이 B 의 7번 하우스
+  // (배우자궁) 에 떨어짐 = 결혼 매력" 식 절대적 신호. 이전 구현은 "양쪽
+  // 차이점만" 출력해서 본질을 놓침. 이제 개인 행성 5개(Sun/Moon/Venus/Mars/
+  // Mercury) 가 상대의 어느 하우스에 떨어지는지 + 그 하우스 의미까지 명시.
+  // 외행성은 동세대 공통이라 생략.
+  const HOUSE_MEANING_KO: Record<number, string> = {
+    1: '자아·인상', 2: '재물·가치', 3: '소통·일상', 4: '가정·뿌리',
+    5: '연애·즐거움', 6: '일·습관', 7: '동반자·결혼', 8: '깊은 결합·변환',
+    9: '신념·확장', 10: '커리어·지위', 11: '친구·미래', 12: '내면·비밀',
+  }
+  const PERSONAL_FOR_OVERLAY = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars'])
+  const overlayLinesAtoB: string[] = []
+  const overlayLinesBtoA: string[] = []
   let outerDiffCount = 0
-  for (const [pl, h] of aMap) {
-    const bh = bMap.get(pl)
-    if (bh == null || bh === h) continue
-    if (PERSONAL_OVERLAY_KO.has(pl))
-      overlayDiffs.push(`${pl} ${labelA}→${labelB} ${h}H · ${labelB}→${labelA} ${bh}H`)
-    else outerDiffCount++
+  for (const o of synastry.houseOverlaysAtoB) {
+    if (!PERSONAL_FOR_OVERLAY.has(o.planet)) {
+      outerDiffCount++
+      continue
+    }
+    overlayLinesAtoB.push(
+      `${labelA} ${pko(o.planet)} → ${labelB} ${o.inHouse}H (${HOUSE_MEANING_KO[o.inHouse]})`
+    )
+  }
+  for (const o of synastry.houseOverlaysBtoA) {
+    if (!PERSONAL_FOR_OVERLAY.has(o.planet)) continue
+    overlayLinesBtoA.push(
+      `${labelB} ${pko(o.planet)} → ${labelA} ${o.inHouse}H (${HOUSE_MEANING_KO[o.inHouse]})`
+    )
   }
   const ascA = signKo(chartA.ascendant?.sign)
   const ascB = signKo(chartB.ascendant?.sign)
@@ -272,14 +285,18 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
       `외행성 동세대 컨정션 ${generationalCount}건 (${[...generationalNames].join('·')}) — 동세대 공통 신호, 해석 비중 낮음`
     )
   }
-  if (overlayDiffs.length === 0) {
-    out.push(`House overlay: 개인행성 배치 차별점 없음 — 유효 차별점은 ${ascLine}`)
+  // House overlay 출력 — [참고] 가 아니라 별도 [CRITICAL] 블록으로 승급.
+  // (정통 점성 궁합의 핵심 신호 — A 의 Venus 가 B 의 7H 에 있으면 결혼
+  // 매력. 이전엔 비중 낮음 tier 에 묻혀 있었음.)
+  out.push(`[CRITICAL — House overlay] ${ascLine}`)
+  if (overlayLinesAtoB.length || overlayLinesBtoA.length) {
+    out.push(...overlayLinesAtoB)
+    out.push(...overlayLinesBtoA)
   } else {
-    out.push(`House overlay (개인행성만 · ${ascLine}):`)
-    out.push(...overlayDiffs)
+    out.push('(개인행성 overlay 데이터 없음)')
   }
   if (outerDiffCount > 0) {
-    out.push(`외행성 House overlay ${outerDiffCount}건은 동세대 공통이라 생략`)
+    out.push(`외행성 ${outerDiffCount}건은 동세대 공통이라 생략`)
   }
 
   return out.join('\n')
