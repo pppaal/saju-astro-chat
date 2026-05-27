@@ -1,6 +1,6 @@
 'use client'
 
-import React, { memo, useEffect } from 'react'
+import React, { memo, useEffect, useRef } from 'react'
 import TarotCard from '@/components/tarot/TarotCard'
 import type { Spread } from '@/lib/tarot/tarot.types'
 import { splitReadableText } from '@/lib/tarot/splitReadableText'
@@ -69,7 +69,20 @@ const InlineTarotModal = memo(function InlineTarotModal({
   // Focus trap for accessibility
   const focusTrapRef = useFocusTrap(isOpen)
 
-  // Keyboard handling and body scroll lock
+  // cleanup 핸들러는 ref 로 잡아 effect deps 에서 빼낸다 — `api` 자체가
+  // useInlineTarotAPI 에서 매 렌더 새 객체 리터럴로 반환돼 reference 가
+  // 불안정. 이 ref 없이 deps 에 `api` 를 그대로 넣으면 effect 가 매 렌더
+  // 재실행되며 cleanup 이 매번 발화 → 진행 중인 interpret-stream fetch 를
+  // 곧장 abort → AbortError 로 setStep('result') 가 안 불려 크리스탈볼
+  // 스피너에서 영원히 멈춤. (메인 타로 페이지가 멀쩡한 이유: 거기는 cleanup
+  // 패턴이 다름.)
+  const cleanupRef = useRef(api.cleanup)
+  useEffect(() => {
+    cleanupRef.current = api.cleanup
+  }, [api.cleanup])
+
+  // Keyboard handling and body scroll lock — 모달 open/close 전이 시점에만
+  // 발화하도록 deps 는 isOpen + onClose 로 한정.
   useEffect(() => {
     if (!isOpen) {
       return
@@ -87,9 +100,10 @@ const InlineTarotModal = memo(function InlineTarotModal({
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
-      api.cleanup()
+      // 모달이 닫히거나 unmount 될 때만 in-flight fetch abort.
+      cleanupRef.current?.()
     }
-  }, [isOpen, onClose, api])
+  }, [isOpen, onClose])
 
   // Handle concern submission (manual select)
   const handleConcernNext = () => {
