@@ -120,9 +120,14 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       const sat = body.find((b) => b.startsWith('Saturn '))
       const stm = sat && POS.exec(sat.replace(/(\d+)°\d+'/, '$1°'))
       if (stm && stm[4]) parts.push(`${pko('Saturn', l)} H${stm[4]}`)
-      // SR 은 어느 해의 return 인지 명시 — 매년 바뀌는 신호라 year 누락 시
+      // SR 은 어느 해의 return 인지 명시 — 매년 바뀌는 signal 이라 year 누락 시
       // LLM 이 "올해/내년" 인지 혼동.
-      if (parts.length) out.push(`${l === 'ko' ? `${year} 솔라리턴 (SR)` : `${year} solar return (SR)`}: ${parts.join(', ')}`)
+      // 라벨에 "H#=SR차트 하우스" 명시 — natal H1 vs SR H6 같은 동일 행성
+      // 다른 H 번호 (SR 차트가 별개라) 가 LLM 한테 모순처럼 보이는 위험 방지.
+      if (parts.length)
+        out.push(
+          `${l === 'ko' ? `${year} 솔라리턴 (SR, H#=SR차트 하우스)` : `${year} solar return (SR, H#=SR-chart house)`}: ${parts.join(', ')}`
+        )
       i = j; continue
     }
 

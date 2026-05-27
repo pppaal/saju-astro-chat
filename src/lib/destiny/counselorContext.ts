@@ -386,16 +386,14 @@ export async function buildDestinyContext(
   const year = localNow.year
   const saju = buildSajuSection(birth, locale, current, year, localNow)
 
-  // Stable birth header — no age, no today (둘 다 daily 쪽으로 이동).
+  // birth identity header 는 [Meta] 와 중복이라 제거 (route.ts 에서 [Meta]
+  // 가 birthDate/birthTime/gender/location/tz/flags 단일 source 로 출력).
+  // tz 는 점성 계산용으로만 사용.
   const lat = birth.latitude ?? 37.5665
   const lon = birth.longitude ?? 126.978
   const tz = birth.timezone ?? 'Asia/Seoul'
-  const gH = birth.gender === 'female' ? '女' : '男'
   const pad = (n: number) => String(n).padStart(2, '0')
   const today = `${localNow.year}-${pad(localNow.month)}-${pad(localNow.day)}`
-  const locTag = birth.birthCityUnknown ? '?' : `${lat.toFixed(2)},${lon.toFixed(2)}`
-  const timeTag = birth.birthTimeUnknown ? '??:??' : birth.birthTime || ''
-  const stableHeader = `# ${birth.birthDate} ${timeTag} ${locTag} ${gH}`
 
   let astroNatal = '' // ## 점성 (static natal chart)
   let astroTiming = '' // moves under ## 타이밍 (transits/eclipses/SR/progression/profection)
@@ -516,7 +514,7 @@ export async function buildDestinyContext(
   // 출생 메타 + 본명 사주 + 본명 점성 + 규칙. 사용자가 birth profile 을
   // 바꾸지 않는 한 동일한 바이트 → Anthropic prompt cache 가 평생 hit.
   const stable =
-    [stableHeader, saju.natal, astroNatal, buildInstructions(locale, saju.dayMasterName)]
+    [saju.natal, astroNatal, buildInstructions(locale, saju.dayMasterName)]
       .filter(Boolean)
       .join('\n\n')
       .trim() + '\n'

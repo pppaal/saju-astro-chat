@@ -82,8 +82,9 @@ async function main() {
     ? '미상'
     : `${PERSON.latitude.toFixed(4)},${PERSON.longitude.toFixed(4)}`
   const timeTag = PERSON.birthTimeUnknown ? '미상' : PERSON.birthTime
+  const genderTag = PERSON.gender === 'female' ? 'F' : 'M'
   parts.push(
-    `[Meta] birthDate: ${PERSON.birthDate} | birthTime: ${timeTag} | location: ${locTag} | timezone: ${SEOUL.timezone} | birthTimeUnknown: ${PERSON.birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${PERSON.birthCityUnknown ? 'true' : 'false'}`
+    `[Meta] birthDate: ${PERSON.birthDate} | birthTime: ${timeTag} | gender: ${genderTag} | location: ${locTag} | timezone: ${SEOUL.timezone} | birthTimeUnknown: ${PERSON.birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${PERSON.birthCityUnknown ? 'true' : 'false'}`
   )
 
   const stableContext = `<birth_data>\n${parts.join('\n')}${split.stable ? `\n\n${split.stable}` : ''}\n</birth_data>`
