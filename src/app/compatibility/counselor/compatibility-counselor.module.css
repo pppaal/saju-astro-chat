@@ -148,6 +148,95 @@
   /* 운명 상담사와 동일 — 가로 패딩을 줄여 글자가 화면을 더 넓게 쓰게. */
   padding: 1rem 0.75rem 0.75rem;
   min-height: 0;
+  /* 우상단 ⋮ 메뉴 absolute 기준점. */
+  position: relative;
+}
+
+/* 대화 우상단 메뉴 (Rename / Delete) — 운명 상담사 PR #621 과 같은 패턴.
+   ChatWrapper top-right 에 떠 있고, 메시지가 있을 때만 렌더된다. */
+.chatMenuArea {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 20;
+}
+
+.chatMenuButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(20, 18, 35, 0.55);
+  backdrop-filter: blur(6px);
+  color: rgba(245, 243, 255, 0.9);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.chatMenuButton:hover {
+  background: rgba(40, 34, 70, 0.78);
+  border-color: rgba(167, 139, 250, 0.4);
+}
+
+.chatMenuDropdown {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  min-width: 160px;
+  background: rgba(20, 18, 35, 0.96);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chatMenuItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: rgba(245, 243, 255, 0.92);
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+.chatMenuItem:hover:not(:disabled) {
+  background: rgba(167, 139, 250, 0.15);
+}
+
+.chatMenuItem:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chatMenuItemDanger {
+  color: #fca5a5;
+}
+
+.chatMenuItemDanger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.18);
+}
+
+.chatMenuIcon {
+  font-size: 0.95rem;
+  opacity: 0.85;
 }
 
 @media (min-width: 1024px) {
