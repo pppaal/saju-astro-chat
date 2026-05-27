@@ -170,7 +170,17 @@ export default function SharedResultPage() {
               {isKo ? '시작하기' : 'Get Started'}
             </Link>
             <Link
-              href={`/${sharedData.type === 'persona' ? 'personality' : sharedData.type}`}
+              href={(() => {
+                // 활성 서비스만 정확히 라우팅. 옛 type(persona/personality/icp/
+                // saju/astrology/numerology/iching/dream)은 폴더가 삭제됐으므로
+                // 대표 채널(destiny-map)로 fallback — 404 방지.
+                const ACTIVE_TYPE_ROUTES: Record<string, string> = {
+                  compatibility: '/compatibility',
+                  tarot: '/tarot',
+                  counselor: '/destiny-counselor',
+                }
+                return ACTIVE_TYPE_ROUTES[sharedData.type] ?? '/destiny-map'
+              })()}
               className="px-6 py-3 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-600 transition"
             >
               {isKo ? `${typeInfo.title} 보러가기` : `Try ${typeInfo.title}`}
