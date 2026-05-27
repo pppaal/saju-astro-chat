@@ -142,6 +142,9 @@ export function useDateDetail(input: {
     }
     // 메인 캘린더와 같은 본명 좌표를 쓰도록 출생지 전달 — fusion 점수를 grid와 동기화.
     if (birthInfo.birthPlace) params.set('birthPlace', birthInfo.birthPlace)
+    // 사용자 timezone 우선 — 해외 거주자가 birthPlace='Seoul' 이라도 현재 timezone
+    // 이 다르면 hour pillar 경계 + "지금" reference line 이 어긋남 (4차 audit).
+    if (birthInfo.timezone) params.set('timezone', birthInfo.timezone)
     params.set('date', target)
 
     void (async () => {
@@ -179,6 +182,7 @@ export function useDateDetail(input: {
     birthInfo?.birthTime,
     birthInfo?.gender,
     birthInfo?.birthPlace,
+    birthInfo?.timezone,
   ])
 
   return { detail, status }

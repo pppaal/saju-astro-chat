@@ -47,13 +47,13 @@ export default function DestinyMatrixPlannerClient() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchCalendar = useCallback(
-    async (info: BirthInfo) => {
+    async (info: BirthInfo, targetYear?: number) => {
       setLoading(true)
       setError(null)
       setYearlyConvergence(undefined)
       setYearlyMonthly(undefined)
       try {
-        const year = new Date().getFullYear()
+        const year = targetYear ?? new Date().getFullYear()
         const params = new URLSearchParams({
           year: String(year),
           locale: lang,
@@ -235,6 +235,17 @@ export default function DestinyMatrixPlannerClient() {
     if (birthInfo.birthDate) void fetchCalendar(birthInfo)
   }, [birthInfo, fetchCalendar])
 
+  // 연도 경계 — 사용자가 cached year 밖으로 이동하면 재호출. early return 위에
+  // 둬야 React Hooks 순서 보장.
+  const handleYearChange = useCallback(
+    (newYear: number) => {
+      if (!birthInfo.birthDate) return
+      if (data?.year === newYear) return
+      void fetchCalendar(birthInfo, newYear)
+    },
+    [birthInfo, data, fetchCalendar]
+  )
+
   if (!hasBirthInfo) {
     return <BrandSplash message={lang === 'ko' ? '홈으로 이동 중…' : 'Redirecting to home…'} />
   }
@@ -268,6 +279,7 @@ export default function DestinyMatrixPlannerClient() {
       birthInfo={birthInfo}
       yearlyConvergence={yearlyConvergence}
       yearlyMonthly={yearlyMonthly}
+      onYearChange={handleYearChange}
     />
   )
 }

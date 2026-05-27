@@ -93,8 +93,11 @@ export default function MonthDashboard({
           }
         : null
 
-    // 1. 테마 radar — 5축 일별 평균
-    const themes: ThemeScore[] = THEME_ORDER.map((key) => {
+    // 1. 테마 radar — 5축 일별 평균.
+    //    신호 없는 테마(cnt===0)를 50으로 fabricate 하면 radar 모양이 거짓말이
+    //    되므로(전 축 50 → 풀 펜타곤), 평균이 가능한 축들의 평균을 fallback 으로
+    //    사용해 형태는 정직하게. missing 목록은 caption 에 disclose.
+    const themeStats = THEME_ORDER.map((key) => {
       let sum = 0
       let cnt = 0
       for (const d of monthDates) {
@@ -104,11 +107,21 @@ export default function MonthDashboard({
           cnt += 1
         }
       }
-      return {
-        name: THEME_KOREAN[key],
-        score: cnt > 0 ? Math.round(sum / cnt) : 50,
-      }
+      return { key, name: THEME_KOREAN[key], present: cnt > 0, score: cnt > 0 ? sum / cnt : null }
     })
+    const presentScores = themeStats.filter((s) => s.score != null).map((s) => s.score as number)
+    const fallbackScore = presentScores.length
+      ? presentScores.reduce((a, b) => a + b, 0) / presentScores.length
+      : 50
+    const themes: ThemeScore[] = themeStats.map((s) => ({
+      name: s.name,
+      score: Math.round(s.present ? (s.score as number) : fallbackScore),
+    }))
+    const missingThemeNames = themeStats.filter((s) => !s.present).map((s) => s.name)
+    const themeCaption =
+      missingThemeNames.length > 0
+        ? `${missingThemeNames.join('·')} 신호 부족 — 다른 축 평균으로 표시했어요.`
+        : undefined
 
     // 2. 일자별 점수 맵 + best/worst
     const byDay = new Map<number, number>()
@@ -123,21 +136,19 @@ export default function MonthDashboard({
     const bestEntry = dayScoreList[0]
     const worstEntry = dayScoreList[dayScoreList.length - 1]
 
-    // 3. 수렴 날 — engine keyEvents 의 window/best/avoid 에서 가져옴
+    // 3. 수렴 날 — interp.convergence.keyDays (점성·사주 양쪽 무거운 날) 우선.
+    // 이전엔 keyEvents.window/best (단순 점수 기반) 를 "수렴" 으로 잘못 라벨링.
+    // bothSystems=true 만 사용해 카드 카피("점성·사주 겹치며") 와 의미 일치.
     const convergenceDays = new Set<number>()
-    for (const d of monthDates) {
-      const ke = d.monthlyInterpretation?.keyEvents
-      if (!ke) continue
-      if (ke.window) {
-        const startDay = parseInt(ke.window.start.split('-')[1] || '0', 10)
-        if (startDay >= 1 && startDay <= daysInMonth) convergenceDays.add(startDay)
-      }
-      // keyEvents.best 도 engine semantic 수렴으로 취급 가능
-      if (ke.best) {
-        const bestDay = parseInt(ke.best.date.split('-')[1] || '0', 10)
-        if (bestDay >= 1 && bestDay <= daysInMonth) convergenceDays.add(bestDay)
-      }
+    let monthConvergenceMeaning: string | null = null
+    const interp = monthDates[0]?.monthlyInterpretation
+    const monthKeyDays = interp?.convergence?.keyDays ?? []
+    const bothSysDays = monthKeyDays.filter((d) => d.bothSystems)
+    for (const day of bothSysDays) {
+      const dayNum = parseInt(day.date.slice(8, 10), 10)
+      if (dayNum >= 1 && dayNum <= daysInMonth) convergenceDays.add(dayNum)
     }
+    monthConvergenceMeaning = bothSysDays[0]?.meaning ?? null
 
     // 4. Flow chart 데이터
     const flowData: FlowPoint[] = Array.from({ length: daysInMonth }, (_, i) => {
@@ -175,7 +186,9 @@ export default function MonthDashboard({
       convergenceList.length > 0
         ? {
             value: convergenceList.map((d) => `${d}일`).join(', '),
-            description: '점성·사주가 겹치며 큰 기회·전환 가능성',
+            // tone-aware — engine 합성 meaning 있으면 그대로 ("기회/시험/전환").
+            // 하드코딩 "큰 기회" 는 caution-toned 수렴일에 거짓말.
+            description: monthConvergenceMeaning ?? '점성·사주가 같은 시기를 가리키는 큰 흐름',
           }
         : undefined
 
@@ -187,6 +200,8 @@ export default function MonthDashboard({
     return {
       grade,
       themes,
+      themeCaption,
+      hasAnyTheme: presentScores.length > 0,
       flowData,
       bestCard,
       cautionCard,
@@ -213,7 +228,14 @@ export default function MonthDashboard({
         breakdown={data.breakdown}
       />
 
-      <ThemeRadar themes={data.themes} />
+      {/* 모든 테마 신호 0이면 radar 안 그림 (풀 펜타곤 회귀 방지) */}
+      {data.hasAnyTheme ? (
+        <ThemeRadar themes={data.themes} caption={data.themeCaption} />
+      ) : (
+        <div className="bg-zinc-900/40 border border-white/10 rounded-2xl p-5 text-center text-sm text-zinc-400">
+          이달 테마 신호가 부족해요.
+        </div>
+      )}
 
       <FlowChart
         data={data.flowData}

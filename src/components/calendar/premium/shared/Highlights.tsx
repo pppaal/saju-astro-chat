@@ -32,6 +32,8 @@ interface Props {
   onBestClick?: () => void
   onCautionClick?: () => void
   onConvergenceClick?: () => void
+  /** convergence 자체를 숨김 — day tier 처럼 수렴 source 가 없는 경우 placeholder 카드를 안 그림. */
+  hideConvergence?: boolean
 }
 
 function Card({
@@ -103,9 +105,12 @@ export default function Highlights({
   onBestClick,
   onCautionClick,
   onConvergenceClick,
+  hideConvergence = false,
 }: Props) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div
+      className={`grid grid-cols-1 gap-3 ${hideConvergence ? 'md:grid-cols-2' : 'md:grid-cols-3'}`}
+    >
       <Card
         tone="emerald"
         icon={<Star size={16} />}
@@ -122,14 +127,16 @@ export default function Highlights({
         description={caution?.description}
         onClick={onCautionClick}
       />
-      <Card
-        tone="purple"
-        icon={<Calendar size={16} />}
-        label={convergenceLabel}
-        value={convergence?.value}
-        description={convergence?.description}
-        onClick={onConvergenceClick}
-      />
+      {!hideConvergence && (
+        <Card
+          tone="purple"
+          icon={<Calendar size={16} />}
+          label={convergenceLabel}
+          value={convergence?.value}
+          description={convergence?.description}
+          onClick={onConvergenceClick}
+        />
+      )}
     </div>
   )
 }

@@ -48,6 +48,11 @@ interface Props {
   year: number
   allDates: ImportantDate[]
   yearlyMonthly?: YearMonthly[]
+  /** "올해 큰 날" — convergence events (planner 가 lazy 로 채움). events[].date 로
+   *  진짜 수렴 달 추출 — keyEvents(같은 텍스트 365일 broadcast)와 다른 source. */
+  yearlyConvergence?: NonNullable<
+    NonNullable<ImportantDate['monthlyInterpretation']>['yearlyConvergence']
+  >
   /** 사용자 출생일 — life timeline 계산용 */
   birthDate?: string | null
   /** engine 현재 대운 라벨 */
@@ -60,6 +65,7 @@ export default function YearDashboard({
   year,
   allDates,
   yearlyMonthly,
+  yearlyConvergence,
   birthDate,
   currentPhaseLabel,
   onMonthClick,
@@ -129,26 +135,51 @@ export default function YearDashboard({
       ? `${bestM.month}월 무렵 흐름이 가장 좋고, ${worstM.month}월은 숨 고르기 좋은 시기예요.`
       : '한 해 흐름이 비교적 고른 편이에요.'
 
-  // 3. Theme radar — 12개월 테마 평균
-  const themes: ThemeScore[] = THEME_ORDER.map((key) => {
-    const sum = yearlyMonthly.reduce((acc, m) => {
+  // 3. Theme radar — 12개월 테마 평균. 신호 없는 테마는 fabricate(50) 대신
+  //    가능한 축들 평균으로 fallback + caption disclose. (Audit 회귀: 풀 펜타곤.)
+  const yearThemeStats = THEME_ORDER.map((key) => {
+    let sum = 0
+    let cnt = 0
+    for (const m of yearlyMonthly) {
       const t = m.themes.find((x) => x.theme === key)
-      return acc + (t?.score ?? 50)
-    }, 0)
-    return { name: THEME_KOREAN[key], score: Math.round(sum / yearlyMonthly.length) }
+      if (t && typeof t.score === 'number') {
+        sum += t.score
+        cnt += 1
+      }
+    }
+    return { name: THEME_KOREAN[key], present: cnt > 0, score: cnt > 0 ? sum / cnt : null }
   })
+  const yearPresentScores = yearThemeStats
+    .filter((s) => s.score != null)
+    .map((s) => s.score as number)
+  const yearFallback = yearPresentScores.length
+    ? yearPresentScores.reduce((a, b) => a + b, 0) / yearPresentScores.length
+    : 50
+  const themes: ThemeScore[] = yearThemeStats.map((s) => ({
+    name: s.name,
+    score: Math.round(s.present ? (s.score as number) : yearFallback),
+  }))
+  const missingYearThemes = yearThemeStats.filter((s) => !s.present).map((s) => s.name)
+  const yearThemeCaption =
+    missingYearThemes.length > 0
+      ? `${missingYearThemes.join('·')} 신호 부족 — 다른 축 평균으로 표시했어요.`
+      : undefined
 
   // 4. Flow chart — 12개월 + reference dot 타입.
-  // best = 점수 1위, caution = 점수 12위, convergence = engine 수렴 신호
-  // (allDates 의 keyEvents 안에 convergence 가 있는 달).
+  // best = 점수 1위, caution = 점수 12위, convergence = 양쪽 수렴(점성·사주
+  // 둘 다 무거운) 큰 날의 월. bothSystems=false (단일축 heavy) 는 "양쪽 수렴"
+  // 의미에 부합 안 해 제외 — 카드 카피("점성·사주 겹치며")와 데이터 의미 일치.
   const convergenceMonths = new Set<number>()
-  for (const d of allDates) {
-    const ke = d.monthlyInterpretation?.keyEvents
-    if (ke?.window) {
-      // window 시작 월을 수렴 월로 표시 (시작점이 흐름 전환점)
-      const m = parseInt(ke.window.start.split('-')[0], 10)
+  let topConvergenceMeaning: string | null = null
+  if (yearlyConvergence?.keyDays) {
+    const bothSysDays = yearlyConvergence.keyDays.filter((d) => d.bothSystems)
+    for (const day of bothSysDays) {
+      const m = parseInt(day.date.slice(5, 7), 10)
       if (m >= 1 && m <= 12) convergenceMonths.add(m)
     }
+    // tone-aware description — engine 가 "기회/시험/전환" 으로 합성한 meaning 사용
+    // (이전엔 "큰 기회" 하드코딩이라 caution-toned 수렴일도 기회로 잘못 표시).
+    topConvergenceMeaning = bothSysDays[0]?.meaning ?? null
   }
 
   const flowData: FlowPoint[] = yearlyMonthly.map((m) => {
@@ -188,7 +219,10 @@ export default function YearDashboard({
   const convergenceCard = convergenceLabel
     ? {
         value: convergenceLabel,
-        description: '점성·사주가 겹치며 큰 기회가 열리는 시기',
+        // tone-aware — meaning 이 있으면 engine 합성 한 줄 ("기회가 열리는/시험받는/
+        // 크게 전환되는"), 없으면 중립적 fallback. "큰 기회" 하드코딩은 caution-toned
+        // 수렴 (시험받는) 케이스에서 거짓말이 됐었음.
+        description: topConvergenceMeaning ?? '점성·사주가 같은 시기를 가리키는 큰 흐름',
       }
     : undefined
 
@@ -197,22 +231,31 @@ export default function YearDashboard({
   // current/past/upcoming phase 까지 결정. 없을 때만 birthDate 기반 폴백.
   let timelineEntries: TimelineEntry[]
   if (engineLifetimePivots && engineLifetimePivots.length > 0) {
-    timelineEntries = engineLifetimePivots
-      .filter((p) => p.phase !== 'past') // 과거는 timeline 에서 숨김 (현재+미래만)
+    // Astro milestones(Saturn return·Jupiter return 등 명명 분기점)는 절대 누락
+    // 금지가 derivation 원칙. 단순 slice(0,6) 하면 daeun 이 6슬롯을 다 차지해
+    // astro 가 잘리는 회귀 — 그래서 astro 4 + daeun 2 reserve 후 age 정렬.
+    const future = engineLifetimePivots.filter((p) => p.phase !== 'past')
+    const bothSys = future.filter((p) => p.bothSystems)
+    const astroOnly = future.filter((p) => p.astro && !p.bothSystems)
+    const daeunOnly = future.filter((p) => p.saju && !p.astro && !p.bothSystems)
+    // 양쪽 수렴(가장 강한 신호) 먼저 → astro 4개 reserve → daeun 2개 reserve → 나머지
+    const selected = [...bothSys.slice(0, 3), ...astroOnly.slice(0, 4), ...daeunOnly.slice(0, 2)]
+      .filter((p, i, arr) => arr.findIndex((x) => x.age === p.age) === i)
+      .sort((a, b) => a.age - b.age)
       .slice(0, 6)
-      .map((p) => ({
-        ageLabel: `${p.age}세`,
-        year: p.year,
-        title: p.label,
-        description:
-          p.meaning ??
-          (p.bothSystems
-            ? '점성·사주 양쪽이 같은 시기를 가리키는 큰 전환'
-            : p.astro
-              ? '점성 라이프사이클 분기점'
-              : '대운 전환 — 10년 흐름의 시작'),
-        active: p.phase === 'current',
-      }))
+    timelineEntries = selected.map((p) => ({
+      ageLabel: `${p.age}세`,
+      year: p.year,
+      title: p.label,
+      description:
+        p.meaning ??
+        (p.bothSystems
+          ? '점성·사주 양쪽이 같은 시기를 가리키는 큰 전환'
+          : p.astro
+            ? '점성 라이프사이클 분기점'
+            : '대운 전환 — 10년 흐름의 시작'),
+      active: p.phase === 'current',
+    }))
   } else {
     timelineEntries = computeLifeTimeline({
       birthDate,
@@ -231,7 +274,18 @@ export default function YearDashboard({
         breakdown={yearBreakdown}
       />
 
-      <ThemeRadar themes={themes} />
+      {/* topClaim chip 제거 — engine matrixContract 가 코어 제거(route.ts:431)로
+          영원히 undefined. 매트릭스 코어 복구 시 다시 추가. */}
+
+      {/* 모든 테마 신호가 0이면 radar 자체를 안 그림 — 가능 축 평균이 곧 50 이라
+          풀 펜타곤 fabricate 회귀가 다시 발생. 빈 카드로 정직하게 표시. */}
+      {yearPresentScores.length > 0 ? (
+        <ThemeRadar themes={themes} caption={yearThemeCaption} />
+      ) : (
+        <div className="bg-zinc-900/40 border border-white/10 rounded-2xl p-5 text-center text-sm text-zinc-400">
+          올해 테마 신호가 부족해요 — 차트 대신 다른 카드로 흐름을 확인하세요.
+        </div>
+      )}
 
       <FlowChart
         data={flowData}

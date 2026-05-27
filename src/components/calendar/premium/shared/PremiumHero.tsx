@@ -33,11 +33,12 @@ interface Props {
   breakdown?: ScoreBreakdown | null
 }
 
-function deriveAgreement(b: ScoreBreakdown): number {
+function deriveAgreement(b: ScoreBreakdown): number | null {
   if (typeof b.agreementPercent === 'number') return Math.round(b.agreementPercent)
-  // 폴백: 두 축 차이가 작을수록 합치도 ↑ (0-100 척도). diff 0 → 100, diff 50 → 0.
-  const diff = Math.abs(b.sajuAxis - b.astroAxis)
-  return Math.max(0, Math.min(100, Math.round(100 - diff * 2)))
+  // 엔진이 합치도를 안 계산했으면 fabricate 안 함 — null 반환해 chip 숨김.
+  // 이전 폴백(100 - diff)은 사주=점성=50(신호 없음) 케이스에서 100% 표시해
+  // "완벽 합치" 거짓말을 만들었음.
+  return null
 }
 
 export default function PremiumHero({
@@ -79,20 +80,26 @@ export default function PremiumHero({
       </div>
 
       {/* 점수 분포 — "이 점수 어떻게 나왔어?" 시각화. 사주축·점성축·합치 chip. */}
-      {breakdown && (
-        <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-white/5 text-[11px]">
-          <span className="text-zinc-500">분포</span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/15 text-amber-200">
-            사주 <span className="font-bold">{Math.round(breakdown.sajuAxis)}</span>
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/15 text-cyan-200">
-            점성 <span className="font-bold">{Math.round(breakdown.astroAxis)}</span>
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-500/10 border border-white/10 text-zinc-300">
-            합치 <span className="font-bold">{deriveAgreement(breakdown)}%</span>
-          </span>
-        </div>
-      )}
+      {breakdown &&
+        (() => {
+          const agreement = deriveAgreement(breakdown)
+          return (
+            <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-white/5 text-[11px]">
+              <span className="text-zinc-500">분포</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/15 text-amber-200">
+                사주 <span className="font-bold">{Math.round(breakdown.sajuAxis)}</span>
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/15 text-cyan-200">
+                점성 <span className="font-bold">{Math.round(breakdown.astroAxis)}</span>
+              </span>
+              {agreement != null && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-500/10 border border-white/10 text-zinc-300">
+                  합치 <span className="font-bold">{agreement}%</span>
+                </span>
+              )}
+            </div>
+          )
+        })()}
     </div>
   )
 }
