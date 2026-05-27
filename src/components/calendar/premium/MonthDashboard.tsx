@@ -201,6 +201,7 @@ export default function MonthDashboard({
       grade,
       themes,
       themeCaption,
+      hasAnyTheme: presentScores.length > 0,
       flowData,
       bestCard,
       cautionCard,
@@ -227,7 +228,14 @@ export default function MonthDashboard({
         breakdown={data.breakdown}
       />
 
-      <ThemeRadar themes={data.themes} caption={data.themeCaption} />
+      {/* 모든 테마 신호 0이면 radar 안 그림 (풀 펜타곤 회귀 방지) */}
+      {data.hasAnyTheme ? (
+        <ThemeRadar themes={data.themes} caption={data.themeCaption} />
+      ) : (
+        <div className="bg-zinc-900/40 border border-white/10 rounded-2xl p-5 text-center text-sm text-zinc-400">
+          이달 테마 신호가 부족해요.
+        </div>
+      )}
 
       <FlowChart
         data={data.flowData}

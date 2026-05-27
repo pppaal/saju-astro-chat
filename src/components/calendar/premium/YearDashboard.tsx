@@ -48,12 +48,15 @@ interface Props {
   year: number
   allDates: ImportantDate[]
   yearlyMonthly?: YearMonthly[]
+  /** "올해 큰 날" — convergence events (planner 가 lazy 로 채움). events[].date 로
+   *  진짜 수렴 달 추출 — keyEvents(같은 텍스트 365일 broadcast)와 다른 source. */
+  yearlyConvergence?: NonNullable<
+    NonNullable<ImportantDate['monthlyInterpretation']>['yearlyConvergence']
+  >
   /** 사용자 출생일 — life timeline 계산용 */
   birthDate?: string | null
   /** engine 현재 대운 라벨 */
   currentPhaseLabel?: string | null
-  /** engine matrixContract.topClaim — 한 해의 "핵심 액션 한 줄" */
-  topClaim?: string | null
   /** 달 클릭 → 그 달 monthly 뷰로 (0-indexed) */
   onMonthClick: (monthIdx: number) => void
 }
@@ -62,9 +65,9 @@ export default function YearDashboard({
   year,
   allDates,
   yearlyMonthly,
+  yearlyConvergence,
   birthDate,
   currentPhaseLabel,
-  topClaim,
   onMonthClick,
 }: Props) {
   const [showTrad, setShowTrad] = useState(false)
@@ -163,14 +166,17 @@ export default function YearDashboard({
       : undefined
 
   // 4. Flow chart — 12개월 + reference dot 타입.
-  // best = 점수 1위, caution = 점수 12위, convergence = engine 수렴 신호
-  // (allDates 의 keyEvents 안에 convergence 가 있는 달).
+  // best = 점수 1위, caution = 점수 12위, convergence = 연간 수렴 큰 날의 월.
+  //
+  // 이전 회귀: monthlyInterpretation.keyEvents 가 한 달 빌드시 1회 만들어져
+  // 365 dates 에 broadcast 됐기 때문에 모든 cell.keyEvents.window.start 가
+  // 동일 → set 사이즈 항상 1, 보라 점 1개만 찍힘. 정직하지 않음.
+  // 수정: yearlyConvergence.keyDays (engine 가 1년 전체에서 뽑은 수렴 날)을
+  // 사용해 진짜 수렴 달 다중 표시.
   const convergenceMonths = new Set<number>()
-  for (const d of allDates) {
-    const ke = d.monthlyInterpretation?.keyEvents
-    if (ke?.window) {
-      // window 시작 월을 수렴 월로 표시 (시작점이 흐름 전환점)
-      const m = parseInt(ke.window.start.split('-')[0], 10)
+  if (yearlyConvergence?.keyDays) {
+    for (const day of yearlyConvergence.keyDays) {
+      const m = parseInt(day.date.slice(5, 7), 10)
       if (m >= 1 && m <= 12) convergenceMonths.add(m)
     }
   }
@@ -264,16 +270,18 @@ export default function YearDashboard({
         breakdown={yearBreakdown}
       />
 
-      {/* topClaim — engine matrixContract 의 "한 해 핵심 액션" 한 줄. payload 에는
-          있지만 안 노출돼 있던 필드. hero 와 별 카드 사이 chip-style 강조. */}
-      {topClaim && topClaim.trim().length > 0 && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-amber-500/8 border border-amber-500/20 rounded-xl">
-          <span className="text-amber-300 text-base shrink-0">💡</span>
-          <p className="text-sm text-amber-100 leading-snug">{topClaim}</p>
+      {/* topClaim chip 제거 — engine matrixContract 가 코어 제거(route.ts:431)로
+          영원히 undefined. 매트릭스 코어 복구 시 다시 추가. */}
+
+      {/* 모든 테마 신호가 0이면 radar 자체를 안 그림 — 가능 축 평균이 곧 50 이라
+          풀 펜타곤 fabricate 회귀가 다시 발생. 빈 카드로 정직하게 표시. */}
+      {yearPresentScores.length > 0 ? (
+        <ThemeRadar themes={themes} caption={yearThemeCaption} />
+      ) : (
+        <div className="bg-zinc-900/40 border border-white/10 rounded-2xl p-5 text-center text-sm text-zinc-400">
+          올해 테마 신호가 부족해요 — 차트 대신 다른 카드로 흐름을 확인하세요.
         </div>
       )}
-
-      <ThemeRadar themes={themes} caption={yearThemeCaption} />
 
       <FlowChart
         data={flowData}

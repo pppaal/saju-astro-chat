@@ -35,10 +35,10 @@ interface Props {
 
 function deriveAgreement(b: ScoreBreakdown): number | null {
   if (typeof b.agreementPercent === 'number') return Math.round(b.agreementPercent)
-  // 폴백 — 두 축 차이 linear. diff 0 → 100, diff 100 → 0.
-  // 이전 *2 buffer 가 diff 20 만으로도 "60% 합치" 라 chip 항상 낮게 보였음.
-  const diff = Math.abs(b.sajuAxis - b.astroAxis)
-  return Math.max(0, Math.min(100, Math.round(100 - diff)))
+  // 엔진이 합치도를 안 계산했으면 fabricate 안 함 — null 반환해 chip 숨김.
+  // 이전 폴백(100 - diff)은 사주=점성=50(신호 없음) 케이스에서 100% 표시해
+  // "완벽 합치" 거짓말을 만들었음.
+  return null
 }
 
 export default function PremiumHero({

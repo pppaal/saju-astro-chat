@@ -34,6 +34,7 @@ import ThemeRadar from './premium/shared/ThemeRadar'
 import Highlights from './premium/shared/Highlights'
 import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
 import { getHourThemeNarrative } from '@/lib/calendar-engine/data/hourThemeNarrative'
+import { getGrade } from './scoreGrade'
 
 // 시진 테마 narrative 선택용 — 그 날 themeScores 의 최고 테마
 type HourTheme = 'love' | 'money' | 'career' | 'health' | 'growth'
@@ -51,7 +52,6 @@ function topHourTheme(themeScores: Partial<Record<string, number>> | undefined):
   }
   return best
 }
-import { getGrade } from './scoreGrade'
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -326,7 +326,7 @@ export default function DestinyMatrixPlanner({
       missing.length > 0
         ? `${missing.join('·')} 신호 부족 — 다른 축 평균으로 표시했어요.`
         : undefined
-    return { themes, caption }
+    return { themes, caption, hasAnyTheme: present.length > 0 }
   }, [selectedImportantDate, fusion])
 
   // Day tier Highlights — 베스트 시간 / 주의 시간. dailyHourlySlots 에서 1개씩.
@@ -594,9 +594,9 @@ export default function DestinyMatrixPlanner({
                 year={viewYear}
                 allDates={data?.allDates ?? []}
                 yearlyMonthly={yearlyMonthly}
+                yearlyConvergence={yearlyConvergence}
                 birthDate={birthInfo?.birthDate}
                 currentPhaseLabel={phaseLabel}
-                topClaim={data?.matrixContract?.topClaim ?? null}
                 onMonthClick={(monthIdx) => {
                   setViewDate(new Date(viewYear, monthIdx, 1))
                   setViewMode('monthly')
@@ -814,8 +814,11 @@ export default function DestinyMatrixPlanner({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {dailyActionPair.doNow && (
                     <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-xl px-3 py-2 flex items-start gap-2">
+                      {/* "지금"(시각 마커) ↔ "추진"(액션) 라벨 분리 — sticky hero,
+                          24h chart reference line, 이 chip 세 곳이 모두 "지금" 이라
+                          충돌해 사용자가 chip 을 시각 마커로 오해할 위험 회피. */}
                       <span className="text-[10px] font-bold text-emerald-300 tracking-wider uppercase shrink-0 mt-0.5">
-                        지금
+                        추진
                       </span>
                       <p className="text-sm text-emerald-100 leading-snug">
                         {dailyActionPair.doNow}
@@ -825,7 +828,7 @@ export default function DestinyMatrixPlanner({
                   {dailyActionPair.watchOut && (
                     <div className="bg-rose-500/8 border border-rose-500/20 rounded-xl px-3 py-2 flex items-start gap-2">
                       <span className="text-[10px] font-bold text-rose-300 tracking-wider uppercase shrink-0 mt-0.5">
-                        조심
+                        보류
                       </span>
                       <p className="text-sm text-rose-100 leading-snug">
                         {dailyActionPair.watchOut}
@@ -841,7 +844,10 @@ export default function DestinyMatrixPlanner({
               {/* 5축 도메인 레이더 — 기존 등급 배너 + 3 도메인 bar 자리. year/month
                   대시보드와 같은 시각 언어로 통일. dailyIndices.score 는 sticky
                   today hero 가 이미 표시하므로 여기선 도메인 분포만. */}
-              <ThemeRadar themes={dayRadarData.themes} caption={dayRadarData.caption} />
+              {/* 신호 0 이면 radar 안 그림 — 풀 펜타곤 fabricate 차단 */}
+              {dayRadarData.hasAnyTheme && (
+                <ThemeRadar themes={dayRadarData.themes} caption={dayRadarData.caption} />
+              )}
 
               {/* 엔진 자기 진단 — 디버그 성격이라 디폴트 접힘. 한 줄 chip 형태로
                   궁금한 사람만 펼치게. */}
