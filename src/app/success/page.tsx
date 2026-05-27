@@ -8,11 +8,31 @@ import { useI18n } from "@/i18n/I18nProvider";
 import BackButton from "@/components/ui/BackButton";
 import styles from "./success.module.css";
 
+// 크레딧 팩별 충전 크레딧 수 — Stripe metadata 의 creditPack 값으로 lookup.
+// pricing 페이지의 PACK_DETAILS 와 동일 (단일 출처 분리 작업은 별도).
+const PACK_CREDITS: Record<string, number> = {
+  mini: 5,
+  standard: 15,
+  plus: 40,
+  mega: 100,
+  ultimate: 250,
+};
+
+// 주문번호 표시용 — Stripe session id (cs_live_...) 그대로 노출하면 길고
+// 내부 식별자 느낌이라, 끝 12자만 대문자로 잘라서 사용자가 CS 문의 시 우리
+// 측에서 검색 가능한 정도로 단축.
+function formatOrderRef(sessionId: string): string {
+  const tail = sessionId.slice(-12).toUpperCase();
+  return tail.match(/.{1,4}/g)?.join("-") ?? tail;
+}
+
 function SuccessContent() {
   const { t } = useI18n();
   const { status, update } = useSession();
   const searchParams = useSearchParams();
   const sessionId = searchParams?.get("session_id") ?? null;
+  const pack = searchParams?.get("pack") ?? null;
+  const credits = pack ? PACK_CREDITS[pack] : null;
   const [returnUrl, setReturnUrl] = useState<string | null>(null);
   const [sessionRefreshed, setSessionRefreshed] = useState(false);
 
@@ -47,7 +67,11 @@ function SuccessContent() {
     }
   }, [sessionId]);
 
-  const goToReadingUrl = returnUrl || "/destiny-map";
+  // 크레딧 부족 모달에서 결제로 넘어온 경우만 "리딩으로 돌아가기" 버튼을
+  // 띄운다. 홈/요금제에서 그냥 결제한 경우는 돌아갈 곳이 없어 버튼이 노이즈.
+  const showReturnButton = Boolean(returnUrl);
+  const packLabel = pack ? t(`success.packs.${pack}`) : null;
+  const creditsLine = credits ? t("success.creditsAdded").replace("{credits}", String(credits)) : null;
 
   return (
     <div className={styles.page}>
@@ -64,17 +88,31 @@ function SuccessContent() {
         <h1 className={styles.title}>{t("success.title")}</h1>
         <p className={styles.message}>{t("success.message")}</p>
 
+        {packLabel && (
+          <p className={styles.message}>
+            {t("success.packLabel")}: <strong>{packLabel}</strong>
+          </p>
+        )}
+        {creditsLine && !packLabel && (
+          <p className={styles.message}>{creditsLine}</p>
+        )}
+
         {sessionId && (
           <p className={styles.sessionInfo}>
-            {t("success.orderRef")}: {sessionId.slice(0, 20)}...
+            {t("success.orderRef")}: {formatOrderRef(sessionId)}
           </p>
         )}
 
         <div className={styles.actions}>
-          <Link href={goToReadingUrl} className={styles.primaryButton}>
-            {t("success.startReading")}
-          </Link>
-          <Link href="/" className={styles.secondaryButton}>
+          {returnUrl && (
+            <Link href={returnUrl} className={styles.primaryButton}>
+              {t("success.startReading")}
+            </Link>
+          )}
+          <Link
+            href="/"
+            className={showReturnButton ? styles.secondaryButton : styles.primaryButton}
+          >
             {t("success.goHome")}
           </Link>
         </div>
