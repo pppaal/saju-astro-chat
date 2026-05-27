@@ -106,8 +106,6 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
     bestM && worstM && bestM.month !== worstM.month
       ? `${bestM.month}월 무렵 흐름이 가장 좋고, ${worstM.month}월은 숨 고르기 좋은 시기예요.`
       : '한 해 흐름이 비교적 고른 편이에요.'
-  const goodMonths = sortedByScore.slice(0, 2).map((m) => m.month)
-  const cautionMonths = sortedByScore.slice(-2).map((m) => m.month)
 
   return (
     <div className="space-y-6">
@@ -178,14 +176,8 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
               />
             </AreaChart>
           </ResponsiveContainer>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-[12px]">
-            <span className="text-emerald-300">
-              <span aria-hidden>🟢</span> 좋은 달 {goodMonths.join('·')}월
-            </span>
-            <span className="text-rose-300">
-              <span aria-hidden>🔴</span> 조심할 달 {cautionMonths.join('·')}월
-            </span>
-          </div>
+          {/* 좋은 달/조심할 달 chip 라인은 아래 "월별 핵심" 리스트와 같은 정보를
+              두 번 노출이라 제거 — 리스트가 점수·테마·클릭 네비까지 가져 더 풍부. */}
         </div>
 
         <div>
