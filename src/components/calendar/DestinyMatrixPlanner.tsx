@@ -131,6 +131,7 @@ export default function DestinyMatrixPlanner({
       data?.calendarDailyView?.date === todayStr
         ? (data.calendarDailyView.oneLineSummary ?? null)
         : (d.summary ?? null)
+    // 점수 분포는 sticky 헤더(공간 좁음)에서는 안 보이고 daily 뷰에서 별도 표시.
     return { score, grade, oneLine }
   }, [data, todayStr])
   const handleHeroClick = useCallback(() => {
@@ -562,7 +563,7 @@ export default function DestinyMatrixPlanner({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
               transition={{ duration: 0.2 }}
-              className="p-6 space-y-6"
+              className="p-5 space-y-4"
             >
               <YearDashboard
                 year={viewYear}
@@ -593,7 +594,7 @@ export default function DestinyMatrixPlanner({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
               transition={{ duration: 0.2 }}
-              className="p-6 space-y-6"
+              className="p-5 space-y-4"
             >
               {/* Premium Dashboard — Hero + Radar + Flow + Highlights.
                   같은 데이터 모델(monthDates, themeScores, keyEvents)을 4개
@@ -743,7 +744,7 @@ export default function DestinyMatrixPlanner({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="p-6 space-y-6"
+              className="p-5 space-y-4"
             >
               <div className="flex items-center justify-between bg-zinc-900/40 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
                 <button

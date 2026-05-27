@@ -20,7 +20,7 @@ import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import type { ImportantDate } from '../types'
 import type { YearMonthly } from '../DestinyMatrixPlanner'
 import { getGrade } from '../scoreGrade'
-import PremiumHero from './shared/PremiumHero'
+import PremiumHero, { type ScoreBreakdown } from './shared/PremiumHero'
 import ThemeRadar, { type ThemeScore } from './shared/ThemeRadar'
 import FlowChart, { type FlowPoint } from './shared/FlowChart'
 import Highlights from './shared/Highlights'
@@ -92,6 +92,33 @@ export default function YearDashboard({
     yearlyMonthly.reduce((a, m) => a + m.score, 0) / yearlyMonthly.length
   )
   const yearGrade = getGrade(yearScore)
+
+  // 1a. 점수 분포 — 1년 모든 일자 scoreBreakdown 평균. "이 점수 어떻게 나왔어?"
+  let sajuSum = 0
+  let astroSum = 0
+  let agreeSum = 0
+  let sbCount = 0
+  let agreeCount = 0
+  for (const d of allDates) {
+    if (d.scoreBreakdown) {
+      sajuSum += d.scoreBreakdown.sajuAxis
+      astroSum += d.scoreBreakdown.astroAxis
+      sbCount += 1
+    }
+    const a = d.evidence?.crossAgreementPercent
+    if (typeof a === 'number') {
+      agreeSum += a
+      agreeCount += 1
+    }
+  }
+  const yearBreakdown: ScoreBreakdown | null =
+    sbCount > 0
+      ? {
+          sajuAxis: sajuSum / sbCount,
+          astroAxis: astroSum / sbCount,
+          agreementPercent: agreeCount > 0 ? agreeSum / agreeCount : null,
+        }
+      : null
 
   // 2. verdict — best/worst 달로 자동 생성
   const sorted = [...yearlyMonthly].sort((a, b) => b.score - a.score)
@@ -201,6 +228,7 @@ export default function YearDashboard({
         verdict={verdict}
         score={yearScore}
         grade={yearGrade}
+        breakdown={yearBreakdown}
       />
 
       <ThemeRadar themes={themes} />
