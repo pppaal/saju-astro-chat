@@ -563,8 +563,8 @@ function ResultStep({
     overallMessage,
     guidance,
     affirmation,
-    isSaving,
-    isSaved,
+    // isSaving/isSaved — 자동 저장 통일 후 UI 안 씀. state 객체에 남아있어
+    // 다른 곳(있다면)에선 여전히 reactive. 여기선 destructure 안 함.
     interpretFailed,
   } = state
   const isKo = lang === 'ko'
@@ -647,17 +647,12 @@ function ResultStep({
         ))}
       </div>
 
-      {/* Draw Again 버튼 + 자동 저장 인디케이터 (저장 버튼은 자동 저장으로
-          통일되며 제거 — 단독 타로 페이지 ActionButtons 와 동일 결). */}
+      {/* Draw Again 버튼 — 자동 저장 도입 후 저장 버튼 + 인디케이터 둘
+          다 제거. 사용자 액션 자리는 "다시 뽑기" 하나만. */}
       <div className={styles.resultTopActions}>
         <button className={styles.drawAgainButton} onClick={onDrawAgain}>
           {tr.drawAgain}
         </button>
-        {isSaving ? (
-          <span className={styles.autoSaveStatus}>{isKo ? '자동 저장 중…' : 'Auto-saving…'}</span>
-        ) : isSaved ? (
-          <span className={styles.autoSaveStatus}>{isKo ? '✓ 저장됨' : '✓ Saved'}</span>
-        ) : null}
       </div>
 
       {/* Overall Message — split into readable paragraphs to match the main
