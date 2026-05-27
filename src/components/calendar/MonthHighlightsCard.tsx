@@ -35,55 +35,56 @@ export default function MonthHighlightsCard({ monthDates, onDayClick, topN = 3 }
   const lucky = ranked.slice(0, topN)
   const unlucky = [...ranked].reverse().slice(0, topN)
 
+  // 좌우 1px 구분선 대신 카드 두 개를 독립으로. 모바일은 세로 스택이라
+  // 좁은 폭에서 두 컬럼이 짓눌리는 문제도 함께 해소. 카드 각자 톤(emerald/rose)
+  // 글로우 보더로 의미 강조.
   return (
-    <div className="bg-zinc-900/40 rounded-2xl border border-white/5 shadow-xl overflow-hidden">
-      <div className="grid grid-cols-2 gap-px bg-white/5">
-        {/* ── 길일 TOP ── */}
-        <div className="bg-zinc-900/60 p-4">
-          <h3 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
-            <TrendingUp className="w-4 h-4" />
-            좋은 날 TOP {topN}
-          </h3>
-          <div className="space-y-2">
-            {lucky.length === 0 ? (
-              <div className="text-xs text-zinc-500 py-2 text-center">데이터 없음</div>
-            ) : (
-              lucky.map((item, i) => (
-                <DayRow
-                  key={item.date.date}
-                  rank={i + 1}
-                  importantDate={item.date}
-                  score={item.score}
-                  tone="positive"
-                  onClick={() => onDayClick(parseDay(item.date.date))}
-                />
-              ))
-            )}
-          </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* ── 길일 TOP ── */}
+      <div className="bg-zinc-900/60 rounded-2xl border border-emerald-500/20 shadow-xl shadow-emerald-900/10 p-4">
+        <h3 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
+          <TrendingUp className="w-4 h-4" />
+          좋은 날 TOP {topN}
+        </h3>
+        <div className="space-y-2">
+          {lucky.length === 0 ? (
+            <div className="text-xs text-zinc-500 py-2 text-center">데이터 없음</div>
+          ) : (
+            lucky.map((item, i) => (
+              <DayRow
+                key={item.date.date}
+                rank={i + 1}
+                importantDate={item.date}
+                score={item.score}
+                tone="positive"
+                onClick={() => onDayClick(parseDay(item.date.date))}
+              />
+            ))
+          )}
         </div>
+      </div>
 
-        {/* ── 흉일 TOP ── */}
-        <div className="bg-zinc-900/60 p-4">
-          <h3 className="text-sm font-bold text-rose-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
-            <TrendingDown className="w-4 h-4" />
-            조심할 날 TOP {topN}
-          </h3>
-          <div className="space-y-2">
-            {unlucky.length === 0 ? (
-              <div className="text-xs text-zinc-500 py-2 text-center">데이터 없음</div>
-            ) : (
-              unlucky.map((item, i) => (
-                <DayRow
-                  key={item.date.date}
-                  rank={i + 1}
-                  importantDate={item.date}
-                  score={item.score}
-                  tone="negative"
-                  onClick={() => onDayClick(parseDay(item.date.date))}
-                />
-              ))
-            )}
-          </div>
+      {/* ── 흉일 TOP ── */}
+      <div className="bg-zinc-900/60 rounded-2xl border border-rose-500/20 shadow-xl shadow-rose-900/10 p-4">
+        <h3 className="text-sm font-bold text-rose-400 mb-3 flex items-center gap-1.5 tracking-wider uppercase">
+          <TrendingDown className="w-4 h-4" />
+          조심할 날 TOP {topN}
+        </h3>
+        <div className="space-y-2">
+          {unlucky.length === 0 ? (
+            <div className="text-xs text-zinc-500 py-2 text-center">데이터 없음</div>
+          ) : (
+            unlucky.map((item, i) => (
+              <DayRow
+                key={item.date.date}
+                rank={i + 1}
+                importantDate={item.date}
+                score={item.score}
+                tone="negative"
+                onClick={() => onDayClick(parseDay(item.date.date))}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

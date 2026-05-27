@@ -162,14 +162,13 @@ export default function DestinyMatrixPlanner({
     return data.allDates.filter((d) => d.date.startsWith(prefix))
   }, [data, viewYear, viewMonth])
 
-  // 등급은 절대 cutoff(57/43, scoreGrade.ts) — yearlyDates.scoreToGrade와 정렬.
-  // grid 강조·하이라이트·일간 흐름 모두 같은 한 cutoff. 사용자 분포 percentile
-  // 기반은 daily narrative grade와 어긋나 카드 안 모순을 만들었기에 폐기.
-  const monthEventSet = useMemo(() => {
-    const out = new Set<number>()
+  // 일자 → 등급 키 룩업 — 셀 히트맵 배경에 사용. 같은 cutoff(getGrade,
+  // 절대 57/43, scoreGrade.ts)라 MonthHighlightsCard/Daily 라벨과 색 의미 일관.
+  const dayGradeMap = useMemo(() => {
+    const out = new Map<number, 'lucky' | 'neutral' | 'unlucky'>()
     for (const d of monthDates) {
-      if (getGrade(pickFinalScore(d)).key !== 'lucky') continue
-      out.add(parseInt(d.date.slice(8, 10), 10))
+      const day = parseInt(d.date.slice(8, 10), 10)
+      out.set(day, getGrade(pickFinalScore(d)).key)
     }
     return out
   }, [monthDates])
@@ -583,10 +582,21 @@ export default function DestinyMatrixPlanner({
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1
                     const isSelected = day === currentDay
-                    // 이벤트 dot은 engine의 monthEventSet 기준만 — 데이터
-                    // 없으면 그냥 점 없음. 이전엔 mock 날짜 6개가 박혀 있어서
-                    // 빈 캘린더에도 가짜 dot이 떴음.
-                    const hasEvent = monthEventSet.has(day)
+                    // 셀 히트맵: 등급별 채도 낮은 톤으로 칠해 캘린더만 봐도
+                    // 이달 흐름이 보이게. MonthlyDailyChart 색 코드와 통일.
+                    const grade = dayGradeMap.get(day)
+                    let gradeClass =
+                      'text-zinc-300 bg-zinc-950/50 hover:bg-zinc-800 border border-white/5'
+                    if (grade === 'lucky') {
+                      gradeClass =
+                        'text-emerald-100 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30'
+                    } else if (grade === 'unlucky') {
+                      gradeClass =
+                        'text-rose-100 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30'
+                    } else if (grade === 'neutral') {
+                      gradeClass =
+                        'text-zinc-200 bg-zinc-800/50 hover:bg-zinc-800 border border-white/5'
+                    }
                     return (
                       <motion.button
                         whileHover={{ scale: 1.1 }}
@@ -596,19 +606,29 @@ export default function DestinyMatrixPlanner({
                         className={`aspect-square flex flex-col items-center justify-center rounded-xl text-sm relative transition-all cursor-pointer ${
                           isSelected
                             ? 'bg-gradient-to-br from-indigo-500 to-cyan-600 text-white font-bold shadow-lg shadow-indigo-500/50 border-transparent'
-                            : 'text-zinc-300 bg-zinc-950/50 hover:bg-zinc-800 border border-white/5'
+                            : gradeClass
                         }`}
                       >
                         {day}
-                        {hasEvent && !isSelected && (
-                          <div className="absolute bottom-1.5 w-1 h-1 rounded-full bg-amber-400 shadow shadow-amber-400/80" />
-                        )}
-                        {hasEvent && isSelected && (
-                          <div className="absolute bottom-1.5 w-1 h-1 rounded-full bg-white shadow shadow-white/80" />
-                        )}
                       </motion.button>
                     )
                   })}
+                </div>
+
+                {/* 색 범례 — 캘린더가 히트맵으로 바뀌었으니 의미 한 줄로. */}
+                <div className="flex items-center justify-center gap-3 mt-4 text-[10px] text-zinc-500">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/40 border border-emerald-400/40" />
+                    좋은 날
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-zinc-800/70 border border-white/10" />
+                    보통
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-sm bg-rose-500/40 border border-rose-400/40" />
+                    조심
+                  </span>
                 </div>
               </div>
 
