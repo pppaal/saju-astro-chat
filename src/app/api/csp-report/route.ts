@@ -80,7 +80,10 @@ export const POST = withApiMiddleware(
       let parsedBody
       try {
         parsedBody = JSON.parse(text)
-      } catch {
+      } catch (err) {
+        logger.warn('[csp-report] JSON parse failed', {
+          err: err instanceof Error ? err.message : String(err),
+        })
         return new NextResponse(null, { status: HTTP_STATUS.BAD_REQUEST })
       }
 

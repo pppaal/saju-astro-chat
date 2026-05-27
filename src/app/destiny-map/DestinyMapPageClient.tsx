@@ -289,7 +289,10 @@ function DestinyMapContent({
       if (selectedCity && !selectedCity.timezone) {
         try {
           tz = await resolveCityTimezone(selectedCity)
-        } catch {}
+        } catch {
+          // timezone resolve 실패 시 그대로 Asia/Seoul fallback 유지 — 사용자
+          // 흐름은 막지 않음. 잦으면 별도 모니터링 필요하므로 silent 가 의도.
+        }
       }
 
       if (!form.birthDate) {

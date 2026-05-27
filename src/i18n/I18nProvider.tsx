@@ -207,7 +207,10 @@ export function I18nProvider({
     writeCookieLocale(locale)
     try {
       localStorage.setItem('locale', locale)
-    } catch {}
+    } catch {
+      // localStorage quota exceeded / disabled (private 모드 등) — 쿠키
+      // fallback 만으로도 동작하므로 silent 의도.
+    }
     if (typeof document !== 'undefined') {
       document.documentElement.lang = locale
       document.documentElement.dir = isRtl(locale) ? 'rtl' : 'ltr'
