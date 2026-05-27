@@ -2,16 +2,17 @@
  * Korean translations - Re-exported from split files for API compatibility
  */
 
-import common from './ko/common.json'
-import landing from './ko/landing.json'
-import chat from './ko/chat.json'
-import services from './ko/services.json'
-import tarot from './ko/tarot.json'
-import calendar from './ko/calendar.json'
-import compatibility from './ko/compatibility.json'
-import destinymap from './ko/destinymap.json'
-import features from './ko/features.json'
-import misc from './ko/misc.json'
+import common from "./ko/common.json";
+import landing from "./ko/landing.json";
+import chat from "./ko/chat.json";
+import services from "./ko/services.json";
+import tarot from "./ko/tarot.json";
+import calendar from "./ko/calendar.json";
+import personality from "./ko/personality.json";
+import compatibility from "./ko/compatibility.json";
+import destinymap from "./ko/destinymap.json";
+import features from "./ko/features.json";
+import misc from "./ko/misc.json";
 
 const koTranslations = {
   ...common,
@@ -20,10 +21,11 @@ const koTranslations = {
   ...services,
   ...tarot,
   ...calendar,
+  ...personality,
   ...compatibility,
   ...destinymap,
   ...features,
   ...misc,
-}
+};
 
-export default koTranslations
+export default koTranslations;

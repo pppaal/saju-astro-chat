@@ -1,4 +1,10 @@
-export type EnabledServiceId = 'destinyMap' | 'tarot' | 'calendar' | 'compatibility'
+export type EnabledServiceId =
+  | 'destinyMap'
+  | 'tarot'
+  | 'report'
+  | 'calendar'
+  | 'compatibility'
+  | 'destinyMatch'
 
 export type EnabledService = {
   id: EnabledServiceId
@@ -36,6 +42,15 @@ const ALL_SERVICES: readonly EnabledService[] = [
     description: { en: 'Tarot Card Reading', ko: '타로 카드 리딩' },
   },
   {
+    id: 'report',
+    href: '/report',
+    icon: '📜',
+    menuKey: 'menu.report',
+    descriptionKey: 'services.report.desc',
+    label: { en: 'Report', ko: '리포트' },
+    description: { en: 'AI Reports (Free/Premium)', ko: 'AI 리포트 (무료/프리미엄)' },
+  },
+  {
     id: 'calendar',
     href: '/calendar',
     icon: '🗓️',
@@ -53,8 +68,22 @@ const ALL_SERVICES: readonly EnabledService[] = [
     label: { en: 'Compatibility Counselor', ko: '궁합 상담사' },
     description: { en: 'Relationship Analysis', ko: '관계 궁합 분석' },
   },
+  {
+    id: 'destinyMatch',
+    href: '/destiny-match',
+    icon: '🪐',
+    menuKey: 'menu.destinyMatch',
+    descriptionKey: 'services.destinyMatch.desc',
+    label: { en: 'Destiny Match', ko: '데스티니 매치' },
+    description: { en: 'Destiny-based matching', ko: '운명 기반 매칭' },
+  },
 ] as const
 
+// destinyMatch is intentionally omitted — the page still exists at
+// /destiny-match for direct deep-links, but it's not surfaced on the
+// main page, services dropdown, or side drawer.
+// report is temporarily omitted too (품질 개선 전까지 숨김) — /report 라우트는
+// 직접 링크용으로 남겨두되 메인·햄버거·사이드드로어에는 노출하지 않는다.
 const ACTIVE_PUBLIC_SERVICE_IDS: readonly EnabledServiceId[] = [
   'destinyMap',
   'tarot',
@@ -68,20 +97,15 @@ export const ENABLED_SERVICES: readonly EnabledService[] = ALL_SERVICES.filter((
   ACTIVE_SERVICE_SET.has(service.id)
 )
 
-// 옛 서비스 경로 — 라우트 폴더 자체는 삭제됨 (Next.js 가 자동 404). 사용자가
-// 옛 URL 을 직접 방문할 때 redirect 또는 안내가 필요하면 middleware/next.config
-// 에서 이 prefix 리스트를 사용한다.
 export const REMOVED_PUBLIC_SERVICE_PREFIXES: readonly string[] = [
-  '/report',
-  '/destiny-match',
-  '/personality',
-  '/icp',
   '/astrology',
   '/saju',
   '/dream',
   '/iching',
   '/past-life',
   '/life-prediction',
+  '/personality',
+  '/icp',
   '/numerology',
   '/myjourney',
   '/destiny-pal',

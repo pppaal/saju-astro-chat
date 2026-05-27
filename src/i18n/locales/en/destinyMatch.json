@@ -1,0 +1,47 @@
+{
+  "destinyMatch": {
+    "title": "Destiny Match",
+    "subtitle": "Find your cosmic connection",
+    "back": "Back",
+    "grid": "Grid",
+    "swipe": "Swipe",
+    "filter": "Filter",
+    "matches": "Matches",
+    "switchToGrid": "Switch to Grid View",
+    "switchToSwipe": "Switch to Swipe View",
+    "showFilters": "Show Filters",
+    "hideFilters": "Hide Filters",
+    "viewMatches": "View your matches",
+    "likes": "Likes",
+    "undo": "Undo",
+    "pass": "Pass",
+    "superLike": "Super Like",
+    "like": "Like",
+    "status": {
+      "loading": "Loading profiles...",
+      "loadingWait": "Please wait a moment",
+      "startTitle": "Start your destined encounter",
+      "startDesc": "We find your perfect match\nbased on Saju and zodiac signs",
+      "signIn": "Sign in to start",
+      "setupTitle": "Create your profile",
+      "setupDesc": "A simple profile setup is needed\nto start matching",
+      "setupButton": "Create Profile",
+      "errorTitle": "An error occurred",
+      "retry": "Try Again"
+    },
+    "noMore": {
+      "empty": "No matches available yet",
+      "emptyDesc": "Please check back later",
+      "done": "You've reviewed all profiles!",
+      "doneDesc": "More connections await you later",
+      "refresh": "Refresh",
+      "viewMatches": "View Matches"
+    },
+    "error": {
+      "title": "Matching Error",
+      "desc": "An error occurred while loading the matching page. Please try again.",
+      "retry": "Try Again",
+      "home": "Home"
+    }
+  }
+}

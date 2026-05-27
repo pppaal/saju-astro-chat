@@ -1,0 +1,141 @@
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(96, 139, 168, 0.2), transparent 38%),
+    radial-gradient(circle at 85% 10%, rgba(168, 211, 189, 0.16), transparent 42%),
+    linear-gradient(160deg, #081019 0%, #0d1823 45%, #101f2d 100%);
+  color: #eef4f8;
+  position: relative;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 3.2rem 1.2rem 4rem;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1rem;
+}
+
+.backButton {
+  position: fixed;
+  top: 0.85rem;
+  left: 0.85rem;
+  z-index: 15;
+}
+
+.loading,
+.emptyState {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.loadingIcon,
+.emptyIcon {
+  width: 2rem;
+  height: 2rem;
+  color: #9dcbe2;
+}
+
+.loadingText {
+  color: rgba(238, 244, 248, 0.78);
+}
+
+.ctaButton {
+  margin-top: 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(174, 214, 235, 0.4);
+  color: #eef4f8;
+  text-decoration: none;
+  padding: 0.7rem 1.1rem;
+  background: rgba(56, 92, 118, 0.35);
+}
+
+.sampleBanner {
+  border: 1px solid rgba(173, 204, 220, 0.35);
+  background: rgba(91, 128, 149, 0.24);
+  color: #d5e9f3;
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.heroSubcopy p {
+  margin: 0.5rem 0 0;
+  color: rgba(232, 241, 246, 0.9);
+  line-height: 1.64;
+  font-size: 0.99rem;
+}
+
+.sectionCard {
+  border: 1px solid rgba(166, 199, 214, 0.22);
+  background: rgba(11, 24, 34, 0.62);
+  border-radius: 14px;
+  padding: 1.1rem 1.14rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 650;
+  color: #eff7fb;
+}
+
+.bodyText {
+  margin: 0.52rem 0 0;
+  color: rgba(235, 244, 249, 0.95);
+  line-height: 1.7;
+  font-size: 1.01rem;
+}
+
+.hintText {
+  margin: 0.5rem 0 0;
+  color: rgba(186, 216, 231, 0.9);
+  font-size: 0.94rem;
+  line-height: 1.63;
+}
+
+.snapshotCell h3 {
+  margin: 0;
+  font-size: 0.94rem;
+  color: #b5d8ea;
+}
+
+.axisHeader h3,
+.axisHeader p {
+  margin: 0;
+}
+
+.axisHeader p {
+  color: #a8cfe3;
+  font-size: 0.95rem;
+}
+
+.twoColumn article h3,
+.planCard h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  color: #c2ddea;
+}
+
+.disclosureBox summary {
+  cursor: pointer;
+  color: #d3e7f1;
+  font-size: 0.96rem;
+}
+
+@media (max-width: 760px) {
+  .container {
+    padding: 2.6rem 0.9rem 3.4rem;
+    gap: 0.75rem;
+  }
+}
