@@ -84,9 +84,9 @@
       "start": "읽기 시작"
     },
     "card": {
-      "reversed": "Reversed",
-      "clickMore": "▼ Click for more",
-      "clickCollapse": "▲ Click to collapse"
+      "reversed": "역방향",
+      "clickMore": "▼ 자세히 보기",
+      "clickCollapse": "▲ 접기"
     },
     "categories": {
       "general-insight": "일반 통찰력",

@@ -261,7 +261,11 @@ export default function TarotChatScreen() {
                           src={info.backImage}
                           alt={info.name}
                           fill
-                          sizes="(max-width: 768px) 30vw, 15vw"
+                          // 컨테이너가 w-24 (96px) md:w-28 (112px) 로 고정 — sizes 도
+                          // 그에 맞춰 줘야 next/image 가 적정 해상도 소스를 고른다
+                          // (이전 30vw/15vw 는 모바일 풀폭 가정이라 768px 에서 ~230px
+                          // 짜리 소스를 받아 2배 낭비).
+                          sizes="(max-width: 768px) 96px, 112px"
                           className="object-cover"
                           priority
                           loading="eager"
