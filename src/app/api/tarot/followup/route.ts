@@ -129,18 +129,12 @@ export const POST = withApiMiddleware(
 
       const systemPrompt = pickTarotFollowupRules(isKo ? 'ko' : 'en')
 
-      // 메인페이지 저장 이름을 DB 에서 직접 조회. creditResult.userId 는
-      // checkAndConsumeCredits 에서 인증된 userId (게스트면 undefined).
-      const callerName = await getUserDisplayName(creditResult?.userId)
-      const callerBlock = callerName
-        ? isKo
-          ? `# 호출자\n${callerName} — 한국어로 답할 때 '${callerName}님'으로 정중히 호명.\n\n`
-          : `# Caller\n${callerName} — address as 'Hi ${callerName},' naturally.\n\n`
-        : ''
-
       // 카드·원래 리딩 정보 = 세션 내 안정 컨텍스트 (cached). question_by_question
       // 동작 위해 history는 진짜 multi-turn (priorTurns)으로 전송.
-      const baseReadingContext = isKo
+      // 호출자 이름은 cachedUserContext 밖 (userPrompt prefix) 에 둠 —
+      // 캐시된 prefix 에 이름이 박히면 유저별로 prompt cache 가 분리되고
+      // 이름 변경시 무효화돼서 hit ratio 가 낮아지는 문제.
+      const readingContext = isKo
         ? `# 원래 리딩
 스프레드: ${spreadTitle}
 원래 질문: ${originalQuestion || '-'}
@@ -155,12 +149,20 @@ Original Question: ${originalQuestion || '-'}
 ## Cards on the table
 ${cardList}
 ${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
-      const readingContext = callerBlock + baseReadingContext
+
+      // 메인페이지 저장 이름을 DB 에서 직접 조회. creditResult.userId 는
+      // checkAndConsumeCredits 에서 인증된 userId (게스트면 undefined).
+      const callerName = await getUserDisplayName(creditResult?.userId)
+      const callerLine = callerName
+        ? isKo
+          ? `[호출자] ${callerName} — 한국어로 답할 때 '${callerName}님'으로 정중히 호명.\n\n`
+          : `[Caller] ${callerName} — address as 'Hi ${callerName},' naturally.\n\n`
+        : ''
 
       const priorTurns = (history || []).map((t) => ({ role: t.role, content: t.content }))
       const userPrompt = isKo
-        ? `# 후속 질문\n${question}\n\n# 답변`
-        : `# Follow-up question\n${question}\n\n# Answer`
+        ? `${callerLine}# 후속 질문\n${question}\n\n# 답변`
+        : `${callerLine}# Follow-up question\n${question}\n\n# Answer`
 
       if (!isClaudeAvailable()) {
         await refundOnLlmFailure(creditResult, 'tarot_llm_unavailable', 'ANTHROPIC_API_KEY missing')

@@ -244,10 +244,13 @@ export async function POST(req: NextRequest) {
   // 월일?" 같은 직접 질문에 틀린 답.
   // "오늘"/일진은 기기 시간대 기준 → 캐시도 그 로컬 날짜로 회전해야 새벽에 안 어긋남.
   // v9: 일진 7일 블록 추가로 컨텍스트 shape 변경(이전 캐시 무효화).
+  // v10: 호출자 이름(userName)을 cached context 에서 제거 → Anthropic
+  // prompt cache prefix 가 차트 데이터만으로 고정. 이전 v9 엔트리에는
+  // 이름이 박혀 있어 캐시 미스 증가 원인이었음.
   const userTz = body.userTimezone || body.timezone || 'Asia/Seoul'
   const localNow = getNowInTimezone(userTz)
   const localDateKey = `${localNow.year}-${localNow.month}-${localNow.day}`
-  const ctxKey = `counselor:ctx:v9:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
+  const ctxKey = `counselor:ctx:v10:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
   let contextText: string | null = await cacheGet<string>(ctxKey)
   if (!contextText) {
     try {
@@ -318,15 +321,6 @@ export async function POST(req: NextRequest) {
       const ageYears = (saju as { ageYears?: number }).ageYears
       if (typeof ageYears === 'number' && Number.isFinite(ageYears)) {
         parts.push(`# 오늘 기준: 만 ${ageYears}세 (한국 ${ageYears + 1}세)`)
-      }
-      // 로그인 사용자의 메인페이지 저장 이름을 DB 에서 직접 조회.
-      // session.user.name 은 JWT 캐시라 메인페이지에서 이름 바꿔도 갱신
-      // 안 됨 — DB 의 최신 User.name 을 써야 즉시 반영된다.
-      const userName = await getUserDisplayName(userId)
-      if (userName) {
-        parts.push(
-          `# 호출자: ${userName} — 한국어로 답할 때 '${userName}님'으로 정중히 호명하고, 영어면 'Hi ${userName},' 식으로 한 번씩 자연스럽게 호명한다.`
-        )
       }
       // ── Destiny counselor layer: SAJU (from raw) + ASTRO/CURRENT
       //    (raw→refined) + reading rules. Replaces the old formatSajuSelf /
@@ -430,9 +424,23 @@ export async function POST(req: NextRequest) {
   // (or none) on the next turn doesn't get a stale cache hit.
   const attachmentText =
     typeof body.cvText === 'string' ? body.cvText.trim().slice(0, MAX_ATTACHMENT_CHARS) : ''
-  const userPrompt = attachmentText
+  // 호출자 이름은 cachedUserContext 밖에서 주입 — DB 의 최신 User.name
+  // (session.user.name 은 JWT 캐시라 변경 즉시 반영 안 됨) 을 매 턴
+  // userPrompt 앞에 붙인다. 이전엔 캐시된 컨텍스트 안에 박혀 있어서
+  // 이름이 prompt-cache prefix 의 일부가 됐고 (a) 유저 간 캐시 공유
+  // 불가, (b) 이름 수정시 다음 세션 캐시 무효화로 cache hit ratio 가
+  // 폭락. 이제 이름은 휘발성 userPrompt prefix 라 Anthropic 의
+  // ephemeral cache prefix 가 유저 무관하게 차트 데이터만으로 안정.
+  const userName = await getUserDisplayName(userId)
+  const callerLine = userName
+    ? lang === 'en'
+      ? `[Caller] ${userName} — address as 'Hi ${userName},' naturally.\n\n`
+      : `[호출자] ${userName} — 한국어로 답할 때 '${userName}님'으로 정중히 호명한다.\n\n`
+    : ''
+  const userPromptBody = attachmentText
     ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserPrompt}`
     : rawUserPrompt
+  const userPrompt = `${callerLine}${userPromptBody}`
 
   // If we charged for a new session but the stream delivers nothing (backend
   // error or empty completion), refund the credit and drop the session marker
