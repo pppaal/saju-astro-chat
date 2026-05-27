@@ -57,7 +57,9 @@ const TENSION_ASPECTS: AspectType[] = ["square", "opposition", "quincunx"];
 function findAspectBetween(
   pA: PlanetBase,
   pB: PlanetBase,
-  aspects: AspectType[] = ["conjunction", "sextile", "square", "trine", "opposition"]
+  // Quincunx (150°) 는 synastry 에서 "조정 필요" 핵심 신호 — major 5 와
+  // 함께 default 에 포함. orb 는 ASPECT_ORBS 에서 별도(기본 ~3°) 로 묶임.
+  aspects: AspectType[] = ["conjunction", "sextile", "square", "trine", "opposition", "quincunx"]
 ): AspectHit | null {
   const diff = shortestAngle(pA.longitude, pB.longitude);
 

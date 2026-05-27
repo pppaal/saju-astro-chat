@@ -668,6 +668,64 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     )
   }
 
+  // ── 지장간 cross — 정통 명리 깊이의 핵심.
+  // 지장간(支藏干): 지지 안에 숨은 천간들. 본기/중기/여기. 표면 천간만이
+  // 아닌 "지지 안의 숨은 관계" 가 진짜 결속·갈등을 만든다. cross 룰:
+  //   1) 한쪽 일간 ↔ 상대 일지 지장간에 들어있으면 "숨은 매혹/통제"
+  //      (특히 정관/정재 십성이면 배우자성 잠재)
+  //   2) 한쪽 일지 지장간의 본기 ↔ 상대 일지 지장간의 본기 합/충
+  //      → 깊은 결속 또는 숨은 갈등
+  const JIJANGGAN_TABLE: Record<string, string[]> = {
+    子: ['癸'],
+    丑: ['癸', '辛', '己'],
+    寅: ['戊', '丙', '甲'],
+    卯: ['乙'],
+    辰: ['乙', '癸', '戊'],
+    巳: ['戊', '庚', '丙'],
+    午: ['己', '丁'],
+    未: ['丁', '乙', '己'],
+    申: ['戊', '壬', '庚'],
+    酉: ['辛'],
+    戌: ['辛', '丁', '戊'],
+    亥: ['戊', '壬'],
+  }
+  const jijangganCrossLines: string[] = []
+  // (1) A 일간이 B 일지 지장간 안에 — 숨은 매혹/통제 결정.
+  if (aDay.stem && bDayBr) {
+    const bDayHidden = JIJANGGAN_TABLE[bDayBr] ?? []
+    if (bDayHidden.includes(aDay.stem)) {
+      jijangganCrossLines.push(
+        `${labelA} 일간(${aDay.stem}) 이 ${labelB} 일지(${bDayBr}) 지장간 [${bDayHidden.join('·')}] 안에 숨어 있음 — 표면엔 안 보여도 ${labelB} 안에 ${labelA} 가 깊이 자리 잡은 관계`
+      )
+    }
+  }
+  if (bDay.stem && aDayBr) {
+    const aDayHidden = JIJANGGAN_TABLE[aDayBr] ?? []
+    if (aDayHidden.includes(bDay.stem)) {
+      jijangganCrossLines.push(
+        `${labelB} 일간(${bDay.stem}) 이 ${labelA} 일지(${aDayBr}) 지장간 [${aDayHidden.join('·')}] 안에 숨어 있음 — 표면엔 안 보여도 ${labelA} 안에 ${labelB} 가 깊이 자리 잡은 관계`
+      )
+    }
+  }
+  // (2) 두 일지 지장간 본기 끼리의 합/충. (본기 = 가장 강한 숨은 천간)
+  if (aDayBr && bDayBr) {
+    const aHidden = JIJANGGAN_TABLE[aDayBr] ?? []
+    const bHidden = JIJANGGAN_TABLE[bDayBr] ?? []
+    const aJeongi = aHidden[aHidden.length - 1] // 본기 = 마지막
+    const bJeongi = bHidden[bHidden.length - 1]
+    if (aJeongi && bJeongi && aJeongi !== aDay.stem && bJeongi !== bDay.stem) {
+      if (STEM_HAP[aJeongi]?.other === bJeongi) {
+        jijangganCrossLines.push(
+          `${labelA} 일지 본기(${aJeongi}) + ${labelB} 일지 본기(${bJeongi}) 합화${STEM_HAP[aJeongi]!.element} — 표면 외에 *지지 깊이* 에서 결속`
+        )
+      } else if (STEM_CHUNG[aJeongi] === bJeongi) {
+        jijangganCrossLines.push(
+          `${labelA} 일지 본기(${aJeongi}) ↔ ${labelB} 일지 본기(${bJeongi}) 충 — 표면은 잠잠해도 *지지 깊이* 에서 부딪힘`
+        )
+      }
+    }
+  }
+
   // ── 조립: 우선순위 티어 ──────────────────────────────────
   const out: string[] = ['== 시너스트리 (사주 cross) ==']
   if (elA && elB) {
@@ -685,6 +743,11 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (shinsalCrossLines.length) {
     out.push('[CRITICAL — 신살 cross (도화·홍염·백호·괴강)]')
     out.push(...shinsalCrossLines)
+    out.push('')
+  }
+  if (jijangganCrossLines.length) {
+    out.push('[CRITICAL — 지장간 cross (지지 깊이의 숨은 관계)]')
+    out.push(...jijangganCrossLines)
     out.push('')
   }
   out.push('[IMPORTANT — 맥락 보강]')
