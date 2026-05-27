@@ -24,7 +24,6 @@ import {
 import type { BirthInfo, CalendarData, EventCategory, ImportantDate } from './types'
 import { ganjiToKorean } from '@/lib/saju/ganjiKo'
 import { useDateDetail } from './useDateDetail'
-import MonthHighlightsCard from './MonthHighlightsCard'
 import YearHighlightsCard from './YearHighlightsCard'
 import YearOverviewCard from './YearOverviewCard'
 import MonthlyInterpretationCard from './MonthlyInterpretationCard'
@@ -91,6 +90,8 @@ export default function DestinyMatrixPlanner({
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
+  // 엔진 자기 진단 카드 — 일반 사용자에겐 디버그 노이즈라 디폴트 접힘.
+  const [showEngineDiag, setShowEngineDiag] = useState(false)
 
   // --- View date (state — prev/next month 이동 가능) -------------------
   // 이전엔 today로 하드코딩돼 month 이동 자체가 안 됐음. 우측 상단 모달의
@@ -102,6 +103,36 @@ export default function DestinyMatrixPlanner({
   )
   const viewYear = viewDate.getFullYear()
   const viewMonth = viewDate.getMonth() // 0-indexed
+
+  // ── "오늘" hero — 헤더 고정. 어느 뷰를 보든 항상 사용자가 "지금 무슨 날인지" 알 수 있게.
+  //    탭하면 daily 뷰로 점프(currentDay/viewDate 동기). 데이터 없으면 hero 숨김.
+  const todayStr = useMemo(() => {
+    const y = today.getFullYear()
+    const m = String(today.getMonth() + 1).padStart(2, '0')
+    const d = String(today.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }, [today])
+  const todayWeekday = useMemo(() => {
+    const days = ['일', '월', '화', '수', '목', '금', '토']
+    return days[today.getDay()]
+  }, [today])
+  const todayHero = useMemo(() => {
+    const d = data?.allDates?.find((x) => x.date === todayStr)
+    if (!d) return null
+    const score = Math.round(pickFinalScore(d))
+    const grade = getGrade(score)
+    const oneLine =
+      data?.calendarDailyView?.date === todayStr
+        ? (data.calendarDailyView.oneLineSummary ?? null)
+        : (d.summary ?? null)
+    return { score, grade, oneLine }
+  }, [data, todayStr])
+  const handleHeroClick = useCallback(() => {
+    const t = new Date()
+    setViewDate(new Date(t.getFullYear(), t.getMonth(), 1))
+    setCurrentDay(t.getDate())
+    setViewMode('daily')
+  }, [])
 
   const goToPrevMonth = useCallback(() => {
     setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
@@ -450,6 +481,42 @@ export default function DestinyMatrixPlanner({
           </button>
         </div>
 
+        {/* "오늘" hero — 탭 위 고정. 항상 사용자가 "지금 무슨 날인지" 알 수 있게.
+            탭하면 daily 뷰로 점프. */}
+        {todayHero && (
+          <button
+            onClick={handleHeroClick}
+            className={`w-full text-left mb-3 rounded-2xl border ${todayHero.grade.borderClass} ${todayHero.grade.bgClass} px-4 py-3 flex items-center gap-3 hover:brightness-110 transition`}
+            aria-label="오늘 상세 보기"
+          >
+            <div className="flex flex-col items-center justify-center min-w-[3.5rem] shrink-0">
+              <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase">
+                오늘
+              </span>
+              <span className="text-base font-black text-zinc-100 leading-none mt-0.5">
+                {today.getMonth() + 1}.{today.getDate()}
+              </span>
+              <span className="text-[10px] text-zinc-500 mt-0.5">{todayWeekday}요일</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline gap-2">
+                <span className={`text-3xl font-black ${todayHero.grade.colorClass} leading-none`}>
+                  {todayHero.score}
+                </span>
+                <span className={`text-sm font-bold ${todayHero.grade.colorClass}`}>
+                  {todayHero.grade.label}
+                </span>
+              </div>
+              {todayHero.oneLine && (
+                <p className="text-xs text-zinc-300 mt-1 line-clamp-2 leading-snug">
+                  {todayHero.oneLine}
+                </p>
+              )}
+            </div>
+            <ChevronRight className="w-5 h-5 text-zinc-500 shrink-0" />
+          </button>
+        )}
+
         {/* View Mode Toggle */}
         <div className="flex bg-zinc-900/50 rounded-xl p-1.5 border border-white/5 backdrop-blur-sm">
           {(['yearly', 'monthly', 'daily'] as const).map((mode) => {
@@ -516,13 +583,8 @@ export default function DestinyMatrixPlanner({
               transition={{ duration: 0.2 }}
               className="p-6 space-y-6"
             >
-              {/* 매일 점수 area chart (yearly view와 시각 일관성) — 오늘 위치 노란 세로 가이드. */}
-              <MonthlyDailyChart
-                monthDates={monthDates}
-                viewYear={viewYear}
-                viewMonth={viewMonth}
-                onDayClick={handleDayClick}
-              />
+              {/* 달력 그리드를 가장 위로 — 사용자가 일자 탭이 가장 actionable한 동작이라
+                  바로 보이는 위치가 맞음. 차트/해석 카드는 아래로. */}
               <div className="bg-zinc-900/60 p-6 rounded-3xl border border-white/5 shadow-2xl">
                 <div className="flex justify-between items-center mb-4 gap-2">
                   <button
@@ -632,9 +694,16 @@ export default function DestinyMatrixPlanner({
                 </div>
               </div>
 
-              {/* 월간 결론 카드 + 좋은 날/조심할 날 TOP 3.
-                  연애/일·돈 날씨 badge는 Daily view의 도메인 지수와 중복돼 제거.
-                  WeeklyTimingChart(주간 평균)은 위 MonthlyDailyChart(일별)에 흡수돼 제거. */}
+              {/* 매일 점수 area chart — 그리드 아래 흐름 보조. yearly view와 시각 일관성. */}
+              <MonthlyDailyChart
+                monthDates={monthDates}
+                viewYear={viewYear}
+                viewMonth={viewMonth}
+                onDayClick={handleDayClick}
+              />
+
+              {/* 월간 결론 카드 — verdict + 테마 강세 + 🎯베스트/💫강한 구간/⚠️피할 날.
+                  점수 정렬 TOP3(MonthHighlightsCard)는 같은 의미를 두 번 노출이라 제거. */}
               <MonthlyInterpretationCard
                 interp={
                   monthDates[0]?.monthlyInterpretation ??
@@ -645,8 +714,6 @@ export default function DestinyMatrixPlanner({
                 summaryText={monthlySummaryText}
                 seed={viewYear * 12 + viewMonth}
               />
-
-              <MonthHighlightsCard monthDates={monthDates} onDayClick={handleDayClick} />
             </motion.div>
           )}
 
@@ -702,22 +769,34 @@ export default function DestinyMatrixPlanner({
               {(() => {
                 const todayGrade = getGrade(dailyIndices.score)
                 return (
-                  <div className="grid grid-cols-5 gap-4">
+                  // 5-col grid 모바일 폭에서 우측 3바가 너무 좁아 % 읽기 힘들었음.
+                  // 등급 카드를 가로 배너로(점수 큰 글자 좌, 라벨/서브 우), 그 아래
+                  // 도메인 3바를 풀폭으로 깔아 가독성 확보.
+                  <div className="space-y-4">
                     <div
-                      className={`col-span-2 p-4 rounded-2xl border flex flex-col items-center justify-center text-center shadow-lg ${todayGrade.bgClass} ${todayGrade.borderClass}`}
+                      className={`p-4 rounded-2xl border flex items-center gap-4 shadow-lg ${todayGrade.bgClass} ${todayGrade.borderClass}`}
                     >
-                      <span className="text-[11px] font-bold text-zinc-400 mb-1 tracking-widest">
-                        오늘의 흐름
-                      </span>
-                      <span
-                        className={`text-2xl font-black ${todayGrade.colorClass} leading-tight`}
-                      >
-                        {todayGrade.label}
-                      </span>
-                      <span className="text-xs text-zinc-400 mt-2">{todayGrade.sub}</span>
+                      <div className="flex flex-col items-center justify-center min-w-[4.5rem] shrink-0">
+                        <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase">
+                          오늘의 흐름
+                        </span>
+                        <span
+                          className={`text-4xl font-black ${todayGrade.colorClass} leading-none mt-1`}
+                        >
+                          {dailyIndices.score}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className={`text-lg font-black ${todayGrade.colorClass} leading-tight`}
+                        >
+                          {todayGrade.label}
+                        </div>
+                        <div className="text-xs text-zinc-400 mt-0.5">{todayGrade.sub}</div>
+                      </div>
                     </div>
 
-                    <div className="col-span-3 bg-zinc-900/60 p-4 rounded-2xl border border-white/5 flex flex-col justify-center space-y-3">
+                    <div className="bg-zinc-900/60 p-4 rounded-2xl border border-white/5 space-y-3">
                       <div>
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-xs font-bold text-zinc-300 flex items-center gap-1">
@@ -771,37 +850,54 @@ export default function DestinyMatrixPlanner({
                 )
               })()}
 
-              {/* Engine self-diagnostic */}
+              {/* 엔진 자기 진단 — 디버그 성격이라 디폴트 접힘. 한 줄 chip 형태로
+                  궁금한 사람만 펼치게. */}
               {dailyEngineSignal && (
-                <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Cpu className="w-4 h-4 text-indigo-400" />
-                    <h3 className="text-sm font-bold text-zinc-200 tracking-wider uppercase">
-                      엔진 자기 진단
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-zinc-950/60 p-4 rounded-xl border border-indigo-500/10">
-                      <div className="text-xs text-zinc-500 mb-1">신뢰도</div>
-                      <div className="text-3xl font-black text-indigo-300">
-                        {dailyEngineSignal.confidence != null
-                          ? `${dailyEngineSignal.confidence}%`
-                          : '—'}
+                <div className="bg-zinc-900/30 rounded-2xl border border-white/5">
+                  <button
+                    onClick={() => setShowEngineDiag((v) => !v)}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-zinc-400 text-xs font-semibold tracking-wider uppercase"
+                  >
+                    <Cpu className="w-3.5 h-3.5 text-indigo-400/80" />
+                    엔진 자기 진단
+                    <span className="ml-auto flex items-center gap-2 text-[11px] text-zinc-500 normal-case">
+                      {dailyEngineSignal.confidence != null && (
+                        <span>신뢰 {dailyEngineSignal.confidence}%</span>
+                      )}
+                      {dailyEngineSignal.sync != null && (
+                        <span>합치 {dailyEngineSignal.sync}%</span>
+                      )}
+                      {showEngineDiag ? (
+                        <ChevronLeft className="w-3.5 h-3.5 rotate-90" />
+                      ) : (
+                        <ChevronRight className="w-3.5 h-3.5 rotate-90" />
+                      )}
+                    </span>
+                  </button>
+                  {showEngineDiag && (
+                    <div className="grid grid-cols-2 gap-3 px-4 pb-4">
+                      <div className="bg-zinc-950/60 p-4 rounded-xl border border-indigo-500/10">
+                        <div className="text-xs text-zinc-500 mb-1">신뢰도</div>
+                        <div className="text-2xl font-black text-indigo-300">
+                          {dailyEngineSignal.confidence != null
+                            ? `${dailyEngineSignal.confidence}%`
+                            : '—'}
+                        </div>
+                        <p className="text-xs text-zinc-500 mt-2 leading-snug">
+                          엔진이 이 예측에 부여한 자체 신뢰도
+                        </p>
                       </div>
-                      <p className="text-xs text-zinc-500 mt-2 leading-snug">
-                        엔진이 이 예측에 부여한 자체 신뢰도
-                      </p>
-                    </div>
-                    <div className="bg-zinc-950/60 p-4 rounded-xl border border-cyan-500/10">
-                      <div className="text-xs text-zinc-500 mb-1">사주↔점성 합치</div>
-                      <div className="text-3xl font-black text-cyan-300">
-                        {dailyEngineSignal.sync != null ? `${dailyEngineSignal.sync}%` : '—'}
+                      <div className="bg-zinc-950/60 p-4 rounded-xl border border-cyan-500/10">
+                        <div className="text-xs text-zinc-500 mb-1">사주↔점성 합치</div>
+                        <div className="text-2xl font-black text-cyan-300">
+                          {dailyEngineSignal.sync != null ? `${dailyEngineSignal.sync}%` : '—'}
+                        </div>
+                        <p className="text-xs text-zinc-500 mt-2 leading-snug">
+                          두 시스템이 같은 방향을 가리키는 정도
+                        </p>
                       </div>
-                      <p className="text-xs text-zinc-500 mt-2 leading-snug">
-                        두 시스템이 같은 방향을 가리키는 정도
-                      </p>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
 
