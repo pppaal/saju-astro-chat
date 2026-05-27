@@ -20,11 +20,11 @@ import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import type { ImportantDate } from '../types'
 import type { YearMonthly } from '../DestinyMatrixPlanner'
 import { getGrade } from '../scoreGrade'
-import PremiumHero from './shared/PremiumHero'
+import PremiumHero, { type ScoreBreakdown } from './shared/PremiumHero'
 import ThemeRadar, { type ThemeScore } from './shared/ThemeRadar'
 import FlowChart, { type FlowPoint } from './shared/FlowChart'
 import Highlights from './shared/Highlights'
-import LifeTimeline from './shared/LifeTimeline'
+import LifeTimeline, { type TimelineEntry } from './shared/LifeTimeline'
 import { computeLifeTimeline } from './shared/lifeTimeline'
 
 const THEME_KOREAN: Record<string, string> = {
@@ -75,6 +75,15 @@ export default function YearDashboard({
     return null
   }, [allDates])
 
+  // 엔진 lifetimePivots — early return 위에 둬야 hooks 순서 일정.
+  const engineLifetimePivots = useMemo(() => {
+    for (const d of allDates) {
+      const p = d.monthlyInterpretation?.lifetimePivots?.pivots
+      if (p && p.length > 0) return p
+    }
+    return null
+  }, [allDates])
+
   // yearlyMonthly 없으면 렌더 안 함 (부모가 폴백)
   if (!yearlyMonthly || yearlyMonthly.length === 0) return null
 
@@ -83,6 +92,33 @@ export default function YearDashboard({
     yearlyMonthly.reduce((a, m) => a + m.score, 0) / yearlyMonthly.length
   )
   const yearGrade = getGrade(yearScore)
+
+  // 1a. 점수 분포 — 1년 모든 일자 scoreBreakdown 평균. "이 점수 어떻게 나왔어?"
+  let sajuSum = 0
+  let astroSum = 0
+  let agreeSum = 0
+  let sbCount = 0
+  let agreeCount = 0
+  for (const d of allDates) {
+    if (d.scoreBreakdown) {
+      sajuSum += d.scoreBreakdown.sajuAxis
+      astroSum += d.scoreBreakdown.astroAxis
+      sbCount += 1
+    }
+    const a = d.evidence?.crossAgreementPercent
+    if (typeof a === 'number') {
+      agreeSum += a
+      agreeCount += 1
+    }
+  }
+  const yearBreakdown: ScoreBreakdown | null =
+    sbCount > 0
+      ? {
+          sajuAxis: sajuSum / sbCount,
+          astroAxis: astroSum / sbCount,
+          agreementPercent: agreeCount > 0 ? agreeSum / agreeCount : null,
+        }
+      : null
 
   // 2. verdict — best/worst 달로 자동 생성
   const sorted = [...yearlyMonthly].sort((a, b) => b.score - a.score)
@@ -156,12 +192,34 @@ export default function YearDashboard({
       }
     : undefined
 
-  // 6. Life timeline
-  const timelineEntries = computeLifeTimeline({
-    birthDate,
-    currentPhaseLabel,
-    thisYear: year,
-  })
+  // 6. Life timeline — engine 의 lifetimePivots(점성 라이프사이클 + 사주 대운 병합)
+  // 가 있으면 우선 사용. 엔진은 ±2년 안에 점성·사주가 겹치면 bothSystems 로 묶고
+  // current/past/upcoming phase 까지 결정. 없을 때만 birthDate 기반 폴백.
+  let timelineEntries: TimelineEntry[]
+  if (engineLifetimePivots && engineLifetimePivots.length > 0) {
+    timelineEntries = engineLifetimePivots
+      .filter((p) => p.phase !== 'past') // 과거는 timeline 에서 숨김 (현재+미래만)
+      .slice(0, 6)
+      .map((p) => ({
+        ageLabel: `${p.age}세`,
+        year: p.year,
+        title: p.label,
+        description:
+          p.meaning ??
+          (p.bothSystems
+            ? '점성·사주 양쪽이 같은 시기를 가리키는 큰 전환'
+            : p.astro
+              ? '점성 라이프사이클 분기점'
+              : '대운 전환 — 10년 흐름의 시작'),
+        active: p.phase === 'current',
+      }))
+  } else {
+    timelineEntries = computeLifeTimeline({
+      birthDate,
+      currentPhaseLabel,
+      thisYear: year,
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -170,6 +228,7 @@ export default function YearDashboard({
         verdict={verdict}
         score={yearScore}
         grade={yearGrade}
+        breakdown={yearBreakdown}
       />
 
       <ThemeRadar themes={themes} />

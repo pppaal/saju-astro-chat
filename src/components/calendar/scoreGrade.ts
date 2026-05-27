@@ -51,16 +51,18 @@ export function computeGradeThresholds(_scores: number[]): GradeThresholds {
   return ABSOLUTE
 }
 
+// 디자인 톤 정리(2026) — 풀 색 saturated 그라데이션이 "옛날 느낌"이라 채도
+// 낮춰 modern flat-glow 로. /30 /40 → /15 /20 / shadow 약화 / 보더 톤 다운.
 const LUCKY: GradeInfo = {
   key: 'lucky',
   label: '좋은 날',
   sub: '받쳐주는 흐름',
   colorClass: 'text-emerald-200',
   bgClass: 'bg-gradient-to-br from-emerald-900/40 to-cyan-900/20',
-  borderClass: 'border-emerald-400/40',
+  borderClass: 'border-emerald-400/20',
   emoji: '☀️',
-  heroBgClass: 'bg-gradient-to-br from-emerald-500/30 via-emerald-950/40 to-zinc-950',
-  heroShadowClass: 'shadow-2xl shadow-emerald-500/20',
+  heroBgClass: 'bg-gradient-to-br from-emerald-500/15 via-zinc-900/60 to-zinc-950',
+  heroShadowClass: 'shadow-xl shadow-emerald-500/10',
 }
 const NEUTRAL: GradeInfo = {
   key: 'neutral',
@@ -68,10 +70,10 @@ const NEUTRAL: GradeInfo = {
   sub: '잔잔한 흐름',
   colorClass: 'text-zinc-100',
   bgClass: 'bg-gradient-to-br from-indigo-950/40 to-zinc-900/40',
-  borderClass: 'border-indigo-400/30',
+  borderClass: 'border-indigo-400/15',
   emoji: '🌗',
-  heroBgClass: 'bg-gradient-to-br from-indigo-500/25 via-indigo-950/40 to-zinc-950',
-  heroShadowClass: 'shadow-xl shadow-indigo-500/15',
+  heroBgClass: 'bg-gradient-to-br from-indigo-500/12 via-zinc-900/60 to-zinc-950',
+  heroShadowClass: 'shadow-lg shadow-indigo-500/10',
 }
 const UNLUCKY: GradeInfo = {
   key: 'unlucky',
@@ -79,10 +81,10 @@ const UNLUCKY: GradeInfo = {
   sub: '무리하지 않기',
   colorClass: 'text-rose-200',
   bgClass: 'bg-gradient-to-br from-rose-900/40 to-zinc-900/40',
-  borderClass: 'border-rose-400/40',
+  borderClass: 'border-rose-400/20',
   emoji: '🌙',
-  heroBgClass: 'bg-gradient-to-br from-rose-500/30 via-rose-950/40 to-zinc-950',
-  heroShadowClass: 'shadow-2xl shadow-rose-500/20',
+  heroBgClass: 'bg-gradient-to-br from-rose-500/15 via-zinc-900/60 to-zinc-950',
+  heroShadowClass: 'shadow-xl shadow-rose-500/10',
 }
 
 /**

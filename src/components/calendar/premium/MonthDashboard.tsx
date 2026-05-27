@@ -16,7 +16,7 @@
 import { useMemo } from 'react'
 import type { ImportantDate } from '../types'
 import { getGrade } from '../scoreGrade'
-import PremiumHero from './shared/PremiumHero'
+import PremiumHero, { type ScoreBreakdown } from './shared/PremiumHero'
 import ThemeRadar, { type ThemeScore } from './shared/ThemeRadar'
 import FlowChart, { type FlowPoint } from './shared/FlowChart'
 import Highlights from './shared/Highlights'
@@ -64,6 +64,34 @@ export default function MonthDashboard({
 
     const grade = getGrade(monthScore)
     const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+    // 0. 점수 분포 — 사주축·점성축·합치도 평균. 엔진 scoreBreakdown 이 일별로
+    //    부착돼 있으므로 그 달 평균. "이 54점이 어떻게 나왔는지" 한눈에.
+    let sajuSum = 0
+    let astroSum = 0
+    let agreeSum = 0
+    let sbCount = 0
+    let agreeCount = 0
+    for (const d of monthDates) {
+      if (d.scoreBreakdown) {
+        sajuSum += d.scoreBreakdown.sajuAxis
+        astroSum += d.scoreBreakdown.astroAxis
+        sbCount += 1
+      }
+      const a = d.evidence?.crossAgreementPercent
+      if (typeof a === 'number') {
+        agreeSum += a
+        agreeCount += 1
+      }
+    }
+    const breakdown: ScoreBreakdown | null =
+      sbCount > 0
+        ? {
+            sajuAxis: sajuSum / sbCount,
+            astroAxis: astroSum / sbCount,
+            agreementPercent: agreeCount > 0 ? agreeSum / agreeCount : null,
+          }
+        : null
 
     // 1. 테마 radar — 5축 일별 평균
     const themes: ThemeScore[] = THEME_ORDER.map((key) => {
@@ -167,6 +195,7 @@ export default function MonthDashboard({
       cautionDay: worstEntry?.[0],
       nowDayLabel,
       daysInMonth,
+      breakdown,
     }
   }, [year, month, monthDates, monthScore])
 
@@ -181,6 +210,7 @@ export default function MonthDashboard({
         verdict={verdict}
         score={monthScore}
         grade={data.grade}
+        breakdown={data.breakdown}
       />
 
       <ThemeRadar themes={data.themes} />
