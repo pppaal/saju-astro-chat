@@ -167,9 +167,20 @@ export function formatCompositeChart(input: CompositeInput): string {
     .map((p) => `${PLANET_KO[p.name] ?? p.name} ${ZODIAC_KO_LABEL[p.sign]}`)
     .join(' · ')
 
+  // Sun-Moon midpoint (정통 점성의 "결혼점·관계 핵점") — 단순 강조용.
+  const compSun = compPlanets.find((p) => p.name === 'Sun')
+  const compMoon = compPlanets.find((p) => p.name === 'Moon')
+  let marriagePointLine = ''
+  if (compSun && compMoon) {
+    const mp = cyclicMidpoint(compSun.longitude, compMoon.longitude)
+    const { sign, degree } = signFromLongitude(mp)
+    marriagePointLine = `[Sun-Moon midpoint = 결혼점·관계 핵점] ${ZODIAC_KO_LABEL[sign]} ${degree}° — 관계의 가장 단단한 정서 축`
+  }
+
   const out: string[] = []
   out.push(`== Composite Chart (관계 entity) — ${pairLabel} ==`)
   out.push(`[배치] ${placementLine}`)
+  if (marriagePointLine) out.push(marriagePointLine)
   if (critical.length) {
     out.push('[CRITICAL — 관계 entity 의 핵심 톤 (orb≤3°)]')
     out.push(...critical)

@@ -73,14 +73,14 @@ const PLANET_KO: Record<string, string> = {
   PartOfFortune: '포춘',
   Vertex: '버텍스',
 }
-// 엔진(synastry.ts)은 5대 메이저 각만 계산 → 그 5개만 매핑. 마이너 각
-// (quincunx/semisextile/quintile)은 산출 안 돼 범례에 넣으면 거짓 신호.
+// 5 major + quincunx (150° "조정 필요" — synastry 핵심 신호) 까지 산출.
 const ASP_SYM: Partial<Record<AspectType, string>> = {
   conjunction: '☌',
   opposition: '☍',
   trine: '△',
   square: '□',
   sextile: '⚹',
+  quincunx: '⚻',
 }
 const IMPORTANT_TOP = 12 // cap the orb≤5 tier so it doesn't sprawl to 30+ lines
 const CRITICAL_TOP = 10 // keep CRITICAL tight; overflow(여전히 orb≤3)은 IMPORTANT로 강등
