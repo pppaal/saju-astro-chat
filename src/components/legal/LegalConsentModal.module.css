@@ -1,7 +1,9 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  /* ConsentBanner (z 1000) 보다 위에 깔리고, Toast (z 10000) 보다는 아래라
+     submit 실패 시 토스트가 모달 위에 떠도 보인다. */
+  z-index: 1100;
   background: rgba(15, 14, 22, 0.78);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
