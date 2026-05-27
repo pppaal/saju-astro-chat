@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
       en: {
         title: 'About DestinyPal — AI Saju, Astrology & Tarot Platform',
         description:
-          'DestinyPal is an AI self-understanding platform that integrates Eastern Saju (Four Pillars), Western astrology, and tarot — diagnose with fate, analyze with psychology, heal with spirituality.',
+          'DestinyPal is an AI self-understanding platform that integrates Eastern Saju (Four Pillars), Western astrology, and tarot — evidence-based readings for reflection, not predictions of fate.',
         keywords: [
           'about destinypal',
           'ai fortune telling',
@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ko: {
         title: '디스티니팔 소개 — AI 사주·점성·타로 플랫폼',
         description:
-          '동양의 사주(사주팔자)와 서양 점성, 타로를 통합한 AI 자기 이해 플랫폼. 운명으로 진단하고, 심리로 분석하며, 영성으로 치유합니다.',
+          '동양의 사주(사주팔자)와 서양 점성, 타로를 통합한 AI 자기 이해 플랫폼. 근거 기반 해석으로 자기 성찰을 돕고, 미래를 단정하지 않습니다.',
         keywords: [
           '디스티니팔 소개',
           'AI 사주',
@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
       canonicalUrl: `${baseUrl}/about`,
       ogImage: '/og-image.png',
     },
-    locale,
+    locale
   )
 }
 
@@ -50,7 +50,7 @@ export default function AboutLayout({ children }: { children: ReactNode }) {
     type: 'WebPage',
     name: 'About DestinyPal',
     description:
-      'Diagnose with Fate, Analyze with Psychology, Heal with Spirituality. AI-powered self-understanding platform.',
+      'Evidence-based AI self-understanding platform combining Eastern Saju, Western astrology, and tarot. For reflection — not predictions of fate.',
     url: `${baseUrl}/about`,
   })
 
