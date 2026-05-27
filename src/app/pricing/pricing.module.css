@@ -169,8 +169,7 @@
 .popularCredit {
   border-color: var(--accent-line);
   background:
-    linear-gradient(180deg, rgba(212, 181, 114, 0.05) 0%, transparent 40%),
-    var(--surface-strong);
+    linear-gradient(180deg, rgba(212, 181, 114, 0.05) 0%, transparent 40%), var(--surface-strong);
 }
 
 .popularCredit:hover {
@@ -215,6 +214,13 @@
   letter-spacing: -0.02em;
   color: var(--text);
   font-variant-numeric: tabular-nums;
+}
+
+.vatNote {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-2);
+  letter-spacing: 0.02em;
 }
 
 .creditBody {
