@@ -402,7 +402,7 @@ export async function POST(req: NextRequest) {
           const ageNote =
             age != null
               ? normalizedLang === 'ko'
-                ? ` (만 ${age}세 / 한국 ${age + 1}세)`
+                ? ` (만 ${age}세)`
                 : ` (age ${age})`
               : ''
           // Person 1 is always the anchor — no relation suffix. For
@@ -459,7 +459,7 @@ export async function POST(req: NextRequest) {
             '- 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.',
             '- 두 데이터가 같은 방향을 가리킬 때 (예: A 사주 목 기운 강함 + A 점성 목성 확장기) 하나의 비유/스토리로 엮는다. 양쪽 따로 나열 X.',
             '- 마크다운 헤더(##)·번호 list 사용 금지. 자연스러운 단락으로.',
-            '- [Meta] 의 birthTimeUnknown=true 면 그쪽 시주/일진/ASC/MC/하우스 인용 금지. birthCityUnknown=true 면 그쪽 위치 의존 결론 금지.',
+            '- [Meta] timeUnknown=true → 그쪽 시주/일진/ASC/MC/하우스 인용 X. cityUnknown=true → 그쪽 위치 의존 결론 X.',
             '- AI/모델/상담사 정체 노출 금지.',
             '- 사용자 메시지가 "🃏 보충 카드 한 장을 더 뽑았어요: **카드명**" 패턴(타로 클래리파이어) 으로 시작하면: 두 사람의 관계 흐름에 그 카드가 어떤 추가 단서를 주는지 같은 톤으로 **한 단락**(2-3 문장) 보충 설명. 카드명·키워드 일반론은 짧게, 시너스트리·맥락 연결을 중심으로. 이미지는 다시 언급/요약 X.',
             '',
@@ -505,7 +505,7 @@ export async function POST(req: NextRequest) {
             '- Fuse saju and astrology in one flow. No system-split.',
             '- When the two systems point the same way for one side (e.g. A saju wood-growth + A Jupiter expansion), weave them into one metaphor/story, not parallel listings.',
             '- No markdown headers (##) or numbered lists. Plain prose paragraphs.',
-            "- If [Meta] has birthTimeUnknown=true for a side: do not cite that side's hour pillar / 일진 / ASC / MC / houses. If birthCityUnknown=true: skip that side's place-dependent claims.",
+            "- [Meta] timeUnknown=true → skip that side's hour pillar / 일진 / ASC / MC / houses. cityUnknown=true → skip that side's place-dependent claims.",
             "- Never reveal you're an AI / model / counselor system.",
             '- If the user message starts with "🃏 One more clarifier card drawn: **CardName**" (tarot clarifier), give a focused **one-paragraph** (2-3 sentences) addition tied to the relationship flow / synastry. Light on generic card meanings, heavy on the two of them in context. Don\'t re-summarize the image.',
             '- Default to plain natural language (avoid jargon like day master, ten gods, daeun, transit, aspect, house). Use the data as evidence but translate it.',
@@ -658,8 +658,10 @@ export async function POST(req: NextRequest) {
       const raw = persons?.[i] as { time?: string; birthTimeUnknown?: boolean } | undefined
       const timeUnknown = !!raw?.birthTimeUnknown || !raw?.time || raw.time === '00:00'
       const cityUnknown = !!seed.source?.usedDefaultLocation
+      // location/timezone 은 LLM 한테 직접 의미 없음 (이미 사주/점성 계산이
+      // 적용된 결과만 전달). unknown 플래그만 가드 룰 위해 명시.
       metaLines.push(
-        `[Meta] ${label}: birthTimeUnknown=${timeUnknown}, birthCityUnknown=${cityUnknown}, location=${seed.latitude.toFixed(4)},${seed.longitude.toFixed(4)}, timezone=${seed.timeZone}`
+        `[Meta] ${label}: timeUnknown=${timeUnknown}, cityUnknown=${cityUnknown}`
       )
     })
     const metaBlock = metaLines.join('\n')
@@ -680,19 +682,20 @@ export async function POST(req: NextRequest) {
       ),
     ].filter(Boolean)
     const personalShinsalBlock = personalShinsalLines.length
-      ? `[개별 신살 — 각자 타고난 것 (self)]\n${personalShinsalLines.join('\n')}`
+      ? `[개별 신살 (self)]\n${personalShinsalLines.join('\n')}`
       : ''
 
+    // 각 블록은 빈 string 일 수 있어 filter(Boolean) 으로 거름. join('\n')
+    // 만으로 블록 사이 한 줄 띄움 (이전엔 prefix \n 추가해 빈 라인 중복).
     const cachedUserContext = [
       `== 참여자 정보 ==`,
       personsInfo,
       metaBlock,
-      personalShinsalBlock ? `\n${personalShinsalBlock}` : '',
-      sajuSynastryBlock ? `\n${sajuSynastryBlock}` : '',
-      astroSynastryBlock ? `\n${astroSynastryBlock}` : '',
-      compositeChartBlock ? `\n${compositeChartBlock}` : '',
-      // legacy fullContext 또는 시간 미상 안내
-      fullContextText ? `\n${fullContextText}` : '',
+      personalShinsalBlock,
+      sajuSynastryBlock,
+      astroSynastryBlock,
+      compositeChartBlock,
+      fullContextText, // legacy fullContext (보통 빈 string)
     ]
       .filter(Boolean)
       .join('\n')
