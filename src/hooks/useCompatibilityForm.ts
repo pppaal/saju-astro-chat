@@ -24,6 +24,9 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
       const next = [...prev]
       next[0] = {
         ...p1,
+        // 메인페이지 BirthInfoModal 에서 등록한 이름이 있으면 자동 채움.
+        // 없을 땐 빈 칸 유지(사용자 직접 입력) — 절대 덮어쓰지 않는다.
+        name: p1.name || home.name || '',
         date: home.birthDate,
         time: home.birthTime || '',
         gender: home.gender === 'female' ? 'F' : 'M',
