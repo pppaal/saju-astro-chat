@@ -3052,16 +3052,11 @@
 }
 
 /* =====================================================================
- * Mobile-only tool buttons in the input toolbar (#286 후속 fix).
- * 데스크탑은 historyRail footer 에 chart/tarot 가 있어서 입력박스의 동일
- * 버튼은 중복. 모바일에서만 보이게.
+ * Input toolbar tool buttons (chart/tarot). Shown on all viewport sizes
+ * — the previous desktop-hide assumed the sidebar footer carried these,
+ * but past-chats list now extends to the auth footer with no duplicate
+ * entry points elsewhere.
  * ===================================================================== */
 .mobileOnlyTool {
   display: inline-flex;
-}
-
-@media (min-width: 1024px) {
-  .mobileOnlyTool {
-    display: none;
-  }
 }

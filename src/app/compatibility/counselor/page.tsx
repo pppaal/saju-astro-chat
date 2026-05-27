@@ -601,13 +601,6 @@ function CompatibilityCounselorContent() {
     }
   }
 
-  // 🃏 클래리파이어 카드 한 장 — 작은 모달이 열려 카드 한 장이 펼쳐지고
-  // 사용자가 확인을 누르면 카드 이미지와 함께 채팅 메시지로 흘려보낸다.
-  // LLM 이 직전 대화 + 두 사람 컨텍스트로 한 단락 보충 해석을 답한다.
-  const openClarifier = useCallback(() => {
-    if (isLoading || persons.length < 2) return
-    setShowClarifierModal(true)
-  }, [isLoading, persons.length])
   const handleClarifierConfirm = useCallback(
     (card: ClarifierCard) => {
       const userText = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
@@ -677,54 +670,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         desktopStatic
         enableGrouping
         lightTheme
-        footerSlot={
-          <>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              onClick={() => setShowTarotModal(true)}
-              disabled={isLoading || persons.length < 2}
-              title={
-                isKo
-                  ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
-                  : 'See your next question in tarot — pick a spread and draw'
-              }
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'🃏'}
-              </span>
-              {isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot'}
-            </button>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              onClick={openClarifier}
-              disabled={isLoading || persons.length < 2}
-              title={
-                isKo
-                  ? '직전 대화 흐름에 클래리파이어 카드 한 장 더 뽑기'
-                  : 'Draw one clarifier card for the current thread'
-              }
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'🃏'}
-              </span>
-              {isKo ? '카드 한 장 더 뽑기' : 'Draw one more card'}
-            </button>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              onClick={() => setShowChartModal(true)}
-              disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
-              title={isKo ? '궁합 차트 보기' : 'View couple chart'}
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'✨'}
-              </span>
-              {isKo ? '궁합 차트' : 'Couple chart'}
-            </button>
-          </>
-        }
       />
       <div className={styles.mainColumn}>
         {/* Header — locale toggle removed (lives on main / entry page only).
