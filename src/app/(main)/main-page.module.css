@@ -320,6 +320,24 @@
     display: none;
   }
 
+  /* iOS Safari 는 input/textarea/select 의 font-size 가 16px 미만이면
+     포커스 시 자동으로 확대(zoom-in) 후 원래대로 안 돌아옴. BirthInfoModal
+     이나 chat input 에서 매번 발생하던 거슬림 → 모바일에서만 16px 강제. */
+  .modalInput,
+  .homeChatTextarea,
+  .modalCancel,
+  .modalSave,
+  input[type='text'],
+  input[type='email'],
+  input[type='number'],
+  input[type='tel'],
+  input[type='date'],
+  input[type='time'],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
   .scrollArrow span {
     animation: none;
   }

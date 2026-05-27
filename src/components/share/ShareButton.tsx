@@ -1,6 +1,28 @@
 'use client'
 
 import { useState } from 'react'
+import { useI18n } from '@/i18n/I18nProvider'
+
+// 알림 문구 — 영문/한문 분기. 이전엔 모든 alert 가 한국어 하드코딩이라
+// 영문 사용자가 공유 누르면 한글 alert 보던 문제 해결.
+const MSG = {
+  ko: {
+    kakaoLoading: '카카오톡 공유 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.',
+    saveAndShare: '이미지를 저장한 후 인스타그램 스토리에 공유해주세요!',
+    imageGenFail: '이미지 생성에 실패했습니다.',
+    imageGenError: '이미지 생성 중 오류가 발생했습니다.',
+    noImage: '공유할 이미지가 없습니다.',
+    linkCopied: '링크가 복사되었습니다!',
+  },
+  en: {
+    kakaoLoading: 'Loading KakaoTalk share — please try again in a moment.',
+    saveAndShare: 'Save the image, then share it to your Instagram Story.',
+    imageGenFail: 'Failed to generate the image.',
+    imageGenError: 'Something went wrong while generating the image.',
+    noImage: 'No image to share.',
+    linkCopied: 'Link copied!',
+  },
+} as const
 
 interface ShareData {
   title: string
@@ -36,6 +58,8 @@ interface ShareButtonPropsWithCard {
 type ShareButtonProps = ShareButtonPropsWithData | ShareButtonPropsWithCard
 
 export function ShareButton(props: ShareButtonProps) {
+  const { locale } = useI18n()
+  const t = MSG[locale === 'ko' ? 'ko' : 'en']
   const [showMenu, setShowMenu] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
 
@@ -78,7 +102,7 @@ export function ShareButton(props: ShareButtonProps) {
         ],
       })
     } else {
-      alert('카카오톡 공유 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.')
+      alert(t.kakaoLoading)
     }
     setShowMenu(false)
   }
@@ -97,21 +121,21 @@ export function ShareButton(props: ShareButtonProps) {
           a.download = props.filename || 'share-card.png'
           a.click()
           URL.revokeObjectURL(url)
-          alert('이미지를 저장한 후 인스타그램 스토리에 공유해주세요!')
+          alert(t.saveAndShare)
         } else {
-          alert('이미지 생성에 실패했습니다.')
+          alert(t.imageGenFail)
         }
       } catch {
-        alert('이미지 생성 중 오류가 발생했습니다.')
+        alert(t.imageGenError)
       } finally {
         setIsGenerating(false)
       }
     } else if (data.imageUrl) {
       // 데이터 모드: 기존 이미지 URL 사용
       window.open(data.imageUrl, '_blank')
-      alert('이미지를 저장한 후 인스타그램 스토리에 공유해주세요!')
+      alert(t.saveAndShare)
     } else {
-      alert('공유할 이미지가 없습니다.')
+      alert(t.noImage)
     }
     setShowMenu(false)
   }
@@ -135,7 +159,7 @@ export function ShareButton(props: ShareButtonProps) {
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl)
-      alert('링크가 복사되었습니다!')
+      alert(t.linkCopied)
     } catch {
       // fallback
       const textarea = document.createElement('textarea')
@@ -144,7 +168,7 @@ export function ShareButton(props: ShareButtonProps) {
       textarea.select()
       document.execCommand('copy')
       document.body.removeChild(textarea)
-      alert('링크가 복사되었습니다!')
+      alert(t.linkCopied)
     }
     setShowMenu(false)
   }
@@ -168,7 +192,9 @@ export function ShareButton(props: ShareButtonProps) {
 
   // Button label: children > label (card mode) > default
   const buttonLabel =
-    children || (isCardMode && 'label' in props ? props.label : null) || '공유하기'
+    children ||
+    (isCardMode && 'label' in props ? props.label : null) ||
+    (locale === 'ko' ? '공유하기' : 'Share')
 
   return (
     <div className="relative inline-block">
@@ -178,18 +204,38 @@ export function ShareButton(props: ShareButtonProps) {
         className={`flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition disabled:opacity-50 ${className}`}
       >
         <ShareIcon />
-        {isGenerating ? '생성 중...' : buttonLabel}
+        {isGenerating ? (locale === 'ko' ? '생성 중...' : 'Generating...') : buttonLabel}
       </button>
 
       {showMenu && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
           <div className="absolute bottom-full left-0 mb-2 bg-gray-900 rounded-lg shadow-xl p-2 z-50 min-w-[160px]">
-            <ShareMenuItem onClick={shareKakao} icon="💬" label="카카오톡" />
-            <ShareMenuItem onClick={shareInstagram} icon="📸" label="인스타그램" />
-            <ShareMenuItem onClick={shareTwitter} icon="𝕏" label="X (트위터)" />
-            <ShareMenuItem onClick={shareFacebook} icon="📘" label="페이스북" />
-            <ShareMenuItem onClick={copyLink} icon="🔗" label="링크 복사" />
+            <ShareMenuItem
+              onClick={shareKakao}
+              icon="💬"
+              label={locale === 'ko' ? '카카오톡' : 'KakaoTalk'}
+            />
+            <ShareMenuItem
+              onClick={shareInstagram}
+              icon="📸"
+              label={locale === 'ko' ? '인스타그램' : 'Instagram'}
+            />
+            <ShareMenuItem
+              onClick={shareTwitter}
+              icon="𝕏"
+              label={locale === 'ko' ? 'X (트위터)' : 'X (Twitter)'}
+            />
+            <ShareMenuItem
+              onClick={shareFacebook}
+              icon="📘"
+              label={locale === 'ko' ? '페이스북' : 'Facebook'}
+            />
+            <ShareMenuItem
+              onClick={copyLink}
+              icon="🔗"
+              label={locale === 'ko' ? '링크 복사' : 'Copy link'}
+            />
           </div>
         </>
       )}

@@ -46,7 +46,9 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
       return
     }
     const query = buildBirthQuery(birthInfo)
-    const initial = trimmed ? `&initialQuestion=${encodeURIComponent(trimmed)}` : ''
+    // useCounselorData 가 `sp.q` 로 읽기 때문에 키 이름 통일. 이전엔
+    // `initialQuestion` 으로 보내서 카운슬러가 빈 채팅으로 열림.
+    const initial = trimmed ? `&q=${encodeURIComponent(trimmed)}` : ''
     router.push(`/destiny-counselor?${query}${initial}`)
   }
 

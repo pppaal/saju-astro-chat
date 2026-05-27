@@ -40,7 +40,10 @@ export function useCounselorData(sp: SearchParams) {
   const rawGender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? ''
   const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? 'ko'
   const lang: Lang = langParam === 'en' ? 'en' : 'ko'
-  const initialQuestion = (Array.isArray(sp.q) ? sp.q[0] : sp.q) ?? ''
+  // 메인페이지 입력 → `&q=...`, destiny-map 경유 → `&initialQuestion=...`.
+  // 둘 다 받아서 어느 쪽이든 카운슬러가 첫 질문을 잃지 않도록.
+  const rawQ = sp.q ?? sp.initialQuestion
+  const initialQuestion = (Array.isArray(rawQ) ? rawQ[0] : rawQ) ?? ''
 
   // Returning users (e.g. opening a saved session from the sidebar)
   // arrive at /destiny-map/counselor without birth params on the URL.
