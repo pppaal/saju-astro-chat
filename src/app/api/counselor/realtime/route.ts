@@ -340,7 +340,9 @@ export async function POST(req: NextRequest) {
       // (PR #204 had made it compact-JSON, this PR makes it a real
       // pipe-table same shape compat counselor uses). Same data,
       // ~5× fewer chars.
-      const parts: string[] = ['[Birth Snapshot]']
+      // [Birth Snapshot] 헤더는 <birth_data> 태그가 이미 같은 의미 전달.
+      // 16 chars 잉여라 제거.
+      const parts: string[] = []
       // Metadata block always present so the system prompt's
       // birthTimeUnknown / birthCityUnknown rules can match on a
       // concrete value (true OR false). Raw birthDate / birthTime /

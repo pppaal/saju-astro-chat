@@ -340,14 +340,14 @@ function buildInstructions(locale: Locale, dayMasterName?: string): string {
       '## LEGEND',
       '- astro symbols: ☌conjunction ⚹sextile □square △trine ☍opposition / R retrograde / (t)current transit / P-Sun, P-Moon = secondary progression / [detriment]=weak [domicile]=strong',
       "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '32~41세 갑술' are the *start~end range* of that 10-yr cycle, NOT the current age. [Profection (Korean age N basis)] N is Korean age (current 만 age + 1), still not current age.",
-      `- ★ Ten-gods anchor: in [Timing], the parens after 세운/월운/일진/iljin lines (e.g. \`(상관/정재)\`) are *ten-gods relative to user's day master ${dayMasterName ?? '?'}*, same convention as the ## DAILY block header.`,
+      `- ★ Ten-gods anchor: every (X/Y) parens in [Timing] (daeun \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운/iljin trailing (X/Y), each row of the daily block) are *ten-gods relative to user's day master ${dayMasterName ?? '?'}* (stem/branch).`,
     ].join('\n')
   }
   return [
     '## 데이터 범례',
     '- 점성 기호: ☌결합 ⚹협력 □긴장 △조화 ☍대립 / R역행 / (t)현재트랜짓 / P태양·P달=2차진행 / [detriment]약 [domicile]강',
     '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 만 현재 나이로 사용. [대운] 의 "32~41세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. [프로펙션 (한국나이 N세 기준)] 의 N도 한국나이라 현재 만나이 + 1.',
-    `- ★ 십성 anchor: [타이밍] 의 세운/월운/일진 줄 끝 괄호 (예: \`(상관/정재)\`) 는 *본인 일간 ${dayMasterName ?? '?'} 기준 십성* — ## 일진 블록 헤더와 같은 규칙.`,
+    `- ★ 십성 anchor: [타이밍] 의 모든 (X/Y) 괄호 (대운의 \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운 끝 (X/Y), 일진 블록 각 줄 (X/Y)) 는 *본인 일간 ${dayMasterName ?? '?'} 기준 천간/지지 십성*.`,
   ].join('\n')
 }
 
@@ -524,9 +524,9 @@ export async function buildDestinyContext(
   // 매일(또는 트랜짓 정밀도에 따라 sub-daily) 변하므로 cached prefix 에
   // 두면 안 됨. 매 턴 새로 만들어 userPrompt 앞에 붙인다.
   const timingBody = [saju.timing, astroTiming].filter(Boolean).join('\n')
-  const timing = timingBody
-    ? `${L(`## 타이밍 (${today})`, `## TIMING (${today})`)}\n\n${timingBody}`
-    : ''
+  // 타이밍 헤더에 날짜 반복 X — 바로 위 `# 오늘: YYYY-MM-DD` 가 이미 동일
+  // 날짜 anchor 제공. 두 곳에 똑같이 출력하면 dup.
+  const timing = timingBody ? `${L('## 타이밍', '## TIMING')}\n\n${timingBody}` : ''
   const dailyAnchor = L(`# 오늘: ${today}`, `# Today: ${today}`)
   const daily = [dailyAnchor, timing, saju.iljinWindow].filter(Boolean).join('\n\n').trim() + '\n'
 
@@ -847,7 +847,9 @@ export function buildSajuSection(
   }
   if (current?.seun) timing.push(periodLine(L('세운', 'Annual'), current.seun, year))
   if (current?.wolun) timing.push(periodLine(L('월운', 'Monthly'), current.wolun))
-  if (current?.iljin) timing.push(periodLine(L('일진', 'Daily'), current.iljin))
+  // 일진 standalone 라인은 `## 일진 8일` 블록 첫 줄(`05-28(오늘) X (X/X)`)
+  // 과 동일 정보라 잉여. 교차 lines (`일진X ↔ ...`) 는 인라인으로 branch 를
+  // 가지고 있어 standalone 없어도 해독 가능. 토큰 절약 + DRY.
   // 교차 — 대운·세운·월운·일진, flat, kind-after
   {
     const relsBy = (src: string) => (current?.relations ?? []).filter((r) => r.source === src)
