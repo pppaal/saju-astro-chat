@@ -212,12 +212,13 @@
   position: relative !important;
   top: auto !important;
   left: auto !important;
-  padding: 0.5rem 0.75rem;
+  /* 패딩 축소 (0.5/0.75rem → 0.35/0.55rem) — 사용자 요청 "조금만 줄여" */
+  padding: 0.35rem 0.55rem;
   background: transparent;
   border: 1px solid rgba(167, 139, 250, 0.3);
   color: #a78bfa;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 7px;
   transition: all 0.2s;
   font-size: 0.85rem;
   z-index: auto !important;
@@ -234,7 +235,8 @@
 }
 
 .backIcon {
-  font-size: 1.25rem;
+  /* 1.25 → 1.05rem — 사각형 같이 살짝 축소 */
+  font-size: 1.05rem;
   line-height: 1;
 }
 

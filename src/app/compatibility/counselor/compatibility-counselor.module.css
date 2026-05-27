@@ -65,12 +65,13 @@
 }
 
 .backButton {
-  padding: 0.5rem 0.75rem;
+  /* 패딩 축소 (사용자 요청 "조금만 줄여") */
+  padding: 0.35rem 0.55rem;
   background: transparent;
   border: 0;
   color: #57534e;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 7px;
   transition: background 0.18s ease;
   font-size: 0.85rem;
   flex-shrink: 0;
