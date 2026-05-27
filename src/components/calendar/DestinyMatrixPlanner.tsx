@@ -215,6 +215,17 @@ export default function DestinyMatrixPlanner({
   const phaseLabel =
     data?.matrixContract?.overallPhaseLabel ?? data?.matrixContract?.overallPhase ?? null
 
+  // Month Hero — 이달 verdict + 점수를 그리드 위 큰 배너로. MonthlyInterpretationCard
+  // 안에 묻혀 있던 verdict를 tier hero로 끌어올림. grade는 monthScore 기준 동일 cutoff.
+  const monthHero = useMemo(() => {
+    if (monthDates.length === 0) return null
+    return {
+      score: monthScore,
+      grade: getGrade(monthScore),
+      summary: monthlySummaryText,
+    }
+  }, [monthDates, monthScore, monthlySummaryText])
+
   // --- Engine-derived: selected day -----------------------------------
   const selectedDateStr = useMemo(
     () =>
@@ -454,21 +465,25 @@ export default function DestinyMatrixPlanner({
       {/* --- Header --- */}
       <div className="px-6 pt-12 pb-4 shrink-0 relative z-20 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
         <div className="flex justify-between items-center mb-4">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-zinc-900 bg-amber-500 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
-                <Sun className="w-3 h-3" /> {ganjiToKorean(natalDayPillar ?? '辛未')} 일주
+          {/* 사주 일주/자리 badge — 풀 색 chip 2개가 hero 위 시각적 노이즈였음.
+              희미한 inline 텍스트로 축소 — 정보는 유지, 비주얼 우선순위 양보. */}
+          <div className="flex items-center gap-1.5 text-[11px] font-medium flex-wrap min-w-0">
+            <span className="inline-flex items-center gap-1 text-amber-300/85">
+              <Sun className="w-3 h-3" />
+              {ganjiToKorean(natalDayPillar ?? '辛未')} 일주
+            </span>
+            {(astroBadge || !data) && <span className="text-zinc-700">·</span>}
+            {astroBadge ? (
+              <span className="inline-flex items-center gap-1 text-cyan-300/85">
+                <Moon className="w-3 h-3" />
+                {astroBadge.label}
               </span>
-              {astroBadge ? (
-                <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
-                  <Moon className="w-3 h-3" /> {astroBadge.label}
-                </span>
-              ) : !data ? (
-                <span className="text-xs font-bold text-zinc-900 bg-cyan-400 px-2.5 py-1 rounded-md tracking-wide flex items-center gap-1.5">
-                  <Moon className="w-3 h-3" /> 물병자리 ASC
-                </span>
-              ) : null}
-            </div>
+            ) : !data ? (
+              <span className="inline-flex items-center gap-1 text-cyan-300/85">
+                <Moon className="w-3 h-3" />
+                물병자리 ASC
+              </span>
+            ) : null}
           </div>
 
           <button
@@ -481,39 +496,42 @@ export default function DestinyMatrixPlanner({
           </button>
         </div>
 
-        {/* "오늘" hero — 탭 위 고정. 항상 사용자가 "지금 무슨 날인지" 알 수 있게.
-            탭하면 daily 뷰로 점프. */}
+        {/* "오늘" Hero — 헤더 sticky, 모든 뷰 위. 디자인 시스템 토큰(heroBgClass +
+            heroShadowClass + emoji)으로 시각 임팩트 풀로. 점수는 text-5xl 큰 글자. */}
         {todayHero && (
           <button
             onClick={handleHeroClick}
-            className={`w-full text-left mb-3 rounded-2xl border ${todayHero.grade.borderClass} ${todayHero.grade.bgClass} px-4 py-3 flex items-center gap-3 hover:brightness-110 transition`}
+            className={`w-full text-left mb-3 rounded-2xl border ${todayHero.grade.borderClass} ${todayHero.grade.heroBgClass} ${todayHero.grade.heroShadowClass} px-4 py-3.5 flex items-center gap-4 hover:brightness-110 transition`}
             aria-label="오늘 상세 보기"
           >
-            <div className="flex flex-col items-center justify-center min-w-[3.5rem] shrink-0">
-              <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase">
-                오늘
-              </span>
-              <span className="text-base font-black text-zinc-100 leading-none mt-0.5">
-                {today.getMonth() + 1}.{today.getDate()}
-              </span>
-              <span className="text-[10px] text-zinc-500 mt-0.5">{todayWeekday}요일</span>
-            </div>
+            <span className="text-4xl shrink-0 leading-none" aria-hidden>
+              {todayHero.grade.emoji}
+            </span>
             <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-2">
-                <span className={`text-3xl font-black ${todayHero.grade.colorClass} leading-none`}>
+              <div className="flex items-baseline gap-2 leading-none">
+                <span className={`text-5xl font-black ${todayHero.grade.colorClass}`}>
                   {todayHero.score}
                 </span>
-                <span className={`text-sm font-bold ${todayHero.grade.colorClass}`}>
+                <span className={`text-base font-black ${todayHero.grade.colorClass}`}>
                   {todayHero.grade.label}
                 </span>
               </div>
               {todayHero.oneLine && (
-                <p className="text-xs text-zinc-300 mt-1 line-clamp-2 leading-snug">
+                <p className="text-xs text-zinc-200 mt-1.5 line-clamp-1 leading-snug">
                   {todayHero.oneLine}
                 </p>
               )}
             </div>
-            <ChevronRight className="w-5 h-5 text-zinc-500 shrink-0" />
+            <div className="flex flex-col items-end shrink-0 leading-none">
+              <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase">
+                오늘
+              </span>
+              <span className="text-sm font-black text-zinc-100 mt-0.5">
+                {today.getMonth() + 1}.{today.getDate()}
+              </span>
+              <span className="text-[10px] text-zinc-500 mt-0.5">{todayWeekday}</span>
+              <ChevronRight className="w-4 h-4 text-zinc-500 mt-1.5" />
+            </div>
           </button>
         )}
 
@@ -583,8 +601,38 @@ export default function DestinyMatrixPlanner({
               transition={{ duration: 0.2 }}
               className="p-6 space-y-6"
             >
-              {/* 달력 그리드를 가장 위로 — 사용자가 일자 탭이 가장 actionable한 동작이라
-                  바로 보이는 위치가 맞음. 차트/해석 카드는 아래로. */}
+              {/* Month Hero — tier 전용 큰 배너. 이달 점수·grade·한 줄 verdict를
+                  그리드 위에 하나의 큰 시각 임팩트로. emoji anchor + heroBg + glow. */}
+              {monthHero && (
+                <div
+                  className={`rounded-3xl border ${monthHero.grade.borderClass} ${monthHero.grade.heroBgClass} ${monthHero.grade.heroShadowClass} px-5 py-5 flex items-center gap-4`}
+                >
+                  <span className="text-5xl shrink-0 leading-none" aria-hidden>
+                    {monthHero.grade.emoji}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase mb-1">
+                      {monthLabel}
+                    </div>
+                    <div className="flex items-baseline gap-2.5 leading-none">
+                      <span className={`text-6xl font-black ${monthHero.grade.colorClass}`}>
+                        {monthHero.score}
+                      </span>
+                      <span className={`text-xl font-black ${monthHero.grade.colorClass}`}>
+                        {monthHero.grade.label}
+                      </span>
+                    </div>
+                    {monthHero.summary && (
+                      <p className="text-sm text-zinc-200 mt-2.5 leading-snug line-clamp-2">
+                        {monthHero.summary}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 달력 그리드 — 사용자가 일자 탭이 가장 actionable한 동작이라
+                  hero 바로 아래에. 차트/해석 카드는 그 다음. */}
               <div className="bg-zinc-900/60 p-6 rounded-3xl border border-white/5 shadow-2xl">
                 <div className="flex justify-between items-center mb-4 gap-2">
                   <button
