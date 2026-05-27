@@ -411,29 +411,36 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   }
 
   // 5. 12신살 → IMPORTANT (방향별 1줄 압축)
+  // 각 항목을 `${pillar}지 ${branch}=${label}` 형태로 — 과거 `오육해`
+  // 처럼 branch+label 을 붙여 쓰면 "오 육해" 인지 "오육해(한 단어)" 인지
+  // 구분 안 돼 LLM 이 잘못 파싱. = 로 명확히 분리.
   if (aDay.branch) {
     const items: string[] = []
     for (let j = 0; j < 4; j++) {
       if (!B[j].branch) continue
       const lbl = twelveShinsalLabel(aDay.branch, B[j].branch)
-      if (lbl) items.push(`${B[j].branch}${lbl}`)
+      if (lbl) items.push(`${PILLAR_LABELS[j]}지 ${B[j].branch}=${lbl}`)
     }
-    if (items.length) important.push(`12신살 ${labelA} 일지 ${aDay.branch} 기준 → ${labelB}: ${items.join('·')}`)
+    if (items.length) important.push(`12신살 ${labelA} 일지 ${aDay.branch} 기준 → ${labelB}: ${items.join(' · ')}`)
   }
   if (bDay.branch) {
     const items: string[] = []
     for (let i = 0; i < 4; i++) {
       if (!A[i].branch) continue
       const lbl = twelveShinsalLabel(bDay.branch, A[i].branch)
-      if (lbl) items.push(`${A[i].branch}${lbl}`)
+      if (lbl) items.push(`${PILLAR_LABELS[i]}지 ${A[i].branch}=${lbl}`)
     }
-    if (items.length) important.push(`12신살 ${labelB} 일지 ${bDay.branch} 기준 → ${labelA}: ${items.join('·')}`)
+    if (items.length) important.push(`12신살 ${labelB} 일지 ${bDay.branch} 기준 → ${labelA}: ${items.join(' · ')}`)
   }
 
   // 6. 현재 대운 cross → IMPORTANT
+  // 나이 표기는 `시작~끝세` 범위로 (cycle 10년). 단순 `32세` 면 LLM 이
+  // "현재 32세" 로 오인용 — sajuTableFormatter 와 동일 fix.
   if (input.currentDaeunA && input.currentDaeunB) {
     const dA = input.currentDaeunA, dB = input.currentDaeunB
-    important.push(`현재 대운: ${labelA} ${dA.age ?? '?'}세 ${dA.stem}${dA.branch} · ${labelB} ${dB.age ?? '?'}세 ${dB.stem}${dB.branch}`)
+    const ageRange = (age?: number) =>
+      typeof age === 'number' ? `${age}~${age + 9}세` : '?세'
+    important.push(`현재 대운: ${labelA} ${ageRange(dA.age)} ${dA.stem}${dA.branch} · ${labelB} ${ageRange(dB.age)} ${dB.stem}${dB.branch}`)
     if (STEM_HAP[dA.stem]?.other === dB.stem) important.push(`대운 천간 ${dA.stem}${dB.stem}合化${STEM_HAP[dA.stem]!.element} (흐름 결속)`)
     if (STEM_CHUNG[dA.stem] === dB.stem) important.push(`대운 천간충 (시기 흐름 충돌)`)
     if (BRANCH_HAP[dA.branch]?.other === dB.branch) important.push(`대운 지지 ${dA.branch}${dB.branch}합 (결속)`)

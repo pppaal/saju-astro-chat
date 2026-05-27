@@ -152,8 +152,11 @@ export function formatCompositeChart(input: CompositeInput): string {
 
   const critical: string[] = []
   const important: string[] = []
+  // 각 줄을 [C] prefix 로 시작 — composite 은 entity 의 내부 aspect 라
+  // synastry (A·B cross) 와 *완전히 다른 종류* 의 신호. 줄만 떼어보면
+  // "달 ☍ 수성" 이 A·B synastry 처럼 보여 LLM 이 잘못 인용할 위험.
   const lineOf = (h: (typeof hits)[number]): string =>
-    `${PLANET_KO[h.from.name] ?? h.from.name} ${ASP_SYM[h.type] ?? h.type} ${PLANET_KO[h.to.name] ?? h.to.name} ${h.orb.toFixed(1)}°`
+    `[C] ${PLANET_KO[h.from.name] ?? h.from.name} ${ASP_SYM[h.type] ?? h.type} ${PLANET_KO[h.to.name] ?? h.to.name} ${h.orb.toFixed(1)}°`
 
   for (const h of hits) {
     if (h.orb <= 3) critical.push(lineOf(h))
