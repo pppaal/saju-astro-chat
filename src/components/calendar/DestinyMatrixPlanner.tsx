@@ -1,8 +1,7 @@
 'use client'
 
-import React, { useState, useMemo, useCallback, Fragment } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Dialog, Transition } from '@headlessui/react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -18,7 +17,6 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
-  X,
 } from 'lucide-react'
 
 import type { BirthInfo, CalendarData, ImportantDate } from './types'
@@ -62,6 +60,9 @@ interface DestinyMatrixPlannerProps {
   yearlyConvergence?: NonNullable<ImportantDate['monthlyInterpretation']>['yearlyConvergence']
   /** 월별 요약(v2) — 연간 수렴과 함께 지연 로드. yearly 뷰 흐름·이유에 사용. */
   yearlyMonthly?: YearMonthly[]
+  /** 사용자가 캐시된 연도 밖으로 이동했을 때 parent 가 재호출하도록 신호.
+   *  Dec → 다음 달이 다음 해 1월이라 빈 그리드만 보이던 회귀 차단. */
+  onYearChange?: (year: number) => void
 }
 
 export type YearMonthly = {
@@ -88,10 +89,10 @@ export default function DestinyMatrixPlanner({
   birthInfo,
   yearlyConvergence,
   yearlyMonthly,
+  onYearChange,
 }: DestinyMatrixPlannerProps = {}) {
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
-  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
   // 엔진 자기 진단 카드 — 일반 사용자에겐 디버그 노이즈라 디폴트 접힘.
   const [showEngineDiag, setShowEngineDiag] = useState(false)
   // 시간대 자세히 — 디폴트 접힘. Highlights 가 best/caution Top1 만 보여줌으로
@@ -109,6 +110,14 @@ export default function DestinyMatrixPlanner({
   )
   const viewYear = viewDate.getFullYear()
   const viewMonth = viewDate.getMonth() // 0-indexed
+
+  // 연도 경계 — 사용자가 cached year (data.year) 밖으로 이동하면 parent 에
+  // 새 연도 fetch 신호. 이전엔 Dec → 다음 달 가면 빈 그리드만 보이던 dead-end.
+  useEffect(() => {
+    if (data && data.year !== viewYear && onYearChange) {
+      onYearChange(viewYear)
+    }
+  }, [viewYear, data, onYearChange])
 
   // ── "오늘" hero — 헤더 고정. 어느 뷰를 보든 항상 사용자가 "지금 무슨 날인지" 알 수 있게.
   //    탭하면 daily 뷰로 점프(currentDay/viewDate 동기). 데이터 없으면 hero 숨김.
@@ -519,7 +528,7 @@ export default function DestinyMatrixPlanner({
         {todayHero && (
           <button
             onClick={handleHeroClick}
-            className={`w-full text-left mb-3 rounded-2xl border ${todayHero.grade.borderClass} ${todayHero.grade.heroBgClass} ${todayHero.grade.heroShadowClass} px-4 py-3.5 flex items-center gap-4 hover:brightness-110 transition`}
+            className={`w-full text-left mb-3 rounded-2xl border ${todayHero.grade.borderClass} ${todayHero.grade.heroBgClass} ${todayHero.grade.heroShadowClass} px-4 py-3.5 flex items-center gap-4 hover:brightness-110 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400`}
             aria-label="오늘 상세 보기"
           >
             <span className="text-4xl shrink-0 leading-none" aria-hidden>
@@ -560,8 +569,10 @@ export default function DestinyMatrixPlanner({
             return (
               <button
                 key={mode}
+                type="button"
                 onClick={() => setViewMode(mode)}
-                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                aria-pressed={viewMode === mode}
+                className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                   viewMode === mode
                     ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg shadow-indigo-900/50'
                     : 'text-zinc-500 hover:text-zinc-300'
@@ -598,7 +609,11 @@ export default function DestinyMatrixPlanner({
                 birthDate={birthInfo?.birthDate}
                 currentPhaseLabel={phaseLabel}
                 onMonthClick={(monthIdx) => {
+                  // currentDay clamp — Mar 31 에서 Feb 로 점프할 때 selectedDateStr
+                  // 가 '2026-02-31' 되어 daily 카드 전체가 비어 보이던 회귀 (4차 audit).
+                  const lastDay = new Date(viewYear, monthIdx + 1, 0).getDate()
                   setViewDate(new Date(viewYear, monthIdx, 1))
+                  setCurrentDay((d) => Math.min(d, lastDay))
                   setViewMode('monthly')
                 }}
               />
@@ -637,7 +652,7 @@ export default function DestinyMatrixPlanner({
 
               {/* 달력 그리드 — actionable surface. 대시보드 highlights 와 함께
                   사용자가 일자 탭으로 daily 뷰 진입. */}
-              <div className="bg-zinc-900/60 p-6 rounded-3xl border border-white/5 shadow-2xl">
+              <div className="bg-zinc-900/60 p-4 sm:p-6 rounded-3xl border border-white/5 shadow-2xl">
                 <div className="flex justify-between items-center mb-4 gap-2">
                   <button
                     onClick={goToPrevMonth}
@@ -689,7 +704,7 @@ export default function DestinyMatrixPlanner({
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-2">
+                <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
                   {Array.from({ length: leadingBlanks }).map((_, i) => (
                     <div key={`empty-${i}`} className="aspect-square" />
                   ))}
@@ -701,15 +716,19 @@ export default function DestinyMatrixPlanner({
                     const grade = dayGradeMap.get(day)
                     let gradeClass =
                       'text-zinc-300 bg-zinc-950/50 hover:bg-zinc-800 border border-white/5'
+                    let gradeLabel = ''
                     if (grade === 'lucky') {
                       gradeClass =
                         'text-emerald-100 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30'
+                      gradeLabel = ', 좋은 날'
                     } else if (grade === 'unlucky') {
                       gradeClass =
                         'text-rose-100 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30'
+                      gradeLabel = ', 조심할 날'
                     } else if (grade === 'neutral') {
                       gradeClass =
                         'text-zinc-200 bg-zinc-800/50 hover:bg-zinc-800 border border-white/5'
+                      gradeLabel = ', 보통'
                     }
                     return (
                       <motion.button
@@ -717,7 +736,9 @@ export default function DestinyMatrixPlanner({
                         whileTap={{ scale: 0.9 }}
                         key={day}
                         onClick={() => handleDayClick(day)}
-                        className={`aspect-square flex flex-col items-center justify-center rounded-xl text-sm relative transition-all cursor-pointer ${
+                        aria-label={`${viewMonth + 1}월 ${day}일${gradeLabel}${isSelected ? ', 선택됨' : ''}`}
+                        aria-current={isSelected ? 'date' : undefined}
+                        className={`aspect-square min-h-[40px] flex flex-col items-center justify-center rounded-xl text-sm relative transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                           isSelected
                             ? 'bg-gradient-to-br from-indigo-500 to-cyan-600 text-white font-bold shadow-lg shadow-indigo-500/50 border-transparent'
                             : gradeClass
@@ -779,9 +800,11 @@ export default function DestinyMatrixPlanner({
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <div
-                  className="flex flex-col items-center cursor-pointer"
+                <button
+                  type="button"
                   onClick={() => setViewMode('monthly')}
+                  aria-label={`${monthLabel} ${currentDay}일 ${getDayOfWeek(currentDay)} — 달력으로 이동`}
+                  className="flex flex-col items-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-xl px-2"
                 >
                   <span className="text-xs font-bold text-indigo-500/80 mb-1 tracking-widest">
                     {monthLabel}
@@ -792,7 +815,7 @@ export default function DestinyMatrixPlanner({
                       {getDayOfWeek(currentDay)}
                     </span>
                   </h2>
-                </div>
+                </button>
                 <button
                   onClick={handleNextDay}
                   className="p-3 hover:bg-zinc-800 rounded-xl text-zinc-400 transition-all"
@@ -1064,104 +1087,10 @@ export default function DestinyMatrixPlanner({
       </div>
 
       {/* --- Headless UI Calendar Modal --- */}
-      <Transition appear show={isCalendarModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setIsCalendarModalOpen(false)}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-sm transform overflow-hidden rounded-3xl bg-zinc-900 border border-zinc-700 p-6 text-left align-middle shadow-2xl transition-all">
-                  <div className="flex justify-between items-center mb-6">
-                    <Dialog.Title
-                      as="h3"
-                      className="text-lg font-bold text-white flex items-center gap-2"
-                    >
-                      <Calendar className="w-5 h-5 text-indigo-400" />월 이동
-                    </Dialog.Title>
-                    <button
-                      onClick={() => setIsCalendarModalOpen(false)}
-                      className="text-zinc-400 hover:text-white p-1"
-                      aria-label="닫기"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  {/* 현재 보고 있는 달 + prev/next */}
-                  <div className="bg-zinc-950 rounded-2xl p-5 border border-zinc-800">
-                    <div className="flex items-center justify-between mb-5">
-                      <button
-                        onClick={() => {
-                          goToPrevMonth()
-                          setIsCalendarModalOpen(false)
-                        }}
-                        className="p-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/5 text-zinc-200 transition"
-                        aria-label="이전 달"
-                      >
-                        <ChevronLeft className="w-5 h-5" />
-                      </button>
-                      <div className="text-center">
-                        <div className="text-[11px] text-zinc-500 tracking-widest uppercase mb-1">
-                          보는 달
-                        </div>
-                        <div className="text-xl font-black text-white tracking-wide">
-                          {monthLabel}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          goToNextMonth()
-                          setIsCalendarModalOpen(false)
-                        }}
-                        className="p-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/5 text-zinc-200 transition"
-                        aria-label="다음 달"
-                      >
-                        <ChevronRight className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        goToThisMonth()
-                        setIsCalendarModalOpen(false)
-                      }}
-                      disabled={isThisMonth}
-                      className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white rounded-xl font-bold transition-colors"
-                    >
-                      {isThisMonth ? '이번 달입니다' : '이번 달로 가기'}
-                    </button>
-
-                    {birthInfo?.birthDate && (
-                      <p className="mt-4 text-[11px] text-zinc-500 text-center">
-                        기준 생년월일 · {birthInfo.birthDate}
-                      </p>
-                    )}
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
+      {/* dead "월 이동" 모달 제거 (audit 4차) — setIsCalendarModalOpen(true) 호출이
+          어디에도 없어 영원히 unreachable 했음. 100+ LOC + Headless UI Dialog tree
+          가 번들에 포함돼 a11y 와 무관하게 무용. 헤더 "캘린더" 버튼은 monthly 탭으로
+          이동 (기존 동작) 으로 충분. */}
     </div>
   )
 }
