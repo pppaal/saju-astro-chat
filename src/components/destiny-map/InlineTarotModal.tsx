@@ -118,7 +118,10 @@ const InlineTarotModal = memo(function InlineTarotModal({
 
   // Handle completion
   const handleComplete = () => {
-    if (onComplete && state.selectedSpread) {
+    // overallMessage 가 아직 비어있는 상태에서 사용자가 "대화 계속하기" 를
+    // 눌렀다면 (streaming 끝나기 전 클릭) 부모 채팅에 빈 메시지가 들어가
+    // "타로 결과가 안 나옴" 으로 보임. 빈 결과는 push 하지 않고 close 만.
+    if (onComplete && state.selectedSpread && state.overallMessage.trim()) {
       onComplete({
         question: state.concern,
         spreadTitle:
@@ -674,10 +677,22 @@ function ResultStep({
 
       {/* Action Buttons */}
       <div className={styles.resultActions}>
-        <button className={styles.secondaryButton} onClick={onComplete}>
+        {/* streaming 중엔 onComplete 가 빈 메시지를 부모에 흘려보낼 수 있어
+            (= 채팅에 결과가 안 나옴 회귀의 원인) overallMessage 가 들어오기
+            전까진 두 버튼 모두 비활성. interpretFailed 면 사용자가 fallback
+            상태에서 닫을 수 있게 활성. */}
+        <button
+          className={styles.secondaryButton}
+          onClick={onComplete}
+          disabled={!overallMessage && !interpretFailed}
+        >
           {tr.continueChat}
         </button>
-        <button className={styles.primaryButton} onClick={onDeeper}>
+        <button
+          className={styles.primaryButton}
+          onClick={onDeeper}
+          disabled={!overallMessage && !interpretFailed}
+        >
           {tr.deeperReading}
         </button>
       </div>
