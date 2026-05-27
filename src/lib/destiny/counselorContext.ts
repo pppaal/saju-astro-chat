@@ -10,6 +10,7 @@ import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
 import { calculateStrengthScore } from '@/lib/saju/strengthScore'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 import { calculateProfection } from '@/lib/astrology/foundation/profections'
@@ -782,22 +783,101 @@ export function buildSajuSection(
     out.push('')
   }
 
-  // 신살 — 천을귀인 + 화개
+  // 신살 — 엔진이 계산한 hit 전체 출력 (관계·매력·길흉·통근 답에 자주
+  // 필요). 화이트리스트로 노이즈 신살 (공망은 [합충] 에 이미 있어 제외)
+  // 만 빼고 짧은 의미 라벨로 압축.
   try {
-    const cheon = CHEONEUL[day] ?? []
-    const hwagae = HWAGAE_OF[P.day.earthlyBranch.name]
-    const cheonLab = locale === 'en' ? GILSIN_EN['천을귀인'] : '천을귀인'
-    const hwagaeLab = locale === 'en' ? GILSIN_EN['화개'] : '화개'
-    const hits: string[] = []
-    for (const k of ['year', 'month', 'day', 'time'] as const) {
-      if (cheon.includes(P[k].earthlyBranch.name))
-        hits.push(`${cheonLab} ${P[k].earthlyBranch.name}[${plab[k]}]`)
+    // saju 의 local 타입엔 element 가 없지만 runtime 엔 있음 — cast.
+    const pillarsLike = toSajuPillarsLike({
+      yearPillar: saju.pillars.year as never,
+      monthPillar: saju.pillars.month as never,
+      dayPillar: saju.pillars.day as never,
+      timePillar: saju.pillars.time as never,
+    })
+    const allHits = getShinsalHits(pillarsLike, {
+      includeGeneralShinsal: true,
+      includeLuckyDetails: true,
+    }) as Array<{ kind?: string; pillars?: string[] }>
+    const SHINSAL_LABEL: Record<string, string> = {
+      도화: '매력·이성',
+      홍염살: '색기·끌림',
+      백호: '격정·강렬',
+      괴강: '카리스마·강고',
+      양인: '날카로움·과격',
+      귀문관: '집착·예민',
+      원진: '미묘한 반감',
+      고신: '고독 기질',
+      과숙: '고독 기질(여)',
+      금여성: '배우자 복·기품',
+      천덕귀인: '보호·덕',
+      월덕귀인: '보호·덕',
+      천을귀인: '귀인 보호',
+      태극귀인: '숨은 길성',
+      암록: '숨은 부조',
+      문창귀인: '학문·창작',
+      학당귀인: '학문',
+      문곡: '글재능',
+      천주귀인: '의식주 안정',
+      건록: '자기 기반',
+      제왕: '정점·고집',
+      화개: '예술·종교·고독',
+      역마: '이동·변동',
+      장성: '권력·리더',
+      지살: '이동',
+      망신: '관재·구설',
+      천라지망: '걸림·답답',
+      // 공망은 [합충] 에 이미 출력 → 여기선 skip
     }
-    for (const k of ['year', 'month', 'day', 'time'] as const) {
-      if (P[k].earthlyBranch.name === hwagae)
-        hits.push(`${hwagaeLab} ${P[k].earthlyBranch.name}[${plab[k]}]`)
+    const SKIP = new Set(['공망', '삼재']) // 삼재 는 시기성 신살, 본명 컨텍스트 약함
+    const hits: string[] = []
+    for (const h of allHits) {
+      const kind = h?.kind
+      if (!kind || SKIP.has(kind) || !(kind in SHINSAL_LABEL)) continue
+      const loc = (h.pillars ?? [])
+        .map((p) => ({ year: '년', month: '월', day: '일', time: '시' })[p] ?? p)
+        .join('·')
+      hits.push(`${kind}(${loc}, ${SHINSAL_LABEL[kind]})`)
     }
     if (hits.length) out.push(`${L('신살', 'sinsal')}: ${hits.join(' / ')}`)
+  } catch {
+    /* */
+  }
+
+  // 12운성 — 일간 기준 각 기둥의 wāngshuāi 단계. "신약 무근" 의 디테일.
+  try {
+    // saju 의 local 타입엔 element 가 없지만 runtime 엔 있음 — cast.
+    const pillarsLike = toSajuPillarsLike({
+      yearPillar: saju.pillars.year as never,
+      monthPillar: saju.pillars.month as never,
+      dayPillar: saju.pillars.day as never,
+      timePillar: saju.pillars.time as never,
+    })
+    const stages = getTwelveStagesForPillars(pillarsLike, 'day')
+    if (stages) {
+      const parts = (['year', 'month', 'day', 'time'] as const)
+        .map((k) => `${plab[k]}${stages[k]}`)
+        .join('·')
+      out.push(`${L('12운성', '12-stages')}(일간 ${day} 기준): ${parts}`)
+    }
+  } catch {
+    /* */
+  }
+
+  // 십성 분포 — 비견·식상·재성·관성·인성 합산. "내 성격" / "어떤 일에
+  // 강해?" 답에 핵심. 8 칸 (4 천간 + 4 지지) 중 each 카운트.
+  try {
+    const tally: Record<string, number> = {}
+    for (const k of ['year', 'month', 'day', 'time'] as const) {
+      const s = sibsinOf(day, P[k].heavenlyStem.name)
+      const b = sibsinOf(day, BRANCH_MAINQI[P[k].earthlyBranch.name] ?? '')
+      if (s && s !== '-') tally[s] = (tally[s] ?? 0) + 1
+      if (b && b !== '-') tally[b] = (tally[b] ?? 0) + 1
+    }
+    if (Object.keys(tally).length) {
+      const order = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인']
+      const parts = order.filter((o) => tally[o]).map((o) => `${o}${tally[o]}`)
+      out.push(`${L('십성 분포', 'ten-gods dist')}: ${parts.join(' ')}`)
+    }
   } catch {
     /* */
   }
