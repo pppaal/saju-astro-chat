@@ -9,7 +9,7 @@ import {
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import { Card, DrawnCard } from '@/lib/tarot/tarot.types'
-import { tarotDeck } from '@/lib/tarot/tarot-data'
+import { tarotDeck } from '@/lib/tarot/data'
 import {
   applyCreditResultCookies,
   checkCreditsOnly,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CARD_COLORS, getThemeDisplayInfo, THEME_DISPLAY_INFO } from '@/lib/tarot/tarotThemeConfig'
+import { CARD_COLORS } from '@/lib/tarot/tarotThemeConfig'
 import { DECK_STYLES } from '@/lib/tarot/tarot.types'
 
 describe('tarotThemeConfig', () => {
@@ -22,32 +22,7 @@ describe('tarotThemeConfig', () => {
     })
   })
 
-  describe('THEME_DISPLAY_INFO', () => {
-    it('only general-insight remains after spread collapse', () => {
-      expect(Object.keys(THEME_DISPLAY_INFO)).toEqual(['general-insight'])
-    })
-
-    it('general-insight entry has all required fields', () => {
-      const info = THEME_DISPLAY_INFO['general-insight']
-      expect(info.guidanceIcon.length).toBeGreaterThan(0)
-      expect(info.guidanceTitle.length).toBeGreaterThan(0)
-      expect(info.guidanceTitleKo.length).toBeGreaterThan(0)
-      expect(info.affirmationTitle.length).toBeGreaterThan(0)
-      expect(info.affirmationTitleKo.length).toBeGreaterThan(0)
-    })
-  })
-
-  describe('getThemeDisplayInfo', () => {
-    it('returns general-insight info for general-insight key', () => {
-      expect(getThemeDisplayInfo('general-insight').guidanceTitle).toBe('Key Insight')
-    })
-
-    it('falls back to general-insight for unknown / removed theme ids', () => {
-      // 우리가 옛 테마 다 지웠으니 무엇이 들어와도 general-insight 로 폴백
-      expect(getThemeDisplayInfo('love-relationships').guidanceTitle).toBe('Key Insight')
-      expect(getThemeDisplayInfo('career-work').guidanceTitle).toBe('Key Insight')
-      expect(getThemeDisplayInfo(undefined).guidanceTitle).toBe('Key Insight')
-      expect(getThemeDisplayInfo('').guidanceTitle).toBe('Key Insight')
-    })
-  })
+  // THEME_DISPLAY_INFO / getThemeDisplayInfo 테스트는 두 export 가 dead code
+  // 로 제거되며 같이 제거. 이전 의도(테마 카테고리별 가이드 UI 차별화)는
+  // 도입된 적 없이 곧장 dead 가 됐다 — 미래에 다시 필요해지면 그때 테스트도.
 })

@@ -1,4 +1,5 @@
-import { tarotDeck, type Card } from '@/lib/tarot/tarot-data'
+import { tarotDeck } from '@/lib/tarot/data'
+import type { Card } from '@/lib/tarot/tarot.types'
 
 describe('Tarot Data', () => {
   describe('deck structure', () => {

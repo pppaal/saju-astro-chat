@@ -1,6 +1,9 @@
 /**
- * Tarot Reading Page Constants
- * 카드 색상, 테마 표시 정보 등
+ * Tarot Reading Page Constants — 페이지 로컬 상수.
+ *
+ * (이전엔 THEME_DISPLAY_INFO / getThemeDisplayInfo 가 여기서도 정의돼
+ * 있었으나 양쪽 다 호출 0건 dead code 라 제거. 미래에 카테고리별 표시
+ * 차별화가 필요해지면 그때 다시 추가.)
  */
 
 import { DECK_STYLES, DECK_STYLE_INFO } from '@/lib/tarot/tarot.types'
@@ -19,33 +22,3 @@ export const CARD_COLORS = DECK_STYLES.map((style) => ({
 }))
 
 export type CardColor = (typeof CARD_COLORS)[number]
-
-// Theme-specific titles and icons for guidance/affirmation sections
-export const THEME_DISPLAY_INFO: Record<
-  string,
-  {
-    guidanceIcon: string
-    guidanceTitle: string
-    guidanceTitleKo: string
-    guidanceFooter: string
-    guidanceFooterKo: string
-    affirmationIcon: string
-    affirmationTitle: string
-    affirmationTitleKo: string
-  }
-> = {
-  'general-insight': {
-    guidanceIcon: '💡',
-    guidanceTitle: 'Key Insight',
-    guidanceTitleKo: '핵심 조언',
-    guidanceFooter: 'Take action on this advice',
-    guidanceFooterKo: '이 조언을 실천해보세요',
-    affirmationIcon: '✓',
-    affirmationTitle: 'Action Plan',
-    affirmationTitleKo: '실천 계획',
-  },
-}
-
-export function getThemeDisplayInfo(categoryId: string | undefined) {
-  return THEME_DISPLAY_INFO[categoryId || ''] || THEME_DISPLAY_INFO['general-insight']
-}
