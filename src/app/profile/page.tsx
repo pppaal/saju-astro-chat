@@ -251,6 +251,7 @@ export default function ProfilePage() {
   const [nameError, setNameError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState(false)
   const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoProgress, setPhotoProgress] = useState(0)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const [refundingId, setRefundingId] = useState<string | null>(null)
@@ -415,8 +416,11 @@ export default function ProfilePage() {
 
     setPhotoError(null)
     setPhotoUploading(true)
+    setPhotoProgress(0)
     try {
-      const { url } = await uploadProfilePhoto(file, userId)
+      const { url } = await uploadProfilePhoto(file, userId, (p) => {
+        setPhotoProgress(p.progress)
+      })
       const res = await fetch('/api/me/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -437,6 +441,7 @@ export default function ProfilePage() {
       )
     } finally {
       setPhotoUploading(false)
+      setPhotoProgress(0)
     }
   }
 
@@ -586,7 +591,11 @@ export default function ProfilePage() {
                 )}
                 {photoUploading ? (
                   <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-xs font-medium text-white">
-                    {locale === 'ko' ? '업로드 중…' : 'Uploading…'}
+                    {photoProgress > 0
+                      ? `${photoProgress}%`
+                      : locale === 'ko'
+                        ? '업로드 중…'
+                        : 'Uploading…'}
                   </span>
                 ) : (
                   <span className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1c1917] text-white shadow">
