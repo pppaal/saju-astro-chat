@@ -9,10 +9,10 @@ import styles from '../policy.module.css'
 type Section = { title: string; titleKo: string; body: string; bodyKo: string }
 
 const CONTROLLER_NAME = 'Paul Rhee (individual)'
-// [TODO 사장님: 개인정보 보호책임자 (CPO) 성명·직책·전화번호로 교체]
+// 개인정보 보호책임자 (CPO). 현재는 1인 사업자 단계로 이메일 단일 채널을 운영하며,
+// 사업자 등록·정식 보호책임자 지정 완료 시 직책·전화번호를 본 페이지에 게시한다.
 const CPO_NAME = 'Paul Rhee'
-const CPO_TITLE = 'Privacy Officer / Operator'
-const CPO_PHONE = '[TODO: +82-10-XXXX-XXXX]'
+const CPO_TITLE = 'Operator (sole proprietor) acting as Privacy Officer'
 const EFFECTIVE_DATE = '2026-05-27'
 
 const sections: Section[] = [
@@ -94,8 +94,8 @@ const sections: Section[] = [
   {
     title: '12. Data Controller, Privacy Officer, and Complaints',
     titleKo: '12. 개인정보처리자·보호책임자·권익침해 신고',
-    body: `Data Controller: ${CONTROLLER_NAME}\nEmail: ${SUPPORT_EMAIL}\n\nPrivacy Officer (개인정보 보호책임자, PIPA Art.31)\n- Name: ${CPO_NAME}\n- Title: ${CPO_TITLE}\n- Phone: ${CPO_PHONE}\n- Email: ${SUPPORT_EMAIL}\n\nEU Representative (GDPR Art.27): Not designated. DestinyPal is operated by a sole individual in Korea and does not currently meet the thresholds requiring a designated EU representative; we will appoint one if our processing of EU resident data reaches the levels described in GDPR Art.27.\n\nResponse target: within 10 days for Korean residents (PIPA), within 30 days for other regions.\n\nKorean users — to report a privacy infringement or seek mediation, you may contact:\n- Personal Information Protection Commission (PIPC): privacy.go.kr / 1833-6972\n- KISA Privacy Infringement Report Center: privacy.kisa.or.kr / 118\n- Personal Information Dispute Mediation Committee: kopico.go.kr / 1833-6972\n- Supreme Prosecutors' Office Cybercrime Center: spo.go.kr / 1301\n- National Police Agency Cyber Bureau: ecrm.police.go.kr / 182\n\nEU users: right to lodge a complaint with your local data protection authority.\nCalifornia users: CCPA rights may be exercised via the email above.`,
-    bodyKo: `개인정보처리자: ${CONTROLLER_NAME}\n이메일: ${SUPPORT_EMAIL}\n\n개인정보 보호책임자 (개인정보 보호법 제31조)\n- 성명: ${CPO_NAME}\n- 직책: ${CPO_TITLE}\n- 연락처: ${CPO_PHONE}\n- 이메일: ${SUPPORT_EMAIL}\n\nEU 대리인 (GDPR 제27조): 별도 지정되어 있지 않습니다. DestinyPal 은 한국 1인 사업자가 운영하며, 현재 GDPR 제27조의 EU 대리인 지정 의무 요건에 해당하지 않습니다. EU 거주자 데이터 처리 규모가 해당 요건에 이르면 대리인을 지정하겠습니다.\n\n응답 기한: 한국 거주자 10일 이내(개인정보 보호법), 그 외 지역 30일 이내.\n\n한국 이용자 — 개인정보 침해 신고·상담·분쟁 조정은 아래 기관을 이용할 수 있습니다:\n- 개인정보보호위원회: privacy.go.kr / 1833-6972\n- 개인정보침해신고센터 (KISA): privacy.kisa.or.kr / 118\n- 개인정보분쟁조정위원회: kopico.go.kr / 1833-6972\n- 대검찰청 사이버범죄수사단: spo.go.kr / 1301\n- 경찰청 사이버수사국: ecrm.police.go.kr / 182\n\nEU 이용자: 거주 감독기관에 불만 제기 가능.\n캘리포니아 이용자: 상기 이메일로 CCPA 권리를 행사할 수 있습니다.`,
+    body: `Data Controller: ${CONTROLLER_NAME}\nEmail: ${SUPPORT_EMAIL}\n\nPrivacy Officer (개인정보 보호책임자, PIPA Art.31)\n- Name: ${CPO_NAME}\n- Title: ${CPO_TITLE}\n- Email: ${SUPPORT_EMAIL} (primary channel for all privacy inquiries)\n- Phone: a dedicated privacy hotline will be posted here once business registration is completed; in the meantime, please use email — we respond within the statutory timelines below.\n\nEU Representative (GDPR Art.27): Not designated. DestinyPal is operated by a sole individual in Korea and does not currently meet the thresholds requiring a designated EU representative; we will appoint one if our processing of EU resident data reaches the levels described in GDPR Art.27.\n\nResponse target: within 10 days for Korean residents (PIPA), within 30 days for other regions.\n\nKorean users — to report a privacy infringement or seek mediation, you may contact:\n- Personal Information Protection Commission (PIPC): privacy.go.kr / 1833-6972\n- KISA Privacy Infringement Report Center: privacy.kisa.or.kr / 118\n- Personal Information Dispute Mediation Committee: kopico.go.kr / 1833-6972\n- Supreme Prosecutors' Office Cybercrime Center: spo.go.kr / 1301\n- National Police Agency Cyber Bureau: ecrm.police.go.kr / 182\n\nEU users: right to lodge a complaint with your local data protection authority.\nCalifornia users: CCPA rights may be exercised via the email above.`,
+    bodyKo: `개인정보처리자: ${CONTROLLER_NAME}\n이메일: ${SUPPORT_EMAIL}\n\n개인정보 보호책임자 (개인정보 보호법 제31조)\n- 성명: ${CPO_NAME}\n- 직책: ${CPO_TITLE}\n- 이메일: ${SUPPORT_EMAIL} (모든 개인정보 문의는 이메일을 우선 채널로 이용해 주세요)\n- 전화: 사업자 등록 완료 후 전용 번호를 본 페이지에 게시합니다. 그동안에는 이메일로 문의 주시면 아래의 법정 응답 기한 내에 회신드립니다.\n\nEU 대리인 (GDPR 제27조): 별도 지정되어 있지 않습니다. DestinyPal 은 한국 1인 사업자가 운영하며, 현재 GDPR 제27조의 EU 대리인 지정 의무 요건에 해당하지 않습니다. EU 거주자 데이터 처리 규모가 해당 요건에 이르면 대리인을 지정하겠습니다.\n\n응답 기한: 한국 거주자 10일 이내(개인정보 보호법), 그 외 지역 30일 이내.\n\n한국 이용자 — 개인정보 침해 신고·상담·분쟁 조정은 아래 기관을 이용할 수 있습니다:\n- 개인정보보호위원회: privacy.go.kr / 1833-6972\n- 개인정보침해신고센터 (KISA): privacy.kisa.or.kr / 118\n- 개인정보분쟁조정위원회: kopico.go.kr / 1833-6972\n- 대검찰청 사이버범죄수사단: spo.go.kr / 1301\n- 경찰청 사이버수사국: ecrm.police.go.kr / 182\n\nEU 이용자: 거주 감독기관에 불만 제기 가능.\n캘리포니아 이용자: 상기 이메일로 CCPA 권리를 행사할 수 있습니다.`,
   },
   {
     title: '13. Google AdSense',
