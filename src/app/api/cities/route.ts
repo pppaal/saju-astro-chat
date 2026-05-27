@@ -51,8 +51,14 @@ let cachedCities: City[] | null = null
 let cachedIndex: IndexedCity[] | null = null
 let loading: Promise<City[]> | null = null
 
+// NFKD decomposes accented chars into base + combining mark (예: "ã" → "a" + "˜"),
+// 그 다음 combining mark 를 제거하면 "São Paulo" → "sao paulo" 로 매칭된다.
+// 사용자가 "Sao Paulo" 든 "São Paulo" 든 같은 결과 받게 하는 키. NFKC 만으로는
+// 다이어크리틱이 살아있어 검색 miss 가 났다.
 const norm = (value: unknown) =>
   String(value ?? '')
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
     .normalize('NFKC')
     .trim()
     .toLowerCase()
@@ -194,10 +200,12 @@ export const GET = withApiMiddleware(
 
       // Check Korean matches
       const korMatch =
-        (item.cityKrNorm && (item.cityKrNorm.startsWith(query) || item.cityKrNorm.includes(query))) ||
+        (item.cityKrNorm &&
+          (item.cityKrNorm.startsWith(query) || item.cityKrNorm.includes(query))) ||
         (item.countryKrNorm &&
           (item.countryKrNorm.startsWith(query) || item.countryKrNorm.includes(query))) ||
-        (item.pairKrNorm && (item.pairKrNorm.startsWith(query) || item.pairKrNorm.includes(query))) ||
+        (item.pairKrNorm &&
+          (item.pairKrNorm.startsWith(query) || item.pairKrNorm.includes(query))) ||
         (queryCompact.length >= 2 &&
           ((item.cityKrCompact && item.cityKrCompact.includes(queryCompact)) ||
             (item.countryKrCompact && item.countryKrCompact.includes(queryCompact)) ||
