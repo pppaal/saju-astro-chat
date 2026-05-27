@@ -278,14 +278,21 @@ const Chat = memo(function Chat({
   const handleClarifierConfirm = React.useCallback(
     (card: ClarifierCard) => {
       // 카드 이름 + 그림(markdown 이미지) + 해석 요청을 user 메시지로 흘려
-      // 보낸다. MessageRow 가 markdown 패턴을 감지해 MarkdownMessage 로
-      // 렌더 → 카드 그림이 user 말풍선 안에 표시되고, 바로 뒤이어 답변이
-      // 스트리밍된다. 메시지 끝(messagesEnd)으로 자동 스크롤되는 기존
-      // useEffect 가 알아서 해석 위치로 데려가므로 따로 스크롤 안 한다.
-      // 한 번 뽑으면 새 대화 시작 전까지 잠금.
+      // 보낸다. 한 번 뽑으면 새 대화 시작 전까지 잠금.
       setClarifierUsed(true)
       const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
       void handleSendRef.current?.(userText)
+      // 모달 닫힘 + 메시지 추가 + 스트리밍 시작이 같은 frame 에 묶이면 기존
+      // messages-의존 useEffect 의 자동 scrollIntoView 가 viewport 안 옛
+      // 위치를 잡아 사용자에게는 "맨 위에서 멈춤" 으로 보였음. 모달 닫힘이
+      // 끝나고 새 user 버블 + 답변 영역이 DOM 에 충분히 그려진 뒤로 스크롤을
+      // 미뤄 카드 메시지가 화면 하단에 보이게 한다.
+      const scrollLater = (delay: number) =>
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+        }, delay)
+      scrollLater(150)
+      scrollLater(600)
     },
     [effectiveLang]
   )
