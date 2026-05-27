@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
         return createErrorResponse({
           code: ErrorCodes.UNAUTHORIZED,
           message:
-            '궁합 상담 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 2 크레딧으로 계속 이용할 수 있어요.',
+            '궁합 상담 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 4 크레딧으로 계속 이용할 수 있어요.',
           locale: extractLocale(req),
           route: 'compatibility/counselor',
           headers: { 'X-Guest-Limit-Reached': '1' },
@@ -398,11 +398,7 @@ export async function POST(req: NextRequest) {
           // birth, conventional 만 vs 한국나이 offset).
           const age = p.date ? getAgeFromBirthDate(p.date) : null
           const ageNote =
-            age != null
-              ? normalizedLang === 'ko'
-                ? ` (만 ${age}세)`
-                : ` (age ${age})`
-              : ''
+            age != null ? (normalizedLang === 'ko' ? ` (만 ${age}세)` : ` (age ${age})`) : ''
           // Person 1 is always the anchor — no relation suffix. For
           // everyone else, pipe through relationLabel so the LLM
           // sees "연인 / 배우자 / 가족 / 형제자매 / 친구 / 동료 / 기타"
@@ -501,7 +497,7 @@ export async function POST(req: NextRequest) {
             '- When the user asks about *timing* (e.g. "this year for us?", "best time to marry?", "when do we meet?"), lean on saju synastry [current daeun cross / 세운 cross] and astro transits first. If timing data is missing, say honestly that exact timing can\'t be pinned from charts alone.',
             '- ★ Age citation rule: each person\'s *current age* is the "(age X)" / "(만 X세)" value next to their info line. The [대운] entries like "26~35세 기묘" are the *start~end range* of that 10-year cycle, NOT the person\'s current age. Never write things like "they are currently 26 in the 기묘 daeun" by reading the cycle\'s start age as the current age. Correct phrasing: "age 31, currently mid-way through the 26~35세 기묘 daeun".',
             '- Intent-based frame: (a) "will we break up / last?" → friction signals + reparability weighted; (b) "marriage timing / when?" → timing (daeun/sewoon/transits) front; (c) "why are we drawn / not drawn?" → attraction mechanism deep only; (d) "are we good together?" → full 3-frame. Trim/skip frames irrelevant to the intent.',
-            '- The per-person shinsal block ([개별 신살 — 각자 타고난 것]) contains *only cross-less personality shinsal* (양인 · 귀문관 · 원진 · 고신 · 금여성 · 천덕/월덕귀인). Cross-bearing shinsal (도화 / 홍염 / 백호 / 괴강 / 천을귀인) are already deterministically resolved both ways in the saju synastry shinsal-cross block, so they are intentionally omitted here. Use this block lightly to color *each side\'s individual temperament* (e.g. A 양인 → once locked in, all-in; B 귀문관 → hypersensitive to subtle cues). Never list shinsal in isolation — weave a single line into the dynamic.',
+            "- The per-person shinsal block ([개별 신살 — 각자 타고난 것]) contains *only cross-less personality shinsal* (양인 · 귀문관 · 원진 · 고신 · 금여성 · 천덕/월덕귀인). Cross-bearing shinsal (도화 / 홍염 / 백호 / 괴강 / 천을귀인) are already deterministically resolved both ways in the saju synastry shinsal-cross block, so they are intentionally omitted here. Use this block lightly to color *each side's individual temperament* (e.g. A 양인 → once locked in, all-in; B 귀문관 → hypersensitive to subtle cues). Never list shinsal in isolation — weave a single line into the dynamic.",
             '- When a tarot clarifier card (🃏) arrives: drop generic card meanings. Take *one specific [CRITICAL] synastry signal you just discussed* and add what the card sharpens about it — single paragraph (2-3 sentences).',
             '- Answer about the relationship dynamic. Never analyze only one person.',
             '- Fuse saju and astrology in one flow. No system-split.',
@@ -662,9 +658,7 @@ export async function POST(req: NextRequest) {
       const cityUnknown = !!seed.source?.usedDefaultLocation
       // location/timezone 은 LLM 한테 직접 의미 없음 (이미 사주/점성 계산이
       // 적용된 결과만 전달). unknown 플래그만 가드 룰 위해 명시.
-      metaLines.push(
-        `[Meta] ${label}: timeUnknown=${timeUnknown}, cityUnknown=${cityUnknown}`
-      )
+      metaLines.push(`[Meta] ${label}: timeUnknown=${timeUnknown}, cityUnknown=${cityUnknown}`)
     })
     const metaBlock = metaLines.join('\n')
 
