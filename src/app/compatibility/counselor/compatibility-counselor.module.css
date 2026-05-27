@@ -794,3 +794,45 @@
     padding: 12px 16px;
   }
 }
+
+/* =====================================================================
+ * Post-answer actions — beneath the last assistant message. Currently
+ * hosts the "🃏 Draw one more card" clarifier. Shown once per chat.
+ * ===================================================================== */
+.postAnswerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 8px;
+  padding: 0 4px;
+}
+
+.clarifierActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  border-radius: 999px;
+  color: #44403c;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.clarifierActionBtn:hover {
+  background: #f5f5f4;
+  border-color: #d6d3d1;
+  color: #1c1917;
+  transform: translateY(-1px);
+}
+
+.clarifierActionIcon {
+  font-size: 15px;
+  line-height: 1;
+}

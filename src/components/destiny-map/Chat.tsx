@@ -655,6 +655,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onFollowUp={handleFollowUp}
               styles={styles}
               userName={profile?.name}
+              onOpenClarifier={openClarifier}
+              clarifierUsed={clarifierUsed}
             />
 
             <ChatInputArea
