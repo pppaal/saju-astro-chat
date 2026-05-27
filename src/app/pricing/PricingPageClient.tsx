@@ -32,7 +32,7 @@ const creditPacks: CreditPackDisplay[] = (
 const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5']
 const PRICING_FALLBACKS: Record<string, string> = {
   heroTitle: 'Pricing for Your Destiny',
-  heroSub: 'AI counseling, Tarot, and Dream interpretation at reasonable prices',
+  heroSub: 'Pay only for what you use. No subscription, no auto-renewal.',
   paymentError: 'Payment service temporarily unavailable',
 }
 const SSR_PRICING_KEYS = [
