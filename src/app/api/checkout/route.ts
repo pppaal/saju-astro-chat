@@ -107,7 +107,7 @@ export const POST = withApiMiddleware(
         {
           mode: 'payment',
           line_items: [{ price: creditPrice, quantity: 1 }],
-          success_url: `${base}/success?session_id={CHECKOUT_SESSION_ID}`,
+          success_url: `${base}/success?session_id={CHECKOUT_SESSION_ID}&pack=${creditPack}`,
           cancel_url: `${base}/pricing`,
           customer_email: email,
           metadata: {
