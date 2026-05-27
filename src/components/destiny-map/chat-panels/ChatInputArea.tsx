@@ -131,6 +131,15 @@ export const ChatInputArea = React.memo(function ChatInputArea({
     }
   }, [autoFocus])
 
+  // 타이핑하면 자라고, max-height(CSS .textarea max-height: 6rem) 넘으면
+  // 스크롤. height='auto' 한 번 재설정 후 scrollHeight 로 측정해야 줄어들기도 함.
+  React.useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [input])
+
   return (
     <div className={styles.inputArea}>
       <div className={styles.inputBox}>
@@ -145,7 +154,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           }}
           placeholder={animatedPlaceholder || tr.placeholder}
           aria-label={tr.placeholder}
-          rows={3}
+          rows={1}
           className={styles.textarea}
           disabled={loading}
           maxLength={2000}

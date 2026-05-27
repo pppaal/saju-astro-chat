@@ -43,7 +43,8 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 0.875rem;
+  /* 답변창을 넓게 — 위·아래 패딩 축소 */
+  padding: 0.375rem 0.75rem;
   background: #ffffff;
   border-bottom: 1px solid #e7e5e4;
   color: #1c1917;
@@ -152,23 +153,22 @@
   position: relative;
 }
 
-/* 대화 우상단 메뉴 (Rename / Delete) — 운명 상담사 PR #621 과 같은 패턴.
-   ChatWrapper top-right 에 떠 있고, 메시지가 있을 때만 렌더된다. */
+/* 대화 우상단 ⋮ 메뉴 (Rename / Delete) — 페이지 헤더의 .headerActions
+   안에 위치. credit badge 와 한 row 로 정렬되므로 absolute 가 아니라
+   inline-flex. compat 페이지는 light 헤더라 색 톤도 light. */
 .chatMenuArea {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  z-index: 20;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 .chatMenuButton {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(20, 18, 35, 0.55);
-  backdrop-filter: blur(6px);
-  color: rgba(245, 243, 255, 0.9);
+  border: 1px solid #e7e5e4;
+  background: #ffffff;
+  color: #44403c;
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
@@ -181,24 +181,24 @@
 }
 
 .chatMenuButton:hover {
-  background: rgba(40, 34, 70, 0.78);
-  border-color: rgba(167, 139, 250, 0.4);
+  background: #f5f5f4;
+  border-color: #d6d3d1;
 }
 
 .chatMenuDropdown {
   position: absolute;
-  top: 38px;
+  top: 36px;
   right: 0;
-  min-width: 160px;
-  background: rgba(20, 18, 35, 0.96);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(167, 139, 250, 0.25);
+  min-width: 168px;
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
   border-radius: 10px;
   padding: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   gap: 2px;
+  z-index: 50;
 }
 
 .chatMenuItem {
@@ -210,7 +210,7 @@
   background: transparent;
   border: 0;
   border-radius: 6px;
-  color: rgba(245, 243, 255, 0.92);
+  color: #1c1917;
   font-size: 0.9rem;
   text-align: left;
   cursor: pointer;
@@ -218,7 +218,7 @@
 }
 
 .chatMenuItem:hover:not(:disabled) {
-  background: rgba(167, 139, 250, 0.15);
+  background: #f5f5f4;
 }
 
 .chatMenuItem:disabled {
@@ -227,11 +227,11 @@
 }
 
 .chatMenuItemDanger {
-  color: #fca5a5;
+  color: #dc2626;
 }
 
 .chatMenuItemDanger:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.18);
+  background: #fef2f2;
 }
 
 .chatMenuIcon {
@@ -407,8 +407,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 0.75rem 0.85rem;
-  margin-top: 0.65rem;
+  /* 답변창 넓게 — 위·아래 패딩 축소 */
+  padding: 0.5rem 0.85rem 0.5rem;
+  margin-top: 0.4rem;
   background: #ffffff;
   border: 1px solid #e7e5e4;
   border-radius: 16px;
