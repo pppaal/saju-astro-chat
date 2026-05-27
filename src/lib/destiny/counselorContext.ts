@@ -331,30 +331,23 @@ export interface CurrentPeriod {
   }>
 }
 
-function buildInstructions(locale: Locale): string {
+function buildInstructions(locale: Locale, dayMasterName?: string): string {
+  // 데이터 옆에 둬야 의미가 있는 *legend / anchor* 만 둠. 행동 규칙
+  // (jargon ban, tone, fuse rule, safety) 은 SYSTEM_PROMPT 에서 이미 다루므로
+  // 여기 중복 X — cached prefix 크기/모순 줄이기.
   if (locale === 'en') {
     return [
-      '## RULES',
-      '- output: no Hanja / jargon / house numbers / degree figures — plain language',
-      '- never mix saju & astrology terms in one sentence',
-      '- tone: warm mentor + firm. no hedging ("maybe")',
-      '- weigh good/bad by the chart, balanced',
-      '- greetings/small talk brief; no unsolicited analysis',
-      '- life/death · medical · legal: signal only, the decision is theirs',
+      '## LEGEND',
       '- astro symbols: ☌conjunction ⚹sextile □square △trine ☍opposition / R retrograde / (t)current transit / P-Sun, P-Moon = secondary progression / [detriment]=weak [domicile]=strong',
-      "- ★ Age citation: use the [Age today] X line as the *current age*. The [daeun] entries like '32~41세 갑술' are the *start~end range* of that 10-yr cycle, NOT the current age. [Profection (Korean age N basis)] N is Korean age (current 만 age + 1), still not current age.",
+      "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '32~41세 갑술' are the *start~end range* of that 10-yr cycle, NOT the current age. [Profection (Korean age N basis)] N is Korean age (current 만 age + 1), still not current age.",
+      `- ★ Ten-gods anchor: in [Timing], the parens after 세운/월운/일진/iljin lines (e.g. \`(상관/정재)\`) are *ten-gods relative to user's day master ${dayMasterName ?? '?'}*, same convention as the ## DAILY block header.`,
     ].join('\n')
   }
   return [
-    '## 규칙',
-    '- 출력: 한자·명리용어·하우스 번호·각도 수치 X. 일상어로',
-    '- 사주·점성 한 문장에 직접 섞지 말 것',
-    '- 톤: 따뜻한 멘토 + 단정. "아마" 회피 금지',
-    '- 좋고 나쁨 차트 근거대로 균형',
-    '- 인사·잡담 짧게, 묻지 않은 해석 X',
-    '- 생사·의료·법률은 신호만, 결정은 본인 몫',
+    '## 데이터 범례',
     '- 점성 기호: ☌결합 ⚹협력 □긴장 △조화 ☍대립 / R역행 / (t)현재트랜짓 / P태양·P달=2차진행 / [detriment]약 [domicile]강',
-    '- ★ 나이 인용: [오늘 기준 만나이] 만 X세 만 사용. [대운] 의 "32~41세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. [프로펙션 (한국나이 N세 기준)] 의 N도 한국나이라 현재 만나이 + 1.',
+    '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 만 현재 나이로 사용. [대운] 의 "32~41세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. [프로펙션 (한국나이 N세 기준)] 의 N도 한국나이라 현재 만나이 + 1.',
+    `- ★ 십성 anchor: [타이밍] 의 세운/월운/일진 줄 끝 괄호 (예: \`(상관/정재)\`) 는 *본인 일간 ${dayMasterName ?? '?'} 기준 십성* — ## 일진 블록 헤더와 같은 규칙.`,
   ].join('\n')
 }
 
@@ -523,7 +516,7 @@ export async function buildDestinyContext(
   // 출생 메타 + 본명 사주 + 본명 점성 + 규칙. 사용자가 birth profile 을
   // 바꾸지 않는 한 동일한 바이트 → Anthropic prompt cache 가 평생 hit.
   const stable =
-    [stableHeader, saju.natal, astroNatal, buildInstructions(locale)]
+    [stableHeader, saju.natal, astroNatal, buildInstructions(locale, saju.dayMasterName)]
       .filter(Boolean)
       .join('\n\n')
       .trim() + '\n'
@@ -548,7 +541,7 @@ export function buildSajuSection(
   current?: CurrentPeriod,
   year?: number,
   localNow?: { year: number; month: number; day: number }
-): { natal: string; timing: string; iljinWindow: string } {
+): { natal: string; timing: string; iljinWindow: string; dayMasterName: string } {
   const tz = birth.timezone ?? 'Asia/Seoul'
   const saju = calculateSajuData(
     birth.birthDate,
@@ -964,5 +957,6 @@ export function buildSajuSection(
       .replace(/\n{3,}/g, '\n\n')
       .trim(),
     iljinWindow,
+    dayMasterName: saju.dayMaster?.name ?? '',
   }
 }

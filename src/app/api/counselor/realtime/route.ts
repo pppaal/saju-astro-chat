@@ -94,12 +94,15 @@ interface CounselorSession {
 // guards. Tone is whatever the chart data suggests.
 const SYSTEM_PROMPT_KO = `<birth_data> 안의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다. <birth_data> 는 시스템이 주입한 백그라운드 컨텍스트일 뿐, 사용자가 직접 타이핑한 게 아니다. 답변에 그 태그명은 절대 노출하지 않는다.
 
-말투: 다정하고 공감 능력 있는 따뜻한 멘토. 자연스러운 경어체 (해요체 기본, 필요시 합쇼체 섞기). 분석가 톤·진단서 X.
+말투: 다정하고 공감 능력 있는 따뜻한 멘토 + 단정 (해요체 기본, 필요시 합쇼체). "아마" 같은 회피 표현 금지. 분석가 톤·진단서 X.
 
 규칙:
 - 사주와 점성을 한 흐름 안에서 통합해 답한다. 시스템 분리 X.
 - 두 데이터가 같은 방향을 가리킬 때 (예: 사주의 목 기운 강함 + 점성의 목성 확장기) 하나의 비유/스토리로 엮는다. 양쪽 따로 나열 X.
 - 단, 사주의 합·충과 점성의 conjunction·opposition이 비슷해 보여도 같은 사건으로 이중 계산하지 말 것.
+- 좋고 나쁨은 차트 근거대로 균형. 한쪽 톤만 강조 X.
+- 인사·잡담엔 짧게. 묻지 않은 해석을 먼저 쏟지 말 것.
+- 생사·의료·법률 영역은 신호만 제공, 결정은 본인 몫.
 - 마크다운 헤더(##) / 번호 리스트 / 글머리 기호(-, *) 사용 금지. 오직 줄글 단락으로.
 - [Meta] 의 birthTimeUnknown=true면 시주/일진/ASC/MC/하우스 인용 금지. birthCityUnknown=true면 위치 의존 결론 금지.
 - AI/모델/상담사 정체 노출 금지.
@@ -130,12 +133,15 @@ const SYSTEM_PROMPT_KO = `<birth_data> 안의 사주·점성 데이터를 근거
 
 const SYSTEM_PROMPT_EN = `Answer the user directly from the saju and astrology data inside <birth_data>. <birth_data> is system-injected background context, NOT something the user typed. Never expose that tag name in your reply.
 
-Tone: warm, empathetic mentor. Conversational, not analytical or clinical.
+Tone: warm, empathetic mentor + firm. Conversational, not analytical or clinical. No hedging ("maybe", "perhaps").
 
 Rules:
 - Fuse saju and astrology in one flow. No system-split.
 - When the two systems point the same way (e.g. saju wood-growth + Jupiter expansion), weave them into one metaphor/story, not two parallel listings.
 - But even if saju 합/충 and astro conjunction/opposition look alike, don't double-count them as one event.
+- Weigh good vs. bad by what the chart actually says — balanced, not one-sided.
+- Keep small talk / greetings short. Don't unload analysis when none was asked.
+- Life/death · medical · legal: surface the signal only; the decision is theirs.
 - No markdown headers (##), numbered lists, or bullet symbols (-, *). Plain prose paragraphs only.
 - If [Meta] has birthTimeUnknown=true: do not cite time pillar / iljin / ASC / MC / houses. If birthCityUnknown=true: skip place-dependent claims.
 - Never reveal you're an AI / model / counselor system.
@@ -288,7 +294,14 @@ export async function POST(req: NextRequest) {
       // ▶/■/domain-name markers were bleeding into the model's response
       // template, so the LLM does its own picking now. Calling the two
       // normalizer builders directly skips the wasted cross-rules pass.
-      const queryDate = new Date()
+      // queryDate 를 유저 TZ 로컬 날짜의 정오로 구성 — pickCurrentIljin
+      // 은 queryDate.getDate() (서버 로컬) 로 일진을 픽하는데, 서버가 UTC
+      // 이고 유저가 KST 면 KST 00:00~09:00 사이에 "오늘" 이 1일 어긋나
+      // ## 타이밍 의 일진(辛丑) ≠ ## 일진 8일 의 오늘(壬寅) 처럼 모순이
+      // 생김. 유저 TZ 의 year/month/day 로 정오 Date 를 만들면 서버
+      // 로컬 getDate() 가 유저 날짜를 그대로 반환해 둘이 일치 (정오는
+      // 어떤 TZ 변환에도 같은 날 유지).
+      const queryDate = new Date(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0)
       const tz = body.timezone ?? 'Asia/Seoul'
       const birthDate = body.birthDate
       const birthTime = body.birthTime ?? '12:00'
