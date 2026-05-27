@@ -153,8 +153,8 @@ const faqs: FaqItem[] = [
     icon: '🌟',
     q: 'What can I use without paying?',
     qKo: '무료로 사용할 수 있는 기능은 무엇인가요?',
-    a: 'Core onboarding tools and the current month of the Calendar are free. Paid AI features — chat, Tarot, Destiny Counselor, premium reports, compatibility analysis, extended calendar — each cost credits, which you buy as a one-time pack.',
-    aKo: '핵심 온보딩 도구와 캘린더의 당월 일정은 무료입니다. 유료 AI 기능 — 상담, 타로, 운명 상담사, 프리미엄 리포트, 궁합 분석, 확장 캘린더 — 은 각각 크레딧을 소모하며, 크레딧은 일회성 팩으로 구매합니다.',
+    a: "Core onboarding tools and this month's Fortune Calendar are free. Paid AI features — Destiny Counselor (East-West Astrology), Tarot, Compatibility, and the extended Yearly/Monthly/Daily Fortune Calendar — each cost credits, which you buy as a one-time pack.",
+    aKo: '핵심 온보딩 도구와 이번 달 운세 캘린더는 무료입니다. 유료 AI 기능 — 동서 점성 상담사, 타로 상담사, 궁합 상담사, 확장된 일·월·년 운세 — 은 각각 크레딧을 소모하며, 크레딧은 일회성 팩으로 구매합니다.',
   },
   {
     category: 'payment',
@@ -194,8 +194,8 @@ const faqs: FaqItem[] = [
     icon: '⚡',
     q: 'Why is my reading taking long to generate?',
     qKo: '리딩 생성이 오래 걸리는 이유는 무엇인가요?',
-    a: 'AI readings typically take 10-30 seconds. During peak hours, it may take slightly longer. Complex outputs like premium reports or detailed compatibility analyses require more processing time. If it takes over 2 minutes, please refresh and try again.',
-    aKo: 'AI 리딩은 일반적으로 10-30초가 걸립니다. 피크 시간대에는 약간 더 걸릴 수 있습니다. 프리미엄 리포트나 상세 궁합 분석 같은 복잡한 결과물은 더 많은 처리 시간이 필요합니다. 2분 이상 걸리면 새로고침 후 다시 시도하세요.',
+    a: 'AI readings typically take 10-30 seconds. During peak hours, it may take slightly longer. Detailed analyses such as full-year fortune calendars or in-depth compatibility readings require more processing time. If it takes over 2 minutes, please refresh and try again.',
+    aKo: 'AI 리딩은 일반적으로 10-30초가 걸립니다. 피크 시간대에는 약간 더 걸릴 수 있습니다. 연간 운세 캘린더나 상세 궁합 같은 깊은 분석은 더 많은 처리 시간이 필요합니다. 2분 이상 걸리면 새로고침 후 다시 시도하세요.',
   },
   {
     category: 'technical',
