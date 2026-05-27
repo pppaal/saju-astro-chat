@@ -19,6 +19,8 @@ async function loadLocaleDict(locale: Locale): Promise<DictValue> {
   }
 
   // Dynamically import all translation files for the locale
+  // personality / destinyMatch JSON 은 PR #691 에서 페이지 삭제 시 같이 제거됨 — 임포트
+  // 도 빼야 Turbopack 빌드 통과. 추후 페이지 부활 시 JSON 도 다시 추가.
   const modules = await Promise.all([
     import(`./locales/${locale}/common.json`),
     import(`./locales/${locale}/landing.json`),
@@ -26,10 +28,8 @@ async function loadLocaleDict(locale: Locale): Promise<DictValue> {
     import(`./locales/${locale}/services.json`),
     import(`./locales/${locale}/tarot.json`),
     import(`./locales/${locale}/calendar.json`),
-    import(`./locales/${locale}/personality.json`),
     import(`./locales/${locale}/compatibility.json`),
     import(`./locales/${locale}/destinymap.json`),
-    import(`./locales/${locale}/destinyMatch.json`),
     import(`./locales/${locale}/features.json`),
     import(`./locales/${locale}/misc.json`),
   ])
