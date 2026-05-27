@@ -293,7 +293,8 @@ export default function DestinyMatrixPlanner({
 
   // Day tier ThemeRadar — 5 도메인. year/month 와 같은 축 순서로 통일해
   // 사용자가 형태 변화로 차이를 인식. themeScores 우선, fusion.domainScores 폴백.
-  const dayRadarThemes = useMemo(() => {
+  // 신호 없는 축은 fabricate(50) 대신 있는 축 평균으로 fallback + caption disclose.
+  const dayRadarData = useMemo(() => {
     const ORDER: Array<'growth' | 'career' | 'money' | 'love' | 'health'> = [
       'growth',
       'career',
@@ -310,10 +311,22 @@ export default function DestinyMatrixPlanner({
     }
     const ts = selectedImportantDate?.themeScores
     const ds = fusion?.domainScores
-    return ORDER.map((k) => {
-      const v = typeof ts?.[k] === 'number' ? ts[k] : typeof ds?.[k] === 'number' ? ds[k] : 50
-      return { name: KO[k], score: Math.round(v as number) }
+    const stats = ORDER.map((k) => {
+      const v = typeof ts?.[k] === 'number' ? ts[k] : typeof ds?.[k] === 'number' ? ds[k] : null
+      return { name: KO[k], present: v != null, score: v as number | null }
     })
+    const present = stats.filter((s) => s.score != null).map((s) => s.score as number)
+    const fb = present.length ? present.reduce((a, b) => a + b, 0) / present.length : 50
+    const themes = stats.map((s) => ({
+      name: s.name,
+      score: Math.round(s.present ? (s.score as number) : fb),
+    }))
+    const missing = stats.filter((s) => !s.present).map((s) => s.name)
+    const caption =
+      missing.length > 0
+        ? `${missing.join('·')} 신호 부족 — 다른 축 평균으로 표시했어요.`
+        : undefined
+    return { themes, caption }
   }, [selectedImportantDate, fusion])
 
   // Day tier Highlights — 베스트 시간 / 주의 시간. dailyHourlySlots 에서 1개씩.
@@ -355,6 +368,18 @@ export default function DestinyMatrixPlanner({
     if (warns && warns.length > 0) return warns.slice(0, 2)
     return []
   }, [fusion, selectedImportantDate])
+
+  // 엔진 doNow / watchOut — calendarDailyView 의 짧은 액션 nudge.
+  // dailyDos/dailyDonts(advice/recommendations 기반) 와 source 다르고 더 high-level.
+  // 같은 날짜 entry 일 때만.
+  const dailyActionPair = useMemo(() => {
+    const v = data?.calendarDailyView
+    if (!v || v.date !== selectedDateStr) return null
+    return {
+      doNow: v.doNow?.trim() || null,
+      watchOut: v.watchOut?.trim() || null,
+    }
+  }, [data, selectedDateStr])
 
   // --- Daily one-line summary (engine pre-formatted, when available) ---
   const dailyOneLineSummary = useMemo(() => {
@@ -571,6 +596,7 @@ export default function DestinyMatrixPlanner({
                 yearlyMonthly={yearlyMonthly}
                 birthDate={birthInfo?.birthDate}
                 currentPhaseLabel={phaseLabel}
+                topClaim={data?.matrixContract?.topClaim ?? null}
                 onMonthClick={(monthIdx) => {
                   setViewDate(new Date(viewYear, monthIdx, 1))
                   setViewMode('monthly')
@@ -782,13 +808,40 @@ export default function DestinyMatrixPlanner({
                 </div>
               )}
 
+              {/* doNow / watchOut — engine high-level 액션 nudge (calendarDailyView).
+                  Dos/Donts(advice 기반) 와 별개 — 더 짧고 핵심적인 한 줄. */}
+              {dailyActionPair && (dailyActionPair.doNow || dailyActionPair.watchOut) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {dailyActionPair.doNow && (
+                    <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-xl px-3 py-2 flex items-start gap-2">
+                      <span className="text-[10px] font-bold text-emerald-300 tracking-wider uppercase shrink-0 mt-0.5">
+                        지금
+                      </span>
+                      <p className="text-sm text-emerald-100 leading-snug">
+                        {dailyActionPair.doNow}
+                      </p>
+                    </div>
+                  )}
+                  {dailyActionPair.watchOut && (
+                    <div className="bg-rose-500/8 border border-rose-500/20 rounded-xl px-3 py-2 flex items-start gap-2">
+                      <span className="text-[10px] font-bold text-rose-300 tracking-wider uppercase shrink-0 mt-0.5">
+                        조심
+                      </span>
+                      <p className="text-sm text-rose-100 leading-snug">
+                        {dailyActionPair.watchOut}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* ── 24h 시간대 교차 그래프 (saju 시진 × 점성 행성시) — 오늘 보면 현재 시각 노란 세로 가이드. */}
               <DailyHourlyChart importantDate={selectedImportantDate} dateStr={selectedDateStr} />
 
               {/* 5축 도메인 레이더 — 기존 등급 배너 + 3 도메인 bar 자리. year/month
                   대시보드와 같은 시각 언어로 통일. dailyIndices.score 는 sticky
                   today hero 가 이미 표시하므로 여기선 도메인 분포만. */}
-              <ThemeRadar themes={dayRadarThemes} caption={undefined} />
+              <ThemeRadar themes={dayRadarData.themes} caption={dayRadarData.caption} />
 
               {/* 엔진 자기 진단 — 디버그 성격이라 디폴트 접힘. 한 줄 chip 형태로
                   궁금한 사람만 펼치게. */}
@@ -855,7 +908,7 @@ export default function DestinyMatrixPlanner({
                   caution={dayHighlights.cautionCard}
                   bestLabel="베스트 시간 (추진)"
                   cautionLabel="주의 시간 (보류)"
-                  convergenceLabel="—"
+                  hideConvergence
                 />
               ) : (
                 <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">

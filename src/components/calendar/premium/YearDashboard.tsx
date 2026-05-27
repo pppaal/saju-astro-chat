@@ -52,6 +52,8 @@ interface Props {
   birthDate?: string | null
   /** engine 현재 대운 라벨 */
   currentPhaseLabel?: string | null
+  /** engine matrixContract.topClaim — 한 해의 "핵심 액션 한 줄" */
+  topClaim?: string | null
   /** 달 클릭 → 그 달 monthly 뷰로 (0-indexed) */
   onMonthClick: (monthIdx: number) => void
 }
@@ -62,6 +64,7 @@ export default function YearDashboard({
   yearlyMonthly,
   birthDate,
   currentPhaseLabel,
+  topClaim,
   onMonthClick,
 }: Props) {
   const [showTrad, setShowTrad] = useState(false)
@@ -129,14 +132,35 @@ export default function YearDashboard({
       ? `${bestM.month}월 무렵 흐름이 가장 좋고, ${worstM.month}월은 숨 고르기 좋은 시기예요.`
       : '한 해 흐름이 비교적 고른 편이에요.'
 
-  // 3. Theme radar — 12개월 테마 평균
-  const themes: ThemeScore[] = THEME_ORDER.map((key) => {
-    const sum = yearlyMonthly.reduce((acc, m) => {
+  // 3. Theme radar — 12개월 테마 평균. 신호 없는 테마는 fabricate(50) 대신
+  //    가능한 축들 평균으로 fallback + caption disclose. (Audit 회귀: 풀 펜타곤.)
+  const yearThemeStats = THEME_ORDER.map((key) => {
+    let sum = 0
+    let cnt = 0
+    for (const m of yearlyMonthly) {
       const t = m.themes.find((x) => x.theme === key)
-      return acc + (t?.score ?? 50)
-    }, 0)
-    return { name: THEME_KOREAN[key], score: Math.round(sum / yearlyMonthly.length) }
+      if (t && typeof t.score === 'number') {
+        sum += t.score
+        cnt += 1
+      }
+    }
+    return { name: THEME_KOREAN[key], present: cnt > 0, score: cnt > 0 ? sum / cnt : null }
   })
+  const yearPresentScores = yearThemeStats
+    .filter((s) => s.score != null)
+    .map((s) => s.score as number)
+  const yearFallback = yearPresentScores.length
+    ? yearPresentScores.reduce((a, b) => a + b, 0) / yearPresentScores.length
+    : 50
+  const themes: ThemeScore[] = yearThemeStats.map((s) => ({
+    name: s.name,
+    score: Math.round(s.present ? (s.score as number) : yearFallback),
+  }))
+  const missingYearThemes = yearThemeStats.filter((s) => !s.present).map((s) => s.name)
+  const yearThemeCaption =
+    missingYearThemes.length > 0
+      ? `${missingYearThemes.join('·')} 신호 부족 — 다른 축 평균으로 표시했어요.`
+      : undefined
 
   // 4. Flow chart — 12개월 + reference dot 타입.
   // best = 점수 1위, caution = 점수 12위, convergence = engine 수렴 신호
@@ -197,22 +221,31 @@ export default function YearDashboard({
   // current/past/upcoming phase 까지 결정. 없을 때만 birthDate 기반 폴백.
   let timelineEntries: TimelineEntry[]
   if (engineLifetimePivots && engineLifetimePivots.length > 0) {
-    timelineEntries = engineLifetimePivots
-      .filter((p) => p.phase !== 'past') // 과거는 timeline 에서 숨김 (현재+미래만)
+    // Astro milestones(Saturn return·Jupiter return 등 명명 분기점)는 절대 누락
+    // 금지가 derivation 원칙. 단순 slice(0,6) 하면 daeun 이 6슬롯을 다 차지해
+    // astro 가 잘리는 회귀 — 그래서 astro 4 + daeun 2 reserve 후 age 정렬.
+    const future = engineLifetimePivots.filter((p) => p.phase !== 'past')
+    const bothSys = future.filter((p) => p.bothSystems)
+    const astroOnly = future.filter((p) => p.astro && !p.bothSystems)
+    const daeunOnly = future.filter((p) => p.saju && !p.astro && !p.bothSystems)
+    // 양쪽 수렴(가장 강한 신호) 먼저 → astro 4개 reserve → daeun 2개 reserve → 나머지
+    const selected = [...bothSys.slice(0, 3), ...astroOnly.slice(0, 4), ...daeunOnly.slice(0, 2)]
+      .filter((p, i, arr) => arr.findIndex((x) => x.age === p.age) === i)
+      .sort((a, b) => a.age - b.age)
       .slice(0, 6)
-      .map((p) => ({
-        ageLabel: `${p.age}세`,
-        year: p.year,
-        title: p.label,
-        description:
-          p.meaning ??
-          (p.bothSystems
-            ? '점성·사주 양쪽이 같은 시기를 가리키는 큰 전환'
-            : p.astro
-              ? '점성 라이프사이클 분기점'
-              : '대운 전환 — 10년 흐름의 시작'),
-        active: p.phase === 'current',
-      }))
+    timelineEntries = selected.map((p) => ({
+      ageLabel: `${p.age}세`,
+      year: p.year,
+      title: p.label,
+      description:
+        p.meaning ??
+        (p.bothSystems
+          ? '점성·사주 양쪽이 같은 시기를 가리키는 큰 전환'
+          : p.astro
+            ? '점성 라이프사이클 분기점'
+            : '대운 전환 — 10년 흐름의 시작'),
+      active: p.phase === 'current',
+    }))
   } else {
     timelineEntries = computeLifeTimeline({
       birthDate,
@@ -231,7 +264,16 @@ export default function YearDashboard({
         breakdown={yearBreakdown}
       />
 
-      <ThemeRadar themes={themes} />
+      {/* topClaim — engine matrixContract 의 "한 해 핵심 액션" 한 줄. payload 에는
+          있지만 안 노출돼 있던 필드. hero 와 별 카드 사이 chip-style 강조. */}
+      {topClaim && topClaim.trim().length > 0 && (
+        <div className="flex items-center gap-2 px-4 py-3 bg-amber-500/8 border border-amber-500/20 rounded-xl">
+          <span className="text-amber-300 text-base shrink-0">💡</span>
+          <p className="text-sm text-amber-100 leading-snug">{topClaim}</p>
+        </div>
+      )}
+
+      <ThemeRadar themes={themes} caption={yearThemeCaption} />
 
       <FlowChart
         data={flowData}

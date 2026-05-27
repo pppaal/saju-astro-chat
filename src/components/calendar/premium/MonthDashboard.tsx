@@ -93,8 +93,11 @@ export default function MonthDashboard({
           }
         : null
 
-    // 1. 테마 radar — 5축 일별 평균
-    const themes: ThemeScore[] = THEME_ORDER.map((key) => {
+    // 1. 테마 radar — 5축 일별 평균.
+    //    신호 없는 테마(cnt===0)를 50으로 fabricate 하면 radar 모양이 거짓말이
+    //    되므로(전 축 50 → 풀 펜타곤), 평균이 가능한 축들의 평균을 fallback 으로
+    //    사용해 형태는 정직하게. missing 목록은 caption 에 disclose.
+    const themeStats = THEME_ORDER.map((key) => {
       let sum = 0
       let cnt = 0
       for (const d of monthDates) {
@@ -104,11 +107,21 @@ export default function MonthDashboard({
           cnt += 1
         }
       }
-      return {
-        name: THEME_KOREAN[key],
-        score: cnt > 0 ? Math.round(sum / cnt) : 50,
-      }
+      return { key, name: THEME_KOREAN[key], present: cnt > 0, score: cnt > 0 ? sum / cnt : null }
     })
+    const presentScores = themeStats.filter((s) => s.score != null).map((s) => s.score as number)
+    const fallbackScore = presentScores.length
+      ? presentScores.reduce((a, b) => a + b, 0) / presentScores.length
+      : 50
+    const themes: ThemeScore[] = themeStats.map((s) => ({
+      name: s.name,
+      score: Math.round(s.present ? (s.score as number) : fallbackScore),
+    }))
+    const missingThemeNames = themeStats.filter((s) => !s.present).map((s) => s.name)
+    const themeCaption =
+      missingThemeNames.length > 0
+        ? `${missingThemeNames.join('·')} 신호 부족 — 다른 축 평균으로 표시했어요.`
+        : undefined
 
     // 2. 일자별 점수 맵 + best/worst
     const byDay = new Map<number, number>()
@@ -187,6 +200,7 @@ export default function MonthDashboard({
     return {
       grade,
       themes,
+      themeCaption,
       flowData,
       bestCard,
       cautionCard,
@@ -213,7 +227,7 @@ export default function MonthDashboard({
         breakdown={data.breakdown}
       />
 
-      <ThemeRadar themes={data.themes} />
+      <ThemeRadar themes={data.themes} caption={data.themeCaption} />
 
       <FlowChart
         data={data.flowData}

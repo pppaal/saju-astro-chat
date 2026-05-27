@@ -1,4 +1,4 @@
-import { buildCalendar } from './index'
+import { getOrBuildMonth } from './cell-cache'
 import { deriveConvergence, type Convergence } from './derivers/convergence'
 import type { NatalContext } from './context/types'
 import type { CalendarCell } from './types'
@@ -84,15 +84,29 @@ export async function getYearInsights(args: {
   const cached = insightsCache.get(key)
   if (cached) return cached
 
-  const cells = await buildCalendar(
-    natal,
-    {
-      start: `${year}-01-01T00:00:00.000Z`,
-      end: `${year}-12-31T23:59:59.999Z`,
-      granularity: 'day',
-    },
-    { includeEvidence: true }
+  // 12개월 cell-cache 재사용 — 메인 /api/calendar 가 같은 (birthKey, monthKey) 로
+  // 이미 채워둔 셀들을 그대로 가져오면 lazy convergence 가 사실상 무비용.
+  // 이전엔 buildCalendar 365일 한 번 호출이라 cell-cache 우회 → 매번 cold ~1.7s.
+  const monthResults = await Promise.all(
+    Array.from({ length: 12 }, (_, i) => {
+      const monthKey = `${year}-${String(i + 1).padStart(2, '0')}`
+      const startMs = Date.UTC(year, i, 1)
+      const endMs = Date.UTC(year, i + 1, 0, 23, 59, 59, 999)
+      return getOrBuildMonth({
+        birthKey,
+        monthKey,
+        natal,
+        range: {
+          start: new Date(startMs).toISOString(),
+          end: new Date(endMs).toISOString(),
+          granularity: 'day',
+        },
+        options: { includeEvidence: true },
+      })
+    })
   )
+  const cells: CalendarCell[] = monthResults.flatMap((r) => r.cells)
+
   const convergence = deriveConvergence(cells, topN, lang)
   const monthly = aggregateMonthly(cells)
   const daily: YearDailyScore[] = cells.map((c) => ({
