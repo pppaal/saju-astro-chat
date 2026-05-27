@@ -832,13 +832,17 @@ export function buildSajuSection(
   }
 
   // 십성 분포 — 비견·식상·재성·관성·인성 합산. "내 성격" / "어떤 일에
-  // 강해?" 답에 핵심. 8 칸 (4 천간 + 4 지지) 중 each 카운트.
+  // 강해?" 답에 핵심. 7 칸 (3 천간 [일간 본인 제외] + 4 지지 본기) 중
+  // each 카운트. 일주 천간은 *일간 자체* 라 십성 X (정통 사주 컨벤션).
+  // 기둥 라인에서도 "일 辛未 일간/편인" 처럼 일간 라벨이 비견 아님.
   try {
     const tally: Record<string, number> = {}
     for (const k of ['year', 'month', 'day', 'time'] as const) {
-      const s = sibsinOf(day, P[k].heavenlyStem.name)
+      if (k !== 'day') {
+        const s = sibsinOf(day, P[k].heavenlyStem.name)
+        if (s && s !== '-') tally[s] = (tally[s] ?? 0) + 1
+      }
       const b = sibsinOf(day, BRANCH_MAINQI[P[k].earthlyBranch.name] ?? '')
-      if (s && s !== '-') tally[s] = (tally[s] ?? 0) + 1
       if (b && b !== '-') tally[b] = (tally[b] ?? 0) + 1
     }
     if (Object.keys(tally).length) {
