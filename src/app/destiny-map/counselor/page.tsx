@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback, useMemo, useState } from 'react'
+import { useEffect, useCallback, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -47,6 +47,26 @@ export default function CounselorPage() {
   void authStatus
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // 페이지 헤더에 표시할 활성 세션 정보 + ⋮ 메뉴 상태. Chat 컴포넌트가
+  // onSessionChange 콜백으로 sessionId/title 을 알려준다. 메뉴 클릭 시
+  // 직접 /api/counselor/session/list (PATCH/DELETE) 호출.
+  const [activeSession, setActiveSession] = useState<{
+    sessionId: string | null
+    title: string | null
+  }>({ sessionId: null, title: null })
+  const [chatMenuOpen, setChatMenuOpen] = useState(false)
+  const chatMenuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!chatMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (chatMenuRef.current && !chatMenuRef.current.contains(e.target as Node)) {
+        setChatMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [chatMenuOpen])
 
   // /destiny-map/counselor?session=<id> — sidebar's past-chats list
   // hands us a saved CounselorChatSession id here. We pass it to <Chat>
@@ -150,11 +170,93 @@ export default function CounselorPage() {
           </button>
 
           <h1 className={styles.headerTitle}>
-            {t('destinyMap.counselor.title', 'Destiny Counselor')}
+            {activeSession.title?.trim() ||
+              t('destinyMap.counselor.title', 'Destiny Counselor')}
           </h1>
         </div>
 
         <div className={styles.headerActions}>
+          {activeSession.sessionId && (
+            <div ref={chatMenuRef} className={styles.chatMenuArea}>
+              <button
+                type="button"
+                className={styles.chatMenuButton}
+                onClick={() => setChatMenuOpen((o) => !o)}
+                aria-label={lang === 'ko' ? '\ub300\ud654 \uba54\ub274' : 'Chat menu'}
+                aria-expanded={chatMenuOpen}
+                aria-haspopup="menu"
+              >
+                <span aria-hidden="true">\u22ee</span>
+              </button>
+              {chatMenuOpen && (
+                <div role="menu" className={styles.chatMenuDropdown}>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={styles.chatMenuItem}
+                    onClick={async () => {
+                      setChatMenuOpen(false)
+                      const id = activeSession.sessionId
+                      if (!id) return
+                      const next = window.prompt(
+                        lang === 'ko' ? '\ub300\ud654 \uc774\ub984' : 'Chat name',
+                        activeSession.title || ''
+                      )
+                      if (!next || !next.trim()) return
+                      try {
+                        await fetch('/api/counselor/session/list', {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ sessionId: id, title: next.trim() }),
+                        })
+                        setActiveSession((s) => ({ ...s, title: next.trim() }))
+                      } catch (err) {
+                        logger.warn('[Counselor] rename failed', { err })
+                      }
+                    }}
+                  >
+                    <span>{lang === 'ko' ? '\uc774\ub984 \ubcc0\uacbd' : 'Rename'}</span>
+                    <span aria-hidden="true" className={styles.chatMenuIcon}>
+                      \u270e
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
+                    onClick={async () => {
+                      setChatMenuOpen(false)
+                      const id = activeSession.sessionId
+                      if (!id) return
+                      const ok = window.confirm(
+                        lang === 'ko'
+                          ? '\uc774 \ub300\ud654\ub97c \uc0ad\uc81c\ud560\uae4c\uc694? \ub418\ub3cc\ub9b4 \uc218 \uc5c6\uc5b4\uc694.'
+                          : 'Delete this chat? Cannot be undone.'
+                      )
+                      if (!ok) return
+                      try {
+                        await fetch(
+                          `/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`,
+                          { method: 'DELETE' }
+                        )
+                      } catch (err) {
+                        logger.warn('[Counselor] delete failed', { err })
+                      }
+                      // \uc0c8 \ucc44\ud305\uc73c\ub85c \ub9ac\uc14b \u2014 session \ucffc\ub9ac \ub5bc\uace0 \ud0a4 \uac31\uc2e0\ud574 Chat \uc7ac\ub9c8\uc6b4\ud2b8.
+                      router.replace('/destiny-map/counselor')
+                      handleChatReset()
+                      setActiveSession({ sessionId: null, title: null })
+                    }}
+                  >
+                    <span>{lang === 'ko' ? '\uc0ad\uc81c' : 'Delete'}</span>
+                    <span aria-hidden="true" className={styles.chatMenuIcon}>
+                      \ud83d\uddd1
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           <div className={styles.creditBadgeWrap}>
             <CreditBadge variant="compact" />
           </div>
@@ -198,6 +300,7 @@ export default function CounselorPage() {
             autoSendSeed
             autoFocus
             initialSessionId={initialSessionId}
+            onSessionChange={setActiveSession}
           />
         </ErrorBoundary>
       </div>
