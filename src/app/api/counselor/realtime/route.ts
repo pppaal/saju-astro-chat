@@ -267,12 +267,19 @@ export async function POST(req: NextRequest) {
   // 이름이 박혀 있어 캐시 미스 증가 원인이었음.
   // v11: 만 나이도 cached context 에서 제거 → 생일 통과 시 prefix 무효화
   // 방지. 이름 + 나이 둘 다 휘발성 userPrompt prefix 로 옮겨감.
+  // v12: destiny context 를 stable(natal — 평생) + daily(타이밍/일진/
+  // 트랜짓 — 매일) 두 블록으로 split. stable 만 cachedUserContext 로
+  // 보내 Anthropic prompt cache 가 사용자 평생 hit. daily 는 휘발성
+  // userPrompt prefix 로. Redis 캐시 키도 두 개로 분리 — stable 은
+  // localDate 미포함 / 30 일 TTL, daily 는 localDate 포함 / 1 일 TTL.
   const userTz = body.userTimezone || body.timezone || 'Asia/Seoul'
   const localNow = getNowInTimezone(userTz)
   const localDateKey = `${localNow.year}-${localNow.month}-${localNow.day}`
-  const ctxKey = `counselor:ctx:v11:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
-  let contextText: string | null = await cacheGet<string>(ctxKey)
-  if (!contextText) {
+  const stableCtxKey = `counselor:ctx:stable:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
+  const dailyCtxKey = `counselor:ctx:daily:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
+  let stableContext: string | null = await cacheGet<string>(stableCtxKey)
+  let dailyContext: string | null = await cacheGet<string>(dailyCtxKey)
+  if (!stableContext || !dailyContext) {
     try {
       // Raw saju + astro only. Previously this route ran the full
       // fortune cross-rules pipeline via runFortuneWithRaw and threw
@@ -341,6 +348,8 @@ export async function POST(req: NextRequest) {
       // ── Destiny counselor layer: SAJU (from raw) + ASTRO/CURRENT
       //    (raw→refined) + reading rules. Replaces the old formatSajuSelf /
       //    formatAstroSelf + slim chain here; compat counselor keeps those.
+      let stableCtxBody = ''
+      let dailyCtxBody = ''
       try {
         const sn = saju as unknown as {
           currentSeun?: { heavenlyStem?: string; earthlyBranch?: string } | null
@@ -353,7 +362,7 @@ export async function POST(req: NextRequest) {
         }
         const un = (u?: { heavenlyStem?: string; earthlyBranch?: string } | null) =>
           u ? { stem: u.heavenlyStem ?? '', branch: u.earthlyBranch ?? '' } : null
-        const ctx = await buildDestinyContext(
+        const split = await buildDestinyContext(
           {
             birthDate,
             birthTime,
@@ -374,21 +383,22 @@ export async function POST(req: NextRequest) {
           },
           userTz
         )
-        parts.push('', ctx)
+        stableCtxBody = split.stable
+        dailyCtxBody = split.daily
       } catch (err) {
         logger.warn('[counselor/realtime] destiny context build failed', {
           err: err instanceof Error ? err.message : String(err),
         })
       }
 
-      // Wrap in <birth_data> tags so Claude treats this as injected
-      // background context, not user-typed input. Anthropic docs note
-      // XML tags dramatically improve structured-data recognition; the
-      // LLM was occasionally confusing the snapshot with the user's
-      // own message ("looks like they typed their saju at me?").
-      contextText = `<birth_data>\n${parts.join('\n')}\n</birth_data>`
-      // Cache for 1 day — transits change daily
-      await cacheSet(ctxKey, contextText, CACHE_TTL.CALENDAR_DATA)
+      // STABLE: [Birth Snapshot] meta + 본명 사주/점성 + 규칙. <birth_data>
+      // 태그로 감싸 LLM 이 system-injected background 로 인식.
+      stableContext = `<birth_data>\n${parts.join('\n')}${stableCtxBody ? `\n\n${stableCtxBody}` : ''}\n</birth_data>`
+      // DAILY: 타이밍 + 일진 윈도우 + today 앵커. cached prefix 밖.
+      dailyContext = dailyCtxBody
+
+      await cacheSet(stableCtxKey, stableContext, CACHE_TTL.NATAL_CHART) // 30d
+      await cacheSet(dailyCtxKey, dailyContext, CACHE_TTL.CALENDAR_DATA) // 1d
     } catch (err) {
       logger.error('[counselor/realtime] context compute failed', { err })
       return NextResponse.json({ error: 'cross_failed' }, { status: 500 })
@@ -426,7 +436,7 @@ export async function POST(req: NextRequest) {
   // role 필터: Anthropic Messages API는 user/assistant만 받음. 클라가
   // 'system'을 messages 배열에 넣어 보내면 400 invalid_request_error.
   const systemPrompt = lang === 'en' ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_KO
-  const cachedUserContext = contextText
+  const cachedUserContext = stableContext
   const dialogTurns = body.messages.filter(
     (m): m is ChatMessage => m.role === 'user' || m.role === 'assistant'
   )
@@ -462,10 +472,15 @@ export async function POST(req: NextRequest) {
     )
   }
   const metaLine = metaParts.length ? `${metaParts.join('\n')}\n\n` : ''
+  // 일별 회전 컨텐츠(타이밍/일진/today)는 cached prefix 밖에서 매 턴 새로
+  // 주입. <daily_context> 태그로 감싸 LLM 이 background data 로 인식.
+  const dailyBlock = dailyContext?.trim()
+    ? `<daily_context>\n${dailyContext.trim()}\n</daily_context>\n\n`
+    : ''
   const userPromptBody = attachmentText
     ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserPrompt}`
     : rawUserPrompt
-  const userPrompt = `${metaLine}${userPromptBody}`
+  const userPrompt = `${dailyBlock}${metaLine}${userPromptBody}`
 
   // If we charged for a new session but the stream delivers nothing (backend
   // error or empty completion), refund the credit and drop the session marker
