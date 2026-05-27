@@ -241,7 +241,6 @@ async function fetchContentData(start: Date, end: Date) {
     pdfGeneratedCount,
     tarotReadingCount,
     readingsByType,
-    pastLifeCount,
     compatibilityCount,
   ] = await Promise.all([
     prisma.consultationHistory.count({ where: { createdAt: { gte: start, lte: end } } }),
@@ -260,7 +259,6 @@ async function fetchContentData(start: Date, end: Date) {
       where: { createdAt: { gte: start, lte: end } },
       _count: { id: true },
     }),
-    prisma.pastLifeResult.count({ where: { createdAt: { gte: start, lte: end } } }),
     prisma.compatibilityResult.count({ where: { createdAt: { gte: start, lte: end } } }),
   ])
 
@@ -277,7 +275,6 @@ async function fetchContentData(start: Date, end: Date) {
       count: tarotReadingCount,
     },
     readingsByType: readingsByType.map((r) => ({ type: r.type, count: r._count.id })),
-    pastLifeCount,
     compatibilityCount,
   }
 }
