@@ -581,6 +581,17 @@
   color: #ffffff;
 }
 
+/* 자동 저장 인디케이터 — manual save 버튼 자리에 들어가는 작은 텍스트.
+ * 저장 진행/완료 상태만 알리고 클릭 불가 (자동이라 액션 필요 X). */
+.autoSaveStatus {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  color: #57534e;
+  background: transparent;
+}
+
 .resultSection {
   background: #ffffff;
   border: 1px solid #e7e5e4;

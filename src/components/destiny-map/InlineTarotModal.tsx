@@ -532,6 +532,11 @@ interface ResultStepProps {
   questionSummary?: string
   directAnswer?: string
   onDrawAgain: () => void
+  /**
+   * Save 콜백 — 자동 저장 도입 후 manual UI 에선 안 부르지만 prop 으로
+   * 받아두기 (parent 가 api.saveReading 을 전달 중이고, 미래에 명시 저장
+   * UI 부활 시 재사용). 현재 컴포넌트 안에서는 호출 안 함.
+   */
   onSave: () => void
   onComplete: () => void
   onDeeper: () => void
@@ -545,7 +550,7 @@ function ResultStep({
   questionSummary,
   directAnswer,
   onDrawAgain,
-  onSave,
+  onSave: _onSave,
   onComplete,
   onDeeper,
   onRetryInterpret,
@@ -642,18 +647,17 @@ function ResultStep({
         ))}
       </div>
 
-      {/* Draw Again & Save Buttons */}
+      {/* Draw Again 버튼 + 자동 저장 인디케이터 (저장 버튼은 자동 저장으로
+          통일되며 제거 — 단독 타로 페이지 ActionButtons 와 동일 결). */}
       <div className={styles.resultTopActions}>
         <button className={styles.drawAgainButton} onClick={onDrawAgain}>
           {tr.drawAgain}
         </button>
-        <button
-          className={`${styles.saveButton} ${isSaved ? styles.saved : ''}`}
-          onClick={onSave}
-          disabled={isSaving || isSaved}
-        >
-          {isSaving ? '...' : isSaved ? tr.saved : tr.save}
-        </button>
+        {isSaving ? (
+          <span className={styles.autoSaveStatus}>{isKo ? '자동 저장 중…' : 'Auto-saving…'}</span>
+        ) : isSaved ? (
+          <span className={styles.autoSaveStatus}>{isKo ? '✓ 저장됨' : '✓ Saved'}</span>
+        ) : null}
       </div>
 
       {/* Overall Message — split into readable paragraphs to match the main

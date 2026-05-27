@@ -5,7 +5,7 @@
  * AI 자동 추천(question-engine-v2)은 제거 — 사용자가 직접 스프레드 선택.
  */
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import type { DrawnCard, CardInsight } from '@/lib/tarot/tarot.types'
 import { logger } from '@/lib/logger'
@@ -329,13 +329,7 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     } finally {
       actions.setIsDrawing(false)
     }
-  }, [
-    selectedSpread,
-    selectedCategory,
-    actions,
-    fetchInterpretation,
-    showDepleted,
-  ])
+  }, [selectedSpread, selectedCategory, actions, fetchInterpretation, showDepleted])
 
   // Save tarot reading to database
   const saveReading = useCallback(async () => {
@@ -416,6 +410,28 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     actions.setStep('interpreting')
     void fetchInterpretation(drawnCards)
   }, [drawnCards, actions, fetchInterpretation])
+
+  // 자동 저장 — interpretation 이 정상 결과로 끝나면 (interpretFailed=false)
+  // 사용자가 "저장" 버튼 클릭 없이 자동으로 saveReading 한 번 호출. 단독
+  // 타로 페이지(useTarotInterpretation) 와 동일 결. saveReading 자체가
+  // isSaved/isSaving 가드를 갖고 있어 중복 호출 안전. session 체크는
+  // 서버 측에서 (게스트는 401 → 조용히 무시).
+  useEffect(() => {
+    if (state.step !== 'result') return
+    if (state.interpretFailed) return
+    if (state.isSaved || state.isSaving) return
+    if (drawnCards.length === 0) return
+    if (!overallMessage?.trim()) return
+    void saveReading()
+  }, [
+    state.step,
+    state.interpretFailed,
+    state.isSaved,
+    state.isSaving,
+    drawnCards.length,
+    overallMessage,
+    saveReading,
+  ])
 
   // Cleanup on unmount
   const cleanup = useCallback(() => {
