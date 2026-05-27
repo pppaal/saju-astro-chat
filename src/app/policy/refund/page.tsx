@@ -9,7 +9,7 @@ import styles from '../policy.module.css'
 type Section = { title: string; titleKo: string; body: string; bodyKo: string; strict?: boolean }
 
 const PSP_NAME = 'Stripe'
-const EFFECTIVE_DATE = '2026-05-19'
+const EFFECTIVE_DATE = '2026-05-27'
 
 const QUICK_SUMMARY = {
   en: [
@@ -99,7 +99,7 @@ D) 크레딧 사용 추적:
     titleKo: '3. AI 리딩 서비스 - 환불 불가',
     body: `IMPORTANT: AI reading outputs are FINAL and NON-REFUNDABLE once generated.
 
-This applies to AI-generated outcomes across our main products, including Destiny Map, Tarot, Premium Reports, Destiny Calendar insights, and Compatibility analysis.
+This applies to AI-generated outcomes across our main products, including the East-West Astrology Counselor, Tarot, Compatibility analysis, and Fortune Calendar insights.
 
 Reason: These services involve immediate AI computation and delivery of personalized digital content. Once generated, the service has been fully rendered.
 
@@ -116,7 +116,7 @@ By using our reading services, you acknowledge:
 3. You accept the reading as-is upon generation`,
     bodyKo: `중요: AI 리딩 결과물은 생성 즉시 최종 제공되며 환불이 불가합니다.
 
-이 원칙은 Destiny Map, Tarot, Premium Reports, Destiny Calendar 인사이트, Compatibility 분석을 포함한 당사의 주요 AI 결과물 전반에 적용됩니다.
+이 원칙은 동서 점성 상담사, 타로 상담사, 궁합 분석, 일·월·년 운세 캘린더 인사이트를 포함한 당사의 주요 AI 결과물 전반에 적용됩니다.
 
 이유: 본 서비스는 즉각적인 AI 연산과 맞춤형 디지털 콘텐츠 제공을 포함합니다. 생성 완료 시점에 서비스 제공이 완료된 것으로 간주됩니다.
 
@@ -154,10 +154,10 @@ C) Complete Service Failure:
 - Partial service delivery does not qualify
 
 D) Processing Time:
-- Approved refunds: 7-10 business days
+- Approved refunds: 5-10 business days (depending on card issuer; international cards may take slightly longer)
 - Refund method: Original payment method only
 - Currency: Original currency (exchange rate differences not compensated)
-- Payment processor fees (e.g., Stripe) are non-refundable and may be deducted from the refund amount
+- Payment processor fees (e.g., Stripe) are non-refundable and are deducted from the refund amount
 
 To Request Exception Refund - Email ${SUPPORT_EMAIL} with:
 - Account email
@@ -186,10 +186,10 @@ C) 완전한 서비스 실패:
 - 부분적 서비스 제공은 해당되지 않음
 
 D) 처리 시간:
-- 승인된 환불: 영업일 기준 7-10일
+- 승인된 환불: 영업일 기준 5-10일 (카드사 처리 일정에 따라 다르며, 해외 결제는 조금 더 걸릴 수 있습니다)
 - 환불 방법: 원래 결제 수단으로만 가능
 - 통화: 원래 통화 (환율 차이 보상 없음)
-- 결제 처리 수수료(예: Stripe)는 환불 불가이며 환불 금액에서 차감될 수 있습니다
+- 결제 처리 수수료(예: Stripe)는 환불 불가이며 환불 금액에서 차감됩니다
 
 예외 환불 요청 - ${SUPPORT_EMAIL}로 이메일:
 - 계정 이메일
@@ -316,10 +316,17 @@ No Price Protection:
     title: '8. Consumer Rights by Region',
     titleKo: '8. 지역별 소비자 권리',
     body: `Korean Consumers (대한민국):
-- 전자상거래법에 따라 디지털 콘텐츠는 제공 시작 후 청약철회가 제한됩니다
-- 콘텐츠 제공 시작 전: 7일 이내 청약철회 가능
-- 콘텐츠 제공 시작 후: 청약철회 불가
-- 본 정책의 7일 환불 보장은 법적 의무를 초과하는 자발적 혜택입니다
+- Per the Korean Act on Consumer Protection in Electronic Commerce (전자상거래법) §17 ②항 5호, the right of withdrawal for digital content is limited once provision has begun
+- Before content delivery starts: withdrawal possible within 7 days of purchase
+- After content delivery starts: withdrawal is restricted by law
+- The 7-day refund window in this policy goes beyond the statutory minimum as a voluntary courtesy (limited to unused credit packs)
+
+Minor protection (민법 §5): purchases made by a minor without legal-guardian consent may be revoked by the guardian. Contact ${SUPPORT_EMAIL} with proof of guardianship and the transaction ID.
+
+Dispute resolution channels for Korean residents:
+- Korea Consumer Agency (한국소비자원) — 1372 consumer counseling: kca.go.kr
+- Consumer Dispute Mediation Committee (소비자분쟁조정위원회): ccn.go.kr
+- Korea Fair Trade Commission (공정거래위원회) — ftc.go.kr
 
 EU Consumers:
 - Digital content: 14-day withdrawal right does not apply once download/streaming begins with consumer consent
@@ -334,10 +341,17 @@ Other Jurisdictions:
 - Local mandatory consumer protection laws apply
 - This policy does not limit your statutory rights`,
     bodyKo: `대한민국 소비자:
-- 전자상거래법에 따라 디지털 콘텐츠는 제공 시작 후 청약철회가 제한됩니다
-- 콘텐츠 제공 시작 전: 7일 이내 청약철회 가능
-- 콘텐츠 제공 시작 후: 청약철회 불가
-- 본 정책의 7일 환불 보장은 법적 의무를 초과하는 자발적 혜택입니다
+- 전자상거래법 제17조 ②항 5호에 따라 디지털 콘텐츠는 제공이 개시된 이후 청약철회가 제한됩니다.
+- 콘텐츠 제공 시작 전: 구매 후 7일 이내 청약철회 가능
+- 콘텐츠 제공 시작 후: 법령상 청약철회 제한
+- 본 정책의 7일 환불 보장(미사용 크레딧 팩 한정)은 법적 의무를 초과하는 자발적 혜택입니다.
+
+미성년자 보호 (민법 제5조): 미성년자가 법정대리인의 동의 없이 한 결제는 법정대리인이 취소할 수 있습니다. ${SUPPORT_EMAIL} 으로 보호자 관계 증빙 및 거래 ID 와 함께 요청해 주세요.
+
+분쟁 해결 안내 (한국 거주자):
+- 한국소비자원 1372 소비자상담센터: kca.go.kr
+- 소비자분쟁조정위원회: ccn.go.kr
+- 공정거래위원회: ftc.go.kr
 
 EU 소비자:
 - 디지털 콘텐츠: 소비자 동의 하에 다운로드/스트리밍이 시작되면 14일 철회권이 적용되지 않음
@@ -358,7 +372,12 @@ EU 소비자:
     body: `For refund requests and billing inquiries:
 
 Email: ${SUPPORT_EMAIL}
-Response Time: Within 48 business hours
+Response Time: within 2 business days. Privacy-related requests are handled within 10 days per the Korean Personal Information Protection Act.
+
+Related pages:
+- Contact (/contact) — general inquiry routing
+- Privacy Policy §12 (/policy/privacy) — Privacy Officer and complaint channels
+- Terms of Service (/policy/terms) — business operator information (전상법 §13)
 
 Required Information for Refund Requests:
 - Account email address
@@ -373,7 +392,12 @@ Keep all receipts and confirmation emails for your records.`,
     bodyKo: `환불 요청 및 결제 문의:
 
 이메일: ${SUPPORT_EMAIL}
-응답 시간: 영업일 기준 48시간 이내
+응답 시간: 영업일 기준 2일 내. 개인정보 관련 요청은 개인정보 보호법에 따라 10일 이내 회신합니다.
+
+관련 페이지:
+- 문의하기 (/contact) — 일반 문의 라우팅
+- 개인정보처리방침 §12 (/policy/privacy) — 개인정보 보호책임자 및 권익침해 신고
+- 이용약관 (/policy/terms) — 사업자 정보 (전자상거래법 §13)
 
 환불 요청 시 필요 정보:
 - 계정 이메일 주소
