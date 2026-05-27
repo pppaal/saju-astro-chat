@@ -18,7 +18,6 @@ import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
 import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
-import ClarifierCardPanel from './ClarifierCardPanel'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
@@ -74,12 +73,8 @@ const Chat = memo(function Chat({
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [showChartModal, setShowChartModal] = React.useState(false)
   const [showClarifierModal, setShowClarifierModal] = React.useState(false)
-  const [clarifierCard, setClarifierCard] = React.useState<ClarifierCard | null>(null)
-  // 클래리파이어는 한 대화당 한 장만. 한 번 confirm 하면 새 대화 시작 전까지
-  // 다시 못 뽑게 잠근다. 패널 ×(닫기) 로 카드 그림은 숨길 수 있지만 이
-  // 플래그는 새 채팅 전까지 유지.
+  // 한 대화당 한 장만. confirm 시 잠그고 startNewChat 에서만 푼다.
   const [clarifierUsed, setClarifierUsed] = React.useState(false)
-  const clarifierPanelRef = React.useRef<HTMLDivElement | null>(null)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
@@ -282,21 +277,18 @@ const Chat = memo(function Chat({
   }, [clarifierUsed, effectiveLang])
   const handleClarifierConfirm = React.useCallback(
     (card: ClarifierCard) => {
-      // 카드 자체는 채팅창 위쪽 패널에 그림으로 띄우고, LLM 에는 텍스트만
-      // 보내서 한 단락 해석을 받는다. 한 번 뽑으면 새 대화 전까지 잠금.
+      // 카드 이름 + 그림(markdown 이미지) + 해석 요청을 user 메시지로 흘려
+      // 보낸다. MessageRow 가 markdown 패턴을 감지해 MarkdownMessage 로
+      // 렌더 → 카드 그림이 user 말풍선 안에 표시되고, 바로 뒤이어 답변이
+      // 스트리밍된다. 메시지 끝(messagesEnd)으로 자동 스크롤되는 기존
+      // useEffect 가 알아서 해석 위치로 데려가므로 따로 스크롤 안 한다.
+      // 한 번 뽑으면 새 대화 시작 전까지 잠금.
       setClarifierUsed(true)
-      setClarifierCard(card)
       const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
       void handleSendRef.current?.(userText)
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() =>
-          clarifierPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        )
-      )
     },
     [effectiveLang]
   )
-  const handleClarifierDismiss = React.useCallback(() => setClarifierCard(null), [])
 
   const handleTarotComplete = (result: TarotResultSummary) => {
     const cardsSummary = result.cards
@@ -337,7 +329,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
     setActiveSessionId(sessionIdRef.current)
     setFollowUpQuestions([])
     setClarifierUsed(false)
-    setClarifierCard(null)
   }
 
   // ---- Rename / delete a past chat (desktop rail) ----
@@ -596,11 +587,11 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onClick={openClarifier}
               disabled={showClarifierModal}
               aria-disabled={showClarifierModal || clarifierUsed}
-              style={clarifierUsed ? { opacity: 0.55 } : undefined}
+              style={clarifierUsed ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
               title={
                 clarifierUsed
                   ? effectiveLang === 'ko'
-                    ? '\uC774\uBC88 \uB300\uD654\uC5D0\uC11C\uB294 \uC774\uBBF8 \uD55C \uC7A5 \uBF51\uC558\uC5B4\uC694'
+                    ? '\uC774 \uB300\uD654\uC5D0\uC11C\uB294 \uC774\uBBF8 \uD55C \uC7A5 \uBF51\uC558\uC5B4\uC694'
                     : "Already drew one in this chat"
                   : effectiveLang === 'ko'
                     ? '\uBCF4\uCDA9 \uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30 (\uC989\uC11D \uD074\uB798\uB9AC\uD30C\uC774\uC5B4)'
@@ -610,9 +601,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
                 {'\uD83C\uDCCF'}
               </span>
-              {effectiveLang === 'ko'
-                ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30'
-                : 'Draw one more card'}
+              {clarifierUsed
+                ? effectiveLang === 'ko'
+                  ? '\uD55C \uC7A5 \uB354 \uBF51\uAE30 \uBD88\uAC00'
+                  : 'No more draws'
+                : effectiveLang === 'ko'
+                  ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30'
+                  : 'Draw one more card'}
             </button>
             <button
               type="button"
@@ -647,13 +642,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
             {/* ⋮ 메뉴는 페이지 헤더(counselor/page.tsx)로 이동 (PR #625) —
                 여기에 있던 옛 JSX 와 chatMenuOpen/Ref/handler 들은 dead.
                 중복 렌더 + 색상 톤 충돌 회피 위해 제거. */}
-
-            <ClarifierCardPanel
-              ref={clarifierPanelRef}
-              card={clarifierCard}
-              lang={effectiveLang}
-              onDismiss={handleClarifierDismiss}
-            />
 
             <MessagesPanel
               visibleMessages={visibleMessages}
