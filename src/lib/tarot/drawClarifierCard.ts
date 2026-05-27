@@ -31,18 +31,18 @@ export function drawClarifierCard(): ClarifierCard {
   }
 }
 
-// 채팅 사용자 메시지로 보낼 텍스트 — 카드 이름·방향만.
-// AI 지시문은 realtime route 시스템 프롬프트가 "🃏 보충 카드 패턴 감지 시
-// 같은 톤으로 한 단락 보충 해석" 으로 처리하므로 사용자 버블엔 안 넣는다.
-// 카드 이미지는 채팅 메시지 마크다운 렌더러가 표시하지 않아, 별도
-// ClarifierCardPanel 이 채팅창 위쪽에서 그림으로 띄운다.
+// 채팅 사용자 메시지로 보낼 텍스트 — 카드 이름·방향 + 카드 그림(markdown
+// 이미지). MarkdownMessage 의 img 컴포넌트가 채팅 버블 안에 카드를 그려
+// 사용자가 어떤 카드가 떴는지 한눈에 본다. AI 지시문은 realtime route
+// 시스템 프롬프트가 "🃏 보충 카드 패턴 감지 시 같은 톤으로 한 단락
+// 보충 해석" 으로 처리하므로 사용자 버블엔 따로 안 넣는다.
 export function buildClarifierUserMessage(card: ClarifierCard, language: 'ko' | 'en'): string {
   const isKo = language === 'ko'
   const displayName = isKo && card.nameKo ? card.nameKo : card.name
   const reversedTag = card.isReversed ? (isKo ? ' (역방향)' : ' (reversed)') : ''
+  const header = isKo
+    ? `🃏 보충 카드 한 장을 더 뽑았어요: **${displayName}${reversedTag}**`
+    : `🃏 One more clarifier card drawn: **${displayName}${reversedTag}**`
 
-  if (isKo) {
-    return `🃏 보충 카드 한 장을 더 뽑았어요: **${displayName}${reversedTag}**`
-  }
-  return `🃏 One more clarifier card drawn: **${displayName}${reversedTag}**`
+  return `${header}\n\n![${displayName}](${card.image})`
 }
