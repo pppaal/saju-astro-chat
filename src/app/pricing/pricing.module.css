@@ -377,6 +377,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .faqItem {
@@ -425,15 +428,17 @@
 }
 
 .faqArrow {
-  font-size: 18px;
   color: var(--text-3);
-  transition: color 0.25s ease;
   margin-left: 16px;
-  font-weight: 300;
+  flex-shrink: 0;
+  transition:
+    color 0.25s ease,
+    transform 0.25s ease;
 }
 
 .faqItem.open .faqArrow {
   color: var(--accent);
+  transform: rotate(180deg);
 }
 
 .faqAnswer {

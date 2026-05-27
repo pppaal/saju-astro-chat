@@ -5,8 +5,15 @@ import { useCallback, useState, useEffect } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
+import { useToast } from '@/components/ui/Toast'
+import { logger } from '@/lib/logger'
 import styles from './pricing.module.css'
-import { CREDIT_PACKS, BASE_CREDIT_PRICE_KRW, type CreditPackType } from '@/lib/config/pricing'
+import {
+  CREDIT_PACKS,
+  BASE_CREDIT_PRICE_KRW,
+  getCreditPackDiscount,
+  type CreditPackType,
+} from '@/lib/config/pricing'
 import { fetchWithRetry } from '@/lib/http'
 
 interface CreditPackDisplay {
@@ -96,6 +103,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = activeLocale || initialLocale
   const isKo = locale === 'ko'
+  const toast = useToast()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [loadingCredit, setLoadingCredit] = useState<string | null>(null)
   const baseCreditPriceUsd = CREDIT_PACKS.mini.perCreditUsd
@@ -191,27 +199,14 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
       if (checkoutUrl) {
         window.location.href = checkoutUrl
       } else {
-        // /api/checkout 의 에러 응답은 { error: { code, message, details } } 객체.
-        // 통째로 alert 하면 "[object Object]" 가 떠서 사용자에게 무의미 — code/
-        // message 를 풀어서 보여주고, 풀 응답은 console 에도 남겨서 진단 용이.
-        // res.json() 이 실패하거나 응답이 비어 있으면 (HTML 5xx, 401 redirect,
-        // 인증 미동기화 등) HTTP status 만이라도 alert 에 노출해야 사용자가
-        // "결제 서비스 일시 불가" 같은 generic 메시지 보고 막막해하지 않음.
-        console.error('[checkout] error response:', { status: res.status, data })
-        const errObj = (obj.error ?? obj) as Record<string, unknown> | string
-        const errMsg =
-          typeof errObj === 'string'
-            ? errObj
-            : (errObj as { message?: string }).message ||
-              (errObj as { code?: string }).code ||
-              (obj as { message?: string }).message ||
-              pt('paymentError')
-        const code = typeof errObj === 'object' ? (errObj as { code?: string }).code : undefined
-        alert(`${errMsg} (HTTP ${res.status}${code ? ` · ${code}` : ''})`)
+        // 디버그용 코드/HTTP status 는 logger 로만 남기고 (Sentry 등에서 추적),
+        // 사용자에게는 도움이 안 되니 일반 안내 메시지만 노출.
+        logger.warn('[checkout] error response', { status: res.status, data })
+        toast.error(pt('paymentError'))
       }
     } catch (err) {
-      console.error('[checkout] request failed:', err)
-      alert(pt('paymentError'))
+      logger.warn('[checkout] request failed', err)
+      toast.error(pt('paymentError'))
     } finally {
       setLoadingCredit(null)
     }
@@ -242,9 +237,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
 
           <div className={styles.creditGrid}>
             {creditPacks.map((pack) => {
-              const basePrice = CREDIT_PACKS.mini.perCreditKrw
-              const currentPrice = pack.price / pack.readings
-              const discountPercent = Math.round((1 - currentPrice / basePrice) * 100)
+              const discountPercent = getCreditPackDiscount(pack.id)
 
               return (
                 <div
@@ -319,51 +312,54 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
             <h2 className={styles.sectionTitle}>{pt('faq')}</h2>
           </div>
 
-          <div className={styles.faqList} role="list">
+          <ul className={styles.faqList}>
             {faqKeys.map((key, idx) => {
               const isOpen = openFaq === idx
               const questionId = `faq-question-${idx}`
               const answerId = `faq-answer-${idx}`
 
               return (
-                <div
-                  key={idx}
-                  className={`${styles.faqItem} ${isOpen ? styles.open : ''}`}
-                  role="listitem"
-                >
+                <li key={key} className={`${styles.faqItem} ${isOpen ? styles.open : ''}`}>
                   <button
                     id={questionId}
                     className={styles.faqQuestion}
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        setOpenFaq(isOpen ? null : idx)
-                      }
-                    }}
                     aria-expanded={isOpen}
                     aria-controls={answerId}
                     type="button"
                   >
                     <span>{pt(`faqs.${key}`)}</span>
-                    <span className={styles.faqArrow} aria-hidden="true">
-                      {isOpen ? '-' : '+'}
-                    </span>
-                  </button>
-                  {isOpen && (
-                    <div
-                      id={answerId}
-                      className={styles.faqAnswer}
-                      role="region"
-                      aria-labelledby={questionId}
+                    <svg
+                      className={styles.faqArrow}
+                      viewBox="0 0 16 16"
+                      width="14"
+                      height="14"
+                      aria-hidden="true"
+                      focusable="false"
                     >
-                      {pt(`faqs.a${key.slice(1)}`)}
-                    </div>
-                  )}
-                </div>
+                      <path
+                        d="M4 6l4 4 4-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <div
+                    id={answerId}
+                    className={styles.faqAnswer}
+                    role="region"
+                    aria-labelledby={questionId}
+                    hidden={!isOpen}
+                  >
+                    {pt(`faqs.a${key.slice(1)}`)}
+                  </div>
+                </li>
               )
             })}
-          </div>
+          </ul>
         </section>
 
         {/* Guarantee */}
