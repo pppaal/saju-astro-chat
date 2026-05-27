@@ -34,6 +34,7 @@ function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string):
 }
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
+import { formatCompositeChart } from '@/lib/compatibility/compositeChartFormatter'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
@@ -445,6 +446,7 @@ export async function POST(req: NextRequest) {
             '',
             '규칙:',
             '- 중요도: == 시너스트리 == 의 [CRITICAL] 을 답의 중심으로, [참고] 는 가볍게 다루거나 생략.',
+            '- == Composite Chart (관계 entity) == 블록이 있으면, 두 사람이 *함께 만드는 분위기/방향* 으로 활용 (synastry 가 "서로에게 어떻게 반응하나" 라면 composite 는 "관계 자체의 톤"). 답의 3 단락(끌림/부딪힘/풀어가는 길) 중 적절한 곳에 짧게 녹여 — Composite Sun-Moon 합 = 둘 사이 정서 단단함, Composite Venus-Mars 각 = 관계의 욕망·매력 결.',
             '- [개별 신살 — 각자 타고난 것] 블록의 신살(도화·홍염살·백호·괴강·천을귀인·원진·귀문관 등)을 *시너스트리 cross 와 묶어* 해석한다. 예: A 가 일주에 도화 + B 의 일지가 A의 도화 자리와 충/합 → 강한 끌림. 단독 신살만 나열하지 말 것 — 관계 맥락에 묶어야 의미.',
             '- 타로 클래리파이어 카드(🃏)가 도착하면 카드 일반 의미 X, 직전까지 짚은 *시너스트리 [CRITICAL] 신호 한 가지* 에 그 카드가 어떤 디테일을 더해주는지 한 단락(2-3 문장).',
             '- 두 사람의 관계 역학에 답한다. 한 명만 분석하지 말 것.',
@@ -484,6 +486,7 @@ export async function POST(req: NextRequest) {
             '',
             'Rules:',
             '- Weighting: center the answer on the == 시너스트리 == [CRITICAL] lines; treat [참고] lightly or skip.',
+            '- If a == Composite Chart (관계 entity) == block is present, use it as the *atmosphere the two of them create together* (synastry says "how they react to each other"; composite says "what the relationship itself feels like"). Weave it briefly into the right paragraph — e.g. Composite Sun-Moon conjunction = solid emotional core; Composite Venus-Mars aspect = the desire/attraction grain of the relationship.',
             '- Tie the per-person shinsal block ([개별 신살 — 각자 타고난 것]: 도화/홍염살/백호/괴강/천을귀인/원진/귀문관 …) *into the synastry cross* — e.g. "A has 도화 on day pillar + B\'s day branch hits that 도화 branch → magnetic attraction". Do not list shinsal in isolation — always couple it to the relationship signal.',
             '- When a tarot clarifier card (🃏) arrives: drop generic card meanings. Take *one specific [CRITICAL] synastry signal you just discussed* and add what the card sharpens about it — single paragraph (2-3 sentences).',
             '- Answer about the relationship dynamic. Never analyze only one person.',
@@ -522,6 +525,7 @@ export async function POST(req: NextRequest) {
     // cached prefix라 prompt caching이 cover.
     let sajuSynastryBlock = ''
     let astroSynastryBlock = ''
+    let compositeChartBlock = ''
     try {
       const aP = (
         effectivePerson1Saju as {
@@ -607,16 +611,23 @@ export async function POST(req: NextRequest) {
               timeZone: person2Seed.timeZone,
             }),
           ])
+          const chartA = toChart(natalA)
+          const chartB = toChart(natalB)
+          const nA = (persons?.[0] as { name?: string } | undefined)?.name ?? null
+          const nB = (persons?.[1] as { name?: string } | undefined)?.name ?? null
           astroSynastryBlock = formatAstroSynastry({
-            chartA: toChart(natalA),
-            chartB: toChart(natalB),
+            chartA,
+            chartB,
             latA: person1Seed.latitude,
             lonA: person1Seed.longitude,
             latB: person2Seed.latitude,
             lonB: person2Seed.longitude,
-            nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
-            nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
+            nameA: nA,
+            nameB: nB,
           })
+          // Composite chart — 두 차트의 entity 톤 (관계 자체). synastry 가
+          // "서로에게 어떻게 반응하나" 면 composite 은 "둘이 같이 만드는 분위기".
+          compositeChartBlock = formatCompositeChart({ chartA, chartB, nameA: nA, nameB: nB })
         }
       } catch (err) {
         logger.warn('[compat counselor] astro synastry failed', {
@@ -667,6 +678,7 @@ export async function POST(req: NextRequest) {
       personalShinsalBlock ? `\n${personalShinsalBlock}` : '',
       sajuSynastryBlock ? `\n${sajuSynastryBlock}` : '',
       astroSynastryBlock ? `\n${astroSynastryBlock}` : '',
+      compositeChartBlock ? `\n${compositeChartBlock}` : '',
       // legacy fullContext 또는 시간 미상 안내
       fullContextText ? `\n${fullContextText}` : '',
     ]
