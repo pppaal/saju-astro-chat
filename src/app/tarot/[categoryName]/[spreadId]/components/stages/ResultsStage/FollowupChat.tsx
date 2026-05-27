@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import { MessageCircle, Send, Loader2, Sparkles } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
-import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
+import { useClarifierCard } from '@/hooks/useClarifierCard'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
@@ -31,16 +31,11 @@ export function FollowupChat({
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<Turn[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [showClarifierModal, setShowClarifierModal] = useState(false)
-  // 한 리딩당 클래리파이어 한 장만 (운명상담사 동일 정책 PR #631).
-  const [clarifierUsed, setClarifierUsed] = useState(false)
   const [clarifierNotice, setClarifierNotice] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 —
-  // "카드 한 장 더 뽑기" 버튼이 채팅 박스 맨 하단이고, 사용자가 본 자리에
-  // 카드/답변이 그대로 쌓이는 게 자연스러움. 자동 scrollTo 가 답변 끝까지
-  // 따라가면 viewport/박스가 위로 밀려 회귀.
+  // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 — 자세한
+  // 정책은 useClarifierCard hook 참조.
   const suspendAutoScrollRef = useRef(false)
 
   useEffect(() => {
@@ -151,31 +146,17 @@ export function FollowupChat({
     await sendQuestionText(q)
   }
 
-  // 🃏 클래리파이어 카드 한 장 — 한 리딩당 한 장만. 두 번째 클릭은 모달
-  // 안 열고 안내만 띄움.
-  const openClarifier = () => {
-    if (submitting) return
-    if (clarifierUsed) {
-      setClarifierNotice(
-        isKo
-          ? '이 리딩에서는 보충 카드를 이미 한 장 뽑았어요. 새 리딩에서 다시 뽑을 수 있어요.'
-          : "You've already drawn one clarifier card for this reading."
-      )
-      return
-    }
-    setShowClarifierModal(true)
-  }
-  const handleClarifierConfirm = async (card: ClarifierCard) => {
-    // 자동 스크롤 25 초 끄기 — "그 자리 유지" 회귀 방지 (PR #644 패턴).
-    suspendAutoScrollRef.current = true
-    window.setTimeout(() => {
-      suspendAutoScrollRef.current = false
-    }, 25000)
-    setClarifierUsed(true)
-    setClarifierNotice(null)
-    const text = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
-    await sendQuestionText(text)
-  }
+  // 🃏 클래리파이어 카드 — 공통 hook 사용 (운명상담사/궁합상담사 동일).
+  const clarifier = useClarifierCard({
+    lang: isKo ? 'ko' : 'en',
+    onSendUserText: (text) => {
+      setClarifierNotice(null)
+      void sendQuestionText(text)
+    },
+    onLockedNotice: setClarifierNotice,
+    suspendAutoScrollRef,
+    disabled: submitting,
+  })
 
   return (
     <section className="rounded-2xl bg-slate-900/50 border border-cyan-500/20 shadow-[0_0_24px_rgba(34,211,238,0.06)] p-5 md:p-6 space-y-4">
@@ -261,29 +242,11 @@ export function FollowupChat({
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={openClarifier}
-          disabled={submitting || showClarifierModal}
-          aria-disabled={submitting || showClarifierModal || clarifierUsed}
-          style={clarifierUsed ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
+          {...clarifier.buttonProps}
           className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-[12px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-          title={
-            clarifierUsed
-              ? isKo
-                ? '이 리딩에서는 이미 한 장 뽑았어요'
-                : 'Already drew one for this reading'
-              : isKo
-                ? '직전 리딩 흐름에 클래리파이어 카드 한 장 더 뽑기'
-                : 'Draw one clarifier card to add to this reading'
-          }
         >
           <Sparkles className="h-3.5 w-3.5" />
-          {clarifierUsed
-            ? isKo
-              ? '한 장 더 뽑기 불가'
-              : 'No more draws'
-            : isKo
-              ? '카드 한 장 더 뽑기'
-              : 'Draw one more card'}
+          {clarifier.buttonLabel}
         </button>
       </div>
 
@@ -324,12 +287,7 @@ export function FollowupChat({
             : 'e.g. "Why did the 3rd card land there?", "Should I wait on the decision?"'}
         </p>
       )}
-      <ClarifierCardModal
-        isOpen={showClarifierModal}
-        onClose={() => setShowClarifierModal(false)}
-        onConfirm={handleClarifierConfirm}
-        lang={isKo ? 'ko' : 'en'}
-      />
+      <ClarifierCardModal {...clarifier.modalProps} />
     </section>
   )
 }

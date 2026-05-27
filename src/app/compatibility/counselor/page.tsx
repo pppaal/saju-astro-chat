@@ -16,7 +16,7 @@ import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
 import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
 import { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
-import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
+import { useClarifierCard } from '@/hooks/useClarifierCard'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
   ssr: false,
@@ -102,13 +102,8 @@ function CompatibilityCounselorContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showChartModal, setShowChartModal] = useState(false)
   const [showTarotModal, setShowTarotModal] = useState(false)
-  const [showClarifierModal, setShowClarifierModal] = useState(false)
-  // 한 대화당 한 장만. 운명 상담사와 동일 패턴 (PR #631, #644).
-  const [clarifierUsed, setClarifierUsed] = useState(false)
-  // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 — "한 장 더
-  // 뽑기" 버튼이 채팅 맨 하단이라 사용자는 이미 그 자리를 보고 있어 답변
-  // 토큰마다 messagesEnd 따라가면 viewport 가 위로 밀려 "왜 다시 올라가냐"
-  // 회귀.
+  // 클래리파이어 hook (운명상담사/타로 followup 동일) — 잠금, 안내, 자동
+  // 스크롤 hijack, 버튼 라벨까지 단일 출처. 자세한 정책은 useClarifierCard.
   const suspendAutoScrollRef = useRef(false)
   // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 사이드바 리스트의 항상 보이던
   // 아이콘들을 대체 (운명 상담사와 동일 패턴, PR #621).
@@ -425,7 +420,8 @@ function CompatibilityCounselorContent() {
     setMessages([])
     setChatSessionId(undefined)
     setChatTitle(null)
-    setClarifierUsed(false)
+    clarifier.reset()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- clarifier.reset 은 hook 내부 useCallback 이라 stable. clarifier 객체 자체를 deps 에 넣으면 매 render 마다 새 reference 라 useCallback 무용지물.
   }, [chatSessionId, isKo])
 
   const sendMessage = useCallback(
@@ -612,35 +608,15 @@ function CompatibilityCounselorContent() {
     }
   }
 
-  // 🃏 클래리파이어 카드 한 장 — 작은 모달이 열려 카드 한 장이 펼쳐지고
-  // 사용자가 확인을 누르면 카드 이미지와 함께 채팅 메시지로 흘려보낸다.
-  // LLM 이 직전 대화 + 두 사람 컨텍스트로 한 단락 보충 해석을 답한다.
-  // 한 대화당 한 장만 — 운명상담사 동일 정책 (PR #631).
-  const openClarifier = useCallback(() => {
-    if (isLoading || persons.length < 2) return
-    if (clarifierUsed) {
-      setError(
-        isKo
-          ? '이번 대화에서는 보충 카드를 이미 한 장 뽑았어요. 새 대화를 시작하면 다시 뽑을 수 있어요.'
-          : "You've already drawn one clarifier card in this chat. Start a new chat to draw another."
-      )
-      return
-    }
-    setShowClarifierModal(true)
-  }, [isLoading, persons.length, clarifierUsed, isKo])
-  const handleClarifierConfirm = useCallback(
-    (card: ClarifierCard) => {
-      // 자동 스크롤 hijack 25초 끄기 — "그 자리에 있으면 된다" 회귀 (PR #644).
-      suspendAutoScrollRef.current = true
-      window.setTimeout(() => {
-        suspendAutoScrollRef.current = false
-      }, 25000)
-      setClarifierUsed(true)
-      const userText = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
-      sendMessage(userText)
-    },
-    [isKo, sendMessage]
-  )
+  // 🃏 클래리파이어 카드 한 장 — 공통 hook (운명상담사/타로 followup 동일).
+  // 정책(잠금/안내/자동 스크롤 hijack/버튼 라벨)은 useClarifierCard 가 책임.
+  const clarifier = useClarifierCard({
+    lang: isKo ? 'ko' : 'en',
+    onSendUserText: sendMessage,
+    onLockedNotice: setError,
+    suspendAutoScrollRef,
+    disabled: isLoading || persons.length < 2,
+  })
 
   // 🃏 다음 질문 타로로 보기 — 운명상담사와 동일한 InlineTarotModal 흐름. 사용자가
   // 질문 적고 스프레드 골라 카드 펼치면 결과를 채팅 메시지로 inject.
@@ -697,7 +673,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           setInput('')
           setChatSessionId(undefined)
           setChatTitle(null)
-          setClarifierUsed(false)
+          clarifier.reset()
           setTimeout(() => inputRef.current?.focus(), 0)
         }}
         serviceType="compat"
@@ -725,34 +701,12 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
             <button
               type="button"
               className={styles.sidebarFooterBtn}
-              onClick={openClarifier}
-              disabled={isLoading || persons.length < 2 || showClarifierModal}
-              aria-disabled={
-                isLoading || persons.length < 2 || showClarifierModal || clarifierUsed
-              }
-              style={
-                clarifierUsed ? { opacity: 0.55, cursor: 'not-allowed' } : undefined
-              }
-              title={
-                clarifierUsed
-                  ? isKo
-                    ? '이 대화에서는 이미 한 장 뽑았어요'
-                    : 'Already drew one in this chat'
-                  : isKo
-                    ? '직전 대화 흐름에 클래리파이어 카드 한 장 더 뽑기'
-                    : 'Draw one clarifier card for the current thread'
-              }
+              {...clarifier.buttonProps}
             >
               <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
                 {'🃏'}
               </span>
-              {clarifierUsed
-                ? isKo
-                  ? '한 장 더 뽑기 불가'
-                  : 'No more draws'
-                : isKo
-                  ? '카드 한 장 더 뽑기'
-                  : 'Draw one more card'}
+              {clarifier.buttonLabel}
             </button>
             <button
               type="button"
@@ -1104,12 +1058,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         }
       />
 
-      <ClarifierCardModal
-        isOpen={showClarifierModal}
-        onClose={() => setShowClarifierModal(false)}
-        onConfirm={handleClarifierConfirm}
-        lang={isKo ? 'ko' : 'en'}
-      />
+      <ClarifierCardModal {...clarifier.modalProps} />
 
       <CompatChartModal
         open={showChartModal}
