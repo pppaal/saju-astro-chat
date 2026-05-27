@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   withApiMiddleware,
-  createSimpleGuard,
+  createPublicStreamGuard,
   extractLocale,
   type ApiContext,
 } from '@/lib/api/middleware'
@@ -907,9 +907,12 @@ export const GET = withApiMiddleware(
     res.headers.set('Cache-Control', 'private, max-age=3600, stale-while-revalidate=1800')
     return res
   },
-  createSimpleGuard({
+  // Tier-1 비용 가드 — 한 요청이 12 parallel buildCalendar(Swiss ephemeris+365일
+  // transits)을 fan-out 한다. 30/min/IP 는 익명 사용자가 ~50s CPU 부담 가능.
+  // date-detail / compatibility / saju 와 동일하게 token gate + 8/min 으로 강화.
+  createPublicStreamGuard({
     route: 'calendar',
-    limit: 30,
+    limit: 8,
     windowSeconds: 60,
   })
 )
