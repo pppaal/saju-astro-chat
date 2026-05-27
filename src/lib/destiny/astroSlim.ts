@@ -87,9 +87,16 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
           arr.sort((a, b) => a.n - b.n)
           arr.forEach((it, idx) => {
             const kindL = l === 'ko' ? it.kind : it.kind === '일식' ? 'solar' : 'lunar'
-            const tgtL = it.tgt === 'Ascendant' ? 'ASC' : it.tgt === 'MC' ? 'MC' : pko(it.tgt, l)
+            const tgtRaw = it.tgt === 'Ascendant' ? 'ASC' : it.tgt === 'MC' ? 'MC' : pko(it.tgt, l)
+            // 본명 행성/앵글에 일·월식이 떨어지는 형태 — `→ 본명 X` prefix 로
+            // 누가 누구를 건드리는지 분명히 (이전 `→ 태양` 단독 표기는 LLM 이
+            // "사자 → 태양" 식 sign-to-sign 으로 오인 가능).
+            const tgtL = l === 'ko' ? `본명 ${tgtRaw}` : `natal ${tgtRaw}`
             const head = idx === 0 ? `${it.md} ${kindL} ${sko(it.sign, l)} ` : `${it.md} ${kindL} `
-            const tail = idx === 0 ? ` ${it.orb}° (H${it.house})` : ` ${it.orb}°`
+            // (H{n}) 는 *일·월식이 떨어지는 본인 하우스* — 본명 행성 자체의
+            // 하우스 (예: 본명 달 H4) 와 다를 수 있어 라벨로 구분.
+            const houseTag = l === 'ko' ? `식점 H${it.house}` : `eclipse@H${it.house}`
+            const tail = idx === 0 ? ` ${it.orb}° (${houseTag})` : ` ${it.orb}°`
             out.push(`  ${head}→ ${tgtL} ${sym(it.asp)}${tail}`)
           })
         }
@@ -113,7 +120,9 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       const sat = body.find((b) => b.startsWith('Saturn '))
       const stm = sat && POS.exec(sat.replace(/(\d+)°\d+'/, '$1°'))
       if (stm && stm[4]) parts.push(`${pko('Saturn', l)} H${stm[4]}`)
-      if (parts.length) out.push(`${l === 'ko' ? '솔라리턴' : 'solar return'}: ${parts.join(', ')}`)
+      // SR 은 어느 해의 return 인지 명시 — 매년 바뀌는 신호라 year 누락 시
+      // LLM 이 "올해/내년" 인지 혼동.
+      if (parts.length) out.push(`${l === 'ko' ? `${year} 솔라리턴 (SR)` : `${year} solar return (SR)`}: ${parts.join(', ')}`)
       i = j; continue
     }
 

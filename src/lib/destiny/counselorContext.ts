@@ -162,7 +162,15 @@ function buildIljinWindowBlock(
     )
   }
   if (!lines.length) return ''
-  return `${L(`## 일진 ${days + 1}일`, `## DAILY (${days + 1} days)`)}\n${lines.join('\n')}`
+  // 헤더에 십성 anchor 명시 — 각 줄의 (상관/정재) 가 *본인 일간 기준* 임을
+  // 분명히. 없으면 LLM 이 "그 날의 stem 의 자체 십성" 으로 오인 가능.
+  // DayMaster 는 StemBranchInfo (객체) 이므로 .name 으로 한자 추출.
+  const dmName = dayMaster?.name || '?'
+  const header = L(
+    `## 일진 ${days + 1}일 (괄호 십성 = 본인 일간 ${dmName} 기준 천간/지지)`,
+    `## DAILY (${days + 1} days, parens = ten-gods relative to user's day master ${dmName})`
+  )
+  return `${header}\n${lines.join('\n')}`
 }
 const GILSIN_EN: Record<string, string> = {
   천을귀인: 'Nobleman',
@@ -333,7 +341,8 @@ function buildInstructions(locale: Locale): string {
       '- weigh good/bad by the chart, balanced',
       '- greetings/small talk brief; no unsolicited analysis',
       '- life/death · medical · legal: signal only, the decision is theirs',
-      '- astro symbols: ☌conjunction ⚹sextile □square △trine ☍opposition / R retrograde / (t)current transit / [detriment]=weak [domicile]=strong',
+      '- astro symbols: ☌conjunction ⚹sextile □square △trine ☍opposition / R retrograde / (t)current transit / P-Sun, P-Moon = secondary progression / [detriment]=weak [domicile]=strong',
+      "- ★ Age citation: use the [Age today] X line as the *current age*. The [daeun] entries like '32~41세 갑술' are the *start~end range* of that 10-yr cycle, NOT the current age. [Profection (Korean age N basis)] N is Korean age (current 만 age + 1), still not current age.",
     ].join('\n')
   }
   return [
@@ -344,7 +353,8 @@ function buildInstructions(locale: Locale): string {
     '- 좋고 나쁨 차트 근거대로 균형',
     '- 인사·잡담 짧게, 묻지 않은 해석 X',
     '- 생사·의료·법률은 신호만, 결정은 본인 몫',
-    '- 점성 기호: ☌결합 ⚹협력 □긴장 △조화 ☍대립 / R역행 / (t)현재트랜짓 / [detriment]약 [domicile]강',
+    '- 점성 기호: ☌결합 ⚹협력 □긴장 △조화 ☍대립 / R역행 / (t)현재트랜짓 / P태양·P달=2차진행 / [detriment]약 [domicile]강',
+    '- ★ 나이 인용: [오늘 기준 만나이] 만 X세 만 사용. [대운] 의 "32~41세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. [프로펙션 (한국나이 N세 기준)] 의 N도 한국나이라 현재 만나이 + 1.',
   ].join('\n')
 }
 
@@ -485,9 +495,11 @@ export async function buildDestinyContext(
       | { sign?: string; house?: number }
       | undefined
     const lordRes = lp?.sign ? ` (${sgn(lp.sign)}${lp.house ? ` H${lp.house}` : ''})` : ''
+    // 프로펙션은 정통상 한국나이(만+1) 기준이라 그대로 표기하되, "현재 나이"
+    // 로 오인되지 않게 (한국나이) 라벨 명시.
     const profLine = L(
-      `프로펙션 ${kAge}세: H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]}), Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`,
-      `Profection age ${kAge}: H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]}), Lord ${prof.lordOfYear}${lordRes}`
+      `프로펙션 (한국나이 ${kAge}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]}), Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`,
+      `Profection (Korean age ${kAge} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]}), Lord ${prof.lordOfYear}${lordRes}`
     )
 
     astroNatal = [
@@ -500,8 +512,11 @@ export async function buildDestinyContext(
       ...(mid.length ? [L('본명 중간각 (2-5°):', 'natal mid (2-5°):'), ...mid] : []),
     ].join('\n')
     astroTiming = [cur, profLine].filter(Boolean).join('\n')
-  } catch {
-    /* astro optional */
+  } catch (err) {
+    // 점성 실패 시 silent fallback 이면 운영에서 사용자가 "사주만" 답변을
+    // 받아도 아무도 모름. 최소한 warn 으로 남겨 모니터링 가능하게.
+    // eslint-disable-next-line no-console
+    console.warn('[buildDestinyContext] astro section build failed:', err instanceof Error ? err.message : err)
   }
 
   // === STABLE (cached prefix) ===
@@ -803,17 +818,28 @@ export function buildSajuSection(
   const sib1 = (s?: string) => (locale === 'en' ? sibEN(s) : s || '-')
   // 대운 흐름 (full timeline, current marked with its 십성) — prevents the LLM
   // from inventing past/future 대운 ages it can't see.
+  // 나이 표기는 시작~끝 범위로. 단순 `32甲戌` 이면 LLM 이 "현재 32세 갑술
+  // 대운 중" 으로 오인용 (compat 의 동일 버그와 같은 클래스). 10년 cycle
+  // 임을 데이터 자체로 명시.
   if (dlist.length) {
-    const tl = dlist.map((d) => {
-      const gz = `${d.age ?? '?'}${d.heavenlyStem ?? ''}${d.earthlyBranch ?? ''}`
+    const tl = dlist.map((d, i) => {
+      const nextAge = dlist[i + 1]?.age
+      const ageLabel =
+        typeof d.age === 'number'
+          ? typeof nextAge === 'number'
+            ? `${d.age}~${nextAge - 1}세`
+            : `${d.age}세~`
+          : '?세'
+      const gz = `${ageLabel} ${d.heavenlyStem ?? ''}${d.earthlyBranch ?? ''}`
       return cur && d.age === cur.age
         ? `${gz}(${L('현재 ', 'now ')}${sib1(d.sibsin?.cheon)}/${sib1(d.sibsin?.ji)})`
         : gz
     })
     timing.push(`${L('대운', 'daeun')}: ${tl.join(' / ')}`)
   } else if (cur) {
+    const endAge = typeof cur.age === 'number' ? `${cur.age}~${cur.age + 9}세` : '?세'
     timing.push(
-      `${L('대운', 'daeun')} ${cur.age ?? '?'}: ${cur.heavenlyStem ?? ''}${cur.earthlyBranch ?? ''} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`
+      `${L('대운', 'daeun')} ${endAge}: ${cur.heavenlyStem ?? ''}${cur.earthlyBranch ?? ''} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`
     )
   }
   // 세운 / 월운 / 일진 lines (세운 carries the year)
