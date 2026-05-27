@@ -77,15 +77,46 @@ function uploadImageToFolder(
   const path = `${folder}/${userId}/${timestamp}.${ext}`
   const storageRef = ref(firebaseStorage, path)
 
-  // 업로드
+  // 업로드 — Firebase Storage 규칙이 막혀 있거나 CORS 가 잘못 잡혔을 때
+  // state_changed 이 영영 호출되지 않고 fetch 가 매달려 사용자 화면이
+  // "업로드 중…" 으로 굳는 사례가 종종 보였다. 60초 안에 한 번도 진행
+  // 콜백이 안 오면 timeout 으로 reject 해서 사용자에게 명확한 메시지를
+  // 보여준다.
   return new Promise((resolve, reject) => {
     const uploadTask: UploadTask = uploadBytesResumable(storageRef, file, {
       contentType: file.type,
     })
 
+    let settled = false
+    let lastProgressAt = Date.now()
+
+    const watchdog = setInterval(() => {
+      if (settled) {
+        clearInterval(watchdog)
+        return
+      }
+      // 60초 동안 진행 콜백이 한 번도 안 오면 강제 종료
+      if (Date.now() - lastProgressAt > 60_000) {
+        settled = true
+        clearInterval(watchdog)
+        try {
+          uploadTask.cancel()
+        } catch {
+          // ignore
+        }
+        onProgress?.({ progress: 0, state: 'error' })
+        reject(
+          new Error(
+            '업로드가 응답하지 않습니다. 네트워크 상태 또는 Firebase Storage 설정을 확인해 주세요.'
+          )
+        )
+      }
+    }, 5_000)
+
     uploadTask.on(
       'state_changed',
       (snapshot) => {
+        lastProgressAt = Date.now()
         const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
         onProgress?.({
           progress,
@@ -93,15 +124,39 @@ function uploadImageToFolder(
         })
       },
       (error) => {
+        if (settled) return
+        settled = true
+        clearInterval(watchdog)
         onProgress?.({ progress: 0, state: 'error' })
-        reject(new Error(`업로드 실패: ${error.message}`))
+        // Firebase 에러는 .code 가 더 진단에 유용함 (storage/unauthorized,
+        // storage/canceled, storage/retry-limit-exceeded 등). 사용자에게도
+        // 사유를 알려주려고 같이 보여준다.
+        const fbError = error as { code?: string; message?: string }
+        const code = fbError.code || 'unknown'
+        // 브라우저 콘솔에 상세 진단을 남겨 디버깅을 돕는다.
+        if (typeof window !== 'undefined') {
+          console.error('[firebase/storage] upload failed', {
+            code,
+            message: fbError.message,
+            path,
+          })
+        }
+        reject(new Error(`업로드 실패: ${code}${fbError.message ? ` — ${fbError.message}` : ''}`))
       },
       async () => {
+        if (settled) return
         try {
           const url = await getDownloadURL(uploadTask.snapshot.ref)
+          settled = true
+          clearInterval(watchdog)
           onProgress?.({ progress: 100, state: 'success' })
           resolve({ url, path })
-        } catch {
+        } catch (err) {
+          settled = true
+          clearInterval(watchdog)
+          if (typeof window !== 'undefined') {
+            console.error('[firebase/storage] getDownloadURL failed', err)
+          }
           reject(new Error('다운로드 URL을 가져올 수 없습니다.'))
         }
       }
