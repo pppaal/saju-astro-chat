@@ -17,6 +17,7 @@ import { Prisma } from '@prisma/client'
 import { sendPushNotification } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
 import { sanitizeHtml } from '@/lib/api/sanitizers'
+import { localizeMessage } from '@/lib/api/i18n-error'
 import {
   coupleTarotReadingPostSchema,
   coupleTarotReadingDeleteSchema,
@@ -299,7 +300,7 @@ export const POST = withApiMiddleware(
       return apiSuccess({
         success: true,
         readingId: result.id,
-        message: '커플 타로가 저장되었습니다. 파트너도 볼 수 있어요!',
+        message: localizeMessage(req, { ko: '커플 타로가 저장되었습니다. 파트너도 볼 수 있어요!', en: 'Couple tarot saved. Your partner can view it too!' }),
       })
     } catch (error) {
       logger.error('[couple-reading] POST error:', { error: error })

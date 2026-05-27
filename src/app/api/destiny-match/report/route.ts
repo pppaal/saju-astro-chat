@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { destinyMatchReportSchema } from '@/lib/api/zodValidation'
+import { localizeMessage } from '@/lib/api/i18n-error'
 
 // POST - 유저 신고
 export const POST = withApiMiddleware(
@@ -37,7 +38,7 @@ export const POST = withApiMiddleware(
 
     if (reportedUserId === userId) {
       return NextResponse.json(
-        { error: '자기 자신을 신고할 수 없습니다' },
+        { error: localizeMessage(req, { ko: '자기 자신을 신고할 수 없습니다', en: "You can't report yourself" }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
@@ -53,7 +54,7 @@ export const POST = withApiMiddleware(
 
     if (recentReport) {
       return NextResponse.json(
-        { error: '이미 신고한 사용자입니다. 24시간 후 다시 시도해주세요.' },
+        { error: localizeMessage(req, { ko: '이미 신고한 사용자입니다. 24시간 후 다시 시도해주세요.', en: 'You already reported this user. Try again in 24 hours.' }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
@@ -74,7 +75,7 @@ export const POST = withApiMiddleware(
       category,
     })
 
-    return NextResponse.json({ success: true, message: '신고가 접수되었습니다.' })
+    return NextResponse.json({ success: true, message: localizeMessage(req, { ko: '신고가 접수되었습니다.', en: 'Report received.' }) })
   },
   createAuthenticatedGuard({
     route: '/api/destiny-match/report',

@@ -13,6 +13,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { destinyMatchUnmatchSchema, destinyMatchMatchesQuerySchema } from '@/lib/api/zodValidation'
+import { localizeMessage } from '@/lib/api/i18n-error'
 import { logger } from '@/lib/logger'
 
 // GET - 내 매치 목록 조회
@@ -43,7 +44,7 @@ export const GET = withApiMiddleware(
       })
 
       if (!myProfile) {
-        return apiError(ErrorCodes.BAD_REQUEST, '먼저 매칭 프로필을 설정해주세요')
+        return apiError(ErrorCodes.BAD_REQUEST, localizeMessage(req, { ko: '먼저 매칭 프로필을 설정해주세요', en: 'Please set up your match profile first' }))
       }
 
       // 특정 connectionId로 조회하거나 전체 조회
@@ -230,7 +231,7 @@ export const DELETE = withApiMiddleware(
       })
 
       if (!myProfile) {
-        return apiError(ErrorCodes.BAD_REQUEST, '먼저 매칭 프로필을 설정해주세요')
+        return apiError(ErrorCodes.BAD_REQUEST, localizeMessage(req, { ko: '먼저 매칭 프로필을 설정해주세요', en: 'Please set up your match profile first' }))
       }
 
       // 연결 조회 및 권한 확인
@@ -239,11 +240,11 @@ export const DELETE = withApiMiddleware(
       })
 
       if (!connection) {
-        return apiError(ErrorCodes.NOT_FOUND, '매치를 찾을 수 없습니다')
+        return apiError(ErrorCodes.NOT_FOUND, localizeMessage(req, { ko: '매치를 찾을 수 없습니다', en: 'Match not found' }))
       }
 
       if (connection.user1Id !== myProfile.id && connection.user2Id !== myProfile.id) {
-        return apiError(ErrorCodes.FORBIDDEN, '권한이 없습니다')
+        return apiError(ErrorCodes.FORBIDDEN, localizeMessage(req, { ko: '권한이 없습니다', en: 'Forbidden' }))
       }
 
       // 매치 상태를 unmatched로 변경

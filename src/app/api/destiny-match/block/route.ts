@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { destinyMatchBlockSchema } from '@/lib/api/zodValidation'
+import { localizeMessage } from '@/lib/api/i18n-error'
 
 // POST - 유저 차단
 export const POST = withApiMiddleware(
@@ -37,7 +38,7 @@ export const POST = withApiMiddleware(
 
     if (blockedUserId === userId) {
       return NextResponse.json(
-        { error: '자기 자신을 차단할 수 없습니다' },
+        { error: localizeMessage(req, { ko: '자기 자신을 차단할 수 없습니다', en: "You can't block yourself" }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
@@ -50,7 +51,7 @@ export const POST = withApiMiddleware(
     })
 
     if (existing) {
-      return NextResponse.json({ success: true, message: '이미 차단된 사용자입니다' })
+      return NextResponse.json({ success: true, message: localizeMessage(req, { ko: '이미 차단된 사용자입니다', en: 'User already blocked' }) })
     }
 
     // 차단 생성

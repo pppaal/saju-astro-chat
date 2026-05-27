@@ -14,6 +14,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { readingIdParamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { localizeMessage } from '@/lib/api/i18n-error'
 
 type RouteContext = {
   params: Promise<{ readingId: string }>
@@ -45,18 +46,18 @@ export async function GET(request: Request, routeContext: RouteContext) {
         })
 
         if (!reading) {
-          return apiError(ErrorCodes.NOT_FOUND, '리딩을 찾을 수 없습니다')
+          return apiError(ErrorCodes.NOT_FOUND, localizeMessage(request, { ko: '리딩을 찾을 수 없습니다', en: 'Reading not found' }))
         }
 
         if (!reading.isSharedReading) {
-          return apiError(ErrorCodes.BAD_REQUEST, '커플 리딩이 아닙니다')
+          return apiError(ErrorCodes.BAD_REQUEST, localizeMessage(request, { ko: '커플 리딩이 아닙니다', en: 'Not a couple reading' }))
         }
 
         const isOwner = reading.userId === userId
         const isSharedWith = reading.sharedWithUserId === userId
 
         if (!isOwner && !isSharedWith) {
-          return apiError(ErrorCodes.FORBIDDEN, '이 리딩에 대한 접근 권한이 없습니다')
+          return apiError(ErrorCodes.FORBIDDEN, localizeMessage(request, { ko: '이 리딩에 대한 접근 권한이 없습니다', en: "You don't have access to this reading" }))
         }
 
         // 파트너 정보 가져오기
@@ -92,7 +93,7 @@ export async function GET(request: Request, routeContext: RouteContext) {
               connectionId: reading.matchConnectionId,
               status: connection?.status ?? 'missing',
             })
-            return apiError(ErrorCodes.NOT_FOUND, '리딩을 찾을 수 없습니다')
+            return apiError(ErrorCodes.NOT_FOUND, localizeMessage(request, { ko: '리딩을 찾을 수 없습니다', en: 'Reading not found' }))
           }
           // status 는 응답에서 제외 (옛 select 와 동일한 shape 유지)
           connectionInfo = {

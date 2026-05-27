@@ -6,6 +6,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { localizeMessage } from '@/lib/api/i18n-error'
 import { generateReport } from '@/lib/destiny-map/reportService'
 import type { SajuResult, AstrologyResult } from '@/lib/destiny-map/types'
 import { recordCounter, recordTiming } from '@/lib/metrics'
@@ -699,7 +700,7 @@ export const POST = withApiMiddleware(
         {
           status: 'warning',
           warning: 'cross_validation_failed',
-          message: '교차 검증에서 일부 신호가 부족합니다. 그래도 보고서를 반환합니다.',
+          message: localizeMessage(request, { ko: '교차 검증에서 일부 신호가 부족합니다. 그래도 보고서를 반환합니다.', en: 'Some cross-validation signals are missing. Returning the report anyway.' }),
           warnings: validationWarnings,
           ...responsePayload,
         },

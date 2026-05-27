@@ -15,6 +15,7 @@ import { prisma } from '@/lib/db/prisma'
 import { sendPushNotification } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
 import { destinyMatchChatSchema, destinyMatchChatGetQuerySchema } from '@/lib/api/zodValidation'
+import { localizeMessage } from '@/lib/api/i18n-error'
 import { sanitizeHtml } from '@/lib/api/sanitizers'
 import { z } from 'zod'
 
@@ -56,14 +57,14 @@ export const GET = withApiMiddleware(
       })
 
       if (!connection) {
-        return apiError(ErrorCodes.NOT_FOUND, '매치를 찾을 수 없습니다')
+        return apiError(ErrorCodes.NOT_FOUND, localizeMessage(req, { ko: '매치를 찾을 수 없습니다', en: 'Match not found' }))
       }
 
       const isUser1 = connection.user1Profile.userId === userId
       const isUser2 = connection.user2Profile.userId === userId
 
       if (!isUser1 && !isUser2) {
-        return apiError(ErrorCodes.FORBIDDEN, '이 채팅에 대한 권한이 없습니다')
+        return apiError(ErrorCodes.FORBIDDEN, localizeMessage(req, { ko: '이 채팅에 대한 권한이 없습니다', en: "You don't have access to this chat" }))
       }
 
       // 메시지 조회 (최신순, 페이지네이션)
@@ -160,7 +161,7 @@ export const POST = withApiMiddleware(
       })
 
       if (!connection) {
-        return apiError(ErrorCodes.NOT_FOUND, '매치를 찾을 수 없습니다')
+        return apiError(ErrorCodes.NOT_FOUND, localizeMessage(req, { ko: '매치를 찾을 수 없습니다', en: 'Match not found' }))
       }
 
       if (connection.status !== 'active') {
@@ -178,7 +179,7 @@ export const POST = withApiMiddleware(
       const isUser2 = connection.user2Profile.userId === userId
 
       if (!isUser1 && !isUser2) {
-        return apiError(ErrorCodes.FORBIDDEN, '이 채팅에 대한 권한이 없습니다')
+        return apiError(ErrorCodes.FORBIDDEN, localizeMessage(req, { ko: '이 채팅에 대한 권한이 없습니다', en: "You don't have access to this chat" }))
       }
 
       // 상대방 ID
@@ -195,7 +196,7 @@ export const POST = withApiMiddleware(
       })
 
       if (block) {
-        return apiError(ErrorCodes.FORBIDDEN, '차단된 사용자에게 메시지를 보낼 수 없습니다')
+        return apiError(ErrorCodes.FORBIDDEN, localizeMessage(req, { ko: '차단된 사용자에게 메시지를 보낼 수 없습니다', en: "You can't message a blocked user" }))
       }
 
       // 메시지 저장 및 연결 업데이트
@@ -280,17 +281,17 @@ export const DELETE = withApiMiddleware(
       })
 
       if (!message) {
-        return apiError(ErrorCodes.NOT_FOUND, '메시지를 찾을 수 없습니다')
+        return apiError(ErrorCodes.NOT_FOUND, localizeMessage(req, { ko: '메시지를 찾을 수 없습니다', en: 'Message not found' }))
       }
 
       // 본인 메시지만 삭제 가능
       if (message.senderId !== userId) {
-        return apiError(ErrorCodes.FORBIDDEN, '본인이 보낸 메시지만 삭제할 수 있습니다')
+        return apiError(ErrorCodes.FORBIDDEN, localizeMessage(req, { ko: '본인이 보낸 메시지만 삭제할 수 있습니다', en: 'You can only delete messages you sent' }))
       }
 
       // 이미 삭제된 메시지
       if (message.isDeleted) {
-        return apiError(ErrorCodes.BAD_REQUEST, '이미 삭제된 메시지입니다')
+        return apiError(ErrorCodes.BAD_REQUEST, localizeMessage(req, { ko: '이미 삭제된 메시지입니다', en: 'Message already deleted' }))
       }
 
       // soft delete

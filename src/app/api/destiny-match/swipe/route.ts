@@ -9,6 +9,7 @@ import { calculateDetailedCompatibility } from '@/lib/destiny-match/quickCompati
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { destinyMatchSwipeSchema, destinyMatchSwipeUndoSchema } from '@/lib/api/zodValidation'
+import { localizeMessage } from '@/lib/api/i18n-error'
 
 // POST - 스와이프 처리
 export const POST = withApiMiddleware(
@@ -75,14 +76,14 @@ export const POST = withApiMiddleware(
 
     if (!myProfile) {
       return NextResponse.json(
-        { error: '먼저 매칭 프로필을 설정해주세요' },
+        { error: localizeMessage(req, { ko: '먼저 매칭 프로필을 설정해주세요', en: 'Please set up your match profile first' }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
 
     if (!targetProfile) {
       return NextResponse.json(
-        { error: '대상 프로필을 찾을 수 없습니다' },
+        { error: localizeMessage(req, { ko: '대상 프로필을 찾을 수 없습니다', en: 'Target profile not found' }) },
         { status: HTTP_STATUS.NOT_FOUND }
       )
     }
@@ -136,7 +137,7 @@ export const POST = withApiMiddleware(
     // 자기 자신 스와이프 방지
     if (targetProfile.userId === userId) {
       return NextResponse.json(
-        { error: '자신에게 스와이프할 수 없습니다' },
+        { error: localizeMessage(req, { ko: '자신에게 스와이프할 수 없습니다', en: "You can't swipe yourself" }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
@@ -144,7 +145,7 @@ export const POST = withApiMiddleware(
     // 슈퍼라이크 카운트 확인
     if (action === 'super_like' && updatedMyProfile.superLikeCount <= 0) {
       return NextResponse.json(
-        { error: '슈퍼라이크를 모두 사용했습니다' },
+        { error: localizeMessage(req, { ko: '슈퍼라이크를 모두 사용했습니다', en: 'No super likes left' }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
@@ -171,7 +172,7 @@ export const POST = withApiMiddleware(
 
     if (existingSwipe) {
       return NextResponse.json(
-        { error: '이미 스와이프한 프로필입니다' },
+        { error: localizeMessage(req, { ko: '이미 스와이프한 프로필입니다', en: 'Already swiped this profile' }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
@@ -334,7 +335,7 @@ export const DELETE = withApiMiddleware(
 
     if (!myProfile) {
       return NextResponse.json(
-        { error: '매칭 프로필을 찾을 수 없습니다' },
+        { error: localizeMessage(req, { ko: '매칭 프로필을 찾을 수 없습니다', en: 'Match profile not found' }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
@@ -346,7 +347,7 @@ export const DELETE = withApiMiddleware(
 
     if (!swipe) {
       return NextResponse.json(
-        { error: '스와이프를 찾을 수 없습니다' },
+        { error: localizeMessage(req, { ko: '스와이프를 찾을 수 없습니다', en: 'Swipe not found' }) },
         { status: HTTP_STATUS.NOT_FOUND }
       )
     }
@@ -354,7 +355,7 @@ export const DELETE = withApiMiddleware(
     // 본인 스와이프만 되돌리기 가능
     if (swipe.swiperId !== myProfile.id) {
       return NextResponse.json(
-        { error: '본인의 스와이프만 되돌릴 수 있습니다' },
+        { error: localizeMessage(req, { ko: '본인의 스와이프만 되돌릴 수 있습니다', en: 'You can only undo your own swipes' }) },
         { status: HTTP_STATUS.FORBIDDEN }
       )
     }
@@ -371,7 +372,7 @@ export const DELETE = withApiMiddleware(
     // 이미 매칭된 경우 되돌리기 불가
     if (swipe.isMatched) {
       return NextResponse.json(
-        { error: '이미 매칭된 스와이프는 되돌릴 수 없습니다' },
+        { error: localizeMessage(req, { ko: '이미 매칭된 스와이프는 되돌릴 수 없습니다', en: "Can't undo a swipe that already matched" }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }

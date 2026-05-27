@@ -18,6 +18,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { localizeMessage } from '@/lib/api/i18n-error'
 import {
   getOracleReading,
   isRelationshipActivity,
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
   const activityRaw = request.nextUrl.searchParams.get('activity')
 
   const handler = withApiMiddleware(
-    async (_req: NextRequest, context: ApiContext) => {
+    async (req: NextRequest, context: ApiContext) => {
       if (!connectionId || typeof connectionId !== 'string') {
         return apiError(ErrorCodes.VALIDATION_ERROR, 'connectionId is required')
       }
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
         select: { id: true },
       })
       if (!myProfile) {
-        return apiError(ErrorCodes.BAD_REQUEST, '먼저 매칭 프로필을 설정해주세요')
+        return apiError(ErrorCodes.BAD_REQUEST, localizeMessage(req, { ko: '먼저 매칭 프로필을 설정해주세요', en: 'Please set up your match profile first' }))
       }
 
       const connection = await prisma.matchConnection.findUnique({
@@ -87,13 +88,13 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
       })
 
       if (!connection) {
-        return apiError(ErrorCodes.NOT_FOUND, '매치를 찾을 수 없습니다')
+        return apiError(ErrorCodes.NOT_FOUND, localizeMessage(req, { ko: '매치를 찾을 수 없습니다', en: 'Match not found' }))
       }
       if (connection.user1Id !== myProfile.id && connection.user2Id !== myProfile.id) {
-        return apiError(ErrorCodes.FORBIDDEN, '이 매치에 접근 권한이 없습니다')
+        return apiError(ErrorCodes.FORBIDDEN, localizeMessage(req, { ko: '이 매치에 접근 권한이 없습니다', en: "You don't have access to this match" }))
       }
       if (connection.status === 'blocked' || connection.status === 'unmatched') {
-        return apiError(ErrorCodes.FORBIDDEN, '비활성화된 매치입니다')
+        return apiError(ErrorCodes.FORBIDDEN, localizeMessage(req, { ko: '비활성화된 매치입니다', en: 'This match is inactive' }))
       }
 
       const profile1 = connection.user1Profile.user.profile
@@ -138,7 +139,7 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
         return apiSuccess(reading)
       } catch (err) {
         logger.error('[oracle GET] reading failed:', { err })
-        return apiError(ErrorCodes.INTERNAL_ERROR, '오라클 계산 중 오류가 발생했습니다')
+        return apiError(ErrorCodes.INTERNAL_ERROR, localizeMessage(req, { ko: '오라클 계산 중 오류가 발생했습니다', en: 'Error computing oracle' }))
       }
     },
     createAuthenticatedGuard({

@@ -12,6 +12,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { destinyMatchDiscoverQuerySchema } from '@/lib/api/zodValidation'
+import { localizeMessage } from '@/lib/api/i18n-error'
 
 // Haversine 공식으로 거리 계산 (km)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -89,7 +90,7 @@ export const GET = withApiMiddleware(
 
     if (!myProfile) {
       return NextResponse.json(
-        { error: '먼저 매칭 프로필을 설정해주세요' },
+        { error: localizeMessage(req, { ko: '먼저 매칭 프로필을 설정해주세요', en: 'Please set up your match profile first' }) },
         { status: HTTP_STATUS.BAD_REQUEST }
       )
     }
