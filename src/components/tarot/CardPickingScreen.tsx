@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { motion, useDragControls } from 'framer-motion'
 import { RotateCcw, Sparkles } from 'lucide-react'
 import BackButton from '@/components/ui/BackButton'
 import type { Spread } from '@/lib/tarot/tarot.types'
@@ -40,6 +40,12 @@ export function CardPickingScreen({
   const MAX_SELECTED = spreadInfo.cardCount
 
   const containerRef = useRef<HTMLDivElement>(null)
+  // 데스크탑(마우스)에서 카드 위를 잡고 드래그하면 button 의 pointer capture
+  // 에 막혀 framer-motion 의 drag 가 발동되지 않던 회귀. dragControls 를
+  // 사용해 카드/빈 영역 어디서 pointerDown 이 일어나든 드래그가 시작되도록
+  // 명시적으로 트리거한다. (모바일에서는 touch event 흐름이 달라 기존에도
+  // 동작했음.)
+  const dragControls = useDragControls()
   const [constraints, setConstraints] = useState({ left: 0, right: 0 })
 
   // 드래그 영역 계산 — 40장 호 폭(1400px) + 양쪽 여유 200px
@@ -159,10 +165,17 @@ export function CardPickingScreen({
 
         <div
           ref={containerRef}
+          onPointerDown={(e) => {
+            // 빈 공간 어디든 pointerDown 으로 드래그 시작 — 데스크탑/모바일 공통.
+            dragControls.start(e)
+          }}
           className="flex-1 w-full relative flex items-center justify-center cursor-grab active:cursor-grabbing"
+          style={{ touchAction: 'pan-y' }}
         >
           <motion.div
             drag="x"
+            dragControls={dragControls}
+            dragListener={false}
             dragConstraints={constraints}
             dragElastic={0.2}
             dragTransition={{ bounceStiffness: 100, bounceDamping: 15 }}
@@ -201,6 +214,13 @@ export function CardPickingScreen({
                       : undefined
                   }
                   onClick={() => onCardClick(index)}
+                  onPointerDown={(e) => {
+                    // 카드 위에서 마우스 다운 → dragControls 가 framer 의
+                    // threshold 로 click vs drag 자동 판정. 짧은 클릭은
+                    // onClick 으로, 일정 거리 이상 움직이면 부모 motion.div
+                    // 가 함께 이동한다.
+                    if (!isPicked) dragControls.start(e)
+                  }}
                   className="absolute w-20 h-32 md:w-28 md:h-44 rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.8)] border border-amber-900/30 group"
                   style={{
                     zIndex: index,

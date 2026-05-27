@@ -87,6 +87,13 @@ const Chat = memo(function Chat({
     )
   }, [])
 
+  // 클래리파이어 직후엔 자동 스크롤 hijack 을 잠시 끈다 — 사용자가 이미
+  // 채팅 맨 하단의 "한 장 더 뽑기" 버튼을 본 상태이고, 그대로 카드 메시지/
+  // 답변이 거기 쌓이는 게 자연스러움. 일반 useEffect 의 scrollIntoView 가
+  // 답변 끝까지 매 토큰 따라가버리면 viewport 가 위로 밀려나 "왜 다시
+  // 올라가냐" 회귀.
+  const suspendAutoScrollRef = React.useRef(false)
+
   const { cvText, cvName, parsingPdf, handleFileUpload, clearFile } = useFileUpload({
     lang,
     setNotice,
@@ -237,6 +244,9 @@ const Chat = memo(function Chat({
     if (!autoScroll) {
       return
     }
+    if (suspendAutoScrollRef.current) {
+      return
+    }
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading, autoScroll])
 
@@ -278,11 +288,16 @@ const Chat = memo(function Chat({
   const handleClarifierConfirm = React.useCallback(
     (card: ClarifierCard) => {
       // 카드 이름 + 그림(markdown 이미지) + 해석 요청을 user 메시지로 흘려
-      // 보낸다. MessageRow 가 markdown 패턴을 감지해 MarkdownMessage 로
-      // 렌더 → 카드 그림이 user 말풍선 안에 표시되고, 바로 뒤이어 답변이
-      // 스트리밍된다. 메시지 끝(messagesEnd)으로 자동 스크롤되는 기존
-      // useEffect 가 알아서 해석 위치로 데려가므로 따로 스크롤 안 한다.
-      // 한 번 뽑으면 새 대화 시작 전까지 잠금.
+      // 보낸다. 한 번 뽑으면 새 대화 시작 전까지 잠금.
+      // 자동 스크롤 hijack 을 일정 시간 끈다 — "한 장 더 뽑기" 버튼이 채팅
+      // 맨 하단에 있어 사용자는 이미 그 자리를 보고 있다. 일반 useEffect 가
+      // 답변 토큰마다 messagesEnd 로 따라가버리면 사용자가 막 본 user
+      // 말풍선/카드가 viewport 위로 밀려 "다시 올라간 것" 처럼 보임.
+      // 답변 스트리밍이 끝날 만큼(~25s) 충분히 길게 잠근다.
+      suspendAutoScrollRef.current = true
+      window.setTimeout(() => {
+        suspendAutoScrollRef.current = false
+      }, 25000)
       setClarifierUsed(true)
       const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
       void handleSendRef.current?.(userText)
