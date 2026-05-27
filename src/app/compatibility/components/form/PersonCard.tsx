@@ -321,6 +321,9 @@ const lightFieldClasses: Required<BirthFieldsClasses> = {
   input: inputClass,
   row: 'grid grid-cols-2 gap-2.5',
   checkboxLabel: 'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[#57534e]',
+  // 흰 카드와 어울리도록 흰 박스 + 골드 accent. [color-scheme:light] 로
+  // OS 다크모드에서도 흰색 native 체크박스를 강제.
+  checkbox: 'h-3.5 w-3.5 cursor-pointer accent-[#a07a3c] [color-scheme:light]',
   suggestionList:
     'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e7e4df] bg-white p-1 shadow-[0_16px_40px_rgba(28,25,23,0.12)]',
   suggestionItem:

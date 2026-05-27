@@ -83,9 +83,13 @@ interface LuckStage {
   sibsin?: unknown
 }
 
-function daeunRow(d: LuckStage, marker = ''): string {
+function daeunRow(d: LuckStage, endAge: number | null, marker = ''): string {
   const sib = sibsin(d.sibsin)
-  return `${d.age ?? '?'}세 ${s(d.heavenlyStem)}${s(d.earthlyBranch)} ${sib.cheon}/${sib.ji}${marker}`
+  // 시작-끝 나이 범위로 표기해 LLM 이 "현재 X 세" 로 오해하지 않도록 한다.
+  // 과거: "26세 기묘" → 모델이 "현재 26세" 로 잘못 인용.
+  // 현재: "26~35세 기묘" → 10년 cycle 임이 명확.
+  const ageLabel = d.age == null ? '?' : endAge != null ? `${d.age}~${endAge}세` : `${d.age}세~`
+  return `${ageLabel} ${s(d.heavenlyStem)}${s(d.earthlyBranch)} ${sib.cheon}/${sib.ji}${marker}`
 }
 
 interface AnnualEntry {
@@ -201,10 +205,16 @@ export function formatSajuAsTable(saju: SajuLike | null | undefined, label: stri
     const currentAge = daeun.current?.age
     const idx = currentAge != null ? daeun.list.findIndex((d) => d.age === currentAge) : -1
     const center = idx >= 0 ? idx : 0
-    const window = daeun.list.slice(Math.max(0, center - 1), Math.min(daeun.list.length, center + 2))
-    window.forEach((d) => {
+    const startIdx = Math.max(0, center - 1)
+    const list = daeun.list
+    const window = list.slice(startIdx, Math.min(list.length, center + 2))
+    window.forEach((d, i) => {
+      // endAge = 다음 cycle.age - 1 (이전 list 까지 포함해 인덱스 추적).
+      const absIdx = startIdx + i
+      const nextAge = list[absIdx + 1]?.age
+      const endAge = typeof nextAge === 'number' && typeof d.age === 'number' ? nextAge - 1 : null
       const isCurrent = currentAge != null && d.age === currentAge
-      lines.push(daeunRow(d, isCurrent ? ' ← 현재' : ''))
+      lines.push(daeunRow(d, endAge, isCurrent ? ' ← 현재' : ''))
     })
   }
 

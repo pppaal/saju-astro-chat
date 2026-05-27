@@ -874,10 +874,17 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                   </div>
                   <div className={styles.messageBubble}>
                     {showTyping ? (
-                      <span className={styles.typing}>
-                        <span />
-                        <span />
-                        <span />
+                      <span className={styles.thinkingMessage}>
+                        <span className={styles.typing}>
+                          <span />
+                          <span />
+                          <span />
+                        </span>
+                        <span className={styles.thinkingText}>
+                          {isKo
+                            ? '두 분의 흐름을 깊이 읽고 있어요...'
+                            : 'Reading the flow between the two of you…'}
+                        </span>
                       </span>
                     ) : isUser ? (
                       <>
