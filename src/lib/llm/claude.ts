@@ -66,6 +66,18 @@ export interface CallClaudeOptions {
   model?: ClaudeModel
   /** 호출 식별용 (메트릭/로그 태그). */
   label?: string
+  /**
+   * Continuation 용 prefill — 지정 시 messages 끝에
+   * `{role:'assistant', content: prefillAssistant}` 추가. LLM 이 그 텍스트
+   * 부터 *이어서* 작성 (preamble 없이). max_tokens 잘림 → 자동 이어쓰기
+   * 패턴에서 사용. streamClaudeWithContinuation 참고.
+   */
+  prefillAssistant?: string
+  /**
+   * 스트림 종료 시 stop_reason 등 메타 정보 콜백. continuation 판단용.
+   * stopReason 값: 'end_turn' | 'max_tokens' | 'stop_sequence' | null
+   */
+  onStreamComplete?: (info: { stopReason: string | null }) => void
 }
 
 export interface CallClaudeResult {
@@ -346,10 +358,25 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
     timeoutMs = 60000,
     model = DEFAULT_CLAUDE_MODEL,
     label = 'claude-stream',
+    prefillAssistant,
+    onStreamComplete,
   } = opts
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+  // Build messages — 마지막에 prefillAssistant 가 있으면 assistant 턴 append
+  // (Anthropic prefill 패턴 — LLM 이 그 텍스트 부터 이어서 작성).
+  const messagesWithMaybePrefill = (() => {
+    const ms = buildMessages(userPrompt, cachedUserContext, priorTurns) as Array<{
+      role: 'user' | 'assistant'
+      content: unknown
+    }>
+    if (prefillAssistant && prefillAssistant.length > 0) {
+      ms.push({ role: 'assistant', content: prefillAssistant })
+    }
+    return ms
+  })()
 
   const response = await fetch(ANTHROPIC_ENDPOINT, {
     method: 'POST',
@@ -365,7 +392,7 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
       temperature,
       stream: true,
       system: [{ type: 'text', text: systemPrompt, cache_control: CACHE_CONTROL_1H }],
-      messages: buildMessages(userPrompt, cachedUserContext, priorTurns),
+      messages: messagesWithMaybePrefill,
     }),
     signal: controller.signal,
   })
@@ -386,6 +413,7 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
       let outputTokens = 0
       let cacheReadTokens = 0
       let cacheCreateTokens = 0
+      let capturedStopReason: string | null = null
       try {
         while (true) {
           const { done, value } = await reader.read()
@@ -409,7 +437,7 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
               }
               const event = JSON.parse(json) as {
                 type?: string
-                delta?: { text?: string; type?: string }
+                delta?: { text?: string; type?: string; stop_reason?: string }
                 message?: { usage?: StreamUsage }
                 usage?: StreamUsage
               }
@@ -420,8 +448,10 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
                 inputTokens = event.message.usage.input_tokens || 0
                 cacheReadTokens = event.message.usage.cache_read_input_tokens || 0
                 cacheCreateTokens = event.message.usage.cache_creation_input_tokens || 0
-              } else if (event.type === 'message_delta' && event.usage) {
-                outputTokens = event.usage.output_tokens || 0
+              } else if (event.type === 'message_delta') {
+                if (event.usage) outputTokens = event.usage.output_tokens || 0
+                // stop_reason 은 message_delta.delta.stop_reason 으로 옴.
+                if (event.delta?.stop_reason) capturedStopReason = event.delta.stop_reason
               }
             } catch {
               // partial JSON — skip
@@ -465,6 +495,13 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
         streamController.error(err)
       } finally {
         clearTimeout(timer)
+        // continuation 판단용 메타 콜백 — close 전에 호출 (consumer 가 다음
+        // round 결정 가능). 콜백 에러는 절대 stream 깨지 않도록 swallow.
+        try {
+          onStreamComplete?.({ stopReason: capturedStopReason })
+        } catch {
+          /* never break the stream on callback error */
+        }
         streamController.close()
       }
     },
