@@ -11,12 +11,6 @@ import {
   CalendarRange,
   Moon,
   Sun,
-  ThumbsUp,
-  ThumbsDown,
-  Cpu,
-  Clock,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react'
 
 import type { BirthInfo, CalendarData, ImportantDate } from './types'
@@ -24,33 +18,10 @@ import { ganjiToKorean } from '@/lib/saju/ganjiKo'
 import { useDateDetail } from './useDateDetail'
 import YearHighlightsCard from './YearHighlightsCard'
 import YearDashboard from './premium/YearDashboard'
-import MonthlyInterpretationCard from './MonthlyInterpretationCard'
-import DailyFlowCard from './DailyFlowCard'
 import DailyHourlyChart from './DailyHourlyChart'
 import MonthDashboard from './premium/MonthDashboard'
-import ThemeRadar from './premium/shared/ThemeRadar'
-import Highlights from './premium/shared/Highlights'
-import { branchFromHour, getHourNarrative } from '@/lib/calendar-engine/data/hourBranchNarrative'
-import { getHourThemeNarrative } from '@/lib/calendar-engine/data/hourThemeNarrative'
 import { getGrade } from './scoreGrade'
 import { getCalLabels, type CalLocale } from './premium/labels'
-
-// 시진 테마 narrative 선택용 — 그 날 themeScores 의 최고 테마
-type HourTheme = 'love' | 'money' | 'career' | 'health' | 'growth'
-const HOUR_THEME_KEYS: HourTheme[] = ['love', 'money', 'career', 'health', 'growth']
-function topHourTheme(themeScores: Partial<Record<string, number>> | undefined): HourTheme {
-  if (!themeScores) return 'growth'
-  let best: HourTheme = 'growth'
-  let bestV = -Infinity
-  for (const k of HOUR_THEME_KEYS) {
-    const v = themeScores[k]
-    if (typeof v === 'number' && v > bestV) {
-      bestV = v
-      best = k
-    }
-  }
-  return best
-}
 
 interface DestinyMatrixPlannerProps {
   /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
@@ -98,12 +69,6 @@ export default function DestinyMatrixPlanner({
   const t = getCalLabels(locale)
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
-  // 엔진 자기 진단 카드 — 일반 사용자에겐 디버그 노이즈라 디폴트 접힘.
-  const [showEngineDiag, setShowEngineDiag] = useState(false)
-  // 시간대 자세히 — 디폴트 접힘. Highlights 가 best/caution Top1 만 보여줌으로
-  // 단순화한 대신 4 best + 2 worst + 시진 narrative + theme narrative 풀
-  // 디테일은 펼치면 노출. 엔진 데이터 손실 없이 가시성만 단계화.
-  const [showHourDetail, setShowHourDetail] = useState(false)
 
   // --- View date (state — prev/next month 이동 가능) -------------------
   // API는 year 단위로 1년치 allDates를 한 번에 받으니 month 전환은 client-only.
@@ -314,91 +279,12 @@ export default function DestinyMatrixPlanner({
     return null
   }, [fusion, today, selectedDateStr, data])
 
-  const formatHour = (h: number): string => t.formatHour(h)
-
   // Day tier ThemeRadar — 5 도메인. year/month 와 같은 축 순서로 통일해
-  // 사용자가 형태 변화로 차이를 인식. themeScores 우선, fusion.domainScores 폴백.
-  // 신호 없는 축은 fabricate(50) 대신 있는 축 평균으로 fallback + caption disclose.
-  const dayRadarData = useMemo(() => {
-    const ORDER: Array<'growth' | 'career' | 'money' | 'love' | 'health'> = [
-      'growth',
-      'career',
-      'money',
-      'love',
-      'health',
-    ]
-    const KO: Record<string, string> = {
-      growth: '성장',
-      career: '직업',
-      money: '재물',
-      love: '연애',
-      health: '건강',
-    }
-    const ts = selectedImportantDate?.themeScores
-    const ds = fusion?.domainScores
-    const stats = ORDER.map((k) => {
-      const v = typeof ts?.[k] === 'number' ? ts[k] : typeof ds?.[k] === 'number' ? ds[k] : null
-      return { name: KO[k], present: v != null, score: v as number | null }
-    })
-    const present = stats.filter((s) => s.score != null).map((s) => s.score as number)
-    const fb = present.length ? present.reduce((a, b) => a + b, 0) / present.length : 50
-    const themes = stats.map((s) => ({
-      name: s.name,
-      score: Math.round(s.present ? (s.score as number) : fb),
-    }))
-    const missing = stats.filter((s) => !s.present).map((s) => s.name)
-    const caption =
-      missing.length > 0
-        ? `${missing.join('·')} 신호 부족 — 다른 축 평균으로 표시했어요.`
-        : undefined
-    return { themes, caption, hasAnyTheme: present.length > 0 }
-  }, [selectedImportantDate, fusion])
-
-  // Day tier Highlights — 베스트 시간 / 주의 시간. dailyHourlySlots 에서 1개씩.
-  const dayHighlights = useMemo(() => {
-    if (!dailyHourlySlots) return null
-    const best = dailyHourlySlots.best[0]
-    const caution = dailyHourlySlots.worst[0]
-    const bestDescFallback = locale === 'en' ? 'Strongest energy window' : '에너지가 가장 좋은 시간'
-    const cautionDescFallback = locale === 'en' ? 'A pause-worthy window' : '한 박자 쉬어가는 시간'
-    return {
-      bestCard: best
-        ? {
-            value: t.formatHour(best.hour),
-            description: best.reason || bestDescFallback,
-          }
-        : undefined,
-      cautionCard: caution
-        ? {
-            value: t.formatHour(caution.hour),
-            description: caution.reason || cautionDescFallback,
-          }
-        : undefined,
-    }
-  }, [dailyHourlySlots, locale, t])
-
-  // --- Daily Dos / Donts ----------------------------------------------
-  // 엔진이 진짜 advice를 못 만들면 카드 자체를 숨김 (Dos·Donts 모두 빈 배열일 때
-  // 렌더 가드). 옛 MOCK_DOS/DONTS는 "충동적인 대규모 지출 금지" 같은 generic
-  // 한 줄이라 정직하지 않았음.
-  const dailyDos = useMemo(() => {
-    if (fusion?.advice?.do && fusion.advice.do.length > 0) return fusion.advice.do.slice(0, 2)
-    const recs = selectedImportantDate?.recommendations
-    if (recs && recs.length > 0) return recs.slice(0, 2)
-    return []
-  }, [fusion, selectedImportantDate])
-
-  const dailyDonts = useMemo(() => {
-    if (fusion?.advice?.avoid && fusion.advice.avoid.length > 0)
-      return fusion.advice.avoid.slice(0, 2)
-    const warns = selectedImportantDate?.warnings
-    if (warns && warns.length > 0) return warns.slice(0, 2)
-    return []
-  }, [fusion, selectedImportantDate])
+  // 미니멀 모드: day radar / day highlights / dailyDos / dailyDonts memo 제거.
+  // 사용자 cut 요청 — 본질만 (sticky hero + one-line + 추진/보류 chip + 24h chart +
+  // best/worst hour 2-카드) 만 유지.
 
   // 엔진 doNow / watchOut — calendarDailyView 의 짧은 액션 nudge.
-  // dailyDos/dailyDonts(advice/recommendations 기반) 와 source 다르고 더 high-level.
-  // 같은 날짜 entry 일 때만.
   const dailyActionPair = useMemo(() => {
     const v = data?.calendarDailyView
     if (!v || v.date !== selectedDateStr) return null
@@ -430,25 +316,6 @@ export default function DestinyMatrixPlanner({
     }
     return selectedImportantDate?.summary ?? null
   }, [fusion, data, selectedDateStr, selectedImportantDate])
-
-  // --- Daily engine self-diagnostic: confidence + cross agreement ------
-  const dailyEngineSignal = useMemo(() => {
-    // fusion 우선 — agreement + confidence 정밀
-    if (fusion) {
-      return {
-        confidence: fusion.confidence,
-        sync: fusion.agreement,
-      }
-    }
-    if (!selectedImportantDate) return null
-    const conf = selectedImportantDate.evidence?.confidence
-    const sync = selectedImportantDate.evidence?.crossAgreementPercent
-    if (conf == null && sync == null) return null
-    return {
-      confidence: typeof conf === 'number' ? Math.round(conf) : null,
-      sync: typeof sync === 'number' ? Math.round(sync) : null,
-    }
-  }, [fusion, selectedImportantDate])
 
   // --- Astro identity badge for the header ---------------------------
   // 풀 차트가 들어오면 ASC, 없으면 태양 별자리. ko 시 한글 별자리명, en 시 영어 원문.
@@ -800,19 +667,9 @@ export default function DestinyMatrixPlanner({
                 </div>
               </div>
 
-              {/* 월간 결론 카드 — 본문 sections + convergence + 전통 사주 (deep narrative).
-                  Dashboard 가 이미 verdict / 테마 / keyEvents / flow chart 를 다 표시하므로
-                  이 카드는 깊이 읽고 싶은 사용자를 위한 보조. */}
-              <MonthlyInterpretationCard
-                interp={
-                  monthDates[0]?.monthlyInterpretation ??
-                  selectedImportantDate?.monthlyInterpretation
-                }
-                yearlyConvergence={yearlyConvergence}
-                monthScore={monthScore}
-                summaryText={monthlySummaryText}
-                seed={viewYear * 12 + viewMonth}
-              />
+              {/* MonthlyInterpretationCard 제거 — 사용자 cut 요청.
+                  13 sub-sections + WhyCard + Convergence + KeyEvents 가 너무 깊어 사용자
+                  학습 부담 큼. Hero verdict + Flow chart + 그리드 만으로 본질 충분. */}
             </motion.div>
           )}
 
@@ -897,218 +754,28 @@ export default function DestinyMatrixPlanner({
               {/* ── 24h 시간대 교차 그래프 (saju 시진 × 점성 행성시) — 오늘 보면 현재 시각 노란 세로 가이드. */}
               <DailyHourlyChart importantDate={selectedImportantDate} dateStr={selectedDateStr} />
 
-              {/* 5축 도메인 레이더 — 기존 등급 배너 + 3 도메인 bar 자리. year/month
-                  대시보드와 같은 시각 언어로 통일. dailyIndices.score 는 sticky
-                  today hero 가 이미 표시하므로 여기선 도메인 분포만. */}
-              {/* 신호 0 이면 radar 안 그림 — 풀 펜타곤 fabricate 차단 */}
-              {dayRadarData.hasAnyTheme && (
-                <ThemeRadar themes={dayRadarData.themes} caption={dayRadarData.caption} />
-              )}
-
-              {/* 엔진 자기 진단 — 디버그 성격이라 디폴트 접힘. 한 줄 chip 형태로
-                  궁금한 사람만 펼치게. */}
-              {dailyEngineSignal && (
-                <div className="bg-zinc-900/30 rounded-2xl border border-white/5">
-                  <button
-                    onClick={() => setShowEngineDiag((v) => !v)}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-zinc-400 text-xs font-semibold tracking-wider uppercase"
-                  >
-                    <Cpu className="w-3.5 h-3.5 text-indigo-400/80" />
-                    {t.engineDiag}
-                    <span className="ml-auto flex items-center gap-2 text-[11px] text-zinc-500 normal-case">
-                      {dailyEngineSignal.confidence != null && (
-                        <span>
-                          {t.confidence} {dailyEngineSignal.confidence}%
-                        </span>
-                      )}
-                      {dailyEngineSignal.sync != null && (
-                        <span>
-                          {t.agreementShort} {dailyEngineSignal.sync}%
-                        </span>
-                      )}
-                      {showEngineDiag ? (
-                        <ChevronLeft className="w-3.5 h-3.5 rotate-90" />
-                      ) : (
-                        <ChevronRight className="w-3.5 h-3.5 rotate-90" />
-                      )}
-                    </span>
-                  </button>
-                  {showEngineDiag && (
-                    <div className="grid grid-cols-2 gap-3 px-4 pb-4">
-                      <div className="bg-zinc-950/60 p-4 rounded-xl border border-indigo-500/10">
-                        <div className="text-xs text-zinc-500 mb-1">{t.confidence}</div>
-                        <div className="text-2xl font-black text-indigo-300">
-                          {dailyEngineSignal.confidence != null
-                            ? `${dailyEngineSignal.confidence}%`
-                            : '—'}
-                        </div>
-                        <p className="text-xs text-zinc-500 mt-2 leading-snug">{t.confidenceSub}</p>
+              {/* 베스트/주의 시간 — 인라인 미니멀 2-카드 (Highlights 컴포넌트 대신).
+                  사용자 cut 요청: 카드 중복 제거, 본질만. */}
+              {dailyHourlySlots && (dailyHourlySlots.best[0] || dailyHourlySlots.worst[0]) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {dailyHourlySlots.best[0] && (
+                    <div className="bg-emerald-900/15 border border-emerald-500/25 rounded-xl p-4">
+                      <div className="text-[10px] font-bold text-emerald-400 mb-1 tracking-wider uppercase">
+                        {t.bestHour}
                       </div>
-                      <div className="bg-zinc-950/60 p-4 rounded-xl border border-cyan-500/10">
-                        <div className="text-xs text-zinc-500 mb-1">{t.agreement}</div>
-                        <div className="text-2xl font-black text-cyan-300">
-                          {dailyEngineSignal.sync != null ? `${dailyEngineSignal.sync}%` : '—'}
-                        </div>
-                        <p className="text-xs text-zinc-500 mt-2 leading-snug">{t.agreementSub}</p>
+                      <div className="text-lg font-black text-white leading-tight">
+                        {t.formatHour(dailyHourlySlots.best[0].hour)}
                       </div>
                     </div>
                   )}
-                </div>
-              )}
-
-              {/* 오늘의 활성 흐름 — narrative + 신호 통합 카드.
-                  MatchedPatternsCard(★ 패턴 헤드라인)는 DailyFlowCard가 같은
-                  matchedPatterns를 narrative로 풀어쓰고 있어 중복 — 제거. */}
-              <DailyFlowCard importantDate={selectedImportantDate} />
-
-              {/* 베스트/주의 시간대 — year/month dashboard 와 동일한 3-카드 패턴.
-                  day tier 는 convergence (수렴) 의 좋은 source 가 없어 두 카드만
-                  사용 (Highlights 컴포넌트는 undefined 카드를 placeholder 로 표시). */}
-              {dayHighlights ? (
-                <Highlights
-                  best={dayHighlights.bestCard}
-                  caution={dayHighlights.cautionCard}
-                  bestLabel={t.bestHour}
-                  cautionLabel={t.cautionHour}
-                  hideConvergence
-                  locale={locale}
-                />
-              ) : (
-                <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-                  <p className="text-sm text-zinc-400 leading-relaxed">{t.dayDetailPlaceholder}</p>
-                </div>
-              )}
-
-              {/* 시간대 자세히 — 펼치면 full best 4 + worst 2 + 시진 narrative
-                  + 시간×테마 narrative. Highlights(Top 1)에서 잘린 엔진 디테일을
-                  손실 없이 복구. */}
-              {dailyHourlySlots &&
-                (dailyHourlySlots.best.length > 1 || dailyHourlySlots.worst.length > 1) && (
-                  <div className="bg-zinc-900/30 rounded-2xl border border-white/5">
-                    <button
-                      onClick={() => setShowHourDetail((v) => !v)}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-zinc-300 text-xs font-semibold tracking-wider uppercase"
-                    >
-                      <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                      {t.hourDetailTitle(
-                        dailyHourlySlots.best.length,
-                        dailyHourlySlots.worst.length
-                      )}
-                      {showHourDetail ? (
-                        <ChevronUp className="w-3.5 h-3.5 ml-auto" />
-                      ) : (
-                        <ChevronDown className="w-3.5 h-3.5 ml-auto" />
-                      )}
-                    </button>
-                    {showHourDetail && (
-                      <div className="grid grid-cols-2 gap-3 px-4 pb-4">
-                        <div>
-                          <div className="text-[11px] font-bold text-emerald-400 mb-2 tracking-wider">
-                            ↑ {t.best}
-                          </div>
-                          <ul className="space-y-2">
-                            {dailyHourlySlots.best.slice(0, 4).map((s, i) => {
-                              const branch = branchFromHour(s.hour)
-                              const narrative = getHourNarrative(branch)
-                              const themeLine = getHourThemeNarrative(
-                                branch,
-                                topHourTheme(selectedImportantDate?.themeScores),
-                                locale === 'en' ? 'en' : 'ko'
-                              )
-                              return (
-                                <li
-                                  key={`best-${i}`}
-                                  className="bg-emerald-900/10 border border-emerald-500/15 px-3 py-2 rounded-lg"
-                                >
-                                  <span className="text-sm font-bold text-emerald-200">
-                                    {formatHour(s.hour)}
-                                  </span>
-                                  <p className="text-[11px] text-emerald-100/85 mt-1 leading-snug">
-                                    {locale === 'en' ? narrative.positiveEn : narrative.positiveKo}
-                                  </p>
-                                  {themeLine && (
-                                    <p className="text-[10px] text-emerald-200/70 mt-1 leading-snug">
-                                      {themeLine}
-                                    </p>
-                                  )}
-                                  {s.reason && (
-                                    <p className="text-[10px] text-zinc-500 mt-1 leading-snug">
-                                      {s.reason}
-                                    </p>
-                                  )}
-                                </li>
-                              )
-                            })}
-                          </ul>
-                        </div>
-                        <div>
-                          <div className="text-[11px] font-bold text-rose-400 mb-2 tracking-wider">
-                            ↓ {t.worst}
-                          </div>
-                          <ul className="space-y-2">
-                            {dailyHourlySlots.worst.slice(0, 2).map((s, i) => {
-                              const branch = branchFromHour(s.hour)
-                              const narrative = getHourNarrative(branch)
-                              return (
-                                <li
-                                  key={`worst-${i}`}
-                                  className="bg-rose-900/10 border border-rose-500/15 px-3 py-2 rounded-lg"
-                                >
-                                  <span className="text-sm font-bold text-rose-200">
-                                    {formatHour(s.hour)}
-                                  </span>
-                                  <p className="text-[11px] text-rose-100/85 mt-1 leading-snug">
-                                    {locale === 'en' ? narrative.cautionEn : narrative.cautionKo}
-                                  </p>
-                                  {s.reason && (
-                                    <p className="text-[10px] text-zinc-500 mt-1 leading-snug">
-                                      {s.reason}
-                                    </p>
-                                  )}
-                                </li>
-                              )
-                            })}
-                          </ul>
-                        </div>
+                  {dailyHourlySlots.worst[0] && (
+                    <div className="bg-rose-900/15 border border-rose-500/25 rounded-xl p-4">
+                      <div className="text-[10px] font-bold text-rose-400 mb-1 tracking-wider uppercase">
+                        {t.cautionHour}
                       </div>
-                    )}
-                  </div>
-                )}
-
-              {(dailyDos.length > 0 || dailyDonts.length > 0) && (
-                <div className="grid grid-cols-2 gap-4">
-                  {dailyDos.length > 0 && (
-                    <div className="bg-emerald-900/10 border border-emerald-500/20 p-4 rounded-2xl">
-                      <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-2 mb-3">
-                        <ThumbsUp className="w-4 h-4" /> {t.dosTitle}
-                      </h4>
-                      <ul className="space-y-2">
-                        {dailyDos.map((item, idx) => (
-                          <li
-                            key={idx}
-                            className="text-xs text-emerald-100/80 flex items-start gap-1.5 leading-relaxed"
-                          >
-                            <span className="text-emerald-500 mt-0.5">•</span> {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {dailyDonts.length > 0 && (
-                    <div className="bg-rose-900/10 border border-rose-500/20 p-4 rounded-2xl">
-                      <h4 className="text-sm font-bold text-rose-400 flex items-center gap-2 mb-3">
-                        <ThumbsDown className="w-4 h-4" /> {t.dontsTitle}
-                      </h4>
-                      <ul className="space-y-2">
-                        {dailyDonts.map((item, idx) => (
-                          <li
-                            key={idx}
-                            className="text-xs text-rose-100/80 flex items-start gap-1.5 leading-relaxed"
-                          >
-                            <span className="text-rose-500 mt-0.5">•</span> {item}
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="text-lg font-black text-white leading-tight">
+                        {t.formatHour(dailyHourlySlots.worst[0].hour)}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1118,7 +785,6 @@ export default function DestinyMatrixPlanner({
         </AnimatePresence>
       </div>
 
-      {/* --- Headless UI Calendar Modal --- */}
       {/* dead "월 이동" 모달 제거 (audit 4차) — setIsCalendarModalOpen(true) 호출이
           어디에도 없어 영원히 unreachable 했음. 100+ LOC + Headless UI Dialog tree
           가 번들에 포함돼 a11y 와 무관하게 무용. 헤더 "캘린더" 버튼은 monthly 탭으로
