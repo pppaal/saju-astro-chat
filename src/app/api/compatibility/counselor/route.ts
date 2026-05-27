@@ -715,9 +715,11 @@ export async function POST(req: NextRequest) {
         cachedUserContext,
         userPrompt,
         priorTurns,
-        // 5000 → 답 length guide 가 follow-up 도 2-3 단락 유지하도록 강화
-        // 됐고 (PR #719) 답이 더 깊어져 이전 3500 cap 에서 끊김 발생. 보강.
+        // maxTokens 5000 + continuation hook — 5000 도달해도 자동으로 이어
+        // 써서 답이 절대 중간에 안 잘림 (최대 2회 continuation, 누적 24000
+        // chars 절대 cap). claudeWithContinuation 참고.
         maxTokens: 5000,
+        enableContinuation: true,
         temperature: 0.7,
         timeoutMs: 80000,
         label: 'compatibility-counselor',

@@ -537,6 +537,9 @@ export async function POST(req: NextRequest) {
     // 완료 — 기존 120s timeout 안에 여유.
     model: PREMIUM_CLAUDE_MODEL,
     maxTokens: 2500,
+    // maxTokens 도달해도 자동 이어쓰기 — 답이 중간에 안 잘림.
+    // 운명상담사도 본문 깊게 답할 때 가끔 2500 cap 도달.
+    enableContinuation: true,
     // 0.5 → 0.7 — 비유·스토리텔링이 핵심인 채널이라 약간 풀어준다.
     // (타로 interpret-stream 도 0.7 사용 중)
     temperature: 0.7,

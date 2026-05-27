@@ -6,6 +6,7 @@
  */
 
 import { callClaudeStream, type CallClaudeOptions } from '@/lib/llm/claude'
+import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
 
 export interface ClaudeSSEOptions extends CallClaudeOptions {
   additionalHeaders?: Record<string, string>
@@ -19,6 +20,16 @@ export interface ClaudeSSEOptions extends CallClaudeOptions {
    * 여기서 던진 예외는 무시한다 (환불 실패가 스트림을 깨지 않도록).
    */
   onFailure?: () => void | Promise<void>
+  /**
+   * true 면 max_tokens 도달 시 자동 이어쓰기 (claudeWithContinuation).
+   * 궁합·운명·타로 같이 답이 길어질 수 있는 라우트에서 사용.
+   * 기본 false — 기존 동작 유지.
+   */
+  enableContinuation?: boolean
+  /** Continuation 최대 횟수 (enableContinuation=true 일 때만 의미). 기본 2. */
+  maxContinuations?: number
+  /** Continuation 누적 출력 절대 cap (chars). 기본 24000 (~12k tokens). */
+  maxTotalOutputChars?: number
 }
 
 /**
@@ -27,9 +38,25 @@ export interface ClaudeSSEOptions extends CallClaudeOptions {
  * SSE format: `data: {"content":"...","done":false}\n\n`
  */
 export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Response> {
-  const { additionalHeaders = {}, transform, finalize, onFailure, ...claudeOpts } = opts
+  const {
+    additionalHeaders = {},
+    transform,
+    finalize,
+    onFailure,
+    enableContinuation,
+    maxContinuations,
+    maxTotalOutputChars,
+    ...claudeOpts
+  } = opts
 
-  const tokenStream = await callClaudeStream(claudeOpts)
+  // enableContinuation=true 면 wrapper 경유 — max_tokens 자동 이어쓰기.
+  const tokenStream = enableContinuation
+    ? await streamClaudeWithContinuation({
+        ...claudeOpts,
+        maxContinuations,
+        maxTotalOutputChars,
+      })
+    : await callClaudeStream(claudeOpts)
   const reader = tokenStream.getReader()
 
   const encoder = new TextEncoder()
