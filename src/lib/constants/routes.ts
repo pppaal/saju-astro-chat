@@ -5,38 +5,15 @@
 
 /**
  * Category to route mapping
- * Maps blog/content categories to their corresponding app routes
+ * Maps blog/content categories to their corresponding app routes.
+ * 옛 카테고리(Saju/Astrology/Numerology 등)는 폴더가 삭제됐으므로
+ * 대표 채널(destiny-map)로 redirect 되도록 fallback 만 남긴다 — getCategoryRoute
+ * 가 fallback 기본값으로 ROUTES.DESTINY_MAP 을 쓴다.
  */
 export const CATEGORY_ROUTES: Record<string, string> = {
-  Saju: '/saju',
-  Astrology: '/astrology',
   Tarot: '/tarot',
-  Numerology: '/numerology',
-  'I Ching': '/iching',
-  Dream: '/dream',
-  Compatibility: '/destiny-match',
-  Personality: '/personality',
+  Compatibility: '/compatibility',
   'Destiny Counselor': '/destiny-counselor',
-} as const
-
-/**
- * Main app routes
- */
-export const ROUTES = {
-  HOME: '/',
-  BLOG: '/blog',
-  SAJU: '/saju',
-  ASTROLOGY: '/astrology',
-  TAROT: '/tarot',
-  NUMEROLOGY: '/numerology',
-  ICHING: '/iching',
-  COMPATIBILITY: '/compatibility',
-  DESTINY_MATCH: '/destiny-match',
-  PERSONALITY: '/personality',
-  DESTINY_MAP: '/destiny-map',
-  COUNSELOR: '/counselor',
-  PROFILE: '/profile',
-  SETTINGS: '/settings',
 } as const
 
 /**
@@ -45,6 +22,6 @@ export const ROUTES = {
  * @param fallback - Fallback route if category not found
  * @returns Route path
  */
-export function getCategoryRoute(category: string, fallback = ROUTES.DESTINY_MAP): string {
+export function getCategoryRoute(category: string, fallback = '/destiny-map'): string {
   return CATEGORY_ROUTES[category] || fallback
 }

@@ -97,16 +97,3 @@ export const ENABLED_SERVICES: readonly EnabledService[] = ALL_SERVICES.filter((
   ACTIVE_SERVICE_SET.has(service.id)
 )
 
-export const REMOVED_PUBLIC_SERVICE_PREFIXES: readonly string[] = [
-  '/astrology',
-  '/saju',
-  '/dream',
-  '/iching',
-  '/past-life',
-  '/life-prediction',
-  '/personality',
-  '/icp',
-  '/numerology',
-  '/myjourney',
-  '/destiny-pal',
-] as const
