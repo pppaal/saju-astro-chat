@@ -107,16 +107,35 @@ export default function YearOverviewCard({ year, allDates, yearlyMonthly, onMont
       ? `${bestM.month}월 무렵 흐름이 가장 좋고, ${worstM.month}월은 숨 고르기 좋은 시기예요.`
       : '한 해 흐름이 비교적 고른 편이에요.'
 
+  // Year Hero — 12개월 평균을 한 해 점수로. month·day hero와 같은 디자인 토큰.
+  const yearScore = Math.round(
+    yearlyMonthly.reduce((a, m) => a + m.score, 0) / yearlyMonthly.length
+  )
+  const yearGrade = getGrade(yearScore)
+
   return (
     <div className="space-y-6">
-      {/* ── 연간 총평 ── */}
-      <div className="bg-gradient-to-br from-indigo-950/50 to-zinc-900/40 rounded-2xl border border-indigo-500/20 shadow-xl p-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <CalendarRange className="w-5 h-5 text-indigo-300" />
-          <h3 className="text-lg font-black text-zinc-50">{year} 한 해 흐름</h3>
+      {/* ── Year Hero (tier 큰 배너) ── */}
+      <div
+        className={`rounded-3xl border ${yearGrade.borderClass} ${yearGrade.heroBgClass} ${yearGrade.heroShadowClass} px-5 py-5 flex items-center gap-4`}
+      >
+        <span className="text-5xl shrink-0 leading-none" aria-hidden>
+          {yearGrade.emoji}
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase mb-1 flex items-center gap-1.5">
+            <CalendarRange className="w-3 h-3" /> {year} 한 해
+          </div>
+          <div className="flex items-baseline gap-2.5 leading-none">
+            <span className={`text-6xl font-black ${yearGrade.colorClass}`}>{yearScore}</span>
+            <span className={`text-xl font-black ${yearGrade.colorClass}`}>{yearGrade.label}</span>
+          </div>
+          <p className="text-sm text-zinc-200 mt-2.5 leading-snug">{verdict}</p>
         </div>
-        <p className="text-sm text-zinc-200 leading-relaxed">{verdict}</p>
+      </div>
 
+      {/* ── 월별 흐름 chart + 테마 강세 ── */}
+      <div className="bg-zinc-900/40 rounded-2xl border border-white/5 shadow-xl p-5 space-y-4">
         <div>
           <div className="text-[11px] font-bold text-indigo-300 tracking-wide mb-1 flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5" /> 월별 흐름

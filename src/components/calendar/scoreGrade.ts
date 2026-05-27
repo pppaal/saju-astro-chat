@@ -22,6 +22,12 @@ export interface GradeInfo {
   colorClass: string
   bgClass: string
   borderClass: string
+  /** Hero 카드 emoji anchor — tier 무관, grade 의미만으로 통일. */
+  emoji: string
+  /** Hero 카드 전용 깊은 그라데이션 backdrop — 풀폭 시각 임팩트. */
+  heroBgClass: string
+  /** Hero 카드 glow shadow — 카드 뒤로 grade 색이 번지는 cinematic 효과. */
+  heroShadowClass: string
 }
 
 export interface GradeThresholds {
@@ -49,25 +55,34 @@ const LUCKY: GradeInfo = {
   key: 'lucky',
   label: '좋은 날',
   sub: '받쳐주는 흐름',
-  colorClass: 'text-emerald-300',
+  colorClass: 'text-emerald-200',
   bgClass: 'bg-gradient-to-br from-emerald-900/40 to-cyan-900/20',
-  borderClass: 'border-emerald-500/30',
+  borderClass: 'border-emerald-400/40',
+  emoji: '☀️',
+  heroBgClass: 'bg-gradient-to-br from-emerald-500/30 via-emerald-950/40 to-zinc-950',
+  heroShadowClass: 'shadow-2xl shadow-emerald-500/20',
 }
 const NEUTRAL: GradeInfo = {
   key: 'neutral',
   label: '보통',
   sub: '잔잔한 흐름',
-  colorClass: 'text-zinc-300',
+  colorClass: 'text-zinc-100',
   bgClass: 'bg-gradient-to-br from-indigo-950/40 to-zinc-900/40',
-  borderClass: 'border-indigo-500/20',
+  borderClass: 'border-indigo-400/30',
+  emoji: '🌗',
+  heroBgClass: 'bg-gradient-to-br from-indigo-500/25 via-indigo-950/40 to-zinc-950',
+  heroShadowClass: 'shadow-xl shadow-indigo-500/15',
 }
 const UNLUCKY: GradeInfo = {
   key: 'unlucky',
   label: '조심할 날',
   sub: '무리하지 않기',
-  colorClass: 'text-rose-300',
+  colorClass: 'text-rose-200',
   bgClass: 'bg-gradient-to-br from-rose-900/40 to-zinc-900/40',
-  borderClass: 'border-rose-500/40',
+  borderClass: 'border-rose-400/40',
+  emoji: '🌙',
+  heroBgClass: 'bg-gradient-to-br from-rose-500/30 via-rose-950/40 to-zinc-950',
+  heroShadowClass: 'shadow-2xl shadow-rose-500/20',
 }
 
 /**
