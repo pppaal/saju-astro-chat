@@ -90,10 +90,15 @@ interface ChatInputAreaProps {
   onSend: () => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
   onClearFile?: () => void
-  /** Optional mobile-only chart/tarot triggers — the desktop sidebar
-   *  carries these, but mobile users have no other entry point. */
+  /** Chart/tarot/clarifier triggers — 사이드바에서 제거하고 입력창 도구로
+   *  통일. 모바일/데스크탑 모두 입력창 옆 단일 진입점. */
   onOpenTarot?: () => void
   onOpenChart?: () => void
+  /** 클래리파이어 버튼 props (useClarifierCard 의 buttonProps + buttonLabel). */
+  clarifierButton?: {
+    props: React.ButtonHTMLAttributes<HTMLButtonElement>
+    label: string
+  }
   styles: Record<string, string>
   autoFocus?: boolean
 }
@@ -113,6 +118,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onClearFile,
   onOpenTarot,
   onOpenChart,
+  clarifierButton,
   styles,
   autoFocus = false,
 }: ChatInputAreaProps) {
@@ -202,6 +208,17 @@ export const ChatInputArea = React.memo(function ChatInputArea({
               >
                 <span aria-hidden="true">&#x2728;</span>
                 <span className={styles.toolLabel}>{lang === 'ko' ? '차트' : 'Chart'}</span>
+              </button>
+            )}
+            {clarifierButton && (
+              <button
+                type="button"
+                {...clarifierButton.props}
+                className={`${styles.attachButton} ${styles.toolWithLabel} ${styles.mobileOnlyTool}`}
+                aria-label={clarifierButton.label}
+              >
+                <span aria-hidden="true">{'🃏'}</span>
+                <span className={styles.toolLabel}>{clarifierButton.label}</span>
               </button>
             )}
             {parsingPdf && (
