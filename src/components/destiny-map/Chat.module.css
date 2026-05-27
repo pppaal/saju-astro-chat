@@ -928,14 +928,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  /* 32→28px — 사용자 요청 "조금 줄이면 이쁠 것 같음" */
+  width: 28px;
+  height: 28px;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 7px;
   border: none;
   background: transparent;
   color: rgba(220, 215, 255, 0.85);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
@@ -953,7 +954,8 @@
 .toolWithLabel {
   width: auto;
   gap: 4px;
-  padding: 0 10px;
+  /* 좌우 패딩 살짝 축소 (10→8) */
+  padding: 0 8px;
 }
 
 .toolLabel {
@@ -991,11 +993,12 @@
 
 .inputBoxActions .sendButton {
   margin-left: auto;
-  min-width: 38px;
-  width: 38px;
-  height: 38px;
+  /* 38→32px — 사용자 요청 "조금 줄이면 이쁠 것 같음" */
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border-radius: 12px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
   border: none;
   color: #fff;
