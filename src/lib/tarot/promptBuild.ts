@@ -95,7 +95,7 @@ overall 분량 가이드:
 
 출력 — 정확히 이 JSON 스키마 (코드펜스/주석/머리말 X):
 {
-  "overall": "위 overall 분량 가이드에 따라. 개별 카드 요약 나열이 아니라 모든 카드를 하나로 묶어 전체가 그리는 큰 흐름을 종합",
+  "overall": "위 overall 분량 가이드 따라. *눈앞에서 카드 펴주는 사람 입에서 나오는 말* 톤 — 분석 보고서 X. 첫 문장은 카드 본 직감으로 흘리듯 시작 (예: '음, 이거 좀 *강한 게* 잡히네요'). 그 다음에 자연스럽게 카드 간 흐름·관계 풀기. 개별 카드 요약 나열 X — 전체가 그리는 큰 흐름 종합.",
   "cards": [
     { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 그 자리 고유 관점으로. 가벼운 질문이면 2-3문장, 진지하면 400-650자(약 140-220단어 분량). 상대 시점 앵커 포함(예: 2-3주 내·다음 달)" }
   ],
@@ -121,7 +121,7 @@ overall length guide:
 
 Output — exactly this JSON schema (no code fences, no preamble, no comments):
 {
-  "overall": "Per the overall length guide above. Synthesize ALL cards into one big-picture flow, not a list of per-card summaries",
+  "overall": "Per the overall length guide above. *Voice of a reader spreading cards in front of you* — not a report. Open with intuition spilling out (e.g. 'Hmm, there's something *strong* sitting here right away.'). Then weave the flow / relationships between cards — Synthesize ALL cards into one big-picture flow, not a list of per-card summaries.",
   "cards": [
     { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, from that seat's own vantage. 2-3 sentences if the question is casual, 140-220 words if serious, with a relative time anchor (e.g. next 2-3 weeks)" }
   ],
