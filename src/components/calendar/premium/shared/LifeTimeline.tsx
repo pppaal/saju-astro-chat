@@ -7,6 +7,7 @@
  * active 항목은 amber 글로우 dot, 나머지는 zinc 그레이.
  */
 import { Compass } from 'lucide-react'
+import { getCalLabels, type CalLocale } from '../labels'
 
 export interface TimelineEntry {
   /** "32세" 등 표시 라벨 */
@@ -24,15 +25,18 @@ export interface TimelineEntry {
 interface Props {
   entries: TimelineEntry[]
   title?: string
+  locale?: CalLocale
 }
 
-export default function LifeTimeline({ entries, title = '인생 분기점' }: Props) {
+export default function LifeTimeline({ entries, title, locale }: Props) {
+  const t = getCalLabels(locale)
   if (entries.length === 0) return null
+  const cardTitle = title ?? t.lifeTimelineTitle
   return (
     <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl">
       <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2 mb-6">
         <Compass className="w-4 h-4 text-amber-400" />
-        {title}
+        {cardTitle}
       </h3>
       <div className="relative border-l border-zinc-800 ml-3 space-y-7 pb-2">
         {entries.map((item, i) => (
@@ -53,7 +57,7 @@ export default function LifeTimeline({ entries, title = '인생 분기점' }: Pr
               </h4>
               {item.active && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  진행 중
+                  {t.lifeInProgress}
                 </span>
               )}
             </div>
