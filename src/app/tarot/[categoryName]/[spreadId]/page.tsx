@@ -70,9 +70,13 @@ function TarotReadingPage() {
   // sessionStorage 에 캐시해 두고 우선 그걸 본다. 캐시 hit 이면 API 호출 자체를
   // 건너뛰어 토큰 차감이 없고, miss 면 정상 호출하되 idempotencyKey 헤더로
   // 서버 측 2차 dedup 까지 동시에 끼운다.
+  //
+  // 캐시 키에 categoryName 을 포함시켜 카테고리가 늘어도 동일 spreadId 끼리
+  // 충돌 없게 한다. 또 인라인 타로 모달이 같은 cards/spread 로 리딩해도
+  // 모달은 sessionStorage 에 쓰지 않으므로 메인 페이지 캐시와 분리.
   const cacheKeyFor = useCallback(
-    (sig: string) => `tarot:interp:${sig}:${language}`,
-    [language]
+    (sig: string) => `tarot:interp:${categoryName ?? 'unknown'}:${sig}:${language}`,
+    [language, categoryName]
   )
 
   // Fetch interpretation once per reading result (prevents re-fetch loop/rewrite)
@@ -134,7 +138,8 @@ function TarotReadingPage() {
           !result ||
           result.interpretation_source === 'local_personalized_fallback' ||
           result.interpretation_source === 'emergency_fallback' ||
-          (result.fallback === true && (!result.overall_message || result.overall_message.length < 40))
+          (result.fallback === true &&
+            (!result.overall_message || result.overall_message.length < 40))
         setInterpretationFailed(failedToLLM)
 
         // 성공적인 LLM 결과만 캐시 — fallback/실패는 다음에 다시 시도하도록 저장 X.

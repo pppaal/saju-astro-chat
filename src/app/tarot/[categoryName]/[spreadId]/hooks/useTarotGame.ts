@@ -353,10 +353,18 @@ export function useTarotGame(): UseTarotGameReturn {
   )
 
   const handleRedraw = useCallback(() => {
+    // 이전 리딩의 잔존 상태를 모두 지운다 — 안 지우면 새 카드 위에 옛 해석
+    // (overall_message, card_insights) 이 그대로 떠있어 "왜 카드는 비었는데
+    // 해석은 나와있냐" 회귀가 발생. fetchTriggeredRef 도 reset (다음 셀렉션
+    // 완료 시 새 fetch 트리거 되도록).
     setSelectedIndices([])
     setSelectionOrderMap(new Map())
     selectionOrderRef.current = new Map()
+    setRevealedCards([])
+    setReadingResult(null)
+    setInterpretation(null)
     setDrawError(null)
+    fetchTriggeredRef.current = false
     setIsSpreading(true)
   }, [])
 
