@@ -7,8 +7,9 @@
  * 실행: npx tsx scripts/dump-destiny-context.ts
  */
 
-import { calculateSajuData } from '../src/lib/saju/saju'
+import { buildSajuNormalizerInput } from '../src/lib/fusion/adapters/saju'
 import { buildDestinyContext } from '../src/lib/destiny/counselorContext'
+import { getNowInTimezone } from '../src/lib/datetime'
 
 const SEOUL = { latitude: 37.5665, longitude: 126.978, timezone: 'Asia/Seoul' }
 
@@ -23,14 +24,22 @@ const PERSON = {
 }
 
 async function main() {
-  // 1) Saju (route 의 흐름과 동일하게)
-  const saju = calculateSajuData(
-    PERSON.birthDate,
-    PERSON.birthTime,
-    PERSON.gender,
-    'solar',
-    SEOUL.timezone
-  )
+  // route 의 흐름과 동일: raw saju 엔진 호출 X. buildSajuNormalizerInput
+  // 이 currentSeun/Wolun/Iljin 채워 넣어줘야 ## 타이밍 에 세운/월운/일진
+  // 라인이 노출됨 (현재 dump 가 raw 엔진을 직접 부르면 모두 undefined).
+  // queryDate 는 route 와 동일하게 유저 TZ 로컬 컴포넌트로 — 서버 UTC vs
+  // 유저 KST 어긋남 방지.
+  const localNow = getNowInTimezone(SEOUL.timezone)
+  const queryDate = new Date(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0)
+  const saju = buildSajuNormalizerInput({
+    birthDate: PERSON.birthDate,
+    birthTime: PERSON.birthTime,
+    gender: PERSON.gender,
+    timezone: SEOUL.timezone,
+    queryDate,
+    latitude: SEOUL.latitude,
+    longitude: SEOUL.longitude,
+  })
 
   const sn = saju as unknown as {
     currentSeun?: { heavenlyStem?: string; earthlyBranch?: string } | null
@@ -44,10 +53,7 @@ async function main() {
   const un = (u?: { heavenlyStem?: string; earthlyBranch?: string } | null) =>
     u ? { stem: u.heavenlyStem ?? '', branch: u.earthlyBranch ?? '' } : null
 
-  // route 와 동일하게 그냥 new Date() 사용 (route.ts:291).
-  const queryDate = new Date()
-
-  // 2) destiny context (stable + daily)
+  // 2) destiny context (stable + daily) — queryDate 는 위 buildSaju 에 사용한 동일 객체.
   const split = await buildDestinyContext(
     {
       birthDate: PERSON.birthDate,
