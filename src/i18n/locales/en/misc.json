@@ -33,7 +33,7 @@
     "bestValue": "Popular",
     "faqs": {
       "q1": "How is 1 credit used?",
-      "a1": "1 credit is deducted each time you use an AI reading — East-West Astrology counseling, Tarot, Compatibility, or the Yearly/Monthly/Daily Fortune calendar. Selected onboarding tools and this month's calendar are free.",
+      "a1": "1 credit is deducted each time you use an AI reading — East-West Astrology counseling, Tarot, or Compatibility. The Yearly/Monthly/Daily Fortune calendar is free for the current month; viewing extended ranges beyond this month costs 1 additional credit.",
       "q2": "Do credits expire?",
       "a2": "Credits are valid for 3 months from the purchase date.",
       "q3": "Do bigger packs give a discount?",
@@ -41,7 +41,13 @@
       "q4": "What if a reading fails?",
       "a4": "If a reading fails due to a system issue on our end, the consumed credit is automatically restored to your balance. No support request needed.",
       "q5": "Can I get a refund?",
-      "a5": "Unused credit packs (0 credits used) are fully refundable within 7 days from purchase. Once any credit is consumed, the pack becomes non-refundable."
+      "a5": "Unused credit packs (0 credits used) are fully refundable within 7 days from purchase. Once any credit is consumed, the pack becomes non-refundable.",
+      "q6": "What payment methods do you accept?",
+      "a6": "Major credit and debit cards (Visa, Mastercard, American Express) are processed securely through Stripe. Apple Pay and Google Pay are available in supported regions.",
+      "q7": "Can I get a receipt or tax invoice?",
+      "a7": "A payment receipt is automatically emailed to your registered address after checkout. For a business tax invoice, please contact us via the Contact page with your business registration after purchase.",
+      "q8": "How long does a refund take to arrive?",
+      "a8": "Refunds are submitted to your card issuer immediately upon approval. Funds typically appear in 5–10 business days depending on your issuer; international cards may take slightly longer."
     }
   },
   "policy": {
@@ -79,10 +85,10 @@
     "emailNote": "A confirmation email has been sent to your registered address.",
     "packs": {
       "mini": "Mini (5 credits)",
-      "standard": "Standard (15 credits)",
-      "plus": "Plus (40 credits)",
-      "mega": "Mega (100 credits)",
-      "ultimate": "Ultimate (250 credits)"
+      "standard": "Standard (20 credits)",
+      "plus": "Plus (50 credits)",
+      "mega": "Mega (120 credits)",
+      "ultimate": "Ultimate (280 credits)"
     }
   },
   "common": {

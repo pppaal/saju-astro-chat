@@ -37,10 +37,7 @@ export default function CounselorPage() {
     })
     return result
   }, [rawSearchParams])
-  const counselorSearchParams = useMemo<SearchParams>(
-    () => ({ ...sp }),
-    [sp]
-  )
+  const counselorSearchParams = useMemo<SearchParams>(() => ({ ...sp }), [sp])
 
   const router = useRouter()
   const { status: authStatus } = useSession()
@@ -72,8 +69,7 @@ export default function CounselorPage() {
   // hands us a saved CounselorChatSession id here. We pass it to <Chat>
   // which resumes the conversation on mount (was previously dropped on
   // the floor, hence "눌러도 안 불러와져").
-  const initialSessionId =
-    (Array.isArray(sp.session) ? sp.session[0] : sp.session) ?? undefined
+  const initialSessionId = (Array.isArray(sp.session) ? sp.session[0] : sp.session) ?? undefined
 
   const {
     chartData,
@@ -127,7 +123,7 @@ export default function CounselorPage() {
         <div className={styles.missingProfileCard}>
           <div className={styles.missingProfileIcon}>🔮</div>
           <h1 className={styles.missingProfileTitle}>
-            {t('destinyMap.counselor.title', 'Destiny Counselor')}
+            {t('destinyMap.counselor.title', 'East-West Astrology')}
           </h1>
           <p className={styles.missingProfileText}>
             {t(
@@ -170,8 +166,7 @@ export default function CounselorPage() {
           </button>
 
           <h1 className={styles.headerTitle}>
-            {activeSession.title?.trim() ||
-              t('destinyMap.counselor.title', 'Destiny Counselor')}
+            {activeSession.title?.trim() || t('destinyMap.counselor.title', 'East-West Astrology')}
           </h1>
         </div>
 

@@ -29,7 +29,7 @@ const creditPacks: CreditPackDisplay[] = (
   popular: CREDIT_PACKS[packId].popular,
 }))
 
-const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5']
+const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8']
 const PRICING_FALLBACKS: Record<string, string> = {
   heroTitle: 'Pricing for Your Destiny',
   heroSub: 'Pay only for what you use. No subscription, no auto-renewal.',
@@ -64,6 +64,12 @@ const SSR_PRICING_KEYS = [
   'faqs.a4',
   'faqs.q5',
   'faqs.a5',
+  'faqs.q6',
+  'faqs.a6',
+  'faqs.q7',
+  'faqs.a7',
+  'faqs.q8',
+  'faqs.a8',
   'guarantee',
   'guaranteeDesc',
   'ctaTitle',
@@ -253,6 +259,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                     <div className={styles.creditPrice}>
                       {isKo ? formatKrw(pack.price) : formatUsd(pack.priceEn)}
                     </div>
+                    <div className={styles.vatNote}>{isKo ? 'VAT 포함' : 'Tax included'}</div>
                   </div>
                   <div className={styles.creditBody}>
                     <div className={styles.creditReadings}>
@@ -366,8 +373,8 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           <p className={styles.guaranteeText}>{pt('guaranteeDesc')}</p>
           <p className={styles.guaranteeText}>
             {isKo
-              ? `기준 단가: 1 credit ≈ ${formatKrw(BASE_CREDIT_PRICE_KRW)} (≈ ${formatUsd(baseCreditPriceUsd)})`
-              : `Reference rate: 1 credit ≈ ${formatUsd(baseCreditPriceUsd)} (≈ ${formatKrw(BASE_CREDIT_PRICE_KRW)})`}
+              ? `기준 단가: 1 크레딧 ≈ ${formatKrw(BASE_CREDIT_PRICE_KRW)} (VAT 포함)`
+              : `Reference rate: 1 credit ≈ ${formatUsd(baseCreditPriceUsd)} (tax included)`}
           </p>
         </section>
 
