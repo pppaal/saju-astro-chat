@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   withApiMiddleware,
-  createPublicStreamGuard,
+  createSimpleGuard,
   extractLocale,
   type ApiContext,
 } from '@/lib/api/middleware'
@@ -907,10 +907,10 @@ export const GET = withApiMiddleware(
     res.headers.set('Cache-Control', 'private, max-age=3600, stale-while-revalidate=1800')
     return res
   },
-  // Tier-1 비용 가드 — 한 요청이 12 parallel buildCalendar(Swiss ephemeris+365일
-  // transits)을 fan-out 한다. 30/min/IP 는 익명 사용자가 ~50s CPU 부담 가능.
-  // date-detail / compatibility / saju 와 동일하게 token gate + 8/min 으로 강화.
-  createPublicStreamGuard({
+  // Rate limit 만 8/min (이전 30/min 익명 fan-out 보호용). token gate 는 prod
+  // NEXT_PUBLIC_API_TOKEN 미설정 시 캘린더 전체 차단 위험이라 제거 — 그래프 사라짐
+  // 회귀 직후 revert. DoS 표면은 rate limit + year range 제한으로만 방어.
+  createSimpleGuard({
     route: 'calendar',
     limit: 8,
     windowSeconds: 60,
