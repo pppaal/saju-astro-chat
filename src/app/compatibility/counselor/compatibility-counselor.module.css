@@ -469,9 +469,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  /* 38→32px — destiny 와 통일 (사용자 의도: "조금 줄이면 이쁠 것 같음"). */
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: #1c1917;
   border: none;
   color: #fafaf9;
