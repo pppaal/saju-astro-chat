@@ -1,6 +1,47 @@
 import React from 'react'
 import Link from 'next/link'
 import { MessageCircle, Loader2, AlertCircle, History, RotateCcw } from 'lucide-react'
+
+/**
+ * Haiku 스트림이 30-60s 가 걸리는 경우가 있어, 단순 spinner 만 노출하면
+ * 멈춘 줄 알고 사용자가 새로고침/재시도하다 idempotency 충돌이 나는 회귀.
+ * 25s 가 지나면 "조금만 더 기다려달라" 안내문을 한 번 더 표시한다.
+ */
+function useElapsedReassurance(active: boolean, thresholdMs = 25000): boolean {
+  const [show, setShow] = React.useState(false)
+  React.useEffect(() => {
+    if (!active) {
+      setShow(false)
+      return
+    }
+    const t = setTimeout(() => setShow(true), thresholdMs)
+    return () => clearTimeout(t)
+  }, [active, thresholdMs])
+  return show
+}
+
+function WaitingForReadingHint({ active, isKo }: { active: boolean; isKo: boolean }) {
+  const showExtra = useElapsedReassurance(active)
+  return (
+    <div className="flex flex-col gap-2 text-sm text-indigo-200/80 py-2">
+      <div className="flex items-center gap-2">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        <span>
+          {isKo
+            ? 'AI가 펼친 카드 전체를 당신의 질문에 맞춰 읽고 있어요…'
+            : 'AI is reading the full spread for your question…'}
+        </span>
+      </div>
+      {showExtra && (
+        <p className="text-xs text-indigo-200/60 pl-6">
+          {isKo
+            ? '카드가 많을수록 조금 더 걸려요 (보통 30-60초). 새로고침하지 마시고 잠시만 기다려 주세요.'
+            : 'Larger spreads take a little longer (typically 30-60s). Please don’t refresh — hang tight.'}
+        </p>
+      )}
+    </div>
+  )
+}
 import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 import type { DeckStyle } from '@/lib/tarot/tarot.types'
@@ -139,14 +180,7 @@ export function ResultsStage(props: ResultsStageProps) {
                 )}
               </p>
             ) : (
-              <div className="flex items-center gap-2 text-sm text-indigo-200/80 py-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>
-                  {isKo
-                    ? 'AI가 펼친 카드 전체를 당신의 질문에 맞춰 읽고 있어요…'
-                    : 'AI is reading the full spread for your question…'}
-                </span>
-              </div>
+              <WaitingForReadingHint isKo={isKo} active={!!aiPending} />
             )}
           </section>
         )}

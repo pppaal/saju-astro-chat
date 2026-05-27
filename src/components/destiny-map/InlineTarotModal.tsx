@@ -287,11 +287,7 @@ function ConcernStep({ tr, concern, onConcernChange, onNext }: ConcernStepProps)
       />
       <p className={styles.hint}>{tr.concernHint}</p>
       <div className={styles.concernButtons}>
-        <button
-          className={styles.primaryButton}
-          onClick={onNext}
-          disabled={!concern.trim()}
-        >
+        <button className={styles.primaryButton} onClick={onNext} disabled={!concern.trim()}>
           {tr.next}
         </button>
       </div>
@@ -427,6 +423,7 @@ function CardDrawStep({
                   name={lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name}
                   image={dc.card.image}
                   isReversed={dc.isReversed}
+                  language={lang === 'ko' ? 'ko' : 'en'}
                   position={
                     lang === 'ko'
                       ? selectedSpread?.positions[idx]?.titleKo ||
@@ -596,6 +593,7 @@ function ResultStep({
               name={lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name}
               image={dc.card.image}
               isReversed={dc.isReversed}
+              language={lang === 'ko' ? 'ko' : 'en'}
               position={
                 // 자리명은 메인 타로와 동일하게 LLM 이 명명한 cardInsights[idx].position
                 // 을 우선 사용. 동적 스프레드는 selectedSpread.positions 가 비어 있어

@@ -90,16 +90,16 @@ export function buildInterpretStreamPrompts(
 - 출력 순서: overall 을 먼저 완성한 뒤 cards[] 를 1번부터 순서대로 채우세요 (스트리밍 UI가 위에서부터 바로 보여줌).
 
 overall 분량 가이드:
-- 질문이 있으면: 오프닝 + 시너지. 가벼운 질문이면 3-5문장으로 짧고 자연스럽게, 진지한 질문이면 500-750자로 깊이. 첫 문장에 사용자 질문 직접 언급.
-- 질문이 없으면: 오프닝 + 시너지, 500-750자, 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작.
+- 질문이 있으면: 오프닝 + 시너지. 가벼운 질문이면 3-5문장으로 짧고 자연스럽게, 진지한 질문이면 500-750자(약 180-260단어 분량)로 깊이. 첫 문장에 사용자 질문 직접 언급.
+- 질문이 없으면: 오프닝 + 시너지, 500-750자(약 180-260단어 분량), 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작.
 
 출력 — 정확히 이 JSON 스키마 (코드펜스/주석/머리말 X):
 {
   "overall": "위 overall 분량 가이드에 따라. 개별 카드 요약 나열이 아니라 모든 카드를 하나로 묶어 전체가 그리는 큰 흐름을 종합",
   "cards": [
-    { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 그 자리 고유 관점으로. 가벼운 질문이면 2-3문장, 진지하면 400-650자. 상대 시점 앵커 포함(예: 2-3주 내·다음 달)" }
+    { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 그 자리 고유 관점으로. 가벼운 질문이면 2-3문장, 진지하면 400-650자(약 140-220단어 분량). 상대 시점 앵커 포함(예: 2-3주 내·다음 달)" }
   ],
-  "advice": "위 카드 전체를 종합한 뒤 내리는 결론적 조언. 가벼운 질문이면 1-2줄로 구체적인 한 가지를 콕 집어(메뉴·물건·장소 하나) 자신있게, 진지하면 구체 행동 1-3개 200-280자. 결정형 질문(예/아니오·선택)이면 첫 문장에 기울기를 분명히(예: 지금은 유보를 권해요)"
+  "advice": "위 카드 전체를 종합한 뒤 내리는 결론적 조언. 가벼운 질문이면 1-2줄로 구체적인 한 가지를 콕 집어(메뉴·물건·장소 하나) 자신있게, 진지하면 구체 행동 1-3개 200-280자(약 70-100단어 분량). 결정형 질문(예/아니오·선택)이면 첫 문장에 기울기를 분명히(예: 지금은 유보를 권해요)"
 }`
     : `${TAROT_RULES_EN}
 
@@ -116,16 +116,16 @@ Tone and length — match the question (most important):
 - Emission order: finish overall first, then fill cards[] in order from 1 (the streaming UI shows it top-down as it arrives).
 
 overall length guide:
-- If a question is asked: Opening + synergy. 3-5 sentences if the question is casual, 320-450 words if serious. First sentence references the question.
-- If no question: Opening + synergy, 320-450 words, open with the overall flow naturally.
+- If a question is asked: Opening + synergy. 3-5 sentences if the question is casual, 180-260 words if serious. First sentence references the question.
+- If no question: Opening + synergy, 180-260 words, open with the overall flow naturally.
 
 Output — exactly this JSON schema (no code fences, no preamble, no comments):
 {
   "overall": "Per the overall length guide above. Synthesize ALL cards into one big-picture flow, not a list of per-card summaries",
   "cards": [
-    { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, from that seat's own vantage. 2-3 sentences if the question is casual, 230-360 words if serious, with a relative time anchor (e.g. next 2-3 weeks)" }
+    { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, from that seat's own vantage. 2-3 sentences if the question is casual, 140-220 words if serious, with a relative time anchor (e.g. next 2-3 weeks)" }
   ],
-  "advice": "Conclusion drawn after weighing ALL cards together. One or two lines that commit to one concrete pick (a dish / item / place) if the question is casual, otherwise 1-3 concrete actions (120-170 words). For a yes/no or choice question, state your lean in the first sentence (e.g. lean toward waiting for now)"
+  "advice": "Conclusion drawn after weighing ALL cards together. One or two lines that commit to one concrete pick (a dish / item / place) if the question is casual, otherwise 1-3 concrete actions (70-100 words). For a yes/no or choice question, state your lean in the first sentence (e.g. lean toward waiting for now)"
 }`
 
   const userPrompt = isKorean

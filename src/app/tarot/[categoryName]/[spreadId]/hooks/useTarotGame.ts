@@ -376,7 +376,18 @@ export function useTarotGame(): UseTarotGameReturn {
       fetchTriggeredRef.current = false
     }
 
-    if (!spreadInfo || selectedIndices.length !== targetCardCount || gameState !== 'picking') {
+    // 모든 guard 통과:
+    // - spreadInfo 로드됐고 cardCount > 0 (cardCount=0 spreadInfo 가 잠깐 로드되는
+    //   경우에 fetchReading(cardCount:0) 으로 잘못 호출되던 edge case 차단)
+    // - 선택 카운트가 정확히 targetCount (length === target)
+    // - 게임 상태가 picking (revealing/result 단계로 넘어갔으면 재호출 안 함)
+    // - ref 가 not-yet-triggered (React 배칭/리렌더 동안 두 번 트리거 방지)
+    if (
+      !spreadInfo ||
+      targetCardCount <= 0 ||
+      selectedIndices.length !== targetCardCount ||
+      gameState !== 'picking'
+    ) {
       return
     }
     if (fetchTriggeredRef.current) {

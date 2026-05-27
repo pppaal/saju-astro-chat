@@ -55,6 +55,11 @@ export interface TarotCardProps {
   showInsights?: boolean
   expandable?: boolean
   interactive?: boolean
+  /**
+   * UI 라벨(역방향/Reversed) 언어. 안 넘기면 'ko' 폴백. 카드 데이터 자체는
+   * KO/EN 모두 들고 있고 라벨만 표시 언어가 달랐던 회귀(영어 하드코딩).
+   */
+  language?: 'ko' | 'en'
   // Eager-load the image (skip next/image lazy loading) — use on result views
   // where cards should appear immediately instead of popping in on scroll.
   priority?: boolean
@@ -83,6 +88,7 @@ const TarotCard = memo(function TarotCard({
   showInsights = true,
   expandable = true,
   interactive = true,
+  language = 'ko',
   priority = false,
   onClick,
   onExpand,
@@ -125,7 +131,9 @@ const TarotCard = memo(function TarotCard({
           className={styles.cardImage}
           priority={priority}
         />
-        {isReversed && <div className={styles.reversedLabel}>Reversed</div>}
+        {isReversed && (
+          <div className={styles.reversedLabel}>{language === 'en' ? 'Reversed' : '역방향'}</div>
+        )}
       </div>
 
       {/* Card Info */}
