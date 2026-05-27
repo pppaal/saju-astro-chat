@@ -98,7 +98,6 @@ export type ContentData = {
   }
   tarotReadings: { count: number }
   readingsByType: Array<{ type: string; count: number }>
-  pastLifeCount: number
   compatibilityCount: number
   personalityTypes: Array<{ typeCode: string; count: number }>
 }

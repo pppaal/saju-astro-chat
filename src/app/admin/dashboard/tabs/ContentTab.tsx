@@ -15,7 +15,6 @@ export function ContentTab({
     data.consultations.count +
     data.destinyMatrix.count +
     data.tarotReadings.count +
-    data.pastLifeCount +
     data.compatibilityCount
 
   return (
@@ -38,10 +37,6 @@ export function ContentTab({
           <div className={styles.metricCard}>
             <div className={styles.metricLabel}>타로</div>
             <div className={styles.metricValue}>{formatNumber(data.tarotReadings.count)}</div>
-          </div>
-          <div className={styles.metricCard}>
-            <div className={styles.metricLabel}>전생</div>
-            <div className={styles.metricValue}>{formatNumber(data.pastLifeCount)}</div>
           </div>
           <div className={styles.metricCard}>
             <div className={styles.metricLabel}>궁합</div>
