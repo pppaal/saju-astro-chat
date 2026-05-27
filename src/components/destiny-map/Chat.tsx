@@ -17,7 +17,7 @@ import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
-import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
+import { useClarifierCard } from '@/hooks/useClarifierCard'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
@@ -72,9 +72,6 @@ const Chat = memo(function Chat({
   const [notice, setNotice] = React.useState<string | null>(null)
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [showChartModal, setShowChartModal] = React.useState(false)
-  const [showClarifierModal, setShowClarifierModal] = React.useState(false)
-  // 한 대화당 한 장만. confirm 시 잠그고 startNewChat 에서만 푼다.
-  const [clarifierUsed, setClarifierUsed] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
@@ -270,40 +267,15 @@ const Chat = memo(function Chat({
 
   const goToTarot = React.useCallback(() => setShowTarotModal(true), [])
 
-  // 🃏 클래리파이어 카드 한 장 — 작은 모달이 열려 카드 한 장이 펼쳐지고
-  // 사용자가 확인을 누르면 카드 이미지(마크다운)와 함께 채팅 메시지로
-  // 흘려보낸다. LLM 이 직전 흐름에 맞춰 한 단락 보충 해석을 답해준다.
-  const openClarifier = React.useCallback(() => {
-    // 한 대화당 한 장만. 이미 뽑았으면 모달 안 열고 안내만 노출.
-    if (clarifierUsed) {
-      setNotice(
-        effectiveLang === 'ko'
-          ? '이번 대화에서는 보충 카드를 이미 한 장 뽑았어요. 새 대화를 시작하면 다시 뽑을 수 있어요.'
-          : "You've already drawn one clarifier card in this chat. Start a new chat to draw another."
-      )
-      return
-    }
-    setShowClarifierModal((prev) => (prev ? prev : true))
-  }, [clarifierUsed, effectiveLang])
-  const handleClarifierConfirm = React.useCallback(
-    (card: ClarifierCard) => {
-      // 카드 이름 + 그림(markdown 이미지) + 해석 요청을 user 메시지로 흘려
-      // 보낸다. 한 번 뽑으면 새 대화 시작 전까지 잠금.
-      // 자동 스크롤 hijack 을 일정 시간 끈다 — "한 장 더 뽑기" 버튼이 채팅
-      // 맨 하단에 있어 사용자는 이미 그 자리를 보고 있다. 일반 useEffect 가
-      // 답변 토큰마다 messagesEnd 로 따라가버리면 사용자가 막 본 user
-      // 말풍선/카드가 viewport 위로 밀려 "다시 올라간 것" 처럼 보임.
-      // 답변 스트리밍이 끝날 만큼(~25s) 충분히 길게 잠근다.
-      suspendAutoScrollRef.current = true
-      window.setTimeout(() => {
-        suspendAutoScrollRef.current = false
-      }, 25000)
-      setClarifierUsed(true)
-      const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
-      void handleSendRef.current?.(userText)
+  // 🃏 클래리파이어 카드 — 공통 hook (compat/followup 동일). 정책 단일 출처.
+  const clarifier = useClarifierCard({
+    lang: effectiveLang,
+    onSendUserText: (text) => {
+      void handleSendRef.current?.(text)
     },
-    [effectiveLang]
-  )
+    onLockedNotice: setNotice,
+    suspendAutoScrollRef,
+  })
 
   const handleTarotComplete = (result: TarotResultSummary) => {
     const cardsSummary = result.cards
@@ -343,7 +315,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
     hookStartNewChat()
     setActiveSessionId(sessionIdRef.current)
     setFollowUpQuestions([])
-    setClarifierUsed(false)
+    clarifier.reset()
   }
 
   // ---- Rename / delete a past chat (desktop rail) ----
@@ -599,30 +571,12 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
             <button
               type="button"
               className={styles.historyRailFooterBtn}
-              onClick={openClarifier}
-              disabled={showClarifierModal}
-              aria-disabled={showClarifierModal || clarifierUsed}
-              style={clarifierUsed ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
-              title={
-                clarifierUsed
-                  ? effectiveLang === 'ko'
-                    ? '\uC774 \uB300\uD654\uC5D0\uC11C\uB294 \uC774\uBBF8 \uD55C \uC7A5 \uBF51\uC558\uC5B4\uC694'
-                    : "Already drew one in this chat"
-                  : effectiveLang === 'ko'
-                    ? '\uBCF4\uCDA9 \uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30 (\uC989\uC11D \uD074\uB798\uB9AC\uD30C\uC774\uC5B4)'
-                    : 'Draw one clarifier card (quick)'
-              }
+              {...clarifier.buttonProps}
             >
               <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
                 {'\uD83C\uDCCF'}
               </span>
-              {clarifierUsed
-                ? effectiveLang === 'ko'
-                  ? '\uD55C \uC7A5 \uB354 \uBF51\uAE30 \uBD88\uAC00'
-                  : 'No more draws'
-                : effectiveLang === 'ko'
-                  ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30'
-                  : 'Draw one more card'}
+              {clarifier.buttonLabel}
             </button>
             <button
               type="button"
@@ -670,8 +624,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onFollowUp={handleFollowUp}
               styles={styles}
               userName={profile?.name}
-              onOpenClarifier={openClarifier}
-              clarifierUsed={clarifierUsed}
+              onOpenClarifier={clarifier.buttonProps.onClick}
+              clarifierUsed={clarifier.isLocked}
             />
 
             <ChatInputArea
@@ -705,12 +659,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         initialConcern={followUpQuestions[0] || extractConcernFromMessages()}
       />
 
-      <ClarifierCardModal
-        isOpen={showClarifierModal}
-        onClose={() => setShowClarifierModal(false)}
-        onConfirm={handleClarifierConfirm}
-        lang={effectiveLang}
-      />
+      <ClarifierCardModal {...clarifier.modalProps} />
 
       <ChartModal
         open={showChartModal}

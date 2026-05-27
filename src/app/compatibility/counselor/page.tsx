@@ -6,14 +6,13 @@ import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
 import BrandSplash from '@/components/branding/BrandSplash'
-import MarkdownMessage from '@/components/ui/MarkdownMessage'
+import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
-import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
 import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
 import { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
 import { buildClarifierUserMessage, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
@@ -853,70 +852,32 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               const isLastAssistant = !isUser && idx === messages.length - 1
               const showTyping = isLastAssistant && isLoading && !msg.content
 
-              // 클래리파이어 카드의 markdown 이미지(`![alt](src)`)는 user 메시지
-              // 안에서 MarkdownMessage 의 img 렌더에만 의존하지 말고 직접 추출해
-              // 큼지막한 <img> 로 별도 렌더한다 — 어떤 CSS/캐시 상황에서도
-              // 카드 그림이 확실히 보이도록 (운명상담사 MessageRow 와 동일 패턴).
-              const imageMatch = isUser ? /!\[([^\]]*)\]\(([^)]+)\)/.exec(msg.content) : null
-              const inlineImage = imageMatch
-                ? { alt: imageMatch[1] || '', src: imageMatch[2] }
-                : null
-              const userText = inlineImage
-                ? msg.content.replace(/!\[[^\]]*\]\([^)]+\)/, '').trim()
-                : msg.content
-              const userLooksMd =
-                isUser && /\*\*[^*]+\*\*|^#{1,3}\s|\n[*-]\s/.test(userText)
-
               return (
                 <div key={idx} className={`${styles.message} ${isUser ? styles.userMessage : ''}`}>
                   <div className={styles.messageAvatar} aria-hidden="true">
                     {isUser ? '\u{1F464}' : '\u{1F495}'}
                   </div>
                   <div className={styles.messageBubble}>
-                    {showTyping ? (
-                      <span className={styles.thinkingMessage}>
-                        <span className={styles.typing}>
-                          <span />
-                          <span />
-                          <span />
+                    <ChatBubbleContent
+                      role={msg.role}
+                      content={msg.content}
+                      pending={showTyping}
+                      pendingNode={
+                        <span className={styles.thinkingMessage}>
+                          <span className={styles.typing}>
+                            <span />
+                            <span />
+                            <span />
+                          </span>
+                          <span className={styles.thinkingText}>
+                            {isKo
+                              ? '두 분의 흐름을 깊이 읽고 있어요...'
+                              : 'Reading the flow between the two of you…'}
+                          </span>
                         </span>
-                        <span className={styles.thinkingText}>
-                          {isKo
-                            ? '두 분의 흐름을 깊이 읽고 있어요...'
-                            : 'Reading the flow between the two of you…'}
-                        </span>
-                      </span>
-                    ) : isUser ? (
-                      <>
-                        {userText &&
-                          (userLooksMd ? (
-                            <MarkdownMessage content={userText} theme="light" />
-                          ) : (
-                            userText
-                          ))}
-                        {inlineImage && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={inlineImage.src}
-                            alt={inlineImage.alt}
-                            loading="lazy"
-                            style={{
-                              display: 'block',
-                              maxWidth: '180px',
-                              width: '70%',
-                              aspectRatio: '5 / 8.5',
-                              objectFit: 'cover',
-                              borderRadius: '10px',
-                              marginTop: userText ? '10px' : 0,
-                              boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
-                              background: 'rgba(255,255,255,0.06)',
-                            }}
-                          />
-                        )}
-                      </>
-                    ) : (
-                      <MarkdownMessage content={stripReportMarkdown(msg.content)} theme="light" />
-                    )}
+                      }
+                      theme="light"
+                    />
                   </div>
                 </div>
               )
