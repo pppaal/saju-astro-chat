@@ -88,6 +88,10 @@ const Chat = memo(function Chat({
   const [showChartModal, setShowChartModal] = React.useState(false)
   const [showClarifierModal, setShowClarifierModal] = React.useState(false)
   const [clarifierCard, setClarifierCard] = React.useState<ClarifierCard | null>(null)
+  // 클래리파이어는 한 대화당 한 장만. 한 번 confirm 하면 새 대화 시작 전까지
+  // 다시 못 뽑게 잠근다. 패널 ×(닫기) 로 카드 그림은 숨길 수 있지만 이
+  // 플래그는 새 채팅 전까지 유지.
+  const [clarifierUsed, setClarifierUsed] = React.useState(false)
   const clarifierPanelRef = React.useRef<HTMLDivElement | null>(null)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
@@ -300,15 +304,22 @@ const Chat = memo(function Chat({
   // 사용자가 확인을 누르면 카드 이미지(마크다운)와 함께 채팅 메시지로
   // 흘려보낸다. LLM 이 직전 흐름에 맞춰 한 단락 보충 해석을 답해준다.
   const openClarifier = React.useCallback(() => {
-    // 모달이 떠 있는 동안은 한 번만 누르도록 가드 — 더블 클릭으로 카드가
-    // 두 장 뽑히지 않게 함.
+    // 한 대화당 한 장만. 이미 뽑았으면 모달 안 열고 안내만 노출.
+    if (clarifierUsed) {
+      setNotice(
+        effectiveLang === 'ko'
+          ? '이번 대화에서는 보충 카드를 이미 한 장 뽑았어요. 새 대화를 시작하면 다시 뽑을 수 있어요.'
+          : "You've already drawn one clarifier card in this chat. Start a new chat to draw another."
+      )
+      return
+    }
     setShowClarifierModal((prev) => (prev ? prev : true))
-  }, [])
+  }, [clarifierUsed, effectiveLang])
   const handleClarifierConfirm = React.useCallback(
     (card: ClarifierCard) => {
       // 카드 자체는 채팅창 위쪽 패널에 그림으로 띄우고, LLM 에는 텍스트만
-      // 보내서 한 단락 해석을 받는다. 새 카드를 뽑을 때마다 패널을 덮어쓰고
-      // 자연스럽게 보이도록 그 위치로 스크롤한다.
+      // 보내서 한 단락 해석을 받는다. 한 번 뽑으면 새 대화 전까지 잠금.
+      setClarifierUsed(true)
       setClarifierCard(card)
       const userText = buildClarifierUserMessage(card, effectiveLang === 'ko' ? 'ko' : 'en')
       void handleSendRef.current?.(userText)
@@ -360,6 +371,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
     hookStartNewChat()
     setActiveSessionId(sessionIdRef.current)
     setFollowUpQuestions([])
+    setClarifierUsed(false)
+    setClarifierCard(null)
   }
 
   // ---- Rename / delete a past chat (desktop rail) ----
@@ -617,11 +630,16 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               className={styles.historyRailFooterBtn}
               onClick={openClarifier}
               disabled={showClarifierModal}
-              aria-disabled={showClarifierModal}
+              aria-disabled={showClarifierModal || clarifierUsed}
+              style={clarifierUsed ? { opacity: 0.55 } : undefined}
               title={
-                effectiveLang === 'ko'
-                  ? '\uBCF4\uCDA9 \uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30 (\uC989\uC11D \uD074\uB798\uB9AC\uD30C\uC774\uC5B4)'
-                  : 'Draw one clarifier card (quick)'
+                clarifierUsed
+                  ? effectiveLang === 'ko'
+                    ? '\uC774\uBC88 \uB300\uD654\uC5D0\uC11C\uB294 \uC774\uBBF8 \uD55C \uC7A5 \uBF51\uC558\uC5B4\uC694'
+                    : "Already drew one in this chat"
+                  : effectiveLang === 'ko'
+                    ? '\uBCF4\uCDA9 \uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30 (\uC989\uC11D \uD074\uB798\uB9AC\uD30C\uC774\uC5B4)'
+                    : 'Draw one clarifier card (quick)'
               }
             >
               <span className={styles.historyRailFooterBtnIcon} aria-hidden="true">
