@@ -8,12 +8,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
-import { tarotDeck } from '@/lib/tarot/tarot-data'
+import { findCardBySavedName } from '@/lib/tarot/findCardByName'
 import {
   loadQuestionAnalysisSnapshot,
   type TarotQuestionAnalysisSnapshot,
 } from '@/lib/tarot/questionFlow'
-import { Spread, DeckStyle, type Card, type DrawnCard } from '@/lib/tarot/tarot.types'
+import { Spread, DeckStyle, type DrawnCard } from '@/lib/tarot/tarot.types'
 import { loadReadingRestorePayload, type SavedTarotReading } from '@/lib/tarot/tarot-storage'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
@@ -62,34 +62,8 @@ interface UseTarotGameReturn {
   canRevealCard: (index: number) => boolean
 }
 
-function findCardBySavedName(savedCard: SavedTarotReading['cards'][number], index: number): Card {
-  const normalizedName = savedCard.name.trim().toLowerCase()
-  const normalizedNameKo = (savedCard.nameKo || '').trim().toLowerCase()
-
-  const matchedCard = tarotDeck.find((card) => {
-    const englishName = card.name.trim().toLowerCase()
-    const koreanName = card.nameKo.trim().toLowerCase()
-    return (
-      englishName === normalizedName ||
-      englishName === normalizedNameKo ||
-      koreanName === normalizedName ||
-      koreanName === normalizedNameKo
-    )
-  })
-
-  if (matchedCard) {
-    return matchedCard
-  }
-
-  const fallback = tarotDeck[0]
-  return {
-    ...fallback,
-    id: -1 - index,
-    name: savedCard.name,
-    nameKo: savedCard.nameKo || savedCard.name,
-    image: '/images/tarot/card-back.webp',
-  }
-}
+// 카드 매칭 로직은 lib/tarot/findCardByName.ts 로 분리 — 히스토리 모달
+// (TarotHistoryClient) 가 카드 이미지 렌더링에 같은 매칭을 쓰도록 공유.
 
 function buildRestoredReadingResult(
   reading: SavedTarotReading,

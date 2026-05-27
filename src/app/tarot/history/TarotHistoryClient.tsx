@@ -1,9 +1,21 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, BarChart3, MoonStar, Search, X, RotateCcw, Sparkles } from 'lucide-react'
+import {
+  ArrowLeft,
+  BarChart3,
+  ChevronDown,
+  ChevronUp,
+  MoonStar,
+  Search,
+  X,
+  RotateCcw,
+  Sparkles,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
+import { findCardBySavedName } from '@/lib/tarot/findCardByName'
 
 import {
   deleteReading,
@@ -69,6 +81,9 @@ export default function TarotHistoryClient() {
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedReading, setSelectedReading] = useState<SavedTarotReading | null>(null)
+  // 카드별 해석을 펼친 카드 인덱스 (한 번에 하나만). 모달이 닫히거나 다른
+  // 리딩을 열면 reset.
+  const [expandedCardIdx, setExpandedCardIdx] = useState<number | null>(null)
   const [showStats, setShowStats] = useState(false)
   const [isLoadingReadings, setIsLoadingReadings] = useState(true)
   const [deleteNotice, setDeleteNotice] = useState('')
@@ -100,7 +115,7 @@ export default function TarotHistoryClient() {
           setDeleteNotice(
             isKo
               ? `이전 ${migration.migrated}개의 리딩을 계정으로 옮겼어요.`
-              : `Imported ${migration.migrated} guest reading${migration.migrated > 1 ? 's' : ''}.`,
+              : `Imported ${migration.migrated} guest reading${migration.migrated > 1 ? 's' : ''}.`
           )
         }
         return
@@ -128,6 +143,13 @@ export default function TarotHistoryClient() {
     return () => window.clearTimeout(id)
   }, [deleteNotice])
 
+  // 모달이 닫히거나 다른 리딩을 열 때 카드 펼침 상태 reset — 옛 리딩에서
+  // 4번 카드를 펴놓고 새 리딩을 열면 4번 카드가 자동 펴진 채로 뜨는
+  // 버그 방지.
+  useEffect(() => {
+    setExpandedCardIdx(null)
+  }, [selectedReading?.id])
+
   const filteredReadings = useMemo(() => {
     let result = [...readings]
     if (searchQuery.trim()) {
@@ -136,13 +158,13 @@ export default function TarotHistoryClient() {
         (reading) =>
           reading.question.toLowerCase().includes(q) ||
           reading.cards.some(
-            (card) =>
-              card.name.toLowerCase().includes(q) ||
-              card.nameKo?.toLowerCase().includes(q)
+            (card) => card.name.toLowerCase().includes(q) || card.nameKo?.toLowerCase().includes(q)
           )
       )
     }
-    result.sort((a, b) => (sortBy === 'newest' ? b.timestamp - a.timestamp : a.timestamp - b.timestamp))
+    result.sort((a, b) =>
+      sortBy === 'newest' ? b.timestamp - a.timestamp : a.timestamp - b.timestamp
+    )
     return result
   }, [readings, searchQuery, sortBy])
 
@@ -161,7 +183,9 @@ export default function TarotHistoryClient() {
         freqMap.set(card.name, existing)
       })
     })
-    return Array.from(freqMap.values()).sort((a, b) => b.count - a.count).slice(0, 10)
+    return Array.from(freqMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
   }, [readings])
 
   const handleDelete = async (
@@ -181,7 +205,9 @@ export default function TarotHistoryClient() {
           setReadings((prev) => prev.filter((item) => item.id !== reading.id))
           setDeleteNotice(isKo ? '리딩을 삭제했습니다.' : 'Reading deleted.')
         } else {
-          setDeleteNotice(isKo ? '삭제하지 못했어요. 잠시 후 다시 시도해 주세요.' : 'Delete failed.')
+          setDeleteNotice(
+            isKo ? '삭제하지 못했어요. 잠시 후 다시 시도해 주세요.' : 'Delete failed.'
+          )
         }
       } catch {
         setDeleteNotice(isKo ? '삭제하지 못했어요. 잠시 후 다시 시도해 주세요.' : 'Delete failed.')
@@ -333,7 +359,9 @@ export default function TarotHistoryClient() {
           {isLoadingReadings ? (
             <EmptyState
               title={isKo ? '기록을 불러오는 중…' : 'Loading readings…'}
-              description={isKo ? '저장된 리딩을 확인하고 있어요.' : 'Fetching your saved readings.'}
+              description={
+                isKo ? '저장된 리딩을 확인하고 있어요.' : 'Fetching your saved readings.'
+              }
             />
           ) : filteredReadings.length > 0 ? (
             filteredReadings.map((reading) => (
@@ -368,9 +396,7 @@ export default function TarotHistoryClient() {
                 </p>
                 <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
                   <span className="text-indigo-300/80">
-                    {isKo
-                      ? reading.spread.titleKo || reading.spread.title
-                      : reading.spread.title}
+                    {isKo ? reading.spread.titleKo || reading.spread.title : reading.spread.title}
                   </span>
                   <span className="text-slate-600">·</span>
                   <span>
@@ -404,13 +430,21 @@ export default function TarotHistoryClient() {
             <EmptyState
               title={
                 hasFilters
-                  ? isKo ? '검색 결과가 없어요' : 'No results found'
-                  : isKo ? '저장된 리딩이 없어요' : 'No saved readings yet'
+                  ? isKo
+                    ? '검색 결과가 없어요'
+                    : 'No results found'
+                  : isKo
+                    ? '저장된 리딩이 없어요'
+                    : 'No saved readings yet'
               }
               description={
                 hasFilters
-                  ? isKo ? '다른 키워드로 시도해보세요' : 'Try different keywords'
-                  : isKo ? '첫 번째 타로 리딩을 시작해보세요' : 'Start your first tarot reading'
+                  ? isKo
+                    ? '다른 키워드로 시도해보세요'
+                    : 'Try different keywords'
+                  : isKo
+                    ? '첫 번째 타로 리딩을 시작해보세요'
+                    : 'Start your first tarot reading'
               }
               action={
                 hasFilters
@@ -456,30 +490,80 @@ export default function TarotHistoryClient() {
               {formatRelativeTime(selectedReading.timestamp, isKo)}
             </p>
 
-            {/* 카드 리스트 */}
+            {/* 카드 리스트 — 카드 그림 + 자리/이름/(역방향)/더보기로 펼치는
+                카드별 해석 (사용자 피드백: "타로 그림도 안 보이고 더보기
+                없어서 카드별 해석 못 봄"). */}
             <section className="mb-5">
               <h4 className="text-xs uppercase tracking-wider text-slate-500 mb-2">
                 {isKo ? '뽑은 카드' : 'Drawn Cards'}
               </h4>
               <ul className="space-y-2">
-                {selectedReading.cards.map((card, idx) => (
-                  <li
-                    key={`${selectedReading.id}-detail-${idx}`}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700/60"
-                  >
-                    <span className="text-xs text-indigo-300/80 w-20 shrink-0">
-                      {isKo ? card.positionKo || card.position : card.position}
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
-                        card.isReversed ? 'text-rose-200' : 'text-slate-100'
-                      }`}
+                {selectedReading.cards.map((card, idx) => {
+                  const fullCard = findCardBySavedName(card, idx)
+                  const expanded = expandedCardIdx === idx
+                  const cardInterp = selectedReading.interpretation.cardInsights?.[idx]
+                  const hasInterp = !!(cardInterp?.interpretation || '').trim()
+                  return (
+                    <li
+                      key={`${selectedReading.id}-detail-${idx}`}
+                      className="rounded-lg bg-slate-800/60 border border-slate-700/60 overflow-hidden"
                     >
-                      {isKo ? card.nameKo || card.name : card.name}
-                      {card.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
-                    </span>
-                  </li>
-                ))}
+                      <button
+                        type="button"
+                        onClick={() => hasInterp && setExpandedCardIdx(expanded ? null : idx)}
+                        disabled={!hasInterp}
+                        className={`w-full flex items-start gap-3 px-3 py-2 text-left ${
+                          hasInterp ? 'hover:bg-slate-800/80 cursor-pointer' : 'cursor-default'
+                        }`}
+                      >
+                        {/* 카드 그림 (48x80 thumbnail) */}
+                        <div
+                          className={`relative w-12 h-20 shrink-0 rounded overflow-hidden ring-1 ring-slate-700/60 ${
+                            card.isReversed ? 'rotate-180' : ''
+                          }`}
+                        >
+                          <Image
+                            src={fullCard.image}
+                            alt={fullCard.name}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs text-indigo-300/80 mb-0.5">
+                            {isKo ? card.positionKo || card.position : card.position}
+                          </div>
+                          <div
+                            className={`text-sm font-medium ${
+                              card.isReversed ? 'text-rose-200' : 'text-slate-100'
+                            }`}
+                          >
+                            {isKo ? card.nameKo || card.name : card.name}
+                            {card.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
+                          </div>
+                          {hasInterp && !expanded && (
+                            <div className="flex items-center gap-1 mt-1 text-[11px] text-indigo-300/70">
+                              <span>{isKo ? '더보기' : 'See more'}</span>
+                              <ChevronDown className="w-3 h-3" />
+                            </div>
+                          )}
+                          {hasInterp && expanded && (
+                            <div className="flex items-center gap-1 mt-1 text-[11px] text-indigo-300/70">
+                              <span>{isKo ? '접기' : 'Collapse'}</span>
+                              <ChevronUp className="w-3 h-3" />
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                      {hasInterp && expanded && (
+                        <div className="px-3 pb-3 pt-1 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap border-t border-slate-700/40 ml-15">
+                          {cardInterp?.interpretation}
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </section>
 

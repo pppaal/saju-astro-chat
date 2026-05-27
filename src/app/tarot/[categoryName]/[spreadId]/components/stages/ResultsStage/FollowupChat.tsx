@@ -36,6 +36,7 @@ export function FollowupChat({
   const [clarifierUsed, setClarifierUsed] = useState(false)
   const [clarifierNotice, setClarifierNotice] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 —
   // "카드 한 장 더 뽑기" 버튼이 채팅 박스 맨 하단이고, 사용자가 본 자리에
@@ -166,7 +167,12 @@ export function FollowupChat({
     setShowClarifierModal(true)
   }
   const handleClarifierConfirm = async (card: ClarifierCard) => {
-    // 자동 스크롤 25 초 끄기 — "그 자리 유지" 회귀 방지 (PR #644 패턴).
+    // 내부 chat box 의 token-by-token 자동 스크롤은 25초 suspend
+    // (PR #644 — 답변 끝까지 따라가면 박스 viewport 가 위로 밀림 회귀).
+    // 단, "한 장 더 뽑기" 클릭 시점에 사용자 viewport 를 채팅 박스 시작
+    // 위치로 한 번 가져온다 — 안 그러면 새 클래리파이어 카드/답변이
+    // 페이지 맨 아래에 추가됐는데도 사용자는 페이지 위쪽 그대로 머물러
+    // "결과가 안 보임" 회귀 (보고된 사용자 이슈).
     suspendAutoScrollRef.current = true
     window.setTimeout(() => {
       suspendAutoScrollRef.current = false
@@ -174,11 +180,21 @@ export function FollowupChat({
     setClarifierUsed(true)
     setClarifierNotice(null)
     const text = buildClarifierUserMessage(card, isKo ? 'ko' : 'en')
+    // 두 frame 뒤 scroll — modal close + history 갱신 commit 이 paint 된
+    // 다음에 가져와야 새 카드 메시지 위치가 정확.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    })
     await sendQuestionText(text)
   }
 
   return (
-    <section className="rounded-2xl bg-slate-900/50 border border-cyan-500/20 shadow-[0_0_24px_rgba(34,211,238,0.06)] p-5 md:p-6 space-y-4">
+    <section
+      ref={containerRef}
+      className="rounded-2xl bg-slate-900/50 border border-cyan-500/20 shadow-[0_0_24px_rgba(34,211,238,0.06)] p-5 md:p-6 space-y-4"
+    >
       <div className="flex items-center gap-2">
         <MessageCircle className="w-4 h-4 text-cyan-300" />
         <h2 className="text-sm font-medium text-cyan-300 tracking-wider uppercase">
@@ -192,11 +208,8 @@ export function FollowupChat({
             // 클래리파이어 user 메시지에 들어있는 카드 markdown 이미지(`![alt](src)`)는
             // 그냥 텍스트로 두면 안 보임 — 추출해 별도 <img> 로 렌더하고 본문에서는
             // 제거해 중복 표시 안 되게.
-            const imgMatch =
-              t.role === 'user' ? /!\[([^\]]*)\]\(([^)]+)\)/.exec(t.content) : null
-            const inlineImage = imgMatch
-              ? { alt: imgMatch[1] || '', src: imgMatch[2] }
-              : null
+            const imgMatch = t.role === 'user' ? /!\[([^\]]*)\]\(([^)]+)\)/.exec(t.content) : null
+            const inlineImage = imgMatch ? { alt: imgMatch[1] || '', src: imgMatch[2] } : null
             const textContent = inlineImage
               ? t.content.replace(/!\[[^\]]*\]\([^)]+\)/, '').trim()
               : t.content
