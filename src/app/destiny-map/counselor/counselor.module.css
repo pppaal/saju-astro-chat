@@ -472,16 +472,6 @@
   color: #57534e;
 }
 
-/* On desktop the hamburger is redundant: CounselorSidebar drawer is
-   primarily a mobile entry now (destiny has its own desktop sidebar
-   inside <Chat>). Hide the back button on wide viewports to avoid two
-   sidebars competing. */
-@media (min-width: 1024px) {
-  .lightTheme .backButton {
-    display: none;
-  }
-}
-
 .lightTheme .chatWrapper {
   background: transparent;
 }
