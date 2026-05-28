@@ -89,13 +89,15 @@
   }
 }
 
-/* Mobile — single horizontal row, bottom-right, content-width only. */
+/* Mobile — single horizontal row, bottom-LEFT (not right), content-width only.
+   bottom-right 는 메인 페이지 전송 버튼(↑) / 다른 페이지 input toolbar 의
+   send 버튼과 겹쳐서 전송 클릭이 가려지던 회귀 fix. */
 @media (max-width: 640px) {
   .banner {
     position: fixed;
     bottom: max(0.4rem, env(safe-area-inset-bottom, 0px));
-    right: max(0.4rem, env(safe-area-inset-right, 0px));
-    left: auto;
+    left: max(0.4rem, env(safe-area-inset-left, 0px));
+    right: auto;
     top: auto;
     width: auto;
     max-width: calc(100vw - 0.8rem);
