@@ -524,12 +524,15 @@
     padding: 0.5rem 0.75rem;
   }
 
+  /* 운명상담사 chatWrapper 모바일 padding 과 동일 (0.75rem 0.75rem 0.5rem
+     계열) — 좌우 13px → 12px 로 통일해 메시지 영역 너비 일치. */
   .chatWrapper {
-    padding: 0.65rem 0.85rem 0.65rem;
+    padding: 0.65rem 0.75rem 0.65rem;
   }
 
+  /* messageBubble font-size 는 base 1rem 유지 (운명상담사와 동일).
+     이전엔 0.9rem 으로 축소돼 폰트가 작아 보였음 → fix. */
   .messageBubble {
-    font-size: 0.9rem;
     padding: 0.6rem 0.8rem;
   }
 
