@@ -2,7 +2,7 @@
 // 출생 시간 교정(Rectification) 가이드 및 도구
 
 import { Chart, PlanetBase, ZodiacKo, NatalInput } from "./types";
-import { normalize360, angleDiff, formatLongitude } from "./utils";
+import { normalize360, formatLongitude } from "./utils";
 import { calculateNatalChart, toChart } from "./astrologyService";
 
 export interface LifeEvent {
