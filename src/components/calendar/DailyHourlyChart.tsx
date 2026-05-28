@@ -13,30 +13,35 @@ import {
   Label,
 } from 'recharts'
 import { Clock } from 'lucide-react'
-import type { ImportantDate } from './types'
 import ChartTooltip from './premium/shared/ChartTooltip'
 import { getCalLabels, type CalLocale } from './premium/labels'
 
+/** fusion.hourly.slots 의 sub-shape — useDateDetail 이 제공. */
+export interface HourlySlot {
+  hour: number
+  score: number
+}
+
 interface Props {
-  importantDate: ImportantDate | null
+  /** fusion.hourly.slots — 24h × {hour, score}. 없으면 차트 미렌더. */
+  slots?: HourlySlot[] | null
   /** 표시 중인 날짜(YYYY-MM-DD). 오늘이면 현재 시각에 세로 가이드 표시. */
   dateStr?: string
   locale?: CalLocale
 }
 
 /**
- * 24시간 시간대 교차 그래프 — 사주 시진 × 점성 행성시.
+ * 24시간 시간대 흐름 그래프 — fusion.hourly.slots 직접 사용.
  *
- * 데이터 소스:
- *  - engineSignals 중 layer === 'hourly' 신호 (saju-hour + astro-moon-phase-voc)
- *  - 시간(0-23)별 polarity × weight 평균 → 0~100 점수
- *  - sajuLine: 사주 source 신호 / astroLine: 점성 source 신호
+ * 이전엔 importantDate.engineSignals 의 layer=hourly 만 필터해서 polarity ×
+ * weight 평균 → 50 + avg*16 으로 계산했음. 그 결과로 365 일자에 engineSignals
+ * (전 layer, ~5MB) 가 다 따라붙어 payload 거대화 →
+ * fusion.hourly.slots 가 이미 같은 24h × score 0-100 제공 → 그대로 매핑.
  *
- * 표시(주간 그래프와 톤 통일): 라인이 아니라 그라데이션 area 로 채워 흐름이
- * 한눈에 보이게. 50 기준선 라벨 + 큰 점. 점성 신호가 실제로 있을 때만 점성
- * area 를 그리고, 두 라인이 교차하는 시각엔 ◆ 마커를 찍어 "시간 교차"를 강조.
+ * 표시(다른 차트들과 톤 통일): 단일 amber gradient area, 50 기준선 + "지금"
+ * reference line.
  */
-export default function DailyHourlyChart({ importantDate, dateStr, locale }: Props) {
+export default function DailyHourlyChart({ slots, dateStr, locale }: Props) {
   const t = getCalLabels(locale)
   const hourSuffix = locale === 'en' ? 'h' : '시'
   // 오늘이면 현재 시각에 노란 세로 가이드. XAxis dataKey="hour" 와 같은 포맷.
@@ -48,33 +53,14 @@ export default function DailyHourlyChart({ importantDate, dateStr, locale }: Pro
     return `${String(today.getHours()).padStart(2, '0')}${hourSuffix}`
   })()
 
-  const { data } = useMemo(() => {
-    const empty = { data: [] as HourPoint[] }
-    if (!importantDate?.engineSignals) return empty
-    const hourlySignals = importantDate.engineSignals.filter((s) => s.layer === 'hourly')
-    if (hourlySignals.length === 0) return empty
-
-    // 사용자 요청: 사주/점성 두 라인 → 단일 "에너지" 라인 (양쪽 평균).
-    // 시간별 모든 신호의 polarity × weight 평균. saju/astro source 불문.
-    const buckets: number[][] = Array.from({ length: 24 }, () => [])
-
-    for (const s of hourlySignals) {
-      const hourFromId = inferHourFromSignalId(s.id)
-      if (hourFromId == null) continue
-      buckets[hourFromId].push(s.polarity * s.weight)
-    }
-
-    const data: HourPoint[] = buckets.map((scores, hour) => {
-      const avg = scores.length > 0 ? scores.reduce((a, v) => a + v, 0) / scores.length : 0
-      return {
-        hour: `${String(hour).padStart(2, '0')}${hourSuffix}`,
-        hourNum: hour,
-        score: Math.round(50 + avg * 16),
-      }
-    })
-
-    return { data }
-  }, [importantDate, hourSuffix])
+  const data: HourPoint[] = useMemo(() => {
+    if (!slots || slots.length === 0) return []
+    return slots.map((s) => ({
+      hour: `${String(s.hour).padStart(2, '0')}${hourSuffix}`,
+      hourNum: s.hour,
+      score: Math.round(s.score),
+    }))
+  }, [slots, hourSuffix])
 
   if (data.length === 0) return null
 
@@ -179,45 +165,6 @@ function HourlyTooltip({
 interface HourPoint {
   hour: string
   hourNum: number
-  /** 사주+점성 통합 평균 score (50=중립, 100=최대 우호) */
+  /** 0-100 score (50=중립, 100=최대 우호) — fusion.hourly.slots 직접 매핑 */
   score: number
-}
-
-/**
- * 신호 ID에서 시간 추정.
- * 사주 시진: 'saju.hour.YYYY-MM-DD.{branch}.{stem}'
- *   branch → idx → 시간 (자=0, 축=1~2, ..., 해=21~22)
- * 점성 voc/phase: 시간 정보 없으니 정오(12)로 매핑
- */
-function inferHourFromSignalId(id: string): number | null {
-  const BRANCH_HOUR: Record<string, number> = {
-    子: 0,
-    丑: 2,
-    寅: 4,
-    卯: 6,
-    辰: 8,
-    巳: 10,
-    午: 12,
-    未: 14,
-    申: 16,
-    酉: 18,
-    戌: 20,
-    亥: 22,
-  }
-  const sajuMatch = id.match(/^saju\.hour\..+\.([子丑寅卯辰巳午未申酉戌亥])\./)
-  if (sajuMatch) {
-    const hour = BRANCH_HOUR[sajuMatch[1]]
-    return typeof hour === 'number' ? hour : null
-  }
-  // 점성 행성시 — id에 시각이 박혀 있음: astro.planetary-hour.YYYY-MM-DD.H{hh}.{planet}
-  const astroHourMatch = id.match(/^astro\.planetary-hour\..+\.H(\d{1,2})\./)
-  if (astroHourMatch) {
-    const h = Number(astroHourMatch[1])
-    return h >= 0 && h < 24 ? h : null
-  }
-  // 점성 VoC / 달위상은 정오 근처로 매핑 (정확한 시간 정보 부재)
-  if (id.startsWith('astro.voc') || id.startsWith('astro.moon-phase')) {
-    return 12
-  }
-  return null
 }

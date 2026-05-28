@@ -41,6 +41,8 @@ interface Props {
   advice?: FusionAdvice
   /** dailyHourlySlots (24h 카드 베스트/주의 시간) */
   hourlySlots?: HourlySlots
+  /** fusion.hourly.slots — 24h 차트 (engineSignals 대체) */
+  hourlySeries?: Array<{ hour: number; score: number }> | null
   locale?: CalLocale
 }
 
@@ -53,6 +55,7 @@ export default function DayInsights({
   frontDomain,
   advice,
   hourlySlots,
+  hourlySeries,
   locale,
 }: Props) {
   if (!importantDate) return null
@@ -85,10 +88,10 @@ export default function DayInsights({
       </div>
       <motion.div variants={cardItem}>
         <DayHourlyCard
-          importantDate={importantDate}
           dateStr={dateStr}
           advice={advice}
           hourlySlots={hourlySlots}
+          hourlySeries={hourlySeries}
           locale={locale}
         />
       </motion.div>
@@ -403,16 +406,16 @@ function WhyBlock({
 
 // ── 4. DayHourly ─────────────────────────────────────────────────────
 function DayHourlyCard({
-  importantDate,
   dateStr,
   advice,
   hourlySlots,
+  hourlySeries,
   locale,
 }: {
-  importantDate: ImportantDate
   dateStr: string
   advice?: FusionAdvice
   hourlySlots?: HourlySlots
+  hourlySeries?: Array<{ hour: number; score: number }> | null
   locale?: CalLocale
 }) {
   const t = getCalLabels(locale)
@@ -430,7 +433,7 @@ function DayHourlyCard({
       </h3>
 
       <div className="relative">
-        <DailyHourlyChart importantDate={importantDate} dateStr={dateStr} locale={locale} />
+        <DailyHourlyChart slots={hourlySeries} dateStr={dateStr} locale={locale} />
       </div>
 
       {(bestHour || worstHour) && (

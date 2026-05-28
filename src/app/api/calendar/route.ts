@@ -216,8 +216,7 @@ export const GET = withApiMiddleware(
     try {
       // 'F' 한 글자도 처리 — 기존 lowercase==='female' 매칭은 'F'→'f' 가
       // 매칭 실패해 여자 사용자의 대운 방향이 거꾸로 가던 회귀.
-      const sajuGender: 'male' | 'female' =
-        normalizeGender(gender) === 'female' ? 'female' : 'male'
+      const sajuGender: 'male' | 'female' = normalizeGender(gender) === 'female' ? 'female' : 'male'
       const { calculateSajuData } = await import('@/lib/saju/saju')
       sajuResult = calculateSajuData(birthDateParam, birthTimeParam, sajuGender, 'solar', timezone)
     } catch (sajuError) {
@@ -723,19 +722,10 @@ export const GET = withApiMiddleware(
             action: p.action,
           }))
         }
-        if (cell.signals.length > 0) {
-          d.engineSignals = cell.signals.map((s) => ({
-            id: s.id,
-            source: s.source,
-            kind: s.kind,
-            name: s.name,
-            korean: s.korean,
-            themes: s.themes,
-            polarity: s.polarity,
-            layer: s.layer,
-            weight: s.weight,
-          }))
-        }
+        // engineSignals 완전 제거 — UI 사용처는 DailyHourlyChart 의 hourly layer 만,
+        // 그것마저 fusion.hourly.slots (useDateDetail 이 선택 일자에 제공) 로 대체.
+        // 365 일자에 ~5MB 가 떠나서 페이로드 cold response 빨라짐.
+        // YearHighlightsCard pickReason 은 sajuFactors → title 폴백 있어 graceful.
         if (Object.keys(cell.themeScores).length > 0) {
           d.themeScores = cell.themeScores
         }
