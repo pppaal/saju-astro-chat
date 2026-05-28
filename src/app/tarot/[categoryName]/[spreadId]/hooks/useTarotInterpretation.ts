@@ -34,6 +34,11 @@ export interface FetchInterpretationOptions {
   // 새로고침 시 같은 리딩이 두 번 차감되지 않도록 서버에 보낼 idempotency 키.
   // 보통 페이지 단의 readingSignature(스프레드+카드 조합 해시)를 그대로 사용.
   idempotencyKey?: string
+  // 크레딧 소진(402) / 게스트 한도(401) 시 페이지가 모달·메시지를 띄울 수
+  // 있게 호출. hook 내부에선 fallback 로컬 카피로 그래도 답을 보여주지만,
+  // 사용자가 *왜* 진짜 LLM 응답이 안 왔는지 알게 하려면 페이지 단의
+  // showDepleted() 같은 전역 모달 트리거가 필요.
+  onCreditError?: (kind: 'insufficient_credits' | 'guest_or_login_required') => void
 }
 
 interface UseTarotInterpretationReturn {
@@ -411,6 +416,14 @@ export function useTarotInterpretation({
           },
           STREAM_INTERPRET_TIMEOUT_MS
         )
+
+        // 크레딧 / 게스트 한도 — 페이지에 알림 트리거. 그 뒤엔 기존대로
+        // local fallback 으로 떨어져 사용자가 적어도 무언가는 보게 함.
+        if (response.status === 402) {
+          options?.onCreditError?.('insufficient_credits')
+        } else if (response.status === 401) {
+          options?.onCreditError?.('guest_or_login_required')
+        }
 
         if (response.ok) {
           const contentType = response.headers.get('content-type') || ''

@@ -8,6 +8,7 @@ import { tarotLogger } from '@/lib/logger'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
+import { useCreditModal } from '@/contexts/CreditModalContext'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
@@ -33,6 +34,7 @@ export function FollowupChat({
   readingId,
 }: FollowupChatProps) {
   const isKo = language === 'ko'
+  const { showDepleted } = useCreditModal()
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<Turn[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -151,6 +153,15 @@ export function FollowupChat({
       })
 
       if (!response.ok) {
+        // 402 → 크레딧 소진. 전역 모달 (showDepleted) 노출.
+        if (response.status === 402) {
+          showDepleted()
+          throw new Error('insufficient_credits')
+        }
+        // 401 → 게스트 한도 도달 또는 미인증. 메시지로 안내.
+        if (response.status === 401) {
+          throw new Error('guest_or_login_required')
+        }
         const errBody = await response.json().catch(() => ({}))
         throw new Error(errBody.error || 'request_failed')
       }
@@ -177,16 +188,26 @@ export function FollowupChat({
       void patchSavedReading({ followupTurns: finalHistory })
     } catch (err) {
       tarotLogger.error('followup failed', err instanceof Error ? err : undefined)
+      const errMsg = err instanceof Error ? err.message : String(err)
+      // 크레딧 / 게스트 한도 / 일반 에러를 메시지로 구분 노출. 모달은 위
+      // showDepleted() 가 이미 띄움 — 이 라인은 보조 안내.
+      const fallbackContent =
+        errMsg === 'insufficient_credits'
+          ? isKo
+            ? '크레딧이 부족해요. 충전 후 다시 시도해 주세요.'
+            : 'Out of credits. Please top up and try again.'
+          : errMsg === 'guest_or_login_required'
+            ? isKo
+              ? '무료 체험 한도에 도달했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.'
+              : 'Free trial limit reached. Sign in to claim your 5-credit signup bonus and continue.'
+            : isKo
+              ? '연결이 끊어졌어요. 잠시 후 다시 시도해 주세요.'
+              : 'Connection failed. Please try again in a moment.'
       setHistory((prev) => {
         const copy = [...prev]
         const lastIdx = copy.length - 1
         if (lastIdx >= 0 && copy[lastIdx].role === 'assistant') {
-          copy[lastIdx] = {
-            role: 'assistant',
-            content: isKo
-              ? '연결이 끊어졌어요. 잠시 후 다시 시도해 주세요.'
-              : 'Connection failed. Please try again in a moment.',
-          }
+          copy[lastIdx] = { role: 'assistant', content: fallbackContent }
         }
         return copy
       })

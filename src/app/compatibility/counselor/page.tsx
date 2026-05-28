@@ -471,6 +471,12 @@ function CompatibilityCounselorContent() {
 
         if (!response.ok) {
           if (response.status === 401) {
+            // 401 두 가지: (a) 진짜 로그인 필요, (b) 게스트 무료 2 회 한도
+            // 도달 (서버가 X-Guest-Limit-Reached: 1 헤더 동봉). 메시지가 달라
+            // 헤더로 분기.
+            if (response.headers.get('x-guest-limit-reached') === '1') {
+              throw new Error('guest_limit_reached')
+            }
             throw new Error('login_required')
           }
           // 402 Payment Required — credit exhausted. 잡아서 전역 크레딧
@@ -583,6 +589,13 @@ function CompatibilityCounselorContent() {
             isKo
               ? '로그인이 필요한 프리미엄 기능입니다.'
               : 'Login required for this premium feature.'
+          )
+        } else if (errMsg === 'guest_limit_reached') {
+          // 게스트 무료 2 회 한도 — 운명상담사와 동일 카피.
+          setError(
+            isKo
+              ? '궁합 상담 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.'
+              : 'You have used both free guest turns. Sign in to claim your 5-credit signup bonus and continue.'
           )
         } else if (errMsg === 'payment_required') {
           // 크레딧 소진 → 인라인 에러 대신 전역 크레딧 안내 모달을 띄운다
