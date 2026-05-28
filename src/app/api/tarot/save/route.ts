@@ -143,29 +143,52 @@ export const GET = withApiMiddleware(
       userId: context.userId!,
     }
 
-    const [readings, total] = await Promise.all([
-      prisma.tarotReading.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-        select: {
-          id: true,
-          createdAt: true,
-          question: true,
-          spreadId: true,
-          spreadTitle: true,
-          cards: true,
-          overallMessage: true,
-          guidance: true,
-          cardInsights: true,
-          source: true,
-          clarifierCard: true,
-          followupTurns: true,
-        },
-      }),
-      prisma.tarotReading.count({ where }),
-    ])
+    // clarifierCard / followupTurns 는 신규 컬럼 — 마이그레이션이 아직 적용
+    // 안 된 환경에선 select 자체가 P2022(column does not exist)로 죽어 히스토리
+    // 전체가 빈 화면이 되던 회귀. 1차로 신규 컬럼 포함 query 시도 → 실패하면
+    // 구 컬럼만으로 한 번 더 재시도해서 최소한 옛 리딩은 보이게 한다.
+    const baseSelect = {
+      id: true,
+      createdAt: true,
+      question: true,
+      spreadId: true,
+      spreadTitle: true,
+      cards: true,
+      overallMessage: true,
+      guidance: true,
+      cardInsights: true,
+      source: true,
+    } as const
+
+    let readings: Array<Record<string, unknown>>
+    let total: number
+    try {
+      ;[readings, total] = await Promise.all([
+        prisma.tarotReading.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: offset,
+          select: { ...baseSelect, clarifierCard: true, followupTurns: true },
+        }),
+        prisma.tarotReading.count({ where }),
+      ])
+    } catch (err) {
+      // P2022 = "column not found". 마이그레이션 미적용 환경 fallback.
+      const code = (err as { code?: string } | null)?.code
+      if (code !== 'P2022') throw err
+      logger.warn('[TarotSave] new columns missing on DB — falling back', { code })
+      ;[readings, total] = await Promise.all([
+        prisma.tarotReading.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: offset,
+          select: baseSelect,
+        }),
+        prisma.tarotReading.count({ where }),
+      ])
+    }
 
     const normalizedReadings = readings.map((reading) => ({
       ...reading,

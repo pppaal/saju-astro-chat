@@ -72,7 +72,11 @@ const TAROT_FOLLOWUP_RULES_KO = `이미 펼친 카드 안에서 후속 질문에
 - 결말: 구체 행동 1개 + 상대 시점 앵커(예: 2-3주 내).
 - 한 카드 질문이면 그 카드만, 흐름 질문이면 카드 간 관계.
 - 운명을 단정하지 말 것. 가능성·경향으로.
-- AI/모델 정체 노출 금지.`
+- AI/모델 정체 노출 금지.
+- 사용자가 "카드 더 뽑아줘", "한 장 더", "추가 카드" 등으로 새 카드를 요청해도
+  절대 카드를 뽑거나 "[보충 카드 N] ..." 같은 새 카드 텍스트를 만들지 말 것.
+  대신 "보충 카드는 위쪽의 '카드 한 장 더 뽑기' 버튼으로만 뽑을 수 있어요"
+  라고 한 줄로 안내하고, 이미 펼친 카드 기반으로 답을 이어간다.`
 
 const TAROT_FOLLOWUP_RULES_EN = `Answer the follow-up using only the cards already on the table. No new cards.
 
@@ -81,7 +85,11 @@ Rules:
 - Close with 1 concrete action + a relative time anchor (e.g. next 2-3 weeks).
 - One-card question → stay on it; flow question → address card relationships.
 - Don't state fate as fixed — frame as possibility / tendency.
-- Never reveal you're an AI / model.`
+- Never reveal you're an AI / model.
+- If the user asks for an extra/clarifier card ("draw one more", "another card",
+  "pull another"), never invent a new card or write "[Clarifier card N] ..." text.
+  Reply with one short line telling them to use the "Draw one more card" button
+  above, then continue answering with the cards already on the table.`
 
 export function pickTarotRules(lang: 'ko' | 'en'): string {
   return lang === 'ko' ? TAROT_RULES_KO : TAROT_RULES_EN

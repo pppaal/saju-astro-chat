@@ -185,10 +185,42 @@ export function FollowupChat({
     }
   }
 
+  // "한 장 더 뽑아줘" 류 텍스트가 입력으로 들어오면 LLM 한테 보내봐야
+  // 프롬프트로는 막아도 가끔 "[보충 카드 2] ..." 같은 가짜 카드를 만들어 답을
+  // 보내는 회귀가 있다. 그래서 클라이언트에서 한 번 더 인텐트 매치 →
+  // - 클래리파이어 잠금 상태면 잠금 안내만 띄우고 API 호출 skip
+  // - 잠금 아니면 채팅 input 을 비우고 클래리파이어 모달을 자동으로 연다
+  //   (사용자가 위쪽 버튼을 못 찾았을 때의 동선 회복).
+  const matchesDrawIntent = (text: string): boolean => {
+    const t = text.trim().toLowerCase()
+    if (!t) return false
+    // 한국어 — "카드 더", "한 장 더", "추가 카드", "보충 카드", "더 뽑"
+    if (/(카드\s*더|한\s*장\s*더|추가\s*카드|보충\s*카드|더\s*뽑)/.test(t)) return true
+    // 영어 — "draw (a/one) more", "another card", "pull another", "one more card"
+    if (/\b(draw|pull)\b.*\b(more|another|one)\b/.test(t)) return true
+    if (/\b(another|one\s*more)\s+card\b/.test(t)) return true
+    return false
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const q = input.trim()
     if (!q || submitting) return
+
+    if (matchesDrawIntent(q)) {
+      setInput('')
+      if (clarifier.isLocked) {
+        setClarifierNotice(
+          isKo
+            ? '이번 대화에서는 보충 카드를 이미 한 장 뽑았어요. 새 대화를 시작하면 다시 뽑을 수 있어요.'
+            : "You've already drawn one clarifier card in this chat. Start a new chat to draw another."
+        )
+        return
+      }
+      clarifier.buttonProps.onClick()
+      return
+    }
+
     setInput('')
     await sendQuestionText(q)
   }
