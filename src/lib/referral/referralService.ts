@@ -4,7 +4,14 @@ import { randomBytes } from 'crypto'
 import { sendReferralRewardEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 
-const REFERRAL_CREDITS = 3 // 추천 시 지급 크레딧
+// 추천 보상 — 친구의 첫 결제 시점에 지급.
+//   - REFERRER_CREDITS: 추천인이 받는 크레딧.
+//   - REFEREE_CREDITS: 친구(피추천자) 본인이 첫 결제 보너스로 받는 크레딧.
+// 양쪽 모두 받게 해서 추천 동기 + 친구의 결제 동기 둘 다 잡는다.
+const REFERRER_CREDITS = 10
+const REFEREE_CREDITS = 5
+// 후방 호환 — linkReferrer 가 pending 행에 기록하는 추천인 보상 액수.
+const REFERRAL_CREDITS = REFERRER_CREDITS
 
 // 고유 추천 코드 생성 (8자리)
 export function generateReferralCode(): string {
@@ -108,7 +115,13 @@ export async function linkReferrer(
 // pending 보상이 있을 때 한 번만 지급되며, 이후 결제에는 재지급되지 않는다.
 export async function grantReferralRewardOnFirstPurchase(
   referredUserId: string
-): Promise<{ granted: boolean; referrerId?: string; creditsAwarded?: number }> {
+): Promise<{
+  granted: boolean
+  referrerId?: string
+  creditsAwarded?: number
+  refereeBonusGranted?: boolean
+  refereeBonusCredits?: number
+}> {
   try {
     const pendingReward = await prisma.referralReward.findFirst({
       where: {
@@ -142,10 +155,27 @@ export async function grantReferralRewardOnFirstPurchase(
       })
     }
 
+    // 친구(피추천자) 본인에게도 첫 결제 보너스 지급. pendingReward 처리는
+    // 이미 멱등 — 두 번째 호출 시 위에서 early return 되므로 referee 도
+    // 1 회만 받음. addBonusCredits 가 실패해도 추천인 보상은 이미 완료
+    // 상태이므로 log 만 남기고 silent fail.
+    let refereeBonusGranted = false
+    try {
+      await addBonusCredits(referredUserId, REFEREE_CREDITS, 'referral')
+      refereeBonusGranted = true
+    } catch (err) {
+      logger.error(
+        '[grantReferralRewardOnFirstPurchase] Failed to grant referee first-purchase bonus:',
+        err
+      )
+    }
+
     return {
       granted: true,
       referrerId: pendingReward.userId,
       creditsAwarded: pendingReward.creditsAwarded,
+      refereeBonusGranted,
+      refereeBonusCredits: refereeBonusGranted ? REFEREE_CREDITS : 0,
     }
   } catch (error: unknown) {
     logger.error('[grantReferralRewardOnFirstPurchase] error:', error)
