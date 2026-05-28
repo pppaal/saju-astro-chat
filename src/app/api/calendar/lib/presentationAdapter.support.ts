@@ -1,12 +1,4 @@
-// @ts-nocheck — CalendarCoreAdapterResult stub (Phase B Step 4) 으로 implicit any.
-//   canonicalCore=null runtime 이라 영향 0. noop 호출 정리는 별도 PR.
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/calendar-core-stub'
-import type {
-  CrossAgreementMatrixCell,
-  CrossAgreementMatrixRow,
-  DomainKey,
-  DomainScore,
-} from '@/lib/destiny-matrix/types'
+import type { DomainKey } from '@/lib/destiny-matrix/types'
 import type { CalendarDailyView, CalendarMonthView, CalendarWeekView, FormattedDate } from './types'
 import { clamp01 } from '@/lib/utils/math'
 
@@ -128,150 +120,19 @@ export function dedupe(lines: string[]): string[] {
   return out
 }
 
-export function mapCoreDomainToPresentationDomain(domain?: string): PresentationDomain {
-  if (!domain) return 'general'
-  if (domain === 'relationship') return 'love'
-  if (domain === 'wealth') return 'money'
-  if (
-    domain === 'career' ||
-    domain === 'health' ||
-    domain === 'move' ||
-    domain === 'love' ||
-    domain === 'money'
-  ) {
-    return domain
-  }
-  return 'general'
-}
-
 export function mapPresentationDomainToDomainKey(domain: PresentationDomain): DomainKey | null {
   if (domain === 'general') return null
   return domain
-}
-
-export function mapPresentationDomainToCrossDomain(
-  domain: PresentationDomain
-): CrossAgreementMatrixRow['domain'] | null {
-  if (domain === 'general') return 'timing'
-  if (domain === 'love') return 'relationship'
-  if (domain === 'money') return 'wealth'
-  return domain
-}
-
-export function pickAgreementCell(
-  matrix: CrossAgreementMatrixRow[] | undefined,
-  domain: PresentationDomain
-): { row: CrossAgreementMatrixRow; scale: string; cell: CrossAgreementMatrixCell } | null {
-  const crossDomain = mapPresentationDomainToCrossDomain(domain)
-  if (!crossDomain || !Array.isArray(matrix) || matrix.length === 0) return null
-  const row = matrix.find((item) => item.domain === crossDomain)
-  if (!row) return null
-  const orderedScales: Array<'now' | '1-3m' | '3-6m' | '6-12m'> = ['now', '1-3m', '3-6m', '6-12m']
-  for (const scale of orderedScales) {
-    const cell = row.timescales?.[scale]
-    if (cell) return { row, scale, cell }
-  }
-  return null
-}
-
-export function localizeWindowToken(window: string, locale: Locale): string {
-  if (locale === 'ko') {
-    if (window === 'now') return '지금'
-    if (window === '1-3m') return '1~3개월'
-    if (window === '3-6m') return '3~6개월'
-    if (window === '6-12m') return '6~12개월'
-  }
-  return window
 }
 
 export function buildAgreementCardData(input: {
   locale: Locale
   focusDomainLabel: string
   actionDomain: PresentationDomain
-  matrix: CrossAgreementMatrixRow[] | undefined
   fallbackAgreementPercent?: number
   fallbackConflictText?: string
 }): Pick<SurfaceCard, 'summary' | 'tag' | 'details' | 'visual'> {
-  const {
-    locale,
-    focusDomainLabel,
-    actionDomain,
-    matrix,
-    fallbackAgreementPercent,
-    fallbackConflictText,
-  } = input
-  const picked = pickAgreementCell(matrix, actionDomain)
-  if (picked) {
-    const agreementPct = Math.round((picked.cell.agreement || 0) * 100)
-    const contradictionPct = Math.round((picked.cell.contradiction || 0) * 100)
-    const leadLag = picked.cell.leadLag ?? picked.row.leadLag ?? 0
-    const windowLabel = localizeWindowToken(picked.scale, locale)
-    const tagKo = agreementPct >= 75 ? '합의 강함' : agreementPct >= 60 ? '합의 보통' : '충돌 주의'
-    const tagEn =
-      agreementPct >= 75
-        ? 'Strong alignment'
-        : agreementPct >= 60
-          ? 'Mixed alignment'
-          : 'Conflict watch'
-    if (locale === 'ko') {
-      const alignment =
-        agreementPct >= 75
-          ? '같은 방향이 강합니다'
-          : agreementPct >= 60
-            ? '대체로 같은 방향이지만 한 번 더 확인하는 편이 안전합니다'
-            : '엇갈림이 커서 보수적으로 읽어야 합니다'
-      const contradictionLine =
-        contradictionPct >= 35
-          ? `충돌도 ${contradictionPct}%: 반대 신호가 꽤 큽니다.`
-          : `충돌도 ${contradictionPct}%: 관리 가능한 수준입니다.`
-      const leadLagLine =
-        leadLag >= 0.18
-          ? '구조가 먼저 열리고 촉발은 뒤따릅니다.'
-          : leadLag <= -0.18
-            ? '촉발은 먼저 오지만 구조 지지는 뒤에서 따라옵니다.'
-            : '구조와 촉발의 시차는 크지 않습니다.'
-      return {
-        summary: `${windowLabel} 기준 ${focusDomainLabel} 합의도는 ${agreementPct}%입니다. ${alignment}`,
-        tag: tagKo,
-        details: [contradictionLine, leadLagLine].filter(Boolean),
-        visual: {
-          kind: 'agreement',
-          agreementPercent: agreementPct,
-          contradictionPercent: contradictionPct,
-          leadLagState:
-            leadLag >= 0.18 ? 'structure-ahead' : leadLag <= -0.18 ? 'trigger-ahead' : 'balanced',
-        },
-      }
-    }
-    const alignment =
-      agreementPct >= 75
-        ? 'alignment is strong'
-        : agreementPct >= 60
-          ? 'alignment is usable but still needs confirmation'
-          : 'misalignment is high, so a conservative read is safer'
-    const contradictionLine =
-      contradictionPct >= 35
-        ? `Contradiction ${contradictionPct}%: opposing pressure is meaningful.`
-        : `Contradiction ${contradictionPct}%: still manageable.`
-    const leadLagLine =
-      leadLag >= 0.18
-        ? 'Structure opens before trigger pressure.'
-        : leadLag <= -0.18
-          ? 'Trigger pressure arrives before structure catches up.'
-          : 'Lead-lag between structure and trigger is limited.'
-    return {
-      summary: `In the ${windowLabel} window, agreement for ${focusDomainLabel} is ${agreementPct}% and ${alignment}.`,
-      tag: tagEn,
-      details: [contradictionLine, leadLagLine].filter(Boolean),
-      visual: {
-        kind: 'agreement',
-        agreementPercent: agreementPct,
-        contradictionPercent: contradictionPct,
-        leadLagState:
-          leadLag >= 0.18 ? 'structure-ahead' : leadLag <= -0.18 ? 'trigger-ahead' : 'balanced',
-      },
-    }
-  }
+  const { locale, focusDomainLabel, fallbackAgreementPercent, fallbackConflictText } = input
 
   if (fallbackConflictText) {
     return {
@@ -341,42 +202,16 @@ export function buildBranchCardData(input: {
   locale: Locale
   actionDomainLabel: string
   projectionBranch: string
-  actionTimingWindow?: {
-    entryConditions?: string[]
-    abortConditions?: string[]
-    timingConflictMode?: string
-  }
 }): Pick<SurfaceCard, 'summary' | 'tag' | 'details' | 'visual'> {
-  const { locale, actionDomainLabel, projectionBranch, actionTimingWindow } = input
-  const entry = actionTimingWindow?.entryConditions?.[0]
-  const abort = actionTimingWindow?.abortConditions?.[0]
-  const mode = actionTimingWindow?.timingConflictMode
+  const { locale, actionDomainLabel, projectionBranch } = input
   if (locale === 'ko') {
-    const modeLead =
-      mode === 'trigger_ahead'
-        ? '서두르면 지속성이 약해질 수 있습니다.'
-        : mode === 'readiness_ahead'
-          ? '조건을 맞춘 뒤 들어가는 편이 유리합니다.'
-          : mode === 'weak_both'
-            ? '지금은 진입보다 관찰과 정리가 우선입니다.'
-            : '한 경로만 밀기보다 조건형으로 읽어야 합니다.'
-    const entryLead = entry
-      ? `들어가도 되는 조건: ${entry}`
-      : '들어가도 되는 조건: 핵심 조건부터 맞춘 뒤 움직이기'
-    const abortLead = abort
-      ? `멈춰야 하는 조건: ${abort}`
-      : '멈춰야 하는 조건: 충돌 신호가 커지면 속도 줄이기'
+    const modeLead = '한 경로만 밀기보다 조건형으로 읽어야 합니다.'
+    const entryLead = '들어가도 되는 조건: 핵심 조건부터 맞춘 뒤 움직이기'
+    const abortLead = '멈춰야 하는 조건: 충돌 신호가 커지면 속도 줄이기'
     return {
       summary:
         projectionBranch || `${actionDomainLabel} 축은 하나의 답보다 여러 경로를 함께 봐야 합니다.`,
-      tag:
-        mode === 'trigger_ahead'
-          ? '서두름 주의'
-          : mode === 'readiness_ahead'
-            ? '조건 후 진입'
-            : mode === 'weak_both'
-              ? '관찰 우선'
-              : '분기형 실행',
+      tag: '분기형 실행',
       details: [entryLead, abortLead, `서두르면 생기는 리스크: ${modeLead}`],
       visual: {
         kind: 'branch',
@@ -388,32 +223,14 @@ export function buildBranchCardData(input: {
       },
     }
   }
-  const modeLead =
-    mode === 'trigger_ahead'
-      ? 'Rushing weakens sustainability because trigger arrives before structure.'
-      : mode === 'readiness_ahead'
-        ? 'Entry works better after conditions line up.'
-        : mode === 'weak_both'
-          ? 'Observation and reset matter more than entry right now.'
-          : 'Read this through multiple live branches rather than one fixed path.'
-  const entryLead = entry
-    ? `Entry condition: ${entry}`
-    : 'Entry condition: line up the core conditions first'
-  const abortLead = abort
-    ? `Abort signal: ${abort}`
-    : 'Abort signal: slow down when conflict pressure grows'
+  const modeLead = 'Read this through multiple live branches rather than one fixed path.'
+  const entryLead = 'Entry condition: line up the core conditions first'
+  const abortLead = 'Abort signal: slow down when conflict pressure grows'
   return {
     summary:
       projectionBranch ||
       `${actionDomainLabel} should be read through multiple live branches rather than one fixed path.`,
-    tag:
-      mode === 'trigger_ahead'
-        ? 'Rush caution'
-        : mode === 'readiness_ahead'
-          ? 'Enter after setup'
-          : mode === 'weak_both'
-            ? 'Observe first'
-            : 'Branch-led',
+    tag: 'Branch-led',
     details: [entryLead, abortLead, `Risk of rushing: ${modeLead}`],
     visual: {
       kind: 'branch',
@@ -527,17 +344,6 @@ export function scoreToWeatherGrade(avg: number, cautionRatio: number): WeatherS
   if (cautionRatio >= 0.5 || avg < 45) return 'caution'
   if (avg >= 78) return 'strong'
   if (avg >= 62) return 'good'
-  return 'neutral'
-}
-
-export function verdictModeToWeatherGrade(
-  mode: 'execute' | 'verify' | 'prepare' | undefined,
-  confidence?: number
-): WeatherSummary['grade'] {
-  const normalized = typeof confidence === 'number' ? clamp01(confidence) : 0
-  if (mode === 'execute' && normalized >= 0.7) return 'strong'
-  if (mode === 'execute' || (mode === 'verify' && normalized >= 0.55)) return 'good'
-  if (mode === 'prepare' || normalized < 0.45) return 'caution'
   return 'neutral'
 }
 
@@ -692,23 +498,7 @@ export function buildDomainSummaryFrame(
     .trim()
 }
 
-export function buildTopDomains(
-  locale: Locale,
-  allDates: FormattedDate[],
-  domainScores?: Record<DomainKey, DomainScore>
-): TopDomain[] {
-  if (domainScores && Object.keys(domainScores).length > 0) {
-    return Object.values(domainScores)
-      .slice()
-      .sort((a, b) => b.finalScoreAdjusted - a.finalScoreAdjusted)
-      .slice(0, 3)
-      .map((item) => ({
-        domain: item.domain,
-        label: getDomainLabel(item.domain, locale),
-        score: Number(clamp01(item.finalScoreAdjusted / 10).toFixed(2)),
-      }))
-  }
-
+export function buildTopDomains(locale: Locale, allDates: FormattedDate[]): TopDomain[] {
   const buckets = new Map<PresentationDomain, { sum: number; count: number }>()
   for (const date of allDates) {
     const domain = (date.evidence?.matrix?.domain || 'general') as PresentationDomain
@@ -739,25 +529,4 @@ export function prioritizeTopDomains(
     if (b.domain === preferredFocusDomain && a.domain !== preferredFocusDomain) return 1
     return b.score - a.score
   })
-}
-
-export function buildTopDomainsFromCanonical(
-  locale: Locale,
-  canonicalCore?: CalendarCoreAdapterResult
-): TopDomain[] {
-  if (!canonicalCore?.domainVerdicts?.length) return []
-
-  return canonicalCore.domainVerdicts
-    .slice()
-    .sort((a, b) => b.confidence - a.confidence)
-    .map((item) => {
-      const domain = mapCoreDomainToPresentationDomain(item.domain)
-      return {
-        domain,
-        label: getDomainLabel(domain, locale),
-        score: Number(clamp01(item.confidence).toFixed(2)),
-      }
-    })
-    .filter((item, index, rows) => rows.findIndex((row) => row.domain === item.domain) === index)
-    .slice(0, 3)
 }
