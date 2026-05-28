@@ -32,3 +32,12 @@ export {
   parseResultSections,
   extractScore,
 } from './helpers';
+
+// Recent pair localStorage helpers
+export type { RecentPair, RecentPairPerson } from './recentPairs';
+export {
+  getRecentPairs,
+  getLatestPair,
+  pushRecentPair,
+  removeRecentPair,
+} from './recentPairs';

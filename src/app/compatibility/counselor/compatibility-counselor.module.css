@@ -693,18 +693,30 @@
 }
 
 /* ============ Profile Sticky Bar — 두 사람 이름 헤더 바로 아래 ============ */
+.profileStickyBarWrap {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 5;
+}
+
 .profileStickyBar {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  width: 100%;
   padding: 4px 14px 5px;
   background: #ffffff;
+  border: 0;
   border-bottom: 1px solid var(--ds-light-border);
   font-size: 0.78rem;
   color: var(--ds-light-text-muted);
-  flex-shrink: 0;
-  z-index: 5;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.profileStickyBar:hover {
+  background: var(--ds-light-bg-soft, #faf9f7);
 }
 
 .profileStickyName {
@@ -720,6 +732,64 @@
   color: #ec4899;
   font-size: 0.85rem;
   line-height: 1;
+}
+
+.profileStickyChevron {
+  font-size: 0.65rem;
+  color: var(--ds-light-text-subtle);
+  margin-left: 2px;
+}
+
+.profileStickyDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 240px;
+  max-width: 92vw;
+  background: #ffffff;
+  border: 1px solid var(--ds-light-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profileStickyDropdownLabel {
+  font-size: 0.7rem;
+  color: var(--ds-light-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 10px 2px;
+}
+
+.profileStickyDropdownItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--ds-light-text);
+  cursor: pointer;
+  transition: background 0.12s ease;
+  text-align: center;
+}
+
+.profileStickyDropdownItem:hover {
+  background: var(--ds-light-bg-soft, #faf9f7);
+}
+
+.profileStickyDropdownDivider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--ds-light-border);
 }
 
 /* Sidebar footer button — passed into CounselorSidebar's footerSlot. */

@@ -30,6 +30,7 @@ const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCar
   ssr: false,
 })
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
+import { pushRecentPair, getRecentPairs, type RecentPair } from '@/app/compatibility/lib'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
@@ -199,6 +200,24 @@ function CompatibilityCounselorContent() {
         if (personsParam) {
           const parsed = JSON.parse(decodeURIComponent(personsParam)) as PersonData[]
           setPersons(parsed)
+
+          // 다음 번에 자동으로 채워주려고 최근 페어로 저장 (localStorage).
+          // useCompatibilityForm 이 다음 입력 페이지 진입 시 첫 번째 페어를
+          // 그대로 카드 두 장에 부어넣는다.
+          if (parsed.length >= 2 && parsed[0]?.name && parsed[1]?.name) {
+            const toRecent = (p: PersonData) => ({
+              name: p.name,
+              date: p.date,
+              time: p.time,
+              gender: p.gender,
+              cityQuery: p.city || '',
+              lat: p.latitude ?? null,
+              lon: p.longitude ?? null,
+              timeZone: p.timeZone || '',
+              relation: p.relation,
+            })
+            pushRecentPair([toRecent(parsed[0]), toRecent(parsed[1])])
+          }
 
           if (parsed.length >= 2) {
             await fetchPersonData(parsed)
@@ -738,14 +757,35 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           </div>
         </header>
 
-        {/* 두 사람 sticky 바 — 헤더 바로 아래, 누구 정보로 본 채팅인지.
-            persons 비어 있는 동안엔(=초기 로딩) 렌더 생략. */}
+        {/* 두 사람 sticky 바 — 헤더 바로 아래. 클릭하면 최근 본 페어
+            popover 열려서 다른 관계로 즉시 전환. persons 비어 있는 동안엔
+            (=초기 로딩) 렌더 생략. */}
         {persons[0]?.name && persons[1]?.name && (
-          <div className={styles.profileStickyBar} aria-label={isKo ? '대상 인물' : 'Subjects'}>
-            <span className={styles.profileStickyName}>{persons[0].name}</span>
-            <span className={styles.profileStickyArrow} aria-hidden="true">↔</span>
-            <span className={styles.profileStickyName}>{persons[1].name}</span>
-          </div>
+          <ProfileStickyBar
+            persons={persons}
+            isKo={isKo}
+            onSwitchPair={(pair) => {
+              // 다른 페어 골랐을 때 — 현재 채팅 컨텍스트 통째로 새 페어로 갈아끼우려고
+              // 같은 라우트에 ?persons= 새로 전달 + replace 로 뒤로가기 히스토리에
+              // 안 쌓이게. router.replace 가 동일 path → 새 search 면 페이지 리프레시,
+              // useEffect 가 새 페어로 fetchPersonData 다시 호출.
+              const payload = pair.persons.map((p) => ({
+                name: p.name,
+                date: p.date,
+                time: p.time,
+                gender: p.gender || 'M',
+                city: p.cityQuery,
+                latitude: p.lat ?? undefined,
+                longitude: p.lon ?? undefined,
+                timeZone: p.timeZone,
+                relation: p.relation,
+              }))
+              router.replace(
+                `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(payload))}`
+              )
+            }}
+            onPickOther={() => router.push('/compatibility')}
+          />
         )}
 
         {/* Chat */}
@@ -956,5 +996,103 @@ export default function CompatibilityCounselorPage() {
     <Suspense fallback={<CounselorLoading />}>
       <CompatibilityCounselorContent />
     </Suspense>
+  )
+}
+
+/**
+ * 헤더 sticky 바 — 클릭하면 최근 본 페어 popover 가 열려서 다른 관계로
+ * 즉시 전환할 수 있다. 현재 페어는 popover 에서 제외 (이미 보고 있음).
+ * "다른 사람으로 보기" 항목으로 입력 페이지(/compatibility) 이동.
+ */
+function ProfileStickyBar({
+  persons,
+  isKo,
+  onSwitchPair,
+  onPickOther,
+}: {
+  persons: PersonData[]
+  isKo: boolean
+  onSwitchPair: (pair: RecentPair) => void
+  onPickOther: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [pairs, setPairs] = useState<RecentPair[]>([])
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    setPairs(getRecentPairs())
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  // 현재 페어와 같은 항목은 popover 에서 제외 — 자기 자신으로 전환은 의미 X.
+  const currentKey = `${persons[0]?.name?.trim()}|${persons[0]?.date}|${persons[1]?.name?.trim()}|${persons[1]?.date}`
+  const otherPairs = pairs.filter(
+    (p) =>
+      `${p.persons[0].name.trim()}|${p.persons[0].date}|${p.persons[1].name.trim()}|${p.persons[1].date}` !==
+      currentKey
+  )
+
+  return (
+    <div ref={wrapperRef} className={styles.profileStickyBarWrap}>
+      <button
+        type="button"
+        className={styles.profileStickyBar}
+        onClick={() => setOpen((o) => !o)}
+        aria-label={isKo ? '대상 인물 — 다른 관계로 전환' : 'Subjects — switch relationship'}
+        aria-expanded={open}
+        aria-haspopup="menu"
+      >
+        <span className={styles.profileStickyName}>{persons[0].name}</span>
+        <span className={styles.profileStickyArrow} aria-hidden="true">↔</span>
+        <span className={styles.profileStickyName}>{persons[1].name}</span>
+        <span className={styles.profileStickyChevron} aria-hidden="true">▾</span>
+      </button>
+      {open && (
+        <div role="menu" className={styles.profileStickyDropdown}>
+          {otherPairs.length > 0 && (
+            <>
+              <div className={styles.profileStickyDropdownLabel}>
+                {isKo ? '최근 본 관계' : 'Recent relationships'}
+              </div>
+              {otherPairs.map((pair, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  role="menuitem"
+                  className={styles.profileStickyDropdownItem}
+                  onClick={() => {
+                    setOpen(false)
+                    onSwitchPair(pair)
+                  }}
+                >
+                  <span className={styles.profileStickyName}>{pair.persons[0].name}</span>
+                  <span className={styles.profileStickyArrow} aria-hidden="true">↔</span>
+                  <span className={styles.profileStickyName}>{pair.persons[1].name}</span>
+                </button>
+              ))}
+              <div className={styles.profileStickyDropdownDivider} />
+            </>
+          )}
+          <button
+            type="button"
+            role="menuitem"
+            className={styles.profileStickyDropdownItem}
+            onClick={() => {
+              setOpen(false)
+              onPickOther()
+            }}
+          >
+            {isKo ? '+ 다른 사람으로 보기' : '+ Pick someone else'}
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
