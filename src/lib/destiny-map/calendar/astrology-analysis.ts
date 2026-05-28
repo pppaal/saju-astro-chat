@@ -1,23 +1,17 @@
 /**
- * astrology-analysis.ts - 점성술 분석 모듈
+ * astrology-analysis.ts - facade module
  *
- * ✅ REFACTORING COMPLETED:
- * - Original 842 lines modularized into astrology/ directory
- * - This file is now a facade that re-exports from modules
+ * Most of the astrology/ subfolder it used to re-export through
+ * `export * from './astrology'` (aspects, eclipse, retrograde,
+ * transits, voidOfCourse, planetaryHours, plus the index barrel) had
+ * zero importers anywhere in the tree — duplicated by the live
+ * calendar/planetary-hours.ts + calendar/transit-analysis.ts pair.
+ * Those have been removed.
  *
- * Module structure:
- * - astrology/types.ts: 모든 타입 정의
- * - astrology/constants.ts: 상수 데이터
- * - astrology/helpers.ts: 헬퍼 함수
- * - astrology/planetPosition.ts: getPlanetPosition
- * - astrology/retrograde.ts: isRetrograde
- * - astrology/moonPhase.ts: getLunarPhase, getMoonPhaseDetailed
- * - astrology/voidOfCourse.ts: checkVoidOfCourseMoon
- * - astrology/eclipse.ts: checkEclipseImpact
- * - astrology/planetaryHours.ts: getPlanetaryHourForDate
- * - astrology/aspects.ts: getAspect
- * - astrology/transits.ts: analyzePlanetTransits
+ * What's still live: getLunarPhase, which calendar/temporal-scoring
+ * re-exports through this facade and analyzers/astrology-analyzer
+ * consumes by date. Surface it directly so the next deletion round
+ * doesn't have to chase a `export *` barrel.
  */
 
-// Re-export everything from the astrology module
-export * from './astrology';
+export { getLunarPhase } from './astrology/moonPhase'
