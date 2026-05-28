@@ -21,12 +21,12 @@ import {
   MONTH_STEM_LOOKUP,
   TIME_STEM_LOOKUP,
   JIJANGGAN,
-  CHEONEUL_GWIIN_MAP,
   FIVE_ELEMENT_RELATIONS,
   getSolarTermKST,
   assertKasiYearInRange,
 } from './constants'
 import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
+import { isCheoneulGwiin } from './stemBranchUtils'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
@@ -80,10 +80,7 @@ function getBranchMainStem(branchName: string) {
   return STEMS.find((s) => s.name === name)
 }
 
-/* ========== 천을귀인 ========== */
-function isCheoneulGwiin(dayMasterStemName: string, targetBranchName: string): boolean {
-  return CHEONEUL_GWIIN_MAP[dayMasterStemName]?.includes(targetBranchName) ?? false
-}
+// 천을귀인 helper now lives in stemBranchUtils — see import block above.
 
 /* ========== 안전 시간 파서 ========== */
 function parseHourMinute(t: string): { h: number; m: number } {

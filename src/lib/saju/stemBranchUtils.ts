@@ -1,7 +1,13 @@
 // src/lib/Saju/stemBranchUtils.ts
 // 중복된 천간/지지 헬퍼 함수들을 통합한 유틸리티 모듈
 
-import { STEMS, BRANCHES, STEM_TO_ELEMENT_EN, BRANCH_TO_ELEMENT_EN } from './constants'
+import {
+  STEMS,
+  BRANCHES,
+  STEM_TO_ELEMENT_EN,
+  BRANCH_TO_ELEMENT_EN,
+  CHEONEUL_GWIIN_MAP,
+} from './constants'
 import type { FiveElement, YinYang, StemBranchInfo } from './types'
 
 // ============================================================
@@ -215,4 +221,13 @@ export function getStemByIndex(index: number): StemBranchInfo {
 export function getBranchByIndex(index: number): StemBranchInfo {
   const normalizedIndex = ((index % 12) + 12) % 12
   return BRANCHES[normalizedIndex]
+}
+
+/**
+ * 천을귀인(天乙貴人) 여부 — dayMaster 천간이 target 지지에 대해 천을귀인을
+ * 가지는지 판정. saju / unse / destiny-map 의 분석기가 각자 동일한 한 줄
+ * 로직을 들고 있던 것을 통합.
+ */
+export function isCheoneulGwiin(dayMasterStemName: string, targetBranchName: string): boolean {
+  return CHEONEUL_GWIIN_MAP[dayMasterStemName]?.includes(targetBranchName) ?? false
 }
