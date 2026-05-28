@@ -53,6 +53,9 @@ interface InlineTarotModalProps {
     gender?: string
   }
   initialConcern?: string
+  /** 인라인 타로가 호출된 origin — 타로 히스토리에 저장 시 배지로 노출.
+   *  'destiny' (운명 상담사) / 'compat' (궁합 상담사) / undefined (메인 타로). */
+  origin?: 'destiny' | 'compat'
 }
 
 const InlineTarotModal = memo(function InlineTarotModal({
@@ -62,6 +65,7 @@ const InlineTarotModal = memo(function InlineTarotModal({
   lang = 'ko',
   profile,
   initialConcern = '',
+  origin,
 }: InlineTarotModalProps) {
   const tr = getTarotTranslations(lang)
 
@@ -82,6 +86,7 @@ const InlineTarotModal = memo(function InlineTarotModal({
     stateManager,
     lang,
     profile,
+    origin,
   })
 
   // Focus trap for accessibility

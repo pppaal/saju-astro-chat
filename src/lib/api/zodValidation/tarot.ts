@@ -99,7 +99,12 @@ export const tarotSaveRequestSchema = z.object({
   cardInsights: z.array(tarotCardInsightSchema).optional(),
   guidance: z.string().max(2000).optional(),
   affirmation: z.string().max(500).optional(),
-  source: z.enum(['standalone', 'counselor']).optional(),
+  // 'counselor-destiny' / 'counselor-compat' 는 운명/궁합 상담사 안에서 띄운
+  // 인라인 타로 — 히스토리 UI 에서 origin 배지를 띄우려고 origin 별로 분리해
+  // 받는다. 'counselor' 는 구버전 호환 fallback.
+  source: z
+    .enum(['standalone', 'counselor', 'counselor-destiny', 'counselor-compat'])
+    .optional(),
   counselorSessionId: z.string().max(100).optional(),
   locale: localeSchema.optional(),
   questionContext: tarotQuestionContextSchema.optional(),
