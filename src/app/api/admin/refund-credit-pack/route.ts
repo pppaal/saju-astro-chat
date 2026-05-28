@@ -11,6 +11,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
+import { logAdminAction } from '@/lib/auth/adminAudit'
 import { revokeBonusCreditPurchase } from '@/lib/credits/creditService'
 import { getStripeOrNull } from '@/lib/stripe/client'
 
@@ -173,6 +174,28 @@ export const POST = withApiMiddleware(
       feeSource,
       creditsRevoked: revoke.reclaimed,
       alreadyUsedCredits: revoke.alreadyUsed,
+    })
+
+    // Persistent audit trail. Failures here are swallowed inside
+    // logAdminAction; the refund itself has already happened on Stripe.
+    await logAdminAction({
+      adminEmail: context.session?.user?.email || '',
+      adminUserId: context.userId,
+      action: 'refund_credit_pack',
+      targetType: 'bonus_credit_purchase',
+      targetId: stripePaymentId,
+      metadata: {
+        originalAmount,
+        refundAmount,
+        feeWithheld,
+        feeSource,
+        stripeRefundId,
+        creditsRevoked: revoke.reclaimed,
+        alreadyUsedCredits: revoke.alreadyUsed,
+      },
+      success: true,
+      ipAddress: context.ip,
+      userAgent: req.headers.get('user-agent') || undefined,
     })
 
     const result: RefundResult = {
