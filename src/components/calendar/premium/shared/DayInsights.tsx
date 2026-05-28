@@ -280,6 +280,7 @@ function DayWhyCard({
   const astroDetails = importantDate.evidence?.cross?.astroDetails ?? []
   const bridges = importantDate.evidence?.cross?.bridges ?? []
   const shinsal = importantDate.shinsalActive ?? []
+  const agreement = importantDate.scoreBreakdown?.axisAgreement ?? null
 
   const hasAnything =
     ganji ||
@@ -305,7 +306,15 @@ function DayWhyCard({
         {astroDetails.length > 0 && (
           <WhyBlock label={t.dayWhyAstroLabel} items={astroDetails} tone="astro" />
         )}
-        {bridges.length > 0 && <WhyBlock label={t.dayWhyCrossLabel} items={bridges} tone="cross" />}
+        {bridges.length > 0 && (
+          <CrossBridgeInline
+            bridge={bridges[0]}
+            agreement={agreement}
+            alignedHeader={t.crossSpotAlignedHeader}
+            opposedHeader={t.crossSpotOpposedHeader}
+            mixedHeader={t.dayWhyCrossLabel}
+          />
+        )}
         {shinsal.length > 0 && (
           <WhyBlock
             label={t.dayWhyShinsalLabel}
@@ -314,6 +323,62 @@ function DayWhyCard({
           />
         )}
       </div>
+    </div>
+  )
+}
+
+/**
+ * DayWhy 안 cross bridges 인라인 spot — axisAgreement 기준 톤 분기:
+ *   - aligned → emerald + ✨ + bridges[0]
+ *   - opposed → rose + ⚠️ + bridges[0]
+ *   - mixed/unknown → zinc + bridges[0]
+ */
+function CrossBridgeInline({
+  bridge,
+  agreement,
+  alignedHeader,
+  opposedHeader,
+  mixedHeader,
+}: {
+  bridge: string
+  agreement: 'aligned' | 'mixed' | 'opposed' | null
+  alignedHeader: string
+  opposedHeader: string
+  mixedHeader: string
+}) {
+  const tone: 'aligned' | 'opposed' | 'mixed' =
+    agreement === 'aligned' ? 'aligned' : agreement === 'opposed' ? 'opposed' : 'mixed'
+  const borderClass =
+    tone === 'aligned'
+      ? 'border-emerald-500/30'
+      : tone === 'opposed'
+        ? 'border-rose-500/30'
+        : 'border-white/10'
+  const bgClass =
+    tone === 'aligned'
+      ? 'bg-emerald-950/20'
+      : tone === 'opposed'
+        ? 'bg-rose-950/20'
+        : 'bg-zinc-900/40'
+  const headerClass =
+    tone === 'aligned'
+      ? 'text-emerald-300'
+      : tone === 'opposed'
+        ? 'text-rose-300'
+        : 'text-zinc-300/90'
+  const icon = tone === 'aligned' ? '✨' : tone === 'opposed' ? '⚠️' : null
+  const header = tone === 'aligned' ? alignedHeader : tone === 'opposed' ? opposedHeader : mixedHeader
+  return (
+    <div className={`rounded-lg border ${borderClass} ${bgClass} p-3`}>
+      <div className="flex items-center gap-2 mb-1.5">
+        {icon && (
+          <span aria-hidden className="text-sm leading-none">
+            {icon}
+          </span>
+        )}
+        <p className={`text-[10px] uppercase tracking-widest font-bold ${headerClass}`}>{header}</p>
+      </div>
+      <p className="text-sm text-zinc-200 leading-relaxed">{bridge}</p>
     </div>
   )
 }
