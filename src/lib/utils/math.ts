@@ -35,3 +35,24 @@ export function round2(value: number): number {
 export function round3(value: number): number {
   return Math.round(value * 1000) / 1000
 }
+
+/**
+ * Round a score into the integer range [0, 100]. NaN / undefined / out-
+ * of-range inputs collapse to 50 (the neutral midpoint) so a downstream
+ * "75% confidence" badge never says "NaN%". Used by the narrative
+ * builders and the icp/persona scoring layers, which all kept their own
+ * copy of the same clamp-round-fallback pattern.
+ */
+export function clampScore0to100(value: number | undefined): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 50
+  return Math.max(0, Math.min(100, Math.round(value)))
+}
+
+/**
+ * Same idea on the 1-10 scale the destiny-matrix engine uses for its
+ * layer scores. Fallback midpoint is 5.
+ */
+export function clampScore1to10(value: number | undefined): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 5
+  return Math.max(1, Math.min(10, Math.round(value)))
+}
