@@ -25,13 +25,64 @@ interface CompatNatalOverlayProps {
   lang?: 'ko' | 'en'
 }
 
-const ZODIAC_GLYPHS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'] as const
-const SIGN_KO = ['양', '황소', '쌍둥이', '게', '사자', '처녀', '천칭', '전갈', '궁수', '염소', '물병', '물고기'] as const
+const ZODIAC_GLYPHS = [
+  '♈',
+  '♉',
+  '♊',
+  '♋',
+  '♌',
+  '♍',
+  '♎',
+  '♏',
+  '♐',
+  '♑',
+  '♒',
+  '♓',
+] as const
+const SIGN_KO = [
+  '양',
+  '황소',
+  '쌍둥이',
+  '게',
+  '사자',
+  '처녀',
+  '천칭',
+  '전갈',
+  '궁수',
+  '염소',
+  '물병',
+  '물고기',
+] as const
 const PLANET_GLYPHS: Record<string, string> = {
-  Sun: '☉', Moon: '☽', Mercury: '☿', Venus: '♀', Mars: '♂', Jupiter: '♃',
-  Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇', Node: '☊', 'True Node': '☊', 'North Node': '☊',
+  Sun: '☉',
+  Moon: '☽',
+  Mercury: '☿',
+  Venus: '♀',
+  Mars: '♂',
+  Jupiter: '♃',
+  Saturn: '♄',
+  Uranus: '♅',
+  Neptune: '♆',
+  Pluto: '♇',
+  Node: '☊',
+  'True Node': '☊',
+  'North Node': '☊',
 }
-const PLANET_ORDER = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Node', 'True Node', 'North Node']
+const PLANET_ORDER = [
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+  'Node',
+  'True Node',
+  'North Node',
+]
 
 const SIZE = 260
 const CX = SIZE / 2
@@ -48,10 +99,11 @@ const pt = (r: number, deg: number) => {
 
 function visiblePlanets(astro?: AstroInput): PlanetInput[] {
   const planets = Array.isArray(astro?.planets) ? astro!.planets! : []
-  return PLANET_ORDER
-    .map((name) => planets.find((p) => p.name === name))
+  return PLANET_ORDER.map((name) => planets.find((p) => p.name === name))
     .filter((p): p is PlanetInput => Boolean(p) && Number.isFinite(p!.longitude))
-    .filter((p, i, arr) => arr.findIndex((q) => PLANET_GLYPHS[q.name] === PLANET_GLYPHS[p.name]) === i)
+    .filter(
+      (p, i, arr) => arr.findIndex((q) => PLANET_GLYPHS[q.name] === PLANET_GLYPHS[p.name]) === i
+    )
 }
 
 const ringOuter = 112
@@ -75,7 +127,14 @@ export function CompatNatalOverlay({
 
   if (pA.length === 0 && pB.length === 0) {
     return (
-      <div className="rounded-xl border border-[#e7e4df] bg-[#fcfbfa] p-6 text-center text-sm text-[#a8a29e]">
+      <div
+        className="rounded-xl p-6 text-center text-sm"
+        style={{
+          background: 'var(--ds-dark-surface)',
+          border: '1px solid var(--ds-dark-border)',
+          color: 'var(--ds-dark-text-muted)',
+        }}
+      >
         {isKo ? '점성 데이터 없음' : 'No astro data'}
       </div>
     )
@@ -87,11 +146,7 @@ export function CompatNatalOverlay({
   const radiusA = (name: string) => 46 + (sortA.findIndex((p) => p.name === name) % 2) * 12
   const radiusB = (name: string) => 66 + (sortB.findIndex((p) => p.name === name) % 2) * 12
 
-  const renderSet = (
-    list: PlanetInput[],
-    radiusOf: (n: string) => number,
-    color: string,
-  ) =>
+  const renderSet = (list: PlanetInput[], radiusOf: (n: string) => number, color: string) =>
     list.map((p) => {
       const pos = pt(radiusOf(p.name), screenDeg(p.longitude, asc))
       return (
@@ -116,15 +171,20 @@ export function CompatNatalOverlay({
         <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
         {name}
       </div>
-      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-[#57534e]">
+      <div
+        className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]"
+        style={{ color: 'var(--ds-dark-text-muted)' }}
+      >
         {list.map((p) => {
-          const lon = (((p.longitude % 360) + 360) % 360)
+          const lon = ((p.longitude % 360) + 360) % 360
           const sign = Math.floor(lon / 30)
           const deg = Math.floor(lon % 30)
           return (
             <span key={p.name} className="flex items-center gap-1">
               <span style={{ color }}>{PLANET_GLYPHS[p.name]}</span>
-              <span>{isKo ? SIGN_KO[sign] : ZODIAC_GLYPHS[sign]} {deg}°</span>
+              <span>
+                {isKo ? SIGN_KO[sign] : ZODIAC_GLYPHS[sign]} {deg}°
+              </span>
             </span>
           )
         })}
@@ -136,51 +196,117 @@ export function CompatNatalOverlay({
   const sky = '#38bdf8'
 
   return (
-    <div className="rounded-xl border border-[#e7e4df] bg-[#fcfbfa] p-3">
-      <svg viewBox={`${-PAD} 0 ${SIZE + PAD * 2} ${SIZE}`} className="mx-auto h-auto w-full max-w-[320px]">
+    <div
+      className="rounded-xl p-3"
+      style={{
+        background: 'var(--ds-dark-surface)',
+        border: '1px solid var(--ds-gold-line)',
+      }}
+    >
+      <svg
+        viewBox={`${-PAD} 0 ${SIZE + PAD * 2} ${SIZE}`}
+        className="mx-auto h-auto w-full max-w-[320px]"
+      >
         <g className="chart-spin-in">
-        <circle cx={CX} cy={CY} r={ringOuter} fill="none" stroke="rgba(28,25,23,0.20)" strokeWidth="1.5" />
-        <circle cx={CX} cy={CY} r={ringInner} fill="none" stroke="rgba(28,25,23,0.10)" strokeWidth="1" />
-
-        {ZODIAC_GLYPHS.map((glyph, s) => {
-          const boundary = screenDeg(s * 30, asc)
-          const bp1 = pt(ringInner, boundary)
-          const bp2 = pt(ringOuter, boundary)
-          const mid = screenDeg(s * 30 + 15, asc)
-          const gp = pt(glyphR, mid)
-          const houseNum = ((s - ascSign + 12) % 12) + 1
-          const hp = pt(ringInner - 9, mid)
-          return (
-            <g key={s}>
-              <line x1={bp1.x} y1={bp1.y} x2={bp2.x} y2={bp2.y} stroke="rgba(28,25,23,0.10)" strokeWidth="1" />
-              <text x={gp.x} y={gp.y} fill="#78716c" fontSize="13" textAnchor="middle" dominantBaseline="middle">{glyph}</text>
-              <text x={hp.x} y={hp.y} fill="rgba(120,113,108,0.6)" fontSize="8" textAnchor="middle" dominantBaseline="middle">{houseNum}</text>
-            </g>
-          )
-        })}
-
-        {/* A ASC (left, amber) */}
-        <line x1={CX} y1={CY} x2={pt(ringOuter, 180).x} y2={pt(ringOuter, 180).y} stroke="rgba(217,119,6,0.7)" strokeWidth="1.5" />
-        <text x={pt(ringOuter + 12, 180).x} y={pt(ringOuter + 12, 180).y} fill="#d97706" fontSize="9" fontWeight="700" textAnchor="middle" dominantBaseline="middle">ASC</text>
-
-        {/* B ASC tick (sky) at its position relative to A's wheel */}
-        {Number.isFinite(ascB) && (
-          <line
-            x1={pt(ringInner, screenDeg(ascB as number, asc)).x}
-            y1={pt(ringInner, screenDeg(ascB as number, asc)).y}
-            x2={pt(ringOuter, screenDeg(ascB as number, asc)).x}
-            y2={pt(ringOuter, screenDeg(ascB as number, asc)).y}
-            stroke={sky}
+          {/* 옛 검정 톤 (rgba(28,25,23,...)) → gold 라인. NatalChart 와 통일. */}
+          <circle
+            cx={CX}
+            cy={CY}
+            r={ringOuter}
+            fill="none"
+            stroke="rgba(212,181,114,0.42)"
             strokeWidth="1.5"
-            strokeDasharray="3 2"
           />
-        )}
+          <circle
+            cx={CX}
+            cy={CY}
+            r={ringInner}
+            fill="none"
+            stroke="rgba(212,181,114,0.22)"
+            strokeWidth="1"
+          />
+
+          {ZODIAC_GLYPHS.map((glyph, s) => {
+            const boundary = screenDeg(s * 30, asc)
+            const bp1 = pt(ringInner, boundary)
+            const bp2 = pt(ringOuter, boundary)
+            const mid = screenDeg(s * 30 + 15, asc)
+            const gp = pt(glyphR, mid)
+            const houseNum = ((s - ascSign + 12) % 12) + 1
+            const hp = pt(ringInner - 9, mid)
+            return (
+              <g key={s}>
+                <line
+                  x1={bp1.x}
+                  y1={bp1.y}
+                  x2={bp2.x}
+                  y2={bp2.y}
+                  stroke="rgba(212,181,114,0.22)"
+                  strokeWidth="1"
+                />
+                <text
+                  x={gp.x}
+                  y={gp.y}
+                  fill="#e8cc8a"
+                  fontSize="13"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  {glyph}
+                </text>
+                <text
+                  x={hp.x}
+                  y={hp.y}
+                  fill="rgba(245,247,251,0.4)"
+                  fontSize="8"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                >
+                  {houseNum}
+                </text>
+              </g>
+            )
+          })}
+
+          {/* A ASC (left) — gold marker. NatalChart 와 통일. */}
+          <line
+            x1={CX}
+            y1={CY}
+            x2={pt(ringOuter, 180).x}
+            y2={pt(ringOuter, 180).y}
+            stroke="rgba(212,181,114,0.7)"
+            strokeWidth="1.5"
+          />
+          <text
+            x={pt(ringOuter + 12, 180).x}
+            y={pt(ringOuter + 12, 180).y}
+            fill="#d4b572"
+            fontSize="9"
+            fontWeight="700"
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            ASC
+          </text>
+
+          {/* B ASC tick (sky) at its position relative to A's wheel */}
+          {Number.isFinite(ascB) && (
+            <line
+              x1={pt(ringInner, screenDeg(ascB as number, asc)).x}
+              y1={pt(ringInner, screenDeg(ascB as number, asc)).y}
+              x2={pt(ringOuter, screenDeg(ascB as number, asc)).x}
+              y2={pt(ringOuter, screenDeg(ascB as number, asc)).y}
+              stroke={sky}
+              strokeWidth="1.5"
+              strokeDasharray="3 2"
+            />
+          )}
         </g>
 
         <g className="chart-twinkle-in">
-        {renderSet(pA, radiusA, rose)}
-        {renderSet(pB, radiusB, sky)}
-        <circle cx={CX} cy={CY} r="2.5" fill="#78716c" />
+          {renderSet(pA, radiusA, rose)}
+          {renderSet(pB, radiusB, sky)}
+          <circle cx={CX} cy={CY} r="2.5" fill="#d4b572" />
         </g>
       </svg>
 

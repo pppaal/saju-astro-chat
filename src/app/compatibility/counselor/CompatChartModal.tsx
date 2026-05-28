@@ -62,27 +62,48 @@ function QuickRead({
 }) {
   const line = generateChartSummary(saju, astro, lang)
   if (!line) return null
-  const chip = accent === 'rose' ? 'bg-rose-100 text-rose-600' : 'bg-sky-100 text-sky-600'
+  // A/B 구분은 유지 — rose/sky 칩 dark 변형 (-500/15 bg + -200 text).
+  const chipStyle =
+    accent === 'rose'
+      ? { background: 'rgba(244, 63, 94, 0.15)', color: '#fecdd3' }
+      : { background: 'rgba(56, 189, 248, 0.15)', color: '#bae6fd' }
   return (
-    <div className="rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] p-3">
-      <span className={`mb-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${chip}`}>
+    <div
+      className="rounded-2xl p-3"
+      style={{
+        background: 'var(--ds-dark-surface)',
+        border: '1px solid var(--ds-dark-border)',
+      }}
+    >
+      <span
+        className="mb-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
+        style={chipStyle}
+      >
         {name}
       </span>
-      <ChartReading text={line} theme="light" className="text-sm leading-relaxed text-[#44403c]" />
+      <ChartReading
+        text={line}
+        theme="dark"
+        className="text-sm leading-relaxed"
+        style={{ color: 'var(--ds-dark-text)' }}
+      />
     </div>
   )
 }
 
-function SectionTitle({
-  children,
-  accent,
-}: {
-  children: React.ReactNode
-  accent: 'indigo' | 'rose'
-}) {
-  const border = accent === 'indigo' ? 'border-sky-400' : 'border-rose-400'
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  // 옛 rose/sky 좌측 border 는 A/B 구분이 아니라 동양/서양 구분이었음 — 그건
+  // 헤딩 텍스트 자체가 이미 명시하므로 좌측 border 는 gold 단일로 통일.
   return (
-    <h3 className={`border-l-2 ${border} px-2 text-sm font-semibold text-[#1c1917]`}>{children}</h3>
+    <h3
+      className="border-l-2 px-2 text-sm font-semibold"
+      style={{
+        borderColor: 'var(--ds-gold-on-dark)',
+        color: 'var(--ds-dark-text)',
+      }}
+    >
+      {children}
+    </h3>
   )
 }
 
@@ -119,12 +140,20 @@ export function CompatChartModal({
 
   return (
     <div
-      className="chart-backdrop-in fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(28,25,23,0.45)] p-4 backdrop-blur-sm"
+      className="chart-backdrop-in fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
+      style={{ background: 'rgba(7, 9, 26, 0.85)' }}
       onClick={onClose}
     >
       <div
-        className="chart-pop-in relative w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#e7e4df] bg-white p-6 shadow-[0_24px_48px_rgba(28,25,23,0.18)]"
-        style={{ maxHeight: '96dvh' }}
+        className="chart-pop-in relative w-full max-w-2xl overflow-y-auto rounded-2xl p-6"
+        style={{
+          background: 'rgba(17, 24, 39, 0.92)',
+          border: '1px solid var(--ds-gold-line)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+          maxHeight: '96dvh',
+        }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -134,20 +163,24 @@ export function CompatChartModal({
           type="button"
           onClick={onClose}
           aria-label={isKo ? '닫기' : 'Close'}
-          /* 다른 헤더 close 버튼과 사이즈 통일 — 36×36 원형, border X. */
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[#a8a29e] transition-colors hover:bg-[#f5f4f1] hover:text-[#1c1917]"
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-white/10"
+          style={{ color: 'var(--ds-dark-text-muted)' }}
         >
           <X size={18} />
         </button>
 
         <div className="mb-5 space-y-1 text-center">
           <h2
-            className="text-lg font-bold text-[#1c1917]"
-            style={{ fontFamily: 'var(--font-cinzel), Georgia, serif' }}
+            className="text-xl font-semibold"
+            style={{
+              color: 'var(--ds-dark-text)',
+              fontFamily: 'var(--font-cinzel), Georgia, serif',
+              letterSpacing: '-0.01em',
+            }}
           >
             {isKo ? '궁합 차트' : 'Couple Chart'}
           </h2>
-          <p className="text-xs text-[#8b857d]">
+          <p className="text-xs" style={{ color: 'var(--ds-gold-on-dark)' }}>
             {isKo
               ? '두 사람의 사주와 네이탈을 하나로 겹쳐 비교'
               : 'Both charts overlaid for a side-by-side read'}
@@ -166,35 +199,53 @@ export function CompatChartModal({
 
           {/* 동양 — 오행 · 사주팔자 비교 (한 그룹으로 묶음) */}
           <section
-            className="chart-rise-in space-y-4 rounded-2xl border border-[#ece9e4] bg-[#fcfbfa] p-4"
-            style={{ '--i': 1 } as React.CSSProperties}
+            className="chart-rise-in space-y-4 rounded-2xl p-4"
+            style={
+              {
+                ['--i' as string]: 1,
+                background: 'var(--ds-dark-surface)',
+                border: '1px solid var(--ds-dark-border)',
+              } as React.CSSProperties
+            }
           >
-            <SectionTitle accent="rose">
+            <SectionTitle>
               {isKo ? '동양 — 사주팔자 · 오행 비교' : 'Eastern — Saju & Five Elements'}
             </SectionTitle>
 
             <div className="space-y-1.5">
-              <div className="px-1 text-[11px] font-medium text-[#8b857d]">
+              <div
+                className="px-1 text-[11px] font-medium uppercase tracking-wider"
+                style={{ color: 'var(--ds-gold-on-dark)' }}
+              >
                 {isKo ? '사주팔자 비교' : 'Saju (4 Pillars) Comparison'}
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <span className="inline-block rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-bold text-rose-600">
+                  <span
+                    className="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
+                    style={{ background: 'rgba(244, 63, 94, 0.15)', color: '#fecdd3' }}
+                  >
                     {labelA}
                   </span>
-                  <SajuChart saju={sajuA as never} lang={lang} />
+                  <SajuChart saju={sajuA as never} lang={lang} theme="dark" />
                 </div>
                 <div className="space-y-1.5">
-                  <span className="inline-block rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-600">
+                  <span
+                    className="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
+                    style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#bae6fd' }}
+                  >
                     {labelB}
                   </span>
-                  <SajuChart saju={sajuB as never} lang={lang} />
+                  <SajuChart saju={sajuB as never} lang={lang} theme="dark" />
                 </div>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <div className="px-1 text-[11px] font-medium text-[#8b857d]">
+              <div
+                className="px-1 text-[11px] font-medium uppercase tracking-wider"
+                style={{ color: 'var(--ds-gold-on-dark)' }}
+              >
                 {isKo ? '오행 비교' : 'Five-Element Comparison'}
               </div>
               <CompatRadarOverlay
@@ -209,10 +260,16 @@ export function CompatChartModal({
 
           {/* 서양 — 시너스트리 (네이탈 겹침) */}
           <section
-            className="chart-rise-in space-y-2 rounded-2xl border border-[#ece9e4] bg-[#fcfbfa] p-4"
-            style={{ '--i': 2 } as React.CSSProperties}
+            className="chart-rise-in space-y-2 rounded-2xl p-4"
+            style={
+              {
+                ['--i' as string]: 2,
+                background: 'var(--ds-dark-surface)',
+                border: '1px solid var(--ds-dark-border)',
+              } as React.CSSProperties
+            }
           >
-            <SectionTitle accent="indigo">
+            <SectionTitle>
               {isKo ? '서양 — 시너스트리 (네이탈 겹침)' : 'Synastry — Natal Overlay'}
             </SectionTitle>
             <CompatNatalOverlay
