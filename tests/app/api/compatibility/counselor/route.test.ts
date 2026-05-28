@@ -436,7 +436,12 @@ describe('Compatibility Counselor API - POST', () => {
       })
       await POST(req)
 
-      expect(createFallbackSSEStream).toHaveBeenCalledWith(expect.objectContaining({ done: true }))
+      expect(createFallbackSSEStream).toHaveBeenCalledWith(
+        expect.objectContaining({ done: true }),
+        // Route now tags fallback streams so the client doesn't mistake them
+        // for a mid-stream cutoff (which would surface a misleading "retry" chip).
+        expect.objectContaining({ 'X-Counselor-Fallback': '1' })
+      )
     })
 
     it('should call safetyMessage with the correct locale', async () => {
@@ -552,7 +557,8 @@ describe('Compatibility Counselor API - POST', () => {
         expect.objectContaining({
           content: expect.stringContaining('AI 서버'),
           done: true,
-        })
+        }),
+        expect.objectContaining({ 'X-Counselor-Fallback': '1' })
       )
     })
 
@@ -570,7 +576,8 @@ describe('Compatibility Counselor API - POST', () => {
         expect.objectContaining({
           content: expect.stringContaining('AI server'),
           done: true,
-        })
+        }),
+        expect.objectContaining({ 'X-Counselor-Fallback': '1' })
       )
     })
 

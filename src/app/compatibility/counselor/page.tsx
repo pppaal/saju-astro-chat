@@ -457,33 +457,67 @@ function CompatibilityCounselorContent() {
         // 시간 cap 과 chunk 사이 idle cap 을 분리해서 관리한다. 헤더가 30s
         // 안에 안 오면 abort, 헤더 받은 뒤엔 chunk idle 45s 기준으로 따로
         // 관리(아래 streamProcessor 호출부에서 reset).
-        const controller = new AbortController()
         const HEADER_TIMEOUT_MS = 30_000
         const CHUNK_IDLE_TIMEOUT_MS = 45_000
-        const headerTimer = setTimeout(() => controller.abort(), HEADER_TIMEOUT_MS)
-        let response: Response
-        try {
-          response = await fetch('/api/compatibility/counselor', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-idempotency-key': idempotencyKey,
-            },
-            body: JSON.stringify({
-              persons,
-              person1Saju,
-              person2Saju,
-              person1Astro,
-              person2Astro,
-              lang: locale,
-              messages: recentHistory,
-              useRag: true,
-              ...(cvText ? { cvText } : {}),
-            }),
-            signal: controller.signal,
-          })
-        } finally {
-          clearTimeout(headerTimer)
+        const MAX_RETRY_ATTEMPTS = 2
+        const RETRY_BASE_DELAY_MS = 1_000
+        // 5xx / 헤더 타임아웃은 운명 상담사처럼 자동 재시도(exponential backoff).
+        // 같은 idempotencyKey 를 다시 보내므로 credit 중복 차감은 없다 (서버
+        // idemStore.isReplay). retry 동안에도 controller / headerTimer 는
+        // attempt 마다 새로 만든다.
+        const requestBody = JSON.stringify({
+          persons,
+          person1Saju,
+          person2Saju,
+          person1Astro,
+          person2Astro,
+          lang: locale,
+          messages: recentHistory,
+          useRag: true,
+          ...(cvText ? { cvText } : {}),
+        })
+        let response: Response | null = null
+        let controller = new AbortController()
+        let attempt = 0
+        while (true) {
+          controller = new AbortController()
+          const headerTimer = setTimeout(() => controller.abort(), HEADER_TIMEOUT_MS)
+          try {
+            response = await fetch('/api/compatibility/counselor', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-idempotency-key': idempotencyKey,
+              },
+              body: requestBody,
+              signal: controller.signal,
+            })
+            clearTimeout(headerTimer)
+            if (response.ok) break
+            // 401/402/4xx 같은 *유저 액션* 에러는 재시도해도 의미 없음 — 그대로
+            // 아래 not-ok 분기에서 throw. 5xx 만 재시도.
+            if (response.status >= 500 && attempt < MAX_RETRY_ATTEMPTS) {
+              attempt++
+              await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt))
+              continue
+            }
+            break
+          } catch (err) {
+            clearTimeout(headerTimer)
+            const name = (err as Error & { name?: string }).name
+            // 헤더 타임아웃(AbortError) / 네트워크 끊김은 자동 재시도.
+            if ((name === 'AbortError' || name === 'TimeoutError') && attempt < MAX_RETRY_ATTEMPTS) {
+              attempt++
+              await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt))
+              continue
+            }
+            throw err
+          }
+        }
+        if (!response) {
+          // 위 while 안에서 response 가 설정되지 않은 채 빠져나오는 경로는
+          // 없지만 TypeScript narrowing 위해 가드.
+          throw new Error('No response received')
         }
 
         if (!response.ok) {
@@ -559,9 +593,11 @@ function CompatibilityCounselorContent() {
         if (idleTimer) clearTimeout(idleTimer)
         // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
         // abort / Claude disconnect) 메시지를 "다시 시도" 버튼이 붙는 incomplete
-        // 상태로 마킹. truncated 는 finalContent 가 있는데 마커를 못 봤을 때만
-        // true.
-        const wasTruncated = !result.success || result.truncated
+        // 상태로 마킹. 단, 서버가 X-Counselor-Fallback: 1 을 달아 보낸 응답
+        // (안전 차단 / 완결성 부족 / Claude 에러 시 generic 안내문) 은 *완결된*
+        // 메시지지만 마커가 없을 뿐이라 truncated 로 보면 안 됨 → 헤더로 분기.
+        const isServerFallback = response.headers.get('x-counselor-fallback') === '1'
+        const wasTruncated = !isServerFallback && (!result.success || result.truncated)
         if (wasTruncated && finalAssistantContent) {
           setMessages((prev) => {
             const updated = [...prev]

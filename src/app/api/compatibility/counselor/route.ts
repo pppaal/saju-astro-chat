@@ -225,10 +225,13 @@ export async function POST(req: NextRequest) {
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
     if (lastUser && containsForbidden(lastUser.content)) {
-      return createFallbackSSEStream({
-        content: safetyMessage(lang),
-        done: true,
-      })
+      // X-Counselor-Fallback: 1 — 클라이언트가 "스트림이 잘림" 으로 잘못
+      // 인식해 retry 칩을 띄우지 않도록. fallback / 안전 응답은 ||FOLLOWUP||
+      // 마커가 없는 *완결된* 메시지다.
+      return createFallbackSSEStream(
+        { content: safetyMessage(lang), done: true },
+        { 'X-Counselor-Fallback': '1' }
+      )
     }
 
     // 크레딧 차감 — 인증 사용자만. 새로고침/탭 복제 idempotent replay 시
@@ -313,13 +316,16 @@ export async function POST(req: NextRequest) {
       logger.error('[compatibility/counselor] strict completeness failed', {
         missing: completenessMissing,
       })
-      return createFallbackSSEStream({
-        content:
-          lang === 'ko'
-            ? `필수 데이터 누락으로 리포트 생성을 중단했습니다. 누락: ${completenessMissing.join(', ')}`
-            : `Report generation stopped due to missing required data: ${completenessMissing.join(', ')}`,
-        done: true,
-      })
+      return createFallbackSSEStream(
+        {
+          content:
+            lang === 'ko'
+              ? `필수 데이터 누락으로 리포트 생성을 중단했습니다. 누락: ${completenessMissing.join(', ')}`
+              : `Report generation stopped due to missing required data: ${completenessMissing.join(', ')}`,
+          done: true,
+        },
+        { 'X-Counselor-Fallback': '1' }
+      )
     }
     if (!strictCompleteness && completenessMissing.length > 0) {
       logger.warn('[compatibility/counselor] continuing with partial context', {
@@ -850,10 +856,10 @@ export async function POST(req: NextRequest) {
           ? 'AI \uC11C\uBC84 \uC5F0\uACB0\uC5D0 \uBB38\uC81C\uAC00 \uC788\uC5B4\uC694. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.'
           : 'AI server connection issue. Please try again later.'
 
-      return createFallbackSSEStream({
-        content: fallback,
-        done: true,
-      })
+      return createFallbackSSEStream(
+        { content: fallback, done: true },
+        { 'X-Counselor-Fallback': '1' }
+      )
     }
   } catch (error) {
     logger.error('[Compatibility Counselor] Error:', { error: error })
