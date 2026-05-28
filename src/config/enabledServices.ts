@@ -23,7 +23,7 @@ const ALL_SERVICES: readonly EnabledService[] = [
     icon: '🗺️',
     menuKey: 'menu.destinyMap',
     descriptionKey: 'services.destinyMap.desc',
-    label: { en: 'East-West Astrology', ko: '동서 점성 상담사' },
+    label: { en: 'Destiny Counselor', ko: '운명 상담사' },
     description: { en: 'AI Counseling', ko: 'AI 운명 상담' },
   },
   {

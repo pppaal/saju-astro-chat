@@ -153,8 +153,8 @@ const faqs: FaqItem[] = [
     icon: '🌟',
     q: 'What can I use without paying?',
     qKo: '무료로 사용할 수 있는 기능은 무엇인가요?',
-    a: "Core onboarding tools and this month's Fortune Calendar are free. Paid AI features — Destiny Counselor (East-West Astrology), Tarot, Compatibility, and the extended Yearly/Monthly/Daily Fortune Calendar — each cost credits, which you buy as a one-time pack.",
-    aKo: '핵심 온보딩 도구와 이번 달 운세 캘린더는 무료입니다. 유료 AI 기능 — 동서 점성 상담사, 타로 상담사, 궁합 상담사, 확장된 일·월·년 운세 — 은 각각 크레딧을 소모하며, 크레딧은 일회성 팩으로 구매합니다.',
+    a: "Core onboarding tools and this month's Fortune Calendar are free. Paid AI features — Destiny Counselor (Destiny Counselor), Tarot, Compatibility, and the extended Yearly/Monthly/Daily Fortune Calendar — each cost credits, which you buy as a one-time pack.",
+    aKo: '핵심 온보딩 도구와 이번 달 운세 캘린더는 무료입니다. 유료 AI 기능 — 운명 상담사, 타로 상담사, 궁합 상담사, 확장된 일·월·년 운세 — 은 각각 크레딧을 소모하며, 크레딧은 일회성 팩으로 구매합니다.',
   },
   {
     category: 'payment',

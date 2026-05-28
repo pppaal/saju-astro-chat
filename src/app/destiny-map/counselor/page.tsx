@@ -123,7 +123,7 @@ export default function CounselorPage() {
         <div className={styles.missingProfileCard}>
           <div className={styles.missingProfileIcon}>🔮</div>
           <h1 className={styles.missingProfileTitle}>
-            {t('destinyMap.counselor.title', 'East-West Astrology')}
+            {t('destinyMap.counselor.title', 'Destiny Counselor')}
           </h1>
           <p className={styles.missingProfileText}>
             {t(
@@ -166,7 +166,7 @@ export default function CounselorPage() {
           </button>
 
           <h1 className={styles.headerTitle}>
-            {activeSession.title?.trim() || t('destinyMap.counselor.title', 'East-West Astrology')}
+            {activeSession.title?.trim() || t('destinyMap.counselor.title', 'Destiny Counselor')}
           </h1>
         </div>
 

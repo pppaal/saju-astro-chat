@@ -39,8 +39,8 @@ const SERVICE_DETAILS: Partial<
 > = {
   destinyMap: {
     href: '/destiny-counselor',
-    nameKo: '동서 점성 상담사',
-    nameEn: 'East-West Astrology',
+    nameKo: '운명 상담사',
+    nameEn: 'Destiny Counselor',
     summaryKo: '질문을 입력하면 사주·점성 계산 근거를 바탕으로 상담 답변을 제공합니다.',
     summaryEn: 'Provides evidence-backed counseling answers grounded in Saju and astrology.',
   },
@@ -318,7 +318,7 @@ export default function AboutPage() {
           </p>
           <div className={styles.heroActions}>
             <Link href="/destiny-counselor" className={styles.primaryBtn}>
-              {isKo ? '동서 점성 상담 시작' : 'Start counseling'}
+              {isKo ? '운명 상담 시작' : 'Start counseling'}
             </Link>
             <Link href="/calendar" className={styles.secondaryBtn}>
               {isKo ? '운세 캘린더 열기' : 'Open Fortune Calendar'}
