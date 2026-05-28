@@ -198,6 +198,11 @@ export const CacheKeys = {
 
   calendar: (year: number, month: number, userId: string) => `cal:v1:${year}:${month}:${userId}`,
 
+  /** Transit ephemeris batch — 365일 행성 위치. 결정적 (year+timezone 만 의존),
+   *  사용자 무관 → 모든 사용자가 같은 cache 공유. 첫 사용자만 계산, 나머지 즉시 HIT. */
+  transitBatch: (year: number, timezone: string) =>
+    `transit:v1:${year}:${safeBase64Encode(timezone).slice(0, 32)}`,
+
   /** fusion bundle (sajuLayers + astroLayers + 18테마 cross) — birth + targetDate 기반 */
   fusionDateDetail: (birthDate: string, birthTime: string, date: string) =>
     `fusion:dd:v1:${birthDate}:${birthTime}:${date}`,
