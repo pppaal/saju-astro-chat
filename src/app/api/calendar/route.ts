@@ -476,11 +476,10 @@ export const GET = withApiMiddleware(
     }
 
     // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
-    // 사용자 cold response <2s 목표 — 메인 응답은 current ± 1 month (3달) 만 빌드.
-    // 나머지 9 달은 /api/calendar/convergence (lazy fetch) 가 채워줌.
-    // 이전엔 12달 전부 빌드 → cold ~1.8s. 이제 3달 → ~450ms.
+    // prescore (v2 셀) 만 current ± 1 month 로 cold 단축 — 나머지 9 달은 v3 점수
+    // fallback 으로 narrative/augment 가 채움. PR #830 회귀(다른 달 비어보임) fix.
     const targetMonthIdx = new Date().getMonth() // 0-11, 서버 시점 기준 (UTC)
-    const monthsToBuild = [
+    const prescoreMonths = [
       Math.max(0, targetMonthIdx - 1),
       targetMonthIdx,
       Math.min(11, targetMonthIdx + 1),
@@ -497,9 +496,9 @@ export const GET = withApiMiddleware(
         birthPlace,
         gender: gender || 'Male',
       })
-      // monthsToBuild 만 병렬 — cell-cache 의 in-memory Map 으로 augment 단계는 0ms.
+      // prescoreMonths 만 병렬 — 나머지 9 달은 augment 단계가 cell-cache MISS 로 빌드.
       const monthResults = await Promise.all(
-        monthsToBuild.map((month) => {
+        prescoreMonths.map((month) => {
           const start = new Date(Date.UTC(year, month, 1))
           const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
           const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
@@ -526,17 +525,15 @@ export const GET = withApiMiddleware(
     }
     const hasEngineScores = Object.keys(engineScoreByDate).length > 0
 
-    // 365일 전체에 v2 점수가 들어가니 cacheKey에 month 의존이 사라짐 — 보는 달
-    // 바꿔도 같은 응답. 이전엔 ±1달만 v2였어서 보는 달에 따라 다른 응답이 캐시됐다.
-    const monthRangeKey = monthsToBuild.map((m) => String(m).padStart(2, '0')).join('-')
+    // 12달 narrative 다시 풀빌드 — 다른 달 클릭 시 즉시 보이려면 응답에 365일 모두 포함.
+    // prescoreMonths 외 9 달은 v3 점수 fallback 사용 (engineScores 에 없는 날짜).
     const cacheKey = CacheKeys.yearlyCalendar(
       birthDateParam,
       birthTimeParam,
       gender,
       year,
       category || undefined,
-      birthPlace,
-      monthRangeKey
+      birthPlace
     )
     const localDates = await cacheOrCalculate(
       cacheKey,
@@ -558,8 +555,6 @@ export const GET = withApiMiddleware(
           dailyRetrograde: (astroProfile as { dailyRetrograde?: Record<string, string[]> })
             .dailyRetrograde,
           engineScores: hasEngineScores ? engineScoreByDate : undefined,
-          // current ± 1 month 만 빌드 — main response <2s 목표.
-          monthsToBuild,
         }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )
@@ -627,24 +622,20 @@ export const GET = withApiMiddleware(
         gender: gender || 'Male',
       })
 
-      // 빌드 대상 — prescore 블록의 monthsToBuild (current ± 1 month) + prevMonth
-      // (monthComparison 용) 만. cold response <2s 목표. 나머지는 lazy convergence.
-      const prescoreMonthIdxs = new Set(monthsToBuild)
-      const targetForPrev = new Date(Date.UTC(targetYear, targetMonth - 1, 1))
-      prescoreMonthIdxs.add(targetForPrev.getUTCMonth())
-      const monthsToBuildAugment = Array.from(prescoreMonthIdxs)
-        .sort((a, b) => a - b)
-        .map((month) => {
-          const start = new Date(Date.UTC(year, month, 1))
-          const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
-          return {
-            year,
-            month,
-            monthKey: `${year}-${String(month + 1).padStart(2, '0')}`,
-            rangeStart: start,
-            rangeEnd: end,
-          }
-        })
+      // 빌드 대상 12달 전부 — 응답에 12달 narrative/engineSignals/themeScores 포함되어야
+      // 다른 달 클릭 시 monthInsights 빈 화면 안 나옴. prescore 3달은 in-memory HIT,
+      // 나머지 9 달은 cell-cache MISS → 빌드 (~150ms × 9 ≈ 1.35s, cell-cache 적재).
+      const monthsToBuildAugment = Array.from({ length: 12 }, (_, month) => {
+        const start = new Date(Date.UTC(year, month, 1))
+        const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
+        return {
+          year,
+          month,
+          monthKey: `${year}-${String(month + 1).padStart(2, '0')}`,
+          rangeStart: start,
+          rangeEnd: end,
+        }
+      })
 
       let ceCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
       let prevMonthCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
