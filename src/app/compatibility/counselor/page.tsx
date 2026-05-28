@@ -117,6 +117,11 @@ function CompatibilityCounselorContent() {
   // 토큰마다 messagesEnd 따라가면 viewport 가 위로 밀려 "왜 다시 올라가냐"
   // 회귀.
   const suspendAutoScrollRef = useRef(false)
+  // 직전 user turn 의 idempotencyKey 를 보관. "다시 시도" 가 같은 키로 재요청
+  // 하면 서버가 idempotent replay 로 인식해 *추가 credit 차감 없이* Claude
+  // 호출만 다시 돌린다(라우트의 idemStore.isReplay 분기). 새 user 발화가
+  // 들어오면 새 UUID 로 덮어씀.
+  const lastTurnIdemKeyRef = useRef<string | null>(null)
   // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 사이드바 리스트의 항상 보이던
   // 아이콘들을 대체 (운명 상담사와 동일 패턴, PR #621).
   const [chatMenuOpen, setChatMenuOpen] = useState(false)
@@ -417,7 +422,7 @@ function CompatibilityCounselorContent() {
   }, [chatSessionId, isKo])
 
   const sendMessage = useCallback(
-    async (textOverride?: string) => {
+    async (textOverride?: string, options?: { isRetry?: boolean }) => {
       const text = (textOverride ?? input).trim()
       if (!text || isLoading) {
         return
@@ -437,12 +442,17 @@ function CompatibilityCounselorContent() {
         // for long conversations.
         const recentHistory = [...messages, userMessage].slice(-10)
         // 새로고침/탭 복제 등 같은 turn 재진입 시 서버가 중복 차감 안 하도록
-        // 매 user 메시지 마다 UUID 생성. 재시도 시 같은 키 유지가 이상적이지만
-        // 현재 단일 호출 — 첫 호출 = 새 UUID 로 충분.
+        // 매 user 메시지 마다 UUID 생성. "다시 시도" 일 때는 직전 turn 의
+        // 키를 그대로 재사용 — 서버가 idempotent replay 로 인식해 credit
+        // 추가 차감 없이 Claude 만 다시 호출. (부분 응답 후 끊긴 케이스도
+        // 첫 호출에서 *이미* 차감됐기 때문에 재시도가 또 차감되면 중복.)
+        const reusedKey = options?.isRetry ? lastTurnIdemKeyRef.current : null
         const idempotencyKey =
-          typeof crypto !== 'undefined' && crypto.randomUUID
+          reusedKey ||
+          (typeof crypto !== 'undefined' && crypto.randomUUID
             ? crypto.randomUUID()
-            : `t${Date.now()}-${Math.random().toString(36).slice(2)}`
+            : `t${Date.now()}-${Math.random().toString(36).slice(2)}`)
+        lastTurnIdemKeyRef.current = idempotencyKey
         // 운명 상담사의 useChatApi 패턴을 그대로 이식 — 헤더 도착까지의 절대
         // 시간 cap 과 chunk 사이 idle cap 을 분리해서 관리한다. 헤더가 30s
         // 안에 안 오면 abort, 헤더 받은 뒤엔 chunk idle 45s 기준으로 따로
@@ -677,10 +687,10 @@ function CompatibilityCounselorContent() {
   }
 
   // "다시 시도" — 잘린 assistant 답변과 그 직전 user 메시지를 둘 다 pop 한 뒤
-  // 동일 user 텍스트로 재요청. sendMessage 가 user 메시지를 다시 add 하므로
-  // history 는 중복 없이 정확히 이전 turn 상태가 된다 (사용자 입장에선 같은
-  // 질문이 새 답변으로 갱신되는 모양). lastUserText 는 messages 클로저에서
-  // 동기 추출 — setMessages 업데이터/microtask 타이밍 race 회피.
+  // 동일 user 텍스트로 재요청. isRetry: true 로 직전 turn 의 idempotencyKey 를
+  // 재사용해 서버 idempotent replay 분기로 credit 중복 차감을 막는다. 부분
+  // 응답 후 끊긴 케이스도 첫 호출에서 *이미* 차감됐기 때문에 같은 키 재사용
+  // 이 정상적인 보호 동선.
   const retryLastAnswer = useCallback(() => {
     if (isLoading) return
     const len = messages.length
@@ -690,7 +700,7 @@ function CompatibilityCounselorContent() {
     const lastUserText = messages[len - 2].content
     setMessages((prev) => prev.slice(0, -2))
     setFollowUpQuestions([])
-    void sendMessage(lastUserText)
+    void sendMessage(lastUserText, { isRetry: true })
   }, [isLoading, messages, sendMessage])
 
   // 🃏 클래리파이어 — 공통 hook (운명상담사 / followup 동일).

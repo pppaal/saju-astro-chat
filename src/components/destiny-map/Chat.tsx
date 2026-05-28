@@ -116,18 +116,20 @@ const Chat = memo(function Chat({
   })
 
   const handleSend = React.useCallback(
-    async (directText?: string) => {
+    async (directText?: string, options?: { isRetry?: boolean }) => {
       const text = directText || input.trim()
       if (!text) {
         return
       }
       setInput('')
-      await apiHandleSend(text)
+      await apiHandleSend(text, options)
     },
     [input, apiHandleSend]
   )
 
-  const handleSendRef = React.useRef<(text?: string) => Promise<void>>(null!)
+  const handleSendRef = React.useRef<
+    (text?: string, options?: { isRetry?: boolean }) => Promise<void>
+  >(null!)
   React.useEffect(() => {
     handleSendRef.current = handleSend
   }, [handleSend])
@@ -142,9 +144,9 @@ const Chat = memo(function Chat({
   )
 
   // "다시 시도" — 마지막 assistant 답변이 잘렸을 때만 노출. 잘린 답 + 직전 user
-  // 메시지를 함께 pop 한 뒤 같은 user 텍스트로 재요청. 사용자 입장에선 동일
-  // 질문이 새 답변으로 갱신되는 모양. lastUserText 는 messages 클로저에서
-  // 동기 추출 — race 회피.
+  // 메시지를 함께 pop 한 뒤 isRetry: true 로 재요청. useChatApi 가 직전 turn 의
+  // idempotencyKey 를 재사용해 서버가 idempotent replay 분기를 타게 한다 — 부분
+  // 응답 후 끊긴 케이스에서 이미 차감된 credit 위에 또 차감되는 누수를 막는다.
   const handleRetryLastAnswer = React.useCallback(() => {
     if (loading) return
     const len = messages.length
@@ -154,7 +156,10 @@ const Chat = memo(function Chat({
     const lastUserText = messages[len - 2].content
     setMessages((prev) => prev.slice(0, -2))
     setFollowUpQuestions([])
-    void handleSendRef.current?.(lastUserText)
+    // handleSendRef.current 의 시그니처는 (directText?, options?) — Chat.tsx 의
+    // handleSend wrapper 가 이 두 번째 인자를 useChatApi.handleSend 에 그대로
+    // forward 하므로 retry flag 가 끝까지 전달된다.
+    void handleSendRef.current?.(lastUserText, { isRetry: true })
   }, [loading, messages, setMessages, setFollowUpQuestions])
 
 
