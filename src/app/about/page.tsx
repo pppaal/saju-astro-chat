@@ -124,7 +124,6 @@ export default function AboutPage() {
       <main className={styles.main}>
         {/* Hero */}
         <section className={styles.hero}>
-          <span className={styles.heroRing} aria-hidden />
           <div className={styles.heroInner}>
             <p className={styles.eyebrow}>ABOUT · DESTINYPAL</p>
             <h1 className={styles.title}>
@@ -160,15 +159,8 @@ export default function AboutPage() {
 
         {/* Mission */}
         <section className={styles.mission}>
-          <div className={styles.missionVisual} aria-hidden>
-            <span className={styles.orbCore} />
-            <span className={styles.orbRing} />
-            <span className={styles.orbRingAlt} />
-          </div>
           <div className={styles.missionText}>
-            <h2 className={`${styles.sectionTitle} ${styles.neonText}`}>
-              {isKo ? '우리의 사명' : 'Our Mission'}
-            </h2>
+            <h2 className={styles.sectionTitle}>{isKo ? '우리의 사명' : 'Our Mission'}</h2>
             <p className={styles.missionBody}>
               {isKo
                 ? 'DestinyPal은 동양의 사주와 서양의 점성술을 하나의 계산 엔진으로 통합해, 과장 없이 근거에 기반한 삶의 지도를 제시합니다. 우리는 화려한 단정 대신 일관성과 계산 근거를 우선하며, 상담·캘린더·리포트 어디서나 같은 결론을 유지합니다. 그렇게 당신이 자기 자신과 조화를 이루며 더 나은 선택을 하도록 돕는 것이 우리의 목표입니다.'
@@ -308,7 +300,7 @@ export default function AboutPage() {
         {/* CTA */}
         <section className={styles.cta}>
           <span className={styles.ctaGlow} aria-hidden />
-          <h2 className={`${styles.ctaTitle} ${styles.neonText}`}>
+          <h2 className={styles.ctaTitle}>
             {isKo ? '당신의 우주 설계도를 만나보세요' : 'Ready to discover your cosmic blueprint?'}
           </h2>
           <p className={styles.ctaText}>
