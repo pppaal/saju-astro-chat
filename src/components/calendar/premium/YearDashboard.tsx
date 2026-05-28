@@ -1,39 +1,38 @@
 'use client'
 
 /**
- * Year tier minimal dashboard (사용자 cut 요청 후 단순화).
+ * Year tier dashboard.
  *
  * 구성:
- *   1. Premium Hero — 한 해 평균 점수 + verdict + 사주/점성/합치 분포 chip
+ *   1. Premium Hero — 한 해 평균 점수 + verdict
  *   2. Flow Chart — 12 개월 area + 베스트/주의/수렴 reference dots
+ *   3. LifeTimeline — 큰 사건 위치 (대운 + astro milestones)
  *
- * 제거됨 (정보 중복):
- *   - ThemeRadar (월별 평균이라 평평한 경향)
- *   - Highlights 3 카드 (Flow chart dot 으로 충분)
- *   - LifeTimeline (인생 호기심, 매일 안 봄)
- *   - "전통 사주" collapsed (engine 이 곧 fusion 이라 별도 라벨 무의미)
- *
- * 데이터: yearlyMonthly(점수·테마 12개). 없으면(로딩 전) 폴백은 부모.
+ * 데이터: yearlyMonthly(점수 12개). 없으면(로딩 전) 폴백은 부모.
  */
 
+import { useMemo } from 'react'
 import type { ImportantDate } from '../types'
 import type { YearMonthly } from '../DestinyMatrixPlanner'
 import { getGrade } from '../scoreGrade'
-import PremiumHero, { type ScoreBreakdown } from './shared/PremiumHero'
+import PremiumHero from './shared/PremiumHero'
 import FlowChart, { type FlowPoint } from './shared/FlowChart'
+import LifeTimeline from './shared/LifeTimeline'
+import { computeLifeTimeline } from './shared/lifeTimeline'
 import { getCalLabels, type CalLocale } from './labels'
 
 interface Props {
   year: number
-  allDates: ImportantDate[]
+  /** 전체 ImportantDate (현재 미사용 — 호환성 위해 유지). */
+  allDates?: ImportantDate[]
   yearlyMonthly?: YearMonthly[]
   /** "올해 큰 날" — convergence events (planner 가 lazy 로 채움). bothSystems 만 사용. */
   yearlyConvergence?: NonNullable<
     NonNullable<ImportantDate['monthlyInterpretation']>['yearlyConvergence']
   >
-  /** 사용자 출생일 — life timeline 계산용 (현재 미사용, 향후 추가 가능) */
+  /** 사용자 출생일 — life timeline 계산용 */
   birthDate?: string | null
-  /** engine 현재 대운 라벨 — 향후 hero context strip 에 사용 가능 */
+  /** engine 현재 대운 라벨 — life timeline 의 active 항목 */
   currentPhaseLabel?: string | null
   /** UI 라벨 locale */
   locale?: CalLocale
@@ -43,13 +42,19 @@ interface Props {
 
 export default function YearDashboard({
   year,
-  allDates,
   yearlyMonthly,
   yearlyConvergence,
+  birthDate,
+  currentPhaseLabel,
   locale,
   onMonthClick,
 }: Props) {
   const t = getCalLabels(locale)
+
+  const lifeEntries = useMemo(
+    () => computeLifeTimeline({ birthDate, currentPhaseLabel, thisYear: year }),
+    [birthDate, currentPhaseLabel, year]
+  )
 
   if (!yearlyMonthly || yearlyMonthly.length === 0) return null
 
@@ -58,47 +63,6 @@ export default function YearDashboard({
     yearlyMonthly.reduce((a, m) => a + m.score, 0) / yearlyMonthly.length
   )
   const yearGrade = getGrade(yearScore)
-
-  // 점수 분포 — raw 우선
-  let sajuSum = 0
-  let astroSum = 0
-  let sajuRawSum = 0
-  let astroRawSum = 0
-  let sajuRawCount = 0
-  let astroRawCount = 0
-  let agreeSum = 0
-  let sbCount = 0
-  let agreeCount = 0
-  for (const d of allDates) {
-    if (d.scoreBreakdown) {
-      sajuSum += d.scoreBreakdown.sajuAxis
-      astroSum += d.scoreBreakdown.astroAxis
-      if (typeof d.scoreBreakdown.sajuAxisRaw === 'number') {
-        sajuRawSum += d.scoreBreakdown.sajuAxisRaw
-        sajuRawCount += 1
-      }
-      if (typeof d.scoreBreakdown.astroAxisRaw === 'number') {
-        astroRawSum += d.scoreBreakdown.astroAxisRaw
-        astroRawCount += 1
-      }
-      sbCount += 1
-    }
-    const a = d.evidence?.crossAgreementPercent
-    if (typeof a === 'number') {
-      agreeSum += a
-      agreeCount += 1
-    }
-  }
-  const yearBreakdown: ScoreBreakdown | null =
-    sbCount > 0
-      ? {
-          sajuAxis: sajuSum / sbCount,
-          astroAxis: astroSum / sbCount,
-          sajuAxisRaw: sajuRawCount > 0 ? sajuRawSum / sajuRawCount : null,
-          astroAxisRaw: astroRawCount > 0 ? astroRawSum / astroRawCount : null,
-          agreementPercent: agreeCount > 0 ? agreeSum / agreeCount : null,
-        }
-      : null
 
   // verdict — best/worst 달로 자동 생성
   const sorted = [...yearlyMonthly].sort((a, b) => b.score - a.score)
@@ -139,7 +103,6 @@ export default function YearDashboard({
         verdict={verdict}
         score={yearScore}
         grade={yearGrade}
-        breakdown={yearBreakdown}
         locale={locale}
       />
 
@@ -154,6 +117,8 @@ export default function YearDashboard({
           if (m >= 1 && m <= 12) onMonthClick(m - 1)
         }}
       />
+
+      {lifeEntries.length > 0 && <LifeTimeline entries={lifeEntries} locale={locale} />}
     </div>
   )
 }

@@ -115,19 +115,7 @@ export default function DestinyMatrixPlanner({
       data?.calendarDailyView?.date === todayStr
         ? (data.calendarDailyView.oneLineSummary ?? null)
         : (d.summary ?? null)
-    // 점수 분포 — year/month tier hero 와 일관성. 사주/점성 raw 우선.
-    const sb = d.scoreBreakdown
-    const breakdown = sb
-      ? {
-          saju: Math.round(typeof sb.sajuAxisRaw === 'number' ? sb.sajuAxisRaw : sb.sajuAxis),
-          astro: Math.round(typeof sb.astroAxisRaw === 'number' ? sb.astroAxisRaw : sb.astroAxis),
-          agreement:
-            typeof d.evidence?.crossAgreementPercent === 'number'
-              ? Math.round(d.evidence.crossAgreementPercent)
-              : null,
-        }
-      : null
-    return { score, grade, oneLine, breakdown }
+    return { score, grade, oneLine }
   }, [data, todayStr])
   const handleHeroClick = useCallback(() => {
     const t = new Date()
@@ -426,22 +414,6 @@ export default function DestinyMatrixPlanner({
                 <p className="text-xs text-zinc-200 mt-1.5 line-clamp-1 leading-snug">
                   {todayHero.oneLine}
                 </p>
-              )}
-              {/* year/month tier 와 일관 — 점수 분포 mini chip. 사주/점성 raw + 합치. */}
-              {todayHero.breakdown && (
-                <div className="flex items-center gap-1 mt-1.5 text-[10px]">
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-200">
-                    사주 <span className="font-bold">{todayHero.breakdown.saju}</span>
-                  </span>
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-200">
-                    점성 <span className="font-bold">{todayHero.breakdown.astro}</span>
-                  </span>
-                  {todayHero.breakdown.agreement != null && (
-                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-300">
-                      합치 <span className="font-bold">{todayHero.breakdown.agreement}%</span>
-                    </span>
-                  )}
-                </div>
               )}
             </div>
             <div className="flex flex-col items-end shrink-0 leading-none">

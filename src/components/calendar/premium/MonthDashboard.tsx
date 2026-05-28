@@ -1,15 +1,12 @@
 'use client'
 
 /**
- * Month tier minimal dashboard (사용자 cut 요청 후 단순화).
+ * Month tier dashboard.
  *
  * 구성:
  *   1. Premium Hero — 이달 평균 점수 + verdict
- *   2. Flow Chart — 일별 area + 베스트/주의/수렴 reference dots
- *
- * 제거됨 (정보 중복):
- *   - ThemeRadar (5축 일별 평균)
- *   - Highlights 3 카드 (Flow chart dot 으로 충분)
+ *   2. Month Narrative — 엔진 해석 sections (총평)
+ *   3. Flow Chart — 일별 area + 베스트/주의/수렴 reference dots
  *
  * 달력 그리드는 부모(DestinyMatrixPlanner)에서 분리 렌더 — 그리드는 actionable surface.
  */
@@ -17,8 +14,9 @@
 import { useMemo } from 'react'
 import type { ImportantDate } from '../types'
 import { getGrade } from '../scoreGrade'
-import PremiumHero, { type ScoreBreakdown } from './shared/PremiumHero'
+import PremiumHero from './shared/PremiumHero'
 import FlowChart, { type FlowPoint } from './shared/FlowChart'
+import MonthNarrative from './shared/MonthNarrative'
 import { getCalLabels, type CalLocale } from './labels'
 
 interface Props {
@@ -52,47 +50,6 @@ export default function MonthDashboard({
 
     const grade = getGrade(monthScore)
     const daysInMonth = new Date(year, month + 1, 0).getDate()
-
-    // 점수 분포 (Hero chip 용) — sajuAxisRaw 우선, 없으면 shifted axis.
-    let sajuSum = 0
-    let astroSum = 0
-    let sajuRawSum = 0
-    let astroRawSum = 0
-    let sajuRawCount = 0
-    let astroRawCount = 0
-    let agreeSum = 0
-    let sbCount = 0
-    let agreeCount = 0
-    for (const d of monthDates) {
-      if (d.scoreBreakdown) {
-        sajuSum += d.scoreBreakdown.sajuAxis
-        astroSum += d.scoreBreakdown.astroAxis
-        if (typeof d.scoreBreakdown.sajuAxisRaw === 'number') {
-          sajuRawSum += d.scoreBreakdown.sajuAxisRaw
-          sajuRawCount += 1
-        }
-        if (typeof d.scoreBreakdown.astroAxisRaw === 'number') {
-          astroRawSum += d.scoreBreakdown.astroAxisRaw
-          astroRawCount += 1
-        }
-        sbCount += 1
-      }
-      const a = d.evidence?.crossAgreementPercent
-      if (typeof a === 'number') {
-        agreeSum += a
-        agreeCount += 1
-      }
-    }
-    const breakdown: ScoreBreakdown | null =
-      sbCount > 0
-        ? {
-            sajuAxis: sajuSum / sbCount,
-            astroAxis: astroSum / sbCount,
-            sajuAxisRaw: sajuRawCount > 0 ? sajuRawSum / sajuRawCount : null,
-            astroAxisRaw: astroRawCount > 0 ? astroRawSum / astroRawCount : null,
-            agreementPercent: agreeCount > 0 ? agreeSum / agreeCount : null,
-          }
-        : null
 
     // 일자별 점수 맵 + best/worst (FlowChart dot type 결정용)
     const byDay = new Map<number, number>()
@@ -145,12 +102,13 @@ export default function MonthDashboard({
           : `${today.getDate()}일`
         : null
 
-    return { grade, flowData, daysInMonth, nowDayLabel, breakdown }
+    return { grade, flowData, daysInMonth, nowDayLabel }
   }, [year, month, monthDates, monthScore, locale])
 
   if (!data) return null
 
   const verdict = monthSummary?.trim() || t.monthVerdictFallback(t.gradeLabel(data.grade.key))
+  const monthInterp = monthDates[0]?.monthlyInterpretation
 
   return (
     <div className="space-y-6">
@@ -159,9 +117,10 @@ export default function MonthDashboard({
         verdict={verdict}
         score={monthScore}
         grade={data.grade}
-        breakdown={data.breakdown}
         locale={locale}
       />
+
+      <MonthNarrative interp={monthInterp} locale={locale} />
 
       <FlowChart
         data={data.flowData}
