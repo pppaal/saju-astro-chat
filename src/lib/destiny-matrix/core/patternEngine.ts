@@ -9,6 +9,7 @@ import type { ActivationEngineResult } from './activationEngine'
 import type { RuleEngineResult } from './ruleEngine'
 import type { StateEngineResult, DomainState } from './stateEngine'
 import type { CrossAgreementMatrixRow, CrossAgreementTimescale } from '@/lib/destiny-matrix/types'
+import { average } from '@/lib/utils/math'
 
 export interface PatternMatcher {
   domains?: SignalDomain[]
@@ -67,10 +68,6 @@ function clampUnit(value: number): number {
   return clamp(value, 0, 1)
 }
 
-function average(values: number[]): number {
-  if (values.length === 0) return 0
-  return values.reduce((sum, value) => sum + value, 0) / values.length
-}
 
 function resolveCrossAgreementForDomains(
   matrix: CrossAgreementMatrixRow[] | null | undefined,
