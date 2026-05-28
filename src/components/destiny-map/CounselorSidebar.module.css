@@ -77,12 +77,13 @@
   line-height: 0;
 }
 
-/* 헤더 우측 끝의 Home 아이콘 링크. margin-left:auto 로 우측 정렬. */
+/* 헤더 우측 끝의 Home 아이콘 링크. 다른 상단 버튼 (햄버거·언어 토글·
+   ⋮ 메뉴) 과 동일한 36×36 원형으로 통일. */
 .headerHome {
   margin-left: auto;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
