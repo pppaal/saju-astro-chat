@@ -82,11 +82,40 @@ function orbOf(sep: number, a: AspectType) {
   return Math.abs(sep - desiredAngle(a))
 }
 
-function applyingFlag(sep: number, relSpeed: number, a: AspectType) {
+/**
+ * applying(접근) vs separating(분리) 판단 — 두 행성이 exact aspect 위치로
+ * 가까워지는 중이면 true.
+ *
+ * 이전 구현 회귀: 인자가 `sep`(=shortestAngle, 0..180 부호 없는 값) 라서
+ * "A 가 B 보다 앞/뒤" 정보가 손실됐다. 결과: conjunction(target=0) 케이스에
+ * 서 delta=sep≥0 항상 양수 → 한 분기만 활성, 다른 분기는 dead. 진짜 분리/
+ * 접근 구분 불가.
+ *
+ * 올바른 공식: 두 행성 사이의 부호 있는 짧은 거리(signedSep ∈ (-180, 180])
+ * + relSpeed 의 부호 비교. signedSep 부호가 relSpeed 부호와 같으면 빠른
+ * 행성이 느린 행성으로부터 멀어지는 중(separating), 다르면 접근 중(applying).
+ */
+function applyingFlag(
+  lonA: number,
+  lonB: number,
+  relSpeed: number,
+  a: AspectType
+): boolean {
   const target = desiredAngle(a)
-  const delta = sep - target
-  // 간단 모델: 분리각이 target보다 클 때 relSpeed>0면 접근, 작을 때 relSpeed<0면 접근
-  return (delta > 0 && relSpeed > 0) || (delta < 0 && relSpeed < 0)
+  // 부호 있는 짧은 거리: B 기준 A 의 위치. 양수 = A 가 B 보다 앞.
+  const signedSep = ((lonA - lonB + 540) % 360) - 180
+  const absSep = Math.abs(signedSep)
+  // orb 가 target 이랑 같을 때(=exact) applying/separating 의미가 모호 → false
+  // (separating 보단 보수적으로 처리).
+  if (absSep === target) return false
+  // 현재 orb 가 target 보다 크면 행성이 가까워져야 applying.
+  // signedSep 의 부호가 relSpeed 부호와 반대면 가까워지는 중.
+  if (absSep > target) {
+    return (signedSep > 0 && relSpeed < 0) || (signedSep < 0 && relSpeed > 0)
+  }
+  // 현재 orb 가 target 보다 작으면 행성이 멀어져야 applying (target 을 향해
+  // 반대편에서 다시 접근). signedSep 부호가 relSpeed 부호와 같으면 멀어지는 중.
+  return (signedSep > 0 && relSpeed > 0) || (signedSep < 0 && relSpeed < 0)
 }
 
 function resolveAspectList(rules: AspectRules) {
@@ -157,7 +186,7 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
           const orbWeight = 1 - orb / Math.max(limit, 1e-6)
           const aspectWeight = baseAspectWeight(a)
           const speedWeight = clamp(Math.abs(relSpeed) / 1.2, 0.6, 1.2) // 상대속도 클수록 약간 가중
-          const applying = applyingFlag(sep, relSpeed, a)
+          const applying = applyingFlag(t.longitude, n.longitude, relSpeed, a)
           const score =
             wOrb * orbWeight +
             wAsp * aspectWeight +
@@ -222,7 +251,7 @@ export function findNatalAspects(natal: Chart, rules: AspectRules = {}): AspectH
         if (orb <= limit) {
           const orbWeight = 1 - orb / Math.max(limit, 1e-6)
           const aspectWeight = baseAspectWeight(t)
-          const applying = applyingFlag(sep, relSpeed, t)
+          const applying = applyingFlag(A.longitude, B.longitude, relSpeed, t)
           const score = wOrb * orbWeight + wAsp * aspectWeight + wSpd * (applying ? 1 : 0.95)
 
           hits.push({

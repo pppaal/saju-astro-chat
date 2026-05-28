@@ -14,6 +14,7 @@
 
 import { FiveElement, SajuPillars, SibsinKind, PillarKind } from './types'
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS, BRANCHES } from './constants'
+import { getTwelveStage } from './shinsal'
 import { iga, eulReul, euroRo } from '../i18n/koParticle'
 import {
   getStemElement,
@@ -508,25 +509,14 @@ export function analyzeIljuDeep(pillars: SajuPillars): IljuDeepAnalysis {
 }
 
 function calculateTwelveStage(dayStem: string, branch: string): string {
-  const stages = ['장생', '목욕', '관대', '임관', '왕지', '쇠', '병', '사', '묘', '절', '태', '양']
-  const startPoints: Record<string, number> = {
-    甲: 2,
-    乙: 5,
-    丙: 2,
-    丁: 5,
-    戊: 2,
-    己: 5,
-    庚: 8,
-    辛: 11,
-    壬: 8,
-    癸: 11,
-  }
-
-  const branchIndex = getBranchIndex(branch)
-  const startIndex = startPoints[dayStem] || 0
-  const stageIndex = (branchIndex - startIndex + 12) % 12
-
-  return stages[stageIndex]
+  // 정통 명리학의 12운성 계산은 `shinsal.ts:getTwelveStage` 가 이미 옳게
+  // 구현돼 있다 (일간별 長生 출발지 + 음간 역행). 이전 inline 구현은:
+  //   1. startPoints 가 7/10 stem 잘못 (예: 甲을 寅에서 출발하게 박아뒀는데
+  //      doctrine 은 亥. 庚을 申으로, 辛/癸 를 亥로 등)
+  //   2. 모든 일간이 순행 — 음간(乙丁己辛癸) 은 역행이어야 함
+  // 결과: 일간 5종(陰干) 의 12운성이 통째로 어긋남 + 일간 3종(甲庚壬...)
+  // 의 출발지도 어긋남. shinsal.ts 의 구현으로 위임해 단일 소스로 통합.
+  return getTwelveStage(dayStem, branch)
 }
 
 function calculateGongmang(yearStem: string, yearBranch: string): string[] {
