@@ -594,6 +594,7 @@ export default function DestinyMatrixPlanner({
                       }
                       advice={fusion?.advice}
                       hourlySlots={dailyHourlySlots}
+                      hourlySeries={fusion?.hourly?.slots ?? null}
                       locale={locale}
                     />
                   )
