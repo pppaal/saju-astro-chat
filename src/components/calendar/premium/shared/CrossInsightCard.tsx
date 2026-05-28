@@ -1,20 +1,15 @@
 'use client'
 
 /**
- * 사주↔점성 교차 카드 — 사용자 피드백 ("교차가 안 와닿아, 어떤 쪽으로 시그널이
- * 오는지") 반영. 추상 % / 일치도 메트릭 제거. 실제 시그널 출처 + 자연어 근거.
+ * 사주 ↔ 점성 시그널 카드 — 추상 메트릭 (% / "결론" / "일치도") 다 제거.
+ * 정직한 두 가지만:
+ *  1. 사주가 보낸 신호 top 3 / 점성이 보낸 신호 top 3 (빈도 일 수)
+ *  2. 대표 일 자연어 (엔진 bridges) — 두 시스템 함께 작용한 날 사주 + 점성 톤
  *
- *  1. 사주 시그널 top N — 이 기간 동안 자주 등장한 사주 신호 (빈도 카운트)
- *  2. 점성 시그널 top N — 자주 등장한 점성 신호
- *  3. 두 시스템 같은 방향 N일 / 다른 방향 M일 단순 카운트 + 합의 분포 막대
- *  4. 대표 일자 자연어 — 가장 강한 합치 / 엇갈림 일의 bridges 자연어 한 줄
- *
- * 데이터: evidence.cross.{sajuDetails, astroDetails, bridges} +
- *        scoreBreakdown.axisAgreement. 없으면 카드 스킵.
+ * 비교는 사용자가 두 박스 + 자연어 읽고 직접 판단. 메타 메트릭 없음.
  */
 
 import { Compass } from 'lucide-react'
-import { motion } from 'framer-motion'
 import type { ImportantDate } from '../../types'
 import { getCalLabels, type CalLocale } from '../labels'
 
@@ -22,8 +17,6 @@ interface Props {
   dates: ImportantDate[]
   locale?: CalLocale
 }
-
-type AgreementKind = 'aligned' | 'mixed' | 'opposed'
 
 interface SignalCount {
   label: string
@@ -43,10 +36,8 @@ export default function CrossInsightCard({ dates, locale }: Props) {
   // 시그널 빈도 집계 — 같은 텍스트 카운트.
   const sajuCounts = new Map<string, number>()
   const astroCounts = new Map<string, number>()
-  let alignedDays = 0
-  let mixedDays = 0
-  let opposedDays = 0
 
+  // 가장 강한 합치 일 + 가장 큰 엇갈림 일 — bridges 자연어 노출용.
   let bestAligned: { date: string; score: number } | null = null
   let biggestOpposed: { date: string; gap: number } | null = null
 
@@ -66,23 +57,18 @@ export default function CrossInsightCard({ dates, locale }: Props) {
 
     const sb = d.scoreBreakdown
     if (!sb) continue
-    const ag: AgreementKind = sb.axisAgreement
-    if (ag === 'aligned') {
-      alignedDays += 1
+    if (sb.axisAgreement === 'aligned') {
       const s = d.displayScore ?? d.score
       if (!bestAligned || s > bestAligned.score) {
         bestAligned = { date: d.date, score: s }
       }
-    } else if (ag === 'opposed') {
-      opposedDays += 1
+    } else if (sb.axisAgreement === 'opposed') {
       const sajuRaw = typeof sb.sajuAxisRaw === 'number' ? sb.sajuAxisRaw : sb.sajuAxis
       const astroRaw = typeof sb.astroAxisRaw === 'number' ? sb.astroAxisRaw : sb.astroAxis
       const gap = Math.abs(sajuRaw - astroRaw)
       if (!biggestOpposed || gap > biggestOpposed.gap) {
         biggestOpposed = { date: d.date, gap }
       }
-    } else if (ag === 'mixed') {
-      mixedDays += 1
     }
   }
 
@@ -95,12 +81,7 @@ export default function CrossInsightCard({ dates, locale }: Props) {
     .sort((a, b) => b.count - a.count)
     .slice(0, 3)
 
-  const total = alignedDays + mixedDays + opposedDays
-  if (total === 0 && topSaju.length === 0 && topAstro.length === 0) return null
-
-  const alignedPct = total > 0 ? (alignedDays / total) * 100 : 0
-  const mixedPct = total > 0 ? (mixedDays / total) * 100 : 0
-  const opposedPct = total > 0 ? (opposedDays / total) * 100 : 0
+  if (topSaju.length === 0 && topAstro.length === 0) return null
 
   const extractSample = (target: { date: string } | null): SampleDay | null => {
     if (!target) return null
@@ -149,63 +130,7 @@ export default function CrossInsightCard({ dates, locale }: Props) {
         </div>
       )}
 
-      {/* 같은 방향 / 다른 방향 카운트 + 막대 */}
-      {total > 0 && (
-        <div className="relative space-y-2 mb-4">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="text-zinc-300 font-semibold">{t.crossDirectionLabel}</span>
-            <span className="text-zinc-500 text-[10px]">{t.crossDirectionTotal(total)}</span>
-          </div>
-          <div className="flex h-2 rounded-full overflow-hidden bg-zinc-800/60">
-            {alignedDays > 0 && (
-              <motion.div
-                className="bg-emerald-400/80"
-                initial={{ width: 0 }}
-                animate={{ width: `${alignedPct}%` }}
-                transition={{ duration: 0.5 }}
-              />
-            )}
-            {mixedDays > 0 && (
-              <motion.div
-                className="bg-zinc-500/70"
-                initial={{ width: 0 }}
-                animate={{ width: `${mixedPct}%` }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-              />
-            )}
-            {opposedDays > 0 && (
-              <motion.div
-                className="bg-rose-400/80"
-                initial={{ width: 0 }}
-                animate={{ width: `${opposedPct}%` }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              />
-            )}
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-[10px]">
-            <CountChip
-              color="emerald"
-              label={t.crossDirSame}
-              hint={t.crossDirSameHint}
-              count={alignedDays}
-            />
-            <CountChip
-              color="zinc"
-              label={t.crossDirMixed}
-              hint={t.crossDirMixedHint}
-              count={mixedDays}
-            />
-            <CountChip
-              color="rose"
-              label={t.crossDirOpposed}
-              hint={t.crossDirOpposedHint}
-              count={opposedDays}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* 대표 일 자연어 (bridges) */}
+      {/* 대표 일 자연어 (bridges) — '결론' 같은 추상 라벨 없이 날짜 + bridges 만 */}
       {(alignedSample || opposedSample) && (
         <div className="relative pt-3 border-t border-white/5 space-y-2">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
@@ -213,9 +138,7 @@ export default function CrossInsightCard({ dates, locale }: Props) {
           </p>
           {alignedSample && (
             <EvidenceBlock
-              tone="aligned"
               dateLabel={formatDate(alignedSample.date, locale)}
-              kindLabel={t.crossDirSame}
               bridge={alignedSample.bridge}
               saju={alignedSample.saju}
               astro={alignedSample.astro}
@@ -225,9 +148,7 @@ export default function CrossInsightCard({ dates, locale }: Props) {
           )}
           {opposedSample && (
             <EvidenceBlock
-              tone="opposed"
               dateLabel={formatDate(opposedSample.date, locale)}
-              kindLabel={t.crossDirOpposed}
               bridge={opposedSample.bridge}
               saju={opposedSample.saju}
               astro={opposedSample.astro}
@@ -277,62 +198,24 @@ function SignalBlock({
   )
 }
 
-function CountChip({
-  color,
-  label,
-  hint,
-  count,
-}: {
-  color: 'emerald' | 'zinc' | 'rose'
-  label: string
-  hint: string
-  count: number
-}) {
-  const dotClass =
-    color === 'emerald' ? 'bg-emerald-400' : color === 'rose' ? 'bg-rose-400' : 'bg-zinc-500'
-  const countClass =
-    color === 'emerald' ? 'text-emerald-300' : color === 'rose' ? 'text-rose-300' : 'text-zinc-300'
-  return (
-    <div className="space-y-0.5">
-      <div className="flex items-center gap-1">
-        <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
-        <span className="text-zinc-400">{label}</span>
-        <span className={`font-bold tabular-nums ml-auto ${countClass}`}>{count}</span>
-      </div>
-      <p className="text-[9px] text-zinc-600 leading-snug">{hint}</p>
-    </div>
-  )
-}
-
 function EvidenceBlock({
-  tone,
   dateLabel,
-  kindLabel,
   bridge,
   saju,
   astro,
   sajuLabel,
   astroLabel,
 }: {
-  tone: 'aligned' | 'opposed'
   dateLabel: string
-  kindLabel: string
   bridge: string | null
   saju: string | null
   astro: string | null
   sajuLabel: string
   astroLabel: string
 }) {
-  const kindColor = tone === 'aligned' ? 'text-emerald-300' : 'text-rose-300'
-  const borderColor = tone === 'aligned' ? 'border-emerald-500/20' : 'border-rose-500/20'
   return (
-    <div className={`rounded-lg border ${borderColor} bg-zinc-950/30 p-2.5 space-y-1.5`}>
-      <div className="flex items-center gap-2 text-[11px]">
-        <span className="text-zinc-200 font-bold tabular-nums">{dateLabel}</span>
-        <span className={`font-bold uppercase tracking-wider text-[9px] ${kindColor}`}>
-          {kindLabel}
-        </span>
-      </div>
+    <div className="rounded-lg border border-white/5 bg-zinc-950/30 p-2.5 space-y-1.5">
+      <span className="text-[11px] text-zinc-200 font-bold tabular-nums">{dateLabel}</span>
       {bridge ? (
         <p className="text-[11px] text-zinc-300 leading-relaxed">{bridge}</p>
       ) : (
