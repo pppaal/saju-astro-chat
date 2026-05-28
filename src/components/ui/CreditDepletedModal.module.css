@@ -1,234 +1,100 @@
-/* Overlay */
+/* CreditDepletedModal — 라이트 모던. profile / BirthInfoModal 과 동일 톤
+ * (white card, gold accent, ink text). 옛 dark-purple 그라데이션 + 펄싱 링
+ * 디자인에서 정리. iOS picker 충돌 회피용 backdrop-filter 사용 안 함. */
+
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0);
-  backdrop-filter: blur(0px);
+  background: rgba(3, 5, 12, 0);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10001;
-  transition: all 0.3s ease-out;
-  padding: 20px;
+  transition: background 0.2s ease;
+  padding: 16px;
 }
 
 .overlayVisible {
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
+  background: rgba(3, 5, 12, 0.55);
 }
 
-/* Modal */
 .modal {
   position: relative;
-  background: linear-gradient(145deg, rgba(30, 25, 50, 0.98), rgba(20, 15, 40, 0.98));
-  border-radius: 24px;
-  padding: 40px 32px 32px;
-  max-width: 400px;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 28px 26px 24px;
+  max-width: 420px;
   width: 100%;
   text-align: center;
-  border: 1px solid rgba(212, 181, 114, 0.3);
-  box-shadow:
-    0 0 60px rgba(212, 181, 114, 0.2),
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transform: scale(0.8) translateY(20px);
+  border: 1px solid #ece4d4;
+  box-shadow: 0 24px 48px rgba(28, 25, 23, 0.18);
+  transform: translateY(12px);
   opacity: 0;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.22s ease;
 }
 
 .modalVisible {
-  transform: scale(1) translateY(0);
+  transform: translateY(0);
   opacity: 1;
 }
 
-/* Animated Icon Container */
+/* Icon — 단일 골드 sparkle, 부드러운 spin/fade 만. */
 .iconContainer {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 24px;
-}
-
-.iconRing {
-  position: absolute;
-  inset: 0;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
   border-radius: 50%;
-  border: 2px solid transparent;
-}
-
-.ring1 {
-  border-color: rgba(212, 181, 114, 0.5);
-  animation: pulse1 2s ease-in-out infinite;
-}
-
-.ring2 {
-  inset: 8px;
-  border-color: rgba(212, 181, 114, 0.4);
-  animation: pulse2 2s ease-in-out infinite 0.3s;
-}
-
-.ring3 {
-  inset: 16px;
-  border-color: rgba(196, 181, 253, 0.3);
-  animation: pulse3 2s ease-in-out infinite 0.6s;
-}
-
-@keyframes pulse1 {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.7;
-  }
-}
-
-@keyframes pulse2 {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.15);
-    opacity: 0.6;
-  }
-}
-
-@keyframes pulse3 {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.5;
-  }
-}
-
-.iconInner {
-  position: absolute;
-  inset: 24px;
-  background: linear-gradient(135deg, rgba(212, 181, 114, 0.3), rgba(99, 102, 241, 0.3));
-  border-radius: 50%;
+  background: linear-gradient(135deg, #fdf6e8, #f5e9c8);
+  border: 1px solid #ece4d4;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: glow 2s ease-in-out infinite;
+  color: #a07a3c;
+  font-size: 24px;
 }
 
-@keyframes glow {
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(212, 181, 114, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(212, 181, 114, 0.6);
-  }
+.iconContainer.warning {
+  background: linear-gradient(135deg, #fef9c3, #fde68a);
 }
 
-.emptyIcon {
-  font-size: 32px;
-  color: #d4b572;
-  opacity: 0.5;
-  animation: fadeInOut 2s ease-in-out infinite;
-}
-
-.warningIcon {
-  font-size: 32px;
-  color: #fbbf24;
-  animation: shake 0.5s ease-in-out infinite;
-}
-
-@keyframes fadeInOut {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes shake {
-  0%,
-  100% {
-    transform: rotate(-3deg);
-  }
-  50% {
-    transform: rotate(3deg);
-  }
-}
-
-/* Title */
 .title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #f5f3ff;
-  margin: 0 0 12px;
-  letter-spacing: -0.02em;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: #1c1917;
+  letter-spacing: -0.005em;
+  margin: 0 0 8px;
 }
 
-/* Description */
 .description {
-  font-size: 14px;
-  color: #a5a3c7;
+  font-size: 13.5px;
+  color: #57534e;
   line-height: 1.6;
-  margin: 0 0 24px;
+  margin: 0 0 20px;
 }
 
-/* Credit Display */
+.mainDesc {
+  margin: 0;
+}
+
+/* Credit / Limit display — soft cream chip */
 .creditDisplay {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  background: rgba(212, 181, 114, 0.1);
-  border: 1px solid rgba(212, 181, 114, 0.2);
-  border-radius: 16px;
-  padding: 16px 24px;
-  margin-bottom: 28px;
+  gap: 12px;
+  background: #fdfbf6;
+  border: 1px solid #ece4d4;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
 }
 
 .creditIcon {
-  font-size: 28px;
-  color: #d4b572;
-  animation: sparkle 1.5s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2) rotate(10deg);
-    opacity: 0.8;
-  }
-}
-
-/* Respect reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .iconRing,
-  .iconInner,
-  .purchaseButton,
-  .cancelButton {
-    animation: none;
-    transition: none;
-  }
-
-  .purchaseButton:hover,
-  .cancelButton:hover {
-    transform: none;
-  }
-
-  .iconInner {
-    transform: none;
-  }
+  font-size: 20px;
+  color: #a07a3c;
 }
 
 .creditInfo {
@@ -239,187 +105,137 @@
 }
 
 .creditLabel {
-  font-size: 12px;
-  color: #8b8aa3;
+  font-size: 11px;
+  color: #78716c;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .creditValue {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
+  color: #1c1917;
   display: flex;
   align-items: baseline;
   gap: 4px;
 }
 
 .creditValue.empty {
-  color: #f87171;
+  color: #b91c1c;
 }
 
 .creditValue.low {
-  color: #fbbf24;
+  color: #b45309;
 }
 
 .creditUnit {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 500;
-  color: #8b8aa3;
+  color: #78716c;
 }
 
-/* Buttons */
+/* Buttons — primary gold, secondary ghost. */
 .buttons {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .purchaseButton {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 16px 24px;
-  font-size: 16px;
+  padding: 13px 20px;
+  font-size: 14.5px;
   font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #d4b572, #6366f1);
-  border: none;
-  border-radius: 14px;
+  color: #ffffff;
+  background: #1c1917;
+  border: 1px solid #1c1917;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 20px rgba(212, 181, 114, 0.4);
+  transition:
+    background 0.16s ease,
+    transform 0.1s ease;
 }
 
 .purchaseButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(212, 181, 114, 0.5);
-  background: linear-gradient(135deg, #9f75ff, #7c7fff);
+  background: #3a3530;
 }
 
 .purchaseButton:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
 .buttonIcon {
-  font-size: 18px;
+  font-size: 14px;
+  color: #d4b572;
 }
 
 .laterButton {
   width: 100%;
-  padding: 14px 24px;
-  font-size: 14px;
+  padding: 11px 20px;
+  font-size: 13.5px;
   font-weight: 500;
-  color: #a5a3c7;
+  color: #57534e;
   background: transparent;
-  border: 1px solid rgba(212, 181, 114, 0.2);
-  border-radius: 14px;
+  border: 1px solid #e7e5e4;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease;
 }
 
 .laterButton:hover {
-  background: rgba(212, 181, 114, 0.1);
-  border-color: rgba(212, 181, 114, 0.4);
-  color: #d4d2f0;
+  background: #fafaf9;
+  border-color: #d6d3d1;
 }
 
-/* Close Button */
+/* Close (×) — 우상단 */
 .closeButton {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  min-width: 48px;
-  min-height: 48px;
+  top: 12px;
+  right: 12px;
+  min-width: 32px;
+  min-height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: none;
+  background: transparent;
+  border: 0;
   border-radius: 8px;
-  color: #8b8aa3;
-  font-size: 20px;
+  color: #a8a29e;
+  font-size: 18px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
   touch-action: manipulation;
 }
 
 .closeButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: #f5f4f1;
+  color: #1c1917;
 }
 
-/* Mobile Responsive */
-@media (max-width: 480px) {
-  .modal {
-    padding: 32px 24px 24px;
-    margin: 16px;
-    border-radius: 20px;
-  }
-
-  .iconContainer {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 20px;
-  }
-
-  .iconInner {
-    inset: 18px;
-  }
-
-  .emptyIcon,
-  .warningIcon {
-    font-size: 26px;
-  }
-
-  .title {
-    font-size: 20px;
-  }
-
-  .description {
-    font-size: 13px;
-  }
-
-  .creditDisplay {
-    padding: 14px 20px;
-  }
-
-  .creditIcon {
-    font-size: 24px;
-  }
-
-  .creditValue {
-    font-size: 24px;
-  }
-
-  .purchaseButton {
-    padding: 14px 20px;
-    font-size: 15px;
-  }
-
-  .laterButton {
-    padding: 12px 20px;
-    font-size: 13px;
-  }
-}
-
-/* Limit Display (for compatibility/followUp) */
+/* Limit display (compatibility/followUp ver. — 미사용 잔존이지만 호환 유지) */
 .limitDisplay {
-  background: rgba(212, 181, 114, 0.1);
-  border: 1px solid rgba(212, 181, 114, 0.2);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 28px;
+  background: #fdfbf6;
+  border: 1px solid #ece4d4;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
 }
 
 .limitBar {
   width: 100%;
-  height: 8px;
-  background: rgba(212, 181, 114, 0.2);
-  border-radius: 4px;
+  height: 6px;
+  background: #f0e9d8;
+  border-radius: 3px;
   overflow: hidden;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .limitBarFill {
@@ -432,160 +248,116 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .limitLabel {
-  font-size: 12px;
-  color: #8b8aa3;
+  font-size: 11px;
+  color: #78716c;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 .limitValue {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  color: #f87171;
+  color: #b91c1c;
 }
 
 .planInfo {
-  font-size: 13px;
-  color: #a5a3c7;
-  margin: 8px 0 0;
+  font-size: 12px;
+  color: #57534e;
+  margin: 6px 0 0;
   text-align: center;
 }
 
 .planInfo strong {
-  color: #d4d2f0;
-}
-
-/* Explainer Box */
-.mainDesc {
-  margin: 0 0 16px;
-  font-size: 14px;
-  color: #a5a3c7;
-  line-height: 1.6;
+  color: #1c1917;
 }
 
 .explainer {
   display: flex;
-  gap: 12px;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  gap: 10px;
+  background: #fafaf9;
+  border: 1px solid #ece4d4;
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px 14px;
   text-align: left;
+  margin-bottom: 16px;
 }
 
 .explainerIcon {
-  font-size: 24px;
+  font-size: 18px;
   flex-shrink: 0;
-}
-
-.explainerContent {
-  flex: 1;
 }
 
 .explainerContent strong {
   display: block;
-  font-size: 13px;
-  color: #d4d2f0;
-  margin-bottom: 6px;
+  font-size: 12.5px;
+  color: #1c1917;
+  margin-bottom: 4px;
 }
 
 .explainerContent p {
   font-size: 12px;
-  color: #a5a3c7;
+  color: #57534e;
   line-height: 1.5;
-  margin: 0 0 4px;
+  margin: 0 0 2px;
 }
 
 .noteText {
-  color: #8b8aa3 !important;
+  color: #78716c !important;
   font-style: italic;
 }
 
-/* Extra small mobile */
-@media (max-width: 360px) {
+/* Mobile */
+@media (max-width: 480px) {
   .modal {
-    padding: 28px 20px 20px;
+    padding: 24px 20px 20px;
+    border-radius: 20px;
     margin: 12px;
-    border-radius: 18px;
   }
 
   .iconContainer {
-    width: 70px;
-    height: 70px;
-    margin-bottom: 18px;
-  }
-
-  .iconInner {
-    inset: 14px;
-  }
-
-  .emptyIcon,
-  .warningIcon {
-    font-size: 22px;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+    margin-bottom: 14px;
   }
 
   .title {
-    font-size: 18px;
-    margin-bottom: 10px;
+    font-size: 17px;
   }
 
   .description {
-    font-size: 12px;
-    margin-bottom: 20px;
+    font-size: 13px;
   }
 
   .creditDisplay {
     padding: 12px 16px;
-    gap: 12px;
-    border-radius: 14px;
-    margin-bottom: 24px;
-  }
-
-  .creditIcon {
-    font-size: 22px;
   }
 
   .creditValue {
-    font-size: 22px;
-  }
-
-  .creditUnit {
-    font-size: 12px;
-  }
-
-  .creditLabel {
-    font-size: 11px;
-  }
-
-  .buttons {
-    gap: 10px;
+    font-size: 20px;
   }
 
   .purchaseButton {
     padding: 12px 18px;
     font-size: 14px;
-    border-radius: 12px;
-  }
-
-  .buttonIcon {
-    font-size: 16px;
   }
 
   .laterButton {
     padding: 10px 18px;
-    font-size: 12px;
-    border-radius: 12px;
+    font-size: 13px;
   }
+}
 
-  .closeButton {
-    min-width: 44px;
-    min-height: 44px;
-    top: 12px;
-    right: 12px;
-    font-size: 18px;
+@media (prefers-reduced-motion: reduce) {
+  .modal,
+  .overlay {
+    transition: none;
+  }
+  .purchaseButton:active {
+    transform: none;
   }
 }

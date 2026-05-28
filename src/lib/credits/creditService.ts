@@ -359,6 +359,11 @@ export async function addBonusCredits(
   // 같은 결제(Stripe webhook 재시도)로 두 번 도착해도 두 번째는 P2002 로
   // 막힘 — DB 레벨 멱등성. 호출자(webhook handler)는 P2002 를 잡아 silent
   // skip 한다.
+  // 본인 결제 (purchase) 는 Stripe success 페이지가 곧 "받았어요" 확인
+  // 페이지라 acknowledgment 가 자동. 자동 지급분 (referral / promotion / gift)
+  // 만 null 로 둬서 다음 진입 시 모달 트리거.
+  const acknowledgedAt = source === 'purchase' ? now : null
+
   return prisma.$transaction(async (tx) => {
     await tx.bonusCreditPurchase.create({
       data: {
@@ -368,6 +373,7 @@ export async function addBonusCredits(
         expiresAt,
         source,
         stripePaymentId,
+        acknowledgedAt,
       },
     })
     return tx.userCredits.update({
