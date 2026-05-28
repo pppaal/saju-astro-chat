@@ -84,6 +84,27 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.BAD_REQUEST, 'already_refunded')
     }
 
+    // BonusCreditPurchase has no cascade from User, so a deleted user
+    // leaves the purchase row behind but takes their UserCredits row
+    // with it. revokeBonusCreditPurchase below would then update zero
+    // UserCredits rows silently and the admin would see a misleading
+    // 'success' response while the local DB still believed the bonus
+    // was outstanding. Surface the drift explicitly instead.
+    const userCreditsExists = await prisma.userCredits.findUnique({
+      where: { userId: purchase.userId },
+      select: { userId: true },
+    })
+    if (!userCreditsExists) {
+      logger.warn('[admin/refund-credit-pack] user credits missing — likely deleted user', {
+        stripePaymentId,
+        purchaseUserId: purchase.userId,
+      })
+      return apiError(
+        ErrorCodes.BAD_REQUEST,
+        'user_credits_missing — refund the Stripe charge directly in the dashboard'
+      )
+    }
+
     // 2) 자격 검사 (force 시 우회)
     if (!force) {
       const used = purchase.amount - purchase.remaining
