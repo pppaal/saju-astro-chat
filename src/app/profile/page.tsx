@@ -588,7 +588,10 @@ export default function ProfilePage() {
                     alt={profile.name || 'User'}
                     width={92}
                     height={92}
-                    className="block rounded-full border-2 border-white"
+                    /* 강제 92×92 정사각 + object-cover — 어떤 비율의 사진이
+                       올라와도 자르면서 채워 정원형 유지. (이전: object-cover
+                       없어 가로 긴 사진은 oval, 세로 긴 사진은 위아래 잘림) */
+                    className="block h-[92px] w-[92px] rounded-full border-2 border-white object-cover"
                   />
                 ) : (
                   <div
