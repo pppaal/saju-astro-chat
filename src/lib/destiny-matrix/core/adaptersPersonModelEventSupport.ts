@@ -30,9 +30,11 @@ import {
   normalizePersonModelText,
   normalizeHour,
   parseBirthHour,
-  round2,
   uniq,
 } from './adaptersPersonModelProfileSupport'
+// round2 lives in lib/utils/math; the Profile support file imports but does
+// not re-export it, so pull from canonical source directly.
+import { round2 } from '@/lib/utils/math'
 
 export function mapCurrentStateToEventStatus(
   state: AdapterPersonDomainState['currentState']

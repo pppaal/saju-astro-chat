@@ -13,6 +13,10 @@ vi.mock('@/lib/api/middleware', () => ({
     rateLimit: { limit: 30, windowSeconds: 60 },
     credits: { type: 'compatibility', amount: 1 },
   })),
+  // Route imports extractLocale to build error responses with the caller's
+  // locale. Returning 'ko' is fine for all test branches since safetyMessage
+  // and createErrorResponse are themselves mocked below.
+  extractLocale: vi.fn(() => 'ko'),
   apiSuccess: vi.fn((data: any) => ({ data })),
   apiError: vi.fn((code: string, message?: string) => ({
     error: { code, message },
@@ -20,6 +24,69 @@ vi.mock('@/lib/api/middleware', () => ({
   ErrorCodes: {
     BAD_REQUEST: 'BAD_REQUEST',
     UNAUTHORIZED: 'UNAUTHORIZED',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+  },
+}))
+
+// Credit / idempotency / refund subsystem — the route now consumes 1 credit
+// per authed turn (with idempotent replay skip on refresh) and refunds it
+// if Claude fails mid-stream. Tests focus on the routing logic; these are
+// black-boxed as always-succeeding so the flow reaches streamClaudeAsSSE.
+vi.mock('@/lib/credits/creditService', () => ({
+  consumeCredits: vi.fn().mockResolvedValue({ success: true, remaining: 99 }),
+}))
+vi.mock('@/lib/credits/creditRefund', () => ({
+  refundCredits: vi.fn().mockResolvedValue({ success: true }),
+}))
+vi.mock('@/lib/api/idempotency', () => ({
+  createIdempotencyStore: vi.fn(() => ({
+    keyFor: vi.fn(() => 'test-idem-key'),
+    isReplay: vi.fn().mockResolvedValue(false),
+    mark: vi.fn().mockResolvedValue(undefined),
+  })),
+}))
+
+// Synastry / chart formatters — pure string builders. Stubbed so the route
+// reaches the prompt assembly + streamClaudeAsSSE without depending on the
+// real saju / astrology engines, which the unit tests don't exercise.
+vi.mock('@/lib/compatibility/sajuSynastryFormatter', () => ({
+  formatSajuSynastry: vi.fn(() => '== 사주 시너스트리 == (stub)'),
+}))
+vi.mock('@/lib/compatibility/astroSynastryFormatter', () => ({
+  formatAstroSynastry: vi.fn(() => '== 점성 시너스트리 == (stub)'),
+}))
+vi.mock('@/lib/compatibility/compositeChartFormatter', () => ({
+  formatCompositeChart: vi.fn(() => '== 컴포지트 차트 == (stub)'),
+}))
+
+// Natal chart math — tests don't validate planetary positions; just need
+// the call chain to not throw. toChart returns a minimal object that the
+// formatters' stubs accept (they're stubbed too).
+vi.mock('@/lib/astrology/foundation/astrologyService', () => ({
+  calculateNatalChart: vi.fn().mockResolvedValue({}),
+  toChart: vi.fn(() => ({ planets: {}, houses: [], aspects: [] })),
+}))
+
+vi.mock('@/lib/user/displayName', () => ({
+  getUserDisplayName: vi.fn().mockResolvedValue(null),
+}))
+
+vi.mock('@/lib/prompts/fortuneWithIcp', () => ({
+  buildEvidenceGroundingGuide: vi.fn(() => ''),
+}))
+
+// Error response helper — route uses this for 401 guest limit + 402 credit
+// exhaustion. Echoes the status so tests on those paths see the expected
+// code without us re-implementing the helper's body.
+vi.mock('@/lib/api/errorHandler', () => ({
+  createErrorResponse: vi.fn((opts: { code: string; message?: string; headers?: Record<string, string> }) => {
+    const status = opts.code === 'PAYMENT_REQUIRED' ? 402 : opts.code === 'UNAUTHORIZED' ? 401 : 400
+    return NextResponse.json({ error: opts.code, message: opts.message }, { status, headers: opts.headers })
+  }),
+  ErrorCodes: {
+    BAD_REQUEST: 'BAD_REQUEST',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    PAYMENT_REQUIRED: 'PAYMENT_REQUIRED',
     INTERNAL_ERROR: 'INTERNAL_ERROR',
   },
 }))
@@ -417,7 +484,9 @@ describe('Compatibility Counselor API - POST', () => {
           label: 'compatibility-counselor',
           systemPrompt: expect.any(String),
           userPrompt: expect.any(String),
-          maxTokens: 3500,
+          // Route caps Claude output at 5000 + auto-continuation hook so
+          // long answers don't get truncated mid-sentence (see route.ts).
+          maxTokens: 5000,
           timeoutMs: 80000,
         })
       )
