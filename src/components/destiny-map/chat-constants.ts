@@ -7,8 +7,12 @@ export const CHAT_TIMINGS = {
   DEBOUNCE_SAVE: 2000,
   /** Duration to show welcome back banner */
   WELCOME_BANNER_DURATION: 5000,
-  /** API request timeout */
-  REQUEST_TIMEOUT: 90000,
+  // 단일 absolute timeout 은 길게 이어진 답변(특히 continuation 활성)을 중간에 잘랐다.
+  // 응답 헤더까지의 한도와, 스트림 chunk 사이 idle 한도를 분리해서 관리.
+  /** 응답 헤더 도착까지 허용 시간 — TTFB 가 이걸 넘으면 abort */
+  HEADER_TIMEOUT: 30000,
+  /** 스트림 도중 다음 chunk 까지 허용되는 idle 시간 — chunk 가 들어오는 동안엔 무한히 길게 받음 */
+  CHUNK_IDLE_TIMEOUT: 45000,
   /** Base delay for exponential backoff retry */
   RETRY_BASE_DELAY: 1000,
   /** Notice auto-dismiss duration */

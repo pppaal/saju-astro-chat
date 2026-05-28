@@ -174,9 +174,20 @@ export function useChatApi({
 
   // Make API request with retry logic
   const makeRequest = React.useCallback(
-    async (payload: ChatPayload, attempt: number = 0): Promise<Response> => {
+    async (
+      payload: ChatPayload,
+      attempt: number = 0
+    ): Promise<{ res: Response; controller: AbortController }> => {
       const startTime = performance.now()
       logger.debug(`[Chat] Request started (attempt ${attempt + 1})`)
+
+      // 응답 헤더까지의 cap 만 절대 시간으로 적용한다. 본문 스트림은 응답 도착
+      // 후 chunk idle 기준(processStream) 으로 따로 관리해서, 답변이 길어
+      // 도(연속 토큰만 들어오면) 중간에 잘리지 않는다.
+      const controller = new AbortController()
+      const headerTimer = setTimeout(() => {
+        controller.abort()
+      }, CHAT_TIMINGS.HEADER_TIMEOUT)
 
       try {
         const headers: Record<string, string> = {
@@ -190,8 +201,9 @@ export function useChatApi({
           method: 'POST',
           headers,
           body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(CHAT_TIMINGS.REQUEST_TIMEOUT),
+          signal: controller.signal,
         })
+        clearTimeout(headerTimer)
 
         const responseTime = performance.now() - startTime
         logger.debug(`[Chat] Response received: ${responseTime.toFixed(0)}ms`)
@@ -248,8 +260,9 @@ export function useChatApi({
         }
 
         setRetryCount(0)
-        return res
+        return { res, controller }
       } catch (error: unknown) {
+        clearTimeout(headerTimer)
         const err = error as Error & { name?: string }
         if (err.name === 'AbortError' || err.name === 'TimeoutError') {
           setConnectionStatus('slow')
@@ -271,10 +284,29 @@ export function useChatApi({
 
   // Process SSE stream response using StreamProcessor
   const processStream = React.useCallback(
-    async (res: Response, _assistantMsgId: string, userText: string): Promise<void> => {
+    async (
+      res: Response,
+      controller: AbortController,
+      _assistantMsgId: string,
+      userText: string
+    ): Promise<void> => {
       let lastScrollTime = 0
+
+      // Chunk idle timer — chunk 가 들어올 때마다 reset. 일정 시간 동안 한 byte
+      // 도 안 오면 응답이 진짜 멈춘 것으로 보고 abort. fetch signal 에 연결되어
+      // 있어 controller.abort() 가 reader.read() 도 종료시킨다.
+      let idleTimer: ReturnType<typeof setTimeout> | null = null
+      const armIdleTimer = () => {
+        if (idleTimer) clearTimeout(idleTimer)
+        idleTimer = setTimeout(() => {
+          controller.abort()
+        }, CHAT_TIMINGS.CHUNK_IDLE_TIMEOUT)
+      }
+      armIdleTimer()
+
       const result = await streamProcessor.process(res, {
         onChunk: (_accumulated, cleaned) => {
+          armIdleTimer()
           // Update message in real-time as chunks arrive
           updateLastAssistantMessage(cleaned)
           // Auto-scroll during streaming (throttled to every 100ms)
@@ -288,6 +320,11 @@ export function useChatApi({
           setNotice(tr.error)
         },
       })
+
+      if (idleTimer) {
+        clearTimeout(idleTimer)
+        idleTimer = null
+      }
 
       // Flush final content immediately (bypass throttle)
       if (!result.content) {
@@ -388,7 +425,9 @@ export function useChatApi({
         city: profile.city,
         // 기기 현재 시간대 — "오늘"/일진을 사용자 로컬 날짜로 계산(새벽 어긋남 방지).
         userTimezone:
-          typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined,
+          typeof Intl !== 'undefined'
+            ? Intl.DateTimeFormat().resolvedOptions().timeZone
+            : undefined,
         lang,
         // 마지막 20턴만 (10쌍 user/assistant). 이전엔 50턴이었는데 그건
         // 매 message 마다 caching 안 되는 priorTurns 토큰만 ~5K 추가됐고
@@ -412,7 +451,7 @@ export function useChatApi({
       }
 
       try {
-        const res = await makeRequest(payload)
+        const { res, controller } = await makeRequest(payload)
 
         if (res.headers.get('x-fallback') === '1') {
           setUsedFallback(true)
@@ -431,7 +470,7 @@ export function useChatApi({
         ])
         setLoading(false)
 
-        await processStream(res, assistantMsgId, text)
+        await processStream(res, controller, assistantMsgId, text)
       } catch (e: unknown) {
         logger.error('[Chat] send error:', e)
         const err = e as Error
