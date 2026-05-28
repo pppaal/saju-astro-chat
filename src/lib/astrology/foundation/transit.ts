@@ -183,7 +183,16 @@ export function findTransitAspects(
 }
 
 /**
- * 접근/분리 판단
+ * 접근/분리 판단 — transit 행성이 정확한 aspect 위치(natal ± targetAngle) 로
+ * 향하고 있는지(applying) 멀어지고 있는지(separating) 판단.
+ *
+ * 이전 구현 회귀: `targetAngle` 파라미터를 받아만 두고 안 써서 모든 aspect
+ * 타입에서 "natal 방향으로 가는지" 만 봤음 → conjunction 만 맞고 square/
+ * sextile/trine/opposition 은 applying/separating 라벨이 잘못 나오던 회귀.
+ *
+ * 올바른 공식: aspect 의 exact point 가 두 개(natal+target, natal-target).
+ * transit 에서 가까운 쪽까지의 부호 있는 거리(전진 방향이 +)를 보고,
+ * speed 부호와 같으면 applying(가까워지는 중), 다르면 separating.
  */
 function determineApplying(
   transitLon: number,
@@ -191,20 +200,25 @@ function determineApplying(
   transitSpeed: number,
   targetAngle: number
 ): boolean {
-  // 정적 트랜짓 또는 역행
-  if (transitSpeed === 0) {
-    return false
-  }
+  if (transitSpeed === 0) return false
 
-  const diff = (natalLon - transitLon + 360) % 360
+  const norm = (x: number) => ((x % 360) + 360) % 360
+  // 정확한 aspect 위치 두 개 (conjunction 은 둘 다 natalLon 으로 일치).
+  const t1 = norm(natalLon + targetAngle)
+  const t2 = norm(natalLon - targetAngle)
 
-  if (transitSpeed > 0) {
-    // 순행: 트랜짓이 네이탈 방향으로 이동 중이면 접근
-    return diff > 0 && diff < 180
-  } else {
-    // 역행: 반대 방향으로 이동
-    return diff > 180
+  // 부호 있는 최단 거리 (-180, 180]. 양수 = 전진해야 도달.
+  const signedDist = (to: number) => {
+    const d = ((to - transitLon + 540) % 360) - 180
+    return d
   }
+  const d1 = signedDist(t1)
+  const d2 = signedDist(t2)
+  // |d| 더 작은 쪽 (현재 더 가까운 exact aspect 점) 으로 이동 여부 판단.
+  const d = Math.abs(d1) <= Math.abs(d2) ? d1 : d2
+
+  // applying = transit speed 방향이 target 방향과 일치.
+  return (d > 0 && transitSpeed > 0) || (d < 0 && transitSpeed < 0)
 }
 
 /**
