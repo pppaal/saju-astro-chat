@@ -115,6 +115,21 @@ export default function MonthDashboard({
   const finalInterp = monthInterp ?? monthDates[0]?.monthlyInterpretation
   const cmp = finalInterp?.monthComparison
 
+  // 이달 평균 사주↔점성 합치율
+  const monthAgreement = (() => {
+    if (monthDates.length === 0) return null
+    let sum = 0
+    let n = 0
+    for (const d of monthDates) {
+      const v = d.evidence?.crossAgreementPercent
+      if (typeof v === 'number') {
+        sum += v
+        n += 1
+      }
+    }
+    return n > 0 ? sum / n : null
+  })()
+
   return (
     <div className="space-y-6">
       <PremiumHero
@@ -122,6 +137,7 @@ export default function MonthDashboard({
         verdict={verdict}
         score={monthScore}
         grade={data.grade}
+        agreementPercent={monthAgreement}
         locale={locale}
       />
 

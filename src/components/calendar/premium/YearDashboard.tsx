@@ -24,7 +24,7 @@ import { getCalLabels, type CalLocale } from './labels'
 
 interface Props {
   year: number
-  /** 전체 ImportantDate (현재 미사용 — 호환성 위해 유지). */
+  /** 전체 ImportantDate — 평균 합치율 chip 계산에 사용. */
   allDates?: ImportantDate[]
   yearlyMonthly?: YearMonthly[]
   /** "올해 큰 날" — convergence events (planner 가 lazy 로 채움). bothSystems 만 사용. */
@@ -45,6 +45,7 @@ interface Props {
 
 export default function YearDashboard({
   year,
+  allDates,
   yearlyMonthly,
   yearlyConvergence,
   lifetimePivots,
@@ -117,6 +118,21 @@ export default function YearDashboard({
     }
   })
 
+  // 연 평균 사주↔점성 합치율 — 각 일자의 evidence.crossAgreementPercent 평균.
+  const agreement = (() => {
+    if (!allDates || allDates.length === 0) return null
+    let sum = 0
+    let n = 0
+    for (const d of allDates) {
+      const v = d.evidence?.crossAgreementPercent
+      if (typeof v === 'number') {
+        sum += v
+        n += 1
+      }
+    }
+    return n > 0 ? sum / n : null
+  })()
+
   return (
     <div className="space-y-6">
       <PremiumHero
@@ -124,6 +140,7 @@ export default function YearDashboard({
         verdict={verdict}
         score={yearScore}
         grade={yearGrade}
+        agreementPercent={agreement}
         locale={locale}
       />
 

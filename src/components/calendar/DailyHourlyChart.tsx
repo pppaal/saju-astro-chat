@@ -9,7 +9,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  Legend,
   ReferenceLine,
   Label,
 } from 'recharts'
@@ -46,46 +45,39 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
     return `${String(today.getHours()).padStart(2, '0')}시`
   })()
 
-  const { data, hasAstro } = useMemo(() => {
-    const empty = { data: [] as HourPoint[], hasAstro: false }
+  const { data } = useMemo(() => {
+    const empty = { data: [] as HourPoint[] }
     if (!importantDate?.engineSignals) return empty
     const hourlySignals = importantDate.engineSignals.filter((s) => s.layer === 'hourly')
     if (hourlySignals.length === 0) return empty
 
-    // 시간(0-23)별 평균 polarity × weight
-    const buckets: Array<{ saju: number[]; astro: number[] }> = Array.from({ length: 24 }, () => ({
-      saju: [],
-      astro: [],
-    }))
+    // 사용자 요청: 사주/점성 두 라인 → 단일 "에너지" 라인 (양쪽 평균).
+    // 시간별 모든 신호의 polarity × weight 평균. saju/astro source 불문.
+    const buckets: number[][] = Array.from({ length: 24 }, () => [])
 
     for (const s of hourlySignals) {
       const hourFromId = inferHourFromSignalId(s.id)
       if (hourFromId == null) continue
-      const score = s.polarity * s.weight
-      const target = s.source === 'saju' ? buckets[hourFromId].saju : buckets[hourFromId].astro
-      target.push(score)
+      buckets[hourFromId].push(s.polarity * s.weight)
     }
 
-    const data: HourPoint[] = buckets.map((b, hour) => {
-      const sajuAvg = b.saju.length > 0 ? b.saju.reduce((a, v) => a + v, 0) / b.saju.length : 0
-      const astroAvg = b.astro.length > 0 ? b.astro.reduce((a, v) => a + v, 0) / b.astro.length : 0
+    const data: HourPoint[] = buckets.map((scores, hour) => {
+      const avg = scores.length > 0 ? scores.reduce((a, v) => a + v, 0) / scores.length : 0
       return {
         hour: `${String(hour).padStart(2, '0')}시`,
         hourNum: hour,
-        saju: Math.round(50 + sajuAvg * 16),
-        astro: Math.round(50 + astroAvg * 16),
+        score: Math.round(50 + avg * 16),
       }
     })
 
-    const hasAstro = data.some((d) => d.astro !== 50)
-    return { data, hasAstro }
+    return { data }
   }, [importantDate])
 
   if (data.length === 0) return null
 
   // Y축 사용자 시간대 범위에 맞춰 stretch — saju/astro 둘 다 보통 35~65 좁은 밴드라
   // 0~100 고정이면 굴곡 안 보임. min/max ±5 padding으로 줌인.
-  const allHourlyScores = data.flatMap((d) => (hasAstro ? [d.saju, d.astro] : [d.saju]))
+  const allHourlyScores = data.map((d) => d.score)
   const yMin = Math.max(0, Math.floor(Math.min(...allHourlyScores) / 5) * 5 - 5)
   const yMax = Math.min(100, Math.ceil(Math.max(...allHourlyScores) / 5) * 5 + 5)
   const showNeutral50 = yMin <= 50 && yMax >= 50
@@ -94,25 +86,17 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
     <div className="bg-neutral-950 border border-neutral-900 rounded-2xl p-5 sm:p-6">
       <div className="flex items-baseline justify-between mb-2">
         <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-cyan-400" />
+          <Clock className="w-4 h-4 text-amber-400" />
           시간대 흐름 (24시간)
         </h3>
       </div>
-      <p className="text-xs text-zinc-500 mb-4">
-        {hasAstro
-          ? '두 선이 교차하는 구간이 전환 시점 · 50점 기준선'
-          : '하루 중 어느 시간에 운이 오는지 · 50점 기준선'}
-      </p>
+      <p className="text-xs text-zinc-500 mb-4">하루 중 어느 시간에 운이 오는지 · 50점 기준선</p>
       <ResponsiveContainer width="100%" height={240}>
         <ComposedChart data={data} margin={{ top: 28, right: 40, left: -10, bottom: 0 }}>
           <defs>
-            <linearGradient id="hourSaju" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.2} />
+            <linearGradient id="hourEnergy" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.22} />
               <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
-            </linearGradient>
-            <linearGradient id="hourAstro" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.18} />
-              <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
@@ -133,18 +117,6 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
             axisLine={false}
           />
           <Tooltip content={<HourlyTooltip />} cursor={{ stroke: '#404040', strokeWidth: 1 }} />
-          {hasAstro && (
-            <Legend
-              iconSize={8}
-              iconType="circle"
-              wrapperStyle={{
-                fontSize: '11px',
-                fontWeight: 500,
-                paddingTop: '12px',
-                color: '#737373',
-              }}
-            />
-          )}
           {showNeutral50 && (
             <ReferenceLine y={50} stroke="#262626" strokeWidth={1} strokeDasharray="3 3">
               <Label value="보통 50" position="right" fill="#525252" fontSize={11} />
@@ -164,32 +136,17 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
           )}
           <Area
             type="monotone"
-            dataKey="saju"
-            name="사주"
+            dataKey="score"
+            name="에너지"
             stroke="#f59e0b"
             strokeWidth={2}
-            fill="url(#hourSaju)"
+            fill="url(#hourEnergy)"
             dot={false}
             activeDot={{ r: 4, fill: '#f59e0b', stroke: '#0a0a0a', strokeWidth: 2 }}
             isAnimationActive
             animationDuration={600}
             animationEasing="ease-out"
           />
-          {hasAstro && (
-            <Area
-              type="monotone"
-              dataKey="astro"
-              name="점성"
-              stroke="#22d3ee"
-              strokeWidth={2}
-              fill="url(#hourAstro)"
-              dot={false}
-              activeDot={{ r: 4, fill: '#22d3ee', stroke: '#0a0a0a', strokeWidth: 2 }}
-              isAnimationActive
-              animationDuration={600}
-              animationEasing="ease-out"
-            />
-          )}
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -219,8 +176,8 @@ function HourlyTooltip({
 interface HourPoint {
   hour: string
   hourNum: number
-  saju: number
-  astro: number
+  /** 사주+점성 통합 평균 score (50=중립, 100=최대 우호) */
+  score: number
 }
 
 /**
