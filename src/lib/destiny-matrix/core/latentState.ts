@@ -2,7 +2,7 @@ import type { MatrixCalculationInput, MatrixSummary } from '@/lib/destiny-matrix
 import type { MatrixCalculationInputNormalized, DestinyCoreQuality } from './runDestinyCore'
 import type { StrategyEngineResult } from './strategyEngine'
 import type { DestinyCoreCanonicalOutput } from './types'
-import { clamp01 } from '@/lib/utils/math'
+import { clamp01, round3 } from '@/lib/utils/math'
 
 export type DestinyLatentGroup =
   | 'structural'
@@ -273,9 +273,6 @@ const NEGATIVE_SHINSAL = new Set([
 ])
 
 
-function round3(value: number): number {
-  return Math.round(value * 1000) / 1000
-}
 
 function ratio(part: number, total: number): number {
   if (!Number.isFinite(part) || !Number.isFinite(total) || total <= 0) return 0

@@ -10,7 +10,7 @@ import {
   resolveScenarioBranchPolicyWeight,
   resolveScenarioTimingPolicyWeight,
 } from './scenarioPolicies'
-import { clamp, clamp01 } from '@/lib/utils/math'
+import { clamp, clamp01, round1 } from '@/lib/utils/math'
 
 interface ResolvedAstroTimingIndex {
   decade: number
@@ -27,9 +27,6 @@ interface ScenarioResolvedContext {
   states?: StateEngineResult
 }
 
-function round1(value: number): number {
-  return Math.round(value * 10) / 10
-}
 
 function resolveBranchSpecificWeight(input: {
   branch: string

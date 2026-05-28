@@ -25,7 +25,7 @@ import {
   localizeDomain,
   rankRiskAxis,
 } from './adaptersPresentation'
-import { clamp01 } from '@/lib/utils/math'
+import { clamp01, round2 } from '@/lib/utils/math'
 
 function repairLocaleText(text: string, locale: 'ko' | 'en'): string {
   return locale === 'ko' ? repairPossiblyMojibakeText(text) : text
@@ -139,8 +139,12 @@ export function normalizePersonModelList(
   )
 }
 
-export function round2(value: number): number {
-  return Math.round(clamp01(value) * 100) / 100
+// Same naming convention as the canonical round2 in lib/utils/math but
+// pre-clamps to [0, 1] first. Used in this file for confidence-style
+// scores that must never exceed 1 before being displayed to two
+// decimals.
+function clampedRound2(value: number): number {
+  return round2(clamp01(value))
 }
 
 export function avg(values: number[]): number {
@@ -203,26 +207,26 @@ export function buildDimensionScores(
   )
 
   return {
-    structuralScore: round2(verdict?.confidence || 0),
-    activationScore: round2(
+    structuralScore: clampedRound2(verdict?.confidence || 0),
+    activationScore: clampedRound2(
       avg([timing?.readinessScore || 0, timing?.triggerScore || 0, timing?.convergenceScore || 0])
     ),
-    pressureScore: round2(
+    pressureScore: clampedRound2(
       avg([
         getModePressureScore(verdict?.mode || 'verify'),
         contradictionScore,
         Math.min((manifestation?.riskExpressions?.length || 0) * 0.14, 1),
       ])
     ),
-    supportScore: round2(
+    supportScore: clampedRound2(
       avg([
         getModeSupportScore(verdict?.mode || 'verify'),
         agreementScore,
         Math.min((verdict?.allowedActions?.length || 0) * 0.18, 1),
       ])
     ),
-    agreementScore: round2(agreementScore),
-    contradictionScore: round2(contradictionScore),
+    agreementScore: clampedRound2(agreementScore),
+    contradictionScore: clampedRound2(contradictionScore),
   }
 }
 
@@ -543,7 +547,7 @@ export function buildFutureBranches(
         label: branch.label,
         domain: branch.domain,
         window: branch.window,
-        probability: round2(scenario?.probability || 0),
+        probability: clampedRound2(scenario?.probability || 0),
         summary: branch.summary,
         conditions: [
           ...(branch.entry || []).slice(0, 2),
@@ -607,7 +611,7 @@ export function buildTimeProfile(core: DestinyCoreResult, locale: 'ko' | 'en') {
     label: localizeDomain(item.domain, locale),
     window: summarizeWindow(item.window, locale),
     granularity: String(item.timingGranularity || ''),
-    confidence: round2(item.confidence || 0),
+    confidence: clampedRound2(item.confidence || 0),
     whyNow: normalizePersonModelText(item.whyNow, locale),
     entryConditions: normalizePersonModelList((item.entryConditions || []).slice(0, 3), locale),
     abortConditions: normalizePersonModelList((item.abortConditions || []).slice(0, 3), locale),
@@ -619,7 +623,7 @@ export function buildTimeProfile(core: DestinyCoreResult, locale: 'ko' | 'en') {
         domain: item.domain,
         source: source.source,
         label: normalizePersonModelText(source.label, locale),
-        intensity: round2(source.intensity || 0),
+        intensity: clampedRound2(source.intensity || 0),
         active: Boolean(source.active),
       }))
     )
@@ -639,7 +643,7 @@ export function buildTimeProfile(core: DestinyCoreResult, locale: 'ko' | 'en') {
           : 'Current timing should be read through structure and trigger together.'),
       locale
     ),
-    confidence: round2(core.canonical.confidence || 0),
+    confidence: clampedRound2(core.canonical.confidence || 0),
     windows,
     activationSources,
   }

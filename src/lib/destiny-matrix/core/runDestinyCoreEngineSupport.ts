@@ -33,6 +33,7 @@ import {
   buildDestinyLatentState,
   type DestinyLatentState,
 } from '@/lib/destiny-matrix/core/latentState'
+import { round2, round3 } from '@/lib/utils/math'
 
 export type AvailabilityState = 'present' | 'empty-computed' | 'missing-upstream'
 
@@ -88,9 +89,6 @@ function normalizeScoreToUnit(raw: unknown): number | null {
   return clampUnit(raw / 100)
 }
 
-function round3(value: number): number {
-  return Math.round(value * 1000) / 1000
-}
 
 function monthDiff(fromIso: string | undefined, targetMonth: string | undefined): number | null {
   if (!fromIso || !targetMonth) return null
@@ -753,9 +751,6 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
 
-function round2(value: number): number {
-  return Math.round(value * 100) / 100
-}
 
 function scoreByThreshold(value: number, target: number, maxPoints: number): number {
   if (target <= 0) return maxPoints
