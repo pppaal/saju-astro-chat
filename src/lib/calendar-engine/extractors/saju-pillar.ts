@@ -1,4 +1,4 @@
-import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS, getSolarTermKST } from '@/lib/saju/constants'
+import { STEMS, BRANCHES, getSolarTermKST } from '@/lib/saju/constants'
 import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import type {
@@ -10,6 +10,7 @@ import type {
   SignalKind,
 } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
+import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
 
 /**
  * 사주 4시간축 — 대운/세운/월운/일주의 십신 활성 추출기.
@@ -242,24 +243,6 @@ function pillarToStemInfo(stemName: string): StemInfo | null {
   return found as StemInfo
 }
 
-function getSibsin(dayMaster: StemInfo, target: StemInfo): SibsinKind | null {
-  if (dayMaster.element === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '식신' : '상관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편재' : '정재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편관' : '정관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편인' : '정인'
-  }
-  return null
-}
 
 // 미사용 import suppress
 void BRANCHES
