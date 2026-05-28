@@ -219,14 +219,11 @@ export const CacheKeys = {
     gender: string,
     year: number,
     category?: string,
-    birthPlace?: string,
-    /** 빌드된 month 범위 — 'all' (12달) 또는 'mNN-NN-NN' 같은 partial.
-     *  partial 응답은 같은 사용자가 다른 month 범위 요청해도 stale 안 되게. */
-    monthRangeKey?: string
+    birthPlace?: string
   ) =>
-    `yearly:v5:${birthDate}:${birthTime}:${gender}:${year}:${category || 'all'}:${safeBase64Encode(
+    `yearly:v6:${birthDate}:${birthTime}:${gender}:${year}:${category || 'all'}:${safeBase64Encode(
       birthPlace || 'Seoul'
-    )}:${monthRangeKey || 'all'}`,
+    )}`,
 
   compatibility: (person1: string, person2: string) => `compat:v1:${person1}:${person2}`,
 
