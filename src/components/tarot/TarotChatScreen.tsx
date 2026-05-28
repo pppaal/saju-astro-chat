@@ -15,7 +15,7 @@ import {
   getCardImagePath,
   type DeckStyle,
 } from '@/lib/tarot/tarot.types'
-import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import type { Spread } from '@/lib/tarot/tarot.types'
 
 // 카테고리(테마) 안의 모든 spread 를 flat 하게 펼침 — chip 1개로 선택
@@ -322,6 +322,10 @@ export default function TarotChatScreen() {
                         const expanded = expandedSpreadId === sp.id
                         const title = isKo ? (sp.titleKo ?? sp.title) : sp.title
                         const desc = isKo ? (sp.descriptionKo ?? sp.description) : sp.description
+                        const cost = tarotCreditCostFor(sp.cardCount)
+                        const costLabel = isKo
+                          ? `${cost} 크레딧`
+                          : `${cost} ${cost === 1 ? 'credit' : 'credits'}`
                         return (
                           <li key={sp.id} className={selected ? 'bg-amber-500/5' : ''}>
                             <div className="flex items-center gap-2 px-3 py-2.5">
@@ -349,12 +353,21 @@ export default function TarotChatScreen() {
                                     ? `${sp.cardCount}장`
                                     : `${sp.cardCount} ${sp.cardCount === 1 ? 'Card' : 'Cards'}`}
                                 </span>
-                                <span
-                                  className={`truncate text-[15px] font-medium ${
-                                    selected ? 'text-amber-300' : 'text-slate-100'
-                                  }`}
-                                >
-                                  {title}
+                                <span className="flex min-w-0 flex-1 items-baseline gap-2">
+                                  <span
+                                    className={`truncate text-[15px] font-medium ${
+                                      selected ? 'text-amber-300' : 'text-slate-100'
+                                    }`}
+                                  >
+                                    {title}
+                                  </span>
+                                  <span
+                                    className={`shrink-0 text-[11px] tracking-wide ${
+                                      selected ? 'text-amber-300/80' : 'text-slate-400'
+                                    }`}
+                                  >
+                                    · {costLabel}
+                                  </span>
                                 </span>
                               </button>
                               <button
