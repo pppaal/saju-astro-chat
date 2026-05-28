@@ -23,7 +23,10 @@ function useElapsedReassurance(active: boolean, thresholdMs = 25000): boolean {
 function WaitingForReadingHint({ active, isKo }: { active: boolean; isKo: boolean }) {
   const showExtra = useElapsedReassurance(active)
   return (
-    <div className="flex flex-col gap-2 text-sm text-indigo-200/80 py-2">
+    <div
+      className="flex flex-col gap-2 text-sm py-2"
+      style={{ color: 'var(--ds-gold-on-dark-soft)' }}
+    >
       <div className="flex items-center gap-2">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span>
@@ -33,7 +36,7 @@ function WaitingForReadingHint({ active, isKo }: { active: boolean; isKo: boolea
         </span>
       </div>
       {showExtra && (
-        <p className="text-xs text-indigo-200/60 pl-6">
+        <p className="text-xs pl-6" style={{ color: 'var(--ds-dark-text-muted)' }}>
           {isKo
             ? '카드가 많을수록 조금 더 걸려요 (보통 30-60초). 새로고침하지 마시고 잠시만 기다려 주세요.'
             : 'Larger spreads take a little longer (typically 30-60s). Please don’t refresh — hang tight.'}
@@ -116,11 +119,16 @@ export function ResultsStage(props: ResultsStageProps) {
       : insight.guidance.trim().length > 0)
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100 font-sans">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none flex justify-center">
-        <div className="w-96 h-96 bg-indigo-900 rounded-full blur-3xl opacity-20 mt-10" />
-      </div>
-
+    <div
+      className="relative min-h-screen text-slate-100 font-sans"
+      style={{
+        background: `
+          radial-gradient(900px 600px at 20% 0%, rgba(99, 124, 200, 0.08), transparent 60%),
+          radial-gradient(800px 600px at 90% 100%, rgba(212, 181, 114, 0.06), transparent 60%),
+          var(--ds-dark-bg)
+        `,
+      }}
+    >
       <div className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-14 space-y-8">
         {/* ① 질문 */}
         <ResultsHeader
@@ -162,14 +170,32 @@ export function ResultsStage(props: ResultsStageProps) {
 
         {/* ③ 전체 해석 — LLM overall_message (스트리밍이면 부분 텍스트 + 타이핑 인디케이터) */}
         {(insight?.overall_message || aiPending) && (
-          <section className="rounded-2xl bg-slate-900/50 border border-indigo-500/20 shadow-[0_0_24px_rgba(99,102,241,0.08)] p-5 md:p-6">
+          <section
+            className="rounded-2xl p-5 md:p-6 border"
+            style={{
+              background: 'rgba(17, 24, 39, 0.42)',
+              borderColor: 'var(--ds-gold-line)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+            }}
+          >
             <div className="flex items-center gap-2 mb-3">
-              <MessageCircle className="w-4 h-4 text-indigo-400" />
-              <h2 className="text-sm font-medium text-indigo-300 tracking-wider uppercase">
+              <MessageCircle className="w-4 h-4" style={{ color: 'var(--ds-gold-on-dark)' }} />
+              <h2
+                className="text-sm font-medium tracking-wider uppercase"
+                style={{ color: 'var(--ds-gold-on-dark)' }}
+              >
                 {isKo ? '전체 해석' : 'Overall Reading'}
               </h2>
               {aiPending && insight?.overall_message && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-[10px] text-indigo-200">
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] border"
+                  style={{
+                    background: 'rgba(212, 181, 114, 0.10)',
+                    borderColor: 'var(--ds-gold-line)',
+                    color: 'var(--ds-gold-on-dark-soft)',
+                  }}
+                >
                   <Loader2 className="w-3 h-3 animate-spin" />
                   {isKo ? '타이핑 중' : 'typing'}
                 </span>
@@ -179,7 +205,10 @@ export function ResultsStage(props: ResultsStageProps) {
               <p className="text-lg md:text-[19px] text-slate-100 leading-relaxed whitespace-pre-wrap">
                 {renderHighlighted(insight.overall_message)}
                 {aiPending && (
-                  <span className="inline-block w-1.5 h-4 ml-0.5 bg-indigo-300/80 align-middle animate-pulse" />
+                  <span
+                    className="inline-block w-1.5 h-4 ml-0.5 align-middle animate-pulse"
+                    style={{ background: 'var(--ds-gold-on-dark)' }}
+                  />
                 )}
               </p>
             ) : (
