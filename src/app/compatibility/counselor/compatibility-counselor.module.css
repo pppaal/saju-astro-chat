@@ -427,20 +427,22 @@
   flex-direction: column;
   gap: 0.5rem;
   /* 답변창 넓게 — 위·아래 패딩 축소 */
-  padding: 0.5rem 0.85rem 0.5rem;
+  padding: 0.75rem 0.85rem;
   margin-top: 0.4rem;
+  /* 운명상담사 lightTheme inputBox 와 동일 — 흰 배경 + border 없음 +
+     soft shadow. 이전엔 stone border 가 또렷이 보였는데 운명 기준으로
+     borderless 로 통일해 더 깔끔. */
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: none;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(28, 25, 23, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
 }
 
 .inputContainer:focus-within {
-  border-color: #a8a29e;
-  box-shadow:
-    0 0 0 1px #a8a29e,
-    0 4px 12px rgba(28, 25, 23, 0.04);
+  /* 운명과 동일 — focus 시에도 border 추가 X, shadow 유지. */
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .input {
