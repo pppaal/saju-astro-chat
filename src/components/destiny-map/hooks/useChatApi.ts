@@ -13,9 +13,6 @@ import {
 } from '../chat-utils'
 import { generateFollowUpQuestions, isGenericFollowUp } from '../chat-followups'
 import type { ChatProps, ChatPayload } from '../chat-types'
-import { scoreIcpTest } from '@/lib/icpTest/scoring'
-import { analyzePersona } from '@/lib/persona/analysis'
-import { buildCounselingBrief } from '@/lib/prompts/fortuneWithIcp'
 import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
 
 interface UseChatApiOptions {
@@ -48,32 +45,6 @@ interface UseChatApiReturn {
   handleSend: (directText?: string) => Promise<void>
   showCrisisModal: boolean
   setShowCrisisModal: React.Dispatch<React.SetStateAction<boolean>>
-}
-
-function buildLocalCounselingBrief(whatUserWants: string, lang: LangKey) {
-  try {
-    const icpRaw = localStorage.getItem('icpQuizAnswers')
-    if (!icpRaw) {
-      return null
-    }
-    const icpAnswers = JSON.parse(icpRaw) as Record<string, string>
-    const icpResult = scoreIcpTest(icpAnswers)
-
-    let personaResult = null
-    const personaRaw = localStorage.getItem('personaQuizAnswers')
-    if (personaRaw) {
-      const personaAnswers = JSON.parse(personaRaw) as Record<string, string>
-      personaResult = analyzePersona(personaAnswers, lang)
-    }
-
-    return buildCounselingBrief({
-      icpResult,
-      personaResult,
-      whatUserWants,
-    })
-  } catch {
-    return null
-  }
 }
 
 export function useChatApi({
@@ -440,7 +411,6 @@ export function useChatApi({
         advancedAstro,
         predictionContext,
         userContext,
-        counselingBrief: buildLocalCounselingBrief(text, lang) ?? undefined,
         // 새로고침/탭 복제로 같은 turn 재진입 시 크레딧 중복 차감 방지.
         // 매 user 메시지마다 새 UUID. 재시도(attempt > 0) 도 같은 payload
         // 라서 같은 키 유지 → 의도된 재시도는 차감 1 회.

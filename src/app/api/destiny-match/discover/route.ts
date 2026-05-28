@@ -6,7 +6,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware, createAuthenticatedGuard, type ApiContext } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { getCompatibilitySummary } from '@/lib/destiny-match/quickCompatibility'
-import { quickPersonalityScore } from '@/lib/destiny-match/personalityCompatibility'
 import type { SynergyHighlight } from '@/lib/destiny-match/synergyHighlight'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
@@ -303,7 +302,7 @@ export const GET = withApiMiddleware(
                 birthTime: profile.user.profile?.birthTime || undefined,
                 gender: profile.user.profile?.gender || undefined,
               },
-              { zodiac1: myZodiacSign, zodiac2: profileZodiacSign },
+              { zodiac1: myZodiacSign, zodiac2: profileZodiacSign }
             )
             // 7일간 캐싱 (사주는 불변)
             await cacheSet(compatCacheKey, summary, CACHE_TTL.COMPATIBILITY)
@@ -319,34 +318,8 @@ export const GET = withApiMiddleware(
         }
       }
 
-      // 성격 테스트 기반 궁합
-      let personalityScore: number | null = null
-      if (myProfile.personalityScores && profile.personalityScores) {
-        try {
-          const myScores = myProfile.personalityScores as {
-            energy: number
-            cognition: number
-            decision: number
-            rhythm: number
-          }
-          const theirScores = profile.personalityScores as {
-            energy: number
-            cognition: number
-            decision: number
-            rhythm: number
-          }
-          personalityScore = quickPersonalityScore(myScores, theirScores)
-        } catch (e) {
-          logger.warn('[discover] Personality compatibility calc failed:', { e })
-        }
-      }
-
-      // 최종 궁합 점수 (사주 60% + 성격 40%)
-      if (personalityScore !== null) {
-        compatibilityScore = Math.round(sajuScore * 0.6 + personalityScore * 0.4)
-      } else {
-        compatibilityScore = sajuScore
-      }
+      // 성격 테스트 (ICP/personality) 모듈 제거됨 — 사주 점수만으로 궁합 결정.
+      compatibilityScore = sajuScore
 
       return {
         profile,

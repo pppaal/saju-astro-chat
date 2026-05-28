@@ -3,7 +3,6 @@
 
 import type { LangKey } from './chat-i18n'
 import type { Message, UserContext } from './chat-constants'
-import type { CounselingBrief } from '@/lib/icpTest/types'
 
 // Profile type for chat component
 export interface ChatProfile {
@@ -195,7 +194,6 @@ export interface ChatPayload {
   userContext?: UserContext
   // Life prediction context
   predictionContext?: PredictionContext
-  counselingBrief?: CounselingBrief
   // 새로고침/탭 복제 등으로 같은 turn 이 재진입할 때 크레딧 중복 차감
   // 방지용 멱등 키. 클라이언트가 매 user 메시지 보낼 때 UUID 생성, 같은
   // payload 가 재시도되면 그대로 재사용 → 서버는 한 번만 차감.
