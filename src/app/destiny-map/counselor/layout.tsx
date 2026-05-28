@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return generateLocalizedMetadata(
     {
       en: {
-        title: 'East-West Astrology Counselor — 1:1 AI Saju & Astrology Chat',
+        title: 'Destiny Counselor — 1:1 AI Saju & Astrology Chat',
         description:
           '1:1 AI counselor chat that reads your Saju (Four Pillars) and natal astrology together, with practical action guidance for life decisions.',
         keywords: [
@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
         ],
       },
       ko: {
-        title: '동서 점성 상담사 — 1:1 AI 사주·점성 상담',
+        title: '운명 상담사 — 1:1 AI 사주·점성 상담',
         description: '사주와 점성을 함께 풀어 실행 가능한 조언까지 제시하는 1:1 AI 운명 상담 채팅.',
         keywords: ['운명 상담', 'AI 상담', '사주 상담', '점성 상담', 'AI 운명 상담사', '운세 상담'],
       },

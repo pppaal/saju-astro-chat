@@ -99,7 +99,7 @@ D) 크레딧 사용 추적:
     titleKo: '3. AI 리딩 서비스 - 환불 불가',
     body: `IMPORTANT: AI reading outputs are FINAL and NON-REFUNDABLE once generated.
 
-This applies to AI-generated outcomes across our main products, including the East-West Astrology Counselor, Tarot, Compatibility analysis, and Fortune Calendar insights.
+This applies to AI-generated outcomes across our main products, including the Destiny Counselor, Tarot, Compatibility analysis, and Fortune Calendar insights.
 
 Reason: These services involve immediate AI computation and delivery of personalized digital content. Once generated, the service has been fully rendered.
 
@@ -116,7 +116,7 @@ By using our reading services, you acknowledge:
 3. You accept the reading as-is upon generation`,
     bodyKo: `중요: AI 리딩 결과물은 생성 즉시 최종 제공되며 환불이 불가합니다.
 
-이 원칙은 동서 점성 상담사, 타로 상담사, 궁합 분석, 일·월·년 운세 캘린더 인사이트를 포함한 당사의 주요 AI 결과물 전반에 적용됩니다.
+이 원칙은 운명 상담사, 타로 상담사, 궁합 분석, 일·월·년 운세 캘린더 인사이트를 포함한 당사의 주요 AI 결과물 전반에 적용됩니다.
 
 이유: 본 서비스는 즉각적인 AI 연산과 맞춤형 디지털 콘텐츠 제공을 포함합니다. 생성 완료 시점에 서비스 제공이 완료된 것으로 간주됩니다.
 
