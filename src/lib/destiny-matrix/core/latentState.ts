@@ -2,7 +2,7 @@ import type { MatrixCalculationInput, MatrixSummary } from '@/lib/destiny-matrix
 import type { MatrixCalculationInputNormalized, DestinyCoreQuality } from './runDestinyCore'
 import type { StrategyEngineResult } from './strategyEngine'
 import type { DestinyCoreCanonicalOutput } from './types'
-import { clamp01, round3 } from '@/lib/utils/math'
+import { average, clamp01, round3 } from '@/lib/utils/math'
 
 export type DestinyLatentGroup =
   | 'structural'
@@ -284,10 +284,6 @@ function normalizedCount(count: number, cap: number): number {
   return clamp01(count / cap)
 }
 
-function average(values: number[]): number {
-  if (values.length === 0) return 0
-  return values.reduce((sum, value) => sum + value, 0) / values.length
-}
 
 function pickTimingWindow(input: BuildDestinyLatentStateInput) {
   return (

@@ -56,3 +56,9 @@ export function clampScore1to10(value: number | undefined): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 5
   return Math.max(1, Math.min(10, Math.round(value)))
 }
+
+/** Arithmetic mean. Empty input returns 0 (no NaN leak). */
+export function average(values: number[]): number {
+  if (values.length === 0) return 0
+  return values.reduce((sum, value) => sum + value, 0) / values.length
+}
