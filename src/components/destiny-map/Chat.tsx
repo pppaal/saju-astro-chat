@@ -15,6 +15,7 @@ import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
+import { useToolHint } from '@/components/chat/ToolHint'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
 import { useChatAutoSave } from '@/hooks/useChatAutoSave'
@@ -210,7 +211,17 @@ const Chat = memo(function Chat({
     })
   }, [initialSessionId, loadSession, scrollToLatest])
 
-  const goToTarot = React.useCallback(() => setShowTarotModal(true), [])
+  // 입력창 도구 안내 — 첫 답변 후 ~ 3 user 턴까지만 1회. 도구 사용 시 자동 dismiss.
+  const { dismissed: toolHintDismissed, dismiss: dismissToolHint } = useToolHint('destiny')
+
+  const goToTarot = React.useCallback(() => {
+    dismissToolHint()
+    setShowTarotModal(true)
+  }, [dismissToolHint])
+  const goToChart = React.useCallback(() => {
+    dismissToolHint()
+    setShowChartModal(true)
+  }, [dismissToolHint])
 
   // 🃏 클래리파이어 카드 — 공통 hook (compat/followup 동일). 정책 단일 출처.
   const clarifier = useClarifierCard({
@@ -531,6 +542,18 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               userName={profile?.name}
               onOpenClarifier={clarifier.buttonProps.onClick}
               clarifierUsed={clarifier.isLocked}
+              showToolHint={(() => {
+                const userTurns = visibleMessages.filter((m) => m.role === 'user').length
+                const hasAssistantAnswer = visibleMessages.some((m) => m.role === 'assistant')
+                return (
+                  !toolHintDismissed &&
+                  !loading &&
+                  hasAssistantAnswer &&
+                  userTurns >= 1 &&
+                  userTurns <= 3
+                )
+              })()}
+              onDismissToolHint={dismissToolHint}
             />
 
             <ChatInputArea
@@ -544,10 +567,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onInputChange={setInput}
               onKeyDown={onKeyDown}
               onSend={() => void handleSend()}
-              onFileUpload={handleFileUpload}
+              onFileUpload={async (e) => {
+                dismissToolHint()
+                await handleFileUpload(e)
+              }}
               onClearFile={clearFile}
               onOpenTarot={goToTarot}
-              onOpenChart={() => setShowChartModal(true)}
+              onOpenChart={goToChart}
               clarifierButton={{
                 props: clarifier.buttonProps,
                 label: clarifier.buttonLabel,

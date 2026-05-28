@@ -28,6 +28,7 @@ const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCar
 })
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
 import { useCreditModal } from '@/contexts/CreditModalContext'
+import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 
 // Short, one-line prompts that cycle through the textarea placeholder.
 // The original single-string placeholder ("두 사람에 대해 깊이 있는 질문을
@@ -127,6 +128,8 @@ function CompatibilityCounselorContent() {
     lang: locale,
     setNotice: setFileNotice,
   })
+  // 입력창 도구 안내 — 첫 답변 후 ~ 3 user 턴까지만 1회. 도구 사용 시 자동 dismiss.
+  const { dismissed: toolHintDismissed, dismiss: dismissToolHint } = useToolHint('compat')
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -821,6 +824,29 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               </div>
             )}
 
+            {/* 도구 안내 — 첫 assistant 답변 후 user 턴 3회까지만 1회 노출.
+                도구 사용 또는 × 누르면 영구 dismiss (localStorage). */}
+            {(() => {
+              const userTurns = messages.filter((m) => m.role === 'user').length
+              const hasAssistantAnswer = messages.some((m) => m.role === 'assistant')
+              if (
+                toolHintDismissed ||
+                isLoading ||
+                !hasAssistantAnswer ||
+                userTurns === 0 ||
+                userTurns > 3
+              ) {
+                return null
+              }
+              return (
+                <ToolHint
+                  lang={isKo ? 'ko' : 'en'}
+                  variant="compat"
+                  onDismiss={dismissToolHint}
+                />
+              )
+            })()}
+
             <div ref={messagesEndRef} />
           </div>
 
@@ -863,14 +889,20 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                     type="file"
                     accept=".txt,.md,.csv,.pdf"
                     className={styles.fileInput}
-                    onChange={handleFileUpload}
+                    onChange={(e) => {
+                      dismissToolHint()
+                      void handleFileUpload(e)
+                    }}
                   />
                 </label>
                 {/* 🃏 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
                     사이드바 푸터에 같은 둘이 있어 ≥1024px에선 중복을 피해 숨긴다. */}
                 <button
                   type="button"
-                  onClick={() => setShowTarotModal(true)}
+                  onClick={() => {
+                    dismissToolHint()
+                    setShowTarotModal(true)
+                  }}
                   disabled={isLoading || persons.length < 2}
                   className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
                   aria-label={isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot'}
@@ -885,7 +917,10 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowChartModal(true)}
+                  onClick={() => {
+                    dismissToolHint()
+                    setShowChartModal(true)
+                  }}
                   disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
                   className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
                   aria-label={isKo ? '궁합 차트' : 'Couple chart'}

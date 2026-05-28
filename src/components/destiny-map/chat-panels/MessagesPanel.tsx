@@ -7,6 +7,7 @@ import MessageRow from '../MessageRow'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 import { pickGreeting } from '@/lib/counselor/greetingTemplates'
 import HexDPLogo from '@/components/branding/HexDPLogo'
+import { ToolHint } from '@/components/chat/ToolHint'
 
 interface MessagesPanelProps {
   visibleMessages: Message[]
@@ -27,6 +28,10 @@ interface MessagesPanelProps {
   /** 커스텀 empty state — compat 같이 다른 hero (💕 + 두 사람) 가 필요할 때.
    *  미지정 시 destiny 기본 (HexDPLogo + pickGreeting). */
   customEmptyState?: React.ReactNode
+  /** 입력창 도구 (파일/타로/차트) 안내 힌트 노출 여부. 호출자가 user 턴 수와
+   *  localStorage dismiss 상태 기준으로 결정해 넘겨준다. */
+  showToolHint?: boolean
+  onDismissToolHint?: () => void
 }
 
 export const MessagesPanel = React.memo(function MessagesPanel({
@@ -44,6 +49,8 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   onOpenClarifier,
   clarifierUsed,
   customEmptyState,
+  showToolHint,
+  onDismissToolHint,
 }: MessagesPanelProps) {
   const lastMessage =
     visibleMessages.length > 0 ? visibleMessages[visibleMessages.length - 1] : null
@@ -144,6 +151,11 @@ export const MessagesPanel = React.memo(function MessagesPanel({
               : 'Draw one more card'}
           </button>
         </div>
+      )}
+
+      {/* 도구 안내 — Chat.tsx 가 user 턴 수 + localStorage 기준 판단 후 prop 으로 보냄. */}
+      {showToolHint && onDismissToolHint && (
+        <ToolHint lang={effectiveLang} variant="destiny" onDismiss={onDismissToolHint} />
       )}
 
       <div ref={messagesEndRef} />
