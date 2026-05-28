@@ -1,7 +1,8 @@
 // src/lib/astrology/foundation/aspects.ts
 
 import { AspectHit, AspectRules, AspectType, Chart } from './types'
-import { shortestAngle, clamp } from './utils'
+import { shortestAngle } from './utils'
+import { clamp } from '@/lib/utils/math'
 
 const MAJOR_ASPECTS: AspectType[] = ['conjunction', 'sextile', 'square', 'trine', 'opposition']
 const MINOR_ASPECTS: AspectType[] = ['semisextile', 'quincunx', 'quintile', 'biquintile']
@@ -95,12 +96,7 @@ function orbOf(sep: number, a: AspectType) {
  * + relSpeed 의 부호 비교. signedSep 부호가 relSpeed 부호와 같으면 빠른
  * 행성이 느린 행성으로부터 멀어지는 중(separating), 다르면 접근 중(applying).
  */
-function applyingFlag(
-  lonA: number,
-  lonB: number,
-  relSpeed: number,
-  a: AspectType
-): boolean {
+function applyingFlag(lonA: number, lonB: number, relSpeed: number, a: AspectType): boolean {
   const target = desiredAngle(a)
   // 부호 있는 짧은 거리: B 기준 A 의 위치. 양수 = A 가 B 보다 앞.
   const signedSep = ((lonA - lonB + 540) % 360) - 180
