@@ -104,20 +104,25 @@ export const PATCH = withApiMiddleware(
     if (body.birthCity !== undefined) profileData.birthCity = body.birthCity
     if (body.tzId !== undefined) profileData.tzId = body.tzId
 
-    // Update user
-    if (Object.keys(userData).length > 0) {
-      await prisma.user.update({
-        where: { id: context.userId! },
-        data: userData,
-      })
-    }
-
-    // Update or create profile if needed
-    if (Object.keys(profileData).length > 0) {
-      await prisma.userProfile.upsert({
-        where: { userId: context.userId! },
-        create: { userId: context.userId!, ...profileData },
-        update: profileData,
+    // Wrap the two writes so a second concurrent PATCH on the same user
+    // can't interleave (e.g. one request changing the name while another
+    // changes birthDate would otherwise produce a half-updated row pair
+    // that the subsequent findUnique then reads).
+    if (Object.keys(userData).length > 0 || Object.keys(profileData).length > 0) {
+      await prisma.$transaction(async (tx) => {
+        if (Object.keys(userData).length > 0) {
+          await tx.user.update({
+            where: { id: context.userId! },
+            data: userData,
+          })
+        }
+        if (Object.keys(profileData).length > 0) {
+          await tx.userProfile.upsert({
+            where: { userId: context.userId! },
+            create: { userId: context.userId!, ...profileData },
+            update: profileData,
+          })
+        }
       })
     }
 

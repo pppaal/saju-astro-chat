@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/i18n/I18nProvider';
 import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage';
 import { localizeStoredCity } from '@/lib/cities/formatter';
+import { normalizeGender } from '@/lib/utils/gender';
 import BrandSplash from '@/components/branding/BrandSplash';
 
 // Inlined from the deleted UnifiedBirthForm. This was the only remaining
@@ -78,8 +79,10 @@ export default function ThemeSelectClient() {
         birthDate: initialBirthInfo.birthDate,
         birthTime: initialBirthInfo.birthTime || '12:00',
         city: initialBirthInfo.birthCity || (locale === 'ko' ? '서울' : 'Seoul'),
-        gender:
-          initialBirthInfo.gender === 'F' || initialBirthInfo.gender === 'Female' ? 'F' : 'M',
+        // Route every server/legacy gender shape through the central
+        // normalizer so women whose profile was saved after zod
+        // normalization (stored as 'female') don't fall back to 'M'.
+        gender: normalizeGender(initialBirthInfo.gender) === 'female' ? 'F' : 'M',
         latitude: initialBirthInfo.latitude ?? 37.5665,
         longitude: initialBirthInfo.longitude ?? 126.978,
         timezone: initialBirthInfo.timezone || 'Asia/Seoul',
@@ -97,7 +100,7 @@ export default function ThemeSelectClient() {
           : locale === 'ko'
             ? '서울'
             : 'Seoul',
-        gender: home.gender === 'female' ? 'F' : 'M',
+        gender: normalizeGender(home.gender) === 'female' ? 'F' : 'M',
         latitude: 37.5665,
         longitude: 126.978,
         timezone: 'Asia/Seoul',

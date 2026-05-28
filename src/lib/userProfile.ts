@@ -6,6 +6,7 @@
  */
 
 import { logger } from "@/lib/logger";
+import { toLongGender } from "@/lib/utils/gender";
 
 const USER_PROFILE_KEY = 'destinypal_user_profile';
 
@@ -55,7 +56,12 @@ export async function fetchAndSyncUserProfile(): Promise<UserProfile> {
       birthDate: user.birthDate || undefined,
       birthTime: user.birthTime || undefined,
       birthCity: user.birthCity || undefined,
-      gender: user.gender === 'M' ? 'Male' : user.gender === 'F' ? 'Female' : undefined,
+      // The DB column has accumulated both legacy 'M'/'F' and current
+      // 'male'/'female' (the zod schema normalizes inputs to the long
+      // lowercase form before save). Without the helper, post-normalization
+      // values land here as `undefined` and women see "Male" the next time
+      // they open the profile.
+      gender: toLongGender(user.gender),
       timezone: user.tzId || undefined,
       updatedAt: new Date().toISOString(),
     };

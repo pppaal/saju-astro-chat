@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { localizeStoredCity } from '@/lib/cities/formatter'
 import { logger } from '@/lib/logger'
+import { normalizeGender } from '@/lib/utils/gender'
 import {
   BirthInfoFields,
   type BirthFieldsClasses,
@@ -61,7 +62,12 @@ export function ProfileEditModal({
   const [timeUnknown, setTimeUnknown] = useState(!initial.birthTime)
   const [birthTime, setBirthTime] = useState(initial.birthTime ?? '')
   const [gender, setGender] = useState<'M' | 'F'>(
-    initial.gender === 'F' || initial.gender === 'Female' ? 'F' : 'M'
+    // The server may return any of 'M' / 'F' / 'Male' / 'Female' / 'male' /
+    // 'female' depending on when the row was last written, so route every
+    // shape through the central normalizer instead of hand-matching two
+    // forms — the old check silently picked 'M' for women whose profile
+    // had been written in the new 'female' form.
+    normalizeGender(initial.gender) === 'female' ? 'F' : 'M'
   )
   const [birthCity, setBirthCity] = useState(localizeStoredCity(initial.birthCity, locale) ?? '')
   const [cityData, setCityData] = useState<{
