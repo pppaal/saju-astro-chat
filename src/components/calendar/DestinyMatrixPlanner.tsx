@@ -20,6 +20,7 @@ import YearHighlightsCard from './YearHighlightsCard'
 import YearDashboard from './premium/YearDashboard'
 import MonthDashboard from './premium/MonthDashboard'
 import DayInsights from './premium/shared/DayInsights'
+import { tabVariants } from './premium/shared/motionVariants'
 import { getGrade } from './scoreGrade'
 import { getCalLabels, type CalLocale } from './premium/labels'
 
@@ -68,6 +69,16 @@ export default function DestinyMatrixPlanner({
 }: DestinyMatrixPlannerProps = {}) {
   const t = getCalLabels(locale)
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
+  // tab 전환 방향 — drill-down(년→달→일) 이면 'in' (zoom 1.06→1), 반대는 'out'.
+  // setViewMode wrap 으로 비교 후 갱신.
+  const [viewDirection, setViewDirection] = useState<'in' | 'out'>('in')
+  const changeViewMode = useCallback((next: ViewMode) => {
+    setViewMode((prev) => {
+      const order: Record<ViewMode, number> = { yearly: 0, monthly: 1, daily: 2 }
+      setViewDirection(order[next] >= order[prev] ? 'in' : 'out')
+      return next
+    })
+  }, [])
   const [currentDay, setCurrentDay] = useState<number>(() => new Date().getDate())
 
   // --- View date (state — prev/next month 이동 가능) -------------------
@@ -118,11 +129,11 @@ export default function DestinyMatrixPlanner({
     return { score, grade, oneLine }
   }, [data, todayStr])
   const handleHeroClick = useCallback(() => {
-    const t = new Date()
-    setViewDate(new Date(t.getFullYear(), t.getMonth(), 1))
-    setCurrentDay(t.getDate())
-    setViewMode('daily')
-  }, [])
+    const now = new Date()
+    setViewDate(new Date(now.getFullYear(), now.getMonth(), 1))
+    setCurrentDay(now.getDate())
+    changeViewMode('daily')
+  }, [changeViewMode])
 
   const goToPrevMonth = useCallback(() => {
     setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
@@ -330,7 +341,7 @@ export default function DestinyMatrixPlanner({
 
   const handleDayClick = (day: number) => {
     setCurrentDay(day)
-    setViewMode('daily')
+    changeViewMode('daily')
   }
 
   // 올해 큰 날에서 날짜 클릭 — 그 달로 이동 후 daily 뷰
@@ -339,7 +350,7 @@ export default function DestinyMatrixPlanner({
     if (!y || !m || !d) return
     setViewDate(new Date(y, m - 1, 1))
     setCurrentDay(d)
-    setViewMode('daily')
+    changeViewMode('daily')
   }
 
   const getDayOfWeek = (day: number) => t.weekdayFull[new Date(viewYear, viewMonth, day).getDay()]
@@ -371,7 +382,7 @@ export default function DestinyMatrixPlanner({
           </div>
 
           <button
-            onClick={() => setViewMode('monthly')}
+            onClick={() => changeViewMode('monthly')}
             className="px-3 py-2 bg-zinc-900/80 rounded-xl border border-white/10 text-indigo-400 hover:text-indigo-300 hover:bg-zinc-800 hover:border-indigo-500/50 transition-all shadow-lg flex items-center gap-1.5 text-sm font-bold"
             aria-label={t.calendarTabAria}
           >
@@ -393,7 +404,9 @@ export default function DestinyMatrixPlanner({
             </span>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2 leading-none">
-                <span className={`text-5xl font-black ${todayHero.grade.colorClass}`}>
+                <span
+                  className={`text-4xl sm:text-5xl font-black tabular-nums ${todayHero.grade.colorClass}`}
+                >
                   {todayHero.score}
                 </span>
                 <span className={`text-base font-black ${todayHero.grade.colorClass}`}>
@@ -427,7 +440,7 @@ export default function DestinyMatrixPlanner({
               <button
                 key={mode}
                 type="button"
-                onClick={() => setViewMode(mode)}
+                onClick={() => changeViewMode(mode)}
                 aria-pressed={viewMode === mode}
                 className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
                   viewMode === mode
@@ -452,10 +465,10 @@ export default function DestinyMatrixPlanner({
           {viewMode === 'yearly' && (
             <motion.div
               key="yearly"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.05 }}
-              transition={{ duration: 0.2 }}
+              variants={tabVariants(viewDirection)}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               className="p-5 space-y-4"
             >
               <YearDashboard
@@ -470,7 +483,7 @@ export default function DestinyMatrixPlanner({
                   const lastDay = new Date(viewYear, monthIdx + 1, 0).getDate()
                   setViewDate(new Date(viewYear, monthIdx, 1))
                   setCurrentDay((d) => Math.min(d, lastDay))
-                  setViewMode('monthly')
+                  changeViewMode('monthly')
                 }}
               />
               {!yearlyMonthly && (
@@ -487,10 +500,10 @@ export default function DestinyMatrixPlanner({
           {viewMode === 'monthly' && (
             <motion.div
               key="monthly"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.05 }}
-              transition={{ duration: 0.2 }}
+              variants={tabVariants(viewDirection)}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               className="p-5 space-y-4"
             >
               {/* Premium Dashboard — Hero + Radar + Flow + Highlights.
@@ -639,10 +652,10 @@ export default function DestinyMatrixPlanner({
           {viewMode === 'daily' && (
             <motion.div
               key="daily"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
+              variants={tabVariants(viewDirection)}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               className="p-5 space-y-4"
             >
               <div className="flex items-center justify-between bg-zinc-900/40 p-3 rounded-2xl border border-white/5 backdrop-blur-sm">
@@ -654,7 +667,7 @@ export default function DestinyMatrixPlanner({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setViewMode('monthly')}
+                  onClick={() => changeViewMode('monthly')}
                   aria-label={t.dailyHeaderAria(monthLabel, currentDay, getDayOfWeek(currentDay))}
                   className="flex flex-col items-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-xl px-2"
                 >

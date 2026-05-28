@@ -158,6 +158,12 @@ html {
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
+  /* premium typography defaults — slashed zero + stylistic alt + contextual */
+  font-feature-settings:
+    'ss01' on,
+    'cv11' on,
+    'kern' on;
+  text-rendering: optimizeLegibility;
   font-family:
     var(--font-noto-kr),
     var(--font-montserrat),

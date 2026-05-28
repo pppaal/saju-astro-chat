@@ -11,9 +11,11 @@
  * 각 카드는 엔진 데이터 없으면 자체 렌더 스킵 (UI 노이즈 0).
  */
 
+import { motion } from 'framer-motion'
 import { Sparkles, CalendarRange, Compass } from 'lucide-react'
 import type { ImportantDate } from '../../types'
 import { getCalLabels, type CalLocale } from '../labels'
+import { cardStack, cardItem, barFill } from './motionVariants'
 
 type Interpretation = NonNullable<ImportantDate['monthlyInterpretation']>
 type ThemeKey = 'love' | 'money' | 'career' | 'health' | 'growth'
@@ -30,11 +32,17 @@ interface Props {
 export default function MonthInsights({ interp, month, locale, onDayClick }: Props) {
   if (!interp) return null
   return (
-    <div className="space-y-4">
-      <ThemeFocusCard interp={interp} locale={locale} />
-      <KeyDatesCard interp={interp} month={month} locale={locale} onDayClick={onDayClick} />
-      <BigTurnsCard interp={interp} locale={locale} onDayClick={onDayClick} />
-    </div>
+    <motion.div className="space-y-4" variants={cardStack} initial="hidden" animate="show">
+      <motion.div variants={cardItem}>
+        <ThemeFocusCard interp={interp} locale={locale} />
+      </motion.div>
+      <motion.div variants={cardItem}>
+        <KeyDatesCard interp={interp} month={month} locale={locale} onDayClick={onDayClick} />
+      </motion.div>
+      <motion.div variants={cardItem}>
+        <BigTurnsCard interp={interp} locale={locale} onDayClick={onDayClick} />
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -123,13 +131,14 @@ function ThemeBar({
         {t.themeName(theme)}
       </span>
       <div className="flex-1 h-2 rounded-full bg-zinc-800/70 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all ${
+        <motion.div
+          className={`h-full rounded-full ${
             isTop
-              ? 'bg-gradient-to-r from-amber-400 to-amber-500'
+              ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.45)]'
               : 'bg-gradient-to-r from-zinc-500 to-zinc-600'
           }`}
-          style={{ width: `${pct}%` }}
+          variants={barFill}
+          custom={pct}
         />
       </div>
       <span

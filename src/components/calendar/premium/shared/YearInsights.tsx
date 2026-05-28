@@ -9,10 +9,12 @@
  * 각 카드는 데이터 없으면 자체 렌더 스킵.
  */
 
+import { motion } from 'framer-motion'
 import { Sparkles, Compass } from 'lucide-react'
 import type { ImportantDate } from '../../types'
 import type { YearMonthly } from '../../DestinyMatrixPlanner'
 import { getCalLabels, type CalLocale } from '../labels'
+import { cardStack, cardItem, barFill } from './motionVariants'
 
 type ThemeKey = 'love' | 'money' | 'career' | 'health' | 'growth'
 type YearlyConvergence = NonNullable<
@@ -34,14 +36,18 @@ export default function YearInsights({
   onMonthClick,
 }: Props) {
   return (
-    <>
-      <YearFocusCard yearlyMonthly={yearlyMonthly} locale={locale} />
-      <YearBigDaysCard
-        yearlyConvergence={yearlyConvergence}
-        locale={locale}
-        onMonthClick={onMonthClick}
-      />
-    </>
+    <motion.div className="space-y-4" variants={cardStack} initial="hidden" animate="show">
+      <motion.div variants={cardItem}>
+        <YearFocusCard yearlyMonthly={yearlyMonthly} locale={locale} />
+      </motion.div>
+      <motion.div variants={cardItem}>
+        <YearBigDaysCard
+          yearlyConvergence={yearlyConvergence}
+          locale={locale}
+          onMonthClick={onMonthClick}
+        />
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -129,13 +135,14 @@ function YearBar({
         {t.themeName(theme)}
       </span>
       <div className="flex-1 h-2 rounded-full bg-zinc-800/70 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all ${
+        <motion.div
+          className={`h-full rounded-full ${
             isTop
-              ? 'bg-gradient-to-r from-amber-400 to-amber-500'
+              ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.45)]'
               : 'bg-gradient-to-r from-zinc-500 to-zinc-600'
           }`}
-          style={{ width: `${pct}%` }}
+          variants={barFill}
+          custom={pct}
         />
       </div>
       <span

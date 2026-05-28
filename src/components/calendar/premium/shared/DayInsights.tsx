@@ -12,11 +12,15 @@
  * 모든 텍스트는 엔진이 plain text 로 직접 생성한 것 그대로 (jargon transform X).
  */
 
+import { motion } from 'framer-motion'
 import { Sparkles, BookOpen, Clock3 } from 'lucide-react'
 import type { ImportantDate } from '../../types'
 import type { GradeInfo } from '../../scoreGrade'
 import DailyHourlyChart from '../../DailyHourlyChart'
 import { getCalLabels, type CalLocale } from '../labels'
+import { useCountUp } from './useCountUp'
+import NoiseOverlay from './NoiseOverlay'
+import { cardStack, cardItem, barFill, listStack, listItem } from './motionVariants'
 
 type ThemeKey = 'love' | 'money' | 'career' | 'health' | 'growth'
 type FusionAdvice = { do?: string[]; avoid?: string[] }
@@ -53,25 +57,39 @@ export default function DayInsights({
 }: Props) {
   if (!importantDate) return null
   return (
-    <div className="space-y-4">
-      <DayVerdictCard
-        grade={grade}
-        score={score}
-        importantDate={importantDate}
-        oneLine={oneLine}
-        frontDomain={frontDomain}
-        locale={locale}
-      />
-      <DayDomainsCard importantDate={importantDate} locale={locale} />
-      <DayWhyCard importantDate={importantDate} locale={locale} />
-      <DayHourlyCard
-        importantDate={importantDate}
-        dateStr={dateStr}
-        advice={advice}
-        hourlySlots={hourlySlots}
-        locale={locale}
-      />
-    </div>
+    <motion.div
+      className="space-y-4"
+      variants={cardStack}
+      initial="hidden"
+      animate="show"
+      key={dateStr}
+    >
+      <motion.div variants={cardItem}>
+        <DayVerdictCard
+          grade={grade}
+          score={score}
+          importantDate={importantDate}
+          oneLine={oneLine}
+          frontDomain={frontDomain}
+          locale={locale}
+        />
+      </motion.div>
+      <motion.div variants={cardItem}>
+        <DayDomainsCard importantDate={importantDate} locale={locale} />
+      </motion.div>
+      <motion.div variants={cardItem}>
+        <DayWhyCard importantDate={importantDate} locale={locale} />
+      </motion.div>
+      <motion.div variants={cardItem}>
+        <DayHourlyCard
+          importantDate={importantDate}
+          dateStr={dateStr}
+          advice={advice}
+          hourlySlots={hourlySlots}
+          locale={locale}
+        />
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -100,19 +118,27 @@ function DayVerdictCard({
     ? Math.round(typeof sb.astroAxisRaw === 'number' ? sb.astroAxisRaw : sb.astroAxis)
     : null
   const agreement = sb?.axisAgreement ?? null
+  const animatedScore = useCountUp(score)
 
   return (
     <div
-      className={`relative rounded-2xl border ${grade.borderClass} ${grade.heroBgClass} ${grade.heroShadowClass} px-5 py-4`}
+      className={`relative overflow-hidden rounded-2xl border ${grade.borderClass} ${grade.heroBgClass} ${grade.heroShadowClass} px-5 py-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]`}
     >
-      <div className="flex items-center gap-4">
+      <NoiseOverlay opacity={0.025} />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -right-3 -bottom-6 text-[140px] leading-none opacity-[0.06] select-none"
+      >
+        {grade.emoji}
+      </span>
+      <div className="relative flex items-center gap-4">
         <span className="text-4xl shrink-0 leading-none" aria-hidden>
           {grade.emoji}
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-3 leading-none mb-1.5">
             <span className="text-4xl sm:text-5xl font-black tabular-nums bg-gradient-to-br from-white to-zinc-300 bg-clip-text text-transparent">
-              {score}
+              {animatedScore}
             </span>
             <span className={`text-base font-black ${grade.colorClass}`}>{grade.label}</span>
           </div>
@@ -121,7 +147,7 @@ function DayVerdictCard({
       </div>
 
       {(sajuAxis !== null || frontDomain) && (
-        <div className="mt-3 pt-3 border-t border-white/5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+        <div className="relative mt-3 pt-3 border-t border-white/5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
           {sajuAxis !== null && (
             <span className="inline-flex items-center gap-1">
               <span className="text-zinc-500">{t.dayWhySajuLabel}</span>
@@ -246,20 +272,21 @@ function DomainBar({
 }) {
   const pct = Math.max(0, Math.min(100, Math.round(score)))
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 group">
       <span
         className={`w-12 text-xs font-semibold shrink-0 ${isTop ? 'text-amber-200' : 'text-zinc-400'}`}
       >
         {t.themeName(theme)}
       </span>
       <div className="flex-1 h-2 rounded-full bg-zinc-800/70 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all ${
+        <motion.div
+          className={`h-full rounded-full ${
             isTop
-              ? 'bg-gradient-to-r from-amber-400 to-amber-500'
+              ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.45)]'
               : 'bg-gradient-to-r from-zinc-500 to-zinc-600'
           }`}
-          style={{ width: `${pct}%` }}
+          variants={barFill}
+          custom={pct}
         />
       </div>
       <span
@@ -339,14 +366,18 @@ function WhyBlock({
   return (
     <div>
       <h4 className={`text-sm font-bold mb-2 tracking-wide ${labelColor}`}>{label}</h4>
-      <ul className="space-y-1.5">
+      <motion.ul className="space-y-1.5" variants={listStack} initial="hidden" animate="show">
         {items.slice(0, 5).map((item, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-zinc-300 leading-snug">
+          <motion.li
+            key={i}
+            variants={listItem}
+            className="flex items-start gap-2 text-sm text-zinc-300 leading-snug"
+          >
             <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-2 ${dotColor}`} />
             <span>{item}</span>
-          </li>
+          </motion.li>
         ))}
-      </ul>
+      </motion.ul>
     </div>
   )
 }
