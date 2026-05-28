@@ -1,8 +1,11 @@
 .container {
+  /* Pricing 표준 — 마케팅 페이지 공통 max-width 1120 + 패딩 120/32/80.
+     내부 컨텐츠 (.faqList) 는 자체 max-width 760 으로 가독성 유지. */
   min-height: 100vh;
-  max-width: 900px;
+  width: 100%;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 32px 20px 100px;
+  padding: 120px 32px 80px;
   position: relative;
 }
 
@@ -242,28 +245,31 @@
 }
 
 /* Accordion */
+/* Pricing 의 .faqItem 패턴과 동일 — radius 14, subtle border, hover 정돈. */
 .accordion {
-  background: rgba(30, 30, 45, 0.6);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  border: 1px solid rgba(160, 122, 60, 0.2);
+  background: var(--ds-dark-surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 14px;
+  border: 1px solid var(--ds-dark-border);
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
 }
 
 .accordion:hover {
-  border-color: rgba(160, 122, 60, 0.4);
-  box-shadow: 0 4px 20px rgba(160, 122, 60, 0.15);
+  border-color: var(--ds-dark-border-strong);
 }
 
 .accordion.open {
-  border-color: rgba(160, 122, 60, 0.5);
-  box-shadow: 0 8px 32px rgba(160, 122, 60, 0.2);
+  border-color: var(--ds-gold-line);
+  background: var(--ds-dark-surface-strong);
 }
 
 .accordionHeader {
   width: 100%;
-  padding: 20px 24px;
+  padding: 18px 22px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -271,11 +277,11 @@
   align-items: center;
   gap: 16px;
   text-align: left;
-  transition: background 0.3s ease;
+  transition: background 0.18s ease;
 }
 
 .accordionHeader:hover {
-  background: rgba(160, 122, 60, 0.1);
+  background: transparent;
 }
 
 .accordionIcon {
