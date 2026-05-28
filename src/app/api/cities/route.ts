@@ -104,7 +104,7 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
   }
 
   const cities = await loadCities()
-  cachedIndex = cities.map((c) => {
+  const indexed: IndexedCity[] = cities.map((c) => {
     const nameNorm = norm(c.name)
     const countryNorm = norm(c.country)
     const pairNorm = `${nameNorm}, ${countryNorm}`
@@ -155,6 +155,12 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
     }
   })
 
+  // nameNorm 으로 사전순 정렬 → 검색 시 score=0 (startsWith) 매치가
+  // 알파벳 순서로 나와 사용자가 첫 글자만 쳐도 인기/사전순 도시가 위로 옴.
+  // 또한 early-break 로직과 결합하면 137k 전체 스캔 없이 limit 만큼만 모음.
+  indexed.sort((a, b) => a.nameNorm.localeCompare(b.nameNorm))
+
+  cachedIndex = indexed
   return cachedIndex
 }
 
@@ -185,6 +191,13 @@ export const GET = withApiMiddleware(
     const indexedData = await loadCityIndex()
     logger.info('[cities API] Loaded cities count:', { count: indexedData.length })
     const scored: { item: IndexedCity; score: number }[] = []
+
+    // 137k 도시를 매 키 입력마다 전부 스캔하면 모바일에서 한 글자당 수백 ms.
+    // 대부분의 검색 의도는 startsWith (score=0/5). limit 의 3 배가 모이면
+    // 그 이상 includes/contains 후보를 더 끌어와도 결과 페이지에 못 들어옴.
+    // → 충분히 모이면 끊는다. 점수 분포가 충분해서 sort 후 limit slice 가
+    //   여전히 의도된 결과를 돌려준다.
+    const HARD_CAP = limit * 3
 
     for (const item of indexedData) {
       const aliasMatch = koreanAlias ? item.nameNorm === norm(koreanAlias) : false
@@ -227,6 +240,8 @@ export const GET = withApiMiddleware(
         }
 
         scored.push({ item, score })
+
+        if (scored.length >= HARD_CAP) break
       }
     }
 

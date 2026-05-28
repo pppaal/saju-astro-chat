@@ -10,7 +10,7 @@ const lightFieldClasses: Required<BirthFieldsClasses> = {
   field: 'flex flex-col gap-1.5',
   label: 'text-[12.5px] font-semibold tracking-[0.02em] text-[#57534e]',
   input:
-    'w-full rounded-xl border border-[#e0ddd7] bg-white px-3 py-2.5 text-[14px] text-[#1c1917] outline-none transition placeholder:text-[#a8a29e] focus:border-[#a07a3c] disabled:cursor-not-allowed disabled:opacity-50',
+    'w-full rounded-xl border border-[#e0ddd7] bg-white px-3 py-2.5 text-[16px] text-[#1c1917] outline-none transition placeholder:text-[#a8a29e] focus:border-[#a07a3c] disabled:cursor-not-allowed disabled:opacity-50',
   row: 'grid grid-cols-2 gap-2.5',
   checkboxLabel:
     'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[#57534e]',
