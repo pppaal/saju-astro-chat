@@ -150,67 +150,6 @@ export function computePartOfFortune(
   planets.push(partOfFortune);
 }
 
-/**
- * Get current date/time components in specified timezone
- */
-export interface DateComponents {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-}
-
-export function getNowInTimezone(tz?: string): DateComponents {
-  const now = new Date();
-
-  if (!tz) {
-    // Use local time
-    return {
-      year: now.getFullYear(),
-      month: now.getMonth() + 1,
-      day: now.getDate(),
-      hour: now.getHours(),
-      minute: now.getMinutes(),
-    };
-  }
-
-  try {
-    // Use timezone-aware formatting
-    const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: tz,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-
-    const parts = formatter.formatToParts(now);
-    const getPart = (type: string) => {
-      const part = parts.find((p) => p.type === type);
-      return part ? parseInt(part.value, 10) : 0;
-    };
-
-    return {
-      year: getPart("year"),
-      month: getPart("month"),
-      day: getPart("day"),
-      hour: getPart("hour"),
-      minute: getPart("minute"),
-    };
-  } catch {
-    // Fallback to UTC if timezone is invalid
-    return {
-      year: now.getUTCFullYear(),
-      month: now.getUTCMonth() + 1,
-      day: now.getUTCDate(),
-      hour: now.getUTCHours(),
-      minute: now.getUTCMinutes(),
-    };
-  }
-}
 
 /**
  * Calculate transit aspects to important natal points (Sun, Moon, ASC, MC)

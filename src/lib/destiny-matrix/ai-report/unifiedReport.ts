@@ -635,17 +635,6 @@ function buildMappingRulebook(params: {
   }
 }
 
-export function inferAgeFromBirthDate(birthDate?: string): number | null {
-  if (!birthDate) return null
-  const parsed = new Date(birthDate)
-  if (Number.isNaN(parsed.getTime())) return null
-  const now = new Date()
-  let age = now.getFullYear() - parsed.getFullYear()
-  const m = now.getMonth() - parsed.getMonth()
-  if (m < 0 || (m === 0 && now.getDate() < parsed.getDate())) age -= 1
-  return Number.isFinite(age) && age >= 0 ? age : null
-}
-
 export function buildUnifiedEnvelope(params: {
   mode: 'comprehensive' | 'timing' | 'themed'
   lang: 'ko' | 'en'

@@ -778,10 +778,10 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join('\n')
 
-    // 궁합은 오로지 교차(synastry + 세운 cross). 1인 개별 타이밍
-    // (formatTimingForPrompt 의 각자 세운/월운/일진·트랜짓·리턴)은 "두 사람이
-    // 어떻게 얽히나"가 아니라 개인 운세라 궁합 철학과 안 맞고 토큰만 먹어 제거.
-    // 관계 시기는 cached 의 사주 synastry 안 세운 cross 가 담당.
+    // 궁합은 오로지 교차(synastry + 세운 cross). 1인 개별 타이밍 (세운/
+    // 월운/일진·트랜짓·리턴) 은 "두 사람이 어떻게 얽히나"가 아니라 개인 운세라
+    // 궁합 철학과 안 맞고 토큰만 먹어 제거. 관계 시기는 cached 의 사주
+    // synastry 안 세운 cross 가 담당.
     void evidenceGuide
     // 호출자 이름은 cachedUserContext 밖에서 주입 — 이전엔 callerLine
     // 이 cached prefix 안에 들어가서 (a) 유저 간 prompt-cache 공유 불가,

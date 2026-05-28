@@ -19,6 +19,7 @@ import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/ap
 import { LOCATION_COORDS, parseBirthDate } from '../lib/helpers'
 import { LIMITS } from '@/lib/validation/patterns'
 import { normalizeGender } from '@/lib/utils/gender'
+import { nowInTimezone } from '@/lib/utils/timezone'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 
 export const dynamic = 'force-dynamic'
@@ -52,7 +53,6 @@ export const GET = withApiMiddleware(
       gender,
       locale,
     } = queryValidation.data
-    const year = yearFromZod ?? new Date().getFullYear()
     const birthPlace =
       birthPlaceRaw.length > 0 && birthPlaceRaw.length <= MAX_PLACE_LEN ? birthPlaceRaw : 'Seoul'
 
@@ -64,13 +64,16 @@ export const GET = withApiMiddleware(
       })
     }
 
+    const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS['Seoul']
+    const timezone = coords.tz
+    // Default to user's local year (see calendar/route.ts for the same
+    // reasoning — UTC server flips at midnight UTC, not user-local).
+    const year = yearFromZod ?? nowInTimezone(timezone).getUTCFullYear()
+
     // 메인 캘린더와 동일 규칙: ?month=YYYY-MM 있으면 그 연도, 없으면 year.
     const monthParam = searchParams.get('month')
     const monthMatch = monthParam?.match(/^(\d{4})-(\d{1,2})$/)
     const targetYear = monthMatch ? Number(monthMatch[1]) : year
-
-    const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS['Seoul']
-    const timezone = coords.tz
     const interpLang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
 
     try {
