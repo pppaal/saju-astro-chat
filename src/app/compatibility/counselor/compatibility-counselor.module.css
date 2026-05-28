@@ -235,7 +235,9 @@
 
 @media (min-width: 1024px) {
   .chatWrapper {
-    padding: 1rem 1.5rem 0.75rem;
+    /* 운명 상담사 데스크탑 chatWrapper 와 동일한 가로 padding. 이전 1.5rem
+       은 본문 폭을 좁혔다. */
+    padding: 1rem 0.75rem 0.75rem;
   }
 }
 
@@ -341,17 +343,17 @@
   box-shadow: 0 4px 12px rgba(28, 25, 23, 0.1);
 }
 
-/* Assistant (상담사) messages: drop the 💕 avatar column + side padding so the
-   answer spans the full content width instead of being squeezed into a narrow
-   bubble beside the avatar. User messages keep their avatar + right alignment. */
+/* Assistant (상담사) messages: drop the 💕 avatar column so the answer spans
+   the full content width instead of being squeezed beside the avatar. User
+   messages keep their avatar + right alignment.
+   가로 padding 은 운명 상담사(.assistantMessage padding 14px 18px) 와 통일
+   하기 위해 override 하지 않고 기본 .messageBubble 의 padding 을 그대로 둔다. */
 .message:not(.userMessage) .messageAvatar {
   display: none;
 }
 
 .message:not(.userMessage) .messageBubble {
   max-width: 100%;
-  padding-left: 0;
-  padding-right: 0;
 }
 
 .thinkingMessage {
