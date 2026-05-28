@@ -21,6 +21,7 @@ import { isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
 import { buildFallbackPayload, buildInterpretStreamPrompts } from '@/lib/tarot/promptBuild'
 import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
+import { tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
@@ -33,9 +34,7 @@ import { getUserDisplayName } from '@/lib/user/displayName'
 // Haiku 보다 응답 길어 통상 15-30s. 여유 있게 60s.
 const CLAUDE_TIMEOUT_MS = 60000
 
-// 모든 스프레드 1 credit (현재 데이터상 최대 7장, 모두 동일 가격).
-// 8장 이상 스프레드 추가 시 별도 단계 가격 책정 재논의.
-const READING_CREDIT_COST = 1
+// 카드 수 차등 가격은 tarot-spreads-data.ts 의 tarotCreditCostFor 가 SSOT.
 
 // 새로고침/뒤로가기 시 같은 리딩에 대해 크레딧이 또 차감되던 문제 방어.
 // 클라이언트가 보내는 x-idempotency-key (보통 readingSignature = 스프레드+카드 조합)
@@ -212,7 +211,8 @@ export async function POST(req: NextRequest) {
       return streamJsonPayload(crisisPayload, { 'X-Tarot-Safety': '1' })
     }
 
-    creditCost = READING_CREDIT_COST
+    const cardCountForCost = Array.isArray(body.cards) ? body.cards.length : 1
+    creditCost = tarotCreditCostFor(cardCountForCost)
     const ownerKey = context.userId || `ip:${context.ip || 'unknown'}`
     const scopedIdemKey = idempotencyKeyFor(req, ownerKey)
     const idempotentReplay = scopedIdemKey ? isIdempotentReplay(scopedIdemKey) : false

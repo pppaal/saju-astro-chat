@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
         return createErrorResponse({
           code: ErrorCodes.UNAUTHORIZED,
           message:
-            '궁합 상담 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 8 크레딧으로 계속 이용할 수 있어요.',
+            '궁합 상담 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.',
           locale: extractLocale(req),
           route: 'compatibility/counselor',
           headers: { 'X-Guest-Limit-Reached': '1' },

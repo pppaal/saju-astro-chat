@@ -1,5 +1,15 @@
 import { TarotTheme } from './tarot.types'
 
+/**
+ * 카드 수에 따른 크레딧 비용. UI(스프레드 선택 화면) 와 API(/api/tarot/
+ * interpret-stream) 가 같은 룰을 쓰도록 single source of truth.
+ *   1~3 장 = 1 크레딧
+ *   5~7 장 = 2 크레딧 (LLM 토큰 비용 ~3-4 배)
+ */
+export function tarotCreditCostFor(cardCount: number): number {
+  return cardCount >= 5 ? 2 : 1
+}
+
 // 4 동적 스프레드 — 1·3·5·7장. 자리(positions) 는 고정 라벨 대신
 // LLM 이 사용자 질문 맥락에 맞춰 응답 시 직접 명명한다.
 // 자리 의미가 비어 있어도 UI/API 가 동작하도록 positions 는 빈 배열로 둠.
