@@ -48,10 +48,26 @@ const REQUIRED_TABLES = [
         ON "CalendarBuildCache"("builtAt");
     `,
   },
+  {
+    table: 'RequestIdempotencyLog',
+    migration: '20260528120300_add_request_idempotency_log',
+    createSql: `
+      CREATE TABLE IF NOT EXISTS "RequestIdempotencyLog" (
+        "scopedKey" TEXT NOT NULL,
+        "expiresAt" TIMESTAMP(3) NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "RequestIdempotencyLog_pkey" PRIMARY KEY ("scopedKey")
+      );
+      CREATE INDEX IF NOT EXISTS "RequestIdempotencyLog_expiresAt_idx"
+        ON "RequestIdempotencyLog" ("expiresAt");
+    `,
+  },
 ]
 
-// 각 항목: { table, columns: [{ name, ddl }] } — DDL 은 ALTER TABLE 뒤
-// 붙는 ADD COLUMN 조각. IF NOT EXISTS 필수.
+// 각 항목: { table, columns: [{ name, ddl, postSql? }] } — DDL 은 ALTER TABLE
+// 뒤 붙는 ADD COLUMN 조각. IF NOT EXISTS 필수. postSql 은 컬럼이 새로 추가됐을
+// 때만 실행 (backfill + 보조 인덱스 등). 이미 있던 컬럼이면 ddl·postSql 둘 다
+// 스킵 — 운영 데이터 덮어쓰기 방지.
 const REQUIRED_SCHEMA = [
   {
     table: 'UserSettings',
@@ -71,6 +87,25 @@ const REQUIRED_SCHEMA = [
     columns: [
       { name: 'clarifierCard', ddl: `ADD COLUMN IF NOT EXISTS "clarifierCard" JSONB` },
       { name: 'followupTurns', ddl: `ADD COLUMN IF NOT EXISTS "followupTurns" JSONB` },
+    ],
+  },
+  {
+    table: 'BonusCreditPurchase',
+    migration: '20260528123217_add_bonus_credit_acknowledged_at',
+    columns: [
+      {
+        name: 'acknowledgedAt',
+        ddl: `ADD COLUMN IF NOT EXISTS "acknowledgedAt" TIMESTAMP(3)`,
+        // backfill: 기존 row 는 "이미 본 것" 처리. 안 그러면 모든 기존 사용자에게
+        // "보너스 받았어요" 모달이 한꺼번에 뜬다.
+        postSql: `
+          UPDATE "BonusCreditPurchase"
+          SET "acknowledgedAt" = "createdAt"
+          WHERE "acknowledgedAt" IS NULL;
+          CREATE INDEX IF NOT EXISTS "BonusCreditPurchase_userId_acknowledgedAt_idx"
+            ON "BonusCreditPurchase" ("userId", "acknowledgedAt");
+        `,
+      },
     ],
   },
 ]
@@ -140,6 +175,10 @@ async function main() {
         const sql = `ALTER TABLE "${entry.table}" ${col.ddl}`
         console.log(`  - executing: ${sql}`)
         await client.query(sql)
+        if (col.postSql) {
+          console.log(`  - executing postSql for ${col.name} (backfill / indexes)`)
+          await client.query(col.postSql)
+        }
         totalFixed += 1
       }
     }
