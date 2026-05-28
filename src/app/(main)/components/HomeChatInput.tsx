@@ -34,35 +34,77 @@ const DELETE_SPEED_MS = 35
 const HOLD_AFTER_TYPED_MS = 1800
 const HOLD_AFTER_DELETED_MS = 250
 
+// 서비스 선택 dropdown — config/enabledServices.ts 와 동일 id·라벨.
+type ServiceId = 'destinyMap' | 'tarot' | 'compatibility' | 'calendar'
+const SERVICES: ReadonlyArray<{
+  id: ServiceId
+  icon: string
+  ko: string
+  en: string
+}> = [
+  { id: 'destinyMap', icon: '🗺️', ko: '운명 상담사', en: 'Destiny Counselor' },
+  { id: 'tarot', icon: '🔮', ko: '타로 상담사', en: 'Tarot Counselor' },
+  { id: 'compatibility', icon: '💕', ko: '궁합 상담사', en: 'Compatibility' },
+  { id: 'calendar', icon: '🗓️', ko: '일·월·년 운세', en: 'Fortune Calendar' },
+]
+
 export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: HomeChatInputProps) {
   const router = useRouter()
   const [text, setText] = useState('')
   const [typedPlaceholder, setTypedPlaceholder] = useState('')
+  const [serviceMenuOpen, setServiceMenuOpen] = useState(false)
+  const isKo = locale === 'ko'
 
-  const submit = () => {
-    const trimmed = text.trim()
+  // 외부 클릭으로 드롭업 닫기.
+  const serviceMenuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!serviceMenuOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (serviceMenuRef.current && !serviceMenuRef.current.contains(e.target as Node)) {
+        setServiceMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [serviceMenuOpen])
+
+  // 서비스 하나 골라서 즉시 이동 — 옛 ↑ 버튼 역할을 서비스 선택이 흡수.
+  // 생일 없으면 생일 모달 먼저. 질문(?q=) 은 운명 상담사만 받음.
+  const selectService = (service: ServiceId) => {
+    setServiceMenuOpen(false)
     if (!birthInfo) {
       onOpenBirthModal()
       return
     }
-    const query = buildBirthQuery(birthInfo)
-    // useCounselorData 가 `sp.q` 로 읽기 때문에 키 이름 통일. 이전엔
-    // `initialQuestion` 으로 보내서 카운슬러가 빈 채팅으로 열림.
-    const initial = trimmed ? `&q=${encodeURIComponent(trimmed)}` : ''
-    router.push(`/destiny-counselor?${query}${initial}`)
+    const trimmed = text.trim()
+    if (service === 'destinyMap') {
+      const query = buildBirthQuery(birthInfo)
+      const initial = trimmed ? `&q=${encodeURIComponent(trimmed)}` : ''
+      router.push(`/destiny-counselor?${query}${initial}`)
+      return
+    }
+    if (service === 'tarot') {
+      router.push('/tarot')
+      return
+    }
+    if (service === 'compatibility') {
+      router.push('/compatibility')
+      return
+    }
+    if (service === 'calendar') {
+      router.push('/calendar')
+      return
+    }
   }
 
-  // birth 정보 없을 땐 정적 안내, 있을 땐 타이프라이터 placeholder.
   const fallbackPlaceholder = birthInfo
-    ? locale === 'ko'
+    ? isKo
       ? '무엇이든 물어보세요'
       : 'Ask anything'
-    : locale === 'ko'
+    : isKo
       ? '먼저 생년월일 정보부터 — @생일 추가를 눌러주세요'
       : 'Add birth info first — tap @birth'
 
-  // 사용자가 직접 타이핑 시작하면 애니메이션은 멈추고 placeholder는 숨김
-  // (textarea 자체가 사용자 입력으로 가려짐).
   const typingActiveRef = useRef(true)
   useEffect(() => {
     typingActiveRef.current = !!birthInfo && text.length === 0
@@ -73,7 +115,7 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
       setTypedPlaceholder('')
       return
     }
-    const prompts = locale === 'ko' ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
+    const prompts = isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
     let cancelled = false
     let promptIdx = 0
     let charIdx = 0
@@ -82,7 +124,6 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
     const tick = () => {
       if (cancelled) return
       if (!typingActiveRef.current) {
-        // user started typing — pause and retry later
         window.setTimeout(tick, 400)
         return
       }
@@ -103,7 +144,6 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
         window.setTimeout(tick, DELETE_SPEED_MS)
         return
       }
-      // deleting
       charIdx -= 1
       setTypedPlaceholder(current.slice(0, Math.max(0, charIdx)))
       if (charIdx <= 0) {
@@ -115,37 +155,22 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
       window.setTimeout(tick, DELETE_SPEED_MS)
     }
 
-    // start with the first prompt typed-out a bit visible immediately
     setTypedPlaceholder('')
     window.setTimeout(tick, 300)
 
     return () => {
       cancelled = true
     }
-  }, [birthInfo, locale])
+  }, [birthInfo, isKo])
 
   const placeholder = birthInfo ? typedPlaceholder || ' ' : fallbackPlaceholder
 
-  const isKo = locale === 'ko'
-
   return (
     <div className={styles.homeChatBar}>
-      {/* Eyebrow — 처음 본 사람한테 (a) 이 박스는 입력하는 곳, (b) 아래 생일
-          정보가 분석에 쓰인다는 점을 한 줄로 설명. birthInfo 유무에 따라 톤 바뀜. */}
-      <div className={styles.homeChatEyebrow}>
-        {birthInfo
-          ? isKo
-            ? '✨ 무엇이든 물어보세요 — 아래 정보로 분석해드릴게요'
-            : '✨ Ask anything — analyzed with the info below'
-          : isKo
-            ? '✨ 먼저 생년월일을 알려주세요'
-            : '✨ Add your birth info first'}
-      </div>
-
       <div className={styles.homeChatBarInner}>
         {birthInfo && (
           <span className={styles.homeBirthChip} aria-live="polite">
-            🔮 {isKo ? '분석에 사용' : 'Reading for'}: {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
+            ✓ {isKo ? '분석에 사용' : 'Reading for'}: {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
             {birthInfo.gender === 'male' ? (isKo ? '남성' : 'Male') : isKo ? '여성' : 'Female'}
           </span>
         )}
@@ -155,12 +180,6 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
           onChange={(e) => setText(e.target.value)}
           placeholder={placeholder}
           rows={2}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              submit()
-            }
-          }}
         />
         <div className={styles.homeChatRow}>
           <div className={styles.homeChatTools}>
@@ -173,27 +192,40 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
               <span aria-hidden="true">📅</span>
               {birthInfo ? (isKo ? '생일 ✓' : 'Birth ✓') : isKo ? '@생일 추가' : '@birth'}
             </button>
+
+            {/* 서비스 선택 — 4개 중 하나 누르면 그 서비스로 즉시 이동.
+                옛 ↑ 보내기 버튼 자리. */}
+            <div className={styles.homeServicePickerWrap} ref={serviceMenuRef}>
+              <button
+                type="button"
+                className={styles.homeServicePickerBtn}
+                onClick={() => setServiceMenuOpen((o) => !o)}
+                aria-haspopup="menu"
+                aria-expanded={serviceMenuOpen}
+              >
+                <span>{isKo ? '서비스를 선택하세요' : 'Choose a service'}</span>
+                <span aria-hidden="true">▾</span>
+              </button>
+              {serviceMenuOpen && (
+                <div role="menu" className={styles.homeServicePickerMenu}>
+                  {SERVICES.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      role="menuitem"
+                      className={styles.homeServicePickerItem}
+                      onClick={() => selectService(s.id)}
+                    >
+                      <span aria-hidden="true">{s.icon}</span>
+                      <span>{isKo ? s.ko : s.en}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          <button
-            type="button"
-            className={styles.homeChatSubmit}
-            onClick={submit}
-            aria-label={isKo ? '보내기' : 'Send'}
-          >
-            ↑
-          </button>
         </div>
       </div>
-
-      {/* Helper — 프로필 정보 ≠ 이 박스 정보 일 수 있다는 점, 그리고 바꾸려면
-          어디 누르는지 명시. birthInfo 가 있을 때만 노출. */}
-      {birthInfo && (
-        <p className={styles.homeChatBirthHint}>
-          {isKo
-            ? '※ 프로필에 저장된 정보와 다를 수 있어요. 다른 사람으로 보려면 📅 버튼을 탭하세요.'
-            : '※ May differ from your saved profile. Tap 📅 to read for someone else.'}
-        </p>
-      )}
     </div>
   )
 }
