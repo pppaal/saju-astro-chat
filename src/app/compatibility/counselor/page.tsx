@@ -443,24 +443,38 @@ function CompatibilityCounselorContent() {
           typeof crypto !== 'undefined' && crypto.randomUUID
             ? crypto.randomUUID()
             : `t${Date.now()}-${Math.random().toString(36).slice(2)}`
-        const response = await fetch('/api/compatibility/counselor', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-idempotency-key': idempotencyKey,
-          },
-          body: JSON.stringify({
-            persons,
-            person1Saju,
-            person2Saju,
-            person1Astro,
-            person2Astro,
-            lang: locale,
-            messages: recentHistory,
-            useRag: true,
-            ...(cvText ? { cvText } : {}),
-          }),
-        })
+        // 운명 상담사의 useChatApi 패턴을 그대로 이식 — 헤더 도착까지의 절대
+        // 시간 cap 과 chunk 사이 idle cap 을 분리해서 관리한다. 헤더가 30s
+        // 안에 안 오면 abort, 헤더 받은 뒤엔 chunk idle 45s 기준으로 따로
+        // 관리(아래 streamProcessor 호출부에서 reset).
+        const controller = new AbortController()
+        const HEADER_TIMEOUT_MS = 30_000
+        const CHUNK_IDLE_TIMEOUT_MS = 45_000
+        const headerTimer = setTimeout(() => controller.abort(), HEADER_TIMEOUT_MS)
+        let response: Response
+        try {
+          response = await fetch('/api/compatibility/counselor', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-idempotency-key': idempotencyKey,
+            },
+            body: JSON.stringify({
+              persons,
+              person1Saju,
+              person2Saju,
+              person1Astro,
+              person2Astro,
+              lang: locale,
+              messages: recentHistory,
+              useRag: true,
+              ...(cvText ? { cvText } : {}),
+            }),
+            signal: controller.signal,
+          })
+        } finally {
+          clearTimeout(headerTimer)
+        }
 
         if (!response.ok) {
           if (response.status === 401) {
@@ -499,9 +513,23 @@ function CompatibilityCounselorContent() {
         // 로 통일 — `content` 필드만 추출해 누적한다.
         setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
+        // chunk idle timer — chunk 가 들어올 때마다 reset. 일정 시간 동안 한
+        // byte 도 안 오면 응답이 진짜 멈춘 것으로 보고 abort. controller.abort()
+        // 가 reader.read() 도 종료시켜 streamProcessor 가 truncated 로 마무리,
+        // 그러면 페이지가 "다시 시도" 버튼을 자동 노출. 서버 heartbeat 가
+        // 있어도 chunk 자체가 끊긴 케이스(클라 ↔ edge 사이 NAT drop 등) 는
+        // 여기로 잡힌다.
+        let idleTimer: ReturnType<typeof setTimeout> | null = null
+        const armIdleTimer = () => {
+          if (idleTimer) clearTimeout(idleTimer)
+          idleTimer = setTimeout(() => controller.abort(), CHUNK_IDLE_TIMEOUT_MS)
+        }
+        armIdleTimer()
+
         let finalAssistantContent = ''
         const result = await streamProcessor.process(response, {
           onChunk: (_accumulated, cleaned) => {
+            armIdleTimer()
             finalAssistantContent = cleaned
             setMessages((prev) => {
               const updated = [...prev]
@@ -518,6 +546,7 @@ function CompatibilityCounselorContent() {
             logger.warn('[CompatCounselor] stream error', { error: err })
           },
         })
+        if (idleTimer) clearTimeout(idleTimer)
         // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
         // abort / Claude disconnect) 메시지를 "다시 시도" 버튼이 붙는 incomplete
         // 상태로 마킹. truncated 는 finalContent 가 있는데 마커를 못 봤을 때만
