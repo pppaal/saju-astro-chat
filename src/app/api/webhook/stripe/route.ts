@@ -330,7 +330,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const reward = await grantReferralRewardOnFirstPurchase(userId)
     if (reward.granted) {
       logger.info(
-        `[Stripe Webhook] Referral reward granted to ${reward.referrerId} (+${reward.creditsAwarded}) for first purchase by ${userId}`
+        `[Stripe Webhook] Referral reward granted to ${reward.referrerId} (+${reward.creditsAwarded}) for first purchase by ${userId}` +
+          (reward.refereeBonusGranted
+            ? ` — referee bonus +${reward.refereeBonusCredits} granted`
+            : '')
       )
     }
   } catch (err) {

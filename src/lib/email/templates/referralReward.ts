@@ -32,7 +32,7 @@ export function referralRewardTemplate(data: ReferralRewardTemplateData): {
     <h3 style="margin-top: 24px; color: #4B5563;">더 많은 보상 받기</h3>
     <p>친구를 더 초대하면 추가 크레딧을 받을 수 있어요:</p>
     <ul>
-      <li>친구가 가입하면 3 크레딧</li>
+      <li>친구가 첫 결제하면 추천인에게 10 크레딧 + 친구에게도 5 크레딧</li>
       <li>초대 횟수 무제한!</li>
     </ul>
 
@@ -58,7 +58,7 @@ export function referralRewardTemplate(data: ReferralRewardTemplateData): {
     <h3 style="margin-top: 24px; color: #4B5563;">Earn More Rewards</h3>
     <p>Invite more friends and earn additional credits:</p>
     <ul>
-      <li>3 credits when a friend signs up</li>
+      <li>You get 10 credits + your friend gets 5 credits on their first purchase</li>
       <li>No limit on invitations!</li>
     </ul>
 
