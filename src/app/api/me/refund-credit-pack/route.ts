@@ -43,9 +43,20 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.VALIDATION_ERROR, 'purchaseId is required')
     }
 
-    // 1) 사용자 본인 구매만 조회 (소유권 + 자격 검증)
+    // 1) 사용자 본인 구매만 조회 (소유권 + 자격 검증). select 명시 — schema
+    // 신규 컬럼 prod 미적용 환경에서 default SELECT 가 죽는 회귀 차단.
     const purchase = await prisma.bonusCreditPurchase.findFirst({
       where: { id: purchaseId, userId: context.userId },
+      select: {
+        id: true,
+        userId: true,
+        amount: true,
+        remaining: true,
+        expired: true,
+        source: true,
+        createdAt: true,
+        stripePaymentId: true,
+      },
     })
     if (!purchase) {
       return apiError(ErrorCodes.NOT_FOUND, 'purchase_not_found')

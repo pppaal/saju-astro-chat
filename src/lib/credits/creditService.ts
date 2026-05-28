@@ -137,6 +137,9 @@ async function consumeBonusCreditsFromPurchases(userId: string, amount: number):
   const now = new Date()
 
   // 유효한 보너스 구매 건 조회 (먼저 구매한 것부터, 만료 임박한 것부터)
+  // select 명시 — schema 의 신규 컬럼(acknowledgedAt 등) 이 prod DB 에
+  // 아직 안 적용된 경우 default select 가 모든 컬럼 SELECT 라 P2022 로
+  // 죽음. 사용에 필요한 필드만 골라서 마이그레이션 race 회피.
   const validPurchases = await prisma.bonusCreditPurchase.findMany({
     where: {
       userId,
@@ -148,6 +151,7 @@ async function consumeBonusCreditsFromPurchases(userId: string, amount: number):
       { expiresAt: 'asc' }, // 만료 임박한 것 먼저
       { createdAt: 'asc' }, // 먼저 구매한 것 먼저
     ],
+    select: { id: true, remaining: true, expiresAt: true, createdAt: true, source: true },
   })
 
   let remainingToConsume = amount
@@ -286,6 +290,8 @@ async function consumeBonusCreditsFromPurchasesInTx(
   amountToConsume: number
 ): Promise<number> {
   const now = new Date()
+  // select 명시 — 신규 컬럼(acknowledgedAt) prod 미적용 환경에서 P2022
+  // 차단. consumeBonusCreditsFromPurchasesInTx 가 사용하는 필드만.
   const purchases = await tx.bonusCreditPurchase.findMany({
     where: {
       userId,
@@ -294,6 +300,7 @@ async function consumeBonusCreditsFromPurchasesInTx(
       expiresAt: { gt: now },
     },
     orderBy: { expiresAt: 'asc' },
+    select: { id: true, remaining: true },
   })
 
   if (purchases.length === 0) {
@@ -530,8 +537,11 @@ export async function revokeBonusCreditPurchase(
   if (!stripePaymentId) return { revoked: false, reclaimed: 0, alreadyUsed: 0 }
 
   try {
+    // select 명시 — schema 의 acknowledgedAt 등 신규 컬럼 prod 미적용 시
+    // default SELECT 가 죽는 회귀 차단. 함수에서 실제 사용하는 필드만.
     const purchase = await prisma.bonusCreditPurchase.findFirst({
       where: { stripePaymentId },
+      select: { id: true, userId: true, amount: true, remaining: true, expired: true },
     })
 
     if (!purchase) {

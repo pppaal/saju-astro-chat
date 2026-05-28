@@ -107,8 +107,11 @@ export const RATE_LIMITS = {
  * Tier 4 (Utility): Health checks, static data - 60-100 req/min
  */
 export const RATE_LIMIT_PRESETS = {
-  /** Tier 1: 복합 점술 계산 — 사주(/api/saju). createSajuGuard 가 사용. */
-  SAJU_CALCULATION: { limit: 8, windowSeconds: 60 },
+  /** Tier 2: 사주 차트 계산 (/api/saju). 이전엔 LLM 해석까지 했지만 현재는
+   *  pillars / 대운 / 신살 등 pure 계산만 (LLM 제거됨). 궁합 1회 진입 시
+   *  person 2명 × saju = 2 calls 소비, 관계 전환마다 또 2 calls — Tier 1
+   *  (8/min) 으론 너무 빨리 천장 침. Tier 2 로 상향. */
+  SAJU_CALCULATION: { limit: 30, windowSeconds: 60 },
 
   /** Tier 2: 타로 — /api/tarot. createTarotGuard 가 사용. */
   TAROT_READING: { limit: 10, windowSeconds: 60 },
