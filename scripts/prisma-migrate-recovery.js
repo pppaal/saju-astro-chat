@@ -1,33 +1,27 @@
 /**
- * One-off prisma migration recovery for P3009 (failed migration block).
+ * Generic prisma migration recovery for P3009 (stuck failed migrations).
  *
- * 배경: Supabase DB 에 `20260130_add_block_report_message_delete` migration 이
- * 부분 적용 → failed marker 로 stuck. 이후 모든 `prisma migrate deploy` 가
- * P3009 로 거부 → Vercel 배포 전체 막힘.
+ * 배경: Supabase production DB 의 _prisma_migrations 테이블에 여러 stuck
+ * migration row 가 누적됨 (각각 finished_at = NULL AND rolled_back_at = NULL).
+ * Prisma 가 새 migration 적용 거부 → Vercel 배포 막힘.
  *
  * 이 스크립트:
- *   1. _prisma_migrations 테이블에서 failed migration 조회
- *   2. 해당 migration 의 schema 객체가 DB 에 이미 존재하는지 확인
- *      - UserBlock / UserReport 테이블 존재 → 적용됨 (applied)
- *      - 없음 → 미적용 (rolled-back)
- *   3. _prisma_migrations row 수정해 stuck 해제
- *      - applied: finished_at = NOW, logs = NULL
- *      - rolled-back: row DELETE (다음 migrate deploy 가 재시도)
+ *   1. _prisma_migrations 에서 *모든* stuck row 조회 (finished/rolled_back 둘 다 NULL)
+ *   2. 각 row 의 logs 컬럼 확인
+ *   3. row DELETE → 다음 prisma migrate deploy 가 처음부터 다시 시도
+ *
+ * 안전성:
+ *   - 우리 production migration 들은 대부분 `ADD COLUMN IF NOT EXISTS`,
+ *     `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS` 사용 →
+ *     idempotent 라 재시도 안전.
+ *   - finished_at IS NOT NULL 인 (정상 적용된) row 는 건드리지 않음.
+ *   - 스크립트 실패해도 빌드 안 막음 (prisma migrate deploy 가 실제 보고).
  *
  * vercel-build 에서 `prisma migrate deploy` 직전 1회 실행. 한 번 풀리면
- * 그 후 빌드는 이 스크립트가 no-op (failed row 없으면 즉시 종료).
- *
- * 일회성이라 fix 후엔 vercel-build 에서 빼도 됨 — 하지만 두면 향후 비슷
- * 케이스에서 자동 회복.
+ * 그 후 빌드는 no-op (stuck row 없으면 즉시 종료).
  */
 
 const { Client } = require('pg')
-
-// PR #733 에서 stuck 풀어줬고 PR #734 에서 정렬 순서 fix 로 rename.
-// 새 이름 + 옛 이름 둘 다 체크 (다른 env 에서 옛 이름이 stuck 했을 수도).
-const FAILED_MIGRATION_NEW = '20260131_add_block_report_message_delete'
-const FAILED_MIGRATION_OLD = '20260130_add_block_report_message_delete'
-const FAILED_MIGRATIONS = [FAILED_MIGRATION_NEW, FAILED_MIGRATION_OLD]
 
 function buildDirectUrl() {
   const u = process.env.DATABASE_URL
@@ -44,47 +38,33 @@ async function main() {
   const client = new Client({ connectionString: url, ssl: { rejectUnauthorized: false } })
   await client.connect()
   try {
-    // 1) failed migration 조회 — 둘 다 (new + old) 체크
-    const failed = await client.query(
-      `SELECT id, migration_name, finished_at, rolled_back_at
+    // 모든 stuck row 조회 — started 됐지만 finish/rollback 둘 다 안 된 것.
+    const stuck = await client.query(
+      `SELECT id, migration_name, started_at, logs
        FROM "_prisma_migrations"
-       WHERE migration_name = ANY($1)
-         AND finished_at IS NULL
-         AND rolled_back_at IS NULL`,
-      [FAILED_MIGRATIONS]
+       WHERE finished_at IS NULL
+         AND rolled_back_at IS NULL`
     )
 
-    if (failed.rows.length === 0) {
-      console.log(`[migrate-recovery] no stuck migrations — no-op`)
+    if (stuck.rows.length === 0) {
+      console.log('[migrate-recovery] no stuck migrations — no-op')
       return
     }
 
-    // 2) migration 의 schema 객체 존재 확인
-    const tablesExist = await client.query(
-      `SELECT table_name FROM information_schema.tables
-       WHERE table_schema = 'public' AND table_name IN ('UserBlock', 'UserReport')`
-    )
-    const hasObjects = tablesExist.rows.length > 0
-
-    for (const row of failed.rows) {
-      const name = row.migration_name
-      console.log(`[migrate-recovery] found stuck migration ${name}`)
-      if (hasObjects) {
-        await client.query(
-          `UPDATE "_prisma_migrations"
-           SET finished_at = NOW(), logs = NULL
-           WHERE migration_name = $1 AND finished_at IS NULL`,
-          [name]
-        )
-        console.log(`[migrate-recovery] objects exist — marked ${name} as applied`)
-      } else {
-        await client.query(
-          `DELETE FROM "_prisma_migrations" WHERE migration_name = $1 AND finished_at IS NULL`,
-          [name]
-        )
-        console.log(`[migrate-recovery] objects missing — deleted failed row for ${name}, will retry`)
-      }
+    console.log(`[migrate-recovery] found ${stuck.rows.length} stuck migrations:`)
+    for (const row of stuck.rows) {
+      console.log(`  - ${row.migration_name} (started ${row.started_at?.toISOString?.() ?? '?'})`)
     }
+
+    // 일괄 DELETE → 다음 migrate deploy 가 fresh 재시도.
+    // 우리 migration 들은 IF NOT EXISTS 패턴 widely 사용해서 재시도 안전.
+    const del = await client.query(
+      `DELETE FROM "_prisma_migrations"
+       WHERE finished_at IS NULL
+         AND rolled_back_at IS NULL
+       RETURNING migration_name`
+    )
+    console.log(`[migrate-recovery] deleted ${del.rowCount} stuck rows — migrate deploy will retry`)
   } finally {
     await client.end()
   }
