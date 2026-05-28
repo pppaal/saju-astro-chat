@@ -55,14 +55,6 @@ export const destinyMatchChatSchema = z.object({
 
 export type DestinyMatchChatValidated = z.infer<typeof destinyMatchChatSchema>
 
-export const destinyMatchReportSchema = z.object({
-  reportedUserId: z.string().min(1).max(200).trim(),
-  category: z.enum(['inappropriate', 'spam', 'fake', 'harassment', 'other']),
-  description: z.string().max(1000).trim().optional(),
-})
-
-export type DestinyMatchReportValidated = z.infer<typeof destinyMatchReportSchema>
-
 export const destinyMatchMatchesQuerySchema = z.object({
   status: z.enum(['active', 'blocked', 'all']).optional().default('active'),
   connectionId: z.string().max(100).optional(),
