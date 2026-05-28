@@ -134,6 +134,7 @@ C*Users*scratchpad*
 # Local tool configs / generated assets
 .cursor/
 .claude/settings.local.json
+.claude/worktrees/
 public/sw.js
 public/sw.js.map
 public/workbox-*.js
