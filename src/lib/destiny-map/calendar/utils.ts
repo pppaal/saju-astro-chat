@@ -4,7 +4,6 @@
  */
 
 import {
-  CHEONEUL_GWIIN_MAP,
   JIJANGGAN,
   STEMS,
   BRANCHES,
@@ -22,11 +21,9 @@ import {
 } from './constants';
 
 // ============================================================
-// 천을귀인 체크
+// 천을귀인 체크 — canonical implementation lives in lib/saju.
 // ============================================================
-export function isCheoneulGwiin(dayMasterStem: string, targetBranch: string): boolean {
-  return CHEONEUL_GWIIN_MAP[dayMasterStem]?.includes(targetBranch) ?? false;
-}
+export { isCheoneulGwiin } from '@/lib/saju/stemBranchUtils';
 
 // ============================================================
 // 십신 조회

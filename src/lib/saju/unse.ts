@@ -6,10 +6,10 @@ import {
   STEMS,
   BRANCHES,
   MONTH_STEM_LOOKUP,
-  CHEONEUL_GWIIN_MAP,
   FIVE_ELEMENT_RELATIONS,
   getSolarTermKST,
 } from './constants'
+import { isCheoneulGwiin } from './stemBranchUtils'
 import {
   FiveElement,
   YinYang,
@@ -52,9 +52,6 @@ function getSibseong(
   return ''
 }
 
-function isCheoneulGwiin(dayMasterStemName: string, targetBranchName: string): boolean {
-  return CHEONEUL_GWIIN_MAP[dayMasterStemName]?.includes(targetBranchName) ?? false
-}
 
 // 출생 시각을 "출생지 타임존" 기준 로컬 → UTC 타임스탬프로 정규화
 function normalizeBirthToUTC(birthDate: Date, timezone: string): Date {
