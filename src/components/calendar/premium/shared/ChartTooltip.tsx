@@ -41,13 +41,6 @@ interface Props {
   convergenceLabel?: string
 }
 
-const ACCENT: Record<TooltipPointType, string> = {
-  best: 'border-emerald-400/40 shadow-emerald-500/20',
-  caution: 'border-rose-400/40 shadow-rose-500/20',
-  convergence: 'border-violet-400/40 shadow-violet-500/20',
-  normal: 'border-amber-400/30 shadow-amber-500/10',
-}
-
 export default function ChartTooltip({
   label,
   yLabel,
@@ -58,51 +51,42 @@ export default function ChartTooltip({
   cautionLabel,
   convergenceLabel,
 }: Props) {
-  const accent = ACCENT[pointType]
   const showSeries = series && series.length > 0
   return (
-    <div
-      className={`min-w-[140px] bg-zinc-950/90 backdrop-blur-md border ${accent} px-3.5 py-2.5 rounded-xl shadow-2xl`}
-    >
-      <p className="text-amber-300 font-bold text-[11px] mb-1.5 tracking-wide">{label}</p>
+    <div className="min-w-[120px] bg-neutral-900/90 backdrop-blur-md border border-neutral-800 px-3 py-2 rounded-lg shadow-2xl text-xs">
+      <p className="text-neutral-400 mb-1">{label}</p>
 
       {!showSeries && typeof value !== 'undefined' && (
-        <p className="text-white text-sm font-medium">
-          {yLabel && <span className="text-zinc-400">{yLabel} </span>}
-          <span className="font-black text-lg ml-1 tabular-nums bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">
-            {value ?? '—'}
-          </span>
+        <p className="text-amber-400 font-medium tracking-wide">
+          {yLabel ?? ''} <span className="text-white ml-1 tabular-nums">{value ?? '—'}</span>
         </p>
       )}
 
       {showSeries && (
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {series!.map((p) => (
-            <div key={p.name} className="flex items-center gap-2 text-sm">
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ background: p.color, boxShadow: `0 0 6px ${p.color}` }}
-              />
-              <span className="text-zinc-300 font-medium">{p.name}</span>
-              <span className="font-black tabular-nums text-white ml-auto">{p.value}</span>
+            <div key={p.name} className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: p.color }} />
+              <span className="text-neutral-400">{p.name}</span>
+              <span className="font-medium tabular-nums text-white ml-auto">{p.value}</span>
             </div>
           ))}
         </div>
       )}
 
       {pointType === 'best' && bestLabel && (
-        <p className="text-emerald-400 text-[11px] mt-1.5 flex items-center gap-1 font-medium">
-          <Star size={11} className="fill-emerald-400" /> {bestLabel}
+        <p className="text-emerald-400 mt-1 flex items-center gap-1">
+          <Star size={10} className="fill-emerald-400" /> {bestLabel}
         </p>
       )}
       {pointType === 'caution' && cautionLabel && (
-        <p className="text-rose-400 text-[11px] mt-1.5 flex items-center gap-1 font-medium">
-          <AlertTriangle size={11} /> {cautionLabel}
+        <p className="text-rose-400 mt-1 flex items-center gap-1">
+          <AlertTriangle size={10} /> {cautionLabel}
         </p>
       )}
       {pointType === 'convergence' && convergenceLabel && (
-        <p className="text-violet-400 text-[11px] mt-1.5 flex items-center gap-1 font-medium">
-          <Sparkles size={11} /> {convergenceLabel}
+        <p className="text-violet-400 mt-1 flex items-center gap-1">
+          <Sparkles size={10} /> {convergenceLabel}
         </p>
       )}
     </div>

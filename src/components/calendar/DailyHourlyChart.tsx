@@ -91,159 +91,107 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
   const showNeutral50 = yMin <= 50 && yMax >= 50
 
   return (
-    <div className="relative bg-gradient-to-br from-zinc-900/60 via-zinc-900/50 to-zinc-950/60 backdrop-blur-sm border border-white/10 rounded-2xl p-5 overflow-hidden">
-      {/* decorative glows — amber top-left, cyan bottom-right */}
-      <div className="pointer-events-none absolute -top-16 -left-16 w-48 h-48 bg-amber-500/8 blur-3xl rounded-full" />
-      {hasAstro && (
-        <div className="pointer-events-none absolute -bottom-20 -right-16 w-56 h-56 bg-cyan-500/8 blur-3xl rounded-full" />
-      )}
-      <h3 className="relative text-base font-bold text-zinc-200 mb-1 flex items-center gap-2 tracking-wider uppercase">
-        <Clock className="w-5 h-5 text-cyan-400" />
-        시간대 흐름 (24시간)
-      </h3>
-      <p className="relative text-xs text-zinc-500 mb-3">
+    <div className="bg-neutral-950 border border-neutral-900 rounded-2xl p-5 sm:p-6">
+      <div className="flex items-baseline justify-between mb-2">
+        <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-cyan-400" />
+          시간대 흐름 (24시간)
+        </h3>
+      </div>
+      <p className="text-xs text-zinc-500 mb-4">
         {hasAstro
-          ? '하루 중 사주·점성 흐름 — 두 선이 교차하는 구간이 전환 시점, 50점이 기준선'
-          : '하루 중 어느 시간에 운이 오는지 — 50점이 기준선'}
+          ? '두 선이 교차하는 구간이 전환 시점 · 50점 기준선'
+          : '하루 중 어느 시간에 운이 오는지 · 50점 기준선'}
       </p>
-      <div className="relative">
-        <ResponsiveContainer width="100%" height={240}>
-          <ComposedChart data={data} margin={{ top: 14, right: 44, left: -10, bottom: 0 }}>
-            <defs>
-              <linearGradient id="hourSaju" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.55} />
-                <stop offset="45%" stopColor="#f59e0b" stopOpacity={0.2} />
-                <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="hourAstro" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#67e8f9" stopOpacity={0.5} />
-                <stop offset="45%" stopColor="#22d3ee" stopOpacity={0.18} />
-                <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
-              </linearGradient>
-              <linearGradient id="hourSajuStroke" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#fcd34d" />
-                <stop offset="100%" stopColor="#f59e0b" />
-              </linearGradient>
-              <linearGradient id="hourAstroStroke" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#a5f3fc" />
-                <stop offset="100%" stopColor="#22d3ee" />
-              </linearGradient>
-              <filter id="hourGlow" x="-30%" y="-30%" width="160%" height="160%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              <filter id="hourDotGlow" x="-100%" y="-100%" width="300%" height="300%">
-                <feGaussianBlur stdDeviation="3.5" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-            <CartesianGrid strokeDasharray="2 6" stroke="#27272a" vertical={false} />
-            <XAxis
-              dataKey="hour"
-              stroke="#71717a99"
-              fontSize={11}
-              fontWeight={600}
-              interval={2}
-              tickLine={false}
-              axisLine={false}
-              dy={4}
+      <ResponsiveContainer width="100%" height={240}>
+        <ComposedChart data={data} margin={{ top: 28, right: 40, left: -10, bottom: 0 }}>
+          <defs>
+            <linearGradient id="hourSaju" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="hourAstro" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.18} />
+              <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
+          <XAxis
+            dataKey="hour"
+            stroke="#525252"
+            fontSize={11}
+            interval={2}
+            tickLine={false}
+            axisLine={false}
+            dy={10}
+          />
+          <YAxis
+            domain={[yMin, yMax]}
+            stroke="#525252"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip content={<HourlyTooltip />} cursor={{ stroke: '#404040', strokeWidth: 1 }} />
+          {hasAstro && (
+            <Legend
+              iconSize={8}
+              iconType="circle"
+              wrapperStyle={{
+                fontSize: '11px',
+                fontWeight: 500,
+                paddingTop: '12px',
+                color: '#737373',
+              }}
             />
-            <YAxis
-              domain={[yMin, yMax]}
-              stroke="#71717a99"
-              fontSize={11}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              content={<HourlyTooltip />}
-              cursor={{ stroke: '#fbbf24', strokeWidth: 1, strokeDasharray: '4 4', opacity: 0.5 }}
-            />
-            {hasAstro && (
-              <Legend
-                iconSize={10}
-                iconType="circle"
-                wrapperStyle={{
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  paddingTop: '12px',
-                  color: '#a1a1aa',
-                }}
+          )}
+          {showNeutral50 && (
+            <ReferenceLine y={50} stroke="#262626" strokeWidth={1} strokeDasharray="3 3">
+              <Label value="보통 50" position="right" fill="#525252" fontSize={11} />
+            </ReferenceLine>
+          )}
+          {nowHourLabel && (
+            <ReferenceLine x={nowHourLabel} stroke="#fbbf24" strokeWidth={1} strokeDasharray="3 3">
+              <Label
+                value="지금"
+                position="top"
+                offset={12}
+                fill="#fbbf24"
+                fontSize={11}
+                fontWeight={600}
               />
-            )}
-            {showNeutral50 && (
-              <ReferenceLine y={50} stroke="#71717a55" strokeWidth={1} strokeDasharray="4 4">
-                <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={11} />
-              </ReferenceLine>
-            )}
-            {nowHourLabel && (
-              <ReferenceLine
-                x={nowHourLabel}
-                stroke="#fbbf24"
-                strokeWidth={1.5}
-                strokeDasharray="3 3"
-              >
-                <Label
-                  value="지금"
-                  position="insideTop"
-                  offset={8}
-                  fill="#fbbf24"
-                  fontSize={10}
-                  fontWeight={700}
-                />
-              </ReferenceLine>
-            )}
+            </ReferenceLine>
+          )}
+          <Area
+            type="monotone"
+            dataKey="saju"
+            name="사주"
+            stroke="#f59e0b"
+            strokeWidth={2}
+            fill="url(#hourSaju)"
+            dot={false}
+            activeDot={{ r: 4, fill: '#f59e0b', stroke: '#0a0a0a', strokeWidth: 2 }}
+            isAnimationActive
+            animationDuration={600}
+            animationEasing="ease-out"
+          />
+          {hasAstro && (
             <Area
               type="monotone"
-              dataKey="saju"
-              name="사주"
-              stroke="url(#hourSajuStroke)"
-              strokeWidth={2.5}
-              fill="url(#hourSaju)"
+              dataKey="astro"
+              name="점성"
+              stroke="#22d3ee"
+              strokeWidth={2}
+              fill="url(#hourAstro)"
               dot={false}
-              activeDot={{
-                r: 5,
-                fill: '#fbbf24',
-                stroke: '#0a0f1e',
-                strokeWidth: 2,
-                filter: 'url(#hourDotGlow)',
-              }}
-              filter="url(#hourGlow)"
+              activeDot={{ r: 4, fill: '#22d3ee', stroke: '#0a0a0a', strokeWidth: 2 }}
               isAnimationActive
-              animationDuration={900}
+              animationDuration={600}
               animationEasing="ease-out"
             />
-            {hasAstro && (
-              <Area
-                type="monotone"
-                dataKey="astro"
-                name="점성"
-                stroke="url(#hourAstroStroke)"
-                strokeWidth={2.5}
-                fill="url(#hourAstro)"
-                dot={false}
-                activeDot={{
-                  r: 5,
-                  fill: '#67e8f9',
-                  stroke: '#0a0f1e',
-                  strokeWidth: 2,
-                  filter: 'url(#hourDotGlow)',
-                }}
-                filter="url(#hourGlow)"
-                isAnimationActive
-                animationDuration={900}
-                animationEasing="ease-out"
-              />
-            )}
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
+          )}
+        </ComposedChart>
+      </ResponsiveContainer>
     </div>
   )
 }
