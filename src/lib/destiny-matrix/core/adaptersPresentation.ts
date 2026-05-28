@@ -1,5 +1,5 @@
 import type { DestinyCoreResult } from './runDestinyCore'
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import { formatDecisionActionLabels, formatPolicyCheckLabels } from './actionCopy'
 import { repairPossiblyMojibakeText } from '@/lib/destiny-matrix/textRepair'
 import { iga, eunNeun } from '@/lib/i18n/koParticle'

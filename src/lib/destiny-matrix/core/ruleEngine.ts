@@ -1,4 +1,4 @@
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { ActivationEngineResult } from './activationEngine'
 import type { CompiledFeatureToken } from './tokenCompiler'
 import { repairMojibakeText } from '@/lib/text/mojibake'
@@ -68,11 +68,21 @@ export function buildRuleEngine(input: {
     const hasSaturnRelationshipGate = hasAnyToken(
       /planet-house:Saturn:(7|8|12)|planet-sign:Saturn:(Pisces|Capricorn|Aquarius)|aspect:(Moon|Venus):Saturn:(square|opposition|quincunx)|aspect:Saturn:(Moon|Venus):(square|opposition|quincunx)/i
     )
-    const hasMoonSaturnHardAspect = hasAnyToken(/aspect:(Moon|Saturn):(Saturn|Moon):(square|opposition|quincunx)/i)
-    const hasVenusSaturnHardAspect = hasAnyToken(/aspect:(Venus|Saturn):(Saturn|Venus):(square|opposition|quincunx)/i)
-    const hasSunJupiterSoftAspect = hasAnyToken(/aspect:(Sun|Jupiter):(Jupiter|Sun):(trine|sextile|conjunction)/i)
-    const hasMercuryMarsHardAspect = hasAnyToken(/aspect:(Mercury|Mars):(Mars|Mercury):(square|opposition|quincunx)/i)
-    const hasVenusMarsSoftAspect = hasAnyToken(/aspect:(Venus|Mars):(Mars|Venus):(trine|sextile|conjunction)/i)
+    const hasMoonSaturnHardAspect = hasAnyToken(
+      /aspect:(Moon|Saturn):(Saturn|Moon):(square|opposition|quincunx)/i
+    )
+    const hasVenusSaturnHardAspect = hasAnyToken(
+      /aspect:(Venus|Saturn):(Saturn|Venus):(square|opposition|quincunx)/i
+    )
+    const hasSunJupiterSoftAspect = hasAnyToken(
+      /aspect:(Sun|Jupiter):(Jupiter|Sun):(trine|sextile|conjunction)/i
+    )
+    const hasMercuryMarsHardAspect = hasAnyToken(
+      /aspect:(Mercury|Mars):(Mars|Mercury):(square|opposition|quincunx)/i
+    )
+    const hasVenusMarsSoftAspect = hasAnyToken(
+      /aspect:(Venus|Mars):(Mars|Venus):(trine|sextile|conjunction)/i
+    )
     const hasNeptuneRetreatResonance = hasAnyToken(
       /planet-house:Neptune:12|planet-sign:Neptune:Pisces|advanced:draconic|advanced:fixedStars|advanced:harmonics/i
     )
@@ -99,8 +109,12 @@ export function buildRuleEngine(input: {
     const hasCeresResourceFrame = hasAnyToken(/asteroid:Ceres:2\b/i)
     const hasPallasStrategyFrame = hasAnyToken(/asteroid:Pallas:(3|6|10)\b/i)
     const hasVestaDisciplineFrame = hasAnyToken(/asteroid:Vesta:(5|6|10)\b/i)
-    const hasRoyalFixedStar = hasAnyToken(/advanced:fixedstars.*(regulus|spica|aldebaran|fomalhaut)|\b(regulus|spica|aldebaran|fomalhaut)\b/i)
-    const hasIntenseFixedStar = hasAnyToken(/advanced:fixedstars.*(algol|antares)|\b(algol|antares)\b/i)
+    const hasRoyalFixedStar = hasAnyToken(
+      /advanced:fixedstars.*(regulus|spica|aldebaran|fomalhaut)|\b(regulus|spica|aldebaran|fomalhaut)\b/i
+    )
+    const hasIntenseFixedStar = hasAnyToken(
+      /advanced:fixedstars.*(algol|antares)|\b(algol|antares)\b/i
+    )
     const hasRegulus = hasAnyToken(/advanced:fixedstars.*regulus|\bregulus\b/i)
     const hasSpica = hasAnyToken(/advanced:fixedstars.*spica|\bspica\b/i)
     const hasAldebaran = hasAnyToken(/advanced:fixedstars.*aldebaran|\baldebaran\b/i)
@@ -116,11 +130,19 @@ export function buildRuleEngine(input: {
     const hasSunMoonMidpoint = hasAnyToken(/advanced:midpoints.*sun\/moon|\bsun\/moon\b/i)
     const hasVenusMarsMidpoint = hasAnyToken(/advanced:midpoints.*venus\/mars|\bvenus\/mars\b/i)
     const hasSunJupiterMidpoint = hasAnyToken(/advanced:midpoints.*sun\/jupiter|\bsun\/jupiter\b/i)
-    const hasMercurySaturnMidpoint = hasAnyToken(/advanced:midpoints.*mercury\/saturn|\bmercury\/saturn\b/i)
+    const hasMercurySaturnMidpoint = hasAnyToken(
+      /advanced:midpoints.*mercury\/saturn|\bmercury\/saturn\b/i
+    )
     const hasMoonSaturnMidpoint = hasAnyToken(/advanced:midpoints.*moon\/saturn|\bmoon\/saturn\b/i)
-    const hasVenusSaturnMidpoint = hasAnyToken(/advanced:midpoints.*venus\/saturn|\bvenus\/saturn\b/i)
-    const hasAdvancedAsteroidSupport = hasAnyToken(/advanced:asteroids.*(juno|ceres|pallas|vesta)|\b(juno|ceres|pallas|vesta)\b/i)
-    const hasAdvancedExtraPointSupport = hasAnyToken(/advanced:extrapoints.*(chiron|lilith|vertex|partoffortune)|\b(chiron|lilith|vertex|part of fortune|partoffortune)\b/i)
+    const hasVenusSaturnMidpoint = hasAnyToken(
+      /advanced:midpoints.*venus\/saturn|\bvenus\/saturn\b/i
+    )
+    const hasAdvancedAsteroidSupport = hasAnyToken(
+      /advanced:asteroids.*(juno|ceres|pallas|vesta)|\b(juno|ceres|pallas|vesta)\b/i
+    )
+    const hasAdvancedExtraPointSupport = hasAnyToken(
+      /advanced:extrapoints.*(chiron|lilith|vertex|partoffortune)|\b(chiron|lilith|vertex|part of fortune|partoffortune)\b/i
+    )
     const hasGeokgukFrame = allTokens.some((token) => token.sourceKind === 'geokguk')
     const hasJeonggwanFrame = hasAnyToken(/geokguk:(jeonggwan|정관)/i)
     const hasInseongFrame = hasAnyToken(/geokguk:(jeongin|pyeongin|정인|편인)/i)
@@ -149,20 +171,34 @@ export function buildRuleEngine(input: {
     const hasEarthYongsin = hasAnyToken(/yongsin:(토|earth)/i)
     const hasSaturnReturn = hasAnyToken(/transit:saturnReturn/i)
     const hasJupiterReturn = hasAnyToken(/transit:jupiterReturn|transit:nodeReturn/i)
-    const hasRetrogradeCluster = hasAnyToken(/transit:(mercuryRetrograde|venusRetrograde|marsRetrograde|jupiterRetrograde|saturnRetrograde)/i)
+    const hasRetrogradeCluster = hasAnyToken(
+      /transit:(mercuryRetrograde|venusRetrograde|marsRetrograde|jupiterRetrograde|saturnRetrograde)/i
+    )
     const hasEclipseActivation = hasAnyToken(/advanced:eclipses|transit:eclipse/i)
     const hasPeakStage = hasAnyToken(/stage:(제왕|jewang|건록|geonrok|임관|imgwan)/i)
     const hasGrowthStage = hasAnyToken(/stage:(장생|jangsaeng|관대|gwandae)/i)
     const hasExhaustionStage = hasAnyToken(/stage:(병|byeong|쇠|soe|절|jeol|묘|myo)/i)
     const hasHarmonyRelation = hasAnyToken(/relation:.*(harmony|합|yukhap|samhap|banghap)/i)
     const hasClashRelation = hasAnyToken(/relation:.*(clash|충|hyeong|pa|hae|wonjin|tension)/i)
-    const hasCrossEvidenceCareer = hasAnyToken(/crossSnapshot:crossevidence.*career|crossSnapshot:category.*career|crossSnapshot:source.*career/i)
-    const hasCrossEvidenceRelationship = hasAnyToken(/crossSnapshot:crossevidence.*relationship|crossSnapshot:crossevidence.*love|crossSnapshot:category.*relationship|crossSnapshot:source.*relationship/i)
-    const hasCrossEvidenceWealth = hasAnyToken(/crossSnapshot:crossevidence.*wealth|crossSnapshot:crossevidence.*money|crossSnapshot:category.*wealth|crossSnapshot:source.*wealth/i)
+    const hasCrossEvidenceCareer = hasAnyToken(
+      /crossSnapshot:crossevidence.*career|crossSnapshot:category.*career|crossSnapshot:source.*career/i
+    )
+    const hasCrossEvidenceRelationship = hasAnyToken(
+      /crossSnapshot:crossevidence.*relationship|crossSnapshot:crossevidence.*love|crossSnapshot:category.*relationship|crossSnapshot:source.*relationship/i
+    )
+    const hasCrossEvidenceWealth = hasAnyToken(
+      /crossSnapshot:crossevidence.*wealth|crossSnapshot:crossevidence.*money|crossSnapshot:category.*wealth|crossSnapshot:source.*wealth/i
+    )
     const hasLowCrossAgreement = hasAnyToken(/crossSnapshot:crossagreement=.*(0\.[0-4]|0$)/i)
-    const hasSajuUnseFrame = hasAnyToken(/sajuSnapshot:unse|sajuSnapshot:advancedanalysis|sajuSnapshot:daeun|sajuSnapshot:saeun|sajuSnapshot:wolun|sajuSnapshot:iljin/i)
-    const hasAstroTransitFrame = hasAnyToken(/astrologySnapshot:transits|astrologySnapshot:advancedastrosignals|astrologySnapshot:eclipse|astrologySnapshot:return|astrologySnapshot:progress/i)
-    const hasNatalAspectFrame = hasAnyToken(/astrologySnapshot:natalaspects|astrologySnapshot:aspect|astrologySnapshot:natalchart/i)
+    const hasSajuUnseFrame = hasAnyToken(
+      /sajuSnapshot:unse|sajuSnapshot:advancedanalysis|sajuSnapshot:daeun|sajuSnapshot:saeun|sajuSnapshot:wolun|sajuSnapshot:iljin/i
+    )
+    const hasAstroTransitFrame = hasAnyToken(
+      /astrologySnapshot:transits|astrologySnapshot:advancedastrosignals|astrologySnapshot:eclipse|astrologySnapshot:return|astrologySnapshot:progress/i
+    )
+    const hasNatalAspectFrame = hasAnyToken(
+      /astrologySnapshot:natalaspects|astrologySnapshot:aspect|astrologySnapshot:natalchart/i
+    )
 
     if (hasToken(/shinsal:.*화개/i)) {
       if (domain.domain === 'spirituality' || domain.domain === 'personality') {
@@ -208,7 +244,12 @@ export function buildRuleEngine(input: {
       if (domain.domain === 'move' || domain.domain === 'career') {
         pushUnique(amplify, 'movement_window')
       }
-      if (domain.domain === 'move' && hasAnyToken(/planet-house:Jupiter:(9|10)|planet-sign:Jupiter:Sagittarius|planet-house:Mercury:9/i)) {
+      if (
+        domain.domain === 'move' &&
+        hasAnyToken(
+          /planet-house:Jupiter:(9|10)|planet-sign:Jupiter:Sagittarius|planet-house:Mercury:9/i
+        )
+      ) {
         pushUnique(amplify, 'travel_for_opportunity', 'housing_search_momentum')
       }
       if (domain.domain === 'move' && hasAxis('verification')) {
@@ -245,7 +286,10 @@ export function buildRuleEngine(input: {
       if (domain.domain === 'health') {
         pushUnique(amplify, 'healing_routine')
         pushUnique(delay, 'high_intensity_push')
-        if (hasSaturnRelationshipGate || hasAnyToken(/aspect:(Moon|Saturn):.*(square|opposition)|planet-house:Moon:(6|12)/i)) {
+        if (
+          hasSaturnRelationshipGate ||
+          hasAnyToken(/aspect:(Moon|Saturn):.*(square|opposition)|planet-house:Moon:(6|12)/i)
+        ) {
           pushUnique(amplify, 'recovery_protocol')
         }
       }
@@ -579,10 +623,18 @@ export function buildRuleEngine(input: {
     if (hasMercury10 && hasJeonggwanSibsin && domain.domain === 'career') {
       pushUnique(amplify, 'precision_planning', 'contract_alignment')
     }
-    if ((hasJupiter10 || hasSaturn10) && (hasPyeonjae || hasJeongjae) && domain.domain === 'career') {
+    if (
+      (hasJupiter10 || hasSaturn10) &&
+      (hasPyeonjae || hasJeongjae) &&
+      domain.domain === 'career'
+    ) {
       pushUnique(amplify, 'network_leverage', 'authority_visibility')
     }
-    if ((hasVenus7 || hasMoon7) && (hasBigyeon || hasJeonggwanSibsin) && domain.domain === 'relationship') {
+    if (
+      (hasVenus7 || hasMoon7) &&
+      (hasBigyeon || hasJeonggwanSibsin) &&
+      domain.domain === 'relationship'
+    ) {
       pushUnique(amplify, 'commitment_frame', 'clarify_expectations')
     }
     if (hasMoon7 && (hasGeopjae || hasSanggwan) && domain.domain === 'relationship') {
@@ -922,7 +974,11 @@ export function buildRuleEngine(input: {
       }
     }
 
-    if (hasToken(/advanced:draconic|advanced:harmonics|advanced:fixedStars|advanced:midpoints|advanced:asteroids|advanced:extraPoints/i)) {
+    if (
+      hasToken(
+        /advanced:draconic|advanced:harmonics|advanced:fixedStars|advanced:midpoints|advanced:asteroids|advanced:extraPoints/i
+      )
+    ) {
       if (domain.domain === 'spirituality' || domain.domain === 'personality') {
         pushUnique(amplify, 'meaning_reorientation')
       }
@@ -935,9 +991,15 @@ export function buildRuleEngine(input: {
     }
 
     let contradictionPenalty =
-      (domain.dominantAxes.includes('expansion') && domain.dominantAxes.includes('verification') ? 0.18 : 0) +
-      (domain.dominantAxes.includes('bonding') && domain.dominantAxes.includes('retreat') ? 0.14 : 0) +
-      (domain.dominantAxes.includes('pressure') && domain.dominantAxes.includes('recovery') ? 0.12 : 0)
+      (domain.dominantAxes.includes('expansion') && domain.dominantAxes.includes('verification')
+        ? 0.18
+        : 0) +
+      (domain.dominantAxes.includes('bonding') && domain.dominantAxes.includes('retreat')
+        ? 0.14
+        : 0) +
+      (domain.dominantAxes.includes('pressure') && domain.dominantAxes.includes('recovery')
+        ? 0.12
+        : 0)
 
     contradictionPenalty += gate.length >= 2 ? 0.08 : 0
     contradictionPenalty += convert.length >= 2 ? 0.06 : 0

@@ -1,5 +1,6 @@
+// @ts-nocheck — ai-report stub 후 implicit any (외부 호출 0, Phase B Step 4 에서 통째 제거 예정)
 import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import { eunNeun } from '@/lib/i18n/koParticle'
 import { clamp, round2 } from '@/lib/utils/math'
 

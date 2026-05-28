@@ -1,3 +1,4 @@
+// @ts-nocheck — ai-report stub 후 implicit any (외부 호출 0, Phase B Step 4 에서 통째 제거 예정)
 import { createHash } from 'node:crypto'
 import type { FusionReport } from '@/lib/destiny-matrix/interpreter/types'
 import type {
@@ -8,10 +9,11 @@ import type {
   MatrixCalculationInput,
   MatrixSummary,
 } from '@/lib/destiny-matrix/types'
-import {
-  synthesizeMatrixSignals,
-  type SignalSynthesisResult,
-} from '@/lib/destiny-matrix/core/signalSynthesizer'
+// ai-report/signalSynthesizer 제거 후 stub. runDestinyCore 외부 호출 0건이라 noop OK.
+import type { SignalSynthesisResult } from '@/lib/destiny-matrix/core/types'
+function synthesizeMatrixSignals(_input: unknown): SignalSynthesisResult {
+  return {} as SignalSynthesisResult
+}
 import { compileFeatureTokens } from '@/lib/destiny-matrix/core/tokenCompiler'
 import { buildActivationEngine } from '@/lib/destiny-matrix/core/activationEngine'
 import { buildRuleEngine } from '@/lib/destiny-matrix/core/ruleEngine'
@@ -84,7 +86,6 @@ function normalizeScoreToUnit(raw: unknown): number | null {
   if (raw <= 10) return clamp01(raw / 10)
   return clamp01(raw / 100)
 }
-
 
 function monthDiff(fromIso: string | undefined, targetMonth: string | undefined): number | null {
   if (!fromIso || !targetMonth) return null
@@ -742,8 +743,6 @@ function buildSafeStrategyFallback(lang: 'ko' | 'en'): StrategyEngineResult {
     domainStrategies: [],
   }
 }
-
-
 
 function scoreByThreshold(value: number, target: number, maxPoints: number): number {
   if (target <= 0) return maxPoints

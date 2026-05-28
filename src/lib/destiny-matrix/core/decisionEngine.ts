@@ -1,4 +1,4 @@
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { StrategyEngineResult, StrategyPhaseCode } from './strategyEngine'
 import type { PatternResult } from './patternEngine'
 import type { ScenarioResult } from './scenarioEngine'

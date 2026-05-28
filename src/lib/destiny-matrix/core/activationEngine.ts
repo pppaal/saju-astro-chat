@@ -1,5 +1,5 @@
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { CompiledFeatureToken } from './tokenCompiler'
 import { clamp, round2 } from '@/lib/utils/math'
 

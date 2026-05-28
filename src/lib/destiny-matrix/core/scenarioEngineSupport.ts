@@ -1,4 +1,4 @@
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { StrategyEngineResult } from './strategyEngine'
 import type { MatrixCalculationInputNormalized } from './runDestinyCore'
 import type { PatternResult } from './patternEngine'
@@ -26,7 +26,6 @@ interface ScenarioResolvedContext {
   rules?: RuleEngineResult
   states?: StateEngineResult
 }
-
 
 function resolveBranchSpecificWeight(input: {
   branch: string

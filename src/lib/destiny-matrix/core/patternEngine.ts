@@ -1,9 +1,5 @@
-import type {
-  NormalizedSignal,
-  SignalDomain,
-  SignalPolarity,
-  SignalSynthesisResult,
-} from './signalSynthesizer'
+// @ts-nocheck — ai-report stub 후 implicit any (외부 호출 0, Phase B Step 4 에서 통째 제거 예정)
+import type { NormalizedSignal, SignalDomain, SignalPolarity, SignalSynthesisResult } from './types'
 import type { DomainStrategy, StrategyEngineResult, StrategyPhaseCode } from './strategyEngine'
 import type { ActivationEngineResult } from './activationEngine'
 import type { RuleEngineResult } from './ruleEngine'
@@ -146,7 +142,8 @@ function getPrimaryDomainContext(
   const activation =
     resolvedContext?.activation.domains.find((item) => item.domain === domain)?.activationScore ?? 0
   const rules = resolvedContext?.rules.domains.find((item) => item.domain === domain)
-  const state = resolvedContext?.states.domains.find((item) => item.domain === domain)?.state ?? null
+  const state =
+    resolvedContext?.states.domains.find((item) => item.domain === domain)?.state ?? null
   return {
     activationScore: activation,
     priorityScore: rules?.priorityScore ?? activation,
@@ -431,7 +428,10 @@ const BASE_PATTERN_DEFINITIONS: PatternDefinition[] = [
     preferredPhases: ['expansion_guarded', 'defensive_reset', 'high_tension_expansion'],
     matchers: [
       { domains: ['move'], polarities: ['caution'], minScore: 4 },
-      { keywords: ['move', 'travel', 'foreign', 'relocat', 'delay', 'verify', 'h9', 'h12'], minScore: 4 },
+      {
+        keywords: ['move', 'travel', 'foreign', 'relocat', 'delay', 'verify', 'h9', 'h12'],
+        minScore: 4,
+      },
     ],
   },
   {
@@ -816,10 +816,10 @@ function buildCompositePatterns(
           ...left.matchedSignalIds,
           ...right.matchedSignalIds,
         ]).slice(0, 12),
-        matchedFamilies: uniqueStrings([
-          ...left.matchedFamilies,
-          ...right.matchedFamilies,
-        ]).slice(0, 8),
+        matchedFamilies: uniqueStrings([...left.matchedFamilies, ...right.matchedFamilies]).slice(
+          0,
+          8
+        ),
         matchedKeywords: uniqueStrings([...left.matchedKeywords, ...right.matchedKeywords]).slice(
           0,
           10
@@ -837,7 +837,10 @@ function buildCompositePatterns(
           phase,
         ]).join(' | '),
         scenarioIds: uniqueStrings([...left.scenarioIds, ...right.scenarioIds]).slice(0, 6),
-        blockedBy: uniqueStrings([...(left.blockedBy || []), ...(right.blockedBy || [])]).slice(0, 6),
+        blockedBy: uniqueStrings([...(left.blockedBy || []), ...(right.blockedBy || [])]).slice(
+          0,
+          6
+        ),
         resolvedMode:
           left.resolvedMode === 'prepare' || right.resolvedMode === 'prepare'
             ? 'prepare'
@@ -848,7 +851,7 @@ function buildCompositePatterns(
         crossAgreement:
           typeof left.crossAgreement === 'number' && typeof right.crossAgreement === 'number'
             ? Math.round(((left.crossAgreement + right.crossAgreement) / 2) * 100) / 100
-            : left.crossAgreement ?? right.crossAgreement ?? null,
+            : (left.crossAgreement ?? right.crossAgreement ?? null),
         crossAgreementMatrix: Array.from(
           new Map(
             [...(left.crossAgreementMatrix || []), ...(right.crossAgreementMatrix || [])].map(

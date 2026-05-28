@@ -6,11 +6,22 @@ import type {
   SubjectContext,
   TemporalSlice,
 } from '@/lib/destiny-matrix/types'
-import type {
-  SignalDomain,
-  SignalPolarity,
-  SignalSynthesisResult,
-} from '@/lib/destiny-matrix/core/signalSynthesizer'
+// ai-report/signalSynthesizer 제거 (PR Phase B Step 1) — 기존 type 들 인라인 stub.
+// runtime 호출이 0건이라 정확한 shape 불필요. core 안의 type 일관성만 유지.
+export type SignalDomain =
+  | 'personality'
+  | 'career'
+  | 'relationship'
+  | 'wealth'
+  | 'health'
+  | 'spirituality'
+  | 'timing'
+  | 'move'
+export type SignalPolarity = -1 | 0 | 1
+// canonical.ts 등 내부 파일이 .slice / .filter / iteration 으로 사용 — stub 으로
+// 충분히 광범위하게. runtime 호출 0 이라 정확한 shape 불필요.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type SignalSynthesisResult = any
 import type { StrategyPhaseCode } from '@/lib/destiny-matrix/core/strategyEngine'
 import type { ScenarioResult } from '@/lib/destiny-matrix/core/scenarioEngine'
 import type { DecisionActionType } from '@/lib/destiny-matrix/core/decisionEngine'

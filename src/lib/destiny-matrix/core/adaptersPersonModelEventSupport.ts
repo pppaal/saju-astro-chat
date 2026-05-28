@@ -1,4 +1,4 @@
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { DestinyCoreResult } from './runDestinyCore'
 import type {
   AdapterBirthTimeHypothesis,

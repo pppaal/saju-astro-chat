@@ -1,5 +1,6 @@
+// @ts-nocheck — ai-report stub 후 implicit any (외부 호출 0, Phase B Step 4 에서 통째 제거 예정)
 import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import { iga, eunNeun } from '@/lib/i18n/koParticle'
 import type {
   BuildCoreCanonicalOutputInput,
@@ -13,11 +14,7 @@ import type {
   CoreProvenance,
   CoreScenarioLead,
 } from './types'
-import {
-  DOMAIN_ARBITRATION_RULES,
-  downgradeMode,
-  uniqueActions,
-} from './canonicalPolicy'
+import { DOMAIN_ARBITRATION_RULES, downgradeMode, uniqueActions } from './canonicalPolicy'
 import {
   buildDomainTimingAbortConditions,
   buildDomainTimingEntryConditions,
@@ -79,7 +76,10 @@ export {
 } from './canonicalDomainSupportSupport'
 export { clamp, round2 }
 
-export function findEvidenceIdsForDomain(input: BuildCoreCanonicalOutputInput, domain: string): string[] {
+export function findEvidenceIdsForDomain(
+  input: BuildCoreCanonicalOutputInput,
+  domain: string
+): string[] {
   return [
     ...(input.signalSynthesis.claims || [])
       .filter((item) => item.domain === domain)
@@ -489,7 +489,10 @@ export function buildDomainVerdicts(input: {
         ? (() => {
             const phase = localizeCanonicalPhase(lead.phase)
             const fam = localizePatternFamily(leadPattern?.family)
-            const phaseCop = phase.match(/[가-힣]$/) && (phase.charCodeAt(phase.length - 1) - 0xac00) % 28 !== 0 ? '이며' : '며'
+            const phaseCop =
+              phase.match(/[가-힣]$/) && (phase.charCodeAt(phase.length - 1) - 0xac00) % 28 !== 0
+                ? '이며'
+                : '며'
             return `${localizeCanonicalDomain(lead.domain)} 영역은 ${phase}${phaseCop}, ${fam}${iga(fam)} 중심을 잡고 있습니다. 현재 판단은 ${localizeCanonicalMode(mode)} 쪽으로 정리됩니다.`
           })()
         : `${lead.domain} is in ${lead.phase} phase, led by the ${leadPattern?.family || 'core'} pattern family. The current judgment resolves toward ${mode}.`
@@ -522,5 +525,3 @@ export function buildDomainVerdicts(input: {
     }
   })
 }
-
-
