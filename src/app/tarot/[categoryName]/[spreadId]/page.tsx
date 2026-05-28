@@ -9,6 +9,7 @@ import { useTarotGame, useTarotInterpretation } from './hooks'
 import { smoothScrollTo } from './utils'
 import { PageContent } from './components/PageContent'
 import BrandSplash from '@/components/branding/BrandSplash'
+import { useCreditModal } from '@/contexts/CreditModalContext'
 
 export default function TarotReadingPageWrapper() {
   return (
@@ -24,6 +25,8 @@ function TarotReadingPage() {
   const searchParams = useSearchParams()
   const { status } = useSession()
   const { translate, language } = useI18n()
+  const { showDepleted } = useCreditModal()
+  const [creditNotice, setCreditNotice] = useState<string | null>(null)
 
   const categoryName = params?.categoryName as string | undefined
   const spreadId = params?.spreadId as string | undefined
@@ -127,6 +130,20 @@ function TarotReadingPage() {
         if (cancelled) return
         setInterpretation(snapshot)
       },
+      // 크레딧 / 게스트 한도 — 전역 모달 + 인라인 메시지로 사용자에게 명확히 알림.
+      onCreditError: (kind) => {
+        if (cancelled) return
+        if (kind === 'insufficient_credits') {
+          showDepleted()
+        } else {
+          const isKo = (language || 'ko') === 'ko'
+          setCreditNotice(
+            isKo
+              ? '무료 체험 한도에 도달했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.'
+              : 'Free trial limit reached. Sign in to claim your 5-credit signup bonus and continue.'
+          )
+        }
+      },
     })
       .then((result) => {
         if (cancelled) return
@@ -171,6 +188,8 @@ function TarotReadingPage() {
     setInterpretation,
     fetchInterpretation,
     cacheKeyFor,
+    language,
+    showDepleted,
   ])
 
   // Card reveal with auto-scroll
@@ -274,20 +293,40 @@ function TarotReadingPage() {
     return <BrandSplash />
   }
   return (
-    <PageContent
-      {...gameHook}
-      {...interpretationHook}
-      detailedSectionRef={detailedSectionRef}
-      isSaving={isSaving}
-      isGuestUser={isGuestUser}
-      signInUrl={signInUrl}
-      handleCardReveal={handleCardReveal}
-      handleSaveReading={handleSaveReading}
-      handleReset={handleReset}
-      interpretationFailed={interpretationFailed}
-      handleRetryInterpretation={handleRetryInterpretation}
-      language={language}
-      translate={translate}
-    />
+    <>
+      {creditNotice && (
+        <div
+          role="status"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            padding: '10px 16px',
+            background: '#fdfbf6',
+            borderBottom: '1px solid #ece4d4',
+            color: '#57534e',
+            fontSize: 13,
+            textAlign: 'center',
+          }}
+        >
+          {creditNotice}
+        </div>
+      )}
+      <PageContent
+        {...gameHook}
+        {...interpretationHook}
+        detailedSectionRef={detailedSectionRef}
+        isSaving={isSaving}
+        isGuestUser={isGuestUser}
+        signInUrl={signInUrl}
+        handleCardReveal={handleCardReveal}
+        handleSaveReading={handleSaveReading}
+        handleReset={handleReset}
+        interpretationFailed={interpretationFailed}
+        handleRetryInterpretation={handleRetryInterpretation}
+        language={language}
+        translate={translate}
+      />
+    </>
   )
 }
