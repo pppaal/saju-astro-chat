@@ -56,19 +56,26 @@ describe('Astrology Utils', () => {
   });
 
   describe('angleDiff', () => {
-    it('should return 180 for same angles', () => {
-      expect(angleDiff(0, 0)).toBe(180);
-      expect(angleDiff(90, 90)).toBe(180);
+    // PR #816: 이전엔 `180 - shortest` 반환하던 inverted 구현이라 transit
+    // aspect 검출에서 conjunction ↔ opposition / sextile ↔ trine 가 swap.
+    // standard shortest distance(0..180) 로 통일.
+    it('should return 0 for same angles (conjunction)', () => {
+      expect(angleDiff(0, 0)).toBe(0);
+      expect(angleDiff(90, 90)).toBe(0);
     });
 
-    it('should return 0 for opposite angles', () => {
-      expect(angleDiff(0, 180)).toBe(0);
-      expect(angleDiff(90, 270)).toBe(0);
+    it('should return 180 for opposite angles (opposition)', () => {
+      expect(angleDiff(0, 180)).toBe(180);
+      expect(angleDiff(90, 270)).toBe(180);
     });
 
-    it('should return 90 for 90-degree angles', () => {
+    it('should return 90 for 90-degree apart (square)', () => {
       expect(angleDiff(0, 90)).toBe(90);
       expect(angleDiff(180, 270)).toBe(90);
+    });
+
+    it('should return shortest path across 360° wrap', () => {
+      expect(angleDiff(350, 10)).toBe(20);
     });
   });
 

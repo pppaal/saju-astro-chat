@@ -161,42 +161,44 @@ describe("formatLongitude", () => {
 });
 
 describe("angleDiff", () => {
-  // angleDiff returns 180 - d where d is the absolute difference wrapped
-  // This is used for aspect calculation (returns orb from aspect)
+  // angleDiff returns the shortest angular distance (0..180) between two longitudes.
+  // 이전엔 `180 - shortest` 를 반환하는 inverted 구현이었는데 호출처(transit
+  // aspect 검출) 의 target angle 은 standard(conj=0, opp=180) 라 swap 회귀
+  // 발생. PR #816 에서 standard 로 통일. 이전 테스트는 inverted 가정을
+  // 박아둬서 회귀를 못 잡았음 — 옳은 가정으로 재작성.
 
-  it("returns 180 for same angles (no aspect)", () => {
-    // Same angle = 180 (furthest from any aspect)
-    expect(angleDiff(0, 0)).toBe(180);
-    expect(angleDiff(90, 90)).toBe(180);
-    expect(angleDiff(180, 180)).toBe(180);
+  it("returns 0 for same angles (conjunction)", () => {
+    expect(angleDiff(0, 0)).toBe(0);
+    expect(angleDiff(90, 90)).toBe(0);
+    expect(angleDiff(180, 180)).toBe(0);
   });
 
-  it("returns correct value for angles 90 apart (square aspect)", () => {
+  it("returns 90 for angles 90 apart (square aspect)", () => {
     expect(angleDiff(0, 90)).toBe(90);
     expect(angleDiff(90, 0)).toBe(90);
     expect(angleDiff(45, 135)).toBe(90);
   });
 
-  it("returns correct value for angles 270 apart", () => {
+  it("returns shortest distance for angles >180 apart (270 → 90)", () => {
     const diff = angleDiff(0, 270);
-    expect(diff).toBe(90); // 180 - |180-90| = 90
+    expect(diff).toBe(90);
   });
 
   it("handles wrap-around at 360", () => {
-    // 350 to 10 = 20 degrees apart, so 180 - (180 - 20) = 160
-    expect(angleDiff(350, 10)).toBe(160);
-    expect(angleDiff(10, 350)).toBe(160);
+    // 350° and 10° 는 실제 20도 떨어져 있음 (shortest).
+    expect(angleDiff(350, 10)).toBe(20);
+    expect(angleDiff(10, 350)).toBe(20);
   });
 
-  it("returns 0 for opposite angles (opposition aspect)", () => {
-    expect(angleDiff(0, 180)).toBe(0);
-    expect(angleDiff(90, 270)).toBe(0);
+  it("returns 180 for opposite angles (opposition)", () => {
+    expect(angleDiff(0, 180)).toBe(180);
+    expect(angleDiff(90, 270)).toBe(180);
   });
 
   it("handles negative angles", () => {
-    // -90 normalized = 270, 270 to 90 = 180 apart
+    // -90 normalized = 270, 270 ↔ 90 = 180 (opposition).
     const diff = angleDiff(-90, 90);
-    expect(diff).toBe(0); // Opposition
+    expect(diff).toBe(180);
   });
 });
 
