@@ -63,8 +63,8 @@ const faqs: FaqItem[] = [
     icon: '🃏',
     q: 'How does tarot reading work in DestinyPal?',
     qKo: 'DestinyPal의 타로 리딩은 어떻게 작동하나요?',
-    a: 'Choose a spread (1, 3, 5, or 7 cards, or our couple spread), set your intention, then draw. Our AI interprets each card in context — considering its position, neighboring cards, your Saju/astrology profile, and the question you asked. You can ask follow-up questions on the same reading to deepen the interpretation without redrawing.',
-    aKo: '스프레드를 선택하고(1·3·5·7장, 또는 커플 전용 스프레드) 의도를 설정한 뒤 카드를 뽑습니다. AI 가 각 카드를 위치·인접 카드·귀하의 사주/점성 프로필·질문 맥락에 따라 해석합니다. 같은 리딩에 대해 후속 질문을 이어가며 해석을 더 깊이 파고들 수 있고, 다시 뽑지 않아도 됩니다.',
+    a: 'Choose a spread (1, 2, 3, 5, or 7 cards), set your intention, then draw. Couple readings use the 3-, 5-, or 7-card spreads through a relationship lens. Our AI interprets each card in context — considering its position, neighboring cards, your Saju/astrology profile, and the question you asked. You can ask follow-up questions on the same reading to deepen the interpretation without redrawing.',
+    aKo: '스프레드를 선택하고(1·2·3·5·7장) 의도를 설정한 뒤 카드를 뽑습니다. 커플 리딩은 3·5·7장 스프레드를 관계의 관점에서 풀어냅니다. AI 가 각 카드를 위치·인접 카드·귀하의 사주/점성 프로필·질문 맥락에 따라 해석합니다. 같은 리딩에 대해 후속 질문을 이어가며 해석을 더 깊이 파고들 수 있고, 다시 뽑지 않아도 됩니다.',
   },
   {
     category: 'services',
@@ -79,8 +79,8 @@ const faqs: FaqItem[] = [
     icon: '💕',
     q: 'How does compatibility analysis work?',
     qKo: '궁합 분석은 어떻게 작동하나요?',
-    a: "We analyze both people's Saju charts, zodiac signs, and personality profiles to evaluate harmony in elements, planetary aspects, and energetic compatibility. You'll receive detailed insights on communication, emotional connection, values alignment, and growth potential together.",
-    aKo: '두 사람의 사주 차트, 별자리, 성격 프로필을 분석하여 오행 조화, 행성 관계, 에너지 궁합을 평가합니다. 의사소통, 감정적 연결, 가치관 일치, 함께하는 성장 잠재력에 대한 상세한 통찰을 제공합니다.',
+    a: "We analyze both people's Saju charts and astrological birth charts to evaluate harmony in elements, planetary aspects, and energetic compatibility. You'll receive detailed insights on communication, emotional connection, values alignment, and growth potential together.",
+    aKo: '두 사람의 사주 차트와 점성술 출생 차트를 분석하여 오행 조화, 행성 관계, 에너지 궁합을 평가합니다. 의사소통, 감정적 연결, 가치관 일치, 함께하는 성장 잠재력에 대한 상세한 통찰을 제공합니다.',
   },
   {
     category: 'services',
@@ -153,8 +153,8 @@ const faqs: FaqItem[] = [
     icon: '🌟',
     q: 'What can I use without paying?',
     qKo: '무료로 사용할 수 있는 기능은 무엇인가요?',
-    a: "Core onboarding tools and this month's Fortune Calendar are free. Paid AI features — Destiny Counselor (Destiny Counselor), Tarot, Compatibility, and the extended Yearly/Monthly/Daily Fortune Calendar — each cost credits, which you buy as a one-time pack.",
-    aKo: '핵심 온보딩 도구와 이번 달 운세 캘린더는 무료입니다. 유료 AI 기능 — 운명 상담사, 타로 상담사, 궁합 상담사, 확장된 일·월·년 운세 — 은 각각 크레딧을 소모하며, 크레딧은 일회성 팩으로 구매합니다.',
+    a: "Signup includes free credits to try basic readings (fortune, tarot, compatibility), and this month's Fortune Calendar is free. Paid AI features — Destiny Counselor, Tarot Counselor, Compatibility Counselor, and the extended Yearly/Monthly/Daily Fortune Calendar — cost credits, sold as one-time packs.",
+    aKo: '회원가입 시 무료 크레딧이 지급되어 기본 리딩(운세·타로·궁합)을 시작할 수 있고, 이번 달 운세 캘린더는 무료입니다. 유료 AI 기능 — 운명 상담사, 타로 상담사, 궁합 상담사, 확장된 일·월·년 운세 — 은 크레딧을 소모하며, 일회성 팩으로 구매합니다.',
   },
   {
     category: 'payment',
