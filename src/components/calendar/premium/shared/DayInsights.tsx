@@ -74,14 +74,19 @@ export default function DayInsights({
           grade={grade}
           score={score}
           importantDate={importantDate}
-          oneLine={oneLine}
           frontDomain={frontDomain}
           locale={locale}
         />
       </motion.div>
-      {/* matrixVerdict 자연어 — 엔진이 만든 행동 지침 (verdict + guardrail + topClaim) */}
+      {/* 행동 지침 — matrixVerdict 우선, 없으면 oneLine 폴백.
+          이전엔 DayVerdictCard 도 oneLine 표시해 두 카드 자연어 한 줄 중복이 있었음.
+          이제 행동 지침은 이 카드 하나에서만. */}
       <motion.div variants={cardItem}>
-        <DayMatrixVerdictCard importantDate={importantDate} locale={locale} />
+        <DayMatrixVerdictCard
+          importantDate={importantDate}
+          oneLineFallback={oneLine ?? null}
+          locale={locale}
+        />
       </motion.div>
       {/* Domains + Why 데스크탑 2-col, 모바일 stack */}
       <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
@@ -111,14 +116,12 @@ function DayVerdictCard({
   grade,
   score,
   importantDate,
-  oneLine,
   frontDomain,
   locale,
 }: {
   grade: GradeInfo
   score: number
   importantDate: ImportantDate
-  oneLine?: string | null
   frontDomain?: string | null
   locale?: CalLocale
 }) {
@@ -157,7 +160,6 @@ function DayVerdictCard({
               {t.gradeLabel(grade.key)}
             </span>
           </div>
-          {oneLine && <p className="text-sm text-zinc-200 leading-snug line-clamp-2">{oneLine}</p>}
         </div>
       </div>
 
@@ -187,17 +189,20 @@ function DayVerdictCard({
   )
 }
 
-// ── 1.5 DayMatrixVerdict — evidence.matrixVerdict 의 자연어 (이전에 안 보이던 자원) ─
+// ── 1.5 DayMatrixVerdict — 행동 지침 SSOT. matrixVerdict 있으면 그것 우선,
+//       없으면 oneLineFallback (calendarDailyView.oneLineSummary / d.summary) 사용.
 function DayMatrixVerdictCard({
   importantDate,
+  oneLineFallback,
   locale,
 }: {
   importantDate: ImportantDate
+  oneLineFallback?: string | null
   locale?: CalLocale
 }) {
   const t = getCalLabels(locale)
   const mv = importantDate.evidence?.matrixVerdict
-  const verdict = mv?.verdict?.trim()
+  const verdict = mv?.verdict?.trim() || oneLineFallback?.trim()
   const guardrail = mv?.guardrail?.trim()
   const topClaim = mv?.topClaim?.trim()
   const topAnchor = mv?.topAnchorSummary?.trim()
