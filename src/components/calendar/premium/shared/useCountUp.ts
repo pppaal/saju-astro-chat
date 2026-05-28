@@ -13,7 +13,7 @@
 import { useEffect, useState } from 'react'
 import { animate, useMotionValue, useReducedMotion } from 'framer-motion'
 
-export function useCountUp(target: number, duration = 1): number {
+export function useCountUp(target: number, duration = 0.5): number {
   const reduce = useReducedMotion()
   const mv = useMotionValue(0)
   const [display, setDisplay] = useState(reduce ? target : 0)
