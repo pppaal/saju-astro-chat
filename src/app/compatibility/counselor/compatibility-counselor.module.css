@@ -86,13 +86,6 @@
   background: var(--ds-light-bg-soft);
 }
 
-@media (min-width: 1024px) {
-  /* Hamburger only makes sense on mobile once the sidebar is permanent. */
-  .backButton {
-    display: none;
-  }
-}
-
 .backIcon {
   /* 헤더 글리프 통일 — 16px */
   font-size: 16px;

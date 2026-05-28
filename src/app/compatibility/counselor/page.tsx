@@ -666,7 +666,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           setFocusToken((n) => n + 1)
         }}
         serviceType="compat"
-        desktopStatic
         enableGrouping
         lightTheme
         /* 타로/카드 뽑기/궁합차트 버튼은 입력창 도구로 통일 — 사이드바는
