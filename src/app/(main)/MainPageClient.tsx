@@ -266,6 +266,11 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           <h1 id="home-headline" className={styles.homeHeadline}>
             {locale === 'ko' ? 'AI가 풀어내는 당신의 운명' : 'Your Destiny, Powered by AI'}
           </h1>
+          <p className={styles.homeSubline}>
+            {locale === 'ko'
+              ? '생년월일을 입력하고 원하는 서비스를 선택하세요'
+              : 'Add your birth date and pick a service to begin'}
+          </p>
         </section>
 
         <HomeChatInput
