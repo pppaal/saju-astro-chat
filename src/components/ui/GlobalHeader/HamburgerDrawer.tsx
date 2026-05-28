@@ -16,10 +16,18 @@ interface HamburgerDrawerProps {
 export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerProps) {
   const [open, setOpen] = useState(false)
   const [loginPanelOpen, setLoginPanelOpen] = useState(false)
+  const [profileName, setProfileName] = useState<string | null>(null)
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const isAuthed = status === 'authenticated'
-  const userName = session?.user?.name || session?.user?.email || (isAuthed ? 'Account' : null)
+  // session.user.name 은 OAuth 시점 cache 라 사용자가 프로필에서 이름을
+  // 바꿔도 안 갱신됨. /api/me/profile 의 최신 user.name 을 fetch 해서 우선
+  // 사용. 사용자: "메인페이지 이름 프로필이랑 동기화 안 됐어"
+  const userName =
+    profileName ||
+    session?.user?.name ||
+    session?.user?.email ||
+    (isAuthed ? 'Account' : null)
   const isKo = locale === 'ko'
   // 타로 컨텍스트 일 때만 '타로 리딩 기록' 노출 — 다른 페이지에서는 노이즈 X.
   // 그 외 진입점은 프로필(/profile) 안에 있음.
@@ -30,6 +38,30 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
   useEffect(() => {
     if (!open) setLoginPanelOpen(false)
   }, [open])
+
+  // 프로필에서 사용자가 이름을 바꾸면 session 캐시가 갱신 안 되는 문제 회피.
+  // 인증된 상태일 때만 /api/me/profile 가져와서 user.name override. 실패하면
+  // session 값 그대로 사용.
+  useEffect(() => {
+    if (!isAuthed) {
+      setProfileName(null)
+      return
+    }
+    let cancelled = false
+    fetch('/api/me/profile', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return
+        const name = (data?.user?.name as string | undefined) || (data?.name as string | undefined)
+        if (name && name.trim()) setProfileName(name.trim())
+      })
+      .catch(() => {
+        /* keep session.user.name fallback */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthed])
 
   useEffect(() => {
     if (!open) return
@@ -52,14 +84,13 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
         type="button"
         onClick={() => setOpen(true)}
         aria-label={isKo ? '메뉴 열기' : 'Open menu'}
+        style={{ border: 'none', outline: 'none', background: 'transparent', WebkitAppearance: 'none' }}
         className={`flex flex-col items-center justify-center gap-[4px] w-9 h-9 rounded-full
-          backdrop-blur-md cursor-pointer transition-colors
+          cursor-pointer transition-colors
           focus-visible:ring-2 focus-visible:ring-[#a07a3c] focus-visible:ring-offset-2 ${
             variant === 'light'
-              ? 'bg-white/85 hover:bg-white focus-visible:ring-offset-[#fafaf9] shadow-[0_1px_2px_rgba(28,25,23,0.06)]'
-              : isAuthed
-                ? 'bg-[#a07a3c]/20 hover:bg-[#a07a3c]/30 focus-visible:ring-offset-slate-900 shadow-[0_0_16px_rgba(160,122,60,0.35)]'
-                : 'bg-black/40 hover:bg-white/10 focus-visible:ring-offset-slate-900'
+              ? 'hover:bg-stone-100/60 focus-visible:ring-offset-[#fafaf9]'
+              : 'hover:bg-white/10 focus-visible:ring-offset-slate-900'
           }`}
       >
         <span
@@ -100,9 +131,9 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
                   href="/"
                   onClick={close}
                   aria-label={isKo ? '홈으로' : 'Home'}
+                  style={{ border: 'none', outline: 'none', background: 'transparent' }}
                   className="inline-flex items-center justify-center w-8 h-8 rounded-full
-                    bg-transparent border-0 text-white/85
-                    hover:text-white hover:bg-white/10 transition-colors"
+                    text-white/85 hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <svg
                     width="16"
@@ -125,8 +156,9 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
                 type="button"
                 onClick={close}
                 aria-label={isKo ? '닫기' : 'Close'}
+                style={{ border: 'none', outline: 'none', background: 'transparent', WebkitAppearance: 'none' }}
                 className="inline-flex items-center justify-center w-8 h-8 rounded-full
-                  bg-transparent border-0 text-white/85
+                  text-white/85
                   hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <svg
