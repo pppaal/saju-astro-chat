@@ -323,48 +323,6 @@ export async function sendBroadcastNotification(
 }
 
 /**
- * 푸시 구독 저장
- */
-export async function savePushSubscription(
-  userId: string,
-  subscription: {
-    endpoint: string
-    keys: { p256dh: string; auth: string }
-  },
-  userAgent?: string
-): Promise<void> {
-  await prisma.pushSubscription.upsert({
-    where: { endpoint: subscription.endpoint },
-    update: {
-      userId,
-      p256dh: subscription.keys.p256dh,
-      auth: subscription.keys.auth,
-      userAgent,
-      isActive: true,
-      failCount: 0,
-    },
-    create: {
-      userId,
-      endpoint: subscription.endpoint,
-      p256dh: subscription.keys.p256dh,
-      auth: subscription.keys.auth,
-      userAgent,
-      isActive: true,
-    },
-  })
-}
-
-/**
- * 푸시 구독 제거 (비활성화)
- */
-export async function removePushSubscription(endpoint: string): Promise<void> {
-  await prisma.pushSubscription.updateMany({
-    where: { endpoint },
-    data: { isActive: false },
-  })
-}
-
-/**
  * 특정 사용자의 오늘 알림 미리보기
  */
 export async function previewUserNotifications(userId: string): Promise<DailyNotification[]> {
