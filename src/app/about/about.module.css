@@ -22,9 +22,11 @@
 }
 
 .main {
-  width: min(1120px, 100%);
+  /* Pricing 표준 — max-width 1120, padding 120/32/80 (마케팅 페이지 통일) */
+  width: 100%;
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 96px 24px 48px;
+  padding: 120px 32px 80px;
   position: relative;
   z-index: 1;
   display: flex;
@@ -40,7 +42,7 @@
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
+  border-radius: 18px;
   background: rgba(17, 24, 39, 0.42);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -166,7 +168,7 @@
   justify-content: center;
   width: 56px;
   height: 56px;
-  border-radius: 16px;
+  border-radius: 14px;
   margin-bottom: 16px;
   font-size: 1.6rem;
   background: linear-gradient(135deg, rgba(212, 181, 114, 0.18), rgba(232, 204, 138, 0.12));
@@ -197,7 +199,7 @@
 .serviceCard {
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 18px;
   background: rgba(17, 24, 39, 0.5);
   transition:
@@ -224,7 +226,7 @@
   justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: linear-gradient(135deg, rgba(226, 184, 52, 0.16), rgba(212, 181, 114, 0.12));
   border: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 1.2rem;
@@ -268,7 +270,7 @@
 
 .processCard {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 20px;
   background: rgba(17, 24, 39, 0.5);
   transition:
@@ -306,7 +308,7 @@
 /* ---------- Quality ---------- */
 .qualityBox {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  border-radius: 14px;
   background: rgba(10, 10, 12, 0.4);
   padding: 22px;
   display: grid;
