@@ -39,6 +39,17 @@ export const dateSchema = z
     },
     { message: 'Invalid date' }
   )
+  // Reject obviously nonsensical birth dates (year 1800 or 2099). The astro
+  // and saju engines accept them silently and produce meaningless output,
+  // which then anchors the entire counselor session.
+  .refine(
+    (date) => {
+      const year = Number(date.slice(0, 4))
+      const currentYear = new Date().getUTCFullYear()
+      return year >= 1900 && year <= currentYear
+    },
+    { message: 'Date must be between 1900 and the current year' }
+  )
 
 export const timeSchema = z.string().regex(/^([01]?\d|2[0-3]):([0-5]\d)(\s?(AM|PM))?$/i, {
   message: 'Time must be in HH:MM or HH:MM AM/PM format',

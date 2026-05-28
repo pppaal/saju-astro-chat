@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react'
 import { logger } from '@/lib/logger'
 import { tryNormalizeTime } from '@/lib/saju/normalizer'
+import { toLongGender } from '@/lib/utils/gender'
 import type { CityHit, FormState, FormAction } from './useDestinyForm'
 import { loadCitiesModule, resolveCityTimezone } from './useDestinyForm'
 
@@ -83,10 +84,13 @@ export function useDestinyProfile(
           }
         }
       }
-      if (user.gender === 'M') {
-        fields.gender = 'Male'
-      } else if (user.gender === 'F') {
-        fields.gender = 'Female'
+      // Server may return 'M'/'F' (legacy) or 'male'/'female' (post-zod
+      // normalization). Treat both as the same value so the destiny form
+      // doesn't silently fall back to the default for users saved after
+      // the schema was changed.
+      const longGender = toLongGender(user.gender)
+      if (longGender) {
+        fields.gender = longGender
       }
 
       fields.profileLoaded = true
