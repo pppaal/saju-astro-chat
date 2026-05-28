@@ -557,7 +557,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               cvName={cvName}
               parsingPdf={parsingPdf}
               usedFallback={usedFallback}
-              tr={tr}
+              labels={{
+                placeholder: tr.placeholder,
+                send: tr.send,
+                uploadCv: tr.uploadCv,
+                parsingPdf: tr.parsingPdf,
+                fallbackNote: tr.fallbackNote,
+              }}
               lang={lang}
               onInputChange={setInput}
               onKeyDown={onKeyDown}
@@ -569,11 +575,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onClearFile={clearFile}
               onOpenTarot={goToTarot}
               onOpenChart={goToChart}
-              clarifierButton={{
-                props: clarifier.buttonProps,
-                label: clarifier.buttonLabel,
-              }}
-              styles={styles}
               autoFocus={autoFocus}
             />
           </div>

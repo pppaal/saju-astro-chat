@@ -14,7 +14,7 @@ import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
-import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+import { ChatInputArea } from '@/components/destiny-map/chat-panels'
 import {
   generateFollowUpQuestions,
   isGenericFollowUp,
@@ -34,10 +34,9 @@ import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
 
-// Short, one-line prompts that cycle through the textarea placeholder.
-// The original single-string placeholder ("두 사람에 대해 깊이 있는 질문을
-// 해보세요…") wraps to two lines on mobile; these stay on one line and
-// double as suggestion hints for users who don't know where to start.
+// 궁합 콘텍스트용 짧은 한 줄 프롬프트 — ChatInputArea 의 placeholderPrompts 로
+// 주입. 원본 단일 placeholder("두 사람에 대해 깊이 있는…") 가 모바일에서 2줄로
+// 깨지던 문제 회피 + 무엇을 물을지 막막한 사용자한테 힌트 역할.
 const TYPEWRITER_PROMPTS_KO = [
   '우리 인연의 의미는?',
   '갈등은 어떻게 풀까?',
@@ -77,9 +76,6 @@ type PersonData = {
 
 function CompatibilityCounselorContent() {
   const { locale } = useI18n()
-  const animatedPlaceholder = useTypewriterPlaceholder(
-    locale === 'ko' ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
-  )
   const searchParams = useSearchParams()
   const router = useRouter()
   const { showDepleted } = useCreditModal()
@@ -136,9 +132,11 @@ function CompatibilityCounselorContent() {
   const { dismissed: toolHintDismissed, dismiss: dismissToolHint } = useToolHint('compat')
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
   const chartFetchRef = useRef(false)
   const isKo = locale === 'ko'
+  /** ChatInputArea 의 focusToken — 갱신 시 textarea 다시 focus.
+   *  refactor 전 inputRef.current?.focus() 자리를 대체. */
+  const [focusToken, setFocusToken] = useState(0)
 
   useEffect(() => {
     if (!searchParams) {
@@ -338,22 +336,15 @@ function CompatibilityCounselorContent() {
     }
   }, [])
 
-  // Pop the soft keyboard the moment the page is ready. iOS Safari
-  // restricts programmatic focus outside a user gesture; this works on
-  // desktop + Android, and on iOS at least places the cursor.
+  // Pop the soft keyboard the moment the page is ready — focusToken 갱신만
+  // 하면 ChatInputArea 내부 effect 가 textarea 에 focus. iOS Safari 는 사용자
+  // 제스처 밖이면 무시(=커서만 위치) — 정상 동작.
+  // 자동 height 조절은 ChatInputArea 안에서 직접 처리하므로 별도 effect 불필요.
   useEffect(() => {
     if (!isInitializing) {
-      inputRef.current?.focus()
+      setFocusToken((n) => n + 1)
     }
   }, [isInitializing])
-
-  // 타이핑하면 textarea 가 자라고, max-height(.input CSS 6rem) 넘으면 스크롤.
-  useEffect(() => {
-    const el = inputRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [input])
 
   // 운명 상담사와 동일한 UX — 답변 직후 첫 후속질문을 입력창에 미리 채운다.
   // 사용자는 엔터로 바로 보내거나, 지우고 자기 질문을 새로 쓸 수 있다.
@@ -600,7 +591,7 @@ function CompatibilityCounselorContent() {
     ]
   )
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       sendMessage()
@@ -672,7 +663,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           setChatSessionId(undefined)
           setChatTitle(null)
           clarifier.reset()
-          setTimeout(() => inputRef.current?.focus(), 0)
+          setFocusToken((n) => n + 1)
         }}
         serviceType="compat"
         desktopStatic
@@ -857,150 +848,59 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input — Claude-style: textarea on top, action row below.
-            Desktop: 🎴 타로 + ✨ 차트는 사이드바 푸터, 입력엔 ✕ 지우기 + ▶ 전송.
-            Mobile: 🎴 couple tarot + ✨ couple chart + ✕ 지우기 + ▶ send. */}
-          <div className={styles.inputContainer}>
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onFocus={(e) => {
-                // 운명 상담사와 동일 — 미리 채워진 후속질문을 탭하면 전체 선택해
-                // 바로 보내거나 타이핑으로 덮어쓰기 쉽게.
-                if (e.currentTarget.value.trim()) e.currentTarget.select()
-              }}
-              placeholder={
-                animatedPlaceholder || (isKo ? '질문을 입력하세요…' : 'Type a question…')
-              }
-              className={styles.input}
-              rows={1}
-              maxLength={2000}
-              disabled={isLoading}
-            />
-            <div className={styles.inputToolbar}>
-              <div className={styles.inputToolbarLeft}>
-                {/* 📎 파일 첨부 — 운명 상담사와 동일. 항상 노출. */}
-                <label
-                  className={styles.toolButton}
-                  aria-label={isKo ? '파일 첨부' : 'Attach file'}
-                  title={
-                    isKo
-                      ? '관계 메모·대화 등 파일 첨부 (txt/md/csv/pdf)'
-                      : 'Attach a file (txt/md/csv/pdf)'
-                  }
-                >
-                  <span className={styles.toolButtonIcon}>📎</span>
-                  <input
-                    type="file"
-                    accept=".txt,.md,.csv,.pdf"
-                    className={styles.fileInput}
-                    onChange={(e) => {
-                      dismissToolHint()
-                      void handleFileUpload(e)
-                    }}
-                  />
-                </label>
-                {/* 🃏 타로 + ✨ 차트는 모바일 입력 툴바에만 노출 — 데스크탑은
-                    사이드바 푸터에 같은 둘이 있어 ≥1024px에선 중복을 피해 숨긴다. */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    dismissToolHint()
-                    setShowTarotModal(true)
-                  }}
-                  disabled={isLoading || persons.length < 2}
-                  className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
-                  aria-label={isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot'}
-                  title={
-                    isKo
-                      ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
-                      : 'See your next question in tarot — pick a spread and draw'
-                  }
-                >
-                  <span className={styles.toolButtonIcon}>🃏</span>
-                  <span className={styles.toolButtonLabel}>{isKo ? '타로' : 'Tarot'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    dismissToolHint()
-                    setShowChartModal(true)
-                  }}
-                  disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
-                  className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
-                  aria-label={isKo ? '궁합 차트' : 'Couple chart'}
-                  title={isKo ? '궁합 차트 보기' : 'View couple chart'}
-                >
-                  <span className={styles.toolButtonIcon}>✨</span>
-                  <span className={styles.toolButtonLabel}>{isKo ? '궁합차트' : 'Chart'}</span>
-                </button>
-                {/* clarifier ("카드 한 장 더 뽑기") 버튼은 입력창 툴바에서
-                    제거 — 타로 결과 직후 보여줘야 자연. MessagesPanel-like
-                    postAnswerActions 영역에서 노출. */}
-                {parsingPdf && (
-                  <span className={styles.fileName}>
-                    <span className={styles.loadingSpinner} />
-                    {isKo ? 'PDF 읽는 중…' : 'Parsing…'}
-                  </span>
-                )}
-                {cvName && !parsingPdf && (
-                  <span className={styles.fileName}>
-                    <span className={styles.fileIcon}>✓</span>
-                    {cvName}
-                    <button
-                      type="button"
-                      onClick={clearFile}
-                      aria-label={isKo ? '첨부 제거' : 'Remove attachment'}
-                      title={isKo ? '첨부 제거' : 'Remove attachment'}
-                      style={{
-                        marginLeft: 6,
-                        border: 0,
-                        background: 'transparent',
-                        color: 'inherit',
-                        cursor: 'pointer',
-                        fontSize: '0.9em',
-                        lineHeight: 1,
-                        opacity: 0.7,
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </span>
-                )}
-              </div>
-              <div className={styles.inputToolbarRight}>
-                {input.trim() && !isLoading && (
-                  <button
-                    type="button"
-                    onClick={() => setInput('')}
-                    className={styles.clearButton}
-                    aria-label={isKo ? '입력 지우기' : 'Clear input'}
-                    title={isKo ? '입력 지우기' : 'Clear input'}
-                  >
-                    <span aria-hidden="true">✕</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => sendMessage()}
-                  disabled={!input.trim() || isLoading}
-                  className={styles.sendButton}
-                  aria-label={isKo ? '전송' : 'Send'}
-                >
-                  {isLoading ? (
-                    <span className={styles.loadingSpinner} />
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-            {fileNotice && <div className={styles.fileNotice}>{fileNotice}</div>}
-          </div>
+          {/* Input — 운명 상담사와 동일한 ChatInputArea 공용 컴포넌트.
+              📎 파일 / 🃏 타로 / ✨ 궁합차트 + ✕ + ▶ 전송. 데스크탑 ≥1024px
+              에선 타로/차트가 자동 mobileOnlyTool 로 숨겨짐(사이드바 푸터와
+              중복 회피). */}
+          <ChatInputArea
+            input={input}
+            loading={isLoading}
+            cvName={cvName}
+            parsingPdf={parsingPdf}
+            usedFallback={false}
+            labels={{
+              placeholder: isKo ? '질문을 입력하세요…' : 'Type a question…',
+              send: isKo ? '전송' : 'Send',
+              uploadCv: isKo
+                ? '관계 메모·대화 등 파일 첨부 (txt/md/csv/pdf)'
+                : 'Attach a file (txt/md/csv/pdf)',
+              parsingPdf: isKo ? 'PDF 읽는 중…' : 'Parsing…',
+            }}
+            lang={locale}
+            placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
+            onInputChange={setInput}
+            onKeyDown={handleKeyDown}
+            onSend={() => sendMessage()}
+            onFileUpload={(e) => {
+              dismissToolHint()
+              void handleFileUpload(e)
+            }}
+            onClearFile={clearFile}
+            onOpenTarot={() => {
+              dismissToolHint()
+              setShowTarotModal(true)
+            }}
+            onOpenChart={() => {
+              dismissToolHint()
+              setShowChartModal(true)
+            }}
+            tarotDisabled={persons.length < 2}
+            chartDisabled={persons.length < 2 || (!person1Saju && !person1Astro)}
+            tarot={{
+              ariaLabel: isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot',
+              title: isKo
+                ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
+                : 'See your next question in tarot — pick a spread and draw',
+            }}
+            chart={{
+              label: isKo ? '궁합차트' : 'Chart',
+              ariaLabel: isKo ? '궁합 차트' : 'Couple chart',
+              title: isKo ? '궁합 차트 보기' : 'View couple chart',
+            }}
+            focusToken={focusToken}
+            theme="light"
+          />
+          {fileNotice && <div className={styles.fileNotice}>{fileNotice}</div>}
         </div>
       </div>
 
