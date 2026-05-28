@@ -39,7 +39,7 @@ export function useCityAutocomplete(
             return next;
           });
         }
-      }, 150);
+      }, 80);
       timers.push(t);
     });
     return () => timers.forEach(clearTimeout);

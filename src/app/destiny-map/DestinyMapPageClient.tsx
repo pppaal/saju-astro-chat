@@ -204,7 +204,7 @@ function DestinyMapContent({
         logger.error('[DestinyMap] City search error:', err)
         dispatch({ type: 'SET_FIELD', field: 'suggestions', value: [] })
       }
-    }, 120)
+    }, 80)
     return () => clearTimeout(timer)
   }, [form.city, form.isUserTyping, form.isQuickMode])
 

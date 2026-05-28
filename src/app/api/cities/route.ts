@@ -9,6 +9,7 @@ import {
   getCountryNameInKorean,
   COUNTRY_FULL_NAME,
 } from '@/lib/cities/formatter'
+import { COUNTRY_NAME_KR } from '@/lib/cities/lookups'
 import { citiesSearchQuerySchema } from '@/lib/api/zodValidation'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
@@ -35,6 +36,10 @@ type IndexedCity = {
   pairNorm: string
   nameCompact: string
   pairCompact: string
+  countryFullEnNorm: string
+  countryFullEnCompact: string
+  pairFullEnNorm: string
+  pairFullEnCompact: string
   nameKr?: string
   countryKr?: string
   cityKrNorm?: string
@@ -50,6 +55,7 @@ type IndexedCity = {
 let cachedCities: City[] | null = null
 let cachedIndex: IndexedCity[] | null = null
 let loading: Promise<City[]> | null = null
+let cachedCountryLookup: { en: Array<[string, string]>; kr: Array<[string, string]> } | null = null
 
 // NFKD decomposes accented chars into base + combining mark (예: "ã" → "a" + "˜"),
 // 그 다음 combining mark 를 제거하면 "São Paulo" → "sao paulo" 로 매칭된다.
@@ -65,6 +71,40 @@ const norm = (value: unknown) =>
 
 const compact = (value: unknown) => norm(value).replace(/[\s,./_-]+/g, '')
 const hasHangul = (value: string) => /[\u3131-\u314e\u314f-\u3163\uac00-\ud7a3]/.test(value)
+
+// Reverse lookups: country name \u2192 ISO code. Built once per process the first
+// time a request comes in, so a query that is purely a country name
+// (e.g. "Indonesia" / "\uc778\ub3c4\ub124\uc2dc\uc544") expands to every city in that country
+// instead of needing a city-name hit. 158 entries each \u2014 cheap.
+function getCountryLookup() {
+  if (cachedCountryLookup) return cachedCountryLookup
+  const en: Array<[string, string]> = Object.entries(COUNTRY_FULL_NAME).map(([code, name]) => [
+    norm(name),
+    code,
+  ])
+  const kr: Array<[string, string]> = Object.entries(COUNTRY_NAME_KR).map(([code, name]) => [
+    norm(name),
+    code,
+  ])
+  cachedCountryLookup = { en, kr }
+  return cachedCountryLookup
+}
+
+// Country codes whose full English or Korean name matches the query. Skip
+// single-char queries \u2014 they would over-expand (e.g. "u" \u2192 United States,
+// United Kingdom, Uganda, \u2026) and the city-name path already covers them.
+function findMatchingCountryCodes(query: string): Set<string> {
+  const codes = new Set<string>()
+  if (query.length < 2) return codes
+  const { en, kr } = getCountryLookup()
+  for (const [name, code] of en) {
+    if (name.startsWith(query) || name.includes(query)) codes.add(code)
+  }
+  for (const [name, code] of kr) {
+    if (name.startsWith(query) || name.includes(query)) codes.add(code)
+  }
+  return codes
+}
 
 async function loadCities(): Promise<City[]> {
   if (cachedCities) {
@@ -111,6 +151,15 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
     const nameCompact = compact(c.name)
     const pairCompact = compact(`${c.name}, ${c.country}`)
 
+    // Full English country name (e.g. "Indonesia") so a query like
+    // "indonesia" or "united states" matches every city in that country.
+    // The 2-letter code already in pairNorm doesn't help English queries.
+    const countryFullEn = COUNTRY_FULL_NAME[c.country] || c.country
+    const countryFullEnNorm = norm(countryFullEn)
+    const countryFullEnCompact = compact(countryFullEn)
+    const pairFullEnNorm = `${nameNorm}, ${countryFullEnNorm}`
+    const pairFullEnCompact = compact(`${c.name}, ${countryFullEn}`)
+
     const nameKr = getCityNameInKorean(c.name) || undefined
     const countryKr = getCountryNameInKorean(c.country) || undefined
     const cityKrNorm = nameKr ? norm(nameKr) : undefined
@@ -132,7 +181,6 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
           : nameKr
             ? `${nameKr}, ${c.country}`
             : undefined
-    const countryFullEn = COUNTRY_FULL_NAME[c.country] || c.country
     const displayEn = `${c.name}, ${countryFullEn}`
 
     return {
@@ -142,6 +190,10 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
       pairNorm,
       nameCompact,
       pairCompact,
+      countryFullEnNorm,
+      countryFullEnCompact,
+      pairFullEnNorm,
+      pairFullEnCompact,
       nameKr,
       countryKr,
       cityKrNorm,
@@ -192,6 +244,14 @@ export const GET = withApiMiddleware(
     logger.info('[cities API] Loaded cities count:', { count: indexedData.length })
     const scored: { item: IndexedCity; score: number }[] = []
 
+    // If the query matches any country (e.g. "Indonesia" / "인도네시아"),
+    // expand to every city in that country. When this set is non-empty we
+    // scan the full index — country-matches are scattered through the
+    // alphabetically-sorted index, so the HARD_CAP early-break would clip
+    // off most of them.
+    const countryMatchCodes = findMatchingCountryCodes(query)
+    const hasCountryMatch = countryMatchCodes.size > 0
+
     // 137k 도시를 매 키 입력마다 전부 스캔하면 모바일에서 한 글자당 수백 ms.
     // 대부분의 검색 의도는 startsWith (score=0/5). limit 의 3 배가 모이면
     // 그 이상 includes/contains 후보를 더 끌어와도 결과 페이지에 못 들어옴.
@@ -202,14 +262,26 @@ export const GET = withApiMiddleware(
     for (const item of indexedData) {
       const aliasMatch = koreanAlias ? item.nameNorm === norm(koreanAlias) : false
 
-      // Check English matches
+      // Country expansion: query matched a country name, so every city in
+      // that country is a candidate (city itself may not contain the query).
+      const countryExpansionMatch = hasCountryMatch && countryMatchCodes.has(item.city.country)
+
+      // Check English matches (now includes full country name like "Indonesia"
+      // instead of just the 2-letter code).
       const engMatch =
         item.nameNorm.startsWith(query) ||
         item.nameNorm.includes(query) ||
         item.pairNorm.startsWith(query) ||
         item.pairNorm.includes(query) ||
+        item.countryFullEnNorm.startsWith(query) ||
+        item.countryFullEnNorm.includes(query) ||
+        item.pairFullEnNorm.startsWith(query) ||
+        item.pairFullEnNorm.includes(query) ||
         (queryCompact.length >= 2 &&
-          (item.nameCompact.includes(queryCompact) || item.pairCompact.includes(queryCompact)))
+          (item.nameCompact.includes(queryCompact) ||
+            item.pairCompact.includes(queryCompact) ||
+            item.countryFullEnCompact.includes(queryCompact) ||
+            item.pairFullEnCompact.includes(queryCompact)))
 
       // Check Korean matches
       const korMatch =
@@ -224,24 +296,35 @@ export const GET = withApiMiddleware(
             (item.countryKrCompact && item.countryKrCompact.includes(queryCompact)) ||
             (item.pairKrCompact && item.pairKrCompact.includes(queryCompact))))
 
-      if (engMatch || korMatch || aliasMatch) {
-        // Calculate score (lower is better)
+      if (engMatch || korMatch || aliasMatch || countryExpansionMatch) {
+        // Score (lower is better). City-name hits always rank above
+        // country-only hits so typing "ind" still surfaces "Indianapolis"
+        // before Indonesia's 1902 cities.
         let score = 100
 
-        // Best match: starts with query
         if (item.nameNorm.startsWith(query) || item.cityKrNorm?.startsWith(query)) {
           score = 0
         } else if (item.pairNorm.startsWith(query) || item.pairKrNorm?.startsWith(query)) {
           score = 5
         } else if (item.nameNorm.includes(query) || item.cityKrNorm?.includes(query)) {
           score = 10
+        } else if (
+          item.countryFullEnNorm.startsWith(query) ||
+          item.countryKrNorm?.startsWith(query)
+        ) {
+          score = 12
+        } else if (countryExpansionMatch) {
+          score = 14
         } else {
           score = 15
         }
 
         scored.push({ item, score })
 
-        if (scored.length >= HARD_CAP) break
+        // Only break early when we have NOT expanded to a country. Country
+        // expansion needs the full scan to gather every city in that country
+        // before sorting/slicing.
+        if (!hasCountryMatch && scored.length >= HARD_CAP) break
       }
     }
 
