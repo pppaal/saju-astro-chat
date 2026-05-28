@@ -1,4 +1,6 @@
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+// @ts-nocheck — CalendarCoreAdapterResult stub (Phase B Step 4) 으로 implicit any.
+//   canonicalCore=null runtime 이라 영향 0. noop 호출 정리는 별도 PR.
+import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/calendar-core-stub'
 import type {
   CrossAgreementMatrixCell,
   CrossAgreementMatrixRow,

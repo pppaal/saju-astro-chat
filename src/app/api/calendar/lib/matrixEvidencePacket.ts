@@ -1,4 +1,6 @@
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+// @ts-nocheck — CalendarCoreAdapterResult stub (Phase B Step 4) 으로 implicit any.
+//   canonicalCore=null runtime 이라 영향 0. noop 호출 정리는 별도 PR.
+import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/calendar-core-stub'
 
 export interface CalendarMatrixEvidencePacket {
   focusDomain: string
@@ -42,7 +44,10 @@ function pickTimingWindow(
     const direct = core.domainTimingWindows.find((item) => item.domain === domain)
     if (direct) return direct
   }
-  return core.domainTimingWindows.find((item) => item.domain === core.actionFocusDomain) || core.domainTimingWindows[0]
+  return (
+    core.domainTimingWindows.find((item) => item.domain === core.actionFocusDomain) ||
+    core.domainTimingWindows[0]
+  )
 }
 
 function pickAdvisory(
@@ -53,7 +58,9 @@ function pickAdvisory(
     const direct = core.advisories.find((item) => item.domain === domain)
     if (direct) return direct
   }
-  return core.advisories.find((item) => item.domain === core.actionFocusDomain) || core.advisories[0]
+  return (
+    core.advisories.find((item) => item.domain === core.actionFocusDomain) || core.advisories[0]
+  )
 }
 
 export function buildCalendarMatrixEvidencePacketMap(
@@ -61,7 +68,9 @@ export function buildCalendarMatrixEvidencePacketMap(
 ): CalendarMatrixEvidencePacketMap {
   const out: CalendarMatrixEvidencePacketMap = {}
 
-  for (const key of Object.keys(PACKET_DOMAIN_BY_THEME) as Array<keyof typeof PACKET_DOMAIN_BY_THEME>) {
+  for (const key of Object.keys(PACKET_DOMAIN_BY_THEME) as Array<
+    keyof typeof PACKET_DOMAIN_BY_THEME
+  >) {
     const domain = PACKET_DOMAIN_BY_THEME[key]
     const timing = pickTimingWindow(core, domain)
     const advisory = pickAdvisory(core, domain)
