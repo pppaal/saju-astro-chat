@@ -132,8 +132,8 @@ export default function MonthDashboard({
       <FlowChart
         data={data.flowData}
         title={locale === 'en' ? 'Daily flow' : '일별 에너지 흐름'}
-        subtitle={t.flowSubtitle}
         xInterval={4}
+        showDots={false}
         nowLabel={data.nowDayLabel}
         locale={locale}
         onPointClick={(label) => {

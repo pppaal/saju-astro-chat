@@ -69,6 +69,8 @@ export default function DestinyMatrixPlanner({
 }: DestinyMatrixPlannerProps = {}) {
   const t = getCalLabels(locale)
   const [viewMode, setViewMode] = useState<ViewMode>('monthly')
+  // 캘린더 그리드 modal — 요번달 탭에서 분리, 상단 "캘린더 보기" 로 진입.
+  const [gridOpen, setGridOpen] = useState(false)
   // tab 전환 방향 — drill-down(년→달→일) 이면 'in' (zoom 1.06→1), 반대는 'out'.
   // setViewMode wrap 으로 비교 후 갱신.
   const [viewDirection, setViewDirection] = useState<'in' | 'out'>('in')
@@ -384,12 +386,12 @@ export default function DestinyMatrixPlanner({
           </div>
 
           <button
-            onClick={() => changeViewMode('monthly')}
-            className="px-3 py-2 bg-zinc-900/80 rounded-xl border border-white/10 text-indigo-400 hover:text-indigo-300 hover:bg-zinc-800 hover:border-indigo-500/50 transition-all shadow-lg flex items-center gap-1.5 text-sm font-bold"
-            aria-label={t.calendarTabAria}
+            onClick={() => setGridOpen(true)}
+            className="text-[11px] font-semibold text-zinc-400 hover:text-zinc-200 inline-flex items-center gap-1 transition"
+            aria-label="캘린더 그리드 보기"
           >
-            <Calendar className="w-4 h-4" />
-            캘린더
+            <Calendar className="w-3.5 h-3.5" />
+            캘린더 보기
           </button>
         </div>
 
@@ -526,123 +528,8 @@ export default function DestinyMatrixPlanner({
                 />
               )}
 
-              {/* 달력 그리드 — actionable surface. 대시보드 highlights 와 함께
-                  사용자가 일자 탭으로 daily 뷰 진입. */}
-              <div className="bg-zinc-900/60 p-4 sm:p-6 rounded-3xl border border-white/5 shadow-2xl">
-                <div className="flex justify-between items-center mb-4 gap-2">
-                  <button
-                    onClick={goToPrevMonth}
-                    className="p-2 rounded-lg bg-zinc-950/70 hover:bg-zinc-800 border border-white/5 text-zinc-300 transition shrink-0"
-                    aria-label={t.prevMonth}
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <h2 className="text-2xl font-black text-zinc-100 tracking-widest flex-1 text-center">
-                    {monthLabel}
-                  </h2>
-                  <button
-                    onClick={goToNextMonth}
-                    className="p-2 rounded-lg bg-zinc-950/70 hover:bg-zinc-800 border border-white/5 text-zinc-300 transition shrink-0"
-                    aria-label={t.nextMonth}
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="flex justify-center items-center mb-5 gap-2 flex-wrap">
-                  {!isThisMonth && (
-                    <button
-                      onClick={goToThisMonth}
-                      className="text-[11px] font-semibold text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-3 py-1 rounded-full border border-cyan-500/30 transition"
-                    >
-                      {t.goToToday}
-                    </button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-7 gap-2 text-center mb-4">
-                  {t.weekdayShort.map((day, i) => (
-                    <span
-                      key={i}
-                      className={`text-xs font-bold ${
-                        i === 0 ? 'text-rose-500' : i === 6 ? 'text-blue-400' : 'text-zinc-500'
-                      }`}
-                    >
-                      {day}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-                  {Array.from({ length: leadingBlanks }).map((_, i) => (
-                    <div key={`empty-${i}`} className="aspect-square" />
-                  ))}
-                  {Array.from({ length: daysInMonth }).map((_, i) => {
-                    const day = i + 1
-                    const isSelected = day === currentDay
-                    // 셀 히트맵: 등급별 채도 낮은 톤으로 칠해 캘린더만 봐도
-                    // 이달 흐름이 보이게. MonthlyDailyChart 색 코드와 통일.
-                    const grade = dayGradeMap.get(day)
-                    let gradeClass =
-                      'text-zinc-300 bg-zinc-950/50 hover:bg-zinc-800 border border-white/5'
-                    let gradeKey: 'lucky' | 'neutral' | 'unlucky' | null = null
-                    if (grade === 'lucky') {
-                      gradeClass =
-                        'text-emerald-100 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30'
-                      gradeKey = 'lucky'
-                    } else if (grade === 'unlucky') {
-                      gradeClass =
-                        'text-rose-100 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30'
-                      gradeKey = 'unlucky'
-                    } else if (grade === 'neutral') {
-                      gradeClass =
-                        'text-zinc-200 bg-zinc-800/50 hover:bg-zinc-800 border border-white/5'
-                      gradeKey = 'neutral'
-                    }
-                    return (
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        key={day}
-                        onClick={() => handleDayClick(day)}
-                        aria-label={t.dayCellAria(
-                          viewMonth + 1,
-                          day,
-                          gradeKey ? t.gradeLabel(gradeKey) : '',
-                          isSelected
-                        )}
-                        aria-current={isSelected ? 'date' : undefined}
-                        className={`aspect-square min-h-[40px] flex flex-col items-center justify-center rounded-xl text-sm relative transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
-                          isSelected
-                            ? 'bg-gradient-to-br from-indigo-500 to-cyan-600 text-white font-bold shadow-lg shadow-indigo-500/50 border-transparent'
-                            : gradeClass
-                        }`}
-                      >
-                        {day}
-                      </motion.button>
-                    )
-                  })}
-                </div>
-
-                {/* 색 범례 — 캘린더가 히트맵으로 바뀌었으니 의미 한 줄로. */}
-                <div className="flex items-center justify-center gap-3 mt-4 text-[10px] text-zinc-500">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/40 border border-emerald-400/40" />
-                    {t.legendGood}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-zinc-800/70 border border-white/10" />
-                    {t.legendNeutral}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-rose-500/40 border border-rose-400/40" />
-                    {t.legendCaution}
-                  </span>
-                </div>
-              </div>
-
-              {/* MonthlyInterpretationCard 제거 — 사용자 cut 요청.
-                  13 sub-sections + WhyCard + Convergence + KeyEvents 가 너무 깊어 사용자
-                  학습 부담 큼. Hero verdict + Flow chart + 그리드 만으로 본질 충분. */}
+              {/* 달력 그리드는 상단 "캘린더 보기" 버튼 → modal 에서 표시.
+                  요번달 탭 본문은 흐름·해석 중심. */}
             </motion.div>
           )}
 
@@ -716,10 +603,142 @@ export default function DestinyMatrixPlanner({
         </AnimatePresence>
       </div>
 
-      {/* dead "월 이동" 모달 제거 (audit 4차) — setIsCalendarModalOpen(true) 호출이
-          어디에도 없어 영원히 unreachable 했음. 100+ LOC + Headless UI Dialog tree
-          가 번들에 포함돼 a11y 와 무관하게 무용. 헤더 "캘린더" 버튼은 monthly 탭으로
-          이동 (기존 동작) 으로 충분. */}
+      {/* 캘린더 그리드 모달 — 상단 "캘린더 보기" 버튼으로 진입.
+          요번달 탭에서 분리. 클릭 → 그리드 표시 → 날짜 클릭 시 자동 닫힘 + 일자 뷰. */}
+      <AnimatePresence>
+        {gridOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+            onClick={() => setGridOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              className="w-full max-w-md md:max-w-2xl bg-zinc-900/95 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-4 gap-2">
+                <button
+                  onClick={goToPrevMonth}
+                  className="p-2 rounded-lg bg-zinc-950/70 hover:bg-zinc-800 border border-white/5 text-zinc-300 transition shrink-0"
+                  aria-label={t.prevMonth}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <h2 className="text-2xl font-black text-zinc-100 tracking-widest flex-1 text-center">
+                  {monthLabel}
+                </h2>
+                <button
+                  onClick={goToNextMonth}
+                  className="p-2 rounded-lg bg-zinc-950/70 hover:bg-zinc-800 border border-white/5 text-zinc-300 transition shrink-0"
+                  aria-label={t.nextMonth}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+              {!isThisMonth && (
+                <div className="flex justify-center mb-4">
+                  <button
+                    onClick={goToThisMonth}
+                    className="text-[11px] font-semibold text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 px-3 py-1 rounded-full border border-cyan-500/30 transition"
+                  >
+                    {t.goToToday}
+                  </button>
+                </div>
+              )}
+              <div className="grid grid-cols-7 gap-2 text-center mb-3">
+                {t.weekdayShort.map((day, i) => (
+                  <span
+                    key={i}
+                    className={`text-xs font-bold ${
+                      i === 0 ? 'text-rose-500' : i === 6 ? 'text-blue-400' : 'text-zinc-500'
+                    }`}
+                  >
+                    {day}
+                  </span>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+                {Array.from({ length: leadingBlanks }).map((_, i) => (
+                  <div key={`empty-${i}`} className="aspect-square" />
+                ))}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1
+                  const isSelected = day === currentDay
+                  const grade = dayGradeMap.get(day)
+                  let gradeClass =
+                    'text-zinc-300 bg-zinc-950/50 hover:bg-zinc-800 border border-white/5'
+                  let gradeKey: 'lucky' | 'neutral' | 'unlucky' | null = null
+                  if (grade === 'lucky') {
+                    gradeClass =
+                      'text-emerald-100 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30'
+                    gradeKey = 'lucky'
+                  } else if (grade === 'unlucky') {
+                    gradeClass =
+                      'text-rose-100 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30'
+                    gradeKey = 'unlucky'
+                  } else if (grade === 'neutral') {
+                    gradeClass =
+                      'text-zinc-200 bg-zinc-800/50 hover:bg-zinc-800 border border-white/5'
+                    gradeKey = 'neutral'
+                  }
+                  return (
+                    <motion.button
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      key={day}
+                      onClick={() => {
+                        handleDayClick(day)
+                        setGridOpen(false)
+                      }}
+                      aria-label={t.dayCellAria(
+                        viewMonth + 1,
+                        day,
+                        gradeKey ? t.gradeLabel(gradeKey) : '',
+                        isSelected
+                      )}
+                      aria-current={isSelected ? 'date' : undefined}
+                      className={`aspect-square min-h-[40px] flex flex-col items-center justify-center rounded-xl text-sm relative transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
+                        isSelected
+                          ? 'bg-gradient-to-br from-indigo-500 to-cyan-600 text-white font-bold shadow-lg shadow-indigo-500/50 border-transparent'
+                          : gradeClass
+                      }`}
+                    >
+                      {day}
+                    </motion.button>
+                  )
+                })}
+              </div>
+              <div className="flex items-center justify-center gap-3 mt-4 text-[10px] text-zinc-500">
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/40 border border-emerald-400/40" />
+                  {t.legendGood}
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-zinc-800/70 border border-white/10" />
+                  {t.legendNeutral}
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-rose-500/40 border border-rose-400/40" />
+                  {t.legendCaution}
+                </span>
+              </div>
+              <button
+                onClick={() => setGridOpen(false)}
+                className="mt-4 w-full text-[12px] font-semibold text-zinc-400 hover:text-zinc-200 py-2 rounded-lg border border-white/5 hover:bg-white/[0.03] transition"
+              >
+                닫기
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

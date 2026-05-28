@@ -101,7 +101,7 @@ interface LabelSet {
 
 const KO: LabelSet = {
   tabYear: '올해',
-  tabMonth: '달력',
+  tabMonth: '요번달',
   tabDay: '오늘',
   today: '오늘',
   goToToday: '오늘로',
