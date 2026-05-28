@@ -307,6 +307,10 @@ export default function BirthInfoModal({
             label: styles.modalLabel,
             input: styles.modalInput,
             row: styles.modalRow,
+            // 체크박스 흰 박스 + 골드 체크. html 의 color-scheme:dark 가
+            // 그대로 적용되면 native checkbox 가 검정으로 렌더됨 — light 모달
+            // 카드 위에서 어색해서 [color-scheme:light] 로 강제.
+            checkbox: 'h-3.5 w-3.5 cursor-pointer accent-[#a07a3c] [color-scheme:light]',
           }}
         />
 
