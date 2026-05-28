@@ -363,16 +363,18 @@ export default function DestinyMatrixPlanner({
       {/* --- Header --- */}
       <div className="px-6 pt-12 pb-4 shrink-0 relative z-20 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
         <div className="flex justify-between items-center mb-4">
-          {/* 사주 일주/자리 badge — 풀 색 chip 2개가 hero 위 시각적 노이즈였음.
-              희미한 inline 텍스트로 축소 — 정보는 유지, 비주얼 우선순위 양보. */}
+          {/* 사주 일주/점성 자리 — 데이터 있을 때만 표시. fake fallback '辛未'
+              제거 (예전엔 특정인 사주를 모두에게 노출하던 회귀). */}
           <div className="flex items-center gap-1.5 text-[11px] font-medium flex-wrap min-w-0">
-            <span className="inline-flex items-center gap-1 text-amber-300/85">
-              <Sun className="w-3 h-3" />
-              {locale === 'en'
-                ? `${natalDayPillar ?? '辛未'} pillar`
-                : `${ganjiToKorean(natalDayPillar ?? '辛未')} 일주`}
-            </span>
-            {astroBadge && <span className="text-zinc-700">·</span>}
+            {natalDayPillar && (
+              <span className="inline-flex items-center gap-1 text-amber-300/85">
+                <Sun className="w-3 h-3" />
+                {locale === 'en'
+                  ? `${natalDayPillar} pillar`
+                  : `${ganjiToKorean(natalDayPillar)} 일주`}
+              </span>
+            )}
+            {natalDayPillar && astroBadge && <span className="text-zinc-700">·</span>}
             {astroBadge && (
               <span className="inline-flex items-center gap-1 text-cyan-300/85">
                 <Moon className="w-3 h-3" />
@@ -545,14 +547,6 @@ export default function DestinyMatrixPlanner({
                   </button>
                 </div>
                 <div className="flex justify-center items-center mb-5 gap-2 flex-wrap">
-                  {/* phaseLabel은 engine matrixContract에서 옴 — 없으면 그냥 숨김.
-                      이전엔 '甲戌 대운 (32세~)' 하드코딩이 fallback이었는데
-                      특정인의 phase라 다른 사용자에게 잘못 노출됐음. */}
-                  {phaseLabel && (
-                    <span className="text-[12px] font-semibold text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                      Phase · {phaseLabel}
-                    </span>
-                  )}
                   {!isThisMonth && (
                     <button
                       onClick={goToThisMonth}
