@@ -130,9 +130,7 @@ export async function linkReferrer(
 // 피추천자가 첫 결제(크레딧팩 구매)를 완료하면 추천인에게 보상 지급.
 // Stripe 웹훅(handleCheckoutCompleted)에서 구매자 크레딧 적립 직후 호출한다.
 // pending 보상이 있을 때 한 번만 지급되며, 이후 결제에는 재지급되지 않는다.
-export async function grantReferralRewardOnFirstPurchase(
-  referredUserId: string
-): Promise<{
+export async function grantReferralRewardOnFirstPurchase(referredUserId: string): Promise<{
   granted: boolean
   referrerId?: string
   creditsAwarded?: number
@@ -152,18 +150,67 @@ export async function grantReferralRewardOnFirstPurchase(
       return { granted: false }
     }
 
-    await addBonusCredits(pendingReward.userId, pendingReward.creditsAwarded, 'referral')
-
-    await prisma.referralReward.update({
-      where: { id: pendingReward.id },
-      data: { status: 'completed', completedAt: new Date() },
-    })
-
+    // Pre-check the referrer still exists. If they deleted their account
+    // between the link and the first purchase, addBonusCredits below
+    // would crash on the User foreign key — the outer catch then logs
+    // 'error' and returns { granted: false }, but ReferralReward stays
+    // 'pending' so the next purchase webhook tries again, fails again,
+    // and the reward never resolves. Mark it 'cancelled' so this call
+    // path stops retrying, and continue on to the referee bonus path so
+    // the referee isn't punished for the referrer leaving.
     const referrerUser = await prisma.user.findUnique({
       where: { id: pendingReward.userId },
       select: { email: true, name: true },
     })
-    if (referrerUser?.email) {
+    if (!referrerUser) {
+      logger.warn('[grantReferralRewardOnFirstPurchase] referrer deleted, cancelling reward', {
+        rewardId: pendingReward.id,
+        referrerId: pendingReward.userId,
+      })
+      await prisma.referralReward.update({
+        where: { id: pendingReward.id },
+        data: { status: 'cancelled', completedAt: new Date() },
+      })
+      // Still grant the referee bonus — they did their part.
+      let refereeBonusGranted = false
+      try {
+        await addBonusCredits(referredUserId, REFEREE_CREDITS, 'referral')
+        refereeBonusGranted = true
+      } catch (err) {
+        logger.error(
+          '[grantReferralRewardOnFirstPurchase] referee bonus after deleted referrer failed:',
+          err
+        )
+      }
+      return {
+        granted: false,
+        refereeBonusGranted,
+        refereeBonusCredits: refereeBonusGranted ? REFEREE_CREDITS : 0,
+      }
+    }
+
+    // Atomic claim: flip the reward from 'pending' to 'completed' in a
+    // single updateMany before granting. If two webhook invocations race
+    // (Stripe retry, duplicate event), only the first updateMany matches
+    // (claimed.count === 1); subsequent claims see status='completed' and
+    // claimed.count === 0, so they exit before re-granting credits.
+    //
+    // Trade-off: if addBonusCredits below throws after this claim, the
+    // referrer gets no bonus and the reward is stuck at 'completed' so
+    // there's no auto-retry. That's still safer than the previous order
+    // (grant first, then flip), which would double-grant credits on a
+    // retry whenever the status update failed after a successful grant.
+    const claimed = await prisma.referralReward.updateMany({
+      where: { id: pendingReward.id, status: 'pending' },
+      data: { status: 'completed', completedAt: new Date() },
+    })
+    if (claimed.count === 0) {
+      // Concurrent invocation got there first; treat this call as a no-op.
+      return { granted: false }
+    }
+    await addBonusCredits(pendingReward.userId, pendingReward.creditsAwarded, 'referral')
+
+    if (referrerUser.email) {
       sendReferralRewardEmail(pendingReward.userId, referrerUser.email, {
         userName: referrerUser.name || undefined,
         creditsAwarded: pendingReward.creditsAwarded,
