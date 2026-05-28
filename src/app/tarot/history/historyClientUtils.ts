@@ -1,5 +1,19 @@
 'use client'
 
+import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+
+/**
+ * 저장된 reading 의 spreadId 로부터 실제 테마(category) id 를 역추적.
+ * DB 에 theme 컬럼이 없어 매퍼가 항상 'general' 로 떨어지면서 "이 리딩
+ * 다시 열기" 가 /tarot/general/[spreadId] 로 가서 "Invalid access" 페이지
+ * 나오던 버그 fix.
+ */
+function findThemeIdBySpreadId(spreadId: string | undefined | null): string {
+  if (!spreadId) return tarotThemes[0]?.id ?? 'love'
+  const theme = tarotThemes.find((t) => t.spreads.some((s) => s.id === spreadId))
+  return theme?.id ?? tarotThemes[0]?.id ?? 'love'
+}
+
 export interface HistoryQuestionProfileField {
   code?: string
   label?: string
@@ -295,7 +309,7 @@ export function mapServerReadingToSavedReading(reading: ServerSavedReading): Sav
         interpretation: insight.interpretation || '',
       })),
     },
-    categoryId: reading.theme || 'general',
+    categoryId: reading.theme || findThemeIdBySpreadId(reading.spreadId),
     spreadId: reading.spreadId || '',
     clarifierCard: reading.clarifierCard ?? null,
     followupTurns: reading.followupTurns ?? null,
