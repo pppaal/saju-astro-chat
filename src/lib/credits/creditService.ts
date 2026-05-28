@@ -60,9 +60,31 @@ export async function getUserCredits(userId: string) {
     where: { userId },
   })
 
-  // 없으면 생성
+  // 없으면 생성. Two concurrent first-touch requests for the same userId
+  // (e.g. two tabs hitting credit-aware endpoints right after signup)
+  // both reach this branch before either create() commits. The
+  // UserCredits.userId unique constraint serializes the create —
+  // whichever transaction commits second throws P2002. Catch it,
+  // re-read the row the first request just inserted, and use that.
+  // Otherwise the second request bubbled a 500 to the client while the
+  // first quietly succeeded.
   if (!credits) {
-    credits = await initializeUserCredits(userId)
+    try {
+      credits = await initializeUserCredits(userId)
+    } catch (err) {
+      const code = (err as { code?: string } | null)?.code
+      if (code === 'P2002') {
+        credits = await prisma.userCredits.findUnique({ where: { userId } })
+      } else {
+        throw err
+      }
+      if (!credits) {
+        // P2002 fired but the row still isn't visible — should not
+        // happen, but propagate the original error rather than
+        // silently returning a fabricated zero-credit object.
+        throw err
+      }
+    }
   }
 
   // 기간 만료 시 리셋
