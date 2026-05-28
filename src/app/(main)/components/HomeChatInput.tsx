@@ -126,19 +126,27 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
 
   const placeholder = birthInfo ? typedPlaceholder || ' ' : fallbackPlaceholder
 
+  const isKo = locale === 'ko'
+
   return (
     <div className={styles.homeChatBar}>
+      {/* Eyebrow — 처음 본 사람한테 (a) 이 박스는 입력하는 곳, (b) 아래 생일
+          정보가 분석에 쓰인다는 점을 한 줄로 설명. birthInfo 유무에 따라 톤 바뀜. */}
+      <div className={styles.homeChatEyebrow}>
+        {birthInfo
+          ? isKo
+            ? '✨ 무엇이든 물어보세요 — 아래 정보로 분석해드릴게요'
+            : '✨ Ask anything — analyzed with the info below'
+          : isKo
+            ? '✨ 먼저 생년월일을 알려주세요'
+            : '✨ Add your birth info first'}
+      </div>
+
       <div className={styles.homeChatBarInner}>
         {birthInfo && (
           <span className={styles.homeBirthChip} aria-live="polite">
-            ✓ {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
-            {birthInfo.gender === 'male'
-              ? locale === 'ko'
-                ? '남성'
-                : 'Male'
-              : locale === 'ko'
-                ? '여성'
-                : 'Female'}
+            🔮 {isKo ? '분석에 사용' : 'Reading for'}: {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
+            {birthInfo.gender === 'male' ? (isKo ? '남성' : 'Male') : isKo ? '여성' : 'Female'}
           </span>
         )}
         <textarea
@@ -160,28 +168,32 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
               type="button"
               className={`${styles.homeChatToolBtn} ${birthInfo ? styles.homeChatToolBtnActive : ''}`}
               onClick={onOpenBirthModal}
-              aria-label={locale === 'ko' ? '생년월일 정보 추가/변경' : 'Add or edit birth info'}
+              aria-label={isKo ? '생년월일 정보 추가/변경' : 'Add or edit birth info'}
             >
               <span aria-hidden="true">📅</span>
-              {birthInfo
-                ? locale === 'ko'
-                  ? '생일 ✓'
-                  : 'Birth ✓'
-                : locale === 'ko'
-                  ? '@생일 추가'
-                  : '@birth'}
+              {birthInfo ? (isKo ? '생일 ✓' : 'Birth ✓') : isKo ? '@생일 추가' : '@birth'}
             </button>
           </div>
           <button
             type="button"
             className={styles.homeChatSubmit}
             onClick={submit}
-            aria-label={locale === 'ko' ? '보내기' : 'Send'}
+            aria-label={isKo ? '보내기' : 'Send'}
           >
             ↑
           </button>
         </div>
       </div>
+
+      {/* Helper — 프로필 정보 ≠ 이 박스 정보 일 수 있다는 점, 그리고 바꾸려면
+          어디 누르는지 명시. birthInfo 가 있을 때만 노출. */}
+      {birthInfo && (
+        <p className={styles.homeChatBirthHint}>
+          {isKo
+            ? '※ 프로필에 저장된 정보와 다를 수 있어요. 다른 사람으로 보려면 📅 버튼을 탭하세요.'
+            : '※ May differ from your saved profile. Tap 📅 to read for someone else.'}
+        </p>
+      )}
     </div>
   )
 }
