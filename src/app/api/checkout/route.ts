@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server'
-import Stripe from 'stripe'
 import { randomUUID } from 'crypto'
 import {
   withApiMiddleware,
@@ -18,21 +17,9 @@ import {
   type CreditPackKey,
 } from '@/lib/payments/prices'
 import { checkoutRequestSchema } from '@/lib/api/zodValidation'
+import { getStripeOrNull } from '@/lib/stripe/client'
 
 export const runtime = 'nodejs'
-
-let stripeInstance: Stripe | null = null
-function getStripe(): Stripe | null {
-  if (stripeInstance) {
-    return stripeInstance
-  }
-  const key = process.env.STRIPE_SECRET_KEY
-  if (!key) {
-    return null
-  }
-  stripeInstance = new Stripe(key)
-  return stripeInstance
-}
 
 function isValidEmail(email?: string | null) {
   if (!email) {
@@ -70,7 +57,7 @@ export const POST = withApiMiddleware(
       const body = validationResult.data
       const creditPack = body.creditPack
 
-      const stripe = getStripe()
+      const stripe = getStripeOrNull()
       if (!stripe) {
         logger.error('ERR: STRIPE_SECRET_KEY missing')
         recordCounter('stripe_checkout_config_error', 1, { reason: 'missing_secret' })
