@@ -292,7 +292,6 @@ export default function FaqPage() {
       <div className={styles.backgroundGlow} />
 
       <section className={styles.hero}>
-        <div className={styles.heroIcon}>?</div>
         <p className={styles.eyebrow}>DestinyPal FAQ</p>
         <h1 className={styles.title}>{isKo ? '자주 묻는 질문' : 'Frequently Asked Questions'}</h1>
         <p className={styles.subtitle}>
