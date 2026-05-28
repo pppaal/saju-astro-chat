@@ -118,7 +118,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onClearFile,
   onOpenTarot,
   onOpenChart,
-  clarifierButton,
+  clarifierButton: _clarifierButton,
   styles,
   autoFocus = false,
 }: ChatInputAreaProps) {
