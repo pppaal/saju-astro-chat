@@ -407,58 +407,58 @@
  * and CounselorSidebar.module.css.
  * ===================================================================== */
 .lightTheme {
-  background: #fafaf9;
-  color: #1c1917;
+  background: var(--ds-light-bg);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .header {
   background: #ffffff;
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: 1px solid var(--ds-light-border);
   backdrop-filter: none;
 }
 
 .lightTheme .headerTitle {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightTheme .backButton {
   background: transparent;
-  border: 1px solid #e7e5e4;
-  color: #57534e;
+  border: 1px solid var(--ds-light-border);
+  color: var(--ds-light-text-muted);
 }
 
 .lightTheme .backButton:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
+  color: var(--ds-light-text);
 }
 
 /* lightTheme: 흰색 헤더 위에 ⋮ 메뉴가 안 보이던 버그. 라이트 톤 톤 (회색
    외곽선 + 짙은 회색 아이콘) 으로 오버라이드. */
 .lightTheme .chatMenuButton {
   background: #ffffff;
-  border-color: #e7e5e4;
-  color: #44403c;
+  border-color: var(--ds-light-border);
+  color: var(--ds-light-text-muted);
 }
 
 .lightTheme .chatMenuButton:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .chatMenuDropdown {
   background: #ffffff;
-  border-color: #e7e5e4;
+  border-color: var(--ds-light-border);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .lightTheme .chatMenuItem {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightTheme .chatMenuItem:hover {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 .lightTheme .chatMenuItemDanger {
@@ -470,7 +470,7 @@
 }
 
 .lightTheme .backIcon {
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .lightTheme .chatWrapper {
