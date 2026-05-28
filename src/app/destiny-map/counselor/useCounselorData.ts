@@ -18,6 +18,7 @@ interface ProfileFallback {
   birthTime?: string
   gender?: string
   birthCity?: string
+  tzId?: string
 }
 
 export function useCounselorData(sp: SearchParams) {
@@ -70,6 +71,7 @@ export function useCounselorData(sp: SearchParams) {
             birthTime: u.birthTime ?? undefined,
             gender: u.gender ?? undefined,
             birthCity: u.birthCity ?? undefined,
+            tzId: u.tzId ?? undefined,
           })
         }
       })
@@ -101,6 +103,16 @@ export function useCounselorData(sp: SearchParams) {
   const longitude = lonStr ? Number(lonStr) : NaN
   const resolvedLatitude = Number.isFinite(latitude) ? latitude : DEFAULT_LATITUDE
   const resolvedLongitude = Number.isFinite(longitude) ? longitude : DEFAULT_LONGITUDE
+
+  // Honor the birth-place timezone when the home modal forwarded one
+  // (URL or server profile). Falling back to the browser's tz is wrong
+  // for users who travel — Seoul-born user opening the counselor from
+  // Tokyo would get the hour pillar in Asia/Tokyo otherwise.
+  const urlTimeZone =
+    (Array.isArray(sp.timeZone) ? sp.timeZone[0] : sp.timeZone) ??
+    (Array.isArray(sp.tz) ? sp.tz[0] : sp.tz)
+  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
+  const resolvedTimeZone = urlTimeZone || profileFallback.tzId || browserTz
   // 'F' / 'Female' / 'female' / 'f' / 'M' / 'Male' 다 처리. 기존
   // `lowercase === 'female'` 패턴은 'F'(한 글자) → 'f' 로 떨어져 매칭 실패
   // → 여자 사용자가 'male' 로 분류돼 대운 순/역행이 거꾸로 가던 회귀.
@@ -138,8 +150,13 @@ export function useCounselorData(sp: SearchParams) {
       try {
         logger.warn('[CounselorPage] Computing fresh saju data...')
         const genderVal = normalizedGender
-        const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
-        const computed = calculateSajuData(birthDate, birthTime, genderVal, 'solar', userTz)
+        const computed = calculateSajuData(
+          birthDate,
+          birthTime,
+          genderVal,
+          'solar',
+          resolvedTimeZone
+        )
         saju = computed as unknown as Record<string, unknown>
 
         logger.warn('[CounselorPage] Fresh saju computed:', {
@@ -165,7 +182,6 @@ export function useCounselorData(sp: SearchParams) {
     if (!astro || !Array.isArray((astro as { planets?: unknown }).planets)) {
       const fetchBaseNatal = async () => {
         try {
-          const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
           const res = await fetch('/api/astrology', {
             method: 'POST',
             headers: {
@@ -177,7 +193,7 @@ export function useCounselorData(sp: SearchParams) {
               time: birthTime,
               latitude: resolvedLatitude,
               longitude: resolvedLongitude,
-              timeZone: userTz,
+              timeZone: resolvedTimeZone,
             }),
           })
           if (!res.ok) return
@@ -237,7 +253,7 @@ export function useCounselorData(sp: SearchParams) {
             time: birthTime,
             latitude: resolvedLatitude,
             longitude: resolvedLongitude,
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',
+            timeZone: resolvedTimeZone,
           }
 
           // Fetch ALL advanced astrology features in parallel
@@ -375,7 +391,7 @@ export function useCounselorData(sp: SearchParams) {
 
     // Python AI backend was removed — counselor RAG prefetch is now a no-op.
     // The chat itself runs through @anthropic-ai/sdk directly, no init step needed.
-  }, [birthDate, birthTime, normalizedGender, resolvedLatitude, resolvedLongitude])
+  }, [birthDate, birthTime, normalizedGender, resolvedLatitude, resolvedLongitude, resolvedTimeZone])
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {

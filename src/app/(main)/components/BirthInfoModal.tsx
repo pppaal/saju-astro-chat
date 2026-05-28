@@ -60,6 +60,17 @@ export default function BirthInfoModal({
   )
   const [gender, setGender] = useState<'male' | 'female' | ''>(initial?.gender || '')
   const [city, setCity] = useState(initial?.city || '')
+  // Coordinates + timezone resolved from the city picker. Persisted so the
+  // counselor / calendar / fortune chain can compute the hour pillar and
+  // houses against the actual birth place instead of silently falling back
+  // to Seoul. Reset every time the user retypes the city (see applyPatch).
+  const [latitude, setLatitude] = useState<number | null>(
+    typeof initial?.latitude === 'number' ? initial.latitude : null
+  )
+  const [longitude, setLongitude] = useState<number | null>(
+    typeof initial?.longitude === 'number' ? initial.longitude : null
+  )
+  const [timeZone, setTimeZone] = useState<string | null>(initial?.timeZone || null)
 
   // 불러오기 — 내 정보 + 등록된 지인
   const [loadOpen, setLoadOpen] = useState(false)
@@ -173,6 +184,12 @@ export default function BirthInfoModal({
     if (patch.timeUnknown !== undefined) setTimeUnknown(patch.timeUnknown)
     if (patch.gender !== undefined) setGender(patch.gender)
     if (patch.city !== undefined) setCity(patch.city)
+    // BirthInfoFields nulls these out when the user retypes (city = string,
+    // coords = null) and fills them in when the user picks a suggestion.
+    // Mirror exactly so a stale "Seoul" tz never sticks to a re-typed city.
+    if (patch.latitude !== undefined) setLatitude(patch.latitude)
+    if (patch.longitude !== undefined) setLongitude(patch.longitude)
+    if (patch.timeZone !== undefined) setTimeZone(patch.timeZone)
   }
 
   const applyOption = (o: LoadOption) => {
@@ -182,6 +199,13 @@ export default function BirthInfoModal({
     setTimeUnknown(o.timeUnknown)
     setGender(o.gender)
     setCity(o.city)
+    // Saved options (DB profile / circle) currently only carry the city
+    // string, not coords. Reset so the user re-picks from the dropdown to
+    // restore the lat/lon/tz — otherwise we'd keep whatever the previous
+    // form session had and silently apply it to a different person.
+    setLatitude(null)
+    setLongitude(null)
+    setTimeZone(null)
     setLoadOpen(false)
   }
 
@@ -191,13 +215,23 @@ export default function BirthInfoModal({
   const handleSave = async () => {
     if (!isValid) return
     const trimmedName = name.trim()
+    const trimmedCity = city.trim() || undefined
+    // Only persist coords/tz when the city is still present. Clearing the
+    // city must also clear them so a stale resolution doesn't outlive the
+    // text it was tied to.
+    const lat = trimmedCity && typeof latitude === 'number' ? latitude : undefined
+    const lon = trimmedCity && typeof longitude === 'number' ? longitude : undefined
+    const tz = trimmedCity && timeZone ? timeZone : undefined
     const payload = {
       name: trimmedName || undefined,
       birthDate,
       birthTime: effectiveTime,
       birthTimeUnknown: timeUnknown,
       gender: gender as 'male' | 'female',
-      city: city.trim() || undefined,
+      city: trimmedCity,
+      latitude: lat,
+      longitude: lon,
+      timeZone: tz,
     }
     saveBirthInfo(payload)
     // Sync to DB so /api/me/profile (the counselor route's fallback
@@ -205,7 +239,8 @@ export default function BirthInfoModal({
     // sees the new value. Without this, logged-in users who change
     // their birth info here keep getting the old DB value in
     // counselor sessions. Guest users get 401; swallow — localStorage
-    // is enough for them.
+    // is enough for them. Server only persists tzId + birthCity (no
+    // lat/lon column yet) so coords stay client-side.
     try {
       await fetch('/api/me/profile', {
         method: 'PATCH',
@@ -215,7 +250,8 @@ export default function BirthInfoModal({
           birthDate,
           birthTime: timeUnknown ? null : effectiveTime,
           gender: gender as 'male' | 'female',
-          birthCity: city.trim() || null,
+          birthCity: trimmedCity ?? null,
+          tzId: tz ?? null,
         }),
       })
     } catch {

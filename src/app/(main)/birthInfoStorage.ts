@@ -29,6 +29,13 @@ export interface StoredBirthInfo {
   birthTimeUnknown?: boolean // explicit flag; set only when the user checked "I don't know my time"
   gender: 'male' | 'female'
   city?: string
+  // Birth-place coordinates and timezone resolved from the city picker.
+  // Downstream services (counselor, calendar, fortune) need these to compute
+  // the hour pillar / houses correctly — without them the chain silently
+  // falls back to Seoul. Optional because guest users may skip the city.
+  latitude?: number
+  longitude?: number
+  timeZone?: string // IANA tz, e.g. "America/New_York"
   savedAt: string // ISO
 }
 
@@ -50,6 +57,9 @@ function userProfileToBirthInfo(profile: UserProfile): StoredBirthInfo | null {
     birthTime: profile.birthTime,
     gender,
     city: profile.birthCity || undefined,
+    latitude: profile.latitude,
+    longitude: profile.longitude,
+    timeZone: profile.timezone || undefined,
     savedAt: profile.updatedAt || new Date().toISOString(),
   }
 }
@@ -61,6 +71,9 @@ function birthInfoToUserProfile(info: StoredBirthInfo): Partial<UserProfile> {
     birthTime: info.birthTime,
     gender: info.gender === 'male' ? 'Male' : 'Female',
     birthCity: info.city,
+    latitude: info.latitude,
+    longitude: info.longitude,
+    timezone: info.timeZone,
   }
 }
 
@@ -126,5 +139,11 @@ export function buildBirthQuery(info: StoredBirthInfo | null): string {
   params.set('gender', info.gender === 'male' ? 'M' : 'F')
   if (info.city) params.set('birthCity', info.city)
   if (info.birthTimeUnknown) params.set('birthTimeUnknown', '1')
+  // useCounselorData reads sp.lat/sp.lon/sp.timeZone — without these it
+  // falls back to Seoul coords + the browser's current tz, so the hour
+  // pillar and houses come out wrong for anyone not in Asia/Seoul.
+  if (typeof info.latitude === 'number') params.set('lat', String(info.latitude))
+  if (typeof info.longitude === 'number') params.set('lon', String(info.longitude))
+  if (info.timeZone) params.set('timeZone', info.timeZone)
   return params.toString()
 }
