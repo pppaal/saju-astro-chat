@@ -11,6 +11,7 @@
 
 import cityNamesKr from './data/city-names-kr.json'
 import countryNamesKr from './data/country-names-kr.json'
+import regionNamesKr from './data/region-names-kr.json'
 
 // JSON 키에 literal single quote 가 wrap 되어 들어오는 export 사고를 또
 // 만나도 lookup 이 조용히 실패하지 않도록 import 시점에 strip. 같은 키가
@@ -36,6 +37,13 @@ export const CITY_NAME_KR: Record<string, string> = normalizeCityKeys(cityNamesK
  * Korean translations for countries (ISO 3166-1 alpha-2 codes)
  */
 export const COUNTRY_NAME_KR: Record<string, string> = countryNamesKr
+
+/**
+ * Korean translations for admin1 regions (states / provinces / 도).
+ * Keys are dr5hn state.name (English). 5,060 entries covering 95%
+ * of the 5,308 admin1 regions in the source dataset.
+ */
+export const REGION_NAME_KR: Record<string, string> = regionNamesKr
 
 /**
  * Full country names for better display

@@ -9,7 +9,7 @@ import {
   getCountryNameInKorean,
   COUNTRY_FULL_NAME,
 } from '@/lib/cities/formatter'
-import { COUNTRY_NAME_KR } from '@/lib/cities/lookups'
+import { COUNTRY_NAME_KR, REGION_NAME_KR } from '@/lib/cities/lookups'
 import { citiesSearchQuerySchema } from '@/lib/api/zodValidation'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
@@ -174,27 +174,33 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
 
     // Display rules:
     //   KO Korean city → just city name (e.g. 서울)
-    //   KO foreign city → "{nameKr}, {region?}, {countryKr}" (e.g. "스프링필드, Illinois, 미국")
+    //   KO foreign city → "{nameKr}, {regionKr?}, {countryKr}" (e.g. "스프링필드, 일리노이, 미국")
     //   EN every city  → "{name}, {region?}, {countryFull}" (e.g. "Springfield, Illinois, United States")
     // region 은 city 와 동일하거나 한쪽이 다른 쪽을 포함하면 생략
     // ("Seoul, Seoul Special City" 같은 redundancy 회피).
-    let regionPart = ''
-    if (c.region) {
-      const rl = c.region.toLowerCase()
+    const regionEn = c.region
+    const regionKr = regionEn ? REGION_NAME_KR[regionEn] : undefined
+    let regionPartEn = ''
+    let regionPartKr = ''
+    if (regionEn) {
+      const rl = regionEn.toLowerCase()
       const nl = c.name.toLowerCase()
       const redundant = rl === nl || rl.includes(nl) || nl.includes(rl)
-      if (!redundant) regionPart = `, ${c.region}`
+      if (!redundant) {
+        regionPartEn = `, ${regionEn}`
+        regionPartKr = `, ${regionKr || regionEn}`
+      }
     }
 
     const displayKr =
       c.country === 'KR'
         ? nameKr || c.name
         : nameKr && countryKr
-          ? `${nameKr}${regionPart}, ${countryKr}`
+          ? `${nameKr}${regionPartKr}, ${countryKr}`
           : nameKr
-            ? `${nameKr}${regionPart}, ${c.country}`
+            ? `${nameKr}${regionPartKr}, ${c.country}`
             : undefined
-    const displayEn = `${c.name}${regionPart}, ${countryFullEn}`
+    const displayEn = `${c.name}${regionPartEn}, ${countryFullEn}`
 
     return {
       city: c,
