@@ -65,18 +65,16 @@
 }
 
 .backButton {
-  /* 헤더 도형 통일 — 36×36 원형 (모든 헤더 버튼 동일) */
+  /* 헤더 도형 통일 — 36×36 원형, 테두리 없음. */
   width: 36px;
   height: 36px;
   padding: 0;
   background: transparent;
-  border: 1px solid #e7e5e4;
+  border: 0;
   color: #57534e;
   cursor: pointer;
   border-radius: 50%;
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease;
+  transition: background 0.18s ease;
   font-size: 0.85rem;
   flex-shrink: 0;
   display: flex;
@@ -96,7 +94,8 @@
 }
 
 .backIcon {
-  font-size: 1.25rem;
+  /* 헤더 글리프 통일 — 16px */
+  font-size: 16px;
   line-height: 1;
   color: #57534e;
 }
@@ -121,28 +120,26 @@
 }
 
 .localeToggle {
+  /* 헤더 도형 통일 — 36×36 원형, 테두리 없음. */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  height: 32px;
-  padding: 0 0.65rem;
-  border-radius: 999px;
-  border: 1px solid #e0ddd7;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
   background: #ffffff;
   color: #57534e;
-  font-size: 0.8rem;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease;
+  transition: background 0.18s ease;
 }
 
 .localeToggle:hover {
   background: #f5f5f4;
-  border-color: #c9c4bc;
 }
 
 /* ============ Chat Wrapper ============ */
@@ -168,22 +165,20 @@
 }
 
 .chatMenuButton {
-  /* 헤더 도형 통일 — 36×36 원형 */
+  /* 헤더 도형 통일 — 36×36 원형, 테두리 없음, 글리프 16px. */
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid #e7e5e4;
+  border: 0;
   background: #ffffff;
   color: #44403c;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+  transition: background 0.15s ease;
 }
 
 .chatMenuButton:hover {
