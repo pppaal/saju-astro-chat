@@ -123,7 +123,8 @@ export function CompatChartModal({
       onClick={onClose}
     >
       <div
-        className="chart-pop-in relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#e7e4df] bg-white p-6 shadow-[0_24px_48px_rgba(28,25,23,0.18)]"
+        className="chart-pop-in relative w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#e7e4df] bg-white p-6 shadow-[0_24px_48px_rgba(28,25,23,0.18)]"
+        style={{ maxHeight: '96dvh' }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

@@ -42,21 +42,60 @@ const DEFAULT_STYLE = { text: 'text-stone-700', bg: 'bg-stone-50' }
 
 // Hanja → Korean reading (신금 / 을목 / 해수)
 const STEM_READING: Record<string, string> = {
-  甲: '갑', 乙: '을', 丙: '병', 丁: '정', 戊: '무', 己: '기', 庚: '경', 辛: '신', 壬: '임', 癸: '계',
+  甲: '갑',
+  乙: '을',
+  丙: '병',
+  丁: '정',
+  戊: '무',
+  己: '기',
+  庚: '경',
+  辛: '신',
+  壬: '임',
+  癸: '계',
 }
 const BRANCH_READING: Record<string, string> = {
-  子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사', 午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
+  子: '자',
+  丑: '축',
+  寅: '인',
+  卯: '묘',
+  辰: '진',
+  巳: '사',
+  午: '오',
+  未: '미',
+  申: '신',
+  酉: '유',
+  戌: '술',
+  亥: '해',
 }
-const readingOf = (name?: string) => (name ? (STEM_READING[name] ?? BRANCH_READING[name] ?? name) : '')
+const readingOf = (name?: string) =>
+  name ? (STEM_READING[name] ?? BRANCH_READING[name] ?? name) : ''
 
 // 물상(物像) — each character's everyday image, so users grasp it at a glance.
 const STEM_IMAGE: Record<string, string> = {
-  甲: '큰 나무', 乙: '유연한 풀', 丙: '태양', 丁: '촛불·등불', 戊: '넓은 산',
-  己: '기름진 밭', 庚: '큰 바위', 辛: '빛나는 보석', 壬: '큰 바다', 癸: '이슬·비',
+  甲: '큰 나무',
+  乙: '유연한 풀',
+  丙: '태양',
+  丁: '촛불·등불',
+  戊: '넓은 산',
+  己: '기름진 밭',
+  庚: '큰 바위',
+  辛: '빛나는 보석',
+  壬: '큰 바다',
+  癸: '이슬·비',
 }
 const BRANCH_IMAGE: Record<string, string> = {
-  子: '깊은 물', 丑: '언 땅', 寅: '큰 나무', 卯: '여린 화초', 辰: '촉촉한 흙', 巳: '큰 불',
-  午: '한낮 태양', 未: '건조한 흙', 申: '단단한 금속', 酉: '예리한 칼', 戌: '마른 흙', 亥: '깊은 바다',
+  子: '깊은 물',
+  丑: '언 땅',
+  寅: '큰 나무',
+  卯: '여린 화초',
+  辰: '촉촉한 흙',
+  巳: '큰 불',
+  午: '한낮 태양',
+  未: '건조한 흙',
+  申: '단단한 금속',
+  酉: '예리한 칼',
+  戌: '마른 흙',
+  亥: '깊은 바다',
 }
 const imageOf = (name?: string) => (name ? (STEM_IMAGE[name] ?? BRANCH_IMAGE[name] ?? '') : '')
 
@@ -91,10 +130,31 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
     posKo: string // 사회·초년 등 의미 라벨
     posEn: string
   }> = [
-    { key: 'time', pillar: pillars.time, isMe: false, pillarKo: '時', posKo: '말년·자녀', posEn: 'Future' },
+    {
+      key: 'time',
+      pillar: pillars.time,
+      isMe: false,
+      pillarKo: '時',
+      posKo: '말년·자녀',
+      posEn: 'Future',
+    },
     { key: 'day', pillar: pillars.day, isMe: true, pillarKo: '日', posKo: '나', posEn: 'Me' },
-    { key: 'month', pillar: pillars.month, isMe: false, pillarKo: '月', posKo: '청년·직업', posEn: 'Career' },
-    { key: 'year', pillar: pillars.year, isMe: false, pillarKo: '年', posKo: '초년·조상', posEn: 'Early' },
+    {
+      key: 'month',
+      pillar: pillars.month,
+      isMe: false,
+      pillarKo: '月',
+      posKo: '청년·직업',
+      posEn: 'Career',
+    },
+    {
+      key: 'year',
+      pillar: pillars.year,
+      isMe: false,
+      pillarKo: '年',
+      posKo: '초년·조상',
+      posEn: 'Early',
+    },
   ]
 
   const cellText = (cell?: GanjiCell) => {
@@ -143,9 +203,7 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
                 <div
                   key={idx}
                   className={`flex h-[68px] w-full flex-col items-center justify-center rounded-xl border p-1.5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
-                    isMe
-                      ? 'border-rose-300 ring-1 ring-rose-200'
-                      : 'border-stone-200'
+                    isMe ? 'border-[#c19b56] ring-1 ring-[#d4b572]/60' : 'border-stone-200'
                   } ${c.isStem ? '' : 'opacity-95'}`}
                 >
                   <span
