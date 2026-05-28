@@ -13,6 +13,7 @@ import {
   Label,
 } from 'recharts'
 import { Clock } from 'lucide-react'
+import type { ImportantDate } from './types'
 import ChartTooltip from './premium/shared/ChartTooltip'
 import { getCalLabels, type CalLocale } from './premium/labels'
 
@@ -23,8 +24,10 @@ export interface HourlySlot {
 }
 
 interface Props {
-  /** fusion.hourly.slots — 24h × {hour, score}. 없으면 차트 미렌더. */
+  /** fusion.hourly.slots — 24h × {hour, score}. 우선 사용. */
   slots?: HourlySlot[] | null
+  /** importantDate.engineSignals (hourly) — fusion 도착 전 폴백. */
+  importantDate?: ImportantDate | null
   /** 표시 중인 날짜(YYYY-MM-DD). 오늘이면 현재 시각에 세로 가이드 표시. */
   dateStr?: string
   locale?: CalLocale
@@ -41,7 +44,7 @@ interface Props {
  * 표시(다른 차트들과 톤 통일): 단일 amber gradient area, 50 기준선 + "지금"
  * reference line.
  */
-export default function DailyHourlyChart({ slots, dateStr, locale }: Props) {
+export default function DailyHourlyChart({ slots, importantDate, dateStr, locale }: Props) {
   const t = getCalLabels(locale)
   const hourSuffix = locale === 'en' ? 'h' : '시'
   // 오늘이면 현재 시각에 노란 세로 가이드. XAxis dataKey="hour" 와 같은 포맷.
@@ -54,13 +57,34 @@ export default function DailyHourlyChart({ slots, dateStr, locale }: Props) {
   })()
 
   const data: HourPoint[] = useMemo(() => {
-    if (!slots || slots.length === 0) return []
-    return slots.map((s) => ({
-      hour: `${String(s.hour).padStart(2, '0')}${hourSuffix}`,
-      hourNum: s.hour,
-      score: Math.round(s.score),
-    }))
-  }, [slots, hourSuffix])
+    // 1) fusion.hourly.slots 우선 — useDateDetail 이 제공.
+    if (slots && slots.length > 0) {
+      return slots.map((s) => ({
+        hour: `${String(s.hour).padStart(2, '0')}${hourSuffix}`,
+        hourNum: s.hour,
+        score: Math.round(s.score),
+      }))
+    }
+    // 2) 폴백 — importantDate.engineSignals[layer=hourly] 시간별 평균 (fusion
+    //    도착 전 즉시 렌더). 서버가 hourly 만 부착해 페이로드 작음.
+    if (!importantDate?.engineSignals) return []
+    const hourlySignals = importantDate.engineSignals.filter((s) => s.layer === 'hourly')
+    if (hourlySignals.length === 0) return []
+    const buckets: number[][] = Array.from({ length: 24 }, () => [])
+    for (const s of hourlySignals) {
+      const hourFromId = inferHourFromSignalId(s.id)
+      if (hourFromId == null) continue
+      buckets[hourFromId].push(s.polarity * s.weight)
+    }
+    return buckets.map((scores, hour) => {
+      const avg = scores.length > 0 ? scores.reduce((a, v) => a + v, 0) / scores.length : 0
+      return {
+        hour: `${String(hour).padStart(2, '0')}${hourSuffix}`,
+        hourNum: hour,
+        score: Math.round(50 + avg * 16),
+      }
+    })
+  }, [slots, importantDate, hourSuffix])
 
   if (data.length === 0) return null
 
@@ -165,6 +189,43 @@ function HourlyTooltip({
 interface HourPoint {
   hour: string
   hourNum: number
-  /** 0-100 score (50=중립, 100=최대 우호) — fusion.hourly.slots 직접 매핑 */
+  /** 0-100 score (50=중립, 100=최대 우호) */
   score: number
+}
+
+/**
+ * 신호 ID에서 시간 추정 (importantDate.engineSignals 폴백 경로 전용).
+ * 사주 시진: 'saju.hour.YYYY-MM-DD.{branch}.{stem}' — branch → 0-22.
+ * 점성 행성시: 'astro.planetary-hour.YYYY-MM-DD.H{hh}.{planet}' — hh 직접.
+ * 점성 VoC/moon-phase: 정오 매핑.
+ */
+function inferHourFromSignalId(id: string): number | null {
+  const BRANCH_HOUR: Record<string, number> = {
+    子: 0,
+    丑: 2,
+    寅: 4,
+    卯: 6,
+    辰: 8,
+    巳: 10,
+    午: 12,
+    未: 14,
+    申: 16,
+    酉: 18,
+    戌: 20,
+    亥: 22,
+  }
+  const sajuMatch = id.match(/^saju\.hour\..+\.([子丑寅卯辰巳午未申酉戌亥])\./)
+  if (sajuMatch) {
+    const hour = BRANCH_HOUR[sajuMatch[1]]
+    return typeof hour === 'number' ? hour : null
+  }
+  const astroHourMatch = id.match(/^astro\.planetary-hour\..+\.H(\d{1,2})\./)
+  if (astroHourMatch) {
+    const h = Number(astroHourMatch[1])
+    return h >= 0 && h < 24 ? h : null
+  }
+  if (id.startsWith('astro.voc') || id.startsWith('astro.moon-phase')) {
+    return 12
+  }
+  return null
 }

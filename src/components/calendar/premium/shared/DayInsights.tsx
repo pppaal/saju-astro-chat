@@ -88,6 +88,7 @@ export default function DayInsights({
       </div>
       <motion.div variants={cardItem}>
         <DayHourlyCard
+          importantDate={importantDate}
           dateStr={dateStr}
           advice={advice}
           hourlySlots={hourlySlots}
@@ -406,12 +407,14 @@ function WhyBlock({
 
 // ── 4. DayHourly ─────────────────────────────────────────────────────
 function DayHourlyCard({
+  importantDate,
   dateStr,
   advice,
   hourlySlots,
   hourlySeries,
   locale,
 }: {
+  importantDate?: ImportantDate | null
   dateStr: string
   advice?: FusionAdvice
   hourlySlots?: HourlySlots
@@ -433,7 +436,12 @@ function DayHourlyCard({
       </h3>
 
       <div className="relative">
-        <DailyHourlyChart slots={hourlySeries} dateStr={dateStr} locale={locale} />
+        <DailyHourlyChart
+          slots={hourlySeries}
+          importantDate={importantDate}
+          dateStr={dateStr}
+          locale={locale}
+        />
       </div>
 
       {(bestHour || worstHour) && (

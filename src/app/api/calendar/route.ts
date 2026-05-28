@@ -728,10 +728,26 @@ export const GET = withApiMiddleware(
             }
           })
         }
-        // engineSignals 완전 제거 — UI 사용처는 DailyHourlyChart 의 hourly layer 만,
-        // 그것마저 fusion.hourly.slots (useDateDetail 이 선택 일자에 제공) 로 대체.
-        // 365 일자에 ~5MB 가 떠나서 페이로드 cold response 빨라짐.
-        // YearHighlightsCard pickReason 은 sajuFactors → title 폴백 있어 graceful.
+        // engineSignals — hourly layer 만 부착. 나머지 layer (decadal/yearly/
+        // monthly/daily/instant) 는 UI 사용처 없어 365 × 130 bytes = ~600KB
+        // 부풀림 제거. hourly 는 ~30/day × 365 = 1.6MB raw (~400KB gzip) 유지
+        // 해 DailyHourlyChart 가 fusion 백필 기다리지 않고 즉시 렌더.
+        if (cell.signals.length > 0) {
+          const hourlySigs = cell.signals.filter((s) => s.layer === 'hourly')
+          if (hourlySigs.length > 0) {
+            d.engineSignals = hourlySigs.map((s) => ({
+              id: s.id,
+              source: s.source,
+              kind: s.kind,
+              name: s.name,
+              korean: s.korean,
+              themes: s.themes,
+              polarity: s.polarity,
+              layer: s.layer,
+              weight: s.weight,
+            }))
+          }
+        }
         if (Object.keys(cell.themeScores).length > 0) {
           d.themeScores = cell.themeScores
         }
