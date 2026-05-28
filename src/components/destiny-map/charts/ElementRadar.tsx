@@ -190,10 +190,8 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
             stroke="#d4b572"
             strokeWidth="2"
           />
-          {AXES.map((a, i) => {
-            const p = pt((R * counts[a.key]) / max, i)
-            return <circle key={a.key} cx={p.x} cy={p.y} r="2.5" fill="#e8cc8a" />
-          })}
+          {/* 옛 vertex 점 (circle r=2.5) 제거 — 사용자 피드백 "왜 점이 있어".
+              데이터 polygon 만으로 충분히 읽힘. 점은 시각 노이즈만 됐음. */}
         </g>
         {AXES.map((a, i) => {
           const lp = pt(R + 16, i)
