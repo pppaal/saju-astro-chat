@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server'
 import { toDate } from 'date-fns-tz'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { normalizeGender } from '@/lib/utils/gender'
+import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getCreditBalance } from '@/lib/credits/creditService'
 import { getNowInTimezone } from '@/lib/datetime'
 import {
@@ -95,13 +96,22 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 떨어져 'female' 매칭 실패 → 여자 사용자 'male' 로 잘못 분류 → 대운
   // 순/역행이 거꾸로 가던 회귀.
   const sajuGender: 'male' | 'female' = normalizeGender(gender) === 'female' ? 'female' : 'male'
-  const sajuResult = calculateSajuData(
-    birthDateString,
-    adjustedBirthTime,
-    sajuGender,
-    calendarType,
-    timezone,
-    false
+  // 사주 결과 Redis 캐시 — 생년월일·시간·성별·달력타입 같으면 같은 사주.
+  // 30일 TTL (NATAL_CHART) — 사주 데이터는 immutable. 캐시 hit 시 Swiss
+  // Ephemeris / 절기 lookup 등 ~150ms CPU 일 통째 절약. 이벤트 트래픽 시
+  // 동일 사용자 재방문 / 가족 같은 생년월일 등에서 95%+ hit 기대.
+  const sajuResult = await cacheOrCalculate(
+    CacheKeys.saju(birthDateString, adjustedBirthTime, sajuGender, calendarType),
+    async () =>
+      calculateSajuData(
+        birthDateString,
+        adjustedBirthTime,
+        sajuGender,
+        calendarType,
+        timezone,
+        false
+      ),
+    CACHE_TTL.NATAL_CHART
   )
 
   // 4. Build Saju pillars
