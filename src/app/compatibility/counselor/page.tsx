@@ -32,6 +32,7 @@ const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCar
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
+import { FollowUpChips } from '@/components/chat/FollowUpChips'
 
 // Short, one-line prompts that cycle through the textarea placeholder.
 // The original single-string placeholder ("두 사람에 대해 깊이 있는 질문을
@@ -815,25 +816,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               )
             })()}
 
-            {!isLoading && followUpQuestions.length > 0 && messages.length > 0 && (
-              <div className={styles.followUpContainer}>
-                <span className={styles.followUpLabel}>
-                  {isKo ? '이어서 물어보기' : 'Continue asking'}
-                </span>
-                <div className={styles.followUpButtons}>
-                  {followUpQuestions.map((q, idx) => (
-                    <button
-                      key={`${idx}-${q}`}
-                      type="button"
-                      className={styles.followUpChip}
-                      onClick={() => sendMessage(q)}
-                    >
-                      <span className={styles.followUpIcon}>{'\u{1F4AC}'}</span>
-                      {q}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {!isLoading && messages.length > 0 && (
+              <FollowUpChips
+                questions={followUpQuestions}
+                lang={isKo ? 'ko' : 'en'}
+                onPick={(q) => sendMessage(q)}
+                styles={styles as never}
+              />
             )}
 
             {/* 도구 안내 — 첫 assistant 답변 후 user 턴 3회까지만 1회 노출.
