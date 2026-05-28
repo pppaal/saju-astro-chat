@@ -23,12 +23,16 @@ export function formatLongitude(lon: number) {
 }
 
 /**
- * Calculate angular difference for aspect detection
- * Returns 180 for same angles (no aspect), 0 for opposite angles (opposition)
+ * Shortest angular distance between two longitudes (0..180).
+ *
+ * 과거에 이 함수가 `180 - shortest` 를 반환하던 inverted 구현이었는데
+ * 호출처(transit.ts findTransitAspects)는 standard target angle (conjunction=0,
+ * sextile=60, square=90, trine=120, opposition=180) 으로 비교하고 있었음 →
+ * conjunction ↔ opposition, sextile ↔ trine 가 통째로 swap 돼 표시되던 회귀.
+ * 표준 의미(conj=0)로 통일.
  */
 export function angleDiff(a: number, b: number) {
-  const d = Math.abs(((a - b) % 360 + 540) % 360 - 180);
-  return 180 - d;
+  return Math.abs(((a - b) % 360 + 540) % 360 - 180);
 }
 
 /**
