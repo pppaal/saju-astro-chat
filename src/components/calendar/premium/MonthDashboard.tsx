@@ -5,7 +5,7 @@
  *
  * 구성:
  *   1. Premium Hero — 이달 평균 점수 + verdict
- *   2. Month Narrative — 엔진 해석 sections (총평)
+ *   2. Month Insights — 엔진 themeRanking + keyEvents + convergence 3 카드
  *   3. Flow Chart — 일별 area + 베스트/주의/수렴 reference dots
  *
  * 달력 그리드는 부모(DestinyMatrixPlanner)에서 분리 렌더 — 그리드는 actionable surface.
@@ -16,7 +16,7 @@ import type { ImportantDate } from '../types'
 import { getGrade } from '../scoreGrade'
 import PremiumHero from './shared/PremiumHero'
 import FlowChart, { type FlowPoint } from './shared/FlowChart'
-import MonthNarrative from './shared/MonthNarrative'
+import MonthInsights from './shared/MonthInsights'
 import { getCalLabels, type CalLocale } from './labels'
 
 interface Props {
@@ -120,7 +120,7 @@ export default function MonthDashboard({
         locale={locale}
       />
 
-      <MonthNarrative interp={monthInterp} locale={locale} />
+      <MonthInsights interp={monthInterp} month={month} locale={locale} onDayClick={onDayClick} />
 
       <FlowChart
         data={data.flowData}

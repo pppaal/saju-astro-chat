@@ -120,6 +120,20 @@ interface LabelSet {
   pivotBothSystems: string
   pivotAstroOnly: string
   pivotDaeunOnly: string
+  // Month insights (themeRanking + keyEvents + convergence)
+  themeFocusTitle: string
+  themeFocusEmpty: string
+  keyDatesTitle: string
+  keyDatesBestLabel: string
+  keyDatesWindowLabel: string
+  keyDatesAvoidLabel: string
+  keyDatesScoreSuffix: (score: number) => string
+  keyDatesWindowFmt: (start: string, end: string, avg: number) => string
+  keyDatesEmpty: string
+  bigTurnsTitle: string
+  bigTurnsAstroLabel: string
+  bigTurnsSajuLabel: string
+  bigTurnsEmpty: string
   // Engine error
   engineFailedRetry: string
   fetchTimeout: string
@@ -212,6 +226,19 @@ const KO: LabelSet = {
   pivotBothSystems: '점성·사주 양쪽이 같은 시기를 가리키는 큰 전환',
   pivotAstroOnly: '점성 라이프사이클 분기점',
   pivotDaeunOnly: '대운 전환 — 10년 흐름의 시작',
+  themeFocusTitle: '이번 달 초점',
+  themeFocusEmpty: '이달 테마 신호가 부족해요.',
+  keyDatesTitle: '핵심 날짜',
+  keyDatesBestLabel: '추진일',
+  keyDatesWindowLabel: '강한 구간',
+  keyDatesAvoidLabel: '보류 날짜',
+  keyDatesScoreSuffix: (s) => `${s}점`,
+  keyDatesWindowFmt: (start, end, avg) => `${start} ~ ${end} (평균 ${avg}점)`,
+  keyDatesEmpty: '이번 달 표시할 날짜 신호가 부족해요.',
+  bigTurnsTitle: '큰 전환',
+  bigTurnsAstroLabel: '점성',
+  bigTurnsSajuLabel: '사주',
+  bigTurnsEmpty: '이번 달 양쪽 수렴 날이 없어요.',
   engineFailedRetry: '엔진 호출 실패',
   fetchTimeout: '서버 응답이 너무 오래 걸려요. 다시 시도해 주세요.',
 }
@@ -304,6 +331,19 @@ const EN: LabelSet = {
   pivotBothSystems: 'Both saju and astrology mark this period — a major turn',
   pivotAstroOnly: 'Astrological lifecycle pivot',
   pivotDaeunOnly: 'Daeun transition — start of a new 10-year flow',
+  themeFocusTitle: 'Focus this month',
+  themeFocusEmpty: 'Low theme signal this month.',
+  keyDatesTitle: 'Key dates',
+  keyDatesBestLabel: 'Push day',
+  keyDatesWindowLabel: 'Strong window',
+  keyDatesAvoidLabel: 'Hold dates',
+  keyDatesScoreSuffix: (s) => `${s} pts`,
+  keyDatesWindowFmt: (start, end, avg) => `${start} – ${end} (avg ${avg})`,
+  keyDatesEmpty: 'Not enough date signals this month.',
+  bigTurnsTitle: 'Big turns',
+  bigTurnsAstroLabel: 'Astro',
+  bigTurnsSajuLabel: 'Saju',
+  bigTurnsEmpty: 'No convergence days this month.',
   engineFailedRetry: 'Engine call failed',
   fetchTimeout: 'Server taking too long. Please try again.',
 }
