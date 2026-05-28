@@ -37,6 +37,9 @@ import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
 import { formatCompositeChart } from '@/lib/compatibility/compositeChartFormatter'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 import { getUserDisplayName } from '@/lib/user/displayName'
+import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
+import { refundCredits } from '@/lib/credits/creditRefund'
+import { shouldChargeForMessage, rollbackMessageCount } from '@/lib/credits/messageBilling'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -121,16 +124,15 @@ function formatPersonalShinsal(label: string, shinsal: unknown): string | null {
 
 export async function POST(req: NextRequest) {
   try {
-    // Apply middleware: prefer authenticated guard (with credits) but fall
-    // back to guest guard so first-time visitors can sample 2 turns before
-    // the login wall — same pattern as destiny-map/chat-stream.
+    // Apply middleware: prefer authenticated guard but fall back to guest
+    // guard so first-time visitors can sample 2 turns before the login wall.
+    // Credit 차감은 미들웨어 자동이 아닌 인라인으로 — 2-message-per-credit
+    // 정책(타로/운명과 통일)을 적용해야 해서 매 호출 unconditional charge 가
+    // 곤란하다. 미들웨어는 rate-limit + auth 만, credit 은 아래 messageBilling.
     const authedGuardOptions = createAuthenticatedGuard({
       route: 'compatibility-counselor',
       limit: 30,
       windowSeconds: 60,
-      requireCredits: true,
-      creditType: 'compatibility',
-      creditAmount: 1,
     })
 
     const guestGuardOptions: MiddlewareOptions = {
@@ -178,6 +180,50 @@ export async function POST(req: NextRequest) {
           headers: { 'X-Guest-Limit-Reached': '1' },
         })
       }
+    }
+
+    // 2-message-per-credit billing — 인증 사용자만 적용 (게스트는 위쪽 무료
+    // 2턴 카운트만). chargedThisMessage / refundOnError 는 LLM 실패 시 환불 +
+    // 카운터 rollback 에 사용.
+    let chargedThisMessage = false
+    const authedUserId = context.userId ?? null
+    if (authedUserId) {
+      const billing = await shouldChargeForMessage('compat-counselor', authedUserId)
+      if (billing.shouldCharge) {
+        const credit = await canUseCredits(authedUserId, 'compatibility', 1)
+        if (!credit.allowed) {
+          await rollbackMessageCount('compat-counselor', authedUserId)
+          return NextResponse.json(
+            { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
+            { status: 402 }
+          )
+        }
+        try {
+          const res = await consumeCredits(authedUserId, 'compatibility', 1)
+          chargedThisMessage = res.success
+        } catch (err) {
+          logger.warn('[compatibility/counselor] credit deduction failed', { err })
+        }
+      }
+    }
+    const refundOnError = async (reason: string) => {
+      if (!authedUserId) return
+      if (chargedThisMessage) {
+        try {
+          await refundCredits({
+            userId: authedUserId,
+            creditType: 'compatibility',
+            amount: 1,
+            reason,
+            apiRoute: '/api/compatibility/counselor',
+          })
+        } catch (err) {
+          logger.warn('[compatibility/counselor] refund failed', { err })
+        }
+      }
+      // 차감 안 한 경우(짝수번째)에도 카운터는 되돌려 retry 가 같은 charge
+      // 위치로 돌아오게 한다.
+      await rollbackMessageCount('compat-counselor', authedUserId)
     }
 
     const rawBody = await req.json()
@@ -726,21 +772,10 @@ export async function POST(req: NextRequest) {
         // Mid-stream failures (empty completion / backend error) surface
         // inside the SSE body, not as a thrown error, so the catch below
         // never sees them. Refund the consumed credit here too. Guests
-        // aren't credit-charged → refundCreditsOnError is absent → no-op.
-        onFailure: context?.refundCreditsOnError
-          ? async () => {
-              try {
-                await context?.refundCreditsOnError?.(
-                  'compatibility-counselor stream delivered no content',
-                  { route: 'compatibility-counselor' }
-                )
-              } catch (err) {
-                logger.warn('[Compatibility Counselor] stream-failure refund failed', {
-                  error: err instanceof Error ? err.message : String(err),
-                })
-              }
-            }
-          : undefined,
+        // aren't credit-charged → refundOnError 가 authed 체크라 자동 no-op.
+        onFailure: async () => {
+          await refundOnError('compatibility-counselor stream delivered no content')
+        },
         additionalHeaders: {
           'X-Guest-Mode': isGuestMode ? '1' : '0',
           ...(isGuestMode
@@ -758,13 +793,10 @@ export async function POST(req: NextRequest) {
         error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
 
-      // Refund credit if Claude failed (authed users only)
-      if (context?.refundCreditsOnError) {
-        await context.refundCreditsOnError(
-          `Claude error: ${claudeErr instanceof Error ? claudeErr.message : 'unknown'}`,
-          { route: 'compatibility-counselor' }
-        )
-      }
+      // Refund credit if Claude failed (authed users only — refundOnError 자체가 가드)
+      await refundOnError(
+        `Claude error: ${claudeErr instanceof Error ? claudeErr.message : 'unknown'}`
+      )
 
       const fallback =
         lang === 'ko'
