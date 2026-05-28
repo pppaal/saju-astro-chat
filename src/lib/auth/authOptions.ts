@@ -120,31 +120,22 @@ function createFilteredPrismaAdapter(): Adapter {
         throw error
       }
     },
+    // 매 세션 refresh 마다 호출되는 hot path — 25+ 컬럼 + 관계 전부 가져
+    // 오던 default SELECT 를 next-auth 가 실제로 쓰는 5 컬럼만 명시.
+    // 이벤트 트래픽 시 분당 수천 회 호출 → pgbouncer connection 시간 단축.
     getUser: async (id: string) => {
-      try {
-        const user = await prisma.user.findUnique({ where: { id } })
-        return (user as AdapterUser) ?? null
-      } catch (error) {
-        logger.warn('[auth] getUser full select failed, using safe select:', error)
-        const user = await prisma.$queryRaw<AdapterUser[]>`
-          SELECT "id", "name", "email", "emailVerified", "image"
-          FROM "User" WHERE "id" = ${id} LIMIT 1
-        `
-        return user[0] ?? null
-      }
+      const user = await prisma.user.findUnique({
+        where: { id },
+        select: { id: true, name: true, email: true, emailVerified: true, image: true },
+      })
+      return (user as AdapterUser) ?? null
     },
     getUserByEmail: async (email: string) => {
-      try {
-        const user = await prisma.user.findUnique({ where: { email } })
-        return (user as AdapterUser) ?? null
-      } catch (error) {
-        logger.warn('[auth] getUserByEmail full select failed, using safe select:', error)
-        const user = await prisma.$queryRaw<AdapterUser[]>`
-          SELECT "id", "name", "email", "emailVerified", "image"
-          FROM "User" WHERE "email" = ${email} LIMIT 1
-        `
-        return user[0] ?? null
-      }
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true, name: true, email: true, emailVerified: true, image: true },
+      })
+      return (user as AdapterUser) ?? null
     },
     getUserByAccount: async (
       providerAccountId: Pick<AdapterAccount, 'provider' | 'providerAccountId'>
@@ -208,9 +199,18 @@ function createFilteredPrismaAdapter(): Adapter {
       return await prisma.session.create({ data: session })
     },
     getSessionAndUser: async (sessionToken: string) => {
+      // 동일하게 hot path. include: { user: true } 가 User 의 모든 컬럼 +
+      // 관계까지 join — next-auth 가 실제로 쓰는 건 user 의 5 필드만.
       const sessionAndUser = await prisma.session.findUnique({
         where: { sessionToken },
-        include: { user: true },
+        select: {
+          sessionToken: true,
+          userId: true,
+          expires: true,
+          user: {
+            select: { id: true, name: true, email: true, emailVerified: true, image: true },
+          },
+        },
       })
       if (!sessionAndUser) return null
       const { user, ...session } = sessionAndUser

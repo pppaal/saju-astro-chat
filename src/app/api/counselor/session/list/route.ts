@@ -41,6 +41,10 @@ export const GET = withApiMiddleware(
     // sessions that predate the auto-titler (PR #193). The sidebar
     // shouldn't render the entire conversation, so we strip `messages`
     // before sending and only keep the derived 30-char title.
+    // 사이드바 리스트는 메타데이터만 필요 — messages JSON (수십 KB ~ MB) 은
+    // 제외. 이전엔 title fallback 용으로 전체 messages 를 들고와서 1000명 ×
+    // 30 세션 × 평균 50KB = 약 1.5GB egress / 페이지 진입 회당. 사이드바 부제 +
+    // 인물 이름만 필요한 meta 는 작아서 유지.
     const rows = await prisma.counselorChatSession.findMany({
       where: {
         userId,
@@ -56,10 +60,6 @@ export const GET = withApiMiddleware(
         messageCount: true,
         summary: true,
         keyTopics: true,
-        messages: true,
-        // 사이드바 부제용 — destiny: meta.profile.name / compat: meta.persons[].name.
-        // 사이드바 리스트 응답이 가벼워야 하므로 메시지처럼 통째로 들고 와서
-        // 클라가 필요한 필드만 추출 (meta 자체가 수~수십 KB 짜리 큰 값은 아님).
         meta: true,
         createdAt: true,
         updatedAt: true,
@@ -67,20 +67,34 @@ export const GET = withApiMiddleware(
       },
     })
 
+    // title 빈 행만 별도로 첫 user 메시지 조회 — auto-titler PR #193 이전 행
+    // (대부분 옛 데이터). 새 행은 backfillTitle 로 채워져 있어 추가 query X.
     type ChatMsg = { role?: string; content?: string }
-    const sessions = rows.map((row) => {
-      const { messages, ...rest } = row
-      let title = rest.title
-      if (!title || !title.trim()) {
-        const msgs = Array.isArray(messages) ? (messages as ChatMsg[]) : []
-        const firstUser = msgs.find((m) => m && m.role === 'user')?.content
-        if (firstUser && typeof firstUser === 'string') {
-          const cleaned = firstUser.replace(/\s+/g, ' ').trim()
-          title = cleaned.length <= 30 ? cleaned : `${cleaned.slice(0, 29).trim()}…`
-        }
-      }
-      return { ...rest, title }
-    })
+    const untitledIds = rows.filter((r) => !r.title || !r.title.trim()).map((r) => r.id)
+    let titleFallbacks: Record<string, string> = {}
+    if (untitledIds.length > 0) {
+      const withMessages = await prisma.counselorChatSession.findMany({
+        where: { id: { in: untitledIds } },
+        select: { id: true, messages: true },
+      })
+      titleFallbacks = Object.fromEntries(
+        withMessages.map((r) => {
+          const msgs = Array.isArray(r.messages) ? (r.messages as ChatMsg[]) : []
+          const firstUser = msgs.find((m) => m && m.role === 'user')?.content
+          let derived = ''
+          if (firstUser && typeof firstUser === 'string') {
+            const cleaned = firstUser.replace(/\s+/g, ' ').trim()
+            derived = cleaned.length <= 30 ? cleaned : `${cleaned.slice(0, 29).trim()}…`
+          }
+          return [r.id, derived]
+        })
+      )
+    }
+
+    const sessions = rows.map((row) => ({
+      ...row,
+      title: row.title || titleFallbacks[row.id] || row.title,
+    }))
 
     return NextResponse.json({ sessions })
   },

@@ -21,6 +21,7 @@ import {
   parseHM,
 } from '@/lib/astrology/localization'
 import { logger } from '@/lib/logger'
+import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { validateRequestBody, astrologyRequestSchema } from '@/lib/api/zodValidation'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
@@ -74,16 +75,27 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
 
   let natal
   try {
-    natal = await calculateNatalChart({
-      year,
-      month,
-      date: day,
-      hour: h,
-      minute: m,
-      latitude,
-      longitude,
-      timeZone: String(timeZone),
-    })
+    // Natal chart Redis 캐시 — 생년월일·시간·좌표 동일하면 같은 차트.
+    // 30일 TTL (NATAL_CHART) — 천체력 데이터 immutable. 캐시 hit 시 Swiss
+    // Ephemeris ~250ms × 10 planets 통째로 절약. 캐시 키는 birthDate-birthTime
+    // -lat-lon 으로 timeZone 차이는 무시 (lat/lon 으로 충분히 unique).
+    const birthDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    const birthTimeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+    natal = await cacheOrCalculate(
+      CacheKeys.natalChart(birthDateStr, birthTimeStr, latitude, longitude),
+      async () =>
+        calculateNatalChart({
+          year,
+          month,
+          date: day,
+          hour: h,
+          minute: m,
+          latitude,
+          longitude,
+          timeZone: String(timeZone),
+        }),
+      CACHE_TTL.NATAL_CHART
+    )
   } catch (chartError) {
     logger.error('[Astrology API] calculateNatalChart failed:', chartError)
     return apiError(
