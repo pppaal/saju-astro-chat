@@ -11,7 +11,6 @@ import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 import SideDrawer from './components/SideDrawer'
 import HomeChatInput from './components/HomeChatInput'
-import RecommendationChips from './components/RecommendationChips'
 import BirthInfoModal from './components/BirthInfoModal'
 import { getStoredBirthInfo, saveBirthInfo, type StoredBirthInfo } from './birthInfoStorage'
 import HexDPLogo from '@/components/branding/HexDPLogo'
@@ -265,16 +264,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
             <HexDPLogo size={72} />
           </div>
           <h1 id="home-headline" className={styles.homeHeadline}>
-            {locale === 'ko' ? 'AI와 사주·점성을 함께 풀어드려요' : 'Saju × Astrology, fused by AI'}
+            {locale === 'ko' ? 'AI가 풀어내는 당신의 운명' : 'Your Destiny, Powered by AI'}
           </h1>
-          <p className={styles.homeSubline}>
-            {locale === 'ko'
-              ? '사주 · 점성 · 캘린더 · 타로 · 궁합 상담사'
-              : 'Saju · Astrology · Calendar · Tarot · Compatibility Counselor'}
-          </p>
         </section>
-
-        <RecommendationChips birthInfo={birthInfo} locale={locale} />
 
         <HomeChatInput
           birthInfo={birthInfo}
