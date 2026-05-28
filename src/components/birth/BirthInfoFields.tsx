@@ -124,6 +124,8 @@ export function BirthInfoFields({
           value={birthDate}
           onChange={(v) => onChange({ birthDate: v })}
           inputClass={c.input}
+          popoverListClass={c.suggestionList}
+          popoverItemClass={c.suggestionItem}
         />
       </div>
 
@@ -218,9 +220,10 @@ export function BirthInfoFields({
 }
 
 /**
- * Native <select> 3 칸으로 연/월/일 입력. 모바일에서 native date input 의
- * 휠 피커가 "어디 눌러야 연도가 바뀌는지" 직관적이지 않다는 피드백을 받아
- * 도입. iOS/Android 모두 익숙한 dropdown UI 로 통일.
+ * 연/월/일 커스텀 dropdown 3칸. native <select> 가 아니라 button +
+ * popover 로 직접 구현 — iOS Safari 가 backdrop-filter 부모 안의 native
+ * <select> picker 를 안 열어주는 버그(모달 안에서 탭해도 무반응) 회피.
+ * 모든 모바일 브라우저에서 동일하게 동작.
  *
  * 외부 인터페이스: ISO 'YYYY-MM-DD' 문자열을 in/out 으로 그대로 사용 →
  * 상위 폼 로직은 변경 없음.
@@ -231,12 +234,16 @@ function DateThreeSelect({
   value,
   onChange,
   inputClass,
+  popoverListClass,
+  popoverItemClass,
 }: {
   locale: 'ko' | 'en'
   idPrefix: string
   value: string
   onChange: (v: string) => void
   inputClass: string
+  popoverListClass: string
+  popoverItemClass: string
 }) {
   const isKo = locale === 'ko'
   const parsed = parseISODate(value)
@@ -265,69 +272,148 @@ function DateThreeSelect({
     )
   }
 
-  // select 자체는 input 과 동일 톤(border/text/bg) 으로. grid-cols-3 로 균등.
   return (
     <div className="grid grid-cols-3 gap-2">
-      <select
+      <DateDropdown
         id={`${idPrefix}-year`}
-        className={inputClass}
+        ariaLabel={isKo ? '년' : 'Year'}
+        placeholder={isKo ? '년' : 'Year'}
         value={year}
-        onChange={(e) =>
-          emit(
-            e.target.value ? Number(e.target.value) : '',
-            month === '' ? '' : Number(month),
-            day === '' ? '' : Number(day)
-          )
+        options={years.map((y) => ({ value: y, label: String(y) }))}
+        onSelect={(v) =>
+          emit(v as number, month === '' ? '' : Number(month), day === '' ? '' : Number(day))
         }
-        aria-label={isKo ? '년' : 'Year'}
-      >
-        <option value="">{isKo ? '년' : 'Year'}</option>
-        {years.map((y) => (
-          <option key={y} value={y}>
-            {y}
-          </option>
-        ))}
-      </select>
-      <select
+        inputClass={inputClass}
+        listClass={popoverListClass}
+        itemClass={popoverItemClass}
+      />
+      <DateDropdown
         id={`${idPrefix}-month`}
-        className={inputClass}
+        ariaLabel={isKo ? '월' : 'Month'}
+        placeholder={isKo ? '월' : 'Month'}
         value={month}
-        onChange={(e) =>
-          emit(
-            year === '' ? '' : Number(year),
-            e.target.value ? Number(e.target.value) : '',
-            day === '' ? '' : Number(day)
-          )
+        options={months.map((m) => ({ value: m, label: isKo ? `${m}월` : String(m) }))}
+        onSelect={(v) =>
+          emit(year === '' ? '' : Number(year), v as number, day === '' ? '' : Number(day))
         }
-        aria-label={isKo ? '월' : 'Month'}
-      >
-        <option value="">{isKo ? '월' : 'Month'}</option>
-        {months.map((m) => (
-          <option key={m} value={m}>
-            {isKo ? `${m}월` : m}
-          </option>
-        ))}
-      </select>
-      <select
+        inputClass={inputClass}
+        listClass={popoverListClass}
+        itemClass={popoverItemClass}
+      />
+      <DateDropdown
         id={`${idPrefix}-day`}
-        className={inputClass}
+        ariaLabel={isKo ? '일' : 'Day'}
+        placeholder={isKo ? '일' : 'Day'}
         value={day}
-        onChange={(e) =>
-          emit(
-            year === '' ? '' : Number(year),
-            month === '' ? '' : Number(month),
-            e.target.value ? Number(e.target.value) : ''
-          )
+        options={days.map((d) => ({ value: d, label: isKo ? `${d}일` : String(d) }))}
+        onSelect={(v) =>
+          emit(year === '' ? '' : Number(year), month === '' ? '' : Number(month), v as number)
         }
-        aria-label={isKo ? '일' : 'Day'}
+        inputClass={inputClass}
+        listClass={popoverListClass}
+        itemClass={popoverItemClass}
+      />
+    </div>
+  )
+}
+
+/**
+ * 단일 dropdown — button 탭 시 popover 가 열리고 옵션 리스트 노출.
+ * suggestionList/suggestionItem 클래스(도시 자동완성 팝오버와 동일)를
+ * 받아서 light/dark 톤 자동 매칭.
+ */
+function DateDropdown({
+  id,
+  ariaLabel,
+  placeholder,
+  value,
+  options,
+  onSelect,
+  inputClass,
+  listClass,
+  itemClass,
+}: {
+  id: string
+  ariaLabel: string
+  placeholder: string
+  value: number | ''
+  options: ReadonlyArray<{ value: number; label: string }>
+  onSelect: (v: number) => void
+  inputClass: string
+  listClass: string
+  itemClass: string
+}) {
+  const [open, setOpen] = React.useState(false)
+  const wrapRef = React.useRef<HTMLDivElement>(null)
+  const listRef = React.useRef<HTMLUListElement>(null)
+
+  // 바깥 탭 / Escape 닫기.
+  React.useEffect(() => {
+    if (!open) return
+    const onPointer = (e: PointerEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  // 열릴 때 현재 선택 항목으로 스크롤 (년도처럼 126 개 있을 때 필수).
+  React.useEffect(() => {
+    if (!open || value === '' || !listRef.current) return
+    const el = listRef.current.querySelector<HTMLElement>(`[data-v="${value}"]`)
+    if (el) el.scrollIntoView({ block: 'center' })
+  }, [open, value])
+
+  const display = value === '' ? placeholder : options.find((o) => o.value === value)?.label ?? ''
+
+  return (
+    <div ref={wrapRef} style={{ position: 'relative' }}>
+      <button
+        id={id}
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className={`${inputClass} flex items-center justify-between text-left`}
       >
-        <option value="">{isKo ? '일' : 'Day'}</option>
-        {days.map((d) => (
-          <option key={d} value={d}>
-            {isKo ? `${d}일` : d}
-          </option>
-        ))}
-      </select>
+        <span style={{ opacity: value === '' ? 0.6 : 1 }}>{display}</span>
+        <span aria-hidden="true" style={{ opacity: 0.6, marginLeft: 6 }}>
+          ▾
+        </span>
+      </button>
+      {open && (
+        <ul
+          ref={listRef}
+          role="listbox"
+          className={listClass}
+          style={{ listStyle: 'none', margin: 0 }}
+        >
+          {options.map((opt) => (
+            <li key={opt.value}>
+              <button
+                type="button"
+                data-v={opt.value}
+                onClick={() => {
+                  onSelect(opt.value)
+                  setOpen(false)
+                }}
+                className={itemClass}
+                style={value === opt.value ? { fontWeight: 600 } : undefined}
+              >
+                {opt.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
