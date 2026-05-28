@@ -699,6 +699,40 @@ function ResultStep({
         </button>
       </div>
 
+      {/* 해석 중 인디케이터 — overallMessage 도착 전까지 자리 잡고 사용자
+          에게 "지금 카드 읽고 있다" 신호. 옛 separate InterpretingStep
+          (orb + 잘린 텍스트 박스) 대신 cards 와 함께 같은 화면에서 자연
+          스럽게 노출. fallback 실패면 안 띄움 (그땐 retry alert 가 따로 뜸). */}
+      {!overallMessage && !interpretFailed && drawnCards.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            justifyContent: 'center',
+            padding: '14px 16px',
+            marginTop: 8,
+            marginBottom: 8,
+            color: 'var(--ds-gold-on-dark-soft)',
+            fontSize: 14,
+          }}
+        >
+          <span
+            style={{
+              display: 'inline-block',
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              border: '2px solid var(--ds-gold-on-dark)',
+              borderTopColor: 'transparent',
+              animation: 'spin 0.9s linear infinite',
+            }}
+          />
+          <span>{isKo ? 'AI가 카드를 읽고 있어요…' : 'AI is reading your cards…'}</span>
+          <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+
       {/* Overall Message — split into readable paragraphs to match the main
           tarot counselor's format (was one plain wall-of-text block). */}
       {overallMessage && (

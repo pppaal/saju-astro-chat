@@ -327,8 +327,11 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
       // made the screen "keep changing" before the result settled.
       actions.setRevealedCount(data.drawnCards.length)
 
-      // Start interpretation
-      actions.setStep('interpreting')
+      // 카드 보여주면서 해석 streaming — 옛 interpreting step (orb + 잘린
+      // 텍스트 박스만 보여줌) 건너뛰고 'result' 로 바로 이동. ResultStep 이
+      // overallMessage 비어 있을 때 inline 로딩 인디케이터를 자체적으로 띄움.
+      // 사용자: "카드부터 보고 싶다" 피드백 반영.
+      actions.setStep('result')
       await fetchInterpretation(data.drawnCards)
     } catch (err) {
       logger.error('[InlineTarot] draw error:', err)
@@ -425,11 +428,17 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
 
   // Retry the AI interpretation for the cards already on screen (used by the
   // result view's "다시 시도" button after a failed interpret).
+  // 재시도 — 사용자가 result 화면의 "다시 시도" 버튼 누른 케이스. 카드는
+  // 그대로 두고 (이미 화면에 있음) 'result' 유지하면서 fetchInterpretation
+  // 만 재호출. interpretFailed 만 false 로 리셋해 ResultStep 의 로딩
+  // 인디케이터가 다시 뜨도록.
   const retryInterpretation = useCallback(() => {
     if (drawnCards.length === 0) {
       return
     }
-    actions.setStep('interpreting')
+    // 'interpreting' step 더 이상 안 씀 (orb step deprecated). 'result' 유지
+    // 하면서 ResultStep 안 로딩 인디케이터로 진행 표시.
+    actions.setInterpretFailed(false)
     void fetchInterpretation(drawnCards)
   }, [drawnCards, actions, fetchInterpretation])
 

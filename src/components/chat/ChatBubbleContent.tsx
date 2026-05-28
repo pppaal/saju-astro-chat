@@ -29,7 +29,10 @@ const CARD_IMAGE_STYLE: React.CSSProperties = {
   maxWidth: '180px',
   width: '70%',
   aspectRatio: '5 / 8.5',
-  objectFit: 'cover',
+  // 'cover' → 'contain' — 사용자 피드백: "한 장 더 뽑기 카드가 위가 안 보임".
+  // 타로 카드 그림 비율이 컨테이너와 살짝 달라 cover 가 위/아래 잘라 먹었음.
+  // contain 은 카드 전체를 letterbox 로 보여줌 — 그림 잘림 X.
+  objectFit: 'contain',
   borderRadius: '10px',
   boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
   background: 'rgba(255,255,255,0.06)',
@@ -106,11 +109,7 @@ const ChatBubbleContent = React.memo(function ChatBubbleContent({
   return (
     <>
       {textContent &&
-        (renderAsMarkdown ? (
-          <MarkdownMessage content={textContent} theme={theme} />
-        ) : (
-          textContent
-        ))}
+        (renderAsMarkdown ? <MarkdownMessage content={textContent} theme={theme} /> : textContent)}
       {inlineImage && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
