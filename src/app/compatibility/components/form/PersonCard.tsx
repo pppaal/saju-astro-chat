@@ -214,7 +214,12 @@ export const PersonCard = React.memo<PersonCardProps>(
                         <li key={cp.id}>
                           <button
                             type="button"
-                            onClick={() => onFillFromCircle(idx, cp)}
+                            onClick={() => {
+                              onFillFromCircle(idx, cp)
+                              // 선택 후 dropdown 닫기 — 안 닫으면 지인 목록이 카드 위에
+                              // 계속 떠 있어서 방금 채워진 이름·생일을 가린다.
+                              onToggleCircleDropdown()
+                            }}
                             className="block w-full px-3 py-2 text-left text-[13px] text-[#44403c] transition hover:bg-[#f5f4f1]"
                           >
                             <span className="font-medium">{cp.name}</span>
