@@ -1,6 +1,7 @@
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
 import type { CompiledFeatureToken } from './tokenCompiler'
+import { round2 } from '@/lib/utils/math'
 
 export interface DomainActivationSource {
   tokenId: string
@@ -62,9 +63,6 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
 
-function round2(value: number): number {
-  return Math.round(value * 100) / 100
-}
 
 function resolveDomainTimeBias(input: {
   domain: SignalDomain

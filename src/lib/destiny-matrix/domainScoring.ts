@@ -2,6 +2,7 @@ import type { DomainKey, DomainScore, MatrixCalculationInput, MonthlyOverlapPoin
 import { clamp01 } from './componentScores'
 import { extractDriversAndCautions } from './drivers'
 import { computeDomainBaseNorm, DOMAIN_KEYS } from './domainMap'
+import { round1, round3 } from '@/lib/utils/math'
 
 interface ComputeDomainScoresParams {
   input: MatrixCalculationInput
@@ -28,14 +29,6 @@ function normalizeLayerScores(layerScores: Record<string, number>): Record<strin
     out[key] = normalizeLayerScore(value)
   }
   return out
-}
-
-function round3(value: number): number {
-  return Math.round(value * 1000) / 1000
-}
-
-function round1(value: number): number {
-  return Math.round(value * 10) / 10
 }
 
 export function computeDomainScores({

@@ -1,6 +1,7 @@
 import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
 import { eunNeun } from '@/lib/i18n/koParticle'
+import { clamp, round2 } from '@/lib/utils/math'
 import type {
   BuildCoreCanonicalOutputInput,
   CoreDomainAdvisory,
@@ -17,14 +18,6 @@ export function mapSignalDomainToSummaryDomainKey(domain: string): DomainKey | n
   if (domain === 'wealth') return 'money'
   if (domain === 'career' || domain === 'health' || domain === 'move') return domain
   return null
-}
-
-export function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
-
-export function round2(value: number): number {
-  return Math.round(value * 100) / 100
 }
 
 export function localizeCanonicalDomain(domain: SignalDomain): string {

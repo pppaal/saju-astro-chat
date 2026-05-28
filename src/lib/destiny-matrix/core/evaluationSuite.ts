@@ -6,7 +6,7 @@ import type { DestinyCoreCanonicalOutput } from './types'
 import type { PatternResult } from './patternEngine'
 import type { ScenarioResult } from './scenarioEngine'
 import type { DecisionEngineResult } from './decisionEngine'
-import { clamp01 } from '@/lib/utils/math'
+import { clamp01, round2, round3 } from '@/lib/utils/math'
 
 export interface EvaluationSuiteResult {
   coverage: {
@@ -119,13 +119,6 @@ export interface EvaluationSuiteResult {
   warnings: string[]
 }
 
-function round2(value: number): number {
-  return Math.round(value * 100) / 100
-}
-
-function round3(value: number): number {
-  return Math.round(value * 1000) / 1000
-}
 
 function softCap(value: number, max = 1): number {
   const positive = Math.max(0, value)

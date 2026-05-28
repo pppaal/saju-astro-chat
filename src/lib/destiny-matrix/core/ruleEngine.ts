@@ -2,6 +2,7 @@ import type { SignalDomain } from './signalSynthesizer'
 import type { ActivationEngineResult } from './activationEngine'
 import type { CompiledFeatureToken } from './tokenCompiler'
 import { repairMojibakeText } from '@/lib/text/mojibake'
+import { round2 } from '@/lib/utils/math'
 
 export interface DomainRuleResolution {
   domain: SignalDomain
@@ -24,10 +25,6 @@ function pushUnique(target: string[], ...values: string[]) {
   for (const value of values) {
     if (!target.includes(value)) target.push(value)
   }
-}
-
-function round2(value: number): number {
-  return Math.round(value * 100) / 100
 }
 
 export function buildRuleEngine(input: {
