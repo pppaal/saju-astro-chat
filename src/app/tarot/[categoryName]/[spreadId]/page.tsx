@@ -208,6 +208,12 @@ function TarotReadingPage() {
   // 버튼 안 눌러도 1회 POST. 그 다음 클래리파이어 / followup 채팅은
   // FollowupChat 안의 PATCH 로 같은 row 에 갱신. 운명·궁합 상담사 채팅이
   // 이미 자동 저장이라 타로만 수동이던 일관성 격차 제거.
+  //
+  // saveAttemptedSignatureRef — 한 readingSignature 에 대해 한 번 시도하면
+  // 실패해도 자동 재시도하지 않는다. 서버 측 일시적 오류(500)일 때 useEffect 가
+  // isSaving toggle 로 무한 루프 돌던 회귀 차단. 사용자가 새 리딩을 뽑아
+  // readingSignature 가 바뀌면 자연스럽게 새 시도가 가능.
+  const saveAttemptedSignatureRef = useRef<string | null>(null)
   React.useEffect(() => {
     if (status !== 'authenticated') return
     if (interpretationHook.isSaved || isSaving) return
@@ -216,6 +222,9 @@ function TarotReadingPage() {
     // 정적 fallback 까지 자동 저장하면 사용자가 의도하지 않은 빈 리딩이
     // 히스토리에 쌓일 위험.
     if (gameHook.interpretation.fallback === true) return
+    if (!readingSignature) return
+    if (saveAttemptedSignatureRef.current === readingSignature) return
+    saveAttemptedSignatureRef.current = readingSignature
     void handleSaveReading()
   }, [
     status,
@@ -225,6 +234,7 @@ function TarotReadingPage() {
     gameHook.readingResult,
     gameHook.spreadInfo,
     handleSaveReading,
+    readingSignature,
   ])
 
   const handleReset = () => router.push('/tarot')

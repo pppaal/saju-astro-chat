@@ -83,24 +83,32 @@ export const POST = withApiMiddleware(
       followupTurns,
     } = body
 
-    const tarotReading = await prisma.tarotReading.create({
-      data: {
-        userId: context.userId!,
-        question,
-        spreadId,
-        spreadTitle,
-        cards: buildStoredCardsPayload(cards, questionContext),
-        overallMessage,
-        cardInsights,
-        guidance,
-        affirmation,
-        source,
-        counselorSessionId,
-        locale,
-        clarifierCard: clarifierCard ?? Prisma.JsonNull,
-        followupTurns: followupTurns ?? Prisma.JsonNull,
-      },
-    })
+    // clarifierCard / followupTurns 는 신규 컬럼이라 마이그레이션이 아직 적용되지
+    // 않은 환경에서도 기본 저장은 살아남도록 "값이 실제로 들어왔을 때만" data 에
+    // 포함시킨다. 처음부터 Prisma.JsonNull 로 박아 넣으면 INSERT 가 항상 그 컬럼을
+    // 참조해 컬럼이 없는 DB 에선 매 저장이 500 으로 죽는다.
+    const createData: Prisma.TarotReadingUncheckedCreateInput = {
+      userId: context.userId!,
+      question,
+      spreadId,
+      spreadTitle,
+      cards: buildStoredCardsPayload(cards, questionContext),
+      overallMessage,
+      cardInsights,
+      guidance,
+      affirmation,
+      source,
+      counselorSessionId,
+      locale,
+    }
+    if (clarifierCard !== undefined) {
+      createData.clarifierCard = clarifierCard
+    }
+    if (followupTurns !== undefined) {
+      createData.followupTurns = followupTurns
+    }
+
+    const tarotReading = await prisma.tarotReading.create({ data: createData })
 
     return apiSuccess({
       success: true,

@@ -51,6 +51,12 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     isSaved,
   } = state
   const abortControllerRef = useRef<AbortController | null>(null)
+  // 한 번 저장 시도해서 실패하면 자동 저장 useEffect 가 같은 리딩에 대해
+  // 무한 재시도하던 회귀(콘솔에 [InlineTarot] save error 가 수십 줄씩 쌓이던 케이스)
+  // 차단용 — 서버가 500 을 반환해도 사용자가 '다시 뽑기' 로 카드를 새로 뽑기 전까진
+  // 같은 리딩으로 자동 재시도하지 않는다. 새 draw 가 시작될 때 drawCards 안에서
+  // 다시 false 로 초기화한다.
+  const saveAttemptedRef = useRef(false)
   const defaultOverallMessage =
     lang === 'ko'
       ? '카드가 보여준 흐름을 기준으로 현재 상황의 핵심을 정리했습니다.'
@@ -281,6 +287,9 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     }
 
     actions.setIsDrawing(true)
+    // 새 카드를 뽑으면 직전 리딩에 대한 저장 시도 플래그를 해제 — 새 리딩은
+    // 자동 저장이 다시 한 번 시도해야 한다.
+    saveAttemptedRef.current = false
     try {
       // /api/tarot 는 categoryId 로 테마를 찾고(못 찾으면 에러) 그 안에서
       // spreadId 를 찾는다. selectedCategory 가 스프레드의 실제 테마와
@@ -336,6 +345,10 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     if (isSaving || isSaved || !selectedSpread) {
       return
     }
+    if (saveAttemptedRef.current) {
+      return
+    }
+    saveAttemptedRef.current = true
 
     actions.setIsSaving(true)
     try {
