@@ -41,55 +41,58 @@ const SERVICE_DETAILS: Partial<
     href: '/destiny-counselor',
     nameKo: '운명 상담사',
     nameEn: 'Destiny Counselor',
-    summaryKo: '궁금한 질문을 물어보면 사주·점성을 함께 읽어 답을 드려요.',
-    summaryEn: 'Ask anything — answers grounded in Saju and astrology.',
+    summaryKo: '궁금한 게 있으면 무엇이든 물어보세요. 사주와 별자리를 같이 보고 답해드려요.',
+    summaryEn: 'Ask anything you wonder about — we read your Saju and your stars together.',
   },
   tarot: {
     href: '/tarot',
     nameKo: '타로 상담사',
     nameEn: 'Tarot Counselor',
-    summaryKo: '카드 한 장 한 장으로 지금의 상황과 선택지를 정리해드려요.',
-    summaryEn: 'Read your current situation and options, one card at a time.',
+    summaryKo: '카드 한 장 한 장에 담긴 의미로 지금의 상황과 선택지를 풀어드려요.',
+    summaryEn: 'Card by card, we unfold your current situation and the choices in front of you.',
   },
   calendar: {
     href: '/calendar',
     nameKo: '운세 캘린더',
     nameEn: 'Fortune Calendar',
-    summaryKo: '오늘·이번 달·올해, 좋은 흐름과 조심할 시기를 한눈에 확인해요.',
-    summaryEn: 'See your good windows and cautious days at a glance.',
+    summaryKo: '오늘, 이번 달, 올해 — 좋은 시기와 조심할 시기를 한눈에 보여드려요.',
+    summaryEn:
+      'Today, this month, this year — see your good windows and cautious days at a glance.',
   },
   compatibility: {
     href: '/compatibility',
     nameKo: '궁합 상담사',
     nameEn: 'Compatibility Counselor',
-    summaryKo: '두 사람의 차트를 함께 읽어 관계의 결과 호흡을 분석해요.',
-    summaryEn: 'Read two charts together to see your relationship dynamic.',
+    summaryKo: '두 사람의 차트를 함께 읽고, 관계의 분위기와 호흡을 살펴드려요.',
+    summaryEn: 'We read two charts together and gently look at the rhythm between you.',
   },
 }
 
 const PROCESS_STEPS: readonly ProcessStep[] = [
   {
     id: '01',
-    titleKo: '당신을 이해해요',
-    titleEn: 'We get to know you',
-    descKo: '생년월일·태어난 시간·장소만 있으면, 정확한 사주와 점성 차트가 만들어져요.',
-    descEn: 'Your birth date, time, and place are enough to build an accurate chart.',
+    titleKo: '먼저 당신을 알아가요',
+    titleEn: 'We get to know you first',
+    descKo: '생년월일, 태어난 시간과 장소만 알려주시면, 사주와 별자리 차트를 정확하게 그려드려요.',
+    descEn:
+      'Just your birth date, time, and place — and we draw your Saju and astrology charts precisely.',
   },
   {
     id: '02',
-    titleKo: '동서양을 함께 읽어요',
-    titleEn: 'East meets West',
+    titleKo: '동양과 서양을 같이 봐요',
+    titleEn: 'We read East and West side by side',
     descKo:
-      '사주의 오행과 점성술의 행성을 같은 화면에서 교차해 보며, 한쪽만으로는 보이지 않는 결을 찾아요.',
+      '사주의 오행과 별자리 행성을 한 화면에서 같이 보면서, 한쪽만으론 잘 안 보이는 부분까지 찾아드려요.',
     descEn:
-      "We cross-read Saju's elements with astrology's planets to reveal patterns one side alone can't show.",
+      "We bring Saju's elements and astrology's planets onto one screen, finding what neither side shows alone.",
   },
   {
     id: '03',
-    titleKo: '실제 삶의 언어로 전해요',
-    titleEn: 'Translated into your life',
-    descKo: '복잡한 해석을 일상 언어로 풀어, 오늘 할 수 있는 작은 선택까지 함께 안내해요.',
-    descEn: 'Complex readings become plain language — down to a small choice you can make today.',
+    titleKo: '일상의 말로 풀어드려요',
+    titleEn: 'We translate it into everyday words',
+    descKo: '어려운 해석은 쉬운 말로 바꿔서, 오늘 할 수 있는 작은 선택까지 같이 고민해드려요.',
+    descEn:
+      'Difficult readings become plain words, all the way down to a small choice you can make today.',
   },
 ]
 
@@ -106,8 +109,8 @@ export default function AboutPage() {
         href: detail?.href || service.path,
         nameKo: detail?.nameKo || '서비스',
         nameEn: detail?.nameEn || 'Service',
-        summaryKo: detail?.summaryKo || '핵심 운명 서비스를 제공합니다.',
-        summaryEn: detail?.summaryEn || 'Provides a core destiny service.',
+        summaryKo: detail?.summaryKo || '운명 서비스를 안내해드려요.',
+        summaryEn: detail?.summaryEn || 'A destiny service ready for you.',
       }
     })
   }, [])
@@ -122,21 +125,22 @@ export default function AboutPage() {
             <h1 className={styles.title}>
               {isKo ? (
                 <>
-                  당신만의 별과 사주,
-                  <br />한 화면에서 만나요.
+                  사주와 별자리,
+                  <br />
+                  이제 한 곳에서 봐요.
                 </>
               ) : (
                 <>
-                  Your stars and your Saju,
+                  Your Saju and your stars,
                   <br />
-                  on the same screen.
+                  now in one place.
                 </>
               )}
             </h1>
             <p className={styles.subtitle}>
               {isKo
-                ? '서양 점성술과 동양 사주를 함께 읽어, 당신만의 길을 더 또렷하게 보여드려요.'
-                : 'We read Western astrology and Eastern Saju together — so your path comes into clearer focus.'}
+                ? '동양 사주와 서양 점성술을 함께 읽어, 지금 내 흐름이 더 선명하게 보여요.'
+                : 'When Eastern Saju and Western astrology are read together, your current flow comes into sharper focus.'}
             </p>
             <div className={styles.heroActions}>
               <Link href="/destiny-counselor" className={styles.primaryBtn}>
@@ -152,11 +156,13 @@ export default function AboutPage() {
         {/* Mission */}
         <section className={styles.mission}>
           <div className={styles.missionText}>
-            <h2 className={styles.sectionTitle}>{isKo ? '우리의 마음' : 'Our intent'}</h2>
+            <h2 className={styles.sectionTitle}>
+              {isKo ? '우리가 바라는 것' : 'What we hope for'}
+            </h2>
             <p className={styles.missionBody}>
               {isKo
-                ? '운명을 단정하지 않아요. 별과 오행이 보여주는 결을 차분히 읽고, 당신이 더 좋은 선택을 할 수 있도록 곁에서 안내하는 것 — DestinyPal이 하고 싶은 일이에요.'
-                : "We won't declare your fate. We read what the stars and elements quietly show, and stand beside you so you can make better choices — that's what DestinyPal is for."}
+                ? '운명을 정해드리진 않아요. 사주와 별자리가 알려주는 흐름을 차분히 풀어드리고, 더 좋은 선택을 할 수 있도록 곁에서 함께할게요. 그게 저희가 바라는 일이에요.'
+                : "We won't decide your fate. What we'll do is gently unfold the flow your Saju and stars point to, and stand beside you as you make better choices. That's what we hope to do."}
             </p>
           </div>
         </section>
@@ -168,19 +174,19 @@ export default function AboutPage() {
               {isKo ? (
                 <>
                   <span className={styles.accentEast}>동양</span>과{' '}
-                  <span className={styles.accentWest}>서양</span>의 시너지
+                  <span className={styles.accentWest}>서양</span>, 함께 읽어요
                 </>
               ) : (
                 <>
-                  The synergy of <span className={styles.accentEast}>East</span> &amp;{' '}
-                  <span className={styles.accentWest}>West</span>
+                  <span className={styles.accentEast}>East</span> and{' '}
+                  <span className={styles.accentWest}>West</span>, read side by side
                 </>
               )}
             </h2>
             <p className={styles.sectionDesc}>
               {isKo
-                ? '두 전통을 함께 읽을 때, 내면의 결과 인생의 시기가 입체적으로 드러나요.'
-                : 'Read together, the two traditions reveal both your inner self and the timing of your life.'}
+                ? '두 시선을 같이 보면, 평소엔 보이지 않던 나의 모습과 흐름이 또렷해져요.'
+                : 'Looking through both lenses, the parts of you and the flow of your life come into clearer view.'}
             </p>
           </header>
           <div className={styles.synergyGrid}>
@@ -191,8 +197,8 @@ export default function AboutPage() {
               <h3 className={styles.synergyTitle}>{isKo ? '서양 점성술' : 'Western Astrology'}</h3>
               <p className={styles.synergyDesc}>
                 {isKo
-                  ? '태어난 순간의 행성과 별자리 배치로, 당신의 성향과 마음의 결, 관계 안에서의 모습을 읽어요.'
-                  : 'From the planets and stars at the moment of your birth, it reads your nature, inner motivations, and how you show up in relationships.'}
+                  ? '태어난 순간의 행성과 별자리로, 나의 성격과 마음의 움직임, 사람들과 어울리는 모습을 읽어요.'
+                  : 'From the planets and stars at the moment of your birth, we read your nature, the movement of your heart, and how you connect with people.'}
               </p>
             </article>
             <article className={`${styles.synergyCard} ${styles.synergyEast}`}>
@@ -204,8 +210,8 @@ export default function AboutPage() {
               </h3>
               <p className={styles.synergyDesc}>
                 {isKo
-                  ? '연·월·일·시 네 기둥과 오행의 흐름으로, 인생의 주기·운의 시기·일과 관계의 결을 살펴요.'
-                  : 'Through the Four Pillars and the flow of Five Elements, it traces your life cycles, the timing of fortune, and the texture of work and relationships.'}
+                  ? '태어난 연·월·일·시 네 기둥과 오행으로, 인생의 큰 흐름과 시기, 일과 관계의 분위기를 읽어요.'
+                  : 'Through the Four Pillars of your birth and the Five Elements, we read your life cycles, their timing, and the mood of your work and relationships.'}
               </p>
             </article>
           </div>
@@ -214,11 +220,11 @@ export default function AboutPage() {
         {/* Core services */}
         <section className={styles.section}>
           <header className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>{isKo ? '핵심 서비스' : 'Core services'}</h2>
+            <h2 className={styles.sectionTitle}>{isKo ? '이런 걸 해드려요' : 'What we offer'}</h2>
             <p className={styles.sectionDesc}>
               {isKo
-                ? '지금 바로 사용해볼 수 있는 4가지 서비스예요.'
-                : 'Four services you can try right now.'}
+                ? '바로 써볼 수 있는 네 가지를 준비했어요.'
+                : 'Four things ready for you to try right now.'}
             </p>
           </header>
           <div className={styles.serviceGrid}>
@@ -242,11 +248,13 @@ export default function AboutPage() {
         {/* How it works */}
         <section className={styles.section}>
           <header className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>{isKo ? '어떻게 만들어지나요' : 'How it works'}</h2>
+            <h2 className={styles.sectionTitle}>
+              {isKo ? '이렇게 봐드려요' : 'How we read for you'}
+            </h2>
             <p className={styles.sectionDesc}>
               {isKo
-                ? '입력부터 결과까지, 한 흐름으로 이어져요.'
-                : 'From input to answer — one consistent flow.'}
+                ? '몇 가지 정보만 알려주시면, 차분히 풀어 전해드려요.'
+                : 'Share a few details, and we gently put it all together for you.'}
             </p>
           </header>
           <div className={styles.processGrid}>
@@ -263,16 +271,16 @@ export default function AboutPage() {
         {/* CTA */}
         <section className={styles.cta}>
           <h2 className={styles.ctaTitle}>
-            {isKo ? '이제, 당신의 이야기를 시작해보세요.' : 'Ready to begin your story?'}
+            {isKo ? '이제 내 이야기를 시작해볼까요?' : 'Shall we begin your story?'}
           </h2>
           <p className={styles.ctaText}>
             {isKo
-              ? '궁금한 질문 하나면 충분해요. 흐름이 보고 싶을 땐 운세 캘린더로 이어가요.'
-              : 'One question is enough to start. When you want to see the flow, open the Fortune Calendar.'}
+              ? '궁금한 질문 하나면 충분해요. 흐름이 궁금할 땐 운세 캘린더를 열어보세요.'
+              : 'One question is enough to start. Curious about the flow? Open the Fortune Calendar.'}
           </p>
           <div className={styles.heroActions}>
             <Link href="/destiny-counselor" className={styles.primaryBtn}>
-              {isKo ? '운명 상담 시작' : 'Start counseling'}
+              {isKo ? '무료로 상담 시작' : 'Start free counseling'}
             </Link>
             <Link href="/calendar" className={styles.secondaryBtn}>
               {isKo ? '운세 캘린더 열기' : 'Open Fortune Calendar'}
