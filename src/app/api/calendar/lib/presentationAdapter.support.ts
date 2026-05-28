@@ -7,6 +7,7 @@ import type {
 } from '@/lib/destiny-matrix/types'
 import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 import type { CalendarDailyView, CalendarMonthView, CalendarWeekView, FormattedDate } from './types'
+import { clamp01 } from '@/lib/utils/math'
 
 export type Locale = 'ko' | 'en'
 export type PresentationDomain = DomainKey | 'general'
@@ -113,9 +114,6 @@ export function addDaysIso(iso: string, days: number): string {
   return toIsoDate({ year: dt.getFullYear(), month: dt.getMonth() + 1, day: dt.getDate() })
 }
 
-export function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value))
-}
 
 export function dedupe(lines: string[]): string[] {
   const out: string[] = []

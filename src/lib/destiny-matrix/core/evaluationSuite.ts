@@ -6,6 +6,7 @@ import type { DestinyCoreCanonicalOutput } from './types'
 import type { PatternResult } from './patternEngine'
 import type { ScenarioResult } from './scenarioEngine'
 import type { DecisionEngineResult } from './decisionEngine'
+import { clamp01 } from '@/lib/utils/math'
 
 export interface EvaluationSuiteResult {
   coverage: {
@@ -116,10 +117,6 @@ export interface EvaluationSuiteResult {
     } | null
   }
   warnings: string[]
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value))
 }
 
 function round2(value: number): number {

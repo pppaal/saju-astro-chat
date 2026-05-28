@@ -2,6 +2,7 @@ import type { MatrixCalculationInput, MatrixSummary } from '@/lib/destiny-matrix
 import type { MatrixCalculationInputNormalized, DestinyCoreQuality } from './runDestinyCore'
 import type { StrategyEngineResult } from './strategyEngine'
 import type { DestinyCoreCanonicalOutput } from './types'
+import { clamp01 } from '@/lib/utils/math'
 
 export type DestinyLatentGroup =
   | 'structural'
@@ -271,10 +272,6 @@ const NEGATIVE_SHINSAL = new Set([
   '역마',
 ])
 
-function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0
-  return Math.max(0, Math.min(1, value))
-}
 
 function round3(value: number): number {
   return Math.round(value * 1000) / 1000

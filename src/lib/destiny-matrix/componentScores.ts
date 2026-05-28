@@ -1,17 +1,9 @@
 import type { MatrixCell } from './types'
 
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0
-  }
-  if (value < 0) {
-    return 0
-  }
-  if (value > 1) {
-    return 1
-  }
-  return value
-}
+// Re-export so the existing nine call sites that do
+// `import { clamp01 } from './componentScores'` keep working without
+// touching them — the canonical implementation lives in lib/utils/math.
+export { clamp01 } from '@/lib/utils/math'
 
 type LayerCells = Record<string, MatrixCell>
 

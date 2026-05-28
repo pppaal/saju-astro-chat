@@ -25,13 +25,7 @@ import {
   localizeDomain,
   rankRiskAxis,
 } from './adaptersPresentation'
-
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0
-  if (value < 0) return 0
-  if (value > 1) return 1
-  return value
-}
+import { clamp01 } from '@/lib/utils/math'
 
 function repairLocaleText(text: string, locale: 'ko' | 'en'): string {
   return locale === 'ko' ? repairPossiblyMojibakeText(text) : text
