@@ -257,27 +257,6 @@ export interface DaeunCycle {
   earthlyBranch: string
 }
 
-export interface SajuPromptPillar {
-  heavenlyStem: { name: string }
-  earthlyBranch: { name: string }
-}
-
-export interface SajuPromptData {
-  yearPillar: SajuPromptPillar
-  monthPillar: SajuPromptPillar
-  dayPillar: SajuPromptPillar
-  timePillar: SajuPromptPillar
-  fiveElements: {
-    wood: number
-    fire: number
-    earth: number
-    metal: number
-    water: number
-  }
-  daeun?: { cycles?: DaeunCycle[] }
-  birthDate: string
-}
-
 // Jijanggan processing types
 export interface JGItem {
   name?: string

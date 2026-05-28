@@ -107,86 +107,20 @@ export const RATE_LIMITS = {
  * Tier 4 (Utility): Health checks, static data - 60-100 req/min
  */
 export const RATE_LIMIT_PRESETS = {
-  /**
-   * Tier 1: AI/LLM-heavy operations
-   * High computational cost, external API calls
-   */
-  AI_GENERATION: { limit: 5, windowSeconds: 60 },
-
-  /**
-   * Tier 1: Complex divination calculations
-   * Saju (사주), Life prediction, Dream interpretation
-   */
+  /** Tier 1: 복합 점술 계산 — 사주(/api/saju). createSajuGuard 가 사용. */
   SAJU_CALCULATION: { limit: 8, windowSeconds: 60 },
 
-  /**
-   * Tier 2: Tarot operations
-   * Moderate complexity, some AI involved
-   */
+  /** Tier 2: 타로 — /api/tarot. createTarotGuard 가 사용. */
   TAROT_READING: { limit: 10, windowSeconds: 60 },
 
-  /**
-   * Tier 2: Astrology calculations
-   * CPU-intensive ephemeris calculations
-   */
+  /** Tier 2: 점성 계산 — /api/astrology. createAstrologyGuard 가 사용. */
   ASTROLOGY_CALCULATION: { limit: 15, windowSeconds: 60 },
 
-  /**
-   * Tier 2: Advanced astrology (progressions, returns, etc.)
-   * More complex than basic astrology
-   */
-  ASTROLOGY_ADVANCED: { limit: 12, windowSeconds: 60 },
-
-  /**
-   * Tier 2: Destiny Matrix calculations
-   */
-  DESTINY_MATRIX: { limit: 15, windowSeconds: 60 },
-
-  /**
-   * Tier 3: Chat/Streaming endpoints
-   */
-  CHAT_STREAMING: { limit: 20, windowSeconds: 60 },
-
-  /**
-   * Tier 3: Data reads and lookups
-   * Session history, user data, etc.
-   */
+  /** Tier 3: 인증 사용자 데이터 read — createAuthenticatedGuard 기본 limit. */
   DATA_READ: { limit: 30, windowSeconds: 60 },
 
-  /**
-   * Tier 3: Data writes
-   * Save operations, updates
-   */
-  DATA_WRITE: { limit: 20, windowSeconds: 60 },
-
-  /**
-   * Tier 4: Utility endpoints
-   * Timezone lookup, geocoding, etc.
-   */
+  /** Tier 4: 가벼운 유틸 — createPublicStreamGuard/createSimpleGuard 기본. */
   UTILITY: { limit: 60, windowSeconds: 60 },
-
-  /**
-   * Tier 4: Health checks, status endpoints
-   */
-  HEALTH_CHECK: { limit: 100, windowSeconds: 60 },
-
-  /**
-   * Authentication operations
-   * Login, register, token refresh
-   */
-  AUTH: { limit: 10, windowSeconds: 300 },
-
-  /**
-   * Payment/Subscription operations
-   * Extra strict to prevent abuse
-   */
-  PAYMENT: { limit: 5, windowSeconds: 60 },
-
-  /**
-   * Admin operations
-   * Limited but necessary for management
-   */
-  ADMIN: { limit: 30, windowSeconds: 60 },
 } as const
 
 export type RateLimitPreset = keyof typeof RATE_LIMIT_PRESETS

@@ -244,9 +244,6 @@ export {
   createSajuGuard,
   createAstrologyGuard,
   createTarotGuard,
-  createAdminGuard,
-  createAiGenerationGuard,
-  createChatGuard,
 } from './guards'
 
 // Error handling
