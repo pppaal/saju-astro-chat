@@ -260,11 +260,20 @@ export function FollowupChat({
   return (
     <section
       ref={containerRef}
-      className="rounded-2xl bg-slate-900/50 border border-cyan-500/20 shadow-[0_0_24px_rgba(34,211,238,0.06)] p-5 md:p-6 space-y-4"
+      className="rounded-2xl p-5 md:p-6 space-y-4 border"
+      style={{
+        background: 'rgba(17, 24, 39, 0.42)',
+        borderColor: 'var(--ds-gold-line)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+      }}
     >
       <div className="flex items-center gap-2">
-        <MessageCircle className="w-4 h-4 text-cyan-300" />
-        <h2 className="text-sm font-medium text-cyan-300 tracking-wider uppercase">
+        <MessageCircle className="w-4 h-4" style={{ color: 'var(--ds-gold-on-dark)' }} />
+        <h2
+          className="text-sm font-medium tracking-wider uppercase"
+          style={{ color: 'var(--ds-gold-on-dark)' }}
+        >
           {isKo ? '이 리딩에 대해 더 묻기' : 'Ask about this reading'}
         </h2>
       </div>
@@ -274,18 +283,30 @@ export function FollowupChat({
           {history.map((t, i) => (
             <div key={i} className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-[88%] rounded-xl px-4 py-2.5 text-[17px] leading-relaxed whitespace-pre-wrap ${
+                className="max-w-[88%] rounded-xl px-4 py-2.5 text-[17px] leading-relaxed whitespace-pre-wrap border"
+                style={
                   t.role === 'user'
-                    ? 'bg-indigo-500/15 border border-indigo-500/30 text-slate-100'
-                    : 'bg-slate-800/60 border border-slate-700 text-slate-100'
-                }`}
+                    ? {
+                        background: 'rgba(212, 181, 114, 0.15)',
+                        borderColor: 'var(--ds-gold-line)',
+                        color: 'var(--ds-dark-text)',
+                      }
+                    : {
+                        background: 'var(--ds-dark-surface-strong)',
+                        borderColor: 'var(--ds-dark-border)',
+                        color: 'var(--ds-dark-text)',
+                      }
+                }
               >
                 <ChatBubbleContent
                   role={t.role}
                   content={t.content}
                   pending={t.pending}
                   pendingNode={
-                    <div className="flex items-center gap-2 text-cyan-200/80 text-sm">
+                    <div
+                      className="flex items-center gap-2 text-sm"
+                      style={{ color: 'var(--ds-gold-on-dark-soft)' }}
+                    >
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       {isKo ? '답변 준비 중…' : 'Thinking…'}
                     </div>
@@ -300,7 +321,14 @@ export function FollowupChat({
       )}
 
       {clarifierNotice && (
-        <p className="text-xs text-amber-200/80 bg-amber-500/10 border border-amber-500/30 rounded-md px-3 py-2">
+        <p
+          className="text-xs rounded-md px-3 py-2 border"
+          style={{
+            background: 'rgba(212, 181, 114, 0.10)',
+            borderColor: 'var(--ds-gold-line)',
+            color: 'var(--ds-gold-on-dark-soft)',
+          }}
+        >
           {clarifierNotice}
         </p>
       )}
@@ -309,7 +337,12 @@ export function FollowupChat({
         <button
           type="button"
           {...clarifier.buttonProps}
-          className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-[12px] font-medium text-cyan-200 transition-colors hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          style={{
+            background: 'rgba(212, 181, 114, 0.10)',
+            borderColor: 'var(--ds-gold-line)',
+            color: 'var(--ds-gold-on-dark-soft)',
+          }}
         >
           <Sparkles className="h-3.5 w-3.5" />
           {clarifier.buttonLabel}
@@ -329,17 +362,37 @@ export function FollowupChat({
           }}
           placeholder={isKo ? '더 궁금한 점을 적어주세요' : 'Ask another question'}
           rows={1}
-          className="flex-1 bg-slate-800 border border-slate-700 focus:border-cyan-500 rounded-full px-4 py-2.5 text-slate-100 placeholder-slate-500 resize-none outline-none text-sm h-11 max-h-32 transition-colors leading-6"
+          className="flex-1 rounded-full px-4 py-2.5 text-sm h-11 max-h-32 outline-none resize-none transition-colors leading-6 border placeholder-slate-500"
+          style={{
+            background: 'var(--ds-dark-surface-strong)',
+            borderColor: 'var(--ds-dark-border)',
+            color: 'var(--ds-dark-text)',
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = 'var(--ds-gold-line)'
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = 'var(--ds-dark-border)'
+          }}
           disabled={submitting}
         />
         <button
           type="submit"
           disabled={!input.trim() || submitting}
-          className={`p-2.5 rounded-xl transition-all ${
+          className="p-2.5 rounded-xl transition-all"
+          style={
             input.trim() && !submitting
-              ? 'bg-cyan-600 hover:bg-cyan-500 text-white'
-              : 'bg-slate-700 text-slate-500 cursor-not-allowed'
-          }`}
+              ? {
+                  background: 'var(--ds-gold-on-dark)',
+                  color: 'var(--ds-dark-bg)',
+                  cursor: 'pointer',
+                }
+              : {
+                  background: 'var(--ds-dark-surface-strong)',
+                  color: 'var(--ds-dark-text-subtle)',
+                  cursor: 'not-allowed',
+                }
+          }
           aria-label="Send"
         >
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -347,7 +400,7 @@ export function FollowupChat({
       </form>
 
       {history.length === 0 && (
-        <p className="text-xs text-slate-500">
+        <p className="text-xs" style={{ color: 'var(--ds-dark-text-subtle)' }}>
           {isKo
             ? '예: "3번 카드가 왜 거기 떴나요?", "지금 결정 미루는 게 나아요?"'
             : 'e.g. "Why did the 3rd card land there?", "Should I wait on the decision?"'}
