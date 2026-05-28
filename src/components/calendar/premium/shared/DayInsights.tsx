@@ -74,17 +74,8 @@ export default function DayInsights({
           grade={grade}
           score={score}
           importantDate={importantDate}
+          oneLine={oneLine}
           frontDomain={frontDomain}
-          locale={locale}
-        />
-      </motion.div>
-      {/* 행동 지침 — matrixVerdict 우선, 없으면 oneLine 폴백.
-          이전엔 DayVerdictCard 도 oneLine 표시해 두 카드 자연어 한 줄 중복이 있었음.
-          이제 행동 지침은 이 카드 하나에서만. */}
-      <motion.div variants={cardItem}>
-        <DayMatrixVerdictCard
-          importantDate={importantDate}
-          oneLineFallback={oneLine ?? null}
           locale={locale}
         />
       </motion.div>
@@ -116,12 +107,14 @@ function DayVerdictCard({
   grade,
   score,
   importantDate,
+  oneLine,
   frontDomain,
   locale,
 }: {
   grade: GradeInfo
   score: number
   importantDate: ImportantDate
+  oneLine?: string | null
   frontDomain?: string | null
   locale?: CalLocale
 }) {
@@ -160,6 +153,7 @@ function DayVerdictCard({
               {t.gradeLabel(grade.key)}
             </span>
           </div>
+          {oneLine && <p className="text-sm text-zinc-200 leading-snug line-clamp-2">{oneLine}</p>}
         </div>
       </div>
 
@@ -183,53 +177,6 @@ function DayVerdictCard({
               </span>
             </div>
           )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── 1.5 DayMatrixVerdict — 행동 지침 SSOT. matrixVerdict 있으면 그것 우선,
-//       없으면 oneLineFallback (calendarDailyView.oneLineSummary / d.summary) 사용.
-function DayMatrixVerdictCard({
-  importantDate,
-  oneLineFallback,
-  locale,
-}: {
-  importantDate: ImportantDate
-  oneLineFallback?: string | null
-  locale?: CalLocale
-}) {
-  const t = getCalLabels(locale)
-  const mv = importantDate.evidence?.matrixVerdict
-  const verdict = mv?.verdict?.trim() || oneLineFallback?.trim()
-  const guardrail = mv?.guardrail?.trim()
-  const topClaim = mv?.topClaim?.trim()
-  const topAnchor = mv?.topAnchorSummary?.trim()
-  if (!verdict && !guardrail && !topClaim && !topAnchor) return null
-
-  return (
-    <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-violet-950/15 backdrop-blur-sm border border-violet-500/15 rounded-2xl p-6 overflow-hidden">
-      <div className="pointer-events-none absolute -top-12 -right-10 w-32 h-32 bg-violet-500/10 blur-3xl rounded-full" />
-      <h3 className="relative text-base font-semibold text-violet-200 mb-3">
-        {t.dayMatrixVerdictTitle}
-      </h3>
-      {verdict && <p className="text-sm text-zinc-200 leading-relaxed mb-3">{verdict}</p>}
-      {topClaim && (
-        <div className="mb-3 pt-3 border-t border-white/5">
-          <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">
-            {t.dayMatrixTopClaimLabel}
-          </p>
-          <p className="text-sm text-zinc-300 leading-snug">{topClaim}</p>
-          {topAnchor && <p className="text-xs text-zinc-500 mt-1 leading-snug">{topAnchor}</p>}
-        </div>
-      )}
-      {guardrail && (
-        <div className="pt-3 border-t border-white/5">
-          <p className="text-[10px] uppercase tracking-widest text-rose-300/80 font-bold mb-1">
-            {t.dayMatrixGuardrailLabel}
-          </p>
-          <p className="text-sm text-zinc-300 leading-snug">{guardrail}</p>
         </div>
       )}
     </div>

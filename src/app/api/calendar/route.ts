@@ -615,6 +615,23 @@ export const GET = withApiMiddleware(
     // 같은 카드 안에서 배지(grade)와 숫자(score)가 불일치한다.
     const formattedDates = matrixRegradedDates.map((d) => formatCalendarDate(d))
 
+    // 캘린더 SSOT 통합 — evidence.matrixVerdict 의 자연어 (verdict/guardrail/topClaim/
+    // topAnchorSummary) 는 응답에서 strip. 캘린더 행동 추천 SSOT 는 matchedPatterns.action
+    // + advice.do + oneLine 만 (다른 컨텍스트). attackPercent/defensePercent/phase/
+    // focusDomain 은 displayScore bias 계산에 쓰여 client 에 보낼 필요 없지만 strip 하면
+    // 회귀 위험 — 일단 자연어만 제거.
+    for (const d of formattedDates) {
+      if (d.evidence?.matrixVerdict) {
+        const mv = d.evidence.matrixVerdict
+        d.evidence.matrixVerdict = {
+          focusDomain: mv.focusDomain,
+          phase: mv.phase,
+          attackPercent: mv.attackPercent,
+          defensePercent: mv.defensePercent,
+        } as typeof mv
+      }
+    }
+
     // ── calendar-engine v2 augmentation (non-blocking, opt-in via fields) ──
     // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
     // 실패해도 기존 응답 그대로 반환. UI는 새 필드 없으면 기존 동작 유지.

@@ -30,12 +30,11 @@ export interface CalendarEvidence {
   confidence: number
   crossAgreementPercent?: number
   source: CalendarEvidenceSource
+  /** matrixVerdict — 자연어 필드 (verdict/guardrail/topClaim/topAnchorSummary)
+   *  는 캘린더 SSOT 통합 (action / advice / oneLine 만 사용) 으로 응답에서
+   *  strip 됨. attackPercent / defensePercent 는 displayScore bias 계산에 필요해 유지. */
   matrixVerdict?: {
-    focusDomain: string
-    verdict: string
-    guardrail: string
-    topClaim?: string
-    topAnchorSummary?: string
+    focusDomain?: string
     phase?: string
     attackPercent?: number
     defensePercent?: number

@@ -100,10 +100,6 @@ interface LabelSet {
   crossSignalSajuTitle: string
   crossSignalAstroTitle: string
   crossSignalFrequency: (n: number) => string
-  /** matrixVerdict 자연어 노출 라벨 */
-  dayMatrixVerdictTitle: string
-  dayMatrixGuardrailLabel: string
-  dayMatrixTopClaimLabel: string
   /** matchedPatterns action 라벨 */
   dayPatternActionLabel: string
   dayHourlyTitle: string
@@ -211,9 +207,6 @@ const KO: LabelSet = {
   crossSignalSajuTitle: '사주가 자주 보낸 메시지',
   crossSignalAstroTitle: '점성이 자주 보낸 메시지',
   crossSignalFrequency: (n) => `— 이번 기간 ${n}일 등장`,
-  dayMatrixVerdictTitle: '오늘의 행동 지침',
-  dayMatrixGuardrailLabel: '주의 신호',
-  dayMatrixTopClaimLabel: '핵심',
   dayPatternActionLabel: '행동',
   dayHourlyTitle: '지금 뭐 할까',
   dayHourlyPushLabel: '추진할 것',
@@ -315,9 +308,6 @@ const EN: LabelSet = {
   crossSignalSajuTitle: 'Saju kept saying',
   crossSignalAstroTitle: 'Astro kept saying',
   crossSignalFrequency: (n) => `— Seen on ${n} day${n === 1 ? '' : 's'}`,
-  dayMatrixVerdictTitle: 'Today’s call',
-  dayMatrixGuardrailLabel: 'Watch out',
-  dayMatrixTopClaimLabel: 'Core',
   dayPatternActionLabel: 'Do',
   dayHourlyTitle: 'What now',
   dayHourlyPushLabel: 'Push',
