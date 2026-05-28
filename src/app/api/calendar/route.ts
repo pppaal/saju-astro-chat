@@ -369,7 +369,14 @@ export const GET = withApiMiddleware(
           dateKeys.push(ymd)
           isoList.push(`${ymd}T12:00:00`)
         }
-        const batch = calculateTransitPlanetsBatch(isoList, timezone)
+        // transit batch (365일 행성 위치) 는 결정적 — year + timezone 만 의존.
+        // 사용자 별로 다시 계산하지 않고 Redis 공유 캐시 → 첫 사용자가 ~350ms
+        // 부담하면 그 다음 같은 (year, tz) 모든 사용자 즉시 HIT.
+        const batch = await cacheOrCalculate(
+          CacheKeys.transitBatch(year, timezone),
+          async () => calculateTransitPlanetsBatch(isoList, timezone),
+          CACHE_TTL.NATAL_CHART // 30일 — 트랜짓 데이터는 연도 단위로 결정됨
+        )
         const natalLongs: Record<string, number> = {}
         for (const p of natalChartData.planets || []) natalLongs[p.name] = p.longitude
         if (natalChartData.ascendant) natalLongs['Ascendant'] = natalChartData.ascendant.longitude
