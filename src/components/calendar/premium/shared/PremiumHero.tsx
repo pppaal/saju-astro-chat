@@ -58,7 +58,9 @@ export default function PremiumHero({
         <div className="md:text-right shrink-0">
           <p className="text-[10px] text-zinc-500 mb-0.5 tracking-wider uppercase">{caption}</p>
           <div className="flex items-baseline gap-1 md:justify-end">
-            <span className="text-5xl font-black text-white">{score}</span>
+            <span className="text-4xl sm:text-5xl font-black tabular-nums bg-gradient-to-br from-white to-zinc-300 bg-clip-text text-transparent">
+              {score}
+            </span>
             <span className="text-xl text-zinc-600 font-light">/100</span>
           </div>
         </div>

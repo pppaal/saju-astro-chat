@@ -50,12 +50,18 @@ function ThemeFocusCard({ interp, locale }: { interp: Interpretation; locale?: C
   const negativeContribs = topBreakdown.filter((c) => c.dir === 'down').slice(0, 2)
 
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl">
-      <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2 mb-5">
-        <Sparkles className="w-4 h-4 text-amber-400" />
-        {t.themeFocusTitle}
-      </h3>
-      <div className="space-y-2.5">
+    <div className="relative bg-gradient-to-br from-zinc-900/60 via-zinc-900/45 to-zinc-950/55 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl overflow-hidden">
+      <div className="pointer-events-none absolute -top-16 -left-12 w-40 h-40 bg-amber-500/8 blur-3xl rounded-full" />
+      <div className="relative flex items-baseline justify-between mb-1">
+        <h3 className="text-lg font-bold text-amber-200 flex items-center gap-2 group">
+          <Sparkles className="w-4 h-4 text-amber-400 group-hover:text-amber-300 transition" />
+          {t.themeFocusTitle}
+        </h3>
+        <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+          {t.contextMonthAvg}
+        </span>
+      </div>
+      <div className="relative mt-4 space-y-2.5">
         {ranking.map((r) => (
           <ThemeBar
             key={r.theme}
@@ -67,7 +73,7 @@ function ThemeFocusCard({ interp, locale }: { interp: Interpretation; locale?: C
         ))}
       </div>
       {(positiveContribs.length > 0 || negativeContribs.length > 0) && (
-        <div className="mt-4 pt-4 border-t border-white/5">
+        <div className="relative mt-4 pt-4 border-t border-white/5">
           <p className="text-[11px] text-zinc-500 mb-2 tracking-wider uppercase">
             {t.themeName(top.theme)} {Math.round(top.score)} ←
           </p>
@@ -165,9 +171,9 @@ function KeyDatesCard({
   }
 
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl">
-      <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2 mb-5">
-        <CalendarRange className="w-4 h-4 text-amber-400" />
+    <div className="bg-zinc-900/40 backdrop-blur-sm border border-white/[0.06] rounded-2xl p-6">
+      <h3 className="text-base font-semibold text-zinc-200 flex items-center gap-2 mb-5 group">
+        <CalendarRange className="w-4 h-4 text-amber-400/80 group-hover:text-amber-300 transition" />
         {t.keyDatesTitle}
       </h3>
       <div className="space-y-3">
@@ -270,12 +276,13 @@ function BigTurnsCard({
   }
 
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl">
-      <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2 mb-5">
-        <Compass className="w-4 h-4 text-violet-400" />
+    <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-violet-950/15 backdrop-blur-sm border border-violet-500/15 rounded-2xl p-6 overflow-hidden">
+      <div className="pointer-events-none absolute -bottom-16 -right-12 w-40 h-40 bg-violet-500/8 blur-3xl rounded-full" />
+      <h3 className="relative text-base font-semibold text-violet-200 flex items-center gap-2 mb-5 group">
+        <Compass className="w-4 h-4 text-violet-400 group-hover:text-violet-300 transition" />
         {t.bigTurnsTitle}
       </h3>
-      <div className="space-y-4">
+      <div className="relative space-y-4">
         {days.map((d) => {
           const Wrapper: React.ElementType = onDayClick ? 'button' : 'div'
           return (

@@ -76,6 +76,10 @@ interface LabelSet {
   // Year insights
   yearFocusTitle: string
   yearBigDaysTitle: string
+  // Bar context badges (differentiating same 5-bar pattern across tabs)
+  contextMonthAvg: string
+  contextYearAvg: string
+  contextTodayEnergy: string
   // Day insights
   dayVerdictDomainPrefix: string
   dayAxisAgreement: (kind: 'aligned' | 'mixed' | 'opposed') => string
@@ -151,6 +155,9 @@ const KO: LabelSet = {
   comparisonOverallFlat: '전체 비슷',
   yearFocusTitle: '올해 초점',
   yearBigDaysTitle: '올해 큰 날',
+  contextMonthAvg: '이달 평균',
+  contextYearAvg: '12개월 평균',
+  contextTodayEnergy: '오늘 에너지',
   dayVerdictDomainPrefix: '중심 영역',
   dayAxisAgreement: (k) =>
     k === 'aligned' ? '사주·점성 합의' : k === 'opposed' ? '사주·점성 엇갈림' : '부분 합의',
@@ -225,6 +232,9 @@ const EN: LabelSet = {
   comparisonOverallFlat: 'overall steady',
   yearFocusTitle: 'Year focus',
   yearBigDaysTitle: 'Year big days',
+  contextMonthAvg: 'Month avg',
+  contextYearAvg: '12-month avg',
+  contextTodayEnergy: 'Today’s energy',
   dayVerdictDomainPrefix: 'Focus',
   dayAxisAgreement: (k) =>
     k === 'aligned' ? 'Saju & astro agree' : k === 'opposed' ? 'Saju & astro disagree' : 'Mixed',

@@ -22,8 +22,9 @@ import {
   ReferenceLine,
   Label,
 } from 'recharts'
-import { TrendingUp, Star, AlertTriangle, Sparkles } from 'lucide-react'
+import { TrendingUp } from 'lucide-react'
 import { getCalLabels, type CalLocale } from '../labels'
+import ChartTooltip from './ChartTooltip'
 
 export type PointType = 'best' | 'caution' | 'convergence' | 'normal'
 
@@ -58,7 +59,7 @@ interface TooltipPayload {
   payload: FlowPoint
 }
 
-function CustomTooltip({
+function FlowTooltip({
   active,
   payload,
   yLabel,
@@ -72,41 +73,16 @@ function CustomTooltip({
   if (!active || !payload || payload.length === 0) return null
   const d = payload[0].payload
   const t = getCalLabels(locale)
-  const accent =
-    d.type === 'best'
-      ? 'border-emerald-400/40 shadow-emerald-500/20'
-      : d.type === 'caution'
-        ? 'border-rose-400/40 shadow-rose-500/20'
-        : d.type === 'convergence'
-          ? 'border-violet-400/40 shadow-violet-500/20'
-          : 'border-amber-400/30 shadow-amber-500/10'
   return (
-    <div
-      className={`bg-zinc-950/90 backdrop-blur-md border ${accent} px-3.5 py-2.5 rounded-xl shadow-2xl`}
-    >
-      <p className="text-amber-300 font-bold text-[11px] mb-1 tracking-wide">{d.fullLabel}</p>
-      <p className="text-white text-sm font-medium">
-        {yLabel}{' '}
-        <span className="font-black text-lg ml-1 tabular-nums bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">
-          {d.score ?? '—'}
-        </span>
-      </p>
-      {d.type === 'best' && (
-        <p className="text-emerald-400 text-[11px] mt-1.5 flex items-center gap-1 font-medium">
-          <Star size={11} className="fill-emerald-400" /> {t.tooltipBest}
-        </p>
-      )}
-      {d.type === 'caution' && (
-        <p className="text-rose-400 text-[11px] mt-1.5 flex items-center gap-1 font-medium">
-          <AlertTriangle size={11} /> {t.tooltipCaution}
-        </p>
-      )}
-      {d.type === 'convergence' && (
-        <p className="text-violet-400 text-[11px] mt-1.5 flex items-center gap-1 font-medium">
-          <Sparkles size={11} /> {t.tooltipConvergence}
-        </p>
-      )}
-    </div>
+    <ChartTooltip
+      label={d.fullLabel}
+      yLabel={yLabel}
+      value={d.score}
+      pointType={d.type}
+      bestLabel={t.tooltipBest}
+      cautionLabel={t.tooltipCaution}
+      convergenceLabel={t.tooltipConvergence}
+    />
   )
 }
 
@@ -202,7 +178,7 @@ export default function FlowChart({
               axisLine={false}
             />
             <Tooltip
-              content={<CustomTooltip yLabel={yAxisLabel} locale={locale} />}
+              content={<FlowTooltip yLabel={yAxisLabel} locale={locale} />}
               cursor={{ stroke: '#fbbf24', strokeWidth: 1, strokeDasharray: '4 4', opacity: 0.6 }}
             />
             {showNeutral50 && (

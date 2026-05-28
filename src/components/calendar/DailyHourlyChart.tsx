@@ -15,6 +15,7 @@ import {
 } from 'recharts'
 import { Clock } from 'lucide-react'
 import type { ImportantDate } from './types'
+import ChartTooltip from './premium/shared/ChartTooltip'
 
 interface Props {
   importantDate: ImportantDate | null
@@ -256,24 +257,15 @@ function HourlyTooltip({
   payload?: Array<{ name?: string; value?: number; dataKey?: string; color?: string }>
   label?: string
 }) {
-  if (!active || !payload || payload.length === 0) return null
-  return (
-    <div className="bg-zinc-950/90 backdrop-blur-md border border-amber-400/30 px-3.5 py-2.5 rounded-xl shadow-2xl shadow-amber-500/10">
-      <p className="text-amber-300 font-bold text-[11px] mb-1.5 tracking-wide">{label}</p>
-      <div className="space-y-0.5">
-        {payload.map((p) => (
-          <div key={p.dataKey} className="flex items-center gap-2 text-sm">
-            <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{ background: p.color, boxShadow: `0 0 6px ${p.color}` }}
-            />
-            <span className="text-zinc-300 font-medium">{p.name}</span>
-            <span className="font-black tabular-nums text-white ml-auto">{p.value}점</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  if (!active || !payload || payload.length === 0 || !label) return null
+  const series = payload
+    .filter((p) => typeof p.value === 'number' && p.name)
+    .map((p) => ({
+      name: p.name as string,
+      value: p.value as number,
+      color: p.color ?? '#fbbf24',
+    }))
+  return <ChartTooltip label={label} series={series} />
 }
 
 interface HourPoint {

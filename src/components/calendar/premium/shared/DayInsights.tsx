@@ -111,7 +111,9 @@ function DayVerdictCard({
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-3 leading-none mb-1.5">
-            <span className="text-5xl font-black text-white">{score}</span>
+            <span className="text-4xl sm:text-5xl font-black tabular-nums bg-gradient-to-br from-white to-zinc-300 bg-clip-text text-transparent">
+              {score}
+            </span>
             <span className={`text-base font-black ${grade.colorClass}`}>{grade.label}</span>
           </div>
           {oneLine && <p className="text-sm text-zinc-200 leading-snug line-clamp-2">{oneLine}</p>}
@@ -185,13 +187,19 @@ function DayDomainsCard({
   const topTheme = ranked[0]?.theme
 
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl">
-      <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2 mb-5">
-        <Sparkles className="w-4 h-4 text-amber-400" />
-        {t.dayDomainsTitle}
-      </h3>
+    <div className="relative bg-gradient-to-br from-zinc-900/60 via-zinc-900/45 to-zinc-950/55 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl overflow-hidden">
+      <div className="pointer-events-none absolute -top-16 -left-12 w-40 h-40 bg-amber-500/8 blur-3xl rounded-full" />
+      <div className="relative flex items-baseline justify-between mb-4">
+        <h3 className="text-lg font-bold text-amber-200 flex items-center gap-2 group">
+          <Sparkles className="w-4 h-4 text-amber-400 group-hover:text-amber-300 transition" />
+          {t.dayDomainsTitle}
+        </h3>
+        <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+          {t.contextTodayEnergy}
+        </span>
+      </div>
       {ranked.length > 0 && (
-        <div className="space-y-2.5">
+        <div className="relative space-y-2.5">
           {ranked.map((r) => (
             <DomainBar
               key={r.theme}
@@ -204,7 +212,7 @@ function DayDomainsCard({
         </div>
       )}
       {patterns.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-white/5">
+        <div className="relative mt-4 pt-4 border-t border-white/5">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2">
             {t.dayPatternsLabel}
           </p>
@@ -284,9 +292,9 @@ function DayWhyCard({
   if (!hasAnything) return null
 
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl">
-      <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2 mb-5">
-        <BookOpen className="w-4 h-4 text-amber-400" />
+    <div className="bg-zinc-900/40 backdrop-blur-sm border border-white/[0.06] rounded-2xl p-6">
+      <h3 className="text-base font-semibold text-zinc-200 flex items-center gap-2 mb-5 group">
+        <BookOpen className="w-4 h-4 text-amber-400/80 group-hover:text-amber-300 transition" />
         {t.dayWhyTitle}
       </h3>
       {ganji && (
@@ -364,16 +372,19 @@ function DayHourlyCard({
   const avoidList = (advice?.avoid ?? []).slice(0, 4)
 
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl">
-      <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2 mb-5">
-        <Clock3 className="w-4 h-4 text-amber-400" />
+    <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-cyan-950/15 backdrop-blur-sm border border-cyan-500/15 rounded-2xl p-6 overflow-hidden">
+      <div className="pointer-events-none absolute -top-16 -right-12 w-40 h-40 bg-cyan-500/8 blur-3xl rounded-full" />
+      <h3 className="relative text-base font-semibold text-cyan-200 flex items-center gap-2 mb-5 group">
+        <Clock3 className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300 transition" />
         {t.dayHourlyTitle}
       </h3>
 
-      <DailyHourlyChart importantDate={importantDate} dateStr={dateStr} />
+      <div className="relative">
+        <DailyHourlyChart importantDate={importantDate} dateStr={dateStr} />
+      </div>
 
       {(bestHour || worstHour) && (
-        <div className="grid grid-cols-2 gap-3 mt-4">
+        <div className="relative grid grid-cols-2 gap-3 mt-4">
           {bestHour && (
             <div className="bg-emerald-900/15 border border-emerald-500/25 rounded-xl p-4">
               <div className="text-[10px] font-bold text-emerald-400 mb-1 tracking-wider uppercase">
@@ -408,7 +419,7 @@ function DayHourlyCard({
       )}
 
       {(doList.length > 0 || avoidList.length > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+        <div className="relative grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
           {doList.length > 0 && (
             <AdviceList label={t.dayHourlyPushLabel} items={doList} tone="push" />
           )}
