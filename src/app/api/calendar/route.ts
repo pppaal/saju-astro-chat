@@ -757,7 +757,7 @@ export const GET = withApiMiddleware(
               strength: p.strength,
               description: p.description,
               headline: en?.headline ?? p.headline,
-              action: p.action,
+              action: en?.action ?? p.action,
             }
           })
         }
