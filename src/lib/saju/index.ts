@@ -298,39 +298,5 @@ export {
 
 // 세대간/가족 분석 엔진 — 미사용으로 삭제됨 (2025 정리)
 
-// 성능 최적화/캐싱 시스템
-export {
-  LRUCache,
-  BatchProcessor,
-  memoize,
-  memoizeAsync,
-  createLazyLoader,
-  generateSajuCacheKey,
-  generateCompatibilityCacheKey,
-  computeWithCache,
-  getSajuFromCache,
-  setSajuToCache,
-  getDaeunFromCache,
-  setDaeunToCache,
-  getCompatibilityFromCache,
-  setCompatibilityToCache,
-  getAllCacheStats,
-  clearAllCaches,
-  cleanupAllCaches,
-  measurePerformance,
-  getPerformanceStats,
-  clearPerformanceHistory,
-  sajuCache,
-  daeunCache,
-  compatibilityCache,
-  type CacheConfig,
-  type CacheEntry,
-  type CacheStats,
-  type BatchRequest,
-  type MemoizedFunction,
-  type LazyLoader,
-  type ComputationResult,
-  type PerformanceMetrics,
-} from './cache'
-
+// saju/cache 디렉터리 외부 사용 0 — 통째 제거됨 (2025 정리).
 // 사주 통계 분석 엔진 — 미사용으로 삭제됨 (2025 정리)
