@@ -1280,6 +1280,37 @@
   font-weight: 600;
 }
 
+/* Eyebrow — chat bar 위에 "이 박스는 입력하는 곳 + 아래 생일로 분석" 신호.
+   처음 본 사용자가 input 박스를 그냥 정보 표시판으로 오해하지 않게 한다. */
+.homeChatEyebrow {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(232, 204, 138, 0.92);
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+  letter-spacing: 0.01em;
+}
+
+.lightMode .homeChatEyebrow {
+  color: #a07a3c;
+}
+
+/* Birth helper — chat bar 아래 "프로필과 다를 수 있음" 안내. 사용자가
+   여기 정보가 프로필 = 저장된 본인 정보와 다를 수도 있고, 바꾸려면 어디
+   누르는지 자연스럽게 알게 한다. 작고 muted 톤. */
+.homeChatBirthHint {
+  font-size: 0.72rem;
+  color: rgba(245, 247, 251, 0.55);
+  margin-top: 0.5rem;
+  padding: 0 0.25rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.lightMode .homeChatBirthHint {
+  color: rgba(28, 25, 23, 0.6);
+}
+
 /* =====================================================================
  * Premium White mode — kicks in when the user has either signed in or
  * entered birth info. Mirrors the counselor result pages (stone-50 +
