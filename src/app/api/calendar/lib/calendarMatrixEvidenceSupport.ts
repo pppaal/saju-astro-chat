@@ -6,11 +6,6 @@ import type {
 import type { CalendarEvidence } from '@/types/calendar-api'
 import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { MatrixCalendarContext } from './calendarMatrixTextSupport'
-// matrixEvidencePacket 제거 — packet 항상 null. selectMatrixPacketForDate +
-// attachMatrixVerdict 가 packet null 이면 즉시 return 하는 noop fast path 만 남음.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CalendarMatrixEvidencePacket = any
-type CalendarMatrixEvidencePacketMap = Record<string, CalendarMatrixEvidencePacket>
 import {
   GRADE_THRESHOLDS,
   EVIDENCE_CONFIDENCE_THRESHOLDS,
@@ -46,25 +41,6 @@ type AspectEvidenceLite = {
   tone: 'positive' | 'negative' | 'neutral'
   impactScore: number
   context: 'transitToNatalSun' | 'transitToTransit'
-}
-
-const CATEGORY_PACKET_KEY: Record<string, string> = {
-  career: 'career',
-  study: 'career',
-  love: 'love',
-  wealth: 'wealth',
-  health: 'health',
-  travel: 'today',
-  general: 'today',
-}
-
-const DOMAIN_PACKET_KEY: Record<NonNullable<CalendarEvidence['matrix']['domain']>, string> = {
-  career: 'career',
-  love: 'love',
-  money: 'wealth',
-  health: 'health',
-  move: 'today',
-  general: 'today',
 }
 
 const CATEGORY_TO_MATRIX_DOMAIN: Partial<Record<EventCategory, DomainKey>> = {
@@ -572,56 +548,8 @@ export function buildMatrixOverlay(
   }
 }
 
-export function selectMatrixPacketForDate(input: {
-  categories: string[]
-  evidenceDomain: CalendarEvidence['matrix']['domain']
-  packets?: CalendarMatrixEvidencePacketMap
-}): CalendarMatrixEvidencePacket | null {
-  const packets = input.packets
-  if (!packets) return null
-
-  const byDomain = packets[DOMAIN_PACKET_KEY[input.evidenceDomain]]
-  if (byDomain) return byDomain
-
-  for (const category of input.categories) {
-    const normalizedCategory = String(category || '')
-      .trim()
-      .toLowerCase()
-    const packetKey = CATEGORY_PACKET_KEY[normalizedCategory]
-    if (packetKey && packets[packetKey]) return packets[packetKey]
-  }
-
-  return packets.today || packets.general || null
-}
-
-export function attachMatrixVerdict(
-  evidence: CalendarEvidence,
-  packet: CalendarMatrixEvidencePacket | null
-): CalendarEvidence {
-  if (!packet) return evidence
-
-  return {
-    ...evidence,
-    matrixVerdict: {
-      focusDomain: packet.focusDomain,
-      verdict: sanitizeMatrixNarrativeLine(packet.verdict),
-      guardrail: sanitizeMatrixNarrativeLine(packet.guardrail),
-      topClaim: sanitizeMatrixNarrativeLine(packet.topClaims[0]?.text || ''),
-      topAnchorSummary: sanitizeMatrixNarrativeLine(packet.topAnchorSummary),
-      phase: packet.strategyBrief?.overallPhaseLabel,
-      attackPercent: packet.strategyBrief?.attackPercent,
-      defensePercent: packet.strategyBrief?.defensePercent,
-      timingWindow: packet.topTimingWindow?.window,
-      whyNow: sanitizeMatrixNarrativeLine(packet.topTimingWindow?.whyNow || ''),
-      entryConditions: (packet.topTimingWindow?.entryConditions || [])
-        .map((item: string) => sanitizeMatrixNarrativeLine(item))
-        .filter(Boolean),
-      abortConditions: (packet.topTimingWindow?.abortConditions || [])
-        .map((item: string) => sanitizeMatrixNarrativeLine(item))
-        .filter(Boolean),
-    },
-  }
-}
+// selectMatrixPacketForDate / attachMatrixVerdict 함수 제거됨 — matrix packet 항상 null
+// 이라 두 함수 모두 noop fast path 만 실행했음. helpers.ts 에서 직접 evidence 사용.
 
 export function buildMatrixFirstSummary(input: {
   verdict?: string
