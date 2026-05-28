@@ -30,7 +30,7 @@ interface UseCitySearchReturn {
 
 const MIN_QUERY_LENGTH = 2
 const SEARCH_LIMIT = 20
-const DEBOUNCE_MS = 140
+const DEBOUNCE_MS = 80
 
 /**
  * Hook for city search with suggestions and timezone lookup
