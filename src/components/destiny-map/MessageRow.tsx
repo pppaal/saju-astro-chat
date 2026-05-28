@@ -9,6 +9,10 @@ interface MessageRowProps {
   index: number
   lang: string
   styles: Record<string, string>
+  /** 잘림 감지된 마지막 assistant 메시지에 한해 부모가 핸들러 주입. */
+  onRetry?: () => void
+  /** "다시 시도" 칩 라벨 — 부모가 lang 분기. */
+  retryLabel?: string
 }
 
 // 말풍선 내부 콘텐츠는 공통 ChatBubbleContent (Phase 2 리팩토링) — 카드
@@ -19,6 +23,8 @@ const MessageRow = React.memo(function MessageRow({
   index,
   lang: _lang,
   styles: s,
+  onRetry,
+  retryLabel,
 }: MessageRowProps) {
   const isAssistant = message.role === 'assistant'
   const rowClass = `${s.messageRow} ${isAssistant ? s.assistantRow : s.userRow}`
@@ -36,6 +42,12 @@ const MessageRow = React.memo(function MessageRow({
         <div className={messageClass}>
           <ChatBubbleContent role={message.role} content={message.content} theme="dark" />
         </div>
+        {onRetry && (
+          <button type="button" className={s.retryButton} onClick={onRetry} aria-label={retryLabel}>
+            <span aria-hidden="true">{'↻'}</span>
+            {retryLabel}
+          </button>
+        )}
       </div>
 
       {!isAssistant && (

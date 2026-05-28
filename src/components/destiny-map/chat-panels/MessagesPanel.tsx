@@ -20,6 +20,8 @@ interface MessagesPanelProps {
   tr: Copy
   messagesEndRef: React.RefObject<HTMLDivElement | null>
   onFollowUp: (question: string) => void
+  /** 마지막 assistant 답변이 잘렸을 때 "다시 시도" 버튼 핸들러. */
+  onRetryLastAnswer?: () => void
   styles: Record<string, string>
   /** 빈 채팅 hero 인사 개인화용. 없으면 generic 인사로 폴백. */
   userName?: string
@@ -45,6 +47,7 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   tr,
   messagesEndRef,
   onFollowUp,
+  onRetryLastAnswer,
   styles,
   userName,
   onOpenClarifier,
@@ -95,9 +98,23 @@ export const MessagesPanel = React.memo(function MessagesPanel({
           </div>
         ))}
 
-      {visibleMessages.map((m, i) => (
-        <MessageRow key={m.id || i} message={m} index={i} lang={effectiveLang} styles={styles} />
-      ))}
+      {visibleMessages.map((m, i) => {
+        const isLastAssistant = i === visibleMessages.length - 1 && m.role === 'assistant'
+        // 스트림이 끊긴 마지막 assistant 메시지에만 "다시 시도" 칩 노출. 로딩
+        // 중엔 숨김 (새 토큰이 들어오는 동안 깜빡임 방지).
+        const showRetry = isLastAssistant && !loading && Boolean(m.incomplete)
+        return (
+          <MessageRow
+            key={m.id || i}
+            message={m}
+            index={i}
+            lang={effectiveLang}
+            styles={styles}
+            onRetry={showRetry ? onRetryLastAnswer : undefined}
+            retryLabel={effectiveLang === 'ko' ? '답변이 끊겼어요 · 다시 시도' : 'Cut off · Retry'}
+          />
+        )
+      })}
 
       {loading && (
         <div className={`${styles.messageRow} ${styles.assistantRow}`}>

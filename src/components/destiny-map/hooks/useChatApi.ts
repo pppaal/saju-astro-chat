@@ -335,6 +335,19 @@ export function useChatApi({
           lang === 'ko' ? 'ko' : 'en'
         )
         flushFinalMessage(normalizedContent)
+        // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
+        // abort) 이 메시지에 incomplete 마킹 — MessageRow 가 "다시 시도" 칩을
+        // 노출. truncated 는 finalMessage flush 직후 같은 lastAssistant 에 덧씌움.
+        if (!result.success || result.truncated) {
+          setMessages((prev) => {
+            const updated = [...prev]
+            const lastIdx = updated.length - 1
+            if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+              updated[lastIdx] = { ...updated[lastIdx], incomplete: true }
+            }
+            return updated
+          })
+        }
 
         // Set follow-up questions — 모델이 가끔 generic 질문("더 알려줘"/
         // "tell me more")을 뱉음. 시스템 프롬프트가 금지하지만 모델이 무시하면
@@ -365,6 +378,7 @@ export function useChatApi({
       flushFinalMessage,
       autoScroll,
       messagesEndRef,
+      setMessages,
       tr.error,
       tr.noResponse,
       lang,

@@ -141,15 +141,22 @@ const Chat = memo(function Chat({
     [setFollowUpQuestions]
   )
 
+  // "다시 시도" — 마지막 assistant 답변이 잘렸을 때만 노출. 잘린 답 + 직전 user
+  // 메시지를 함께 pop 한 뒤 같은 user 텍스트로 재요청. 사용자 입장에선 동일
+  // 질문이 새 답변으로 갱신되는 모양. lastUserText 는 messages 클로저에서
+  // 동기 추출 — race 회피.
+  const handleRetryLastAnswer = React.useCallback(() => {
+    if (loading) return
+    const len = messages.length
+    if (len < 2) return
+    if (messages[len - 1].role !== 'assistant') return
+    if (messages[len - 2].role !== 'user') return
+    const lastUserText = messages[len - 2].content
+    setMessages((prev) => prev.slice(0, -2))
+    setFollowUpQuestions([])
+    void handleSendRef.current?.(lastUserText)
+  }, [loading, messages, setMessages, setFollowUpQuestions])
 
-  // #3 답변 직후 첫 후속질문을 입력창에 미리 채운다 — 사용자는 엔터로 바로 보내거나,
-  // 입력창의 X(지우기)로 싹 비우고 자기 질문을 새로 쓸 수 있다. 이미 뭔가 입력 중이면
-  // 덮어쓰지 않는다(직후엔 전송으로 비워져 있어 안전).
-  React.useEffect(() => {
-    if (followUpQuestions.length > 0) {
-      setInput((prev) => (prev.trim() ? prev : followUpQuestions[0]))
-    }
-  }, [followUpQuestions])
 
   React.useEffect(() => {
     setActiveSessionId(sessionIdRef.current)
@@ -538,6 +545,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               tr={tr}
               messagesEndRef={messagesEndRef}
               onFollowUp={handleFollowUp}
+              onRetryLastAnswer={handleRetryLastAnswer}
               styles={styles}
               userName={profile?.name}
               onOpenClarifier={clarifier.buttonProps.onClick}

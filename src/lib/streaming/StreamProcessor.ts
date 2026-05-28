@@ -8,6 +8,14 @@ export interface StreamResult {
   followUps: string[]
   /** Whether stream completed successfully */
   success: boolean
+  /**
+   * Stream produced some content but did not reach the `||FOLLOWUP||` end
+   * marker the LLM is instructed to always append. Signals the upstream
+   * SSE stream was cut mid-response (mobile network drop, Claude
+   * disconnect, server idle abort). Callers should surface a retry
+   * affordance on the affected message.
+   */
+  truncated: boolean
   /** Error message if failed */
   error?: string
 }
@@ -41,6 +49,7 @@ export class StreamProcessor {
         content: '',
         followUps: [],
         success: false,
+        truncated: false,
         error: error.message,
       }
     }
@@ -119,6 +128,7 @@ export class StreamProcessor {
         content: this.cleanFollowupMarkers(accumulated),
         followUps: [],
         success: false,
+        truncated: accumulated.length > 0,
         error: error.message,
       }
     }
@@ -221,15 +231,22 @@ export class StreamProcessor {
         content: '',
         followUps: [],
         success: true,
+        truncated: false,
       }
     }
 
     const { cleanContent, followUps } = this.extractFollowUpQuestions(accumulated)
+    // The counselor prompts instruct Claude to always append `||FOLLOWUP||`
+    // at the very end. Absence of the marker on a non-empty stream means
+    // the upstream cut us off mid-response (network drop, server idle
+    // abort, Claude disconnect).
+    const truncated = !accumulated.includes('||FOLLOWUP||')
 
     return {
       content: cleanContent,
       followUps,
       success: true,
+      truncated,
     }
   }
 

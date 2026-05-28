@@ -62,6 +62,8 @@ function CounselorLoading({ lang = 'ko' }: { lang?: 'ko' | 'en' }) {
 type ChatMessage = {
   role: 'user' | 'assistant'
   content: string
+  /** Stream cut mid-response → bubble shows a "다시 시도" retry button. */
+  incomplete?: boolean
 }
 
 type PersonData = {
@@ -374,15 +376,6 @@ function CompatibilityCounselorContent() {
     }
   }, [isInitializing])
 
-  // 운명 상담사와 동일한 UX — 답변 직후 첫 후속질문을 입력창에 미리 채운다.
-  // 사용자는 엔터로 바로 보내거나, 지우고 자기 질문을 새로 쓸 수 있다.
-  // 이미 입력 중이면 덮어쓰지 않는다.
-  useEffect(() => {
-    if (followUpQuestions.length > 0) {
-      setInput((prev) => (prev.trim() ? prev : followUpQuestions[0]))
-    }
-  }, [followUpQuestions])
-
   // 채팅 우상단 ⋮ 메뉴 핸들러 — 운명 상담사 PR #621 과 동일.
   // 저장된 session 이 없으면 (chatSessionId undefined) 아무것도 안 함.
   const handleChatRename = useCallback(async () => {
@@ -525,6 +518,21 @@ function CompatibilityCounselorContent() {
             logger.warn('[CompatCounselor] stream error', { error: err })
           },
         })
+        // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
+        // abort / Claude disconnect) 메시지를 "다시 시도" 버튼이 붙는 incomplete
+        // 상태로 마킹. truncated 는 finalContent 가 있는데 마커를 못 봤을 때만
+        // true.
+        const wasTruncated = !result.success || result.truncated
+        if (wasTruncated && finalAssistantContent) {
+          setMessages((prev) => {
+            const updated = [...prev]
+            const lastIdx = updated.length - 1
+            if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+              updated[lastIdx] = { ...updated[lastIdx], incomplete: true }
+            }
+            return updated
+          })
+        }
         // 운명 상담사와 동일 패턴 — LLM 의 generic followup ("더 알려줘",
         // "tell me more" 등) 을 클라이언트에서 결정적으로 필터링 + 부족분만
         // theme 기반 폴백으로 보충. 이전엔 LLM 2개 ≥ 면 그대로 / 미만이면
@@ -638,6 +646,23 @@ function CompatibilityCounselorContent() {
       sendMessage()
     }
   }
+
+  // "다시 시도" — 잘린 assistant 답변과 그 직전 user 메시지를 둘 다 pop 한 뒤
+  // 동일 user 텍스트로 재요청. sendMessage 가 user 메시지를 다시 add 하므로
+  // history 는 중복 없이 정확히 이전 turn 상태가 된다 (사용자 입장에선 같은
+  // 질문이 새 답변으로 갱신되는 모양). lastUserText 는 messages 클로저에서
+  // 동기 추출 — setMessages 업데이터/microtask 타이밍 race 회피.
+  const retryLastAnswer = useCallback(() => {
+    if (isLoading) return
+    const len = messages.length
+    if (len < 2) return
+    if (messages[len - 1].role !== 'assistant') return
+    if (messages[len - 2].role !== 'user') return
+    const lastUserText = messages[len - 2].content
+    setMessages((prev) => prev.slice(0, -2))
+    setFollowUpQuestions([])
+    void sendMessage(lastUserText)
+  }, [isLoading, messages, sendMessage])
 
   // 🃏 클래리파이어 — 공통 hook (운명상담사 / followup 동일).
   const clarifier = useClarifierCard({
@@ -879,6 +904,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               const isUser = msg.role === 'user'
               const isLastAssistant = !isUser && idx === messages.length - 1
               const showTyping = isLastAssistant && isLoading && !msg.content
+              // 잘림 감지된 마지막 assistant 메시지에만 "다시 시도" 노출.
+              // 스트리밍 중엔 숨김 — 새 토큰이 들어오는 동안 깜빡이지 않도록.
+              const showRetry = isLastAssistant && !isLoading && msg.incomplete
 
               return (
                 <div key={idx} className={`${styles.message} ${isUser ? styles.userMessage : ''}`}>
@@ -906,6 +934,17 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                       }
                       theme="light"
                     />
+                    {showRetry && (
+                      <button
+                        type="button"
+                        className={styles.retryButton}
+                        onClick={retryLastAnswer}
+                        aria-label={isKo ? '다시 시도' : 'Retry'}
+                      >
+                        <span aria-hidden="true">{'↻'}</span>
+                        {isKo ? '답변이 끊겼어요 · 다시 시도' : 'Cut off · Retry'}
+                      </button>
+                    )}
                   </div>
                 </div>
               )
