@@ -74,6 +74,10 @@ export interface SavedTarotReading {
     role: 'user' | 'assistant'
     content: string
   }> | null
+  /** 저장 시 origin — UI 배지 표시용.
+   *  'counselor-destiny' (운명 안에서) / 'counselor-compat' (궁합 안에서) /
+   *  'counselor' (구버전 fallback) / 'standalone' (메인 /tarot). */
+  source?: string
 }
 
 type ServerSavedReading = {
@@ -105,6 +109,7 @@ type ServerSavedReading = {
     role: 'user' | 'assistant'
     content: string
   }> | null
+  source?: string | null
 }
 
 const STORAGE_KEY = 'tarot_saved_readings'
@@ -313,5 +318,6 @@ export function mapServerReadingToSavedReading(reading: ServerSavedReading): Sav
     spreadId: reading.spreadId || '',
     clarifierCard: reading.clarifierCard ?? null,
     followupTurns: reading.followupTurns ?? null,
+    source: reading.source ?? undefined,
   }
 }

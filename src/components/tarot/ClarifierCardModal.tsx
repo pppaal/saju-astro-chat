@@ -68,6 +68,10 @@ export default function ClarifierCardModal({
         alignItems: 'center',
         justifyContent: 'center',
         padding: '20px',
+        // 모바일에서 카드 + 텍스트 + 버튼 다 안 보이는 회귀 — overflow auto +
+        // align-items flex-start (top-aligned) 로 폰 키보드/주소바 영향 받아도
+        // 카드 잘림 X. 작은 폰 (≤ ~700px) 에선 위에서부터 자연 스크롤.
+        overflowY: 'auto',
         animation: 'clarifierFadeIn 0.2s ease-out',
       }}
     >
@@ -83,6 +87,8 @@ export default function ClarifierCardModal({
           textAlign: 'center',
           boxShadow: '0 20px 60px rgba(34, 211, 238, 0.18)',
           animation: 'clarifierCardReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+          // 짧은 화면 (모바일 가로 등) 에서도 콘텐츠 다 보이게.
+          margin: 'auto',
         }}
       >
         <h2

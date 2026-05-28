@@ -587,6 +587,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
         lang={lang}
         profile={profile}
         initialConcern={followUpQuestions[0] || extractConcernFromMessages()}
+        origin="destiny"
       />
 
       <ClarifierCardModal {...clarifier.modalProps} />

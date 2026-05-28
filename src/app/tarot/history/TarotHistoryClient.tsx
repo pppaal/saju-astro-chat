@@ -43,6 +43,42 @@ function truncate(text: string | null | undefined, maxLength = 140): string {
   return `${normalized.slice(0, maxLength - 1).trim()}…`
 }
 
+/**
+ * 저장 origin 별 배지 라벨 — 어디서 뽑은 리딩인지 한눈에 보이게.
+ * 운명/궁합 상담사 안에서 본 인라인 타로 vs 단독 /tarot 페이지 구분.
+ * source 없으면(=구버전 데이터 / standalone) null 반환해 배지 미표시.
+ */
+function getSourceBadge(
+  source: string | undefined | null,
+  isKo: boolean
+): { label: string; color: string; bg: string; border: string } | null {
+  switch (source) {
+    case 'counselor-destiny':
+      return {
+        label: isKo ? '🌙 운명 안에서' : '🌙 From Destiny',
+        color: '#c4b5fd',
+        bg: 'rgba(139, 92, 246, 0.12)',
+        border: 'rgba(139, 92, 246, 0.32)',
+      }
+    case 'counselor-compat':
+      return {
+        label: isKo ? '💞 궁합 안에서' : '💞 From Compatibility',
+        color: '#fbcfe8',
+        bg: 'rgba(236, 72, 153, 0.12)',
+        border: 'rgba(236, 72, 153, 0.32)',
+      }
+    case 'counselor':
+      return {
+        label: isKo ? '💬 상담 안에서' : '💬 From Counselor',
+        color: '#bae6fd',
+        bg: 'rgba(56, 189, 248, 0.12)',
+        border: 'rgba(56, 189, 248, 0.32)',
+      }
+    default:
+      return null
+  }
+}
+
 function EmptyState({
   title,
   description,
@@ -478,9 +514,27 @@ export default function TarotHistoryClient() {
                 }}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
-                  <span className="text-xs" style={{ color: 'var(--ds-dark-text-subtle)' }}>
-                    {formatRelativeTime(reading.timestamp, isKo)}
-                  </span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs" style={{ color: 'var(--ds-dark-text-subtle)' }}>
+                      {formatRelativeTime(reading.timestamp, isKo)}
+                    </span>
+                    {(() => {
+                      const badge = getSourceBadge(reading.source, isKo)
+                      if (!badge) return null
+                      return (
+                        <span
+                          className="px-2 py-0.5 text-[10px] rounded-full border font-medium"
+                          style={{
+                            color: badge.color,
+                            background: badge.bg,
+                            borderColor: badge.border,
+                          }}
+                        >
+                          {badge.label}
+                        </span>
+                      )
+                    })()}
+                  </div>
                   <button
                     type="button"
                     onClick={(event) => void handleDelete(reading, event)}
@@ -625,9 +679,27 @@ export default function TarotHistoryClient() {
             >
               {selectedReading.question}
             </h2>
-            <p className="text-xs mb-5" style={{ color: 'var(--ds-dark-text-subtle)' }}>
-              {formatRelativeTime(selectedReading.timestamp, isKo)}
-            </p>
+            <div className="flex items-center gap-2 mb-5 flex-wrap">
+              <p className="text-xs" style={{ color: 'var(--ds-dark-text-subtle)' }}>
+                {formatRelativeTime(selectedReading.timestamp, isKo)}
+              </p>
+              {(() => {
+                const badge = getSourceBadge(selectedReading.source, isKo)
+                if (!badge) return null
+                return (
+                  <span
+                    className="px-2 py-0.5 text-[10px] rounded-full border font-medium"
+                    style={{
+                      color: badge.color,
+                      background: badge.bg,
+                      borderColor: badge.border,
+                    }}
+                  >
+                    {badge.label}
+                  </span>
+                )
+              })()}
+            </div>
 
             {/* 카드 리스트 — 카드 그림 + 자리/이름/(역방향)/더보기로 펼치는
                 카드별 해석 (사용자 피드백: "타로 그림도 안 보이고 더보기

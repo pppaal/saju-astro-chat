@@ -33,9 +33,12 @@ interface UseInlineTarotAPIOptions {
   stateManager: UseInlineTarotStateReturn
   lang: LangKey
   profile: Profile
+  /** 호출 origin — 타로 히스토리 source 필드 구분 ('counselor-destiny' /
+   *  'counselor-compat'). 미지정 시 기본 'counselor'. */
+  origin?: 'destiny' | 'compat'
 }
 
-export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptions) {
+export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarotAPIOptions) {
   const { state, actions } = stateManager
   const { showDepleted } = useCreditModal()
   const {
@@ -386,7 +389,8 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
           cardInsights,
           guidance,
           affirmation,
-          source: 'counselor',
+          // 'counselor-destiny' / 'counselor-compat' / 'counselor' (origin 미지정 fallback).
+          source: origin ? `counselor-${origin}` : 'counselor',
           locale: lang,
         }),
       })
@@ -423,6 +427,7 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
     concern,
     selectedCategory,
     lang,
+    origin,
     actions,
   ])
 
