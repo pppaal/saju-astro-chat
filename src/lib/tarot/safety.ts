@@ -1,11 +1,7 @@
 // src/lib/tarot/safety.ts
 //
 // 위험 질문(자살·자해 등) 감지 + 위기 응답 페이로드 생성.
-// 타로 라우트의 안전 가드 단일 출처:
-//   - questionEngineV2: 추천 단계에서 차단
-//   - /api/tarot/interpret-stream: 해석 직전 추가 가드 (추천 우회 케이스)
-//
-// 기능적으로 두 경로 모두 이 모듈을 거쳐야 안전 키워드 보강이 한 곳에서 끝난다.
+// /api/tarot/interpret-stream 해석 직전 가드에서 사용.
 
 export const DANGEROUS_KEYWORDS = [
   '자살',

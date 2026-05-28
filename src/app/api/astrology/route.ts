@@ -1,7 +1,5 @@
 // src/app/api/astrology/route.ts
 import { NextRequest } from 'next/server'
-import { askClaude } from '@/lib/llm/askClaude'
-import { prisma } from '@/lib/db/prisma'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
@@ -24,7 +22,6 @@ import {
 } from '@/lib/astrology/localization'
 import { logger } from '@/lib/logger'
 import { validateRequestBody, astrologyRequestSchema } from '@/lib/api/zodValidation'
-import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 // Middleware imports
@@ -51,8 +48,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     return apiError(ErrorCodes.VALIDATION_ERROR, errorMessage, { errors: validation.errors })
   }
 
-  const { date, time, latitude, longitude, timeZone, locale, options, skipInterpretation } =
-    validation.data
+  const { date, time, latitude, longitude, timeZone, locale, options } = validation.data
   const L = pickLabels(locale)
   const locKey = normalizeLocale(locale)
 
@@ -157,92 +153,13 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     aspectsPlus,
   }
 
-  // 7. AI backend call (GPT) with caching
-  let aiInterpretation = ''
-  let aiModelUsed = ''
-
-  // Cache key: birthDate + birthTime + lat + lon + timezone + locale
-  const aiCacheKey = `astrology:ai:v1:${date}:${time}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}:${locKey}`
-
-  const cachedAI = skipInterpretation
-    ? null
-    : await cacheGet<{ interpretation: string; model: string }>(aiCacheKey)
-
-  if (skipInterpretation) {
-    // chartOnly fast path — caller needs only chart data; the response falls
-    // back to the locally-built `interpretation` summary below.
-  } else if (cachedAI) {
-    aiInterpretation = cachedAI.interpretation
-    aiModelUsed = cachedAI.model
-  } else {
-    try {
-      const astroPrompt = `Analyze this natal chart as an expert astrologer:\n\nAscendant: ${ascStr}\nMC: ${mcStr}\n\nPlanet Positions:\n${planetLines}\n\nProvide insights on personality, life path, strengths, and challenges.`
-
-      const response = await askClaude(astroPrompt, {
-        theme: 'astrology',
-        maxTokens: 2500,
-        timeoutMs: 60000,
-        label: 'astrology-route',
-      })
-
-      if (response.ok) {
-        const resData = response.data as {
-          data?: { fusion_layer?: string; report?: string; model?: string }
-        }
-        aiInterpretation = resData?.data?.fusion_layer || resData?.data?.report || ''
-        aiModelUsed = resData?.data?.model || 'gpt-4o'
-
-        // Cache the AI interpretation for 30 days (natal charts don't change)
-        await cacheSet(
-          aiCacheKey,
-          { interpretation: aiInterpretation, model: aiModelUsed },
-          CACHE_TTL.NATAL_CHART
-        )
-      }
-    } catch (aiErr) {
-      logger.warn('[Astrology API] AI backend call failed:', aiErr)
-      aiInterpretation = ''
-      aiModelUsed = 'error-fallback'
-    }
-  }
-
-  // 8. Save reading record (logged-in users only). Skip on the chartOnly path.
-  if (context.userId && !skipInterpretation) {
-    try {
-      await prisma.reading.create({
-        data: {
-          userId: context.userId,
-          type: 'astrology',
-          title: `${ascStr} 상승궁 출생차트`,
-          content: JSON.stringify({
-            date,
-            time,
-            latitude,
-            longitude,
-            timeZone,
-            ascendant: ascStr,
-            mc: mcStr,
-            planets: points.slice(0, 10).map((p) => ({
-              name: p.name,
-              sign: p.sign,
-            })),
-          }),
-        },
-      })
-    } catch (saveErr) {
-      logger.warn('[Astrology API] Failed to save reading:', saveErr)
-    }
-  }
-
-  // 9. Return success response
+  // 7. Return success response
   return apiSuccess(
     {
       chartData: natal,
       chartMeta,
       aspects: aspectsPlus,
-      interpretation: aiInterpretation || interpretation,
-      aiInterpretation,
-      aiModelUsed,
+      interpretation,
       advanced,
       debug: { locale: locKey, opts },
     },

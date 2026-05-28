@@ -54,15 +54,10 @@ export async function disconnectRedis(): Promise<void> {
  * Cache configuration for different data types
  */
 export const CACHE_TTL = {
-  SAJU_RESULT: 60 * 60 * 24 * 7, // 7 days (사주는 불변)
-  TAROT_READING: 60 * 60 * 24, // 1 day (타로는 매일 변경 가능)
-  DESTINY_MAP: 60 * 60 * 24 * 3, // 3 days
-  GRADING_RESULT: 60 * 60 * 24, // 1 day
-  CALENDAR_DATA: 60 * 60 * 24, // 1 day
-  COMPATIBILITY: 60 * 60 * 24 * 7, // 7 days
-  TRANSIT_CHART: 60 * 60, // 1 hour (천체 트랜짓은 시간 단위로 변동)
-  NATAL_CHART: 60 * 60 * 24 * 30, // 30 days (출생 차트는 거의 불변)
-  SAJU: 60 * 60 * 24 * 7, // 7 days (사주 계산 결과)
+  TAROT_READING: 60 * 60 * 24, // 1 day (oracle)
+  CALENDAR_DATA: 60 * 60 * 24, // 1 day (counselor realtime daily context, calendar route)
+  COMPATIBILITY: 60 * 60 * 24 * 7, // 7 days (destiny-match discover)
+  NATAL_CHART: 60 * 60 * 24 * 30, // 30 days (counselor stable context, ephe-cache)
 } as const
 
 /**

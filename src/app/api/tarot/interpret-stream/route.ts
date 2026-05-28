@@ -197,8 +197,7 @@ export async function POST(req: NextRequest) {
     const body = validationResult.data
 
     // 안전 가드 — 자살/자해 등 위험 질문이 들어오면 AI 호출 없이 위기 페이로드만
-    // 즉시 응답하고 크레딧도 차감하지 않는다. questionEngineV2 추천 단계의
-    // 가드와 동일 키워드 셋을 공유 (src/lib/tarot/safety.ts).
+    // 즉시 응답하고 크레딧도 차감하지 않는다 (src/lib/tarot/safety.ts).
     const safetyQuestion = (body.userQuestion || '').trim()
     const safetyLanguage: 'ko' | 'en' = body.language === 'en' ? 'en' : 'ko'
     if (safetyQuestion && isDangerousQuestion(safetyQuestion)) {

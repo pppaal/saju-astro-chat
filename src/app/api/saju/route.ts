@@ -2,10 +2,8 @@
 
 import { NextRequest } from 'next/server'
 import { toDate } from 'date-fns-tz'
-import { prisma } from '@/lib/db/prisma'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { getCreditBalance } from '@/lib/credits/creditService'
-import { askClaude } from '@/lib/llm/askClaude'
 import { getNowInTimezone } from '@/lib/datetime'
 import {
   getDaeunCycles,
@@ -21,7 +19,6 @@ import {
 } from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { logger } from '@/lib/logger'
-import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 
 // Middleware imports
 import {
@@ -42,7 +39,6 @@ import {
   withYY,
   toBranch,
   pickLucky,
-  formatSajuForGPT,
   coerceJijanggan,
   enrichSibsin,
   buildJijangganRaw,
@@ -73,7 +69,6 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     calendarType,
     timezone,
     userTimezone,
-    skipInterpretation,
   } = validationResult.data
 
   // 2. Check premium status (credit-based)
@@ -255,104 +250,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     sajuResult.fiveElements
   )
 
-  const gptPrompt = formatSajuForGPT({
-    ...sajuResult,
-    birthDate: birthDateString,
-    daeun: daeunInfo,
-  })
-
   const analysisDate = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`
   const fullAdvancedAnalysis = advancedResult
-
-  // 10. AI backend call (GPT) with caching
-  let aiInterpretation = ''
-  let aiModelUsed = ''
-
-  // Cache key: birthDate + birthTime + gender + calendar + locale + premium status
-  const aiCacheKey = `saju:ai:v1:${birthDateString}:${adjustedBirthTime}:${gender}:${calendarType}:${context.locale}:${isPremium ? 'premium' : 'free'}`
-
-  const cachedAI = skipInterpretation
-    ? null
-    : await cacheGet<{ interpretation: string; model: string }>(aiCacheKey)
-
-  if (skipInterpretation) {
-    // chartOnly fast path — caller (e.g. 궁합 상담사) needs only the structured
-    // chart data, so skip the multi-thousand-token LLM interpretation entirely.
-    // This is the dominant latency of this route; skipping it makes the call
-    // pure local computation (~hundreds of ms).
-  } else if (cachedAI) {
-    aiInterpretation = cachedAI.interpretation
-    aiModelUsed = cachedAI.model
-  } else {
-    try {
-      const response = await askClaude(gptPrompt, {
-        theme: 'saju',
-        maxTokens: 3500,
-        timeoutMs: 90000,
-        label: 'saju-route',
-      })
-
-      if (response.ok && response.data) {
-        // Type-safe extraction with runtime validation
-        const responseData = response.data as Record<string, unknown>
-        const data = responseData?.data as Record<string, unknown> | undefined
-
-        // Validate string types at runtime before assignment
-        const fusionLayer = data?.fusion_layer
-        const report = data?.report
-        const model = data?.model
-
-        aiInterpretation =
-          typeof fusionLayer === 'string' ? fusionLayer : typeof report === 'string' ? report : ''
-        aiModelUsed = typeof model === 'string' ? model : 'gpt-4o'
-
-        // Cache the AI interpretation for 7 days
-        await cacheSet(
-          aiCacheKey,
-          { interpretation: aiInterpretation, model: aiModelUsed },
-          CACHE_TTL.SAJU_RESULT
-        )
-      }
-    } catch (aiErr) {
-      logger.warn('[Saju API] AI backend call failed:', aiErr)
-      const dayMasterName = sajuResult.dayMaster?.name || ''
-      aiInterpretation =
-        context.locale === 'ko'
-          ? `${dayMasterName} 일간으로 태어나셨습니다. 현재 AI 해석 서비스가 일시적으로 이용 불가합니다. 기본 사주 분석 결과를 확인해주세요.`
-          : `You were born with ${dayMasterName} as your day master. AI interpretation is temporarily unavailable. Please check the basic Saju analysis results.`
-      aiModelUsed = 'fallback'
-    }
-  }
-
-  // 11. Save reading record (logged-in users only). Skip on the chartOnly path
-  // — a 궁합 chart fetch shouldn't pollute the user's saju reading history.
-  if (context.userId && !skipInterpretation) {
-    try {
-      await prisma.reading.create({
-        data: {
-          userId: context.userId,
-          type: 'saju',
-          title: `${sajuResult.dayMaster?.name || ''} 일간 사주 분석`,
-          content: JSON.stringify({
-            birthDate: birthDateString,
-            birthTime: adjustedBirthTime,
-            gender,
-            timezone,
-            dayMaster: sajuResult.dayMaster,
-            fiveElements: sajuResult.fiveElements,
-            pillars: {
-              year: sajuResult.yearPillar,
-              month: sajuResult.monthPillar,
-              day: sajuResult.dayPillar,
-              time: sajuResult.timePillar,
-            },
-          }),
-        },
-      })
-    } catch (saveErr) {
-      logger.warn('[Saju API] Failed to save reading:', saveErr)
-    }
-  }
 
   // 12. Return success response
   return apiSuccess({
@@ -396,8 +295,6 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
       })
       .filter((x) => x.name && x.scope),
     relations,
-    aiInterpretation,
-    aiModelUsed,
     advancedAnalysis: fullAdvancedAnalysis,
   })
 }, createSajuGuard())
