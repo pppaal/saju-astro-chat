@@ -79,6 +79,10 @@ export default function DayInsights({
           locale={locale}
         />
       </motion.div>
+      {/* matrixVerdict 자연어 — 엔진이 만든 행동 지침 (verdict + guardrail + topClaim) */}
+      <motion.div variants={cardItem}>
+        <DayMatrixVerdictCard importantDate={importantDate} locale={locale} />
+      </motion.div>
       {/* Domains + Why 데스크탑 2-col, 모바일 stack */}
       <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
         <motion.div variants={cardItem}>
@@ -183,6 +187,50 @@ function DayVerdictCard({
   )
 }
 
+// ── 1.5 DayMatrixVerdict — evidence.matrixVerdict 의 자연어 (이전에 안 보이던 자원) ─
+function DayMatrixVerdictCard({
+  importantDate,
+  locale,
+}: {
+  importantDate: ImportantDate
+  locale?: CalLocale
+}) {
+  const t = getCalLabels(locale)
+  const mv = importantDate.evidence?.matrixVerdict
+  const verdict = mv?.verdict?.trim()
+  const guardrail = mv?.guardrail?.trim()
+  const topClaim = mv?.topClaim?.trim()
+  const topAnchor = mv?.topAnchorSummary?.trim()
+  if (!verdict && !guardrail && !topClaim && !topAnchor) return null
+
+  return (
+    <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-violet-950/15 backdrop-blur-sm border border-violet-500/15 rounded-2xl p-6 overflow-hidden">
+      <div className="pointer-events-none absolute -top-12 -right-10 w-32 h-32 bg-violet-500/10 blur-3xl rounded-full" />
+      <h3 className="relative text-base font-semibold text-violet-200 mb-3">
+        {t.dayMatrixVerdictTitle}
+      </h3>
+      {verdict && <p className="text-sm text-zinc-200 leading-relaxed mb-3">{verdict}</p>}
+      {topClaim && (
+        <div className="mb-3 pt-3 border-t border-white/5">
+          <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">
+            {t.dayMatrixTopClaimLabel}
+          </p>
+          <p className="text-sm text-zinc-300 leading-snug">{topClaim}</p>
+          {topAnchor && <p className="text-xs text-zinc-500 mt-1 leading-snug">{topAnchor}</p>}
+        </div>
+      )}
+      {guardrail && (
+        <div className="pt-3 border-t border-white/5">
+          <p className="text-[10px] uppercase tracking-widest text-rose-300/80 font-bold mb-1">
+            {t.dayMatrixGuardrailLabel}
+          </p>
+          <p className="text-sm text-zinc-300 leading-snug">{guardrail}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── 2. DayDomains ────────────────────────────────────────────────────
 function DayDomainsCard({
   importantDate,
@@ -237,15 +285,27 @@ function DayDomainsCard({
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2">
             {t.dayPatternsLabel}
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="space-y-1.5">
             {patterns.map((p) => (
-              <span
+              <div
                 key={p.id}
-                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-violet-500/10 text-violet-200 text-[11px]"
+                className="rounded-md bg-violet-500/10 border border-violet-500/15 px-2.5 py-2 text-[11px]"
               >
-                <span className="font-semibold">{p.name}</span>
-                {p.headline && <span className="opacity-80 font-medium">· {p.headline}</span>}
-              </span>
+                <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                  <span className="font-semibold text-violet-200">{p.name}</span>
+                  {p.headline && (
+                    <span className="text-violet-200/75 font-medium">· {p.headline}</span>
+                  )}
+                </div>
+                {p.action && (
+                  <div className="mt-1 flex items-baseline gap-1.5">
+                    <span className="text-[9px] uppercase tracking-widest text-emerald-300/80 font-bold shrink-0">
+                      {t.dayPatternActionLabel}
+                    </span>
+                    <span className="text-zinc-200 leading-snug">{p.action}</span>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
