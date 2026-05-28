@@ -334,10 +334,13 @@
   background: transparent;
   border: 0;
   color: #292524;
-  font-size: 0.95rem;
-  /* destiny 운명상담사(1.75) 와 비슷한 답변 줄간격으로 — 한국어 본문 가독성
-     일관. 1.55 → 1.7 (양쪽 채팅창 줄간격 차이 통일 PR). */
-  line-height: 1.7;
+  /* 운명 상담사와 폰트/간격 통일 — 같은 1rem · 1.75 · -0.005em ·
+     Noto Sans KR. 한국어 본문 가독성 일관. (이전 0.95rem · 1.7 · letter-
+     spacing/font-family 미설정 → 운명 기준으로 통일 PR) */
+  font-size: 1rem;
+  line-height: 1.75;
+  letter-spacing: -0.005em;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
   word-wrap: break-word;
   overflow-wrap: anywhere;
 }

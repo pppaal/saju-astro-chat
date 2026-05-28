@@ -777,6 +777,22 @@
   color: #fff;
 }
 
+/* 첨부파일 <input type="file"> — label 안에 숨겨놓고 부모 label(.attachButton)
+   이 클릭을 받음. 이게 없으면 모바일에서 native "Choose File" 박스가
+   바깥에 노출돼 깨진 듯 보임 (운명 상담사 입력창 깨짐 PR fix). */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  opacity: 0;
+}
+
 /* 이모지 + 텍스트 레이블을 같이 보이는 툴 버튼 (타로 / 운세차트) */
 .toolWithLabel {
   width: auto;
