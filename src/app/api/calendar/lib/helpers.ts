@@ -747,14 +747,6 @@ export function formatDateForResponse(
     summary: summarized,
     sajuFactors: orderedSajuFactors,
     astroFactors: orderedAstroFactors,
-    longCycleContext: (
-      date as { longCycleContext?: import('./yearlyDates').YearlyImportantDate['longCycleContext'] }
-    ).longCycleContext,
-    cycleInteractions: (
-      date as {
-        cycleInteractions?: import('./yearlyDates').YearlyImportantDate['cycleInteractions']
-      }
-    ).cycleInteractions,
     scoreBreakdown: (
       date as { scoreBreakdown?: import('./yearlyDates').YearlyImportantDate['scoreBreakdown'] }
     ).scoreBreakdown,

@@ -67,19 +67,6 @@ export interface ImportantDate {
   }
   /** 활성 신살 (역마/도화/화개 등) */
   shinsalActive?: { name: string; type: string; affectedArea: string }[]
-  /** 대운/세운/월운/일운 — 본명 일간 기준 십신까지 박은 풀 흐름 컨텍스트 */
-  longCycleContext?: {
-    daeun?: { ganji: string; ageStart: number; ageEnd: number; sibsinStem?: string }
-    sewoon?: { ganji: string; year: number; sibsinStem?: string }
-    wolwoon?: { ganji: string; sibsinStem?: string }
-    iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
-  }
-  /** 대운/세운/월운/일운/본명 끼리 충/합/형 */
-  cycleInteractions?: Array<{
-    pair: string
-    kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
-    blurb: string
-  }>
   /**
    * v3 점수 = (사주축 + 점성축) / 2 — WeeklyTimingChart의 사주/점성 라인이
    * 그대로 finalScore를 만든다 (그래프 ≡ 점수).
@@ -94,13 +81,6 @@ export interface ImportantDate {
     astroAxisRaw?: number
     axisAgreement: 'aligned' | 'mixed' | 'opposed'
     finalScore: number
-  }
-  /** 본명 사주 강약·격국·용신 컨텍스트 */
-  natalContext?: {
-    strength: string
-    geokguk: string
-    yongsin: { primary: string; secondary?: string; type: string; kibsin?: string }
-    summary: string
   }
   /** ── calendar-engine v2 augmentation (optional, non-breaking) ── */
   /** 매칭된 명명 패턴 — "재물 황금주간" 등 */
@@ -131,8 +111,6 @@ export interface ImportantDate {
   monthlyInterpretation?: CalendarInterpretation
   /** 그 날 60갑자(일진) + 본명 일간 십신 개인화 한 줄 (API 가 일별 부착) */
   dailyGanjiNarrative?: string
-  /** 일진 scope 룰 — "오늘 한 줄" 액션 (최대 4) */
-  dailyActions?: string[]
 }
 
 export interface CalendarData {
@@ -194,14 +172,6 @@ export interface CalendarData {
   }
   monthSummary?: {
     month: string
-    summary: string
-  }
-  relationshipWeather?: {
-    grade: 'strong' | 'good' | 'neutral' | 'caution'
-    summary: string
-  }
-  workMoneyWeather?: {
-    grade: 'strong' | 'good' | 'neutral' | 'caution'
     summary: string
   }
   error?: string
