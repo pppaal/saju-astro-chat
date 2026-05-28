@@ -7,6 +7,7 @@
 import { tarotDeck } from '@/lib/tarot/data'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import { apiFetch } from '@/lib/api'
+import { shuffle } from '@/lib/utils/array'
 
 type PersonData = {
   name: string
@@ -28,7 +29,10 @@ interface QuickCoupleTarotResult {
 // 카드 78장에서 N장 추출. 역방향 30% (50% 는 부정적 카드 비중 과해
 // 부담된다는 피드백 반영 — /api/tarot/route.ts 와 동일).
 function drawRandomCards(count: number) {
-  const shuffled = [...tarotDeck].sort(() => Math.random() - 0.5)
+  // Fisher-Yates via lib/utils/array — the previous
+  // `.sort(() => Math.random() - 0.5)` is biased by the engine sort
+  // algorithm; on V8 the first card was over-represented.
+  const shuffled = shuffle(tarotDeck)
   return shuffled.slice(0, count).map((card) => ({
     card,
     isReversed: Math.random() < 0.3,

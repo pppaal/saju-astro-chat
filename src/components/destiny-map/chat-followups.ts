@@ -2,6 +2,7 @@
 // Follow-up questions data extracted from Chat component
 
 import type { LangKey } from './chat-i18n'
+import { shuffle } from '@/lib/utils/array'
 
 type FollowUpsByTheme = {
   career: string[]
@@ -188,8 +189,10 @@ export function generateFollowUpQuestions(
     add(themed.family)
   }
 
-  // Fill with universal if needed
-  const shuffledUniversal = [...UNIVERSAL_FOLLOWUPS[effectiveLang]].sort(() => Math.random() - 0.5)
+  // Fill with universal if needed — Fisher-Yates via lib/utils/array.
+  // `.sort(() => Math.random() - 0.5)` is biased by the engine sort
+  // algorithm and was over-representing the first follow-up suggestion.
+  const shuffledUniversal = shuffle(UNIVERSAL_FOLLOWUPS[effectiveLang])
   add(shuffledUniversal)
 
   return picks.slice(0, maxCount)
