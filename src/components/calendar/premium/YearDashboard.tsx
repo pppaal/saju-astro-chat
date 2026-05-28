@@ -31,7 +31,9 @@ interface Props {
   yearlyConvergence?: NonNullable<
     NonNullable<ImportantDate['monthlyInterpretation']>['yearlyConvergence']
   >
-  /** 사용자 출생일 — life timeline 계산용 */
+  /** 엔진 lifetimePivots — past + current + upcoming 전부 계산됨 */
+  lifetimePivots?: NonNullable<ImportantDate['monthlyInterpretation']>['lifetimePivots']
+  /** 사용자 출생일 — engine pivots 없을 때 client estimate */
   birthDate?: string | null
   /** engine 현재 대운 라벨 — life timeline 의 active 항목 */
   currentPhaseLabel?: string | null
@@ -45,6 +47,7 @@ export default function YearDashboard({
   year,
   yearlyMonthly,
   yearlyConvergence,
+  lifetimePivots,
   birthDate,
   currentPhaseLabel,
   locale,
@@ -52,10 +55,27 @@ export default function YearDashboard({
 }: Props) {
   const t = getCalLabels(locale)
 
-  const lifeEntries = useMemo(
-    () => computeLifeTimeline({ birthDate, currentPhaseLabel, thisYear: year }),
-    [birthDate, currentPhaseLabel, year]
-  )
+  // 엔진 pivots 우선 — past/current/upcoming 다 실제 계산됨 (토성 회귀 + 대운 등).
+  // 없으면 client-side estimate (생년월 기반 표준 astro 마일스톤).
+  const lifeEntries = useMemo(() => {
+    const enginePivots = lifetimePivots?.pivots
+    if (enginePivots && enginePivots.length > 0) {
+      // 과거 가장 가까운 2개 + 현재 + 미래 3개 = 최대 6개
+      const past = enginePivots.filter((p) => p.phase === 'past').slice(-2)
+      const current = enginePivots.filter((p) => p.phase === 'current')
+      const upcoming = enginePivots.filter((p) => p.phase === 'upcoming').slice(0, 3)
+      return [...past, ...current, ...upcoming].map((p) => ({
+        ageLabel: `${p.age}세`,
+        year: p.year,
+        title: p.label,
+        description: p.meaning ?? (p.saju ? `${p.saju} — 10년 흐름의 시작` : ''),
+        active: p.phase === 'current',
+        bothSystems: p.bothSystems,
+        past: p.phase === 'past',
+      }))
+    }
+    return computeLifeTimeline({ birthDate, currentPhaseLabel, thisYear: year })
+  }, [lifetimePivots, birthDate, currentPhaseLabel, year])
 
   if (!yearlyMonthly || yearlyMonthly.length === 0) return null
 

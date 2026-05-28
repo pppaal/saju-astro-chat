@@ -4,13 +4,14 @@
  * Year tier insights — yearlyMonthly[].themes 평균 5바 + yearlyConvergence 큰 날.
  *
  *   1. YearFocus    — 5 theme bar (12개월 평균) + top tone narrative
- *   2. YearBigDays  — yearlyConvergence.keyDays bothSystems + meaning + astro/saju split
+ *   2. YearBigDays  — yearlyConvergence.keyDays bothSystems + meaning + 펼치기 가능한 근거
  *
  * 각 카드는 데이터 없으면 자체 렌더 스킵.
  */
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles, Compass } from 'lucide-react'
+import { Sparkles, Compass, ChevronDown } from 'lucide-react'
 import type { ImportantDate } from '../../types'
 import type { YearMonthly } from '../../DestinyMatrixPlanner'
 import { getCalLabels, type CalLocale } from '../labels'
@@ -198,41 +199,106 @@ function YearBigDaysCard({
         <Compass className="w-4 h-4 text-violet-400 group-hover:text-violet-300 transition" />
         {t.yearBigDaysTitle}
       </h3>
-      <div className="relative space-y-4">
-        {days.map((d) => {
-          const Wrapper: React.ElementType = onMonthClick ? 'button' : 'div'
-          return (
-            <Wrapper
-              key={d.date}
-              onClick={onMonthClick ? () => handleClick(d.date) : undefined}
-              className={`block w-full text-left ${
-                onMonthClick ? 'hover:bg-white/[0.03] -mx-2 px-2 py-1.5 rounded-lg transition' : ''
-              }`}
-            >
-              <div className="flex items-baseline gap-2 mb-1.5 flex-wrap">
-                <span className="text-base font-bold text-violet-200">{fmtDate(d.date)}</span>
-                {d.meaning && (
-                  <span className="text-sm text-zinc-300 leading-snug">— {d.meaning}</span>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
-                {d.astro.length > 0 && (
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-cyan-500/10 text-cyan-200 text-[11px]">
-                    <span className="font-semibold opacity-70">{t.bigTurnsAstroLabel}</span>
-                    <span className="font-medium">{d.astro.join(' · ')}</span>
-                  </span>
-                )}
-                {d.saju.length > 0 && (
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-200 text-[11px]">
-                    <span className="font-semibold opacity-70">{t.bigTurnsSajuLabel}</span>
-                    <span className="font-medium">{d.saju.join(' · ')}</span>
-                  </span>
-                )}
-              </div>
-            </Wrapper>
-          )
-        })}
+      <div className="relative space-y-3">
+        {days.map((d) => (
+          <BigDayRow
+            key={d.date}
+            date={fmtDate(d.date)}
+            meaning={d.meaning}
+            astro={d.astro}
+            saju={d.saju}
+            astroLabel={t.bigTurnsAstroLabel}
+            sajuLabel={t.bigTurnsSajuLabel}
+            onClick={onMonthClick ? () => handleClick(d.date) : undefined}
+          />
+        ))}
       </div>
+    </div>
+  )
+}
+
+/** 큰 날 한 줄 — meaning 만 기본, 펼치면 astro/saju 신호 하나씩 chip 으로. */
+function BigDayRow({
+  date,
+  meaning,
+  astro,
+  saju,
+  astroLabel,
+  sajuLabel,
+  onClick,
+}: {
+  date: string
+  meaning?: string
+  astro: string[]
+  saju: string[]
+  astroLabel: string
+  sajuLabel: string
+  onClick?: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const hasEvidence = astro.length > 0 || saju.length > 0
+  return (
+    <div className="rounded-lg hover:bg-white/[0.03] -mx-2 px-2 py-1.5 transition">
+      <div className="flex items-baseline gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={onClick}
+          className={`text-base font-bold text-violet-200 ${onClick ? 'hover:text-violet-100' : ''} transition`}
+          disabled={!onClick}
+        >
+          {date}
+        </button>
+        {meaning && <span className="text-sm text-zinc-300 leading-snug flex-1">— {meaning}</span>}
+        {hasEvidence && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpen((v) => !v)
+            }}
+            className="text-[11px] text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-0.5 ml-auto shrink-0 transition"
+            aria-expanded={open}
+            aria-label={open ? '근거 숨기기' : '근거 보기'}
+          >
+            근거
+            <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+          </button>
+        )}
+      </div>
+      {open && hasEvidence && (
+        <div className="mt-2 space-y-1.5">
+          {astro.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] uppercase tracking-wider text-cyan-400/80 font-bold shrink-0">
+                {astroLabel}
+              </span>
+              {astro.map((sig, i) => (
+                <span
+                  key={`a-${i}`}
+                  className="inline-flex px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-200 text-[11px] font-medium"
+                >
+                  {sig}
+                </span>
+              ))}
+            </div>
+          )}
+          {saju.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] uppercase tracking-wider text-amber-400/80 font-bold shrink-0">
+                {sajuLabel}
+              </span>
+              {saju.map((sig, i) => (
+                <span
+                  key={`s-${i}`}
+                  className="inline-flex px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-200 text-[11px] font-medium"
+                >
+                  {sig}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
