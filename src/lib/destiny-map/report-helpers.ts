@@ -4,6 +4,12 @@
 // Re-export from centralized security module for backward compatibility
 export { hashName, maskDisplayName, maskTextWithName } from '@/lib/security'
 
+// Re-export the canonical 'YYYY-MM-DD in this timezone' helper so the
+// existing `import { getDateInTimezone } from './report-helpers'` keeps
+// resolving while removing the local copy that diverged on its no-tz
+// fallback (now.toISOString() vs the canonical UTC components path).
+export { getDateInTimezone } from '@/lib/utils/timezone'
+
 // ============================================================
 // Text Cleansing
 // ============================================================
@@ -52,26 +58,6 @@ export function cleanseText(raw: string): string {
 // ============================================================
 // Date/Time Helpers
 // ============================================================
-
-/**
- * Get current date in user's timezone (YYYY-MM-DD)
- */
-export function getDateInTimezone(tz?: string): string {
-  const now = new Date()
-  if (!tz) {
-    return now.toISOString().slice(0, 10)
-  }
-  try {
-    return new Intl.DateTimeFormat('en-CA', {
-      timeZone: tz,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(now)
-  } catch {
-    return now.toISOString().slice(0, 10)
-  }
-}
 
 // ============================================================
 // Five Elements Helpers
