@@ -53,10 +53,7 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   const lastMessageIsTarotResult =
     lastMessageIsAssistant && (lastMessage?.content || '').trimStart().startsWith('🃏')
   const showClarifierAction =
-    !loading &&
-    lastMessageIsTarotResult &&
-    !clarifierUsed &&
-    typeof onOpenClarifier === 'function'
+    !loading && lastMessageIsTarotResult && !clarifierUsed && typeof onOpenClarifier === 'function'
   // 시간대 + (있으면) 이름 기반으로 풀에서 한 문구 픽. 같은 방문 안에선 안정,
   // 새 방문/언어/이름 변경 시 다시 픽. tr.empty 는 어떤 이유로 풀이 비었을
   // 때만 폴백.
@@ -73,8 +70,9 @@ export const MessagesPanel = React.memo(function MessagesPanel({
         </div>
       )}
 
-      {visibleMessages.length === 0 && !loading && (
-        customEmptyState ? (
+      {visibleMessages.length === 0 &&
+        !loading &&
+        (customEmptyState ? (
           <>{customEmptyState}</>
         ) : (
           <div className={styles.emptyState}>
@@ -87,17 +85,10 @@ export const MessagesPanel = React.memo(function MessagesPanel({
                 숫자/색깔 알려줘" felt like a fortune-app catalog when
                 the rest of the UI moved to a chat-first layout. */}
           </div>
-        )
-      )}
+        ))}
 
       {visibleMessages.map((m, i) => (
-        <MessageRow
-          key={m.id || i}
-          message={m}
-          index={i}
-          lang={effectiveLang}
-          styles={styles}
-        />
+        <MessageRow key={m.id || i} message={m} index={i} lang={effectiveLang} styles={styles} />
       ))}
 
       {loading && (
@@ -144,15 +135,13 @@ export const MessagesPanel = React.memo(function MessagesPanel({
 
       {showClarifierAction && (
         <div className={styles.postAnswerActions}>
-          <button
-            type="button"
-            className={styles.clarifierActionBtn}
-            onClick={onOpenClarifier}
-          >
+          <button type="button" className={styles.clarifierActionBtn} onClick={onOpenClarifier}>
             <span className={styles.clarifierActionIcon} aria-hidden="true">
               {'\u{1F0CF}'}
             </span>
-            {effectiveLang === 'ko' ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30' : 'Draw one more card'}
+            {effectiveLang === 'ko'
+              ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30'
+              : 'Draw one more card'}
           </button>
         </div>
       )}

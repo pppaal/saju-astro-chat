@@ -15,6 +15,7 @@ import {
 } from 'recharts'
 import { Clock } from 'lucide-react'
 import type { ImportantDate } from './types'
+import ChartTooltip from './premium/shared/ChartTooltip'
 
 interface Props {
   importantDate: ImportantDate | null
@@ -90,99 +91,181 @@ export default function DailyHourlyChart({ importantDate, dateStr }: Props) {
   const showNeutral50 = yMin <= 50 && yMax >= 50
 
   return (
-    <div className="bg-zinc-900/40 p-5 rounded-2xl border border-white/5">
-      <h3 className="text-base font-bold text-zinc-200 mb-1 flex items-center gap-2 tracking-wider uppercase">
+    <div className="relative bg-gradient-to-br from-zinc-900/60 via-zinc-900/50 to-zinc-950/60 backdrop-blur-sm border border-white/10 rounded-2xl p-5 overflow-hidden">
+      {/* decorative glows — amber top-left, cyan bottom-right */}
+      <div className="pointer-events-none absolute -top-16 -left-16 w-48 h-48 bg-amber-500/8 blur-3xl rounded-full" />
+      {hasAstro && (
+        <div className="pointer-events-none absolute -bottom-20 -right-16 w-56 h-56 bg-cyan-500/8 blur-3xl rounded-full" />
+      )}
+      <h3 className="relative text-base font-bold text-zinc-200 mb-1 flex items-center gap-2 tracking-wider uppercase">
         <Clock className="w-5 h-5 text-cyan-400" />
         시간대 흐름 (24시간)
       </h3>
-      <p className="text-xs text-zinc-500 mb-3">
+      <p className="relative text-xs text-zinc-500 mb-3">
         {hasAstro
           ? '하루 중 사주·점성 흐름 — 두 선이 교차하는 구간이 전환 시점, 50점이 기준선'
           : '하루 중 어느 시간에 운이 오는지 — 50점이 기준선'}
       </p>
-      <ResponsiveContainer width="100%" height={240}>
-        <ComposedChart data={data} margin={{ top: 14, right: 44, left: -10, bottom: 0 }}>
-          <defs>
-            <linearGradient id="hourSaju" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.04} />
-            </linearGradient>
-            <linearGradient id="hourAstro" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.32} />
-              <stop offset="100%" stopColor="#22d3ee" stopOpacity={0.03} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-          <XAxis dataKey="hour" stroke="#a1a1aa" fontSize={12} fontWeight={600} interval={2} />
-          <YAxis domain={[yMin, yMax]} stroke="#a1a1aa" fontSize={12} />
-          <Tooltip
-            contentStyle={{
-              background: '#09090b',
-              border: '1px solid #3f3f46',
-              borderRadius: '0.5rem',
-              fontSize: '13px',
-              padding: '8px 12px',
-            }}
-            labelStyle={{ color: '#e4e4e7', fontWeight: 700 }}
-            itemStyle={{ padding: '2px 0' }}
-            formatter={(value, name) => [`${value}점`, name]}
-          />
-          {hasAstro && (
-            <Legend
-              iconSize={12}
-              wrapperStyle={{ fontSize: '13px', fontWeight: 600, paddingTop: '12px' }}
+      <div className="relative">
+        <ResponsiveContainer width="100%" height={240}>
+          <ComposedChart data={data} margin={{ top: 14, right: 44, left: -10, bottom: 0 }}>
+            <defs>
+              <linearGradient id="hourSaju" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.55} />
+                <stop offset="45%" stopColor="#f59e0b" stopOpacity={0.2} />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="hourAstro" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#67e8f9" stopOpacity={0.5} />
+                <stop offset="45%" stopColor="#22d3ee" stopOpacity={0.18} />
+                <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="hourSajuStroke" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#fcd34d" />
+                <stop offset="100%" stopColor="#f59e0b" />
+              </linearGradient>
+              <linearGradient id="hourAstroStroke" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#a5f3fc" />
+                <stop offset="100%" stopColor="#22d3ee" />
+              </linearGradient>
+              <filter id="hourGlow" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="hourDotGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="3.5" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <CartesianGrid strokeDasharray="2 6" stroke="#27272a" vertical={false} />
+            <XAxis
+              dataKey="hour"
+              stroke="#71717a99"
+              fontSize={11}
+              fontWeight={600}
+              interval={2}
+              tickLine={false}
+              axisLine={false}
+              dy={4}
             />
-          )}
-          {showNeutral50 && (
-            <ReferenceLine y={50} stroke="#71717a" strokeWidth={1.5} strokeDasharray="4 4">
-              <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={11} />
-            </ReferenceLine>
-          )}
-          {nowHourLabel && (
-            <ReferenceLine
-              x={nowHourLabel}
-              stroke="#fbbf24"
-              strokeWidth={1.5}
-              strokeDasharray="3 3"
-            >
-              <Label
-                value="지금"
-                position="insideTop"
-                offset={8}
-                fill="#fbbf24"
-                fontSize={10}
-                fontWeight={700}
+            <YAxis
+              domain={[yMin, yMax]}
+              stroke="#71717a99"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip
+              content={<HourlyTooltip />}
+              cursor={{ stroke: '#fbbf24', strokeWidth: 1, strokeDasharray: '4 4', opacity: 0.5 }}
+            />
+            {hasAstro && (
+              <Legend
+                iconSize={10}
+                iconType="circle"
+                wrapperStyle={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  paddingTop: '12px',
+                  color: '#a1a1aa',
+                }}
               />
-            </ReferenceLine>
-          )}
-          <Area
-            type="natural"
-            dataKey="saju"
-            name="사주"
-            stroke="#f59e0b"
-            strokeWidth={2.5}
-            fill="url(#hourSaju)"
-            dot={false}
-            activeDot={{ r: 4, fill: '#f59e0b', stroke: '#0a0f1e', strokeWidth: 1.5 }}
-          />
-          {hasAstro && (
+            )}
+            {showNeutral50 && (
+              <ReferenceLine y={50} stroke="#71717a55" strokeWidth={1} strokeDasharray="4 4">
+                <Label value="보통 50" position="right" fill="#a1a1aa" fontSize={11} />
+              </ReferenceLine>
+            )}
+            {nowHourLabel && (
+              <ReferenceLine
+                x={nowHourLabel}
+                stroke="#fbbf24"
+                strokeWidth={1.5}
+                strokeDasharray="3 3"
+              >
+                <Label
+                  value="지금"
+                  position="insideTop"
+                  offset={8}
+                  fill="#fbbf24"
+                  fontSize={10}
+                  fontWeight={700}
+                />
+              </ReferenceLine>
+            )}
             <Area
-              type="natural"
-              dataKey="astro"
-              name="점성"
-              stroke="#22d3ee"
+              type="monotone"
+              dataKey="saju"
+              name="사주"
+              stroke="url(#hourSajuStroke)"
               strokeWidth={2.5}
-              fill="url(#hourAstro)"
+              fill="url(#hourSaju)"
               dot={false}
-              activeDot={{ r: 4, fill: '#22d3ee', stroke: '#0a0f1e', strokeWidth: 1.5 }}
+              activeDot={{
+                r: 5,
+                fill: '#fbbf24',
+                stroke: '#0a0f1e',
+                strokeWidth: 2,
+                filter: 'url(#hourDotGlow)',
+              }}
+              filter="url(#hourGlow)"
+              isAnimationActive
+              animationDuration={900}
+              animationEasing="ease-out"
             />
-          )}
-          {/* 교차 마커 ReferenceDot 제거 — 사용자 요청대로 점 제거.
-              "교차하는 구간"이 전환 시점이라는 의미는 두 area 흐름으로 충분히 표현. */}
-        </ComposedChart>
-      </ResponsiveContainer>
+            {hasAstro && (
+              <Area
+                type="monotone"
+                dataKey="astro"
+                name="점성"
+                stroke="url(#hourAstroStroke)"
+                strokeWidth={2.5}
+                fill="url(#hourAstro)"
+                dot={false}
+                activeDot={{
+                  r: 5,
+                  fill: '#67e8f9',
+                  stroke: '#0a0f1e',
+                  strokeWidth: 2,
+                  filter: 'url(#hourDotGlow)',
+                }}
+                filter="url(#hourGlow)"
+                isAnimationActive
+                animationDuration={900}
+                animationEasing="ease-out"
+              />
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
+}
+
+function HourlyTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: Array<{ name?: string; value?: number; dataKey?: string; color?: string }>
+  label?: string
+}) {
+  if (!active || !payload || payload.length === 0 || !label) return null
+  const series = payload
+    .filter((p) => typeof p.value === 'number' && p.name)
+    .map((p) => ({
+      name: p.name as string,
+      value: p.value as number,
+      color: p.color ?? '#fbbf24',
+    }))
+  return <ChartTooltip label={label} series={series} />
 }
 
 interface HourPoint {

@@ -33,9 +33,9 @@ export default function LifeTimeline({ entries, title, locale }: Props) {
   if (entries.length === 0) return null
   const cardTitle = title ?? t.lifeTimelineTitle
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-xl">
-      <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2 mb-6">
-        <Compass className="w-4 h-4 text-amber-400" />
+    <div className="bg-zinc-900/40 backdrop-blur-sm border border-white/[0.06] rounded-2xl p-6">
+      <h3 className="text-base font-semibold text-zinc-200 flex items-center gap-2 mb-6 group">
+        <Compass className="w-4 h-4 text-amber-400/80 group-hover:text-amber-300 transition" />
         {cardTitle}
       </h3>
       <div className="relative border-l border-zinc-800 ml-3 space-y-7 pb-2">

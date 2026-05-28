@@ -4,7 +4,11 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 import { localizeStoredCity } from '@/lib/cities/formatter'
 import { logger } from '@/lib/logger'
-import { BirthInfoFields, type BirthFieldsClasses, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+import {
+  BirthInfoFields,
+  type BirthFieldsClasses,
+  type BirthFieldsPatch,
+} from '@/components/birth/BirthInfoFields'
 
 // Light field styling that matches the profile page's premium white
 // surface. Passed to BirthInfoFields so the shared (dark-default) form
@@ -15,8 +19,7 @@ const lightFieldClasses: Required<BirthFieldsClasses> = {
   input:
     'w-full rounded-xl border border-[#e0ddd7] bg-white px-3 py-2.5 text-[16px] text-[#1c1917] outline-none transition placeholder:text-[#a8a29e] focus:border-[#a07a3c] disabled:cursor-not-allowed disabled:opacity-50',
   row: 'grid grid-cols-2 gap-2.5',
-  checkboxLabel:
-    'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[#57534e]',
+  checkboxLabel: 'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[#57534e]',
   checkbox: 'h-3.5 w-3.5 cursor-pointer accent-[#a07a3c] [color-scheme:light]',
   suggestionList:
     'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e7e4df] bg-white p-1 shadow-[0_16px_40px_rgba(28,25,23,0.12)]',
@@ -58,7 +61,7 @@ export function ProfileEditModal({
   const [timeUnknown, setTimeUnknown] = useState(!initial.birthTime)
   const [birthTime, setBirthTime] = useState(initial.birthTime ?? '')
   const [gender, setGender] = useState<'M' | 'F'>(
-    initial.gender === 'F' || initial.gender === 'Female' ? 'F' : 'M',
+    initial.gender === 'F' || initial.gender === 'Female' ? 'F' : 'M'
   )
   const [birthCity, setBirthCity] = useState(localizeStoredCity(initial.birthCity, locale) ?? '')
   const [cityData, setCityData] = useState<{
@@ -81,11 +84,15 @@ export function ProfileEditModal({
     if (patch.timeUnknown !== undefined) setTimeUnknown(patch.timeUnknown)
     if (patch.gender) setGender(patch.gender === 'female' ? 'F' : 'M')
     if (patch.city !== undefined) setBirthCity(patch.city)
-    if (patch.latitude !== undefined || patch.longitude !== undefined || patch.timeZone !== undefined) {
+    if (
+      patch.latitude !== undefined ||
+      patch.longitude !== undefined ||
+      patch.timeZone !== undefined
+    ) {
       setCityData((prev) => ({
-        latitude: patch.latitude !== undefined ? patch.latitude ?? undefined : prev.latitude,
-        longitude: patch.longitude !== undefined ? patch.longitude ?? undefined : prev.longitude,
-        timezone: patch.timeZone !== undefined ? patch.timeZone ?? undefined : prev.timezone,
+        latitude: patch.latitude !== undefined ? (patch.latitude ?? undefined) : prev.latitude,
+        longitude: patch.longitude !== undefined ? (patch.longitude ?? undefined) : prev.longitude,
+        timezone: patch.timeZone !== undefined ? (patch.timeZone ?? undefined) : prev.timezone,
       }))
     }
   }
@@ -119,7 +126,9 @@ export function ProfileEditModal({
       onClose()
     } catch (err) {
       logger.warn('[profile/edit] save failed', err)
-      setError(t('저장에 실패했어요. 잠시 후 다시 시도해 주세요.', 'Failed to save. Please try again.'))
+      setError(
+        t('저장에 실패했어요. 잠시 후 다시 시도해 주세요.', 'Failed to save. Please try again.')
+      )
     } finally {
       setSaving(false)
     }
