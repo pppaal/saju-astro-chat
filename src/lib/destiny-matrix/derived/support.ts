@@ -1,4 +1,5 @@
 import type { CrossAgreementMatrixRow, CrossSnapshot } from '@/lib/destiny-matrix/types'
+import { clamp01 } from '@/lib/utils/math'
 
 export const toOptionalString = (value: unknown): string | undefined => {
   if (typeof value !== 'string') return undefined
@@ -76,10 +77,6 @@ const REQUIRED_ADVANCED_ASTRO_SIGNAL_KEYS = [
   'asteroids',
   'extraPoints',
 ] as const
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value))
-}
 
 function round3(value: number): number {
   return Math.round(value * 1000) / 1000

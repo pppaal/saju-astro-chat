@@ -1,4 +1,5 @@
 import type { MatrixCalculationInput, TransitCycle } from './types'
+import { clamp01 } from '@/lib/utils/math'
 
 export interface AstroTimingIndex {
   decade: number
@@ -37,10 +38,6 @@ const ADVANCED_SIGNAL_WEIGHTS: Record<string, Partial<Record<HorizonKey, number>
   midpoints: { monthly: 0.1, daily: 0.1 },
   asteroids: { monthly: 0.05 },
   extraPoints: { monthly: 0.04, daily: 0.04 },
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value))
 }
 
 function round3(value: number): number {

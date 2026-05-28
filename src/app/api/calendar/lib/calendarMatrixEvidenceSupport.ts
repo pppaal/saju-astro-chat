@@ -23,6 +23,7 @@ import {
   describePhaseFlow,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 import { sanitizeMatrixNarrativeLine } from './calendarMatrixTextSupport'
+import { clamp01 } from '@/lib/utils/math'
 import { dedupeTexts } from './textDedupe'
 
 type CrossEvidenceBundle = {
@@ -100,10 +101,6 @@ const PLANET_KO: Record<string, string> = {
   'Natal Sun': '본명 태양',
 }
 
-function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0
-  return Math.min(1, Math.max(0, value))
-}
 
 function compactText(value: string, maxLength: number): string {
   const normalized = value.replace(/\s+/g, ' ').trim()

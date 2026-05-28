@@ -10,6 +10,7 @@ import {
   resolveScenarioBranchPolicyWeight,
   resolveScenarioTimingPolicyWeight,
 } from './scenarioPolicies'
+import { clamp, clamp01 } from '@/lib/utils/math'
 
 interface ResolvedAstroTimingIndex {
   decade: number
@@ -800,18 +801,10 @@ function buildFallbackDefinitions(pattern: PatternResult): ScenarioDefinition[] 
   ]
 }
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
-
 function compressScenarioProbability(raw: number): number {
   if (raw <= 82) return raw
   if (raw <= 90) return 82 + (raw - 82) * 0.72
   return 87.76 + (raw - 90) * 0.16
-}
-
-function clamp01(value: number): number {
-  return clamp(value, 0, 1)
 }
 
 function normalizeAstroTimingIndex(raw: unknown): ResolvedAstroTimingIndex | undefined {
