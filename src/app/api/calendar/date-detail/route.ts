@@ -101,12 +101,14 @@ export const GET = withApiMiddleware(
       )
 
       const birthYear = parseInt(birthDate.slice(0, 4), 10)
+      const reqLocale = extractLocale(request)
       const response = buildDateDetailResponse({
         natal,
         dayCell: dayCell ?? hourlyCells[0],
         hourlyCells,
         date,
         birthYear,
+        lang: reqLocale === 'en' ? 'en' : 'ko',
       })
 
       return apiSuccess(response)

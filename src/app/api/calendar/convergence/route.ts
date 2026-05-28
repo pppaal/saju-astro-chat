@@ -19,6 +19,7 @@ import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/ap
 import { LOCATION_COORDS, parseBirthDate } from '../lib/helpers'
 import { LIMITS } from '@/lib/validation/patterns'
 import { normalizeGender } from '@/lib/utils/gender'
+import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,8 +76,7 @@ export const GET = withApiMiddleware(
     try {
       // 'F' 한 글자도 처리 — 기존 패턴은 'F'→'f' 매칭 실패로 여자 사용자의
       // 대운 방향이 거꾸로 가던 회귀.
-      const sajuGender: 'male' | 'female' =
-        normalizeGender(gender) === 'female' ? 'female' : 'male'
+      const sajuGender: 'male' | 'female' = normalizeGender(gender) === 'female' ? 'female' : 'male'
       const { calculateSajuData } = await import('@/lib/saju/saju')
       const sajuResult = calculateSajuData(
         birthDateParam,
@@ -118,7 +118,23 @@ export const GET = withApiMiddleware(
       // daily 배열은 더 이상 응답에 포함하지 않는다 — 메인 /api/calendar 응답이 이미
       // 365일 v2 점수를 score/displayScore에 담고 있어서 client 백필이 필요 없다.
       // 페이로드 ~30KB 절약.
-      const res = NextResponse.json({ success: true, convergence, monthly })
+      // EN 모드면 convergence.keyDays 의 astro/saju 신호명 번역.
+      const localizedConvergence =
+        interpLang === 'en' && convergence?.keyDays
+          ? {
+              ...convergence,
+              keyDays: convergence.keyDays.map((d) => ({
+                ...d,
+                astro: d.astro.map((sig) => translateSignalLabel(sig, 'en')),
+                saju: d.saju.map((sig) => translateSignalLabel(sig, 'en')),
+              })),
+            }
+          : convergence
+      const res = NextResponse.json({
+        success: true,
+        convergence: localizedConvergence,
+        monthly,
+      })
       // 같은 본명·연도면 결정적 — 캐시 적극 활용.
       res.headers.set('Cache-Control', 'private, max-age=3600, stale-while-revalidate=1800')
       return res
