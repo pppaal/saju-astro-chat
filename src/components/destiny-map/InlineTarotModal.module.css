@@ -71,8 +71,9 @@
 }
 
 .closeButton {
+  /* 헤더 close — 다른 헤더 아이콘 버튼들과 통일 (36×36 원형, border X). */
   background: transparent;
-  border: 1px solid #e7e5e4;
+  border: 0;
   color: #57534e;
   width: 36px;
   height: 36px;

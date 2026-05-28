@@ -133,7 +133,8 @@ export function CompatChartModal({
           type="button"
           onClick={onClose}
           aria-label={isKo ? '닫기' : 'Close'}
-          className="absolute right-4 top-4 rounded-full p-1.5 text-[#a8a29e] transition-colors hover:bg-[#f5f4f1] hover:text-[#1c1917]"
+          /* 다른 헤더 close 버튼과 사이즈 통일 — 36×36 원형, border X. */
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[#a8a29e] transition-colors hover:bg-[#f5f4f1] hover:text-[#1c1917]"
         >
           <X size={18} />
         </button>

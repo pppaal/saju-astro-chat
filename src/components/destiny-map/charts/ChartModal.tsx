@@ -48,7 +48,8 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
           type="button"
           onClick={onClose}
           aria-label={isKo ? '닫기' : 'Close'}
-          className="absolute right-4 top-4 rounded-full p-1.5 text-stone-400 transition-colors hover:bg-stone-800 hover:text-white"
+          /* 다른 헤더 close 버튼과 사이즈 통일 — 36×36 원형, border X. */
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-stone-800 hover:text-white"
         >
           <X size={18} />
         </button>
