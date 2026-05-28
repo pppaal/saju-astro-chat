@@ -20,9 +20,9 @@ type City = {
   country: string
   lat: number
   lon: number
-  // dr5hn states 데이터에서 매칭된 admin1 영문명. 약 80% 도시에 들어 있음.
-  // Springfield(IL) / Springfield(MO) 같은 동명 도시 disambiguation 용도.
-  region?: string
+  // dr5hn 의 state.name (영문). build-cities-min.py 가 region 없는 row 는
+  // drop 하므로 항상 존재. KO 표시는 REGION_NAME_KR 로 변환.
+  region: string
 }
 
 type CityResult = City & {

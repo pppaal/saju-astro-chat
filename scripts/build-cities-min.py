@@ -3,17 +3,19 @@
 public/data/cities.min.json 재생성 스크립트.
 
 source: dr5hn/countries-states-cities-database (master branch)
-union: 옛 cities.min.json 에만 있던 도시도 보존 — UX 회귀 방지
 
 사용:
-  pip install requests  # (or python3 -m pip install requests)
   python3 scripts/build-cities-min.py
 
 결과 row shape:
-  { name, country (ISO2), lat, lon, region? }
+  { name, country (ISO2), lat, lon, region }
 
-region 은 dr5hn 의 state.name (영문). KO 표시는 src/lib/cities/data/
-region-names-kr.json + lookups.ts:REGION_NAME_KR 에서 한글화.
+region 은 dr5hn 의 state.name (영문). 모든 row 에 region 보장
+(state 없이 들어있던 일부 city 는 의도적으로 drop — admin1 없는 도시는
+사실상 country-only 매핑으로 표기 가치 낮음).
+
+KO 표시는 src/lib/cities/data/region-names-kr.json +
+lookups.ts:REGION_NAME_KR 에서 한글화 (PR #851).
 """
 
 import json
@@ -33,7 +35,7 @@ def fetch_dr5hn() -> list:
         return json.load(r)
 
 
-def flatten(csc: list) -> tuple[list, set]:
+def flatten(csc: list) -> list:
     rows: list = []
     keys: set = set()  # (country_iso2, name.lower())
     for c in csc:
@@ -42,6 +44,8 @@ def flatten(csc: list) -> tuple[list, set]:
             continue
         for st in c.get("states", []):
             region = st.get("name")
+            if not region:
+                continue
             for city in st.get("cities", []):
                 n = city.get("name")
                 la, lo = city.get("latitude"), city.get("longitude")
@@ -55,39 +59,16 @@ def flatten(csc: list) -> tuple[list, set]:
                 if key in keys:
                     continue  # first occurrence wins
                 keys.add(key)
-                row = {"name": n, "country": iso2, "lat": la, "lon": lo}
-                if region:
-                    row["region"] = region
-                rows.append(row)
-    return rows, keys
-
-
-def merge_old(rows: list, keys: set) -> int:
-    """옛 cities.min.json 에만 있는 도시들 보존."""
-    if not TARGET.exists():
-        return 0
-    with TARGET.open() as f:
-        old = json.load(f)
-    added = 0
-    for c in old:
-        key = (c.get("country"), c.get("name", "").lower())
-        if key in keys:
-            continue
-        kept = {k: v for k, v in c.items() if k in ("name", "country", "lat", "lon", "region")}
-        rows.append(kept)
-        keys.add(key)
-        added += 1
-    return added
+                rows.append(
+                    {"name": n, "country": iso2, "lat": la, "lon": lo, "region": region}
+                )
+    return rows
 
 
 def main() -> int:
     csc = fetch_dr5hn()
-    rows, keys = flatten(csc)
-    print(f"dr5hn rows: {len(rows)}")
-    added = merge_old(rows, keys)
-    print(f"old-only preserved: {added}, total: {len(rows)}")
-    with_region = sum(1 for r in rows if r.get("region"))
-    print(f"with region: {with_region} ({100 * with_region / len(rows):.1f}%)")
+    rows = flatten(csc)
+    print(f"rows: {len(rows)} (all with region)")
     with TARGET.open("w") as f:
         json.dump(rows, f, separators=(",", ":"), ensure_ascii=False)
     print(f"wrote {TARGET} ({TARGET.stat().st_size / 1024 / 1024:.1f} MB)")
