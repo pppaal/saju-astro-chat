@@ -240,10 +240,24 @@ function DateThreeSelect({
   inputClass: string
 }) {
   const isKo = locale === 'ko'
-  const parsed = parseISODate(value)
-  const year = parsed?.y ?? ''
-  const month = parsed?.m ?? ''
-  const day = parsed?.d ?? ''
+
+  // 핵심: y/m/d 부분 상태를 component 안에 유지한다. 상위 폼은 ISO 한
+  // 줄("YYYY-MM-DD") 로만 받기 때문에, 사용자가 년만 골랐을 때
+  // onChange('') 로 다시 리셋하면 선택이 즉시 사라져 "선택이 안 된다"는
+  // 증상이 나옴. 부분 상태는 local 로 갖고 3 개 다 채워졌을 때만 ISO 로
+  // emit. 부모가 외부에서 birthDate 를 set 하면 sync.
+  const [year, setYear] = React.useState<number | ''>('')
+  const [month, setMonth] = React.useState<number | ''>('')
+  const [day, setDay] = React.useState<number | ''>('')
+
+  // 부모의 value 가 바뀌면 local 동기화. ISO 문자열이 있으면 파싱해서
+  // y/m/d 채우고, 비어있으면 local 도 비움.
+  React.useEffect(() => {
+    const parsed = parseISODate(value)
+    setYear(parsed?.y ?? '')
+    setMonth(parsed?.m ?? '')
+    setDay(parsed?.d ?? '')
+  }, [value])
 
   const currentYear = new Date().getFullYear()
   // 1900 ~ 올해. 출생연도이므로 미래는 불필요. 최신 연도부터 내려가게 정렬.
@@ -254,13 +268,20 @@ function DateThreeSelect({
   const days = Array.from({ length: maxDay }, (_, i) => i + 1)
 
   const emit = (y: number | '', m: number | '', d: number | '') => {
+    setYear(y)
+    setMonth(m)
+    setDay(d)
     if (y === '' || m === '' || d === '') {
+      // 부분 선택 — 상위로는 전달 안 함 (이전 값이 있더라도 일부러 안 지우는
+      // 게 자연스럽지만, "Year 만 다시 골랐을 때 이전 month/day 가 살아있는"
+      // 상태 일관성이 더 중요해서 비어있다고 알려준다).
       onChange('')
       return
     }
     // month 변경으로 day 가 새 maxDay 를 넘으면 clamp.
     const dMax = daysInMonth(Number(y), Number(m))
     const dClamped = Math.min(Number(d), dMax)
+    if (dClamped !== Number(d)) setDay(dClamped)
     onChange(
       `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(dClamped).padStart(2, '0')}`
     )
