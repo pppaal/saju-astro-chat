@@ -18,8 +18,20 @@ const EL_COLOR: Record<string, Record<Theme, string>> = {
   metal: { dark: 'text-slate-200', light: 'text-slate-500' },
   water: { dark: 'text-sky-300', light: 'text-sky-600' },
 }
-const HANJA_EL: Record<string, string> = { 목: 'wood', 화: 'fire', 토: 'earth', 금: 'metal', 수: 'water' }
-const EN_EL: Record<string, string> = { Wood: 'wood', Fire: 'fire', Earth: 'earth', Metal: 'metal', Water: 'water' }
+const HANJA_EL: Record<string, string> = {
+  목: 'wood',
+  화: 'fire',
+  토: 'earth',
+  금: 'metal',
+  수: 'water',
+}
+const EN_EL: Record<string, string> = {
+  Wood: 'wood',
+  Fire: 'fire',
+  Earth: 'earth',
+  Metal: 'metal',
+  Water: 'water',
+}
 
 // group1: 오행(한자), group2: 오행(영문), group3: 별자리(한글), group4: 별자리(영문)
 const PATTERN = new RegExp(
@@ -31,19 +43,23 @@ const PATTERN = new RegExp(
   ]
     .map((r) => r.source)
     .join('|'),
-  'g',
+  'g'
 )
 
 export function ChartReading({
   text,
   theme = 'dark',
   className = '',
+  style,
 }: {
   text: string
   theme?: Theme
   className?: string
+  style?: React.CSSProperties
 }) {
-  const signClass = theme === 'dark' ? 'font-semibold text-indigo-200' : 'font-semibold text-indigo-600'
+  // 별자리 — 옛 indigo → gold (navy+gold 디자인 시스템 통일).
+  const signClass =
+    theme === 'dark' ? 'font-semibold text-[#e8cc8a]' : 'font-semibold text-[#a07a3c]'
   const nodes: React.ReactNode[] = []
   let last = 0
   let key = 0
@@ -59,27 +75,31 @@ export function ChartReading({
       nodes.push(
         <span key={key++} className={`font-semibold ${EL_COLOR[el][theme]}`}>
           {elKo}
-        </span>,
+        </span>
       )
     } else if (elEn) {
       const el = EN_EL[elEn]
       nodes.push(
         <span key={key++} className={`font-semibold ${EL_COLOR[el][theme]}`}>
           {elEn}
-        </span>,
+        </span>
       )
     } else if (signKo || signEn) {
       nodes.push(
         <span key={key++} className={signClass}>
           {signKo || signEn}
-        </span>,
+        </span>
       )
     }
     last = m.index + full.length
   }
   if (last < text.length) nodes.push(text.slice(last))
 
-  return <p className={className}>{nodes}</p>
+  return (
+    <p className={className} style={style}>
+      {nodes}
+    </p>
+  )
 }
 
 export default ChartReading

@@ -41,40 +41,67 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
       aria-label={isKo ? '내 차트' : 'My chart'}
     >
       <div
-        className="chart-pop-in relative w-full max-w-2xl rounded-2xl border border-stone-700/50 bg-gradient-to-b from-stone-900 to-stone-950 p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+        /* 옛 warm stone 그라데이션 → navy glass + gold-line. About/FAQ 와
+           통일. 모바일 max-h 96dvh 풀스크린에 가까워 키보드 영역 안 잘림. */
+        className="chart-pop-in relative w-full max-w-2xl rounded-2xl p-6 overflow-y-auto"
+        style={{
+          background: 'rgba(17, 24, 39, 0.92)',
+          border: '1px solid var(--ds-gold-line)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+          maxHeight: '96dvh',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label={isKo ? '닫기' : 'Close'}
-          /* 다른 헤더 close 버튼과 사이즈 통일 — 36×36 원형, border X. */
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-stone-400 transition-colors hover:bg-stone-800 hover:text-white"
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-white/10"
+          style={{ color: 'var(--ds-dark-text-muted)' }}
         >
           <X size={18} />
         </button>
 
         <div className="mb-5 space-y-1 text-center">
-          <h2 className="text-lg font-bold text-stone-200">
+          <h2
+            className="text-xl font-semibold"
+            style={{
+              color: 'var(--ds-dark-text)',
+              fontFamily: 'var(--font-cinzel), Georgia, serif',
+              letterSpacing: '-0.01em',
+            }}
+          >
             {isKo ? '내 운명 차트' : 'My Destiny Chart'}
           </h2>
-          <p className="text-xs text-stone-400">
+          <p className="text-xs" style={{ color: 'var(--ds-gold-on-dark)' }}>
             {isKo ? '사주팔자와 네이탈 차트' : 'Saju Pillars & Natal Chart'}
           </p>
         </div>
 
         {readLine && (
           <div
-            className="chart-rise-in mb-5 rounded-2xl border border-stone-700/70 bg-stone-800/60 p-4 shadow-inner"
-            style={{ '--i': 0 } as React.CSSProperties}
+            className="chart-rise-in mb-5 rounded-2xl p-4"
+            style={
+              {
+                ['--i' as string]: 0,
+                background: 'rgba(212, 181, 114, 0.05)',
+                border: '1px solid var(--ds-gold-line)',
+              } as React.CSSProperties
+            }
           >
-            <div className="mb-1.5 text-xs font-semibold tracking-wide text-stone-400">
+            <div
+              className="mb-1.5 text-xs font-semibold tracking-wide uppercase"
+              style={{ color: 'var(--ds-gold-on-dark)' }}
+            >
               {isKo ? '한 줄 해석' : 'Quick read'}
             </div>
             <ChartReading
               text={readLine}
               theme="dark"
-              className="text-sm leading-relaxed text-stone-200"
+              className="text-sm leading-relaxed"
+              style={{ color: 'var(--ds-dark-text)' }}
             />
           </div>
         )}
@@ -82,21 +109,39 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
         <div className="space-y-6">
           {/* 동양 — 사주팔자 · 오행 균형 (한 그룹으로 묶음) */}
           <section
-            className="chart-rise-in space-y-3 rounded-2xl border border-stone-800/80 bg-stone-900/40 p-4"
-            style={{ '--i': 1 } as React.CSSProperties}
+            className="chart-rise-in space-y-3 rounded-2xl p-4"
+            style={
+              {
+                ['--i' as string]: 1,
+                background: 'var(--ds-dark-surface)',
+                border: '1px solid var(--ds-dark-border)',
+              } as React.CSSProperties
+            }
           >
-            <h3 className="border-l-2 border-rose-500 px-2 text-sm font-semibold text-stone-200">
+            <h3
+              className="border-l-2 px-2 text-sm font-semibold"
+              style={{
+                borderColor: 'var(--ds-gold-on-dark)',
+                color: 'var(--ds-dark-text)',
+              }}
+            >
               {isKo ? '동양 — 사주팔자 · 오행 균형' : 'Eastern — Saju & Five Elements'}
             </h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
-                <div className="px-1 text-[11px] font-medium text-stone-500">
+                <div
+                  className="px-1 text-[11px] font-medium uppercase tracking-wider"
+                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                >
                   {isKo ? '사주팔자' : '4 Pillars'}
                 </div>
                 <SajuChart saju={saju as never} lang={lang} />
               </div>
               <div className="space-y-1.5">
-                <div className="px-1 text-[11px] font-medium text-stone-500">
+                <div
+                  className="px-1 text-[11px] font-medium uppercase tracking-wider"
+                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                >
                   {isKo ? '오행 균형' : 'Five-Element Balance'}
                 </div>
                 <ElementRadar saju={saju} lang={lang} />
@@ -106,10 +151,22 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
 
           {/* 서양 — 네이탈 차트 */}
           <section
-            className="chart-rise-in space-y-3 rounded-2xl border border-stone-800/80 bg-stone-900/40 p-4"
-            style={{ '--i': 2 } as React.CSSProperties}
+            className="chart-rise-in space-y-3 rounded-2xl p-4"
+            style={
+              {
+                ['--i' as string]: 2,
+                background: 'var(--ds-dark-surface)',
+                border: '1px solid var(--ds-dark-border)',
+              } as React.CSSProperties
+            }
           >
-            <h3 className="border-l-2 border-indigo-500 px-2 text-sm font-semibold text-stone-200">
+            <h3
+              className="border-l-2 px-2 text-sm font-semibold"
+              style={{
+                borderColor: 'var(--ds-gold-on-dark)',
+                color: 'var(--ds-dark-text)',
+              }}
+            >
               {isKo ? '서양 — 네이탈 차트' : 'Western — Natal Chart'}
             </h3>
             <NatalChart astro={astro as never} lang={lang} />
