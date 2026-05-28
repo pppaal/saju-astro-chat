@@ -17,9 +17,17 @@ export const dynamic = 'force-dynamic'
 // 페이지 진입 / 로그인 직후 클라이언트가 호출 → 결과 있으면 CreditRewardModal
 // 노출 → 닫으면 POST 로 acknowledge.
 
-// acknowledgedAt 컬럼이 production 에 아직 적용 안 된 경우 P2022 graceful.
+// acknowledgedAt 컬럼이 production 에 아직 적용 안 된 경우 graceful.
+// P2022 (column does not exist) 가 정상 신호지만 일부 Prisma 버전 / Postgres
+// 드라이버 조합에서 code 가 비거나 다른 값으로 떨어지는 케이스 보고됨 —
+// "(not available)" 같은 placeholder 메시지면 같은 root cause 로 간주.
 function isMissingColumnError(err: unknown): boolean {
-  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2022'
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2022') {
+    return true
+  }
+  // fallback: 메시지에서 column does not exist 패턴 감지.
+  const msg = (err as { message?: string } | null)?.message ?? ''
+  return /column .* does not exist/i.test(msg) && /acknowledged|not available/i.test(msg)
 }
 
 export const GET = withApiMiddleware(

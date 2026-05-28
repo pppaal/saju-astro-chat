@@ -67,6 +67,16 @@ export const GET = withApiMiddleware(
         purchases,
       })
     } catch (err) {
+      // 마이그레이션이 prod 에 아직 안 적용된 신규 컬럼(acknowledgedAt 등)
+      // 때문에 P2022 가 떨어지면 사용자한테 500 띄우기보단 빈 구매 내역으로
+      // graceful degrade — 페이지 진입은 막지 않는다.
+      const code = (err as { code?: string } | null)?.code
+      const msg = (err as { message?: string } | null)?.message ?? ''
+      const isMissingColumn = code === 'P2022' || /column .* does not exist/i.test(msg)
+      if (isMissingColumn) {
+        logger.warn('[me/purchases GET] missing column — migration not applied', { msg })
+        return apiSuccess({ subscription: null, purchases: [] })
+      }
       logger.error('[me/purchases GET]', err)
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal Server Error')
     }

@@ -365,17 +365,31 @@ export async function addBonusCredits(
   const acknowledgedAt = source === 'purchase' ? now : null
 
   return prisma.$transaction(async (tx) => {
-    await tx.bonusCreditPurchase.create({
-      data: {
-        userId,
-        amount,
-        remaining: amount,
-        expiresAt,
-        source,
-        stripePaymentId,
-        acknowledgedAt,
-      },
-    })
+    // acknowledgedAt 컬럼 — 마이그레이션이 prod 에 아직 안 적용된 환경에서
+    // 1차 시도 P2022 로 실패하면 acknowledgedAt 빼고 한 번 더 시도해서
+    // 적어도 row 는 생성. 같은 패턴: tarot save route 의 신규 컬럼 처리.
+    type CreateData = Parameters<typeof tx.bonusCreditPurchase.create>[0]['data']
+    const baseData: CreateData = {
+      userId,
+      amount,
+      remaining: amount,
+      expiresAt,
+      source,
+      stripePaymentId,
+    }
+    try {
+      await tx.bonusCreditPurchase.create({
+        data: { ...baseData, acknowledgedAt },
+      })
+    } catch (err) {
+      const code = (err as { code?: string } | null)?.code
+      const msg = (err as { message?: string } | null)?.message ?? ''
+      const isMissingColumn =
+        code === 'P2022' || (/column .* does not exist/i.test(msg) && /acknowledged/i.test(msg))
+      if (!isMissingColumn) throw err
+      // 컬럼 없음. acknowledgedAt 빼고 재시도 → 적어도 row 는 생성.
+      await tx.bonusCreditPurchase.create({ data: baseData })
+    }
     return tx.userCredits.update({
       where: { userId },
       data: {
