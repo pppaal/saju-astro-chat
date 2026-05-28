@@ -57,6 +57,10 @@ export const GET = withApiMiddleware(
         summary: true,
         keyTopics: true,
         messages: true,
+        // 사이드바 부제용 — destiny: meta.profile.name / compat: meta.persons[].name.
+        // 사이드바 리스트 응답이 가벼워야 하므로 메시지처럼 통째로 들고 와서
+        // 클라가 필요한 필드만 추출 (meta 자체가 수~수십 KB 짜리 큰 값은 아님).
+        meta: true,
         createdAt: true,
         updatedAt: true,
         lastMessageAt: true,

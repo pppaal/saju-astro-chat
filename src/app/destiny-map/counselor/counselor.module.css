@@ -270,6 +270,35 @@
 
 /* ============ Theme Selection Bar ============ */
 
+/* ============ Profile Sticky Bar ============
+   헤더 바로 아래 한 줄 — 누구 정보로 본 채팅인지 노출. */
+.profileStickyBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px 5px;
+  background: var(--ds-light-bg);
+  border-bottom: 1px solid var(--ds-light-border);
+  font-size: 0.78rem;
+  color: var(--ds-light-text-muted);
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.profileStickyDot {
+  font-size: 0.5rem;
+  color: var(--ds-gold-on-dark, #d4b572);
+  line-height: 1;
+}
+
+.profileStickyName {
+  font-weight: 500;
+  color: var(--ds-light-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ============ Chat Wrapper ============ */
 .chatWrapper {
   flex: 1;

@@ -258,6 +258,16 @@ export default function CounselorPage() {
         </div>
       </header>
 
+      {/* 사용자 정보 sticky 바 — 어느 사람 정보로 본 채팅인지 한눈에.
+          채팅이 길어져도 헤더 바로 아래 고정. name 비어 있으면 (초기 게스트)
+          렌더 자체 생략. */}
+      {name?.trim() && (
+        <div className={styles.profileStickyBar} aria-label={lang === 'ko' ? '대상 인물' : 'Subject'}>
+          <span className={styles.profileStickyDot} aria-hidden="true">●</span>
+          <span className={styles.profileStickyName}>{name}</span>
+        </div>
+      )}
+
       {/* Guest banner removed — fights the Claude-style centered hero
           empty state. Login CTA lives in the page header (top-right)
           and via /api save attempts when guests try to persist. */}

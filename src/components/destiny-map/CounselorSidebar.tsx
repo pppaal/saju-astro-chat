@@ -13,6 +13,29 @@ type SessionItem = {
   title?: string | null
   preview?: string | null
   updatedAt?: string | null
+  /** API 가 같이 내려주는 세션 meta — destiny: { profile: { name } } /
+   *  compat: { persons: [{name}, {name}], ... }. 사이드바 부제 한 줄에 인물
+   *  이름을 띄워서 과거 채팅이 누구 정보로 본 거였는지 한눈에 보이게. */
+  meta?: {
+    profile?: { name?: string | null } | null
+    persons?: Array<{ name?: string | null }> | null
+  } | null
+}
+
+/** 한 채팅 row 의 부제 — destiny: 'Jun' / compat: 'Jun ↔ Yuna'. meta 가
+ *  비어 있거나 (구버전 데이터) name 이 없으면 null 반환해 부제 자체 생략. */
+function getSessionSubtitle(item: SessionItem, serviceType: ServiceType): string | null {
+  const meta = item.meta
+  if (!meta) return null
+  if (serviceType === 'compat') {
+    const a = meta.persons?.[0]?.name?.trim()
+    const b = meta.persons?.[1]?.name?.trim()
+    if (a && b) return `${a} ↔ ${b}`
+    if (a || b) return (a || b) as string
+    return null
+  }
+  const name = meta.profile?.name?.trim()
+  return name || null
 }
 
 type ServiceType = 'destiny' | 'compat'
@@ -280,6 +303,11 @@ export default function CounselorSidebar({
             }}
           >
             <span className={styles.sessionTitle}>{displayName}</span>
+            {(() => {
+              const subtitle = getSessionSubtitle(s, serviceType)
+              if (!subtitle) return null
+              return <span className={styles.sessionSubtitle}>{subtitle}</span>
+            })()}
             {s.updatedAt && !enableGrouping && (
               <span className={styles.sessionDate}>
                 {new Date(s.updatedAt).toLocaleDateString()}

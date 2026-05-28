@@ -738,6 +738,16 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           </div>
         </header>
 
+        {/* 두 사람 sticky 바 — 헤더 바로 아래, 누구 정보로 본 채팅인지.
+            persons 비어 있는 동안엔(=초기 로딩) 렌더 생략. */}
+        {persons[0]?.name && persons[1]?.name && (
+          <div className={styles.profileStickyBar} aria-label={isKo ? '대상 인물' : 'Subjects'}>
+            <span className={styles.profileStickyName}>{persons[0].name}</span>
+            <span className={styles.profileStickyArrow} aria-hidden="true">↔</span>
+            <span className={styles.profileStickyName}>{persons[1].name}</span>
+          </div>
+        )}
+
         {/* Chat */}
         <div className={styles.chatWrapper}>
           <div className={styles.messagesContainer}>
