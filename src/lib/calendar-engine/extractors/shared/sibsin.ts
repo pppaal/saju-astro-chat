@@ -1,9 +1,13 @@
 import { FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
-import type { SibsinKind } from '@/lib/saju/types'
+import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
 
-interface StemInfoLike {
-  element: string
-  yin_yang: string
+// The two extractors (saju-hour, saju-pillar) each declare a local
+// `StemInfo { name, element: FiveElement, yin_yang: YinYang }`. Use the
+// same narrow field types here so indexing into FIVE_ELEMENT_RELATIONS
+// (whose keys are literally FiveElement, not any string) still type-checks.
+interface StemInfoForSibsin {
+  element: FiveElement
+  yin_yang: YinYang
 }
 
 /**
@@ -20,8 +24,8 @@ interface StemInfoLike {
  * behavior at call sites that depend on those specifics.
  */
 export function getSibsinFromStemInfo(
-  dayMaster: StemInfoLike,
-  target: StemInfoLike
+  dayMaster: StemInfoForSibsin,
+  target: StemInfoForSibsin
 ): SibsinKind | null {
   if (dayMaster.element === target.element) {
     return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재'

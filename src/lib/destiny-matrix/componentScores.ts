@@ -1,9 +1,13 @@
 import type { MatrixCell } from './types'
+import { clamp01 } from '@/lib/utils/math'
 
 // Re-export so the existing nine call sites that do
 // `import { clamp01 } from './componentScores'` keep working without
 // touching them — the canonical implementation lives in lib/utils/math.
-export { clamp01 } from '@/lib/utils/math'
+// (Import + export must be separate; bare `export { x } from '...'` does
+// not bind `x` into the local scope and the in-file usages below would
+// fail at type-check time.)
+export { clamp01 }
 
 type LayerCells = Record<string, MatrixCell>
 

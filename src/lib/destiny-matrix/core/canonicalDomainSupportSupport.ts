@@ -2,6 +2,11 @@ import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
 import { eunNeun } from '@/lib/i18n/koParticle'
 import { clamp, round2 } from '@/lib/utils/math'
+
+// Used to be defined+exported locally; canonicalDomainSupport.ts still
+// imports them through this module. Re-export the canonical versions so
+// the existing import path keeps resolving.
+export { clamp, round2 }
 import type {
   BuildCoreCanonicalOutputInput,
   CoreDomainAdvisory,
@@ -139,7 +144,13 @@ export function resolveTimingConflictProfile(input: {
   }
 }
 
-const TIMING_WINDOW_ORDER: CoreDomainTimingWindow['window'][] = ['now', '1-3m', '3-6m', '6-12m', '12m+']
+const TIMING_WINDOW_ORDER: CoreDomainTimingWindow['window'][] = [
+  'now',
+  '1-3m',
+  '3-6m',
+  '6-12m',
+  '12m+',
+]
 
 function shiftTimingWindow(
   window: CoreDomainTimingWindow['window'],
@@ -396,15 +407,35 @@ export function buildDomainTimingEntryConditions(input: {
           '확장보다 현재 우선순위가 먼저 정리될 때',
         ]
       case 'relationship':
-        return ['연락 리듬이 일정할 때', '기대치와 경계가 말로 확인될 때', '감정 표현과 실제 행동 속도가 크게 어긋나지 않을 때']
+        return [
+          '연락 리듬이 일정할 때',
+          '기대치와 경계가 말로 확인될 때',
+          '감정 표현과 실제 행동 속도가 크게 어긋나지 않을 때',
+        ]
       case 'wealth':
-        return ['손실 상한이 먼저 정해질 때', '기한·금액·취소 조건이 분명할 때', '현금흐름을 흔드는 변수부터 분리했을 때']
+        return [
+          '손실 상한이 먼저 정해질 때',
+          '기한·금액·취소 조건이 분명할 때',
+          '현금흐름을 흔드는 변수부터 분리했을 때',
+        ]
       case 'health':
-        return ['회복 슬롯이 일정에 실제로 들어갈 때', '피로·통증·수면 같은 경고 신호를 기록할 때', '강도보다 반복 가능성이 먼저 확보될 때']
+        return [
+          '회복 슬롯이 일정에 실제로 들어갈 때',
+          '피로·통증·수면 같은 경고 신호를 기록할 때',
+          '강도보다 반복 가능성이 먼저 확보될 때',
+        ]
       case 'move':
-        return ['경로와 생활 동선이 먼저 검증될 때', '비용과 계약 조건이 따로 확인될 때', '현재 거점에서 빠져야 할 이유가 명확할 때']
+        return [
+          '경로와 생활 동선이 먼저 검증될 때',
+          '비용과 계약 조건이 따로 확인될 때',
+          '현재 거점에서 빠져야 할 이유가 명확할 때',
+        ]
       default:
-        return ['핵심 조건 1개를 먼저 문장으로 고정', '바로 확정하지 말고 검증 단계를 먼저 통과', '주도 도메인 기준선과 충돌하는 행동은 제외']
+        return [
+          '핵심 조건 1개를 먼저 문장으로 고정',
+          '바로 확정하지 말고 검증 단계를 먼저 통과',
+          '주도 도메인 기준선과 충돌하는 행동은 제외',
+        ]
     }
   }
 
@@ -455,15 +486,35 @@ export function buildDomainTimingAbortConditions(input: {
   if (input.lang === 'ko') {
     switch (input.domain) {
       case 'career':
-        return ['역할이나 책임 범위가 다시 흔들릴 때', '승인권자나 평가 기준이 바뀔 때', '성과보다 정치 비용이 더 커질 때']
+        return [
+          '역할이나 책임 범위가 다시 흔들릴 때',
+          '승인권자나 평가 기준이 바뀔 때',
+          '성과보다 정치 비용이 더 커질 때',
+        ]
       case 'relationship':
-        return ['연락 리듬이 계속 끊길 때', '경계나 기대치가 다시 흐려질 때', '말과 행동의 방향이 반복해서 어긋날 때']
+        return [
+          '연락 리듬이 계속 끊길 때',
+          '경계나 기대치가 다시 흐려질 때',
+          '말과 행동의 방향이 반복해서 어긋날 때',
+        ]
       case 'wealth':
-        return ['손실 상한이 다시 열릴 때', '현금흐름이 흔들릴 때', '조건이 갑자기 유리한 말로만 바뀔 때']
+        return [
+          '손실 상한이 다시 열릴 때',
+          '현금흐름이 흔들릴 때',
+          '조건이 갑자기 유리한 말로만 바뀔 때',
+        ]
       case 'health':
-        return ['피로나 통증 신호가 누적될 때', '회복 슬롯이 계속 무너질 때', '단기 버팀이 장기 회복보다 우선될 때']
+        return [
+          '피로나 통증 신호가 누적될 때',
+          '회복 슬롯이 계속 무너질 때',
+          '단기 버팀이 장기 회복보다 우선될 때',
+        ]
       case 'move':
-        return ['경로나 생활 거점 조건이 다시 바뀔 때', '비용이 예상보다 커질 때', '이동 이유보다 조급함이 더 커질 때']
+        return [
+          '경로나 생활 거점 조건이 다시 바뀔 때',
+          '비용이 예상보다 커질 때',
+          '이동 이유보다 조급함이 더 커질 때',
+        ]
       default:
         return ['신뢰가 더 낮아질 때', '핵심 조건이 바뀔 때', '반복 경고 신호가 늘어날 때']
     }
@@ -631,7 +682,10 @@ export function buildProvenance(input: {
   }
 }
 
-export function resolveRiskControl(input: BuildCoreCanonicalOutputInput, focusDomain: string): string {
+export function resolveRiskControl(
+  input: BuildCoreCanonicalOutputInput,
+  focusDomain: string
+): string {
   const focusedClaim = (input.signalSynthesis.claims || []).find(
     (claim) => claim.domain === focusDomain
   )
@@ -931,4 +985,3 @@ export function buildDomainAdvisoryCopy(input: {
     strategyLine: [base.strategyLine, scenarioLine].filter(Boolean).join(' '),
   }
 }
-

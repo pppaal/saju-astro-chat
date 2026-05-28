@@ -27,6 +27,11 @@ import {
 } from './adaptersPresentation'
 import { clamp01, round2 } from '@/lib/utils/math'
 
+// Used to be `export function round2(...)` here; adaptersPersonModelEventSupport
+// imports it from this module. Re-export the canonical version so that
+// existing import path keeps resolving.
+export { round2 }
+
 function repairLocaleText(text: string, locale: 'ko' | 'en'): string {
   return locale === 'ko' ? repairPossiblyMojibakeText(text) : text
 }
