@@ -32,53 +32,54 @@ export interface CreditPack {
   popular?: boolean
 }
 
+// 모든 팩 크레딧 2배. "질문 1개 = 1 credit" 단순 모델로 통일하면서, 사용자
+// 입장 가치는 종전(2메시지/1credit 시도) 과 동일하게 유지하기 위함. 가격(₩/$) 은
+// 변경 없음 → per-credit 단가는 절반으로 떨어짐. mega·ultimate 위계 정상
+// (큰 팩이 더 쌈).
 export const CREDIT_PACKS: Record<CreditPackType, CreditPack> = {
   mini: {
     id: 'mini',
-    credits: 5,
+    credits: 10,
     pricing: { krw: 1900, usd: 1.99 },
-    perCreditKrw: 380,
-    perCreditUsd: 0.4,
+    perCreditKrw: 190,
+    perCreditUsd: 0.2,
   },
   standard: {
     id: 'standard',
-    credits: 20,
+    credits: 40,
     pricing: { krw: 4900, usd: 4.99 },
-    perCreditKrw: 245,
-    perCreditUsd: 0.25,
+    perCreditKrw: 123,
+    perCreditUsd: 0.12,
   },
   plus: {
     id: 'plus',
-    credits: 50,
+    credits: 100,
     pricing: { krw: 9900, usd: 9.99 },
-    perCreditKrw: 198,
-    perCreditUsd: 0.2,
+    perCreditKrw: 99,
+    perCreditUsd: 0.1,
     popular: true,
   },
   mega: {
     id: 'mega',
-    credits: 120,
+    credits: 240,
     pricing: { krw: 19900, usd: 19.99 },
-    perCreditKrw: 166,
-    perCreditUsd: 0.17,
+    perCreditKrw: 83,
+    perCreditUsd: 0.08,
   },
   ultimate: {
     id: 'ultimate',
-    // 220 → 250 — per-credit 가격 역전 fix. 220일 땐 ₩181/credit 로 mega
-    // (₩166) 보다 비싼 역전이 났음. 250 이면 ₩160/credit 로 정상 위계 (가장
-    // 큰 팩이 가장 쌈) 회복. Sonnet 4.5 운영 비용은 프롬프트 캐싱(1h TTL)
-    // 으로 회수돼 마진 충분.
-    credits: 250,
+    credits: 500,
     pricing: { krw: 39900, usd: 39.99 },
-    perCreditKrw: 160,
-    perCreditUsd: 0.16,
+    perCreditKrw: 80,
+    perCreditUsd: 0.08,
   },
 } as const
 
 /**
- * Base credit price for refund calculations (mini pack rate)
+ * Base credit price for refund calculations (mini pack rate).
+ * 팩 크레딧 2배 정책에 맞춰 ₩380 → ₩190.
  */
-export const BASE_CREDIT_PRICE_KRW = 380
+export const BASE_CREDIT_PRICE_KRW = 190
 
 /**
  * Bonus credit expiration period in months

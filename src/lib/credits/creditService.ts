@@ -28,9 +28,10 @@ function getNextPeriodEnd(): Date {
   return new Date(now.getFullYear(), now.getMonth() + 1, 1)
 }
 
-// 유저 크레딧 초기화 (신규 가입 시) — 가입 시 4 크레딧 일회성 보너스
-// (한 사이클 정도 충분히 체험할 수 있는 양으로 상향)
-const SIGNUP_BONUS = 4
+// 유저 크레딧 초기화 (신규 가입 시) — 가입 시 8 크레딧 일회성 보너스.
+// 팩 크레딧 2배 정책(1 메시지 = 1 credit) 에 맞춰 4 → 8 로 상향: 종전과
+// 동일한 "8 메시지 체험" 가치 유지.
+const SIGNUP_BONUS = 8
 
 export async function initializeUserCredits(userId: string) {
   const now = new Date()
