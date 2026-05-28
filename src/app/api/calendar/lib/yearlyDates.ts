@@ -105,6 +105,10 @@ type YearlyOptions = {
    *  목적: 화면에 보이는 displayScore(v2)와 문구 톤을 한 점수로 일치시킴
    *  (route가 v2 셀 점수를 미리 계산해 주입). 없는 날짜는 기존 사주·점성 blend. */
   engineScores?: Record<string, number>
+  /** 빌드할 month 범위 (0-indexed inclusive). 미지정 시 12달 전부.
+   *  cold response 단축용 — main 응답은 current ± 1 month 만 빌드,
+   *  나머지는 /api/calendar/convergence 가 lazy 로 채움. */
+  monthsToBuild?: number[]
 }
 
 const DOMAIN_TO_CATEGORY: Record<DomainKey, EventCategory> = {
@@ -1874,8 +1878,14 @@ export function calculateYearlyImportantDates(
   // 운끼리 충/합/형 + 대운/세운/월운/일운 갑자 조립은 @/lib/saju/cycleRelations 공용
   // 모듈로 추출됨 — v2 엔진과 같은 결과로 재사용. (아래 loop에서 buildCycleInteractions 호출)
 
+  // 월 필터 — 미지정 시 12달 전부, 지정 시 그 달들만 (0-indexed).
+  // current ± 1 month 만 빌드해서 main response 빠르게 (나머지는 lazy).
+  const monthsFilter = options?.monthsToBuild ? new Set(options.monthsToBuild) : null
+
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
-    const month = date.getMonth() + 1
+    const monthIdx = date.getMonth() // 0-indexed
+    if (monthsFilter && !monthsFilter.has(monthIdx)) continue
+    const month = monthIdx + 1
     const day = date.getDate()
     const dailyPack = getPackForDate(date, sajuProfile, dailyPackCache)
 

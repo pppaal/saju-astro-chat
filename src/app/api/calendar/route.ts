@@ -476,11 +476,16 @@ export const GET = withApiMiddleware(
     }
 
     // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
-    // 1년 전체 365일을 v2 셀 점수로 채워 yearlyDates의 narrative grade·title·
-    // description이 모두 같은 점수 모델(=v2 cell.derivedScore)로 만들어지게 한다.
-    // 이전엔 ±1달만 v2였고 나머지 10개월은 v3 blend((engineSub+transitSub)/2)라
-    // 같은 사용자가 1월 보다가 4월 가면 점수 모델이 바뀌어 들쭉날쭉했다.
-    // 비용: cold 시 12 build × ~150ms. 캐시(cell-cache in-memory + DB)로 warm은 즉시.
+    // 사용자 cold response <2s 목표 — 메인 응답은 current ± 1 month (3달) 만 빌드.
+    // 나머지 9 달은 /api/calendar/convergence (lazy fetch) 가 채워줌.
+    // 이전엔 12달 전부 빌드 → cold ~1.8s. 이제 3달 → ~450ms.
+    const targetMonthIdx = new Date().getMonth() // 0-11, 서버 시점 기준 (UTC)
+    const monthsToBuild = [
+      Math.max(0, targetMonthIdx - 1),
+      targetMonthIdx,
+      Math.min(11, targetMonthIdx + 1),
+    ].filter((m, i, arr) => arr.indexOf(m) === i) // dedupe (Dec/Jan 경계)
+
     const engineScoreByDate: Record<string, number> = {}
     try {
       if (!sharedCeNatal) throw new Error('natal context unavailable')
@@ -492,12 +497,9 @@ export const GET = withApiMiddleware(
         birthPlace,
         gender: gender || 'Male',
       })
-      // 12달 병렬 빌드 — cell-cache의 in-memory Map은 single-thread JS라 race 없고,
-      // DB write는 fire-and-forget(중복은 UNIQUE 제약으로 자연 멱등). cold 시 12 month
-      // 직렬 ~150ms × 12 ≈ 1.8s가 ~200ms로 단축. 셀 datetime은 UTC 미드나잇 키이므로
-      // Date.UTC로 TZ 독립 보장.
+      // monthsToBuild 만 병렬 — cell-cache 의 in-memory Map 으로 augment 단계는 0ms.
       const monthResults = await Promise.all(
-        Array.from({ length: 12 }, (_, month) => {
+        monthsToBuild.map((month) => {
           const start = new Date(Date.UTC(year, month, 1))
           const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
           const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
@@ -526,13 +528,15 @@ export const GET = withApiMiddleware(
 
     // 365일 전체에 v2 점수가 들어가니 cacheKey에 month 의존이 사라짐 — 보는 달
     // 바꿔도 같은 응답. 이전엔 ±1달만 v2였어서 보는 달에 따라 다른 응답이 캐시됐다.
+    const monthRangeKey = monthsToBuild.map((m) => String(m).padStart(2, '0')).join('-')
     const cacheKey = CacheKeys.yearlyCalendar(
       birthDateParam,
       birthTimeParam,
       gender,
       year,
       category || undefined,
-      birthPlace
+      birthPlace,
+      monthRangeKey
     )
     const localDates = await cacheOrCalculate(
       cacheKey,
@@ -554,6 +558,8 @@ export const GET = withApiMiddleware(
           dailyRetrograde: (astroProfile as { dailyRetrograde?: Record<string, string[]> })
             .dailyRetrograde,
           engineScores: hasEngineScores ? engineScoreByDate : undefined,
+          // current ± 1 month 만 빌드 — main response <2s 목표.
+          monthsToBuild,
         }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )
@@ -621,18 +627,24 @@ export const GET = withApiMiddleware(
         gender: gender || 'Male',
       })
 
-      // 빌드 대상 12달: year 전체. Date.UTC로 TZ 독립 보장 (prescore 블록과 동일).
-      const monthsToBuild = Array.from({ length: 12 }, (_, month) => {
-        const start = new Date(Date.UTC(year, month, 1))
-        const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
-        return {
-          year,
-          month,
-          monthKey: `${year}-${String(month + 1).padStart(2, '0')}`,
-          rangeStart: start,
-          rangeEnd: end,
-        }
-      })
+      // 빌드 대상 — prescore 블록의 monthsToBuild (current ± 1 month) + prevMonth
+      // (monthComparison 용) 만. cold response <2s 목표. 나머지는 lazy convergence.
+      const prescoreMonthIdxs = new Set(monthsToBuild)
+      const targetForPrev = new Date(Date.UTC(targetYear, targetMonth - 1, 1))
+      prescoreMonthIdxs.add(targetForPrev.getUTCMonth())
+      const monthsToBuildAugment = Array.from(prescoreMonthIdxs)
+        .sort((a, b) => a - b)
+        .map((month) => {
+          const start = new Date(Date.UTC(year, month, 1))
+          const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
+          return {
+            year,
+            month,
+            monthKey: `${year}-${String(month + 1).padStart(2, '0')}`,
+            rangeStart: start,
+            rangeEnd: end,
+          }
+        })
 
       let ceCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
       let prevMonthCells: Awaited<ReturnType<typeof getOrBuildMonth>>['cells'] = []
@@ -643,7 +655,7 @@ export const GET = withApiMiddleware(
       // 병렬 빌드 — prescore가 이미 같은 12달을 cell-cache에 적재했으므로 여기선
       // 사실상 전부 in-memory HIT (~0ms). 직렬이어도 빠르나 일관성으로 Promise.all 사용.
       const builtMonths = await Promise.all(
-        monthsToBuild.map(async (m) => {
+        monthsToBuildAugment.map(async (m) => {
           const result = await getOrBuildMonth({
             birthKey,
             monthKey: m.monthKey,
