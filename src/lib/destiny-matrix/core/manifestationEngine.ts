@@ -11,12 +11,7 @@ import type {
   CoreProvenance,
   CoreScenarioLead,
 } from './types'
-import { round2 } from '@/lib/utils/math'
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
-
+import { clamp, round2 } from '@/lib/utils/math'
 
 function localizeManifestationDomain(domain: string): string {
   switch (domain) {
@@ -132,7 +127,11 @@ function summarizeTwelveStages(matrixInput: MatrixCalculationInput | undefined) 
   }
 }
 
-function buildStructuralNotes(domain: string, matrixInput: MatrixCalculationInput | undefined, lang: 'ko' | 'en') {
+function buildStructuralNotes(
+  domain: string,
+  matrixInput: MatrixCalculationInput | undefined,
+  lang: 'ko' | 'en'
+) {
   const pillar = summarizePillarElements(matrixInput)
   const stage = summarizeTwelveStages(matrixInput)
   const baseline: string[] = []
@@ -140,21 +139,35 @@ function buildStructuralNotes(domain: string, matrixInput: MatrixCalculationInpu
   const risk: string[] = []
 
   if (pillar.dominantCount >= 2) {
-    if (pillar.dominantElement === '\uae08' && ['career', 'personality', 'wealth'].includes(domain)) {
+    if (
+      pillar.dominantElement === '\uae08' &&
+      ['career', 'personality', 'wealth'].includes(domain)
+    ) {
       baseline.push(
         lang === 'ko'
           ? '\uae30\ubcf8 \uad6c\uc870\uc5d0\uc11c \uac80\ud1a0\uc640 \uc815\ubc00 \uc870\uc815 \uc131\ud5a5\uc774 \uac15\ud569\ub2c8\ub2e4.'
           : 'The baseline structure favors precision, filtering, and verification.'
       )
-      likely.push(lang === 'ko' ? '\uae30\uc900 \uc815\ub9ac \ud6c4 \uc2e4\ud589' : 'execute after criteria-setting')
+      likely.push(
+        lang === 'ko'
+          ? '\uae30\uc900 \uc815\ub9ac \ud6c4 \uc2e4\ud589'
+          : 'execute after criteria-setting'
+      )
     }
-    if (pillar.dominantElement === '\ubaa9' && ['career', 'move', 'relationship'].includes(domain)) {
+    if (
+      pillar.dominantElement === '\ubaa9' &&
+      ['career', 'move', 'relationship'].includes(domain)
+    ) {
       baseline.push(
         lang === 'ko'
           ? '\uae30\ubcf8 \uad6c\uc870\uc5d0\uc11c \ud655\uc7a5\uacfc \uc5f0\uacb0\uc744 \uba3c\uc800 \uc5ec\ub294 \uacbd\ud5a5\uc774 \uac15\ud569\ub2c8\ub2e4.'
           : 'The baseline structure opens through growth and connection first.'
       )
-      likely.push(lang === 'ko' ? '\uc0c8 \uc5f0\uacb0 \ub610\ub294 \uc0c8 \ud310 \uc5f4\uae30' : 'open a new lane or connection')
+      likely.push(
+        lang === 'ko'
+          ? '\uc0c8 \uc5f0\uacb0 \ub610\ub294 \uc0c8 \ud310 \uc5f4\uae30'
+          : 'open a new lane or connection'
+      )
     }
     if (pillar.dominantElement === '\ud1a0' && ['wealth', 'career', 'health'].includes(domain)) {
       baseline.push(
@@ -162,9 +175,16 @@ function buildStructuralNotes(domain: string, matrixInput: MatrixCalculationInpu
           ? '\uae30\ubcf8 \uad6c\uc870\uc5d0\uc11c \uae30\ubc18 \uc815\ube44\uc640 \ub204\uc801 \uc6b4\uc601\uc774 \uc6b0\uc120\ub429\ub2c8\ub2e4.'
           : 'The baseline structure prefers foundation-building and accumulation.'
       )
-      likely.push(lang === 'ko' ? '\uae30\ubc18 \uc815\ube44 \ud6c4 \ud655\uc7a5' : 'expand after base-building')
+      likely.push(
+        lang === 'ko'
+          ? '\uae30\ubc18 \uc815\ube44 \ud6c4 \ud655\uc7a5'
+          : 'expand after base-building'
+      )
     }
-    if (pillar.dominantElement === '\uc218' && ['health', 'spirituality', 'relationship'].includes(domain)) {
+    if (
+      pillar.dominantElement === '\uc218' &&
+      ['health', 'spirituality', 'relationship'].includes(domain)
+    ) {
       baseline.push(
         lang === 'ko'
           ? '\uae30\ubcf8 \uad6c\uc870\uc5d0\uc11c \ud68c\ubcf5\uacfc \uac10\uc815 \uc21c\ud658\uc744 \uba3c\uc800 \uc0b4\ud53c\ub294 \ud3b8\uc785\ub2c8\ub2e4.'
@@ -175,23 +195,40 @@ function buildStructuralNotes(domain: string, matrixInput: MatrixCalculationInpu
   }
 
   if (stage.leadStage) {
-    if (['\uc784\uad00', '\uc81c\uc655', '\uac74\ub85d', '\uad00\ub300', '\uc591'].includes(stage.leadStage) && ['career', 'timing', 'personality'].includes(domain)) {
+    if (
+      ['\uc784\uad00', '\uc81c\uc655', '\uac74\ub85d', '\uad00\ub300', '\uc591'].includes(
+        stage.leadStage
+      ) &&
+      ['career', 'timing', 'personality'].includes(domain)
+    ) {
       baseline.push(
         lang === 'ko'
           ? `${stage.leadStage} \uc131\ud5a5\uc774 \uac15\ud574 \uc5ed\ud560\uacfc \uc874\uc7ac\uac10\uc774 \uc55e\uc5d0 \uc11c\ub294 \uad6c\uc870\uc785\ub2c8\ub2e4.`
           : `A ${stage.leadStage} stage signature makes role and presence more outward-facing.`
       )
-      likely.push(lang === 'ko' ? '\uacf5\uc801 \uc5ed\ud560 \ud655\ub300' : 'public role expansion')
+      likely.push(
+        lang === 'ko' ? '\uacf5\uc801 \uc5ed\ud560 \ud655\ub300' : 'public role expansion'
+      )
     }
-    if (['\ubcd1', '\uc1e0', '\uc808', '\uc0ac', '\ubb18'].includes(stage.leadStage) && ['health', 'relationship', 'timing'].includes(domain)) {
+    if (
+      ['\ubcd1', '\uc1e0', '\uc808', '\uc0ac', '\ubb18'].includes(stage.leadStage) &&
+      ['health', 'relationship', 'timing'].includes(domain)
+    ) {
       baseline.push(
         lang === 'ko'
           ? `${stage.leadStage} \uc131\ud5a5\uc774 \uac15\ud574 \uc18d\ub3c4\ubcf4\ub2e4 \ud68c\ubcf5\uacfc \uac70\ub9ac \uc870\uc808\uc774 \uc911\uc694\ud569\ub2c8\ub2e4.`
           : `A ${stage.leadStage} stage signature makes recovery and pacing more important than speed.`
       )
-      risk.push(lang === 'ko' ? '\ubb34\ub9ac\ud55c \ubc00\uc5b4\ubd99\uc774\uae30' : 'overpushing before readiness')
+      risk.push(
+        lang === 'ko'
+          ? '\ubb34\ub9ac\ud55c \ubc00\uc5b4\ubd99\uc774\uae30'
+          : 'overpushing before readiness'
+      )
     }
-    if (['\uc7a5\uc0dd', '\ud0dc', '\uc591'].includes(stage.leadStage) && ['health', 'move', 'relationship'].includes(domain)) {
+    if (
+      ['\uc7a5\uc0dd', '\ud0dc', '\uc591'].includes(stage.leadStage) &&
+      ['health', 'move', 'relationship'].includes(domain)
+    ) {
       likely.push(
         lang === 'ko'
           ? '\uc7ac\uc815\ube44 \ub4a4 \ub2e4\uc2dc \uc0b4\uc544\ub098\ub294 \ud750\ub984'
@@ -203,11 +240,11 @@ function buildStructuralNotes(domain: string, matrixInput: MatrixCalculationInpu
   return { baseline, likely, risk }
 }
 
-function buildActivationSources(
-  input: BuildCoreCanonicalOutputInput
-): CoreActivationSource[] {
+function buildActivationSources(input: BuildCoreCanonicalOutputInput): CoreActivationSource[] {
   const matrixInput = input.matrixInput
-  const advancedAstroCount = Object.values(matrixInput?.advancedAstroSignals || {}).filter(Boolean).length
+  const advancedAstroCount = Object.values(matrixInput?.advancedAstroSignals || {}).filter(
+    Boolean
+  ).length
   const transitCount = matrixInput?.activeTransits?.length || 0
   const astroTiming = matrixInput?.astroTimingIndex
 
@@ -234,7 +271,9 @@ function buildActivationSources(
           : matrixInput?.currentDaeunElement
             ? `Daeun active (${matrixInput.currentDaeunElement})`
             : 'Daeun inactive',
-      evidenceIds: matrixInput?.currentDaeunElement ? [`daeun:${matrixInput.currentDaeunElement}`] : [],
+      evidenceIds: matrixInput?.currentDaeunElement
+        ? [`daeun:${matrixInput.currentDaeunElement}`]
+        : [],
     },
     {
       source: 'saeun',
@@ -248,7 +287,9 @@ function buildActivationSources(
           : matrixInput?.currentSaeunElement
             ? `Annual cycle active (${matrixInput.currentSaeunElement})`
             : 'Annual cycle inactive',
-      evidenceIds: matrixInput?.currentSaeunElement ? [`saeun:${matrixInput.currentSaeunElement}`] : [],
+      evidenceIds: matrixInput?.currentSaeunElement
+        ? [`saeun:${matrixInput.currentSaeunElement}`]
+        : [],
     },
     {
       source: 'wolun',
@@ -262,7 +303,9 @@ function buildActivationSources(
           : matrixInput?.currentWolunElement
             ? `Monthly cycle active (${matrixInput.currentWolunElement})`
             : 'Monthly cycle inactive',
-      evidenceIds: matrixInput?.currentWolunElement ? [`wolun:${matrixInput.currentWolunElement}`] : [],
+      evidenceIds: matrixInput?.currentWolunElement
+        ? [`wolun:${matrixInput.currentWolunElement}`]
+        : [],
     },
     {
       source: 'ilun',
@@ -303,14 +346,16 @@ function buildActivationSources(
       source: 'astro_timing',
       active: Boolean(astroTiming),
       intensity: astroTiming
-        ? round2(clamp(
-            astroTiming.decade * 0.2 +
-              astroTiming.annual * 0.25 +
-              astroTiming.monthly * 0.3 +
-              astroTiming.daily * 0.25,
-            0.2,
-            0.95
-          ))
+        ? round2(
+            clamp(
+              astroTiming.decade * 0.2 +
+                astroTiming.annual * 0.25 +
+                astroTiming.monthly * 0.3 +
+                astroTiming.daily * 0.25,
+              0.2,
+              0.95
+            )
+          )
         : 0.1,
       label:
         input.lang === 'ko'
@@ -325,7 +370,8 @@ function buildActivationSources(
     {
       source: 'advanced_astro',
       active: advancedAstroCount > 0,
-      intensity: advancedAstroCount > 0 ? round2(clamp(0.35 + advancedAstroCount * 0.04, 0.35, 0.88)) : 0.08,
+      intensity:
+        advancedAstroCount > 0 ? round2(clamp(0.35 + advancedAstroCount * 0.04, 0.35, 0.88)) : 0.08,
       label:
         input.lang === 'ko'
           ? advancedAstroCount > 0
@@ -365,7 +411,10 @@ function selectSourcesForDomain(
 function mergeProvenance(parts: Array<CoreProvenance | undefined>): CoreProvenance {
   return {
     sourceFields: [...new Set(parts.flatMap((item) => item?.sourceFields || []))].slice(0, 10),
-    sourceSignalIds: [...new Set(parts.flatMap((item) => item?.sourceSignalIds || []))].slice(0, 10),
+    sourceSignalIds: [...new Set(parts.flatMap((item) => item?.sourceSignalIds || []))].slice(
+      0,
+      10
+    ),
     sourceRuleIds: [...new Set(parts.flatMap((item) => item?.sourceRuleIds || []))].slice(0, 10),
     sourceSetIds: [...new Set(parts.flatMap((item) => item?.sourceSetIds || []))].slice(0, 10),
   }
@@ -380,9 +429,7 @@ function describeBaseline(
   if (advisory?.thesis) return advisory.thesis
   const domainLabel = lang === 'ko' ? localizeManifestationDomain(lead.domain) : lead.domain
   const familyLabel =
-    lang === 'ko'
-      ? localizePatternFamily(pattern?.family || 'core')
-      : pattern?.family || 'core'
+    lang === 'ko' ? localizePatternFamily(pattern?.family || 'core') : pattern?.family || 'core'
   return lang === 'ko'
     ? `${domainLabel} \uc601\uc5ed\uc740 ${familyLabel}\uc774 \uae30\ubcf8 \uad6c\uc870\ub97c \uc774\ub8e8\uace0 \uc788\uc2b5\ub2c8\ub2e4.`
     : `${lead.domain} is structurally anchored by the ${familyLabel} family.`
@@ -399,7 +446,10 @@ function describeActivation(
   const windowLabel = lang === 'ko' ? localizeManifestationWindow(timing.window) : timing.window
   const modeLabel =
     lang === 'ko' ? localizeManifestationMode(verdict?.mode || 'verify') : verdict?.mode || 'verify'
-  const sourceLabels = sources.slice(0, 3).map((source) => source.label).join(lang === 'ko' ? ', ' : ', ')
+  const sourceLabels = sources
+    .slice(0, 3)
+    .map((source) => source.label)
+    .join(lang === 'ko' ? ', ' : ', ')
   return lang === 'ko'
     ? `${domainLabel} \uc601\uc5ed\uc740 ${windowLabel} \ucc3d\uc774 \uc5f4\ub824 \uc788\uace0, ${sourceLabels || '\uae30\ubcf8 \ud65c\uc131'}\uc774 \uacb9\uce58\uba74\uc11c \ud604\uc7ac \ubaa8\ub4dc\ub294 ${modeLabel}\ub85c \uc218\ub834\ud569\ub2c8\ub2e4.`
     : `${domain} is in a ${timing.window} window, and ${sourceLabels || 'baseline activation'} is converging into ${verdict?.mode || 'verify'} mode.`
@@ -448,10 +498,8 @@ export function buildDomainManifestations(input: {
     const advisory = input.advisories.find((item) => item.domain === lead.domain) || null
     const timing = input.domainTimingWindows.find((item) => item.domain === lead.domain)
     const verdict = input.domainVerdicts.find((item) => item.domain === lead.domain) || null
-    const pattern =
-      input.topPatterns.find((item) => item.domains.includes(lead.domain)) || null
-    const scenario =
-      input.topScenarios.find((item) => item.domain === lead.domain) || null
+    const pattern = input.topPatterns.find((item) => item.domains.includes(lead.domain)) || null
+    const scenario = input.topScenarios.find((item) => item.domain === lead.domain) || null
     const selectedSources = selectSourcesForDomain(lead.domain, activationSources)
     const structuralNotes = buildStructuralNotes(lead.domain, matrixInput, input.lang)
     const likelyExpressions = [
@@ -459,13 +507,17 @@ export function buildDomainManifestations(input: {
       advisory?.action,
       ...(scenario?.entryConditions || []),
       ...(advisory?.leadScenarioIds || []),
-    ].filter((value, index, array): value is string => Boolean(value) && array.indexOf(value) === index)
+    ].filter(
+      (value, index, array): value is string => Boolean(value) && array.indexOf(value) === index
+    )
     const riskExpressions = [
       ...structuralNotes.risk,
       advisory?.caution,
       ...(scenario?.abortConditions || []),
       ...(verdict?.blockedActions || []),
-    ].filter((value, index, array): value is string => Boolean(value) && array.indexOf(value) === index)
+    ].filter(
+      (value, index, array): value is string => Boolean(value) && array.indexOf(value) === index
+    )
     const evidenceIds = [
       ...(advisory?.evidenceIds || []),
       ...(timing?.evidenceIds || []),
@@ -495,4 +547,3 @@ export function buildDomainManifestations(input: {
     }
   })
 }
-

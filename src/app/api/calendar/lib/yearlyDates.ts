@@ -13,6 +13,7 @@ import { elementOfBranch, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
 import { calculateUltraPrecisionScore } from '@/lib/calendar-engine/timing-helpers/ultraPrecisionEngine'
 import type { UltraPrecisionScore } from '@/lib/calendar-engine/timing-helpers/ultra-precision-types'
+import { clamp } from '@/lib/utils/math'
 
 type CalendarLocale = 'ko' | 'en'
 
@@ -134,10 +135,6 @@ const DOMAIN_LABELS: Record<CalendarLocale, Record<DomainKey, string>> = {
     health: 'health',
     move: 'movement',
   },
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
 }
 
 function pad2(value: number): string {

@@ -3,6 +3,7 @@ import type { MatrixCalculationInput } from '../types'
 import type { EvidenceBundle } from './structuredEvidence'
 import { detectQuestionIntent } from './questionIntent'
 import { getDeterministicCoreWeights, type DeterministicProfile } from './deterministicCoreConfig'
+import { clamp } from '@/lib/utils/math'
 
 export type DeterministicVerdict = 'GO' | 'DELAY' | 'NO'
 
@@ -96,10 +97,6 @@ export interface DeterministicCoreOutput {
   decision: DeterministicDecision
   promptBlock: string
   artifacts?: DeterministicCoreArtifacts
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
 }
 
 function round(value: number): number {
