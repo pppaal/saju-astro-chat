@@ -15,6 +15,34 @@ import { addBonusCredits, getUserCredits } from '@/lib/credits/creditService'
 
 export const dynamic = 'force-dynamic'
 
+// Per-admin per-UTC-day ceiling on total credits granted. Tuned so a
+// legitimate operational day (test grants, apology refunds) fits but a
+// compromised account can't drain the credit treasury overnight. Tweak
+// via env without redeploying when the operational budget changes.
+const PER_ADMIN_DAILY_CAP = (() => {
+  const envValue = Number(process.env.ADMIN_GRANT_DAILY_CAP)
+  if (Number.isFinite(envValue) && envValue > 0) return envValue
+  return 50_000
+})()
+
+async function sumGrantedToday(adminUserId: string): Promise<number> {
+  const startOfUtcDay = new Date()
+  startOfUtcDay.setUTCHours(0, 0, 0, 0)
+  const rows = await prisma.adminAuditLog.findMany({
+    where: {
+      adminUserId,
+      action: 'grant_credits',
+      success: true,
+      createdAt: { gte: startOfUtcDay },
+    },
+    select: { metadata: true },
+  })
+  return rows.reduce((sum, row) => {
+    const value = (row.metadata as { amount?: unknown } | null)?.amount
+    return sum + (typeof value === 'number' && Number.isFinite(value) ? value : 0)
+  }, 0)
+}
+
 interface GrantResult {
   success: boolean
   userId: string
@@ -66,6 +94,41 @@ export const POST = withApiMiddleware(
 
     const adminEmail = context.session?.user?.email || ''
     const userAgent = req.headers.get('user-agent') || undefined
+
+    // Per-admin daily cap. The per-request limit (10000) + the route's
+    // rate limit (10/60s after this change) still leaves 6M credits/hour
+    // headroom theoretically; the cap closes that to a per-day ceiling
+    // that survives across rate-limit windows.
+    const grantedToday = await sumGrantedToday(context.userId)
+    if (grantedToday + amount > PER_ADMIN_DAILY_CAP) {
+      logger.warn('[admin/grant-credits] daily cap exceeded', {
+        adminUserId: context.userId,
+        grantedToday,
+        attemptedAmount: amount,
+        cap: PER_ADMIN_DAILY_CAP,
+      })
+      await logAdminAction({
+        adminEmail,
+        adminUserId: context.userId,
+        action: 'grant_credits',
+        targetType: 'user',
+        targetId: targetUser.id,
+        metadata: {
+          targetEmail: targetUser.email,
+          amount,
+          source,
+          note,
+          grantedToday,
+          dailyCap: PER_ADMIN_DAILY_CAP,
+          rejectionReason: 'daily_cap_exceeded',
+        },
+        success: false,
+        errorMessage: 'daily_cap_exceeded',
+        ipAddress: context.ip,
+        userAgent,
+      })
+      return apiError(ErrorCodes.FORBIDDEN, 'daily_cap_exceeded')
+    }
 
     try {
       await addBonusCredits(targetUser.id, amount, source)
@@ -136,7 +199,11 @@ export const POST = withApiMiddleware(
   },
   createAuthenticatedGuard({
     route: '/api/admin/grant-credits',
-    limit: 30,
+    // Tighter than the default 30/60s. 10 grants/min × 10000 per request
+    // is still 100k/min in burst, but the per-admin daily cap above puts
+    // a real ceiling on the total. 10/min is plenty for legitimate
+    // ops (test grants, batched apology refunds).
+    limit: 10,
     windowSeconds: 60,
   })
 )
