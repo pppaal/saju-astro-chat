@@ -96,6 +96,10 @@ export function BirthInfoFields({
 
   const { suggestions, openSug, setOpenSug, handleCityInputChange, handleCitySelect } =
     useCitySearch(locale)
+  // 도시 dropdown 선택 시 키보드(모바일 soft keyboard)를 닫기 위해 input
+  // 자체 ref. 사용자: "도시 선택하면 키보드 없어져야하는데" — focus 가
+  // input 에 남아 있어서 키보드가 계속 떠 있던 회귀.
+  const cityInputRef = React.useRef<HTMLInputElement>(null)
 
   const onCityInput = (val: string) => {
     onChange({ city: val, latitude: null, longitude: null, timeZone: null })
@@ -110,6 +114,8 @@ export function BirthInfoFields({
       timeZone: enriched.timezone ?? null,
     })
     setOpenSug(false)
+    // 모바일 키보드 dismiss — 도시 확정 후 다음 필드로 자연스럽게 넘어가게.
+    cityInputRef.current?.blur()
   }
 
   return (
@@ -182,6 +188,7 @@ export function BirthInfoFields({
           </label>
           <input
             id={id('city')}
+            ref={cityInputRef}
             type="text"
             className={c.input}
             value={city}
