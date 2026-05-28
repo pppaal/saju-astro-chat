@@ -47,6 +47,37 @@ import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
 
+/**
+ * Build a Date whose UTC fields hold the wall-clock year / month / day /
+ * hour / minute that *is currently displayed at the given timezone*.
+ * Anything downstream that reads `.getMonth()` / `.getDate()` (and runs
+ * on a UTC server) will then see the user's local "today" instead of the
+ * server's UTC today.
+ */
+function nowInTimezone(timezone: string): Date {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date())
+  const lookup = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? '0')
+  return new Date(
+    Date.UTC(
+      lookup('year'),
+      lookup('month') - 1,
+      lookup('day'),
+      lookup('hour') === 24 ? 0 : lookup('hour'),
+      lookup('minute'),
+      lookup('second')
+    )
+  )
+}
+
 /** astroProfile.natalChart가 NatalChartData 모양인지 검사 (calendar-engine v2 augmentation 용) */
 function isNatalChartData(chart: unknown): chart is NatalChartData {
   if (!chart || typeof chart !== 'object') return false
@@ -289,7 +320,16 @@ export const GET = withApiMiddleware(
     try {
       const { analyzeDayTimeSlots } =
         await import('@/lib/calendar-engine/timing-helpers/ultra-precision-minute')
-      const slots = analyzeDayTimeSlots(new Date(), pillars.day.stem, pillars.day.branch)
+      // "today" must be the user's local today, not the server's UTC
+      // today — otherwise a US-West user opening the calendar at 5pm
+      // local sees tomorrow's hourly slots and a Korean user just past
+      // midnight sees yesterday's. Anchor the same Date at the user's
+      // timezone before handing it to the timing analyzer.
+      const slots = analyzeDayTimeSlots(
+        nowInTimezone(timezone),
+        pillars.day.stem,
+        pillars.day.branch
+      )
       if (slots.best.length > 0 || slots.worst.length > 0) {
         todayHourlyTimeSlots = {
           best: slots.best.slice(0, 4),
@@ -478,7 +518,10 @@ export const GET = withApiMiddleware(
     // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
     // prescore (v2 셀) 만 current ± 1 month 로 cold 단축 — 나머지 9 달은 v3 점수
     // fallback 으로 narrative/augment 가 채움. PR #830 회귀(다른 달 비어보임) fix.
-    const targetMonthIdx = new Date().getMonth() // 0-11, 서버 시점 기준 (UTC)
+    // 0-11. Use the user's local month, not the server's UTC month, so a
+    // US-West user opening the calendar late evening doesn't pre-score
+    // next month and miss the current one entirely.
+    const targetMonthIdx = nowInTimezone(timezone).getMonth()
     const prescoreMonths = [
       Math.max(0, targetMonthIdx - 1),
       targetMonthIdx,
