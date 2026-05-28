@@ -7,6 +7,7 @@ import type { CalendarEvidence } from '@/types/calendar-api'
 import { KO_MESSAGES, EN_MESSAGES } from './constants'
 import { DISPLAY_SCORE_LABEL_THRESHOLDS, EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
 import { repairMojibakeText } from '@/lib/text/mojibake'
+import { dedupeTexts } from './textDedupe'
 import {
   describePhaseFlow,
   describeSajuAstroRole,
@@ -29,35 +30,6 @@ function pickBySeed<T>(seed: string, items: T[]): T {
     throw new Error('pickBySeed requires a non-empty array')
   }
   return items[seedNumber(seed) % items.length]
-}
-
-function normalizeTextForDedupe(value: string): string {
-  return value
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function dedupeTexts(values: Array<string | null | undefined>): string[] {
-  const out: string[] = []
-  const keys: string[] = []
-  for (const value of values) {
-    const trimmed = String(value || '').trim()
-    if (!trimmed) continue
-    const key = normalizeTextForDedupe(trimmed)
-    if (!key) continue
-    const hasDuplicate = keys.some((existing) => {
-      if (existing === key) return true
-      const canCompareInclusion = existing.length >= 16 && key.length >= 16
-      return canCompareInclusion && (existing.includes(key) || key.includes(existing))
-    })
-    if (hasDuplicate) continue
-    keys.push(key)
-    out.push(trimmed)
-  }
-  return out
 }
 
 function resolveGradeMessage(

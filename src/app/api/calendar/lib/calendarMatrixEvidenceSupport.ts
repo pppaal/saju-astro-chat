@@ -23,6 +23,7 @@ import {
   describePhaseFlow,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 import { sanitizeMatrixNarrativeLine } from './calendarMatrixTextSupport'
+import { dedupeTexts } from './textDedupe'
 
 type CrossEvidenceBundle = {
   sajuEvidence?: string
@@ -97,35 +98,6 @@ const PLANET_KO: Record<string, string> = {
   Jupiter: '목성',
   Saturn: '토성',
   'Natal Sun': '본명 태양',
-}
-
-function normalizeTextForDedupe(value: string): string {
-  return value
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function dedupeTexts(values: Array<string | null | undefined>): string[] {
-  const out: string[] = []
-  const keys: string[] = []
-  for (const value of values) {
-    const trimmed = String(value || '').trim()
-    if (!trimmed) continue
-    const key = normalizeTextForDedupe(trimmed)
-    if (!key) continue
-    const hasDuplicate = keys.some((existing) => {
-      if (existing === key) return true
-      const canCompareInclusion = existing.length >= 16 && key.length >= 16
-      return canCompareInclusion && (existing.includes(key) || key.includes(existing))
-    })
-    if (hasDuplicate) continue
-    keys.push(key)
-    out.push(trimmed)
-  }
-  return out
 }
 
 function clamp01(value: number): number {

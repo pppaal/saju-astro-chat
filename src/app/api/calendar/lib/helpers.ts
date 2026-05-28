@@ -53,6 +53,7 @@ import {
   getEffectiveGradeFromDisplayScore,
   selectMatrixPacketForDate,
 } from './calendarMatrixEvidenceSupport'
+import { dedupeTexts } from './textDedupe'
 
 export { gateRecommendations }
 export const getTranslation = getTranslationSupport
@@ -145,37 +146,6 @@ function pickBySeed<T>(seed: string, items: T[]): T {
     throw new Error('pickBySeed requires a non-empty array')
   }
   return items[seedNumber(seed) % items.length]
-}
-
-function normalizeTextForDedupe(value: string): string {
-  return value
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function dedupeTexts(values: Array<string | null | undefined>): string[] {
-  const out: string[] = []
-  const keys: string[] = []
-  for (const value of values) {
-    const trimmed = String(value || '').trim()
-    if (!trimmed) {
-      continue
-    }
-    const key = normalizeTextForDedupe(trimmed)
-    if (!key) continue
-    const hasDuplicate = keys.some((existing) => {
-      if (existing === key) return true
-      const canCompareInclusion = existing.length >= 16 && key.length >= 16
-      return canCompareInclusion && (existing.includes(key) || key.includes(existing))
-    })
-    if (hasDuplicate) continue
-    keys.push(key)
-    out.push(trimmed)
-  }
-  return out
 }
 
 /**
