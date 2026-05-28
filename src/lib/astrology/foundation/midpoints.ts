@@ -3,7 +3,8 @@
 // 두 행성 사이의 중간점, 민감한 감응점
 
 import { Chart, PlanetBase, ZodiacKo, AspectType } from "./types";
-import { formatLongitude, normalize360, shortestAngle } from "./utils";
+import { formatLongitude, shortestAngle } from "./utils";
+import { getMidpoint as getMidpointLongitude } from "./shared";
 
 export interface Midpoint {
   planet1: string;
@@ -62,21 +63,6 @@ const MIDPOINT_DEFINITIONS: {
   { pair: ["Jupiter", "Neptune"], name_ko: "확장된 영성의 점", keywords: ["영적 성장", "비전", "연민"] },
 ];
 
-/**
- * 두 경도의 미드포인트 계산 (짧은 호)
- */
-function getMidpointLongitude(lon1: number, lon2: number): number {
-  const a = normalize360(lon1);
-  const b = normalize360(lon2);
-
-  let diff = b - a;
-  if (diff < 0) {diff += 360;}
-
-  if (diff > 180) {
-    return normalize360(a + diff / 2 + 180);
-  }
-  return normalize360(a + diff / 2);
-}
 
 /**
  * 차트의 모든 미드포인트 계산
