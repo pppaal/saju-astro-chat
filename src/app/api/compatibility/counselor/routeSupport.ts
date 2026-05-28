@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateNatalChart } from '@/lib/astrology'
+import { normalizeGender } from '@/lib/utils/gender'
 import type { ChatMessage } from '@/lib/api'
 function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max)
@@ -331,8 +332,12 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
   const tzRaw = typeof person.timeZone === 'string' ? person.timeZone.trim() : ''
   const timeZone = tzRaw.length > 0 ? tzRaw : 'Asia/Seoul'
 
-  const genderRaw = typeof person.gender === 'string' ? person.gender.toLowerCase() : ''
-  const gender = genderRaw === 'female' ? 'female' : 'male'
+  // 공용 normalizer — 'F' / 'Female' / 'female' / 'f' / 'M' / 'Male' 다 처리.
+  // 이전 `lowercase === 'female'` 패턴은 'F' 가 'f' 로 떨어져 매칭 실패 →
+  // 여자 사용자 'male' 로 잘못 분류 → 대운 순/역행 거꾸로.
+  const genderInput = typeof person.gender === 'string' ? person.gender : undefined
+  const normalized = normalizeGender(genderInput)
+  const gender: 'male' | 'female' = normalized === 'female' ? 'female' : 'male'
 
   return {
     date,
@@ -344,7 +349,9 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
     source: {
       usedDefaultLocation: !hasLocation,
       usedDefaultTimezone: tzRaw.length === 0,
-      usedDefaultGender: genderRaw !== 'male' && genderRaw !== 'female',
+      // normalizer 가 'male'/'female' 둘 다 확정 못 한 경우 = 입력이 빠지거나
+      // 알 수 없는 포맷 → 'male' fallback 을 썼다는 의미.
+      usedDefaultGender: normalized !== 'male' && normalized !== 'female',
     },
   }
 }

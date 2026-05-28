@@ -18,6 +18,7 @@ import { getNowInTimezone } from '@/lib/datetime'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { logger } from '@/lib/logger'
+import { normalizeGender } from '@/lib/utils/gender'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
@@ -337,7 +338,10 @@ export async function POST(req: NextRequest) {
       const tz = body.timezone ?? 'Asia/Seoul'
       const birthDate = body.birthDate
       const birthTime = body.birthTime ?? '12:00'
-      const gender = body.gender === 'female' ? 'female' : 'male'
+      // 'F' / 'Female' 다 처리 — 기존 `=== 'female'` 정확 매칭은 'F' 한 글자
+      // 나 'Female' 대문자는 'male' 로 떨어져 여자 사용자 대운 방향 거꾸로.
+      const gender: 'male' | 'female' =
+        normalizeGender(body.gender) === 'female' ? 'female' : 'male'
       const latitude = body.latitude ?? 37.5665
       const longitude = body.longitude ?? 126.978
       const sajuPromise = Promise.resolve(

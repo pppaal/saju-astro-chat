@@ -19,6 +19,7 @@ import type { TranslationData } from '@/types/calendar-api'
 import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { normalizeGender } from '@/lib/utils/gender'
 import { calculateYearlyImportantDates } from './lib/yearlyDates'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 
@@ -213,7 +214,10 @@ export const GET = withApiMiddleware(
     // 정확한 사주 계산 (saju.ts 사용 - 절기 기반 월주, 자시 교차 처리)
     let sajuResult
     try {
-      const sajuGender = gender.toLowerCase() === 'female' ? ('female' as const) : ('male' as const)
+      // 'F' 한 글자도 처리 — 기존 lowercase==='female' 매칭은 'F'→'f' 가
+      // 매칭 실패해 여자 사용자의 대운 방향이 거꾸로 가던 회귀.
+      const sajuGender: 'male' | 'female' =
+        normalizeGender(gender) === 'female' ? 'female' : 'male'
       const { calculateSajuData } = await import('@/lib/saju/saju')
       sajuResult = calculateSajuData(birthDateParam, birthTimeParam, sajuGender, 'solar', timezone)
     } catch (sajuError) {
@@ -445,7 +449,7 @@ export const GET = withApiMiddleware(
         {
           birthDate: birthDateParam,
           birthTime: birthTimeParam || '12:00',
-          gender: gender.toLowerCase() === 'female' ? 'female' : 'male',
+          gender: normalizeGender(gender) === 'female' ? 'female' : 'male',
           latitude: coords.lat,
           longitude: coords.lng,
           timeZone: timezone,

@@ -3,6 +3,7 @@
 import { NextRequest } from 'next/server'
 import { toDate } from 'date-fns-tz'
 import { calculateSajuData } from '@/lib/saju/saju'
+import { normalizeGender } from '@/lib/utils/gender'
 import { getCreditBalance } from '@/lib/credits/creditService'
 import { getNowInTimezone } from '@/lib/datetime'
 import {
@@ -89,7 +90,11 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   const birthDate = toDate(`${birthDateString}T${birthTimeRaw}:00`, { timeZone: timezone })
   const adjustedBirthTime = String(birthTimeRaw)
 
-  const sajuGender = gender.toLowerCase() === 'female' ? ('female' as const) : ('male' as const)
+  // 'F' / 'Female' / 'female' / 'f' 다 처리하는 공용 normalizer 사용.
+  // 기존 `gender.toLowerCase() === 'female'` 패턴은 'F'(한 글자) 가 'f' 로
+  // 떨어져 'female' 매칭 실패 → 여자 사용자 'male' 로 잘못 분류 → 대운
+  // 순/역행이 거꾸로 가던 회귀.
+  const sajuGender: 'male' | 'female' = normalizeGender(gender) === 'female' ? 'female' : 'male'
   const sajuResult = calculateSajuData(
     birthDateString,
     adjustedBirthTime,
