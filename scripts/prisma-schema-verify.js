@@ -27,6 +27,29 @@ function buildDirectUrl() {
     .replace(/[?&]$/, '')
 }
 
+// 통째 missing 테이블 — phantom apply 로 CREATE TABLE 자체가 안 된 케이스.
+// 각 항목: { table, migration, createSql: 전체 SQL 문 (idempotent IF NOT EXISTS) }
+const REQUIRED_TABLES = [
+  {
+    table: 'CalendarBuildCache',
+    migration: '20260528120000_add_calendar_build_cache',
+    createSql: `
+      CREATE TABLE IF NOT EXISTS "CalendarBuildCache" (
+        "id" TEXT NOT NULL,
+        "birthKey" TEXT NOT NULL,
+        "monthKey" TEXT NOT NULL,
+        "data" JSONB NOT NULL,
+        "builtAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "CalendarBuildCache_pkey" PRIMARY KEY ("id")
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS "CalendarBuildCache_birthKey_monthKey_key"
+        ON "CalendarBuildCache"("birthKey", "monthKey");
+      CREATE INDEX IF NOT EXISTS "CalendarBuildCache_builtAt_idx"
+        ON "CalendarBuildCache"("builtAt");
+    `,
+  },
+]
+
 // 각 항목: { table, columns: [{ name, ddl }] } — DDL 은 ALTER TABLE 뒤
 // 붙는 ADD COLUMN 조각. IF NOT EXISTS 필수.
 const REQUIRED_SCHEMA = [
@@ -52,6 +75,18 @@ const REQUIRED_SCHEMA = [
   },
 ]
 
+async function tableExists(client, table) {
+  const res = await client.query(
+    `SELECT 1
+     FROM information_schema.tables
+     WHERE table_schema = 'public'
+       AND table_name = $1
+     LIMIT 1`,
+    [table]
+  )
+  return res.rowCount > 0
+}
+
 async function columnExists(client, table, column) {
   const res = await client.query(
     `SELECT 1
@@ -71,6 +106,23 @@ async function main() {
   await client.connect()
   try {
     let totalFixed = 0
+
+    // 1) 통째 missing 테이블 검증·생성 — phantom apply 가 CREATE TABLE 자체를 막은 케이스.
+    for (const entry of REQUIRED_TABLES) {
+      const exists = await tableExists(client, entry.table)
+      if (exists) {
+        console.log(`[schema-verify] ${entry.table}: table present`)
+        continue
+      }
+      console.log(
+        `[schema-verify] ${entry.table}: table MISSING (migration ${entry.migration} phantom-applied)`
+      )
+      console.log(`  - executing CREATE TABLE + indexes`)
+      await client.query(entry.createSql)
+      totalFixed += 1
+    }
+
+    // 2) 컬럼-레벨 검증·추가 — ALTER TABLE ADD COLUMN phantom-applied.
     for (const entry of REQUIRED_SCHEMA) {
       const missing = []
       for (const col of entry.columns) {
