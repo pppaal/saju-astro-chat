@@ -138,6 +138,9 @@ export interface ImportantDate {
 export interface CalendarData {
   success: boolean
   year: number
+  /** 그 달 narrative 해석 — top-level 1개 (이전 dates 365 copies → dedupe).
+   *  이전 캐시 호환: 없으면 allDates[0].monthlyInterpretation 으로 fallback. */
+  monthlyInterpretation?: CalendarInterpretation | null
   matrixContract?: {
     coreHash?: string
     overallPhase?: string

@@ -29,6 +29,8 @@ interface Props {
   monthScore: number
   /** engine monthSummary.summary 또는 oneLineSummary */
   monthSummary?: string | null
+  /** top-level monthlyInterpretation (server 가 dedupe). 없으면 monthDates[0] fallback. */
+  monthInterp?: NonNullable<ImportantDate['monthlyInterpretation']> | null
   /** UI 라벨 locale */
   locale?: CalLocale
   onDayClick: (day: number) => void
@@ -41,6 +43,7 @@ export default function MonthDashboard({
   monthDates,
   monthScore,
   monthSummary,
+  monthInterp,
   locale,
   onDayClick,
 }: Props) {
@@ -65,8 +68,9 @@ export default function MonthDashboard({
     const worstEntry = dayScoreList[dayScoreList.length - 1]
 
     // 수렴 날 — interp.convergence.keyDays (점성·사주 양쪽 무거운 날) bothSystems 만.
+    // top-level monthInterp prop 우선, 없으면 dates[0] fallback (이전 캐시 호환)
     const convergenceDays = new Set<number>()
-    const interp = monthDates[0]?.monthlyInterpretation
+    const interp = monthInterp ?? monthDates[0]?.monthlyInterpretation
     const monthKeyDays = interp?.convergence?.keyDays ?? []
     const bothSysDays = monthKeyDays.filter((d) => d.bothSystems)
     for (const day of bothSysDays) {
@@ -103,13 +107,13 @@ export default function MonthDashboard({
         : null
 
     return { grade, flowData, daysInMonth, nowDayLabel }
-  }, [year, month, monthDates, monthScore, locale])
+  }, [year, month, monthDates, monthScore, locale, monthInterp])
 
   if (!data) return null
 
   const verdict = monthSummary?.trim() || t.monthVerdictFallback(t.gradeLabel(data.grade.key))
-  const monthInterp = monthDates[0]?.monthlyInterpretation
-  const cmp = monthInterp?.monthComparison
+  const finalInterp = monthInterp ?? monthDates[0]?.monthlyInterpretation
+  const cmp = finalInterp?.monthComparison
 
   return (
     <div className="space-y-6">
@@ -123,7 +127,7 @@ export default function MonthDashboard({
 
       {cmp && <MonthComparisonLine cmp={cmp} t={t} />}
 
-      <MonthInsights interp={monthInterp} month={month} locale={locale} onDayClick={onDayClick} />
+      <MonthInsights interp={finalInterp} month={month} locale={locale} onDayClick={onDayClick} />
 
       <FlowChart
         data={data.flowData}

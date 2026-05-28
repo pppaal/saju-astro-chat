@@ -519,6 +519,7 @@ export default function DestinyMatrixPlanner({
                   monthDates={monthDates}
                   monthScore={monthScore}
                   monthSummary={monthlySummaryText}
+                  monthInterp={data?.monthlyInterpretation ?? null}
                   locale={locale}
                   onDayClick={handleDayClick}
                 />
