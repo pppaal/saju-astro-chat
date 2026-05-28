@@ -23,7 +23,8 @@ import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { refundCredits } from '@/lib/credits/creditRefund'
-import { cacheGet, cacheSet, cacheDel, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { shouldChargeForMessage, rollbackMessageCount } from '@/lib/credits/messageBilling'
+import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
 export const dynamic = 'force-dynamic'
@@ -62,20 +63,9 @@ const MAX_ATTACHMENT_CHARS = 12000
 
 const RATE_LIMIT_PER_MIN = 12
 
-// Session-based billing: 1 credit opens a counselling *session*; every turn
-// within SESSION_WINDOW_SECONDS (and up to TURNS_PER_SESSION) is then free.
-// Replaces the old per-turn charge so a chatty sitting no longer drains
-// credits message-by-message. Session state lives in Redis keyed by user, so
-// a client can't replay a truncated history to dodge the charge.
-const CREDIT_PER_SESSION = 1
-const SESSION_WINDOW_SECONDS = 30 * 60
-const TURNS_PER_SESSION = 20
-const counselorSessionKey = (userId: string) => `counselor:session:${userId}`
-
-interface CounselorSession {
-  startedAt: number
-  turns: number
-}
+// Billing: 2 messages = 1 credit. messageBilling 헬퍼 사용 (홀수번째 차감).
+// 옛 session 30분/20턴 모델은 LLM 비용 worst case 적자라 제거 — 타로 followup,
+// 궁합 상담사와 같은 정책으로 통일.
 
 // DestinyPal warm-counselor system prompts.
 //
@@ -237,21 +227,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: safetyMessage(lang) }, { status: 200 })
   }
 
-  // 4) Resolve session + credit pre-check. A credit is only required to start
-  // a *new* session — no active session, the window elapsed, or the turn cap
-  // was reached. Continuing an active session costs nothing.
-  const sessionKey = counselorSessionKey(userId)
-  const nowMs = Date.now()
-  const existingSession = await cacheGet<CounselorSession>(sessionKey)
-  const sessionActive =
-    !!existingSession &&
-    nowMs - existingSession.startedAt < SESSION_WINDOW_SECONDS * 1000 &&
-    existingSession.turns < TURNS_PER_SESSION
-  const isNewSession = !sessionActive
-
-  if (isNewSession) {
-    const credit = await canUseCredits(userId, 'reading', CREDIT_PER_SESSION)
+  // 4) 2-message-per-credit 정책: 홀수번째 메시지에 1 credit 차감, 짝수번째는
+  // 직전 결제로 커버되어 무료. 옛 session(30분/20턴=1credit) 모델은 LLM 비용
+  // 대비 적자 worst case 가 나와 제거 — messageBilling 헬퍼로 통일.
+  // 카운터는 이 시점에 +1 되며, credit 부족·LLM 실패 시 rollbackMessageCount
+  // 로 되돌린다.
+  const billing = await shouldChargeForMessage('destiny-counselor', userId)
+  if (billing.shouldCharge) {
+    const credit = await canUseCredits(userId, 'reading', 1)
     if (!credit.allowed) {
+      await rollbackMessageCount('destiny-counselor', userId)
       return NextResponse.json(
         { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
         { status: 402 }
@@ -426,28 +411,17 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 6) Charge + advance the session marker AFTER validation but BEFORE the
-  // stream starts. New session → consume 1 credit and open the window.
-  // Continuing session → free; just bump the turn counter while keeping the
-  // original window (fixed, not sliding).
+  // 6) 홀수번째 메시지면 credit 차감, 짝수번째는 skip. canUseCredits 가 위에서
+  // 통과했으므로 여기서 실패하면 race condition (다른 탭에서 동시에 차감) 정도.
   let chargedThisTurn = false
-  if (isNewSession) {
+  if (billing.shouldCharge) {
     try {
-      const res = await consumeCredits(userId, 'reading', CREDIT_PER_SESSION)
+      const res = await consumeCredits(userId, 'reading', 1)
       chargedThisTurn = res.success
     } catch (err) {
       logger.warn('[counselor/realtime] credit deduction failed', { err })
       // Don't block the user — observability over enforcement here.
     }
-    await cacheSet(sessionKey, { startedAt: nowMs, turns: 1 }, SESSION_WINDOW_SECONDS)
-  } else {
-    const startedAt = existingSession?.startedAt ?? nowMs
-    const turns = (existingSession?.turns ?? 0) + 1
-    const remainingSec = Math.max(
-      1,
-      Math.ceil((SESSION_WINDOW_SECONDS * 1000 - (nowMs - startedAt)) / 1000)
-    )
-    await cacheSet(sessionKey, { startedAt, turns }, remainingSec)
   }
 
   // 7) Build prompt and stream — 진짜 multi-turn 구조.
@@ -515,11 +489,13 @@ export async function POST(req: NextRequest) {
           await refundCredits({
             userId,
             creditType: 'reading',
-            amount: CREDIT_PER_SESSION,
+            amount: 1,
             reason: 'counselor_stream_empty',
             apiRoute: '/api/counselor/realtime',
           })
-          await cacheDel(sessionKey)
+          // 메시지 카운터도 되돌려 — 다음 메시지가 다시 "홀수=charge" 위치로
+          // 돌아오게 한다 (안 그러면 사용자가 차감 위치를 한 칸 잃음).
+          await rollbackMessageCount('destiny-counselor', userId)
         } catch (err) {
           logger.warn('[counselor/realtime] stream-failure refund failed', { err })
         }

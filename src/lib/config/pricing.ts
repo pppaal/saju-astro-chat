@@ -64,12 +64,14 @@ export const CREDIT_PACKS: Record<CreditPackType, CreditPack> = {
   },
   ultimate: {
     id: 'ultimate',
-    // 280 → 220 — Sonnet 4.5 운영 비용 반영. 크레딧당 $0.18 / ₩181 로
-    // 정상 마진(38%) 진입. mega 대비 양 +83% 라 큰 팩 매력 유지.
-    credits: 220,
+    // 220 → 250 — per-credit 가격 역전 fix. 220일 땐 ₩181/credit 로 mega
+    // (₩166) 보다 비싼 역전이 났음. 250 이면 ₩160/credit 로 정상 위계 (가장
+    // 큰 팩이 가장 쌈) 회복. Sonnet 4.5 운영 비용은 프롬프트 캐싱(1h TTL)
+    // 으로 회수돼 마진 충분.
+    credits: 250,
     pricing: { krw: 39900, usd: 39.99 },
-    perCreditKrw: 181,
-    perCreditUsd: 0.18,
+    perCreditKrw: 160,
+    perCreditUsd: 0.16,
   },
 } as const
 

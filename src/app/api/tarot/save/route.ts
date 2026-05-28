@@ -83,24 +83,32 @@ export const POST = withApiMiddleware(
       followupTurns,
     } = body
 
-    const tarotReading = await prisma.tarotReading.create({
-      data: {
-        userId: context.userId!,
-        question,
-        spreadId,
-        spreadTitle,
-        cards: buildStoredCardsPayload(cards, questionContext),
-        overallMessage,
-        cardInsights,
-        guidance,
-        affirmation,
-        source,
-        counselorSessionId,
-        locale,
-        clarifierCard: clarifierCard ?? Prisma.JsonNull,
-        followupTurns: followupTurns ?? Prisma.JsonNull,
-      },
-    })
+    // clarifierCard / followupTurns 는 신규 컬럼이라 마이그레이션이 아직 적용되지
+    // 않은 환경에서도 기본 저장은 살아남도록 "값이 실제로 들어왔을 때만" data 에
+    // 포함시킨다. 처음부터 Prisma.JsonNull 로 박아 넣으면 INSERT 가 항상 그 컬럼을
+    // 참조해 컬럼이 없는 DB 에선 매 저장이 500 으로 죽는다.
+    const createData: Prisma.TarotReadingUncheckedCreateInput = {
+      userId: context.userId!,
+      question,
+      spreadId,
+      spreadTitle,
+      cards: buildStoredCardsPayload(cards, questionContext),
+      overallMessage,
+      cardInsights,
+      guidance,
+      affirmation,
+      source,
+      counselorSessionId,
+      locale,
+    }
+    if (clarifierCard !== undefined) {
+      createData.clarifierCard = clarifierCard
+    }
+    if (followupTurns !== undefined) {
+      createData.followupTurns = followupTurns
+    }
+
+    const tarotReading = await prisma.tarotReading.create({ data: createData })
 
     return apiSuccess({
       success: true,
@@ -135,29 +143,52 @@ export const GET = withApiMiddleware(
       userId: context.userId!,
     }
 
-    const [readings, total] = await Promise.all([
-      prisma.tarotReading.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-        select: {
-          id: true,
-          createdAt: true,
-          question: true,
-          spreadId: true,
-          spreadTitle: true,
-          cards: true,
-          overallMessage: true,
-          guidance: true,
-          cardInsights: true,
-          source: true,
-          clarifierCard: true,
-          followupTurns: true,
-        },
-      }),
-      prisma.tarotReading.count({ where }),
-    ])
+    // clarifierCard / followupTurns 는 신규 컬럼 — 마이그레이션이 아직 적용
+    // 안 된 환경에선 select 자체가 P2022(column does not exist)로 죽어 히스토리
+    // 전체가 빈 화면이 되던 회귀. 1차로 신규 컬럼 포함 query 시도 → 실패하면
+    // 구 컬럼만으로 한 번 더 재시도해서 최소한 옛 리딩은 보이게 한다.
+    const baseSelect = {
+      id: true,
+      createdAt: true,
+      question: true,
+      spreadId: true,
+      spreadTitle: true,
+      cards: true,
+      overallMessage: true,
+      guidance: true,
+      cardInsights: true,
+      source: true,
+    } as const
+
+    let readings: Array<Record<string, unknown>>
+    let total: number
+    try {
+      ;[readings, total] = await Promise.all([
+        prisma.tarotReading.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: offset,
+          select: { ...baseSelect, clarifierCard: true, followupTurns: true },
+        }),
+        prisma.tarotReading.count({ where }),
+      ])
+    } catch (err) {
+      // P2022 = "column not found". 마이그레이션 미적용 환경 fallback.
+      const code = (err as { code?: string } | null)?.code
+      if (code !== 'P2022') throw err
+      logger.warn('[TarotSave] new columns missing on DB — falling back', { code })
+      ;[readings, total] = await Promise.all([
+        prisma.tarotReading.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: offset,
+          select: baseSelect,
+        }),
+        prisma.tarotReading.count({ where }),
+      ])
+    }
 
     const normalizedReadings = readings.map((reading) => ({
       ...reading,
