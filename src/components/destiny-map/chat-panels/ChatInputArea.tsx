@@ -210,17 +210,10 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                 <span className={styles.toolLabel}>{lang === 'ko' ? '차트' : 'Chart'}</span>
               </button>
             )}
-            {clarifierButton && (
-              <button
-                type="button"
-                {...clarifierButton.props}
-                className={`${styles.attachButton} ${styles.toolWithLabel} ${styles.mobileOnlyTool}`}
-                aria-label={clarifierButton.label}
-              >
-                <span aria-hidden="true">{'🃏'}</span>
-                <span className={styles.toolLabel}>{clarifierButton.label}</span>
-              </button>
-            )}
+            {/* clarifier ("카드 한 장 더 뽑기") 버튼은 input 툴바가 아니라
+                MessagesPanel 의 타로 결과 직후 postAnswerActions 에서 노출
+                — 위치 어색함 피드백 fix. clarifierButton prop 은 호환성을
+                위해 시그니처만 유지하고 렌더링은 안 함. */}
             {parsingPdf && (
               <span className={styles.fileName}>
                 <span className={styles.loadingSpinner} />
