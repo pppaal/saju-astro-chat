@@ -152,23 +152,10 @@ export default function DestinyMatrixPlanner({
   }, [])
   const isThisMonth = viewYear === today.getFullYear() && viewMonth === today.getMonth()
 
-  const monthLabel = useMemo(() => {
-    const labels = [
-      'JAN',
-      'FEB',
-      'MAR',
-      'APR',
-      'MAY',
-      'JUN',
-      'JUL',
-      'AUG',
-      'SEP',
-      'OCT',
-      'NOV',
-      'DEC',
-    ]
-    return `${labels[viewMonth]} ${viewYear}`
-  }, [viewMonth, viewYear])
+  const monthLabel = useMemo(
+    () => t.fmtYearMonthHeader(viewYear, viewMonth + 1),
+    [viewMonth, viewYear, t]
+  )
 
   const daysInMonth = useMemo(
     () => new Date(viewYear, viewMonth + 1, 0).getDate(),

@@ -69,14 +69,14 @@ export default function YearDashboard({
         ageLabel: t.fmtAge(p.age),
         year: p.year,
         title: p.label,
-        description: p.meaning ?? (p.saju ? `${p.saju} — 10년 흐름의 시작` : ''),
+        description: p.meaning ?? (p.saju ? t.pivotDaeunFallback(p.saju) : ''),
         active: p.phase === 'current',
         bothSystems: p.bothSystems,
         past: p.phase === 'past',
       }))
     }
-    return computeLifeTimeline({ birthDate, currentPhaseLabel, thisYear: year })
-  }, [lifetimePivots, birthDate, currentPhaseLabel, year, t])
+    return computeLifeTimeline({ birthDate, currentPhaseLabel, thisYear: year, locale })
+  }, [lifetimePivots, birthDate, currentPhaseLabel, year, locale, t])
 
   if (!yearlyMonthly || yearlyMonthly.length === 0) return null
 
