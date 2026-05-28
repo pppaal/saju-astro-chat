@@ -86,6 +86,19 @@ export function useChatApi({
   // 직전 user turn 의 idempotencyKey 보관 — "다시 시도" 시 같은 키 재사용으로
   // 서버가 idempotent replay 분기를 타게 해 credit 추가 차감 방지.
   const lastTurnIdemKeyRef = React.useRef<string | null>(null)
+  // Track the in-flight stream's user text so the unmount cleanup below
+  // can persist whatever was buffered. Cleared once the stream resolves
+  // normally and processStream calls onSaveMessage itself.
+  const inFlightStreamRef = React.useRef<{
+    userText: string
+    controller: AbortController
+  } | null>(null)
+  // Refs to the latest callback prop values so the unmount cleanup
+  // doesn't capture a stale closure when the parent re-renders.
+  const onSaveMessageRef = React.useRef(onSaveMessage)
+  React.useEffect(() => {
+    onSaveMessageRef.current = onSaveMessage
+  }, [onSaveMessage])
 
   const flushMessageUpdate = React.useCallback(() => {
     if (pendingContentRef.current !== null) {
@@ -264,87 +277,95 @@ export function useChatApi({
       _assistantMsgId: string,
       userText: string
     ): Promise<void> => {
-      let lastScrollTime = 0
+      // Register the in-flight stream so the unmount cleanup (below) can
+      // persist the buffered partial if the user navigates away mid-
+      // stream. Cleared in the finally block once the stream is done.
+      inFlightStreamRef.current = { userText, controller }
+      try {
+        let lastScrollTime = 0
 
-      // Chunk idle timer — chunk 가 들어올 때마다 reset. 일정 시간 동안 한 byte
-      // 도 안 오면 응답이 진짜 멈춘 것으로 보고 abort. fetch signal 에 연결되어
-      // 있어 controller.abort() 가 reader.read() 도 종료시킨다.
-      let idleTimer: ReturnType<typeof setTimeout> | null = null
-      const armIdleTimer = () => {
-        if (idleTimer) clearTimeout(idleTimer)
-        idleTimer = setTimeout(() => {
-          controller.abort()
-        }, CHAT_TIMINGS.CHUNK_IDLE_TIMEOUT)
-      }
-      armIdleTimer()
+        // Chunk idle timer — chunk 가 들어올 때마다 reset. 일정 시간 동안 한 byte
+        // 도 안 오면 응답이 진짜 멈춘 것으로 보고 abort. fetch signal 에 연결되어
+        // 있어 controller.abort() 가 reader.read() 도 종료시킨다.
+        let idleTimer: ReturnType<typeof setTimeout> | null = null
+        const armIdleTimer = () => {
+          if (idleTimer) clearTimeout(idleTimer)
+          idleTimer = setTimeout(() => {
+            controller.abort()
+          }, CHAT_TIMINGS.CHUNK_IDLE_TIMEOUT)
+        }
+        armIdleTimer()
 
-      const result = await streamProcessor.process(res, {
-        onChunk: (_accumulated, cleaned) => {
-          armIdleTimer()
-          // Update message in real-time as chunks arrive
-          updateLastAssistantMessage(cleaned)
-          // Auto-scroll during streaming (throttled to every 100ms)
-          const now = Date.now()
-          if (autoScroll && now - lastScrollTime > 100) {
-            lastScrollTime = now
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-          }
-        },
-        onError: () => {
-          setNotice(tr.error)
-        },
-      })
-
-      if (idleTimer) {
-        clearTimeout(idleTimer)
-        idleTimer = null
-      }
-
-      // Flush final content immediately (bypass throttle)
-      if (!result.content) {
-        flushFinalMessage(tr.noResponse)
-      } else {
-        const normalizedContent = normalizeCounselorResponse(
-          result.content,
-          lang === 'ko' ? 'ko' : 'en'
-        )
-        flushFinalMessage(normalizedContent)
-        // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
-        // abort) 이 메시지에 incomplete 마킹 — MessageRow 가 "다시 시도" 칩을
-        // 노출. truncated 는 finalMessage flush 직후 같은 lastAssistant 에 덧씌움.
-        if (!result.success || result.truncated) {
-          setMessages((prev) => {
-            const updated = [...prev]
-            const lastIdx = updated.length - 1
-            if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
-              updated[lastIdx] = { ...updated[lastIdx], incomplete: true }
+        const result = await streamProcessor.process(res, {
+          onChunk: (_accumulated, cleaned) => {
+            armIdleTimer()
+            // Update message in real-time as chunks arrive
+            updateLastAssistantMessage(cleaned)
+            // Auto-scroll during streaming (throttled to every 100ms)
+            const now = Date.now()
+            if (autoScroll && now - lastScrollTime > 100) {
+              lastScrollTime = now
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
             }
-            return updated
-          })
+          },
+          onError: () => {
+            setNotice(tr.error)
+          },
+        })
+
+        if (idleTimer) {
+          clearTimeout(idleTimer)
+          idleTimer = null
         }
 
-        // Set follow-up questions — 모델이 가끔 generic 질문("더 알려줘"/
-        // "tell me more")을 뱉음. 시스템 프롬프트가 금지하지만 모델이 무시하면
-        // 클라이언트에서 결정적으로 필터링 + 부족분은 테마 기반 폴백으로 보충.
-        const goodAiFollowUps = result.followUps.filter((q) => !isGenericFollowUp(q, lang))
-        const needed = CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT - goodAiFollowUps.length
-        const merged =
-          needed > 0
-            ? [
-                ...goodAiFollowUps,
-                ...generateFollowUpQuestions(
-                  userText,
-                  lang,
-                  CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT,
-                  normalizedContent
-                ).filter((q) => !goodAiFollowUps.includes(q)),
-              ].slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
-            : goodAiFollowUps.slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
-        setFollowUpQuestions(merged)
+        // Flush final content immediately (bypass throttle)
+        if (!result.content) {
+          flushFinalMessage(tr.noResponse)
+        } else {
+          const normalizedContent = normalizeCounselorResponse(
+            result.content,
+            lang === 'ko' ? 'ko' : 'en'
+          )
+          flushFinalMessage(normalizedContent)
+          // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
+          // abort) 이 메시지에 incomplete 마킹 — MessageRow 가 "다시 시도" 칩을
+          // 노출. truncated 는 finalMessage flush 직후 같은 lastAssistant 에 덧씌움.
+          if (!result.success || result.truncated) {
+            setMessages((prev) => {
+              const updated = [...prev]
+              const lastIdx = updated.length - 1
+              if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+                updated[lastIdx] = { ...updated[lastIdx], incomplete: true }
+              }
+              return updated
+            })
+          }
 
-        if (onSaveMessage) {
-          onSaveMessage(userText, normalizedContent)
+          // Set follow-up questions — 모델이 가끔 generic 질문("더 알려줘"/
+          // "tell me more")을 뱉음. 시스템 프롬프트가 금지하지만 모델이 무시하면
+          // 클라이언트에서 결정적으로 필터링 + 부족분은 테마 기반 폴백으로 보충.
+          const goodAiFollowUps = result.followUps.filter((q) => !isGenericFollowUp(q, lang))
+          const needed = CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT - goodAiFollowUps.length
+          const merged =
+            needed > 0
+              ? [
+                  ...goodAiFollowUps,
+                  ...generateFollowUpQuestions(
+                    userText,
+                    lang,
+                    CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT,
+                    normalizedContent
+                  ).filter((q) => !goodAiFollowUps.includes(q)),
+                ].slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+              : goodAiFollowUps.slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+          setFollowUpQuestions(merged)
+
+          if (onSaveMessage) {
+            onSaveMessage(userText, normalizedContent)
+          }
         }
+      } finally {
+        inFlightStreamRef.current = null
       }
     },
     [
@@ -506,6 +527,42 @@ export function useChatApi({
       MAX_CHAT_MESSAGE_CHARS,
     ]
   )
+
+  // Unmount cleanup. Before this existed, navigating away mid-stream
+  // left the buffered tail in pendingContentRef and never reached
+  // onSaveMessage — the user's chat history captured only whatever was
+  // last flushed to the React state, often a sentence short of the
+  // actual response. Clear the pending render timer and, if we still
+  // have a live stream, hand the buffered partial to onSaveMessage so
+  // the persisted record matches what the user saw on screen.
+  React.useEffect(() => {
+    return () => {
+      if (updateTimerRef.current) {
+        clearTimeout(updateTimerRef.current)
+        updateTimerRef.current = null
+      }
+      const inflight = inFlightStreamRef.current
+      const partial = pendingContentRef.current
+      if (inflight) {
+        // Abort the fetch first so the stream reader stops chasing
+        // bytes for a component nobody's watching anymore.
+        try {
+          inflight.controller.abort()
+        } catch {
+          /* AbortController throws if already aborted; ignore. */
+        }
+        if (partial && partial.length > 0 && onSaveMessageRef.current) {
+          try {
+            onSaveMessageRef.current(inflight.userText, partial)
+          } catch {
+            /* onSaveMessage failures shouldn't bubble out of unmount. */
+          }
+        }
+      }
+      inFlightStreamRef.current = null
+      pendingContentRef.current = null
+    }
+  }, [])
 
   return {
     loading,
