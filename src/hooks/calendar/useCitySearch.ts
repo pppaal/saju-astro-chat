@@ -10,6 +10,9 @@ interface CityHit {
   lat: number
   lon: number
   timezone?: string
+  // /api/cities 가 dr5hn states 데이터 매칭으로 부여하는 admin1 영문명.
+  // Springfield(IL)/Springfield(MO) 같은 동명 도시 구분에 사용.
+  region?: string
   nameKr?: string
   countryKr?: string
   displayKr?: string

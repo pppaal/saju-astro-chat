@@ -20,6 +20,9 @@ type City = {
   country: string
   lat: number
   lon: number
+  // dr5hn states 데이터에서 매칭된 admin1 영문명. 약 80% 도시에 들어 있음.
+  // Springfield(IL) / Springfield(MO) 같은 동명 도시 disambiguation 용도.
+  region?: string
 }
 
 type CityResult = City & {
@@ -171,17 +174,27 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
 
     // Display rules:
     //   KO Korean city → just city name (e.g. 서울)
-    //   KO foreign city → "{nameKr}, {countryKr}" (e.g. 도쿄, 일본)
-    //   EN every city  → "{name}, {countryFull}" (e.g. Seoul, Korea)
+    //   KO foreign city → "{nameKr}, {region?}, {countryKr}" (e.g. "스프링필드, Illinois, 미국")
+    //   EN every city  → "{name}, {region?}, {countryFull}" (e.g. "Springfield, Illinois, United States")
+    // region 은 city 와 동일하거나 한쪽이 다른 쪽을 포함하면 생략
+    // ("Seoul, Seoul Special City" 같은 redundancy 회피).
+    let regionPart = ''
+    if (c.region) {
+      const rl = c.region.toLowerCase()
+      const nl = c.name.toLowerCase()
+      const redundant = rl === nl || rl.includes(nl) || nl.includes(rl)
+      if (!redundant) regionPart = `, ${c.region}`
+    }
+
     const displayKr =
       c.country === 'KR'
         ? nameKr || c.name
         : nameKr && countryKr
-          ? `${nameKr}, ${countryKr}`
+          ? `${nameKr}${regionPart}, ${countryKr}`
           : nameKr
-            ? `${nameKr}, ${c.country}`
+            ? `${nameKr}${regionPart}, ${c.country}`
             : undefined
-    const displayEn = `${c.name}, ${countryFullEn}`
+    const displayEn = `${c.name}${regionPart}, ${countryFullEn}`
 
     return {
       city: c,
