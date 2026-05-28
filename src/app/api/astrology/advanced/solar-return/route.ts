@@ -11,6 +11,7 @@ import { SolarReturnRequestSchema } from '@/lib/api/astrology-validation'
 import { calculateSolarReturn, getSolarReturnSummary } from '@/lib/astrology'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { nowInTimezone } from '@/lib/utils/timezone'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { extractLocale } from '@/lib/api/middleware'
 
@@ -53,8 +54,12 @@ export async function POST(request: Request) {
     const [birthYear, birthMonth, birthDay] = date.split('-').map(Number)
     const [hour, minute] = time.split(':').map(Number)
 
-    // 계산할 연도 (기본값: 현재 연도)
-    const targetYear = year ?? new Date().getFullYear()
+    // Default to the user's current local year at the birth-place
+    // timezone. `new Date().getFullYear()` on the production UTC server
+    // flips to the next year shortly after midnight in west-of-UTC zones
+    // — a Californian calling on Dec 31 evening would otherwise get next
+    // year's solar return.
+    const targetYear = year ?? nowInTimezone(timeZone).getUTCFullYear()
 
     const chart = await calculateSolarReturn({
       natal: {

@@ -20,6 +20,7 @@ import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { normalizeGender } from '@/lib/utils/gender'
+import { nowInTimezone } from '@/lib/utils/timezone'
 import { calculateYearlyImportantDates } from './lib/yearlyDates'
 import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
 
@@ -46,37 +47,6 @@ import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 // HTTP_STATUS not used directly, status codes used via createErrorResponse
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
-
-/**
- * Build a Date whose UTC fields hold the wall-clock year / month / day /
- * hour / minute that *is currently displayed at the given timezone*.
- * Anything downstream that reads `.getMonth()` / `.getDate()` (and runs
- * on a UTC server) will then see the user's local "today" instead of the
- * server's UTC today.
- */
-function nowInTimezone(timezone: string): Date {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }).formatToParts(new Date())
-  const lookup = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? '0')
-  return new Date(
-    Date.UTC(
-      lookup('year'),
-      lookup('month') - 1,
-      lookup('day'),
-      lookup('hour') === 24 ? 0 : lookup('hour'),
-      lookup('minute'),
-      lookup('second')
-    )
-  )
-}
 
 /** astroProfile.natalChart가 NatalChartData 모양인지 검사 (calendar-engine v2 augmentation 용) */
 function isNatalChartData(chart: unknown): chart is NatalChartData {
@@ -226,7 +196,6 @@ export const GET = withApiMiddleware(
       locale,
       category,
     } = queryValidation.data
-    const year = yearFromZod ?? new Date().getFullYear()
     const birthPlace =
       birthPlaceRaw.length > 0 && birthPlaceRaw.length <= MAX_PLACE_LEN ? birthPlaceRaw : 'Seoul'
 
@@ -242,6 +211,10 @@ export const GET = withApiMiddleware(
     // birthPlace는 항상 유효한 값이 있음 (기본값: Seoul)
     const coords = LOCATION_COORDS[birthPlace] || LOCATION_COORDS['Seoul']
     const timezone = coords.tz
+    // Default 'current year' to the user's local year — `new Date()` on a
+    // UTC server flips a day early for users west of UTC and a day late
+    // for users east of UTC on Dec 31.
+    const year = yearFromZod ?? nowInTimezone(timezone).getUTCFullYear()
 
     // 정확한 사주 계산 (saju.ts 사용 - 절기 기반 월주, 자시 교차 처리)
     let sajuResult
@@ -521,7 +494,10 @@ export const GET = withApiMiddleware(
     // 0-11. Use the user's local month, not the server's UTC month, so a
     // US-West user opening the calendar late evening doesn't pre-score
     // next month and miss the current one entirely.
-    const targetMonthIdx = nowInTimezone(timezone).getMonth()
+    // nowInTimezone stores the local components in the UTC fields, so read
+    // them via getUTCMonth (getMonth would re-shift them if a dev machine
+    // is not running in UTC).
+    const targetMonthIdx = nowInTimezone(timezone).getUTCMonth()
     const prescoreMonths = [
       Math.max(0, targetMonthIdx - 1),
       targetMonthIdx,
@@ -655,7 +631,11 @@ export const GET = withApiMiddleware(
       const monthParam = searchParams.get('month')
       const monthMatch = monthParam?.match(/^(\d{4})-(\d{1,2})$/)
       const targetYear = monthMatch ? Number(monthMatch[1]) : year
-      const targetMonth = monthMatch ? Number(monthMatch[2]) - 1 : new Date().getMonth()
+      // Same reason as the `year` default — fall back to the user's local
+      // month, not the server's UTC month.
+      const targetMonth = monthMatch
+        ? Number(monthMatch[2]) - 1
+        : nowInTimezone(timezone).getUTCMonth()
 
       const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
       const birthKey = makeBirthKey({
