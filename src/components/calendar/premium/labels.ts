@@ -96,11 +96,16 @@ interface LabelSet {
   crossAgreementChip: (percent: number) => string
   /** CrossInsightCard 라벨 */
   crossInsightTitle: string
+  crossInsightSubtitle: string
   crossInsightAvgLabel: string
   crossInsightAgreementLabel: string
   crossInsightAligned: string
   crossInsightMixed: string
   crossInsightOpposed: string
+  crossInsightAlignedHint: string
+  crossInsightMixedHint: string
+  crossInsightOpposedHint: string
+  crossInsightEvidenceLabel: string
   dayHourlyTitle: string
   dayHourlyPushLabel: string
   dayHourlyAvoidLabel: string
@@ -202,11 +207,16 @@ const KO: LabelSet = {
   dayWhyCrossLabel: '교차 (사주↔점성)',
   crossAgreementChip: (p) => `사주↔점성 ${p}%`,
   crossInsightTitle: '사주 ↔ 점성 교차',
+  crossInsightSubtitle: '두 시스템이 같은 방향으로 보는 날 vs 엇갈리는 날',
   crossInsightAvgLabel: '평균 점수',
   crossInsightAgreementLabel: '두 시스템 합의도',
   crossInsightAligned: '합치',
   crossInsightMixed: '혼합',
   crossInsightOpposed: '엇갈림',
+  crossInsightAlignedHint: '두 시스템 같은 방향',
+  crossInsightMixedHint: '한쪽만 강함',
+  crossInsightOpposedHint: '두 시스템 반대 방향',
+  crossInsightEvidenceLabel: '근거 (이번 기간 대표 일)',
   dayHourlyTitle: '지금 뭐 할까',
   dayHourlyPushLabel: '추진할 것',
   dayHourlyAvoidLabel: '보류할 것',
@@ -303,11 +313,16 @@ const EN: LabelSet = {
   dayWhyCrossLabel: 'Cross (Saju ↔ Astro)',
   crossAgreementChip: (p) => `Saju ↔ Astro ${p}%`,
   crossInsightTitle: 'Saju ↔ Astro Crossing',
+  crossInsightSubtitle: 'Days when both systems point the same way vs disagree',
   crossInsightAvgLabel: 'Avg score',
   crossInsightAgreementLabel: 'Two systems agree',
   crossInsightAligned: 'Aligned',
   crossInsightMixed: 'Mixed',
   crossInsightOpposed: 'Opposed',
+  crossInsightAlignedHint: 'Both same direction',
+  crossInsightMixedHint: 'Only one is strong',
+  crossInsightOpposedHint: 'Both opposite directions',
+  crossInsightEvidenceLabel: 'Evidence (key days this period)',
   dayHourlyTitle: 'What now',
   dayHourlyPushLabel: 'Push',
   dayHourlyAvoidLabel: 'Hold',

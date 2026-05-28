@@ -2,14 +2,15 @@
 
 /**
  * 사주↔점성 교차 인사이트 카드 — 한 기간(month / year) 동안 두 시스템이
- * 얼마나 합의했는지 visual 로.
+ * 얼마나 합의했는지 + 왜 그런지 근거를 같이 보여준다.
  *
  *   1. 좌/우 두 원 (사주 amber / 점성 cyan) — 평균 raw 점수 = 원 크기
- *   2. 가운데 overlap 영역 = 합의(aligned) 일 수
- *   3. 하단 막대: aligned / mixed / opposed 일 카운트 비율
+ *   2. 합의 분포 막대 (aligned / mixed / opposed 일 카운트 비율)
+ *   3. 근거 예시 — 가장 강한 합치 일 1 개 + 가장 큰 엇갈림 일 1 개
+ *      (각 일의 사주 신호 top1 + 점성 신호 top1)
  *
- * monthDates / yearDates 의 evidence.sajuAxisRaw / astroAxisRaw / axisAgreement
- * 가 있어야 동작. 없으면 카드 자체 스킵.
+ * 데이터: scoreBreakdown.{sajuAxisRaw, astroAxisRaw, axisAgreement} +
+ *        evidence.cross.{sajuDetails, astroDetails}. 없으면 카드 자체 스킵.
  */
 
 import { motion } from 'framer-motion'
@@ -20,6 +21,14 @@ import { getCalLabels, type CalLocale } from '../labels'
 interface Props {
   dates: ImportantDate[]
   locale?: CalLocale
+}
+
+type AgreementKind = 'aligned' | 'mixed' | 'opposed'
+
+interface SampleDay {
+  date: string
+  saju: string | null
+  astro: string | null
 }
 
 export default function CrossInsightCard({ dates, locale }: Props) {
@@ -33,53 +42,87 @@ export default function CrossInsightCard({ dates, locale }: Props) {
   let mixedDays = 0
   let opposedDays = 0
 
+  let bestAligned: { date: string; score: number } | null = null
+  let biggestOpposed: { date: string; gap: number } | null = null
+
   for (const d of dates) {
-    const ev = d.evidence
-    if (!ev) continue
-    const saju = (ev as { sajuAxisRaw?: number }).sajuAxisRaw
-    const astro = (ev as { astroAxisRaw?: number }).astroAxisRaw
-    if (typeof saju === 'number') {
-      sajuSum += saju
-      sajuCount += 1
+    const sb = d.scoreBreakdown
+    if (!sb) continue
+    const saju = typeof sb.sajuAxisRaw === 'number' ? sb.sajuAxisRaw : sb.sajuAxis
+    const astro = typeof sb.astroAxisRaw === 'number' ? sb.astroAxisRaw : sb.astroAxis
+    sajuSum += saju
+    sajuCount += 1
+    astroSum += astro
+    astroCount += 1
+
+    const ag: AgreementKind = sb.axisAgreement
+    if (ag === 'aligned') {
+      alignedDays += 1
+      const s = d.displayScore ?? d.score
+      if (!bestAligned || s > bestAligned.score) {
+        bestAligned = { date: d.date, score: s }
+      }
+    } else if (ag === 'opposed') {
+      opposedDays += 1
+      const gap = Math.abs(saju - astro)
+      if (!biggestOpposed || gap > biggestOpposed.gap) {
+        biggestOpposed = { date: d.date, gap }
+      }
+    } else if (ag === 'mixed') {
+      mixedDays += 1
     }
-    if (typeof astro === 'number') {
-      astroSum += astro
-      astroCount += 1
-    }
-    const ag = (ev as { axisAgreement?: 'aligned' | 'mixed' | 'opposed' }).axisAgreement
-    if (ag === 'aligned') alignedDays += 1
-    else if (ag === 'opposed') opposedDays += 1
-    else if (ag === 'mixed') mixedDays += 1
   }
 
-  if (sajuCount === 0 && astroCount === 0) return null
+  if (sajuCount === 0) return null
 
-  const sajuAvg = sajuCount > 0 ? Math.round(sajuSum / sajuCount) : 0
-  const astroAvg = astroCount > 0 ? Math.round(astroSum / astroCount) : 0
+  const sajuAvg = Math.round(sajuSum / sajuCount)
+  const astroAvg = Math.round(astroSum / astroCount)
   const total = alignedDays + mixedDays + opposedDays
   const alignedPct = total > 0 ? (alignedDays / total) * 100 : 0
   const mixedPct = total > 0 ? (mixedDays / total) * 100 : 0
   const opposedPct = total > 0 ? (opposedDays / total) * 100 : 0
 
-  // 원 크기 = 평균 점수 (40-90px 매핑)
   const sajuRadius = 20 + (sajuAvg / 100) * 25
   const astroRadius = 20 + (astroAvg / 100) * 25
-
-  // overlap = 합의일 비중 — 두 원의 거리로 표현 (높을수록 가깝게)
   const closeness = total > 0 ? alignedDays / total : 0.5
-  const gap = 60 - closeness * 50 // 60(분리) → 10(거의 겹침)
+  const gap = 60 - closeness * 50
   const cx1 = 80 - gap / 2
   const cx2 = 80 + gap / 2
+
+  // 근거 일자 추출 — 가장 강한 합치 일 + 가장 큰 엇갈림 일
+  const alignedSample: SampleDay | null = (() => {
+    if (!bestAligned) return null
+    const d = dates.find((x) => x.date === bestAligned!.date)
+    if (!d) return null
+    return {
+      date: d.date,
+      saju: d.evidence?.cross?.sajuDetails?.[0] ?? null,
+      astro: d.evidence?.cross?.astroDetails?.[0] ?? null,
+    }
+  })()
+  const opposedSample: SampleDay | null = (() => {
+    if (!biggestOpposed) return null
+    const d = dates.find((x) => x.date === biggestOpposed!.date)
+    if (!d) return null
+    return {
+      date: d.date,
+      saju: d.evidence?.cross?.sajuDetails?.[0] ?? null,
+      astro: d.evidence?.cross?.astroDetails?.[0] ?? null,
+    }
+  })()
 
   return (
     <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-emerald-950/15 backdrop-blur-sm border border-emerald-500/15 rounded-2xl p-6 overflow-hidden">
       <div className="pointer-events-none absolute -top-12 -right-10 w-32 h-32 bg-emerald-500/8 blur-3xl rounded-full" />
-      <h3 className="relative text-base font-semibold text-emerald-200 flex items-center gap-2 mb-4 group">
+      <h3 className="relative text-base font-semibold text-emerald-200 flex items-center gap-2 mb-1 group">
         <Compass className="w-4 h-4 text-emerald-400 group-hover:text-emerald-300 transition" />
         {t.crossInsightTitle}
       </h3>
+      <p className="relative text-[11px] text-zinc-500 mb-4 leading-snug">
+        {t.crossInsightSubtitle}
+      </p>
 
-      <div className="relative flex items-center gap-5">
+      <div className="relative flex items-center gap-5 mb-4">
         <svg viewBox="0 0 160 110" className="w-40 h-28 shrink-0">
           <defs>
             <radialGradient id="sajuGrad" cx="50%" cy="50%" r="50%">
@@ -121,8 +164,11 @@ export default function CrossInsightCard({ dates, locale }: Props) {
           <text x={cx2} y="58" textAnchor="middle" fontSize="11" fontWeight="700" fill="#a5f3fc">
             {astroAvg}
           </text>
-          <text x="80" y="105" textAnchor="middle" fontSize="9" fill="#71717a" letterSpacing="1">
-            {t.crossInsightAvgLabel}
+          <text x={cx1} y="105" textAnchor="middle" fontSize="9" fill="#a16207" letterSpacing="1">
+            {t.dayWhySajuLabel}
+          </text>
+          <text x={cx2} y="105" textAnchor="middle" fontSize="9" fill="#0891b2" letterSpacing="1">
+            {t.dayWhyAstroLabel}
           </text>
         </svg>
 
@@ -161,27 +207,156 @@ export default function CrossInsightCard({ dates, locale }: Props) {
                   />
                 )}
               </div>
-              <div className="flex items-center justify-between text-[10px] gap-2">
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span className="text-zinc-400">{t.crossInsightAligned}</span>
-                  <span className="text-emerald-300 font-bold tabular-nums">{alignedDays}</span>
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-                  <span className="text-zinc-400">{t.crossInsightMixed}</span>
-                  <span className="text-zinc-300 font-bold tabular-nums">{mixedDays}</span>
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                  <span className="text-zinc-400">{t.crossInsightOpposed}</span>
-                  <span className="text-rose-300 font-bold tabular-nums">{opposedDays}</span>
-                </span>
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <CountChip
+                  color="emerald"
+                  label={t.crossInsightAligned}
+                  hint={t.crossInsightAlignedHint}
+                  count={alignedDays}
+                />
+                <CountChip
+                  color="zinc"
+                  label={t.crossInsightMixed}
+                  hint={t.crossInsightMixedHint}
+                  count={mixedDays}
+                />
+                <CountChip
+                  color="rose"
+                  label={t.crossInsightOpposed}
+                  hint={t.crossInsightOpposedHint}
+                  count={opposedDays}
+                />
               </div>
             </>
           )}
         </div>
       </div>
+
+      {(alignedSample || opposedSample) && (
+        <div className="relative pt-3 border-t border-white/5 space-y-2">
+          <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+            {t.crossInsightEvidenceLabel}
+          </p>
+          {alignedSample && (
+            <EvidenceLine
+              tone="aligned"
+              dateLabel={formatDate(alignedSample.date, locale)}
+              saju={alignedSample.saju}
+              astro={alignedSample.astro}
+              kindLabel={t.crossInsightAligned}
+              sajuLabel={t.dayWhySajuLabel}
+              astroLabel={t.dayWhyAstroLabel}
+            />
+          )}
+          {opposedSample && (
+            <EvidenceLine
+              tone="opposed"
+              dateLabel={formatDate(opposedSample.date, locale)}
+              saju={opposedSample.saju}
+              astro={opposedSample.astro}
+              kindLabel={t.crossInsightOpposed}
+              sajuLabel={t.dayWhySajuLabel}
+              astroLabel={t.dayWhyAstroLabel}
+            />
+          )}
+        </div>
+      )}
     </div>
   )
+}
+
+function CountChip({
+  color,
+  label,
+  hint,
+  count,
+}: {
+  color: 'emerald' | 'zinc' | 'rose'
+  label: string
+  hint: string
+  count: number
+}) {
+  const dotClass =
+    color === 'emerald' ? 'bg-emerald-400' : color === 'rose' ? 'bg-rose-400' : 'bg-zinc-500'
+  const countClass =
+    color === 'emerald' ? 'text-emerald-300' : color === 'rose' ? 'text-rose-300' : 'text-zinc-300'
+  return (
+    <div className="space-y-0.5">
+      <div className="flex items-center gap-1">
+        <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+        <span className="text-zinc-400">{label}</span>
+        <span className={`font-bold tabular-nums ml-auto ${countClass}`}>{count}</span>
+      </div>
+      <p className="text-[9px] text-zinc-600 leading-snug">{hint}</p>
+    </div>
+  )
+}
+
+function EvidenceLine({
+  tone,
+  dateLabel,
+  saju,
+  astro,
+  kindLabel,
+  sajuLabel,
+  astroLabel,
+}: {
+  tone: 'aligned' | 'opposed'
+  dateLabel: string
+  saju: string | null
+  astro: string | null
+  kindLabel: string
+  sajuLabel: string
+  astroLabel: string
+}) {
+  const kindColor = tone === 'aligned' ? 'text-emerald-300' : 'text-rose-300'
+  return (
+    <div className="flex items-start gap-2 text-[11px] leading-snug">
+      <span className="text-zinc-300 font-bold tabular-nums shrink-0">{dateLabel}</span>
+      <span className={`font-semibold uppercase tracking-wider text-[9px] shrink-0 ${kindColor}`}>
+        {kindLabel}
+      </span>
+      <span className="text-zinc-400 flex-1 min-w-0">
+        {saju && (
+          <span>
+            <span className="text-amber-300/80 font-semibold">{sajuLabel}</span>{' '}
+            <span className="text-zinc-300">{saju}</span>
+          </span>
+        )}
+        {saju && astro && <span className="text-zinc-600"> · </span>}
+        {astro && (
+          <span>
+            <span className="text-cyan-300/80 font-semibold">{astroLabel}</span>{' '}
+            <span className="text-zinc-300">{astro}</span>
+          </span>
+        )}
+      </span>
+    </div>
+  )
+}
+
+function formatDate(iso: string, locale?: CalLocale): string {
+  // "2026-05-21" → KO "5/21" / EN "May 21"
+  const m = iso.match(/^\d{4}-(\d{2})-(\d{2})$/)
+  if (!m) return iso
+  const month = Number(m[1])
+  const day = Number(m[2])
+  if (locale === 'en') {
+    const monthsEn = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ]
+    return `${monthsEn[month - 1]} ${day}`
+  }
+  return `${month}/${day}`
 }

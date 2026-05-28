@@ -120,21 +120,6 @@ export default function YearDashboard({
     }
   })
 
-  // 연 평균 사주↔점성 합치율 — 각 일자의 evidence.crossAgreementPercent 평균.
-  const agreement = (() => {
-    if (!allDates || allDates.length === 0) return null
-    let sum = 0
-    let n = 0
-    for (const d of allDates) {
-      const v = d.evidence?.crossAgreementPercent
-      if (typeof v === 'number') {
-        sum += v
-        n += 1
-      }
-    }
-    return n > 0 ? sum / n : null
-  })()
-
   return (
     <div className="space-y-6">
       <PremiumHero
@@ -142,7 +127,6 @@ export default function YearDashboard({
         verdict={verdict}
         score={yearScore}
         grade={yearGrade}
-        agreementPercent={agreement}
         locale={locale}
       />
 
