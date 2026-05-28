@@ -10,7 +10,8 @@ import type {
 } from '@/lib/destiny-map/destinyCalendar'
 import type { TranslationData } from '@/types/calendar-api'
 import type { PillarData } from '@/lib/saju/types'
-import type { CalendarMatrixEvidencePacketMap } from './matrixEvidencePacket'
+// matrixEvidencePacket 제거 — packet 항상 null. type 도 inline unknown.
+type CalendarMatrixEvidencePacketMap = Record<string, unknown>
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 import {
   isAlignedAcrossSystems,
