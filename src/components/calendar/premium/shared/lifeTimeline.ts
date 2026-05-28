@@ -13,6 +13,7 @@
  */
 
 import type { TimelineEntry } from './LifeTimeline'
+import type { CalLocale } from '../labels'
 
 interface Args {
   /** ISO 'YYYY-MM-DD' */
@@ -21,44 +22,64 @@ interface Args {
   currentPhaseLabel?: string | null
   /** 현재 연도(클라 now). 없으면 new Date().getFullYear() */
   thisYear?: number
+  locale?: CalLocale
 }
 
 interface AstroMilestone {
   /** 한국 나이 */
   ageKr: number
-  title: string
-  desc: string
+  title: { ko: string; en: string }
+  desc: { ko: string; en: string }
 }
 
 // 표준 astro 분기점 — Western astrology 의 generation milestones.
-// 정확한 위치는 출생 차트에 따라 ±1~2년 변동, 여기선 대표 나이로 근사.
 const ASTRO_MILESTONES: AstroMilestone[] = [
   {
     ageKr: 30,
-    title: '첫 번째 토성 회귀 (Saturn Return)',
-    desc: '책임·구조·자기 길의 첫 큰 정렬. 본격적인 어른의 길로 진입',
+    title: { ko: '첫 번째 토성 회귀', en: 'First Saturn Return' },
+    desc: {
+      ko: '책임·구조·자기 길의 첫 큰 정렬. 본격적인 어른의 길로 진입',
+      en: 'First major alignment of responsibility, structure, and your path. Entering adulthood seriously.',
+    },
   },
   {
     ageKr: 36,
-    title: '명왕성 사각 (Pluto Square)',
-    desc: '정체성과 내면 깊은 곳의 강한 재구성 — 변화는 외부보다 안에서',
+    title: { ko: '명왕성 사각', en: 'Pluto Square' },
+    desc: {
+      ko: '정체성과 내면 깊은 곳의 강한 재구성 — 변화는 외부보다 안에서',
+      en: 'Strong inner reconstruction of identity — the change is internal, not external.',
+    },
   },
   {
     ageKr: 41,
-    title: '천왕성 마주봄 (Uranus Opposition)',
-    desc: '진짜 자기와 맞지 않는 길이 깨지는 중년 각성기',
+    title: { ko: '천왕성 마주봄', en: 'Uranus Opposition' },
+    desc: {
+      ko: '진짜 자기와 맞지 않는 길이 깨지는 중년 각성기',
+      en: 'Mid-life awakening — paths that don’t fit the true self break apart.',
+    },
   },
   {
     ageKr: 42,
-    title: '해왕성 사각 (Neptune Square)',
-    desc: '의미와 환상이 시험대에 오르는 시기',
+    title: { ko: '해왕성 사각', en: 'Neptune Square' },
+    desc: {
+      ko: '의미와 환상이 시험대에 오르는 시기',
+      en: 'A period when meaning and illusion are put to the test.',
+    },
   },
   {
     ageKr: 60,
-    title: '두 번째 토성 회귀 (Second Saturn Return)',
-    desc: '인생 후반의 방향성을 결정하는 큰 정렬',
+    title: { ko: '두 번째 토성 회귀', en: 'Second Saturn Return' },
+    desc: {
+      ko: '인생 후반의 방향성을 결정하는 큰 정렬',
+      en: 'A major alignment that sets the direction for the latter half of life.',
+    },
   },
 ]
+
+const PHASE_DESC = {
+  ko: '현재 진행 중인 10년 대운 — 이 흐름이 향후 몇 년의 큰 기조를 결정해요',
+  en: 'Current 10-year decade luck — this flow sets the tone for the next few years.',
+}
 
 function koreanAge(birthYear: number, refYear: number): number {
   // 한국 나이 = 현재 연도 - 출생 연도 + 1
@@ -69,6 +90,7 @@ export function computeLifeTimeline({
   birthDate,
   currentPhaseLabel,
   thisYear,
+  locale,
 }: Args): TimelineEntry[] {
   if (!birthDate) return []
   const match = birthDate.match(/^(\d{4})-(\d{2})-(\d{2})$/)
@@ -77,45 +99,45 @@ export function computeLifeTimeline({
   if (!Number.isFinite(birthYear)) return []
   const refYear = thisYear ?? new Date().getFullYear()
   const currentKrAge = koreanAge(birthYear, refYear)
+  const lang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
+  const ageSuffix = (a: number) => (lang === 'en' ? `age ${a}` : `${a}세`)
 
-  // 과거 + 현재 + 미래 모두 — chronological 표시. 사용자 요청: "왜 과거부터 없음".
+  // 과거 + 현재 + 미래 모두 — chronological.
   const past = ASTRO_MILESTONES.filter((m) => m.ageKr < currentKrAge)
   const future = ASTRO_MILESTONES.filter((m) => m.ageKr > currentKrAge)
 
   const entries: TimelineEntry[] = []
 
-  // 1. 과거 milestones — 가장 가까운 2개 (너무 멀면 정보 가치 낮음)
-  const recentPast = past.slice(-2)
-  for (const m of recentPast) {
+  // 1. 과거 milestones — 가장 가까운 2개
+  for (const m of past.slice(-2)) {
     const yearAt = birthYear + m.ageKr - 1
     entries.push({
-      ageLabel: `${m.ageKr}세`,
+      ageLabel: ageSuffix(m.ageKr),
       year: yearAt,
-      title: m.title,
-      description: m.desc,
+      title: m.title[lang],
+      description: m.desc[lang],
     })
   }
 
-  // 2. 현재 대운 — engine 제공 라벨. active 표시.
+  // 2. 현재 대운 — engine 제공 라벨 그대로 (이미 KO 만 — 별건). active 표시.
   if (currentPhaseLabel) {
     entries.push({
-      ageLabel: `${currentKrAge}세`,
+      ageLabel: ageSuffix(currentKrAge),
       year: refYear,
       title: currentPhaseLabel,
-      description: '현재 진행 중인 10년 대운 — 이 흐름이 향후 몇 년의 큰 기조를 결정해요',
+      description: PHASE_DESC[lang],
       active: true,
     })
   }
 
-  // 3. 미래 milestones — 현재 나이 이후, 최대 3개.
-  const upcoming = future.slice(0, 3)
-  for (const m of upcoming) {
+  // 3. 미래 milestones — 최대 3개.
+  for (const m of future.slice(0, 3)) {
     const yearAt = birthYear + m.ageKr - 1
     entries.push({
-      ageLabel: `${m.ageKr}세`,
+      ageLabel: ageSuffix(m.ageKr),
       year: yearAt,
-      title: m.title,
-      description: m.desc,
+      title: m.title[lang],
+      description: m.desc[lang],
     })
   }
 

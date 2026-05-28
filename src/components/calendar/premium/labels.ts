@@ -57,6 +57,8 @@ interface LabelSet {
   // LifeTimeline
   lifeTimelineTitle: string
   lifeInProgress: string
+  /** engine lifetimePivots.meaning 없을 때 description fallback. */
+  pivotDaeunFallback: (saju: string) => string
   // Month insights (themeRanking + keyEvents + convergence)
   themeFocusTitle: string
   keyDatesTitle: string
@@ -107,6 +109,8 @@ interface LabelSet {
   fmtAge: (age: number) => string
   fmtMonthlyFlow: string
   fmtDailyFlow: string
+  /** 헤더 라벨 — "2026년 5월" / "MAY 2026" */
+  fmtYearMonthHeader: (year: number, month1: number) => string
   // Misc UI
   openCalendarGrid: string
   closeButton: string
@@ -159,6 +163,7 @@ const KO: LabelSet = {
   monthVerdictFallback: (g) => `이번 달은 ${g} 흐름이에요.`,
   lifeTimelineTitle: '인생 분기점',
   lifeInProgress: '진행 중',
+  pivotDaeunFallback: (saju) => `${saju} — 10년 흐름의 시작`,
   themeFocusTitle: '이번 달 초점',
   keyDatesTitle: '핵심 날짜',
   keyDatesBestLabel: '추진일',
@@ -202,6 +207,7 @@ const KO: LabelSet = {
   fmtAge: (age) => `${age}세`,
   fmtMonthlyFlow: '월별 에너지 흐름',
   fmtDailyFlow: '일별 에너지 흐름',
+  fmtYearMonthHeader: (y, m) => `${y}년 ${m}월`,
   openCalendarGrid: '캘린더 보기',
   closeButton: '닫기',
   evidenceToggle: '근거',
@@ -252,6 +258,7 @@ const EN: LabelSet = {
   monthVerdictFallback: (g) => `This month is a ${g.toLowerCase()} flow.`,
   lifeTimelineTitle: 'Life pivots',
   lifeInProgress: 'In progress',
+  pivotDaeunFallback: (saju) => `${saju} — start of a new 10-year flow`,
   themeFocusTitle: 'Focus this month',
   keyDatesTitle: 'Key dates',
   keyDatesBestLabel: 'Push day',
@@ -295,6 +302,10 @@ const EN: LabelSet = {
   fmtAge: (age) => `age ${age}`,
   fmtMonthlyFlow: 'Monthly flow',
   fmtDailyFlow: 'Daily flow',
+  fmtYearMonthHeader: (y, m) => {
+    const MMM = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    return `${MMM[m - 1] ?? ''} ${y}`
+  },
   openCalendarGrid: 'View calendar',
   closeButton: 'Close',
   evidenceToggle: 'Why',

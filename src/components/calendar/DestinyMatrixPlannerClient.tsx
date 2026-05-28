@@ -16,9 +16,9 @@ import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 
 // localStorage stale-while-revalidate 캐시 — 재방문 시 즉시 노출 + 백그라운드 refresh.
 // TTL 24h: calendar data 는 하루 단위로만 바뀜 (날짜 경계). 그 안에선 stale 안전.
-// v4: EN locale leak fix — shinsal/pattern/themeBreakdown 라벨 응답 시점 번역.
-// v3 캐시는 EN 모드에서 KO 가 박혀있어 invalidate.
-const CACHE_VERSION = 4
+// v5: KO 모드에 영문 leak (monthLabel "JAN/FEB") + EN 모드 잔존 KO leak
+// (ASTRO_MILESTONES / pivotDaeunFallback) 양방향 fix.
+const CACHE_VERSION = 5
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
 interface CachedPayload<TYearlyMonthly, TYearlyConvergence> {
