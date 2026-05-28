@@ -74,12 +74,15 @@ export default function DayInsights({
           locale={locale}
         />
       </motion.div>
-      <motion.div variants={cardItem}>
-        <DayDomainsCard importantDate={importantDate} locale={locale} />
-      </motion.div>
-      <motion.div variants={cardItem}>
-        <DayWhyCard importantDate={importantDate} locale={locale} />
-      </motion.div>
+      {/* Domains + Why 데스크탑 2-col, 모바일 stack */}
+      <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
+        <motion.div variants={cardItem}>
+          <DayDomainsCard importantDate={importantDate} locale={locale} />
+        </motion.div>
+        <motion.div variants={cardItem}>
+          <DayWhyCard importantDate={importantDate} locale={locale} />
+        </motion.div>
+      </div>
       <motion.div variants={cardItem}>
         <DayHourlyCard
           importantDate={importantDate}

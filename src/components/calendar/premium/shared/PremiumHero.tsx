@@ -43,34 +43,36 @@ export default function PremiumHero({
       <NoiseOverlay opacity={0.025} />
       <span
         aria-hidden
-        className="pointer-events-none absolute -right-2 -bottom-4 text-[140px] leading-none opacity-[0.06] select-none"
+        className="pointer-events-none absolute -right-2 -bottom-4 text-[120px] leading-none opacity-[0.06] select-none"
       >
         {grade.emoji}
       </span>
-      <div className="relative flex flex-col md:flex-row md:items-end gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xl shrink-0 leading-none" aria-hidden>
+      <div className="relative">
+        {/* 라벨 + 점수 동일 줄 — 모바일 / 데스크탑 동일 */}
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-base shrink-0 leading-none" aria-hidden>
               {grade.emoji}
             </span>
-            <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase">
+            <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase truncate">
               {periodLabel}
             </span>
           </div>
-          <div className="flex items-baseline gap-3 leading-none mb-2">
-            <span className={`text-4xl font-black ${grade.colorClass}`}>{gradeLabel}</span>
-          </div>
-          <p className="text-sm text-zinc-300 leading-relaxed">{verdict}</p>
-        </div>
-        <div className="md:text-right shrink-0">
-          <p className="text-[10px] text-zinc-500 mb-0.5 tracking-wider uppercase">{caption}</p>
-          <div className="flex items-baseline gap-1 md:justify-end">
-            <span className="text-4xl sm:text-5xl font-black tabular-nums bg-gradient-to-br from-white to-zinc-300 bg-clip-text text-transparent">
+          <div className="flex items-baseline gap-0.5 shrink-0">
+            <span className="text-3xl sm:text-4xl font-black tabular-nums bg-gradient-to-br from-white to-zinc-300 bg-clip-text text-transparent">
               {animatedScore}
             </span>
-            <span className="text-xl text-zinc-600 font-light">/100</span>
+            <span className="text-sm text-zinc-600 font-light">/100</span>
           </div>
         </div>
+        {/* grade + caption + verdict 압축 */}
+        <div className="flex items-baseline gap-2 mb-1.5">
+          <span className={`text-2xl sm:text-3xl font-black ${grade.colorClass}`}>
+            {gradeLabel}
+          </span>
+          <span className="text-[10px] text-zinc-500 tracking-wider uppercase">{caption}</span>
+        </div>
+        <p className="text-sm text-zinc-300 leading-snug">{verdict}</p>
       </div>
     </div>
   )

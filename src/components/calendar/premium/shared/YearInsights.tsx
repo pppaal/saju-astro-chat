@@ -36,7 +36,12 @@ export default function YearInsights({
   onMonthClick,
 }: Props) {
   return (
-    <motion.div className="space-y-4" variants={cardStack} initial="hidden" animate="show">
+    <motion.div
+      className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4"
+      variants={cardStack}
+      initial="hidden"
+      animate="show"
+    >
       <motion.div variants={cardItem}>
         <YearFocusCard yearlyMonthly={yearlyMonthly} locale={locale} />
       </motion.div>
@@ -167,9 +172,12 @@ function YearBigDaysCard({
   onMonthClick?: (monthIdx: number) => void
 }) {
   const t = getCalLabels(locale)
+  // 사용자 요청: 1월부터 시간 순. 점수 정렬(엔진 기본)이 아니라 chronological.
   const days = (yearlyConvergence?.keyDays ?? [])
     .filter((d) => d.bothSystems && d.meaning)
-    .slice(0, 4)
+    .slice() // 원본 변형 방지
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 6)
   if (days.length === 0) return null
 
   const fmtDate = (iso: string) => {

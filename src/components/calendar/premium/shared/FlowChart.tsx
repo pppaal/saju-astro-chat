@@ -51,6 +51,9 @@ interface Props {
   onPointClick?: (label: string) => void
   /** "지금" 가이드 라벨 — 데이터 X축 라벨과 정확히 일치해야 그려짐 */
   nowLabel?: string | null
+  /** best/caution/convergence reference dots 노출 여부 — 기본 true.
+   *  year tier 처럼 깨끗한 라인만 원할 때 false. */
+  showDots?: boolean
   /** UI locale */
   locale?: CalLocale
 }
@@ -95,6 +98,7 @@ export default function FlowChart({
   xInterval = 0,
   onPointClick,
   nowLabel,
+  showDots = true,
   locale,
 }: Props) {
   const tLabels = getCalLabels(locale)
@@ -186,39 +190,42 @@ export default function FlowChart({
             animationDuration={600}
             animationEasing="ease-out"
           />
-          {bestPts.map((p) => (
-            <ReferenceDot
-              key={`best-${p.label}`}
-              x={p.label}
-              y={p.score as number}
-              r={3.5}
-              fill="#10b981"
-              stroke="#0a0a0a"
-              strokeWidth={1.5}
-            />
-          ))}
-          {cautionPts.map((p) => (
-            <ReferenceDot
-              key={`caution-${p.label}`}
-              x={p.label}
-              y={p.score as number}
-              r={3.5}
-              fill="#f43f5e"
-              stroke="#0a0a0a"
-              strokeWidth={1.5}
-            />
-          ))}
-          {convergencePts.map((p) => (
-            <ReferenceDot
-              key={`conv-${p.label}`}
-              x={p.label}
-              y={p.score as number}
-              r={3.5}
-              fill="#a855f7"
-              stroke="#0a0a0a"
-              strokeWidth={1.5}
-            />
-          ))}
+          {showDots &&
+            bestPts.map((p) => (
+              <ReferenceDot
+                key={`best-${p.label}`}
+                x={p.label}
+                y={p.score as number}
+                r={3.5}
+                fill="#10b981"
+                stroke="#0a0a0a"
+                strokeWidth={1.5}
+              />
+            ))}
+          {showDots &&
+            cautionPts.map((p) => (
+              <ReferenceDot
+                key={`caution-${p.label}`}
+                x={p.label}
+                y={p.score as number}
+                r={3.5}
+                fill="#f43f5e"
+                stroke="#0a0a0a"
+                strokeWidth={1.5}
+              />
+            ))}
+          {showDots &&
+            convergencePts.map((p) => (
+              <ReferenceDot
+                key={`conv-${p.label}`}
+                x={p.label}
+                y={p.score as number}
+                r={3.5}
+                fill="#a855f7"
+                stroke="#0a0a0a"
+                strokeWidth={1.5}
+              />
+            ))}
         </AreaChart>
       </ResponsiveContainer>
     </div>

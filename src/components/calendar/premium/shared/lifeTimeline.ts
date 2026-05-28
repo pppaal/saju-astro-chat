@@ -78,9 +78,25 @@ export function computeLifeTimeline({
   const refYear = thisYear ?? new Date().getFullYear()
   const currentKrAge = koreanAge(birthYear, refYear)
 
+  // 과거 + 현재 + 미래 모두 — chronological 표시. 사용자 요청: "왜 과거부터 없음".
+  const past = ASTRO_MILESTONES.filter((m) => m.ageKr < currentKrAge)
+  const future = ASTRO_MILESTONES.filter((m) => m.ageKr > currentKrAge)
+
   const entries: TimelineEntry[] = []
 
-  // 1. 현재 대운 — engine 제공 라벨. active 표시.
+  // 1. 과거 milestones — 가장 가까운 2개 (너무 멀면 정보 가치 낮음)
+  const recentPast = past.slice(-2)
+  for (const m of recentPast) {
+    const yearAt = birthYear + m.ageKr - 1
+    entries.push({
+      ageLabel: `${m.ageKr}세`,
+      year: yearAt,
+      title: m.title,
+      description: m.desc,
+    })
+  }
+
+  // 2. 현재 대운 — engine 제공 라벨. active 표시.
   if (currentPhaseLabel) {
     entries.push({
       ageLabel: `${currentKrAge}세`,
@@ -91,9 +107,9 @@ export function computeLifeTimeline({
     })
   }
 
-  // 2. 미래 astro milestones — 현재 나이 이후만, 최대 4개.
-  const future = ASTRO_MILESTONES.filter((m) => m.ageKr > currentKrAge).slice(0, 4)
-  for (const m of future) {
+  // 3. 미래 milestones — 현재 나이 이후, 최대 3개.
+  const upcoming = future.slice(0, 3)
+  for (const m of upcoming) {
     const yearAt = birthYear + m.ageKr - 1
     entries.push({
       ageLabel: `${m.ageKr}세`,
