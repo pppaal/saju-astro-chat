@@ -1,12 +1,30 @@
 'use client'
 
-import React, { memo, useEffect, useRef } from 'react'
+import React, { memo, useEffect, useMemo, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import TarotCard from '@/components/tarot/TarotCard'
 import type { Spread } from '@/lib/tarot/tarot.types'
 import { splitReadableText } from '@/lib/tarot/splitReadableText'
 import styles from './InlineTarotModal.module.css'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useInlineTarotState, useInlineTarotAPI, getTarotTranslations, type LangKey } from './hooks'
+import type {
+  ReadingResponse,
+  InterpretationResult,
+} from '@/app/tarot/[categoryName]/[spreadId]/types'
+
+// FollowupChat — 결과 후 "한 장 더 뽑기" + "이 리딩에 대해 더 묻기" 두 기능을
+// 같이 제공. 메인 타로 페이지에서 쓰던 컴포넌트 그대로 재사용해 인라인에서도
+// 같은 데이터(clarifierCard / followupTurns) 가 히스토리에 저장되도록 한다.
+// dynamic — 인라인 모달 자체가 lazy 인데 그 안의 클래리파이어 모달까지
+// 이중으로 lazy 로 펴기 위함.
+const FollowupChat = dynamic(
+  () =>
+    import('@/app/tarot/[categoryName]/[spreadId]/components/stages/ResultsStage/FollowupChat').then(
+      (m) => m.FollowupChat
+    ),
+  { ssr: false }
+)
 
 export interface TarotResultSummary {
   question: string
@@ -557,17 +575,43 @@ function ResultStep({
 }: ResultStepProps) {
   const {
     concern,
+    selectedCategory,
     selectedSpread,
     drawnCards,
     cardInsights,
     overallMessage,
     guidance,
     affirmation,
+    readingId,
     // isSaving/isSaved — 자동 저장 통일 후 UI 안 씀. state 객체에 남아있어
     // 다른 곳(있다면)에선 여전히 reactive. 여기선 destructure 안 함.
     interpretFailed,
   } = state
   const isKo = lang === 'ko'
+
+  // FollowupChat 이 요구하는 ReadingResponse / InterpretationResult 형태로
+  // 인라인 state 를 매핑. category·spread 그대로 + drawnCards 그대로.
+  // overallMessage / cardInsights / guidance 는 snake_case 로 변환.
+  const readingResult: ReadingResponse | null = useMemo(() => {
+    if (!selectedSpread) return null
+    return {
+      category: selectedCategory || 'general',
+      spread: selectedSpread,
+      drawnCards,
+      questionContext: null,
+    }
+  }, [selectedCategory, selectedSpread, drawnCards])
+
+  const interpretation: InterpretationResult | null = useMemo(() => {
+    if (!overallMessage && cardInsights.length === 0) return null
+    return {
+      overall_message: overallMessage,
+      card_insights: cardInsights,
+      guidance: typeof guidance === 'string' ? guidance : '',
+      affirmation: affirmation || '',
+      fallback: false,
+    }
+  }, [overallMessage, cardInsights, guidance, affirmation])
 
   return (
     <div className={styles.stepContent}>
@@ -689,6 +733,24 @@ function ResultStep({
         <div className={styles.affirmationBox}>
           <span className={styles.affirmationIcon}>🌟</span>
           <p className={styles.affirmationText}>{affirmation}</p>
+        </div>
+      )}
+
+      {/* FollowupChat — 한 장 더 뽑기 + 이 리딩에 대해 더 묻기. 메인 타로
+          페이지와 동일 UX. interpretation 정상 결과 도착 후에만 노출 (인라인
+          에선 fallback 도 그냥 띄움 — 이미 streaming 끝났을 때만 ResultStep
+          렌더되므로 안전).
+          readingId 가 채워졌을 때만 활성 (자동 저장 완료) — 안 그러면 PATCH
+          가 호출처가 없어 silent skip 으로만 끝남. */}
+      {readingResult && overallMessage && !interpretFailed && (
+        <div style={{ marginTop: 16 }}>
+          <FollowupChat
+            readingResult={readingResult}
+            interpretation={interpretation}
+            userTopic={concern}
+            language={lang}
+            readingId={readingId}
+          />
         </div>
       )}
 
