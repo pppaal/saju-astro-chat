@@ -439,15 +439,23 @@ export function useCounselorData(sp: SearchParams) {
   const handleSaveMessage = useCallback(
     async (userMessage: string, assistantMessage: string) => {
       try {
+        // 사이드바 / 헤더 sticky 바에 누구 정보로 본 채팅인지 노출하려고
+        // 첫 저장(=신규 세션) 때만 meta 에 profile.name 을 같이 보낸다.
+        // 기존 세션 업데이트엔 meta 안 보냄 — 라우트가 update 경로에서 meta 를
+        // 안 쓰므로 무시되긴 하지만 깔끔히 분리.
+        const body: Record<string, unknown> = {
+          sessionId: chatSessionId,
+          locale: lang,
+          userMessage,
+          assistantMessage,
+        }
+        if (!chatSessionId && name) {
+          body.meta = { profile: { name } }
+        }
         const res = await fetch('/api/counselor/chat-history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: chatSessionId, // Will create new if undefined
-            locale: lang,
-            userMessage,
-            assistantMessage,
-          }),
+          body: JSON.stringify(body),
         })
 
         if (res.ok) {
@@ -462,7 +470,7 @@ export function useCounselorData(sp: SearchParams) {
         logger.warn('[Counselor] Failed to save message:', e)
       }
     },
-    [chatSessionId, lang]
+    [chatSessionId, lang, name]
   )
 
   const parsedParams = {

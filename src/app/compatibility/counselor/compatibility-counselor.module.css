@@ -692,6 +692,36 @@
   vertical-align: -1px;
 }
 
+/* ============ Profile Sticky Bar — 두 사람 이름 헤더 바로 아래 ============ */
+.profileStickyBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 14px 5px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--ds-light-border);
+  font-size: 0.78rem;
+  color: var(--ds-light-text-muted);
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.profileStickyName {
+  font-weight: 500;
+  color: var(--ds-light-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40vw;
+}
+
+.profileStickyArrow {
+  color: #ec4899;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
 /* Sidebar footer button — passed into CounselorSidebar's footerSlot. */
 .sidebarFooterBtn {
   display: flex;

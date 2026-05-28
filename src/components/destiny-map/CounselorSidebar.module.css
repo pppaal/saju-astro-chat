@@ -230,6 +230,18 @@
   text-overflow: ellipsis;
 }
 
+/* 부제 — 누구 정보로 본 채팅인지 (destiny: '이름' / compat: 'A ↔ B').
+   meta 가 있을 때만 렌더 — 구버전 데이터엔 없음. */
+.sessionSubtitle {
+  font-size: 0.72rem;
+  color: rgba(196, 181, 253, 0.7);
+  line-height: 1.25;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .sessionDate {
   font-size: 0.7rem;
   color: rgba(196, 181, 253, 0.5);
@@ -540,6 +552,10 @@
 
 .lightTheme .sessionTitle {
   color: #1c1917;
+}
+
+.lightTheme .sessionSubtitle {
+  color: #78716c;
 }
 
 .lightTheme .sessionDate {
