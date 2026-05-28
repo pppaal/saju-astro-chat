@@ -11,11 +11,11 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%) translateY(-100%);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(167, 139, 250, 0.95));
+  background: linear-gradient(135deg, rgba(212, 181, 114, 0.95), rgba(212, 181, 114, 0.95));
   color: #fff;
   padding: 12px 24px;
   border-radius: 0 0 16px 16px;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(212, 181, 114, 0.4);
   z-index: 9999;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -103,8 +103,8 @@
   top: 50%;
   transform: translateY(-50%);
   padding: 12px 16px;
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  background: rgba(212, 181, 114, 0.2);
+  border: 1px solid rgba(212, 181, 114, 0.3);
   border-radius: 12px;
   color: rgba(255, 255, 255, 0.8);
   font-size: 13px;
@@ -279,7 +279,7 @@
 
 .mobile-error-action,
 .mobile-empty-action {
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  background: linear-gradient(135deg, #d4b572, #d4b572);
   color: #fff;
   font-weight: 600;
   font-size: 1rem;
@@ -288,13 +288,13 @@
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 12px rgba(212, 181, 114, 0.4);
 }
 
 .mobile-error-action:hover,
 .mobile-empty-action:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.6);
+  box-shadow: 0 6px 16px rgba(212, 181, 114, 0.6);
 }
 
 .mobile-error-action:active,
@@ -347,7 +347,7 @@
   left: 0;
   right: 0;
   background: linear-gradient(135deg, rgba(26, 15, 46, 0.98), rgba(10, 5, 16, 0.98));
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  border: 1px solid rgba(212, 181, 114, 0.3);
   border-radius: 24px 24px 0 0;
   padding: 24px;
   max-height: 85vh;
@@ -390,13 +390,13 @@
   right: 24px;
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  background: linear-gradient(135deg, #d4b572, #d4b572);
   border-radius: 50%;
   border: none;
   color: #fff;
   font-size: 24px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
+  box-shadow: 0 8px 24px rgba(212, 181, 114, 0.5);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
   display: flex;
@@ -406,7 +406,7 @@
 
 .fab:hover {
   transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.7);
+  box-shadow: 0 12px 32px rgba(212, 181, 114, 0.7);
 }
 
 .fab:active {
@@ -436,7 +436,7 @@
 
 .toast {
   background: rgba(26, 15, 46, 0.98);
-  border: 1px solid rgba(167, 139, 250, 0.4);
+  border: 1px solid rgba(212, 181, 114, 0.4);
   border-radius: 16px;
   padding: 16px 20px;
   margin-bottom: 12px;
