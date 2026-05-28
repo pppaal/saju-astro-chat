@@ -1,5 +1,5 @@
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { OntologyToken } from './ontology'
 import {
   mapAdvancedAstroOntology,
@@ -75,13 +75,19 @@ function walkNestedEntries(
   }
   if (depth >= 3) return
   if (Array.isArray(value)) {
-    value.slice(0, 8).forEach((item, index) => walkNestedEntries(item, visit, [...path, String(index)], depth + 1, limit))
+    value
+      .slice(0, 8)
+      .forEach((item, index) =>
+        walkNestedEntries(item, visit, [...path, String(index)], depth + 1, limit)
+      )
     return
   }
   if (typeof value === 'object') {
     Object.entries(value as Record<string, unknown>)
       .slice(0, 16)
-      .forEach(([key, nested]) => walkNestedEntries(nested, visit, [...path, key], depth + 1, limit))
+      .forEach(([key, nested]) =>
+        walkNestedEntries(nested, visit, [...path, key], depth + 1, limit)
+      )
   }
 }
 
@@ -225,7 +231,9 @@ export function compileFeatureTokens(input: MatrixCalculationInput): FeatureComp
     })
   }
 
-  const sibsinEntries = Object.entries(input.sibsinDistribution || {}).filter(([, count]) => (count || 0) > 0)
+  const sibsinEntries = Object.entries(input.sibsinDistribution || {}).filter(
+    ([, count]) => (count || 0) > 0
+  )
   for (const [sibsin, count] of sibsinEntries) {
     const mapped = mapSibsinOntology(sibsin, Number(count || 0))
     pushToken(tokens, {
@@ -236,7 +244,9 @@ export function compileFeatureTokens(input: MatrixCalculationInput): FeatureComp
     })
   }
 
-  const stageEntries = Object.entries(input.twelveStages || {}).filter(([, count]) => (count || 0) > 0)
+  const stageEntries = Object.entries(input.twelveStages || {}).filter(
+    ([, count]) => (count || 0) > 0
+  )
   for (const [stage, count] of stageEntries) {
     const mapped = mapTwelveStageOntology(stage, Number(count || 0))
     pushToken(tokens, {
@@ -389,7 +399,12 @@ export function compileFeatureTokens(input: MatrixCalculationInput): FeatureComp
   compileSnapshotTokens(tokens, 'sajuSnapshot', input.sajuSnapshot)
   compileSnapshotTokens(tokens, 'astrologySnapshot', input.astrologySnapshot)
   compileSnapshotTokens(tokens, 'crossSnapshot', input.crossSnapshot)
-  compileProfileContextTokens(tokens, input.profileContext, input.currentDateIso, input.startYearMonth)
+  compileProfileContextTokens(
+    tokens,
+    input.profileContext,
+    input.currentDateIso,
+    input.startYearMonth
+  )
 
   const domainCoverage = Object.fromEntries(DOMAINS.map((domain) => [domain, 0])) as Record<
     SignalDomain,

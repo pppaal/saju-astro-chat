@@ -1,5 +1,5 @@
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 
 export type SemanticAxis =
@@ -86,25 +86,47 @@ const ELEMENT_AXES: Record<string, SemanticAxis[]> = {
   water: ['recovery', 'meaning', 'bonding'],
 }
 
-const SIBSIN_ONTOLOGY: Record<string, { domains: SignalDomain[]; axes: SemanticAxis[]; weight: number }> = {
+const SIBSIN_ONTOLOGY: Record<
+  string,
+  { domains: SignalDomain[]; axes: SemanticAxis[]; weight: number }
+> = {
   비견: { domains: ['personality', 'relationship'], axes: ['bonding', 'visibility'], weight: 0.48 },
   겁재: { domains: ['wealth', 'relationship'], axes: ['pressure', 'resource_flow'], weight: 0.48 },
   식신: { domains: ['career', 'health'], axes: ['expansion', 'recovery'], weight: 0.54 },
-  상관: { domains: ['career', 'relationship'], axes: ['visibility', 'pressure', 'verification'], weight: 0.56 },
+  상관: {
+    domains: ['career', 'relationship'],
+    axes: ['visibility', 'pressure', 'verification'],
+    weight: 0.56,
+  },
   편재: { domains: ['wealth', 'career'], axes: ['resource_flow', 'expansion'], weight: 0.62 },
   정재: { domains: ['wealth', 'career'], axes: ['resource_flow', 'structure'], weight: 0.6 },
   편관: { domains: ['career', 'health'], axes: ['pressure', 'discipline'], weight: 0.58 },
-  정관: { domains: ['career', 'relationship'], axes: ['structure', 'discipline', 'verification'], weight: 0.58 },
+  정관: {
+    domains: ['career', 'relationship'],
+    axes: ['structure', 'discipline', 'verification'],
+    weight: 0.58,
+  },
   편인: { domains: ['spirituality', 'personality'], axes: ['retreat', 'deep_work'], weight: 0.5 },
-  정인: { domains: ['personality', 'health'], axes: ['meaning', 'recovery', 'structure'], weight: 0.5 },
+  정인: {
+    domains: ['personality', 'health'],
+    axes: ['meaning', 'recovery', 'structure'],
+    weight: 0.5,
+  },
 }
 
-const TWELVE_STAGE_ONTOLOGY: Record<string, { domains: SignalDomain[]; axes: SemanticAxis[]; weight: number }> = {
+const TWELVE_STAGE_ONTOLOGY: Record<
+  string,
+  { domains: SignalDomain[]; axes: SemanticAxis[]; weight: number }
+> = {
   장생: { domains: ['timing', 'health'], axes: ['recovery', 'expansion'], weight: 0.48 },
   목욕: { domains: ['relationship', 'personality'], axes: ['bonding', 'visibility'], weight: 0.42 },
   관대: { domains: ['career', 'personality'], axes: ['visibility', 'structure'], weight: 0.5 },
   건록: { domains: ['career', 'wealth'], axes: ['structure', 'resource_flow'], weight: 0.54 },
-  제왕: { domains: ['career', 'timing'], axes: ['visibility', 'pressure', 'expansion'], weight: 0.56 },
+  제왕: {
+    domains: ['career', 'timing'],
+    axes: ['visibility', 'pressure', 'expansion'],
+    weight: 0.56,
+  },
   쇠: { domains: ['health', 'timing'], axes: ['recovery', 'verification'], weight: 0.44 },
   병: { domains: ['health', 'timing'], axes: ['pressure', 'recovery'], weight: 0.46 },
   사: { domains: ['timing', 'relationship'], axes: ['retreat', 'verification'], weight: 0.42 },
@@ -114,7 +136,9 @@ const TWELVE_STAGE_ONTOLOGY: Record<string, { domains: SignalDomain[]; axes: Sem
   양: { domains: ['timing', 'career'], axes: ['transition', 'expansion'], weight: 0.44 },
 }
 
-export function mapShinsalOntology(shinsal: string): Pick<OntologyToken, 'domainHints' | 'axes' | 'weight' | 'role'> {
+export function mapShinsalOntology(
+  shinsal: string
+): Pick<OntologyToken, 'domainHints' | 'axes' | 'weight' | 'role'> {
   const raw = repairMojibakeText(String(shinsal || ''))
   if (/화개|華蓋/i.test(raw)) {
     return {
@@ -224,7 +248,8 @@ export function mapTwelveStageOntology(
 export function mapRelationOntology(
   relation: MatrixCalculationInput['relations'][number]
 ): Pick<OntologyToken, 'domainHints' | 'axes' | 'weight' | 'role'> {
-  const raw = `${String(relation.kind || '')}:${String(relation.detail || '')}:${String(relation.note || '')}`.toLowerCase()
+  const raw =
+    `${String(relation.kind || '')}:${String(relation.detail || '')}:${String(relation.note || '')}`.toLowerCase()
   if (/harmony|합|yukhap|samhap|banghap/.test(raw)) {
     return {
       domainHints: ['relationship', 'career', 'wealth'],
@@ -249,10 +274,9 @@ export function mapRelationOntology(
   }
 }
 
-export function mapTransitOntology(transit: NonNullable<MatrixCalculationInput['activeTransits']>[number]): Pick<
-  OntologyToken,
-  'domainHints' | 'axes' | 'weight' | 'role'
-> {
+export function mapTransitOntology(
+  transit: NonNullable<MatrixCalculationInput['activeTransits']>[number]
+): Pick<OntologyToken, 'domainHints' | 'axes' | 'weight' | 'role'> {
   if (transit === 'jupiterReturn' || transit === 'nodeReturn') {
     return {
       domainHints: ['career', 'wealth', 'timing'],
@@ -338,7 +362,11 @@ export function mapAdvancedAstroOntology(
       role: 'modulator',
     }
   }
-  if (normalized === 'solarreturn' || normalized === 'progressions' || normalized === 'lunarreturn') {
+  if (
+    normalized === 'solarreturn' ||
+    normalized === 'progressions' ||
+    normalized === 'lunarreturn'
+  ) {
     return {
       domainHints: ['timing', 'career', 'relationship'],
       axes: ['transition', 'verification'],
@@ -479,7 +507,8 @@ export function mapCycleOntology(
   cycle: 'daeun' | 'saeun' | 'wolun' | 'ilun',
   element: string
 ): Pick<OntologyToken, 'domainHints' | 'axes' | 'weight' | 'role'> {
-  const baseWeight = cycle === 'daeun' ? 0.86 : cycle === 'saeun' ? 0.72 : cycle === 'wolun' ? 0.58 : 0.46
+  const baseWeight =
+    cycle === 'daeun' ? 0.86 : cycle === 'saeun' ? 0.72 : cycle === 'wolun' ? 0.58 : 0.46
   return {
     domainHints: ['timing', 'career', 'relationship', 'wealth', 'health', 'move'],
     axes: ['transition', 'pressure', 'expansion', 'verification', 'meaning'],
@@ -584,7 +613,9 @@ export function mapExtraPointOntology(
   return {
     domainHints: uniq(domains),
     axes: uniq(
-      signAxes.concat(key === 'chiron' ? ['recovery'] : key === 'lilith' ? ['selective_distance'] : ['transition'])
+      signAxes.concat(
+        key === 'chiron' ? ['recovery'] : key === 'lilith' ? ['selective_distance'] : ['transition']
+      )
     ),
     weight: 0.36,
     role: 'ornamental',
@@ -613,7 +644,10 @@ export function mapSnapshotOntology(
       role: 'ornamental',
     }
   }
-  if (source === 'sajuSnapshot' && /(daeun|saeun|wolun|iljin|geokguk|yongsin|sibsin|relation|sinsal)/.test(raw)) {
+  if (
+    source === 'sajuSnapshot' &&
+    /(daeun|saeun|wolun|iljin|geokguk|yongsin|sibsin|relation|sinsal)/.test(raw)
+  ) {
     return {
       domainHints: ['timing', 'career', 'relationship', 'wealth', 'health'],
       axes: ['transition', 'meaning', 'verification'],
@@ -621,7 +655,10 @@ export function mapSnapshotOntology(
       role: 'ornamental',
     }
   }
-  if (source === 'astrologySnapshot' && /(natalchart|natalaspects|transits|advancedastrosignals)/.test(raw)) {
+  if (
+    source === 'astrologySnapshot' &&
+    /(natalchart|natalaspects|transits|advancedastrosignals)/.test(raw)
+  ) {
     return {
       domainHints: ['timing', 'personality', 'relationship'],
       axes: ['verification', 'transition', 'deep_work'],
@@ -629,7 +666,12 @@ export function mapSnapshotOntology(
       role: 'ornamental',
     }
   }
-  if (source === 'astrologySnapshot' && /(house|sign|aspect|return|progress|draconic|harmonic|eclipse|midpoint|asteroid|vertex|chiron|lilith)/.test(raw)) {
+  if (
+    source === 'astrologySnapshot' &&
+    /(house|sign|aspect|return|progress|draconic|harmonic|eclipse|midpoint|asteroid|vertex|chiron|lilith)/.test(
+      raw
+    )
+  ) {
     return {
       domainHints: ['timing', 'personality', 'relationship', 'career'],
       axes: ['verification', 'transition', 'meaning'],
@@ -637,7 +679,10 @@ export function mapSnapshotOntology(
       role: 'ornamental',
     }
   }
-  if (source === 'crossSnapshot' && /(driver|caution|domainscore|crossevidence|category|source)/.test(raw)) {
+  if (
+    source === 'crossSnapshot' &&
+    /(driver|caution|domainscore|crossevidence|category|source)/.test(raw)
+  ) {
     return {
       domainHints: ['timing', 'career', 'relationship', 'wealth', 'health', 'move'],
       axes: ['verification', 'meaning', 'transition'],

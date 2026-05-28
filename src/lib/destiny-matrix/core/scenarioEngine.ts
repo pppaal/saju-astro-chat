@@ -1,4 +1,4 @@
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { StrategyEngineResult } from './strategyEngine'
 import type { MatrixCalculationInputNormalized } from './runDestinyCore'
 import type { PatternResult } from './patternEngine'
@@ -127,24 +127,27 @@ export function buildScenarioEngine(
         const activationDomain = resolvedContext?.activation?.domains.find(
           (item) => item.domain === definition.domain
         )
-        const ruleDomain = resolvedContext?.rules?.domains.find((item) => item.domain === definition.domain)
-        const stateDomain = resolvedContext?.states?.domains.find((item) => item.domain === definition.domain)
+        const ruleDomain = resolvedContext?.rules?.domains.find(
+          (item) => item.domain === definition.domain
+        )
+        const stateDomain = resolvedContext?.states?.domains.find(
+          (item) => item.domain === definition.domain
+        )
         const resolvedMode = ruleDomain?.resolvedMode || pattern.resolvedMode
         const resolvedState = stateDomain?.state || pattern.domainState
-        const activationWeight =
-          !activationDomain
-            ? 1
-            : activationDomain.activationScore < 0.8
-              ? 0.88
-              : activationDomain.activationScore < 1.6
-                ? 0.94
-                : activationDomain.activationScore < 2.4
-                  ? 1
-                  : activationDomain.activationScore < 3.4
-                    ? 1.03
-                    : activationDomain.activationScore < 4.6
-                      ? 1.06
-                      : 1.08
+        const activationWeight = !activationDomain
+          ? 1
+          : activationDomain.activationScore < 0.8
+            ? 0.88
+            : activationDomain.activationScore < 1.6
+              ? 0.94
+              : activationDomain.activationScore < 2.4
+                ? 1
+                : activationDomain.activationScore < 3.4
+                  ? 1.03
+                  : activationDomain.activationScore < 4.6
+                    ? 1.06
+                    : 1.08
         const contradictionWeight = ruleDomain?.contradictionPenalty
           ? clamp(1 - Math.min(0.14, ruleDomain.contradictionPenalty * 0.35), 0.84, 1)
           : 1
@@ -168,12 +171,7 @@ export function buildScenarioEngine(
           rule: ruleDomain,
           state: stateDomain,
         })
-        const modePenalty =
-          resolvedMode === 'prepare'
-            ? 0.9
-            : resolvedMode === 'verify'
-              ? 0.96
-              : 1
+        const modePenalty = resolvedMode === 'prepare' ? 0.9 : resolvedMode === 'verify' ? 0.96 : 1
         const stateWeight =
           resolvedState === 'peak'
             ? 1.06
@@ -196,11 +194,7 @@ export function buildScenarioEngine(
             : 1
         const reversibilityWeight = definition.reversible ? 1.03 : 0.97
         const focusDomainWeight =
-          definition.domain === focusDomain
-            ? definition.domain === 'move'
-              ? 1.16
-              : 1.08
-            : 1
+          definition.domain === focusDomain ? (definition.domain === 'move' ? 1.16 : 1.08) : 1
         const rawProbability =
           pattern.score *
           timingWeight *

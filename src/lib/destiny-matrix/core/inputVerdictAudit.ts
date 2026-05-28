@@ -1,5 +1,5 @@
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { FeatureCompilationResult } from './tokenCompiler'
 import type { ActivationEngineResult } from './activationEngine'
 import type { RuleEngineResult } from './ruleEngine'
@@ -10,7 +10,11 @@ import type { DecisionEngineResult } from './decisionEngine'
 import type { DestinyCoreCanonicalOutput } from './types'
 import type { MatrixCrossInputKey } from '@/lib/destiny-matrix/inputCross'
 
-export type VerdictAuditInputKey = MatrixCrossInputKey | 'profileContext' | 'currentDateIso' | 'startYearMonth'
+export type VerdictAuditInputKey =
+  | MatrixCrossInputKey
+  | 'profileContext'
+  | 'currentDateIso'
+  | 'startYearMonth'
 
 export interface InputVerdictAuditEntry {
   key: VerdictAuditInputKey
@@ -81,7 +85,8 @@ function uniq<T>(items: T[]): T[] {
 function isPresent(input: MatrixCalculationInput, key: VerdictAuditInputKey): boolean {
   const value = (input as unknown as Record<string, unknown>)[key]
   if (Array.isArray(value)) return value.length > 0
-  if (value && typeof value === 'object') return Object.keys(value as Record<string, unknown>).length > 0
+  if (value && typeof value === 'object')
+    return Object.keys(value as Record<string, unknown>).length > 0
   return value !== undefined && value !== null && value !== ''
 }
 
@@ -108,7 +113,9 @@ function matchesKey(key: VerdictAuditInputKey, tokenId: string, sourceKind: stri
     case 'currentWolunElement':
       return sourceKind === 'cycle' && tokenId.startsWith('wolun:')
     case 'currentIljinElement':
-      return sourceKind === 'cycle' && tokenId.startsWith('ilun:') && !tokenId.startsWith('ilun-date:')
+      return (
+        sourceKind === 'cycle' && tokenId.startsWith('ilun:') && !tokenId.startsWith('ilun-date:')
+      )
     case 'currentIljinDate':
       return sourceKind === 'cycle' && tokenId.startsWith('ilun-date:')
     case 'shinsalList':
@@ -124,7 +131,10 @@ function matchesKey(key: VerdictAuditInputKey, tokenId: string, sourceKind: stri
     case 'activeTransits':
       return sourceKind === 'transit'
     case 'astroTimingIndex':
-      return tokenId.startsWith('crossSnapshot:astroTimingIndex') || tokenId.startsWith('advanced:astroTimingIndex')
+      return (
+        tokenId.startsWith('crossSnapshot:astroTimingIndex') ||
+        tokenId.startsWith('advanced:astroTimingIndex')
+      )
     case 'asteroidHouses':
       return sourceKind === 'asteroid_house'
     case 'extraPointSigns':
@@ -160,7 +170,9 @@ export function buildInputVerdictAudit(input: {
   canonical: DestinyCoreCanonicalOutput
 }): InputVerdictAuditResult {
   const entries = AUDIT_KEYS.map((key) => {
-    const matchedTokens = input.features.tokens.filter((token) => matchesKey(key, token.id, token.sourceKind))
+    const matchedTokens = input.features.tokens.filter((token) =>
+      matchesKey(key, token.id, token.sourceKind)
+    )
     const tokenDomainHints = uniq(matchedTokens.flatMap((token) => token.domainHints))
     const activationDomains = uniq(
       input.activation.domains
@@ -170,7 +182,10 @@ export function buildInputVerdictAudit(input: {
           )
           const hintMatched =
             tokenDomainHints.includes(domain.domain) &&
-            (domain.activationScore > 0 || domain.natalScore > 0 || domain.timeScore > 0 || domain.modulationScore > 0)
+            (domain.activationScore > 0 ||
+              domain.natalScore > 0 ||
+              domain.timeScore > 0 ||
+              domain.modulationScore > 0)
           return sourceMatched || hintMatched
         })
         .map((domain) => domain.domain)
@@ -180,12 +195,18 @@ export function buildInputVerdictAudit(input: {
         .filter(
           (rule) =>
             activationDomains.includes(rule.domain) &&
-            (rule.amplify.length > 0 || rule.suppress.length > 0 || rule.gate.length > 0 || rule.delay.length > 0 || rule.convert.length > 0)
+            (rule.amplify.length > 0 ||
+              rule.suppress.length > 0 ||
+              rule.gate.length > 0 ||
+              rule.delay.length > 0 ||
+              rule.convert.length > 0)
         )
         .map((rule) => rule.domain)
     )
     const stateDomains = uniq(
-      input.states.domains.filter((state) => activationDomains.includes(state.domain)).map((state) => state.domain)
+      input.states.domains
+        .filter((state) => activationDomains.includes(state.domain))
+        .map((state) => state.domain)
     )
     const patternIds = uniq(
       input.patterns
@@ -198,13 +219,19 @@ export function buildInputVerdictAudit(input: {
         .map((scenario) => scenario.id)
     )
     const advisoryDomains = uniq(
-      input.canonical.advisories.filter((item) => activationDomains.includes(item.domain)).map((item) => item.domain)
+      input.canonical.advisories
+        .filter((item) => activationDomains.includes(item.domain))
+        .map((item) => item.domain)
     )
     const manifestationDomains = uniq(
-      input.canonical.manifestations.filter((item) => activationDomains.includes(item.domain)).map((item) => item.domain)
+      input.canonical.manifestations
+        .filter((item) => activationDomains.includes(item.domain))
+        .map((item) => item.domain)
     )
     const timingDomains = uniq(
-      input.canonical.domainTimingWindows.filter((item) => activationDomains.includes(item.domain)).map((item) => item.domain)
+      input.canonical.domainTimingWindows
+        .filter((item) => activationDomains.includes(item.domain))
+        .map((item) => item.domain)
     )
 
     const focusVerdict = activationDomains.includes(input.canonical.focusDomain)
@@ -241,11 +268,15 @@ export function buildInputVerdictAudit(input: {
     const influenceScore = Number((coverageScore * 0.45 + verdictPressureScore * 0.55).toFixed(2))
 
     const notes: string[] = []
-    if (matchedTokens.length === 0 && isPresent(input.matrixInput, key)) notes.push('present_but_no_tokens')
-    if (matchedTokens.length > 0 && activationDomains.length === 0) notes.push('tokenized_but_not_activated')
-    if (activationDomains.length > 0 && scenarioIds.length === 0) notes.push('activated_but_no_scenarios')
+    if (matchedTokens.length === 0 && isPresent(input.matrixInput, key))
+      notes.push('present_but_no_tokens')
+    if (matchedTokens.length > 0 && activationDomains.length === 0)
+      notes.push('tokenized_but_not_activated')
+    if (activationDomains.length > 0 && scenarioIds.length === 0)
+      notes.push('activated_but_no_scenarios')
     if (focusVerdict) notes.push('touches_focus_domain')
-    if (coverageScore >= 0.5 && verdictPressureScore < 0.35) notes.push('high_coverage_low_verdict_pressure')
+    if (coverageScore >= 0.5 && verdictPressureScore < 0.35)
+      notes.push('high_coverage_low_verdict_pressure')
     if (decisionTouchesDomain) notes.push('touches_top_decision')
     if (topScenarioTouchesDomain) notes.push('touches_top_scenarios')
 
@@ -273,17 +304,29 @@ export function buildInputVerdictAudit(input: {
   return {
     entries,
     summary: {
-      highCoverageKeys: entries.filter((entry) => entry.present && entry.coverageScore >= 0.6).map((entry) => entry.key),
+      highCoverageKeys: entries
+        .filter((entry) => entry.present && entry.coverageScore >= 0.6)
+        .map((entry) => entry.key),
       highVerdictPressureKeys: entries
         .filter((entry) => entry.present && entry.verdictPressureScore >= 0.6)
         .map((entry) => entry.key),
       coverageOnlyKeys: entries
-        .filter((entry) => entry.present && entry.coverageScore >= 0.6 && entry.verdictPressureScore < 0.35)
+        .filter(
+          (entry) =>
+            entry.present && entry.coverageScore >= 0.6 && entry.verdictPressureScore < 0.35
+        )
         .map((entry) => entry.key),
       weakVerdictPressureKeys: entries
-        .filter((entry) => entry.present && entry.verdictPressureScore > 0 && entry.verdictPressureScore < 0.35)
+        .filter(
+          (entry) =>
+            entry.present && entry.verdictPressureScore > 0 && entry.verdictPressureScore < 0.35
+        )
         .map((entry) => entry.key),
-      unusedKeys: entries.filter((entry) => entry.present && entry.coverageScore === 0 && entry.verdictPressureScore === 0).map((entry) => entry.key),
+      unusedKeys: entries
+        .filter(
+          (entry) => entry.present && entry.coverageScore === 0 && entry.verdictPressureScore === 0
+        )
+        .map((entry) => entry.key),
     },
   }
 }

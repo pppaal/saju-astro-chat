@@ -1,1 +1,0 @@
-export { generateNarrativeSectionsFromSynthesis } from './narrativeGeneratorBuildSupport'

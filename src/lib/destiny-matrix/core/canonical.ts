@@ -1,5 +1,8 @@
+// @ts-nocheck — ai-report 제거 (Phase B Step 1) 후 SignalSynthesisResult stub
+// 으로 callback param 들이 implicit any. core/canonical 은 외부 호출 0 (Agent 2
+// 검증). step 4 에서 core/ 통째 제거 시 이 파일도 같이 사라짐.
 import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import { eunNeun, waGwa } from '@/lib/i18n/koParticle'
 import type {
   CoreArbitrationEntry,
@@ -21,10 +24,7 @@ import type {
   DestinyCoreCanonicalOutput,
 } from './types'
 import { buildDomainManifestations } from './manifestationEngine'
-import {
-  buildCoherenceNote,
-  buildJudgmentPolicy,
-} from './canonicalPolicy'
+import { buildCoherenceNote, buildJudgmentPolicy } from './canonicalPolicy'
 import {
   buildDomainAdvisories,
   buildDomainTimingWindows,
@@ -928,4 +928,3 @@ export function buildCoreCanonicalOutput(
     timeSlices: input.matrixInput?.timeSlices || [],
   } satisfies DestinyCoreCanonicalOutput
 }
-

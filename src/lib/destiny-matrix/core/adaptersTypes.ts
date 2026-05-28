@@ -1,5 +1,5 @@
 import type { CrossAgreementMatrixRow } from '../types'
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 
 export type AdapterProvenance = {
   sourceFields: string[]

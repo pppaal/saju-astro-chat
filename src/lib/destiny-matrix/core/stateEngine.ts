@@ -1,4 +1,4 @@
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { ActivationEngineResult } from './activationEngine'
 import type { RuleEngineResult } from './ruleEngine'
 
@@ -71,7 +71,10 @@ export function buildStateEngine(input: {
     const convert = rules?.convert || []
 
     if (activation.domain === 'career') {
-      const strongStructure = hasSignal(amplify, /authority_visibility|strategy_planning|contract_alignment|precision_planning/i)
+      const strongStructure = hasSignal(
+        amplify,
+        /authority_visibility|strategy_planning|contract_alignment|precision_planning/i
+      )
       const reviewPressure =
         hasSignal(gate, /commit_now|blind_spot_commitment|authority_conflict/i) ||
         hasSignal(delay, /finalize_terms|announcement_timing|certainty/i)
@@ -81,18 +84,31 @@ export function buildStateEngine(input: {
     }
 
     if (activation.domain === 'relationship') {
-      const bondingSupport = hasSignal(amplify, /bond_definition|contact_window|chemistry_window|mutual_attraction_window/i)
+      const bondingSupport = hasSignal(
+        amplify,
+        /bond_definition|contact_window|chemistry_window|mutual_attraction_window/i
+      )
       const boundaryPressure =
-        hasSignal(gate, /forced_closeness|projection_bias|boundary_breach|instant_commitment|shadow_reactivity/i) ||
-        hasSignal(delay, /premature_definition|confirmation_before_labeling|slow_trust_build|emotionally_loaded_decision/i) ||
+        hasSignal(
+          gate,
+          /forced_closeness|projection_bias|boundary_breach|instant_commitment|shadow_reactivity/i
+        ) ||
+        hasSignal(
+          delay,
+          /premature_definition|confirmation_before_labeling|slow_trust_build|emotionally_loaded_decision/i
+        ) ||
         hasSignal(convert, /selective_distance/i)
       if (boundaryPressure) state = transitionToSaferState(state)
-      if (bondingSupport && !boundaryPressure && mode === 'execute' && score >= 2.2) state = promoteState(state)
+      if (bondingSupport && !boundaryPressure && mode === 'execute' && score >= 2.2)
+        state = promoteState(state)
       if (mode === 'prepare' && state === 'opening') state = 'consolidation'
     }
 
     if (activation.domain === 'wealth') {
-      const gainStructure = hasSignal(amplify, /structured_gain_window|pricing_power|resource_buffer|fortune_window/i)
+      const gainStructure = hasSignal(
+        amplify,
+        /structured_gain_window|pricing_power|resource_buffer|fortune_window/i
+      )
       const leakagePressure =
         hasSignal(gate, /blind_spot_spending|commit_now/i) ||
         hasSignal(delay, /finalize_terms|certainty/i) ||
@@ -103,7 +119,10 @@ export function buildStateEngine(input: {
     }
 
     if (activation.domain === 'health') {
-      const recoveryFrame = hasSignal(amplify, /recovery_protocol|nourishment_routine|healing_routine|care_routine_grid/i)
+      const recoveryFrame = hasSignal(
+        amplify,
+        /recovery_protocol|nourishment_routine|healing_routine|care_routine_grid/i
+      )
       const overloadPressure =
         hasSignal(delay, /high_intensity_push|recovery_skipping|slow_trust_build/i) ||
         hasSignal(gate, /reckless_push|inflammation_spike/i) ||
@@ -112,18 +131,22 @@ export function buildStateEngine(input: {
         state = state === 'peak' ? 'closure' : transitionToSaferState(state)
       }
       if (recoveryFrame && mode !== 'execute') {
-        state = state === 'dormant'
-          ? 'primed'
-          : state === 'primed'
-            ? 'opening'
-            : state === 'residue'
-              ? 'consolidation'
-              : state
+        state =
+          state === 'dormant'
+            ? 'primed'
+            : state === 'primed'
+              ? 'opening'
+              : state === 'residue'
+                ? 'consolidation'
+                : state
       }
     }
 
     if (activation.domain === 'move') {
-      const mobilitySupport = hasSignal(amplify, /movement_window|travel_for_opportunity|housing_search_momentum/i)
+      const mobilitySupport = hasSignal(
+        amplify,
+        /movement_window|travel_for_opportunity|housing_search_momentum/i
+      )
       const routeGuard =
         hasSignal(gate, /route_assumption|impulsive_move|commit_now/i) ||
         hasSignal(delay, /housing_commitment|announcement_timing|finalize_terms/i) ||
@@ -134,8 +157,14 @@ export function buildStateEngine(input: {
     }
 
     if (activation.domain === 'timing') {
-      const hotWindow = hasSignal(amplify, /phase_window|transition_window|transit_trigger_window|fated_crossroad_window/i)
-      const slowWindow = hasSignal(delay, /announcement_timing|finalize_terms|emotionally_loaded_decision/i)
+      const hotWindow = hasSignal(
+        amplify,
+        /phase_window|transition_window|transit_trigger_window|fated_crossroad_window/i
+      )
+      const slowWindow = hasSignal(
+        delay,
+        /announcement_timing|finalize_terms|emotionally_loaded_decision/i
+      )
       const hardGate = hasSignal(gate, /commit_now|route_assumption|premature_statement/i)
       if (hardGate) state = transitionToSaferState(state)
       if (slowWindow && state === 'peak') state = 'consolidation'

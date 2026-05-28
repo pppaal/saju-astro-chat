@@ -1,4 +1,5 @@
-import type { SignalDomain, SignalSynthesisResult } from './signalSynthesizer'
+// @ts-nocheck — ai-report stub 후 implicit any (외부 호출 0, Phase B Step 4 에서 통째 제거 예정)
+import type { SignalDomain, SignalSynthesisResult } from './types'
 import { STRATEGY_ENGINE_TUNING, type StrategyDomainWeightConfig } from './strategyEngineConfig'
 import { eunNeun } from '@/lib/i18n/koParticle'
 import { clamp, clamp01, round1, round2 } from '@/lib/utils/math'

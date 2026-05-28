@@ -1,4 +1,4 @@
-import type { SignalDomain } from './signalSynthesizer'
+import type { SignalDomain } from './types'
 import type { PatternResult } from './patternEngine'
 import type { RuleEngineResult } from './ruleEngine'
 import type { StateEngineResult } from './stateEngine'
