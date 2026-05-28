@@ -586,23 +586,22 @@ export default function ProfilePage() {
                   <Image
                     src={profile.image}
                     alt={profile.name || 'User'}
-                    width={92}
-                    height={92}
-                    /* 강제 92×92 정사각 + object-cover — 어떤 비율의 사진이
-                       올라와도 자르면서 채워 정원형 유지. (이전: object-cover
-                       없어 가로 긴 사진은 oval, 세로 긴 사진은 위아래 잘림) */
-                    className="block h-[92px] w-[92px] rounded-full border-2 border-white object-cover"
+                    width={128}
+                    height={128}
+                    /* 강제 128×128 정사각 + object-cover — 어떤 비율의 사진이
+                       올라와도 자르면서 채워 정원형 유지. */
+                    className="block h-[128px] w-[128px] rounded-full border-2 border-white object-cover"
                   />
                 ) : (
                   <div
-                    className="flex h-[92px] w-[92px] items-center justify-center rounded-full border-2 border-white bg-white text-[1.7rem] font-semibold text-[#1c1917]"
+                    className="flex h-[128px] w-[128px] items-center justify-center rounded-full border-2 border-white bg-white text-[2.2rem] font-semibold text-[#1c1917]"
                     style={serifStyle}
                   >
                     {profile?.name?.[0]?.toUpperCase() || '·'}
                   </div>
                 )}
                 {photoUploading ? (
-                  <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-xs font-medium text-white">
+                  <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 text-sm font-medium text-white">
                     {photoProgress > 0
                       ? `${photoProgress}%`
                       : locale === 'ko'
@@ -610,8 +609,8 @@ export default function ProfilePage() {
                         : 'Uploading…'}
                   </span>
                 ) : (
-                  <span className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#1c1917] text-white shadow">
-                    <Camera className="h-3.5 w-3.5" />
+                  <span className="absolute bottom-0.5 right-0.5 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-[#1c1917] text-white shadow">
+                    <Camera className="h-4 w-4" />
                   </span>
                 )}
               </button>

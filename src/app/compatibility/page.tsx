@@ -107,6 +107,15 @@ export default function CompatPage() {
               </div>
             )}
 
+            {/* 내 지인 불러오기 안내 — 로그인 + 저장한 지인이 있을 때만 */}
+            {session && circlePeople.length > 0 && (
+              <div className="mb-5 rounded-lg border border-[#e7e4df] bg-[#fcfbfa] px-4 py-3 text-[13px] text-[#57534e]">
+                {normalizedLocale === 'ko'
+                  ? '💡 각 카드 우측 상단의 "불러오기" 버튼을 누르면 내 정보·내 지인 정보를 자동으로 채울 수 있어요.'
+                  : '💡 Tap "Load" at the top-right of each card to auto-fill from your profile or saved circle.'}
+              </div>
+            )}
+
             <div className={styles.personCardsGrid}>
               {persons.slice(0, 2).map((p, idx) => (
                 <PersonCard
