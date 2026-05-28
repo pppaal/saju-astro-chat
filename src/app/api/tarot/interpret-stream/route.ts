@@ -1,5 +1,5 @@
 // src/app/api/tarot/interpret-stream/route.ts
-// Tarot streaming interpretation — Claude Haiku 4.5 token-by-token forward.
+// Tarot streaming interpretation — Claude Sonnet 4.5 token-by-token forward.
 // 전체해석(overall) → 카드 1 → 카드 2 ... 순으로 클라이언트에서 점진적으로
 // 렌더된다. (서버는 Claude token delta 를 SSE 로 그대로 forward 만 하고,
 // 부분 JSON 안의 "overall" / cards[].interpretation 추출은 클라이언트
@@ -17,7 +17,7 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { isClaudeAvailable, DEFAULT_CLAUDE_MODEL } from '@/lib/llm/claude'
+import { isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
 import { buildFallbackPayload, buildInterpretStreamPrompts } from '@/lib/tarot/promptBuild'
 import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
@@ -29,8 +29,8 @@ import {
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
-// 단일 Claude 호출의 최대 wall-clock — Haiku 4.5 + 7장 streaming 기준
-// 통상 8-20s, 여유 있게.
+// 단일 Claude 호출의 최대 wall-clock — Sonnet 4.5 + 7장 streaming 기준
+// Haiku 보다 응답 길어 통상 15-30s. 여유 있게 60s.
 const CLAUDE_TIMEOUT_MS = 60000
 
 // 모든 스프레드 1 credit (현재 데이터상 최대 7장, 모두 동일 가격).
@@ -158,9 +158,8 @@ function streamJsonPayload(
 // force-dynamic, 60s maxDuration 으로 통일.
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-// 60→90s 상향 — Haiku 4.5 가 5+ 카드 스프레드에서 6000+ 토큰 생성 시
-// 60s 한계 직전까지 가는 케이스가 있어 "예상보다 오래 걸리고 있어요"
-// 무한 루프로 보이던 회귀. compatibility/counselor (90s) 와 통일.
+// 90s — Sonnet 4.5 가 5+ 카드 스프레드에서 6000+ 토큰 생성 시 시간이
+// 길어질 수 있어 충분히 여유. compatibility/counselor (90s) 와 통일.
 export const maxDuration = 90
 
 export async function POST(req: NextRequest) {
@@ -307,14 +306,14 @@ export async function POST(req: NextRequest) {
       claudeStream = await streamClaudeWithContinuation({
         systemPrompt,
         userPrompt,
-        model: DEFAULT_CLAUDE_MODEL,
+        model: PREMIUM_CLAUDE_MODEL,
         maxTokens,
         temperature: 0.7,
         timeoutMs: CLAUDE_TIMEOUT_MS,
         label: 'tarot-stream',
       })
     } catch (claudeErr) {
-      recordExternalCall('anthropic', DEFAULT_CLAUDE_MODEL, 'error', Date.now() - claudeStartTime)
+      recordExternalCall('anthropic', PREMIUM_CLAUDE_MODEL, 'error', Date.now() - claudeStartTime)
       logger.error('[tarot-stream] Claude initial call failed', {
         error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
@@ -355,7 +354,7 @@ export async function POST(req: NextRequest) {
           }
           recordExternalCall(
             'anthropic',
-            DEFAULT_CLAUDE_MODEL,
+            PREMIUM_CLAUDE_MODEL,
             'success',
             Date.now() - claudeStartTime
           )
@@ -363,7 +362,7 @@ export async function POST(req: NextRequest) {
         } catch (streamErr) {
           recordExternalCall(
             'anthropic',
-            DEFAULT_CLAUDE_MODEL,
+            PREMIUM_CLAUDE_MODEL,
             'error',
             Date.now() - claudeStartTime
           )

@@ -17,7 +17,7 @@ import {
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
-import { callClaude, isClaudeAvailable } from '@/lib/llm/claude'
+import { callClaude, isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { pickTarotFollowupRules } from '@/lib/tarot/promptShared'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
@@ -178,6 +178,9 @@ ${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
         userPrompt,
         cachedUserContext: readingContext,
         priorTurns,
+        // Haiku → Sonnet 4.5 — followup 답변 깊이·맥락 연결 품질 위해
+        // 통일. 1h 캐시로 컨텍스트 토큰 비용 회수.
+        model: PREMIUM_CLAUDE_MODEL,
         maxTokens: 700,
         temperature: 0.7,
         timeoutMs: 30000,
