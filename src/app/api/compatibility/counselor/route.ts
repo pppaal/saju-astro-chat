@@ -15,7 +15,7 @@ import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
-import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
+import { buildEvidenceGroundingGuide } from '@/lib/prompts/evidenceGroundingGuide'
 import { consumeCredits } from '@/lib/credits/creditService'
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { createIdempotencyStore } from '@/lib/api/idempotency'
@@ -824,9 +824,7 @@ export async function POST(req: NextRequest) {
         // aren't credit-charged → chargedUserId === null → no-op.
         onFailure: chargedUserId
           ? async () => {
-              await refundChargedCredit(
-                'compatibility-counselor stream delivered no content'
-              )
+              await refundChargedCredit('compatibility-counselor stream delivered no content')
             }
           : undefined,
         additionalHeaders: {

@@ -1,18 +1,16 @@
 'use client'
 
 /**
- * 사주↔점성 교차 인사이트 카드 — 한 기간(month / year) 동안 두 시스템이
- * 얼마나 합의했는지 visual 로.
+ * 사주 ↔ 점성 — 이번 기간 두 시스템이 보낸 메시지를 자연어 풀로 노출.
  *
- *   1. 좌/우 두 원 (사주 amber / 점성 cyan) — 평균 raw 점수 = 원 크기
- *   2. 가운데 overlap 영역 = 합의(aligned) 일 수
- *   3. 하단 막대: aligned / mixed / opposed 일 카운트 비율
+ * 추상 메트릭 (% 일치도, 결론 등) 다 제거. DB 의 자연어 자원을 정직하게:
+ *  1. 사주가 자주 보낸 메시지 (top 1) — evidence.cross.sajuDetails 빈도 1위
+ *  2. 점성이 자주 보낸 메시지 (top 1) — evidence.cross.astroDetails 빈도 1위
+ *  3. 대표 일 자연어 — 가장 강한 일 / 가장 낮은 일의 bridges
  *
- * monthDates / yearDates 의 evidence.sajuAxisRaw / astroAxisRaw / axisAgreement
- * 가 있어야 동작. 없으면 카드 자체 스킵.
+ * 신호명 jargon ('정인 합' 같은) 없이 일상어 풀 텍스트만.
  */
 
-import { motion } from 'framer-motion'
 import { Compass } from 'lucide-react'
 import type { ImportantDate } from '../../types'
 import { getCalLabels, type CalLocale } from '../labels'
@@ -22,166 +20,226 @@ interface Props {
   locale?: CalLocale
 }
 
+interface SignalRank {
+  text: string
+  count: number
+}
+
+interface SampleDay {
+  date: string
+  bridge: string | null
+  saju: string | null
+  astro: string | null
+}
+
 export default function CrossInsightCard({ dates, locale }: Props) {
   const t = getCalLabels(locale)
 
-  let sajuSum = 0
-  let sajuCount = 0
-  let astroSum = 0
-  let astroCount = 0
-  let alignedDays = 0
-  let mixedDays = 0
-  let opposedDays = 0
+  // 풀 텍스트 빈도 집계 — 같은 자연어 한 줄을 일자별로 카운트.
+  const sajuCounts = new Map<string, number>()
+  const astroCounts = new Map<string, number>()
+
+  // 가장 점수 높은 일 / 가장 낮은 일 — bridges 자연어 노출용.
+  let bestDay: { date: string; score: number } | null = null
+  let worstDay: { date: string; score: number } | null = null
 
   for (const d of dates) {
-    const ev = d.evidence
-    if (!ev) continue
-    const saju = (ev as { sajuAxisRaw?: number }).sajuAxisRaw
-    const astro = (ev as { astroAxisRaw?: number }).astroAxisRaw
-    if (typeof saju === 'number') {
-      sajuSum += saju
-      sajuCount += 1
+    const sajuList = d.evidence?.cross?.sajuDetails ?? []
+    const astroList = d.evidence?.cross?.astroDetails ?? []
+    // 첫 번째만 카운트 — compactText 가 한 줄 자연어로 압축한 것.
+    if (sajuList[0]) {
+      const text = sajuList[0].trim()
+      if (text) sajuCounts.set(text, (sajuCounts.get(text) ?? 0) + 1)
     }
-    if (typeof astro === 'number') {
-      astroSum += astro
-      astroCount += 1
+    if (astroList[0]) {
+      const text = astroList[0].trim()
+      if (text) astroCounts.set(text, (astroCounts.get(text) ?? 0) + 1)
     }
-    const ag = (ev as { axisAgreement?: 'aligned' | 'mixed' | 'opposed' }).axisAgreement
-    if (ag === 'aligned') alignedDays += 1
-    else if (ag === 'opposed') opposedDays += 1
-    else if (ag === 'mixed') mixedDays += 1
+
+    const s = d.displayScore ?? d.score
+    if (typeof s === 'number') {
+      if (!bestDay || s > bestDay.score) bestDay = { date: d.date, score: s }
+      if (!worstDay || s < worstDay.score) worstDay = { date: d.date, score: s }
+    }
   }
 
-  if (sajuCount === 0 && astroCount === 0) return null
+  const topSaju: SignalRank | null = (() => {
+    const sorted = [...sajuCounts.entries()].sort((a, b) => b[1] - a[1])
+    if (sorted.length === 0) return null
+    return { text: sorted[0][0], count: sorted[0][1] }
+  })()
+  const topAstro: SignalRank | null = (() => {
+    const sorted = [...astroCounts.entries()].sort((a, b) => b[1] - a[1])
+    if (sorted.length === 0) return null
+    return { text: sorted[0][0], count: sorted[0][1] }
+  })()
 
-  const sajuAvg = sajuCount > 0 ? Math.round(sajuSum / sajuCount) : 0
-  const astroAvg = astroCount > 0 ? Math.round(astroSum / astroCount) : 0
-  const total = alignedDays + mixedDays + opposedDays
-  const alignedPct = total > 0 ? (alignedDays / total) * 100 : 0
-  const mixedPct = total > 0 ? (mixedDays / total) * 100 : 0
-  const opposedPct = total > 0 ? (opposedDays / total) * 100 : 0
+  if (!topSaju && !topAstro && !bestDay && !worstDay) return null
 
-  // 원 크기 = 평균 점수 (40-90px 매핑)
-  const sajuRadius = 20 + (sajuAvg / 100) * 25
-  const astroRadius = 20 + (astroAvg / 100) * 25
-
-  // overlap = 합의일 비중 — 두 원의 거리로 표현 (높을수록 가깝게)
-  const closeness = total > 0 ? alignedDays / total : 0.5
-  const gap = 60 - closeness * 50 // 60(분리) → 10(거의 겹침)
-  const cx1 = 80 - gap / 2
-  const cx2 = 80 + gap / 2
+  const extractSample = (target: { date: string } | null): SampleDay | null => {
+    if (!target) return null
+    const d = dates.find((x) => x.date === target.date)
+    if (!d) return null
+    return {
+      date: d.date,
+      bridge: d.evidence?.cross?.bridges?.[0] ?? null,
+      saju: d.evidence?.cross?.sajuDetails?.[0] ?? null,
+      astro: d.evidence?.cross?.astroDetails?.[0] ?? null,
+    }
+  }
+  const bestSample = extractSample(bestDay)
+  // worstSample 은 bestSample 과 다른 날일 때만
+  const worstSample = worstDay && worstDay.date !== bestDay?.date ? extractSample(worstDay) : null
 
   return (
     <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-emerald-950/15 backdrop-blur-sm border border-emerald-500/15 rounded-2xl p-6 overflow-hidden">
-      <div className="pointer-events-none absolute -top-12 -right-10 w-32 h-32 bg-emerald-500/8 blur-3xl rounded-full" />
-      <h3 className="relative text-base font-semibold text-emerald-200 flex items-center gap-2 mb-4 group">
-        <Compass className="w-4 h-4 text-emerald-400 group-hover:text-emerald-300 transition" />
+      <div className="pointer-events-none absolute -top-12 -right-10 w-32 h-32 bg-emerald-500/10 blur-3xl rounded-full" />
+      <h3 className="relative text-base font-semibold text-emerald-200 flex items-center gap-2 mb-4">
+        <Compass className="w-4 h-4 text-emerald-400" />
         {t.crossInsightTitle}
       </h3>
 
-      <div className="relative flex items-center gap-5">
-        <svg viewBox="0 0 160 110" className="w-40 h-28 shrink-0">
-          <defs>
-            <radialGradient id="sajuGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.15" />
-            </radialGradient>
-            <radialGradient id="astroGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.15" />
-            </radialGradient>
-          </defs>
-          <motion.circle
-            cx={cx1}
-            cy="55"
-            r={sajuRadius}
-            fill="url(#sajuGrad)"
-            stroke="#f59e0b"
-            strokeWidth="1.5"
-            strokeOpacity="0.6"
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-          />
-          <motion.circle
-            cx={cx2}
-            cy="55"
-            r={astroRadius}
-            fill="url(#astroGrad)"
-            stroke="#06b6d4"
-            strokeWidth="1.5"
-            strokeOpacity="0.6"
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
-          />
-          <text x={cx1} y="58" textAnchor="middle" fontSize="11" fontWeight="700" fill="#fde68a">
-            {sajuAvg}
-          </text>
-          <text x={cx2} y="58" textAnchor="middle" fontSize="11" fontWeight="700" fill="#a5f3fc">
-            {astroAvg}
-          </text>
-          <text x="80" y="105" textAnchor="middle" fontSize="9" fill="#71717a" letterSpacing="1">
-            {t.crossInsightAvgLabel}
-          </text>
-        </svg>
+      {/* 사주 메시지 풀 텍스트 */}
+      {topSaju && (
+        <MessageBlock
+          tone="saju"
+          title={t.crossSignalSajuTitle}
+          text={topSaju.text}
+          frequency={t.crossSignalFrequency(topSaju.count)}
+        />
+      )}
 
-        <div className="flex-1 min-w-0 space-y-2">
-          {total > 0 && (
-            <>
-              <div className="flex items-baseline justify-between text-[11px]">
-                <span className="text-zinc-400 font-medium">{t.crossInsightAgreementLabel}</span>
-                <span className="text-emerald-300 font-bold tabular-nums">
-                  {Math.round(alignedPct)}%
-                </span>
-              </div>
-              <div className="flex h-2 rounded-full overflow-hidden bg-zinc-800/60">
-                {alignedDays > 0 && (
-                  <motion.div
-                    className="bg-emerald-400/80"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${alignedPct}%` }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                  />
-                )}
-                {mixedDays > 0 && (
-                  <motion.div
-                    className="bg-zinc-500/70"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${mixedPct}%` }}
-                    transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
-                  />
-                )}
-                {opposedDays > 0 && (
-                  <motion.div
-                    className="bg-rose-400/80"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${opposedPct}%` }}
-                    transition={{ duration: 0.6, ease: 'easeOut', delay: 0.2 }}
-                  />
-                )}
-              </div>
-              <div className="flex items-center justify-between text-[10px] gap-2">
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span className="text-zinc-400">{t.crossInsightAligned}</span>
-                  <span className="text-emerald-300 font-bold tabular-nums">{alignedDays}</span>
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
-                  <span className="text-zinc-400">{t.crossInsightMixed}</span>
-                  <span className="text-zinc-300 font-bold tabular-nums">{mixedDays}</span>
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                  <span className="text-zinc-400">{t.crossInsightOpposed}</span>
-                  <span className="text-rose-300 font-bold tabular-nums">{opposedDays}</span>
-                </span>
-              </div>
-            </>
+      {/* 점성 메시지 풀 텍스트 */}
+      {topAstro && (
+        <div className="mt-3">
+          <MessageBlock
+            tone="astro"
+            title={t.crossSignalAstroTitle}
+            text={topAstro.text}
+            frequency={t.crossSignalFrequency(topAstro.count)}
+          />
+        </div>
+      )}
+
+      {/* 대표 일 — 가장 높은 점수 / 가장 낮은 점수 일의 bridges */}
+      {(bestSample || worstSample) && (
+        <div className="relative mt-4 pt-3 border-t border-white/5 space-y-2">
+          <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+            {t.crossInsightEvidenceLabel}
+          </p>
+          {bestSample && (
+            <EvidenceBlock
+              dateLabel={formatDate(bestSample.date, locale)}
+              bridge={bestSample.bridge}
+              saju={bestSample.saju}
+              astro={bestSample.astro}
+              sajuLabel={t.dayWhySajuLabel}
+              astroLabel={t.dayWhyAstroLabel}
+            />
+          )}
+          {worstSample && (
+            <EvidenceBlock
+              dateLabel={formatDate(worstSample.date, locale)}
+              bridge={worstSample.bridge}
+              saju={worstSample.saju}
+              astro={worstSample.astro}
+              sajuLabel={t.dayWhySajuLabel}
+              astroLabel={t.dayWhyAstroLabel}
+            />
           )}
         </div>
-      </div>
+      )}
     </div>
   )
+}
+
+function MessageBlock({
+  tone,
+  title,
+  text,
+  frequency,
+}: {
+  tone: 'saju' | 'astro'
+  title: string
+  text: string
+  frequency: string
+}) {
+  const titleClass = tone === 'saju' ? 'text-amber-300' : 'text-cyan-300'
+  const borderClass = tone === 'saju' ? 'border-amber-500/25' : 'border-cyan-500/25'
+  const bgClass = tone === 'saju' ? 'bg-amber-950/15' : 'bg-cyan-950/15'
+  return (
+    <div className={`rounded-lg border ${borderClass} ${bgClass} p-3`}>
+      <p className={`text-[10px] uppercase tracking-widest font-bold mb-1.5 ${titleClass}`}>
+        {title}
+      </p>
+      <p className="text-[12px] text-zinc-200 leading-relaxed">{text}</p>
+      <p className="text-[10px] text-zinc-500 mt-1.5">{frequency}</p>
+    </div>
+  )
+}
+
+function EvidenceBlock({
+  dateLabel,
+  bridge,
+  saju,
+  astro,
+  sajuLabel,
+  astroLabel,
+}: {
+  dateLabel: string
+  bridge: string | null
+  saju: string | null
+  astro: string | null
+  sajuLabel: string
+  astroLabel: string
+}) {
+  return (
+    <div className="rounded-lg border border-white/5 bg-zinc-950/30 p-2.5 space-y-1.5">
+      <span className="block text-[11px] text-zinc-200 font-bold tabular-nums">{dateLabel}</span>
+      {bridge ? (
+        <p className="text-[11px] text-zinc-300 leading-relaxed">{bridge}</p>
+      ) : (
+        <p className="text-[11px] text-zinc-400 leading-snug">
+          {saju && (
+            <>
+              <span className="text-amber-300/80 font-semibold">{sajuLabel}</span>{' '}
+              <span className="text-zinc-300">{saju}</span>
+            </>
+          )}
+          {saju && astro && <span className="text-zinc-600"> · </span>}
+          {astro && (
+            <>
+              <span className="text-cyan-300/80 font-semibold">{astroLabel}</span>{' '}
+              <span className="text-zinc-300">{astro}</span>
+            </>
+          )}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function formatDate(iso: string, locale?: CalLocale): string {
+  const m = iso.match(/^\d{4}-(\d{2})-(\d{2})$/)
+  if (!m) return iso
+  const month = Number(m[1])
+  const day = Number(m[2])
+  if (locale === 'en') {
+    const monthsEn = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ]
+    return `${monthsEn[month - 1]} ${day}`
+  }
+  return `${month}/${day}`
 }

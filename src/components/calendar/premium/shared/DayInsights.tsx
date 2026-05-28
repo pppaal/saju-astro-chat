@@ -237,15 +237,27 @@ function DayDomainsCard({
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-2">
             {t.dayPatternsLabel}
           </p>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="space-y-1.5">
             {patterns.map((p) => (
-              <span
+              <div
                 key={p.id}
-                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-violet-500/10 text-violet-200 text-[11px]"
+                className="rounded-md bg-violet-500/10 border border-violet-500/15 px-2.5 py-2 text-[11px]"
               >
-                <span className="font-semibold">{p.name}</span>
-                {p.headline && <span className="opacity-80 font-medium">· {p.headline}</span>}
-              </span>
+                <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                  <span className="font-semibold text-violet-200">{p.name}</span>
+                  {p.headline && (
+                    <span className="text-violet-200/75 font-medium">· {p.headline}</span>
+                  )}
+                </div>
+                {p.action && (
+                  <div className="mt-1 flex items-baseline gap-1.5">
+                    <span className="text-[9px] uppercase tracking-widest text-emerald-300/80 font-bold shrink-0">
+                      {t.dayPatternActionLabel}
+                    </span>
+                    <span className="text-zinc-200 leading-snug">{p.action}</span>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>

@@ -5,7 +5,6 @@ import type {
   DomainKey,
   DomainScore,
 } from '@/lib/destiny-matrix/types'
-import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 import type { CalendarDailyView, CalendarMonthView, CalendarWeekView, FormattedDate } from './types'
 import { clamp01 } from '@/lib/utils/math'
 
@@ -52,7 +51,6 @@ export type DaySummary = {
   doNow?: string
   watchOut?: string
   bestTimes?: string[]
-  interpretedAnswer?: InterpretedAnswerContract
 }
 
 export type WeekSummary = {
@@ -113,7 +111,6 @@ export function addDaysIso(iso: string, days: number): string {
   dt.setDate(dt.getDate() + days)
   return toIsoDate({ year: dt.getFullYear(), month: dt.getMonth() + 1, day: dt.getDate() })
 }
-
 
 export function dedupe(lines: string[]): string[] {
   const out: string[] = []

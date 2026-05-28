@@ -94,13 +94,14 @@ interface LabelSet {
   dayWhyCrossLabel: string
   /** 합치율 chip — "사주↔점성 N%" */
   crossAgreementChip: (percent: number) => string
-  /** CrossInsightCard 라벨 */
+  /** CrossInsightCard 라벨 (v4 — 자연어 풀 활용) */
   crossInsightTitle: string
-  crossInsightAvgLabel: string
-  crossInsightAgreementLabel: string
-  crossInsightAligned: string
-  crossInsightMixed: string
-  crossInsightOpposed: string
+  crossInsightEvidenceLabel: string
+  crossSignalSajuTitle: string
+  crossSignalAstroTitle: string
+  crossSignalFrequency: (n: number) => string
+  /** matchedPatterns action 라벨 */
+  dayPatternActionLabel: string
   dayHourlyTitle: string
   dayHourlyPushLabel: string
   dayHourlyAvoidLabel: string
@@ -201,12 +202,12 @@ const KO: LabelSet = {
   dayWhyShinsalLabel: '신살',
   dayWhyCrossLabel: '교차 (사주↔점성)',
   crossAgreementChip: (p) => `사주↔점성 ${p}%`,
-  crossInsightTitle: '사주 ↔ 점성 교차',
-  crossInsightAvgLabel: '평균 점수',
-  crossInsightAgreementLabel: '두 시스템 합의도',
-  crossInsightAligned: '합치',
-  crossInsightMixed: '혼합',
-  crossInsightOpposed: '엇갈림',
+  crossInsightTitle: '이번 기간 사주와 점성이 보낸 메시지',
+  crossInsightEvidenceLabel: '대표 일',
+  crossSignalSajuTitle: '사주가 자주 보낸 메시지',
+  crossSignalAstroTitle: '점성이 자주 보낸 메시지',
+  crossSignalFrequency: (n) => `— 이번 기간 ${n}일 등장`,
+  dayPatternActionLabel: '행동',
   dayHourlyTitle: '지금 뭐 할까',
   dayHourlyPushLabel: '추진할 것',
   dayHourlyAvoidLabel: '보류할 것',
@@ -302,12 +303,12 @@ const EN: LabelSet = {
   dayWhyShinsalLabel: 'Shinsal',
   dayWhyCrossLabel: 'Cross (Saju ↔ Astro)',
   crossAgreementChip: (p) => `Saju ↔ Astro ${p}%`,
-  crossInsightTitle: 'Saju ↔ Astro Crossing',
-  crossInsightAvgLabel: 'Avg score',
-  crossInsightAgreementLabel: 'Two systems agree',
-  crossInsightAligned: 'Aligned',
-  crossInsightMixed: 'Mixed',
-  crossInsightOpposed: 'Opposed',
+  crossInsightTitle: 'What Saju and Astro said this period',
+  crossInsightEvidenceLabel: 'Sample days',
+  crossSignalSajuTitle: 'Saju kept saying',
+  crossSignalAstroTitle: 'Astro kept saying',
+  crossSignalFrequency: (n) => `— Seen on ${n} day${n === 1 ? '' : 's'}`,
+  dayPatternActionLabel: 'Do',
   dayHourlyTitle: 'What now',
   dayHourlyPushLabel: 'Push',
   dayHourlyAvoidLabel: 'Hold',
