@@ -51,6 +51,10 @@ type IndexedCity = {
   cityKrCompact?: string
   countryKrCompact?: string
   pairKrCompact?: string
+  // region 검색용 norm 필드. 사용자가 "일리노이" 또는 "Illinois" 검색 시
+  // 그 region 의 모든 도시를 expansion 대상으로 끌어옴.
+  regionNorm?: string
+  regionKrNorm?: string
   displayKr?: string
   displayEn: string
 }
@@ -107,6 +111,35 @@ function findMatchingCountryCodes(query: string): Set<string> {
     if (name.startsWith(query) || name.includes(query)) codes.add(code)
   }
   return codes
+}
+
+// 1 \ud68c \ube4c\ub4dc \ud6c4 cache \u2014 region \uc601\ubb38/\ud55c\uae00 norm \ub9ac\uc2a4\ud2b8 5060 + 5060 entries.
+let cachedRegionNorms: { en: string[]; kr: string[] } | null = null
+function getRegionNorms() {
+  if (cachedRegionNorms) return cachedRegionNorms
+  const en: string[] = []
+  const kr: string[] = []
+  for (const [eng, ko] of Object.entries(REGION_NAME_KR)) {
+    en.push(norm(eng))
+    kr.push(norm(ko))
+  }
+  cachedRegionNorms = { en, kr }
+  return cachedRegionNorms
+}
+
+// query \uac00 \uc5b4\ub5a4 region \uc774\ub984\uacfc \ub9e4\uce58\ud558\ub294\uc9c0 \ubbf8\ub9ac \ud655\uc778. \ub9e4\uce58 \uc788\uc73c\uba74 search \ub8e8\ud504
+// \uc5d0\uc11c region match \uac00 indexed \uc804\uccb4\uc5d0 \ud769\uc5b4\uc838 \uc788\uc744 \uc218 \uc788\uc5b4 HARD_CAP early-
+// break \ub97c \ube44\ud65c\uc131\ud654\ud574\uc57c \ud55c\ub2e4.
+function queryHitsAnyRegion(query: string): boolean {
+  if (query.length < 2) return false
+  const { en, kr } = getRegionNorms()
+  for (const n of en) {
+    if (n.startsWith(query) || n.includes(query)) return true
+  }
+  for (const n of kr) {
+    if (n.startsWith(query) || n.includes(query)) return true
+  }
+  return false
 }
 
 async function loadCities(): Promise<City[]> {
@@ -172,6 +205,10 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
     const countryKrCompact = countryKr ? compact(countryKr) : undefined
     const pairKrCompact = pairKrNorm ? compact(pairKrNorm) : undefined
 
+    const regionNorm = c.region ? norm(c.region) : undefined
+    const regionKrNorm =
+      c.region && REGION_NAME_KR[c.region] ? norm(REGION_NAME_KR[c.region]) : undefined
+
     // Display rules:
     //   KO Korean city → just city name (e.g. 서울)
     //   KO foreign city → "{nameKr}, {regionKr?}, {countryKr}" (e.g. "스프링필드, 일리노이, 미국")
@@ -221,6 +258,8 @@ async function loadCityIndex(): Promise<IndexedCity[]> {
       cityKrCompact,
       countryKrCompact,
       pairKrCompact,
+      regionNorm,
+      regionKrNorm,
       displayKr,
       displayEn,
     }
@@ -270,6 +309,14 @@ export const GET = withApiMiddleware(
     // off most of them.
     const countryMatchCodes = findMatchingCountryCodes(query)
     const hasCountryMatch = countryMatchCodes.size > 0
+    // 단일 글자 region (예: "u") 은 무의미하게 너무 많이 매칭되어 skip.
+    // 2 글자 이상부터 region expansion 활성화. country expansion 과 같은
+    // 이유로 region 매치 시에도 full scan (early-break 없이) 필요.
+    const hasRegionQuery = query.length >= 2
+    // query 가 실제로 어떤 region 이름과 매치되는지 미리 확인. 매치되면
+    // HARD_CAP early-break 를 비활성 — region 도시가 alphabetic index 에
+    // 흩어져 있어 일부만 모으면 결과 누락.
+    const queryMatchesRegion = hasRegionQuery && queryHitsAnyRegion(query)
 
     // 137k 도시를 매 키 입력마다 전부 스캔하면 모바일에서 한 글자당 수백 ms.
     // 대부분의 검색 의도는 startsWith (score=0/5). limit 의 3 배가 모이면
@@ -315,7 +362,17 @@ export const GET = withApiMiddleware(
             (item.countryKrCompact && item.countryKrCompact.includes(queryCompact)) ||
             (item.pairKrCompact && item.pairKrCompact.includes(queryCompact))))
 
-      if (engMatch || korMatch || aliasMatch || countryExpansionMatch) {
+      // Region match — "Illinois" / "일리노이" 같은 admin1 이름이 그 region 의
+      // 모든 도시를 결과에 끌어옴. region 은 city 보다 구체적이므로 country
+      // 보다 우선 score (12 country < 11 region < 10 city includes).
+      const regionMatch =
+        hasRegionQuery &&
+        ((item.regionNorm &&
+          (item.regionNorm.startsWith(query) || item.regionNorm.includes(query))) ||
+          (item.regionKrNorm &&
+            (item.regionKrNorm.startsWith(query) || item.regionKrNorm.includes(query))))
+
+      if (engMatch || korMatch || aliasMatch || countryExpansionMatch || regionMatch) {
         // Score (lower is better). City-name hits always rank above
         // country-only hits so typing "ind" still surfaces "Indianapolis"
         // before Indonesia's 1902 cities.
@@ -328,10 +385,20 @@ export const GET = withApiMiddleware(
         } else if (item.nameNorm.includes(query) || item.cityKrNorm?.includes(query)) {
           score = 10
         } else if (
+          regionMatch &&
+          (item.regionNorm?.startsWith(query) || item.regionKrNorm?.startsWith(query))
+        ) {
+          // region 의 startsWith — 사용자가 region 이름의 시작을 쳤다.
+          // city 의 includes(10) 보다는 약하고 country prefix(12) 보다는 강함.
+          score = 11
+        } else if (
           item.countryFullEnNorm.startsWith(query) ||
           item.countryKrNorm?.startsWith(query)
         ) {
           score = 12
+        } else if (regionMatch) {
+          // region 의 includes — 더 약한 매치.
+          score = 13
         } else if (countryExpansionMatch) {
           score = 14
         } else {
@@ -340,10 +407,11 @@ export const GET = withApiMiddleware(
 
         scored.push({ item, score })
 
-        // Only break early when we have NOT expanded to a country. Country
-        // expansion needs the full scan to gather every city in that country
-        // before sorting/slicing.
-        if (!hasCountryMatch && scored.length >= HARD_CAP) break
+        // Only break early when we have NOT expanded to a country or region.
+        // Country / region expansion needs the full scan to gather every
+        // matching city before sorting/slicing — those matches are scattered
+        // across the alphabetically-sorted index.
+        if (!hasCountryMatch && !queryMatchesRegion && scored.length >= HARD_CAP) break
       }
     }
 
