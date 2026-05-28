@@ -31,6 +31,7 @@ const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCar
 })
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
 import { pushRecentPair, getRecentPairs, type RecentPair } from '@/app/compatibility/lib'
+import { normalizeGender } from '@/lib/utils/gender'
 import { CompatPersonPickerModal, type PickedPersonData } from './CompatPersonPickerModal'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
@@ -259,7 +260,10 @@ function CompatibilityCounselorContent() {
       const sajuPayload = (p: PersonData) => ({
         birthDate: p.date,
         birthTime: p.time,
-        gender: (p.gender || 'male').toString().toLowerCase().startsWith('f') ? 'female' : 'male',
+        // 공용 normalizer — 'M'/'F'/'Male'/'Female'/'male'/'female' 다 처리.
+        // 이전 `.toLowerCase().startsWith('f')` 도 known input 에선 동작
+        // 했지만 다른 normalizer 호출처와 시그니처/시맨틱 통일.
+        gender: normalizeGender(p.gender) === 'female' ? 'female' : 'male',
         calendarType: 'solar' as const,
         timezone: p.timeZone || 'Asia/Seoul',
         latitude: p.latitude || 37.5665,
