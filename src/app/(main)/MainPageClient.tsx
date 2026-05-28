@@ -110,6 +110,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
             birthTime?: string | null
             gender?: 'male' | 'female' | 'other' | 'prefer_not' | null
             birthCity?: string | null
+            tzId?: string | null
           }
         }
         const remote = data.user
@@ -119,6 +120,10 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           (remote?.gender === 'male' || remote?.gender === 'female')
 
         if (remoteHasFull) {
+          // Server stores tzId + birthCity but not lat/lon. Preserve any
+          // coords already in localStorage from a previous city pick so we
+          // don't lose them on sync; new picks will overwrite via the modal.
+          const localPrev = getStoredBirthInfo()
           const next: StoredBirthInfo = {
             // 이전엔 name 이 빠져 있었음 — 메인페이지에서 모달 열면 이름 칸
             // 비어 있는 원인. 서버 프로필의 User.name 을 그대로 전파한다.
@@ -127,6 +132,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
             birthTime: remote!.birthTime!,
             gender: remote!.gender as 'male' | 'female',
             city: remote!.birthCity || undefined,
+            timeZone: remote!.tzId || localPrev?.timeZone,
+            latitude: localPrev?.latitude,
+            longitude: localPrev?.longitude,
             savedAt: new Date().toISOString(),
           }
           saveBirthInfo(next)
@@ -145,6 +153,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
             birthTime: local.birthTime,
             gender: local.gender,
             birthCity: local.city || null,
+            tzId: local.timeZone || null,
           }),
         })
       } catch {
