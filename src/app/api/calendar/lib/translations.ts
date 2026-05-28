@@ -7,44 +7,44 @@
 // Saju factor translations - plain language with detailed explanations
 export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
   stemBijeon: {
-    ko: "오늘 회의나 미팅에서 평소보다 자신감 있게 말할 수 있어요. 다만 같은 포지션 동료랑 의견 충돌이 생길 수 있으니 너무 밀어붙이진 마세요.",
-    en: "You can speak more confidently in meetings today. But avoid pushing too hard as you might clash with colleagues in similar positions."
+    ko: "자기 결이 두텁게 차오르는 자리예요. 회의·미팅에서 말이 부푸는 결을 타기 좋아요. 같은 자리 동료와는 결이 엇갈리기 쉬우니 너무 밀지는 마세요.",
+    en: "Your own current swells thicker today. Ride the rising flow in meetings and speak up. Watch where it diverges from peers in similar lanes — don't push past that line."
   },
   stemInseong: {
-    ko: "오늘 선배나 상사한테 물어보면 좋은 답을 들을 수 있어요. 막혔던 업무가 조언 한마디로 해결될 수 있습니다. 물어보는 게 이득!",
-    en: "Ask seniors or supervisors today - you'll get good answers. A single piece of advice could solve your stuck work. Asking pays off!"
+    ko: "지지(支持)의 결이 한쪽에서 들어오는 자리예요. 막혔던 답이 누군가 한마디에 풀리기 쉬워요. 선배·상사에게 물어보는 결을 놓치지 마세요.",
+    en: "Support flows in from someone above today. A stuck answer loosens with one piece of advice. Don't miss the opening — ask seniors or supervisors while the current is open."
   },
   stemJaeseong: {
-    ko: "쇼핑하면 좋은 딜을 건질 수 있는 날이에요. 할인 품목 체크해보세요. 미뤄뒀던 재테크 결정도 오늘 하면 괜찮아요.",
-    en: "Good day for finding deals while shopping. Check discounted items. Making that postponed financial decision today is also fine."
+    ko: "재물 결이 잠깐 두터워지는 구간이에요. 미뤘던 돈 결정이 술술 미끄러집니다. 할인 품목 체크·재테크 결정 흘려보내기 좋아요.",
+    en: "The money current thickens for a brief window. Postponed financial calls slide through smoothly now. Good time to check deals and let investment decisions flow."
   },
   stemSiksang: {
-    ko: "아이디어가 잘 떠오르는 날이에요. 기획서 작성, 프레젠테이션 준비하기 딱 좋아요. 평소에 말 못 했던 제안도 오늘 해보세요.",
-    en: "Ideas come easily today. Perfect for writing proposals or preparing presentations. Try making that suggestion you've been holding back."
+    ko: "표현의 결이 활짝 열리는 날이에요. 기획서·프레젠테이션 준비가 부드럽게 흘러갑니다. 평소 막혀 있던 제안도 오늘은 트인 자리로 내보내 보세요.",
+    en: "The channel of expression opens wide today. Proposals and presentations glide along. A suggestion that was clogged before will pass through cleanly — send it out."
   },
   stemGwansal: {
-    ko: "상사 눈치가 보이는 날이에요. 큰 실수만 안 하면 됩니다. 티 나는 행동은 피하고 맡은 일 묵묵히 하세요.",
-    en: "A day to be aware of your boss's mood. Just avoid big mistakes. Keep a low profile and quietly do your assigned work."
+    ko: "외부 압력이 위에서 가라앉아 들어오는 날이에요. 큰 실수만 피하면 흐름은 잦아듭니다. 튀는 결은 접어두고 맡은 일을 조용히 가져가세요.",
+    en: "Pressure settles in from above today. Avoid the big slip and the current will fade on its own. Pull back any sharp moves and let assigned work carry quietly."
   },
   branchSamhap: {
-    ko: "1년에 몇 번 없는 좋은 날이에요. 계약서 사인, 이직 면접, 중요한 미팅 잡기 딱 좋아요. 오늘 시작하면 일이 잘 풀려요.",
-    en: "One of the few great days this year. Perfect for signing contracts, job interviews, scheduling important meetings. Things started today go well."
+    ko: "세 결이 한 점에 모이는 드문 자리예요. 흩어져 있던 일이 하나로 수렴하는 흐름이라, 계약 사인·이직 면접·중요한 미팅을 이 결에 얹어 보내세요.",
+    en: "Three currents converge on one point — a rare alignment. Scattered threads meet here, so place contract signings, interviews, or key meetings on this flow."
   },
   branchSamhapNegative: {
-    ko: "오늘 새로 시작하는 건 나중에 꼬일 수 있어요. 급한 게 아니면 내일이나 모레로 미루세요. 기존 업무 마무리에 집중하세요.",
-    en: "Things started today might get tangled later. If not urgent, postpone to tomorrow or the day after. Focus on finishing existing work."
+    ko: "결이 갈라지고 어긋나는 자리예요. 오늘 새로 띄운 일은 나중에 엉키기 쉬우니, 급하지 않다면 며칠 뒤로 흘려보내세요. 마무리 쪽에 무게를 두세요.",
+    en: "The currents diverge and misalign today. New launches tangle later, so let them drift to a different day if they aren't urgent. Pour weight into wrapping things up."
   },
   branchYukhap: {
-    ko: "소개팅이나 새로운 사람 만나기 좋은 날이에요. 네트워킹 모임, 동창 모임 가면 좋은 인연 생길 수 있어요.",
-    en: "Good day for blind dates or meeting new people. Networking events or alumni gatherings could bring good connections."
+    ko: "두 결이 부드럽게 맞닿는 자리예요. 새 사람과 흐름이 자연스럽게 겹치니, 소개팅·네트워킹·동창 모임에서 인연 한 줄이 들어찰 수 있어요.",
+    en: "Two currents touch and fit together cleanly. New people flow into your stream easily — a blind date, networking event, or reunion may bring a real connection in."
   },
   branchChung: {
-    ko: "가족이나 가까운 사람이랑 말다툼하기 쉬운 날이에요. 예민한 주제는 피하고, 운전할 때 평소보다 조심하세요.",
-    en: "Easy to argue with family or close ones today. Avoid sensitive topics and drive more carefully than usual."
+    ko: "결이 정면으로 부딪쳐 흔들리는 자리예요. 가까운 사람과의 대화가 엉키기 쉬우니 예민한 주제는 잠가 두세요. 운전대 잡을 때도 평소보다 결을 늦추세요.",
+    en: "Two currents collide head-on and the surface gets choppy. Conversations with close ones snag easily — keep sensitive topics sealed. Slow your pace at the wheel too."
   },
   branchXing: {
-    ko: "서류 실수, 오타 나기 쉬운 날이에요. 보내기 전에 한 번 더 확인하세요. 계약서는 꼼꼼히 읽어보세요.",
-    en: "Easy day for document mistakes and typos. Double-check before sending. Read contracts thoroughly."
+    ko: "결이 어긋나 작은 틈이 벌어지는 자리예요. 서류·오타가 그 틈으로 새 나가기 쉬우니 보내기 전 한 번 더 결을 훑으세요. 계약서는 줄 사이까지 읽어 두세요.",
+    en: "The grain misaligns and small gaps open up. Document slips and typos leak through those gaps — sweep the page once more before sending. Read contracts between the lines."
   },
   branchHai: {
     ko: "오늘 한 얘기가 나중에 문제될 수 있어요. 험담이나 비밀 얘기는 피하세요. SNS 올리기 전에 한 번 더 생각하세요.",
@@ -52,8 +52,8 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
   },
   // 천을귀인(天乙貴人) - 가장 좋은 귀인
   cheoneulGwiin: {
-    ko: "⭐ 1년에 몇 번 없는 대길일! 면접, 계약, 프로포즈, 사업 시작 다 좋아요. 중요한 일정은 오늘로 잡으세요. 누군가의 도움으로 일이 술술 풀릴 거예요.",
-    en: "⭐ One of the luckiest days this year! Good for interviews, contracts, proposals, starting business. Schedule important things today. Someone's help will make things go smoothly."
+    ko: "⭐ 귀인의 결이 두텁게 들어차는 1년 몇 안 되는 자리예요. 막혀 있던 길이 누군가의 손끝에서 트입니다. 면접·계약·프로포즈·개업 일정을 오늘 결 위에 얹으세요.",
+    en: "⭐ A rare day when a benefactor's current pours in thick. Blocked paths open up at someone else's fingertips. Place interviews, contracts, proposals, and launches on today's flow."
   },
   // 지장간(支藏干) - 숨은 기운
   hiddenStemSupport: {
@@ -173,8 +173,8 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
   },
   // 달 위상 (실제 계산 기반)
   lunarNewMoon: {
-    ko: "🌑 새로운 시작하기 좋은 때예요. 다이어트, 금연, 새 프로젝트, 새 습관 시작하면 잘 이어가기 쉬워요.",
-    en: "🌑 Good time for new beginnings. Starting a diet, quitting smoking, new projects, or new habits will be easier to maintain."
+    ko: "🌑 결이 한 번 비워졌다가 새로 차오르기 시작하는 자리예요. 다이어트·금연·새 프로젝트·새 습관을 이 비어 있는 결 위에 심어 두면 이어가기 쉬워요.",
+    en: "🌑 The current empties out and starts to fill again from zero. Plant a diet, quitting smoking, a new project, or a new habit onto this empty channel — it'll carry forward easily."
   },
   lunarFullMoon: {
     ko: "🌕 진행하던 일 마무리하기 좋은 때예요. 밀린 업무 정리, 프로젝트 완료, 결론 내리기 좋아요. 감정이 예민해질 수 있으니 다툼 조심!",
@@ -199,28 +199,28 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
   },
   // 세운(歲運) - 연간 운세 영향
   seunBijeon: {
-    ko: "📅 올해는 당신의 기본 에너지가 강화되는 해예요. 자신감이 넘치고 추진력이 생기는 해이지만, 경쟁자도 많아질 수 있어요. 협력과 경쟁의 균형을 잘 잡으세요.",
-    en: "📅 This year strengthens your core energy. A year of overflowing confidence and drive, but competitors may also increase. Balance cooperation and competition well."
+    ko: "📅 올해는 자기 결이 한 해 내내 부풀어 오르는 해예요. 자신감과 추진력이 차오르는 만큼 같은 자리에 선 경쟁자도 가까이 들어와요. 협력과 경쟁의 결을 번갈아 잡으세요.",
+    en: "📅 This year your own current swells through the whole stretch. Confidence builds up, but rivals draw close on the same lane. Switch between cooperation and competition as the flow demands."
   },
   seunInseong: {
-    ko: "📅 올해는 도움을 받기 좋은 해예요. 멘토, 선배, 부모님 등 조력자의 도움이 많아요. 배움과 성장의 기회가 넘치니, 새로운 공부나 자격증 취득에 도전해보세요!",
-    en: "📅 This year is good for receiving support. Lots of help from mentors, seniors, parents. Opportunities for learning and growth abound, so try new studies or certifications!"
+    ko: "📅 올해는 도움의 결이 위쪽에서 한 해 내내 흘러들어요. 멘토·선배·부모의 손길이 자주 닿는 자리이니, 공부·자격증·진학 같은 학습의 결에 올라타 보세요.",
+    en: "📅 This year support flows in from above all year long. A mentor, senior, or parent's hand reaches you often — step onto the learning current with new studies or certifications."
   },
   seunJaeseong: {
-    ko: "📅 올해는 재물운이 좋은 해예요. 수입이 늘어나거나 재테크에 유리한 기회가 찾아올 수 있어요. 돈과 관련된 중요한 결정을 하기에 좋은 해입니다.",
-    en: "📅 This year has good wealth fortune. Income may increase or favorable investment opportunities may arise. A good year for important money-related decisions."
+    ko: "📅 📅 올해는 재물 결이 두텁게 들어차는 해예요. 수입 줄기가 굵어지거나 재테크 기회가 닿아 올 수 있어요. 큰 돈 결정을 한 해의 결 위에 얹기 좋습니다.",
+    en: "📅 This year the wealth current runs thick. Your income stream may widen or investment chances drift in. A good year to set big money decisions onto the flow."
   },
   seunSiksang: {
-    ko: "📅 올해는 창의력과 표현력이 빛나는 해예요. 예술, 창작, 연애에 유리해요. 자신의 재능을 세상에 알리기 좋은 해이니, 적극적으로 자신을 표현하세요!",
-    en: "📅 This year your creativity and expression shine. Favorable for art, creation, romance. A good year to show your talents to the world, so express yourself actively!"
+    ko: "📅 올해는 표현의 결이 한 해 내내 트인 채로 머무는 해예요. 예술·창작·연애의 흐름이 부드럽게 열려 있어요. 재능을 안에 가두지 말고 그 결 위로 흘려보내세요.",
+    en: "📅 This year the channel of expression stays open all year. Art, creation, and romance flow freely. Don't keep talent jammed inside — let it drift out onto the current."
   },
   seunGwansal: {
-    ko: "📅 올해는 외부 압박이 있는 해예요. 직장에서의 스트레스, 권위자와의 갈등이 생길 수 있어요. 겸손하게 대처하고, 건강 관리에 특히 신경 쓰세요.",
-    en: "📅 This year has external pressure. Stress at work or conflicts with authority figures may arise. Handle with humility and pay special attention to health management."
+    ko: "📅 올해는 외부 압력이 위에서 가라앉아 들어오는 해예요. 직장 스트레스와 권위자와의 결이 엉키기 쉬우니, 자세를 낮추고 건강 관리의 결을 굵게 잡으세요.",
+    en: "📅 Pressure settles in from above through the year. Stress at work and friction with authority figures tangle easily — keep your stance low and strengthen the health-care current."
   },
   seunSamhap: {
-    ko: "📅 올해는 세 가지 좋은 기운이 모이는 특별한 해예요! 큰 기회가 찾아올 수 있으니, 적극적으로 도전하세요. 인생의 전환점이 될 수 있는 해입니다.",
-    en: "📅 This is a special year when three good energies unite! Big opportunities may come, so take on challenges actively. This could be a turning point in your life."
+    ko: "📅 올해는 세 결이 한 점에 모이는 특별한 해예요! 흩어져 있던 길이 한 줄로 수렴하니, 큰 결정·전환·도전을 이 해의 결 위에 얹으세요. 인생의 변곡점이 될 수 있어요.",
+    en: "📅 Three currents converge on one point this year — a rare alignment! Scattered paths gather into a single line, so place big decisions, pivots, and bold moves on this flow. Could be a true turning point."
   },
   seunSamhapNegative: {
     ko: "📅 올해 에너지 흐름이 불리해요. 큰 모험이나 도박 같은 행동은 자제하고, 안정을 추구하는 것이 현명해요. 기존에 하던 일을 꾸준히 유지하는 데 집중하세요.",
@@ -236,45 +236,45 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
   },
   // 월운(月運) - 월간 운세 영향
   wolunBijeon: {
-    ko: "📆 이번 달은 에너지가 충전되는 달이에요. 자신감이 높아지고 추진력이 생겨요. 새로운 시작이나 도전에 적합한 달이에요.",
-    en: "📆 This month recharges your energy. Confidence rises and you gain drive. A suitable month for new beginnings or challenges."
+    ko: "📆 이번 달은 자기 결이 다시 차오르는 달이에요. 자신감과 추진력이 부풀어 오르니, 새 시작·도전을 이 달의 결 위에 얹어 보내세요.",
+    en: "📆 This month your own current rises again. Confidence and drive swell — place new beginnings and challenges onto this monthly flow."
   },
   wolunInseong: {
-    ko: "📆 이번 달은 도움을 받기 좋은 달이에요. 선배나 멘토의 조언이 큰 도움이 되고, 공부나 학습에 집중하기 좋아요.",
-    en: "📆 This month is good for receiving help. Advice from seniors or mentors will be very helpful, and it's good for studying or learning."
+    ko: "📆 이번 달은 지지의 결이 위쪽에서 흘러드는 달이에요. 선배·멘토의 한마디가 막힌 곳을 풀어주니, 공부·학습 쪽으로 결을 모으세요.",
+    en: "📆 Support flows in from above this month. A word from a senior or mentor unclogs stuck spots — gather your current toward studying and learning."
   },
   wolunJaeseong: {
-    ko: "📆 이번 달은 재물운이 좋은 달이에요. 수입 증가, 좋은 쇼핑 기회, 재테크에 유리해요. 돈과 관련된 결정을 하기 좋아요.",
-    en: "📆 This month has good wealth fortune. Favorable for income increase, good shopping opportunities, and investments. Good for money-related decisions."
+    ko: "📆 이번 달은 재물 결이 한 결 두꺼워지는 달이에요. 수입 줄기가 굵어지고 쇼핑·재테크 기회가 닿아 와요. 돈 결정은 이 달의 흐름에 미끄러뜨려 보내세요.",
+    en: "📆 The wealth current thickens by one layer this month. Income streams widen, shopping and investment chances drift in — slide money decisions onto this monthly flow."
   },
   wolunSiksang: {
-    ko: "📆 이번 달은 창의력이 빛나는 달이에요. 예술 활동, 창작, 연애에 유리해요. 자신을 표현하는 모든 활동에 좋은 달이에요.",
-    en: "📆 This month your creativity shines. Favorable for artistic activities, creation, and romance. A good month for all forms of self-expression."
+    ko: "📆 이번 달은 표현의 결이 활짝 열려 있는 달이에요. 예술·창작·연애의 흐름이 부드럽게 흘러요. 자기 표현은 가둬 두지 말고 결 따라 내보내세요.",
+    en: "📆 The expression channel is wide open this month. Art, creation, and romance flow smoothly — don't keep self-expression jammed, let it ride the current out."
   },
   wolunGwansal: {
-    ko: "📆 이번 달은 직장이나 외부에서 압박이 있을 수 있어요. 스트레스 관리에 신경 쓰고, 윗사람과의 관계에 조심하세요.",
-    en: "📆 This month may have work or external pressure. Pay attention to stress management and be careful in relationships with superiors."
+    ko: "📆 이번 달은 외부 압력이 위에서 가라앉아 들어오는 달이에요. 직장 스트레스와 윗사람과의 결이 굳어지기 쉬우니, 자세를 낮추고 결을 부드럽게 쥐세요.",
+    en: "📆 Pressure settles in from above this month. Work stress and the line with superiors stiffens easily — keep your stance low and hold the current loosely."
   },
   wolunSamhap: {
-    ko: "📆 이번 달은 세 가지 좋은 기운이 모이는 특별한 달이에요! 중요한 결정, 계약, 새로운 시작에 좋은 기회가 있어요.",
-    en: "📆 This is a special month when three good energies unite! Good opportunities for important decisions, contracts, and new starts."
+    ko: "📆 이번 달은 세 결이 한 점에 모이는 특별한 달이에요! 흩어져 있던 일이 한 줄로 수렴하니, 중요한 결정·계약·새 시작을 이 달의 결 위에 얹으세요.",
+    en: "📆 Three currents converge on one point this month — a special alignment! Scattered threads gather into a single line — place key decisions, contracts, and new starts onto this flow."
   },
   wolunYukhap: {
-    ko: "📆 이번 달은 인연이 좋은 달이에요. 새로운 만남, 소개팅, 인맥 확장에 유리해요. 좋은 사람을 통해 기회가 올 수 있어요.",
-    en: "📆 This month has good relationship fortune. Favorable for new meetings, blind dates, and expanding connections. Opportunities may come through good people."
+    ko: "📆 이번 달은 인연의 결이 부드럽게 맞닿는 달이에요. 새 만남·소개팅·인맥 확장이 자연스럽게 겹쳐 들어와요. 사람 결 따라 기회가 흘러들 수 있어요.",
+    en: "📆 Relationship currents touch and align this month. New meetings, blind dates, and expanding networks naturally overlap — opportunities drift in through people."
   },
   wolunChung: {
-    ko: "📆 이번 달은 변화가 많아요. 예상치 못한 변화에 당황하지 말고, 안정보다 유연하게 대처하세요. 변화 속에서 기회를 찾으세요.",
-    en: "📆 This month has many changes. Don't be flustered by unexpected changes; stay flexible rather than stable. Find opportunities within change."
+    ko: "📆 이번 달은 결이 정면으로 부딪쳐 흔들리는 달이에요. 예상 못 한 변화에 결을 굳히지 말고, 부드럽게 휘는 자세로 결을 따라가세요.",
+    en: "📆 The currents collide head-on this month and the surface shakes. Don't stiffen against unexpected change — bend with it and follow the flow."
   },
   // 일진(日辰) - 당일 운세 (가장 중요!)
   iljinBijeon: {
-    ko: "🌅 오늘은 에너지가 강해지는 날이에요. 자신감이 넘치고 추진력이 생기지만, 경쟁심도 올라갈 수 있어요. 협력과 경쟁의 균형을 잡으세요.",
-    en: "🌅 Today your energy strengthens. Confidence and drive increase, but competitiveness may also rise. Balance cooperation and competition."
+    ko: "🌅 오늘은 자기 결이 하루 사이에 부풀어 오르는 자리예요. 자신감과 추진력이 차오르는 만큼 같은 자리 사람과는 결이 엇갈리기 쉬워요. 협력과 경쟁의 결을 번갈아 잡으세요.",
+    en: "🌅 Today your own current swells within the day. Confidence and drive build up, but the line with peers in the same lane misaligns easily — switch between cooperation and competition."
   },
   iljinInseong: {
-    ko: "🌅 오늘은 배움과 도움을 받기 좋은 날이에요. 선배나 멘토의 조언이 도움이 되고, 공부나 자격증 준비에도 좋아요. 지혜를 얻는 하루!",
-    en: "🌅 Great day for learning and receiving help. Advice from seniors or mentors will be valuable, good for studying or certification prep. A day of gaining wisdom!"
+    ko: "🌅 오늘은 지지의 결이 위쪽에서 들어오는 자리예요. 선배·멘토의 한마디가 막힌 곳을 풀어주니, 공부·자격증 준비도 이 결 위에 올려두기 좋아요.",
+    en: "🌅 Support flows in from above today. A word from a senior or mentor unclogs the stuck spot — place studying or certification prep onto this current."
   },
   iljinJaeseong: {
     ko: "🌅 오늘은 재물운이 좋은 날이에요. 쇼핑, 투자 결정, 금전 거래에 유리해요. 돈과 관련된 중요한 결정을 하기 좋은 타이밍!",
@@ -415,8 +415,8 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
   // 목성(Jupiter) 트랜짓 - 확장, 행운, 년운
   // ============================================================
   jupiterConjunct: {
-    ko: "♃ 목성이 당신의 별자리에 들어왔어요! 12년에 한 번 오는 최대 행운기입니다! 확장, 성장, 기회의 에너지가 넘쳐요. 새로운 사업, 해외 진출, 학업, 큰 투자에 최적의 시기예요. 이 황금기를 놓치지 마세요!",
-    en: "♃ Jupiter has entered your sign! This is a once-in-12-years peak luck period! Energy of expansion, growth, and opportunity overflows. Optimal time for new business, overseas ventures, studies, or big investments. Don't miss this golden period!"
+    ko: "♃ 목성이 당신의 별자리로 들어와 자리잡는 자리예요. 12년에 한 번 들어차는 확장의 결입니다. 새 사업·해외 진출·학업·큰 투자를 이 두툼한 흐름 위에 얹어 보내세요. 이 결은 놓치면 다시 차오르기까지 오래 걸려요.",
+    en: "♃ Jupiter enters your sign and settles in. The expansion current builds up — a thickness that arrives once every twelve years. Place new business, overseas moves, studies, and big investments onto this swell. Miss it and the flow takes a long time to gather again."
   },
   jupiterHarmony: {
     ko: "♃ 목성 에너지가 당신과 조화를 이루고 있어요. 전반적인 행운이 좋고, 기회가 자연스럽게 찾아와요. 낙관적인 마음으로 도전하면 좋은 결과를 얻을 수 있어요.",

@@ -100,6 +100,13 @@ interface LabelSet {
   crossSignalSajuTitle: string
   crossSignalAstroTitle: string
   crossSignalFrequency: (n: number) => string
+  /** CrossInsightCard 흐름 톤 — FlowSummary 한 줄 */
+  crossFlowSummaryAligned: (start: string, end: string) => string
+  crossFlowSummaryOpposed: (start: string, end: string) => string
+  crossFlowSummaryPeak: (date: string) => string
+  /** CrossingSpot 헤더 (aligned / opposed) */
+  crossSpotAlignedHeader: string
+  crossSpotOpposedHeader: string
   /** matchedPatterns action 라벨 */
   dayPatternActionLabel: string
   dayHourlyTitle: string
@@ -200,13 +207,18 @@ const KO: LabelSet = {
   dayWhySajuLabel: '사주',
   dayWhyAstroLabel: '점성',
   dayWhyShinsalLabel: '신살',
-  dayWhyCrossLabel: '교차 (사주↔점성)',
+  dayWhyCrossLabel: '두 흐름의 만남',
   crossAgreementChip: (p) => `사주↔점성 ${p}%`,
-  crossInsightTitle: '이번 기간 사주와 점성이 보낸 메시지',
-  crossInsightEvidenceLabel: '대표 일',
-  crossSignalSajuTitle: '사주가 자주 보낸 메시지',
-  crossSignalAstroTitle: '점성이 자주 보낸 메시지',
+  crossInsightTitle: '사주와 점성, 두 흐름의 만남',
+  crossInsightEvidenceLabel: '두 흐름이 만난 자리',
+  crossSignalSajuTitle: '사주가 자주 보낸 결',
+  crossSignalAstroTitle: '점성이 자주 보낸 결',
   crossSignalFrequency: (n) => `— 이번 기간 ${n}일 등장`,
+  crossFlowSummaryAligned: (start, end) => `${start} ~ ${end} 두 기운이 함께 차오릅니다`,
+  crossFlowSummaryOpposed: (start, end) => `${start} ~ ${end} 두 흐름이 엇갈립니다`,
+  crossFlowSummaryPeak: (date) => `${date} 두 기운이 동시에 차오르는 자리`,
+  crossSpotAlignedHeader: '두 기운이 동시에 차오름',
+  crossSpotOpposedHeader: '흐름이 갈라지는 자리',
   dayPatternActionLabel: '행동',
   dayHourlyTitle: '지금 뭐 할까',
   dayHourlyPushLabel: '추진할 것',
@@ -301,13 +313,18 @@ const EN: LabelSet = {
   dayWhySajuLabel: 'Saju',
   dayWhyAstroLabel: 'Astro',
   dayWhyShinsalLabel: 'Shinsal',
-  dayWhyCrossLabel: 'Cross (Saju ↔ Astro)',
+  dayWhyCrossLabel: 'Where the currents meet',
   crossAgreementChip: (p) => `Saju ↔ Astro ${p}%`,
-  crossInsightTitle: 'What Saju and Astro said this period',
-  crossInsightEvidenceLabel: 'Sample days',
-  crossSignalSajuTitle: 'Saju kept saying',
-  crossSignalAstroTitle: 'Astro kept saying',
+  crossInsightTitle: 'Saju and Astro: where the two currents meet',
+  crossInsightEvidenceLabel: 'Where the currents met',
+  crossSignalSajuTitle: "Saju's recurring current",
+  crossSignalAstroTitle: "Astro's recurring current",
   crossSignalFrequency: (n) => `— Seen on ${n} day${n === 1 ? '' : 's'}`,
+  crossFlowSummaryAligned: (start, end) => `${start} ~ ${end} both currents rising together`,
+  crossFlowSummaryOpposed: (start, end) => `${start} ~ ${end} currents pulling apart`,
+  crossFlowSummaryPeak: (date) => `${date} both currents cresting`,
+  crossSpotAlignedHeader: 'Both currents rising at once',
+  crossSpotOpposedHeader: 'Currents splitting here',
   dayPatternActionLabel: 'Do',
   dayHourlyTitle: 'What now',
   dayHourlyPushLabel: 'Push',
