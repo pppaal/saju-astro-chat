@@ -175,6 +175,64 @@
   color: rgba(245, 243, 255, 0.85);
 }
 
+/* Skeleton — 햄버거 클릭 직후 빈 패널 대신 list shape 을 미리 잡아둔다.
+   사용자가 "버퍼링" 으로 느끼던 1~2 초 대기 중 자연스러운 pulse 로 시각적
+   continuity 유지. */
+.skeletonRow {
+  pointer-events: none;
+  background: transparent !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem;
+}
+
+.skeletonLine {
+  display: block;
+  height: 0.7rem;
+  width: 75%;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(245, 243, 255, 0.08) 0%,
+    rgba(245, 243, 255, 0.18) 50%,
+    rgba(245, 243, 255, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: counselorSidebarSkeletonPulse 1.4s ease-in-out infinite;
+}
+
+.skeletonLineShort {
+  width: 45%;
+  height: 0.55rem;
+  opacity: 0.7;
+}
+
+.lightTheme .skeletonLine {
+  background: linear-gradient(
+    90deg,
+    rgba(28, 25, 23, 0.05) 0%,
+    rgba(28, 25, 23, 0.11) 50%,
+    rgba(28, 25, 23, 0.05) 100%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes counselorSidebarSkeletonPulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonLine {
+    animation: none;
+  }
+}
+
 .sessionList {
   list-style: none;
   margin: 0;

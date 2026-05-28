@@ -96,20 +96,27 @@ export default function CounselorSidebar({
     sessionHrefBase ??
     (serviceType === 'compat' ? '/compatibility/counselor' : '/destiny-map/counselor')
 
+  // Reset transient row state every time the drawer reopens. Without this,
+  // a row left in swipe / rename mode from a previous open stays mid-swipe
+  // — the title slides 72px off-screen and the user sees only the action
+  // icons, which looks like "past chats are gone" even though the data is
+  // there. 별도 effect 로 분리 — 데이터 fetch 는 mount 1 회만 하면서
+  // transient UI 리셋은 매 open 마다 보장.
   useEffect(() => {
-    // When desktopStatic is on, the sidebar is permanently visible on
-    // desktop so we fetch regardless of the drawer "open" flag — that
-    // flag still controls the mobile slide-in but desktop users would
-    // otherwise see an empty list until the first hamburger click.
-    if ((!open && !desktopStatic) || status !== 'authenticated') return
-    // Reset transient row state every time the drawer reopens. Without
-    // this, a row left in swipe / rename mode from a previous open
-    // stays mid-swipe — the title slides 72px off-screen and the user
-    // sees only the action icons, which looks like "past chats are
-    // gone" even though the data is there.
+    if (!open) return
     setSwipedId(null)
     setRenamingId(null)
     setRenameValue('')
+  }, [open])
+
+  useEffect(() => {
+    // 인증된 시점부터 즉시 fetch — open / desktopStatic 무관. 이전엔 open
+    // 이 true 가 되는 시점(=햄버거 클릭 직후)에 처음 시작했는데, 모바일에서
+    // 클릭 → 빈 화면 → 500ms~2s 후 list 가 갑자기 떠 사용자에게 "버퍼링"
+    // 으로 보였다. 페이지 mount 직후부터 백그라운드로 받아두면 첫 클릭 시
+    // 이미 데이터 준비 완료 → 즉시 노출. 사이드바를 한 번도 안 열어도 응답
+    // 자체가 작아서(메타데이터만, 30 row cap) 낭비 미미.
+    if (status !== 'authenticated') return
     let cancelled = false
     setLoadingList(true)
     fetch(`/api/counselor/session/list?limit=30&type=${serviceType}`)
@@ -130,7 +137,11 @@ export default function CounselorSidebar({
     return () => {
       cancelled = true
     }
-  }, [open, status, serviceType, desktopStatic])
+    // open / desktopStatic 은 의도적으로 deps 에서 빠짐 — 매번 여닫을 때마다
+    // 재 fetch 하면 (a) 불필요한 네트워크 trip, (b) loading 상태로 깜빡임.
+    // mount 1 회만 받고 새 채팅 저장 등의 갱신은 별도 경로로 처리. 두 변수
+    // 모두 effect body 안에서 안 읽으므로 exhaustive-deps 규칙도 만족.
+  }, [status, serviceType])
 
   // History grouping — Today / Previous 7 Days / Older. Only used when
   // enableGrouping is on (compat counselor page). The flat list path
@@ -395,10 +406,22 @@ export default function CounselorSidebar({
             <p className={styles.empty}>
               {t('destinyMap.counselor.signInToSee', 'Sign in to see past chats.')}
             </p>
-          ) : loadingList ? (
-            <p className={styles.empty}>
-              {t('destinyMap.counselor.loadingChats', '불러오는 중...')}
-            </p>
+          ) : loadingList && sessions.length === 0 ? (
+            // 스켈레톤 — 빈 텍스트 "불러오는 중..." 대신 4 row ghost.
+            // 사용자 시각에선 list 자체의 형태가 즉시 잡혀, 실제 채워질 때
+            // 깜빡임 대신 자연스러운 fade-in 으로 인식된다.
+            <ul className={styles.sessionList} aria-busy="true" aria-live="polite">
+              {[0, 1, 2, 3].map((i) => (
+                <li
+                  key={`sk-${i}`}
+                  className={`${styles.sessionRow} ${styles.skeletonRow}`}
+                  aria-hidden="true"
+                >
+                  <span className={styles.skeletonLine} />
+                  <span className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
+                </li>
+              ))}
+            </ul>
           ) : sessions.length === 0 ? (
             <p className={styles.empty}>
               {t('destinyMap.counselor.noPastChats', '아직 저장된 채팅이 없어요.')}
