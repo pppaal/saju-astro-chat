@@ -8,6 +8,7 @@ import { repairMojibakeText } from '@/lib/text/mojibake'
 import { pickGreeting } from '@/lib/counselor/greetingTemplates'
 import HexDPLogo from '@/components/branding/HexDPLogo'
 import { ToolHint } from '@/components/chat/ToolHint'
+import { FollowUpChips } from '@/components/chat/FollowUpChips'
 
 interface MessagesPanelProps {
   visibleMessages: Message[]
@@ -116,28 +117,14 @@ export const MessagesPanel = React.memo(function MessagesPanel({
         </div>
       )}
 
-      {/* Follow-up Questions */}
-      {!loading && followUpQuestions.length > 0 && visibleMessages.length > 0 && (
-        <div className={styles.followUpContainer}>
-          <span className={styles.followUpLabel}>
-            {effectiveLang === 'ko'
-              ? '\uC774\uC5B4\uC11C \uBB3C\uC5B4\uBCF4\uAE30'
-              : 'Continue asking'}
-          </span>
-          <div className={styles.followUpButtons}>
-            {followUpQuestions.map((q, idx) => (
-              <button
-                key={idx}
-                type="button"
-                className={styles.followUpChip}
-                onClick={() => onFollowUp(q)}
-              >
-                <span className={styles.followUpIcon}>&#x1F4AC;</span>
-                {repairMojibakeText(q)}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Follow-up Questions \u2014 \uACF5\uC6A9 FollowUpChips \uCEF4\uD3EC\uB10C\uD2B8. */}
+      {!loading && visibleMessages.length > 0 && (
+        <FollowUpChips
+          questions={followUpQuestions}
+          lang={effectiveLang}
+          onPick={onFollowUp}
+          styles={styles as never}
+        />
       )}
 
       {showClarifierAction && (
