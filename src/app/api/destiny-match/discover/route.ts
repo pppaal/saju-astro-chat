@@ -444,15 +444,22 @@ export const GET = withApiMiddleware(
   })
 )
 
-// 간단한 별자리 계산
+// 간단한 별자리 계산 — 천문 정확도가 필요한 경로(/api/calendar, 운명상담사,
+// 차트)는 Swiss Ephemeris 기반 계산을 쓰고, 여기서는 destiny-match 추천 시
+// 같은 별자리끼리 묶는 용도라 보수적인 popular cusp 날짜로 충분.
 function getZodiacSign(birthDate: string | null): string | null {
   if (!birthDate) {
     return null
   }
 
-  const date = new Date(birthDate)
-  const month = date.getMonth() + 1
-  const day = date.getDate()
+  // 'YYYY-MM-DD' 만 신뢰 — new Date(str) 는 UTC 자정으로 파싱하고
+  // getMonth/getDate 는 local TZ 로 읽어 cusp 날 하루 밀리던 회귀.
+  // Vercel 은 UTC 라 보통 무사하지만 edge runtime / 다른 호스팅에선 위험.
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(birthDate)
+  if (!match) return null
+  const month = Number(match[2])
+  const day = Number(match[3])
+  if (!Number.isFinite(month) || !Number.isFinite(day)) return null
 
   const signs = [
     { sign: 'Capricorn', start: [1, 1], end: [1, 19] },
