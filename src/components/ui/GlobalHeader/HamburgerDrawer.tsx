@@ -101,7 +101,7 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
                   onClick={close}
                   aria-label={isKo ? '홈으로' : 'Home'}
                   className="inline-flex items-center justify-center w-8 h-8 rounded-full
-                    border border-white/15 bg-white/5 text-white/85
+                    bg-white/5 text-white/85
                     hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <svg
@@ -126,7 +126,7 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
                 onClick={close}
                 aria-label={isKo ? '닫기' : 'Close'}
                 className="inline-flex items-center justify-center w-7 h-7 rounded-full
-                  border border-white/15 bg-white/5 text-white/85
+                  bg-white/5 text-white/85
                   hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <svg
