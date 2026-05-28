@@ -1,15 +1,18 @@
 /* ============================================================
-   About — DestinyPal 디자인 시스템 통일 (navy + gold).
-   기존 cosmic blueprint (gold/purple/emerald 네온 + 회전 orb)
-   를 navy + gold 단일 톤으로 정리. pricing.module.css 와 동일 톤.
-   Headings: Cinzel (--font-cinzel from root layout).
+   About — DestinyPal
+   Pricing 페이지와 동일한 dark + gold 톤. Inter 본문,
+   대제목은 Inter (Cinzel 제거 → 마케팅 페이지간 폰트 통일).
    ============================================================ */
 
 .page {
-  /* 페이지 내 alias — pricing 의 토큰과 같은 값 */
   --gold: var(--ds-gold-on-dark);
   --gold-soft: var(--ds-gold-on-dark-soft);
+  --text-2: rgba(245, 247, 251, 0.62);
+  --text-3: rgba(245, 247, 251, 0.4);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
 
+  position: relative;
   min-height: 100vh;
   background:
     radial-gradient(900px 600px at 20% 0%, rgba(99, 124, 200, 0.08), transparent 60%),
@@ -17,12 +20,19 @@
   background-color: var(--ds-dark-bg);
   color: var(--ds-dark-text);
   padding-bottom: 80px;
-  position: relative;
   overflow: hidden;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-feature-settings: 'ss01', 'cv11';
+  -webkit-font-smoothing: antialiased;
 }
 
 .main {
-  /* Pricing 표준 — max-width 1120, padding 120/32/80 (마케팅 페이지 통일) */
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
@@ -31,17 +41,17 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 56px;
 }
 
-/* ---------- shared glass surface ---------- */
+/* ---------- shared surface ---------- */
 .hero,
 .mission,
 .section,
 .cta {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   border-radius: 18px;
   background: rgba(17, 24, 39, 0.42);
   backdrop-filter: blur(16px);
@@ -65,7 +75,7 @@
 
 /* ---------- Hero ---------- */
 .hero {
-  padding: 56px 40px;
+  padding: 72px 40px 64px;
   text-align: center;
   border-top: 1px solid rgba(212, 181, 114, 0.3);
 }
@@ -75,34 +85,120 @@
   z-index: 2;
 }
 
-/* heroRing 제거 — 옛 cosmic 회전 링 (UX 통일 PR) */
-
 .eyebrow {
-  margin: 0 0 14px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.45rem 0.95rem;
-  border: 1px solid rgba(226, 184, 52, 0.32);
-  border-radius: 999px;
-  background: rgba(10, 10, 12, 0.5);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
-  font-weight: 700;
-  color: rgba(245, 232, 198, 0.92);
+  display: inline-block;
+  margin: 0 0 18px;
+  color: var(--gold);
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  font-size: 12px;
+  text-transform: uppercase;
 }
 
 .title {
-  margin: 0 auto 14px;
-  max-width: 18ch;
-  font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
-  font-size: clamp(2.2rem, 5vw, 4rem);
-  line-height: 1.12;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  margin: 0 auto 18px;
+  max-width: 22ch;
+  font-size: clamp(36px, 5.4vw, 56px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   text-wrap: balance;
-  color: var(--gold);
-  color: var(--gold);
+  color: #f5f7fb;
+}
+
+.subtitle {
+  max-width: 580px;
+  margin: 0 auto;
+  color: var(--text-2);
+  line-height: 1.65;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.heroActions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+  color: #1a1407;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  border: 1px solid rgba(212, 181, 114, 0.5);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow: 0 12px 28px rgba(212, 181, 114, 0.28);
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f5f7fb;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  border: 1px solid var(--border-strong);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.secondaryBtn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(212, 181, 114, 0.4);
+  background: rgba(212, 181, 114, 0.06);
+}
+
+/* ---------- Section heading shared ---------- */
+.section,
+.mission {
+  padding: 48px 40px;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: #f5f7fb;
+}
+
+.sectionDesc {
+  margin: 12px auto 0;
+  max-width: 640px;
+  font-size: 16px;
+  color: var(--text-2);
+  line-height: 1.65;
 }
 
 .accentEast {
@@ -113,12 +209,19 @@
   color: var(--gold);
 }
 
-.sectionDesc {
-  margin: 10px auto 0;
+/* ---------- Mission ---------- */
+.missionText {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.missionBody {
+  margin: 18px auto 0;
   max-width: 640px;
-  font-size: 0.98rem;
-  color: rgba(229, 231, 235, 0.62);
-  line-height: 1.7;
+  color: var(--text-2);
+  font-size: 17px;
+  line-height: 1.75;
 }
 
 /* ---------- Synergy ---------- */
@@ -130,7 +233,7 @@
 
 .synergyCard {
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   border-radius: 18px;
   padding: 28px;
   background: rgba(17, 24, 39, 0.5);
@@ -149,16 +252,16 @@
 }
 
 .synergyCard:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
 }
 
 .synergyWest:hover {
-  box-shadow: 0 0 28px rgba(212, 181, 114, 0.4);
+  box-shadow: 0 0 28px rgba(212, 181, 114, 0.32);
   border-color: rgba(212, 181, 114, 0.4);
 }
 
 .synergyEast:hover {
-  box-shadow: 0 0 28px rgba(232, 204, 138, 0.36);
+  box-shadow: 0 0 28px rgba(232, 204, 138, 0.3);
   border-color: rgba(232, 204, 138, 0.4);
 }
 
@@ -172,21 +275,22 @@
   margin-bottom: 16px;
   font-size: 1.6rem;
   background: linear-gradient(135deg, rgba(212, 181, 114, 0.18), rgba(232, 204, 138, 0.12));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
 }
 
 .synergyTitle {
   margin: 0 0 10px;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #f4f4f5;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #f5f7fb;
 }
 
 .synergyDesc {
   margin: 0;
-  font-size: 0.96rem;
+  font-size: 0.95rem;
   line-height: 1.72;
-  color: rgba(229, 231, 235, 0.72);
+  color: var(--text-2);
 }
 
 /* ---------- Core services ---------- */
@@ -198,9 +302,9 @@
 
 .serviceCard {
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 18px;
+  padding: 20px;
   background: rgba(17, 24, 39, 0.5);
   transition:
     transform 0.25s ease,
@@ -209,9 +313,9 @@
 }
 
 .serviceCard:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
   border-color: rgba(212, 181, 114, 0.35);
-  box-shadow: 0 0 24px rgba(212, 181, 114, 0.25);
+  box-shadow: 0 0 24px rgba(212, 181, 114, 0.22);
 }
 
 .serviceHead {
@@ -228,22 +332,23 @@
   height: 42px;
   border-radius: 10px;
   background: linear-gradient(135deg, rgba(226, 184, 52, 0.16), rgba(212, 181, 114, 0.12));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   font-size: 1.2rem;
 }
 
 .serviceName {
   margin: 0;
-  font-size: 1.02rem;
-  font-weight: 700;
-  color: #f4f4f5;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #f5f7fb;
 }
 
 .serviceSummary {
   margin: 12px 0 0;
   font-size: 0.9rem;
-  line-height: 1.62;
-  color: rgba(229, 231, 235, 0.68);
+  line-height: 1.6;
+  color: var(--text-2);
   min-height: 44px;
 }
 
@@ -252,7 +357,7 @@
   margin-top: 12px;
   text-decoration: none;
   color: var(--gold);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.88rem;
   transition: color 0.2s ease;
 }
@@ -265,13 +370,13 @@
 .processGrid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .processCard {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 20px;
+  padding: 24px;
   background: rgba(17, 24, 39, 0.5);
   transition:
     transform 0.25s ease,
@@ -285,85 +390,49 @@
 
 .processId {
   margin: 0;
-  font-family: var(--font-cinzel), 'Cinzel', Georgia, serif;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: rgba(226, 184, 52, 0.85);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--gold);
 }
 
 .processTitle {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   font-size: 1.05rem;
-  font-weight: 700;
-  color: #f4f4f5;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #f5f7fb;
 }
 
 .processDesc {
   margin: 8px 0 0;
-  font-size: 0.92rem;
+  font-size: 0.93rem;
   line-height: 1.65;
-  color: rgba(229, 231, 235, 0.7);
-}
-
-/* ---------- Quality ---------- */
-.qualityBox {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  background: rgba(10, 10, 12, 0.4);
-  padding: 22px;
-  display: grid;
-  gap: 12px;
-}
-
-.qualityBox p {
-  position: relative;
-  margin: 0;
-  padding-left: 18px;
-  color: rgba(229, 231, 235, 0.8);
-  line-height: 1.62;
-  font-size: 0.95rem;
-}
-
-.qualityBox p::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.62em;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold), var(--gold));
+  color: var(--text-2);
 }
 
 /* ---------- CTA ---------- */
 .cta {
-  padding: 56px 40px;
+  padding: 64px 40px 56px;
   text-align: center;
   border-top: 1px solid rgba(226, 184, 52, 0.28);
 }
 
-.ctaGlow {
-  display: none;
-}
-
 .ctaTitle {
-  position: relative;
-  z-index: 1;
   margin: 0;
+  font-size: clamp(26px, 3.6vw, 36px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #f5f7fb;
 }
 
 .ctaText {
-  position: relative;
-  z-index: 1;
-  margin: 12px auto 0;
+  margin: 14px auto 0;
   max-width: 560px;
-  color: rgba(229, 231, 235, 0.72);
+  color: var(--text-2);
   line-height: 1.7;
-}
-
-.cta .heroActions {
-  position: relative;
-  z-index: 1;
+  font-size: 16px;
 }
 
 /* ---------- Responsive ---------- */
@@ -371,39 +440,30 @@
   .serviceGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .processGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
   .main {
-    padding: 84px 14px 24px;
-    gap: 20px;
+    padding: 84px 16px 28px;
+    gap: 36px;
   }
 
-  .hero,
+  .hero {
+    padding: 48px 22px 40px;
+  }
+
   .cta {
-    padding: 40px 22px;
+    padding: 44px 22px 40px;
   }
 
   .mission,
   .section {
-    padding: 24px 20px;
-    border-radius: 20px;
-  }
-
-  .mission {
-    flex-direction: column;
-    text-align: center;
-    gap: 24px;
-  }
-
-  .missionVisual {
-    width: 200px;
-    height: 200px;
-  }
-
-  .orbRingAlt {
-    width: 200px;
-    height: 200px;
+    padding: 32px 20px;
+    border-radius: 18px;
   }
 
   .synergyGrid,
@@ -414,5 +474,15 @@
 
   .serviceSummary {
     min-height: 0;
+  }
+
+  .heroActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    width: 100%;
   }
 }
