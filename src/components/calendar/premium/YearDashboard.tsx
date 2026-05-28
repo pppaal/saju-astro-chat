@@ -19,6 +19,7 @@ import PremiumHero from './shared/PremiumHero'
 import FlowChart, { type FlowPoint } from './shared/FlowChart'
 import LifeTimeline from './shared/LifeTimeline'
 import YearInsights from './shared/YearInsights'
+import CrossInsightCard from './shared/CrossInsightCard'
 import { computeLifeTimeline } from './shared/lifeTimeline'
 import { getCalLabels, type CalLocale } from './labels'
 
@@ -164,6 +165,8 @@ export default function YearDashboard({
         locale={locale}
         onMonthClick={onMonthClick}
       />
+
+      {allDates && allDates.length > 0 && <CrossInsightCard dates={allDates} locale={locale} />}
 
       {lifeEntries.length > 0 && <LifeTimeline entries={lifeEntries} locale={locale} />}
     </div>

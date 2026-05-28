@@ -22,6 +22,7 @@ import { useCountUp } from './useCountUp'
 import NoiseOverlay from './NoiseOverlay'
 import { cardStack, cardItem, listStack, listItem } from './motionVariants'
 import DomainBar from './DomainBar'
+import SplitAxisBar from './SplitAxisBar'
 
 type ThemeKey = 'love' | 'money' | 'career' | 'health' | 'growth'
 type FusionAdvice = { do?: string[]; avoid?: string[] }
@@ -157,39 +158,24 @@ function DayVerdictCard({
       </div>
 
       {(sajuAxis !== null || frontDomain) && (
-        <div className="relative mt-3 pt-3 border-t border-white/5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
-          {sajuAxis !== null && (
-            <span className="inline-flex items-center gap-1">
-              <span className="text-zinc-500">{t.dayWhySajuLabel}</span>
-              <span className="font-bold text-amber-200 tabular-nums">{sajuAxis}</span>
-            </span>
-          )}
-          {astroAxis !== null && (
-            <span className="inline-flex items-center gap-1">
-              <span className="text-zinc-500">{t.dayWhyAstroLabel}</span>
-              <span className="font-bold text-cyan-200 tabular-nums">{astroAxis}</span>
-            </span>
-          )}
-          {agreement && (
-            <span
-              className={`text-[11px] font-medium ${
-                agreement === 'aligned'
-                  ? 'text-emerald-300'
-                  : agreement === 'opposed'
-                    ? 'text-rose-300'
-                    : 'text-zinc-400'
-              }`}
-            >
-              {t.dayAxisAgreement(agreement)}
-            </span>
+        <div className="relative mt-3 pt-3 border-t border-white/5 space-y-2.5">
+          {sajuAxis !== null && astroAxis !== null && (
+            <SplitAxisBar
+              sajuScore={sajuAxis}
+              astroScore={astroAxis}
+              agreement={agreement}
+              locale={locale}
+            />
           )}
           {frontDomain && (
-            <span className="inline-flex items-center gap-1.5 ml-auto">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold">
-                {t.dayVerdictDomainPrefix}
+            <div className="flex items-center justify-end text-xs">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold">
+                  {t.dayVerdictDomainPrefix}
+                </span>
+                <span className="font-bold text-zinc-100">{frontDomain}</span>
               </span>
-              <span className="font-bold text-zinc-100">{frontDomain}</span>
-            </span>
+            </div>
           )}
         </div>
       )}
