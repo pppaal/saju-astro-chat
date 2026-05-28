@@ -268,8 +268,8 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           </h1>
           <p className={styles.homeSubline}>
             {locale === 'ko'
-              ? '생년월일을 입력하고 원하는 서비스를 선택하세요'
-              : 'Add your birth date and pick a service to begin'}
+              ? '생년월일을 알려주시고, 원하는 상담을 선택해 보세요'
+              : 'Share your birth date, then choose a reading'}
           </p>
         </section>
 
