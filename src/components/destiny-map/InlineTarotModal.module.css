@@ -24,12 +24,21 @@
   border-radius: 24px;
   width: 100%;
   max-width: 900px;
-  max-height: 90vh;
+  /* 모바일에서 결과 화면 텍스트 잘림 회귀: 90vh 면 키보드/주소바 빼고 실제
+     보이는 영역이 작아 카드+해석이 다 안 들어옴. dvh 우선 + 모바일에선
+     96vh 로 거의 풀스크린. */
+  max-height: 96dvh;
   overflow-y: auto;
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.04),
     0 20px 50px rgba(0, 0, 0, 0.12);
   animation: slideUp 0.4s ease-out;
+}
+
+@supports not (height: 100dvh) {
+  .modal {
+    max-height: 92vh;
+  }
 }
 
 @keyframes fadeIn {
@@ -110,7 +119,7 @@
 }
 
 .stepDot.active {
-  background: #7c3aed;
+  background: #a07a3c;
   transform: scale(1.2);
 }
 
@@ -151,7 +160,7 @@
 
 .concernInput:focus {
   outline: none;
-  border-color: #7c3aed;
+  border-color: #a07a3c;
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
@@ -181,8 +190,8 @@
 .primaryButton {
   width: 100%;
   padding: 14px 24px;
-  background: #7c3aed;
-  border: 1px solid #7c3aed;
+  background: #a07a3c;
+  border: 1px solid #a07a3c;
   border-radius: 12px;
   color: #ffffff;
   font-size: 1rem;
@@ -197,8 +206,8 @@
 }
 
 .primaryButton:hover:not(:disabled) {
-  background: #6d28d9;
-  border-color: #6d28d9;
+  background: #8a6730;
+  border-color: #8a6730;
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
 }
 
@@ -245,8 +254,8 @@
 }
 
 .spreadCard:hover {
-  background: #ede9fe;
-  border-color: #7c3aed;
+  background: #f6ecd6;
+  border-color: #a07a3c;
   transform: translateX(4px);
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
 }
@@ -254,7 +263,7 @@
 .spreadCardCount {
   display: inline-block;
   padding: 4px 10px;
-  background: #7c3aed;
+  background: #a07a3c;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -279,17 +288,17 @@
 
 .spreadTip {
   font-size: 0.8rem;
-  color: #7c3aed;
+  color: #a07a3c;
 }
 
 /* AI 선택 이유 텍스트 */
 .aiReasonText {
   font-size: 0.9rem;
-  color: #6d28d9;
+  color: #8a6730;
   text-align: center;
   margin: 0 0 16px;
   padding: 8px 16px;
-  background: #ede9fe;
+  background: #f6ecd6;
   border: 1px solid #ddd6fe;
   border-radius: 8px;
   font-style: italic;
@@ -332,8 +341,8 @@
 
 .drawButton {
   padding: 16px 40px;
-  background: #7c3aed;
-  border: 1px solid #7c3aed;
+  background: #a07a3c;
+  border: 1px solid #a07a3c;
   border-radius: 30px;
   color: #ffffff;
   font-size: 1.1rem;
@@ -345,8 +354,8 @@
 }
 
 .drawButton:hover:not(:disabled) {
-  background: #6d28d9;
-  border-color: #6d28d9;
+  background: #8a6730;
+  border-color: #8a6730;
   transform: scale(1.05);
   box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
 }
@@ -494,7 +503,7 @@
 .concernDisplay {
   background: #ffffff;
   border: 1px solid #e7e5e4;
-  border-left: 3px solid #7c3aed;
+  border-left: 3px solid #a07a3c;
   border-radius: 12px;
   padding: 12px 16px;
   margin-bottom: 20px;
@@ -506,7 +515,7 @@
 
 .concernLabel {
   font-size: 0.8rem;
-  color: #7c3aed;
+  color: #a07a3c;
   font-weight: 600;
 }
 
@@ -531,7 +540,7 @@
   background: #ffffff;
   border: 1px solid #e7e5e4;
   border-radius: 30px;
-  color: #7c3aed;
+  color: #a07a3c;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
@@ -543,8 +552,8 @@
 }
 
 .drawAgainButton:hover {
-  background: #ede9fe;
-  border-color: #7c3aed;
+  background: #f6ecd6;
+  border-color: #a07a3c;
   transform: scale(1.02);
 }
 
@@ -605,7 +614,7 @@
 .resultSectionTitle {
   font-size: 1.18rem;
   font-weight: 600;
-  color: #7c3aed;
+  color: #a07a3c;
   margin: 0 0 14px;
 }
 
@@ -666,7 +675,7 @@
   padding: 8px 18px;
   border-radius: 999px;
   border: 0;
-  background: #7c3aed;
+  background: #a07a3c;
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
@@ -674,7 +683,7 @@
 }
 
 .retryButton:hover {
-  background: #6d28d9;
+  background: #8a6730;
 }
 
 .resultText {
@@ -691,7 +700,7 @@
   align-items: flex-start;
   gap: 12px;
   padding: 16px 20px;
-  background: #ede9fe;
+  background: #f6ecd6;
   border: 1px solid #ddd6fe;
   border-radius: 16px;
   margin-bottom: 24px;

@@ -5,11 +5,10 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  background: rgba(30, 30, 45, 0.5);
-  backdrop-filter: blur(15px);
-  border: 2px solid rgba(138, 43, 226, 0.3);
-  border-radius: 20px;
-  padding: 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  padding: 0.5rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
@@ -20,13 +19,13 @@
 
 .cardContainer.interactive:hover {
   transform: translateY(-6px);
-  border-color: rgba(138, 43, 226, 0.6);
-  box-shadow: 0 15px 40px rgba(138, 43, 226, 0.3);
+  border-color: rgba(212, 181, 114, 0.6);
+  box-shadow: 0 15px 40px rgba(212, 181, 114, 0.3);
 }
 
 .cardContainer.expanded {
   border-color: rgba(255, 215, 0, 0.5);
-  box-shadow: 0 20px 60px rgba(138, 43, 226, 0.4);
+  box-shadow: 0 20px 60px rgba(212, 181, 114, 0.4);
 }
 
 /* Size variants */
@@ -68,7 +67,7 @@
 .imageWrapper {
   position: relative;
   border-radius: 12px;
-  border: 3px solid rgba(138, 43, 226, 0.4);
+  border: 3px solid rgba(212, 181, 114, 0.4);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
   transition: all 0.4s ease;
   overflow: hidden;
@@ -76,11 +75,11 @@
 
 .cardContainer.interactive:hover .imageWrapper {
   transform: scale(1.02);
-  border-color: rgba(138, 43, 226, 0.7);
+  border-color: rgba(212, 181, 114, 0.7);
 }
 
 .imageWrapper.reversed {
-  border-color: rgba(168, 133, 216, 0.6);
+  border-color: rgba(232, 204, 138, 0.6);
 }
 
 .cardImage {
@@ -100,7 +99,7 @@
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(168, 133, 216, 0.95);
+  background: rgba(232, 204, 138, 0.95);
   color: #ffffff;
   padding: 0.3rem 0.8rem;
   border-radius: 10px;
@@ -146,22 +145,22 @@
 .keywordTag {
   font-size: 0.8rem;
   font-weight: 600;
-  color: rgba(138, 43, 226, 0.9);
-  background: rgba(138, 43, 226, 0.15);
+  color: rgba(212, 181, 114, 0.9);
+  background: rgba(212, 181, 114, 0.15);
   padding: 0.3rem 0.7rem;
   border-radius: 12px;
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  border: 1px solid rgba(212, 181, 114, 0.3);
   transition: all 0.3s ease;
 }
 
 .keywordTag:hover {
-  background: rgba(138, 43, 226, 0.25);
+  background: rgba(212, 181, 114, 0.25);
   transform: translateY(-2px);
 }
 
 .keywordMore {
   font-size: 0.75rem;
-  color: rgba(197, 166, 255, 0.7);
+  color: rgba(232, 204, 138, 0.7);
   padding: 0.3rem 0.5rem;
 }
 
@@ -183,12 +182,13 @@
   width: 100%;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(138, 43, 226, 0.2);
+  border-top: 1px solid rgba(212, 181, 114, 0.2);
   animation: fadeIn 0.4s ease-out;
 }
 
 .insightBlock {
-  background: rgba(30, 30, 45, 0.4);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 1rem;
   margin-bottom: 0.75rem;
@@ -219,7 +219,7 @@
 .animalName {
   font-size: 1rem;
   font-weight: 600;
-  color: rgba(197, 166, 255, 1);
+  color: rgba(232, 204, 138, 1);
 }
 
 .animalMeaning {
@@ -280,7 +280,7 @@
   color: rgba(255, 215, 0, 0.9);
   margin: 0;
   padding: 0.4rem 0.6rem;
-  background: rgba(138, 43, 226, 0.15);
+  background: rgba(212, 181, 114, 0.15);
   border-radius: 8px;
   border-left: 3px solid rgba(255, 215, 0, 0.5);
 }
@@ -293,7 +293,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: rgba(224, 224, 255, 0.9);
-  background: rgba(138, 43, 226, 0.2);
+  background: rgba(212, 181, 114, 0.2);
   padding: 0.35rem 0.7rem;
   border-radius: 12px;
   margin-top: 0.4rem;
@@ -310,8 +310,8 @@
 .astrologySign {
   font-size: 0.9rem;
   font-weight: 600;
-  color: rgba(197, 166, 255, 1);
-  background: rgba(138, 43, 226, 0.15);
+  color: rgba(232, 204, 138, 1);
+  background: rgba(212, 181, 114, 0.15);
   padding: 0.3rem 0.7rem;
   border-radius: 10px;
 }
@@ -324,20 +324,26 @@
 /* Expand Hint */
 .expandHint {
   font-size: 0.8rem;
-  color: rgba(138, 43, 226, 0.7);
+  color: rgba(212, 181, 114, 0.7);
   text-align: center;
   margin-top: 0.5rem;
   transition: color 0.3s ease;
 }
 
 .cardContainer.interactive:hover .expandHint {
-  color: rgba(138, 43, 226, 1);
+  color: rgba(212, 181, 114, 1);
 }
 
 /* Animation */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive */
