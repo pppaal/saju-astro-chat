@@ -143,6 +143,23 @@ const rowCls =
 const emptyCls = 'mt-4 rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-4 py-6 text-center'
 const loadingCls =
   'mt-4 rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-4 py-5 text-center text-[13px] text-[#a8a29e]'
+
+// 섹션 로딩 스켈레톤 — 3 row pulse. 텍스트 "불러오는 중..." 가 frozen UI 처럼
+// 느껴지던 부분을 자연스러운 pulse 로 대체. prefers-reduced-motion 도 존중.
+function SectionSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="mt-4 space-y-2.5" aria-busy="true" aria-live="polite">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div
+          key={i}
+          className="h-[42px] rounded-xl bg-gradient-to-r from-[#f5f4f1] via-[#ecebe7] to-[#f5f4f1] motion-safe:animate-pulse"
+          style={{ animationDelay: `${i * 80}ms` }}
+          aria-hidden="true"
+        />
+      ))}
+    </div>
+  )
+}
 const serifStyle = { fontFamily: 'var(--font-cinzel), Georgia, serif' } as const
 
 function formatBirthDate(iso: string | null | undefined, locale: Locale): string {
@@ -245,7 +262,18 @@ export default function ProfilePage() {
   const [purchases, setPurchases] = useState<PurchasesResponse | null>(null)
   const [referral, setReferral] = useState<ReferralResponse | null>(null)
   const [copied, setCopied] = useState(false)
-  const [loading, setLoading] = useState(true)
+  // 섹션별 loading 분리 — 이전엔 single `loading` 이 5개 endpoint 의 Promise.all
+  // 끝까지 묶여 있어 가장 느린 한 곳이 전체 페이지를 멈추고 BrandSplash 전체
+  // 화면 splash 만 노출했다 (사용자: "프로필 로딩 길다"). 분리 후엔 가장 빠른
+  // /api/me/profile 도착 즉시 splash 제거되고 메인 사용자 정보 노출, 나머지
+  // 섹션은 자기 자신의 스켈레톤만 띄우다 도착하는 대로 채워진다.
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [circleLoading, setCircleLoading] = useState(true)
+  const [creditsLoading, setCreditsLoading] = useState(true)
+  const [purchasesLoading, setPurchasesLoading] = useState(true)
+  const [referralLoading, setReferralLoading] = useState(true)
+  // 전체 페이지 splash 는 메인 user 데이터만 기준 — 나머지는 인라인 스켈레톤.
+  const loading = profileLoading
   const [editOpen, setEditOpen] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
@@ -265,43 +293,89 @@ export default function ProfilePage() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const loadAll = useCallback(async () => {
-    setLoading(true)
+    setProfileLoading(true)
+    setCircleLoading(true)
+    setCreditsLoading(true)
+    setPurchasesLoading(true)
+    setReferralLoading(true)
     setLoadError(false)
-    try {
-      const [profileRes, circleRes, creditsRes, purchasesRes, referralRes] = await Promise.all([
-        fetch('/api/me/profile').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/me/circle').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/me/credits').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/me/purchases').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/referral/me').then((r) => (r.ok ? r.json() : null)),
-      ])
+    // 5개 endpoint 를 *독립적으로* 병렬 fire. 이전 Promise.all 패턴은 가장
+    // 느린 endpoint 가 끝날 때까지 전체 페이지가 BrandSplash 로 가려져 사용자
+    // 가 1~2 초간 빈 화면을 봤다. 각 fetch 가 자기 state 만 갱신하므로 가장
+    // 빨리 도착하는 섹션 (보통 /api/me/profile) 부터 즉시 노출된다.
+    // loadError 는 *critical 경로 (/api/me/profile)* 실패만으로 켠다 — 다른
+    // 섹션은 빈 채로 둬도 페이지 자체는 의미 있게 보이므로 전체 에러 배너로
+    // 가리지 않는다.
 
-      // /api/me/profile returns { user: {...} } directly (no envelope).
-      if (profileRes?.user) setProfile(profileRes.user)
+    fetch('/api/me/profile')
+      .then(async (r) => {
+        if (!r.ok) {
+          setLoadError(true)
+          return null
+        }
+        return r.json()
+      })
+      .then((data) => {
+        // /api/me/profile returns { user: {...} } directly (no envelope).
+        if (data?.user) setProfile(data.user)
+      })
+      .catch((err) => {
+        logger.warn('[profile] /me/profile failed', err)
+        setLoadError(true)
+      })
+      .finally(() => setProfileLoading(false))
 
-      // The other endpoints all flow through withApiMiddleware, so the
-      // envelope is { success: true, data: {...} }.
-      const people = circleRes?.data?.people || circleRes?.people || []
-      setCircle(Array.isArray(people) ? people : [])
+    // The other endpoints all flow through withApiMiddleware, so the
+    // envelope is { success: true, data: {...} }.
+    fetch('/api/me/circle')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const people = data?.data?.people || data?.people || []
+        setCircle(Array.isArray(people) ? people : [])
+      })
+      .catch((err) => logger.warn('[profile] /me/circle failed', err))
+      .finally(() => setCircleLoading(false))
 
-      const cr = creditsRes?.data || creditsRes
-      if (cr && typeof cr === 'object' && 'plan' in cr) setCredits(cr as CreditsResponse)
+    fetch('/api/me/credits')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const cr = data?.data || data
+        if (cr && typeof cr === 'object' && 'plan' in cr) setCredits(cr as CreditsResponse)
+      })
+      .catch((err) => logger.warn('[profile] /me/credits failed', err))
+      .finally(() => setCreditsLoading(false))
 
-      const pr = purchasesRes?.data || purchasesRes
-      if (pr && typeof pr === 'object' && 'purchases' in pr) {
-        setPurchases(pr as PurchasesResponse)
-      }
+    fetch('/api/me/purchases')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const pr = data?.data || data
+        if (pr && typeof pr === 'object' && 'purchases' in pr) {
+          setPurchases(pr as PurchasesResponse)
+        }
+      })
+      .catch((err) => logger.warn('[profile] /me/purchases failed', err))
+      .finally(() => setPurchasesLoading(false))
 
-      const rr = referralRes?.data || referralRes
-      if (rr && typeof rr === 'object' && 'referralCode' in rr) {
-        setReferral(rr as ReferralResponse)
-      }
-    } catch (err) {
-      logger.warn('[profile] load failed', err)
-      setLoadError(true)
-    } finally {
-      setLoading(false)
-    }
+    fetch('/api/referral/me')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        const rr = data?.data || data
+        if (rr && typeof rr === 'object' && 'referralCode' in rr) {
+          setReferral(rr as ReferralResponse)
+        }
+      })
+      .catch((err) => logger.warn('[profile] /referral/me failed', err))
+      .finally(() => setReferralLoading(false))
+
+    // 도시 인덱스 prewarm — /api/cities 의 16 MB JSON 첫 파싱이 500~800ms
+    // spike 인데, 사용자가 "내 정보 수정" 모달을 열고 도시 이름 타이핑할
+    // 시점에 그 spike 가 첫 keystroke 응답을 막아 "내정보 입력하면 로딩"
+    // 으로 보인다. 프로필 페이지 mount 와 동시에 fire-and-forget 으로
+    // 백그라운드 워밍 → 모달 열 즈음엔 캐시 따뜻함. q=a&limit=1 은 라우트
+    // 의 짧은 경로(인덱스 로드 + 단일 행 매칭) 만 트리거하고 응답은 작음.
+    fetch('/api/cities?q=a&limit=1').catch(() => {
+      // fire-and-forget — 실패해도 사용자가 직접 입력할 때 정상 fallback.
+    })
   }, [])
 
   // 지인 추가/변경 후 전체 페이지를 다시 로드하면 전역 loading 이 켜져
@@ -811,8 +885,8 @@ export default function ProfilePage() {
                 </button>
               </div>
 
-              {loading ? (
-                <p className={loadingCls}>{locale === 'ko' ? '불러오는 중...' : 'Loading...'}</p>
+              {circleLoading ? (
+                <SectionSkeleton rows={2} />
               ) : circle.length === 0 ? (
                 <div className={emptyCls}>
                   <p className="text-[14px] text-[#57534e]">
@@ -879,8 +953,8 @@ export default function ProfilePage() {
                 </Link>
               </div>
 
-              {loading ? (
-                <p className={loadingCls}>{locale === 'ko' ? '불러오는 중...' : 'Loading...'}</p>
+              {creditsLoading ? (
+                <SectionSkeleton rows={2} />
               ) : !credits ? (
                 <p className={loadingCls}>
                   {locale === 'ko'
@@ -937,8 +1011,8 @@ export default function ProfilePage() {
                 {locale === 'ko' ? '구매 내역' : 'Purchase history'}
               </h2>
 
-              {loading ? (
-                <p className={loadingCls}>{locale === 'ko' ? '불러오는 중...' : 'Loading...'}</p>
+              {purchasesLoading ? (
+                <SectionSkeleton rows={3} />
               ) : !purchases || purchases.purchases.length === 0 ? (
                 <div className={emptyCls}>
                   <p className="text-[14px] text-[#57534e]">
@@ -1022,8 +1096,8 @@ export default function ProfilePage() {
                 {locale === 'ko' ? '친구 추천' : 'Refer a friend'}
               </h2>
 
-              {loading ? (
-                <p className={loadingCls}>{locale === 'ko' ? '불러오는 중...' : 'Loading...'}</p>
+              {referralLoading ? (
+                <SectionSkeleton rows={2} />
               ) : !referral ? (
                 <p className={loadingCls}>
                   {locale === 'ko'

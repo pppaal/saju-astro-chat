@@ -35,6 +35,20 @@ const MIN_QUERY_LENGTH = 2
 const SEARCH_LIMIT = 20
 const DEBOUNCE_MS = 80
 
+// 도시 인덱스 prewarm 플래그 — 페이지 세션 1 회만 실행. /api/cities 의
+// 16 MB JSON 첫 파싱이 500~800ms 걸려, 사용자가 도시 이름 첫 글자를 입력하면
+// 그 spike 가 응답을 막아 "내정보 입력 시 로딩" 으로 보였다. 어느 화면이든
+// 도시 입력 컴포넌트가 mount 되는 순간 fire-and-forget 으로 캐시 워밍 →
+// 사용자가 타이핑 시작할 즈음엔 캐시 따뜻함.
+let prewarmInFlight: Promise<unknown> | null = null
+function prewarmCitiesIndex(): void {
+  if (typeof window === 'undefined') return
+  if (prewarmInFlight) return
+  // q=a&limit=1: 라우트의 짧은 경로(인덱스 로드 + 단일 행 매칭)를 트리거
+  // 하면서 응답은 작음. 실패해도 사용자 실제 검색 때 정상 fallback.
+  prewarmInFlight = fetch('/api/cities?q=a&limit=1').catch(() => null)
+}
+
 /**
  * Hook for city search with suggestions and timezone lookup
  */
@@ -134,6 +148,12 @@ export function useCitySearch(locale = 'ko'): UseCitySearchReturn {
     },
     [locale]
   )
+
+  // Mount 시 도시 인덱스 prewarm 1회 fire-and-forget. 페이지 세션 내 중복
+  // 호출은 prewarmCitiesIndex 안의 in-flight guard 가 차단.
+  useEffect(() => {
+    prewarmCitiesIndex()
+  }, [])
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
