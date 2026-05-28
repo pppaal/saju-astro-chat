@@ -67,6 +67,45 @@ select:focus-visible,
 }
 
 :root {
+  /* =============================================================
+     DestinyPal Design System Tokens
+     단일 컬러 시스템: gold + ink + neutral + navy (다크).
+     보라/네온 톤은 사용하지 않는다 (옛 mystic 잔재 정리 PR 이후).
+     ============================================================= */
+
+  /* Light surface (로그인 후 개인 영역: profile · compat · counselor chat 등) */
+  --ds-light-bg: #fafaf9; /* 페이지 base */
+  --ds-light-bg-soft: #f5f5f4; /* hover, subtle bg */
+  --ds-light-surface: #ffffff; /* card, header, modal */
+  --ds-light-row: #fcfbfa; /* table row · list item */
+  --ds-light-border: #e7e5e4;
+  --ds-light-border-strong: #d6d3d1;
+  --ds-light-text: #1c1917;
+  --ds-light-text-muted: #57534e;
+  --ds-light-text-subtle: #a8a29e;
+
+  /* Dark cosmic (비로그인 + 운세 시그니처 페이지: pricing · calendar 등).
+     pricing.module.css 의 navy + gold 톤이 표준. 보라 그라데이션은 사용 X. */
+  --ds-dark-bg: #07091a;
+  --ds-dark-surface: rgba(255, 255, 255, 0.035);
+  --ds-dark-surface-strong: rgba(255, 255, 255, 0.06);
+  --ds-dark-border: rgba(255, 255, 255, 0.07);
+  --ds-dark-border-strong: rgba(255, 255, 255, 0.14);
+  --ds-dark-text: #f5f7fb;
+  --ds-dark-text-muted: rgba(245, 247, 251, 0.62);
+  --ds-dark-text-subtle: rgba(245, 247, 251, 0.4);
+
+  /* Gold accent (KO/EN 공용 단일 브랜드 컬러). 페이지 톤에 맞춰 두 단계 사용. */
+  --ds-gold: #a07a3c; /* 라이트 페이지 기준 진한 골드 (위치: profile, compat) */
+  --ds-gold-soft: #c19b56; /* hover/borders */
+  --ds-gold-on-dark: #d4b572; /* 다크 페이지 위에서 더 잘 보이는 골드 */
+  --ds-gold-on-dark-soft: #e8cc8a;
+  --ds-gold-line: rgba(212, 181, 114, 0.42); /* 다크 페이지 골드 라인 */
+  --ds-gold-soft-bg: rgba(160, 122, 60, 0.08); /* 라이트 골드 hover */
+
+  /* =============================================================
+     Legacy dark tokens — 기존 페이지 호환 (점진 마이그레이션)
+     ============================================================= */
   /* Enhanced Dark Mode Color Palette - Lighter shade */
   --bg-color: #0d1225;
   --bg-secondary: #131a2e;

@@ -145,8 +145,8 @@
 }
 
 .chatMenuButton:hover {
-  background: rgba(167, 139, 250, 0.18);
-  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(212, 181, 114, 0.18);
+  border-color: rgba(212, 181, 114, 0.4);
 }
 
 .chatMenuDropdown {
@@ -156,7 +156,7 @@
   min-width: 168px;
   background: rgba(20, 18, 35, 0.97);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(167, 139, 250, 0.25);
+  border: 1px solid rgba(212, 181, 114, 0.25);
   border-radius: 10px;
   padding: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
@@ -183,7 +183,7 @@
 }
 
 .chatMenuItem:hover {
-  background: rgba(167, 139, 250, 0.15);
+  background: rgba(212, 181, 114, 0.15);
 }
 
 .chatMenuItemDanger {
@@ -217,7 +217,7 @@
   padding: 0;
   background: transparent;
   border: 0;
-  color: #a78bfa;
+  color: #d4b572;
   cursor: pointer;
   border-radius: 50%;
   transition: background 0.2s;
@@ -231,8 +231,8 @@
 
 .headerBackButton:hover,
 .backButton:hover {
-  background: rgba(167, 139, 250, 0.15);
-  border-color: rgba(167, 139, 250, 0.5);
+  background: rgba(212, 181, 114, 0.15);
+  border-color: rgba(212, 181, 114, 0.5);
 }
 
 .backIcon {
@@ -365,7 +365,7 @@
 .homeButton:focus-visible,
 .themeChip:focus-visible,
 .loginButton:focus-visible {
-  outline: 2px solid rgba(167, 139, 250, 0.8);
+  outline: 2px solid rgba(212, 181, 114, 0.8);
   outline-offset: 2px;
 }
 
