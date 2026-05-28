@@ -291,6 +291,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     throw err
   }
 
+  // out-of-order webhook race 처리 — charge.refunded 가 이 webhook 전에
+  // 도착해서 PendingCreditRevocation 에 기록돼 있다면 즉시 회수 + 정리.
+  // 어느 순서로 도착해도 최종 상태 동일.
+  if (paymentIntentId) {
+    try {
+      const pending = await prisma.pendingCreditRevocation.findUnique({
+        where: { stripePaymentIntentId: paymentIntentId },
+      })
+      if (pending) {
+        const revokeResult = await revokeBonusCreditPurchase(paymentIntentId)
+        await prisma.pendingCreditRevocation.delete({ where: { id: pending.id } })
+        logger.warn(
+          `[Stripe Webhook] Applied queued refund after late purchase webhook: payment=${paymentIntentId} reclaimed=${revokeResult.reclaimed}`
+        )
+        recordCounter('stripe_webhook_late_purchase_revocation_applied', 1)
+      }
+    } catch (err) {
+      logger.error('[Stripe Webhook] Failed to apply queued refund revocation:', err)
+    }
+  }
+
   // 결제 완료 이메일 발송
   if (user.email) {
     const productName = `${creditPack.charAt(0).toUpperCase()}${creditPack.slice(1)} (${creditAmount} Credits)`
@@ -365,9 +386,46 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     logger.info(
       `[Stripe Webhook] Revoked refunded purchase: payment=${paymentIntentId} reclaimed=${result.reclaimed} alreadyUsed=${result.alreadyUsed}`
     )
-  } else {
+    return
+  }
+
+  // revoked:false 케이스 — 두 가지:
+  //   (a) 매칭 BonusCreditPurchase 가 아직 없음 (Stripe 가 webhook 순서를
+  //       못 지켜서 charge.refunded 가 checkout.session.completed 보다
+  //       먼저 도착) → PendingCreditRevocation 에 기록해서 purchase webhook
+  //       이 도착할 때 즉시 회수되게 함.
+  //   (b) 이미 만료/회수된 purchase (중복 webhook). 멱등 — 아무 액션 X.
+  // 구분: purchase 존재 여부.
+  const existingPurchase = await prisma.bonusCreditPurchase.findFirst({
+    where: { stripePaymentId: paymentIntentId },
+    select: { id: true },
+  })
+
+  if (existingPurchase) {
+    // (b) 이미 처리됨 — 멱등.
     logger.info(
-      `[Stripe Webhook] No revocation needed for refund: payment=${paymentIntentId} (no matching purchase or already revoked)`
+      `[Stripe Webhook] Refund webhook for already-revoked purchase: payment=${paymentIntentId}`
     )
+    return
+  }
+
+  // (a) Purchase webhook 이 늦게 도착할 케이스 — 24h 만료로 큐.
+  try {
+    await prisma.pendingCreditRevocation.upsert({
+      where: { stripePaymentIntentId: paymentIntentId },
+      create: {
+        stripePaymentIntentId: paymentIntentId,
+        refundAmountCents: charge.amount_refunded,
+        currency: charge.currency || null,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+      update: {},
+    })
+    logger.warn(
+      `[Stripe Webhook] Refund arrived before purchase — queued PendingCreditRevocation: payment=${paymentIntentId}`
+    )
+    recordCounter('stripe_webhook_refund_before_purchase', 1)
+  } catch (err) {
+    logger.error('[Stripe Webhook] Failed to queue PendingCreditRevocation:', err)
   }
 }

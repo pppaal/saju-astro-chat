@@ -21,7 +21,7 @@ import { createIdempotencyStore } from '@/lib/api/idempotency'
 // 새로고침/뒤로가기/다른 탭 등으로 같은 follow-up 질문이 재진입할 때
 // 크레딧 중복 차감 방지. 클라이언트가 x-idempotency-key 헤더로 messageId
 // UUID 를 보내면 (userId|ip):key 로 6 시간 기억. 재진입 시 차감만 스킵.
-const idemStore = createIdempotencyStore()
+const idemStore = createIdempotencyStore('tarot-followup')
 
 function ownerKeyFromReq(req: NextRequest): string {
   const ip =
@@ -132,7 +132,7 @@ export const POST = withApiMiddleware(
       // 새로고침/탭 복제 등으로 같은 messageId 가 재진입하면 차감만 스킵.
       const ownerKey = ownerKeyFromReq(req)
       const scopedIdemKey = idemStore.keyFor(req, ownerKey)
-      const idempotentReplay = scopedIdemKey ? idemStore.isReplay(scopedIdemKey) : false
+      const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
 
       if (idempotentReplay) {
         logger.info('[tarot/followup] idempotent replay, skip credit consume', { ownerKey })
@@ -140,7 +140,7 @@ export const POST = withApiMiddleware(
       } else {
         creditResult = await checkAndConsumeCredits('reading', 1, req)
         if (!creditResult.allowed) return creditErrorResponse(creditResult)
-        if (scopedIdemKey) idemStore.mark(scopedIdemKey)
+        if (scopedIdemKey) await idemStore.mark(scopedIdemKey)
       }
 
       const isKo = language === 'ko'

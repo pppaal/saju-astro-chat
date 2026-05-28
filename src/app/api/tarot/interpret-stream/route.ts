@@ -39,10 +39,12 @@ const CLAUDE_TIMEOUT_MS = 60000
 
 // 새로고침/뒤로가기/다른 탭 등으로 같은 리딩이 재진입할 때 크레딧 중복
 // 차감 방지. createIdempotencyStore — src/lib/api/idempotency.ts 참조.
-const idemStore = createIdempotencyStore()
+const idemStore = createIdempotencyStore('tarot-interpret-stream')
 
 // 차감 후 Claude 호출이 실패해 사용자가 가치를 못 받은 경우 호출.
-// 로그인 사용자만 환불 (guest 는 cookie 카운터라 후속에서 별도 정책).
+// 로그인 사용자는 refundCredits, 게스트는 호출자가 응답 cookie 증가를
+// 스킵 (creditResult.guestReadingAccess 를 undefined 로 비워서 전달) 하면
+// counter 가 원상 복귀 — 무료 횟수 한 번 날아가는 손해 안 봄.
 async function refundOnFailure(
   creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null,
   reason: string,
@@ -66,6 +68,15 @@ async function refundOnFailure(
       userId: creditResult.userId,
     })
   }
+}
+
+// 실패 시 응답에 guest counter 증가 cookie 가 안 붙도록 creditResult 의
+// guestReadingAccess 를 비운 사본 반환. authed 사용자는 영향 없음.
+function clearGuestAccessOnFailure(
+  creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null
+): Awaited<ReturnType<typeof checkAndConsumeCredits>> | null {
+  if (!creditResult) return creditResult
+  return { ...creditResult, guestReadingAccess: undefined }
 }
 
 function withCreditCookies(
@@ -172,7 +183,7 @@ export async function POST(req: NextRequest) {
     creditCost = tarotCreditCostFor(cardCountForCost)
     const ownerKey = context.userId || `ip:${context.ip || 'unknown'}`
     const scopedIdemKey = idemStore.keyFor(req, ownerKey)
-    const idempotentReplay = scopedIdemKey ? idemStore.isReplay(scopedIdemKey) : false
+    const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
 
     if (idempotentReplay) {
       // 같은 리딩이 짧은 시간 안에 다시 들어옴(새로고침/뒤로가기/탭 복제 등).
@@ -186,7 +197,7 @@ export async function POST(req: NextRequest) {
       creditResult = await checkAndConsumeCredits('reading', creditCost, req)
       if (!creditResult.allowed) return creditErrorResponse(creditResult)
       if (scopedIdemKey) {
-        idemStore.mark(scopedIdemKey)
+        await idemStore.mark(scopedIdemKey)
       }
     }
 
@@ -239,7 +250,10 @@ export async function POST(req: NextRequest) {
         'ANTHROPIC_API_KEY missing'
       )
       const fallback = buildFallbackPayload(rawCards, language)
-      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
+      return withCreditCookies(
+        streamJsonPayload(fallback, { 'X-Fallback': '1' }),
+        clearGuestAccessOnFailure(creditResult)
+      )
     }
 
     // 카드당 ~500 tokens + overall/advice 여유 1200. 7장에서 ~4700 tokens
@@ -280,7 +294,10 @@ export async function POST(req: NextRequest) {
         claudeErr instanceof Error ? claudeErr.message : String(claudeErr)
       )
       const fallback = buildFallbackPayload(rawCards, language)
-      return withCreditCookies(streamJsonPayload(fallback, { 'X-Fallback': '1' }), creditResult)
+      return withCreditCookies(
+        streamJsonPayload(fallback, { 'X-Fallback': '1' }),
+        clearGuestAccessOnFailure(creditResult)
+      )
     }
 
     // Claude SDK stream → SSE 형식으로 forward. 각 token delta 가 도착하는
