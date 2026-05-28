@@ -25,7 +25,7 @@ import { getGrade } from './scoreGrade'
 import { getCalLabels, type CalLocale } from './premium/labels'
 
 interface DestinyMatrixPlannerProps {
-  /** Engine payload from /api/calendar. When omitted the component falls back to mock data. */
+  /** Engine payload from /api/calendar. 없으면 카드들 자체 스킵 — fake 데이터 노출 X. */
   data?: CalendarData | null
   /** Birth info used to fetch `data`. Reserved for future real wiring. */
   birthInfo?: BirthInfo | null
@@ -691,27 +691,30 @@ export default function DestinyMatrixPlanner({
                 </button>
               </div>
 
-              <DayInsights
-                importantDate={selectedImportantDate}
-                dateStr={selectedDateStr}
-                grade={getGrade(
-                  Math.round(
-                    selectedImportantDate?.displayScore ?? selectedImportantDate?.score ?? 50
+              {selectedImportantDate &&
+                (() => {
+                  const rawScore = selectedImportantDate.displayScore ?? selectedImportantDate.score
+                  // 점수 없는 일자는 엔진 게이트 미통과 — 카드 자체 렌더 X.
+                  if (typeof rawScore !== 'number') return null
+                  const dayScore = Math.round(rawScore)
+                  return (
+                    <DayInsights
+                      importantDate={selectedImportantDate}
+                      dateStr={selectedDateStr}
+                      grade={getGrade(dayScore)}
+                      score={dayScore}
+                      oneLine={dailyOneLineSummary}
+                      frontDomain={
+                        data?.calendarDailyView?.date === selectedDateStr
+                          ? (data.calendarDailyView.frontDomainLabel ?? null)
+                          : null
+                      }
+                      advice={fusion?.advice}
+                      hourlySlots={dailyHourlySlots}
+                      locale={locale}
+                    />
                   )
-                )}
-                score={Math.round(
-                  selectedImportantDate?.displayScore ?? selectedImportantDate?.score ?? 50
-                )}
-                oneLine={dailyOneLineSummary}
-                frontDomain={
-                  data?.calendarDailyView?.date === selectedDateStr
-                    ? (data.calendarDailyView.frontDomainLabel ?? null)
-                    : null
-                }
-                advice={fusion?.advice}
-                hourlySlots={dailyHourlySlots}
-                locale={locale}
-              />
+                })()}
             </motion.div>
           )}
         </AnimatePresence>
