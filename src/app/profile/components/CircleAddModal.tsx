@@ -173,7 +173,7 @@ export function CircleAddModal({ open, onClose, locale, onAdded }: CircleAddModa
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(28,25,23,0.45)] backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(28,25,23,0.65)] sm:items-center"
       onClick={onClose}
     >
       <div

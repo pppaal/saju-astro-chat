@@ -124,8 +124,6 @@ export function BirthInfoFields({
           value={birthDate}
           onChange={(v) => onChange({ birthDate: v })}
           inputClass={c.input}
-          popoverListClass={c.suggestionList}
-          popoverItemClass={c.suggestionItem}
         />
       </div>
 
@@ -220,10 +218,10 @@ export function BirthInfoFields({
 }
 
 /**
- * 연/월/일 커스텀 dropdown 3칸. native <select> 가 아니라 button +
- * popover 로 직접 구현 — iOS Safari 가 backdrop-filter 부모 안의 native
- * <select> picker 를 안 열어주는 버그(모달 안에서 탭해도 무반응) 회피.
- * 모든 모바일 브라우저에서 동일하게 동작.
+ * Native <select> 3 칸으로 연/월/일 입력. 커스텀 button+popover 로
+ * 바꿔봤으나 일부 Android 브라우저에서 안 눌리는 회귀가 있어 native
+ * 로 복귀. iOS 의 backdrop-filter+select picker 버그는 모달 overlay
+ * 의 backdrop-filter 를 제거하는 방향으로 별도 해결.
  *
  * 외부 인터페이스: ISO 'YYYY-MM-DD' 문자열을 in/out 으로 그대로 사용 →
  * 상위 폼 로직은 변경 없음.
@@ -234,16 +232,12 @@ function DateThreeSelect({
   value,
   onChange,
   inputClass,
-  popoverListClass,
-  popoverItemClass,
 }: {
   locale: 'ko' | 'en'
   idPrefix: string
   value: string
   onChange: (v: string) => void
   inputClass: string
-  popoverListClass: string
-  popoverItemClass: string
 }) {
   const isKo = locale === 'ko'
   const parsed = parseISODate(value)
@@ -272,151 +266,74 @@ function DateThreeSelect({
     )
   }
 
+  // CSS module 의 .modalInput 는 width:100% 가 없어서 native <select> 가
+  // intrinsic width 로 작게 보일 수 있음 → 모든 select 에 inline width:100%
+  // 명시. 데스크탑/모바일 일관 동작.
   return (
     <div className="grid grid-cols-3 gap-2">
-      <DateDropdown
+      <select
         id={`${idPrefix}-year`}
-        ariaLabel={isKo ? '년' : 'Year'}
-        placeholder={isKo ? '년' : 'Year'}
+        className={inputClass}
+        style={{ width: '100%' }}
         value={year}
-        options={years.map((y) => ({ value: y, label: String(y) }))}
-        onSelect={(v) =>
-          emit(v as number, month === '' ? '' : Number(month), day === '' ? '' : Number(day))
+        onChange={(e) =>
+          emit(
+            e.target.value ? Number(e.target.value) : '',
+            month === '' ? '' : Number(month),
+            day === '' ? '' : Number(day)
+          )
         }
-        inputClass={inputClass}
-        listClass={popoverListClass}
-        itemClass={popoverItemClass}
-      />
-      <DateDropdown
-        id={`${idPrefix}-month`}
-        ariaLabel={isKo ? '월' : 'Month'}
-        placeholder={isKo ? '월' : 'Month'}
-        value={month}
-        options={months.map((m) => ({ value: m, label: isKo ? `${m}월` : String(m) }))}
-        onSelect={(v) =>
-          emit(year === '' ? '' : Number(year), v as number, day === '' ? '' : Number(day))
-        }
-        inputClass={inputClass}
-        listClass={popoverListClass}
-        itemClass={popoverItemClass}
-      />
-      <DateDropdown
-        id={`${idPrefix}-day`}
-        ariaLabel={isKo ? '일' : 'Day'}
-        placeholder={isKo ? '일' : 'Day'}
-        value={day}
-        options={days.map((d) => ({ value: d, label: isKo ? `${d}일` : String(d) }))}
-        onSelect={(v) =>
-          emit(year === '' ? '' : Number(year), month === '' ? '' : Number(month), v as number)
-        }
-        inputClass={inputClass}
-        listClass={popoverListClass}
-        itemClass={popoverItemClass}
-      />
-    </div>
-  )
-}
-
-/**
- * 단일 dropdown — button 탭 시 popover 가 열리고 옵션 리스트 노출.
- * suggestionList/suggestionItem 클래스(도시 자동완성 팝오버와 동일)를
- * 받아서 light/dark 톤 자동 매칭.
- */
-function DateDropdown({
-  id,
-  ariaLabel,
-  placeholder,
-  value,
-  options,
-  onSelect,
-  inputClass,
-  listClass,
-  itemClass,
-}: {
-  id: string
-  ariaLabel: string
-  placeholder: string
-  value: number | ''
-  options: ReadonlyArray<{ value: number; label: string }>
-  onSelect: (v: number) => void
-  inputClass: string
-  listClass: string
-  itemClass: string
-}) {
-  const [open, setOpen] = React.useState(false)
-  const wrapRef = React.useRef<HTMLDivElement>(null)
-  const listRef = React.useRef<HTMLUListElement>(null)
-
-  // 바깥 탭 / Escape 닫기.
-  React.useEffect(() => {
-    if (!open) return
-    const onPointer = (e: PointerEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('pointerdown', onPointer)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('pointerdown', onPointer)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
-
-  // 열릴 때 현재 선택 항목으로 스크롤 (년도처럼 126 개 있을 때 필수).
-  React.useEffect(() => {
-    if (!open || value === '' || !listRef.current) return
-    const el = listRef.current.querySelector<HTMLElement>(`[data-v="${value}"]`)
-    if (el) el.scrollIntoView({ block: 'center' })
-  }, [open, value])
-
-  const display = value === '' ? placeholder : options.find((o) => o.value === value)?.label ?? ''
-
-  return (
-    <div ref={wrapRef} style={{ position: 'relative' }}>
-      <button
-        id={id}
-        type="button"
-        aria-label={ariaLabel}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        // w-full 명시 — native <select> 는 form control 기본 동작으로 grid 셀을
-        // 채웠지만 <button> 은 intrinsic width 라 "년 ▾" 만큼만 작게 그려져
-        // 사용자가 셀 빈 공간 탭하면 미스. width:100% 로 셀 전체를 tap 영역으로.
-        className={`${inputClass} flex w-full items-center justify-between text-left`}
+        aria-label={isKo ? '년' : 'Year'}
       >
-        <span style={{ opacity: value === '' ? 0.6 : 1 }}>{display}</span>
-        <span aria-hidden="true" style={{ opacity: 0.6, marginLeft: 6 }}>
-          ▾
-        </span>
-      </button>
-      {open && (
-        <ul
-          ref={listRef}
-          role="listbox"
-          className={listClass}
-          style={{ listStyle: 'none', margin: 0 }}
-        >
-          {options.map((opt) => (
-            <li key={opt.value}>
-              <button
-                type="button"
-                data-v={opt.value}
-                onClick={() => {
-                  onSelect(opt.value)
-                  setOpen(false)
-                }}
-                className={itemClass}
-                style={value === opt.value ? { fontWeight: 600 } : undefined}
-              >
-                {opt.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+        <option value="">{isKo ? '년' : 'Year'}</option>
+        {years.map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
+        ))}
+      </select>
+      <select
+        id={`${idPrefix}-month`}
+        className={inputClass}
+        style={{ width: '100%' }}
+        value={month}
+        onChange={(e) =>
+          emit(
+            year === '' ? '' : Number(year),
+            e.target.value ? Number(e.target.value) : '',
+            day === '' ? '' : Number(day)
+          )
+        }
+        aria-label={isKo ? '월' : 'Month'}
+      >
+        <option value="">{isKo ? '월' : 'Month'}</option>
+        {months.map((m) => (
+          <option key={m} value={m}>
+            {isKo ? `${m}월` : m}
+          </option>
+        ))}
+      </select>
+      <select
+        id={`${idPrefix}-day`}
+        className={inputClass}
+        style={{ width: '100%' }}
+        value={day}
+        onChange={(e) =>
+          emit(
+            year === '' ? '' : Number(year),
+            month === '' ? '' : Number(month),
+            e.target.value ? Number(e.target.value) : ''
+          )
+        }
+        aria-label={isKo ? '일' : 'Day'}
+      >
+        <option value="">{isKo ? '일' : 'Day'}</option>
+        {days.map((d) => (
+          <option key={d} value={d}>
+            {isKo ? `${d}일` : d}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }
