@@ -116,10 +116,20 @@ export function FollowupChat({
     // Add placeholder assistant turn we'll fill in
     setHistory((prev) => [...prev, { role: 'assistant', content: '', pending: true }])
 
+    // 새로고침/탭 복제 등 같은 질문 재진입 시 서버가 중복 차감 안 하도록
+    // 매 user 질문마다 UUID 생성해 x-idempotency-key 헤더로 전달.
+    const idempotencyKey =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `t${Date.now()}-${Math.random().toString(36).slice(2)}`
+
     try {
       const response = await apiFetch('/api/tarot/followup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-idempotency-key': idempotencyKey,
+        },
         body: JSON.stringify({
           spreadTitle: readingResult.spread.title,
           originalQuestion: userTopic,

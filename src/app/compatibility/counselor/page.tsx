@@ -424,9 +424,19 @@ function CompatibilityCounselorContent() {
         // turn wastes the user's mobile data + adds round-trip latency
         // for long conversations.
         const recentHistory = [...messages, userMessage].slice(-10)
+        // 새로고침/탭 복제 등 같은 turn 재진입 시 서버가 중복 차감 안 하도록
+        // 매 user 메시지 마다 UUID 생성. 재시도 시 같은 키 유지가 이상적이지만
+        // 현재 단일 호출 — 첫 호출 = 새 UUID 로 충분.
+        const idempotencyKey =
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `t${Date.now()}-${Math.random().toString(36).slice(2)}`
         const response = await fetch('/api/compatibility/counselor', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-idempotency-key': idempotencyKey,
+          },
           body: JSON.stringify({
             persons,
             person1Saju,

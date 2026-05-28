@@ -22,6 +22,12 @@ import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
+import { createIdempotencyStore } from '@/lib/api/idempotency'
+
+// 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
+// 중복 차감 방지. 클라이언트가 매 user 메시지에 UUID 를 x-idempotency-key
+// 헤더로 보냄. 같은 키 재진입 시 차감만 스킵.
+const idemStore = createIdempotencyStore()
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getUserDisplayName } from '@/lib/user/displayName'
@@ -405,12 +411,20 @@ export async function POST(req: NextRequest) {
 
   // 6) Consume credit BEFORE stream starts. canUseCredits 통과 후라 보통 성공;
   // race(다른 탭) 등으로 실패해도 block 보다 observability 우선.
+  // 새로고침/탭 복제 등 idempotent replay 면 차감 스킵 (스트림은 정상 진행).
   let chargedThisTurn = false
-  try {
-    const res = await consumeCredits(userId, 'reading', 1)
-    chargedThisTurn = res.success
-  } catch (err) {
-    logger.warn('[counselor/realtime] credit deduction failed', { err })
+  const scopedIdemKey = idemStore.keyFor(req, `user:${userId}`)
+  const idempotentReplay = scopedIdemKey ? idemStore.isReplay(scopedIdemKey) : false
+  if (idempotentReplay) {
+    logger.info('[counselor/realtime] idempotent replay, skip credit consume', { userId })
+  } else {
+    try {
+      const res = await consumeCredits(userId, 'reading', 1)
+      chargedThisTurn = res.success
+      if (chargedThisTurn && scopedIdemKey) idemStore.mark(scopedIdemKey)
+    } catch (err) {
+      logger.warn('[counselor/realtime] credit deduction failed', { err })
+    }
   }
 
   // 7) Build prompt and stream — 진짜 multi-turn 구조.

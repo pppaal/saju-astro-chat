@@ -16,7 +16,15 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildEvidenceGroundingGuide } from '@/lib/prompts/fortuneWithIcp'
+import { consumeCredits } from '@/lib/credits/creditService'
+import { refundCredits } from '@/lib/credits/creditRefund'
+import { createIdempotencyStore } from '@/lib/api/idempotency'
 import type { Relation } from '../types'
+
+// 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
+// 중복 차감 방지. 클라이언트가 매 메시지에 UUID 를 x-idempotency-key 헤더로
+// 보냄. 같은 키 재진입 시 차감만 스킵.
+const idemStore = createIdempotencyStore()
 
 // Inlined from the now-deleted routeSupportCommon (which served the
 // retired results/narrative-stream flow). The counselor route is the
@@ -125,13 +133,14 @@ export async function POST(req: NextRequest) {
     // Apply middleware: prefer authenticated guard (with credits) but fall
     // back to guest guard so first-time visitors can sample 2 turns before
     // the login wall — same pattern as destiny-map/chat-stream.
+    // requireCredits 는 false — 새로고침 idempotent replay 일 때 차감을
+    // 스킵해야 하는데 middleware 가 먼저 차감하면 늦음. 핸들러 안에서
+    // idempotency 체크 후 consumeCredits 명시 호출.
     const authedGuardOptions = createAuthenticatedGuard({
       route: 'compatibility-counselor',
       limit: 30,
       windowSeconds: 60,
-      requireCredits: true,
-      creditType: 'compatibility',
-      creditAmount: 1,
+      requireCredits: false,
     })
 
     const guestGuardOptions: MiddlewareOptions = {
@@ -220,6 +229,58 @@ export async function POST(req: NextRequest) {
         content: safetyMessage(lang),
         done: true,
       })
+    }
+
+    // 크레딧 차감 — 인증 사용자만. 새로고침/탭 복제 idempotent replay 시
+    // 차감 스킵. 게스트는 위 GUEST_COMPAT_TURN_LIMIT cookie counter 로 별도
+    // 처리. middleware 의 requireCredits 가 false 라서 여기서 명시 처리.
+    let chargedUserId: string | null = null
+    if (!isGuestMode && context.userId) {
+      const scopedIdemKey = idemStore.keyFor(req, `user:${context.userId}`)
+      const idempotentReplay = scopedIdemKey ? idemStore.isReplay(scopedIdemKey) : false
+      if (idempotentReplay) {
+        logger.info('[compat/counselor] idempotent replay, skip credit consume', {
+          userId: context.userId,
+        })
+      } else {
+        const res = await consumeCredits(context.userId, 'compatibility', 1)
+        if (!res.success) {
+          return createErrorResponse({
+            code: ErrorCodes.PAYMENT_REQUIRED,
+            message:
+              lang === 'ko'
+                ? '크레딧이 부족해요. 충전 후 다시 시도해주세요.'
+                : 'Insufficient credits. Please top up and try again.',
+            locale: lang,
+            route: 'compatibility/counselor',
+          })
+        }
+        chargedUserId = context.userId
+        if (scopedIdemKey) idemStore.mark(scopedIdemKey)
+      }
+    }
+
+    // Claude 호출 실패 시 차감된 1 크레딧 환불 (인증 사용자 + 이번 turn 에
+    // 실제 차감한 경우만). idempotent replay 일 땐 chargedUserId === null
+    // 이므로 no-op.
+    const refundChargedCredit = async (reason: string) => {
+      if (!chargedUserId) return
+      try {
+        await refundCredits({
+          userId: chargedUserId,
+          creditType: 'compatibility',
+          amount: 1,
+          reason: 'api_error',
+          apiRoute: 'compatibility/counselor',
+          errorMessage: reason,
+        })
+        logger.info('[compat/counselor] credit refunded on failure', {
+          userId: chargedUserId,
+          reason,
+        })
+      } catch (err) {
+        logger.error('[compat/counselor] refund failed', { err })
+      }
     }
 
     // Build raw saju + astro contexts. We hand the LLM raw chart tables
@@ -730,19 +791,12 @@ export async function POST(req: NextRequest) {
         // Mid-stream failures (empty completion / backend error) surface
         // inside the SSE body, not as a thrown error, so the catch below
         // never sees them. Refund the consumed credit here too. Guests
-        // aren't credit-charged → refundCreditsOnError is absent → no-op.
-        onFailure: context?.refundCreditsOnError
+        // aren't credit-charged → chargedUserId === null → no-op.
+        onFailure: chargedUserId
           ? async () => {
-              try {
-                await context?.refundCreditsOnError?.(
-                  'compatibility-counselor stream delivered no content',
-                  { route: 'compatibility-counselor' }
-                )
-              } catch (err) {
-                logger.warn('[Compatibility Counselor] stream-failure refund failed', {
-                  error: err instanceof Error ? err.message : String(err),
-                })
-              }
+              await refundChargedCredit(
+                'compatibility-counselor stream delivered no content'
+              )
             }
           : undefined,
         additionalHeaders: {
@@ -762,13 +816,10 @@ export async function POST(req: NextRequest) {
         error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
 
-      // Refund credit if Claude failed (authed users only)
-      if (context?.refundCreditsOnError) {
-        await context.refundCreditsOnError(
-          `Claude error: ${claudeErr instanceof Error ? claudeErr.message : 'unknown'}`,
-          { route: 'compatibility-counselor' }
-        )
-      }
+      // Refund credit if Claude failed (authed users only, this turn 차감 후)
+      await refundChargedCredit(
+        `Claude error: ${claudeErr instanceof Error ? claudeErr.message : 'unknown'}`
+      )
 
       const fallback =
         lang === 'ko'
