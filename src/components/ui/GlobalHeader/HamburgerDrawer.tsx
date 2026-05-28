@@ -39,16 +39,22 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
     if (!open) setLoginPanelOpen(false)
   }, [open])
 
-  // 프로필에서 사용자가 이름을 바꾸면 session 캐시가 갱신 안 되는 문제 회피.
-  // 인증된 상태일 때만 /api/me/profile 가져와서 user.name override. 실패하면
-  // session 값 그대로 사용.
+  // 프로필에서 사용자가 이름 바꿔도 session 캐시 / OAuth 이름이 그대로 떠
+  // 있는 문제 회피. drawer 가 열릴 때마다 /api/me/profile 의 최신 user.name
+  // 을 가져와 갱신. cache:'no-store' 로 브라우저 캐시 우회 — PATCH 직후 GET
+  // 이 stale 한 옛 값 반환하던 회귀 차단.
   useEffect(() => {
     if (!isAuthed) {
       setProfileName(null)
       return
     }
+    if (!open) return // drawer 열린 순간만 fetch — mount 1 회는 stale 위험
     let cancelled = false
-    fetch('/api/me/profile', { credentials: 'include' })
+    fetch('/api/me/profile', {
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache' },
+    })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return
@@ -61,7 +67,7 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
     return () => {
       cancelled = true
     }
-  }, [isAuthed])
+  }, [isAuthed, open])
 
   useEffect(() => {
     if (!open) return
