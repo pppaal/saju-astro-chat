@@ -68,9 +68,18 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'stripe_not_configured')
     }
 
-    // 1) 구매 기록 조회
+    // 1) 구매 기록 조회. select 명시 — schema 신규 컬럼(acknowledgedAt) prod
+    // 미적용 시 default SELECT 가 P2022 로 죽는 회귀 차단.
     const purchase = await prisma.bonusCreditPurchase.findFirst({
       where: { stripePaymentId },
+      select: {
+        id: true,
+        userId: true,
+        amount: true,
+        remaining: true,
+        expired: true,
+        createdAt: true,
+      },
     })
 
     if (!purchase) {
