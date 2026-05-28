@@ -107,31 +107,26 @@ export default function CreditDepletedModal({
         className={`${styles.modal} ${isAnimating ? styles.modalVisible : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Animated Icon */}
-        <div className={styles.iconContainer}>
-          <div className={`${styles.iconRing} ${styles.ring1}`} />
-          <div className={`${styles.iconRing} ${styles.ring2}`} />
-          <div className={`${styles.iconRing} ${styles.ring3}`} />
-          <div className={styles.iconInner}>
-            {isDepleted ? (
-              <span className={styles.emptyIcon}>✦</span>
-            ) : (
-              <span className={styles.warningIcon}>⚠</span>
-            )}
-          </div>
+        {/* 단일 골드 sparkle — depleted/low 둘 다 같은 아이콘, 컨테이너 톤만
+            warning 일 때 옐로우 그라데이션으로 약간 강조. 옛 펄싱 링 3개
+            제거 — 모달이 너무 시끄럽고 산만했음. */}
+        <div
+          className={`${styles.iconContainer} ${isDepleted ? '' : styles.warning}`}
+          aria-hidden="true"
+        >
+          {isDepleted ? '✦' : '⚠'}
         </div>
 
-        {/* Title */}
         <h2 id="credit-modal-title" className={styles.title}>
           {getTitle()}
         </h2>
 
-        {/* Description */}
         <div className={styles.description}>{getDescription()}</div>
 
-        {/* Credit Display */}
         <div className={styles.creditDisplay}>
-          <div className={styles.creditIcon}>✦</div>
+          <div className={styles.creditIcon} aria-hidden="true">
+            ✦
+          </div>
           <div className={styles.creditInfo}>
             <span className={styles.creditLabel}>{t('credits.remaining', '잔여 크레딧')}</span>
             <span className={`${styles.creditValue} ${isDepleted ? styles.empty : styles.low}`}>
@@ -141,10 +136,11 @@ export default function CreditDepletedModal({
           </div>
         </div>
 
-        {/* Buttons */}
         <div className={styles.buttons}>
           <button className={styles.purchaseButton} onClick={handlePurchase} autoFocus>
-            <span className={styles.buttonIcon}>✦</span>
+            <span className={styles.buttonIcon} aria-hidden="true">
+              ✦
+            </span>
             {t('credits.purchase', '크레딧 구매하기')}
           </button>
           <button className={styles.laterButton} onClick={onClose}>
@@ -152,7 +148,6 @@ export default function CreditDepletedModal({
           </button>
         </div>
 
-        {/* Close Button */}
         <button
           className={styles.closeButton}
           onClick={onClose}
