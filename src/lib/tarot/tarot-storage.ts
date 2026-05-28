@@ -34,6 +34,23 @@ export interface SavedTarotReading {
   categoryId: string
   spreadId: string
   deckStyle?: string
+  /**
+   * 보충 카드 (클래리파이어) — 결과 후 "한 장 더 뽑기" 한 카드.
+   * 자동 저장 (FollowupChat 의 PATCH) 으로 채워짐. 한 리딩당 한 장 한정.
+   */
+  clarifierCard?: {
+    name: string
+    nameKo?: string
+    isReversed: boolean
+  } | null
+  /**
+   * 결과 화면 followup 채팅 ("이 리딩에 대해 더 묻기") 의 turn 누적.
+   * 매 turn 끝날 때마다 PATCH 로 같은 row 갱신 — 새로고침해도 살아남음.
+   */
+  followupTurns?: Array<{
+    role: 'user' | 'assistant'
+    content: string
+  }> | null
 }
 
 const STORAGE_KEY = 'tarot_saved_readings'
@@ -64,6 +81,15 @@ type ServerSavedReading = {
   overallMessage?: string | null
   guidance?: string | null
   cardInsights?: ServerSavedInsight[] | null
+  clarifierCard?: {
+    name: string
+    nameKo?: string
+    isReversed: boolean
+  } | null
+  followupTurns?: Array<{
+    role: 'user' | 'assistant'
+    content: string
+  }> | null
 }
 
 function normalizeQuestionText(
@@ -271,6 +297,8 @@ export function mapServerReadingToSavedReading(reading: ServerSavedReading): Sav
     },
     categoryId: reading.theme || 'general',
     spreadId: reading.spreadId || '',
+    clarifierCard: reading.clarifierCard ?? null,
+    followupTurns: reading.followupTurns ?? null,
   }
 }
 

@@ -10,12 +10,12 @@
 .page {
   height: 100dvh;
   max-height: 100dvh;
-  background: #fafaf9;
+  background: var(--ds-light-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   overscroll-behavior: contain;
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 @media (min-width: 1024px) {
@@ -46,8 +46,8 @@
   /* 답변창을 넓게 — 위·아래 패딩 축소 */
   padding: 0.375rem 0.75rem;
   background: #ffffff;
-  border-bottom: 1px solid #e7e5e4;
-  color: #1c1917;
+  border-bottom: 1px solid var(--ds-light-border);
+  color: var(--ds-light-text);
   min-width: 0;
   flex-shrink: 0;
   /* Pin the header so it stays visible when the mobile keyboard
@@ -65,13 +65,15 @@
 }
 
 .backButton {
-  /* 패딩 축소 (사용자 요청 "조금만 줄여") */
-  padding: 0.35rem 0.55rem;
+  /* 헤더 도형 통일 — 36×36 원형, 테두리 없음. */
+  width: 36px;
+  height: 36px;
+  padding: 0;
   background: transparent;
   border: 0;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   cursor: pointer;
-  border-radius: 7px;
+  border-radius: 50%;
   transition: background 0.18s ease;
   font-size: 0.85rem;
   flex-shrink: 0;
@@ -81,7 +83,7 @@
 }
 
 .backButton:hover {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 @media (min-width: 1024px) {
@@ -92,15 +94,16 @@
 }
 
 .backIcon {
-  font-size: 1.25rem;
+  /* 헤더 글리프 통일 — 16px */
+  font-size: 16px;
   line-height: 1;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .headerTitle {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #1c1917;
+  color: var(--ds-light-text);
   margin: 0;
   font-family: var(--font-cinzel), Georgia, serif;
   letter-spacing: 0.01em;
@@ -117,28 +120,26 @@
 }
 
 .localeToggle {
+  /* 헤더 도형 통일 — 36×36 원형, 테두리 없음. */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 44px;
-  height: 32px;
-  padding: 0 0.65rem;
-  border-radius: 999px;
-  border: 1px solid #e0ddd7;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
   background: #ffffff;
-  color: #57534e;
-  font-size: 0.8rem;
+  color: var(--ds-light-text-muted);
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition:
-    background 0.18s ease,
-    border-color 0.18s ease;
+  transition: background 0.18s ease;
 }
 
 .localeToggle:hover {
-  background: #f5f5f4;
-  border-color: #c9c4bc;
+  background: var(--ds-light-bg-soft);
 }
 
 /* ============ Chat Wrapper ============ */
@@ -164,26 +165,25 @@
 }
 
 .chatMenuButton {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: 1px solid #e7e5e4;
+  /* 헤더 도형 통일 — 36×36 원형, 테두리 없음, 글리프 16px. */
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
   background: #ffffff;
-  color: #44403c;
-  font-size: 18px;
+  color: var(--ds-light-text-muted);
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+  transition: background 0.15s ease;
 }
 
 .chatMenuButton:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
 }
 
 .chatMenuDropdown {
@@ -192,7 +192,7 @@
   right: 0;
   min-width: 168px;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 10px;
   padding: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -211,7 +211,7 @@
   background: transparent;
   border: 0;
   border-radius: 6px;
-  color: #1c1917;
+  color: var(--ds-light-text);
   font-size: 0.9rem;
   text-align: left;
   cursor: pointer;
@@ -219,7 +219,7 @@
 }
 
 .chatMenuItem:hover:not(:disabled) {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 .chatMenuItem:disabled {
@@ -273,7 +273,7 @@
   text-align: center;
   padding: 2rem 1rem;
   margin: auto 0;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .emptyIcon {
@@ -285,7 +285,7 @@
 .emptyText {
   font-size: 1.05rem;
   font-weight: 500;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   margin: 0;
   letter-spacing: 0.01em;
 }
@@ -296,7 +296,7 @@
   gap: 0.6rem;
   align-items: flex-start;
   max-width: 100%;
-  color: #292524;
+  color: var(--ds-light-text);
 }
 
 .userMessage {
@@ -313,13 +313,13 @@
   font-size: 1rem;
   flex-shrink: 0;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   color: inherit;
 }
 
 .userMessage .messageAvatar {
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
 }
 
 .messageBubble {
@@ -328,18 +328,21 @@
   border-radius: 16px;
   background: transparent;
   border: 0;
-  color: #292524;
-  font-size: 0.95rem;
-  /* destiny 운명상담사(1.75) 와 비슷한 답변 줄간격으로 — 한국어 본문 가독성
-     일관. 1.55 → 1.7 (양쪽 채팅창 줄간격 차이 통일 PR). */
-  line-height: 1.7;
+  color: var(--ds-light-text);
+  /* 운명 상담사와 폰트/간격 통일 — 같은 1rem · 1.75 · -0.005em ·
+     Noto Sans KR. 한국어 본문 가독성 일관. (이전 0.95rem · 1.7 · letter-
+     spacing/font-family 미설정 → 운명 기준으로 통일 PR) */
+  font-size: 1rem;
+  line-height: 1.75;
+  letter-spacing: -0.005em;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
   word-wrap: break-word;
   overflow-wrap: anywhere;
 }
 
 .userMessage .messageBubble {
-  background: #292524;
-  color: #fafaf9;
+  background: var(--ds-light-text);
+  color: var(--ds-light-bg);
   border-radius: 16px 4px 16px 16px;
   border: 0;
   box-shadow: 0 4px 12px rgba(28, 25, 23, 0.1);
@@ -362,7 +365,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #78716c;
+  color: var(--ds-light-text-muted);
   font-size: 13px;
   font-style: italic;
 }
@@ -382,7 +385,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #a8a29e;
+  background: var(--ds-light-text-subtle);
   animation: typingBounce 1.2s ease-in-out infinite;
 }
 
@@ -424,20 +427,22 @@
   flex-direction: column;
   gap: 0.5rem;
   /* 답변창 넓게 — 위·아래 패딩 축소 */
-  padding: 0.5rem 0.85rem 0.5rem;
+  padding: 0.75rem 0.85rem;
   margin-top: 0.4rem;
+  /* 운명상담사 lightTheme inputBox 와 동일 — 흰 배경 + border 없음 +
+     soft shadow. 이전엔 stone border 가 또렷이 보였는데 운명 기준으로
+     borderless 로 통일해 더 깔끔. */
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: none;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(28, 25, 23, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
 }
 
 .inputContainer:focus-within {
-  border-color: #a8a29e;
-  box-shadow:
-    0 0 0 1px #a8a29e,
-    0 4px 12px rgba(28, 25, 23, 0.04);
+  /* 운명과 동일 — focus 시에도 border 추가 X, shadow 유지. */
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .input {
@@ -446,7 +451,7 @@
   border: none;
   outline: none;
   resize: none;
-  color: #1c1917;
+  color: var(--ds-light-text);
   /* iOS Safari zooms inputs <16px on focus, which breaks dvh viewport. */
   font-size: 16px;
   line-height: 1.5;
@@ -457,7 +462,7 @@
 }
 
 .input::placeholder {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .input:disabled {
@@ -469,12 +474,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: #1c1917;
+  /* 38→32px — destiny 와 통일 (사용자 의도: "조금 줄이면 이쁠 것 같음"). */
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--ds-light-text);
   border: none;
-  color: #fafaf9;
+  color: var(--ds-light-bg);
   cursor: pointer;
   transition:
     transform 0.18s ease,
@@ -485,14 +491,14 @@
 }
 
 .sendButton:hover:not(:disabled) {
-  background: #292524;
+  background: var(--ds-light-text);
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(28, 25, 23, 0.22);
 }
 
 .sendButton:disabled {
-  background: #f5f5f4;
-  color: #a8a29e;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text-subtle);
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -518,12 +524,15 @@
     padding: 0.5rem 0.75rem;
   }
 
+  /* 운명상담사 chatWrapper 모바일 padding 과 동일 (0.75rem 0.75rem 0.5rem
+     계열) — 좌우 13px → 12px 로 통일해 메시지 영역 너비 일치. */
   .chatWrapper {
-    padding: 0.65rem 0.85rem 0.65rem;
+    padding: 0.65rem 0.75rem 0.65rem;
   }
 
+  /* messageBubble font-size 는 base 1rem 유지 (운명상담사와 동일).
+     이전엔 0.9rem 으로 축소돼 폰트가 작아 보였음 → fix. */
   .messageBubble {
-    font-size: 0.9rem;
     padding: 0.6rem 0.8rem;
   }
 
@@ -540,7 +549,7 @@
 .backButton:focus-visible,
 .localeToggle:focus-visible,
 .sendButton:focus-visible {
-  outline: 2px solid #a07a3c;
+  outline: 2px solid var(--ds-gold);
   outline-offset: 2px;
 }
 
@@ -578,7 +587,7 @@
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -586,8 +595,8 @@
 }
 
 .toolButton:hover:not(:disabled) {
-  background: #f5f5f4;
-  color: #57534e;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text-muted);
 }
 
 .toolButton:disabled {
@@ -626,7 +635,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-size: 12px;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .fileIcon {
@@ -636,7 +645,7 @@
 
 .fileNotice {
   font-size: 12px;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   padding: 0.1rem 0.4rem;
 }
 
@@ -651,7 +660,7 @@
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
   cursor: pointer;
   font-size: 14px;
   transition:
@@ -660,8 +669,8 @@
 }
 
 .clearButton:hover {
-  background: #f5f5f4;
-  color: #57534e;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text-muted);
 }
 
 /* 타로/차트 입력-툴바 버튼 — 모든 viewport 에서 노출. 사이드바 푸터에서
@@ -711,7 +720,7 @@
 }
 
 .sidebarFooterBtn:hover:not(:disabled) {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 .sidebarFooterBtn:disabled {
@@ -727,16 +736,17 @@
 }
 
 /* Follow-up question chips — shown after each assistant reply when the
-   LLM emits ||FOLLOWUP||[...]. Rose relationship accent on white. */
+   LLM emits ||FOLLOWUP||[...]. 운명상담사 lightTheme 와 동일 — 단순한
+   transparent container 로 답변에 자연스럽게 이어지게. (이전엔 rose/amber
+   gradient 였지만 운명 lightTheme transparent 와 통일.) */
 .followUpContainer {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 16px 20px;
   margin: 8px 0;
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.06) 0%, rgba(251, 191, 36, 0.05) 100%);
+  background: transparent;
   border-radius: 16px;
-  border: 1px solid rgba(244, 114, 182, 0.18);
   animation: followUpSlideUp 0.4s ease-out;
 }
 
@@ -753,7 +763,7 @@
 
 .followUpLabel {
   font-size: 12px;
-  color: #78716c;
+  color: var(--ds-light-text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -771,18 +781,22 @@
   gap: 8px;
   padding: 10px 16px;
   background: #ffffff;
-  border: 1px solid #e7e4df;
+  border: 1px solid var(--ds-light-border);
   border-radius: 20px;
-  color: #44403c;
+  color: var(--ds-light-text-muted);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
+  /* 운명상담사와 동일 — 좁은 모바일에서 한 줄에 안 맞으면 자연스럽게
+     줄바꿈. nowrap 으로 두면 긴 후속질문이 잘려서 사용자한테 안 보임. */
+  white-space: normal;
+  word-break: break-word;
+  text-align: left;
 }
 
 .followUpChip:hover {
   background: #faf9f7;
-  border-color: #d6d3d1;
+  border-color: var(--ds-light-border-strong);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(28, 25, 23, 0.08);
 }
@@ -828,9 +842,9 @@
   gap: 8px;
   padding: 8px 14px;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 999px;
-  color: #44403c;
+  color: var(--ds-light-text-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -841,9 +855,9 @@
 }
 
 .clarifierActionBtn:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
+  color: var(--ds-light-text);
   transform: translateY(-1px);
 }
 

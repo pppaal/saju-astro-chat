@@ -585,6 +585,47 @@ export default function TarotHistoryClient() {
               </section>
             )}
 
+            {/* 보충 카드 (클래리파이어) — 한 장 더 뽑기로 자동 저장된 카드. */}
+            {selectedReading.clarifierCard && (
+              <section className="mb-5 rounded-xl bg-purple-500/5 border border-purple-500/30 p-4">
+                <h4 className="text-xs uppercase tracking-wider text-purple-300 font-medium mb-2">
+                  {isKo ? '🃏 보충 카드' : '🃏 Clarifier Card'}
+                </h4>
+                <div className="text-sm font-medium text-slate-100">
+                  {isKo
+                    ? selectedReading.clarifierCard.nameKo || selectedReading.clarifierCard.name
+                    : selectedReading.clarifierCard.name}
+                  {selectedReading.clarifierCard.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
+                </div>
+              </section>
+            )}
+
+            {/* 결과 화면 followup 채팅 내역 — 자동 저장된 turn 들. */}
+            {selectedReading.followupTurns && selectedReading.followupTurns.length > 0 && (
+              <section className="mb-5 rounded-xl bg-cyan-500/5 border border-cyan-500/20 p-4">
+                <h4 className="text-xs uppercase tracking-wider text-cyan-300 font-medium mb-3">
+                  {isKo ? '이어진 대화' : 'Follow-up Chat'}
+                </h4>
+                <div className="space-y-3">
+                  {selectedReading.followupTurns.map((turn, idx) => (
+                    <div
+                      key={`${selectedReading.id}-turn-${idx}`}
+                      className={`text-sm leading-relaxed whitespace-pre-wrap ${
+                        turn.role === 'user'
+                          ? 'text-slate-200 pl-3 border-l-2 border-cyan-500/40'
+                          : 'text-slate-300 pl-3 border-l-2 border-violet-500/40'
+                      }`}
+                    >
+                      <div className="text-[10px] uppercase tracking-wider mb-1 text-slate-500">
+                        {turn.role === 'user' ? (isKo ? '나' : 'You') : isKo ? 'AI' : 'AI'}
+                      </div>
+                      {turn.content}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* 액션 */}
             <button
               type="button"

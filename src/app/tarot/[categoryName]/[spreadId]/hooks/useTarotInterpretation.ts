@@ -39,6 +39,8 @@ export interface FetchInterpretationOptions {
 interface UseTarotInterpretationReturn {
   isSaved: boolean
   saveMessage: string
+  /** 서버 저장 후 부여된 ID — followup / 클래리파이어 PATCH 에 사용. */
+  readingId: string | null
   fetchInterpretation: (
     result: ReadingResponse,
     options?: FetchInterpretationOptions
@@ -354,6 +356,9 @@ export function useTarotInterpretation({
   const { data: session } = useSession()
   const { language } = useI18n()
   const [isSaved, setIsSaved] = useState(false)
+  // 서버 저장 후 부여된 readingId — 클래리파이어 / followup 채팅을
+  // PATCH 로 같은 row 에 추가 저장할 때 사용.
+  const [readingId, setReadingId] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string>('')
 
   const fetchInterpretation = useCallback(
@@ -577,6 +582,17 @@ export function useTarotInterpretation({
             throw new Error(errorMessage)
           }
 
+          // 서버가 부여한 readingId 회수 — 이후 클래리파이어 / followup
+          // 채팅 PATCH 호출에 사용. 옛 응답은 `{success, readingId}`,
+          // 신형 wrap 은 `{data: {readingId}}` 둘 다 흡수.
+          const savedJson = (await preferredSaveResponse.json().catch(() => null)) as {
+            readingId?: string
+            data?: { readingId?: string }
+          } | null
+          const newReadingId = savedJson?.readingId ?? savedJson?.data?.readingId ?? null
+          if (newReadingId) {
+            setReadingId(newReadingId)
+          }
           setIsSaved(true)
           setSaveMessage(language === 'ko' ? '저장되었습니다!' : 'Saved!')
           setTimeout(() => setSaveMessage(''), 3000)
@@ -619,6 +635,7 @@ export function useTarotInterpretation({
   return {
     isSaved,
     saveMessage,
+    readingId,
     fetchInterpretation,
     handleSaveReading,
   }

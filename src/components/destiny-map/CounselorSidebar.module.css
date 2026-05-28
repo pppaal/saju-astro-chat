@@ -47,9 +47,9 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid rgba(167, 139, 250, 0.3);
+  border: 1px solid rgba(212, 181, 114, 0.3);
   background: transparent;
-  color: #a78bfa;
+  color: #d4b572;
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
@@ -60,7 +60,7 @@
 }
 
 .closeBtn:hover {
-  background: rgba(167, 139, 250, 0.15);
+  background: rgba(212, 181, 114, 0.15);
 }
 
 .brand {
@@ -77,24 +77,25 @@
   line-height: 0;
 }
 
-/* 헤더 우측 끝의 Home 아이콘 링크. margin-left:auto 로 우측 정렬. */
+/* 헤더 우측 끝의 Home 아이콘 링크. 다른 상단 버튼 (햄버거·언어 토글·
+   ⋮ 메뉴) 과 동일한 36×36 원형, 테두리 없음, 글리프 16px. */
 .headerHome {
   margin-left: auto;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.05rem;
+  font-size: 16px;
   text-decoration: none;
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  color: #a78bfa;
+  border: 0;
+  color: #d4b572;
   transition: background 0.15s ease;
 }
 
 .headerHome:hover {
-  background: rgba(167, 139, 250, 0.15);
+  background: rgba(212, 181, 114, 0.15);
 }
 
 .section {
@@ -143,8 +144,8 @@
 }
 
 .actionBtn:hover {
-  background: rgba(167, 139, 250, 0.1);
-  border-color: rgba(167, 139, 250, 0.2);
+  background: rgba(212, 181, 114, 0.1);
+  border-color: rgba(212, 181, 114, 0.2);
 }
 
 .actionIcon {
@@ -204,7 +205,7 @@
 }
 
 .sessionItem:hover {
-  background: rgba(167, 139, 250, 0.08);
+  background: rgba(212, 181, 114, 0.08);
 }
 
 .sessionItemSwiped {
@@ -280,7 +281,7 @@
 }
 
 .iconBtn:hover {
-  background: rgba(167, 139, 250, 0.2);
+  background: rgba(212, 181, 114, 0.2);
 }
 
 .iconBtnDanger {
@@ -322,7 +323,7 @@
 .renameInput {
   width: 100%;
   background: rgba(15, 12, 33, 0.85);
-  border: 1px solid rgba(167, 139, 250, 0.4);
+  border: 1px solid rgba(212, 181, 114, 0.4);
   border-radius: 6px;
   color: #f5f3ff;
   padding: 0.4rem 0.5rem;
@@ -331,7 +332,7 @@
 }
 
 .renameInput:focus {
-  border-color: rgba(167, 139, 250, 0.7);
+  border-color: rgba(212, 181, 114, 0.7);
 }
 
 .footer {
@@ -348,7 +349,7 @@
   padding: 0.65rem 0.75rem;
   border-radius: 10px;
   background: rgba(99, 102, 241, 0.18);
-  border: 1px solid rgba(167, 139, 250, 0.28);
+  border: 1px solid rgba(212, 181, 114, 0.28);
   color: #f5f3ff;
   font-size: 0.88rem;
   cursor: pointer;
@@ -373,7 +374,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(167, 139, 250, 0.62);
+  color: rgba(212, 181, 114, 0.62);
 }
 
 /* =====================================================================

@@ -13,9 +13,9 @@
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 20% 20%, rgba(138, 43, 226, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 20% 20%, rgba(160, 122, 60, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(75, 0, 130, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(167, 139, 250, 0.08) 0%, transparent 60%);
+    radial-gradient(circle at 50% 50%, rgba(193, 155, 86, 0.08) 0%, transparent 60%);
   pointer-events: none;
   z-index: -1;
 }
@@ -31,15 +31,15 @@
   width: 80px;
   height: 80px;
   margin: 0 auto 20px;
-  background: linear-gradient(135deg, rgba(138, 43, 226, 0.3) 0%, rgba(167, 139, 250, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(160, 122, 60, 0.3) 0%, rgba(193, 155, 86, 0.3) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 36px;
   font-weight: 700;
-  color: #c5a6ff;
-  box-shadow: 0 0 40px rgba(138, 43, 226, 0.3);
+  color: #e8cc8a;
+  box-shadow: 0 0 40px rgba(160, 122, 60, 0.3);
   animation: pulse 3s ease-in-out infinite;
 }
 
@@ -47,16 +47,16 @@
   0%,
   100% {
     transform: scale(1);
-    box-shadow: 0 0 40px rgba(138, 43, 226, 0.3);
+    box-shadow: 0 0 40px rgba(160, 122, 60, 0.3);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 0 0 60px rgba(138, 43, 226, 0.5);
+    box-shadow: 0 0 60px rgba(160, 122, 60, 0.5);
   }
 }
 
 .eyebrow {
-  color: #a78bfa;
+  color: #c19b56;
   font-size: 12px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -66,14 +66,11 @@
 
 .title {
   font-size: clamp(28px, 5vw, 42px);
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 600;
+  color: var(--ds-dark-text);
   margin: 0 0 16px;
-  text-shadow: 0 0 30px rgba(138, 43, 226, 0.5);
-  background: linear-gradient(135deg, #ffffff 0%, #c5a6ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-family: var(--font-cinzel), Georgia, serif;
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
@@ -96,14 +93,14 @@
   background: rgba(30, 30, 45, 0.6);
   backdrop-filter: blur(20px);
   border-radius: 16px;
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  border: 1px solid rgba(160, 122, 60, 0.3);
   padding: 16px 20px;
   transition: all 0.3s ease;
 }
 
 .searchBox:focus-within {
-  border-color: rgba(138, 43, 226, 0.6);
-  box-shadow: 0 4px 20px rgba(138, 43, 226, 0.2);
+  border-color: rgba(160, 122, 60, 0.6);
+  box-shadow: 0 4px 20px rgba(160, 122, 60, 0.2);
 }
 
 .searchIcon {
@@ -127,7 +124,7 @@
 }
 
 .searchClear {
-  background: rgba(138, 43, 226, 0.3);
+  background: rgba(160, 122, 60, 0.3);
   border: none;
   border-radius: 50%;
   width: 24px;
@@ -143,7 +140,7 @@
 }
 
 .searchClear:hover {
-  background: rgba(138, 43, 226, 0.5);
+  background: rgba(160, 122, 60, 0.5);
   transform: scale(1.1);
 }
 
@@ -168,7 +165,7 @@
   padding: 8px 16px;
   background: rgba(30, 30, 45, 0.6);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(138, 43, 226, 0.2);
+  border: 1px solid rgba(160, 122, 60, 0.2);
   border-radius: 24px;
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
@@ -179,24 +176,24 @@
 }
 
 .categoryButton:hover {
-  border-color: rgba(138, 43, 226, 0.4);
-  background: rgba(138, 43, 226, 0.15);
+  border-color: rgba(160, 122, 60, 0.4);
+  background: rgba(160, 122, 60, 0.15);
   color: #ffffff;
 }
 
 .categoryButton.active {
-  background: linear-gradient(135deg, #8a2be2 0%, #9b59b6 100%);
-  border-color: rgba(138, 43, 226, 0.6);
+  background: linear-gradient(135deg, #a07a3c 0%, #9b59b6 100%);
+  border-color: rgba(160, 122, 60, 0.6);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+  box-shadow: 0 4px 12px rgba(160, 122, 60, 0.3);
 }
 
 .expandAllButton {
   padding: 8px 16px;
-  background: rgba(138, 43, 226, 0.2);
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  background: rgba(160, 122, 60, 0.2);
+  border: 1px solid rgba(160, 122, 60, 0.3);
   border-radius: 24px;
-  color: #c5a6ff;
+  color: #e8cc8a;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -205,8 +202,8 @@
 }
 
 .expandAllButton:hover {
-  background: rgba(138, 43, 226, 0.3);
-  border-color: rgba(138, 43, 226, 0.5);
+  background: rgba(160, 122, 60, 0.3);
+  border-color: rgba(160, 122, 60, 0.5);
   color: #ffffff;
 }
 
@@ -249,19 +246,19 @@
   background: rgba(30, 30, 45, 0.6);
   backdrop-filter: blur(20px);
   border-radius: 16px;
-  border: 1px solid rgba(138, 43, 226, 0.2);
+  border: 1px solid rgba(160, 122, 60, 0.2);
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .accordion:hover {
-  border-color: rgba(138, 43, 226, 0.4);
-  box-shadow: 0 4px 20px rgba(138, 43, 226, 0.15);
+  border-color: rgba(160, 122, 60, 0.4);
+  box-shadow: 0 4px 20px rgba(160, 122, 60, 0.15);
 }
 
 .accordion.open {
-  border-color: rgba(138, 43, 226, 0.5);
-  box-shadow: 0 8px 32px rgba(138, 43, 226, 0.2);
+  border-color: rgba(160, 122, 60, 0.5);
+  box-shadow: 0 8px 32px rgba(160, 122, 60, 0.2);
 }
 
 .accordionHeader {
@@ -278,7 +275,7 @@
 }
 
 .accordionHeader:hover {
-  background: rgba(138, 43, 226, 0.1);
+  background: rgba(160, 122, 60, 0.1);
 }
 
 .accordionIcon {
@@ -289,7 +286,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(138, 43, 226, 0.2);
+  background: rgba(160, 122, 60, 0.2);
   border-radius: 12px;
 }
 
@@ -309,15 +306,15 @@
   justify-content: center;
   font-size: 24px;
   font-weight: 300;
-  color: #c5a6ff;
-  background: rgba(138, 43, 226, 0.15);
+  color: #e8cc8a;
+  background: rgba(160, 122, 60, 0.15);
   border-radius: 50%;
   flex-shrink: 0;
   transition: all 0.3s ease;
 }
 
 .accordion.open .accordionToggle {
-  background: rgba(138, 43, 226, 0.3);
+  background: rgba(160, 122, 60, 0.3);
   transform: rotate(180deg);
 }
 
@@ -354,8 +351,8 @@
 }
 
 .contactCard {
-  background: linear-gradient(135deg, rgba(138, 43, 226, 0.2) 0%, rgba(75, 0, 130, 0.2) 100%);
-  border: 1px solid rgba(138, 43, 226, 0.3);
+  background: linear-gradient(135deg, rgba(160, 122, 60, 0.2) 0%, rgba(75, 0, 130, 0.2) 100%);
+  border: 1px solid rgba(160, 122, 60, 0.3);
   border-radius: 24px;
   padding: 48px 32px;
   text-align: center;
@@ -384,19 +381,19 @@
   align-items: center;
   gap: 8px;
   padding: 14px 32px;
-  background: linear-gradient(135deg, #8a2be2 0%, #9b59b6 100%);
+  background: linear-gradient(135deg, #a07a3c 0%, #9b59b6 100%);
   color: white;
   font-weight: 600;
   font-size: 15px;
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(138, 43, 226, 0.4);
+  box-shadow: 0 4px 16px rgba(160, 122, 60, 0.4);
 }
 
 .contactButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(138, 43, 226, 0.5);
+  box-shadow: 0 8px 24px rgba(160, 122, 60, 0.5);
 }
 
 /* Responsive */

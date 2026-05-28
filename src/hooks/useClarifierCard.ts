@@ -57,6 +57,12 @@ export interface UseClarifierCardOptions {
   lang: LangKey
   /** confirm 직후 LLM 으로 전달할 user 메시지 sender. */
   onSendUserText: (text: string) => void
+  /**
+   * 카드가 picked 된 직후 호출 — onSendUserText 와 별개로 카드 객체 자체를
+   * 전달받아 별도 저장 (예: TarotReading.clarifierCard 컬럼). 옵션이라
+   * 호출처가 필요할 때만 구현.
+   */
+  onCardPicked?: (card: ClarifierCard) => void
   /** 잠금 상태에서 두번째 클릭 시 안내 표시 (예: setNotice / setError). */
   onLockedNotice?: (message: string) => void
   /** 자동 스크롤 hijack 끄기에 쓸 ref. 없으면 무시. */
@@ -97,6 +103,7 @@ export function useClarifierCard(options: UseClarifierCardOptions): UseClarifier
   const {
     lang,
     onSendUserText,
+    onCardPicked,
     onLockedNotice,
     suspendAutoScrollRef,
     suspendDurationMs = 25_000,
@@ -127,10 +134,11 @@ export function useClarifierCard(options: UseClarifierCardOptions): UseClarifier
         }, suspendDurationMs)
       }
       setUsed(true)
+      onCardPicked?.(card)
       const userText = buildClarifierUserMessage(card, lang)
       onSendUserText(userText)
     },
-    [lang, onSendUserText, suspendAutoScrollRef, suspendDurationMs]
+    [lang, onSendUserText, onCardPicked, suspendAutoScrollRef, suspendDurationMs]
   )
 
   const closeModal = useCallback(() => setShowModal(false), [])

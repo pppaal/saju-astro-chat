@@ -90,10 +90,15 @@ interface ChatInputAreaProps {
   onSend: () => void
   onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
   onClearFile?: () => void
-  /** Optional mobile-only chart/tarot triggers — the desktop sidebar
-   *  carries these, but mobile users have no other entry point. */
+  /** Chart/tarot/clarifier triggers — 사이드바에서 제거하고 입력창 도구로
+   *  통일. 모바일/데스크탑 모두 입력창 옆 단일 진입점. */
   onOpenTarot?: () => void
   onOpenChart?: () => void
+  /** 클래리파이어 버튼 props (useClarifierCard 의 buttonProps + buttonLabel). */
+  clarifierButton?: {
+    props: React.ButtonHTMLAttributes<HTMLButtonElement>
+    label: string
+  }
   styles: Record<string, string>
   autoFocus?: boolean
 }
@@ -113,6 +118,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onClearFile,
   onOpenTarot,
   onOpenChart,
+  clarifierButton,
   styles,
   autoFocus = false,
 }: ChatInputAreaProps) {
@@ -204,6 +210,10 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                 <span className={styles.toolLabel}>{lang === 'ko' ? '차트' : 'Chart'}</span>
               </button>
             )}
+            {/* clarifier ("카드 한 장 더 뽑기") 버튼은 input 툴바가 아니라
+                MessagesPanel 의 타로 결과 직후 postAnswerActions 에서 노출
+                — 위치 어색함 피드백 fix. clarifierButton prop 은 호환성을
+                위해 시그니처만 유지하고 렌더링은 안 함. */}
             {parsingPdf && (
               <span className={styles.fileName}>
                 <span className={styles.loadingSpinner} />

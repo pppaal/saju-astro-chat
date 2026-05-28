@@ -204,6 +204,29 @@ function TarotReadingPage() {
     }
   }, [interpretationHook, gameHook, isSaving])
 
+  // 자동 저장 — interpretation 이 도착하면 (그리고 로그인 상태면) 사용자가
+  // 버튼 안 눌러도 1회 POST. 그 다음 클래리파이어 / followup 채팅은
+  // FollowupChat 안의 PATCH 로 같은 row 에 갱신. 운명·궁합 상담사 채팅이
+  // 이미 자동 저장이라 타로만 수동이던 일관성 격차 제거.
+  React.useEffect(() => {
+    if (status !== 'authenticated') return
+    if (interpretationHook.isSaved || isSaving) return
+    if (!gameHook.interpretation || !gameHook.readingResult || !gameHook.spreadInfo) return
+    // interpretation 이 LLM 정상 결과인지 (fallback 아닌지) 한 번 더 확인 —
+    // 정적 fallback 까지 자동 저장하면 사용자가 의도하지 않은 빈 리딩이
+    // 히스토리에 쌓일 위험.
+    if (gameHook.interpretation.fallback === true) return
+    void handleSaveReading()
+  }, [
+    status,
+    interpretationHook.isSaved,
+    isSaving,
+    gameHook.interpretation,
+    gameHook.readingResult,
+    gameHook.spreadInfo,
+    handleSaveReading,
+  ])
+
   const handleReset = () => router.push('/tarot')
 
   // 재시도: ref 를 비워서 useEffect 가 다시 fetchInterpretation 트리거.

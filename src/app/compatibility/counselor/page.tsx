@@ -16,15 +16,12 @@ import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
-import { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
+// InlineTarotModal 은 dynamic 이 아니라 직접 import — 이전엔 dynamic ssr:false
+// 였는데 첫 클릭 시 chunk download 로 모달이 "지지직" 거리며 늦게 떴음.
+// 직접 import 로 즉시 열리게. (~50KB 초기 번들 증가는 수용 — UX 우선.)
+import InlineTarotModal, { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
-  ssr: false,
-})
-
-// 운명상담사와 동일한 InlineTarotModal — 사용자가 질문 적고 스프레드
-// 골라 카드를 펼치는 인터랙티브 흐름. 결과는 채팅 메시지로 inject.
-const InlineTarotModal = dynamic(() => import('@/components/destiny-map/InlineTarotModal'), {
   ssr: false,
 })
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
@@ -657,48 +654,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         desktopStatic
         enableGrouping
         lightTheme
-        footerSlot={
-          <>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              onClick={() => setShowTarotModal(true)}
-              disabled={isLoading || persons.length < 2}
-              title={
-                isKo
-                  ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
-                  : 'See your next question in tarot — pick a spread and draw'
-              }
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'🃏'}
-              </span>
-              {isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot'}
-            </button>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              {...clarifier.buttonProps}
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'🃏'}
-              </span>
-              {clarifier.buttonLabel}
-            </button>
-            <button
-              type="button"
-              className={styles.sidebarFooterBtn}
-              onClick={() => setShowChartModal(true)}
-              disabled={persons.length < 2 || (!person1Saju && !person1Astro)}
-              title={isKo ? '궁합 차트 보기' : 'View couple chart'}
-            >
-              <span className={styles.sidebarFooterBtnIcon} aria-hidden="true">
-                {'✨'}
-              </span>
-              {isKo ? '궁합 차트' : 'Couple chart'}
-            </button>
-          </>
-        }
+        /* 타로/카드 뽑기/궁합차트 버튼은 입력창 도구로 통일 — 사이드바는
+           채팅 목록 전용. (이전엔 사이드바 + 입력창 양쪽에 있어 중복 + 헷갈림.) */
       />
       <div className={styles.mainColumn}>
         {/* Header — locale toggle removed (lives on main / entry page only).
@@ -770,6 +727,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         {/* Chat */}
         <div className={styles.chatWrapper}>
           <div className={styles.messagesContainer}>
+            {/* 에러는 컨테이너 맨 위 — destiny noticeBar 와 같은 패턴.
+                메시지 뒤 인라인이면 사용자가 새 메시지로 가려 못 보던 회귀. */}
+            {error && <div className={styles.errorMessage}>{error}</div>}
             {messages.length === 0 && (
               <div className={styles.emptyState}>
                 <div className={styles.emptyIcon}>{'\u{1F495}'}</div>
@@ -815,7 +775,30 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               )
             })}
 
-            {error && <div className={styles.errorMessage}>{error}</div>}
+            {/* clarifier "카드 한 장 더 뽑기" — input 툴바가 아니라 타로
+                결과 메시지 직후 노출 (운명상담사 MessagesPanel 패턴과 동일).
+                마지막 메시지가 🃏 로 시작하는 타로 결과일 때만 보임. */}
+            {(() => {
+              const last = messages.length > 0 ? messages[messages.length - 1] : null
+              const lastIsTarot =
+                last?.role === 'assistant' && (last?.content || '').trimStart().startsWith('🃏')
+              if (!lastIsTarot || isLoading) return null
+              const cb = clarifier.buttonProps
+              if (cb.disabled) return null
+              return (
+                <div className={styles.postAnswerActions}>
+                  <button
+                    type="button"
+                    onClick={cb.onClick}
+                    className={styles.clarifierActionBtn}
+                    aria-label={clarifier.buttonLabel}
+                  >
+                    <span className={styles.clarifierActionIcon} aria-hidden="true">🃏</span>
+                    {clarifier.buttonLabel}
+                  </button>
+                </div>
+              )
+            })()}
 
             {!isLoading && followUpQuestions.length > 0 && messages.length > 0 && (
               <div className={styles.followUpContainer}>
@@ -911,6 +894,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                   <span className={styles.toolButtonIcon}>✨</span>
                   <span className={styles.toolButtonLabel}>{isKo ? '궁합차트' : 'Chart'}</span>
                 </button>
+                {/* clarifier ("카드 한 장 더 뽑기") 버튼은 입력창 툴바에서
+                    제거 — 타로 결과 직후 보여줘야 자연. MessagesPanel-like
+                    postAnswerActions 영역에서 노출. */}
                 {parsingPdf && (
                   <span className={styles.fileName}>
                     <span className={styles.loadingSpinner} />

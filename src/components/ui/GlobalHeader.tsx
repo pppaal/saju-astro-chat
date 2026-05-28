@@ -72,8 +72,9 @@ function GlobalHeaderContent() {
         <button
           type="button"
           onClick={toggleLocale}
-          className={`text-[#EAE6FF] text-sm font-semibold tracking-wide whitespace-nowrap
-            px-3.5 py-1.5 rounded-[20px] backdrop-blur-md cursor-pointer border-blue-400/40
+          className={`text-[#EAE6FF] text-[13px] font-semibold tracking-wide
+            w-9 h-9 rounded-full backdrop-blur-md cursor-pointer
+            inline-flex items-center justify-center
             ${styles.buttonBase} ${styles.blueButton}`}
           aria-label={localeAriaLabel}
           title={localeAriaLabel}
@@ -92,7 +93,7 @@ function GlobalHeaderSkeleton() {
   return (
     <header className={styles.header} role="banner" aria-busy="true" aria-label="Loading header">
       <div
-        className="min-w-[80px] h-[34px] rounded-[20px] bg-blue-400/10 border border-transparent px-3.5 py-1.5 animate-pulse"
+        className="w-9 h-9 rounded-full bg-blue-400/10 border border-transparent animate-pulse"
         aria-hidden="true"
       />
     </header>

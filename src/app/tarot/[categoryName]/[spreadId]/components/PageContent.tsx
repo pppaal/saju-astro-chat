@@ -29,6 +29,8 @@ export interface PageContentProps {
   isSaving: boolean
   isSaved: boolean
   saveMessage: string
+  /** 자동 저장 후 부여된 서버 readingId — followup / 클래리파이어 PATCH 에 사용. */
+  readingId?: string | null
   isGuestUser: boolean
   signInUrl: string
   handleColorSelect: (color: CardColor) => void
@@ -167,6 +169,7 @@ export function PageContent(props: PageContentProps) {
         isSaving={props.isSaving}
         isSaved={props.isSaved}
         saveMessage={props.saveMessage}
+        readingId={props.readingId ?? null}
         handleSaveReading={props.handleSaveReading}
         handleReset={props.handleReset}
         interpretationFailed={props.interpretationFailed}

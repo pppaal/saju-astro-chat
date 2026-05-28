@@ -50,18 +50,24 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={isKo ? '메뉴 열기' : 'Open menu'}
-        className={`flex flex-col items-center justify-center gap-[5px] w-10 h-10 rounded-full
+        className={`flex flex-col items-center justify-center gap-[4px] w-9 h-9 rounded-full
           backdrop-blur-md cursor-pointer transition-colors
           focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2
           focus-visible:ring-offset-slate-900 ${
             isAuthed
-              ? 'border border-violet-300/45 bg-violet-500/20 hover:bg-violet-500/30 hover:border-violet-300/70 shadow-[0_0_16px_rgba(139,92,246,0.4)]'
-              : 'border border-white/20 bg-black/40 hover:bg-white/10 hover:border-white/40'
+              ? 'bg-violet-500/20 hover:bg-violet-500/30 shadow-[0_0_16px_rgba(139,92,246,0.4)]'
+              : 'bg-black/40 hover:bg-white/10'
           }`}
       >
-        <span className={`block w-4 h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`} />
-        <span className={`block w-4 h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`} />
-        <span className={`block w-4 h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`} />
+        <span
+          className={`block w-[14px] h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`}
+        />
+        <span
+          className={`block w-[14px] h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`}
+        />
+        <span
+          className={`block w-[14px] h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`}
+        />
       </button>
 
       {open && (
@@ -135,7 +141,12 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
               <div className="px-2 pb-2">
                 {isAuthed ? (
                   <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.04] text-white/90">
-                    <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">👤</span>
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex w-5 items-center justify-center"
+                    >
+                      👤
+                    </span>
                     <span className="text-sm truncate">{userName}</span>
                   </div>
                 ) : !loginPanelOpen ? (
@@ -148,7 +159,12 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                       bg-white/[0.04] text-white/90 hover:bg-white/[0.08] cursor-pointer
                       transition-colors text-left"
                   >
-                    <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">🔑</span>
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex w-5 items-center justify-center"
+                    >
+                      🔑
+                    </span>
                     <span className="text-sm">{isKo ? '로그인' : 'Login'}</span>
                   </button>
                 ) : (
@@ -240,7 +256,10 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl
                     text-white/90 hover:bg-white/[0.06] transition-colors"
                 >
-                  <span aria-hidden="true" className="inline-flex w-5 items-center justify-center text-base">
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex w-5 items-center justify-center text-base"
+                  >
                     {service.icon}
                   </span>
                   <span className="text-sm">{isKo ? service.label.ko : service.label.en}</span>
@@ -264,10 +283,10 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                   onClick={close}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/[0.06]"
                 >
-                  <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">🔮</span>
-                  <span className="text-sm">
-                    {isKo ? '타로 리딩 기록' : 'My Tarot Readings'}
+                  <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">
+                    🔮
                   </span>
+                  <span className="text-sm">{isKo ? '타로 리딩 기록' : 'My Tarot Readings'}</span>
                 </Link>
               )}
               <Link
@@ -275,7 +294,9 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                 onClick={close}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/[0.06]"
               >
-                <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">💳</span>
+                <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">
+                  💳
+                </span>
                 <span className="text-sm">{isKo ? '크레딧 충전' : 'Recharge Credits'}</span>
               </Link>
               {isAuthed && (
@@ -288,7 +309,9 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90
                     hover:bg-white/[0.06] cursor-pointer text-left"
                 >
-                  <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">🚪</span>
+                  <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">
+                    🚪
+                  </span>
                   <span className="text-sm">{isKo ? '로그아웃' : 'Logout'}</span>
                 </button>
               )}

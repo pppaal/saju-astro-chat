@@ -532,6 +532,11 @@ interface ResultStepProps {
   questionSummary?: string
   directAnswer?: string
   onDrawAgain: () => void
+  /**
+   * Save 콜백 — 자동 저장 도입 후 manual UI 에선 안 부르지만 prop 으로
+   * 받아두기 (parent 가 api.saveReading 을 전달 중이고, 미래에 명시 저장
+   * UI 부활 시 재사용). 현재 컴포넌트 안에서는 호출 안 함.
+   */
   onSave: () => void
   onComplete: () => void
   onDeeper: () => void
@@ -545,7 +550,7 @@ function ResultStep({
   questionSummary,
   directAnswer,
   onDrawAgain,
-  onSave,
+  onSave: _onSave,
   onComplete,
   onDeeper,
   onRetryInterpret,
@@ -558,8 +563,8 @@ function ResultStep({
     overallMessage,
     guidance,
     affirmation,
-    isSaving,
-    isSaved,
+    // isSaving/isSaved — 자동 저장 통일 후 UI 안 씀. state 객체에 남아있어
+    // 다른 곳(있다면)에선 여전히 reactive. 여기선 destructure 안 함.
     interpretFailed,
   } = state
   const isKo = lang === 'ko'
@@ -642,17 +647,11 @@ function ResultStep({
         ))}
       </div>
 
-      {/* Draw Again & Save Buttons */}
+      {/* Draw Again 버튼 — 자동 저장 도입 후 저장 버튼 + 인디케이터 둘
+          다 제거. 사용자 액션 자리는 "다시 뽑기" 하나만. */}
       <div className={styles.resultTopActions}>
         <button className={styles.drawAgainButton} onClick={onDrawAgain}>
           {tr.drawAgain}
-        </button>
-        <button
-          className={`${styles.saveButton} ${isSaved ? styles.saved : ''}`}
-          onClick={onSave}
-          disabled={isSaving || isSaved}
-        >
-          {isSaving ? '...' : isSaved ? tr.saved : tr.save}
         </button>
       </div>
 

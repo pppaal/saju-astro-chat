@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "postinstall": "prisma generate --config prisma.config.ts",
-    "vercel-build": "prisma generate --config prisma.config.ts && prisma migrate deploy && node scripts/copy-pdf-worker.mjs && next build",
+    "vercel-build": "prisma generate --config prisma.config.ts && node scripts/prisma-migrate-recovery.js && prisma migrate deploy && node scripts/copy-pdf-worker.mjs && next build",
     "dev": "next dev",
     "dev:webpack": "next dev --webpack",
     "build": "node scripts/copy-pdf-worker.mjs && next build",

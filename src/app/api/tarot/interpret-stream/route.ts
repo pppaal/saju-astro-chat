@@ -17,7 +17,8 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { callClaudeStream, isClaudeAvailable, DEFAULT_CLAUDE_MODEL } from '@/lib/llm/claude'
+import { isClaudeAvailable, DEFAULT_CLAUDE_MODEL } from '@/lib/llm/claude'
+import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
 import { buildFallbackPayload, buildInterpretStreamPrompts } from '@/lib/tarot/promptBuild'
 import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
 import {
@@ -306,7 +307,9 @@ export async function POST(req: NextRequest) {
 
     let claudeStream: ReadableStream<string>
     try {
-      claudeStream = await callClaudeStream({
+      // streamClaudeWithContinuation — maxTokens 도달해도 자동 이어쓰기
+      // 라 카드 7장 같은 깊은 해석도 중간에 안 잘림.
+      claudeStream = await streamClaudeWithContinuation({
         systemPrompt,
         userPrompt,
         model: DEFAULT_CLAUDE_MODEL,

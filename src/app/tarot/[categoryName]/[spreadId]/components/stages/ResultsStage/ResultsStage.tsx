@@ -71,6 +71,9 @@ export interface ResultsStageProps {
   isSaving: boolean
   isSaved: boolean
   saveMessage: string
+  /** 서버 저장 후 부여된 ID — FollowupChat 이 PATCH 로 클래리파이어 / 채팅
+   *  turn 을 같은 row 에 추가 저장할 때 사용. null 이면 미저장 상태. */
+  readingId?: string | null
   handleSaveReading: () => Promise<void>
   handleReset: () => void
   interpretationFailed?: boolean
@@ -96,7 +99,7 @@ export function ResultsStage(props: ResultsStageProps) {
     isCardRevealed,
     isSaving,
     isSaved,
-    saveMessage,
+    saveMessage: _saveMessage, // 자동 저장 통일 후 UI 미사용 (호환성 prop 만 유지)
     handleSaveReading,
     handleReset,
     interpretationFailed = false,
@@ -235,18 +238,12 @@ export function ResultsStage(props: ResultsStageProps) {
             interpretation={interpretation}
             userTopic={userTopic}
             language={language}
+            readingId={props.readingId ?? null}
           />
         )}
 
-        {saveMessage && (
-          <div
-            className="rounded-xl bg-slate-900/60 border border-slate-700 px-4 py-3 text-sm text-slate-300"
-            role="status"
-            aria-live="polite"
-          >
-            {saveMessage}
-          </div>
-        )}
+        {/* 자동 저장 도입 후 "저장되었습니다" 토스트 제거 — 별도 표시 없이
+            조용히 저장. ActionButtons 도 같은 결로 인디케이터 없음. */}
 
         <ActionButtons
           language={language}

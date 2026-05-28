@@ -1,79 +1,42 @@
 'use client'
 
 import React from 'react'
-import { Bookmark, RefreshCw, Check, Loader2 } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 
 interface ActionButtonsProps {
   language: string
   isSaved: boolean
   isSaving: boolean
+  /**
+   * 자동 저장으로 통일됐고 인디케이터도 제거 — 현재 컴포넌트에서는 호출 X.
+   * 미래에 명시 저장 UI 부활 시 재사용 가능하도록 prop 만 유지.
+   */
   onSave: () => void
   onReset: () => void
 }
 
+// 자동 저장 도입 후 "저장하기" 버튼 + "자동 저장됨" 인디케이터 둘 다
+// 제거. 운명·궁합 카운슬러 채팅이 별도 표시 없이 자동 저장되는 것과 결을
+// 맞춤. 사용자가 명시적으로 액션 할 거리는 "새로 읽기" 하나뿐.
 export function ActionButtons({
   language,
-  isSaved,
-  isSaving,
-  onSave,
   onReset,
+  // 자동 저장 통일 후 미사용 — 호환성 prop.
+  isSaved: _isSaved,
+  isSaving: _isSaving,
+  onSave: _onSave,
 }: ActionButtonsProps) {
   const isKo = language === 'ko'
 
-  const saveLabel = isSaved
-    ? isKo
-      ? '저장됨'
-      : 'Saved'
-    : isSaving
-      ? isKo
-        ? '저장 중...'
-        : 'Saving...'
-      : isKo
-        ? '저장하기'
-        : 'Save Reading'
-
   return (
-    <div className="space-y-3">
-      <p
-        className={`text-center text-xs ${
-          isSaved ? 'text-slate-500' : 'text-amber-200/80 font-medium'
-        }`}
+    <div className="flex justify-center">
+      <button
+        onClick={onReset}
+        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium text-slate-300 transition-colors"
       >
-        {isSaved
-          ? isKo
-            ? '저장됨 · 내 리딩 보기에서 다시 볼 수 있어요.'
-            : 'Saved · find it anytime in your readings.'
-          : isKo
-            ? '저장해야 「내 리딩 보기」에 남아요. 저장하면 리딩 변화 흐름도 비교할 수 있어요.'
-            : 'Save it to keep it in your readings and compare your pattern over time.'}
-      </p>
-      <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-        <button
-          onClick={onSave}
-          disabled={isSaved || isSaving}
-          className={`inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all ${
-            isSaved
-              ? 'px-6 py-3 text-sm bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 cursor-default'
-              : 'px-8 py-3.5 text-base bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 shadow-[0_0_28px_rgba(245,158,11,0.45)] hover:shadow-[0_0_40px_rgba(245,158,11,0.65)] hover:scale-[1.03] disabled:opacity-60'
-          }`}
-        >
-          {isSaved ? (
-            <Check className="w-4 h-4" />
-          ) : isSaving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Bookmark className="w-5 h-5" />
-          )}
-          {saveLabel}
-        </button>
-        <button
-          onClick={onReset}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium text-slate-300 transition-colors"
-        >
-          <RefreshCw className="w-4 h-4" />
-          {isKo ? '새로 읽기' : 'New Reading'}
-        </button>
-      </div>
+        <RefreshCw className="w-4 h-4" />
+        {isKo ? '새로 읽기' : 'New Reading'}
+      </button>
     </div>
   )
 }

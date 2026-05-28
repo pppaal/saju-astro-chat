@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { MessageCircle, Send, Loader2, Sparkles } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
@@ -19,6 +19,8 @@ interface FollowupChatProps {
   interpretation: InterpretationResult | null
   userTopic: string
   language: string
+  /** 자동 저장된 리딩의 서버 ID. null 이면 미저장 (게스트 등) — PATCH 호출 skip. */
+  readingId?: string | null
 }
 
 type Turn = { role: 'user' | 'assistant'; content: string; pending?: boolean }
@@ -28,6 +30,7 @@ export function FollowupChat({
   interpretation,
   userTopic,
   language,
+  readingId,
 }: FollowupChatProps) {
   const isKo = language === 'ko'
   const [input, setInput] = useState('')
@@ -67,6 +70,39 @@ export function FollowupChat({
     io.observe(el)
     return () => io.disconnect()
   }, [])
+
+  // 저장된 리딩에 followup 채팅 / 클래리파이어 카드를 PATCH 로 추가.
+  // readingId 가 없으면 (게스트 / 저장 실패) skip — 동작 자체엔 영향 없음.
+  // sendBeacon 은 페이지 떠날 때만; 평소엔 fetch.
+  const patchSavedReading = useCallback(
+    async (patch: {
+      clarifierCard?: { name: string; nameKo?: string; isReversed: boolean }
+      followupTurns?: Turn[]
+    }) => {
+      if (!readingId) return
+      const body: Record<string, unknown> = {}
+      if (patch.clarifierCard) body.clarifierCard = patch.clarifierCard
+      if (patch.followupTurns) {
+        // pending placeholder turn 은 빼고 저장 — 빈 assistant content 가
+        // DB 에 남으면 히스토리에 어색하게 보임.
+        body.followupTurns = patch.followupTurns
+          .filter((t) => t.content.trim().length > 0)
+          .map((t) => ({ role: t.role, content: t.content }))
+        if ((body.followupTurns as Turn[]).length === 0) return
+      }
+      if (Object.keys(body).length === 0) return
+      try {
+        await apiFetch(`/api/tarot/save/${readingId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+      } catch (err) {
+        tarotLogger.error('[FollowupChat] PATCH failed', err instanceof Error ? err : undefined)
+      }
+    },
+    [readingId]
+  )
 
   // 본 submit 로직 — 텍스트를 받아 followup 엔드포인트로 보낸다.
   // 키보드/버튼 submit 과 클래리파이어 카드 버튼 둘 다 이 함수를 쓴다.
@@ -111,6 +147,7 @@ export function FollowupChat({
 
       const data = (await response.json()) as { answer?: string }
       const answer = data.answer?.trim() || ''
+      let finalHistory: Turn[] = []
       setHistory((prev) => {
         const copy = [...prev]
         const lastIdx = copy.length - 1
@@ -122,8 +159,12 @@ export function FollowupChat({
               (isKo ? '죄송해요, 다시 한 번 물어봐 주실래요?' : 'Sorry, could you ask that again?'),
           }
         }
+        finalHistory = copy
         return copy
       })
+      // 한 turn 응답 받은 직후 자동 저장 — 저장된 리딩이면 (readingId 있음)
+      // 같은 row 의 followupTurns 컬럼 갱신. 게스트는 readingId 없어 skip.
+      void patchSavedReading({ followupTurns: finalHistory })
     } catch (err) {
       tarotLogger.error('followup failed', err instanceof Error ? err : undefined)
       setHistory((prev) => {
@@ -168,6 +209,17 @@ export function FollowupChat({
       })
       void sendQuestionText(text)
     },
+    // 클래리파이어 카드는 별도 컬럼 (TarotReading.clarifierCard) 에도 저장 —
+    // followup 채팅 turn 안의 이미지 markdown 보다 구조화된 쿼리/통계용 데이터로.
+    onCardPicked: (card) => {
+      void patchSavedReading({
+        clarifierCard: {
+          name: card.name,
+          nameKo: card.nameKo,
+          isReversed: card.isReversed,
+        },
+      })
+    },
     onLockedNotice: setClarifierNotice,
     suspendAutoScrollRef,
     disabled: submitting,
@@ -188,10 +240,7 @@ export function FollowupChat({
       {history.length > 0 && (
         <div className="max-h-80 overflow-y-auto space-y-3 pr-1">
           {history.map((t, i) => (
-            <div
-              key={i}
-              className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+            <div key={i} className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
                 className={`max-w-[88%] rounded-xl px-4 py-2.5 text-[17px] leading-relaxed whitespace-pre-wrap ${
                   t.role === 'user'
