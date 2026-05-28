@@ -13,6 +13,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth/authOptions'
 import { saveConsultation, extractSummary } from '@/lib/consultation/saveConsultation'
 import { sanitizeLocaleText, maskTextWithName } from '@/lib/destiny-map/sanitize'
+import { normalizeGender } from '@/lib/utils/gender'
 import {
   LIMITS,
   isValidDate,
@@ -578,7 +579,11 @@ export const POST = withApiMiddleware(
     // free report renders these as deeper-than-analyzeDestiny content.
     let fusionReport: FortuneReport | null = null
     try {
-      const fusionGender: 'male' | 'female' = gender === 'female' ? 'female' : 'male'
+      // 'F' / 'Female' / 'M' / 'Male' 다 처리 — 기존 `=== 'female'` 패턴은
+      // 정확히 lowercase 'female' 만 매칭, 'F' 한 글자나 'Female' 대문자는
+      // 'male' 로 떨어져 여자 사용자 대운 방향이 거꾸로.
+      const fusionGender: 'male' | 'female' =
+        normalizeGender(gender) === 'female' ? 'female' : 'male'
       const fusionTz = userTimezone || 'Asia/Seoul'
       fusionReport = await runFortune({
         birth: {

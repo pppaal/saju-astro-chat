@@ -18,6 +18,7 @@ import { logger } from '@/lib/logger'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { LOCATION_COORDS, parseBirthDate } from '../lib/helpers'
 import { LIMITS } from '@/lib/validation/patterns'
+import { normalizeGender } from '@/lib/utils/gender'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,7 +73,10 @@ export const GET = withApiMiddleware(
     const interpLang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
 
     try {
-      const sajuGender = gender.toLowerCase() === 'female' ? ('female' as const) : ('male' as const)
+      // 'F' 한 글자도 처리 — 기존 패턴은 'F'→'f' 매칭 실패로 여자 사용자의
+      // 대운 방향이 거꾸로 가던 회귀.
+      const sajuGender: 'male' | 'female' =
+        normalizeGender(gender) === 'female' ? 'female' : 'male'
       const { calculateSajuData } = await import('@/lib/saju/saju')
       const sajuResult = calculateSajuData(
         birthDateParam,

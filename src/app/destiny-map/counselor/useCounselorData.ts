@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { calculateSajuData } from '@/lib/saju/saju'
+import { normalizeGender } from '@/lib/utils/gender'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
 import { logger } from '@/lib/logger'
@@ -100,7 +101,11 @@ export function useCounselorData(sp: SearchParams) {
   const longitude = lonStr ? Number(lonStr) : NaN
   const resolvedLatitude = Number.isFinite(latitude) ? latitude : DEFAULT_LATITUDE
   const resolvedLongitude = Number.isFinite(longitude) ? longitude : DEFAULT_LONGITUDE
-  const normalizedGender = String(effectiveGender).toLowerCase() === 'female' ? 'female' : 'male'
+  // 'F' / 'Female' / 'female' / 'f' / 'M' / 'Male' 다 처리. 기존
+  // `lowercase === 'female'` 패턴은 'F'(한 글자) → 'f' 로 떨어져 매칭 실패
+  // → 여자 사용자가 'male' 로 분류돼 대운 순/역행이 거꾸로 가던 회귀.
+  const normalizedGender: 'male' | 'female' =
+    normalizeGender(effectiveGender) === 'female' ? 'female' : 'male'
 
   // Set locale from URL parameter
   useEffect(() => {
