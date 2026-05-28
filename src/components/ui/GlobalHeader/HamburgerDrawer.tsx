@@ -55,8 +55,8 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
           focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2
           focus-visible:ring-offset-slate-900 ${
             isAuthed
-              ? 'border border-violet-300/45 bg-violet-500/20 hover:bg-violet-500/30 hover:border-violet-300/70 shadow-[0_0_16px_rgba(139,92,246,0.4)]'
-              : 'border border-white/20 bg-black/40 hover:bg-white/10 hover:border-white/40'
+              ? 'bg-violet-500/20 hover:bg-violet-500/30 shadow-[0_0_16px_rgba(139,92,246,0.4)]'
+              : 'bg-black/40 hover:bg-white/10'
           }`}
       >
         <span

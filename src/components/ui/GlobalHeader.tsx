@@ -73,7 +73,7 @@ function GlobalHeaderContent() {
           type="button"
           onClick={toggleLocale}
           className={`text-[#EAE6FF] text-[13px] font-semibold tracking-wide
-            w-9 h-9 rounded-full backdrop-blur-md cursor-pointer border-blue-400/40
+            w-9 h-9 rounded-full backdrop-blur-md cursor-pointer
             inline-flex items-center justify-center
             ${styles.buttonBase} ${styles.blueButton}`}
           aria-label={localeAriaLabel}
