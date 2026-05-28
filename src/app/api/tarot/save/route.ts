@@ -108,7 +108,22 @@ export const POST = withApiMiddleware(
       createData.followupTurns = followupTurns
     }
 
-    const tarotReading = await prisma.tarotReading.create({ data: createData })
+    // P2022 (column not found) defensive retry — 마이그레이션이 prod 에 늦게
+    // 닿는 환경에서 INSERT 자체가 죽으면 사용자 결과가 영영 안 저장됨. 신규
+    // 컬럼(clarifierCard / followupTurns) 만 빼고 한 번 더 시도해서 옛 컬럼
+    // 만으로라도 row 는 생성. Sentry 의 PrismaClientKnownRequestError P2022
+    // 회귀 차단.
+    let tarotReading
+    try {
+      tarotReading = await prisma.tarotReading.create({ data: createData })
+    } catch (err) {
+      const code = (err as { code?: string } | null)?.code
+      if (code !== 'P2022') throw err
+      logger.warn('[TarotSave] new columns missing on DB — retrying without them', { code })
+      delete createData.clarifierCard
+      delete createData.followupTurns
+      tarotReading = await prisma.tarotReading.create({ data: createData })
+    }
 
     return apiSuccess({
       success: true,

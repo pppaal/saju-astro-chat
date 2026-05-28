@@ -128,10 +128,24 @@ export async function PATCH(request: Request, routeContext: RouteContext) {
           updates.followupTurns = bodyValidation.data.followupTurns
         }
 
-        await prisma.tarotReading.update({
-          where: { id: reading.id },
-          data: updates,
-        })
+        try {
+          await prisma.tarotReading.update({
+            where: { id: reading.id },
+            data: updates,
+          })
+        } catch (updateErr) {
+          // P2022 — clarifierCard/followupTurns 컬럼이 prod DB 에 아직 없는
+          // 환경. PATCH 는 정확히 그 두 컬럼만 갱신하는 거라 시도할 게 없음.
+          // 사용자엔 success 로 응답해서 클라가 무한 retry / 에러 토스트 안
+          // 띄우게 한다 (Sentry 에는 warn 으로 남겨 마이그레이션 누락 추적).
+          const code = (updateErr as { code?: string } | null)?.code
+          if (code !== 'P2022') throw updateErr
+          logger.warn('[Tarot PATCH] new columns missing on DB — skip patch (migration pending?)', {
+            readingId: reading.id,
+            fields: Object.keys(updates),
+          })
+          return apiSuccess({ success: true, updated: [], skipped: 'columns_missing' })
+        }
 
         return apiSuccess({ success: true, updated: Object.keys(updates) })
       } catch (error) {
