@@ -8,9 +8,11 @@ import { ENABLED_SERVICES } from '@/config/enabledServices'
 
 interface HamburgerDrawerProps {
   locale: 'en' | 'ko'
+  /** 라이트 페이지 위에 떴을 때 ink 톤으로 전환. 기본값 'dark' (다크 cosmic 페이지). */
+  variant?: 'light' | 'dark'
 }
 
-export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
+export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerProps) {
   const [open, setOpen] = useState(false)
   const [agreed, setAgreed] = useState(false)
   const [loginPanelOpen, setLoginPanelOpen] = useState(false)
@@ -52,21 +54,28 @@ export function HamburgerDrawer({ locale }: HamburgerDrawerProps) {
         aria-label={isKo ? '메뉴 열기' : 'Open menu'}
         className={`flex flex-col items-center justify-center gap-[4px] w-9 h-9 rounded-full
           backdrop-blur-md cursor-pointer transition-colors
-          focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2
-          focus-visible:ring-offset-slate-900 ${
-            isAuthed
-              ? 'bg-violet-500/20 hover:bg-violet-500/30 shadow-[0_0_16px_rgba(139,92,246,0.4)]'
-              : 'bg-black/40 hover:bg-white/10'
+          focus-visible:ring-2 focus-visible:ring-[#a07a3c] focus-visible:ring-offset-2 ${
+            variant === 'light'
+              ? 'bg-white/85 hover:bg-white focus-visible:ring-offset-[#fafaf9] shadow-[0_1px_2px_rgba(28,25,23,0.06)]'
+              : isAuthed
+                ? 'bg-[#a07a3c]/20 hover:bg-[#a07a3c]/30 focus-visible:ring-offset-slate-900 shadow-[0_0_16px_rgba(160,122,60,0.35)]'
+                : 'bg-black/40 hover:bg-white/10 focus-visible:ring-offset-slate-900'
           }`}
       >
         <span
-          className={`block w-[14px] h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`}
+          className={`block w-[14px] h-[2px] rounded ${
+            variant === 'light' ? 'bg-[#1c1917]' : isAuthed ? 'bg-[#e8cc8a]' : 'bg-white'
+          }`}
         />
         <span
-          className={`block w-[14px] h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`}
+          className={`block w-[14px] h-[2px] rounded ${
+            variant === 'light' ? 'bg-[#1c1917]' : isAuthed ? 'bg-[#e8cc8a]' : 'bg-white'
+          }`}
         />
         <span
-          className={`block w-[14px] h-[2px] rounded ${isAuthed ? 'bg-violet-200' : 'bg-white'}`}
+          className={`block w-[14px] h-[2px] rounded ${
+            variant === 'light' ? 'bg-[#1c1917]' : isAuthed ? 'bg-[#e8cc8a]' : 'bg-white'
+          }`}
         />
       </button>
 
