@@ -382,7 +382,10 @@ function DateDropdown({
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className={`${inputClass} flex items-center justify-between text-left`}
+        // w-full 명시 — native <select> 는 form control 기본 동작으로 grid 셀을
+        // 채웠지만 <button> 은 intrinsic width 라 "년 ▾" 만큼만 작게 그려져
+        // 사용자가 셀 빈 공간 탭하면 미스. width:100% 로 셀 전체를 tap 영역으로.
+        className={`${inputClass} flex w-full items-center justify-between text-left`}
       >
         <span style={{ opacity: value === '' ? 0.6 : 1 }}>{display}</span>
         <span aria-hidden="true" style={{ opacity: 0.6, marginLeft: 6 }}>
