@@ -736,16 +736,17 @@
 }
 
 /* Follow-up question chips — shown after each assistant reply when the
-   LLM emits ||FOLLOWUP||[...]. Rose relationship accent on white. */
+   LLM emits ||FOLLOWUP||[...]. 운명상담사 lightTheme 와 동일 — 단순한
+   transparent container 로 답변에 자연스럽게 이어지게. (이전엔 rose/amber
+   gradient 였지만 운명 lightTheme transparent 와 통일.) */
 .followUpContainer {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 16px 20px;
   margin: 8px 0;
-  background: linear-gradient(135deg, rgba(244, 114, 182, 0.06) 0%, rgba(251, 191, 36, 0.05) 100%);
+  background: transparent;
   border-radius: 16px;
-  border: 1px solid rgba(244, 114, 182, 0.18);
   animation: followUpSlideUp 0.4s ease-out;
 }
 
@@ -786,7 +787,11 @@
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
+  /* 운명상담사와 동일 — 좁은 모바일에서 한 줄에 안 맞으면 자연스럽게
+     줄바꿈. nowrap 으로 두면 긴 후속질문이 잘려서 사용자한테 안 보임. */
+  white-space: normal;
+  word-break: break-word;
+  text-align: left;
 }
 
 .followUpChip:hover {
