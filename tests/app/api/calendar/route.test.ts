@@ -199,42 +199,6 @@ vi.mock('@/lib/api/ApiClient', () => ({
   },
 }))
 
-vi.mock('@/lib/destiny-matrix/core/buildCalendarCoreEnvelope', () => ({
-  buildCalendarCoreEnvelope: vi.fn(() => ({
-    normalizedInput: {},
-    matrixReport: {},
-    matrix: {
-      summary: {
-        calendarSignals: [],
-        overlapTimeline: [],
-        overlapTimelineByDomain: {},
-        timingCalibration: null,
-        domainScores: {},
-      },
-    },
-    coreSeed: {
-      availability: {},
-      quality: {
-        score: 0.92,
-        grade: 'high',
-        dataQuality: { missingFields: [], derivedFields: [] },
-      },
-      patterns: [
-        {
-          id: 'pattern-1',
-          label: 'Career timing support',
-          score: 0.88,
-          confidence: 0.82,
-          domains: ['career'],
-          activationReason: 'mock activation',
-        },
-      ],
-      signalSynthesis: {},
-      strategyEngine: {},
-    },
-  })),
-}))
-
 vi.mock('@/lib/destiny-matrix/core/adapters', () => ({
   adaptCoreToCalendar: vi.fn(() => ({
     coreHash: 'calendar-core-hash',
