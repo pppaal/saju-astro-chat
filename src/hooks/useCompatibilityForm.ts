@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getUserTimezone } from '@/lib/saju/timezone'
 import { formatCityForDropdown, localizeStoredCity } from '@/lib/cities/formatter'
 import type { PersonForm, CityItem, Relation } from '@/app/compatibility/lib'
-import { makeEmptyPerson } from '@/app/compatibility/lib'
+import { makeEmptyPerson, getLatestPair } from '@/app/compatibility/lib'
 import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 
 export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'en' = 'ko') {
@@ -12,25 +12,67 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
     makeEmptyPerson({ name: '', relation: 'lover' }),
   ])
 
-  // Auto-fill Person 1 from the home birth-info storage so the user
-  // doesn't have to retype info they already entered. Only fills empty
-  // fields — never overwrites manual edits.
+  // 자동 채움 우선순위: (1) 직전에 본 페어(localStorage) > (2) 홈 birth-info
+  // > (3) 빈 상태. 사용자가 카드를 한 번이라도 만졌으면(date 입력) 어떤
+  // 자동 채움도 덮어쓰지 않는다.
+  //
+  // 페어 자동 채움이 우선인 이유: 궁합은 같은 두 사람을 반복해서 보는
+  // 케이스가 압도적이라 매번 두 카드 다 다시 입력하는 게 번거롭다는 피드백.
   useEffect(() => {
+    const latest = getLatestPair()
     const home = getStoredBirthInfo()
-    if (!home?.birthDate) return
+    if (!latest && !home?.birthDate) return
+
     setPersons((prev) => {
-      const p1 = prev[0]
-      if (p1.date) return prev // already set, don't clobber
+      // 사용자 이미 만진 경우 → 어떤 자동 채움도 X.
+      if (prev[0]?.date || prev[1]?.date) return prev
+
       const next = [...prev]
-      next[0] = {
-        ...p1,
-        // 메인페이지 BirthInfoModal 에서 등록한 이름이 있으면 자동 채움.
-        // 없을 땐 빈 칸 유지(사용자 직접 입력) — 절대 덮어쓰지 않는다.
-        name: p1.name || home.name || '',
-        date: home.birthDate,
-        time: home.birthTime || '',
-        gender: home.gender === 'female' ? 'F' : 'M',
-        cityQuery: home.city ? localizeStoredCity(home.city, locale) : p1.cityQuery,
+
+      // (1) localStorage 페어 — 두 카드 동시에.
+      if (latest) {
+        const mapRel = (rel?: string): Relation | undefined => {
+          if (!rel) return undefined
+          if (rel === 'partner' || rel === 'lover') return 'lover'
+          if (rel === 'spouse') return 'spouse'
+          if (rel === 'family') return 'family'
+          if (rel === 'sibling') return 'sibling'
+          if (rel === 'friend') return 'friend'
+          if (rel === 'colleague') return 'colleague'
+          return 'other'
+        }
+        for (let i = 0; i < 2; i++) {
+          const src = latest.persons[i]
+          if (!src || !next[i]) continue
+          next[i] = {
+            ...next[i],
+            name: src.name,
+            date: src.date,
+            time: src.time,
+            gender: src.gender,
+            cityQuery: src.cityQuery
+              ? localizeStoredCity(src.cityQuery, locale)
+              : next[i].cityQuery,
+            lat: src.lat,
+            lon: src.lon,
+            timeZone: src.timeZone || getUserTimezone() || 'Asia/Seoul',
+            relation: i > 0 ? mapRel(src.relation) : undefined,
+            timeUnknown: src.timeUnknown,
+          }
+        }
+        return next
+      }
+
+      // (2) home birth-info — person 1 만.
+      if (home?.birthDate && next[0]) {
+        next[0] = {
+          ...next[0],
+          name: next[0].name || home.name || '',
+          date: home.birthDate,
+          time: home.birthTime || '',
+          gender: home.gender === 'female' ? 'F' : 'M',
+          cityQuery: home.city ? localizeStoredCity(home.city, locale) : next[0].cityQuery,
+        }
       }
       return next
     })
