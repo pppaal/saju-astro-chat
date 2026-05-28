@@ -1,31 +1,51 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react'
 
 export default function OfflinePage() {
-  const [isOnline, setIsOnline] = useState(false);
+  const [isOnline, setIsOnline] = useState(false)
+  // Track the pending auto-redirect so a flaky network that drops out
+  // again within the 1s grace period cancels the navigation instead of
+  // landing the user on /  with no connection.
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    setIsOnline(navigator.onLine);
+    setIsOnline(navigator.onLine)
+
+    const cancelPendingRedirect = () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current)
+        redirectTimerRef.current = null
+      }
+    }
 
     const handleOnline = () => {
-      setIsOnline(true);
-      // Auto-redirect when back online
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 1000);
-    };
+      setIsOnline(true)
+      // Don't stack timers if `online` fires repeatedly on a flaky
+      // connection — clear the previous redirect first.
+      cancelPendingRedirect()
+      redirectTimerRef.current = setTimeout(() => {
+        redirectTimerRef.current = null
+        window.location.href = '/'
+      }, 1000)
+    }
 
-    const handleOffline = () => setIsOnline(false);
+    const handleOffline = () => {
+      setIsOnline(false)
+      // Cancel the pending redirect; the user is offline again so '/'
+      // would just fail silently.
+      cancelPendingRedirect()
+    }
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+      cancelPendingRedirect()
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col items-center justify-center p-6 text-center">
@@ -89,5 +109,5 @@ export default function OfflinePage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
