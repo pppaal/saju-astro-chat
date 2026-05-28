@@ -1,0 +1,105 @@
+/* 인라인 인물 picker 모달 — counselor 안에서 두 사람 입력 받기 전용.
+   /compatibility 별도 입력 페이지를 대체. */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 200;
+  overflow-y: auto;
+  animation: pickerFadeIn 0.18s ease-out;
+}
+
+@keyframes pickerFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  width: min(720px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  padding: 22px 24px 8px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ds-light-text);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.modalSubtitle {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: var(--ds-light-text-muted);
+}
+
+.modalBody {
+  padding: 12px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notice {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.hint {
+  border: 1px solid #e7e4df;
+  background: #fcfbfa;
+  color: #57534e;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .scrim {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .modal {
+    border-radius: 0;
+    max-height: 100dvh;
+    width: 100%;
+    box-shadow: none;
+  }
+
+  .modalHeader {
+    padding: 14px 16px 6px;
+  }
+
+  .modalBody {
+    padding: 8px 14px 18px;
+  }
+}
