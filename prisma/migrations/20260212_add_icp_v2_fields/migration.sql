@@ -1,4 +1,4 @@
-﻿-- Add ICP v2 metadata fields
+-- Add ICP v2 metadata fields
 ALTER TABLE "ICPResult"
   ADD COLUMN IF NOT EXISTS "testVersion" TEXT NOT NULL DEFAULT 'icp_v2',
   ADD COLUMN IF NOT EXISTS "resultId" TEXT,
