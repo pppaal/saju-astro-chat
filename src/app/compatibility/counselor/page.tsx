@@ -825,18 +825,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               />
             )}
 
-            {/* 도구 안내 — 첫 assistant 답변 후 user 턴 3회까지만 1회 노출.
-                도구 사용 또는 × 누르면 영구 dismiss (localStorage). */}
+            {/* 도구 안내 — 첫 답변(turn 1) 에만 1회 노출. turn 2+ 자동 X.
+                "다시 안 보기" 또는 도구 사용 시 영구 dismiss (localStorage).
+                이전엔 turn 1~3 까지 매번 노출이라 이미 아는 사용자한테
+                반복 노출 짜증 — 1회로 축소. */}
             {(() => {
               const userTurns = messages.filter((m) => m.role === 'user').length
               const hasAssistantAnswer = messages.some((m) => m.role === 'assistant')
-              if (
-                toolHintDismissed ||
-                isLoading ||
-                !hasAssistantAnswer ||
-                userTurns === 0 ||
-                userTurns > 3
-              ) {
+              if (toolHintDismissed || isLoading || !hasAssistantAnswer || userTurns !== 1) {
                 return null
               }
               return (

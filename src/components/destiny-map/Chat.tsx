@@ -543,15 +543,10 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onOpenClarifier={clarifier.buttonProps.onClick}
               clarifierUsed={clarifier.isLocked}
               showToolHint={(() => {
+                // turn 1 에만 1회 노출. 이전 1~3 turn 매번 노출은 짜증 → 1회 축소.
                 const userTurns = visibleMessages.filter((m) => m.role === 'user').length
                 const hasAssistantAnswer = visibleMessages.some((m) => m.role === 'assistant')
-                return (
-                  !toolHintDismissed &&
-                  !loading &&
-                  hasAssistantAnswer &&
-                  userTurns >= 1 &&
-                  userTurns <= 3
-                )
+                return !toolHintDismissed && !loading && hasAssistantAnswer && userTurns === 1
               })()}
               onDismissToolHint={dismissToolHint}
             />
