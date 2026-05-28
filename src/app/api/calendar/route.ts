@@ -42,6 +42,7 @@ export const dynamic = 'force-dynamic'
 import { LIMITS } from '@/lib/validation/patterns'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 import { getUserDisplayName } from '@/lib/user/displayName'
+import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 // HTTP_STATUS not used directly, status codes used via createErrorResponse
 const _VALID_CALENDAR_PLACES = new Set(Object.keys(LOCATION_COORDS))
 const MAX_PLACE_LEN = LIMITS.PLACE
@@ -712,15 +713,20 @@ export const GET = withApiMiddleware(
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
         if (cell.matchedPatterns.length > 0) {
-          d.matchedPatterns = cell.matchedPatterns.map((p) => ({
-            id: p.id,
-            name: p.name,
-            themes: p.themes,
-            strength: p.strength,
-            description: p.description,
-            headline: p.headline,
-            action: p.action,
-          }))
+          const { PATTERN_I18N_EN } = await import('@/lib/calendar-engine/derivers/patternsI18n')
+          const useEn = locale === 'en'
+          d.matchedPatterns = cell.matchedPatterns.map((p) => {
+            const en = useEn ? PATTERN_I18N_EN[p.id] : undefined
+            return {
+              id: p.id,
+              name: en?.name ?? p.name,
+              themes: p.themes,
+              strength: p.strength,
+              description: p.description,
+              headline: en?.headline ?? p.headline,
+              action: p.action,
+            }
+          })
         }
         // engineSignals 완전 제거 — UI 사용처는 DailyHourlyChart 의 hourly layer 만,
         // 그것마저 fusion.hourly.slots (useDateDetail 이 선택 일자에 제공) 로 대체.
@@ -869,8 +875,41 @@ export const GET = withApiMiddleware(
         place: birthPlace,
       },
       allDates: formattedDates,
-      // 그 달 narrative — top-level 1개로 dedupe (이전 365 copies 회귀 fix)
-      monthlyInterpretation: monthlyInterp,
+      // 그 달 narrative — top-level 1개로 dedupe (이전 365 copies 회귀 fix).
+      // EN locale 이면 themeBreakdown 라벨 + convergence keyDays 의 신호명 영문 swap.
+      monthlyInterpretation: (() => {
+        if (!monthlyInterp || locale !== 'en') return monthlyInterp
+        const next = { ...monthlyInterp }
+        if (next.themeBreakdown) {
+          next.themeBreakdown = Object.fromEntries(
+            Object.entries(next.themeBreakdown).map(([theme, items]) => [
+              theme,
+              items?.map((it) => ({ ...it, label: translateSignalLabel(it.label, 'en') })),
+            ])
+          ) as typeof next.themeBreakdown
+        }
+        if (next.convergence?.keyDays) {
+          next.convergence = {
+            ...next.convergence,
+            keyDays: next.convergence.keyDays.map((d) => ({
+              ...d,
+              astro: d.astro.map((sig) => translateSignalLabel(sig, 'en')),
+              saju: d.saju.map((sig) => translateSignalLabel(sig, 'en')),
+            })),
+          }
+        }
+        if (next.yearlyConvergence?.keyDays) {
+          next.yearlyConvergence = {
+            ...next.yearlyConvergence,
+            keyDays: next.yearlyConvergence.keyDays.map((d) => ({
+              ...d,
+              astro: d.astro.map((sig) => translateSignalLabel(sig, 'en')),
+              saju: d.saju.map((sig) => translateSignalLabel(sig, 'en')),
+            })),
+          }
+        }
+        return next
+      })(),
       monthSummary: presentationView.monthSummary,
       calendarDailyView: presentationView.dailyView,
       calendarMonthView: presentationView.monthView,

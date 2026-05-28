@@ -11,11 +11,21 @@ import type { NatalContext } from '../context/types'
 import { getGongmang } from '@/lib/saju/pillarLookup'
 
 const ZH_TO_KO_BRANCH: Record<string, string> = {
-  子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사',
-  午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
+  子: '자',
+  丑: '축',
+  寅: '인',
+  卯: '묘',
+  辰: '진',
+  巳: '사',
+  午: '오',
+  未: '미',
+  申: '신',
+  酉: '유',
+  戌: '술',
+  亥: '해',
 }
 const KO_TO_ZH_BRANCH: Record<string, string> = Object.fromEntries(
-  Object.entries(ZH_TO_KO_BRANCH).map(([z, k]) => [k, z]),
+  Object.entries(ZH_TO_KO_BRANCH).map(([z, k]) => [k, z])
 )
 
 export interface V2DateDetailResponse {
@@ -83,10 +93,11 @@ export interface BuildDateDetailInput {
   hourlyCells: CalendarCell[]
   date: string
   birthYear: number
+  lang?: 'ko' | 'en'
 }
 
 export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDetailResponse {
-  const { natal, dayCell, hourlyCells, date, birthYear } = input
+  const { natal, dayCell, hourlyCells, date, birthYear, lang = 'ko' } = input
 
   return {
     date,
@@ -99,7 +110,7 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
     currentDaeun: buildCurrentDaeun(natal, date, birthYear),
     natalAngles: buildNatalAngles(natal),
     sajuExtras: buildSajuExtras(natal),
-    shinsalActive: buildShinsalActive(dayCell),
+    shinsalActive: buildShinsalActive(dayCell, lang),
     gongmangStatus: buildGongmangStatus(natal, dayCell),
   }
 }
@@ -108,7 +119,10 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
 // fusion — overall + domain × saju/astro 축 분리 + hourly + advice
 // ──────────────────────────────────────────────────────────────────────
 
-function buildFusion(dayCell: CalendarCell, hourlyCells: CalendarCell[]): V2DateDetailResponse['fusion'] {
+function buildFusion(
+  dayCell: CalendarCell,
+  hourlyCells: CalendarCell[]
+): V2DateDetailResponse['fusion'] {
   const overallScore = Math.round(dayCell.derivedScore)
   const domainScores: Record<string, number> = {}
   for (const [theme, score] of Object.entries(dayCell.themeScores)) {
@@ -119,8 +133,12 @@ function buildFusion(dayCell: CalendarCell, hourlyCells: CalendarCell[]): V2Date
   const domainCross: V2DateDetailResponse['fusion']['domainCross'] = []
   const themesInPlay = Object.keys(dayCell.themeScores)
   for (const theme of themesInPlay) {
-    const sajuSigs = dayCell.signals.filter((s) => s.source === 'saju' && s.themes.includes(theme as never))
-    const astroSigs = dayCell.signals.filter((s) => s.source === 'astro' && s.themes.includes(theme as never))
+    const sajuSigs = dayCell.signals.filter(
+      (s) => s.source === 'saju' && s.themes.includes(theme as never)
+    )
+    const astroSigs = dayCell.signals.filter(
+      (s) => s.source === 'astro' && s.themes.includes(theme as never)
+    )
     domainCross.push({
       theme: mapThemeToLegacy(theme),
       sajuScore: scoreFromSignals(sajuSigs),
@@ -192,7 +210,9 @@ function scoreFromSignals(sigs: ActiveSignal[]): number {
 
 function summarizeSignals(sigs: ActiveSignal[]): string {
   if (sigs.length === 0) return ''
-  const top = [...sigs].sort((a, b) => Math.abs(b.polarity) * b.weight - Math.abs(a.polarity) * a.weight)[0]
+  const top = [...sigs].sort(
+    (a, b) => Math.abs(b.polarity) * b.weight - Math.abs(a.polarity) * a.weight
+  )[0]
   return top.korean || top.name
 }
 
@@ -277,8 +297,14 @@ function buildSajuExtras(natal: NatalContext): V2DateDetailResponse['sajuExtras'
   const fiveElements: Record<string, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
   const pillars = natal.saju.pillars
   for (const p of [pillars.year, pillars.month, pillars.day, pillars.time]) {
-    const stemSibsin = typeof p.heavenlyStem.sibsin === 'string' ? p.heavenlyStem.sibsin : String(p.heavenlyStem.sibsin)
-    const branchSibsin = typeof p.earthlyBranch.sibsin === 'string' ? p.earthlyBranch.sibsin : String(p.earthlyBranch.sibsin)
+    const stemSibsin =
+      typeof p.heavenlyStem.sibsin === 'string'
+        ? p.heavenlyStem.sibsin
+        : String(p.heavenlyStem.sibsin)
+    const branchSibsin =
+      typeof p.earthlyBranch.sibsin === 'string'
+        ? p.earthlyBranch.sibsin
+        : String(p.earthlyBranch.sibsin)
     if (stemSibsin) tenGodCounts[stemSibsin] = (tenGodCounts[stemSibsin] || 0) + 1
     if (branchSibsin) tenGodCounts[branchSibsin] = (tenGodCounts[branchSibsin] || 0) + 1
     fiveElements[p.heavenlyStem.element] = (fiveElements[p.heavenlyStem.element] || 0) + 1
@@ -300,7 +326,11 @@ function buildSajuExtras(natal: NatalContext): V2DateDetailResponse['sajuExtras'
 // currentDaeun — 현재 나이로 매칭
 // ──────────────────────────────────────────────────────────────────────
 
-function buildCurrentDaeun(natal: NatalContext, date: string, birthYear: number): V2DateDetailResponse['currentDaeun'] {
+function buildCurrentDaeun(
+  natal: NatalContext,
+  date: string,
+  birthYear: number
+): V2DateDetailResponse['currentDaeun'] {
   const year = parseInt(date.slice(0, 4), 10)
   const age = year - birthYear
   const list = natal.saju.daeun
@@ -321,16 +351,71 @@ function buildCurrentDaeun(natal: NatalContext, date: string, birthYear: number)
 // shinsalActive — 그 날 발동된 신살
 // ──────────────────────────────────────────────────────────────────────
 
-function buildShinsalActive(dayCell: CalendarCell): V2DateDetailResponse['shinsalActive'] {
+// 신살 KO → EN 사전 — 대표 신살만. 못 찾은 것은 KO 그대로 (graceful).
+const SHINSAL_EN: Record<string, string> = {
+  도화: 'Romance star',
+  천을귀인: 'Heavenly nobleman',
+  역마: 'Wanderer star',
+  화개: 'Solitary scholar',
+  양인: 'Yang blade',
+  백호: 'White tiger',
+  괴강: 'Magnetic axis',
+  천덕귀인: 'Heavenly virtue noble',
+  월덕귀인: 'Lunar virtue noble',
+  공망: 'Empty void',
+  길성: 'Lucky star',
+  흉성: 'Unlucky star',
+  망신: 'Loss-of-face star',
+  겁살: 'Robbery star',
+  재살: 'Calamity star',
+  천살: 'Heavenly killing',
+  월살: 'Monthly killing',
+  지살: 'Earthly star',
+  장성: 'General star',
+  반안: 'Saddle bearer',
+  육해: 'Six harms',
+  화해: 'Conflict harm',
+  년살: 'Annual blade',
+  현침: 'Hidden needle',
+  고신: 'Lonely widower',
+  문창: 'Literary brilliance',
+  문곡: 'Literary refinement',
+  천의성: 'Healing star',
+  학당귀인: 'Scholar nobleman',
+  홍염살: 'Crimson flame',
+  천라지망: 'Heaven-earth net',
+  원진: 'Resentment',
+  천주귀인: 'Pillar nobleman',
+  암록: 'Hidden prosperity',
+  건록: 'Established prosperity',
+  제왕: 'Emperor',
+  삼재: 'Three calamities',
+  태극귀인: 'Tai-chi nobleman',
+  금여성: 'Golden chariot',
+  천문성: 'Heaven gate',
+  귀문관: 'Spirit gate',
+  괘살: 'Suspended killing',
+  '천을 귀인': 'Heavenly nobleman',
+}
+const TYPE_EN: Record<string, string> = {
+  길신: 'Auspicious',
+  흉신: 'Inauspicious',
+}
+
+function buildShinsalActive(
+  dayCell: CalendarCell,
+  lang: 'ko' | 'en' = 'ko'
+): V2DateDetailResponse['shinsalActive'] {
   const result: V2DateDetailResponse['shinsalActive'] = []
   for (const s of dayCell.signals) {
     if (s.source !== 'saju' || s.kind !== 'shinsal') continue
     const d = s.evidence.detail as Record<string, unknown>
-    const name = (d.shinsalName as string) || s.name || ''
-    if (!name) continue
+    const koName = (d.shinsalName as string) || s.name || ''
+    if (!koName) continue
+    const koType = (d.type as string) || '길신'
     result.push({
-      name,
-      type: (d.type as string) || '길신',
+      name: lang === 'en' ? (SHINSAL_EN[koName] ?? koName) : koName,
+      type: lang === 'en' ? (TYPE_EN[koType] ?? koType) : koType,
       affectedArea: (d.affectedArea as string) || '',
     })
   }
@@ -341,10 +426,14 @@ function buildShinsalActive(dayCell: CalendarCell): V2DateDetailResponse['shinsa
 // gongmangStatus — 본명 일주 기반 공망 지지가 그 날 시지/일지에 걸리는지
 // ──────────────────────────────────────────────────────────────────────
 
-function buildGongmangStatus(natal: NatalContext, dayCell: CalendarCell): V2DateDetailResponse['gongmangStatus'] {
+function buildGongmangStatus(
+  natal: NatalContext,
+  dayCell: CalendarCell
+): V2DateDetailResponse['gongmangStatus'] {
   const dayStem = natal.saju.pillars.day.heavenlyStem.name
   const dayBranch = natal.saju.pillars.day.earthlyBranch.name
-  const dayPillar = (KO_TO_ZH_BRANCH[dayStem] ?? dayStem) + (KO_TO_ZH_BRANCH[dayBranch] ?? dayBranch)
+  const dayPillar =
+    (KO_TO_ZH_BRANCH[dayStem] ?? dayStem) + (KO_TO_ZH_BRANCH[dayBranch] ?? dayBranch)
   const gongmang = getGongmang(dayPillar) ?? []
   if (gongmang.length === 0) return { isAffected: false, areas: [] }
   const koGongmang = gongmang.map((b) => ZH_TO_KO_BRANCH[b] ?? b)
