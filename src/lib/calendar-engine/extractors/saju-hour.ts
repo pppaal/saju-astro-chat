@@ -1,8 +1,9 @@
-import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS, TIME_STEM_LOOKUP } from '@/lib/saju/constants'
+import { STEMS, BRANCHES, TIME_STEM_LOOKUP } from '@/lib/saju/constants'
 import { computeDayStem } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
 import { HOUR_BRANCH_NARRATIVE, pickHourNarrative } from '../data/hourBranchNarrative'
+import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
 
 /**
  * 사주 시주(時柱) 추출기 — 24시간 변별력 확보.
@@ -144,24 +145,6 @@ function pillarToStemInfo(stemName: string): StemInfo | null {
   return found ? (found as StemInfo) : null
 }
 
-function getSibsin(dayMaster: StemInfo, target: StemInfo): SibsinKind | null {
-  if (dayMaster.element === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '식신' : '상관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편재' : '정재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편관' : '정관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편인' : '정인'
-  }
-  return null
-}
 
 function polarityFromYongsin(
   element: FiveElement,
