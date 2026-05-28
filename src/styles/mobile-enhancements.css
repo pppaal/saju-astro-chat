@@ -619,7 +619,7 @@
 @media (max-width: 768px) {
   /* Ensure focus states are visible on mobile */
   *:focus-visible {
-    outline: 3px solid #7c5cff !important;
+    outline: 3px solid #d4b572 !important;
     outline-offset: 3px !important;
   }
 
