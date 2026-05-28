@@ -10,16 +10,12 @@ import type {
 } from '@/lib/destiny-map/destinyCalendar'
 import type { TranslationData } from '@/types/calendar-api'
 import type { PillarData } from '@/lib/saju/types'
-// matrixEvidencePacket 제거 — packet 항상 null. type 도 inline unknown.
-type CalendarMatrixEvidencePacketMap = Record<string, unknown>
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
 import {
   isAlignedAcrossSystems,
-  isDefensivePhaseLabel,
   isLowCoherenceSignal,
   sanitizeCalendarCopy,
 } from './calendarMatrixTextSupport'
-import type { MatrixCalendarContext } from './calendarMatrixTextSupport'
 import { getFactorTranslation } from './translations'
 import {
   COMMUNICATION_WARNING_TOKENS as CALENDAR_COMMUNICATION_WARNING_TOKENS,
@@ -29,17 +25,13 @@ import {
   resolveRecommendationTranslation,
   resolveWarningTranslation,
 } from './calendarRecommendationSupport'
-import {
-  GRADE_THRESHOLDS,
-  EVIDENCE_CONFIDENCE_THRESHOLDS,
-} from '@/lib/destiny-map/calendar/scoring-config'
+import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
 import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLanguage'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 export { generateBestTimes, generateSummary } from './calendarSummarySupport'
 import { generateBestTimes, generateSummary } from './calendarSummarySupport'
 import {
   applyMatrixDisplayScoreBias,
-  attachMatrixVerdict,
   buildCrossEvidenceBundle,
   buildMatrixFirstDescription,
   buildMatrixFirstRecommendations,
@@ -52,7 +44,6 @@ import {
   buildMatrixStrictWarnings,
   clampDisplayScore,
   getEffectiveGradeFromDisplayScore,
-  selectMatrixPacketForDate,
 } from './calendarMatrixEvidenceSupport'
 import { dedupeTexts } from './textDedupe'
 
@@ -388,91 +379,14 @@ function buildEnhancedWarnings(
     .map((text) => normalizeUserFacingGuidance(text, lang))
 }
 
-export function applyMatrixPreformatRegrade(
-  date: ImportantDate,
-  matrixContext?: MatrixCalendarContext,
-  matrixEvidencePackets?: CalendarMatrixEvidencePacketMap
-): ImportantDate {
-  if (!matrixContext) return date
-  const uniqueCategories = [...new Set(date.categories)]
-  const matrixOverlay = buildMatrixOverlay(
-    date.date,
-    matrixContext || null,
-    uniqueCategories,
-    'en',
-    date.grade,
-    date.confidence,
-    date.crossAgreementPercent,
-    {},
-    isLowCoherenceSignal
-  )
-  const matrixPacket = selectMatrixPacketForDate({
-    categories: uniqueCategories,
-    evidenceDomain: matrixOverlay.evidence.matrix.domain,
-    packets: matrixEvidencePackets,
-  })
-  const evidenceWithVerdict = attachMatrixVerdict(matrixOverlay.evidence, matrixPacket)
-  const baseDisplayScore = date.displayScore ?? date.adjustedScore ?? date.score
-  const displayScore = applyMatrixDisplayScoreBias({
-    baseScore: baseDisplayScore,
-    evidence: evidenceWithVerdict,
-  })
-  const confidence = evidenceWithVerdict.confidence ?? 0
-  const peakLevel = evidenceWithVerdict.matrix?.peakLevel ?? 'normal'
-  const overlapStrength = evidenceWithVerdict.matrix?.overlapStrength ?? 0
-  const shouldRegrade =
-    confidence >= EVIDENCE_CONFIDENCE_THRESHOLDS.medium ||
-    peakLevel === 'peak' ||
-    (peakLevel === 'high' && overlapStrength >= 0.6)
-  if (!shouldRegrade) return date
-
-  const phaseLabel = evidenceWithVerdict.matrixVerdict?.phase || ''
-  const attackPercent = evidenceWithVerdict.matrixVerdict?.attackPercent ?? 50
-  let effectiveGrade = getEffectiveGradeFromDisplayScore(displayScore)
-  if (effectiveGrade === 0 && date.grade > 0) {
-    const strongBestSignal = confidence >= 85 && (peakLevel === 'peak' || overlapStrength >= 0.75)
-    if (!strongBestSignal) {
-      effectiveGrade = 1
-    }
-  }
-  if (effectiveGrade < date.grade - 1) {
-    effectiveGrade = (date.grade - 1) as ImportanceGrade
-  } else if (effectiveGrade > date.grade + 1) {
-    effectiveGrade = (date.grade + 1) as ImportanceGrade
-  }
-
-  const highGradePhaseConflict =
-    effectiveGrade <= 1 &&
-    isDefensivePhaseLabel(phaseLabel) &&
-    attackPercent <= 58 &&
-    confidence < EVIDENCE_CONFIDENCE_THRESHOLDS.medium
-
-  if (highGradePhaseConflict) {
-    effectiveGrade = 1
-  }
-
-  const scoreAfterPhaseAlignment = highGradePhaseConflict
-    ? Math.min(displayScore, GRADE_THRESHOLDS.grade0 - 1)
-    : displayScore
-
-  return {
-    ...date,
-    categories: uniqueCategories,
-    rawScore: date.rawScore ?? date.score,
-    adjustedScore: scoreAfterPhaseAlignment,
-    displayScore: scoreAfterPhaseAlignment,
-    score: scoreAfterPhaseAlignment,
-    grade: effectiveGrade,
-  }
-}
+// applyMatrixPreformatRegrade: matrix context 항상 null 이라 함수 즉시 return date.
+// 제거됨 (route.ts 호출 제거 + 함수 정의 제거).
 
 export function formatDateForResponse(
   date: ImportantDate,
   locale: string,
   koTranslations: TranslationData,
-  enTranslations: TranslationData,
-  matrixContext?: MatrixCalendarContext,
-  matrixEvidencePackets?: CalendarMatrixEvidencePacketMap
+  enTranslations: TranslationData
 ): FormattedDate {
   const translations = locale === 'ko' ? koTranslations : enTranslations
   const lang = locale === 'ko' ? 'ko' : 'en'
@@ -561,7 +475,7 @@ export function formatDateForResponse(
   )
   const matrixOverlay = buildMatrixOverlay(
     date.date,
-    matrixContext || null,
+    null,
     uniqueCategories,
     lang,
     date.grade,
@@ -570,12 +484,8 @@ export function formatDateForResponse(
     crossEvidence,
     isLowCoherenceSignal
   )
-  const matrixPacket = selectMatrixPacketForDate({
-    categories: uniqueCategories,
-    evidenceDomain: matrixOverlay.evidence.matrix.domain,
-    packets: matrixEvidencePackets,
-  })
-  const evidenceWithVerdict = attachMatrixVerdict(matrixOverlay.evidence, matrixPacket)
+  // matrix packet 항상 null → attachMatrixVerdict noop → evidence 그대로.
+  const evidenceWithVerdict = matrixOverlay.evidence
   const matrixVerdict = evidenceWithVerdict.matrixVerdict
   const baseDisplayScore = date.displayScore ?? date.adjustedScore ?? date.score
   const hasPregradedDisplay =

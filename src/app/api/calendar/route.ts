@@ -22,21 +22,15 @@ import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/ap
 import { normalizeGender } from '@/lib/utils/gender'
 import { nowInTimezone } from '@/lib/utils/timezone'
 import { calculateYearlyImportantDates } from './lib/yearlyDates'
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/calendar-core-stub'
 
 import {
   getPillarStemName,
   getPillarBranchName,
   parseBirthDate,
-  applyMatrixPreformatRegrade,
   formatDateForResponse,
   LOCATION_COORDS,
-  type MatrixCalendarContext,
 } from './lib/helpers'
 import { buildCalendarPresentationView } from './lib/presentationAdapter'
-import type { DomainKey } from './lib/types'
-// matrixEvidencePacket 제거 — packet 항상 null. type 도 inline unknown.
-type CalendarMatrixEvidencePacketMap = Record<string, unknown>
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 
 export const dynamic = 'force-dynamic'
@@ -72,22 +66,6 @@ const ZODIAC_TO_ELEMENT: Record<string, string> = {
   Cancer: 'water',
   Scorpio: 'water',
   Pisces: 'water',
-}
-
-const CORE_SIGNAL_DOMAIN_TO_CALENDAR_DOMAIN: Record<string, DomainKey | null> = {
-  career: 'career',
-  relationship: 'love',
-  wealth: 'money',
-  health: 'health',
-  move: 'move',
-  personality: null,
-  spirituality: null,
-  timing: null,
-}
-
-function mapCoreSignalDomainToCalendarDomain(domain: string | undefined): DomainKey | null {
-  if (!domain) return null
-  return CORE_SIGNAL_DOMAIN_TO_CALENDAR_DOMAIN[domain] ?? null
 }
 
 type CalendarAstroProfile = {
@@ -432,32 +410,11 @@ export const GET = withApiMiddleware(
       throw astroError
     }
 
-    // destiny-matrix 코어 제거로 항상 비어 있음 — 다운스트림(presentation/응답)은
-    // 이 값들이 없으면 해당 섹션(국면·evidence 등)을 graceful하게 숨긴다.
-    const matrixCalendarContext: MatrixCalendarContext = null
-    const matrixEvidencePackets: CalendarMatrixEvidencePacketMap | null = null
-    const calendarCoreCanonical = null as CalendarCoreAdapterResult | null
-    const calendarCoreDataQuality = null as {
-      missingFields: string[]
-      derivedFields: string[]
-      conflictingFields: string[]
-      qualityPenalties: string[]
-      confidenceReason: string
-    } | null
-    const calendarMatrixContract:
-      | {
-          coreHash?: string
-          overallPhase?: string
-          overallPhaseLabel?: string
-          topClaimId?: string
-          topClaim?: string
-          focusDomain?: string
-        }
-      | undefined = undefined
-
     // destiny-matrix 코어 제거됨 — 캘린더는 사주×점성 교차(v2 점수 + v3 narrative +
-    // cycleRelations)만으로 구성된다. matrix가 주던 국면/evidence 코어 요약은
-    // 더 이상 계산하지 않으며, 관련 변수는 null로 남아 다운스트림이 graceful degrade한다.
+    // cycleRelations)만으로 구성된다. 이전엔 null 변수 5개 (matrixCalendarContext,
+    // matrixEvidencePackets, calendarCoreCanonical, calendarCoreDataQuality,
+    // calendarMatrixContract) 가 선언되어 다운스트림 호출에 전달됐으나, 모두 noop
+    // 호출이라 단순화. 다운스트림은 graceful degrade 한다.
 
     // v2 엔진 본명 컨텍스트는 prescore + augment 두 블록이 같이 쓰니 한 번만 빌드.
     // 이전엔 두 곳에서 각각 호출해 Swiss Ephemeris를 2번 돌려 cold ~300ms 손해.
@@ -584,18 +541,11 @@ export const GET = withApiMiddleware(
     if (category) {
       filteredDates = localDates.filter((d) => d.categories.includes(category))
     }
-    const matrixRegradedDates = filteredDates
-      .map((date) =>
-        applyMatrixPreformatRegrade(
-          date,
-          matrixCalendarContext || undefined,
-          matrixEvidencePackets || undefined
-        )
-      )
-      .sort((a, b) => {
-        if (a.grade !== b.grade) return a.grade - b.grade
-        return (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
-      })
+    // matrix context 제거로 regrade 함수는 noop (즉시 return date) → 호출 자체 제거.
+    const matrixRegradedDates = [...filteredDates].sort((a, b) => {
+      if (a.grade !== b.grade) return a.grade - b.grade
+      return (b.displayScore ?? b.score) - (a.displayScore ?? a.score)
+    })
 
     // AI date enrichment was wired up in v1 to call /api/theme/important-dates
     // and decorate dates with AI-flagged auspicious/caution markers; the
@@ -606,9 +556,7 @@ export const GET = withApiMiddleware(
         d,
         locale,
         koTranslations as unknown as TranslationData,
-        enTranslations as unknown as TranslationData,
-        matrixCalendarContext,
-        matrixEvidencePackets || undefined
+        enTranslations as unknown as TranslationData
       )
 
     // rebalance는 augment 후로 미룬다 — augment가 displayScore를 v2 셀로 덮어쓰는데,
@@ -870,42 +818,19 @@ export const GET = withApiMiddleware(
       allDates: formattedDates,
       locale: locale === 'en' ? 'en' : 'ko',
       timeZone: timezone,
-      canonicalCore: calendarCoreCanonical || undefined,
       preferredFocusDomain: category
         ? presentationDomainMap[category as keyof typeof presentationDomainMap]
         : undefined,
-      matrixContract: calendarMatrixContract,
-      dataQuality: calendarCoreDataQuality || undefined,
-      timingCalibration: undefined,
-      overlapTimelineByDomain: undefined,
-      domainScores: undefined,
     })
 
     const { persistDestinyPredictionSnapshot } =
       await import('@/lib/destiny-matrix/predictionSnapshot')
+    // matrix 코어 제거됨 — focus/timing 관련 필드 다 undefined. predictionClaim 만 의미.
     const predictionId = await persistDestinyPredictionSnapshot({
       userId: context.userId,
       service: 'calendar',
       lang: locale === 'en' ? 'en' : 'ko',
       theme: category || 'yearly',
-      focusDomain:
-        mapCoreSignalDomainToCalendarDomain(calendarCoreCanonical?.focusDomain) || undefined,
-      actionFocusDomain:
-        mapCoreSignalDomainToCalendarDomain(calendarCoreCanonical?.actionFocusDomain) || undefined,
-      phase: calendarCoreCanonical?.phase,
-      phaseLabel: calendarCoreCanonical?.phaseLabel,
-      topDecisionId: calendarCoreCanonical?.topDecisionId || undefined,
-      topDecisionAction: calendarCoreCanonical?.topDecisionAction || undefined,
-      topDecisionLabel: calendarCoreCanonical?.topDecisionLabel || undefined,
-      timingWindow: calendarCoreCanonical?.domainTimingWindows?.[0]?.window,
-      timingGranularity: calendarCoreCanonical?.domainTimingWindows?.[0]?.timingGranularity,
-      precisionReason: calendarCoreCanonical?.domainTimingWindows?.[0]?.precisionReason,
-      timingConflictMode: calendarCoreCanonical?.domainTimingWindows?.[0]?.timingConflictMode,
-      timingConflictNarrative:
-        calendarCoreCanonical?.domainTimingWindows?.[0]?.timingConflictNarrative,
-      readinessScore: calendarCoreCanonical?.domainTimingWindows?.[0]?.readinessScore,
-      triggerScore: calendarCoreCanonical?.domainTimingWindows?.[0]?.triggerScore,
-      convergenceScore: calendarCoreCanonical?.domainTimingWindows?.[0]?.convergenceScore,
       timingReliabilityScore: null,
       timingReliabilityBand: null,
       predictionClaim:
@@ -919,7 +844,7 @@ export const GET = withApiMiddleware(
       predictionId,
       type: 'yearly',
       year,
-      matrixContract: calendarMatrixContract,
+      // matrixContract: 항상 undefined (matrix 코어 제거됨). 응답 필드도 제거.
       todayHourlyTimeSlots,
       // 헤더 뱃지 / 프로필 카드용 본명 정체성
       astroIdentity: (() => {

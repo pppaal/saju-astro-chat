@@ -25,7 +25,6 @@ export {
   parseBirthDate,
   generateSummary,
   generateBestTimes,
-  applyMatrixPreformatRegrade,
   formatDateForResponse,
   LOCATION_COORDS,
 } from './helpers'
