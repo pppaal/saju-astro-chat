@@ -11,7 +11,7 @@ import {
   type DestinyTimingConflictMode,
   type DestinyTimingGranularity,
   type DestinyTimingWindow,
-} from '@/lib/destiny-matrix/core/logging'
+} from '@/lib/destiny-matrix/predictionLogging'
 
 export interface PersistDestinyPredictionSnapshotInput {
   userId?: string | null
@@ -64,7 +64,8 @@ function inferPredictionType(input: PersistDestinyPredictionSnapshotInput): Dest
   if (action.includes('contact') || action.includes('연락')) return 'contact'
   if (action.includes('move') || focus.includes('move') || action.includes('이동')) return 'move'
   if (focus.includes('health') || focus.includes('건강')) return 'health_load'
-  if (action.includes('delay') || action.includes('보류') || action.includes('pause')) return 'delay'
+  if (action.includes('delay') || action.includes('보류') || action.includes('pause'))
+    return 'delay'
   if (action || focus) return 'opportunity'
   return 'general'
 }

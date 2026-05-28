@@ -35,6 +35,8 @@ export * from './errors'
 export * from './performance'
 export * from './alignment'
 export * from './timeOverlap'
+// componentScores 는 clamp01 import 가 destiny-matrix root utils 였는데 core 제거 시
+//   다른 영향 0 이라 그대로 유지. core/ wildcard export 는 통째 제거.
 export * from './componentScores'
 export * from './contributionMap'
 export * from './drivers'
@@ -43,4 +45,3 @@ export * from './domainMap'
 export * from './domainScoring'
 export * from './monthlyTimeline'
 export * from './layerSemantics'
-export * from './core'

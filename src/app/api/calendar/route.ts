@@ -22,7 +22,7 @@ import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/ap
 import { normalizeGender } from '@/lib/utils/gender'
 import { nowInTimezone } from '@/lib/utils/timezone'
 import { calculateYearlyImportantDates } from './lib/yearlyDates'
-import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/core/adapters'
+import type { CalendarCoreAdapterResult } from '@/lib/destiny-matrix/calendar-core-stub'
 
 import {
   getPillarStemName,
