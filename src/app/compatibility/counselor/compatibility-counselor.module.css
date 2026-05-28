@@ -10,12 +10,12 @@
 .page {
   height: 100dvh;
   max-height: 100dvh;
-  background: #fafaf9;
+  background: var(--ds-light-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   overscroll-behavior: contain;
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 @media (min-width: 1024px) {
@@ -46,8 +46,8 @@
   /* 답변창을 넓게 — 위·아래 패딩 축소 */
   padding: 0.375rem 0.75rem;
   background: #ffffff;
-  border-bottom: 1px solid #e7e5e4;
-  color: #1c1917;
+  border-bottom: 1px solid var(--ds-light-border);
+  color: var(--ds-light-text);
   min-width: 0;
   flex-shrink: 0;
   /* Pin the header so it stays visible when the mobile keyboard
@@ -71,7 +71,7 @@
   padding: 0;
   background: transparent;
   border: 0;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   cursor: pointer;
   border-radius: 50%;
   transition: background 0.18s ease;
@@ -83,7 +83,7 @@
 }
 
 .backButton:hover {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 @media (min-width: 1024px) {
@@ -97,13 +97,13 @@
   /* 헤더 글리프 통일 — 16px */
   font-size: 16px;
   line-height: 1;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .headerTitle {
   font-size: 1.05rem;
   font-weight: 600;
-  color: #1c1917;
+  color: var(--ds-light-text);
   margin: 0;
   font-family: var(--font-cinzel), Georgia, serif;
   letter-spacing: 0.01em;
@@ -130,7 +130,7 @@
   border-radius: 50%;
   border: 0;
   background: #ffffff;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -139,7 +139,7 @@
 }
 
 .localeToggle:hover {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 /* ============ Chat Wrapper ============ */
@@ -171,7 +171,7 @@
   border-radius: 50%;
   border: 0;
   background: #ffffff;
-  color: #44403c;
+  color: var(--ds-light-text-muted);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -182,8 +182,8 @@
 }
 
 .chatMenuButton:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
 }
 
 .chatMenuDropdown {
@@ -192,7 +192,7 @@
   right: 0;
   min-width: 168px;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 10px;
   padding: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -211,7 +211,7 @@
   background: transparent;
   border: 0;
   border-radius: 6px;
-  color: #1c1917;
+  color: var(--ds-light-text);
   font-size: 0.9rem;
   text-align: left;
   cursor: pointer;
@@ -219,7 +219,7 @@
 }
 
 .chatMenuItem:hover:not(:disabled) {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 .chatMenuItem:disabled {
@@ -273,7 +273,7 @@
   text-align: center;
   padding: 2rem 1rem;
   margin: auto 0;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .emptyIcon {
@@ -285,7 +285,7 @@
 .emptyText {
   font-size: 1.05rem;
   font-weight: 500;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   margin: 0;
   letter-spacing: 0.01em;
 }
@@ -296,7 +296,7 @@
   gap: 0.6rem;
   align-items: flex-start;
   max-width: 100%;
-  color: #292524;
+  color: var(--ds-light-text);
 }
 
 .userMessage {
@@ -313,13 +313,13 @@
   font-size: 1rem;
   flex-shrink: 0;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   color: inherit;
 }
 
 .userMessage .messageAvatar {
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
 }
 
 .messageBubble {
@@ -328,7 +328,7 @@
   border-radius: 16px;
   background: transparent;
   border: 0;
-  color: #292524;
+  color: var(--ds-light-text);
   /* 운명 상담사와 폰트/간격 통일 — 같은 1rem · 1.75 · -0.005em ·
      Noto Sans KR. 한국어 본문 가독성 일관. (이전 0.95rem · 1.7 · letter-
      spacing/font-family 미설정 → 운명 기준으로 통일 PR) */
@@ -341,8 +341,8 @@
 }
 
 .userMessage .messageBubble {
-  background: #292524;
-  color: #fafaf9;
+  background: var(--ds-light-text);
+  color: var(--ds-light-bg);
   border-radius: 16px 4px 16px 16px;
   border: 0;
   box-shadow: 0 4px 12px rgba(28, 25, 23, 0.1);
@@ -365,7 +365,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #78716c;
+  color: var(--ds-light-text-muted);
   font-size: 13px;
   font-style: italic;
 }
@@ -385,7 +385,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #a8a29e;
+  background: var(--ds-light-text-subtle);
   animation: typingBounce 1.2s ease-in-out infinite;
 }
 
@@ -451,7 +451,7 @@
   border: none;
   outline: none;
   resize: none;
-  color: #1c1917;
+  color: var(--ds-light-text);
   /* iOS Safari zooms inputs <16px on focus, which breaks dvh viewport. */
   font-size: 16px;
   line-height: 1.5;
@@ -462,7 +462,7 @@
 }
 
 .input::placeholder {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .input:disabled {
@@ -478,9 +478,9 @@
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: #1c1917;
+  background: var(--ds-light-text);
   border: none;
-  color: #fafaf9;
+  color: var(--ds-light-bg);
   cursor: pointer;
   transition:
     transform 0.18s ease,
@@ -491,14 +491,14 @@
 }
 
 .sendButton:hover:not(:disabled) {
-  background: #292524;
+  background: var(--ds-light-text);
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(28, 25, 23, 0.22);
 }
 
 .sendButton:disabled {
-  background: #f5f5f4;
-  color: #a8a29e;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text-subtle);
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -546,7 +546,7 @@
 .backButton:focus-visible,
 .localeToggle:focus-visible,
 .sendButton:focus-visible {
-  outline: 2px solid #a07a3c;
+  outline: 2px solid var(--ds-gold);
   outline-offset: 2px;
 }
 
@@ -584,7 +584,7 @@
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -592,8 +592,8 @@
 }
 
 .toolButton:hover:not(:disabled) {
-  background: #f5f5f4;
-  color: #57534e;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text-muted);
 }
 
 .toolButton:disabled {
@@ -632,7 +632,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-size: 12px;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .fileIcon {
@@ -642,7 +642,7 @@
 
 .fileNotice {
   font-size: 12px;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   padding: 0.1rem 0.4rem;
 }
 
@@ -657,7 +657,7 @@
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
   cursor: pointer;
   font-size: 14px;
   transition:
@@ -666,8 +666,8 @@
 }
 
 .clearButton:hover {
-  background: #f5f5f4;
-  color: #57534e;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text-muted);
 }
 
 /* 타로/차트 입력-툴바 버튼 — 모든 viewport 에서 노출. 사이드바 푸터에서
@@ -717,7 +717,7 @@
 }
 
 .sidebarFooterBtn:hover:not(:disabled) {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 .sidebarFooterBtn:disabled {
@@ -760,7 +760,7 @@
 
 .followUpLabel {
   font-size: 12px;
-  color: #78716c;
+  color: var(--ds-light-text-muted);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -778,9 +778,9 @@
   gap: 8px;
   padding: 10px 16px;
   background: #ffffff;
-  border: 1px solid #e7e4df;
+  border: 1px solid var(--ds-light-border);
   border-radius: 20px;
-  color: #44403c;
+  color: var(--ds-light-text-muted);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -793,7 +793,7 @@
 
 .followUpChip:hover {
   background: #faf9f7;
-  border-color: #d6d3d1;
+  border-color: var(--ds-light-border-strong);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(28, 25, 23, 0.08);
 }
@@ -839,9 +839,9 @@
   gap: 8px;
   padding: 8px 14px;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 999px;
-  color: #44403c;
+  color: var(--ds-light-text-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -852,9 +852,9 @@
 }
 
 .clarifierActionBtn:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
+  color: var(--ds-light-text);
   transform: translateY(-1px);
 }
 

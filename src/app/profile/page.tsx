@@ -557,10 +557,10 @@ export default function ProfilePage() {
       fallback={
         // 비로그인 fallback — 자동 redirect 가 거의 즉시 일어나므로 빈 화면.
         // 깜빡임 줄이려고 배경색만 라이트 서피스와 맞춤.
-        <div className="min-h-[100svh] bg-[#f5f4f1]" aria-hidden="true" />
+        <div className="min-h-[100svh] bg-[#fafaf9]" aria-hidden="true" />
       }
     >
-      <div className="relative min-h-[100svh] bg-[#f5f4f1] text-[#1c1917]">
+      <div className="relative min-h-[100svh] bg-[#fafaf9] text-[#1c1917]">
         {/* 초기 데이터 로딩 동안 기본 로딩 페이지로 덮어 섹션별 스피너가
             우르르 보이는 느린 인상을 없앤다. (BrandSplash 는 fixed 전체화면) */}
         {loading && (
