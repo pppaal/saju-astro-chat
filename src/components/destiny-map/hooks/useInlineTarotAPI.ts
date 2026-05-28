@@ -389,6 +389,15 @@ export function useInlineTarotAPI({ stateManager, lang }: UseInlineTarotAPIOptio
       })
 
       if (res.ok) {
+        // 서버가 부여한 readingId 회수 — followup 채팅 / 클래리파이어 카드
+        // PATCH 에서 사용. 응답 wrap 형태(`{data:{readingId}}` vs `{readingId}`)
+        // 둘 다 흡수해서 메인 페이지(useTarotInterpretation) 와 같은 동선.
+        const savedJson = (await res.json().catch(() => null)) as {
+          readingId?: string
+          data?: { readingId?: string }
+        } | null
+        const newReadingId = savedJson?.readingId ?? savedJson?.data?.readingId ?? null
+        if (newReadingId) actions.setReadingId(newReadingId)
         actions.setIsSaved(true)
       } else {
         const err = await res.json().catch(() => ({}))

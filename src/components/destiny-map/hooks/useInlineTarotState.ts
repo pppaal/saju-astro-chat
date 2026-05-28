@@ -36,6 +36,9 @@ export interface TarotState {
   // Save state
   isSaved: boolean
   isSaving: boolean
+  /** 자동 저장 후 서버가 부여한 reading row id. clarifier / followup 채팅
+   *  PATCH 호출 시 사용. null 이면 미저장 (게스트/저장 실패). */
+  readingId: string | null
 }
 
 const initialState: TarotState = {
@@ -53,6 +56,7 @@ const initialState: TarotState = {
   interpretFailed: false,
   isSaved: false,
   isSaving: false,
+  readingId: null,
 }
 
 const DEFAULT_TAROT_CATEGORY = 'general-insight'
@@ -126,6 +130,7 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
         })),
       setIsSaved: (isSaved: boolean) => setState((prev) => ({ ...prev, isSaved })),
       setIsSaving: (isSaving: boolean) => setState((prev) => ({ ...prev, isSaving })),
+      setReadingId: (readingId: string | null) => setState((prev) => ({ ...prev, readingId })),
 
       // Composite actions
       resetForDrawAgain: () =>
