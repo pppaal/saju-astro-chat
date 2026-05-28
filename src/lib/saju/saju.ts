@@ -218,16 +218,22 @@ export function calculateSajuData(
       throw new Error('Invalid birthLocal date object')
     }
 
-    const year = birthDateTime.getFullYear()
-    assertKasiYearInRange(year)
-    const month = birthDateTime.getMonth() + 1
-
-    // Y, M, D
+    // Y, M, D — timezone-aware year/month/day at the birthplace. The
+    // previous code read birthDateTime.getFullYear() / getMonth() which
+    // returns the server's *UTC* year/month, so a birth at 1989-12-31
+    // 23:30 LA (UTC-8) became 1990-01-01 once it landed on the UTC
+    // server, and the year/month pillar was computed against 1990
+    // instead of 1989. Use the Intl-formatted values everywhere — they
+    // already powered the day-pillar JDN below.
     const fmtNum = (opt: Intl.DateTimeFormatOptions) =>
       Number(new Intl.DateTimeFormat('en-US', { timeZone: timezone, ...opt }).format(birthLocal))
     const Y = fmtNum({ year: 'numeric' })
     const M = fmtNum({ month: '2-digit' })
     const D = fmtNum({ day: '2-digit' })
+
+    const year = Y
+    assertKasiYearInRange(year)
+    const month = M
 
     /* ---------------- 연기둥 ---------------- */
     const ipchunUTC = getSolarTermKST(year, 2)
