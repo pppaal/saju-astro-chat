@@ -27,8 +27,32 @@ type AgreementKind = 'aligned' | 'mixed' | 'opposed'
 
 interface SampleDay {
   date: string
+  /** 엔진이 만든 자연어 한 줄 ("사주는 X, 점성은 Y..."). 가장 의미 직접적. */
+  bridge: string | null
+  /** bridge 없을 때 폴백 — 사주 신호 텍스트 */
   saju: string | null
+  /** bridge 없을 때 폴백 — 점성 신호 텍스트 */
   astro: string | null
+}
+
+/**
+ * % 기반 자연어 한 줄 — yearlyDates 의 buildCrossCheckLineKo/En 와 같은 로직.
+ * 서버측 함수 import 못 하므로 client 에 동일 룰 복사.
+ */
+function buildAgreementLine(percent: number, locale?: CalLocale): string {
+  const p = Math.round(percent)
+  if (locale === 'en') {
+    if (p >= 75)
+      return `Saju and astrology align at ${p}% — both axes back the same direction, so confidence is high.`
+    if (p >= 55)
+      return `Cross-check ${p}% — broad direction holds but details diverge; keep the core moves and defer the rest.`
+    return `Cross-check ${p}% — signals diverge. Don't move on a single axis; verify on the other before committing.`
+  }
+  if (p >= 75)
+    return `사주와 점성이 ${p}%로 같은 방향을 가리킵니다. 둘이 동시에 받쳐줘 결정의 신뢰도가 높습니다.`
+  if (p >= 55)
+    return `사주·점성 일치도 ${p}% — 큰 줄기는 같지만 세부가 갈리니, 핵심만 잡고 나머지는 미루는 편이 안전합니다.`
+  return `사주·점성 일치도 ${p}% — 신호가 발산됩니다. 한쪽만 보고 움직이지 말고 다른 축에서 다시 확인하세요.`
 }
 
 export default function CrossInsightCard({ dates, locale }: Props) {
@@ -89,38 +113,38 @@ export default function CrossInsightCard({ dates, locale }: Props) {
   const cx1 = 80 - gap / 2
   const cx2 = 80 + gap / 2
 
-  // 근거 일자 추출 — 가장 강한 합치 일 + 가장 큰 엇갈림 일
-  const alignedSample: SampleDay | null = (() => {
-    if (!bestAligned) return null
-    const d = dates.find((x) => x.date === bestAligned!.date)
+  // 근거 일자 추출 — bridges (자연어 한 줄, 엔진이 톤·합치 기반 생성) 우선,
+  // 없으면 신호 텍스트 폴백.
+  const extractSample = (target: { date: string } | null): SampleDay | null => {
+    if (!target) return null
+    const d = dates.find((x) => x.date === target.date)
     if (!d) return null
     return {
       date: d.date,
+      bridge: d.evidence?.cross?.bridges?.[0] ?? null,
       saju: d.evidence?.cross?.sajuDetails?.[0] ?? null,
       astro: d.evidence?.cross?.astroDetails?.[0] ?? null,
     }
-  })()
-  const opposedSample: SampleDay | null = (() => {
-    if (!biggestOpposed) return null
-    const d = dates.find((x) => x.date === biggestOpposed!.date)
-    if (!d) return null
-    return {
-      date: d.date,
-      saju: d.evidence?.cross?.sajuDetails?.[0] ?? null,
-      astro: d.evidence?.cross?.astroDetails?.[0] ?? null,
-    }
-  })()
+  }
+  const alignedSample = extractSample(bestAligned)
+  const opposedSample = extractSample(biggestOpposed)
+
+  // 평균 합치율 % — 합치 100% / 혼합 50% / 엇갈림 0% 가중 평균.
+  // 이걸 buildAgreementLine 에 넣어 "왜 이 카드가 이렇게 보이는지" 자연어 한 줄.
+  const avgPct = total > 0 ? alignedPct + mixedPct / 2 : null
+  const agreementLine = avgPct !== null ? buildAgreementLine(avgPct, locale) : null
 
   return (
     <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-emerald-950/15 backdrop-blur-sm border border-emerald-500/15 rounded-2xl p-6 overflow-hidden">
       <div className="pointer-events-none absolute -top-12 -right-10 w-32 h-32 bg-emerald-500/8 blur-3xl rounded-full" />
-      <h3 className="relative text-base font-semibold text-emerald-200 flex items-center gap-2 mb-1 group">
+      <h3 className="relative text-base font-semibold text-emerald-200 flex items-center gap-2 mb-2 group">
         <Compass className="w-4 h-4 text-emerald-400 group-hover:text-emerald-300 transition" />
         {t.crossInsightTitle}
       </h3>
-      <p className="relative text-[11px] text-zinc-500 mb-4 leading-snug">
-        {t.crossInsightSubtitle}
-      </p>
+      {/* % 기반 자연어 한 줄 — 카드 의미 직접 설명 */}
+      {agreementLine && (
+        <p className="relative text-[12px] text-zinc-200 leading-relaxed mb-4">{agreementLine}</p>
+      )}
 
       <div className="relative flex items-center gap-5 mb-4">
         <svg viewBox="0 0 160 110" className="w-40 h-28 shrink-0">
@@ -233,28 +257,30 @@ export default function CrossInsightCard({ dates, locale }: Props) {
       </div>
 
       {(alignedSample || opposedSample) && (
-        <div className="relative pt-3 border-t border-white/5 space-y-2">
+        <div className="relative pt-3 border-t border-white/5 space-y-3">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
             {t.crossInsightEvidenceLabel}
           </p>
           {alignedSample && (
-            <EvidenceLine
+            <EvidenceBlock
               tone="aligned"
               dateLabel={formatDate(alignedSample.date, locale)}
+              kindLabel={t.crossInsightAligned}
+              bridge={alignedSample.bridge}
               saju={alignedSample.saju}
               astro={alignedSample.astro}
-              kindLabel={t.crossInsightAligned}
               sajuLabel={t.dayWhySajuLabel}
               astroLabel={t.dayWhyAstroLabel}
             />
           )}
           {opposedSample && (
-            <EvidenceLine
+            <EvidenceBlock
               tone="opposed"
               dateLabel={formatDate(opposedSample.date, locale)}
+              kindLabel={t.crossInsightOpposed}
+              bridge={opposedSample.bridge}
               saju={opposedSample.saju}
               astro={opposedSample.astro}
-              kindLabel={t.crossInsightOpposed}
               sajuLabel={t.dayWhySajuLabel}
               astroLabel={t.dayWhyAstroLabel}
             />
@@ -292,45 +318,58 @@ function CountChip({
   )
 }
 
-function EvidenceLine({
+/**
+ * 근거 일자 블록 — bridges 자연어 (엔진이 톤 + 합치/엇갈림 기반 한 줄 생성) 우선.
+ * bridges 없을 때만 신호 텍스트 (사주 X · 점성 Y) 폴백.
+ */
+function EvidenceBlock({
   tone,
   dateLabel,
+  kindLabel,
+  bridge,
   saju,
   astro,
-  kindLabel,
   sajuLabel,
   astroLabel,
 }: {
   tone: 'aligned' | 'opposed'
   dateLabel: string
+  kindLabel: string
+  bridge: string | null
   saju: string | null
   astro: string | null
-  kindLabel: string
   sajuLabel: string
   astroLabel: string
 }) {
   const kindColor = tone === 'aligned' ? 'text-emerald-300' : 'text-rose-300'
+  const borderColor = tone === 'aligned' ? 'border-emerald-500/20' : 'border-rose-500/20'
   return (
-    <div className="flex items-start gap-2 text-[11px] leading-snug">
-      <span className="text-zinc-300 font-bold tabular-nums shrink-0">{dateLabel}</span>
-      <span className={`font-semibold uppercase tracking-wider text-[9px] shrink-0 ${kindColor}`}>
-        {kindLabel}
-      </span>
-      <span className="text-zinc-400 flex-1 min-w-0">
-        {saju && (
-          <span>
-            <span className="text-amber-300/80 font-semibold">{sajuLabel}</span>{' '}
-            <span className="text-zinc-300">{saju}</span>
-          </span>
-        )}
-        {saju && astro && <span className="text-zinc-600"> · </span>}
-        {astro && (
-          <span>
-            <span className="text-cyan-300/80 font-semibold">{astroLabel}</span>{' '}
-            <span className="text-zinc-300">{astro}</span>
-          </span>
-        )}
-      </span>
+    <div className={`rounded-lg border ${borderColor} bg-zinc-950/30 p-2.5 space-y-1.5`}>
+      <div className="flex items-center gap-2 text-[11px]">
+        <span className="text-zinc-200 font-bold tabular-nums">{dateLabel}</span>
+        <span className={`font-bold uppercase tracking-wider text-[9px] ${kindColor}`}>
+          {kindLabel}
+        </span>
+      </div>
+      {bridge ? (
+        <p className="text-[11px] text-zinc-300 leading-relaxed">{bridge}</p>
+      ) : (
+        <p className="text-[11px] text-zinc-400 leading-snug">
+          {saju && (
+            <>
+              <span className="text-amber-300/80 font-semibold">{sajuLabel}</span>{' '}
+              <span className="text-zinc-300">{saju}</span>
+            </>
+          )}
+          {saju && astro && <span className="text-zinc-600"> · </span>}
+          {astro && (
+            <>
+              <span className="text-cyan-300/80 font-semibold">{astroLabel}</span>{' '}
+              <span className="text-zinc-300">{astro}</span>
+            </>
+          )}
+        </p>
+      )}
     </div>
   )
 }
