@@ -54,16 +54,36 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center gap-3">
-      <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-[0_0_32px_rgba(99,102,241,0.18)]">
-        <MoonStar className="w-8 h-8 text-indigo-300" />
+      <div
+        className="p-4 rounded-full border"
+        style={{
+          background: 'rgba(212, 181, 114, 0.08)',
+          borderColor: 'var(--ds-gold-line)',
+          boxShadow: '0 0 32px rgba(212, 181, 114, 0.18)',
+        }}
+      >
+        <MoonStar className="w-8 h-8" style={{ color: 'var(--ds-gold-on-dark)' }} />
       </div>
       <h2 className="text-lg font-semibold text-slate-100 mt-2">{title}</h2>
-      <p className="text-sm text-slate-400 max-w-xs">{description}</p>
+      <p className="text-sm max-w-xs" style={{ color: 'var(--ds-dark-text-muted)' }}>
+        {description}
+      </p>
       {action && (
         <button
           type="button"
           onClick={action.onClick}
-          className="mt-3 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-sm font-medium hover:from-indigo-400 hover:to-violet-400 transition-colors shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+          className="mt-3 px-5 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          style={{
+            background: 'var(--ds-gold-on-dark)',
+            color: 'var(--ds-dark-bg)',
+            boxShadow: '0 0 24px rgba(212, 181, 114, 0.25)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--ds-gold-on-dark-soft)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--ds-gold-on-dark)'
+          }}
         >
           {action.text}
         </button>
@@ -239,54 +259,93 @@ export default function TarotHistoryClient() {
   const hasFilters = Boolean(searchQuery.trim())
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* 글로벌 헤더 (☰ / EN) 와 안 겹치게 상단 여백 충분히. */}
-      <div className="max-w-2xl mx-auto px-4 pt-20 pb-16">
+    <div
+      className="min-h-screen text-slate-100 relative"
+      style={{
+        background: `
+          radial-gradient(900px 600px at 20% 0%, rgba(99, 124, 200, 0.08), transparent 60%),
+          radial-gradient(800px 600px at 90% 100%, rgba(212, 181, 114, 0.06), transparent 60%),
+          var(--ds-dark-bg)
+        `,
+      }}
+    >
+      {/* 글로벌 헤더 (☰ / EN) 와 안 겹치게 상단 여백 충분히.
+          About/FAQ/Pricing 과 같은 max-w + padding 으로 통일. */}
+      <div className="max-w-2xl mx-auto px-4 pt-20 pb-16 relative z-10">
         {/* 페이지 헤더 */}
-        <header className="flex items-center gap-3 mb-6">
+        <header className="flex items-center gap-3 mb-8">
           <button
             type="button"
             onClick={() => router.push('/tarot')}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 text-slate-300 text-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm transition-colors"
+            style={{
+              background: 'var(--ds-dark-surface)',
+              borderColor: 'var(--ds-dark-border)',
+              color: 'var(--ds-dark-text-muted)',
+            }}
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{isKo ? '돌아가기' : 'Back'}</span>
           </button>
-          <h1 className="flex-1 text-lg md:text-xl font-semibold text-slate-100">
-            {isKo ? '타로 리딩 기록' : 'Tarot Reading History'}
+          <h1
+            className="flex-1 text-xl md:text-2xl font-semibold"
+            style={{
+              color: 'var(--ds-dark-text)',
+              fontFamily: 'var(--font-cinzel), Georgia, serif',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {isKo ? '타로 기록' : 'Tarot History'}
           </h1>
           <button
             type="button"
             onClick={() => setShowStats((prev) => !prev)}
             aria-expanded={showStats}
             aria-label={isKo ? '통계 보기 전환' : 'Toggle statistics'}
-            className={`p-2 rounded-xl border transition-colors ${
-              showStats
-                ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-200'
-                : 'bg-slate-900/60 border-slate-800 hover:border-indigo-500/40 text-slate-400'
-            }`}
+            className="p-2 rounded-xl border transition-colors"
+            style={{
+              background: showStats ? 'rgba(212, 181, 114, 0.15)' : 'var(--ds-dark-surface)',
+              borderColor: showStats ? 'var(--ds-gold-line)' : 'var(--ds-dark-border)',
+              color: showStats ? 'var(--ds-gold-on-dark-soft)' : 'var(--ds-dark-text-muted)',
+            }}
           >
             <BarChart3 className="w-4 h-4" />
           </button>
         </header>
 
-        {/* 삭제 알림 */}
+        {/* 삭제 알림 — gold 톤 통일 */}
         {deleteNotice && (
           <div
             role="status"
             aria-live="polite"
-            className="mb-4 px-4 py-3 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-sm text-indigo-100"
+            className="mb-4 px-4 py-3 rounded-xl border text-sm"
+            style={{
+              background: 'rgba(212, 181, 114, 0.08)',
+              borderColor: 'var(--ds-gold-line)',
+              color: 'var(--ds-gold-on-dark-soft)',
+            }}
           >
             {deleteNotice}
           </div>
         )}
 
-        {/* 통계 패널 */}
+        {/* 통계 패널 — glass surface + gold accent */}
         {showStats && (
-          <section className="mb-6 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/5 border border-indigo-500/20 p-5">
+          <section
+            className="mb-6 rounded-2xl border p-5"
+            style={{
+              background: 'rgba(17, 24, 39, 0.42)',
+              borderColor: 'var(--ds-dark-border)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+            }}
+          >
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-4 h-4 text-indigo-300" />
-              <h3 className="text-xs uppercase tracking-wider text-indigo-300 font-medium">
+              <Sparkles className="w-4 h-4" style={{ color: 'var(--ds-gold-on-dark)' }} />
+              <h3
+                className="text-xs uppercase tracking-wider font-medium"
+                style={{ color: 'var(--ds-gold-on-dark)' }}
+              >
                 {isKo ? '자주 나온 카드 TOP 10' : 'Most Frequent Cards TOP 10'}
               </h3>
             </div>
@@ -295,13 +354,22 @@ export default function TarotHistoryClient() {
                 {cardStats.map((stat, idx) => (
                   <li
                     key={stat.name}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-900/40 border border-slate-800"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg border"
+                    style={{
+                      background: 'var(--ds-dark-surface)',
+                      borderColor: 'var(--ds-dark-border)',
+                    }}
                   >
-                    <span className="text-xs font-semibold text-indigo-300 w-6">#{idx + 1}</span>
+                    <span
+                      className="text-xs font-semibold w-6"
+                      style={{ color: 'var(--ds-gold-on-dark)' }}
+                    >
+                      #{idx + 1}
+                    </span>
                     <span className="flex-1 text-sm text-slate-200 truncate">
                       {isKo ? stat.nameKo || stat.name : stat.name}
                     </span>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs" style={{ color: 'var(--ds-dark-text-muted)' }}>
                       {stat.count}
                       {isKo ? '회' : 'x'}
                       {stat.reversedCount > 0 && (
@@ -314,11 +382,14 @@ export default function TarotHistoryClient() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-slate-500 italic">
+              <p className="text-sm italic" style={{ color: 'var(--ds-dark-text-subtle)' }}>
                 {isKo ? '아직 데이터가 없어요' : 'No data yet'}
               </p>
             )}
-            <div className="mt-4 text-xs text-slate-500 text-center">
+            <div
+              className="mt-4 text-xs text-center"
+              style={{ color: 'var(--ds-dark-text-subtle)' }}
+            >
               {isKo ? `총 ${readings.length}개의 리딩` : `${readings.length} total readings`}
             </div>
           </section>
@@ -327,13 +398,26 @@ export default function TarotHistoryClient() {
         {/* 컨트롤 — 검색 + 정렬 chip */}
         <div className="mb-5 space-y-3">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
+              style={{ color: 'var(--ds-dark-text-subtle)' }}
+            />
             <input
               type="text"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={isKo ? '질문 또는 카드 검색…' : 'Search questions or cards…'}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/60 border border-slate-800 focus:border-indigo-500/50 focus:outline-none text-slate-100 text-sm placeholder-slate-500 transition-colors"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border text-sm text-slate-100 focus:outline-none transition-colors"
+              style={{
+                background: 'var(--ds-dark-surface)',
+                borderColor: 'var(--ds-dark-border)',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'var(--ds-gold-line)'
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'var(--ds-dark-border)'
+              }}
             />
           </div>
           <div className="flex gap-2">
@@ -342,11 +426,14 @@ export default function TarotHistoryClient() {
                 key={option}
                 type="button"
                 onClick={() => setSortBy(option)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  sortBy === option
-                    ? 'bg-indigo-500/25 border-indigo-500/50 text-indigo-100'
-                    : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:border-slate-700'
-                }`}
+                className="px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors"
+                style={{
+                  background:
+                    sortBy === option ? 'rgba(212, 181, 114, 0.18)' : 'var(--ds-dark-surface)',
+                  borderColor: sortBy === option ? 'var(--ds-gold-line)' : 'var(--ds-dark-border)',
+                  color:
+                    sortBy === option ? 'var(--ds-gold-on-dark-soft)' : 'var(--ds-dark-text-muted)',
+                }}
               >
                 {option === 'newest' ? (isKo ? '최신순' : 'Newest') : isKo ? '오래된순' : 'Oldest'}
               </button>
@@ -376,17 +463,30 @@ export default function TarotHistoryClient() {
                     setSelectedReading(reading)
                   }
                 }}
-                className="group cursor-pointer rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/40 transition-colors p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                className="group cursor-pointer rounded-2xl border p-5 focus:outline-none transition-colors"
+                style={{
+                  background: 'rgba(17, 24, 39, 0.42)',
+                  borderColor: 'var(--ds-dark-border)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--ds-gold-line)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--ds-dark-border)'
+                }}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs" style={{ color: 'var(--ds-dark-text-subtle)' }}>
                     {formatRelativeTime(reading.timestamp, isKo)}
                   </span>
                   <button
                     type="button"
                     onClick={(event) => void handleDelete(reading, event)}
                     aria-label={isKo ? '삭제' : 'Delete'}
-                    className="text-slate-500 hover:text-rose-300 transition-colors"
+                    className="hover:text-rose-300 transition-colors"
+                    style={{ color: 'var(--ds-dark-text-subtle)' }}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -394,11 +494,14 @@ export default function TarotHistoryClient() {
                 <p className="text-base md:text-[17px] text-slate-100 font-medium leading-snug mb-3">
                   {reading.question}
                 </p>
-                <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
-                  <span className="text-indigo-300/80">
+                <div
+                  className="flex items-center gap-3 text-xs mb-3"
+                  style={{ color: 'var(--ds-dark-text-muted)' }}
+                >
+                  <span style={{ color: 'var(--ds-gold-on-dark)' }}>
                     {isKo ? reading.spread.titleKo || reading.spread.title : reading.spread.title}
                   </span>
-                  <span className="text-slate-600">·</span>
+                  <span style={{ color: 'var(--ds-dark-text-subtle)' }}>·</span>
                   <span>
                     {isKo ? `카드 ${reading.cards.length}장` : `${reading.cards.length} cards`}
                   </span>
@@ -407,11 +510,20 @@ export default function TarotHistoryClient() {
                   {reading.cards.slice(0, 5).map((card, idx) => (
                     <span
                       key={`${reading.id}-card-${idx}`}
-                      className={`px-2.5 py-0.5 text-[11px] rounded-full border ${
+                      className="px-2.5 py-0.5 text-[11px] rounded-full border"
+                      style={
                         card.isReversed
-                          ? 'bg-rose-500/10 border-rose-500/30 text-rose-200'
-                          : 'bg-slate-800 border-slate-700 text-slate-300'
-                      }`}
+                          ? {
+                              background: 'rgba(244, 63, 94, 0.10)',
+                              borderColor: 'rgba(244, 63, 94, 0.30)',
+                              color: '#fecdd3',
+                            }
+                          : {
+                              background: 'var(--ds-dark-surface-strong)',
+                              borderColor: 'var(--ds-dark-border)',
+                              color: 'var(--ds-dark-text-muted)',
+                            }
+                      }
                       title={isKo ? card.nameKo || card.name : card.name}
                     >
                       {(isKo ? card.nameKo || card.name : card.name).slice(0, 8)}
@@ -419,7 +531,13 @@ export default function TarotHistoryClient() {
                     </span>
                   ))}
                   {reading.cards.length > 5 && (
-                    <span className="px-2.5 py-0.5 text-[11px] rounded-full border border-slate-800 text-slate-500">
+                    <span
+                      className="px-2.5 py-0.5 text-[11px] rounded-full border"
+                      style={{
+                        borderColor: 'var(--ds-dark-border)',
+                        color: 'var(--ds-dark-text-subtle)',
+                      }}
+                    >
                       +{reading.cards.length - 5}
                     </span>
                   )}
@@ -459,34 +577,55 @@ export default function TarotHistoryClient() {
         </div>
       </div>
 
-      {/* 상세 모달 */}
+      {/* 상세 모달 — navy 글래스 + gold 액센트 통일 */}
       {selectedReading && (
         <div
-          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6"
+          className="fixed inset-0 z-50 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6"
+          style={{ background: 'rgba(7, 9, 26, 0.85)' }}
           onClick={() => setSelectedReading(null)}
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            className="relative w-full md:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-2xl bg-slate-900 border border-indigo-500/20 shadow-[0_0_60px_rgba(99,102,241,0.18)] p-6"
+            className="relative w-full md:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-3xl md:rounded-2xl border p-6"
+            style={{
+              background: 'rgba(17, 24, 39, 0.92)',
+              borderColor: 'var(--ds-gold-line)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+            }}
           >
             <button
               type="button"
               onClick={() => setSelectedReading(null)}
               aria-label={isKo ? '닫기' : 'Close'}
-              className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-700 transition-colors"
+              style={{
+                background: 'var(--ds-dark-surface-strong)',
+                color: 'var(--ds-dark-text)',
+              }}
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="text-xs uppercase tracking-wider text-indigo-300/80 mb-1">
+            <div
+              className="text-xs uppercase tracking-wider mb-1"
+              style={{ color: 'var(--ds-gold-on-dark)' }}
+            >
               {isKo
                 ? selectedReading.spread.titleKo || selectedReading.spread.title
                 : selectedReading.spread.title}
             </div>
-            <h2 className="text-xl md:text-2xl font-semibold text-slate-100 leading-snug mb-1">
+            <h2
+              className="text-xl md:text-2xl font-semibold text-slate-100 leading-snug mb-1"
+              style={{
+                fontFamily: 'var(--font-cinzel), Georgia, serif',
+                letterSpacing: '-0.01em',
+              }}
+            >
               {selectedReading.question}
             </h2>
-            <p className="text-xs text-slate-500 mb-5">
+            <p className="text-xs mb-5" style={{ color: 'var(--ds-dark-text-subtle)' }}>
               {formatRelativeTime(selectedReading.timestamp, isKo)}
             </p>
 
@@ -494,7 +633,10 @@ export default function TarotHistoryClient() {
                 카드별 해석 (사용자 피드백: "타로 그림도 안 보이고 더보기
                 없어서 카드별 해석 못 봄"). */}
             <section className="mb-5">
-              <h4 className="text-xs uppercase tracking-wider text-slate-500 mb-2">
+              <h4
+                className="text-xs uppercase tracking-wider mb-2"
+                style={{ color: 'var(--ds-dark-text-subtle)' }}
+              >
                 {isKo ? '뽑은 카드' : 'Drawn Cards'}
               </h4>
               <ul className="space-y-2">
@@ -506,21 +648,26 @@ export default function TarotHistoryClient() {
                   return (
                     <li
                       key={`${selectedReading.id}-detail-${idx}`}
-                      className="rounded-lg bg-slate-800/60 border border-slate-700/60 overflow-hidden"
+                      className="rounded-lg border overflow-hidden"
+                      style={{
+                        background: 'var(--ds-dark-surface)',
+                        borderColor: 'var(--ds-dark-border)',
+                      }}
                     >
                       <button
                         type="button"
                         onClick={() => hasInterp && setExpandedCardIdx(expanded ? null : idx)}
                         disabled={!hasInterp}
                         className={`w-full flex items-start gap-3 px-3 py-2 text-left ${
-                          hasInterp ? 'hover:bg-slate-800/80 cursor-pointer' : 'cursor-default'
+                          hasInterp ? 'hover:bg-white/5 cursor-pointer' : 'cursor-default'
                         }`}
                       >
                         {/* 카드 그림 (48x80 thumbnail) */}
                         <div
-                          className={`relative w-12 h-20 shrink-0 rounded overflow-hidden ring-1 ring-slate-700/60 ${
+                          className={`relative w-12 h-20 shrink-0 rounded overflow-hidden ${
                             card.isReversed ? 'rotate-180' : ''
                           }`}
+                          style={{ boxShadow: '0 0 0 1px var(--ds-dark-border)' }}
                         >
                           <Image
                             src={fullCard.image}
@@ -531,7 +678,10 @@ export default function TarotHistoryClient() {
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs text-indigo-300/80 mb-0.5">
+                          <div
+                            className="text-xs mb-0.5"
+                            style={{ color: 'var(--ds-gold-on-dark)' }}
+                          >
                             {isKo ? card.positionKo || card.position : card.position}
                           </div>
                           <div
@@ -543,13 +693,19 @@ export default function TarotHistoryClient() {
                             {card.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
                           </div>
                           {hasInterp && !expanded && (
-                            <div className="flex items-center gap-1 mt-1 text-[11px] text-indigo-300/70">
+                            <div
+                              className="flex items-center gap-1 mt-1 text-[11px]"
+                              style={{ color: 'var(--ds-gold-on-dark)' }}
+                            >
                               <span>{isKo ? '더보기' : 'See more'}</span>
                               <ChevronDown className="w-3 h-3" />
                             </div>
                           )}
                           {hasInterp && expanded && (
-                            <div className="flex items-center gap-1 mt-1 text-[11px] text-indigo-300/70">
+                            <div
+                              className="flex items-center gap-1 mt-1 text-[11px]"
+                              style={{ color: 'var(--ds-gold-on-dark)' }}
+                            >
                               <span>{isKo ? '접기' : 'Collapse'}</span>
                               <ChevronUp className="w-3 h-3" />
                             </div>
@@ -557,7 +713,10 @@ export default function TarotHistoryClient() {
                         </div>
                       </button>
                       {hasInterp && expanded && (
-                        <div className="px-3 pb-3 pt-1 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap border-t border-slate-700/40 ml-15">
+                        <div
+                          className="px-3 pb-3 pt-2 text-sm text-slate-200 leading-relaxed whitespace-pre-wrap border-t ml-15"
+                          style={{ borderColor: 'var(--ds-dark-border)' }}
+                        >
                           {cardInterp?.interpretation}
                         </div>
                       )}
@@ -567,29 +726,52 @@ export default function TarotHistoryClient() {
               </ul>
             </section>
 
-            {/* 전체 해석 */}
+            {/* 전체 해석 — glass + gold accent (보라 그라데이션 박멸) */}
             {selectedReading.interpretation.overallMessage && (
-              <section className="mb-5 rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/5 border border-indigo-500/30 p-4">
-                <h4 className="text-xs uppercase tracking-wider text-indigo-300 font-medium mb-2">
+              <section
+                className="mb-5 rounded-xl border p-4"
+                style={{
+                  background: 'rgba(212, 181, 114, 0.05)',
+                  borderColor: 'var(--ds-gold-line)',
+                }}
+              >
+                <h4
+                  className="text-xs uppercase tracking-wider font-medium mb-2"
+                  style={{ color: 'var(--ds-gold-on-dark-soft)' }}
+                >
                   {isKo ? '해석' : 'Interpretation'}
                 </h4>
                 <p className="text-sm md:text-[15px] text-slate-100 leading-relaxed whitespace-pre-wrap">
                   {selectedReading.interpretation.overallMessage}
                 </p>
                 {selectedReading.interpretation.guidance && (
-                  <div className="mt-3 pt-3 border-t border-indigo-500/20 text-sm text-slate-200">
-                    <strong className="text-indigo-200">{isKo ? '조언: ' : 'Guidance: '}</strong>
+                  <div
+                    className="mt-3 pt-3 border-t text-sm text-slate-200"
+                    style={{ borderColor: 'rgba(212, 181, 114, 0.2)' }}
+                  >
+                    <strong style={{ color: 'var(--ds-gold-on-dark-soft)' }}>
+                      {isKo ? '조언: ' : 'Guidance: '}
+                    </strong>
                     {selectedReading.interpretation.guidance}
                   </div>
                 )}
               </section>
             )}
 
-            {/* 보충 카드 (클래리파이어) — 한 장 더 뽑기로 자동 저장된 카드. */}
+            {/* 보충 카드 (클래리파이어) — gold 통일 (옛 purple 제거). */}
             {selectedReading.clarifierCard && (
-              <section className="mb-5 rounded-xl bg-purple-500/5 border border-purple-500/30 p-4">
-                <h4 className="text-xs uppercase tracking-wider text-purple-300 font-medium mb-2">
-                  {isKo ? '🃏 보충 카드' : '🃏 Clarifier Card'}
+              <section
+                className="mb-5 rounded-xl border p-4"
+                style={{
+                  background: 'var(--ds-dark-surface)',
+                  borderColor: 'var(--ds-dark-border)',
+                }}
+              >
+                <h4
+                  className="text-xs uppercase tracking-wider font-medium mb-2"
+                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                >
+                  {isKo ? '보충 카드' : 'Clarifier Card'}
                 </h4>
                 <div className="text-sm font-medium text-slate-100">
                   {isKo
@@ -600,24 +782,42 @@ export default function TarotHistoryClient() {
               </section>
             )}
 
-            {/* 결과 화면 followup 채팅 내역 — 자동 저장된 turn 들. */}
+            {/* followup 채팅 — gold 통일 (옛 cyan/violet 제거). */}
             {selectedReading.followupTurns && selectedReading.followupTurns.length > 0 && (
-              <section className="mb-5 rounded-xl bg-cyan-500/5 border border-cyan-500/20 p-4">
-                <h4 className="text-xs uppercase tracking-wider text-cyan-300 font-medium mb-3">
+              <section
+                className="mb-5 rounded-xl border p-4"
+                style={{
+                  background: 'var(--ds-dark-surface)',
+                  borderColor: 'var(--ds-dark-border)',
+                }}
+              >
+                <h4
+                  className="text-xs uppercase tracking-wider font-medium mb-3"
+                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                >
                   {isKo ? '이어진 대화' : 'Follow-up Chat'}
                 </h4>
                 <div className="space-y-3">
                   {selectedReading.followupTurns.map((turn, idx) => (
                     <div
                       key={`${selectedReading.id}-turn-${idx}`}
-                      className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                        turn.role === 'user'
-                          ? 'text-slate-200 pl-3 border-l-2 border-cyan-500/40'
-                          : 'text-slate-300 pl-3 border-l-2 border-violet-500/40'
-                      }`}
+                      className="text-sm leading-relaxed whitespace-pre-wrap pl-3 border-l-2"
+                      style={{
+                        borderColor:
+                          turn.role === 'user'
+                            ? 'var(--ds-gold-line)'
+                            : 'var(--ds-dark-border-strong)',
+                        color:
+                          turn.role === 'user'
+                            ? 'var(--ds-dark-text)'
+                            : 'var(--ds-dark-text-muted)',
+                      }}
                     >
-                      <div className="text-[10px] uppercase tracking-wider mb-1 text-slate-500">
-                        {turn.role === 'user' ? (isKo ? '나' : 'You') : isKo ? 'AI' : 'AI'}
+                      <div
+                        className="text-[10px] uppercase tracking-wider mb-1"
+                        style={{ color: 'var(--ds-dark-text-subtle)' }}
+                      >
+                        {turn.role === 'user' ? (isKo ? '나' : 'You') : 'AI'}
                       </div>
                       {turn.content}
                     </div>
@@ -626,11 +826,22 @@ export default function TarotHistoryClient() {
               </section>
             )}
 
-            {/* 액션 */}
+            {/* 액션 — gold 솔리드 (보라 그라데이션 박멸) */}
             <button
               type="button"
               onClick={() => handleResumeReading(selectedReading)}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white text-sm font-medium transition-colors shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-colors"
+              style={{
+                background: 'var(--ds-gold-on-dark)',
+                color: 'var(--ds-dark-bg)',
+                boxShadow: '0 0 24px rgba(212, 181, 114, 0.25)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--ds-gold-on-dark-soft)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--ds-gold-on-dark)'
+              }}
             >
               <RotateCcw className="w-4 h-4" />
               {truncate(isKo ? '이 리딩 다시 열기' : 'Open this reading again', 40)}
