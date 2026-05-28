@@ -97,6 +97,23 @@ interface LabelSet {
   dayHourlyAvoidLabel: string
   dayHourlyBestHour: string
   dayHourlyWorstHour: string
+  // 24h chart
+  hourlyTitle: string
+  hourlySubtitle: string
+  hourlyNeutralRef: string
+  // formatters
+  fmtMonthDay: (m: number, d: number) => string
+  fmtMonth: (m: number) => string
+  fmtAge: (age: number) => string
+  fmtMonthlyFlow: string
+  fmtDailyFlow: string
+  // Misc UI
+  openCalendarGrid: string
+  closeButton: string
+  evidenceToggle: string
+  evidenceShow: string
+  evidenceHide: string
+  bothSystemsBadge: string
   // Engine error
   engineFailedRetry: string
   fetchTimeout: string
@@ -177,6 +194,20 @@ const KO: LabelSet = {
   dayHourlyAvoidLabel: '보류할 것',
   dayHourlyBestHour: '최고 시간',
   dayHourlyWorstHour: '주의 시간',
+  hourlyTitle: '시간대 흐름 (24시간)',
+  hourlySubtitle: '하루 중 어느 시간에 운이 오는지 · 50점 기준선',
+  hourlyNeutralRef: '보통 50',
+  fmtMonthDay: (m, d) => `${m}월 ${d}일`,
+  fmtMonth: (m) => `${m}월`,
+  fmtAge: (age) => `${age}세`,
+  fmtMonthlyFlow: '월별 에너지 흐름',
+  fmtDailyFlow: '일별 에너지 흐름',
+  openCalendarGrid: '캘린더 보기',
+  closeButton: '닫기',
+  evidenceToggle: '근거',
+  evidenceShow: '근거 보기',
+  evidenceHide: '근거 숨기기',
+  bothSystemsBadge: '점성·사주',
   engineFailedRetry: '엔진 호출 실패',
   fetchTimeout: '서버 응답이 너무 오래 걸려요. 다시 시도해 주세요.',
 }
@@ -256,6 +287,20 @@ const EN: LabelSet = {
   dayHourlyAvoidLabel: 'Hold',
   dayHourlyBestHour: 'Best hour',
   dayHourlyWorstHour: 'Caution hour',
+  hourlyTitle: '24-hour flow',
+  hourlySubtitle: 'When energy peaks during the day · 50 = baseline',
+  hourlyNeutralRef: 'Neutral 50',
+  fmtMonthDay: (m, d) => `${m}/${d}`,
+  fmtMonth: (m) => `M${m}`,
+  fmtAge: (age) => `age ${age}`,
+  fmtMonthlyFlow: 'Monthly flow',
+  fmtDailyFlow: 'Daily flow',
+  openCalendarGrid: 'View calendar',
+  closeButton: 'Close',
+  evidenceToggle: 'Why',
+  evidenceShow: 'Show evidence',
+  evidenceHide: 'Hide evidence',
+  bothSystemsBadge: 'Saju · Astro',
   engineFailedRetry: 'Engine call failed',
   fetchTimeout: 'Server taking too long. Please try again.',
 }

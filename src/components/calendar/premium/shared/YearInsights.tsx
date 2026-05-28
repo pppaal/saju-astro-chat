@@ -184,7 +184,7 @@ function YearBigDaysCard({
   const fmtDate = (iso: string) => {
     const m = parseInt(iso.slice(5, 7), 10)
     const d = parseInt(iso.slice(8, 10), 10)
-    return locale === 'en' ? `${m}/${d}` : `${m}월 ${d}일`
+    return t.fmtMonthDay(m, d)
   }
   const handleClick = (iso: string) => {
     if (!onMonthClick) return
@@ -209,6 +209,9 @@ function YearBigDaysCard({
             saju={d.saju}
             astroLabel={t.bigTurnsAstroLabel}
             sajuLabel={t.bigTurnsSajuLabel}
+            evidenceToggle={t.evidenceToggle}
+            evidenceShow={t.evidenceShow}
+            evidenceHide={t.evidenceHide}
             onClick={onMonthClick ? () => handleClick(d.date) : undefined}
           />
         ))}
@@ -225,6 +228,9 @@ function BigDayRow({
   saju,
   astroLabel,
   sajuLabel,
+  evidenceToggle,
+  evidenceShow,
+  evidenceHide,
   onClick,
 }: {
   date: string
@@ -233,6 +239,9 @@ function BigDayRow({
   saju: string[]
   astroLabel: string
   sajuLabel: string
+  evidenceToggle: string
+  evidenceShow: string
+  evidenceHide: string
   onClick?: () => void
 }) {
   const [open, setOpen] = useState(false)
@@ -258,9 +267,9 @@ function BigDayRow({
             }}
             className="text-[11px] text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-0.5 ml-auto shrink-0 transition"
             aria-expanded={open}
-            aria-label={open ? '근거 숨기기' : '근거 보기'}
+            aria-label={open ? evidenceHide : evidenceShow}
           >
-            근거
+            {evidenceToggle}
             <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
         )}

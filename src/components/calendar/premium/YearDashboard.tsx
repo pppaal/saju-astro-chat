@@ -66,7 +66,7 @@ export default function YearDashboard({
       const current = enginePivots.filter((p) => p.phase === 'current')
       const upcoming = enginePivots.filter((p) => p.phase === 'upcoming').slice(0, 3)
       return [...past, ...current, ...upcoming].map((p) => ({
-        ageLabel: `${p.age}세`,
+        ageLabel: t.fmtAge(p.age),
         year: p.year,
         title: p.label,
         description: p.meaning ?? (p.saju ? `${p.saju} — 10년 흐름의 시작` : ''),
@@ -76,7 +76,7 @@ export default function YearDashboard({
       }))
     }
     return computeLifeTimeline({ birthDate, currentPhaseLabel, thisYear: year })
-  }, [lifetimePivots, birthDate, currentPhaseLabel, year])
+  }, [lifetimePivots, birthDate, currentPhaseLabel, year, t])
 
   if (!yearlyMonthly || yearlyMonthly.length === 0) return null
 
@@ -111,10 +111,11 @@ export default function YearDashboard({
     else if (worstM && m.month === worstM.month) type = 'caution'
     else if (convergenceMonths.has(m.month)) type = 'convergence'
     return {
-      label: locale === 'en' ? `M${m.month}` : `${m.month}월`,
+      label: t.fmtMonth(m.month),
       score: m.score,
       type,
-      fullLabel: locale === 'en' ? `${year} M${m.month}` : `${year}년 ${m.month}월`,
+      fullLabel:
+        locale === 'en' ? `${year} ${t.fmtMonth(m.month)}` : `${year}년 ${t.fmtMonth(m.month)}`,
     }
   })
 
@@ -146,7 +147,7 @@ export default function YearDashboard({
 
       <FlowChart
         data={flowData}
-        title={locale === 'en' ? 'Monthly flow' : '월별 에너지 흐름'}
+        title={t.fmtMonthlyFlow}
         subtitle={locale === 'en' ? undefined : undefined}
         xInterval={0}
         showDots={false}

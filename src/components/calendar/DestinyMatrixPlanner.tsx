@@ -388,10 +388,10 @@ export default function DestinyMatrixPlanner({
           <button
             onClick={() => setGridOpen(true)}
             className="text-[11px] font-semibold text-zinc-400 hover:text-zinc-200 inline-flex items-center gap-1 transition"
-            aria-label="캘린더 그리드 보기"
+            aria-label={t.openCalendarGrid}
           >
             <Calendar className="w-3.5 h-3.5" />
-            캘린더 보기
+            {t.openCalendarGrid}
           </button>
         </div>
 
@@ -414,7 +414,7 @@ export default function DestinyMatrixPlanner({
                   {todayHero.score}
                 </span>
                 <span className={`text-base font-black ${todayHero.grade.colorClass}`}>
-                  {todayHero.grade.label}
+                  {t.gradeLabel(todayHero.grade.key)}
                 </span>
               </div>
               {todayHero.oneLine && (
@@ -733,7 +733,7 @@ export default function DestinyMatrixPlanner({
                 onClick={() => setGridOpen(false)}
                 className="mt-4 w-full text-[12px] font-semibold text-zinc-400 hover:text-zinc-200 py-2 rounded-lg border border-white/5 hover:bg-white/[0.03] transition"
               >
-                닫기
+                {t.closeButton}
               </button>
             </motion.div>
           </motion.div>

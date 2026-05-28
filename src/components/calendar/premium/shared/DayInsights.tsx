@@ -143,7 +143,9 @@ function DayVerdictCard({
             <span className="text-4xl sm:text-5xl font-black tabular-nums bg-gradient-to-br from-white to-zinc-300 bg-clip-text text-transparent">
               {animatedScore}
             </span>
-            <span className={`text-base font-black ${grade.colorClass}`}>{grade.label}</span>
+            <span className={`text-base font-black ${grade.colorClass}`}>
+              {t.gradeLabel(grade.key)}
+            </span>
           </div>
           {oneLine && <p className="text-sm text-zinc-200 leading-snug line-clamp-2">{oneLine}</p>}
         </div>
@@ -428,7 +430,7 @@ function DayHourlyCard({
       </h3>
 
       <div className="relative">
-        <DailyHourlyChart importantDate={importantDate} dateStr={dateStr} />
+        <DailyHourlyChart importantDate={importantDate} dateStr={dateStr} locale={locale} />
       </div>
 
       {(bestHour || worstHour) && (
