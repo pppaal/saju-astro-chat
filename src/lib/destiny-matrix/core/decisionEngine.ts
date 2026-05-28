@@ -2,6 +2,7 @@ import type { SignalDomain } from './signalSynthesizer'
 import type { StrategyEngineResult, StrategyPhaseCode } from './strategyEngine'
 import type { PatternResult } from './patternEngine'
 import type { ScenarioResult } from './scenarioEngine'
+import { clamp } from '@/lib/utils/math'
 
 export type DecisionActionType =
   | 'commit_now'
@@ -169,10 +170,6 @@ const OPTION_TEMPLATES: OptionTemplate[] = [
     reversible: true,
   },
 ]
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
 
 function round(value: number): number {
   return Math.round(value)

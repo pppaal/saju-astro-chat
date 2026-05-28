@@ -1,7 +1,7 @@
 import type { MatrixCalculationInput } from '@/lib/destiny-matrix/types'
 import type { SignalDomain } from './signalSynthesizer'
 import type { CompiledFeatureToken } from './tokenCompiler'
-import { round2 } from '@/lib/utils/math'
+import { clamp, round2 } from '@/lib/utils/math'
 
 export interface DomainActivationSource {
   tokenId: string
@@ -59,11 +59,6 @@ const DOMAIN_TIME_AXES: Record<SignalDomain, string[]> = {
   move: ['transition', 'mobility', 'verification', 'pressure'],
 }
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
-}
-
-
 function resolveDomainTimeBias(input: {
   domain: SignalDomain
   matrixInput: MatrixCalculationInput
@@ -77,7 +72,9 @@ function resolveDomainTimeBias(input: {
   )
   const timedTokenWeight = timedTokens.reduce((sum, token) => sum + token.weight, 0)
   const axisMatchWeight = input.domainTokens.reduce((sum, token) => {
-    const axisOverlap = token.axes.filter((axis) => DOMAIN_TIME_AXES[input.domain].includes(axis)).length
+    const axisOverlap = token.axes.filter((axis) =>
+      DOMAIN_TIME_AXES[input.domain].includes(axis)
+    ).length
     return sum + axisOverlap * token.weight
   }, 0)
   const transitHits = (input.matrixInput.activeTransits || []).filter((item) => {
@@ -139,7 +136,12 @@ export function buildActivationEngine(input: {
     )
     const timeScore = round2(
       domainTokens
-        .filter((token) => token.sourceKind === 'cycle' || token.sourceKind === 'transit' || token.sourceKind === 'advanced_astro')
+        .filter(
+          (token) =>
+            token.sourceKind === 'cycle' ||
+            token.sourceKind === 'transit' ||
+            token.sourceKind === 'advanced_astro'
+        )
         .reduce((sum, token) => sum + token.weight, 0) + domainTimeBias
     )
     const modulationScore = round2(
@@ -147,7 +149,9 @@ export function buildActivationEngine(input: {
         .filter((token) => token.role === 'modulator' || token.role === 'ornamental')
         .reduce((sum, token) => sum + token.weight * 0.5, 0)
     )
-    const activationScore = round2(clamp(natalScore * 0.45 + timeScore * 0.4 + modulationScore * 0.15, 0, 6))
+    const activationScore = round2(
+      clamp(natalScore * 0.45 + timeScore * 0.4 + modulationScore * 0.15, 0, 6)
+    )
     const axisCounts = new Map<string, number>()
     for (const token of domainTokens) {
       for (const axis of token.axes) {

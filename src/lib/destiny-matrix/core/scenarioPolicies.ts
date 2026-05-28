@@ -2,6 +2,7 @@ import type { SignalDomain } from './signalSynthesizer'
 import type { PatternResult } from './patternEngine'
 import type { RuleEngineResult } from './ruleEngine'
 import type { StateEngineResult } from './stateEngine'
+import { clamp } from '@/lib/utils/math'
 
 interface ScenarioPolicyInput {
   branch: string
@@ -17,10 +18,6 @@ interface ScenarioTimingPolicyInput {
   branch: string
   rule?: RuleEngineResult['domains'][number]
   state?: StateEngineResult['domains'][number]
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
 }
 
 function hasRuleSignal(values: string[] | undefined, pattern: RegExp): boolean {
@@ -67,7 +64,12 @@ function applyCareerBranchPolicy(input: ScenarioPolicyInput, weight: number): nu
   }
   if (branch === 'specialist_track') {
     if (hasAxis('deep_work')) weight += 0.035
-    if (hasRuleSignal(amplify, /research_planning|study_specialization|craft_refinement|service_specialization/i)) {
+    if (
+      hasRuleSignal(
+        amplify,
+        /research_planning|study_specialization|craft_refinement|service_specialization/i
+      )
+    ) {
       weight += 0.045
     }
     if (mode === 'verify') weight += 0.012
@@ -112,7 +114,12 @@ function applyRelationshipBranchPolicy(input: ScenarioPolicyInput, weight: numbe
   }
   if (branch === 'clarify_expectations') {
     if (mode === 'verify' || mode === 'prepare') weight += 0.045
-    if (hasRuleSignal(delay, /confirmation_before_labeling|premature_definition|emotionally_loaded_decision/i)) {
+    if (
+      hasRuleSignal(
+        delay,
+        /confirmation_before_labeling|premature_definition|emotionally_loaded_decision/i
+      )
+    ) {
       weight += 0.04
     }
     if (hasRuleSignal(gate, /projection_bias|forced_closeness/i)) weight += 0.02
@@ -213,7 +220,8 @@ function applyMoveBranchPolicy(input: ScenarioPolicyInput, weight: number): numb
   }
   if (branch === 'relocation' || branch === 'cross_border_move' || branch === 'lease_decision') {
     if (hasRuleSignal(gate, /route_assumption|impulsive_move|commit_now/i)) weight -= 0.04
-    if (hasRuleSignal(delay, /housing_commitment|finalize_terms|announcement_timing/i)) weight -= 0.03
+    if (hasRuleSignal(delay, /housing_commitment|finalize_terms|announcement_timing/i))
+      weight -= 0.03
   }
 
   return weight
@@ -244,14 +252,16 @@ function applyHealthBranchPolicy(input: ScenarioPolicyInput, weight: number): nu
   }
   if (branch === 'routine_lock' || branch === 'habit_rebuild' || branch === 'recovery_compliance') {
     if (mode === 'prepare' || mode === 'verify') weight += 0.035
-    if (hasRuleSignal(amplify, /recovery_protocol|nourishment_routine|habit_devotion/i)) weight += 0.04
+    if (hasRuleSignal(amplify, /recovery_protocol|nourishment_routine|habit_devotion/i))
+      weight += 0.04
     if (hasKeyword(/routine|habit|compliance|repeat|daily/i)) weight += 0.025
     if (state === 'consolidation' || state === 'opening') weight += 0.015
     if (branch === 'recovery_compliance') weight += 0.02
   }
   if (branch === 'recovery') {
     if (mode === 'prepare' || mode === 'verify') weight += 0.03
-    if (hasRuleSignal(amplify, /recovery_protocol|healing_routine|nourishment_routine/i)) weight += 0.035
+    if (hasRuleSignal(amplify, /recovery_protocol|healing_routine|nourishment_routine/i))
+      weight += 0.035
     if (hasRuleSignal(delay, /high_intensity_push|overload/i)) weight += 0.02
   }
   if (branch === 'early_warning') {
@@ -261,7 +271,8 @@ function applyHealthBranchPolicy(input: ScenarioPolicyInput, weight: number): nu
   }
   if (branch === 'burnout_trigger' || branch === 'sleep_disruption' || branch === 'inflammation') {
     if (hasRuleSignal(gate, /reckless_push|commit_now/i)) weight += 0.03
-    if (hasRuleSignal(delay, /overload|high_intensity_push|stress_spike|inflammation_spike/i)) weight += 0.03
+    if (hasRuleSignal(delay, /overload|high_intensity_push|stress_spike|inflammation_spike/i))
+      weight += 0.03
     if (mode === 'prepare' || mode === 'verify') weight += 0.015
     if (hasKeyword(/burnout|sleep|inflammation|heat|trigger/i)) weight += 0.025
   }
@@ -269,17 +280,34 @@ function applyHealthBranchPolicy(input: ScenarioPolicyInput, weight: number): nu
   return weight
 }
 
-function applyCareerTimingPolicy(input: ScenarioTimingPolicyInput, weight: number, timingHot: boolean, timingSlow: boolean, timingGate: boolean): number {
+function applyCareerTimingPolicy(
+  input: ScenarioTimingPolicyInput,
+  weight: number,
+  timingHot: boolean,
+  timingSlow: boolean,
+  timingGate: boolean
+): number {
   const branch = input.branch.toLowerCase()
-  if ((branch === 'promotion_review' || branch === 'contract_negotiation') && timingSlow) weight += 0.03
-  if ((branch === 'entry' || branch === 'promotion' || branch === 'project_launch') && timingGate) weight -= 0.03
+  if ((branch === 'promotion_review' || branch === 'contract_negotiation') && timingSlow)
+    weight += 0.03
+  if ((branch === 'entry' || branch === 'promotion' || branch === 'project_launch') && timingGate)
+    weight -= 0.03
   if ((branch === 'manager_track' || branch === 'specialist_track') && timingHot) weight += 0.02
   return weight
 }
 
-function applyRelationshipTimingPolicy(input: ScenarioTimingPolicyInput, weight: number, timingSlow: boolean, timingGate: boolean): number {
+function applyRelationshipTimingPolicy(
+  input: ScenarioTimingPolicyInput,
+  weight: number,
+  timingSlow: boolean,
+  timingGate: boolean
+): number {
   const branch = input.branch.toLowerCase()
-  if ((branch === 'commitment_execution' || branch === 'cohabitation') && (timingSlow || timingGate)) weight -= 0.04
+  if (
+    (branch === 'commitment_execution' || branch === 'cohabitation') &&
+    (timingSlow || timingGate)
+  )
+    weight -= 0.04
   if (branch === 'commitment_preparation' && timingSlow) weight += 0.035
   if (branch === 'clarify_expectations' && (timingSlow || timingGate)) weight += 0.04
   if (branch === 'boundary_reset' && timingGate) weight += 0.04
@@ -287,24 +315,50 @@ function applyRelationshipTimingPolicy(input: ScenarioTimingPolicyInput, weight:
   return weight
 }
 
-function applyWealthTimingPolicy(input: ScenarioTimingPolicyInput, weight: number, timingHot: boolean, timingSlow: boolean, timingGate: boolean): number {
+function applyWealthTimingPolicy(
+  input: ScenarioTimingPolicyInput,
+  weight: number,
+  timingHot: boolean,
+  timingSlow: boolean,
+  timingGate: boolean
+): number {
   const branch = input.branch.toLowerCase()
-  if ((branch === 'capital_allocation' || branch === 'asset_exit') && (timingSlow || timingGate)) weight += 0.03
+  if ((branch === 'capital_allocation' || branch === 'asset_exit') && (timingSlow || timingGate))
+    weight += 0.03
   if ((branch === 'income_growth' || branch === 'side_income') && timingHot) weight += 0.02
   return weight
 }
 
-function applyHealthTimingPolicy(input: ScenarioTimingPolicyInput, weight: number, timingSlow: boolean, timingGate: boolean): number {
+function applyHealthTimingPolicy(
+  input: ScenarioTimingPolicyInput,
+  weight: number,
+  timingSlow: boolean,
+  timingGate: boolean
+): number {
   const branch = input.branch.toLowerCase()
-  if ((branch === 'recovery' || branch === 'recovery_reset' || branch === 'recovery_compliance') && timingSlow) weight += 0.03
+  if (
+    (branch === 'recovery' || branch === 'recovery_reset' || branch === 'recovery_compliance') &&
+    timingSlow
+  )
+    weight += 0.03
   if ((branch === 'burnout_trigger' || branch === 'sleep_disruption') && timingGate) weight += 0.02
   if ((branch === 'routine_lock' || branch === 'habit_rebuild') && timingSlow) weight += 0.02
   return weight
 }
 
-function applyMoveTimingPolicy(input: ScenarioTimingPolicyInput, weight: number, timingHot: boolean, timingSlow: boolean, timingGate: boolean): number {
+function applyMoveTimingPolicy(
+  input: ScenarioTimingPolicyInput,
+  weight: number,
+  timingHot: boolean,
+  timingSlow: boolean,
+  timingGate: boolean
+): number {
   const branch = input.branch.toLowerCase()
-  if ((branch === 'lease_decision' || branch === 'relocation' || branch === 'cross_border_move') && (timingSlow || timingGate)) weight -= 0.03
+  if (
+    (branch === 'lease_decision' || branch === 'relocation' || branch === 'cross_border_move') &&
+    (timingSlow || timingGate)
+  )
+    weight -= 0.03
   if ((branch === 'housing_search' || branch === 'route_recheck') && timingSlow) weight += 0.03
   if (branch === 'travel' && timingHot) weight += 0.02
   return weight
@@ -342,8 +396,14 @@ export function resolveScenarioTimingPolicyWeight(input: ScenarioTimingPolicyInp
   const state = input.state?.state
   const has = (values: string[], pattern: RegExp) => values.some((value) => pattern.test(value))
 
-  const timingHot = has(amplify, /transition_window|phase_window|transit_trigger_window|fated_crossroad_window/i)
-  const timingSlow = has(delay, /announcement_timing|finalize_terms|emotionally_loaded_decision|slow_trust_build/i)
+  const timingHot = has(
+    amplify,
+    /transition_window|phase_window|transit_trigger_window|fated_crossroad_window/i
+  )
+  const timingSlow = has(
+    delay,
+    /announcement_timing|finalize_terms|emotionally_loaded_decision|slow_trust_build/i
+  )
   const timingGate = has(gate, /commit_now|route_assumption|premature_statement|projection_bias/i)
 
   let weight = 1
@@ -352,11 +412,16 @@ export function resolveScenarioTimingPolicyWeight(input: ScenarioTimingPolicyInp
   if (timingSlow) weight -= 0.02
   if (timingGate && branch !== 'boundary_reset' && branch !== 'distance_tuning') weight -= 0.02
 
-  if (input.domain === 'career') weight = applyCareerTimingPolicy(input, weight, timingHot, timingSlow, timingGate)
-  if (input.domain === 'relationship') weight = applyRelationshipTimingPolicy(input, weight, timingSlow, timingGate)
-  if (input.domain === 'wealth') weight = applyWealthTimingPolicy(input, weight, timingHot, timingSlow, timingGate)
-  if (input.domain === 'health') weight = applyHealthTimingPolicy(input, weight, timingSlow, timingGate)
-  if (input.domain === 'move') weight = applyMoveTimingPolicy(input, weight, timingHot, timingSlow, timingGate)
+  if (input.domain === 'career')
+    weight = applyCareerTimingPolicy(input, weight, timingHot, timingSlow, timingGate)
+  if (input.domain === 'relationship')
+    weight = applyRelationshipTimingPolicy(input, weight, timingSlow, timingGate)
+  if (input.domain === 'wealth')
+    weight = applyWealthTimingPolicy(input, weight, timingHot, timingSlow, timingGate)
+  if (input.domain === 'health')
+    weight = applyHealthTimingPolicy(input, weight, timingSlow, timingGate)
+  if (input.domain === 'move')
+    weight = applyMoveTimingPolicy(input, weight, timingHot, timingSlow, timingGate)
 
   return clamp(weight, 0.9, 1.1)
 }
