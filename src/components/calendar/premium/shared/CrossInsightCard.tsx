@@ -1,20 +1,20 @@
 'use client'
 
 /**
- * 사주↔점성 교차 인사이트 카드 — 한 기간(month / year) 동안 두 시스템이
- * 얼마나 합의했는지 + 왜 그런지 근거를 같이 보여준다.
+ * 사주↔점성 교차 카드 — 사용자 피드백 ("교차가 안 와닿아, 어떤 쪽으로 시그널이
+ * 오는지") 반영. 추상 % / 일치도 메트릭 제거. 실제 시그널 출처 + 자연어 근거.
  *
- *   1. 좌/우 두 원 (사주 amber / 점성 cyan) — 평균 raw 점수 = 원 크기
- *   2. 합의 분포 막대 (aligned / mixed / opposed 일 카운트 비율)
- *   3. 근거 예시 — 가장 강한 합치 일 1 개 + 가장 큰 엇갈림 일 1 개
- *      (각 일의 사주 신호 top1 + 점성 신호 top1)
+ *  1. 사주 시그널 top N — 이 기간 동안 자주 등장한 사주 신호 (빈도 카운트)
+ *  2. 점성 시그널 top N — 자주 등장한 점성 신호
+ *  3. 두 시스템 같은 방향 N일 / 다른 방향 M일 단순 카운트 + 합의 분포 막대
+ *  4. 대표 일자 자연어 — 가장 강한 합치 / 엇갈림 일의 bridges 자연어 한 줄
  *
- * 데이터: scoreBreakdown.{sajuAxisRaw, astroAxisRaw, axisAgreement} +
- *        evidence.cross.{sajuDetails, astroDetails}. 없으면 카드 자체 스킵.
+ * 데이터: evidence.cross.{sajuDetails, astroDetails, bridges} +
+ *        scoreBreakdown.axisAgreement. 없으면 카드 스킵.
  */
 
-import { motion } from 'framer-motion'
 import { Compass } from 'lucide-react'
+import { motion } from 'framer-motion'
 import type { ImportantDate } from '../../types'
 import { getCalLabels, type CalLocale } from '../labels'
 
@@ -25,43 +25,24 @@ interface Props {
 
 type AgreementKind = 'aligned' | 'mixed' | 'opposed'
 
-interface SampleDay {
-  date: string
-  /** 엔진이 만든 자연어 한 줄 ("사주는 X, 점성은 Y..."). 가장 의미 직접적. */
-  bridge: string | null
-  /** bridge 없을 때 폴백 — 사주 신호 텍스트 */
-  saju: string | null
-  /** bridge 없을 때 폴백 — 점성 신호 텍스트 */
-  astro: string | null
+interface SignalCount {
+  label: string
+  count: number
 }
 
-/**
- * % 기반 자연어 한 줄 — yearlyDates 의 buildCrossCheckLineKo/En 와 같은 로직.
- * 서버측 함수 import 못 하므로 client 에 동일 룰 복사.
- */
-function buildAgreementLine(percent: number, locale?: CalLocale): string {
-  const p = Math.round(percent)
-  if (locale === 'en') {
-    if (p >= 75)
-      return `Saju and astrology align at ${p}% — both axes back the same direction, so confidence is high.`
-    if (p >= 55)
-      return `Cross-check ${p}% — broad direction holds but details diverge; keep the core moves and defer the rest.`
-    return `Cross-check ${p}% — signals diverge. Don't move on a single axis; verify on the other before committing.`
-  }
-  if (p >= 75)
-    return `사주와 점성이 ${p}%로 같은 방향을 가리킵니다. 둘이 동시에 받쳐줘 결정의 신뢰도가 높습니다.`
-  if (p >= 55)
-    return `사주·점성 일치도 ${p}% — 큰 줄기는 같지만 세부가 갈리니, 핵심만 잡고 나머지는 미루는 편이 안전합니다.`
-  return `사주·점성 일치도 ${p}% — 신호가 발산됩니다. 한쪽만 보고 움직이지 말고 다른 축에서 다시 확인하세요.`
+interface SampleDay {
+  date: string
+  bridge: string | null
+  saju: string | null
+  astro: string | null
 }
 
 export default function CrossInsightCard({ dates, locale }: Props) {
   const t = getCalLabels(locale)
 
-  let sajuSum = 0
-  let sajuCount = 0
-  let astroSum = 0
-  let astroCount = 0
+  // 시그널 빈도 집계 — 같은 텍스트 카운트.
+  const sajuCounts = new Map<string, number>()
+  const astroCounts = new Map<string, number>()
   let alignedDays = 0
   let mixedDays = 0
   let opposedDays = 0
@@ -70,15 +51,21 @@ export default function CrossInsightCard({ dates, locale }: Props) {
   let biggestOpposed: { date: string; gap: number } | null = null
 
   for (const d of dates) {
+    const sajuList = d.evidence?.cross?.sajuDetails ?? []
+    const astroList = d.evidence?.cross?.astroDetails ?? []
+    for (const s of sajuList) {
+      const label = s.trim()
+      if (!label) continue
+      sajuCounts.set(label, (sajuCounts.get(label) ?? 0) + 1)
+    }
+    for (const a of astroList) {
+      const label = a.trim()
+      if (!label) continue
+      astroCounts.set(label, (astroCounts.get(label) ?? 0) + 1)
+    }
+
     const sb = d.scoreBreakdown
     if (!sb) continue
-    const saju = typeof sb.sajuAxisRaw === 'number' ? sb.sajuAxisRaw : sb.sajuAxis
-    const astro = typeof sb.astroAxisRaw === 'number' ? sb.astroAxisRaw : sb.astroAxis
-    sajuSum += saju
-    sajuCount += 1
-    astroSum += astro
-    astroCount += 1
-
     const ag: AgreementKind = sb.axisAgreement
     if (ag === 'aligned') {
       alignedDays += 1
@@ -88,7 +75,9 @@ export default function CrossInsightCard({ dates, locale }: Props) {
       }
     } else if (ag === 'opposed') {
       opposedDays += 1
-      const gap = Math.abs(saju - astro)
+      const sajuRaw = typeof sb.sajuAxisRaw === 'number' ? sb.sajuAxisRaw : sb.sajuAxis
+      const astroRaw = typeof sb.astroAxisRaw === 'number' ? sb.astroAxisRaw : sb.astroAxis
+      const gap = Math.abs(sajuRaw - astroRaw)
       if (!biggestOpposed || gap > biggestOpposed.gap) {
         biggestOpposed = { date: d.date, gap }
       }
@@ -97,24 +86,22 @@ export default function CrossInsightCard({ dates, locale }: Props) {
     }
   }
 
-  if (sajuCount === 0) return null
+  const topSaju: SignalCount[] = [...sajuCounts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+  const topAstro: SignalCount[] = [...astroCounts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
 
-  const sajuAvg = Math.round(sajuSum / sajuCount)
-  const astroAvg = Math.round(astroSum / astroCount)
   const total = alignedDays + mixedDays + opposedDays
+  if (total === 0 && topSaju.length === 0 && topAstro.length === 0) return null
+
   const alignedPct = total > 0 ? (alignedDays / total) * 100 : 0
   const mixedPct = total > 0 ? (mixedDays / total) * 100 : 0
   const opposedPct = total > 0 ? (opposedDays / total) * 100 : 0
 
-  const sajuRadius = 20 + (sajuAvg / 100) * 25
-  const astroRadius = 20 + (astroAvg / 100) * 25
-  const closeness = total > 0 ? alignedDays / total : 0.5
-  const gap = 60 - closeness * 50
-  const cx1 = 80 - gap / 2
-  const cx2 = 80 + gap / 2
-
-  // 근거 일자 추출 — bridges (자연어 한 줄, 엔진이 톤·합치 기반 생성) 우선,
-  // 없으면 신호 텍스트 폴백.
   const extractSample = (target: { date: string } | null): SampleDay | null => {
     if (!target) return null
     const d = dates.find((x) => x.date === target.date)
@@ -129,135 +116,98 @@ export default function CrossInsightCard({ dates, locale }: Props) {
   const alignedSample = extractSample(bestAligned)
   const opposedSample = extractSample(biggestOpposed)
 
-  // 평균 합치율 % — 합치 100% / 혼합 50% / 엇갈림 0% 가중 평균.
-  // 이걸 buildAgreementLine 에 넣어 "왜 이 카드가 이렇게 보이는지" 자연어 한 줄.
-  const avgPct = total > 0 ? alignedPct + mixedPct / 2 : null
-  const agreementLine = avgPct !== null ? buildAgreementLine(avgPct, locale) : null
-
   return (
     <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-emerald-950/15 backdrop-blur-sm border border-emerald-500/15 rounded-2xl p-6 overflow-hidden">
       <div className="pointer-events-none absolute -top-12 -right-10 w-32 h-32 bg-emerald-500/8 blur-3xl rounded-full" />
-      <h3 className="relative text-base font-semibold text-emerald-200 flex items-center gap-2 mb-2 group">
+      <h3 className="relative text-base font-semibold text-emerald-200 flex items-center gap-2 mb-1 group">
         <Compass className="w-4 h-4 text-emerald-400 group-hover:text-emerald-300 transition" />
         {t.crossInsightTitle}
       </h3>
-      {/* % 기반 자연어 한 줄 — 카드 의미 직접 설명 */}
-      {agreementLine && (
-        <p className="relative text-[12px] text-zinc-200 leading-relaxed mb-4">{agreementLine}</p>
-      )}
+      <p className="relative text-[11px] text-zinc-500 mb-4 leading-snug">
+        {t.crossInsightSubtitle}
+      </p>
 
-      <div className="relative flex items-center gap-5 mb-4">
-        <svg viewBox="0 0 160 110" className="w-40 h-28 shrink-0">
-          <defs>
-            <radialGradient id="sajuGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.15" />
-            </radialGradient>
-            <radialGradient id="astroGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.15" />
-            </radialGradient>
-          </defs>
-          <motion.circle
-            cx={cx1}
-            cy="55"
-            r={sajuRadius}
-            fill="url(#sajuGrad)"
-            stroke="#f59e0b"
-            strokeWidth="1.5"
-            strokeOpacity="0.6"
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-          />
-          <motion.circle
-            cx={cx2}
-            cy="55"
-            r={astroRadius}
-            fill="url(#astroGrad)"
-            stroke="#06b6d4"
-            strokeWidth="1.5"
-            strokeOpacity="0.6"
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: 'easeOut', delay: 0.1 }}
-          />
-          <text x={cx1} y="58" textAnchor="middle" fontSize="11" fontWeight="700" fill="#fde68a">
-            {sajuAvg}
-          </text>
-          <text x={cx2} y="58" textAnchor="middle" fontSize="11" fontWeight="700" fill="#a5f3fc">
-            {astroAvg}
-          </text>
-          <text x={cx1} y="105" textAnchor="middle" fontSize="9" fill="#a16207" letterSpacing="1">
-            {t.dayWhySajuLabel}
-          </text>
-          <text x={cx2} y="105" textAnchor="middle" fontSize="9" fill="#0891b2" letterSpacing="1">
-            {t.dayWhyAstroLabel}
-          </text>
-        </svg>
-
-        <div className="flex-1 min-w-0 space-y-2">
-          {total > 0 && (
-            <>
-              <div className="flex items-baseline justify-between text-[11px]">
-                <span className="text-zinc-400 font-medium">{t.crossInsightAgreementLabel}</span>
-                <span className="text-emerald-300 font-bold tabular-nums">
-                  {Math.round(alignedPct)}%
-                </span>
-              </div>
-              <div className="flex h-2 rounded-full overflow-hidden bg-zinc-800/60">
-                {alignedDays > 0 && (
-                  <motion.div
-                    className="bg-emerald-400/80"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${alignedPct}%` }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                  />
-                )}
-                {mixedDays > 0 && (
-                  <motion.div
-                    className="bg-zinc-500/70"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${mixedPct}%` }}
-                    transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
-                  />
-                )}
-                {opposedDays > 0 && (
-                  <motion.div
-                    className="bg-rose-400/80"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${opposedPct}%` }}
-                    transition={{ duration: 0.6, ease: 'easeOut', delay: 0.2 }}
-                  />
-                )}
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-[10px]">
-                <CountChip
-                  color="emerald"
-                  label={t.crossInsightAligned}
-                  hint={t.crossInsightAlignedHint}
-                  count={alignedDays}
-                />
-                <CountChip
-                  color="zinc"
-                  label={t.crossInsightMixed}
-                  hint={t.crossInsightMixedHint}
-                  count={mixedDays}
-                />
-                <CountChip
-                  color="rose"
-                  label={t.crossInsightOpposed}
-                  hint={t.crossInsightOpposedHint}
-                  count={opposedDays}
-                />
-              </div>
-            </>
+      {/* 시그널 출처 — 사주 / 점성 각각 top 3 */}
+      {(topSaju.length > 0 || topAstro.length > 0) && (
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          {topSaju.length > 0 && (
+            <SignalBlock
+              tone="saju"
+              title={t.crossSignalSajuTitle}
+              items={topSaju}
+              unitLabel={t.crossSignalDaysUnit}
+            />
+          )}
+          {topAstro.length > 0 && (
+            <SignalBlock
+              tone="astro"
+              title={t.crossSignalAstroTitle}
+              items={topAstro}
+              unitLabel={t.crossSignalDaysUnit}
+            />
           )}
         </div>
-      </div>
+      )}
 
+      {/* 같은 방향 / 다른 방향 카운트 + 막대 */}
+      {total > 0 && (
+        <div className="relative space-y-2 mb-4">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="text-zinc-300 font-semibold">{t.crossDirectionLabel}</span>
+            <span className="text-zinc-500 text-[10px]">{t.crossDirectionTotal(total)}</span>
+          </div>
+          <div className="flex h-2 rounded-full overflow-hidden bg-zinc-800/60">
+            {alignedDays > 0 && (
+              <motion.div
+                className="bg-emerald-400/80"
+                initial={{ width: 0 }}
+                animate={{ width: `${alignedPct}%` }}
+                transition={{ duration: 0.5 }}
+              />
+            )}
+            {mixedDays > 0 && (
+              <motion.div
+                className="bg-zinc-500/70"
+                initial={{ width: 0 }}
+                animate={{ width: `${mixedPct}%` }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              />
+            )}
+            {opposedDays > 0 && (
+              <motion.div
+                className="bg-rose-400/80"
+                initial={{ width: 0 }}
+                animate={{ width: `${opposedPct}%` }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              />
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-[10px]">
+            <CountChip
+              color="emerald"
+              label={t.crossDirSame}
+              hint={t.crossDirSameHint}
+              count={alignedDays}
+            />
+            <CountChip
+              color="zinc"
+              label={t.crossDirMixed}
+              hint={t.crossDirMixedHint}
+              count={mixedDays}
+            />
+            <CountChip
+              color="rose"
+              label={t.crossDirOpposed}
+              hint={t.crossDirOpposedHint}
+              count={opposedDays}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 대표 일 자연어 (bridges) */}
       {(alignedSample || opposedSample) && (
-        <div className="relative pt-3 border-t border-white/5 space-y-3">
+        <div className="relative pt-3 border-t border-white/5 space-y-2">
           <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
             {t.crossInsightEvidenceLabel}
           </p>
@@ -265,7 +215,7 @@ export default function CrossInsightCard({ dates, locale }: Props) {
             <EvidenceBlock
               tone="aligned"
               dateLabel={formatDate(alignedSample.date, locale)}
-              kindLabel={t.crossInsightAligned}
+              kindLabel={t.crossDirSame}
               bridge={alignedSample.bridge}
               saju={alignedSample.saju}
               astro={alignedSample.astro}
@@ -277,7 +227,7 @@ export default function CrossInsightCard({ dates, locale }: Props) {
             <EvidenceBlock
               tone="opposed"
               dateLabel={formatDate(opposedSample.date, locale)}
-              kindLabel={t.crossInsightOpposed}
+              kindLabel={t.crossDirOpposed}
               bridge={opposedSample.bridge}
               saju={opposedSample.saju}
               astro={opposedSample.astro}
@@ -287,6 +237,42 @@ export default function CrossInsightCard({ dates, locale }: Props) {
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+function SignalBlock({
+  tone,
+  title,
+  items,
+  unitLabel,
+}: {
+  tone: 'saju' | 'astro'
+  title: string
+  items: SignalCount[]
+  unitLabel: (n: number) => string
+}) {
+  const titleClass = tone === 'saju' ? 'text-amber-300' : 'text-cyan-300'
+  const borderClass = tone === 'saju' ? 'border-amber-500/20' : 'border-cyan-500/20'
+  const bgClass = tone === 'saju' ? 'bg-amber-950/10' : 'bg-cyan-950/10'
+  return (
+    <div className={`rounded-lg border ${borderClass} ${bgClass} p-3`}>
+      <p className={`text-[10px] uppercase tracking-widest font-bold mb-2 ${titleClass}`}>
+        {title}
+      </p>
+      <ul className="space-y-1">
+        {items.map((it) => (
+          <li
+            key={it.label}
+            className="flex items-baseline gap-2 text-[11px] text-zinc-200 leading-snug"
+          >
+            <span className="flex-1 min-w-0 truncate">{it.label}</span>
+            <span className="text-zinc-400 tabular-nums text-[10px] shrink-0">
+              {unitLabel(it.count)}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -318,10 +304,6 @@ function CountChip({
   )
 }
 
-/**
- * 근거 일자 블록 — bridges 자연어 (엔진이 톤 + 합치/엇갈림 기반 한 줄 생성) 우선.
- * bridges 없을 때만 신호 텍스트 (사주 X · 점성 Y) 폴백.
- */
 function EvidenceBlock({
   tone,
   dateLabel,
@@ -375,7 +357,6 @@ function EvidenceBlock({
 }
 
 function formatDate(iso: string, locale?: CalLocale): string {
-  // "2026-05-21" → KO "5/21" / EN "May 21"
   const m = iso.match(/^\d{4}-(\d{2})-(\d{2})$/)
   if (!m) return iso
   const month = Number(m[1])
