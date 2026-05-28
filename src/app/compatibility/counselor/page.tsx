@@ -869,6 +869,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           <div className={styles.headerLeft}>
             <button
               type="button"
+              data-icon-only="true"
               className={styles.backButton}
               onClick={() => setSidebarOpen(true)}
               aria-label={isKo ? '메뉴' : 'Menu'}

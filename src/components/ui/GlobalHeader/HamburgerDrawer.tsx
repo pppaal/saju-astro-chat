@@ -88,20 +88,12 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
     <>
       <button
         type="button"
+        data-icon-only="true"
         onClick={() => setOpen(true)}
         aria-label={isKo ? '메뉴 열기' : 'Open menu'}
-        style={{
-          border: 'none',
-          outline: 'none',
-          background: 'transparent',
-          WebkitAppearance: 'none',
-          appearance: 'none',
-          boxShadow: 'none',
-          padding: 0,
-          WebkitTapHighlightColor: 'transparent',
-        }}
-        className={`flex flex-col items-center justify-center gap-[4px] w-9 h-9 rounded-full
-          cursor-pointer transition-colors focus:outline-none ${
+        className={`inline-flex flex-col items-center justify-center gap-[4px]
+          w-9 h-9 rounded-full cursor-pointer transition-colors
+          border-0 outline-none bg-transparent p-0 shadow-none ${
             variant === 'light' ? 'hover:bg-stone-100/60' : 'hover:bg-white/10'
           }`}
       >
@@ -143,16 +135,10 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
                   href="/"
                   onClick={close}
                   aria-label={isKo ? '홈으로' : 'Home'}
-                  style={{
-                    border: 'none',
-                    outline: 'none',
-                    background: 'transparent',
-                    boxShadow: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
+                  data-icon-only="true"
                   className="inline-flex items-center justify-center w-8 h-8 rounded-full
-                    text-white/85 hover:text-white hover:bg-white/10 transition-colors
-                    focus:outline-none"
+                    text-white/85 border-0 outline-none bg-transparent shadow-none
+                    hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <svg
                     width="16"
@@ -173,20 +159,11 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
               </div>
               <button
                 type="button"
+                data-icon-only="true"
                 onClick={close}
                 aria-label={isKo ? '닫기' : 'Close'}
-                style={{
-                  border: 'none',
-                  outline: 'none',
-                  background: 'transparent',
-                  WebkitAppearance: 'none',
-                  appearance: 'none',
-                  boxShadow: 'none',
-                  padding: 0,
-                  WebkitTapHighlightColor: 'transparent',
-                }}
                 className="inline-flex items-center justify-center w-8 h-8 rounded-full
-                  text-white/85 focus:outline-none
+                  text-white/85 border-0 outline-none bg-transparent p-0 shadow-none
                   hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <svg

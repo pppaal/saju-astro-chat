@@ -158,6 +158,7 @@ export default function CounselorPage() {
         <div className={styles.headerLeft}>
           <button
             type="button"
+            data-icon-only="true"
             className={styles.backButton}
             onClick={() => setSidebarOpen(true)}
             aria-label={t('destinyMap.counselor.menu', 'Menu')}

@@ -7,11 +7,14 @@
    TOUCH TARGET MINIMUM SIZE (WCAG 2.5.5)
    ===================================================== */
 
-/* Ensure all interactive elements meet 48x48px minimum */
-button,
-a,
-[role="button"],
-[role="link"],
+/* Touch target 48×48 — 폼/CTA 버튼만. 헤더 아이콘 버튼 (햄버거, X, ⋮ 등)
+   은 data-icon-only="true" 로 제외 — 강제 48px 가 작은 글리프 주변에 큰
+   박스를 만들어 사용자에게 "테두리" 로 보였던 회귀.
+   WCAG 권장은 24×24 (Level AAA 는 44×44) — 항상 48 강제는 과함. */
+button:not([data-icon-only]):not(.icon-only),
+a:not([data-icon-only]):not(.icon-only),
+[role="button"]:not([data-icon-only]):not(.icon-only),
+[role="link"]:not([data-icon-only]):not(.icon-only),
 input[type="button"],
 input[type="submit"],
 input[type="reset"],
@@ -20,6 +23,14 @@ input[type="reset"],
   min-height: 48px;
   min-width: 48px;
   touch-action: manipulation; /* Prevents double-tap zoom delay */
+}
+
+/* 아이콘만 있는 버튼 — 글리프 주변 공간 확보용 padding 만, 강제 size 없음. */
+button[data-icon-only],
+a[data-icon-only],
+[role="button"][data-icon-only],
+.icon-only {
+  touch-action: manipulation;
 }
 
 /* Exception for small icons inside larger touch targets */
@@ -34,11 +45,13 @@ a > svg,
    FOCUS VISIBLE STYLES
    ===================================================== */
 
-/* Clear focus indicators for keyboard navigation */
+/* Clear focus indicators for keyboard navigation — 2px outline 만, 추가
+   border-radius / box-shadow 없음. 이전엔 box-shadow ring 이 모바일 tap
+   후에도 잔존해 "사각 테두리" 처럼 보이던 회귀.
+   data-icon-only 버튼은 outline 도 더 좁게 (1.5px). */
 *:focus-visible {
-  outline: 3px solid rgba(139, 92, 246, 0.8);
+  outline: 2px solid rgba(139, 92, 246, 0.8);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
 /* Remove outline for mouse users */
@@ -46,13 +59,12 @@ a > svg,
   outline: none;
 }
 
-/* Button focus states */
-button:focus-visible,
-a:focus-visible,
-[role="button"]:focus-visible {
-  outline: 3px solid rgba(139, 92, 246, 0.8);
-  outline-offset: 3px;
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+/* 아이콘 버튼은 outline 더 좁게 — 큰 box-shadow ring 제거. */
+[data-icon-only]:focus-visible,
+.icon-only:focus-visible {
+  outline: 1.5px solid rgba(139, 92, 246, 0.7);
+  outline-offset: 1px;
+  box-shadow: none;
 }
 
 /* Form input focus states */
@@ -207,9 +219,10 @@ button:disabled,
    ===================================================== */
 
 @media (prefers-contrast: high) {
-  button,
-  a,
-  [role="button"] {
+  /* 폼 버튼만 강조 — 아이콘 버튼(햄버거/X/⋮) 은 디자인 우선 */
+  button:not([data-icon-only]):not(.icon-only),
+  a:not([data-icon-only]):not(.icon-only),
+  [role="button"]:not([data-icon-only]):not(.icon-only) {
     border: 2px solid currentColor;
   }
 
