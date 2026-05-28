@@ -23,7 +23,11 @@
 
 const { Client } = require('pg')
 
-const FAILED_MIGRATION = '20260130_add_block_report_message_delete'
+// PR #733 에서 stuck 풀어줬고 PR #734 에서 정렬 순서 fix 로 rename.
+// 새 이름 + 옛 이름 둘 다 체크 (다른 env 에서 옛 이름이 stuck 했을 수도).
+const FAILED_MIGRATION_NEW = '20260131_add_block_report_message_delete'
+const FAILED_MIGRATION_OLD = '20260130_add_block_report_message_delete'
+const FAILED_MIGRATIONS = [FAILED_MIGRATION_NEW, FAILED_MIGRATION_OLD]
 
 function buildDirectUrl() {
   const u = process.env.DATABASE_URL
@@ -40,22 +44,20 @@ async function main() {
   const client = new Client({ connectionString: url, ssl: { rejectUnauthorized: false } })
   await client.connect()
   try {
-    // 1) failed migration 조회
+    // 1) failed migration 조회 — 둘 다 (new + old) 체크
     const failed = await client.query(
       `SELECT id, migration_name, finished_at, rolled_back_at
        FROM "_prisma_migrations"
-       WHERE migration_name = $1
+       WHERE migration_name = ANY($1)
          AND finished_at IS NULL
          AND rolled_back_at IS NULL`,
-      [FAILED_MIGRATION]
+      [FAILED_MIGRATIONS]
     )
 
     if (failed.rows.length === 0) {
-      console.log(`[migrate-recovery] ${FAILED_MIGRATION} not in failed state — no-op`)
+      console.log(`[migrate-recovery] no stuck migrations — no-op`)
       return
     }
-
-    console.log(`[migrate-recovery] found stuck migration ${FAILED_MIGRATION}, checking objects...`)
 
     // 2) migration 의 schema 객체 존재 확인
     const tablesExist = await client.query(
@@ -64,21 +66,24 @@ async function main() {
     )
     const hasObjects = tablesExist.rows.length > 0
 
-    if (hasObjects) {
-      // 적용됨 — finished_at 채워서 success 처리
-      await client.query(
-        `UPDATE "_prisma_migrations"
-         SET finished_at = NOW(), logs = NULL
-         WHERE migration_name = $1 AND finished_at IS NULL`,
-        [FAILED_MIGRATION]
-      )
-      console.log(`[migrate-recovery] objects exist — marked ${FAILED_MIGRATION} as applied`)
-    } else {
-      // 미적용 — row 삭제해서 다음 deploy 가 재시도
-      await client.query(`DELETE FROM "_prisma_migrations" WHERE migration_name = $1 AND finished_at IS NULL`, [
-        FAILED_MIGRATION,
-      ])
-      console.log(`[migrate-recovery] objects missing — deleted failed row, will retry`)
+    for (const row of failed.rows) {
+      const name = row.migration_name
+      console.log(`[migrate-recovery] found stuck migration ${name}`)
+      if (hasObjects) {
+        await client.query(
+          `UPDATE "_prisma_migrations"
+           SET finished_at = NOW(), logs = NULL
+           WHERE migration_name = $1 AND finished_at IS NULL`,
+          [name]
+        )
+        console.log(`[migrate-recovery] objects exist — marked ${name} as applied`)
+      } else {
+        await client.query(
+          `DELETE FROM "_prisma_migrations" WHERE migration_name = $1 AND finished_at IS NULL`,
+          [name]
+        )
+        console.log(`[migrate-recovery] objects missing — deleted failed row for ${name}, will retry`)
+      }
     }
   } finally {
     await client.end()
