@@ -20,6 +20,8 @@ interface Props {
   grade: GradeInfo
   /** 우측 점수 위 작은 라벨 — 미지정 시 locale 기본 */
   scoreCaption?: string
+  /** 사주↔점성 합치율 0-100. 있으면 라벨 옆에 chip 노출. */
+  agreementPercent?: number | null
   /** UI 라벨 locale */
   locale?: CalLocale
 }
@@ -30,6 +32,7 @@ export default function PremiumHero({
   score,
   grade,
   scoreCaption,
+  agreementPercent,
   locale,
 }: Props) {
   const t = getCalLabels(locale)
@@ -65,12 +68,17 @@ export default function PremiumHero({
             <span className="text-sm text-zinc-600 font-light">/100</span>
           </div>
         </div>
-        {/* grade + caption + verdict 압축 */}
-        <div className="flex items-baseline gap-2 mb-1.5">
+        {/* grade + caption + 사주↔점성 합치율 chip */}
+        <div className="flex items-baseline gap-2 mb-1.5 flex-wrap">
           <span className={`text-2xl sm:text-3xl font-black ${grade.colorClass}`}>
             {gradeLabel}
           </span>
           <span className="text-[10px] text-zinc-500 tracking-wider uppercase">{caption}</span>
+          {typeof agreementPercent === 'number' && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 tracking-wider">
+              {t.crossAgreementChip(Math.round(agreementPercent))}
+            </span>
+          )}
         </div>
         <p className="text-sm text-zinc-300 leading-snug">{verdict}</p>
       </div>

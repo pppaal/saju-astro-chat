@@ -315,10 +315,15 @@ function DayWhyCard({
   const ganji = importantDate.dailyGanjiNarrative?.trim()
   const sajuDetails = importantDate.evidence?.cross?.sajuDetails ?? []
   const astroDetails = importantDate.evidence?.cross?.astroDetails ?? []
+  const bridges = importantDate.evidence?.cross?.bridges ?? []
   const shinsal = importantDate.shinsalActive ?? []
 
   const hasAnything =
-    ganji || sajuDetails.length > 0 || astroDetails.length > 0 || shinsal.length > 0
+    ganji ||
+    sajuDetails.length > 0 ||
+    astroDetails.length > 0 ||
+    bridges.length > 0 ||
+    shinsal.length > 0
   if (!hasAnything) return null
 
   return (
@@ -337,6 +342,7 @@ function DayWhyCard({
         {astroDetails.length > 0 && (
           <WhyBlock label={t.dayWhyAstroLabel} items={astroDetails} tone="astro" />
         )}
+        {bridges.length > 0 && <WhyBlock label={t.dayWhyCrossLabel} items={bridges} tone="cross" />}
         {shinsal.length > 0 && (
           <WhyBlock
             label={t.dayWhyShinsalLabel}
@@ -356,16 +362,24 @@ function WhyBlock({
 }: {
   label: string
   items: string[]
-  tone: 'saju' | 'astro' | 'shinsal'
+  tone: 'saju' | 'astro' | 'cross' | 'shinsal'
 }) {
   const labelColor =
     tone === 'saju'
       ? 'text-amber-300/90'
       : tone === 'astro'
         ? 'text-cyan-300/90'
-        : 'text-violet-300/90'
+        : tone === 'cross'
+          ? 'text-emerald-300/90'
+          : 'text-violet-300/90'
   const dotColor =
-    tone === 'saju' ? 'bg-amber-400' : tone === 'astro' ? 'bg-cyan-400' : 'bg-violet-400'
+    tone === 'saju'
+      ? 'bg-amber-400'
+      : tone === 'astro'
+        ? 'bg-cyan-400'
+        : tone === 'cross'
+          ? 'bg-emerald-400'
+          : 'bg-violet-400'
   return (
     <div>
       <h4 className={`text-sm font-bold mb-2 tracking-wide ${labelColor}`}>{label}</h4>

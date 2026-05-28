@@ -89,6 +89,9 @@ interface LabelSet {
   dayWhySajuLabel: string
   dayWhyAstroLabel: string
   dayWhyShinsalLabel: string
+  dayWhyCrossLabel: string
+  /** 합치율 chip — "사주↔점성 N%" */
+  crossAgreementChip: (percent: number) => string
   dayHourlyTitle: string
   dayHourlyPushLabel: string
   dayHourlyAvoidLabel: string
@@ -167,6 +170,8 @@ const KO: LabelSet = {
   dayWhySajuLabel: '사주',
   dayWhyAstroLabel: '점성',
   dayWhyShinsalLabel: '신살',
+  dayWhyCrossLabel: '교차 (사주↔점성)',
+  crossAgreementChip: (p) => `사주↔점성 ${p}%`,
   dayHourlyTitle: '지금 뭐 할까',
   dayHourlyPushLabel: '추진할 것',
   dayHourlyAvoidLabel: '보류할 것',
@@ -244,6 +249,8 @@ const EN: LabelSet = {
   dayWhySajuLabel: 'Saju',
   dayWhyAstroLabel: 'Astro',
   dayWhyShinsalLabel: 'Shinsal',
+  dayWhyCrossLabel: 'Cross (Saju ↔ Astro)',
+  crossAgreementChip: (p) => `Saju ↔ Astro ${p}%`,
   dayHourlyTitle: 'What now',
   dayHourlyPushLabel: 'Push',
   dayHourlyAvoidLabel: 'Hold',
