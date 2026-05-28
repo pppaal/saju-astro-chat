@@ -89,31 +89,34 @@
   }
 }
 
-/* Mobile — single horizontal row, bottom-LEFT (not right), content-width only.
-   bottom-right 는 메인 페이지 전송 버튼(↑) / 다른 페이지 input toolbar 의
-   send 버튼과 겹쳐서 전송 클릭이 가려지던 회귀 fix. */
+/* Mobile — 상단 전체 폭 banner. 표준 GDPR 패턴 (BBC / NYTimes 등).
+   하단 좌/우 모두 메인 페이지 전송 버튼 / 메뉴 / 다른 도구와 겹치던 회귀로
+   상단으로 이동. status bar safe-area-inset-top 존중. 동의 후 사라지면
+   하단 UI 가 완전 폭금. */
 @media (max-width: 640px) {
   .banner {
     position: fixed;
-    bottom: max(0.4rem, env(safe-area-inset-bottom, 0px));
+    top: max(0.4rem, env(safe-area-inset-top, 0px));
     left: max(0.4rem, env(safe-area-inset-left, 0px));
-    right: auto;
-    top: auto;
+    right: max(0.4rem, env(safe-area-inset-right, 0px));
+    bottom: auto;
     width: auto;
-    max-width: calc(100vw - 0.8rem);
+    max-width: none;
     margin: 0;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     gap: 0.4rem;
-    padding: 0.3rem 0.5rem;
-    border-radius: 8px;
-    background: rgba(20, 20, 24, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(8px);
+    padding: 0.4rem 0.6rem;
+    border-radius: 10px;
+    background: rgba(20, 20, 24, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(10px);
     min-height: 0;
+    /* 메인 / 햄버거 / 모달 위로 — z 너무 높지도 낮지도 않게 */
+    z-index: 1000;
   }
 
   /* Hide the entire .text block (title + description). The cookie
