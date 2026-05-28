@@ -11,19 +11,9 @@ import { sendPaymentReceiptEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { HTTP_STATUS as _HTTP_STATUS } from '@/lib/constants/http'
+import { getStripeOrThrow } from '@/lib/stripe/client'
 
 export const dynamic = 'force-dynamic'
-
-const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover'
-
-function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not configured')
-  }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: STRIPE_API_VERSION,
-  })
-}
 
 const getWebhookSecret = () => process.env.STRIPE_WEBHOOK_SECRET
 
@@ -43,7 +33,7 @@ export const POST = withApiMiddleware(
         route: 'webhook/stripe',
       })
     }
-    const stripe = getStripe()
+    const stripe = getStripeOrThrow()
 
     const body = await request.text()
     const signature = request.headers.get('stripe-signature')

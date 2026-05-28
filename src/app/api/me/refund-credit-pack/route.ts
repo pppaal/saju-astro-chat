@@ -11,19 +11,13 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { revokeBonusCreditPurchase } from '@/lib/credits/creditService'
+import { getStripeOrNull } from '@/lib/stripe/client'
 
 export const dynamic = 'force-dynamic'
 
-const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover'
 const STRIPE_FEE_PERCENT = Number(process.env.STRIPE_FEE_PERCENT || '3.5')
 const STRIPE_FEE_FIXED_KRW = Number(process.env.STRIPE_FEE_FIXED_KRW || '300')
 const REFUND_WINDOW_DAYS = 7
-
-function getStripe(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY
-  if (!key) return null
-  return new Stripe(key, { apiVersion: STRIPE_API_VERSION })
-}
 
 function formulaFee(amount: number): number {
   return Math.round(amount * (STRIPE_FEE_PERCENT / 100)) + STRIPE_FEE_FIXED_KRW
@@ -83,7 +77,7 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.BAD_REQUEST, 'legacy_purchase_contact_support')
     }
 
-    const stripe = getStripe()
+    const stripe = getStripeOrNull()
     if (!stripe) {
       return apiError(ErrorCodes.INTERNAL_ERROR, 'stripe_not_configured')
     }

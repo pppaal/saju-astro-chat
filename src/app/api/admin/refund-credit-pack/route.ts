@@ -12,10 +12,9 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
 import { revokeBonusCreditPurchase } from '@/lib/credits/creditService'
+import { getStripeOrNull } from '@/lib/stripe/client'
 
 export const dynamic = 'force-dynamic'
-
-const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover'
 
 // Stripe 한국 표준 수수료 — balance_transaction 을 못 가져왔을 때 폴백.
 // (실제 청구된 수수료가 우선이며, 폴백은 보수적으로 환불액을 약간 적게)
@@ -23,12 +22,6 @@ const STRIPE_FEE_PERCENT = Number(process.env.STRIPE_FEE_PERCENT || '3.5')
 const STRIPE_FEE_FIXED_KRW = Number(process.env.STRIPE_FEE_FIXED_KRW || '300')
 
 const REFUND_WINDOW_DAYS = 7
-
-function getStripe(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY
-  if (!key) return null
-  return new Stripe(key, { apiVersion: STRIPE_API_VERSION })
-}
 
 function formulaFee(amount: number): number {
   return Math.round(amount * (STRIPE_FEE_PERCENT / 100)) + STRIPE_FEE_FIXED_KRW
@@ -63,7 +56,7 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.VALIDATION_ERROR, 'stripePaymentId is required')
     }
 
-    const stripe = getStripe()
+    const stripe = getStripeOrNull()
     if (!stripe) {
       return apiError(ErrorCodes.INTERNAL_ERROR, 'stripe_not_configured')
     }
