@@ -63,8 +63,11 @@ interface BirthInfoFieldsProps {
 export const birthFieldClasses: Required<BirthFieldsClasses> = {
   field: 'flex flex-col gap-1.5',
   label: 'text-[12.5px] font-semibold tracking-[0.02em] text-[rgba(229,231,240,0.78)]',
+  // iOS Safari 는 font-size < 16px input/select 를 탭하면 자동 줌인 처리하는데,
+  // 이 과정에서 첫 탭이 picker 열기로 안 이어지고 무시되는 케이스가 있다.
+  // 16px 로 맞춰 줌 자체를 방지 — Apple HIG 권장.
   input:
-    'w-full rounded-xl border border-[rgba(167,139,250,0.22)] bg-[rgba(15,17,35,0.7)] px-3 py-2.5 text-[14px] text-white outline-none transition focus:border-[rgba(167,139,250,0.6)] disabled:cursor-not-allowed disabled:opacity-50',
+    'w-full rounded-xl border border-[rgba(167,139,250,0.22)] bg-[rgba(15,17,35,0.7)] px-3 py-2.5 text-[16px] text-white outline-none transition focus:border-[rgba(167,139,250,0.6)] disabled:cursor-not-allowed disabled:opacity-50',
   row: 'grid grid-cols-2 gap-2.5',
   checkboxLabel:
     'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[rgba(220,215,255,0.78)]',
