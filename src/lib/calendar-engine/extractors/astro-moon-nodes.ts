@@ -2,6 +2,7 @@ import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { inferAspectPolarity } from '../themes/tagger'
 import { getCachedTransitChart } from '../ephe-cache'
+import { shortestAngle } from '@/lib/astrology/foundation/utils'
 
 /**
  * 달의 노드 (North/South Node) 트랜짓 추출기.
@@ -107,9 +108,5 @@ const astroMoonNodesExtractor: SignalExtractor = {
   },
 }
 
-function shortestAngle(a: number, b: number): number {
-  const diff = Math.abs(((a - b) % 360 + 540) % 360 - 180)
-  return Math.min(diff, 360 - diff)
-}
 
 export default astroMoonNodesExtractor

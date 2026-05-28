@@ -3,6 +3,7 @@ import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { inferAspectPolarity } from '../themes/tagger'
 import { getCachedTransitChart } from '../ephe-cache'
+import { shortestAngle } from '@/lib/astrology/foundation/utils'
 
 /**
  * Arabic Parts (아라빅 파츠) 활성 추출기.
@@ -96,11 +97,6 @@ const astroArabicPartExtractor: SignalExtractor = {
 
     return signals
   },
-}
-
-function shortestAngle(a: number, b: number): number {
-  const diff = Math.abs(((a - b) % 360 + 540) % 360 - 180)
-  return Math.min(diff, 360 - diff)
 }
 
 function clampPolarity(n: number): Polarity {
