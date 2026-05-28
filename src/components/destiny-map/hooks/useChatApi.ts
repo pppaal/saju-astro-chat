@@ -45,7 +45,7 @@ interface UseChatApiReturn {
   guestMode: boolean
   followUpQuestions: string[]
   setFollowUpQuestions: React.Dispatch<React.SetStateAction<string[]>>
-  handleSend: (directText?: string) => Promise<void>
+  handleSend: (directText?: string, options?: { isRetry?: boolean }) => Promise<void>
   showCrisisModal: boolean
   setShowCrisisModal: React.Dispatch<React.SetStateAction<boolean>>
 }
@@ -112,6 +112,9 @@ export function useChatApi({
   const updateTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastRenderedLengthRef = React.useRef(0)
   const lastRenderTimeRef = React.useRef(0)
+  // 직전 user turn 의 idempotencyKey 보관 — "다시 시도" 시 같은 키 재사용으로
+  // 서버가 idempotent replay 분기를 타게 해 credit 추가 차감 방지.
+  const lastTurnIdemKeyRef = React.useRef<string | null>(null)
 
   const flushMessageUpdate = React.useCallback(() => {
     if (pendingContentRef.current !== null) {
@@ -335,6 +338,19 @@ export function useChatApi({
           lang === 'ko' ? 'ko' : 'en'
         )
         flushFinalMessage(normalizedContent)
+        // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
+        // abort) 이 메시지에 incomplete 마킹 — MessageRow 가 "다시 시도" 칩을
+        // 노출. truncated 는 finalMessage flush 직후 같은 lastAssistant 에 덧씌움.
+        if (!result.success || result.truncated) {
+          setMessages((prev) => {
+            const updated = [...prev]
+            const lastIdx = updated.length - 1
+            if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+              updated[lastIdx] = { ...updated[lastIdx], incomplete: true }
+            }
+            return updated
+          })
+        }
 
         // Set follow-up questions — 모델이 가끔 generic 질문("더 알려줘"/
         // "tell me more")을 뱉음. 시스템 프롬프트가 금지하지만 모델이 무시하면
@@ -365,6 +381,7 @@ export function useChatApi({
       flushFinalMessage,
       autoScroll,
       messagesEndRef,
+      setMessages,
       tr.error,
       tr.noResponse,
       lang,
@@ -375,7 +392,7 @@ export function useChatApi({
 
   // Main send handler
   const handleSend = React.useCallback(
-    async (directText?: string) => {
+    async (directText?: string, options?: { isRetry?: boolean }) => {
       const trimmed = (directText || '').trim()
       const text =
         trimmed.length > MAX_CHAT_MESSAGE_CHARS ? trimmed.slice(0, MAX_CHAT_MESSAGE_CHARS) : trimmed
@@ -442,13 +459,18 @@ export function useChatApi({
         userContext,
         counselingBrief: buildLocalCounselingBrief(text, lang) ?? undefined,
         // 새로고침/탭 복제로 같은 turn 재진입 시 크레딧 중복 차감 방지.
-        // 매 user 메시지마다 새 UUID. 재시도(attempt > 0) 도 같은 payload
-        // 라서 같은 키 유지 → 의도된 재시도는 차감 1 회.
+        // 매 user 메시지마다 새 UUID. options.isRetry=true ("다시 시도"
+        // 클릭) 일 때만 직전 turn 의 키 재사용 — 서버 idempotency store 가
+        // replay 로 인식해 추가 credit 차감 없이 Claude 호출만 다시 돌린다.
+        // 부분 응답 후 끊긴 케이스도 첫 호출에서 이미 차감됐기 때문에 새
+        // 키로 보내면 중복 차감 발생.
         idempotencyKey:
-          typeof crypto !== 'undefined' && crypto.randomUUID
+          (options?.isRetry ? lastTurnIdemKeyRef.current : null) ||
+          (typeof crypto !== 'undefined' && crypto.randomUUID
             ? crypto.randomUUID()
-            : `t${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            : `t${Date.now()}-${Math.random().toString(36).slice(2)}`),
       }
+      lastTurnIdemKeyRef.current = payload.idempotencyKey ?? null
 
       try {
         const { res, controller } = await makeRequest(payload)

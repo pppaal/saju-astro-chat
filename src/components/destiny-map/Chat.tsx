@@ -116,18 +116,20 @@ const Chat = memo(function Chat({
   })
 
   const handleSend = React.useCallback(
-    async (directText?: string) => {
+    async (directText?: string, options?: { isRetry?: boolean }) => {
       const text = directText || input.trim()
       if (!text) {
         return
       }
       setInput('')
-      await apiHandleSend(text)
+      await apiHandleSend(text, options)
     },
     [input, apiHandleSend]
   )
 
-  const handleSendRef = React.useRef<(text?: string) => Promise<void>>(null!)
+  const handleSendRef = React.useRef<
+    (text?: string, options?: { isRetry?: boolean }) => Promise<void>
+  >(null!)
   React.useEffect(() => {
     handleSendRef.current = handleSend
   }, [handleSend])
@@ -141,15 +143,25 @@ const Chat = memo(function Chat({
     [setFollowUpQuestions]
   )
 
+  // "다시 시도" — 마지막 assistant 답변이 잘렸을 때만 노출. 잘린 답 + 직전 user
+  // 메시지를 함께 pop 한 뒤 isRetry: true 로 재요청. useChatApi 가 직전 turn 의
+  // idempotencyKey 를 재사용해 서버가 idempotent replay 분기를 타게 한다 — 부분
+  // 응답 후 끊긴 케이스에서 이미 차감된 credit 위에 또 차감되는 누수를 막는다.
+  const handleRetryLastAnswer = React.useCallback(() => {
+    if (loading) return
+    const len = messages.length
+    if (len < 2) return
+    if (messages[len - 1].role !== 'assistant') return
+    if (messages[len - 2].role !== 'user') return
+    const lastUserText = messages[len - 2].content
+    setMessages((prev) => prev.slice(0, -2))
+    setFollowUpQuestions([])
+    // handleSendRef.current 의 시그니처는 (directText?, options?) — Chat.tsx 의
+    // handleSend wrapper 가 이 두 번째 인자를 useChatApi.handleSend 에 그대로
+    // forward 하므로 retry flag 가 끝까지 전달된다.
+    void handleSendRef.current?.(lastUserText, { isRetry: true })
+  }, [loading, messages, setMessages, setFollowUpQuestions])
 
-  // #3 답변 직후 첫 후속질문을 입력창에 미리 채운다 — 사용자는 엔터로 바로 보내거나,
-  // 입력창의 X(지우기)로 싹 비우고 자기 질문을 새로 쓸 수 있다. 이미 뭔가 입력 중이면
-  // 덮어쓰지 않는다(직후엔 전송으로 비워져 있어 안전).
-  React.useEffect(() => {
-    if (followUpQuestions.length > 0) {
-      setInput((prev) => (prev.trim() ? prev : followUpQuestions[0]))
-    }
-  }, [followUpQuestions])
 
   React.useEffect(() => {
     setActiveSessionId(sessionIdRef.current)
@@ -538,6 +550,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               tr={tr}
               messagesEndRef={messagesEndRef}
               onFollowUp={handleFollowUp}
+              onRetryLastAnswer={handleRetryLastAnswer}
               styles={styles}
               userName={profile?.name}
               onOpenClarifier={clarifier.buttonProps.onClick}

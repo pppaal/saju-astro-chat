@@ -47,7 +47,6 @@ import {
   buildSourceFields,
   buildSourceSetIds,
   buildTopScenarios,
-  clamp,
   getPresentationScenarios,
   isPresentationScenario,
   localizeCanonicalDomain,
@@ -56,8 +55,11 @@ import {
   localizePatternFamily,
   mapSignalDomainToSummaryDomainKey,
   resolveRiskControl,
-  round2,
 } from './canonicalDomainSupportSupport'
+// `clamp` / `round2` live in lib/utils/math. The Support Support file
+// imports them but does not re-export, so pulling the re-export through
+// it fails with TS2459. Pull directly from canonical source.
+import { clamp, round2 } from '@/lib/utils/math'
 
 export {
   ACTIONABLE_DOMAINS,
@@ -66,7 +68,6 @@ export {
   buildSourceFields,
   buildSourceSetIds,
   buildTopScenarios,
-  clamp,
   getPresentationScenarios,
   isPresentationScenario,
   localizeCanonicalDomain,
@@ -75,8 +76,8 @@ export {
   localizePatternFamily,
   mapSignalDomainToSummaryDomainKey,
   resolveRiskControl,
-  round2,
 } from './canonicalDomainSupportSupport'
+export { clamp, round2 }
 
 export function findEvidenceIdsForDomain(input: BuildCoreCanonicalOutputInput, domain: string): string[] {
   return [

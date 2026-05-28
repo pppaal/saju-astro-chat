@@ -75,8 +75,40 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
     }
   }
 
+  // SSE heartbeat — Claude 가 토큰 사이 수 초씩 멈추거나 thinking 으로 idle
+  // 해질 때, 중간 경로(모바일 NAT / Vercel edge / 사용자 ISP) 가 "연결 죽음"으로
+  // 판단해 끊는 케이스 차단. 10초마다 SSE comment line(`:`-prefix)을 흘려
+  // 보낸다. comment 는 클라이언트의 SSE 파서에서 자동 무시되므로 누적 텍스트에
+  // 안 섞임. 실제 chunk 가 오는 동안엔 heartbeat 가 함께 흘러도 무해.
+  const HEARTBEAT_INTERVAL_MS = 10_000
+
   const sseStream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      let heartbeatTimer: ReturnType<typeof setInterval> | null = null
+      let streamClosed = false
+      const startHeartbeat = () => {
+        if (heartbeatTimer) return
+        heartbeatTimer = setInterval(() => {
+          if (streamClosed) return
+          try {
+            controller.enqueue(encoder.encode(`: hb ${Date.now()}\n\n`))
+          } catch {
+            // controller already closed by error path — stop pinging.
+            if (heartbeatTimer) {
+              clearInterval(heartbeatTimer)
+              heartbeatTimer = null
+            }
+          }
+        }, HEARTBEAT_INTERVAL_MS)
+      }
+      const stopHeartbeat = () => {
+        if (heartbeatTimer) {
+          clearInterval(heartbeatTimer)
+          heartbeatTimer = null
+        }
+      }
+
+      startHeartbeat()
       try {
         while (true) {
           const { done, value } = await reader.read()
@@ -104,6 +136,8 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
           done: true,
         })}\n\n`
         controller.enqueue(encoder.encode(finalLine))
+        stopHeartbeat()
+        streamClosed = true
         controller.close()
       } catch (err) {
         // Errored before delivering any content → refund the charged turn.
@@ -116,6 +150,8 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
           error: err instanceof Error ? err.message : String(err),
         })}\n\n`
         controller.enqueue(encoder.encode(errLine))
+        stopHeartbeat()
+        streamClosed = true
         controller.close()
       }
     },

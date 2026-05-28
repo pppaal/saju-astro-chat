@@ -2532,3 +2532,45 @@
   border-color: #d6d3d1;
   color: #1c1917;
 }
+
+/* 잘린 답변 옆 "다시 시도" 칩 — 본문 톤 안 가리게 옅은 경고 색. dark 베이스,
+   lightTheme 자손에서 라이트 톤으로 오버라이드 (compat 페이지 톤 동일). */
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: rgba(245, 175, 110, 0.16);
+  border: 1px solid rgba(245, 175, 110, 0.45);
+  border-radius: 999px;
+  color: #f7c69b;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.retryButton:hover {
+  background: rgba(245, 175, 110, 0.26);
+  border-color: rgba(245, 175, 110, 0.65);
+  transform: translateY(-1px);
+}
+
+.retryButton:active {
+  transform: translateY(0);
+}
+
+.lightTheme .retryButton {
+  background: #fff4ec;
+  border-color: #f5c79c;
+  color: #8a4a1a;
+}
+
+.lightTheme .retryButton:hover {
+  background: #fde8d3;
+  border-color: #e9a866;
+}

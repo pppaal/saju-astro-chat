@@ -40,6 +40,12 @@ export type Message = {
   content: string
   id?: string
   streaming?: boolean
+  /**
+   * Assistant response was cut off mid-stream (e.g. mobile network drop,
+   * upstream idle abort). Surfaces a retry button on the bubble so the
+   * user can re-send the previous question without retyping.
+   */
+  incomplete?: boolean
 }
 
 // Feedback types

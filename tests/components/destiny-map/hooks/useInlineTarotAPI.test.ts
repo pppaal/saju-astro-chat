@@ -170,6 +170,7 @@ describe('useInlineTarotAPI', () => {
       setGuidance: vi.fn(),
       setAffirmation: vi.fn(),
       setIsSaved: vi.fn(),
+      setReadingId: vi.fn(),
       setIsSaving: vi.fn(),
       setIsAnalyzing: vi.fn(),
       setAiReason: vi.fn(),
@@ -461,7 +462,14 @@ describe('useInlineTarotAPI', () => {
         drawnCards: mockDrawnCards,
       })
 
-      mockFetch.mockResolvedValue({ ok: true })
+      // saveReading reads res.json() to pick up the server-assigned
+      // readingId. The previous { ok: true } mock had no .json method,
+      // so the synchronous call threw and the outer catch swallowed it
+      // before setIsSaved(true) ran. Provide a minimal JSON body.
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ readingId: 'reading-123' }),
+      })
 
       const { result } = renderHook(() =>
         useInlineTarotAPI({

@@ -62,6 +62,8 @@ function CounselorLoading({ lang = 'ko' }: { lang?: 'ko' | 'en' }) {
 type ChatMessage = {
   role: 'user' | 'assistant'
   content: string
+  /** Stream cut mid-response → bubble shows a "다시 시도" retry button. */
+  incomplete?: boolean
 }
 
 type PersonData = {
@@ -115,6 +117,11 @@ function CompatibilityCounselorContent() {
   // 토큰마다 messagesEnd 따라가면 viewport 가 위로 밀려 "왜 다시 올라가냐"
   // 회귀.
   const suspendAutoScrollRef = useRef(false)
+  // 직전 user turn 의 idempotencyKey 를 보관. "다시 시도" 가 같은 키로 재요청
+  // 하면 서버가 idempotent replay 로 인식해 *추가 credit 차감 없이* Claude
+  // 호출만 다시 돌린다(라우트의 idemStore.isReplay 분기). 새 user 발화가
+  // 들어오면 새 UUID 로 덮어씀.
+  const lastTurnIdemKeyRef = useRef<string | null>(null)
   // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 사이드바 리스트의 항상 보이던
   // 아이콘들을 대체 (운명 상담사와 동일 패턴, PR #621).
   const [chatMenuOpen, setChatMenuOpen] = useState(false)
@@ -374,15 +381,6 @@ function CompatibilityCounselorContent() {
     }
   }, [isInitializing])
 
-  // 운명 상담사와 동일한 UX — 답변 직후 첫 후속질문을 입력창에 미리 채운다.
-  // 사용자는 엔터로 바로 보내거나, 지우고 자기 질문을 새로 쓸 수 있다.
-  // 이미 입력 중이면 덮어쓰지 않는다.
-  useEffect(() => {
-    if (followUpQuestions.length > 0) {
-      setInput((prev) => (prev.trim() ? prev : followUpQuestions[0]))
-    }
-  }, [followUpQuestions])
-
   // 채팅 우상단 ⋮ 메뉴 핸들러 — 운명 상담사 PR #621 과 동일.
   // 저장된 session 이 없으면 (chatSessionId undefined) 아무것도 안 함.
   const handleChatRename = useCallback(async () => {
@@ -424,7 +422,7 @@ function CompatibilityCounselorContent() {
   }, [chatSessionId, isKo])
 
   const sendMessage = useCallback(
-    async (textOverride?: string) => {
+    async (textOverride?: string, options?: { isRetry?: boolean }) => {
       const text = (textOverride ?? input).trim()
       if (!text || isLoading) {
         return
@@ -444,30 +442,83 @@ function CompatibilityCounselorContent() {
         // for long conversations.
         const recentHistory = [...messages, userMessage].slice(-10)
         // 새로고침/탭 복제 등 같은 turn 재진입 시 서버가 중복 차감 안 하도록
-        // 매 user 메시지 마다 UUID 생성. 재시도 시 같은 키 유지가 이상적이지만
-        // 현재 단일 호출 — 첫 호출 = 새 UUID 로 충분.
+        // 매 user 메시지 마다 UUID 생성. "다시 시도" 일 때는 직전 turn 의
+        // 키를 그대로 재사용 — 서버가 idempotent replay 로 인식해 credit
+        // 추가 차감 없이 Claude 만 다시 호출. (부분 응답 후 끊긴 케이스도
+        // 첫 호출에서 *이미* 차감됐기 때문에 재시도가 또 차감되면 중복.)
+        const reusedKey = options?.isRetry ? lastTurnIdemKeyRef.current : null
         const idempotencyKey =
-          typeof crypto !== 'undefined' && crypto.randomUUID
+          reusedKey ||
+          (typeof crypto !== 'undefined' && crypto.randomUUID
             ? crypto.randomUUID()
-            : `t${Date.now()}-${Math.random().toString(36).slice(2)}`
-        const response = await fetch('/api/compatibility/counselor', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-idempotency-key': idempotencyKey,
-          },
-          body: JSON.stringify({
-            persons,
-            person1Saju,
-            person2Saju,
-            person1Astro,
-            person2Astro,
-            lang: locale,
-            messages: recentHistory,
-            useRag: true,
-            ...(cvText ? { cvText } : {}),
-          }),
+            : `t${Date.now()}-${Math.random().toString(36).slice(2)}`)
+        lastTurnIdemKeyRef.current = idempotencyKey
+        // 운명 상담사의 useChatApi 패턴을 그대로 이식 — 헤더 도착까지의 절대
+        // 시간 cap 과 chunk 사이 idle cap 을 분리해서 관리한다. 헤더가 30s
+        // 안에 안 오면 abort, 헤더 받은 뒤엔 chunk idle 45s 기준으로 따로
+        // 관리(아래 streamProcessor 호출부에서 reset).
+        const HEADER_TIMEOUT_MS = 30_000
+        const CHUNK_IDLE_TIMEOUT_MS = 45_000
+        const MAX_RETRY_ATTEMPTS = 2
+        const RETRY_BASE_DELAY_MS = 1_000
+        // 5xx / 헤더 타임아웃은 운명 상담사처럼 자동 재시도(exponential backoff).
+        // 같은 idempotencyKey 를 다시 보내므로 credit 중복 차감은 없다 (서버
+        // idemStore.isReplay). retry 동안에도 controller / headerTimer 는
+        // attempt 마다 새로 만든다.
+        const requestBody = JSON.stringify({
+          persons,
+          person1Saju,
+          person2Saju,
+          person1Astro,
+          person2Astro,
+          lang: locale,
+          messages: recentHistory,
+          useRag: true,
+          ...(cvText ? { cvText } : {}),
         })
+        let response: Response | null = null
+        let controller = new AbortController()
+        let attempt = 0
+        while (true) {
+          controller = new AbortController()
+          const headerTimer = setTimeout(() => controller.abort(), HEADER_TIMEOUT_MS)
+          try {
+            response = await fetch('/api/compatibility/counselor', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-idempotency-key': idempotencyKey,
+              },
+              body: requestBody,
+              signal: controller.signal,
+            })
+            clearTimeout(headerTimer)
+            if (response.ok) break
+            // 401/402/4xx 같은 *유저 액션* 에러는 재시도해도 의미 없음 — 그대로
+            // 아래 not-ok 분기에서 throw. 5xx 만 재시도.
+            if (response.status >= 500 && attempt < MAX_RETRY_ATTEMPTS) {
+              attempt++
+              await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt))
+              continue
+            }
+            break
+          } catch (err) {
+            clearTimeout(headerTimer)
+            const name = (err as Error & { name?: string }).name
+            // 헤더 타임아웃(AbortError) / 네트워크 끊김은 자동 재시도.
+            if ((name === 'AbortError' || name === 'TimeoutError') && attempt < MAX_RETRY_ATTEMPTS) {
+              attempt++
+              await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt))
+              continue
+            }
+            throw err
+          }
+        }
+        if (!response) {
+          // 위 while 안에서 response 가 설정되지 않은 채 빠져나오는 경로는
+          // 없지만 TypeScript narrowing 위해 가드.
+          throw new Error('No response received')
+        }
 
         if (!response.ok) {
           if (response.status === 401) {
@@ -506,9 +557,23 @@ function CompatibilityCounselorContent() {
         // 로 통일 — `content` 필드만 추출해 누적한다.
         setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
+        // chunk idle timer — chunk 가 들어올 때마다 reset. 일정 시간 동안 한
+        // byte 도 안 오면 응답이 진짜 멈춘 것으로 보고 abort. controller.abort()
+        // 가 reader.read() 도 종료시켜 streamProcessor 가 truncated 로 마무리,
+        // 그러면 페이지가 "다시 시도" 버튼을 자동 노출. 서버 heartbeat 가
+        // 있어도 chunk 자체가 끊긴 케이스(클라 ↔ edge 사이 NAT drop 등) 는
+        // 여기로 잡힌다.
+        let idleTimer: ReturnType<typeof setTimeout> | null = null
+        const armIdleTimer = () => {
+          if (idleTimer) clearTimeout(idleTimer)
+          idleTimer = setTimeout(() => controller.abort(), CHUNK_IDLE_TIMEOUT_MS)
+        }
+        armIdleTimer()
+
         let finalAssistantContent = ''
         const result = await streamProcessor.process(response, {
           onChunk: (_accumulated, cleaned) => {
+            armIdleTimer()
             finalAssistantContent = cleaned
             setMessages((prev) => {
               const updated = [...prev]
@@ -525,6 +590,24 @@ function CompatibilityCounselorContent() {
             logger.warn('[CompatCounselor] stream error', { error: err })
           },
         })
+        if (idleTimer) clearTimeout(idleTimer)
+        // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
+        // abort / Claude disconnect) 메시지를 "다시 시도" 버튼이 붙는 incomplete
+        // 상태로 마킹. 단, 서버가 X-Counselor-Fallback: 1 을 달아 보낸 응답
+        // (안전 차단 / 완결성 부족 / Claude 에러 시 generic 안내문) 은 *완결된*
+        // 메시지지만 마커가 없을 뿐이라 truncated 로 보면 안 됨 → 헤더로 분기.
+        const isServerFallback = response.headers.get('x-counselor-fallback') === '1'
+        const wasTruncated = !isServerFallback && (!result.success || result.truncated)
+        if (wasTruncated && finalAssistantContent) {
+          setMessages((prev) => {
+            const updated = [...prev]
+            const lastIdx = updated.length - 1
+            if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
+              updated[lastIdx] = { ...updated[lastIdx], incomplete: true }
+            }
+            return updated
+          })
+        }
         // 운명 상담사와 동일 패턴 — LLM 의 generic followup ("더 알려줘",
         // "tell me more" 등) 을 클라이언트에서 결정적으로 필터링 + 부족분만
         // theme 기반 폴백으로 보충. 이전엔 LLM 2개 ≥ 면 그대로 / 미만이면
@@ -638,6 +721,23 @@ function CompatibilityCounselorContent() {
       sendMessage()
     }
   }
+
+  // "다시 시도" — 잘린 assistant 답변과 그 직전 user 메시지를 둘 다 pop 한 뒤
+  // 동일 user 텍스트로 재요청. isRetry: true 로 직전 turn 의 idempotencyKey 를
+  // 재사용해 서버 idempotent replay 분기로 credit 중복 차감을 막는다. 부분
+  // 응답 후 끊긴 케이스도 첫 호출에서 *이미* 차감됐기 때문에 같은 키 재사용
+  // 이 정상적인 보호 동선.
+  const retryLastAnswer = useCallback(() => {
+    if (isLoading) return
+    const len = messages.length
+    if (len < 2) return
+    if (messages[len - 1].role !== 'assistant') return
+    if (messages[len - 2].role !== 'user') return
+    const lastUserText = messages[len - 2].content
+    setMessages((prev) => prev.slice(0, -2))
+    setFollowUpQuestions([])
+    void sendMessage(lastUserText, { isRetry: true })
+  }, [isLoading, messages, sendMessage])
 
   // 🃏 클래리파이어 — 공통 hook (운명상담사 / followup 동일).
   const clarifier = useClarifierCard({
@@ -879,6 +979,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               const isUser = msg.role === 'user'
               const isLastAssistant = !isUser && idx === messages.length - 1
               const showTyping = isLastAssistant && isLoading && !msg.content
+              // 잘림 감지된 마지막 assistant 메시지에만 "다시 시도" 노출.
+              // 스트리밍 중엔 숨김 — 새 토큰이 들어오는 동안 깜빡이지 않도록.
+              const showRetry = isLastAssistant && !isLoading && msg.incomplete
 
               return (
                 <div key={idx} className={`${styles.message} ${isUser ? styles.userMessage : ''}`}>
@@ -906,6 +1009,17 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                       }
                       theme="light"
                     />
+                    {showRetry && (
+                      <button
+                        type="button"
+                        className={styles.retryButton}
+                        onClick={retryLastAnswer}
+                        aria-label={isKo ? '다시 시도' : 'Retry'}
+                      >
+                        <span aria-hidden="true">{'↻'}</span>
+                        {isKo ? '답변이 끊겼어요 · 다시 시도' : 'Cut off · Retry'}
+                      </button>
+                    )}
                   </div>
                 </div>
               )
