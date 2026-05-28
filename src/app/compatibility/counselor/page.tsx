@@ -31,6 +31,7 @@ const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCar
 })
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
 import { pushRecentPair, getRecentPairs, type RecentPair } from '@/app/compatibility/lib'
+import { CompatPersonPickerModal, type PickedPersonData } from './CompatPersonPickerModal'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
@@ -90,7 +91,12 @@ function CompatibilityCounselorContent() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
-  const [redirecting, setRedirecting] = useState(false)
+  // redirecting state — picker 모달 통합 후로 set 호출처는 없지만 loading
+  // 가드(if isInitializing || redirecting) 의 의미적 키워드는 유지.
+  const [redirecting] = useState(false)
+  /** persons 가 비어 있을 때 picker 모달 노출 여부 — URL 에 ?persons= /
+   *  ?session= 둘 다 없는 신규 진입 + 새 채팅 직후에 true. */
+  const [showPicker, setShowPicker] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // LLM-generated follow-up chips. Filled from streamProcessor result.
   // Cleared on every new send so stale suggestions never leak.
@@ -223,14 +229,13 @@ function CompatibilityCounselorContent() {
             await fetchPersonData(parsed)
           }
         } else {
-          // 3) Direct entry with no couple (profile / header / sidebar link).
-          //    This screen has no person-picker, so send the user to the
-          //    /compatibility form which carries 지인 불러오기 / 직접 입력 /
-          //    내 프로필 불러오기. They return here with ?persons=. Keep the
-          //    loader up (redirecting) so the empty counselor never flashes.
-          setRedirecting(true)
-          router.replace('/compatibility')
-          return
+          // 3) Direct entry with no couple — inline picker 모달 노출.
+          //    이전엔 /compatibility 입력 페이지로 빠졌다가 ?persons= 로 돌아
+          //    오는 흐름이었는데 같은 화면 안에서 picker → chat 으로 흐름이
+          //    끊기지 않게 모달로 통합. useCompatibilityForm 안에서 직전 페어
+          //    (localStorage) 가 두 카드에 자동으로 채워지므로 사용자는 그냥
+          //    "분석 시작" 한 번만 누르면 끝.
+          setShowPicker(true)
         }
       } catch (e) {
         logger.error('Failed to parse URL params:', { error: e })
@@ -626,6 +631,47 @@ function CompatibilityCounselorContent() {
     disabled: isLoading || persons.length < 2,
   })
 
+  // 인라인 picker → 두 사람 확정 시 fetchPersonData 로 사주/점성 불러와서 채팅 시작.
+  // URL 도 ?persons= 로 갱신해 새로고침 / 공유 링크에 대응 (replace 라 뒤로가기 X).
+  const handlePickerSubmit = useCallback(
+    async (picked: PickedPersonData[]) => {
+      if (picked.length < 2) return
+      const personsData = picked.map((p) => ({
+        name: p.name,
+        date: p.date,
+        time: p.time,
+        city: p.city,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        timeZone: p.timeZone,
+        relation: p.relation,
+        gender: p.gender,
+      }))
+      setPersons(personsData)
+      // 다음 번 자동 채움용 localStorage 저장.
+      const toRecent = (p: typeof personsData[number]) => ({
+        name: p.name,
+        date: p.date,
+        time: p.time,
+        gender: p.gender,
+        cityQuery: p.city || '',
+        lat: p.latitude ?? null,
+        lon: p.longitude ?? null,
+        timeZone: p.timeZone || '',
+        relation: p.relation,
+      })
+      pushRecentPair([toRecent(personsData[0]), toRecent(personsData[1])])
+      // URL 동기화 — 새로고침해도 같은 페어 유지.
+      router.replace(
+        `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(personsData))}`
+      )
+      setShowPicker(false)
+      chartFetchRef.current = false
+      await fetchPersonData(personsData)
+    },
+    [router]
+  )
+
   // 🃏 다음 질문 타로로 보기 — 운명상담사와 동일한 InlineTarotModal 흐름. 사용자가
   // 질문 적고 스프레드 골라 카드 펼치면 결과를 채팅 메시지로 inject.
   // 본 채팅의 다음 follow-up 은 두 사람 컨텍스트를 가지고 커플 관점에서
@@ -682,6 +728,15 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           setChatSessionId(undefined)
           setChatTitle(null)
           clarifier.reset()
+          // 새 채팅 = 새 폼. persons 초기화 → picker 모달 자동 노출.
+          // 사용자: "새로운 채팅창은 새로운 폼 나오고"
+          setPersons([])
+          setPerson1Saju(null)
+          setPerson2Saju(null)
+          setPerson1Astro(null)
+          setPerson2Astro(null)
+          chartFetchRef.current = false
+          setShowPicker(true)
           setFocusToken((n) => n + 1)
         }}
         serviceType="compat"
@@ -975,6 +1030,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
       />
 
       <ClarifierCardModal {...clarifier.modalProps} />
+
+      {showPicker && (
+        <CompatPersonPickerModal
+          onSubmit={(picked) => void handlePickerSubmit(picked)}
+          subtitle={isKo ? '두 사람의 정보로 채팅을 시작해요.' : 'Enter two profiles to start chatting.'}
+        />
+      )}
 
       <CompatChartModal
         open={showChartModal}
