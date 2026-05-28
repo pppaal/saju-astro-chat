@@ -67,6 +67,64 @@ export interface PushPayload {
   requireInteraction?: boolean
 }
 
+// ------------------------------------------------------------------
+// Per-(user, type, day, hour) idempotency for scheduled push fanout.
+// Cron retries used to re-send the same daily-fortune to the same
+// user; reuse the existing RequestIdempotencyLog table with a 25h TTL
+// so a second invocation lands on a hit and exits early.
+// ------------------------------------------------------------------
+
+const PUSH_DEDUP_TTL_MS = 25 * 60 * 60 * 1000
+
+function pushDedupKey(userId: string, type: string, hour: number): string {
+  const today = new Date()
+  // Use the UTC date as the namespace, not the local date — the cron
+  // schedule lives in UTC, so a UTC day rollover and a local-tz day
+  // rollover would disagree and the second send wouldn't dedup
+  // against the first.
+  const day = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(
+    today.getUTCDate()
+  ).padStart(2, '0')}`
+  return `push:${userId}:${type}:${day}:${String(hour).padStart(2, '0')}`
+}
+
+async function isPushAlreadySent(userId: string, type: string, hour: number): Promise<boolean> {
+  const scopedKey = pushDedupKey(userId, type, hour)
+  try {
+    const row = await prisma.requestIdempotencyLog.findUnique({
+      where: { scopedKey },
+      select: { expiresAt: true },
+    })
+    if (!row) return false
+    return row.expiresAt > new Date()
+  } catch (err) {
+    // Fail-open: better to risk one extra send than to silently drop
+    // every notification when the dedup table has a transient issue.
+    logger.warn('[pushService] dedup lookup failed, sending anyway', {
+      scopedKey,
+      err: err instanceof Error ? err.message : String(err),
+    })
+    return false
+  }
+}
+
+async function markPushSent(userId: string, type: string, hour: number): Promise<void> {
+  const scopedKey = pushDedupKey(userId, type, hour)
+  const expiresAt = new Date(Date.now() + PUSH_DEDUP_TTL_MS)
+  try {
+    await prisma.requestIdempotencyLog.upsert({
+      where: { scopedKey },
+      create: { scopedKey, expiresAt },
+      update: { expiresAt },
+    })
+  } catch (err) {
+    logger.warn('[pushService] dedup mark failed', {
+      scopedKey,
+      err: err instanceof Error ? err.message : String(err),
+    })
+  }
+}
+
 /**
  * 단일 사용자에게 푸시 알림 발송
  */
@@ -267,9 +325,23 @@ export async function sendScheduledNotifications(hour: number): Promise<{
       const hourlyNotifications = getNotificationsForHour(allNotifications, hour)
 
       for (const notification of hourlyNotifications) {
+        // Cron retries (Vercel network blip, redeploy race) used to land
+        // here twice for the same (user, hour) and re-send the same daily
+        // fortune. Mark each (user, type, day, hour) as already-sent in
+        // RequestIdempotencyLog with a 25h TTL so the second invocation
+        // detects the prior send and skips. The premium-notifications
+        // module already guards its own messages via its
+        // lastNotificationDate check, but the cron-driven fortune /
+        // lucky-time / transit notifications had no dedup at all.
+        if (await isPushAlreadySent(user.id, notification.type, hour)) {
+          continue
+        }
         const result = await sendPushNotification(user.id, notification)
         totalSent += result.sent
         totalFailed += result.failed
+        if (result.sent > 0) {
+          await markPushSent(user.id, notification.type, hour)
+        }
       }
     } catch (error: unknown) {
       logger.error(
