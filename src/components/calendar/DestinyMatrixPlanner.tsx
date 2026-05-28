@@ -209,7 +209,7 @@ export default function DestinyMatrixPlanner({
     data?.monthSummary?.summary ?? data?.calendarMonthView?.oneLineSummary ?? null
 
   const monthScore = useMemo(() => {
-    if (monthDates.length === 0) return 84 // mock fallback
+    if (monthDates.length === 0) return null
     return Math.round(avg(monthDates.map(pickFinalScore)))
   }, [monthDates])
 
@@ -509,16 +509,18 @@ export default function DestinyMatrixPlanner({
               {/* Premium Dashboard — Hero + Radar + Flow + Highlights.
                   같은 데이터 모델(monthDates, themeScores, keyEvents)을 4개
                   시각화로 분배. */}
-              <MonthDashboard
-                year={viewYear}
-                month={viewMonth}
-                monthLabel={monthLabel}
-                monthDates={monthDates}
-                monthScore={monthScore}
-                monthSummary={monthlySummaryText}
-                locale={locale}
-                onDayClick={handleDayClick}
-              />
+              {monthScore !== null && (
+                <MonthDashboard
+                  year={viewYear}
+                  month={viewMonth}
+                  monthLabel={monthLabel}
+                  monthDates={monthDates}
+                  monthScore={monthScore}
+                  monthSummary={monthlySummaryText}
+                  locale={locale}
+                  onDayClick={handleDayClick}
+                />
+              )}
 
               {/* 달력 그리드 — actionable surface. 대시보드 highlights 와 함께
                   사용자가 일자 탭으로 daily 뷰 진입. */}
