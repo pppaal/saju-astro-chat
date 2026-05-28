@@ -212,7 +212,11 @@ export function BirthInfoFields({
                     onClick={() => onCityPick(s)}
                     className={c.suggestionItem}
                   >
-                    {formatCityForDropdown(s.name, s.country, locale)}
+                    {/* API 가 region 까지 포함해서 만든 displayKr/displayEn 이 있으면
+                        그대로 — Springfield, Illinois, United States 같은 disambiguation
+                        은 거기서만 들어 있다. 없을 때만 client formatter 로 fallback. */}
+                    {(locale === 'ko' ? s.displayKr : s.displayEn) ||
+                      formatCityForDropdown(s.name, s.country, locale)}
                   </button>
                 </li>
               ))}
