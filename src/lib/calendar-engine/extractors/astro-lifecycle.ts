@@ -1,4 +1,4 @@
-import { buildLifecycleTiming } from '@/lib/fusion/lifeReport/signals/astroLifecycle'
+import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 
 /**
@@ -12,33 +12,33 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  */
 
 const EVENT_POLARITY: Record<string, Polarity> = {
-  jupiter_return_1:    2,
-  jupiter_return_2:    2,
-  jupiter_return_3:    2,
-  jupiter_return_5:    2,
-  saturn_return_1:    -1,
-  saturn_return_2:    -1,
-  progressed_lunar_1:  0,
+  jupiter_return_1: 2,
+  jupiter_return_2: 2,
+  jupiter_return_3: 2,
+  jupiter_return_5: 2,
+  saturn_return_1: -1,
+  saturn_return_2: -1,
+  progressed_lunar_1: 0,
   pluto_square_pluto: -2,
-  uranus_opposition:  -1,
-  neptune_square:     -1,
-  chiron_return:       0,
-  uranus_return:       0,
+  uranus_opposition: -1,
+  neptune_square: -1,
+  chiron_return: 0,
+  uranus_return: 0,
 }
 
 const EVENT_PLANET: Record<string, string> = {
-  jupiter_return_1:   'Jupiter',
-  jupiter_return_2:   'Jupiter',
-  jupiter_return_3:   'Jupiter',
-  jupiter_return_5:   'Jupiter',
-  saturn_return_1:    'Saturn',
-  saturn_return_2:    'Saturn',
+  jupiter_return_1: 'Jupiter',
+  jupiter_return_2: 'Jupiter',
+  jupiter_return_3: 'Jupiter',
+  jupiter_return_5: 'Jupiter',
+  saturn_return_1: 'Saturn',
+  saturn_return_2: 'Saturn',
   progressed_lunar_1: 'Moon',
   pluto_square_pluto: 'Pluto',
-  uranus_opposition:  'Uranus',
-  neptune_square:     'Neptune',
-  chiron_return:      'Chiron',
-  uranus_return:      'Uranus',
+  uranus_opposition: 'Uranus',
+  neptune_square: 'Neptune',
+  chiron_return: 'Chiron',
+  uranus_return: 'Uranus',
 }
 
 const astroLifecycleExtractor: SignalExtractor = {
@@ -81,7 +81,7 @@ const astroLifecycleExtractor: SignalExtractor = {
           peak: peak.toISOString(),
           end: eventEnd.toISOString(),
         },
-        weight: 0.95,   // 라이프 챕터 결정짓는 신호
+        weight: 0.95, // 라이프 챕터 결정짓는 신호
         evidence: {
           module: 'astro-lifecycle',
           planets: [planet],

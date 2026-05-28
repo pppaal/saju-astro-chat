@@ -20,7 +20,6 @@ export default function robots(): MetadataRoute.Robots {
           '/api-docs/',
           '/offline/',
           '/shared/',
-          '/destiny-map/result/',
           '/tarot/history/',
         ],
       },

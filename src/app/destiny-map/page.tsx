@@ -99,7 +99,7 @@ export default async function DestinyMapPage() {
         {/* CTAs */}
         <section className="mt-12 flex flex-col items-center gap-4">
           <Link
-            href="/destiny-map/theme"
+            href="/destiny-map/counselor"
             className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#7c5cff_0%,#9b7fff_100%)] px-8 py-4 text-[15px] font-semibold text-white shadow-[0_20px_60px_rgba(124,92,255,0.4)] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_22px_70px_rgba(124,92,255,0.5)]"
           >
             {labels.cta}

@@ -45,12 +45,9 @@ function GlobalHeaderContent() {
   // consistent.
   const hasCustomPageHeader = Boolean(
     pathname &&
-    [
-      '/destiny-map/counselor',
-      '/destiny-map/result',
-      '/astrology/counselor',
-      '/compatibility/counselor',
-    ].includes(pathname)
+    ['/destiny-map/counselor', '/astrology/counselor', '/compatibility/counselor'].includes(
+      pathname
+    )
   )
 
   // 라이트 페이지 위에 떴을 때 ink 톤으로 자동 전환. 다크 cosmic 페이지
