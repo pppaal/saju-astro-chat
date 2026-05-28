@@ -35,7 +35,8 @@ import {
 } from './lib/helpers'
 import { buildCalendarPresentationView } from './lib/presentationAdapter'
 import type { DomainKey } from './lib/types'
-import type { CalendarMatrixEvidencePacketMap } from './lib/matrixEvidencePacket'
+// matrixEvidencePacket 제거 — packet 항상 null. type 도 inline unknown.
+type CalendarMatrixEvidencePacketMap = Record<string, unknown>
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 
 export const dynamic = 'force-dynamic'

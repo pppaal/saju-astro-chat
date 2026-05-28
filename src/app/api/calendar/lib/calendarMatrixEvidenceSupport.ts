@@ -6,10 +6,11 @@ import type {
 import type { CalendarEvidence } from '@/types/calendar-api'
 import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
 import type { MatrixCalendarContext } from './calendarMatrixTextSupport'
-import type {
-  CalendarMatrixEvidencePacket,
-  CalendarMatrixEvidencePacketMap,
-} from './matrixEvidencePacket'
+// matrixEvidencePacket 제거 — packet 항상 null. selectMatrixPacketForDate +
+// attachMatrixVerdict 가 packet null 이면 즉시 return 하는 noop fast path 만 남음.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type CalendarMatrixEvidencePacket = any
+type CalendarMatrixEvidencePacketMap = Record<string, CalendarMatrixEvidencePacket>
 import {
   GRADE_THRESHOLDS,
   EVIDENCE_CONFIDENCE_THRESHOLDS,
@@ -100,7 +101,6 @@ const PLANET_KO: Record<string, string> = {
   Saturn: '토성',
   'Natal Sun': '본명 태양',
 }
-
 
 function compactText(value: string, maxLength: number): string {
   const normalized = value.replace(/\s+/g, ' ').trim()
@@ -614,10 +614,10 @@ export function attachMatrixVerdict(
       timingWindow: packet.topTimingWindow?.window,
       whyNow: sanitizeMatrixNarrativeLine(packet.topTimingWindow?.whyNow || ''),
       entryConditions: (packet.topTimingWindow?.entryConditions || [])
-        .map((item) => sanitizeMatrixNarrativeLine(item))
+        .map((item: string) => sanitizeMatrixNarrativeLine(item))
         .filter(Boolean),
       abortConditions: (packet.topTimingWindow?.abortConditions || [])
-        .map((item) => sanitizeMatrixNarrativeLine(item))
+        .map((item: string) => sanitizeMatrixNarrativeLine(item))
         .filter(Boolean),
     },
   }

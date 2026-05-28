@@ -31,8 +31,3 @@ export {
 } from './helpers'
 
 export { buildCalendarPresentationView, type CalendarPresentationView } from './presentationAdapter'
-export {
-  buildCalendarMatrixEvidencePacketMap,
-  type CalendarMatrixEvidencePacket,
-  type CalendarMatrixEvidencePacketMap,
-} from './matrixEvidencePacket'
