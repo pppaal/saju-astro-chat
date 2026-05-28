@@ -3,7 +3,8 @@
 // 두 사람의 차트를 합성하여 관계 자체의 에너지를 나타내는 차트
 
 import { Chart, PlanetBase, House, ZodiacKo } from "./types";
-import { formatLongitude, normalize360 } from "./utils";
+import { formatLongitude } from "./utils";
+import { getMidpoint } from "./shared";
 
 export interface CompositeInput {
   chartA: Chart;
@@ -18,24 +19,6 @@ export interface CompositeChart extends Chart {
   };
 }
 
-/**
- * 두 경도의 미드포인트 계산
- * 짧은 호(shorter arc)의 중간점을 반환
- */
-function getMidpoint(lon1: number, lon2: number): number {
-  const a = normalize360(lon1);
-  const b = normalize360(lon2);
-
-  let diff = b - a;
-  if (diff < 0) {diff += 360;}
-
-  // 짧은 호 선택
-  if (diff > 180) {
-    // 긴 호이므로 반대쪽 미드포인트 사용
-    return normalize360(a + diff / 2 + 180);
-  }
-  return normalize360(a + diff / 2);
-}
 
 /**
  * 합성 행성 생성
