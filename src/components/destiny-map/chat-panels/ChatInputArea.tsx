@@ -118,7 +118,9 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onClearFile,
   onOpenTarot,
   onOpenChart,
-  clarifierButton,
+  // 시그니처 호환성을 위해 prop 은 받지만 렌더링 하지 않음 (line 213-216 참고).
+  // underscore prefix 로 no-unused-vars 침묵.
+  clarifierButton: _clarifierButton,
   styles,
   autoFocus = false,
 }: ChatInputAreaProps) {
