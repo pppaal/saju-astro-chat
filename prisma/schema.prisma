@@ -500,6 +500,46 @@ model BonusCreditPurchase {
   @@index([expiresAt])
 }
 
+// 새로고침/탭 복제 등 같은 API 호출이 재진입할 때 크레딧 중복 차감
+// 방지용 멱등 키 저장소. 모듈 스코프 Map 만으로는 Vercel cold start 시
+// 잊혀서 cold start 직후 새로고침이 더블 차지로 이어졌음. DB 저장으로
+// instance 간 / 재시작 후에도 유지. 만료된 행은 cron 으로 정리.
+model RequestIdempotencyLog {
+  // (route|ownerKey|userIdempotencyKey) 형태의 단일 키.
+  scopedKey String   @id
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+// Stripe webhook 이 순서대로 안 도착하는 케이스 방어.
+//
+// 시나리오: 사용자가 결제 → 거의 동시에 dispute/refund → Stripe 가 두
+// webhook(`checkout.session.completed`, `charge.refunded`) 을 동시에 보냄.
+// 만약 `charge.refunded` 가 먼저 도착하면 `BonusCreditPurchase` 행이 아직
+// 없어서 revokeBonusCreditPurchase() 가 no-op 으로 끝남. 그 후 `checkout
+// .session.completed` 가 도착하면 크레딧이 정상 지급돼 사용자에게 환불 +
+// 크레딧 둘 다 가는 leak.
+//
+// fix: refund webhook 이 매칭 purchase 못 찾으면 여기에 기록. purchase
+// webhook 이 새 BonusCreditPurchase 만들고 즉시 이 테이블 조회 → 있으면
+// 그 자리에서 회수 + 행 삭제. 어느 순서로 도착해도 결과 동일.
+model PendingCreditRevocation {
+  id                    String   @id @default(cuid())
+  // checkout.session.completed 의 paymentIntentId 와 매칭하는 키.
+  stripePaymentIntentId String   @unique
+  // 운영 추적용 — refund 이벤트의 금액·시점.
+  refundAmountCents     Int?
+  currency              String?
+  createdAt             DateTime @default(now())
+  // 만료 — 보통 결제 webhook 은 수 초 안에 옴. 24h 안에 매칭 purchase 가
+  // 안 생기면 stale (사용자 결제 자체가 실패한 경우). cron 으로 정리.
+  expiresAt             DateTime
+
+  @@index([expiresAt])
+}
+
 // 추천 보상 기록
 model ReferralReward {
   id             String   @id @default(cuid())

@@ -24,7 +24,7 @@ import type { Relation } from '../types'
 // 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
 // 중복 차감 방지. 클라이언트가 매 메시지에 UUID 를 x-idempotency-key 헤더로
 // 보냄. 같은 키 재진입 시 차감만 스킵.
-const idemStore = createIdempotencyStore()
+const idemStore = createIdempotencyStore('compatibility-counselor')
 
 // Inlined from the now-deleted routeSupportCommon (which served the
 // retired results/narrative-stream flow). The counselor route is the
@@ -237,7 +237,7 @@ export async function POST(req: NextRequest) {
     let chargedUserId: string | null = null
     if (!isGuestMode && context.userId) {
       const scopedIdemKey = idemStore.keyFor(req, `user:${context.userId}`)
-      const idempotentReplay = scopedIdemKey ? idemStore.isReplay(scopedIdemKey) : false
+      const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
       if (idempotentReplay) {
         logger.info('[compat/counselor] idempotent replay, skip credit consume', {
           userId: context.userId,
@@ -256,7 +256,7 @@ export async function POST(req: NextRequest) {
           })
         }
         chargedUserId = context.userId
-        if (scopedIdemKey) idemStore.mark(scopedIdemKey)
+        if (scopedIdemKey) await idemStore.mark(scopedIdemKey)
       }
     }
 

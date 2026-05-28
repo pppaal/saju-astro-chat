@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { Prisma } from '@prisma/client'
 import { addBonusCredits } from '@/lib/credits/creditService'
 import { randomBytes } from 'crypto'
 import { sendReferralRewardEmail } from '@/lib/email'
@@ -74,34 +75,50 @@ export async function linkReferrer(
       return { success: false, error: 'self_referral' }
     }
 
-    // 멱등성 가드 — 이미 추천인이 연결된 사용자는 재지급 금지.
-    // (link 엔드포인트가 중복 호출돼도 크레딧이 두 번 나가지 않게)
-    const current = await prisma.user.findUnique({
-      where: { id: newUserId },
-      select: { referrerId: true },
-    })
-    if (current?.referrerId) {
-      return { success: false, error: 'already_linked' }
-    }
-
-    // 추천인 연결
-    await prisma.user.update({
-      where: { id: newUserId },
+    // 멱등성 + race 가드 (한 번에)
+    //
+    // 이전엔 findUnique 로 referrerId 확인 → update 였는데, 두 동시 요청이
+    // 그 사이에 인터리브 되면 둘 다 통과해서 ReferralReward 가 두 번
+    // 생성될 수 있었음 (서로 추천 시도하는 두 계정 동시 가입 시 1 회 가입
+    // 으로 15+15 = 30 크레딧 파밍 가능).
+    //
+    // updateMany 의 where 절에 `referrerId: null` 을 넣어서 "아직 비어
+    // 있을 때만" 채우게 만들면 race 한 쪽이 진 경우 count=0 으로 돌아옴
+    // → 보상 생성 안 함.
+    const linkResult = await prisma.user.updateMany({
+      where: { id: newUserId, referrerId: null },
       data: { referrerId: referrer.id },
     })
+    if (linkResult.count === 0) {
+      // 이미 다른 요청이 referrerId 를 채움 (또는 사용자가 없음).
+      return { success: false, error: 'already_linked' }
+    }
 
     // 어뷰징(멀티 계정 파밍) 방지: 가입만으로는 지급하지 않고 보상을 pending
     // 으로 예약한다. 피추천자가 첫 크레딧팩 결제를 완료하면(웹훅에서
     // grantReferralRewardOnFirstPurchase 호출) 그때 추천인에게 지급한다.
-    await prisma.referralReward.create({
-      data: {
-        userId: referrer.id,
-        referredUserId: newUserId,
-        creditsAwarded: REFERRAL_CREDITS,
-        rewardType: 'first_purchase',
-        status: 'pending',
-      },
-    })
+    // ReferralReward 의 (userId, referredUserId, rewardType) UNIQUE 가 2차
+    // 가드 — updateMany race 가 뚫려도 P2002 로 두 번째 create 막힘.
+    try {
+      await prisma.referralReward.create({
+        data: {
+          userId: referrer.id,
+          referredUserId: newUserId,
+          creditsAwarded: REFERRAL_CREDITS,
+          rewardType: 'first_purchase',
+          status: 'pending',
+        },
+      })
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        logger.warn('[linkReferrer] duplicate ReferralReward blocked by unique constraint', {
+          referrerId: referrer.id,
+          referredUserId: newUserId,
+        })
+        return { success: false, error: 'already_linked' }
+      }
+      throw err
+    }
 
     return { success: true, referrerId: referrer.id }
   } catch (error: unknown) {

@@ -27,7 +27,7 @@ import { createIdempotencyStore } from '@/lib/api/idempotency'
 // 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
 // 중복 차감 방지. 클라이언트가 매 user 메시지에 UUID 를 x-idempotency-key
 // 헤더로 보냄. 같은 키 재진입 시 차감만 스킵.
-const idemStore = createIdempotencyStore()
+const idemStore = createIdempotencyStore('counselor-realtime')
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getUserDisplayName } from '@/lib/user/displayName'
@@ -414,14 +414,14 @@ export async function POST(req: NextRequest) {
   // 새로고침/탭 복제 등 idempotent replay 면 차감 스킵 (스트림은 정상 진행).
   let chargedThisTurn = false
   const scopedIdemKey = idemStore.keyFor(req, `user:${userId}`)
-  const idempotentReplay = scopedIdemKey ? idemStore.isReplay(scopedIdemKey) : false
+  const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
   if (idempotentReplay) {
     logger.info('[counselor/realtime] idempotent replay, skip credit consume', { userId })
   } else {
     try {
       const res = await consumeCredits(userId, 'reading', 1)
       chargedThisTurn = res.success
-      if (chargedThisTurn && scopedIdemKey) idemStore.mark(scopedIdemKey)
+      if (chargedThisTurn && scopedIdemKey) await idemStore.mark(scopedIdemKey)
     } catch (err) {
       logger.warn('[counselor/realtime] credit deduction failed', { err })
     }
