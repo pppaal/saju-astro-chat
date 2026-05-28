@@ -12,6 +12,7 @@
  */
 
 import tzLookup from 'tz-lookup';
+import { getNowInTimezone as canonicalGetNow } from '@/lib/utils/timezone';
 import type {
   CombinedInput,
   MaskedInput,
@@ -68,40 +69,15 @@ export function resolveTimezone(tz: string | undefined, latitude: number, longit
 // ======================================================
 
 /**
- * Get current date/time in a specific timezone
- * @param tz - Timezone to use (defaults to UTC if not provided)
- * @returns Date components in the specified timezone
+ * Get current date/time components in a specific timezone.
+ *
+ * Thin shape adapter around lib/utils/timezone — that's the single
+ * implementation now. Kept here so existing imports from this module
+ * keep working (`import { getNowInTimezone } from '.../astrology'`).
  */
 export function getNowInTimezone(tz?: string): DateComponents {
-  const now = new Date();
-  if (!tz) {
-    return {
-      year: now.getUTCFullYear(),
-      month: now.getUTCMonth() + 1,
-      day: now.getUTCDate(),
-      hour: now.getUTCHours(),
-      minute: now.getUTCMinutes(),
-    };
-  }
-  try {
-    const fmt = (opt: Intl.DateTimeFormatOptions) =>
-      Number(new Intl.DateTimeFormat('en-US', { timeZone: tz, ...opt }).format(now));
-    return {
-      year: fmt({ year: 'numeric' }),
-      month: fmt({ month: '2-digit' }),
-      day: fmt({ day: '2-digit' }),
-      hour: fmt({ hour: '2-digit', hour12: false }),
-      minute: fmt({ minute: '2-digit' }),
-    };
-  } catch {
-    return {
-      year: now.getUTCFullYear(),
-      month: now.getUTCMonth() + 1,
-      day: now.getUTCDate(),
-      hour: now.getUTCHours(),
-      minute: now.getUTCMinutes(),
-    };
-  }
+  const { year, month, day, hour, minute } = canonicalGetNow(tz);
+  return { year, month, day, hour, minute };
 }
 
 // ======================================================
