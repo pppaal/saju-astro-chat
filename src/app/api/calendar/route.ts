@@ -587,6 +587,9 @@ export const GET = withApiMiddleware(
     // ── calendar-engine v2 augmentation (non-blocking, opt-in via fields) ──
     // 새 신호 엔진 호출 → matchedPatterns / engineSignals / themeScores 부착.
     // 실패해도 기존 응답 그대로 반환. UI는 새 필드 없으면 기존 동작 유지.
+    // top-level monthlyInterpretation 으로 응답에 한 번만 포함 — 이전 365 copies 회귀 fix.
+    let monthlyInterp: import('@/lib/calendar-engine/interpretation/types').Interpretation | null =
+      null
     try {
       if (!sharedCeNatal) throw new Error('natal context unavailable')
       const ceNatal = sharedCeNatal
@@ -658,6 +661,7 @@ export const GET = withApiMiddleware(
       }
 
       // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
+      // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
       try {
         const { buildInterpretation } = await import('@/lib/calendar-engine/interpretation')
         const interpLang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
@@ -679,14 +683,7 @@ export const GET = withApiMiddleware(
           interp.narrative = greeting + interp.narrative
         }
         ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
-        // 올해 큰 날(연간 수렴)은 1년 풀빌드라 비싸서(~1.7s) 여기서 계산하지 않음.
-        // 달력/날짜는 즉시 응답하고, 큰 날 카드는 클라가 /api/calendar/convergence를
-        // 따로(지연) 불러와 채운다. interp.yearlyConvergence는 undefined로 남김.
-        // interpretation은 그 달 전체 단위라 셀별 부착 X.
-        // 모든 셀에 동일 narrative 부착 — 클라가 어느 날짜든 같은 텍스트 사용.
-        for (const d of formattedDates) {
-          d.monthlyInterpretation = interp
-        }
+        monthlyInterp = interp
         // ★ themeScores 동기화 — interp.themeScores(룰 의도 기반)를
         //   cells에 overwrite. UI 그래프(love/wealth/health 바)가
         //   cell.themeScores 읽으므로, narrative와 점수가 같은 모델로
@@ -895,6 +892,8 @@ export const GET = withApiMiddleware(
         place: birthPlace,
       },
       allDates: formattedDates,
+      // 그 달 narrative — top-level 1개로 dedupe (이전 365 copies 회귀 fix)
+      monthlyInterpretation: monthlyInterp,
       monthSummary: presentationView.monthSummary,
       calendarDailyView: presentationView.dailyView,
       calendarMonthView: presentationView.monthView,
