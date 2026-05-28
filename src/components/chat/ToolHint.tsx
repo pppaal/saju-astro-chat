@@ -70,26 +70,28 @@ export function ToolHint({ lang, variant = 'destiny', onDismiss }: ToolHintProps
       <button
         type="button"
         onClick={onDismiss}
-        aria-label={isKo ? '닫기' : 'Dismiss'}
+        aria-label={isKo ? '다시 안 보기' : 'Don\'t show again'}
+        title={isKo ? '다시 안 보기' : 'Don\'t show again'}
         style={{
           position: 'absolute',
-          top: 8,
-          right: 8,
-          width: 24,
-          height: 24,
-          borderRadius: '50%',
+          top: 6,
+          right: 6,
+          minHeight: 26,
+          padding: '4px 10px',
+          borderRadius: 999,
           border: 0,
           background: 'transparent',
           color: '#a8a29e',
           cursor: 'pointer',
-          fontSize: 16,
+          fontSize: 11,
           lineHeight: 1,
           display: 'inline-flex',
           alignItems: 'center',
-          justifyContent: 'center',
+          gap: 4,
         }}
       >
-        ×
+        <span aria-hidden="true">×</span>
+        <span>{isKo ? '다시 안 보기' : 'Don\'t show again'}</span>
       </button>
       <div style={{ fontWeight: 600, color: '#44403c', marginBottom: 6 }}>
         {isKo ? '💡 도구 안내' : '💡 Tools available'}
