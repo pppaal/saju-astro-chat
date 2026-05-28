@@ -110,8 +110,9 @@ export default function YearDashboard({
       <FlowChart
         data={flowData}
         title={locale === 'en' ? 'Monthly flow' : '월별 에너지 흐름'}
-        subtitle={t.flowSubtitle}
+        subtitle={locale === 'en' ? undefined : undefined}
         xInterval={0}
+        showDots={false}
         locale={locale}
         onPointClick={(label) => {
           const m = parseInt(label.replace(/[^0-9]/g, ''), 10)

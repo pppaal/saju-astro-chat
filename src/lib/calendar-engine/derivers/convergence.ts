@@ -37,11 +37,55 @@ const THEME_LABEL: Record<'ko' | 'en', Record<AstroThemeKey, string>> = {
 
 // "2층 의미" 한 줄 — 그날 무거운 신호들의 theme(영역) + 순극성(톤)으로 구성.
 // 특정 점성 산문을 지어내지 않고 엔진이 이미 태깅한 값만 쓴다.
+// 톤 풀 — 사용자 피드백: 모든 큰 날 "X 영역이 기회가 열리는 날" 똑같이 나옴.
+// 같은 톤(positive/neutral/negative) 안에서도 4가지로 회전 (날짜 hash 기반).
+const TONE_POOL_KO = {
+  positive: [
+    (areas: string) => `${areas} 영역에 기회가 열리는 날`,
+    (areas: string) => `${areas} 흐름이 모이는 시점`,
+    (areas: string) => `${areas} 결정이 무르익는 날`,
+    (areas: string) => `${areas} 신호가 강해지는 때`,
+  ],
+  negative: [
+    (areas: string) => `${areas} 영역이 시험받는 날`,
+    (areas: string) => `${areas} 점검이 필요한 시점`,
+    (areas: string) => `${areas} 감정이 무거워질 수 있음`,
+    (areas: string) => `${areas} 신중함이 우선되는 때`,
+  ],
+  neutral: [
+    (areas: string) => `${areas} 영역이 크게 전환되는 날`,
+    (areas: string) => `${areas} 방향이 바뀌는 시점`,
+    (areas: string) => `${areas} 균형이 다시 잡히는 때`,
+    (areas: string) => `${areas} 큰 변화가 시작되는 날`,
+  ],
+}
+const TONE_POOL_EN = {
+  positive: [
+    (areas: string) => `${areas} opens up`,
+    (areas: string) => `${areas} momentum builds`,
+    (areas: string) => `${areas} resolves clearly`,
+    (areas: string) => `${areas} signal strengthens`,
+  ],
+  negative: [
+    (areas: string) => `${areas} is tested`,
+    (areas: string) => `${areas} needs review`,
+    (areas: string) => `${areas} feels heavier`,
+    (areas: string) => `${areas} asks for caution`,
+  ],
+  neutral: [
+    (areas: string) => `${areas} pivots`,
+    (areas: string) => `${areas} direction shifts`,
+    (areas: string) => `${areas} rebalances`,
+    (areas: string) => `${areas} starts a new chapter`,
+  ],
+}
+
 function composeMeaning(
   themeAcc: Partial<Record<AstroThemeKey, number>>,
   netPol: number,
   sumImp: number,
-  lang: 'ko' | 'en'
+  lang: 'ko' | 'en',
+  dateStr?: string
 ): string | undefined {
   const top = (Object.entries(themeAcc) as Array<[AstroThemeKey, number]>)
     .sort((a, b) => b[1] - a[1])
@@ -49,13 +93,15 @@ function composeMeaning(
     .map(([k]) => THEME_LABEL[lang][k])
   if (top.length === 0) return undefined
   const ratio = sumImp > 0 ? netPol / sumImp : 0
-  if (lang === 'en') {
-    const tone = ratio > 0.15 ? 'opens up' : ratio < -0.15 ? 'is tested' : 'shifts'
-    return `${top.join(' · ')} ${tone}`
-  }
-  const areas = top.join('·')
-  const tone = ratio > 0.15 ? '기회가 열리는' : ratio < -0.15 ? '시험받는' : '크게 전환되는'
-  return `${areas} 영역이 ${tone} 날`
+  const toneKey: 'positive' | 'negative' | 'neutral' =
+    ratio > 0.15 ? 'positive' : ratio < -0.15 ? 'negative' : 'neutral'
+  // 날짜 hash 로 같은 톤에서도 다른 템플릿 — UI 가 여러 날 나란히 보일 때 단조로움 회피
+  const dayNum = dateStr ? parseInt(dateStr.slice(-2), 10) : 0
+  const pool = lang === 'en' ? TONE_POOL_EN : TONE_POOL_KO
+  const templates = pool[toneKey]
+  const tmpl = templates[Math.abs(dayNum) % templates.length]
+  const areas = lang === 'en' ? top.join(' · ') : top.join('·')
+  return tmpl(areas)
 }
 
 export interface ConvergenceDay {
@@ -115,7 +161,7 @@ export function deriveConvergence(
       astro,
       saju,
       bothSystems,
-      meaning: composeMeaning(themeAcc, netPol, sumImp, lang),
+      meaning: composeMeaning(themeAcc, netPol, sumImp, lang, c.datetime.slice(0, 10)),
     })
   }
   scored.sort((a, b) => b.score - a.score)

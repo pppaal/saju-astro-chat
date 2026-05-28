@@ -33,15 +33,18 @@ export default function MonthInsights({ interp, month, locale, onDayClick }: Pro
   if (!interp) return null
   return (
     <motion.div className="space-y-4" variants={cardStack} initial="hidden" animate="show">
+      {/* ThemeFocus 풀, KeyDates+BigTurns 데스크탑 2-col */}
       <motion.div variants={cardItem}>
         <ThemeFocusCard interp={interp} locale={locale} />
       </motion.div>
-      <motion.div variants={cardItem}>
-        <KeyDatesCard interp={interp} month={month} locale={locale} onDayClick={onDayClick} />
-      </motion.div>
-      <motion.div variants={cardItem}>
-        <BigTurnsCard interp={interp} locale={locale} onDayClick={onDayClick} />
-      </motion.div>
+      <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
+        <motion.div variants={cardItem}>
+          <KeyDatesCard interp={interp} month={month} locale={locale} onDayClick={onDayClick} />
+        </motion.div>
+        <motion.div variants={cardItem}>
+          <BigTurnsCard interp={interp} locale={locale} onDayClick={onDayClick} />
+        </motion.div>
+      </div>
     </motion.div>
   )
 }
