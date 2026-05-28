@@ -33,7 +33,6 @@ import type {
   AdapterSingleSubjectView,
   AdapterSingleUserModel,
 } from '@/lib/destiny-matrix/core/adaptersTypes'
-import type { InterpretedAnswerContract } from '@/lib/destiny-matrix/interpretedAnswer'
 
 export type AIUserPlan = 'free' | 'starter' | 'pro' | 'premium'
 
@@ -51,7 +50,6 @@ export interface AIPremiumReport {
   singleUserModel?: AdapterSingleUserModel
   singleSubjectView?: AdapterSingleSubjectView
   personModel?: AdapterPersonModel
-  interpretedAnswer?: InterpretedAnswerContract
   projections?: {
     structure: {
       headline: string
