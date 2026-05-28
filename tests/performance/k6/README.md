@@ -142,6 +142,59 @@ k6 run tests/performance/k6/endurance-test.js
 
 ---
 
+### 6. **Event Launch Test (`event-launch.js`) — 1000 동시 사용자** ⭐
+
+**Purpose:** 인플루언서 마케팅 / 앱 런칭 / 트래픽 이벤트 대비. 1000 명 동시 사용자까지 단계적으로 올려서 어디서 깨지는지 측정.
+
+**Run:**
+```bash
+# 로컬 (먼저 npm run dev)
+npm run test:load:event
+
+# 스테이징 (조심해서)
+API_BASE_URL=https://staging.destinypal.com npm run test:load:event
+
+# 운영 (이벤트 직전 검증 — 사용량 / 크레딧 주의)
+API_BASE_URL=https://destinypal.com NEXT_PUBLIC_API_TOKEN=xxx npm run test:load:event
+```
+
+**Pattern (~16분 총):**
+- Warm-up: 0 → 50 (1분)
+- Ramp 1: 50 → 200 (2분)
+- Ramp 2: 200 → 500 (3분)
+- Ramp 3: 500 → **1000** (3분)
+- **Hold: 1000 (5분)** — 실제 이벤트 지속 시뮬레이션
+- Cool-down: 1000 → 0 (2분)
+
+**사용자 행동 분포:**
+- 50% 신규 사주 사용자 (메인 → 사주 계산)
+- 30% 운명상담사 (인증 + 사이드바 + 채팅)
+- 15% 궁합상담사 (4 parallel API call hot path)
+- 5% 캘린더 viewer
+
+**Birth profile pool**: 10개 unique 데이터로 1000명 시뮬 → **Redis 캐시 hit 율 ~90%** 검증.
+
+**Thresholds (실패 시 exit 99):**
+- p(95) < 2000ms
+- p(99) < 5000ms
+- 에러율 < 10%
+- 운명상담사 journey 성공률 > 80%
+- 사주 p(90) < 1000ms (캐시 효과 검증)
+
+**무엇을 봐야 하나:**
+- ✅ `saju_latency_ms` p(90) 가 1초 안 → Redis 캐시 효과 확인
+- ⚠️ 500 명 넘어가서 5xx 에러율 급증 → DB connection pool 부족 신호
+- ⚠️ p(99) 5초 넘으면 → cold start / 큰 query block
+- ⚠️ `errors` rate 10% 넘으면 → 인프라 업그레이드 필요
+
+**비용 주의:**
+- 1000 VU × 16분 × ~5 RPS = 약 **80만 요청**
+- Redis 캐시 hit 율 따라 Anthropic 호출 분량 결정 (캐시 안 한 endpoint는 부담 큼)
+- Vercel function invocation 비용 발생 (Pro plan 100만/월 한도)
+- 운영 환경 테스트 전 **반드시 Vercel + Supabase + Anthropic 사용량 한도 확인**
+
+---
+
 ### 5. Realistic Scenario Test (`realistic-scenario.js`)
 
 **Purpose:** Simulate real user behavior patterns
