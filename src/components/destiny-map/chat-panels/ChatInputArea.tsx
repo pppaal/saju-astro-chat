@@ -1,15 +1,13 @@
 'use client'
 
 import React from 'react'
-import type { Copy, LangKey } from '../chat-i18n'
+import type { LangKey } from '../chat-i18n'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
+import internalStyles from './ChatInputArea.module.css'
 
-// Short rotating prompts that take the place of the static placeholder
-// from chat-i18n. The original "언제, 왜, 무엇이 궁금한지 구체적으로
-// 적어주세요." wraps to two lines on mobile and feels prescriptive;
-// these stay on one line and double as suggestion hints. Keep entries
-// under ~16 chars (KO) / ~28 chars (EN) so they don't wrap.
-const TYPEWRITER_PROMPTS: Record<LangKey, readonly string[]> = {
+// 운명 상담사 default 타이프라이터 프롬프트. compat / 외부 호출자는
+// placeholderPrompts 로 자기 콘텍스트에 맞는 prompt 리스트를 넘길 수 있다.
+const DEFAULT_TYPEWRITER_PROMPTS: Record<LangKey, readonly string[]> = {
   ko: [
     '오늘 내 운세 어때요?',
     '올해 흐름은 어때?',
@@ -77,30 +75,63 @@ const TYPEWRITER_PROMPTS: Record<LangKey, readonly string[]> = {
   ],
 }
 
+export interface ChatInputAreaLabels {
+  /** 텍스트영역 placeholder (타이프라이터 가 비어 있을 때 fallback). */
+  placeholder: string
+  send: string
+  uploadCv: string
+  parsingPdf: string
+  fallbackNote?: string
+  /** 첨부 파일 X 버튼 aria-label. */
+  removeAttachment?: string
+  /** 입력창 ✕ 버튼 aria-label. */
+  clearInput?: string
+}
+
+export interface ChatInputAreaToolOverride {
+  /** 화면에 보이는 라벨 텍스트 (.toolLabel). 없으면 '타로'/'차트' 기본. */
+  label?: string
+  ariaLabel?: string
+  title?: string
+}
+
 interface ChatInputAreaProps {
   input: string
   loading: boolean
   cvName: string
   parsingPdf: boolean
   usedFallback: boolean
-  tr: Copy
+  labels: ChatInputAreaLabels
   lang: LangKey
   onInputChange: (value: string) => void
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
   onSend: () => void
-  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>
+  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void | Promise<void>
   onClearFile?: () => void
-  /** Chart/tarot/clarifier triggers — 사이드바에서 제거하고 입력창 도구로
-   *  통일. 모바일/데스크탑 모두 입력창 옆 단일 진입점. */
+  /** Chart/tarot 진입점 — 사이드바 푸터(데스크탑) 와 동일 동선. */
   onOpenTarot?: () => void
   onOpenChart?: () => void
-  /** 클래리파이어 버튼 props (useClarifierCard 의 buttonProps + buttonLabel). */
-  clarifierButton?: {
-    props: React.ButtonHTMLAttributes<HTMLButtonElement>
-    label: string
-  }
-  styles: Record<string, string>
+  /** 타로/차트 비활성 조건 — 궁합 상담사에서 인물 < 2 / 차트 데이터 없음 등. */
+  tarotDisabled?: boolean
+  chartDisabled?: boolean
+  /** 타로/차트 라벨·aria·툴팁 오버라이드 — 궁합("궁합차트")처럼 콘텍스트별 문구. */
+  tarot?: ChatInputAreaToolOverride
+  chart?: ChatInputAreaToolOverride
+  /** 타이프라이터 프롬프트 오버라이드. 기본은 운명 상담사용 lang별 리스트. */
+  placeholderPrompts?: readonly string[]
+  /** input[type=file] accept 확장자. 기본 txt/md/csv/pdf. */
+  fileAccept?: string
+  /**
+   * (legacy) 호출자 CSS 모듈에서 동일 class 이름으로 스타일을 덮으려고
+   * 넘기는 styles override. 미지정 시 컴포넌트 co-located CSS 그대로.
+   * 새 호출자는 가급적 넘기지 말 것 — 양 상담사 간 드리프트 원인.
+   */
+  styles?: Record<string, string>
   autoFocus?: boolean
+  /** 값이 바뀔 때마다 textarea 에 다시 focus — "새 채팅" / send 직후 refocus 등. */
+  focusToken?: unknown
+  /** 'dark' (운명 — 어두운 배경 페이지) / 'light' (궁합 — 흰 배경 페이지). 기본 'dark'. */
+  theme?: 'dark' | 'light'
 }
 
 export const ChatInputArea = React.memo(function ChatInputArea({
@@ -109,7 +140,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   cvName,
   parsingPdf,
   usedFallback,
-  tr,
+  labels,
   lang,
   onInputChange,
   onKeyDown,
@@ -118,29 +149,38 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onClearFile,
   onOpenTarot,
   onOpenChart,
-  // 시그니처 호환성을 위해 prop 은 받지만 렌더링 하지 않음 (line 213-216 참고).
-  // underscore prefix 로 no-unused-vars 침묵.
-  clarifierButton: _clarifierButton,
-  styles,
+  tarotDisabled = false,
+  chartDisabled = false,
+  tarot,
+  chart,
+  placeholderPrompts,
+  fileAccept = '.txt,.md,.csv,.pdf',
+  styles: stylesOverride,
   autoFocus = false,
+  focusToken,
+  theme = 'dark',
 }: ChatInputAreaProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+  const styles = stylesOverride ?? internalStyles
   const animatedPlaceholder = useTypewriterPlaceholder(
-    TYPEWRITER_PROMPTS[lang] ?? TYPEWRITER_PROMPTS.en
+    placeholderPrompts ?? DEFAULT_TYPEWRITER_PROMPTS[lang] ?? DEFAULT_TYPEWRITER_PROMPTS.en
   )
 
-  // Pop the soft keyboard the moment the chat is ready. iOS Safari
-  // restricts programmatic focus outside a user gesture, so this is a
-  // best-effort: works on desktop + Android; on iOS it places the cursor
-  // and waits for the user to tap.
+  // iOS Safari restricts programmatic focus outside a user gesture so the
+  // textarea won't pop the soft keyboard automatically — desktop / Android only.
   React.useEffect(() => {
     if (autoFocus) {
       textareaRef.current?.focus()
     }
   }, [autoFocus])
 
-  // 타이핑하면 자라고, max-height(CSS .textarea max-height: 6rem) 넘으면
-  // 스크롤. height='auto' 한 번 재설정 후 scrollHeight 로 측정해야 줄어들기도 함.
+  // 부모가 focusToken 을 갱신하면 (= 새 채팅 / 전송 직후) 다시 focus.
+  React.useEffect(() => {
+    if (focusToken !== undefined) {
+      textareaRef.current?.focus()
+    }
+  }, [focusToken])
+
   React.useEffect(() => {
     const el = textareaRef.current
     if (!el) return
@@ -148,8 +188,17 @@ export const ChatInputArea = React.memo(function ChatInputArea({
     el.style.height = `${el.scrollHeight}px`
   }, [input])
 
+  const tarotLabel = tarot?.label ?? (lang === 'ko' ? '타로' : 'Tarot')
+  const tarotAria =
+    tarot?.ariaLabel ?? (lang === 'ko' ? '다음 질문 타로로 보기' : 'See next question in tarot')
+  const tarotTitle =
+    tarot?.title ?? (lang === 'ko' ? '다음 질문을 타로로 보기' : 'See your next question in tarot')
+  const chartLabel = chart?.label ?? (lang === 'ko' ? '차트' : 'Chart')
+  const chartAria = chart?.ariaLabel ?? (lang === 'ko' ? '나의 운세 차트' : 'My destiny chart')
+  const chartTitle = chart?.title ?? (lang === 'ko' ? '나의 운세 차트' : 'My destiny chart')
+
   return (
-    <div className={styles.inputArea}>
+    <div className={styles.inputArea} data-theme={theme}>
       <div className={styles.inputBox}>
         <textarea
           ref={textareaRef}
@@ -157,11 +206,10 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={onKeyDown}
           onFocus={(e) => {
-            // 미리 채워진 후속질문을 탭하면 전체 선택 — 바로 보내거나 타이핑으로 덮어쓰기 쉽게.
             if (e.currentTarget.value.trim()) e.currentTarget.select()
           }}
-          placeholder={animatedPlaceholder || tr.placeholder}
-          aria-label={tr.placeholder}
+          placeholder={animatedPlaceholder || labels.placeholder}
+          aria-label={labels.placeholder}
           rows={1}
           className={styles.textarea}
           disabled={loading}
@@ -171,55 +219,48 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           <div className={styles.inputBoxActionsLeft}>
             <label
               className={`${styles.attachButton} ${styles.toolWithLabel}`}
-              aria-label={tr.uploadCv}
-              title={tr.uploadCv}
+              aria-label={labels.uploadCv}
+              title={labels.uploadCv}
             >
               <span aria-hidden="true">&#x1F4CE;</span>
               <span className={styles.toolLabel}>{lang === 'ko' ? '파일' : 'File'}</span>
               <input
                 type="file"
-                accept=".txt,.md,.csv,.pdf"
+                accept={fileAccept}
                 className={styles.fileInput}
                 onChange={onFileUpload}
               />
             </label>
-            {/* Mobile-only chart/tarot entry — desktop has them in the
-                sidebar footer (.historyRailFooter). Hidden on ≥1024px via
-                .mobileOnlyTool to avoid double entry points. */}
             {onOpenTarot && (
               <button
                 type="button"
                 onClick={onOpenTarot}
+                disabled={tarotDisabled || loading}
                 className={`${styles.attachButton} ${styles.toolWithLabel} ${styles.mobileOnlyTool}`}
-                aria-label={lang === 'ko' ? '다음 질문 타로로 보기' : 'See next question in tarot'}
-                title={
-                  lang === 'ko' ? '다음 질문을 타로로 보기' : 'See your next question in tarot'
-                }
+                aria-label={tarotAria}
+                title={tarotTitle}
               >
                 <span aria-hidden="true">&#x1F0CF;</span>
-                <span className={styles.toolLabel}>{lang === 'ko' ? '타로' : 'Tarot'}</span>
+                <span className={styles.toolLabel}>{tarotLabel}</span>
               </button>
             )}
             {onOpenChart && (
               <button
                 type="button"
                 onClick={onOpenChart}
+                disabled={chartDisabled}
                 className={`${styles.attachButton} ${styles.toolWithLabel} ${styles.mobileOnlyTool}`}
-                aria-label={lang === 'ko' ? '나의 운세 차트' : 'My destiny chart'}
-                title={lang === 'ko' ? '나의 운세 차트' : 'My destiny chart'}
+                aria-label={chartAria}
+                title={chartTitle}
               >
                 <span aria-hidden="true">&#x2728;</span>
-                <span className={styles.toolLabel}>{lang === 'ko' ? '차트' : 'Chart'}</span>
+                <span className={styles.toolLabel}>{chartLabel}</span>
               </button>
             )}
-            {/* clarifier ("카드 한 장 더 뽑기") 버튼은 input 툴바가 아니라
-                MessagesPanel 의 타로 결과 직후 postAnswerActions 에서 노출
-                — 위치 어색함 피드백 fix. clarifierButton prop 은 호환성을
-                위해 시그니처만 유지하고 렌더링은 안 함. */}
             {parsingPdf && (
               <span className={styles.fileName}>
                 <span className={styles.loadingSpinner} />
-                {tr.parsingPdf}
+                {labels.parsingPdf}
               </span>
             )}
             {cvName && !parsingPdf && (
@@ -230,18 +271,23 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                   <button
                     type="button"
                     onClick={onClearFile}
-                    aria-label={lang === 'ko' ? '첨부 제거' : 'Remove attachment'}
-                    title={lang === 'ko' ? '첨부 제거' : 'Remove attachment'}
-                    style={{
-                      marginLeft: 6,
-                      border: 0,
-                      background: 'transparent',
-                      color: 'inherit',
-                      cursor: 'pointer',
-                      fontSize: '0.9em',
-                      lineHeight: 1,
-                      opacity: 0.7,
-                    }}
+                    aria-label={labels.removeAttachment ?? (lang === 'ko' ? '첨부 제거' : 'Remove attachment')}
+                    title={labels.removeAttachment ?? (lang === 'ko' ? '첨부 제거' : 'Remove attachment')}
+                    className={styles.fileNameClear || ''}
+                    style={
+                      styles.fileNameClear
+                        ? undefined
+                        : {
+                            marginLeft: 6,
+                            border: 0,
+                            background: 'transparent',
+                            color: 'inherit',
+                            cursor: 'pointer',
+                            fontSize: '0.9em',
+                            lineHeight: 1,
+                            opacity: 0.7,
+                          }
+                    }
                   >
                     ✕
                   </button>
@@ -254,8 +300,8 @@ export const ChatInputArea = React.memo(function ChatInputArea({
               type="button"
               onClick={() => onInputChange('')}
               className={styles.clearButton}
-              aria-label={lang === 'ko' ? '입력 지우기' : 'Clear input'}
-              title={lang === 'ko' ? '입력 지우기' : 'Clear input'}
+              aria-label={labels.clearInput ?? (lang === 'ko' ? '입력 지우기' : 'Clear input')}
+              title={labels.clearInput ?? (lang === 'ko' ? '입력 지우기' : 'Clear input')}
             >
               <span aria-hidden="true">&#x2715;</span>
             </button>
@@ -265,8 +311,8 @@ export const ChatInputArea = React.memo(function ChatInputArea({
             onClick={onSend}
             disabled={loading || !input.trim()}
             className={styles.sendButton}
-            aria-label={tr.send}
-            title={tr.send}
+            aria-label={labels.send}
+            title={labels.send}
           >
             <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
@@ -275,10 +321,10 @@ export const ChatInputArea = React.memo(function ChatInputArea({
         </div>
       </div>
 
-      {usedFallback && (
+      {usedFallback && labels.fallbackNote && (
         <div className={styles.fallbackNote}>
           <span className={styles.fallbackIcon}>&#x2139;&#xFE0F;</span>
-          {tr.fallbackNote}
+          {labels.fallbackNote}
         </div>
       )}
     </div>
