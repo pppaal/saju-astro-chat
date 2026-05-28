@@ -4,7 +4,6 @@
 import { STEMS } from '@/lib/saju/constants'
 import { TWELVE_STAGE_INTERPRETATIONS, type TwelveStageType } from '@/lib/saju/interpretations'
 import type { FiveElement, YinYang } from '@/lib/saju/types'
-import type { SajuPromptData, DaeunCycle } from '@/types/saju-api'
 
 // Five Element conversion
 const FIVE_ELEMENT_KEYS: FiveElement[] = ['목', '화', '토', '금', '수']
@@ -93,27 +92,3 @@ export const pickLucky = (
       )
     )
   )
-
-// GPT prompt formatter
-export function formatSajuForGPT(sajuData: SajuPromptData): string {
-  const { yearPillar, monthPillar, dayPillar, timePillar, fiveElements, daeun } = sajuData
-  let prompt = `Analyze the following Saju (Four Pillars of Destiny) information as an expert astrologer.\n\n`
-  prompt += `### 1. Basic Information\n`
-  prompt += `- Four Pillars: ${yearPillar.heavenlyStem.name}${yearPillar.earthlyBranch.name} Year, ${monthPillar.heavenlyStem.name}${monthPillar.earthlyBranch.name} Month, ${dayPillar.heavenlyStem.name}${dayPillar.earthlyBranch.name} Day, ${timePillar.heavenlyStem.name}${timePillar.earthlyBranch.name} Hour\n`
-  prompt += `- Day Master: ${dayPillar.heavenlyStem.name}\n`
-  const currentAge = new Date().getFullYear() - new Date(sajuData.birthDate).getFullYear() + 1
-  const cycles: DaeunCycle[] = daeun?.cycles ?? []
-  const currentDaeun = cycles.find(
-    (cycle) => currentAge >= cycle.age && currentAge < cycle.age + 10
-  )
-  if (currentDaeun) {
-    prompt += `- Current Grand Cycle: Age ${currentDaeun.age} (${currentDaeun.heavenlyStem}${currentDaeun.earthlyBranch})\n\n`
-  } else {
-    prompt += `- Current Grand Cycle: First cycle not started yet.\n\n`
-  }
-  prompt += `### 2. Five Elements Distribution\n`
-  prompt += `- Wood: ${fiveElements.wood}\n- Fire: ${fiveElements.fire}\n- Earth: ${fiveElements.earth}\n- Metal: ${fiveElements.metal}\n- Water: ${fiveElements.water}\n\n`
-  prompt += `### 3. Analysis Request\n`
-  prompt += `Provide personality, structure, wealth/health, and this year's advice considering current Grand Cycle.\n`
-  return prompt
-}

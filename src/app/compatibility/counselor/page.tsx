@@ -19,7 +19,9 @@ import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followu
 // InlineTarotModal 은 dynamic 이 아니라 직접 import — 이전엔 dynamic ssr:false
 // 였는데 첫 클릭 시 chunk download 로 모달이 "지지직" 거리며 늦게 떴음.
 // 직접 import 로 즉시 열리게. (~50KB 초기 번들 증가는 수용 — UX 우선.)
-import InlineTarotModal, { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
+import InlineTarotModal, {
+  type TarotResultSummary,
+} from '@/components/destiny-map/InlineTarotModal'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
   ssr: false,
@@ -222,8 +224,9 @@ function CompatibilityCounselorContent() {
     chartFetchRef.current = true
     try {
       // gender는 대운 순/역행에 필수. /api/saju가 required로 받으니 빠뜨리면 fetch 실패.
-      // skipInterpretation: 궁합 상담사는 차트 데이터(기둥·신살 등)만 쓰고 사람당
-      // AI 해석문은 안 쓴다. 그걸 끄면 로딩이 LLM 대기 없이 차트 계산만으로 끝난다.
+      // /api/saju · /api/astrology 는 이제 차트 계산만 하고 LLM 해석은 하지
+      // 않는다 (dead code 제거됨). 궁합 상담사는 chart 데이터만 받아 자체
+      // LLM(streamClaudeAsSSE) 으로 통합 해석.
       const sajuPayload = (p: PersonData) => ({
         birthDate: p.date,
         birthTime: p.time,
@@ -232,7 +235,6 @@ function CompatibilityCounselorContent() {
         timezone: p.timeZone || 'Asia/Seoul',
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
-        skipInterpretation: true,
       })
       // timeZone은 /api/astrology Zod 스키마에서 필수(min 1). 빠뜨리면
       // 검증 400으로 떨어져 점성 데이터가 영영 안 들어온다.
@@ -242,7 +244,6 @@ function CompatibilityCounselorContent() {
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
         timeZone: p.timeZone || 'Asia/Seoul',
-        skipInterpretation: true,
       })
 
       // /api/saju·/api/astrology 는 createSajuGuard/createAstrologyGuard 로
@@ -379,16 +380,13 @@ function CompatibilityCounselorContent() {
     setChatMenuOpen(false)
     if (!chatSessionId) return
     const confirmed = window.confirm(
-      isKo
-        ? '이 대화를 삭제할까요? 되돌릴 수 없어요.'
-        : 'Delete this chat? This cannot be undone.'
+      isKo ? '이 대화를 삭제할까요? 되돌릴 수 없어요.' : 'Delete this chat? This cannot be undone.'
     )
     if (!confirmed) return
     try {
-      await fetch(
-        `/api/counselor/session/list?sessionId=${encodeURIComponent(chatSessionId)}`,
-        { method: 'DELETE' }
-      )
+      await fetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(chatSessionId)}`, {
+        method: 'DELETE',
+      })
     } catch (err) {
       logger.warn('[CompatCounselor] delete failed', { err })
     }
@@ -793,7 +791,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                     className={styles.clarifierActionBtn}
                     aria-label={clarifier.buttonLabel}
                   >
-                    <span className={styles.clarifierActionIcon} aria-hidden="true">🃏</span>
+                    <span className={styles.clarifierActionIcon} aria-hidden="true">
+                      🃏
+                    </span>
                     {clarifier.buttonLabel}
                   </button>
                 </div>

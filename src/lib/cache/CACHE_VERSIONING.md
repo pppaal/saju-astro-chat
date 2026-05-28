@@ -27,7 +27,7 @@ const key = CacheKeys.saju(birthDate, birthTime, gender)
 const result = await cacheOrCalculate(
   key,
   async () => calculateSaju(birthDate, birthTime, gender),
-  CACHE_TTL.SAJU_RESULT
+  CACHE_TTL.NATAL_CHART
 )
 ```
 
@@ -36,11 +36,7 @@ const result = await cacheOrCalculate(
 ```typescript
 import { CACHE_VERSIONS, getCacheKey } from '@/lib/cache/cache-versions'
 
-const key = getCacheKey(
-  'compatibility',
-  { person1Id, person2Id },
-  CACHE_VERSIONS.COMPATIBILITY
-)
+const key = getCacheKey('compatibility', { person1Id, person2Id }, CACHE_VERSIONS.COMPATIBILITY)
 ```
 
 ## When to Increment Versions
@@ -90,12 +86,10 @@ export const CacheKeys = {
 
 ```typescript
 export const CACHE_TTL = {
-  SAJU_RESULT: 60 * 60 * 24 * 7, // 7 days (사주는 불변)
-  TAROT_READING: 60 * 60 * 24, // 1 day (타로는 매일 변경)
-  DESTINY_MAP: 60 * 60 * 24 * 3, // 3 days
-  GRADING_RESULT: 60 * 60 * 24, // 1 day
-  CALENDAR_DATA: 60 * 60 * 24, // 1 day
-  COMPATIBILITY: 60 * 60 * 24 * 7, // 7 days
+  TAROT_READING: 60 * 60 * 24, // 1 day (oracle)
+  CALENDAR_DATA: 60 * 60 * 24, // 1 day (counselor realtime daily, calendar route)
+  COMPATIBILITY: 60 * 60 * 24 * 7, // 7 days (destiny-match discover)
+  NATAL_CHART: 60 * 60 * 24 * 30, // 30 days (counselor stable context, ephe-cache)
 }
 ```
 

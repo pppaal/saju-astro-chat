@@ -1,17 +1,16 @@
 // src/app/api/saju/services/index.ts
 // Saju API services barrel export
 
-export { checkPremiumStatus } from './premiumCheck';
+export { checkPremiumStatus } from './premiumCheck'
 
 export {
   asFiveElement,
   withYY,
   toBranch,
   pickLucky,
-  formatSajuForGPT,
   isFiveElement,
   isTwelveStageType,
-} from './utilities';
+} from './utilities'
 
 export {
   isRecord,
@@ -21,11 +20,11 @@ export {
   coerceJijanggan,
   enrichSibsin,
   buildJijangganRaw,
-} from './jijangganFormatter';
+} from './jijangganFormatter'
 
 export {
   performAdvancedAnalysis,
   type SimplePillars,
   type PillarsWithHour,
   type AdvancedAnalysisResult,
-} from './advancedAnalysis';
+} from './advancedAnalysis'
