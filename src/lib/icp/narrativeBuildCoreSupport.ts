@@ -1,6 +1,7 @@
 import type { ICPAnalysis, ICPOctantCode } from './types'
 import { ICP_OCTANTS } from './analysis'
 import { ICP_ARCHETYPE_PROFILES } from '@/lib/icpTest/results'
+import { clampScore0to100 as clampScore } from '@/lib/utils/math'
 export {
   buildBCRenderSample,
   buildIcpRenderSample,
@@ -284,10 +285,6 @@ function getBand(score: number): ScoreBand {
   return 'high'
 }
 
-function clampScore(score: number): number {
-  if (!Number.isFinite(score)) return 50
-  return Math.max(0, Math.min(100, Math.round(score)))
-}
 
 function toPercent(score: number): number {
   if (!Number.isFinite(score)) return 0

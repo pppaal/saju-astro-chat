@@ -4,6 +4,7 @@ import type { IcpHybridResult } from '@/lib/icpTest/types'
 import { ICP_ARCHETYPE_PROFILES } from '@/lib/icpTest/results'
 import { ICP_OCTANTS } from '@/lib/icp/analysis'
 import { PERSONA_ARCHETYPES, PERSONA_ARCHETYPES_KO } from '@/lib/persona/archetypes'
+import { clampScore0to100 as clampScore } from '@/lib/utils/math'
 export { buildHybridNarrativeSample, buildHybridSampleInput } from './hybridNarrativeSampleSupport'
 
 export type HybridLocale = 'ko' | 'en'
@@ -138,11 +139,6 @@ export interface HybridNarrativeInput {
 
 function t(locale: HybridLocale, ko: string, en: string): string {
   return locale === 'ko' ? ko : en
-}
-
-function clampScore(score: number): number {
-  if (!Number.isFinite(score)) return 50
-  return Math.max(0, Math.min(100, Math.round(score)))
 }
 
 function getBand(score: number): ScoreBand {

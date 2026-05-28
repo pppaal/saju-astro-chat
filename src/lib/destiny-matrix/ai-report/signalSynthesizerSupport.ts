@@ -2,6 +2,7 @@ import type { FusionReport, InsightDomain } from '../interpreter/types'
 import type { MatrixHighlight, MatrixSummary, MatrixCalculationInput } from '../types'
 import { getDomainSemantic, getLayerMeaning } from './matrixOntology'
 import type { NormalizedSignal, SignalDomain, SignalPolarity } from './signalSynthesizer'
+import { clampScore1to10 as clampScore } from '@/lib/utils/math'
 
 export const REQUIRED_CORE_DOMAINS: SignalDomain[] = ['career', 'wealth']
 export const CLAIM_DOMAIN_PRIORITY: Record<SignalDomain, number> = {
@@ -102,11 +103,6 @@ const TRANSIT_CAUTION_SET = new Set<NonNullable<MatrixCalculationInput['activeTr
 ])
 const ASPECT_STRENGTH_SET = new Set(['trine', 'sextile', 'conjunction'])
 const ASPECT_CAUTION_SET = new Set(['square', 'opposition'])
-
-function clampScore(value: number): number {
-  if (!Number.isFinite(value)) return 5
-  return Math.max(1, Math.min(10, Math.round(value)))
-}
 
 function computeRankScore(score: number, polarity: SignalPolarity): number {
   if (polarity === 'caution') return score + 0.25

@@ -1,5 +1,6 @@
 import type { PersonaAxisKey, PersonaAnalysis } from './types'
 import { sanitizePersonaText } from './sanitize'
+import { clampScore0to100 as clampScore } from '@/lib/utils/math'
 
 type PersonaLocale = 'ko' | 'en'
 type ScoreBand = 'low' | 'mid' | 'high'
@@ -212,12 +213,6 @@ function t(locale: PersonaLocale, ko: string, en: string): string {
   return locale === 'ko' ? ko : en
 }
 
-function clampScore(value: number | undefined): number {
-  if (!Number.isFinite(value)) {
-    return 50
-  }
-  return Math.max(0, Math.min(100, Math.round(value as number)))
-}
 
 function getScoreBand(score: number): ScoreBand {
   if (score <= 33) {
