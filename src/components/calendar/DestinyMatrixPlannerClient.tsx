@@ -16,8 +16,8 @@ import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 
 // localStorage stale-while-revalidate 캐시 — 재방문 시 즉시 노출 + 백그라운드 refresh.
 // TTL 24h: calendar data 는 하루 단위로만 바뀜 (날짜 경계). 그 안에선 stale 안전.
-// v8: PR #830 회귀 fix — 메인 응답이 다시 12달 narrative 포함 (다른 달 빈 화면 fix).
-const CACHE_VERSION = 8
+// v9: hero 카드 제거 + DayVerdict 의 dual SplitAxisBar + Month/Year 의 CrossInsightCard.
+const CACHE_VERSION = 9
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
 interface CachedPayload<TYearlyMonthly, TYearlyConvergence> {

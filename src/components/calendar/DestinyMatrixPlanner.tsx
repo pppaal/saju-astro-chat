@@ -108,35 +108,6 @@ export default function DestinyMatrixPlanner({
     }
   }, [viewYear, data, onYearChange])
 
-  // ── "오늘" hero — 헤더 고정. 어느 뷰를 보든 항상 사용자가 "지금 무슨 날인지" 알 수 있게.
-  //    탭하면 daily 뷰로 점프(currentDay/viewDate 동기). 데이터 없으면 hero 숨김.
-  const todayStr = useMemo(() => {
-    const y = today.getFullYear()
-    const m = String(today.getMonth() + 1).padStart(2, '0')
-    const d = String(today.getDate()).padStart(2, '0')
-    return `${y}-${m}-${d}`
-  }, [today])
-  const todayWeekday = useMemo(() => {
-    return t.weekdayShort[today.getDay()]
-  }, [today, t])
-  const todayHero = useMemo(() => {
-    const d = data?.allDates?.find((x) => x.date === todayStr)
-    if (!d) return null
-    const score = Math.round(pickFinalScore(d))
-    const grade = getGrade(score)
-    const oneLine =
-      data?.calendarDailyView?.date === todayStr
-        ? (data.calendarDailyView.oneLineSummary ?? null)
-        : (d.summary ?? null)
-    return { score, grade, oneLine }
-  }, [data, todayStr])
-  const handleHeroClick = useCallback(() => {
-    const now = new Date()
-    setViewDate(new Date(now.getFullYear(), now.getMonth(), 1))
-    setCurrentDay(now.getDate())
-    changeViewMode('daily')
-  }, [changeViewMode])
-
   const goToPrevMonth = useCallback(() => {
     setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
     setCurrentDay(1)
@@ -381,47 +352,6 @@ export default function DestinyMatrixPlanner({
             {t.openCalendarGrid}
           </button>
         </div>
-
-        {/* "오늘" Hero — 헤더 sticky, 모든 뷰 위. 디자인 시스템 토큰(heroBgClass +
-            heroShadowClass + emoji)으로 시각 임팩트 풀로. 점수는 text-5xl 큰 글자. */}
-        {todayHero && (
-          <button
-            onClick={handleHeroClick}
-            className={`w-full text-left mb-3 rounded-2xl border ${todayHero.grade.borderClass} ${todayHero.grade.heroBgClass} ${todayHero.grade.heroShadowClass} px-4 py-3.5 flex items-center gap-4 hover:brightness-110 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400`}
-            aria-label={t.heroAria}
-          >
-            <span className="text-4xl shrink-0 leading-none" aria-hidden>
-              {todayHero.grade.emoji}
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-baseline gap-2 leading-none">
-                <span
-                  className={`text-4xl sm:text-5xl font-black tabular-nums ${todayHero.grade.colorClass}`}
-                >
-                  {todayHero.score}
-                </span>
-                <span className={`text-base font-black ${todayHero.grade.colorClass}`}>
-                  {t.gradeLabel(todayHero.grade.key)}
-                </span>
-              </div>
-              {todayHero.oneLine && (
-                <p className="text-xs text-zinc-200 mt-1.5 line-clamp-1 leading-snug">
-                  {todayHero.oneLine}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col items-end shrink-0 leading-none">
-              <span className="text-[10px] font-bold text-zinc-400 tracking-widest uppercase">
-                {t.today}
-              </span>
-              <span className="text-sm font-black text-zinc-100 mt-0.5">
-                {today.getMonth() + 1}.{today.getDate()}
-              </span>
-              <span className="text-[10px] text-zinc-500 mt-0.5">{todayWeekday}</span>
-              <ChevronRight className="w-4 h-4 text-zinc-500 mt-1.5" />
-            </div>
-          </button>
-        )}
 
         {/* View Mode Toggle */}
         <div className="flex bg-zinc-900/50 rounded-xl p-1.5 border border-white/5 backdrop-blur-sm">

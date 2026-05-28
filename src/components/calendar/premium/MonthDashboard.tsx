@@ -17,6 +17,7 @@ import { getGrade } from '../scoreGrade'
 import PremiumHero from './shared/PremiumHero'
 import FlowChart, { type FlowPoint } from './shared/FlowChart'
 import MonthInsights from './shared/MonthInsights'
+import CrossInsightCard from './shared/CrossInsightCard'
 import { getCalLabels, type CalLocale } from './labels'
 
 interface Props {
@@ -144,6 +145,8 @@ export default function MonthDashboard({
       {cmp && <MonthComparisonLine cmp={cmp} t={t} />}
 
       <MonthInsights interp={finalInterp} month={month} locale={locale} onDayClick={onDayClick} />
+
+      <CrossInsightCard dates={monthDates} locale={locale} />
 
       <FlowChart
         data={data.flowData}
