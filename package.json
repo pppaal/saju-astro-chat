@@ -59,6 +59,7 @@
     "db:studio": "prisma studio",
     "test:load:endurance": "k6 run tests/performance/k6/endurance-test.js",
     "test:load:realistic": "k6 run tests/performance/k6/realistic-scenario.js",
+    "test:load:event": "k6 run tests/performance/k6/event-launch.js",
     "security:owasp": "node scripts/owasp-zap-baseline.mjs",
     "test:e2e:browser": "playwright test",
     "test:e2e:smoke:public": "playwright test e2e/public-pages-smoke.spec.ts",
