@@ -9,7 +9,7 @@ import type { ActivationEngineResult } from './activationEngine'
 import type { RuleEngineResult } from './ruleEngine'
 import type { StateEngineResult, DomainState } from './stateEngine'
 import type { CrossAgreementMatrixRow, CrossAgreementTimescale } from '@/lib/destiny-matrix/types'
-import { average } from '@/lib/utils/math'
+import { average, clamp, clamp01 } from '@/lib/utils/math'
 
 export interface PatternMatcher {
   domains?: SignalDomain[]
@@ -64,11 +64,6 @@ export interface PatternBuildResolvedContext {
   crossAgreementMatrix?: CrossAgreementMatrixRow[] | null
 }
 
-function clampUnit(value: number): number {
-  return clamp(value, 0, 1)
-}
-
-
 function resolveCrossAgreementForDomains(
   matrix: CrossAgreementMatrixRow[] | null | undefined,
   domains: SignalDomain[]
@@ -90,18 +85,14 @@ function resolveCrossAgreementForDomains(
       for (const [timescale, weight] of weightedTimescales) {
         const cell = row.timescales?.[timescale]
         if (!cell || typeof cell.agreement !== 'number') continue
-        weighted += clampUnit(cell.agreement) * weight
+        weighted += clamp01(cell.agreement) * weight
         totalWeight += weight
       }
       return totalWeight > 0 ? weighted / totalWeight : null
     })
     .filter((value): value is number => value !== null)
 
-  return rowScores.length > 0 ? clampUnit(average(rowScores)) : null
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value))
+  return rowScores.length > 0 ? clamp01(average(rowScores)) : null
 }
 
 function textBlob(signal: NormalizedSignal): string {
