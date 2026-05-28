@@ -10,6 +10,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
+import { logAdminAction } from '@/lib/auth/adminAudit'
 import { addBonusCredits, getUserCredits } from '@/lib/credits/creditService'
 
 export const dynamic = 'force-dynamic'
@@ -63,6 +64,9 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.NOT_FOUND, 'user_not_found')
     }
 
+    const adminEmail = context.session?.user?.email || ''
+    const userAgent = req.headers.get('user-agent') || undefined
+
     try {
       await addBonusCredits(targetUser.id, amount, source)
       const credits = await getUserCredits(targetUser.id)
@@ -75,6 +79,26 @@ export const POST = withApiMiddleware(
         source,
         note,
         bonusBalanceAfter: credits?.bonusCredits ?? null,
+      })
+
+      // Persistent audit trail. logAdminAction swallows its own DB errors,
+      // so a failure here can't undo the credit grant or block the response.
+      await logAdminAction({
+        adminEmail,
+        adminUserId: context.userId,
+        action: 'grant_credits',
+        targetType: 'user',
+        targetId: targetUser.id,
+        metadata: {
+          targetEmail: targetUser.email,
+          amount,
+          source,
+          note,
+          bonusBalanceAfter: credits?.bonusCredits ?? null,
+        },
+        success: true,
+        ipAddress: context.ip,
+        userAgent,
       })
 
       const result: GrantResult = {
@@ -94,6 +118,18 @@ export const POST = withApiMiddleware(
         targetUserId: targetUser.id,
         amount,
         err,
+      })
+      await logAdminAction({
+        adminEmail,
+        adminUserId: context.userId,
+        action: 'grant_credits',
+        targetType: 'user',
+        targetId: targetUser.id,
+        metadata: { targetEmail: targetUser.email, amount, source, note },
+        success: false,
+        errorMessage: err instanceof Error ? err.message : String(err),
+        ipAddress: context.ip,
+        userAgent,
       })
       return apiError(ErrorCodes.INTERNAL_ERROR, 'grant_failed')
     }
