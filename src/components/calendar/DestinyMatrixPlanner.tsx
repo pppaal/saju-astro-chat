@@ -478,6 +478,7 @@ export default function DestinyMatrixPlanner({
                 allDates={data?.allDates ?? []}
                 yearlyMonthly={yearlyMonthly}
                 yearlyConvergence={yearlyConvergence}
+                lifetimePivots={data?.monthlyInterpretation?.lifetimePivots}
                 birthDate={birthInfo?.birthDate}
                 currentPhaseLabel={phaseLabel}
                 locale={locale}

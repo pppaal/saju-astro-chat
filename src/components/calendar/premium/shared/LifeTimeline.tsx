@@ -1,10 +1,11 @@
 'use client'
 
 /**
- * 인생 분기점 timeline — 대운 전환 + 주요 astro transit milestones.
- * year tier 에서만 사용. age 기반 (한국나이) 다섯 항목 안팎.
+ * 인생 분기점 timeline — 점성 라이프사이클 + 사주 대운 합친 인생 스케일 전환.
+ * year tier 에서만 사용.
  *
  * active 항목은 amber 글로우 dot, 나머지는 zinc 그레이.
+ * bothSystems 면 작은 배지로 강조 (점성·사주 동시 전환).
  */
 import { Compass } from 'lucide-react'
 import { getCalLabels, type CalLocale } from '../labels'
@@ -20,6 +21,10 @@ export interface TimelineEntry {
   description: string
   /** 현재 진행 중 여부 — true 면 amber glow */
   active?: boolean
+  /** 점성·사주 둘 다 가리키는 큰 전환 */
+  bothSystems?: boolean
+  /** past 항목 — 살짝 dim */
+  past?: boolean
 }
 
 interface Props {
@@ -40,16 +45,27 @@ export default function LifeTimeline({ entries, title, locale }: Props) {
       </h3>
       <div className="relative border-l border-zinc-800 ml-3 space-y-7 pb-2">
         {entries.map((item, i) => (
-          <div key={`${item.year}-${i}`} className="relative pl-6">
+          <div
+            key={`${item.year}-${i}`}
+            className={`relative pl-6 ${item.past ? 'opacity-60' : ''}`}
+          >
             <div
               className={`absolute -left-[7px] top-1 w-3.5 h-3.5 rounded-full border-[3px] border-zinc-950 ${
-                item.active ? 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.55)]' : 'bg-zinc-600'
+                item.active
+                  ? 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.55)]'
+                  : item.bothSystems
+                    ? 'bg-violet-500'
+                    : 'bg-zinc-600'
               }`}
             />
             <div className="flex items-baseline gap-3 flex-wrap mb-1">
               <h4
                 className={`text-base font-bold ${
-                  item.active ? 'text-amber-400' : 'text-zinc-200'
+                  item.active
+                    ? 'text-amber-400'
+                    : item.bothSystems
+                      ? 'text-violet-200'
+                      : 'text-zinc-200'
                 }`}
               >
                 {item.ageLabel}
@@ -58,6 +74,11 @@ export default function LifeTimeline({ entries, title, locale }: Props) {
               {item.active && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   {t.lifeInProgress}
+                </span>
+              )}
+              {!item.active && item.bothSystems && (
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-violet-500/15 text-violet-300 border border-violet-500/25">
+                  점성·사주
                 </span>
               )}
             </div>
