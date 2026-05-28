@@ -775,6 +775,31 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               )
             })}
 
+            {/* clarifier "카드 한 장 더 뽑기" — input 툴바가 아니라 타로
+                결과 메시지 직후 노출 (운명상담사 MessagesPanel 패턴과 동일).
+                마지막 메시지가 🃏 로 시작하는 타로 결과일 때만 보임. */}
+            {(() => {
+              const last = messages.length > 0 ? messages[messages.length - 1] : null
+              const lastIsTarot =
+                last?.role === 'assistant' && (last?.content || '').trimStart().startsWith('🃏')
+              if (!lastIsTarot || isLoading) return null
+              const cb = clarifier.buttonProps
+              if (cb.disabled) return null
+              return (
+                <div className={styles.postAnswerActions}>
+                  <button
+                    type="button"
+                    onClick={cb.onClick}
+                    className={styles.clarifierActionBtn}
+                    aria-label={clarifier.buttonLabel}
+                  >
+                    <span className={styles.clarifierActionIcon} aria-hidden="true">🃏</span>
+                    {clarifier.buttonLabel}
+                  </button>
+                </div>
+              )
+            })()}
+
             {!isLoading && followUpQuestions.length > 0 && messages.length > 0 && (
               <div className={styles.followUpContainer}>
                 <span className={styles.followUpLabel}>
@@ -869,17 +894,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                   <span className={styles.toolButtonIcon}>✨</span>
                   <span className={styles.toolButtonLabel}>{isKo ? '궁합차트' : 'Chart'}</span>
                 </button>
-                {/* 클래리파이어 카드 한 장 더 — 사이드바에서 옮겨와 입력창
-                    도구로 단일 진입점 (destiny 와 동일 패턴). */}
-                <button
-                  type="button"
-                  {...clarifier.buttonProps}
-                  className={`${styles.toolButton} ${styles.mobileOnlyTool}`}
-                  aria-label={clarifier.buttonLabel}
-                >
-                  <span className={styles.toolButtonIcon}>🃏</span>
-                  <span className={styles.toolButtonLabel}>{clarifier.buttonLabel}</span>
-                </button>
+                {/* clarifier ("카드 한 장 더 뽑기") 버튼은 입력창 툴바에서
+                    제거 — 타로 결과 직후 보여줘야 자연. MessagesPanel-like
+                    postAnswerActions 영역에서 노출. */}
                 {parsingPdf && (
                   <span className={styles.fileName}>
                     <span className={styles.loadingSpinner} />
