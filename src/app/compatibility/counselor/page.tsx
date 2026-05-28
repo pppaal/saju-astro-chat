@@ -848,9 +848,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           </div>
 
           {/* Input — 운명 상담사와 동일한 ChatInputArea 공용 컴포넌트.
-              📎 파일 / 🃏 타로 / ✨ 궁합차트 + ✕ + ▶ 전송. 데스크탑 ≥1024px
-              에선 타로/차트가 자동 mobileOnlyTool 로 숨겨짐(사이드바 푸터와
-              중복 회피). */}
+              📎 파일 / 🃏 타로 / ✨ 궁합차트 + ✕ + ▶ 전송. 모든 화면 크기에서
+              세 도구 모두 노출 (사이드바 푸터에 같은 진입점 없음). */}
           <ChatInputArea
             input={input}
             loading={isLoading}

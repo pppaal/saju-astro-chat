@@ -260,13 +260,10 @@
   flex-shrink: 0;
 }
 
-/* 데스크탑 (≥ 1024px) 에선 사이드바 푸터에 같은 진입점이 있어 입력창 툴바의
-   타로/차트 버튼은 모바일 전용으로 숨긴다 — 양 상담사 공통 규칙. */
-@media (min-width: 1024px) {
-  .mobileOnlyTool {
-    display: none;
-  }
-}
+/* (이전엔 .mobileOnlyTool 을 데스크탑에서 display:none — 사이드바 푸터에
+   같은 진입점이 있다는 가정이었으나 실제로 footerSlot 을 넘기는 페이지가
+   없어서 데스크탑 사용자는 타로/차트 진입점이 통째로 사라졌던 회귀.
+   className 은 호환을 위해 ChatInputArea 에 그대로 두고 CSS hide 룰만 제거.) */
 
 /* ========== Light theme — 궁합 상담사용 (페이지 배경이 흰색 계열) ==========
    data-theme="light" 일 때 inputArea / inputBox / textarea / 버튼 톤을
