@@ -78,7 +78,7 @@ export default function LifeTimeline({ entries, title, locale }: Props) {
               )}
               {!item.active && item.bothSystems && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-violet-500/15 text-violet-300 border border-violet-500/25">
-                  점성·사주
+                  {t.bothSystemsBadge}
                 </span>
               )}
             </div>

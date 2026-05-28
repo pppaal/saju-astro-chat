@@ -87,7 +87,7 @@ export default function MonthDashboard({
       else if (worstEntry && day === worstEntry[0]) type = 'caution'
       else if (convergenceDays.has(day)) type = 'convergence'
       return {
-        label: locale === 'en' ? `${day}` : `${day}일`,
+        label: locale === 'en' ? `${day}` : `${day}일`, // 일 표시는 KO 만, EN 은 숫자
         score,
         type,
         fullLabel:
@@ -147,7 +147,7 @@ export default function MonthDashboard({
 
       <FlowChart
         data={data.flowData}
-        title={locale === 'en' ? 'Daily flow' : '일별 에너지 흐름'}
+        title={t.fmtDailyFlow}
         xInterval={4}
         showDots={false}
         nowLabel={data.nowDayLabel}

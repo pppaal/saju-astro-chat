@@ -175,7 +175,7 @@ function KeyDatesCard({
   const fmtDay = (mmdd: string) => {
     const d = parseInt(mmdd.slice(3, 5), 10)
     if (!Number.isFinite(d)) return mmdd
-    return locale === 'en' ? `${month + 1}/${d}` : `${month + 1}월 ${d}일`
+    return t.fmtMonthDay(month + 1, d)
   }
   const handleClick = (mmdd: string) => {
     if (!onDayClick) return
@@ -280,7 +280,7 @@ function BigTurnsCard({
   const fmtDate = (iso: string) => {
     const m = parseInt(iso.slice(5, 7), 10)
     const d = parseInt(iso.slice(8, 10), 10)
-    return locale === 'en' ? `${m}/${d}` : `${m}월 ${d}일`
+    return t.fmtMonthDay(m, d)
   }
   const handleClick = (iso: string) => {
     if (!onDayClick) return
@@ -305,6 +305,9 @@ function BigTurnsCard({
             saju={d.saju}
             astroLabel={t.bigTurnsAstroLabel}
             sajuLabel={t.bigTurnsSajuLabel}
+            evidenceToggle={t.evidenceToggle}
+            evidenceShow={t.evidenceShow}
+            evidenceHide={t.evidenceHide}
             onClick={onDayClick ? () => handleClick(d.date) : undefined}
           />
         ))}
@@ -321,6 +324,9 @@ function BigTurnRow({
   saju,
   astroLabel,
   sajuLabel,
+  evidenceToggle,
+  evidenceShow,
+  evidenceHide,
   onClick,
 }: {
   date: string
@@ -329,6 +335,9 @@ function BigTurnRow({
   saju: string[]
   astroLabel: string
   sajuLabel: string
+  evidenceToggle: string
+  evidenceShow: string
+  evidenceHide: string
   onClick?: () => void
 }) {
   const [open, setOpen] = useState(false)
@@ -354,8 +363,9 @@ function BigTurnRow({
             }}
             className="text-[11px] text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-0.5 ml-auto shrink-0 transition"
             aria-expanded={open}
+            aria-label={open ? evidenceHide : evidenceShow}
           >
-            근거
+            {evidenceToggle}
             <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
         )}
