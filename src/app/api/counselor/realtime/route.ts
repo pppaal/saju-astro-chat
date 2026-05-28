@@ -23,7 +23,6 @@ import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { refundCredits } from '@/lib/credits/creditRefund'
-import { shouldChargeForMessage, rollbackMessageCount } from '@/lib/credits/messageBilling'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
@@ -63,9 +62,9 @@ const MAX_ATTACHMENT_CHARS = 12000
 
 const RATE_LIMIT_PER_MIN = 12
 
-// Billing: 2 messages = 1 credit. messageBilling 헬퍼 사용 (홀수번째 차감).
-// 옛 session 30분/20턴 모델은 LLM 비용 worst case 적자라 제거 — 타로 followup,
-// 궁합 상담사와 같은 정책으로 통일.
+// Billing: 매 메시지 1 credit 차감. 팩 크레딧 자체가 2배라서 사용자 입장
+// 가치는 동일하면서 "질문 1개 = 1 credit" 단순 모델 유지. 옛 30분/20턴
+// 세션 모델은 worst case 적자라 제거됨.
 
 // DestinyPal warm-counselor system prompts.
 //
@@ -227,21 +226,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: safetyMessage(lang) }, { status: 200 })
   }
 
-  // 4) 2-message-per-credit 정책: 홀수번째 메시지에 1 credit 차감, 짝수번째는
-  // 직전 결제로 커버되어 무료. 옛 session(30분/20턴=1credit) 모델은 LLM 비용
-  // 대비 적자 worst case 가 나와 제거 — messageBilling 헬퍼로 통일.
-  // 카운터는 이 시점에 +1 되며, credit 부족·LLM 실패 시 rollbackMessageCount
-  // 로 되돌린다.
-  const billing = await shouldChargeForMessage('destiny-counselor', userId)
-  if (billing.shouldCharge) {
-    const credit = await canUseCredits(userId, 'reading', 1)
-    if (!credit.allowed) {
-      await rollbackMessageCount('destiny-counselor', userId)
-      return NextResponse.json(
-        { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
-        { status: 402 }
-      )
-    }
+  // 4) Pre-check credit availability. 매 메시지 1 credit. 차감은 아래
+  // validation 이후 stream 직전에 실제 consume.
+  const credit = await canUseCredits(userId, 'reading', 1)
+  if (!credit.allowed) {
+    return NextResponse.json(
+      { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
+      { status: 402 }
+    )
   }
 
   // 5) Compute (or fetch cached) birth snapshot
@@ -411,17 +403,14 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 6) 홀수번째 메시지면 credit 차감, 짝수번째는 skip. canUseCredits 가 위에서
-  // 통과했으므로 여기서 실패하면 race condition (다른 탭에서 동시에 차감) 정도.
+  // 6) Consume credit BEFORE stream starts. canUseCredits 통과 후라 보통 성공;
+  // race(다른 탭) 등으로 실패해도 block 보다 observability 우선.
   let chargedThisTurn = false
-  if (billing.shouldCharge) {
-    try {
-      const res = await consumeCredits(userId, 'reading', 1)
-      chargedThisTurn = res.success
-    } catch (err) {
-      logger.warn('[counselor/realtime] credit deduction failed', { err })
-      // Don't block the user — observability over enforcement here.
-    }
+  try {
+    const res = await consumeCredits(userId, 'reading', 1)
+    chargedThisTurn = res.success
+  } catch (err) {
+    logger.warn('[counselor/realtime] credit deduction failed', { err })
   }
 
   // 7) Build prompt and stream — 진짜 multi-turn 구조.
@@ -493,9 +482,6 @@ export async function POST(req: NextRequest) {
             reason: 'counselor_stream_empty',
             apiRoute: '/api/counselor/realtime',
           })
-          // 메시지 카운터도 되돌려 — 다음 메시지가 다시 "홀수=charge" 위치로
-          // 돌아오게 한다 (안 그러면 사용자가 차감 위치를 한 칸 잃음).
-          await rollbackMessageCount('destiny-counselor', userId)
         } catch (err) {
           logger.warn('[counselor/realtime] stream-failure refund failed', { err })
         }

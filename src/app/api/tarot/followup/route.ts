@@ -15,9 +15,6 @@ import {
   creditErrorResponse,
 } from '@/lib/credits/withCredits'
 import { refundCredits } from '@/lib/credits/creditRefund'
-import { shouldChargeForMessage, rollbackMessageCount } from '@/lib/credits/messageBilling'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { callClaude, isClaudeAvailable } from '@/lib/llm/claude'
@@ -115,29 +112,11 @@ export const POST = withApiMiddleware(
       const { spreadTitle, originalQuestion, overallMessage, cards, history, question, language } =
         validated.data
 
-      // 2-message-per-credit 정책 (messageBilling 헬퍼). 홀수번째 메시지에
-      // 1 credit 차감, 짝수번째는 직전 결제로 커버되어 무료. 게스트는 카운터
-      // 없이 기존 checkAndConsumeCredits 의 guest 분기 그대로 (1 credit/메시지).
-      const session = await getServerSession(authOptions)
-      const authedUserId = session?.user?.id ?? null
-
-      let chargeThisMessage = true
-      if (authedUserId) {
-        const billing = await shouldChargeForMessage('tarot-followup', authedUserId)
-        chargeThisMessage = billing.shouldCharge
-      }
-
-      if (chargeThisMessage) {
-        creditResult = await checkAndConsumeCredits('reading', 1, req)
-        if (!creditResult.allowed) {
-          if (authedUserId) await rollbackMessageCount('tarot-followup', authedUserId)
-          return creditErrorResponse(creditResult)
-        }
-      } else {
-        // 짝수번째 — 차감 skip. refundOnLlmFailure 가 chargedAs 없으면 no-op
-        // 이라 안전. applyCreditResultCookies 도 비-차감 result 면 cookie 안 건드림.
-        creditResult = { allowed: true, userId: authedUserId ?? undefined }
-      }
+      // follow-up 도 reading 호출과 동일하게 reading 크레딧 1회 차감. 가격
+      // 모델은 "질문 1개 = 1 credit" 으로 단순; 팩 크레딧 자체가 2배라서
+      // 사용자 가치는 동일.
+      creditResult = await checkAndConsumeCredits('reading', 1, req)
+      if (!creditResult.allowed) return creditErrorResponse(creditResult)
 
       const isKo = language === 'ko'
 
@@ -208,20 +187,14 @@ ${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
       const response = NextResponse.json({ answer: result.text.trim() })
       return applyCreditResultCookies(response, creditResult)
     } catch (err: unknown) {
-      // 차감 *후* 발생한 모든 실패 (LLM 호출 throw 포함) 에서 환불 + 메시지
-      // 카운터 rollback. creditResult.chargedAs 있으면 실제로 1 credit 차감된
-      // 상태라 환불 필요; 짝수번째 메시지로 skip 된 경우엔 chargedAs 없어
-      // 환불 분기 자동 no-op. 카운터는 양쪽 다 rollback 해서 다음 retry 가
-      // 같은 holyzcharge 위치로 돌아오게 한다.
+      // 차감 *후* 발생한 모든 실패 (LLM 호출 throw 포함) 에서 환불.
+      // creditResult 가 null 이면 아직 차감 전이라 환불 대상 아님.
       if (creditResult) {
         await refundOnLlmFailure(
           creditResult,
           'tarot_followup_error',
           err instanceof Error ? err.message : String(err)
         )
-        if (creditResult.userId) {
-          await rollbackMessageCount('tarot-followup', creditResult.userId)
-        }
       }
       captureServerError(err as Error, { route: '/api/tarot/followup' })
       logger.error('Tarot followup error:', err)
