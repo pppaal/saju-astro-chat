@@ -15,7 +15,10 @@ import { logger } from '@/lib/logger'
 import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
-import { generateFollowUpQuestions } from '@/components/destiny-map/chat-followups'
+import {
+  generateFollowUpQuestions,
+  isGenericFollowUp,
+} from '@/components/destiny-map/chat-followups'
 // InlineTarotModal 은 dynamic 이 아니라 직접 import — 이전엔 dynamic ssr:false
 // 였는데 첫 클릭 시 chunk download 로 모달이 "지지직" 거리며 늦게 떴음.
 // 직접 import 로 즉시 열리게. (~50KB 초기 번들 증가는 수용 — UX 우선.)
@@ -486,15 +489,24 @@ function CompatibilityCounselorContent() {
             logger.warn('[CompatCounselor] stream error', { error: err })
           },
         })
-        // 운명 상담사와 동일하게 — LLM이 후속질문을 2개 미만으로 주면
-        // generateFollowUpQuestions 로 채워 "이어서 물어보기" 칩이 항상 뜨게 한다.
-        if (result.followUps.length >= 2) {
-          setFollowUpQuestions(result.followUps.slice(0, 2))
-        } else {
-          setFollowUpQuestions(
-            generateFollowUpQuestions(text, locale === 'ko' ? 'ko' : 'en', 2, finalAssistantContent)
-          )
-        }
+        // 운명 상담사와 동일 패턴 — LLM 의 generic followup ("더 알려줘",
+        // "tell me more" 등) 을 클라이언트에서 결정적으로 필터링 + 부족분만
+        // theme 기반 폴백으로 보충. 이전엔 LLM 2개 ≥ 면 그대로 / 미만이면
+        // 폴백 전체 교체 였는데, 그 경우 LLM generic 답이 그대로 노출되거나
+        // 답변 무관 폴백이 통째로 표시됐음.
+        const lang = locale === 'ko' ? 'ko' : 'en'
+        const goodAiFollowUps = result.followUps.filter((q) => !isGenericFollowUp(q, lang))
+        const needed = 2 - goodAiFollowUps.length
+        const merged =
+          needed > 0
+            ? [
+                ...goodAiFollowUps,
+                ...generateFollowUpQuestions(text, lang, 2, finalAssistantContent).filter(
+                  (q) => !goodAiFollowUps.includes(q)
+                ),
+              ].slice(0, 2)
+            : goodAiFollowUps.slice(0, 2)
+        setFollowUpQuestions(merged)
 
         // Persist the exchange so it shows up in the past-chats sidebar
         // next visit. Fire-and-forget; save failure must not block UX.
