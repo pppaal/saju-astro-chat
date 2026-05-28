@@ -1,4 +1,4 @@
-import { buildLifecycleTiming } from '@/lib/fusion/lifeReport/signals/astroLifecycle'
+import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import type { NatalContext } from '../context/types'
 
 /**
