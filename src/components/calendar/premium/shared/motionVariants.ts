@@ -10,49 +10,49 @@
 
 import type { Variants, Transition } from 'framer-motion'
 
-/** Stack 컨테이너 — 자식들 80ms 간격 stagger */
+/** Stack 컨테이너 — 자식들 40ms 간격 stagger (스냅) */
 export const cardStack: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.04 },
+    transition: { staggerChildren: 0.04, delayChildren: 0.02 },
   },
 }
 
-/** 카드 한 장 — y8 → 0 fade-up */
+/** 카드 한 장 — y6 → 0 fade-up (300ms) */
 export const cardItem: Variants = {
-  hidden: { opacity: 0, y: 8 },
+  hidden: { opacity: 0, y: 6 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, ease: [0.2, 0.7, 0.2, 1] },
+    transition: { duration: 0.3, ease: [0.2, 0.7, 0.2, 1] },
   },
 }
 
-/** Bar fill — width 0 → target. custom={pct} 로 전달 */
+/** Bar fill — width 0 → target. 600ms (이전 900ms 에서 단축) */
 export const barFill: Variants = {
   hidden: { width: 0 },
   show: (pct: number) => ({
     width: `${pct}%`,
-    transition: { duration: 0.9, ease: [0.2, 0.7, 0.2, 1] },
+    transition: { duration: 0.6, ease: [0.2, 0.7, 0.2, 1] },
   }),
 }
 
-/** "왜 오늘은" 리스트 항목 — 50ms 짧은 stagger */
+/** "왜 오늘은" 리스트 항목 — 30ms 짧은 stagger */
 export const listStack: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.05 },
+    transition: { staggerChildren: 0.03 },
   },
 }
 
 export const listItem: Variants = {
-  hidden: { opacity: 0, x: -4 },
+  hidden: { opacity: 0, x: -3 },
   show: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.3, ease: 'easeOut' },
+    transition: { duration: 0.22, ease: 'easeOut' },
   },
 }
 

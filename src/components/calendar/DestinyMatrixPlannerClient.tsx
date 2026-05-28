@@ -14,6 +14,50 @@ import { normalizeGender, toLongGender } from '@/lib/utils/gender'
 import { logger } from '@/lib/logger'
 import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 
+// localStorage stale-while-revalidate 캐시 — 재방문 시 즉시 노출 + 백그라운드 refresh.
+// TTL 24h: calendar data 는 하루 단위로만 바뀜 (날짜 경계). 그 안에선 stale 안전.
+const CACHE_VERSION = 1
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000
+
+interface CachedPayload<TYearlyMonthly, TYearlyConvergence> {
+  v: typeof CACHE_VERSION
+  ts: number
+  data: CalendarData
+  yearlyMonthly?: TYearlyMonthly[]
+  yearlyConvergence?: TYearlyConvergence
+}
+
+function cacheKey(info: BirthInfo, year: number, locale: string): string {
+  const apiGender = normalizeGender(info.gender) ?? 'male'
+  return `cal-cache:${CACHE_VERSION}:${locale}:${info.birthDate}:${info.birthTime}:${info.birthPlace}:${apiGender}:${year}`
+}
+
+function readCache<TM, TC>(key: string): CachedPayload<TM, TC> | null {
+  try {
+    if (typeof window === 'undefined') return null
+    const raw = window.localStorage.getItem(key)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as CachedPayload<TM, TC>
+    if (parsed.v !== CACHE_VERSION) return null
+    if (Date.now() - parsed.ts > CACHE_TTL_MS) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function writeCache<TM, TC>(key: string, payload: Omit<CachedPayload<TM, TC>, 'v' | 'ts'>): void {
+  try {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(
+      key,
+      JSON.stringify({ v: CACHE_VERSION, ts: Date.now(), ...payload })
+    )
+  } catch {
+    // quota exceeded / private mode — 무시
+  }
+}
+
 /**
  * Orchestrator for the DestinyMatrixPlanner UI: handles birth info gating,
  * shared-info hydration, and /api/calendar fetching. Used by both
@@ -67,12 +111,25 @@ export default function DestinyMatrixPlannerClient() {
         controller.abort()
       }, FETCH_TIMEOUT_MS)
 
-      setLoading(true)
       setError(null)
-      setYearlyConvergence(undefined)
-      setYearlyMonthly(undefined)
+      const year = targetYear ?? new Date().getFullYear()
+      const cKey = cacheKey(info, year, lang)
+
+      // 1) cache hit → 즉시 데이터 노출 (loading 띄우지 않음 — 사용자 perceived 0ms)
+      const cached = readCache<YearMonthly, YearlyConvergence>(cKey)
+      if (cached) {
+        setData(cached.data)
+        if (cached.yearlyConvergence) setYearlyConvergence(cached.yearlyConvergence)
+        if (cached.yearlyMonthly) setYearlyMonthly(cached.yearlyMonthly)
+        setLoading(false) // 화면 보이고 그 위로 백그라운드 refresh
+      } else {
+        // cache miss → 초기 빈 상태로 loading
+        setLoading(true)
+        setYearlyConvergence(undefined)
+        setYearlyMonthly(undefined)
+      }
+
       try {
-        const year = targetYear ?? new Date().getFullYear()
         const params = new URLSearchParams({
           year: String(year),
           locale: lang,
@@ -122,6 +179,8 @@ export default function DestinyMatrixPlannerClient() {
 
         const payload = json as CalendarData
         setData(payload)
+        // 캐시 일단 main payload 만 — convergence 도착하면 아래에서 다시 write.
+        writeCache<YearMonthly, YearlyConvergence>(cKey, { data: payload })
         logger.debug('[CalendarPlanner] payload received', {
           year: payload.year,
           total: payload.allDates?.length ?? 0,
@@ -146,6 +205,12 @@ export default function DestinyMatrixPlannerClient() {
             if (controller.signal.aborted) return
             if (cj?.convergence) setYearlyConvergence(cj.convergence)
             if (cj?.monthly) setYearlyMonthly(cj.monthly)
+            // 캐시 갱신 — convergence + monthly 합쳐서 full payload.
+            writeCache<YearMonthly, YearlyConvergence>(cKey, {
+              data: payload,
+              yearlyConvergence: cj?.convergence,
+              yearlyMonthly: cj?.monthly,
+            })
           } catch (e) {
             if ((e as { name?: string })?.name === 'AbortError') return
             logger.debug('[CalendarPlanner] convergence lazy-load skipped', e)
