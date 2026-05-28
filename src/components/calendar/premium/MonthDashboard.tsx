@@ -109,6 +109,7 @@ export default function MonthDashboard({
 
   const verdict = monthSummary?.trim() || t.monthVerdictFallback(t.gradeLabel(data.grade.key))
   const monthInterp = monthDates[0]?.monthlyInterpretation
+  const cmp = monthInterp?.monthComparison
 
   return (
     <div className="space-y-6">
@@ -119,6 +120,8 @@ export default function MonthDashboard({
         grade={data.grade}
         locale={locale}
       />
+
+      {cmp && <MonthComparisonLine cmp={cmp} t={t} />}
 
       <MonthInsights interp={monthInterp} month={month} locale={locale} onDayClick={onDayClick} />
 
@@ -134,6 +137,49 @@ export default function MonthDashboard({
           if (day >= 1 && day <= data.daysInMonth) onDayClick(day)
         }}
       />
+    </div>
+  )
+}
+
+function MonthComparisonLine({
+  cmp,
+  t,
+}: {
+  cmp: NonNullable<NonNullable<ImportantDate['monthlyInterpretation']>['monthComparison']>
+  t: ReturnType<typeof getCalLabels>
+}) {
+  const overall =
+    cmp.overallDelta > 0
+      ? t.comparisonOverallUp(cmp.overallDelta)
+      : cmp.overallDelta < 0
+        ? t.comparisonOverallDown(cmp.overallDelta)
+        : t.comparisonOverallFlat
+  const tone =
+    cmp.overallDelta > 0
+      ? 'text-emerald-300'
+      : cmp.overallDelta < 0
+        ? 'text-rose-300'
+        : 'text-zinc-400'
+  return (
+    <div className="-mt-3 px-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+      <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">
+        {t.comparisonPrefix}
+      </span>
+      <span className={`font-bold ${tone}`}>{overall}</span>
+      {cmp.themes.slice(0, 3).map((th) => (
+        <span
+          key={th.theme}
+          className={`inline-flex items-center gap-1 ${
+            th.dir === 'up' ? 'text-emerald-200/90' : 'text-rose-200/90'
+          }`}
+        >
+          <span className="text-zinc-400">{t.themeName(th.theme)}</span>
+          <span className="font-bold tabular-nums">
+            {th.dir === 'up' ? '+' : '−'}
+            {Math.abs(Math.round(th.delta))}
+          </span>
+        </span>
+      ))}
     </div>
   )
 }

@@ -134,6 +134,28 @@ interface LabelSet {
   bigTurnsAstroLabel: string
   bigTurnsSajuLabel: string
   bigTurnsEmpty: string
+  // Month comparison (vs prev month)
+  comparisonPrefix: string
+  comparisonOverallUp: (delta: number) => string
+  comparisonOverallDown: (delta: number) => string
+  comparisonOverallFlat: string
+  // Year insights
+  yearFocusTitle: string
+  yearBigDaysTitle: string
+  // Day insights
+  dayVerdictDomainPrefix: string
+  dayAxisAgreement: (kind: 'aligned' | 'mixed' | 'opposed') => string
+  dayDomainsTitle: string
+  dayPatternsLabel: string
+  dayWhyTitle: string
+  dayWhySajuLabel: string
+  dayWhyAstroLabel: string
+  dayWhyShinsalLabel: string
+  dayHourlyTitle: string
+  dayHourlyPushLabel: string
+  dayHourlyAvoidLabel: string
+  dayHourlyBestHour: string
+  dayHourlyWorstHour: string
   // Engine error
   engineFailedRetry: string
   fetchTimeout: string
@@ -239,6 +261,26 @@ const KO: LabelSet = {
   bigTurnsAstroLabel: '점성',
   bigTurnsSajuLabel: '사주',
   bigTurnsEmpty: '이번 달 양쪽 수렴 날이 없어요.',
+  comparisonPrefix: '지난달 대비',
+  comparisonOverallUp: (d) => `전체 ↑${d}점`,
+  comparisonOverallDown: (d) => `전체 ↓${Math.abs(d)}점`,
+  comparisonOverallFlat: '전체 비슷',
+  yearFocusTitle: '올해 초점',
+  yearBigDaysTitle: '올해 큰 날',
+  dayVerdictDomainPrefix: '중심 영역',
+  dayAxisAgreement: (k) =>
+    k === 'aligned' ? '사주·점성 합의' : k === 'opposed' ? '사주·점성 엇갈림' : '부분 합의',
+  dayDomainsTitle: '오늘의 영역',
+  dayPatternsLabel: '활성 패턴',
+  dayWhyTitle: '왜 오늘은',
+  dayWhySajuLabel: '사주',
+  dayWhyAstroLabel: '점성',
+  dayWhyShinsalLabel: '신살',
+  dayHourlyTitle: '지금 뭐 할까',
+  dayHourlyPushLabel: '추진할 것',
+  dayHourlyAvoidLabel: '보류할 것',
+  dayHourlyBestHour: '최고 시간',
+  dayHourlyWorstHour: '주의 시간',
   engineFailedRetry: '엔진 호출 실패',
   fetchTimeout: '서버 응답이 너무 오래 걸려요. 다시 시도해 주세요.',
 }
@@ -344,6 +386,26 @@ const EN: LabelSet = {
   bigTurnsAstroLabel: 'Astro',
   bigTurnsSajuLabel: 'Saju',
   bigTurnsEmpty: 'No convergence days this month.',
+  comparisonPrefix: 'vs last month',
+  comparisonOverallUp: (d) => `overall ↑${d}`,
+  comparisonOverallDown: (d) => `overall ↓${Math.abs(d)}`,
+  comparisonOverallFlat: 'overall steady',
+  yearFocusTitle: 'Year focus',
+  yearBigDaysTitle: 'Year big days',
+  dayVerdictDomainPrefix: 'Focus',
+  dayAxisAgreement: (k) =>
+    k === 'aligned' ? 'Saju & astro agree' : k === 'opposed' ? 'Saju & astro disagree' : 'Mixed',
+  dayDomainsTitle: 'Today’s domains',
+  dayPatternsLabel: 'Active patterns',
+  dayWhyTitle: 'Why today',
+  dayWhySajuLabel: 'Saju',
+  dayWhyAstroLabel: 'Astro',
+  dayWhyShinsalLabel: 'Shinsal',
+  dayHourlyTitle: 'What now',
+  dayHourlyPushLabel: 'Push',
+  dayHourlyAvoidLabel: 'Hold',
+  dayHourlyBestHour: 'Best hour',
+  dayHourlyWorstHour: 'Caution hour',
   engineFailedRetry: 'Engine call failed',
   fetchTimeout: 'Server taking too long. Please try again.',
 }

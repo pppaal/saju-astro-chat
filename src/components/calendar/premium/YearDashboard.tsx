@@ -18,6 +18,7 @@ import { getGrade } from '../scoreGrade'
 import PremiumHero from './shared/PremiumHero'
 import FlowChart, { type FlowPoint } from './shared/FlowChart'
 import LifeTimeline from './shared/LifeTimeline'
+import YearInsights from './shared/YearInsights'
 import { computeLifeTimeline } from './shared/lifeTimeline'
 import { getCalLabels, type CalLocale } from './labels'
 
@@ -116,6 +117,13 @@ export default function YearDashboard({
           const m = parseInt(label.replace(/[^0-9]/g, ''), 10)
           if (m >= 1 && m <= 12) onMonthClick(m - 1)
         }}
+      />
+
+      <YearInsights
+        yearlyMonthly={yearlyMonthly}
+        yearlyConvergence={yearlyConvergence}
+        locale={locale}
+        onMonthClick={onMonthClick}
       />
 
       {lifeEntries.length > 0 && <LifeTimeline entries={lifeEntries} locale={locale} />}

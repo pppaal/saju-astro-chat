@@ -18,8 +18,8 @@ import { ganjiToKorean } from '@/lib/saju/ganjiKo'
 import { useDateDetail } from './useDateDetail'
 import YearHighlightsCard from './YearHighlightsCard'
 import YearDashboard from './premium/YearDashboard'
-import DailyHourlyChart from './DailyHourlyChart'
 import MonthDashboard from './premium/MonthDashboard'
+import DayInsights from './premium/shared/DayInsights'
 import { getGrade } from './scoreGrade'
 import { getCalLabels, type CalLocale } from './premium/labels'
 
@@ -271,16 +271,6 @@ export default function DestinyMatrixPlanner({
   // 미니멀 모드: day radar / day highlights / dailyDos / dailyDonts memo 제거.
   // 사용자 cut 요청 — 본질만 (sticky hero + one-line + 추진/보류 chip + 24h chart +
   // best/worst hour 2-카드) 만 유지.
-
-  // 엔진 doNow / watchOut — calendarDailyView 의 짧은 액션 nudge.
-  const dailyActionPair = useMemo(() => {
-    const v = data?.calendarDailyView
-    if (!v || v.date !== selectedDateStr) return null
-    return {
-      doNow: v.doNow?.trim() || null,
-      watchOut: v.watchOut?.trim() || null,
-    }
-  }, [data, selectedDateStr])
 
   // --- Daily one-line summary (engine pre-formatted, when available) ---
   const dailyOneLineSummary = useMemo(() => {
@@ -686,72 +676,27 @@ export default function DestinyMatrixPlanner({
                 </button>
               </div>
 
-              {/* One-line summary (engine pre-formatted) */}
-              {dailyOneLineSummary && (
-                <div className="bg-indigo-900/10 border border-indigo-500/20 px-4 py-3 rounded-xl">
-                  <p className="text-sm text-zinc-200 leading-relaxed">{dailyOneLineSummary}</p>
-                </div>
-              )}
-
-              {/* doNow / watchOut — engine high-level 액션 nudge (calendarDailyView).
-                  Dos/Donts(advice 기반) 와 별개 — 더 짧고 핵심적인 한 줄. */}
-              {dailyActionPair && (dailyActionPair.doNow || dailyActionPair.watchOut) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {dailyActionPair.doNow && (
-                    <div className="bg-emerald-500/8 border border-emerald-500/20 rounded-xl px-3 py-2 flex items-start gap-2">
-                      {/* "지금"(시각 마커) ↔ "추진"(액션) 라벨 분리 — sticky hero,
-                          24h chart reference line, 이 chip 세 곳이 모두 "지금" 이라
-                          충돌해 사용자가 chip 을 시각 마커로 오해할 위험 회피. */}
-                      <span className="text-[10px] font-bold text-emerald-300 tracking-wider uppercase shrink-0 mt-0.5">
-                        {t.doNowLabel}
-                      </span>
-                      <p className="text-sm text-emerald-100 leading-snug">
-                        {dailyActionPair.doNow}
-                      </p>
-                    </div>
-                  )}
-                  {dailyActionPair.watchOut && (
-                    <div className="bg-rose-500/8 border border-rose-500/20 rounded-xl px-3 py-2 flex items-start gap-2">
-                      <span className="text-[10px] font-bold text-rose-300 tracking-wider uppercase shrink-0 mt-0.5">
-                        {t.watchOutLabel}
-                      </span>
-                      <p className="text-sm text-rose-100 leading-snug">
-                        {dailyActionPair.watchOut}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ── 24h 시간대 교차 그래프 (saju 시진 × 점성 행성시) — 오늘 보면 현재 시각 노란 세로 가이드. */}
-              <DailyHourlyChart importantDate={selectedImportantDate} dateStr={selectedDateStr} />
-
-              {/* 베스트/주의 시간 — 인라인 미니멀 2-카드 (Highlights 컴포넌트 대신).
-                  사용자 cut 요청: 카드 중복 제거, 본질만. */}
-              {dailyHourlySlots && (dailyHourlySlots.best[0] || dailyHourlySlots.worst[0]) && (
-                <div className="grid grid-cols-2 gap-3">
-                  {dailyHourlySlots.best[0] && (
-                    <div className="bg-emerald-900/15 border border-emerald-500/25 rounded-xl p-4">
-                      <div className="text-[10px] font-bold text-emerald-400 mb-1 tracking-wider uppercase">
-                        {t.bestHour}
-                      </div>
-                      <div className="text-lg font-black text-white leading-tight">
-                        {t.formatHour(dailyHourlySlots.best[0].hour)}
-                      </div>
-                    </div>
-                  )}
-                  {dailyHourlySlots.worst[0] && (
-                    <div className="bg-rose-900/15 border border-rose-500/25 rounded-xl p-4">
-                      <div className="text-[10px] font-bold text-rose-400 mb-1 tracking-wider uppercase">
-                        {t.cautionHour}
-                      </div>
-                      <div className="text-lg font-black text-white leading-tight">
-                        {t.formatHour(dailyHourlySlots.worst[0].hour)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              <DayInsights
+                importantDate={selectedImportantDate}
+                dateStr={selectedDateStr}
+                grade={getGrade(
+                  Math.round(
+                    selectedImportantDate?.displayScore ?? selectedImportantDate?.score ?? 50
+                  )
+                )}
+                score={Math.round(
+                  selectedImportantDate?.displayScore ?? selectedImportantDate?.score ?? 50
+                )}
+                oneLine={dailyOneLineSummary}
+                frontDomain={
+                  data?.calendarDailyView?.date === selectedDateStr
+                    ? (data.calendarDailyView.frontDomainLabel ?? null)
+                    : null
+                }
+                advice={fusion?.advice}
+                hourlySlots={dailyHourlySlots}
+                locale={locale}
+              />
             </motion.div>
           )}
         </AnimatePresence>
