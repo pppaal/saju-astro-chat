@@ -9,13 +9,14 @@
  * 각 카드는 데이터 없으면 자체 렌더 스킵.
  */
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles, Compass, ChevronDown } from 'lucide-react'
+import { Sparkles, Compass } from 'lucide-react'
 import type { ImportantDate } from '../../types'
 import type { YearMonthly } from '../../DestinyMatrixPlanner'
 import { getCalLabels, type CalLocale } from '../labels'
-import { cardStack, cardItem, barFill } from './motionVariants'
+import { cardStack, cardItem } from './motionVariants'
+import DomainBar from './DomainBar'
+import BigDaysList from './BigDaysList'
 
 type ThemeKey = 'love' | 'money' | 'career' | 'health' | 'growth'
 type YearlyConvergence = NonNullable<
@@ -108,56 +109,14 @@ function YearFocusCard({
       </div>
       <div className="relative space-y-2.5">
         {averages.map((a) => (
-          <YearBar
+          <DomainBar
             key={a.theme}
-            theme={a.theme}
+            label={t.themeName(a.theme)}
             score={a.score}
             isTop={a.theme === topTheme}
-            t={t}
           />
         ))}
       </div>
-    </div>
-  )
-}
-
-function YearBar({
-  theme,
-  score,
-  isTop,
-  t,
-}: {
-  theme: ThemeKey
-  score: number
-  isTop: boolean
-  t: ReturnType<typeof getCalLabels>
-}) {
-  const pct = Math.max(0, Math.min(100, Math.round(score)))
-  return (
-    <div className="flex items-center gap-3">
-      <span
-        className={`w-12 text-xs font-semibold shrink-0 ${isTop ? 'text-amber-200' : 'text-zinc-400'}`}
-      >
-        {t.themeName(theme)}
-      </span>
-      <div className="flex-1 h-2 rounded-full bg-zinc-800/70 overflow-hidden">
-        <motion.div
-          className={`h-full rounded-full ${
-            isTop
-              ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.45)]'
-              : 'bg-gradient-to-r from-zinc-500 to-zinc-600'
-          }`}
-          variants={barFill}
-          custom={pct}
-        />
-      </div>
-      <span
-        className={`text-xs font-bold w-8 text-right shrink-0 tabular-nums ${
-          isTop ? 'text-amber-200' : 'text-zinc-400'
-        }`}
-      >
-        {pct}
-      </span>
     </div>
   )
 }
@@ -199,115 +158,20 @@ function YearBigDaysCard({
         <Compass className="w-4 h-4 text-violet-400 group-hover:text-violet-300 transition" />
         {t.yearBigDaysTitle}
       </h3>
-      <div className="relative space-y-3">
-        {days.map((d) => (
-          <BigDayRow
-            key={d.date}
-            date={fmtDate(d.date)}
-            meaning={d.meaning}
-            astro={d.astro}
-            saju={d.saju}
-            astroLabel={t.bigTurnsAstroLabel}
-            sajuLabel={t.bigTurnsSajuLabel}
-            evidenceToggle={t.evidenceToggle}
-            evidenceShow={t.evidenceShow}
-            evidenceHide={t.evidenceHide}
-            onClick={onMonthClick ? () => handleClick(d.date) : undefined}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/** 큰 날 한 줄 — meaning 만 기본, 펼치면 astro/saju 신호 하나씩 chip 으로. */
-function BigDayRow({
-  date,
-  meaning,
-  astro,
-  saju,
-  astroLabel,
-  sajuLabel,
-  evidenceToggle,
-  evidenceShow,
-  evidenceHide,
-  onClick,
-}: {
-  date: string
-  meaning?: string
-  astro: string[]
-  saju: string[]
-  astroLabel: string
-  sajuLabel: string
-  evidenceToggle: string
-  evidenceShow: string
-  evidenceHide: string
-  onClick?: () => void
-}) {
-  const [open, setOpen] = useState(false)
-  const hasEvidence = astro.length > 0 || saju.length > 0
-  return (
-    <div className="rounded-lg hover:bg-white/[0.03] -mx-2 px-2 py-1.5 transition">
-      <div className="flex items-baseline gap-2 flex-wrap">
-        <button
-          type="button"
-          onClick={onClick}
-          className={`text-base font-bold text-violet-200 ${onClick ? 'hover:text-violet-100' : ''} transition`}
-          disabled={!onClick}
-        >
-          {date}
-        </button>
-        {meaning && <span className="text-sm text-zinc-300 leading-snug flex-1">— {meaning}</span>}
-        {hasEvidence && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              setOpen((v) => !v)
-            }}
-            className="text-[11px] text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-0.5 ml-auto shrink-0 transition"
-            aria-expanded={open}
-            aria-label={open ? evidenceHide : evidenceShow}
-          >
-            {evidenceToggle}
-            <ChevronDown className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
-          </button>
-        )}
-      </div>
-      {open && hasEvidence && (
-        <div className="mt-2 space-y-1.5">
-          {astro.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] uppercase tracking-wider text-cyan-400/80 font-bold shrink-0">
-                {astroLabel}
-              </span>
-              {astro.map((sig, i) => (
-                <span
-                  key={`a-${i}`}
-                  className="inline-flex px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-200 text-[11px] font-medium"
-                >
-                  {sig}
-                </span>
-              ))}
-            </div>
-          )}
-          {saju.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] uppercase tracking-wider text-amber-400/80 font-bold shrink-0">
-                {sajuLabel}
-              </span>
-              {saju.map((sig, i) => (
-                <span
-                  key={`s-${i}`}
-                  className="inline-flex px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-200 text-[11px] font-medium"
-                >
-                  {sig}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <BigDaysList
+        days={days.map((d) => ({
+          date: fmtDate(d.date),
+          meaning: d.meaning,
+          astro: d.astro,
+          saju: d.saju,
+        }))}
+        astroLabel={t.bigTurnsAstroLabel}
+        sajuLabel={t.bigTurnsSajuLabel}
+        evidenceToggle={t.evidenceToggle}
+        evidenceShow={t.evidenceShow}
+        evidenceHide={t.evidenceHide}
+        onDateClick={onMonthClick ? (i) => handleClick(days[i].date) : undefined}
+      />
     </div>
   )
 }

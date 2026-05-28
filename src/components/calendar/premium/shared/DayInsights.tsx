@@ -20,7 +20,8 @@ import DailyHourlyChart from '../../DailyHourlyChart'
 import { getCalLabels, type CalLocale } from '../labels'
 import { useCountUp } from './useCountUp'
 import NoiseOverlay from './NoiseOverlay'
-import { cardStack, cardItem, barFill, listStack, listItem } from './motionVariants'
+import { cardStack, cardItem, listStack, listItem } from './motionVariants'
+import DomainBar from './DomainBar'
 
 type ThemeKey = 'love' | 'money' | 'career' | 'health' | 'growth'
 type FusionAdvice = { do?: string[]; avoid?: string[] }
@@ -238,10 +239,9 @@ function DayDomainsCard({
           {ranked.map((r) => (
             <DomainBar
               key={r.theme}
-              theme={r.theme}
+              label={t.themeName(r.theme)}
               score={r.score}
               isTop={r.theme === topTheme}
-              t={t}
             />
           ))}
         </div>
@@ -264,47 +264,6 @@ function DayDomainsCard({
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-function DomainBar({
-  theme,
-  score,
-  isTop,
-  t,
-}: {
-  theme: ThemeKey
-  score: number
-  isTop: boolean
-  t: ReturnType<typeof getCalLabels>
-}) {
-  const pct = Math.max(0, Math.min(100, Math.round(score)))
-  return (
-    <div className="flex items-center gap-3 group">
-      <span
-        className={`w-12 text-xs font-semibold shrink-0 ${isTop ? 'text-amber-200' : 'text-zinc-400'}`}
-      >
-        {t.themeName(theme)}
-      </span>
-      <div className="flex-1 h-2 rounded-full bg-zinc-800/70 overflow-hidden">
-        <motion.div
-          className={`h-full rounded-full ${
-            isTop
-              ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.45)]'
-              : 'bg-gradient-to-r from-zinc-500 to-zinc-600'
-          }`}
-          variants={barFill}
-          custom={pct}
-        />
-      </div>
-      <span
-        className={`text-xs font-bold w-8 text-right shrink-0 tabular-nums ${
-          isTop ? 'text-amber-200' : 'text-zinc-400'
-        }`}
-      >
-        {pct}
-      </span>
     </div>
   )
 }
