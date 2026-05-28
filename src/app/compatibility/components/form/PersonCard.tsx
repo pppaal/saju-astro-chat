@@ -312,8 +312,9 @@ PersonCard.displayName = 'PersonCard'
 // Premium light field styling — white inputs, hairline borders, ink text.
 // Matches the profile modals; passed to BirthInfoFields so the shared
 // (dark-default) form reads correctly on the white card.
+// 16px — iOS Safari 자동 줌(< 16px) 으로 select 첫 탭이 무시되는 버그 방지.
 const inputClass =
-  'w-full rounded-xl border border-[#e0ddd7] bg-white px-3 py-2.5 text-[14px] text-[#1c1917] placeholder:text-[#a8a29e] focus:border-[#a07a3c] focus:outline-none disabled:cursor-not-allowed transition'
+  'w-full rounded-xl border border-[#e0ddd7] bg-white px-3 py-2.5 text-[16px] text-[#1c1917] placeholder:text-[#a8a29e] focus:border-[#a07a3c] focus:outline-none disabled:cursor-not-allowed transition'
 
 const lightFieldClasses: Required<BirthFieldsClasses> = {
   field: 'flex flex-col gap-1.5',

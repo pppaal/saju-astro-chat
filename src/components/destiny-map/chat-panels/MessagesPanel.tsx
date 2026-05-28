@@ -24,6 +24,9 @@ interface MessagesPanelProps {
   /** 응답 직후 보이는 "🃏 카드 한 장 더 뽑기" 액션 — 한 대화당 한 번. */
   onOpenClarifier?: () => void
   clarifierUsed?: boolean
+  /** 커스텀 empty state — compat 같이 다른 hero (💕 + 두 사람) 가 필요할 때.
+   *  미지정 시 destiny 기본 (HexDPLogo + pickGreeting). */
+  customEmptyState?: React.ReactNode
 }
 
 export const MessagesPanel = React.memo(function MessagesPanel({
@@ -40,6 +43,7 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   userName,
   onOpenClarifier,
   clarifierUsed,
+  customEmptyState,
 }: MessagesPanelProps) {
   const lastMessage =
     visibleMessages.length > 0 ? visibleMessages[visibleMessages.length - 1] : null
@@ -49,10 +53,7 @@ export const MessagesPanel = React.memo(function MessagesPanel({
   const lastMessageIsTarotResult =
     lastMessageIsAssistant && (lastMessage?.content || '').trimStart().startsWith('🃏')
   const showClarifierAction =
-    !loading &&
-    lastMessageIsTarotResult &&
-    !clarifierUsed &&
-    typeof onOpenClarifier === 'function'
+    !loading && lastMessageIsTarotResult && !clarifierUsed && typeof onOpenClarifier === 'function'
   // 시간대 + (있으면) 이름 기반으로 풀에서 한 문구 픽. 같은 방문 안에선 안정,
   // 새 방문/언어/이름 변경 시 다시 픽. tr.empty 는 어떤 이유로 풀이 비었을
   // 때만 폴백.
@@ -69,27 +70,25 @@ export const MessagesPanel = React.memo(function MessagesPanel({
         </div>
       )}
 
-      {visibleMessages.length === 0 && !loading && (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon} aria-hidden="true">
-            <HexDPLogo size={64} />
+      {visibleMessages.length === 0 &&
+        !loading &&
+        (customEmptyState ? (
+          <>{customEmptyState}</>
+        ) : (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon} aria-hidden="true">
+              <HexDPLogo size={64} />
+            </div>
+            <p className={styles.emptyText}>{heroGreeting}</p>
+            {/* Suggestion chips removed per user request — "나는 어떤
+                사람이에요? ✨" / "올해 무슨 일이 생길까요?" / "행운의
+                숫자/색깔 알려줘" felt like a fortune-app catalog when
+                the rest of the UI moved to a chat-first layout. */}
           </div>
-          <p className={styles.emptyText}>{heroGreeting}</p>
-          {/* Suggestion chips removed per user request — "나는 어떤
-              사람이에요? ✨" / "올해 무슨 일이 생길까요?" / "행운의
-              숫자/색깔 알려줘" felt like a fortune-app catalog when
-              the rest of the UI moved to a chat-first layout. */}
-        </div>
-      )}
+        ))}
 
       {visibleMessages.map((m, i) => (
-        <MessageRow
-          key={m.id || i}
-          message={m}
-          index={i}
-          lang={effectiveLang}
-          styles={styles}
-        />
+        <MessageRow key={m.id || i} message={m} index={i} lang={effectiveLang} styles={styles} />
       ))}
 
       {loading && (
@@ -136,15 +135,13 @@ export const MessagesPanel = React.memo(function MessagesPanel({
 
       {showClarifierAction && (
         <div className={styles.postAnswerActions}>
-          <button
-            type="button"
-            className={styles.clarifierActionBtn}
-            onClick={onOpenClarifier}
-          >
+          <button type="button" className={styles.clarifierActionBtn} onClick={onOpenClarifier}>
             <span className={styles.clarifierActionIcon} aria-hidden="true">
               {'\u{1F0CF}'}
             </span>
-            {effectiveLang === 'ko' ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30' : 'Draw one more card'}
+            {effectiveLang === 'ko'
+              ? '\uCE74\uB4DC \uD55C \uC7A5 \uB354 \uBF51\uAE30'
+              : 'Draw one more card'}
           </button>
         </div>
       )}

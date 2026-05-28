@@ -53,6 +53,14 @@ function GlobalHeaderContent() {
     ].includes(pathname)
   )
 
+  // 라이트 페이지 위에 떴을 때 ink 톤으로 자동 전환. 다크 cosmic 페이지
+  // (pricing, calendar 등) 에서는 기존 dark variant 유지.
+  const LIGHT_PAGE_PREFIXES = ['/profile', '/compatibility', '/destiny-counselor', '/about']
+  const isLightPage = Boolean(
+    pathname && LIGHT_PAGE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+  )
+  const variant: 'light' | 'dark' = isLightPage ? 'light' : 'dark'
+
   const headerAriaLabel = t('nav.header') || 'Site header'
 
   // Hide on pages with their own top navigation/header
@@ -66,16 +74,19 @@ function GlobalHeaderContent() {
   return (
     <HeaderWrapper ariaLabel={headerAriaLabel}>
       <div className={styles.headerSlotLeft}>
-        <HamburgerDrawer locale={locale} />
+        <HamburgerDrawer locale={locale} variant={variant} />
       </div>
       <nav className={styles.headerSlotRight} aria-label={t('nav.main') || 'Main navigation'}>
         <button
           type="button"
           onClick={toggleLocale}
-          className={`text-[#EAE6FF] text-[13px] font-semibold tracking-wide
+          className={`text-[13px] font-semibold tracking-wide
             w-9 h-9 rounded-full backdrop-blur-md cursor-pointer
-            inline-flex items-center justify-center
-            ${styles.buttonBase} ${styles.blueButton}`}
+            inline-flex items-center justify-center ${styles.buttonBase} ${
+              variant === 'light'
+                ? 'bg-white/85 hover:bg-white text-[#1c1917] focus-visible:ring-[#a07a3c] focus-visible:ring-offset-[#fafaf9] shadow-[0_1px_2px_rgba(28,25,23,0.06)]'
+                : `text-[#EAE6FF] ${styles.blueButton}`
+            }`}
           aria-label={localeAriaLabel}
           title={localeAriaLabel}
         >

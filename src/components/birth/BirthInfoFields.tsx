@@ -63,8 +63,11 @@ interface BirthInfoFieldsProps {
 export const birthFieldClasses: Required<BirthFieldsClasses> = {
   field: 'flex flex-col gap-1.5',
   label: 'text-[12.5px] font-semibold tracking-[0.02em] text-[rgba(229,231,240,0.78)]',
+  // iOS Safari 는 font-size < 16px input/select 를 탭하면 자동 줌인 처리하는데,
+  // 이 과정에서 첫 탭이 picker 열기로 안 이어지고 무시되는 케이스가 있다.
+  // 16px 로 맞춰 줌 자체를 방지 — Apple HIG 권장.
   input:
-    'w-full rounded-xl border border-[rgba(167,139,250,0.22)] bg-[rgba(15,17,35,0.7)] px-3 py-2.5 text-[14px] text-white outline-none transition focus:border-[rgba(167,139,250,0.6)] disabled:cursor-not-allowed disabled:opacity-50',
+    'w-full rounded-xl border border-[rgba(167,139,250,0.22)] bg-[rgba(15,17,35,0.7)] px-3 py-2.5 text-[16px] text-white outline-none transition focus:border-[rgba(167,139,250,0.6)] disabled:cursor-not-allowed disabled:opacity-50',
   row: 'grid grid-cols-2 gap-2.5',
   checkboxLabel:
     'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[rgba(220,215,255,0.78)]',
@@ -91,13 +94,8 @@ export function BirthInfoFields({
   const c = { ...birthFieldClasses, ...classes }
   const id = (k: string) => `${idPrefix}-${k}`
 
-  const {
-    suggestions,
-    openSug,
-    setOpenSug,
-    handleCityInputChange,
-    handleCitySelect,
-  } = useCitySearch(locale)
+  const { suggestions, openSug, setOpenSug, handleCityInputChange, handleCitySelect } =
+    useCitySearch(locale)
 
   const onCityInput = (val: string) => {
     onChange({ city: val, latitude: null, longitude: null, timeZone: null })
@@ -152,7 +150,7 @@ export function BirthInfoFields({
               checked={timeUnknown}
               onChange={(e) =>
                 onChange(
-                  e.target.checked ? { timeUnknown: true, birthTime: '' } : { timeUnknown: false },
+                  e.target.checked ? { timeUnknown: true, birthTime: '' } : { timeUnknown: false }
                 )
               }
             />
@@ -194,7 +192,11 @@ export function BirthInfoFields({
             autoComplete="off"
           />
           {openSug && suggestions.length > 0 && (
-            <ul role="listbox" className={c.suggestionList} style={{ listStyle: 'none', margin: 0 }}>
+            <ul
+              role="listbox"
+              className={c.suggestionList}
+              style={{ listStyle: 'none', margin: 0 }}
+            >
               {suggestions.slice(0, 8).map((s, i) => (
                 <li key={`${s.name}-${s.country}-${i}`}>
                   <button
@@ -258,7 +260,9 @@ function DateThreeSelect({
     // month 변경으로 day 가 새 maxDay 를 넘으면 clamp.
     const dMax = daysInMonth(Number(y), Number(m))
     const dClamped = Math.min(Number(d), dMax)
-    onChange(`${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(dClamped).padStart(2, '0')}`)
+    onChange(
+      `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(dClamped).padStart(2, '0')}`
+    )
   }
 
   // select 자체는 input 과 동일 톤(border/text/bg) 으로. grid-cols-3 로 균등.
@@ -268,7 +272,13 @@ function DateThreeSelect({
         id={`${idPrefix}-year`}
         className={inputClass}
         value={year}
-        onChange={(e) => emit(e.target.value ? Number(e.target.value) : '', month === '' ? '' : Number(month), day === '' ? '' : Number(day))}
+        onChange={(e) =>
+          emit(
+            e.target.value ? Number(e.target.value) : '',
+            month === '' ? '' : Number(month),
+            day === '' ? '' : Number(day)
+          )
+        }
         aria-label={isKo ? '년' : 'Year'}
       >
         <option value="">{isKo ? '년' : 'Year'}</option>
@@ -282,7 +292,13 @@ function DateThreeSelect({
         id={`${idPrefix}-month`}
         className={inputClass}
         value={month}
-        onChange={(e) => emit(year === '' ? '' : Number(year), e.target.value ? Number(e.target.value) : '', day === '' ? '' : Number(day))}
+        onChange={(e) =>
+          emit(
+            year === '' ? '' : Number(year),
+            e.target.value ? Number(e.target.value) : '',
+            day === '' ? '' : Number(day)
+          )
+        }
         aria-label={isKo ? '월' : 'Month'}
       >
         <option value="">{isKo ? '월' : 'Month'}</option>
@@ -296,7 +312,13 @@ function DateThreeSelect({
         id={`${idPrefix}-day`}
         className={inputClass}
         value={day}
-        onChange={(e) => emit(year === '' ? '' : Number(year), month === '' ? '' : Number(month), e.target.value ? Number(e.target.value) : '')}
+        onChange={(e) =>
+          emit(
+            year === '' ? '' : Number(year),
+            month === '' ? '' : Number(month),
+            e.target.value ? Number(e.target.value) : ''
+          )
+        }
         aria-label={isKo ? '일' : 'Day'}
       >
         <option value="">{isKo ? '일' : 'Day'}</option>

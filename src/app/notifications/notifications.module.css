@@ -51,9 +51,9 @@
 .actionBtn {
   padding: 8px 16px;
   border-radius: 8px;
-  background: rgba(124, 92, 255, 0.1);
-  color: #7c5cff;
-  border: 1px solid rgba(124, 92, 255, 0.3);
+  background: rgba(212, 181, 114, 0.1);
+  color: #d4b572;
+  border: 1px solid rgba(212, 181, 114, 0.3);
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
@@ -61,8 +61,8 @@
 }
 
 .actionBtn:hover {
-  background: rgba(124, 92, 255, 0.2);
-  border-color: #7c5cff;
+  background: rgba(212, 181, 114, 0.2);
+  border-color: #d4b572;
   transform: translateY(-1px);
 }
 
@@ -76,7 +76,7 @@
   padding: 8px 16px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.05);
-  color: #a89fcf;
+  color: rgba(245, 247, 251, 0.62);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   font-size: 14px;
@@ -87,14 +87,14 @@
 
 .filterBtn:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(124, 92, 255, 0.4);
+  border-color: rgba(212, 181, 114, 0.4);
 }
 
 .filterBtn.active {
-  background: linear-gradient(135deg, #7c5cff 0%, #6b4fd8 100%);
+  background: linear-gradient(135deg, #d4b572 0%, #6b4fd8 100%);
   color: white;
-  border-color: #7c5cff;
-  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3);
+  border-color: #d4b572;
+  box-shadow: 0 4px 12px rgba(212, 181, 114, 0.3);
 }
 
 .content {
@@ -123,18 +123,18 @@
 
 .item:hover {
   background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(124, 92, 255, 0.3);
+  border-color: rgba(212, 181, 114, 0.3);
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .unread {
-  background: rgba(124, 92, 255, 0.08);
-  border-color: rgba(124, 92, 255, 0.3);
+  background: rgba(212, 181, 114, 0.08);
+  border-color: rgba(212, 181, 114, 0.3);
 }
 
 .unread:hover {
-  background: rgba(124, 92, 255, 0.12);
+  background: rgba(212, 181, 114, 0.12);
 }
 
 .itemIcon {
@@ -150,7 +150,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 2px solid rgba(124, 92, 255, 0.3);
+  border: 2px solid rgba(212, 181, 114, 0.3);
   object-fit: cover;
 }
 
@@ -161,7 +161,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(124, 92, 255, 0.1);
+  background: rgba(212, 181, 114, 0.1);
   border-radius: 50%;
 }
 
@@ -180,7 +180,7 @@
 
 .itemMessage {
   font-size: 14px;
-  color: #a89fcf;
+  color: rgba(245, 247, 251, 0.62);
   margin: 0 0 8px 0;
   line-height: 1.5;
 }
@@ -196,9 +196,9 @@
   right: 16px;
   width: 10px;
   height: 10px;
-  background: #7c5cff;
+  background: #d4b572;
   border-radius: 50%;
-  box-shadow: 0 0 12px rgba(124, 92, 255, 0.8);
+  box-shadow: 0 0 12px rgba(212, 181, 114, 0.8);
 }
 
 .deleteBtn {
@@ -210,7 +210,7 @@
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.3);
   border: none;
-  color: #a89fcf;
+  color: rgba(245, 247, 251, 0.62);
   cursor: pointer;
   opacity: 0;
   transition: all 0.2s ease;
@@ -264,7 +264,7 @@
 .backLink {
   margin-top: 24px;
   padding: 12px 24px;
-  background: linear-gradient(135deg, #7c5cff 0%, #6b4fd8 100%);
+  background: linear-gradient(135deg, #d4b572 0%, #6b4fd8 100%);
   color: white;
   text-decoration: none;
   border-radius: 8px;
@@ -274,7 +274,7 @@
 
 .backLink:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(124, 92, 255, 0.4);
+  box-shadow: 0 8px 20px rgba(212, 181, 114, 0.4);
 }
 
 /* Responsive - Tablet */
