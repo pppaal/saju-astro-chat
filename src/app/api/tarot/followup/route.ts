@@ -16,6 +16,20 @@ import {
 } from '@/lib/credits/withCredits'
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { logger } from '@/lib/logger'
+import { createIdempotencyStore } from '@/lib/api/idempotency'
+
+// 새로고침/뒤로가기/다른 탭 등으로 같은 follow-up 질문이 재진입할 때
+// 크레딧 중복 차감 방지. 클라이언트가 x-idempotency-key 헤더로 messageId
+// UUID 를 보내면 (userId|ip):key 로 6 시간 기억. 재진입 시 차감만 스킵.
+const idemStore = createIdempotencyStore()
+
+function ownerKeyFromReq(req: NextRequest): string {
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    'unknown'
+  return `ip:${ip}`
+}
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { callClaude, isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { pickTarotFollowupRules } from '@/lib/tarot/promptShared'
@@ -115,8 +129,19 @@ export const POST = withApiMiddleware(
       // follow-up 도 reading 호출과 동일하게 reading 크레딧 1회 차감. 가격
       // 모델은 "질문 1개 = 1 credit" 으로 단순; 팩 크레딧 자체가 2배라서
       // 사용자 가치는 동일.
-      creditResult = await checkAndConsumeCredits('reading', 1, req)
-      if (!creditResult.allowed) return creditErrorResponse(creditResult)
+      // 새로고침/탭 복제 등으로 같은 messageId 가 재진입하면 차감만 스킵.
+      const ownerKey = ownerKeyFromReq(req)
+      const scopedIdemKey = idemStore.keyFor(req, ownerKey)
+      const idempotentReplay = scopedIdemKey ? idemStore.isReplay(scopedIdemKey) : false
+
+      if (idempotentReplay) {
+        logger.info('[tarot/followup] idempotent replay, skip credit consume', { ownerKey })
+        creditResult = null
+      } else {
+        creditResult = await checkAndConsumeCredits('reading', 1, req)
+        if (!creditResult.allowed) return creditErrorResponse(creditResult)
+        if (scopedIdemKey) idemStore.mark(scopedIdemKey)
+      }
 
       const isKo = language === 'ko'
 

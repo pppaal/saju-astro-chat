@@ -179,12 +179,16 @@ export function useChatApi({
       logger.debug(`[Chat] Request started (attempt ${attempt + 1})`)
 
       try {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'x-session-id': ragSessionId || sessionIdRef.current,
+        }
+        if (payload.idempotencyKey) {
+          headers['x-idempotency-key'] = payload.idempotencyKey
+        }
         const res = await fetch('/api/counselor/realtime', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-session-id': ragSessionId || sessionIdRef.current,
-          },
+          headers,
           body: JSON.stringify(payload),
           signal: AbortSignal.timeout(CHAT_TIMINGS.REQUEST_TIMEOUT),
         })
@@ -398,6 +402,13 @@ export function useChatApi({
         predictionContext,
         userContext,
         counselingBrief: buildLocalCounselingBrief(text, lang) ?? undefined,
+        // 새로고침/탭 복제로 같은 turn 재진입 시 크레딧 중복 차감 방지.
+        // 매 user 메시지마다 새 UUID. 재시도(attempt > 0) 도 같은 payload
+        // 라서 같은 키 유지 → 의도된 재시도는 차감 1 회.
+        idempotencyKey:
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `t${Date.now()}-${Math.random().toString(36).slice(2)}`,
       }
 
       try {
