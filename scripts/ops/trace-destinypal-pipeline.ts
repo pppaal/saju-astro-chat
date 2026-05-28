@@ -3,7 +3,7 @@ import { analyzeAdvancedSaju } from '../../src/lib/Saju/astrologyengine'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '../../src/lib/Saju/relations'
 import { getShinsalHits, getTwelveStagesForPillars } from '../../src/lib/Saju/shinsal'
 import { computeDestinyMap } from '../../src/lib/destiny-map/astrology'
-import { getRetrogradePlanetsForDate } from '../../src/lib/destiny-map/calendar/astrology/retrograde'
+import { getRetrogradePlanetsForDate } from '../../src/lib/destiny-map/calendar/planetary-hours'
 import { calculateDestinyMatrix } from '../../src/lib/destiny-matrix/engine'
 import type {
   MatrixCalculationInput,

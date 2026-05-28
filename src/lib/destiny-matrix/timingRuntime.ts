@@ -1,4 +1,4 @@
-import { getRetrogradePlanetsForDate } from '@/lib/destiny-map/calendar/astrology/retrograde'
+import { getRetrogradePlanetsForDate } from '@/lib/destiny-map/calendar/planetary-hours'
 import { calculateDailyGanji } from '@/lib/destiny-map/calendar/utils'
 import { buildAstroTimingIndex } from './astroTimingIndex'
 import type { MatrixCalculationInput, TransitCycle } from './types'
