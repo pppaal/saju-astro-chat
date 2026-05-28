@@ -135,7 +135,8 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
                 >
                   {isKo ? '사주팔자' : '4 Pillars'}
                 </div>
-                <SajuChart saju={saju as never} lang={lang} />
+                {/* dark theme — 운명 차트 모달 navy glass 안에서 자연스럽게 */}
+                <SajuChart saju={saju as never} lang={lang} theme="dark" />
               </div>
               <div className="space-y-1.5">
                 <div

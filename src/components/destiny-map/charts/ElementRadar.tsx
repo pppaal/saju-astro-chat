@@ -119,7 +119,14 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
 
   if (Math.max(...vals) <= 0) {
     return (
-      <div className="rounded-xl border border-stone-700/50 bg-stone-900/40 p-4 text-center text-sm text-stone-400">
+      <div
+        className="rounded-xl p-4 text-center text-sm"
+        style={{
+          background: 'var(--ds-dark-surface)',
+          border: '1px solid var(--ds-dark-border)',
+          color: 'var(--ds-dark-text-muted)',
+        }}
+      >
         {isKo ? '오행 정보가 아직 계산되지 않았습니다.' : 'Element data is not ready yet.'}
       </div>
     )
@@ -143,7 +150,13 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
   const domEl = AXES.find((a) => a.key === domKey)!
 
   return (
-    <div className="rounded-xl border border-stone-800 bg-stone-950/80 p-3 shadow-inner">
+    <div
+      className="rounded-xl p-3"
+      style={{
+        background: 'var(--ds-dark-surface)',
+        border: '1px solid var(--ds-gold-line)',
+      }}
+    >
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full">
         {[0.25, 0.5, 0.75, 1].map((f) => (
           <polygon
@@ -203,8 +216,11 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
         })}
       </svg>
 
-      <div className="mt-2 rounded-xl bg-stone-800/50 p-3 text-center">
-        <p className="text-sm leading-relaxed text-stone-300">
+      <div
+        className="mt-2 rounded-xl p-3 text-center"
+        style={{ background: 'var(--ds-dark-surface-strong)' }}
+      >
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--ds-dark-text)' }}>
           {isKo ? (
             <>
               현재 <span className="font-bold text-[#e8cc8a]">{domEl.ko}</span>이(가) 가장

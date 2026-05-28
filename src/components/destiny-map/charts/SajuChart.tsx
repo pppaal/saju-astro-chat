@@ -14,6 +14,8 @@ interface PillarShape {
   earthlyBranch?: GanjiCell
 }
 
+type Theme = 'light' | 'dark'
+
 interface SajuChartProps {
   saju?: {
     yearPillar?: PillarShape
@@ -26,19 +28,32 @@ interface SajuChartProps {
     fiveElements?: Record<string, number>
   }
   lang?: 'ko' | 'en'
+  /**
+   * 'light' (default) — 옛 stone pastel 톤. 궁합 상담사 페이지(흰 카드 위)
+   * 에 자연스럽게 얹힘.
+   * 'dark' — navy glass 모달 (운명 차트) 안에서 안 떠보이게 dark glass +
+   * 톤 다운된 element pastel + gold 액센트.
+   */
+  theme?: Theme
 }
 
-// 톤: 사용자 피드백 "어두워서 안 보임" → 진한 -950/50 톤을 옅은 pastel
-// (-50 ~ -100 bg) + 가독성 좋은 -700 글자로 교체. ChartModal 이 light 카드
-// 위에 얹는 구조라 light 톤이 자연스럽고, 오행 색 톤은 그대로 유지.
-const ELEMENT_STYLE: Record<string, { text: string; bg: string }> = {
+// 오행 색 톤 — light/dark 양쪽 모두 그대로 element 의미는 유지.
+const ELEMENT_STYLE_LIGHT: Record<string, { text: string; bg: string }> = {
   목: { text: 'text-emerald-700', bg: 'bg-emerald-50' },
   화: { text: 'text-rose-700', bg: 'bg-rose-50' },
   토: { text: 'text-amber-700', bg: 'bg-amber-50' },
   금: { text: 'text-slate-700', bg: 'bg-slate-100' },
   수: { text: 'text-sky-700', bg: 'bg-sky-50' },
 }
-const DEFAULT_STYLE = { text: 'text-stone-700', bg: 'bg-stone-50' }
+const ELEMENT_STYLE_DARK: Record<string, { text: string; bg: string }> = {
+  목: { text: 'text-emerald-200', bg: 'bg-emerald-500/10' },
+  화: { text: 'text-rose-200', bg: 'bg-rose-500/10' },
+  토: { text: 'text-amber-200', bg: 'bg-amber-500/10' },
+  금: { text: 'text-slate-200', bg: 'bg-slate-500/10' },
+  수: { text: 'text-sky-200', bg: 'bg-sky-500/10' },
+}
+const DEFAULT_STYLE_LIGHT = { text: 'text-stone-700', bg: 'bg-stone-50' }
+const DEFAULT_STYLE_DARK = { text: 'text-slate-200', bg: 'bg-white/5' }
 
 // Hanja → Korean reading (신금 / 을목 / 해수)
 const STEM_READING: Record<string, string> = {
@@ -109,13 +124,56 @@ function pickPillars(saju: SajuChartProps['saju']) {
   return { year, month, day, time }
 }
 
-export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
+export function SajuChart({ saju, lang = 'ko', theme = 'light' }: SajuChartProps) {
   const pillars = pickPillars(saju)
   const isKo = lang === 'ko'
+  const isDark = theme === 'dark'
+
+  // 테마별 톤 — 컨테이너, 헤더 텍스트, "내 일주" ring, 행 라벨, 빈 상태.
+  const tokens = isDark
+    ? {
+        container: 'rounded-2xl border p-4',
+        containerStyle: {
+          background: 'var(--ds-dark-surface)',
+          borderColor: 'var(--ds-dark-border)',
+        } as React.CSSProperties,
+        headerHanja: 'text-slate-500',
+        headerLabelNeutral: 'text-slate-400',
+        headerLabelMe: 'rounded-full px-2 py-0.5 text-[11px] font-bold',
+        headerLabelMeStyle: {
+          background: 'rgba(212, 181, 114, 0.18)',
+          color: 'var(--ds-gold-on-dark-soft)',
+        } as React.CSSProperties,
+        cellBorderNeutral: 'border-white/10',
+        cellBorderMe: 'border-[#d4b572] ring-1 ring-[#d4b572]/40',
+        imageText: 'text-slate-500',
+        guideText: 'text-slate-500',
+        emptyContainer:
+          'rounded-xl border border-white/10 bg-white/5 p-4 text-center text-sm text-slate-400',
+        elementStyle: ELEMENT_STYLE_DARK,
+        defaultStyle: DEFAULT_STYLE_DARK,
+      }
+    : {
+        container:
+          'rounded-2xl border border-stone-200 bg-gradient-to-br from-stone-50 to-white p-4 shadow-sm',
+        containerStyle: undefined as React.CSSProperties | undefined,
+        headerHanja: 'text-stone-400',
+        headerLabelNeutral: 'text-stone-500',
+        headerLabelMe: 'rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700',
+        headerLabelMeStyle: undefined as React.CSSProperties | undefined,
+        cellBorderNeutral: 'border-stone-200',
+        cellBorderMe: 'border-[#c19b56] ring-1 ring-[#d4b572]/60',
+        imageText: 'text-stone-500',
+        guideText: 'text-stone-400',
+        emptyContainer:
+          'rounded-xl border border-stone-200 bg-stone-50 p-4 text-center text-sm text-stone-500',
+        elementStyle: ELEMENT_STYLE_LIGHT,
+        defaultStyle: DEFAULT_STYLE_LIGHT,
+      }
 
   if (!pillars) {
     return (
-      <div className="rounded-xl border border-stone-200 bg-stone-50 p-4 text-center text-sm text-stone-500">
+      <div className={tokens.emptyContainer}>
         {isKo ? '사주 정보가 아직 계산되지 않았습니다.' : 'Saju data is not ready yet.'}
       </div>
     )
@@ -165,22 +223,26 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-gradient-to-br from-stone-50 to-white p-4 shadow-sm">
+    <div className={tokens.container} style={tokens.containerStyle}>
       {/* 컬럼 헤더: 한자 기둥명(時/日/月/年) + 시기 라벨 */}
       <div className="mb-3 grid grid-cols-4 gap-2">
         {order.map(({ key, isMe, pillarKo, posKo, posEn }) => (
           <div key={`hd-${key}`} className="flex flex-col items-center gap-0.5">
             {isKo && (
-              <span className="font-serif text-sm font-semibold tracking-wide text-stone-400">
+              <span
+                className={`font-serif text-sm font-semibold tracking-wide ${tokens.headerHanja}`}
+              >
                 {pillarKo}
               </span>
             )}
             {isMe ? (
-              <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700">
+              <span className={tokens.headerLabelMe} style={tokens.headerLabelMeStyle}>
                 {isKo ? posKo : posEn}
               </span>
             ) : (
-              <span className="text-[11px] text-stone-500">{isKo ? posKo : posEn}</span>
+              <span className={`text-[11px] ${tokens.headerLabelNeutral}`}>
+                {isKo ? posKo : posEn}
+              </span>
             )}
           </div>
         ))}
@@ -191,11 +253,11 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
         {order.map(({ key, pillar, isMe }) => {
           const stem = pillar.heavenlyStem
           const branch = pillar.earthlyBranch
-          const stemStyle = ELEMENT_STYLE[stem?.element || ''] || DEFAULT_STYLE
-          const branchStyle = ELEMENT_STYLE[branch?.element || ''] || DEFAULT_STYLE
+          const stemStyle = tokens.elementStyle[stem?.element || ''] || tokens.defaultStyle
+          const branchStyle = tokens.elementStyle[branch?.element || ''] || tokens.defaultStyle
           return (
             <div key={key} className="flex flex-col gap-1.5">
-              {/* 천간 (윗 셀) — 색 톤 그대로, 약간 더 진한 글자 */}
+              {/* 천간 (윗 셀) / 지지 (아래 셀) */}
               {[
                 { cell: stem, style: stemStyle, isStem: true },
                 { cell: branch, style: branchStyle, isStem: false },
@@ -203,7 +265,7 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
                 <div
                   key={idx}
                   className={`flex h-[68px] w-full flex-col items-center justify-center rounded-xl border p-1.5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
-                    isMe ? 'border-[#c19b56] ring-1 ring-[#d4b572]/60' : 'border-stone-200'
+                    isMe ? tokens.cellBorderMe : tokens.cellBorderNeutral
                   } ${c.isStem ? '' : 'opacity-95'}`}
                 >
                   <span
@@ -212,7 +274,7 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
                     {cellText(c.cell)}
                   </span>
                   {isKo && imageOf(c.cell?.name) && (
-                    <span className="mt-1 text-[10px] leading-none text-stone-500">
+                    <span className={`mt-1 text-[10px] leading-none ${tokens.imageText}`}>
                       {imageOf(c.cell?.name)}
                     </span>
                   )}
@@ -225,7 +287,7 @@ export function SajuChart({ saju, lang = 'ko' }: SajuChartProps) {
 
       {/* 행 라벨 (왼쪽 가이드) — 모바일에선 생략, 데스크탑(sm+) 에서만 표시 */}
       {isKo && (
-        <div className="mt-2 hidden sm:flex justify-center gap-6 text-[10px] text-stone-400">
+        <div className={`mt-2 hidden sm:flex justify-center gap-6 text-[10px] ${tokens.guideText}`}>
           <span>천간(天干) · 드러난 결</span>
           <span>지지(地支) · 안에 품은 결</span>
         </div>
