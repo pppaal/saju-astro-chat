@@ -305,6 +305,9 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
               <Link href="/policy/refund" onClick={close} className="hover:text-white/80">
                 {isKo ? '환불 정책' : 'Refund'}
               </Link>
+              <Link href="/about" onClick={close} className="hover:text-white/80">
+                {isKo ? '소개' : 'About'}
+              </Link>
               <Link href="/faq" onClick={close} className="hover:text-white/80">
                 FAQ
               </Link>
