@@ -108,7 +108,7 @@ export function MenuDrawerPanel({
     ? 'bg-stone-100 text-stone-800 hover:bg-stone-200'
     : 'bg-white/[0.04] text-white/90 hover:bg-white/[0.08]'
 
-  const sectionTitleClass = isLight ? 'text-stone-500' : 'text-violet-200/55'
+  const sectionTitleClass = isLight ? 'text-stone-500' : 'text-[rgba(232,204,138,0.55)]'
 
   const linkClass = isLight
     ? 'text-stone-700 hover:bg-stone-100 hover:text-stone-900'

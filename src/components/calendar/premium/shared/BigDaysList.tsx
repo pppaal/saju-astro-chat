@@ -92,7 +92,7 @@ function BigDayRow({
         <button
           type="button"
           onClick={onClick}
-          className={`text-base font-bold text-violet-200 ${onClick ? 'hover:text-violet-100' : ''} transition`}
+          className={`text-base font-bold text-[#e8cc8a] ${onClick ? 'hover:text-[#fff8e1]' : ''} transition`}
           disabled={!onClick}
         >
           {date}

@@ -55,8 +55,8 @@ export default function SharedResultPage() {
 
   if (error || !sharedData) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-purple-500/20">
+      <div className="min-h-screen bg-[#07091a] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 text-center border border-[rgba(212,181,114,0.2)]">
           <span className="text-6xl mb-6 block">🔮</span>
           <h1 className="text-2xl font-bold text-white mb-4">
             {isKo ? '결과를 찾을 수 없습니다' : 'Result Not Found'}
@@ -68,7 +68,7 @@ export default function SharedResultPage() {
           </p>
           <Link
             href="/"
-            className="inline-block px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:opacity-90 transition"
+            className="inline-block px-6 py-3 bg-gradient-to-r from-[#c19b56] to-[#a07a3c] text-white rounded-full font-medium hover:opacity-90 transition"
           >
             {isKo ? '나도 운세 보러 가기' : 'Get My Fortune Reading'}
           </Link>
@@ -90,38 +90,38 @@ export default function SharedResultPage() {
         return {
           icon: '🎴',
           title: isKo ? '타로 리딩' : 'Tarot Reading',
-          color: 'from-purple-500 to-indigo-500',
+          color: 'from-[#d4b572] to-[#a07a3c]',
         }
       case 'astrology':
         return {
           icon: '✨',
           title: isKo ? '별자리 운세' : 'Astrology Reading',
-          color: 'from-blue-500 to-cyan-500',
+          color: 'from-[#e8cc8a] to-[#c19b56]',
         }
       case 'compatibility':
         return {
           icon: '💕',
           title: isKo ? '궁합 분석' : 'Compatibility Analysis',
-          color: 'from-pink-500 to-rose-500',
+          color: 'from-[#d4b572] to-[#a07a3c]',
         }
       case 'personality':
       case 'persona':
         return {
           icon: '🧬',
           title: isKo ? '성격 분석' : 'Personality Analysis',
-          color: 'from-amber-500 to-orange-500',
+          color: 'from-[#e8cc8a] to-[#c19b56]',
         }
       case 'icp':
         return {
           icon: '💡',
           title: isKo ? 'ICP 분석' : 'ICP Analysis',
-          color: 'from-cyan-500 to-blue-500',
+          color: 'from-[#d4b572] to-[#a07a3c]',
         }
       default:
         return {
           icon: '🔮',
           title: isKo ? '운세 결과' : 'Fortune Result',
-          color: 'from-purple-500 to-pink-500',
+          color: 'from-[#d4b572] to-[#a07a3c]',
         }
     }
   }
@@ -129,7 +129,7 @@ export default function SharedResultPage() {
   const typeInfo = getTypeInfo(sharedData.type);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 p-4">
+    <div className="min-h-screen bg-[#07091a] p-4">
       <div className="max-w-2xl mx-auto pt-8 pb-16">
         {/* Header */}
         <div className="text-center mb-8">
@@ -145,7 +145,7 @@ export default function SharedResultPage() {
         </div>
 
         {/* Shared Content Card */}
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20 mb-8">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-[rgba(212,181,114,0.2)] mb-8">
           <h2 className="text-xl font-semibold text-white mb-4">{sharedData.title}</h2>
           {sharedData.description && (
             <p className="text-gray-300 whitespace-pre-line">{sharedData.description}</p>
@@ -153,7 +153,7 @@ export default function SharedResultPage() {
         </div>
 
         {/* CTA Section */}
-        <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl p-6 border border-purple-500/30 text-center">
+        <div className="bg-gradient-to-r from-[rgba(160,122,60,0.2)] to-[rgba(160,122,60,0.1)] rounded-2xl p-6 border border-[rgba(212,181,114,0.3)] text-center">
           <h3 className="text-xl font-bold text-white mb-3">
             {isKo ? '나도 무료로 운세 보기' : 'Get Your Free Reading'}
           </h3>
@@ -165,7 +165,7 @@ export default function SharedResultPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/"
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:opacity-90 transition"
+              className="px-6 py-3 bg-gradient-to-r from-[#c19b56] to-[#a07a3c] text-white rounded-full font-medium hover:opacity-90 transition"
             >
               {isKo ? '시작하기' : 'Get Started'}
             </Link>
@@ -181,7 +181,7 @@ export default function SharedResultPage() {
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500 text-sm">
           <p>
-            Powered by <span className="text-purple-400">DestinyPal</span>
+            Powered by <span className="text-[#d4b572]">DestinyPal</span>
           </p>
         </div>
       </div>

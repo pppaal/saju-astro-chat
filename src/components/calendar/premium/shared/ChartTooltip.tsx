@@ -85,7 +85,7 @@ export default function ChartTooltip({
         </p>
       )}
       {pointType === 'convergence' && convergenceLabel && (
-        <p className="text-violet-400 mt-1 flex items-center gap-1">
+        <p className="text-[#d4b572] mt-1 flex items-center gap-1">
           <Sparkles size={10} /> {convergenceLabel}
         </p>
       )}
