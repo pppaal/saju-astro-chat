@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react'
-import { User, Users, ChevronDown, Loader2 } from 'lucide-react'
+import React, { useEffect } from 'react'
+import { User, Users, ChevronDown, Download } from 'lucide-react'
 import { type PersonForm, type Relation } from '../../lib/types'
 import type { CirclePerson } from '@/hooks/useMyCircle'
 import {
@@ -8,51 +8,69 @@ import {
   type BirthFieldsPatch,
 } from '@/components/birth/BirthInfoFields'
 
+/**
+ * 메인 페이지 BirthInfoModal 과 동일한 "저장된 정보 불러오기" 패턴.
+ * "내 정보" + 등록된 지인을 한 dropdown 에 묶어서 카드별로 단일 트리거.
+ * 두 버튼 따로 두는 옛 패턴은 사용자가 "어디서 본인 정보를 불러와야 하는지"
+ * 헷갈렸다.
+ */
+export interface LoadOption {
+  key: string
+  label: string
+  sub?: string
+  name: string
+  birthDate: string
+  birthTime: string
+  timeUnknown: boolean
+  gender: 'male' | 'female' | ''
+  city: string
+  latitude?: number | null
+  longitude?: number | null
+  timeZone?: string | null
+}
+
 interface PersonCardProps {
   person: PersonForm
   index: number
   isAuthenticated: boolean
-  circlePeople: CirclePerson[]
-  showCircleDropdown: boolean
+  /** 카드별 dropdown 옵션. CompatPersonPickerModal 에서 한 번만 fetch 해서 두 카드에 같이 넘김. */
+  loadOptions: LoadOption[]
+  showLoadDropdown: boolean
   locale: string
   t: (key: string, fallback: string) => string
   onUpdatePerson: <K extends keyof PersonForm>(idx: number, field: K, value: PersonForm[K]) => void
   onSetPersons: React.Dispatch<React.SetStateAction<PersonForm[]>>
-  onToggleCircleDropdown: () => void
+  onToggleLoadDropdown: () => void
+  /** 옛 API — circle 항목 1건 선택 시 호출. 새 'me' 항목은 onLoadOption 으로 분리. */
   onFillFromCircle: (idx: number, person: CirclePerson) => void
+  /** 'me' 옵션 등 dropdown 항목 선택 시 호출. */
+  onLoadOption: (idx: number, option: LoadOption) => void
 }
 
 /**
  * Compatibility 페이지의 한 사람 입력 카드.
  *
- * 이전엔 Compatibility.module.css의 light/legacy 디자인을 썼지만 페이지
- * 톤이 다크라 시각이 어긋났음. ProfileEditModal / CircleAddModal과 동일한
- * 패턴(Tailwind dark + Field 헬퍼 + useCitySearch 직접)으로 재작성.
- *
- * 보존 기능:
- *  - 내 프로필 불러오기 (idx === 0만)
- *  - 내 지인 불러오기 dropdown
- *  - 시간 모름 옵션
- *  - 도시 autocomplete (useCitySearch)
- *  - 두 번째 사람: 관계 + 메모
+ * 핵심 필드는 공용 BirthInfoFields 로 통일 (메인 홈 BirthInfoModal 과 동일).
+ * "저장된 정보 불러오기" 패턴도 메인과 동일 — 별도 "내 정보" / "내 지인"
+ * 버튼 2개를 단일 dropdown 으로 통합.
  */
 export const PersonCard = React.memo<PersonCardProps>(
   ({
     person,
     index,
     isAuthenticated,
-    circlePeople,
-    showCircleDropdown,
+    loadOptions,
+    showLoadDropdown,
     locale,
     t,
     onUpdatePerson,
     onSetPersons,
-    onToggleCircleDropdown,
+    onToggleLoadDropdown,
     onFillFromCircle,
+    onLoadOption,
   }) => {
     const idx = index
     const isKo = locale === 'ko' || locale.startsWith('ko')
-    const [profileLoading, setProfileLoading] = useState(false)
     const timeUnknown = person.timeUnknown ?? (!person.time || person.time === '00:00')
     useEffect(() => {
       if (timeUnknown && person.time !== '00:00') {
@@ -86,74 +104,8 @@ export const PersonCard = React.memo<PersonCardProps>(
       })
     }
 
-    const loadMyProfile = useCallback(async () => {
-      setProfileLoading(true)
-      try {
-        const res = await fetch('/api/me/profile')
-        if (!res.ok) return
-        const data = await res.json()
-        const user = data.user
-        if (!user) return
-
-        // 텍스트 필드는 즉시 채운다 — 도시 지오코딩(lat/lon)을 기다리지 않음.
-        // 프로필엔 좌표가 저장돼 있지 않아 매번 /api/cities 를 호출해야 하는데,
-        // 그걸 await 하면 폼이 그만큼 늦게 채워져 "느리게" 느껴짐.
-        onSetPersons((prev) => {
-          const next = [...prev]
-          next[idx] = {
-            ...next[idx],
-            name: user.name || next[idx].name,
-            date: user.birthDate || '',
-            time: user.birthTime || '',
-            gender:
-              user.gender === 'female' || user.gender === 'F'
-                ? 'F'
-                : user.gender === 'male' || user.gender === 'M'
-                  ? 'M'
-                  : next[idx].gender,
-            cityQuery: user.birthCity || '',
-            lat: null,
-            lon: null,
-            timeZone: user.tzId || next[idx].timeZone,
-          }
-          return next
-        })
-
-        // 좌표는 백그라운드로 해석 후 패치 — 스피너/폼을 막지 않는다.
-        if (user.birthCity) {
-          void (async () => {
-            try {
-              const cityRes = await fetch(
-                `/api/cities?q=${encodeURIComponent(user.birthCity)}&limit=1`,
-                { headers: { 'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '' } }
-              )
-              if (!cityRes.ok) return
-              const cityData = await cityRes.json()
-              const cities = cityData.results || cityData.cities || cityData.data || []
-              if (!Array.isArray(cities) || cities.length === 0) return
-              const lat = cities[0].lat ?? cities[0].latitude ?? null
-              const lon = cities[0].lon ?? cities[0].longitude ?? null
-              onSetPersons((prev) => {
-                const next = [...prev]
-                // 사용자가 그새 도시를 바꿨으면 덮어쓰지 않는다.
-                if (next[idx].cityQuery !== user.birthCity) return prev
-                next[idx] = { ...next[idx], lat, lon }
-                return next
-              })
-            } catch {
-              /* ignore */
-            }
-          })()
-        }
-      } catch {
-        /* ignore */
-      } finally {
-        setProfileLoading(false)
-      }
-    }, [idx, onSetPersons])
-
     const personLabel =
-      idx === 0 ? t('compatibilityPage.person1', '나') : t('compatibilityPage.person2', '상대')
+      idx === 0 ? t('compatibilityPage.person1', 'Me') : t('compatibilityPage.person2', 'Partner')
 
     // Person 1 = rose, Person 2 = sky — the same A/B encoding used by the
     // chart overlays, so the form and the chart read as the same two people.
@@ -161,8 +113,9 @@ export const PersonCard = React.memo<PersonCardProps>(
 
     return (
       <div className="rounded-[22px] border border-[#e7e4df] bg-white p-6 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_12px_32px_rgba(28,25,23,0.06)]">
-        {/* 헤더 — 라벨 + 불러오기 버튼. 라이트 프리미엄 톤(화이트 카드,
-            잉크 텍스트, 헤어라인 보더). 지인 추가 CTA 는 /profile 로 분리. */}
+        {/* 헤더 — 라벨 + 불러오기 dropdown. 메인 홈 BirthInfoModal 과 동일
+            패턴 (단일 트리거 + dropdown). 옛 두 버튼 ('내 정보' + '내 지인')
+            은 사용자가 헷갈려서 단일화. */}
         <div className="mb-5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <div className={`flex h-8 w-8 items-center justify-center rounded-full ${avatarTone}`}>
@@ -171,82 +124,73 @@ export const PersonCard = React.memo<PersonCardProps>(
             <h3 className="text-[15px] font-semibold text-[#1c1917]">{personLabel}</h3>
           </div>
 
-          {isAuthenticated && (
-            <div className="flex items-center gap-1.5">
-              {idx === 0 && (
-                <button
-                  type="button"
-                  onClick={loadMyProfile}
-                  disabled={profileLoading}
-                  className="inline-flex items-center gap-1 rounded-full border border-[#e0ddd7] bg-white px-3 py-1 text-[11.5px] font-medium text-[#44403c] transition hover:border-[#c9c4bc] hover:bg-[#faf9f7] disabled:opacity-50"
+          {isAuthenticated && loadOptions.length > 0 && (
+            <div className="relative" data-circle-dropdown>
+              <button
+                type="button"
+                onClick={onToggleLoadDropdown}
+                className="inline-flex items-center gap-1 rounded-full border border-[#e0ddd7] bg-white px-3 py-1 text-[11.5px] font-medium text-[#44403c] transition hover:border-[#c9c4bc] hover:bg-[#faf9f7]"
+              >
+                <Download className="h-3 w-3" />
+                {t('compatibilityPage.loadSaved', 'Load saved info')}
+                <ChevronDown className="h-3 w-3" />
+              </button>
+              {showLoadDropdown && (
+                <ul
+                  role="listbox"
+                  className="absolute right-0 z-20 mt-1 max-h-56 w-60 overflow-auto rounded-xl border border-[#e7e4df] bg-white shadow-[0_16px_40px_rgba(28,25,23,0.12)]"
                 >
-                  {profileLoading ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <User className="h-3 w-3" />
-                  )}
-                  {t('compatibilityPage.loadMyProfile', '내 정보')}
-                </button>
+                  {loadOptions.map((o) => (
+                    <li key={o.key}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // 'me' 옵션은 새 onLoadOption (로컬 + DB 통합), 나머지
+                          // (지인) 는 옛 onFillFromCircle 경로로 유지 — 지인
+                          // 측은 SavedPerson 매핑 / 관계 매핑 로직이 따로라
+                          // 1:1 교체가 위험.
+                          if (o.key === 'me') {
+                            onLoadOption(idx, o)
+                          } else {
+                            const circle: CirclePerson = {
+                              id: o.key.replace(/^circle-/, ''),
+                              name: o.name,
+                              relation: o.sub || '',
+                              birthDate: o.birthDate || null,
+                              birthTime: o.timeUnknown ? null : o.birthTime || null,
+                              gender: o.gender || null,
+                              birthCity: o.city || null,
+                              latitude: o.latitude ?? null,
+                              longitude: o.longitude ?? null,
+                              tzId: o.timeZone ?? null,
+                            }
+                            onFillFromCircle(idx, circle)
+                          }
+                          onToggleLoadDropdown()
+                        }}
+                        className="block w-full px-3 py-2 text-left text-[13px] text-[#44403c] transition hover:bg-[#f5f4f1]"
+                      >
+                        <span className="font-medium">{o.label}</span>
+                        {o.sub && (
+                          <span className="ml-1.5 text-[11px] text-[#a8a29e]">· {o.sub}</span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
-              {/* `data-circle-dropdown` 필수: useMyCircle 의 document
-                  click listener 가 이 attr 의 ancestor 아니면 dropdown
-                  닫음. 빼면 첫 클릭에 닫혀서 selection 실패. */}
-              <div className="relative" data-circle-dropdown>
-                <button
-                  type="button"
-                  onClick={onToggleCircleDropdown}
-                  className="inline-flex items-center gap-1 rounded-full border border-[#e0ddd7] bg-white px-3 py-1 text-[11.5px] font-medium text-[#44403c] transition hover:border-[#c9c4bc] hover:bg-[#faf9f7]"
-                >
-                  <Users className="h-3 w-3" />
-                  {t('compatibilityPage.fromCircle', 'My people')}
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-                {showCircleDropdown && (
-                  <ul className="absolute right-0 z-20 mt-1 max-h-56 w-56 overflow-auto rounded-xl border border-[#e7e4df] bg-white shadow-[0_16px_40px_rgba(28,25,23,0.12)]">
-                    {circlePeople.length === 0 ? (
-                      <li className="px-3 py-2.5 text-[12px] leading-relaxed text-[#a8a29e]">
-                        {isKo
-                          ? '저장된 지인이 없어요. 내 정보에서 지인을 추가해 보세요.'
-                          : 'No saved people yet. Add people from your info.'}
-                      </li>
-                    ) : (
-                      circlePeople.map((cp) => (
-                        <li key={cp.id}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onFillFromCircle(idx, cp)
-                              // 선택 후 dropdown 닫기 — 안 닫으면 지인 목록이 카드 위에
-                              // 계속 떠 있어서 방금 채워진 이름·생일을 가린다.
-                              onToggleCircleDropdown()
-                            }}
-                            className="block w-full px-3 py-2 text-left text-[13px] text-[#44403c] transition hover:bg-[#f5f4f1]"
-                          >
-                            <span className="font-medium">{cp.name}</span>
-                            {cp.relation && (
-                              <span className="ml-1.5 text-[11px] text-[#a8a29e]">
-                                · {cp.relation}
-                              </span>
-                            )}
-                          </button>
-                        </li>
-                      ))
-                    )}
-                  </ul>
-                )}
-              </div>
             </div>
           )}
         </div>
 
         <div className="space-y-4">
           {/* 이름 */}
-          <Field label={t('compatibilityPage.name', '이름')} required>
+          <Field label={t('compatibilityPage.name', 'Name')} required>
             <input
               type="text"
               value={person.name}
               onChange={(e) => onUpdatePerson(idx, 'name', e.target.value)}
-              placeholder={t('compatibilityPage.namePlaceholder', '이름')}
+              placeholder={t('compatibilityPage.namePlaceholder', 'Name')}
               className={inputClass}
               required
             />
@@ -262,6 +206,7 @@ export const PersonCard = React.memo<PersonCardProps>(
             timeUnknown={timeUnknown}
             gender={genderForField}
             city={person.cityQuery}
+            latitude={person.lat}
             onChange={onBirthChange}
             classes={lightFieldClasses}
           />
@@ -271,32 +216,36 @@ export const PersonCard = React.memo<PersonCardProps>(
               (route.ts relationLabel 가 other일 때 note 를 사용). */}
           {idx > 0 && (
             <>
-              <Field label={t('compatibilityPage.relationToPerson1', '나와의 관계')}>
+              <Field label={t('compatibilityPage.relationToPerson1', 'Relation to Person 1')}>
                 <select
                   value={person.relation ?? ''}
                   onChange={(e) => onUpdatePerson(idx, 'relation', e.target.value as Relation)}
                   className={inputClass + ' cursor-pointer'}
                 >
-                  <option value="">{t('compatibilityPage.selectRelation', '선택')}</option>
-                  <option value="lover">{t('compatibilityPage.partnerLover', '연인 💕')}</option>
-                  <option value="spouse">{t('compatibilityPage.spouse', '배우자 💍')}</option>
-                  <option value="family">{t('compatibilityPage.family', '가족 🏠')}</option>
-                  <option value="sibling">{t('compatibilityPage.sibling', '형제자매 👯')}</option>
-                  <option value="friend">{t('compatibilityPage.friend', '친구 🤝')}</option>
-                  <option value="colleague">{t('compatibilityPage.colleague', '동료 💼')}</option>
+                  <option value="">{t('compatibilityPage.selectRelation', 'Select')}</option>
+                  <option value="lover">
+                    {t('compatibilityPage.partnerLover', 'Partner / Lover 💕')}
+                  </option>
+                  <option value="spouse">{t('compatibilityPage.spouse', 'Spouse 💍')}</option>
+                  <option value="family">{t('compatibilityPage.family', 'Family 🏠')}</option>
+                  <option value="sibling">{t('compatibilityPage.sibling', 'Sibling 👯')}</option>
+                  <option value="friend">{t('compatibilityPage.friend', 'Friend 🤝')}</option>
+                  <option value="colleague">
+                    {t('compatibilityPage.colleague', 'Colleague 💼')}
+                  </option>
                   <option value="other">
-                    {t('compatibilityPage.other', '기타 / 자유롭게 서술 ✨')}
+                    {t('compatibilityPage.other', 'Other / describe freely ✨')}
                   </option>
                 </select>
               </Field>
               {person.relation === 'other' && (
-                <Field label={t('compatibilityPage.relationNote', '관계 설명')}>
+                <Field label={t('compatibilityPage.relationNote', 'Describe the relationship')}>
                   <textarea
                     value={person.relationNote ?? ''}
                     onChange={(e) => onUpdatePerson(idx, 'relationNote', e.target.value)}
                     placeholder={t(
                       'compatibilityPage.shortNote',
-                      '두 사람의 관계를 자유롭게 적어주세요'
+                      'Describe how you two relate (used in the reading)'
                     )}
                     className={inputClass + ' min-h-[84px] resize-none leading-relaxed'}
                     rows={3}
