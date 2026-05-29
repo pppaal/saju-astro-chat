@@ -384,3 +384,107 @@ export function findProgressedAspectKeywords() {
     sextile: '협력',
   }
 }
+
+/**
+ * Solar Arc 차트 (간이) — 본명 차트의 모든 행성을 ageInYears × 1°만큼
+ * 동일하게 전진시킨 차트. 진짜 진행된 태양 위치를 다시 계산하지 않고
+ * 근사(1년 = 1°)를 적용해 ephe 호출 없이 빠르게 만든다.
+ *
+ * extractor 가 매월 호출하는 캐시 친화적 진입점. 정밀이 필요한 모듈은
+ * 기존 `calculateSolarArcDirections` (ephemeris 기반)을 그대로 사용.
+ */
+export function calculateSolarArcChart(natalChart: Chart, ageInYears: number): Chart {
+  const arcDegrees = ageInYears * 1 // 1년 ≈ 1°
+  const shift = (lon: number) => normalize360(lon + arcDegrees)
+
+  const planets: PlanetBase[] = natalChart.planets.map((p) => {
+    const directedLon = shift(p.longitude)
+    const info = formatLongitude(directedLon)
+    return {
+      ...p,
+      longitude: directedLon,
+      sign: info.sign,
+      degree: info.degree,
+      minute: info.minute,
+      formatted: info.formatted,
+    }
+  })
+
+  const ascLon = shift(natalChart.ascendant.longitude)
+  const mcLon = shift(natalChart.mc.longitude)
+  const ascInfo = formatLongitude(ascLon)
+  const mcInfo = formatLongitude(mcLon)
+
+  return {
+    ...natalChart,
+    planets,
+    ascendant: {
+      ...natalChart.ascendant,
+      longitude: ascLon,
+      sign: ascInfo.sign,
+      degree: ascInfo.degree,
+      minute: ascInfo.minute,
+      formatted: ascInfo.formatted,
+    },
+    mc: {
+      ...natalChart.mc,
+      longitude: mcLon,
+      sign: mcInfo.sign,
+      degree: mcInfo.degree,
+      minute: mcInfo.minute,
+      formatted: mcInfo.formatted,
+    },
+    // houses는 자연 회전이라 본명 그대로 유지 (Solar Arc는 행성·앵글 이동만 표준)
+  }
+}
+
+/**
+ * Solar Arc 행성 vs 본명 행성 어스펙트 검사.
+ * Solar Arc는 매우 정밀(1년 ~ 1°)하여 orb 0.5° 권장.
+ */
+export interface SolarArcAspect {
+  arcPlanet: string // Solar Arc 행성 (이동된 본명 행성)
+  natalPlanet: string // 어스펙트가 닿은 본명 행성
+  aspect: 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition'
+  orb: number // 정확한 각도와의 차이 (deg)
+  exactAngle: number // 두 행성 간 실제 각도 (0~180)
+}
+
+const SOLAR_ARC_MAJOR_ASPECTS: Array<{
+  aspect: SolarArcAspect['aspect']
+  exact: number
+}> = [
+  { aspect: 'conjunction', exact: 0 },
+  { aspect: 'sextile', exact: 60 },
+  { aspect: 'square', exact: 90 },
+  { aspect: 'trine', exact: 120 },
+  { aspect: 'opposition', exact: 180 },
+]
+
+export function findSolarArcAspects(
+  natalChart: Chart,
+  solarArcChart: Chart,
+  orb: number = 0.5
+): SolarArcAspect[] {
+  const hits: SolarArcAspect[] = []
+  for (const arc of solarArcChart.planets) {
+    for (const nat of natalChart.planets) {
+      const diff = normalize360(arc.longitude - nat.longitude)
+      const angle = Math.min(diff, 360 - diff)
+      for (const cand of SOLAR_ARC_MAJOR_ASPECTS) {
+        const off = Math.abs(angle - cand.exact)
+        if (off <= orb) {
+          hits.push({
+            arcPlanet: arc.name,
+            natalPlanet: nat.name,
+            aspect: cand.aspect,
+            orb: off,
+            exactAngle: angle,
+          })
+          break
+        }
+      }
+    }
+  }
+  return hits
+}

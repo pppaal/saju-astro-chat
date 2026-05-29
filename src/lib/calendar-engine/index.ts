@@ -37,6 +37,9 @@ import astroMoonNodesExtractor from './extractors/astro-moon-nodes'
 import astroHouseTransitExtractor from './extractors/astro-house-transit'
 import astroPlanetaryHourExtractor from './extractors/astro-planetary-hour'
 import astroAsteroidExtractor from './extractors/astro-asteroid'
+import astroSolarArcExtractor from './extractors/astro-solar-arc'
+import astroMidpointExtractor from './extractors/astro-midpoint'
+import astroSoulPatternExtractor from './extractors/astro-soul-pattern'
 
 // derivers
 import { deriveScore } from './derivers/score'
@@ -121,6 +124,9 @@ function getRegisteredExtractors(): SignalExtractor[] {
     astroHouseTransitExtractor,
     astroPlanetaryHourExtractor,
     astroAsteroidExtractor,
+    astroSolarArcExtractor,
+    astroMidpointExtractor,
+    astroSoulPatternExtractor,
   ]
 }
 
