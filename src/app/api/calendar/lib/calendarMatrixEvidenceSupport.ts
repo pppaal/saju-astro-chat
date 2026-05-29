@@ -18,6 +18,7 @@ import {
   describeExecutionStance,
   describePhaseFlow,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
+import type { CrossSystemTone } from '@/lib/destiny-matrix/interpretation/humanSemanticsConflictSupport'
 import { sanitizeMatrixNarrativeLine } from './calendarMatrixTextSupport'
 import { clamp01 } from '@/lib/utils/math'
 import { dedupeTexts } from './textDedupe'
@@ -250,6 +251,46 @@ function getMatrixDomainLabel(
   return 'overall'
 }
 
+type ScoreBreakdownLite = {
+  sajuAxisRaw: number
+  astroAxisRaw: number
+  axisAgreement: 'aligned' | 'mixed' | 'opposed'
+}
+
+/**
+ * 두 축의 raw 점수 + axisAgreement 로 시스템 레벨 합치 톤을 결정한다.
+ * - axisAgreement === 'aligned' 이면서 두 축 평균이 55 이상 → bothSystems
+ * - axisAgreement === 'aligned' 이면서 두 축 평균이 45 이하 → bothBlocked
+ * - axisAgreement === 'aligned' 이고 중간대 (45~55) → mixed (확언 회피)
+ * - axisAgreement === 'opposed' → opposed
+ * - axisAgreement === 'mixed' 또는 scoreBreakdown 없음 → mixed
+ *
+ * ImportantDate (destinyCalendar) 에는 scoreBreakdown 이 정의돼 있지 않지만
+ * yearlyDates.ts 에서 결과 객체에 attach 한다 (api/calendar/lib/types.ts
+ * 의 ImportantDate 가 그 augmented shape). 안전하게 cast 로 접근.
+ */
+function resolveCrossSystemTone(
+  date: ImportantDate,
+  fallbackAligned: boolean
+): CrossSystemTone {
+  const breakdown = (date as ImportantDate & { scoreBreakdown?: ScoreBreakdownLite })
+    .scoreBreakdown
+  if (!breakdown) {
+    return fallbackAligned ? 'bothSystems' : 'mixed'
+  }
+  if (breakdown.axisAgreement === 'opposed') {
+    return 'opposed'
+  }
+  if (breakdown.axisAgreement === 'mixed') {
+    return 'mixed'
+  }
+  // aligned: 두 raw 축의 평균으로 합치 방향성 판정 (override-shift 없는 raw 사용)
+  const avg = (breakdown.sajuAxisRaw + breakdown.astroAxisRaw) / 2
+  if (avg >= 55) return 'bothSystems'
+  if (avg <= 45) return 'bothBlocked'
+  return 'mixed'
+}
+
 export function buildCrossEvidenceBundle(
   date: ImportantDate,
   lang: 'ko' | 'en',
@@ -260,14 +301,24 @@ export function buildCrossEvidenceBundle(
 ): CrossEvidenceBundle {
   const aspectList = toAspectEvidenceList(date)
   const isAligned = isAlignedAcrossSystems(crossAgreementPercent)
+  const crossSystemTone = resolveCrossSystemTone(date, isAligned)
   const astroDetails = aspectList.map((detail, index) =>
     formatAstroEvidenceLine(detail, index, lang)
   )
 
   const usedSajuKey = new Set<string>()
-  const pickSajuKey = (preferNegative: boolean): string | undefined => {
+  // preferNegative 는 두 축이 같이 막힌 (bothBlocked/opposed) 자리에서만 true.
+  // bothSystems 자리에서는 사주 키도 우호 우선으로 골라 saju/bridge 톤이 어긋나지
+  // 않게 한다.
+  const systemPrefersNegative =
+    crossSystemTone === 'bothBlocked' || crossSystemTone === 'opposed'
+  const pickSajuKey = (aspectIsNegative: boolean): string | undefined => {
     const keys = date.sajuFactorKeys || []
     const candidates = keys.filter((key) => !usedSajuKey.has(key))
+    // 시스템 톤이 우호적이면 aspect 한 개의 부정 톤 때문에 negative 사주 키를
+    // 끌어오지 않는다 — 그래야 bothSystems 일자에 사주 evidence 가 conflict 인용으로
+    // 빠지지 않는다.
+    const preferNegative = systemPrefersNegative ? true : aspectIsNegative
     const prioritized = candidates.find((key) =>
       preferNegative ? isNegativeFactorKey(key) : isPositiveFactorKey(key)
     )
@@ -292,7 +343,16 @@ export function buildCrossEvidenceBundle(
       return
     }
     sajuDetails.push(sajuText)
-    bridges.push(describeCrossEvidenceBridge({ tone: detail.tone, aligned: isAligned, lang }))
+    // crossSystemTone 우선 사용 — 일자별 시스템 레벨 합치 상태가
+    // 개별 aspect tone (top-3 중 1개 square 같은 케이스) 보다 정확.
+    bridges.push(
+      describeCrossEvidenceBridge({
+        tone: detail.tone,
+        aligned: isAligned,
+        lang,
+        crossSystemTone,
+      })
+    )
   })
 
   if (astroDetails.length === 0 && orderedAstroFactors[0]) {
@@ -305,16 +365,20 @@ export function buildCrossEvidenceBundle(
   const astroEvidence = compactText(astroDetails[0] || orderedAstroFactors[0] || '', 120)
   const sajuEvidence = compactText(sajuDetails[0] || orderedSajuFactors[0] || '', 120)
 
+  // Fallback (top-3 aspect 가 없을 때) — 시스템 톤 기반 흐름 브리지로 통일해서
+  // describeCrossAgreement 의 일반 문구 ("교차 일치도 ~%") 가 카드에 박히던 패턴
+  // 제거. crossSystemTone 가 mixed/opposed 면 자연스럽게 hedge 톤이 잡힌다.
   const normalizedBridges =
     bridges.length > 0
       ? bridges
       : astroEvidence && sajuEvidence
         ? [
-            lang === 'ko'
-              ? describeCrossAgreement(isAligned ? 80 : 35, 'ko')
-              : isAligned
-                ? 'Astrology and saju evidence point in the same direction.'
-                : 'Signals are mixed. Re-check before final commitments.',
+            describeCrossEvidenceBridge({
+              tone: 'neutral',
+              aligned: isAligned,
+              lang,
+              crossSystemTone,
+            }),
           ]
         : []
 

@@ -359,12 +359,54 @@ function describeSajuAstroConflictByDomainDetailed(input: {
   return describeSajuAstroConflict(input)
 }
 
+/**
+ * crossSystemTone — 사주축·점성축 두 축의 시스템-레벨 합치 상태.
+ *   - bothSystems: aligned + 둘 다 우호적 (점수 합 높음)
+ *   - bothBlocked: aligned + 둘 다 비우호적 (점수 합 낮음)
+ *   - opposed: 두 축이 정반대 방향
+ *   - mixed: 한쪽이 다른 방향
+ *
+ * 주어지면 (tone, aligned) 보다 우선 — 캘린더 일자별 호출에서는 axisAgreement +
+ * scoreBreakdown 두 raw 값으로 이 값을 미리 정해 넘긴다. 그래야 top-3 aspect
+ * 중 한 개의 tone(예: 95점 bothSystems 일자의 단일 square)이 전체 브리지를
+ * 거꾸로 그리는 버그가 차단된다.
+ */
+export type CrossSystemTone = 'bothSystems' | 'bothBlocked' | 'opposed' | 'mixed'
+
 export function describeCrossEvidenceBridge(input: {
   tone: 'positive' | 'negative' | 'neutral'
   aligned?: boolean
   lang?: HumanSemanticsLang
+  crossSystemTone?: CrossSystemTone
 }): string {
-  const { tone, aligned = false, lang = 'ko' } = input
+  const { tone, aligned = false, lang = 'ko', crossSystemTone } = input
+
+  if (crossSystemTone) {
+    if (lang === 'ko') {
+      if (crossSystemTone === 'bothSystems') {
+        return '두 결이 같은 방향으로 합쳐 흐르는 자리예요. 핵심 한두 가지를 함께 밀어 주세요.'
+      }
+      if (crossSystemTone === 'bothBlocked') {
+        return '두 결이 같이 막히는 자리예요. 무리하지 말고 흐름이 풀릴 때까지 큰 결정을 미루세요.'
+      }
+      if (crossSystemTone === 'opposed') {
+        return '두 결이 서로 다른 길로 갈라져 흐르고 있어요. 속도를 늦추고 계약이나 큰 결정은 한 번 더 확인하세요.'
+      }
+      // mixed
+      return '한 결은 차오르고 한 결은 잦아드는 구간이에요. 좋아 보여도 결이 모일 때까지 확정을 미루세요.'
+    }
+
+    if (crossSystemTone === 'bothSystems') {
+      return 'The two currents braid together in the same direction, making this a good window for pushing one or two core priorities.'
+    }
+    if (crossSystemTone === 'bothBlocked') {
+      return 'Both currents are clogging together, so hold off major moves until the flow eases.'
+    }
+    if (crossSystemTone === 'opposed') {
+      return 'The two currents diverge into different paths, so slow down and recheck contracts or major calls.'
+    }
+    return 'One current swells while the other recedes, so let the flows converge before locking anything in.'
+  }
 
   if (lang === 'ko') {
     if (tone === 'negative') {
