@@ -469,12 +469,20 @@ export async function expireBonusCredits() {
   // 트랜잭션으로 처리 — bonusCredits 차감은 GREATEST(0, ...) 로 음수 drift 방어.
   const runUserExpiry = (uid: string, expiredAmount: number) =>
     prisma.$transaction([
-      // 만료된 구매 건들 업데이트
+      // 만료된 구매 건들 업데이트 — `remaining > 0` 필터는 필수.
+      // 차감 합계 (expiredAmount) 는 `remaining > 0` 행만으로 계산되는데,
+      // 여기서 그 필터 없이 expired=true 로 flip 하면 이미 0 remaining
+      // 인(소진됐거나 환불·회수된) 구매까지 expired=true 로 변형됨.
+      // 잔액 영향은 없지만 audit trail 이 오염되고,
+      // revokeBonusCreditPurchase 의 `purchase.expired` 멱등성 가드가
+      // 오작동(이미 환불된 0-remaining 행을 다시 환불 시도 시
+      // already_refunded 로 잘못 분기) 한다.
       prisma.bonusCreditPurchase.updateMany({
         where: {
           userId: uid,
           expired: false,
           expiresAt: { lte: now },
+          remaining: { gt: 0 },
         },
         data: { expired: true },
       }),

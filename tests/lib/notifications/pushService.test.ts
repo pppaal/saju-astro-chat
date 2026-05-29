@@ -34,6 +34,7 @@ const mockPushSubscription = {
   update: vi.fn(),
   updateMany: vi.fn(),
   upsert: vi.fn(),
+  delete: vi.fn(),
 };
 const mockUser = {
   findMany: vi.fn(),
@@ -157,7 +158,7 @@ describe("Push Service", () => {
       const error = new Error("Gone");
       (error as { statusCode?: number }).statusCode = 410;
       mockSendNotification.mockRejectedValueOnce(error);
-      mockPushSubscription.update.mockResolvedValueOnce({});
+      mockPushSubscription.delete.mockResolvedValueOnce({});
 
       const { sendPushNotification } = await import(
         "@/lib/notifications/pushService"
@@ -169,9 +170,8 @@ describe("Push Service", () => {
 
       expect(result.sent).toBe(0);
       expect(result.failed).toBe(1);
-      expect(mockPushSubscription.update).toHaveBeenCalledWith({
+      expect(mockPushSubscription.delete).toHaveBeenCalledWith({
         where: { id: "sub-1" },
-        data: { isActive: false },
       });
     });
 
