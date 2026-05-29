@@ -60,6 +60,18 @@ export default function BirthInfoModal({
   )
   const [gender, setGender] = useState<'male' | 'female' | ''>(initial?.gender || '')
   const [city, setCity] = useState(initial?.city || '')
+  // 사용자가 [저장하고 시작] 눌렀는데 isValid=false 일 때 어느 필드가
+  // 비었는지 inline 안내. silent disabled 회귀 fix. 채우는 즉시 사라짐.
+  const [missingNotice, setMissingNotice] = useState<string | null>(null)
+
+  // 빠진 필드를 채우는 순간 안내가 사라지게 — early return 위에 두어야
+  // rules-of-hooks 위반 안 함.
+  useEffect(() => {
+    if (!missingNotice) return
+    const stillMissing =
+      !birthDate || (gender !== 'male' && gender !== 'female') || (!timeUnknown && !birthTime)
+    if (!stillMissing) setMissingNotice(null)
+  }, [missingNotice, birthDate, gender, timeUnknown, birthTime])
   // Coordinates + timezone resolved from the city picker. Persisted so the
   // counselor / calendar / fortune chain can compute the hour pillar and
   // houses against the actual birth place instead of silently falling back
@@ -212,8 +224,24 @@ export default function BirthInfoModal({
   const effectiveTime = timeUnknown ? '00:00' : birthTime
   const isValid = Boolean(birthDate && (gender === 'male' || gender === 'female') && effectiveTime)
 
+  // 어느 필드가 비었는지 — 버튼 클릭 시 안내용. 이전엔 isValid=false 면 버튼
+  // 자체가 silently disabled 라 사용자가 "왜 저장 안 됨" 모르고 이탈했다.
+  // 이제 버튼은 항상 누를 수 있고, missing 이 있으면 inline 안내.
+  const missingFieldLabels: string[] = []
+  if (!birthDate) missingFieldLabels.push(isKo ? '생년월일' : 'birth date')
+  if (gender !== 'male' && gender !== 'female') missingFieldLabels.push(isKo ? '성별' : 'gender')
+  if (!effectiveTime) missingFieldLabels.push(isKo ? '태어난 시간' : 'birth time')
+
   const handleSave = async () => {
-    if (!isValid) return
+    if (!isValid) {
+      setMissingNotice(
+        isKo
+          ? `${missingFieldLabels.join(' · ')} 을(를) 입력해주세요`
+          : `Please fill in: ${missingFieldLabels.join(', ')}`
+      )
+      return
+    }
+    setMissingNotice(null)
     const trimmedName = name.trim()
     const trimmedCity = city.trim() || undefined
     // Only persist coords/tz when the city is still present. Clearing the
@@ -350,16 +378,22 @@ export default function BirthInfoModal({
           }}
         />
 
+        {/* 빠진 필드 안내 — 사용자가 [저장하고 시작] 눌렀는데 isValid=false 면
+            여기 inline 으로 무엇이 빠졌는지 한 줄. 채우는 즉시 사라짐. */}
+        {missingNotice && (
+          <p
+            role="alert"
+            className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-[13px] font-medium text-amber-900"
+          >
+            {missingNotice}
+          </p>
+        )}
+
         <div className={styles.modalActions}>
           <button type="button" className={styles.modalCancel} onClick={onClose}>
             {isKo ? '취소' : 'Cancel'}
           </button>
-          <button
-            type="button"
-            className={styles.modalSave}
-            onClick={handleSave}
-            disabled={!isValid}
-          >
+          <button type="button" className={styles.modalSave} onClick={handleSave}>
             {isKo ? '저장하고 시작' : 'Save & start'}
           </button>
         </div>
