@@ -100,7 +100,7 @@ export async function buildCalendar(
  */
 function getRegisteredExtractors(): SignalExtractor[] {
   return [
-    // ── saju (8) ──
+    // ── saju (12) ──
     sajuShinsalExtractor,
     sajuPillarExtractor,
     sajuHyeongchungExtractor,
@@ -114,7 +114,7 @@ function getRegisteredExtractors(): SignalExtractor[] {
     sajuIljuArchetypeExtractor,
     sajuJohuYongsinExtractor,
 
-    // ── astro (14) ──
+    // ── astro (24) ──
     astroTransitExtractor,
     astroEclipseExtractor,
     astroProfectionExtractor,
