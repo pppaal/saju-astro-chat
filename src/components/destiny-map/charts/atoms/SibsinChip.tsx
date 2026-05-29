@@ -33,7 +33,12 @@ export function SibsinChip({ sibsin, size = 'xs', className }: SibsinChipProps) 
       className={`relative inline-flex items-center ${className ?? ''}`}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
-      onClick={() => setOpen((o) => !o)}
+      onClick={(e) => {
+        // chip tap 은 자체 tooltip toggle 만 — 부모 셀(PillarDrawer trigger)
+        // 까지 전파되지 않게 차단.
+        e.stopPropagation()
+        setOpen((o) => !o)
+      }}
     >
       <span
         className={`inline-block rounded-md font-medium ring-1 leading-tight ${info.color.bg} ${info.color.text} ${info.color.ring} ${sizeClass}`}
