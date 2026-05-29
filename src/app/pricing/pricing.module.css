@@ -276,7 +276,9 @@
   width: 100%;
   padding: 13px 18px;
   margin-top: auto;
-  border-radius: 10px;
+  /* pill — site-wide secondary 버튼 표준 (999px). 옛 10px 모서리는 다른
+     다크 secondary (about, blog, error) 와 어긋났음. */
+  border-radius: 999px;
   border: 1px solid var(--border-strong);
   background: transparent;
   font-size: 13px;

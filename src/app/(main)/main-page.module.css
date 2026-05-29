@@ -1049,7 +1049,9 @@
   border: 1px solid rgba(212, 181, 114, 0.22);
   background: rgba(15, 17, 35, 0.7);
   color: #ffffff;
-  font-size: 0.95rem;
+  /* 16px — iOS Safari 자동 줌-인(<16px) 방지 + 다른 모든 라이트 입력
+     (ProfileEditModal / PersonCard) 와 정렬. 옛 0.95rem(~15px) 폐기. */
+  font-size: 16px;
   outline: none;
   transition: border-color 0.18s ease;
 }

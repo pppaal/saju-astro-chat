@@ -77,17 +77,23 @@
   min-width: 160px;
   padding: 0.85rem 1.1rem;
   border-radius: 999px;
-  font-weight: 700;
+  /* 500 — site-wide button weight 표준 (compat, error, profile, pricing) 와
+     정렬. 옛 700 폐기. */
+  font-weight: 500;
   text-decoration: none;
   transition:
     transform 0.2s ease,
     background 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .primaryAction {
-  background: linear-gradient(135deg, #38bdf8, #2dd4bf);
-  color: #062033;
+  /* 브랜드 골드 그라데이션 — design tokens 표준 (about, blog cta, 라이트
+     missingProfileCard primary 와 정렬). 옛 sky/teal #38bdf8→#2dd4bf 폐기 —
+     design tokens "보라/네온 X" 정책. */
+  background: linear-gradient(135deg, #c19b56, #a07a3c);
+  color: #ffffff;
 }
 
 .secondaryAction {
@@ -99,6 +105,16 @@
 .primaryAction:hover,
 .secondaryAction:hover {
   transform: translateY(-1px);
+}
+
+.primaryAction:hover {
+  background: linear-gradient(135deg, #d4b572, #c19b56);
+}
+
+.secondaryAction:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(212, 181, 114, 0.4);
+  color: #ffffff;
 }
 
 /* ============ Prefetch Status ============ */

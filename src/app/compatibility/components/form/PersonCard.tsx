@@ -112,7 +112,7 @@ export const PersonCard = React.memo<PersonCardProps>(
     const avatarTone = idx === 0 ? 'bg-rose-100 text-rose-600' : 'bg-sky-100 text-sky-600'
 
     return (
-      <div className="rounded-[22px] border border-[#e7e4df] bg-white p-6 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_12px_32px_rgba(28,25,23,0.06)]">
+      <div className="rounded-[22px] border border-[#e7e5e4] bg-white p-6 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_12px_32px_rgba(28,25,23,0.06)]">
         {/* 헤더 — 라벨 + 불러오기 dropdown. 메인 홈 BirthInfoModal 과 동일
             패턴 (단일 트리거 + dropdown). 옛 두 버튼 ('내 정보' + '내 지인')
             은 사용자가 헷갈려서 단일화. */}
@@ -138,7 +138,7 @@ export const PersonCard = React.memo<PersonCardProps>(
               {showLoadDropdown && (
                 <ul
                   role="listbox"
-                  className="absolute right-0 z-20 mt-1 max-h-56 w-60 overflow-auto rounded-xl border border-[#e7e4df] bg-white shadow-[0_16px_40px_rgba(28,25,23,0.12)]"
+                  className="absolute right-0 z-20 mt-1 max-h-56 w-60 overflow-auto rounded-xl border border-[#e7e5e4] bg-white shadow-[0_16px_40px_rgba(28,25,23,0.12)]"
                 >
                   {loadOptions.map((o) => (
                     <li key={o.key}>
@@ -280,7 +280,7 @@ const lightFieldClasses: Required<BirthFieldsClasses> = {
   // OS 다크모드에서도 흰색 native 체크박스를 강제.
   checkbox: 'h-3.5 w-3.5 cursor-pointer accent-[#a07a3c] [color-scheme:light]',
   suggestionList:
-    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e7e4df] bg-white p-1 shadow-[0_16px_40px_rgba(28,25,23,0.12)]',
+    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e7e5e4] bg-white p-1 shadow-[0_16px_40px_rgba(28,25,23,0.12)]',
   suggestionItem:
     'block w-full rounded-lg px-2.5 py-2 text-left text-[13px] text-[#44403c] transition hover:bg-[#f5f4f1]',
 }

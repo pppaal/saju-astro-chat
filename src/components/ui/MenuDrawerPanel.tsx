@@ -92,7 +92,7 @@ export function MenuDrawerPanel({
     ? 'bg-white border-r border-[#e7e5e4] shadow-[4px_0_24px_rgba(0,0,0,0.08)]'
     : 'bg-gradient-to-b from-[#120c24] to-[#06040f] border-r border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.6)]'
 
-  const headerBorderClass = isLight ? 'border-b border-[#ebe8e3]' : 'border-b border-white/8'
+  const headerBorderClass = isLight ? 'border-b border-[#e7e5e4]' : 'border-b border-white/8'
 
   const logoClass = isLight ? 'text-stone-900' : 'text-white'
 
@@ -114,7 +114,7 @@ export function MenuDrawerPanel({
     ? 'text-stone-700 hover:bg-stone-100 hover:text-stone-900'
     : 'text-white/90 hover:bg-white/[0.06]'
 
-  const footerBorderClass = isLight ? 'border-t border-[#ebe8e3]' : 'border-t border-white/8'
+  const footerBorderClass = isLight ? 'border-t border-[#e7e5e4]' : 'border-t border-white/8'
   const footerTextClass = isLight ? 'text-stone-500' : 'text-white/45'
   const footerLinkHoverClass = isLight ? 'hover:text-stone-900' : 'hover:text-white/80'
   const overlayClass = isLight ? 'bg-stone-900/40' : 'bg-black/55'

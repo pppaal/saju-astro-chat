@@ -194,7 +194,7 @@ export default function TarotChatScreen() {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder={isKo ? '어떤 고민이 있으신가요?' : 'What is on your mind?'}
-              className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 rounded-2xl p-4 pr-14 text-slate-100 placeholder-slate-500 resize-none outline-none text-base min-h-16 max-h-32 transition-colors"
+              className="w-full bg-slate-800 border border-slate-700 focus:border-[#d4b572] rounded-2xl p-4 pr-14 text-slate-100 placeholder-slate-500 resize-none outline-none text-base min-h-16 max-h-32 transition-colors"
               rows={1}
             />
             <button
@@ -202,7 +202,7 @@ export default function TarotChatScreen() {
               disabled={!question.trim()}
               className={`absolute right-2 bottom-2 p-2 rounded-xl transition-all ${
                 question.trim()
-                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                  ? 'bg-[#d4b572] hover:bg-[#e8cc8a] text-[#1c1917] shadow-lg shadow-[rgba(212,181,114,0.25)]'
                   : 'bg-slate-700 text-slate-500 cursor-not-allowed'
               }`}
               aria-label="Send"
@@ -251,7 +251,7 @@ export default function TarotChatScreen() {
                       }}
                       className={`flex flex-col items-center text-center p-3 rounded-2xl border transition-all ${
                         selected
-                          ? 'border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.3)]'
+                          ? 'border-[#d4b572] shadow-[0_0_20px_rgba(212,181,114,0.3)]'
                           : 'border-slate-800 hover:border-slate-600'
                       }`}
                       style={{ background: info.gradient }}

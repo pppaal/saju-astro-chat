@@ -49,7 +49,9 @@ export function MatchModal({
       aria-modal="true"
       aria-label={copy.matchTitle}
       // 페이지 위 전체 덮음 — sidebar / header 위로 올라옴
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-gradient-to-br from-rose-700/95 via-fuchsia-700/95 to-violet-800/95 px-6 py-10 backdrop-blur-sm"
+      // 다크 cosmic + 골드 톤 — design tokens "보라/네온 X" 정책. 옛 rose/
+      // fuchsia/violet 그라데이션 폐기.
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-gradient-to-br from-[#07091a]/95 via-[#1c1530]/95 to-[#07091a]/95 px-6 py-10 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -77,7 +79,7 @@ export function MatchModal({
           <button
             type="button"
             onClick={handleSendMessage}
-            className="w-full rounded-full bg-white px-6 py-3.5 text-base font-semibold text-rose-700 shadow-lg transition active:scale-[0.98]"
+            className="w-full rounded-full bg-[#d4b572] px-6 py-3.5 text-base font-medium text-[#1c1917] shadow-lg transition hover:bg-[#e8cc8a] active:scale-[0.98]"
           >
             {copy.matchSendMessage}
           </button>
