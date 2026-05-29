@@ -11,6 +11,7 @@ import type { I18nMessages } from '@/i18n/utils'
 import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
+import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt'
 import HomeChatInput from './components/HomeChatInput'
 import BirthInfoModal from './components/BirthInfoModal'
 import {
@@ -345,6 +346,11 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         onDeleted={handleDeleted}
         locale={locale}
       />
+
+      {/* PWA 설치 안내 — 생일 입력 후 (= 한 번 써본) 사용자에게만 노출.
+          Chrome 계열: 네이티브 다이얼로그. iOS Safari: "공유 → 홈 화면 추가"
+          가이드. Firefox / in-app webview / 이미 설치된 PWA 는 자동으로 미노출. */}
+      <PWAInstallPrompt locale={locale} />
 
       <PrefetchLinks />
       <SpeedInsights />

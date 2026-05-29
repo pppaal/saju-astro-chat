@@ -115,10 +115,10 @@
     "signIn": "로그인"
   },
   "consent": {
-    "title": "개인정보 설정",
-    "description": "분석 및 광고를 위해 쿠키와 유사 기술을 사용합니다. 동의 전까지 Google Analytics/AdSense를 차단합니다.",
+    "title": "서비스 사용 분석 동의",
+    "description": "어떤 기능이 도움 됐는지 익명으로 분석해서 서비스 개선에 써요. 거부해도 모든 기능은 그대로 쓸 수 있어요.",
     "reject": "거부",
-    "accept": "수락"
+    "accept": "동의"
   },
   "numerologyDetail": {
     "lifePath": "인생 경로",
