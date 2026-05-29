@@ -1094,180 +1094,180 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
   },
   // ─── Triplicity / Term / Face dignity (Agent 1) ───
   triplicityMatch: {
-    ko: "본명 결의 원소 결이 자연스럽게 받쳐주는 자리예요. 결이 같은 결과 만나 흐름이 두텁게 차오릅니다.",
-    en: "The element of the natal current supports today's flow. Grain meets grain — the current swells smoothly."
+    ko: "본명의 원소 결이 오늘 흐름에 자연스럽게 맞물리는 자리예요. 흐름이 두텁게 차오르니, 평소 미뤄둔 한 가지에 시간을 얹어 흘려보내세요.",
+    en: "The natal element locks naturally into today's flow — the current swells thicker. Pour your hours into the one task you've been putting off and let it ride this grain."
   },
   termMatch: {
-    ko: "본명 결의 미세한 구획이 결을 받쳐주는 자리예요. 작은 받침이 결을 정확하게 잡아 줍니다.",
-    en: "The fine bounds of the natal current hold the flow steady. A small support keeps the grain on its line."
+    ko: "본명 결의 미세한 구획이 흐름을 정확하게 받쳐주는 자리예요. 보내기 전에 디테일 한 줄을 다시 다듬어 두세요.",
+    en: "The fine bounds of the natal current hold today's flow on its line. Polish one detail before you send it out and the grain locks down firmer."
   },
   faceMatch: {
-    ko: "본명 결의 10도 결이 살아나는 자리예요. 작은 결의 결이 그날의 흐름에 색을 입힙니다.",
-    en: "The 10-degree face of the natal current livens up. A small grain colors today's flow."
+    ko: "본명 결의 10도 구획이 살아나 그날의 흐름에 색을 입히는 자리예요. 작게 표현하고 싶었던 한 가지를 오늘 가볍게 내놓아 보세요.",
+    en: "The 10-degree face of the natal current livens up and tints today's flow. Put out one small thing you've wanted to express — keep it light."
   },
   natalAlmuten: {
-    ko: "본명 알무텐 결이 두텁게 박혀 있는 시기예요. 평소 결이 머무는 자리에서 결이 한층 살아납니다.",
-    en: "The natal almuten is firmly seated. The current quickens where it usually settles."
+    ko: "본명 알무텐 결이 두텁게 박혀 있는 시기예요. 평소 결이 머무는 자리에서 한층 살아나니, 그 영역 한 가지에만 오늘 무게를 실어 보세요.",
+    en: "The natal almuten sits firmly seated — the current quickens where it usually settles. Place today's weight on the single domain it rules."
   },
   // ─── Midpoint extractor (Agent 2) ───
   midpointSunMoon: {
-    ko: "본명 태양·달 중간 결이 트랜짓에 직접 닿는 자리예요. 정체성 결이 표면으로 차오릅니다.",
-    en: "The natal Sun/Moon midpoint is touched by transit — identity grain surfaces."
+    ko: "본명 태양과 달 결이 한 점에서 맞물리는 자리예요. 정체성 결이 표면으로 차오르니, 오늘은 자기 페이스 한 가지를 다시 잡으세요.",
+    en: "Where the natal Sun and Moon currents lock into one point — identity grain surfaces. Reset one piece of your own pace today."
   },
   midpointVenusMars: {
-    ko: "본명 금성·화성 중간 결이 살아나는 자리예요. 끌림과 행동의 결이 한 점에 모입니다.",
-    en: "The Venus/Mars midpoint comes alive — attraction and action converge."
+    ko: "본명 금성·화성 결이 트랜짓에서 겹치는 시기예요. 끌림과 행동이 한 점에 모이니, 망설이던 한 걸음을 가볍게 내디뎌 보세요.",
+    en: "The transit lights up the natal Venus/Mars crossing — attraction and action converge. Take the one step you've been hesitating on, lightly."
   },
   midpointSunVenus: {
-    ko: "본명 태양·금성 중간 결이 닿는 자리예요. 사랑 결이 자연스럽게 차오릅니다.",
-    en: "The Sun/Venus midpoint is touched — love's current rises naturally."
+    ko: "본명 태양 결 위로 금성 결이 흘러드는 자리예요. 사랑·취향 결이 자연스럽게 차오르니, 미뤄둔 호의 한 마디를 오늘 건네 보세요.",
+    en: "Natal Sun's grain meets Venus at the midpoint — the current of love and taste rises naturally. Send the kind word you've been holding back today."
   },
   midpointMercuryVenus: {
-    ko: "본명 수성·금성 중간 결이 닿는 자리예요. 표현 결이 부드럽게 흐릅니다.",
-    en: "The Mercury/Venus midpoint is touched — expression flows softly."
+    ko: "본명 수성과 금성 결이 한 점에서 맞물리는 자리예요. 표현 결이 부드럽게 흐르니, 쓰다 만 메시지나 글 한 편을 마무리해 보내세요.",
+    en: "Where the natal Mercury and Venus currents lock into one point — expression flows softly. Finish the half-written message or draft and send it out."
   },
   midpointSunMars: {
-    ko: "본명 태양·화성 중간 결이 닿는 자리예요. 추진력 결이 한 점에서 솟아오릅니다.",
-    en: "The Sun/Mars midpoint is touched — drive surges at a single point."
+    ko: "본명 태양·화성 두 결이 교차하는 순간이에요. 추진력이 한 점에서 솟아오르니, 가장 미루기 쉬웠던 한 가지를 오늘 처음 손에 잡으세요.",
+    en: "Two natal currents — Sun and Mars — cross at one point. Drive surges up; pick up the one thing you keep deferring and start it today."
   },
   midpointMoonVenus: {
-    ko: "본명 달·금성 중간 결이 닿는 자리예요. 감정과 호의의 결이 같이 차오릅니다.",
-    en: "The Moon/Venus midpoint is touched — feeling and warmth swell together."
+    ko: "본명 달·금성 결이 트랜짓에서 겹치는 시기예요. 감정과 호의가 같이 차오르니, 가까운 사람에게 안부 한 줄을 흘려보내세요.",
+    en: "The transit lights up the natal Moon/Venus crossing — feeling and warmth swell together. Drop a quick check-in line to someone close."
   },
   midpointSunJupiter: {
-    ko: "본명 태양·목성 중간 결이 닿는 자리예요. 확장 결이 두텁게 흘러듭니다.",
-    en: "The Sun/Jupiter midpoint is touched — expansion thickens the current."
+    ko: "본명 태양 결 위로 목성 결이 흘러드는 자리예요. 확장 결이 두텁게 차오르니, 평소엔 크다고 미루던 제안 한 가지를 오늘 꺼내 보세요.",
+    en: "Natal Sun's grain meets Jupiter at the midpoint — expansion thickens the current. Bring out the one proposal you kept calling 'too big' and put it on the table."
   },
   midpointVenusJupiter: {
-    ko: "본명 금성·목성 중간 결이 닿는 자리예요. 풍요 결이 부드럽게 부풉니다.",
-    en: "The Venus/Jupiter midpoint is touched — abundance swells gently."
+    ko: "본명 금성·목성 두 결이 교차하는 순간이에요. 풍요 결이 부드럽게 부푸니, 평소 미뤄둔 작은 선물·식사 한 자리를 오늘 결에 얹어 보세요.",
+    en: "Two natal currents — Venus and Jupiter — cross at one point. Abundance swells gently; place a small gift or meal you've been postponing on today's flow."
   },
   midpointMarsSaturn: {
-    ko: "본명 화성·토성 중간 결이 닿는 자리예요. 결단 결이 무겁게 굳어집니다.",
-    en: "The Mars/Saturn midpoint is touched — resolve hardens with weight."
+    ko: "본명 화성과 토성 결이 한 점에서 맞물리는 자리예요. 결단이 무겁게 굳어지니, 마무리해야 할 일 한 가지에 오늘 마침표를 찍으세요.",
+    en: "Where the natal Mars and Saturn currents lock into one point — resolve hardens with weight. Put the period on the one thing that needs finishing today."
   },
   midpointJupiterSaturn: {
-    ko: "본명 목성·토성 중간 결이 닿는 자리예요. 시간 결의 큰 흐름이 한 점에 모입니다.",
-    en: "The Jupiter/Saturn midpoint is touched — time's larger current gathers at one point."
+    ko: "본명 목성·토성 결이 트랜짓에서 겹치는 시기예요. 시간의 큰 흐름이 한 점에 모이니, 1년짜리 계획 한 줄을 오늘 종이에 적어 보세요.",
+    en: "The transit lights up the natal Jupiter/Saturn crossing — time's larger current gathers at one point. Write one line of your year-long plan down on paper today."
   },
   // ─── Solar Arc directions (Agent 3) ───
   solarArcSunConjunct: {
-    ko: "본명 태양 결이 직접 이동해 본명에 닿는 자리예요. 정체성 결의 큰 전환이 펼쳐집니다.",
-    en: "The arc-driven natal Sun reaches the natal current — a major shift in identity unfolds."
+    ko: "본명 태양 결이 직접 이동해 본명에 닿는 자리예요. 정체성의 큰 전환이 펼쳐지니, 오늘은 '나는 어디로 가는가' 한 줄을 다시 적어 보세요.",
+    en: "The arc-driven natal Sun reaches the natal current — a major shift in identity unfolds. Rewrite the one line that answers 'where am I headed' today."
   },
   solarArcSaturnSquare: {
-    ko: "본명 토성의 결이 본명을 압박하는 자리예요. 책임 결이 무거워지는 시기입니다.",
-    en: "Solar Arc Saturn presses on the natal current — responsibility weights down."
+    ko: "본명 토성 결이 본명을 압박하는 자리예요. 책임의 무게가 가라앉아 들어오니, 미뤄둔 가장 무거운 일 하나만 골라 오늘 손에 잡으세요.",
+    en: "Solar Arc Saturn presses on the natal current — responsibility weights down. Pick the single heaviest task you've been postponing and start it today."
   },
   solarArcJupiterTrine: {
-    ko: "본명 목성 결이 본명에 흘러드는 자리예요. 확장 결이 자연스럽게 차오릅니다.",
-    en: "Solar Arc Jupiter flows into the natal current — expansion swells smoothly."
+    ko: "본명 목성 결이 본명에 흘러드는 자리예요. 확장이 자연스럽게 차오르니, 평소 크다고 접어둔 기회 하나를 오늘 펼쳐 검토해 보세요.",
+    en: "Solar Arc Jupiter flows into the natal current — expansion swells smoothly. Unfold one opportunity you'd shelved as 'too ambitious' and review it today."
   },
   solarArcMoonConjunct: {
-    ko: "본명 달 결이 직접 이동해 본명에 닿는 자리예요. 감정·일상 결의 큰 챕터 전환입니다.",
-    en: "Solar Arc Moon meets the natal current — a chapter turn in emotion and daily flow."
+    ko: "본명 달 결이 직접 이동해 본명에 닿는 자리예요. 감정·일상의 챕터가 넘어가는 시기이니, 살림·습관 한 가지를 오늘 새로 고쳐 보세요.",
+    en: "Solar Arc Moon meets the natal current — a chapter turn in emotion and daily flow. Reset one routine or domestic habit today."
   },
   solarArcMarsConjunct: {
-    ko: "본명 화성 결이 본명에 직접 닿는 자리예요. 행동 결의 큰 점화 신호입니다.",
-    en: "Solar Arc Mars touches the natal current — a major ignition of action."
+    ko: "본명 화성 결이 본명에 직접 닿는 자리예요. 행동의 큰 점화 신호이니, 오랫동안 시작 못 한 한 가지에 오늘 첫 줄을 그어 두세요.",
+    en: "Solar Arc Mars touches the natal current — a major ignition of action. Draw the first line on the one thing you've been failing to start."
   },
   solarArcVenusConjunct: {
-    ko: "본명 금성 결이 본명에 닿는 자리예요. 관계·가치 결의 깊은 결합 시기입니다.",
-    en: "Solar Arc Venus meets the natal current — a deep binding of relationship and value."
+    ko: "본명 금성 결이 본명에 닿는 자리예요. 관계·가치의 깊은 결합 시기이니, 오래 미뤄둔 약속·만남 한 자리를 오늘 잡으세요.",
+    en: "Solar Arc Venus meets the natal current — a deep binding of relationship and value. Schedule the one long-postponed meeting or date today."
   },
   solarArcDefault: {
-    ko: "본명 결이 직접 이동해 본명에 닿는 자리예요. 큰 결의 결이 펼쳐집니다.",
-    en: "A natal point arcs into the natal current — the larger grain unfolds."
+    ko: "본명 결이 직접 이동해 본명에 닿는 자리예요. 큰 흐름이 펼쳐지니, 오늘은 1년짜리 결정 한 줄에 천천히 시간을 얹어 보세요.",
+    en: "A natal point arcs into the natal current — the larger grain unfolds. Take your time on one year-shaping decision today and let it settle."
   },
   // ─── 진행 행성 어스펙트 (Agent 4) ───
   progSunConjunct: {
-    ko: "진행 태양 결이 본명 행성에 직접 닿는 자리예요. 정체성 결이 새로 빚어지는 시기입니다.",
-    en: "Progressed Sun meets a natal planet — identity grain is being newly shaped."
+    ko: "진행 태양 결이 본명 행성에 직접 닿는 자리예요. 정체성이 새로 빚어지는 시기이니, 오늘 '내가 누구인가' 한 가지를 다시 정리해 보세요.",
+    en: "Progressed Sun meets a natal planet — identity grain is being newly shaped. Re-sort one piece of your 'who am I' today."
   },
   progSunTrine: {
-    ko: "진행 태양 결이 본명에 부드럽게 흐르는 자리예요. 정체성 결이 자연스럽게 차오릅니다.",
-    en: "Progressed Sun flows easily — identity swells naturally."
+    ko: "진행 태양 결이 본명에 부드럽게 흐르는 자리예요. 정체성이 자연스럽게 차오르니, 오래 미뤄둔 자기소개·프로필 한 줄을 오늘 다듬으세요.",
+    en: "Progressed Sun flows easily — identity swells naturally. Polish one line of your bio or profile you've been postponing today."
   },
   progSunSquare: {
-    ko: "진행 태양 결이 본명에 비스듬히 압박하는 자리예요. 정체성 결의 도전 결입니다.",
-    en: "Progressed Sun presses obliquely on natal — a challenge to identity."
+    ko: "진행 태양 결이 본명에 비스듬히 압박하는 자리예요. 정체성의 도전 결이니, 오늘은 평소 거부하던 한 가지에 잠깐만 손을 대 보세요.",
+    en: "Progressed Sun presses obliquely on natal — a challenge to identity. Touch the one thing you usually refuse, just briefly, today."
   },
   progSunOpposition: {
-    ko: "진행 태양 결이 본명과 정면으로 만나는 자리예요. 정체성 결의 대조 흐름입니다.",
-    en: "Progressed Sun meets natal head-on — a polarity in identity."
+    ko: "진행 태양 결이 본명과 정면으로 만나는 자리예요. 정체성의 대조 흐름이니, 반대편 입장에 선 사람의 말 한마디를 오늘은 끝까지 들어 보세요.",
+    en: "Progressed Sun meets natal head-on — a polarity in identity. Hear out one full sentence from someone on the opposite side today."
   },
   progMercuryConjunct: {
-    ko: "진행 수성 결이 본명에 직접 닿는 자리예요. 소통·결정 결이 새로 빚어집니다.",
-    en: "Progressed Mercury meets natal — communication and decision are reshaped."
+    ko: "진행 수성 결이 본명에 직접 닿는 자리예요. 소통·결정이 새로 빚어지니, 오늘 한 가지 결정만 종이에 적어 정리해 보세요.",
+    en: "Progressed Mercury meets natal — communication and decision are reshaped. Write out the one decision you need to make on paper today."
   },
   progMercurySquare: {
-    ko: "진행 수성 결이 본명을 비틀어 만나는 자리예요. 소통 결이 어긋나기 쉬워요.",
-    en: "Progressed Mercury twists into natal — communication snags easily."
+    ko: "진행 수성 결이 본명을 비틀어 만나는 자리예요. 소통이 어긋나기 쉬우니, 보내기 전 메시지 한 줄을 소리 내어 한 번 더 읽어 보세요.",
+    en: "Progressed Mercury twists into natal — communication snags easily. Read one message aloud once more before you hit send today."
   },
   progVenusConjunct: {
-    ko: "진행 금성 결이 본명에 닿는 자리예요. 관계·가치 결이 새로 차오릅니다.",
-    en: "Progressed Venus meets natal — relationship and value swell anew."
+    ko: "진행 금성 결이 본명에 닿는 자리예요. 관계·가치가 새로 차오르니, 평소 표현 안 하던 호의 한마디를 오늘 가볍게 건네 보세요.",
+    en: "Progressed Venus meets natal — relationship and value swell anew. Pass along one kind line you don't usually voice, lightly today."
   },
   progVenusTrine: {
-    ko: "진행 금성 결이 본명에 부드럽게 흐르는 자리예요. 관계·가치 결이 활짝 열립니다.",
-    en: "Progressed Venus flows easily — relationship and value open up."
+    ko: "진행 금성 결이 본명에 부드럽게 흐르는 자리예요. 관계·가치가 활짝 열리니, 미뤄둔 만남·연락 한 건을 오늘 결에 얹어 보세요.",
+    en: "Progressed Venus flows easily — relationship and value open up. Place one postponed meeting or message on today's flow."
   },
   progMarsConjunct: {
-    ko: "진행 화성 결이 본명에 직접 닿는 자리예요. 행동·욕구 결이 점화되는 시기입니다.",
-    en: "Progressed Mars meets natal — action and drive ignite."
+    ko: "진행 화성 결이 본명에 직접 닿는 자리예요. 행동·욕구가 점화되니, 미뤄둔 한 가지를 오늘 첫 30분만 손에 잡아 보세요.",
+    en: "Progressed Mars meets natal — action and drive ignite. Take the one thing you've been postponing and give it just the first thirty minutes today."
   },
   progMarsOpposition: {
-    ko: "진행 화성 결이 본명과 정면으로 만나는 자리예요. 행동·결단 결의 대치 흐름입니다.",
-    en: "Progressed Mars meets natal head-on — action squares off."
+    ko: "진행 화성 결이 본명과 정면으로 만나는 자리예요. 행동·결단의 대치 흐름이니, 오늘은 부딪치는 한 사람과 거리부터 한 발 두세요.",
+    en: "Progressed Mars meets natal head-on — action squares off. Step one pace back from the person you're colliding with today."
   },
   // ─── Draconic + Harmonics (Agent 5) ───
   draconicSunConjunct: {
-    ko: "영혼 결의 태양이 본명에 닿는 자리예요. 깊은 결이 표면으로 떠오릅니다.",
-    en: "The draconic Sun touches the natal current — a deep grain surfaces."
+    ko: "영혼 결의 태양이 본명에 닿는 자리예요. 깊은 흐름이 표면으로 떠오르니, 오늘은 '왜 이걸 하고 있나' 한 줄을 조용히 적어 보세요.",
+    en: "The draconic Sun touches the natal current — a deep grain surfaces. Quietly write down one line answering 'why am I doing this' today."
   },
   draconicMoonConjunct: {
-    ko: "영혼 결의 달이 본명에 닿는 자리예요. 깊은 감정 결이 표면으로 차오릅니다.",
-    en: "The draconic Moon touches natal — deep emotional grain rises."
+    ko: "영혼 결의 달이 본명에 닿는 자리예요. 깊은 감정이 표면으로 차오르니, 오늘 떠오르는 한 가지 감정을 가볍게 메모해 두세요.",
+    en: "The draconic Moon touches natal — deep emotional grain rises. Jot down the one feeling that surfaces today, lightly."
   },
   draconicVenusConjunct: {
-    ko: "영혼 결의 금성이 본명에 닿는 자리예요. 깊은 관계 결이 살아납니다.",
-    en: "The draconic Venus touches natal — the deeper grain of connection stirs."
+    ko: "영혼 결의 금성이 본명에 닿는 자리예요. 깊은 관계 흐름이 살아나니, 오랜 인연 한 사람에게 안부 한 줄을 흘려보내세요.",
+    en: "The draconic Venus touches natal — the deeper grain of connection stirs. Send one line of greeting to a long-standing bond today."
   },
   draconicGeneric: {
-    ko: "영혼 결이 본명 흐름에 닿는 자리예요. 깊은 결의 결이 표면으로 떠오릅니다.",
-    en: "A draconic point touches the natal flow — a soul-level grain surfaces."
+    ko: "영혼 결이 본명 흐름에 닿는 자리예요. 깊은 흐름이 표면으로 떠오르니, 오늘 마음에 걸리는 한 가지를 짧게 적어 두세요.",
+    en: "A draconic point touches the natal flow — a soul-level grain surfaces. Briefly note down the one thing weighing on you today."
   },
   harmonic4thMars: {
-    ko: "노력 결의 화성 패턴이 트랜짓에 활성화되는 자리예요. 도전과 노력의 결이 차오릅니다.",
-    en: "The H4 Mars pattern is activated — effort and challenge swell."
+    ko: "노력 결의 화성 패턴이 트랜짓에 활성화되는 자리예요. 도전과 노력의 흐름이 차오르니, 오늘은 가장 까다로운 한 가지에 30분만 매달려 보세요.",
+    en: "The 4th-harmonic Mars pattern is activated — effort and challenge swell. Stick with the single hardest task for just thirty minutes today."
   },
   harmonic4thGeneric: {
-    ko: "노력 결 패턴이 활성화되는 자리예요. 도전과 단련의 흐름이 깊어집니다.",
-    en: "The H4 effort pattern stirs — challenge and discipline deepen."
+    ko: "노력 결 패턴이 활성화되는 자리예요. 도전과 단련의 흐름이 깊어지니, 미뤄둔 단단한 일 한 가지에 오늘 손을 얹으세요.",
+    en: "The 4th-harmonic effort pattern stirs — challenge and discipline deepen. Place your hand on one solid, postponed task today."
   },
   harmonic5thVenus: {
-    ko: "재능 결의 금성 패턴이 활성화되는 자리예요. 창의 흐름이 두텁게 차오릅니다.",
-    en: "The H5 Venus pattern is activated — creativity swells."
+    ko: "재능 결의 금성 패턴이 활성화되는 자리예요. 창의 흐름이 두텁게 차오르니, 평소 못 꺼낸 표현 한 가지를 오늘 가볍게 내보내 보세요.",
+    en: "The 5th-harmonic Venus pattern is activated — creativity swells. Let out one expression you've kept inside, lightly today."
   },
   harmonic5thGeneric: {
-    ko: "재능 결 패턴이 활성화되는 자리예요. 창의 흐름이 살아납니다.",
-    en: "The H5 creative pattern stirs — talent comes alive."
+    ko: "재능 결 패턴이 활성화되는 자리예요. 창의 흐름이 살아나니, 오늘은 손에 잡히는 작은 만들기 한 가지에 시간을 얹어 보세요.",
+    en: "The 5th-harmonic creative pattern stirs — talent comes alive. Pour time into one small thing you can make with your hands today."
   },
   harmonic7thNeptune: {
-    ko: "영감 결의 해왕성 패턴이 활성화되는 자리예요. 깊은 직관 결이 부풉니다.",
-    en: "The H7 Neptune pattern is activated — inspiration deepens."
+    ko: "영감 결의 해왕성 패턴이 활성화되는 자리예요. 깊은 직관이 부푸니, 오늘 떠오른 한 가지 이미지를 짧게 받아 적어 두세요.",
+    en: "The 7th-harmonic Neptune pattern is activated — inspiration deepens. Briefly jot down the one image that surfaces today."
   },
   harmonic7thGeneric: {
-    ko: "영감 결 패턴이 활성화되는 자리예요. 직관과 영감 결이 차오릅니다.",
-    en: "The H7 inspiration pattern stirs — intuition swells."
+    ko: "영감 결 패턴이 활성화되는 자리예요. 직관과 영감이 차오르니, 평소 안 가던 산책길 한 곳을 오늘 짧게 걸어 보세요.",
+    en: "The 7th-harmonic inspiration pattern stirs — intuition swells. Take a brief walk on one path you don't usually take today."
   },
   harmonic9thJupiter: {
-    ko: "영성 결의 목성 패턴이 활성화되는 자리예요. 완성 결이 두텁게 차오릅니다.",
-    en: "The H9 Jupiter pattern is activated — completion and meaning swell."
+    ko: "영성 결의 목성 패턴이 활성화되는 자리예요. 완성 흐름이 두텁게 차오르니, 오래 끌어온 일 한 가지를 오늘 마무리 쪽으로 옮기세요.",
+    en: "The 9th-harmonic Jupiter pattern is activated — completion and meaning swell. Move one long-running task toward the finish line today."
   },
   harmonic9thGeneric: {
-    ko: "영성 결 패턴이 활성화되는 자리예요. 완성 결이 깊어집니다.",
-    en: "The H9 spiritual pattern stirs — completion deepens."
+    ko: "영성 결 패턴이 활성화되는 자리예요. 완성 흐름이 깊어지니, 오늘은 마무리해야 할 한 가지에 마지막 한 줄을 보태 보세요.",
+    en: "The 9th-harmonic spiritual pattern stirs — completion deepens. Add the final line to the one thing that needs wrapping up today."
   },
 };
 
