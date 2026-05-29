@@ -7,7 +7,7 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { SignalLayer } from '@/lib/calendar-engine/types'
 import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 
-type Sig = { layer: SignalLayer; polarity: number; weight: number; source: string; kind: string; themes: AstroThemeKey[]; tw?: Partial<Record<AstroThemeKey, number>> }
+type Sig = { layer: SignalLayer; polarity: number; weight: number; source: string; kind: string; themes: AstroThemeKey[]; tw?: Partial<Record<AstroThemeKey, number>>; name: string }
 const THEMES: AstroThemeKey[] = ['love', 'money', 'career', 'health', 'growth']
 const KO: Record<AstroThemeKey, string> = { love: '연애', money: '돈', career: '일', health: '건강', growth: '성장' }
 const LW: Record<string, number> = { decadal: 1, yearly: 0.85, monthly: 0.7, daily: 0.55, hourly: 0.4, instant: 0.5 }
@@ -33,7 +33,7 @@ const pickA = (s: Sig[]) => s.filter((x) => x.source === 'astro')
 type DayRec = { day: string; sigs: Sig[] }
 async function sigDays(natal: NatalContext, start: string, end: string): Promise<DayRec[]> {
   const cells = await buildCalendar(natal, { start, end, granularity: 'day' }, { includeEvidence: true })
-  return cells.map((c) => ({ day: c.datetime.slice(0, 10), sigs: (c.signals as any[]).map((s) => ({ layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source, kind: s.kind, themes: s.themes ?? [], tw: s.themeWeights })) as Sig[] }))
+  return cells.map((c) => ({ day: c.datetime.slice(0, 10), sigs: (c.signals as any[]).map((s) => ({ layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source, kind: s.kind, themes: s.themes ?? [], tw: s.themeWeights, name: s.korean ?? s.name ?? s.kind })) as Sig[] }))
 }
 const clamp = (x: number) => Math.max(0, Math.min(100, Math.round(x)))
 
@@ -58,24 +58,32 @@ async function main() {
   }
 
   // 5월을 고정빌드에서 슬라이스 → 수렴일 찾고 → 테마 분해
-  const may = refDays.filter((d) => d.day.startsWith('2026-05')).map((d) => {
-    const { sa, aa } = score(d.sigs); const td = themeDir(d.sigs)
-    const top = THEMES.map((k) => [k, td[k]] as const).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0]
-    return { day: d.day, sa, aa, both: Math.min(sa, aa), conv: Math.abs(sa - aa) <= 16, td, top }
-  })
-  console.log('"쌘 날"이 무슨 타이밍인가 — 매일 대표테마 + 수렴 (기준사주, N=' + N + ')')
-  console.log('날짜       사주 점성  대표테마(방향)        수렴?')
-  for (const d of may)
-    console.log(`${d.day}  ${String(d.sa).padStart(3)} ${String(d.aa).padStart(4)}  ${(KO[d.top[0]] + (d.top[1] >= 0 ? ' 기회' : ' 주의')).padEnd(8)} ${d.td[d.top[0]].toFixed(1).padStart(6)}   ${d.conv ? '✔' : ''}`)
+  // ── 테마별 기준선(이 사람 평소) — 고정창에서 1회 ──
+  const base: Record<AstroThemeKey, { mean: number; sd: number }> = {} as any
+  for (const k of THEMES) { const xs = refDays.map((d) => themeDir(d.sigs)[k]); base[k] = stats(xs) }
+  const Z = 1.0 // 기준선에서 이만큼(sd) 벗어나야 "그 테마 타이밍"으로 인정
 
-  // 가장 강한 길/흉 수렴일 + 그 테마
-  const convDays = may.filter((d) => d.conv)
-  const bestUp = [...convDays].sort((a, b) => (b.sa + b.aa) - (a.sa + a.aa))[0]
-  const bestDn = [...convDays].sort((a, b) => (a.sa + a.aa) - (b.sa + b.aa))[0]
-  const fmt = (d: any) => { const s = THEMES.map((k) => [k, d.td[k]] as const).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])); return `"${KO[s[0][0]]}" 중심(${s[0][1] >= 0 ? '기회' : '주의'}) · 다음 "${KO[s[1][0]]}"` }
-  console.log(`\n[가장 강한 길 수렴] ${bestUp.day} 사주${bestUp.sa}/점성${bestUp.aa} → ${fmt(bestUp)}`)
-  console.log(`[가장 강한 흉 수렴] ${bestDn.day} 사주${bestDn.sa}/점성${bestDn.aa} → ${fmt(bestDn)}`)
-  console.log('\n핵심: 같은 "쌘 날"도 테마로 분해 → 어떤 날은 "일" 타이밍, 어떤 날은 "연애" 타이밍.')
-  console.log('     점수=언제·얼마나·길흉 / 테마=무엇 → 둘을 합쳐야 "무슨 타이밍"이 나온다.')
+  // 그날 핵심 신호 설명 (테마 안 잡힐 때)
+  const describe = (sigs: Sig[]) => {
+    const seen = new Set<string>(); const top: Sig[] = []
+    for (const s of [...sigs].sort((a, b) => rankKey(b) - rankKey(a))) { if (seen.has(s.name)) continue; seen.add(s.name); top.push(s); if (top.length >= 3) break }
+    return top.map((s) => `${s.name}(${s.polarity >= 0 ? '+' : ''}${s.polarity})`).join(', ')
+  }
+
+  const may = refDays.filter((d) => d.day.startsWith('2026-05'))
+  console.log('데이터로 "무슨 타이밍" 판정 — 테마 기준선 이탈(z≥' + Z + ')이면 테마, 아니면 설명 (N=' + N + ')\n')
+  console.log('날짜       사주 점성 | 판정')
+  for (const d of may) {
+    const { sa, aa } = score(d.sigs); const td = themeDir(d.sigs)
+    const zs = THEMES.map((k) => ({ k, z: base[k].sd > 0.01 ? (td[k] - base[k].mean) / base[k].sd : 0, v: td[k] }))
+      .sort((a, b) => Math.abs(b.z) - Math.abs(a.z))
+    const hit = zs.filter((x) => Math.abs(x.z) >= Z)
+    let verdict: string
+    if (hit.length) verdict = `🎯 ${hit.slice(0, 2).map((x) => `${KO[x.k]} ${x.v >= 0 ? '기회' : '주의'}(z${x.z >= 0 ? '+' : ''}${x.z.toFixed(1)})`).join(' · ')}`
+    else verdict = `… 특정 테마 약함 → 설명: ${describe(d.sigs)}`
+    console.log(`${d.day}  ${String(sa).padStart(3)} ${String(aa).padStart(4)} | ${verdict}`)
+  }
+  console.log('\n핵심: 테마가 평소보다 유난히 튀면(z≥1) "그 테마 타이밍", 아무것도 안 튀면')
+  console.log('     억지 라벨 대신 그날 핵심 신호로 설명 — "데이터가 가리키면 테마, 아니면 설명".')
 }
 main().catch((e) => { console.error(e); process.exit(1) })
