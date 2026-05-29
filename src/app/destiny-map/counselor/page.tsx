@@ -275,7 +275,12 @@ export default function CounselorPage() {
 
       <div className={styles.chatWrapper}>
         <ErrorBoundary
-          fallback={<ChatErrorFallback error={new Error('Chat error')} reset={handleChatReset} />}
+          fallback={
+            <ChatErrorFallback
+              error={new Error(lang === 'ko' ? '채팅 오류' : 'Chat error')}
+              reset={handleChatReset}
+            />
+          }
           onError={(error) => {
             logger.error('[Counselor] Chat error', { error: error.message, stack: error.stack })
           }}
