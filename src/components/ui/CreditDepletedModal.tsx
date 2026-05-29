@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { useModalDismiss, useModalTransition } from '@/hooks/useModalA11y'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import styles from './CreditDepletedModal.module.css'
 
 interface CreditDepletedModalProps {
@@ -23,6 +24,7 @@ export default function CreditDepletedModal({
   const router = useRouter()
   const { t } = useI18n()
   const { isVisible, isAnimating } = useModalTransition(isOpen)
+  const trapRef = useFocusTrap(isOpen)
 
   const handlePurchase = useCallback(() => {
     // 결제 후 돌아올 URL 저장 — 경로뿐 아니라 쿼리(질문·생년월일 등)까지
@@ -84,6 +86,7 @@ export default function CreditDepletedModal({
 
   return (
     <div
+      ref={trapRef}
       className={`${styles.overlay} ${isAnimating ? styles.overlayVisible : ''}`}
       onClick={onClose}
       role="dialog"

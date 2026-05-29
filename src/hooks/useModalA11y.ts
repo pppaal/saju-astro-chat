@@ -10,7 +10,13 @@ import { useEffect, useState } from 'react'
  *    isVisible / isAnimating 상태 관리 (CSS 클래스 토글 + exit 지연).
  */
 
-/** 열려 있는 동안 Escape 키로 닫고, body 스크롤을 잠근다. */
+/**
+ * 열려 있는 동안 Escape 키로 닫고, body 스크롤을 잠근다.
+ *
+ * iOS Safari 는 `overflow: hidden` 만으로는 scroll-chain 을 막지 못한다.
+ * 그래서 position-fixed 트릭을 사용한다: 현재 scrollY 를 캡쳐해 body 를
+ * 동일 위치에 고정하고, 닫힐 때 원래 스크롤 위치로 복원한다.
+ */
 export function useModalDismiss(isOpen: boolean, onClose: () => void): void {
   useEffect(() => {
     if (!isOpen) return
@@ -18,10 +24,23 @@ export function useModalDismiss(isOpen: boolean, onClose: () => void): void {
       if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
+
+    const scrollY = window.scrollY
+    const body = document.body
+    body.style.position = 'fixed'
+    body.style.top = `-${scrollY}px`
+    body.style.left = '0'
+    body.style.right = '0'
+    body.style.width = '100%'
+
     return () => {
       document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
+      body.style.position = ''
+      body.style.top = ''
+      body.style.left = ''
+      body.style.right = ''
+      body.style.width = ''
+      window.scrollTo(0, scrollY)
     }
   }, [isOpen, onClose])
 }

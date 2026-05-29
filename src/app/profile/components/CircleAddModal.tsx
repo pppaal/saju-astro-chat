@@ -8,6 +8,7 @@ import {
   type BirthFieldsClasses,
   type BirthFieldsPatch,
 } from '@/components/birth/BirthInfoFields'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 // Light field styling matching the profile page's premium white surface.
 const lightFieldClasses: Required<BirthFieldsClasses> = {
@@ -62,6 +63,7 @@ const RELATION_OPTIONS_EN = [
  */
 export function CircleAddModal({ open, onClose, locale, onAdded }: CircleAddModalProps) {
   const t = (ko: string, en: string) => (locale === 'ko' ? ko : en)
+  const trapRef = useFocusTrap(open)
 
   const [name, setName] = useState('')
   const [relation, setRelation] = useState<string>('friend')
@@ -173,6 +175,7 @@ export function CircleAddModal({ open, onClose, locale, onAdded }: CircleAddModa
 
   return (
     <div
+      ref={trapRef}
       className="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(28,25,23,0.65)] sm:items-center"
       onClick={onClose}
     >

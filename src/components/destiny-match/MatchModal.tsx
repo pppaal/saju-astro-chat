@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Heart } from 'lucide-react'
 import type { DMCopy } from './destiny-match-i18n'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface MatchModalProps {
   copy: DMCopy
@@ -27,6 +28,7 @@ export function MatchModal({
   onClose,
 }: MatchModalProps) {
   const router = useRouter()
+  const trapRef = useFocusTrap(open)
   if (!open) return null
 
   const handleSendMessage = () => {
@@ -42,6 +44,7 @@ export function MatchModal({
 
   return (
     <motion.div
+      ref={trapRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
