@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차트 리디자인 — 운명/궁합 + 교차 raw</title>
+<style>
+  :root{
+    --bg:#0b0e1a; --surface:#111827; --surface2:#1b2230;
+    --gold:#d4b572; --gold-dim:#a08850; --gold-line:rgba(212,181,114,0.3);
+    --text:#f5f7fb; --muted:#8a92a3; --border:rgba(255,255,255,0.08);
+    --blue:#60a5fa; --green:#34d399; --yellow:#fbbf24; --red:#f87171; --purple:#a78bfa;
+    --wood:#34d399; --fire:#f87171; --earth:#fbbf24; --metal:#cbd5e1; --water:#60a5fa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.5}
+  .page{max-width:1400px;margin:0 auto;padding:24px}
+  .head{padding:20px;border-radius:16px;background:linear-gradient(135deg,rgba(212,181,114,0.08),rgba(124,58,237,0.06));border:1px solid var(--gold-line);margin-bottom:24px}
+  .head h1{margin:0 0 6px 0;font-size:18px;color:var(--gold)}
+  .head p{margin:0;font-size:13px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+  /* Modal */
+  .modal{background:rgba(17,24,39,0.92);border:1px solid var(--gold-line);border-radius:20px;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,0.45)}
+  .modal h2{margin:0 0 4px 0;font-size:16px;color:var(--text);font-family:Georgia,serif;letter-spacing:-0.01em;text-align:center}
+  .modal .sub{text-align:center;font-size:11px;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:16px}
+
+  /* PersonaCard */
+  .persona{padding:18px;border-radius:16px;background:linear-gradient(135deg,rgba(212,181,114,0.10),rgba(124,58,237,0.08));border:1px solid var(--gold-line);text-align:center;margin-bottom:14px}
+  .persona .label{font-size:11px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+  .persona .id{font-size:18px;font-weight:600;font-family:Georgia,serif;margin-bottom:8px}
+  .persona .tag{font-size:13px;color:var(--muted);margin-bottom:12px}
+  .chip{display:inline-block;padding:4px 12px;border-radius:999px;font-size:11px;background:rgba(212,181,114,0.12);color:var(--gold);border:1px solid rgba(212,181,114,0.3)}
+
+  /* InsightStrip */
+  .insights{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+  .insight{padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border)}
+  .insight .title{display:flex;gap:8px;align-items:start;font-size:13px}
+  .insight .ev{margin-top:4px;padding-left:24px;font-size:11px;color:var(--muted)}
+
+  /* Cross-Raw Table */
+  .cross{margin-top:18px}
+  .cross h3{margin:0 0 10px 0;font-size:12px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;border-left:2px solid var(--gold);padding-left:8px}
+  .crossgrid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .crosshead{background:rgba(255,255,255,0.04);padding:8px 12px;font-size:11px;color:var(--gold);letter-spacing:0.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+  .crosshead.right{border-left:1px solid var(--border)}
+  .row{display:contents}
+  .cell{padding:10px 12px;font-size:12px;border-bottom:1px solid var(--border)}
+  .cell.right{border-left:1px solid var(--border)}
+  .cell:last-child,.cell:nth-last-child(2){border-bottom:none}
+  .cell .k{color:var(--muted);font-size:11px;margin-bottom:2px}
+  .cell .v{color:var(--text)}
+  .match{background:rgba(212,181,114,0.06)}
+  .dot{display:inline-block;width:6px;height:6px;border-radius:50%;vertical-align:middle;margin-right:4px}
+  .dot.wood{background:var(--wood)} .dot.fire{background:var(--fire)} .dot.earth{background:var(--earth)} .dot.metal{background:var(--metal)} .dot.water{background:var(--water)}
+
+  /* Pillar cells */
+  .pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+  .pillar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center;position:relative}
+  .pillar .pname{font-size:10px;color:var(--muted);margin-bottom:4px}
+  .pillar .hanja{font-size:22px;font-family:Georgia,serif;line-height:1.1;color:var(--text);position:relative}
+  .pillar .hanja:hover::after{content:attr(data-meaning);position:absolute;left:50%;top:100%;transform:translateX(-50%);background:rgba(20,16,32,0.95);color:#f5f7fb;border:1px solid var(--gold-line);border-radius:8px;padding:6px 10px;font-size:11px;white-space:nowrap;margin-top:4px;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.5)}
+  .pillar .ko{font-size:10px;color:var(--muted)}
+  .pillar .sib{display:block;margin-top:6px;font-size:10px;padding:2px 6px;border-radius:6px}
+  .sib-bigeop{background:rgba(96,165,250,0.15);color:#93c5fd}
+  .sib-sikSang{background:rgba(52,211,153,0.15);color:#6ee7b7}
+  .sib-jaeSeong{background:rgba(251,191,36,0.15);color:#fcd34d}
+  .sib-gwanSeong{background:rgba(248,113,113,0.15);color:#fca5a5}
+  .sib-inSeong{background:rgba(167,139,250,0.15);color:#c4b5fd}
+
+  /* Element bars */
+  .elbars{display:grid;grid-template-columns:1fr 60px 60px;gap:6px;font-size:12px;align-items:center;margin-top:6px}
+  .elbar{height:8px;background:var(--surface);border-radius:4px;overflow:hidden;position:relative}
+  .elbar .fill{height:100%;border-radius:4px}
+
+  /* Compat side-by-side */
+  .compatgrid{display:grid;grid-template-columns:1fr 40px 1fr;gap:8px;align-items:start}
+  .compatgrid .vs{font-size:11px;color:var(--gold);text-align:center;padding-top:8px}
+
+  /* Couple Card */
+  .couple{padding:16px;border-radius:14px;background:linear-gradient(135deg,rgba(167,139,250,0.10),rgba(212,181,114,0.06));border:1px solid var(--gold-line);text-align:center;margin-bottom:14px}
+  .couple .score{font-size:32px;font-weight:700;font-family:Georgia,serif;color:var(--gold)}
+  .couple .scorelabel{font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+  .couple .verdict{font-size:13px;color:var(--text);margin-top:6px}
+
+  /* Drawer */
+  .drawer{margin-top:14px;background:var(--surface);border:1px solid var(--gold-line);border-radius:12px;padding:14px}
+  .drawer h4{margin:0 0 10px 0;font-size:13px;color:var(--gold);font-family:Georgia,serif}
+  .drawer .raw{display:grid;grid-template-columns:120px 1fr;gap:4px 12px;font-size:12px}
+  .drawer .raw .k{color:var(--muted)}
+  .drawer .raw .v{color:var(--text)}
+
+  /* Legend */
+  .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:10px;padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border)}
+  .legend span{display:flex;align-items:center;gap:4px}
+
+  /* Section header */
+  .section-h{font-size:12px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;border-left:2px solid var(--gold);padding-left:8px;margin-top:18px;margin-bottom:8px}
+
+  .note{margin-top:30px;padding:14px;background:var(--surface);border:1px dashed var(--gold-line);border-radius:10px;font-size:12px;color:var(--muted)}
+  .note strong{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="head">
+    <h1>차트 리디자인 — 운명상담사 & 궁합상담사 (교차 raw)</h1>
+    <p>사주·점성 같이 보이고, 모든 raw 노출 + 셀 탭 → 그 글자에 대한 모든 신호 (사주+점성 교차)</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ========== 운명상담사 차트 ========== -->
+    <div class="modal">
+      <h2>나의 운세 차트</h2>
+      <div class="sub">운명상담사 — 한 사람 풀 raw</div>
+
+      <!-- Level 0: PersonaCard -->
+      <div class="persona">
+        <div class="label">당신은</div>
+        <div class="id">정관격 · 신강</div>
+        <div class="tag">명예와 책임감 강한 — 공직·관리자 형</div>
+        <div class="chip">🔥 火 보충이 균형 ↗</div>
+      </div>
+
+      <!-- Level 1: Insights -->
+      <div class="insights">
+        <div class="insight">
+          <div class="title"><span>⚖️</span><span>관성 풍부 — 책임감·체계 강함</span></div>
+          <div class="ev">✓ 정관 + 편관 3개 (사주 8글자 중)</div>
+        </div>
+        <div class="insight">
+          <div class="title"><span>🔥</span><span>火 부족 — 추진력·표현력 보충 필요</span></div>
+          <div class="ev">✓ 사주 火 0 + 점성 화성 6하우스 (직무 압박)</div>
+        </div>
+        <div class="insight">
+          <div class="title"><span>🌊</span><span>22세~ 乙亥 대운 · 토성 12하우스 진입</span></div>
+          <div class="ev">✓ 대운 水기 + 토성 카르마 정리 시기 동시 활성</div>
+        </div>
+      </div>
+
+      <!-- Level 2: Cross-Raw Table (사주 ↔ 점성) -->
+      <div class="cross">
+        <h3>🔗 사주 ↔ 점성 교차 raw</h3>
+        <div class="crossgrid">
+          <div class="crosshead">동양 (사주)</div>
+          <div class="crosshead right">서양 (점성)</div>
+
+          <div class="row">
+            <div class="cell"><div class="k">일간 (나)</div><div class="v"><span class="dot metal"></span>辛 (음·금)</div></div>
+            <div class="cell right"><div class="k">태양 sign</div><div class="v"><span class="dot earth"></span>처녀자리 (Earth)</div></div>
+          </div>
+
+          <div class="row match">
+            <div class="cell"><div class="k">용신 (필요 원소)</div><div class="v"><span class="dot fire"></span>火 · 木 보조</div></div>
+            <div class="cell right"><div class="k">달 sign</div><div class="v"><span class="dot fire"></span>사자자리 — 火 보충 ✓</div></div>
+          </div>
+
+          <div class="row">
+            <div class="cell"><div class="k">격국</div><div class="v">정관격 (책임형)</div></div>
+            <div class="cell right"><div class="k">MC (천직)</div><div class="v">염소자리 — 토성 룰러 (책임형 일치)</div></div>
+          </div>
+
+          <div class="row match">
+            <div class="cell"><div class="k">현재 대운</div><div class="v">22~ 乙亥 (水목)</div></div>
+            <div class="cell right"><div class="k">현재 transit</div><div class="v">토성 ☌ Asc (책임의 시기)</div></div>
+          </div>
+
+          <div class="row">
+            <div class="cell"><div class="k">12 신살 (일주)</div><div class="v">天乙貴人 · 文昌</div></div>
+            <div class="cell right"><div class="k">행운점 (POF)</div><div class="v">쌍둥이 5하우스 (창의)</div></div>
+          </div>
+
+          <div class="row">
+            <div class="cell"><div class="k">합·충</div><div class="v">寅-亥 합 (월·시) · 卯-酉 충 X</div></div>
+            <div class="cell right"><div class="k">주요 aspect</div><div class="v">金성 △ 토성 · 火성 □ 천왕성</div></div>
+          </div>
+
+          <div class="row">
+            <div class="cell"><div class="k">12 운성 (일주)</div><div class="v">建祿 (성장 절정)</div></div>
+            <div class="cell right"><div class="k">행성 위신</div><div class="v">금성 高揚 · 화성 弱</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pillars 4기둥 (탭 → drawer) -->
+      <div class="section-h">사주 8 글자 (탭 → 전체 raw)</div>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="pname">時</div>
+          <div class="hanja" data-meaning="甲 — 큰 나무 · 곧고 진취적">甲</div>
+          <div class="ko">갑 (양·목)</div>
+          <span class="sib sib-gwanSeong">정관</span>
+        </div>
+        <div class="pillar" style="border-color:var(--gold)">
+          <div class="pname">日</div>
+          <div class="hanja" data-meaning="辛 — 보석 · 예리하고 자존심 강함">辛</div>
+          <div class="ko">신 (음·금)</div>
+          <span class="sib" style="background:rgba(212,181,114,0.15);color:var(--gold)">일주 (나)</span>
+        </div>
+        <div class="pillar">
+          <div class="pname">月</div>
+          <div class="hanja" data-meaning="丙 — 태양 · 밝고 외향적">丙</div>
+          <div class="ko">병 (양·화)</div>
+          <span class="sib sib-inSeong">편인</span>
+        </div>
+        <div class="pillar">
+          <div class="pname">年</div>
+          <div class="hanja" data-meaning="乙 — 풀·덩굴 · 유연하고 적응력">乙</div>
+          <div class="ko">을 (음·목)</div>
+          <span class="sib sib-jaeSeong">편재</span>
+        </div>
+      </div>
+      <div class="pillars" style="margin-top:6px">
+        <div class="pillar">
+          <div class="hanja" data-meaning="午 — 말 · 활동·표현·뜨거운 불">午</div>
+          <div class="ko">오 (말·화)</div>
+          <span class="sib sib-gwanSeong">정관</span>
+        </div>
+        <div class="pillar" style="border-color:var(--gold)">
+          <div class="hanja" data-meaning="未 — 양 · 온화·돌봄·메마른 흙">未</div>
+          <div class="ko">미 (양·토)</div>
+          <span class="sib sib-inSeong">편인</span>
+        </div>
+        <div class="pillar">
+          <div class="hanja" data-meaning="寅 — 호랑이 · 새출발·추진">寅</div>
+          <div class="ko">인 (호랑이·목)</div>
+          <span class="sib sib-jaeSeong">정재</span>
+        </div>
+        <div class="pillar">
+          <div class="hanja" data-meaning="亥 — 돼지 · 풍요·여유·깊은 물">亥</div>
+          <div class="ko">해 (돼지·수)</div>
+          <span class="sib sib-sikSang">상관</span>
+        </div>
+      </div>
+
+      <!-- Drawer (셀 탭 시 — 데모로 일주 펼침) -->
+      <div class="drawer">
+        <h4>📍 日柱 辛未 (탭으로 펼친 상태)</h4>
+        <div class="raw">
+          <div class="k">한자 뜻</div><div class="v">辛 — 보석·예리, 未 — 양·온화한 흙</div>
+          <div class="k">십성</div><div class="v">일주 (나 자신)</div>
+          <div class="k">지장간</div><div class="v">丁(편관) · 乙(편재) · 己(편인)</div>
+          <div class="k">12 운성</div><div class="v">衰 (전성기 직후, 쇠하는 시기)</div>
+          <div class="k">12 신살</div><div class="v">天乙貴人 (귀인 도움) · 華蓋 (예술·종교)</div>
+          <div class="k">합/충</div><div class="v">寅과 6합 (월주) · 丑과 충 (대운 시)</div>
+          <div class="k">통근</div><div class="v">未 중 己土 → 신·금 약 통근</div>
+          <div class="k">조후</div><div class="v">未월 출생 — 火 조열, 水 필요</div>
+          <div class="k">점성 교차</div><div class="v">금성 △ 토성 (보석 + 책임감 일치)</div>
+          <div class="k">캘린더 활성일</div><div class="v">다음 辛未일: 3/15, 5/14, 7/13...</div>
+        </div>
+      </div>
+
+      <!-- 오행 분포 -->
+      <div class="section-h">오행 분포</div>
+      <div style="padding:8px">
+        <div class="elbars">
+          <div><span class="dot wood"></span>木 (목)</div>
+          <div class="elbar"><div class="fill" style="width:40%;background:var(--wood)"></div></div>
+          <div style="text-align:right;color:var(--muted)">2개</div>
+
+          <div><span class="dot fire"></span>火 (화)</div>
+          <div class="elbar"><div class="fill" style="width:20%;background:var(--fire)"></div></div>
+          <div style="text-align:right;color:var(--muted)">1개 ⚠ 부족</div>
+
+          <div><span class="dot earth"></span>土 (토)</div>
+          <div class="elbar"><div class="fill" style="width:20%;background:var(--earth)"></div></div>
+          <div style="text-align:right;color:var(--muted)">1개</div>
+
+          <div><span class="dot metal"></span>金 (금)</div>
+          <div class="elbar"><div class="fill" style="width:20%;background:var(--metal)"></div></div>
+          <div style="text-align:right;color:var(--muted)">1개</div>
+
+          <div><span class="dot water"></span>水 (수)</div>
+          <div class="elbar"><div class="fill" style="width:60%;background:var(--water)"></div></div>
+          <div style="text-align:right;color:var(--muted)">3개 (많음)</div>
+        </div>
+      </div>
+
+      <!-- 점성 행성 (raw 다 노출) -->
+      <div class="section-h">점성 행성 raw (전체 10개)</div>
+      <div style="padding:8px;font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;color:var(--text)">
+        <div>☉ 태양 — 처녀 23° (6H)</div>
+        <div>☽ 달 — 사자 5° (5H)</div>
+        <div>☿ 수성 — 천칭 12° (7H)</div>
+        <div>♀ 금성 — 처녀 8° (6H)</div>
+        <div>♂ 화성 — 처녀 2° (6H)</div>
+        <div>♃ 목성 — 양 18° (1H) ℞</div>
+        <div>♄ 토성 — 게 14° (4H)</div>
+        <div>♅ 천왕 — 천칭 0° (7H)</div>
+        <div>♆ 해왕 — 사수 22° (10H)</div>
+        <div>♇ 명왕 — 전갈 8° (8H)</div>
+        <div>⚷ 카이런 — 쌍둥이 11° (5H)</div>
+        <div>⚸ 릴리스 — 황소 7° (4H)</div>
+      </div>
+
+      <div class="legend">
+        <span><span class="dot wood"></span>목</span>
+        <span><span class="dot fire"></span>화</span>
+        <span><span class="dot earth"></span>토</span>
+        <span><span class="dot metal"></span>금</span>
+        <span><span class="dot water"></span>수</span>
+        <span>|</span>
+        <span><span class="sib sib-bigeop" style="display:inline">비겁</span></span>
+        <span><span class="sib sib-sikSang" style="display:inline">식상</span></span>
+        <span><span class="sib sib-jaeSeong" style="display:inline">재성</span></span>
+        <span><span class="sib sib-gwanSeong" style="display:inline">관성</span></span>
+        <span><span class="sib sib-inSeong" style="display:inline">인성</span></span>
+      </div>
+    </div>
+
+
+    <!-- ========== 궁합상담사 차트 ========== -->
+    <div class="modal">
+      <h2>궁합 차트</h2>
+      <div class="sub">궁합상담사 — 두 사람 교차</div>
+
+      <!-- CoupleCard -->
+      <div class="couple">
+        <div class="scorelabel">총합 궁합 점수</div>
+        <div class="score">78<span style="font-size:14px;color:var(--muted)">/100</span></div>
+        <div class="verdict">서로 다른 결이 보완하는 — 깊은 합 + 약간의 자극</div>
+      </div>
+
+      <!-- 점수 분해 -->
+      <div class="insights">
+        <div class="insight">
+          <div class="title"><span>💕</span><span>동양 합 — 일간 천간합 1개 · 지지 삼합 1개</span></div>
+          <div class="ev">✓ A 辛 + B 丙 천간합 (火) · A 亥 + B 卯·未 삼합 (木局)</div>
+        </div>
+        <div class="insight">
+          <div class="title"><span>⚠️</span><span>충 1개 — 정서 부딪힘 가능</span></div>
+          <div class="ev">✓ A 月支 寅 ↔ B 月支 申 충 (가치관 차이)</div>
+        </div>
+        <div class="insight">
+          <div class="title"><span>♀♂</span><span>서양 시너스트리 — 금성-화성 트라인</span></div>
+          <div class="ev">✓ A 금성 처녀 △ B 화성 황소 (자연스러운 끌림)</div>
+        </div>
+      </div>
+
+      <!-- 두 사람 8글자 나란히 -->
+      <div class="section-h">두 사람 사주 — 한 눈에</div>
+      <div class="compatgrid">
+        <div>
+          <div style="font-size:11px;color:var(--gold);margin-bottom:4px">A 님 (辛未 일주)</div>
+          <div class="pillars" style="grid-template-columns:repeat(4,1fr)">
+            <div class="pillar"><div class="hanja" data-meaning="甲 — 큰 나무">甲</div><div class="ko">갑</div></div>
+            <div class="pillar" style="border-color:var(--gold)"><div class="hanja" data-meaning="辛 — 보석">辛</div><div class="ko">신</div></div>
+            <div class="pillar"><div class="hanja" data-meaning="丙 — 태양">丙</div><div class="ko">병</div></div>
+            <div class="pillar"><div class="hanja" data-meaning="乙 — 풀">乙</div><div class="ko">을</div></div>
+          </div>
+          <div class="pillars" style="grid-template-columns:repeat(4,1fr);margin-top:4px">
+            <div class="pillar"><div class="hanja" data-meaning="午 — 말">午</div></div>
+            <div class="pillar" style="border-color:var(--gold)"><div class="hanja" data-meaning="未 — 양">未</div></div>
+            <div class="pillar"><div class="hanja" data-meaning="寅 — 호랑이">寅</div></div>
+            <div class="pillar"><div class="hanja" data-meaning="亥 — 돼지">亥</div></div>
+          </div>
+        </div>
+
+        <div class="vs">↔</div>
+
+        <div>
+          <div style="font-size:11px;color:var(--gold);margin-bottom:4px">B 님 (丙寅 일주)</div>
+          <div class="pillars" style="grid-template-columns:repeat(4,1fr)">
+            <div class="pillar"><div class="hanja" data-meaning="戊 — 큰 산">戊</div><div class="ko">무</div></div>
+            <div class="pillar" style="border-color:var(--gold)"><div class="hanja" data-meaning="丙 — 태양">丙</div><div class="ko">병</div></div>
+            <div class="pillar"><div class="hanja" data-meaning="庚 — 큰 쇠">庚</div><div class="ko">경</div></div>
+            <div class="pillar"><div class="hanja" data-meaning="癸 — 비·이슬">癸</div><div class="ko">계</div></div>
+          </div>
+          <div class="pillars" style="grid-template-columns:repeat(4,1fr);margin-top:4px">
+            <div class="pillar"><div class="hanja" data-meaning="申 — 원숭이">申</div></div>
+            <div class="pillar" style="border-color:var(--gold)"><div class="hanja" data-meaning="寅 — 호랑이">寅</div></div>
+            <div class="pillar"><div class="hanja" data-meaning="申 — 원숭이">申</div></div>
+            <div class="pillar"><div class="hanja" data-meaning="卯 — 토끼">卯</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 교차 관계 표 -->
+      <div class="cross">
+        <h3>🔗 두 사람 교차 raw (모든 합·충·시너스트리)</h3>
+        <div class="crossgrid">
+          <div class="crosshead">동양 — 사주 관계</div>
+          <div class="crosshead right">서양 — 시너스트리</div>
+
+          <div class="row match">
+            <div class="cell"><div class="k">A 일간 + B 일간</div><div class="v">辛 + 丙 → 천간합 (化水)</div></div>
+            <div class="cell right"><div class="k">태양-달</div><div class="v">A 태양 △ B 달 (인정·따뜻함)</div></div>
+          </div>
+
+          <div class="row match">
+            <div class="cell"><div class="k">지지 합</div><div class="v">寅·亥 육합 + 亥·卯·未 삼합</div></div>
+            <div class="cell right"><div class="k">금성-화성</div><div class="v">A 금성 △ B 화성 (성적 끌림)</div></div>
+          </div>
+
+          <div class="row">
+            <div class="cell"><div class="k">지지 충</div><div class="v">寅 ↔ 申 충 (가치관 충돌)</div></div>
+            <div class="cell right"><div class="k">화성-토성</div><div class="v">A 화성 □ B 토성 (의지 좌절)</div></div>
+          </div>
+
+          <div class="row">
+            <div class="cell"><div class="k">오행 보완</div><div class="v">A 火 부족 ← B 火 풍부 (보완)</div></div>
+            <div class="cell right"><div class="k">하우스 overlay</div><div class="v">B 행성이 A 7H 에 4개 (파트너 활성)</div></div>
+          </div>
+
+          <div class="row">
+            <div class="cell"><div class="k">대운 동시성</div><div class="v">A 22~ 乙亥 · B 25~ 戊辰 (둘 다 안정기)</div></div>
+            <div class="cell right"><div class="k">현재 transit</div><div class="v">목성이 두 사람 7H 모두 통과 (관계 확장기)</div></div>
+          </div>
+
+          <div class="row">
+            <div class="cell"><div class="k">12 신살</div><div class="v">A 天乙貴人 + B 桃花 (귀인+매력)</div></div>
+            <div class="cell right"><div class="k">조성 비교</div><div class="v">A 흙·금 56% · B 화·목 50% (다름→보완)</div></div>
+          </div>
+
+          <div class="row">
+            <div class="cell"><div class="k">용신 교환</div><div class="v">A 필요 火 ← B 일간 火 (완벽 보충)</div></div>
+            <div class="cell right"><div class="k">컴포지트 차트</div><div class="v">합성 태양 천칭 (관계 본질: 균형·미)</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 두 사람 오행 비교 -->
+      <div class="section-h">오행 분포 — 보완 vs 중복</div>
+      <div style="padding:8px;font-size:11px;color:var(--text)">
+        <div class="elbars" style="grid-template-columns:60px 1fr 60px 1fr 60px">
+          <div style="color:var(--muted)">A (왼)</div>
+          <div></div>
+          <div style="text-align:center;color:var(--gold);font-size:10px">원소</div>
+          <div></div>
+          <div style="color:var(--muted);text-align:right">B (오)</div>
+
+          <div style="text-align:right">2</div>
+          <div class="elbar"><div class="fill" style="width:40%;background:var(--wood);margin-left:auto"></div></div>
+          <div style="text-align:center"><span class="dot wood"></span>木</div>
+          <div class="elbar"><div class="fill" style="width:20%;background:var(--wood)"></div></div>
+          <div>1</div>
+
+          <div style="text-align:right;color:var(--red)">1 ⚠</div>
+          <div class="elbar"><div class="fill" style="width:20%;background:var(--fire);margin-left:auto"></div></div>
+          <div style="text-align:center"><span class="dot fire"></span>火</div>
+          <div class="elbar"><div class="fill" style="width:60%;background:var(--fire)"></div></div>
+          <div style="color:var(--green)">3 ✓ 보충</div>
+
+          <div style="text-align:right">1</div>
+          <div class="elbar"><div class="fill" style="width:20%;background:var(--earth);margin-left:auto"></div></div>
+          <div style="text-align:center"><span class="dot earth"></span>土</div>
+          <div class="elbar"><div class="fill" style="width:20%;background:var(--earth)"></div></div>
+          <div>1</div>
+
+          <div style="text-align:right">1</div>
+          <div class="elbar"><div class="fill" style="width:20%;background:var(--metal);margin-left:auto"></div></div>
+          <div style="text-align:center"><span class="dot metal"></span>金</div>
+          <div class="elbar"><div class="fill" style="width:20%;background:var(--metal)"></div></div>
+          <div>1</div>
+
+          <div style="text-align:right;color:var(--green)">3 ✓</div>
+          <div class="elbar"><div class="fill" style="width:60%;background:var(--water);margin-left:auto"></div></div>
+          <div style="text-align:center"><span class="dot water"></span>水</div>
+          <div class="elbar"><div class="fill" style="width:40%;background:var(--water)"></div></div>
+          <div>2</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><strong style="color:var(--gold)">합·삼합·천간합</strong> = 끌림</span>
+        <span><strong style="color:var(--red)">충·형·파·해</strong> = 자극</span>
+        <span><strong style="color:var(--green)">시너스트리 △/⚹</strong> = 조화</span>
+        <span><strong style="color:var(--red)">시너스트리 □/☍</strong> = 긴장</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <strong>이 mockup 에 나온 모든 raw 는 이미 NatalContext 안에 있음.</strong><br>
+    좌측 (운명상담사): saju.advancedAnalysis (격국·용신·통근·득령·십신·점수) + astro.chart (행성 12개) + 교차 정보 = NatalContext 한 row<br>
+    우측 (궁합상담사): A·B NatalContext 두 개 + analyzeRelations() (합·충) + findSynastryAspects() (시너스트리) = 백엔드 호출 2 개<br><br>
+    <strong>현재 차트에 안 보이지만 raw 는 다 있는 것들</strong>: 12 운성·12 신살·지장간·통근·득령·조후·합/충/형/파/해·yongsin/avoid 원소·카이런/릴리스·POF·dignity·composite chart.
+  </div>
+
+</div>
+</body>
+</html>
