@@ -40,6 +40,11 @@ interface SajuChartProps {
    * 톤 다운된 element pastel + gold 액센트.
    */
   theme?: Theme
+  /**
+   * 셀(기둥) 클릭 시 호출 — PillarDrawer 띄울 때 사용.
+   * 미지정 시 셀은 클릭 비활성 (기존 동작).
+   */
+  onPillarClick?: (pillar: 'time' | 'day' | 'month' | 'year') => void
 }
 
 // 오행 색 톤 — light/dark 양쪽 모두 그대로 element 의미는 유지.
@@ -84,7 +89,7 @@ function pickPillars(saju: SajuChartProps['saju']) {
   return { year, month, day, time }
 }
 
-export function SajuChart({ saju, lang = 'ko', theme = 'light' }: SajuChartProps) {
+export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }: SajuChartProps) {
   const pillars = pickPillars(saju)
   const isKo = lang === 'ko'
   const isDark = theme === 'dark'
@@ -215,8 +220,25 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light' }: SajuChartProps
           const branch = pillar.earthlyBranch
           const stemStyle = tokens.elementStyle[stem?.element || ''] || tokens.defaultStyle
           const branchStyle = tokens.elementStyle[branch?.element || ''] || tokens.defaultStyle
+          const clickable = !!onPillarClick
           return (
-            <div key={key} className="flex flex-col gap-1.5">
+            <div
+              key={key}
+              className={`flex flex-col gap-1.5 ${clickable ? 'cursor-pointer transition-transform hover:-translate-y-0.5' : ''}`}
+              onClick={clickable ? () => onPillarClick(key) : undefined}
+              role={clickable ? 'button' : undefined}
+              tabIndex={clickable ? 0 : undefined}
+              onKeyDown={
+                clickable
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onPillarClick(key)
+                      }
+                    }
+                  : undefined
+              }
+            >
               {/* 천간 (윗 셀) / 지지 (아래 셀) */}
               {[
                 { cell: stem, style: stemStyle, isStem: true },

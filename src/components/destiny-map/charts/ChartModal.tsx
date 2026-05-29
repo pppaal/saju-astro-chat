@@ -8,6 +8,8 @@ import { NatalChart } from './NatalChart'
 import { ChartReading } from './ChartReading'
 import { PersonaCard } from './atoms/PersonaCard'
 import { InsightStrip } from './atoms/InsightStrip'
+import { CrossRefTable } from './atoms/CrossRefTable'
+import { PillarDrawer } from './atoms/PillarDrawer'
 import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
 
 interface ChartModalProps {
@@ -20,6 +22,8 @@ interface ChartModalProps {
 
 export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartModalProps) {
   const isKo = lang === 'ko'
+  // 셀 탭 → PillarDrawer. null 이면 닫힘.
+  const [openPillar, setOpenPillar] = React.useState<'time' | 'day' | 'month' | 'year' | null>(null)
 
   React.useEffect(() => {
     if (!open) return
@@ -94,10 +98,19 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
         {/* Level 1 — InsightStrip: 핵심 3 줄. 십성 dominant + 부족 오행 +
             현재 대운 등 자동 도출. PersonaCard 의 한 줄을 뒷받침. */}
         <div
-          className="chart-rise-in mb-5"
+          className="chart-rise-in mb-3"
           style={{ ['--i' as string]: 1 } as React.CSSProperties}
         >
           <InsightStrip saju={saju} />
+        </div>
+
+        {/* Level 1.5 — CrossRefTable: 사주↔점성 7행 교차 표. 같은 영역의
+            동서양 raw 를 좌/우 나란히 + 보완/동조 자동 감지. */}
+        <div
+          className="chart-rise-in mb-5"
+          style={{ ['--i' as string]: 2 } as React.CSSProperties}
+        >
+          <CrossRefTable saju={saju} astro={astro} lang={lang} />
         </div>
 
         {/* 기존 "한 줄 해석" — fallback / 보조. PersonaCard 가 메인. */}
@@ -157,7 +170,12 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
                   {isKo ? '사주팔자' : '4 Pillars'}
                 </div>
                 {/* dark theme — 운명 차트 모달 navy glass 안에서 자연스럽게 */}
-                <SajuChart saju={saju as never} lang={lang} theme="dark" />
+                <SajuChart
+                  saju={saju as never}
+                  lang={lang}
+                  theme="dark"
+                  onPillarClick={(p) => setOpenPillar(p)}
+                />
               </div>
               <div className="space-y-1.5">
                 <div
@@ -194,6 +212,18 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
             <NatalChart astro={astro as never} lang={lang} />
           </section>
         </div>
+
+        {/* Level 3 — 셀 탭 시 펼침: 한자뜻 + 지장간 + 12운성 + 12신살 + 합/충
+            + 통근 + 일주 archetype (day-only). 모든 raw + plain 의미. */}
+        {openPillar && (
+          <PillarDrawer
+            open={true}
+            onClose={() => setOpenPillar(null)}
+            pillar={openPillar}
+            saju={saju}
+            lang={lang}
+          />
+        )}
       </div>
     </div>
   )
