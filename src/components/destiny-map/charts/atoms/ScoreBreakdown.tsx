@@ -277,11 +277,15 @@ function deriveBreakdown(
   const haveSaju = A.stems.length + A.branches.length > 0 && B.stems.length + B.branches.length > 0
 
   if (haveSaju) {
-    // 합: 천간합 +20 / 육합 +10 / 삼합 +15 / 방합 +15
+    // 합: 천간합 +20 / 육합 +10 / 삼합 +15 / 방합 +5 (가중치 축소)
+    // 자평진전 기준 — 삼합 (오행 변환) 이 강한 합, 방합 (같은 계절 모임) 은
+    // 같은 지지 멤버가 삼합·방합 양쪽 group 에 속해 double-count 위험 존재
+    // (예: 寅 이 寅卯辰 방합 + 寅午戌 삼합 모두 멤버). 방합 가중치를 낮춰
+    // 동일 매칭이 양쪽에서 잡힐 때 점수 인플레 완화.
     const stemHap = countPairMatches(A.stems, B.stems, STEM_HAP) * 20
     const yukhap = countPairMatches(A.branches, B.branches, BRANCH_YUKHAP) * 10
     const samhap = countTrineMatches(A.branches, B.branches, BRANCH_SAMHAP) * 15
-    const banghap = countTrineMatches(A.branches, B.branches, BRANCH_BANGHAP) * 15
+    const banghap = countTrineMatches(A.branches, B.branches, BRANCH_BANGHAP) * 5
     out.eastern_hap = Math.max(0, Math.min(100, stemHap + yukhap + samhap + banghap))
 
     // 충: 천간충 -15, 지지충 -10 → 100 에서 차감

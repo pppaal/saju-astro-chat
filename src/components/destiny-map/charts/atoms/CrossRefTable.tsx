@@ -84,18 +84,19 @@ interface AstroLike {
 }
 
 // ── Element 매핑 (사주 오행 ↔ 서양 4원소) ─────────────────────────────────
-// 사주 5 원소 中 금/토 → 서양 Earth, 수 → Water, 화 → Fire, 목 → Air/Wood.
-// "보완" 판정용 — 다른 원소끼리는 보완으로 본다 (단순 가시화 목적).
-const SAJU_TO_WESTERN_ELEMENT: Record<string, 'fire' | 'earth' | 'air' | 'water'> = {
+// 사주 5 원소 → 서양 4 원소 mapping (금 은 서양 4 원소에 대응 없음 — null).
+// 목 → Air, 화 → Fire, 토 → Earth, 수 → Water, 금 → null (매칭 X).
+// null 인 경우 동조/보완 판정에서 제외 — 5 원소 → 4 원소 정보 손실 방지.
+const SAJU_TO_WESTERN_ELEMENT: Record<string, 'fire' | 'earth' | 'air' | 'water' | null> = {
   목: 'air',
   화: 'fire',
   토: 'earth',
-  금: 'earth',
+  금: null, // 금 (metal) 은 서양 4 원소에 직접 대응 X — 별도 분류
   수: 'water',
   wood: 'air',
   fire: 'fire',
   earth: 'earth',
-  metal: 'earth',
+  metal: null,
   water: 'water',
 }
 
