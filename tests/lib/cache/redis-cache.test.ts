@@ -71,7 +71,17 @@ describe('Redis Cache', () => {
   describe('CacheKeys', () => {
     it('generates saju cache key', () => {
       const key = CacheKeys.saju('1990-01-01', '12:00', 'M')
-      expect(key).toBe('saju:v1:1990-01-01:12:00:M:solar')
+      // v2 — lunarLeap + timezone 추가.
+      expect(key).toBe('saju:v2:1990-01-01:12:00:M:solar:Asia/Seoul:N')
+    })
+
+    it('saju cache key separates lunarLeap and timezone', () => {
+      const base = CacheKeys.saju('1990-04-15', '12:00', 'M', 'lunar', 'Asia/Seoul', false)
+      const leap = CacheKeys.saju('1990-04-15', '12:00', 'M', 'lunar', 'Asia/Seoul', true)
+      const ny = CacheKeys.saju('1990-04-15', '12:00', 'M', 'lunar', 'America/New_York', false)
+      expect(base).not.toBe(leap)
+      expect(base).not.toBe(ny)
+      expect(leap).not.toBe(ny)
     })
 
     it('generates tarot cache key', () => {

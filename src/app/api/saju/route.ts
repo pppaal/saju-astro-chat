@@ -71,7 +71,10 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     calendarType,
     timezone,
     userTimezone,
+    lunarLeap: lunarLeapRaw,
   } = validationResult.data
+  // calendarType==='solar' 인데 lunarLeap=true 가 들어와도 무시되도록 정규화.
+  const lunarLeap = calendarType === 'lunar' && lunarLeapRaw === true
 
   // 2. Check premium status (credit-based)
   let isPremium = false
@@ -101,7 +104,14 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // Ephemeris / 절기 lookup 등 ~150ms CPU 일 통째 절약. 이벤트 트래픽 시
   // 동일 사용자 재방문 / 가족 같은 생년월일 등에서 95%+ hit 기대.
   const sajuResult = await cacheOrCalculate(
-    CacheKeys.saju(birthDateString, adjustedBirthTime, sajuGender, calendarType),
+    CacheKeys.saju(
+      birthDateString,
+      adjustedBirthTime,
+      sajuGender,
+      calendarType,
+      timezone,
+      lunarLeap
+    ),
     async () =>
       calculateSajuData(
         birthDateString,
@@ -109,7 +119,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
         sajuGender,
         calendarType,
         timezone,
-        false
+        lunarLeap
       ),
     CACHE_TTL.NATAL_CHART
   )

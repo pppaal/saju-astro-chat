@@ -82,6 +82,154 @@ function getBranchMainStem(branchName: string) {
 
 // 천을귀인 helper now lives in stemBranchUtils — see import block above.
 
+/* ========== 한국 LMT(평균태양시) 보정 + DST/KMT 분기 ==========
+ *
+ * 사주 시지(時支) 산정은 "출생지의 태양시"를 기준으로 한다.
+ * 한국(Asia/Seoul) 표준시는 UTC+9(135°E 자오선) — 서울(~127°E)은 시계상
+ * 약 +32분 늦게 정오를 맞는다. 전통 사주에서 자주 쓰는 단순화로
+ * 30분 보정을 적용한다 (子=23:30-01:30 등).
+ *
+ * 그러나 (A) KMT 기간(1954-03-21 ~ 1961-08-10, UTC+8:30)에는 시계 자체가
+ * 127.5°E 자오선을 따랐으므로 추가 30분 보정이 필요 없다. (B) 한국 DST
+ * 기간에는 시계가 1시간 앞당겨져 있으므로, 시지 산정 전에 60분을
+ * 빼서 평상시 시계로 환원한 뒤 LMT 보정을 적용한다.
+ *
+ * 한국 외 타임존에서 태어난 경우엔 한국 LMT를 적용해선 안 된다 → 평범한
+ * 정시 경계(子=23:00-01:00)를 사용.
+ *
+ * 참고 출처: IANA tz database (zone Asia/Seoul, Rule ROK).
+ *   https://github.com/eggert/tz/blob/main/asia
+ */
+
+const SEOUL_TZ = 'Asia/Seoul'
+
+// KMT 시대: 1954-03-21 ~ 1961-08-10 (IANA tz Asia/Seoul). 둘 다 wall-clock 자정 기준.
+// epoch ms 비교를 위해 UTC 시각으로 변환 — KMT 진입 직전 KST=UTC+9, 종료 시 KMT=UTC+8:30.
+const KMT_START_UTC_MS = Date.UTC(1954, 2, 20, 15, 0, 0) // 1954-03-21 00:00 KST (UTC+9)
+const KMT_END_UTC_MS = Date.UTC(1961, 7, 9, 15, 30, 0) // 1961-08-10 00:00 KMT (UTC+8:30)
+
+/**
+ * 한국 DST(Daylight Saving Time) 윈도우. IANA tz 데이터(Rule ROK)에서 직접 도출.
+ * 각 항목은 [startUtcMs, endUtcMs) 반개구간. 시작/종료는 모두 wall-clock 자정 기준
+ * (종료는 24:00 standard time = 다음 날 00:00).
+ *
+ * 시작/종료 시점의 UTC offset:
+ * - 1948-1951: KST(UTC+9). KDT=UTC+10.
+ * - 1955-1960: KMT 기간 → 시작 전 KMT(UTC+8:30), 시작 후 KDT(UTC+9:30).
+ * - 1987-1988: KST(UTC+9). KDT=UTC+10. 시작 02:00 KST → 03:00 KDT,
+ *              종료 03:00 KDT → 02:00 KST (보수적으로 자정 경계로 단순화).
+ */
+type DstWindow = { startUtcMs: number; endUtcMs: number }
+const KOREAN_DST_WINDOWS: ReadonlyArray<DstWindow> = [
+  // 1948: Jun 1 00:00 KST → Sep 13 00:00 KST (Sep 12 24:00 S)
+  { startUtcMs: Date.UTC(1948, 4, 31, 15, 0), endUtcMs: Date.UTC(1948, 8, 12, 15, 0) },
+  // 1949: Apr 3 00:00 KST → Sep 11 00:00 KST (Sat>=7 = Sep 10, 24:00 S)
+  { startUtcMs: Date.UTC(1949, 3, 2, 15, 0), endUtcMs: Date.UTC(1949, 8, 10, 15, 0) },
+  // 1950: Apr 1 00:00 KST → Sep 10 00:00 KST (Sep 9 24:00)
+  { startUtcMs: Date.UTC(1950, 2, 31, 15, 0), endUtcMs: Date.UTC(1950, 8, 9, 15, 0) },
+  // 1951: May 6 00:00 KST → Sep 9 00:00 KST (Sep 8 24:00)
+  { startUtcMs: Date.UTC(1951, 4, 5, 15, 0), endUtcMs: Date.UTC(1951, 8, 8, 15, 0) },
+  // 1955: May 5 00:00 KMT → Sep 9 00:00 KMT (Sep 8 24:00). KMT=UTC+8:30
+  { startUtcMs: Date.UTC(1955, 4, 4, 15, 30), endUtcMs: Date.UTC(1955, 8, 8, 15, 30) },
+  // 1956: May 20 00:00 KMT → Sep 30 00:00 KMT (Sep 29 24:00)
+  { startUtcMs: Date.UTC(1956, 4, 19, 15, 30), endUtcMs: Date.UTC(1956, 8, 29, 15, 30) },
+  // 1957: Sun>=1 May = May 5 → Sat>=17 Sep = Sep 21 24:00 = Sep 22 00:00 KMT
+  { startUtcMs: Date.UTC(1957, 4, 4, 15, 30), endUtcMs: Date.UTC(1957, 8, 21, 15, 30) },
+  // 1958: May 4 → Sep 20 24:00 = Sep 21 00:00
+  { startUtcMs: Date.UTC(1958, 4, 3, 15, 30), endUtcMs: Date.UTC(1958, 8, 20, 15, 30) },
+  // 1959: May 3 → Sep 19 24:00 = Sep 20 00:00
+  { startUtcMs: Date.UTC(1959, 4, 2, 15, 30), endUtcMs: Date.UTC(1959, 8, 19, 15, 30) },
+  // 1960: May 1 → Sep 17 24:00 = Sep 18 00:00
+  { startUtcMs: Date.UTC(1960, 3, 30, 15, 30), endUtcMs: Date.UTC(1960, 8, 17, 15, 30) },
+  // 1987: May 10 02:00 KST → Oct 11 03:00 KDT (단순화: 자정 경계 기반 윈도우)
+  { startUtcMs: Date.UTC(1987, 4, 9, 17, 0), endUtcMs: Date.UTC(1987, 9, 10, 17, 0) },
+  // 1988: May 8 02:00 KST → Oct 9 03:00 KDT
+  { startUtcMs: Date.UTC(1988, 4, 7, 17, 0), endUtcMs: Date.UTC(1988, 9, 8, 17, 0) },
+]
+
+function isInKmtEra(birthUtcMs: number): boolean {
+  return birthUtcMs >= KMT_START_UTC_MS && birthUtcMs < KMT_END_UTC_MS
+}
+
+function isInKoreanDst(birthUtcMs: number): boolean {
+  for (const w of KOREAN_DST_WINDOWS) {
+    if (birthUtcMs >= w.startUtcMs && birthUtcMs < w.endUtcMs) {
+      return true
+    }
+  }
+  return false
+}
+
+/**
+ * 한국 LMT(평균태양시) +30분 보정을 적용할지 결정.
+ * (a) 타임존이 Asia/Seoul 이고
+ * (b) KMT 시대(1954-03-21 ~ 1961-08-10)가 아니며
+ * (c) 한국 DST 윈도우가 아닐 때만 true.
+ */
+export function applyKoreanLmtCorrection(birthUtcMs: number, timezone: string): boolean {
+  if (timezone !== SEOUL_TZ) {
+    return false
+  }
+  if (isInKmtEra(birthUtcMs)) {
+    return false
+  }
+  if (isInKoreanDst(birthUtcMs)) {
+    return false
+  }
+  return true
+}
+
+/**
+ * 시지 산정용 분(min) 보정값.
+ * - DST 기간: 시계가 1시간 앞당겨졌으므로 −60분 (평상시 시계로 환원)
+ * - 그 외: 0
+ *
+ * KMT 시대는 시계 자체가 127.5°E 자오선 = 평상시 정오와 일치 → 분 보정 불필요.
+ */
+function getHourLookupOffsetMin(birthUtcMs: number, timezone: string): number {
+  if (timezone !== SEOUL_TZ) {
+    return 0
+  }
+  if (isInKoreanDst(birthUtcMs)) {
+    return -60
+  }
+  return 0
+}
+
+// 시지 범위 — 두 가지 변형.
+// LMT_HOUR_RANGES: 한국 LMT(+30) 보정 적용 — 子=23:30-01:30 등 (현행 동작).
+// PLAIN_HOUR_RANGES: 평범한 정시 경계 — 子=23:00-01:00. KMT 시대 / 비한국 /
+//                    DST 보정 후 사용.
+type HourRange = { idx: number; start: number; end: number }
+const LMT_HOUR_RANGES: ReadonlyArray<HourRange> = [
+  { idx: 0, start: 23 * 60 + 30, end: 24 * 60 + 60 + 30 },
+  { idx: 1, start: 1 * 60 + 30, end: 3 * 60 + 30 },
+  { idx: 2, start: 3 * 60 + 30, end: 5 * 60 + 30 },
+  { idx: 3, start: 5 * 60 + 30, end: 7 * 60 + 30 },
+  { idx: 4, start: 7 * 60 + 30, end: 9 * 60 + 30 },
+  { idx: 5, start: 9 * 60 + 30, end: 11 * 60 + 30 },
+  { idx: 6, start: 11 * 60 + 30, end: 13 * 60 + 30 },
+  { idx: 7, start: 13 * 60 + 30, end: 15 * 60 + 30 },
+  { idx: 8, start: 15 * 60 + 30, end: 17 * 60 + 30 },
+  { idx: 9, start: 17 * 60 + 30, end: 19 * 60 + 30 },
+  { idx: 10, start: 19 * 60 + 30, end: 21 * 60 + 30 },
+  { idx: 11, start: 21 * 60 + 30, end: 23 * 60 + 30 },
+]
+const PLAIN_HOUR_RANGES: ReadonlyArray<HourRange> = [
+  { idx: 0, start: 23 * 60, end: 25 * 60 }, // 子 23-25(=01)
+  { idx: 1, start: 1 * 60, end: 3 * 60 },
+  { idx: 2, start: 3 * 60, end: 5 * 60 },
+  { idx: 3, start: 5 * 60, end: 7 * 60 },
+  { idx: 4, start: 7 * 60, end: 9 * 60 },
+  { idx: 5, start: 9 * 60, end: 11 * 60 },
+  { idx: 6, start: 11 * 60, end: 13 * 60 },
+  { idx: 7, start: 13 * 60, end: 15 * 60 },
+  { idx: 8, start: 15 * 60, end: 17 * 60 },
+  { idx: 9, start: 17 * 60, end: 19 * 60 },
+  { idx: 10, start: 19 * 60, end: 21 * 60 },
+  { idx: 11, start: 21 * 60, end: 23 * 60 },
+]
+
 /* ========== 안전 시간 파서 ========== */
 function parseHourMinute(t: string): { h: number; m: number } {
   const s = String(t ?? '')
@@ -243,12 +391,20 @@ export function calculateSajuData(
 
     /* ---------------- 월기둥 ---------------- */
     let sajuMonth = month
+    // sajuMonth 가 속한 "절기-연도" — 1월이지만 소한(1월 절기) 이전이면 사주월은
+    // 작년 12월(子월)로 롤백되므로, 그 절기 lookup 도 작년에서 가져와야 한다.
+    let sajuTermYear = year
     const termUTC_thisMonth = getSolarTermKST(year, month)
     if (!termUTC_thisMonth) {
       throw new Error(`Cannot determine Saju month: solar term data missing for ${year}/${month}`)
     }
     if (birthDateTime < termUTC_thisMonth) {
-      sajuMonth = sajuMonth === 1 ? 12 : sajuMonth - 1
+      if (sajuMonth === 1) {
+        sajuMonth = 12
+        sajuTermYear = year - 1
+      } else {
+        sajuMonth = sajuMonth - 1
+      }
     }
 
     const G_BRANCH: ReadonlyArray<string> = [
@@ -295,24 +451,18 @@ export function calculateSajuData(
       elementGraphId: toSajuElementId(dayPillar.stem.element) ?? undefined,
     }
 
-    /* ---------------- 시기둥 ---------------- */
+    /* ---------------- 시기둥 ----------------
+     * 한국 LMT(+30) / KMT 시대 / DST / 비한국 분기 — applyKoreanLmtCorrection 참조.
+     */
     const { h: hour, m: minute } = parseHourMinute(birthTime)
-    const totalMin = hour * 60 + minute
-    const ranges = [
-      { idx: 0, start: 23 * 60 + 30, end: 24 * 60 + 60 + 30 },
-      { idx: 1, start: 1 * 60 + 30, end: 3 * 60 + 30 },
-      { idx: 2, start: 3 * 60 + 30, end: 5 * 60 + 30 },
-      { idx: 3, start: 5 * 60 + 30, end: 7 * 60 + 30 },
-      { idx: 4, start: 7 * 60 + 30, end: 9 * 60 + 30 },
-      { idx: 5, start: 9 * 60 + 30, end: 11 * 60 + 30 },
-      { idx: 6, start: 11 * 60 + 30, end: 13 * 60 + 30 },
-      { idx: 7, start: 13 * 60 + 30, end: 15 * 60 + 30 },
-      { idx: 8, start: 15 * 60 + 30, end: 17 * 60 + 30 },
-      { idx: 9, start: 17 * 60 + 30, end: 19 * 60 + 30 },
-      { idx: 10, start: 19 * 60 + 30, end: 21 * 60 + 30 },
-      { idx: 11, start: 21 * 60 + 30, end: 23 * 60 + 30 },
-    ]
-    const candidates = [totalMin, totalMin + 24 * 60]
+    const birthUtcMs = birthDateTime.getTime()
+    const useLmtRanges = applyKoreanLmtCorrection(birthUtcMs, timezone)
+    const lookupOffsetMin = getHourLookupOffsetMin(birthUtcMs, timezone)
+    const totalMin = hour * 60 + minute + lookupOffsetMin
+    const ranges = useLmtRanges ? LMT_HOUR_RANGES : PLAIN_HOUR_RANGES
+    // candidate 보정 — totalMin 이 음수일 수 있으므로 양수로 정규화 후 [0, 1440) 범위로 회수.
+    const normTotalMin = ((totalMin % 1440) + 1440) % 1440
+    const candidates = [normTotalMin, normTotalMin + 24 * 60]
     let hourBranchIndex = 0
     outer: for (const t of candidates) {
       for (const r of ranges) {
@@ -331,9 +481,15 @@ export function calculateSajuData(
     const isYangYear = yearPillar.stem.yin_yang === '양'
     const isMale = gender === 'male'
     const isForward = (isYangYear && isMale) || (!isYangYear && !isMale)
-    const termUTC_current = getSolarTermKST(year, sajuMonth)
+    // sajuTermYear: sajuMonth 가 1월에서 12월로 롤백된 경우 그 절기는 *작년*에
+    // 속한다 (예: 1990-01-04 출생 → sajuMonth=12, sajuTermYear=1989 → 1989년 대설).
+    // 이전엔 sajuMonth 만 보정하고 lookup year 는 Gregorian year 그대로 두어,
+    // 자축월 무렵 연초 출생의 대운수가 ~365일 어긋났음 (regression test 참조).
+    const termUTC_current = getSolarTermKST(sajuTermYear, sajuMonth)
     if (!termUTC_current) {
-      throw new Error(`Cannot determine Daeun: solar term data missing for ${year}/${sajuMonth}`)
+      throw new Error(
+        `Cannot determine Daeun: solar term data missing for ${sajuTermYear}/${sajuMonth}`
+      )
     }
     // 대운수 계산용 절기 결정.
     // 양남/음녀 순행 → 다음 月의 시작 절기까지 일수
@@ -344,7 +500,7 @@ export function calculateSajuData(
     let nextTermUTC: Date, prevTermUTC: Date
     if (isForward) {
       const nextMonth = sajuMonth === 12 ? 1 : sajuMonth + 1
-      const nextYear = sajuMonth === 12 ? year + 1 : year
+      const nextYear = sajuMonth === 12 ? sajuTermYear + 1 : sajuTermYear
       const nextTerm = getSolarTermKST(nextYear, nextMonth)
       if (!nextTerm) {
         throw new Error(
