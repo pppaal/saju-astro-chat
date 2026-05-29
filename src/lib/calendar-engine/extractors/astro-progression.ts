@@ -1,5 +1,6 @@
-import { calculateSecondaryProgressions, findProgressedMoonAspects } from '@/lib/astrology/foundation/progressions'
-import type { Chart } from '@/lib/astrology/foundation/types'
+import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progressions'
+import { shortestAngle } from '@/lib/astrology/foundation/utils'
+import type { AspectType, Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { inferAspectPolarity } from '../themes/tagger'
 
@@ -10,7 +11,8 @@ import { inferAspectPolarity } from '../themes/tagger'
  * 매월 진행 차트를 계산하고 진행 행성들이 본명 행성과 어떤 어스펙트를 만드는지 추적.
  *
  * 신호 종류:
- *  - 진행 달  (orb 1.5°, weight 0.65) — 본명 행성에 닿을 때 감정·내면 결.
+ *  - 진행 달  (orb 1.5°, weight 0.65/0.45) — 본명 행성에 닿을 때 감정·내면 결.
+ *    메이저 5종 + 마이너 5종 (semisextile/quincunx/quintile/biquintile/sesquiquadrate).
  *  - 진행 태양 (orb 0.5°, weight 0.80) — 가장 천천히, 정체성·성장 결.
  *  - 진행 수성 (orb 1.0°, weight 0.65) — 소통·결정 결.
  *  - 진행 금성 (orb 1.0°, weight 0.65) — 관계·가치 결.
@@ -18,6 +20,11 @@ import { inferAspectPolarity } from '../themes/tagger'
  *
  * 활성 윈도우: 진행 달은 1달에 약 1° 움직이므로 한 어스펙트가 ±2~3개월 활성.
  * 진행 태양/수성/금성/화성은 1년에 약 1° → 한 어스펙트가 수개월~1년 이상 활성.
+ *
+ * 주: foundation 의 `findProgressedMoonAspects` 는 angle ≤ 3° 으로만 필터해
+ * conjunction 만 정상 동작 → 마이너 어스펙트는 절대 노출되지 않는다. 따라서
+ * 진행 달은 다른 호출자 영향 없이 이 추출기에서 inline 으로 진행달 → 본명 행성
+ * 각도를 직접 계산해 메이저+마이너로 분류한다.
  */
 
 // 진행 달은 기존 orb 유지 — 변별력 보존 (이전 동작 호환)
@@ -32,6 +39,39 @@ const PROG_INNER_PLANETS: Record<string, { orb: number; weight: number }> = {
 }
 
 type MajorAspect = 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition'
+
+// 진행 달 전용: 메이저 5종 + 마이너 5종 후보. 가장 가까운 후보로 분류.
+const MOON_ASPECT_CANDIDATES: ReadonlyArray<{ aspect: AspectType; exact: number }> = [
+  { aspect: 'conjunction',    exact: 0 },
+  { aspect: 'semisextile',    exact: 30 },
+  { aspect: 'sextile',        exact: 60 },
+  { aspect: 'quintile',       exact: 72 },
+  { aspect: 'square',         exact: 90 },
+  { aspect: 'trine',          exact: 120 },
+  { aspect: 'sesquiquadrate', exact: 135 },
+  { aspect: 'biquintile',     exact: 144 },
+  { aspect: 'quincunx',       exact: 150 },
+  { aspect: 'opposition',     exact: 180 },
+]
+
+const MINOR_ASPECT_SET = new Set<AspectType>([
+  'semisextile',
+  'quincunx',
+  'quintile',
+  'biquintile',
+  'sesquiquadrate',
+])
+
+// task spec 의 마이너 polarity 값. Polarity 가 정수(−3..3) 라 round-half-away-from-zero.
+// semisextile 0 → 0, quincunx -0.5 → -1, quintile/biquintile +0.5 → +1,
+// sesquiquadrate -0.3 → -1 (작은 긴장 신호를 0 으로 묻기보다 -1 로 노출).
+const MINOR_POLARITY_OVERRIDE: Record<string, Polarity> = {
+  semisextile: 0,
+  quincunx: -1,
+  quintile: 1,
+  biquintile: 1,
+  sesquiquadrate: -1,
+}
 
 const astroProgressionExtractor: SignalExtractor = {
   source: 'astro',
@@ -68,31 +108,41 @@ const astroProgressionExtractor: SignalExtractor = {
       const peakIso = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15)).toISOString()
       const monthKey = cursor.toISOString().slice(0, 7)
 
-      // 1) 진행 달 → 본명 어스펙트 (기존 동작 유지)
-      const moonAspects = findProgressedMoonAspects(progressed, natal.astro.chart)
-      for (const a of moonAspects) {
-        const classified = classifyAngle(a.angle, MOON_ORB_DEG)
-        if (!classified) continue
-        const polarity: Polarity = inferAspectPolarity(classified.aspect, 'Moon', a.target)
-        signals.push({
-          id: `astro.progressed-moon.${monthKey}.${classified.aspect}.${a.target}`,
-          source: 'astro',
-          kind: 'progressed-moon',
-          name: `Prog Moon ${classified.aspect} ${a.target}`,
-          korean: `진행달 ${classified.aspect} 본명 ${a.target}`,
-          themes: [],
-          polarity,
-          layer: 'monthly',
-          active: { start: startIso, peak: peakIso, end: endIso },
-          weight: 0.65 * Math.max(0.4, 1 - classified.orb / MOON_ORB_DEG),
-          evidence: {
-            module: 'astro-progression',
-            aspectType: classified.aspect,
-            orbDegrees: classified.orb,
-            planets: ['Moon', a.target],
-            detail: { progressionType: 'secondary', progressedBody: 'Moon' },
-          },
-        })
+      // 1) 진행 달 → 본명 어스펙트 (메이저 5종 + 마이너 5종)
+      // foundation 의 findProgressedMoonAspects 는 angle ≤ 3° 만 필터해 conjunction
+      // 만 노출 → 마이너가 절대 surface 되지 않으므로 여기서 inline 으로 계산한다.
+      const progressedMoon = progressed.planets.find((p) => p.name === 'Moon')
+      const natalPlanets = natal.astro.chart.planets ?? []
+      if (progressedMoon) {
+        for (const target of natalPlanets) {
+          const angle = shortestAngle(progressedMoon.longitude, target.longitude)
+          const classified = classifyMoonAngle(angle, MOON_ORB_DEG)
+          if (!classified) continue
+          const isMinor = MINOR_ASPECT_SET.has(classified.aspect)
+          const polarity: Polarity = isMinor
+            ? MINOR_POLARITY_OVERRIDE[classified.aspect] ?? 0
+            : inferAspectPolarity(classified.aspect, 'Moon', target.name)
+          signals.push({
+            id: `astro.progressed-moon.${monthKey}.${classified.aspect}.${target.name}`,
+            source: 'astro',
+            kind: 'progressed-moon',
+            name: `Prog Moon ${classified.aspect} ${target.name}`,
+            korean: `진행달 ${classified.aspect} 본명 ${target.name}`,
+            themes: [],
+            polarity,
+            layer: 'monthly',
+            active: { start: startIso, peak: peakIso, end: endIso },
+            // 마이너 신호는 base weight 살짝 낮게 (메이저 신호 묻지 않도록).
+            weight: (isMinor ? 0.45 : 0.65) * Math.max(0.4, 1 - classified.orb / MOON_ORB_DEG),
+            evidence: {
+              module: 'astro-progression',
+              aspectType: classified.aspect,
+              orbDegrees: classified.orb,
+              planets: ['Moon', target.name],
+              detail: { progressionType: 'secondary', progressedBody: 'Moon' },
+            },
+          })
+        }
       }
 
       // 2) 진행 태양/수성/금성/화성 → 본명 행성·ASC·MC 어스펙트
@@ -198,6 +248,24 @@ const NATAL_BENEFICS = new Set(['Sun', 'Jupiter', 'Venus'])
 const NATAL_MALEFICS = new Set(['Mars', 'Saturn'])
 
 /**
+ * 진행 달 전용: 0~180° 각도를 메이저+마이너 aspect 로 분류.
+ * orbDeg 안쪽이면 가장 가까운 후보(가장 작은 orb)를 반환한다.
+ */
+function classifyMoonAngle(
+  angle: number,
+  orbDeg: number
+): { aspect: AspectType; orb: number } | null {
+  let best: { aspect: AspectType; orb: number } | null = null
+  for (const c of MOON_ASPECT_CANDIDATES) {
+    const orb = Math.abs(angle - c.exact)
+    if (orb <= orbDeg && (best === null || orb < best.orb)) {
+      best = { aspect: c.aspect, orb }
+    }
+  }
+  return best
+}
+
+/**
  * 0~180° 각도를 메이저 aspect 종류로 분류. orb 는 정확한 각도와의 차이.
  */
 function classifyAngle(
@@ -225,6 +293,9 @@ export const __test = {
   findProgressedPlanetAspects,
   computeProgPolarity,
   classifyAngle,
+  classifyMoonAngle,
+  MINOR_ASPECT_SET,
+  MINOR_POLARITY_OVERRIDE,
   PROG_INNER_PLANETS,
   NATAL_BENEFICS,
   NATAL_MALEFICS,
