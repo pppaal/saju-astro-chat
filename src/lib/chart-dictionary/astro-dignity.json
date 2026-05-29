@@ -182,6 +182,10 @@
     }
   },
   "Uranus": {
+    "note": {
+      "ko": "외행성은 전통 dignity table (William Lilly 시대) 에 없음 — 현대 룰러십만 인정. Exaltation/Detriment/Fall 은 점성가별 견해 분분 (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries? 등) — 채택 안 함.",
+      "en": "Outer planets aren't in the traditional dignity table (pre-1781). Only modern rulerships are listed; Exaltation/Detriment/Fall are debated (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries?) — not adopted here."
+    },
     "Domicile": {
       "sign": "Aquarius",
       "ko": "물병 — 현대 룰러십. 혁신·자유·집단 비전이 가장 자연스럽게 흐르고, 기존 틀을 깨는 힘이 살아난다.",
@@ -193,6 +197,10 @@
     }
   },
   "Neptune": {
+    "note": {
+      "ko": "외행성은 전통 dignity table (William Lilly 시대) 에 없음 — 현대 룰러십만 인정. Exaltation/Detriment/Fall 은 점성가별 견해 분분 (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries? 등) — 채택 안 함.",
+      "en": "Outer planets aren't in the traditional dignity table (pre-1846). Only modern rulerships are listed; Exaltation/Detriment/Fall are debated (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries?) — not adopted here."
+    },
     "Domicile": {
       "sign": "Pisces",
       "ko": "물고기 — 현대 룰러십. 영감·자비·경계 해체가 가장 자연스럽게 흐르고, 신비·예술·헌신의 감각이 깊어진다.",
@@ -204,6 +212,10 @@
     }
   },
   "Pluto": {
+    "note": {
+      "ko": "외행성은 전통 dignity table (William Lilly 시대) 에 없음 — 현대 룰러십만 인정. Exaltation/Detriment/Fall 은 점성가별 견해 분분 (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries? 등) — 채택 안 함.",
+      "en": "Outer planets aren't in the traditional dignity table (pre-1930). Only modern rulerships are listed; Exaltation/Detriment/Fall are debated (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries?) — not adopted here."
+    },
     "Domicile": {
       "sign": "Scorpio",
       "ko": "전갈 — 현대 룰러십. 죽음·재생·심층 변용의 힘이 가장 자연스럽게 작동하고, 진실을 파고드는 강도가 극에 달한다.",
