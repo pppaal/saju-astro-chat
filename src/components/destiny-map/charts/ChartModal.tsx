@@ -6,6 +6,8 @@ import { SajuChart } from './SajuChart'
 import { ElementRadar } from './ElementRadar'
 import { NatalChart } from './NatalChart'
 import { ChartReading } from './ChartReading'
+import { PersonaCard } from './atoms/PersonaCard'
+import { InsightStrip } from './atoms/InsightStrip'
 import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
 
 interface ChartModalProps {
@@ -80,28 +82,47 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
           </p>
         </div>
 
+        {/* Level 0 — PersonaCard: "당신은 X" 한 줄 정체성. saju 데이터에서
+            격국 + 신강약 + 부족 오행 도출. 사용자가 모달 열자마자 본질 파악. */}
+        <div
+          className="chart-rise-in mb-3"
+          style={{ ['--i' as string]: 0 } as React.CSSProperties}
+        >
+          <PersonaCard saju={saju} />
+        </div>
+
+        {/* Level 1 — InsightStrip: 핵심 3 줄. 십성 dominant + 부족 오행 +
+            현재 대운 등 자동 도출. PersonaCard 의 한 줄을 뒷받침. */}
+        <div
+          className="chart-rise-in mb-5"
+          style={{ ['--i' as string]: 1 } as React.CSSProperties}
+        >
+          <InsightStrip saju={saju} />
+        </div>
+
+        {/* 기존 "한 줄 해석" — fallback / 보조. PersonaCard 가 메인. */}
         {readLine && (
           <div
-            className="chart-rise-in mb-5 rounded-2xl p-4"
+            className="chart-rise-in mb-5 rounded-xl p-3"
             style={
               {
-                ['--i' as string]: 0,
-                background: 'rgba(212, 181, 114, 0.05)',
+                ['--i' as string]: 2,
+                background: 'rgba(212, 181, 114, 0.04)',
                 border: '1px solid var(--ds-gold-line)',
               } as React.CSSProperties
             }
           >
             <div
-              className="mb-1.5 text-xs font-semibold tracking-wide uppercase"
+              className="mb-1 text-[10px] font-semibold tracking-wide uppercase opacity-80"
               style={{ color: 'var(--ds-gold-on-dark)' }}
             >
-              {isKo ? '한 줄 해석' : 'Quick read'}
+              {isKo ? '요약' : 'Summary'}
             </div>
             <ChartReading
               text={readLine}
               theme="dark"
-              className="text-sm leading-relaxed"
-              style={{ color: 'var(--ds-dark-text)' }}
+              className="text-xs leading-relaxed"
+              style={{ color: 'var(--ds-dark-text-muted)' }}
             />
           </div>
         )}
