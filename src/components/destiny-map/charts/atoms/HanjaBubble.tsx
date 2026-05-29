@@ -35,6 +35,12 @@ export function HanjaBubble({ hanja, children, className }: HanjaBubbleProps) {
     longPressTimer.current = null
   }
 
+  // unmount 시 timer 누수 방지.
+  React.useEffect(() => {
+    return () => cancel()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <span
       className={`relative inline-block ${className ?? ''}`}

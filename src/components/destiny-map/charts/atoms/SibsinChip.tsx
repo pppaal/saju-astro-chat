@@ -33,11 +33,7 @@ export function SibsinChip({ sibsin, size = 'xs', className }: SibsinChipProps) 
       className={`relative inline-flex items-center ${className ?? ''}`}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
-      onTouchStart={(e) => {
-        // 모바일: 칩 탭으로 bubble 토글
-        e.preventDefault()
-        setOpen((o) => !o)
-      }}
+      onClick={() => setOpen((o) => !o)}
     >
       <span
         className={`inline-block rounded-md font-medium ring-1 leading-tight ${info.color.bg} ${info.color.text} ${info.color.ring} ${sizeClass}`}

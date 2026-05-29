@@ -35,14 +35,31 @@ interface SajuLike {
     }
     deukryeong?: { status?: string; strength?: number }
   }
+  // /api/saju 는 {wood, fire, earth, metal, water} 영문 키 반환 (saju.ts:711).
+  // NatalContext.saju.fiveElements 도 동일 영문 키. 둘 다 같은 path 로 변환.
   fiveElements?: Record<string, number>
   dayMaster?: { name?: string; element?: string }
+  birthYear?: number
+  /** /api/saju 응답의 daeun = getDaeunCycles() 결과 — `list` 가 대운 사이클. */
   daeun?: {
-    cycles?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; sibsin?: { cheon?: string; ji?: string } }>
+    startAge?: number
+    isForward?: boolean
+    current?: { age?: number; heavenlyStem?: string; earthlyBranch?: string } | null
+    list?: Array<{
+      age?: number
+      heavenlyStem?: string
+      earthlyBranch?: string
+      ganji?: string
+    }>
   }
-  unse?: {
-    daeun?: Array<{ age?: number; heavenlyStem?: string; earthlyBranch?: string; ganji?: string }>
-  }
+}
+
+const EN_TO_KO_ELEMENT: Record<string, string> = {
+  wood: '목',
+  fire: '화',
+  earth: '토',
+  metal: '금',
+  water: '수',
 }
 
 /** 격국 → tagline. fallback "균형형". */
@@ -51,31 +68,49 @@ function taglineFromGeokguk(geokguk: string | undefined): string {
   return '균형형 — 다양한 가능성 가짐'
 }
 
-/** 오행 분포에서 부족한 원소 찾기. 0 또는 1 이하인 것. */
-function findDeficient(fiveElements: Record<string, number> | undefined): string | undefined {
+/**
+ * 오행 분포에서 부족한 원소 찾기. 0 또는 1 이하인 것.
+ * /api/saju · NatalContext 둘 다 영문 키 (wood/fire/...) 반환 — 한국어 키로 변환 후 비교.
+ * 영문 키가 하나도 없으면 한국어 키로 polled (안전망).
+ */
+function findDeficient(
+  fiveElements: Record<string, number> | undefined
+): string | undefined {
   if (!fiveElements) return undefined
+  const koCounts: Record<string, number> = {}
+  for (const [k, v] of Object.entries(fiveElements)) {
+    if (typeof v !== 'number') continue
+    const koKey = EN_TO_KO_ELEMENT[k] ?? k
+    koCounts[koKey] = v
+  }
   const els = ['목', '화', '토', '금', '수']
-  const min = Math.min(...els.map((e) => fiveElements[e] ?? 0))
-  const deficient = els.find((e) => (fiveElements[e] ?? 0) === min && min <= 1)
-  return deficient
+  if (els.every((e) => koCounts[e] === undefined)) return undefined
+  const min = Math.min(...els.map((e) => koCounts[e] ?? 0))
+  if (min > 1) return undefined
+  return els.find((e) => (koCounts[e] ?? 0) === min)
+}
+
+/**
+ * daymasterStrength 한국어 값을 표시용 한 단어로 매핑.
+ * 실제값: '극신강' | '신강' | '중화' | '신약' | '극신약' (saju/yongsin.ts:19).
+ */
+function strengthLabel(raw: string | undefined): string | undefined {
+  if (raw === '극신강' || raw === '신강') return '신강'
+  if (raw === '극신약' || raw === '신약') return '신약'
+  if (raw === '중화') return '중화'
+  return undefined
 }
 
 export function computePersona(saju: SajuLike | undefined | null): PersonaSummary {
   if (!saju) return { label: '사주 정보 없음', tagline: '생년월일 입력이 필요합니다' }
 
   const geokguk = saju.advancedAnalysis?.geokguk?.primary
-  const strengthStatus = saju.advancedAnalysis?.yongsin?.daymasterStrength as
-    | 'strong'
-    | 'medium'
-    | 'weak'
-    | undefined
 
   // "정인격 · 신약" 같은 라벨
   const parts: string[] = []
   if (geokguk) parts.push(geokguk)
-  if (strengthStatus === 'strong') parts.push('신강')
-  else if (strengthStatus === 'weak') parts.push('신약')
-  else if (strengthStatus === 'medium') parts.push('중화')
+  const strength = strengthLabel(saju.advancedAnalysis?.yongsin?.daymasterStrength)
+  if (strength) parts.push(strength)
   const label = parts.join(' · ') || '균형형'
 
   const tagline = taglineFromGeokguk(geokguk)
@@ -92,6 +127,27 @@ export function computePersona(saju: SajuLike | undefined | null): PersonaSummar
   }
 
   return { label, tagline, remedy }
+}
+
+/**
+ * 현재 나이를 포함하는 대운 사이클 찾기.
+ * birthYear 있으면 정확 계산. 없으면 list 중간쯤 (사용자가 20~40대라고 가정).
+ */
+function findCurrentDaeun(
+  daeunList: NonNullable<NonNullable<SajuLike['daeun']>['list']>,
+  birthYear: number | undefined
+): { age?: number; heavenlyStem?: string; earthlyBranch?: string } | undefined {
+  if (daeunList.length === 0) return undefined
+  if (birthYear && Number.isFinite(birthYear)) {
+    const currentAge = new Date().getFullYear() - birthYear
+    let current = daeunList[0]
+    for (const c of daeunList) {
+      if ((c.age ?? 0) <= currentAge) current = c
+      else break
+    }
+    return current
+  }
+  return daeunList[Math.min(2, daeunList.length - 1)]
 }
 
 /** 사주 데이터 → 핵심 3 insight 도출. */
@@ -142,21 +198,19 @@ export function computeInsights(saju: SajuLike | undefined | null): Insight[] {
     }
   }
 
-  // 3. 현재 대운
-  const cycles = saju.unse?.daeun ?? []
-  if (cycles.length > 0) {
-    // 사주에 birthYear 없으면 age 계산 안 함. cycles[0].age 부터 10년 단위.
-    const ageFromCycle = (c: { age?: number }) => c.age ?? 0
-    // 현재 나이를 사주 daeun 의 age 와 매칭 — 단순화: 가장 큰 age <= 추정나이
-    // birthYear 모르면 cycles 의 sequence 만 보고 중간 정도를 표시.
-    const current = cycles[Math.min(2, cycles.length - 1)] // 보통 사용자가 20~40대
-    if (current) {
-      const sibsinCheon = current.heavenlyStem
-      const ganji = `${current.heavenlyStem}${current.earthlyBranch}`
+  // 3. 현재 대운 — /api/saju 응답의 saju.daeun.list 사용.
+  // birthYear 가 있으면 currentAge 로 정확 매칭, 없으면 list 중간쯤.
+  const daeunList = saju.daeun?.list ?? []
+  const current = findCurrentDaeun(daeunList, saju.birthYear)
+  if (current) {
+    const stem = current.heavenlyStem ?? ''
+    const branch = current.earthlyBranch ?? ''
+    const ganji = `${stem}${branch}`.trim()
+    if (ganji) {
       insights.push({
         emoji: '🌊',
-        title: `${ageFromCycle(current)}세~ ${ganji} 대운 — 흐름의 시기`,
-        evidence: `✓ 천간 ${sibsinCheon} · 10년 주기`,
+        title: `${current.age ?? 0}세~ ${ganji} 대운 — 흐름의 시기`,
+        evidence: `✓ 천간 ${stem} · 10년 주기`,
       })
     }
   }
