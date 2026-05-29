@@ -6,6 +6,19 @@ import { Chart, PlanetBase, ZodiacKo, AspectType } from "./types";
 import { formatLongitude, shortestAngle } from "./utils";
 import { getMidpoint as getMidpointLongitude } from "./shared";
 
+/**
+ * 트랜짓 → 본명 미드포인트 활성화
+ * 본명 미드포인트는 좁은 orb 에서만 의미가 있음 (Hamburg 학파 기본 orb 1°).
+ * 트랜짓 행성이 conjunction / square / opposition 로 본명 미드포인트에 닿는 순간을 감지.
+ */
+export interface TransitToMidpoint {
+  midpoint: Midpoint;
+  transitPlanet: string;        // 트랜짓 측 행성 (Sun..Pluto)
+  transitLongitude: number;
+  aspectType: "conjunction" | "square" | "opposition";
+  orb: number;                  // 정밀 orb (deg, 0 ≤ orb ≤ requested)
+}
+
 export interface Midpoint {
   planet1: string;
   planet2: string;
@@ -153,6 +166,58 @@ export function findMidpointActivations(
   }
 
   return activations.sort((a, b) => a.orb - b.orb);
+}
+
+/**
+ * 트랜짓 차트의 행성들이 본명 미드포인트에 conjunction / square / opposition 하는지 검사.
+ * Hamburg/Uranian 학파 — 본명 미드포인트가 트랜짓에 닿는 순간은
+ * 일반 트랜짓 어스펙트보다 정밀하고 의미 깊은 트리거로 본다.
+ *
+ * @param transitChart  트랜짓(현시점) 차트
+ * @param natalMidpoints 본명에서 1회 계산된 미드포인트 목록
+ * @param orb           기본 1° (좁음). Hamburg 기본은 1° 이하.
+ */
+export function findTransitsToMidpoints(
+  transitChart: Chart,
+  natalMidpoints: Midpoint[],
+  orb: number = 1.0
+): TransitToMidpoint[] {
+  const hits: TransitToMidpoint[] = [];
+
+  for (const mp of natalMidpoints) {
+    for (const tp of transitChart.planets) {
+      // 본명 미드포인트를 구성한 두 행성 자신과 트랜짓이 같은 자리에 오는 건
+      // 별개 의미(트랜짓-네이탈 회귀)이므로 여기서 제외하지 않는다 — Hamburg 식
+      // 미드포인트 트리거에 자기 행성도 포함된다.
+      const diff = shortestAngle(tp.longitude, mp.longitude);
+
+      let aspect: TransitToMidpoint["aspectType"] | null = null;
+      let actualOrb = Infinity;
+
+      if (diff <= orb) {
+        aspect = "conjunction";
+        actualOrb = diff;
+      } else if (Math.abs(diff - 90) <= orb) {
+        aspect = "square";
+        actualOrb = Math.abs(diff - 90);
+      } else if (Math.abs(diff - 180) <= orb) {
+        aspect = "opposition";
+        actualOrb = Math.abs(diff - 180);
+      }
+
+      if (aspect === null) continue;
+
+      hits.push({
+        midpoint: mp,
+        transitPlanet: tp.name,
+        transitLongitude: tp.longitude,
+        aspectType: aspect,
+        orb: actualOrb,
+      });
+    }
+  }
+
+  return hits.sort((a, b) => a.orb - b.orb);
 }
 
 /**

@@ -1,15 +1,30 @@
-import { dignityOf } from '@/lib/astrology/foundation/dignities'
-import type { Chart } from '@/lib/astrology/foundation/types'
+import {
+  dignityOf,
+  triplicityOf,
+  termOf,
+  faceOf,
+  dignityTiers,
+  dignityScore,
+} from '@/lib/astrology/foundation/dignities'
+import type { Chart, PlanetBase } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity, SignalLayer } from '../types'
 import { getCachedTransitChart } from '../ephe-cache'
 
 /**
- * 행성 품위 (Essential Dignity) 추출기.
+ * 행성 품위 (Essential Dignity) 추출기 — 5-tier (Hellenistic).
  *
- * 트랜짓 행성이 자기 도미사일/엑잘트/디트리먼트/폴 사인에 진입할 때 신호 생성.
- * 같은 행성이 같은 dignity 상태를 유지하는 동안 1개 신호로 묶음.
+ * 기존 4-tier (도미사일/엑잘트/디트리먼트/폴) 위에 헬레니즘 minor dignity
+ * (Triplicity / Term / Face) 를 추가했다. 트랜짓 행성이 자기 dignity 사인/구간
+ * 에 들어갈 때 신호를 만들고, 같은 행성·dignity·sign·tier 가 유지되는 동안
+ * 한 개 신호로 묶는다.
  *
- * 활성 윈도우: dignity 상태가 유지되는 기간 (사인 통과 = 행성 속도에 따라 며칠~몇 년).
+ * polarity 매핑:
+ *   major:  domicile +2 / exaltation +3 / detriment -2 / fall -3
+ *   minor:  triplicity / term / face 매칭 시 +1 (weight 로 강도 조절:
+ *           triplicity 0.5 / term 0.3 / face 0.2)
+ *
+ * 본명 행성(natal planets)도 한 번 평가해 본명 5-tier Almuten 스냅샷 신호로
+ * 같이 내보낸다 (layer: 'yearly', 활성 윈도우 = 전체 range).
  */
 
 const DIGNITY_POLARITY: Record<string, Polarity> = {
@@ -37,9 +52,20 @@ const astroDignityExtractor: SignalExtractor = {
     const { natal, range, cache } = ctx
     const start = new Date(range.start)
     const end = new Date(range.end)
+    const sect = natal.astro.sect
 
     // 매일 정오의 차트에서 각 행성의 dignity 추출 → 연속 구간 묶기
-    type Hit = { iso: string; planet: string; sign: string; dignity: string }
+    type Hit = {
+      iso: string
+      planet: string
+      sign: string
+      degree: number
+      dignity: string
+      // minor tier matches (planet IS the ruler of that minor tier here)
+      triplicity: boolean
+      term: boolean
+      face: boolean
+    }
     const hits: Hit[] = []
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
@@ -60,14 +86,28 @@ const astroDignityExtractor: SignalExtractor = {
         const sign = p.sign
         if (!sign) continue
         const d = dignityOf(p.name, sign)
-        if (d === 'peregrine') continue
-        hits.push({ iso: noonIso, planet: p.name, sign, dignity: d })
+        const trip = triplicityOf(p.name, sign, sect === 'day') !== null
+        const term = termOf(p.name, sign, p.degree) !== null
+        const face = faceOf(p.name, sign, p.degree) !== null
+        // peregrine + no minor tier match → skip (truly no rulership)
+        if (d === 'peregrine' && !trip && !term && !face) continue
+        hits.push({
+          iso: noonIso,
+          planet: p.name,
+          sign,
+          degree: p.degree,
+          dignity: d,
+          triplicity: trip,
+          term,
+          face,
+        })
       }
     }
 
-    // (planet, dignity, sign) 키로 연속 구간 묶기
+    // (planet, dignity, sign) 키로 연속 구간 묶기 — major dignity 신호
     const byKey = new Map<string, Hit[]>()
     for (const h of hits) {
+      if (h.dignity === 'peregrine') continue
       const key = `${h.planet}|${h.dignity}|${h.sign}`
       const arr = byKey.get(key) ?? []
       arr.push(h)
@@ -119,6 +159,112 @@ const astroDignityExtractor: SignalExtractor = {
       }
     }
 
+    // ── Minor dignity signals (triplicity / term / face) ──
+    // 같은 (planet, sign, tier) 가 연속되는 구간을 한 신호로 묶음.
+    for (const tier of ['triplicity', 'term', 'face'] as const) {
+      const tierKey = new Map<string, Hit[]>()
+      for (const h of hits) {
+        if (!h[tier]) continue
+        const key = `${h.planet}|${tier}|${h.sign}`
+        const arr = tierKey.get(key) ?? []
+        arr.push(h)
+        tierKey.set(key, arr)
+      }
+      for (const [key, group] of tierKey) {
+        group.sort((a, b) => a.iso.localeCompare(b.iso))
+        const segments: Hit[][] = []
+        let current: Hit[] = []
+        for (const h of group) {
+          if (current.length === 0) { current.push(h); continue }
+          const gap = (new Date(h.iso).getTime() - new Date(current[current.length - 1].iso).getTime()) / 86_400_000
+          if (gap <= 1.5) current.push(h)
+          else { segments.push(current); current = [h] }
+        }
+        if (current.length) segments.push(current)
+
+        for (const seg of segments) {
+          const sample = seg[0]
+          const startIso = seg[0].iso
+          const endIso = seg[seg.length - 1].iso
+          const peakIso = seg[Math.floor(seg.length / 2)].iso
+          const polarity: Polarity = 1 // minor positive — +1 step (실 값은 weight 로 조절)
+          const weight = tier === 'triplicity' ? 0.5 : tier === 'term' ? 0.3 : 0.2
+          const label = tier === 'triplicity' ? '트리플리시티 (Triplicity)'
+            : tier === 'term' ? '텀 (Term/Bound)'
+            : '페이스 (Face/Decan)'
+
+          signals.push({
+            id: `astro.dignity.${key}.${startIso.slice(0, 10)}`,
+            source: 'astro',
+            kind: 'transit',
+            name: `${sample.planet} ${label} in ${sample.sign}`,
+            korean: `${sample.planet} ${label} (${sample.sign})`,
+            themes: [],
+            polarity,
+            layer: planetLayer(sample.planet),
+            active: { start: startIso, peak: peakIso, end: endIso },
+            weight,
+            evidence: {
+              module: 'astro-dignity',
+              planets: [sample.planet],
+              detail: {
+                dignity: tier,
+                sign: sample.sign,
+                durationDays: seg.length,
+              },
+            },
+          })
+        }
+      }
+    }
+
+    // ── Natal Almuten snapshot — 본명 5-tier 합산. 한 신호로 range 전체에 깔리는
+    //    배경 신호. 본명 행성이 자기 사인의 minor dignity ruler 인 경우만 노출.
+    const natalPlanets = natal.astro.chart.planets ?? []
+    for (const p of natalPlanets) {
+      if (!p.sign) continue
+      const tiers = dignityTiers(p.name, p.sign, p.degree, sect)
+      const matchedMinor: string[] = []
+      if (tiers.triplicity) matchedMinor.push('triplicity')
+      if (tiers.term) matchedMinor.push('term')
+      if (tiers.face) matchedMinor.push('face')
+      if (matchedMinor.length === 0) continue
+
+      const score = dignityScore(tiers)
+      // polarity 매핑: 점수 부호 → ±1/±2 step
+      const polarity: Polarity =
+        score >= 1.5 ? 2
+        : score >= 0.5 ? 1
+        : score <= -1.5 ? -2
+        : score <= -0.5 ? -1
+        : 0
+      if (polarity === 0) continue
+
+      signals.push({
+        id: `astro.dignity.natal-almuten.${p.name}.${p.sign}.${matchedMinor.join('-')}`,
+        source: 'astro',
+        kind: 'transit',
+        name: `Natal ${p.name} ${matchedMinor.join('+')} in ${p.sign}`,
+        korean: `본명 ${p.name} 5-tier 디그니티 (${p.sign})`,
+        themes: [],
+        polarity,
+        layer: 'yearly',
+        active: { start: range.start, peak: range.start, end: range.end },
+        weight: 0.4,
+        evidence: {
+          module: 'astro-dignity',
+          planets: [p.name],
+          detail: {
+            dignity: 'natal-almuten',
+            sign: p.sign,
+            degree: p.degree,
+            tiers,
+            score,
+          },
+        },
+      })
+    }
+
     return signals
   },
 }
@@ -130,3 +276,6 @@ function planetLayer(planet: string): SignalLayer {
 }
 
 export default astroDignityExtractor
+
+// Re-export type for callers that want to inspect natal planets list
+export type { PlanetBase }
