@@ -56,8 +56,7 @@ export default function CoupleTarotPage() {
 
   // 크레딧 비용 — 8장 이상 스프레드는 2크레딧 (interpret-stream 의
   // LARGE_SPREAD_THRESHOLD 와 일치), 그 외 1크레딧.
-  const selectedSpreadCards =
-    COUPLE_SPREADS.find((s) => s.id === selectedSpread)?.cards ?? 0
+  const selectedSpreadCards = COUPLE_SPREADS.find((s) => s.id === selectedSpread)?.cards ?? 0
   const creditCost = selectedSpreadCards >= 8 ? 2 : 1
 
   useEffect(() => {
@@ -171,13 +170,15 @@ export default function CoupleTarotPage() {
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>💫</div>
             <h2>매칭된 파트너가 없어요</h2>
-            <p>먼저 Destiny Match에서 인연을 찾아보세요!</p>
+            {/* destiny-match 페이지는 출시 전 임시 hide. 그 동안엔 궁합
+                상담사로 안내 — 같은 흐름(두 사람 데이터 입력)으로 시작 가능. */}
+            <p>먼저 궁합 상담사에서 두 사람의 사주를 분석해보세요!</p>
             <Link
-              href="/destiny-match"
+              href="/compatibility"
               className={styles.startButton}
               style={{ display: 'inline-block', marginTop: '1rem', textDecoration: 'none' }}
             >
-              인연 찾으러 가기
+              궁합 상담사로 가기
             </Link>
           </div>
         ) : (

@@ -14,7 +14,9 @@ export const CATEGORY_ROUTES: Record<string, string> = {
   Numerology: '/numerology',
   'I Ching': '/iching',
   Dream: '/dream',
-  Compatibility: '/destiny-match',
+  // destiny-match 페이지는 출시 전 임시 hide (chore/hide-destiny-match-prelaunch).
+  // Compatibility 카테고리는 그동안 /compatibility 로 보낸다.
+  Compatibility: '/compatibility',
   Personality: '/personality',
   'Destiny Counselor': '/destiny-counselor',
 } as const
