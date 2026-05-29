@@ -21,10 +21,6 @@ vi.mock('@/lib/destiny-match/quickCompatibility', () => ({
   getCompatibilitySummary: vi.fn(),
 }))
 
-vi.mock('@/lib/destiny-match/personalityCompatibility', () => ({
-  quickPersonalityScore: vi.fn(),
-}))
-
 vi.mock('@/lib/cache/redis-cache', () => ({
   cacheGet: vi.fn(),
   cacheSet: vi.fn(),
@@ -63,7 +59,6 @@ vi.mock('@/lib/api/middleware', () => {
 import { GET } from '@/app/api/destiny-match/discover/route'
 import { prisma } from '@/lib/db/prisma'
 import { getCompatibilitySummary } from '@/lib/destiny-match/quickCompatibility'
-import { quickPersonalityScore } from '@/lib/destiny-match/personalityCompatibility'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 
 describe('/api/destiny-match/discover', () => {
@@ -492,15 +487,14 @@ describe('/api/destiny-match/discover', () => {
         tagline: 'Perfect match',
       }
       vi.mocked(cacheGet).mockResolvedValue(cachedScore)
-      vi.mocked(quickPersonalityScore).mockReturnValue(80)
 
       const req = new NextRequest('http://localhost:3000/api/destiny-match/discover')
 
       const response = await GET(req)
       const data = await response.json()
 
-      // Combined score: 85 * 0.6 + 80 * 0.4 = 51 + 32 = 83
-      expect(data.profiles[0].compatibilityScore).toBe(83)
+      // Saju-only scoring (personality module removed): cached saju score used as-is
+      expect(data.profiles[0].compatibilityScore).toBe(85)
       expect(data.profiles[0].compatibilityGrade).toBe('A')
       expect(getCompatibilitySummary).not.toHaveBeenCalled()
     })
@@ -518,7 +512,6 @@ describe('/api/destiny-match/discover', () => {
         emoji: '💕',
         tagline: 'Soul mate',
       } as any)
-      vi.mocked(quickPersonalityScore).mockReturnValue(85)
 
       const req = new NextRequest('http://localhost:3000/api/destiny-match/discover')
 
@@ -527,11 +520,11 @@ describe('/api/destiny-match/discover', () => {
 
       expect(getCompatibilitySummary).toHaveBeenCalled()
       expect(cacheSet).toHaveBeenCalled()
-      // Combined: 90 * 0.6 + 85 * 0.4 = 54 + 34 = 88
-      expect(data.profiles[0].compatibilityScore).toBe(88)
+      // Saju-only scoring: computed saju score used as-is
+      expect(data.profiles[0].compatibilityScore).toBe(90)
     })
 
-    it('should combine saju and personality scores', async () => {
+    it('should use saju score only (personality module removed)', async () => {
       vi.mocked(prisma.matchProfile.findUnique).mockResolvedValue(mockMyProfile as any)
       vi.mocked(prisma.matchSwipe.findMany).mockResolvedValue([])
       vi.mocked(prisma.userBlock.findMany).mockResolvedValue([])
@@ -544,15 +537,14 @@ describe('/api/destiny-match/discover', () => {
         emoji: '✨',
         tagline: 'Good',
       } as any)
-      vi.mocked(quickPersonalityScore).mockReturnValue(60) // Personality score
 
       const req = new NextRequest('http://localhost:3000/api/destiny-match/discover')
 
       const response = await GET(req)
       const data = await response.json()
 
-      // Combined: 80 * 0.6 + 60 * 0.4 = 48 + 24 = 72
-      expect(data.profiles[0].compatibilityScore).toBe(72)
+      // Saju score used directly — no personality blending
+      expect(data.profiles[0].compatibilityScore).toBe(80)
     })
 
     it('should use only saju score if personality scores missing', async () => {
@@ -579,7 +571,6 @@ describe('/api/destiny-match/discover', () => {
       const data = await response.json()
 
       expect(data.profiles[0].compatibilityScore).toBe(85)
-      expect(quickPersonalityScore).not.toHaveBeenCalled()
     })
 
     it('should handle compatibility calculation errors gracefully', async () => {
@@ -590,16 +581,14 @@ describe('/api/destiny-match/discover', () => {
 
       vi.mocked(cacheGet).mockResolvedValue(null)
       vi.mocked(getCompatibilitySummary).mockRejectedValue(new Error('Calculation failed'))
-      vi.mocked(quickPersonalityScore).mockReturnValue(65)
 
       const req = new NextRequest('http://localhost:3000/api/destiny-match/discover')
 
       const response = await GET(req)
       const data = await response.json()
 
-      // Should fallback to default saju score with personality: 75 * 0.6 + 65 * 0.4 = 45 + 26 = 71
-      expect(data.profiles[0].compatibilityScore).toBeGreaterThanOrEqual(65)
-      expect(data.profiles[0].compatibilityScore).toBeLessThanOrEqual(75)
+      // On calc failure the route keeps its default saju score (75)
+      expect(data.profiles[0].compatibilityScore).toBe(75)
     })
   })
 
@@ -706,11 +695,6 @@ describe('/api/destiny-match/discover', () => {
         .mockResolvedValueOnce({ score: 60, grade: 'C', emoji: '🌟', tagline: 'OK' } as any)
         .mockResolvedValueOnce({ score: 90, grade: 'A', emoji: '💖', tagline: 'Great' } as any)
         .mockResolvedValueOnce({ score: 75, grade: 'B', emoji: '✨', tagline: 'Good' } as any)
-
-      vi.mocked(quickPersonalityScore)
-        .mockReturnValueOnce(50)
-        .mockReturnValueOnce(85)
-        .mockReturnValueOnce(70)
 
       const req = new NextRequest('http://localhost:3000/api/destiny-match/discover')
 

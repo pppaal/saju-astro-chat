@@ -103,9 +103,15 @@ const mockCallClaudeStream = vi.fn()
 const mockIsClaudeAvailable = vi.fn(() => true)
 
 vi.mock('@/lib/llm/claude', () => ({
-  callClaudeStream: (...args: unknown[]) => mockCallClaudeStream(...args),
   isClaudeAvailable: () => mockIsClaudeAvailable(),
-  DEFAULT_CLAUDE_MODEL: 'claude-haiku-4-5-test',
+  PREMIUM_CLAUDE_MODEL: 'claude-sonnet-4-5-test',
+}))
+
+// The route streams via streamClaudeWithContinuation (auto-continues when
+// maxTokens is hit), not the old callClaudeStream. Wire it to the same mock
+// fn the tests drive (mockCallClaudeStream kept as the name for brevity).
+vi.mock('@/lib/llm/claudeWithContinuation', () => ({
+  streamClaudeWithContinuation: (...args: unknown[]) => mockCallClaudeStream(...args),
 }))
 
 // Mock Zod validation schema
