@@ -15,97 +15,116 @@ export interface PatternI18nEntry {
 export const PATTERN_I18N_EN: Record<string, PatternI18nEntry> = {
   'wealth-golden-week': {
     name: 'Wealth golden week',
-    headline: 'Wealth flow comes in strongly today',
+    headline: 'Money domain — favorable for big financial calls today',
     action:
-      'Favorable for investments, contracts, major financial decisions, and money cleanup. A good day to handle delayed money matters.',
+      'Money domain favorable. Close one delayed investment, contract, or financial cleanup today, and spend 30 minutes tidying one bank or brokerage account.',
   },
   'romance-trigger': {
     name: 'Romance trigger',
-    headline: 'A new connection draws closer today',
+    headline: 'Relationship domain — a new connection draws closer today',
     action:
-      'Favorable for introductions, gatherings, and reaching out. A new connection may show up in an unexpected place.',
+      'Relationship domain favorable. Show up at one introduction or gathering today, or send the first message to someone you have been thinking about. A new connection may surface in an unexpected place.',
   },
   'shadow-cluster': {
     name: 'Cautious cluster day',
-    headline: 'Caution mode — postpone big decisions',
+    headline: 'Health and daily-routine domain — hold off on big calls today',
     action:
-      'Postpone big decisions, contracts, moves, and new starts to a better day. Focus on keeping your daily routine.',
+      'Postpone big decisions, contracts, moves, job changes, and new starts to the next favorable day. Lock down one daily-routine essential (meals, sleep, safe driving) and avoid risky travel, heavy drinking, and big spending.',
   },
   'five-layer-resonance': {
     name: '5-layer alignment (Saju × Astro)',
-    headline: 'Saju 5 + Astro 4 — east-west fully aligned',
+    headline: 'Life and career domain — strongest push signal in over a year',
     action:
-      'A prime window for big decisions. A rare period when saju and astrology give the same answer.',
+      'Saju and astrology give the same answer. Close one of your biggest delayed decisions (job change, launch, marriage, move, major investment) this week and take the first concrete execution step.',
   },
   'saju-five-layer': {
     name: 'Saju 5-layer alignment',
-    headline: 'All 5 saju time axes point the same way',
+    headline: 'Career and life domain — saju time axes all point one direction this month',
     action:
-      'A period when all the destiny-flow axes align. Strong push for big decisions and new starts.',
+      'Strong push for big career and life decisions. This month, pick one delayed major decision (job change, business, contract, exam) and move it forward through the first real application, filing, or meeting.',
   },
   'astro-five-layer': {
     name: 'Astro 4-layer alignment',
-    headline: 'Astro time axes (chapter · year · month · day) aligned',
+    headline: 'Career and external-opportunity domain — environment points one way this month',
     action:
-      'An astrological alignment period. The outer environment and opportunities point the same way.',
+      'External environment and opportunities all line up. This month, pick one delayed outward action (application, pitch, exposure, launch, relocation) and push it to actual submission or send.',
   },
   'noble-fortune': {
     name: 'Noble fortune',
-    headline: 'A good day to ask for help',
+    headline: 'Relationship and network domain — easy day to receive help',
     action:
-      'Favors favors, advice, and important meetings. A good day to reach out to contacts you have not spoken to in a while.',
+      'Relationship and network domain favorable. Today, make one ask, request one piece of advice, attend one important meeting, and send a first message to someone you have drifted from.',
   },
   'life-chapter-shift': {
     name: 'Life chapter shift',
-    headline: 'A turning point in the big arc',
+    headline: 'Life-direction domain — chapter-changing turning point',
     action:
-      'A good time to redraw the big picture. Do not get caught up in small matters — check your overall direction.',
+      'Time to redesign life direction. Spend 30 minutes today rewriting your 1, 3, and 5-year goals on paper, and explicitly name one thing to wrap up and one thing to start. Park the small stuff for now.',
   },
   'gwan-in-flow': {
     name: 'Authority × Resource flow',
-    headline: 'Recognition and promotion channels open',
+    headline: 'Work and promotion domain — approval and credential lines open up',
     action:
-      'Favorable for promotions, certifications, approvals, and official procedures. A good time to make a formal pitch to seniors or institutions.',
+      'Work and promotion domain favorable. This week, submit one formal proposal, promotion application, or credential registration to a senior or institution through the official channel.',
   },
   'siksang-wealth': {
     name: 'Output → Wealth flow',
-    headline: 'Skill translates into income',
+    headline: 'Creative and revenue domain — what you made turns into income',
     action:
-      'Favorable for monetizing content, sales, side projects, and creative work. Move toward selling what you have made.',
+      'Creative and revenue domain favorable. This week, take one piece of content, course, prototype, or service you have already built and convert it into a real sales page, sales message, or invoice to open the first revenue line.',
   },
   'wealth-to-status': {
     name: 'Wealth → Status flow',
-    headline: 'Money converts to position and trust',
+    headline: 'Work and reputation domain — results convert into title and trust',
     action:
-      'A good time to convert results into title, contracts, and reputation. Investment now returns as standing.',
+      'Work and reputation domain favorable. This week, package recent revenue, results, and metrics into a one-pager, show it to a senior, client, or the market, and start one negotiation on title, renewal, or rate.',
   },
   'wealth-rivalry': {
     name: 'Wealth rivalry',
-    headline: 'Money may leak from rivalry or splits',
+    headline: 'Money domain — money can leak through rivalry or splits',
     action:
-      'Be careful with partnerships, loans, and shared expenses. Make your share clear and postpone big spending.',
+      'Money domain — be careful. Postpone new partnerships, personal loans, shared investments, and new installment plans this month. For deals already in motion, lock your share and exit terms in writing, and push one big purchase to next month.',
   },
   'output-vs-authority': {
     name: 'Output vs Authority',
-    headline: 'Friction with rules or superiors',
+    headline: 'Work and relationship domain — friction with rules or superiors',
     action:
-      'Watch friction with bosses, contracts, laws, and rules. Avoid impulsive remarks and social-media flare-ups; keep official procedures crisp.',
+      'Work and relationship domain — be careful. Hold off on emotional confrontations with bosses, clients, or officials this week; avoid public callouts and spontaneous contract breaches; and let any email or approval sit for 12 hours before sending.',
   },
   'siksin-controls-pressure': {
     name: 'Output controls pressure',
-    headline: 'Break through pressure with skill',
+    headline: 'Work and skill domain — push through pressure with skill',
     action:
-      'A good time to break through tough work or competition with straightforward skill. Consistent routine beats the pressure.',
+      'Work and skill domain favorable. Pick the most intimidating piece of work, exam, or assignment you have been avoiding, tackle it head-on this week, and protect a daily 30-minute work block at the same time every day.',
   },
   'expression-with-restraint': {
     name: 'Expression with restraint',
-    headline: 'Creativity tempered by discipline',
+    headline: 'Creative and learning domain — take ideas from spark to finished work',
     action:
-      'A good time to add depth to creation, planning, and presentation. Polish sparky ideas with study to raise finish quality.',
+      'Creative and learning domain favorable. Pick one writing, plan, talk, or piece of work in progress; add research or reference study to refine it this week; and carry it from draft to final.',
   },
   'authority-mixed': {
     name: 'Mixed authority',
-    headline: 'Authority signals tangled — focus blurs',
-    action: 'Multiple superiors or standards may clash. Pick one line and put aside side requests.',
+    headline: 'Work and organization domain — competing lines and standards scatter focus',
+    action:
+      'Work and organization domain — be careful. This week, pick one reporting line as the primary, hold the others aside, and politely decline or defer one side request to next month.',
+  },
+  'wealth-erodes-resource': {
+    name: 'Wealth erodes resource',
+    headline: 'Money and reputation domain — short-term gain can erode trust or learning',
+    action:
+      'Money and reputation domain — be careful. This week, turn down one short-term gig, side project, or freelance offer that would eat into your reputation, credentials, day job, or studies, and keep your study and certification schedule intact.',
+  },
+  'energy-into-output': {
+    name: 'Output discharge',
+    headline: 'Creative and activity domain — pour surplus energy into finished output',
+    action:
+      'Creative and activity domain favorable. This week, ship one collaboration, talk, livestream, performance, workout block, or contest entry, and take one shelved draft all the way to public release.',
+  },
+  'support-reinforcement': {
+    name: 'Support reinforcement',
+    headline: 'Health and relationship domain — recover energy with help from those around you',
+    action:
+      'Health and relationship domain favorable. This week, ask a colleague, family member, or specialist to share one thing you have been carrying alone, and keep one daily 30-minute rest, exercise, or sleep-recovery routine.',
   },
 }

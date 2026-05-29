@@ -13,6 +13,7 @@ import {
   describeSajuAstroRole,
   describeTimingWindowBrief,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
+import { focusDomainFromCategory } from '@/lib/destiny-matrix/interpretation/humanSemanticsFocusDomain'
 import { isAlignedAcrossSystems } from './calendarMatrixTextSupport'
 
 type MessageGroup = string | Record<string, string>
@@ -492,9 +493,12 @@ export function buildTimingSignals(input: {
     add('생활 흐름이 크게 바뀌기 쉬운 해', 'Major transit year')
   }
   if (matrixVerdict?.phase) {
+    // date.categories 첫 카테고리 → 9 도메인 KO 라벨. 매핑 실패시 undefined 로 두고
+    // describePhaseFlow 는 기존 추상 흐름 문구로 fall back.
+    const focusDomain = focusDomainFromCategory(date.categories?.[0]) ?? undefined
     add(
-      `현재 흐름: ${describePhaseFlow(matrixVerdict.phase, 'ko')}`,
-      `Current flow: ${describePhaseFlow(matrixVerdict.phase, 'en')}`
+      `현재 흐름: ${describePhaseFlow(matrixVerdict.phase, 'ko', focusDomain)}`,
+      `Current flow: ${describePhaseFlow(matrixVerdict.phase, 'en', focusDomain)}`
     )
   }
   if (matrixVerdict?.timingWindow) {

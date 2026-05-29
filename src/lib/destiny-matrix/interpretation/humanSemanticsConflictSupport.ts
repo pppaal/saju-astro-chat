@@ -1,5 +1,11 @@
 import type { HumanSemanticsLang } from './humanSemantics'
 import { withTopicParticle } from './humanSemanticsTimingSupport'
+import {
+  resolveFocusDomainCopy as resolveFocusDomainCopyShared,
+  withObjectParticle,
+  type FocusDomainCopy,
+  type FocusDomainLabel as SharedFocusDomainLabel,
+} from './humanSemanticsFocusDomain'
 
 export function describeSajuAstroRole(input: {
   hasSaju: boolean
@@ -373,37 +379,73 @@ function describeSajuAstroConflictByDomainDetailed(input: {
  */
 export type CrossSystemTone = 'bothSystems' | 'bothBlocked' | 'opposed' | 'mixed'
 
+/**
+ * 추상 "결/기운" 표현을 사용자가 무엇의 결인지 즉시 알 수 있게 매핑하는 9 개
+ * 구체 도메인. 사전은 humanSemanticsFocusDomain.ts 에서 관리 (timing/conflict
+ * 양쪽 helper 가 cycle 없이 공유하기 위해 별도 모듈).
+ */
+export type FocusDomainLabel = SharedFocusDomainLabel
+type DomainCopy = FocusDomainCopy
+
+export const resolveFocusDomainCopy = resolveFocusDomainCopyShared
+
 export function describeCrossEvidenceBridge(input: {
   tone: 'positive' | 'negative' | 'neutral'
   aligned?: boolean
   lang?: HumanSemanticsLang
   crossSystemTone?: CrossSystemTone
+  focusDomain?: string
 }): string {
-  const { tone, aligned = false, lang = 'ko', crossSystemTone } = input
+  const { tone, aligned = false, lang = 'ko', crossSystemTone, focusDomain } = input
+  const domain = resolveFocusDomainCopy(focusDomain)
 
   if (crossSystemTone) {
     if (lang === 'ko') {
       if (crossSystemTone === 'bothSystems') {
+        if (domain) {
+          return `두 흐름이 모두 ${domain.ko.noun} 영역을 받쳐주는 자리예요. ${withObjectParticle(domain.ko.action)} 같이 밀어 보세요.`
+        }
         return '두 결이 같은 방향으로 합쳐 흐르는 자리예요. 핵심 한두 가지를 함께 밀어 주세요.'
       }
       if (crossSystemTone === 'bothBlocked') {
+        if (domain) {
+          return `두 흐름이 모두 ${domain.ko.noun} 영역에서 막히는 자리예요. ${domain.ko.action} 같은 큰 결정은 흐름이 풀릴 때까지 미루세요.`
+        }
         return '두 결이 같이 막히는 자리예요. 무리하지 말고 흐름이 풀릴 때까지 큰 결정을 미루세요.'
       }
       if (crossSystemTone === 'opposed') {
+        if (domain) {
+          return `두 흐름이 ${domain.ko.noun} 영역에서 서로 다른 신호를 보내고 있어요. 속도를 늦추고 ${withObjectParticle(domain.ko.action)} 확정하기 전에 한 번 더 확인하세요.`
+        }
         return '두 결이 서로 다른 길로 갈라져 흐르고 있어요. 속도를 늦추고 계약이나 큰 결정은 한 번 더 확인하세요.'
       }
       // mixed
+      if (domain) {
+        return `${domain.ko.noun} 영역에서 한쪽 흐름은 차오르고 한쪽 흐름은 잦아드는 구간이에요. ${domain.ko.pitfall}만 보고 ${withObjectParticle(domain.ko.action)} 확정하지 마세요.`
+      }
       return '한 결은 차오르고 한 결은 잦아드는 구간이에요. 좋아 보여도 결이 모일 때까지 확정을 미루세요.'
     }
 
     if (crossSystemTone === 'bothSystems') {
+      if (domain) {
+        return `Both currents support your ${domain.en.noun} today. Push ${domain.en.action} through together.`
+      }
       return 'The two currents braid together in the same direction, making this a good window for pushing one or two core priorities.'
     }
     if (crossSystemTone === 'bothBlocked') {
+      if (domain) {
+        return `Both currents are blocking your ${domain.en.noun} right now, so hold off ${domain.en.action} until the flow eases.`
+      }
       return 'Both currents are clogging together, so hold off major moves until the flow eases.'
     }
     if (crossSystemTone === 'opposed') {
+      if (domain) {
+        return `The two currents disagree about your ${domain.en.noun}, so slow down and recheck ${domain.en.action} before locking it in.`
+      }
       return 'The two currents diverge into different paths, so slow down and recheck contracts or major calls.'
+    }
+    if (domain) {
+      return `One current supports your ${domain.en.noun} while the other pulls back, so do not commit ${domain.en.action} on ${domain.en.pitfall} alone.`
     }
     return 'One current swells while the other recedes, so let the flows converge before locking anything in.'
   }
@@ -411,24 +453,48 @@ export function describeCrossEvidenceBridge(input: {
   if (lang === 'ko') {
     if (tone === 'negative') {
       if (aligned) {
+        if (domain) {
+          return `두 흐름이 모두 ${domain.ko.noun} 영역에서 막히는 자리예요. ${domain.ko.action} 같은 큰 결정은 흐름이 풀릴 때까지 미루세요.`
+        }
         return '두 결이 같이 막히는 자리예요. 무리하지 말고 흐름이 풀릴 때까지 큰 결정을 미루세요.'
+      }
+      if (domain) {
+        return `두 흐름이 ${domain.ko.noun} 영역에서 서로 다른 신호를 보내고 있어요. 속도를 늦추고 ${withObjectParticle(domain.ko.action)} 확정하기 전에 한 번 더 확인하세요.`
       }
       return '두 결이 서로 다른 길로 갈라져 흐르고 있어요. 속도를 늦추고 계약이나 큰 결정은 한 번 더 확인하세요.'
     }
     if (aligned) {
+      if (domain) {
+        return `두 흐름이 모두 ${domain.ko.noun} 영역을 받쳐주는 자리예요. ${withObjectParticle(domain.ko.action)} 같이 밀어 보세요.`
+      }
       return '두 결이 같은 방향으로 합쳐 흐르는 자리예요. 핵심 한두 가지를 함께 밀어 주세요.'
+    }
+    if (domain) {
+      return `${domain.ko.noun} 영역에서 한쪽 흐름은 차오르고 한쪽 흐름은 잦아드는 구간이에요. ${domain.ko.pitfall}만 보고 ${withObjectParticle(domain.ko.action)} 확정하지 마세요.`
     }
     return '한 결은 차오르고 한 결은 잦아드는 구간이에요. 좋아 보여도 결이 모일 때까지 확정을 미루세요.'
   }
 
   if (tone === 'negative') {
     if (aligned) {
+      if (domain) {
+        return `Both currents are blocking your ${domain.en.noun} right now, so hold off ${domain.en.action} until the flow eases.`
+      }
       return 'Both currents are clogging together, so hold off major moves until the flow eases.'
+    }
+    if (domain) {
+      return `The two currents disagree about your ${domain.en.noun}, so slow down and recheck ${domain.en.action} before locking it in.`
     }
     return 'The two currents diverge into different paths, so slow down and recheck contracts or major calls.'
   }
   if (aligned) {
+    if (domain) {
+      return `Both currents support your ${domain.en.noun} today. Push ${domain.en.action} through together.`
+    }
     return 'The two currents braid together in the same direction, making this a good window for pushing one or two core priorities.'
+  }
+  if (domain) {
+    return `One current supports your ${domain.en.noun} while the other pulls back, so do not commit ${domain.en.action} on ${domain.en.pitfall} alone.`
   }
   return 'One current swells while the other recedes, so let the flows converge before locking anything in.'
 }
