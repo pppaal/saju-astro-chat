@@ -1,98 +1,112 @@
-// 버리는 프로토타입 — 사주+점성 점수 결합 방식 (A) vs (B) 실측 비교
-//   (A) 총합형: deriveScore(전체 신호)  ← 현 엔진 derivedScore
-//   (B) 독립형: (deriveScore(사주) + deriveScore(점성)) / 2
-// + tension(격렬도) 채널이 "강렬하지만 평범해 보이는 날"을 잡는지 확인.
+// 프로토타입 v2 — 점성 축 고착 원인 진단 + 솎기 + 출처별 자동보정
 // 실행:  npx tsx scripts/flow-proto.ts
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
-import { deriveScore, type SignalForScore } from '@/lib/calendar-engine/derivers/score'
+import type { SignalLayer } from '@/lib/calendar-engine/types'
 
-type Sig = SignalForScore & { source: string }
+type Sig = { layer: SignalLayer; polarity: number; weight: number; source: string; kind: string }
 
-function tension(sigs: Sig[]) {
-  let posE = 0, negE = 0, totW = 0
-  for (const s of sigs) {
-    const e = Math.abs(s.polarity) * s.weight
-    if (s.polarity > 0) posE += e
-    else if (s.polarity < 0) negE += e
-    totW += s.weight
-  }
-  const denom = posE + negE || 1
-  return {
-    tension: totW ? (posE + negE) / totW : 0,       // 충돌/강도
-    direction: (posE - negE) / denom,                // -1~+1 방향
-  }
+const LAYER_WEIGHT: Record<string, number> = {
+  decadal: 1.0, yearly: 0.85, monthly: 0.7, daily: 0.55, hourly: 0.4, instant: 0.5,
 }
 
-function agreement(sajuScore: number, astroScore: number) {
-  const gap = Math.abs(sajuScore - astroScore)
-  return gap <= 12 ? 'aligned' : gap <= 28 ? 'mixed' : 'opposed'
+// score.ts 의 grandAvg(-3~+3) 부분만 추출 — bias/scale/보너스 제거한 raw 방향
+function grandAvg(sigs: Sig[]): number | null {
+  if (sigs.length === 0) return null
+  const byLayer = new Map<string, { sum: number; weight: number }>()
+  for (const s of sigs) {
+    const a = byLayer.get(s.layer) ?? { sum: 0, weight: 0 }
+    a.sum += s.polarity * s.weight; a.weight += s.weight
+    byLayer.set(s.layer, a)
+  }
+  let ws = 0, tw = 0
+  for (const [layer, a] of byLayer) {
+    if (!a.weight) continue
+    ws += (a.sum / a.weight) * (LAYER_WEIGHT[layer] ?? 0.5)
+    tw += LAYER_WEIGHT[layer] ?? 0.5
+  }
+  return tw ? ws / tw : null
+}
+
+// layer별 상위 K개(weight 큰 것)만 — 솎기
+function thinPerLayer(sigs: Sig[], k: number): Sig[] {
+  const byLayer = new Map<string, Sig[]>()
+  for (const s of sigs) { const arr = byLayer.get(s.layer) ?? []; arr.push(s); byLayer.set(s.layer, arr) }
+  const out: Sig[] = []
+  for (const arr of byLayer.values()) { arr.sort((a, b) => b.weight - a.weight); out.push(...arr.slice(0, k)) }
+  return out
+}
+
+function stats(xs: number[]) {
+  const m = xs.reduce((a, b) => a + b, 0) / xs.length
+  const sd = Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / xs.length)
+  return { mean: m, sd, min: Math.min(...xs), max: Math.max(...xs) }
 }
 
 async function main() {
-  const input = {
-    birthDate: '1993-08-15', birthTime: '14:30', gender: 'male' as const,
+  const natal = await buildNatalContext({
+    birthDate: '1993-08-15', birthTime: '14:30', gender: 'male',
     latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul',
-  }
-  const natal = await buildNatalContext(input)
-  const cells = await buildCalendar(
-    natal,
+  })
+  const cells = await buildCalendar(natal,
     { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.999Z', granularity: 'day' },
-    { includeEvidence: true },
-  )
+    { includeEvidence: true })
 
-  console.log('생년월일 1993-08-15 14:30 서울 / 강약', natal.saju.strength, '/ sect', natal.astro.sect)
-  console.log('='.repeat(96))
-  console.log('날짜       사주 점성 |  A(총합)  B(독립)  |gap|  | 사주B 점성B  일치     | tension  dir')
-  console.log('-'.repeat(96))
+  const days = cells.map((c) => ({
+    day: c.datetime.slice(0, 10),
+    sigs: (c.signals as any[]).map((s) => ({ layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source, kind: s.kind })) as Sig[],
+  }))
 
-  const rows: any[] = []
-  for (const c of cells) {
-    const sigs: Sig[] = (c.signals as any[]).map((s) => ({
-      layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source,
-    }))
-    const saju = sigs.filter((s) => s.source === 'saju')
-    const astro = sigs.filter((s) => s.source === 'astro')
+  // ── 진단 1: 점성 신호 layer 분포 (왜 150개?) ──
+  const astroAll = days.flatMap((d) => d.sigs.filter((s) => s.source === 'astro'))
+  const byLayer: Record<string, number> = {}
+  const byKind: Record<string, number> = {}
+  for (const s of astroAll) { byLayer[s.layer] = (byLayer[s.layer] || 0) + 1; byKind[s.kind] = (byKind[s.kind] || 0) + 1 }
+  console.log('강약', natal.saju.strength, '/ sect', natal.astro.sect)
+  console.log('\n[진단1] 점성 신호 layer 분포(한달 누적):', byLayer)
+  console.log('         점성 신호 kind 분포:', byKind)
+  const wq = astroAll.map((s) => s.weight).sort((a, b) => a - b)
+  console.log(`         점성 weight 분위: min ${wq[0].toFixed(3)} / p25 ${wq[(wq.length/4)|0].toFixed(3)} / median ${wq[(wq.length/2)|0].toFixed(3)} / p75 ${wq[(wq.length*3/4)|0].toFixed(3)} / max ${wq[wq.length-1].toFixed(3)}`)
 
-    // patterns=[]로 통일 → 순수 "총합 vs 평균" 차이만 분리
-    const A = deriveScore(sigs, [])
-    const sajuB = deriveScore(saju, [])
-    const astroB = deriveScore(astro, [])
-    const B = Math.round((sajuB + astroB) / 2)
-    const gap = Math.abs(A - B)
-    const t = tension(sigs)
-    const day = c.datetime.slice(0, 10)
-
-    rows.push({ day, nS: saju.length, nA: astro.length, A, B, gap, sajuB, astroB, agree: agreement(sajuB, astroB), ...t })
-    console.log(
-      `${day}  ${String(saju.length).padStart(3)} ${String(astro.length).padStart(4)} | ` +
-      `${String(A).padStart(6)}  ${String(B).padStart(6)}  ${String(gap).padStart(4)}  | ` +
-      `${String(sajuB).padStart(4)} ${String(astroB).padStart(5)}  ${rows[rows.length - 1].agree.padEnd(8)} | ` +
-      `${t.tension.toFixed(2).padStart(6)}  ${t.direction.toFixed(2).padStart(5)}`,
-    )
+  // ── 진단 2: 출처별 raw grandAvg 변동성 (full vs 솎기) ──
+  const variants = [
+    { name: 'astro FULL',      pick: (d: any) => d.sigs.filter((s: Sig) => s.source === 'astro') },
+    { name: 'astro top3/layer', pick: (d: any) => thinPerLayer(d.sigs.filter((s: Sig) => s.source === 'astro'), 3) },
+    { name: 'astro top1/layer', pick: (d: any) => thinPerLayer(d.sigs.filter((s: Sig) => s.source === 'astro'), 1) },
+    { name: 'saju FULL',       pick: (d: any) => d.sigs.filter((s: Sig) => s.source === 'saju') },
+  ]
+  console.log('\n[진단2] raw grandAvg(-3~+3) 한달 변동성 — sd 클수록 "축이 살아있다"')
+  for (const v of variants) {
+    const gs = days.map((d) => grandAvg(v.pick(d))).filter((x): x is number => x != null)
+    const st = stats(gs)
+    console.log(`   ${v.name.padEnd(18)} mean ${st.mean.toFixed(3)}  sd ${st.sd.toFixed(3)}  range [${st.min.toFixed(2)}, ${st.max.toFixed(2)}]`)
   }
 
-  // ── 요약 ──
-  const gaps = rows.map((r) => r.gap)
-  const meanGap = gaps.reduce((a, b) => a + b, 0) / gaps.length
-  const maxGap = Math.max(...gaps)
-  const over3 = gaps.filter((g) => g > 3).length
-  // 상관계수 A~B
-  const mA = rows.reduce((a, r) => a + r.A, 0) / rows.length
-  const mB = rows.reduce((a, r) => a + r.B, 0) / rows.length
-  let cov = 0, vA = 0, vB = 0
-  for (const r of rows) { cov += (r.A - mA) * (r.B - mB); vA += (r.A - mA) ** 2; vB += (r.B - mB) ** 2 }
-  const corr = cov / (Math.sqrt(vA * vB) || 1)
+  // ── 출처별 자동보정: bias=월평균, scale=목표sd(12)/raw sd ──
+  function calibrate(pick: (d: any) => Sig[]) {
+    const gs = days.map((d) => grandAvg(pick(d)))
+    const valid = gs.filter((x): x is number => x != null)
+    const st = stats(valid)
+    const scale = st.sd > 0.01 ? 12 / st.sd : 16
+    return gs.map((g) => g == null ? 50 : Math.max(0, Math.min(100, Math.round(50 + (g - st.mean) * scale))))
+  }
+  const sajuAxis = calibrate((d) => d.sigs.filter((s: Sig) => s.source === 'saju'))
+  const astroAxisFull = calibrate((d) => d.sigs.filter((s: Sig) => s.source === 'astro'))
+  const astroAxisThin = calibrate((d) => thinPerLayer(d.sigs.filter((s: Sig) => s.source === 'astro'), 3))
 
-  console.log('='.repeat(96))
-  console.log(`[A vs B 차이]  평균 |gap| ${meanGap.toFixed(2)}  /  최대 ${maxGap}  /  gap>3인 날 ${over3}/${rows.length}  /  상관 r=${corr.toFixed(4)}`)
-  console.log('\n[gap 큰 날 top5] — 결합 방식이 실제로 갈리는 날')
-  for (const r of [...rows].sort((a, b) => b.gap - a.gap).slice(0, 5))
-    console.log(`  ${r.day}  A=${r.A} B=${r.B} gap=${r.gap}  (사주B ${r.sajuB} / 점성B ${r.astroB}, ${r.agree})`)
+  function agree(a: number, b: number) { const g = Math.abs(a - b); return g <= 12 ? 'aligned' : g <= 28 ? 'mixed' : 'opposed' }
 
-  console.log('\n[tension 높은 날 top5] — "격렬한데 평범(~50)해 보이나?" 확인')
-  for (const r of [...rows].sort((a, b) => b.tension - a.tension).slice(0, 5))
-    console.log(`  ${r.day}  tension=${r.tension.toFixed(2)} dir=${r.direction.toFixed(2)}  →  헤드라인 A=${r.A} B=${r.B}`)
+  console.log('\n[보정 후 축] (각 출처 월평균=50, sd≈12 로 자동보정)')
+  console.log('날짜        사주축  점성축(full) 일치     | 점성축(top3) 일치')
+  const agFull: Record<string, number> = { aligned: 0, mixed: 0, opposed: 0 }
+  const agThin: Record<string, number> = { aligned: 0, mixed: 0, opposed: 0 }
+  days.forEach((d, i) => {
+    const aF = agree(sajuAxis[i], astroAxisFull[i]); agFull[aF]++
+    const aT = agree(sajuAxis[i], astroAxisThin[i]); agThin[aT]++
+    console.log(`${d.day}   ${String(sajuAxis[i]).padStart(4)}    ${String(astroAxisFull[i]).padStart(5)}    ${aF.padEnd(8)} |  ${String(astroAxisThin[i]).padStart(5)}    ${aT}`)
+  })
+  console.log('\n[일치 분포]  full:', agFull, '\n             top3:', agThin)
+  console.log('\n비교 기준(보정 전): 점성축 16~17 고착 → 24/31 opposed')
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })
