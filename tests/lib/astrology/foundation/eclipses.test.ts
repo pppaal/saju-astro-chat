@@ -1,6 +1,15 @@
 // @vitest-environment node
 // tests/lib/astrology/foundation/eclipses.test.ts
-import { describe, it, expect } from 'vitest';
+//
+// 이클립스 데이터 단언(2000년=0건, 2100년 이후=0건, 다양한 별자리)은 실제
+// 천문학에 기반한다. 전역 setup 의 swisseph/ephe mock 은 cursor 기준 고정
+// 오프셋으로 가짜 이클립스를 무한히 만들어 빈-배열/별자리 단언을 깨뜨린다.
+// real-ephemeris-correctness.test.ts 와 동일하게 mock 을 풀어 진짜 천체력을 쓴다.
+import { describe, it, expect, vi } from 'vitest';
+
+vi.unmock('swisseph');
+vi.unmock('@/lib/astrology/foundation/ephe');
+
 import {
   findEclipseImpact,
   getEclipsesBetween,
@@ -80,15 +89,17 @@ describe('eclipses', () => {
       });
     });
 
-    it('should compute eclipses for an arbitrary year (live Swiss Eph)', () => {
-      // Eclipses are now computed live across a lifetime horizon rather than
-      // read from a fixed dataset, so any year has its real eclipses.
+    // NOTE: Previously expected an empty array for the year 2000 ("no eclipses
+    // in range"), a relic of the old hardcoded 2020–2030 table. Swiss Ephemeris
+    // computes eclipses for any year, and 2000 had real eclipses, so we assert
+    // the astronomically correct, in-range result instead.
+    it('should compute real eclipses for years outside the legacy table', () => {
       const eclipses = getEclipsesBetween('2000-01-01', '2000-12-31');
       expect(eclipses.length).toBeGreaterThan(0);
       eclipses.forEach(e => {
-        const d = new Date(e.date);
-        expect(d >= new Date('2000-01-01')).toBe(true);
-        expect(d <= new Date('2000-12-31')).toBe(true);
+        const date = new Date(e.date);
+        expect(date >= new Date('2000-01-01')).toBe(true);
+        expect(date <= new Date('2000-12-31')).toBe(true);
       });
     });
 
@@ -113,14 +124,15 @@ describe('eclipses', () => {
       expect(eclipses.length).toBeLessThanOrEqual(5);
     });
 
-    it('should still compute future eclipses far ahead (live Swiss Eph)', () => {
-      // The lifetime horizon extends well past 2100, so future eclipses are
-      // returned rather than an empty array.
-      const eclipses = getUpcomingEclipses(new Date('2100-01-01'), 5);
-      expect(eclipses.length).toBeGreaterThan(0);
-      expect(eclipses.length).toBeLessThanOrEqual(5);
+    // NOTE: Previously expected an empty array after 2100 ("no future
+    // eclipses"), a relic of the old hardcoded 2020–2030 table. Swiss Ephemeris
+    // covers far beyond 2100, so eclipses exist; assert the correct count/range.
+    it('should compute future eclipses beyond the legacy table horizon', () => {
+      const from = new Date('2100-01-01');
+      const eclipses = getUpcomingEclipses(from, 5);
+      expect(eclipses.length).toBe(5);
       eclipses.forEach(e => {
-        expect(new Date(e.date) >= new Date('2100-01-01')).toBe(true);
+        expect(new Date(e.date) >= from).toBe(true);
       });
     });
   });
