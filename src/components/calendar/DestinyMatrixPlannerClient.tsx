@@ -364,7 +364,7 @@ export default function DestinyMatrixPlannerClient() {
 
   if (error) {
     return (
-      <div className="w-full max-w-md mx-auto h-screen bg-zinc-950 text-rose-400 flex flex-col items-center justify-center gap-4 p-6">
+      <div className="w-full max-w-md mx-auto h-screen bg-[#07091a] text-rose-400 flex flex-col items-center justify-center gap-4 p-6">
         <p className="text-sm">
           {tLabels.engineFailedRetry}: {error}
         </p>

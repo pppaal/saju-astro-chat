@@ -5,7 +5,7 @@
   justify-content: center;
   background: radial-gradient(1200px 800px at 50% 30%, rgba(102, 126, 234, 0.15), transparent),
               radial-gradient(800px 600px at 80% 80%, rgba(124, 242, 156, 0.10), transparent);
-  background-color: #0a0e1f;
+  background-color: #07091a;
   padding: 24px;
 }
 
@@ -136,7 +136,7 @@
   justify-content: center;
   color: rgba(255, 255, 255, 0.7);
   font-size: 16px;
-  background-color: #0a0e1f;
+  background-color: #07091a;
 }
 
 @media (max-width: 480px) {

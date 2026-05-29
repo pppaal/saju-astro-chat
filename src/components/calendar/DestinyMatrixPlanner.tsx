@@ -316,7 +316,7 @@ export default function DestinyMatrixPlanner({
   const getDayOfWeek = (day: number) => t.weekdayFull[new Date(viewYear, viewMonth, day).getDay()]
 
   return (
-    <div className="w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto h-screen bg-zinc-950 text-zinc-200 font-sans flex flex-col shadow-2xl overflow-hidden relative border-x border-zinc-900">
+    <div className="w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto h-screen bg-[#07091a] text-zinc-200 font-sans flex flex-col shadow-2xl overflow-hidden relative border-x border-zinc-900">
       {/* Background Effects */}
       <div className="absolute top-0 left-0 w-full h-64 bg-indigo-900/20 blur-3xl rounded-full pointer-events-none -translate-y-1/2" />
 

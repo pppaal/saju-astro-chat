@@ -97,7 +97,7 @@ export default function TarotChatScreen() {
     : selectedSpread.spread.title
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col">
+    <div className="relative min-h-screen bg-[#07091a] text-slate-100 font-sans flex flex-col">
       {/* 배경 장식 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex justify-center items-center">
         <div className="w-96 h-96 bg-indigo-900 rounded-full blur-3xl opacity-20"></div>
@@ -221,7 +221,7 @@ export default function TarotChatScreen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[10005] bg-slate-950 flex flex-col"
+            className="fixed inset-0 z-[10005] bg-[#07091a] flex flex-col"
           >
             <div className="flex items-center justify-between gap-3 px-4 pl-16 pt-[max(env(safe-area-inset-top),1rem)] pb-4 border-b border-slate-800 bg-slate-900/50">
               <h2 className="text-lg font-semibold flex items-center gap-2 min-w-0">
@@ -297,7 +297,7 @@ export default function TarotChatScreen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[10005] bg-slate-950 flex flex-col"
+            className="fixed inset-0 z-[10005] bg-[#07091a] flex flex-col"
           >
             <div className="flex items-center justify-between gap-3 px-4 pl-16 pt-[max(env(safe-area-inset-top),1rem)] pb-4 border-b border-slate-800 bg-slate-900/50">
               <h2 className="text-lg font-semibold flex items-center gap-2 min-w-0">
