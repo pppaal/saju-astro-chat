@@ -353,8 +353,14 @@ export const majorArcanaCards: RawCard[] = [
       adviceKo: '변화의 물결을 받아들이세요. 지금 행운이 당신에게 유리합니다.',
     },
     reversed: {
-      keywords: ['Bad luck', 'Resistance to change', 'Breaking cycles', 'Negative external forces'],
-      keywordsKo: ['불운', '변화 저항', '악순환', '외부 역풍'],
+      keywords: [
+        'Bad luck',
+        'Resistance to change',
+        'Breaking cycles',
+        'Negative external forces',
+        'Disruption',
+      ],
+      keywordsKo: ['불운', '변화 저항', '악순환', '외부 역풍', '혼란'],
       meaning:
         "The reversed Wheel of Fortune indicates a downturn in luck or being caught in an unfavorable cycle. External forces seem to be working against you, and no matter what you do, the results aren't what you hoped for. You may be resisting the natural flow of life, trying to hold onto something that is meant to change. Perhaps you're repeating the same mistakes, caught in a karmic loop that you haven't yet learned to break. In career, setbacks and obstacles may feel relentless. In relationships, patterns of dysfunction may be repeating. Yet within this challenge lies an invitation: the reversed Wheel asks you to examine what cycles you need to break. This difficult period is temporary. Use it to learn and grow, and the wheel will turn in your favor once more.",
       meaningKo:
@@ -499,8 +505,14 @@ export const majorArcanaCards: RawCard[] = [
       adviceKo: '무엇이 당신을 묶는지 인식하세요. 벗어날 힘이 있습니다.',
     },
     reversed: {
-      keywords: ['Breaking free', 'Detachment', 'Releasing limiting beliefs', 'Reclaiming power'],
-      keywordsKo: ['해방', '초연함', '제한적 믿음 해제', '힘 되찾기'],
+      keywords: [
+        'Breaking free',
+        'Detachment',
+        'Releasing limiting beliefs',
+        'Reclaiming power',
+        'Awakening',
+      ],
+      keywordsKo: ['해방', '초연함', '제한적 믿음 해제', '힘 되찾기', '각성'],
       meaning:
         "The reversed Devil heralds a powerful moment of liberation. You are finally seeing the chains that bound you for what they are—illusions of your own making—and you are ready to break free. An addiction may be losing its grip, a toxic relationship may be ending, or limiting beliefs are crumbling away to reveal your true potential. This card celebrates the courage it takes to face your demons and reclaim your power. In relationships, you may be establishing healthier boundaries or walking away from what doesn't serve you. In career, you might be refusing to compromise your integrity any longer. The reversed Devil reminds you that true freedom comes from within. You are not a victim of your circumstances; you are the author of your liberation. Continue on this path of self-empowerment.",
       meaningKo:
@@ -532,8 +544,9 @@ export const majorArcanaCards: RawCard[] = [
         'Avoiding disaster',
         'Delaying the inevitable',
         'Resisting destruction',
+        'Inner upheaval',
       ],
-      keywordsKo: ['변화 두려움', '재난 회피', '불가피함 지연', '파괴 저항'],
+      keywordsKo: ['변화 두려움', '재난 회피', '불가피함 지연', '파괴 저항', '내면의 격변'],
       meaning:
         "The reversed Tower suggests you may be clinging to a structure that desperately needs to fall. You can feel the cracks forming, sense the foundation shifting—yet fear of the unknown keeps you inside a crumbling tower. By resisting the inevitable destruction, you are prolonging your own suffering and preventing the liberation that awaits on the other side. Perhaps you've survived a near-disaster and think you've escaped the worst—but the underlying issues remain unaddressed. In relationships, you may be maintaining an illusion of stability that serves no one. In career, you might be ignoring clear warning signs. The reversed Tower asks: What are you so afraid of losing that you'd rather suffer in a broken structure? Sometimes the bravest thing is to let the tower fall and build something new from the rubble.",
       meaningKo:
@@ -588,8 +601,14 @@ export const majorArcanaCards: RawCard[] = [
       adviceKo: '불확실함 속에서 직관을 믿으세요. 모든 것이 보이는 대로가 아닙니다.',
     },
     reversed: {
-      keywords: ['Release of fear', 'Repressed emotion', 'Inner confusion', 'Truth revealed'],
-      keywordsKo: ['두려움 해소', '억압된 감정', '내적 혼란', '진실 드러남'],
+      keywords: [
+        'Release of fear',
+        'Repressed emotion',
+        'Inner confusion',
+        'Truth revealed',
+        'Clarity',
+      ],
+      keywordsKo: ['두려움 해소', '억압된 감정', '내적 혼란', '진실 드러남', '명료함'],
       meaning:
         'The reversed Moon signals that illusions are beginning to clear and truth is emerging from the shadows. Fears that once paralyzed you are losing their power as you begin to see them for what they really are—often much smaller than they seemed in the dark. Repressed emotions are rising to the surface, seeking acknowledgment and healing. This can be uncomfortable but ultimately liberating. Deceptions may be revealed; secrets come to light. In relationships, honest conversations can finally happen. In career, clarity is returning after a period of confusion. The reversed Moon suggests that your intuition is becoming more reliable as you clear away the fog of anxiety. Trust that the truth, even if painful, is preferable to living in illusion. The night is ending; dawn approaches.',
       meaningKo:
@@ -611,7 +630,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'The Sun bursts forth with radiant, life-giving energy—this is one of the most positive cards in the entire deck. After the uncertain darkness of the Moon, the Sun brings clarity, joy, and undeniable success. A child rides joyfully on a white horse, symbolizing the pure innocence and freedom that comes when we live authentically. This card says YES to your questions, promising good outcomes and genuine happiness. In love, the Sun brings warmth, playfulness, and deep connection. In career, success is assured; your efforts will be recognized and rewarded. Health and vitality are strong. The Sun reminds you to embrace your inner child, to find joy in simple pleasures, and to let your true self shine without apology. This is your moment to thrive. Bask in the light you have earned.',
       meaningKo:
-        '태양이 빛나는 생명력 넘치는 에너지로 터져 나옵니다—이것은 전체 덱에서 가장 긍정적인 카드 중 하나입니다. 달의 불확실한 어둠 후에, 태양은 명료함, 기쁨, 그리고 부정할 수 없는 성공을 가져옵니다. 아이가 흰 말 위에서 즐겁게 타고 있으며, 진정성 있게 살 때 오는 순수한 순수함과 자유를 상징합니다. 이 카드는 당신의 질문에 예라고 말하며, 좋은 결과와 진정한 행복을 약속합니다. 사랑에서 태양은 따뜻함, 장난기, 깊은 연결을 가져옵니다. 직업에서 성공이 보장됩니다; 당신의 노력이 인정받고 보상받을 것입니다. 건강과 활력이 강합니다. 태양은 내면 아이를 받아들이고, 단순한 즐거움에서 기쁨을 찾고, 사과 없이 진정한 자신을 빛내라고 상기시킵니다. 이것은 번영할 당신의 순간입니다. 당신이 얻은 빛 속에서 누리세요.',
+        '태양이 빛나는 생명력 넘치는 에너지로 터져 나옵니다—이것은 전체 덱에서 가장 긍정적인 카드 중 하나입니다. 달의 불확실한 어둠 후에, 태양은 명료함, 기쁨, 그리고 부정할 수 없는 성공을 가져옵니다. 아이가 흰 말 위에서 즐겁게 타고 있으며, 진정성 있게 살 때 오는 순수한 천진난만함과 자유를 상징합니다. 이 카드는 당신의 질문에 예라고 말하며, 좋은 결과와 진정한 행복을 약속합니다. 사랑에서 태양은 따뜻함, 장난기, 깊은 연결을 가져옵니다. 직업에서 성공이 보장됩니다; 당신의 노력이 인정받고 보상받을 것입니다. 건강과 활력이 강합니다. 태양은 내면 아이를 받아들이고, 단순한 즐거움에서 기쁨을 찾고, 사과 없이 진정한 자신을 빛내라고 상기시킵니다. 이것은 번영할 당신의 순간입니다. 당신이 얻은 빛을 마음껏 누리세요.',
       advice: 'Celebrate life! Joy, success, and vitality are yours.',
       adviceKo: '삶을 축하하세요! 기쁨, 성공, 활력이 당신의 것입니다.',
     },
@@ -673,7 +692,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'The World represents the triumphant completion of a journey—the final card of the Major Arcana, where all lessons have been learned and integrated. The dancing figure within the laurel wreath celebrates wholeness, accomplishment, and the harmonious union of all aspects of self. A major life cycle is concluding: goals achieved, dreams realized, and wisdom gained through experience. This card brings profound fulfillment and a sense of cosmic alignment. In love, this may represent a relationship that feels complete and balanced, or the culmination of personal growth that makes you ready for deep partnership. In career, a significant project or phase reaches successful completion; recognition and rewards are yours. The World also speaks of travel and expansion—the whole world is open to you. Celebrate this achievement, and know that as one door closes, another opens. The cycle will begin anew, but you enter it transformed.',
       meaningKo:
-        '세계는 여정의 승리적 완성을 나타냅니다—메이저 아르카나의 마지막 카드로, 모든 교훈이 배워지고 통합되었습니다. 월계관 안에서 춤추는 인물은 전체성, 성취, 그리고 자아의 모든 측면의 조화로운 결합을 축하합니다. 주요 삶의 순환이 마무리되고 있습니다: 목표 달성, 꿈 실현, 경험을 통해 얻은 지혜. 이 카드는 깊은 충만함과 우주적 정렬의 감각을 가져옵니다. 사랑에서 이것은 완전하고 균형 잡힌 느낌의 관계, 또는 깊은 파트너십을 위해 준비되게 하는 개인적 성장의 정점을 나타낼 수 있습니다. 직업에서 중요한 프로젝트나 단계가 성공적으로 완료됩니다; 인정과 보상이 당신의 것입니다. 세계는 또한 여행과 확장에 대해 말합니다—온 세상이 당신에게 열려 있습니다. 이 성취를 축하하고, 한 문이 닫히면 다른 문이 열린다는 것을 알아두세요. 순환은 새롭게 시작되지만, 당신은 변화된 모습으로 들어갑니다.',
+        '세계는 여정의 승리적 완성을 나타냅니다—메이저 아르카나의 마지막 카드로, 모든 교훈이 배워지고 통합되었습니다. 월계관 안에서 춤추는 인물은 전체성, 성취, 그리고 자아의 모든 측면의 조화로운 결합을 축하합니다. 삶의 중요한 순환이 마무리되고 있습니다: 목표 달성, 꿈 실현, 경험을 통해 얻은 지혜. 이 카드는 깊은 충만함과 우주적 정렬의 감각을 가져옵니다. 사랑에서 이것은 완전하고 균형 잡힌 느낌의 관계, 또는 깊은 파트너십을 위해 준비되게 하는 개인적 성장의 정점을 나타낼 수 있습니다. 직업에서 중요한 프로젝트나 단계가 성공적으로 완료됩니다; 인정과 보상이 당신의 것입니다. 세계는 또한 여행과 확장에 대해 말합니다—온 세상이 당신에게 열려 있습니다. 이 성취를 축하하고, 한 문이 닫히면 다른 문이 열린다는 것을 알아두세요. 순환은 새롭게 시작되지만, 당신은 변화된 모습으로 들어갑니다.',
       advice: 'Celebrate your achievements! A cycle is complete. Wholeness is yours.',
       adviceKo: '성취를 축하하세요! 한 주기가 완성되었습니다. 온전함이 당신의 것입니다.',
     },
