@@ -1167,3 +1167,26 @@ model CalendarBuildCache {
   @@unique([birthKey, monthKey])
   @@index([builtAt])
 }
+
+/// 본명 차트 영구 캐시.
+/// CalendarBuildCache (월별 derived cells) 와 별개 — 이건 사용자별 한 번 계산 후
+/// 영구. 사주 8글자 / 격국·용신 / 신살 / 합/충 / 대운 + 점성 차트 모두 포함된
+/// NatalContext 통째로 JSON 저장. 차트 모달 / 캘린더 빌드 / 운명상담사 prompt
+/// 빌드 등 본명 데이터 필요한 모든 경로가 이 캐시 우선 조회.
+///
+/// engineSignature 가 바뀐 row 는 stale 처리 — 다음 요청에 재계산해서 덮어씀.
+/// Redis 캐시 (TTL 30일) 가 앞단에 있고 이건 cold fallback / 영구 보존용.
+model NatalContextCache {
+  id               String   @id @default(cuid())
+  /// hash(birthDate + birthTime + latitude + longitude + gender + engineSignature)
+  birthKey         String   @unique
+  /// 엔진 버전 시그니처. 사주/점성 엔진 변경 시 bump.
+  engineSignature  String
+  /// NatalContext 전체 JSON — saju.pillars/dayMaster/yongsin/geokguk/strength/
+  /// natalShinsal/natalRelations/daeun + astro.chart/extraPoints/sect/location.
+  data             Json
+  builtAt          DateTime @default(now())
+
+  @@index([builtAt])
+  @@index([engineSignature])
+}
