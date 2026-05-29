@@ -7,6 +7,8 @@ import {
   saveBirthInfo,
   getStoredBirthInfo,
   clearBirthInfo,
+  normGender,
+  timeToState,
   type StoredBirthInfo,
 } from '../birthInfoStorage'
 import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
@@ -31,19 +33,6 @@ interface LoadOption {
   timeUnknown: boolean
   gender: 'male' | 'female' | ''
   city: string
-}
-
-function normGender(g: unknown): 'male' | 'female' | '' {
-  const v = String(g ?? '').toLowerCase()
-  if (v === 'female' || v === 'f') return 'female'
-  if (v === 'male' || v === 'm') return 'male'
-  return ''
-}
-
-function timeToState(raw: unknown): { birthTime: string; timeUnknown: boolean } {
-  const t = typeof raw === 'string' ? raw : ''
-  if (!t || t === '00:00') return { birthTime: '', timeUnknown: true }
-  return { birthTime: t, timeUnknown: false }
 }
 
 export default function BirthInfoModal({

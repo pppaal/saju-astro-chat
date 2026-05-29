@@ -15,7 +15,7 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { useCompatibilityForm } from '@/hooks/useCompatibilityForm'
 import { useCityAutocomplete } from '@/hooks/useCityAutocomplete'
-import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
+import { getStoredBirthInfo, normGender, timeToState } from '@/app/(main)/birthInfoStorage'
 import { validatePersons } from '../validatePersons'
 import { PersonCard, SubmitButton, type LoadOption } from '../components'
 import compatStyles from '../Compatibility.module.css'
@@ -44,19 +44,6 @@ const KO_FALLBACKS: Record<string, string> = {
   'compatibilityPage.analysisTitle': '궁합 분석',
   'compatibilityPage.backToForm': '뒤로',
   'compatibilityPage.loadSaved': '저장된 정보 불러오기',
-}
-
-function normGender(g: unknown): 'male' | 'female' | '' {
-  const v = String(g ?? '').toLowerCase()
-  if (v === 'female' || v === 'f') return 'female'
-  if (v === 'male' || v === 'm') return 'male'
-  return ''
-}
-
-function timeToState(raw: unknown): { birthTime: string; timeUnknown: boolean } {
-  const t = typeof raw === 'string' ? raw : ''
-  if (!t || t === '00:00') return { birthTime: '', timeUnknown: true }
-  return { birthTime: t, timeUnknown: false }
 }
 
 export function CompatPersonPickerModal({
@@ -233,7 +220,8 @@ export function CompatPersonPickerModal({
           date: opt.birthDate,
           time: opt.timeUnknown ? '00:00' : opt.birthTime,
           timeUnknown: opt.timeUnknown,
-          gender: opt.gender === 'female' ? 'F' : opt.gender === 'male' ? 'M' : next[cardIdx].gender,
+          gender:
+            opt.gender === 'female' ? 'F' : opt.gender === 'male' ? 'M' : next[cardIdx].gender,
           cityQuery: opt.city,
           lat: opt.latitude ?? null,
           lon: opt.longitude ?? null,

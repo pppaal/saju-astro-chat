@@ -178,3 +178,23 @@ export function buildCounselorHref(
   if (q) params.set('q', q)
   return `/destiny-map/counselor?${params.toString()}`
 }
+
+// ── 저장된 정보 불러오기 폼 헬퍼 ─────────────────────────────────────────
+// BirthInfoModal 과 CompatPersonPickerModal 이 DB 프로필/지인 응답을 폼 상태로
+// 옮길 때 똑같이 쓰던 두 함수. 'F'(한 글자) 매칭 누락 같은 회귀가 한쪽에만
+// 생기지 않도록 단일 출처로 둔다.
+
+/** 다양한 gender 표기를 폼 상태('male'|'female'|'') 로 정규화. */
+export function normGender(g: unknown): 'male' | 'female' | '' {
+  const v = String(g ?? '').toLowerCase()
+  if (v === 'female' || v === 'f') return 'female'
+  if (v === 'male' || v === 'm') return 'male'
+  return ''
+}
+
+/** birthTime 원본(빈값/'00:00' = 시간 모름)을 폼 상태로. */
+export function timeToState(raw: unknown): { birthTime: string; timeUnknown: boolean } {
+  const t = typeof raw === 'string' ? raw : ''
+  if (!t || t === '00:00') return { birthTime: '', timeUnknown: true }
+  return { birthTime: t, timeUnknown: false }
+}
