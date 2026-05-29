@@ -436,6 +436,165 @@ const ELEM_COMBO: Record<string, { ko: string; en: string }> = {
   },
 }
 
+// ── Extended summary helpers ──────────────────────────────────────────────
+//
+// generateChartSummary 가 격국·신강약·십성·용신·대운 까지 다루도록 확장하면서
+// 필요한 보조 데이터·헬퍼들을 한 곳에 모음. 모두 deterministic, lang 무관 키.
+
+/** 영문 오행 키 → 한국어 한 글자 키. saju.fiveElements 가 영문이므로 변환용. */
+const EN_TO_KO_ELEMENT: Record<string, string> = {
+  wood: '목',
+  fire: '화',
+  earth: '토',
+  metal: '금',
+  water: '수',
+}
+
+/** 한국어 오행 → 영문 키. yongsin.primaryYongsin 이 '목/화/...' 형태라 역변환. */
+const KO_TO_EN_ELEMENT: Record<string, string> = {
+  목: 'wood',
+  화: 'fire',
+  토: 'earth',
+  금: 'metal',
+  수: 'water',
+}
+
+/** 오행 부족 시 처방 — 색·방향·활동(비전공자 친화 단어). personaCompute 와 동일 어휘. */
+const ELEMENT_REMEDY: Record<
+  string,
+  { color: { ko: string; en: string }; direction: { ko: string; en: string }; activity: { ko: string; en: string } }
+> = {
+  목: {
+    color: { ko: '초록', en: 'green' },
+    direction: { ko: '동쪽', en: 'east' },
+    activity: { ko: '식물·산책·창작', en: 'plants, walks, creating' },
+  },
+  화: {
+    color: { ko: '빨강', en: 'red' },
+    direction: { ko: '남쪽', en: 'south' },
+    activity: { ko: '운동·발표·뜨거운 색', en: 'exercise, speaking up, warm colors' },
+  },
+  토: {
+    color: { ko: '노랑', en: 'yellow' },
+    direction: { ko: '중앙', en: 'center' },
+    activity: { ko: '실용·신뢰·돌봄', en: 'practical work, trust, caretaking' },
+  },
+  금: {
+    color: { ko: '흰색', en: 'white' },
+    direction: { ko: '서쪽', en: 'west' },
+    activity: { ko: '정리·체계·단단함', en: 'organizing, structure, firmness' },
+  },
+  수: {
+    color: { ko: '검정·파랑', en: 'black/blue' },
+    direction: { ko: '북쪽', en: 'north' },
+    activity: { ko: '학습·명상·여행', en: 'study, meditation, travel' },
+  },
+}
+
+/** 신강약 라벨 — 길이 5단계지만 표시는 3단계로 묶음. */
+function strengthLabel(raw: string | undefined, isKo: boolean): string {
+  if (raw === '극신강' || raw === '신강') return isKo ? '신강' : 'strong day-master'
+  if (raw === '극신약' || raw === '신약') return isKo ? '신약' : 'weak day-master'
+  if (raw === '중화') return isKo ? '중화' : 'balanced day-master'
+  return ''
+}
+
+/** 십성 카테고리 → 영문/한 줄 한국어 키워드. dictionary 메타가 없을 때 fallback. */
+const SIBSIN_CATEGORY_HINT: Record<
+  SibsinCategory,
+  { ko: string; en: string }
+> = {
+  비겁: {
+    ko: '자기·독립·경쟁',
+    en: 'self, independence, competition',
+  },
+  식상: {
+    ko: '표현·창의·말',
+    en: 'expression, creativity, speech',
+  },
+  재성: {
+    ko: '재물·활동·욕망',
+    en: 'wealth, action, desire',
+  },
+  관성: {
+    ko: '권위·체계·책임감',
+    en: 'authority, structure, responsibility',
+  },
+  인성: {
+    ko: '배움·생각·보살핌',
+    en: 'learning, thinking, nurture',
+  },
+}
+
+const SIBSIN_CATEGORY_PAIR_KO: Record<SibsinCategory, string> = {
+  비겁: '비견·겁재',
+  식상: '식신·상관',
+  재성: '정재·편재',
+  관성: '정관·편관',
+  인성: '정인·편인',
+}
+
+const SIBSIN_CATEGORY_PAIR_EN: Record<SibsinCategory, string> = {
+  비겁: 'Bigyeon · Geopjae',
+  식상: 'Siksin · Sanggwan',
+  재성: 'Jeongjae · Pyeonjae',
+  관성: 'Jeonggwan · Pyeongwan',
+  인성: 'Jeongin · Pyeonin',
+}
+
+/** dictionary `category_meaning` 에서 키워드 부분만 잘라낸 짧은 라벨. */
+function shortSibsinHint(category: SibsinCategory, isKo: boolean): string {
+  const dict = getSibsinCategoryMeaning(category, isKo ? 'ko' : 'en')
+  // 사전 포맷: "비견 + 겁재 — 자기·형제·동료·경쟁" 또는 영문 동등 — 대시 뒤만 사용
+  if (dict) {
+    const dashIdx = Math.max(dict.indexOf('—'), dict.indexOf('-'))
+    if (dashIdx >= 0 && dashIdx < dict.length - 1) {
+      const tail = dict.slice(dashIdx + 1).trim()
+      if (tail) return tail
+    }
+    return dict
+  }
+  return SIBSIN_CATEGORY_HINT[category][isKo ? 'ko' : 'en']
+}
+
+/** 현재 대운 찾기 — birthYear 있으면 정확 매칭, 없으면 중간쯤. */
+interface DaeunEntry {
+  age?: number
+  heavenlyStem?: string
+  earthlyBranch?: string
+  ganji?: string
+}
+function findCurrentDaeun(
+  daeunList: DaeunEntry[],
+  birthYear: number | undefined
+): DaeunEntry | undefined {
+  if (!daeunList || daeunList.length === 0) return undefined
+  if (birthYear && Number.isFinite(birthYear)) {
+    const currentAge = new Date().getFullYear() - birthYear
+    let current = daeunList[0]
+    for (const c of daeunList) {
+      if ((c.age ?? 0) <= currentAge) current = c
+      else break
+    }
+    return current
+  }
+  return daeunList[Math.min(2, daeunList.length - 1)]
+}
+
+/**
+ * 차트 헤더용 자연어 요약을 생성한다.
+ *
+ * 문장 구성 (한국어 기준, 데이터 없으면 해당 문장 skip):
+ *  s1. 일주 archetype 한 줄 (기존)
+ *  s2. 격국 + 신강약 ("정관격·신강이라 …")
+ *  s3. 십성 dominant ("관성 (정관·편관) 이 3개로 …")
+ *  s4. 주변 오행 기운 (기존 s2)
+ *  s5. 용신 보충 처방 ("다만 火(빨강·남쪽)가 부족해서 …")
+ *  s6. 태양/달 별자리 + 결 (기존 s3)
+ *  s7. 현재 대운 ("지금은 22세대 乙亥 대운에 있어 …")
+ *
+ * 톤: 비전공자 친화 ("…에요/이에요"). 영문은 평이한 setting talk.
+ */
 export function generateChartSummary(saju: unknown, astro: unknown, lang: string = 'ko'): string {
   const isKo = lang === 'ko'
   const sj = extractSajuData(saju as CombinedResult['saju'])
@@ -474,15 +633,132 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
 
   const role = domKey !== selfKey ? sibsinRole(selfKey, domKey) : null
 
+  // ── advancedAnalysis (격국·용신·신강약·십성) 안전 추출 ───────────────────
+  const advanced = (s?.advancedAnalysis as
+    | {
+        geokguk?: { primary?: string }
+        yongsin?: { primaryYongsin?: string; daymasterStrength?: string }
+        sibsin?: { categoryCount?: Record<string, number> }
+      }
+    | undefined) ?? undefined
+  const geokgukName = advanced?.geokguk?.primary
+  const geokgukRich =
+    geokgukName && geokgukName !== '미정'
+      ? getGeokgukRich(geokgukName, isKo ? 'ko' : 'en')
+      : null
+  const geokgukTagline = geokgukRich?.tagline ?? ''
+  const strength = advanced?.yongsin?.daymasterStrength
+  const strengthShort = strengthLabel(strength, isKo)
+
+  // ── 십성 dominant (>= 3개) ──────────────────────────────────────────────
+  // 비겁/식상/재성/관성/인성 중 가장 많은 카테고리가 3개 이상이면 한 문장 추가
+  const catCount = advanced?.sibsin?.categoryCount
+  let topCategory: SibsinCategory | null = null
+  let topCount = 0
+  if (catCount) {
+    const cats: SibsinCategory[] = ['비겁', '식상', '재성', '관성', '인성']
+    for (const c of cats) {
+      const n = catCount[c] ?? 0
+      if (n > topCount) {
+        topCount = n
+        topCategory = c
+      }
+    }
+    if (topCount < 3) topCategory = null
+  }
+
+  // ── 용신 / 부족 오행 → 처방 ────────────────────────────────────────────
+  // primaryYongsin 이 있으면 그걸 우선. 없으면 fiveElements 에서 부족 오행 직접 찾음.
+  let remedyKoKey: string | null = null
+  const primaryYongsinKo = advanced?.yongsin?.primaryYongsin
+  if (primaryYongsinKo && KO_TO_EN_ELEMENT[primaryYongsinKo]) {
+    const enKey = KO_TO_EN_ELEMENT[primaryYongsinKo]
+    // 용신은 보충해야 할 오행 — 단, 우세 오행과 같으면 노이즈라 skip
+    if (enKey !== domKey) remedyKoKey = primaryYongsinKo
+  }
+  if (!remedyKoKey) {
+    // fiveElements 영문 키 → 한국어 키로 카운트, 0~1개인 것 찾음
+    const fe = sj.fiveElements
+    if (fe && Object.keys(fe).length > 0) {
+      const koCounts: Record<string, number> = {}
+      for (const [k, v] of Object.entries(fe)) {
+        if (typeof v !== 'number') continue
+        const koKey = EN_TO_KO_ELEMENT[k] ?? k
+        koCounts[koKey] = v
+      }
+      const els = ['목', '화', '토', '금', '수']
+      const present = els.filter((e) => koCounts[e] !== undefined)
+      if (present.length > 0) {
+        const min = Math.min(...present.map((e) => koCounts[e] ?? 0))
+        if (min <= 1) {
+          const cand = present.find((e) => (koCounts[e] ?? 0) === min)
+          if (cand) remedyKoKey = cand
+        }
+      }
+    }
+  }
+  const remedy = remedyKoKey ? ELEMENT_REMEDY[remedyKoKey] : null
+  const remedyElName = remedyKoKey
+    ? isKo
+      ? remedyKoKey
+      : getElementName(KO_TO_EN_ELEMENT[remedyKoKey] ?? '', false)
+    : ''
+
+  // ── 현재 대운 ─────────────────────────────────────────────────────────
+  const daeunRoot = s?.daeun as
+    | { list?: DaeunEntry[]; current?: DaeunEntry | null }
+    | undefined
+  const birthYear =
+    typeof s?.birthYear === 'number' ? (s.birthYear as number) : undefined
+  const currentDaeun =
+    daeunRoot?.current ??
+    findCurrentDaeun(Array.isArray(daeunRoot?.list) ? daeunRoot!.list! : [], birthYear)
+  const daeunGanji = currentDaeun
+    ? (currentDaeun.ganji ??
+        `${currentDaeun.heavenlyStem ?? ''}${currentDaeun.earthlyBranch ?? ''}`.trim())
+    : ''
+  const daeunAge = currentDaeun?.age
+
   if (isKo) {
-    // 호흡을 위해 lead 와 trait 를 한 문장으로(— 로 묶음), 주변 기운/별자리는
-    // 새 문장으로. 단순 마침표 나열보다 자연스러운 톤.
+    // s1 — 일주 archetype + 결 (호흡을 위해 — 로 묶음)
     const lead = iljuChar
       ? `당신은 ${iljuChar} 유형이에요`
       : `당신은 ${getElementName(selfKey, true)} 기운의 사람이에요`
     const s1 = trait ? `${lead} — ${trait}.` : `${lead}.`
-    const s2 = role ? `주변에는 ${domName} 기운이 강하게 흘러, ${ROLE_MEANING[role].ko}.` : ''
+
+    // s2 — 격국 + 신강약
+    let s2 = ''
+    if (geokgukName && geokgukName !== '미정') {
+      const both = strengthShort
+        ? `${geokgukName}·${strengthShort}`
+        : geokgukName
+      const tail = geokgukTagline ? `라 ${geokgukTagline}이에요` : '이에요'
+      s2 = `사주는 ${both}${tail}.`
+    } else if (strengthShort) {
+      s2 = `일간이 ${strengthShort}한 흐름이에요.`
+    }
+
+    // s3 — 십성 dominant
     let s3 = ''
+    if (topCategory) {
+      const pair = SIBSIN_CATEGORY_PAIR_KO[topCategory]
+      const hint = shortSibsinHint(topCategory, true)
+      s3 = `${topCategory}(${pair})이 ${topCount}개로 ${hint} 영역이 활성화되어 있어요.`
+    }
+
+    // s4 — 주변 기운 (기존 s2)
+    const s4 = role
+      ? `그리고 주변에는 ${domName} 기운이 강하게 흘러, ${ROLE_MEANING[role].ko}.`
+      : ''
+
+    // s5 — 용신 보충 처방
+    let s5 = ''
+    if (remedy && remedyElName) {
+      s5 = `다만 ${remedyElName}(${remedy.color.ko}·${remedy.direction.ko})이(가) 부족해서 ${remedy.activity.ko}이 균형을 잡아줘요.`
+    }
+
+    // s6 — 태양/달 (기존 s3)
+    let s6 = ''
     if (sunName && moonName) {
       const meaning =
         sunEl && sunEl === moonEl
@@ -490,20 +766,63 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
           : sunEl && moonEl
             ? `겉(태양 ${ELEM_LABEL_KO[sunEl]})과 속(달 ${ELEM_LABEL_KO[moonEl]})의 결이 달라 입체적인 면이 있어요.`
             : ''
-      s3 = `태양은 ${sunName}, 달은 ${moonName}에 있어요.${meaning ? ` ${meaning}` : ''}`
+      s6 = `태양은 ${sunName}, 달은 ${moonName}에 있어요.${meaning ? ` ${meaning}` : ''}`
     } else if (sunName) {
-      s3 = `태양은 ${sunName}에 있어요.`
+      s6 = `태양은 ${sunName}에 있어요.`
     }
-    return [s1, s2, s3].filter(Boolean).join(' ')
+
+    // s7 — 현재 대운
+    let s7 = ''
+    if (daeunGanji) {
+      const agePart = typeof daeunAge === 'number' ? `${daeunAge}세대 ` : ''
+      s7 = `지금은 ${agePart}${daeunGanji} 대운에 있어 흐름의 시기를 보내고 있어요.`
+    }
+
+    return [s1, s2, s3, s4, s5, s6, s7].filter(Boolean).join(' ')
   }
 
+  // ── English variant ────────────────────────────────────────────────────
   const lower = (t: string) => (t ? t.charAt(0).toLowerCase() + t.slice(1) : t)
+
+  // s1
   const lead = iljuChar
     ? `At the core, ${lower(iljuChar)}`
     : `${getElementName(selfKey, false)}-natured at the core`
   const s1 = trait ? `${lead} — ${trait}.` : `${lead}.`
-  const s2 = role ? `Strong ${domName} energy runs around you — ${ROLE_MEANING[role].en}.` : ''
+
+  // s2 — geokguk + strength
+  let s2 = ''
+  if (geokgukName && geokgukName !== '미정') {
+    const stem = strengthShort
+      ? `${geokgukName} chart with a ${strengthShort}`
+      : `${geokgukName} chart`
+    const tail = geokgukTagline ? ` — ${lower(geokgukTagline)}` : ''
+    s2 = `Your reading is a ${stem}${tail}.`
+  } else if (strengthShort) {
+    s2 = `Your day-master sits in a ${strengthShort} pattern.`
+  }
+
+  // s3 — sibsin dominant
   let s3 = ''
+  if (topCategory) {
+    const pair = SIBSIN_CATEGORY_PAIR_EN[topCategory]
+    const hint = shortSibsinHint(topCategory, false)
+    s3 = `${pair} (${topCategory}) shows up ${topCount} times — your field of ${hint} is highly active.`
+  }
+
+  // s4 — surrounding element
+  const s4 = role
+    ? `Strong ${domName} energy runs around you — ${ROLE_MEANING[role].en}.`
+    : ''
+
+  // s5 — remedy
+  let s5 = ''
+  if (remedy && remedyElName) {
+    s5 = `That said, ${remedyElName} (${remedy.color.en}, ${remedy.direction.en}) is thin — ${remedy.activity.en} help restore balance.`
+  }
+
+  // s6 — sun/moon
+  let s6 = ''
   if (sunName && moonName) {
     const meaning =
       sunEl && sunEl === moonEl
@@ -511,9 +830,17 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
         : sunEl && moonEl
           ? `Outer (Sun ${ELEM_LABEL_EN[sunEl]}) and inner (Moon ${ELEM_LABEL_EN[moonEl]}) differ, adding range.`
           : ''
-    s3 = `Sun in ${sunName}, Moon in ${moonName}.${meaning ? ` ${meaning}` : ''}`
+    s6 = `Sun in ${sunName}, Moon in ${moonName}.${meaning ? ` ${meaning}` : ''}`
   } else if (sunName) {
-    s3 = `Sun in ${sunName}.`
+    s6 = `Sun in ${sunName}.`
   }
-  return [s1, s2, s3].filter(Boolean).join(' ')
+
+  // s7 — current daeun
+  let s7 = ''
+  if (daeunGanji) {
+    const agePart = typeof daeunAge === 'number' ? ` from age ${daeunAge}` : ''
+    s7 = `Right now you are in the ${daeunGanji} decade-luck${agePart}, a current you are riding.`
+  }
+
+  return [s1, s2, s3, s4, s5, s6, s7].filter(Boolean).join(' ')
 }
