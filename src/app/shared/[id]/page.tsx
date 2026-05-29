@@ -44,9 +44,9 @@ export default function SharedResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#07091a] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="animate-spin w-12 h-12 border-4 border-[#d4b572] border-t-transparent rounded-full mx-auto mb-4" />
           <p className="text-gray-300">{isKo ? '로딩 중...' : 'Loading...'}</p>
         </div>
       </div>
