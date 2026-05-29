@@ -238,6 +238,26 @@ export const CacheKeys = {
 } as const
 
 /**
+ * SCAN patterns aligned with CacheKeys above — used by invalidation paths
+ * (e.g. profile birth-info edits). Versions MUST be kept in sync with the
+ * generators in CacheKeys, otherwise SCAN finds no matches and stale data
+ * survives until TTL.
+ */
+export const CacheInvalidationPatterns = {
+  /** Matches all `saju:v1:${birthDate}:*` entries (any birthTime/gender/calendar). */
+  sajuByBirthDate: (birthDate: string) => `saju:v1:${birthDate}:*`,
+  /** Matches all `destiny:v1:${birthDate}:*` entries (any birthTime). */
+  destinyByBirthDate: (birthDate: string) => `destiny:v1:${birthDate}:*`,
+  /** Matches all `yearly:v6:${birthDate}:*` entries (any birthTime/gender/year/category/place). */
+  yearlyByBirthDate: (birthDate: string) => `yearly:v6:${birthDate}:*`,
+  /**
+   * Matches all `cal:v1:${year}:${month}:${userId}` entries for one user.
+   * userId is the LAST segment — wildcards stand in for year and month.
+   */
+  calendarByUser: (userId: string) => `cal:v1:*:*:${userId}`,
+} as const
+
+/**
  * Wrapper for cache-or-calculate pattern
  */
 export async function cacheOrCalculate<T>(
