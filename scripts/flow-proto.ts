@@ -39,8 +39,19 @@ function calibrate(gs: (number | null)[]) {
 const agree = (a: number, b: number) => { const g = Math.abs(a - b); return g <= 12 ? 'aligned' : g <= 28 ? 'mixed' : 'opposed' }
 
 async function main() {
-  const natal = await buildNatalContext({ birthDate: '1993-08-15', birthTime: '14:30', gender: 'male', latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' })
-  const cells = await buildCalendar(natal, { start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.999Z', granularity: 'day' }, { includeEvidence: true })
+  const E = process.env
+  const input = {
+    birthDate: E.FP_BIRTHDATE ?? '1993-08-15',
+    birthTime: E.FP_BIRTHTIME ?? '14:30',
+    gender: (E.FP_GENDER as 'male' | 'female') ?? 'male',
+    latitude: E.FP_LAT ? Number(E.FP_LAT) : 37.5665,
+    longitude: E.FP_LON ? Number(E.FP_LON) : 126.978,
+    timeZone: E.FP_TZ ?? 'Asia/Seoul',
+  }
+  const start = E.FP_START ?? '2026-05-01T00:00:00.000Z'
+  const end = E.FP_END ?? '2026-05-31T23:59:59.999Z'
+  const natal = await buildNatalContext(input)
+  const cells = await buildCalendar(natal, { start, end, granularity: 'day' }, { includeEvidence: true })
   const days = cells.map((c) => ({
     day: c.datetime.slice(0, 10),
     sigs: (c.signals as any[]).map((s) => ({ layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source, kind: s.kind })) as Sig[],
@@ -51,18 +62,21 @@ async function main() {
 
   // ── N 스윕 ──
   console.log('\n[N 스윕] layer별 (weight×tier) 상위 N개 → 점성 raw sd & 일치분포')
+  const sajuRawSd = stats(days.map((d) => grandAvg(pickS(d))).filter((x): x is number => x != null)).sd
   const sajuAxis = calibrate(days.map((d) => grandAvg(pickS(d))))
-  let best = { n: 0, score: -1, astroAxis: [] as number[] }
+  let best = { n: 0, score: -1, astroAxis: [] as number[], sd: 0, ag: {} as Record<string, number> }
+  const sweep: any[] = []
   for (const n of [3, 5, 8, 12]) {
     const gs = days.map((d) => grandAvg(topNPerLayer(pickA(d), n)))
     const sd = stats(gs.filter((x): x is number => x != null)).sd
     const ax = calibrate(gs)
     const ag: Record<string, number> = { aligned: 0, mixed: 0, opposed: 0 }
     days.forEach((_, i) => ag[agree(sajuAxis[i], ax[i])]++)
+    sweep.push({ n, sd: +sd.toFixed(3), ag })
     console.log(`   N=${String(n).padStart(2)}  raw sd ${sd.toFixed(3)}   일치 aligned ${ag.aligned} / mixed ${ag.mixed} / opposed ${ag.opposed}`)
     // 목표: sd가 사주(0.095)에 가장 가까운 N (너무 작으면 1신호 독재, 너무 크면 익사)
-    const closeness = -Math.abs(sd - 0.095)
-    if (closeness > best.score) best = { n, score: closeness, astroAxis: ax }
+    const closeness = -Math.abs(sd - sajuRawSd)
+    if (closeness > best.score) best = { n, score: closeness, astroAxis: ax, sd, ag }
   }
   const N = best.n
   const astroAxis = best.astroAxis
@@ -80,5 +94,18 @@ async function main() {
   })
   console.log('\n[수렴 타이밍] 사주·점성이 같은 방향으로 강하게 만나는 날 =', conv.length, '개')
   for (const c of conv) console.log(`   ${c.day}  ${c.kind}  (헤드라인 ${c.head})`)
+
+  // ── 병리 자동 판정 + 머신리더블 요약 ──
+  const astroPinned = best.sd < 0.03 // 축 죽음(고착)
+  const opposedRatio = best.ag.opposed / days.length
+  const verdict = astroPinned ? 'FAIL(점성축 고착)' : opposedRatio > 0.5 ? 'FAIL(opposed 과다)' : 'OK'
+  console.log('\n==== SUMMARY(JSON) ====')
+  console.log(JSON.stringify({
+    birth: input.birthDate, time: input.birthTime, gender: input.gender, tz: input.timeZone,
+    window: `${start.slice(0, 7)}`, strength: natal.saju.strength, sect: natal.astro.sect,
+    sajuRawSd: +sajuRawSd.toFixed(3), sweep, chosenN: N, astroRawSd: +best.sd.toFixed(3),
+    agreement: best.ag, opposedRatio: +opposedRatio.toFixed(2), convergenceDays: conv.length,
+    verdict,
+  }))
 }
 main().catch((e) => { console.error(e); process.exit(1) })
