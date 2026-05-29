@@ -9,7 +9,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import type { I18nMessages } from '@/i18n/utils'
 import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
-import SideDrawer from './components/SideDrawer'
+import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
 import HomeChatInput from './components/HomeChatInput'
 import BirthInfoModal from './components/BirthInfoModal'
 import { getStoredBirthInfo, saveBirthInfo, type StoredBirthInfo } from './birthInfoStorage'
@@ -289,7 +289,12 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         />
       </div>
 
-      <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} locale={locale} />
+      <MenuDrawerPanel
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        locale={locale}
+        variant={isPremiumWhite ? 'light' : 'dark'}
+      />
 
       <BirthInfoModal
         open={birthModalOpen}
