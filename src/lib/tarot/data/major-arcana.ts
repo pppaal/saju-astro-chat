@@ -70,7 +70,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'The reversed Magician warns of misused power and deceptive practices. You may be manipulating situations or people to get what you want, or someone may be doing this to you. Alternatively, this card can indicate untapped potential—you have incredible abilities that remain dormant due to self-doubt or fear of failure. Are you playing small when you could be playing big? In relationships, watch for dishonesty or hidden agendas, either from yourself or your partner. In career, this may suggest that your talents are not being recognized or properly utilized. It is time to realign your intentions with integrity and rediscover your authentic power.',
       meaningKo:
-        '역방향 마법사 카드는 오용된 힘과 기만적인 행위에 대해 경고합니다. 원하는 것을 얻기 위해 상황이나 사람을 조종하고 있거나, 누군가가 당신에게 이렇게 하고 있을 수 있습니다. 또한 이 카드는 활용되지 않은 잠재력을 나타낼 수 있습니다—자기 의심이나 실패에 대한 두려움 때문에 놀라운 능력이 잠들어 있습니다. 크게 활약할 수 있는데 작게 행동하고 있지는 않은가요? 관계에서는 자신이든 파트너든 불정직함이나 숨겨진 의도를 주의하세요. 직업에서는 재능이 인정받지 못하거나 제대로 활용되지 않음을 암시할 수 있습니다. 진정성과 함께 의도를 재정렬하고 진정한 힘을 재발견할 때입니다.',
+        '역방향 마법사 카드는 오용된 힘과 기만적인 행위에 대해 경고합니다. 원하는 것을 얻기 위해 상황이나 사람을 조종하고 있거나, 누군가가 당신에게 이렇게 하고 있을 수 있습니다. 또한 이 카드는 활용되지 않은 잠재력을 나타낼 수 있습니다—자기 의심이나 실패에 대한 두려움 때문에 놀라운 능력이 잠들어 있습니다. 크게 활약할 수 있는데 작게 행동하고 있지는 않은가요? 관계에서는 자신이든 파트너든 부정직함이나 숨겨진 의도를 주의하세요. 직업에서는 재능이 인정받지 못하거나 제대로 활용되지 않음을 암시할 수 있습니다. 진정성과 함께 의도를 재정렬하고 진정한 힘을 재발견할 때입니다.',
       advice: 'Realign with integrity. Unlock your dormant potential.',
       adviceKo: '진정성과 재정렬하세요. 잠든 잠재력을 깨우세요.',
     },
@@ -172,7 +172,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'The reversed Emperor warns of an imbalance in how power is wielded. You may be dealing with a tyrannical figure who uses control and domination rather than fair leadership. Alternatively, you yourself might be either too rigid and controlling, or conversely, lacking the discipline and structure needed to achieve your goals. This card asks you to examine your relationship with authority—are you giving away your power or misusing it? In relationships, watch for controlling behaviors or power struggles. In career, there may be issues with management or a lack of clear direction. Find the balance between strength and flexibility, between leading and allowing.',
       meaningKo:
-        '역방향 황제는 권력이 휘두르는 방식의 불균형에 대해 경고합니다. 공정한 리더십 대신 통제와 지배를 사용하는 폭군적인 인물을 대하고 있을 수 있습니다. 또는 당신 자신이 너무 경직되고 통제적이거나, 반대로 목표 달성에 필요한 규율과 구조가 부족할 수 있습니다. 이 카드는 권위와의 관계를 살펴보라고 요청합니다—힘을 포기하고 있나요, 아니면 오용하고 있나요? 관계에서 통제적 행동이나 권력 다툼을 주의하세요. 직업에서는 경영 문제나 명확한 방향 부족이 있을 수 있습니다. 강함과 유연함 사이, 이끔과 허용함 사이의 균형을 찾으세요.',
+        '역방향 황제는 권력을 휘두르는 방식의 불균형에 대해 경고합니다. 공정한 리더십 대신 통제와 지배를 사용하는 폭군적인 인물을 대하고 있을 수 있습니다. 또는 당신 자신이 너무 경직되고 통제적이거나, 반대로 목표 달성에 필요한 규율과 구조가 부족할 수 있습니다. 이 카드는 권위와의 관계를 살펴보라고 요청합니다—힘을 포기하고 있나요, 아니면 오용하고 있나요? 관계에서 통제적 행동이나 권력 다툼을 주의하세요. 직업에서는 경영 문제나 명확한 방향 부족이 있을 수 있습니다. 강함과 유연함 사이, 이끔과 허용함 사이의 균형을 찾으세요.',
       advice: 'Balance control with flexibility. Examine your relationship with power.',
       adviceKo: '통제와 유연함의 균형을 맞추세요. 권력과의 관계를 살펴보세요.',
     },
@@ -673,7 +673,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'The World represents the triumphant completion of a journey—the final card of the Major Arcana, where all lessons have been learned and integrated. The dancing figure within the laurel wreath celebrates wholeness, accomplishment, and the harmonious union of all aspects of self. A major life cycle is concluding: goals achieved, dreams realized, and wisdom gained through experience. This card brings profound fulfillment and a sense of cosmic alignment. In love, this may represent a relationship that feels complete and balanced, or the culmination of personal growth that makes you ready for deep partnership. In career, a significant project or phase reaches successful completion; recognition and rewards are yours. The World also speaks of travel and expansion—the whole world is open to you. Celebrate this achievement, and know that as one door closes, another opens. The cycle will begin anew, but you enter it transformed.',
       meaningKo:
-        '세계는 여정의 승리적 완성을 나타냅니다—Major Arcana의 마지막 카드로, 모든 교훈이 배워지고 통합되었습니다. 월계관 안에서 춤추는 인물은 전체성, 성취, 그리고 자아의 모든 측면의 조화로운 결합을 축하합니다. 주요 삶의 순환이 마무리되고 있습니다: 목표 달성, 꿈 실현, 경험을 통해 얻은 지혜. 이 카드는 깊은 충만함과 우주적 정렬의 감각을 가져옵니다. 사랑에서 이것은 완전하고 균형 잡힌 느낌의 관계, 또는 깊은 파트너십을 위해 준비되게 하는 개인적 성장의 정점을 나타낼 수 있습니다. 직업에서 중요한 프로젝트나 단계가 성공적으로 완료됩니다; 인정과 보상이 당신의 것입니다. 세계는 또한 여행과 확장에 대해 말합니다—온 세상이 당신에게 열려 있습니다. 이 성취를 축하하고, 한 문이 닫히면 다른 문이 열린다는 것을 알아두세요. 순환은 새롭게 시작되지만, 당신은 변화된 모습으로 들어갑니다.',
+        '세계는 여정의 승리적 완성을 나타냅니다—메이저 아르카나의 마지막 카드로, 모든 교훈이 배워지고 통합되었습니다. 월계관 안에서 춤추는 인물은 전체성, 성취, 그리고 자아의 모든 측면의 조화로운 결합을 축하합니다. 주요 삶의 순환이 마무리되고 있습니다: 목표 달성, 꿈 실현, 경험을 통해 얻은 지혜. 이 카드는 깊은 충만함과 우주적 정렬의 감각을 가져옵니다. 사랑에서 이것은 완전하고 균형 잡힌 느낌의 관계, 또는 깊은 파트너십을 위해 준비되게 하는 개인적 성장의 정점을 나타낼 수 있습니다. 직업에서 중요한 프로젝트나 단계가 성공적으로 완료됩니다; 인정과 보상이 당신의 것입니다. 세계는 또한 여행과 확장에 대해 말합니다—온 세상이 당신에게 열려 있습니다. 이 성취를 축하하고, 한 문이 닫히면 다른 문이 열린다는 것을 알아두세요. 순환은 새롭게 시작되지만, 당신은 변화된 모습으로 들어갑니다.',
       advice: 'Celebrate your achievements! A cycle is complete. Wholeness is yours.',
       adviceKo: '성취를 축하하세요! 한 주기가 완성되었습니다. 온전함이 당신의 것입니다.',
     },
