@@ -113,6 +113,42 @@ const SIGN_TO_WESTERN_ELEMENT: Record<string, 'fire' | 'earth' | 'air' | 'water'
   Cancer: 'water', Scorpio: 'water', Pisces: 'water',
 }
 
+/** 점성 sign 영문 → 한국어. API 가 영문만 반환해 KO 모드에서 비전공자에 어색. */
+const SIGN_EN_TO_KO: Record<string, string> = {
+  Aries: '양자리',
+  Taurus: '황소자리',
+  Gemini: '쌍둥이자리',
+  Cancer: '게자리',
+  Leo: '사자자리',
+  Virgo: '처녀자리',
+  Libra: '천칭자리',
+  Scorpio: '전갈자리',
+  Sagittarius: '사수자리',
+  Capricorn: '염소자리',
+  Aquarius: '물병자리',
+  Pisces: '물고기자리',
+}
+
+/** 4 원소 영문 → 한국어. KO 모드 친화. */
+const ELEMENT_EN_TO_KO: Record<string, string> = {
+  fire: '불',
+  earth: '흙',
+  air: '공기',
+  water: '물',
+}
+
+/** sign 을 KO 모드면 한국어로, EN 모드면 영어 그대로. element 도 동일. */
+function localizeSign(sign: string | undefined, lang: 'ko' | 'en'): string {
+  if (!sign) return ''
+  if (lang === 'en') return sign
+  return SIGN_EN_TO_KO[sign] ?? sign
+}
+function localizeElement(el: string | undefined, lang: 'ko' | 'en'): string {
+  if (!el) return ''
+  if (lang === 'en') return el
+  return ELEMENT_EN_TO_KO[el] ?? el
+}
+
 // 격국 → 점성 MC sign "동조" (책임/표현/조화 등 결 일치). 단순 가시화 휴리스틱.
 const GEOKGUK_RESONANT_SIGNS: Record<string, string[]> = {
   정관격: ['염소자리', 'Capricorn', '천칭자리', 'Libra'],
@@ -212,8 +248,10 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         leftLabel: lang === 'ko' ? '일간 (나)' : 'Day Master',
         leftValue,
         leftHint: stem?.image,
-        rightLabel: lang === 'ko' ? '태양 sign' : 'Sun sign',
-        rightValue: sunWest ? `${sun.sign} (${sunWest})` : sun.sign,
+        rightLabel: lang === 'ko' ? '태양 별자리' : 'Sun sign',
+        rightValue: sunWest
+          ? `${localizeSign(sun.sign, lang)} (${localizeElement(sunWest, lang)})`
+          : localizeSign(sun.sign, lang),
         rightHint: getPlanetCore('Sun', lang)?.principle,
         tone,
       })
@@ -227,15 +265,16 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
     if (yongsin && moon?.sign) {
       const yongWest = SAJU_TO_WESTERN_ELEMENT[yongsin]
       const moonWest = SIGN_TO_WESTERN_ELEMENT[moon.sign]
-      // 달 sign 원소가 용신 원소와 같으면 "보완" (달이 부족한 걸 채워줌 → 결과적으로 두 시스템이 같은 처방).
       const tone: RowTone =
         yongWest && moonWest && yongWest === moonWest ? 'complement' : 'neutral'
       rows.push({
         category: lang === 'ko' ? '필요·욕망' : 'Needs',
         leftLabel: lang === 'ko' ? '용신 (필요 원소)' : 'Yongsin',
         leftValue: yongsin,
-        rightLabel: lang === 'ko' ? '달 sign' : 'Moon sign',
-        rightValue: moonWest ? `${moon.sign} (${moonWest})` : moon.sign,
+        rightLabel: lang === 'ko' ? '달 별자리' : 'Moon sign',
+        rightValue: moonWest
+          ? `${localizeSign(moon.sign, lang)} (${localizeElement(moonWest, lang)})`
+          : localizeSign(moon.sign, lang),
         rightHint: getPlanetCore('Moon', lang)?.principle,
         tone,
       })
@@ -256,7 +295,7 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         leftValue: geokguk,
         leftHint: taglineEntry?.tagline,
         rightLabel: lang === 'ko' ? 'MC (천직)' : 'MC',
-        rightValue: mc.sign,
+        rightValue: localizeSign(mc.sign, lang),
         tone,
       })
     }
@@ -276,7 +315,7 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
           leftLabel: lang === 'ko' ? '현재 대운' : 'Current Daeun',
           leftValue: `${current.age ?? 0}~ ${ganji}`,
           rightLabel: lang === 'ko' ? '활성 transit' : 'Active transit',
-          rightValue: 'N/A',
+          rightValue: lang === 'ko' ? '아직 없음' : 'N/A',
           tone: 'neutral',
         })
       }
@@ -292,8 +331,10 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
     if (lucky.length > 0 || pof?.house || pof?.sign) {
       const right =
         pof && (pof.house || pof.sign)
-          ? `${pof.sign ?? ''}${pof.house ? ` ${pof.house}H` : ''}`.trim()
-          : 'N/A'
+          ? `${pof.sign ? localizeSign(pof.sign, lang) : ''}${
+              pof.house ? ` ${pof.house}H` : ''
+            }`.trim()
+          : lang === 'ko' ? '아직 없음' : 'N/A'
       const houseHint =
         pof?.house && pof.house >= 1 && pof.house <= 12
           ? getHouseRich(pof.house as HouseNumber, lang)?.domain
@@ -301,7 +342,7 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
       rows.push({
         category: lang === 'ko' ? '길흉' : 'Fortune',
         leftLabel: lang === 'ko' ? '12 신살 (일주)' : 'Sinsal (day)',
-        leftValue: lucky.length > 0 ? lucky.join(' · ') : 'N/A',
+        leftValue: lucky.length > 0 ? lucky.join(' · ') : lang === 'ko' ? '아직 없음' : 'N/A',
         rightLabel: lang === 'ko' ? '행운점 (POF)' : 'Part of Fortune',
         rightValue: right,
         rightHint: houseHint,
@@ -323,14 +364,14 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
       rows.push({
         category: lang === 'ko' ? '관계' : 'Relations',
         leftLabel: lang === 'ko' ? '합·충 (사주 내)' : 'Hap/Chung',
-        leftValue: leftParts.length > 0 ? leftParts.join(' · ') : 'N/A',
+        leftValue: leftParts.length > 0 ? leftParts.join(' · ') : lang === 'ko' ? '아직 없음' : 'N/A',
         rightLabel: lang === 'ko' ? '주요 aspect' : 'Major aspects',
         rightValue:
           aspects.length > 0
             ? lang === 'ko'
               ? `${aspects.length}개`
               : `${aspects.length}`
-            : 'N/A',
+            : lang === 'ko' ? '아직 없음' : 'N/A',
         tone: 'neutral',
       })
     }
@@ -346,7 +387,7 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         leftLabel: lang === 'ko' ? '12 운성 (일주)' : 'Twelve Stage',
         leftValue: stage,
         rightLabel: lang === 'ko' ? '행성 위신' : 'Planet dignity',
-        rightValue: 'N/A',
+        rightValue: lang === 'ko' ? '아직 없음' : 'N/A',
         tone: 'neutral',
       })
     }
@@ -389,14 +430,21 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
 
   return (
     <div className="space-y-2">
-      <div
-        className="flex items-center justify-between px-1 text-[11px] font-medium uppercase tracking-wider"
-        style={{ color: 'var(--ds-gold-on-dark)' }}
-      >
-        <span>{lang === 'ko' ? '사주 ↔ 점성 교차' : 'Saju ↔ Astrology'}</span>
-        <span style={{ color: 'var(--ds-dark-text-muted)', fontSize: 10 }}>
-          {lang === 'ko' ? '동양 (좌) ↔ 서양 (우)' : 'East ↔ West'}
-        </span>
+      <div className="space-y-1 px-1">
+        <div
+          className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider"
+          style={{ color: 'var(--ds-gold-on-dark)' }}
+        >
+          <span>{lang === 'ko' ? '사주 ↔ 점성 교차' : 'Saju ↔ Astrology'}</span>
+          <span style={{ color: 'var(--ds-dark-text-muted)', fontSize: 10 }}>
+            {lang === 'ko' ? '동양 (좌) ↔ 서양 (우)' : 'East ↔ West'}
+          </span>
+        </div>
+        <p className="text-[11px] leading-snug" style={{ color: 'var(--ds-dark-text-muted)' }}>
+          {lang === 'ko'
+            ? '같은 영역을 두 시스템에서 어떻게 보는지 — 금색 박스(✓)는 두 시스템이 같은 결을 가리킬 때 표시돼요.'
+            : 'How each life area looks in both systems — gold boxes (✓) mark where they point to the same thing.'}
+        </p>
       </div>
 
       <ul className="space-y-1.5">

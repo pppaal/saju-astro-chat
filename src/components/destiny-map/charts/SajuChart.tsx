@@ -250,21 +250,30 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
                     isMe ? tokens.cellBorderMe : tokens.cellBorderNeutral
                   } ${c.isStem ? '' : 'opacity-95'}`}
                 >
-                  {/* 한자 (long-press / hover → 의미 bubble) */}
+                  {/* 한자 (long-press / hover → 의미 bubble) — 메인 표시. */}
                   {c.cell?.name ? (
                     <HanjaBubble
                       hanja={c.cell.name}
-                      className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
+                      className={`font-serif text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
                     >
-                      {cellText(c.cell)}
+                      {c.cell.name}
                     </HanjaBubble>
                   ) : (
                     <span
-                      className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
+                      className={`font-serif text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
                     >
-                      {cellText(c.cell)}
+                      ·
                     </span>
                   )}
+                  {/* 한자 아래: 한국 발음 + 오행 한 줄 (KO 모드만). 비전공자가 한자
+                      모르더라도 즉시 읽을 수 있게. */}
+                  {isKo && c.cell?.name && (
+                    <span className={`text-[10px] leading-none ${tokens.imageText}`}>
+                      {readingOf(c.cell.name)}
+                      {c.cell.element ? `·${c.cell.element}` : ''}
+                    </span>
+                  )}
+                  {/* 한자의 물상(物像) — "큰 나무" 같은 한 줄 의미. */}
                   {isKo && imageOf(c.cell?.name) && (
                     <span className={`text-[9px] leading-none ${tokens.imageText}`}>
                       {imageOf(c.cell?.name)}

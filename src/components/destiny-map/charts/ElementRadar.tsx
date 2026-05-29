@@ -286,8 +286,8 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
         <p className="text-sm leading-relaxed" style={{ color: 'var(--ds-dark-text)' }}>
           {isKo ? (
             <>
-              현재 <span className="font-bold text-[#e8cc8a]">{domEl.ko}</span>이(가) 가장
-              두드러집니다.
+              가장 강한 건 <span className="font-bold text-[#e8cc8a]">{domEl.koShort}</span> (
+              {domEl.koEl}) 이에요.
               <br />
               {PHRASE_KO[domKey]}
             </>
