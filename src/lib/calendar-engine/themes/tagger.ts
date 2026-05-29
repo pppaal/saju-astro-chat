@@ -4,6 +4,7 @@ import {
   ASTRO_THEME_MAP,
   SIBSIN_THEME_MAP,
   SHINSAL_THEME_MAP,
+  AMHAP_THEME_MAP,
   ELEMENT_THEME_MAP,
   PLANET_BENEFIC_MALEFIC,
   PLANET_THEME_WEIGHT,
@@ -40,6 +41,11 @@ export function tagSignalWithThemes(signal: ActiveSignal): TaggedThemes {
     const mapped = SHINSAL_THEME_MAP[ev.shinsalName]
     if (mapped) mapped.forEach((t, i) => bump(t, RANK_WEIGHT(i)))
     else bump('growth', 0.5) // 매핑 누락 신살 폴백 (카드는 표시되되 약하게)
+  }
+
+  // 사주 — 암합 (지지 안 천간 합) : love 본령 + growth 보조
+  if (signal.kind === 'amhap') {
+    AMHAP_THEME_MAP.forEach((t, i) => bump(t, RANK_WEIGHT(i)))
   }
 
   // 사주/점성 공통 — 오행

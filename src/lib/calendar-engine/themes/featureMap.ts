@@ -149,6 +149,13 @@ export const SHINSAL_THEME_MAP: Record<string, AstroThemeKey[]> = {
 }
 
 /**
+ * 사주 암합 → 테마 매핑.
+ * 지지 속 숨은 천간끼리의 합 — 전통적으로 드러나지 않은 인연·이끌림 신호.
+ * love 본령, growth 보조.
+ */
+export const AMHAP_THEME_MAP: AstroThemeKey[] = ['love', 'growth']
+
+/**
  * 오행 → 테마 매핑 (timingScore.ts의 elementThemes와 정합).
  * 신호의 evidence.element가 있으면 보강 테마로 추가.
  */

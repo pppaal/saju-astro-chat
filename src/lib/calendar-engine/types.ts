@@ -6,6 +6,7 @@ export type SignalSource = 'saju' | 'astro'
 export type SajuSignalKind =
   | 'shinsal' // 신살 일진 활성
   | 'hyeongchung' // 형충회합 (현재 일주 vs 본명)
+  | 'amhap' // 암합 (지지 안 천간 합)
   | 'pillar-sibsin' // 대운/세운/월운/일주의 십신 발현
   | 'tonggeun-shift' // 대운 진입에 따른 통근 강약 변화
   | 'saju-pattern' // 격국·패턴 컨텍스트화

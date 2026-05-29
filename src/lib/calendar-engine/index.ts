@@ -13,6 +13,7 @@ import { tagSignalWithThemes } from './themes/tagger'
 import sajuShinsalExtractor from './extractors/saju-shinsal'
 import sajuPillarExtractor from './extractors/saju-pillar'
 import sajuHyeongchungExtractor from './extractors/saju-hyeongchung'
+import sajuAmhapExtractor from './extractors/saju-amhap'
 import sajuTonggeunExtractor from './extractors/saju-tonggeun'
 import sajuTwelveStageExtractor from './extractors/saju-twelve-stage'
 import sajuYongsinExtractor from './extractors/saju-yongsin'
@@ -94,10 +95,11 @@ export async function buildCalendar(
  */
 function getRegisteredExtractors(): SignalExtractor[] {
   return [
-    // ── saju (7) ──
+    // ── saju (8) ──
     sajuShinsalExtractor,
     sajuPillarExtractor,
     sajuHyeongchungExtractor,
+    sajuAmhapExtractor,
     sajuTonggeunExtractor,
     sajuTwelveStageExtractor,
     sajuYongsinExtractor,
