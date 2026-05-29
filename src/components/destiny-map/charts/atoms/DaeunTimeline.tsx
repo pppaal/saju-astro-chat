@@ -120,8 +120,14 @@ export function DaeunTimeline({
     return `현재: ${current.age ?? 0}세~ ${ganji} 대운${tagline ? ` — ${tagline}` : ''}`
   })()
 
-  const header = lang === 'en' ? 'Daeun (10-year cycles)' : '대운 (10년 단위)'
-  const subtitle = lang === 'en' ? 'Flow of life' : '인생의 흐름'
+  const header =
+    lang === 'en'
+      ? 'Daeun (10-year cycles) · Flow of life'
+      : '대운 (10년 단위) · 인생의 흐름'
+  const explainer =
+    lang === 'en'
+      ? "8 cycles of 10 years each = 80-year life flow. Gold border = current cycle. Color = the cycle's element."
+      : '10년씩 8 구간, 총 80년 운의 흐름. 금색 칸이 지금 시기, 색은 그 시기의 기운(오행)이에요.'
   const nowLabel = lang === 'en' ? 'NOW' : 'NOW'
 
   return (
@@ -133,19 +139,20 @@ export function DaeunTimeline({
       }}
     >
       {/* Header */}
-      <div className="mb-3 flex items-baseline justify-between gap-2 px-1">
+      <div className="mb-1 px-1">
         <div
           className="text-[11px] font-medium uppercase tracking-wider"
           style={{ color: 'var(--ds-gold-on-dark)' }}
         >
           {header}
         </div>
-        <div
-          className="text-[10px]"
-          style={{ color: 'var(--ds-dark-text-muted)' }}
-        >
-          {subtitle}
-        </div>
+      </div>
+      {/* Plain-language explainer — 비전공자 대상. */}
+      <div
+        className="mb-3 px-1 text-[11px] leading-snug"
+        style={{ color: 'var(--ds-dark-text-muted)' }}
+      >
+        {explainer}
       </div>
 
       {/* Timeline — 모바일: 가로 스크롤, 데스크탑: 8개 한 줄 (flex). */}

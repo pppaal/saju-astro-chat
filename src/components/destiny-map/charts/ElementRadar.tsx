@@ -86,6 +86,22 @@ const PHRASE_KO: Record<keyof Counts, string> = {
   water: '유연하게 적응하고 깊이 사고하는 힘이 강해요.',
 }
 
+// 약한 원소 처방 — counts === 0 또는 1 일 때만 노출. 균형 잡힌 사람은 표시 X.
+const WEAK_REMEDY_KO: Record<keyof Counts, string> = {
+  wood: '식물·산책·창작이 균형을 잡아줘요.',
+  fire: '운동·발표·뜨거운 색이 균형을 잡아줘요.',
+  earth: '실용·신뢰·돌봄 활동이 균형을 잡아줘요.',
+  metal: '정리·체계·결단 연습이 균형을 잡아줘요.',
+  water: '학습·명상·여행이 균형을 잡아줘요.',
+}
+const WEAK_REMEDY_EN: Record<keyof Counts, string> = {
+  wood: 'planting, walks, creative work help balance.',
+  fire: 'exercise, public speaking, warm colors help balance.',
+  earth: 'practical work, trust, caregiving help balance.',
+  metal: 'organizing, structure, decisiveness help balance.',
+  water: 'learning, meditation, travel help balance.',
+}
+
 const EL_KEY: Record<string, keyof Counts> = {
   목: 'wood',
   화: 'fire',
@@ -195,9 +211,17 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
   // dominant element → interpretation comment
   const domKey = (Object.keys(counts) as Array<keyof Counts>).reduce(
     (a, b) => (counts[b] > counts[a] ? b : a),
-    'wood'
+    'wood' as keyof Counts
   )
   const domEl = AXES.find((a) => a.key === domKey)!
+
+  // weak element — counts === 0 또는 1 일 때만 노출. 균형이면 약함 없음.
+  const weakKey = (Object.keys(counts) as Array<keyof Counts>).reduce(
+    (a, b) => (counts[b] < counts[a] ? b : a),
+    'wood' as keyof Counts
+  )
+  const weakEl = AXES.find((a) => a.key === weakKey)!
+  const showWeak = counts[weakKey] <= 1 && weakKey !== domKey
 
   return (
     <div
@@ -277,6 +301,16 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
             </text>
           )
         })}
+        {/* "중심에서 멀수록 강함" 미세 라벨 — 시각 단서. */}
+        <text
+          x={CX}
+          y={H - 8}
+          fill="rgba(245,247,251,0.4)"
+          fontSize="9"
+          textAnchor="middle"
+        >
+          {isKo ? '중심 ← 약함 · 멀수록 강함 →' : 'center = weak · further out = stronger'}
+        </text>
       </svg>
 
       <div
@@ -298,6 +332,24 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
             </>
           )}
         </p>
+        {showWeak && (
+          <p
+            className="mt-2 text-xs leading-relaxed"
+            style={{ color: 'var(--ds-dark-text-muted)' }}
+          >
+            {isKo ? (
+              <>
+                약한 건 <span className="font-semibold">{weakEl.koShort}</span> ({weakEl.koEl}).{' '}
+                {WEAK_REMEDY_KO[weakKey]}
+              </>
+            ) : (
+              <>
+                Weakest is <span className="font-semibold">{TRAIT_EN[weakKey]}</span> ({weakEl.en}
+                ). {WEAK_REMEDY_EN[weakKey]}
+              </>
+            )}
+          </p>
+        )}
       </div>
     </div>
   )
