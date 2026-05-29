@@ -73,7 +73,7 @@ describe('Credit Service', () => {
         plan: 'free',
         monthlyCredits: 0,
         usedCredits: 0,
-        bonusCredits: 4,
+        bonusCredits: 5,
       }
 
       ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
@@ -88,7 +88,7 @@ describe('Credit Service', () => {
             monthlyCredits: 0,
             usedCredits: 0,
             // signup bonus
-            bonusCredits: 4,
+            bonusCredits: 5,
           }),
         })
       )
@@ -522,10 +522,17 @@ describe('Credit Service', () => {
         mockExpiredPurchases
       )
 
-      vi.spyOn(Promise, 'allSettled').mockResolvedValue([
-        { status: 'fulfilled', value: undefined },
-        { status: 'rejected', reason: new Error('DB error') },
-      ] as any)
+      // expireBonusCredits now retries rejected user-expiry transactions once.
+      // First allSettled covers both users (1 ok, 1 failed); the retry only
+      // re-runs the single failed entry, so its result array has 1 element.
+      vi.spyOn(Promise, 'allSettled')
+        .mockResolvedValueOnce([
+          { status: 'fulfilled', value: undefined },
+          { status: 'rejected', reason: new Error('DB error') },
+        ] as any)
+        .mockResolvedValueOnce([
+          { status: 'rejected', reason: new Error('DB error') },
+        ] as any)
 
       const result = await expireBonusCredits()
 

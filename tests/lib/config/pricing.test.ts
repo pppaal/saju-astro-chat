@@ -19,7 +19,8 @@ describe('PricingConfig', () => {
     it('should have mini pack config', () => {
       const mini = CREDIT_PACKS.mini
       expect(mini.id).toBe('mini')
-      expect(mini.credits).toBe(5)
+      // 팩 크레딧 2배 정책: 5 → 10 (perCreditKrw ₩380 → ₩190), 가격은 동일.
+      expect(mini.credits).toBe(10)
       expect(mini.pricing.krw).toBe(1900)
     })
 

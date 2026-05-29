@@ -66,20 +66,21 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
     expect(route).not.toMatch(/clampMessages/)
   })
 
-  it('세션당 과금 — 턴당 과금으로 되돌아가지 않게 (session billing)', () => {
-    // 1 크레딧 = 세션 1개 (window/turn cap 내 무료). Redis 로 서버측
-    // 추적해 client 가 history 잘라 보내 회피 못 함.
-    expect(route).toMatch(/CREDIT_PER_SESSION/)
-    expect(route).toMatch(/counselor:session:/)
-    expect(route).toMatch(/isNewSession/)
-    expect(route).not.toMatch(/CREDIT_PER_TURN/)
+  it('메시지당 과금 (per-message billing)', () => {
+    // 빌링 모델이 세션당(CREDIT_PER_SESSION/세션키 추적)에서 다시
+    // 메시지당 1 credit 차감으로 단순화됨. canUseCredits + consumeCredits
+    // 로 매 메시지 차감하며, 옛 세션키 마커는 더 이상 없다.
+    expect(route).toMatch(/canUseCredits/)
+    expect(route).toMatch(/consumeCredits/)
+    expect(route).not.toMatch(/CREDIT_PER_SESSION/)
+    expect(route).not.toMatch(/counselor:session:/)
   })
 
   it('스트림 빈 응답 시 크레딧 환불 배선 (stream refund)', () => {
-    // 차감했는데 스트림이 빈 응답이면 refundCredits + 세션키 삭제로 원복.
+    // 차감했는데 스트림이 빈 응답이면 onFailure 에서 refundCredits 로 원복.
     expect(route).toMatch(/refundCredits/)
     expect(route).toMatch(/onFailure/)
-    expect(route).toMatch(/cacheDel\(sessionKey\)/)
+    expect(route).toMatch(/counselor_stream_empty/)
   })
 })
 
@@ -97,8 +98,9 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
   })
 
   it('system prompt 에 [Meta] 룰 (운명과 동일 패턴) (#306)', () => {
-    expect(route).toMatch(/\[Meta\] 의 birthTimeUnknown=true/)
-    expect(route).toMatch(/\[Meta\] has birthTimeUnknown=true/)
+    // 필드명이 timeUnknown / cityUnknown 으로 단순화됨 (KO/EN 동일).
+    expect(route).toMatch(/\[Meta\] timeUnknown=true →.*시주/)
+    expect(route).toMatch(/\[Meta\] timeUnknown=true →.*hour pillar/i)
   })
 
   it('system prompt 에 ||FOLLOWUP|| 마커 룰 (#306)', () => {
@@ -108,10 +110,10 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
   })
 
   it('[Meta] cachedUserContext 안에 A/B 각자 emit (#306)', () => {
-    expect(route).toMatch(/\[Meta\] \$\{label\}: birthTimeUnknown=/)
-    expect(route).toMatch(/birthCityUnknown=\$\{cityUnknown\}/)
-    expect(route).toMatch(/location=/)
-    expect(route).toMatch(/timezone=\$\{seed\.timeZone\}/)
+    // location/timezone 은 LLM 한테 무의미라 Meta 에서 제거됨. unknown
+    // 플래그만 emit (timeUnknown / cityUnknown).
+    expect(route).toMatch(/\[Meta\] \$\{label\}: timeUnknown=\$\{timeUnknown\}/)
+    expect(route).toMatch(/cityUnknown=\$\{cityUnknown\}/)
   })
 
   it('cachedUserContext 에 metaBlock 포함 (#306)', () => {
@@ -127,27 +129,17 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
   })
 })
 
-describe('궁합 timingBlock — 사주 시기 (세운/월운/일진) emit (#319)', () => {
+describe('궁합 timingBlock — 사주 시기 (세운/월운/일진) (#319)', () => {
   const support = read('app/api/compatibility/counselor/routeSupport.ts')
 
-  it('renderSide 에 saju timing block 추가', () => {
-    expect(support).toMatch(/사주 시기.*saju timing/)
-  })
+  // 개인 타임라인(세운/월운/일진) 텍스트 prompt emit 은 synastry-only 설계로
+  // 제거됨 — renderSide 의 saju timing block / KO·EN 라벨 / dateStr emit 은
+  // 더 이상 존재하지 않는다. 단, current cycle 계산값은 synastry 용으로 유지.
 
-  it('saeunCurrent / wolunCurrent / ilunCurrent 모두 emit', () => {
+  it('saeunCurrent / wolunCurrent / ilunCurrent 모두 계산', () => {
     expect(support).toContain('saeunCurrent')
     expect(support).toContain('wolunCurrent')
     expect(support).toContain('ilunCurrent')
-  })
-
-  it('세운/월운/일진 라벨 한국어 + 영문 둘 다', () => {
-    expect(support).toMatch(/'세운' : 'sewoon'/)
-    expect(support).toMatch(/'월운' : 'wolun'/)
-    expect(support).toMatch(/'일진' : 'iljin'/)
-  })
-
-  it('일진은 날짜와 같이 emit (LLM 한테 "오늘" 시점 명시)', () => {
-    expect(support).toMatch(/iljin.*\$\{dateStr\}/s)
   })
 
   it('옛 stale 코멘트 ("already in the cached saju table") 제거', () => {
@@ -241,16 +233,20 @@ describe('궁합 follow-up UI (page.tsx) — chip render + sendMessage refactor 
     expect(page).toMatch(/setFollowUpQuestions/)
   })
 
-  it('sendMessage 가 (textOverride?: string) signature', () => {
-    expect(page).toMatch(/sendMessage = useCallback\(\s*async \(textOverride\?: string\)/)
+  it('sendMessage 가 (textOverride?: string, options?) signature', () => {
+    // 2nd param (options?: { isRetry?: boolean }) 가 retry 배선 위해 추가됨.
+    expect(page).toMatch(
+      /sendMessage = useCallback\(\s*async \(textOverride\?: string, options\?:/
+    )
   })
 
   it('streamProcessor result 에서 followUps 받음', () => {
     expect(page).toMatch(/result\.followUps/)
   })
 
-  it('chip 클릭 시 sendMessage(q) 호출', () => {
-    expect(page).toMatch(/onClick=\{\(\) => sendMessage\(q\)\}/)
+  it('chip pick 시 sendMessage(q) 호출', () => {
+    // 칩 렌더가 FollowUpChips 컴포넌트로 추출됨 — onPick prop 으로 위임.
+    expect(page).toMatch(/onPick=\{\(q\) => sendMessage\(q\)\}/)
   })
 
   it('새 send 시 followUpQuestions 비움 (stale 방지)', () => {

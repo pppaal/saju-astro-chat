@@ -222,8 +222,9 @@ describe('firebase/storage', () => {
       };
       vi.mocked(uploadBytesResumable).mockReturnValue(mockUploadTask as any);
 
+      // Error now includes the firebase error code (fallback 'unknown') plus message.
       await expect(uploadMatchPhoto(file, 'user123', onProgress)).rejects.toThrow(
-        '업로드 실패: Network error'
+        '업로드 실패: unknown — Network error'
       );
 
       expect(onProgress).toHaveBeenCalledWith({ progress: 0, state: 'error' });
