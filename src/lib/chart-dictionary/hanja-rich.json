@@ -253,7 +253,7 @@
         "image": "깊은 밤의 차가운 물 — 한 해의 시작이자 끝, 만물의 씨앗",
         "nature": "지혜롭고 번식력 강하며 차분하지만 예리한 결",
         "as_daybranch": "일지가 子면 직관적이고 내면이 풍부하며 비밀이 많음. 머리 회전이 빠르고 적응력 있음",
-        "hidden_stems": "壬(정기) · 癸(여기) — 양수와 음수가 함께 흘러 지혜와 깊이를 더함"
+        "hidden_stems": "癸(본기) · 壬(여기) — 음수가 본기로 자리잡고 양수가 여기로 흘러 지혜와 깊이를 더함"
       },
       "en": {
         "name": "Ja (Zǐ)",
@@ -265,7 +265,7 @@
         "image": "Cold water of deep night — both end and beginning of the year, the seed of all things",
         "nature": "Wise and prolific; calm yet sharp",
         "as_daybranch": "With Ja as day branch: intuitive, rich inner world, keeps secrets. Quick-witted and adaptive",
-        "hidden_stems": "Im (main) · Gye (residual) — Yang and Yin Water flow together, adding wisdom and depth"
+        "hidden_stems": "Gye (main) · Im (residual) — Yin Water as main qi with Yang Water as residual, flowing together to add wisdom and depth"
       }
     },
     "丑": {
@@ -279,7 +279,7 @@
         "image": "얼어붙은 들판의 옥토 — 봄을 준비하는 차가운 흙",
         "nature": "묵묵하고 성실하며 인내심 강한 결, 한번 마음먹으면 오래감",
         "as_daybranch": "일지가 丑이면 끈기 있고 책임감 강함. 표현이 적지만 속이 깊고 재물을 잘 모음",
-        "hidden_stems": "己(정기) · 癸(중기) · 辛(여기) — 음토·음수·음금이 함께 있어 안으로 모으고 저장하는 기운"
+        "hidden_stems": "己(본기) · 辛(중기) · 癸(여기) — 음토 본기에 巳酉丑 삼합 金의 중기 辛과 여기 癸가 깃들어 안으로 모으고 저장하는 기운"
       },
       "en": {
         "name": "Chuk (Chǒu)",
@@ -291,7 +291,7 @@
         "image": "Fertile soil of a frozen field — cold earth preparing for spring",
         "nature": "Quiet, diligent, persistent; once committed, lasts long",
         "as_daybranch": "With Chuk as day branch: tenacious and responsible. Reserved but deep, accumulates wealth well",
-        "hidden_stems": "Gi (main) · Gye (middle) · Sin (residual) — Yin Earth, Yin Water, Yin Metal together, gathering and storing inward"
+        "hidden_stems": "Gi (main) · Sin (middle) · Gye (residual) — Yin Earth as main, with Sin as middle (Sa-Yu-Chuk Metal trine) and Gye as residual, gathering and storing inward"
       }
     },
     "寅": {
@@ -305,7 +305,7 @@
         "image": "새벽 숲의 호랑이 — 막 솟아오르는 활기찬 양기",
         "nature": "활동적이고 진취적이며 모험을 즐기는 결, 카리스마 있음",
         "as_daybranch": "일지가 寅이면 추진력 있고 리더십 강함. 새로운 일에 도전하며 의리 깊음",
-        "hidden_stems": "甲(정기) · 丙(중기) · 戊(여기) — 양목·양화·양토 — 모두 양기로 폭발적 시작의 힘"
+        "hidden_stems": "甲(본기) · 丙(중기) · 戊(여기) — 양목·양화·양토 — 모두 양기로 폭발적 시작의 힘"
       },
       "en": {
         "name": "In (Yín)",
@@ -317,7 +317,7 @@
         "image": "Tiger of the dawn forest — Yang energy just rising",
         "nature": "Active, pioneering, loves adventure; charismatic",
         "as_daybranch": "With In as day branch: strong drive and leadership. Embraces new challenges, deeply loyal",
-        "hidden_stems": "Gap (main) · Byeong (middle) · Mu (residual) — Yang Wood/Fire/Earth, all Yang for explosive beginnings"
+        "hidden_stems": "Gap (main) · Byeong (middle) · Mu (residual) — Yang Wood as main with Yang Fire and Yang Earth, all Yang for explosive beginnings"
       }
     },
     "卯": {
@@ -331,7 +331,7 @@
         "image": "이른 아침의 새순과 토끼 — 부드럽게 뻗는 봄의 정기",
         "nature": "온화하고 섬세하며 예술적 감수성이 풍부한 결",
         "as_daybranch": "일지가 卯이면 온화하고 사교적이며 외모가 단정함. 인기가 많고 예술 감각이 뛰어남",
-        "hidden_stems": "乙(정기) — 순수한 음목 하나만 있어 결이 맑고 단순함"
+        "hidden_stems": "乙(본기) — 순수한 음목 하나만 있어 결이 맑고 단순함"
       },
       "en": {
         "name": "Myo (Mǎo)",
@@ -357,7 +357,7 @@
         "image": "봄비 머금은 옥토 위의 용 — 신비롭고 변화무쌍",
         "nature": "이상이 높고 상상력 풍부하며 변화를 좋아하는 결",
         "as_daybranch": "일지가 辰이면 비범하고 야망이 큼. 신비주의적 매력이 있으며 예지력이 있음",
-        "hidden_stems": "戊(정기) · 乙(중기) · 癸(여기) — 양토·음목·음수가 어우러져 만물을 품는 창고"
+        "hidden_stems": "戊(본기) · 癸(중기) · 乙(여기) — 양토 본기에 申子辰 삼합 水의 중기 癸와 여기 乙이 어우러져 만물을 품는 창고"
       },
       "en": {
         "name": "Jin (Chén)",
@@ -369,7 +369,7 @@
         "image": "Dragon on fertile soil moistened by spring rain — mysterious and ever-changing",
         "nature": "High ideals, rich imagination, loves change",
         "as_daybranch": "With Jin as day branch: extraordinary and ambitious. Mystical charm with foresight",
-        "hidden_stems": "Mu (main) · Eul (middle) · Gye (residual) — Yang Earth, Yin Wood, Yin Water blend into a storehouse"
+        "hidden_stems": "Mu (main) · Gye (middle) · Eul (residual) — Yang Earth as main, with Gye as middle (Sin-Ja-Jin Water trine) and Eul as residual, blending into a storehouse of all things"
       }
     },
     "巳": {
@@ -383,7 +383,7 @@
         "image": "한낮 직전 햇살 아래 뱀 — 지혜롭고 은밀한 열기",
         "nature": "총명하고 직관적이며 신중한 결, 겉은 차분하나 속은 뜨거움",
         "as_daybranch": "일지가 巳이면 머리가 비상하고 미적 감각이 뛰어남. 신중하면서도 결단력 있음",
-        "hidden_stems": "丙(정기) · 庚(중기) · 戊(여기) — 양화·양금·양토 — 안에 빛과 의지를 품음"
+        "hidden_stems": "丙(본기) · 庚(중기) · 戊(여기) — 양화·양금·양토 — 안에 빛과 의지를 품음"
       },
       "en": {
         "name": "Sa (Sì)",
@@ -409,7 +409,7 @@
         "image": "한낮 정오의 태양과 말 — 양기가 극에 달한 순간",
         "nature": "활기차고 화통하며 자유로운 결, 화려함을 좋아함",
         "as_daybranch": "일지가 午이면 정열적이고 인기가 많음. 외향적이고 화려한 무대를 즐김",
-        "hidden_stems": "丁(정기) · 己(중기) — 음화와 음토 — 겉은 강하나 속에 음의 기운"
+        "hidden_stems": "丁(본기) · 己(중기) · 丙(여기) — 음화 본기에 음토 중기와 양화 여기가 함께하여 겉은 강하나 속에 음의 기운이 깃듦"
       },
       "en": {
         "name": "O (Wǔ)",
@@ -421,7 +421,7 @@
         "image": "Noon sun and horse — the moment Yang energy reaches its peak",
         "nature": "Lively, outgoing, free-spirited; loves spectacle",
         "as_daybranch": "With O as day branch: passionate and popular. Extroverted, enjoys the spotlight",
-        "hidden_stems": "Jeong (main) · Gi (middle) — Yin Fire and Yin Earth, strong outside with Yin within"
+        "hidden_stems": "Jeong (main) · Gi (middle) · Byeong (residual) — Yin Fire as main with Yin Earth middle and Yang Fire residual, strong outside with Yin within"
       }
     },
     "未": {
@@ -435,7 +435,7 @@
         "image": "한여름 마른 들판의 양 — 따뜻하고 무르익은 흙",
         "nature": "온순하고 정이 많으며 예술적 감수성이 풍부한 결",
         "as_daybranch": "일지가 未이면 정 많고 가족애 깊음. 끈기 있고 예술·미식에 관심이 많음",
-        "hidden_stems": "己(정기) · 丁(중기) · 乙(여기) — 음토·음화·음목 — 마른 흙에 정과 향기를 품음"
+        "hidden_stems": "己(본기) · 乙(중기) · 丁(여기) — 음토 본기에 亥卯未 삼합 木의 중기 乙과 여기 丁이 깃들어 마른 흙에 향기와 정을 품음"
       },
       "en": {
         "name": "Mi (Wèi)",
@@ -447,7 +447,7 @@
         "image": "Goat on dry midsummer field — warm, ripened earth",
         "nature": "Gentle, affectionate, rich artistic sense",
         "as_daybranch": "With Mi as day branch: warm-hearted with strong family love. Persistent, interested in arts and cuisine",
-        "hidden_stems": "Gi (main) · Jeong (middle) · Eul (residual) — Yin Earth/Fire/Wood, dry soil holding warmth and fragrance"
+        "hidden_stems": "Gi (main) · Eul (middle) · Jeong (residual) — Yin Earth as main, with Eul as middle (Hae-Myo-Mi Wood trine) and Jeong as residual, dry soil holding fragrance and warmth"
       }
     },
     "申": {
@@ -461,7 +461,7 @@
         "image": "초가을 오후의 원숭이 — 영민하고 활동적인 양금의 기운",
         "nature": "재치 있고 영리하며 임기응변에 강한 결",
         "as_daybranch": "일지가 申이면 두뇌 회전이 빠르고 다재다능. 사업·기술 감각이 뛰어남",
-        "hidden_stems": "庚(정기) · 壬(중기) · 戊(여기) — 양금·양수·양토 — 강한 의지와 흐르는 지혜를 함께 품음"
+        "hidden_stems": "庚(본기) · 壬(중기) · 戊(여기) — 양금·양수·양토 — 강한 의지와 흐르는 지혜를 함께 품음"
       },
       "en": {
         "name": "Sin (Shēn)",
@@ -487,7 +487,7 @@
         "image": "해질 무렵 닭과 익은 곡식 — 정련되고 깔끔한 음금",
         "nature": "깔끔하고 원칙적이며 미적 감각이 뛰어난 결",
         "as_daybranch": "일지가 酉이면 외모가 단정하고 자존심이 높음. 분석적이고 전문 분야에 어울림",
-        "hidden_stems": "辛(정기) — 순수한 음금 하나만 있어 결이 정련되고 예리함"
+        "hidden_stems": "辛(본기) — 순수한 음금 하나만 있어 결이 정련되고 예리함"
       },
       "en": {
         "name": "Yu (Yǒu)",
@@ -513,7 +513,7 @@
         "image": "초저녁 들판의 충직한 개 — 마른 흙에 남은 노을의 온기",
         "nature": "의리 있고 충직하며 신뢰감 주는 결, 정의감 강함",
         "as_daybranch": "일지가 戌이면 의리 깊고 책임감 강함. 종교·철학·역사에 관심이 많음",
-        "hidden_stems": "戊(정기) · 辛(중기) · 丁(여기) — 양토·음금·음화 — 마른 흙에 칼과 등불을 품음"
+        "hidden_stems": "戊(본기) · 丁(중기) · 辛(여기) — 양토 본기에 寅午戌 삼합 火의 중기 丁과 여기 辛이 깃들어 마른 흙에 등불과 칼을 품음"
       },
       "en": {
         "name": "Sul (Xū)",
@@ -525,7 +525,7 @@
         "image": "Loyal dog on the field at dusk — dry earth holding sunset's warmth",
         "nature": "Loyal and faithful, inspires trust; strong sense of justice",
         "as_daybranch": "With Sul as day branch: deeply loyal and responsible. Interested in religion, philosophy, history",
-        "hidden_stems": "Mu (main) · Sin (middle) · Jeong (residual) — Yang Earth/Yin Metal/Yin Fire, dry soil holding blade and lamp"
+        "hidden_stems": "Mu (main) · Jeong (middle) · Sin (residual) — Yang Earth as main, with Jeong as middle (In-O-Sul Fire trine) and Sin as residual, dry soil holding lamp and blade"
       }
     },
     "亥": {
@@ -539,7 +539,7 @@
         "image": "초겨울 밤의 돼지와 강물 — 모든 것을 거둬들이는 깊은 물",
         "nature": "순수하고 포용력 있으며 의리 깊은 결, 인심이 후함",
         "as_daybranch": "일지가 亥이면 마음이 넓고 사람을 잘 챙김. 학문과 정신세계에 관심 많고 복이 두터움",
-        "hidden_stems": "壬(정기) · 甲(중기) — 양수와 양목 — 깊은 물이 새 생명(나무)을 품고 있음"
+        "hidden_stems": "壬(본기) · 甲(중기) · 戊(여기) — 양수 본기에 양목 중기와 양토 여기가 더해져 깊은 물이 새 생명(나무)과 제방을 함께 품음"
       },
       "en": {
         "name": "Hae (Hài)",
@@ -551,7 +551,7 @@
         "image": "Pig and river at early winter night — deep water gathering all things",
         "nature": "Pure, embracing, deeply loyal; generous-hearted",
         "as_daybranch": "With Hae as day branch: broad-minded and caring. Interested in learning and spirituality, blessed with fortune",
-        "hidden_stems": "Im (main) · Gap (middle) — Yang Water and Yang Wood, deep water cradling new life (the tree)"
+        "hidden_stems": "Im (main) · Gap (middle) · Mu (residual) — Yang Water as main with Yang Wood middle and Yang Earth residual, deep water cradling new life (the tree) and embankment"
       }
     }
   }
