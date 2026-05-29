@@ -19,6 +19,7 @@ import {
   generateFollowUpQuestions,
   isGenericFollowUp,
 } from '@/components/destiny-map/chat-followups'
+import { getErrorMessage as getCounselorErrorMessage } from '@/lib/counselor/errorMessage'
 // InlineTarotModal 은 dynamic 이 아니라 직접 import — 이전엔 dynamic ssr:false
 // 였는데 첫 클릭 시 chunk download 로 모달이 "지지직" 거리며 늦게 떴음.
 // 직접 import 로 즉시 열리게. (~50KB 초기 번들 증가는 수용 — UX 우선.)
@@ -767,14 +768,16 @@ function CompatibilityCounselorContent() {
           // (운명 상담사·타로와 동일한 UX).
           showDepleted()
         } else {
-          // Append the route's errorTag (set above from response body) so
-          // the user-visible bubble points at the actual failure mode
-          // instead of a generic message. The Error here is either our
-          // "Failed (500): ErrorName: message…" string or a network error.
-          const base = isKo
+          // Use the shared counselor localizer — same 429/5xx/timeout
+          // branches as 운명상담사. Previously this concatenated the raw
+          // `[Failed (500): RateLimitError: …]` tag into the user-visible
+          // bubble; that stack-shape string is now hidden behind a friendly
+          // "잠시 후 다시 시도해 주세요" message (still logged above for
+          // debugging).
+          const fallback = isKo
             ? '오류가 발생했습니다. 다시 시도해 주세요.'
             : 'An error occurred. Please try again.'
-          setError(errMsg && errMsg !== 'Failed to get response' ? `${base}\n[${errMsg}]` : base)
+          setError(getCounselorErrorMessage(e, isKo ? 'ko' : 'en', fallback))
         }
       } finally {
         // Clear our in-flight slot if it still points at this call's
