@@ -113,8 +113,8 @@ vi.mock('@/lib/api/zodValidation', () => ({
 }))
 
 // Mock dependencies
-vi.mock('@/lib/db/prisma', () => ({
-  prisma: {
+vi.mock('@/lib/db/prisma', () => {
+  const prismaMock: any = {
     user: {
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -128,8 +128,15 @@ vi.mock('@/lib/db/prisma', () => ({
     userPreferences: {
       upsert: vi.fn(),
     },
-  },
-}))
+  }
+  // The route wraps user.update + userProfile.upsert in prisma.$transaction;
+  // invoke the callback with the same mock as the tx client so the existing
+  // prisma.user.update / prisma.userProfile.upsert assertions still observe calls.
+  prismaMock.$transaction = vi.fn((arg: any) =>
+    typeof arg === 'function' ? arg(prismaMock) : Promise.all(arg)
+  )
+  return { prisma: prismaMock }
+})
 
 vi.mock('@/lib/cache/redis-cache', () => ({
   clearCacheByPattern: vi.fn().mockResolvedValue(undefined),
