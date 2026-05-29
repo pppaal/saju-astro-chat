@@ -101,6 +101,78 @@ export function useChatApi({
     onSaveMessageRef.current = onSaveMessage
   }, [onSaveMessage])
 
+  // 끊긴 턴 복원 — 서버는 연결이 끊겨도 끝까지 생성해 turnId 로 캐시에 저장한다
+  // (claudeSSE keepGeneratingOnDisconnect). 스트림이 불완전하게 끝났거나
+  // 사용자가 다른 앱에서 돌아오면(visibilitychange) 이 정보로 result 를
+  // 폴링해 완성 답으로 갈아끼운다.
+  const recoverableTurnRef = React.useRef<{
+    turnId: string
+    assistantMsgId: string
+    userText: string
+  } | null>(null)
+  const recoveringRef = React.useRef(false)
+
+  const attemptRecover = React.useCallback(async () => {
+    const info = recoverableTurnRef.current
+    if (!info || recoveringRef.current) return
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
+    recoveringRef.current = true
+    try {
+      // 서버가 아직 생성 중이면 ready=false → 2초 간격 재시도 (보이는 동안만).
+      for (let i = 0; i < 30; i++) {
+        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') break
+        if (recoverableTurnRef.current?.turnId !== info.turnId) break // 새 턴이 덮어씀
+        try {
+          const res = await fetch(
+            `/api/counselor/realtime/result?turnId=${encodeURIComponent(info.turnId)}`,
+            { credentials: 'include' }
+          )
+          if (res.ok) {
+            const data = (await res.json()) as { ready?: boolean; content?: string }
+            if (data.ready && typeof data.content === 'string' && data.content.length > 0) {
+              const normalized = normalizeCounselorResponse(
+                data.content,
+                lang === 'ko' ? 'ko' : 'en'
+              )
+              setMessages((prev) => {
+                const updated = [...prev]
+                const idx = updated.findIndex((m) => m.id === info.assistantMsgId)
+                if (idx >= 0) {
+                  updated[idx] = {
+                    ...updated[idx],
+                    content: normalized,
+                    incomplete: false,
+                    streaming: false,
+                  }
+                }
+                return updated
+              })
+              onSaveMessageRef.current?.(info.userText, normalized)
+              setNotice(null)
+              recoverableTurnRef.current = null
+              return
+            }
+          }
+        } catch {
+          /* 네트워크 흔들림 — 다음 루프에서 재시도 */
+        }
+        await new Promise((r) => setTimeout(r, 2000))
+      }
+    } finally {
+      recoveringRef.current = false
+    }
+  }, [lang, setMessages, setNotice])
+
+  // 다른 앱/탭에서 돌아오면(visible) 끊겼던 턴의 완성 답을 복원 시도.
+  React.useEffect(() => {
+    if (typeof document === 'undefined') return
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void attemptRecover()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [attemptRecover])
+
   const flushMessageUpdate = React.useCallback(() => {
     if (pendingContentRef.current !== null) {
       const content = pendingContentRef.current
@@ -276,8 +348,9 @@ export function useChatApi({
     async (
       res: Response,
       controller: AbortController,
-      _assistantMsgId: string,
-      userText: string
+      assistantMsgId: string,
+      userText: string,
+      turnId?: string
     ): Promise<void> => {
       // Register the in-flight stream so the unmount cleanup (below) can
       // persist the buffered partial if the user navigates away mid-
@@ -370,6 +443,24 @@ export function useChatApi({
             onSaveMessage(userText, normalizedContent)
           }
         }
+
+        // 끊김/미완 처리 — 클라가 답을 끝까지 못 받았어도(빈 응답 or
+        // ||FOLLOWUP|| 마커 전 truncated) 서버는 keepGeneratingOnDisconnect 로
+        // 끝까지 생성해 turnId 캐시에 저장한다. 완성 전이면 복원 대상에 등록하고
+        // 즉시(이미 돌아와 있으면) 폴링 시작 — 아니면 visibility 시 재개.
+        const completedOk = !!result.content && result.success && !result.truncated
+        if (turnId && !completedOk) {
+          recoverableTurnRef.current = { turnId, assistantMsgId, userText }
+          setMessages((prev) => {
+            const updated = [...prev]
+            const idx = updated.findIndex((m) => m.id === assistantMsgId)
+            if (idx >= 0) updated[idx] = { ...updated[idx], incomplete: true }
+            return updated
+          })
+          void attemptRecover()
+        } else {
+          recoverableTurnRef.current = null
+        }
       } finally {
         inFlightStreamRef.current = null
       }
@@ -385,6 +476,7 @@ export function useChatApi({
       lang,
       onSaveMessage,
       setNotice,
+      attemptRecover,
     ]
   )
 
@@ -468,6 +560,9 @@ export function useChatApi({
             : `t${Date.now()}-${Math.random().toString(36).slice(2)}`),
       }
       lastTurnIdemKeyRef.current = payload.idempotencyKey ?? null
+      // 끊겨도 서버가 끝까지 생성해 이 키로 캐시에 저장 → 돌아오면 복원.
+      // idempotencyKey 와 동일 키 재사용(재시도도 같은 결과 키로 모임).
+      payload.turnId = payload.idempotencyKey
 
       try {
         const { res, controller } = await makeRequest(payload)
@@ -489,7 +584,7 @@ export function useChatApi({
         ])
         setLoading(false)
 
-        await processStream(res, controller, assistantMsgId, text)
+        await processStream(res, controller, assistantMsgId, text, payload.turnId)
       } catch (e: unknown) {
         logger.error('[Chat] send error:', e)
         const err = e as Error

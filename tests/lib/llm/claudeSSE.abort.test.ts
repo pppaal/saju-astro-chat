@@ -193,4 +193,39 @@ describe('streamClaudeAsSSE — abort propagation', () => {
 
     expect(onFailure).toHaveBeenCalledOnce()
   })
+
+  it('keepGeneratingOnDisconnect: keeps generating + onComplete + NO refund after client drops', async () => {
+    // ChatGPT 식: 클라가 끊겨도 서버는 끝까지 생성하고 onComplete 로 저장,
+    // 환불(onFailure)은 하지 않는다.
+    const upstream = makeControlledUpstream()
+    vi.mocked(callClaudeStream).mockResolvedValue(upstream.stream)
+    const onFailure = vi.fn()
+    const onComplete = vi.fn()
+
+    const res = await streamClaudeAsSSE({
+      systemPrompt: 's',
+      userPrompt: 'u',
+      onFailure,
+      onComplete,
+      keepGeneratingOnDisconnect: true,
+    })
+
+    const reader = res.body!.getReader()
+    upstream.tick('part1 ')
+    await reader.read()
+
+    // Client leaves mid-stream.
+    await reader.cancel()
+
+    // Server keeps generating to completion.
+    upstream.tick('part2 end')
+    upstream.finish()
+    // Let the start() loop drain the rest + fire onComplete.
+    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(onFailure).not.toHaveBeenCalled()
+    expect(onComplete).toHaveBeenCalledOnce()
+    expect(onComplete.mock.calls[0][0]).toContain('part2 end')
+  })
 })

@@ -88,7 +88,15 @@ interface RealtimeBody {
   /** Parsed text of a user-attached file (CV/notes). Injected into the
    *  current turn so the LLM can reference it. Not cached. */
   cvText?: string
+  /** 이 턴의 고유 id(클라 생성). 연결이 끊겨도 서버가 끝까지 생성한 답을 이
+   *  키로 캐시에 저장해 두면, 사용자가 돌아왔을 때 result 엔드포인트로 복원한다. */
+  turnId?: string
 }
+
+// 끊긴 턴의 완성 답안을 잠깐 보관하는 캐시 키 — result 엔드포인트가 같은 키로 읽음.
+export const counselorTurnResultKey = (turnId: string) => `counselor:turn-result:${turnId}`
+// 돌아와서 받아갈 시간을 충분히 (10분). 받아가면 그만이고 TTL 로 자동 소멸.
+const TURN_RESULT_TTL_SEC = 600
 
 // Cap injected attachment text so a huge upload can't blow the context
 // window (the client already trims, this is defense-in-depth).
@@ -576,12 +584,25 @@ export async function POST(req: NextRequest) {
         }
       : undefined
 
+  const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
+
   return streamClaudeAsSSE({
-    // Client-disconnect propagation: req.signal aborts when the user closes
-    // the tab / unmounts mid-stream. streamClaudeAsSSE forwards this into
-    // the Anthropic fetch so we stop being billed for output tokens nobody
-    // will read.
+    // req.signal 은 여전히 넘기지만, keepGeneratingOnDisconnect 가 true 라
+    // 클라가 끊겨도 업스트림을 중단하지 않고 끝까지 생성한다 (아래 onComplete
+    // 로 캐시 저장 → 사용자가 돌아오면 result 엔드포인트로 복원).
     abortSignal: req.signal,
+    keepGeneratingOnDisconnect: true,
+    // 생성이 끝나면(클라 연결 여부 무관) 완성 답안을 캐시에 저장. 끊겼다가
+    // 돌아온 사용자가 /api/counselor/realtime/result?turnId=… 로 받아간다.
+    onComplete: turnId
+      ? async (full) => {
+          try {
+            await cacheSet(counselorTurnResultKey(turnId), full, TURN_RESULT_TTL_SEC)
+          } catch {
+            /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
+          }
+        }
+      : undefined,
     systemPrompt,
     userPrompt,
     cachedUserContext,
