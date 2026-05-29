@@ -15,15 +15,16 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
   // 자동 채움 우선순위:
   //   - Person 1 (= 본인): 홈 birth-info 가 있으면 항상 우선. 없으면 직전
   //     페어[0]. 둘 다 없으면 빈 상태.
-  //   - Person 2 (= 상대): 직전 페어[1] (있으면). 본인이 누구인지보다 "누구
-  //     랑 보는지" 가 바뀔 일이 많아 페어 기록을 살린다.
+  //   - Person 2 (= 상대): 항상 빈 상태로 시작.
   //
-  // 이전 동작 (페어 우선) 의 문제: 사용자가 메인에서 본인 정보를 입력해도
-  // 궁합 진입 시 직전에 본 "타인 1번" 이 그대로 Person 1 자리에 박혀서 자기
-  // 정보를 다시 입력해야 했다. 사용자 피드백: "궁합폼이 바로 메인페이지에
-  // 저장된정보가 바로 불어와줬으먄 좋겠어".
+  // 이전엔 Person 2 를 직전 페어[1] 로 자동 채웠는데, 사용자 피드백
+  // "궁합폼에서 옛날 정보가 아직도 남음" — 폼을 다시 열 때마다 직전에 본
+  // 상대 정보가 그대로 박혀 있어 매번 지우고 새로 입력해야 했다. 내 정보만
+  // 살리고 상대는 비워서, 새 사람으로 보려는 흐름이 깔끔하게 시작되도록.
+  // (직전 페어로 다시 보고 싶으면 채팅 화면 sticky 바의 "최근 본 관계" 에서
+  // 한 번에 전환 가능 — localStorage 기록 자체는 그대로 유지된다.)
   //
-  // 사용자가 카드를 한 번이라도 만졌으면 (date 입력) 어떤 자동 채움도
+  // Person 1 자동 채움도 사용자가 카드를 한 번이라도 만졌으면 (date 입력)
   // 덮어쓰지 않는다.
   useEffect(() => {
     const latest = getLatestPair()
@@ -34,16 +35,6 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
       if (prev[0]?.date || prev[1]?.date) return prev
 
       const next = [...prev]
-      const mapRel = (rel?: string): Relation | undefined => {
-        if (!rel) return undefined
-        if (rel === 'partner' || rel === 'lover') return 'lover'
-        if (rel === 'spouse') return 'spouse'
-        if (rel === 'family') return 'family'
-        if (rel === 'sibling') return 'sibling'
-        if (rel === 'friend') return 'friend'
-        if (rel === 'colleague') return 'colleague'
-        return 'other'
-      }
 
       // Person 1 — 홈 birth-info 우선, 없으면 페어[0].
       if (home?.birthDate && next[0]) {
@@ -77,25 +68,7 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
         }
       }
 
-      // Person 2 — 페어[1] (있으면).
-      if (latest?.persons[1] && next[1]) {
-        const src = latest.persons[1]
-        next[1] = {
-          ...next[1],
-          name: src.name,
-          date: src.date,
-          time: src.time,
-          gender: src.gender,
-          cityQuery: src.cityQuery
-            ? localizeStoredCity(src.cityQuery, locale)
-            : next[1].cityQuery,
-          lat: src.lat,
-          lon: src.lon,
-          timeZone: src.timeZone || getUserTimezone() || 'Asia/Seoul',
-          relation: mapRel(src.relation),
-          timeUnknown: src.timeUnknown,
-        }
-      }
+      // Person 2 (= 상대) 는 의도적으로 자동 채움 안 함 — 항상 빈 칸으로 시작.
 
       return next
     })
