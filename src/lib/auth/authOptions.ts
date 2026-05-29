@@ -297,10 +297,33 @@ export const authOptions: NextAuthOptions = {
       }
       // /profile 에서 이름 변경 시 useSession().update({ name }) 호출 → trigger='update'
       // 햄버거 등 useSession 으로 name 읽는 컴포넌트가 즉시 반영되도록 token 갱신.
+      // pricing 의 EmailCollectionModal 에서 결제 직전 이메일 보충 시도
+      // useSession().update({ email }) 형태로 jwt 콜백을 호출. 단 client 가
+      // 보낸 email 을 그대로 신뢰하면 악성 client 가 임의 이메일을 token 에
+      // 박을 수 있어서 (이후 /api/checkout 의 Stripe customer_email 로 사용)
+      // 위험. 그래서 update + email 트리거를 보면 token 의 user id 로 DB 의
+      // 진짜 email 을 다시 읽어 token.email 을 sync 한다. /api/me/email 에서
+      // 이미 DB 에 commit 된 상태여야 정상 흐름.
       if (trigger === 'update' && updatedSession && typeof updatedSession === 'object') {
-        const next = updatedSession as { name?: unknown }
+        const next = updatedSession as { name?: unknown; email?: unknown }
         if (typeof next.name === 'string' && next.name.trim()) {
           token.name = next.name.trim()
+        }
+        // email 갱신 요청이 들어오면 DB 에서 fresh read. update() 가 payload
+        // 없이 호출돼도 (next-auth 의 일반 refresh 패턴) email 키 자체가
+        // 존재하면 trigger 로 본다.
+        if ('email' in next && token.id) {
+          try {
+            const fresh = await prisma.user.findUnique({
+              where: { id: String(token.id) },
+              select: { email: true },
+            })
+            if (fresh?.email) {
+              token.email = fresh.email
+            }
+          } catch (err) {
+            logger.warn('[auth] jwt update: failed to refresh email from DB', err)
+          }
         }
       }
       return token
@@ -363,10 +386,7 @@ export const authOptions: NextAuthOptions = {
         // call fails we surface that here so it's visible in logs and Sentry
         // and the row is left intact for a retry path (next signOut, cron, or
         // manual admin action).
-        if (
-          !result.cleared &&
-          result.reason !== 'no_account'
-        ) {
+        if (!result.cleared && result.reason !== 'no_account') {
           logger.error(
             `[auth] signOut: Google token revoke failed; DB row left intact for retry. userId=${userId} reason=${result.reason}`
           )

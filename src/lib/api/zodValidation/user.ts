@@ -24,6 +24,20 @@ export const userRegistrationRequestSchema = z.object({
 
 export type UserRegistrationRequestValidated = z.infer<typeof userRegistrationRequestSchema>
 
+// ============ User Email Schemas ============
+
+// 결제 페이지의 EmailCollectionModal 에서 호출하는 PATCH /api/me/email 의
+// 입력 스키마. 정규식은 /api/checkout 의 isValidEmail() 과 동일하게 맞춰서,
+// "여기선 통과했는데 결제 단계에서 invalid_email 로 다시 막힘" 같은
+// regression 을 차단한다.
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+
+export const userEmailUpdateSchema = z.object({
+  email: z.string().trim().min(1).max(254).regex(EMAIL_REGEX, 'invalid_email_format'),
+})
+
+export type UserEmailUpdateValidated = z.infer<typeof userEmailUpdateSchema>
+
 // ============ User Profile Schemas ============
 
 export const userProfileUpdateSchema = z.object({
@@ -501,14 +515,7 @@ const shareResultDataSchema = z.object({
 export const shareResultRequestSchema = z.object({
   title: z.string().min(1).max(200).trim(),
   description: z.string().max(2000).trim().optional(),
-  resultType: z.enum([
-    'tarot',
-    'astrology',
-    'saju',
-    'compatibility',
-    'numerology',
-    'iching',
-  ]),
+  resultType: z.enum(['tarot', 'astrology', 'saju', 'compatibility', 'numerology', 'iching']),
   resultData: shareResultDataSchema.optional(),
 })
 

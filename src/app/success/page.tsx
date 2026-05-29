@@ -6,6 +6,7 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
+import { SUPPORT_EMAIL } from '@/lib/config/contact'
 import styles from './success.module.css'
 
 // 크레딧 팩별 충전 크레딧 수 — Stripe metadata 의 creditPack 값으로 lookup.
@@ -38,7 +39,7 @@ function formatOrderRef(sessionId: string): string {
 
 function SuccessContent() {
   const { t, locale } = useI18n()
-  const { status, update } = useSession()
+  const { data: session, status, update } = useSession()
   const searchParams = useSearchParams()
   const sessionId = searchParams?.get('session_id') ?? null
   const pack = searchParams?.get('pack') ?? null
@@ -154,6 +155,26 @@ function SuccessContent() {
   const showReturnButton = Boolean(returnUrl)
   const packLabel = pack ? t(`success.packs.${pack}`) : null
 
+  // 영수증이 어디로 가는지 — 사용자에게 확신을 주려고 한 줄 노출. 이메일이
+  // 비어 있는 (희귀) 케이스는 줄 자체를 숨겨서 빈칸 "_로 발송돼요" 같은
+  // 깨진 카피가 안 나오게 한다.
+  const receiptEmail = session?.user?.email?.trim() || null
+
+  // timeout 분기에서 띄울 고객센터 문의 mailto. orderRef 가 있으면 제목/본문에
+  // 자동으로 박아넣어 사용자가 우리 측에서 조회 가능한 ref 를 손으로 옮겨
+  // 적지 않게 한다. SUPPORT_EMAIL 는 NEXT_PUBLIC_SUPPORT_EMAIL 환경변수
+  // override 가능 (src/lib/config/contact.ts).
+  const supportMailto = (() => {
+    const ref = sessionId ? formatOrderRef(sessionId) : null
+    const subject = isKo
+      ? `결제 확인 요청${ref ? ` - ${ref}` : ''}`
+      : `Payment confirmation request${ref ? ` - ${ref}` : ''}`
+    const body = isKo
+      ? `주문번호: ${ref ?? '(없음)'}\n\n[문제 설명을 적어주세요]`
+      : `Order ref: ${ref ?? '(none)'}\n\n[Please describe the issue]`
+    return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  })()
+
   // 상태별 안내 줄 — title 자리에 들어감
   const statusMessage = (() => {
     if (pollPhase === 'arrived') {
@@ -244,15 +265,41 @@ function SuccessContent() {
           </p>
         )}
 
+        {/* 영수증 발송 안내 — session.user.email 이 있을 때만 노출. 사용자가
+            "어디로 영수증 가는지" 즉시 확인할 수 있게 (FIX 2 / M4). */}
+        {receiptEmail && (
+          <p className={styles.message}>
+            {isKo
+              ? `영수증이 ${receiptEmail} 로 발송돼요`
+              : `Receipt will be sent to ${receiptEmail}`}
+          </p>
+        )}
+
         <div className={styles.actions}>
+          {/* Timeout 시점에 "고객센터 문의" 버튼을 가장 위에 노출 (FIX 3 / H3).
+              timeoutHint 메시지만으론 사용자가 다음 액션을 모름 — 영원히 안
+              들어오는 줄 알고 이탈할 수 있다. mailto 에 orderRef 자동으로
+              prefill 해서 1-탭으로 문의 가능. */}
+          {pollPhase === 'timeout' && (
+            <a href={supportMailto} className={styles.primaryButton}>
+              {isKo ? '고객센터 문의' : 'Contact support'}
+            </a>
+          )}
           {returnUrl && (
-            <Link href={returnUrl} className={styles.primaryButton}>
+            <Link
+              href={returnUrl}
+              className={pollPhase === 'timeout' ? styles.secondaryButton : styles.primaryButton}
+            >
               {t('success.startReading')}
             </Link>
           )}
           <Link
             href="/"
-            className={showReturnButton ? styles.secondaryButton : styles.primaryButton}
+            className={
+              pollPhase === 'timeout' || showReturnButton
+                ? styles.secondaryButton
+                : styles.primaryButton
+            }
           >
             {t('success.goHome')}
           </Link>
