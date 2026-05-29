@@ -74,7 +74,7 @@
 }
 
 .timeRangeBtn.active {
-  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  background: linear-gradient(90deg, #c19b56, #d4b572);
   color: #fff;
 }
 
@@ -398,7 +398,7 @@
 }
 
 .tabActive {
-  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  background: linear-gradient(90deg, #c19b56, #d4b572);
   color: #fff;
 }
 
@@ -504,7 +504,7 @@
 
 .distributionBarInner {
   height: 100%;
-  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  background: linear-gradient(90deg, #c19b56, #d4b572);
   border-radius: 4px;
   transition: width 0.3s;
 }

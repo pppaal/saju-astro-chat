@@ -62,7 +62,7 @@ export default function BrandSplash({ message, submessage, size = 120 }: BrandSp
           fontSize: '1.2rem',
           fontWeight: 700,
           letterSpacing: '0.05em',
-          background: 'linear-gradient(135deg, #63d2ff 0%, #a78bfa 50%, #8b5cf6 100%)',
+          background: 'linear-gradient(135deg, #e8cc8a 0%, #d4b572 50%, #a07a3c 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -115,7 +115,7 @@ export default function BrandSplash({ message, submessage, size = 120 }: BrandSp
           width: 36,
           height: 2,
           borderRadius: 2,
-          background: 'linear-gradient(90deg, transparent, #a78bfa, transparent)',
+          background: 'linear-gradient(90deg, transparent, #d4b572, transparent)',
           animation: 'splash-glide 1.4s ease-in-out infinite',
         }}
       />
