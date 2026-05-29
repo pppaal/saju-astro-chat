@@ -4,7 +4,7 @@
  * 사주 ↔ 점성 — 두 흐름의 만남.
  *
  * 정적 "메시지 두 줄" 카드에서 흐름 톤 카드로 재디자인:
- *   1. FlowSummary (한 줄) — 두 기운이 함께 차오르는 / 엇갈리는 구간
+ *   1. FlowSummary (한 줄) — 두 흐름이 함께 차오르는 / 엇갈리는 구간
  *   2. CrossLineChart — 사주 amber + 점성 cyan dual line + 교차 지점 마커
  *   3. CrossingSpot (aligned) — emerald + ✨ + bridges 풀텍스트
  *   4. CrossingSpot (opposed) — rose + ⚠️ + bridges

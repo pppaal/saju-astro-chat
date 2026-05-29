@@ -77,14 +77,14 @@ describe('humanSemantics', () => {
     })
     expect(bothBlockedBridge).toContain('같이 막히는')
 
-    // opposed: 두 축 정반대 → 갈라져 흐르는 문구
+    // opposed: 두 축 정반대 → 갈라져 가는 문구
     const opposedBridge = describeCrossEvidenceBridge({
       tone: 'neutral',
       aligned: false,
       lang: 'ko',
       crossSystemTone: 'opposed',
     })
-    expect(opposedBridge).toContain('갈라져 흐르고')
+    expect(opposedBridge).toContain('갈라져 가고')
 
     // mixed: 한쪽만 → 차오르고/잦아드는 문구
     const mixedBridge = describeCrossEvidenceBridge({

@@ -380,7 +380,7 @@ function describeSajuAstroConflictByDomainDetailed(input: {
 export type CrossSystemTone = 'bothSystems' | 'bothBlocked' | 'opposed' | 'mixed'
 
 /**
- * 추상 "결/기운" 표현을 사용자가 무엇의 결인지 즉시 알 수 있게 매핑하는 9 개
+ * 추상 "흐름/기운" 표현을 사용자가 무엇의 흐름인지 즉시 알 수 있게 매핑하는 9 개
  * 구체 도메인. 사전은 humanSemanticsFocusDomain.ts 에서 관리 (timing/conflict
  * 양쪽 helper 가 cycle 없이 공유하기 위해 별도 모듈).
  */
@@ -405,25 +405,25 @@ export function describeCrossEvidenceBridge(input: {
         if (domain) {
           return `두 흐름이 모두 ${domain.ko.noun} 영역을 받쳐주는 자리예요. ${withObjectParticle(domain.ko.action)} 같이 밀어 보세요.`
         }
-        return '두 결이 같은 방향으로 합쳐 흐르는 자리예요. 핵심 한두 가지를 함께 밀어 주세요.'
+        return '두 흐름이 같은 방향으로 합쳐 가는 자리예요. 핵심 한두 가지를 함께 밀어 주세요.'
       }
       if (crossSystemTone === 'bothBlocked') {
         if (domain) {
           return `두 흐름이 모두 ${domain.ko.noun} 영역에서 막히는 자리예요. ${domain.ko.action} 같은 큰 결정은 흐름이 풀릴 때까지 미루세요.`
         }
-        return '두 결이 같이 막히는 자리예요. 무리하지 말고 흐름이 풀릴 때까지 큰 결정을 미루세요.'
+        return '두 흐름이 같이 막히는 자리예요. 무리하지 말고 흐름이 풀릴 때까지 큰 결정을 미루세요.'
       }
       if (crossSystemTone === 'opposed') {
         if (domain) {
           return `두 흐름이 ${domain.ko.noun} 영역에서 서로 다른 신호를 보내고 있어요. 속도를 늦추고 ${withObjectParticle(domain.ko.action)} 확정하기 전에 한 번 더 확인하세요.`
         }
-        return '두 결이 서로 다른 길로 갈라져 흐르고 있어요. 속도를 늦추고 계약이나 큰 결정은 한 번 더 확인하세요.'
+        return '두 흐름이 서로 다른 길로 갈라져 가고 있어요. 속도를 늦추고 계약이나 큰 결정은 한 번 더 확인하세요.'
       }
       // mixed
       if (domain) {
         return `${domain.ko.noun} 영역에서 한쪽 흐름은 차오르고 한쪽 흐름은 잦아드는 구간이에요. ${domain.ko.pitfall}만 보고 ${withObjectParticle(domain.ko.action)} 확정하지 마세요.`
       }
-      return '한 결은 차오르고 한 결은 잦아드는 구간이에요. 좋아 보여도 결이 모일 때까지 확정을 미루세요.'
+      return '한 흐름은 차오르고 다른 흐름은 잦아드는 구간이에요. 좋아 보여도 흐름이 모일 때까지 확정을 미루세요.'
     }
 
     if (crossSystemTone === 'bothSystems') {
@@ -456,23 +456,23 @@ export function describeCrossEvidenceBridge(input: {
         if (domain) {
           return `두 흐름이 모두 ${domain.ko.noun} 영역에서 막히는 자리예요. ${domain.ko.action} 같은 큰 결정은 흐름이 풀릴 때까지 미루세요.`
         }
-        return '두 결이 같이 막히는 자리예요. 무리하지 말고 흐름이 풀릴 때까지 큰 결정을 미루세요.'
+        return '두 흐름이 같이 막히는 자리예요. 무리하지 말고 흐름이 풀릴 때까지 큰 결정을 미루세요.'
       }
       if (domain) {
         return `두 흐름이 ${domain.ko.noun} 영역에서 서로 다른 신호를 보내고 있어요. 속도를 늦추고 ${withObjectParticle(domain.ko.action)} 확정하기 전에 한 번 더 확인하세요.`
       }
-      return '두 결이 서로 다른 길로 갈라져 흐르고 있어요. 속도를 늦추고 계약이나 큰 결정은 한 번 더 확인하세요.'
+      return '두 흐름이 서로 다른 길로 갈라져 가고 있어요. 속도를 늦추고 계약이나 큰 결정은 한 번 더 확인하세요.'
     }
     if (aligned) {
       if (domain) {
         return `두 흐름이 모두 ${domain.ko.noun} 영역을 받쳐주는 자리예요. ${withObjectParticle(domain.ko.action)} 같이 밀어 보세요.`
       }
-      return '두 결이 같은 방향으로 합쳐 흐르는 자리예요. 핵심 한두 가지를 함께 밀어 주세요.'
+      return '두 흐름이 같은 방향으로 합쳐 가는 자리예요. 핵심 한두 가지를 함께 밀어 주세요.'
     }
     if (domain) {
       return `${domain.ko.noun} 영역에서 한쪽 흐름은 차오르고 한쪽 흐름은 잦아드는 구간이에요. ${domain.ko.pitfall}만 보고 ${withObjectParticle(domain.ko.action)} 확정하지 마세요.`
     }
-    return '한 결은 차오르고 한 결은 잦아드는 구간이에요. 좋아 보여도 결이 모일 때까지 확정을 미루세요.'
+    return '한 흐름은 차오르고 다른 흐름은 잦아드는 구간이에요. 좋아 보여도 흐름이 모일 때까지 확정을 미루세요.'
   }
 
   if (tone === 'negative') {
