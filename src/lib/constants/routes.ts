@@ -47,6 +47,6 @@ export const ROUTES = {
  * @param fallback - Fallback route if category not found
  * @returns Route path
  */
-export function getCategoryRoute(category: string, fallback = ROUTES.DESTINY_MAP): string {
+export function getCategoryRoute(category: string, fallback = '/destiny-counselor'): string {
   return CATEGORY_ROUTES[category] || fallback
 }
