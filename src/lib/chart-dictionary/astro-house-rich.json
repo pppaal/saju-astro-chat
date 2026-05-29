@@ -1,0 +1,218 @@
+{
+  "1": {
+    "ko": {
+      "name": "1하우스 (Ascendant / 어센던트)",
+      "domain": "자아·외모·첫인상·신체",
+      "meaning": "당신이 세상에 첫 발을 내딛는 문(門). 사람들이 당신을 처음 만날 때 느끼는 분위기, 외모, 말투, 걸음걸이 같은 '겉으로 드러나는 나'의 영역이에요. 또 몸 그 자체와 자기 정체성을 다루는 자리이기도 합니다. 앵글 하우스 중 가장 강력한 자리로, 평생에 걸쳐 '나는 누구인가'에 대한 답이 자라는 곳이에요.",
+      "planet_in": "1하우스에 행성이 있으면 그 행성이 당신의 인상과 성격을 강하게 물들여요. 사람들이 당신을 떠올릴 때 자연스럽게 그 행성의 색이 먼저 보입니다. 행성의 에너지가 '나'와 거의 한 몸처럼 작동해요.",
+      "empty": "1하우스가 비어있다고 해서 자아가 약한 건 아니에요. 단지 자아 표현이 조용한 편이거나, 어센던트 사인(자리)과 어센던트 룰러(지배 행성)가 위치한 다른 하우스에서 정체성의 무게가 더 잡힐 수 있습니다.",
+      "keywords": ["자아", "외모", "첫인상", "신체", "정체성"]
+    },
+    "en": {
+      "name": "1st House (Ascendant)",
+      "domain": "Self · appearance · first impression · body",
+      "meaning": "The doorway through which you step into the world. It governs how others first see you — your looks, vibe, way of speaking, even how you walk. It also rules the physical body and your core sense of 'I am.' As an angular house, it's one of the strongest places in the chart; your lifelong answer to 'who am I?' grows here.",
+      "planet_in": "A planet here strongly colors your personality and the impression you give off. People feel that planet's energy almost the moment they meet you — it fuses with your sense of self.",
+      "empty": "An empty 1st house doesn't mean a weak self. Your identity simply shows up more quietly through this door — look to your Ascendant sign and to the house where your chart ruler lives for where your selfhood is really being built.",
+      "keywords": ["self", "appearance", "first impression", "body", "identity"]
+    }
+  },
+  "2": {
+    "ko": {
+      "name": "2하우스",
+      "domain": "자원·돈·가치관·소유",
+      "meaning": "내가 가진 것, 그리고 '무엇을 가질 만하다고 느끼는가'의 영역이에요. 단순히 통장 잔고만이 아니라 재능, 자존감, 몸으로 느끼는 안정감까지 포함됩니다. '나는 어떤 것에 값을 매기는 사람인가'라는 가치관도 여기서 형성돼요. Succedent(고정) 하우스라 천천히 축적되는 자리예요.",
+      "planet_in": "2하우스 행성은 돈을 버는 방식, 소유와 안정에 대한 태도, 자기 가치를 어떻게 매기는지에 직접 영향을 줘요. 그 행성의 성격대로 자원을 끌어모으거나 쓰는 패턴이 만들어집니다.",
+      "empty": "2하우스가 비어있다고 돈복이 없는 게 아니에요. 재물·자존감 주제가 인생의 중심 드라마는 아니라는 의미에 가깝고, 2하우스 사인의 룰러가 위치한 곳에서 그 영역이 움직입니다.",
+      "keywords": ["돈", "재능", "자존감", "소유", "가치관"]
+    },
+    "en": {
+      "name": "2nd House",
+      "domain": "Resources · money · values · what you own",
+      "meaning": "What you have — and what you believe you deserve to have. This isn't only your bank balance; it includes your talents, your self-worth, and the felt sense of being safe in your body. Your personal value system — 'what is worth my time and money?' — is built here. As a succedent house, it grows slowly, by accumulation.",
+      "planet_in": "A planet here shapes how you earn, how you spend, and how you decide what you and your time are worth. The pattern of attracting and using resources takes on the flavor of that planet.",
+      "empty": "An empty 2nd house doesn't mean a lack of money or worth. It means finances and self-worth aren't the central drama of your life — and the ruler of the sign on this house's cusp shows where the action really happens.",
+      "keywords": ["money", "talent", "self-worth", "possessions", "values"]
+    }
+  },
+  "3": {
+    "ko": {
+      "name": "3하우스",
+      "domain": "소통·학습·형제자매·근거리 이동",
+      "meaning": "일상의 머리(mind)가 사는 곳이에요. 말하기·쓰기·읽기·배우기 같은 매일의 사고 활동, 가까운 사람들과 주고받는 대화, 형제자매·이웃·동급생과의 관계, 짧은 이동(통근, 산책, 단거리 여행)이 여기 모여 있어요. Cadent(변화) 하우스라 호기심과 적응으로 움직입니다.",
+      "planet_in": "3하우스 행성은 당신의 말투, 사고 습관, 정보 흡수 방식에 영향을 줘요. 그 행성의 성격으로 배우고, 말하고, 주변 사람들과 정보를 주고받는 패턴이 형성됩니다.",
+      "empty": "3하우스가 비어있다고 소통을 못 한다는 게 아니에요. 단지 '커뮤니케이션' 자체가 인생의 큰 주제는 아닐 수 있고, 3하우스 룰러가 있는 곳에서 학습·소통의 색깔이 결정돼요.",
+      "keywords": ["소통", "학습", "형제자매", "이웃", "단기이동"]
+    },
+    "en": {
+      "name": "3rd House",
+      "domain": "Communication · learning · siblings · short trips",
+      "meaning": "The home of your everyday mind. Talking, writing, reading, learning, scrolling, chatting — all the daily mental activity lives here. So do your siblings, neighbors, classmates, and the short trips of ordinary life (commutes, errands, weekend drives). As a cadent house, it moves through curiosity and adaptation.",
+      "planet_in": "A planet here shapes how you speak, how you think, and how you take in information. Your learning style and your conversational voice carry that planet's flavor.",
+      "empty": "An empty 3rd house doesn't mean you can't communicate. It just means communication isn't a headline theme of your life — look to the ruler of this house's cusp to see how your mind actually works.",
+      "keywords": ["communication", "learning", "siblings", "neighbors", "short trips"]
+    }
+  },
+  "4": {
+    "ko": {
+      "name": "4하우스 (IC / 천저)",
+      "domain": "가정·뿌리·부모·내면의 안식처",
+      "meaning": "차트의 가장 깊고 사적인 자리. 내가 어디에서 왔는가 — 가족, 어린 시절의 집, 부모(특히 양육적 부모상), 조상, 문화적 뿌리가 모이는 곳이에요. 동시에 '편안함이란 무엇인가'에 대한 마음 깊은 곳의 정의가 여기 있어요. 앵글 하우스라 인생 전체에 영향이 강하게 갑니다.",
+      "planet_in": "4하우스 행성은 어린 시절 가족 분위기, 집의 의미, 정서적 안전감의 색을 결정해요. 사적인 영역에서 그 행성의 에너지가 가장 활발하게 작동합니다.",
+      "empty": "4하우스가 비었다고 가정사가 단순한 건 아니에요. 단지 '집·뿌리' 주제가 외향적 드라마로 드러나지 않을 뿐이고, 4하우스 사인의 룰러가 있는 곳이 정서적 뿌리의 진짜 무대예요.",
+      "keywords": ["가정", "뿌리", "부모", "안식처", "내면"]
+    },
+    "en": {
+      "name": "4th House (IC)",
+      "domain": "Home · roots · parents · inner sanctuary",
+      "meaning": "The deepest, most private corner of the chart. Where you come from — family, the childhood home, your parents (especially the nurturing parent), ancestors, cultural roots — all live here. So does your gut-level definition of 'safe' and 'home.' As an angular house, what happens here echoes through your whole life.",
+      "planet_in": "A planet here colors the emotional atmosphere of your early home, what 'family' means to you, and where you feel safest. Its energy is most alive in your private life.",
+      "empty": "An empty 4th house doesn't mean a simple family history. It means home and roots aren't the loudest theme on the surface — the ruler of this house's cusp shows where your real emotional foundation is built.",
+      "keywords": ["home", "roots", "parents", "sanctuary", "inner life"]
+    }
+  },
+  "5": {
+    "ko": {
+      "name": "5하우스",
+      "domain": "창조·연애·놀이·자녀·자기표현",
+      "meaning": "내 안에서 무언가가 '나와서' 빛나는 영역. 연애·로맨스의 설렘, 예술적 창조, 놀이와 취미, 자녀, 그리고 자기표현 그 자체가 여기서 일어나요. '내가 만든 것 / 내가 사랑하는 방식'이 외부로 나오는 자리예요. Succedent(고정) 하우스로, 즐거움이 축적되며 자기다움이 단단해집니다.",
+      "planet_in": "5하우스 행성은 당신이 어떻게 연애하고, 무엇으로 노는지, 어떤 식으로 창조성을 표현하는지를 보여줘요. 그 행성의 성격대로 '나를 빛내는 방식'이 만들어집니다.",
+      "empty": "5하우스가 비어있다고 즐거움이 없는 게 아니에요. 단지 연애·창작이 인생의 중심 드라마는 아닐 수 있고, 5하우스 룰러가 있는 곳에서 그 즐거움이 흘러나옵니다.",
+      "keywords": ["창조", "연애", "놀이", "자녀", "자기표현"]
+    },
+    "en": {
+      "name": "5th House",
+      "domain": "Creativity · romance · play · children · self-expression",
+      "meaning": "Where something inside you steps out and shines. Romance and the flirty spark of new love, art-making, play, hobbies, children, and self-expression all live here. This is the house of 'what I create / how I love.' As a succedent house, joy accumulates here and slowly hardens into who you really are.",
+      "planet_in": "A planet here shows how you flirt, how you play, and how your creativity wants to come out. Your way of shining takes on that planet's flavor.",
+      "empty": "An empty 5th house doesn't mean a joyless life. It just means romance and creative output aren't headline themes — look to the ruler of this house's cusp to see where your play actually flows.",
+      "keywords": ["creativity", "romance", "play", "children", "self-expression"]
+    }
+  },
+  "6": {
+    "ko": {
+      "name": "6하우스",
+      "domain": "일상·일·건강·습관·서비스",
+      "meaning": "삶을 굴러가게 만드는 '루틴'의 영역. 매일의 일과, 직업적 업무(특히 고용된 일·실무), 건강 관리, 식습관·운동 같은 신체 루틴, 그리고 작은 봉사와 돌봄이 여기 모여 있어요. 화려하진 않지만 인생의 질을 결정짓는 곳이에요. Cadent(변화) 하우스라 끊임없이 조정·개선됩니다.",
+      "planet_in": "6하우스 행성은 일하는 스타일, 건강·몸 관리 방식, 일상의 루틴을 그 행성의 성격으로 물들여요. 그 행성이 '매일의 작업복'을 입고 일합니다.",
+      "empty": "6하우스가 비었다고 건강·일이 문제 없다는 뜻도, 문제가 있다는 뜻도 아니에요. 단지 일상의 디테일이 인생의 중심 드라마가 아닐 수 있고, 6하우스 룰러가 있는 곳에서 그 루틴의 톤이 결정돼요.",
+      "keywords": ["일상", "직업루틴", "건강", "습관", "서비스"]
+    },
+    "en": {
+      "name": "6th House",
+      "domain": "Daily life · work · health · habits · service",
+      "meaning": "The house of routines that keep your life running. Daily schedules, the practical side of work (especially day-job duties), health care, eating and exercise habits, and small acts of service all live here. Unglamorous, but it quietly decides the quality of your days. As a cadent house, it's always being adjusted and refined.",
+      "planet_in": "A planet here colors how you work, how you care for your body, and how you build daily habits. That planet basically shows up in 'work clothes' every morning.",
+      "empty": "An empty 6th house doesn't promise good or bad health — it just means daily logistics aren't a headline theme. The ruler of this house's cusp shows what tone your routines actually take.",
+      "keywords": ["daily life", "work routine", "health", "habits", "service"]
+    }
+  },
+  "7": {
+    "ko": {
+      "name": "7하우스 (Descendant / 디센던트)",
+      "domain": "1:1 관계·파트너십·결혼·계약",
+      "meaning": "1하우스의 '나'와 정확히 마주 서는 자리, 즉 '너'의 영역. 결혼·연애 파트너, 사업 파트너, 공식 계약 관계, 심지어 공개적인 적까지 — 1:1로 마주 보는 모든 관계가 여기 살아요. 흥미롭게도 우리는 이 자리에서 자기 안에 부정한 모습을 상대를 통해 발견하기도 해요. 앵글 하우스라 영향력이 큽니다.",
+      "planet_in": "7하우스 행성은 어떤 파트너에게 끌리는지, 관계 안에서 어떤 패턴이 반복되는지를 보여줘요. 그 행성의 에너지를 상대를 통해 만나거나, 상대에게서 발견하는 경우가 많습니다.",
+      "empty": "7하우스가 비어있다고 인연이 없거나 결혼을 못 한다는 뜻이 절대 아니에요. 단지 관계가 자아 정체성의 핵심 드라마는 아닐 수 있고, 7하우스 룰러가 있는 곳에서 파트너십이 실제로 형성됩니다.",
+      "keywords": ["파트너십", "결혼", "1:1관계", "계약", "타인"]
+    },
+    "en": {
+      "name": "7th House (Descendant)",
+      "domain": "One-to-one relationships · partnership · marriage · contracts",
+      "meaning": "Directly across from the 1st house: the place of 'you' that meets your 'I.' Marriage and romantic partners, business partners, formal contracts, even open enemies — every face-to-face relationship lives here. Interestingly, we often meet parts of ourselves we haven't claimed through the partners we attract. An angular house, so it carries strong weight.",
+      "planet_in": "A planet here shows what kind of partner you're drawn to and the patterns that repeat in close relationships. You often meet that planet's energy through the other person — or discover it in them.",
+      "empty": "An empty 7th house absolutely does not mean you won't find a partner or marry. It just means relationships aren't the central drama of your identity — and the ruler of this house's cusp shows where partnership actually shows up.",
+      "keywords": ["partnership", "marriage", "one-to-one", "contracts", "the other"]
+    }
+  },
+  "8": {
+    "ko": {
+      "name": "8하우스",
+      "domain": "공유 자원·깊이·변형·성·죽음과 재생",
+      "meaning": "표면 아래로 내려가는 영역. 둘이 합치는 자원(공동 재산, 배우자의 돈, 빚·세금·유산, 투자), 깊은 친밀감과 성(性), 심리적 어둠과 그것을 통과하는 변형(transformation), 그리고 끝과 새로운 시작이 여기 살아요. 가볍게 다루기 어렵지만 인생을 한 단계 더 깊게 만드는 자리예요. Succedent(고정) 하우스로 강한 집중력이 있어요.",
+      "planet_in": "8하우스 행성은 깊은 관계, 공유 자원의 흐름, 그리고 무의식의 어두운 방에서 그 색을 가장 짙게 드러내요. 변형의 순간마다 그 행성의 성격이 키 역할을 합니다.",
+      "empty": "8하우스가 비었다고 큰 위기나 변형이 없는 인생이라는 뜻은 아니에요. 단지 그 깊은 영역이 의식적 드라마로 자주 드러나지 않을 뿐이고, 8하우스 룰러가 있는 곳에서 변형의 통로가 열립니다.",
+      "keywords": ["공유자원", "친밀감", "변형", "성", "재생"]
+    },
+    "en": {
+      "name": "8th House",
+      "domain": "Shared resources · depth · transformation · sex · death and rebirth",
+      "meaning": "The house that takes you under the surface. Resources you merge with others (joint accounts, partner's money, debt, taxes, inheritance, investments), deep intimacy and sexuality, the psychological underworld, and the transformations that come from passing through it — endings and new beginnings — all live here. Heavy material, but it deepens a life. As a succedent house, it concentrates with intensity.",
+      "planet_in": "A planet here shows its color most vividly in deep relationships, shared resources, and the dark room of the unconscious. In moments of transformation, that planet is the key.",
+      "empty": "An empty 8th house doesn't mean a life without crisis or change. It means that deep terrain doesn't constantly show up as conscious drama — the ruler of this house's cusp shows where the doorway to transformation actually is.",
+      "keywords": ["shared resources", "intimacy", "transformation", "sexuality", "rebirth"]
+    }
+  },
+  "9": {
+    "ko": {
+      "name": "9하우스",
+      "domain": "확장·고등교육·여행·믿음·세계관",
+      "meaning": "내 세계를 넓히는 영역. 장거리 여행, 외국 문화, 고등교육(대학·대학원), 철학과 종교, 그리고 '나는 무엇을 믿는가' 하는 세계관이 여기서 자라요. 일상의 작은 머리(3하우스)와 달리, 여기는 '큰 그림을 보는 머리'예요. Cadent(변화) 하우스라 끊임없이 의미를 탐험합니다.",
+      "planet_in": "9하우스 행성은 당신의 신념, 배움의 방향, 여행과 외국 경험의 색을 결정해요. 그 행성의 성격대로 '의미'를 찾아 떠납니다.",
+      "empty": "9하우스가 비었다고 시야가 좁다는 뜻이 아니에요. 단지 여행·고등교육·철학이 인생의 중심 드라마는 아닐 수 있고, 9하우스 룰러가 있는 곳에서 세계관이 형성됩니다.",
+      "keywords": ["확장", "여행", "고등교육", "철학", "세계관"]
+    },
+    "en": {
+      "name": "9th House",
+      "domain": "Expansion · higher education · travel · belief · worldview",
+      "meaning": "The house that stretches your world. Long-distance travel, foreign cultures, higher education (university, grad school), philosophy and religion, and the worldview behind 'what do I actually believe?' all grow here. Unlike the everyday mind of the 3rd house, this is the big-picture mind. As a cadent house, it's always exploring for meaning.",
+      "planet_in": "A planet here colors your beliefs, the direction of your studies, and the flavor of your travels and foreign encounters. You go looking for 'meaning' in that planet's style.",
+      "empty": "An empty 9th house doesn't mean a narrow worldview. Travel, higher education, and philosophy just aren't headline themes — the ruler of this house's cusp shows where your worldview is really being built.",
+      "keywords": ["expansion", "travel", "higher education", "philosophy", "worldview"]
+    }
+  },
+  "10": {
+    "ko": {
+      "name": "10하우스 (MC / 천정)",
+      "domain": "커리어·사회적 위치·평판·공적 자아",
+      "meaning": "차트에서 가장 높이 보이는 자리. 사람들이 '저 사람은 무엇 하는 사람'이라고 알아보는 공적 정체성, 직업, 사회적 지위, 평판, 그리고 인생의 큰 방향과 야망이 여기 있어요. 부모 중 사회적 인물(전통적으로 아버지상)도 여기서 다뤄져요. 앵글 하우스라 영향력이 매우 큽니다.",
+      "planet_in": "10하우스 행성은 당신의 커리어 스타일, 세상에서 알려지는 방식, 야망의 방향을 그 행성의 성격으로 물들여요. 그 행성이 사회 무대 위에서 가장 잘 보입니다.",
+      "empty": "10하우스가 비었다고 커리어가 없거나 성공 못 한다는 뜻이 절대 아니에요. 단지 사회적 정체성이 자아 드라마의 1순위는 아닐 수 있고, 10하우스 룰러가 있는 곳이 진짜 커리어의 무대예요.",
+      "keywords": ["커리어", "사회적 위치", "평판", "야망", "공적 자아"]
+    },
+    "en": {
+      "name": "10th House (MC / Midheaven)",
+      "domain": "Career · public standing · reputation · public self",
+      "meaning": "The highest, most visible point of the chart. The public identity people recognize as 'that's what they do' — your career, social standing, reputation, and the bigger ambitions and direction of your life all live here. Traditionally also the parent who plays a public-facing role. An angular house, so it carries enormous weight.",
+      "planet_in": "A planet here colors how you build a career, how you're seen out in the world, and where your ambition pulls you. That planet is most visible on the public stage.",
+      "empty": "An empty 10th house absolutely does not mean no career or no success. Your public identity just isn't the top drama of selfhood — and the ruler of this house's cusp shows where the real career stage is.",
+      "keywords": ["career", "public standing", "reputation", "ambition", "public self"]
+    }
+  },
+  "11": {
+    "ko": {
+      "name": "11하우스",
+      "domain": "커뮤니티·친구·집단·미래의 비전·이상",
+      "meaning": "내가 속한 더 큰 무리의 영역. 친구들, 동료들, 같은 가치관을 공유하는 커뮤니티, 그리고 그 안에서 함께 꿈꾸는 미래의 비전과 이상이 여기 있어요. 10하우스의 개인적 성취를 사회적·집단적 의미로 펼쳐가는 자리이기도 합니다. Succedent(고정) 하우스로 친구 관계와 이상이 시간을 두고 단단해져요.",
+      "planet_in": "11하우스 행성은 어떤 친구·커뮤니티에 끌리는지, 어떤 비전과 이상으로 미래를 그리는지를 보여줘요. 그 행성의 성격대로 '나의 사람들'이 모입니다.",
+      "empty": "11하우스가 비었다고 친구가 없거나 비전이 없다는 뜻이 아니에요. 단지 커뮤니티가 인생의 중심 드라마는 아닐 수 있고, 11하우스 룰러가 있는 곳에서 친구·집단 관계가 형성돼요.",
+      "keywords": ["친구", "커뮤니티", "집단", "미래비전", "이상"]
+    },
+    "en": {
+      "name": "11th House",
+      "domain": "Community · friends · groups · future vision · ideals",
+      "meaning": "The house of the larger circle you belong to. Friends, colleagues, communities built around shared values, and the future visions and ideals you dream together all live here. It also takes the personal achievement of the 10th and broadens it into social, collective meaning. As a succedent house, friendships and ideals slowly solidify over time.",
+      "planet_in": "A planet here shows what kind of friends and communities you're drawn to, and what flavor your visions of the future have. 'Your people' gather around that planet's energy.",
+      "empty": "An empty 11th house doesn't mean no friends or no vision. Community just isn't the central drama of your life — the ruler of this house's cusp shows where your circle and your ideals actually form.",
+      "keywords": ["friends", "community", "groups", "future vision", "ideals"]
+    }
+  },
+  "12": {
+    "ko": {
+      "name": "12하우스",
+      "domain": "내면·무의식·은둔·영성·해체",
+      "meaning": "차트에서 가장 보이지 않는 영역. 무의식, 꿈, 명상, 영성, 혼자만의 시간, 은둔, 그리고 자기 안의 그림자(받아들이지 못한 부분)가 여기 살아요. 병원·수도원·감옥처럼 일상에서 분리된 공간, 그리고 자아의 경계가 녹아 더 큰 것과 만나는 신비한 영역이기도 해요. Cadent(변화) 하우스로 끝과 새로운 사이클의 씨앗이 동시에 있어요.",
+      "planet_in": "12하우스 행성은 의식적으로 잘 안 보이는 곳에서 작동해요. 꿈·직관·혼자 있을 때 가장 강하게 느껴지고, 때로는 그 행성의 에너지를 본인이 아닌 타인을 통해 알아차리기도 합니다.",
+      "empty": "12하우스가 비었다고 내면이 없거나 영성이 없다는 뜻이 아니에요. 단지 그 영역이 외부 드라마로 잘 드러나지 않을 뿐이고, 12하우스 룰러가 있는 곳에서 무의식의 통로가 열려요.",
+      "keywords": ["무의식", "은둔", "영성", "꿈", "해체"]
+    },
+    "en": {
+      "name": "12th House",
+      "domain": "Inner life · unconscious · solitude · spirituality · dissolution",
+      "meaning": "The least visible house in the chart. The unconscious, dreams, meditation, spirituality, time alone, retreat, and the shadow (the parts of yourself you haven't claimed) all live here. So do spaces set apart from daily life — hospitals, monasteries, prisons — and the mystical zone where the edges of self dissolve into something bigger. As a cadent house, it holds both endings and the seeds of a new cycle.",
+      "planet_in": "A planet here works mostly out of conscious sight. You feel it most in dreams, intuition, and solitude — and sometimes you only notice that planet's energy when you see it in other people.",
+      "empty": "An empty 12th house doesn't mean no inner life or no spirituality. That terrain just doesn't show up as outer drama — the ruler of this house's cusp shows where the doorway to your unconscious actually opens.",
+      "keywords": ["unconscious", "solitude", "spirituality", "dreams", "dissolution"]
+    }
+  }
+}
