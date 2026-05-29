@@ -88,40 +88,67 @@ function pushDedupKey(userId: string, type: string, hour: number): string {
   return `push:${userId}:${type}:${day}:${String(hour).padStart(2, '0')}`
 }
 
-async function isPushAlreadySent(userId: string, type: string, hour: number): Promise<boolean> {
-  const scopedKey = pushDedupKey(userId, type, hour)
-  try {
-    const row = await prisma.requestIdempotencyLog.findUnique({
-      where: { scopedKey },
-      select: { expiresAt: true },
-    })
-    if (!row) return false
-    return row.expiresAt > new Date()
-  } catch (err) {
-    // Fail-open: better to risk one extra send than to silently drop
-    // every notification when the dedup table has a transient issue.
-    logger.warn('[pushService] dedup lookup failed, sending anyway', {
-      scopedKey,
-      err: err instanceof Error ? err.message : String(err),
-    })
-    return false
-  }
-}
-
-async function markPushSent(userId: string, type: string, hour: number): Promise<void> {
+/**
+ * Atomic dedup claim — used as the **gate** before sending, not as a
+ * post-send marker. Returns true if this invocation won the race (and
+ * must send), false if another concurrent invocation already claimed
+ * the slot (and we must skip).
+ *
+ * Implementation uses `create` so the unique constraint on `scopedKey`
+ * is the serialization point. P2002 → loser path. Anything else is
+ * treated as fail-closed (we return false) so that an unhealthy dedup
+ * table can't trigger a thundering-herd of duplicate sends across cron
+ * retries.
+ *
+ * Trade-off (intentional): once we claim the slot, the slot stays
+ * claimed for 25h even if the actual `webpush.sendNotification` call
+ * later fails. The next cron tick will NOT retry. Push notifications
+ * are not critical infrastructure, and double-sending the same daily
+ * fortune is a worse UX than occasionally missing one when the send
+ * pipeline blips.
+ */
+async function claimPushSlot(userId: string, type: string, hour: number): Promise<boolean> {
   const scopedKey = pushDedupKey(userId, type, hour)
   const expiresAt = new Date(Date.now() + PUSH_DEDUP_TTL_MS)
   try {
-    await prisma.requestIdempotencyLog.upsert({
-      where: { scopedKey },
-      create: { scopedKey, expiresAt },
-      update: { expiresAt },
+    await prisma.requestIdempotencyLog.create({
+      data: { scopedKey, expiresAt },
     })
+    return true
   } catch (err) {
-    logger.warn('[pushService] dedup mark failed', {
-      scopedKey,
-      err: err instanceof Error ? err.message : String(err),
-    })
+    const code = (err as { code?: string } | null)?.code
+    if (code === 'P2002') {
+      // Unique-constraint collision — another concurrent cron invocation
+      // (Vercel regional retry, overlapping schedules) claimed this slot
+      // first. We are the loser; skip without sending.
+      return false
+    }
+    // If the existing row is stale (expired), refresh it and treat as
+    // a fresh claim. Otherwise it's still live and someone else owns it.
+    try {
+      const existing = await prisma.requestIdempotencyLog.findUnique({
+        where: { scopedKey },
+        select: { expiresAt: true },
+      })
+      if (existing && existing.expiresAt > new Date()) {
+        return false
+      }
+      await prisma.requestIdempotencyLog.update({
+        where: { scopedKey },
+        data: { expiresAt },
+      })
+      return true
+    } catch (innerErr) {
+      // Fail-closed: rather than risk a double-send when the dedup
+      // table is unhealthy, skip this notification. Cron retries on a
+      // healthy follow-up tick will succeed.
+      logger.warn('[pushService] dedup claim failed, skipping send', {
+        scopedKey,
+        err: err instanceof Error ? err.message : String(err),
+        innerErr: innerErr instanceof Error ? innerErr.message : String(innerErr),
+      })
+      return false
+    }
   }
 }
 
@@ -197,12 +224,26 @@ export async function sendPushNotification(
         error instanceof Error ? error.message : String(error)
       )
 
-      // 410 Gone 또는 404: 구독이 만료/삭제됨
+      // 410 Gone 또는 404: 구독이 푸시 서비스 측에서 만료/삭제됨.
+      // isActive=false 만 두면 행이 영구히 남아, 같은 endpoint 로 재구독
+      // 시 (브라우저가 같은 endpoint 를 재발급한 경우) PushSubscription.
+      // endpoint 의 unique 인덱스와 충돌해 신규 enroll 이 실패한다. 행을
+      // 통째로 삭제해 다음 구독이 깨끗하게 들어오도록 한다. P2025
+      // (record not found — 다른 요청이 먼저 지운 경우) 는 멱등으로 무시.
       if (isWebPushError(error) && (error.statusCode === 404 || error.statusCode === 410)) {
-        await prisma.pushSubscription.update({
-          where: { id: sub.id },
-          data: { isActive: false },
-        })
+        try {
+          await prisma.pushSubscription.delete({
+            where: { id: sub.id },
+          })
+        } catch (deleteErr) {
+          const code = (deleteErr as { code?: string } | null)?.code
+          if (code !== 'P2025') {
+            logger.error(
+              `[pushService] Failed to delete gone subscription ${sub.id}:`,
+              deleteErr instanceof Error ? deleteErr.message : String(deleteErr)
+            )
+          }
+        }
       } else {
         // 기타 에러: 실패 카운트 증가
         const newFailCount = sub.failCount + 1
@@ -327,21 +368,21 @@ export async function sendScheduledNotifications(hour: number): Promise<{
       for (const notification of hourlyNotifications) {
         // Cron retries (Vercel network blip, redeploy race) used to land
         // here twice for the same (user, hour) and re-send the same daily
-        // fortune. Mark each (user, type, day, hour) as already-sent in
-        // RequestIdempotencyLog with a 25h TTL so the second invocation
-        // detects the prior send and skips. The premium-notifications
-        // module already guards its own messages via its
-        // lastNotificationDate check, but the cron-driven fortune /
-        // lucky-time / transit notifications had no dedup at all.
-        if (await isPushAlreadySent(user.id, notification.type, hour)) {
+        // fortune. We now claim the dedup slot ATOMICALLY before sending:
+        // the unique constraint on RequestIdempotencyLog.scopedKey is the
+        // race winner, and the loser exits early. Marking-after-send was
+        // not safe because (a) two overlapping invocations could both
+        // pass the "already sent?" check before either marked, and (b)
+        // the post-send mark was gated on `result.sent > 0`, so any
+        // notification with zero successful endpoints would never get
+        // marked and would re-fire on every retry.
+        const claimed = await claimPushSlot(user.id, notification.type, hour)
+        if (!claimed) {
           continue
         }
         const result = await sendPushNotification(user.id, notification)
         totalSent += result.sent
         totalFailed += result.failed
-        if (result.sent > 0) {
-          await markPushSent(user.id, notification.type, hour)
-        }
       }
     } catch (error: unknown) {
       logger.error(
