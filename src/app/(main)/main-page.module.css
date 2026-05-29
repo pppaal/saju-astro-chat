@@ -897,7 +897,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(3, 5, 12, 0.82);
+  background: rgba(28, 25, 23, 0.65);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -909,10 +909,14 @@
   width: 100%;
   max-width: 420px;
   border-radius: 22px;
-  border: 1px solid rgba(212, 181, 114, 0.26);
-  background: linear-gradient(180deg, #0c1024, #07091a);
+  /* 항상 라이트 — design tokens "라이트 = 로그인 후 개인 영역 (profile ·
+     compat · counselor chat 등)" 정책. 생년월일 입력도 개인 데이터라
+     모든 폼 (compat PersonCard / ProfileEditModal / CircleAddModal) 와
+     동일하게 흰색 카드 + 잉크 텍스트 통일. */
+  border: 1px solid #e7e5e4;
+  background: #ffffff;
   padding: 1.5rem;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -920,14 +924,14 @@
 
 .modalTitle {
   margin: 0;
-  color: #ffffff;
+  color: #1c1917;
   font-size: 1.2rem;
   font-weight: 700;
 }
 
 .modalSubtitle {
   margin: -0.5rem 0 0;
-  color: rgba(229, 231, 240, 0.6);
+  color: #78716c;
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -941,25 +945,30 @@
 .modalLabel {
   font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(229, 231, 240, 0.78);
+  color: #44403c;
   letter-spacing: 0.02em;
 }
 
 .modalInput {
   padding: 0.7rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid rgba(212, 181, 114, 0.22);
-  background: rgba(15, 17, 35, 0.7);
-  color: #ffffff;
+  border: 1px solid #e7e5e4;
+  background: #ffffff;
+  color: #1c1917;
   /* 16px — iOS Safari 자동 줌-인(<16px) 방지 + 다른 모든 라이트 입력
-     (ProfileEditModal / PersonCard) 와 정렬. 옛 0.95rem(~15px) 폐기. */
+     (ProfileEditModal / PersonCard) 와 정렬. */
   font-size: 16px;
   outline: none;
-  transition: border-color 0.18s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.modalInput::placeholder {
+  color: #a8a29e;
 }
 
 .modalInput:focus-visible {
-  border-color: rgba(212, 181, 114, 0.65);
+  border-color: #a8a29e;
+  box-shadow: 0 0 0 3px rgba(168, 162, 158, 0.18);
 }
 
 .modalRow {
@@ -978,12 +987,18 @@
   flex: 1;
   padding: 0.85rem;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(229, 231, 240, 0.78);
+  border: 1px solid #e7e5e4;
+  background: transparent;
+  color: #57534e;
   font-size: 0.92rem;
   font-weight: 500;
   cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.modalCancel:hover {
+  background: #f5f5f4;
+  color: #1c1917;
 }
 
 .modalSave {
@@ -991,11 +1006,13 @@
   padding: 0.85rem;
   border-radius: 14px;
   border: none;
+  /* 골드 솔리드 — 브랜드 액션 (profile/compat save 와 동일 톤). */
   background: linear-gradient(135deg, #d4b572, #d4b572);
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 8px 24px rgba(212, 181, 114, 0.24);
 }
 
 .modalSave:disabled {
@@ -1008,25 +1025,16 @@
   flex: 0 0 auto;
   padding: 0.85rem 0.9rem;
   border-radius: 14px;
-  border: 1px solid rgba(248, 113, 113, 0.3);
+  border: 1px solid rgba(220, 38, 38, 0.35);
   background: transparent;
-  color: rgba(248, 113, 113, 0.92);
+  color: #dc2626;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
 }
 
 .modalDelete:hover {
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.5);
-}
-
-.lightMode .modalDelete {
-  border-color: rgba(220, 38, 38, 0.35);
-  color: #dc2626;
-}
-
-.lightMode .modalDelete:hover {
   background: rgba(220, 38, 38, 0.08);
   border-color: rgba(220, 38, 38, 0.5);
 }
@@ -1038,9 +1046,9 @@
   width: 100%;
   padding: 0.6rem 0.8rem;
   border-radius: 12px;
-  border: 1px solid rgba(212, 181, 114, 0.3);
-  background: rgba(212, 181, 114, 0.1);
-  color: rgba(232, 222, 255, 0.95);
+  border: 1px solid rgba(160, 122, 60, 0.3);
+  background: rgba(160, 122, 60, 0.08);
+  color: #1c1917;
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -1050,8 +1058,8 @@
 }
 
 .modalLoadButton:hover {
-  border-color: rgba(212, 181, 114, 0.5);
-  background: rgba(212, 181, 114, 0.16);
+  border-color: rgba(160, 122, 60, 0.5);
+  background: rgba(160, 122, 60, 0.16);
 }
 
 .modalLoadList {
@@ -1062,10 +1070,10 @@
   margin: 0;
   padding: 4px;
   list-style: none;
-  background: rgba(12, 16, 36, 0.98);
-  border: 1px solid rgba(212, 181, 114, 0.35);
+  background: #ffffff;
+  border: 1px solid rgba(160, 122, 60, 0.25);
   border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 40px rgba(28, 25, 23, 0.12);
   max-height: 240px;
   overflow-y: auto;
   z-index: 20;
@@ -1079,32 +1087,12 @@
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: rgba(232, 222, 255, 0.95);
+  color: #1c1917;
   cursor: pointer;
   font-size: 0.88rem;
 }
 
 .modalLoadItem:hover {
-  background: rgba(212, 181, 114, 0.18);
-}
-
-/* 라이트 톤 — 옛 보라 #7c3aed/#4c1d95 폐기, 골드 + 잉크 토큰 정렬. */
-.lightMode .modalLoadButton {
-  border-color: rgba(160, 122, 60, 0.3);
-  background: rgba(160, 122, 60, 0.08);
-  color: #1c1917;
-}
-
-.lightMode .modalLoadList {
-  background: #ffffff;
-  border-color: rgba(160, 122, 60, 0.25);
-}
-
-.lightMode .modalLoadItem {
-  color: #1c1917;
-}
-
-.lightMode .modalLoadItem:hover {
   background: rgba(160, 122, 60, 0.1);
 }
 
@@ -1384,58 +1372,7 @@
  * 라이트 메인 위 라이트 모달로 일관성 유지.
  * ===================================================================== */
 
-/* --- BirthInfoModal --- */
-/* backdrop-filter 제거 — iOS native <select> picker 버그 회피 (위 .modalOverlay 코멘트 참조). */
-.lightMode .modalOverlay {
-  background: rgba(28, 25, 23, 0.65);
-}
-
-.lightMode .modalCard {
-  background: #ffffff;
-  border-color: #e7e5e4;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
-}
-
-.lightMode .modalTitle {
-  color: #1c1917;
-}
-
-.lightMode .modalSubtitle {
-  color: #78716c;
-}
-
-.lightMode .modalLabel {
-  color: #44403c;
-}
-
-.lightMode .modalInput {
-  background: #ffffff;
-  border-color: #e7e5e4;
-  color: #1c1917;
-}
-
-.lightMode .modalInput:focus-visible {
-  border-color: #a8a29e;
-  box-shadow: 0 0 0 3px rgba(168, 162, 158, 0.18);
-}
-
-.lightMode .modalInput::placeholder {
-  color: #a8a29e;
-}
-
-.lightMode .modalCancel {
-  background: transparent;
-  border-color: #e7e5e4;
-  color: #57534e;
-}
-
-.lightMode .modalCancel:hover {
-  background: #f5f5f4;
-  color: #1c1917;
-}
-
-/* modalSave 는 보라 그라데이션 유지 (브랜드 액션) — 라이트 톤에서도
-   살아남는 컬러. 그림자만 살짝 톤다운. */
-.lightMode .modalSave {
-  box-shadow: 0 8px 24px rgba(212, 181, 114, 0.24);
-}
+/* --- BirthInfoModal — `.lightMode` 오버라이드 폐기.
+ * design tokens "라이트 = 개인 데이터" 정책에 맞춰 base 룰을 직접 라이트
+ * 톤으로 통일. compat PersonCard / ProfileEditModal 과 동일한 항상-흰색
+ * 패턴. */
