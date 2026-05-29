@@ -100,7 +100,7 @@ export default function TarotChatScreen() {
     <div className="relative min-h-screen bg-[#07091a] text-slate-100 font-sans flex flex-col">
       {/* 배경 장식 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex justify-center items-center">
-        <div className="w-96 h-96 bg-indigo-900 rounded-full blur-3xl opacity-20"></div>
+        <div className="w-96 h-96 bg-[#a07a3c] rounded-full blur-3xl opacity-20"></div>
       </div>
 
       {/* 메인 — 환영 영역 + 예시 질문 */}
@@ -112,8 +112,8 @@ export default function TarotChatScreen() {
           className="text-center space-y-4 w-full max-w-xl"
         >
           <div className="flex justify-center mb-4">
-            <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
-              <MoonStar className="w-12 h-12 text-indigo-400" />
+            <div className="p-4 bg-[rgba(212,181,114,0.1)] rounded-full border border-[rgba(212,181,114,0.2)] shadow-[0_0_30px_rgba(212,181,114,0.2)]">
+              <MoonStar className="w-12 h-12 text-[#d4b572]" />
             </div>
           </div>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-100">
@@ -221,11 +221,11 @@ export default function TarotChatScreen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[10005] bg-[#07091a] flex flex-col"
+            className="fixed inset-0 z-[var(--z-modal)] bg-[#07091a] flex flex-col"
           >
             <div className="flex items-center justify-between gap-3 px-4 pl-16 pt-[max(env(safe-area-inset-top),1rem)] pb-4 border-b border-slate-800 bg-slate-900/50">
               <h2 className="text-lg font-semibold flex items-center gap-2 min-w-0">
-                <Layers className="w-5 h-5 text-indigo-400 shrink-0" />
+                <Layers className="w-5 h-5 text-[#d4b572] shrink-0" />
                 <span className="truncate">{isKo ? '타로 덱 선택' : 'Choose a Deck'}</span>
               </h2>
               <button
@@ -297,7 +297,7 @@ export default function TarotChatScreen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[10005] bg-[#07091a] flex flex-col"
+            className="fixed inset-0 z-[var(--z-modal)] bg-[#07091a] flex flex-col"
           >
             <div className="flex items-center justify-between gap-3 px-4 pl-16 pt-[max(env(safe-area-inset-top),1rem)] pb-4 border-b border-slate-800 bg-slate-900/50">
               <h2 className="text-lg font-semibold flex items-center gap-2 min-w-0">

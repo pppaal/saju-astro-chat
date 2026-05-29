@@ -53,8 +53,8 @@ export default function ChartTooltip({
 }: Props) {
   const showSeries = series && series.length > 0
   return (
-    <div className="min-w-[120px] bg-neutral-900/90 backdrop-blur-md border border-neutral-800 px-3 py-2 rounded-lg shadow-2xl text-xs">
-      <p className="text-neutral-400 mb-1">{label}</p>
+    <div className="min-w-[120px] bg-zinc-900/90 backdrop-blur-md border border-zinc-800 px-3 py-2 rounded-lg shadow-2xl text-xs">
+      <p className="text-zinc-400 mb-1">{label}</p>
 
       {!showSeries && typeof value !== 'undefined' && (
         <p className="text-amber-400 font-medium tracking-wide">
@@ -85,7 +85,7 @@ export default function ChartTooltip({
         </p>
       )}
       {pointType === 'convergence' && convergenceLabel && (
-        <p className="text-violet-400 mt-1 flex items-center gap-1">
+        <p className="text-[#d4b572] mt-1 flex items-center gap-1">
           <Sparkles size={10} /> {convergenceLabel}
         </p>
       )}

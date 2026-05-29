@@ -537,7 +537,7 @@ export async function addBonusCredits(
   // 만 null 로 둬서 다음 진입 시 모달 트리거.
   const acknowledgedAt = source === 'purchase' ? now : null
 
-  return prisma.$transaction(async (tx) => {
+  const { updated, createdPurchaseId } = await prisma.$transaction(async (tx) => {
     // acknowledgedAt 컬럼 — 마이그레이션이 prod 에 아직 안 적용된 환경에서
     // 1차 시도 P2022 로 실패하면 acknowledgedAt 빼고 한 번 더 시도해서
     // 적어도 row 는 생성. 같은 패턴: tarot save route 의 신규 컬럼 처리.
@@ -550,13 +550,13 @@ export async function addBonusCredits(
       source,
       stripePaymentId,
     }
-    let createdPurchaseId: string | null = null
+    let createdId: string | null = null
     try {
       const purchase = await tx.bonusCreditPurchase.create({
         data: { ...baseData, acknowledgedAt },
         select: { id: true },
       })
-      createdPurchaseId = purchase.id
+      createdId = purchase.id
     } catch (err) {
       const code = (err as { code?: string } | null)?.code
       const msg = (err as { message?: string } | null)?.message ?? ''
@@ -568,10 +568,10 @@ export async function addBonusCredits(
         data: baseData,
         select: { id: true },
       })
-      createdPurchaseId = purchase.id
+      createdId = purchase.id
     }
 
-    const updated = await tx.userCredits.update({
+    const updatedCredits = await tx.userCredits.update({
       where: { userId },
       data: {
         bonusCredits: { increment: amount },
@@ -579,9 +579,20 @@ export async function addBonusCredits(
       },
     })
 
-    // 감사 로그 — GRANT 한 줄. sourceRef 는 stripePaymentId (Stripe 결제 → 환불
-    // 추적 가능) 가 있으면 그쪽, 없으면 BonusCreditPurchase.id 로 fallback.
-    await tx.creditTransaction.create({
+    return { updated: updatedCredits, createdPurchaseId: createdId }
+  })
+
+  // 감사 로그 — GRANT 한 줄. **의도적으로 위 transaction 밖에서** best-effort 로
+  // 기록한다. CreditTransaction 은 잔액 재현용 redundant 감사 테이블이고 잔액의
+  // source of truth 는 UserCredits + BonusCreditPurchase 다. 이 write 를
+  // transaction 안에 두면, prod 에서 테이블이 phantom-apply 로 누락됐을 때
+  // (P2021 / 42P01 "table does not exist") Postgres 가 트랜잭션 **전체**를
+  // abort 시켜 BonusCreditPurchase + UserCredits 증가분까지 롤백 → "결제 됐는데
+  // 크레딧 0, 영수증 메일도 안 감" 회귀가 발생한다(매 결제마다 webhook 500).
+  // 밖으로 빼서 audit write 실패가 결제·지급을 절대 되돌리지 못하게 한다.
+  // sourceRef 는 stripePaymentId (환불 추적 가능) 우선, 없으면 purchase.id.
+  try {
+    await prisma.creditTransaction.create({
       data: {
         userId,
         type: 'GRANT',
@@ -597,9 +608,15 @@ export async function addBonusCredits(
         },
       },
     })
+  } catch (err) {
+    // 크레딧은 이미 지급됨(transaction commit). 감사 행만 누락 — 비치명적.
+    logger.error(
+      '[addBonusCredits] CreditTransaction audit write failed — credit grant unaffected:',
+      err
+    )
+  }
 
-    return updated
-  })
+  return updated
 }
 
 // 유효한 보너스 크레딧 계산 (만료되지 않은 것만)

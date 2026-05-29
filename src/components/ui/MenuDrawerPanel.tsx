@@ -108,7 +108,7 @@ export function MenuDrawerPanel({
     ? 'bg-stone-100 text-stone-800 hover:bg-stone-200'
     : 'bg-white/[0.04] text-white/90 hover:bg-white/[0.08]'
 
-  const sectionTitleClass = isLight ? 'text-stone-500' : 'text-violet-200/55'
+  const sectionTitleClass = isLight ? 'text-stone-500' : 'text-[rgba(232,204,138,0.55)]'
 
   const linkClass = isLight
     ? 'text-stone-700 hover:bg-stone-100 hover:text-stone-900'
@@ -124,13 +124,13 @@ export function MenuDrawerPanel({
       <div
         onClick={onClose}
         aria-hidden="true"
-        className={`fixed inset-0 z-[10000] backdrop-blur-[2px] ${overlayClass}`}
+        className={`fixed inset-0 z-[var(--z-modal-backdrop)] backdrop-blur-sm ${overlayClass}`}
       />
       <aside
         role="dialog"
         aria-modal="true"
         aria-label={isKo ? '메뉴' : 'Menu'}
-        className={`fixed top-0 left-0 bottom-0 z-[10001] w-[min(320px,86vw)]
+        className={`fixed top-0 left-0 bottom-0 z-[var(--z-modal)] w-[min(320px,86vw)]
           flex flex-col ${panelClass}`}
       >
         <div className={`flex items-center justify-between px-5 py-4 ${headerBorderClass}`}>

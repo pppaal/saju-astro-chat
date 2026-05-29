@@ -95,7 +95,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
               {
                 ['--i' as string]: 0,
                 background:
-                  'linear-gradient(135deg, rgba(212,181,114,0.08) 0%, rgba(212,181,114,0.04) 50%, rgba(124,58,237,0.06) 100%)',
+                  'linear-gradient(135deg, rgba(212,181,114,0.08) 0%, rgba(212,181,114,0.04) 50%, rgba(212,181,114,0.06) 100%)',
                 border: '1px solid var(--ds-gold-line)',
               } as React.CSSProperties
             }

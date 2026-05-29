@@ -93,9 +93,9 @@ export function ChatErrorFallback({ error: _error, reset }: { error: Error; rese
       <div className="flex gap-4">
         <button
           onClick={reset}
-          className="px-6 py-3 bg-violet-500 text-white border-none rounded-lg cursor-pointer
-            text-base font-medium hover:bg-violet-600
-            focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2
+          className="px-6 py-3 bg-[#d4b572] text-[#1c1917] border-none rounded-full cursor-pointer
+            text-base font-medium hover:bg-[#e8cc8a]
+            focus:outline-none focus:ring-2 focus:ring-[#a07a3c] focus:ring-offset-2
             transition-colors"
         >
           Try Again

@@ -78,7 +78,7 @@
 }
 
 .link:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.8);
+  outline: 2px solid rgba(212, 181, 114, 0.8);
   outline-offset: 2px;
 }
 

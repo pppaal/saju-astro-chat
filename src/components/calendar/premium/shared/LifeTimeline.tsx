@@ -54,7 +54,7 @@ export default function LifeTimeline({ entries, title, locale }: Props) {
                 item.active
                   ? 'bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.55)]'
                   : item.bothSystems
-                    ? 'bg-violet-500'
+                    ? 'bg-[#d4b572]'
                     : 'bg-zinc-600'
               }`}
             />
@@ -64,7 +64,7 @@ export default function LifeTimeline({ entries, title, locale }: Props) {
                   item.active
                     ? 'text-amber-400'
                     : item.bothSystems
-                      ? 'text-violet-200'
+                      ? 'text-[#e8cc8a]'
                       : 'text-zinc-200'
                 }`}
               >
@@ -77,7 +77,7 @@ export default function LifeTimeline({ entries, title, locale }: Props) {
                 </span>
               )}
               {!item.active && item.bothSystems && (
-                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-violet-500/15 text-violet-300 border border-violet-500/25">
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[rgba(212,181,114,0.15)] text-[#d4b572] border border-[rgba(212,181,114,0.25)]">
                   {t.bothSystemsBadge}
                 </span>
               )}
