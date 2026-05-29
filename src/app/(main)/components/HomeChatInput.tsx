@@ -6,17 +6,11 @@ import styles from '../main-page.module.css'
 import type { StoredBirthInfo } from '../birthInfoStorage'
 import { buildCounselorHref } from '../birthInfoStorage'
 
-// 서비스 선택 — config/enabledServices.ts 와 동일 id·라벨.
-// calendar 는 메인 페이지 흐름 ("질문 입력 → 서비스 선택") 에 안 맞아서
-// (calendar 는 자유 질문 안 받음) 메인 노출 제거. 시간 흐름 데이터는 운명
-// 상담사 차트 모달 안의 cross-link 로 접근.
-export type HomeServiceId = 'destinyMap' | 'tarot' | 'compatibility'
-
 interface HomeChatInputProps {
   birthInfo: StoredBirthInfo | null
-  // 생일이 필요한 서비스(궁합·운명상담사)를 생일 없이 골랐을 때 호출 —
-  // 부모가 생일 모달을 띄우고, 저장되면 그 서비스로 이동시킨다.
-  onRequireBirth: (service: HomeServiceId, question: string) => void
+  // 생일 없이 질문을 입력하고 엔터한 경우 호출 — 부모가 생일 모달을 띄우고,
+  // 저장되면 그 질문을 들고 운명상담사로 이동시킨다.
+  onRequireBirth: (question: string) => void
   // 그냥 생일 모달만 열기 — 입력/수정용(자동 이동 없음). 초록 CTA 탭,
   // 또는 질문 없이 엔터쳤을 때.
   onOpenBirth: () => void
@@ -45,17 +39,6 @@ const DELETE_SPEED_MS = 35
 const HOLD_AFTER_TYPED_MS = 1800
 const HOLD_AFTER_DELETED_MS = 250
 
-const SERVICES: ReadonlyArray<{
-  id: HomeServiceId
-  icon: string
-  ko: string
-  en: string
-}> = [
-  { id: 'destinyMap', icon: '🗺️', ko: '운명 상담사', en: 'Destiny Counselor' },
-  { id: 'tarot', icon: '🔮', ko: '타로 상담사', en: 'Tarot Counselor' },
-  { id: 'compatibility', icon: '💕', ko: '궁합 상담사', en: 'Compatibility' },
-]
-
 export default function HomeChatInput({
   birthInfo,
   onRequireBirth,
@@ -67,38 +50,20 @@ export default function HomeChatInput({
   const [typedPlaceholder, setTypedPlaceholder] = useState('')
   const isKo = locale === 'ko'
 
-  // 엔터/↑ 의 행선지. 자유 입력을 쓰는 건 운명 상담사뿐이라 기본 행선지로 삼는다.
-  // - 생일 있음 → 바로 운명 상담사(질문 전달)
-  // - 생일 없고 질문 있음 → 생일창 먼저, 저장하면 그 질문 들고 운명 상담사
-  // - 생일 없고 질문 비었음 → 생일창만 열고(자동 이동 X), 사용자가 아래 칩에서 선택
+  // 메인 페이지 = 운명상담사 한 흐름.
+  // - 생일 있음 → 바로 운명 상담사로 (질문 전달 → 자동 답변)
+  // - 생일 없고 질문 있음 → 생일 모달, 저장하면 그 질문 들고 운명상담사
+  // - 생일 없고 질문 비었음 → 생일 모달만 (자동 이동 X)
+  // 타로 / 궁합은 햄버거 사이드 메뉴에서만 접근 — 같은 입력란에 묶으면 사용자가
+  // "자유 질문" vs "modality 선택" 사이에서 혼란.
   const goCounselor = () => {
     const trimmed = text.trim()
     if (!birthInfo) {
-      if (trimmed) onRequireBirth('destinyMap', trimmed)
+      if (trimmed) onRequireBirth(trimmed)
       else onOpenBirth()
       return
     }
-    // 채팅 페이지로 직행 — 질문이 그대로 전달돼 자동으로 답변이 생성된다.
     router.push(buildCounselorHref(birthInfo, trimmed, locale))
-  }
-
-  // 칩으로 서비스 직접 선택. 타로는 생일이 필요 없으니 바로 진입하고,
-  // 궁합·운명상담사만 생일을 요구한다(없으면 모달 먼저).
-  const selectService = (service: HomeServiceId) => {
-    if (service === 'destinyMap') {
-      goCounselor()
-      return
-    }
-    if (service === 'tarot') {
-      router.push('/tarot')
-      return
-    }
-    // compatibility — 생일 필요.
-    if (!birthInfo) {
-      onRequireBirth('compatibility', text.trim())
-      return
-    }
-    router.push('/compatibility')
   }
 
   // 엔터(Shift 제외)로 바로 운명 상담사에게 전송. Shift+Enter 는 줄바꿈.
@@ -167,24 +132,9 @@ export default function HomeChatInput({
 
   return (
     <div className={styles.homeChatBar}>
-      {/* 서비스 칩 — 입력창 위 한 줄. 타이핑은 운명상담사로, 나머지 상담은 여기서. */}
-      <div
-        className={styles.homeServiceChips}
-        role="group"
-        aria-label={isKo ? '상담 종류 선택' : 'Choose a reading'}
-      >
-        {SERVICES.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            className={styles.homeServiceChip}
-            onClick={() => selectService(s.id)}
-          >
-            <span aria-hidden="true">{s.icon}</span>
-            <span>{isKo ? s.ko : s.en}</span>
-          </button>
-        ))}
-      </div>
+      {/* 서비스 칩 폐기 — 메인 = 운명상담사 한 흐름. 타로 / 궁합은 햄버거
+          사이드에서 접근. 같은 입력란에 묶으면 "자유 질문 받음 (운명)" vs
+          "modality 별도 (타로/궁합)" 사이에서 사용자 헷갈림. */}
 
       <div className={styles.homeChatBarInner}>
         {/* 초록 생일 CTA — 출발점이 생일임을 보여주고, 저장된 뒤엔 수정 버튼이 된다. */}
