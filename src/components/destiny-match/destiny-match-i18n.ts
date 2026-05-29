@@ -35,6 +35,51 @@ export interface DMCopy {
   matchBody: (otherName: string) => string
   matchSendMessage: string
   matchKeepSwiping: string
+
+  // Report
+  profileDetails: string
+  report: string
+  reportTitle: string
+  reportBody: (otherName: string) => string
+  reportCategoryLabel: string
+  reportCategoryInappropriate: string
+  reportCategorySpam: string
+  reportCategoryFake: string
+  reportCategoryHarassment: string
+  reportCategoryOther: string
+  reportDescriptionLabel: string
+  reportDescriptionPlaceholder: string
+  reportSubmit: string
+  reportCancel: string
+  reportSubmitting: string
+  reportSuccess: string
+  reportError: string
+  reportAlready: string
+}
+
+export const REPORT_CATEGORIES = [
+  'inappropriate',
+  'spam',
+  'fake',
+  'harassment',
+  'other',
+] as const
+
+export type ReportCategory = (typeof REPORT_CATEGORIES)[number]
+
+export function reportCategoryLabel(copy: DMCopy, category: ReportCategory): string {
+  switch (category) {
+    case 'inappropriate':
+      return copy.reportCategoryInappropriate
+    case 'spam':
+      return copy.reportCategorySpam
+    case 'fake':
+      return copy.reportCategoryFake
+    case 'harassment':
+      return copy.reportCategoryHarassment
+    case 'other':
+      return copy.reportCategoryOther
+  }
 }
 
 const ko: DMCopy = {
@@ -65,6 +110,25 @@ const ko: DMCopy = {
   matchBody: (otherName) => `${otherName}님과 서로 좋아요를 보냈어요`,
   matchSendMessage: '메시지 보내기',
   matchKeepSwiping: '계속 둘러보기',
+
+  profileDetails: '프로필 자세히',
+  report: '신고',
+  reportTitle: '사용자 신고',
+  reportBody: (otherName) => `${otherName}님을 신고하는 이유를 선택해주세요.`,
+  reportCategoryLabel: '신고 사유',
+  reportCategoryInappropriate: '부적절한 콘텐츠',
+  reportCategorySpam: '스팸 / 광고',
+  reportCategoryFake: '가짜 프로필',
+  reportCategoryHarassment: '괴롭힘 / 위협',
+  reportCategoryOther: '기타',
+  reportDescriptionLabel: '상세 설명 (선택)',
+  reportDescriptionPlaceholder: '구체적인 내용을 적어주세요.',
+  reportSubmit: '신고하기',
+  reportCancel: '취소',
+  reportSubmitting: '제출 중…',
+  reportSuccess: '신고가 접수되었습니다.',
+  reportError: '신고에 실패했어요. 잠시 후 다시 시도해주세요.',
+  reportAlready: '이미 신고한 사용자입니다. 24시간 후 다시 시도해주세요.',
 }
 
 const en: DMCopy = {
@@ -95,6 +159,25 @@ const en: DMCopy = {
   matchBody: (otherName) => `You and ${otherName} liked each other`,
   matchSendMessage: 'Send a message',
   matchKeepSwiping: 'Keep swiping',
+
+  profileDetails: 'View profile',
+  report: 'Report',
+  reportTitle: 'Report user',
+  reportBody: (otherName) => `Tell us why you're reporting ${otherName}.`,
+  reportCategoryLabel: 'Reason',
+  reportCategoryInappropriate: 'Inappropriate content',
+  reportCategorySpam: 'Spam / ads',
+  reportCategoryFake: 'Fake profile',
+  reportCategoryHarassment: 'Harassment / threats',
+  reportCategoryOther: 'Other',
+  reportDescriptionLabel: 'Details (optional)',
+  reportDescriptionPlaceholder: 'Add any specifics that help us review.',
+  reportSubmit: 'Submit report',
+  reportCancel: 'Cancel',
+  reportSubmitting: 'Submitting…',
+  reportSuccess: 'Your report has been submitted.',
+  reportError: 'Could not submit the report. Please try again later.',
+  reportAlready: 'You already reported this user. Try again in 24 hours.',
 }
 
 export const DM_I18N: Record<DMLang, DMCopy> = { ko, en }

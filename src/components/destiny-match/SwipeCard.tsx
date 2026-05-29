@@ -9,7 +9,7 @@ import {
   useAnimationControls,
   type PanInfo,
 } from 'framer-motion'
-import { MapPin, Briefcase, Sparkles, X, Star, Heart } from 'lucide-react'
+import { MapPin, Briefcase, Sparkles, X, Star, Heart, Flag, ChevronUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { DiscoverCard, SwipeAction } from './types'
 import type { DMCopy } from './destiny-match-i18n'
@@ -39,12 +39,16 @@ interface SwipeCardProps {
   onDecide: (action: DragDecision) => void
   // 시각적 stack depth — 0 = top, 1 = 아래, etc.
   depth: number
+  // 신고 — 현재 카드의 userId 로 신고 모달을 연다. swipe 진입점.
+  onReport: (card: DiscoverCard) => void
 }
 
 export const SwipeCard = React.forwardRef<SwipeCardHandle, SwipeCardProps>(function SwipeCard(
-  { card, copy, isTop, onDecide, depth },
+  { card, copy, isTop, onDecide, depth, onReport },
   ref
 ) {
+  // 프로필 상세(확장) 패널 — 사주/별자리/관심사 등 전체 노출 + 신고 진입점.
+  const [detailOpen, setDetailOpen] = React.useState(false)
   const controls = useAnimationControls()
   const x = useMotionValue(0)
   const y = useMotionValue(0)
@@ -165,6 +169,21 @@ export const SwipeCard = React.forwardRef<SwipeCardHandle, SwipeCardProps>(funct
           <span className="opacity-70"> · {card.compatibilityGrade}</span>
         </div>
 
+        {/* 신고 (swipe 진입점) — top card 에서만 활성. */}
+        {isTop && (
+          <button
+            type="button"
+            aria-label={copy.report}
+            onClick={(e) => {
+              e.stopPropagation()
+              onReport(card)
+            }}
+            className="absolute top-3 left-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white/90 backdrop-blur transition hover:bg-black/65"
+          >
+            <Flag className="h-4 w-4" />
+          </button>
+        )}
+
         {/* LIKE / NOPE drag-feedback badges */}
         <motion.div
           style={{ opacity: likeOpacity }}
@@ -230,6 +249,54 @@ export const SwipeCard = React.forwardRef<SwipeCardHandle, SwipeCardProps>(funct
                       <span className="opacity-75"> · {card.synergy.astro.harmony}</span>
                     </span>
                   )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 프로필 상세 (profile 진입점) — 확장 시 관심사 + 신고 액션 노출. */}
+          {isTop && (
+            <div className="mt-3">
+              <button
+                type="button"
+                aria-expanded={detailOpen}
+                aria-label={copy.profileDetails}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setDetailOpen((v) => !v)
+                }}
+                className="inline-flex items-center gap-1 text-xs font-medium text-white/80 hover:text-white"
+              >
+                <ChevronUp
+                  className={cn('h-3.5 w-3.5 transition', detailOpen ? '' : 'rotate-180')}
+                />
+                {copy.profileDetails}
+              </button>
+              {detailOpen && (
+                <div className="mt-2 space-y-3 border-t border-white/15 pt-3">
+                  {card.interests.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {card.interests.map((interest) => (
+                        <span
+                          key={interest}
+                          className="rounded-full bg-white/10 px-2 py-0.5 text-xs"
+                        >
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onReport(card)
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-300 hover:text-rose-200"
+                  >
+                    <Flag className="h-3.5 w-3.5" />
+                    {copy.report}
+                  </button>
                 </div>
               )}
             </div>

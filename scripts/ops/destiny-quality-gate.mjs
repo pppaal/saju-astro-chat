@@ -24,33 +24,14 @@ console.log(`[destiny-gate] mode=${mode}`)
 runStep('mojibake-lint', 'npm', ['run', '-s', 'lint:mojibake'])
 runStep('typecheck', 'npm', ['run', '-s', 'typecheck'])
 
-// 5 sibling tests referenced deleted modules (rewriteGuards,
-// reportSectionRenderers, aiReportService, chat-stream/route,
-// chat-stream/lib/focusDomain). Those test files were removed; only the
-// suites whose underlying modules still exist remain in the gate.
-runStep('consistency-and-guards', 'npx', [
-  'vitest',
-  'run',
-  'tests/lib/destiny-matrix/ai-report/reportQuality.test.ts',
-  'tests/lib/destiny-matrix/ai-report/aiReportServicePolishSupport.test.ts',
-  'tests/lib/destiny-matrix/ai-report/singleSubjectQuality.golden.test.ts',
-  'tests/lib/destiny-matrix/interpretedAnswer.test.ts',
-])
-
-if (mode === 'full') {
-  // graphRagEvidence20cases.test.ts was removed alongside the module it
-  // covered; the remaining two golden suites still have backing code.
-  runStep('full-golden-suite-blocking', 'npx', [
-    'vitest',
-    'run',
-    'tests/lib/destiny-matrix/ai-report/coreConsistency30cases.golden.test.ts',
-    'tests/lib/destiny-matrix/ai-report/matrixGraphRagFlow.e2e.test.ts',
-  ])
-  runStep('full-quality-golden', 'npx', [
-    'vitest',
-    'run',
-    'tests/lib/destiny-matrix/ai-report/qualityGoldenSet.test.ts',
-  ])
-}
+// The entire `src/lib/destiny-matrix/ai-report/` engine was removed from the
+// codebase. Every `consistency-and-guards` / golden suite this gate used to
+// run imported those now-deleted modules and could no longer even load, so
+// the destiny gate failed on every PR. The orphaned test files have no
+// backing source to guard; until/unless the engine is reintroduced, the gate
+// runs the checks that still apply to the surviving destiny-matrix surface
+// (mojibake + typecheck above). The blocking quality suites are intentionally
+// dropped rather than pointed at non-existent modules.
+void mode
 
 console.log('[destiny-gate] PASSED')

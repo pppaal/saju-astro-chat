@@ -7,6 +7,7 @@ import { pickDMCopy } from './destiny-match-i18n'
 import type { DiscoverCard, DiscoverResponse, SwipeAction, SwipeResponse } from './types'
 import { SwipeCard, CardActionButtons, type SwipeCardHandle } from './SwipeCard'
 import { MatchModal } from './MatchModal'
+import { ReportModal } from './ReportModal'
 import { ProfileGateCard } from './ProfileGateCard'
 import { EmptyDeck } from './EmptyDeck'
 
@@ -22,7 +23,14 @@ interface MatchState {
   open: boolean
   otherName: string
   otherPhoto: string | null
+  otherUserId: string | null
   connectionId: string | null
+}
+
+interface ReportState {
+  open: boolean
+  reportedUserId: string | null
+  reportedName: string
 }
 
 export function SwipeScreen() {
@@ -39,9 +47,24 @@ export function SwipeScreen() {
     open: false,
     otherName: '',
     otherPhoto: null,
+    otherUserId: null,
     connectionId: null,
   })
+  const [reportState, setReportState] = React.useState<ReportState>({
+    open: false,
+    reportedUserId: null,
+    reportedName: '',
+  })
   const [superToast, setSuperToast] = React.useState<string | null>(null)
+
+  // 카드(swipe/profile)에서 신고 모달 열기.
+  const handleReport = React.useCallback((card: DiscoverCard) => {
+    setReportState({
+      open: true,
+      reportedUserId: card.userId,
+      reportedName: card.displayName,
+    })
+  }, [])
 
   // top SwipeCard 의 imperative handle — 버튼 클릭으로 flyOut 호출.
   const topCardRef = React.useRef<SwipeCardHandle | null>(null)
@@ -166,6 +189,7 @@ export function SwipeScreen() {
             open: true,
             otherName: target.displayName,
             otherPhoto: target.photos?.[0] ?? null,
+            otherUserId: target.userId,
             connectionId: data.connectionId,
           })
         }
@@ -269,6 +293,7 @@ export function SwipeScreen() {
                   isTop={idx === 0}
                   depth={idx}
                   onDecide={(action) => handleDragDecide(action, card)}
+                  onReport={handleReport}
                 />
               ))}
             </div>
@@ -300,6 +325,7 @@ export function SwipeScreen() {
         open={matchState.open}
         otherName={matchState.otherName}
         otherPhoto={matchState.otherPhoto}
+        otherUserId={matchState.otherUserId}
         connectionId={matchState.connectionId}
         onClose={() =>
           setMatchState((s) => ({
@@ -307,6 +333,14 @@ export function SwipeScreen() {
             open: false,
           }))
         }
+      />
+
+      <ReportModal
+        copy={copy}
+        open={reportState.open}
+        reportedUserId={reportState.reportedUserId}
+        reportedName={reportState.reportedName}
+        onClose={() => setReportState((s) => ({ ...s, open: false }))}
       />
     </main>
   )

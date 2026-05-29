@@ -47,6 +47,14 @@ export const destinyMatchBlockSchema = z.object({
 
 export type DestinyMatchBlockValidated = z.infer<typeof destinyMatchBlockSchema>
 
+export const destinyMatchReportSchema = z.object({
+  reportedUserId: z.string().min(1).max(200).trim(),
+  category: z.enum(['inappropriate', 'spam', 'fake', 'harassment', 'other']),
+  description: z.string().max(1000).trim().optional(),
+})
+
+export type DestinyMatchReportValidated = z.infer<typeof destinyMatchReportSchema>
+
 export const destinyMatchProfileSchema = z.object({
   displayName: z.string().min(2).max(64).trim(),
   bio: z.string().max(500).trim().optional().nullable(),
