@@ -993,6 +993,8 @@ describe('/api/tarot/save', () => {
             guidance: true,
             cardInsights: true,
             source: true,
+            clarifierCard: true,
+            followupTurns: true,
           },
         })
       })
@@ -1238,6 +1240,8 @@ describe('/api/tarot/save', () => {
               guidance: true,
               cardInsights: true,
               source: true,
+              clarifierCard: true,
+              followupTurns: true,
             },
           })
         )
