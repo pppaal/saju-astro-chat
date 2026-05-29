@@ -317,8 +317,8 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           </h1>
           <p className={styles.homeSubline}>
             {locale === 'ko'
-              ? '궁금한 점을 적고, 원하는 상담을 선택해 보세요'
-              : 'Type your question, then choose a reading'}
+              ? '생년월일을 입력하고, 궁금한 점을 자유롭게 물어보세요'
+              : 'Enter your birth info, then ask anything'}
           </p>
         </section>
 
