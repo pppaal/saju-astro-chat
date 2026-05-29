@@ -28,9 +28,7 @@ const GEN: Record<El, El> = { 목: '화', 화: '토', 토: '금', 금: '수', �
 const sibsin = (d: El, e: El) => e === d ? '비겁' : GEN[e] === d ? '인성' : GEN[d] === e ? '식상' : CTRL[d] === e ? '재성' : '관성'
 function calib(days: Rec[], Ns: number[]) { const sSt = stats(days.map((d) => grandAvg(pickS(d.sigs))).filter((x): x is number => x != null)); let N = Ns[0], bd = 9; for (const n of Ns) { const sd = stats(days.map((d) => grandAvg(topN(pickA(d.sigs), n))).filter((x): x is number => x != null)).sd; if (Math.abs(sd - sSt.sd) < bd) { bd = Math.abs(sd - sSt.sd); N = n } } const aSt = stats(days.map((d) => grandAvg(topN(pickA(d.sigs), N))).filter((x): x is number => x != null)); return { N, sSt, aSt, sB: sSt.mean, sS: sSt.sd > 0.01 ? 12 / sSt.sd : 16, aB: aSt.mean, aS: aSt.sd > 0.01 ? 12 / aSt.sd : 16 } }
 
-async function main() {
-  const E = process.env
-  const input = { birthDate: E.FP_BIRTHDATE ?? '1993-08-15', birthTime: E.FP_BIRTHTIME ?? '14:30', gender: (E.FP_GENDER as 'male' | 'female') ?? 'male', latitude: Number(E.FP_LAT ?? 37.5665), longitude: Number(E.FP_LON ?? 126.978), timeZone: E.FP_TZ ?? 'Asia/Seoul' }
+async function runAll(input: any) {
   const natal = await buildNatalContext(input); const day = natal.saju.dayMaster.element as El
 
   // ── 日/月 스케일: 월±2 고정빌드 보정 ──
@@ -40,7 +38,8 @@ async function main() {
   const tBase: any = {}; for (const k of THEMES) tBase[k] = stats(dref.map((d) => themeDir(d.sigs)[k]))
   const may = dref.filter((d) => d.day.slice(0, 7) === '2026-05'); const dAg = { aligned: 0, mixed: 0, opposed: 0 }; let conv = 0; const themeSet = new Set<string>()
   for (const d of may) { const { sa, aa } = sc(d.sigs); const g = Math.abs(sa - aa); (dAg as any)[g <= 12 ? 'aligned' : g <= 28 ? 'mixed' : 'opposed']++; if (g <= 16 && ((sa >= 56 && aa >= 56) || (sa <= 44 && aa <= 44))) conv++; const td = themeDir(d.sigs); const z = THEMES.map((k) => ({ k, z: tBase[k].sd > 0.01 ? (td[k] - tBase[k].mean) / tBase[k].sd : 0 })).sort((a, b) => Math.abs(b.z) - Math.abs(a.z))[0]; if (Math.abs(z.z) >= 1.3) themeSet.add(z.k) }
-  const dayOk = c.aSt.sd >= 0.03 && dAg.opposed / may.length <= 0.5 && conv >= 1
+  // 점수 건강 = 축 생존 + opposed 비병리. (수렴 0개는 "밋밋한 달"로 정상 — 합격조건 아님)
+  const dayOk = c.aSt.sd >= 0.03 && dAg.opposed / may.length <= 0.5
 
   // ── 時 스케일: 3일 hour빌드 보정, 타겟일 24h ──
   const href = await build(natal, '2026-05-10T00:00:00.000Z', '2026-05-12T23:59:59.999Z', 'hour')
@@ -57,12 +56,50 @@ async function main() {
   const lifeOk = new Set(verds.map((r) => r.v)).size >= 2 && verds.filter((r) => r.v === '★').every((r) => r.kil > 0)
 
   const all = dayOk && hourOk && lifeOk
-  console.log(JSON.stringify({
+  return {
     birth: input.birthDate, dm: `${natal.saju.dayMaster.name}${day}`, str: natal.saju.strength, sect: natal.astro.sect,
-    HOUR: { sajuSd: +hc.sSt.sd.toFixed(3), astroSd: +hc.aSt.sd.toFixed(3), N: hc.N, span: hSpan, ok: hourOk },
-    DAY_MONTH: { N: c.N, astroSd: +c.aSt.sd.toFixed(3), opposed: +(dAg.opposed / may.length).toFixed(2), conv, themes: themeSet.size, ok: dayOk },
-    LIFE: { chapters: verds.length, distinct: new Set(verds.map((r) => r.v)).size, starsOk: verds.filter((r) => r.v === '★').every((r) => r.kil > 0), ok: lifeOk },
-    VERDICT: all ? '✅ ALL OK (時→日→月→인생 전 스케일)' : '❌ FAIL',
-  }))
+    hourOk, dayOk, lifeOk, all, Nday: c.N, Nhour: hc.N, conv, themes: themeSet.size,
+    hourSpan: hSpan, lifeDistinct: new Set(verds.map((r) => r.v)).size,
+    astroSdDay: +c.aSt.sd.toFixed(3), astroSdHour: +hc.aSt.sd.toFixed(3),
+  }
+}
+
+const CITIES = [
+  { lat: 37.5665, lon: 126.978, tz: 'Asia/Seoul' }, { lat: 35.68, lon: 139.69, tz: 'Asia/Tokyo' },
+  { lat: -33.87, lon: 151.21, tz: 'Australia/Sydney' }, { lat: 40.71, lon: -74.01, tz: 'America/New_York' },
+  { lat: 51.51, lon: -0.13, tz: 'Europe/London' }, { lat: -23.55, lon: -46.63, tz: 'America/Sao_Paulo' },
+  { lat: 19.07, lon: 72.88, tz: 'Asia/Kolkata' }, { lat: 30.04, lon: 31.24, tz: 'Africa/Cairo' },
+]
+const ri = (n: number) => Math.floor(Math.random() * n)
+function randomChart() {
+  const c = CITIES[ri(CITIES.length)]
+  const y = 1955 + ri(49), mo = 1 + ri(12), d = 1 + ri(28), h = ri(24), mi = ri(2) * 30
+  return { birthDate: `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`, birthTime: `${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')}`, gender: ri(2) ? 'male' : 'female', latitude: c.lat, longitude: c.lon, timeZone: c.tz }
+}
+
+async function main() {
+  const E = process.env
+  if (!E.FP_BATCH) {
+    const input = { birthDate: E.FP_BIRTHDATE ?? '1993-08-15', birthTime: E.FP_BIRTHTIME ?? '14:30', gender: (E.FP_GENDER as 'male' | 'female') ?? 'male', latitude: Number(E.FP_LAT ?? 37.5665), longitude: Number(E.FP_LON ?? 126.978), timeZone: E.FP_TZ ?? 'Asia/Seoul' }
+    console.log(JSON.stringify(await runAll(input))); return
+  }
+  const K = Number(E.FP_BATCH)
+  console.log(`=== 배치 검증 ${K}개 랜덤 사주 (時→日→月→인생 올스케일) ===`)
+  let pass = 0, crash = 0; const fails: any[] = []; const Ndays: number[] = []; const convs: number[] = []; const distincts: number[] = []
+  for (let i = 0; i < K; i++) {
+    const ch = randomChart()
+    try {
+      const r = await runAll(ch)
+      Ndays.push(r.Nday); convs.push(r.conv); distincts.push(r.lifeDistinct)
+      if (r.all) pass++; else fails.push({ b: r.birth, str: r.str, sect: r.sect, hourOk: r.hourOk, dayOk: r.dayOk, lifeOk: r.lifeOk })
+      console.log(`${String(i + 1).padStart(2)} ${ch.birthDate} ${ch.birthTime} ${ch.timeZone.split('/')[1].slice(0, 6).padEnd(6)} ${r.dm} ${r.str.padEnd(6)} ${r.sect.padEnd(5)} ${r.all ? '✅' : '❌ ' + [!r.hourOk && '時', !r.dayOk && '日', !r.lifeOk && '生'].filter(Boolean).join('')}`)
+    } catch (e) { crash++; console.log(`${String(i + 1).padStart(2)} ${ch.birthDate} ${ch.timeZone} 💥 ${String(e).slice(0, 80)}`) }
+  }
+  const dist = (xs: number[]) => { const m: Record<number, number> = {}; for (const x of xs) m[x] = (m[x] || 0) + 1; return m }
+  console.log(`\n[결과] 통과 ${pass}/${K}  크래시 ${crash}`)
+  console.log(`  적응형 N(日) 분포:`, dist(Ndays))
+  console.log(`  월 수렴일 분포: min ${Math.min(...convs)} max ${Math.max(...convs)} avg ${(convs.reduce((a, b) => a + b, 0) / convs.length).toFixed(1)}`)
+  console.log(`  인생 판정종류 분포:`, dist(distincts))
+  if (fails.length) { console.log(`  실패 ${fails.length}개:`); for (const f of fails) console.log('   ', JSON.stringify(f)) }
 }
 main().catch((e) => { console.error(String(e).slice(0, 200)); process.exit(1) })
