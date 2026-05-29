@@ -130,8 +130,13 @@ export function useChatApi({
           if (res.ok) {
             const data = (await res.json()) as { ready?: boolean; content?: string }
             if (data.ready && typeof data.content === 'string' && data.content.length > 0) {
+              // 복원 답안에도 정상 스트림과 동일한 후처리 — ||FOLLOWUP|| 마커를
+              // 떼어내고(안 그러면 본문에 그대로 노출됨) 후속질문 칩으로 변환.
+              const { cleanContent, followUps } = streamProcessor.extractFollowUpQuestions(
+                data.content
+              )
               const normalized = normalizeCounselorResponse(
-                data.content,
+                cleanContent,
                 lang === 'ko' ? 'ko' : 'en'
               )
               setMessages((prev) => {
@@ -147,6 +152,22 @@ export function useChatApi({
                 }
                 return updated
               })
+              // 후속질문 칩 — 정상 경로와 동일하게 generic 필터 + 부족분 폴백.
+              const goodAiFollowUps = followUps.filter((q) => !isGenericFollowUp(q, lang))
+              const needed = CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT - goodAiFollowUps.length
+              const mergedFollowUps =
+                needed > 0
+                  ? [
+                      ...goodAiFollowUps,
+                      ...generateFollowUpQuestions(
+                        info.userText,
+                        lang,
+                        CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT,
+                        normalized
+                      ).filter((q) => !goodAiFollowUps.includes(q)),
+                    ].slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+                  : goodAiFollowUps.slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+              setFollowUpQuestions(mergedFollowUps)
               onSaveMessageRef.current?.(info.userText, normalized)
               setNotice(null)
               recoverableTurnRef.current = null
@@ -161,7 +182,7 @@ export function useChatApi({
     } finally {
       recoveringRef.current = false
     }
-  }, [lang, setMessages, setNotice])
+  }, [lang, setMessages, setNotice, setFollowUpQuestions])
 
   // 다른 앱/탭에서 돌아오면(visible) 끊겼던 턴의 완성 답을 복원 시도.
   React.useEffect(() => {
