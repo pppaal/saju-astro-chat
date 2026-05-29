@@ -47,7 +47,7 @@ const SIGN_NAMES: Record<string, { ko: string; en: string }> = {
 // "한 줄 해석" 의 두 번째 문장으로 합쳐지므로 마침표 없이 끝남(상위에서 붙임).
 const ELEMENT_TRAITS: Record<string, { ko: string; en: string }> = {
   wood: {
-    ko: '새로 시작하고 키워가는 흐름이 강해요. 자라는 방향을 본능적으로 잡고, 굳어버리기보다 뻗어나가는 쪽을 택해요',
+    ko: '새로 시작하고 키워가는 면이 강해요. 자라는 방향을 본능적으로 잡고, 굳어버리기보다 뻗어나가는 쪽을 택해요',
     en: 'You have a strong starting-and-growing edge. You instinctively find which way to extend, choosing to stretch rather than settle',
   },
   fire: {
@@ -55,15 +55,15 @@ const ELEMENT_TRAITS: Record<string, { ko: string; en: string }> = {
     en: 'A bright, drawing-people-in energy. Your expression is candid, and you bring spark to whatever room you enter',
   },
   earth: {
-    ko: '중심을 잡고 사이를 잇는 흐름이에요. 약속을 지키고, 주변이 흔들릴 때도 자기 자리를 지켜요',
+    ko: '중심을 잡고 사이를 잇는 면이에요. 약속을 지키고, 주변이 흔들릴 때도 자기 자리를 지켜요',
     en: 'A grounding, in-between-connecting edge. You keep promises and hold your ground when things around you waver',
   },
   metal: {
-    ko: '맺고 끊는 게 분명한 흐름이에요. 옳다고 본 건 밀고 가고, 흐트러진 걸 정리하는 감각이 좋아요',
+    ko: '맺고 끊는 게 분명한 면이에요. 옳다고 본 건 밀고 가고, 흐트러진 걸 정리하는 감각이 좋아요',
     en: 'A clear-cut, decision-making edge. You push through what feels right and have a sharp sense for organizing what got scattered',
   },
   water: {
-    ko: '흐름을 읽고 깊이 들여다보는 흐름이에요. 상황에 잘 녹아들면서도 자기 안의 흐름은 단단해요',
+    ko: '흐름을 읽고 깊이 들여다보는 면이에요. 상황에 잘 녹아들면서도 자기 안의 흐름은 단단해요',
     en: 'A read-the-flow, look-deeper edge. You blend with situations while your inner thread stays firm',
   },
 }
@@ -741,7 +741,7 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
       const tail = geokgukTagline ? `${ira} ${geokgukTagline}이에요` : `${ira}고 볼 수 있어요`
       s2 = `사주는 ${both}${tail}.`
     } else if (strengthShort) {
-      s2 = `일간이 ${strengthShort}한 흐름이에요.`
+      s2 = `일간이 ${strengthShort}한 면이에요.`
     }
 
     // s3 — 십성 dominant
