@@ -20,7 +20,7 @@
      between dark/light states. The cosmic gradient lives on a separate
      .cosmicBackdrop layer that opacity-fades out when the user crosses
      into the premium-white state (see MainPageClient.tsx). */
-  background-color: #06091a;
+  background-color: #07091a;
 }
 
 .cosmicBackdrop {

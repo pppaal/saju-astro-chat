@@ -5,7 +5,7 @@
      whole layout — the inner messages panel handles its own scroll. */
   height: 100dvh;
   max-height: 100dvh;
-  background: linear-gradient(135deg, #0f0a1e 0%, #1a1035 50%, #0d1b2a 100%);
+  background: #07091a;
   display: flex;
   flex-direction: column;
   overflow: hidden;

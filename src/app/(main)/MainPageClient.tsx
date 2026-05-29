@@ -198,7 +198,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         isPremiumWhite ? styles.lightMode : ''
       }`}
       animate={{
-        backgroundColor: isPremiumWhite ? '#fafaf9' : '#06091a',
+        backgroundColor: isPremiumWhite ? '#fafaf9' : '#07091a',
         color: isPremiumWhite ? '#1c1917' : '#ffffff',
       }}
       transition={{ duration: 1.2, ease: 'easeInOut' }}
