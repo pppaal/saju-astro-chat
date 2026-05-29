@@ -107,12 +107,15 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "error": "Error",
-    "selectLanguage": "Select language"
+    "selectLanguage": "Select language",
+    "copyLink": "Copy link"
   },
   "auth": {
     "signInRequired": "Sign in required",
     "signInDescription": "Please sign in to continue.",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "inAppBrowserBlockedTitle": "Google sign-in is blocked in this view.",
+    "inAppBrowserBlockedGuide": "Open this page in Chrome or Safari (via the top-right menu → \"Open in browser\") to continue."
   },
   "consent": {
     "title": "Help us improve",
@@ -202,5 +205,14 @@
     "primaryCta": "Sign in",
     "secondaryCta": "Explore Destiny Map",
     "secondaryPricingCta": "Recharge Credits"
+  },
+  "pwa": {
+    "installAriaLabel": "Install as app",
+    "installTitle": "Quick access — install as app",
+    "installDescription": "Opens faster than the browser, and you can get answer notifications.",
+    "installButton": "Install",
+    "iosGuide": "Tap the share icon (↑) below → \"Add to Home Screen\".",
+    "loginWarningTitle": "Google sign-in from the installed app may not return correctly.",
+    "loginWarningGuide": "If sign-in fails, copy this link and open it in Chrome / Safari to log in. The session will carry back into the app."
   }
 }
