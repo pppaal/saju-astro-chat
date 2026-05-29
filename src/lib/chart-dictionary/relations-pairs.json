@@ -1,0 +1,614 @@
+{
+  "천간합": {
+    "甲己": {
+      "ko": {
+        "result": "化土",
+        "meaning": "큰 나무와 비옥한 논밭 — 서로의 자리를 존중하며 안정된 결실을 맺는 결합, 중정(中正)의 합이라 불립니다.",
+        "personality": "차분하고 신뢰감 있게 관계를 가꾸어 가는 성향, 책임감과 포용이 함께 자라납니다."
+      },
+      "en": {
+        "result": "Transforms to Earth",
+        "meaning": "A great tree meeting fertile field — a steady, respectful union that yields lasting fruit, known as the union of balance and integrity.",
+        "personality": "Calm and trustworthy bond-building, where responsibility and warmth grow together."
+      }
+    },
+    "乙庚": {
+      "ko": {
+        "result": "化金",
+        "meaning": "여린 풀과 단단한 무쇠 — 부드러움이 강함을 다듬는 인의(仁義)의 합, 의리와 결단이 살아납니다.",
+        "personality": "겉은 유연하나 속은 분명한 사람, 정의감과 부드러움이 공존합니다."
+      },
+      "en": {
+        "result": "Transforms to Metal",
+        "meaning": "Soft grass meeting hard iron — the union of benevolence and righteousness, where gentleness shapes strength into clarity.",
+        "personality": "Outwardly flexible yet inwardly resolute, balancing kindness with a sense of justice."
+      }
+    },
+    "丙辛": {
+      "ko": {
+        "result": "化水",
+        "meaning": "태양과 보석 — 빛이 빛을 만나 위엄을 이루는 위엄(威嚴)의 합, 권위와 매혹이 함께 흐릅니다.",
+        "personality": "사람을 끌어당기는 카리스마, 위엄과 세련된 감각이 어우러집니다."
+      },
+      "en": {
+        "result": "Transforms to Water",
+        "meaning": "Sun meeting jewel — the union of majesty, where light meets light to form dignified presence and quiet allure.",
+        "personality": "Magnetic charisma blending authority with refined elegance."
+      }
+    },
+    "丁壬": {
+      "ko": {
+        "result": "化木",
+        "meaning": "촛불과 큰 바다 — 정이 깊어지면 쉬이 흔들리는 음란(淫亂)의 합이라고도 하나, 감성과 영감이 풍부한 결합입니다.",
+        "personality": "정에 약하고 낭만적이며, 감정과 영감으로 움직이는 사람."
+      },
+      "en": {
+        "result": "Transforms to Wood",
+        "meaning": "Candlelight meeting vast sea — a deeply romantic bond, sometimes called the union of passion, rich in feeling and inspiration.",
+        "personality": "Romantic and emotionally moved, guided by feeling and creative spark."
+      }
+    },
+    "戊癸": {
+      "ko": {
+        "result": "化火",
+        "meaning": "큰 산과 가는 빗줄기 — 무정해 보이나 묘하게 끌리는 무정(無情)의 합, 나이 차·이질감 속의 매력이 있습니다.",
+        "personality": "겉은 무뚝뚝해도 속정이 깊고, 어울리지 않을 듯한 인연에 끌립니다."
+      },
+      "en": {
+        "result": "Transforms to Fire",
+        "meaning": "Great mountain meeting fine rain — the seemingly indifferent union, with quiet charm across differences in age or temperament.",
+        "personality": "Stoic on the outside but tender within, drawn to unlikely connections."
+      }
+    }
+  },
+  "천간충": {
+    "甲庚": {
+      "ko": {
+        "meaning": "큰 나무를 쇠도끼가 내려치는 형국 — 신념과 추진력이 정면으로 부딪치는 충돌입니다.",
+        "personality": "고집과 결단이 충돌해 갈등이 잦지만, 정리되면 큰 성취로 이어집니다."
+      },
+      "en": {
+        "meaning": "An axe striking a great tree — a head-on clash between conviction and decisive force.",
+        "personality": "Frequent friction between stubbornness and resolve, yet capable of major breakthroughs once settled."
+      }
+    },
+    "乙辛": {
+      "ko": {
+        "meaning": "여린 가지를 가위가 자르는 형국 — 섬세한 감정이 날카로운 말에 베이기 쉬운 충입니다.",
+        "personality": "예민하고 상처받기 쉬우나, 정밀한 비판력과 안목이 살아 있습니다."
+      },
+      "en": {
+        "meaning": "Shears cutting tender branches — delicate feelings easily wounded by sharp words.",
+        "personality": "Sensitive and easily hurt, yet gifted with precise insight and critical eye."
+      }
+    },
+    "丙壬": {
+      "ko": {
+        "meaning": "태양과 큰 바다의 부딪힘 — 빛과 그림자가 서로를 흔드는 역동적 충돌입니다.",
+        "personality": "이상과 현실, 열정과 냉정이 부딪쳐 큰 변화를 만들어 냅니다."
+      },
+      "en": {
+        "meaning": "Sun colliding with the vast sea — light and shadow stirring each other in dynamic tension.",
+        "personality": "Ideal clashes with reality, passion with composure, generating sweeping change."
+      }
+    },
+    "丁癸": {
+      "ko": {
+        "meaning": "촛불이 빗방울에 꺼지는 형국 — 따뜻한 마음이 차가운 현실에 식어버리기 쉬운 충입니다.",
+        "personality": "감정 기복이 크고 의욕이 쉽게 꺾이나, 다시 일어서면 더 단단해집니다."
+      },
+      "en": {
+        "meaning": "A candle quenched by rain — warm feelings easily cooled by cold reality.",
+        "personality": "Emotional ups and downs and waning drive, yet stronger each time the flame is rekindled."
+      }
+    }
+  },
+  "지지육합": {
+    "子丑": {
+      "ko": {
+        "result": "化土",
+        "meaning": "쥐와 소 — 조용히 시작되는 친밀함, 말없이 곁을 지켜 주는 결합입니다.",
+        "personality": "내성적이지만 정 깊은 관계, 묵묵한 신뢰가 자라납니다."
+      },
+      "en": {
+        "result": "Transforms to Earth",
+        "meaning": "Rat and Ox — a quietly forming intimacy, a bond that keeps watch in silence.",
+        "personality": "Introverted yet deeply affectionate, where silent trust takes root."
+      }
+    },
+    "寅亥": {
+      "ko": {
+        "result": "化木",
+        "meaning": "호랑이와 돼지 — 다정하고 정들기 쉬운 결, 한번 끌리면 깊어집니다.",
+        "personality": "정에 약하고 따뜻하며, 사람을 쉽게 품는 너그러움이 있습니다."
+      },
+      "en": {
+        "result": "Transforms to Wood",
+        "meaning": "Tiger and Pig — a tender bond easy to grow fond of, deepening once attraction takes hold.",
+        "personality": "Warm and softhearted, with a generous nature that embraces others easily."
+      }
+    },
+    "卯戌": {
+      "ko": {
+        "result": "化火",
+        "meaning": "토끼와 개 — 부드러움과 의리가 만나는 따뜻한 결합, 마음이 빠르게 데워집니다.",
+        "personality": "다정하고 의리 있는 관계, 감정이 빠르게 불붙습니다."
+      },
+      "en": {
+        "result": "Transforms to Fire",
+        "meaning": "Rabbit and Dog — softness meeting loyalty in a warm union where hearts kindle quickly.",
+        "personality": "Affectionate and loyal, with feelings that ignite swiftly."
+      }
+    },
+    "辰酉": {
+      "ko": {
+        "result": "化金",
+        "meaning": "용과 닭 — 듬직함과 단정함이 만나 결실을 다듬는 결합입니다.",
+        "personality": "성실하고 정돈된 관계, 함께 가치를 쌓아 갑니다."
+      },
+      "en": {
+        "result": "Transforms to Metal",
+        "meaning": "Dragon and Rooster — steadfastness meeting precision, polishing what bears fruit together.",
+        "personality": "Diligent and well-ordered, building lasting value side by side."
+      }
+    },
+    "巳申": {
+      "ko": {
+        "result": "化水",
+        "meaning": "뱀과 원숭이 — 영리한 둘의 끌림, 그러나 합 속에 형(刑)이 숨어 변화가 잦은 결합입니다.",
+        "personality": "지적이고 매력적이나 관계의 기복이 큽니다."
+      },
+      "en": {
+        "result": "Transforms to Water",
+        "meaning": "Snake and Monkey — a clever mutual attraction, yet with hidden friction that brings shifting tides.",
+        "personality": "Intelligent and charming, with an undercurrent of volatility."
+      }
+    },
+    "午未": {
+      "ko": {
+        "result": "化火/化土",
+        "meaning": "말과 양 — 밝고 정겨운 만남, 햇살 아래 함께 머무는 듯한 합입니다.",
+        "personality": "활기차고 다정하며, 어울려 즐기는 분위기를 좋아합니다."
+      },
+      "en": {
+        "result": "Transforms to Fire/Earth",
+        "meaning": "Horse and Goat — a bright, affectionate meeting like resting together under sunlight.",
+        "personality": "Lively and warm, fond of shared joy and easy company."
+      }
+    }
+  },
+  "지지삼합": {
+    "申子辰": {
+      "ko": {
+        "result": "水局",
+        "meaning": "원숭이·쥐·용이 모여 큰 물줄기를 이루는 결 — 지혜와 흐름, 깊은 통찰의 합국입니다.",
+        "personality": "사고가 깊고 적응력이 뛰어나며, 흐름을 읽는 감각이 살아 있습니다."
+      },
+      "en": {
+        "result": "Water Trine",
+        "meaning": "Monkey, Rat, and Dragon gathering into a great current — a trine of wisdom, flow, and deep insight.",
+        "personality": "Deeply thoughtful and adaptive, with a keen sense for currents and timing."
+      }
+    },
+    "亥卯未": {
+      "ko": {
+        "result": "木局",
+        "meaning": "돼지·토끼·양이 모여 푸른 숲을 이루는 결 — 성장과 따뜻한 정의 합국입니다.",
+        "personality": "온화하고 인정 많으며, 꾸준히 자라나는 힘이 있습니다."
+      },
+      "en": {
+        "result": "Wood Trine",
+        "meaning": "Pig, Rabbit, and Goat gathering into a green forest — a trine of growth and warm affection.",
+        "personality": "Gentle and kindhearted, with steady, growing strength."
+      }
+    },
+    "寅午戌": {
+      "ko": {
+        "result": "火局",
+        "meaning": "호랑이·말·개가 모여 활활 타오르는 불을 이루는 결 — 열정과 명예, 추진력의 합국입니다.",
+        "personality": "정열적이고 명예를 중히 여기며, 단숨에 일을 밀고 나갑니다."
+      },
+      "en": {
+        "result": "Fire Trine",
+        "meaning": "Tiger, Horse, and Dog gathering into a blazing fire — a trine of passion, honor, and drive.",
+        "personality": "Passionate and honor-bound, pushing forward with decisive force."
+      }
+    },
+    "巳酉丑": {
+      "ko": {
+        "result": "金局",
+        "meaning": "뱀·닭·소가 모여 단단한 쇠를 이루는 결 — 결단과 원칙, 결실의 합국입니다.",
+        "personality": "냉정하고 분명하며, 한번 정한 일은 끝까지 마무리합니다."
+      },
+      "en": {
+        "result": "Metal Trine",
+        "meaning": "Snake, Rooster, and Ox gathering into solid metal — a trine of resolve, principle, and harvest.",
+        "personality": "Cool-headed and decisive, seeing every commitment through to the end."
+      }
+    }
+  },
+  "지지방합": {
+    "寅卯辰": {
+      "ko": {
+        "result": "東方木局",
+        "meaning": "봄의 동쪽 — 호랑이·토끼·용이 모여 새싹이 돋는 계절의 기운을 이루는 결입니다.",
+        "personality": "생기 넘치고 시작에 강하며, 새로움을 향한 의욕이 가득합니다."
+      },
+      "en": {
+        "result": "Eastern Wood Direction",
+        "meaning": "Spring in the east — Tiger, Rabbit, and Dragon together forming the season of new sprouts.",
+        "personality": "Vibrant and full of fresh drive, gifted at beginnings."
+      }
+    },
+    "巳午未": {
+      "ko": {
+        "result": "南方火局",
+        "meaning": "여름의 남쪽 — 뱀·말·양이 모여 한낮의 햇살처럼 환한 기운을 이루는 결입니다.",
+        "personality": "밝고 표현이 풍부하며, 사람들 가운데서 빛납니다."
+      },
+      "en": {
+        "result": "Southern Fire Direction",
+        "meaning": "Summer in the south — Snake, Horse, and Goat together radiating midday brightness.",
+        "personality": "Bright and expressive, shining brightest among others."
+      }
+    },
+    "申酉戌": {
+      "ko": {
+        "result": "西方金局",
+        "meaning": "가을의 서쪽 — 원숭이·닭·개가 모여 결실을 거두는 계절의 기운을 이루는 결입니다.",
+        "personality": "냉정하고 마무리에 강하며, 정리와 판단이 빠릅니다."
+      },
+      "en": {
+        "result": "Western Metal Direction",
+        "meaning": "Autumn in the west — Monkey, Rooster, and Dog together gathering the season's harvest.",
+        "personality": "Composed and skilled at closure, swift in sorting and judging."
+      }
+    },
+    "亥子丑": {
+      "ko": {
+        "result": "北方水局",
+        "meaning": "겨울의 북쪽 — 돼지·쥐·소가 모여 고요한 한밤의 깊이를 이루는 결입니다.",
+        "personality": "사색적이고 묵직하며, 안으로 깊이 다지는 힘이 있습니다."
+      },
+      "en": {
+        "result": "Northern Water Direction",
+        "meaning": "Winter in the north — Pig, Rat, and Ox together holding the depth of still midnight.",
+        "personality": "Contemplative and weighty, with strength gathered deep within."
+      }
+    }
+  },
+  "지지충": {
+    "子午": {
+      "ko": {
+        "meaning": "쥐와 말, 한밤과 한낮의 부딪힘 — 감정과 이성, 안과 밖이 정면으로 맞서는 충입니다.",
+        "personality": "마음이 자주 흔들리고 이동·변화가 많아, 늘 새로운 자극을 찾습니다."
+      },
+      "en": {
+        "meaning": "Rat and Horse, midnight clashing with noon — emotion and reason, inner and outer in direct opposition.",
+        "personality": "Often emotionally restless with frequent movement and change, always seeking new stimulation."
+      }
+    },
+    "丑未": {
+      "ko": {
+        "meaning": "소와 양, 두 흙의 부딪힘 — 묵은 감정과 인연이 맞부딪쳐 갈등이 생기는 충입니다.",
+        "personality": "속에 쌓아 둔 마음이 한꺼번에 터지기 쉬워, 정리와 화해가 중요합니다."
+      },
+      "en": {
+        "meaning": "Ox and Goat, two earths colliding — long-held feelings and ties striking against each other.",
+        "personality": "Stored emotions easily erupt at once, making release and reconciliation essential."
+      }
+    },
+    "寅申": {
+      "ko": {
+        "meaning": "호랑이와 원숭이의 부딪힘 — 추진과 변화가 부딪쳐 이동·여행·사고가 잦은 충입니다.",
+        "personality": "활동적이고 분주하며, 자리에 머무르기보다 움직임 속에서 자라납니다."
+      },
+      "en": {
+        "meaning": "Tiger and Monkey colliding — drive meeting change, bringing frequent movement, travel, and accidents.",
+        "personality": "Active and busy, growing through motion rather than settling in one place."
+      }
+    },
+    "卯酉": {
+      "ko": {
+        "meaning": "토끼와 닭의 부딪힘 — 부드러움과 날카로움이 맞서 마음의 상처가 생기기 쉬운 충입니다.",
+        "personality": "예민하고 정에 약하며, 가까운 사이일수록 작은 말에도 흔들립니다."
+      },
+      "en": {
+        "meaning": "Rabbit and Rooster colliding — softness meeting sharpness, where inner wounds form easily.",
+        "personality": "Sensitive and tender, more shaken by small words from those held close."
+      }
+    },
+    "辰戌": {
+      "ko": {
+        "meaning": "용과 개의 부딪힘 — 두 창고가 부딪쳐 속에 묻어 둔 인연·감정이 열리는 충입니다.",
+        "personality": "겉은 단단해도 속의 진실이 드러나는 시기를 자주 만납니다."
+      },
+      "en": {
+        "meaning": "Dragon and Dog colliding — two storehouses crashing open, unsealing buried bonds and feelings.",
+        "personality": "Outwardly firm, yet often facing moments when inner truths come to light."
+      }
+    },
+    "巳亥": {
+      "ko": {
+        "meaning": "뱀과 돼지의 부딪힘 — 이상과 현실, 멀고 가까움이 부딪쳐 마음이 자주 흔들리는 충입니다.",
+        "personality": "꿈과 현실 사이를 오가며, 이상을 향한 갈증이 큽니다."
+      },
+      "en": {
+        "meaning": "Snake and Pig colliding — ideal meeting reality, far meeting near, with the heart often restless.",
+        "personality": "Moving between dream and reality, with a strong thirst for higher ideals."
+      }
+    }
+  },
+  "지지형": {
+    "寅巳申": {
+      "ko": {
+        "type": "無恩之刑",
+        "meaning": "호랑이·뱀·원숭이의 무은형 — 도움을 주고도 은혜가 어그러지기 쉬운, 인연의 배신감을 부르는 형입니다.",
+        "personality": "사람에게 정성을 쏟고도 상처를 받기 쉬우니, 거리감을 두는 지혜가 필요합니다."
+      },
+      "en": {
+        "type": "Ingratitude Punishment",
+        "meaning": "Tiger, Snake, and Monkey — the punishment of ingratitude, where favors given often go awry, evoking a sense of betrayal.",
+        "personality": "Despite heartfelt giving, wounds come easily — wisdom lies in keeping healthy distance."
+      }
+    },
+    "丑戌未": {
+      "ko": {
+        "type": "無禮之刑",
+        "meaning": "소·개·양의 무례형 — 가까운 사이일수록 예의가 무너져 다툼이 생기는 형입니다.",
+        "personality": "친밀할수록 말과 태도가 거칠어지기 쉬우니, 절제와 존중이 중요합니다."
+      },
+      "en": {
+        "type": "Discourtesy Punishment",
+        "meaning": "Ox, Dog, and Goat — the punishment of discourtesy, where closeness erodes manners and breeds conflict.",
+        "personality": "The nearer the bond, the rougher words may turn — restraint and respect are vital."
+      }
+    },
+    "子卯": {
+      "ko": {
+        "type": "無禮之刑",
+        "meaning": "쥐와 토끼의 무례형 — 감정의 결이 어긋나 무례한 말과 태도가 나오기 쉬운 형입니다.",
+        "personality": "감정 표현이 거칠어지기 쉬우니, 말의 톤을 다듬는 연습이 도움이 됩니다."
+      },
+      "en": {
+        "type": "Discourtesy Punishment",
+        "meaning": "Rat and Rabbit — the punishment of discourtesy, where emotional currents misalign into rough words.",
+        "personality": "Emotional expression easily turns harsh — practicing softer tone helps."
+      }
+    },
+    "辰辰": {
+      "ko": {
+        "type": "自刑",
+        "meaning": "용과 용의 자형 — 자기 안의 욕심·고집이 스스로를 옭아매는 형입니다.",
+        "personality": "혼자 깊이 파고들다 지치기 쉬우니, 마음을 풀어 줄 사람이 필요합니다."
+      },
+      "en": {
+        "type": "Self Punishment",
+        "meaning": "Dragon meeting Dragon — the self-punishment where one's own ambition and stubbornness become a snare.",
+        "personality": "Easily exhausted by going inward alone — companions who lighten the heart are needed."
+      }
+    },
+    "午午": {
+      "ko": {
+        "type": "自刑",
+        "meaning": "말과 말의 자형 — 들끓는 열정이 자기 자신을 태우는 형입니다.",
+        "personality": "감정이 격해지면 스스로를 소진하기 쉬우니, 쉼과 균형이 필요합니다."
+      },
+      "en": {
+        "type": "Self Punishment",
+        "meaning": "Horse meeting Horse — the self-punishment where surging passion burns the self.",
+        "personality": "Heated emotions can drain you from within — rest and balance are essential."
+      }
+    },
+    "酉酉": {
+      "ko": {
+        "type": "自刑",
+        "meaning": "닭과 닭의 자형 — 날카로운 비판이 자기를 향해 돌아오는 형입니다.",
+        "personality": "자기 검열이 강해 스스로를 몰아세우기 쉬우니, 너그러움이 약입니다."
+      },
+      "en": {
+        "type": "Self Punishment",
+        "meaning": "Rooster meeting Rooster — the self-punishment where sharp criticism turns inward.",
+        "personality": "Strong self-scrutiny can corner you — self-kindness is the remedy."
+      }
+    },
+    "亥亥": {
+      "ko": {
+        "type": "自刑",
+        "meaning": "돼지와 돼지의 자형 — 깊은 생각과 감정에 잠겨 스스로 무거워지는 형입니다.",
+        "personality": "내면의 무게에 가라앉기 쉬우니, 마음을 나눌 통로가 필요합니다."
+      },
+      "en": {
+        "type": "Self Punishment",
+        "meaning": "Pig meeting Pig — the self-punishment where deep thought and feeling weigh one down.",
+        "personality": "Easily sinking under inner weight — outlets to share the heart are needed."
+      }
+    }
+  },
+  "지지파": {
+    "子酉": {
+      "ko": {
+        "meaning": "쥐와 닭의 파 — 서로의 결이 미세하게 어긋나 마음에 금이 가는 결입니다.",
+        "personality": "작은 일에 신경이 쓰이고, 관계가 잔잔히 흔들립니다."
+      },
+      "en": {
+        "meaning": "Rat and Rooster — a fine misalignment that quietly cracks the heart.",
+        "personality": "Small things linger in the mind, gently unsettling relationships."
+      }
+    },
+    "午卯": {
+      "ko": {
+        "meaning": "말과 토끼의 파 — 속도와 결이 달라 함께 가다 흩어지기 쉬운 결입니다.",
+        "personality": "한때 가까웠던 인연이 점차 멀어지는 경험이 잦습니다."
+      },
+      "en": {
+        "meaning": "Horse and Rabbit — different paces and grains, easily parting after walking together.",
+        "personality": "Often experiencing once-close ties slowly drifting apart."
+      }
+    },
+    "寅亥": {
+      "ko": {
+        "meaning": "호랑이와 돼지의 파 — 합이 되면서도 파가 숨어, 가까울수록 균열이 보이는 결입니다.",
+        "personality": "친밀한 관계 속에서도 작은 어긋남을 자주 발견합니다."
+      },
+      "en": {
+        "meaning": "Tiger and Pig — uniting yet harboring fracture, with cracks more visible the closer the bond.",
+        "personality": "Even in close ties, small misalignments often surface."
+      }
+    },
+    "巳申": {
+      "ko": {
+        "meaning": "뱀과 원숭이의 파 — 합이면서 형이고 파인, 끌리면서도 부서지기 쉬운 복잡한 결입니다.",
+        "personality": "관계가 강렬하지만 변동이 크고, 안정에 노력이 듭니다."
+      },
+      "en": {
+        "meaning": "Snake and Monkey — at once union, friction, and fracture, drawn together yet easily broken.",
+        "personality": "Intense bonds with high volatility, requiring effort to stabilize."
+      }
+    },
+    "辰丑": {
+      "ko": {
+        "meaning": "용과 소의 파 — 두 흙이 서로 갈리듯, 묵은 인연에 작은 균열이 생기는 결입니다.",
+        "personality": "오래된 관계에서 묻혀 있던 불편함이 드러나기 쉽습니다."
+      },
+      "en": {
+        "meaning": "Dragon and Ox — two earths grinding, with small fissures forming in long-standing ties.",
+        "personality": "Long-buried discomforts in old relationships tend to surface."
+      }
+    },
+    "戌未": {
+      "ko": {
+        "meaning": "개와 양의 파 — 비슷한 듯 다른 두 흙이 서로를 깨뜨려 다툼이 잦은 결입니다.",
+        "personality": "비슷해 보이는 사람과 오히려 부딪치는 일이 많습니다."
+      },
+      "en": {
+        "meaning": "Dog and Goat — two similar yet different earths chipping at each other, prone to quarrels.",
+        "personality": "Often clashing more with those who appear most similar."
+      }
+    }
+  },
+  "지지해": {
+    "子未": {
+      "ko": {
+        "meaning": "쥐와 양의 해 — 서로 도움이 되지 않고 미묘하게 방해가 되는, 잔잔한 불편함의 결입니다.",
+        "personality": "도와주려 해도 어긋나고, 가까이 갈수록 피곤해지는 인연을 만납니다."
+      },
+      "en": {
+        "meaning": "Rat and Goat — a harm relationship where help fails and subtle hindrance lingers as quiet discomfort.",
+        "personality": "Even efforts to help go awry, and closeness brings fatigue."
+      }
+    },
+    "丑午": {
+      "ko": {
+        "meaning": "소와 말의 해 — 묵직함과 분주함이 서로를 갉아먹는 결입니다.",
+        "personality": "한쪽은 지치고 한쪽은 답답해, 함께 있는 시간이 무겁게 느껴집니다."
+      },
+      "en": {
+        "meaning": "Ox and Horse — heaviness and haste slowly wearing each other down.",
+        "personality": "One grows weary, the other restless, making shared time feel weighty."
+      }
+    },
+    "寅巳": {
+      "ko": {
+        "meaning": "호랑이와 뱀의 해 — 서로의 영역을 침범해 신경이 곤두서는 결입니다.",
+        "personality": "서로의 방식이 부딪쳐 함께 일하면 갈등이 잦습니다."
+      },
+      "en": {
+        "meaning": "Tiger and Snake — territories overlapping, nerves on edge.",
+        "personality": "Different ways colliding, frequent conflict when working closely."
+      }
+    },
+    "卯辰": {
+      "ko": {
+        "meaning": "토끼와 용의 해 — 부드러움이 큰 기운에 눌려 마음이 위축되는 결입니다.",
+        "personality": "당당한 상대 앞에서 자신을 잃기 쉬워 거리 조절이 필요합니다."
+      },
+      "en": {
+        "meaning": "Rabbit and Dragon — softness pressed by greater force, leaving the heart contracted.",
+        "personality": "Easy to lose oneself before a commanding presence; distance helps."
+      }
+    },
+    "申亥": {
+      "ko": {
+        "meaning": "원숭이와 돼지의 해 — 영리함과 너그러움이 어긋나 오해가 쌓이는 결입니다.",
+        "personality": "선의가 다르게 전해져 답답함이 오래 남기 쉽습니다."
+      },
+      "en": {
+        "meaning": "Monkey and Pig — cleverness and generosity misaligning into accumulating misunderstanding.",
+        "personality": "Good intentions land differently, leaving lingering frustration."
+      }
+    },
+    "酉戌": {
+      "ko": {
+        "meaning": "닭과 개의 해 — 날카로움과 충직함이 서로를 자극해 다툼이 잦은 결입니다.",
+        "personality": "사소한 말에도 발끈하기 쉬우니, 한 박자 늦추는 연습이 도움이 됩니다."
+      },
+      "en": {
+        "meaning": "Rooster and Dog — sharpness and loyalty provoking each other into frequent quarrels.",
+        "personality": "Even small remarks spark reaction — pausing a beat truly helps."
+      }
+    }
+  },
+  "원진": {
+    "子未": {
+      "ko": {
+        "meaning": "쥐와 양의 원진 — 이유 없이 미워지고 마음이 멀어지는, 까닭 모를 거부감의 결입니다.",
+        "personality": "특별한 일 없이도 서로가 불편해, 가까울수록 묘하게 멀어집니다."
+      },
+      "en": {
+        "meaning": "Rat and Goat resentment — an unexplained aversion where hearts drift without clear reason.",
+        "personality": "Discomfort arises without cause; closeness paradoxically widens distance."
+      }
+    },
+    "丑午": {
+      "ko": {
+        "meaning": "소와 말의 원진 — 묵직한 인내와 분주한 열기가 서로를 짜증나게 하는 결입니다.",
+        "personality": "한쪽은 답답하고 한쪽은 조급해, 사소한 일에도 가시가 돋습니다."
+      },
+      "en": {
+        "meaning": "Ox and Horse resentment — patient weight and restless heat irritating each other.",
+        "personality": "One feels stifled, the other rushed — small things grow thorns."
+      }
+    },
+    "寅酉": {
+      "ko": {
+        "meaning": "호랑이와 닭의 원진 — 자존심과 날선 비판이 부딪쳐 깊은 앙금이 쌓이는 결입니다.",
+        "personality": "한번 어긋난 마음이 쉽게 풀리지 않아 오래도록 남습니다."
+      },
+      "en": {
+        "meaning": "Tiger and Rooster resentment — pride colliding with sharp criticism, leaving deep sediment.",
+        "personality": "Once the heart turns, it doesn't easily soften, lingering long."
+      }
+    },
+    "卯申": {
+      "ko": {
+        "meaning": "토끼와 원숭이의 원진 — 섬세함과 영리함이 묘하게 어긋나 서로를 못마땅해하는 결입니다.",
+        "personality": "이해되는 듯하면서도 끝내 닿지 않는 거리감이 남습니다."
+      },
+      "en": {
+        "meaning": "Rabbit and Monkey resentment — delicacy and cleverness subtly misaligning into mutual displeasure.",
+        "personality": "A distance that seems bridgeable but never quite closes."
+      }
+    },
+    "辰亥": {
+      "ko": {
+        "meaning": "용과 돼지의 원진 — 위엄과 너그러움이 만나도 마음이 닿지 않는 결입니다.",
+        "personality": "서로를 인정해 주면서도 끝내 마음 한구석에 거부감이 남습니다."
+      },
+      "en": {
+        "meaning": "Dragon and Pig resentment — majesty meeting generosity, yet hearts never quite reaching.",
+        "personality": "Mutual recognition coexists with a lingering corner of aversion."
+      }
+    },
+    "巳戌": {
+      "ko": {
+        "meaning": "뱀과 개의 원진 — 지혜와 충직함이 어긋나 깊은 오해를 만드는 결입니다.",
+        "personality": "선의가 의심으로 비춰져, 가까이 가려 할수록 멀어지기 쉽습니다."
+      },
+      "en": {
+        "meaning": "Snake and Dog resentment — wisdom and loyalty misaligning into deep misunderstanding.",
+        "personality": "Good intent read as suspicion; the closer the approach, the further the drift."
+      }
+    }
+  }
+}
