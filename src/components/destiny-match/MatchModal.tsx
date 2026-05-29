@@ -4,8 +4,9 @@ import * as React from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Heart } from 'lucide-react'
+import { Heart, Flag } from 'lucide-react'
 import type { DMCopy } from './destiny-match-i18n'
+import { ReportModal } from './ReportModal'
 
 interface MatchModalProps {
   copy: DMCopy
@@ -13,6 +14,8 @@ interface MatchModalProps {
   // 매치 상대 표시용 데이터 (이름 + 사진)
   otherName: string
   otherPhoto: string | null
+  // 매치 상대의 User id — chat/match 진입점 신고에 사용.
+  otherUserId: string | null
   // 매치 연결 id — 있으면 메시지 보내기 라우팅 가능, 없으면 닫기로만 동작
   connectionId: string | null
   onClose: () => void
@@ -23,10 +26,12 @@ export function MatchModal({
   open,
   otherName,
   otherPhoto,
+  otherUserId,
   connectionId,
   onClose,
 }: MatchModalProps) {
   const router = useRouter()
+  const [reportOpen, setReportOpen] = React.useState(false)
   if (!open) return null
 
   const handleSendMessage = () => {
@@ -88,8 +93,28 @@ export function MatchModal({
           >
             {copy.matchKeepSwiping}
           </button>
+          {otherUserId && (
+            <button
+              type="button"
+              aria-label={copy.report}
+              onClick={() => setReportOpen(true)}
+              className="mx-auto inline-flex items-center gap-1.5 text-xs font-medium text-white/70 transition hover:text-white"
+            >
+              <Flag className="h-3.5 w-3.5" />
+              {copy.report}
+            </button>
+          )}
         </div>
       </motion.div>
+
+      {/* chat/match 진입점 신고 모달 */}
+      <ReportModal
+        copy={copy}
+        open={reportOpen}
+        reportedUserId={otherUserId}
+        reportedName={otherName}
+        onClose={() => setReportOpen(false)}
+      />
     </motion.div>
   )
 }
