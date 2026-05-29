@@ -78,6 +78,14 @@ export interface CallClaudeOptions {
    * stopReason 값: 'end_turn' | 'max_tokens' | 'stop_sequence' | null
    */
   onStreamComplete?: (info: { stopReason: string | null }) => void
+  /**
+   * External AbortSignal — typically `req.signal` from the route handler.
+   * When this aborts (client disconnects), we abort the upstream Anthropic
+   * fetch and stop reading tokens. Without it the inner reader keeps
+   * draining the open connection while Anthropic continues to bill output
+   * tokens for a user who's already gone.
+   */
+  abortSignal?: AbortSignal
 }
 
 export interface CallClaudeResult {
@@ -360,10 +368,22 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
     label = 'claude-stream',
     prefillAssistant,
     onStreamComplete,
+    abortSignal,
   } = opts
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
+  // Forward the caller's abort (client disconnect) into the upstream fetch.
+  // If the caller already aborted, abort synchronously before fetch starts.
+  let onExternalAbort: (() => void) | null = null
+  if (abortSignal) {
+    if (abortSignal.aborted) {
+      controller.abort()
+    } else {
+      onExternalAbort = () => controller.abort()
+      abortSignal.addEventListener('abort', onExternalAbort, { once: true })
+    }
+  }
 
   // Build messages — 마지막에 prefillAssistant 가 있으면 assistant 턴 append
   // (Anthropic prefill 패턴 — LLM 이 그 텍스트 부터 이어서 작성).
@@ -378,27 +398,39 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
     return ms
   })()
 
-  const response = await fetch(ANTHROPIC_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': ANTHROPIC_VERSION,
-      'anthropic-beta': PROMPT_CACHE_BETA_HEADER,
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: maxTokens,
-      temperature,
-      stream: true,
-      system: [{ type: 'text', text: systemPrompt, cache_control: CACHE_CONTROL_1H }],
-      messages: messagesWithMaybePrefill,
-    }),
-    signal: controller.signal,
-  })
+  let response: Response
+  try {
+    response = await fetch(ANTHROPIC_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': ANTHROPIC_VERSION,
+        'anthropic-beta': PROMPT_CACHE_BETA_HEADER,
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        temperature,
+        stream: true,
+        system: [{ type: 'text', text: systemPrompt, cache_control: CACHE_CONTROL_1H }],
+        messages: messagesWithMaybePrefill,
+      }),
+      signal: controller.signal,
+    })
+  } catch (err) {
+    clearTimeout(timer)
+    if (onExternalAbort && abortSignal) {
+      abortSignal.removeEventListener('abort', onExternalAbort)
+    }
+    throw err
+  }
 
   if (!response.ok || !response.body) {
     clearTimeout(timer)
+    if (onExternalAbort && abortSignal) {
+      abortSignal.removeEventListener('abort', onExternalAbort)
+    }
     const errText = await response.text().catch(() => '')
     throw new Error(`Claude stream error: ${response.status} ${errText.slice(0, 200)}`)
   }
@@ -495,6 +527,9 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
         streamController.error(err)
       } finally {
         clearTimeout(timer)
+        if (onExternalAbort && abortSignal) {
+          abortSignal.removeEventListener('abort', onExternalAbort)
+        }
         // continuation 판단용 메타 콜백 — close 전에 호출 (consumer 가 다음
         // round 결정 가능). 콜백 에러는 절대 stream 깨지 않도록 swallow.
         try {

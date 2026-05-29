@@ -274,6 +274,10 @@ export async function POST(req: NextRequest) {
       // streamClaudeWithContinuation — maxTokens 도달해도 자동 이어쓰기
       // 라 카드 7장 같은 깊은 해석도 중간에 안 잘림.
       claudeStream = await streamClaudeWithContinuation({
+        // Client disconnect → upstream Anthropic fetch aborts. Without this,
+        // tarot interpret-stream keeps reading 5k tokens for nobody if the
+        // user navigates away mid-reading.
+        abortSignal: req.signal,
         systemPrompt,
         userPrompt,
         model: PREMIUM_CLAUDE_MODEL,
@@ -391,6 +395,17 @@ export async function POST(req: NextRequest) {
           } catch {
             /* already closed */
           }
+        }
+      },
+      // Framework calls cancel() when the outgoing Response is dropped
+      // (client disconnect). Cancel the inner reader so the upstream
+      // Anthropic fetch (already abort-aware via req.signal) finishes
+      // tearing down instead of being left dangling on a slow GC.
+      cancel() {
+        try {
+          void reader.cancel()
+        } catch {
+          /* reader may already be done */
         }
       },
     })

@@ -40,6 +40,7 @@ export async function streamClaudeWithContinuation(
     maxContinuations = 2,
     maxTotalOutputChars = 24000,
     label = 'claude-stream',
+    abortSignal,
     ...baseOpts
   } = opts
 
@@ -50,6 +51,16 @@ export async function streamClaudeWithContinuation(
       let lastStopReason: string | null = null
 
       while (attempt <= maxContinuations) {
+        // Client already gave up — don't start the next round; we'd just be
+        // burning Anthropic output tokens for nobody. Same check repeats at
+        // every loop entry because abort can land between rounds too.
+        if (abortSignal?.aborted) {
+          logger.info(`[${label}] aborted by caller — stopping continuation loop`, {
+            attempts: attempt,
+            accumulatedChars: accumulated.length,
+          })
+          break
+        }
         let stopReason: string | null = null
 
         // 1차: 원래 옵션 그대로. 2차+: prefillAssistant = 지금까지 누적 텍스트.
@@ -67,6 +78,7 @@ export async function streamClaudeWithContinuation(
           ...baseOpts,
           label: attempt === 0 ? label : `${label}:cont${attempt}`,
           prefillAssistant: prefill,
+          abortSignal,
           onStreamComplete: (info) => {
             stopReason = info.stopReason
           },

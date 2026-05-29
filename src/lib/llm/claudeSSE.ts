@@ -30,6 +30,14 @@ export interface ClaudeSSEOptions extends CallClaudeOptions {
   maxContinuations?: number
   /** Continuation 누적 출력 절대 cap (chars). 기본 24000 (~12k tokens). */
   maxTotalOutputChars?: number
+  /**
+   * 라우트의 `req.signal` 을 넘기면 클라이언트 연결이 끊겼을 때 (탭 닫기,
+   * 컴포넌트 unmount, 사용자 abort) 업스트림 Anthropic fetch 도 같이 abort
+   * 해서 출력 토큰 비용이 끝까지 청구되는 걸 막는다. 빠뜨리면 SSE Response
+   * 는 framework 가 끊어도 inner reader 는 끝까지 토큰을 읽어들임 (실제로
+   * 청구 발생).
+   */
+  abortSignal?: AbortSignal
 }
 
 /**
@@ -46,8 +54,23 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
     enableContinuation,
     maxContinuations,
     maxTotalOutputChars,
+    abortSignal,
     ...claudeOpts
   } = opts
+
+  // Pipeline controller: aborted by EITHER the route's request signal (client
+  // disconnect) OR our own SSE stream cancel() below (framework dropped the
+  // outgoing Response). Either source means "user is gone, stop burning
+  // Anthropic tokens." Pass this signal down to callClaudeStream so the
+  // upstream fetch dies with us.
+  const pipelineAbort = new AbortController()
+  if (abortSignal) {
+    if (abortSignal.aborted) {
+      pipelineAbort.abort()
+    } else {
+      abortSignal.addEventListener('abort', () => pipelineAbort.abort(), { once: true })
+    }
+  }
 
   // enableContinuation=true 면 wrapper 경유 — max_tokens 자동 이어쓰기.
   const tokenStream = enableContinuation
@@ -55,8 +78,9 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         ...claudeOpts,
         maxContinuations,
         maxTotalOutputChars,
+        abortSignal: pipelineAbort.signal,
       })
-    : await callClaudeStream(claudeOpts)
+    : await callClaudeStream({ ...claudeOpts, abortSignal: pipelineAbort.signal })
   const reader = tokenStream.getReader()
 
   const encoder = new TextEncoder()
@@ -153,6 +177,21 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         stopHeartbeat()
         streamClosed = true
         controller.close()
+      }
+    },
+    // The framework calls cancel() when the outgoing Response is dropped
+    // (client disconnect, request abort). Without this hook, the inner
+    // reader.read() loop above keeps draining the open Anthropic connection
+    // and we keep paying for every output token until end_turn / max_tokens,
+    // even though no one will see them. Abort the pipeline → upstream fetch
+    // dies → reader.read() throws → catch path refunds when no content
+    // was delivered.
+    cancel() {
+      pipelineAbort.abort()
+      try {
+        void reader.cancel()
+      } catch {
+        /* reader may already be done; ignore */
       }
     },
   })

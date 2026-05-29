@@ -803,6 +803,9 @@ export async function POST(req: NextRequest) {
 
     try {
       return await streamClaudeAsSSE({
+        // Propagate client disconnect into the upstream Anthropic fetch so
+        // output-token billing stops when the user closes the tab mid-stream.
+        abortSignal: req.signal,
         systemPrompt,
         cachedUserContext,
         userPrompt,
