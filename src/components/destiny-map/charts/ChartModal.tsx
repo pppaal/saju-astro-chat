@@ -20,6 +20,13 @@ interface ChartModalProps {
   lang?: 'ko' | 'en'
 }
 
+/** 대운 데이터 있는지 — saju.daeun.list 또는 saju.daeWoon.list 둘 다 확인. */
+function hasDaeunList(saju: unknown): boolean {
+  if (!saju || typeof saju !== 'object') return false
+  const s = saju as { daeun?: { list?: unknown[] }; daeWoon?: { list?: unknown[] } }
+  return (s.daeun?.list?.length ?? 0) > 0 || (s.daeWoon?.list?.length ?? 0) > 0
+}
+
 export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartModalProps) {
   const isKo = lang === 'ko'
   const router = useRouter()
@@ -39,6 +46,11 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
 
   const readLine = generateChartSummary(saju, astro, lang)
   const birthYear = (saju as { birthYear?: number } | undefined)?.birthYear
+  // 자연어 아직 로딩 중 (사주 fetch 안 끝남) 표시 fallback. readLine 이 빈 string 이면 saju 가 advancedAnalysis 없거나 fetch 중.
+  const sajuReady =
+    !!saju &&
+    typeof saju === 'object' &&
+    (saju as { advancedAnalysis?: unknown }).advancedAnalysis !== undefined
 
   return (
     <div
@@ -87,27 +99,56 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
         </div>
 
         {/* 자연어 종합 — 격국·신강약·일간·오행·태양/달·대운 흐르는 한 문단.
-            generateChartSummary 가 advancedAnalysis 기반 6-10 문장 생성. */}
-        {readLine && (
-          <div
-            className="chart-rise-in mb-4 rounded-2xl p-4 sm:mb-6 sm:p-5"
-            style={
-              {
-                ['--i' as string]: 0,
-                background:
-                  'linear-gradient(135deg, rgba(212,181,114,0.08) 0%, rgba(212,181,114,0.04) 50%, rgba(212,181,114,0.06) 100%)',
-                border: '1px solid var(--ds-gold-line)',
-              } as React.CSSProperties
-            }
-          >
+            generateChartSummary 가 advancedAnalysis 기반 6-10 문장 생성.
+            sajuReady false 면 fetch 중 — skeleton 표시. */}
+        <div
+          className="chart-rise-in mb-4 rounded-2xl p-4 sm:mb-6 sm:p-5"
+          style={
+            {
+              ['--i' as string]: 0,
+              background:
+                'linear-gradient(135deg, rgba(212,181,114,0.08) 0%, rgba(212,181,114,0.04) 50%, rgba(212,181,114,0.06) 100%)',
+              border: '1px solid var(--ds-gold-line)',
+            } as React.CSSProperties
+          }
+        >
+          {readLine ? (
             <ChartReading
               text={readLine}
               theme="dark"
               className="text-[13px] leading-relaxed sm:text-sm"
               style={{ color: 'var(--ds-dark-text)' }}
             />
-          </div>
-        )}
+          ) : (
+            <div
+              className="space-y-2 py-1 text-[13px] leading-relaxed"
+              style={{ color: 'var(--ds-dark-text-muted)' }}
+            >
+              <div
+                className="h-3 w-2/3 animate-pulse rounded"
+                style={{ background: 'rgba(212,181,114,0.12)' }}
+              />
+              <div
+                className="h-3 w-full animate-pulse rounded"
+                style={{ background: 'rgba(212,181,114,0.10)' }}
+              />
+              <div
+                className="h-3 w-5/6 animate-pulse rounded"
+                style={{ background: 'rgba(212,181,114,0.08)' }}
+              />
+              <div
+                className="pt-1 text-center text-[11px]"
+                style={{ color: 'var(--ds-gold-on-dark)' }}
+              >
+                {isKo
+                  ? sajuReady
+                    ? '해석 준비 중...'
+                    : '사주 분석 불러오는 중...'
+                  : 'Preparing your reading...'}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="space-y-4 sm:space-y-6">
           {/* 동양 — 사주팔자 · 오행 균형 (한 그룹으로 묶음) */}
@@ -166,16 +207,19 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
               </div>
             </div>
 
-            {/* 대운 timeline — 인생 10년 단위 흐름 8개 가로 펼침 */}
-            <div className="space-y-1.5">
-              <div
-                className="px-1 text-[11px] font-medium uppercase tracking-wider"
-                style={{ color: 'var(--ds-gold-on-dark)' }}
-              >
-                {isKo ? '대운 — 인생의 흐름' : 'Daeun — Life Cycles'}
+            {/* 대운 timeline — 인생 10년 단위 흐름 8개 가로 펼침.
+                데이터 없으면 (saju.daeun.list / daeWoon.list 둘 다 비어 있으면) 헤더까지 hide. */}
+            {hasDaeunList(saju) && (
+              <div className="space-y-1.5">
+                <div
+                  className="px-1 text-[11px] font-medium uppercase tracking-wider"
+                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                >
+                  {isKo ? '대운 — 인생의 흐름' : 'Daeun — Life Cycles'}
+                </div>
+                <DaeunTimeline saju={saju} birthYear={birthYear} lang={lang} />
               </div>
-              <DaeunTimeline saju={saju} birthYear={birthYear} lang={lang} />
-            </div>
+            )}
           </section>
 
           {/* 서양 — 네이탈 차트 */}

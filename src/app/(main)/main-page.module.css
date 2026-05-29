@@ -648,15 +648,6 @@
     font-size: 0.8rem;
   }
 
-  .homeChips {
-    gap: 0.35rem;
-  }
-
-  .homeChip {
-    padding: 0.45rem 0.7rem;
-    font-size: 0.76rem;
-  }
-
   .homeChatBarInner {
     padding: 0.55rem 0.65rem;
   }
@@ -709,50 +700,8 @@
   word-break: keep-all;
 }
 
-.homeChips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  /* Keep the chip cluster compact even when the body breathes wider on
-     desktop — otherwise the 5 short pills float spread thin across the
-     row and look disconnected from the hero above. */
-  max-width: 480px;
-  margin: 0 auto;
-  flex: 0 0 auto;
-  padding: 0 0.25rem;
-}
-
-.homeChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid rgba(212, 181, 114, 0.25);
-  background: rgba(212, 181, 114, 0.08);
-  color: rgba(229, 231, 240, 0.92);
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.homeChip:hover,
-.homeChip:focus-visible {
-  border-color: rgba(212, 181, 114, 0.55);
-  background: rgba(212, 181, 114, 0.16);
-  transform: translateY(-1px);
-  outline: none;
-}
-
-.homeChipIcon {
-  font-size: 1rem;
-  line-height: 1;
-}
+/* homeChips / homeChip / homeChipIcon — RecommendationChips 컴포넌트 폐기
+   (메인 = 운명상담사 한 흐름). 룰 자체도 함께 정리. */
 
 .homeChatBar {
   width: 100%;
@@ -1278,18 +1227,6 @@
 
 .lightMode .homeOrnament {
   filter: drop-shadow(0 8px 24px rgba(212, 181, 114, 0.25));
-}
-
-.lightMode .homeChip {
-  background: #ffffff;
-  border-color: #e7e5e4;
-  color: #44403c;
-}
-
-.lightMode .homeChip:hover,
-.lightMode .homeChip:focus-visible {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
 }
 
 .lightMode .homeChatBarInner {
