@@ -1,12 +1,16 @@
 'use client'
 
 import React from 'react'
+import { HanjaBubble } from './atoms/HanjaBubble'
+import { SibsinChip } from './atoms/SibsinChip'
 
 type FiveElement = '목' | '화' | '토' | '금' | '수' | string
 
 interface GanjiCell {
   name: string
   element: FiveElement
+  /** 십성 (편재/정인 등) — saju 엔진에서 채워줌. 셀 아래 칩으로 노출. */
+  sibsin?: string
 }
 
 interface PillarShape {
@@ -264,20 +268,32 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light' }: SajuChartProps
               ].map((c, idx) => (
                 <div
                   key={idx}
-                  className={`flex h-[68px] w-full flex-col items-center justify-center rounded-xl border p-1.5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
+                  className={`flex min-h-[88px] w-full flex-col items-center justify-center gap-1 rounded-xl border p-1.5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
                     isMe ? tokens.cellBorderMe : tokens.cellBorderNeutral
                   } ${c.isStem ? '' : 'opacity-95'}`}
                 >
-                  <span
-                    className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
-                  >
-                    {cellText(c.cell)}
-                  </span>
+                  {/* 한자 (long-press / hover → 의미 bubble) */}
+                  {c.cell?.name ? (
+                    <HanjaBubble
+                      hanja={c.cell.name}
+                      className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
+                    >
+                      {cellText(c.cell)}
+                    </HanjaBubble>
+                  ) : (
+                    <span
+                      className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
+                    >
+                      {cellText(c.cell)}
+                    </span>
+                  )}
                   {isKo && imageOf(c.cell?.name) && (
-                    <span className={`mt-1 text-[10px] leading-none ${tokens.imageText}`}>
+                    <span className={`text-[9px] leading-none ${tokens.imageText}`}>
                       {imageOf(c.cell?.name)}
                     </span>
                   )}
+                  {/* 십성 chip — 색만 봐도 카테고리 (비겁/식상/재성/관성/인성) 직관 */}
+                  {c.cell?.sibsin && <SibsinChip sibsin={c.cell.sibsin} size="xs" />}
                 </div>
               ))}
             </div>
