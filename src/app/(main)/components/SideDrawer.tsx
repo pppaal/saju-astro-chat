@@ -6,6 +6,7 @@ import { signOut, useSession } from 'next-auth/react'
 import styles from '../main-page.module.css'
 import { ENABLED_SERVICES } from '@/config/enabledServices'
 import GoogleLoginPanel from '@/components/auth/GoogleLoginPanel'
+import { clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 
 interface SideDrawerProps {
   open: boolean
@@ -142,7 +143,9 @@ export default function SideDrawer({ open, onClose, locale }: SideDrawerProps) {
               }}
               onClick={() => {
                 onClose()
-                void signOut({ callbackUrl: '/' })
+                // Purge SW caches before sign-out to avoid leaking
+                // this user's data to the next sign-in on the same browser.
+                void clearClientCacheAndSignOut(() => signOut({ callbackUrl: '/' }))
               }}
             >
               <span className={styles.drawerLinkIcon}>🚪</span>

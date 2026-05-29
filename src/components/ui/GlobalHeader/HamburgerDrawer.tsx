@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { ENABLED_SERVICES } from '@/config/enabledServices'
 import GoogleLoginPanel from '@/components/auth/GoogleLoginPanel'
+import { clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 
 interface HamburgerDrawerProps {
   locale: 'en' | 'ko'
@@ -282,7 +283,9 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
                   type="button"
                   onClick={() => {
                     close()
-                    void signOut({ callbackUrl: '/' })
+                    // Purge SW caches before sign-out so the next user
+                    // on a shared device can't see this user's data.
+                    void clearClientCacheAndSignOut(() => signOut({ callbackUrl: '/' }))
                   }}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90
                     hover:bg-white/[0.06] cursor-pointer text-left"

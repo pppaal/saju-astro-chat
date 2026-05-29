@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { logger } from '@/lib/logger'
+import { clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 import styles from './CounselorSidebar.module.css'
 import HexDPLogo from '@/components/branding/HexDPLogo'
 
@@ -494,7 +495,9 @@ export default function CounselorSidebar({
             <button
               type="button"
               className={styles.authBtn}
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={() =>
+                void clearClientCacheAndSignOut(() => signOut({ callbackUrl: '/' }))
+              }
             >
               <span className={styles.actionIcon}>↩</span>
               <span>
