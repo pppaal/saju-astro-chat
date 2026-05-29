@@ -31,6 +31,7 @@ import AuthGate from '@/components/auth/AuthGate'
 import BrandSplash from '@/components/branding/BrandSplash'
 import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
+import { clearClientCache, clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 import { logger } from '@/lib/logger'
 import { ProfileEditModal } from './components/ProfileEditModal'
 import { CircleAddModal } from './components/CircleAddModal'
@@ -561,6 +562,9 @@ export default function ProfilePage() {
         body: JSON.stringify({ confirm: deleteConfirm.trim() }),
       })
       if (res.ok) {
+        // Account just got deleted; purge SW caches so nothing from
+        // this user lingers in Cache Storage on the device.
+        await clearClientCache()
         await signOut({ callbackUrl: '/' })
         return
       }
@@ -809,7 +813,9 @@ export default function ProfilePage() {
                 )}
                 <button
                   type="button"
-                  onClick={() => void signOut({ callbackUrl: '/' })}
+                  onClick={() =>
+                    void clearClientCacheAndSignOut(() => signOut({ callbackUrl: '/' }))
+                  }
                   className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#e0ddd7] bg-white px-3.5 py-1.5 text-[12px] font-medium text-[#78716c] transition hover:border-[#c9c4bc] hover:text-[#1c1917]"
                 >
                   <LogOut className="h-3.5 w-3.5" />

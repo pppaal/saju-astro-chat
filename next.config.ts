@@ -19,7 +19,13 @@ const withPWA = withPWAInit({
   register: true,
   skipWaiting: false, // Prevent automatic page refresh on SW update
   reloadOnOnline: false, // Disable auto-reload which can cause refresh loops
-  cacheOnFrontEndNav: true,
+  // SECURITY: Disabled to prevent caching of authenticated page shells in
+  // the service-worker. With this on, `@ducanh2912/next-pwa` caches HTML
+  // documents visited via client-side navigation; on a shared device a
+  // signed-out user's session-aware page (header with previous user's
+  // name, balances, etc.) could be served to the next user. The minor
+  // perf cost is acceptable for the security win.
+  cacheOnFrontEndNav: false,
   aggressiveFrontEndNavCaching: false, // Reduce aggressive caching that may conflict with new deployments
   fallbacks: {
     document: '/offline',
@@ -39,7 +45,17 @@ const withPWA = withPWAInit({
         },
       },
       {
-        urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp|avif)$/i,
+        // SECURITY: Only cache same-origin static assets (anything under
+        // `/`), not arbitrary remote image URLs. Previously this regex
+        // matched any image extension, including
+        // `firebasestorage.googleapis.com` and `*.public.blob.vercel-storage.com`
+        // URLs that serve per-user profile photos. Without a per-user
+        // cache key those entries leaked across sign-outs on a shared
+        // browser. Build artifacts and `/public/*` images live on the
+        // CDN and are already covered by HTTP `Cache-Control: max-age`
+        // headers (see headers() below), so SW caching is redundant.
+        urlPattern: ({ url, sameOrigin }: { url: URL; sameOrigin: boolean }) =>
+          sameOrigin && /\.(?:jpg|jpeg|gif|png|svg|ico|webp|avif)$/i.test(url.pathname),
         handler: 'StaleWhileRevalidate',
         options: {
           cacheName: 'static-images',
@@ -50,7 +66,10 @@ const withPWA = withPWAInit({
         },
       },
       {
-        urlPattern: /\.(?:js|css)$/i,
+        // Same-origin JS/CSS only. Hashed build artifacts are safe to
+        // cache aggressively; cross-origin scripts are not.
+        urlPattern: ({ url, sameOrigin }: { url: URL; sameOrigin: boolean }) =>
+          sameOrigin && /\.(?:js|css)$/i.test(url.pathname),
         handler: 'StaleWhileRevalidate',
         options: {
           cacheName: 'static-resources',
@@ -60,18 +79,15 @@ const withPWA = withPWAInit({
           },
         },
       },
-      {
-        urlPattern: /^https:\/\/api\.destinypal\.com\/.*/i,
-        handler: 'NetworkFirst',
-        options: {
-          cacheName: 'api-cache',
-          expiration: {
-            maxEntries: 16,
-            maxAgeSeconds: 5 * 60, // 5 minutes
-          },
-          networkTimeoutSeconds: 10,
-        },
-      },
+      // SECURITY: We intentionally do NOT runtime-cache API responses in
+      // the service worker. The previous `api.destinypal.com/*`
+      // NetworkFirst entry had no per-user cache key, so on a shared
+      // browser the next user could be served the previous user's
+      // `/api/me/*`, credits, chat history, or profile data when the
+      // network was slow or offline. API routes already send
+      // `Cache-Control: no-store` (see headers() below); if we ever
+      // need offline-read of static content from the API, it must be
+      // implemented with a per-user cache key as a deliberate feature.
     ],
   },
 })
