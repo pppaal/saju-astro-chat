@@ -76,22 +76,56 @@
   ],
   "shortcuts": [
     {
-      "name": "Tarot Reading",
-      "short_name": "Tarot",
-      "description": "Get your AI tarot reading",
-      "url": "/tarot"
+      "name": "Destiny Counselor — AI Saju & Astrology Chat",
+      "short_name": "Counselor",
+      "description": "Chat with the AI destiny counselor about your saju and astrology",
+      "url": "/destiny-counselor",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
-      "name": "Saju Analysis",
+      "name": "Destiny Map — Saju & Natal Chart",
       "short_name": "Saju",
-      "description": "Analyze your saju fortune",
-      "url": "/saju"
+      "description": "View your saju (Four Pillars) and natal astrology chart",
+      "url": "/destiny-map",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
-      "name": "Dream Interpretation",
-      "short_name": "Dreams",
-      "description": "Interpret your dreams",
-      "url": "/dreams"
+      "name": "Daily Fortune Calendar",
+      "short_name": "Calendar",
+      "description": "Plan important dates with AI-powered timing insights",
+      "url": "/calendar",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "AI Tarot — 78-card reading",
+      "short_name": "Tarot",
+      "description": "Full 78-card AI tarot reading",
+      "url": "/tarot",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   "prefer_related_applications": false
