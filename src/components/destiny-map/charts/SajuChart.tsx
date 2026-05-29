@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { getHanjaRich } from '@/lib/chart-dictionary'
 import { HanjaBubble } from './atoms/HanjaBubble'
 import { SibsinChip } from './atoms/SibsinChip'
 
@@ -59,64 +60,19 @@ const ELEMENT_STYLE_DARK: Record<string, { text: string; bg: string }> = {
 const DEFAULT_STYLE_LIGHT = { text: 'text-stone-700', bg: 'bg-stone-50' }
 const DEFAULT_STYLE_DARK = { text: 'text-slate-200', bg: 'bg-white/5' }
 
-// Hanja → Korean reading (신금 / 을목 / 해수)
-const STEM_READING: Record<string, string> = {
-  甲: '갑',
-  乙: '을',
-  丙: '병',
-  丁: '정',
-  戊: '무',
-  己: '기',
-  庚: '경',
-  辛: '신',
-  壬: '임',
-  癸: '계',
+// Hanja → 발음(한국어) / 물상(物像) — chart-dictionary(hanja-rich) 단일 출처에서 조회.
+// hanja-rich 의 `image` 필드는 "큰 나무·동량목 — 곧게…" 같이 풍부해 9px 셀 라벨에는
+// 길어서, 첫 어절(·/— 앞)만 잘라 기존 한 줄 라벨 길이를 유지한다.
+const readingOf = (name?: string, lang: 'ko' | 'en' = 'ko') => {
+  if (!name) return ''
+  return getHanjaRich(name, lang)?.name ?? name
 }
-const BRANCH_READING: Record<string, string> = {
-  子: '자',
-  丑: '축',
-  寅: '인',
-  卯: '묘',
-  辰: '진',
-  巳: '사',
-  午: '오',
-  未: '미',
-  申: '신',
-  酉: '유',
-  戌: '술',
-  亥: '해',
+const imageOf = (name?: string, lang: 'ko' | 'en' = 'ko') => {
+  if (!name) return ''
+  const raw = getHanjaRich(name, lang)?.image
+  if (!raw) return ''
+  return raw.split('·')[0].split('—')[0].trim()
 }
-const readingOf = (name?: string) =>
-  name ? (STEM_READING[name] ?? BRANCH_READING[name] ?? name) : ''
-
-// 물상(物像) — each character's everyday image, so users grasp it at a glance.
-const STEM_IMAGE: Record<string, string> = {
-  甲: '큰 나무',
-  乙: '유연한 풀',
-  丙: '태양',
-  丁: '촛불·등불',
-  戊: '넓은 산',
-  己: '기름진 밭',
-  庚: '큰 바위',
-  辛: '빛나는 보석',
-  壬: '큰 바다',
-  癸: '이슬·비',
-}
-const BRANCH_IMAGE: Record<string, string> = {
-  子: '깊은 물',
-  丑: '언 땅',
-  寅: '큰 나무',
-  卯: '여린 화초',
-  辰: '촉촉한 흙',
-  巳: '큰 불',
-  午: '한낮 태양',
-  未: '건조한 흙',
-  申: '단단한 금속',
-  酉: '예리한 칼',
-  戌: '마른 흙',
-  亥: '깊은 바다',
-}
-const imageOf = (name?: string) => (name ? (STEM_IMAGE[name] ?? BRANCH_IMAGE[name] ?? '') : '')
 
 function pickPillars(saju: SajuChartProps['saju']) {
   if (!saju) return null
