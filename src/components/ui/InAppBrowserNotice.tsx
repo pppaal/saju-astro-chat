@@ -51,6 +51,7 @@ export function InAppBrowserNotice() {
   const { locale } = useI18n()
   const [visible, setVisible] = React.useState(false)
   const [platform, setPlatform] = React.useState<'android' | 'ios' | 'other'>('other')
+  const [copiedToast, setCopiedToast] = React.useState(false)
 
   React.useEffect(() => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') return
@@ -69,22 +70,29 @@ export function InAppBrowserNotice() {
     const currentUrl = window.location.href
     if (platform === 'android') {
       // Chrome 강제 launch — 사용자에게 Chrome 설치돼 있으면 외부 Chrome 으로
-      // 점프. 없으면 fallback 으로 일반 브라우저 chooser.
+      // 점프. 미설치 시 S.browser_fallback_url 가 일반 브라우저 chooser /
+      // Play Store 로 안전하게 fallback (없으면 페이지 freeze 위험).
       // intent URL spec: https://developer.chrome.com/docs/multidevice/android/intents
+      const fallback = encodeURIComponent(currentUrl)
       const intentUrl =
         `intent://${currentUrl.replace(/^https?:\/\//, '')}` +
-        `#Intent;scheme=https;package=com.android.chrome;end`
+        `#Intent;scheme=https;package=com.android.chrome` +
+        `;S.browser_fallback_url=${fallback};end`
       window.location.href = intentUrl
       return
     }
-    // iOS: 자동 launch 불가능 — 사용자에게 수동 안내. 클립보드에 URL 복사해
-    // 주면 그나마 한 단계 줄여줌.
-    try {
-      void navigator.clipboard?.writeText(currentUrl)
-    } catch {
-      /* clipboard 차단 환경 — 무시 */
-    }
-    // 텍스트 안내는 배너 자체에 이미 표시.
+    // iOS: 자동 launch 불가능 — 사용자에게 수동 안내. 클립보드에 URL 복사 +
+    // 짧은 토스트로 "복사됐어요" 피드백 (사용자가 복사된 줄 몰라 다시 누르는
+    // 케이스 방지).
+    void (async () => {
+      try {
+        await navigator.clipboard?.writeText(currentUrl)
+        setCopiedToast(true)
+        window.setTimeout(() => setCopiedToast(false), 1800)
+      } catch {
+        /* clipboard 차단 환경 — 무시. 사용자가 수동으로 주소 길게-누름 복사. */
+      }
+    })()
   }
 
   const dismiss = () => {
@@ -129,9 +137,14 @@ export function InAppBrowserNotice() {
     <div
       role="alert"
       aria-live="polite"
-      // 모든 페이지의 최상단을 덮음. z-index 는 header(10) / 모달(200) 보다는
-      // 낮게 — 모달은 가리면 안 되고 header 위로는 올라가야 함. 100 정도.
-      className="sticky top-0 z-[120] flex items-start gap-3 border-b border-amber-300/50 bg-amber-50 px-4 py-3 text-[13px] leading-snug text-amber-900 shadow-sm"
+      // viewport 의 절대 상단에 박는다. sticky 는 부모가 overflow:hidden +
+      // 100dvh (운명상담사 / 궁합상담사 / destiny-match 등 풀스크린 페이지)
+      // 인 경우 stick 할 scrolling ancestor 가 없어 안 보이는 회귀가 있었다.
+      // fixed + inset-x-0 으로 어느 페이지든 동일하게 노출.
+      // z-index: header(z-10) 위, 동의 모달(z-200) 보다 낮게.
+      // notch / status bar 와 겹치지 않도록 safe-area 패딩 적용.
+      style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
+      className="fixed top-0 inset-x-0 z-[120] flex items-start gap-3 border-b border-amber-300/50 bg-amber-50 px-4 pb-3 text-[13px] leading-snug text-amber-900 shadow-sm"
     >
       <div className="mt-0.5 text-base" aria-hidden>
         ⚠️
@@ -146,12 +159,17 @@ export function InAppBrowserNotice() {
         >
           {cta}
         </button>
+        {copiedToast && (
+          <span className="ml-2 text-[12px] font-medium text-amber-900/85">
+            {isKo ? '복사됐어요' : 'Copied'}
+          </span>
+        )}
       </div>
       <button
         type="button"
         aria-label={isKo ? '닫기' : 'Dismiss'}
         onClick={dismiss}
-        className="-mr-1 -mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-amber-900/70 transition hover:bg-amber-900/10"
+        className="-mr-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-amber-900/70 transition hover:bg-amber-900/10"
       >
         ✕
       </button>
