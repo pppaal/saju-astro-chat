@@ -22,7 +22,6 @@ import {
 } from '@/lib/api/middleware'
 import { dateSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
-import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildDateDetailResponse } from '@/lib/calendar-engine/adapters/dateDetail'
 import { LOCATION_COORDS } from '../lib/helpers'
@@ -67,10 +66,14 @@ export const GET = withApiMiddleware(
     const coords = (birthPlace && LOCATION_COORDS[birthPlace]) || LOCATION_COORDS['Seoul']
 
     try {
-      const natal = await buildNatalContext({
+      // Redis → DB NatalContextCache → 재계산 cascade — 메인 캘린더 라우트와
+      // 같은 캐시 키 공유, 사용자가 캘린더 → date-detail 진입 시 두 번째 호출은
+      // ~1ms (Redis hit) 또는 ~5ms (DB hit).
+      const { getOrBuildNatalContext } = await import('@/lib/calendar-engine/context/cache')
+      const { context: natal } = await getOrBuildNatalContext({
         birthDate,
         birthTime: birthTime || '12:00',
-        gender: gender || 'male',
+        gender: (gender === 'female' ? 'female' : 'male') as 'male' | 'female',
         latitude: coords.lat,
         longitude: coords.lng,
         timeZone: timezone || coords.tz,

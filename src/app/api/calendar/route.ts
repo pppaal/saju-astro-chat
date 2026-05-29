@@ -422,8 +422,10 @@ export const GET = withApiMiddleware(
       ReturnType<typeof import('@/lib/calendar-engine/context/build').buildNatalContext>
     > | null = null
     try {
-      const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
-      sharedCeNatal = await buildNatalContext(
+      // Redis → DB NatalContextCache → 재계산 cascade. Redis 만 쓰던 시절은
+      // 30일 만료 시 매번 ~500ms 재계산했는데 이젠 DB 영구 + Redis 앞단.
+      const { getOrBuildNatalContext } = await import('@/lib/calendar-engine/context/cache')
+      const { context, source } = await getOrBuildNatalContext(
         {
           birthDate: birthDateParam,
           birthTime: birthTimeParam || '12:00',
@@ -439,6 +441,8 @@ export const GET = withApiMiddleware(
             : undefined,
         }
       )
+      sharedCeNatal = context
+      logger.info?.('[calendar] natal context', { source })
     } catch (err) {
       logger.warn?.(
         '[calendar-engine v2 natal-context] failed:',
