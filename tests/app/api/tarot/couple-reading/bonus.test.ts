@@ -31,9 +31,11 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     tarotReading: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), delete: vi.fn() },
     user: { findMany: vi.fn(), findUnique: vi.fn() },
-    userCredits: { findUnique: vi.fn(), update: vi.fn() },
+    userCredits: { findUnique: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
     matchConnection: { findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     bonusCreditPurchase: { findFirst: vi.fn(), updateMany: vi.fn() },
+    // CreditTransaction (CONSUME/BONUS|COMPATIBILITY) audit row.
+    creditTransaction: { create: vi.fn() },
     $transaction: vi.fn(),
   },
 }))
@@ -195,6 +197,13 @@ describe('couple-reading bonus FIFO drift (B1)', () => {
       },
       matchConnection: {
         update: vi.fn().mockResolvedValue({}),
+      },
+      // CreditTransaction (CONSUME/BONUS) — consumeBonusCreditOnceInTx 가 emit.
+      creditTransaction: {
+        create: vi.fn().mockImplementation((args) => {
+          calls.push({ model: 'creditTransaction', method: 'create', args })
+          return Promise.resolve({})
+        }),
       },
     })
 

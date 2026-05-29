@@ -7,14 +7,23 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { mockFindFirst, mockUpdatePurchase, mockUpdateUserCredits, mockTransaction } = vi.hoisted(
-  () => ({
-    mockFindFirst: vi.fn(),
-    mockUpdatePurchase: vi.fn(),
-    mockUpdateUserCredits: vi.fn(),
-    mockTransaction: vi.fn(),
-  })
-)
+const {
+  mockFindFirst,
+  mockUpdatePurchase,
+  mockUpdateUserCredits,
+  mockTransaction,
+  mockCreditTxnCreate,
+  mockExecuteRaw,
+} = vi.hoisted(() => ({
+  mockFindFirst: vi.fn(),
+  mockUpdatePurchase: vi.fn(),
+  mockUpdateUserCredits: vi.fn(),
+  mockTransaction: vi.fn(),
+  // CreditTransaction (REVOKE/BONUS) 한 줄을 같은 transaction 배열에 추가.
+  // 본 테스트는 노출 동작 (반환값 + transaction 호출 횟수) 만 검증한다.
+  mockCreditTxnCreate: vi.fn(),
+  mockExecuteRaw: vi.fn(),
+}))
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
@@ -25,7 +34,11 @@ vi.mock('@/lib/db/prisma', () => ({
     userCredits: {
       update: mockUpdateUserCredits,
     },
+    creditTransaction: {
+      create: mockCreditTxnCreate,
+    },
     $transaction: mockTransaction,
+    $executeRaw: mockExecuteRaw,
   },
 }))
 

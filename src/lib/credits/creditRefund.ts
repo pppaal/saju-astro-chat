@@ -106,6 +106,24 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
                 where: { userId },
                 data: { bonusCredits: { increment: restore } },
               });
+
+              // 감사 로그 — REFUND / BONUS (sourceRef = purchase.id).
+              await tx.creditTransaction.create({
+                data: {
+                  userId,
+                  type: 'REFUND',
+                  pool: 'BONUS',
+                  amount: restore,
+                  reason,
+                  sourceRef: purchase.id,
+                  metadata: {
+                    purchaseId: purchase.id,
+                    restored: restore,
+                    apiRoute: apiRoute ?? null,
+                    transactionId: transactionId ?? null,
+                  },
+                },
+              });
             }
           }
         }
@@ -117,6 +135,23 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
             SET "usedCredits" = GREATEST(0, "usedCredits" - ${remaining})
             WHERE "userId" = ${userId}
           `;
+          // 감사 로그 — REFUND / MONTHLY (usedCredits 는 행 단위 추적이
+          // 안 되므로 sourceRef 는 호출자가 넘긴 transactionId 사용).
+          await tx.creditTransaction.create({
+            data: {
+              userId,
+              type: 'REFUND',
+              pool: 'MONTHLY',
+              amount: remaining,
+              reason,
+              sourceRef: transactionId ?? null,
+              metadata: {
+                restored: remaining,
+                apiRoute: apiRoute ?? null,
+                transactionId: transactionId ?? null,
+              },
+            },
+          });
         }
       } else if (creditType === "compatibility") {
         // compatibility 사용량 감소 (atomic floor 0)
@@ -125,6 +160,17 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
           SET "compatibilityUsed" = GREATEST(0, "compatibilityUsed" - ${amount})
           WHERE "userId" = ${userId}
         `;
+        await tx.creditTransaction.create({
+          data: {
+            userId,
+            type: 'REFUND',
+            pool: 'COMPATIBILITY',
+            amount,
+            reason,
+            sourceRef: transactionId ?? null,
+            metadata: { restored: amount, apiRoute: apiRoute ?? null },
+          },
+        });
       } else if (creditType === "followUp") {
         // followUp 사용량 감소 (atomic floor 0)
         await tx.$executeRaw`
@@ -132,6 +178,17 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
           SET "followUpUsed" = GREATEST(0, "followUpUsed" - ${amount})
           WHERE "userId" = ${userId}
         `;
+        await tx.creditTransaction.create({
+          data: {
+            userId,
+            type: 'REFUND',
+            pool: 'FOLLOWUP',
+            amount,
+            reason,
+            sourceRef: transactionId ?? null,
+            metadata: { restored: amount, apiRoute: apiRoute ?? null },
+          },
+        });
       }
 
       // 3. 환불 로그 기록

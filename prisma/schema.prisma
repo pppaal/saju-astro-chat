@@ -85,6 +85,9 @@ model User {
   reportsReceived       UserReport[]   @relation("ReportsReceived")
   savedPersons          SavedPerson[]
   decisions             UserDecision[]
+  // 크레딧 변동 감사 로그 — 모든 grant/consume/refund/expire/revoke
+  // 이벤트를 single source of truth 로 보존 (sum-invariant 가드 포함).
+  creditTransactions    CreditTransaction[]
 
   @@index([referrerId])
 }
@@ -1189,4 +1192,56 @@ model NatalContextCache {
 
   @@index([builtAt])
   @@index([engineSignature])
+}
+
+// 크레딧 변동 감사 테이블 — 모든 mutation 경로 (grant / consume / refund /
+// expire / revoke / signup_bonus) 가 자기 행을 1 개씩 남긴다. 기존 분산
+// 로그(CreditRefundLog / AdminAuditLog / BonusCreditPurchase) 와 중복이지만
+// 단일 시계열 (userId + createdAt DESC) 로 잔액 변동을 재현할 수 있어야
+// 정합성 감사·환불 분쟁 추적·내부 BI 가 가능.
+//
+// 핵심 invariant:
+//   sum(amount where userId=X) ==
+//     UserCredits.bonusCredits + (UserCredits.monthlyCredits - UserCredits.usedCredits)
+//     - 0  (CreditTransaction 가 도입된 시점부터의 변화량만 추적)
+// 백필 스크립트가 deploy 시점까지의 historical GRANT/REFUND 를 채워 넣고,
+// CONSUME 은 deploy 이후만 정확. 자세한 사항은
+// scripts/backfill-credit-transactions.ts 헤더 참조.
+enum CreditTxnType {
+  GRANT
+  CONSUME
+  REFUND
+  EXPIRE
+  REVOKE
+  SIGNUP_BONUS
+}
+
+enum CreditPool {
+  BONUS
+  MONTHLY
+  COMPATIBILITY
+  FOLLOWUP
+}
+
+model CreditTransaction {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      CreditTxnType
+  pool      CreditPool
+  // 부호 있는 값 — GRANT/REFUND/SIGNUP_BONUS 는 양수, CONSUME/EXPIRE/REVOKE
+  // 는 음수. sum 으로 잔액 변화를 바로 계산할 수 있다.
+  amount    Int
+  reason    String
+  // 외부 키 (stripePaymentId / bonusCreditPurchaseId / referralRewardId /
+  // adminAuditLogId 등). 분쟁/감사 추적용. 가능하면 채워 둘 것.
+  sourceRef String?
+  // 보조 컨텍스트 (예: { fromBonus: n, fromMonthly: m, apiRoute, errorMessage }).
+  // PII 가 들어갈 수 있으므로 외부 노출 금지 (history API 응답 제외).
+  metadata  Json?
+  createdAt DateTime      @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([sourceRef])
+  @@index([type, createdAt])
 }
