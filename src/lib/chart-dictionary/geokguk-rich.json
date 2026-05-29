@@ -358,5 +358,145 @@
       "love": "You are a hot, expressive partner. You cool quickly with deadpan partners and have strong chemistry with someone who lights up alongside your passion.",
       "advice": "Yeomsang most fears Water clashing and controlling Fire. Don't burn it all — keep shade and water for recovery in your daily life. Trying to shine without rest extinguishes you fast."
     }
+  },
+  "을경화금격": {
+    "ko": {
+      "tagline": "을·경 합화 금(金) — 정련된 의리의 사람",
+      "personality": "당신은 '을경화금격(乙庚化金格)'이에요. 을목과 경금이 합하여 금(金)으로 화(化)하는 화기격국(化氣格局)입니다. 화(化)가 성공한 경우, 잘 단련된 칼처럼 결단력과 의리, 정의감을 자기 정체성으로 갖는 인격이 됩니다. 자평진전 「외격」편에서는 합화의 조건이 갖춰질 때 비로소 진정한 귀격(貴格)으로 보았어요.",
+      "strength": ["결단력과 정의감", "약속과 의리를 끝까지 지키는 신뢰", "체계와 원칙을 세우는 능력"],
+      "weakness": ["옳고 그름을 너무 날카롭게 가름", "한 번 정한 입장을 잘 굽히지 못함"],
+      "career": ["법조·검찰·감사", "군인·경찰·보안", "금융·회계·감사 영역", "정밀 엔지니어링·금속·기계 산업"],
+      "love": "신의 있고 단단한 파트너예요. 말과 행동이 일치하는 사람을 가장 신뢰하고, 가벼운 약속을 자주 어기는 상대와는 빠르게 식습니다.",
+      "advice": "화기격은 합화의 조건이 깨지지 않아야 합니다. 을·경을 충(沖)·극(剋)하는 운, 특히 화(火)가 금(金)을 녹이는 시기를 가장 조심하세요. 정의는 칼처럼 날카롭되, 쓰는 자리는 신중하게 고르세요."
+    },
+    "en": {
+      "tagline": "Yi–Geng transformed into Metal — the refined person of honor",
+      "personality": "You are an 'Eul-Gyeong transformed into Metal' chart — a Transformation chart where Yi wood and Geng metal combine and transform into Metal. When the transformation truly succeeds, you become a personality of decisiveness, loyalty, and justice, like a well-forged blade. The classics treat this as a true noble configuration only when all the conditions of transformation are met.",
+      "strength": ["Decisiveness and a strong sense of justice", "Loyalty that keeps promises to the end", "Skill at building systems and principles"],
+      "weakness": ["Cuts right and wrong too sharply", "Hard to bend once a position is taken"],
+      "career": ["Law, prosecution, audit", "Military, police, security", "Finance, accounting, compliance", "Precision engineering, metals, machinery"],
+      "love": "You are a loyal, solid partner. You trust people whose words match their actions, and you cool quickly on those who break small promises.",
+      "advice": "A Transformation chart must keep its combination intact. Watch years that Clash or Control Yi and Geng — especially when Fire melts Metal. Keep justice sharp as a blade, but choose carefully where you wield it."
+    }
+  },
+  "병신화수격": {
+    "ko": {
+      "tagline": "병·신 합화 수(水) — 깊고 유연한 지혜의 사람",
+      "personality": "당신은 '병신화수격(丙辛化水格)'이에요. 병화와 신금이 합하여 수(水)로 화(化)하는 화기격국(化氣格局)입니다. 화(化)가 성공한 경우, 깊은 물처럼 통찰력 있고 유연하며, 사람과 상황을 끝까지 읽어내는 지혜를 갖춥니다. 자평진전 「외격」편은 이러한 합화 조건이 갖춰질 때만 진귀(眞貴)로 보았어요.",
+      "strength": ["깊은 통찰력과 분석력", "변화에 유연하게 적응하는 지혜", "사람과 상황의 본질을 읽는 안목"],
+      "weakness": ["속내를 잘 드러내지 않아 차갑게 보임", "지나친 사색으로 결정이 늦어짐"],
+      "career": ["전략·기획·컨설팅", "연구·학술·싱크탱크", "외교·정보·협상", "심리·상담·정신분석"],
+      "love": "깊고 조용한 파트너예요. 시끄럽고 가벼운 관계는 견디지 못하고, 둘만의 깊은 대화가 가능한 상대에게 마음을 엽니다.",
+      "advice": "화기격은 합화의 조건이 깨지지 않아야 합니다. 병·신을 충(沖)·극(剋)하는 운, 특히 토(土)가 수(水)를 막거나 무(戊)가 들어오는 시기를 가장 조심하세요. 깊이는 유지하되, 가끔은 수면 위로 올라와 빛도 받으세요."
+    },
+    "en": {
+      "tagline": "Bing–Xin transformed into Water — the deep and flexible wisdom",
+      "personality": "You are a 'Byeong-Sin transformed into Water' chart — a Transformation chart where Bing fire and Xin metal combine and transform into Water. When the transformation succeeds, you carry insight and flexibility like deep water, with the wisdom to read people and situations to their core. The classics regard this as truly noble only when the conditions of transformation hold.",
+      "strength": ["Deep insight and analytical power", "Flexible wisdom that adapts to change", "An eye for the essence of people and situations"],
+      "weakness": ["Reveals little inside; can read as cold", "Over-contemplation slows decisions"],
+      "career": ["Strategy, planning, consulting", "Research, academia, think tanks", "Diplomacy, intelligence, negotiation", "Psychology, counseling, psychoanalysis"],
+      "love": "You are a deep, quiet partner. You cannot stand loud, shallow relationships and open up to someone capable of real, private conversation.",
+      "advice": "A Transformation chart must keep its combination intact. Watch years that Clash or Control Bing and Xin — especially when Earth blocks Water or Wu enters. Keep your depth, but occasionally surface and let the light reach you."
+    }
+  },
+  "정임화목격": {
+    "ko": {
+      "tagline": "정·임 합화 목(木) — 인정과 성장의 사람",
+      "personality": "당신은 '정임화목격(丁壬化木格)'이에요. 정화와 임수가 합하여 목(木)으로 화(化)하는 화기격국(化氣格局)입니다. 화(化)가 성공한 경우, 봄철 새순처럼 따뜻하고 생장하는 기운을 가진 인격이 됩니다. 인정 많고, 자기와 주변을 함께 키우는 데에서 깊은 보람을 느껴요.",
+      "strength": ["따뜻한 인정과 인간미", "성장과 양성의 기질", "사람과 관계를 연결하는 부드러운 힘"],
+      "weakness": ["감정과 인정에 휘둘려 손해 봄", "거절을 잘 못해 자기 시간을 잃음"],
+      "career": ["교육·코칭·인재개발", "출판·콘텐츠·기획", "상담·심리·치유", "환경·농업·바이오"],
+      "love": "다정하고 보살피는 파트너예요. 같이 자라고 같이 배울 수 있는 사람에게 깊이 끌리고, 차갑고 메마른 상대와는 오래가지 못합니다.",
+      "advice": "화기격은 합화의 조건이 깨지지 않아야 합니다. 정·임을 충(沖)·극(剋)하는 운, 특히 금(金)이 목(木)을 자르는 시기를 가장 조심하세요. 인정도 좋지만, 자기 시간과 경계는 분명히 지키세요."
+    },
+    "en": {
+      "tagline": "Ding–Ren transformed into Wood — warmth and growth",
+      "personality": "You are a 'Jeong-Im transformed into Wood' chart — a Transformation chart where Ding fire and Ren water combine and transform into Wood. When the transformation succeeds, you carry the warm, generative energy of a spring sprout. You are kind-hearted and find deep meaning in growing both yourself and the people around you.",
+      "strength": ["Warm humanity and kindness", "Growth-oriented, nurturing nature", "A soft force that connects people and relationships"],
+      "weakness": ["Loses out by being swayed by emotion and kindness", "Poor at saying no; loses your own time"],
+      "career": ["Education, coaching, talent development", "Publishing, content, planning", "Counseling, psychology, healing", "Environment, agriculture, biotech"],
+      "love": "You are an affectionate, nurturing partner. You are drawn to people you can grow and learn alongside, and cannot last long with cold or arid partners.",
+      "advice": "A Transformation chart must keep its combination intact. Watch years that Clash or Control Ding and Ren — especially when Metal cuts Wood. Kindness is good, but defend your own time and boundaries clearly."
+    }
+  },
+  "무계화화격": {
+    "ko": {
+      "tagline": "무·계 합화 화(火) — 빛나는 예(禮)의 사람",
+      "personality": "당신은 '무계화화격(戊癸化火格)'이에요. 무토와 계수가 합하여 화(火)로 화(化)하는 화기격국(化氣格局)입니다. 화(化)가 성공한 경우, 환하고 따뜻하게 사람을 비추는 인격이 됩니다. 자평진전 「외격」편이 강조했듯 합화의 조건이 갖춰져야 진귀(眞貴)이며, 그때 당신은 예의와 빛으로 주변을 환하게 만드는 사람이 돼요.",
+      "strength": ["밝고 환한 매력과 표현력", "예의 바르고 의례를 아는 태도", "사람의 마음을 따뜻하게 데우는 힘"],
+      "weakness": ["보여지는 것에 민감해 자기 소진", "감정 기복이 크고 식으면 깊이 식음"],
+      "career": ["방송·문화·예술", "교육·강연·의례 영역", "마케팅·브랜딩·홍보", "리더십·동기부여·코칭"],
+      "love": "밝고 다정한 파트너예요. 상대의 모든 좋은 점을 비추어 주는 재능이 있지만, 자기 그늘이 깊어질 때 같이 있어줄 사람이 꼭 필요합니다.",
+      "advice": "화기격은 합화의 조건이 깨지지 않아야 합니다. 무·계를 충(沖)·극(剋)하는 운, 특히 수(水)가 화(火)를 끄는 시기를 가장 조심하세요. 빛만 내려 하지 말고, 자기 안의 그늘과 어둠도 인정하세요. 빛은 어둠을 알아야 더 오래 갑니다."
+    },
+    "en": {
+      "tagline": "Wu–Gui transformed into Fire — a person of luminous decorum",
+      "personality": "You are a 'Mu-Gye transformed into Fire' chart — a Transformation chart where Wu earth and Gui water combine and transform into Fire. When the transformation succeeds, you become a personality that lights up and warms the people around you. As the classics insist, this is truly noble only when the conditions of transformation hold; then you become a person who brightens others with decorum and light.",
+      "strength": ["Bright charm and expressive power", "Mannered, ritual-aware bearing", "A force that warms people's hearts"],
+      "weakness": ["Sensitive to how you appear; burns out", "Big emotional swings; once cooled, cools deeply"],
+      "career": ["Broadcasting, culture, the arts", "Education, lecturing, ceremonial roles", "Marketing, branding, PR", "Leadership, motivation, coaching"],
+      "love": "You are a bright, affectionate partner with a gift for reflecting back the best of your partner. But you genuinely need someone who stays close when your own shadow deepens.",
+      "advice": "A Transformation chart must keep its combination intact. Watch years that Clash or Control Wu and Gui — especially when Water extinguishes Fire. Don't only try to shine; acknowledge the shadow inside you too. Light only lasts when it knows the dark."
+    }
+  },
+  "가색격": {
+    "ko": {
+      "tagline": "씨 뿌리고 거두는 흙 — 안정·돌봄·실용의 사람",
+      "personality": "당신은 '가색격(稼穡格)'이에요. 사주가 모두 토(土)로 가득한 일행득기격(一行得氣格)으로, '심을 가(稼), 거둘 색(穡)'이라는 이름처럼 씨를 뿌리고 결실을 거두는 농부의 격국입니다. 신용(信)을 중시하고, 한 자리에서 꾸준히 키워내는 데에서 자기 본분을 찾는 사람이에요. 자평진전 「외격」편은 곡직·염상·가색·종혁·윤하 다섯을 함께 일행득기로 묶었습니다.",
+      "strength": ["꾸준함과 안정감", "사람과 일을 돌보는 신용", "현실적이고 실용적인 감각"],
+      "weakness": ["변화를 두려워하고 결정이 느림", "지나친 보수성으로 기회를 놓치기 쉬움"],
+      "career": ["부동산·건설·토목", "농업·식품·자원", "회계·자산관리·세무", "사회복지·돌봄·교육 행정"],
+      "love": "묵직하고 안정감 있는 파트너예요. 한 사람을 오래 챙기는 깊은 사랑을 하지만, 너무 익숙해지면 표현이 줄어드니 의식적으로 다정함을 보여주세요.",
+      "advice": "가색은 목(木)의 충극을 가장 두려워합니다. 자기 자리에서 오래 키우는 것이 격을 살리는 길이에요. 한 번에 큰 도약보다 매년 한 뼘씩 쌓는 전략이 평생의 강점이 됩니다."
+    },
+    "en": {
+      "tagline": "Earth that sows and reaps — stability, care, and pragmatism",
+      "personality": "You are a 'Gasaek' (Sowing and Reaping) chart — a 'one-element' configuration where Earth fills the chart. The name means 'sow and harvest,' the farmer's configuration. You value trust and find your purpose in steadily cultivating one place. The classics group Gokjik, Yeomsang, Gasaek, Jonghyeok, and Yunha together as the five 'one-element' charts.",
+      "strength": ["Steadiness and stability", "Trustworthiness in caring for people and tasks", "Practical, grounded sense"],
+      "weakness": ["Fears change; slow to decide", "Excess conservatism makes you miss opportunities"],
+      "career": ["Real estate, construction, civil engineering", "Agriculture, food, resources", "Accounting, asset management, tax", "Social welfare, caregiving, education administration"],
+      "love": "You are a steady, grounding partner who loves one person deeply for a long time, but as familiarity grows your expression shrinks — deliberately show affection.",
+      "advice": "Gasaek most fears Wood clashing and controlling Earth. Cultivating long in your own place is how you honor this chart. Adding one hand-span each year beats a single great leap as your lifelong strength."
+    }
+  },
+  "종혁격": {
+    "ko": {
+      "tagline": "단단한 금 — 결단·정의·체계의 사람",
+      "personality": "당신은 '종혁격(從革格)'이에요. 사주가 모두 금(金)으로 가득한 일행득기격(一行得氣格)으로, '따를 종(從), 고칠 혁(革)'이라는 이름처럼 옛것을 단호히 베고 새것을 세우는 개혁가의 격국입니다. 의(義)를 중시하고, 잘못된 것을 그냥 두지 못해요. 자평진전 「외격」편이 분류한 다섯 일행득기 중 하나로, 깨끗하게 금만 모일 때 진귀(眞貴)가 됩니다.",
+      "strength": ["강한 결단력과 정의감", "체계와 원칙을 세우는 능력", "약속과 신의를 끝까지 지키는 태도"],
+      "weakness": ["지나치게 강직해 융통성 부족", "한 번 내린 판단을 잘 거두지 못함"],
+      "career": ["법조·검찰·감사·컴플라이언스", "군인·경찰·보안·격투기", "외과·치과·정형외과", "금융·회계·정밀 엔지니어링"],
+      "love": "단단하고 의리 있는 파트너예요. 가벼운 말과 약속에 매우 민감하고, 자기 원칙에 맞는 상대에게는 평생 충실합니다.",
+      "advice": "종혁은 화(火)의 충극을 가장 두려워합니다. 정의의 칼은 자기 자리(직책·역할)가 있을 때 정당해져요. 모든 일에 칼을 휘두르면 자기도 다칩니다. 베지 말고 다듬는 법을 익히세요."
+    },
+    "en": {
+      "tagline": "Hardened metal — decisiveness, justice, system",
+      "personality": "You are a 'Jonghyeok' (Following Reform) chart — a 'one-element' configuration where Metal fills the chart. The name means 'follow and reform,' the reformer's configuration: you cut down the old decisively and build the new. You value justice and cannot let wrong things stand. As one of the five 'one-element' charts in the classics, it becomes truly noble only when Metal gathers cleanly.",
+      "strength": ["Strong decisiveness and sense of justice", "Skill at building systems and principles", "Loyalty that keeps promises to the end"],
+      "weakness": ["So upright that flexibility suffers", "Hard to retract a judgment once made"],
+      "career": ["Law, prosecution, audit, compliance", "Military, police, security, combat sports", "Surgery, dentistry, orthopedics", "Finance, accounting, precision engineering"],
+      "love": "You are a solid, loyal partner. Light words and broken promises hit you hard, and you stay faithful for life to a partner who fits your principles.",
+      "advice": "Jonghyeok most fears Fire clashing and controlling Metal. The blade of justice is justified only by an office or role. Swinging it at everything wounds you too. Learn to refine, not just to cut."
+    }
+  },
+  "윤하격": {
+    "ko": {
+      "tagline": "흐르는 물 — 지혜·유연·흐름의 사람",
+      "personality": "당신은 '윤하격(潤下格)'이에요. 사주가 모두 수(水)로 가득한 일행득기격(一行得氣格)으로, '적실 윤(潤), 흐를 하(下)'라는 이름처럼 위에서 아래로 흐르며 만물을 적시는 큰 물의 격국입니다. 지(智)를 중시하고, 깊고 유연한 사고로 세상을 읽는 사람이에요. 자평진전 「외격」편이 분류한 다섯 일행득기 중 하나로, 깨끗하게 수만 모일 때 진귀(眞貴)가 됩니다.",
+      "strength": ["깊은 지혜와 통찰력", "변화에 유연하게 적응하는 능력", "사람과 정보를 흐름으로 읽는 안목"],
+      "weakness": ["속내를 잘 드러내지 않아 차갑게 보임", "한곳에 머물지 못하고 흘러 다님"],
+      "career": ["전략·기획·컨설팅·리서치", "외교·정보·협상", "유통·물류·해운·무역", "심리·상담·정신분석"],
+      "love": "깊고 조용한 파트너예요. 시끄럽고 가벼운 관계보다 둘만의 깊은 대화가 가능한 사람에게 마음을 열고, 한 번 흐르기 시작하면 멀리까지 함께 갑니다.",
+      "advice": "윤하는 토(土)의 충극을 가장 두려워합니다. 흐름을 막으면 격이 깨져요. 너무 깊이만 들어가지 말고, 가끔은 수면 위로 올라와 햇빛을 받으세요. 흐름은 멈추지 않아야 살아 있습니다."
+    },
+    "en": {
+      "tagline": "Flowing water — wisdom, flexibility, flow",
+      "personality": "You are a 'Yunha' (Moistening Downward) chart — a 'one-element' configuration where Water fills the chart. The name means 'moisten and flow down,' the configuration of great water that runs from high to low and wets all things. You value wisdom and read the world with deep, flexible thinking. As one of the five 'one-element' charts in the classics, it becomes truly noble only when Water gathers cleanly.",
+      "strength": ["Deep wisdom and insight", "Flexible adaptation to change", "An eye that reads people and information as flow"],
+      "weakness": ["Reveals little inside; can read as cold", "Hard to stay in one place; drifts"],
+      "career": ["Strategy, planning, consulting, research", "Diplomacy, intelligence, negotiation", "Distribution, logistics, shipping, trade", "Psychology, counseling, psychoanalysis"],
+      "love": "You are a deep, quiet partner. You open up to someone capable of real private conversation rather than loud, shallow ties, and once you start flowing together you go far.",
+      "advice": "Yunha most fears Earth clashing and controlling Water. Blocking the flow breaks the chart. Don't only dive deep — occasionally surface and take in the sun. Flow is alive only when it doesn't stop."
+    }
   }
 }
