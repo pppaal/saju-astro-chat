@@ -2,7 +2,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: linear-gradient(135deg, #0f0a1e 0%, #1a1030 100%);
   color: #fff;
 }

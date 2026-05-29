@@ -29,7 +29,7 @@ export default function GlobalError({
       <body
         style={{
           margin: 0,
-          minHeight: '100vh',
+          minHeight: '100dvh',
           background:
             'radial-gradient(900px 600px at 50% -10%, rgba(212,181,114,0.18), transparent), radial-gradient(700px 500px at 80% 110%, rgba(212,181,114,0.08), transparent), #07091a',
           color: '#f5f7fb',
