@@ -467,6 +467,10 @@ export const GET = withApiMiddleware(
     ].filter((m, i, arr) => arr.indexOf(m) === i) // dedupe (Dec/Jan 경계)
 
     const engineScoreByDate: Record<string, number> = {}
+    const axisByDate: Record<
+      string,
+      { sajuAxis: number; astroAxis: number; headline: number; agreement: 'aligned' | 'mixed' | 'opposed' }
+    > = {}
     try {
       if (!sharedCeNatal) throw new Error('natal context unavailable')
       const ceNatal = sharedCeNatal
@@ -492,11 +496,32 @@ export const GET = withApiMiddleware(
           })
         })
       )
-      for (const { cells } of monthResults) {
-        for (const c of cells) {
-          const k = c.datetime.slice(0, 10)
-          if (typeof c.derivedScore === 'number') engineScoreByDate[k] = c.derivedScore
+      const allPrescoredCells = monthResults.flatMap((m) => m.cells)
+      for (const c of allPrescoredCells) {
+        const k = c.datetime.slice(0, 10)
+        if (typeof c.derivedScore === 'number') engineScoreByDate[k] = c.derivedScore
+      }
+      // Phase 1 단일출처 축: 같은 신호 다발에서 사주축·점성축·헤드라인·일치도 산출.
+      // 고정 기준 창(prescored 셀 전체)으로 1회 보정 → 모든 날 동일 보정.
+      try {
+        const { calibrateAxes, deriveCellAxes } = await import(
+          '@/lib/calendar-engine/derivers/axisScore'
+        )
+        const axisCal = calibrateAxes(allPrescoredCells)
+        for (const c of allPrescoredCells) {
+          const a = deriveCellAxes(c.signals, axisCal)
+          axisByDate[c.datetime.slice(0, 10)] = {
+            sajuAxis: a.sajuAxis,
+            astroAxis: a.astroAxis,
+            headline: a.headline,
+            agreement: a.agreement,
+          }
         }
+      } catch (axErr) {
+        logger.warn?.(
+          '[calendar-engine axisScore] skipped:',
+          axErr instanceof Error ? axErr.message : String(axErr)
+        )
       }
     } catch (err) {
       logger.warn?.(
@@ -505,6 +530,7 @@ export const GET = withApiMiddleware(
       )
     }
     const hasEngineScores = Object.keys(engineScoreByDate).length > 0
+    const hasAxisScores = Object.keys(axisByDate).length > 0
 
     // 12달 narrative 다시 풀빌드 — 다른 달 클릭 시 즉시 보이려면 응답에 365일 모두 포함.
     // prescoreMonths 외 9 달은 v3 점수 fallback 사용 (engineScores 에 없는 날짜).
@@ -536,6 +562,7 @@ export const GET = withApiMiddleware(
           dailyRetrograde: (astroProfile as { dailyRetrograde?: Record<string, string[]> })
             .dailyRetrograde,
           engineScores: hasEngineScores ? engineScoreByDate : undefined,
+          axisScores: hasAxisScores ? axisByDate : undefined,
         }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )

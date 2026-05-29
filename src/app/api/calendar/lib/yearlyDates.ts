@@ -106,6 +106,14 @@ type YearlyOptions = {
    *  목적: 화면에 보이는 displayScore(v2)와 문구 톤을 한 점수로 일치시킴
    *  (route가 v2 셀 점수를 미리 계산해 주입). 없는 날짜는 기존 사주·점성 blend. */
   engineScores?: Record<string, number>
+  /** Phase 1 단일출처 축 — calendar-engine 신호에서 calibrateAxes+deriveCellAxes 로
+   *  route가 미리 계산해 주입. 있으면 사주축·점성축·일치도·교차·헤드라인을 이 하나의
+   *  출처에서 → 기존 4계산기(UltraPrecision/transit/claim-IIFE) 모순 제거.
+   *  없는 날짜는 기존 fallback. (docs/timing-method.md) */
+  axisScores?: Record<
+    string,
+    { sajuAxis: number; astroAxis: number; headline: number; agreement: 'aligned' | 'mixed' | 'opposed' }
+  >
   /** 빌드할 month 범위 (0-indexed inclusive). 미지정 시 12달 전부.
    *  cold response 단축용 — main 응답은 current ± 1 month 만 빌드,
    *  나머지는 /api/calendar/convergence 가 lazy 로 채움. */
@@ -2003,7 +2011,17 @@ export function calculateYearlyImportantDates(
       if (typeof t !== 'number') return 0
       return t >= 60 ? 1 : t < 40 ? -1 : 0
     })()
+    // Phase 1 단일출처 축(있으면) — 이 날의 모든 축/교차/헤드라인을 한 출처에서.
+    const axisOverride = options?.axisScores?.[isoDate(year, month, day)]
     const crossAgreementPercent = (() => {
+      // 단일출처 축이 있으면 거기서 교차도 도출(claim-IIFE 대체) — 모순 제거.
+      if (axisOverride) {
+        const gap = Math.abs(axisOverride.sajuAxis - axisOverride.astroAxis)
+        const sameSide = (axisOverride.sajuAxis - 50) * (axisOverride.astroAxis - 50) >= 0
+        return sameSide
+          ? Math.round(clamp(92 - gap * 1.4, 55, 95))
+          : Math.round(clamp(48 - gap, 15, 48))
+      }
       // 둘 다 같은 방향 (둘 다 긍정 or 둘 다 부정) → 80~92
       if (sajuClaim !== 0 && astroClaim !== 0 && sajuClaim === astroClaim) {
         return Math.round(82 + reliability * 10)
@@ -2051,12 +2069,15 @@ export function calculateYearlyImportantDates(
       return typeof v === 'number' ? clamp(v, 0, 100) : 50
     })()
 
-    const sajuAxisRaw = Math.round(engineSub)
-    const astroAxisRaw = Math.round(transitSub)
+    // Phase 1 단일출처 축이 있으면 그걸로(헤드라인·축·일치도 한 출처 → 모순 제거,
+    // axisOffset 시프트 불필요). 없으면 기존 4계산기 blend(fallback).
+    const sajuAxisRaw = axisOverride ? axisOverride.sajuAxis : Math.round(engineSub)
+    const astroAxisRaw = axisOverride ? axisOverride.astroAxis : Math.round(transitSub)
     // axisAgreement는 두 축의 raw gap으로 판정 — override가 활성돼 축 표시값을
     // 시프트하더라도 의미(부호·일치 여부)는 raw 차이로 결정.
-    const axisAgreement: 'aligned' | 'mixed' | 'opposed' =
-      Math.abs(sajuAxisRaw - astroAxisRaw) <= 12
+    const axisAgreement: 'aligned' | 'mixed' | 'opposed' = axisOverride
+      ? axisOverride.agreement
+      : Math.abs(sajuAxisRaw - astroAxisRaw) <= 12
         ? 'aligned'
         : Math.abs(sajuAxisRaw - astroAxisRaw) <= 28
           ? 'mixed'
@@ -2068,14 +2089,19 @@ export function calculateYearlyImportantDates(
     // dailyShiftAdjustment(폐기)는 이중 계산이었다. 365일 전체에 prescore가 v2를
     // 채우므로 fallback(blendedRaw)은 prescore 실패 시에만 활성.
     const engineOverride = options?.engineScores?.[dateKey]
-    const score =
-      typeof engineOverride === 'number' && Number.isFinite(engineOverride)
+    // 단일출처 축이 있으면 헤드라인도 그 비보상 결합(axisOverride.headline)으로 — 축과
+    // 헤드라인이 같은 출처라야 "축은 aligned인데 점수 따로" 모순이 사라짐.
+    const score = axisOverride
+      ? Math.round(clamp(axisOverride.headline, 2, 99))
+      : typeof engineOverride === 'number' && Number.isFinite(engineOverride)
         ? Math.round(clamp(engineOverride, 2, 99))
         : Math.round(clamp(blendedRaw, 2, 99))
     // override 활성 시 두 축 표시값을 동일 delta로 시프트해 평균이 헤드라인 점수와
-    // 맞도록 정렬(축간 차이는 보존 → axisAgreement 의미 유지). override 없으면 raw 그대로.
-    const axisOffset =
-      typeof engineOverride === 'number' && Number.isFinite(engineOverride)
+    // 맞도록 정렬(축간 차이는 보존 → axisAgreement 의미 유지). 단일출처 축이면
+    // 축·헤드라인이 같은 출처라 시프트 불필요(raw 그대로 표시).
+    const axisOffset = axisOverride
+      ? 0
+      : typeof engineOverride === 'number' && Number.isFinite(engineOverride)
         ? score - Math.round(blendedRaw)
         : 0
     const sajuAxisScore = Math.round(clamp(sajuAxisRaw + axisOffset, 0, 100))
