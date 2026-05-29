@@ -34,6 +34,7 @@ export type AstroSignalKind =
   | 'solar-arc' // Solar Arc directions (본명 행성 1°/년 이동 → 본명 컨택)
   | 'draconic' // 드라코닉 차트 (영혼 결) 트랜짓 컨택
   | 'harmonic' // 하모닉 차트 (특정 결 패턴 — 4/5/7/9) 트랜짓 컨택
+  | 'antiscia' // 안티시아 그림자 도 컨택트
 
 export type SignalKind = SajuSignalKind | AstroSignalKind
 

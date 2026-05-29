@@ -41,6 +41,7 @@ import astroAsteroidExtractor from './extractors/astro-asteroid'
 import astroSolarArcExtractor from './extractors/astro-solar-arc'
 import astroMidpointExtractor from './extractors/astro-midpoint'
 import astroSoulPatternExtractor from './extractors/astro-soul-pattern'
+import astroAntisciaExtractor from './extractors/astro-antiscia'
 
 // derivers
 import { deriveScore } from './derivers/score'
@@ -109,7 +110,7 @@ function getRegisteredExtractors(): SignalExtractor[] {
     sajuIljuArchetypeExtractor,
     sajuJohuYongsinExtractor,
 
-    // ── astro (13) ──
+    // ── astro (14) ──
     astroTransitExtractor,
     astroEclipseExtractor,
     astroProfectionExtractor,
@@ -129,6 +130,7 @@ function getRegisteredExtractors(): SignalExtractor[] {
     astroSolarArcExtractor,
     astroMidpointExtractor,
     astroSoulPatternExtractor,
+    astroAntisciaExtractor,
   ]
 }
 
