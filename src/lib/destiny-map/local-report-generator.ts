@@ -732,7 +732,13 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
       const both = strengthShort
         ? `${geokgukName}·${strengthShort}`
         : geokgukName
-      const tail = geokgukTagline ? `라 ${geokgukTagline}이에요` : '이에요'
+      // 받침 분기: 종성 있으면 "이라", 없으면 "라". '강/약/화' 등 마지막 글자 기준.
+      const lastCh = both.charAt(both.length - 1)
+      const code = lastCh.charCodeAt(0)
+      const hasJongseong =
+        code >= 0xac00 && code <= 0xd7a3 ? (code - 0xac00) % 28 !== 0 : true
+      const ira = hasJongseong ? '이라' : '라'
+      const tail = geokgukTagline ? `${ira} ${geokgukTagline}이에요` : `${ira}고 볼 수 있어요`
       s2 = `사주는 ${both}${tail}.`
     } else if (strengthShort) {
       s2 = `일간이 ${strengthShort}한 흐름이에요.`
@@ -754,7 +760,12 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
     // s5 — 용신 보충 처방
     let s5 = ''
     if (remedy && remedyElName) {
-      s5 = `다만 ${remedyElName}(${remedy.color.ko}·${remedy.direction.ko})이(가) 부족해서 ${remedy.activity.ko}이 균형을 잡아줘요.`
+      // remedyElName 은 항상 '목/화/토/금/수' 중 하나 → 마지막 종성 유무로 이/가 결정
+      const cd = remedyElName.charCodeAt(remedyElName.length - 1)
+      const hasJong =
+        cd >= 0xac00 && cd <= 0xd7a3 ? (cd - 0xac00) % 28 !== 0 : false
+      const subj = hasJong ? '이' : '가'
+      s5 = `다만 ${remedyElName}(${remedy.color.ko}·${remedy.direction.ko})${subj} 부족해서 ${remedy.activity.ko}이 균형을 잡아줘요.`
     }
 
     // s6 — 태양/달 (기존 s3)
@@ -790,14 +801,12 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
     : `${getElementName(selfKey, false)}-natured at the core`
   const s1 = trait ? `${lead} — ${trait}.` : `${lead}.`
 
-  // s2 — geokguk + strength
+  // s2 — geokguk + strength. EN dictionary tagline already carries the
+  // archetype name in plain English, so we lead with it and add strength.
   let s2 = ''
-  if (geokgukName && geokgukName !== '미정') {
-    const stem = strengthShort
-      ? `${geokgukName} chart with a ${strengthShort}`
-      : `${geokgukName} chart`
-    const tail = geokgukTagline ? ` — ${lower(geokgukTagline)}` : ''
-    s2 = `Your reading is a ${stem}${tail}.`
+  if (geokgukTagline) {
+    const tail = strengthShort ? `, with a ${strengthShort}` : ''
+    s2 = `Your reading reads as ${lower(geokgukTagline)}${tail}.`
   } else if (strengthShort) {
     s2 = `Your day-master sits in a ${strengthShort} pattern.`
   }
