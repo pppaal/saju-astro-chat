@@ -65,11 +65,9 @@ describe('Saju Core Integration', () => {
   })
 
   describe('Supporting Module Exports', () => {
-    it('should expose supporting modules', async () => {
+    it('should expose supporting modules', () => {
       assertNamedExports('lib/saju/compatibility', ['analyzeComprehensiveCompatibility'])
-      const sajuCache = await import('@/lib/saju/cache')
-      expect(sajuCache.getSajuFromCache).toBeDefined()
-      expect(sajuCache.setSajuToCache).toBeDefined()
+      // saju/cache — 미사용으로 통째 삭제됨 (2025 정리)
       // visualizationData / fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
       // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
     })
@@ -210,17 +208,17 @@ describe('Saju Core Integration', () => {
         'lib/saju/sibsinAnalysis',
         'lib/saju/unse',
         'lib/saju/compatibility',
-        'lib/saju/cache',
         'lib/saju/geokguk',
         'lib/saju/tonggeun',
         'lib/saju/healthCareer',
         'lib/saju/patternMatcher',
         'lib/saju/advancedSajuCore',
       ]
+      // saju/cache — 미사용으로 통째 삭제됨 (2025 정리)
       // visualizationData / fortuneSimulator / aiPromptGenerator — 미사용으로 삭제됨
       // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
 
-      expect(modules.length).toBe(13)
+      expect(modules.length).toBe(12)
       modules.forEach((modulePath) => {
         readModule(modulePath)
       })
@@ -245,13 +243,7 @@ describe('Saju Core Integration', () => {
     })
   })
 
-  describe('Cache Integration', () => {
-    it('should have cache get and set functions', async () => {
-      const sajuCache = await import('@/lib/saju/cache')
-      expect(typeof sajuCache.getSajuFromCache).toBe('function')
-      expect(typeof sajuCache.setSajuToCache).toBe('function')
-    })
-  })
+  // Cache Integration — saju/cache 통째 삭제됨 (2025 정리)
 
   // Visualization Data — 미사용으로 삭제됨 (2025 정리)
 
