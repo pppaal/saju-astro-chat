@@ -195,18 +195,20 @@ describe('request-ip MEGA - empty value handling', () => {
 })
 
 describe('request-ip MEGA - header priority', () => {
-  // Actual priority: cf-connecting-ip > x-real-ip > x-forwarded-for
-  it('should prefer cf-connecting-ip over x-real-ip', () => {
+  // Priority (test env trusts proxies): cf-connecting-ip (with cf-ray) > vercel > x-real-ip > x-forwarded-for
+  it('should prefer cf-connecting-ip over x-real-ip when cf-ray is present', () => {
     const headers = new Headers({
       'cf-connecting-ip': '172.16.0.1',
+      'cf-ray': '8abc1234-DFW',
       'x-real-ip': '10.0.0.1',
     })
     expect(getClientIp(headers)).toBe('172.16.0.1')
   })
 
-  it('should prefer cf-connecting-ip over x-forwarded-for', () => {
+  it('should prefer cf-connecting-ip over x-forwarded-for when cf-ray is present', () => {
     const headers = new Headers({
       'cf-connecting-ip': '172.16.0.1',
+      'cf-ray': '8abc1234-DFW',
       'x-forwarded-for': '192.168.1.1',
     })
     expect(getClientIp(headers)).toBe('172.16.0.1')
@@ -228,20 +230,22 @@ describe('request-ip MEGA - header priority', () => {
     expect(getClientIp(headers)).toBe('10.0.0.1')
   })
 
-  it('should use cf-connecting-ip when others are empty', () => {
+  it('should use cf-connecting-ip when paired with cf-ray and others are empty', () => {
     const headers = new Headers({
       'x-forwarded-for': '',
       'x-real-ip': '',
       'cf-connecting-ip': '172.16.0.1',
+      'cf-ray': '8abc1234-DFW',
     })
     expect(getClientIp(headers)).toBe('172.16.0.1')
   })
 
-  it('should use all three headers with cf-connecting-ip winning', () => {
+  it('should use all three headers with cf-connecting-ip winning when cf-ray is present', () => {
     const headers = new Headers({
       'x-forwarded-for': '1.1.1.1',
       'x-real-ip': '2.2.2.2',
       'cf-connecting-ip': '3.3.3.3',
+      'cf-ray': '8abc1234-DFW',
     })
     expect(getClientIp(headers)).toBe('3.3.3.3')
   })
@@ -270,24 +274,46 @@ describe('request-ip MEGA - x-real-ip fallback', () => {
 })
 
 describe('request-ip MEGA - cf-connecting-ip fallback', () => {
-  it('should use cf-connecting-ip when available', () => {
-    const headers = new Headers({ 'cf-connecting-ip': '172.16.0.1' })
+  // All these tests pair cf-connecting-ip with cf-ray, as cf-ray gating
+  // prevents header spoofing in Vercel/non-Cloudflare environments.
+  it('should use cf-connecting-ip when paired with cf-ray', () => {
+    const headers = new Headers({
+      'cf-connecting-ip': '172.16.0.1',
+      'cf-ray': '8abc1234-DFW',
+    })
     expect(getClientIp(headers)).toBe('172.16.0.1')
   })
 
   it('should handle cf-connecting-ip with spaces', () => {
-    const headers = new Headers({ 'cf-connecting-ip': '  172.16.0.1  ' })
+    const headers = new Headers({
+      'cf-connecting-ip': '  172.16.0.1  ',
+      'cf-ray': '8abc1234-DFW',
+    })
     expect(getClientIp(headers)).toBe('  172.16.0.1  ')
   })
 
   it('should use cf-connecting-ip for IPv6', () => {
-    const headers = new Headers({ 'cf-connecting-ip': '2001:db8::1' })
+    const headers = new Headers({
+      'cf-connecting-ip': '2001:db8::1',
+      'cf-ray': '8abc1234-DFW',
+    })
     expect(getClientIp(headers)).toBe('2001:db8::1')
   })
 
   it('should use cf-connecting-ip for Cloudflare IPv6', () => {
-    const headers = new Headers({ 'cf-connecting-ip': '2606:4700::1111' })
+    const headers = new Headers({
+      'cf-connecting-ip': '2606:4700::1111',
+      'cf-ray': '8abc1234-DFW',
+    })
     expect(getClientIp(headers)).toBe('2606:4700::1111')
+  })
+
+  it('should ignore cf-connecting-ip without cf-ray (spoof guard)', () => {
+    const headers = new Headers({
+      'cf-connecting-ip': '1.2.3.4',
+      'x-real-ip': '10.0.0.1',
+    })
+    expect(getClientIp(headers)).toBe('10.0.0.1')
   })
 })
 
@@ -342,13 +368,19 @@ describe('request-ip MEGA - header case sensitivity', () => {
     expect(getClientIp(headers)).toBe('10.0.0.1')
   })
 
-  it('should handle lowercase cf-connecting-ip', () => {
-    const headers = new Headers({ 'cf-connecting-ip': '172.16.0.1' })
+  it('should handle lowercase cf-connecting-ip with cf-ray', () => {
+    const headers = new Headers({
+      'cf-connecting-ip': '172.16.0.1',
+      'cf-ray': '8abc1234-DFW',
+    })
     expect(getClientIp(headers)).toBe('172.16.0.1')
   })
 
-  it('should handle uppercase CF-CONNECTING-IP', () => {
-    const headers = new Headers({ 'CF-CONNECTING-IP': '172.16.0.1' })
+  it('should handle uppercase CF-CONNECTING-IP with cf-ray', () => {
+    const headers = new Headers({
+      'CF-CONNECTING-IP': '172.16.0.1',
+      'CF-RAY': '8abc1234-DFW',
+    })
     expect(getClientIp(headers)).toBe('172.16.0.1')
   })
 })
@@ -358,6 +390,7 @@ describe('request-ip MEGA - real-world scenarios', () => {
     const headers = new Headers({
       'x-forwarded-for': '203.0.113.1, 198.41.128.1',
       'cf-connecting-ip': '203.0.113.1',
+      'cf-ray': '8abc1234-DFW',
     })
     expect(getClientIp(headers)).toBe('203.0.113.1')
   })

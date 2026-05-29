@@ -14,7 +14,7 @@ export interface FetchWithRetryOptions {
   maxDelayMs?: number;
   /** Request timeout in ms (default: 30000) */
   timeoutMs?: number;
-  /** HTTP status codes to retry on (default: [408, 429, 500, 502, 503, 504]) */
+  /** HTTP status codes to retry on (default: [408, 429, 500, 502, 503, 504, 529]) */
   retryStatusCodes?: number[];
   /** Callback called on each retry attempt */
   onRetry?: (attempt: number, error: Error, delayMs: number) => void;
@@ -70,7 +70,7 @@ export async function fetchWithRetry(
     initialDelayMs = 1000,
     maxDelayMs = 10000,
     timeoutMs = 30000,
-    retryStatusCodes = [408, 429, 500, 502, 503, 504],
+    retryStatusCodes = [408, 429, 500, 502, 503, 504, 529],
     onRetry,
   } = options;
 
