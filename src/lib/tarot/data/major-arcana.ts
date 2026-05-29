@@ -70,9 +70,9 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'The reversed Magician warns of misused power and deceptive practices. You may be manipulating situations or people to get what you want, or someone may be doing this to you. Alternatively, this card can indicate untapped potential—you have incredible abilities that remain dormant due to self-doubt or fear of failure. Are you playing small when you could be playing big? In relationships, watch for dishonesty or hidden agendas, either from yourself or your partner. In career, this may suggest that your talents are not being recognized or properly utilized. It is time to realign your intentions with integrity and rediscover your authentic power.',
       meaningKo:
-        '역방향 마법사 카드는 오용된 힘과 기만적인 행위에 대해 경고합니다. 원하는 것을 얻기 위해 상황이나 사람을 조종하고 있거나, 누군가가 당신에게 이렇게 하고 있을 수 있습니다. 또한 이 카드는 활용되지 않은 잠재력을 나타낼 수 있습니다—자기 의심이나 실패에 대한 두려움 때문에 놀라운 능력이 잠들어 있습니다. 크게 활약할 수 있는데 작게 행동하고 있지는 않은가요? 관계에서는 자신이든 파트너든 부정직함이나 숨겨진 의도를 주의하세요. 직업에서는 재능이 인정받지 못하거나 제대로 활용되지 않음을 암시할 수 있습니다. 진정성과 함께 의도를 재정렬하고 진정한 힘을 재발견할 때입니다.',
+        '역방향 마법사 카드는 오용된 힘과 기만적인 행위에 대해 경고합니다. 원하는 것을 얻기 위해 상황이나 사람을 조종하고 있거나, 누군가가 당신에게 이렇게 하고 있을 수 있습니다. 또한 이 카드는 활용되지 않은 잠재력을 나타낼 수 있습니다—자기 의심이나 실패에 대한 두려움 때문에 놀라운 능력이 잠들어 있습니다. 크게 활약할 수 있는데 작게 행동하고 있지는 않은가요? 관계에서는 자신이든 파트너든 부정직함이나 숨겨진 의도를 주의하세요. 직업에서는 재능이 인정받지 못하거나 제대로 활용되지 않음을 암시할 수 있습니다. 진정성에 맞춰 의도를 다시 정렬하고 진정한 힘을 재발견할 때입니다.',
       advice: 'Realign with integrity. Unlock your dormant potential.',
-      adviceKo: '진정성과 재정렬하세요. 잠든 잠재력을 깨우세요.',
+      adviceKo: '진정성에 맞춰 다시 정렬하세요. 잠든 잠재력을 깨우세요.',
     },
   },
   {
@@ -242,7 +242,7 @@ export const majorArcanaCards: RawCard[] = [
       meaningKo:
         '역방향 연인은 관계의 불화나 중요한 선택에 대한 내적 갈등을 가리킵니다. 마음은 한 방향으로, 논리는 다른 방향으로 끌리는 결정에 직면해 있을 수 있습니다. 관계에서 가치관 불일치가 있어 공통점을 찾기 어려울 수 있습니다. 때때로 이 카드는 먼저 자신을 선택해야 함을 나타냅니다—다른 사람을 진정으로 사랑하기 전에 자기 사랑이 먼저여야 합니다. 마음의 문제에서 받을 자격이 있는 것보다 못한 것에 만족하고 있거나 성장에 더 이상 도움이 되지 않는 상황에 머물고 있는지 살펴보세요. 역방향 연인은 묻습니다: 자신에게 진실한가요? 중요한 결정을 내리기 전에 진정한 가치와 재정렬하세요.',
       advice: 'Prioritize self-love. Realign with your authentic values.',
-      adviceKo: '자기 사랑을 우선시하세요. 진정한 가치와 재정렬하세요.',
+      adviceKo: '자기 사랑을 우선시하세요. 진정한 가치에 다시 맞추세요.',
     },
   },
   {
@@ -444,7 +444,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'Despite its fearsome imagery, the Death card rarely means physical death. Instead, it heralds profound transformation—the end of one chapter and the birth of another. Like the phoenix rising from ashes, you are being called to release what no longer serves you to make room for something new and beautiful. This could be the end of a relationship, a career, an old identity, or deeply held beliefs. Though endings can be painful, they are necessary for growth. In love, an old pattern may be dying to make way for healthier connections. In career, a door closes so a better one can open. The Death card promises that on the other side of this transformation lies renewal. Trust the cycle of life. What falls away was never truly yours to keep; what remains is your authentic path forward.',
       meaningKo:
-        '무서운 이미지에도 불구하고, 죽음 카드는 물리적 죽음을 의미하는 경우가 드뭅니다. 대신 심오한 변화를 예고합니다—한 장의 끝과 다른 장의 탄생. 재에서 떠오르는 불사조처럼, 새롭고 아름다운 것을 위한 공간을 만들기 위해 더 이상 도움이 되지 않는 것을 놓으라는 부름을 받고 있습니다. 이것은 관계, 직업, 오래된 정체성, 또는 깊이 간직한 신념의 끝일 수 있습니다. 끝맺음은 고통스러울 수 있지만, 성장에 필요합니다. 사랑에서는 더 건강한 연결을 위해 오래된 패턴이 죽어가고 있을 수 있습니다. 직업에서는 더 나은 문이 열리도록 한 문이 닫힙니다. 죽음 카드는 이 변화의 반대편에 갱신이 있음을 약속합니다. 삶의 순환을 신뢰하세요. 떨어져 나가는 것은 진정으로 당신이 간직할 것이 아니었습니다; 남는 것이 당신의 진정한 앞으로의 길입니다.',
+        '무서운 이미지에도 불구하고, 죽음 카드는 물리적 죽음을 의미하는 경우가 드뭅니다. 대신 심오한 변화를 예고합니다—한 장의 끝과 다른 장의 탄생. 재에서 떠오르는 불사조처럼, 새롭고 아름다운 것을 위한 공간을 만들기 위해 더 이상 도움이 되지 않는 것을 놓으라는 부름을 받고 있습니다. 이것은 관계, 직업, 오래된 정체성, 또는 깊이 간직한 신념의 끝일 수 있습니다. 끝맺음은 고통스러울 수 있지만, 성장에 필요합니다. 사랑에서는 더 건강한 연결을 위해 오래된 패턴이 죽어가고 있을 수 있습니다. 직업에서는 더 나은 문이 열리도록 한 문이 닫힙니다. 죽음 카드는 이 변화의 반대편에 갱신이 있음을 약속합니다. 삶의 순환을 신뢰하세요. 떨어져 나가는 것은 진정으로 당신이 간직할 것이 아니었습니다; 남는 것이 당신이 앞으로 나아갈 진정한 길입니다.',
       advice: 'Let go of what no longer serves you. Transformation brings rebirth.',
       adviceKo: '더 이상 도움이 되지 않는 것을 놓으세요. 변화는 재탄생을 가져옵니다.',
     },
@@ -472,7 +472,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         "The angel of Temperance pours water between two cups in a continuous, balanced flow—teaching us the art of harmony and moderation. This card calls you to find the middle path, blending opposing forces into a unified whole. Whether it's balancing work and rest, logic and emotion, or giving and receiving, the key to your current situation lies in integration. Patience is essential; lasting solutions take time to develop. In relationships, Temperance suggests finding compromise and understanding, creating a peaceful partnership where both can thrive. In career, measured and steady progress will take you further than impulsive action. This is also a card of healing—emotional, physical, or spiritual. Trust the process of gradual restoration. The angel has one foot in water (emotion) and one on land (material world), showing that you can bridge these realms successfully.",
       meaningKo:
-        '절제의 천사가 두 잔 사이로 물을 연속적이고 균형 잡힌 흐름으로 부으며—조화와 절제의 예술을 가르칩니다. 이 카드는 중간 길을 찾아 대립하는 힘을 통합된 전체로 조화시키라고 요청합니다. 일과 휴식, 논리와 감정, 주고받음의 균형이든, 현재 상황의 열쇠는 통합에 있습니다. 인내가 필수입니다; 지속적인 해결책은 발전하는 데 시간이 걸립니다. 관계에서 절제는 타협과 이해를 찾아 둘 다 번영할 수 있는 평화로운 파트너십을 만들 것을 제안합니다. 직업에서는 신중하고 꾸준한 진전이 충동적인 행동보다 더 멀리 데려갈 것입니다. 이것은 또한 치유의 카드입니다—정서적, 신체적, 또는 영적으로. 점진적 회복의 과정을 신뢰하세요. 천사는 한 발은 물(감정)에, 한 발은 땅(물질 세계)에 두고 있으며, 이 영역들을 성공적으로 연결할 수 있음을 보여줍니다.',
+        '절제의 천사가 두 잔 사이에서 물을 연속적이고 균형 잡힌 흐름으로 부으며—조화와 절제의 예술을 가르칩니다. 이 카드는 중간 길을 찾아 대립하는 힘을 통합된 전체로 조화시키라고 요청합니다. 일과 휴식, 논리와 감정, 주고받음의 균형이든, 현재 상황의 열쇠는 통합에 있습니다. 인내가 필수입니다; 지속적인 해결책은 발전하는 데 시간이 걸립니다. 관계에서 절제는 타협과 이해를 찾아 둘 다 번영할 수 있는 평화로운 파트너십을 만들 것을 제안합니다. 직업에서는 신중하고 꾸준한 진전이 충동적인 행동보다 더 멀리 데려갈 것입니다. 이것은 또한 치유의 카드입니다—정서적, 신체적, 또는 영적으로. 점진적 회복의 과정을 신뢰하세요. 천사는 한 발은 물(감정)에, 한 발은 땅(물질 세계)에 두고 있으며, 이 영역들을 성공적으로 연결할 수 있음을 보여줍니다.',
       advice: 'Find balance and moderation. Patience will bring harmony.',
       adviceKo: '균형과 절제를 찾으세요. 인내가 조화를 가져올 것입니다.',
     },
@@ -630,7 +630,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'The Sun bursts forth with radiant, life-giving energy—this is one of the most positive cards in the entire deck. After the uncertain darkness of the Moon, the Sun brings clarity, joy, and undeniable success. A child rides joyfully on a white horse, symbolizing the pure innocence and freedom that comes when we live authentically. This card says YES to your questions, promising good outcomes and genuine happiness. In love, the Sun brings warmth, playfulness, and deep connection. In career, success is assured; your efforts will be recognized and rewarded. Health and vitality are strong. The Sun reminds you to embrace your inner child, to find joy in simple pleasures, and to let your true self shine without apology. This is your moment to thrive. Bask in the light you have earned.',
       meaningKo:
-        '태양이 빛나는 생명력 넘치는 에너지로 터져 나옵니다—이것은 전체 덱에서 가장 긍정적인 카드 중 하나입니다. 달의 불확실한 어둠 후에, 태양은 명료함, 기쁨, 그리고 부정할 수 없는 성공을 가져옵니다. 아이가 흰 말 위에서 즐겁게 타고 있으며, 진정성 있게 살 때 오는 순수한 천진난만함과 자유를 상징합니다. 이 카드는 당신의 질문에 예라고 말하며, 좋은 결과와 진정한 행복을 약속합니다. 사랑에서 태양은 따뜻함, 장난기, 깊은 연결을 가져옵니다. 직업에서 성공이 보장됩니다; 당신의 노력이 인정받고 보상받을 것입니다. 건강과 활력이 강합니다. 태양은 내면 아이를 받아들이고, 단순한 즐거움에서 기쁨을 찾고, 사과 없이 진정한 자신을 빛내라고 상기시킵니다. 이것은 번영할 당신의 순간입니다. 당신이 얻은 빛을 마음껏 누리세요.',
+        '태양이 빛나는 생명력 넘치는 에너지로 터져 나옵니다—이것은 전체 덱에서 가장 긍정적인 카드 중 하나입니다. 달의 불확실한 어둠 후에, 태양은 명료함, 기쁨, 그리고 부정할 수 없는 성공을 가져옵니다. 아이가 흰 말 위에서 즐겁게 타고 있으며, 진정성 있게 살 때 오는 순수한 천진난만함과 자유를 상징합니다. 이 카드는 당신의 질문에 예라고 말하며, 좋은 결과와 진정한 행복을 약속합니다. 사랑에서 태양은 따뜻함, 장난기, 깊은 연결을 가져옵니다. 직업에서 성공이 보장됩니다; 당신의 노력이 인정받고 보상받을 것입니다. 건강과 활력이 강합니다. 태양은 내면 아이를 받아들이고, 단순한 즐거움에서 기쁨을 찾고, 사과 없이 진정한 자신을 빛내라고 상기시킵니다. 이것은 당신이 번영할 순간입니다. 당신이 얻은 빛을 마음껏 누리세요.',
       advice: 'Celebrate life! Joy, success, and vitality are yours.',
       adviceKo: '삶을 축하하세요! 기쁨, 성공, 활력이 당신의 것입니다.',
     },
@@ -664,7 +664,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         "The angel's trumpet sounds, calling the dead to rise—and so you too are being called to a profound awakening and rebirth. Judgement asks you to take an honest accounting of your life, to evaluate your past actions, and to release yourself from guilt and regret through genuine self-reflection. This is a moment of resurrection: leaving behind an old version of yourself to embrace a higher calling. You may be facing a significant decision that will affect the course of your life. Listen to the trumpet's call—your soul knows what it's being summoned toward. In love, this could mean reconciliation, closure, or evolving to a deeper level of partnership. In career, a calling to more meaningful work may be impossible to ignore. Judgement promises that through honest self-assessment and forgiveness, you can rise renewed.",
       meaningKo:
-        '천사의 나팔 소리가 죽은 자들을 일으키라고 부릅니다—그래서 당신도 심오한 각성과 부활로 부름받고 있습니다. 심판은 삶을 정직하게 점검하고, 과거 행동을 평가하고, 진정한 자기 성찰을 통해 죄책감과 후회에서 자신을 풀어주라고 요청합니다. 이것은 부활의 순간입니다: 자신의 오래된 버전을 뒤로하고 더 높은 부름을 받아들이는 것. 삶의 방향에 영향을 미칠 중요한 결정에 직면해 있을 수 있습니다. 나팔의 부름에 귀 기울이세요—당신의 영혼은 무엇을 향해 소환되고 있는지 압니다. 사랑에서 이것은 화해, 마무리, 또는 더 깊은 수준의 파트너십으로 발전하는 것을 의미할 수 있습니다. 직업에서 더 의미 있는 일에 대한 부름을 무시하기 어려울 수 있습니다. 심판은 정직한 자기 평가와 용서를 통해 새롭게 일어날 수 있음을 약속합니다.',
+        '천사의 나팔이 울려 죽은 자들을 일어서라고 부릅니다—그래서 당신도 심오한 각성과 부활로 부름받고 있습니다. 심판은 삶을 정직하게 점검하고, 과거 행동을 평가하고, 진정한 자기 성찰을 통해 죄책감과 후회에서 자신을 풀어주라고 요청합니다. 이것은 부활의 순간입니다: 자신의 오래된 버전을 뒤로하고 더 높은 부름을 받아들이는 것. 삶의 방향에 영향을 미칠 중요한 결정에 직면해 있을 수 있습니다. 나팔의 부름에 귀 기울이세요—당신의 영혼은 무엇을 향해 소환되고 있는지 압니다. 사랑에서 이것은 화해, 마무리, 또는 더 깊은 수준의 파트너십으로 발전하는 것을 의미할 수 있습니다. 직업에서 더 의미 있는 일에 대한 부름을 무시하기 어려울 수 있습니다. 심판은 정직한 자기 평가와 용서를 통해 새롭게 일어날 수 있음을 약속합니다.',
       advice: 'Answer your calling. This is a time for rebirth and awakening.',
       adviceKo: '부름에 응답하세요. 재탄생과 각성의 시간입니다.',
     },
@@ -708,7 +708,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         "The reversed World suggests that you're close to completion but something remains unfinished. Perhaps you've taken shortcuts that left lessons unlearned, or you're rushing to the finish line without properly integrating the journey. There may be a nagging sense of incompleteness, as if success achieved doesn't quite satisfy because something essential was missed. In relationships, there might be unresolved issues preventing the sense of wholeness you seek. In career, a project may be stalling just before completion, or achievements feel hollow. The reversed World can also indicate feeling stuck or limited, as if the whole world is closed to you rather than open. It asks: What unfinished business needs attention before you can truly move on? What shortcuts need to be addressed? Sometimes we must circle back to complete what we started before we can celebrate genuine fulfillment.",
       meaningKo:
-        '역방향 세계는 완성에 가깝지만 무언가가 미완으로 남아 있음을 암시합니다. 아마도 교훈을 배우지 않은 채 지름길을 택했거나, 여정을 제대로 통합하지 않고 결승선으로 서두르고 있을 수 있습니다. 필수적인 무언가를 놓쳤기 때문에 성취한 성공이 만족스럽지 않은 것처럼 미완의 느낌이 계속될 수 있습니다. 관계에서 찾는 전체성의 감각을 막는 해결되지 않은 문제가 있을 수 있습니다. 직업에서 프로젝트가 완료 직전에 멈추거나, 성취가 공허하게 느껴질 수 있습니다. 역방향 세계는 또한 온 세상이 열려 있기보다 닫혀 있는 것처럼 갇히거나 제한된 느낌을 나타낼 수 있습니다. 묻습니다: 진정으로 나아가기 전에 어떤 미완의 일이 주의를 기울여야 하나요? 어떤 지름길을 다뤄야 하나요? 때때로 진정한 충만함을 축하하기 전에 시작한 것을 완료하기 위해 돌아가야 합니다.',
+        '역방향 세계는 완성에 가깝지만 무언가가 미완으로 남아 있음을 암시합니다. 아마도 교훈을 배우지 않은 채 지름길을 택했거나, 여정을 제대로 통합하지 않고 결승선으로 서두르고 있을 수 있습니다. 필수적인 무언가를 놓쳤기 때문에 성취한 성공이 만족스럽지 않은 것처럼 미완의 느낌이 계속될 수 있습니다. 관계에서 찾는 전체성의 감각을 막는 해결되지 않은 문제가 있을 수 있습니다. 직업에서 프로젝트가 완료 직전에 멈추거나, 성취가 공허하게 느껴질 수 있습니다. 역방향 세계는 또한 온 세상이 열려 있기보다 닫혀 있는 것처럼 갇히거나 제한된 느낌을 나타낼 수 있습니다. 묻습니다: 진정으로 나아가기 전에 어떤 미완의 일에 주의를 기울여야 하나요? 어떤 지름길을 다뤄야 하나요? 때때로 진정한 충만함을 축하하기 전에 시작한 것을 완료하기 위해 돌아가야 합니다.',
       advice: "Complete what you've started. Avoid shortcuts. Seek proper closure.",
       adviceKo: '시작한 것을 완료하세요. 지름길을 피하세요. 적절한 마무리를 찾으세요.',
     },
