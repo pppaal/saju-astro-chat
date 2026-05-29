@@ -78,12 +78,19 @@ const merriweather = localFont({
   preload: false,
 })
 
-export const viewport: Viewport = {
+// `interactiveWidget: 'resizes-content'` tells the browser to shrink the
+// layout viewport when the on-screen keyboard opens instead of pushing fixed
+// elements upward. Without this, iOS Safari shifts Toast/CreditDepletedModal
+// /InlineTarotModal/ShareButton/CounselorSidebar/ConsentBanner above the
+// keyboard, often off-screen. Next's Viewport type doesn't yet expose this
+// field, so we widen with an intersection type.
+export const viewport: Viewport & { interactiveWidget?: string } = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
   viewportFit: 'cover',
+  interactiveWidget: 'resizes-content',
 }
 
 export const metadata: Metadata = {
