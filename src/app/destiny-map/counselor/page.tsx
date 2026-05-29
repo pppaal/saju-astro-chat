@@ -145,7 +145,7 @@ export default function CounselorPage() {
   // 안 됨. Chat 컴포넌트가 세션 로드하면서 birth 정보까지 복원함.
   if ((!birthDate || !birthTime) && !initialSessionId) {
     return (
-      <main className={styles.page}>
+      <main className={`${styles.page} ${styles.lightTheme}`}>
         <div className={styles.missingProfileCard}>
           <div className={styles.missingProfileIcon}>🔮</div>
           <h1 className={styles.missingProfileTitle}>
