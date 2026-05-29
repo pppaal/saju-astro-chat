@@ -196,6 +196,13 @@ select:focus-visible,
 
 html {
   scroll-behavior: smooth;
+  /* rem 기준 고정 — 디바이스별로 폰트 크기가 들쭉날쭉하던 문제 해결.
+     사용자: "기기마다 폰트 크기도 달라지는데 수정. 어떤 기기든 잘나오게".
+     원인: 안드로이드 시스템 폰트 크기 / iOS Dynamic Type 가 default
+     html font-size 를 16px 보다 키우거나 줄여서 모든 rem 값이 함께 변동.
+     16px 로 고정해 layout 일관성 보장 — 사용자가 브라우저 zoom (Ctrl+/-)
+     으로는 여전히 키울 수 있어서 접근성도 보존. */
+  font-size: 16px;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   color-scheme: dark;
