@@ -240,7 +240,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'The reversed Lovers points to disharmony in relationships or an internal conflict about an important choice. You may be facing a decision where your heart pulls one way and logic another. There could be a values mismatch in a relationship, making it difficult to find common ground. Sometimes this card indicates the need to choose yourself first—self-love must come before you can truly love another. In matters of the heart, examine whether you are settling for less than you deserve or staying in a situation that no longer serves your growth. The reversed Lovers asks: Are you being true to yourself? Realign with your authentic values before making any major decisions.',
       meaningKo:
-        '역방향 연인은 관계의 불화나 중요한 선택에 대한 내적 갈등을 가리킵니다. 마음은 한 방향으로, 논리는 다른 방향으로 끌리는 결정에 직면해 있을 수 있습니다. 관계에서 가치관 불일치가 있어 공통점을 찾기 어려울 수 있습니다. 때때로 이 카드는 먼저 자신을 선택해야 함을 나타냅니다—다른 사람을 진정으로 사랑하기 전에 자기 사랑이 먼저여야 합니다. 마음의 문제에서 자격이 되는 것보다 덜한 것에 만족하고 있거나 성장에 더 이상 도움이 되지 않는 상황에 머물고 있는지 살펴보세요. 역방향 연인은 묻습니다: 자신에게 진실한가요? 중요한 결정을 내리기 전에 진정한 가치와 재정렬하세요.',
+        '역방향 연인은 관계의 불화나 중요한 선택에 대한 내적 갈등을 가리킵니다. 마음은 한 방향으로, 논리는 다른 방향으로 끌리는 결정에 직면해 있을 수 있습니다. 관계에서 가치관 불일치가 있어 공통점을 찾기 어려울 수 있습니다. 때때로 이 카드는 먼저 자신을 선택해야 함을 나타냅니다—다른 사람을 진정으로 사랑하기 전에 자기 사랑이 먼저여야 합니다. 마음의 문제에서 받을 자격이 있는 것보다 못한 것에 만족하고 있거나 성장에 더 이상 도움이 되지 않는 상황에 머물고 있는지 살펴보세요. 역방향 연인은 묻습니다: 자신에게 진실한가요? 중요한 결정을 내리기 전에 진정한 가치와 재정렬하세요.',
       advice: 'Prioritize self-love. Realign with your authentic values.',
       adviceKo: '자기 사랑을 우선시하세요. 진정한 가치와 재정렬하세요.',
     },
@@ -360,7 +360,7 @@ export const majorArcanaCards: RawCard[] = [
         'Negative external forces',
         'Disruption',
       ],
-      keywordsKo: ['불운', '변화 저항', '악순환', '외부 역풍', '혼란'],
+      keywordsKo: ['불운', '변화 저항', '순환 끊기', '외부 역풍', '혼란'],
       meaning:
         "The reversed Wheel of Fortune indicates a downturn in luck or being caught in an unfavorable cycle. External forces seem to be working against you, and no matter what you do, the results aren't what you hoped for. You may be resisting the natural flow of life, trying to hold onto something that is meant to change. Perhaps you're repeating the same mistakes, caught in a karmic loop that you haven't yet learned to break. In career, setbacks and obstacles may feel relentless. In relationships, patterns of dysfunction may be repeating. Yet within this challenge lies an invitation: the reversed Wheel asks you to examine what cycles you need to break. This difficult period is temporary. Use it to learn and grow, and the wheel will turn in your favor once more.",
       meaningKo:
@@ -384,7 +384,7 @@ export const majorArcanaCards: RawCard[] = [
       meaningKo:
         '정의는 저울을 균형 잡고, 검을 준비한 채 왕좌에 앉아 있습니다—우주가 진실과 책임을 요청하고 있습니다. 이 카드는 작용하는 원인과 결과의 법칙을 나타냅니다. 당신이 내린 모든 선택이 이 순간으로 이끌었고, 공정한 결과가 전달되고 있습니다. 정직하게 행동했다면 보상받을 것입니다. 법적 문제가 있다면 정당한 해결을 기대하세요. 정의는 자신과 타인에게 정직하고, 행동에 책임을 지며, 감정보다 논리와 공정함에 기반해 결정을 내리라고 요청합니다. 관계에서 이 카드는 정직한 소통과 동등한 주고받음의 필요성을 나타낼 수 있습니다. 직업에서는 윤리적 행동과 공정한 거래가 성공으로 이끌 것입니다. 진실의 검은 양날입니다—용기를 가지고 받아들이세요.',
       advice: 'Act with integrity. The truth will prevail. Take responsibility.',
-      adviceKo: '진실성으로 행동하세요. 진실이 승리할 것입니다. 책임을 지세요.',
+      adviceKo: '정직하게 행동하세요. 진실이 승리할 것입니다. 책임을 지세요.',
     },
     reversed: {
       keywords: [
@@ -500,7 +500,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         "The Devil card shines a harsh light on the chains that bind you—but look closely: the chains around the figures' necks are loose enough to remove. This card reveals the illusion of bondage. You may be trapped by addiction, unhealthy relationships, negative thought patterns, or materialistic pursuits that you believe you cannot escape. Yet the truth is, you have given your power to these things; you can reclaim it. The Devil asks you to face your shadow self honestly, to acknowledge the parts of yourself you'd rather not see. In relationships, this may indicate toxic dynamics or obsessive attachment. In career, it could point to feeling enslaved by work or compromising your values for money. Recognition is the first step to freedom. What chains have you convinced yourself you cannot break? The key to your liberation lies in your own hands.",
       meaningKo:
-        '악마 카드는 당신을 묶는 사슬에 가혹한 빛을 비춥니다—하지만 자세히 보세요: 인물들의 목에 걸린 사슬은 벗을 수 있을 만큼 느슨합니다. 이 카드는 속박의 환상을 드러냅니다. 중독, 건강하지 않은 관계, 부정적 사고 패턴, 또는 벗어날 수 없다고 믿는 물질주의적 추구에 갇혀 있을 수 있습니다. 그러나 진실은, 당신이 이것들에 힘을 주었다는 것입니다; 되찾을 수 있습니다. 악마는 그림자 자아를 정직하게 마주하고, 보고 싶지 않은 자신의 부분을 인정하라고 요청합니다. 관계에서 이것은 독성 역학이나 집착적 애착을 나타낼 수 있습니다. 직업에서는 일에 노예처럼 느끼거나 돈을 위해 가치를 타협하는 것을 가리킬 수 있습니다. 인식이 자유의 첫 걸음입니다. 스스로 깰 수 없다고 확신한 어떤 사슬이 있나요? 해방의 열쇠는 당신 자신의 손에 있습니다.',
+        '악마 카드는 당신을 묶는 사슬에 가혹한 빛을 비춥니다—하지만 자세히 보세요: 인물들의 목에 걸린 사슬은 벗을 수 있을 만큼 느슨합니다. 이 카드는 속박의 환상을 드러냅니다. 중독, 건강하지 않은 관계, 부정적 사고 패턴, 또는 벗어날 수 없다고 믿는 물질주의적 추구에 갇혀 있을 수 있습니다. 그러나 진실은, 당신이 이것들에 힘을 주었다는 것입니다; 되찾을 수 있습니다. 악마는 그림자 자아를 정직하게 마주하고, 보고 싶지 않은 자신의 부분을 인정하라고 요청합니다. 관계에서 이것은 독성 역학이나 집착적 애착을 나타낼 수 있습니다. 직업에서는 일의 노예처럼 느끼거나 돈을 위해 가치를 타협하는 것을 가리킬 수 있습니다. 인식이 자유의 첫 걸음입니다. 스스로 깰 수 없다고 확신한 어떤 사슬이 있나요? 해방의 열쇠는 당신 자신의 손에 있습니다.',
       advice: 'Recognize what binds you. You have the power to break free.',
       adviceKo: '무엇이 당신을 묶는지 인식하세요. 벗어날 힘이 있습니다.',
     },
@@ -534,7 +534,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         'Lightning strikes the Tower, shattering structures built on false foundations. The Tower card signals sudden, dramatic upheaval—the kind of change that shakes you to your core. This may feel like destruction, but it is actually liberation. The universe is removing what was never meant to last: relationships built on pretense, careers that betrayed your calling, beliefs that limited your growth. Though the moment of collapse is terrifying, it creates space for something authentic to emerge. In love, a sudden revelation may change everything—but the truth, however painful, is ultimately freeing. In career, unexpected disruption may redirect you toward your true path. The Tower reminds us that sometimes things must fall apart so that something better can come together. After the storm comes clarity. Trust that this destruction serves a higher purpose.',
       meaningKo:
-        '번개가 탑을 치며, 거짓 기반 위에 세워진 구조물을 산산조각냅니다. 탑 카드는 갑작스럽고 극적인 격변—당신을 핵심까지 흔드는 종류의 변화를 신호합니다. 이것은 파괴처럼 느껴질 수 있지만, 실제로는 해방입니다. 우주는 결코 지속되도록 의도되지 않았던 것을 제거하고 있습니다: 가식 위에 세워진 관계, 소명을 배신한 직업, 성장을 제한한 신념. 붕괴의 순간은 무섭지만, 진정한 무언가가 나타날 공간을 만듭니다. 사랑에서 갑작스러운 폭로가 모든 것을 바꿀 수 있습니다—하지만 아무리 고통스러워도 진실은 궁극적으로 자유롭게 합니다. 직업에서 예상치 못한 혼란이 당신을 진정한 길로 방향을 바꿀 수 있습니다. 탑은 때때로 더 나은 것이 함께 올 수 있도록 것들이 무너져야 함을 상기시킵니다. 폭풍 뒤에 명료함이 옵니다. 이 파괴가 더 높은 목적을 위한 것임을 신뢰하세요.',
+        '번개가 탑을 치며, 거짓 기반 위에 세워진 구조물을 산산조각냅니다. 탑 카드는 갑작스럽고 극적인 격변—당신을 핵심까지 흔드는 종류의 변화를 신호합니다. 이것은 파괴처럼 느껴질 수 있지만, 실제로는 해방입니다. 우주는 결코 지속되도록 의도되지 않았던 것을 제거하고 있습니다: 가식 위에 세워진 관계, 소명을 배신한 직업, 성장을 제한한 신념. 붕괴의 순간은 무섭지만, 진정한 무언가가 나타날 공간을 만듭니다. 사랑에서 갑작스러운 폭로가 모든 것을 바꿀 수 있습니다—하지만 아무리 고통스러워도 진실은 궁극적으로 자유롭게 합니다. 직업에서 예상치 못한 혼란이 당신을 진정한 길로 방향을 바꿀 수 있습니다. 탑은 때때로 더 나은 것이 이루어지기 위해 어떤 것들은 무너져야 함을 상기시킵니다. 폭풍 뒤에 명료함이 옵니다. 이 파괴가 더 높은 목적을 위한 것임을 신뢰하세요.',
       advice: 'Embrace the upheaval. What falls away needed to go.',
       adviceKo: '격변을 받아들이세요. 무너지는 것은 가야 할 것이었습니다.',
     },
@@ -580,7 +580,7 @@ export const majorArcanaCards: RawCard[] = [
       meaningKo:
         '역방향 별은 희망과 믿음과의 접촉을 잃었음을 암시합니다. 한때 당신을 인도했던 빛이 멀거나 꺼진 것처럼 보여, 낙담하고 목적에서 단절된 느낌을 줍니다. 아마도 과거의 실망이 당신을 냉소적으로 만들었거나, 낙관할 이유를 찾기 어려워하고 있을 수 있습니다. 상황이 나아질 수 있다고 믿기를 거부함으로써 자신의 치유를 막고 있을 수 있습니다. 관계에서 불안감이 진정한 친밀함을 막고 있을 수 있습니다. 직업에서 창의적 영감은 접근하기 어렵고, 의심이 비전을 흐리게 합니다. 그러나 역방향 별조차도 빛을 담고 있습니다—단지 지금은 보이지 않을 뿐. 역방향 별은 희망의 작은 빛줄기를 찾고, 가장 희미한 믿음의 불꽃을 돌보라고 요청합니다. 치유는 그것이 가능하다고 믿는 것에서 시작됩니다. 별들이 당신을 버린 것이 아닙니다; 아마도 당신이 시선을 돌렸을 뿐입니다.',
       advice: "Don't lose hope. Reconnect with your inner light and purpose.",
-      adviceKo: '희망을 잃지 마세요. 내면의 빛과 목적과 다시 연결하세요.',
+      adviceKo: '희망을 잃지 마세요. 내면의 빛, 그리고 목적과 다시 연결하세요.',
     },
   },
   {
@@ -664,7 +664,7 @@ export const majorArcanaCards: RawCard[] = [
       meaning:
         "The angel's trumpet sounds, calling the dead to rise—and so you too are being called to a profound awakening and rebirth. Judgement asks you to take an honest accounting of your life, to evaluate your past actions, and to release yourself from guilt and regret through genuine self-reflection. This is a moment of resurrection: leaving behind an old version of yourself to embrace a higher calling. You may be facing a significant decision that will affect the course of your life. Listen to the trumpet's call—your soul knows what it's being summoned toward. In love, this could mean reconciliation, closure, or evolving to a deeper level of partnership. In career, a calling to more meaningful work may be impossible to ignore. Judgement promises that through honest self-assessment and forgiveness, you can rise renewed.",
       meaningKo:
-        '천사의 나팔 소리가 죽은 자들을 일으키라고 부릅니다—그래서 당신도 심오한 각성과 부활로 부름받고 있습니다. 심판은 삶을 정직하게 계산하고, 과거 행동을 평가하고, 진정한 자기 성찰을 통해 죄책감과 후회에서 자신을 풀어주라고 요청합니다. 이것은 부활의 순간입니다: 자신의 오래된 버전을 뒤로하고 더 높은 부름을 받아들이는 것. 삶의 방향에 영향을 미칠 중요한 결정에 직면해 있을 수 있습니다. 나팔의 부름에 귀 기울이세요—당신의 영혼은 무엇을 향해 소환되고 있는지 압니다. 사랑에서 이것은 화해, 마무리, 또는 더 깊은 수준의 파트너십으로 발전하는 것을 의미할 수 있습니다. 직업에서 더 의미 있는 일에 대한 부름을 무시하기 어려울 수 있습니다. 심판은 정직한 자기 평가와 용서를 통해 새롭게 일어날 수 있음을 약속합니다.',
+        '천사의 나팔 소리가 죽은 자들을 일으키라고 부릅니다—그래서 당신도 심오한 각성과 부활로 부름받고 있습니다. 심판은 삶을 정직하게 점검하고, 과거 행동을 평가하고, 진정한 자기 성찰을 통해 죄책감과 후회에서 자신을 풀어주라고 요청합니다. 이것은 부활의 순간입니다: 자신의 오래된 버전을 뒤로하고 더 높은 부름을 받아들이는 것. 삶의 방향에 영향을 미칠 중요한 결정에 직면해 있을 수 있습니다. 나팔의 부름에 귀 기울이세요—당신의 영혼은 무엇을 향해 소환되고 있는지 압니다. 사랑에서 이것은 화해, 마무리, 또는 더 깊은 수준의 파트너십으로 발전하는 것을 의미할 수 있습니다. 직업에서 더 의미 있는 일에 대한 부름을 무시하기 어려울 수 있습니다. 심판은 정직한 자기 평가와 용서를 통해 새롭게 일어날 수 있음을 약속합니다.',
       advice: 'Answer your calling. This is a time for rebirth and awakening.',
       adviceKo: '부름에 응답하세요. 재탄생과 각성의 시간입니다.',
     },
@@ -676,7 +676,7 @@ export const majorArcanaCards: RawCard[] = [
       meaningKo:
         '역방향 심판은 자기 의심, 두려움, 또는 과거에 갇히게 하는 죄책감으로 인해 중요한 내면의 부름을 무시하고 있음을 암시합니다. 나팔이 울리지만, 당신은 귀를 막고 요청받는 변화를 마주하기를 꺼리거나 할 수 없습니다. 내면의 비판자가 가혹하여, 용서받을 자격이 없다거나 당신 같은 사람에게는 변화가 불가능하다고 말할 수 있습니다. 아마도 성장에 필요한 자기 성찰을 피하고 있거나, 중요한 갈림길에서 우유부단에 마비되어 있을 수 있습니다. 관계에서 처리되지 않은 죄책감이 치유를 막고 있을 수 있습니다. 직업에서 (자신이나 타인의) 심판에 대한 두려움이 진정한 소명에서 당신을 막고 있을 수 있습니다. 역방향 심판은 묻습니다: 어떤 부름에 응답하기를 거부하고 있나요? 놓아주는 대신 어떤 과거 실수에 매달리고 있나요? 나팔은 당신이 응답할 때까지 계속 울릴 것입니다.',
       advice: "Silence your inner critic. Don't ignore your higher calling.",
-      adviceKo: '내면의 비평가를 잠재우세요. 더 높은 부름을 무시하지 마세요.',
+      adviceKo: '내면의 비판자를 잠재우세요. 더 높은 부름을 무시하지 마세요.',
     },
   },
   {
