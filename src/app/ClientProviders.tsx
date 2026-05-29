@@ -9,6 +9,7 @@ import ServiceWorkerStabilityGuard from '@/components/pwa/ServiceWorkerStability
 import ReferralLinker from '@/components/referral/ReferralLinker'
 import LegalConsentModal from '@/components/legal/LegalConsentModal'
 import CreditRewardChecker from '@/components/ui/CreditRewardChecker'
+import { InAppBrowserNotice } from '@/components/ui/InAppBrowserNotice'
 
 export function ClientProviders({
   children,
@@ -21,6 +22,10 @@ export function ClientProviders({
     <I18nProvider initialLocale={initialLocale}>
       <ServiceWorkerStabilityGuard />
       <ReferralLinker />
+      {/* 카톡·페북·인스타 등 in-app webview 감지 시 sticky 배너 — Google
+          OAuth disallowed_useragent 차단을 우회하도록 Chrome / Safari 안내.
+          감지 안 되면 즉시 null 반환이라 일반 브라우저에는 영향 없다. */}
+      <InAppBrowserNotice />
       <ToastProvider>
         <CreditModalProvider>
           <NotificationProvider>{children}</NotificationProvider>
