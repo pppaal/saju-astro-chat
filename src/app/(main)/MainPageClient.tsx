@@ -16,7 +16,7 @@ import BirthInfoModal from './components/BirthInfoModal'
 import {
   getStoredBirthInfo,
   saveBirthInfo,
-  buildBirthQuery,
+  buildCounselorHref,
   type StoredBirthInfo,
 } from './birthInfoStorage'
 import HexDPLogo from '@/components/branding/HexDPLogo'
@@ -212,9 +212,8 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         return
       }
       if (pending.service === 'destinyMap') {
-        const query = buildBirthQuery(info)
-        const initial = pending.question ? `&q=${encodeURIComponent(pending.question)}` : ''
-        router.push(`/destiny-counselor?${query}${initial}`)
+        // 채팅 페이지로 직행 — 질문이 그대로 전달돼 자동으로 답변이 생성된다.
+        router.push(buildCounselorHref(info, pending.question, locale))
         return
       }
     }

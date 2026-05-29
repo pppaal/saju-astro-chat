@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from '../main-page.module.css'
 import type { StoredBirthInfo } from '../birthInfoStorage'
-import { buildBirthQuery } from '../birthInfoStorage'
+import { buildCounselorHref } from '../birthInfoStorage'
 
 // 서비스 선택 — config/enabledServices.ts 와 동일 id·라벨.
 export type HomeServiceId = 'destinyMap' | 'tarot' | 'compatibility' | 'calendar'
@@ -76,9 +76,8 @@ export default function HomeChatInput({
       else onOpenBirth()
       return
     }
-    const query = buildBirthQuery(birthInfo)
-    const initial = trimmed ? `&q=${encodeURIComponent(trimmed)}` : ''
-    router.push(`/destiny-counselor?${query}${initial}`)
+    // 채팅 페이지로 직행 — 질문이 그대로 전달돼 자동으로 답변이 생성된다.
+    router.push(buildCounselorHref(birthInfo, trimmed, locale))
   }
 
   // 칩으로 서비스 직접 선택. 타로·운세달력은 생일이 필요 없으니 바로 진입하고,
@@ -170,6 +169,25 @@ export default function HomeChatInput({
 
   return (
     <div className={styles.homeChatBar}>
+      {/* 서비스 칩 — 입력창 위 한 줄. 타이핑은 운명상담사로, 나머지 상담은 여기서. */}
+      <div
+        className={styles.homeServiceChips}
+        role="group"
+        aria-label={isKo ? '상담 종류 선택' : 'Choose a reading'}
+      >
+        {SERVICES.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            className={styles.homeServiceChip}
+            onClick={() => selectService(s.id)}
+          >
+            <span aria-hidden="true">{s.icon}</span>
+            <span>{isKo ? s.ko : s.en}</span>
+          </button>
+        ))}
+      </div>
+
       <div className={styles.homeChatBarInner}>
         {/* 초록 생일 CTA — 출발점이 생일임을 보여주고, 저장된 뒤엔 수정 버튼이 된다. */}
         {birthInfo ? (
@@ -208,25 +226,6 @@ export default function HomeChatInput({
             <span aria-hidden="true">↑</span>
           </button>
         </div>
-      </div>
-
-      {/* 항상 보이는 서비스 칩 — 타이핑은 운명상담사로, 나머지 상담은 여기서. */}
-      <div
-        className={styles.homeServiceChips}
-        role="group"
-        aria-label={isKo ? '상담 종류 선택' : 'Choose a reading'}
-      >
-        {SERVICES.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            className={styles.homeServiceChip}
-            onClick={() => selectService(s.id)}
-          >
-            <span aria-hidden="true">{s.icon}</span>
-            <span>{isKo ? s.ko : s.en}</span>
-          </button>
-        ))}
       </div>
     </div>
   )

@@ -810,14 +810,14 @@
   width: auto;
 }
 
-/* 입력창 바로 아래 — 항상 보이는 서비스 칩. 타이핑은 운명상담사로 가고,
+/* 입력창 바로 위 — 항상 보이는 서비스 칩 한 줄. 타이핑은 운명상담사로 가고,
    타로·궁합·달력은 여기서 한 번에 고를 수 있게 흐름을 노출한다. */
 .homeServiceChips {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.4rem;
-  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
   padding: 0 0.25rem;
 }
 
