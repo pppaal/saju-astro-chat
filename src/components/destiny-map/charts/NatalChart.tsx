@@ -444,6 +444,74 @@ export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
               ? '바깥 원의 ♈♉... = 12 별자리 · 안쪽 작은 숫자 = 12 하우스 (인생 영역)'
               : 'outer ring ♈♉... = 12 zodiac signs · inner numbers = 12 houses (life areas)'}
           </div>
+
+          {/* 행성 기호 → 한국어/영어 이름 + 의미. 7 주요 행성을 2열 grid 로 (모바일 친화) */}
+          <div className="space-y-0.5">
+            <div
+              className="font-medium uppercase tracking-wider"
+              style={{ color: 'var(--ds-gold-on-dark-soft)', fontSize: '9px' }}
+            >
+              {isKo ? '행성 기호 풀이' : 'Planet Symbols'}
+            </div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+              {(
+                [
+                  { glyph: '☉', ko: '태양', en: 'Sun', meaningKo: '정체성', meaningEn: 'Identity' },
+                  { glyph: '☽', ko: '달', en: 'Moon', meaningKo: '감정', meaningEn: 'Emotion' },
+                  {
+                    glyph: '☿',
+                    ko: '수성',
+                    en: 'Mercury',
+                    meaningKo: '사고',
+                    meaningEn: 'Mind',
+                  },
+                  { glyph: '♀', ko: '금성', en: 'Venus', meaningKo: '애정', meaningEn: 'Love' },
+                  { glyph: '♂', ko: '화성', en: 'Mars', meaningKo: '행동', meaningEn: 'Action' },
+                  {
+                    glyph: '♃',
+                    ko: '목성',
+                    en: 'Jupiter',
+                    meaningKo: '성장',
+                    meaningEn: 'Growth',
+                  },
+                  {
+                    glyph: '♄',
+                    ko: '토성',
+                    en: 'Saturn',
+                    meaningKo: '책임',
+                    meaningEn: 'Discipline',
+                  },
+                ] as const
+              ).map((row) => (
+                <span key={row.en} className="flex items-center gap-1">
+                  <span style={{ color: 'var(--ds-gold-on-dark)' }}>{row.glyph}</span>
+                  <span>
+                    {isKo ? row.ko : row.en} ({isKo ? row.meaningKo : row.meaningEn})
+                  </span>
+                </span>
+              ))}
+            </div>
+            <div style={{ opacity: 0.65 }}>
+              {isKo
+                ? '※ 외행성 ♅ 천왕 · ♆ 해왕 · ♇ 명왕 은 세대 영향'
+                : '※ outer planets ♅ Uranus · ♆ Neptune · ♇ Pluto = generational influence'}
+            </div>
+          </div>
+
+          {/* ASC (어센던트) 설명 */}
+          <div>
+            <span style={{ color: 'var(--ds-gold-on-dark)', fontWeight: 600 }}>ASC</span>{' '}
+            {isKo
+              ? '(어센던트) = 동쪽 지평선 — 당신의 첫인상·외부 자아'
+              : '(Ascendant) = eastern horizon — your first impression & outer self'}
+          </div>
+
+          {/* 4 앵글 하우스 (1·4·7·10) — 모바일에서 짧게 핵심만 */}
+          <div>
+            {isKo
+              ? '핵심 하우스: 1=자아 · 4=가정 · 7=관계 · 10=직업'
+              : 'key houses: 1=Self · 4=Home · 7=Relationships · 10=Career'}
+          </div>
         </div>
       )}
     </div>
