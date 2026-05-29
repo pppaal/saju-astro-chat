@@ -56,9 +56,9 @@ function getSourceBadge(
     case 'counselor-destiny':
       return {
         label: isKo ? '🌙 운명 안에서' : '🌙 From Destiny',
-        color: '#c4b5fd',
-        bg: 'rgba(139, 92, 246, 0.12)',
-        border: 'rgba(139, 92, 246, 0.32)',
+        color: '#e8cc8a',
+        bg: 'rgba(212, 181, 114, 0.12)',
+        border: 'rgba(212, 181, 114, 0.32)',
       }
     case 'counselor-compat':
       return {

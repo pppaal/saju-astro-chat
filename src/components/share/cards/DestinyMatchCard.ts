@@ -28,7 +28,7 @@ export async function generateDestinyMatchCard(
   // Background
   drawBackground(ctx, width, height);
   drawStars(ctx, width, height, 100);
-  drawGlow(ctx, width, height, 'rgba(139, 92, 246, 0.15)');
+  drawGlow(ctx, width, height, 'rgba(212, 181, 114, 0.15)');
 
   const isStory = size === 'story';
   const centerX = width / 2;

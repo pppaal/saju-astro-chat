@@ -41,7 +41,7 @@
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(900px 540px at 50% 0%, rgba(196, 181, 253, 0.35), transparent 70%),
+    radial-gradient(900px 540px at 50% 0%, rgba(232, 204, 138, 0.35), transparent 70%),
     radial-gradient(720px 480px at 90% 80%, rgba(255, 207, 240, 0.22), transparent 70%);
 }
 
@@ -87,7 +87,7 @@
 
 .scrollArrow span {
   font-size: 1rem;
-  color: rgba(99, 210, 255, 0.8);
+  color: rgba(232, 204, 138, 0.8);
   animation: scrollBounce 2s ease-in-out infinite;
 }
 

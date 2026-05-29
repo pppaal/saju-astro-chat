@@ -2,7 +2,7 @@
   position: relative;
   min-height: 100vh;
   background:
-    radial-gradient(1200px 800px at 25% 5%, rgba(99, 210, 255, 0.12), transparent),
+    radial-gradient(1200px 800px at 25% 5%, rgba(232, 204, 138, 0.12), transparent),
     radial-gradient(1000px 700px at 80% 95%, rgba(124, 242, 156, 0.1), transparent);
   background-color: #07091a;
   color: var(--text-color, #e8ecf5);
@@ -197,7 +197,7 @@
   align-items: center;
   justify-content: center;
   font-size: 64px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(193, 155, 86, 0.3) 0%, rgba(160, 122, 60, 0.3) 100%);
 }
 
 .cardContent {
@@ -307,7 +307,8 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* 골드 그라데이션 — 다른 다크 페이지 CTA 와 정렬. */
+  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
   border-radius: 999px;
   color: #fff;
   font-size: 12px;
