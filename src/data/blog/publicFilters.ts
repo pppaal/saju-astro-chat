@@ -1,19 +1,9 @@
-// 우리 서비스 (운명상담사·궁합·타로·캘린더) 와 무관한 카테고리/슬러그를
-// 차단해 sitemap·blog 라우트에서 모두 숨김. 서비스와 연결되지 않은 글이
-// 구글에 노출돼 트래픽만 받고 conversion 0인 상태 방지.
-const BLOCKED_BLOG_CATEGORIES = new Set([
-  'numerology', // 수비학 — 서비스 없음
-  'i ching', // 역경 — 서비스 없음
-  'dream', // 꿈 해몽 — 서비스 없음
-  'personality', // MBTI 매핑 글 — Astrology 섞였지만 주제 절반이 MBTI 라 매핑 약함
-])
-
-const BLOCKED_BLOG_SLUGS = new Set([
-  'numerology-life-path-numbers-explained',
-  'iching-beginners-guide-hexagrams',
-  'dream-interpretation-symbols-meanings',
-  'personality-types-astrology-mbti-zodiac',
-])
+// 서비스와 무관한 카테고리 차단. 현재는 모든 무관 글 (Numerology · I Ching ·
+// Dream · Personality) 이 디스크에서 삭제됐기 때문에 Set 은 비어 있다.
+// 향후 잘못 추가된 글을 빠르게 숨기는 안전망으로 형태만 유지 — sitemap.ts /
+// blog/[slug]/page.tsx 가 isBlockedBlogPost 호출 중이라 API contract 도 보존.
+const BLOCKED_BLOG_CATEGORIES = new Set<string>([])
+const BLOCKED_BLOG_SLUGS = new Set<string>([])
 
 export function isBlockedBlogPost(input: { slug: string; category?: string | null }): boolean {
   const category = (input.category || '').trim().toLowerCase()
