@@ -62,6 +62,56 @@ const REQUIRED_TABLES = [
         ON "RequestIdempotencyLog" ("expiresAt");
     `,
   },
+  {
+    // 크레딧 감사 테이블. prod (Supabase) 에서 phantom-apply 로 CREATE TABLE
+    // 이 누락됐다 — 매 결제마다 addBonusCredits → creditTransaction.create 가
+    // "table does not exist" 로 죽어 트랜잭션 전체 롤백("결제 됐는데 크레딧 0
+    // + 영수증 메일 안 감"). enum 두 개는 Postgres 에 `CREATE TYPE IF NOT
+    // EXISTS` 가 없어 DO 블록(duplicate_object 무시)으로, FK 도 ADD CONSTRAINT
+    // 가 idempotent 하지 않아 DO 블록으로 감싼다. 전부 재실행 안전.
+    table: 'CreditTransaction',
+    migration: '20260529000000_add_credit_transaction',
+    createSql: `
+      DO $$ BEGIN
+        CREATE TYPE "CreditTxnType" AS ENUM (
+          'GRANT', 'CONSUME', 'REFUND', 'EXPIRE', 'REVOKE', 'SIGNUP_BONUS'
+        );
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      DO $$ BEGIN
+        CREATE TYPE "CreditPool" AS ENUM (
+          'BONUS', 'MONTHLY', 'COMPATIBILITY', 'FOLLOWUP'
+        );
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      CREATE TABLE IF NOT EXISTS "CreditTransaction" (
+        "id"        TEXT NOT NULL,
+        "userId"    TEXT NOT NULL,
+        "type"      "CreditTxnType" NOT NULL,
+        "pool"      "CreditPool" NOT NULL,
+        "amount"    INTEGER NOT NULL,
+        "reason"    TEXT NOT NULL,
+        "sourceRef" TEXT,
+        "metadata"  JSONB,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "CreditTransaction_pkey" PRIMARY KEY ("id")
+      );
+
+      DO $$ BEGIN
+        ALTER TABLE "CreditTransaction"
+          ADD CONSTRAINT "CreditTransaction_userId_fkey"
+          FOREIGN KEY ("userId") REFERENCES "User"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      CREATE INDEX IF NOT EXISTS "CreditTransaction_userId_createdAt_idx"
+        ON "CreditTransaction" ("userId", "createdAt" DESC);
+      CREATE INDEX IF NOT EXISTS "CreditTransaction_sourceRef_idx"
+        ON "CreditTransaction" ("sourceRef");
+      CREATE INDEX IF NOT EXISTS "CreditTransaction_type_createdAt_idx"
+        ON "CreditTransaction" ("type", "createdAt");
+    `,
+  },
 ]
 
 // 각 항목: { table, columns: [{ name, ddl, postSql? }] } — DDL 은 ALTER TABLE
