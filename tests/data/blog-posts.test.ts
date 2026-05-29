@@ -153,7 +153,7 @@ describe('Blog Posts Data', () => {
     it('should have valid category values', () => {
       const validCategories = [
         'Saju', 'Tarot', 'Astrology', 'Dream', 'General', 'Numerology',
-        'I Ching', 'Compatibility', 'Personality', 'Destiny Map'
+        'I Ching', 'Compatibility', 'Personality', 'Destiny Map', 'Destiny Counselor'
       ];
       blogPosts.forEach((post) => {
         expect(validCategories).toContain(post.category);

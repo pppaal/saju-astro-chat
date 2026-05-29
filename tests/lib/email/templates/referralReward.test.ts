@@ -84,7 +84,7 @@ describe("referralRewardTemplate", () => {
       const result = referralRewardTemplate(data);
 
       expect(result.html).toContain("더 많은 보상");
-      expect(result.html).toContain("가입하면 3 크레딧");
+      expect(result.html).toContain("10 크레딧");
       expect(result.html).toContain("무제한");
     });
 
@@ -176,7 +176,7 @@ describe("referralRewardTemplate", () => {
       const result = referralRewardTemplate(data);
 
       expect(result.html).toContain("Earn More Rewards");
-      expect(result.html).toContain("3 credits when a friend signs up");
+      expect(result.html).toContain("10 credits");
       expect(result.html).toContain("No limit");
     });
 
