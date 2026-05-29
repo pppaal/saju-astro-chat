@@ -4,8 +4,9 @@ import { calculateChiron, calculateLilith } from '@/lib/astrology/foundation/ext
 import { natalToJD } from '@/lib/astrology/foundation/shared'
 import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
-import { annotateShinsal, type ShinsalHit as ShinsalHitInternal } from '@/lib/saju/shinsal'
+import { annotateShinsal, type ShinsalHit as ShinsalHitInternal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { performAdvancedAnalysis } from '@/app/api/saju/services/advancedAnalysis'
 import type { NatalContext } from './types'
 import type { FiveElement, SajuPillarsInput, CalculateSajuDataResult } from '@/lib/saju/types'
 import type { NatalInput, Chart } from '@/lib/astrology/foundation/types'
@@ -98,6 +99,47 @@ export async function buildNatalContext(
   const shinsalAnnot = annotateShinsal(pillars)
   const relations = analyzeRelations(toAnalyzeInputFromSaju(pillars))
 
+  // 격국·용신·통근·득령·조후·십신·건강·직업·점수·해석 종합 분석.
+  // pure compute (Swiss Ephemeris 호출 없음) — 한번 계산해서 캐시에 저장하면
+  // 운명/궁합 차트 PersonaCard·InsightStrip 가 advancedAnalysis.geokguk /
+  // yongsin / sibsin 등을 cache hit 으로 받음 (기존: 매 요청 재계산).
+  const dayMasterStem = pillars.day.heavenlyStem.name
+  const monthBranch = pillars.month.earthlyBranch.name
+  const twelveStages = getTwelveStagesForPillars(pillars)
+  const simplePillarsForAdvanced: SajuPillarsInput = pillarsInput
+  const pillarsWithHourForAdvanced = {
+    year: pillarsInput.year,
+    month: pillarsInput.month,
+    day: pillarsInput.day,
+    hour: pillarsInput.time,
+  }
+  const simplePillarsWithHour = {
+    ...simplePillarsForAdvanced,
+    hour: pillarsInput.time,
+  }
+  const fiveElementsRaw = (saju as unknown as { fiveElements: NatalContext['saju']['fiveElements'] })
+    .fiveElements
+  // performAdvancedAnalysis 의 fiveElements 인자는 Record<string, number> 라
+  // Korean key 도 English key 도 다 받지만, 내부적으로 isFiveElement 로 한자만
+  // pick 하므로 wood/fire/etc. 던지면 elements 해석이 비어 나옴. Korean key 로
+  // 변환해서 전달.
+  const fiveElementsKo: Record<string, number> = {
+    목: fiveElementsRaw.wood,
+    화: fiveElementsRaw.fire,
+    토: fiveElementsRaw.earth,
+    금: fiveElementsRaw.metal,
+    수: fiveElementsRaw.water,
+  }
+  const advancedAnalysis = performAdvancedAnalysis(
+    simplePillarsWithHour,
+    pillarsWithHourForAdvanced,
+    pillars,
+    dayMasterStem,
+    monthBranch,
+    twelveStages,
+    fiveElementsKo
+  )
+
   // 대운 리스트 (CalculateSajuDataResult.daeWoon에서)
   const daeWoonList =
     (
@@ -162,6 +204,8 @@ export async function buildNatalContext(
       natalShinsal: shinsalAnnot.hits as unknown as NatalContext['saju']['natalShinsal'],
       natalRelations: relations,
       daeun,
+      fiveElements: fiveElementsRaw,
+      advancedAnalysis,
     },
     astro: {
       chart,
