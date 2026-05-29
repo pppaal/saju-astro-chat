@@ -125,7 +125,11 @@ vi.mock('@/lib/astrology/cached', () => ({
 
 // ============ Imports (after all mocks) ============
 
-import { POST } from '@/app/api/astrology/advanced/asteroids/route'
+// NOTE: the route is imported dynamically inside the swisseph guard below.
+// Its module top-level does `require('swisseph')`, so a static import here
+// would eager-load the native binary at collection time and crash the whole
+// suite on CI runners where swisseph can't load. Importing it only when the
+// native module is available keeps the file collectable (and skipped) there.
 import { rateLimit } from '@/lib/rateLimit'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { captureServerError } from '@/lib/telemetry'
@@ -191,7 +195,24 @@ function setupSuccessfulFlow() {
 
 // ============ Tests ============
 
-describe('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
+// This route requires the real swisseph module at runtime (Julian Day calc).
+// On CI runners where the native binary can't load (ABI/rebuild mismatch),
+// skip rather than hard-fail. importActual bypasses the global mock to probe
+// the real module's loadability.
+const swissephAvailable = await vi
+  .importActual('swisseph')
+  .then(() => true)
+  .catch(() => false)
+const describeWithEphemeris = swissephAvailable ? describe : describe.skip
+
+// Only load the route (which requires the native swisseph at module scope)
+// when the binary is actually loadable; otherwise the tests are skipped anyway.
+let POST!: typeof import('@/app/api/astrology/advanced/asteroids/route')['POST']
+if (swissephAvailable) {
+  ;({ POST } = await import('@/app/api/astrology/advanced/asteroids/route'))
+}
+
+describeWithEphemeris('Asteroids API - POST /api/astrology/advanced/asteroids', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })

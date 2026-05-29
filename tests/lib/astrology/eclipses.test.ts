@@ -19,6 +19,12 @@ import { vi } from "vitest";
 vi.unmock("swisseph");
 vi.unmock("@/lib/astrology/foundation/ephe");
 
+// CI 등 native swisseph 바이너리가 로드 안 되는 환경에서는 hard-fail 대신 skip.
+const swissephAvailable = await import("swisseph")
+  .then(() => true)
+  .catch(() => false);
+const describeWithEphemeris = swissephAvailable ? describe : describe.skip;
+
 import {
   getAllEclipses,
   getEclipsesBetween,
@@ -28,7 +34,7 @@ import {
 } from "@/lib/astrology/foundation/eclipses";
 import type { Eclipse, EclipseImpact } from "@/lib/astrology/foundation/eclipses";
 
-describe("Eclipse data", () => {
+describeWithEphemeris("Eclipse data", () => {
   describe("getAllEclipses", () => {
     it("returns array of eclipses", () => {
       const eclipses = getAllEclipses();
@@ -65,7 +71,7 @@ describe("Eclipse data", () => {
   });
 });
 
-describe("getEclipsesBetween", () => {
+describeWithEphemeris("getEclipsesBetween", () => {
   it("filters eclipses by date range", () => {
     const eclipses = getEclipsesBetween("2024-01-01", "2024-12-31");
 
@@ -94,7 +100,7 @@ describe("getEclipsesBetween", () => {
   });
 });
 
-describe("getUpcomingEclipses", () => {
+describeWithEphemeris("getUpcomingEclipses", () => {
   it("returns specified count of eclipses", () => {
     const pastDate = new Date("2020-01-01");
     const eclipses = getUpcomingEclipses(pastDate, 4);
@@ -116,7 +122,7 @@ describe("getUpcomingEclipses", () => {
   });
 });
 
-describe("getEclipsesInSign", () => {
+describeWithEphemeris("getEclipsesInSign", () => {
   it("filters eclipses by zodiac sign", () => {
     const ariesEclipses = getEclipsesInSign("Aries");
 
@@ -137,7 +143,7 @@ describe("getEclipsesInSign", () => {
   });
 });
 
-describe("getEclipseAxis", () => {
+describeWithEphemeris("getEclipseAxis", () => {
   it("returns primary and opposite signs", () => {
     const eclipse: Eclipse = {
       type: "solar",
@@ -187,7 +193,7 @@ describe("getEclipseAxis", () => {
   });
 });
 
-describe("Eclipse interface", () => {
+describeWithEphemeris("Eclipse interface", () => {
   it("supports solar type", () => {
     const solarEclipse: Eclipse = {
       type: "solar",
@@ -227,7 +233,7 @@ describe("Eclipse interface", () => {
   });
 });
 
-describe("EclipseImpact interface", () => {
+describeWithEphemeris("EclipseImpact interface", () => {
   it("has required fields", () => {
     const impact: EclipseImpact = {
       eclipse: {
@@ -283,7 +289,7 @@ describe("EclipseImpact interface", () => {
   });
 });
 
-describe("Eclipse signs in data", () => {
+describeWithEphemeris("Eclipse signs in data", () => {
   const allEclipses = getAllEclipses();
 
   it("includes eclipses in Aries", () => {
@@ -319,7 +325,7 @@ describe("Eclipse signs in data", () => {
   });
 });
 
-describe("Eclipse types in data", () => {
+describeWithEphemeris("Eclipse types in data", () => {
   const allEclipses = getAllEclipses();
 
   it("has both solar and lunar eclipses", () => {

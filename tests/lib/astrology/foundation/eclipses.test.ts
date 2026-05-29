@@ -10,6 +10,12 @@ import { describe, it, expect, vi } from 'vitest';
 vi.unmock('swisseph');
 vi.unmock('@/lib/astrology/foundation/ephe');
 
+// CI 등 native swisseph 바이너리가 로드 안 되는 환경에서는 hard-fail 대신 skip.
+const swissephAvailable = await import('swisseph')
+  .then(() => true)
+  .catch(() => false);
+const describeWithEphemeris = swissephAvailable ? describe : describe.skip;
+
 import {
   findEclipseImpact,
   getEclipsesBetween,
@@ -47,7 +53,7 @@ function createMockChart(planets: Partial<PlanetBase>[] = []): Chart {
   };
 }
 
-describe('eclipses', () => {
+describeWithEphemeris('eclipses', () => {
   describe('getAllEclipses', () => {
     it('should return array of eclipses', () => {
       const eclipses = getAllEclipses();
