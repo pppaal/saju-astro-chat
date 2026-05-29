@@ -12,6 +12,7 @@ import {
   type StoredBirthInfo,
 } from '../birthInfoStorage'
 import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface BirthInfoModalProps {
   open: boolean
@@ -44,6 +45,7 @@ export default function BirthInfoModal({
   locale = 'ko',
 }: BirthInfoModalProps) {
   const isKo = locale === 'ko'
+  const trapRef = useFocusTrap(open)
   const [name, setName] = useState(initial?.name || '')
   const [birthDate, setBirthDate] = useState(initial?.birthDate || '')
   const [birthTime, setBirthTime] = useState(
@@ -328,6 +330,7 @@ export default function BirthInfoModal({
 
   return (
     <div
+      ref={trapRef}
       className={styles.modalOverlay}
       role="dialog"
       aria-modal="true"
