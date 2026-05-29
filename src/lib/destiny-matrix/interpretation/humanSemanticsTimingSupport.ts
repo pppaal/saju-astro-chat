@@ -1,4 +1,9 @@
 import type { HumanSemanticsLang } from './humanSemantics'
+import {
+  resolveFocusDomainCopy,
+  withConjunctionParticle,
+  withObjectParticle,
+} from './humanSemanticsFocusDomain'
 
 export function withTopicParticle(label: string): string {
   if (!label) return ''
@@ -190,46 +195,84 @@ function normalizePhaseLabel(phaseLabel?: string | null): string {
 
 export function describePhaseFlow(
   phaseLabel: string | undefined,
-  lang: HumanSemanticsLang = 'ko'
+  lang: HumanSemanticsLang = 'ko',
+  focusDomain?: string
 ): string {
   const phase = normalizePhaseLabel(phaseLabel)
+  const domain = resolveFocusDomainCopy(focusDomain)
 
   if (lang === 'ko') {
     if (!phase)
       return '결이 아직 한 방향으로 모이지 않은 자리예요. 순서를 먼저 정리해 흐름을 트이게 두세요.'
     if (phase.includes('defensive') || phase.includes('reset') || phase.includes('stabil')) {
+      if (domain) {
+        return `${domain.ko.noun} 영역의 묵은 결을 정리해 다시 받쳐주는 자리를 비우는 구간이에요. 새 일을 벌리기보다 ${domain.ko.action} 같은 잔무를 닫아 두세요.`
+      }
       return '기존 결을 정리해 흐름이 다시 차오를 자리를 비우는 구간이에요. 새 일을 벌리기보다 잔무를 닫아 두세요.'
     }
     if (phase.includes('high_tension') && phase.includes('expansion')) {
+      if (domain) {
+        return `${domain.ko.noun} 영역이 받쳐주지만 한 자락이 어긋나기 쉬운 구간이에요. ${withObjectParticle(domain.ko.action)} 밀 때 중간 확인을 끼워 두세요.`
+      }
       return '결이 차오르지만 한 자락이 어긋나기 쉬운 구간이에요. 중간 확인을 끼워 흐름이 흩어지지 않게 잡아 주세요.'
     }
     if (phase.includes('guarded') && phase.includes('expansion')) {
+      if (domain) {
+        return `${domain.ko.noun} 영역이 트이지만 한 번에 부풀리면 다시 막힐 수 있어요. ${withObjectParticle(domain.ko.action)} 작게 나눠 단계적으로 진행해 보세요.`
+      }
       return '결이 트이지만 한 번에 부풀리면 다시 막힐 수 있어요. 범위를 나눠 천천히 차오르게 가져가 보세요.'
     }
     if (phase.includes('expansion')) {
+      if (domain) {
+        return `${domain.ko.noun} 흐름이 차올라 앞으로 흘러나가는 구간이에요. 머뭇거리던 ${withConjunctionParticle(domain.ko.action)} 중요한 결정도 기준만 분명하면 함께 밀어 주세요.`
+      }
       return '결이 차올라 앞으로 흘러나가는 구간이에요. 머뭇거리던 일과 중요한 결정도 기준만 분명하면 함께 밀어 주세요.'
     }
     if (phase.includes('tension')) {
+      if (domain) {
+        return `${domain.ko.noun} 결이 한쪽으로 미끄러지지 않고 굳는 자리예요. 조건이 풀려야 흐름이 다시 트이니 ${domain.ko.action} 같은 결론을 늦추세요.`
+      }
       return '결이 한쪽으로 미끄러지지 않고 굳는 자리예요. 조건이 풀려야 흐름이 다시 트이니 결론을 늦추세요.'
+    }
+    if (domain) {
+      return `${domain.ko.noun} 영역에서 밀 결과 멈춰 확인할 결을 갈라 가져가야 흐름이 덜 흔들려요.`
     }
     return '밀 결과 멈춰 확인할 결을 갈라 가져가야 흐름이 덜 흔들려요.'
   }
 
   if (!phase) return 'The currents have not braided together yet, so set the order first and let the flow open.'
   if (phase.includes('defensive') || phase.includes('reset') || phase.includes('stabil')) {
+    if (domain) {
+      return `This window clears old currents around your ${domain.en.noun} so the flow can support you again. Close loose ends like ${domain.en.action} rather than starting something new.`
+    }
     return 'This window clears old currents so the flow can swell again later. Close loose ends rather than starting something new.'
   }
   if (phase.includes('high_tension') && phase.includes('expansion')) {
+    if (domain) {
+      return `The flow around your ${domain.en.noun} is rising, but one strand can misalign easily. Add a checkpoint when you push ${domain.en.action}.`
+    }
     return 'The current is rising but one strand can misalign easily. Braid in a checkpoint so the flow stays in sync.'
   }
   if (phase.includes('guarded') && phase.includes('expansion')) {
+    if (domain) {
+      return `The flow around your ${domain.en.noun} opens, but swelling all at once tends to clog again. Stage ${domain.en.action} in smaller moves.`
+    }
     return 'The current opens, but swelling all at once tends to clog again. Let the flow build up in smaller staged moves.'
   }
   if (phase.includes('expansion')) {
+    if (domain) {
+      return `The flow around your ${domain.en.noun} is swelling forward, so push held-back ${domain.en.action} along with it once your standards are clear.`
+    }
     return 'The current is swelling forward, so push held-back work along with it once your standards are clear.'
   }
   if (phase.includes('tension')) {
+    if (domain) {
+      return `The flow around your ${domain.en.noun} is stalling rather than sliding, and only opens once conditions ease, so delay ${domain.en.action}.`
+    }
     return 'The current is stalling rather than sliding, and the flow only opens once conditions ease, so delay the call.'
+  }
+  if (domain) {
+    return `Separate the parts of your ${domain.en.noun} you can push from the ones still stiff, so the flow stays steady.`
   }
   return 'Separate the strands you can push from the ones still stiff, so the flow stays steady.'
 }
@@ -285,22 +328,46 @@ export function describeEvidenceConfidence(
 
 export function describeCrossAgreement(
   agreement: number | undefined,
-  lang: HumanSemanticsLang = 'ko'
+  lang: HumanSemanticsLang = 'ko',
+  focusDomain?: string
 ): string {
   if (!Number.isFinite(agreement)) return ''
   const score = Math.max(0, Math.min(100, Math.round(Number(agreement))))
+  const domain = resolveFocusDomainCopy(focusDomain)
 
   if (lang === 'ko') {
-    if (score >= 70)
+    if (score >= 70) {
+      if (domain) {
+        return `근거들이 ${domain.ko.noun} 영역에서 같은 결로 합쳐 흐르는 자리예요. 큰 흐름을 믿고 ${withObjectParticle(domain.ko.action)} 한 걸음 더 밀어 두세요.`
+      }
       return '근거들이 같은 결로 합쳐 흐르는 자리예요. 큰 흐름을 믿고 한 걸음 더 밀어 두세요.'
-    if (score >= 45)
+    }
+    if (score >= 45) {
+      if (domain) {
+        return `${domain.ko.noun} 영역에서 결이 같은 방향으로 차오르다 한 자락이 어긋나는 구간이에요. ${withObjectParticle(domain.ko.action)} 확정하기 전에 한 번 더 결을 맞추세요.`
+      }
       return '결이 같은 방향으로 차오르다 한 자락이 어긋나는 구간이에요. 확정 전에 한 번 더 결을 맞추세요.'
+    }
+    if (domain) {
+      return `근거들이 ${domain.ko.noun} 영역에서 서로 갈라져 흐르고 있어요. ${withObjectParticle(domain.ko.action)} 서두르기보다 속도를 늦추는 쪽이 안전합니다.`
+    }
     return '근거들이 서로 갈라져 흐르고 있어요. 서두르기보다 속도를 늦추는 쪽이 안전하고, 결이 다시 모일 때를 보세요.'
   }
 
-  if (score >= 70)
+  if (score >= 70) {
+    if (domain) {
+      return `The evidence runs in sync for your ${domain.en.noun}, so the broader flow is trustworthy enough to push ${domain.en.action} one step further.`
+    }
     return 'The evidence currents run in sync, so the broader flow is trustworthy enough to push one step further.'
-  if (score >= 45)
+  }
+  if (score >= 45) {
+    if (domain) {
+      return `For your ${domain.en.noun} the currents rise together but one strand still misaligns, so braid them once more before locking ${domain.en.action} in.`
+    }
     return 'The currents rise together but one strand still misaligns, so braid them once more before locking it in.'
+  }
+  if (domain) {
+    return `The evidence diverges for your ${domain.en.noun}, so slow the pace on ${domain.en.action} and wait for the flows to converge again.`
+  }
   return 'The currents diverge into different paths, so slow the pace and wait for the flows to converge again.'
 }

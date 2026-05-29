@@ -19,6 +19,7 @@ import {
   describePhaseFlow,
 } from '@/lib/destiny-matrix/interpretation/humanSemantics'
 import type { CrossSystemTone } from '@/lib/destiny-matrix/interpretation/humanSemanticsConflictSupport'
+import { focusDomainFromCategory } from '@/lib/destiny-matrix/interpretation/humanSemanticsFocusDomain'
 import { sanitizeMatrixNarrativeLine } from './calendarMatrixTextSupport'
 import { clamp01 } from '@/lib/utils/math'
 import { dedupeTexts } from './textDedupe'
@@ -302,6 +303,11 @@ export function buildCrossEvidenceBundle(
   const aspectList = toAspectEvidenceList(date)
   const isAligned = isAlignedAcrossSystems(crossAgreementPercent)
   const crossSystemTone = resolveCrossSystemTone(date, isAligned)
+  // date.categories 의 첫 카테고리(가장 강한 그루핑)를 9 도메인 KO 라벨로 정규화.
+  // ImportantDate 가 매핑 가능한 categories 를 갖지 않으면 focusDomain 은 undefined
+  // 로 남고, describeCrossEvidenceBridge 는 기존 추상 흐름 문구로 fall back.
+  const focusDomain =
+    focusDomainFromCategory(date.categories?.[0]) ?? undefined
   const astroDetails = aspectList.map((detail, index) =>
     formatAstroEvidenceLine(detail, index, lang)
   )
@@ -351,6 +357,7 @@ export function buildCrossEvidenceBundle(
         aligned: isAligned,
         lang,
         crossSystemTone,
+        focusDomain,
       })
     )
   })
@@ -378,6 +385,7 @@ export function buildCrossEvidenceBundle(
               aligned: isAligned,
               lang,
               crossSystemTone,
+              focusDomain,
             }),
           ]
         : []
@@ -655,6 +663,8 @@ export function buildMatrixStrictSummaryFallback(input: {
   const confidence = Math.max(0, Math.min(100, input.evidence.confidence ?? 0))
   const peak = input.evidence.matrix?.peakLevel || 'normal'
   const agreement = input.evidence.crossAgreementPercent
+  // DomainKey 가 9 도메인 라벨로 매핑되면 cross-agreement 문구도 구체 영역으로 명시.
+  const focusDomain = focusDomainFromCategory(input.evidence.matrix?.domain) ?? undefined
 
   if (input.lang === 'ko') {
     const peakText =
@@ -666,7 +676,7 @@ export function buildMatrixStrictSummaryFallback(input: {
     return dedupeTexts([
       `${domainLabel} 이슈는 ${peakText}입니다.`,
       describeEvidenceConfidence(confidence, 'ko'),
-      describeCrossAgreement(agreement, 'ko'),
+      describeCrossAgreement(agreement, 'ko', focusDomain),
     ]).join(' ')
   }
 
@@ -675,7 +685,7 @@ export function buildMatrixStrictSummaryFallback(input: {
   return dedupeTexts([
     `${domainLabel} is in a ${peakText}.`,
     describeEvidenceConfidence(confidence, 'en'),
-    describeCrossAgreement(agreement, 'en'),
+    describeCrossAgreement(agreement, 'en', focusDomain),
   ]).join(' ')
 }
 
@@ -688,10 +698,11 @@ export function buildMatrixStrictDescriptionFallback(input: {
   const domainLabel = getMatrixDomainLabel(input.evidence.matrix?.domain, input.lang)
   const confidence = Math.max(0, Math.min(100, input.evidence.confidence ?? 0))
   const matrixVerdict = input.evidence.matrixVerdict
+  const focusDomain = focusDomainFromCategory(input.evidence.matrix?.domain) ?? undefined
   const baseDetail =
     input.lang === 'ko'
-      ? `${domainLabel} 이슈는 ${describePhaseFlow(matrixVerdict?.phase, 'ko')}`
-      : `In ${domainLabel}, ${describePhaseFlow(matrixVerdict?.phase, 'en').toLowerCase()}`
+      ? `${domainLabel} 이슈는 ${describePhaseFlow(matrixVerdict?.phase, 'ko', focusDomain)}`
+      : `In ${domainLabel}, ${describePhaseFlow(matrixVerdict?.phase, 'en', focusDomain).toLowerCase()}`
   const confidenceDetail =
     input.lang === 'ko'
       ? confidence < 40
