@@ -143,7 +143,9 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
           controller.enqueue(encoder.encode(sseLine))
         }
         // No content delivered at all → treat as a failed turn (refund).
-        if (fullText.trim() === '') {
+        // 또한 자연 종료처럼 보여도 클라이언트 연결이 끊겨 pipeline 이 abort 된
+        // 경우(모바일 백그라운드 전환 등)는 완성된 답이 아니므로 환불.
+        if (fullText.trim() === '' || pipelineAbort.signal.aborted) {
           await handleFailure()
         }
         // finalize
@@ -164,8 +166,14 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         streamClosed = true
         controller.close()
       } catch (err) {
-        // Errored before delivering any content → refund the charged turn.
-        if (fullText.trim() === '') {
+        // 환불 조건:
+        //  (1) 콘텐츠가 전혀 없이 에러난 경우, 또는
+        //  (2) 클라이언트 연결이 끊겨(abort) 빠진 경우 — 부분 출력이 있어도
+        //      답을 끝까지 못 받았으므로 환불. (모바일에서 다른 앱 갔다 오면
+        //      연결이 끊겨 이 경로로 들어옴.)
+        // 순수 업스트림 에러(부분 출력 후 mid-stream drop)는 사용자가 부분
+        // 답이라도 받았으므로 기존대로 청구 유지.
+        if (fullText.trim() === '' || pipelineAbort.signal.aborted) {
           await handleFailure()
         }
         const errLine = `data: ${JSON.stringify({
@@ -187,6 +195,10 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
     // dies → reader.read() throws → catch path refunds when no content
     // was delivered.
     cancel() {
+      // 클라이언트 연결 끊김(탭 닫기·백그라운드 전환·unmount) = 답이 끝까지
+      // 전달되지 못함 → 차감했던 크레딧 환불. handleFailure 는 멱등이라
+      // catch/success 경로와 중복 호출돼도 한 번만 환불된다.
+      void handleFailure()
       pipelineAbort.abort()
       try {
         void reader.cancel()

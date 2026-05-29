@@ -165,4 +165,32 @@ describe('streamClaudeAsSSE — abort propagation', () => {
     }
     expect(onFailure).toHaveBeenCalledOnce()
   })
+
+  it('refunds (onFailure) when the Response is dropped mid-stream AFTER partial content', async () => {
+    // Mobile "다른 앱 갔다 오면 끊김" case: partial tokens delivered, then the
+    // framework drops the outgoing Response (client disconnect) → cancel().
+    // The user never got a complete answer, so the charged turn is refunded
+    // even though some content already streamed.
+    const upstream = makeControlledUpstream()
+    vi.mocked(callClaudeStream).mockResolvedValue(upstream.stream)
+    const onFailure = vi.fn()
+
+    const res = await streamClaudeAsSSE({
+      systemPrompt: 's',
+      userPrompt: 'u',
+      onFailure,
+    })
+
+    const reader = res.body!.getReader()
+    upstream.tick('partial answer')
+    await reader.read() // consume the partial-content SSE line
+
+    // Client disconnects mid-stream → framework cancels the Response.
+    await reader.cancel()
+    // Flush the microtasks for the async refund kicked off inside cancel().
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(onFailure).toHaveBeenCalledOnce()
+  })
 })

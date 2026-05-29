@@ -298,6 +298,10 @@ export function useChatApi({
         armIdleTimer()
 
         const result = await streamProcessor.process(res, {
+          // 서버 heartbeat(`: hb`)를 포함해 어떤 바이트든 들어오면 idle 타이머
+          // 재무장 — Claude 가 토큰 사이 길게 멈춰도(heartbeat 만 흐름) 잘못된
+          // abort 로 답이 끊기지 않게 한다.
+          onActivity: () => armIdleTimer(),
           onChunk: (_accumulated, cleaned) => {
             armIdleTimer()
             // Update message in real-time as chunks arrive

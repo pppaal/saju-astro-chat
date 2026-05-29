@@ -27,6 +27,13 @@ export interface StreamProcessorOptions {
   onDone?: (result: StreamResult) => void
   /** Callback on error */
   onError?: (error: Error) => void
+  /**
+   * Fires on every raw read that carries bytes — including server heartbeat
+   * comment lines (`: hb …`) that never parse into content. Lets the caller
+   * rearm an idle/abort timer on any network activity, so a long Claude
+   * thinking pause (heartbeats only, no content) doesn't trip a false abort.
+   */
+  onActivity?: () => void
 }
 
 /**
@@ -40,7 +47,7 @@ export class StreamProcessor {
    * Process a fetch Response with SSE stream
    */
   async process(response: Response, options: StreamProcessorOptions = {}): Promise<StreamResult> {
-    const { onChunk, onDone, onError } = options
+    const { onChunk, onDone, onError, onActivity } = options
 
     if (!response.body) {
       const error = new Error('No response body')
@@ -65,6 +72,9 @@ export class StreamProcessor {
     try {
       while (true) {
         const { done, value } = await reader.read()
+        // Any bytes — content OR heartbeat comment — count as liveness so the
+        // caller's idle timer doesn't fire during a long content-less pause.
+        if (value && value.length > 0) onActivity?.()
         if (done) {
           // Flush any remaining bytes held inside the decoder so a final
           // multi-byte char isn't dropped or surfaced as a lone surrogate.
