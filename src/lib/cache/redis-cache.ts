@@ -185,8 +185,18 @@ export async function cacheDel(key: string): Promise<boolean> {
  * - Old cache entries become stale automatically
  */
 export const CacheKeys = {
-  saju: (birthDate: string, birthTime: string, gender: string, calendar: string = 'solar') =>
-    `saju:v1:${birthDate}:${birthTime}:${gender}:${calendar}`,
+  // v2: lunarLeap + timezone 추가. v1 키는 (a) 윤4월/평4월 충돌 (b) 동일 lunar
+  // Y/M/D 서로 다른 타임존 사용자 충돌이 있어 정확성 회귀가 있었음. 키 형태가
+  // 바뀌므로 prefix 도 v1 → v2 로 bump. 이전 캐시는 자연 만료.
+  saju: (
+    birthDate: string,
+    birthTime: string,
+    gender: string,
+    calendar: string = 'solar',
+    timezone: string = 'Asia/Seoul',
+    lunarLeap: boolean = false
+  ) =>
+    `saju:v2:${birthDate}:${birthTime}:${gender}:${calendar}:${timezone}:${lunarLeap ? 'L' : 'N'}`,
 
   tarot: (userId: string, question: string, spread: string) =>
     `tarot:v1:${userId}:${safeBase64Encode(question)}:${spread}`,
@@ -244,8 +254,12 @@ export const CacheKeys = {
  * survives until TTL.
  */
 export const CacheInvalidationPatterns = {
-  /** Matches all `saju:v1:${birthDate}:*` entries (any birthTime/gender/calendar). */
-  sajuByBirthDate: (birthDate: string) => `saju:v1:${birthDate}:*`,
+  /**
+   * Matches `saju:v*:${birthDate}:*` entries across versions. Wildcarding the
+   * version segment covers both currently-live keys and any not-yet-evicted
+   * older-version entries after a CacheKeys.saju version bump.
+   */
+  sajuByBirthDate: (birthDate: string) => `saju:v*:${birthDate}:*`,
   /** Matches all `destiny:v1:${birthDate}:*` entries (any birthTime). */
   destinyByBirthDate: (birthDate: string) => `destiny:v1:${birthDate}:*`,
   /** Matches all `yearly:v6:${birthDate}:*` entries (any birthTime/gender/year/category/place). */

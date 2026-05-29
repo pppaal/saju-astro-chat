@@ -65,7 +65,8 @@ describe('Redis Cache Utilities (Mocked)', () => {
       const { CacheKeys } = await import('@/lib/cache/redis-cache')
 
       const key = CacheKeys.saju('1990-01-01', '12:00', 'M')
-      expect(key).toBe('saju:v1:1990-01-01:12:00:M:solar')
+      // v2: lunarLeap + timezone 추가 (Asia/Seoul / N 디폴트).
+      expect(key).toBe('saju:v2:1990-01-01:12:00:M:solar:Asia/Seoul:N')
     })
 
     it('should generate tarot cache key', async () => {

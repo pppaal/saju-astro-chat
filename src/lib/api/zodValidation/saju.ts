@@ -54,6 +54,9 @@ export const sajuCalculationRequestSchema = z.object({
   userTimezone: timezoneSchema.optional(),
   latitude: latitudeSchema.optional(),
   longitude: longitudeSchema.optional(),
+  // 음력 윤달 여부. calendarType==='lunar' 일 때만 의미 있음.
+  // 윤4월 vs 평4월처럼 같은 Y/M/D에서 분기되는 케이스를 정확히 분리하기 위함.
+  lunarLeap: z.boolean().optional(),
 })
 
 export type SajuCalculationRequestValidated = z.infer<typeof sajuCalculationRequestSchema>
