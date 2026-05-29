@@ -115,10 +115,10 @@
     "signIn": "Sign in"
   },
   "consent": {
-    "title": "Privacy choices",
-    "description": "We use cookies and similar tech for analytics and ads. We block Google Analytics/AdSense until you consent.",
-    "reject": "Reject",
-    "accept": "Accept"
+    "title": "Help us improve",
+    "description": "We anonymously track which features help you, to keep improving the app. Rejecting still lets you use every feature.",
+    "reject": "No thanks",
+    "accept": "OK"
   },
   "numerologyDetail": {
     "lifePath": "Life Path",
