@@ -187,7 +187,7 @@ export const pentaclesCards: RawCard[] = [
         'Debt',
         'Selfishness',
         'One-sided charity',
-        'String attached',
+        'Strings attached',
         'Abuse of generosity',
       ],
       keywordsKo: ['빚', '이기심', '일방적 자선', '조건 달림', '관대함 남용'],
@@ -396,7 +396,7 @@ export const pentaclesCards: RawCard[] = [
       meaning:
         "The Knight of Pentacles sits atop a sturdy draft horse, both unmoving, both looking at a single pentacle in the knight's hand—the slowest, most methodical of all the knights. While other knights charge ahead, this one stands firm, planning each step carefully before moving. This is the energy of reliable diligence, the worker who shows up every day, the person who achieves goals through persistence rather than brilliance. The Knight of Pentacles doesn't take shortcuts; they do things right even when no one is watching. This may seem boring compared to the other knights, but this is how lasting success is built—through routine, responsibility, and methodical progress. In love, this card represents the reliable partner, perhaps not thrillingly romantic but deeply dependable. It suggests building relationship through consistent care rather than grand gestures. In career, steady hard work is the path forward; don't expect quick results, but trust that daily effort compounds into significant achievement. The message: there's honor in the unglamorous work of showing up every day and doing what needs to be done, well.",
       meaningKo:
-        '펜타클 기사는 튼튼한 짐마 위에 앉아, 둘 다 움직이지 않고, 둘 다 기사 손에 있는 펜타클 하나를 바라봅니다—모든 기사 중 가장 느리고 가장 체계적입니다. 다른 기사들이 앞으로 돌진하는 동안, 이 기사는 움직이기 전에 각 단계를 신중히 계획하며 단단히 서 있습니다. 이것은 신뢰할 수 있는 근면의 에너지, 매일 나타나는 일꾼, 뛰어남보다 끈기를 통해 목표를 달성하는 사람입니다. 펜타클 기사는 지름길을 택하지 않습니다; 아무도 보지 않을 때도 일을 제대로 합니다. 다른 기사들에 비해 지루해 보일 수 있지만, 이것이 지속적인 성공이 쌓이는 방법입니다—루틴, 책임감, 체계적 진전을 통해. 사랑에서 이 카드는 신뢰할 수 있는 파트너를 나타냅니다, 아마도 스릴 넘치게 로맨틱하지는 않지만 깊이 신뢰할 수 있는. 웅장한 제스처보다 일관된 돌봄을 통해 관계를 쌓는 것을 시사합니다. 직업에서 꾸준한 근면이 앞으로 나아가는 길입니다; 빠른 결과를 기대하지 말고, 일상의 노력이 상당한 성취로 복리되는 것을 신뢰하세요. 메시지: 매일 나타나서 해야 할 일을 잘하는 화려하지 않은 작업에는 명예가 있습니다.',
+        '펜타클 기사는 튼튼한 짐말 위에 앉아, 둘 다 움직이지 않고, 둘 다 기사 손에 있는 펜타클 하나를 바라봅니다—모든 기사 중 가장 느리고 가장 체계적입니다. 다른 기사들이 앞으로 돌진하는 동안, 이 기사는 움직이기 전에 각 단계를 신중히 계획하며 단단히 서 있습니다. 이것은 신뢰할 수 있는 근면의 에너지, 매일 나타나는 일꾼, 뛰어남보다 끈기를 통해 목표를 달성하는 사람입니다. 펜타클 기사는 지름길을 택하지 않습니다; 아무도 보지 않을 때도 일을 제대로 합니다. 다른 기사들에 비해 지루해 보일 수 있지만, 이것이 지속적인 성공이 쌓이는 방법입니다—루틴, 책임감, 체계적 진전을 통해. 사랑에서 이 카드는 신뢰할 수 있는 파트너를 나타냅니다, 아마도 스릴 넘치게 로맨틱하지는 않지만 깊이 신뢰할 수 있는. 웅장한 제스처보다 일관된 돌봄을 통해 관계를 쌓는 것을 시사합니다. 직업에서 꾸준한 근면이 앞으로 나아가는 길입니다; 빠른 결과를 기대하지 말고, 일상의 노력이 상당한 성취로 복리되는 것을 신뢰하세요. 메시지: 매일 나타나서 해야 할 일을 잘하는 화려하지 않은 작업에는 명예가 있습니다.',
     },
     reversed: {
       keywords: ['Boredom', 'Stagnation', 'Perfectionism', 'Unadventurous', 'Feeling stuck'],
