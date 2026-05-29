@@ -189,6 +189,22 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
 
   return (
     <div className={tokens.container} style={tokens.containerStyle}>
+      {/* Affordance hint — 모바일 비전공자에게 비주얼 단서 (가운데 = 나, 한자
+          long-press, 셀 탭) 노출. dark / light 모두 동일 톤 (gold accent). */}
+      <div
+        className="mb-2 rounded-md px-2.5 py-1.5 text-[10px] leading-snug"
+        style={{
+          background: 'rgba(212,181,114,0.06)',
+          color: 'var(--ds-dark-text-muted)',
+          border: '1px solid rgba(212,181,114,0.12)',
+        }}
+      >
+        <span style={{ color: 'var(--ds-gold-on-dark)' }}>ⓘ</span>{' '}
+        {isKo
+          ? "가운데 금색 = '나' (일주) · 한자 꾹 누르면 뜻 · 셀 탭 = 상세 풀이"
+          : 'Gold border = "me" (Day Pillar) · long-press a hanja for meaning · tap a column for detail'}
+      </div>
+
       {/* 컬럼 헤더: 한자 기둥명(時/日/月/年) + 시기 라벨 */}
       <div className="mb-3 grid grid-cols-4 gap-2">
         {order.map(({ key, isMe, pillarKo, posKo, posEn }) => (

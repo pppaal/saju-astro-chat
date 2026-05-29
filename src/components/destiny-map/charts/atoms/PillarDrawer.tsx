@@ -310,10 +310,13 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
   const dmStem = getDayMasterStem(saju)
   const tonggeunKey = tonggeunKeyFromScore(strength?.tonggeun?.score)
   const tonggeunLeaf = tonggeunKey ? leafText(getSajuStrengthMeaning('통근', tonggeunKey, lang)) : null
+  const tonggeunCatMeaning = leafText(getSajuStrengthMeaning('통근', 'meaning', lang))?.explain ?? null
   const deukKey = deukryeongKey(strength?.deukryeong?.strength, strength?.deukryeong?.isDeukryeong)
   const deukLeaf = deukKey ? leafText(getSajuStrengthMeaning('득령', deukKey, lang)) : null
+  const deukCatMeaning = leafText(getSajuStrengthMeaning('득령', 'meaning', lang))?.explain ?? null
   const johuPrimary = strength?.johuYongsin?.primary
   const johuLeaf = johuPrimary ? leafText(getSajuStrengthMeaning('조후', johuPrimary, lang)) : null
+  const johuCatMeaning = leafText(getSajuStrengthMeaning('조후', 'meaning', lang))?.explain ?? null
 
   // jijanggan list.
   const jgList: string[] = Array.isArray(display?.jijanggan?.list) ? (display!.jijanggan!.list as string[]) : []
@@ -504,18 +507,56 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
         {((display?.twelveShinsal && display.twelveShinsal.length > 0) ||
           (display?.shinsal && display.shinsal.length > 0)) && (
           <Section title={SECTION_LABEL.twelveShinsal[lang]}>
-            {display?.twelveShinsal && display.twelveShinsal.length > 0 && (
-              <div className="text-[13px]" style={{ color: 'var(--ds-dark-text)' }}>
-                {display.twelveShinsal.join(' · ')}
-              </div>
-            )}
-            {display?.shinsal && display.shinsal.length > 0 && (
-              <div className="mt-1 text-[12px]" style={{ color: 'var(--ds-dark-text-muted)' }}>
-                {display.shinsal.join(' · ')}
-              </div>
-            )}
+            {(() => {
+              // twelveShinsal + shinsal 합쳐 중복 제거.
+              const names = Array.from(
+                new Set([...(display?.twelveShinsal ?? []), ...(display?.shinsal ?? [])])
+              )
+              return (
+                <ul className="space-y-1 text-[13px]">
+                  {names.map((name) => {
+                    const interp = getShinsalInterpretation(name)
+                    const nameDisp = interp
+                      ? lang === 'ko'
+                        ? `${interp.name}(${interp.hanja})`
+                        : `${interp.name_en}(${interp.hanja})`
+                      : name
+                    const meaning = interp
+                      ? lang === 'ko' ? interp.meaning : interp.meaning_en
+                      : null
+                    const effect = interp
+                      ? lang === 'ko' ? interp.effect : interp.effect_en
+                      : null
+                    return (
+                      <li key={name} className="leading-snug">
+                        <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>{nameDisp}</span>
+                        {meaning && (
+                          <>
+                            <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>
+                              —
+                            </span>
+                            <span style={{ color: 'var(--ds-dark-text)' }}>{meaning}</span>
+                          </>
+                        )}
+                        {effect && (
+                          <div
+                            className="mt-0.5 text-[11px] leading-snug"
+                            style={{ color: 'var(--ds-dark-text-muted)' }}
+                          >
+                            {effect}
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )
+            })()}
             {display?.shinsalSummary && (
-              <div className="mt-1 text-[12px] leading-snug" style={{ color: 'var(--ds-dark-text-muted)' }}>
+              <div
+                className="mt-1.5 text-[11px] leading-snug"
+                style={{ color: 'var(--ds-dark-text-muted)' }}
+              >
                 {display.shinsalSummary}
               </div>
             )}
@@ -530,9 +571,18 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
                 const cat = rel.kind ? KIND_TO_CATEGORY[rel.kind] : null
                 const pairKey = relationPairKey(rel.detail)
                 const meaning = cat && pairKey ? getRelationMeaning(cat, pairKey, lang) : null
+                const hint = kindHint(rel.kind, lang)
                 return (
                   <li key={idx} className="leading-snug">
                     <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>{rel.kind ?? '—'}</span>
+                    {hint && (
+                      <span
+                        className="ml-1 text-[11px]"
+                        style={{ color: 'var(--ds-dark-text-muted)' }}
+                      >
+                        ({hint})
+                      </span>
+                    )}
                     {rel.detail && (
                       <span className="ml-1.5" style={{ color: 'var(--ds-dark-text)' }}>
                         {rel.detail}
@@ -554,10 +604,11 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
         {/* 통근·득령·조후 */}
         {(tonggeunLeaf || deukLeaf || johuLeaf) && (
           <Section title={SECTION_LABEL.strength[lang]}>
-            <ul className="space-y-1 text-[13px]">
+            <ul className="space-y-2 text-[13px]">
               {tonggeunLeaf && (
                 <StrengthRow
                   label={lang === 'ko' ? '통근' : 'Tonggeun'}
+                  hint={tonggeunCatMeaning ?? undefined}
                   value={tonggeunLeaf.label}
                   explain={tonggeunLeaf.explain}
                 />
@@ -565,6 +616,7 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
               {deukLeaf && (
                 <StrengthRow
                   label={lang === 'ko' ? '득령' : 'Deukryeong'}
+                  hint={deukCatMeaning ?? undefined}
                   value={deukLeaf.label}
                   explain={deukLeaf.explain}
                 />
@@ -572,6 +624,7 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
               {johuLeaf && (
                 <StrengthRow
                   label={lang === 'ko' ? '조후' : 'Johu'}
+                  hint={johuCatMeaning ?? undefined}
                   value={johuLeaf.label ?? (dmStem ? `${dmStem}·${johuPrimary}` : johuPrimary)}
                   explain={johuLeaf.explain}
                 />
