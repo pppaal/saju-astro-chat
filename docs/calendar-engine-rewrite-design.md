@@ -232,7 +232,128 @@ interface CalendarCellScore {
 ## 11. 확인 필요 (구현 전 결정)
 
 1. **#1 십신 polarity 수치** — §3.1 초안 테이블 확정/캘리브레이션.
-2. **#2 (중요) Saturn sect 방향** — 고전 교리(주간 완화) vs 메모("야간 완화"). **상반됨, 택1 필수.**
+2. ~~**#2 Saturn sect 방향**~~ — ✅ **결정: 고전 교리 채택**(주간 출생=Saturn in-sect 완화, 야간 출생=악화). 메모의 "야간 완화"는 폐기.
 3. **#3 점수 bias/scale** — §3 확정 후 재측정.
 4. **#4 헤드라인** — 두 축 평균 vs 전체 신호 합산.
 5. **#5 표면 B(scoring.ts/public-api)** — 소비처 확인 후 폐기 여부.
+
+---
+
+# 12. 흐름(Flow) 설계 — 이 작업의 본질 (`결 → 흐름`)
+
+> §1~11이 "모순 제거(계산기 1개로 합치기)"라면, §12는 **그 합쳐진 엔진으로 "운의 흐름"을 어떻게 표현할 것인가**다. 브랜치 이름 `gyeol-to-heureum`(結→흐름)의 실제 목표.
+
+## 12.0 철학 — 점(결) → 장(場/흐름)
+
+현재: 날짜마다 독립된 점수를 "도장 찍는다"(결). 5/14=72점, 5/15=61점 — **계단식·불연속**. 왜 오르고 내리는지, 어디로 흘러가는지 안 보인다.
+
+목표: 운을 **시간 위에 흐르는 하나의 연속 파동(場)**으로 본다. 핵심 통찰 = **신호는 점이 아니라 파동**이다. `ActiveWindow{start, peak, end}`(이미 존재, `types.ts:49`)가 곧 파동의 형태다.
+
+## 12.1 핵심 공식 — 신호=파동(envelope), 흐름=중첩(superposition)
+
+임의 순간 `t`의 흐름값:
+
+```
+flow(t) = deriveScore( signals, weightAt(t) )
+  where  weightAt(s, t) = weight(s) · envelope_s(t)
+```
+
+`envelope_s(t)` = 신호 s가 순간 t에 갖는 **활성 강도**(0~1). start 전엔 0, peak에서 1.0, end에서 0으로 **부드럽게** 뜨고 진다. 모든 신호의 envelope을 겹쳐(중첩) 더하면 → **계단이 아닌 매끄러운 곡선**이 나온다.
+
+→ §4 deriveScore를 그대로 쓰되, 각 신호 weight에 `envelope_s(t)`를 곱하는 **시간 변조(time-modulation)** 한 줄만 추가. 모델 재발명 없음. polarity는 §3 rules 산출값 그대로.
+
+## 12.2 envelope 모양 — raised-cosine bump (C¹ 연속, 모서리 없음)
+
+```
+envelope_s(t) =
+  0                                            t < start  또는  t > end
+  0.5·(1 − cos(π·(t−start)/(peak−start)))      start ≤ t ≤ peak   // 0→1 상승
+  0.5·(1 + cos(π·(t−peak)/(end−peak)))         peak  ≤ t ≤ end    // 1→0 하강
+```
+
+peak에서 기울기 0 → 정점에 **뾰족한 꺾임이 없어** 곡선이 유기적으로 느껴진다. (삼각형 bump도 가능하나 peak에서 각짐 → 비추천.)
+
+## 12.3 다중 스케일 — 조석·너울·파도·잔물결 (자연 분리)
+
+envelope 폭 = 신호의 `layer`. decadal(10년) 신호는 수년에 걸친 완만한 bump, daily는 며칠 bump. 중첩하면 **바다 구조**가 저절로 생긴다:
+
+| 스케일 | 비유 | layer |
+|---|---|---|
+| 큰 흐름(저류) | 조석(tide) | decadal(대운/outer transit) |
+| 계절 흐름 | 너울(swell) | yearly(세운/Solar Return) |
+| 달 흐름 | 파도(wave) | monthly(월운) |
+| 날 흐름 | 잔물결(ripple) | daily/hourly/instant |
+
+→ 줌(인생→연→월→일)에 따라 **지배 layer만 바뀔 뿐 곡선은 일관**. "오늘의 잔물결이 올해의 너울 위에 타고, 그게 대운의 조석 위에 탄다"가 한 곡선에 담긴다.
+
+## 12.4 흐름에서 뽑는 5가지 파생량
+
+| 파생량 | 정의 | 의미 |
+|---|---|---|
+| **level** | `flow(t)` → 0..100 | 높낮이 (지금의 점수) |
+| **momentum** | `d/dt flow(t)` ≈ `(flow(t+Δ)−flow(t−Δ))/2Δ` | 상승/하강/정체 — **방향** |
+| **pivots(전환점)** | momentum 부호가 바뀌는 t (극대/극소) | 전성기 정점·저점·고비 |
+| **agreement(t)** | `f(\|flowSaju(t) − flowAstro(t)\|)` | 두 흐름이 만나고 벌어지는 **시계열** |
+| **phase(국면)** | (level, momentum)의 분류 | 사람이 읽는 서사 |
+
+핵심: **level만으론 흐름이 아니다.** 같은 70점도 *올라가는 70*과 *내려가는 70*은 전혀 다른 이야기 → momentum과 pivot이 "흐름"을 만든다.
+
+## 12.5 두 흐름의 합류 (이 작업의 신뢰성 핵심)
+
+```
+flowSaju(t)  = deriveScore(signals[source='saju'],  weightAt(t))
+flowAstro(t) = deriveScore(signals[source='astro'], weightAt(t))
+flow(t)      = (flowSaju(t) + flowAstro(t)) / 2          // §4 #4 결정대로
+agreement(t) = band(|flowSaju(t) − flowAstro(t)|)        // §5 임계 계승, 시계열화
+```
+
+두 강이 합류하는 그림:
+- **band(두 선 사이 간격)이 좁다** → 사주·점성이 같은 방향 = **합쳐진 본류(강한 흐름)**
+- **band이 넓다 / 교차** → 엇갈리는 시기 = **소용돌이(주의/혼조)**
+
+→ 두 선이 **같은 엔진**에서 나오므로 (§5), 선이 만나고/벌어지는 것이 **진짜 의미**를 갖는다. (현재 CrossLineChart의 두 선은 서로 다른 계산기 출신이라 교차가 무의미 — 바로 그 모순을 §5가 제거.)
+
+## 12.6 국면(phase) 명명 — 곡선을 서사로
+
+(level, momentum) → 6국면 사이클:
+
+| 국면 | 조건 | 한 줄 |
+|---|---|---|
+| 🌱 태동 | level 낮음 + momentum↑ | 바닥에서 기운이 돌기 시작 |
+| 🌿 상승 | level 중 + momentum↑↑ | 흐름이 차오르는 중 |
+| 🌸 정점 | level 높음 + momentum≈0 | 전성기 — 결실의 때 |
+| 🍂 하강 | level 중 + momentum↓ | 정리·마무리 국면 |
+| 💤 침잠 | level 낮음 + momentum≈0 | 휴식·재충전 |
+| ↩️ 반등 | level 낮음 + momentum↑(전환점 직후) | 저점 통과, 방향 전환 |
+
+→ "당신은 지금 🌸정점 국면, 다음 전환점은 6/20경 🍂하강 진입" 식의 **예고형 서사**가 가능(pivot은 peak에서 예측 가능하므로 회고가 아닌 예보).
+
+## 12.7 표현(렌더링) — FE 매핑
+
+기존 컴포넌트에 그대로 매핑(신규 컴포넌트 최소):
+
+1. **메인 흐름 리본** (`FlowChart.tsx`) — `flow(t)` 단일 매끈 곡선. 색 = phase(상승=따뜻/하강=차분), 두께 = 신호 밀도(확실성).
+2. **두 흐름 합류 띠** (`CrossLineChart.tsx`) — flowSaju/flowAstro 두 선 + **사이 band 음영**(좁음=합류, 넓음=혼조). band이 곧 agreement(t)의 시각화.
+3. **전환점 마커** — pivots에 라벨(전성기/저점/고비). convergence·lifetimePivots가 뽑은 "큰 고비"를 여기 얹음.
+4. **다중 스케일 줌** (`LifeTimeline`/`DaeunTimeline`) — 인생→연→월→일. 샘플 간격만 바뀜(인생=월샘플, 월뷰=일샘플); envelope이 매끄러워 줌 간 곡선 일관.
+5. **근거 호버** — 곡선 임의 점 → 그 순간 지배 신호(`SignalEvidence`)로 "왜 오르는가" 추적. 흐름이 *근거를 달고* 흐른다.
+6. **국면 스트립** — 곡선 하단에 phase 띠 + "다음 전환점" 텍스트.
+
+## 12.8 구현 위치 / 재사용
+
+- **재사용(신규 아님)**: `ActiveWindow.start/peak/end`(파동 형태), `deriveScore`(§4), `SignalEvidence`(근거), `convergence`·`lifetimePivots`(전환점), `FlowChart`·`CrossLineChart`·`LifeTimeline`(렌더).
+- **신규 모듈**: `flow/envelope.ts`(raised-cosine), `flow/flowSeries.ts`(t 샘플링 → {level,momentum,phase} 시계열 + pivot 검출 + agreement 시계열).
+- **샘플링 해상도**: 월뷰=일(day) 단위, 연뷰=주 단위, 인생뷰=월 단위. envelope 연속이라 어느 해상도든 매끈.
+
+## 12.9 검증 (흐름 불변식 테스트)
+
+- **연속성**: 인접 샘플 간 |Δflow| ≤ 상한 (계단식 점프 금지) — 현 불연속 회귀를 영구 차단.
+- **정합**: agreement(t)가 'aligned'인 구간에선 두 선 band ≤ 임계 (§10 "축 aligned ⇒ 교차 높음" 불변식의 시계열판).
+- **pivot 타당성**: 모든 pivot은 적어도 1개 신호의 peak ±window 안에 위치(근거 없는 가짜 변곡점 금지).
+- **줌 일관성**: 같은 t를 다른 해상도에서 평가해도 level 오차 ≤ 허용치.
+
+## 12.10 확인 필요 (흐름 전용)
+
+6. **#6 envelope 폭** — `start/peak/end`가 모든 신호(특히 사주 신살·일진)에 채워져 있나? 없으면 layer별 기본 폭 부여 규칙 필요.
+7. **#7 momentum Δ / pivot 잡음** — 잔물결(daily)이 만드는 미세 pivot을 어디까지 "전환점"으로 볼지 임계(스무딩 강도).
+8. **#8 phase 임계** — level/momentum의 high/mid/low 경계값 캘리브레이션.
