@@ -368,19 +368,25 @@ export function describeCrossEvidenceBridge(input: {
 
   if (lang === 'ko') {
     if (tone === 'negative') {
-      return '점성은 지금 시점의 실수 가능성을, 사주는 구조적인 리스크를 함께 경고하고 있습니다. 계약이나 큰 결정은 한 번 더 확인하는 편이 좋습니다.'
+      if (aligned) {
+        return '두 결이 같이 막히는 자리예요. 무리하지 말고 흐름이 풀릴 때까지 큰 결정을 미루세요.'
+      }
+      return '두 결이 서로 다른 길로 갈라져 흐르고 있어요. 속도를 늦추고 계약이나 큰 결정은 한 번 더 확인하세요.'
     }
     if (aligned) {
-      return '사주는 버티는 힘을 받쳐주고, 점성은 타이밍을 밀어줘서 지금은 핵심 과제를 선명하게 밀기 좋은 쪽입니다.'
+      return '두 결이 같은 방향으로 합쳐 흐르는 자리예요. 핵심 한두 가지를 함께 밀어 주세요.'
     }
-    return '점성은 기회를 보여주지만 사주 쪽 흐름은 속도를 조절하라고 말합니다. 좋아 보여도 바로 확정하기보다 한 번 더 확인하세요.'
+    return '한 결은 차오르고 한 결은 잦아드는 구간이에요. 좋아 보여도 결이 모일 때까지 확정을 미루세요.'
   }
 
   if (tone === 'negative') {
-    return 'Astrology warns on timing while Saju warns on the underlying structure, so contracts and major decisions deserve another pass.'
+    if (aligned) {
+      return 'Both currents are clogging together, so hold off major moves until the flow eases.'
+    }
+    return 'The two currents diverge into different paths, so slow down and recheck contracts or major calls.'
   }
   if (aligned) {
-    return 'Saju supports stamina while astrology supports timing, making this a better window for pushing one or two core priorities.'
+    return 'The two currents braid together in the same direction, making this a good window for pushing one or two core priorities.'
   }
-  return 'Astrology shows opportunity, but Saju still argues for pacing and verification before commitment.'
+  return 'One current swells while the other recedes, so let the flows converge before locking anything in.'
 }

@@ -166,21 +166,12 @@ function buildFusion(
     .sort((a, b) => a.score - b.score)
     .slice(0, 2)
 
-  // advice — matchedPatterns의 headline/action에서 do/avoid 추출
-  const doList: string[] = []
-  const avoidList: string[] = []
-  for (const p of dayCell.matchedPatterns) {
-    const text = p.action ?? p.headline ?? p.name
-    if (!text) continue
-    if (p.themes.some((t) => /shadow|fatigue|risk/i.test(t))) {
-      avoidList.push(text)
-    } else {
-      doList.push(text)
-    }
-  }
-  if (doList.length === 0 && dayCell.topReasons.length > 0) {
-    doList.push(...dayCell.topReasons.slice(0, 2))
-  }
+  // advice — 시간대 카드(DayHourly)의 추진/보류 리스트.
+  // 옛 구현은 matchedPatterns.action 을 그대로 복사했는데,
+  // DayDomains chip 의 action 과 같은 문장이 2번 나와 중복.
+  // 시그널 단위 요약(topReasons / cautions)을 써서 출처를 분리한다.
+  const doList = dayCell.topReasons.slice(0, 3)
+  const avoidList = dayCell.cautions.slice(0, 3)
 
   // confidence / agreement
   // confidence = 활성 신호 개수 기반 (많을수록 신뢰도 높음)
