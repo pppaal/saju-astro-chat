@@ -652,6 +652,22 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
                 </span>{' '}
                 {iljuArchetype.weakness}
               </div>
+              {iljuArchetype.career && (
+                <div>
+                  <span style={{ color: 'var(--ds-dark-text)' }}>
+                    {lang === 'ko' ? '직업 적합' : 'Career fit'}:
+                  </span>{' '}
+                  {iljuArchetype.career}
+                </div>
+              )}
+              {iljuArchetype.love && (
+                <div>
+                  <span style={{ color: 'var(--ds-dark-text)' }}>
+                    {lang === 'ko' ? '사랑 결' : 'Love style'}:
+                  </span>{' '}
+                  {iljuArchetype.love}
+                </div>
+              )}
             </div>
           </Section>
         )}
@@ -675,21 +691,43 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function StrengthRow({ label, value, explain }: { label: string; value?: string; explain?: string }) {
+function StrengthRow({
+  label,
+  hint,
+  value,
+  explain,
+}: {
+  label: string
+  /** 카테고리 자체 한 줄 정의 (비전공자용). 라벨 아래 보조 텍스트로 표시. */
+  hint?: string
+  value?: string
+  explain?: string
+}) {
   return (
     <li className="leading-snug">
-      <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>{label}</span>
-      {value && (
-        <>
-          <span className="mx-1" style={{ color: 'var(--ds-dark-text-muted)' }}>:</span>
-          <span style={{ color: 'var(--ds-dark-text)' }}>{value}</span>
-        </>
-      )}
-      {explain && (
-        <>
-          <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>—</span>
-          <span style={{ color: 'var(--ds-dark-text-muted)' }}>{explain}</span>
-        </>
+      <div>
+        <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>{label}</span>
+        {hint && (
+          <>
+            <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>—</span>
+            <span className="text-[11px]" style={{ color: 'var(--ds-dark-text-muted)' }}>
+              {hint}
+            </span>
+          </>
+        )}
+      </div>
+      {(value || explain) && (
+        <div className="mt-0.5">
+          {value && <span style={{ color: 'var(--ds-dark-text)' }}>{value}</span>}
+          {explain && (
+            <>
+              {value && (
+                <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>—</span>
+              )}
+              <span style={{ color: 'var(--ds-dark-text-muted)' }}>{explain}</span>
+            </>
+          )}
+        </div>
       )}
     </li>
   )
