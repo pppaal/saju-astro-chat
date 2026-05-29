@@ -169,8 +169,8 @@ describe('cities/formatter', () => {
       it('should format various Asian cities', () => {
         expect(formatCityForDropdown('Beijing', 'CN', 'ko')).toBe('베이징, 중국')
         expect(formatCityForDropdown('Taipei', 'TW', 'ko')).toBe('타이페이, 대만')
-        // 'Hong Kong' is stored as "'Hong Kong'" in lookup, so falls back to English city + Korean country
-        expect(formatCityForDropdown('Hong Kong', 'HK', 'ko')).toBe('Hong Kong, 홍콩')
+        // 'Hong Kong' is now mapped (alias) so 도시명도 한국어로 표시된다.
+        expect(formatCityForDropdown('Hong Kong', 'HK', 'ko')).toBe('홍콩, 홍콩')
       })
     })
 
@@ -203,11 +203,10 @@ describe('cities/formatter', () => {
     })
 
     it('should handle multi-word city names', () => {
-      // Multi-word cities are stored with surrounding quotes in the lookup (e.g., "'Los Angeles'")
-      // so getCityNameInKorean('Los Angeles') returns null
-      expect(getCityNameInKorean('Los Angeles')).toBeNull()
-      expect(getCityNameInKorean('San Francisco')).toBeNull()
-      expect(getCityNameInKorean('Hong Kong')).toBeNull()
+      // PR #846 의 unquote + 이후 alias 복원으로 multi-word 매핑이 정상 작동.
+      expect(getCityNameInKorean('Los Angeles')).toBe('로스앤젤레스')
+      expect(getCityNameInKorean('San Francisco')).toBe('샌프란시스코')
+      expect(getCityNameInKorean('Hong Kong')).toBe('홍콩')
     })
 
     it('should return Korean names for various international cities', () => {
@@ -298,15 +297,15 @@ describe('cities/formatter', () => {
       expect(getCityNameFromKorean('상하이')).toBe('Shanghai')
       expect(getCityNameFromKorean('타이페이')).toBe('Taipei')
       // Reverse lookup returns key with surrounding quotes from JSON
-      expect(getCityNameFromKorean('홍콩')).toBe("'Hong Kong'")
+      expect(getCityNameFromKorean('홍콩')).toBe('Hong Kong')
       expect(getCityNameFromKorean('싱가포르')).toBe('Singapore')
       expect(getCityNameFromKorean('방콕')).toBe('Bangkok')
     })
 
     it('should handle US cities', () => {
-      // Reverse lookup returns keys with surrounding quotes for multi-word cities
-      expect(getCityNameFromKorean('로스앤젤레스')).toBe("'Los Angeles'")
-      expect(getCityNameFromKorean('샌프란시스코')).toBe("'San Francisco'")
+      // PR #846 의 unquote 이후 reverse lookup 도 인용부호 없는 키 반환.
+      expect(getCityNameFromKorean('로스앤젤레스')).toBe('Los Angeles')
+      expect(getCityNameFromKorean('샌프란시스코')).toBe('San Francisco')
       expect(getCityNameFromKorean('시카고')).toBe('Chicago')
       expect(getCityNameFromKorean('시애틀')).toBe('Seattle')
     })
@@ -354,16 +353,8 @@ describe('cities/formatter', () => {
 
   describe('comprehensive city coverage', () => {
     it('should handle major South Korean cities', () => {
-      const koreanCities = [
-        'Seoul',
-        'Busan',
-        'Incheon',
-        'Daegu',
-        'Daejeon',
-        'Gwangju',
-        'Ulsan',
-        'Jeju',
-      ]
+      // 키는 dr5hn 정식 표기 — "Jeju" 가 아니라 "Jeju City" / "Jeju-si".
+      const koreanCities = ['Seoul', 'Busan', 'Incheon', 'Daegu', 'Daejeon', 'Gwangju', 'Ulsan']
       koreanCities.forEach((city) => {
         expect(getCityNameInKorean(city)).not.toBeNull()
         expect(formatCityName(city, 'KR', { locale: 'ko' })).toContain('한국')
@@ -379,7 +370,8 @@ describe('cities/formatter', () => {
     })
 
     it('should handle major Chinese cities', () => {
-      const chineseCities = ['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chengdu', 'Chongqing']
+      // Chongqing 은 dr5hn 데이터에서 province 로만 존재 (city 행 없음) 라 제외.
+      const chineseCities = ['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chengdu']
       chineseCities.forEach((city) => {
         expect(getCityNameInKorean(city)).not.toBeNull()
         expect(formatCityName(city, 'CN', { locale: 'ko' })).toContain('중국')
@@ -387,20 +379,17 @@ describe('cities/formatter', () => {
     })
 
     it('should handle major US cities', () => {
-      // Cities stored with proper keys in the lookup
-      const citiesWithKorean = ['Chicago', 'Houston', 'Seattle']
+      // dr5hn 정식 표기 — "New York City" 키로 저장됨 (PR 에서 variant remap).
+      const citiesWithKorean = [
+        'Chicago',
+        'Houston',
+        'Seattle',
+        'Los Angeles',
+        'San Francisco',
+        'New York City',
+      ]
       citiesWithKorean.forEach((city) => {
         expect(getCityNameInKorean(city)).not.toBeNull()
-        expect(formatCityName(city, 'US', { locale: 'ko' })).toContain('미국')
-      })
-      // 일부는 일반 키, 일부는 인용부호 키로 존재한다.
-      const citiesWithQuotedKeys = ['New York', 'Los Angeles', 'San Francisco']
-      citiesWithQuotedKeys.forEach((city) => {
-        if (city === 'New York') {
-          expect(getCityNameInKorean(city)).toBe('뉴욕')
-        } else {
-          expect(getCityNameInKorean(city)).toBeNull()
-        }
         expect(formatCityName(city, 'US', { locale: 'ko' })).toContain('미국')
       })
     })
