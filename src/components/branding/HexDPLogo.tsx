@@ -44,14 +44,16 @@ export default function HexDPLogo({ size = 64, pulse = false, epic = false }: He
       style={pulse || epic ? { animation: 'hexdp-pulse 2.4s ease-in-out infinite' } : undefined}
     >
       <defs>
+        {/* 골드 그라데이션 — design tokens 정렬. 옛 cyan/violet (#63d2ff,
+            #a78bfa, #8b5cf6, #7c3aed) 폐기. */}
         <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#63d2ff" />
-          <stop offset="50%" stopColor="#a78bfa" />
-          <stop offset="100%" stopColor="#8b5cf6" />
+          <stop offset="0%" stopColor="#e8cc8a" />
+          <stop offset="50%" stopColor="#d4b572" />
+          <stop offset="100%" stopColor="#a07a3c" />
         </linearGradient>
         <radialGradient id={haloId} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.55" />
-          <stop offset="55%" stopColor="#7c3aed" stopOpacity="0.18" />
+          <stop offset="0%" stopColor="#e8cc8a" stopOpacity="0.55" />
+          <stop offset="55%" stopColor="#a07a3c" stopOpacity="0.18" />
           <stop offset="100%" stopColor="#0a0d1f" stopOpacity="0" />
         </radialGradient>
       </defs>
@@ -80,25 +82,25 @@ export default function HexDPLogo({ size = 64, pulse = false, epic = false }: He
               opacity="0.85"
             />
           </g>
-          {/* Counter-rotating thin ring */}
+          {/* Counter-rotating thin ring — gold */}
           <g style={{ transformOrigin: '32px 36px', animation: 'hexdp-spin-rev 14s linear infinite' }}>
             <circle
               cx="32"
               cy="36"
               r="50"
               fill="none"
-              stroke="#a78bfa"
+              stroke="#d4b572"
               strokeWidth="0.5"
               strokeDasharray="1 3"
               opacity="0.6"
             />
           </g>
-          {/* Orbital sparkles */}
+          {/* Orbital sparkles — 골드 톤 */}
           <g style={{ transformOrigin: '32px 36px', animation: 'hexdp-spin 6s linear infinite' }}>
-            <circle cx="32" cy="-14" r="1.8" fill="#cffafe" />
-            <circle cx="78" cy="36" r="1.4" fill="#a78bfa" />
-            <circle cx="32" cy="86" r="1.2" fill="#63d2ff" />
-            <circle cx="-14" cy="36" r="1.6" fill="#e0e7ff" />
+            <circle cx="32" cy="-14" r="1.8" fill="#fff8e1" />
+            <circle cx="78" cy="36" r="1.4" fill="#d4b572" />
+            <circle cx="32" cy="86" r="1.2" fill="#e8cc8a" />
+            <circle cx="-14" cy="36" r="1.6" fill="#fff8e1" />
           </g>
         </>
       )}
