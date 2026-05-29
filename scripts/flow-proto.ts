@@ -58,6 +58,32 @@ function metrics(saju: number[], astroGs: (number | null)[], days: any[]) {
   return { rawSd: +rawSd.toFixed(3), opposed: +(ag.opposed / days.length).toFixed(2), conv, alive: rawSd >= 0.03 }
 }
 
+// 단일 차트 실행 → 적응형 top-N(5~16) + 지표 + verdict
+async function runChart(input: any, start: string, end: string) {
+  const natal = await buildNatalContext(input)
+  const cells = await buildCalendar(natal, { start, end, granularity: 'day' }, { includeEvidence: true })
+  const days = cells.map((x) => ({ sigs: (x.signals as any[]).map((s) => ({ layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source, kind: s.kind })) as Sig[] }))
+  const pickS = (d: any) => d.sigs.filter((s: Sig) => s.source === 'saju')
+  const pickA = (d: any) => d.sigs.filter((s: Sig) => s.source === 'astro')
+  const sajuGs = days.map((d) => grandAvg(pickS(d)))
+  const sajuSd = stats(sajuGs.filter((x): x is number => x != null)).sd
+  const sajuAxis = calibrate(sajuGs)
+  // 적응형 N: 점성 raw sd가 사주 sd에 가장 근접한 N
+  let bestN = 0, bestDiff = 9, bestSd = 0
+  for (const n of [5, 8, 12, 16]) {
+    const sd = stats(days.map((d) => grandAvg(topNPerLayer(pickA(d), n))).filter((x): x is number => x != null)).sd
+    if (Math.abs(sd - sajuSd) < bestDiff) { bestDiff = Math.abs(sd - sajuSd); bestN = n; bestSd = sd }
+  }
+  const m = metrics(sajuAxis, days.map((d) => grandAvg(topNPerLayer(pickA(d), bestN))), days)
+  const astroPinned = m.rawSd < 0.03
+  const verdict = astroPinned ? 'FAIL(점성축고착)' : m.opposed > 0.5 ? 'FAIL(opposed과다)' : !natal ? 'FAIL' : 'OK'
+  return {
+    birth: input.birthDate, time: input.birthTime, win: `${start.slice(0, 10)}~${end.slice(0, 10)}`, nDays: days.length,
+    strength: natal.saju.strength, sect: natal.astro.sect, sajuSd: +sajuSd.toFixed(3),
+    chosenN: bestN, hitEdge: bestN === 16, astroSd: bestSd, opposedRatio: m.opposed, convDays: m.conv, alive: m.alive, verdict,
+  }
+}
+
 const CHARTS = [
   { tag: '서울♂medium/day', i: { birthDate: '1993-08-15', birthTime: '14:30', gender: 'male' as const, latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }, s: '2026-05-01T00:00:00.000Z', e: '2026-05-31T23:59:59.999Z' },
   { tag: '서울♀night겨울', i: { birthDate: '1988-01-20', birthTime: '04:30', gender: 'female' as const, latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }, s: '2025-11-01T00:00:00.000Z', e: '2025-11-30T23:59:59.999Z' },
@@ -68,6 +94,17 @@ const CHARTS = [
 const NS = [3, 5, 8, 12, 16, 20, 28]
 
 async function main() {
+  const E = process.env
+  // 단일 차트 모드 (env) — 에이전트 스트레스 테스트용
+  if (E.FP_BIRTHDATE) {
+    const r = await runChart(
+      { birthDate: E.FP_BIRTHDATE, birthTime: E.FP_BIRTHTIME ?? '12:00', gender: (E.FP_GENDER as any) ?? 'male', latitude: Number(E.FP_LAT ?? 37.5665), longitude: Number(E.FP_LON ?? 126.978), timeZone: E.FP_TZ ?? 'Asia/Seoul' },
+      E.FP_START ?? '2026-05-01T00:00:00.000Z', E.FP_END ?? '2026-05-31T23:59:59.999Z',
+    )
+    console.log('==== SUMMARY(JSON) ====')
+    console.log(JSON.stringify(r))
+    return
+  }
   console.log('차트                    강약   sect | 사주sd | [넓힌 N스윕] 채택N(점성sd) | [순위감쇠 d=0.6] 점성sd opp conv alive')
   console.log('-'.repeat(118))
   for (const c of CHARTS) {
