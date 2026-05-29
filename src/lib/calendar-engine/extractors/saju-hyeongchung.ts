@@ -57,6 +57,30 @@ const BRANCH_WONJIN: Array<[string, string]> = [
   ['子', '未'], ['丑', '午'], ['寅', '酉'], ['卯', '申'], ['辰', '亥'], ['巳', '戌'],
 ]
 
+// ─── 지지 방합 (4그룹 — 계절 결의 모임) — 펼쳐서 페어 ───
+// 寅卯辰 봄(목), 巳午未 여름(화), 申酉戌 가을(금), 亥子丑 겨울(수)
+const BRANCH_BANGHAP_GROUPS: Array<{ branches: string[]; season: string; element: string }> = [
+  { branches: ['寅', '卯', '辰'], season: '봄', element: '목' },
+  { branches: ['巳', '午', '未'], season: '여름', element: '화' },
+  { branches: ['申', '酉', '戌'], season: '가을', element: '금' },
+  { branches: ['亥', '子', '丑'], season: '겨울', element: '수' },
+]
+
+// ─── 지지 파 (破 — 6쌍, 작은 깨짐) ───
+// 자유(子酉)·축진(丑辰)·인해(寅亥)·묘오(卯午)·진미(辰未)·사신(巳申)
+// 주의: 전통 파는 자유/축진/인해/묘오/진미/사신 — 위의 user 작업서 표기는
+// "자유·축술·인해·묘오·진미·사신"이지만, 정통 명리학에 일관되게 자유/축진/인해/묘오/진미/사신을 사용.
+// (축술은 형刑의 일종이며 별도 처리됨 — BRANCH_HYUNG에서 이미 잡힘)
+const BRANCH_PA: Array<[string, string]> = [
+  ['子', '酉'], ['丑', '辰'], ['寅', '亥'], ['卯', '午'], ['辰', '未'], ['巳', '申'],
+]
+
+// ─── 지지 해 (害 — 6쌍, 미세한 어긋남·방해) ───
+// 자미(子未)·축오(丑午)·인사(寅巳)·묘진(卯辰)·신해(申亥)·유술(酉戌)
+const BRANCH_HAE: Array<[string, string]> = [
+  ['子', '未'], ['丑', '午'], ['寅', '巳'], ['卯', '辰'], ['申', '亥'], ['酉', '戌'],
+]
+
 const PILLAR_NAMES: Record<PillarKind, string> = {
   year: '년주', month: '월주', day: '일주', time: '시주',
 }
@@ -163,6 +187,46 @@ const sajuHyeongchungExtractor: SignalExtractor = {
               dayIso, startIso, peakIso, endIso,
               kindLabel: '원진', polarity: -2, weight: 0.55,
               name: `원진 ${targetBranch}-${np.branch} (${PILLAR_NAMES[np.kind]})`,
+              detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
+            }))
+          }
+        }
+        // 방합 (같은 계절 결의 모임) — target과 natal이 같은 방합국에 속하면
+        for (const group of BRANCH_BANGHAP_GROUPS) {
+          if (group.branches.includes(targetBranch) && group.branches.includes(np.branch) && targetBranch !== np.branch) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '방합', polarity: 1, weight: 0.55,
+              name: `방합 ${targetBranch}-${np.branch} (${group.branches.join('')} ${group.season})`,
+              detail: {
+                targetBranch,
+                natalBranch: np.branch,
+                natalPillar: np.kind,
+                banghapGroup: group.branches,
+                season: group.season,
+                element: group.element,
+              },
+            }))
+          }
+        }
+        // 파 (작은 깨짐)
+        for (const [a, b] of BRANCH_PA) {
+          if ((targetBranch === a && np.branch === b) || (targetBranch === b && np.branch === a)) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '파', polarity: -1, weight: 0.45,
+              name: `파 ${targetBranch}-${np.branch} (${PILLAR_NAMES[np.kind]})`,
+              detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
+            }))
+          }
+        }
+        // 해 (미세한 어긋남·방해)
+        for (const [a, b] of BRANCH_HAE) {
+          if ((targetBranch === a && np.branch === b) || (targetBranch === b && np.branch === a)) {
+            signals.push(makeSignal({
+              dayIso, startIso, peakIso, endIso,
+              kindLabel: '해', polarity: -1, weight: 0.5,
+              name: `해 ${targetBranch}-${np.branch} (${PILLAR_NAMES[np.kind]})`,
               detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
             }))
           }

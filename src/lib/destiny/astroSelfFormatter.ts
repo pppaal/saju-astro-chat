@@ -45,6 +45,7 @@ const ASPECT_NAME: Record<AspectType, string> = {
   conjunction: 'Conjunction', opposition: 'Opposition', trine: 'Trine',
   square: 'Square', sextile: 'Sextile', quincunx: 'Quincunx',
   semisextile: 'Semisextile', quintile: 'Quintile', biquintile: 'Biquintile',
+  sesquiquadrate: 'Sesquiquadrate',
 }
 
 const PLANET_LABEL: Record<string, string> = {

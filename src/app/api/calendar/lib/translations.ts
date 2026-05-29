@@ -11,7 +11,7 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
     en: "Your own current swells thicker today. Ride the rising flow in meetings and speak up. Watch where it diverges from peers in similar lanes — don't push past that line."
   },
   stemInseong: {
-    ko: "지지(支持)의 결이 위쪽에서 두텁게 차오르는 자리예요. 막혔던 답이 누군가 한마디에 풀리기 쉬워요. 선배·상사에게 물어보는 결을 놓치지 마세요.",
+    ko: "지지(支持)의 결이 한쪽에서 들어오는 자리예요. 막혔던 답이 누군가 한마디에 풀리기 쉬워요. 선배·상사에게 물어보는 결을 놓치지 마세요.",
     en: "Support flows in from someone above today. A stuck answer loosens with one piece of advice. Don't miss the opening — ask seniors or supervisors while the current is open."
   },
   stemJaeseong: {
@@ -19,15 +19,15 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
     en: "The money current thickens for a brief window. Postponed financial calls slide through smoothly now. Good time to check deals and let investment decisions flow."
   },
   stemSiksang: {
-    ko: "표현의 결이 두텁게 차오르며 활짝 열리는 자리예요. 기획서·프레젠테이션 준비가 부드럽게 흘러갑니다. 평소 막혀 있던 제안도 오늘 결 위에 얹어 내보내 보세요.",
+    ko: "표현의 결이 활짝 열리는 날이에요. 기획서·프레젠테이션 준비가 부드럽게 흘러갑니다. 평소 막혀 있던 제안도 오늘은 트인 자리로 내보내 보세요.",
     en: "The channel of expression opens wide today. Proposals and presentations glide along. A suggestion that was clogged before will pass through cleanly — send it out."
   },
   stemGwansal: {
-    ko: "외부 압력이 위쪽에서 두텁게 가라앉아 들어오는 자리예요. 큰 실수만 피하면 결은 잦아듭니다. 튀는 결은 접어두고 맡은 일의 결을 조용히 가져가세요.",
+    ko: "외부 압력이 위에서 가라앉아 들어오는 날이에요. 큰 실수만 피하면 흐름은 잦아듭니다. 튀는 결은 접어두고 맡은 일을 조용히 가져가세요.",
     en: "Pressure settles in from above today. Avoid the big slip and the current will fade on its own. Pull back any sharp moves and let assigned work carry quietly."
   },
   branchSamhap: {
-    ko: "세 결이 한 점에 두텁게 차오르며 모이는 드문 자리예요. 흩어져 있던 일이 하나로 수렴하는 흐름이라, 계약 사인·이직 면접·중요한 미팅을 이 결에 얹어 보내세요.",
+    ko: "세 결이 한 점에 모이는 드문 자리예요. 흩어져 있던 일이 하나로 수렴하는 흐름이라, 계약 사인·이직 면접·중요한 미팅을 이 결에 얹어 보내세요.",
     en: "Three currents converge on one point — a rare alignment. Scattered threads meet here, so place contract signings, interviews, or key meetings on this flow."
   },
   branchSamhapNegative: {
@@ -35,7 +35,7 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
     en: "The currents diverge and misalign today. New launches tangle later, so let them drift to a different day if they aren't urgent. Pour weight into wrapping things up."
   },
   branchYukhap: {
-    ko: "두 결이 부드럽게 맞닿아 두텁게 차오르는 자리예요. 새 사람과 흐름이 자연스럽게 겹치니, 소개팅·네트워킹·동창 모임에서 인연 한 줄이 들어찰 수 있어요.",
+    ko: "두 결이 부드럽게 맞닿는 자리예요. 새 사람과 흐름이 자연스럽게 겹치니, 소개팅·네트워킹·동창 모임에서 인연 한 줄이 들어찰 수 있어요.",
     en: "Two currents touch and fit together cleanly. New people flow into your stream easily — a blind date, networking event, or reunion may bring a real connection in."
   },
   branchChung: {
@@ -57,7 +57,7 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
   },
   // 지장간(支藏干) - 숨은 기운
   hiddenStemSupport: {
-    ko: "숨어 있던 지지의 결이 조용히 차오르는 자리예요. 오랫동안 연락 안 하던 사람의 결이 들어오고, 포기했던 프로젝트의 결이 다시 살아납니다. 예상 못 한 자리에서 결이 닿아 와요.",
+    ko: "오랫동안 연락 안 하던 사람한테서 연락이 올 수 있어요. 포기했던 프로젝트가 다시 살아날 수도 있고요. 예상치 못한 곳에서 도움이 와요.",
     en: "You might hear from someone you haven't contacted in a while. A project you gave up might revive. Help comes from unexpected places."
   },
   hiddenStemConflict: {
@@ -66,12 +66,12 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
   },
   // === 손없는 날 (擇日) ===
   sonEomneunDay: {
-    ko: "🏠 집의 결이 부드럽게 차오르는 자리예요. 이사·가구 배치·새 가전의 결이 깨끗하게 살아나니, 집 관련 큰 결정도 오늘 결 위에 얹어 보세요. 개업·인테리어 시작의 결도 두텁게 받쳐줍니다.",
+    ko: "🏠 이사, 가구 배치 바꾸기, 새 가전 들이기 좋은 날이에요. 집 관련 큰 결정 오늘 해도 괜찮아요. 개업이나 인테리어 시작도 좋아요.",
     en: "🏠 Good day for moving, rearranging furniture, or getting new appliances. House-related big decisions are fine today. Starting a business or renovation is also good."
   },
   // === 건록(建祿) ===
   geonrokDay: {
-    ko: "📈 자기 자리의 결이 두텁게 차오르는 자리예요. 승진 면담·연봉 협상·취업 면접의 결이 부드럽게 살아나니, 인정받고 싶은 일을 오늘 결 위에 얹어 보세요. 좋은 소식의 결이 들어찰 가능성이 높습니다.",
+    ko: "📈 승진 면담, 연봉 협상, 취업 면접에 유리한 날이에요. 인정받고 싶은 일은 오늘 어필하세요. 좋은 소식 들을 가능성 높아요.",
     en: "📈 Favorable day for promotion talks, salary negotiations, job interviews. Appeal for things you want recognition for today. High chance of hearing good news."
   },
   // === 삼재(三災) ===
@@ -81,25 +81,25 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
   },
   // === 역마살(驛馬殺) ===
   yeokmaDay: {
-    ko: "🐎 이동의 결이 두텁게 차오르는 자리예요. 여행·출장·외근의 결이 살아나니, 이 결 위에 떠나는 일정을 얹어 보세요. 이직이나 이사 고민이 있다면 오늘 결 위에 정보 한 줄을 더해 두세요.",
+    ko: "🐎 여행 가면 좋은 일 생길 수 있어요. 출장, 외근 기회가 오면 잡으세요. 이직이나 이사 고민 중이라면 오늘 알아보세요.",
     en: "🐎 Good things may happen if you travel. Grab business trip or outside work opportunities. If considering job change or moving, look into it today."
   },
   // === 도화살(桃花殺) ===
   dohwaDay: {
-    ko: "🌸 매력의 결이 두텁게 차오르는 자리예요. 오늘 외모에 신경 쓴 결이 사람을 끌어옵니다. 소개팅·미팅·모임에서 눈에 띄는 결이 살아나는 날 — 연애 결이 한 결 두꺼워집니다.",
+    ko: "🌸 오늘 외모에 신경 쓰면 좋은 만남이 있을 수 있어요. 소개팅, 미팅, 모임에서 눈에 띌 수 있는 날이에요. 연애운 UP!",
     en: "🌸 Pay attention to your appearance today for good encounters. A day to stand out at blind dates, meetings, or gatherings. Romance luck UP!"
   },
   // === 십신(十神) 추가 분석 ===
   "sipsin_정재": {
-    ko: "💵 안정적인 재물 결이 두텁게 차오르는 자리예요. 월급·저축·정기 수입의 결이 굵어지니, 큰 투기보다는 꾸준한 재테크에 결을 모으세요. 가족과의 결도 같이 살아납니다.",
+    ko: "💵 안정적인 재물운이 좋아요! 월급, 저축, 정기 수입에 유리한 날이에요. 큰 투기보다는 안정적인 재테크에 집중하세요. 가족과의 관계도 좋아요.",
     en: "💵 Stable financial luck is good! Favorable for salary, savings, and regular income. Focus on stable investments rather than speculation. Family relationships are also good."
   },
   "sipsin_편재": {
-    ko: "💰 뜻밖의 재물 결이 한 번에 차오르는 자리예요. 부업·투자·복권 등 정규 수입 밖의 결이 두꺼워지는 구간이라 리스크 관리도 같이 가야 해요. 결이 들어차기도 빠르지만 빠지기도 빠른 날입니다.",
+    ko: "💰 뜻밖의 재물 기회가 올 수 있어요! 부업, 투자, 복권 등 정규 수입 외의 재물에 유리해요. 다만 리스크 관리도 중요해요. 돈이 들어오기도 쉽지만 나가기도 쉬운 날!",
     en: "💰 Unexpected financial opportunities may come! Favorable for side jobs, investments, and lottery. However, risk management is important. Money comes easily but also goes easily!"
   },
   "sipsin_정인": {
-    ko: "📚 학습과 도움의 결이 두텁게 차오르는 자리예요. 시험·자격증·학업의 결이 살아나니, 선생님이나 선배의 손길에 결을 얹어 보세요. 중요한 서류 처리도 이 결 위에 흘려보내기 좋습니다.",
+    ko: "📚 학습과 도움의 에너지가 넘쳐요! 시험, 자격증, 학업에 유리한 날이에요. 선생님이나 선배의 도움을 받기 좋고, 중요한 서류 처리에도 좋은 날이에요.",
     en: "📚 Learning and support energy overflows! Favorable for exams, certifications, and studies. Good for receiving help from teachers or seniors, and good for handling important documents."
   },
   "sipsin_편인": {
@@ -115,7 +115,7 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
     en: "👥 Cooperation with friends and colleagues strengthens! Good for team projects and partnership discussions. However, competitive feelings may rise, so avoid unilateral decisions. Working together brings better results!"
   },
   "sipsin_식신": {
-    ko: "🍽️ 창의력과 표현의 결이 두텁게 차오르는 자리예요! 요리·글쓰기·예술 활동에 결이 살아납니다. 여유로운 결이라 휴식이나 맛집 탐방도 같이 흘려보내기 좋아요. 건강과 복의 결이 부드럽게 들어차는 좋은 기운입니다.",
+    ko: "🍽️ 창의력과 표현력이 풍부해지는 날이에요! 요리, 글쓰기, 예술 활동에 딱 좋아요. 여유롭고 편안한 에너지라서 휴식이나 맛집 탐방도 좋아요. 건강과 복을 상징하는 좋은 기운!",
     en: "🍽️ Creativity and expression flourish! Perfect for cooking, writing, and artistic activities. It's relaxed and comfortable energy, so rest or food exploration is also great. Good energy symbolizing health and blessings!"
   },
   "sipsin_상관": {
@@ -123,12 +123,150 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
     en: "🎭 Creative expression maximizes but watch your words! Favorable for art, performance, and content creation. However, you may clash with bosses or authority figures, so moderate your behavior. Your talent shines, but be careful with relationships!"
   },
   "sipsin_정관": {
-    ko: "👔 직장과 명예의 결이 두텁게 차오르는 자리예요. 승진·인정·공식적 자리의 결이 굵어지니, 책임감 있게 행동하면 결이 잘 잡힙니다. 결혼이나 공식 약속도 이 결 위에 얹어 보세요.",
+    ko: "👔 직장운과 명예운이 좋아요! 승진, 인정, 공식적인 자리에 유리한 날이에요. 책임감 있게 행동하면 좋은 평가를 받을 수 있어요. 결혼이나 공식적인 약속에도 좋은 날!",
     en: "👔 Career and honor luck is good! Favorable for promotions, recognition, and official occasions. Acting responsibly brings good evaluations. Also a good day for marriage or official commitments!"
   },
   "sipsin_편관": {
     ko: "⚡ 도전과 경쟁에 강해지는 날이에요! 스포츠, 경쟁 프레젠테이션, 협상에 유리해요. 다만 스트레스와 압박감도 커지니 건강 관리하세요. 승부욕이 강해지는 날!",
     en: "⚡ You become stronger in challenges and competition! Favorable for sports, competitive presentations, and negotiations. However, stress and pressure also increase, so manage your health. A day when competitive spirit rises!"
+  },
+  // ============================================================
+  // 격국(格局) — 명리 主格 라벨. build.ts가 determineGeokguk으로 채워
+  // saju-pattern extractor가 lifetime 신호로 emit.
+  // 사주의 본질 흐름을 한 마디로 압축하는 라벨이라 카드/내러티브의 톤 결정에 사용.
+  // ============================================================
+  geokguk_정관격: {
+    ko: "👔 정관격의 결이 본명에 두텁게 깔린 분이에요. 규율·책임·명예의 흐름이 본명 결을 잡아가요. 공식적인 자리·승진·명함에 무게가 실리는 사주 흐름입니다.",
+    en: "👔 Born with a Jeonggwan structure. Discipline, responsibility, and honor steer the current of your chart. Official posts, promotions, and titles carry weight in your natural flow."
+  },
+  geokguk_편관격: {
+    ko: "⚔️ 편관격의 결이 본명에 두텁게 깔린 분이에요. 도전·결단·압박을 견뎌내는 흐름이 본명 결을 잡아가요. 험한 자리를 통과할 때 결이 단단해지는 사주입니다.",
+    en: "⚔️ Born with a Pyeongwan structure. Challenge, decisiveness, and pressure shape the current of your chart. The flow hardens cleanly when you cut through rough terrain."
+  },
+  geokguk_식신격: {
+    ko: "🎨 식신격의 결이 본명에 두텁게 깔린 분이에요. 창작·표현·여유의 흐름이 본명 결을 잡아가요. 좋아하는 결을 따라갈 때 식복과 결과가 같이 차오릅니다.",
+    en: "🎨 Born with a Siksin structure. Creation, expression, and ease shape the current of your chart. Following what you love thickens both abundance and results."
+  },
+  geokguk_상관격: {
+    ko: "🎭 상관격의 결이 본명에 두텁게 깔린 분이에요. 재능·반항·표현의 흐름이 본명 결을 잡아가요. 권위에 부딪치기 쉬워도 그 안에서 결이 빛나는 사주입니다.",
+    en: "🎭 Born with a Sanggwan structure. Talent, defiance, and expression shape the current of your chart. The flow sparks against authority, and that's where it shines."
+  },
+  geokguk_정인격: {
+    ko: "📚 정인격의 결이 본명에 두텁게 깔린 분이에요. 학문·덕망·인자함의 흐름이 본명 결을 잡아가요. 배우고 가르치는 자리에 결이 자연스럽게 모입니다.",
+    en: "📚 Born with a Jeongin structure. Learning, virtue, and warmth shape the current of your chart. The flow gathers naturally where teaching and study converge."
+  },
+  geokguk_편인격: {
+    ko: "🔮 편인격의 결이 본명에 두텁게 깔린 분이에요. 비범한 사고·종교·예술의 흐름이 본명 결을 잡아가요. 남들과 다른 결로 답을 찾아가는 사주입니다.",
+    en: "🔮 Born with a Pyeonin structure. Unconventional thought, spirituality, and art shape the current of your chart. The flow seeks answers on a different track than most."
+  },
+  geokguk_정재격: {
+    ko: "💵 정재격의 결이 본명에 두텁게 깔린 분이에요. 성실·꾸준함·축적의 흐름이 본명 결을 잡아가요. 결을 길게 가져갈수록 재물이 두텁게 차오릅니다.",
+    en: "💵 Born with a Jeongjae structure. Diligence, steadiness, and accumulation shape the current of your chart. The longer the flow runs, the thicker the wealth gathers."
+  },
+  geokguk_편재격: {
+    ko: "💰 편재격의 결이 본명에 두텁게 깔린 분이에요. 사업·활동·큰 흐름의 결이 본명에 깔려 있어요. 한 결로 돈이 한 번에 들어차는 사주 톤입니다.",
+    en: "💰 Born with a Pyeonjae structure. Business, activity, and big flows shape the current of your chart. Money pours in on a single wave in your natural tone."
+  },
+  geokguk_종왕격: {
+    ko: "👑 종왕격의 결이 본명에 두텁게 깔린 분이에요. 자기 결을 강하게 끌고 가는 흐름이 본명에 박혀 있어요. 독립과 자기 주도의 결로 길이 풀리는 사주입니다.",
+    en: "👑 Born with a Jongwang structure. A current that drives its own flow strongly is etched into your chart. Independence and self-direction unlock the path."
+  },
+  geokguk_종강격: {
+    ko: "📖 종강격의 결이 본명에 두텁게 깔린 분이에요. 인성에 기댄 학문·정신의 결이 본명에 박혀 있어요. 가르침과 배움의 결로 길이 트이는 사주입니다.",
+    en: "📖 Born with a Jonggang structure. A current rooted in study and the inner mind is etched into your chart. Teaching and learning open the path."
+  },
+  geokguk_종아격: {
+    ko: "🎤 종아격의 결이 본명에 두텁게 깔린 분이에요. 식상의 표현·창작 결이 본명에 박혀 있어요. 결과물을 흘려보낼수록 결이 두꺼워지는 사주입니다.",
+    en: "🎤 Born with a Jonga structure. The current of expression and creation is etched into your chart. The more you let output flow, the thicker the channel grows."
+  },
+  geokguk_종재격: {
+    ko: "💎 종재격의 결이 본명에 두텁게 깔린 분이에요. 재성에 흐름을 맡기는 결이 본명에 박혀 있어요. 돈의 흐름을 타고 결이 자연스럽게 풀리는 사주입니다.",
+    en: "💎 Born with a Jongjae structure. A current that surrenders to wealth's flow is etched into your chart. Riding the money current opens the path naturally."
+  },
+  geokguk_종살격: {
+    ko: "🛡️ 종살격의 결이 본명에 두텁게 깔린 분이에요. 강한 관살에 흐름을 맡기는 결이 본명에 박혀 있어요. 권위를 따를 때 결이 살아나는 사주입니다.",
+    en: "🛡️ Born with a Jongsal structure. A current that yields to strong authority is etched into your chart. Following the power flow brings the channel alive."
+  },
+  geokguk_건록격: {
+    ko: "🏛️ 건록격의 결이 본명에 두텁게 깔린 분이에요. 월지에 비겁이 박힌 든든한 결이 본명에 깔려 있어요. 자기 자리를 단단히 잡는 사주 흐름입니다.",
+    en: "🏛️ Born with a Geonrok structure. A solid current of self-rooted strength is etched into your chart. The flow holds its own ground firmly."
+  },
+  geokguk_양인격: {
+    ko: "🗡️ 양인격의 결이 본명에 두텁게 깔린 분이에요. 강하고 날카로운 결이 본명에 박혀 있어요. 무인·검사·외과의처럼 칼을 쓰는 결로 풀리는 사주입니다.",
+    en: "🗡️ Born with a Yangin structure. A strong, sharp current is etched into your chart. The flow opens through professions that wield the blade — military, prosecution, surgery."
+  },
+  geokguk_월겁격: {
+    ko: "🤝 월겁격의 결이 본명에 두텁게 깔린 분이에요. 동료·형제·경쟁자와 어우러지는 결이 본명에 깔려 있어요. 같이 갈 때 결이 굵어지는 사주입니다.",
+    en: "🤝 Born with a Wolgeop structure. A current that thrives among peers, siblings, and rivals is etched into your chart. The flow thickens when you move with others."
+  },
+  geokguk_잡기격: {
+    ko: "🎲 잡기격의 결이 본명에 두텁게 깔린 분이에요. 여러 결이 섞여 다양한 길로 풀리는 사주입니다. 한 결에 묶이지 않고 흐름을 갈아탈 수 있는 톤입니다.",
+    en: "🎲 Born with a Japgi structure. Multiple currents mix and open through varied paths. The tone lets you switch streams without being bound to one."
+  },
+  geokguk_갑기화토격: {
+    ko: "🌍 갑기화토격의 결이 본명에 두텁게 깔린 분이에요. 천간합이 토로 화하는 흐름이 본명에 박혀 있어요. 안정과 신뢰의 결로 길이 트이는 드문 사주입니다.",
+    en: "🌍 Born with a Gabgi-Hwato structure — a rare current where the stems blend into earth. Stability and trust open your path."
+  },
+  geokguk_을경화금격: {
+    ko: "⚜️ 을경화금격의 결이 본명에 두텁게 깔린 분이에요. 천간합이 금으로 화하는 결이 본명에 박혀 있어요. 단단한 마무리와 절도의 결로 풀리는 사주입니다.",
+    en: "⚜️ Born with an Eulgyeong-Hwageum structure — a rare current where the stems blend into metal. Firm closure and precision shape the path."
+  },
+  geokguk_병신화수격: {
+    ko: "🌊 병신화수격의 결이 본명에 두텁게 깔린 분이에요. 천간합이 수로 화하는 결이 본명에 박혀 있어요. 흐름과 지혜의 결로 길이 풀리는 사주입니다.",
+    en: "🌊 Born with a Byeongsin-Hwasu structure — a rare current where the stems blend into water. Flow and wisdom open the path."
+  },
+  geokguk_정임화목격: {
+    ko: "🌲 정임화목격의 결이 본명에 두텁게 깔린 분이에요. 천간합이 목으로 화하는 결이 본명에 박혀 있어요. 성장과 뻗어 나가는 결로 풀리는 사주입니다.",
+    en: "🌲 Born with a Jeongim-Hwamok structure — a rare current where the stems blend into wood. Growth and expansion shape the path."
+  },
+  geokguk_무계화화격: {
+    ko: "🔥 무계화화격의 결이 본명에 두텁게 깔린 분이에요. 천간합이 화로 화하는 결이 본명에 박혀 있어요. 열정과 빛의 결로 풀리는 사주입니다.",
+    en: "🔥 Born with a Mugye-Hwahwa structure — a rare current where the stems blend into fire. Passion and brightness shape the path."
+  },
+  geokguk_곡직격: {
+    ko: "🌳 곡직격의 결이 본명에 두텁게 깔린 분이에요. 목 기운으로 꽉 찬 결이 본명에 박혀 있어요. 곧게 뻗어 올라가는 결로 풀리는 특수격국입니다.",
+    en: "🌳 Born with a Gokjik structure — a chart packed with wood energy. The flow rises straight upward in this rare configuration."
+  },
+  geokguk_염상격: {
+    ko: "🔥 염상격의 결이 본명에 두텁게 깔린 분이에요. 화 기운으로 꽉 찬 결이 본명에 박혀 있어요. 타오르는 결로 빛나는 특수격국입니다.",
+    en: "🔥 Born with a Yeomsang structure — a chart packed with fire energy. The flow blazes in this rare configuration."
+  },
+  geokguk_가색격: {
+    ko: "🌾 가색격의 결이 본명에 두텁게 깔린 분이에요. 토 기운으로 꽉 찬 결이 본명에 박혀 있어요. 묵묵히 쌓아 올리는 결로 풀리는 특수격국입니다.",
+    en: "🌾 Born with a Gasaek structure — a chart packed with earth energy. The flow builds quietly and steadily in this rare configuration."
+  },
+  geokguk_종혁격: {
+    ko: "⚒️ 종혁격의 결이 본명에 두텁게 깔린 분이에요. 금 기운으로 꽉 찬 결이 본명에 박혀 있어요. 결을 갈고닦아 빛내는 특수격국입니다.",
+    en: "⚒️ Born with a Jonghyeok structure — a chart packed with metal energy. The flow sharpens to a shine in this rare configuration."
+  },
+  geokguk_윤하격: {
+    ko: "💧 윤하격의 결이 본명에 두텁게 깔린 분이에요. 수 기운으로 꽉 찬 결이 본명에 박혀 있어요. 흘러내리며 모든 결을 적시는 특수격국입니다.",
+    en: "💧 Born with a Yunha structure — a chart packed with water energy. The flow streams down and soaks every channel in this rare configuration."
+  },
+  // ─── 방합 / 파(破) / 해(害) — saju-hyeongchung extractor (Agent 1) ───
+  branchBanghap: {
+    ko: "계절 결이 본명 지지와 한 점에 모이는 자리예요. 큰 흐름이 자연스럽게 함께 흘러갑니다. 같은 결을 타는 사람과 손을 맞추면 추진력이 더 두툼해져요.",
+    en: "The seasonal current gathers onto your natal branch at one point. The larger flow carries with you naturally — link arms with someone riding the same current and the drive thickens."
+  },
+  branchPa: {
+    ko: "결이 작게 깨지는 자리예요. 큰 일은 미루고 작은 마무리부터 챙기세요. 서명·발표는 며칠 뒤 결이 다시 매끄러워질 때 흘려보내세요.",
+    en: "The grain breaks in small places today. Hold big moves and start with small wraps. Let signatures and presentations drift to a day when the surface smooths out again."
+  },
+  branchHaeRelation: {
+    ko: "결이 서로 미세하게 어긋나는 자리예요. 손에 잡힌 일을 우선 단단히 다지세요. 새로 띄우는 흐름은 옆 결에서 막히기 쉬우니 미루는 편이 안전해요.",
+    en: "Two currents misalign by a hair today. Lock down what's already in hand first. New launches snag on the next current over — safer to hold them back."
+  },
+  iljinBanghap: {
+    ko: "🌅 오늘은 계절 결이 본명 지지와 한 점에 모이는 자리예요. 큰 흐름이 자연스럽게 함께 흘러가니, 같은 결을 타는 동료·팀과 보폭을 맞추면 추진력이 한층 두터워져요.",
+    en: "🌅 Today the seasonal current gathers onto your natal branch at one point. The larger flow carries with you naturally — sync stride with teammates riding the same current and the drive thickens."
+  },
+  iljinPa: {
+    ko: "🌅 오늘은 결이 작게 깨지는 자리예요. 큰 일은 미루고 작은 마무리부터 챙기세요. 서명·발표는 결이 다시 매끄러워질 며칠 뒤로 흘려보내세요.",
+    en: "🌅 The grain breaks in small places today. Hold big moves and start with small wraps. Let signatures and presentations drift to a day when the surface smooths out again."
+  },
+  iljinHaeRelation: {
+    ko: "🌅 오늘은 결이 서로 미세하게 어긋나는 자리예요. 손에 잡힌 일을 우선 단단히 다지세요. 새로 띄우는 흐름은 옆 결에서 막히기 쉬우니 미루는 편이 안전해요.",
+    en: "🌅 Two currents misalign by a hair today. Lock down what's already in hand first. New launches snag on the next current over — safer to hold them back."
   },
 };
 
@@ -136,39 +274,39 @@ export const SAJU_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }
 // Astrology factor translations - plain language with detailed explanations
 export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string }> = {
   sameElement: {
-    ko: "본명 결과 오늘 결이 같은 방향으로 두텁게 차오르는 자리예요. 컨디션의 결이 부드럽게 살아나니, 평소에 하고 싶었던 일을 이 결 위에 얹어 보세요. 감으로 결정한 결도 안정적입니다.",
+    ko: "오늘 컨디션이 좋고 일이 잘 풀릴 거예요. 평소에 하고 싶었던 일 시작하기 좋은 타이밍이에요. 감으로 결정해도 괜찮아요.",
     en: "You'll feel good today and things will go smoothly. Good timing to start something you've wanted to do. Going with your gut is fine."
   },
   supportElement: {
-    ko: "오늘은 첫걸음의 결이 두텁게 차오르는 자리예요. 미뤄뒀던 일을 결 위에 얹기 좋고, 운동·다이어트·새 프로젝트의 결도 부드럽게 살아납니다.",
+    ko: "미뤄뒀던 일 시작하기 좋은 날이에요. 운동 시작, 다이어트, 새 프로젝트 등 첫걸음 떼기 딱 좋아요.",
     en: "Good day to start things you've postponed. Perfect for first steps like starting exercise, diet, or new projects."
   },
   givingElement: {
-    ko: "후배·동생에게 흘려보낸 결이 나중에 좋은 일로 차오르는 자리예요. 재능기부·멘토링·지식 공유의 결을 두텁게 가져가기 좋은 날입니다.",
+    ko: "후배나 동생 도와주면 나중에 좋은 일로 돌아와요. 재능기부, 멘토링, 지식 공유하기 좋은 날이에요.",
     en: "Helping juniors or younger people will come back as good things later. Good day for talent donation, mentoring, or knowledge sharing."
   },
   controlElement: {
-    ko: "오늘 결단의 결이 두텁게 차오르는 자리예요. 미루던 결정을 결 위에 얹기 좋고, 안 좋은 습관을 끊는 결도 살아납니다. 정리정돈의 결까지 부드럽게 흘러가는 날입니다.",
+    ko: "오늘 결단력이 좋아요. 미루던 결정 내리기, 안 좋은 습관 끊기, 정리정돈하기 좋은 날이에요.",
     en: "Good decisiveness today. Good day for making postponed decisions, breaking bad habits, or organizing."
   },
   conflictElement: {
-    ko: "오늘은 두 결이 서로 다른 방향으로 갈라져 흐르는 자리예요. 계획의 결이 어긋나기 쉬우니, 기존 일 마무리에 결을 모으고 새로운 건 내일 결로 흘려보내세요.",
+    ko: "오늘은 무리하지 마세요. 계획대로 안 될 수 있어요. 기존 일 마무리에 집중하고 새로운 건 내일로 미루세요.",
     en: "Don't push too hard today. Things might not go as planned. Focus on finishing existing tasks and postpone new things to tomorrow."
   },
   crossVerified: {
-    ko: "★ 동서양 두 결이 같은 방향으로 합쳐 두텁게 차오르는 자리예요! 중요한 약속·계약·면접을 오늘 결 위에 얹어 보세요. 1년에 몇 번 없는 결의 날입니다.",
+    ko: "★ 동서양 운세가 같이 좋다고 하는 날이에요! 중요한 약속, 계약, 면접은 오늘 잡으세요. 1년에 몇 번 없는 날이에요.",
     en: "★ A day when both Eastern and Western fortune say it's good! Schedule important appointments, contracts, or interviews today. One of the few such days in a year."
   },
   crossNegative: {
-    ko: "⚠ 동서양 두 결이 같이 막히는 자리예요. 중요한 결정은 결이 풀릴 때까지 미루고 조용히 결을 가져가세요. 괜히 나서지 마세요.",
+    ko: "⚠ 동서양 운세 모두 조심하라는 날이에요. 중요한 결정은 미루고, 조용히 지내세요. 괜히 나서지 마세요.",
     en: "⚠ A day when both Eastern and Western fortune say be careful. Postpone important decisions and stay quiet. Don't stick your neck out."
   },
   alignedElement: {
-    ko: "오늘 시작한 일의 결이 부드럽게 두텁게 차오르며 살아나는 자리예요. 새 프로젝트·새 운동루틴·새 습관을 이 결 위에 얹어 보세요.",
+    ko: "오늘 시작하는 일은 순조롭게 진행될 거예요. 새 프로젝트, 새 운동루틴, 새 습관 시작하기 좋아요.",
     en: "Things you start today will proceed smoothly. Good for starting new projects, new exercise routines, or new habits."
   },
   mixedSignals: {
-    ko: "한 결은 차오르고 한 결은 잦아드는 자리예요. 신중하게 결을 읽되 너무 걱정의 결로 끌고 가지는 마세요.",
+    ko: "좋은 점도 있고 안 좋은 점도 있는 날이에요. 신중하게 판단하되 너무 걱정하진 마세요.",
     en: "A day with both good and not-so-good points. Judge carefully but don't worry too much."
   },
   // 달 위상 (실제 계산 기반)
@@ -273,15 +411,15 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
     en: "🌅 Today your own current swells within the day. Confidence and drive build up, but the line with peers in the same lane misaligns easily — switch between cooperation and competition."
   },
   iljinInseong: {
-    ko: "🌅 오늘은 지지의 결이 위쪽에서 두텁게 차오르며 들어오는 자리예요. 선배·멘토의 한마디가 막힌 곳을 풀어주니, 공부·자격증 준비도 이 결 위에 올려두기 좋아요.",
+    ko: "🌅 오늘은 지지의 결이 위쪽에서 들어오는 자리예요. 선배·멘토의 한마디가 막힌 곳을 풀어주니, 공부·자격증 준비도 이 결 위에 올려두기 좋아요.",
     en: "🌅 Support flows in from above today. A word from a senior or mentor unclogs the stuck spot — place studying or certification prep onto this current."
   },
   iljinJaeseong: {
-    ko: "🌅 오늘은 재물의 결이 두텁게 차오르는 자리예요. 쇼핑·투자 결정·금전 거래의 결이 살아나니, 미뤘던 돈 결정을 오늘 결 위에 얹어 보세요. 굵어진 결이 빨리 식기 전에 한 가지는 정리해 두는 편이 좋아요.",
+    ko: "🌅 오늘은 재물운이 좋은 날이에요. 쇼핑, 투자 결정, 금전 거래에 유리해요. 돈과 관련된 중요한 결정을 하기 좋은 타이밍!",
     en: "🌅 Financial luck is good today. Favorable for shopping, investment decisions, and monetary transactions. Good timing for important financial decisions!"
   },
   iljinSiksang: {
-    ko: "🌅 오늘은 창의와 표현의 결이 두텁게 차오르는 자리예요. 글쓰기·예술·프레젠테이션의 결이 살아나니, 막혀 있던 아이디어를 이 결에 얹어 흘려보내세요.",
+    ko: "🌅 오늘은 창의력과 표현력이 빛나는 날이에요. 글쓰기, 예술, 프레젠테이션에 좋아요. 당신의 아이디어를 자신 있게 표현하세요!",
     en: "🌅 Creativity and expression shine today. Good for writing, art, and presentations. Express your ideas confidently!"
   },
   iljinGwansal: {
@@ -297,7 +435,7 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
     en: "🌅 Energy may be off and plans may go awry today. Postpone important matters and focus on finishing existing tasks."
   },
   iljinYukhap: {
-    ko: "🌅 오늘은 인연과 화합의 결이 두텁게 차오르는 자리예요! 새로운 만남·소개팅·면접·비즈니스 미팅의 결이 부드럽게 맞닿으니, 사람을 통해 들어오는 기회를 이 결 위에 얹어 보세요.",
+    ko: "🌅 오늘은 인연과 화합의 기운이 강해요! 새로운 만남, 소개팅, 면접, 비즈니스 미팅에 최적! 사람을 통해 좋은 기회가 올 수 있어요.",
     en: "🌅 Energy of connection and harmony is strong today! Optimal for new meetings, dates, interviews, and business meetings! Good opportunities may come through people."
   },
   iljinChung: {
@@ -372,23 +510,23 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
   },
   // 행성 트랜짓 (수성, 금성, 화성)
   mercuryConjunct: {
-    ko: "☿ 수성이 당신의 별자리에 들어와 의사소통의 결이 두텁게 차오르는 자리예요! 이메일·프레젠테이션·미팅의 결이 부드럽게 흐르니, 막혀 있던 말과 글을 이 결 위에 얹어 보세요. 머리가 맑아지는 결의 날입니다.",
+    ko: "☿ 수성이 당신의 별자리에 들어왔어요! 의사소통, 글쓰기, 계약, 협상에 최고의 날이에요. 중요한 이메일, 프레젠테이션, 미팅이 있다면 오늘이 좋아요. 머리가 맑아지고 표현력이 좋아지는 날이에요.",
     en: "☿ Mercury has entered your sign! Best day for communication, writing, contracts, and negotiations. Great if you have important emails, presentations, or meetings. Your mind is clear and expression is good."
   },
   mercuryHarmony: {
-    ko: "☿ 수성의 결이 당신과 같은 방향으로 합쳐 흐르는 자리예요. 대화·협상의 결이 부드럽게 풀리고 아이디어가 차오릅니다. 공부·독서·정보 수집도 이 결 위에 흘려보내기 좋습니다.",
+    ko: "☿ 수성 에너지가 당신과 조화를 이루고 있어요. 대화와 협상이 잘 풀리고, 아이디어가 잘 떠올라요. 공부, 독서, 정보 수집에도 좋은 날이에요.",
     en: "☿ Mercury energy harmonizes with you. Conversations and negotiations flow well, and ideas come easily. Good day for studying, reading, and gathering information."
   },
   mercuryTension: {
-    ko: "☿ 수성의 결이 어긋나 작은 틈이 벌어지는 자리예요. 의사소통의 결이 흩어지고 서류 실수의 결로 새기 쉬우니, 큰 계약이나 발표는 결이 다시 모일 때까지 미루세요. 말과 글의 결을 한 박자 늦추세요.",
+    ko: "☿ 수성 에너지가 긴장 상태예요. 의사소통에 오해가 생기거나, 중요한 서류에 실수가 있을 수 있어요. 중요한 계약이나 발표는 가능하면 다른 날로 미루고, 말과 글을 신중하게 하세요.",
     en: "☿ Mercury energy is tense. Misunderstandings in communication or mistakes in important documents may occur. If possible, postpone important contracts or presentations, and be careful with words and writing."
   },
   venusConjunct: {
-    ko: "♀ 금성이 당신의 별자리에 들어차 사랑·아름다움·재물의 결이 두텁게 차오르는 자리예요! 데이트·미팅·쇼핑의 결이 부드럽게 살아나니, 외모에 신경 쓴 결이 사람을 끌어옵니다. 매력의 결이 빛나는 날!",
+    ko: "♀ 금성이 당신의 별자리에 들어왔어요! 사랑, 아름다움, 재물의 에너지가 빛나는 날이에요. 데이트, 미팅, 쇼핑에 최고의 날이고, 외모에 신경 쓰면 좋은 일이 생길 수 있어요. 매력이 빛나는 날!",
     en: "♀ Venus has entered your sign! A day when love, beauty, and wealth energy shine. Best for dates, meetings, and shopping. Taking care of your appearance may bring good things. A day your charm shines!"
   },
   venusHarmony: {
-    ko: "♀ 금성의 결이 당신과 같은 방향으로 합쳐 흐르는 자리예요. 사람 결이 부드럽게 차오르고 예술적 감각의 결이 살아납니다. 연애·쇼핑·미용도 이 결 위에 얹기 좋아요.",
+    ko: "♀ 금성 에너지가 당신과 조화를 이루고 있어요. 인간관계가 좋아지고, 예술적 감각이 빛나요. 연애, 쇼핑, 미용에 좋은 날이에요. 주변 사람들에게 친절하게 대하면 좋은 일이 돌아와요.",
     en: "♀ Venus energy harmonizes with you. Relationships improve and artistic sense shines. Good day for romance, shopping, and beauty. Being kind to people around you will bring good things back."
   },
   venusSupport: {
@@ -396,11 +534,11 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
     en: "♀ Venus supports you. Art and aesthetic sense shine, and you easily gain favor from people around you. Favorable for creative activities like design, art, and music."
   },
   marsConjunct: {
-    ko: "♂ 화성이 당신의 별자리에 들어와 행동의 결이 두텁게 차오르는 자리예요! 운동·경쟁·도전의 결이 굵어지니, 큰 결정도 이 결 위에 얹기 좋아요. 다만 화의 결도 같이 부풀어 오르니 감정의 결을 한 박자 늦추세요.",
+    ko: "♂ 화성이 당신의 별자리에 들어왔어요! 에너지와 행동력이 최고조에 달해요. 운동, 경쟁, 도전에 좋은 날이에요. 다만 화가 나기 쉽고 다툼이 생길 수 있으니, 감정 조절에 주의하세요.",
     en: "♂ Mars has entered your sign! Energy and action are at peak. Good day for exercise, competition, and challenges. However, you may get angry easily and arguments may arise, so be careful with emotional control."
   },
   marsHarmony: {
-    ko: "♂ 화성의 결이 당신과 같은 방향으로 합쳐 흐르는 자리예요. 운동·경쟁·적극적 활동의 결이 차오르니, 막혀 있던 추진력을 이 결 위에 얹어 목표 쪽으로 흘려보내세요.",
+    ko: "♂ 화성 에너지가 당신과 조화를 이루고 있어요. 운동, 경쟁, 적극적인 활동에 유리해요. 추진력이 생기고 목표를 향해 나아가기 좋은 날이에요.",
     en: "♂ Mars energy harmonizes with you. Favorable for exercise, competition, and active pursuits. You gain drive and it's a good day to move toward your goals."
   },
   marsConflict: {
@@ -431,11 +569,11 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
     en: "♃ Be careful of Jupiter's excess energy. Too much ambition or excessive expansion can be risky. You need the wisdom to stop at the right point. A time requiring moderation over greed."
   },
   jupiterTrine: {
-    ko: "♃ 목성 트라인 — 행운과 기회의 결이 두텁게 차오르며 자연스럽게 흘러오는 자리예요. 모든 결이 순조롭게 풀리니 큰 결정·투자·새 시작을 이 결 위에 얹어 보내기 좋은 타이밍입니다.",
+    ko: "♃ 목성 트라인! 행운과 기회가 자연스럽게 흘러와요. 모든 일이 순조롭게 풀리는 날이에요. 큰 결정, 투자, 새로운 시작에 최고의 타이밍!",
     en: "♃ Jupiter trine! Luck and opportunities flow naturally. Everything goes smoothly today. Perfect timing for big decisions, investments, or new beginnings!"
   },
   jupiterSextile: {
-    ko: "♃ 목성 섹스타일 — 작은 기회의 결이 하나씩 차오르는 자리예요. 적극적으로 결에 올라타면 결과가 살아납니다. 인맥 확장·학습·여행의 결이 부드럽게 흐르는 날입니다.",
+    ko: "♃ 목성 섹스타일! 작은 기회들이 주어지는 날이에요. 적극적으로 움직이면 좋은 결과를 얻을 수 있어요. 인맥 확장, 학습, 여행에 유리해요.",
     en: "♃ Jupiter sextile! Small opportunities are given today. Active movement brings good results. Favorable for networking, learning, and travel."
   },
   jupiterSquare: {
@@ -470,11 +608,11 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
     en: "♄ Saturn brings structure and stability to your life. Good day for long-term planning or building foundations. Be patient and build slowly."
   },
   saturnTrine: {
-    ko: "♄ 토성 트라인 — 오랜 노력의 결이 두텁게 결실로 차오르는 자리예요. 책임감 있는 행동의 결이 인정받고 안정적인 성과의 결이 살아납니다. 꾸준함의 결이 빛나는 날!",
+    ko: "♄ 토성 트라인! 오랜 노력이 결실을 맺는 날이에요. 책임감 있는 행동이 인정받고, 안정적인 성과를 얻어요. 꾸준함이 빛나는 날!",
     en: "♄ Saturn trine! Long efforts bear fruit today. Responsible actions are recognized and stable results come. A day when consistency shines!"
   },
   saturnSextile: {
-    ko: "♄ 토성 섹스타일 — 규율과 노력의 결이 작게 보상의 결로 차오르는 자리예요. 진지하게 결에 올라타면 결과가 두텁게 들어차기 시작합니다.",
+    ko: "♄ 토성 섹스타일! 규율과 노력이 보상받는 작은 기회가 와요. 진지하게 접근하면 좋은 결과를 얻을 수 있어요.",
     en: "♄ Saturn sextile! Small opportunities come when discipline and effort are rewarded. Serious approach brings good results."
   },
   saturnSquare: {
@@ -489,11 +627,11 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
   // 태양(Sun) 트랜짓
   // ============================================================
   solarReturn: {
-    ko: "☀️ 태양이 당신의 생일 별자리로 돌아와 새 1년의 결이 두텁게 차오르기 시작하는 자리예요! 이 결 위에 심은 목표와 의도가 다음 생일까지 흐름을 이끕니다. 소원을 빌고, 새해 계획을 이 결 위에 얹어 두세요!",
+    ko: "☀️ 태양이 당신의 생일 별자리로 돌아왔어요! Solar Return - 새로운 1년이 시작되는 가장 중요한 시기예요. 이때 세운 목표와 의도가 다음 생일까지 영향을 미쳐요. 소원을 빌고, 새해 계획을 세우세요!",
     en: "☀️ The Sun has returned to your birth sign! Solar Return - the most important time when a new year begins. Goals and intentions set now influence until your next birthday. Make wishes and set New Year plans!"
   },
   sunHarmony: {
-    ko: "☀️ 태양의 결이 당신과 같은 방향으로 합쳐 흐르는 자리예요. 활력의 결이 차오르고 자아 표현의 결이 자연스럽게 살아납니다. 리더십을 발휘하거나 중요한 자리에 서기 좋은 결의 날입니다.",
+    ko: "☀️ 태양 에너지가 당신과 조화를 이루고 있어요. 활력이 넘치고, 자아 표현이 자연스러워요. 리더십을 발휘하거나 중요한 자리에 서기 좋은 날이에요.",
     en: "☀️ Sun energy harmonizes with you. Vitality overflows and self-expression comes naturally. Good day to show leadership or take center stage."
   },
   sunEnergize: {
@@ -512,11 +650,11 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
     en: "🌙 The Moon has entered your sign! A day when emotions become sensitive and intuition strengthens. Listen to your inner voice and spend the day true to your feelings."
   },
   moonHarmony: {
-    ko: "🌙 달의 결이 당신과 같은 방향으로 합쳐 흐르는 자리예요. 정서의 결이 두텁게 차분히 차오르고, 주변 사람과의 결도 부드러워집니다. 가족·집과 관련된 일을 이 결 위에 얹기 좋아요.",
+    ko: "🌙 달 에너지가 당신과 조화를 이루고 있어요. 정서적으로 안정되고, 주변 사람들과의 관계도 좋아요. 가족, 집과 관련된 일에 유리해요.",
     en: "🌙 Moon energy harmonizes with you. Emotionally stable and relationships with people around you improve. Favorable for family and home-related matters."
   },
   moonNurture: {
-    ko: "🌙 달의 결이 당신을 돌봐주듯 부드럽게 차오르는 자리예요. 휴식·자기 돌봄·가족과의 시간을 이 결 위에 얹어 보세요. 따뜻한 음식과 편안한 결을 즐기기 좋은 날입니다.",
+    ko: "🌙 달이 당신을 돌봐주는 에너지예요. 휴식, 자기 돌봄, 가족과의 시간에 좋은 날이에요. 따뜻한 음식과 편안한 시간을 즐기세요.",
     en: "🌙 Moon energy nurtures you. Good day for rest, self-care, and family time. Enjoy warm food and comfortable moments."
   },
   moonEmotional: {
@@ -849,6 +987,111 @@ export const ASTRO_FACTOR_TRANSLATIONS: Record<string, { ko: string; en: string 
   hourlyEnergy_유: { ko: "🐔 유시(17-19시): 마무리 시간. 하루를 정리하고 퇴근 준비하세요.", en: "🐔 Yu-si (5-7PM): Wrap-up time. Organize your day and prepare to leave work." },
   hourlyEnergy_술: { ko: "🐕 술시(19-21시): 인간관계 시간. 가족, 친구와 시간 보내기 좋아요.", en: "🐕 Sul-si (7-9PM): Relationship time. Good for spending time with family and friends." },
   hourlyEnergy_해: { ko: "🐖 해시(21-23시): 휴식과 충전. 다음 날을 위한 준비 시간이에요.", en: "🐖 Hae-si (9-11PM): Rest and recharge. Time to prepare for the next day." },
+
+  // ============================================================
+  // 4대 소행성 (Ceres / Pallas / Juno / Vesta) — astro-asteroid extractor가 emit.
+  // Ceres = 양육·돌봄·음식, Pallas = 지혜·전략, Juno = 관계·약속, Vesta = 헌신·집중.
+  // 본명 어스펙트 자연어. extractor evidence.detail.asteroid + aspectType으로 키 조회.
+  // ============================================================
+  asteroidCeresConjunct: {
+    ko: "🌾 돌봄의 결이 차오르는 자리예요. 누군가를 챙기거나 챙김을 받는 결이 두텁게 들어차니, 가족·가까운 사람과의 식탁을 오늘 결 위에 얹어 보세요. 따뜻한 밥 한 끼가 결을 굵게 만듭니다.",
+    en: "🌾 The current of nurture rises. The channel for tending and being tended thickens — set a meal with family or close ones onto today's flow. A warm shared dinner thickens the channel."
+  },
+  asteroidCeresTrine: {
+    ko: "🌾 돌봄의 결이 자연스럽게 흐르는 자리예요. 챙김을 주고받는 결이 부드럽게 풀리니, 안부·작은 선물·따뜻한 한 마디가 잘 닿습니다.",
+    en: "🌾 The current of nurture flows naturally. The exchange of care moves smoothly — a check-in, a small gift, or a warm word lands cleanly today."
+  },
+  asteroidCeresSquare: {
+    ko: "🌾 돌봄의 결이 어긋나는 자리예요. 챙겨주려는 마음이 부담으로 비치기 쉬우니, 한 발 물러서서 상대 결을 기다려 주세요.",
+    en: "🌾 The current of nurture misaligns. Care offered may read as pressure — step back and wait for the other's flow to come."
+  },
+  asteroidPallasConjunct: {
+    ko: "🦉 지혜의 결이 차오르는 자리예요. 패턴을 꿰뚫어 보는 결이 두텁게 들어차니, 복잡한 자료·전략 문서·기획안을 오늘 결 위에 얹어 보세요.",
+    en: "🦉 The current of wisdom rises. The channel that sees through patterns thickens — set complex data, strategy docs, and planning work onto today's flow."
+  },
+  asteroidPallasTrine: {
+    ko: "🦉 지혜의 결이 자연스럽게 흐르는 자리예요. 큰 그림과 디테일 사이를 부드럽게 오가는 결이라, 전략적인 결정을 이 결 위로 흘려 보내세요.",
+    en: "🦉 The current of wisdom flows naturally. The channel glides between big picture and detail — let strategic decisions drift onto this flow."
+  },
+  asteroidPallasSquare: {
+    ko: "🦉 지혜의 결이 갈라지는 자리예요. 너무 머리로만 가져가면 결이 굳어지니, 직관을 한 번 끼워 결을 풀어 보세요.",
+    en: "🦉 The current of wisdom splits. Pure logic stiffens the channel — let one thread of intuition in to loosen the flow."
+  },
+  asteroidJunoConjunct: {
+    ko: "💍 관계의 결이 단단해지는 자리예요. 약속·헌신의 결이 두텁게 들어차니, 중요한 대화·계약·결혼 약속을 오늘 결 위에 얹어 보세요.",
+    en: "💍 The current of partnership tightens. The channel for promises and commitment thickens — set important talks, contracts, and engagements onto today's flow."
+  },
+  asteroidJunoTrine: {
+    ko: "💍 관계의 결이 자연스럽게 흐르는 자리예요. 파트너와 결이 잘 맞물려 굴러가는 결이라, 같이 결정해야 할 일을 오늘 결 위로 흘려 보내세요.",
+    en: "💍 The current of partnership flows naturally. Your gears mesh with your partner's today — let shared decisions drift onto this flow."
+  },
+  asteroidJunoSquare: {
+    ko: "💍 관계의 결이 부딪치는 자리예요. 평등과 균형의 결이 흔들리니, 일방적인 결로 끌고 가지 말고 상대 결을 한 번 더 살펴 주세요.",
+    en: "💍 The current of partnership snags. The channel of fairness wobbles — don't drag the flow one way, check the other's current once more."
+  },
+  asteroidVestaConjunct: {
+    ko: "🕯️ 집중의 결이 깊어지는 자리예요. 헌신과 몰입의 결이 두텁게 들어차니, 가장 중요한 결 하나에만 시간을 얹어 보세요. 작은 결도 단단해집니다.",
+    en: "🕯️ The current of focus deepens. The channel of devotion thickens — pour your hours into the one thread that matters most. Even small flames burn steady."
+  },
+  asteroidVestaTrine: {
+    ko: "🕯️ 집중의 결이 깊어지는 자리예요. 몰입의 결이 부드럽게 흘러 작업·연구·수행의 결이 잘 잡힙니다. 한 결에 머무를 수 있는 드문 날이에요.",
+    en: "🕯️ The current of focus runs deep. The channel of devotion flows smoothly — work, research, and practice settle in. A rare day to stay with one thread."
+  },
+  asteroidVestaSquare: {
+    ko: "🕯️ 집중의 결이 갈라지는 자리예요. 한 결에 너무 매달리면 다른 결이 흐트러지니, 잠깐 결에서 빠져나와 다른 흐름도 살피세요.",
+    en: "🕯️ The current of focus splits. Clinging to one thread lets others tangle — step out of the channel briefly and check the surrounding flows."
+  },
+  // ─── 마이너 어스펙트 — astro-transit / progression (Agent 2) ───
+  transitSemisextile: {
+    ko: "결이 미세하게 조정되는 자리예요. 작은 적응이 필요한 흐름이라 큰 변화 없이 부드럽게 흘려보내세요.",
+    en: "A faint adjustment in the current. A subtle adaptation — let things flow without forcing change."
+  },
+  transitQuincunx: {
+    ko: "결이 어긋나 조정이 필요한 자리예요. 어색한 흐름이라 무리하지 말고 한 발 물러서서 결을 다시 맞추세요.",
+    en: "Currents misalign and call for adjustment. Don't push — step back and let the grain re-align."
+  },
+  transitQuintile: {
+    ko: "재능 결이 살아나는 자리예요. 창의 흐름이 부드럽게 열리니 평소 못 꺼내던 아이디어를 펼쳐 보세요.",
+    en: "The current of talent stirs. Creativity opens easily — let the ideas you've been holding back come out."
+  },
+  transitBiquintile: {
+    ko: "영감 결이 응용되는 자리예요. 떠오른 아이디어를 실제 결과로 연결하기 좋아요.",
+    en: "Inspiration translates into application. A good time to turn fresh ideas into deliverables."
+  },
+  transitSesquiquadrate: {
+    ko: "작은 긴장 결이 도는 자리예요. 큰 마찰은 없지만 미끄럽지 않으니 속도를 한 단계 늦추세요.",
+    en: "A faint friction runs through the current. Nothing breaks, but the grain catches — dial the speed down a notch."
+  },
+  // ─── Zodiacal Releasing (Agent 3) ───
+  zrSpiritL1: {
+    ko: "{sign} 결이 영혼의 큰 흐름을 이끄는 시기예요. 의도·진로의 결이 이 자리에서 다음 챕터로 흘러갑니다.",
+    en: "The {sign} current leads the soul's larger flow. Intention and direction shift into the next chapter from here."
+  },
+  zrFortuneL1: {
+    ko: "{sign} 결이 몸과 일의 결을 차오르게 하는 시기예요. 물질·환경의 흐름이 이 챕터를 통해 부풀어 오릅니다.",
+    en: "The {sign} current builds up the body's and work's grain. Material and environmental flow swells through this chapter."
+  },
+  zrPeak: {
+    ko: "결이 정점에 모이는 자리예요. 큰 결정 미끄러뜨리기 좋아요. 챕터의 핵심 사건이 이 구간에 박힐 가능성이 높습니다.",
+    en: "The current crests at one point. A good time to let big decisions slide through — the chapter's pivotal event tends to land in this window."
+  },
+  zrLoosingOfBond: {
+    ko: "결이 반대편으로 풀리는 자리예요. 큰 전환 신호로 받아들이세요. 묶여 있던 결이 풀리며 다음 챕터의 결을 미리 보여줍니다.",
+    en: "The current loosens toward the opposite side. Read it as a major transition — bound currents release and preview the next chapter's grain."
+  },
+  // ─── 일식 / 월식 — astro-eclipse Swiss Eph 실시간 (Agent 4) ───
+  solarEclipse: {
+    ko: "결이 가려졌다 다시 차오르는 큰 전환 자리예요. 평소 못 보던 흐름이 잠깐 멈춘 자리에서 새 결이 솟습니다.",
+    en: "The current is veiled and then swells back — a major transition. A new grain surfaces from the pause."
+  },
+  lunarEclipse: {
+    ko: "결이 풀리며 감정 흐름이 정리되는 자리예요. 묵혀둔 결이 표면으로 떠올라 한꺼번에 비워집니다.",
+    en: "The current loosens and the emotional flow clears. Held grain rises to the surface and empties at once."
+  },
+  eclipseToNatalPlanet: {
+    ko: "본명 {planet} 결이 식의 흐름에 직접 닿는 자리예요. 그 영역의 결이 평소보다 크게 흔들립니다.",
+    en: "The natal {planet} current is touched directly by the eclipse — that domain's grain shakes more than usual."
+  },
 };
 
 // 통합 번역 조회 - SAJU와 ASTRO 번역 모두에서 찾음

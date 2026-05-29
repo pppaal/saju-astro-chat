@@ -26,6 +26,7 @@ export type AspectType =
   | 'quincunx'
   | 'quintile'
   | 'biquintile'
+  | 'sesquiquadrate'
 
 export type AspectRules = {
   aspects?: AspectType[]

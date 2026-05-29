@@ -37,6 +37,7 @@ const ASPECT_ANGLES: Record<AspectType, number> = {
   quincunx: 150,
   quintile: 72,
   biquintile: 144,
+  sesquiquadrate: 135,
 };
 
 const ASPECT_ORBS: Record<AspectType, number> = {
@@ -49,6 +50,7 @@ const ASPECT_ORBS: Record<AspectType, number> = {
   semisextile: 2,
   quintile: 2,
   biquintile: 2,
+  sesquiquadrate: 2,
 };
 
 const HARMONY_ASPECTS: AspectType[] = ["conjunction", "trine", "sextile"];

@@ -3,6 +3,7 @@ import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrolo
 import { calculateChiron, calculateLilith } from '@/lib/astrology/foundation/extraPoints'
 import { natalToJD } from '@/lib/astrology/foundation/shared'
 import { determineYongsin } from '@/lib/saju/yongsin'
+import { determineGeokguk } from '@/lib/saju/geokguk'
 import { annotateShinsal, type ShinsalHit as ShinsalHitInternal } from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import type { NatalContext } from './types'
@@ -80,6 +81,19 @@ export async function buildNatalContext(
   }
   const yongsinResult = determineYongsin(pillarsInput)
 
+  // 격국 판정 — 명리상 主格(primary structure). 사주의 본질 구조를 한 마디로
+  // 요약하는 라벨. 본명에 한 번만 결정되는 정적 속성이라 컨텍스트에 캐시.
+  // 판정 불가('미정')인 경우는 노출하지 않는다 — 카드에서 비어 보이는 게 낫다.
+  let geokguk: string | undefined
+  try {
+    const geokgukResult = determineGeokguk(pillarsInput)
+    if (geokgukResult.primary && geokgukResult.primary !== '미정') {
+      geokguk = geokgukResult.primary
+    }
+  } catch {
+    geokguk = undefined
+  }
+
   // 신살·관계
   const shinsalAnnot = annotateShinsal(pillars)
   const relations = analyzeRelations(toAnalyzeInputFromSaju(pillars))
@@ -143,6 +157,7 @@ export async function buildNatalContext(
         secondary: yongsinResult.secondaryYongsin,
         avoid: [yongsinResult.kibsin, yongsinResult.gusin].filter(Boolean) as FiveElement[],
       },
+      geokguk,
       strength: mapStrength(yongsinResult.daymasterStrength),
       natalShinsal: shinsalAnnot.hits as unknown as NatalContext['saju']['natalShinsal'],
       natalRelations: relations,

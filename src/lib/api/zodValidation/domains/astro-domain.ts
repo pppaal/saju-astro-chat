@@ -52,6 +52,7 @@ export const aspectTypeSchema = z.enum([
   'quincunx',
   'quintile',
   'biquintile',
+  'sesquiquadrate',
 ])
 export type AspectTypeValidated = z.infer<typeof aspectTypeSchema>
 

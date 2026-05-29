@@ -568,6 +568,7 @@ export function findAsteroidAspects(
     semisextile: 2,
     quintile: 1,
     biquintile: 1,
+    sesquiquadrate: 1,
   }
 
   const aspectAngles: Record<AspectType, number> = {
@@ -580,6 +581,7 @@ export function findAsteroidAspects(
     quincunx: 150,
     quintile: 72,
     biquintile: 144,
+    sesquiquadrate: 135,
   }
 
   const aspects: AspectHit[] = []

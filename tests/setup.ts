@@ -186,6 +186,34 @@ vi.mock('swisseph', () => ({
       const second = (minutes - minute) * 60
       return { year, month, day, hour, minute, second }
     }),
+    swe_sol_eclipse_when_glob: vi.fn((tjd_start: number) => {
+      // Mock solar eclipses ~30 days after start cursor, then ~150d cadence.
+      const peak = tjd_start + 30
+      return {
+        rflag: 4, // SE_ECL_TOTAL
+        maximum: peak,
+        noon: peak,
+        begin: peak - 0.05,
+        end: peak + 0.05,
+        totalBegin: peak - 0.02,
+        totalEnd: peak + 0.02,
+        centerBegin: peak - 0.01,
+        centerEnd: peak + 0.01,
+      }
+    }),
+    swe_lun_eclipse_when: vi.fn((tjd_start: number) => {
+      const peak = tjd_start + 60
+      return {
+        rflag: 4, // SE_ECL_TOTAL
+        maximum: peak,
+        partialBegin: peak - 0.05,
+        partialEnd: peak + 0.05,
+        totalBegin: peak - 0.02,
+        totalEnd: peak + 0.02,
+        penumbralBegin: peak - 0.1,
+        penumbralEnd: peak + 0.1,
+      }
+    }),
     SE_SUN: 0,
     SE_MOON: 1,
     SE_MERCURY: 2,
@@ -202,6 +230,16 @@ vi.mock('swisseph', () => ({
     SE_GREG_CAL: 1,
     SEFLG_SPEED: 256,
     SEFLG_SWIEPH: 2,
+    SE_ECL_CENTRAL: 1,
+    SE_ECL_NONCENTRAL: 2,
+    SE_ECL_TOTAL: 4,
+    SE_ECL_ANNULAR: 8,
+    SE_ECL_PARTIAL: 16,
+    SE_ECL_ANNULAR_TOTAL: 32,
+    SE_ECL_PENUMBRAL: 64,
+    SE_ECL_ALLTYPES_SOLAR: 63,
+    SE_ECL_ALLTYPES_LUNAR: 84,
+    SE_ECL_ONE_TRY: 32768,
   },
 }))
 
@@ -329,6 +367,33 @@ vi.mock('@/lib/astrology/foundation/ephe', () => {
       const second = (minutes - minute) * 60
       return { year, month, day, hour, minute, second }
     }),
+    swe_sol_eclipse_when_glob: vi.fn((tjd_start: number) => {
+      const peak = tjd_start + 30
+      return {
+        rflag: 4,
+        maximum: peak,
+        noon: peak,
+        begin: peak - 0.05,
+        end: peak + 0.05,
+        totalBegin: peak - 0.02,
+        totalEnd: peak + 0.02,
+        centerBegin: peak - 0.01,
+        centerEnd: peak + 0.01,
+      }
+    }),
+    swe_lun_eclipse_when: vi.fn((tjd_start: number) => {
+      const peak = tjd_start + 60
+      return {
+        rflag: 4,
+        maximum: peak,
+        partialBegin: peak - 0.05,
+        partialEnd: peak + 0.05,
+        totalBegin: peak - 0.02,
+        totalEnd: peak + 0.02,
+        penumbralBegin: peak - 0.1,
+        penumbralEnd: peak + 0.1,
+      }
+    }),
     // Constants
     SE_SUN: 0,
     SE_MOON: 1,
@@ -346,6 +411,16 @@ vi.mock('@/lib/astrology/foundation/ephe', () => {
     SE_GREG_CAL: 1,
     SEFLG_SPEED: 256,
     SEFLG_SWIEPH: 2,
+    SE_ECL_CENTRAL: 1,
+    SE_ECL_NONCENTRAL: 2,
+    SE_ECL_TOTAL: 4,
+    SE_ECL_ANNULAR: 8,
+    SE_ECL_PARTIAL: 16,
+    SE_ECL_ANNULAR_TOTAL: 32,
+    SE_ECL_PENUMBRAL: 64,
+    SE_ECL_ALLTYPES_SOLAR: 63,
+    SE_ECL_ALLTYPES_LUNAR: 84,
+    SE_ECL_ONE_TRY: 32768,
   }
 
   return {
