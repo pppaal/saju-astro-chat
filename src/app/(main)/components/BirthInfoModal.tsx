@@ -21,6 +21,13 @@ interface BirthInfoModalProps {
   // 저장된 생년월일을 삭제했을 때 — 부모가 상태를 비우고 모달을 닫는다.
   onDeleted?: () => void
   locale?: 'ko' | 'en'
+  // false 면 내 프로필/localStorage 에 저장하지 않고 입력값만 onSaved 로 넘긴다.
+  // "다른 사람으로 보기"(임시 조회)처럼 내 정체성을 덮어쓰면 안 되는 경우용.
+  // 기본 true — 기존 "내 정보 저장" 동작.
+  persist?: boolean
+  // 헤더/버튼 카피 커스터마이즈 (예: '이 사람으로 보기').
+  title?: string
+  submitLabel?: string
 }
 
 interface LoadOption {
@@ -42,6 +49,9 @@ export default function BirthInfoModal({
   onSaved,
   onDeleted,
   locale = 'ko',
+  persist = true,
+  title,
+  submitLabel,
 }: BirthInfoModalProps) {
   const isKo = locale === 'ko'
   const [name, setName] = useState(initial?.name || '')
@@ -270,29 +280,33 @@ export default function BirthInfoModal({
       longitude: lon,
       timeZone: tz,
     }
-    saveBirthInfo(payload)
-    // Sync to DB so /api/me/profile (the counselor route's fallback
-    // source — useCounselorData reads it, localStorage is ignored)
-    // sees the new value. Without this, logged-in users who change
-    // their birth info here keep getting the old DB value in
-    // counselor sessions. Guest users get 401; swallow — localStorage
-    // is enough for them. Server only persists tzId + birthCity (no
-    // lat/lon column yet) so coords stay client-side.
-    try {
-      await fetch('/api/me/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...(trimmedName ? { name: trimmedName } : {}),
-          birthDate,
-          birthTime: timeUnknown ? null : effectiveTime,
-          gender: gender as 'male' | 'female',
-          birthCity: trimmedCity ?? null,
-          tzId: tz ?? null,
-        }),
-      })
-    } catch {
-      // localStorage already saved; tolerate transient API failures.
+    // persist=false ("다른 사람으로 보기") 면 내 프로필/localStorage 를 건드리지
+    // 않고 입력값만 부모로 넘긴다 — 내 정체성을 덮어쓰면 안 되므로.
+    if (persist) {
+      saveBirthInfo(payload)
+      // Sync to DB so /api/me/profile (the counselor route's fallback
+      // source — useCounselorData reads it, localStorage is ignored)
+      // sees the new value. Without this, logged-in users who change
+      // their birth info here keep getting the old DB value in
+      // counselor sessions. Guest users get 401; swallow — localStorage
+      // is enough for them. Server only persists tzId + birthCity (no
+      // lat/lon column yet) so coords stay client-side.
+      try {
+        await fetch('/api/me/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...(trimmedName ? { name: trimmedName } : {}),
+            birthDate,
+            birthTime: timeUnknown ? null : effectiveTime,
+            gender: gender as 'male' | 'female',
+            birthCity: trimmedCity ?? null,
+            tzId: tz ?? null,
+          }),
+        })
+      } catch {
+        // localStorage already saved; tolerate transient API failures.
+      }
     }
     onSaved({ ...payload, savedAt: new Date().toISOString() })
   }
@@ -338,7 +352,7 @@ export default function BirthInfoModal({
     >
       <div className={styles.modalCard}>
         <h2 id="birth-info-title" className={styles.modalTitle}>
-          {isKo ? '생년월일 정보 입력' : 'Enter birth info'}
+          {title ?? (isKo ? '생년월일 정보 입력' : 'Enter birth info')}
         </h2>
         <p className={styles.modalSubtitle}>
           {isKo
@@ -438,7 +452,7 @@ export default function BirthInfoModal({
             {isKo ? '취소' : 'Cancel'}
           </button>
           <button type="button" className={styles.modalSave} onClick={handleSave}>
-            {isKo ? '저장하고 시작' : 'Save & start'}
+            {submitLabel ?? (isKo ? '저장하고 시작' : 'Save & start')}
           </button>
         </div>
       </div>

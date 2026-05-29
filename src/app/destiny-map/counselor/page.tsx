@@ -15,6 +15,12 @@ import styles from './counselor.module.css'
 import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
 import Chat from '@/components/destiny-map/Chat'
+import BirthInfoModal from '@/app/(main)/components/BirthInfoModal'
+import {
+  buildCounselorHref,
+  getStoredBirthInfo,
+  type StoredBirthInfo,
+} from '@/app/(main)/birthInfoStorage'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -107,6 +113,27 @@ export default function CounselorPage() {
   const handleChatReset = useCallback(() => {
     setChatResetKey((k) => k + 1)
   }, [])
+
+  // 대상 인물 변경 — '내 정보 수정'(프로필 저장) / '다른 사람 보기'(임시, 저장 X).
+  // 둘 다 공용 BirthInfoModal 재사용. 저장되면 그 사람 사주로 새 대화 시작.
+  const [birthModalOpen, setBirthModalOpen] = useState(false)
+  const [birthMode, setBirthMode] = useState<'edit' | 'view'>('edit')
+  const openEditMine = useCallback(() => {
+    setBirthMode('edit')
+    setBirthModalOpen(true)
+  }, [])
+  const openViewOther = useCallback(() => {
+    setBirthMode('view')
+    setBirthModalOpen(true)
+  }, [])
+  const handleBirthSaved = useCallback(
+    (info: StoredBirthInfo) => {
+      setBirthModalOpen(false)
+      setChatResetKey((k) => k + 1) // 사람 바뀜 → 새 대화로 시작
+      router.push(buildCounselorHref(info, '', lang))
+    },
+    [router, lang]
+  )
 
   // Localized failure messages for rename/delete actions — used both by
   // the in-chat ⋮ menu and the sidebar's swipe actions. We prefer the
@@ -321,20 +348,24 @@ export default function CounselorPage() {
         </div>
       </header>
 
-      {/* 사용자 정보 sticky 바 — 어느 사람 정보로 본 채팅인지 한눈에.
-          채팅이 길어져도 헤더 바로 아래 고정. name 비어 있으면 (초기 게스트)
-          렌더 자체 생략. */}
-      {name?.trim() && (
-        <div
-          className={styles.profileStickyBar}
-          aria-label={lang === 'ko' ? '대상 인물' : 'Subject'}
-        >
-          <span className={styles.profileStickyDot} aria-hidden="true">
-            ●
-          </span>
-          <span className={styles.profileStickyName}>{name}</span>
+      {/* 대상 인물 sticky 바 — 어느 사람 정보로 본 채팅인지 + 변경 액션.
+          채팅이 길어져도 헤더 바로 아래 고정. */}
+      <div className={styles.profileStickyBar} aria-label={lang === 'ko' ? '대상 인물' : 'Subject'}>
+        <span className={styles.profileStickyDot} aria-hidden="true">
+          ●
+        </span>
+        <span className={styles.profileStickyName}>
+          {name?.trim() || (lang === 'ko' ? '나' : 'Me')}
+        </span>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+          <button type="button" className={styles.subjectAction} onClick={openEditMine}>
+            {lang === 'ko' ? '수정' : 'Edit'}
+          </button>
+          <button type="button" className={styles.subjectAction} onClick={openViewOther}>
+            {lang === 'ko' ? '다른 사람 보기' : 'View other'}
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Guest banner removed — fights the Claude-style centered hero
           empty state. Login CTA lives in the page header (top-right)
@@ -384,6 +415,31 @@ export default function CounselorPage() {
       </div>
 
       {initialQuestion && <InitialQuestionSender question={initialQuestion} />}
+
+      {/* 대상 인물 변경 — 공용 BirthInfoModal 재사용.
+          edit: 내 프로필 저장 / view: 저장 없이 그 사람 사주로만 이동. */}
+      <BirthInfoModal
+        open={birthModalOpen}
+        initial={birthMode === 'edit' ? getStoredBirthInfo() : null}
+        onClose={() => setBirthModalOpen(false)}
+        onSaved={handleBirthSaved}
+        locale={lang}
+        persist={birthMode === 'edit'}
+        title={
+          birthMode === 'view'
+            ? lang === 'ko'
+              ? '다른 사람으로 보기'
+              : 'View another person'
+            : undefined
+        }
+        submitLabel={
+          birthMode === 'view'
+            ? lang === 'ko'
+              ? '이 사람으로 보기'
+              : 'View this person'
+            : undefined
+        }
+      />
     </main>
   )
 }
