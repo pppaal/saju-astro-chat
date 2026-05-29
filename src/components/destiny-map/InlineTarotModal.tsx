@@ -150,6 +150,7 @@ const InlineTarotModal = memo(function InlineTarotModal({
       timestamp: Date.now(),
     }
     sessionStorage.setItem('tarotContext', JSON.stringify(tarotContext))
+    actions.clearDraft()
     window.location.href = `/tarot?from=counselor`
   }
 
@@ -180,6 +181,9 @@ const InlineTarotModal = memo(function InlineTarotModal({
         affirmation: state.affirmation || undefined,
       })
     }
+    // Reading consumed into the chat — drop the draft so reopening the tool
+    // starts fresh rather than restoring the result we just pushed.
+    actions.clearDraft()
     onClose()
   }
 

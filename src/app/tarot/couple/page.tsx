@@ -40,6 +40,13 @@ const COUPLE_SPREADS = [
   { id: 'love-celtic', name: '연애 심층 7장 리딩', cards: 7, icon: '🌹' },
 ]
 
+// Partner / spread / question lived only in React state, so a refresh or a
+// detour mid-setup threw away the whole selection. Stash it (sessionStorage,
+// partner by connectionId) and restore once matches load; cleared when the
+// reading actually starts.
+const COUPLE_DRAFT_KEY = 'tarot:couple:draft'
+type CoupleDraft = { partnerId: string | null; spread: string; question: string }
+
 export default function CoupleTarotPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -102,6 +109,44 @@ export default function CoupleTarotPage() {
     loadData()
   }, [session, status, router])
 
+  // Restore the saved selection once the matches list is available (we need
+  // it to resolve the stored partner connectionId back to a Match).
+  const draftRestoredRef = useRef(false)
+  useEffect(() => {
+    if (loading || draftRestoredRef.current) return
+    draftRestoredRef.current = true
+    try {
+      const raw = sessionStorage.getItem(COUPLE_DRAFT_KEY)
+      if (!raw) return
+      const draft = JSON.parse(raw) as CoupleDraft
+      if (draft.spread && COUPLE_SPREADS.some((s) => s.id === draft.spread)) {
+        setSelectedSpread(draft.spread)
+      }
+      if (typeof draft.question === 'string') setQuestion(draft.question)
+      if (draft.partnerId) {
+        const match = matches.find((m) => m.connectionId === draft.partnerId)
+        if (match) setSelectedPartner(match)
+      }
+    } catch {
+      // corrupt / private mode — ignore
+    }
+  }, [loading, matches])
+
+  // Mirror the in-progress selection to sessionStorage as it changes.
+  useEffect(() => {
+    if (loading) return
+    try {
+      const draft: CoupleDraft = {
+        partnerId: selectedPartner?.connectionId ?? null,
+        spread: selectedSpread,
+        question,
+      }
+      sessionStorage.setItem(COUPLE_DRAFT_KEY, JSON.stringify(draft))
+    } catch {
+      // ignore
+    }
+  }, [loading, selectedPartner, selectedSpread, question])
+
   const handleStartReading = async () => {
     if (!selectedPartner) {
       setError('파트너를 선택해주세요')
@@ -122,6 +167,12 @@ export default function CoupleTarotPage() {
         question: question || '우리의 관계는 어떨까요?',
       })
 
+      // Selection consumed — drop the draft so coming back starts clean.
+      try {
+        sessionStorage.removeItem(COUPLE_DRAFT_KEY)
+      } catch {
+        // ignore
+      }
       router.push(`/tarot/love/${selectedSpread}?${params.toString()}`)
     } catch (e) {
       logger.error('Start reading error:', { error: e })

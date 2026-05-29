@@ -14,7 +14,12 @@ import {
   type TarotQuestionAnalysisSnapshot,
 } from '@/lib/tarot/questionFlow'
 import { Spread, DeckStyle, type DrawnCard } from '@/lib/tarot/tarot.types'
-import { loadReadingRestorePayload, type SavedTarotReading } from '@/lib/tarot/tarot-storage'
+import {
+  loadReadingRestorePayload,
+  formatReadingForSave,
+  type SavedTarotReading,
+} from '@/lib/tarot/tarot-storage'
+import { flattenTarotGuidance } from '@/lib/tarot/tarot-save-request'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import type { GameState, ReadingResponse, InterpretationResult } from '../types'
@@ -24,6 +29,22 @@ import { useCreditModal } from '@/contexts/CreditModalContext'
 
 const TAROT_PERSONALIZATION_KEY = 'tarot_personalization_options'
 const TAROT_DECK_PREF_KEY = 'tarot_preferred_deck'
+
+// A completed reading otherwise lived only in React state, so a refresh
+// blanked it — and the user had to *redraw*, which spends another credit.
+// We snapshot the finished reading (sessionStorage, per category+spread) and
+// resume it on mount. sessionStorage matches the existing interpretation
+// cache and self-clears on tab close, so no stale reading resurfaces days
+// later; the full reading also stays in localStorage history for re-open.
+const TAROT_RESUME_PREFIX = 'tarot:resume:'
+function tarotResumeKey(categoryName?: string, spreadId?: string): string {
+  return `${TAROT_RESUME_PREFIX}${categoryName ?? '?'}:${spreadId ?? '?'}`
+}
+interface TarotResumeSnapshot {
+  question: string
+  reading: SavedTarotReading
+  savedAt: number
+}
 
 export interface TarotPersonalizationOptions {
   includeSaju: boolean
@@ -46,6 +67,10 @@ interface UseTarotGameReturn {
   userTopic: string
   questionAnalysis: TarotQuestionAnalysisSnapshot | null
   personalizationOptions: TarotPersonalizationOptions
+  /** True when the on-screen reading was rehydrated from the resume
+   *  snapshot (refresh / re-entry). The page uses this to skip the
+   *  auto-save effect so a refresh never duplicates the history row. */
+  restoredFromResume: boolean
 
   // Setters
   setGameState: (state: GameState) => void
@@ -133,6 +158,7 @@ export function useTarotGame(): UseTarotGameReturn {
   const [drawError, setDrawError] = useState<TarotDrawError | null>(null)
   const [revealedCards, setRevealedCards] = useState<number[]>([])
   const [isSpreading, setIsSpreading] = useState(false)
+  const [restoredFromResume, setRestoredFromResume] = useState(false)
   const [personalizationOptions, setPersonalizationOptions] = useState<TarotPersonalizationOptions>(
     () => {
       // URL ?saju=0&astro=0 가 명시되면 URL 우선; 아니면 localStorage; 둘 다 없으면 기본 ON.
@@ -155,6 +181,8 @@ export function useTarotGame(): UseTarotGameReturn {
   )
   const fetchTriggeredRef = useRef(false)
   const restoredReadingKeyRef = useRef<string | null>(null)
+  // Run the resume-snapshot restore at most once per mount.
+  const resumeAttemptedRef = useRef(false)
   // Track mount lifecycle so post-await setStates inside fetchReading
   // bail out cleanly when the user navigates away mid-reading.
   const mountedRef = useRef(true)
@@ -297,12 +325,115 @@ export function useTarotGame(): UseTarotGameReturn {
     setGameState('results')
   }, [spreadInfo, restoreKeyFromUrl, categoryName])
 
+  // Resume a finished reading after a refresh / re-entry. An explicit URL
+  // ?restoreKey= (history re-open) takes precedence; otherwise we rehydrate
+  // the last snapshot for this category+spread, but only when the question
+  // matches so a new question still starts a fresh draw. We mark
+  // restoredFromResume so the page skips re-saving (no duplicate history).
+  useEffect(() => {
+    if (restoreKeyFromUrl) return
+    if (!spreadInfo) return
+    if (resumeAttemptedRef.current) return
+    if (fetchTriggeredRef.current || readingResult) return
+    resumeAttemptedRef.current = true
+
+    if (typeof window === 'undefined') return
+    let snapshot: TarotResumeSnapshot | null = null
+    try {
+      const raw = window.sessionStorage.getItem(tarotResumeKey(categoryName, spreadId))
+      snapshot = raw ? (JSON.parse(raw) as TarotResumeSnapshot) : null
+    } catch {
+      snapshot = null
+    }
+    if (!snapshot?.reading || (snapshot.question || '') !== (userTopic || '')) return
+
+    fetchTriggeredRef.current = true
+    selectionOrderRef.current = new Map()
+
+    const restoredResult = buildRestoredReadingResult(snapshot.reading, spreadInfo, categoryName)
+    const restoredInterpretation = buildRestoredInterpretation(snapshot.reading)
+
+    setSelectedDeckStyle((snapshot.reading.deckStyle as DeckStyle) || 'celestial')
+    setSelectedColor(
+      CARD_COLORS.find((color) => color.id === snapshot.reading.deckStyle) || CARD_COLORS[0]
+    )
+    setSelectedIndices([])
+    setSelectionOrderMap(new Map())
+    setReadingResult(restoredResult)
+    setInterpretation(restoredInterpretation)
+    if (snapshot.reading.questionAnalysis) setQuestionAnalysis(snapshot.reading.questionAnalysis)
+    setRevealedCards(restoredResult.drawnCards.map((_, index) => index))
+    setDrawError(null)
+    setIsSpreading(false)
+    setRestoredFromResume(true)
+    setGameState('results')
+  }, [spreadInfo, restoreKeyFromUrl, categoryName, spreadId, userTopic, readingResult])
+
+  // Snapshot a completed reading so the effect above can resume it. Only a
+  // finished (non-fallback) interpretation is stored — a fallback would make
+  // the page's interpret effect re-fetch (and re-charge) after restore.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (gameState !== 'results' || !readingResult || !spreadInfo) return
+    if (!interpretation || interpretation.fallback === true) return
+    try {
+      const reading = formatReadingForSave(
+        userTopic,
+        spreadInfo,
+        readingResult.drawnCards,
+        {
+          overall_message: interpretation.overall_message,
+          guidance: flattenTarotGuidance(interpretation.guidance),
+          card_insights: interpretation.card_insights,
+        },
+        categoryName || '',
+        spreadId || spreadInfo.id,
+        selectedDeckStyle,
+        questionAnalysis
+      )
+      const snapshot: TarotResumeSnapshot = {
+        question: userTopic || '',
+        reading: { ...reading, id: 'resume', timestamp: Date.now() },
+        savedAt: Date.now(),
+      }
+      window.sessionStorage.setItem(
+        tarotResumeKey(categoryName, spreadId),
+        JSON.stringify(snapshot)
+      )
+    } catch {
+      // quota / private mode — non-fatal
+    }
+  }, [
+    gameState,
+    readingResult,
+    interpretation,
+    spreadInfo,
+    userTopic,
+    categoryName,
+    spreadId,
+    selectedDeckStyle,
+    questionAnalysis,
+  ])
+
   const handleColorSelect = useCallback((color: CardColor) => {
     setSelectedColor(color)
     setSelectedDeckStyle(color.id as DeckStyle)
   }, [])
 
+  const clearResumeSnapshot = useCallback(() => {
+    setRestoredFromResume(false)
+    if (typeof window === 'undefined') return
+    try {
+      window.sessionStorage.removeItem(tarotResumeKey(categoryName, spreadId))
+    } catch {
+      // ignore
+    }
+  }, [categoryName, spreadId])
+
   const handleStartReading = useCallback(async () => {
+    // New draw in progress — drop any resumed reading so a refresh during
+    // picking doesn't snap back to the old result.
+    clearResumeSnapshot()
     setGameState('picking')
     setDrawError(null)
     setIsSpreading(true)
@@ -312,7 +443,7 @@ export function useTarotGame(): UseTarotGameReturn {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ categoryId: categoryName, spreadId }),
     }).catch(() => {})
-  }, [categoryName, spreadId])
+  }, [categoryName, spreadId, clearResumeSnapshot])
 
   const handleCardClick = useCallback(
     (index: number) => {
@@ -369,7 +500,8 @@ export function useTarotGame(): UseTarotGameReturn {
     setDrawError(null)
     fetchTriggeredRef.current = false
     setIsSpreading(true)
-  }, [])
+    clearResumeSnapshot()
+  }, [clearResumeSnapshot])
 
   const isCardRevealed = useCallback(
     (index: number) => revealedCards.includes(index),
@@ -549,6 +681,7 @@ export function useTarotGame(): UseTarotGameReturn {
     userTopic,
     questionAnalysis,
     personalizationOptions,
+    restoredFromResume,
     setGameState,
     setInterpretation,
     handlePersonalizationChange,

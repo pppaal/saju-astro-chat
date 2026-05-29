@@ -238,6 +238,10 @@ function TarotReadingPage() {
   const saveAttemptedSignatureRef = useRef<string | null>(null)
   React.useEffect(() => {
     if (status !== 'authenticated') return
+    // A reading rehydrated from the resume snapshot was already persisted in
+    // its original session — re-saving on every refresh would duplicate the
+    // history row, so skip auto-save for resumed readings.
+    if (gameHook.restoredFromResume) return
     if (interpretationHook.isSaved || isSaving) return
     if (!gameHook.interpretation || !gameHook.readingResult || !gameHook.spreadInfo) return
     // interpretation 이 LLM 정상 결과인지 (fallback 아닌지) 한 번 더 확인 —
@@ -255,6 +259,7 @@ function TarotReadingPage() {
     gameHook.interpretation,
     gameHook.readingResult,
     gameHook.spreadInfo,
+    gameHook.restoredFromResume,
     handleSaveReading,
     readingSignature,
   ])

@@ -86,6 +86,11 @@ type PersonData = {
   gender?: 'M' | 'F' | 'Male' | 'Female'
 }
 
+// The half-typed message in the input box isn't part of the conversation
+// draft (we don't want to rewrite the whole message list on every keystroke),
+// so it gets its own tiny key. Restored on mount, cleared when sent.
+const COMPAT_INPUT_KEY = 'destinypal:compat-counselor:input'
+
 // Decide whether a saved local draft belongs to the couple the URL is asking
 // for. A `?persons=` entry is an explicit couple selection — we only resume
 // the draft (rather than start fresh) when it's the *same* couple, so picking
@@ -537,6 +542,32 @@ function CompatibilityCounselorContent() {
       setFocusToken((n) => n + 1)
     }
   }, [isInitializing])
+
+  // Restore a half-typed message once the page is ready, so a crash / refresh
+  // mid-composition doesn't throw away what the user was writing.
+  const inputRestoredRef = useRef(false)
+  useEffect(() => {
+    if (isInitializing || inputRestoredRef.current) return
+    inputRestoredRef.current = true
+    try {
+      const saved = window.localStorage.getItem(COMPAT_INPUT_KEY)
+      if (saved) setInput((cur) => (cur ? cur : saved))
+    } catch {
+      // private mode / quota — ignore
+    }
+  }, [isInitializing])
+
+  // Mirror the input box to localStorage as the user types; clear it once the
+  // box is empty (e.g. after send or new chat).
+  useEffect(() => {
+    if (isInitializing) return
+    try {
+      if (input) window.localStorage.setItem(COMPAT_INPUT_KEY, input)
+      else window.localStorage.removeItem(COMPAT_INPUT_KEY)
+    } catch {
+      // ignore
+    }
+  }, [input, isInitializing])
 
   // 채팅 우상단 ⋮ 메뉴 핸들러 — 운명 상담사 PR #621 과 동일.
   // 저장된 session 이 없으면 (chatSessionId undefined) 아무것도 안 함.

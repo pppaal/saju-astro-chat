@@ -44,6 +44,13 @@ describe('useInlineTarotState', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // The hook now persists/resumes a draft via sessionStorage; clear it so a
+    // draft written by one test can't leak into the next.
+    try {
+      window.sessionStorage.clear()
+    } catch {
+      // ignore
+    }
   })
 
   describe('initialization', () => {

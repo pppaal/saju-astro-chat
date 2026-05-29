@@ -61,6 +61,50 @@ const initialState: TarotState = {
 
 const DEFAULT_TAROT_CATEGORY = 'general-insight'
 
+// The modal reset its whole state every time it opened, so tapping the
+// overlay (which closes it) mid-reading wiped everything. We persist the
+// state while open and resume on reopen — but only the *safe* shapes: a
+// finished result, or the typed concern. Mid-draw / interpreting states
+// can't be resumed because the interpretation SSE stream is aborted on
+// close, so re-opening them would hang on the spinner forever.
+const INLINE_DRAFT_KEY = 'tarot:inline:draft'
+const INLINE_DRAFT_MAX_AGE_MS = 60 * 60 * 1000 // 1h — a stale tool draft is noise
+
+function readInlineDraft(): TarotState | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.sessionStorage.getItem(INLINE_DRAFT_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { savedAt?: number; state?: TarotState } | null
+    if (!parsed?.state) return null
+    if (typeof parsed.savedAt === 'number' && Date.now() - parsed.savedAt > INLINE_DRAFT_MAX_AGE_MS) {
+      clearInlineDraft()
+      return null
+    }
+    return parsed.state
+  } catch {
+    return null
+  }
+}
+
+function writeInlineDraft(state: TarotState): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.setItem(INLINE_DRAFT_KEY, JSON.stringify({ savedAt: Date.now(), state }))
+  } catch {
+    // quota / private mode — non-fatal
+  }
+}
+
+function clearInlineDraft(): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.removeItem(INLINE_DRAFT_KEY)
+  } catch {
+    // ignore
+  }
+}
+
 interface UseInlineTarotStateOptions {
   isOpen: boolean
   initialConcern: string
@@ -83,16 +127,39 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
     return [...category.spreads].sort((a, b) => a.cardCount - b.cardCount)
   }, [])
 
-  // Reset state when modal opens
+  // Resume / reset when the modal opens.
   useEffect(() => {
-    if (isOpen) {
-      setState({
-        ...initialState,
-        concern: initialConcern,
-        selectedCategory: DEFAULT_TAROT_CATEGORY,
-      })
+    if (!isOpen) return
+    const saved = readInlineDraft()
+    // A finished reading is safe to fully restore (no live stream needed) —
+    // covers "I read it, accidentally tapped outside, reopened".
+    if (saved && saved.step === 'result' && saved.overallMessage.trim()) {
+      setState({ ...initialState, ...saved })
+      return
     }
+    // Otherwise start fresh. The caller's current initialConcern wins (it may
+    // have changed since last open), so we don't resume half-typed concerns —
+    // only a finished result above is worth resuming, since mid-draw /
+    // interpreting states can't be (their SSE stream is gone).
+    setState({
+      ...initialState,
+      concern: initialConcern,
+      selectedCategory: DEFAULT_TAROT_CATEGORY,
+    })
   }, [isOpen, initialConcern])
+
+  // Persist while open so an accidental close can be resumed. Skip the
+  // 'interpreting' step (transient streaming churn we can't resume anyway)
+  // and a pristine empty start.
+  useEffect(() => {
+    if (!isOpen) return
+    if (state.step === 'interpreting') return
+    if (state.step === 'concern' && !state.concern.trim()) {
+      clearInlineDraft()
+      return
+    }
+    writeInlineDraft(state)
+  }, [isOpen, state])
 
   // Action creators
   const actions = useMemo(
@@ -131,6 +198,10 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
       setIsSaved: (isSaved: boolean) => setState((prev) => ({ ...prev, isSaved })),
       setIsSaving: (isSaving: boolean) => setState((prev) => ({ ...prev, isSaving })),
       setReadingId: (readingId: string | null) => setState((prev) => ({ ...prev, readingId })),
+      // Drop the persisted draft — called once a reading is consumed into the
+      // chat (onComplete) or the user heads to the full tarot page, so a later
+      // reopen starts fresh instead of resurrecting the old reading.
+      clearDraft: () => clearInlineDraft(),
 
       // Composite actions
       resetForDrawAgain: () =>
