@@ -90,7 +90,7 @@ When your partner's planets fall in your houses, those life areas get activated.
 - **7th house** (committed partnership): the classic "you feel like marriage material to me" overlay. Sun, Moon, or Venus in the 7th is one of the strongest indicators of seeing each other as a long-term partner.
 - **8th house** (intimacy, shared resources, psychological depth): the "this person knows me in places no one else does" overlay. Profound, transformative, and the house where power dynamics live.
 
-Whose planet falls where also matters: the **house person** usually feels the activation more strongly than the planet person.
+Whose planet falls where also matters: the **house person** typically experiences the activation more in their daily life, while the **planet person** more naturally expresses that energy.
 
 ### Synastry Aspects — A Reading, Not a Verdict
 

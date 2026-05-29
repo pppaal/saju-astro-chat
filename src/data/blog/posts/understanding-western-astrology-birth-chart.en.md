@@ -58,6 +58,11 @@ The four "angular" houses (1, 4, 7, 10) carry the most weight—planets here str
 
 Each planet brings specific energies to your chart. Modern astrology groups them by speed and scope:
 
+**Luminaries** (the two lights):
+
+- **Sun** — Identity, vitality, life purpose (rules Leo)
+- **Moon** — Emotions, instincts, inner world (rules Cancer)
+
 **Personal planets** (day-to-day personality):
 
 - **Mercury** - Communication, thinking, learning (rules Gemini & Virgo)
@@ -99,11 +104,11 @@ Your birth chart is a tool for self-discovery, not a fixed destiny. Use it to:
 2. **Recognize challenges** and work with them consciously
 3. **Improve relationships** by understanding compatibility
 4. **Time important decisions** using transits
-5. **Discover your life purpose** through the North Node
+5. **Discover your life purpose** through the **North Node** (a karmic point indicating growth direction)
 
 ## Getting Started
 
-Ready to explore your cosmic blueprint? Generate your free birth chart using our Astrology tool. All you need is your:
+Ready to explore your cosmic blueprint? Generate your free birth chart using our free Astrology Chart tool. All you need is your:
 
 - Birth date
 - Birth time (as accurate as possible)

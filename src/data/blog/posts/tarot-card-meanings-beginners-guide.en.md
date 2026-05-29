@@ -35,7 +35,7 @@ Love, harmony, relationships, choices. Important decisions about partnerships.
 Determination, willpower, triumph, control. Moving forward with confidence.
 
 **VIII - Strength**
-Courage, patience, inner strength, compassion. Gentle power over brute force — a woman calmly closes a lion's jaws. (Note: Waite swapped Strength and Justice to fit the Golden Dawn astrological order — Strength = Leo, Justice = Libra. Older Marseilles decks number Strength as XI and Justice as VIII.)
+Courage, patience, inner strength, compassion. Gentle power over brute force — a woman calmly closes a lion's jaws. (Note: The earlier Tarot de Marseille tradition numbers Justice as VIII and Strength as XI; Waite reversed them to align with the Golden Dawn astrological order — Strength = Leo, Justice = Libra.)
 
 **IX - The Hermit**
 Introspection, solitude, wisdom, guidance. The lantern holds a six-pointed star — the light of inner truth illuminating the path.
@@ -89,7 +89,7 @@ The Minor Arcana deals with everyday situations and practical matters. It mirror
 - **Five**: Petty disagreements, scuffles, friendly competition
 - **Six**: Victory, public recognition, the laurel crown
 - **Seven**: Perseverance, defending your position
-- **Eight**: Swift action, movement, messages in flight
+- **Eight**: Swift action, movement, news on the way
 - **Nine**: Resilience, the last stand, healthy boundaries
 - **Ten**: Burden, over-responsibility, doing too much alone
 
@@ -101,7 +101,7 @@ The Minor Arcana deals with everyday situations and practical matters. It mirror
 - **Four**: Apathy, contemplation, missing the cup being offered
 - **Five**: Loss, regret, focusing on the spilled cups (two still stand behind you)
 - **Six**: Nostalgia, childhood memories, kindness from the past
-- **Seven**: Choices, illusion, scattered wishful thinking
+- **Seven**: Choices, illusion, too many tempting fantasies
 - **Eight**: Walking away from what no longer fulfills you, seeking deeper meaning
 - **Nine**: The "wish card" — contentment, satisfaction, gratitude
 - **Ten**: Emotional fulfillment, family harmony, the rainbow of joy
@@ -141,6 +141,8 @@ Each suit also has four court cards. Beginners often find them tricky — they c
 - **Queens**: Inner mastery of the suit. They embody and nurture the element from within.
 - **Kings**: Outer mastery and authority. They direct and command the element in the world.
 
+A useful first instinct: if the card describes someone in your life, that's often the answer; if no person fits, read it as an energy you yourself are being asked to embody.
+
 ## Reading Tips for Beginners
 
 1. **Start with daily one-card draws** to build familiarity
@@ -148,6 +150,13 @@ Each suit also has four court cards. Beginners often find them tricky — they c
 3. **Notice the imagery** - colors, symbols, figures
 4. **Consider card positions** in spreads
 5. **Journal your readings** to track patterns
+- **Asking a good question**: Phrase questions as open exploration ("What do I need to know about…?") rather than yes/no or "when will…?". The cards work best as a mirror, not a fortune-telling machine.
+- **Shuffling**: There's no "correct" way — riffle, overhand, or mix face-down on the table. Many readers shuffle while holding the question in mind, then cut and draw from the top.
+
+### Common Spreads to Try
+- **One-card pull** — daily guidance or a focused question
+- **Three-card spread** — Past / Present / Future, or Situation / Action / Outcome
+- **Celtic Cross** — the classic 10-card spread for layered questions; save it for when you're comfortable with single draws
 
 ## Reversed Cards
 
@@ -167,6 +176,7 @@ Reversals are optional — many readers (including Waite himself in some reading
 - **The Devil means evil.** It usually points to attachment, addiction, or self-imposed limits — the chains around the figures are loose.
 - **Reversed cards are "bad" upright cards.** A reversed card is a shift in expression, not a negation.
 - **You must memorize 78 meanings to begin.** You don't. Start with imagery, story, and intuition — meanings will deepen with practice.
+- **"You shouldn't read for yourself."** This is a myth. Self-reading is how most readers learn — just be honest about your bias toward hoped-for answers.
 
 ## Conclusion
 

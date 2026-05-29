@@ -11,12 +11,12 @@ The philosophy is closer to Dane Rudhyar's humanistic astrology than to fatalist
 Your Destiny Map begins with precise birth information:
 
 - **Date of birth**: Anchors both your Saju pillars and your Western zodiac positions
-- **Time of birth**: Required for an accurate Hour Pillar in Saju and for house cusps and the Ascendant in Western astrology
+- **Time of birth**: Required for an accurate Hour Pillar in Saju (which encodes the most personal, hour-specific energies) and for house cusps and the Ascendant in Western astrology
 - **Location of birth**: Determines local sidereal time, which fixes the Ascendant, Midheaven, and house system
 
 ### 2. Eastern Wisdom: Saju (Four Pillars)
 
-Saju reads the energetic quality of the exact moment you were born using the lunisolar sexagenary (60-year) cycle. From it, your Destiny Map draws:
+Saju reads the energetic quality of the exact moment you were born using the lunisolar sexagenary cycle. From it, your Destiny Map draws:
 
 - **Four Pillars**: Year, Month, Day, and Hour—each a pair of one Heavenly Stem and one Earthly Branch
 - **Day Master (일간)**: The Heavenly Stem of the Day Pillar, treated as the core "you"—one of ten possible elemental identities (Yin/Yang × five elements)
@@ -41,7 +41,7 @@ Where Saju asks "what is the energy of this moment?", Western astrology asks "wh
 
 Rather than stacking every symbolic system on top of every other, a good Destiny Map uses each tradition for what it does best and lets the others stay quiet. Saju anchors timing and elemental balance. Western astrology anchors psychological structure and developmental themes. Other traditions—I Ching for situational guidance, Tarot for reflective inquiry, Eastern lunar mansions for nuance—are consulted as supporting voices when a specific question calls for them, not added by default.
 
-This selective approach matters. Mixing too many systems indiscriminately produces what researchers of divination practice call false precision: the more overlapping symbols you pile on, the easier it becomes to find a "hit" for any claim, which feels accurate but isn't diagnostic. A trustworthy integration favors convergence over volume.
+This selective approach matters. Mixing too many systems indiscriminately produces what forecasters call false precision: the more overlapping symbols you pile on, the easier it becomes to find a "hit" for any claim, which feels accurate but isn't diagnostic. A trustworthy integration favors convergence over volume.
 
 ## The Five Destiny Themes
 
@@ -161,4 +161,4 @@ Review the core map once, then revisit timing layers (annual Seun, current Daeun
 
 Your Destiny Map is like a GPS for life's journey. It doesn't drive for you, but it shows the terrain ahead, highlights scenic routes, and warns of difficult passages. Used well—with attention to where traditions converge and humility about where they don't—it becomes a tool for clearer self-knowledge and more conscious choice.
 
-Ready to discover your complete life blueprint? Generate your personalized Destiny Map with our Destiny Counselor and explore the wisdom of integrated divination.
+Ready to discover your complete life blueprint? Generate your personalized Destiny Map with our [Destiny Counselor](/destiny-counselor) and explore the wisdom of integrated divination.
