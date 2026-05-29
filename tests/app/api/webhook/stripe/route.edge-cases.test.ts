@@ -33,6 +33,12 @@ const mockPrisma = {
   },
   bonusCreditPurchase: {
     create: vi.fn(),
+    findFirst: vi.fn(),
+  },
+  pendingCreditRevocation: {
+    findUnique: vi.fn(),
+    upsert: vi.fn(),
+    delete: vi.fn(),
   },
 }
 
@@ -75,6 +81,15 @@ vi.mock('@/lib/payments/prices', () => ({
 vi.mock('@/lib/credits/creditService', () => ({
   upgradePlan: vi.fn().mockResolvedValue(undefined),
   addBonusCredits: vi.fn().mockResolvedValue(undefined),
+  revokeBonusCreditPurchase: vi.fn().mockResolvedValue({
+    revoked: true,
+    reclaimed: 0,
+    alreadyUsed: 0,
+  }),
+}))
+
+vi.mock('@/lib/referral', () => ({
+  grantReferralRewardOnFirstPurchase: vi.fn().mockResolvedValue({ granted: false }),
 }))
 
 vi.mock('stripe', () => {
@@ -334,6 +349,10 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
         },
         amount_total: 9900,
         currency: 'krw',
+        // B3 fix: webhook now requires payment_status='paid' AND a non-null
+        // payment_intent before granting credits.
+        payment_status: 'paid',
+        payment_intent: 'pi_test_123',
       })
 
       mockStripeWebhooksConstructEvent.mockReturnValue(event)
@@ -351,8 +370,13 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
       const response = await POST(request)
 
       expect(response.status).toBe(200)
-      // standard pack = 20 credits, paymentId undefined (test session has no payment_intent)
-      expect(addBonusCredits).toHaveBeenCalledWith('user-123', 20, 'purchase', undefined)
+      // standard pack = 40 credits (per CREDIT_PACKS config)
+      expect(addBonusCredits).toHaveBeenCalledWith(
+        'user-123',
+        40,
+        'purchase',
+        'pi_test_123'
+      )
     })
 
     it('should handle unrecognized event types gracefully', async () => {

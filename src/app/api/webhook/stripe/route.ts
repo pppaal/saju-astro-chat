@@ -115,11 +115,21 @@ export const POST = withApiMiddleware(
           return NextResponse.json({ received: true, duplicate: true })
         }
 
-        // 실패한 이벤트는 재처리 허용하지 않음 (별도 retry 로직 필요)
-        logger.warn(`[Stripe Webhook] Event processing in progress or failed: ${event.id}`)
-        return NextResponse.json({ received: true, duplicate: true })
+        // B1 fix: 이전 시도가 처리 도중 죽어 success=false 로 남은 행은
+        // 재처리 허용 (fall-through). 이전엔 여기서 duplicate 로 종료해
+        // Stripe 재시도가 영원히 short-circuit → 부분 처리된 이벤트가 영구
+        // 방치됐다. 하위 핸들러 작업(addBonusCredits, revokeBonusCreditPurchase
+        // 등)은 모두 멱등(BonusCreditPurchase.stripePaymentId @unique 가
+        // 더블 지급 차단, charge.refunded 핸들러도 already-revoked 멱등 분기
+        // 보유) 이므로 안전.
+        logger.warn(
+          `[Stripe Webhook] Reprocessing previously-failed event: ${event.id} (type=${event.type})`
+        )
+        recordCounter('stripe_webhook_retry_failed_event', 1, { event: event.type })
+        // fall through to handler
+      } else {
+        throw err
       }
-      throw err
     }
 
     try {
@@ -256,12 +266,33 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // 찾아 잔여 크레딧을 회수하는 매칭 키. 저장 안 하면 환불 보호 불가.
   const paymentIntentId =
     typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id
+
+  // B3 fix: 비동기 결제 (bank transfer 등) 의 경우 payment_status 가
+  // 'unpaid' / 'no_payment_required' 이고 payment_intent 가 아직 null 일 수
+  // 있다. 이 상태에서 addBonusCredits 를 부르면 stripePaymentId=null 로
+  // 저장되는데, Postgres 는 NULL 끼리 unique 비교를 안 하므로 dedup 이
+  // 무력화돼 Stripe 재시도마다 새 row 가 만들어진다(반복 지급 leak).
+  // 결제 확정 webhook (checkout.session.async_payment_succeeded /
+  // 후속 checkout.session.completed with payment_status=paid) 이 도착할
+  // 때까지 grant 보류.
+  if (session.payment_status !== 'paid' || !paymentIntentId) {
+    logger.info(
+      `[Stripe Webhook] Skipping unpaid/pending checkout session (no credit grant yet): session=${session.id} payment_status=${session.payment_status ?? 'unknown'} payment_intent=${paymentIntentId ?? 'null'}`
+    )
+    recordCounter('stripe_webhook_unpaid_checkout_skipped', 1, {
+      pack: creditPack,
+      status: session.payment_status ?? 'unknown',
+    })
+    return
+  }
+
   // 보너스 크레딧 추가 — addBonusCredits 는 BonusCreditPurchase +
   // UserCredits update 를 한 transaction 으로 처리(데이터 일관성 보장)하고,
   // stripePaymentId 에 DB 레벨 unique 가 걸려있어 같은 결제로 두 번째
   // 호출이 오면 P2002 가 발생한다. 그 경우 이미 1차에서 크레딧이 들어갔다는
   // 뜻이므로 silent skip (멱등성). 그 외 에러만 상위로 던져 webhook 이
   // 재시도되도록 한다.
+  let creditGrantWasDuplicate = false
   try {
     await addBonusCredits(userId, creditAmount, 'purchase', paymentIntentId)
     logger.info(
@@ -272,34 +303,49 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === 'P2002'
     if (isDuplicate) {
       logger.info(
-        `[Stripe Webhook] Duplicate purchase webhook ignored: payment=${paymentIntentId} (already credited)`
+        `[Stripe Webhook] Duplicate purchase webhook (already credited): payment=${paymentIntentId} — checking pending revocation queue`
       )
       recordCounter('stripe_webhook_purchase_duplicate', 1, { pack: creditPack })
-      return
+      creditGrantWasDuplicate = true
+      // B2 fix: P2002 라도 PendingCreditRevocation 체크는 계속 실행해야
+      // 한다. 이전엔 여기서 early return 해서, 1차 시도가 grant 직후
+      // revocation 체크 전에 죽었을 때 retry 가 P2002 로 끊겨 queued
+      // revocation 이 영원히 적용 안 됨(환불됐는데 크레딧 유지 leak).
+      // → return 제거. 아래 revocation 체크로 fall-through.
+    } else {
+      logger.error('[Stripe Webhook] Failed to add bonus credits:', err)
+      throw err
     }
-    logger.error('[Stripe Webhook] Failed to add bonus credits:', err)
-    throw err
   }
 
   // out-of-order webhook race 처리 — charge.refunded 가 이 webhook 전에
   // 도착해서 PendingCreditRevocation 에 기록돼 있다면 즉시 회수 + 정리.
   // 어느 순서로 도착해도 최종 상태 동일.
-  if (paymentIntentId) {
-    try {
-      const pending = await prisma.pendingCreditRevocation.findUnique({
-        where: { stripePaymentIntentId: paymentIntentId },
+  // B2 fix: 이 블록은 grant 가 새로 일어났든(첫 시도) duplicate (P2002,
+  // retry 시도) 든 항상 실행돼야 queued revocation 이 안전하게 적용된다.
+  try {
+    const pending = await prisma.pendingCreditRevocation.findUnique({
+      where: { stripePaymentIntentId: paymentIntentId },
+    })
+    if (pending) {
+      const revokeResult = await revokeBonusCreditPurchase(paymentIntentId)
+      await prisma.pendingCreditRevocation.delete({ where: { id: pending.id } })
+      logger.warn(
+        `[Stripe Webhook] Applied queued refund after late purchase webhook: payment=${paymentIntentId} reclaimed=${revokeResult.reclaimed} (duplicateRetry=${creditGrantWasDuplicate})`
+      )
+      recordCounter('stripe_webhook_late_purchase_revocation_applied', 1, {
+        duplicateRetry: creditGrantWasDuplicate ? '1' : '0',
       })
-      if (pending) {
-        const revokeResult = await revokeBonusCreditPurchase(paymentIntentId)
-        await prisma.pendingCreditRevocation.delete({ where: { id: pending.id } })
-        logger.warn(
-          `[Stripe Webhook] Applied queued refund after late purchase webhook: payment=${paymentIntentId} reclaimed=${revokeResult.reclaimed}`
-        )
-        recordCounter('stripe_webhook_late_purchase_revocation_applied', 1)
-      }
-    } catch (err) {
-      logger.error('[Stripe Webhook] Failed to apply queued refund revocation:', err)
     }
+  } catch (err) {
+    logger.error('[Stripe Webhook] Failed to apply queued refund revocation:', err)
+  }
+
+  // B2 fix: duplicate retry 인 경우 receipt 이메일과 referral 보상은
+  // 1차 시도 때 이미 실행됐다(또는 시도됐다). 다시 실행하면 이메일 중복
+  // 발송 / referral 멱등 가드에 의존하게 되므로 여기서 종료.
+  if (creditGrantWasDuplicate) {
+    return
   }
 
   // 결제 완료 이메일 발송

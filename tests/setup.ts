@@ -460,6 +460,7 @@ vi.mock('@/lib/db/prisma', () => {
     bonusCreditPurchase: createModelMock(),
     creditPurchase: createModelMock(),
     creditRefundLog: createModelMock(),
+    pendingCreditRevocation: createModelMock(),
 
     // Readings & Consultations
     reading: createModelMock(),
