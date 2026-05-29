@@ -21,9 +21,12 @@ describe('cities/lookups', () => {
     })
 
     it('should have major world cities with Korean translations', () => {
+      // 키는 dr5hn 의 정식 표기를 따른다 — "New York" 가 아니라 "New York City",
+      // "Acapulco" 가 아니라 "Acapulco de Juárez". 사용자가 한국어 UI 에서 검색
+      // 시 자연스러운 한글 표시가 핵심이라 키 자체가 옛 짧은 표기와 어긋나도 OK.
       expect(CITY_NAME_KR['Tokyo']).toBeDefined()
       expect(CITY_NAME_KR['Beijing']).toBeDefined()
-      expect(CITY_NAME_KR['New York']).toBeDefined()
+      expect(CITY_NAME_KR['New York City']).toBeDefined()
       expect(CITY_NAME_KR['London']).toBeDefined()
       expect(CITY_NAME_KR['Paris']).toBeDefined()
     })
