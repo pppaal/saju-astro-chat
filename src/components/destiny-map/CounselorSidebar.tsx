@@ -66,6 +66,20 @@ interface CounselorSidebarProps {
   lightTheme?: boolean
   /** Extra footer content (tarot / chart triggers) rendered above the auth button. */
   footerSlot?: React.ReactNode
+  /**
+   * Called when a rename/delete request fails so the parent can surface a
+   * toast / notice in the user's locale instead of the old blocking
+   * `window.alert()` (jarring on mobile, untranslated, freezes the page).
+   * `status` is the HTTP status code if the response came back, or
+   * undefined for network errors — parent uses 401 to show a sign-in hint.
+   * If the callback is omitted the failure is silently logged (the sidebar
+   * still rolls back its own optimistic state for rename; for delete the
+   * row is only removed after success, so nothing to roll back).
+   */
+  onActionError?: (info: {
+    kind: 'rename' | 'delete'
+    status?: number
+  }) => void
 }
 
 const SWIPE_REVEAL_PX = 60 // user must drag this far to lock the swipe-open state
@@ -81,6 +95,7 @@ export default function CounselorSidebar({
   enableGrouping = false,
   lightTheme = false,
   footerSlot,
+  onActionError,
 }: CounselorSidebarProps) {
   const { t } = useI18n()
   const { data: session, status } = useSession()
@@ -170,19 +185,26 @@ export default function CounselorSidebar({
     async (id: string) => {
       const ok = window.confirm(t('destinyMap.counselor.confirmDelete', 'Delete this chat?'))
       if (!ok) return
+      let status: number | undefined
       try {
         const res = await fetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`, {
           method: 'DELETE',
         })
+        status = res.status
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         setSessions((prev) => prev.filter((s) => s.id !== id))
         setSwipedId(null)
       } catch (e) {
-        logger.warn('[CounselorSidebar] delete failed', { id, e })
-        window.alert(t('destinyMap.counselor.deleteFailed', 'Could not delete. Try again.'))
+        // No optimistic row removal yet — the list is only mutated after
+        // the request succeeds. So nothing to roll back here; we just hand
+        // off to the parent so it can surface a localized toast (replaces
+        // the old `window.alert()` which was jarring on mobile and
+        // untranslated).
+        logger.warn('[CounselorSidebar] delete failed', { id, status, e })
+        onActionError?.({ kind: 'delete', status })
       }
     },
-    [t]
+    [t, onActionError]
   )
 
   // ---- Rename ----
@@ -205,22 +227,30 @@ export default function CounselorSidebar({
       cancelRename()
       return
     }
+    let status: number | undefined
     try {
       const res = await fetch('/api/counselor/session/list', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: id, title: next }),
       })
+      status = res.status
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setSessions((prev) =>
         prev.map((s) => (s.id === id ? { ...s, title: next } : s))
       )
       cancelRename()
     } catch (e) {
-      logger.warn('[CounselorSidebar] rename failed', { id, e })
-      window.alert(t('destinyMap.counselor.renameFailed', 'Could not rename. Try again.'))
+      // The local `sessions` array is only updated after the request
+      // succeeds, so there's no optimistic row title to roll back here.
+      // Close the rename input (commit-or-cancel UX — keeping the input
+      // open with the failed text would be confusing) and hand the
+      // failure to the parent so it can surface a localized toast.
+      logger.warn('[CounselorSidebar] rename failed', { id, status, e })
+      cancelRename()
+      onActionError?.({ kind: 'rename', status })
     }
-  }, [renamingId, renameValue, cancelRename, t])
+  }, [renamingId, renameValue, cancelRename, onActionError])
 
   // ---- Mobile swipe-to-reveal ----
   const onTouchStart = (e: React.TouchEvent, id: string) => {

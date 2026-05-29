@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ErrorBoundary, ChatErrorFallback } from '@/components/ErrorBoundary'
 import CreditBadge from '@/components/ui/CreditBadge'
+import { useToast } from '@/components/ui/Toast'
 import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 // buildSignInUrl import removed alongside the guest banner — restore
 // when reintroducing inline login CTA.
@@ -42,6 +43,7 @@ export default function CounselorPage() {
   const router = useRouter()
   const { status: authStatus } = useSession()
   void authStatus
+  const toast = useToast()
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -106,6 +108,30 @@ export default function CounselorPage() {
     setChatResetKey((k) => k + 1)
   }, [])
 
+  // Localized failure messages for rename/delete actions — used both by
+  // the in-chat ⋮ menu and the sidebar's swipe actions. We prefer the
+  // user's locale via `lang` (matches the rest of this header's ko/en
+  // pattern) and append a sign-in hint on 401 since the API requires
+  // an authenticated session for these mutations.
+  const showActionFailureToast = useCallback(
+    (kind: 'rename' | 'delete', status?: number) => {
+      const base =
+        kind === 'rename'
+          ? lang === 'ko'
+            ? '이름 변경에 실패했어요. 다시 시도해주세요.'
+            : 'Could not rename the chat. Please try again.'
+          : lang === 'ko'
+            ? '삭제에 실패했어요. 다시 시도해주세요.'
+            : 'Could not delete the chat. Please try again.'
+      const message =
+        status === 401
+          ? `${base} ${lang === 'ko' ? '다시 로그인해 주세요.' : 'Please sign in again.'}`
+          : base
+      toast.error(message)
+    },
+    [lang, toast]
+  )
+
   // Don't flash the gate while the profile fallback is loading — the
   // user may have valid birth info on their profile that we haven't
   // fetched yet. Keep lightTheme here too so switching past chats doesn't
@@ -153,6 +179,7 @@ export default function CounselorPage() {
         onNewChat={handleChatReset}
         lightTheme
         enableGrouping
+        onActionError={({ kind, status }) => showActionFailureToast(kind, status)}
       />
       <header className={styles.header}>
         <div className={styles.headerLeft}>
@@ -198,16 +225,34 @@ export default function CounselorPage() {
                         lang === 'ko' ? '\ub300\ud654 \uc774\ub984' : 'Chat name',
                         activeSession.title || ''
                       )
-                      if (!next || !next.trim()) return
+                      const trimmed = next?.trim()
+                      if (!trimmed) return
+                      // Optimistic title update so the header re-renders
+                      // immediately. We capture the previous title so we
+                      // can roll back if the PATCH fails \u2014 without this,
+                      // a failed rename would leave the wrong title in
+                      // the header until the next page load.
+                      const prevTitle = activeSession.title
+                      setActiveSession((s) => ({ ...s, title: trimmed }))
+                      let status: number | undefined
                       try {
-                        await fetch('/api/counselor/session/list', {
+                        const res = await fetch('/api/counselor/session/list', {
                           method: 'PATCH',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ sessionId: id, title: next.trim() }),
+                          body: JSON.stringify({ sessionId: id, title: trimmed }),
                         })
-                        setActiveSession((s) => ({ ...s, title: next.trim() }))
+                        status = res.status
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`)
                       } catch (err) {
-                        logger.warn('[Counselor] rename failed', { err })
+                        logger.warn('[Counselor] rename failed', { err, status })
+                        // Roll back the optimistic header title \u2014 only
+                        // touch state if the active session is still the
+                        // same chat (user may have navigated away during
+                        // the in-flight request).
+                        setActiveSession((s) =>
+                          s.sessionId === id ? { ...s, title: prevTitle } : s
+                        )
+                        showActionFailureToast('rename', status)
                       }
                     }}
                   >
@@ -230,13 +275,30 @@ export default function CounselorPage() {
                           : 'Delete this chat? Cannot be undone.'
                       )
                       if (!ok) return
+                      // Pre-flight: only navigate/reset after the server
+                      // confirms deletion. The old code did the reset
+                      // unconditionally even on network or HTTP error,
+                      // so a failed delete would drop the user into a
+                      // blank "new chat" while the row reappeared on the
+                      // next sidebar refresh \u2014 looked like silent data
+                      // loss. We now gate the reset on res.ok and surface
+                      // a localized toast on failure.
+                      let status: number | undefined
+                      let ok2 = false
                       try {
-                        await fetch(
+                        const res = await fetch(
                           `/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`,
                           { method: 'DELETE' }
                         )
+                        status = res.status
+                        ok2 = res.ok
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`)
                       } catch (err) {
-                        logger.warn('[Counselor] delete failed', { err })
+                        logger.warn('[Counselor] delete failed', { err, status })
+                      }
+                      if (!ok2) {
+                        showActionFailureToast('delete', status)
+                        return
                       }
                       // \uc0c8 \ucc44\ud305\uc73c\ub85c \ub9ac\uc14b \u2014 session \ucffc\ub9ac \ub5bc\uace0 \ud0a4 \uac31\uc2e0\ud574 Chat \uc7ac\ub9c8\uc6b4\ud2b8.
                       router.replace('/destiny-map/counselor')
