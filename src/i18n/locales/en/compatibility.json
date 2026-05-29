@@ -143,7 +143,9 @@
     "counselor": {
       "connect": "Connect with AI Counselor",
       "description": "Get deeper consultation"
-    }
+    },
+    "person1": "Me",
+    "person2": "Partner"
   },
   "compatibility": {
     "tabs": {
