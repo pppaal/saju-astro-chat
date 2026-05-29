@@ -58,13 +58,13 @@ async function main() {
     // 길흉: 천간·지지 각각 용신(+1)/기신(−1)
     let kil = 0; for (const e of [se, be]) { if (good.has(e)) kil++; if (avoid.has(e)) kil-- }
     const ss = sibsin(day, se)
-    // 점성: 이 10년 안의 마일스톤 길흉 합
-    const inDecade = ms.filter((m) => m.age >= d.startAge && m.age < d.startAge + 10)
-    const astroPol = inDecade.reduce((a, m) => a + m.pol, 0)
-    const combined = kil * 1.0 + astroPol * 0.4
-    const verdict = combined >= 1.2 ? '★ 길한 시기' : combined <= -1.2 ? '▼ 시련기' : '· 보통/혼합'
+    // 길흉 판정 = 사주 대운(용신) 주연. 점성은 판정에 안 넣고 "마커"로만.
+    const verdict = kil >= 2 ? '★ 길한 시기' : kil <= -2 ? '▼ 시련기' : kil >= 1 ? '+ 다소 길' : kil <= -1 ? '- 다소 흉' : '· 보통'
     rows.push({ kil, verdict })
-    const astroStr = inDecade.length ? inDecade.map((m) => m.name.replace(/\(.*/, '') + (m.pol >= 0 ? '+' : '−')).join(' ') : '(잔잔)'
+    // 점성: 드문 일생 마커만 표시(흔한 목성회귀·스퀘어는 상수배경이라 제외)
+    const RARE = ['토성회귀', '천왕성중년반대', '카이런회귀']
+    const inDecade = ms.filter((m) => m.age >= d.startAge && m.age < d.startAge + 10 && RARE.some((r) => m.name.includes(r)))
+    const astroStr = inDecade.length ? '🔭 ' + inDecade.map((m) => m.name.replace(/\(.*/, '') + `(${Math.round(m.age)}세)`).join(' ') : '·'
     console.log(
       `${String(d.startAge).padStart(2)}~${d.startAge + 9}세 ${d.stem}${d.branch}  ${se}${be}  ${(ss.name + ' ' + ss.domain).padEnd(16)} ` +
       `${(kil >= 0 ? '+' : '') + kil}용신  ${astroStr.padEnd(30)} ${verdict}`,
