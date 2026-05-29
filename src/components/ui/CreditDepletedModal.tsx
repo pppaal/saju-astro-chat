@@ -41,11 +41,12 @@ export default function CreditDepletedModal({
   }, [isOpen])
 
   const handlePurchase = useCallback(() => {
-    // 결제 후 돌아올 URL 저장
+    // 결제 후 돌아올 URL 저장 — 경로뿐 아니라 쿼리(질문·생년월일 등)까지
+    // 보존해야 결제 후 "그 자리"(보던 상담 화면)로 정확히 복귀한다.
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname
       if (currentPath !== '/pricing' && currentPath !== '/success') {
-        localStorage.setItem('checkout_return_url', currentPath)
+        localStorage.setItem('checkout_return_url', currentPath + window.location.search)
       }
     }
     onClose()

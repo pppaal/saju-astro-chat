@@ -147,7 +147,8 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
         if (referrerUrl.host === currentHost) {
           const path = referrerUrl.pathname
           if (path !== '/pricing' && path !== '/success' && !path.startsWith('/auth')) {
-            localStorage.setItem('checkout_return_url', path)
+            // 쿼리까지 보존해 결제 후 보던 화면으로 정확히 복귀.
+            localStorage.setItem('checkout_return_url', path + referrerUrl.search)
           }
         }
       }
