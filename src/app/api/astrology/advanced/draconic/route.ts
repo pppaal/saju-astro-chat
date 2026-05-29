@@ -2,13 +2,13 @@
 // 드라코닉 차트 API 엔드포인트
 
 import { NextResponse } from 'next/server'
+import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { logger } from '@/lib/logger'
 import {
-  calculateNatalChart,
   toChart,
   calculateDraconicChart,
   compareDraconicToNatal,
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     const [hour, minute] = time.split(':').map(Number)
 
     // 출생 차트 계산
-    const natalData = await calculateNatalChart({
+    const natalData = await cachedCalculateNatalChart({
       year,
       month,
       date: day,
