@@ -1,9 +1,23 @@
 /**
  * Eclipse Calculations Tests
  *
- * Tests for eclipse data and impact calculations
+ * Tests for eclipse data and impact calculations.
+ *
+ * 이클립스 계산은 실제 천문학적 정확성을 단언한다(2024년 = 4건, 12개 별자리
+ * 전부 등장, 데이터 범위 밖은 빈 배열). 전역 setup 의 swisseph/ephe mock 은
+ * 항상 cursor+30일에 가짜 일식을 만들고 swe_calc_ut 가 고정 황경만 돌려주므로
+ * 월간 주기의 엉터리 이클립스가 무한히 나온다. 따라서 이 파일은
+ * real-ephemeris-correctness.test.ts 와 동일하게 mock 을 풀고(vi.unmock)
+ * node 환경에서 진짜 swisseph + public/ephe 로 계산한다.
+ *
+ * @vitest-environment node
  */
 
+import { vi } from "vitest";
+
+// 전역 setup 의 mock 두 개를 이 파일에서만 해제 → 진짜 천체력을 쓴다.
+vi.unmock("swisseph");
+vi.unmock("@/lib/astrology/foundation/ephe");
 
 import {
   getAllEclipses,
@@ -62,9 +76,16 @@ describe("getEclipsesBetween", () => {
     });
   });
 
-  it("returns empty array for future dates beyond data", () => {
+  // NOTE: This previously asserted an empty array for 2050 ("beyond data"),
+  // a relic of the old hardcoded 2020–2030 eclipse table. Swiss Ephemeris
+  // computes eclipses for any year (its data spans roughly 13201 BC – 17191 AD),
+  // so 2050 has real eclipses. We now assert the astronomically correct result.
+  it("returns real eclipses for far-future years (Swiss Ephemeris range)", () => {
     const eclipses = getEclipsesBetween("2050-01-01", "2050-12-31");
-    expect(eclipses).toHaveLength(0);
+    expect(eclipses.length).toBeGreaterThan(0);
+    eclipses.forEach((eclipse) => {
+      expect(new Date(eclipse.date).getFullYear()).toBe(2050);
+    });
   });
 
   it("returns multiple eclipses per year", () => {
