@@ -62,12 +62,6 @@ export default function ApiDocsPage() {
           <a href="#/Tarot" className="text-purple-600 hover:underline">
             타로
           </a>
-          <a href="#/Dream" className="text-purple-600 hover:underline">
-            꿈해몽
-          </a>
-          <a href="#/I%20Ching" className="text-purple-600 hover:underline">
-            주역
-          </a>
           <a href="#/Compatibility" className="text-purple-600 hover:underline">
             궁합
           </a>
