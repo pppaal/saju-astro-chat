@@ -21,6 +21,7 @@ import {
   getStoredBirthInfo,
   type StoredBirthInfo,
 } from '@/app/(main)/birthInfoStorage'
+import { clearCounselorDraft } from '@/components/destiny-map/counselorDraft'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -114,6 +115,15 @@ export default function CounselorPage() {
     setChatResetKey((k) => k + 1)
   }, [])
 
+  // Explicit "new chat" (sidebar +, post-delete) — unlike the bare reset
+  // used for ErrorBoundary recovery, this also drops the saved local draft
+  // so the remounted Chat starts genuinely empty instead of rehydrating the
+  // conversation the user just left or deleted.
+  const handleNewChat = useCallback(() => {
+    clearCounselorDraft()
+    setChatResetKey((k) => k + 1)
+  }, [])
+
   // 대상 인물 변경 — '내 정보 수정'(프로필 저장) / '다른 사람 보기'(임시, 저장 X).
   // 둘 다 공용 BirthInfoModal 재사용. 저장되면 그 사람 사주로 새 대화 시작.
   const [birthModalOpen, setBirthModalOpen] = useState(false)
@@ -129,7 +139,10 @@ export default function CounselorPage() {
   const handleBirthSaved = useCallback(
     (info: StoredBirthInfo) => {
       setBirthModalOpen(false)
-      setChatResetKey((k) => k + 1) // 사람 바뀜 → 새 대화로 시작
+      // 사람 바뀜 → 새 대화로 시작. 이전 인물의 로컬 드래프트가 새 대화로
+      // 부활하지 않도록 함께 정리.
+      clearCounselorDraft()
+      setChatResetKey((k) => k + 1)
       router.push(buildCounselorHref(info, '', lang))
     },
     [router, lang]
@@ -203,7 +216,7 @@ export default function CounselorPage() {
       <CounselorSidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        onNewChat={handleChatReset}
+        onNewChat={handleNewChat}
         lightTheme
         enableGrouping
         onActionError={({ kind, status }) => showActionFailureToast(kind, status)}
@@ -328,8 +341,9 @@ export default function CounselorPage() {
                         return
                       }
                       // \uc0c8 \ucc44\ud305\uc73c\ub85c \ub9ac\uc14b \u2014 session \ucffc\ub9ac \ub5bc\uace0 \ud0a4 \uac31\uc2e0\ud574 Chat \uc7ac\ub9c8\uc6b4\ud2b8.
+                      // \uc0ad\uc81c\ub41c \ub300\ud654\uac00 \ub85c\uceec \ub4dc\ub798\ud504\ud2b8\ub85c \ubd80\ud65c\ud558\uc9c0 \uc54a\ub3c4\ub85d handleNewChat \uc0ac\uc6a9.
                       router.replace('/destiny-map/counselor')
-                      handleChatReset()
+                      handleNewChat()
                       setActiveSession({ sessionId: null, title: null })
                     }}
                   >

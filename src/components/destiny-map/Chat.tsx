@@ -11,6 +11,11 @@ import { CHAT_I18N } from './chat-i18n'
 import { generateMessageId } from './chat-utils'
 import type { ChatProps } from './chat-types'
 import { useChatSession } from './hooks/useChatSession'
+import {
+  readCounselorDraft,
+  writeCounselorDraft,
+  clearCounselorDraft,
+} from './counselorDraft'
 import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
@@ -167,6 +172,46 @@ const Chat = memo(function Chat({
     setActiveSessionId(sessionIdRef.current)
   }, [sessionIdRef])
 
+  // Keep a live ref of messages so event-driven callbacks (seed handler)
+  // can read the current conversation without a stale closure.
+  const messagesRef = React.useRef(messages)
+  React.useEffect(() => {
+    messagesRef.current = messages
+  }, [messages])
+
+  // ── Resume the in-progress conversation on (re)mount ───────────────────
+  // The conversation lives in React state, which is wiped on every remount:
+  // mobile app re-entry / webview eviction, a refresh, or an in-place
+  // chatResetKey bump. Without this, returning to the page showed a blank
+  // chat ("상담서비스 다 리셋돼"). A URL ?session=<id> (initialSessionId) wins —
+  // that's an explicit "open this past chat". Otherwise we rehydrate the
+  // last local draft (works for guests too, who have no DB autosave).
+  const draftRestoredRef = React.useRef(false)
+  React.useEffect(() => {
+    if (draftRestoredRef.current) return
+    draftRestoredRef.current = true
+    if (initialSessionId) return
+    const draft = readCounselorDraft()
+    if (!draft || draft.messages.length === 0) return
+    sessionIdRef.current = draft.sessionId
+    setMessages(draft.messages)
+    setActiveSessionId(draft.sessionId)
+  }, [initialSessionId, sessionIdRef, setMessages])
+
+  // ── Persist the conversation locally on every change ───────────────────
+  // localStorage write is synchronous, cheap, network-free, and works for
+  // guests. Loading a past session (sidebar / ?session=) also flows through
+  // here, so a later reload resumes whatever the user was last viewing.
+  React.useEffect(() => {
+    const hasRealTurn = messages.some((m) => m.role !== 'system')
+    if (!hasRealTurn) return
+    writeCounselorDraft({
+      sessionId: sessionIdRef.current,
+      locale: lang || 'ko',
+      messages,
+    })
+  }, [messages, lang, sessionIdRef])
+
   // 페이지 헤더가 현재 채팅 제목 + ⋮ 메뉴를 띄울 수 있도록 활성 session 정보를
   // 부모로 전달. activeSessionId 가 바뀔 때 + sessionHistory 가 갱신될 때마다.
   React.useEffect(() => {
@@ -188,6 +233,11 @@ const Chat = memo(function Chat({
   useSeedEvent({
     eventName: seedEvent,
     onSeed: (seedText) => {
+      // The initial question stays in the URL, so a refresh / re-entry
+      // re-fires the seed. If the conversation already has a user turn
+      // (fresh send or a restored draft), skip — otherwise we'd duplicate
+      // the opening question on top of the resumed chat.
+      if (messagesRef.current.some((m) => m.role === 'user')) return
       setInput(seedText)
       if (autoSendSeed) {
         handleSendRef.current?.(seedText)
@@ -280,6 +330,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
   }
 
   const startNewChat = () => {
+    // Explicit fresh start — drop the saved draft so a later remount
+    // doesn't resurrect the conversation we just walked away from.
+    clearCounselorDraft()
     hookStartNewChat()
     setActiveSessionId(sessionIdRef.current)
     setFollowUpQuestions([])
