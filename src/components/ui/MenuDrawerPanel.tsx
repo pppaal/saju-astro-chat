@@ -124,7 +124,7 @@ export function MenuDrawerPanel({
       <div
         onClick={onClose}
         aria-hidden="true"
-        className={`fixed inset-0 z-[10000] backdrop-blur-[2px] ${overlayClass}`}
+        className={`fixed inset-0 z-[10000] backdrop-blur-sm ${overlayClass}`}
       />
       <aside
         role="dialog"

@@ -103,6 +103,21 @@ select:focus-visible,
   --ds-gold-line: rgba(212, 181, 114, 0.42); /* 다크 페이지 골드 라인 */
   --ds-gold-soft-bg: rgba(160, 122, 60, 0.08); /* 라이트 골드 hover */
 
+  /* Error / validation — 페이지/컴포넌트마다 9개 hex 가 흩어져 있던 것을
+     라이트/다크 한 짝씩으로 정리 (text-red-600 ~ rose-300 변형 통합). */
+  --ds-error: #dc2626; /* 라이트 surface 본문 텍스트용 (red-600 표준) */
+  --ds-error-strong: #b91c1c; /* 라이트 surface 강조 (border, deep label) */
+  --ds-error-bg: #fef2f2; /* 라이트 surface 알림 박스 배경 (red-50) */
+  --ds-error-on-dark: #fca5a5; /* 다크 surface 본문 (rose-300/red-300 톤) */
+  --ds-error-on-dark-bg: rgba(220, 38, 38, 0.12); /* 다크 알림 박스 */
+
+  /* Focus ring — 11가지 ring 색이 흩어진 것을 정리. 라이트/다크 골드 + 위험 액션
+     붉은색 + 중립 회색. focus-visible 에서만 표시 (focus 와 차이). */
+  --ds-ring-gold: #a07a3c; /* 라이트 surface 기본 (compat / profile / error 와 정렬) */
+  --ds-ring-gold-on-dark: #d4b572; /* 다크 surface 골드 강조 */
+  --ds-ring-destructive: #dc2626;
+  --ds-ring-neutral: #78716c; /* stone-500 — link/ghost 등 비-CTA */
+
   /* =============================================================
      Legacy dark tokens — 기존 페이지 호환 (점진 마이그레이션)
      ============================================================= */

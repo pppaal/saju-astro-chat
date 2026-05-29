@@ -92,7 +92,7 @@ export default function OfflinePage() {
         {/* Loading indicator when online */}
         {isOnline && (
           <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#d4b572]" />
           </div>
         )}
 
