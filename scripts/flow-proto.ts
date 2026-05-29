@@ -35,7 +35,12 @@ function milestones(maxAge: number) {
 }
 
 async function main() {
-  const input = { birthDate: '1993-08-15', birthTime: '14:30', gender: 'male' as const, latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }
+  const E = process.env
+  const input = {
+    birthDate: E.FP_BIRTHDATE ?? '1993-08-15', birthTime: E.FP_BIRTHTIME ?? '14:30',
+    gender: (E.FP_GENDER as 'male' | 'female') ?? 'male',
+    latitude: Number(E.FP_LAT ?? 37.5665), longitude: Number(E.FP_LON ?? 126.978), timeZone: E.FP_TZ ?? 'Asia/Seoul',
+  }
   const natal = await buildNatalContext(input)
   const day = natal.saju.dayMaster.element as El
   const good = new Set<El>([natal.saju.yongsin.primary, natal.saju.yongsin.secondary].filter(Boolean) as El[])
@@ -45,9 +50,11 @@ async function main() {
   console.log('나이      대운    오행   십신(영역)         사주길흉   점성(그 10년)                    → 챕터 판정')
   console.log('-'.repeat(118))
 
+  const rows: { kil: number; verdict: string }[] = []
   for (const d of natal.saju.daeun) {
     if (d.startAge > 85) break
     const se = STEM_EL[d.stem], be = BRANCH_EL[d.branch]
+    if (!se || !be) { console.log(`  ⚠️ 매핑실패 stem=${d.stem} branch=${d.branch}`); continue }
     // 길흉: 천간·지지 각각 용신(+1)/기신(−1)
     let kil = 0; for (const e of [se, be]) { if (good.has(e)) kil++; if (avoid.has(e)) kil-- }
     const ss = sibsin(day, se)
@@ -56,13 +63,25 @@ async function main() {
     const astroPol = inDecade.reduce((a, m) => a + m.pol, 0)
     const combined = kil * 1.0 + astroPol * 0.4
     const verdict = combined >= 1.2 ? '★ 길한 시기' : combined <= -1.2 ? '▼ 시련기' : '· 보통/혼합'
+    rows.push({ kil, verdict })
     const astroStr = inDecade.length ? inDecade.map((m) => m.name.replace(/\(.*/, '') + (m.pol >= 0 ? '+' : '−')).join(' ') : '(잔잔)'
     console.log(
       `${String(d.startAge).padStart(2)}~${d.startAge + 9}세 ${d.stem}${d.branch}  ${se}${be}  ${(ss.name + ' ' + ss.domain).padEnd(16)} ` +
       `${(kil >= 0 ? '+' : '') + kil}용신  ${astroStr.padEnd(30)} ${verdict}`,
     )
   }
-  console.log('\n핵심: 인생 챕터도 하루단위와 같은 2축 — 사주(대운 용신 길흉) + 점성(마일스톤 길흉) → 길흉,')
-  console.log('     영역은 십신(재성=재물·연애기 / 관성=직업기 / 인성=성장기 …). 이제 시간~인생 전 스케일 동일 방식.')
+  // 자기검증: 다양성 + 정합(★는 용신+ 이어야)
+  const good_ = rows.filter((r) => r.verdict.includes('길')).length
+  const bad_ = rows.filter((r) => r.verdict.includes('시련')).length
+  const distinct = new Set(rows.map((r) => r.verdict)).size
+  const starsConsistent = rows.filter((r) => r.verdict.includes('길')).every((r) => r.kil > 0)
+  console.log('\n==== SUMMARY(JSON) ====')
+  console.log(JSON.stringify({
+    dayMaster: `${natal.saju.dayMaster.name}${day}`, strength: natal.saju.strength,
+    yongsin: [...good], avoid: [...avoid], chapters: rows.length,
+    good: good_, bad: bad_, distinctVerdicts: distinct,
+    starsHaveYongsin: starsConsistent, // ★ 챕터가 모두 용신+ 인가(정합성)
+    verdict: distinct >= 2 && starsConsistent ? 'OK' : distinct < 2 ? 'FAIL(다양성없음)' : 'FAIL(★불일치)',
+  }))
 }
 main().catch((e) => { console.error(e); process.exit(1) })
