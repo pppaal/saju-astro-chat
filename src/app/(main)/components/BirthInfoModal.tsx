@@ -64,14 +64,6 @@ export default function BirthInfoModal({
   // 비었는지 inline 안내. silent disabled 회귀 fix. 채우는 즉시 사라짐.
   const [missingNotice, setMissingNotice] = useState<string | null>(null)
 
-  // 빠진 필드를 채우는 순간 안내가 사라지게 — early return 위에 두어야
-  // rules-of-hooks 위반 안 함.
-  useEffect(() => {
-    if (!missingNotice) return
-    const stillMissing =
-      !birthDate || (gender !== 'male' && gender !== 'female') || (!timeUnknown && !birthTime)
-    if (!stillMissing) setMissingNotice(null)
-  }, [missingNotice, birthDate, gender, timeUnknown, birthTime])
   // Coordinates + timezone resolved from the city picker. Persisted so the
   // counselor / calendar / fortune chain can compute the hour pillar and
   // houses against the actual birth place instead of silently falling back
@@ -83,6 +75,18 @@ export default function BirthInfoModal({
     typeof initial?.longitude === 'number' ? initial.longitude : null
   )
   const [timeZone, setTimeZone] = useState<string | null>(initial?.timeZone || null)
+
+  // 빠진 필드를 채우는 순간 안내가 사라지게. city + latitude 도 같이 — 사용자가
+  // 자동완성에서 도시를 고르면 lat 가 채워지면서 안내 자동 사라짐.
+  useEffect(() => {
+    if (!missingNotice) return
+    const stillMissing =
+      !birthDate ||
+      (gender !== 'male' && gender !== 'female') ||
+      (!timeUnknown && !birthTime) ||
+      (Boolean(city.trim()) && latitude == null)
+    if (!stillMissing) setMissingNotice(null)
+  }, [missingNotice, birthDate, gender, timeUnknown, birthTime, city, latitude])
 
   // 불러오기 — 내 정보 + 등록된 지인
   const [loadOpen, setLoadOpen] = useState(false)
@@ -222,7 +226,14 @@ export default function BirthInfoModal({
   }
 
   const effectiveTime = timeUnknown ? '00:00' : birthTime
-  const isValid = Boolean(birthDate && (gender === 'male' || gender === 'female') && effectiveTime)
+  // 도시 입력은 됐는데 좌표가 비어 있음 = 사용자가 자동완성 dropdown 에서 안
+  // 고르고 텍스트만 친 상태. 이대로 저장하면 사주 엔진이 server-default tz 로
+  // 잘못 계산. 도시 자체는 선택 사항이라 비어도 OK 지만, 비어 있지 않으면
+  // 좌표까지 짝지어야 한다.
+  const cityNeedsPick = Boolean(city.trim() && latitude == null)
+  const isValid = Boolean(
+    birthDate && (gender === 'male' || gender === 'female') && effectiveTime && !cityNeedsPick
+  )
 
   // 어느 필드가 비었는지 — 버튼 클릭 시 안내용. 이전엔 isValid=false 면 버튼
   // 자체가 silently disabled 라 사용자가 "왜 저장 안 됨" 모르고 이탈했다.
@@ -231,6 +242,7 @@ export default function BirthInfoModal({
   if (!birthDate) missingFieldLabels.push(isKo ? '생년월일' : 'birth date')
   if (gender !== 'male' && gender !== 'female') missingFieldLabels.push(isKo ? '성별' : 'gender')
   if (!effectiveTime) missingFieldLabels.push(isKo ? '태어난 시간' : 'birth time')
+  if (cityNeedsPick) missingFieldLabels.push(isKo ? '도시 목록에서 선택' : 'pick city from list')
 
   const handleSave = async () => {
     if (!isValid) {
@@ -365,6 +377,7 @@ export default function BirthInfoModal({
           timeUnknown={timeUnknown}
           gender={gender}
           city={city}
+          latitude={latitude}
           onChange={applyPatch}
           classes={{
             field: styles.modalField,

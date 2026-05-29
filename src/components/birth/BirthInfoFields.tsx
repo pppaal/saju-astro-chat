@@ -54,6 +54,11 @@ interface BirthInfoFieldsProps {
   timeUnknown: boolean
   gender: BirthGender
   city: string
+  // 부모가 추적 중인 좌표. 명시적으로 null 을 전달하면 "도시는 채워졌는데
+  // dropdown 에서 선택 안 한 상태" 로 보고 inline 경고를 띄운다. undefined
+  // (prop 미전달) 면 경고 표시 안 함 — 좌표 추적 안 하는 사용처(ProfileEdit
+  // Modal 등) 에 영향 안 가도록.
+  latitude?: number | null
   onChange: (patch: BirthFieldsPatch) => void
   classes?: BirthFieldsClasses
   idPrefix?: string
@@ -85,6 +90,7 @@ export function BirthInfoFields({
   timeUnknown,
   gender,
   city,
+  latitude,
   onChange,
   classes,
   idPrefix = 'birth',
@@ -221,6 +227,18 @@ export function BirthInfoFields({
                 </li>
               ))}
             </ul>
+          )}
+          {/* 사용자가 "서울" 같은 텍스트만 치고 dropdown 에서 선택 안 하면 city
+              는 채워져 있어도 lat/lon/timezone 이 null 이라 사주 엔진이 server
+              default tz 로 fallback → 잘못된 시주/대운 계산. 시각적 경고로 골라
+              야 함을 알린다. 부모 폼은 별도로 submit 차단해야 함 (BirthInfoModal
+              은 missingNotice 패턴에 도시 선택 항목 추가). */}
+          {city.trim() && latitude === null && !openSug && (
+            <p className="mt-1.5 text-[12px] leading-snug text-amber-700">
+              {isKo
+                ? '목록에서 도시를 선택해 주세요 — 시간대를 정확히 잡아야 사주가 정확해요.'
+                : 'Please pick a city from the list — accurate saju needs the right timezone.'}
+            </p>
           )}
         </div>
       )}
