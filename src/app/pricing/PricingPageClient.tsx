@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
@@ -16,6 +17,7 @@ import {
 } from '@/lib/config/pricing'
 import { fetchWithRetry } from '@/lib/http'
 import { RefundConsentModal } from '@/components/pricing/RefundConsentModal'
+import { EmailCollectionModal } from '@/components/pricing/EmailCollectionModal'
 
 interface CreditPackDisplay {
   id: CreditPackType
@@ -105,6 +107,11 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   const locale = activeLocale || initialLocale
   const isKo = locale === 'ko'
   const toast = useToast()
+  // session.user.email 이 비어 있으면 결제 직전 EmailCollectionModal 을
+  // 띄운다. update() 는 PATCH /api/me/email 성공 후 호출해 jwt 토큰을
+  // 재발급시킨다 (이메일을 token.email 에 반영 → 후속 /api/checkout 의
+  // session.user.email 가드 통과).
+  const { data: session, update: updateSession } = useSession()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [loadingCredit, setLoadingCredit] = useState<string | null>(null)
   // 전자상거래법 §17 ②항 5호 — 디지털 콘텐츠 청약철회 제한은 사용자가
@@ -115,6 +122,10 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   // pendingPack = 모달이 띄워진 결제 시도의 pack id; 모달의 confirm 시
   // 이 id 로 실제 checkout 호출.
   const [pendingPack, setPendingPack] = useState<CreditPackType | null>(null)
+  // 이메일이 비어 있어 EmailCollectionModal 단계에 막힌 결제 시도의 pack
+  // id. 이메일 저장 성공하면 이 값을 pendingPack 로 옮겨 RefundConsentModal
+  // 로 진행.
+  const [emailPendingPack, setEmailPendingPack] = useState<CreditPackType | null>(null)
   const baseCreditPriceUsd = CREDIT_PACKS.mini.perCreditUsd
 
   useEffect(() => {
@@ -177,10 +188,38 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   const formatKrw = (value: number) => `₩${value.toLocaleString('ko-KR')}`
   const formatUsd = (value: number) => `$${value.toFixed(2)}`
 
-  // 결제 시도 진입점 — 사용자가 카드의 [구매] 누름. 모달로 동의 받고 진짜
-  // 결제 흐름은 runCheckout 에서.
+  // 결제 시도 진입점 — 사용자가 카드의 [구매] 누름.
+  // 1) session.user.email 없으면 → EmailCollectionModal 먼저 띄움
+  // 2) email 있으면 → RefundConsentModal 로 바로 진행
+  // 진짜 결제 흐름은 둘 다 통과한 뒤 runCheckout 에서.
   function handleBuyCredit(packId: CreditPackType) {
+    const currentEmail = session?.user?.email?.trim()
+    if (!currentEmail) {
+      setEmailPendingPack(packId)
+      return
+    }
     setPendingPack(packId)
+  }
+
+  // EmailCollectionModal 에서 이메일 저장 성공 시 호출. 세션을 강제로
+  // 새로고침해 token.email 이 반영된 뒤 RefundConsentModal 로 이어준다.
+  // update() 가 새 token 을 받아오기 전에 RefundConsent → runCheckout 으로
+  // 넘어가면 server side 세션이 아직 옛 token 을 들고 있을 수 있어
+  // /api/checkout 에서 다시 invalid_email 로 reject 될 수 있다. 그래서
+  // await 으로 갱신 완료를 기다린 뒤 setPendingPack 한다.
+  async function handleEmailSaved(savedEmail: string) {
+    const pack = emailPendingPack
+    try {
+      await updateSession({ email: savedEmail })
+    } catch (err) {
+      // update 실패해도 다음 결제 시도 시 fresh GET /api/auth/session 으로
+      // 어차피 잡힌다. 사용자 흐름은 막지 않는다.
+      logger.warn('[pricing] session update after email save failed', err)
+    }
+    setEmailPendingPack(null)
+    if (pack) {
+      setPendingPack(pack)
+    }
   }
 
   // 실제 결제 — RefundConsentModal 의 confirm 콜백에서 호출.
@@ -410,6 +449,18 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           </div>
         </section>
       </main>
+
+      {/* 이메일 보충 모달 — session.user.email 이 비어 있을 때만 노출.
+          저장 성공 시 handleEmailSaved 에서 세션 갱신 후 RefundConsentModal
+          로 이어준다. */}
+      <EmailCollectionModal
+        open={emailPendingPack !== null}
+        onClose={() => setEmailPendingPack(null)}
+        onSaved={(email) => {
+          void handleEmailSaved(email)
+        }}
+        locale={isKo ? 'ko' : 'en'}
+      />
 
       {/* 결제 직전 청약철회 제한 동의 모달. pendingPack 가 set 되면 노출.
           confirm 시 runCheckout 로 실제 Stripe 흐름 시작. */}
