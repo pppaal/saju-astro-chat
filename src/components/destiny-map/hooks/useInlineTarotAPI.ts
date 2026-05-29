@@ -40,7 +40,7 @@ interface UseInlineTarotAPIOptions {
 
 export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarotAPIOptions) {
   const { state, actions } = stateManager
-  const { showDepleted } = useCreditModal()
+  const { showDepleted, showGuestLimit } = useCreditModal()
   const {
     selectedSpread,
     selectedCategory,
@@ -132,6 +132,9 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
           // it shows up in logs for diagnosis.
           if (res.status === 402) {
             showDepleted()
+          } else if (res.status === 401 && res.headers.get('x-guest-limit-reached') === '1') {
+            // 비로그인 무료 체험 한도 — 예전엔 조용히 무시했음. 로그인 유도 모달.
+            showGuestLimit()
           }
           throw new Error(`Interpretation failed (${res.status})`)
         }
@@ -280,6 +283,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       defaultOverallMessage,
       defaultGuidance,
       showDepleted,
+      showGuestLimit,
     ]
   )
 
@@ -319,6 +323,9 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
         // 크레딧 소진(402) → 조용한 실패 대신 전역 크레딧 안내 모달.
         if (res.status === 402) {
           showDepleted()
+        } else if (res.status === 401 && res.headers.get('x-guest-limit-reached') === '1') {
+          // 비로그인 무료 체험 한도 — 로그인 유도 모달.
+          showGuestLimit()
         }
         throw new Error(`Failed to draw cards: ${res.status}`)
       }
@@ -344,7 +351,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
     } finally {
       actions.setIsDrawing(false)
     }
-  }, [selectedSpread, selectedCategory, actions, fetchInterpretation, showDepleted])
+  }, [selectedSpread, selectedCategory, actions, fetchInterpretation, showDepleted, showGuestLimit])
 
   // Save tarot reading to database
   const saveReading = useCallback(async () => {

@@ -34,7 +34,7 @@ export function FollowupChat({
   readingId,
 }: FollowupChatProps) {
   const isKo = language === 'ko'
-  const { showDepleted } = useCreditModal()
+  const { showDepleted, showGuestLimit } = useCreditModal()
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<Turn[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -195,8 +195,9 @@ export function FollowupChat({
           if (mountedRef.current) showDepleted()
           throw new Error('insufficient_credits')
         }
-        // 401 → 게스트 한도 도달 또는 미인증. 메시지로 안내.
+        // 401 → 게스트 한도 도달 또는 미인증. 로그인 유도 모달 + 메시지로 안내.
         if (response.status === 401) {
+          if (mountedRef.current) showGuestLimit()
           throw new Error('guest_or_login_required')
         }
         const errBody = await response.json().catch(() => ({}))

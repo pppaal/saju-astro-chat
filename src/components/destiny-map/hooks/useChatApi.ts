@@ -67,7 +67,7 @@ export function useChatApi({
 }: UseChatApiOptions): UseChatApiReturn {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
-  const { showDepleted } = useCreditModal()
+  const { showDepleted, showGuestLimit } = useCreditModal()
 
   const [loading, setLoading] = React.useState(false)
   const [retryCount, setRetryCount] = React.useState(0)
@@ -229,6 +229,7 @@ export function useChatApi({
 
           if (res.status === 401 && res.headers.get('x-guest-limit-reached') === '1') {
             logger.info('[Chat] Guest counselor limit reached')
+            showGuestLimit()
             throw new Error('GUEST_LIMIT_REACHED')
           }
 
@@ -266,7 +267,7 @@ export function useChatApi({
         throw error
       }
     },
-    [ragSessionId, sessionIdRef, showDepleted]
+    [ragSessionId, sessionIdRef, showDepleted, showGuestLimit]
   )
 
   // Process SSE stream response using StreamProcessor

@@ -84,7 +84,7 @@ function CompatibilityCounselorContent() {
   const { locale } = useI18n()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { showDepleted } = useCreditModal()
+  const { showDepleted, showGuestLimit } = useCreditModal()
 
   const [persons, setPersons] = useState<PersonData[]>([])
   const [person1Saju, setPerson1Saju] = useState<Record<string, unknown> | null>(null)
@@ -757,7 +757,8 @@ function CompatibilityCounselorContent() {
               : 'Login required for this premium feature.'
           )
         } else if (errMsg === 'guest_limit_reached') {
-          // 게스트 무료 2 회 한도 — 운명상담사와 동일 카피.
+          // 게스트 무료 2 회 한도 — 로그인 유도 모달 + 인라인 안내(모달 닫아도 남게).
+          showGuestLimit()
           setError(
             isKo
               ? '궁합 상담 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.'
@@ -802,6 +803,7 @@ function CompatibilityCounselorContent() {
       chatSessionId,
       cvText,
       showDepleted,
+      showGuestLimit,
     ]
   )
 
