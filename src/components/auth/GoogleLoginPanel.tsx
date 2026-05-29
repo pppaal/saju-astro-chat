@@ -2,7 +2,8 @@
 
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { isInAppBrowser } from '@/lib/auth/detectInAppBrowser'
 
 interface GoogleLoginPanelProps {
   locale: 'ko' | 'en'
@@ -53,6 +54,14 @@ export default function GoogleLoginPanel({
   const [agreed, setAgreed] = useState(false)
   // 동의 안 한 상태로 버튼 눌렀을 때만 빨갛게 강조. 사용자에게 "여기 눌러야 해요" 시각 안내.
   const [showWarn, setShowWarn] = useState(false)
+  // In-app webviews (KakaoTalk, Naver, Instagram, ...) trigger Google's
+  // `disallowed_useragent` 403 with no path back into our app. Detect on mount
+  // and warn before the user ever taps "Continue with Google". Hydration-safe:
+  // false during SSR, set on the first client effect.
+  const [inApp, setInApp] = useState(false)
+  useEffect(() => {
+    setInApp(isInAppBrowser())
+  }, [])
 
   const handleSignIn = () => {
     if (!agreed) {
@@ -60,6 +69,17 @@ export default function GoogleLoginPanel({
       return
     }
     void signIn('google', { callbackUrl })
+  }
+
+  const copyCurrentUrl = async () => {
+    if (typeof window === 'undefined') return
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+    } catch {
+      // Older webviews lack the clipboard API; users can still long-press the
+      // address bar. Silent failure is fine — the warning text already tells
+      // them what to do.
+    }
   }
 
   return (
@@ -74,6 +94,32 @@ export default function GoogleLoginPanel({
       {errorMessage && (
         <div className="rounded-md border border-red-400/20 bg-red-500/10 px-3 py-2 text-[12px] text-red-200">
           {errorMessage}
+        </div>
+      )}
+
+      {inApp && (
+        <div
+          data-testid="inapp-browser-warning"
+          role="alert"
+          className="rounded-md border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-100"
+        >
+          <p className="font-medium">
+            {isKo
+              ? '이 화면에서는 Google 로그인이 차단됩니다.'
+              : 'Google sign-in is blocked in this view.'}
+          </p>
+          <p className="mt-1 text-amber-100/85">
+            {isKo
+              ? '오른쪽 위 메뉴(⋮ 또는 ⋯)에서 "다른 브라우저로 열기"를 선택해 Chrome 또는 Safari로 열어 주세요.'
+              : 'Open this page in Chrome or Safari (via the top-right menu → "Open in browser") to continue.'}
+          </p>
+          <button
+            type="button"
+            onClick={copyCurrentUrl}
+            className="mt-2 inline-flex items-center rounded-md border border-amber-300/40 px-2 py-1 text-[11px] font-medium text-amber-100 hover:bg-amber-400/15"
+          >
+            {isKo ? '링크 복사' : 'Copy link'}
+          </button>
         </div>
       )}
 
