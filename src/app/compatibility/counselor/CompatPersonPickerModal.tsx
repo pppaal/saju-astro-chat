@@ -18,6 +18,7 @@ import { useCityAutocomplete } from '@/hooks/useCityAutocomplete'
 import { getStoredBirthInfo, normGender, timeToState } from '@/app/(main)/birthInfoStorage'
 import { validatePersons } from '../validatePersons'
 import { PersonCard, SubmitButton, type LoadOption } from '../components'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import compatStyles from '../Compatibility.module.css'
 import styles from './CompatPersonPickerModal.module.css'
 
@@ -55,6 +56,8 @@ export function CompatPersonPickerModal({
   const normalizedLocale: 'ko' | 'en' = locale.toLowerCase().startsWith('ko') ? 'ko' : 'en'
   const isKo = normalizedLocale === 'ko'
   const { data: session, status } = useSession()
+  // 부모가 조건부 mount 하므로 mount=open. 언제나 true 로 전달.
+  const trapRef = useFocusTrap(true)
 
   const { count, persons, setPersons, updatePerson, fillFromCircle } = useCompatibilityForm(
     2,
@@ -261,7 +264,7 @@ export function CompatPersonPickerModal({
 
   return (
     <div className={styles.scrim}>
-      <div className={styles.modal} role="dialog" aria-modal="true">
+      <div ref={trapRef} className={styles.modal} role="dialog" aria-modal="true">
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>
             {title ?? compatT('compatibilityPage.analysisTitle', 'Compatibility Analysis')}

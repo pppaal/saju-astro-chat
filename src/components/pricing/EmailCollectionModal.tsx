@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 // /api/checkout 의 isValidEmail 과 동일한 정규식. zod 스키마 (서버) 와도
 // 동일. 클라이언트에서 미리 invalid 를 거르고, 서버는 최종 가드.
@@ -43,6 +44,7 @@ export function EmailCollectionModal({
   const [submitting, setSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const inputRef = React.useRef<HTMLInputElement | null>(null)
+  const trapRef = useFocusTrap(open)
 
   // 모달 close 시 state reset — 다음에 다시 열 때 깨끗하게.
   React.useEffect(() => {
@@ -133,6 +135,7 @@ export function EmailCollectionModal({
 
   return (
     <div
+      ref={trapRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="email-collection-title"

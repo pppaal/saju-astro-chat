@@ -33,6 +33,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { clearClientCache, clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 import { logger } from '@/lib/logger'
+import { copyToClipboard } from '@/lib/utils/clipboard'
 import { ProfileEditModal } from './components/ProfileEditModal'
 import { CircleAddModal } from './components/CircleAddModal'
 // Firebase 직접 업로드는 NextAuth/Firebase Auth 분리로 인한 CORS·규칙
@@ -594,12 +595,12 @@ export default function ProfilePage() {
 
   const handleCopyReferral = async () => {
     if (!referral?.referralUrl) return
-    try {
-      await navigator.clipboard.writeText(referral.referralUrl)
+    const ok = await copyToClipboard(referral.referralUrl)
+    if (ok) {
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
-    } catch (err) {
-      logger.warn('[profile/referral] clipboard failed', err)
+    } else {
+      logger.warn('[profile/referral] clipboard failed')
     }
   }
 

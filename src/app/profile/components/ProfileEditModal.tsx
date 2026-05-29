@@ -10,6 +10,7 @@ import {
   type BirthFieldsClasses,
   type BirthFieldsPatch,
 } from '@/components/birth/BirthInfoFields'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 // Light field styling that matches the profile page's premium white
 // surface. Passed to BirthInfoFields so the shared (dark-default) form
@@ -56,6 +57,7 @@ export function ProfileEditModal({
   onSaved,
 }: ProfileEditModalProps) {
   const t = (ko: string, en: string) => (locale === 'ko' ? ko : en)
+  const trapRef = useFocusTrap(open)
 
   const [name, setName] = useState(initial.name ?? '')
   const [birthDate, setBirthDate] = useState(initial.birthDate ?? '')
@@ -142,6 +144,7 @@ export function ProfileEditModal({
 
   return (
     <div
+      ref={trapRef}
       className="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(28,25,23,0.65)] sm:items-center"
       onClick={onClose}
     >

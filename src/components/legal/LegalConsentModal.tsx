@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { logger } from '@/lib/logger'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import styles from './LegalConsentModal.module.css'
 
 // 첫 로그인 후 (또는 LEGAL_VERSION bump 후) 모달을 띄워서
@@ -25,6 +26,7 @@ export default function LegalConsentModal() {
   const [checked, setChecked] = useState({ terms: false, privacy: false, age: false })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const trapRef = useFocusTrap(needsConsent)
 
   // 로그인 직후 동의 상태를 조회. 게이트하기 전까지 모달은 안 보인다 (깜빡임 방지).
   useEffect(() => {
@@ -84,6 +86,7 @@ export default function LegalConsentModal() {
 
   return (
     <div
+      ref={trapRef}
       className={styles.backdrop}
       role="dialog"
       aria-modal="true"

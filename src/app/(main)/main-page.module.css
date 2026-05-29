@@ -315,27 +315,29 @@
 
 /* CTA Section */
 
+/* iOS Safari 는 input/textarea/select 의 font-size 가 16px 미만이면
+   포커스 시 자동으로 확대(zoom-in) 후 원래대로 안 돌아옴. BirthInfoModal
+   이나 chat input 에서 매번 발생하던 거슬림.
+   iPad Safari (>=768px) 도 같은 자동 줌인이 일어나기 때문에 미디어 쿼리
+   밖으로 빼서 모든 너비에 적용한다. */
+.modalInput,
+.homeChatTextarea,
+.modalCancel,
+.modalSave,
+:global(input[type='text']),
+:global(input[type='email']),
+:global(input[type='number']),
+:global(input[type='tel']),
+:global(input[type='date']),
+:global(input[type='time']),
+:global(textarea),
+:global(select) {
+  font-size: 16px !important;
+}
+
 @media (max-width: 768px) {
   .particleCanvas {
     display: none;
-  }
-
-  /* iOS Safari 는 input/textarea/select 의 font-size 가 16px 미만이면
-     포커스 시 자동으로 확대(zoom-in) 후 원래대로 안 돌아옴. BirthInfoModal
-     이나 chat input 에서 매번 발생하던 거슬림 → 모바일에서만 16px 강제. */
-  .modalInput,
-  .homeChatTextarea,
-  .modalCancel,
-  .modalSave,
-  :global(input[type='text']),
-  :global(input[type='email']),
-  :global(input[type='number']),
-  :global(input[type='tel']),
-  :global(input[type='date']),
-  :global(input[type='time']),
-  :global(textarea),
-  :global(select) {
-    font-size: 16px !important;
   }
 
   .scrollArrow span {

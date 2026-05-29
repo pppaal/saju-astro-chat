@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Sparkles } from 'lucide-react'
 import { drawClarifierCard, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface ClarifierCardModalProps {
   isOpen: boolean
@@ -24,6 +25,7 @@ export default function ClarifierCardModal({
 }: ClarifierCardModalProps) {
   const isKo = lang === 'ko'
   const [card, setCard] = useState<ClarifierCard | null>(null)
+  const trapRef = useFocusTrap(isOpen)
 
   // 모달이 열릴 때마다 새 카드를 뽑는다. 닫히면 다음 오픈을 위해 reset.
   useEffect(() => {
@@ -54,6 +56,7 @@ export default function ClarifierCardModal({
 
   return (
     <div
+      ref={trapRef}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
