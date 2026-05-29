@@ -1,14 +1,14 @@
-## What is a Destiny Map?
+## What is a Destiny Counselor reading?
 
-A Destiny Map is a comprehensive life analysis that integrates multiple divination traditions—Eastern and Western—into a single, holistic picture of your life's journey. Where a single-system reading answers one question well, a Destiny Map cross-references several. It weaves the timing-oriented insight of Korean-Chinese Saju with the psychological depth of Western astrology, layering in complementary symbolic traditions where they add clarity rather than noise.
+A Destiny Counselor reading is a comprehensive life analysis that integrates multiple divination traditions—Eastern and Western—into a single, holistic picture of your life's journey. Where a single-system reading answers one question well, a Destiny Counselor reading cross-references several. It weaves the timing-oriented insight of Korean-Chinese Saju with the psychological depth of Western astrology, layering in complementary symbolic traditions where they add clarity rather than noise.
 
 The philosophy is closer to Dane Rudhyar's humanistic astrology than to fatalistic forecasting: your chart is treated as a map of potential, not a script of fixed events. The integration's job is to help you understand yourself and act consciously, not to over-determine your future.
 
-## The Components of Your Destiny Map
+## The Components of Your Destiny Counselor reading
 
 ### 1. Foundation Layer: Birth Data Analysis
 
-Your Destiny Map begins with precise birth information:
+Your reading begins with precise birth information:
 
 - **Date of birth**: Anchors both your Saju pillars and your Western zodiac positions
 - **Time of birth**: Required for an accurate Hour Pillar in Saju (which encodes the most personal, hour-specific energies) and for house cusps and the Ascendant in Western astrology
@@ -16,7 +16,7 @@ Your Destiny Map begins with precise birth information:
 
 ### 2. Eastern Wisdom: Saju (Four Pillars)
 
-Saju reads the energetic quality of the exact moment you were born using the lunisolar sexagenary cycle. From it, your Destiny Map draws:
+Saju reads the energetic quality of the exact moment you were born using the lunisolar sexagenary cycle. From it, your reading draws (for a standalone introduction to Saju, see our [What is Saju? guide](/blog/what-is-saju-four-pillars-destiny)):
 
 - **Four Pillars**: Year, Month, Day, and Hour—each a pair of one Heavenly Stem and one Earthly Branch
 - **Day Master (일간)**: The Heavenly Stem of the Day Pillar, treated as the core "you"—one of ten possible elemental identities (Yin/Yang × five elements)
@@ -28,7 +28,7 @@ Saju's particular strength is timing: it has been used in Korea for centuries to
 
 ### 3. Western Framework: Astrological Blueprint
 
-Western astrology (in its tropical, psychological form) contributes a different lens—archetypal and developmental rather than calendrical:
+Western astrology (in its tropical, psychological form) contributes a different lens—archetypal and developmental rather than calendrical (for a standalone birth chart deep-dive, see our [Western Astrology guide](/blog/understanding-western-astrology-birth-chart)):
 
 - **Sun, Moon, Ascendant**: Conscious identity, emotional inner life, and the persona you meet the world with
 - **Personal and outer planets**: Mercury, Venus, and Mars describe how you think, love, and act; Jupiter through Pluto describe generational and transformative themes
@@ -39,7 +39,7 @@ Where Saju asks "what is the energy of this moment?", Western astrology asks "wh
 
 ### 4. Synthesizing Multiple Traditions
 
-Rather than stacking every symbolic system on top of every other, a good Destiny Map uses each tradition for what it does best and lets the others stay quiet. Saju anchors timing and elemental balance. Western astrology anchors psychological structure and developmental themes. Other traditions—I Ching for situational guidance, Tarot for reflective inquiry, Eastern lunar mansions for nuance—are consulted as supporting voices when a specific question calls for them, not added by default.
+Rather than stacking every symbolic system on top of every other, a good Destiny Counselor reading uses each tradition for what it does best and lets the others stay quiet. Saju anchors timing and elemental balance. Western astrology anchors psychological structure and developmental themes. Other traditions—I Ching for situational guidance, Tarot for reflective inquiry, Eastern lunar mansions for nuance—are consulted as supporting voices when a specific question calls for them, not added by default.
 
 This selective approach matters. Mixing too many systems indiscriminately produces what forecasters call false precision: the more overlapping symbols you pile on, the easier it becomes to find a "hit" for any claim, which feels accurate but isn't diagnostic. A trustworthy integration favors convergence over volume.
 
@@ -65,7 +65,7 @@ Professional directions suited to your nature. Integrates Saju's career and weal
 
 Your developmental arc over time. Synthesizes long-term Saju cycles (Daeun and annual Seun) with Western transits and progressions—especially the outer-planet transits that mark structural life changes.
 
-## Reading Your Destiny Map
+## Reading Your Chart
 
 ### The Overview Section
 
@@ -115,7 +115,7 @@ These tensions are often the most useful part of the reading, because they name 
 
 ### Daily Decisions
 
-Use your Destiny Map for:
+Use your reading for:
 
 - Choosing favorable days for important events, weighted by Saju daily pillars
 - Understanding the emotional weather of the day
@@ -123,7 +123,7 @@ Use your Destiny Map for:
 
 ### Major Life Choices
 
-Consult your map when:
+Consult your reading when:
 
 - Changing careers or starting a business
 - Making relationship commitments
@@ -140,7 +140,7 @@ Use insights for:
 
 ## The Annual Destiny Update
 
-Your core Destiny Map is fixed at birth, but the influences acting on it shift. Each year brings:
+Your core reading is fixed at birth, but the influences acting on it shift. Each year brings:
 
 - A new Saju Seun (annual pillar) interacting with your natal chart and current Daeun
 - Western transits—especially of Jupiter, Saturn, and the outer planets—to your personal points
@@ -148,17 +148,17 @@ Your core Destiny Map is fixed at birth, but the influences acting on it shift. 
 
 ## Common Questions
 
-**How accurate is a Destiny Map?**
+**How accurate is a Destiny Counselor reading?**
 An integrated reading is most useful where systems converge. It is not "more accurate" in a predictive sense simply because it uses more inputs—be wary of any reading that claims to be. Its strength is depth and self-recognition, not certainty.
 
 **Can I change my destiny?**
-Your Destiny Map shows tendencies and potentials, not fixed outcomes. As Rudhyar framed it, the chart is a map of who you can become; your choices determine which version of that potential you live out.
+Your reading shows tendencies and potentials, not fixed outcomes. As Rudhyar framed it, the chart is a map of who you can become; your choices determine which version of that potential you live out.
 
-**How often should I consult my map?**
-Review the core map once, then revisit timing layers (annual Seun, current Daeun, major transits) once a year or before significant decisions.
+**How often should I consult my reading?**
+Review the core reading once, then revisit timing layers (annual Seun, current Daeun, major transits) once a year or before significant decisions.
 
 ## Conclusion
 
-Your Destiny Map is like a GPS for life's journey. It doesn't drive for you, but it shows the terrain ahead, highlights scenic routes, and warns of difficult passages. Used well—with attention to where traditions converge and humility about where they don't—it becomes a tool for clearer self-knowledge and more conscious choice.
+Your Destiny Counselor reading is like a GPS for life's journey. It doesn't drive for you, but it shows the terrain ahead, highlights scenic routes, and warns of difficult passages. Used well—with attention to where traditions converge and humility about where they don't—it becomes a tool for clearer self-knowledge and more conscious choice.
 
-Ready to discover your complete life blueprint? Generate your personalized Destiny Map with our [Destiny Counselor](/destiny-counselor) and explore the wisdom of integrated divination.
+Ready to discover your complete life blueprint? Get your personalized Destiny Counselor reading with our [Destiny Counselor](/destiny-counselor) and explore the wisdom of integrated divination.
