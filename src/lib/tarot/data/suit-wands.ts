@@ -21,7 +21,7 @@ export const wandsCards: RawCard[] = [
       meaningKo:
         '완드 에이스가 번개처럼 터져 나옵니다—순수한 창조의 불이 새로운 시작을 점화합니다. 신성한 영감의 불꽃이 당신의 삶에 들어왔고, 성장, 열정, 창조적 표현을 위한 놀라운 잠재력을 가져옵니다. 이것은 태어나기를 기다리는 새로운 사업, 아이디어, 또는 장의 씨앗입니다. 구름에서 나온 손이 이 완드를 제공합니다—받으시겠습니까? 직업에서는 영혼에 불을 붙이는 흥미진진한 새 프로젝트나 사업 기회를 기대하세요. 사랑에서는 열정이 다시 점화되거나 스릴 있는 새 끌림이 나타납니다. 창조적으로, 당신은 근원 에너지에 연결되어 있습니다; 아이디어가 쉽게 흐릅니다. 완드 에이스는 말합니다: 불이 뜨거울 때 이 영감에 따라 지금 행동하세요. 망설일 때가 아닙니다—열정이 당신을 앞으로 나아가게 할 것입니다.',
       advice: 'Act on your inspiration now. This is the seed of something great.',
-      adviceKo: '영감에 지금 행동하세요. 위대한 것의 씨앗입니다.',
+      adviceKo: '영감에 따라 지금 행동하세요. 위대한 것의 씨앗입니다.',
     },
     reversed: {
       keywords: [
@@ -303,7 +303,7 @@ export const wandsCards: RawCard[] = [
       meaningKo:
         '완드 10은 열 개의 무거운 완드 아래서 힘겹게 나아가며 앞길을 거의 볼 수 없는 인물을 보여줍니다. 너무 많은 것을 짊어졌습니다—책임, 약속, 기대—그리고 짐이 압도적이 되어가고 있습니다. 아마도 초기 성공이 감당할 수 있는 것보다 더 많은 요구로 이어졌거나, 누적되는 무게를 고려하지 않고 모든 것에 예라고 했을 수 있습니다. 목적지가 보이지만, 도달하려면 한계를 시험하는 짐을 져야 합니다. 직업에서 과로가 열정을 짓누르려 위협합니다; 여러 사람의 일을 하고 있습니다. 사랑에서 혼자 관계를 이끌거나 파트너의 문제의 무게를 지고 있을 수 있습니다. 완드 10은 묻습니다: 이 짐이 정말 당신이 져야 할 것인가요? 그중 어떤 것을 위임하거나, 내려놓거나, 재협상할 수 있나요? 당신은 강하지만, 힘에도 한계가 있습니다.',
       advice: "Delegate some responsibilities. You don't have to carry everything.",
-      adviceKo: '책임 일부를 위임하세요. 모든 것을 짊어질 필요 없습니다.',
+      adviceKo: '책임 일부를 위임하세요. 모든 것을 짊어질 필요는 없습니다.',
     },
     reversed: {
       keywords: [
@@ -335,7 +335,7 @@ export const wandsCards: RawCard[] = [
       meaning:
         'The Page of Wands embodies youthful enthusiasm, creative spark, and the excited energy of new beginnings. This messenger arrives with exciting news or opportunities—perhaps an invitation to adventure, a new creative project, or an inspiring idea that sets your imagination on fire. The Page has the courage to explore the unknown, unafraid of failure because every experience is a learning opportunity. In career, expect inspiring messages, new project opportunities, or the arrival of a young, creative colleague. In love, this could indicate a new romance full of passion and excitement, or playful energy returning to an existing relationship. The Page of Wands encourages you to embrace your inner child—curious, fearless, and ready to discover what life has to offer.',
       meaningKo:
-        '완드 시종은 젊은 열정, 창조적 불꽃, 그리고 새로운 시작의 흥분된 에너지를 구현합니다. 이 메신저가 흥미로운 소식이나 기회를 가지고 옵니다—아마도 모험으로의 초대, 새로운 창조적 프로젝트, 또는 상상력에 불을 붙이는 영감 주는 아이디어. 시종은 모든 경험이 배움의 기회이기 때문에 실패를 두려워하지 않고 미지를 탐험할 용기가 있습니다. 직업에서 영감을 주는 메시지, 새로운 프로젝트 기회, 또는 젊고 창의적인 동료의 도착을 기대하세요. 사랑에서 열정과 흥분으로 가득한 새로운 로맨스, 또는 기존 관계로 돌아오는 장난기 있는 에너지를 나타낼 수 있습니다. 완드 시종은 내면 아이를 받아들이라고 권장합니다—호기심 있고, 두려움 없고, 삶이 제공하는 것을 발견할 준비가 된.',
+        '완드 시종은 젊은 열정, 창조적 불꽃, 그리고 새로운 시작의 흥분된 에너지를 구현합니다. 이 메신저가 흥미로운 소식이나 기회를 가지고 옵니다—아마도 모험으로의 초대, 새로운 창조적 프로젝트, 또는 상상력에 불을 붙이는 영감 주는 아이디어. 시종은 모든 경험이 배움의 기회이기 때문에 실패를 두려워하지 않고 미지를 탐험할 용기가 있습니다. 직업에서 영감을 주는 메시지, 새로운 프로젝트 기회, 또는 젊고 창의적인 동료의 도착을 기대하세요. 사랑에서 열정과 흥분으로 가득한 새로운 로맨스, 또는 기존 관계로 돌아오는 장난기 있는 에너지를 나타낼 수 있습니다. 완드 시종은 내면의 아이를 받아들이라고 권장합니다—호기심 있고, 두려움 없고, 삶이 제공하는 것을 발견할 준비가 된.',
       advice: 'Explore with enthusiasm. Follow your creative spark.',
       adviceKo: '열정으로 탐험하세요. 창의적 영감을 따르세요.',
     },
@@ -363,7 +363,7 @@ export const wandsCards: RawCard[] = [
       meaning:
         "The Knight of Wands charges forward on his fiery horse, unstoppable in his pursuit of passion and adventure. This is the card of bold action, fearless exploration, and the courage to chase your desires without hesitation. Energy and enthusiasm are at peak levels—you feel ready to conquer the world. This Knight doesn't wait for permission; he acts on inspiration the moment it strikes. In career, expect rapid progress, travel for work, or the energy to push through obstacles. In love, passion ignites quickly—a whirlwind romance or exciting adventure with a partner. But be mindful: the Knight can be impulsive, acting before thinking. The Knight of Wands encourages you to embrace your boldest self while remembering that fire, uncontrolled, can burn. Channel your passion with purpose.",
       meaningKo:
-        '완드 기사가 불 같은 말을 타고 돌진합니다, 열정과 모험의 추구에서 멈출 수 없습니다. 이것은 대담한 행동, 두려움 없는 탐험, 그리고 망설임 없이 욕구를 쫓을 용기의 카드입니다. 에너지와 열정이 최고조에 달합니다—세상을 정복할 준비가 된 느낌입니다. 이 기사는 허락을 기다리지 않습니다; 영감이 오는 순간 행동합니다. 직업에서 빠른 진전, 출장, 또는 장애물을 돌파할 에너지를 기대하세요. 사랑에서 열정이 빠르게 점화됩니다—회오리 로맨스나 파트너와의 흥미진진한 모험. 하지만 주의하세요: 기사는 생각하기 전에 행동하며 충동적일 수 있습니다. 완드 기사는 가장 대담한 자신을 받아들이되, 통제되지 않은 불은 태울 수 있음을 기억하라고 권장합니다. 열정을 목적을 가지고 방향 지으세요.',
+        '완드 기사가 불 같은 말을 타고 돌진합니다, 열정과 모험의 추구에서 멈출 수 없습니다. 이것은 대담한 행동, 두려움 없는 탐험, 그리고 망설임 없이 욕구를 쫓을 용기의 카드입니다. 에너지와 열정이 최고조에 달합니다—세상을 정복할 준비가 된 느낌입니다. 이 기사는 허락을 기다리지 않습니다; 영감이 오는 순간 행동합니다. 직업에서 빠른 진전, 출장, 또는 장애물을 돌파할 에너지를 기대하세요. 사랑에서 열정이 빠르게 점화됩니다—회오리 로맨스나 파트너와의 흥미진진한 모험. 하지만 주의하세요: 기사는 생각하기 전에 행동하며 충동적일 수 있습니다. 완드 기사는 가장 대담한 자신을 받아들이되, 통제되지 않은 불은 태울 수 있음을 기억하라고 권장합니다. 목적을 가지고 열정의 방향을 정하세요.',
       advice: 'Channel your passion into action. Adventure awaits!',
       adviceKo: '열정을 행동으로 옮기세요. 모험이 기다립니다!',
     },
@@ -391,7 +391,7 @@ export const wandsCards: RawCard[] = [
       meaning:
         "The Queen of Wands sits on her throne with a sunflower in hand and a black cat at her feet—she embodies confidence, courage, and the warmth that draws others to her light. This Queen knows her worth and isn't afraid to shine. She is socially magnetic, creatively vibrant, and fiercely independent. When this card appears, it calls you to embody these qualities: believe in yourself, express your creativity boldly, and lead with warmth rather than force. In career, you command respect and attract opportunities through your confidence and charisma. In love, you are desirable, passionate, and bring excitement to relationships. The Queen of Wands may also represent a person in your life who embodies these qualities—warm, supportive, and encouraging of your growth. Let your inner fire illuminate the world around you.",
       meaningKo:
-        '완드 여왕은 손에 해바라기를 들고 발치에 검은 고양이와 함께 왕좌에 앉아 있습니다—자신감, 용기, 그리고 다른 사람을 그녀의 빛으로 끌어당기는 따뜻함을 구현합니다. 이 여왕은 자신의 가치를 알고 빛나는 것을 두려워하지 않습니다. 사교적으로 자석적이고, 창조적으로 생생하며, 맹렬하게 독립적입니다. 이 카드가 나타나면 이러한 자질을 구현하라고 부릅니다: 자신을 믿고, 창의성을 대담하게 표현하고, 힘보다 따뜻함으로 이끄세요. 직업에서 자신감과 카리스마를 통해 존경을 받고 기회를 끌어당깁니다. 사랑에서 바람직하고, 열정적이며, 관계에 흥분을 가져옵니다. 완드 여왕은 또한 이러한 자질을 구현하는 삶의 사람을 나타낼 수 있습니다—따뜻하고, 지지하며, 성장을 격려하는. 내면의 불이 주변 세상을 밝히게 하세요.',
+        '완드 여왕은 손에 해바라기를 들고 발치에 검은 고양이와 함께 왕좌에 앉아 있습니다—자신감, 용기, 그리고 다른 사람을 그녀의 빛으로 끌어당기는 따뜻함을 구현합니다. 이 여왕은 자신의 가치를 알고 빛나는 것을 두려워하지 않습니다. 사교적으로 자석적이고, 창조적으로 생생하며, 맹렬하게 독립적입니다. 이 카드가 나타나면 이러한 자질을 구현하라고 부릅니다: 자신을 믿고, 창의성을 대담하게 표현하고, 힘보다 따뜻함으로 이끄세요. 직업에서 자신감과 카리스마를 통해 존경을 받고 기회를 끌어당깁니다. 사랑에서 바람직하고, 열정적이며, 관계에 흥분을 가져옵니다. 완드 여왕은 또한 이러한 자질을 구현하는 삶 속 인물을 나타낼 수 있습니다—따뜻하고, 지지하며, 성장을 격려하는. 내면의 불이 주변 세상을 밝히게 하세요.',
       advice: 'Lead with confidence. Your charisma draws others to you.',
       adviceKo: '자신감 있게 이끄세요. 카리스마가 다른 이들을 끌어당깁니다.',
     },
