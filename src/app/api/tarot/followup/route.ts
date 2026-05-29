@@ -32,6 +32,7 @@ function ownerKeyFromReq(req: NextRequest): string {
 }
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { callClaude, isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
+import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { pickTarotFollowupRules } from '@/lib/tarot/promptShared'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
@@ -123,8 +124,29 @@ export const POST = withApiMiddleware(
         )
       }
 
-      const { spreadTitle, originalQuestion, overallMessage, cards, history, question, language } =
-        validated.data
+      const rawData = validated.data
+      // Sanitize every client-supplied free-text field before it gets
+      // concatenated into the prompt. Even though the current readingContext
+      // template uses markdown (not XML tags), the model still pays attention
+      // to `<...>`-shaped sequences and routes elsewhere DO wrap content in
+      // tags — so we normalize at the boundary. See src/lib/llm/promptSafety.ts.
+      const spreadTitle = sanitizeForXmlTagBoundary(rawData.spreadTitle)
+      const originalQuestion = rawData.originalQuestion
+        ? sanitizeForXmlTagBoundary(rawData.originalQuestion)
+        : undefined
+      const overallMessage = rawData.overallMessage
+        ? sanitizeForXmlTagBoundary(rawData.overallMessage)
+        : undefined
+      const cards = rawData.cards.map((c) => ({
+        ...c,
+        position: sanitizeForXmlTagBoundary(c.position),
+        positionKo: c.positionKo ? sanitizeForXmlTagBoundary(c.positionKo) : undefined,
+        name: sanitizeForXmlTagBoundary(c.name),
+        nameKo: c.nameKo ? sanitizeForXmlTagBoundary(c.nameKo) : undefined,
+      }))
+      const history = rawData.history
+      const question = sanitizeForXmlTagBoundary(rawData.question)
+      const language = rawData.language
 
       // follow-up 도 reading 호출과 동일하게 reading 크레딧 1회 차감. 가격
       // 모델은 "질문 1개 = 1 credit" 으로 단순; 팩 크레딧 자체가 2배라서
@@ -185,7 +207,10 @@ ${overallMessage ? `\n## Overall reading (reference)\n${overallMessage}` : ''}`
           : `[Caller] ${callerName} — address as 'Hi ${callerName},' naturally.\n\n`
         : ''
 
-      const priorTurns = (history || []).map((t) => ({ role: t.role, content: t.content }))
+      // sanitizePriorTurns rejects forged `system` roles, caps content,
+      // and strips `<`/`>` so replayed turns can't smuggle tag-close
+      // sequences into the prompt window. See src/lib/llm/promptSafety.ts.
+      const priorTurns = sanitizePriorTurns(history || [])
       const userPrompt = isKo
         ? `${callerLine}# 후속 질문\n${question}\n\n# 답변`
         : `${callerLine}# Follow-up question\n${question}\n\n# Answer`

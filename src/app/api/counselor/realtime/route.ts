@@ -17,6 +17,7 @@ import { buildDestinyContext } from '@/lib/destiny/counselorContext'
 import { getNowInTimezone } from '@/lib/datetime'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
+import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { logger } from '@/lib/logger'
 import { normalizeGender } from '@/lib/utils/gender'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -493,16 +494,31 @@ export async function POST(req: NextRequest) {
   const dialogTurns = body.messages.filter(
     (m): m is ChatMessage => m.role === 'user' || m.role === 'assistant'
   )
-  const priorTurns = dialogTurns.slice(0, -1).map((m) => ({ role: m.role, content: m.content }))
-  const rawUserPrompt = dialogTurns[dialogTurns.length - 1]?.content ?? ''
-  if (!rawUserPrompt.trim()) {
+  // Sanitize + validate prior turns from the client. Drops any forged
+  // role: 'system' turn, caps each content at 8KB, and replaces `<`/`>`
+  // with full-width chars so a replayed turn can't smuggle a tag-close
+  // (e.g. fake </birth_data>) into the prompt window. See promptSafety.ts.
+  const priorTurns = sanitizePriorTurns(dialogTurns.slice(0, -1))
+  const rawUserPromptRaw = dialogTurns[dialogTurns.length - 1]?.content ?? ''
+  if (!rawUserPromptRaw.trim()) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
   }
+  // Sanitize the latest user message before it gets concatenated next to
+  // server-injected XML tags (<daily_context>, <attached_file>) — without
+  // this, an attacker can paste `</birth_data>` or `<system>...</system>`
+  // and try to break out of the wrapping block. sanitizeForXmlTagBoundary
+  // replaces `<`/`>` with full-width equivalents that render identically
+  // but don't trigger the model's tag-close lexer.
+  const rawUserPrompt = sanitizeForXmlTagBoundary(rawUserPromptRaw)
   // Prepend the user's attached file (if any) as XML-tagged context on the
   // current turn. Kept out of the cached birth context so a different file
   // (or none) on the next turn doesn't get a stale cache hit.
-  const attachmentText =
+  const attachmentTextRaw =
     typeof body.cvText === 'string' ? body.cvText.trim().slice(0, MAX_ATTACHMENT_CHARS) : ''
+  // Strip tag-boundary chars from cvText before wrapping in <attached_file>
+  // — a malicious upload could otherwise close the tag early and inject
+  // adversarial instructions into the rest of the turn.
+  const attachmentText = sanitizeForXmlTagBoundary(attachmentTextRaw)
   // 호출자 이름 + 만 나이는 cachedUserContext 밖에서 주입 — 둘 다 휘발성
   // 메타라 cache prefix 에 들어가면 prompt-cache 무효화 (이름 변경 / 생일
   // 통과 시). 매 턴 userPrompt prefix 로 붙여 chart 데이터만으로 prefix
