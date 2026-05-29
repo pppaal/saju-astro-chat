@@ -246,19 +246,28 @@ export function useCounselorData(sp: SearchParams) {
             }),
           })
           if (!res.ok) return
-          const json = (await res.json()) as { data?: { chartData?: unknown } }
+          const json = (await res.json()) as {
+            data?: { chartData?: unknown; aspects?: unknown }
+          }
           const baseChart = json?.data?.chartData
           if (!baseChart) return
+          // aspects 는 chartData 와 별개 필드로 옴 — NatalChart 가 휠 안에 aspect
+          // 라인 그리려면 같이 흘려줘야 함. astro 객체에 합쳐서 저장.
+          const aspects = json?.data?.aspects
+          const astroWithAspects = {
+            ...(baseChart as Record<string, unknown>),
+            ...(aspects ? { aspects } : {}),
+          }
           setChartData((prev) => ({
             saju: prev?.saju,
-            astro: baseChart as Record<string, unknown>,
+            astro: astroWithAspects,
             advancedAstro: prev?.advancedAstro,
           }))
           // 캐시에 저장해서 다음 방문 때 즉시 hit
           try {
             saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
               saju: (saju as Record<string, unknown>) || undefined,
-              astro: baseChart as Record<string, unknown>,
+              astro: astroWithAspects,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
             })
           } catch {
