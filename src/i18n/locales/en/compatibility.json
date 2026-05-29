@@ -116,6 +116,33 @@
       "earth": "Earth",
       "air": "Air",
       "water": "Water"
+    },
+    "fromCircle": "My people",
+    "loadMyProfile": "My info",
+    "thisMonth": "This month",
+    "pairwiseMatrix": "1:1 Compatibility Matrix",
+    "synergyBreakdown": "Synergy Breakdown",
+    "groupRoles": "Group Roles",
+    "groupActivities": "Group Activities",
+    "groupElementDistribution": "Group Element Distribution",
+    "recommendedDays": "Recommended Days",
+    "timingGuide": "Timing Guide",
+    "growthActions": "Growth Actions",
+    "insights": {
+      "description": "In-depth Saju + Astrology analysis",
+      "viewDetailed": "View detailed analysis"
+    },
+    "chat": {
+      "startChat": "Start AI Chat",
+      "title": "Compatibility Counselor"
+    },
+    "tarot": {
+      "description": "Read your love forecast in cards",
+      "start": "View tarot cards"
+    },
+    "counselor": {
+      "connect": "Connect with AI Counselor",
+      "description": "Get deeper consultation"
     }
   },
   "compatibility": {
