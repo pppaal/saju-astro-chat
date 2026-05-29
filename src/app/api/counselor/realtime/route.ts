@@ -561,6 +561,11 @@ export async function POST(req: NextRequest) {
       : undefined
 
   return streamClaudeAsSSE({
+    // Client-disconnect propagation: req.signal aborts when the user closes
+    // the tab / unmounts mid-stream. streamClaudeAsSSE forwards this into
+    // the Anthropic fetch so we stop being billed for output tokens nobody
+    // will read.
+    abortSignal: req.signal,
     systemPrompt,
     userPrompt,
     cachedUserContext,
