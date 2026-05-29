@@ -23,6 +23,9 @@ export interface TarotState {
   drawnCards: DrawnCard[]
   revealedCount: number
   isDrawing: boolean
+  /** 서버(draw 라우트)가 발급한 단일-사용 nonce. interpret-stream 차감
+   *  면제(무료 재해석) 판정용. 미발급/게스트면 null. */
+  drawNonce: string | null
 
   // Interpretation state
   overallMessage: string
@@ -49,6 +52,7 @@ const initialState: TarotState = {
   drawnCards: [],
   revealedCount: 0,
   isDrawing: false,
+  drawNonce: null,
   overallMessage: '',
   cardInsights: [],
   guidance: '',
@@ -104,6 +108,7 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
       setSelectedCategory: (category: string) =>
         setState((prev) => ({ ...prev, selectedCategory: category })),
       setDrawnCards: (cards: DrawnCard[]) => setState((prev) => ({ ...prev, drawnCards: cards })),
+      setDrawNonce: (drawNonce: string | null) => setState((prev) => ({ ...prev, drawNonce })),
       incrementRevealedCount: () =>
         setState((prev) => ({ ...prev, revealedCount: prev.revealedCount + 1 })),
       setRevealedCount: (count: number) => setState((prev) => ({ ...prev, revealedCount: count })),
@@ -138,6 +143,7 @@ export function useInlineTarotState({ isOpen, initialConcern }: UseInlineTarotSt
           ...prev,
           drawnCards: [],
           revealedCount: 0,
+          drawNonce: null,
           overallMessage: '',
           cardInsights: [],
           guidance: '',
