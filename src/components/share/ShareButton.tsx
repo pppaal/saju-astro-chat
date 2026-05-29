@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
+import { copyToClipboard } from '@/lib/utils/clipboard'
 
 // 알림 문구 — 영문/한문 분기. 이전엔 모든 alert 가 한국어 하드코딩이라
 // 영문 사용자가 공유 누르면 한글 alert 보던 문제 해결.
@@ -155,21 +156,10 @@ export function ShareButton(props: ShareButtonProps) {
     setShowMenu(false)
   }
 
-  // 링크 복사
+  // 링크 복사 — Clipboard API + execCommand fallback (in-app webview / http).
   const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl)
-      alert(t.linkCopied)
-    } catch {
-      // fallback
-      const textarea = document.createElement('textarea')
-      textarea.value = shareUrl
-      document.body.appendChild(textarea)
-      textarea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textarea)
-      alert(t.linkCopied)
-    }
+    await copyToClipboard(shareUrl)
+    alert(t.linkCopied)
     setShowMenu(false)
   }
 

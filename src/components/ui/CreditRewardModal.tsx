@@ -2,6 +2,7 @@
 
 import { useI18n } from '@/i18n/I18nProvider'
 import { useModalDismiss, useModalTransition } from '@/hooks/useModalA11y'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import styles from './CreditDepletedModal.module.css'
 
 interface RewardItem {
@@ -28,6 +29,7 @@ export default function CreditRewardModal({ isOpen, rewards, onClose }: CreditRe
   const { isVisible, isAnimating } = useModalTransition(isOpen && rewards.length > 0, 220)
   // Esc 닫기 + body 스크롤 잠금.
   useModalDismiss(isOpen, onClose)
+  const trapRef = useFocusTrap(isOpen && rewards.length > 0)
 
   if (!isVisible || rewards.length === 0) return null
 
@@ -56,6 +58,7 @@ export default function CreditRewardModal({ isOpen, rewards, onClose }: CreditRe
 
   return (
     <div
+      ref={trapRef}
       className={`${styles.overlay} ${isAnimating ? styles.overlayVisible : ''}`}
       onClick={onClose}
       role="dialog"

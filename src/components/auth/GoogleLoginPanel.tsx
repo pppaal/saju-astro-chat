@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { isInAppBrowser } from '@/lib/auth/detectInAppBrowser'
 import { isStandalonePWA } from '@/lib/auth/detectPWA'
 import { useI18n } from '@/i18n/I18nProvider'
+import { copyToClipboard } from '@/lib/utils/clipboard'
 
 interface GoogleLoginPanelProps {
   locale: 'ko' | 'en'
@@ -80,13 +81,10 @@ export default function GoogleLoginPanel({
 
   const copyCurrentUrl = async () => {
     if (typeof window === 'undefined') return
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-    } catch {
-      // Older webviews lack the clipboard API; users can still long-press the
-      // address bar. Silent failure is fine — the warning text already tells
-      // them what to do.
-    }
+    // copyToClipboard handles HTTPS-only Clipboard API + execCommand fallback
+    // for in-app webviews. Silent failure is fine — warning text already tells
+    // users to long-press the address bar.
+    await copyToClipboard(window.location.href)
   }
 
   return (

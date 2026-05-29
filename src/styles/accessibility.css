@@ -259,3 +259,25 @@ button:disabled,
   clip: auto;
   white-space: normal;
 }
+
+/* =====================================================
+   WINDOWS HIGH CONTRAST MODE (forced-colors)
+   ===================================================== */
+/* Windows High Contrast Mode (forced-colors) — system overrides our gold/
+   gradient palette. Use system tokens (CanvasText, Highlight) for borders
+   and let SVGs adapt. */
+@media (forced-colors: active) {
+  button,
+  a,
+  [role="button"] {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+  }
+  *:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+  svg {
+    forced-color-adjust: auto;
+  }
+}

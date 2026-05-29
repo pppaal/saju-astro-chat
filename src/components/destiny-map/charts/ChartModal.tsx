@@ -11,6 +11,7 @@ import { CrossRefTable } from './atoms/CrossRefTable'
 import { PillarDrawer } from './atoms/PillarDrawer'
 import { DaeunTimeline } from './atoms/DaeunTimeline'
 import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface ChartModalProps {
   open: boolean
@@ -30,6 +31,7 @@ function hasDaeunList(saju: unknown): boolean {
 export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartModalProps) {
   const isKo = lang === 'ko'
   const router = useRouter()
+  const trapRef = useFocusTrap(open)
   // 셀 탭 → PillarDrawer. null 이면 닫힘.
   const [openPillar, setOpenPillar] = React.useState<'time' | 'day' | 'month' | 'year' | null>(null)
 
@@ -54,6 +56,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
 
   return (
     <div
+      ref={trapRef}
       className="chart-backdrop-in fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"

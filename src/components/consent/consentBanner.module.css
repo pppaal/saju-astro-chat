@@ -12,6 +12,7 @@
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4);
   border-radius: 14px;
   padding: 0.875rem 1.125rem;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
@@ -113,6 +114,7 @@
     background: rgba(20, 20, 24, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     min-height: 0;
     /* 메인 / 햄버거 / 모달 위로 — z 너무 높지도 낮지도 않게 */

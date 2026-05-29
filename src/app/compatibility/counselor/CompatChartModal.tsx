@@ -9,6 +9,7 @@ import { CompatLines } from '@/components/destiny-map/charts/atoms/CompatLines'
 import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
 import { CompatNatalOverlay } from './CompatNatalOverlay'
 import { CompatRadarOverlay } from './CompatRadarOverlay'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /**
  * 궁합 차트 모달 — 두 사람 차트를 따로 쌓지 않고 하나로 합쳐 보여준다.
@@ -121,6 +122,7 @@ export function CompatChartModal({
   lang = 'ko',
 }: CompatChartModalProps) {
   const isKo = lang === 'ko'
+  const trapRef = useFocusTrap(open)
 
   React.useEffect(() => {
     if (!open) return
@@ -142,6 +144,7 @@ export function CompatChartModal({
 
   return (
     <div
+      ref={trapRef}
       className="chart-backdrop-in fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
       style={{ background: 'rgba(7, 9, 26, 0.85)' }}
       onClick={onClose}
