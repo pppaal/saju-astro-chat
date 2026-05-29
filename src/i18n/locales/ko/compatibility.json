@@ -143,7 +143,9 @@
       "earth": "흙",
       "air": "바람",
       "water": "물"
-    }
+    },
+    "person1": "나",
+    "person2": "상대"
   },
   "compatibility": {
     "tabs": {
