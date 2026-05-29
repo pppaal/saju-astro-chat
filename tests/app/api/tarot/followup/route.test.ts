@@ -51,6 +51,7 @@ const mockIsClaudeAvailable = vi.fn().mockReturnValue(true)
 vi.mock('@/lib/llm/claude', () => ({
   callClaude: (...args: any[]) => mockCallClaude(...args),
   isClaudeAvailable: (...args: any[]) => mockIsClaudeAvailable(...args),
+  PREMIUM_CLAUDE_MODEL: 'claude-sonnet-4-5-test',
 }))
 
 vi.mock('@/lib/tarot/promptShared', () => ({
