@@ -57,6 +57,55 @@ describe('humanSemantics', () => {
     expect(text).toContain('확인')
   })
 
+  it('prefers crossSystemTone over per-aspect tone for bridge wording', () => {
+    // bothSystems: aligned + 두 축 우호 → 우호 흐름 문구. 한 개의 negative aspect
+    // tone 이 끼어도 "같이 막히는" 또는 "갈라져 흐르고" 같은 부정 분기로 빠지지 않아야 함.
+    const bothSystemsBridge = describeCrossEvidenceBridge({
+      tone: 'negative',
+      aligned: true,
+      lang: 'ko',
+      crossSystemTone: 'bothSystems',
+    })
+    expect(bothSystemsBridge).toContain('같은 방향으로 합쳐')
+
+    // bothBlocked: aligned + 두 축 비우호 → 같이 막히는 문구
+    const bothBlockedBridge = describeCrossEvidenceBridge({
+      tone: 'positive',
+      aligned: true,
+      lang: 'ko',
+      crossSystemTone: 'bothBlocked',
+    })
+    expect(bothBlockedBridge).toContain('같이 막히는')
+
+    // opposed: 두 축 정반대 → 갈라져 흐르는 문구
+    const opposedBridge = describeCrossEvidenceBridge({
+      tone: 'neutral',
+      aligned: false,
+      lang: 'ko',
+      crossSystemTone: 'opposed',
+    })
+    expect(opposedBridge).toContain('갈라져 흐르고')
+
+    // mixed: 한쪽만 → 차오르고/잦아드는 문구
+    const mixedBridge = describeCrossEvidenceBridge({
+      tone: 'positive',
+      aligned: false,
+      lang: 'ko',
+      crossSystemTone: 'mixed',
+    })
+    expect(mixedBridge).toContain('차오르고')
+    expect(mixedBridge).toContain('잦아드는')
+
+    // EN — bothSystems
+    const enBothSystems = describeCrossEvidenceBridge({
+      tone: 'negative',
+      aligned: true,
+      lang: 'en',
+      crossSystemTone: 'bothSystems',
+    })
+    expect(enBothSystems).toContain('braid together')
+  })
+
   it('cleans timing details into practical Korean', () => {
     const text = describeTimingWindowNarrative({
       domainLabel: '일',
