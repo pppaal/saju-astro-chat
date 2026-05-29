@@ -1,0 +1,182 @@
+{
+  "비겁": {
+    "ko": {
+      "category_meaning": "비견 + 겁재 — 자기·형제·동료·경쟁",
+      "dominant": {
+        "title": "독립·자기 사업 결",
+        "meaning": "당신은 자기 주장이 강하고 동료·형제·경쟁자가 인생에 큰 영향을 주는 사람이에요. 혼자 결정하고 혼자 움직일 때 효율이 가장 좋아요. 조직보다 1인 사업·프리랜서·전문직이 잘 맞아요.",
+        "warning": "고집과 고립을 조심하세요. 비겁이 3개 이상이면 자아가 너무 강해 협력에 의식적 노력이 필요해요. 재물 손실과 동업 갈등이 자주 따라와요."
+      },
+      "missing": {
+        "title": "의존·뒷받침 받는 결",
+        "meaning": "당신은 혼자 결정하기 어려워하고 가족·동료·파트너에 기대는 경향이 강해요. 큰 일을 벌일 때 협력자가 반드시 필요하고, 혼자서는 추진력이 약해요.",
+        "advice": "독립심을 의식적으로 키워야 정체되지 않아요. 작은 결정부터 스스로 내리는 연습, 1인 프로젝트를 의도적으로 만들어 자기 힘을 길러보세요."
+      },
+      "balanced": {
+        "title": "협력+독립 균형",
+        "meaning": "당신은 혼자도 잘하고 함께도 잘해요. 팀에서는 신뢰받는 동료가 되고 1인 사업에서도 추진력을 발휘해요. 상황에 맞춰 역할을 바꿀 수 있는 적응력이 강점이에요."
+      }
+    },
+    "en": {
+      "category_meaning": "Bigyeon + Geopjae — self, siblings, peers, competition",
+      "dominant": {
+        "title": "Independent / Solo-business signature",
+        "meaning": "You have a strong sense of self, and peers, siblings, and rivals shape your life heavily. You work most efficiently when you decide and act alone. Solo business, freelancing, and specialist work suit you better than corporate structures.",
+        "warning": "Beware of stubbornness and isolation. Three or more Bigeop stars mean a very strong ego — collaboration takes conscious effort. Financial losses and conflicts with business partners often follow."
+      },
+      "missing": {
+        "title": "Dependent / Support-seeking signature",
+        "meaning": "You find it hard to decide alone and tend to lean on family, peers, or partners. For any big undertaking you need collaborators, and your drive is weak when you act solo.",
+        "advice": "Build independence deliberately so you don't stagnate. Practice making small decisions on your own and intentionally take on solo projects to develop your own strength."
+      },
+      "balanced": {
+        "title": "Collaboration + Independence balance",
+        "meaning": "You thrive alone and in groups. You become a trusted teammate, and you also drive solo ventures forward. Your strength is adaptability — switching roles to fit the situation."
+      }
+    }
+  },
+  "식상": {
+    "ko": {
+      "category_meaning": "식신 + 상관 — 표현·창의·말·자식·생산",
+      "dominant": {
+        "title": "표현·창작·언어 결",
+        "meaning": "당신은 말·글·예술·아이디어로 세상에 영향을 주는 사람이에요. 표현 욕구가 강하고 창의력·기획력이 뛰어나요. 콘텐츠·교육·예술·요리 분야에서 빛나요.",
+        "warning": "말이 많고 솔직해서 윗사람·권위와 자주 부딪혀요. 상관이 강하면 규칙·조직을 답답해해서 직장 부적응이 올 수 있어요. 말 한마디로 관계를 잃지 않게 절제하세요."
+      },
+      "missing": {
+        "title": "표현 억압·내향 결",
+        "meaning": "당신은 속마음을 잘 드러내지 못하고 창작·표현 활동에 자신감이 없어요. 좋은 아이디어가 있어도 말로 옮기지 못해 기회를 놓치는 경우가 많아요.",
+        "advice": "글쓰기·SNS·말하기를 의식적으로 훈련해보세요. 작은 무대라도 표현해보는 경험이 쌓여야 막힌 식상이 흐르고 자식·결과물 운도 열려요."
+      },
+      "balanced": {
+        "title": "표현+절제 균형",
+        "meaning": "당신은 말할 때와 침묵할 때를 알아요. 창의력은 살아 있되 조직 안에서도 무난히 어울려요. 강의·기획·콘텐츠 직군에서 안정적으로 성과를 내요."
+      }
+    },
+    "en": {
+      "category_meaning": "Siksin + Sanggwan — expression, creativity, speech, children, output",
+      "dominant": {
+        "title": "Expression / Creative / Language signature",
+        "meaning": "You influence the world through speech, writing, art, and ideas. Your urge to express is strong, and your creativity and planning skills stand out. You shine in content, education, art, and culinary fields.",
+        "warning": "You talk much and bluntly, so you often clash with authority and elders. Strong Sanggwan makes rules and organizations feel suffocating, which can lead to workplace misfit. Restrain your tongue so a single remark doesn't cost you a relationship."
+      },
+      "missing": {
+        "title": "Suppressed-expression / Introverted signature",
+        "meaning": "You struggle to reveal your inner thoughts and lack confidence in creative or expressive activities. Even when you have good ideas, you often miss chances because you can't put them into words.",
+        "advice": "Train writing, social media, and speaking deliberately. Repeated experiences of expressing on small stages will unblock Siksang flow and open up luck around children and tangible output."
+      },
+      "balanced": {
+        "title": "Expression + Restraint balance",
+        "meaning": "You know when to speak and when to stay silent. Your creativity stays alive while you still fit smoothly inside organizations. You produce steady results in teaching, planning, and content roles."
+      }
+    }
+  },
+  "재성": {
+    "ko": {
+      "category_meaning": "정재 + 편재 — 돈·재물·이성(남자에게 여자)·현실 감각",
+      "dominant": {
+        "title": "돈·사업·이성 결",
+        "meaning": "당신은 돈의 흐름을 보는 눈이 밝고 현실 감각이 뛰어난 사람이에요. 사업·투자·영업에 적성이 있고 이성 인연도 풍부해요. 편재가 강하면 큰돈을 다루는 그릇이에요.",
+        "warning": "재성이 너무 많으면 오히려 재물이 새고 인성(공부·정신)이 무너져요. 여자 문제·과소비·도박성 투자를 조심하세요. 부모(특히 모친)와의 갈등도 자주 따라와요."
+      },
+      "missing": {
+        "title": "재물·현실감 부족 결",
+        "meaning": "당신은 돈을 모으는 데 약하고 현실보다 이상·이론에 머무는 경향이 있어요. 큰돈을 다룰 기회가 와도 망설이다 놓치고, 이성 인연도 만들기 어려워요.",
+        "advice": "작은 금액부터 의식적으로 관리·투자하는 훈련을 해보세요. 가계부·예산·소액 사업 경험이 쌓여야 재성 그릇이 커져요. 현실적 사람과 어울리는 것도 도움이 돼요."
+      },
+      "balanced": {
+        "title": "재물+정신 균형",
+        "meaning": "당신은 돈을 벌 줄도 알고 쓸 줄도 알아요. 현실 감각과 정신적 깊이가 함께 있어 사업을 해도 학문을 해도 안정적이에요. 재물이 인생을 좌우하지 않아요."
+      }
+    },
+    "en": {
+      "category_meaning": "Jeongjae + Pyeonjae — money, wealth, romantic partners (women for men), realism",
+      "dominant": {
+        "title": "Money / Business / Romance signature",
+        "meaning": "You have a sharp eye for the flow of money and strong real-world sense. Business, investing, and sales suit you, and romantic connections come abundantly. Strong Pyeonjae marks a vessel made for handling big money.",
+        "warning": "Too much Jaeseong actually leaks wealth and breaks down Inseong (study, intellect). Watch out for romantic trouble, overspending, and gambling-style investments. Conflict with parents — especially the mother — often follows."
+      },
+      "missing": {
+        "title": "Lack of wealth / realism signature",
+        "meaning": "You are weak at accumulating money and tend to live in ideals and theory rather than reality. Even when chances to handle big money come, you hesitate and miss them, and romantic connections are also hard to form.",
+        "advice": "Train yourself to manage and invest small amounts deliberately. Keep a budget, track expenses, and try small businesses — these experiences grow your Jaeseong vessel. Spending time with realistic, grounded people helps too."
+      },
+      "balanced": {
+        "title": "Wealth + Spirit balance",
+        "meaning": "You know how to earn money and how to spend it. Practical sense and intellectual depth coexist, so you stay stable whether in business or scholarship. Money does not rule your life."
+      }
+    }
+  },
+  "관성": {
+    "ko": {
+      "category_meaning": "정관 + 편관(칠살) — 직장·명예·권위·자식(여자에게)·규율",
+      "dominant": {
+        "title": "조직·명예·책임 결",
+        "meaning": "당신은 책임감이 강하고 권위·지위·명예를 추구하는 사람이에요. 공무원·대기업·군경 같은 위계 조직에서 빛나요. 편관이 강하면 위기 돌파력과 카리스마가 뛰어나요.",
+        "warning": "관이 너무 많으면 압박·스트레스에 시달리고 건강이 무너져요. 칠살이 제압되지 않으면 송사·사고·관재가 따라와요. 여자에게는 남편·이성 문제가 복잡해질 수 있어요."
+      },
+      "missing": {
+        "title": "자유·규율 약함 결",
+        "meaning": "당신은 조직·위계·규칙을 답답해하고 자유롭게 일할 때 능력을 내요. 직장 생활이 오래가지 못하고 책임 있는 자리를 부담스러워해요. 여자에게는 배우자 인연이 약할 수 있어요.",
+        "advice": "스스로 규율을 세우고 지키는 훈련이 필요해요. 자기 일정·약속·마감을 엄격히 관리해보세요. 프리랜서·1인 사업이 맞지만 최소한의 자기 통제는 꼭 필요해요."
+      },
+      "balanced": {
+        "title": "권위+자율 균형",
+        "meaning": "당신은 조직 안에서도 자유를 지키고 자유 안에서도 책임을 져요. 리더·관리자 역할이 잘 어울리고 명예와 실리를 모두 챙겨요. 직장·사업 어느 쪽도 안정적이에요."
+      }
+    },
+    "en": {
+      "category_meaning": "Jeonggwan + Pyeongwan (Chilsal) — career, honor, authority, children (for women), discipline",
+      "dominant": {
+        "title": "Organization / Honor / Responsibility signature",
+        "meaning": "You carry strong responsibility and pursue authority, status, and honor. You shine in hierarchical organizations like government, large corporations, or military and police. Strong Pyeongwan brings outstanding crisis-handling power and charisma.",
+        "warning": "Too much Gwanseong brings constant pressure and stress, and breaks down your health. If Chilsal is not subdued, lawsuits, accidents, and official troubles follow. For women, husband and romantic issues can grow complicated."
+      },
+      "missing": {
+        "title": "Freedom / Weak-discipline signature",
+        "meaning": "You find organizations, hierarchies, and rules suffocating, and you perform best when working freely. You can't sustain corporate life long and feel burdened by positions of responsibility. For women, marital connection may be weak.",
+        "advice": "You need to train in building and keeping your own discipline. Strictly manage your schedule, commitments, and deadlines. Freelancing and solo business suit you, but minimum self-control is essential."
+      },
+      "balanced": {
+        "title": "Authority + Autonomy balance",
+        "meaning": "You keep your freedom inside organizations and your responsibility inside freedom. Leadership and management roles suit you well, and you secure both honor and practical gain. Both employment and entrepreneurship are stable for you."
+      }
+    }
+  },
+  "인성": {
+    "ko": {
+      "category_meaning": "정인 + 편인 — 공부·학문·부모(특히 모친)·문서·정신",
+      "dominant": {
+        "title": "학문·정신·문서 결",
+        "meaning": "당신은 공부·연구·학문에 깊이를 가진 사람이고 정신세계가 풍부해요. 교수·연구원·작가·종교인·전문 자격에 잘 맞아요. 모친·스승의 사랑과 도움을 많이 받아요.",
+        "warning": "인성이 너무 많으면 생각만 많고 행동이 느려져요. 게으름·의존성·현실 도피가 나타나고 재물 운이 약해져요. 편인이 강하면 외로움·의심·종교 집착이 따라와요."
+      },
+      "missing": {
+        "title": "학문·뒷받침 부족 결",
+        "meaning": "당신은 깊이 공부하는 끈기가 약하고 부모·뒷배의 지원이 부족해요. 정신적 안정감이 흔들리기 쉽고 큰 결정 앞에서 의지할 어른이 없어요. 자격증·학위 운도 약해요.",
+        "advice": "스승·멘토를 의식적으로 찾고 평생 학습을 습관화해보세요. 책·자격증·기록(문서)이 부족한 인성을 채워줘요. 명상·일기로 정신 뿌리를 만드는 것도 꼭 필요해요."
+      },
+      "balanced": {
+        "title": "학문+실천 균형",
+        "meaning": "당신은 배우고 익힌 것을 실제로 써먹을 줄 알아요. 정신적 안정감이 있어 흔들림이 적고 부모·스승 인연도 적절히 살아나요. 학문·예술·전문직 어느 길에서도 깊이를 내요."
+      }
+    },
+    "en": {
+      "category_meaning": "Jeongin + Pyeonin — study, scholarship, parents (especially mother), documents, spirit",
+      "dominant": {
+        "title": "Scholarship / Spirit / Document signature",
+        "meaning": "You hold depth in study, research, and scholarship, and your inner world is rich. Professor, researcher, writer, religious leader, and certified specialist roles suit you. You receive much love and support from your mother and teachers.",
+        "warning": "Too much Inseong means too much thinking and too little action. Laziness, dependency, and escapism appear, and wealth luck weakens. Strong Pyeonin brings loneliness, suspicion, and religious obsession."
+      },
+      "missing": {
+        "title": "Lack of scholarship / support signature",
+        "meaning": "You lack the perseverance for deep study, and support from parents or backers is thin. Mental stability shakes easily, and there is no elder to lean on before big decisions. Luck for licenses and degrees is also weak.",
+        "advice": "Seek out teachers and mentors deliberately, and make lifelong learning a habit. Books, certifications, and written records fill in the missing Inseong. Meditation and journaling are essential for building spiritual roots."
+      },
+      "balanced": {
+        "title": "Scholarship + Practice balance",
+        "meaning": "You know how to put what you learn into actual use. Mental stability keeps you steady, and ties with parents and teachers come alive in measured ways. You bring depth to any path — scholarship, art, or specialist profession."
+      }
+    }
+  }
+}

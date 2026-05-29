@@ -27,7 +27,9 @@ import type { NatalContext } from './types'
 // 엔진 버전 — 사주 / 점성 / 신살 / 격국 계산 로직이 바뀔 때 bump.
 // bump 안 하면 stale cache 가 영원히 유지됨.
 // v1-baseline: 초기.
-const ENGINE_SIGNATURE = 'natal-v1-baseline'
+// v2-rich: NatalContext.saju 에 fiveElements + advancedAnalysis 추가 — 운명/궁합 차트
+//          PersonaCard·InsightStrip 가 cache hit 으로 격국/용신/십신/오행 분포 받게.
+const ENGINE_SIGNATURE = 'natal-v2-rich'
 
 interface NatalCacheKeyInput {
   birthDate: string
