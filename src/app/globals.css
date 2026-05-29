@@ -196,6 +196,13 @@ select:focus-visible,
 
 html {
   scroll-behavior: smooth;
+  /* rem 기준 고정 — 디바이스별로 폰트 크기가 들쭉날쭉하던 문제 해결.
+     사용자: "기기마다 폰트 크기도 달라지는데 수정. 어떤 기기든 잘나오게".
+     원인: 안드로이드 시스템 폰트 크기 / iOS Dynamic Type 가 default
+     html font-size 를 16px 보다 키우거나 줄여서 모든 rem 값이 함께 변동.
+     16px 로 고정해 layout 일관성 보장 — 사용자가 브라우저 zoom (Ctrl+/-)
+     으로는 여전히 키울 수 있어서 접근성도 보존. */
+  font-size: 16px;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   color-scheme: dark;
@@ -236,6 +243,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* iOS Safari 끝 bounce / Android pull-to-refresh 차단 — modal 안에서 scroll
+     하다가 부모 page 까지 스크롤 따라가 닫혀버리던 버그도 함께 해결. */
+  overscroll-behavior: contain;
 }
 
 /* Smooth transitions for interactive elements */
@@ -740,10 +750,10 @@ body {
 body {
   display: flex;
   flex-direction: column;
-  /* dvh 로 동적 뷰포트(모바일 URL바 접힘)를 추적 — 100vh 면 URL바 표시 시
+  /* dvh 로 동적 뷰포트(모바일 URL바 접힘)를 추적 — 100dvh 면 URL바 표시 시
      viewport(작음)보다 body(큼)가 길어져 풀스크린 페이지(.page=100dvh) 아래로
      배경이 비치는 갭이 모든 모바일에서 생긴다. vh 는 구형 브라우저 폴백. */
-  min-height: 100vh;
+  min-height: 100dvh;
   min-height: 100dvh;
 }
 

@@ -1,7 +1,7 @@
 .container {
   /* Pricing 표준 — 마케팅 페이지 공통 max-width 1120 + 패딩 120/32/80.
      내부 컨텐츠 (.faqList) 는 자체 max-width 760 으로 가독성 유지. */
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
