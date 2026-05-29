@@ -1,111 +1,103 @@
-// 프로토타입 v4 — top-N 확정 스윕 + 수렴 타이밍
-//   점성: layer별 (weight × tier) 상위 N개만 점수에 (정확+중요 우선, 나머지는 상세/테마용)
-//   사주: 전량(홍수 아님)  →  출처별 자동보정  →  N 스윕  →  수렴 타이밍
+// 프로토타입 v5 — 최종 튜닝: 넓힌 N 스윕 vs 순위감쇠(rank-decay, N불요) 비교
+//   5개 차트 한 번에 → 어느 솎기 방식이 차트 무관하게 안정적인가.
 // 실행:  npx tsx scripts/flow-proto.ts
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import type { SignalLayer } from '@/lib/calendar-engine/types'
 
 type Sig = { layer: SignalLayer; polarity: number; weight: number; source: string; kind: string }
-const LAYER_WEIGHT: Record<string, number> = { decadal: 1, yearly: 0.85, monthly: 0.7, daily: 0.55, hourly: 0.4, instant: 0.5 }
+const LW: Record<string, number> = { decadal: 1, yearly: 0.85, monthly: 0.7, daily: 0.55, hourly: 0.4, instant: 0.5 }
 const TIER: Record<string, number> = {
   transit: 1, eclipse: 1, lifecycle: 1, 'solar-return': 1, 'lunar-return': 1, 'progressed-moon': 1, 'angle-contact': 1,
   progression: 0.5, 'solar-arc': 0.5, profection: 0.5, 'zodiacal-releasing': 0.5, 'moon-phase': 0.5, 'house-transit': 0.5, electional: 0.5,
   'planetary-hour': 0.15, asteroid: 0.15, midpoint: 0.15, harmonic: 0.15, 'fixed-star': 0.15, 'arabic-part': 0.15, draconic: 0.15, 'void-of-course': 0.15,
 }
-const tierMul = (k: string) => TIER[k] ?? 0.5
-const rankKey = (s: Sig) => s.weight * tierMul(s.kind) // 정확도(weight) × 중요도(tier)
+const rankKey = (s: Sig) => s.weight * (TIER[s.kind] ?? 0.5)
 
 function topNPerLayer(sigs: Sig[], n: number): Sig[] {
-  const byLayer = new Map<string, Sig[]>()
-  for (const s of sigs) { const a = byLayer.get(s.layer) ?? []; a.push(s); byLayer.set(s.layer, a) }
+  const m = new Map<string, Sig[]>()
+  for (const s of sigs) { const a = m.get(s.layer) ?? []; a.push(s); m.set(s.layer, a) }
   const out: Sig[] = []
-  for (const arr of byLayer.values()) { arr.sort((a, b) => rankKey(b) - rankKey(a)); out.push(...arr.slice(0, n)) }
+  for (const arr of m.values()) { arr.sort((a, b) => rankKey(b) - rankKey(a)); out.push(...arr.slice(0, n)) }
+  return out
+}
+// 순위감쇠: layer별 rankKey 내림차순 → weight *= d^순위 (하드컷 없음, 자동적응)
+function decay(sigs: Sig[], d: number): Sig[] {
+  const m = new Map<string, Sig[]>()
+  for (const s of sigs) { const a = m.get(s.layer) ?? []; a.push(s); m.set(s.layer, a) }
+  const out: Sig[] = []
+  for (const arr of m.values()) {
+    arr.sort((a, b) => rankKey(b) - rankKey(a))
+    arr.forEach((s, i) => out.push({ ...s, weight: s.weight * Math.pow(d, i) }))
+  }
   return out
 }
 function grandAvg(sigs: Sig[]): number | null {
   if (!sigs.length) return null
-  const byLayer = new Map<string, { s: number; w: number }>()
-  for (const s of sigs) { const a = byLayer.get(s.layer) ?? { s: 0, w: 0 }; a.s += s.polarity * s.weight; a.w += s.weight; byLayer.set(s.layer, a) }
+  const m = new Map<string, { s: number; w: number }>()
+  for (const s of sigs) { const a = m.get(s.layer) ?? { s: 0, w: 0 }; a.s += s.polarity * s.weight; a.w += s.weight; m.set(s.layer, a) }
   let ws = 0, tw = 0
-  for (const [l, a] of byLayer) { if (!a.w) continue; ws += (a.s / a.w) * (LAYER_WEIGHT[l] ?? 0.5); tw += LAYER_WEIGHT[l] ?? 0.5 }
+  for (const [l, a] of m) { if (!a.w) continue; ws += (a.s / a.w) * (LW[l] ?? 0.5); tw += LW[l] ?? 0.5 }
   return tw ? ws / tw : null
 }
-const stats = (xs: number[]) => { const m = xs.reduce((a, b) => a + b, 0) / xs.length; return { mean: m, sd: Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / xs.length) } }
+const stats = (xs: number[]) => { const mean = xs.reduce((a, b) => a + b, 0) / xs.length; return { mean, sd: Math.sqrt(xs.reduce((a, b) => a + (b - mean) ** 2, 0) / xs.length) } }
 function calibrate(gs: (number | null)[]) {
-  const v = gs.filter((x): x is number => x != null); const st = stats(v); const scale = st.sd > 0.01 ? 12 / st.sd : 16
-  return gs.map((g) => g == null ? 50 : Math.max(0, Math.min(100, Math.round(50 + (g - st.mean) * scale))))
+  const v = gs.filter((x): x is number => x != null); const st = stats(v); const sc = st.sd > 0.01 ? 12 / st.sd : 16
+  return gs.map((g) => g == null ? 50 : Math.max(0, Math.min(100, Math.round(50 + (g - st.mean) * sc))))
 }
 const agree = (a: number, b: number) => { const g = Math.abs(a - b); return g <= 12 ? 'aligned' : g <= 28 ? 'mixed' : 'opposed' }
+function metrics(saju: number[], astroGs: (number | null)[], days: any[]) {
+  const ax = calibrate(astroGs)
+  const ag: Record<string, number> = { aligned: 0, mixed: 0, opposed: 0 }
+  let conv = 0
+  days.forEach((_, i) => {
+    const a = agree(saju[i], ax[i]); ag[a]++
+    if (a !== 'opposed' && ((saju[i] >= 60 && ax[i] >= 60) || (saju[i] <= 40 && ax[i] <= 40))) conv++
+  })
+  const rawSd = stats(astroGs.filter((x): x is number => x != null)).sd
+  return { rawSd: +rawSd.toFixed(3), opposed: +(ag.opposed / days.length).toFixed(2), conv, alive: rawSd >= 0.03 }
+}
+
+const CHARTS = [
+  { tag: '서울♂medium/day', i: { birthDate: '1993-08-15', birthTime: '14:30', gender: 'male' as const, latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }, s: '2026-05-01T00:00:00.000Z', e: '2026-05-31T23:59:59.999Z' },
+  { tag: '서울♀night겨울', i: { birthDate: '1988-01-20', birthTime: '04:30', gender: 'female' as const, latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }, s: '2025-11-01T00:00:00.000Z', e: '2025-11-30T23:59:59.999Z' },
+  { tag: '시드니♂strong남반구', i: { birthDate: '1975-07-10', birthTime: '12:00', gender: 'male' as const, latitude: -33.8688, longitude: 151.2093, timeZone: 'Australia/Sydney' }, s: '2027-02-01T00:00:00.000Z', e: '2027-02-28T23:59:59.999Z' },
+  { tag: '뉴욕♀night저녁', i: { birthDate: '2001-11-05', birthTime: '21:15', gender: 'female' as const, latitude: 40.7128, longitude: -74.006, timeZone: 'America/New_York' }, s: '2026-08-01T00:00:00.000Z', e: '2026-08-31T23:59:59.999Z' },
+  { tag: '런던♂weak오전', i: { birthDate: '1969-03-30', birthTime: '09:45', gender: 'male' as const, latitude: 51.5074, longitude: -0.1278, timeZone: 'Europe/London' }, s: '2026-12-01T00:00:00.000Z', e: '2026-12-31T23:59:59.999Z' },
+]
+const NS = [3, 5, 8, 12, 16, 20, 28]
 
 async function main() {
-  const E = process.env
-  const input = {
-    birthDate: E.FP_BIRTHDATE ?? '1993-08-15',
-    birthTime: E.FP_BIRTHTIME ?? '14:30',
-    gender: (E.FP_GENDER as 'male' | 'female') ?? 'male',
-    latitude: E.FP_LAT ? Number(E.FP_LAT) : 37.5665,
-    longitude: E.FP_LON ? Number(E.FP_LON) : 126.978,
-    timeZone: E.FP_TZ ?? 'Asia/Seoul',
+  console.log('차트                    강약   sect | 사주sd | [넓힌 N스윕] 채택N(점성sd) | [순위감쇠 d=0.6] 점성sd opp conv alive')
+  console.log('-'.repeat(118))
+  for (const c of CHARTS) {
+    const natal = await buildNatalContext(c.i)
+    const cells = await buildCalendar(natal, { start: c.s, end: c.e, granularity: 'day' }, { includeEvidence: true })
+    const days = cells.map((x) => ({ sigs: (x.signals as any[]).map((s) => ({ layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source, kind: s.kind })) as Sig[] }))
+    const pickS = (d: any) => d.sigs.filter((s: Sig) => s.source === 'saju')
+    const pickA = (d: any) => d.sigs.filter((s: Sig) => s.source === 'astro')
+    const sajuGs = days.map((d) => grandAvg(pickS(d)))
+    const sajuSd = stats(sajuGs.filter((x): x is number => x != null)).sd
+    const sajuAxis = calibrate(sajuGs)
+
+    // 넓힌 N 스윕: 사주sd에 가장 근접한 N
+    let bestN = 0, bestDiff = 9, bestSd = 0
+    for (const n of NS) {
+      const sd = stats(days.map((d) => grandAvg(topNPerLayer(pickA(d), n))).filter((x): x is number => x != null)).sd
+      const diff = Math.abs(sd - sajuSd)
+      if (diff < bestDiff) { bestDiff = diff; bestN = n; bestSd = sd }
+    }
+    const hitCeil = bestN === NS[NS.length - 1] ? '⚠천장' : ''
+
+    // 순위감쇠 d=0.6 (N 불요)
+    const dm = metrics(sajuAxis, days.map((d) => grandAvg(decay(pickA(d), 0.6))), days)
+
+    console.log(
+      `${c.tag.padEnd(22)} ${natal.saju.strength.padEnd(6)} ${natal.astro.sect.padEnd(5)}| ${sajuSd.toFixed(3)} | ` +
+      `N=${String(bestN).padStart(2)}(sd ${bestSd.toFixed(3)})${hitCeil.padEnd(4)} | ` +
+      `sd ${dm.rawSd.toFixed(3)}  ${String(Math.round(dm.opposed * 100)).padStart(2)}%  ${String(dm.conv).padStart(2)}  ${dm.alive ? 'OK' : 'DEAD'}`,
+    )
   }
-  const start = E.FP_START ?? '2026-05-01T00:00:00.000Z'
-  const end = E.FP_END ?? '2026-05-31T23:59:59.999Z'
-  const natal = await buildNatalContext(input)
-  const cells = await buildCalendar(natal, { start, end, granularity: 'day' }, { includeEvidence: true })
-  const days = cells.map((c) => ({
-    day: c.datetime.slice(0, 10),
-    sigs: (c.signals as any[]).map((s) => ({ layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source, kind: s.kind })) as Sig[],
-  }))
-  const pickS = (d: any) => d.sigs.filter((s: Sig) => s.source === 'saju')
-  const pickA = (d: any) => d.sigs.filter((s: Sig) => s.source === 'astro')
-  console.log('강약', natal.saju.strength, '/ sect', natal.astro.sect, '/ 목표: 점성 sd ≈ 사주 sd', stats(days.map((d) => grandAvg(pickS(d))).filter((x): x is number => x != null)).sd.toFixed(3))
-
-  // ── N 스윕 ──
-  console.log('\n[N 스윕] layer별 (weight×tier) 상위 N개 → 점성 raw sd & 일치분포')
-  const sajuRawSd = stats(days.map((d) => grandAvg(pickS(d))).filter((x): x is number => x != null)).sd
-  const sajuAxis = calibrate(days.map((d) => grandAvg(pickS(d))))
-  let best = { n: 0, score: -1, astroAxis: [] as number[], sd: 0, ag: {} as Record<string, number> }
-  const sweep: any[] = []
-  for (const n of [3, 5, 8, 12]) {
-    const gs = days.map((d) => grandAvg(topNPerLayer(pickA(d), n)))
-    const sd = stats(gs.filter((x): x is number => x != null)).sd
-    const ax = calibrate(gs)
-    const ag: Record<string, number> = { aligned: 0, mixed: 0, opposed: 0 }
-    days.forEach((_, i) => ag[agree(sajuAxis[i], ax[i])]++)
-    sweep.push({ n, sd: +sd.toFixed(3), ag })
-    console.log(`   N=${String(n).padStart(2)}  raw sd ${sd.toFixed(3)}   일치 aligned ${ag.aligned} / mixed ${ag.mixed} / opposed ${ag.opposed}`)
-    // 목표: sd가 사주(0.095)에 가장 가까운 N (너무 작으면 1신호 독재, 너무 크면 익사)
-    const closeness = -Math.abs(sd - sajuRawSd)
-    if (closeness > best.score) best = { n, score: closeness, astroAxis: ax, sd, ag }
-  }
-  const N = best.n
-  const astroAxis = best.astroAxis
-  console.log(`\n→ 채택 N=${N} (사주 변동성에 가장 근접)`)
-
-  // ── 최종 타임라인 + 수렴 타이밍 ──
-  console.log('\n[최종]  날짜       사주 점성 헤드 일치     수렴타이밍')
-  const conv: { day: string; head: number; kind: string }[] = []
-  days.forEach((d, i) => {
-    const sA = sajuAxis[i], aA = astroAxis[i], head = Math.round((sA + aA) / 2), ag = agree(sA, aA)
-    let mark = ''
-    if (ag !== 'opposed' && sA >= 60 && aA >= 60) { mark = '★ 둘다 길(상승수렴)'; conv.push({ day: d.day, head, kind: '길' }) }
-    else if (ag !== 'opposed' && sA <= 40 && aA <= 40) { mark = '▼ 둘다 흉(하강수렴)'; conv.push({ day: d.day, head, kind: '흉' }) }
-    console.log(`  ${d.day}  ${String(sA).padStart(3)} ${String(aA).padStart(4)} ${String(head).padStart(4)}  ${ag.padEnd(8)} ${mark}`)
-  })
-  console.log('\n[수렴 타이밍] 사주·점성이 같은 방향으로 강하게 만나는 날 =', conv.length, '개')
-  for (const c of conv) console.log(`   ${c.day}  ${c.kind}  (헤드라인 ${c.head})`)
-
-  // ── 병리 자동 판정 + 머신리더블 요약 ──
-  const astroPinned = best.sd < 0.03 // 축 죽음(고착)
-  const opposedRatio = best.ag.opposed / days.length
-  const verdict = astroPinned ? 'FAIL(점성축 고착)' : opposedRatio > 0.5 ? 'FAIL(opposed 과다)' : 'OK'
-  console.log('\n==== SUMMARY(JSON) ====')
-  console.log(JSON.stringify({
-    birth: input.birthDate, time: input.birthTime, gender: input.gender, tz: input.timeZone,
-    window: `${start.slice(0, 7)}`, strength: natal.saju.strength, sect: natal.astro.sect,
-    sajuRawSd: +sajuRawSd.toFixed(3), sweep, chosenN: N, astroRawSd: +best.sd.toFixed(3),
-    agreement: best.ag, opposedRatio: +opposedRatio.toFixed(2), convergenceDays: conv.length,
-    verdict,
-  }))
+  console.log('\n해석: 순위감쇠가 차트 무관하게 점성sd 건강(≥0.03)+opp 낮음+conv 적정이면 → N튜닝 불요한 안정 방식')
 }
 main().catch((e) => { console.error(e); process.exit(1) })
