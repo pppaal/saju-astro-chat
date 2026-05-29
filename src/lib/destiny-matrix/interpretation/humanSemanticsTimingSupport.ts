@@ -195,42 +195,43 @@ export function describePhaseFlow(
   const phase = normalizePhaseLabel(phaseLabel)
 
   if (lang === 'ko') {
-    if (!phase) return '지금은 빨리 움직이는 것보다 순서를 바로 잡는 쪽이 결과가 좋습니다.'
+    if (!phase)
+      return '결이 아직 한 방향으로 모이지 않은 자리예요. 순서를 먼저 정리해 흐름을 트이게 두세요.'
     if (phase.includes('defensive') || phase.includes('reset') || phase.includes('stabil')) {
-      return '새 일을 벌리기보다 이미 잡힌 일정과 조건을 정리하고 실수 포인트를 줄이는 쪽이 맞습니다.'
+      return '기존 결을 정리해 흐름이 다시 차오를 자리를 비우는 구간이에요. 새 일을 벌리기보다 잔무를 닫아 두세요.'
     }
     if (phase.includes('high_tension') && phase.includes('expansion')) {
-      return '기회는 있지만 말 한마디, 일정 하나로 틀어지기 쉬워서 확인 절차를 끼워 넣어야 합니다.'
+      return '결이 차오르지만 한 자락이 어긋나기 쉬운 구간이에요. 중간 확인을 끼워 흐름이 흩어지지 않게 잡아 주세요.'
     }
     if (phase.includes('guarded') && phase.includes('expansion')) {
-      return '좋아 보이는 문은 열려 있지만 한 번에 크게 벌리기보다 범위를 나눠 가는 편이 안전합니다.'
+      return '결이 트이지만 한 번에 부풀리면 다시 막힐 수 있어요. 범위를 나눠 천천히 차오르게 가져가 보세요.'
     }
     if (phase.includes('expansion')) {
-      return '머뭇거리던 일을 앞으로 밀기 좋고, 중요한 결정도 기준만 분명하면 속도를 낼 수 있습니다.'
+      return '결이 차올라 앞으로 흘러나가는 구간이에요. 머뭇거리던 일과 중요한 결정도 기준만 분명하면 함께 밀어 주세요.'
     }
     if (phase.includes('tension')) {
-      return '판단 자체보다 사람 사이 조율과 조건 맞추기가 먼저라, 결론을 급히 내릴수록 비용이 커질 수 있습니다.'
+      return '결이 한쪽으로 미끄러지지 않고 굳는 자리예요. 조건이 풀려야 흐름이 다시 트이니 결론을 늦추세요.'
     }
-    return '밀 수 있는 부분과 멈춰 확인할 부분을 나눠서 가야 덜 흔들립니다.'
+    return '밀 결과 멈춰 확인할 결을 갈라 가져가야 흐름이 덜 흔들려요.'
   }
 
-  if (!phase) return 'Getting the order right matters more than moving fast right now.'
+  if (!phase) return 'The currents have not braided together yet, so set the order first and let the flow open.'
   if (phase.includes('defensive') || phase.includes('reset') || phase.includes('stabil')) {
-    return 'This is better for tightening loose ends and reducing mistakes than for starting something new in a rush.'
+    return 'This window clears old currents so the flow can swell again later. Close loose ends rather than starting something new.'
   }
   if (phase.includes('high_tension') && phase.includes('expansion')) {
-    return 'Opportunity exists, but the margin for communication or timing mistakes is thin, so verification has to be built into the move.'
+    return 'The current is rising but one strand can misalign easily. Braid in a checkpoint so the flow stays in sync.'
   }
   if (phase.includes('guarded') && phase.includes('expansion')) {
-    return 'There is room to move, but it is safer to expand in smaller controlled steps than in one large push.'
+    return 'The current opens, but swelling all at once tends to clog again. Let the flow build up in smaller staged moves.'
   }
   if (phase.includes('expansion')) {
-    return 'This is a good window for pushing important priorities forward, especially if your standards are already clear.'
+    return 'The current is swelling forward, so push held-back work along with it once your standards are clear.'
   }
   if (phase.includes('tension')) {
-    return 'Coordination matters more than speed here, and forcing a quick answer can create avoidable cost.'
+    return 'The current is stalling rather than sliding, and the flow only opens once conditions ease, so delay the call.'
   }
-  return 'Move, but separate what can be pushed now from what still needs checking.'
+  return 'Separate the strands you can push from the ones still stiff, so the flow stays steady.'
 }
 
 export function describeExecutionStance(
@@ -291,15 +292,15 @@ export function describeCrossAgreement(
 
   if (lang === 'ko') {
     if (score >= 70)
-      return '여러 근거가 거의 같은 방향을 가리켜서, 큰 흐름을 믿고 움직여도 되는 편입니다.'
+      return '근거들이 같은 결로 합쳐 흐르는 자리예요. 큰 흐름을 믿고 한 걸음 더 밀어 두세요.'
     if (score >= 45)
-      return '좋아 보이는 부분도 있지만 바로 확정하기엔 걸리는 포인트가 함께 보여서 한 번 더 확인하는 편이 좋습니다.'
-    return '근거들이 서로 다른 얘기를 하고 있어, 서두르는 쪽보다 속도를 늦추는 쪽이 안전합니다.'
+      return '결이 같은 방향으로 차오르다 한 자락이 어긋나는 구간이에요. 확정 전에 한 번 더 결을 맞추세요.'
+    return '근거들이 서로 갈라져 흐르고 있어요. 서두르기보다 속도를 늦추는 쪽이 안전하고, 결이 다시 모일 때를 보세요.'
   }
 
   if (score >= 70)
-    return 'The evidence sources are mostly aligned, so the broader direction is fairly trustworthy.'
+    return 'The evidence currents run in sync, so the broader flow is trustworthy enough to push one step further.'
   if (score >= 45)
-    return 'There is visible upside, but enough friction remains that one more check is worth it.'
-  return 'The evidence is pulling in different directions, so slower execution is the safer call.'
+    return 'The currents rise together but one strand still misaligns, so braid them once more before locking it in.'
+  return 'The currents diverge into different paths, so slow the pace and wait for the flows to converge again.'
 }
