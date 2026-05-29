@@ -430,19 +430,23 @@ vi.mock('@/lib/astrology/foundation/ephe', () => {
 
 // Mock Prisma client for unit tests (Prisma 7.x requires adapter/accelerateUrl)
 vi.mock('@/lib/db/prisma', () => {
+  // Real Prisma model methods return a (Prisma)Promise, so callers can chain
+  // `.catch()` / `.then()` on fire-and-forget writes. Default the mocks to a
+  // resolved promise so that chaining works even when a test doesn't configure
+  // a return value; tests that need a specific value still use mockResolvedValue.
   const createModelMock = () => ({
-    findUnique: vi.fn(),
-    findFirst: vi.fn(),
-    findMany: vi.fn(),
-    create: vi.fn(),
-    update: vi.fn(),
-    upsert: vi.fn(),
-    delete: vi.fn(),
-    deleteMany: vi.fn(),
-    updateMany: vi.fn(),
-    count: vi.fn(),
-    aggregate: vi.fn(),
-    groupBy: vi.fn(),
+    findUnique: vi.fn().mockResolvedValue(null),
+    findFirst: vi.fn().mockResolvedValue(null),
+    findMany: vi.fn().mockResolvedValue([]),
+    create: vi.fn().mockResolvedValue({}),
+    update: vi.fn().mockResolvedValue({}),
+    upsert: vi.fn().mockResolvedValue({}),
+    delete: vi.fn().mockResolvedValue({}),
+    deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+    updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+    count: vi.fn().mockResolvedValue(0),
+    aggregate: vi.fn().mockResolvedValue({}),
+    groupBy: vi.fn().mockResolvedValue([]),
   })
 
   const models = {
@@ -487,6 +491,7 @@ vi.mock('@/lib/db/prisma', () => {
     savedCalendarDate: createModelMock(),
     fortune: createModelMock(),
     dailyFortune: createModelMock(),
+    natalContextCache: createModelMock(),
 
     // User Features
     personaMemory: createModelMock(),

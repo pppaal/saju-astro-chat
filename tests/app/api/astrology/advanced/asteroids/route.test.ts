@@ -111,12 +111,16 @@ const mockAspects = [
 ]
 
 vi.mock('@/lib/astrology', () => ({
-  calculateNatalChart: vi.fn(),
   toChart: vi.fn(),
   calculateAllAsteroids: vi.fn(),
   interpretAsteroid: vi.fn(),
   findAllAsteroidAspects: vi.fn(),
   getAsteroidInfo: vi.fn(),
+}))
+
+// Route now builds the natal chart via cachedCalculateNatalChart (@/lib/astrology/cached).
+vi.mock('@/lib/astrology/cached', () => ({
+  cachedCalculateNatalChart: vi.fn(),
 }))
 
 // ============ Imports (after all mocks) ============
@@ -126,13 +130,13 @@ import { rateLimit } from '@/lib/rateLimit'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { captureServerError } from '@/lib/telemetry'
 import {
-  calculateNatalChart,
   toChart,
   calculateAllAsteroids,
   interpretAsteroid,
   findAllAsteroidAspects,
   getAsteroidInfo,
 } from '@/lib/astrology'
+import { cachedCalculateNatalChart as calculateNatalChart } from '@/lib/astrology/cached'
 import { logger } from '@/lib/logger'
 
 // ============ Helpers ============
