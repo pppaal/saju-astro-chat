@@ -1,9 +1,12 @@
 /**
  * Comprehensive tests for Credit Refund Service
  * Tests automatic refunds on API failures, transaction atomicity, and audit logging
+ *
+ * NOTE: refundCredits 가 atomic SQL ($executeRaw GREATEST(0, col - amount))
+ * 로 전환되었으므로 update mock 대신 $executeRaw 호출을 검증한다.
  */
 
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { prisma } from '@/lib/db/prisma'
 import {
   refundCredits,
@@ -19,12 +22,12 @@ vi.mock('@/lib/db/prisma', () => ({
     $transaction: vi.fn(),
     userCredits: {
       findUnique: vi.fn(),
-      update: vi.fn(),
     },
     creditRefundLog: {
       create: vi.fn(),
       findMany: vi.fn(),
     },
+    $executeRaw: vi.fn(),
   },
 }))
 
@@ -35,6 +38,40 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
+function rawSql(call: unknown[]): string {
+  const strings = call[0] as ReadonlyArray<string> & { raw?: ReadonlyArray<string> }
+  return (strings.raw ?? strings).join('?')
+}
+
+interface MockTx {
+  userCredits: { findUnique: ReturnType<typeof vi.fn> }
+  creditRefundLog: { create: ReturnType<typeof vi.fn> }
+  $executeRaw: ReturnType<typeof vi.fn>
+}
+
+function makeTx(opts: {
+  user?: { userId: string } | null
+  createImpl?: (args: { data: Record<string, unknown> }) => Promise<unknown>
+  executeRawImpl?: (...args: unknown[]) => Promise<unknown>
+}): MockTx {
+  // null 을 명시적으로 구분해야 함 — null 은 "유저 없음" 시나리오라
+  // 기본값 fallback (?? { userId: ... }) 을 쓰면 null 케이스가 사라진다.
+  const user = 'user' in opts ? opts.user : { userId: 'user_123' }
+  return {
+    userCredits: {
+      findUnique: vi.fn().mockResolvedValue(user),
+    },
+    creditRefundLog: {
+      create: opts.createImpl
+        ? vi.fn().mockImplementation(opts.createImpl)
+        : vi.fn().mockResolvedValue({}),
+    },
+    $executeRaw: opts.executeRawImpl
+      ? vi.fn().mockImplementation(opts.executeRawImpl)
+      : vi.fn().mockResolvedValue(1),
+  }
+}
+
 describe('Credit Refund Service', () => {
   const mockUserId = 'user_123'
 
@@ -44,23 +81,9 @@ describe('Credit Refund Service', () => {
 
   describe('refundCredits', () => {
     describe('Reading Credits Refund', () => {
-      it('should refund reading credits successfully', async () => {
-        const mockUserCredits = {
-          userId: mockUserId,
-          usedCredits: 10,
-        }
-
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
+      it('should refund reading credits via atomic SQL', async () => {
+        const tx = makeTx({ user: { userId: mockUserId } })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         const params: CreditRefundParams = {
           userId: mockUserId,
@@ -74,6 +97,11 @@ describe('Credit Refund Service', () => {
         const result = await refundCredits(params)
 
         expect(result).toBe(true)
+        expect(tx.$executeRaw).toHaveBeenCalledTimes(1)
+        const sql = rawSql(tx.$executeRaw.mock.calls[0])
+        expect(sql).toContain('"usedCredits"')
+        expect(sql).toContain('GREATEST(0,')
+        expect(tx.$executeRaw.mock.calls[0].slice(1)).toEqual([2, mockUserId])
         expect(logger.info).toHaveBeenCalledWith(
           '[CreditRefund] Success',
           expect.objectContaining({
@@ -84,85 +112,32 @@ describe('Credit Refund Service', () => {
         )
       })
 
-      it('should not allow negative usedCredits', async () => {
-        const mockUserCredits = {
-          userId: mockUserId,
-          usedCredits: 1,
-        }
-
-        let capturedUpdateData: any
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockImplementation((args) => {
-                capturedUpdateData = args.data
-                return Promise.resolve({})
-              }),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
+      it('floors at 0 via Postgres GREATEST (no JS read-then-write)', async () => {
+        const tx = makeTx({ user: { userId: mockUserId } })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         await refundCredits({
           userId: mockUserId,
           creditType: 'reading',
-          amount: 5, // More than usedCredits
+          amount: 5, // 잔량보다 큰 환불 — DB 가 floor 처리
           reason: 'test',
         })
 
-        expect(capturedUpdateData.usedCredits).toBe(0) // Should be 0, not negative
-      })
-
-      it('should handle zero usedCredits', async () => {
-        const mockUserCredits = {
-          userId: mockUserId,
-          usedCredits: 0,
-        }
-
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
-
-        const result = await refundCredits({
-          userId: mockUserId,
-          creditType: 'reading',
-          amount: 1,
-          reason: 'test',
+        // tx.userCredits.findUnique 는 존재 확인용 select(userId) 만 — usedCredits 미독출
+        expect(tx.userCredits.findUnique).toHaveBeenCalledWith({
+          where: { userId: mockUserId },
+          select: { userId: true },
         })
-
-        expect(result).toBe(true)
+        const sql = rawSql(tx.$executeRaw.mock.calls[0])
+        expect(sql).toContain('GREATEST(0,')
+        expect(tx.$executeRaw.mock.calls[0].slice(1)).toEqual([5, mockUserId])
       })
     })
 
     describe('Compatibility Credits Refund', () => {
       it('should refund compatibility credits', async () => {
-        const mockUserCredits = {
-          userId: mockUserId,
-          compatibilityUsed: 3,
-        }
-
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
+        const tx = makeTx({ user: { userId: mockUserId } })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         const result = await refundCredits({
           userId: mockUserId,
@@ -173,59 +148,16 @@ describe('Credit Refund Service', () => {
         })
 
         expect(result).toBe(true)
-      })
-
-      it('should not allow negative compatibilityUsed', async () => {
-        const mockUserCredits = {
-          userId: mockUserId,
-          compatibilityUsed: 0,
-        }
-
-        let capturedUpdateData: any
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockImplementation((args) => {
-                capturedUpdateData = args.data
-                return Promise.resolve({})
-              }),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
-
-        await refundCredits({
-          userId: mockUserId,
-          creditType: 'compatibility',
-          amount: 2,
-          reason: 'test',
-        })
-
-        expect(capturedUpdateData.compatibilityUsed).toBe(0)
+        const sql = rawSql(tx.$executeRaw.mock.calls[0])
+        expect(sql).toContain('"compatibilityUsed"')
+        expect(sql).toContain('GREATEST(0,')
       })
     })
 
     describe('FollowUp Credits Refund', () => {
       it('should refund followUp credits', async () => {
-        const mockUserCredits = {
-          userId: mockUserId,
-          followUpUsed: 5,
-        }
-
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
+        const tx = makeTx({ user: { userId: mockUserId } })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         const result = await refundCredits({
           userId: mockUserId,
@@ -236,27 +168,22 @@ describe('Credit Refund Service', () => {
         })
 
         expect(result).toBe(true)
+        const sql = rawSql(tx.$executeRaw.mock.calls[0])
+        expect(sql).toContain('"followUpUsed"')
       })
     })
 
     describe('Audit Logging', () => {
       it('should create refund log entry', async () => {
-        const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
-        let capturedLogData: any
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockImplementation((args) => {
-                capturedLogData = args.data
-                return Promise.resolve({})
-              }),
-            },
-          })
-        )
+        let capturedLogData: Record<string, unknown> | undefined
+        const tx = makeTx({
+          user: { userId: mockUserId },
+          createImpl: async (args) => {
+            capturedLogData = args.data
+            return {}
+          },
+        })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         await refundCredits({
           userId: mockUserId,
@@ -282,22 +209,15 @@ describe('Credit Refund Service', () => {
       })
 
       it('should truncate long error messages', async () => {
-        const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
-        let capturedLogData: any
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockImplementation((args) => {
-                capturedLogData = args.data
-                return Promise.resolve({})
-              }),
-            },
-          })
-        )
+        let capturedLogData: Record<string, unknown> | undefined
+        const tx = makeTx({
+          user: { userId: mockUserId },
+          createImpl: async (args) => {
+            capturedLogData = args.data
+            return {}
+          },
+        })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         const longError = 'A'.repeat(1000)
 
@@ -309,29 +229,18 @@ describe('Credit Refund Service', () => {
           errorMessage: longError,
         })
 
-        expect(capturedLogData.errorMessage).toHaveLength(500)
+        expect(capturedLogData?.errorMessage as string).toHaveLength(500)
       })
 
-      it('should handle metadata with circular references', async () => {
-        const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
+      it('should reject metadata with circular references (fail before tx)', async () => {
+        // JSON.parse(JSON.stringify(...)) 가 circular 에서 throw. tx 진입 전
+        // 직렬화 단계에서 잡혀 catch 블록이 re-throw 한다.
+        const tx = makeTx({ user: { userId: mockUserId } })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
-
-        const circular: any = { a: 1 }
+        const circular: Record<string, unknown> = { a: 1 }
         circular.self = circular
 
-        // JSON.parse(JSON.stringify(metadata)) throws on circular refs
-        // and the catch block re-throws
         await expect(
           refundCredits({
             userId: mockUserId,
@@ -346,13 +255,8 @@ describe('Credit Refund Service', () => {
 
     describe('Error Handling', () => {
       it('should throw when user not found', async () => {
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(null),
-            },
-          })
-        )
+        const tx = makeTx({ user: null })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         await expect(
           refundCredits({
@@ -362,6 +266,8 @@ describe('Credit Refund Service', () => {
             reason: 'test',
           })
         ).rejects.toThrow('UserCredits not found')
+        // existence check fails → no SQL update issued
+        expect(tx.$executeRaw).not.toHaveBeenCalled()
       })
 
       it('should throw on database error', async () => {
@@ -381,20 +287,14 @@ describe('Credit Refund Service', () => {
         expect(logger.error).toHaveBeenCalledWith('[CreditRefund] Failed', expect.any(Object))
       })
 
-      it('should ensure transaction atomicity', async () => {
-        const updateMock = vi.fn().mockRejectedValue(new Error('Update failed'))
-
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue({ userId: mockUserId, usedCredits: 5 }),
-              update: updateMock,
-            },
-            creditRefundLog: {
-              create: vi.fn(),
-            },
-          })
-        )
+      it('should propagate executeRaw failure to caller', async () => {
+        const tx = makeTx({
+          user: { userId: mockUserId },
+          executeRawImpl: async () => {
+            throw new Error('Update failed')
+          },
+        })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         await expect(
           refundCredits({
@@ -409,19 +309,8 @@ describe('Credit Refund Service', () => {
 
     describe('Edge Cases', () => {
       it('should handle zero refund amount', async () => {
-        const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
-
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
+        const tx = makeTx({ user: { userId: mockUserId } })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         const result = await refundCredits({
           userId: mockUserId,
@@ -431,22 +320,12 @@ describe('Credit Refund Service', () => {
         })
 
         expect(result).toBe(true)
+        expect(tx.$executeRaw.mock.calls[0].slice(1)).toEqual([0, mockUserId])
       })
 
       it('should handle very large refund amounts', async () => {
-        const mockUserCredits = { userId: mockUserId, usedCredits: 1000000 }
-
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
+        const tx = makeTx({ user: { userId: mockUserId } })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         const result = await refundCredits({
           userId: mockUserId,
@@ -459,19 +338,8 @@ describe('Credit Refund Service', () => {
       })
 
       it('should handle missing optional fields', async () => {
-        const mockUserCredits = { userId: mockUserId, usedCredits: 5 }
-
-        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-          callback({
-            userCredits: {
-              findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-              update: vi.fn().mockResolvedValue({}),
-            },
-            creditRefundLog: {
-              create: vi.fn().mockResolvedValue({}),
-            },
-          })
-        )
+        const tx = makeTx({ user: { userId: mockUserId } })
+        ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
         const result = await refundCredits({
           userId: mockUserId,
@@ -633,19 +501,8 @@ describe('Credit Refund Service', () => {
 
   describe('Integration Scenarios', () => {
     it('should handle complete refund workflow', async () => {
-      const mockUserCredits = { userId: mockUserId, usedCredits: 10 }
-
-      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-        callback({
-          userCredits: {
-            findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-            update: vi.fn().mockResolvedValue({}),
-          },
-          creditRefundLog: {
-            create: vi.fn().mockResolvedValue({ id: 'log1' }),
-          },
-        })
-      )
+      const tx = makeTx({ user: { userId: mockUserId } })
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
       // 1. Refund credits
       const refundResult = await refundCredits({
@@ -667,20 +524,13 @@ describe('Credit Refund Service', () => {
       expect(history).toHaveLength(1)
     })
 
-    it('should handle concurrent refunds safely', async () => {
-      const mockUserCredits = { userId: mockUserId, usedCredits: 10 }
-
-      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
-        callback({
-          userCredits: {
-            findUnique: vi.fn().mockResolvedValue(mockUserCredits),
-            update: vi.fn().mockResolvedValue({}),
-          },
-          creditRefundLog: {
-            create: vi.fn().mockResolvedValue({}),
-          },
-        })
-      )
+    it('should handle concurrent refunds — no lost update (Bug #1 regression guard)', async () => {
+      // 같은 유저에게 동시에 들어온 두 환불이 모두 적용되는지. 이전엔 findUnique
+      // → JS-side compute → update 패턴이라 두 호출이 같은 snapshot 을 보고 같은
+      // 값으로 덮어써서 한 건이 사라졌음. 새 구현은 둘 다 GREATEST(0, col - X)
+      // 한 줄짜리 UPDATE 로 row-level lock 안에서 직렬화된다.
+      const tx = makeTx({ user: { userId: mockUserId } })
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (cb) => cb(tx))
 
       const refund1 = refundCredits({
         userId: mockUserId,
@@ -699,6 +549,11 @@ describe('Credit Refund Service', () => {
       const results = await Promise.all([refund1, refund2])
 
       expect(results).toEqual([true, true])
+      expect(tx.$executeRaw).toHaveBeenCalledTimes(2)
+      // 두 호출 모두 amount=1 그대로 전달
+      const amounts = tx.$executeRaw.mock.calls.map((c) => c[1])
+      expect(amounts).toEqual([1, 1])
+      expect(tx.creditRefundLog.create).toHaveBeenCalledTimes(2)
     })
   })
 })
