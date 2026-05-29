@@ -26,7 +26,15 @@ export default function OfflinePage() {
       cancelPendingRedirect()
       redirectTimerRef.current = setTimeout(() => {
         redirectTimerRef.current = null
-        window.location.href = '/'
+        // 오프라인 폴백은 "원래 가려던 URL" 을 그대로 유지한 채 이 페이지
+        // 내용만 보여준다(SW document fallback). 따라서 reload() 하면 홈(/)
+        // 이 아니라 사용자가 보던 페이지(예: 운명상담사)로 그대로 복귀한다.
+        // 예전엔 location.href='/' 라 다른 앱 갔다 오면 홈으로 튕겼음.
+        if (window.location.pathname === '/offline') {
+          window.location.href = '/'
+        } else {
+          window.location.reload()
+        }
       }, 1000)
     }
 
