@@ -5,8 +5,14 @@ import { ENABLED_SERVICES } from '@/config/enabledServices'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
+// 정적 lastModified 상수 — 매 요청마다 new Date()로 갱신하면 크롤러가 매번
+// "방금 수정됨"으로 보고 lastModified 신호를 평가절하 + 크롤 예산을 낭비함.
+// 콘텐츠가 실제로 크게 바뀔 때(랜딩 카피, 가격, FAQ 대규모 개편 등) 이 상수만
+// 수동으로 올려준다. 블로그 글은 각 post.date 사용 — 아래 blogPages 참조.
+const SITE_LAST_MODIFIED = '2026-05-29T00:00:00.000Z'
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const currentDate = new Date().toISOString()
+  const currentDate = SITE_LAST_MODIFIED
 
   // Main public pages
   const mainPages: MetadataRoute.Sitemap = [
