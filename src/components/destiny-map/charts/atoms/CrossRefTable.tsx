@@ -113,6 +113,42 @@ const SIGN_TO_WESTERN_ELEMENT: Record<string, 'fire' | 'earth' | 'air' | 'water'
   Cancer: 'water', Scorpio: 'water', Pisces: 'water',
 }
 
+/** 점성 sign 영문 → 한국어. API 가 영문만 반환해 KO 모드에서 비전공자에 어색. */
+const SIGN_EN_TO_KO: Record<string, string> = {
+  Aries: '양자리',
+  Taurus: '황소자리',
+  Gemini: '쌍둥이자리',
+  Cancer: '게자리',
+  Leo: '사자자리',
+  Virgo: '처녀자리',
+  Libra: '천칭자리',
+  Scorpio: '전갈자리',
+  Sagittarius: '사수자리',
+  Capricorn: '염소자리',
+  Aquarius: '물병자리',
+  Pisces: '물고기자리',
+}
+
+/** 4 원소 영문 → 한국어. KO 모드 친화. */
+const ELEMENT_EN_TO_KO: Record<string, string> = {
+  fire: '불',
+  earth: '흙',
+  air: '공기',
+  water: '물',
+}
+
+/** sign 을 KO 모드면 한국어로, EN 모드면 영어 그대로. element 도 동일. */
+function localizeSign(sign: string | undefined, lang: 'ko' | 'en'): string {
+  if (!sign) return ''
+  if (lang === 'en') return sign
+  return SIGN_EN_TO_KO[sign] ?? sign
+}
+function localizeElement(el: string | undefined, lang: 'ko' | 'en'): string {
+  if (!el) return ''
+  if (lang === 'en') return el
+  return ELEMENT_EN_TO_KO[el] ?? el
+}
+
 // 격국 → 점성 MC sign "동조" (책임/표현/조화 등 결 일치). 단순 가시화 휴리스틱.
 const GEOKGUK_RESONANT_SIGNS: Record<string, string[]> = {
   정관격: ['염소자리', 'Capricorn', '천칭자리', 'Libra'],
@@ -212,8 +248,10 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         leftLabel: lang === 'ko' ? '일간 (나)' : 'Day Master',
         leftValue,
         leftHint: stem?.image,
-        rightLabel: lang === 'ko' ? '태양 sign' : 'Sun sign',
-        rightValue: sunWest ? `${sun.sign} (${sunWest})` : sun.sign,
+        rightLabel: lang === 'ko' ? '태양 별자리' : 'Sun sign',
+        rightValue: sunWest
+          ? `${localizeSign(sun.sign, lang)} (${localizeElement(sunWest, lang)})`
+          : localizeSign(sun.sign, lang),
         rightHint: getPlanetCore('Sun', lang)?.principle,
         tone,
       })
@@ -227,15 +265,16 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
     if (yongsin && moon?.sign) {
       const yongWest = SAJU_TO_WESTERN_ELEMENT[yongsin]
       const moonWest = SIGN_TO_WESTERN_ELEMENT[moon.sign]
-      // 달 sign 원소가 용신 원소와 같으면 "보완" (달이 부족한 걸 채워줌 → 결과적으로 두 시스템이 같은 처방).
       const tone: RowTone =
         yongWest && moonWest && yongWest === moonWest ? 'complement' : 'neutral'
       rows.push({
         category: lang === 'ko' ? '필요·욕망' : 'Needs',
         leftLabel: lang === 'ko' ? '용신 (필요 원소)' : 'Yongsin',
         leftValue: yongsin,
-        rightLabel: lang === 'ko' ? '달 sign' : 'Moon sign',
-        rightValue: moonWest ? `${moon.sign} (${moonWest})` : moon.sign,
+        rightLabel: lang === 'ko' ? '달 별자리' : 'Moon sign',
+        rightValue: moonWest
+          ? `${localizeSign(moon.sign, lang)} (${localizeElement(moonWest, lang)})`
+          : localizeSign(moon.sign, lang),
         rightHint: getPlanetCore('Moon', lang)?.principle,
         tone,
       })
@@ -256,7 +295,7 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         leftValue: geokguk,
         leftHint: taglineEntry?.tagline,
         rightLabel: lang === 'ko' ? 'MC (천직)' : 'MC',
-        rightValue: mc.sign,
+        rightValue: localizeSign(mc.sign, lang),
         tone,
       })
     }
@@ -276,7 +315,7 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
           leftLabel: lang === 'ko' ? '현재 대운' : 'Current Daeun',
           leftValue: `${current.age ?? 0}~ ${ganji}`,
           rightLabel: lang === 'ko' ? '활성 transit' : 'Active transit',
-          rightValue: 'N/A',
+          rightValue: lang === 'ko' ? '아직 없음' : 'N/A',
           tone: 'neutral',
         })
       }
@@ -292,8 +331,10 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
     if (lucky.length > 0 || pof?.house || pof?.sign) {
       const right =
         pof && (pof.house || pof.sign)
-          ? `${pof.sign ?? ''}${pof.house ? ` ${pof.house}H` : ''}`.trim()
-          : 'N/A'
+          ? `${pof.sign ? localizeSign(pof.sign, lang) : ''}${
+              pof.house ? ` ${pof.house}H` : ''
+            }`.trim()
+          : lang === 'ko' ? '아직 없음' : 'N/A'
       const houseHint =
         pof?.house && pof.house >= 1 && pof.house <= 12
           ? getHouseRich(pof.house as HouseNumber, lang)?.domain
@@ -301,7 +342,7 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
       rows.push({
         category: lang === 'ko' ? '길흉' : 'Fortune',
         leftLabel: lang === 'ko' ? '12 신살 (일주)' : 'Sinsal (day)',
-        leftValue: lucky.length > 0 ? lucky.join(' · ') : 'N/A',
+        leftValue: lucky.length > 0 ? lucky.join(' · ') : lang === 'ko' ? '아직 없음' : 'N/A',
         rightLabel: lang === 'ko' ? '행운점 (POF)' : 'Part of Fortune',
         rightValue: right,
         rightHint: houseHint,
@@ -323,14 +364,14 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
       rows.push({
         category: lang === 'ko' ? '관계' : 'Relations',
         leftLabel: lang === 'ko' ? '합·충 (사주 내)' : 'Hap/Chung',
-        leftValue: leftParts.length > 0 ? leftParts.join(' · ') : 'N/A',
+        leftValue: leftParts.length > 0 ? leftParts.join(' · ') : lang === 'ko' ? '아직 없음' : 'N/A',
         rightLabel: lang === 'ko' ? '주요 aspect' : 'Major aspects',
         rightValue:
           aspects.length > 0
             ? lang === 'ko'
               ? `${aspects.length}개`
               : `${aspects.length}`
-            : 'N/A',
+            : lang === 'ko' ? '아직 없음' : 'N/A',
         tone: 'neutral',
       })
     }
@@ -346,7 +387,7 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         leftLabel: lang === 'ko' ? '12 운성 (일주)' : 'Twelve Stage',
         leftValue: stage,
         rightLabel: lang === 'ko' ? '행성 위신' : 'Planet dignity',
-        rightValue: 'N/A',
+        rightValue: lang === 'ko' ? '아직 없음' : 'N/A',
         tone: 'neutral',
       })
     }
@@ -381,6 +422,90 @@ function toneBadge(tone: RowTone, lang: Lang): string | null {
   return null
 }
 
+// ── 용어 정의 사전 ──────────────────────────────────────────────────────
+// 비전공자가 모르는 동·서양 차트 전문 용어를 한 줄 정의로 노출.
+// `row.leftLabel` / `row.rightLabel` 의 문자열과 정확히 일치해야 매핑됨.
+const TERM_DEFINITION_KO: Record<string, string> = {
+  '일간 (나)': '사주 4 기둥 중 태어난 날의 천간 — 나 자신을 대표하는 한 글자.',
+  '용신 (필요 원소)': '사주의 균형을 잡아주는 핵심 원소 — 인생의 보약 같은 존재.',
+  격국: '사주의 본질 구조 — 한 단어로 요약한 인생 패턴 (정관격·정인격 등).',
+  '12 신살 (일주)': '일주에 깃든 길흉의 별 — 천을귀인(귀인의 도움) 같은 의미 부여.',
+  '12 운성 (일주)': '일간이 지지에서 어느 단계인지 — 장생(시작)~묘(끝) 12 단계.',
+  '행운점 (POF)': 'Part of Fortune — 점성에서 영혼·몸·정신이 만나는 행운 지점.',
+  '현재 대운': '지금 들어와 있는 10년 단위 운기 — 인생의 흐름을 바꾸는 시기.',
+  'MC (천직)': '점성 차트 천정 — 사회적 자아·직업·평판 영역.',
+  '주요 aspect': '점성 행성끼리의 각도 — 합·삼각·직각·대립 등 관계.',
+  '합·충 (사주 내)': '사주 글자끼리 짝지어(합) 또는 부딪혀(충) 만드는 관계.',
+  '태양 별자리': '태어난 순간 태양이 머문 별자리 — 핵심 자아·정체성.',
+  '달 별자리': '태어난 순간 달이 머문 별자리 — 감정·내면의 필요.',
+  '행성 위신': '행성이 자기 별자리에 있을 때 가지는 힘 — dignity (입묘·격락 등).',
+  '활성 transit': '현재 하늘의 행성이 내 출생 차트를 자극하는 흐름.',
+}
+const TERM_DEFINITION_EN: Record<string, string> = {
+  'Day Master': "The day-of-birth heavenly stem — your core 'I' character.",
+  Yongsin: 'The element that balances your chart — your inner remedy.',
+  Geokguk: "Your chart's primary structure — life pattern in one label.",
+  'Sinsal (day)': 'Auspicious/inauspicious stars on your day pillar — e.g. Nobleman.',
+  'Twelve Stage': 'Where your Day Master sits in the 12-stage life cycle (birth → grave).',
+  'Part of Fortune': 'Arabic part where soul, body, and mind meet — your luck point.',
+  'Current Daeun': 'The current 10-year luck cycle shaping your life now.',
+  MC: 'Midheaven — your career, reputation, and social self in astrology.',
+  'Major aspects': 'Angles between planets — conjunction, trine, square, opposition.',
+  'Hap/Chung': 'How saju characters bond (hap) or clash (chung) with each other.',
+  'Sun sign': 'The zodiac the Sun was in at birth — core identity.',
+  'Moon sign': 'The zodiac the Moon was in at birth — emotions and inner needs.',
+  'Planet dignity': 'A planet’s strength based on the sign it sits in.',
+  'Active transit': 'Current sky planets activating points in your natal chart.',
+}
+
+/**
+ * 용어 옆에 작은 ⓘ 아이콘 — tap (모바일) / hover (데스크탑) 시 popover.
+ * `title` 속성은 모바일에서 dead 라서 직접 popover 를 띄움.
+ */
+function TermHint({ term, definition }: { term: string; definition: string }) {
+  const [open, setOpen] = React.useState(false)
+  return (
+    <span className="relative inline-flex items-center gap-0.5">
+      <span>{term}</span>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((o) => !o)
+        }}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onBlur={() => setOpen(false)}
+        aria-label={`${term} 설명 보기`}
+        className="inline-flex h-3 w-3 items-center justify-center rounded-full text-[8px] leading-none opacity-60 hover:opacity-100"
+        style={{ background: 'rgba(212,181,114,0.18)', color: '#d4b572' }}
+      >
+        i
+      </button>
+      {open && (
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute left-0 top-full z-50 mt-1 w-max max-w-[220px] rounded-md px-2 py-1.5 text-[11px] leading-snug"
+          style={{
+            background: 'rgba(20,16,32,0.95)',
+            color: 'rgba(245,247,251,0.92)',
+            border: '1px solid rgba(212,181,114,0.4)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+          }}
+        >
+          {definition}
+        </span>
+      )}
+    </span>
+  )
+}
+
+/** 라벨 → 해당 lang 의 정의 lookup. 없으면 undefined. */
+function lookupDefinition(label: string, lang: Lang): string | undefined {
+  const dict = lang === 'ko' ? TERM_DEFINITION_KO : TERM_DEFINITION_EN
+  return dict[label]
+}
+
 // ── Component ──────────────────────────────────────────────────────────
 export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) {
   if (!saju || !astro) return null
@@ -389,14 +514,26 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
 
   return (
     <div className="space-y-2">
-      <div
-        className="flex items-center justify-between px-1 text-[11px] font-medium uppercase tracking-wider"
-        style={{ color: 'var(--ds-gold-on-dark)' }}
-      >
-        <span>{lang === 'ko' ? '사주 ↔ 점성 교차' : 'Saju ↔ Astrology'}</span>
-        <span style={{ color: 'var(--ds-dark-text-muted)', fontSize: 10 }}>
-          {lang === 'ko' ? '동양 (좌) ↔ 서양 (우)' : 'East ↔ West'}
-        </span>
+      <div className="space-y-1 px-1">
+        <div
+          className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider"
+          style={{ color: 'var(--ds-gold-on-dark)' }}
+        >
+          <span>{lang === 'ko' ? '사주 ↔ 점성 교차' : 'Saju ↔ Astrology'}</span>
+          <span style={{ color: 'var(--ds-dark-text-muted)', fontSize: 10 }}>
+            {lang === 'ko' ? '동양 (좌) ↔ 서양 (우)' : 'East ↔ West'}
+          </span>
+        </div>
+        <p className="text-[11px] leading-snug" style={{ color: 'var(--ds-dark-text-muted)' }}>
+          {lang === 'ko'
+            ? '같은 영역을 두 시스템에서 어떻게 보는지 — 금색 박스(✓)는 두 시스템이 같은 결을 가리킬 때 표시돼요.'
+            : 'How each life area looks in both systems — gold boxes (✓) mark where they point to the same thing.'}
+        </p>
+        <p className="text-[10px] leading-snug" style={{ color: 'var(--ds-dark-text-muted)' }}>
+          {lang === 'ko'
+            ? '📍 보완 = 부족한 결을 채움 · 동조 = 두 시스템이 같은 결 강조'
+            : "💡 complement = fills in what's missing · resonant = both point to same direction"}
+        </p>
       </div>
 
       <ul className="space-y-1.5">
@@ -446,7 +583,14 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
                     className="text-[10px]"
                     style={{ color: 'var(--ds-dark-text-muted)' }}
                   >
-                    {row.leftLabel}
+                    {lookupDefinition(row.leftLabel, lang) ? (
+                      <TermHint
+                        term={row.leftLabel}
+                        definition={lookupDefinition(row.leftLabel, lang) as string}
+                      />
+                    ) : (
+                      row.leftLabel
+                    )}
                   </div>
                   <div
                     className="text-xs leading-snug sm:text-sm"
@@ -470,7 +614,14 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
                     className="text-[10px]"
                     style={{ color: 'var(--ds-dark-text-muted)' }}
                   >
-                    {row.rightLabel}
+                    {lookupDefinition(row.rightLabel, lang) ? (
+                      <TermHint
+                        term={row.rightLabel}
+                        definition={lookupDefinition(row.rightLabel, lang) as string}
+                      />
+                    ) : (
+                      row.rightLabel
+                    )}
                   </div>
                   <div
                     className="text-xs leading-snug sm:text-sm"
