@@ -365,8 +365,8 @@ function toneStyle(tone: RowTone): { background: string; border: string } {
   }
   if (tone === 'resonant') {
     return {
-      background: 'rgba(124, 58, 237, 0.08)',
-      border: '1px solid rgba(124, 58, 237, 0.35)',
+      background: 'rgba(212, 181, 114, 0.08)',
+      border: '1px solid rgba(212, 181, 114, 0.35)',
     }
   }
   return {

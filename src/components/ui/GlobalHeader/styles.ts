@@ -18,7 +18,7 @@ export const styles = {
     focus-visible:ring-red-400
   `,
   header:
-    'fixed top-4 inset-x-4 z-[9999] flex items-center justify-between gap-2 pointer-events-none',
+    'fixed top-4 inset-x-4 z-[var(--z-sticky-header)] flex items-center justify-between gap-2 pointer-events-none',
   headerSlotLeft: 'flex items-center gap-2 pointer-events-auto',
   headerSlotRight: 'flex flex-col items-end gap-2 pointer-events-auto',
 } as const
