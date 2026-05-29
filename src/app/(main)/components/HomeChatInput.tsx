@@ -7,7 +7,10 @@ import type { StoredBirthInfo } from '../birthInfoStorage'
 import { buildCounselorHref } from '../birthInfoStorage'
 
 // 서비스 선택 — config/enabledServices.ts 와 동일 id·라벨.
-export type HomeServiceId = 'destinyMap' | 'tarot' | 'compatibility' | 'calendar'
+// calendar 는 메인 페이지 흐름 ("질문 입력 → 서비스 선택") 에 안 맞아서
+// (calendar 는 자유 질문 안 받음) 메인 노출 제거. 시간 흐름 데이터는 운명
+// 상담사 차트 모달 안의 cross-link 로 접근.
+export type HomeServiceId = 'destinyMap' | 'tarot' | 'compatibility'
 
 interface HomeChatInputProps {
   birthInfo: StoredBirthInfo | null
@@ -51,7 +54,6 @@ const SERVICES: ReadonlyArray<{
   { id: 'destinyMap', icon: '🗺️', ko: '운명 상담사', en: 'Destiny Counselor' },
   { id: 'tarot', icon: '🔮', ko: '타로 상담사', en: 'Tarot Counselor' },
   { id: 'compatibility', icon: '💕', ko: '궁합 상담사', en: 'Compatibility' },
-  { id: 'calendar', icon: '🗓️', ko: '일·월·년 운세', en: 'Fortune Calendar' },
 ]
 
 export default function HomeChatInput({
@@ -80,7 +82,7 @@ export default function HomeChatInput({
     router.push(buildCounselorHref(birthInfo, trimmed, locale))
   }
 
-  // 칩으로 서비스 직접 선택. 타로·운세달력은 생일이 필요 없으니 바로 진입하고,
+  // 칩으로 서비스 직접 선택. 타로는 생일이 필요 없으니 바로 진입하고,
   // 궁합·운명상담사만 생일을 요구한다(없으면 모달 먼저).
   const selectService = (service: HomeServiceId) => {
     if (service === 'destinyMap') {
@@ -89,10 +91,6 @@ export default function HomeChatInput({
     }
     if (service === 'tarot') {
       router.push('/tarot')
-      return
-    }
-    if (service === 'calendar') {
-      router.push('/calendar')
       return
     }
     // compatibility — 생일 필요.
