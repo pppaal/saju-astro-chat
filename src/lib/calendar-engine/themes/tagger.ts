@@ -59,6 +59,13 @@ export function tagSignalWithThemes(signal: ActiveSignal): TaggedThemes {
     }
   }
 
+  // 점성 — 28수 (lunar-mansion): 동양 택일 효능은 건강 사이클·일상 흐름(성장)
+  // 이 주요 영역. 강하지 않은 보조 가중으로만 부여(배경 톤).
+  if (signal.kind === 'lunar-mansion') {
+    bump('health', 0.5)
+    bump('growth', 0.4)
+  }
+
   // 점성 — 하우스 (행성보다 덜 specific → secondary 가중)
   if (ev.houses?.length) {
     for (const house of ev.houses) {

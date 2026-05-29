@@ -36,6 +36,7 @@ export type AstroSignalKind =
   | 'harmonic' // 하모닉 차트 (특정 결 패턴 — 4/5/7/9) 트랜짓 컨택
   | 'antiscia' // 안티시아 그림자 도 컨택트
   | 'vertex-contact' // Vertex/Anti-Vertex 컨택트 (운명점)
+  | 'lunar-mansion' // 28수 — 달의 동양 별자리 (택일·명리)
 
 export type SignalKind = SajuSignalKind | AstroSignalKind
 
