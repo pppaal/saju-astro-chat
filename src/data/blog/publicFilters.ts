@@ -5,12 +5,14 @@ const BLOCKED_BLOG_CATEGORIES = new Set([
   'numerology', // 수비학 — 서비스 없음
   'i ching', // 역경 — 서비스 없음
   'dream', // 꿈 해몽 — 서비스 없음
+  'personality', // MBTI 매핑 글 — Astrology 섞였지만 주제 절반이 MBTI 라 매핑 약함
 ])
 
 const BLOCKED_BLOG_SLUGS = new Set([
   'numerology-life-path-numbers-explained',
   'iching-beginners-guide-hexagrams',
   'dream-interpretation-symbols-meanings',
+  'personality-types-astrology-mbti-zodiac',
 ])
 
 export function isBlockedBlogPost(input: { slug: string; category?: string | null }): boolean {
