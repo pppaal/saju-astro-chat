@@ -49,7 +49,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
       aria-label={isKo ? '내 차트' : 'My chart'}
     >
       <div
-        className="chart-pop-in relative w-full max-w-2xl rounded-2xl p-6 overflow-y-auto"
+        className="chart-pop-in relative w-full max-w-2xl rounded-2xl p-4 sm:p-6 overflow-y-auto chart-modal-scroll"
         style={{
           background: 'rgba(17, 24, 39, 0.92)',
           border: '1px solid var(--ds-gold-line)',
@@ -109,7 +109,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
           </div>
         )}
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* 동양 — 사주팔자 · 오행 균형 (한 그룹으로 묶음) */}
           <section
             className="chart-rise-in space-y-3 rounded-2xl p-4"

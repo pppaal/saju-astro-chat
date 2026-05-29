@@ -846,6 +846,16 @@ body {
   animation: chart-pop-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* 차트 모달 스크롤바 시각적으로 숨김 — 스크롤 동작은 유지. 모달이 navy
+   glass 라 OS 기본 회색 스크롤바가 떠 보였음. WebKit/Firefox/IE 다 커버. */
+.chart-modal-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.chart-modal-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge new */
+}
+
 @keyframes chart-rise-in {
   from {
     opacity: 0;
