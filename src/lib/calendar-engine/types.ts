@@ -38,6 +38,7 @@ export type AstroSignalKind =
   | 'vertex-contact' // Vertex/Anti-Vertex 컨택트 (운명점)
   | 'lunar-mansion' // 28수 — 달의 동양 별자리 (택일·명리)
   | 'firdaria' // 페르시아 75년 시간 분할 (메이저 + 메이저별 7 sub-period)
+  | 'heliocentric' // 일심 점성 — 태양 중심 좌표 어스펙트
 
 export type SignalKind = SajuSignalKind | AstroSignalKind
 
