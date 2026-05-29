@@ -225,7 +225,7 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
       initialDelayMs: 700,
       maxDelayMs: 4000,
       timeoutMs,
-      retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504],
+      retryStatusCodes: [408, 409, 425, 429, 500, 502, 503, 504, 529],
       onRetry: (attempt, error, delayMs) => {
         logger.warn(`[${label}] Claude retry scheduled`, {
           attempt,

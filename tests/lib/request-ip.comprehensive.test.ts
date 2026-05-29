@@ -17,9 +17,10 @@ describe('Client IP Extraction', () => {
   })
 
   describe('Cloudflare Headers', () => {
-    it('should prioritize cf-connecting-ip header', () => {
+    it('should prioritize cf-connecting-ip header when cf-ray is present', () => {
       const headers = new Headers({
         'cf-connecting-ip': '1.2.3.4',
+        'cf-ray': '8abc1234-DFW',
         'x-real-ip': '5.6.7.8',
         'x-forwarded-for': '9.10.11.12, 13.14.15.16',
       })
@@ -29,9 +30,10 @@ describe('Client IP Extraction', () => {
       expect(ip).toBe('1.2.3.4')
     })
 
-    it('should use cf-connecting-ip when available', () => {
+    it('should use cf-connecting-ip when paired with cf-ray', () => {
       const headers = new Headers({
         'cf-connecting-ip': '203.0.113.1',
+        'cf-ray': '8abc1234-DFW',
       })
 
       const ip = getClientIp(headers)
@@ -141,6 +143,7 @@ describe('Client IP Extraction', () => {
 
       const headers = new Headers({
         'cf-connecting-ip': '203.0.113.1',
+        'cf-ray': '8abc1234-DFW',
       })
 
       const ip = getClientIp(headers, '192.0.2.1')
@@ -269,9 +272,10 @@ describe('Client IP Extraction', () => {
 
   describe('Header Priority', () => {
     it('should follow correct priority order', () => {
-      // Priority: cf-connecting-ip > x-real-ip > x-forwarded-for > vercel > remote
+      // Priority: cf-connecting-ip (with cf-ray) > vercel > x-real-ip > x-forwarded-for > remote
       const headers1 = new Headers({
         'cf-connecting-ip': '1.1.1.1',
+        'cf-ray': '8abc1234-DFW',
         'x-real-ip': '2.2.2.2',
         'x-forwarded-for': '3.3.3.3',
       })
@@ -364,6 +368,7 @@ describe('Client IP Extraction', () => {
     it('should handle case-insensitive headers', () => {
       const headers = new Headers({
         'CF-CONNECTING-IP': '203.0.113.1',
+        'CF-RAY': '8abc1234-DFW',
       })
 
       const ip = getClientIp(headers)
@@ -377,6 +382,7 @@ describe('Client IP Extraction', () => {
     it('should handle Cloudflare proxy chain', () => {
       const headers = new Headers({
         'cf-connecting-ip': '203.0.113.1',
+        'cf-ray': '8abc1234-DFW',
         'x-forwarded-for': '203.0.113.1, 172.68.1.1',
         'x-real-ip': '172.68.1.1',
       })
@@ -420,6 +426,7 @@ describe('Client IP Extraction', () => {
     it('should handle mobile network IP', () => {
       const headers = new Headers({
         'cf-connecting-ip': '203.0.113.50',
+        'cf-ray': '8abc1234-DFW',
       })
 
       const ip = getClientIp(headers)
@@ -465,6 +472,7 @@ describe('Client IP Extraction', () => {
     it('should handle compressed IPv6', () => {
       const headers = new Headers({
         'cf-connecting-ip': '2001:db8::1',
+        'cf-ray': '8abc1234-DFW',
       })
 
       const ip = getClientIp(headers)

@@ -46,13 +46,28 @@ describe('getClientIp', () => {
     expect(result).toBe('192.168.1.2')
   })
 
-  it('should return IP from cf-connecting-ip header if others are absent', async () => {
+  it('should return IP from cf-connecting-ip header when cf-ray is also present', async () => {
     const { getClientIp } = await import('@/lib/request-ip')
 
-    const headers = new Headers({ 'cf-connecting-ip': '192.168.1.3' })
+    const headers = new Headers({
+      'cf-connecting-ip': '192.168.1.3',
+      'cf-ray': '8abc1234-DFW',
+    })
     const result = getClientIp(headers)
 
     expect(result).toBe('192.168.1.3')
+  })
+
+  it('should ignore cf-connecting-ip without cf-ray (spoof guard)', async () => {
+    const { getClientIp } = await import('@/lib/request-ip')
+
+    const headers = new Headers({
+      'cf-connecting-ip': '1.2.3.4',
+      'x-real-ip': '10.0.0.1',
+    })
+    const result = getClientIp(headers)
+
+    expect(result).toBe('10.0.0.1')
   })
 
   it('should return "unknown" when no IP headers present', async () => {
@@ -64,11 +79,12 @@ describe('getClientIp', () => {
     expect(result).toBe('unknown')
   })
 
-  it('should prioritize cf-connecting-ip over x-real-ip', async () => {
+  it('should prioritize cf-connecting-ip over x-real-ip when cf-ray is present', async () => {
     const { getClientIp } = await import('@/lib/request-ip')
 
     const headers = new Headers({
       'cf-connecting-ip': '192.168.1.3',
+      'cf-ray': '8abc1234-DFW',
       'x-real-ip': '192.168.1.2',
     })
     const result = getClientIp(headers)

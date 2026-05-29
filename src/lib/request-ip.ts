@@ -105,8 +105,12 @@ export function getClientIp(headers: Headers, remoteAddr?: string): string {
   }
 
   // Trusted proxy - check proxy headers
+  // Only trust cf-connecting-ip when cf-ray is also present. Cloudflare always
+  // sets both, but Vercel does NOT strip a client-supplied cf-connecting-ip,
+  // so without this gating an attacker could rotate cf-connecting-ip per request
+  // to evade per-IP rate limits.
   const cfConnecting = headers.get('cf-connecting-ip')
-  if (cfConnecting) return cfConnecting
+  if (cfConnecting && headers.get('cf-ray')) return cfConnecting
 
   const vercelForwarded = getFirstForwardedIp(headers.get('x-vercel-forwarded-for'))
   if (vercelForwarded) return vercelForwarded
