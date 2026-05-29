@@ -34,7 +34,7 @@ Represents your children, creativity, later years, and legacy. It shows what you
 
 ## How Saju Differs from Western Astrology
 
-While both systems analyze birth time, Saju and Western astrology have key differences. A common misconception is that Saju runs on the lunar calendar — it actually uses the 24 solar terms (절기, 節氣) tracked by a perpetual calendar called the manseryeok (만세력). The Saju year, for example, doesn't start on lunar New Year but at Ipchun (입춘, around February 4), and each monthly pillar changes at a specific solar term, not at a new moon.
+While both systems analyze birth time, Saju and Western astrology have key differences. A common misconception is that Saju runs on the lunar calendar — it actually uses the 24 solar terms (절기, 節氣) tracked by a stem-and-branch almanac called the manseryeok (만세력, 萬歲曆). The Saju year, for example, doesn't start on lunar New Year (Seollal / Chinese New Year) but at Ipchun (입춘, around February 4), and each monthly pillar changes at a specific solar term, not at a new moon.
 
 | Saju                                       | Western Astrology                       |
 | ------------------------------------------ | --------------------------------------- |
@@ -50,7 +50,7 @@ A professional Saju reading analyzes:
 1. **Day Master strength**: Is your core element strong or weak in this chart?
 2. **Elemental balance**: Which elements are excessive, deficient, or missing?
 3. **Useful god (용신, 用神)**: The element that best brings the chart into balance — your strategic ally.
-4. **Ten Gods (십신, 十神)**: Ten relational roles (such as 비견 Friend, 식신 Eating God, 정재 Direct Wealth, 정관 Direct Officer, 정인 Direct Resource) that each remaining stem and branch plays in relation to the Day Master. They translate raw elements into themes like career, wealth, recognition, relationships, and learning.
+4. **Ten Gods (십신, 十神)**: Ten relational roles — 비견 (Friend), 겁재 (Rival), 식신 (Eating God), 상관 (Hurting Officer), 정재 (Direct Wealth), 편재 (Indirect Wealth), 정관 (Direct Officer), 칠살 (Seven Killings), 정인 (Direct Resource), 편인 (Indirect Resource) — that each remaining stem and branch plays in relation to the Day Master. They translate raw elements into themes like career, wealth, recognition, relationships, and learning.
 5. **Luck pillars (대운, 大運)**: 10-year periods that overlay new stems and branches onto the natal chart.
 6. **Annual fortune (세운, 歲運)**: The current year's stem and branch and how they interact with the chart.
 

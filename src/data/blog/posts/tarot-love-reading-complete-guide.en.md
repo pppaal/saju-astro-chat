@@ -208,6 +208,8 @@ Reversals often indicate internal process, delays, or redirected energy—not ne
 
 Challenging cards show what needs attention, not unchangeable fate. Tarot reveals trajectories; your choices still write the ending.
 
+**Yes/no questions**: These narrow the spread's depth. If you find yourself wanting a yes/no, reframe to "What energy is moving toward me?" or "What conditions would make this likely?" — the cards answer the *how* far better than the *whether*.
+
 ## Ethics of Love Readings
 
 Love readings touch the most tender parts of human life, so handle the cards with care.
