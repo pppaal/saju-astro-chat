@@ -17,6 +17,7 @@ import { Prisma } from '@prisma/client'
 import { sendPushNotification } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
 import { sanitizeHtml } from '@/lib/api/sanitizers'
+import { consumeBonusCreditOnceInTx } from '@/lib/credits/creditService'
 import {
   coupleTarotReadingPostSchema,
   coupleTarotReadingDeleteSchema,
@@ -209,7 +210,8 @@ export const POST = withApiMiddleware(
       // 크레딧 차감을 atomic conditional update 로 막아 race 와 음수 bonus 를 방지한다.
       // 1) compat 한도 안에 있으면 compat 먼저 시도. updateMany 의 where 절에 잔량 조건을 박아 race 가 와도 한쪽만 통과한다.
       // 2) compat 가 race 로 막히거나 한도 초과면 bonus 로 fallback. (옛 코드는 트랜잭션 밖 스냅샷으로 분기를 정해, race 로 compat 가 막히면 bonus 가 남아 있어도 403 으로 떨어지는 문제가 있었다.)
-      // 3) 둘 다 실패해야만 INSUFFICIENT 으로 롤백.
+      // 3) bonus 차감은 `consumeBonusCreditOnceInTx` 로 위임 — `UserCredits.bonusCredits` 만 줄이는 게 아니라 FIFO 순서로 `BonusCreditPurchase.remaining` 도 함께 차감해 시스템 invariant 를 유지한다. (이전에 여기 자체 코드가 `bonusCredits` 만 줄여 sum(remaining) > bonusCredits drift 가 누적, 다음 FIFO 차감 시 over-grant 의 원인이 됐다.)
+      // 4) 둘 다 실패해야만 INSUFFICIENT 으로 롤백.
       class InsufficientCreditsError extends Error {
         constructor() {
           super('INSUFFICIENT_CREDITS')
@@ -230,11 +232,8 @@ export const POST = withApiMiddleware(
           }
 
           if (!charged) {
-            const bonusTry = await tx.userCredits.updateMany({
-              where: { userId, bonusCredits: { gt: 0 } },
-              data: { bonusCredits: { decrement: 1 } },
-            })
-            if (bonusTry.count > 0) charged = 'bonus'
+            const ok = await consumeBonusCreditOnceInTx(tx, userId)
+            if (ok) charged = 'bonus'
           }
 
           if (!charged) throw new InsufficientCreditsError()

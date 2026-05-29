@@ -360,6 +360,12 @@ describe('/api/tarot/couple-reading', () => {
           update: vi.fn().mockResolvedValue({}),
           updateMany: vi.fn().mockResolvedValue({ count: 1 }),
         },
+        // consumeBonusCreditOnceInTx 가 호출하는 모델 — FIFO drift 차단 (B1).
+        // 기본은 보너스 purchase 1 개가 있고 양쪽 update 가 성공하는 happy path.
+        bonusCreditPurchase: {
+          findFirst: vi.fn().mockResolvedValue({ id: 'bp-1' }),
+          updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        },
         tarotReading: {
           create: vi.fn().mockResolvedValue({ id: 'reading-123' }),
         },
@@ -947,6 +953,8 @@ describe('/api/tarot/couple-reading', () => {
         // Snapshot says compat has room (9/10) but a concurrent request beat us
         // to the last slot — the conditional updateMany returns count: 0. We
         // must NOT 403 the user if bonus is still available.
+        // bonus 경로는 consumeBonusCreditOnceInTx 가 처리 → bonusCreditPurchase
+        // 가 happy path (purchase 발견 + updateMany count 1) 이면 OK.
         const { prisma } = await import('@/lib/db/prisma')
         ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
           userId: mockUserId,
@@ -962,7 +970,11 @@ describe('/api/tarot/couple-reading', () => {
               updateMany: vi
                 .fn()
                 .mockResolvedValueOnce({ count: 0 }) // compat race lost
-                .mockResolvedValueOnce({ count: 1 }), // bonus fallback wins
+                .mockResolvedValueOnce({ count: 1 }), // bonus 사용자 row 차감 성공
+            },
+            bonusCreditPurchase: {
+              findFirst: vi.fn().mockResolvedValue({ id: 'bp-1' }),
+              updateMany: vi.fn().mockResolvedValue({ count: 1 }),
             },
             tarotReading: {
               create: vi.fn().mockResolvedValue({ id: 'reading-123' }),
@@ -998,6 +1010,12 @@ describe('/api/tarot/couple-reading', () => {
           const mockTx = {
             userCredits: {
               update: vi.fn().mockResolvedValue({}),
+              updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+            },
+            // bonus purchase 가 0 개라 consumeBonusCreditOnceInTx 가 false →
+            // 둘 다 실패 → INSUFFICIENT_CREDITS → 403.
+            bonusCreditPurchase: {
+              findFirst: vi.fn().mockResolvedValue(null),
               updateMany: vi.fn().mockResolvedValue({ count: 0 }),
             },
             tarotReading: {
