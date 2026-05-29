@@ -84,7 +84,7 @@
       "name": "화성 (♂)",
       "principle": "행동·욕망·추진력",
       "meaning": "당신이 원하는 것을 어떻게 쟁취하는지. 화를 내고 싸우는 방식, 그리고 성적 에너지의 표현.",
-      "rules": "양자리 (전통적으로 전갈자리도)",
+      "rules": "양자리 · 전갈자리 (전갈은 전통 지배, 현대 점성학은 명왕성에 이양)",
       "natal_strong": "강하게 배치되면 (1H/10H + 좋은 각): 추진력 강하고 결단력 있음, 도전을 즐기며 행동으로 옮김",
       "natal_weak": "약하면 (어려운 각): 분노 조절 어려움, 충동적이거나 반대로 행동을 미루고 자기주장이 약함",
       "keywords": ["행동", "욕망", "분노", "용기", "경쟁", "성"]
@@ -93,7 +93,7 @@
       "name": "Mars (♂)",
       "principle": "Action · Desire · Drive",
       "meaning": "How you go after what you want — the way you express anger, fight, and channel raw sexual energy.",
-      "rules": "Aries (traditionally Scorpio too)",
+      "rules": "Aries · Scorpio (Scorpio = traditional; modern assigns to Pluto)",
       "natal_strong": "Strongly placed (1H/10H + good aspects): strong drive, decisive, embraces challenge, takes action",
       "natal_weak": "Weakly placed (hard aspects): anger management issues, impulsive or conversely passive and weakly assertive",
       "keywords": ["action", "desire", "anger", "courage", "competition", "sexuality"]
@@ -104,7 +104,7 @@
       "name": "목성 (♃)",
       "principle": "확장·신념·행운",
       "meaning": "당신이 어디서 성장하고 의미를 찾는지. 인생을 더 크게 보는 신념과 기회를 끌어당기는 영역.",
-      "rules": "사수자리 (전통적으로 물고기자리도)",
+      "rules": "사수자리 · 물고기자리 (물고기는 전통 지배, 현대는 해왕성에 이양)",
       "natal_strong": "강하게 배치되면 (9H + 좋은 각): 낙천적이고 운이 좋음, 넓은 시야와 관대함, 기회가 자주 찾아옴",
       "natal_weak": "약하면 (어려운 각): 과신·과욕으로 일을 그르침, 무책임하거나 반대로 비관적이고 신념이 없음",
       "keywords": ["확장", "신념", "행운", "성장", "철학", "관대함"]
@@ -113,7 +113,7 @@
       "name": "Jupiter (♃)",
       "principle": "Expansion · Faith · Luck",
       "meaning": "Where you grow and find meaning — the area of life where you seek the big picture and attract opportunity.",
-      "rules": "Sagittarius (traditionally Pisces too)",
+      "rules": "Sagittarius · Pisces (Pisces = traditional; modern assigns to Neptune)",
       "natal_strong": "Strongly placed (9H + good aspects): optimistic, lucky, broad vision, generous, opportunities flow in",
       "natal_weak": "Weakly placed (hard aspects): overconfidence and excess cause trouble, irresponsible or conversely pessimistic and faithless",
       "keywords": ["expansion", "faith", "luck", "growth", "philosophy", "generosity"]
@@ -124,7 +124,7 @@
       "name": "토성 (♄)",
       "principle": "한계·책임·구조",
       "meaning": "당신이 어디서 시련을 통해 단단해지는지. 책임과 규율을 통해 진짜 자신을 빚어내는 영역. (Liz Greene)",
-      "rules": "염소자리 (전통적으로 물병자리도)",
+      "rules": "염소자리 · 물병자리 (물병은 전통 지배, 현대는 천왕성에 이양)",
       "natal_strong": "강하게 배치되면 (10H + 좋은 각): 자기 규율 강하고 인내심 있음, 늦게 피지만 견고한 성취를 이룸",
       "natal_weak": "약하면 (어려운 각): 두려움과 자기 의심에 시달림, 책임 회피 또는 과도한 자기 비판",
       "keywords": ["책임", "한계", "구조", "인내", "권위", "시간"]
@@ -133,7 +133,7 @@
       "name": "Saturn (♄)",
       "principle": "Limit · Responsibility · Structure",
       "meaning": "Where you're forged through hardship — the area where discipline and responsibility shape who you really are. (Liz Greene)",
-      "rules": "Capricorn (traditionally Aquarius too)",
+      "rules": "Capricorn · Aquarius (Aquarius = traditional; modern assigns to Uranus)",
       "natal_strong": "Strongly placed (10H + good aspects): self-disciplined, patient, late-blooming but lasting achievement",
       "natal_weak": "Weakly placed (hard aspects): plagued by fear and self-doubt, avoids responsibility or becomes overly self-critical",
       "keywords": ["responsibility", "limits", "structure", "patience", "authority", "time"]
@@ -263,7 +263,7 @@
     "ko": {
       "name": "사우스 노드 (☋)",
       "principle": "과거의 패턴·익숙한 재능",
-      "meaning": "이미 잘 아는 영역, 전생 또는 어린 시절부터 익숙한 습관. 편하지만 머물면 성장이 멈추는 곳.",
+      "meaning": "이미 잘 아는 영역 — 과거 패턴, 어린 시절 학습되거나 익숙한 결. 편하지만 머물면 성장이 멈추는 곳.",
       "rules": "(별자리가 아닌 달의 궤도 교차점)",
       "natal_strong": "재능으로 활용하면: 타고난 능력이 빛남, 과거의 지혜를 현재에 통합 가능",
       "natal_weak": "안주하면: 익숙함에 빠져 같은 실수 반복, 발전 없이 과거 패턴만 되풀이",
@@ -272,7 +272,7 @@
     "en": {
       "name": "South Node (☋)",
       "principle": "Past Patterns · Familiar Gifts",
-      "meaning": "What you already know — habits familiar from past lives or early childhood. Comfortable, but growth stalls if you stay there.",
+      "meaning": "What you already know — past patterns, what feels familiar from early conditioning. Comfortable, but growth stalls if you stay there.",
       "rules": "(not a sign — the Moon's descending orbital node)",
       "natal_strong": "When used as a gift: innate talents shine, past wisdom integrates into the present",
       "natal_weak": "When you settle there: trapped in comfort, repeating the same mistakes, looping past patterns without growth",
