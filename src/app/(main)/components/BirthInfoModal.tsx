@@ -3,7 +3,12 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown, Download } from 'lucide-react'
 import styles from '../main-page.module.css'
-import { saveBirthInfo, getStoredBirthInfo, type StoredBirthInfo } from '../birthInfoStorage'
+import {
+  saveBirthInfo,
+  getStoredBirthInfo,
+  clearBirthInfo,
+  type StoredBirthInfo,
+} from '../birthInfoStorage'
 import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
 
 interface BirthInfoModalProps {
@@ -11,6 +16,8 @@ interface BirthInfoModalProps {
   initial: StoredBirthInfo | null
   onClose: () => void
   onSaved: (info: StoredBirthInfo) => void
+  // 저장된 생년월일을 삭제했을 때 — 부모가 상태를 비우고 모달을 닫는다.
+  onDeleted?: () => void
   locale?: 'ko' | 'en'
 }
 
@@ -44,6 +51,7 @@ export default function BirthInfoModal({
   initial,
   onClose,
   onSaved,
+  onDeleted,
   locale = 'ko',
 }: BirthInfoModalProps) {
   const isKo = locale === 'ko'
@@ -300,6 +308,35 @@ export default function BirthInfoModal({
     onSaved({ ...payload, savedAt: new Date().toISOString() })
   }
 
+  const handleDelete = async () => {
+    const ok =
+      typeof window === 'undefined' ||
+      window.confirm(
+        isKo
+          ? '저장된 생년월일 정보를 삭제할까요? 다음 상담을 시작할 때 다시 입력해야 해요.'
+          : 'Delete your saved birth info? You will need to enter it again next time.'
+      )
+    if (!ok) return
+    clearBirthInfo()
+    // 로그인 사용자는 서버 프로필도 비워야 다음 동기화 때 옛 값이 다시
+    // 살아나지 않음. 게스트는 401 — 로컬 삭제로 충분하니 swallow.
+    try {
+      await fetch('/api/me/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          birthDate: null,
+          birthTime: null,
+          birthCity: null,
+          tzId: null,
+        }),
+      })
+    } catch {
+      // localStorage already cleared; tolerate transient API failures.
+    }
+    onDeleted?.()
+  }
+
   return (
     <div
       className={styles.modalOverlay}
@@ -403,6 +440,11 @@ export default function BirthInfoModal({
         )}
 
         <div className={styles.modalActions}>
+          {initial?.birthDate && (
+            <button type="button" className={styles.modalDelete} onClick={handleDelete}>
+              {isKo ? '삭제' : 'Delete'}
+            </button>
+          )}
           <button type="button" className={styles.modalCancel} onClick={onClose}>
             {isKo ? '취소' : 'Cancel'}
           </button>

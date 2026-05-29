@@ -189,6 +189,14 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     setBirthModalOpen(true)
   }
 
+  // 저장된 생년월일 삭제 — 상태를 비우고 모달을 닫는다. 대기 중이던 서비스
+  // 이동 의도도 취소(생일이 없어졌으니 이동할 수 없음).
+  const handleDeleted = () => {
+    pendingServiceRef.current = null
+    setBirthInfo(null)
+    setBirthModalOpen(false)
+  }
+
   const handleSaved = (info: StoredBirthInfo) => {
     setBirthInfo(info)
     setBirthModalOpen(false)
@@ -341,6 +349,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         initial={birthInfo}
         onClose={() => setBirthModalOpen(false)}
         onSaved={handleSaved}
+        onDeleted={handleDeleted}
         locale={locale}
       />
 

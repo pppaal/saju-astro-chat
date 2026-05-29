@@ -1003,6 +1003,34 @@
   cursor: not-allowed;
 }
 
+/* 저장된 생년월일 삭제 — 액션 줄 맨 왼쪽의 보조(위험) 버튼. */
+.modalDelete {
+  flex: 0 0 auto;
+  padding: 0.85rem 0.9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  background: transparent;
+  color: rgba(248, 113, 113, 0.92);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.modalDelete:hover {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+.lightMode .modalDelete {
+  border-color: rgba(220, 38, 38, 0.35);
+  color: #dc2626;
+}
+
+.lightMode .modalDelete:hover {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.5);
+}
+
 .modalLoadButton {
   display: flex;
   align-items: center;

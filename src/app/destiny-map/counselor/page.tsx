@@ -325,8 +325,13 @@ export default function CounselorPage() {
           채팅이 길어져도 헤더 바로 아래 고정. name 비어 있으면 (초기 게스트)
           렌더 자체 생략. */}
       {name?.trim() && (
-        <div className={styles.profileStickyBar} aria-label={lang === 'ko' ? '대상 인물' : 'Subject'}>
-          <span className={styles.profileStickyDot} aria-hidden="true">●</span>
+        <div
+          className={styles.profileStickyBar}
+          aria-label={lang === 'ko' ? '대상 인물' : 'Subject'}
+        >
+          <span className={styles.profileStickyDot} aria-hidden="true">
+            ●
+          </span>
           <span className={styles.profileStickyName}>{name}</span>
         </div>
       )}
@@ -386,7 +391,9 @@ export default function CounselorPage() {
 function InitialQuestionSender({ question }: { question: string }) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('counselor:seed', { detail: question }))
+      // useSeedEvent 는 detail.text 를 읽는다 — 문자열을 그대로 보내면
+      // detail.text 가 undefined 라 자동 전송이 안 됨. { text } 형태로 보낼 것.
+      window.dispatchEvent(new CustomEvent('counselor:seed', { detail: { text: question } }))
     }, 500)
     return () => clearTimeout(timer)
   }, [question])
