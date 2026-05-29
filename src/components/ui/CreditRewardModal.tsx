@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
+import { useModalDismiss, useModalTransition } from '@/hooks/useModalA11y'
 import styles from './CreditDepletedModal.module.css'
 
 interface RewardItem {
@@ -24,37 +24,10 @@ interface CreditRewardModalProps {
  */
 export default function CreditRewardModal({ isOpen, rewards, onClose }: CreditRewardModalProps) {
   const { t, locale } = useI18n()
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    if (isOpen && rewards.length > 0) {
-      setIsVisible(true)
-      requestAnimationFrame(() => setIsAnimating(true))
-    } else {
-      setIsAnimating(false)
-      const timer = setTimeout(() => setIsVisible(false), 220)
-      return () => clearTimeout(timer)
-    }
-  }, [isOpen, rewards.length])
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    },
-    [onClose]
-  )
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'hidden'
-    }
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [isOpen, handleKeyDown])
+  // enter/exit 애니메이션 — 보상이 있을 때만. exit 220ms.
+  const { isVisible, isAnimating } = useModalTransition(isOpen && rewards.length > 0, 220)
+  // Esc 닫기 + body 스크롤 잠금.
+  useModalDismiss(isOpen, onClose)
 
   if (!isVisible || rewards.length === 0) return null
 

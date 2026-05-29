@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
+import { useModalDismiss, useModalTransition } from '@/hooks/useModalA11y'
 import styles from './CreditDepletedModal.module.css'
 
 interface CreditDepletedModalProps {
@@ -22,23 +23,7 @@ export default function CreditDepletedModal({
 }: CreditDepletedModalProps) {
   const router = useRouter()
   const { t } = useI18n()
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true)
-      requestAnimationFrame(() => {
-        setIsAnimating(true)
-      })
-    } else {
-      setIsAnimating(false)
-      const timer = setTimeout(() => {
-        setIsVisible(false)
-      }, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [isOpen])
+  const { isVisible, isAnimating } = useModalTransition(isOpen)
 
   const handlePurchase = useCallback(() => {
     // 결제 후 돌아올 URL 저장 — 경로뿐 아니라 쿼리(질문·생년월일 등)까지
@@ -60,25 +45,8 @@ export default function CreditDepletedModal({
     void signIn(undefined, { callbackUrl })
   }, [onClose])
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    },
-    [onClose]
-  )
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'hidden'
-    }
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [isOpen, handleKeyDown])
+  // Esc 닫기 + body 스크롤 잠금 (공용 훅).
+  useModalDismiss(isOpen, onClose)
 
   if (!isVisible) {
     return null

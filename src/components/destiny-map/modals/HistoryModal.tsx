@@ -1,37 +1,38 @@
-"use client";
+'use client'
 
-import React, { useEffect } from "react";
-import { useFocusTrap } from "@/hooks/useFocusTrap";
+import React from 'react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useModalDismiss } from '@/hooks/useModalA11y'
 
 interface SessionItem {
-  id: string;
-  messageCount: number;
-  updatedAt: string;
-  summary?: string;
-  title?: string;
+  id: string
+  messageCount: number
+  updatedAt: string
+  summary?: string
+  title?: string
 }
 
 interface HistoryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  sessions: SessionItem[];
-  loading: boolean;
-  deleteConfirmId: string | null;
-  onLoadSession: (sessionId: string) => void;
-  onDeleteSession: (sessionId: string) => void;
-  onDeleteConfirm: (sessionId: string | null) => void;
-  onNewChat: () => void;
-  formatRelativeDate: (dateStr: string) => string;
+  isOpen: boolean
+  onClose: () => void
+  sessions: SessionItem[]
+  loading: boolean
+  deleteConfirmId: string | null
+  onLoadSession: (sessionId: string) => void
+  onDeleteSession: (sessionId: string) => void
+  onDeleteConfirm: (sessionId: string | null) => void
+  onNewChat: () => void
+  formatRelativeDate: (dateStr: string) => string
   tr: {
-    previousChats: string;
-    noHistory: string;
-    confirmDelete: string;
-    deleteSession: string;
-    cancel: string;
-    messages: string;
-    newChat: string;
-  };
-  styles: Record<string, string>;
+    previousChats: string
+    noHistory: string
+    confirmDelete: string
+    deleteSession: string
+    cancel: string
+    messages: string
+    newChat: string
+  }
+  styles: Record<string, string>
 }
 
 /**
@@ -50,32 +51,16 @@ export default function HistoryModal({
   onNewChat,
   formatRelativeDate,
   tr,
-  styles: s
+  styles: s,
 }: HistoryModalProps) {
-  const focusTrapRef = useFocusTrap(isOpen);
+  const focusTrapRef = useFocusTrap(isOpen)
 
-  // Keyboard handling and body scroll lock
-  useEffect(() => {
-    if (!isOpen) {return;}
+  // Esc 닫기 + body 스크롤 잠금 (공용 훅).
+  useModalDismiss(isOpen, onClose)
 
-    // Handle Escape key
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    // Prevent body scroll when modal is open
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null
+  }
 
   return (
     <div
@@ -87,13 +72,10 @@ export default function HistoryModal({
     >
       <div ref={focusTrapRef} className={s.historyModal} onClick={(e) => e.stopPropagation()}>
         <div className={s.historyHeader}>
-          <h3 id="history-modal-title" className={s.historyTitle}>{tr.previousChats}</h3>
-          <button
-            type="button"
-            className={s.historyCloseBtn}
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <h3 id="history-modal-title" className={s.historyTitle}>
+            {tr.previousChats}
+          </h3>
+          <button type="button" className={s.historyCloseBtn} onClick={onClose} aria-label="Close">
             ✕
           </button>
         </div>
@@ -131,7 +113,10 @@ export default function HistoryModal({
                     </div>
                   ) : (
                     <>
-                      <div className={s.historyItemContent} onClick={() => onLoadSession(session.id)}>
+                      <div
+                        className={s.historyItemContent}
+                        onClick={() => onLoadSession(session.id)}
+                      >
                         <div className={s.historyItemDate}>
                           {formatRelativeDate(session.updatedAt)}
                         </div>
@@ -161,17 +146,13 @@ export default function HistoryModal({
         </div>
 
         <div className={s.historyFooter}>
-          <button
-            type="button"
-            className={s.newChatBtn}
-            onClick={onNewChat}
-          >
+          <button type="button" className={s.newChatBtn} onClick={onNewChat}>
             ✨ {tr.newChat}
           </button>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export type { SessionItem, HistoryModalProps };
+export type { SessionItem, HistoryModalProps }
