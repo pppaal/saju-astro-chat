@@ -1,6 +1,14 @@
 'use client'
 
 import React from 'react'
+import {
+  ZODIAC_GLYPHS,
+  SIGN_KO,
+  PLANET_GLYPHS,
+  PLANET_ORDER,
+  NATAL_CHART_PAD as PAD,
+  screenDeg,
+} from '@/components/destiny-map/charts/natalChartConstants'
 
 /**
  * 궁합용 시너스트리 바이휠(bi-wheel). 한 황도 위에 두 사람의 행성을
@@ -25,73 +33,10 @@ interface CompatNatalOverlayProps {
   lang?: 'ko' | 'en'
 }
 
-const ZODIAC_GLYPHS = [
-  '♈',
-  '♉',
-  '♊',
-  '♋',
-  '♌',
-  '♍',
-  '♎',
-  '♏',
-  '♐',
-  '♑',
-  '♒',
-  '♓',
-] as const
-const SIGN_KO = [
-  '양',
-  '황소',
-  '쌍둥이',
-  '게',
-  '사자',
-  '처녀',
-  '천칭',
-  '전갈',
-  '궁수',
-  '염소',
-  '물병',
-  '물고기',
-] as const
-const PLANET_GLYPHS: Record<string, string> = {
-  Sun: '☉',
-  Moon: '☽',
-  Mercury: '☿',
-  Venus: '♀',
-  Mars: '♂',
-  Jupiter: '♃',
-  Saturn: '♄',
-  Uranus: '♅',
-  Neptune: '♆',
-  Pluto: '♇',
-  Node: '☊',
-  'True Node': '☊',
-  'North Node': '☊',
-}
-const PLANET_ORDER = [
-  'Sun',
-  'Moon',
-  'Mercury',
-  'Venus',
-  'Mars',
-  'Jupiter',
-  'Saturn',
-  'Uranus',
-  'Neptune',
-  'Pluto',
-  'Node',
-  'True Node',
-  'North Node',
-]
-
 const SIZE = 260
 const CX = SIZE / 2
 const CY = SIZE / 2
-// horizontal padding so the left-side ASC label is never clipped
-const PAD = 22
 
-// ASC fixed at the left (9 o'clock); ecliptic longitude increases counter-clockwise.
-const screenDeg = (lon: number, asc: number) => 180 + (lon - asc)
 const pt = (r: number, deg: number) => {
   const rad = (deg * Math.PI) / 180
   return { x: CX + r * Math.cos(rad), y: CY - r * Math.sin(rad) }
