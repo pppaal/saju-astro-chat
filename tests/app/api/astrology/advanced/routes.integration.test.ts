@@ -79,11 +79,13 @@ describe('Astrology Advanced Routes (P3)', () => {
   })
 
   const validBirthData = {
+    // Solar-return now resolves the default year via nowInTimezone(timeZone),
+    // which parses an IANA zone — a bare numeric offset like '9' is not valid.
     date: '1990-05-15',
     time: '14:30',
     latitude: 37.5665,
     longitude: 126.978,
-    timeZone: '9',
+    timeZone: 'Asia/Seoul',
   }
 
   describe('Solar Return API', () => {

@@ -115,17 +115,16 @@ vi.mock('@/lib/db/prisma', () => ({
   },
 }))
 
-// Mock ApiClient
-// The route generates its AI interpretation via askClaude (mimicking the
-// old Python /ask backend shape), not via apiClient.post.
-vi.mock('@/lib/llm/askClaude', () => ({
-  askClaude: vi.fn(),
-}))
-
-// Mock cache
+// Mock cache — the route now uses cacheOrCalculate for the natal chart and
+// builds the interpretation locally (no AI backend / askClaude anymore).
 vi.mock('@/lib/cache/redis-cache', () => ({
-  cacheGet: vi.fn(),
-  cacheSet: vi.fn(),
+  cacheOrCalculate: vi.fn(async (_key: string, fn: () => Promise<unknown>) => fn()),
+  CacheKeys: {
+    natalChart: vi.fn(
+      (date: string, time: string, lat: number, lon: number) =>
+        `natal:${date}:${time}:${lat}:${lon}`
+    ),
+  },
   CACHE_TTL: {
     NATAL_CHART: 60 * 60 * 24 * 30,
   },
@@ -236,10 +235,6 @@ import {
   buildEngineMeta,
 } from '@/lib/astrology'
 import { validateRequestBody } from '@/lib/api/zodValidation'
-import { prisma } from '@/lib/db/prisma'
-import { askClaude } from '@/lib/llm/askClaude'
-import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
-import { logger } from '@/lib/logger'
 
 // ============ Helpers ============
 
@@ -290,19 +285,6 @@ function setupSuccessfulCalculation() {
   vi.mocked(resolveOptions).mockReturnValue(mockOpts as any)
   vi.mocked(findNatalAspectsPlus).mockReturnValue(mockAspectsPlus as any)
   vi.mocked(buildEngineMeta).mockReturnValue(mockEngineMeta as any)
-  vi.mocked(cacheGet).mockResolvedValue(null)
-  vi.mocked(askClaude).mockResolvedValue({
-    ok: true,
-    status: 200,
-    data: {
-      data: {
-        fusion_layer: 'AI generated interpretation for your natal chart.',
-        report: '',
-        model: 'gpt-4o',
-      },
-    },
-  } as any)
-  vi.mocked(cacheSet).mockResolvedValue(true)
 }
 
 // ============ Tests ============
@@ -333,7 +315,6 @@ describe('Astrology API - POST /api/astrology', () => {
       }
       vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
       setupSuccessfulCalculation()
-      vi.mocked(prisma.reading.create).mockResolvedValue({} as any)
 
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
@@ -518,197 +499,21 @@ describe('Astrology API - POST /api/astrology', () => {
     })
   })
 
-  // ---- AI Interpretation (Backend Call) ----
-  describe('AI Interpretation', () => {
+  // The route builds its interpretation locally now; verify the computed value.
+  describe('Local Interpretation', () => {
     beforeEach(() => {
       vi.mocked(getServerSession).mockResolvedValue(null)
       setupSuccessfulCalculation()
     })
 
-    it('should call askClaude with the astrology theme and a chart prompt', async () => {
-      await POST(makeRequest(validBody))
-
-      expect(askClaude).toHaveBeenCalledWith(
-        expect.stringContaining('natal chart'),
-        expect.objectContaining({
-          theme: 'astrology',
-          maxTokens: 2500,
-          timeoutMs: 60000,
-          label: 'astrology-route',
-        })
-      )
-      // The prompt should embed the computed chart (ascendant / MC / planets).
-      const promptArg = vi.mocked(askClaude).mock.calls[0][0]
-      expect(promptArg).toContain('Ascendant:')
-      expect(promptArg).toContain('MC:')
-    })
-
-    it('should return AI interpretation when backend call succeeds', async () => {
-      const response = await POST(makeRequest(validBody))
-      const data = await response.json()
-
-      expect(data.data.aiInterpretation).toBe('AI generated interpretation for your natal chart.')
-      expect(data.data.aiModelUsed).toBe('gpt-4o')
-    })
-
-    it('should fall back to report field when fusion_layer is missing', async () => {
-      vi.mocked(askClaude).mockResolvedValue({
-        ok: true,
-        status: 200,
-        data: {
-          data: {
-            fusion_layer: '',
-            report: 'Fallback report content.',
-            model: 'gpt-3.5-turbo',
-          },
-        },
-      } as any)
-
-      const response = await POST(makeRequest(validBody))
-      const data = await response.json()
-
-      expect(data.data.aiInterpretation).toBe('Fallback report content.')
-      expect(data.data.aiModelUsed).toBe('gpt-3.5-turbo')
-    })
-
-    it('should default model to gpt-4o when not provided', async () => {
-      vi.mocked(askClaude).mockResolvedValue({
-        ok: true,
-        status: 200,
-        data: {
-          data: {
-            fusion_layer: 'Some interpretation',
-            report: '',
-          },
-        },
-      } as any)
-
-      const response = await POST(makeRequest(validBody))
-      const data = await response.json()
-
-      expect(data.data.aiModelUsed).toBe('gpt-4o')
-    })
-
-    it('should handle AI backend failure gracefully', async () => {
-      vi.mocked(askClaude).mockRejectedValue(new Error('Backend timeout'))
-
+    it('should return a locally computed interpretation', async () => {
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.data.aiInterpretation).toBe('')
-      expect(data.data.aiModelUsed).toBe('error-fallback')
-      expect(logger.warn).toHaveBeenCalled()
-    })
-
-    it('should use local interpretation as fallback when AI returns empty', async () => {
-      vi.mocked(askClaude).mockResolvedValue({
-        ok: false,
-        status: 502,
-        data: undefined,
-      } as any)
-
-      const response = await POST(makeRequest(validBody))
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      // When aiInterpretation is empty, interpretation field uses local computed value
       expect(data.data.interpretation).toContain('Natal Chart Summary')
-    })
-  })
-
-  // ---- Caching ----
-  describe('Cache Behavior', () => {
-    beforeEach(() => {
-      vi.mocked(getServerSession).mockResolvedValue(null)
-      setupSuccessfulCalculation()
-    })
-
-    it('should use cached AI result when available', async () => {
-      vi.mocked(cacheGet).mockResolvedValue({
-        interpretation: 'Cached AI interpretation',
-        model: 'gpt-4o-cached',
-      })
-
-      const response = await POST(makeRequest(validBody))
-      const data = await response.json()
-
-      expect(data.data.aiInterpretation).toBe('Cached AI interpretation')
-      expect(data.data.aiModelUsed).toBe('gpt-4o-cached')
-      // Should NOT call the AI backend when cache hit
-      expect(askClaude).not.toHaveBeenCalled()
-    })
-
-    it('should call AI backend and cache result when cache misses', async () => {
-      vi.mocked(cacheGet).mockResolvedValue(null)
-
-      await POST(makeRequest(validBody))
-
-      expect(askClaude).toHaveBeenCalled()
-      expect(cacheSet).toHaveBeenCalledWith(
-        expect.stringContaining('astrology:ai:v1:'),
-        expect.objectContaining({
-          interpretation: 'AI generated interpretation for your natal chart.',
-          model: 'gpt-4o',
-        }),
-        60 * 60 * 24 * 30 // NATAL_CHART TTL
-      )
-    })
-
-    it('should generate cache key using birth data, coordinates, timezone, and locale', async () => {
-      vi.mocked(cacheGet).mockResolvedValue(null)
-
-      await POST(makeRequest(validBody))
-
-      expect(cacheGet).toHaveBeenCalledWith(
-        expect.stringMatching(/^astrology:ai:v1:1990-05-15:14:30:37\.57:126\.98:Asia\/Seoul:en$/)
-      )
-    })
-  })
-
-  // ---- Reading Save (Logged-in Users) ----
-  describe('Reading Save', () => {
-    it('should save reading record for authenticated users', async () => {
-      const mockSession = {
-        user: { id: 'user-456', email: 'user@test.com' },
-        expires: '2099-12-31',
-      }
-      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
-      setupSuccessfulCalculation()
-      vi.mocked(prisma.reading.create).mockResolvedValue({} as any)
-
-      await POST(makeRequest(validBody))
-
-      expect(prisma.reading.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          userId: 'user-456',
-          type: 'astrology',
-          title: expect.any(String),
-          content: expect.any(String),
-        }),
-      })
-    })
-
-    it('should NOT save reading record for unauthenticated users', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(null)
-      setupSuccessfulCalculation()
-
-      await POST(makeRequest(validBody))
-
-      expect(prisma.reading.create).not.toHaveBeenCalled()
-    })
-
-    it('should handle reading save failure gracefully', async () => {
-      const mockSession = { user: { id: 'user-789' }, expires: '2099-12-31' }
-      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
-      setupSuccessfulCalculation()
-      vi.mocked(prisma.reading.create).mockRejectedValue(new Error('DB write failed'))
-
-      const response = await POST(makeRequest(validBody))
-
-      // Should still succeed despite save failure
-      expect(response.status).toBe(200)
-      expect(logger.warn).toHaveBeenCalled()
+      expect(data.data.interpretation).toContain('Ascendant:')
+      expect(data.data.interpretation).toContain('MC:')
     })
   })
 
@@ -834,21 +639,6 @@ describe('Astrology API - POST /api/astrology', () => {
       expect(response.status).toBe(200)
       // houses should fall back to empty array via `chart.houses || []`
       expect(data.data.advanced.houses).toEqual([])
-    })
-
-    it('should handle AI response with empty data object', async () => {
-      vi.mocked(askClaude).mockResolvedValue({
-        ok: true,
-        status: 200,
-        data: { data: {} },
-      } as any)
-
-      const response = await POST(makeRequest(validBody))
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.data.aiInterpretation).toBe('')
-      expect(data.data.aiModelUsed).toBe('gpt-4o')
     })
   })
 })

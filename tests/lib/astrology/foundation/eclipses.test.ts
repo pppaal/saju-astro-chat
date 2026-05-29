@@ -80,9 +80,16 @@ describe('eclipses', () => {
       });
     });
 
-    it('should return empty array when no eclipses in range', () => {
+    it('should compute eclipses for an arbitrary year (live Swiss Eph)', () => {
+      // Eclipses are now computed live across a lifetime horizon rather than
+      // read from a fixed dataset, so any year has its real eclipses.
       const eclipses = getEclipsesBetween('2000-01-01', '2000-12-31');
-      expect(eclipses).toEqual([]);
+      expect(eclipses.length).toBeGreaterThan(0);
+      eclipses.forEach(e => {
+        const d = new Date(e.date);
+        expect(d >= new Date('2000-01-01')).toBe(true);
+        expect(d <= new Date('2000-12-31')).toBe(true);
+      });
     });
 
     it('should handle single day range', () => {
@@ -106,9 +113,15 @@ describe('eclipses', () => {
       expect(eclipses.length).toBeLessThanOrEqual(5);
     });
 
-    it('should return empty array if no future eclipses', () => {
+    it('should still compute future eclipses far ahead (live Swiss Eph)', () => {
+      // The lifetime horizon extends well past 2100, so future eclipses are
+      // returned rather than an empty array.
       const eclipses = getUpcomingEclipses(new Date('2100-01-01'), 5);
-      expect(eclipses).toEqual([]);
+      expect(eclipses.length).toBeGreaterThan(0);
+      expect(eclipses.length).toBeLessThanOrEqual(5);
+      eclipses.forEach(e => {
+        expect(new Date(e.date) >= new Date('2100-01-01')).toBe(true);
+      });
     });
   });
 

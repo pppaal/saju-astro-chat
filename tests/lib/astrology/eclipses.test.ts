@@ -62,9 +62,15 @@ describe("getEclipsesBetween", () => {
     });
   });
 
-  it("returns empty array for future dates beyond data", () => {
+  it("computes eclipses for far-future ranges (live Swiss Eph)", () => {
+    // Eclipses are computed live across a lifetime horizon now, so a future
+    // year such as 2050 returns its real eclipses (no longer a fixed dataset
+    // that simply ran out).
     const eclipses = getEclipsesBetween("2050-01-01", "2050-12-31");
-    expect(eclipses).toHaveLength(0);
+    expect(eclipses.length).toBeGreaterThan(0);
+    eclipses.forEach((e) => {
+      expect(new Date(e.date).getFullYear()).toBe(2050);
+    });
   });
 
   it("returns multiple eclipses per year", () => {

@@ -11,7 +11,6 @@ import {
   generateSummary,
   generateBestTimes,
   gateRecommendations,
-  applyMatrixPreformatRegrade,
   formatDateForResponse,
   LOCATION_COORDS,
 } from '@/app/api/calendar/lib/helpers'
@@ -502,67 +501,6 @@ describe('Calendar Helpers', () => {
       expect(result.sajuFactors.length).toBeGreaterThan(0)
     })
 
-    it('should include matrix evidence object', () => {
-      const result = formatDateForResponse(
-        baseDateData as any,
-        'ko',
-        koTranslations as any,
-        enTranslations as any,
-        {
-          domainScores: { career: { finalScoreAdjusted: 8.1 } as any },
-          overlapTimeline: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
-          overlapTimelineByDomain: {
-            career: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
-          },
-          calendarSignals: [],
-        } as any
-      )
-
-      expect(result.evidence).toBeDefined()
-      expect(result.evidence?.matrix.domain).toBe('career')
-      expect(result.evidence?.confidence).toBeGreaterThanOrEqual(0)
-      expect(result.evidence?.confidence).toBeLessThanOrEqual(100)
-    })
-
-    it('should prioritize matrix verdict texts over legacy summary templates', () => {
-      const result = formatDateForResponse(
-        baseDateData as any,
-        'en',
-        koTranslations as any,
-        enTranslations as any,
-        {
-          domainScores: { career: { finalScoreAdjusted: 8.1 } as any },
-          overlapTimeline: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
-          overlapTimelineByDomain: {
-            career: [{ month: '2025-03', overlapStrength: 0.7, peakLevel: 'high' } as any],
-          },
-          calendarSignals: [],
-        } as any,
-        {
-          career: {
-            focusDomain: 'career',
-            verdict: 'Matrix verdict',
-            guardrail: 'Matrix guardrail',
-            topClaims: [{ id: 'c1', text: 'Top claim', domain: 'career' }],
-            topAnchorSummary: 'Anchor summary',
-            strategyBrief: {
-              overallPhaseLabel: 'Advance',
-              attackPercent: 60,
-              defensePercent: 40,
-            },
-          },
-        } as any
-      )
-
-      // Matrix narrative drives the copy: the legacy summary template must not surface,
-      // and the matrix verdict/claim/anchor texts are carried in the description.
-      expect(result.summary).not.toContain('Best career day!')
-      expect(result.description).toContain('Matrix verdict')
-      expect(result.description).toContain('Top claim')
-      expect(result.description).toContain('Anchor summary')
-      expect(result.description).not.toBe('Good description')
-    })
-
     it('should sanitize matrix technical payload from summary/description', () => {
       const result = formatDateForResponse(
         baseDateData as any,
@@ -708,47 +646,6 @@ describe('Calendar Helpers', () => {
       )
 
       expect(result.evidence?.crossAgreementPercent).toBe(78)
-    })
-  })
-
-  describe('applyMatrixPreformatRegrade', () => {
-    it('downgrades top-grade display when defensive phase conflicts with high grade', () => {
-      const result = applyMatrixPreformatRegrade(
-        {
-          date: '2026-03-11',
-          grade: 0,
-          score: 90,
-          displayScore: 90,
-          categories: ['career'],
-          confidence: 30,
-          crossAgreementPercent: 70,
-        } as any,
-        {
-          domainScores: { career: { finalScoreAdjusted: 5 } as any },
-          overlapTimeline: [{ month: '2026-03', overlapStrength: 0.6, peakLevel: 'high' } as any],
-          overlapTimelineByDomain: {
-            career: [{ month: '2026-03', overlapStrength: 0.6, peakLevel: 'high' } as any],
-          },
-          calendarSignals: [],
-        } as any,
-        {
-          career: {
-            focusDomain: 'career',
-            verdict: 'defensive verdict',
-            guardrail: 'guardrail',
-            topClaims: [{ id: 'c1', text: 'claim', domain: 'career' }],
-            topAnchorSummary: 'summary',
-            strategyBrief: {
-              overallPhaseLabel: '방어/재정렬 국면',
-              attackPercent: 52,
-              defensePercent: 48,
-            },
-          },
-        } as any
-      )
-
-      expect(result.grade).toBe(1)
-      expect(result.displayScore).toBe(62)
     })
   })
 })

@@ -116,10 +116,14 @@ const mockBrightStars = [
 ]
 
 vi.mock('@/lib/astrology', () => ({
-  calculateNatalChart: vi.fn(),
   toChart: vi.fn(),
   findFixedStarConjunctions: vi.fn(),
   getAllFixedStars: vi.fn(),
+}))
+
+// Route now builds the natal chart via cachedCalculateNatalChart (@/lib/astrology/cached).
+vi.mock('@/lib/astrology/cached', () => ({
+  cachedCalculateNatalChart: vi.fn(),
 }))
 
 // ============ Imports (after all mocks) ============
@@ -128,7 +132,8 @@ import { POST } from '@/app/api/astrology/advanced/fixed-stars/route'
 import { rateLimit } from '@/lib/rateLimit'
 import { requirePublicToken } from '@/lib/auth/publicToken'
 import { captureServerError } from '@/lib/telemetry'
-import { calculateNatalChart, toChart, findFixedStarConjunctions, getAllFixedStars } from '@/lib/astrology'
+import { toChart, findFixedStarConjunctions, getAllFixedStars } from '@/lib/astrology'
+import { cachedCalculateNatalChart as calculateNatalChart } from '@/lib/astrology/cached'
 import { logger } from '@/lib/logger'
 
 // ============ Helpers ============

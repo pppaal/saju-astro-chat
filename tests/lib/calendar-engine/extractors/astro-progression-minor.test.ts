@@ -57,6 +57,20 @@ const { progressedChart } = vi.hoisted(() => {
 
 vi.mock('@/lib/astrology/foundation/progressions', () => ({
   calculateSecondaryProgressions: vi.fn().mockResolvedValue(progressedChart),
+  // The extractor now also imports findProgressedMoonAspects; mirror the real
+  // foundation behaviour (raw angle to every natal point, no orb filtering here
+  // so the extractor can classify minor aspects itself).
+  findProgressedMoonAspects: vi.fn(
+    (progressed: { planets: Array<{ name: string; longitude: number }> }, natal: { planets: Array<{ name: string; longitude: number }> }) => {
+      const moon = progressed.planets.find((p) => p.name === 'Moon')
+      if (!moon) return []
+      return natal.planets.map((p) => {
+        const diff = ((moon.longitude - p.longitude) % 360 + 360) % 360
+        const angle = Math.min(diff, 360 - diff)
+        return { target: p.name, angle }
+      })
+    }
+  ),
 }))
 
 import astroProgressionExtractor from '@/lib/calendar-engine/extractors/astro-progression'
