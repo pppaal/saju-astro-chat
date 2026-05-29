@@ -92,7 +92,7 @@ export default function PWAInstallPrompt(_props: { locale: 'ko' | 'en' }) {
     <div
       role="dialog"
       aria-label={t('pwa.installAriaLabel', 'Install as app')}
-      className="fixed bottom-4 left-4 right-4 z-[var(--z-notification)] mx-auto max-w-md rounded-2xl border border-[#e7e5e4] bg-white p-4 shadow-[0_24px_48px_rgba(28,25,23,0.15)] sm:bottom-6"
+      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom)+0.5rem)] left-[max(1rem,env(safe-area-inset-left))] right-[max(1rem,env(safe-area-inset-right))] z-[var(--z-notification)] mx-auto max-w-md rounded-2xl border border-[#e7e5e4] bg-white p-4 shadow-[0_24px_48px_rgba(28,25,23,0.15)]"
     >
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgba(212,181,114,0.15)] text-xl">

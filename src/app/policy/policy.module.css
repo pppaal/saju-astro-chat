@@ -1,5 +1,5 @@
 .container {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--ds-dark-bg);
   /* Pricing 표준 — 마케팅 페이지 공통 padding 120/32/80 */
   padding: 120px 32px 80px;

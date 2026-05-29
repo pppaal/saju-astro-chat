@@ -18,7 +18,7 @@
   --accent-line: rgba(212, 181, 114, 0.42);
 
   position: relative;
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(900px 600px at 20% 0%, rgba(99, 124, 200, 0.08), transparent 60%),
     radial-gradient(800px 600px at 90% 100%, rgba(212, 181, 114, 0.06), transparent 60%);
