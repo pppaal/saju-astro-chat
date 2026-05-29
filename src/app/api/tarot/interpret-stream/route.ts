@@ -18,6 +18,7 @@ import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
+import { sanitizeForXmlTagBoundary } from '@/lib/llm/promptSafety'
 import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
 import { buildFallbackPayload, buildInterpretStreamPrompts } from '@/lib/tarot/promptBuild'
 import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
@@ -213,7 +214,11 @@ export async function POST(req: NextRequest) {
             ? 'en'
             : 'ko'
     const rawCards = body.cards
-    const userQuestion = (body.userQuestion || '').trim()
+    // sanitizeForXmlTagBoundary strips `<`/`>` from attacker-controlled
+    // question text so it can't fake server tags. The current tarot
+    // prompt template uses markdown headers (no XML wrappers), but this
+    // matches the rest of the LLM routes — defense in depth.
+    const userQuestion = sanitizeForXmlTagBoundary((body.userQuestion || '').trim())
 
     logger.info('Tarot stream payload', {
       categoryId,

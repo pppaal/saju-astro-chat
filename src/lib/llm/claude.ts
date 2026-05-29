@@ -9,6 +9,7 @@
 import { fetchWithRetry } from '@/lib/http'
 import { logger } from '@/lib/logger'
 import { recordCounter, recordExternalCall } from '@/lib/metrics/index'
+import { sanitizeForXmlTagBoundary } from '@/lib/llm/promptSafety'
 
 // Claude pricing (per 1M tokens, USD) — Haiku 4.5 기준
 // Sonnet 4.5: input $3 / output $15 / cache_read $0.30
@@ -157,20 +158,26 @@ function buildMessages(
   if (!priorTurns || priorTurns.length === 0) {
     return [{ role: 'user', content: buildUserMessageContent(userPrompt, cachedUserContext) }]
   }
+  // Defense-in-depth — every entry into this function gets priorTurns
+  // content scrubbed of `<`/`>` so a stale route that forgot to call
+  // sanitizePriorTurns still can't smuggle a tag-close into the prompt
+  // window. Routes should also call sanitizePriorTurns at the boundary
+  // (which additionally validates role and caps length). See promptSafety.ts.
   const messages: AnthropicMessage[] = []
   let snapshotAttached = false
   for (const turn of priorTurns) {
+    const safeContent = sanitizeForXmlTagBoundary(turn.content)
     if (!snapshotAttached && turn.role === 'user' && cachedUserContext?.trim()) {
       messages.push({
         role: 'user',
         content: [
           { type: 'text', text: cachedUserContext, cache_control: CACHE_CONTROL_1H },
-          { type: 'text', text: turn.content },
+          { type: 'text', text: safeContent },
         ],
       })
       snapshotAttached = true
     } else {
-      messages.push({ role: turn.role, content: turn.content })
+      messages.push({ role: turn.role, content: safeContent })
     }
   }
   // Latest user question

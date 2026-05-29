@@ -16,6 +16,7 @@ import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildEvidenceGroundingGuide } from '@/lib/prompts/evidenceGroundingGuide'
+import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { consumeCredits } from '@/lib/credits/creditService'
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { createIdempotencyStore } from '@/lib/api/idempotency'
@@ -424,16 +425,27 @@ export async function POST(req: NextRequest) {
       }
       return -1
     })()
+    // Sanitize prior turns from the client — drops forged 'system' roles,
+    // caps length, and strips `<`/`>` to prevent fake tag-close injection.
+    // See src/lib/llm/promptSafety.ts. We still apply guardText on the
+    // remaining valid turns to keep the existing 400-char cap behavior
+    // (sanitizePriorTurns' own 8000-char cap is the upper bound).
     const priorTurns =
       lastUserIdxInDialog >= 0
-        ? dialogTurns
-            .slice(0, lastUserIdxInDialog)
-            .map((m) => ({ role: m.role, content: guardText(m.content, 400) }))
+        ? sanitizePriorTurns(
+            dialogTurns
+              .slice(0, lastUserIdxInDialog)
+              .map((m) => ({ role: m.role, content: guardText(m.content, 400) }))
+          )
         : []
-    const rawUserQuestion = lastUser ? guardText(lastUser.content, 600) : ''
+    // sanitizeForXmlTagBoundary replaces `<`/`>` with full-width chars so
+    // attacker text in the question can't break out of the adjacent
+    // <attached_file> wrapper or fake a new tag.
+    const rawUserQuestion = lastUser ? sanitizeForXmlTagBoundary(guardText(lastUser.content, 600)) : ''
     // Prepend the user's attached file (if any) as XML-tagged context on the
     // current turn — same approach as the destiny counselor (realtime route).
-    const attachmentText = typeof cvText === 'string' ? cvText.trim().slice(0, 8000) : ''
+    const attachmentText =
+      typeof cvText === 'string' ? sanitizeForXmlTagBoundary(cvText.trim().slice(0, 8000)) : ''
     const userQuestion = attachmentText
       ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserQuestion}`
       : rawUserQuestion
