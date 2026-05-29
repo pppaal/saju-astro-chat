@@ -69,13 +69,14 @@ const DIGNITY_TABLE: Record<
 }
 
 function dignityOf(planet: string, sign: string): DignityStatus {
-  const planetDign = DIGNITY_TABLE[planet]
-  if (!planetDign) return 'Peregrine'
-  for (const [status, signs] of Object.entries(planetDign)) {
-    if (signs?.includes(sign)) {
-      return status as 'Domicile' | 'Exaltation' | 'Detriment' | 'Fall'
-    }
-  }
+  const t = DIGNITY_TABLE[planet]
+  if (!t) return 'Peregrine'
+  // Specific > general 순. Fall/Exaltation 이 sign 단일 매칭이고 Detriment/Domicile 은 복수 가능.
+  // (e.g. Mercury × Pisces 는 Detriment+Fall 표기 충돌 → Fall 우선)
+  if (t.Fall?.includes(sign)) return 'Fall'
+  if (t.Exaltation?.includes(sign)) return 'Exaltation'
+  if (t.Detriment?.includes(sign)) return 'Detriment'
+  if (t.Domicile?.includes(sign)) return 'Domicile'
   return 'Peregrine'
 }
 
@@ -111,6 +112,11 @@ export function DignityBadge({
   const [open, setOpen] = React.useState(false)
   const status = dignityOf(planet, sign)
 
+  // planet/sign 변경 시 stale open state reset
+  React.useEffect(() => {
+    setOpen(false)
+  }, [planet, sign])
+
   // Peregrine 은 시각 클러터 줄이려고 표시 X
   if (status === 'Peregrine') return null
 
@@ -122,9 +128,22 @@ export function DignityBadge({
   return (
     <span
       className={`relative inline-flex items-center ${className ?? ''}`}
+      role="button"
+      tabIndex={0}
+      aria-expanded={open}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
+      onFocus={() => setOpen(true)}
+      onBlur={() => setOpen(false)}
       onClick={() => setOpen((o) => !o)}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          setOpen(false)
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          setOpen((o) => !o)
+        }
+      }}
     >
       <span
         className={`inline-block rounded-md font-medium ring-1 leading-tight ${style.chip} ${sizeClass}`}
