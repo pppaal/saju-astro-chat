@@ -16,12 +16,60 @@ interface ElementRadarProps {
 
 export type Counts = { wood: number; fire: number; earth: number; metal: number; water: number }
 
-export const AXES: Array<{ key: keyof Counts; ko: string; en: string }> = [
-  { key: 'wood', ko: '창의력 (목)', en: 'Creativity (Wood)' },
-  { key: 'fire', ko: '추진력 (화)', en: 'Drive (Fire)' },
-  { key: 'earth', ko: '안정성 (토)', en: 'Stability (Earth)' },
-  { key: 'metal', ko: '결단력 (금)', en: 'Decision (Metal)' },
-  { key: 'water', ko: '유연성 (수)', en: 'Flexibility (Water)' },
+export const AXES: Array<{
+  key: keyof Counts
+  ko: string
+  en: string
+  koShort: string
+  koEl: string
+  enShort: string
+  enEl: string
+}> = [
+  {
+    key: 'wood',
+    ko: '창의력 (목)',
+    en: 'Creativity (Wood)',
+    koShort: '창의력',
+    koEl: '木',
+    enShort: 'Creativity',
+    enEl: 'Wood',
+  },
+  {
+    key: 'fire',
+    ko: '추진력 (화)',
+    en: 'Drive (Fire)',
+    koShort: '추진력',
+    koEl: '火',
+    enShort: 'Drive',
+    enEl: 'Fire',
+  },
+  {
+    key: 'earth',
+    ko: '안정성 (토)',
+    en: 'Stability (Earth)',
+    koShort: '안정성',
+    koEl: '土',
+    enShort: 'Stability',
+    enEl: 'Earth',
+  },
+  {
+    key: 'metal',
+    ko: '결단력 (금)',
+    en: 'Decision (Metal)',
+    koShort: '결단력',
+    koEl: '金',
+    enShort: 'Decision',
+    enEl: 'Metal',
+  },
+  {
+    key: 'water',
+    ko: '유연성 (수)',
+    en: 'Flexibility (Water)',
+    koShort: '유연성',
+    koEl: '水',
+    enShort: 'Flexibility',
+    enEl: 'Water',
+  },
 ]
 const TRAIT_EN: Record<keyof Counts, string> = {
   wood: 'creativity',
@@ -98,11 +146,13 @@ export function deriveCounts(saju: unknown): Counts {
   return any ? out : zero
 }
 
-// wide viewBox keeps side labels inside the canvas
-const W = 300
-const H = 232
-const CX = W / 2
-const CY = 108
+// wide viewBox keeps side labels inside the canvas — 좌·우 측 라벨 ("유연성"
+// 같은 3 글자) 가 잘리지 않도록 viewBox 좌측에 여백 둠 (x 음수 시작).
+const W = 320
+const H = 244
+const VB_X = -10 // viewBox 시작 x — 좌측 라벨 ('유연성') cutoff 방지
+const CX = 150 // 펜타곤 중심은 그대로 (라벨만 음수 영역으로 확장)
+const CY = 112
 const R = 60
 
 const pt = (r: number, i: number) => {
@@ -157,7 +207,7 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
         border: '1px solid var(--ds-gold-line)',
       }}
     >
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full">
+      <svg viewBox={`${VB_X} 0 ${W} ${H}`} className="h-auto w-full">
         {[0.25, 0.5, 0.75, 1].map((f) => (
           <polygon
             key={f}
@@ -194,21 +244,36 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
               데이터 polygon 만으로 충분히 읽힘. 점은 시각 노이즈만 됐음. */}
         </g>
         {AXES.map((a, i) => {
-          const lp = pt(R + 16, i)
+          const lp = pt(R + 18, i)
           const c = Math.cos(((-90 + i * 72) * Math.PI) / 180)
           const anchor = c > 0.3 ? 'start' : c < -0.3 ? 'end' : 'middle'
+          // 2줄 라벨 — 1줄: "창의력" (capability), 2줄: "木" (한자/element).
+          // 글자 짧아져 좌·우 cutoff 해결 + 한자가 시각적으로 강조됨.
+          const phrase = isKo ? a.koShort : a.enShort
+          const el = isKo ? a.koEl : a.enEl
           return (
             <text
               key={a.key}
               x={lp.x}
               y={lp.y}
               fill="#e5e7eb"
-              fontSize="12"
+              fontSize="11"
               fontWeight="600"
               textAnchor={anchor}
               dominantBaseline="middle"
             >
-              {isKo ? a.ko : a.en}
+              <tspan x={lp.x} dy="-0.42em">
+                {phrase}
+              </tspan>
+              <tspan
+                x={lp.x}
+                dy="1.12em"
+                fontSize="10"
+                fontWeight="500"
+                fill="#d4b572"
+              >
+                {el}
+              </tspan>
             </text>
           )
         })}
