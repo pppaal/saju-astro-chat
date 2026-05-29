@@ -4,6 +4,11 @@
 import type { CombinedResult } from './astrology'
 import { logger } from '@/lib/logger'
 import { getIljuArchetype } from '@/lib/saju/iljuDictionary'
+import {
+  getGeokgukRich,
+  getSibsinCategoryMeaning,
+  type SibsinCategory,
+} from '@/lib/chart-dictionary'
 import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from './calendar/constants'
 import { normalizeElement } from './calendar/utils'
 
