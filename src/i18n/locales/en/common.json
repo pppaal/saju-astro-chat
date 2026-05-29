@@ -124,5 +124,7 @@
       "default": "An error occurred during sign-in.",
       "unexpected": "An unexpected error occurred."
     }
-  }
+  },
+  "later": "Later",
+  "close": "Close"
 }
