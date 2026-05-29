@@ -660,11 +660,6 @@
   .homeChatBarInner {
     padding: 0.55rem 0.65rem;
   }
-
-  .homeChatToolBtn {
-    padding: 0.35rem 0.6rem;
-    font-size: 0.74rem;
-  }
 }
 
 .homeHero {
@@ -780,6 +775,7 @@
 }
 
 .homeChatBarInner {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -811,90 +807,27 @@
   color: rgba(229, 231, 240, 0.4);
 }
 
-.homeChatRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+/* 입력창 아래 안내 문구 — "여기 누르면 상담 종류 고를 수 있어요" 신호. */
+.homeChatHint {
+  margin: 0;
+  padding: 0 0.25rem;
+  font-size: 0.74rem;
+  color: rgba(229, 231, 240, 0.45);
 }
 
-.homeChatTools {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  flex-wrap: wrap;
+.lightMode .homeChatHint {
+  color: rgba(28, 25, 23, 0.5);
 }
 
-.homeChatToolBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.4rem 0.7rem;
-  border-radius: 999px;
-  border: 1px solid rgba(212, 181, 114, 0.22);
-  background: rgba(212, 181, 114, 0.06);
-  color: rgba(229, 231, 240, 0.78);
-  font-size: 0.78rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.homeChatToolBtn:hover,
-.homeChatToolBtn:focus-visible {
-  border-color: rgba(212, 181, 114, 0.5);
-  background: rgba(212, 181, 114, 0.14);
-  outline: none;
-}
-
-.homeChatToolBtnActive {
-  border-color: rgba(212, 181, 114, 0.6);
-  background: rgba(212, 181, 114, 0.22);
-  color: #ffffff;
-}
-
-/* 서비스 선택 — 옛 ↑ 버튼 자리. dropdown 위치 기준점이라 relative. */
-.homeServicePickerWrap {
-  position: relative;
-  display: inline-flex;
-}
-
-.homeServicePickerBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  border: 0;
-  background: linear-gradient(135deg, #d4b572, #c19b56);
-  color: #1a1a1a;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    filter 0.18s ease,
-    transform 0.12s ease;
-  box-shadow: 0 0 18px rgba(212, 181, 114, 0.32);
-}
-
-.homeServicePickerBtn:hover,
-.homeServicePickerBtn:focus-visible {
-  filter: brightness(1.08);
-  outline: none;
-}
-
-.homeServicePickerBtn:active {
-  transform: translateY(1px);
-}
-
-/* Dropup — 버튼 위에 떠오름. mobile 에서 화면 하단 keyboard 와 안 겹치게. */
+/* 서비스 선택 창 — 입력창을 터치하면 입력바 위로 떠오른다(dropup).
+   mobile 에서 화면 하단 keyboard 와 안 겹치게 위쪽으로. */
 .homeServicePickerMenu {
   position: absolute;
+  left: 0;
   right: 0;
-  bottom: calc(100% + 6px);
-  min-width: 200px;
+  bottom: calc(100% + 8px);
   padding: 6px;
-  border-radius: 14px;
+  border-radius: 16px;
   background: rgba(17, 24, 39, 0.96);
   border: 1px solid var(--ds-gold-line);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
@@ -905,6 +838,18 @@
   flex-direction: column;
   gap: 2px;
   animation: homeServicePickerIn 0.16s ease-out;
+}
+
+.homeServicePickerHeading {
+  margin: 2px 0 4px;
+  padding: 4px 12px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: rgba(212, 181, 114, 0.9);
+}
+
+.lightMode .homeServicePickerHeading {
+  color: rgba(160, 122, 60, 0.95);
 }
 
 @keyframes homeServicePickerIn {
@@ -986,7 +931,6 @@
   cursor: not-allowed;
   transform: none;
 }
-
 
 /* Birth info modal (lightweight) */
 /* backdrop-filter 제거 — iOS Safari 가 backdrop-filter 부모 안의 native
@@ -1385,24 +1329,6 @@
 
 .lightMode .homeChatTextarea::placeholder {
   color: #a8a29e;
-}
-
-.lightMode .homeChatToolBtn {
-  background: transparent;
-  border-color: #e7e5e4;
-  color: #57534e;
-}
-
-.lightMode .homeChatToolBtn:hover,
-.lightMode .homeChatToolBtn:focus-visible {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-}
-
-.lightMode .homeChatToolBtnActive {
-  background: #1c1917;
-  border-color: #1c1917;
-  color: #fafaf9;
 }
 
 /* Submit button keeps the purple accent gradient on both themes — it's

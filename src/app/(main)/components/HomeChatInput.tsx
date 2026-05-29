@@ -6,9 +6,14 @@ import styles from '../main-page.module.css'
 import type { StoredBirthInfo } from '../birthInfoStorage'
 import { buildBirthQuery } from '../birthInfoStorage'
 
+// 서비스 선택 — config/enabledServices.ts 와 동일 id·라벨.
+export type HomeServiceId = 'destinyMap' | 'tarot' | 'compatibility' | 'calendar'
+
 interface HomeChatInputProps {
   birthInfo: StoredBirthInfo | null
-  onOpenBirthModal: () => void
+  // 생일이 필요한 서비스(궁합·운명상담사)를 생일 없이 골랐을 때 호출 —
+  // 부모가 생일 모달을 띄우고, 저장되면 그 서비스로 이동시킨다.
+  onRequireBirth: (service: HomeServiceId, question: string) => void
   locale: 'en' | 'ko'
 }
 
@@ -34,10 +39,8 @@ const DELETE_SPEED_MS = 35
 const HOLD_AFTER_TYPED_MS = 1800
 const HOLD_AFTER_DELETED_MS = 250
 
-// 서비스 선택 dropdown — config/enabledServices.ts 와 동일 id·라벨.
-type ServiceId = 'destinyMap' | 'tarot' | 'compatibility' | 'calendar'
 const SERVICES: ReadonlyArray<{
-  id: ServiceId
+  id: HomeServiceId
   icon: string
   ko: string
   en: string
@@ -48,19 +51,19 @@ const SERVICES: ReadonlyArray<{
   { id: 'calendar', icon: '🗓️', ko: '일·월·년 운세', en: 'Fortune Calendar' },
 ]
 
-export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: HomeChatInputProps) {
+export default function HomeChatInput({ birthInfo, onRequireBirth, locale }: HomeChatInputProps) {
   const router = useRouter()
   const [text, setText] = useState('')
   const [typedPlaceholder, setTypedPlaceholder] = useState('')
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false)
   const isKo = locale === 'ko'
 
-  // 외부 클릭으로 드롭업 닫기.
-  const serviceMenuRef = useRef<HTMLDivElement>(null)
+  // 입력창을 터치(포커스/클릭)하면 서비스 선택 창을 띄운다. 외부 클릭으로 닫힘.
+  const chatBarRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!serviceMenuOpen) return
     const onDown = (e: MouseEvent) => {
-      if (serviceMenuRef.current && !serviceMenuRef.current.contains(e.target as Node)) {
+      if (chatBarRef.current && !chatBarRef.current.contains(e.target as Node)) {
         setServiceMenuOpen(false)
       }
     }
@@ -68,53 +71,43 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
     return () => document.removeEventListener('mousedown', onDown)
   }, [serviceMenuOpen])
 
-  // 서비스 하나 골라서 즉시 이동 — 옛 ↑ 버튼 역할을 서비스 선택이 흡수.
-  // 생일 없으면 생일 모달 먼저. 질문(?q=) 은 운명 상담사만 받음.
-  const selectService = (service: ServiceId) => {
+  // 서비스 하나 골라서 즉시 이동. 타로·운세달력은 생일이 필요 없으니 바로
+  // 진입하고, 궁합·운명상담사만 생일을 요구한다(없으면 모달 먼저).
+  // 타이핑한 질문(?q=) 은 운명 상담사만 받음.
+  const selectService = (service: HomeServiceId) => {
     setServiceMenuOpen(false)
-    if (!birthInfo) {
-      onOpenBirthModal()
-      return
-    }
     const trimmed = text.trim()
-    if (service === 'destinyMap') {
-      const query = buildBirthQuery(birthInfo)
-      const initial = trimmed ? `&q=${encodeURIComponent(trimmed)}` : ''
-      router.push(`/destiny-counselor?${query}${initial}`)
-      return
-    }
+
     if (service === 'tarot') {
       router.push('/tarot')
-      return
-    }
-    if (service === 'compatibility') {
-      router.push('/compatibility')
       return
     }
     if (service === 'calendar') {
       router.push('/calendar')
       return
     }
-  }
 
-  const fallbackPlaceholder = birthInfo
-    ? isKo
-      ? '무엇이든 물어보세요'
-      : 'Ask anything'
-    : isKo
-      ? '먼저 생년월일 정보부터 — @생일 추가를 눌러주세요'
-      : 'Add birth info first — tap @birth'
+    // 여기부터 생일 필요 — 궁합 / 운명 상담사.
+    if (!birthInfo) {
+      onRequireBirth(service, trimmed)
+      return
+    }
+    if (service === 'compatibility') {
+      router.push('/compatibility')
+      return
+    }
+    // destinyMap (운명 상담사)
+    const query = buildBirthQuery(birthInfo)
+    const initial = trimmed ? `&q=${encodeURIComponent(trimmed)}` : ''
+    router.push(`/destiny-counselor?${query}${initial}`)
+  }
 
   const typingActiveRef = useRef(true)
   useEffect(() => {
-    typingActiveRef.current = !!birthInfo && text.length === 0
-  }, [birthInfo, text])
+    typingActiveRef.current = text.length === 0
+  }, [text])
 
   useEffect(() => {
-    if (!birthInfo) {
-      setTypedPlaceholder('')
-      return
-    }
     const prompts = isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
     let cancelled = false
     let promptIdx = 0
@@ -161,70 +154,54 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
     return () => {
       cancelled = true
     }
-  }, [birthInfo, isKo])
+  }, [isKo])
 
-  const placeholder = birthInfo ? typedPlaceholder || ' ' : fallbackPlaceholder
+  const placeholder = typedPlaceholder || ' '
 
   return (
     <div className={styles.homeChatBar}>
-      <div className={styles.homeChatBarInner}>
+      <div className={styles.homeChatBarInner} ref={chatBarRef}>
         {birthInfo && (
           <span className={styles.homeBirthChip} aria-live="polite">
             ✓ {isKo ? '분석에 사용' : 'Reading for'}: {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
             {birthInfo.gender === 'male' ? (isKo ? '남성' : 'Male') : isKo ? '여성' : 'Female'}
           </span>
         )}
+
+        {/* 서비스 선택 창 — 입력창을 터치하면 위로 떠오른다. */}
+        {serviceMenuOpen && (
+          <div role="menu" className={styles.homeServicePickerMenu}>
+            <p className={styles.homeServicePickerHeading}>
+              {isKo ? '어떤 상담을 원하세요?' : 'Which reading would you like?'}
+            </p>
+            {SERVICES.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                role="menuitem"
+                className={styles.homeServicePickerItem}
+                onClick={() => selectService(s.id)}
+              >
+                <span aria-hidden="true">{s.icon}</span>
+                <span>{isKo ? s.ko : s.en}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <textarea
           className={styles.homeChatTextarea}
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onFocus={() => setServiceMenuOpen(true)}
+          onClick={() => setServiceMenuOpen(true)}
           placeholder={placeholder}
           rows={2}
         />
-        <div className={styles.homeChatRow}>
-          <div className={styles.homeChatTools}>
-            <button
-              type="button"
-              className={`${styles.homeChatToolBtn} ${birthInfo ? styles.homeChatToolBtnActive : ''}`}
-              onClick={onOpenBirthModal}
-              aria-label={isKo ? '생년월일 정보 추가/변경' : 'Add or edit birth info'}
-            >
-              <span aria-hidden="true">📅</span>
-              {birthInfo ? (isKo ? '생일 ✓' : 'Birth ✓') : isKo ? '@생일 추가' : '@birth'}
-            </button>
 
-            {/* 서비스 선택 — 4개 중 하나 누르면 그 서비스로 즉시 이동.
-                옛 ↑ 보내기 버튼 자리. */}
-            <div className={styles.homeServicePickerWrap} ref={serviceMenuRef}>
-              <button
-                type="button"
-                className={styles.homeServicePickerBtn}
-                onClick={() => setServiceMenuOpen((o) => !o)}
-                aria-haspopup="menu"
-                aria-expanded={serviceMenuOpen}
-              >
-                <span>{isKo ? '서비스를 선택하세요' : 'Choose a service'}</span>
-                <span aria-hidden="true">▾</span>
-              </button>
-              {serviceMenuOpen && (
-                <div role="menu" className={styles.homeServicePickerMenu}>
-                  {SERVICES.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      role="menuitem"
-                      className={styles.homeServicePickerItem}
-                      onClick={() => selectService(s.id)}
-                    >
-                      <span aria-hidden="true">{s.icon}</span>
-                      <span>{isKo ? s.ko : s.en}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <p className={styles.homeChatHint}>
+          {isKo ? '입력창을 누르면 상담 종류를 고를 수 있어요' : 'Tap the box to choose a reading'}
+        </p>
       </div>
     </div>
   )

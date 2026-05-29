@@ -1,18 +1,24 @@
 'use client'
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import type { I18nMessages } from '@/i18n/utils'
 import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
-import HomeChatInput from './components/HomeChatInput'
+import HomeChatInput, { type HomeServiceId } from './components/HomeChatInput'
 import BirthInfoModal from './components/BirthInfoModal'
-import { getStoredBirthInfo, saveBirthInfo, type StoredBirthInfo } from './birthInfoStorage'
+import {
+  getStoredBirthInfo,
+  saveBirthInfo,
+  buildBirthQuery,
+  type StoredBirthInfo,
+} from './birthInfoStorage'
 import HexDPLogo from '@/components/branding/HexDPLogo'
 
 type Locale = 'en' | 'ko'
@@ -34,6 +40,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const locale = (activeLocale || initialLocale) as Locale
   const { status } = useSession()
   const isAuthed = status === 'authenticated'
+  const router = useRouter()
 
   const toggleLocale = () => {
     setLocale(locale === 'ko' ? 'en' : 'ko')
@@ -44,6 +51,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [birthModalOpen, setBirthModalOpen] = useState(false)
   const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
+  // 생일 없이 궁합·운명상담사를 고르면 그 의도를 여기 담아두고, 생일 저장
+  // 직후 해당 서비스로 이동시킨다.
+  const pendingServiceRef = useRef<{ service: HomeServiceId; question: string } | null>(null)
   // Whether birth info was entered during THIS tab session — drives the
   // premium-white surface (see HOME_WHITE_SESSION_KEY).
   const [birthEnteredThisSession, setBirthEnteredThisSession] = useState(false)
@@ -167,6 +177,12 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     }
   }, [isAuthed])
 
+  // 생일 없이 궁합·운명상담사를 고른 경우 — 의도를 기억하고 모달을 띄운다.
+  const handleRequireBirth = (service: HomeServiceId, question: string) => {
+    pendingServiceRef.current = { service, question }
+    setBirthModalOpen(true)
+  }
+
   const handleSaved = (info: StoredBirthInfo) => {
     setBirthInfo(info)
     setBirthModalOpen(false)
@@ -179,6 +195,24 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     } catch {
       // sessionStorage can throw (private mode / blocked) — non-fatal.
     }
+
+    // 생일 입력이 어떤 서비스 선택에서 시작됐다면, 방금 저장한 정보로
+    // 그 서비스로 바로 이동한다.
+    const pending = pendingServiceRef.current
+    pendingServiceRef.current = null
+    if (pending) {
+      if (pending.service === 'compatibility') {
+        router.push('/compatibility')
+        return
+      }
+      if (pending.service === 'destinyMap') {
+        const query = buildBirthQuery(info)
+        const initial = pending.question ? `&q=${encodeURIComponent(pending.question)}` : ''
+        router.push(`/destiny-counselor?${query}${initial}`)
+        return
+      }
+    }
+
     const sp = new URLSearchParams(window.location.search)
     const next = sp.get('next')
     if (next && next.startsWith('/')) window.location.assign(next)
@@ -277,16 +311,12 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           </h1>
           <p className={styles.homeSubline}>
             {locale === 'ko'
-              ? '생년월일을 알려주시고, 원하는 상담을 선택해 보세요'
-              : 'Share your birth date, then choose a reading'}
+              ? '궁금한 점을 적고, 원하는 상담을 선택해 보세요'
+              : 'Type your question, then choose a reading'}
           </p>
         </section>
 
-        <HomeChatInput
-          birthInfo={birthInfo}
-          onOpenBirthModal={() => setBirthModalOpen(true)}
-          locale={locale}
-        />
+        <HomeChatInput birthInfo={birthInfo} onRequireBirth={handleRequireBirth} locale={locale} />
       </div>
 
       <MenuDrawerPanel
