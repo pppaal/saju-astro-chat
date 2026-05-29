@@ -5,7 +5,7 @@
       "strength": "기초가 단단하고 새 시작에 강하며, 직관과 학습력이 빠른 편이에요.",
       "weakness": "초반 의욕이 끝까지 안 가는 면이 있고, 혼자 결정하다 외로워질 수 있어요.",
       "career": "교육·연구·기획 — 무에서 유 만드는 일이 잘 맞아요. 컨설팅, 스타트업 초기 멤버도 좋습니다.",
-      "love": "헌신적이지만 천천히 마음 여는 결. 한 번 신뢰하면 깊게 가는 타입이에요."
+      "love": "헌신적이지만 천천히 마음 여는 흐름. 한 번 신뢰하면 깊게 가는 타입이에요."
     },
     "en": {
       "character": "A young sprout under a great tree — quietly decisive. You are the kind of person who wants to build something from nothing.",
@@ -149,7 +149,7 @@
       "strength": "관찰력과 분석력이 뛰어나며, 글이나 말로 정리하는 능력이 좋아요.",
       "weakness": "예민함이 과하면 사람·환경에 쉽게 지치고 우울해질 수 있어요.",
       "career": "연구·문필·상담·기획 — 깊이 들여다보는 일이 잘 맞아요.",
-      "love": "조용하고 깊은 결. 자기 시간을 인정해 주는 사람과 잘 통합니다."
+      "love": "조용하고 깊은 흐름. 자기 시간을 인정해 주는 사람과 잘 통합니다."
     },
     "en": {
       "character": "Dew at autumn dawn — clear, sensitive, insightful. You dig for the essence in quiet places.",
@@ -213,7 +213,7 @@
       "strength": "성실하고 책임감 있으며, 사람을 진심으로 돌보는 따뜻함이 있어요.",
       "weakness": "혼자 짊어지고 묵묵히 참다 번아웃이 오기 쉬워요.",
       "career": "의료·복지·교육·종교 — 누군가를 돌보는 일이 잘 맞아요.",
-      "love": "조용히 헌신하는 결. 말 없이 챙기지만 알아주지 않으면 서운해해요."
+      "love": "조용히 헌신하는 흐름. 말 없이 챙기지만 알아주지 않으면 서운해해요."
     },
     "en": {
       "character": "A lamp on a winter night — a quiet giver. You light corners no one sees.",
@@ -293,7 +293,7 @@
       "strength": "통찰력과 추진력이 있고, 사람을 모아 일을 키울 줄 알아요.",
       "weakness": "한꺼번에 여러 일을 벌이다 마무리가 약해질 수 있어요.",
       "career": "기획·경영·미디어·금융 — 큰 흐름을 다루는 일이 잘 맞아요.",
-      "love": "다정하면서도 자유로운 결. 묶이기보다 함께 흐르는 관계를 좋아해요."
+      "love": "다정하면서도 자유로운 흐름. 묶이기보다 함께 흐르는 관계를 좋아해요."
     },
     "en": {
       "character": "A great river at noon — wide-view, energetic strategist. You move by seeing the whole picture.",
@@ -306,7 +306,7 @@
   "癸未": {
     "ko": {
       "character": "마른 들판의 단비 — 조용하고 자상한 위로자. 당신은 지친 사람이 기대고 싶은 사람이에요.",
-      "strength": "공감 능력이 뛰어나고, 사람의 결을 섬세하게 읽어요.",
+      "strength": "공감 능력이 뛰어나고, 사람의 흐름을 섬세하게 읽어요.",
       "weakness": "감정 기복이 있고, 거절을 잘 못해 손해를 보기 쉬워요.",
       "career": "상담·교육·예술·종교 — 사람의 마음을 다루는 일이 잘 맞아요.",
       "love": "따뜻하고 헌신적. 다만 자기 마음을 먼저 챙겨야 오래 갑니다."
@@ -529,11 +529,11 @@
   },
   "丁酉": {
     "ko": {
-      "character": "가을밤의 촛불 — 섬세하고 우아한 감식가. 당신은 결을 따져 고르는 사람이에요.",
+      "character": "가을밤의 촛불 — 섬세하고 우아한 감식가. 당신은 흐름을 따져 고르는 사람이에요.",
       "strength": "감각·미감이 뛰어나며, 정밀한 일을 깔끔하게 마무리해요.",
       "weakness": "예민함이 자기 비판으로 향해, 자주 스스로를 괴롭혀요.",
       "career": "예술·디자인·문필·전문직 — 감각과 정밀함이 필요한 일이 좋아요.",
-      "love": "조용히 깊은 결. 결을 알아주는 사람과 만나야 행복합니다."
+      "love": "조용히 깊은 흐름. 흐름을 알아주는 사람과 만나야 행복합니다."
     },
     "en": {
       "character": "A candle on an autumn night — fine and graceful taste. You pick by sensing the grain.",
@@ -626,7 +626,7 @@
   "癸卯": {
     "ko": {
       "character": "봄비 속의 어린 풀 — 순수하고 영민한 사람. 당신은 부드럽지만 안목이 살아 있는 사람이에요.",
-      "strength": "직관과 학습력이 좋고, 사람 결을 섬세하게 읽어요.",
+      "strength": "직관과 학습력이 좋고, 사람 흐름을 섬세하게 읽어요.",
       "weakness": "쉽게 흔들리고 외부 영향을 잘 받아, 중심을 자주 잡아줘야 해요.",
       "career": "교육·문화·디자인·상담 — 섬세함과 학습이 가치인 분야가 좋아요.",
       "love": "다정하고 낭만적. 마음을 알아주는 한 마디에 깊이 흔들립니다."
@@ -757,7 +757,7 @@
       "strength": "감각과 사고력이 있고, 새로운 정보에 빠르게 적응해요.",
       "weakness": "쉽게 만족 못하고 거리 두기를 잘해, 친밀함이 늦게 생겨요.",
       "career": "전문직·디자인·미디어·금융 — 감각과 사고가 만나는 분야가 좋아요.",
-      "love": "신중하고 우아함. 결을 알아보는 사람과 깊게 갑니다."
+      "love": "신중하고 우아함. 흐름을 알아보는 사람과 깊게 갑니다."
     },
     "en": {
       "character": "A jewel on clear water — clever and elegant taste. You read the flow while picking the essence.",
@@ -773,7 +773,7 @@
       "strength": "지혜와 통찰이 깊고, 폭넓게 보고 폭넓게 받아들여요.",
       "weakness": "감정이 깊고 한번 빠지면 헤어나기 힘들어, 중독성에 약해요.",
       "career": "기획·연구·미디어·금융 — 큰 흐름을 다루는 일이 좋아요.",
-      "love": "정이 깊고 진한 결. 자유와 안정을 함께 줄 사람이 좋아요."
+      "love": "정이 깊고 진한 흐름. 자유와 안정을 함께 줄 사람이 좋아요."
     },
     "en": {
       "character": "A vast river — deep and free thinker. You don't stop, you flow.",
