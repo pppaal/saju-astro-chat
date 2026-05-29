@@ -1,105 +1,102 @@
-// 프로토타입 v13 — 최종 전체 검증: 시간 + 일/월 + 인생 올스케일, 한 스크립트.
-//   같은 "사주+점성 두 축" 방식이 時→日→月→인생 전부에서 작동하는지 자기검증.
-//   실행(단일): FP_BIRTHDATE=.. npx tsx scripts/flow-proto.ts
+// 프로토타입 v14 — 종류별 묶음 집계(per-kind) vs top-N 맞대결
+//   per-kind: 레이어 안에서 "종류(kind)"별로 먼저 평균 → 종류들을 중요도(tier)로 합침.
+//   → 600 소행성 = 1표(0.15), 10 트랜짓 = 1표(1.0). 개수 무관. 임의 N 컷 없음.
+//   실행: FP_BATCH=30 npx tsx scripts/flow-proto.ts
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { SignalLayer } from '@/lib/calendar-engine/types'
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 
 type El = '목' | '화' | '토' | '금' | '수'
-type Sig = { layer: SignalLayer; polarity: number; weight: number; source: string; kind: string; themes: AstroThemeKey[]; tw?: Partial<Record<AstroThemeKey, number>> }
+type Sig = { layer: SignalLayer; polarity: number; weight: number; source: string; kind: string }
 const LW: Record<string, number> = { decadal: 1, yearly: 0.85, monthly: 0.7, daily: 0.55, hourly: 0.4, instant: 0.5 }
 const TIER: Record<string, number> = { transit: 1, eclipse: 1, lifecycle: 1, 'solar-return': 1, 'lunar-return': 1, 'progressed-moon': 1, 'angle-contact': 1, progression: 0.5, 'solar-arc': 0.5, profection: 0.5, 'zodiacal-releasing': 0.5, 'moon-phase': 0.5, 'house-transit': 0.5, electional: 0.5, 'planetary-hour': 1, 'void-of-course': 0.5, asteroid: 0.15, midpoint: 0.15, harmonic: 0.15, 'fixed-star': 0.15, 'arabic-part': 0.15, draconic: 0.15 }
-const THEMES: AstroThemeKey[] = ['love', 'money', 'career', 'health', 'growth']
-const rankKey = (s: Sig) => s.weight * (TIER[s.kind] ?? 0.5)
+const tier = (k: string) => TIER[k] ?? 0.5
+const rankKey = (s: Sig) => s.weight * tier(s.kind)
 const topN = (g: Sig[], n: number) => { const m = new Map<string, Sig[]>(); for (const s of g) { const a = m.get(s.layer) ?? []; a.push(s); m.set(s.layer, a) } const o: Sig[] = []; for (const a of m.values()) { a.sort((x, y) => rankKey(y) - rankKey(x)); o.push(...a.slice(0, n)) } return o }
-function grandAvg(g: Sig[]): number | null { if (!g.length) return null; const m = new Map<string, { s: number; w: number }>(); for (const s of g) { const a = m.get(s.layer) ?? { s: 0, w: 0 }; a.s += s.polarity * s.weight; a.w += s.weight; m.set(s.layer, a) } let ws = 0, tw = 0; for (const [l, a] of m) { if (!a.w) continue; ws += (a.s / a.w) * (LW[l] ?? 0.5); tw += LW[l] ?? 0.5 } return tw ? ws / tw : null }
+
+// 방식1: top-N (레이어 평균)
+function grandAvg(g: Sig[]): number | null {
+  if (!g.length) return null
+  const m = new Map<string, { s: number; w: number }>()
+  for (const s of g) { const a = m.get(s.layer) ?? { s: 0, w: 0 }; a.s += s.polarity * s.weight; a.w += s.weight; m.set(s.layer, a) }
+  let ws = 0, tw = 0; for (const [l, a] of m) { if (!a.w) continue; ws += (a.s / a.w) * (LW[l] ?? 0.5); tw += LW[l] ?? 0.5 } return tw ? ws / tw : null
+}
+// 방식2: per-kind (레이어 안에서 종류별 평균 → 종류를 tier로 합침)
+function grandAvgKind(g: Sig[]): number | null {
+  if (!g.length) return null
+  const byLayer = new Map<string, Sig[]>()
+  for (const s of g) { const a = byLayer.get(s.layer) ?? []; a.push(s); byLayer.set(s.layer, a) }
+  let ws = 0, tw = 0
+  for (const [layer, arr] of byLayer) {
+    const byKind = new Map<string, { s: number; w: number }>()
+    for (const s of arr) { const a = byKind.get(s.kind) ?? { s: 0, w: 0 }; a.s += s.polarity * s.weight; a.w += s.weight; byKind.set(s.kind, a) }
+    let kws = 0, ktw = 0
+    for (const [kind, a] of byKind) { if (!a.w) continue; const kw = tier(kind); kws += (a.s / a.w) * kw; ktw += kw }  // 종류별 평균 × 종류 중요도
+    if (!ktw) continue
+    const layerAvg = kws / ktw
+    ws += layerAvg * (LW[layer] ?? 0.5); tw += LW[layer] ?? 0.5
+  }
+  return tw ? ws / tw : null
+}
 const stats = (xs: number[]) => { const mean = xs.reduce((a, b) => a + b, 0) / xs.length; return { mean, sd: Math.sqrt(xs.reduce((a, b) => a + (b - mean) ** 2, 0) / xs.length) } }
 const pickS = (s: Sig[]) => s.filter((x) => x.source === 'saju'); const pickA = (s: Sig[]) => s.filter((x) => x.source === 'astro')
 const clamp = (x: number) => Math.max(0, Math.min(100, Math.round(x)))
-const themeDir = (g: Sig[]) => { const t: Record<AstroThemeKey, number> = { love: 0, money: 0, career: 0, health: 0, growth: 0 }; for (const s of g) for (const k of s.themes) t[k] += s.polarity * s.weight * (s.tw?.[k] ?? 1); return t }
 type Rec = { day: string; sigs: Sig[] }
-const toSig = (c: any): Rec => ({ day: c.datetime, sigs: (c.signals as any[]).map((s) => ({ layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source, kind: s.kind, themes: s.themes ?? [], tw: s.themeWeights })) })
-async function build(n: NatalContext, start: string, end: string, gran: 'day' | 'hour') { return (await buildCalendar(n, { start, end, granularity: gran }, { includeEvidence: true })).map(toSig) }
-const STEM_EL: Record<string, El> = { 甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토', 己: '토', 庚: '금', 辛: '금', 壬: '수', 癸: '수' }
-const BRANCH_EL: Record<string, El> = { 子: '수', 丑: '토', 寅: '목', 卯: '목', 辰: '토', 巳: '화', 午: '화', 未: '토', 申: '금', 酉: '금', 戌: '토', 亥: '수' }
-const GEN: Record<El, El> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }; const CTRL: Record<El, El> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' }
-const sibsin = (d: El, e: El) => e === d ? '비겁' : GEN[e] === d ? '인성' : GEN[d] === e ? '식상' : CTRL[d] === e ? '재성' : '관성'
-function calib(days: Rec[], Ns: number[]) { const sSt = stats(days.map((d) => grandAvg(pickS(d.sigs))).filter((x): x is number => x != null)); let N = Ns[0], bd = 9; for (const n of Ns) { const sd = stats(days.map((d) => grandAvg(topN(pickA(d.sigs), n))).filter((x): x is number => x != null)).sd; if (Math.abs(sd - sSt.sd) < bd) { bd = Math.abs(sd - sSt.sd); N = n } } const aSt = stats(days.map((d) => grandAvg(topN(pickA(d.sigs), N))).filter((x): x is number => x != null)); return { N, sSt, aSt, sB: sSt.mean, sS: sSt.sd > 0.01 ? 12 / sSt.sd : 16, aB: aSt.mean, aS: aSt.sd > 0.01 ? 12 / aSt.sd : 16 } }
+async function build(n: NatalContext, start: string, end: string, gran: 'day' | 'hour'): Promise<Rec[]> {
+  return (await buildCalendar(n, { start, end, granularity: gran }, { includeEvidence: true })).map((c: any) => ({ day: c.datetime, sigs: (c.signals as any[]).map((s) => ({ layer: s.layer, polarity: s.polarity, weight: s.weight, source: s.source, kind: s.kind })) }))
+}
 
-async function runAll(input: any) {
-  const natal = await buildNatalContext(input); const day = natal.saju.dayMaster.element as El
-
-  // ── 日/月 스케일: 월±2 고정빌드 보정 ──
+// 한 사주: 두 방식의 점성축 sd + 일치 비교 (日/月 스케일)
+async function compare(input: any) {
+  const natal = await buildNatalContext(input)
   const dref = await build(natal, '2026-03-01T00:00:00.000Z', '2026-07-31T23:59:59.999Z', 'day')
-  const c = calib(dref, [5, 8, 12, 16])
-  const sc = (g: Sig[]) => { const sg = grandAvg(pickS(g)), ag = grandAvg(topN(pickA(g), c.N)); return { sa: sg == null ? 50 : clamp(50 + (sg - c.sB) * c.sS), aa: ag == null ? 50 : clamp(50 + (ag - c.aB) * c.aS) } }
-  const tBase: any = {}; for (const k of THEMES) tBase[k] = stats(dref.map((d) => themeDir(d.sigs)[k]))
-  const may = dref.filter((d) => d.day.slice(0, 7) === '2026-05'); const dAg = { aligned: 0, mixed: 0, opposed: 0 }; let conv = 0; const themeSet = new Set<string>()
-  for (const d of may) { const { sa, aa } = sc(d.sigs); const g = Math.abs(sa - aa); (dAg as any)[g <= 12 ? 'aligned' : g <= 28 ? 'mixed' : 'opposed']++; if (g <= 16 && ((sa >= 56 && aa >= 56) || (sa <= 44 && aa <= 44))) conv++; const td = themeDir(d.sigs); const z = THEMES.map((k) => ({ k, z: tBase[k].sd > 0.01 ? (td[k] - tBase[k].mean) / tBase[k].sd : 0 })).sort((a, b) => Math.abs(b.z) - Math.abs(a.z))[0]; if (Math.abs(z.z) >= 1.3) themeSet.add(z.k) }
-  // 점수 건강 = 축 생존 + opposed 비병리. (수렴 0개는 "밋밋한 달"로 정상 — 합격조건 아님)
-  const dayOk = c.aSt.sd >= 0.03 && dAg.opposed / may.length <= 0.5
+  const may = dref.filter((d) => d.day.slice(0, 7) === '2026-05')
+  const out: any = { birth: input.birthDate, str: natal.saju.strength }
 
-  // ── 時 스케일: 3일 hour빌드 보정, 타겟일 24h ──
-  const href = await build(natal, '2026-05-10T00:00:00.000Z', '2026-05-12T23:59:59.999Z', 'hour')
-  const hc = calib(href, [3, 5, 8])
-  const hsc = (g: Sig[]) => { const sg = grandAvg(pickS(g)), ag = grandAvg(topN(pickA(g), hc.N)); return { sa: sg == null ? 50 : clamp(50 + (sg - hc.sB) * hc.sS), aa: ag == null ? 50 : clamp(50 + (ag - hc.aB) * hc.aS) } }
-  const tgt = href.filter((h) => h.day.startsWith('2026-05-11')).map((h) => { const { sa, aa } = hsc(h.sigs); return Math.round((sa + aa) / 2) })
-  const hSpan = tgt.length ? Math.max(...tgt) - Math.min(...tgt) : 0
-  const hourOk = hc.sSt.sd >= 0.02 && hc.aSt.sd >= 0.02 && hSpan >= 5
-
-  // ── 인생 스케일: 대운 챕터 ──
-  const good = new Set<El>([natal.saju.yongsin.primary, natal.saju.yongsin.secondary].filter(Boolean) as El[]); const avoid = new Set<El>(natal.saju.yongsin.avoid as El[])
-  const verds: { kil: number; v: string }[] = []
-  for (const d of natal.saju.daeun) { if (d.startAge > 85) break; const se = STEM_EL[d.stem], be = BRANCH_EL[d.branch]; if (!se || !be) continue; let kil = 0; for (const e of [se, be]) { if (good.has(e)) kil++; if (avoid.has(e)) kil-- } verds.push({ kil, v: kil >= 2 ? '★' : kil <= -2 ? '▼' : kil >= 1 ? '+' : kil <= -1 ? '-' : '·' }) }
-  const lifeOk = new Set(verds.map((r) => r.v)).size >= 2 && verds.filter((r) => r.v === '★').every((r) => r.kil > 0)
-
-  const all = dayOk && hourOk && lifeOk
-  return {
-    birth: input.birthDate, dm: `${natal.saju.dayMaster.name}${day}`, str: natal.saju.strength, sect: natal.astro.sect,
-    hourOk, dayOk, lifeOk, all, Nday: c.N, Nhour: hc.N, conv, themes: themeSet.size,
-    hourSpan: hSpan, lifeDistinct: new Set(verds.map((r) => r.v)).size,
-    astroSdDay: +c.aSt.sd.toFixed(3), astroSdHour: +hc.aSt.sd.toFixed(3),
+  for (const [tag, gaA, NsweepN] of [['topN', null, true], ['kind', null, false]] as const) {
+    const ga = tag === 'kind' ? grandAvgKind : grandAvg
+    // top-N은 N 스윕 필요, kind는 불필요
+    let N = 0
+    const aSdOf = (n: number) => stats(dref.map((d) => grandAvg(topN(pickA(d.sigs), n))).filter((x): x is number => x != null)).sd
+    const sSt = stats(dref.map((d) => ga(pickS(d.sigs))).filter((x): x is number => x != null))
+    let aSt
+    if (tag === 'topN') { let bd = 9; for (const n of [5, 8, 12, 16]) { const sd = aSdOf(n); if (Math.abs(sd - sSt.sd) < bd) { bd = Math.abs(sd - sSt.sd); N = n } } aSt = stats(dref.map((d) => grandAvg(topN(pickA(d.sigs), N))).filter((x): x is number => x != null)) }
+    else aSt = stats(dref.map((d) => grandAvgKind(pickA(d.sigs))).filter((x): x is number => x != null))
+    const sB = sSt.mean, sS = sSt.sd > 0.01 ? 12 / sSt.sd : 16, aB = aSt.mean, aS = aSt.sd > 0.01 ? 12 / aSt.sd : 16
+    const ag = { aligned: 0, mixed: 0, opposed: 0 }
+    for (const d of may) {
+      const sg = ga(pickS(d.sigs)), agv = tag === 'topN' ? grandAvg(topN(pickA(d.sigs), N)) : grandAvgKind(pickA(d.sigs))
+      const sa = sg == null ? 50 : clamp(50 + (sg - sB) * sS), aa = agv == null ? 50 : clamp(50 + (agv - aB) * aS)
+      const g = Math.abs(sa - aa); ;(ag as any)[g <= 12 ? 'aligned' : g <= 28 ? 'mixed' : 'opposed']++
+    }
+    out[tag] = { astroSd: +aST(aSt).toFixed(3), N: tag === 'topN' ? N : '-', opposed: +(ag.opposed / may.length).toFixed(2), alive: aSt.sd >= 0.03 }
   }
+  return out
 }
+function aST(x: { sd: number }) { return x.sd }
 
-const CITIES = [
-  { lat: 37.5665, lon: 126.978, tz: 'Asia/Seoul' }, { lat: 35.68, lon: 139.69, tz: 'Asia/Tokyo' },
-  { lat: -33.87, lon: 151.21, tz: 'Australia/Sydney' }, { lat: 40.71, lon: -74.01, tz: 'America/New_York' },
-  { lat: 51.51, lon: -0.13, tz: 'Europe/London' }, { lat: -23.55, lon: -46.63, tz: 'America/Sao_Paulo' },
-  { lat: 19.07, lon: 72.88, tz: 'Asia/Kolkata' }, { lat: 30.04, lon: 31.24, tz: 'Africa/Cairo' },
-]
+const CITIES = [{ lat: 37.5665, lon: 126.978, tz: 'Asia/Seoul' }, { lat: 35.68, lon: 139.69, tz: 'Asia/Tokyo' }, { lat: -33.87, lon: 151.21, tz: 'Australia/Sydney' }, { lat: 40.71, lon: -74.01, tz: 'America/New_York' }, { lat: 51.51, lon: -0.13, tz: 'Europe/London' }, { lat: -23.55, lon: -46.63, tz: 'America/Sao_Paulo' }, { lat: 19.07, lon: 72.88, tz: 'Asia/Kolkata' }, { lat: 30.04, lon: 31.24, tz: 'Africa/Cairo' }]
 const ri = (n: number) => Math.floor(Math.random() * n)
-function randomChart() {
-  const c = CITIES[ri(CITIES.length)]
-  const y = 1955 + ri(49), mo = 1 + ri(12), d = 1 + ri(28), h = ri(24), mi = ri(2) * 30
-  return { birthDate: `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`, birthTime: `${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')}`, gender: ri(2) ? 'male' : 'female', latitude: c.lat, longitude: c.lon, timeZone: c.tz }
-}
+const randomChart = () => { const c = CITIES[ri(CITIES.length)]; return { birthDate: `${1955 + ri(49)}-${String(1 + ri(12)).padStart(2, '0')}-${String(1 + ri(28)).padStart(2, '0')}`, birthTime: `${String(ri(24)).padStart(2, '0')}:${ri(2) ? '30' : '00'}`, gender: ri(2) ? 'male' : 'female', latitude: c.lat, longitude: c.lon, timeZone: c.tz } }
 
 async function main() {
-  const E = process.env
-  if (!E.FP_BATCH) {
-    const input = { birthDate: E.FP_BIRTHDATE ?? '1993-08-15', birthTime: E.FP_BIRTHTIME ?? '14:30', gender: (E.FP_GENDER as 'male' | 'female') ?? 'male', latitude: Number(E.FP_LAT ?? 37.5665), longitude: Number(E.FP_LON ?? 126.978), timeZone: E.FP_TZ ?? 'Asia/Seoul' }
-    console.log(JSON.stringify(await runAll(input))); return
-  }
-  const K = Number(E.FP_BATCH)
-  console.log(`=== 배치 검증 ${K}개 랜덤 사주 (時→日→月→인생 올스케일) ===`)
-  let pass = 0, crash = 0; const fails: any[] = []; const Ndays: number[] = []; const convs: number[] = []; const distincts: number[] = []
+  const K = Number(process.env.FP_BATCH ?? 30)
+  console.log(`=== top-N vs 종류별(kind) 맞대결 — ${K}개 랜덤 (日/月 점성축) ===`)
+  console.log('#  생일        강약    | top-N: sd  N opp alive | kind: sd  opp alive')
+  const agg = { topNalive: 0, kindAlive: 0, topNsd: [] as number[], kindSd: [] as number[], topNopp: [] as number[], kindOpp: [] as number[] }
   for (let i = 0; i < K; i++) {
-    const ch = randomChart()
     try {
-      const r = await runAll(ch)
-      Ndays.push(r.Nday); convs.push(r.conv); distincts.push(r.lifeDistinct)
-      if (r.all) pass++; else fails.push({ b: r.birth, str: r.str, sect: r.sect, hourOk: r.hourOk, dayOk: r.dayOk, lifeOk: r.lifeOk })
-      console.log(`${String(i + 1).padStart(2)} ${ch.birthDate} ${ch.birthTime} ${ch.timeZone.split('/')[1].slice(0, 6).padEnd(6)} ${r.dm} ${r.str.padEnd(6)} ${r.sect.padEnd(5)} ${r.all ? '✅' : '❌ ' + [!r.hourOk && '時', !r.dayOk && '日', !r.lifeOk && '生'].filter(Boolean).join('')}`)
-    } catch (e) { crash++; console.log(`${String(i + 1).padStart(2)} ${ch.birthDate} ${ch.timeZone} 💥 ${String(e).slice(0, 80)}`) }
+      const r = await compare(randomChart())
+      agg.topNalive += r.topN.alive ? 1 : 0; agg.kindAlive += r.kind.alive ? 1 : 0
+      agg.topNsd.push(r.topN.astroSd); agg.kindSd.push(r.kind.astroSd); agg.topNopp.push(r.topN.opposed); agg.kindOpp.push(r.kind.opposed)
+      console.log(`${String(i + 1).padStart(2)} ${r.birth} ${r.str.padEnd(6)} | ${String(r.topN.astroSd).padStart(5)} ${String(r.topN.N).padStart(2)} ${String(r.topN.opposed).padStart(4)} ${r.topN.alive ? '✅' : '❌'}    | ${String(r.kind.astroSd).padStart(5)} ${String(r.kind.opposed).padStart(4)} ${r.kind.alive ? '✅' : '❌'}`)
+    } catch (e) { console.log(`${i + 1} 💥 ${String(e).slice(0, 60)}`) }
   }
-  const dist = (xs: number[]) => { const m: Record<number, number> = {}; for (const x of xs) m[x] = (m[x] || 0) + 1; return m }
-  console.log(`\n[결과] 통과 ${pass}/${K}  크래시 ${crash}`)
-  console.log(`  적응형 N(日) 분포:`, dist(Ndays))
-  console.log(`  월 수렴일 분포: min ${Math.min(...convs)} max ${Math.max(...convs)} avg ${(convs.reduce((a, b) => a + b, 0) / convs.length).toFixed(1)}`)
-  console.log(`  인생 판정종류 분포:`, dist(distincts))
-  if (fails.length) { console.log(`  실패 ${fails.length}개:`); for (const f of fails) console.log('   ', JSON.stringify(f)) }
+  const avg = (a: number[]) => (a.reduce((x, y) => x + y, 0) / a.length).toFixed(3)
+  console.log(`\n[결과] 점성축 살아있음(sd≥0.03):  top-N ${agg.topNalive}/${K}   kind ${agg.kindAlive}/${K}`)
+  console.log(`  평균 점성 sd:   top-N ${avg(agg.topNsd)}   kind ${avg(agg.kindSd)}`)
+  console.log(`  평균 opposed:   top-N ${avg(agg.topNopp)}   kind ${avg(agg.kindOpp)}`)
+  console.log(`  kind는 N 튜닝 불필요(임의 컷 없음). top-N은 N 5~16 스윕 필요.`)
 }
 main().catch((e) => { console.error(String(e).slice(0, 200)); process.exit(1) })
