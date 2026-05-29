@@ -1,63 +1,68 @@
-// 프로토타입 v9 — 인생 스케일 타이밍: 대운(사주) × 라이프사이클(점성) 수렴
-//   하루 단위가 아니라 "인생 전체"를 연 단위로. 토성회귀·목성회귀·대운전환이
-//   겹치는 시기 = 인생 큰 전환점.   실행: npx tsx scripts/flow-proto.ts
+// 프로토타입 v10 — 전 스케일 완성: 인생 챕터(대운)에 길흉 + 십신(영역) + 점성 길흉
+//   대운이 용신에 맞나(길흉) + 무슨 십신운인가(영역) + 그 시기 점성 마일스톤 길흉.
+// 실행:  npx tsx scripts/flow-proto.ts
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 
-// 점성 라이프사이클 주기(년) — 표준 천문 주기
-const CYCLES: { name: string; period: number; offset?: number }[] = [
-  { name: '목성회귀', period: 11.862 },                 // 12,24,36...
-  { name: '토성회귀', period: 29.457 },                 // 29.5, 59
-  { name: '토성스퀘어/대립', period: 29.457 / 2 },       // ~7,14,22,29...
-  { name: '천왕성반대(중년)', period: 84.02, offset: 42 }, // ~42
-  { name: '카이런회귀', period: 50.7 },                  // ~50
-  { name: '노드회귀', period: 18.6 },                    // 18.6,37,55...
+type El = '목' | '화' | '토' | '금' | '수'
+const STEM_EL: Record<string, El> = { 甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토', 己: '토', 庚: '금', 辛: '금', 壬: '수', 癸: '수' }
+const BRANCH_EL: Record<string, El> = { 子: '수', 丑: '토', 寅: '목', 卯: '목', 辰: '토', 巳: '화', 午: '화', 未: '토', 申: '금', 酉: '금', 戌: '토', 亥: '수' }
+const GEN: Record<El, El> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
+const CTRL: Record<El, El> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' }
+// 일간 기준 십신 + 인생영역
+function sibsin(day: El, el: El): { name: string; domain: string } {
+  if (el === day) return { name: '비겁', domain: '자립·경쟁·동료' }
+  if (GEN[el] === day) return { name: '인성', domain: '학습·후원·성장' }
+  if (GEN[day] === el) return { name: '식상', domain: '표현·재능·활동' }
+  if (CTRL[day] === el) return { name: '재성', domain: '재물·연애·현실' }
+  return { name: '관성', domain: '직업·명예·책임' } // CTRL[el]===day
+}
+// 점성 라이프사이클 + 본질 길흉
+const CYCLES: { name: string; period: number; offset?: number; pol: number }[] = [
+  { name: '목성회귀(확장)', period: 11.862, pol: +2 },
+  { name: '토성회귀(시련·성숙)', period: 29.457, pol: -1 },
+  { name: '토성스퀘어(압박)', period: 29.457 / 2, pol: -1 },
+  { name: '천왕성중년반대(격변)', period: 84.02, offset: 42, pol: -1 },
+  { name: '카이런회귀(치유)', period: 50.7, pol: 0 },
+  { name: '노드회귀(방향재설정)', period: 18.6, pol: +1 },
 ]
-
-function astroMilestones(maxAge: number) {
-  const out: { age: number; name: string }[] = []
+function milestones(maxAge: number) {
+  const out: { age: number; name: string; pol: number }[] = []
   for (const c of CYCLES) {
-    if (c.offset) { if (c.offset <= maxAge) out.push({ age: c.offset, name: c.name }); continue }
-    for (let k = 1; k * c.period <= maxAge; k++) out.push({ age: +(k * c.period).toFixed(1), name: c.name })
+    if (c.offset) { out.push({ age: c.offset, name: c.name, pol: c.pol }); continue }
+    for (let k = 1; k * c.period <= maxAge; k++) out.push({ age: +(k * c.period).toFixed(1), name: c.name, pol: c.pol })
   }
-  return out.sort((a, b) => a.age - b.age)
+  return out
 }
 
 async function main() {
   const input = { birthDate: '1993-08-15', birthTime: '14:30', gender: 'male' as const, latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }
   const natal = await buildNatalContext(input)
-  const birthYear = Number(input.birthDate.slice(0, 4))
-  const MAX = 85
+  const day = natal.saju.dayMaster.element as El
+  const good = new Set<El>([natal.saju.yongsin.primary, natal.saju.yongsin.secondary].filter(Boolean) as El[])
+  const avoid = new Set<El>(natal.saju.yongsin.avoid as El[])
+  const ms = milestones(95)
+  console.log(`전 스케일 완성 — 인생 챕터 길흉+영역 (일간 ${natal.saju.dayMaster.name}${day} / 용신 ${[...good].join('·')} / 기신 ${[...avoid].join('·')})\n`)
+  console.log('나이      대운    오행   십신(영역)         사주길흉   점성(그 10년)                    → 챕터 판정')
+  console.log('-'.repeat(118))
 
-  // 사주 대운 전환 (실제 데이터)
-  const daeun = natal.saju.daeun.map((d) => ({ age: d.startAge, year: d.startYear, gz: `${d.stem}${d.branch}` }))
-  console.log('인생 타이밍 (1993-08-15생) — 사주 대운 전환 × 점성 라이프사이클\n')
-  console.log('[사주 대운 전환점]', daeun.map((d) => `${d.age}세(${d.gz})`).join('  '))
-
-  const milestones = astroMilestones(MAX)
-  console.log('[점성 마일스톤]   ', milestones.map((m) => `${m.age}세 ${m.name}`).join('  '))
-
-  // 수렴: 대운 전환이 점성 마일스톤과 ±2년 안에 겹치면 = 인생 큰 전환점
-  console.log('\n[★ 인생 큰 전환점] 사주·점성이 ±2년 내 겹치는 시기')
-  const pivots: { age: number; year: number; saju: string; astro: string[] }[] = []
-  for (const d of daeun) {
-    const near = milestones.filter((m) => Math.abs(m.age - d.age) <= 2)
-    if (near.length) pivots.push({ age: d.age, year: d.year, saju: `대운 ${d.gz}`, astro: near.map((m) => m.name) })
+  for (const d of natal.saju.daeun) {
+    if (d.startAge > 85) break
+    const se = STEM_EL[d.stem], be = BRANCH_EL[d.branch]
+    // 길흉: 천간·지지 각각 용신(+1)/기신(−1)
+    let kil = 0; for (const e of [se, be]) { if (good.has(e)) kil++; if (avoid.has(e)) kil-- }
+    const ss = sibsin(day, se)
+    // 점성: 이 10년 안의 마일스톤 길흉 합
+    const inDecade = ms.filter((m) => m.age >= d.startAge && m.age < d.startAge + 10)
+    const astroPol = inDecade.reduce((a, m) => a + m.pol, 0)
+    const combined = kil * 1.0 + astroPol * 0.4
+    const verdict = combined >= 1.2 ? '★ 길한 시기' : combined <= -1.2 ? '▼ 시련기' : '· 보통/혼합'
+    const astroStr = inDecade.length ? inDecade.map((m) => m.name.replace(/\(.*/, '') + (m.pol >= 0 ? '+' : '−')).join(' ') : '(잔잔)'
+    console.log(
+      `${String(d.startAge).padStart(2)}~${d.startAge + 9}세 ${d.stem}${d.branch}  ${se}${be}  ${(ss.name + ' ' + ss.domain).padEnd(16)} ` +
+      `${(kil >= 0 ? '+' : '') + kil}용신  ${astroStr.padEnd(30)} ${verdict}`,
+    )
   }
-  if (!pivots.length) console.log('  (이 사람 대운 전환이 점성 마일스톤과 안 겹침 — 드물게 그럴 수 있음)')
-  for (const p of pivots)
-    console.log(`  ${p.age}세 (${p.year}년):  ${p.saju}  +  ${p.astro.join(', ')}  → 사주·점성 동시 전환 ★`)
-
-  // 전 생애 타임라인 (10년 단위 줌) — 각 나이대에 무엇이 작동하나
-  console.log('\n[인생 줌아웃 — 나이대별 큰 사건]')
-  for (let decade = 0; decade < MAX; decade += 10) {
-    const dEvents = daeun.filter((d) => d.age >= decade && d.age < decade + 10).map((d) => `대운→${d.gz}(${d.age}세)`)
-    const aEvents = milestones.filter((m) => m.age >= decade && m.age < decade + 10).map((m) => `${m.name}(${m.age}세)`)
-    const all = [...dEvents, ...aEvents]
-    const now = 2026 - birthYear
-    const tag = decade <= now && now < decade + 10 ? ' ← 지금' : ''
-    console.log(`  ${decade}~${decade + 9}세:${tag}  ${all.length ? all.join(' · ') : '(큰 사건 없음, 잔잔)'}`)
-  }
-  console.log('\n핵심: 인생 뷰 = 10년·12년·29년짜리 큰 신호만 모아 연 단위로. 같은 "두 시스템 수렴" 방식.')
-  console.log('     (월/일 뷰는 앞서 검증한 그대로, 작은 신호를 일 단위로 — 배율만 다름)')
+  console.log('\n핵심: 인생 챕터도 하루단위와 같은 2축 — 사주(대운 용신 길흉) + 점성(마일스톤 길흉) → 길흉,')
+  console.log('     영역은 십신(재성=재물·연애기 / 관성=직업기 / 인성=성장기 …). 이제 시간~인생 전 스케일 동일 방식.')
 }
 main().catch((e) => { console.error(e); process.exit(1) })
