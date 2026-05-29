@@ -12,6 +12,22 @@ import {
   chatMessageSchema,
   paginationQuerySchema,
 } from './common'
+import { isAllowedPhotoHost } from '../photoHostAllowlist'
+
+// Avatar / profile-image URL. Same allowlist as destiny-match photos —
+// `user.image` is rendered in nav/profile widgets via next/image, so a
+// `javascript:` or attacker-host URL persisted here has the same XSS /
+// hotlink / SSRF surface.
+const profileImageUrlSchema = z
+  .string()
+  .max(500)
+  .url()
+  .refine((url) => url.startsWith('https://'), {
+    message: 'Image URL must be https',
+  })
+  .refine((url) => isAllowedPhotoHost(url), {
+    message: 'Image URL host not allowed',
+  })
 
 // ============ Auth Schemas ============
 
@@ -42,7 +58,7 @@ export type UserEmailUpdateValidated = z.infer<typeof userEmailUpdateSchema>
 
 export const userProfileUpdateSchema = z.object({
   name: z.string().min(1).max(64).trim().optional(),
-  image: z.string().url().max(500).optional().nullable(),
+  image: profileImageUrlSchema.optional().nullable(),
   preferredLanguage: localeSchema.optional(),
   tonePreference: z.enum(['formal', 'casual', 'mystical', 'friendly']).optional(),
   readingLength: z.enum(['brief', 'moderate', 'detailed']).optional(),

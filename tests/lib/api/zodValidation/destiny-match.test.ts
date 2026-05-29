@@ -181,7 +181,10 @@ describe('Destiny Match Profile Schema Tests', () => {
         displayName: 'Jane Smith',
         bio: 'Love traveling and hiking',
         occupation: 'Software Engineer',
-        photos: ['/photo1.jpg', '/photo2.jpg'],
+        photos: [
+          'https://abc.public.blob.vercel-storage.com/profile-photos/u1/1.jpg',
+          'https://firebasestorage.googleapis.com/v0/b/bucket/o/2.jpg?alt=media',
+        ],
         city: 'Seoul',
         latitude: 37.5665,
         longitude: 126.978,
@@ -218,7 +221,9 @@ describe('Destiny Match Profile Schema Tests', () => {
     it('should reject too many photos', () => {
       expect(destinyMatchProfileSchema.safeParse({
         displayName: 'John',
-        photos: Array(11).fill('/photo.jpg'),
+        photos: Array(11).fill(
+          'https://abc.public.blob.vercel-storage.com/profile-photos/u1/1.jpg'
+        ),
       }).success).toBe(false)
     })
 

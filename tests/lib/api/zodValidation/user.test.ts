@@ -141,10 +141,31 @@ describe('Profile Schema Tests', () => {
       }).success).toBe(true)
     })
 
-    it('should accept valid image URL', () => {
+    it('should accept allowlisted image URL', () => {
+      // example.com is no longer accepted — must be on the photo-host
+      // allowlist (see photoHostAllowlist.ts). Vercel Blob URL is a typical
+      // value produced by /api/me/upload-photo.
+      expect(userProfileUpdateSchema.safeParse({
+        image: 'https://abc.public.blob.vercel-storage.com/profile-photos/u1/x.jpg',
+      }).success).toBe(true)
+    })
+
+    it('should accept Google avatar URL (NextAuth provider)', () => {
+      expect(userProfileUpdateSchema.safeParse({
+        image: 'https://lh3.googleusercontent.com/a/AHcGUjC=s96-c',
+      }).success).toBe(true)
+    })
+
+    it('should reject arbitrary attacker URL as image', () => {
       expect(userProfileUpdateSchema.safeParse({
         image: 'https://example.com/avatar.jpg',
-      }).success).toBe(true)
+      }).success).toBe(false)
+    })
+
+    it('should reject javascript: URL as image', () => {
+      expect(userProfileUpdateSchema.safeParse({
+        image: 'javascript:alert(1)',
+      }).success).toBe(false)
     })
   })
 
