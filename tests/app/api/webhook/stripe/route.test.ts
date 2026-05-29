@@ -100,6 +100,16 @@ vi.mock('stripe', () => {
 // Mock credit service
 vi.mock('@/lib/credits/creditService', () => ({
   addBonusCredits: vi.fn(),
+  revokeBonusCreditPurchase: vi.fn().mockResolvedValue({
+    revoked: true,
+    reclaimed: 0,
+    alreadyUsed: 0,
+  }),
+}))
+
+// Mock referral service
+vi.mock('@/lib/referral', () => ({
+  grantReferralRewardOnFirstPurchase: vi.fn().mockResolvedValue({ granted: false }),
 }))
 
 // Mock email service
@@ -112,7 +122,7 @@ vi.mock('@/lib/email', () => ({
 // ---------------------------------------------------------------------------
 import { POST } from '@/app/api/webhook/stripe/route'
 import { prisma } from '@/lib/db/prisma'
-import { addBonusCredits } from '@/lib/credits/creditService'
+import { addBonusCredits, revokeBonusCreditPurchase } from '@/lib/credits/creditService'
 import { sendPaymentReceiptEmail } from '@/lib/email'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
@@ -345,8 +355,15 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       })
     })
 
-    it('should return duplicate for events that are in-progress (not yet successful)', async () => {
-      const event = makeEvent('checkout.session.completed', {})
+    it('B1: should REPROCESS events with existing success=false (previously crashed mid-handler)', async () => {
+      // Regression: previously this returned { duplicate: true } and short-circuited,
+      // leaving partially-processed events permanently abandoned. Now it must
+      // fall through to the handler; downstream ops are idempotent.
+      const event = makeEvent('checkout.session.completed', {
+        id: 'cs_b1_retry',
+        // No metadata → handler is no-op but still processes (no early duplicate return).
+        metadata: { type: 'other' },
+      })
       mockConstructEvent.mockReturnValue(event)
 
       const duplicateErr: any = new Error('Unique constraint failed')
@@ -357,15 +374,27 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         success: false,
         processedAt: null,
       } as any)
+      vi.mocked(prisma.stripeEventLog.update).mockResolvedValue({} as any)
 
       const response = await POST(makeWebhookRequest('body'))
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.received).toBe(true)
-      expect(data.duplicate).toBe(true)
-      expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-        expect.stringContaining('Event processing in progress or failed')
+      // CRITICAL: must NOT short-circuit as duplicate
+      expect(data.duplicate).toBeUndefined()
+      // The retry-failed metric is emitted
+      expect(vi.mocked(recordCounter)).toHaveBeenCalledWith(
+        'stripe_webhook_retry_failed_event',
+        1,
+        { event: event.type }
+      )
+      // And handler ran through to success update
+      expect(vi.mocked(prisma.stripeEventLog.update)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { eventId: event.id },
+          data: expect.objectContaining({ success: true }),
+        })
       )
     })
 
@@ -391,6 +420,8 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         metadata: { type: 'credit_pack', creditPack: 'standard', userId: 'user-1' },
         amount_total: 9900,
         currency: 'krw',
+        payment_status: 'paid',
+        payment_intent: 'pi_test_123',
       })
       mockConstructEvent.mockReturnValue(event)
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -399,14 +430,20 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         email: 'alice@example.com',
       } as any)
       vi.mocked(addBonusCredits).mockResolvedValue(undefined as any)
+      vi.mocked(prisma.pendingCreditRevocation.findUnique).mockResolvedValue(null)
 
       const response = await POST(makeWebhookRequest())
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.received).toBe(true)
-      // standard pack = 20 credits, paymentId undefined (test session has no payment_intent)
-      expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith('user-1', 20, 'purchase', undefined)
+      // standard pack = 40 credits (per CREDIT_PACKS config)
+      expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith(
+        'user-1',
+        40,
+        'purchase',
+        'pi_test_123'
+      )
       expect(vi.mocked(sendPaymentReceiptEmail)).toHaveBeenCalledWith(
         'user-1',
         'alice@example.com',
@@ -414,7 +451,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
           userName: 'Alice',
           amount: 9900,
           currency: 'krw',
-          productName: 'Standard (20 Credits)',
+          productName: 'Standard (40 Credits)',
           transactionId: 'cs_test_123',
         })
       )
@@ -429,11 +466,11 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
 
     it('should handle all credit pack types correctly', async () => {
       const packMapping: Record<string, number> = {
-        mini: 5,
-        standard: 20,
-        plus: 50,
-        mega: 120,
-        ultimate: 280,
+        mini: 10,
+        standard: 40,
+        plus: 100,
+        mega: 240,
+        ultimate: 500,
       }
 
       for (const [pack, expectedCredits] of Object.entries(packMapping)) {
@@ -452,6 +489,8 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
           metadata: { type: 'credit_pack', creditPack: pack, userId: 'u1' },
           amount_total: 1000,
           currency: 'krw',
+          payment_status: 'paid',
+          payment_intent: `pi_${pack}`,
         })
         mockConstructEvent.mockReturnValue(event)
         vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -460,6 +499,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
           email: 'bob@x.com',
         } as any)
         vi.mocked(addBonusCredits).mockResolvedValue(undefined as any)
+        vi.mocked(prisma.pendingCreditRevocation.findUnique).mockResolvedValue(null)
 
         const response = await POST(makeWebhookRequest())
         expect(response.status).toBe(200)
@@ -467,7 +507,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
           'u1',
           expectedCredits,
           'purchase',
-          undefined
+          `pi_${pack}`
         )
       }
     })
@@ -555,6 +595,8 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const event = makeEvent('checkout.session.completed', {
         id: 'cs_fail',
         metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'u1' },
+        payment_status: 'paid',
+        payment_intent: 'pi_fail',
       })
       mockConstructEvent.mockReturnValue(event)
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -576,6 +618,8 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'u1' },
         amount_total: 1000,
         currency: 'krw',
+        payment_status: 'paid',
+        payment_intent: 'pi_no_email',
       })
       mockConstructEvent.mockReturnValue(event)
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
@@ -584,6 +628,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         email: null,
       } as any)
       vi.mocked(addBonusCredits).mockResolvedValue(undefined as any)
+      vi.mocked(prisma.pendingCreditRevocation.findUnique).mockResolvedValue(null)
 
       const response = await POST(makeWebhookRequest())
       expect(response.status).toBe(200)
@@ -620,6 +665,8 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         metadata: { type: 'credit_pack', creditPack: 'standard', userId: 'user-1' },
         amount_total: 9900,
         currency: 'krw',
+        payment_status: 'paid',
+        payment_intent: `pi_${id}`,
       })
 
     it('should return 500 and log error details when handler throws', async () => {
@@ -800,6 +847,196 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         'sig_test',
         'whsec_test_xxx'
       )
+    })
+  })
+
+  // =========================================================================
+  // 16. Regression: 3 Stripe webhook bug fixes
+  // =========================================================================
+  describe('Regression: Stripe webhook bug fixes', () => {
+    it('B1: re-runs handler when StripeEventLog row exists with success=false (no short-circuit)', async () => {
+      // Setup: a previous webhook attempt crashed AFTER inserting the log row
+      // (success=false) but BEFORE updating it to success=true. Stripe retries
+      // the event. Old behavior: short-circuit as "duplicate" and never finish.
+      // New behavior: fall through and re-run the handler.
+      const event = makeEvent('checkout.session.completed', {
+        id: 'cs_b1',
+        metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'user-b1' },
+        amount_total: 1900,
+        currency: 'krw',
+        payment_status: 'paid',
+        payment_intent: 'pi_b1',
+      })
+      mockConstructEvent.mockReturnValue(event)
+
+      // First insert hits P2002 (row already there from previous attempt)
+      const dup: any = new Error('Unique constraint failed')
+      dup.code = 'P2002'
+      vi.mocked(prisma.stripeEventLog.create).mockRejectedValue(dup)
+      vi.mocked(prisma.stripeEventLog.findUnique).mockResolvedValue({
+        eventId: event.id,
+        success: false, // <-- key: not successful, must reprocess
+        processedAt: null,
+      } as any)
+      vi.mocked(prisma.stripeEventLog.update).mockResolvedValue({} as any)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-b1',
+        name: 'B1',
+        email: 'b1@example.com',
+      } as any)
+      vi.mocked(addBonusCredits).mockResolvedValue(undefined as any)
+      vi.mocked(prisma.pendingCreditRevocation.findUnique).mockResolvedValue(null)
+
+      const response = await POST(makeWebhookRequest('body'))
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      // CRITICAL: not a short-circuit duplicate
+      expect(data.duplicate).toBeUndefined()
+      // Handler actually ran
+      expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith(
+        'user-b1',
+        10, // mini = 10 credits
+        'purchase',
+        'pi_b1'
+      )
+      // Success is recorded
+      expect(vi.mocked(prisma.stripeEventLog.update)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { eventId: event.id },
+          data: expect.objectContaining({ success: true }),
+        })
+      )
+      // Retry metric is emitted
+      expect(vi.mocked(recordCounter)).toHaveBeenCalledWith(
+        'stripe_webhook_retry_failed_event',
+        1,
+        { event: 'checkout.session.completed' }
+      )
+    })
+
+    it('B2: runs PendingCreditRevocation check even when addBonusCredits returns P2002 (idempotent retry)', async () => {
+      // Setup: 1st attempt granted credits then crashed before revocation
+      // check. 2nd attempt: addBonusCredits throws P2002 (already credited).
+      // We must STILL run the PendingCreditRevocation check so a queued
+      // revoke actually fires — otherwise refunded user keeps credits.
+      const event = makeEvent('checkout.session.completed', {
+        id: 'cs_b2',
+        metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'user-b2' },
+        amount_total: 1900,
+        currency: 'krw',
+        payment_status: 'paid',
+        payment_intent: 'pi_b2',
+      })
+      mockConstructEvent.mockReturnValue(event)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-b2',
+        name: 'B2',
+        email: 'b2@example.com',
+      } as any)
+      // addBonusCredits throws P2002 (already credited on prior attempt)
+      const dup: any = new Error('Unique constraint failed on BonusCreditPurchase.stripePaymentId')
+      dup.code = 'P2002'
+      vi.mocked(addBonusCredits).mockRejectedValue(dup)
+      // A queued revocation EXISTS for this paymentIntent
+      vi.mocked(prisma.pendingCreditRevocation.findUnique).mockResolvedValue({
+        id: 'pending-1',
+        stripePaymentIntentId: 'pi_b2',
+        refundAmountCents: 1900,
+        currency: 'krw',
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 60_000),
+      } as any)
+      vi.mocked(prisma.pendingCreditRevocation.delete).mockResolvedValue({} as any)
+      vi.mocked(revokeBonusCreditPurchase).mockResolvedValue({
+        revoked: true,
+        reclaimed: 10,
+        alreadyUsed: 0,
+      })
+
+      const response = await POST(makeWebhookRequest('body'))
+
+      expect(response.status).toBe(200)
+      // CRITICAL: revoke MUST be called even though addBonusCredits dedup'd
+      expect(vi.mocked(revokeBonusCreditPurchase)).toHaveBeenCalledWith('pi_b2')
+      // Pending row is cleaned up
+      expect(vi.mocked(prisma.pendingCreditRevocation.delete)).toHaveBeenCalledWith({
+        where: { id: 'pending-1' },
+      })
+      // Duplicate purchase metric was emitted (still detected as duplicate)
+      expect(vi.mocked(recordCounter)).toHaveBeenCalledWith(
+        'stripe_webhook_purchase_duplicate',
+        1,
+        { pack: 'mini' }
+      )
+      // Receipt email NOT sent (already sent on first attempt)
+      expect(vi.mocked(sendPaymentReceiptEmail)).not.toHaveBeenCalled()
+    })
+
+    it('B3: skips addBonusCredits when session.payment_status is "unpaid" (async payment)', async () => {
+      // Setup: async payment (e.g. bank transfer). checkout.session.completed
+      // fires with payment_status='unpaid' and payment_intent=null. Granting
+      // credits here would (a) send credits before payment, and (b) write
+      // stripePaymentId=null which bypasses the unique-constraint dedup,
+      // causing repeated grants on every Stripe retry.
+      const event = makeEvent('checkout.session.completed', {
+        id: 'cs_b3_unpaid',
+        metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'user-b3' },
+        amount_total: 1900,
+        currency: 'krw',
+        payment_status: 'unpaid',
+        payment_intent: null,
+      })
+      mockConstructEvent.mockReturnValue(event)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-b3',
+        name: 'B3',
+        email: 'b3@example.com',
+      } as any)
+
+      const response = await POST(makeWebhookRequest('body'))
+      const data = await response.json()
+
+      // Success response (Stripe should not retry — the event itself is fine)
+      expect(response.status).toBe(200)
+      expect(data.received).toBe(true)
+      // CRITICAL: no credit grant
+      expect(vi.mocked(addBonusCredits)).not.toHaveBeenCalled()
+      // No receipt email (payment not actually completed)
+      expect(vi.mocked(sendPaymentReceiptEmail)).not.toHaveBeenCalled()
+      // Skip metric emitted for observability
+      expect(vi.mocked(recordCounter)).toHaveBeenCalledWith(
+        'stripe_webhook_unpaid_checkout_skipped',
+        1,
+        expect.objectContaining({ pack: 'mini', status: 'unpaid' })
+      )
+      // Pending revocation is NOT queried (we exit before that)
+      expect(vi.mocked(prisma.pendingCreditRevocation.findUnique)).not.toHaveBeenCalled()
+    })
+
+    it('B3: skips addBonusCredits when payment_intent is null even if payment_status is "paid"', async () => {
+      // Defense-in-depth: if Stripe ever delivers payment_status="paid" but
+      // no payment_intent (shouldn't happen, but is possible for certain
+      // session types), we still bail because we'd write stripePaymentId=null
+      // and lose dedup.
+      const event = makeEvent('checkout.session.completed', {
+        id: 'cs_b3_no_pi',
+        metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'user-b3b' },
+        amount_total: 1900,
+        currency: 'krw',
+        payment_status: 'paid',
+        payment_intent: null,
+      })
+      mockConstructEvent.mockReturnValue(event)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-b3b',
+        name: 'B3b',
+        email: 'b3b@example.com',
+      } as any)
+
+      const response = await POST(makeWebhookRequest('body'))
+      expect(response.status).toBe(200)
+      expect(vi.mocked(addBonusCredits)).not.toHaveBeenCalled()
     })
   })
 })
