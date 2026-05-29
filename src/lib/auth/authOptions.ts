@@ -353,17 +353,40 @@ export const authOptions: NextAuthOptions = {
       if (!token?.id) {
         return
       }
+      const userId = String(token.id)
       try {
-        await revokeGoogleTokensForUser(String(token.id))
-        if (process.env.NODE_ENV === 'production') {
+        const result = await revokeGoogleTokensForUser(userId)
+
+        // `revokeGoogleTokensForUser` no longer wipes DB tokens on Google-side
+        // failure (it used to scrub unconditionally, which orphaned the grant
+        // at Google with no refresh_token left to ever revoke it). When the
+        // call fails we surface that here so it's visible in logs and Sentry
+        // and the row is left intact for a retry path (next signOut, cron, or
+        // manual admin action).
+        if (
+          !result.cleared &&
+          result.reason !== 'no_account'
+        ) {
+          logger.error(
+            `[auth] signOut: Google token revoke failed; DB row left intact for retry. userId=${userId} reason=${result.reason}`
+          )
+          if (process.env.NODE_ENV === 'production') {
+            Sentry.withScope((scope) => {
+              scope.setTag('auth_event', 'sign_out_revoke_failed')
+              scope.setTag('revoke_reason', result.reason ?? 'unknown')
+              scope.setUser({ id: userId })
+              Sentry.captureMessage('auth.sign_out_revoke_failed', 'error')
+            })
+          }
+        } else if (process.env.NODE_ENV === 'production') {
           Sentry.withScope((scope) => {
             scope.setTag('auth_event', 'sign_out')
-            scope.setUser({ id: String(token.id) })
+            scope.setUser({ id: userId })
             Sentry.captureMessage('auth.sign_out')
           })
         }
       } catch (e) {
-        logger.error('[auth] signOut revoke failed', e)
+        logger.error('[auth] signOut revoke threw', e)
         if (process.env.NODE_ENV === 'production') {
           Sentry.captureException(e)
         }

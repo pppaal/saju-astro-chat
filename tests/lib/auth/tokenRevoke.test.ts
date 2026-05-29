@@ -10,11 +10,12 @@ vi.mock('@/lib/db/prisma', () => ({
   },
 }));
 
-// Mock tokenCrypto
+// Mock tokenCrypto. By default, treat the input as plaintext and pass through.
+// Tests that exercise the "ciphertext from DB" path can override per-call.
 vi.mock('@/lib/security/tokenCrypto', () => ({
   decryptToken: vi.fn((token: string | null | undefined) => {
     if (!token) return null;
-    if (token.startsWith('encrypted_')) {
+    if (typeof token === 'string' && token.startsWith('encrypted_')) {
       return token.replace('encrypted_', 'decrypted_');
     }
     return token;
@@ -27,12 +28,13 @@ vi.mock('@/lib/logger', () => ({
     error: vi.fn(),
     info: vi.fn(),
     debug: vi.fn(),
+    warn: vi.fn(),
   },
 }));
 
-// Mock fetch globally
+// Mock fetch globally — controls Google's response per test.
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+global.fetch = mockFetch as unknown as typeof fetch;
 
 import {
   revokeGoogleTokensForAccount,
@@ -40,249 +42,314 @@ import {
 } from '@/lib/auth/tokenRevoke';
 import { prisma } from '@/lib/db/prisma';
 import { decryptToken } from '@/lib/security/tokenCrypto';
+import { logger } from '@/lib/logger';
 
-describe('tokenRevoke', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockFetch.mockResolvedValue({ ok: true });
+const GOOGLE_REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockFetch.mockResolvedValue({ ok: true, status: 200 });
+});
+
+afterEach(() => {
+  vi.resetAllMocks();
+});
+
+// ===========================================================================
+// revokeGoogleTokensForAccount — low-level, plaintext-only contract
+// ===========================================================================
+
+describe('revokeGoogleTokensForAccount', () => {
+  it('returns not_google when provider is not google (no fetch, no scrub)', async () => {
+    const result = await revokeGoogleTokensForAccount({
+      provider: 'github',
+      providerAccountId: '123',
+      access_token: 'token',
+    });
+
+    expect(result).toEqual({ revoked: false, reason: 'not_google' });
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(prisma.account.updateMany).not.toHaveBeenCalled();
   });
 
-  afterEach(() => {
-    vi.resetAllMocks();
+  it('prefers refresh_token over access_token when both present', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200 });
+
+    const result = await revokeGoogleTokensForAccount({
+      provider: 'google',
+      providerAccountId: 'google-1',
+      access_token: 'access-xyz',
+      refresh_token: 'refresh-xyz',
+    });
+
+    expect(result).toEqual({ revoked: true });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [, init] = mockFetch.mock.calls[0];
+    expect((init as RequestInit).body?.toString()).toBe(
+      'token=refresh-xyz'
+    );
   });
 
-  describe('revokeGoogleTokensForAccount', () => {
-    it('should return early if provider is not google', async () => {
-      const account = {
-        provider: 'github',
-        providerAccountId: '123',
-        access_token: 'token',
-      };
+  it('falls back to access_token when refresh_token is null', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200 });
 
-      const result = await revokeGoogleTokensForAccount(account);
-
-      expect(result).toEqual({ revoked: false, cleared: false });
-      expect(mockFetch).not.toHaveBeenCalled();
+    const result = await revokeGoogleTokensForAccount({
+      provider: 'google',
+      providerAccountId: 'google-1',
+      refresh_token: null,
+      access_token: 'access-xyz',
     });
 
-    it('should revoke token and clear account data for google provider', async () => {
-      const account = {
-        provider: 'google',
-        providerAccountId: 'google-123',
-        refresh_token: 'refresh-token-xyz',
-        access_token: null,
-        id_token: null,
-      };
+    expect(result).toEqual({ revoked: true });
+    const [, init] = mockFetch.mock.calls[0];
+    expect((init as RequestInit).body?.toString()).toBe('token=access-xyz');
+  });
 
-      vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({ count: 1 });
-
-      const result = await revokeGoogleTokensForAccount(account);
-
-      expect(result.revoked).toBe(true);
-      expect(result.cleared).toBe(true);
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://oauth2.googleapis.com/revoke',
-        expect.objectContaining({
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        })
-      );
-      expect(prisma.account.updateMany).toHaveBeenCalledWith({
-        where: {
-          provider: 'google',
-          providerAccountId: 'google-123',
-        },
-        data: {
-          access_token: null,
-          refresh_token: null,
-          id_token: null,
-          session_state: null,
-          scope: null,
-          token_type: null,
-          expires_at: null,
-        },
-      });
+  it('returns no_revokable_token when only id_token-equivalent (no access/refresh) is present, never POSTs to Google', async () => {
+    // Note: the new signature does NOT accept id_token at all — Google /revoke
+    // rejects it. This documents the behavior at the type boundary: any caller
+    // that previously relied on id_token will hit no_revokable_token.
+    const result = await revokeGoogleTokensForAccount({
+      provider: 'google',
+      providerAccountId: 'google-1',
+      refresh_token: null,
+      access_token: null,
     });
 
-    it('should use access_token when refresh_token is not available', async () => {
-      const account = {
-        provider: 'google',
-        providerAccountId: 'google-123',
-        refresh_token: null,
-        access_token: 'access-token-xyz',
-        id_token: null,
-      };
+    expect(result).toEqual({
+      revoked: false,
+      reason: 'no_revokable_token',
+    });
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 
-      vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({ count: 1 });
+  it('returns google_error when Google responds non-OK (e.g. 500)', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
-      const result = await revokeGoogleTokensForAccount(account);
-
-      expect(result.revoked).toBe(true);
-      expect(mockFetch).toHaveBeenCalled();
+    const result = await revokeGoogleTokensForAccount({
+      provider: 'google',
+      providerAccountId: 'google-1',
+      refresh_token: 'refresh-xyz',
     });
 
-    it('should use id_token when other tokens are not available', async () => {
-      const account = {
-        provider: 'google',
-        providerAccountId: 'google-123',
-        refresh_token: null,
-        access_token: null,
-        id_token: 'id-token-xyz',
-      };
+    expect(result).toEqual({ revoked: false, reason: 'google_error' });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalled();
+  });
 
-      vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({ count: 1 });
+  it('returns network_error when fetch throws', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('boom'));
 
-      const result = await revokeGoogleTokensForAccount(account);
-
-      expect(result.revoked).toBe(true);
+    const result = await revokeGoogleTokensForAccount({
+      provider: 'google',
+      providerAccountId: 'google-1',
+      refresh_token: 'refresh-xyz',
     });
 
-    it('should still clear data when no token is available', async () => {
-      const account = {
-        provider: 'google',
-        providerAccountId: 'google-123',
-        refresh_token: null,
-        access_token: null,
-        id_token: null,
-      };
+    expect(result).toEqual({ revoked: false, reason: 'network_error' });
+    expect(logger.error).toHaveBeenCalled();
+  });
 
-      vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({ count: 1 });
+  it('refuses to POST a value that looks like ciphertext (defensive guard)', async () => {
+    // Ciphertext shape is iv.b64 "." authTag.b64 "." data.b64 — exactly three
+    // non-empty base64-ish segments. A real plaintext OAuth token never has
+    // this exact shape.
+    const looksEncrypted = 'aaaaaaaaaaaa.bbbbbbbb.ccccccccccccccccccccc';
 
-      const result = await revokeGoogleTokensForAccount(account);
-
-      expect(result.revoked).toBe(false);
-      expect(result.cleared).toBe(true);
-      expect(mockFetch).not.toHaveBeenCalled();
-      expect(prisma.account.updateMany).toHaveBeenCalled();
+    const result = await revokeGoogleTokensForAccount({
+      provider: 'google',
+      providerAccountId: 'google-1',
+      refresh_token: looksEncrypted,
     });
 
-    it('should handle Google revocation API failure gracefully', async () => {
-      mockFetch.mockResolvedValueOnce({ ok: false, status: 400 });
+    expect(result).toEqual({ revoked: false, reason: 'google_error' });
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalled();
+  });
+});
 
-      const account = {
-        provider: 'google',
-        providerAccountId: 'google-123',
-        refresh_token: 'invalid-token',
-        access_token: null,
-        id_token: null,
-      };
+// ===========================================================================
+// revokeGoogleTokensForUser — wraps account lookup + decrypt + scrub policy
+// ===========================================================================
 
-      vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({ count: 1 });
+describe('revokeGoogleTokensForUser', () => {
+  it('returns no_account when no Google account is on file', async () => {
+    vi.mocked(prisma.account.findFirst).mockResolvedValueOnce(null);
 
-      // Should not throw, should still clear data
-      const result = await revokeGoogleTokensForAccount(account);
+    const result = await revokeGoogleTokensForUser('user-123');
 
-      expect(result.cleared).toBe(true);
+    expect(result).toEqual({
+      revoked: false,
+      cleared: false,
+      reason: 'no_account',
     });
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(prisma.account.updateMany).not.toHaveBeenCalled();
+  });
 
-    it('should handle fetch exception gracefully', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+  it('id_token alone in DB → no_revokable_token, no POST, no scrub-from-failure (scrub still runs because nothing to revoke)', async () => {
+    // The DB row holds only an id_token. The new contract: id_token is NEVER
+    // sent to Google. Result: revoked=false, reason=no_revokable_token. The
+    // row IS scrubbed because there's literally nothing to keep around for a
+    // future retry.
+    vi.mocked(prisma.account.findFirst).mockResolvedValueOnce({
+      id: 'acc-1',
+      provider: 'google',
+      providerAccountId: 'google-1',
+      access_token: null,
+      refresh_token: null,
+      id_token: 'id-token-here',
+    } as never);
+    vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({
+      count: 1,
+    } as never);
 
-      const account = {
-        provider: 'google',
-        providerAccountId: 'google-123',
-        refresh_token: 'token',
-        access_token: null,
-        id_token: null,
-      };
+    const result = await revokeGoogleTokensForUser('user-123');
 
-      vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({ count: 1 });
-
-      // Should not throw
-      const result = await revokeGoogleTokensForAccount(account);
-
-      expect(result.cleared).toBe(true);
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      revoked: false,
+      cleared: true,
+      reason: 'no_revokable_token',
     });
+    expect(prisma.account.updateMany).toHaveBeenCalledTimes(1);
+  });
 
-    it('should not decrypt tokens when refresh token is present', async () => {
-      const account = {
-        provider: 'google',
-        providerAccountId: 'google-123',
-        refresh_token: 'encrypted_refresh',
-        access_token: null,
-        id_token: null,
-      };
+  it('refresh_token in DB + Google 200 → POSTed, scrub runs', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 200 });
+    vi.mocked(prisma.account.findFirst).mockResolvedValueOnce({
+      id: 'acc-1',
+      provider: 'google',
+      providerAccountId: 'google-1',
+      access_token: 'encrypted_access',
+      refresh_token: 'encrypted_refresh',
+      id_token: 'encrypted_id',
+    } as never);
+    vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({
+      count: 1,
+    } as never);
 
-      vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({ count: 1 });
+    const result = await revokeGoogleTokensForUser('user-123');
 
-      await revokeGoogleTokensForAccount(account);
-
-      expect(decryptToken).not.toHaveBeenCalled();
+    expect(decryptToken).toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith(
+      GOOGLE_REVOKE_URL,
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+    );
+    // The decrypted refresh_token (not the ciphertext) is what gets POSTed.
+    const [, init] = mockFetch.mock.calls[0];
+    expect((init as RequestInit).body?.toString()).toBe(
+      'token=decrypted_refresh'
+    );
+    expect(prisma.account.updateMany).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      revoked: true,
+      cleared: true,
+      reason: undefined,
     });
   });
 
-  describe('revokeGoogleTokensForUser', () => {
-    it('should return no_account reason when account not found', async () => {
-      vi.mocked(prisma.account.findFirst).mockResolvedValueOnce(null);
+  it('refresh_token in DB + Google 500 → POSTed, scrub does NOT run, error logged', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+    vi.mocked(prisma.account.findFirst).mockResolvedValueOnce({
+      id: 'acc-1',
+      provider: 'google',
+      providerAccountId: 'google-1',
+      access_token: null,
+      refresh_token: 'encrypted_refresh',
+      id_token: null,
+    } as never);
 
-      const result = await revokeGoogleTokensForUser('user-123');
+    const result = await revokeGoogleTokensForUser('user-123');
 
-      expect(result).toEqual({
-        revoked: false,
-        cleared: false,
-        reason: 'no_account',
-      });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    // Critical: DB row left intact for retry. This is the orphan-grant fix.
+    expect(prisma.account.updateMany).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      revoked: false,
+      cleared: false,
+      reason: 'google_error',
     });
+    expect(logger.error).toHaveBeenCalled();
+  });
 
-    it('should find account, decrypt tokens, and revoke', async () => {
-      vi.mocked(prisma.account.findFirst).mockResolvedValueOnce({
-        id: 'account-1',
-        provider: 'google',
-        providerAccountId: 'google-456',
-        access_token: 'encrypted_access',
-        refresh_token: 'encrypted_refresh',
-        id_token: 'encrypted_id',
-        type: 'oauth',
-        userId: 'user-123',
-        token_type: 'Bearer',
-        scope: 'openid email profile',
-        session_state: null,
-        expires_at: null,
-      });
+  it('refresh_token in DB + fetch throws (network down) → scrub does NOT run, error logged', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('ENETUNREACH'));
+    vi.mocked(prisma.account.findFirst).mockResolvedValueOnce({
+      id: 'acc-1',
+      provider: 'google',
+      providerAccountId: 'google-1',
+      access_token: null,
+      refresh_token: 'encrypted_refresh',
+      id_token: null,
+    } as never);
 
-      vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({ count: 1 });
+    const result = await revokeGoogleTokensForUser('user-123');
 
-      const result = await revokeGoogleTokensForUser('user-123');
-
-      expect(prisma.account.findFirst).toHaveBeenCalledWith({
-        where: { provider: 'google', userId: 'user-123' },
-        select: {
-          id: true,
-          provider: true,
-          providerAccountId: true,
-          access_token: true,
-          refresh_token: true,
-          id_token: true,
-        },
-      });
-
-      expect(decryptToken).toHaveBeenCalled();
-      expect(result.revoked).toBe(true);
-      expect(result.cleared).toBe(true);
+    expect(prisma.account.updateMany).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      revoked: false,
+      cleared: false,
+      reason: 'network_error',
     });
+    expect(logger.error).toHaveBeenCalled();
+  });
 
-    it('should handle account with all null tokens', async () => {
-      vi.mocked(prisma.account.findFirst).mockResolvedValueOnce({
-        id: 'account-1',
-        provider: 'google',
-        providerAccountId: 'google-789',
-        access_token: null,
-        refresh_token: null,
-        id_token: null,
-        type: 'oauth',
-        userId: 'user-123',
-        token_type: null,
-        scope: null,
-        session_state: null,
-        expires_at: null,
-      });
+  it('ciphertext somehow passed through (decryptToken returns ciphertext-shaped value) → no silent ciphertext POST, treated as failure, scrub does NOT run', async () => {
+    // Simulate a regression where decryptToken returns a value that still
+    // looks like ciphertext. The low-level POST guard kicks in: refuse to POST,
+    // return google_error, and the wrapper leaves the row alone.
+    vi.mocked(decryptToken).mockImplementation((t) =>
+      t === 'encrypted_refresh'
+        ? 'aaaaaaaaaaaa.bbbbbbbb.ccccccccccccccccccccc'
+        : null
+    );
+    vi.mocked(prisma.account.findFirst).mockResolvedValueOnce({
+      id: 'acc-1',
+      provider: 'google',
+      providerAccountId: 'google-1',
+      access_token: null,
+      refresh_token: 'encrypted_refresh',
+      id_token: null,
+    } as never);
 
-      vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({ count: 1 });
+    const result = await revokeGoogleTokensForUser('user-123');
 
-      const result = await revokeGoogleTokensForUser('user-123');
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(prisma.account.updateMany).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      revoked: false,
+      cleared: false,
+      reason: 'google_error',
+    });
+    expect(logger.error).toHaveBeenCalled();
+  });
 
-      expect(result.revoked).toBe(false);
-      expect(result.cleared).toBe(true);
+  it('account row with all-null tokens → no_revokable_token, scrub runs (housekeeping)', async () => {
+    vi.mocked(prisma.account.findFirst).mockResolvedValueOnce({
+      id: 'acc-1',
+      provider: 'google',
+      providerAccountId: 'google-1',
+      access_token: null,
+      refresh_token: null,
+      id_token: null,
+    } as never);
+    vi.mocked(prisma.account.updateMany).mockResolvedValueOnce({
+      count: 1,
+    } as never);
+
+    const result = await revokeGoogleTokensForUser('user-123');
+
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(prisma.account.updateMany).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+      revoked: false,
+      cleared: true,
+      reason: 'no_revokable_token',
     });
   });
 });
