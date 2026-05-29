@@ -23,13 +23,6 @@ import HexDPLogo from '@/components/branding/HexDPLogo'
 
 type Locale = 'en' | 'ko'
 
-// The premium-white surface trigger is scoped to the current tab session
-// (sessionStorage), NOT localStorage. Birth data still persists across
-// visits for the chat, but the surface decision must not: otherwise a
-// returning logged-out visitor stays stuck on white forever from a stale
-// birth-info cache instead of seeing the cosmic brand surface again.
-const HOME_WHITE_SESSION_KEY = 'dp:home-white'
-
 interface MainPageClientProps {
   initialLocale: Locale
   initialMessages: I18nMessages
@@ -54,9 +47,6 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   // 생일 없이 운명상담사 질문을 던졌으면 그 질문을 여기 담아두고, 생일 저장
   // 직후 운명상담사로 이동시킨다. (메인 = 운명상담사 한 흐름이라 service 분기 X)
   const pendingQuestionRef = useRef<string | null>(null)
-  // Whether birth info was entered during THIS tab session — drives the
-  // premium-white surface (see HOME_WHITE_SESSION_KEY).
-  const [birthEnteredThisSession, setBirthEnteredThisSession] = useState(false)
 
   // Hydrate birth info from localStorage after mount. Also auto-open
   // the modal when a service redirected here with `?openBirth=1` so the
@@ -64,27 +54,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   useEffect(() => {
     setBirthInfo(getStoredBirthInfo())
     if (typeof window === 'undefined') return
-    if (sessionStorage.getItem(HOME_WHITE_SESSION_KEY) === '1') {
-      setBirthEnteredThisSession(true)
-    }
     const sp = new URLSearchParams(window.location.search)
     if (sp.get('openBirth') === '1') setBirthModalOpen(true)
   }, [])
-
-  // 로그아웃 감지 — isAuthed 가 false 로 떨어지면 home-white flag 도 지워서
-  // 다음 렌더에 cosmic(보라) 로 자연스럽게 돌아가게 한다.
-  //
-  // clearClientCacheAndSignOut 이 sessionStorage 를 이미 지우긴 하지만,
-  // 그 흐름을 안 거치는 로그아웃 (다른 탭에서 로그아웃 / 세션 만료 등) 도
-  // 같은 결과가 되도록 safety net.
-  useEffect(() => {
-    if (isAuthed) return
-    if (typeof window === 'undefined') return
-    if (sessionStorage.getItem(HOME_WHITE_SESSION_KEY) === '1') {
-      sessionStorage.removeItem(HOME_WHITE_SESSION_KEY)
-      setBirthEnteredThisSession(false)
-    }
-  }, [isAuthed])
 
   // Lock the page to the viewport — the home is a single-screen UI and
   // any scroll on body/html (URL bar collapse, overscroll bounce, etc.)
@@ -215,15 +187,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const handleSaved = (info: StoredBirthInfo) => {
     setBirthInfo(info)
     setBirthModalOpen(false)
-    // Entering birth info this session flips the home to the premium-white
-    // surface (and remembers it for the rest of the tab session).
-    setBirthEnteredThisSession(true)
+    // 저장만 하면 isPremiumWhite = isAuthed || !!birthInfo 에서 즉시 흰 모드.
+    // (sessionStorage flag 필요 없음 — birthInfo state 가 directly trigger.)
     if (typeof window === 'undefined') return
-    try {
-      sessionStorage.setItem(HOME_WHITE_SESSION_KEY, '1')
-    } catch {
-      // sessionStorage can throw (private mode / blocked) — non-fatal.
-    }
 
     // 생일 입력이 운명상담사 질문에서 시작됐다면, 방금 저장한 정보 + 그 질문
     // 으로 채팅 페이지에 직행 — 질문이 그대로 전달돼 자동으로 답변이 생성됨.
@@ -240,12 +206,11 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   }
 
   // Flip from the cosmic dark hero ("brand" surface) to the premium-white
-  // "product" surface once the visitor is signed in OR has entered birth
-  // info during THIS tab session. Scoped to the session (not the
-  // persisted birthInfo) so a returning logged-out visitor with cached
-  // birth data still gets the brand surface instead of being stuck on
-  // white forever.
-  const isPremiumWhite = isAuthed || birthEnteredThisSession
+  // "product" surface when the visitor is signed in OR has a saved
+  // birth info in localStorage. Logged-out visitors without saved birth
+  // see the cosmic surface; saved-birth visitors stay on white.
+  // (Earlier session-only logic was buggy on logout — see history.)
+  const isPremiumWhite = isAuthed || !!birthInfo
 
   return (
     <motion.main
