@@ -155,6 +155,35 @@ export function useTarotGame(): UseTarotGameReturn {
   )
   const fetchTriggeredRef = useRef(false)
   const restoredReadingKeyRef = useRef<string | null>(null)
+  // Track mount lifecycle so post-await setStates inside fetchReading
+  // bail out cleanly when the user navigates away mid-reading.
+  const mountedRef = useRef(true)
+  // In-flight reading fetch AbortController. Unmount aborts it so the
+  // network request and SSE reader don't keep running for a dead tree.
+  const readingAbortRef = useRef<AbortController | null>(null)
+  // The "→ results" transition is delayed by 1s so the card reveal
+  // animation can finish. Tracking the timer in a ref means unmount can
+  // clear it (otherwise setGameState fires on a torn-down tree).
+  const resultsTransitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      if (readingAbortRef.current) {
+        try {
+          readingAbortRef.current.abort()
+        } catch {
+          // already aborted — ignore
+        }
+        readingAbortRef.current = null
+      }
+      if (resultsTransitionTimerRef.current) {
+        clearTimeout(resultsTransitionTimerRef.current)
+        resultsTransitionTimerRef.current = null
+      }
+    }
+  }, [])
 
   // Initialize spread info
   useEffect(() => {
@@ -378,7 +407,20 @@ export function useTarotGame(): UseTarotGameReturn {
     fetchTriggeredRef.current = true
 
     const fetchReading = async () => {
-      setGameState('revealing')
+      // Abort any previous in-flight fetch before starting a new one.
+      // Redraw can re-trigger this effect while a stale request is still
+      // pending; without abort, the stale response would land later and
+      // overwrite the new reading.
+      if (readingAbortRef.current) {
+        try {
+          readingAbortRef.current.abort()
+        } catch {
+          /* already aborted — ignore */
+        }
+      }
+      const controller = new AbortController()
+      readingAbortRef.current = controller
+      if (mountedRef.current) setGameState('revealing')
       let handledApiError = false
       let creditExhausted = false
       try {
@@ -392,6 +434,7 @@ export function useTarotGame(): UseTarotGameReturn {
             userTopic,
             questionContext: questionAnalysis || undefined,
           }),
+          signal: controller.signal,
         })
 
         if (!response.ok) {
@@ -404,15 +447,16 @@ export function useTarotGame(): UseTarotGameReturn {
           tarotLogger.error('Tarot API error', { status: response.status, errorData })
           // 크레딧 소진(402) → 인라인 에러 화면 대신 전역 크레딧 안내 모달.
           if (response.status === 402) {
-            showDepleted()
+            if (mountedRef.current) showDepleted()
             creditExhausted = true
-          } else {
+          } else if (mountedRef.current) {
             setDrawError(classifyTarotDrawError(response.status, errorData, isKoLocale))
           }
           throw new Error(`Failed to fetch reading: ${errorData.error || response.statusText}`)
         }
 
         const data = await response.json()
+        if (!mountedRef.current) return
         setDrawError(null)
         setReadingResult(data)
 
@@ -440,10 +484,20 @@ export function useTarotGame(): UseTarotGameReturn {
         // HorizontalCardsGrid's animationDelay (index * 0.15s) still
         // staggers the flip so the cascade feels intentional.
         setRevealedCards(data.drawnCards.map((_: unknown, i: number) => i))
-        setTimeout(() => {
+        if (resultsTransitionTimerRef.current) {
+          clearTimeout(resultsTransitionTimerRef.current)
+        }
+        resultsTransitionTimerRef.current = setTimeout(() => {
+          resultsTransitionTimerRef.current = null
+          if (!mountedRef.current) return
           setGameState('results')
         }, 1000)
       } catch (error) {
+        // Aborted via unmount or redraw — not a real failure.
+        const errName = (error as Error & { name?: string })?.name
+        if (errName === 'AbortError' || !mountedRef.current) {
+          return
+        }
         // 크레딧 소진은 모달로 안내했으므로 에러 화면으로 전환하지 않고
         // 카드 선택 화면을 유지한다(재선택으로 재시도 가능, 재요청 루프 없음).
         if (creditExhausted) {
@@ -460,6 +514,10 @@ export function useTarotGame(): UseTarotGameReturn {
         }
         tarotLogger.error('Failed to fetch reading', error instanceof Error ? error : undefined)
         setGameState('error')
+      } finally {
+        if (readingAbortRef.current === controller) {
+          readingAbortRef.current = null
+        }
       }
     }
 

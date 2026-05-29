@@ -148,6 +148,41 @@ function CompatibilityCounselorContent() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chartFetchRef = useRef(false)
+  // Track mount lifecycle so the post-await setStates inside sendMessage
+  // and fetchPersonData below bail out cleanly when the user navigates
+  // away mid-stream. PR #890 applied the same pattern to useChatApi.
+  const mountedRef = useRef(true)
+  // The latest sendMessage's AbortController — sendMessage still creates
+  // its own per-call controller for header timeout / chunk-idle, but we
+  // stash a reference here so unmount can abort whatever's running.
+  const inFlightAbortRef = useRef<AbortController | null>(null)
+  // Same idea for the chart-data prefetch — 4 parallel /api/saju and
+  // /api/astrology fetches that otherwise keep running and fire 4
+  // setStates after the user navigates away.
+  const chartFetchAbortRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      if (inFlightAbortRef.current) {
+        try {
+          inFlightAbortRef.current.abort()
+        } catch {
+          // already aborted — ignore
+        }
+        inFlightAbortRef.current = null
+      }
+      if (chartFetchAbortRef.current) {
+        try {
+          chartFetchAbortRef.current.abort()
+        } catch {
+          // already aborted — ignore
+        }
+        chartFetchAbortRef.current = null
+      }
+    }
+  }, [])
   const isKo = locale === 'ko'
   /** ChatInputArea 의 focusToken — 갱신 시 textarea 다시 focus.
    *  refactor 전 inputRef.current?.focus() 자리를 대체. */
@@ -259,6 +294,18 @@ function CompatibilityCounselorContent() {
 
   const fetchPersonData = async (personList: PersonData[]) => {
     chartFetchRef.current = true
+    // Abort any previous chart prefetch before kicking off a new one
+    // (e.g. picker switch / sidebar new-chat) and register the new
+    // controller so unmount can cancel mid-flight.
+    if (chartFetchAbortRef.current) {
+      try {
+        chartFetchAbortRef.current.abort()
+      } catch {
+        /* already aborted — ignore */
+      }
+    }
+    const controller = new AbortController()
+    chartFetchAbortRef.current = controller
     try {
       // gender는 대운 순/역행에 필수. /api/saju가 required로 받으니 빠뜨리면 fetch 실패.
       // /api/saju · /api/astrology 는 이제 차트 계산만 하고 LLM 해석은 하지
@@ -299,38 +346,58 @@ function CompatibilityCounselorContent() {
           method: 'POST',
           headers: apiHeaders,
           body: JSON.stringify(sajuPayload(personList[0])),
+          signal: controller.signal,
         }),
         fetch('/api/saju', {
           method: 'POST',
           headers: apiHeaders,
           body: JSON.stringify(sajuPayload(personList[1])),
+          signal: controller.signal,
         }),
         fetch('/api/astrology', {
           method: 'POST',
           headers: apiHeaders,
           body: JSON.stringify(astroPayload(personList[0])),
+          signal: controller.signal,
         }),
         fetch('/api/astrology', {
           method: 'POST',
           headers: apiHeaders,
           body: JSON.stringify(astroPayload(personList[1])),
+          signal: controller.signal,
         }),
       ])
 
+      if (!mountedRef.current || controller.signal.aborted) return
       if (saju1Res.ok) {
-        setPerson1Saju(await saju1Res.json())
+        const json = await saju1Res.json()
+        if (!mountedRef.current || controller.signal.aborted) return
+        setPerson1Saju(json)
       }
       if (saju2Res.ok) {
-        setPerson2Saju(await saju2Res.json())
+        const json = await saju2Res.json()
+        if (!mountedRef.current || controller.signal.aborted) return
+        setPerson2Saju(json)
       }
       if (astro1Res.ok) {
-        setPerson1Astro(await astro1Res.json())
+        const json = await astro1Res.json()
+        if (!mountedRef.current || controller.signal.aborted) return
+        setPerson1Astro(json)
       }
       if (astro2Res.ok) {
-        setPerson2Astro(await astro2Res.json())
+        const json = await astro2Res.json()
+        if (!mountedRef.current || controller.signal.aborted) return
+        setPerson2Astro(json)
       }
     } catch (e) {
+      // Aborted via unmount or fresh prefetch — silent bail.
+      const name = (e as Error & { name?: string })?.name
+      if (name === 'AbortError') return
       logger.error('Failed to fetch person data:', { error: e })
+    } finally {
+      if (chartFetchAbortRef.current === controller) {
+        chartFetchAbortRef.current = null
+      }
     }
   }
 
@@ -481,6 +548,9 @@ function CompatibilityCounselorContent() {
         let attempt = 0
         while (true) {
           controller = new AbortController()
+          // Register controller so the component-level unmount cleanup
+          // (above) can abort whatever attempt is currently in flight.
+          inFlightAbortRef.current = controller
           const headerTimer = setTimeout(() => controller.abort(), HEADER_TIMEOUT_MS)
           try {
             response = await fetch('/api/compatibility/counselor', {
@@ -506,7 +576,10 @@ function CompatibilityCounselorContent() {
             clearTimeout(headerTimer)
             const name = (err as Error & { name?: string }).name
             // 헤더 타임아웃(AbortError) / 네트워크 끊김은 자동 재시도.
-            if ((name === 'AbortError' || name === 'TimeoutError') && attempt < MAX_RETRY_ATTEMPTS) {
+            if (
+              (name === 'AbortError' || name === 'TimeoutError') &&
+              attempt < MAX_RETRY_ATTEMPTS
+            ) {
               attempt++
               await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt))
               continue
@@ -555,6 +628,7 @@ function CompatibilityCounselorContent() {
         // 누적해서 화면에 `{"content":"안","done":false}{"content":"녕"...}`
         // 식의 깨진 텍스트가 나왔다. 운명 상담사가 이미 쓰던 streamProcessor
         // 로 통일 — `content` 필드만 추출해 누적한다.
+        if (!mountedRef.current) return
         setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
         // chunk idle timer — chunk 가 들어올 때마다 reset. 일정 시간 동안 한
@@ -575,6 +649,7 @@ function CompatibilityCounselorContent() {
           onChunk: (_accumulated, cleaned) => {
             armIdleTimer()
             finalAssistantContent = cleaned
+            if (!mountedRef.current) return
             setMessages((prev) => {
               const updated = [...prev]
               if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
@@ -591,6 +666,7 @@ function CompatibilityCounselorContent() {
           },
         })
         if (idleTimer) clearTimeout(idleTimer)
+        if (!mountedRef.current) return
         // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
         // abort / Claude disconnect) 메시지를 "다시 시도" 버튼이 붙는 incomplete
         // 상태로 마킹. 단, 서버가 X-Counselor-Fallback: 1 을 달아 보낸 응답
@@ -656,6 +732,7 @@ function CompatibilityCounselorContent() {
           })
             .then((r) => (r.ok ? r.json() : null))
             .then((data: { success?: boolean; session?: { id: string } } | null) => {
+              if (!mountedRef.current) return
               if (data?.success && data.session?.id && !chatSessionId) {
                 setChatSessionId(data.session.id)
               }
@@ -665,6 +742,11 @@ function CompatibilityCounselorContent() {
             )
         }
       } catch (e) {
+        // Aborted via unmount — silent bail; nothing to setState into.
+        const errName = (e as Error & { name?: string })?.name
+        if (errName === 'AbortError' || !mountedRef.current) {
+          return
+        }
         logger.error('Chat error:', { error: e })
         const errMsg = (e as Error).message || ''
         if (errMsg === 'login_required') {
@@ -695,7 +777,12 @@ function CompatibilityCounselorContent() {
           setError(errMsg && errMsg !== 'Failed to get response' ? `${base}\n[${errMsg}]` : base)
         }
       } finally {
-        setIsLoading(false)
+        // Clear our in-flight slot if it still points at this call's
+        // controller (a later call may have already replaced it).
+        if (inFlightAbortRef.current && inFlightAbortRef.current.signal.aborted) {
+          inFlightAbortRef.current = null
+        }
+        if (mountedRef.current) setIsLoading(false)
       }
     },
     [
@@ -766,7 +853,7 @@ function CompatibilityCounselorContent() {
       }))
       setPersons(personsData)
       // 다음 번 자동 채움용 localStorage 저장.
-      const toRecent = (p: typeof personsData[number]) => ({
+      const toRecent = (p: (typeof personsData)[number]) => ({
         name: p.name,
         date: p.date,
         time: p.time,
@@ -1073,11 +1160,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 return null
               }
               return (
-                <ToolHint
-                  lang={isKo ? 'ko' : 'en'}
-                  variant="compat"
-                  onDismiss={dismissToolHint}
-                />
+                <ToolHint lang={isKo ? 'ko' : 'en'} variant="compat" onDismiss={dismissToolHint} />
               )
             })()}
 
@@ -1166,7 +1249,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
       {showPicker && (
         <CompatPersonPickerModal
           onSubmit={(picked) => void handlePickerSubmit(picked)}
-          subtitle={isKo ? '두 사람의 정보로 채팅을 시작해요.' : 'Enter two profiles to start chatting.'}
+          subtitle={
+            isKo ? '두 사람의 정보로 채팅을 시작해요.' : 'Enter two profiles to start chatting.'
+          }
         />
       )}
 
@@ -1244,9 +1329,13 @@ function ProfileStickyBar({
         aria-haspopup="menu"
       >
         <span className={styles.profileStickyName}>{persons[0].name}</span>
-        <span className={styles.profileStickyArrow} aria-hidden="true">↔</span>
+        <span className={styles.profileStickyArrow} aria-hidden="true">
+          ↔
+        </span>
         <span className={styles.profileStickyName}>{persons[1].name}</span>
-        <span className={styles.profileStickyChevron} aria-hidden="true">▾</span>
+        <span className={styles.profileStickyChevron} aria-hidden="true">
+          ▾
+        </span>
       </button>
       {open && (
         <div role="menu" className={styles.profileStickyDropdown}>
@@ -1267,7 +1356,9 @@ function ProfileStickyBar({
                   }}
                 >
                   <span className={styles.profileStickyName}>{pair.persons[0].name}</span>
-                  <span className={styles.profileStickyArrow} aria-hidden="true">↔</span>
+                  <span className={styles.profileStickyArrow} aria-hidden="true">
+                    ↔
+                  </span>
                   <span className={styles.profileStickyName}>{pair.persons[1].name}</span>
                 </button>
               ))}

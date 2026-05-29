@@ -46,6 +46,30 @@ export function FollowupChat({
   // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 — 자세한
   // 정책은 useClarifierCard hook 참조.
   const suspendAutoScrollRef = useRef(false)
+  // Track mount lifecycle so the post-await setHistory / setSubmitting
+  // inside sendQuestionText below bail when the user navigates away
+  // mid-call. Without this, navigating off the results page while
+  // /api/tarot/followup is still streaming fires setState on a dead tree.
+  const mountedRef = useRef(true)
+  // In-flight followup AbortController. Unmount aborts it so the
+  // request and the PATCH save fire-and-forget don't keep running for a
+  // torn-down component.
+  const followupAbortRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      if (followupAbortRef.current) {
+        try {
+          followupAbortRef.current.abort()
+        } catch {
+          // already aborted — ignore
+        }
+        followupAbortRef.current = null
+      }
+    }
+  }, [])
 
   // 자동 스크롤 — destiny/compat 와 같은 공통 hook. endRef 를 박스 내부
   // 맨 끝에 박으면 hook 이 박스(parent) scrollTop 으로 따라간다.
@@ -125,6 +149,18 @@ export function FollowupChat({
         ? crypto.randomUUID()
         : `t${Date.now()}-${Math.random().toString(36).slice(2)}`
 
+    // Cancel any previous in-flight followup before starting a new one,
+    // and register the new controller so unmount can abort it.
+    if (followupAbortRef.current) {
+      try {
+        followupAbortRef.current.abort()
+      } catch {
+        /* already aborted — ignore */
+      }
+    }
+    const controller = new AbortController()
+    followupAbortRef.current = controller
+
     try {
       const response = await apiFetch('/api/tarot/followup', {
         method: 'POST',
@@ -150,12 +186,13 @@ export function FollowupChat({
           question: q,
           language,
         }),
+        signal: controller.signal,
       })
 
       if (!response.ok) {
         // 402 → 크레딧 소진. 전역 모달 (showDepleted) 노출.
         if (response.status === 402) {
-          showDepleted()
+          if (mountedRef.current) showDepleted()
           throw new Error('insufficient_credits')
         }
         // 401 → 게스트 한도 도달 또는 미인증. 메시지로 안내.
@@ -167,6 +204,7 @@ export function FollowupChat({
       }
 
       const data = (await response.json()) as { answer?: string }
+      if (!mountedRef.current) return
       const answer = data.answer?.trim() || ''
       let finalHistory: Turn[] = []
       setHistory((prev) => {
@@ -187,6 +225,12 @@ export function FollowupChat({
       // 같은 row 의 followupTurns 컬럼 갱신. 게스트는 readingId 없어 skip.
       void patchSavedReading({ followupTurns: finalHistory })
     } catch (err) {
+      // Aborted via unmount — silently bail out. No setState, no logger
+      // noise; the component is gone.
+      const errName = (err as Error & { name?: string })?.name
+      if (errName === 'AbortError' || !mountedRef.current) {
+        return
+      }
       tarotLogger.error('followup failed', err instanceof Error ? err : undefined)
       const errMsg = err instanceof Error ? err.message : String(err)
       // 크레딧 / 게스트 한도 / 일반 에러를 메시지로 구분 노출. 모달은 위
@@ -212,7 +256,10 @@ export function FollowupChat({
         return copy
       })
     } finally {
-      setSubmitting(false)
+      if (followupAbortRef.current === controller) {
+        followupAbortRef.current = null
+      }
+      if (mountedRef.current) setSubmitting(false)
     }
   }
 

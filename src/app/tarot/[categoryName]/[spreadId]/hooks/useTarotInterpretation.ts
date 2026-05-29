@@ -5,7 +5,7 @@
  * 타로 해석 가져오기 및 저장 로직 (스트리밍 지원)
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
@@ -366,6 +366,38 @@ export function useTarotInterpretation({
   const [readingId, setReadingId] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string>('')
 
+  // Mount lifecycle ref so post-await setStates in handleSaveReading
+  // bail out cleanly after the user navigates away mid-save.
+  const mountedRef = useRef(true)
+  // The saveMessage banner auto-clears after 3s. Tracking the timer in a
+  // ref means (a) we can clear it on unmount so React doesn't fire a
+  // setSaveMessage('') on a torn-down tree, and (b) a second rapid save
+  // (e.g. clarifier card draw immediately after the main save) clears
+  // the previous timer instead of stacking two 3s timeouts that race.
+  const saveMessageTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const scheduleClearSaveMessage = useCallback(() => {
+    if (saveMessageTimerRef.current) {
+      clearTimeout(saveMessageTimerRef.current)
+    }
+    saveMessageTimerRef.current = setTimeout(() => {
+      saveMessageTimerRef.current = null
+      if (!mountedRef.current) return
+      setSaveMessage('')
+    }, 3000)
+  }, [])
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      if (saveMessageTimerRef.current) {
+        clearTimeout(saveMessageTimerRef.current)
+        saveMessageTimerRef.current = null
+      }
+    }
+  }, [])
+
   const fetchInterpretation = useCallback(
     async (
       result: ReadingResponse,
@@ -603,12 +635,13 @@ export function useTarotInterpretation({
             data?: { readingId?: string }
           } | null
           const newReadingId = savedJson?.readingId ?? savedJson?.data?.readingId ?? null
+          if (!mountedRef.current) return
           if (newReadingId) {
             setReadingId(newReadingId)
           }
           setIsSaved(true)
           setSaveMessage(language === 'ko' ? '저장되었습니다!' : 'Saved!')
-          setTimeout(() => setSaveMessage(''), 3000)
+          scheduleClearSaveMessage()
           return
         } else {
           const formattedReading = formatReadingForSave(
@@ -624,13 +657,15 @@ export function useTarotInterpretation({
           saveReading(formattedReading)
         }
 
+        if (!mountedRef.current) return
         setIsSaved(true)
         setSaveMessage(language === 'ko' ? '저장되었습니다!' : 'Saved!')
-        setTimeout(() => setSaveMessage(''), 3000)
+        scheduleClearSaveMessage()
       } catch (error) {
         tarotLogger.error('Failed to save reading', error instanceof Error ? error : undefined)
+        if (!mountedRef.current) return
         setSaveMessage(language === 'ko' ? '저장 실패' : 'Save failed')
-        setTimeout(() => setSaveMessage(''), 3000)
+        scheduleClearSaveMessage()
       }
     },
     [
@@ -642,6 +677,7 @@ export function useTarotInterpretation({
       session,
       userTopic,
       questionAnalysis,
+      scheduleClearSaveMessage,
     ]
   )
 
