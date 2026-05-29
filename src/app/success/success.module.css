@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(1200px 800px at 50% 30%, rgba(102, 126, 234, 0.15), transparent),
+  background: radial-gradient(1200px 800px at 50% 30%, rgba(193, 155, 86, 0.15), transparent),
               radial-gradient(800px 600px at 80% 80%, rgba(124, 242, 156, 0.10), transparent);
   background-color: #07091a;
   padding: 24px;
@@ -58,12 +58,12 @@
 
 .title {
   font-size: 28px;
-  font-weight: 800;
+  /* 600 + 중립 흰색 — about/blog/pricing 마케팅 타이틀과 정렬. 옛 800 +
+     보라 (#a8b9ff) gradient 폐기. */
+  font-weight: 600;
+  letter-spacing: -0.02em;
   margin: 0 0 12px;
-  background: linear-gradient(135deg, #ffffff 0%, #a8b9ff 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #f5f7fb;
 }
 
 .message {
@@ -101,14 +101,16 @@
 }
 
 .primaryButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* 골드 그라데이션 — about/blog post CTA 와 정렬. 옛 #667eea→#764ba2 폐기. */
+  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
   color: #ffffff;
-  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+  font-weight: 500;
+  box-shadow: 0 12px 40px rgba(160, 122, 60, 0.4);
 }
 
 .primaryButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 48px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 16px 48px rgba(160, 122, 60, 0.5);
 }
 
 .secondaryButton {
