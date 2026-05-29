@@ -459,12 +459,10 @@ export const GET = withApiMiddleware(
     // nowInTimezone stores the local components in the UTC fields, so read
     // them via getUTCMonth (getMonth would re-shift them if a dev machine
     // is not running in UTC).
-    const targetMonthIdx = nowInTimezone(timezone).getUTCMonth()
-    const prescoreMonths = [
-      Math.max(0, targetMonthIdx - 1),
-      targetMonthIdx,
-      Math.min(11, targetMonthIdx + 1),
-    ].filter((m, i, arr) => arr.indexOf(m) === i) // dedupe (Dec/Jan 경계)
+    // 단일출처 축(axisScores)을 365일 전부에 적용하려면 모든 달에 신호가 필요 →
+    // prescore 를 12달 전체로. (augment 가 어차피 같은 12달을 빌드했으므로 총 작업량은
+    // 비슷; cell-cache 로 warm 은 빠름. cold 첫 응답 지연은 ↑ — 라이브 프로파일 필요.)
+    const prescoreMonths = Array.from({ length: 12 }, (_, m) => m)
 
     const engineScoreByDate: Record<string, number> = {}
     const axisByDate: Record<

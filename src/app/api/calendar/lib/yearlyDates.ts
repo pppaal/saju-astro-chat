@@ -1997,45 +1997,16 @@ export function calculateYearlyImportantDates(
     // 현재: 사주 측 polarity (일주 이벤트 + 용신) ↔ 점성 측 polarity
     //   (월간 트랜짓 강도) 가 같은 방향인지 부호로 비교.
     // ─────────────────────────────────────────────────────────
-    const sajuClaim: 1 | 0 | -1 = (() => {
-      let signal = 0
-      if (dailyShift >= 1) signal += 1
-      else if (dailyShift <= -1) signal -= 1
-      if (monthPack?.yongsinAlign === 'support') signal += 1
-      else if (monthPack?.yongsinAlign === 'conflict') signal -= 1
-      return signal > 0 ? 1 : signal < 0 ? -1 : 0
-    })()
-    // 점성 방향 — 그날 실제 트랜짓 점수(0-100)에서 직접 (matrix 의존 제거)
-    const astroClaim: 1 | 0 | -1 = (() => {
-      const t = options?.dailyTransitScores?.[isoDate(year, month, day)]
-      if (typeof t !== 'number') return 0
-      return t >= 60 ? 1 : t < 40 ? -1 : 0
-    })()
-    // Phase 1 단일출처 축(있으면) — 이 날의 모든 축/교차/헤드라인을 한 출처에서.
+    // 단일출처 축 — 이 날의 모든 축/교차/헤드라인을 한 신호 다발에서.
+    // (구 claim-IIFE: sajuClaim/astroClaim 부호비교 + transit-축은 삭제됨 — 모순 원인.)
     const axisOverride = options?.axisScores?.[isoDate(year, month, day)]
     const crossAgreementPercent = (() => {
-      // 단일출처 축이 있으면 거기서 교차도 도출(claim-IIFE 대체) — 모순 제거.
-      if (axisOverride) {
-        const gap = Math.abs(axisOverride.sajuAxis - axisOverride.astroAxis)
-        const sameSide = (axisOverride.sajuAxis - 50) * (axisOverride.astroAxis - 50) >= 0
-        return sameSide
-          ? Math.round(clamp(92 - gap * 1.4, 55, 95))
-          : Math.round(clamp(48 - gap, 15, 48))
-      }
-      // 둘 다 같은 방향 (둘 다 긍정 or 둘 다 부정) → 80~92
-      if (sajuClaim !== 0 && astroClaim !== 0 && sajuClaim === astroClaim) {
-        return Math.round(82 + reliability * 10)
-      }
-      // 한 쪽만 강하고 한 쪽 중립 → 60~72
-      if ((sajuClaim !== 0 && astroClaim === 0) || (astroClaim !== 0 && sajuClaim === 0)) {
-        return Math.round(62 + reliability * 10)
-      }
-      // 둘 다 중립 → 50~58 (확실한 신호 없음)
-      if (sajuClaim === 0 && astroClaim === 0) {
-        return Math.round(50 + reliability * 8)
-      }
-      // 부호가 반대 → 28~40 (충돌)
-      return Math.round(30 + reliability * 10)
+      if (!axisOverride) return 50 // 신호 미빌드(드묾) — 중립
+      const gap = Math.abs(axisOverride.sajuAxis - axisOverride.astroAxis)
+      const sameSide = (axisOverride.sajuAxis - 50) * (axisOverride.astroAxis - 50) >= 0
+      return sameSide
+        ? Math.round(clamp(92 - gap * 1.4, 55, 95))
+        : Math.round(clamp(48 - gap, 15, 48))
     })()
 
     // ── 점수 시스템 v3 (signal-based) ──────────────────────────────
@@ -2054,58 +2025,26 @@ export function calculateYearlyImportantDates(
     //   cross    → 두 시스템 *관계*, 점수에 섞으면 이중계산 → axisAgreement로 별도 표시
     //   lunarRetro → 분산 적음
     //   dailyShift → engine signals에 이미 포함
-    const engineSub = (() => {
-      if (engineScore && Number.isFinite(engineScore.totalScore)) {
-        return clamp(engineScore.totalScore, 0, 100)
-      }
-      return 50
-    })()
-    // Real astrology transit score (longitude-based aspects to natal),
-    // pre-computed in the route. Falls back to neutral 50 when natal
-    // chart wasn't built (no birthplace coords).
     const dateKey = isoDate(year, month, day)
-    const transitSub = (() => {
-      const v = options?.dailyTransitScores?.[dateKey]
-      return typeof v === 'number' ? clamp(v, 0, 100) : 50
-    })()
-
-    // Phase 1 단일출처 축이 있으면 그걸로(헤드라인·축·일치도 한 출처 → 모순 제거,
-    // axisOffset 시프트 불필요). 없으면 기존 4계산기 blend(fallback).
-    const sajuAxisRaw = axisOverride ? axisOverride.sajuAxis : Math.round(engineSub)
-    const astroAxisRaw = axisOverride ? axisOverride.astroAxis : Math.round(transitSub)
-    // axisAgreement는 두 축의 raw gap으로 판정 — override가 활성돼 축 표시값을
-    // 시프트하더라도 의미(부호·일치 여부)는 raw 차이로 결정.
+    // 단일출처 축 — 사주축·점성축·일치도·헤드라인을 한 신호 다발(axisOverride)에서.
+    // 삭제된 구 4계산기: engineSub(UltraPrecision totalScore → 사주축), transitSub
+    // (transit → 점성축), axisOffset 시프트, claim-IIFE 교차. → 모순 원천 제거.
+    // (UltraPrecision 호출 자체는 공망·12운성 *서사*용으로 engineScore에 유지.)
+    // axisOverride 부재(신호 미빌드, 드묾)는 중립 50 + engineScores fallback.
+    const engineOverride = options?.engineScores?.[dateKey]
+    const sajuAxisRaw = axisOverride ? axisOverride.sajuAxis : 50
+    const astroAxisRaw = axisOverride ? axisOverride.astroAxis : 50
     const axisAgreement: 'aligned' | 'mixed' | 'opposed' = axisOverride
       ? axisOverride.agreement
-      : Math.abs(sajuAxisRaw - astroAxisRaw) <= 12
-        ? 'aligned'
-        : Math.abs(sajuAxisRaw - astroAxisRaw) <= 28
-          ? 'mixed'
-          : 'opposed'
-
-    const blendedRaw = (sajuAxisRaw + astroAxisRaw) / 2
-    // 점수는 v2 cell.derivedScore (engineOverride) 단일 모델. v2 신호 셋이
-    // 천간충/지지형/공망까지 saju-hyeongchung extractor로 이미 잡고 있으므로
-    // dailyShiftAdjustment(폐기)는 이중 계산이었다. 365일 전체에 prescore가 v2를
-    // 채우므로 fallback(blendedRaw)은 prescore 실패 시에만 활성.
-    const engineOverride = options?.engineScores?.[dateKey]
-    // 단일출처 축이 있으면 헤드라인도 그 비보상 결합(axisOverride.headline)으로 — 축과
-    // 헤드라인이 같은 출처라야 "축은 aligned인데 점수 따로" 모순이 사라짐.
+      : 'aligned'
     const score = axisOverride
       ? Math.round(clamp(axisOverride.headline, 2, 99))
       : typeof engineOverride === 'number' && Number.isFinite(engineOverride)
         ? Math.round(clamp(engineOverride, 2, 99))
-        : Math.round(clamp(blendedRaw, 2, 99))
-    // override 활성 시 두 축 표시값을 동일 delta로 시프트해 평균이 헤드라인 점수와
-    // 맞도록 정렬(축간 차이는 보존 → axisAgreement 의미 유지). 단일출처 축이면
-    // 축·헤드라인이 같은 출처라 시프트 불필요(raw 그대로 표시).
-    const axisOffset = axisOverride
-      ? 0
-      : typeof engineOverride === 'number' && Number.isFinite(engineOverride)
-        ? score - Math.round(blendedRaw)
-        : 0
-    const sajuAxisScore = Math.round(clamp(sajuAxisRaw + axisOffset, 0, 100))
-    const astroAxisScore = Math.round(clamp(astroAxisRaw + axisOffset, 0, 100))
+        : 50
+    // 축·헤드라인이 같은 출처 → 시프트(axisOffset) 불필요, raw 그대로 표시.
+    const sajuAxisScore = sajuAxisRaw
+    const astroAxisScore = astroAxisRaw
     const grade = scoreToGrade(score)
     // tier(설명 core 톤)는 그날 등급 band 안으로 강제한다. baseTier(도메인 강도)는
     // band 안에서의 뉘앙스로만 쓰고, 등급과 반대 valence로 새지 않게 한다.
