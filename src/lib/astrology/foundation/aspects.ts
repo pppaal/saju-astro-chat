@@ -5,7 +5,13 @@ import { shortestAngle } from './utils'
 import { clamp } from '@/lib/utils/math'
 
 const MAJOR_ASPECTS: AspectType[] = ['conjunction', 'sextile', 'square', 'trine', 'opposition']
-const MINOR_ASPECTS: AspectType[] = ['semisextile', 'quincunx', 'quintile', 'biquintile']
+const MINOR_ASPECTS: AspectType[] = [
+  'semisextile',
+  'quincunx',
+  'quintile',
+  'biquintile',
+  'sesquiquadrate',
+]
 
 const DESIRED_ANGLES: Record<AspectType, number> = {
   conjunction: 0,
@@ -17,6 +23,7 @@ const DESIRED_ANGLES: Record<AspectType, number> = {
   quincunx: 150,
   quintile: 72,
   biquintile: 144,
+  sesquiquadrate: 135,
 }
 
 function baseAspectWeight(a: AspectType) {
@@ -37,6 +44,8 @@ function baseAspectWeight(a: AspectType) {
       return 0.68
     case 'biquintile':
       return 0.66
+    case 'sesquiquadrate':
+      return 0.65
     case 'semisextile':
       return 0.64
     default:

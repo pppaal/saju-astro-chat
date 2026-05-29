@@ -1,5 +1,5 @@
 import { findTransitAspects } from '@/lib/astrology/foundation/transit'
-import type { Chart } from '@/lib/astrology/foundation/types'
+import type { AspectType, Chart } from '@/lib/astrology/foundation/types'
 import type {
   ActiveSignal,
   ExtractorContext,
@@ -9,6 +9,42 @@ import type {
 } from '../types'
 import { inferAspectPolarity } from '../themes/tagger'
 import { getCachedTransitChart } from '../ephe-cache'
+
+// 메이저 5종 + 마이너 5종. quincunx·semisextile 도 foundation 의
+// TRANSIT_ORBS (1.5°) 가 좁히고, 나머지 마이너는 같은 1.5° 윗단 — minor 신호가
+// 너무 길게 윈도우를 열지 않도록 한다.
+const TRANSIT_ASPECTS: AspectType[] = [
+  'conjunction',
+  'sextile',
+  'square',
+  'trine',
+  'opposition',
+  'semisextile',
+  'quincunx',
+  'quintile',
+  'biquintile',
+  'sesquiquadrate',
+]
+const MINOR_ASPECT_SET = new Set<string>([
+  'semisextile',
+  'quincunx',
+  'quintile',
+  'biquintile',
+  'sesquiquadrate',
+])
+
+// 마이너 5종 polarity 오버라이드 — task spec.
+// 정수만 허용하는 Polarity 타입 (−3..3) 에 맞춰 round-half-up.
+// quincunx (-0.5) → -1, quintile/biquintile (+0.5) → +1,
+// sesquiquadrate (-0.3) → -1 (작은 긴장 신호 살리려고 0 대신 -1 로 round).
+// semisextile (0) → 0.
+const MINOR_POLARITY_OVERRIDE: Record<string, Polarity> = {
+  semisextile: 0,
+  quincunx: -1,
+  quintile: 1,
+  biquintile: 1,
+  sesquiquadrate: -1,
+}
 
 /**
  * 트랜짓 어스펙트 추출기 — 가장 핵심.
@@ -59,8 +95,12 @@ const astroTransitExtractor: SignalExtractor = {
     }
     const hitsByKey = new Map<string, Hit[]>()
     for (const { iso, chart } of dailyCharts) {
-      const aspects = findTransitAspects(chart, natalChart)
+      const aspects = findTransitAspects(chart, natalChart, TRANSIT_ASPECTS)
       for (const a of aspects) {
+        // foundation TRANSIT_ORBS 가 마이너는 1.5° 로 좁혀 두지만 PLANET_ORB_MULTIPLIER
+        // (e.g. Pluto 1.4×) 가 1.5° 를 2.1° 까지 늘릴 수 있다. 마이너 신호는 무조건
+        // raw orb 1.5° 안쪽으로만 받아 calendar 흐름 노이즈 차단.
+        if (MINOR_ASPECT_SET.has(a.type) && a.orb > 1.5) continue
         const key = `${a.transitPlanet}|${a.natalPoint}|${a.type}`
         const arr = hitsByKey.get(key) ?? []
         arr.push({
@@ -86,11 +126,11 @@ const astroTransitExtractor: SignalExtractor = {
         const startIso = seg[0].iso
         const endIso = seg[seg.length - 1].iso
         const sample = seg[0]
-        const polarity: Polarity = inferAspectPolarity(
-          sample.aspectType,
-          sample.transitPlanet,
-          sample.natalPoint
-        )
+        // 마이너 어스펙트는 task spec 의 fixed polarity 사용. 메이저는 행성
+        // benefic/malefic 와 angle harmony 를 본 inferAspectPolarity.
+        const polarity: Polarity = MINOR_ASPECT_SET.has(sample.aspectType)
+          ? MINOR_POLARITY_OVERRIDE[sample.aspectType] ?? 0
+          : inferAspectPolarity(sample.aspectType, sample.transitPlanet, sample.natalPoint)
         const layer: SignalLayer = transitLayer(sample.transitPlanet)
 
         signals.push({
@@ -164,6 +204,11 @@ const ASPECT_BASE_WEIGHT: Record<string, number> = {
   sextile: 0.7,
   quincunx: 0.6,
   semisextile: 0.4,
+  // 마이너 어스펙트는 base weight 작게 — orb 1.5° cap 까지 좁혀 둔 만큼
+  // 메이저 트랜짓 신호를 묻지 않도록 (calendar 매트릭스의 score blend 기준).
+  quintile: 0.45,
+  biquintile: 0.4,
+  sesquiquadrate: 0.45,
 }
 const PLANET_WEIGHT: Record<string, number> = {
   Sun: 0.85,
@@ -197,6 +242,7 @@ function aspectSymbol(a: string): string {
         semisextile: '⚺',
         quintile: 'Q',
         biquintile: 'bQ',
+        sesquiquadrate: '⚼',
       } as Record<string, string>
     )[a] ?? a
   )
@@ -214,6 +260,7 @@ function aspectKorean(a: string): string {
         semisextile: '세미섹스타일',
         quintile: '퀸타일',
         biquintile: '바이퀸타일',
+        sesquiquadrate: '세스퀴쿼드러트',
       } as Record<string, string>
     )[a] ?? a
   )

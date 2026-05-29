@@ -29,6 +29,7 @@ export type AstroSignalKind =
   | 'house-transit' // 트랜짓 행성의 본명 하우스 오버레이
   | 'angle-contact' // 느린 행성의 ASC/MC 컨택
   | 'midpoint' // 중점 활성
+  | 'asteroid' // 4대 소행성 (Ceres/Pallas/Juno/Vesta) 본명·트랜짓 어스펙트
 
 export type SignalKind = SajuSignalKind | AstroSignalKind
 

@@ -13,6 +13,7 @@ declare module 'swisseph' {
   export const SE_PLUTO: number;
   export const SE_GREG_CAL: number;
   export const SEFLG_SPEED: number;
+  export const SEFLG_SWIEPH: number;
 
   // Extra points
   export const SE_TRUE_NODE: number;
@@ -25,6 +26,18 @@ declare module 'swisseph' {
   export const SE_PALLAS: number;
   export const SE_JUNO: number;
   export const SE_VESTA: number;
+
+  // Eclipse flags (subset — see Swiss Ephemeris manual for full list)
+  export const SE_ECL_CENTRAL: number;
+  export const SE_ECL_NONCENTRAL: number;
+  export const SE_ECL_TOTAL: number;
+  export const SE_ECL_ANNULAR: number;
+  export const SE_ECL_PARTIAL: number;
+  export const SE_ECL_ANNULAR_TOTAL: number;
+  export const SE_ECL_PENUMBRAL: number;
+  export const SE_ECL_ALLTYPES_SOLAR: number;
+  export const SE_ECL_ALLTYPES_LUNAR: number;
+  export const SE_ECL_ONE_TRY: number;
 
 
   // --- Functions ---
@@ -73,5 +86,61 @@ declare module 'swisseph' {
   export function swe_set_ephe_path(path: string): void;
 
   export function swe_version(): string;
+
+  // Eclipse calculation results
+  type SwissEphSolEclipseWhenGlobResult =
+    | {
+        rflag: number;
+        maximum: number;
+        noon: number;
+        begin: number;
+        end: number;
+        totalBegin: number;
+        totalEnd: number;
+        centerBegin: number;
+        centerEnd: number;
+      }
+    | SwissEphErrorResult;
+
+  type SwissEphLunEclipseWhenResult =
+    | {
+        rflag: number;
+        maximum: number;
+        partialBegin: number;
+        partialEnd: number;
+        totalBegin: number;
+        totalEnd: number;
+        penumbralBegin: number;
+        penumbralEnd: number;
+      }
+    | SwissEphErrorResult;
+
+  export function swe_sol_eclipse_when_glob(
+    tjd_start: number,
+    ifl: number,
+    ifltype: number,
+    backward: 0 | 1
+  ): SwissEphSolEclipseWhenGlobResult;
+  export function swe_sol_eclipse_when_glob(
+    tjd_start: number,
+    ifl: number,
+    ifltype: number,
+    backward: 0 | 1,
+    callback: (result: SwissEphSolEclipseWhenGlobResult) => void
+  ): void;
+
+  export function swe_lun_eclipse_when(
+    tjd_start: number,
+    ifl: number,
+    ifltype: number,
+    backward: 0 | 1
+  ): SwissEphLunEclipseWhenResult;
+  export function swe_lun_eclipse_when(
+    tjd_start: number,
+    ifl: number,
+    ifltype: number,
+    backward: 0 | 1,
+    callback: (result: SwissEphLunEclipseWhenResult) => void
+  ): void;
 }
 

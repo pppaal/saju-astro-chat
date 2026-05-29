@@ -36,6 +36,7 @@ import astroDignityExtractor from './extractors/astro-dignity'
 import astroMoonNodesExtractor from './extractors/astro-moon-nodes'
 import astroHouseTransitExtractor from './extractors/astro-house-transit'
 import astroPlanetaryHourExtractor from './extractors/astro-planetary-hour'
+import astroAsteroidExtractor from './extractors/astro-asteroid'
 
 // derivers
 import { deriveScore } from './derivers/score'
@@ -119,6 +120,7 @@ function getRegisteredExtractors(): SignalExtractor[] {
     astroMoonNodesExtractor,
     astroHouseTransitExtractor,
     astroPlanetaryHourExtractor,
+    astroAsteroidExtractor,
   ]
 }
 

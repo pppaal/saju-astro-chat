@@ -1,16 +1,34 @@
 // src/lib/astrology/foundation/eclipses.ts
-// 이클립스 (Eclipse) 영향 계산
+// 이클립스 (Eclipse) 영향 계산 — Swiss Ephemeris 실시간 계산.
+//
+// 이전: 2020~2030년 49건 하드코딩 → 2030년 이후 신호 0건.
+// 현재: swe_sol_eclipse_when_glob + swe_lun_eclipse_when 으로 임의 기간 계산.
+//
+// 캐시 전략:
+//   - in-memory Map<rangeKey, Eclipse[]> — 같은 (startYear, endYear) 범위 결과 재사용.
+//   - 천체 이벤트는 결정적이므로 TTL 없음 (프로세스 lifetime).
+//   - rangeKey: `${startJD|0}_${endJD|0}` (JD floor — 같은 날 = 같은 키).
+//
+// 비싼 호출: 100년 윈도우당 일식 ~240회 + 월식 ~230회 → 합 ~470 swisseph 콜.
+// 본명 차트 평생 계산 시 최초 1회만 발생, 이후 캐시 hit.
 
-import { Chart, PlanetBase, ZodiacKo } from "./types";
-import { normalize360, shortestAngle, formatLongitude, ZODIAC_SIGNS } from "./utils";
+import { Chart, ZodiacKo } from "./types";
+import { shortestAngle, formatLongitude, ZODIAC_SIGNS } from "./utils";
+import { getSwisseph } from "./ephe";
+import { extractSwissLongitude, getSwissEphFlags } from "./shared";
+import { logger } from "@/lib/logger";
 
 export interface Eclipse {
   type: "solar" | "lunar";
-  date: string;           // ISO date
-  longitude: number;      // 이클립스 발생 경도
+  date: string;           // ISO date (YYYY-MM-DD)
+  longitude: number;      // 이클립스 발생 시 태양(일식)/달(월식) 황도경도
   sign: ZodiacKo;
   degree: number;
   description: string;
+  /** Eclipse kind. solar: total | annular | partial | hybrid. lunar: total | partial | penumbral. */
+  kind?: "total" | "annular" | "partial" | "hybrid" | "penumbral";
+  /** Eclipse magnitude (1.0 ≈ total, <1.0 partial). solar only when available. */
+  magnitude?: number;
 }
 
 export interface EclipseImpact {
@@ -22,81 +40,358 @@ export interface EclipseImpact {
   interpretation: string;
 }
 
-// 2020-2030 이클립스 데이터 (주요 이클립스)
-const ECLIPSES: Eclipse[] = [
-  // 2020
-  { type: "lunar", date: "2020-01-10", longitude: 290.08, sign: "Capricorn", degree: 20, description: "2020년 1월 반영월식" },
-  { type: "lunar", date: "2020-06-05", longitude: 255.68, sign: "Sagittarius", degree: 15, description: "2020년 6월 반영월식" },
-  { type: "solar", date: "2020-06-21", longitude: 90.22, sign: "Cancer", degree: 0, description: "2020년 6월 금환일식" },
-  { type: "lunar", date: "2020-07-05", longitude: 283.53, sign: "Capricorn", degree: 13, description: "2020년 7월 반영월식" },
-  { type: "lunar", date: "2020-11-30", longitude: 68.28, sign: "Gemini", degree: 8, description: "2020년 11월 반영월식" },
-  { type: "solar", date: "2020-12-14", longitude: 263.34, sign: "Sagittarius", degree: 23, description: "2020년 12월 개기일식" },
-  // 2021
-  { type: "lunar", date: "2021-05-26", longitude: 65.14, sign: "Sagittarius", degree: 5, description: "2021년 5월 개기월식" },
-  { type: "solar", date: "2021-06-10", longitude: 79.64, sign: "Gemini", degree: 19, description: "2021년 6월 금환일식" },
-  { type: "lunar", date: "2021-11-19", longitude: 57.22, sign: "Taurus", degree: 27, description: "2021년 11월 부분월식" },
-  { type: "solar", date: "2021-12-04", longitude: 252.17, sign: "Sagittarius", degree: 12, description: "2021년 12월 개기일식" },
-  // 2022
-  { type: "solar", date: "2022-04-30", longitude: 40.17, sign: "Taurus", degree: 10, description: "2022년 4월 부분일식" },
-  { type: "lunar", date: "2022-05-16", longitude: 235.70, sign: "Scorpio", degree: 25, description: "2022년 5월 개기월식" },
-  { type: "solar", date: "2022-10-25", longitude: 212.00, sign: "Scorpio", degree: 2, description: "2022년 10월 부분일식" },
-  { type: "lunar", date: "2022-11-08", longitude: 46.02, sign: "Taurus", degree: 16, description: "2022년 11월 개기월식" },
-  // 2023
-  { type: "solar", date: "2023-04-20", longitude: 29.88, sign: "Aries", degree: 29, description: "2023년 4월 혼성일식" },
-  { type: "lunar", date: "2023-05-05", longitude: 224.59, sign: "Scorpio", degree: 14, description: "2023년 5월 반영월식" },
-  { type: "solar", date: "2023-10-14", longitude: 201.08, sign: "Libra", degree: 21, description: "2023년 10월 금환일식" },
-  { type: "lunar", date: "2023-10-28", longitude: 35.07, sign: "Taurus", degree: 5, description: "2023년 10월 부분월식" },
-  // 2024
-  { type: "lunar", date: "2024-03-25", longitude: 185.07, sign: "Libra", degree: 5, description: "2024년 3월 반영월식" },
-  { type: "solar", date: "2024-04-08", longitude: 19.22, sign: "Aries", degree: 19, description: "2024년 4월 개기일식" },
-  { type: "lunar", date: "2024-09-18", longitude: 355.59, sign: "Pisces", degree: 25, description: "2024년 9월 부분월식" },
-  { type: "solar", date: "2024-10-02", longitude: 190.13, sign: "Libra", degree: 10, description: "2024년 10월 금환일식" },
-  // 2025
-  { type: "lunar", date: "2025-03-14", longitude: 173.88, sign: "Virgo", degree: 24, description: "2025년 3월 개기월식" },
-  { type: "solar", date: "2025-03-29", longitude: 9.00, sign: "Aries", degree: 9, description: "2025년 3월 부분일식" },
-  { type: "lunar", date: "2025-09-07", longitude: 345.25, sign: "Pisces", degree: 15, description: "2025년 9월 개기월식" },
-  { type: "solar", date: "2025-09-21", longitude: 178.62, sign: "Virgo", degree: 29, description: "2025년 9월 부분일식" },
-  // 2026
-  { type: "lunar", date: "2026-03-03", longitude: 162.77, sign: "Virgo", degree: 13, description: "2026년 3월 개기월식" },
-  { type: "solar", date: "2026-03-17", longitude: 357.12, sign: "Pisces", degree: 27, description: "2026년 3월 부분일식" },
-  { type: "solar", date: "2026-08-12", longitude: 139.95, sign: "Leo", degree: 20, description: "2026년 8월 개기일식" },
-  { type: "lunar", date: "2026-08-28", longitude: 334.72, sign: "Pisces", degree: 5, description: "2026년 8월 부분월식" },
-  // 2027
-  { type: "lunar", date: "2027-02-20", longitude: 152.33, sign: "Leo", degree: 2, description: "2027년 2월 반영월식" },
-  { type: "solar", date: "2027-02-06", longitude: 317.65, sign: "Aquarius", degree: 17, description: "2027년 2월 금환일식" },
-  { type: "solar", date: "2027-08-02", longitude: 130.12, sign: "Leo", degree: 10, description: "2027년 8월 개기일식" },
-  { type: "lunar", date: "2027-08-17", longitude: 324.48, sign: "Aquarius", degree: 24, description: "2027년 8월 부분월식" },
-  // 2028
-  { type: "solar", date: "2028-01-26", longitude: 306.88, sign: "Aquarius", degree: 6, description: "2028년 1월 금환일식" },
-  { type: "lunar", date: "2028-02-11", longitude: 142.12, sign: "Leo", degree: 22, description: "2028년 2월 반영월식" },
-  { type: "solar", date: "2028-07-22", longitude: 119.97, sign: "Cancer", degree: 29, description: "2028년 7월 개기일식" },
-  { type: "lunar", date: "2028-08-06", longitude: 313.65, sign: "Aquarius", degree: 13, description: "2028년 8월 부분월식" },
-  { type: "lunar", date: "2028-12-31", longitude: 100.55, sign: "Cancer", degree: 10, description: "2028년 12월 개기월식" },
-  // 2029
-  { type: "solar", date: "2029-01-14", longitude: 294.52, sign: "Capricorn", degree: 24, description: "2029년 1월 부분일식" },
-  { type: "lunar", date: "2029-06-26", longitude: 275.18, sign: "Capricorn", degree: 5, description: "2029년 6월 개기월식" },
-  { type: "solar", date: "2029-07-11", longitude: 109.25, sign: "Cancer", degree: 19, description: "2029년 7월 부분일식" },
-  { type: "lunar", date: "2029-12-20", longitude: 89.08, sign: "Gemini", degree: 29, description: "2029년 12월 개기월식" },
-  // 2030
-  { type: "solar", date: "2030-01-01", longitude: 280.82, sign: "Capricorn", degree: 10, description: "2030년 1월 부분일식" },
-  { type: "solar", date: "2030-06-01", longitude: 71.12, sign: "Gemini", degree: 11, description: "2030년 6월 금환일식" },
-  { type: "lunar", date: "2030-06-15", longitude: 264.33, sign: "Sagittarius", degree: 24, description: "2030년 6월 부분월식" },
-  { type: "solar", date: "2030-11-25", longitude: 243.67, sign: "Sagittarius", degree: 3, description: "2030년 11월 개기일식" },
-  { type: "lunar", date: "2030-12-09", longitude: 77.55, sign: "Gemini", degree: 17, description: "2030년 12월 반영월식" },
-];
+// ============================================================
+// Swiss Ephemeris Eclipse Computation
+// ============================================================
+
+/** Convert a Date to Julian Day UT via swe_utc_to_jd. */
+function dateToJD(date: Date): number {
+  const sw = getSwisseph();
+  const result = sw.swe_utc_to_jd(
+    date.getUTCFullYear(),
+    date.getUTCMonth() + 1,
+    date.getUTCDate(),
+    date.getUTCHours(),
+    date.getUTCMinutes(),
+    date.getUTCSeconds(),
+    sw.SE_GREG_CAL
+  );
+  if ("error" in result) {
+    throw new Error(`Eclipse JD conversion failed: ${result.error}`);
+  }
+  return result.julianDayUT;
+}
+
+/** Convert a JD UT to ISO 8601 string. */
+function jdToISOString(jd: number): string {
+  const sw = getSwisseph();
+  const result = sw.swe_jdut1_to_utc(jd, sw.SE_GREG_CAL);
+  if ("error" in result) {
+    throw new Error(`Eclipse JD→UTC failed: ${result.error}`);
+  }
+  const { year, month, day, hour, minute, second } = result;
+  const pad = (n: number) => String(Math.floor(n)).padStart(2, "0");
+  const sec = pad(second);
+  return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${sec}Z`;
+}
+
+/** Decode solar eclipse rflag → kind. */
+function decodeSolarKind(rflag: number): Eclipse["kind"] {
+  const sw = getSwisseph();
+  if (rflag & sw.SE_ECL_TOTAL) return "total";
+  if (rflag & sw.SE_ECL_ANNULAR_TOTAL) return "hybrid";
+  if (rflag & sw.SE_ECL_ANNULAR) return "annular";
+  if (rflag & sw.SE_ECL_PARTIAL) return "partial";
+  return "partial";
+}
+
+/** Decode lunar eclipse rflag → kind. */
+function decodeLunarKind(rflag: number): Eclipse["kind"] {
+  const sw = getSwisseph();
+  if (rflag & sw.SE_ECL_TOTAL) return "total";
+  if (rflag & sw.SE_ECL_PARTIAL) return "partial";
+  if (rflag & sw.SE_ECL_PENUMBRAL) return "penumbral";
+  return "penumbral";
+}
+
+/** Sun ecliptic longitude at given JD UT. */
+function sunLongitudeAtJD(jd: number): number {
+  const sw = getSwisseph();
+  const res = sw.swe_calc_ut(jd, sw.SE_SUN, getSwissEphFlags());
+  if ("error" in res) {
+    throw new Error(`Sun calc at eclipse failed: ${res.error}`);
+  }
+  return extractSwissLongitude(res as unknown as Record<string, unknown>);
+}
+
+/** Moon ecliptic longitude at given JD UT. */
+function moonLongitudeAtJD(jd: number): number {
+  const sw = getSwisseph();
+  const res = sw.swe_calc_ut(jd, sw.SE_MOON, getSwissEphFlags());
+  if ("error" in res) {
+    throw new Error(`Moon calc at eclipse failed: ${res.error}`);
+  }
+  return extractSwissLongitude(res as unknown as Record<string, unknown>);
+}
 
 /**
- * 이클립스가 차트에 미치는 영향 찾기
+ * Detect whether the swisseph runtime exposes the eclipse functions.
+ * Test environments mock swisseph but may not mock eclipse helpers — return false
+ * so callers degrade gracefully to empty arrays instead of crashing.
+ */
+function hasEclipseSupport(): boolean {
+  try {
+    const sw = getSwisseph() as unknown as Record<string, unknown>;
+    return (
+      typeof sw.swe_sol_eclipse_when_glob === "function" &&
+      typeof sw.swe_lun_eclipse_when === "function"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Compute every solar eclipse with maximum JD ∈ [startJD, endJD).
+ * Uses Swiss Eph swe_sol_eclipse_when_glob iteratively (forward search).
+ */
+function computeSolarEclipses(startJD: number, endJD: number): Eclipse[] {
+  const sw = getSwisseph();
+  const out: Eclipse[] = [];
+  let cursor = startJD;
+  // Search any solar eclipse type.
+  const ifltype = 0;
+  // Safety bound: avg solar eclipse cadence ≈ 173 days. 200 years ≈ 425 events.
+  // Allow +50% slack to avoid premature exit.
+  const maxIter = Math.ceil((endJD - startJD) / 50) + 50;
+  for (let i = 0; i < maxIter; i++) {
+    const res = sw.swe_sol_eclipse_when_glob(cursor, sw.SEFLG_SWIEPH, ifltype, 0);
+    if ("error" in res) {
+      // swisseph returns an error string when no more eclipses found in range.
+      break;
+    }
+    const peakJD = res.maximum;
+    if (!Number.isFinite(peakJD) || peakJD >= endJD) break;
+    if (peakJD < startJD) {
+      // Shouldn't happen, but guard anyway.
+      cursor = peakJD + 1;
+      continue;
+    }
+    const sunLon = sunLongitudeAtJD(peakJD);
+    const { sign, degree } = formatLongitude(sunLon);
+    const iso = jdToISOString(peakJD);
+    const kind = decodeSolarKind(res.rflag);
+    const dateStr = iso.slice(0, 10);
+    const kindLabel: Record<NonNullable<Eclipse["kind"]>, string> = {
+      total: "개기일식",
+      annular: "금환일식",
+      partial: "부분일식",
+      hybrid: "혼성일식",
+      penumbral: "부분일식",
+    };
+    out.push({
+      type: "solar",
+      date: dateStr,
+      longitude: sunLon,
+      sign,
+      degree,
+      description: `${dateStr} ${kindLabel[kind ?? "partial"]}`,
+      kind,
+    });
+    // Advance cursor past this peak. Solar eclipses are ≥ ~150 days apart.
+    cursor = peakJD + 1;
+  }
+  return out;
+}
+
+/**
+ * Compute every lunar eclipse with maximum JD ∈ [startJD, endJD).
+ */
+function computeLunarEclipses(startJD: number, endJD: number): Eclipse[] {
+  const sw = getSwisseph();
+  const out: Eclipse[] = [];
+  let cursor = startJD;
+  const ifltype = 0;
+  const maxIter = Math.ceil((endJD - startJD) / 50) + 50;
+  for (let i = 0; i < maxIter; i++) {
+    const res = sw.swe_lun_eclipse_when(cursor, sw.SEFLG_SWIEPH, ifltype, 0);
+    if ("error" in res) {
+      break;
+    }
+    const peakJD = res.maximum;
+    if (!Number.isFinite(peakJD) || peakJD >= endJD) break;
+    if (peakJD < startJD) {
+      cursor = peakJD + 1;
+      continue;
+    }
+    const moonLon = moonLongitudeAtJD(peakJD);
+    const { sign, degree } = formatLongitude(moonLon);
+    const iso = jdToISOString(peakJD);
+    const kind = decodeLunarKind(res.rflag);
+    const dateStr = iso.slice(0, 10);
+    const kindLabel: Record<NonNullable<Eclipse["kind"]>, string> = {
+      total: "개기월식",
+      partial: "부분월식",
+      penumbral: "반영월식",
+      annular: "부분월식",
+      hybrid: "부분월식",
+    };
+    out.push({
+      type: "lunar",
+      date: dateStr,
+      longitude: moonLon,
+      sign,
+      degree,
+      description: `${dateStr} ${kindLabel[kind ?? "penumbral"]}`,
+      kind,
+    });
+    cursor = peakJD + 1;
+  }
+  return out;
+}
+
+// ============================================================
+// Range cache (in-memory, process-lifetime)
+// ============================================================
+
+const eclipseRangeCache = new Map<string, Eclipse[]>();
+
+function rangeKey(startJD: number, endJD: number): string {
+  return `${Math.floor(startJD)}_${Math.floor(endJD)}`;
+}
+
+/**
+ * Internal: compute eclipses (solar + lunar) over [startJD, endJD), cached.
+ * Returns sorted by date ascending.
+ */
+function eclipsesInJDRange(startJD: number, endJD: number): Eclipse[] {
+  const key = rangeKey(startJD, endJD);
+  const cached = eclipseRangeCache.get(key);
+  if (cached) return cached;
+
+  if (!hasEclipseSupport()) {
+    // Test mock or stripped runtime — degrade gracefully.
+    eclipseRangeCache.set(key, []);
+    return [];
+  }
+
+  let solar: Eclipse[] = [];
+  let lunar: Eclipse[] = [];
+  try {
+    solar = computeSolarEclipses(startJD, endJD);
+  } catch (err) {
+    logger.warn("[eclipses] solar computation failed", { err: String(err) });
+  }
+  try {
+    lunar = computeLunarEclipses(startJD, endJD);
+  } catch (err) {
+    logger.warn("[eclipses] lunar computation failed", { err: String(err) });
+  }
+  const merged = [...solar, ...lunar].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  eclipseRangeCache.set(key, merged);
+  return merged;
+}
+
+/** Test/diagnostic helper: clear the in-memory eclipse cache. */
+export function _clearEclipseCache(): void {
+  eclipseRangeCache.clear();
+}
+
+// ============================================================
+// Public API
+// ============================================================
+
+/**
+ * 특정 기간의 이클립스 가져오기 (Swiss Ephemeris 실시간 계산, 캐시됨).
+ * @param startDate ISO date or datetime string.
+ * @param endDate   ISO date or datetime string (exclusive).
+ */
+export function getEclipsesBetween(
+  startDate: string | Date,
+  endDate: string | Date
+): Eclipse[] {
+  const start = typeof startDate === "string" ? new Date(startDate) : startDate;
+  const end = typeof endDate === "string" ? new Date(endDate) : endDate;
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return [];
+  if (end <= start) return [];
+
+  let startJD: number;
+  let endJD: number;
+  try {
+    startJD = dateToJD(start);
+    endJD = dateToJD(end);
+  } catch {
+    return [];
+  }
+  return eclipsesInJDRange(startJD, endJD);
+}
+
+/**
+ * Default natal span: from `now - 50 years` to `now + 100 years`.
+ * Covers a typical lifetime including childhood eclipses + future events.
+ * Used by `getAllEclipses()` and `getUpcomingEclipses()` when no range is given.
+ */
+function defaultLifespanRange(reference: Date = new Date()): {
+  start: Date;
+  end: Date;
+} {
+  const start = new Date(reference);
+  start.setUTCFullYear(reference.getUTCFullYear() - 50);
+  const end = new Date(reference);
+  end.setUTCFullYear(reference.getUTCFullYear() + 100);
+  return { start, end };
+}
+
+/**
+ * 다가오는 이클립스 가져오기.
+ * `fromDate` 부터 100년 윈도우 내에서 최대 `count` 개.
+ */
+export function getUpcomingEclipses(
+  fromDate: Date = new Date(),
+  count: number = 4
+): Eclipse[] {
+  const end = new Date(fromDate);
+  end.setUTCFullYear(fromDate.getUTCFullYear() + 100);
+  const all = getEclipsesBetween(fromDate, end);
+  return all.slice(0, count);
+}
+
+/**
+ * 특정 사인의 이클립스 가져오기 (기본 수명 윈도우 기준).
+ */
+export function getEclipsesInSign(
+  sign: ZodiacKo,
+  startDate?: Date,
+  endDate?: Date
+): Eclipse[] {
+  const range = !startDate || !endDate ? defaultLifespanRange() : null;
+  const start = startDate ?? range!.start;
+  const end = endDate ?? range!.end;
+  return getEclipsesBetween(start, end).filter((eclipse) => eclipse.sign === sign);
+}
+
+/**
+ * 모든 이클립스 데이터 가져오기 (기본 수명 윈도우 기준).
+ * 이전 동기 시그니처 유지 — 캐시 hit 시 즉시 반환, miss 시 ~500 swisseph 콜.
+ */
+export function getAllEclipses(startDate?: Date, endDate?: Date): Eclipse[] {
+  const range = !startDate || !endDate ? defaultLifespanRange() : null;
+  const start = startDate ?? range!.start;
+  const end = endDate ?? range!.end;
+  return getEclipsesBetween(start, end);
+}
+
+/**
+ * 본명 차트 평생 + 미래 100년 이클립스 — 캘린더 추출기용.
+ * @param birthDate 본명 출생일.
+ * @param horizonYearsAhead 미래 윈도우 (기본 100년).
+ */
+export function getLifetimeEclipses(
+  birthDate: Date,
+  horizonYearsAhead: number = 100
+): Eclipse[] {
+  const now = new Date();
+  const horizon = new Date(now);
+  horizon.setUTCFullYear(now.getUTCFullYear() + horizonYearsAhead);
+  return getEclipsesBetween(birthDate, horizon);
+}
+
+/**
+ * 이클립스가 차트에 미치는 영향 찾기.
+ * `eclipses` 미지정 시 기본 수명 윈도우(±50/+100년)에서 자동 계산.
  */
 export function findEclipseImpact(
   chart: Chart,
-  eclipses: Eclipse[] = ECLIPSES,
+  eclipses?: Eclipse[],
   orb: number = 3.0
 ): EclipseImpact[] {
+  const list = eclipses ?? getAllEclipses();
   const impacts: EclipseImpact[] = [];
   const allPoints = [...chart.planets, chart.ascendant, chart.mc];
 
-  for (const eclipse of eclipses) {
+  for (const eclipse of list) {
     // 이클립스가 떨어지는 하우스 찾기
     let eclipseHouse = 1;
     for (let i = 0; i < 12; i++) {
@@ -192,40 +487,6 @@ function getEclipseInterpretation(
 }
 
 /**
- * 특정 기간의 이클립스 가져오기
- */
-export function getEclipsesBetween(
-  startDate: string,
-  endDate: string
-): Eclipse[] {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  return ECLIPSES.filter((eclipse) => {
-    const eclipseDate = new Date(eclipse.date);
-    return eclipseDate >= start && eclipseDate <= end;
-  });
-}
-
-/**
- * 다가오는 이클립스 가져오기
- */
-export function getUpcomingEclipses(
-  fromDate: Date = new Date(),
-  count: number = 4
-): Eclipse[] {
-  return ECLIPSES.filter((eclipse) => new Date(eclipse.date) >= fromDate)
-    .slice(0, count);
-}
-
-/**
- * 특정 사인의 이클립스 가져오기
- */
-export function getEclipsesInSign(sign: ZodiacKo): Eclipse[] {
-  return ECLIPSES.filter((eclipse) => eclipse.sign === sign);
-}
-
-/**
  * 이클립스 축(Eclipse Axis) 분석
  * 이클립스는 항상 반대 사인 축에서 발생합니다.
  */
@@ -254,7 +515,7 @@ export function checkEclipseSensitivity(
   sensitivePoints: string[];
   nodeSign: ZodiacKo | null;
 } {
-  const node = chart.planets.find((p) => p.name === "True Node");
+  const node = chart.planets.find((p) => p.name === "True Node" || p.name === "Mean Node");
   if (!node) {
     return { sensitive: false, sensitivePoints: [], nodeSign: null };
   }
@@ -263,7 +524,7 @@ export function checkEclipseSensitivity(
   const allPoints = [...chart.planets, chart.ascendant, chart.mc];
 
   for (const point of allPoints) {
-    if (point.name === "True Node") {continue;}
+    if (point.name === node.name) {continue;}
 
     const diff = shortestAngle(point.longitude, node.longitude);
     // 노드와 합 또는 충
@@ -277,13 +538,4 @@ export function checkEclipseSensitivity(
     sensitivePoints,
     nodeSign: node.sign,
   };
-}
-
-/**
- * 모든 이클립스 데이터 가져오기
- */
-export function getAllEclipses(): Eclipse[] {
-  return [...ECLIPSES].sort((a, b) =>
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
 }

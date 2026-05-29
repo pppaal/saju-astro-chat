@@ -78,19 +78,23 @@ const TRANSIT_ASPECT_ANGLES: Record<AspectType, number> = {
   quincunx: 150,
   quintile: 72,
   biquintile: 144,
+  sesquiquadrate: 135,
 }
 
-// 트랜짓은 더 타이트한 오브 사용
+// 트랜짓은 더 타이트한 오브 사용. 마이너 어스펙트(5종)는 1.5° 안쪽으로 묶어
+// 메이저와의 오브 오버랩으로 인한 신호 중복을 줄인다 (calendar-engine 추출기는
+// 추가로 orbMultiplier 로 더 좁힐 수 있음).
 const TRANSIT_ORBS: Record<AspectType, number> = {
   conjunction: 6,
   opposition: 6,
   trine: 5,
   square: 5,
   sextile: 4,
-  quincunx: 2,
-  semisextile: 2,
+  quincunx: 1.5,
+  semisextile: 1.5,
   quintile: 1.5,
   biquintile: 1.5,
+  sesquiquadrate: 1.5,
 }
 
 // 행성별 오브 가중치 (외행성은 느리므로 더 큰 오브 허용)
