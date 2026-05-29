@@ -2,11 +2,11 @@
 // 이클립스 (Eclipse) 영향 분석 API 엔드포인트
 
 import { NextRequest, NextResponse } from 'next/server'
+import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import { withApiMiddleware, createAstrologyGuard } from '@/lib/api/middleware'
 import { captureServerError } from '@/lib/telemetry'
 import { logger } from '@/lib/logger'
 import {
-  calculateNatalChart,
   toChart,
   findEclipseImpact,
   getUpcomingEclipses,
@@ -43,7 +43,7 @@ export const POST = withApiMiddleware(
       const [hour, minute] = time.split(':').map(Number)
 
       // 출생 차트 계산
-      const chartData = await calculateNatalChart({
+      const chartData = await cachedCalculateNatalChart({
         year,
         month,
         date: day,

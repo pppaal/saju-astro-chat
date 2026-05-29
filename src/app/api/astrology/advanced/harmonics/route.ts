@@ -2,6 +2,7 @@
 // 하모닉 분석 API 엔드포인트
 
 import { NextResponse } from 'next/server'
+import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { captureServerError } from '@/lib/telemetry'
@@ -9,7 +10,6 @@ import { requirePublicToken } from '@/lib/auth/publicToken'
 import { logger } from '@/lib/logger'
 import { HarmonicsRequestSchema } from '@/lib/api/astrology-validation'
 import {
-  calculateNatalChart,
   toChart,
   calculateHarmonicChart,
   analyzeHarmonic,
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     const [hour, minute] = time.split(':').map(Number)
 
     // 출생 차트 계산
-    const chartData = await calculateNatalChart({
+    const chartData = await cachedCalculateNatalChart({
       year,
       month,
       date: day,

@@ -2,6 +2,7 @@ import { logger } from '@/lib/logger'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateNatalChart } from '@/lib/astrology'
 import { normalizeGender } from '@/lib/utils/gender'
+import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import type { ChatMessage } from '@/lib/api'
 function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max)
@@ -365,7 +366,15 @@ async function buildAutoSajuContext(
     // 궁합은 오로지 교차 → 개인 타임라인(세운 10년/월운/일진)은 프롬프트에
     // 안 들어가므로 계산도 안 한다. 관계 시기는 사주 synastry 안 세운/대운
     // cross가 담당. 여기선 교차에 쓰는 pillars·대운·개별 신살만 산출.
-    const saju = calculateSajuData(seed.date, seed.time, seed.gender, 'solar', seed.timeZone)
+    //
+    // Redis 캐시 — 두 사람 사주 매 요청 재계산하던 비용 제거. 같은 입력이면
+    // 30일 TTL (immutable). 궁합 한 번에 2명 × 매번 = 큰 절감.
+    const saju = await cacheOrCalculate(
+      CacheKeys.saju(seed.date, seed.time, seed.gender, 'solar'),
+      async () =>
+        calculateSajuData(seed.date, seed.time, seed.gender, 'solar', seed.timeZone),
+      CACHE_TTL.NATAL_CHART
+    )
 
     // 개별 신살(self)만 계산 — [개별 신살] 블록이 쓰는 유일한 enrichment.
     // 예전엔 격국·용신·12운성·natalRelations도 계산했지만(운명 상담사 미러용)
@@ -409,16 +418,23 @@ async function buildAutoAstroContext(
     const [hh, mm] = seed.time.split(':').map((v) => Number(v))
     if ([y, m, d, hh, mm].some((v) => !Number.isFinite(v))) return null
 
-    const natal = await calculateNatalChart({
-      year: y,
-      month: m,
-      date: d,
-      hour: hh,
-      minute: mm,
-      latitude: seed.latitude,
-      longitude: seed.longitude,
-      timeZone: seed.timeZone,
-    })
+    // Redis 캐시 — 같은 출생 좌표면 같은 natal chart. Swiss Ephemeris × 10
+    // 행성 매번 ~250ms 비용을 30일 TTL 로 절감.
+    const natal = await cacheOrCalculate(
+      CacheKeys.natalChart(seed.date, seed.time, seed.latitude, seed.longitude),
+      async () =>
+        calculateNatalChart({
+          year: y,
+          month: m,
+          date: d,
+          hour: hh,
+          minute: mm,
+          latitude: seed.latitude,
+          longitude: seed.longitude,
+          timeZone: seed.timeZone,
+        }),
+      CACHE_TTL.NATAL_CHART
+    )
     // 궁합=교차 → 개인 트랜짓/솔라·루나 리턴은 프롬프트에 안 들어가므로
     // 계산 안 함(가장 무거운 ephemeris 호출). 교차·완전성 체크에 쓰는
     // natal 행성만 추출.

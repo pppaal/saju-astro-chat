@@ -2,6 +2,7 @@
 // 항성 (Fixed Stars) 분석 API 엔드포인트
 
 import { NextRequest } from 'next/server'
+import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import {
   withApiMiddleware,
   createAstrologyGuard,
@@ -14,7 +15,6 @@ import { logger } from '@/lib/logger'
 import { FixedStarsRequestSchema } from '@/lib/api/astrology-validation'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 import {
-  calculateNatalChart,
   toChart,
   findFixedStarConjunctions,
   getAllFixedStars,
@@ -58,7 +58,7 @@ export const POST = withApiMiddleware<FixedStarsResponse>(
       const [hour, minute] = time.split(':').map(Number)
 
       // 출생 차트 계산
-      const chartData = await calculateNatalChart({
+      const chartData = await cachedCalculateNatalChart({
         year,
         month,
         date: day,
