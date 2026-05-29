@@ -308,6 +308,9 @@ export function HamburgerDrawer({ locale, variant = 'dark' }: HamburgerDrawerPro
               <Link href="/faq" onClick={close} className="hover:text-white/80">
                 FAQ
               </Link>
+              <Link href="/blog" onClick={close} className="hover:text-white/80">
+                {isKo ? '블로그' : 'Blog'}
+              </Link>
               <Link href="/contact" onClick={close} className="hover:text-white/80">
                 {isKo ? '문의' : 'Contact'}
               </Link>
