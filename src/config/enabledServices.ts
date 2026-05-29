@@ -59,7 +59,6 @@ const ACTIVE_PUBLIC_SERVICE_IDS: readonly EnabledServiceId[] = [
   'destinyMap',
   'tarot',
   'compatibility',
-  'calendar',
 ] as const
 
 const ACTIVE_SERVICE_SET = new Set<EnabledServiceId>(ACTIVE_PUBLIC_SERVICE_IDS)
