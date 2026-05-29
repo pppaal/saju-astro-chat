@@ -203,41 +203,41 @@ export function describePhaseFlow(
 
   if (lang === 'ko') {
     if (!phase)
-      return '결이 아직 한 방향으로 모이지 않은 자리예요. 순서를 먼저 정리해 흐름을 트이게 두세요.'
+      return '흐름이 아직 한 방향으로 모이지 않은 자리예요. 순서를 먼저 정리해 흐름을 트이게 두세요.'
     if (phase.includes('defensive') || phase.includes('reset') || phase.includes('stabil')) {
       if (domain) {
-        return `${domain.ko.noun} 영역의 묵은 결을 정리해 다시 받쳐주는 자리를 비우는 구간이에요. 새 일을 벌리기보다 ${domain.ko.action} 같은 잔무를 닫아 두세요.`
+        return `${domain.ko.noun} 영역의 묵은 흐름을 정리해 다시 받쳐주는 자리를 비우는 구간이에요. 새 일을 벌리기보다 ${domain.ko.action} 같은 잔무를 닫아 두세요.`
       }
-      return '기존 결을 정리해 흐름이 다시 차오를 자리를 비우는 구간이에요. 새 일을 벌리기보다 잔무를 닫아 두세요.'
+      return '기존 흐름을 정리해 흐름이 다시 차오를 자리를 비우는 구간이에요. 새 일을 벌리기보다 잔무를 닫아 두세요.'
     }
     if (phase.includes('high_tension') && phase.includes('expansion')) {
       if (domain) {
         return `${domain.ko.noun} 영역이 받쳐주지만 한 자락이 어긋나기 쉬운 구간이에요. ${withObjectParticle(domain.ko.action)} 밀 때 중간 확인을 끼워 두세요.`
       }
-      return '결이 차오르지만 한 자락이 어긋나기 쉬운 구간이에요. 중간 확인을 끼워 흐름이 흩어지지 않게 잡아 주세요.'
+      return '흐름이 차오르지만 한 자락이 어긋나기 쉬운 구간이에요. 중간 확인을 끼워 흐름이 흩어지지 않게 잡아 주세요.'
     }
     if (phase.includes('guarded') && phase.includes('expansion')) {
       if (domain) {
         return `${domain.ko.noun} 영역이 트이지만 한 번에 부풀리면 다시 막힐 수 있어요. ${withObjectParticle(domain.ko.action)} 작게 나눠 단계적으로 진행해 보세요.`
       }
-      return '결이 트이지만 한 번에 부풀리면 다시 막힐 수 있어요. 범위를 나눠 천천히 차오르게 가져가 보세요.'
+      return '흐름이 트이지만 한 번에 부풀리면 다시 막힐 수 있어요. 범위를 나눠 천천히 차오르게 가져가 보세요.'
     }
     if (phase.includes('expansion')) {
       if (domain) {
         return `${domain.ko.noun} 흐름이 차올라 앞으로 흘러나가는 구간이에요. 머뭇거리던 ${withConjunctionParticle(domain.ko.action)} 중요한 결정도 기준만 분명하면 함께 밀어 주세요.`
       }
-      return '결이 차올라 앞으로 흘러나가는 구간이에요. 머뭇거리던 일과 중요한 결정도 기준만 분명하면 함께 밀어 주세요.'
+      return '흐름이 차올라 앞으로 흘러나가는 구간이에요. 머뭇거리던 일과 중요한 결정도 기준만 분명하면 함께 밀어 주세요.'
     }
     if (phase.includes('tension')) {
       if (domain) {
-        return `${domain.ko.noun} 결이 한쪽으로 미끄러지지 않고 굳는 자리예요. 조건이 풀려야 흐름이 다시 트이니 ${domain.ko.action} 같은 결론을 늦추세요.`
+        return `${domain.ko.noun} 흐름이 한쪽으로 미끄러지지 않고 굳는 자리예요. 조건이 풀려야 흐름이 다시 트이니 ${domain.ko.action} 같은 결론을 늦추세요.`
       }
-      return '결이 한쪽으로 미끄러지지 않고 굳는 자리예요. 조건이 풀려야 흐름이 다시 트이니 결론을 늦추세요.'
+      return '흐름이 한쪽으로 미끄러지지 않고 굳는 자리예요. 조건이 풀려야 흐름이 다시 트이니 결론을 늦추세요.'
     }
     if (domain) {
-      return `${domain.ko.noun} 영역에서 밀 결과 멈춰 확인할 결을 갈라 가져가야 흐름이 덜 흔들려요.`
+      return `${domain.ko.noun} 영역에서 밀 영역과 멈춰 확인할 영역을 갈라 가져가야 흐름이 덜 흔들려요.`
     }
-    return '밀 결과 멈춰 확인할 결을 갈라 가져가야 흐름이 덜 흔들려요.'
+    return '밀 영역과 멈춰 확인할 영역을 갈라 가져가야 흐름이 덜 흔들려요.'
   }
 
   if (!phase) return 'The currents have not braided together yet, so set the order first and let the flow open.'
@@ -338,20 +338,20 @@ export function describeCrossAgreement(
   if (lang === 'ko') {
     if (score >= 70) {
       if (domain) {
-        return `근거들이 ${domain.ko.noun} 영역에서 같은 결로 합쳐 흐르는 자리예요. 큰 흐름을 믿고 ${withObjectParticle(domain.ko.action)} 한 걸음 더 밀어 두세요.`
+        return `근거들이 ${domain.ko.noun} 영역에서 같은 흐름으로 합쳐 가는 자리예요. 큰 흐름을 믿고 ${withObjectParticle(domain.ko.action)} 한 걸음 더 밀어 두세요.`
       }
-      return '근거들이 같은 결로 합쳐 흐르는 자리예요. 큰 흐름을 믿고 한 걸음 더 밀어 두세요.'
+      return '근거들이 같은 흐름으로 합쳐 가는 자리예요. 큰 흐름을 믿고 한 걸음 더 밀어 두세요.'
     }
     if (score >= 45) {
       if (domain) {
-        return `${domain.ko.noun} 영역에서 결이 같은 방향으로 차오르다 한 자락이 어긋나는 구간이에요. ${withObjectParticle(domain.ko.action)} 확정하기 전에 한 번 더 결을 맞추세요.`
+        return `${domain.ko.noun} 영역에서 흐름이 같은 방향으로 차오르다 한 줄기가 어긋나는 구간이에요. ${withObjectParticle(domain.ko.action)} 확정하기 전에 한 번 더 흐름을 맞추세요.`
       }
-      return '결이 같은 방향으로 차오르다 한 자락이 어긋나는 구간이에요. 확정 전에 한 번 더 결을 맞추세요.'
+      return '흐름이 같은 방향으로 차오르다 한 줄기가 어긋나는 구간이에요. 확정 전에 한 번 더 흐름을 맞추세요.'
     }
     if (domain) {
       return `근거들이 ${domain.ko.noun} 영역에서 서로 갈라져 흐르고 있어요. ${withObjectParticle(domain.ko.action)} 서두르기보다 속도를 늦추는 쪽이 안전합니다.`
     }
-    return '근거들이 서로 갈라져 흐르고 있어요. 서두르기보다 속도를 늦추는 쪽이 안전하고, 결이 다시 모일 때를 보세요.'
+    return '근거들이 서로 갈라져 흐르고 있어요. 서두르기보다 속도를 늦추는 쪽이 안전하고, 흐름이 다시 모일 때를 보세요.'
   }
 
   if (score >= 70) {
