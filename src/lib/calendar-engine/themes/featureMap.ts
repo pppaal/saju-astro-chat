@@ -86,10 +86,10 @@ export const SIBSIN_THEME_MAP: Record<SibsinKind, AstroThemeKey[]> = {
   겁재: ['money', 'health', 'growth'], // 분탈·경쟁
   식신: ['growth', 'health'], // 자녀·표현·먹는 즐거움 (love 빼기)
   상관: ['growth', 'career'], // 창의·표현
-  편재: ['money'], // 큰 돈·기회
-  정재: ['money', 'love'], // 안정 수입 + 배우자(전통)
-  편관: ['career', 'health'], // 책임·압박
-  정관: ['career'], // 자리·평판
+  편재: ['money'], // 큰 돈·기회 (love는 tagger가 성별로: 남명 재성=배우자)
+  정재: ['money'], // 안정 수입 (love는 tagger 성별 매핑 — 남명만 재성=배우자)
+  편관: ['career', 'health'], // 책임·압박 (love는 tagger: 여명 관성=배우자)
+  정관: ['career'], // 자리·평판 (love는 tagger: 여명 관성=배우자)
   편인: ['career', 'growth'], // 학문·영성
   정인: ['career'], // 학습·어머니 (love 빼기 — 어머니는 love보다 career 영역에 더 가까운 받침)
 }

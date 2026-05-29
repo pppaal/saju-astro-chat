@@ -11,20 +11,26 @@ export function calcHouses(
   system: HouseSystem = 'Placidus'
 ) {
   const swisseph = getSwisseph()
-  if (system === 'Placidus') {
-    const res = swisseph.swe_houses(ut_jd, lat, lon, 'P')
-    if ('error' in res) {
-      throw new Error(String(res.error))
+  // Placidus 는 극지(>66.5° 위도)에서 수학적으로 미정의 → swe_houses 가 error 반환.
+  // 그대로 throw 하면 그 위도 출생자는 차트 자체가 안 만들어진다(트롬쇠·알래스카 등).
+  // 정상 위도는 'P' 성공 → 기존과 동일. 실패 시에만 극지-안전 Equal('E')로 폴백.
+  const housesWithFallback = (primary: 'P' | 'E') => {
+    const res = swisseph.swe_houses(ut_jd, lat, lon, primary)
+    if (!('error' in res)) return res
+    if (primary !== 'E') {
+      const eq = swisseph.swe_houses(ut_jd, lat, lon, 'E') // 등분 하우스 — 극지 안전
+      if (!('error' in eq)) return eq
     }
-    return res
+    throw new Error(String(res.error))
+  }
+
+  if (system === 'Placidus') {
+    return housesWithFallback('P')
   }
 
   if (system === 'WholeSign') {
     // Whole Sign: ASC의 별자리 시작을 1하우스 0°로, 각 30도씩 등분
-    const base = swisseph.swe_houses(ut_jd, lat, lon, 'P')
-    if ('error' in base) {
-      throw new Error(String(base.error))
-    }
+    const base = housesWithFallback('P')
     const asc = normalize360(base.ascendant)
     const signStart = Math.floor(asc / 30) * 30 // 그 별자리의 0°
     const house: number[] = new Array(12).fill(0).map((_, i) => normalize360(signStart + i * 30))

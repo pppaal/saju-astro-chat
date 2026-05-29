@@ -187,6 +187,7 @@ export async function buildNatalContext(
 
   return {
     input: natalInput,
+    gender: input.gender,
     saju: {
       pillars,
       dayMaster: {
@@ -194,11 +195,16 @@ export async function buildNatalContext(
         element: pillars.day.heavenlyStem.element,
         yin_yang: pillars.day.heavenlyStem.yin_yang,
       },
-      yongsin: {
-        primary: yongsinResult.primaryYongsin,
-        secondary: yongsinResult.secondaryYongsin,
-        avoid: [yongsinResult.kibsin, yongsinResult.gusin].filter(Boolean) as FiveElement[],
-      },
+      yongsin: (() => {
+        const primary = yongsinResult.primaryYongsin
+        const secondary = yongsinResult.secondaryYongsin
+        // 기신·구신에서 용신(primary/secondary)과 겹치는 원소 제외 — 같은 오행이
+        // 용신이면서 기신으로 동시 표기되면 길흉이 ±상쇄돼 무작위가 됨(데이터 모순).
+        const good = new Set<FiveElement>([primary, secondary].filter(Boolean) as FiveElement[])
+        const avoid = ([yongsinResult.kibsin, yongsinResult.gusin].filter(Boolean) as FiveElement[])
+          .filter((e) => !good.has(e))
+        return { primary, secondary, avoid }
+      })(),
       geokguk,
       strength: mapStrength(yongsinResult.daymasterStrength),
       natalShinsal: shinsalAnnot.hits as unknown as NatalContext['saju']['natalShinsal'],

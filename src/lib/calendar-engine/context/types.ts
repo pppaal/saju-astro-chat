@@ -8,6 +8,8 @@ import type { AdvancedAnalysisResult } from '@/app/api/saju/services/advancedAna
  */
 export interface NatalContext {
   input: NatalInput
+  /** 출생 성별 — 연애(배우자성) 십신이 성별로 다름(남=재성/여=관성). tagger가 사용. */
+  gender?: 'male' | 'female'
   saju: NatalSajuContext
   astro: NatalAstroContext
 }

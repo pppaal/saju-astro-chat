@@ -78,7 +78,7 @@ export async function buildCalendar(
 
   // 3) 테마 라벨 + 기여 가중 보강
   for (const signal of allSignals) {
-    const tagged = tagSignalWithThemes(signal)
+    const tagged = tagSignalWithThemes(signal, ctx.natal.gender)
     signal.themes = tagged.themes
     signal.themeWeights = tagged.weights
   }

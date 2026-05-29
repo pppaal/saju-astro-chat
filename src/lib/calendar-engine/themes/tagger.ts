@@ -24,7 +24,10 @@ const RANK_WEIGHT = (i: number) => (i === 0 ? 1.0 : 0.5)
  * weights: 한 신호가 여러 테마를 건드릴 때 "본령 테마"에 더 큰 가중을 줘
  * 변별력 확보. 같은 테마가 여러 소스에서 부여되면 가장 큰 가중 채택(max).
  */
-export function tagSignalWithThemes(signal: ActiveSignal): TaggedThemes {
+export function tagSignalWithThemes(
+  signal: ActiveSignal,
+  gender?: 'male' | 'female'
+): TaggedThemes {
   const weights = new Map<AstroThemeKey, number>()
   const bump = (t: AstroThemeKey, w: number) => weights.set(t, Math.max(weights.get(t) ?? 0, w))
 
@@ -34,6 +37,19 @@ export function tagSignalWithThemes(signal: ActiveSignal): TaggedThemes {
 
   // 사주 — 십신 (순서대로 primary/secondary)
   if (ev.sibsin) SIBSIN_THEME_MAP[ev.sibsin]?.forEach((t, i) => bump(t, RANK_WEIGHT(i)))
+
+  // 사주 — 연애(배우자성)는 성별로 다르다: 남명=재성(처), 여명=관성(부).
+  // SIBSIN_THEME_MAP은 성중립이라 love를 빼두고 여기서 성별로 부여.
+  if (ev.sibsin) {
+    // love는 보조 테마(<1) — money/career 같은 primary(1.0)를 안 넘게(랭킹 보존).
+    if (gender === 'female') {
+      if (ev.sibsin === '정관') bump('love', 0.5)
+      else if (ev.sibsin === '편관') bump('love', 0.35)
+    } else {
+      if (ev.sibsin === '정재') bump('love', 0.5)
+      else if (ev.sibsin === '편재') bump('love', 0.35)
+    }
+  }
 
   // 사주 — 신살
   if (ev.shinsalName) {
