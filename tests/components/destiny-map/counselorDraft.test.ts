@@ -3,10 +3,14 @@ import {
   readCounselorDraft,
   writeCounselorDraft,
   clearCounselorDraft,
+  readCompatCounselorDraft,
+  writeCompatCounselorDraft,
+  clearCompatCounselorDraft,
 } from '@/components/destiny-map/counselorDraft'
 import type { Message } from '@/components/destiny-map/chat-constants'
 
 const KEY = 'destinypal:counselor:draft'
+const COMPAT_KEY = 'destinypal:compat-counselor:draft'
 
 const convo: Message[] = [
   { role: 'system', content: 'context' },
@@ -92,5 +96,61 @@ describe('counselorDraft', () => {
   it('returns null on corrupt JSON', () => {
     window.localStorage.setItem(KEY, '{not valid json')
     expect(readCounselorDraft()).toBeNull()
+  })
+})
+
+describe('compat counselor draft (separate key + couple meta)', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  const couple = [
+    { name: 'A', date: '1990-01-01', time: '12:00' },
+    { name: 'B', date: '1992-02-02', time: '08:30' },
+  ]
+
+  it('uses its own key, not the destiny key', () => {
+    writeCompatCounselorDraft({ sessionId: 's1', locale: 'ko', messages: convo, meta: undefined })
+    expect(window.localStorage.getItem(COMPAT_KEY)).not.toBeNull()
+    expect(window.localStorage.getItem(KEY)).toBeNull()
+    // and the destiny reader does not see the compat draft
+    expect(readCounselorDraft()).toBeNull()
+  })
+
+  it('round-trips the couple snapshot meta', () => {
+    writeCompatCounselorDraft({
+      sessionId: 's1',
+      locale: 'ko',
+      messages: convo,
+      meta: {
+        persons: couple,
+        person1Saju: { a: 1 },
+        person2Saju: null,
+        person1Astro: null,
+        person2Astro: null,
+        chatTitle: '우리 궁합',
+      },
+    })
+    const draft = readCompatCounselorDraft()
+    expect(draft!.meta!.persons).toEqual(couple)
+    expect(draft!.meta!.chatTitle).toBe('우리 궁합')
+    expect(draft!.meta!.person1Saju).toEqual({ a: 1 })
+  })
+
+  it('persists a guest draft with a null session id', () => {
+    writeCompatCounselorDraft({ sessionId: null, locale: 'ko', messages: convo, meta: undefined })
+    const draft = readCompatCounselorDraft()
+    expect(draft).not.toBeNull()
+    expect(draft!.sessionId).toBeNull()
+    expect(draft!.messages).toHaveLength(3)
+  })
+
+  it('clears independently of the destiny draft', () => {
+    writeCounselorDraft({ sessionId: 'd1', locale: 'ko', messages: convo })
+    writeCompatCounselorDraft({ sessionId: 'c1', locale: 'ko', messages: convo, meta: undefined })
+    clearCompatCounselorDraft()
+    expect(readCompatCounselorDraft()).toBeNull()
+    // destiny draft untouched
+    expect(readCounselorDraft()).not.toBeNull()
   })
 })

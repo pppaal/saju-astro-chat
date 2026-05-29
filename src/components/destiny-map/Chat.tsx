@@ -192,7 +192,7 @@ const Chat = memo(function Chat({
     draftRestoredRef.current = true
     if (initialSessionId) return
     const draft = readCounselorDraft()
-    if (!draft || draft.messages.length === 0) return
+    if (!draft || draft.messages.length === 0 || !draft.sessionId) return
     sessionIdRef.current = draft.sessionId
     setMessages(draft.messages)
     setActiveSessionId(draft.sessionId)

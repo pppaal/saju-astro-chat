@@ -10,6 +10,11 @@ import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
 import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
+import {
+  readCompatCounselorDraft,
+  writeCompatCounselorDraft,
+  clearCompatCounselorDraft,
+} from '@/components/destiny-map/counselorDraft'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { CompatChartModal } from './CompatChartModal'
@@ -79,6 +84,19 @@ type PersonData = {
   relation?: string
   /** 대운 순/역행이 음양남녀에 따라 갈리므로 빠지면 잘못 계산됨. */
   gender?: 'M' | 'F' | 'Male' | 'Female'
+}
+
+// Decide whether a saved local draft belongs to the couple the URL is asking
+// for. A `?persons=` entry is an explicit couple selection — we only resume
+// the draft (rather than start fresh) when it's the *same* couple, so picking
+// a brand-new pair doesn't resurrect the previous conversation. Matching on
+// name+date+time is enough to tell two people apart here.
+function sameCouple(a: PersonData[] | undefined, b: PersonData[] | undefined): boolean {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length || a.length === 0) {
+    return false
+  }
+  const key = (p: PersonData) => `${p?.name ?? ''}|${p?.date ?? ''}|${p?.time ?? ''}`
+  return a.every((p, i) => key(p) === key(b[i]))
 }
 
 function CompatibilityCounselorContent() {
@@ -245,9 +263,46 @@ function CompatibilityCounselorContent() {
           }
         }
 
-        // 2) Fresh-start path: ?persons=... from the form.
+        // 2) Local draft resume: the conversation otherwise lives only in
+        //    React state, so a refresh / mobile re-entry / webview eviction
+        //    wiped it (guests had nothing saved server-side at all). Resume
+        //    the draft when there's no explicit ?session=, and — if the URL
+        //    carries ?persons= — only when it's the same couple, so picking a
+        //    new pair still starts fresh.
         const personsParam = searchParams.get('persons')
+        const draft = readCompatCounselorDraft()
+        if (draft && draft.messages.length > 0) {
+          let draftPersons: PersonData[] | undefined =
+            (draft.meta?.persons as PersonData[] | undefined) ?? undefined
+          if (personsParam) {
+            try {
+              const requested = JSON.parse(decodeURIComponent(personsParam)) as PersonData[]
+              if (!sameCouple(draftPersons, requested)) {
+                draftPersons = undefined // different couple — fall through to fresh start
+              }
+            } catch {
+              // unparseable ?persons= — ignore and treat as draft resume
+            }
+          }
+          if (!personsParam || draftPersons) {
+            const restoredMsgs = draft.messages.filter(
+              (m): m is ChatMessage => !!m && (m.role === 'user' || m.role === 'assistant')
+            )
+            if (restoredMsgs.length > 0) {
+              if (draft.sessionId) setChatSessionId(draft.sessionId)
+              if (draft.meta?.chatTitle) setChatTitle(draft.meta.chatTitle)
+              setMessages(restoredMsgs)
+              if (draft.meta?.persons) setPersons(draft.meta.persons as PersonData[])
+              if (draft.meta?.person1Saju !== undefined) setPerson1Saju(draft.meta.person1Saju)
+              if (draft.meta?.person2Saju !== undefined) setPerson2Saju(draft.meta.person2Saju)
+              if (draft.meta?.person1Astro !== undefined) setPerson1Astro(draft.meta.person1Astro)
+              if (draft.meta?.person2Astro !== undefined) setPerson2Astro(draft.meta.person2Astro)
+              return // skip fresh-start path
+            }
+          }
+        }
 
+        // 3) Fresh-start path: ?persons=... from the form.
         if (personsParam) {
           const parsed = JSON.parse(decodeURIComponent(personsParam)) as PersonData[]
           setPersons(parsed)
@@ -274,7 +329,7 @@ function CompatibilityCounselorContent() {
             await fetchPersonData(parsed)
           }
         } else {
-          // 3) Direct entry with no couple — inline picker 모달 노출.
+          // 4) Direct entry with no couple — inline picker 모달 노출.
           //    이전엔 /compatibility 입력 페이지로 빠졌다가 ?persons= 로 돌아
           //    오는 흐름이었는데 같은 화면 안에서 picker → chat 으로 흐름이
           //    끊기지 않게 모달로 통합. useCompatibilityForm 안에서 직전 페어
@@ -293,6 +348,39 @@ function CompatibilityCounselorContent() {
     initializeData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
+
+  // Persist the conversation (+ couple snapshot) locally on every change so
+  // a refresh / mobile re-entry resumes it — works for guests too, who get
+  // no server-side save. Skipped while initializing so we never clobber a
+  // freshly-restored draft with the empty starting state.
+  useEffect(() => {
+    if (isInitializing) return
+    if (messages.length === 0) return
+    writeCompatCounselorDraft({
+      sessionId: chatSessionId ?? null,
+      locale: locale === 'ko' ? 'ko' : 'en',
+      messages,
+      meta: {
+        persons,
+        person1Saju,
+        person2Saju,
+        person1Astro,
+        person2Astro,
+        chatTitle,
+      },
+    })
+  }, [
+    isInitializing,
+    messages,
+    chatSessionId,
+    locale,
+    persons,
+    person1Saju,
+    person2Saju,
+    person1Astro,
+    person2Astro,
+    chatTitle,
+  ])
 
   const fetchPersonData = async (personList: PersonData[]) => {
     chartFetchRef.current = true
@@ -483,6 +571,7 @@ function CompatibilityCounselorContent() {
     } catch (err) {
       logger.warn('[CompatCounselor] delete failed', { err })
     }
+    clearCompatCounselorDraft()
     setMessages([])
     setChatSessionId(undefined)
     setChatTitle(null)
@@ -932,6 +1021,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         onClose={() => setSidebarOpen(false)}
         onNewChat={() => {
           if (isLoading) return
+          // Drop the local draft so the next remount starts genuinely empty
+          // instead of resurrecting the conversation we just left.
+          clearCompatCounselorDraft()
           setMessages([])
           setError(null)
           setInput('')
