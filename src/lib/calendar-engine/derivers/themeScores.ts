@@ -38,7 +38,9 @@ const LAYER_WEIGHT: Record<SignalLayer, number> = {
 // 이 그대로 재발(interpretation.regression 회귀 테스트로 확인). 테마별 baseline
 // 비대칭은 버그가 아니라 의미(health=주의 우세, growth=확장 우세)라 절대값 유지.
 // 바를 baseline 대비로 보여주려면 themeBreakdown 도 같이 recenter 해야 함(별건).
-const THEME_SCORE_SCALE = 24
+// themeBreakdown(Why-card)도 같은 스케일로 점수 기여분을 환산해야 부호가
+// 정합한다. 한 곳에서 export 해 공유.
+export const THEME_SCORE_SCALE = 24
 
 export function deriveThemeScores(signals: ActiveSignal[]): Partial<Record<AstroThemeKey, number>> {
   const buckets = new Map<AstroThemeKey, { sum: number; weight: number }>()
