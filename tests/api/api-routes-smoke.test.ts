@@ -105,12 +105,6 @@ describe('API Routes Smoke Tests', () => {
     })
   })
 
-  describe('Destiny Map Routes', () => {
-    it('should have destiny map routes', () => {
-      assertModules(['app/api/destiny-map/route'])
-    })
-  })
-
   describe('Destiny Match Routes (1)', () => {
     it('should have destiny match routes', () => {
       assertModules(['app/api/destiny-match/matches/route'])
@@ -189,7 +183,6 @@ describe('API Routes Smoke Tests', () => {
         'compatibility',
         'counselor',
         'cron',
-        'destiny-map',
         'destiny-match',
         'feedback',
         'me',
