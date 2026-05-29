@@ -70,7 +70,7 @@ const NEUTRAL: GradeInfo = {
   sub: '잔잔한 흐름',
   colorClass: 'text-zinc-100',
   bgClass: 'bg-gradient-to-br from-indigo-950/40 to-zinc-900/40',
-  borderClass: 'border-indigo-400/15',
+  borderClass: 'border-[rgba(212,181,114,0.15)]',
   emoji: '🌗',
   heroBgClass: 'bg-gradient-to-br from-indigo-500/12 via-zinc-900/60 to-zinc-950',
   heroShadowClass: 'shadow-lg shadow-indigo-500/10',

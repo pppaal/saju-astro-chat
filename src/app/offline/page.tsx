@@ -53,7 +53,7 @@ export default function OfflinePage() {
         {/* Offline Icon */}
         <div className="mb-8">
           <svg
-            className="w-24 h-24 mx-auto text-purple-400"
+            className="w-24 h-24 mx-auto text-[#d4b572]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -83,7 +83,7 @@ export default function OfflinePage() {
         {!isOnline && (
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+            className="px-6 py-3 bg-[#d4b572] hover:bg-[#e8cc8a] text-[#1c1917] rounded-full font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-[#d4b572] focus:ring-offset-2 focus:ring-offset-[#07091a]"
           >
             다시 시도
           </button>
@@ -98,7 +98,7 @@ export default function OfflinePage() {
 
         {/* Tips */}
         <div className="mt-12 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-          <h2 className="text-sm font-semibold text-purple-300 mb-2">
+          <h2 className="text-sm font-semibold text-[#e8cc8a] mb-2">
             오프라인에서 할 수 있는 것들
           </h2>
           <ul className="text-sm text-gray-400 space-y-1 text-left">

@@ -152,10 +152,10 @@ function YearBigDaysCard({
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-violet-950/15 backdrop-blur-sm border border-violet-500/15 rounded-2xl p-6 overflow-hidden">
-      <div className="pointer-events-none absolute -bottom-16 -right-12 w-40 h-40 bg-violet-500/8 blur-3xl rounded-full" />
-      <h3 className="relative text-base font-semibold text-violet-200 flex items-center gap-2 mb-5 group">
-        <Compass className="w-4 h-4 text-violet-400 group-hover:text-violet-300 transition" />
+    <div className="relative bg-gradient-to-br from-zinc-900/55 via-zinc-900/40 to-[rgba(160,122,60,0.15)] backdrop-blur-sm border border-[rgba(212,181,114,0.15)] rounded-2xl p-6 overflow-hidden">
+      <div className="pointer-events-none absolute -bottom-16 -right-12 w-40 h-40 bg-[rgba(212,181,114,0.08)] blur-3xl rounded-full" />
+      <h3 className="relative text-base font-semibold text-[#e8cc8a] flex items-center gap-2 mb-5 group">
+        <Compass className="w-4 h-4 text-[#d4b572] group-hover:text-[#d4b572] transition" />
         {t.yearBigDaysTitle}
       </h3>
       <BigDaysList

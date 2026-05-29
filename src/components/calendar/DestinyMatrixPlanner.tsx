@@ -318,7 +318,7 @@ export default function DestinyMatrixPlanner({
   return (
     <div className="w-full max-w-md md:max-w-3xl lg:max-w-5xl mx-auto h-screen bg-[#07091a] text-zinc-200 font-sans flex flex-col shadow-2xl overflow-hidden relative border-x border-zinc-900">
       {/* Background Effects */}
-      <div className="absolute top-0 left-0 w-full h-64 bg-indigo-900/20 blur-3xl rounded-full pointer-events-none -translate-y-1/2" />
+      <div className="absolute top-0 left-0 w-full h-64 bg-[#a07a3c]/20 blur-3xl rounded-full pointer-events-none -translate-y-1/2" />
 
       {/* --- Header --- */}
       <div className="px-6 pt-12 pb-4 shrink-0 relative z-20 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
@@ -473,7 +473,7 @@ export default function DestinyMatrixPlanner({
                   aria-label={t.dailyHeaderAria(monthLabel, currentDay, getDayOfWeek(currentDay))}
                   className="flex flex-col items-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-xl px-2"
                 >
-                  <span className="text-xs font-bold text-indigo-500/80 mb-1 tracking-widest">
+                  <span className="text-xs font-bold text-[rgba(212,181,114,0.8)] mb-1 tracking-widest">
                     {monthLabel}
                   </span>
                   <h2 className="text-3xl font-black text-zinc-100 tracking-tighter flex items-baseline gap-1">
