@@ -449,7 +449,7 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
                     {row.leftLabel}
                   </div>
                   <div
-                    className="truncate text-sm"
+                    className="text-xs leading-snug sm:text-sm"
                     style={{ color: 'var(--ds-dark-text)' }}
                     title={row.leftHint}
                   >
@@ -473,7 +473,7 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
                     {row.rightLabel}
                   </div>
                   <div
-                    className="truncate text-sm"
+                    className="text-xs leading-snug sm:text-sm"
                     style={{ color: 'var(--ds-dark-text)' }}
                     title={row.rightHint}
                   >

@@ -49,7 +49,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
       aria-label={isKo ? '내 차트' : 'My chart'}
     >
       <div
-        className="chart-pop-in relative w-full max-w-2xl rounded-2xl p-6 overflow-y-auto"
+        className="chart-pop-in relative w-full max-w-2xl rounded-2xl p-4 sm:p-6 overflow-y-auto chart-modal-scroll"
         style={{
           background: 'rgba(17, 24, 39, 0.92)',
           border: '1px solid var(--ds-gold-line)',
@@ -90,7 +90,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
             generateChartSummary 가 advancedAnalysis 기반 6-10 문장 생성. */}
         {readLine && (
           <div
-            className="chart-rise-in mb-6 rounded-2xl p-5"
+            className="chart-rise-in mb-4 rounded-2xl p-4 sm:mb-6 sm:p-5"
             style={
               {
                 ['--i' as string]: 0,
@@ -103,16 +103,16 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
             <ChartReading
               text={readLine}
               theme="dark"
-              className="text-sm leading-relaxed"
+              className="text-[13px] leading-relaxed sm:text-sm"
               style={{ color: 'var(--ds-dark-text)' }}
             />
           </div>
         )}
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* 동양 — 사주팔자 · 오행 균형 (한 그룹으로 묶음) */}
           <section
-            className="chart-rise-in space-y-3 rounded-2xl p-4"
+            className="chart-rise-in space-y-3 rounded-2xl p-3 sm:p-4"
             style={
               {
                 ['--i' as string]: 1,
@@ -180,7 +180,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
 
           {/* 서양 — 네이탈 차트 */}
           <section
-            className="chart-rise-in space-y-3 rounded-2xl p-4"
+            className="chart-rise-in space-y-3 rounded-2xl p-3 sm:p-4"
             style={
               {
                 ['--i' as string]: 2,
@@ -213,7 +213,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
 
           {/* 사주 ↔ 점성 교차 표 — 같은 영역의 동서양 raw 를 좌/우 나란히 */}
           <section
-            className="chart-rise-in space-y-3 rounded-2xl p-4"
+            className="chart-rise-in space-y-3 rounded-2xl p-3 sm:p-4"
             style={
               {
                 ['--i' as string]: 3,
