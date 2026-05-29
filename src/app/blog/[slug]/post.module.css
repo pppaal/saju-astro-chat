@@ -372,10 +372,11 @@
 .backToList {
   display: inline-flex;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* 골드 그라데이션 — 다른 블로그 CTA 와 정렬. */
+  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
   border-radius: 999px;
   color: #ffffff;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
   transition: all 0.3s ease;
 }

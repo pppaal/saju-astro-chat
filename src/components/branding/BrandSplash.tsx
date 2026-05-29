@@ -45,7 +45,7 @@ export default function BrandSplash({ message, submessage, size = 120 }: BrandSp
           position: 'absolute',
           inset: 0,
           background:
-            'radial-gradient(circle at 30% 40%, rgba(99, 210, 255, 0.18), transparent 45%), radial-gradient(circle at 70% 60%, rgba(167, 139, 250, 0.22), transparent 50%)',
+            'radial-gradient(circle at 30% 40%, rgba(232, 204, 138, 0.18), transparent 45%), radial-gradient(circle at 70% 60%, rgba(212, 181, 114, 0.22), transparent 50%)',
           animation: 'splash-nebula 14s ease-in-out infinite',
           pointerEvents: 'none',
         }}
