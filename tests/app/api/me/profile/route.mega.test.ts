@@ -133,6 +133,12 @@ vi.mock('@/lib/db/prisma', () => ({
 
 vi.mock('@/lib/cache/redis-cache', () => ({
   clearCacheByPattern: vi.fn().mockResolvedValue(undefined),
+  CacheInvalidationPatterns: {
+    sajuByBirthDate: (birthDate: string) => `saju:v1:${birthDate}:*`,
+    destinyByBirthDate: (birthDate: string) => `destiny:v1:${birthDate}:*`,
+    yearlyByBirthDate: (birthDate: string) => `yearly:v6:${birthDate}:*`,
+    calendarByUser: (userId: string) => `cal:v1:*:*:${userId}`,
+  },
 }))
 
 vi.mock('@/lib/logger', () => ({
@@ -517,7 +523,9 @@ describe('/api/me/profile', () => {
       await PATCH(req, mockContext)
 
       // birthTime triggers hasBirthFields, and oldBirthDate = updatedUser.birthDate (since body.birthDate is undefined)
-      expect(clearCacheByPattern).toHaveBeenCalledWith(expect.stringContaining('saju:1990-01-15:'))
+      // Real key format is `saju:v1:${birthDate}:...`, so the SCAN pattern must
+      // include the `v1:` version segment — otherwise nothing matches.
+      expect(clearCacheByPattern).toHaveBeenCalledWith(expect.stringContaining('saju:v1:1990-01-15:'))
     })
   })
 
