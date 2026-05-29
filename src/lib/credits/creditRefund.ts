@@ -1,16 +1,16 @@
 // 🔄 Credit Refund Service - API 실패 시 크레딧 자동 환불
-import { prisma } from '@/lib/db/prisma'
-import { logger } from '@/lib/logger'
+import { prisma } from "@/lib/db/prisma";
+import { logger } from "@/lib/logger";
 
 export interface CreditRefundParams {
-  userId: string
-  creditType: 'reading' | 'compatibility' | 'followUp'
-  amount: number
-  reason: string
-  apiRoute?: string
-  errorMessage?: string
-  transactionId?: string
-  metadata?: Record<string, unknown>
+  userId: string;
+  creditType: "reading" | "compatibility" | "followUp";
+  amount: number;
+  reason: string;
+  apiRoute?: string;
+  errorMessage?: string;
+  transactionId?: string;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -31,62 +31,107 @@ export interface CreditRefundParams {
  */
 export async function refundCredits(params: CreditRefundParams): Promise<boolean> {
   try {
-    const { userId, creditType, amount, reason, apiRoute, errorMessage, transactionId, metadata } =
-      params
-
-    // metadata 직렬화는 트랜잭션 밖에서 먼저 처리 — JSON 변환 실패(circular ref 등)
-    // 시 DB 연결을 잡지 않고 즉시 실패하도록.
-    const metadataJson = metadata ? JSON.parse(JSON.stringify(metadata)) : {}
+    const { userId, creditType, amount, reason, apiRoute, errorMessage, transactionId, metadata } = params;
 
     // 트랜잭션으로 원자적 처리
-    //
-    // 알려진 한계 (Bug #2 — 별도 PR 로 분리): creditType='reading' 환불은
-    // 항상 usedCredits 만 감소시킨다. 하지만 consumeCredits 는 보너스 크레딧
-    // (BonusCreditPurchase.remaining) 을 먼저 소비하고 부족분만 usedCredits 로
-    // 차감한다. 보너스로 결제된 리딩을 환불하면 보너스 풀(remaining 및
-    // bonusCredits)이 복구되지 않고, 사용된 적 없는 usedCredits 가 0 쪽으로
-    // 줄어든다 (GREATEST(0,...) 로 floor 는 보장되지만 보너스 풀은 그대로).
-    // 결과: 환불은 성공으로 기록되지만 사용자에게 돌아간 크레딧이 없을 수
-    // 있음. 적절한 수정은 consume 시 어떤 풀에서 차감됐는지 기록하고 같은
-    // 풀로 복구하는 것이며, 별도 PR 에서 다룬다.
     await prisma.$transaction(async (tx) => {
-      // 1. UserCredits 존재 여부 확인 (없으면 에러 — 환불 대상이 없음)
+      // 1. UserCredits 테이블 존재 확인 — 없으면 환불 의미 없음.
       const userCredits = await tx.userCredits.findUnique({
         where: { userId },
         select: { userId: true },
-      })
+      });
 
       if (!userCredits) {
-        throw new Error(`UserCredits not found for user: ${userId}`)
+        throw new Error(`UserCredits not found for user: ${userId}`);
       }
 
-      // 2. 크레딧 타입별 환불 처리 — atomic floor 0
+      // 2. 크레딧 타입별 환불 처리
+      // reading: consumeCredits 가 보너스 → 월간 순으로 차감하므로 환불도
+      // 반대 순서 (reverse-FIFO bonus 복원 → usedCredits 감소) 로 진행.
+      // 이전엔 무조건 usedCredits 만 감소 → 보너스로 결제된 리딩의 환불 시
+      // BonusCreditPurchase 풀은 영영 복원되지 않고 다음 달 monthly reset
+      // 시점에 환불액이 사라졌다 (silent loss).
       //
-      // 이전엔 findUnique → Math.max(0, current - amount) → update 패턴이라
-      // 동시 환불 두 건이 같은 snapshot 을 읽고 같은 값으로 덮어써서 한 건이
-      // 사라졌다 (Postgres READ COMMITTED). 같은 트랜잭션 안에서도 SELECT 후
-      // UPDATE 사이에 다른 세션이 commit 하면 lost update 발생.
-      // expireBonusCredits / revokeBonusCreditPurchase 와 동일한 패턴:
-      // GREATEST(0, col - amount) raw SQL 로 한 줄에 처리해서 row-level lock
-      // 안에서 atomic 하게 해결.
-      if (creditType === 'reading') {
-        await tx.$executeRaw`
-          UPDATE "UserCredits"
-          SET "usedCredits" = GREATEST(0, "usedCredits" - ${amount})
-          WHERE "userId" = ${userId}
-        `
-      } else if (creditType === 'compatibility') {
+      // reverse-FIFO 인 이유: 가장 최근에 차감된 구매분이 가장 가능성 높음
+      // (FIFO consumption 이라 만료 임박한 쪽부터 줄어드는데, 그 쪽이 곧
+      // 가장 최근 차감과 일치할 확률이 높다). 정확한 추적은 consume 시점에
+      // 풀-별 차감 내역을 별도 테이블에 저장해야 하지만, 그 변경은 별도 PR
+      // 의 큰 작업 — 본 PR 은 "silent drift" 보다 나은 휴리스틱으로 마감.
+      if (creditType === "reading") {
+        let remaining = amount;
+        const now = new Date();
+
+        if (remaining > 0) {
+          // reverse-FIFO: 가장 늦게 만료되는 (== 가장 최근에 추가된) 구매부터.
+          // remaining < amount (= 사용 흔적 있음) AND !expired AND 미래 만료.
+          // select 명시 — schema 신규 컬럼 prod 미적용 환경 P2022 차단.
+          const candidates = await tx.bonusCreditPurchase.findMany({
+            where: {
+              userId,
+              expired: false,
+              expiresAt: { gt: now },
+              // 구매 amount 만큼 다 차 있는 행은 복원할 여지가 없음.
+              // Prisma 는 컬럼 간 비교를 직접 지원하지 않아 client-side 에서
+              // 필터 — N 은 보통 한 자릿수라 비용 문제 없음.
+            },
+            orderBy: { expiresAt: 'desc' },
+            select: { id: true, amount: true, remaining: true },
+          });
+
+          for (const purchase of candidates) {
+            if (remaining <= 0) break;
+            const capacity = purchase.amount - purchase.remaining;
+            if (capacity <= 0) continue;
+
+            const restore = Math.min(capacity, remaining);
+            // 조건부 update — 동시 환불 race 에서 amount 를 초과해 복원하지
+            // 못하도록 (현재 remaining + restore <= amount) guard.
+            // remaining 이 그 사이 누가 더 줄였어도 OK (capacity 증가).
+            const upd = await tx.bonusCreditPurchase.updateMany({
+              where: {
+                id: purchase.id,
+                // remaining 이 그 사이 amount - restore 보다 더 작아야 restore
+                // 가능. 즉 remaining <= amount - restore. Prisma 가 컬럼 비교를
+                // 직접 못해서 절대값 비교로 가드.
+                remaining: { lte: purchase.amount - restore },
+                expired: false,
+              },
+              data: { remaining: { increment: restore } },
+            });
+
+            if (upd.count > 0) {
+              remaining -= restore;
+              // UserCredits.bonusCredits 도 동기 증가 — invariant 유지.
+              await tx.userCredits.update({
+                where: { userId },
+                data: { bonusCredits: { increment: restore } },
+              });
+            }
+          }
+        }
+
+        // 남은 분은 usedCredits 감소로 fallback — GREATEST 패턴은 raw SQL 로.
+        if (remaining > 0) {
+          await tx.$executeRaw`
+            UPDATE "UserCredits"
+            SET "usedCredits" = GREATEST(0, "usedCredits" - ${remaining})
+            WHERE "userId" = ${userId}
+          `;
+        }
+      } else if (creditType === "compatibility") {
+        // compatibility 사용량 감소 (atomic floor 0)
         await tx.$executeRaw`
           UPDATE "UserCredits"
           SET "compatibilityUsed" = GREATEST(0, "compatibilityUsed" - ${amount})
           WHERE "userId" = ${userId}
-        `
-      } else if (creditType === 'followUp') {
+        `;
+      } else if (creditType === "followUp") {
+        // followUp 사용량 감소 (atomic floor 0)
         await tx.$executeRaw`
           UPDATE "UserCredits"
           SET "followUpUsed" = GREATEST(0, "followUpUsed" - ${amount})
           WHERE "userId" = ${userId}
-        `
+        `;
       }
 
       // 3. 환불 로그 기록
@@ -99,10 +144,10 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
           apiRoute,
           errorMessage: errorMessage?.substring(0, 500), // 최대 500자
           transactionId,
-          metadata: metadataJson,
+          metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : {},
         },
-      })
-    })
+      });
+    });
 
     logger.info('[CreditRefund] Success', {
       userId,
@@ -110,13 +155,13 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
       amount,
       reason,
       apiRoute,
-    })
+    });
 
-    return true
+    return true;
   } catch (error) {
-    logger.error('[CreditRefund] Failed', { error })
+    logger.error('[CreditRefund] Failed', { error });
     // 환불 실패는 치명적이므로 에러를 다시 던짐
-    throw error
+    throw error;
   }
 }
 
@@ -126,15 +171,15 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
 export async function getCreditRefundHistory(
   userId: string,
   options: {
-    creditType?: 'reading' | 'compatibility' | 'followUp'
-    limit?: number
-    offset?: number
+    creditType?: "reading" | "compatibility" | "followUp";
+    limit?: number;
+    offset?: number;
   } = {}
 ): Promise<unknown[]> {
-  const where: Record<string, unknown> = { userId }
+  const where: Record<string, unknown> = { userId };
 
   if (options.creditType) {
-    where.creditType = options.creditType
+    where.creditType = options.creditType;
   }
 
   return prisma.creditRefundLog.findMany({
@@ -142,7 +187,7 @@ export async function getCreditRefundHistory(
     orderBy: { createdAt: 'desc' },
     take: options.limit || 50,
     skip: options.offset || 0,
-  })
+  });
 }
 
 /**
@@ -153,19 +198,19 @@ export async function getRefundStatsByRoute(
   startDate?: Date,
   endDate?: Date
 ): Promise<{
-  totalRefunds: number
-  totalAmount: number
-  byType: Record<string, number>
+  totalRefunds: number;
+  totalAmount: number;
+  byType: Record<string, number>;
 }> {
-  const where: Record<string, unknown> = { apiRoute }
+  const where: Record<string, unknown> = { apiRoute };
 
   if (startDate || endDate) {
-    where.createdAt = {}
+    where.createdAt = {};
     if (startDate) {
-      ;(where.createdAt as Record<string, unknown>).gte = startDate
+      (where.createdAt as Record<string, unknown>).gte = startDate;
     }
     if (endDate) {
-      ;(where.createdAt as Record<string, unknown>).lte = endDate
+      (where.createdAt as Record<string, unknown>).lte = endDate;
     }
   }
 
@@ -175,24 +220,24 @@ export async function getRefundStatsByRoute(
       amount: true,
       creditType: true,
     },
-  })
+  });
 
   const byType: Record<string, number> = {
     reading: 0,
     compatibility: 0,
     followUp: 0,
-  }
+  };
 
-  let totalAmount = 0
+  let totalAmount = 0;
 
   for (const refund of refunds) {
-    totalAmount += refund.amount
-    byType[refund.creditType] = (byType[refund.creditType] || 0) + refund.amount
+    totalAmount += refund.amount;
+    byType[refund.creditType] = (byType[refund.creditType] || 0) + refund.amount;
   }
 
   return {
     totalRefunds: refunds.length,
     totalAmount,
     byType,
-  }
+  };
 }

@@ -346,6 +346,78 @@ async function consumeBonusCreditsFromPurchasesInTx(
   return totalConsumed
 }
 
+/**
+ * 트랜잭션 내에서 보너스 1 개를 FIFO 로 차감 — `BonusCreditPurchase.remaining`
+ * 과 `UserCredits.bonusCredits` 를 함께 줄여 시스템 전체 invariant
+ * (sum(remaining where !expired) == UserCredits.bonusCredits) 를 유지한다.
+ *
+ * 그동안 couple-reading 등 일부 라우트가 자체 트랜잭션 안에서
+ * `userCredits.bonusCredits` 만 줄이고 `BonusCreditPurchase.remaining` 은
+ * 손대지 않아, 다음 차례에 `consumeBonusCreditsFromPurchasesInTx` 가 도는
+ * 순간 "remaining 합 > 실제 보너스" 가 되어 over-grant 가 발생했다.
+ * (FIFO drift.)
+ *
+ * 사용 패턴:
+ *   const consumed = await consumeBonusCreditOnceInTx(tx, userId)
+ *   if (consumed) charged = 'bonus'
+ *
+ * `consumeCredits` 와 달리 1 unit 단위로만 동작하고, 라우트가 자체 분기
+ * (compat limit 등) 후 fallback 으로 호출하기 쉬운 형태로 단순화. 차감
+ * 성공 시 true.
+ */
+export async function consumeBonusCreditOnceInTx(
+  tx: Prisma.TransactionClient,
+  userId: string
+): Promise<boolean> {
+  const now = new Date()
+  // 만료 임박한 것 먼저 → FIFO + 만료 우선 (consumeBonusCreditsFromPurchases
+  // 와 동일 ordering).
+  const purchase = await tx.bonusCreditPurchase.findFirst({
+    where: {
+      userId,
+      expired: false,
+      remaining: { gt: 0 },
+      expiresAt: { gt: now },
+    },
+    orderBy: [{ expiresAt: 'asc' }, { createdAt: 'asc' }],
+    select: { id: true },
+  })
+
+  if (!purchase) {
+    // 매칭 purchase 가 없으면 UserCredits.bonusCredits 만 줄이는 건 invariant
+    // 를 더 어그러뜨릴 뿐이라 호출자가 다른 경로로 fallback 하도록 false.
+    return false
+  }
+
+  // 조건부 update — 동시 차감 race 에서 0 으로 내려가지 않도록 remaining > 0
+  // guard. 두 update 모두 같은 트랜잭션 안.
+  const purchaseUpdate = await tx.bonusCreditPurchase.updateMany({
+    where: { id: purchase.id, remaining: { gt: 0 } },
+    data: { remaining: { decrement: 1 } },
+  })
+
+  if (purchaseUpdate.count === 0) {
+    // race 로 다른 트랜잭션이 0 으로 내림 — 호출자가 retry / fallback.
+    return false
+  }
+
+  const userUpdate = await tx.userCredits.updateMany({
+    where: { userId, bonusCredits: { gt: 0 } },
+    data: { bonusCredits: { decrement: 1 } },
+  })
+
+  if (userUpdate.count === 0) {
+    // UserCredits.bonusCredits 가 이미 0 — 위에서 purchase 만 줄였으니
+    // 트랜잭션 롤백을 일으켜 정합성을 지킨다. (호출자는 catch 해서 다른
+    // 경로로 fallback 하거나 INSUFFICIENT 으로 응답.)
+    throw new Error(
+      'consumeBonusCreditOnceInTx: UserCredits.bonusCredits already 0 (FIFO drift)'
+    )
+  }
+
+  return true
+}
+
 // 기간 갱신 (cron / 만료 진입 시) — 크레딧 전용이라 월간 충전은 없다.
 // 구매 크레딧(bonusCredits)은 자체 3개월 만료로 별도 관리되므로 여기서는
 // 기간만 다음 달로 넘겨 getUserCredits 의 리셋 루프만 방지한다(잔액 보존).
