@@ -3,7 +3,7 @@
     "ko": {
       "name": "1하우스 (Ascendant / 어센던트)",
       "domain": "자아·외모·첫인상·신체",
-      "meaning": "당신이 세상에 첫 발을 내딛는 문(門). 사람들이 당신을 처음 만날 때 느끼는 분위기, 외모, 말투, 걸음걸이 같은 '겉으로 드러나는 나'의 영역이에요. 또 몸 그 자체와 자기 정체성을 다루는 자리이기도 합니다. 앵글 하우스 중 가장 강력한 자리로, 평생에 걸쳐 '나는 누구인가'에 대한 답이 자라는 곳이에요.",
+      "meaning": "당신이 세상에 첫 발을 내딛는 문(門). 사람들이 당신을 처음 만날 때 느끼는 분위기, 외모, 말투, 걸음걸이 같은 '겉으로 드러나는 나'의 영역이에요. 또 몸 그 자체와 자기 정체성을 다루는 자리이기도 합니다. 앵글 하우스(cardinal · 시작) 중 가장 강력한 자리로, 새로운 '나'의 사이클을 여는 출발점이자, 평생에 걸쳐 '나는 누구인가'에 대한 답이 자라는 곳이에요.",
       "planet_in": "1하우스에 행성이 있으면 그 행성이 당신의 인상과 성격을 강하게 물들여요. 사람들이 당신을 떠올릴 때 자연스럽게 그 행성의 색이 먼저 보입니다. 행성의 에너지가 '나'와 거의 한 몸처럼 작동해요.",
       "empty": "1하우스가 비어있다고 해서 자아가 약한 건 아니에요. 단지 자아 표현이 조용한 편이거나, 어센던트 사인(자리)과 어센던트 룰러(지배 행성)가 위치한 다른 하우스에서 정체성의 무게가 더 잡힐 수 있습니다.",
       "keywords": ["자아", "외모", "첫인상", "신체", "정체성"]
@@ -11,7 +11,7 @@
     "en": {
       "name": "1st House (Ascendant)",
       "domain": "Self · appearance · first impression · body",
-      "meaning": "The doorway through which you step into the world. It governs how others first see you — your looks, vibe, way of speaking, even how you walk. It also rules the physical body and your core sense of 'I am.' As an angular house, it's one of the strongest places in the chart; your lifelong answer to 'who am I?' grows here.",
+      "meaning": "The doorway through which you step into the world. It governs how others first see you — your looks, vibe, way of speaking, even how you walk. It also rules the physical body and your core sense of 'I am.' As an angular house (cardinal · initiating), it's one of the strongest places in the chart — the launch point of a new 'I,' where your lifelong answer to 'who am I?' grows.",
       "planet_in": "A planet here strongly colors your personality and the impression you give off. People feel that planet's energy almost the moment they meet you — it fuses with your sense of self.",
       "empty": "An empty 1st house doesn't mean a weak self. Your identity simply shows up more quietly through this door — look to your Ascendant sign and to the house where your chart ruler lives for where your selfhood is really being built.",
       "keywords": ["self", "appearance", "first impression", "body", "identity"]
@@ -57,7 +57,7 @@
     "ko": {
       "name": "4하우스 (IC / 천저)",
       "domain": "가정·뿌리·부모·내면의 안식처",
-      "meaning": "차트의 가장 깊고 사적인 자리. 내가 어디에서 왔는가 — 가족, 어린 시절의 집, 부모(특히 양육적 부모상), 조상, 문화적 뿌리가 모이는 곳이에요. 동시에 '편안함이란 무엇인가'에 대한 마음 깊은 곳의 정의가 여기 있어요. 앵글 하우스라 인생 전체에 영향이 강하게 갑니다.",
+      "meaning": "차트의 가장 깊고 사적인 자리. 내가 어디에서 왔는가 — 가족, 어린 시절의 집, 부모(특히 양육적 부모상), 조상, 문화적 뿌리가 모이는 곳이에요. 동시에 '편안함이란 무엇인가'에 대한 마음 깊은 곳의 정의가 여기 있어요. 앵글 하우스(cardinal · 시작)라서 정서적 뿌리가 새로 내려지는 자리이고, 인생 전체에 영향이 강하게 갑니다.",
       "planet_in": "4하우스 행성은 어린 시절 가족 분위기, 집의 의미, 정서적 안전감의 색을 결정해요. 사적인 영역에서 그 행성의 에너지가 가장 활발하게 작동합니다.",
       "empty": "4하우스가 비었다고 가정사가 단순한 건 아니에요. 단지 '집·뿌리' 주제가 외향적 드라마로 드러나지 않을 뿐이고, 4하우스 사인의 룰러가 있는 곳이 정서적 뿌리의 진짜 무대예요.",
       "keywords": ["가정", "뿌리", "부모", "안식처", "내면"]
@@ -65,7 +65,7 @@
     "en": {
       "name": "4th House (IC)",
       "domain": "Home · roots · parents · inner sanctuary",
-      "meaning": "The deepest, most private corner of the chart. Where you come from — family, the childhood home, your parents (especially the nurturing parent), ancestors, cultural roots — all live here. So does your gut-level definition of 'safe' and 'home.' As an angular house, what happens here echoes through your whole life.",
+      "meaning": "The deepest, most private corner of the chart. Where you come from — family, the childhood home, your parents (especially the nurturing parent), ancestors, cultural roots — all live here. So does your gut-level definition of 'safe' and 'home.' As an angular house (cardinal · initiating), it's where emotional roots are newly set down — and what happens here echoes through your whole life.",
       "planet_in": "A planet here colors the emotional atmosphere of your early home, what 'family' means to you, and where you feel safest. Its energy is most alive in your private life.",
       "empty": "An empty 4th house doesn't mean a simple family history. It means home and roots aren't the loudest theme on the surface — the ruler of this house's cusp shows where your real emotional foundation is built.",
       "keywords": ["home", "roots", "parents", "sanctuary", "inner life"]
@@ -111,7 +111,7 @@
     "ko": {
       "name": "7하우스 (Descendant / 디센던트)",
       "domain": "1:1 관계·파트너십·결혼·계약",
-      "meaning": "1하우스의 '나'와 정확히 마주 서는 자리, 즉 '너'의 영역. 결혼·연애 파트너, 사업 파트너, 공식 계약 관계, 심지어 공개적인 적까지 — 1:1로 마주 보는 모든 관계가 여기 살아요. 흥미롭게도 우리는 이 자리에서 자기 안에 부정한 모습을 상대를 통해 발견하기도 해요. 앵글 하우스라 영향력이 큽니다.",
+      "meaning": "1하우스의 '나'와 정확히 마주 서는 자리, 즉 '너'의 영역. 결혼·연애 파트너, 사업 파트너, 공식 계약 관계, 심지어 공개적인 적까지 — 1:1로 마주 보는 모든 관계가 여기 살아요. 흥미롭게도 우리는 이 자리에서 자기 안에 부정한 모습을 상대를 통해 발견하기도 해요. 앵글 하우스(cardinal · 시작)라서 '너'와 만나는 순간이 새로운 관계 사이클의 출발이 되고, 영향력이 큽니다.",
       "planet_in": "7하우스 행성은 어떤 파트너에게 끌리는지, 관계 안에서 어떤 패턴이 반복되는지를 보여줘요. 그 행성의 에너지를 상대를 통해 만나거나, 상대에게서 발견하는 경우가 많습니다.",
       "empty": "7하우스가 비어있다고 인연이 없거나 결혼을 못 한다는 뜻이 절대 아니에요. 단지 관계가 자아 정체성의 핵심 드라마는 아닐 수 있고, 7하우스 룰러가 있는 곳에서 파트너십이 실제로 형성됩니다.",
       "keywords": ["파트너십", "결혼", "1:1관계", "계약", "타인"]
@@ -119,7 +119,7 @@
     "en": {
       "name": "7th House (Descendant)",
       "domain": "One-to-one relationships · partnership · marriage · contracts",
-      "meaning": "Directly across from the 1st house: the place of 'you' that meets your 'I.' Marriage and romantic partners, business partners, formal contracts, even open enemies — every face-to-face relationship lives here. Interestingly, we often meet parts of ourselves we haven't claimed through the partners we attract. An angular house, so it carries strong weight.",
+      "meaning": "Directly across from the 1st house: the place of 'you' that meets your 'I.' Marriage and romantic partners, business partners, formal contracts, even open enemies — every face-to-face relationship lives here. Interestingly, we often meet parts of ourselves we haven't claimed through the partners we attract. An angular house (cardinal · initiating), so meeting 'you' launches a new relational cycle — it carries strong weight.",
       "planet_in": "A planet here shows what kind of partner you're drawn to and the patterns that repeat in close relationships. You often meet that planet's energy through the other person — or discover it in them.",
       "empty": "An empty 7th house absolutely does not mean you won't find a partner or marry. It just means relationships aren't the central drama of your identity — and the ruler of this house's cusp shows where partnership actually shows up.",
       "keywords": ["partnership", "marriage", "one-to-one", "contracts", "the other"]
@@ -165,7 +165,7 @@
     "ko": {
       "name": "10하우스 (MC / 천정)",
       "domain": "커리어·사회적 위치·평판·공적 자아",
-      "meaning": "차트에서 가장 높이 보이는 자리. 사람들이 '저 사람은 무엇 하는 사람'이라고 알아보는 공적 정체성, 직업, 사회적 지위, 평판, 그리고 인생의 큰 방향과 야망이 여기 있어요. 부모 중 사회적 인물(전통적으로 아버지상)도 여기서 다뤄져요. 앵글 하우스라 영향력이 매우 큽니다.",
+      "meaning": "차트에서 가장 높이 보이는 자리. 사람들이 '저 사람은 무엇 하는 사람'이라고 알아보는 공적 정체성, 직업, 사회적 지위, 평판, 그리고 인생의 큰 방향과 야망이 여기 있어요. 부모 중 사회적 인물(전통적으로 아버지상)도 여기서 다뤄져요. 앵글 하우스(cardinal · 시작)라서 새로운 사회적 위치와 방향을 여는 자리이고, 영향력이 매우 큽니다.",
       "planet_in": "10하우스 행성은 당신의 커리어 스타일, 세상에서 알려지는 방식, 야망의 방향을 그 행성의 성격으로 물들여요. 그 행성이 사회 무대 위에서 가장 잘 보입니다.",
       "empty": "10하우스가 비었다고 커리어가 없거나 성공 못 한다는 뜻이 절대 아니에요. 단지 사회적 정체성이 자아 드라마의 1순위는 아닐 수 있고, 10하우스 룰러가 있는 곳이 진짜 커리어의 무대예요.",
       "keywords": ["커리어", "사회적 위치", "평판", "야망", "공적 자아"]
@@ -173,7 +173,7 @@
     "en": {
       "name": "10th House (MC / Midheaven)",
       "domain": "Career · public standing · reputation · public self",
-      "meaning": "The highest, most visible point of the chart. The public identity people recognize as 'that's what they do' — your career, social standing, reputation, and the bigger ambitions and direction of your life all live here. Traditionally also the parent who plays a public-facing role. An angular house, so it carries enormous weight.",
+      "meaning": "The highest, most visible point of the chart. The public identity people recognize as 'that's what they do' — your career, social standing, reputation, and the bigger ambitions and direction of your life all live here. Traditionally also the parent who plays a public-facing role. An angular house (cardinal · initiating) — the place where a new public standing and direction get launched — so it carries enormous weight.",
       "planet_in": "A planet here colors how you build a career, how you're seen out in the world, and where your ambition pulls you. That planet is most visible on the public stage.",
       "empty": "An empty 10th house absolutely does not mean no career or no success. Your public identity just isn't the top drama of selfhood — and the ruler of this house's cusp shows where the real career stage is.",
       "keywords": ["career", "public standing", "reputation", "ambition", "public self"]
