@@ -11,6 +11,22 @@ import hanjaData from './hanja-rich.json';
 
 export type Lang = 'ko' | 'en';
 
+// ── Categorical unions (typo guard + IDE autocomplete) ──────────────────────
+export type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성';
+export type RelationCategory =
+  | '천간합'
+  | '천간충'
+  | '지지육합'
+  | '지지삼합'
+  | '지지방합'
+  | '지지충'
+  | '지지형'
+  | '지지파'
+  | '지지해'
+  | '원진';
+export type SajuStrengthCategory = '통근' | '득령' | '득세' | '조후' | '용신' | '기신_구신';
+export type DignityStatus = 'Domicile' | 'Exaltation' | 'Detriment' | 'Fall' | 'Peregrine';
+
 // ── Ilju 60 ─────────────────────────────────────────────────────────────────
 export interface IljuLangEntry {
   character: string;
@@ -75,7 +91,11 @@ type SibsinMap = Record<string, SibsinCategoryEntry>;
 
 // ── Saju strength (통근/득령/득세/조후/용신/기신_구신) ──────────────────────
 // Sub-keys vary per category, so model as flexible record of unknown leaf.
-export type SajuStrengthLeaf = string | string[] | Record<string, string> | { label?: string; explain?: string };
+export type SajuStrengthLeaf =
+  | string
+  | string[]
+  | Record<string, string>
+  | { label?: string; explain?: string };
 export interface SajuStrengthLangEntry {
   meaning: string;
   advice?: string;
@@ -88,12 +108,25 @@ export interface SajuStrengthEntry {
 type SajuStrengthMap = Record<string, SajuStrengthEntry>;
 
 // ── Astro dignity ───────────────────────────────────────────────────────────
-export interface AstroDignityEntry {
+// Each entry has bilingual `ko`/`en` strings and optional `sign` (Peregrine has none).
+// Outer planet records additionally hold a `note: {ko,en}` explaining schema
+// asymmetry — it sits at the same nesting level as dignity entries.
+export interface AstroDignityRawEntry {
   sign?: string;
   ko: string;
   en: string;
 }
-type AstroDignityMap = Record<string, Record<string, AstroDignityEntry | string>>;
+export interface AstroDignityNoteEntry {
+  ko: string;
+  en: string;
+}
+type AstroDignityValue = AstroDignityRawEntry | AstroDignityNoteEntry;
+type AstroDignityMap = Record<string, Record<string, AstroDignityValue>>;
+/** Result returned to chart UI — sign optional, lang-resolved text. */
+export interface DignityResult {
+  sign?: string;
+  text: string;
+}
 
 // ── Astro aspect ────────────────────────────────────────────────────────────
 export interface AspectLangEntry {
@@ -191,7 +224,11 @@ export function getIljuArchetype(ganji: string, lang: Lang): IljuLangEntry | nul
   return ilju[ganji]?.[lang] ?? null;
 }
 
-export function getRelationMeaning(category: string, pair: string, lang: Lang): RelationLangEntry | null {
+export function getRelationMeaning(
+  category: RelationCategory,
+  pair: string,
+  lang: Lang
+): RelationLangEntry | null {
   return relations[category]?.[pair]?.[lang] ?? null;
 }
 
@@ -199,28 +236,57 @@ export function getGeokgukRich(name: string, lang: Lang): GeokgukLangEntry | nul
   return geokguk[name]?.[lang] ?? null;
 }
 
-export function getSibsinCategory(category: string, state: SibsinState, lang: Lang): SibsinStateBlock | null {
+export function getSibsinCategory(
+  category: SibsinCategory,
+  state: SibsinState,
+  lang: Lang
+): SibsinStateBlock | null {
   return sibsin[category]?.[lang]?.[state] ?? null;
 }
 
-export function getSibsinCategoryMeaning(category: string, lang: Lang): string | null {
+export function getSibsinCategoryMeaning(category: SibsinCategory, lang: Lang): string | null {
   return sibsin[category]?.[lang]?.category_meaning ?? null;
 }
 
-export function getSajuStrengthMeaning(category: string, key: string, lang: Lang): SajuStrengthLeaf | null {
+export function getSajuStrengthMeaning(
+  category: SajuStrengthCategory,
+  key: string,
+  lang: Lang
+): SajuStrengthLeaf | null {
   const entry = sajuStrength[category]?.[lang];
   if (!entry) return null;
-  const value = entry[key];
-  return value ?? null;
+  return entry[key] ?? null;
 }
 
-export function getAstroDignity(planet: string, status: string, lang: Lang): AstroDignityEntry | null {
+/**
+ * 행성×위신 의미 — sign(있으면) + 언어 텍스트.
+ * 외행성(Uranus/Neptune/Pluto) 의 `note` 키는 dignity 가 아니므로 거름 →
+ * `getDignityNote()` 별도 사용.
+ */
+export function getAstroDignity(
+  planet: string,
+  status: DignityStatus,
+  lang: Lang
+): DignityResult | null {
   const value = astroDignity[planet]?.[status];
-  if (!value || typeof value === 'string') return null;
-  return value;
+  if (!value || !('ko' in value)) return null;
+  // Both AstroDignityRawEntry and AstroDignityNoteEntry have ko/en;
+  // narrow by status being a known DignityStatus (already constrained by param type).
+  const sign = 'sign' in value ? value.sign : undefined;
+  return { sign, text: value[lang] };
 }
 
-export function getAspectMeaning(name: string, lang: Lang): (AspectLangEntry & { angle: number }) | null {
+/** 외행성 dignity 비대칭 설명 note — Uranus/Neptune/Pluto 만 존재. */
+export function getDignityNote(planet: 'Uranus' | 'Neptune' | 'Pluto', lang: Lang): string | null {
+  const value = astroDignity[planet]?.note;
+  if (!value || !('ko' in value)) return null;
+  return value[lang];
+}
+
+export function getAspectMeaning(
+  name: string,
+  lang: Lang
+): (AspectLangEntry & { angle: number }) | null {
   const entry = astroAspect[name];
   if (!entry) return null;
   return { angle: entry.angle, ...entry[lang] };
