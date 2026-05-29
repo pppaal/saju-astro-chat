@@ -11,7 +11,7 @@ import type { I18nMessages } from '@/i18n/utils'
 import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
-import HomeChatInput, { type HomeServiceId } from './components/HomeChatInput'
+import HomeChatInput from './components/HomeChatInput'
 import BirthInfoModal from './components/BirthInfoModal'
 import {
   getStoredBirthInfo,
@@ -51,9 +51,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [birthModalOpen, setBirthModalOpen] = useState(false)
   const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
-  // 생일 없이 궁합·운명상담사를 고르면 그 의도를 여기 담아두고, 생일 저장
-  // 직후 해당 서비스로 이동시킨다.
-  const pendingServiceRef = useRef<{ service: HomeServiceId; question: string } | null>(null)
+  // 생일 없이 운명상담사 질문을 던졌으면 그 질문을 여기 담아두고, 생일 저장
+  // 직후 운명상담사로 이동시킨다. (메인 = 운명상담사 한 흐름이라 service 분기 X)
+  const pendingQuestionRef = useRef<string | null>(null)
   // Whether birth info was entered during THIS tab session — drives the
   // premium-white surface (see HOME_WHITE_SESSION_KEY).
   const [birthEnteredThisSession, setBirthEnteredThisSession] = useState(false)
@@ -177,22 +177,22 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     }
   }, [isAuthed])
 
-  // 생일 없이 궁합·운명상담사를 고른 경우 — 의도를 기억하고 모달을 띄운다.
-  const handleRequireBirth = (service: HomeServiceId, question: string) => {
-    pendingServiceRef.current = { service, question }
+  // 생일 없이 운명상담사 질문을 던진 경우 — 질문을 기억하고 생일 모달을 띄운다.
+  const handleRequireBirth = (question: string) => {
+    pendingQuestionRef.current = question
     setBirthModalOpen(true)
   }
 
   // 입력/수정용으로 생일 모달만 열기 — 저장 후 자동 이동 없이 메인에 머문다.
   const handleOpenBirth = () => {
-    pendingServiceRef.current = null
+    pendingQuestionRef.current = null
     setBirthModalOpen(true)
   }
 
-  // 저장된 생년월일 삭제 — 상태를 비우고 모달을 닫는다. 대기 중이던 서비스
-  // 이동 의도도 취소(생일이 없어졌으니 이동할 수 없음).
+  // 저장된 생년월일 삭제 — 상태를 비우고 모달을 닫는다. 대기 중이던 질문도
+  // 취소(생일이 없어졌으니 이동할 수 없음).
   const handleDeleted = () => {
-    pendingServiceRef.current = null
+    pendingQuestionRef.current = null
     setBirthInfo(null)
     setBirthModalOpen(false)
   }
@@ -210,20 +210,13 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
       // sessionStorage can throw (private mode / blocked) — non-fatal.
     }
 
-    // 생일 입력이 어떤 서비스 선택에서 시작됐다면, 방금 저장한 정보로
-    // 그 서비스로 바로 이동한다.
-    const pending = pendingServiceRef.current
-    pendingServiceRef.current = null
-    if (pending) {
-      if (pending.service === 'compatibility') {
-        router.push('/compatibility')
-        return
-      }
-      if (pending.service === 'destinyMap') {
-        // 채팅 페이지로 직행 — 질문이 그대로 전달돼 자동으로 답변이 생성된다.
-        router.push(buildCounselorHref(info, pending.question, locale))
-        return
-      }
+    // 생일 입력이 운명상담사 질문에서 시작됐다면, 방금 저장한 정보 + 그 질문
+    // 으로 채팅 페이지에 직행 — 질문이 그대로 전달돼 자동으로 답변이 생성됨.
+    const pendingQuestion = pendingQuestionRef.current
+    pendingQuestionRef.current = null
+    if (pendingQuestion !== null) {
+      router.push(buildCounselorHref(info, pendingQuestion, locale))
+      return
     }
 
     const sp = new URLSearchParams(window.location.search)
