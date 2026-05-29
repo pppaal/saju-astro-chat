@@ -183,6 +183,12 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     setBirthModalOpen(true)
   }
 
+  // 입력/수정용으로 생일 모달만 열기 — 저장 후 자동 이동 없이 메인에 머문다.
+  const handleOpenBirth = () => {
+    pendingServiceRef.current = null
+    setBirthModalOpen(true)
+  }
+
   const handleSaved = (info: StoredBirthInfo) => {
     setBirthInfo(info)
     setBirthModalOpen(false)
@@ -316,7 +322,12 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           </p>
         </section>
 
-        <HomeChatInput birthInfo={birthInfo} onRequireBirth={handleRequireBirth} locale={locale} />
+        <HomeChatInput
+          birthInfo={birthInfo}
+          onRequireBirth={handleRequireBirth}
+          onOpenBirth={handleOpenBirth}
+          locale={locale}
+        />
       </div>
 
       <MenuDrawerPanel

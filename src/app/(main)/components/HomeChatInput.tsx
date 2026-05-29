@@ -14,6 +14,9 @@ interface HomeChatInputProps {
   // 생일이 필요한 서비스(궁합·운명상담사)를 생일 없이 골랐을 때 호출 —
   // 부모가 생일 모달을 띄우고, 저장되면 그 서비스로 이동시킨다.
   onRequireBirth: (service: HomeServiceId, question: string) => void
+  // 그냥 생일 모달만 열기 — 입력/수정용(자동 이동 없음). 초록 CTA 탭,
+  // 또는 질문 없이 엔터쳤을 때.
+  onOpenBirth: () => void
   locale: 'en' | 'ko'
 }
 
@@ -51,18 +54,26 @@ const SERVICES: ReadonlyArray<{
   { id: 'calendar', icon: '🗓️', ko: '일·월·년 운세', en: 'Fortune Calendar' },
 ]
 
-export default function HomeChatInput({ birthInfo, onRequireBirth, locale }: HomeChatInputProps) {
+export default function HomeChatInput({
+  birthInfo,
+  onRequireBirth,
+  onOpenBirth,
+  locale,
+}: HomeChatInputProps) {
   const router = useRouter()
   const [text, setText] = useState('')
   const [typedPlaceholder, setTypedPlaceholder] = useState('')
   const isKo = locale === 'ko'
 
-  // 타이핑한 질문은 운명 상담사로 직행 — 4개 서비스 중 자유 입력을 쓰는 건
-  // 운명 상담사뿐이라 엔터/↑ 의 기본 행선지로 삼는다. 생일이 없으면 모달 먼저.
+  // 엔터/↑ 의 행선지. 자유 입력을 쓰는 건 운명 상담사뿐이라 기본 행선지로 삼는다.
+  // - 생일 있음 → 바로 운명 상담사(질문 전달)
+  // - 생일 없고 질문 있음 → 생일창 먼저, 저장하면 그 질문 들고 운명 상담사
+  // - 생일 없고 질문 비었음 → 생일창만 열고(자동 이동 X), 사용자가 아래 칩에서 선택
   const goCounselor = () => {
     const trimmed = text.trim()
     if (!birthInfo) {
-      onRequireBirth('destinyMap', trimmed)
+      if (trimmed) onRequireBirth('destinyMap', trimmed)
+      else onOpenBirth()
       return
     }
     const query = buildBirthQuery(birthInfo)
@@ -160,11 +171,23 @@ export default function HomeChatInput({ birthInfo, onRequireBirth, locale }: Hom
   return (
     <div className={styles.homeChatBar}>
       <div className={styles.homeChatBarInner}>
-        {birthInfo && (
-          <span className={styles.homeBirthChip} aria-live="polite">
+        {/* 초록 생일 CTA — 출발점이 생일임을 보여주고, 저장된 뒤엔 수정 버튼이 된다. */}
+        {birthInfo ? (
+          <button
+            type="button"
+            className={styles.homeBirthChip}
+            onClick={onOpenBirth}
+            aria-label={isKo ? '생년월일 정보 수정' : 'Edit birth info'}
+          >
             ✓ {isKo ? '분석에 사용' : 'Reading for'}: {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
             {birthInfo.gender === 'male' ? (isKo ? '남성' : 'Male') : isKo ? '여성' : 'Female'}
-          </span>
+            <span className={styles.homeBirthChipEdit}>{isKo ? '수정' : 'Edit'}</span>
+          </button>
+        ) : (
+          <button type="button" className={styles.homeBirthCta} onClick={onOpenBirth}>
+            <span aria-hidden="true">📅</span>
+            {isKo ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth date'}
+          </button>
         )}
 
         <div className={styles.homeChatRow}>
