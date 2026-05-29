@@ -8,10 +8,13 @@ interface PlanetInput {
   longitude: number
 }
 
-/** 행성 간 aspect — /api/astrology aspects 응답 shape. */
+/**
+ * 행성 간 aspect — /api/astrology 의 AspectHit shape (foundation/types.ts).
+ * codebase 전반에서 `from.name` / `to.name` 으로 접근 — 그 convention 유지.
+ */
 interface AspectInput {
-  p1: string
-  p2: string
+  from: { name: string }
+  to: { name: string }
   type: string
   orb?: number
 }
@@ -113,6 +116,14 @@ const ASPECT_STYLE: Record<
   quincunx: { stroke: '#fbbf24', strokeWidth: 0.8, strokeDasharray: '2 3', opacity: 0.7 },
 }
 
+/** ASPECT_STYLE 에 없는 마이너 aspect (semi-sextile/semi-square/...) 기본 — 가늘고 흐릿. */
+const MINOR_ASPECT_STYLE = {
+  stroke: '#64748b',
+  strokeWidth: 0.5,
+  strokeDasharray: '1 2',
+  opacity: 0.35,
+}
+
 const SIGN_NAMES = [
   'Aries',
   'Taurus',
@@ -127,11 +138,6 @@ const SIGN_NAMES = [
   'Aquarius',
   'Pisces',
 ] as const
-
-function signOf(longitude: number): string {
-  const lon = ((longitude % 360) + 360) % 360
-  return SIGN_NAMES[Math.floor(lon / 30)]
-}
 
 export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
   const isKo = lang === 'ko'
@@ -258,18 +264,22 @@ export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
         {aspectList.length > 0 && (
           <g aria-hidden="true">
             {aspectList.map((asp, i) => {
-              const p1 = visible.find((x) => x.name === asp.p1)
-              const p2 = visible.find((x) => x.name === asp.p2)
+              const p1Name = asp.from?.name
+              const p2Name = asp.to?.name
+              if (!p1Name || !p2Name) return null
+              const p1 = visible.find((x) => x.name === p1Name)
+              const p2 = visible.find((x) => x.name === p2Name)
               if (!p1 || !p2) return null
-              const style = ASPECT_STYLE[asp.type]
-              if (!style) return null
-              // 라인 endpoint 는 planet radius 보다 약간 안쪽에 둬 glyph 와 안 겹침.
-              const r = 44
-              const pos1 = pt(r, screenDeg(p1.longitude, asc))
-              const pos2 = pt(r, screenDeg(p2.longitude, asc))
+              const style = ASPECT_STYLE[asp.type] ?? MINOR_ASPECT_STYLE
+              // 라인 endpoint 가 planet glyph 와 만나도록 각 glyph radius - 4 사용.
+              // 글리프 stagger (50 / 63) 에 따라 자연스럽게 연결됨.
+              const r1 = radiusOf(p1.name) - 4
+              const r2 = radiusOf(p2.name) - 4
+              const pos1 = pt(r1, screenDeg(p1.longitude, asc))
+              const pos2 = pt(r2, screenDeg(p2.longitude, asc))
               return (
                 <line
-                  key={`${asp.p1}-${asp.p2}-${asp.type}-${i}`}
+                  key={`${p1Name}-${p2Name}-${asp.type}-${i}`}
                   x1={pos1.x}
                   y1={pos1.y}
                   x2={pos2.x}
@@ -404,6 +414,23 @@ export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
                   />
                   {isKo ? '만남 (합)' : 'union (conjunction)'}
                 </span>
+                <span className="flex items-center gap-1">
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 14,
+                      height: 1.5,
+                      background:
+                        'repeating-linear-gradient(90deg, #fbbf24 0 2px, transparent 2px 5px)',
+                    }}
+                  />
+                  {isKo ? '조정 (퀸컹스 150°)' : 'adjustment (quincunx)'}
+                </span>
+              </div>
+              <div style={{ opacity: 0.65 }}>
+                {isKo
+                  ? '※ 점선 = 긴장·조정 (square·quincunx) / 실선 = 조화·만남'
+                  : '※ dashed = tension / adjustment · solid = harmony / union'}
               </div>
             </div>
           )}
