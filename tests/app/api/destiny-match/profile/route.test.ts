@@ -415,6 +415,14 @@ describe('Profile API - POST', () => {
   })
 
   describe('Validation - Photos', () => {
+    // Use real Vercel Blob style URLs — the validator now requires an
+    // allowed-host https URL (see photoHostAllowlist.ts). Bare strings like
+    // 'photo.jpg' will be rejected as not-a-URL.
+    const VALID_PHOTO =
+      'https://abc.public.blob.vercel-storage.com/profile-photos/u1/1.jpg'
+    const VALID_PHOTO_2 =
+      'https://firebasestorage.googleapis.com/v0/b/bucket/o/2.jpg?alt=media'
+
     beforeEach(() => {
       vi.mocked(prisma.matchProfile.findUnique).mockResolvedValue(null)
       vi.mocked(prisma.personalityResult.findUnique).mockResolvedValue(null)
@@ -434,7 +442,7 @@ describe('Profile API - POST', () => {
     })
 
     it('should reject more than 10 photos', async () => {
-      const photos = Array(11).fill('photo.jpg')
+      const photos = Array(11).fill(VALID_PHOTO)
 
       const request = new NextRequest('http://localhost/api/destiny-match/profile', {
         method: 'POST',
@@ -464,13 +472,13 @@ describe('Profile API - POST', () => {
       expect(response.status).toBe(200)
     })
 
-    it('should accept exactly 10 photos', async () => {
+    it('should accept exactly 10 valid photo URLs', async () => {
       vi.mocked(prisma.matchProfile.create).mockResolvedValue({
         id: 'profile-123',
         userId: mockUserId,
       } as any)
 
-      const photos = Array(10).fill('photo.jpg')
+      const photos = Array(10).fill(VALID_PHOTO)
 
       const request = new NextRequest('http://localhost/api/destiny-match/profile', {
         method: 'POST',
@@ -480,6 +488,126 @@ describe('Profile API - POST', () => {
       const response = await POST(request, { userId: mockUserId } as any)
 
       expect(response.status).toBe(200)
+    })
+
+    // ===== Security regression: host allowlist =====
+
+    it('should accept Vercel Blob + Firebase URLs (allowlisted)', async () => {
+      vi.mocked(prisma.matchProfile.create).mockResolvedValue({
+        id: 'profile-123',
+        userId: mockUserId,
+      } as any)
+
+      const request = new NextRequest('http://localhost/api/destiny-match/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          displayName: 'Test',
+          photos: [VALID_PHOTO, VALID_PHOTO_2],
+        }),
+      })
+
+      const response = await POST(request, { userId: mockUserId } as any)
+      expect(response.status).toBe(200)
+    })
+
+    it('should reject javascript: URL (XSS vector)', async () => {
+      const request = new NextRequest('http://localhost/api/destiny-match/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          displayName: 'Test',
+          photos: ['javascript:alert(1)'],
+        }),
+      })
+
+      const response = await POST(request, { userId: mockUserId } as any)
+      const data = await response.json()
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
+    })
+
+    it('should reject data: URL (XSS vector)', async () => {
+      const request = new NextRequest('http://localhost/api/destiny-match/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          displayName: 'Test',
+          photos: ['data:text/html,<script>alert(1)</script>'],
+        }),
+      })
+
+      const response = await POST(request, { userId: mockUserId } as any)
+      const data = await response.json()
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
+    })
+
+    it('should reject http:// URL (must be https)', async () => {
+      const request = new NextRequest('http://localhost/api/destiny-match/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          displayName: 'Test',
+          photos: ['http://firebasestorage.googleapis.com/x.jpg'],
+        }),
+      })
+
+      const response = await POST(request, { userId: mockUserId } as any)
+      const data = await response.json()
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
+    })
+
+    it('should reject arbitrary attacker host', async () => {
+      const request = new NextRequest('http://localhost/api/destiny-match/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          displayName: 'Test',
+          photos: ['https://attacker.com/payload.jpg'],
+        }),
+      })
+
+      const response = await POST(request, { userId: mockUserId } as any)
+      const data = await response.json()
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
+    })
+
+    it('should reject AWS metadata IP (SSRF)', async () => {
+      const request = new NextRequest('http://localhost/api/destiny-match/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          displayName: 'Test',
+          photos: ['https://169.254.169.254/latest/meta-data/'],
+        }),
+      })
+
+      const response = await POST(request, { userId: mockUserId } as any)
+      const data = await response.json()
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
+    })
+
+    it('should reject ENTIRE array if any single URL is bad (no partial accept)', async () => {
+      // The fix must be all-or-nothing: a mixed array {good, javascript:}
+      // must not save the good one and silently drop the bad one. That
+      // would leave attackers a way to smuggle malicious URLs in alongside
+      // legit ones.
+      const mockCreate = vi.fn()
+      vi.mocked(prisma.matchProfile.create).mockImplementation(mockCreate)
+
+      const request = new NextRequest('http://localhost/api/destiny-match/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          displayName: 'Test',
+          photos: [VALID_PHOTO, 'javascript:alert(1)'],
+        }),
+      })
+
+      const response = await POST(request, { userId: mockUserId } as any)
+      const data = await response.json()
+
+      expect(response.status).toBe(400)
+      expect(data.error).toBe('validation_failed')
+      // Critically, no DB write should have happened.
+      expect(mockCreate).not.toHaveBeenCalled()
     })
   })
 

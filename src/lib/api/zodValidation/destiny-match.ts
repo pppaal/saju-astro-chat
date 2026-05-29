@@ -4,6 +4,25 @@
 
 import { z } from 'zod'
 import { latitudeSchema, longitudeSchema } from './common'
+import { isAllowedPhotoHost } from '../photoHostAllowlist'
+
+// ============ Photo URL Schema ============
+
+// Reusable photo URL schema. Layered checks let validation errors point at
+// the *specific* failure mode (length / shape / scheme / host) instead of a
+// single opaque "invalid photo url". See photoHostAllowlist.ts for rationale
+// — the host check is the load-bearing one against javascript:/data:/SSRF
+// and arbitrary attacker.com URLs.
+export const photoUrlSchema = z
+  .string()
+  .max(500)
+  .url()
+  .refine((url) => url.startsWith('https://'), {
+    message: 'Photo URL must be https',
+  })
+  .refine((url) => isAllowedPhotoHost(url), {
+    message: 'Photo URL host not allowed',
+  })
 
 // ============ Destiny Match Schemas ============
 
@@ -32,7 +51,7 @@ export const destinyMatchProfileSchema = z.object({
   displayName: z.string().min(2).max(64).trim(),
   bio: z.string().max(500).trim().optional().nullable(),
   occupation: z.string().max(100).trim().optional().nullable(),
-  photos: z.array(z.string().max(500)).max(10).optional(),
+  photos: z.array(photoUrlSchema).max(10).optional(),
   city: z.string().max(200).trim().optional().nullable(),
   latitude: latitudeSchema.optional().nullable(),
   longitude: longitudeSchema.optional().nullable(),
