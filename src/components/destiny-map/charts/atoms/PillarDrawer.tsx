@@ -195,24 +195,58 @@ const KIND_TO_CATEGORY: Record<string, RelationCategory> = {
 }
 
 // detail "甲-己 합화토" / "寅-亥 육합" → 키 "甲己" / "寅亥" 시도.
+// dash 문자는 hyphen-minus(-), en-dash(–), em-dash(—), fullwidth hyphen-minus(－) 모두 허용.
+const RELATION_PAIR_RE = /([㐀-鿿])\s*[-–—－]\s*([㐀-鿿])/
 function relationPairKey(detail?: string): string | null {
   if (!detail) return null
-  const m = detail.match(/([㐀-鿿])\s*-\s*([㐀-鿿])/)
+  const m = detail.match(RELATION_PAIR_RE)
   if (!m) return null
   return `${m[1]}${m[2]}`
 }
 
 // ── 컴포넌트 ────────────────────────────────────────────────────────────────
 export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: PillarDrawerProps) {
-  // ESC 키 → close.
+  const closeButtonRef = React.useRef<HTMLButtonElement | null>(null)
+
+  // ESC 키 → close. capture phase 로 listen + stopPropagation 하여
+  // 부모(ChartModal 등) 의 ESC handler 가 동시에 발화하는 것을 막는다.
   React.useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        onClose()
+      }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
   }, [open, onClose])
+
+  // Body scroll lock — drawer 열려 있는 동안 backdrop 뒤 페이지 스크롤 차단.
+  React.useEffect(() => {
+    if (!open) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [open])
+
+  // Initial focus → close 버튼. 닫힐 때 이전 focus 위치 복원.
+  React.useEffect(() => {
+    if (!open) return
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    // 다음 frame 에서 focus — DOM mount 직후 ref 가 attach 되는 것을 보장.
+    const id = window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus()
+    })
+    return () => {
+      window.cancelAnimationFrame(id)
+      if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+        previouslyFocused.focus()
+      }
+    }
+  }, [open])
 
   if (!open) return null
 
@@ -282,6 +316,7 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
             </div>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             aria-label={lang === 'ko' ? '닫기' : 'Close'}

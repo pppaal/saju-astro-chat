@@ -246,7 +246,7 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
               ].map((c, idx) => (
                 <div
                   key={idx}
-                  className={`flex min-h-[88px] w-full flex-col items-center justify-center gap-1 rounded-xl border p-1.5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
+                  className={`flex min-h-[88px] w-full flex-col items-center justify-center gap-1 rounded-xl border p-1.5 shadow-sm ${c.style.bg} ${
                     isMe ? tokens.cellBorderMe : tokens.cellBorderNeutral
                   } ${c.isStem ? '' : 'opacity-95'}`}
                 >

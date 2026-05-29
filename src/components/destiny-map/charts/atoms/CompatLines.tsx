@@ -174,23 +174,93 @@ function lookupRelation(rel: RelLine, lang: 'ko' | 'en'): string | null {
 }
 
 // ── 컴포넌트 ────────────────────────────────────────────────────────────────
+/** A/B side 와 pillar key 를 합쳐 ref 사전 key 로 사용 — 예: 'A-time', 'B-day'. */
+type AnchorKey = `${'A' | 'B'}-${PillarKey}`
+
+interface ContainerSize { width: number; height: number }
+interface Point { x: number; y: number }
+
 export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLinesProps) {
   const a = React.useMemo(() => pillarsOf(sajuA), [sajuA])
   const b = React.useMemo(() => pillarsOf(sajuB), [sajuB])
   const lines = React.useMemo(() => computeLines(a, b), [a, b])
   const [hoverIdx, setHoverIdx] = React.useState<number | null>(null)
 
-  // 박스 좌표 — 비율 기반 (SVG viewBox 100x180 으로 그리고 외곽은 CSS grid).
-  // 행 4개, 각 행 height 40 → y 중심: 20, 60, 100, 140
-  // A column 우측 가장자리 x=18, B column 좌측 가장자리 x=82.
-  const ROW_CENTERS = [20, 60, 100, 140]
-  const A_X = 18
-  const B_X = 82
+  // ── refs ─────────────────────────────────────────────────────────────────
+  // 컨테이너 (좌표 원점) 와 8 개 pillar 박스의 DOM 참조.
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const pillarRefs = React.useRef<Record<AnchorKey, HTMLDivElement | null>>({
+    'A-time': null, 'A-day': null, 'A-month': null, 'A-year': null,
+    'B-time': null, 'B-day': null, 'B-month': null, 'B-year': null,
+  })
+  const setPillarRef = React.useCallback(
+    (key: AnchorKey) => (el: HTMLDivElement | null) => {
+      pillarRefs.current[key] = el
+    },
+    [],
+  )
 
+  // ── 실측 좌표 계산 ────────────────────────────────────────────────────────
+  // A column 의 anchor = 박스 우측 중앙, B column 의 anchor = 박스 좌측 중앙.
+  // 라인 endpoint 가 박스 경계에 정확히 붙어 자연스러운 연결을 만든다.
+  const [anchors, setAnchors] = React.useState<Record<AnchorKey, Point | null>>({
+    'A-time': null, 'A-day': null, 'A-month': null, 'A-year': null,
+    'B-time': null, 'B-day': null, 'B-month': null, 'B-year': null,
+  })
+  const [containerSize, setContainerSize] = React.useState<ContainerSize>({ width: 0, height: 0 })
+
+  const recompute = React.useCallback(() => {
+    const container = containerRef.current
+    if (!container) return
+    const cRect = container.getBoundingClientRect()
+    const next: Record<AnchorKey, Point | null> = {
+      'A-time': null, 'A-day': null, 'A-month': null, 'A-year': null,
+      'B-time': null, 'B-day': null, 'B-month': null, 'B-year': null,
+    }
+    for (const key of Object.keys(pillarRefs.current) as AnchorKey[]) {
+      const el = pillarRefs.current[key]
+      if (!el) continue
+      const r = el.getBoundingClientRect()
+      const side = key.charAt(0) as 'A' | 'B'
+      // A → 우측 중앙, B → 좌측 중앙.
+      const x = side === 'A' ? r.right - cRect.left : r.left - cRect.left
+      const y = r.top - cRect.top + r.height / 2
+      next[key] = { x, y }
+    }
+    setAnchors(next)
+    setContainerSize({ width: cRect.width, height: cRect.height })
+  }, [])
+
+  // 마운트·data 변경시 측정 (useLayoutEffect — paint 전 라인 좌표 확정).
+  React.useLayoutEffect(() => {
+    recompute()
+  }, [recompute, a, b, lines.length, lang])
+
+  // resize 대응 — 컨테이너 자체의 크기 변화 + window resize 둘 다.
+  React.useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const ro = new ResizeObserver(() => recompute())
+    ro.observe(container)
+    // 자식 박스 크기도 관찰 (폰트 로딩 / 컬럼 폭 변경).
+    for (const el of Object.values(pillarRefs.current)) {
+      if (el) ro.observe(el)
+    }
+    const onResize = () => recompute()
+    window.addEventListener('resize', onResize)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', onResize)
+    }
+  }, [recompute])
+
+  // ── 렌더링 helpers ────────────────────────────────────────────────────────
   const renderPillar = (p: Pillars[PillarKey], key: PillarKey, side: 'A' | 'B') => {
     const label = lang === 'ko' ? PILLAR_LABEL_KO[key] : PILLAR_LABEL_EN[key]
+    const anchorKey: AnchorKey = `${side}-${key}`
     return (
       <div
+        ref={setPillarRef(anchorKey)}
         className="flex h-10 items-center justify-center rounded-md border text-center"
         style={{
           borderColor: 'rgba(212, 181, 114, 0.3)',
@@ -207,16 +277,33 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
     )
   }
 
+  // 각 라인의 endpoint 와 midpoint 를 픽셀 좌표로 미리 계산.
+  // anchors 가 아직 측정 안 된 첫 paint 직전엔 빈 배열 → SVG 만 비어보이고 다음 frame 에 채워짐.
+  const linesGeom = React.useMemo(() => {
+    return lines.map((ln) => {
+      const fromKey: AnchorKey = `A-${PILLAR_ORDER[ln.fromIdx]}`
+      const toKey: AnchorKey = `B-${PILLAR_ORDER[ln.toIdx]}`
+      const from = anchors[fromKey]
+      const to = anchors[toKey]
+      if (!from || !to) return null
+      return {
+        from,
+        to,
+        mid: { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 } satisfies Point,
+      }
+    })
+  }, [lines, anchors])
+
   return (
     <div className={`relative ${className ?? ''}`}>
-      <div className="relative grid grid-cols-[1fr_auto_1fr] gap-x-2">
+      <div ref={containerRef} className="relative grid grid-cols-[1fr_auto_1fr] gap-x-2">
         {/* A column */}
         <div className="flex flex-col gap-2">
           {PILLAR_ORDER.map((k) => (
             <React.Fragment key={`a-${k}`}>{renderPillar(a[k], k, 'A')}</React.Fragment>
           ))}
         </div>
-        {/* spacer for SVG overlay */}
+        {/* spacer — SVG overlay 가 가로지를 가운데 영역. */}
         <div className="w-16 sm:w-24" aria-hidden />
         {/* B column */}
         <div className="flex flex-col gap-2">
@@ -225,51 +312,55 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
           ))}
         </div>
 
-        {/* SVG overlay — 가운데 spacer 영역 위에 절대 배치, viewBox 좌표계로 라인. */}
+        {/* SVG overlay — pixel 좌표계, preserveAspectRatio 없이 1:1 매핑. */}
         <svg
-          className="pointer-events-none absolute inset-0 h-full w-full"
-          viewBox="0 0 100 160"
-          preserveAspectRatio="none"
+          className="pointer-events-none absolute inset-0"
+          width={containerSize.width || undefined}
+          height={containerSize.height || undefined}
+          viewBox={
+            containerSize.width && containerSize.height
+              ? `0 0 ${containerSize.width} ${containerSize.height}`
+              : undefined
+          }
           aria-hidden
         >
           {lines.map((ln, i) => {
+            const geom = linesGeom[i]
+            if (!geom) return null
             const style = LINE_STYLE[ln.kind]
-            const y1 = ROW_CENTERS[ln.fromIdx]
-            const y2 = ROW_CENTERS[ln.toIdx]
             const active = hoverIdx === i
             return (
               <line
                 key={`${ln.kind}-${ln.fromIdx}-${ln.toIdx}-${i}`}
-                x1={A_X}
-                y1={y1}
-                x2={B_X}
-                y2={y2}
+                x1={geom.from.x}
+                y1={geom.from.y}
+                x2={geom.to.x}
+                y2={geom.to.y}
                 stroke={style.stroke}
                 strokeWidth={active ? style.width + 1 : style.width}
                 strokeDasharray={style.dash}
                 strokeLinecap="round"
                 opacity={active ? 1 : 0.85}
-                vectorEffect="non-scaling-stroke"
               />
             )
           })}
         </svg>
 
-        {/* 라인 hit-target — pointer-events 가능한 별도 layer (절대 위치 div). */}
+        {/* 라인 hit-target — 각 라인 midpoint pixel 좌표에 절대 배치. */}
         <div className="pointer-events-none absolute inset-0">
           {lines.map((ln, i) => {
-            const y1 = ROW_CENTERS[ln.fromIdx]
-            const y2 = ROW_CENTERS[ln.toIdx]
-            const midY = ((y1 + y2) / 2 / 160) * 100 // % of container height
+            const geom = linesGeom[i]
+            if (!geom) return null
             const label = lang === 'ko' ? LINE_STYLE[ln.kind].label : LINE_STYLE_EN[ln.kind]
             const meaning = lookupRelation(ln, lang)
             return (
               <button
                 key={`hit-${i}`}
                 type="button"
-                className="pointer-events-auto absolute left-1/2 -translate-x-1/2 cursor-help rounded-full px-1.5 py-0.5 text-[9px]"
+                className="pointer-events-auto absolute cursor-help rounded-full px-1.5 py-0.5 text-[9px]"
                 style={{
-                  top: `${midY}%`,
+                  left: `${geom.mid.x}px`,
+                  top: `${geom.mid.y}px`,
                   transform: 'translate(-50%, -50%)',
                   background: 'rgba(20, 16, 32, 0.85)',
                   border: `1px solid ${LINE_STYLE[ln.kind].stroke}`,
