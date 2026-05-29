@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './CreditDepletedModal.module.css'
 
@@ -53,12 +52,14 @@ export default function CreditDepletedModal({
     router.push('/pricing')
   }, [onClose, router])
 
-  // 게스트 한도 → 로그인. 로그인 후 보던 페이지로 그대로 돌아오게 callbackUrl 지정.
+  // 게스트 한도 → 로그인. /auth/signin 페이지 경유 — GoogleLoginPanel 안에
+  // in-app webview / PWA 경고 + URL 복사 가이드가 있어서, signIn() 직접
+  // 호출로 오는 "OAuth 차단 / PWA callback 실패" 케이스를 사전에 안내.
   const handleLogin = useCallback(() => {
     onClose()
     const callbackUrl = typeof window !== 'undefined' ? window.location.href : '/'
-    void signIn(undefined, { callbackUrl })
-  }, [onClose])
+    router.push(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+  }, [onClose, router])
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
