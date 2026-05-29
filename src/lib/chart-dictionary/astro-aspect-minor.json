@@ -1,0 +1,223 @@
+{
+  "Conjunction": {
+    "angle": 0,
+    "ko": {
+      "label": "컨정션 (0도)",
+      "tension": "융합",
+      "meaning": "두 행성이 한 자리에 겹쳐 서로의 색이 섞여 하나의 강한 에너지로 작동한다.",
+      "experience": "특정 주제에 강한 몰입 / 그 영역이 인생 전면에 부각 / 객관적 거리 부족",
+      "advice": "이 결합이 만드는 강점을 자기 정체성의 핵심으로 받아들이고 활용하라"
+    },
+    "en": {
+      "label": "Conjunction (0°)",
+      "tension": "Fusion",
+      "meaning": "Two planets sit on the same spot and blend into one intense, unified energy.",
+      "experience": "Strong focus on one theme / that area dominates the life stage / hard to see it objectively",
+      "advice": "Own the combined energy as a core part of who you are and use it deliberately"
+    }
+  },
+  "Sextile": {
+    "angle": 60,
+    "ko": {
+      "label": "섹스타일 (60도)",
+      "tension": "기회",
+      "meaning": "두 행성이 친근하게 대화하며 의식적으로 손을 뻗으면 열리는 기회의 통로.",
+      "experience": "재능을 발휘할 기회 등장 / 단, 가만히 있으면 지나감 / 작은 노력으로 큰 결과",
+      "advice": "기다리지 말고 먼저 움직여서 이 협력 에너지를 활성화하라"
+    },
+    "en": {
+      "label": "Sextile (60°)",
+      "tension": "Opportunity",
+      "meaning": "Two planets talk easily and open a doorway of opportunity when you reach for it.",
+      "experience": "Chances to use your talent appear / they pass by if ignored / small effort, big return",
+      "advice": "Don’t wait — take the first step to activate this cooperative flow"
+    }
+  },
+  "Square": {
+    "angle": 90,
+    "ko": {
+      "label": "스퀘어 (90도)",
+      "tension": "충돌",
+      "meaning": "두 행성이 직각으로 부딪쳐 내적 갈등과 행동을 만들어내는 자극제.",
+      "experience": "반복되는 마찰 / 결정 못해 답답함 / 그러나 가장 큰 성장 동력",
+      "advice": "갈등을 회피하지 말고 정면 돌파하면서 근육을 길러라"
+    },
+    "en": {
+      "label": "Square (90°)",
+      "tension": "Friction",
+      "meaning": "Two planets clash at a right angle, producing inner tension that forces action.",
+      "experience": "Recurring friction / stuck between two pulls / yet the strongest engine of growth",
+      "advice": "Don’t dodge the conflict — push through it to build real strength"
+    }
+  },
+  "Trine": {
+    "angle": 120,
+    "ko": {
+      "label": "트라인 (120도)",
+      "tension": "조화",
+      "meaning": "두 행성이 같은 원소에서 자연스럽게 흘러 노력 없이도 잘 작동하는 재능.",
+      "experience": "타고난 재능 / 일이 부드럽게 풀림 / 너무 쉬워서 안일해질 위험",
+      "advice": "당연하게 여기지 말고 의식적으로 갈고 닦아 실력으로 키워라"
+    },
+    "en": {
+      "label": "Trine (120°)",
+      "tension": "Harmony",
+      "meaning": "Two planets flow in the same element — a gift that works smoothly without effort.",
+      "experience": "Natural talent / things flow easily / risk of taking it for granted",
+      "advice": "Don’t coast on it — consciously develop the gift into a real skill"
+    }
+  },
+  "Opposition": {
+    "angle": 180,
+    "ko": {
+      "label": "오포지션 (180도)",
+      "tension": "양극",
+      "meaning": "두 행성이 정반대에서 마주 보며 균형점을 찾으라고 요구한다.",
+      "experience": "타인 / 관계 / 거울처럼 비춰지는 갈등 / 양자택일 압박",
+      "advice": "한쪽을 누르지 말고 두 극을 오가는 시소 균형을 익혀라"
+    },
+    "en": {
+      "label": "Opposition (180°)",
+      "tension": "Polarity",
+      "meaning": "Two planets face each other from opposite ends and demand you find a balance point.",
+      "experience": "Conflict mirrored through others / relational tug-of-war / pressure to pick one side",
+      "advice": "Don’t suppress either pole — learn to seesaw between the two"
+    }
+  },
+  "Quincunx": {
+    "angle": 150,
+    "ko": {
+      "label": "퀸컹스 (150도)",
+      "tension": "조정",
+      "meaning": "어울리지 않는 두 영역이 만나 한쪽을 양보해야 다른 쪽이 살아나는 어색한 각도.",
+      "experience": "건강 / 일상 루틴의 잔잔한 조정 / 절충 압력 / 어딘가 늘 어긋난 느낌",
+      "advice": "둘 다 가지려 하지 말고 우선순위를 정해 끊임없이 미세 조정하라"
+    },
+    "en": {
+      "label": "Quincunx (150°)",
+      "tension": "Adjustment",
+      "meaning": "Two mismatched areas meet — one must yield so the other can live.",
+      "experience": "Constant small tweaks to health or routine / pressure to compromise / a permanent sense of slight misalignment",
+      "advice": "Stop trying to have both — pick a priority and keep fine-tuning"
+    }
+  },
+  "Semi-sextile": {
+    "angle": 30,
+    "ko": {
+      "label": "세미섹스타일 (30도)",
+      "tension": "미묘한 연결",
+      "meaning": "이웃한 두 사인이 살짝 닿아 어색하지만 배워야 할 작은 다리.",
+      "experience": "옆 영역으로 한 발 넘어가야 하는 불편함 / 잔잔한 성장 과제",
+      "advice": "낯선 옆방의 언어를 조금씩 익혀 자기 것으로 만들어라"
+    },
+    "en": {
+      "label": "Semi-sextile (30°)",
+      "tension": "Subtle Link",
+      "meaning": "Two neighboring signs lightly touch — awkward but a small bridge to cross.",
+      "experience": "A nudge into the next-door area / mild discomfort / quiet growth assignment",
+      "advice": "Slowly learn the language of the room next door and make it your own"
+    }
+  },
+  "Semi-square": {
+    "angle": 45,
+    "ko": {
+      "label": "세미스퀘어 (45도)",
+      "tension": "신경 거슬림",
+      "meaning": "스퀘어의 절반 사이즈로 잔잔하게 긁어대는 짜증 / 마찰 각도.",
+      "experience": "자꾸 신경에 거슬리는 작은 일 / 폭발하지는 않지만 누적되는 스트레스",
+      "advice": "사소하다고 무시하지 말고 그때그때 짚어 풀어줘라"
+    },
+    "en": {
+      "label": "Semi-square (45°)",
+      "tension": "Irritation",
+      "meaning": "A half-size square that keeps scratching at the nerves — small but persistent friction.",
+      "experience": "Little things that keep getting under your skin / no blowup, just accumulating stress",
+      "advice": "Don’t brush it off as minor — deal with each irritation as it comes up"
+    }
+  },
+  "Sesquiquadrate": {
+    "angle": 135,
+    "ko": {
+      "label": "세스퀴쿼드레이트 (135도)",
+      "tension": "내적 압박",
+      "meaning": "스퀘어 + 세미스퀘어가 합쳐진 각도로 안에서 끓다가 결국 밖으로 터지는 압력.",
+      "experience": "내면에서 누적된 짜증이 어느 순간 행동으로 폭발 / 위기 후 정리되는 패턴",
+      "advice": "터지기 전에 알아채고 미리 김을 빼주는 출구를 만들어라"
+    },
+    "en": {
+      "label": "Sesquiquadrate (135°)",
+      "tension": "Inner Pressure",
+      "meaning": "Square plus semi-square combined — pressure that simmers inside and finally erupts outward.",
+      "experience": "Built-up irritation that suddenly explodes into action / things settle after the crisis",
+      "advice": "Catch the build-up early and build a vent before it blows"
+    }
+  },
+  "Quintile": {
+    "angle": 72,
+    "ko": {
+      "label": "퀸타일 (72도)",
+      "tension": "창조적 재능",
+      "meaning": "케플러가 주목한 각도로 독특한 창의력 / 장인적 솜씨가 발현되는 통로.",
+      "experience": "남들과 다른 각도로 보는 시선 / 특정 분야의 숨은 재능 / 예술적 손맛",
+      "advice": "평범하게 쓰지 말고 자기만의 스타일을 다듬어 작품으로 만들어라"
+    },
+    "en": {
+      "label": "Quintile (72°)",
+      "tension": "Creative Gift",
+      "meaning": "An angle Kepler highlighted — a channel for unique creativity and craftsmanship.",
+      "experience": "Seeing things from an unusual angle / hidden talent in a specific area / artistic touch",
+      "advice": "Don’t use it generically — refine your own style and turn it into work that’s yours"
+    }
+  },
+  "Bi-quintile": {
+    "angle": 144,
+    "ko": {
+      "label": "바이퀸타일 (144도)",
+      "tension": "성숙한 재능",
+      "meaning": "퀸타일의 두 배 각도로 시간이 흐를수록 다듬어지는 깊이 있는 창조성.",
+      "experience": "연륜이 쌓일수록 드러나는 전문성 / 정교한 표현력 / 내공의 결정",
+      "advice": "조급해하지 말고 꾸준히 연마해 시간의 힘으로 완성하라"
+    },
+    "en": {
+      "label": "Bi-quintile (144°)",
+      "tension": "Matured Gift",
+      "meaning": "Twice the quintile — a deeper creativity that ripens with time.",
+      "experience": "Mastery that emerges with experience / refined expression / the fruit of long practice",
+      "advice": "Don’t rush it — keep polishing and let time finish the work"
+    }
+  },
+  "Septile": {
+    "angle": 51.4,
+    "ko": {
+      "label": "셉타일 (51.4도)",
+      "tension": "운명적",
+      "meaning": "원을 7등분한 신비로운 각도로 비합리적이지만 끌리는 운명의 흐름.",
+      "experience": "설명되지 않는 끌림 / 영감 / 우연 같지만 의미 있는 사건",
+      "advice": "논리로 분석하지 말고 직관을 따라 흐름에 몸을 맡겨라"
+    },
+    "en": {
+      "label": "Septile (51.4°)",
+      "tension": "Fated",
+      "meaning": "A mystical angle dividing the circle by seven — irrational but compelling pulls of fate.",
+      "experience": "Unexplained attraction / inspiration / coincidences that feel meaningful",
+      "advice": "Don’t over-analyze — trust the intuition and let the current carry you"
+    }
+  },
+  "Novile": {
+    "angle": 40,
+    "ko": {
+      "label": "노바일 (40도)",
+      "tension": "내적 완성",
+      "meaning": "원을 9등분한 각도로 조용히 안에서 익어가는 영적 / 정신적 성숙.",
+      "experience": "겉으로 드러나지 않는 내면 성장 / 잉태의 시간 / 명상적 침잠",
+      "advice": "남에게 보여주려 하지 말고 자기 안에서 무르익는 과정을 존중하라"
+    },
+    "en": {
+      "label": "Novile (40°)",
+      "tension": "Inner Completion",
+      "meaning": "An angle dividing the circle by nine — a quiet spiritual or mental ripening within.",
+      "experience": "Inner growth others can’t see / a gestation period / meditative inward turn",
+      "advice": "Don’t perform it for others — honor the slow ripening happening inside you"
+    }
+  }
+}
