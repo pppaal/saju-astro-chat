@@ -1,4 +1,4 @@
-import type { Chart, NatalInput, PlanetBase } from '@/lib/astrology/foundation/types'
+import type { Chart, NatalInput, PlanetBase, ExtraPoint } from '@/lib/astrology/foundation/types'
 import type { SajuPillars, FiveElement, ShinsalHit, RelationHit, DayMaster } from '@/lib/saju/types'
 
 /**
@@ -37,6 +37,9 @@ export interface NatalAstroContext {
   /** 본명 추가 천체(카이런·릴리스 등) — 트랜짓이 본명 점으로 참조. 차트 planets를
    *  오염시키지 않으려 별도 보관(dignity 등 다른 extractor엔 안 들어감). */
   extraPoints?: PlanetBase[]
+  /** 본명 Vertex (운명점). astro-transit이 generic 어스펙트로 잡지 않도록 별도 보관 —
+   *  vertex-contact extractor 가 컨정션 (orb ≤2°) 만 검사. Swiss Eph 계산 실패 시 undefined. */
+  vertex?: ExtraPoint
   /** 섹트 (낮/밤 출생) — 헬레니즘 계산에 필요 */
   sect: 'day' | 'night'
   /** 사용자 정착 — Solar Return 등 일부 계산은 latitude/longitude 필요 */

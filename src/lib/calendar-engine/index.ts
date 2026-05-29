@@ -42,6 +42,7 @@ import astroSolarArcExtractor from './extractors/astro-solar-arc'
 import astroMidpointExtractor from './extractors/astro-midpoint'
 import astroSoulPatternExtractor from './extractors/astro-soul-pattern'
 import astroAntisciaExtractor from './extractors/astro-antiscia'
+import astroVertexContactExtractor from './extractors/astro-vertex-contact'
 
 // derivers
 import { deriveScore } from './derivers/score'
@@ -131,6 +132,7 @@ function getRegisteredExtractors(): SignalExtractor[] {
     astroMidpointExtractor,
     astroSoulPatternExtractor,
     astroAntisciaExtractor,
+    astroVertexContactExtractor,
   ]
 }
 

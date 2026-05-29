@@ -1,6 +1,6 @@
 import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
-import { calculateChiron, calculateLilith } from '@/lib/astrology/foundation/extraPoints'
+import { calculateChiron, calculateLilith, calculateVertex } from '@/lib/astrology/foundation/extraPoints'
 import { natalToJD } from '@/lib/astrology/foundation/shared'
 import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
@@ -135,12 +135,22 @@ export async function buildNatalContext(
   // 본명 카이런·릴리스 — 차트 planets(10행성+노드)엔 없는 천체. 트랜짓이 이 점들로
   // 들어오는 신호(예: 토성 ☌ 본명 카이런)를 잡기 위해 별도 보관. 실패해도 무시.
   let extraPoints: NatalContext['astro']['extraPoints']
+  let vertex: NatalContext['astro']['vertex']
   try {
     const utJd = natalToJD(natalInput)
     const houseCusps = chart.houses.map((h) => h.cusp)
     extraPoints = [calculateChiron(utJd, houseCusps), calculateLilith(utJd, houseCusps)]
+    // Vertex (운명점) — extraPoints 와 별도로 보관해 astro-transit 이 generic
+    // 어스펙트로 잡지 않게 한다. 옛 차트(houses res 에 vertex 필드 없는 경우)도
+    // 안전하게 계산 — calculateVertex 가 DSC 기반 폴백 갖고 있음. 실패하면 undefined.
+    try {
+      vertex = calculateVertex(utJd, input.latitude, input.longitude, houseCusps)
+    } catch {
+      vertex = undefined
+    }
   } catch {
     extraPoints = undefined
+    vertex = undefined
   }
 
   return {
@@ -166,6 +176,7 @@ export async function buildNatalContext(
     astro: {
       chart,
       extraPoints,
+      vertex,
       sect,
       location: {
         latitude: input.latitude,
