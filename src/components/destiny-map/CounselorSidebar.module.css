@@ -254,6 +254,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+  /* flex item 이 자식(긴 이름/제목)의 min-content 너비로 안 부풀게 — 없으면
+     nowrap 긴 이름이 가로 overflow 를 일으켜 사이드바 정렬이 깨진다(모바일). */
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   text-decoration: none;
@@ -283,6 +288,8 @@
   font-weight: 500;
   line-height: 1.35;
   color: #ffffff;
+  max-width: 100%;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -295,6 +302,8 @@
   color: rgba(232, 204, 138, 0.7);
   line-height: 1.25;
   margin-top: 1px;
+  max-width: 100%;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -103,21 +103,6 @@ export function BirthInfoFields({
   const { suggestions, openSug, setOpenSug, handleCityInputChange, handleCitySelect } =
     useCitySearch(locale)
 
-  // 폼이 나타나자마자 모바일 키보드가 뜨는 것 방지 — 모달을 연 트리거(버튼/칩)
-  // 의 포커스가 남아 있거나 브라우저가 첫 입력칸을 자동 포커스하는 케이스를
-  // 막는다. 마운트 시 1회 blur. 날짜/성별은 native select 라 어차피 키보드를
-  // 안 띄우지만, 이름/도시 text input 으로 포커스가 옮겨가 있는 경우를 차단.
-  React.useEffect(() => {
-    if (typeof document === 'undefined') return
-    const active = document.activeElement
-    if (
-      active instanceof HTMLElement &&
-      (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
-    ) {
-      active.blur()
-    }
-  }, [])
-
   // 도시 dropdown 선택 시 키보드(모바일 soft keyboard)를 닫기 위해 input
   // 자체 ref. 사용자: "도시 선택하면 키보드 없어져야하는데" — focus 가
   // input 에 남아 있어서 키보드가 계속 떠 있던 회귀.
