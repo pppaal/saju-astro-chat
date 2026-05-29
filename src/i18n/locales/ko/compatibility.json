@@ -145,7 +145,8 @@
       "water": "물"
     },
     "person1": "나",
-    "person2": "상대"
+    "person2": "상대",
+    "loadSaved": "저장된 정보 불러오기"
   },
   "compatibility": {
     "tabs": {

@@ -3,22 +3,21 @@
 /**
  * 궁합 상담사 안 인라인 인물 picker — 채팅 페이지에 진입했을 때 두 사람이
  * 아직 안 골라진 상태(=신규 채팅 / 새 채팅 버튼 누른 직후)면 이 모달이
- * 떠서 두 카드 입력 + "분석 시작" 한 번에 처리. 이전엔 /compatibility
- * 별도 입력 페이지로 빠졌다가 다시 ?persons= 로 돌아오는 흐름이었는데
- * 같은 화면 안에서 picker → chat 으로 흐름이 끊기지 않게 모달로 통합.
+ * 떠서 두 카드 입력 + "분석 시작" 한 번에 처리.
  *
- * useCompatibilityForm + useCityAutocomplete + useMyCircle + PersonCard +
- * SubmitButton — 입력 페이지가 쓰던 hook / 컴포넌트 그대로 재사용.
+ * "저장된 정보 불러오기" dropdown 은 메인 BirthInfoModal 과 동일 패턴 —
+ * 단일 트리거 + 내 정보 + 등록된 지인 한 곳에. 두 버튼 따로 두던 옛
+ * 패턴은 사용자가 "어디서 본인 정보를 불러와야 하는지" 헷갈렸다.
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { useCompatibilityForm } from '@/hooks/useCompatibilityForm'
 import { useCityAutocomplete } from '@/hooks/useCityAutocomplete'
-import { useMyCircle } from '@/hooks/useMyCircle'
+import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 import { validatePersons } from '../validatePersons'
-import { PersonCard, SubmitButton } from '../components'
+import { PersonCard, SubmitButton, type LoadOption } from '../components'
 import compatStyles from '../Compatibility.module.css'
 import styles from './CompatPersonPickerModal.module.css'
 
@@ -44,7 +43,20 @@ interface CompatPersonPickerModalProps {
 const KO_FALLBACKS: Record<string, string> = {
   'compatibilityPage.analysisTitle': '궁합 분석',
   'compatibilityPage.backToForm': '뒤로',
-  'compatibilityPage.loadMyProfile': '내 정보',
+  'compatibilityPage.loadSaved': '저장된 정보 불러오기',
+}
+
+function normGender(g: unknown): 'male' | 'female' | '' {
+  const v = String(g ?? '').toLowerCase()
+  if (v === 'female' || v === 'f') return 'female'
+  if (v === 'male' || v === 'm') return 'male'
+  return ''
+}
+
+function timeToState(raw: unknown): { birthTime: string; timeUnknown: boolean } {
+  const t = typeof raw === 'string' ? raw : ''
+  if (!t || t === '00:00') return { birthTime: '', timeUnknown: true }
+  return { birthTime: t, timeUnknown: false }
 }
 
 export function CompatPersonPickerModal({
@@ -64,8 +76,137 @@ export function CompatPersonPickerModal({
 
   useCityAutocomplete(persons, setPersons)
 
-  const { circlePeople, showCircleDropdown, setShowCircleDropdown, circleError } =
-    useMyCircle(status)
+  // "저장된 정보 불러오기" dropdown 옵션 — 메인 BirthInfoModal 과 동일하게
+  // 내 정보 (DB 프로필 우선 + 로컬 fallback) + 등록된 지인 한 list 로.
+  const [loadOptions, setLoadOptions] = useState<LoadOption[]>([])
+  const [openDropdownIdx, setOpenDropdownIdx] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      // 비로그인은 dropdown 자체 미노출. 로컬 birth-info 가 있어도 buttonless
+      // — 비로그인 사용자는 메인 페이지에서만 입력 / 저장.
+      setLoadOptions([])
+      return
+    }
+    let cancelled = false
+
+    // 즉시 로컬 seed — DB 응답 기다리지 않게.
+    const localSeed = getStoredBirthInfo()
+    if (localSeed?.birthDate) {
+      setLoadOptions([
+        {
+          key: 'me',
+          label: isKo ? '내 정보' : 'My info',
+          name: localSeed.name || '',
+          birthDate: localSeed.birthDate,
+          birthTime:
+            localSeed.birthTime && localSeed.birthTime !== '00:00' ? localSeed.birthTime : '',
+          timeUnknown: localSeed.birthTimeUnknown === true || localSeed.birthTime === '00:00',
+          gender: localSeed.gender || '',
+          city: localSeed.city || '',
+          latitude: localSeed.latitude ?? null,
+          longitude: localSeed.longitude ?? null,
+          timeZone: localSeed.timeZone ?? null,
+        },
+      ])
+    }
+
+    const collect = async () => {
+      const opts: LoadOption[] = []
+
+      // 내 정보 — DB 프로필 우선
+      try {
+        const res = await fetch('/api/me/profile')
+        if (res.ok) {
+          const data = await res.json()
+          const u = data?.user
+          if (u && (u.birthDate || u.birthTime)) {
+            opts.push({
+              key: 'me',
+              label: isKo ? '내 정보' : 'My info',
+              sub: u.name || undefined,
+              name: u.name || '',
+              birthDate: u.birthDate || '',
+              ...timeToState(u.birthTime),
+              gender: normGender(u.gender),
+              city: u.birthCity || '',
+              timeZone: u.tzId || null,
+            })
+          }
+        }
+      } catch {
+        /* fall through to local seed */
+      }
+      if (!opts.some((o) => o.key === 'me')) {
+        const local = getStoredBirthInfo()
+        if (local?.birthDate) {
+          opts.push({
+            key: 'me',
+            label: isKo ? '내 정보' : 'My info',
+            name: local.name || '',
+            birthDate: local.birthDate,
+            birthTime: local.birthTime && local.birthTime !== '00:00' ? local.birthTime : '',
+            timeUnknown: local.birthTimeUnknown === true || local.birthTime === '00:00',
+            gender: local.gender || '',
+            city: local.city || '',
+            latitude: local.latitude ?? null,
+            longitude: local.longitude ?? null,
+            timeZone: local.timeZone ?? null,
+          })
+        }
+      }
+
+      // 등록된 지인
+      try {
+        const res = await fetch('/api/me/circle?limit=50')
+        if (res.ok) {
+          const data = await res.json()
+          const people = data?.data?.people
+          if (Array.isArray(people)) {
+            for (const p of people) {
+              if (!p?.name) continue
+              opts.push({
+                key: `circle-${p.id}`,
+                label: p.name,
+                sub: p.relation || undefined,
+                name: p.name || '',
+                birthDate: p.birthDate || '',
+                ...timeToState(p.birthTime),
+                gender: normGender(p.gender),
+                city: p.birthCity || '',
+                latitude: p.latitude ?? null,
+                longitude: p.longitude ?? null,
+                timeZone: p.tzId || null,
+              })
+            }
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+
+      if (!cancelled) setLoadOptions(opts)
+    }
+
+    void collect()
+    return () => {
+      cancelled = true
+    }
+  }, [status, isKo])
+
+  // 카드 외부 click 시 dropdown 닫기 — useMyCircle 의 기존 동작 보존.
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('[data-circle-dropdown]')) {
+        setOpenDropdownIdx(null)
+      }
+    }
+    if (openDropdownIdx !== null) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [openDropdownIdx])
 
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -76,6 +217,32 @@ export function CompatPersonPickerModal({
       return t(key, KO_FALLBACKS[key] || fallback)
     },
     [isKo, t]
+  )
+
+  // 'me' 등 dropdown 옵션을 카드에 그대로 적용. 좌표는 옵션에 함께 들어
+  // 있으면 사용 (로컬 birth-info 는 좌표까지 저장하므로). 없으면 카드의
+  // 도시 자동완성에서 다시 고르면 됨.
+  const handleLoadOption = useCallback(
+    (cardIdx: number, opt: LoadOption) => {
+      setPersons((prev) => {
+        const next = [...prev]
+        if (!next[cardIdx]) return prev
+        next[cardIdx] = {
+          ...next[cardIdx],
+          name: opt.name,
+          date: opt.birthDate,
+          time: opt.timeUnknown ? '00:00' : opt.birthTime,
+          timeUnknown: opt.timeUnknown,
+          gender: opt.gender === 'female' ? 'F' : opt.gender === 'male' ? 'M' : next[cardIdx].gender,
+          cityQuery: opt.city,
+          lat: opt.latitude ?? null,
+          lon: opt.longitude ?? null,
+          timeZone: opt.timeZone || next[cardIdx].timeZone,
+        }
+        return next
+      })
+    },
+    [setPersons]
   )
 
   const handleSubmit = useCallback(() => {
@@ -121,20 +288,6 @@ export function CompatPersonPickerModal({
             handleSubmit()
           }}
         >
-          {circleError && (
-            <div className={styles.notice}>
-              {'⚠️'} {circleError}
-            </div>
-          )}
-
-          {session && circlePeople.length > 0 && (
-            <div className={styles.hint}>
-              {isKo
-                ? '💡 각 카드 우측 상단의 "불러오기" 로 내 정보·지인 정보를 자동 채울 수 있어요.'
-                : '💡 Tap "Load" at the top-right of each card to auto-fill from your profile or saved circle.'}
-            </div>
-          )}
-
           <div className={compatStyles.personCardsGrid}>
             {persons.slice(0, 2).map((p, idx) => (
               <PersonCard
@@ -142,16 +295,17 @@ export function CompatPersonPickerModal({
                 person={p}
                 index={idx}
                 isAuthenticated={!!session}
-                circlePeople={circlePeople}
-                showCircleDropdown={showCircleDropdown === idx}
+                loadOptions={loadOptions}
+                showLoadDropdown={openDropdownIdx === idx}
                 locale={normalizedLocale}
                 t={compatT}
                 onUpdatePerson={updatePerson}
                 onSetPersons={setPersons}
-                onToggleCircleDropdown={() =>
-                  setShowCircleDropdown(showCircleDropdown === idx ? null : idx)
+                onToggleLoadDropdown={() =>
+                  setOpenDropdownIdx(openDropdownIdx === idx ? null : idx)
                 }
                 onFillFromCircle={fillFromCircle}
+                onLoadOption={handleLoadOption}
               />
             ))}
           </div>

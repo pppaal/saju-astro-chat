@@ -145,7 +145,8 @@
       "description": "Get deeper consultation"
     },
     "person1": "Me",
-    "person2": "Partner"
+    "person2": "Partner",
+    "loadSaved": "Load saved info"
   },
   "compatibility": {
     "tabs": {
