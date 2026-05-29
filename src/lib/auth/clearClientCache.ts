@@ -61,10 +61,33 @@ export async function clearClientCache(): Promise<ClearClientCacheResult> {
 }
 
 /**
+ * sessionStorage 키 중 로그아웃 시 정리해야 하는 것들.
+ * 로그아웃 후에도 남아 있으면 사용자에게 잘못된 UI state 보임.
+ *   dp:home-white — 홈 화면 cosmic(보라) vs premium(흰) 모드 결정.
+ *                   로그아웃 했는데 같은 탭에 남아 있으면 보라로 안 돌아옴.
+ */
+const SESSION_STORAGE_KEYS_TO_CLEAR = ['dp:home-white']
+
+/** sessionStorage 의 사용자 state flag 들 정리. 안 되는 환경 (SSR 등) 은 무시. */
+function clearSessionFlags(): void {
+  if (typeof window === 'undefined') return
+  try {
+    for (const key of SESSION_STORAGE_KEYS_TO_CLEAR) {
+      window.sessionStorage.removeItem(key)
+    }
+  } catch {
+    /* private mode / blocked — 무시 */
+  }
+}
+
+/**
  * Convenience wrapper for sign-out flows. Clears the client cache
  * then invokes the provided sign-out callback. Cache clearing runs
  * first so that even if `signOut` redirects mid-flight, the caches
  * have already been purged.
+ *
+ * Also clears sessionStorage UI flags (home-white) so the next visit
+ * starts on the cosmic surface instead of being stuck on premium-white.
  */
 export async function clearClientCacheAndSignOut(
   signOutFn: () => Promise<unknown> | unknown
@@ -74,5 +97,6 @@ export async function clearClientCacheAndSignOut(
   } catch {
     // Never let cache clearing block sign-out.
   }
+  clearSessionFlags()
   await signOutFn()
 }

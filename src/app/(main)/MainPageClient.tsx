@@ -71,6 +71,21 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     if (sp.get('openBirth') === '1') setBirthModalOpen(true)
   }, [])
 
+  // 로그아웃 감지 — isAuthed 가 false 로 떨어지면 home-white flag 도 지워서
+  // 다음 렌더에 cosmic(보라) 로 자연스럽게 돌아가게 한다.
+  //
+  // clearClientCacheAndSignOut 이 sessionStorage 를 이미 지우긴 하지만,
+  // 그 흐름을 안 거치는 로그아웃 (다른 탭에서 로그아웃 / 세션 만료 등) 도
+  // 같은 결과가 되도록 safety net.
+  useEffect(() => {
+    if (isAuthed) return
+    if (typeof window === 'undefined') return
+    if (sessionStorage.getItem(HOME_WHITE_SESSION_KEY) === '1') {
+      sessionStorage.removeItem(HOME_WHITE_SESSION_KEY)
+      setBirthEnteredThisSession(false)
+    }
+  }, [isAuthed])
+
   // Lock the page to the viewport — the home is a single-screen UI and
   // any scroll on body/html (URL bar collapse, overscroll bounce, etc.)
   // clips the bottom controls. On very short viewports (small phones,
