@@ -104,14 +104,13 @@
 
 .title {
   font-size: clamp(36px, 5vw, 56px);
-  font-weight: 800;
+  /* 600 — about / pricing 마케팅 타이틀과 정렬. 옛 800 + 보라(#a8b9ff)
+     gradient 폐기. design tokens "보라/네온 X" 정책. */
+  font-weight: 600;
   line-height: 1.2;
+  letter-spacing: -0.02em;
   margin: 0 0 20px;
-  background: linear-gradient(135deg, #ffffff 0%, #a8b9ff 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 2px 40px rgba(136, 179, 247, 0.3);
+  color: #f5f7fb;
 }
 
 .subtitle {
@@ -151,9 +150,11 @@
 }
 
 .categoryBtn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Brand 골드 — 옛 퍼플 그라데이션은 design tokens 의 "보라/네온 X" 정책
+     위반. 다른 다크 페이지 (about, pricing) 의 골드 strategy 와 정렬. */
+  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
   border-color: transparent;
-  color: #fff;
+  color: #ffffff;
 }
 
 /* Blog Grid */
