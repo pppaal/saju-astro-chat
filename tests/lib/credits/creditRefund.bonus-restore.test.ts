@@ -15,20 +15,31 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { refundCredits } from '@/lib/credits/creditRefund'
 
-const { mockFindUnique, mockUpdate, mockCreate, mockBonusFindMany, mockBonusUpdateMany, mockExecuteRaw } =
-  vi.hoisted(() => ({
-    mockFindUnique: vi.fn(),
-    mockUpdate: vi.fn(),
-    mockCreate: vi.fn(),
-    mockBonusFindMany: vi.fn(),
-    mockBonusUpdateMany: vi.fn(),
-    mockExecuteRaw: vi.fn(),
-  }))
+const {
+  mockFindUnique,
+  mockUpdate,
+  mockCreate,
+  mockBonusFindMany,
+  mockBonusUpdateMany,
+  mockExecuteRaw,
+  mockCreditTxnCreate,
+} = vi.hoisted(() => ({
+  mockFindUnique: vi.fn(),
+  mockUpdate: vi.fn(),
+  mockCreate: vi.fn(),
+  mockBonusFindMany: vi.fn(),
+  mockBonusUpdateMany: vi.fn(),
+  mockExecuteRaw: vi.fn(),
+  // CreditTransaction (REFUND/BONUS|MONTHLY) audit row — 본 테스트는 보너스
+  // 복원/usedCredits fallback 동작만 검증, noop 으로 충분.
+  mockCreditTxnCreate: vi.fn(),
+}))
 
 const mockTx = {
   userCredits: { findUnique: mockFindUnique, update: mockUpdate },
   bonusCreditPurchase: { findMany: mockBonusFindMany, updateMany: mockBonusUpdateMany },
   creditRefundLog: { create: mockCreate },
+  creditTransaction: { create: mockCreditTxnCreate },
   $executeRaw: mockExecuteRaw,
 }
 

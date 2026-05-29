@@ -37,11 +37,20 @@ vi.mock('@/lib/db/prisma', () => ({
     userCredits: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     matchConnection: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+    },
+    bonusCreditPurchase: {
+      findFirst: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    // CreditTransaction audit row — couple-reading 의 compat 경로가 한 줄 emit.
+    creditTransaction: {
+      create: vi.fn(),
     },
     $transaction: vi.fn(),
   },
@@ -371,6 +380,10 @@ describe('/api/tarot/couple-reading', () => {
         },
         matchConnection: {
           update: vi.fn().mockResolvedValue({}),
+        },
+        // CreditTransaction audit row — compat / bonus 모두 한 줄씩 emit.
+        creditTransaction: {
+          create: vi.fn().mockResolvedValue({}),
         },
       }
       return callback(mockTx)
@@ -982,6 +995,7 @@ describe('/api/tarot/couple-reading', () => {
             matchConnection: {
               update: vi.fn().mockResolvedValue({}),
             },
+            creditTransaction: { create: vi.fn().mockResolvedValue({}) },
           }
           return callback(mockTx)
         })

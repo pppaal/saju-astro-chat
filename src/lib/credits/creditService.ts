@@ -37,20 +37,41 @@ const SIGNUP_BONUS = 5
 export async function initializeUserCredits(userId: string) {
   const now = new Date()
 
-  return prisma.userCredits.create({
-    data: {
-      userId,
-      monthlyCredits: 0,
-      usedCredits: 0,
-      bonusCredits: SIGNUP_BONUS,
-      compatibilityUsed: 0,
-      followUpUsed: 0,
-      compatibilityLimit: 0,
-      followUpLimit: 0,
-      historyRetention: DEFAULT_HISTORY_RETENTION_DAYS,
-      periodStart: now,
-      periodEnd: getNextPeriodEnd(),
-    },
+  // create + audit row 를 하나의 트랜잭션으로 — 신규 가입 보너스 (SIGNUP_BONUS)
+  // 가 UserCredits 에 들어갔는지 CreditTransaction 에 흔적이 남았는지 두 곳을
+  // 따로 확인할 필요 없게 single source-of-truth invariant 를 지킨다.
+  return prisma.$transaction(async (tx) => {
+    const created = await tx.userCredits.create({
+      data: {
+        userId,
+        monthlyCredits: 0,
+        usedCredits: 0,
+        bonusCredits: SIGNUP_BONUS,
+        compatibilityUsed: 0,
+        followUpUsed: 0,
+        compatibilityLimit: 0,
+        followUpLimit: 0,
+        historyRetention: DEFAULT_HISTORY_RETENTION_DAYS,
+        periodStart: now,
+        periodEnd: getNextPeriodEnd(),
+      },
+    })
+
+    if (SIGNUP_BONUS > 0) {
+      await tx.creditTransaction.create({
+        data: {
+          userId,
+          type: 'SIGNUP_BONUS',
+          pool: 'BONUS',
+          amount: SIGNUP_BONUS,
+          reason: 'signup_bonus',
+          sourceRef: null,
+          metadata: { bonus: SIGNUP_BONUS },
+        },
+      })
+    }
+
+    return created
   })
 }
 
@@ -262,10 +283,12 @@ export async function consumeCredits(
         fromMonthly = amount - fromBonus
 
         // BonusCreditPurchase 테이블에서 FIFO로 차감 (트랜잭션 내에서)
+        // helper 가 차감한 purchase 마다 CONSUME(pool=BONUS) audit row 를 emit.
         const actualBonusConsumed = await consumeBonusCreditsFromPurchasesInTx(
           tx,
           userId,
-          fromBonus
+          fromBonus,
+          { reason: 'consume_reading', emitAudit: true }
         )
         // 실제 차감된 양과 다르면 조정 (레거시 데이터 대응)
         if (actualBonusConsumed < fromBonus) {
@@ -290,6 +313,22 @@ export async function consumeCredits(
         })
       }
 
+      // 5. 감사 로그 — monthly 차감분에 대해 한 줄 (보너스 풀 차감은
+      // consumeBonusCreditsFromPurchasesInTx 가 emit 한다).
+      if (fromMonthly > 0) {
+        await tx.creditTransaction.create({
+          data: {
+            userId,
+            type: 'CONSUME',
+            pool: 'MONTHLY',
+            amount: -fromMonthly,
+            reason: `consume_${type}`,
+            sourceRef: null,
+            metadata: { requested: amount, fromBonus, fromMonthly, type },
+          },
+        })
+      }
+
       // refund 경로 호환을 위해 chargedAs 유지 (이제 항상 'reading').
       return { success: true, chargedAs: 'reading' as const }
     })
@@ -306,10 +345,14 @@ export async function consumeCredits(
 }
 
 // 트랜잭션 내에서 보너스 크레딧 차감 (헬퍼 함수)
+// `opts.emitAudit` 가 true 면 차감한 purchase 행마다 CreditTransaction
+// (CONSUME / BONUS) 을 한 줄씩 남긴다. consumeCredits 가 부르는 경로는 항상
+// 켜고, 백필이나 fallback 경로에서는 호출자가 직접 audit 을 통제하도록 끈다.
 async function consumeBonusCreditsFromPurchasesInTx(
   tx: Prisma.TransactionClient,
   userId: string,
-  amountToConsume: number
+  amountToConsume: number,
+  opts: { reason?: string; emitAudit?: boolean } = {}
 ): Promise<number> {
   const now = new Date()
   // select 명시 — 신규 컬럼(acknowledgedAt) prod 미적용 환경에서 P2022
@@ -329,6 +372,7 @@ async function consumeBonusCreditsFromPurchasesInTx(
     return 0
   }
 
+  const reason = opts.reason ?? 'consume_bonus'
   let totalConsumed = 0
   for (const purchase of purchases) {
     if (totalConsumed >= amountToConsume) break
@@ -341,6 +385,20 @@ async function consumeBonusCreditsFromPurchasesInTx(
       where: { id: purchase.id },
       data: { remaining: newRemaining },
     })
+
+    if (opts.emitAudit) {
+      await tx.creditTransaction.create({
+        data: {
+          userId,
+          type: 'CONSUME',
+          pool: 'BONUS',
+          amount: -toConsume,
+          reason,
+          sourceRef: purchase.id,
+          metadata: { purchaseId: purchase.id, drained: toConsume },
+        },
+      })
+    }
   }
 
   return totalConsumed
@@ -415,6 +473,20 @@ export async function consumeBonusCreditOnceInTx(
     )
   }
 
+  // 감사 로그 — couple-reading / 다른 라우트가 이 헬퍼만 호출해도
+  // CreditTransaction 이 남도록 helper 안에서 emit. sourceRef = 차감된 purchase.id.
+  await tx.creditTransaction.create({
+    data: {
+      userId,
+      type: 'CONSUME',
+      pool: 'BONUS',
+      amount: -1,
+      reason: 'consume_bonus_once',
+      sourceRef: purchase.id,
+      metadata: { purchaseId: purchase.id },
+    },
+  })
+
   return true
 }
 
@@ -478,10 +550,13 @@ export async function addBonusCredits(
       source,
       stripePaymentId,
     }
+    let createdPurchaseId: string | null = null
     try {
-      await tx.bonusCreditPurchase.create({
+      const purchase = await tx.bonusCreditPurchase.create({
         data: { ...baseData, acknowledgedAt },
+        select: { id: true },
       })
+      createdPurchaseId = purchase.id
     } catch (err) {
       const code = (err as { code?: string } | null)?.code
       const msg = (err as { message?: string } | null)?.message ?? ''
@@ -489,15 +564,41 @@ export async function addBonusCredits(
         code === 'P2022' || (/column .* does not exist/i.test(msg) && /acknowledged/i.test(msg))
       if (!isMissingColumn) throw err
       // 컬럼 없음. acknowledgedAt 빼고 재시도 → 적어도 row 는 생성.
-      await tx.bonusCreditPurchase.create({ data: baseData })
+      const purchase = await tx.bonusCreditPurchase.create({
+        data: baseData,
+        select: { id: true },
+      })
+      createdPurchaseId = purchase.id
     }
-    return tx.userCredits.update({
+
+    const updated = await tx.userCredits.update({
       where: { userId },
       data: {
         bonusCredits: { increment: amount },
         totalBonusReceived: { increment: amount },
       },
     })
+
+    // 감사 로그 — GRANT 한 줄. sourceRef 는 stripePaymentId (Stripe 결제 → 환불
+    // 추적 가능) 가 있으면 그쪽, 없으면 BonusCreditPurchase.id 로 fallback.
+    await tx.creditTransaction.create({
+      data: {
+        userId,
+        type: 'GRANT',
+        pool: 'BONUS',
+        amount,
+        reason: `grant_${source}`,
+        sourceRef: stripePaymentId ?? createdPurchaseId,
+        metadata: {
+          source,
+          purchaseId: createdPurchaseId,
+          stripePaymentId: stripePaymentId ?? null,
+          expiresAt: expiresAt.toISOString(),
+        },
+      },
+    })
+
+    return updated
   })
 }
 
@@ -532,14 +633,23 @@ export async function expireBonusCredits() {
     select: { id: true, userId: true, remaining: true },
   })
 
-  // 각 유저별로 만료된 크레딧 합계
+  // 각 유저별로 만료된 크레딧 합계 + per-purchase 명세 (감사 로그용)
   const userExpiredCredits = new Map<string, number>()
+  const userExpiredPurchases = new Map<string, Array<{ id: string; remaining: number }>>()
   for (const p of expiredPurchases) {
     userExpiredCredits.set(p.userId, (userExpiredCredits.get(p.userId) || 0) + p.remaining)
+    const list = userExpiredPurchases.get(p.userId) ?? []
+    list.push({ id: p.id, remaining: p.remaining })
+    userExpiredPurchases.set(p.userId, list)
   }
 
   // 트랜잭션으로 처리 — bonusCredits 차감은 GREATEST(0, ...) 로 음수 drift 방어.
-  const runUserExpiry = (uid: string, expiredAmount: number) =>
+  // CreditTransaction (EXPIRE / BONUS) 는 행마다 한 줄씩 — sourceRef = purchase.id.
+  const runUserExpiry = (
+    uid: string,
+    expiredAmount: number,
+    purchases: Array<{ id: string; remaining: number }>
+  ) =>
     prisma.$transaction([
       // 만료된 구매 건들 업데이트 — `remaining > 0` 필터는 필수.
       // 차감 합계 (expiredAmount) 는 `remaining > 0` 행만으로 계산되는데,
@@ -564,10 +674,24 @@ export async function expireBonusCredits() {
         SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${expiredAmount})
         WHERE "userId" = ${uid}
       `,
+      // 감사 로그 — purchase 마다 한 행 (sourceRef = purchase.id).
+      prisma.creditTransaction.createMany({
+        data: purchases.map((p) => ({
+          userId: uid,
+          type: 'EXPIRE' as const,
+          pool: 'BONUS' as const,
+          amount: -p.remaining,
+          reason: 'expire_bonus',
+          sourceRef: p.id,
+          metadata: { purchaseId: p.id, expiredAmount: p.remaining },
+        })),
+      }),
     ])
 
   const entries = Array.from(userExpiredCredits.entries())
-  let results = await Promise.allSettled(entries.map(([uid, amt]) => runUserExpiry(uid, amt)))
+  let results = await Promise.allSettled(
+    entries.map(([uid, amt]) => runUserExpiry(uid, amt, userExpiredPurchases.get(uid) ?? []))
+  )
 
   // 1회 재시도 — 일시적 connection blip / deadlock 등 회복 가능한 실패 대비.
   // 그래도 실패하면 critical 로그로 발행해 알림 시스템(메트릭/sentry)에서
@@ -576,7 +700,9 @@ export async function expireBonusCredits() {
   if (rejectedIdx.length > 0) {
     const retryEntries = rejectedIdx.map((i) => entries[i])
     const retryResults = await Promise.allSettled(
-      retryEntries.map(([uid, amt]) => runUserExpiry(uid, amt))
+      retryEntries.map(([uid, amt]) =>
+        runUserExpiry(uid, amt, userExpiredPurchases.get(uid) ?? [])
+      )
     )
     retryResults.forEach((r, j) => {
       const origIdx = rejectedIdx[j]
@@ -664,7 +790,8 @@ export async function revokeBonusCreditPurchase(
     // 음수 방지 atomic — Prisma 의 단순 decrement 는 raw guard 가 없어
     // 동시 차감 / 다른 경로의 0 도달 시 음수 drift 발생 가능. GREATEST 로
     // floor 를 0 에 박아 transaction 안에서 한 줄로 처리.
-    await prisma.$transaction([
+    // 감사 로그 — REVOKE (BONUS) 한 줄 (reclaim 이 0 이면 생략).
+    const ops: Prisma.PrismaPromise<unknown>[] = [
       prisma.bonusCreditPurchase.update({
         where: { id: purchase.id },
         data: { remaining: 0, expired: true, expiresAt: new Date() },
@@ -674,7 +801,28 @@ export async function revokeBonusCreditPurchase(
         SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${reclaim})
         WHERE "userId" = ${purchase.userId}
       `,
-    ])
+    ]
+    if (reclaim > 0) {
+      ops.push(
+        prisma.creditTransaction.create({
+          data: {
+            userId: purchase.userId,
+            type: 'REVOKE',
+            pool: 'BONUS',
+            amount: -reclaim,
+            reason: 'stripe_refund',
+            sourceRef: stripePaymentId,
+            metadata: {
+              purchaseId: purchase.id,
+              stripePaymentId,
+              reclaimed: reclaim,
+              alreadyUsed,
+            },
+          },
+        })
+      )
+    }
+    await prisma.$transaction(ops)
 
     logger.warn('[revokeBonusCreditPurchase] revoked refunded purchase', {
       userId: purchase.userId,

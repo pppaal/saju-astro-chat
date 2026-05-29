@@ -47,6 +47,11 @@ function withDefaults(tx: any) {
       findMany: vi.fn().mockResolvedValue([]),
       updateMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
+    // CreditTransaction (REFUND/*) audit row — 모든 refund 경로가 한 줄 emit.
+    // 본 테스트들은 잔액 / 로그만 검증하므로 noop 으로 충분.
+    creditTransaction: {
+      create: vi.fn().mockResolvedValue({}),
+    },
     $executeRaw: vi.fn().mockResolvedValue(1),
     ...tx,
   }

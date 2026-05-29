@@ -24,15 +24,23 @@ vi.mock('@/lib/db/prisma', () => ({
       create: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       findMany: vi.fn(),
     },
     bonusCreditPurchase: {
       create: vi.fn(),
       findMany: vi.fn(),
+      findFirst: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
     },
+    // CreditTransaction audit table — noop mock, 잔액/한도 검증은 영향 없음.
+    creditTransaction: {
+      create: vi.fn(),
+      createMany: vi.fn(),
+    },
     $transaction: vi.fn(),
+    $executeRaw: vi.fn(),
   },
 }))
 
@@ -44,6 +52,14 @@ describe('Credit Service', () => {
     vi.clearAllMocks()
     vi.useFakeTimers()
     vi.setSystemTime(mockNow)
+    // $transaction 의 두 가지 호출 형태를 모두 지원하도록 기본 구현 설정.
+    // (a) function callback → 그대로 prisma 객체 넘기고 실행.
+    // (b) array of promises (legacy ops form) → Promise.all.
+    ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (arg: unknown) => {
+      if (typeof arg === 'function') return (arg as (tx: unknown) => Promise<unknown>)(prisma)
+      if (Array.isArray(arg)) return Promise.all(arg)
+      return undefined
+    })
   })
 
   afterEach(() => {
@@ -312,6 +328,7 @@ describe('Credit Service', () => {
             findUnique: vi.fn().mockResolvedValue(mockCredits),
             update: vi.fn().mockResolvedValue({}),
           },
+          creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         })
       )
 
@@ -343,6 +360,7 @@ describe('Credit Service', () => {
             findMany: vi.fn().mockResolvedValue(mockPurchases),
             update: vi.fn().mockResolvedValue({}),
           },
+          creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         })
       )
 
@@ -388,6 +406,7 @@ describe('Credit Service', () => {
             findUnique: vi.fn().mockResolvedValue(mockCredits),
             update: vi.fn().mockResolvedValue({}),
           },
+          creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         })
       )
 
@@ -411,6 +430,7 @@ describe('Credit Service', () => {
             findUnique: vi.fn().mockResolvedValue(mockCredits),
             update: vi.fn().mockResolvedValue({}),
           },
+          creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         }
         return callback(tx)
       })

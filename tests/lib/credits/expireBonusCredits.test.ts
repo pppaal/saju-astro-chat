@@ -25,6 +25,11 @@ vi.mock('@/lib/db/prisma', () => ({
       findMany: vi.fn(),
       updateMany: vi.fn(),
     },
+    // expireBonusCredits 가 transaction 배열에 createMany 를 한 줄 추가하므로
+    // noop mock. 본 테스트는 updateMany 의 where 절만 검증한다.
+    creditTransaction: {
+      createMany: vi.fn(() => Promise.resolve({ count: 0 })),
+    },
     $transaction: vi.fn(),
     $executeRaw: vi.fn(),
   },

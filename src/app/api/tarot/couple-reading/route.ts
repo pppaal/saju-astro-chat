@@ -232,11 +232,30 @@ export const POST = withApiMiddleware(
           }
 
           if (!charged) {
+            // consumeBonusCreditOnceInTx 가 내부에서 CreditTransaction
+            // (CONSUME / BONUS / sourceRef=purchase.id) 을 emit 하므로
+            // bonus 경로는 여기서 추가 audit 작성 불필요.
             const ok = await consumeBonusCreditOnceInTx(tx, userId)
             if (ok) charged = 'bonus'
           }
 
           if (!charged) throw new InsufficientCreditsError()
+
+          // compat 경로 감사 로그 — compatibilityUsed 가 inline 으로 +1 됐으므로
+          // CreditTransaction 도 같은 트랜잭션 안에서 한 줄.
+          if (charged === 'compat') {
+            await tx.creditTransaction.create({
+              data: {
+                userId,
+                type: 'CONSUME',
+                pool: 'COMPATIBILITY',
+                amount: -1,
+                reason: 'consume_couple_reading',
+                sourceRef: connectionId,
+                metadata: { connectionId, source: 'couple-reading' },
+              },
+            })
+          }
 
           const reading = await tx.tarotReading.create({
             data: {

@@ -15,6 +15,7 @@ const {
   mockBonusFindMany,
   mockBonusUpdateMany,
   mockExecuteRaw,
+  mockCreditTxnCreate,
 } = vi.hoisted(() => ({
   mockFindUnique: vi.fn(),
   mockUpdate: vi.fn(),
@@ -23,6 +24,8 @@ const {
   mockBonusFindMany: vi.fn(),
   mockBonusUpdateMany: vi.fn(),
   mockExecuteRaw: vi.fn(),
+  // CreditTransaction (REFUND/*) 한 줄을 같은 tx 안에서 emit.
+  mockCreditTxnCreate: vi.fn(),
 }));
 
 const mockTx = {
@@ -36,6 +39,9 @@ const mockTx = {
   },
   creditRefundLog: {
     create: mockCreate,
+  },
+  creditTransaction: {
+    create: mockCreditTxnCreate,
   },
   $executeRaw: mockExecuteRaw,
 };

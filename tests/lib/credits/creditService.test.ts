@@ -11,6 +11,7 @@ const { mockPrisma } = vi.hoisted(() => {
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       findMany: vi.fn(() => []),
     },
     bonusCreditPurchase: {
@@ -18,10 +19,22 @@ const { mockPrisma } = vi.hoisted(() => {
       create: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
+      findFirst: vi.fn(),
+    },
+    // CreditTransaction audit table — 모든 mutation 사이트가 행 하나 emit.
+    // 기존 테스트는 잔액·소비량만 검증하므로 mock 은 noop 으로 충분.
+    creditTransaction: {
+      create: vi.fn(),
+      createMany: vi.fn(),
     },
     $transaction: vi.fn(async (callback: (tx: typeof mockPrisma) => Promise<unknown>) => {
-      return callback(mockPrisma)
+      if (typeof callback === 'function') {
+        return callback(mockPrisma)
+      }
+      // array form (used by expireBonusCredits / revokeBonusCreditPurchase).
+      return Promise.all(callback as unknown as Promise<unknown>[])
     }),
+    $executeRaw: vi.fn(),
   }
   return { mockPrisma }
 })
