@@ -305,11 +305,10 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       const owningTheme = tarotThemes.find((t) => t.spreads.some((s) => s.id === selectedSpread.id))
       const categoryId = owningTheme?.id || selectedCategory
 
-      const res = await fetch('/api/tarot', {
+      const res = await apiFetch('/api/tarot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
         },
         body: JSON.stringify({
           categoryId,

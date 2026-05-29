@@ -14,6 +14,7 @@ import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
 import { CompatChartModal } from './CompatChartModal'
 import { streamProcessor } from '@/lib/streaming'
+import { apiFetch } from '@/lib/api'
 import { ChatInputArea } from '@/components/destiny-map/chat-panels'
 import {
   generateFollowUpQuestions,
@@ -554,7 +555,7 @@ function CompatibilityCounselorContent() {
           inFlightAbortRef.current = controller
           const headerTimer = setTimeout(() => controller.abort(), HEADER_TIMEOUT_MS)
           try {
-            response = await fetch('/api/compatibility/counselor', {
+            response = await apiFetch('/api/compatibility/counselor', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { logger } from '@/lib/logger'
+import { apiFetch } from '@/lib/api'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { CHAT_I18N, detectCrisis, type LangKey } from '../chat-i18n'
 import { CHAT_TIMINGS, CHAT_LIMITS, type Message, type ConnectionStatus } from '../chat-constants'
@@ -184,7 +185,7 @@ export function useChatApi({
         if (payload.idempotencyKey) {
           headers['x-idempotency-key'] = payload.idempotencyKey
         }
-        const res = await fetch('/api/counselor/realtime', {
+        const res = await apiFetch('/api/counselor/realtime', {
           method: 'POST',
           headers,
           body: JSON.stringify(payload),

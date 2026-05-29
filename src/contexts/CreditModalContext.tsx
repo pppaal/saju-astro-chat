@@ -1,7 +1,8 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import CreditDepletedModal from '@/components/ui/CreditDepletedModal'
+import { CREDIT_MODAL_EVENT, type CreditModalKind } from '@/lib/api/ApiClient'
 
 interface CreditModalContextType {
   showDepleted: () => void
@@ -56,6 +57,20 @@ export function CreditModalProvider({ children }: { children: ReactNode }) {
   const close = useCallback(() => {
     setIsOpen(false)
   }, [])
+
+  // 단일 표시 지점 — apiFetch 가 크레딧(402)/게스트 한도(401) 응답을 감지해
+  // 쏘는 전역 이벤트를 듣고 적절한 모달을 띄운다. 크레딧 쓰는 모든 호출이
+  // 자동으로 동일한 안내를 받게 되어, 화면마다 따로 붙일 필요가 없다.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onSignal = (e: Event) => {
+      const kind = (e as CustomEvent<{ kind?: CreditModalKind }>).detail?.kind
+      if (kind === 'guest') showGuestLimit()
+      else showDepleted()
+    }
+    window.addEventListener(CREDIT_MODAL_EVENT, onSignal)
+    return () => window.removeEventListener(CREDIT_MODAL_EVENT, onSignal)
+  }, [showGuestLimit, showDepleted])
 
   return (
     <CreditModalContext.Provider
