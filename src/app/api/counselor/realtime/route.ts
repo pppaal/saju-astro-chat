@@ -94,7 +94,10 @@ interface RealtimeBody {
 }
 
 // 끊긴 턴의 완성 답안을 잠깐 보관하는 캐시 키 — result 엔드포인트가 같은 키로 읽음.
-export const counselorTurnResultKey = (turnId: string) => `counselor:turn-result:${turnId}`
+// userId 를 키에 포함해 ownership 검증 (다른 사용자가 turnId 알아도 조회 불가).
+// 게스트는 끊김 복구 기능 미지원 (turnId 보관 안 함).
+export const counselorTurnResultKey = (userId: string, turnId: string) =>
+  `counselor:turn-result:${userId}:${turnId}`
 // 돌아와서 받아갈 시간을 충분히 (10분). 받아가면 그만이고 TTL 로 자동 소멸.
 const TURN_RESULT_TTL_SEC = 600
 
@@ -596,15 +599,17 @@ export async function POST(req: NextRequest) {
     keepGeneratingOnDisconnect: true,
     // 생성이 끝나면(클라 연결 여부 무관) 완성 답안을 캐시에 저장. 끊겼다가
     // 돌아온 사용자가 /api/counselor/realtime/result?turnId=… 로 받아간다.
-    onComplete: turnId
-      ? async (full) => {
-          try {
-            await cacheSet(counselorTurnResultKey(turnId), full, TURN_RESULT_TTL_SEC)
-          } catch {
-            /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
+    // 게스트(userId 없음) 는 끊김 복구 미지원 — turnId 가 있어도 캐시 안 함.
+    onComplete:
+      turnId && userId
+        ? async (full) => {
+            try {
+              await cacheSet(counselorTurnResultKey(userId, turnId), full, TURN_RESULT_TTL_SEC)
+            } catch {
+              /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
+            }
           }
-        }
-      : undefined,
+        : undefined,
     systemPrompt,
     userPrompt,
     cachedUserContext,
