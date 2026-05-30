@@ -497,31 +497,20 @@ export const GET = withApiMiddleware(
         })
       )
       const allPrescoredCells = monthResults.flatMap((m) => m.cells)
+      // 셀이 이미 두 축(derivedScore=헤드라인, sajuAxis/astroAxis/axisAgreement)을
+      // 단일출처로 들고 있다(index.ts groupIntoCells → deriveCellAxes). route에서
+      // 재계산(중복)하지 않고 셀 값을 그대로 읽어 yearlyDates에 넘긴다.
       for (const c of allPrescoredCells) {
         const k = c.datetime.slice(0, 10)
         if (typeof c.derivedScore === 'number') engineScoreByDate[k] = c.derivedScore
-      }
-      // Phase 1 단일출처 축: 같은 신호 다발에서 사주축·점성축·헤드라인·일치도 산출.
-      // 고정 기준 창(prescored 셀 전체)으로 1회 보정 → 모든 날 동일 보정.
-      try {
-        const { calibrateAxes, deriveCellAxes } = await import(
-          '@/lib/calendar-engine/derivers/axisScore'
-        )
-        const axisCal = calibrateAxes(allPrescoredCells)
-        for (const c of allPrescoredCells) {
-          const a = deriveCellAxes(c.signals, axisCal)
-          axisByDate[c.datetime.slice(0, 10)] = {
-            sajuAxis: a.sajuAxis,
-            astroAxis: a.astroAxis,
-            headline: a.headline,
-            agreement: a.agreement,
+        if (typeof c.sajuAxis === 'number' && typeof c.astroAxis === 'number') {
+          axisByDate[k] = {
+            sajuAxis: c.sajuAxis,
+            astroAxis: c.astroAxis,
+            headline: c.derivedScore,
+            agreement: c.axisAgreement ?? 'mixed',
           }
         }
-      } catch (axErr) {
-        logger.warn?.(
-          '[calendar-engine axisScore] skipped:',
-          axErr instanceof Error ? axErr.message : String(axErr)
-        )
       }
     } catch (err) {
       logger.warn?.(
