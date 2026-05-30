@@ -87,13 +87,6 @@ vi.mock('@/lib/db/prisma', () => ({
     matchMessage: {
       aggregate: vi.fn(),
     },
-    emailLog: {
-      groupBy: vi.fn(),
-      findMany: vi.fn(),
-    },
-    pushSubscription: {
-      count: vi.fn(),
-    },
     consultationHistory: {
       count: vi.fn(),
       groupBy: vi.fn(),
@@ -252,25 +245,6 @@ function setupDefaultMocks() {
   vi.mocked(prisma.matchMessage.aggregate).mockResolvedValue({
     _count: { id: 1000 },
   } as any)
-
-  // Notifications data mocks
-  vi.mocked(prisma.emailLog.groupBy).mockResolvedValue([
-    { status: 'SENT', _count: { id: 100 } },
-    { type: 'welcome', _count: { id: 50 } },
-  ] as any)
-  vi.mocked(prisma.emailLog.findMany).mockResolvedValue([
-    {
-      id: 'email-1',
-      email: 'user@example.com',
-      type: 'welcome',
-      status: 'SENT',
-      subject: 'Welcome',
-      errorMsg: null,
-      provider: 'sendgrid',
-      createdAt: new Date('2024-01-15'),
-    },
-  ] as any)
-  vi.mocked(prisma.pushSubscription.count).mockResolvedValue(75)
 
   // Content data mocks
   vi.mocked(prisma.consultationHistory.count).mockResolvedValue(500)
@@ -479,7 +453,6 @@ describe('GET /api/admin/metrics/comprehensive', () => {
         'users',
         'revenue',
         'matching',
-        'notifications',
         'content',
         'moderation',
         'audit',
@@ -610,22 +583,6 @@ describe('GET /api/admin/metrics/comprehensive', () => {
     })
   })
 
-  describe('Section: notifications', () => {
-    it('should return notifications data when section=notifications', async () => {
-      const req = makeRequest({ section: 'notifications', timeRange: '24h' })
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.data.section).toBe('notifications')
-      expect(data.data.data).toHaveProperty('emailByStatus')
-      expect(data.data.data).toHaveProperty('emailByType')
-      expect(data.data.data).toHaveProperty('recentEmails')
-      expect(data.data.data).toHaveProperty('activePushSubscriptions')
-      expect(data.data.data).toHaveProperty('totalPushSubscriptions')
-    })
-  })
-
   describe('Section: content', () => {
     it('should return content data when section=content', async () => {
       const req = makeRequest({ section: 'content', timeRange: '24h' })
@@ -638,7 +595,6 @@ describe('GET /api/admin/metrics/comprehensive', () => {
       expect(data.data.data).toHaveProperty('destinyMatrix')
       expect(data.data.data).toHaveProperty('tarotReadings')
       expect(data.data.data).toHaveProperty('readingsByType')
-      expect(data.data.data).toHaveProperty('pastLifeCount')
       expect(data.data.data).toHaveProperty('compatibilityCount')
     })
   })
@@ -914,25 +870,22 @@ describe('GET /api/admin/metrics/comprehensive', () => {
 
     it('should properly serialize dates to ISO strings', async () => {
       const testDate = new Date('2024-06-15T10:30:00.000Z')
-      vi.mocked(prisma.emailLog.findMany).mockResolvedValue([
+      vi.mocked(prisma.user.findMany).mockResolvedValue([
         {
-          id: 'email-1',
+          id: 'user-1',
           email: 'test@example.com',
-          type: 'welcome',
-          status: 'SENT',
-          subject: 'Welcome',
-          errorMsg: null,
-          provider: 'sendgrid',
+          name: 'Test User',
+          role: 'USER',
           createdAt: testDate,
         },
       ] as any)
 
-      const req = makeRequest({ section: 'notifications', timeRange: '24h' })
+      const req = makeRequest({ section: 'users', timeRange: '24h' })
       const response = await GET(req)
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.data.data.recentEmails[0].createdAt).toBe('2024-06-15T10:30:00.000Z')
+      expect(data.data.data.recentSignups[0].createdAt).toBe('2024-06-15T10:30:00.000Z')
     })
   })
 

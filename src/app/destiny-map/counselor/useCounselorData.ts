@@ -176,6 +176,11 @@ export function useCounselorData(sp: SearchParams) {
               calendarType: 'solar',
               timezone: resolvedTimeZone,
               userTimezone: resolvedTimeZone,
+              // 진경도(진태양시) 보정 — 도시 lon 을 같이 보내면 시지 계산이 도시별로 정확.
+              // resolvedLongitude 는 URL 에 좌표 없으면 서울 기본값 — 페이지의 다른 차트
+              // (astro 등) 와 일관. 캐시 키에도 같이 들어가 도시별 결과 분리.
+              latitude: resolvedLatitude,
+              longitude: resolvedLongitude,
             }),
           })
           if (!res.ok) {

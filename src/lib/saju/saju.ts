@@ -29,6 +29,7 @@ import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
 import { isCheoneulGwiin } from './stemBranchUtils'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
+import { getOffsetMinutes } from './timezone'
 
 // 내부 타입(간단화)
 type DayMaster = { name: string; element: FiveElement; yin_yang: YinYang }
@@ -58,8 +59,11 @@ function getSibseong(
 }
 
 /* ========== 지지 본기(정기) 보정 ========== */
+// 子의 정기는 癸 (음수, 한국 정통 명리). 옛 코드는 壬(양수) 으로 잘못 들어가
+// 子 가 들어간 모든 ji 의 십신이 음양 뒤집혔다 (예: 일간 戊 + 子 ji → 정재여야
+// 할 것이 편재로 잘못 분류). 다른 11개 지지 정기는 JIJANGGAN[*].정기 와 일치.
 const MAIN_QI: Record<string, string | undefined> = {
-  子: '壬',
+  子: '癸',
   丑: '己',
   寅: '甲',
   卯: '乙',
@@ -299,10 +303,20 @@ function getSajuCacheKey(
   gender: string,
   calendarType: string,
   timezone: string,
-  lunarLeap?: boolean
+  lunarLeap?: boolean,
+  // longitude 가 들어오면 진경도(진태양시) 보정이 켜져 시지/시간이 달라진다 — 캐시 키에 반영.
+  longitude?: number
 ): string {
   const sep = CACHE_KEY.SEPARATOR
-  const params = [birthDate, birthTime, gender, calendarType, timezone, lunarLeap ?? '']
+  const params = [
+    birthDate,
+    birthTime,
+    gender,
+    calendarType,
+    timezone,
+    lunarLeap ?? '',
+    typeof longitude === 'number' && Number.isFinite(longitude) ? longitude.toFixed(4) : '',
+  ]
   return `${CACHE_KEY.PREFIX.SAJU}${sep}${params.map((p) => JSON.stringify(p)).join(sep)}`
 }
 
@@ -313,10 +327,22 @@ export function calculateSajuData(
   gender: 'male' | 'female',
   calendarType: 'solar' | 'lunar',
   timezone: string,
-  lunarLeap?: boolean
+  lunarLeap?: boolean,
+  // 진경도(진태양시) 보정용. 도시의 lon 을 넘기면 timezone 표준 자오선과의 차이만큼
+  // 분 단위로 시지 룩업을 보정한다. 전세계 사용자에게 일관된 정통 사주학.
+  // 없으면 한국 평균 LMT(+30분) 기존 동작 유지 — 옛 결과와 호환.
+  longitude?: number
 ): CalculateSajuDataResult {
   // Check cache first
-  const cacheKey = getSajuCacheKey(birthDate, birthTime, gender, calendarType, timezone, lunarLeap)
+  const cacheKey = getSajuCacheKey(
+    birthDate,
+    birthTime,
+    gender,
+    calendarType,
+    timezone,
+    lunarLeap,
+    longitude
+  )
   const cached = sajuCache.get(cacheKey)
   if (cached && Date.now() - cached.timestamp < SAJU_CACHE.TTL_MS) {
     return cached.result
@@ -452,14 +478,34 @@ export function calculateSajuData(
     }
 
     /* ---------------- 시기둥 ----------------
-     * 한국 LMT(+30) / KMT 시대 / DST / 비한국 분기 — applyKoreanLmtCorrection 참조.
+     * 두 가지 모드:
+     *
+     *  A) longitude 있음 — 진경도(진태양시) 보정. 전세계 일관 정통 사주학.
+     *     보정 분 = (longitude - 표준자오선) × 4. 표준자오선은 timezone 의
+     *     UTC offset × 15 (KST = +9h → 135°E, JST = +9h → 135°E, 동남아 +7h
+     *     → 105°E, 미동부 -5h → -75°E …). PLAIN_HOUR_RANGES (정시 경계).
+     *     예: 부산 (129.07°E, KST) → 보정 -23분 → 시계시 11:00 = 진태양시 10:37
+     *
+     *  B) longitude 없음 — 옛 동작 보존 (한국 LMT +30 / KMT / DST 분기). 옛
+     *     사용자/캐시와 결과 호환.
      */
     const { h: hour, m: minute } = parseHourMinute(birthTime)
     const birthUtcMs = birthDateTime.getTime()
-    const useLmtRanges = applyKoreanLmtCorrection(birthUtcMs, timezone)
-    const lookupOffsetMin = getHourLookupOffsetMin(birthUtcMs, timezone)
-    const totalMin = hour * 60 + minute + lookupOffsetMin
-    const ranges = useLmtRanges ? LMT_HOUR_RANGES : PLAIN_HOUR_RANGES
+
+    let totalMin: number
+    let ranges: typeof LMT_HOUR_RANGES
+    if (typeof longitude === 'number' && Number.isFinite(longitude)) {
+      const tzOffsetMin = getOffsetMinutes(new Date(birthUtcMs), timezone)
+      const standardMeridian = (tzOffsetMin / 60) * 15
+      const correctionMin = Math.round((longitude - standardMeridian) * 4)
+      totalMin = hour * 60 + minute + correctionMin
+      ranges = PLAIN_HOUR_RANGES
+    } else {
+      const useLmtRanges = applyKoreanLmtCorrection(birthUtcMs, timezone)
+      const lookupOffsetMin = getHourLookupOffsetMin(birthUtcMs, timezone)
+      totalMin = hour * 60 + minute + lookupOffsetMin
+      ranges = useLmtRanges ? LMT_HOUR_RANGES : PLAIN_HOUR_RANGES
+    }
     // candidate 보정 — totalMin 이 음수일 수 있으므로 양수로 정규화 후 [0, 1440) 범위로 회수.
     const normTotalMin = ((totalMin % 1440) + 1440) % 1440
     const candidates = [normTotalMin, normTotalMin + 24 * 60]

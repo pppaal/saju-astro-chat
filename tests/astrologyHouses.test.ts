@@ -14,9 +14,9 @@ import {
   formatLongitude,
   normalize360,
   angleDiff,
-  clamp,
   ZODIAC_SIGNS,
 } from "@/lib/astrology/foundation/utils";
+import { clamp } from "@/lib/utils/math";
 
 describe("ZODIAC_SIGNS", () => {
   it("contains all 12 zodiac signs", () => {

@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { Sparkles, Send, Layers, X, MoonStar, ChevronRight, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
+import { apiFetch } from '@/lib/api'
 import {
   DECK_STYLES,
   DECK_STYLE_INFO,
@@ -45,6 +46,7 @@ export default function TarotChatScreen() {
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false)
   const [isSpreadModalOpen, setIsSpreadModalOpen] = useState(false)
   const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
+  const [isChecking, setIsChecking] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -82,9 +84,31 @@ export default function TarotChatScreen() {
     return () => window.clearTimeout(t)
   }, [selectedDeck])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!question.trim()) return
+    if (!question.trim() || isChecking) return
+
+    // 크레딧/게스트 한도 사전 체크 — 질문을 제출하는 이 첫 화면에서 바로 막는다.
+    // 한도 초과면 apiFetch 가 402/게스트-한도를 받아 전역 크레딧·로그인 모달을
+    // 띄우므로(CreditModalProvider), 여기서는 다음 화면으로 넘기지 않고 머문다.
+    // (소비는 아님 — 실제 차감은 카드 draw 성공 시.)
+    setIsChecking(true)
+    try {
+      const res = await apiFetch('/api/tarot/prefetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          categoryId: selectedSpread.categoryId,
+          spreadId: selectedSpread.spread.id,
+        }),
+      })
+      if (!res.ok) return // 모달은 apiFetch 가 띄움 — 질문 화면 그대로 유지
+    } catch {
+      // prefetch 네트워크 오류는 차단 사유가 아님 — reading 단계에서 재게이팅된다.
+    } finally {
+      setIsChecking(false)
+    }
+
     const q = encodeURIComponent(question.trim())
     // birthInfo 는 더 이상 타로 cross 에 쓰이지 않음 — 순수 타로만 읽음.
     const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?question=${q}&deck=${selectedDeck}`

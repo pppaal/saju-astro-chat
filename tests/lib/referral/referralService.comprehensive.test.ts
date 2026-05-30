@@ -25,6 +25,7 @@ vi.mock('@/lib/db/prisma', () => ({
       findUnique: vi.fn(),
       findMany: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     referralReward: {
       create: vi.fn(),
@@ -37,10 +38,6 @@ vi.mock('@/lib/db/prisma', () => ({
 
 vi.mock('@/lib/credits/creditService', () => ({
   addBonusCredits: vi.fn().mockResolvedValue(undefined),
-}))
-
-vi.mock('@/lib/email', () => ({
-  sendReferralRewardEmail: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/lib/logger', () => ({
@@ -176,7 +173,8 @@ describe('Referral Service', () => {
         user: { id: 'referrer-1', name: 'Referrer' },
       }
       mockedPrisma.userSettings.findFirst.mockResolvedValue(referrerSettings as never)
-      mockedPrisma.user.update.mockResolvedValue({} as never)
+      // Guarded updateMany claims the link (count > 0).
+      mockedPrisma.user.updateMany.mockResolvedValue({ count: 1 } as never)
       mockedPrisma.referralReward.create.mockResolvedValue({} as never)
       mockedPrisma.user.findUnique.mockResolvedValue({
         email: 'ref@test.com',

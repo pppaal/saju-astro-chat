@@ -46,6 +46,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
     selectedCategory,
     concern,
     drawnCards,
+    drawNonce,
     overallMessage,
     cardInsights,
     guidance,
@@ -71,10 +72,14 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
 
   // Fetch streaming interpretation
   const fetchInterpretation = useCallback(
-    async (cards: DrawnCard[]) => {
+    // nonceOverride — 방금 draw 한 직후엔 state(drawNonce) 가 아직 안 반영됐을
+    // 수 있어 draw 핸들러가 응답에서 받은 nonce 를 직접 넘긴다 (drawnCards 와
+    // 동일 패턴). 미지정이면 state 의 drawNonce 사용 (retry 경로).
+    async (cards: DrawnCard[], nonceOverride?: string | null) => {
       if (!selectedSpread) {
         return
       }
+      const effectiveNonce = nonceOverride !== undefined ? nonceOverride : drawNonce
 
       // Cancel any existing request
       if (abortControllerRef.current) {
@@ -116,6 +121,8 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
         }),
         userQuestion: concern,
         language: lang,
+        // 서버 발급 단일-사용 nonce — draw 응답에서 받은 그대로 전달.
+        drawNonce: effectiveNonce || undefined,
       }
 
       try {
@@ -278,6 +285,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       concern,
       lang,
       actions,
+      drawNonce,
       overallMessage,
       guidance,
       defaultOverallMessage,
@@ -331,6 +339,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
 
       const data = await res.json()
       actions.setDrawnCards(data.drawnCards)
+      actions.setDrawNonce(data.drawNonce ?? null)
 
       // Reveal the whole spread at once. The old one-by-one flip (500ms each)
       // made the screen "keep changing" before the result settled.
@@ -341,7 +350,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       // overallMessage 비어 있을 때 inline 로딩 인디케이터를 자체적으로 띄움.
       // 사용자: "카드부터 보고 싶다" 피드백 반영.
       actions.setStep('result')
-      await fetchInterpretation(data.drawnCards)
+      await fetchInterpretation(data.drawnCards, data.drawNonce ?? null)
     } catch (err) {
       logger.error('[InlineTarot] draw error:', err)
       // 카드 뽑기 실패 시 화면이 '뽑는 중'에서 그대로 멈추지 않도록 스프레드

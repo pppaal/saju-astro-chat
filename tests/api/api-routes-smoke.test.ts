@@ -99,7 +99,6 @@ describe('API Routes Smoke Tests', () => {
     it('should have cron routes', () => {
       assertModules([
         'app/api/cron/daily-fortune-post/route',
-        'app/api/cron/notifications/route',
         'app/api/cron/reset-credits/route',
       ])
     })
@@ -117,21 +116,14 @@ describe('API Routes Smoke Tests', () => {
     })
   })
 
-  describe('Me Routes (5)', () => {
+  describe('Me Routes (4)', () => {
     it('should have user profile routes', () => {
       assertModules([
         'app/api/me/circle/route',
         'app/api/me/credits/route',
-        'app/api/me/history/route',
         'app/api/me/premium/route',
         'app/api/me/profile/route',
       ])
-    })
-  })
-
-  describe('Push Routes', () => {
-    it('should have push routes', () => {
-      assertModules(['app/api/push/subscribe/route'])
     })
   })
 
@@ -186,7 +178,6 @@ describe('API Routes Smoke Tests', () => {
         'destiny-match',
         'feedback',
         'me',
-        'push',
         'referral',
         'saju',
         'tarot',

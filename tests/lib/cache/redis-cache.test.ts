@@ -61,10 +61,11 @@ describe('Redis Cache', () => {
 
   describe('CACHE_TTL', () => {
     it('defines TTL for different data types', () => {
-      expect(CACHE_TTL.SAJU_RESULT).toBe(60 * 60 * 24 * 7)
+      // CACHE_TTL was trimmed to only the keys actually used:
+      // TAROT_READING, CALENDAR_DATA, COMPATIBILITY, NATAL_CHART.
       expect(CACHE_TTL.TAROT_READING).toBe(60 * 60 * 24)
-      expect(CACHE_TTL.DESTINY_MAP).toBe(60 * 60 * 24 * 3)
       expect(CACHE_TTL.CALENDAR_DATA).toBe(60 * 60 * 24)
+      expect(CACHE_TTL.NATAL_CHART).toBe(60 * 60 * 24 * 30)
     })
   })
 
@@ -107,12 +108,12 @@ describe('Redis Cache', () => {
 
     it('generates yearly calendar key with category', () => {
       const key = CacheKeys.yearlyCalendar('1990-01-01', '12:00', 'M', 2024, 'love', 'Seoul')
-      expect(key).toBe('yearly:v4:1990-01-01:12:00:M:2024:love:U2VvdWw=')
+      expect(key).toBe('yearly:v6:1990-01-01:12:00:M:2024:love:U2VvdWw=')
     })
 
     it('generates yearly calendar key without category', () => {
       const key = CacheKeys.yearlyCalendar('1990-01-01', '12:00', 'M', 2024)
-      expect(key).toBe('yearly:v4:1990-01-01:12:00:M:2024:all:U2VvdWw=')
+      expect(key).toBe('yearly:v6:1990-01-01:12:00:M:2024:all:U2VvdWw=')
     })
   })
 
@@ -226,8 +227,9 @@ describe('Redis Cache', () => {
       expect(CACHE_TTL.COMPATIBILITY).toBe(60 * 60 * 24 * 7)
     })
 
-    it('has correct TTL for grading', () => {
-      expect(CACHE_TTL.GRADING_RESULT).toBe(60 * 60 * 24)
+    it('has correct TTL for natal chart', () => {
+      // GRADING_RESULT was removed; NATAL_CHART (30 days) is the long-lived key.
+      expect(CACHE_TTL.NATAL_CHART).toBe(60 * 60 * 24 * 30)
     })
 
     it('all TTL values are positive numbers', () => {

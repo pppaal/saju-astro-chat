@@ -8,16 +8,6 @@ import {
   userRegistrationRequestSchema,
   userProfileUpdateSchema,
   userBirthInfoUpdateSchema,
-  birthChartMemorySchema,
-  sajuProfileMemorySchema,
-  personaMemoryPostSchema,
-  personaMemoryPatchSchema,
-  personaMemoryUpdateSchema,
-  notificationSendRequestSchema,
-  notificationSendSchema,
-  pushSendRequestSchema,
-  pushSubscribeSchema,
-  pushUnsubscribeSchema,
   feedbackRequestSchema,
   sectionFeedbackRequestSchema,
   feedbackGetQuerySchema,
@@ -51,7 +41,6 @@ import {
   referralValidateQuerySchema,
   meHistoryQuerySchema,
   cronAuthSchema,
-  cronNotificationsTriggerSchema,
   cspReportSchema,
 } from '@/lib/api/zodValidation/user'
 
@@ -188,176 +177,8 @@ describe('Profile Schema Tests', () => {
   })
 })
 
-describe('Persona Memory Schema Tests', () => {
-  describe('birthChartMemorySchema', () => {
-    it('should accept valid birth chart', () => {
-      expect(birthChartMemorySchema.safeParse({
-        sunSign: 'Aries',
-        moonSign: 'Cancer',
-        ascendant: 'Leo',
-        dominantElement: 'fire',
-        dominantModality: 'cardinal',
-      }).success).toBe(true)
-    })
-  })
-
-  describe('sajuProfileMemorySchema', () => {
-    it('should accept valid saju profile', () => {
-      expect(sajuProfileMemorySchema.safeParse({
-        dayMaster: '갑',
-        dayMasterElement: '목',
-        yongsin: '수',
-        geokguk: '건록격',
-      }).success).toBe(true)
-    })
-
-    it('should accept pillars', () => {
-      expect(sajuProfileMemorySchema.safeParse({
-        pillars: {
-          year: { stem: '갑', branch: '자' },
-          month: { stem: '을', branch: '축' },
-          day: { stem: '병', branch: '인' },
-          time: { stem: '정', branch: '묘' },
-        },
-      }).success).toBe(true)
-    })
-  })
-
-  describe('personaMemoryPostSchema', () => {
-    it('should accept valid memory data', () => {
-      expect(personaMemoryPostSchema.safeParse({
-        dominantThemes: ['career', 'love'],
-        keyInsights: ['Strong leadership potential'],
-        emotionalTone: 'hopeful',
-        growthAreas: ['Communication', 'Patience'],
-        lastTopics: ['Career change'],
-      }).success).toBe(true)
-    })
-
-    it('should accept all emotional tones', () => {
-      const tones = ['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful']
-      tones.forEach(tone => {
-        expect(personaMemoryPostSchema.safeParse({ emotionalTone: tone }).success).toBe(true)
-      })
-    })
-  })
-
-  describe('personaMemoryPatchSchema', () => {
-    it('should accept add_insight action', () => {
-      expect(personaMemoryPatchSchema.safeParse({
-        action: 'add_insight',
-        data: { insight: 'New insight' },
-      }).success).toBe(true)
-    })
-
-    it('should accept update_emotional_tone action', () => {
-      expect(personaMemoryPatchSchema.safeParse({
-        action: 'update_emotional_tone',
-        data: { emotionalTone: 'positive' },
-      }).success).toBe(true)
-    })
-
-    it('should accept increment_session action', () => {
-      expect(personaMemoryPatchSchema.safeParse({
-        action: 'increment_session',
-      }).success).toBe(true)
-    })
-  })
-
-  describe('personaMemoryUpdateSchema', () => {
-    it('should accept valid update', () => {
-      expect(personaMemoryUpdateSchema.safeParse({
-        sessionId: 'session-123',
-        theme: 'career',
-        locale: 'ko',
-        messages: [{ role: 'user', content: 'Test message' }],
-      }).success).toBe(true)
-    })
-
-    it('should accept saju and astro context', () => {
-      expect(personaMemoryUpdateSchema.safeParse({
-        sessionId: 'session-123',
-        theme: 'general',
-        locale: 'en',
-        messages: [{ role: 'user', content: 'Test' }],
-        saju: { dayMaster: '갑' },
-        astro: { sunSign: 'Aries', dominantElement: 'fire' },
-      }).success).toBe(true)
-    })
-  })
-})
-
-describe('Notification Schema Tests', () => {
-  describe('notificationSendRequestSchema', () => {
-    it('should accept valid notification', () => {
-      expect(notificationSendRequestSchema.safeParse({
-        title: 'Daily Fortune',
-        message: 'Your daily fortune is ready!',
-      }).success).toBe(true)
-    })
-
-    it('should accept with userId and type', () => {
-      expect(notificationSendRequestSchema.safeParse({
-        userId: 'user-123',
-        title: 'Alert',
-        message: 'Important update',
-        type: 'warning',
-        priority: 'high',
-      }).success).toBe(true)
-    })
-  })
-
-  describe('pushSendRequestSchema', () => {
-    it('should accept valid push notification', () => {
-      expect(pushSendRequestSchema.safeParse({
-        title: 'New Reading',
-        message: 'Your tarot reading is complete',
-      }).success).toBe(true)
-    })
-
-    it('should accept with all options', () => {
-      expect(pushSendRequestSchema.safeParse({
-        targetUserId: 'user-123',
-        title: 'Fortune',
-        message: 'Check your fortune',
-        icon: '/icon.png',
-        url: '/fortune',
-        tag: 'fortune',
-        test: true,
-      }).success).toBe(true)
-    })
-  })
-
-  describe('pushSubscribeSchema', () => {
-    it('should accept valid subscription', () => {
-      expect(pushSubscribeSchema.safeParse({
-        endpoint: 'https://fcm.googleapis.com/fcm/send/example',
-        keys: {
-          p256dh: 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM=',
-          auth: 'tBHItJI5svbpez7KI4CCXg==',
-        },
-      }).success).toBe(true)
-    })
-
-    it('should reject missing keys', () => {
-      expect(pushSubscribeSchema.safeParse({
-        endpoint: 'https://example.com',
-        keys: {
-          p256dh: '',
-          auth: 'test',
-        },
-      }).success).toBe(false)
-    })
-  })
-
-  describe('pushUnsubscribeSchema', () => {
-    it('should accept valid unsubscribe', () => {
-      expect(pushUnsubscribeSchema.safeParse({
-        endpoint: 'https://fcm.googleapis.com/fcm/send/example',
-      }).success).toBe(true)
-    })
-  })
-})
+// Persona Memory Schema Tests — birthChartMemorySchema / sajuProfileMemorySchema /
+// personaMemory* 스키마는 이 브랜치에 존재하지 않음 (feature 브랜치에서 추가 예정).
 
 describe('Feedback Schema Tests', () => {
   describe('feedbackRequestSchema', () => {
@@ -799,24 +620,6 @@ describe('System Schema Tests', () => {
       expect(cronAuthSchema.safeParse({
         token: '',
       }).success).toBe(false)
-    })
-  })
-
-  describe('cronNotificationsTriggerSchema', () => {
-    it('should accept valid hour', () => {
-      expect(cronNotificationsTriggerSchema.safeParse({
-        hour: 9,
-      }).success).toBe(true)
-    })
-
-    it('should accept hour range 0-23', () => {
-      expect(cronNotificationsTriggerSchema.safeParse({ hour: 0 }).success).toBe(true)
-      expect(cronNotificationsTriggerSchema.safeParse({ hour: 23 }).success).toBe(true)
-    })
-
-    it('should reject invalid hour', () => {
-      expect(cronNotificationsTriggerSchema.safeParse({ hour: 24 }).success).toBe(false)
-      expect(cronNotificationsTriggerSchema.safeParse({ hour: -1 }).success).toBe(false)
     })
   })
 

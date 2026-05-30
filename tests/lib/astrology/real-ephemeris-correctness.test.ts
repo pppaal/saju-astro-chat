@@ -18,6 +18,14 @@ import { describe, it, expect, vi } from 'vitest'
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 
+// CI 러너 등 native swisseph 바이너리가 로드되지 않는 환경(ABI/rebuild 불일치)
+// 에서는 진짜 천체력을 못 쓰므로 hard-fail 대신 skip 한다. ephe.ts 도 swisseph
+// 미탑재를 정상 상태로 취급. swisseph 가 로드되면 평소대로 실제 단언을 돈다.
+const swissephAvailable = await import('swisseph')
+  .then(() => true)
+  .catch(() => false)
+const describeWithEphemeris = swissephAvailable ? describe : describe.skip
+
 async function sunLongitude(year: number, month: number, date: number): Promise<number> {
   const { calculateNatalChart } = await import('@/lib/astrology/foundation/astrologyService')
   const natal = await calculateNatalChart({
@@ -29,7 +37,7 @@ async function sunLongitude(year: number, month: number, date: number): Promise<
   return sun.longitude
 }
 
-describe('real ephemeris 정확성 (mock 없이 node 환경)', () => {
+describeWithEphemeris('real ephemeris 정확성 (mock 없이 node 환경)', () => {
   it('태양 황경이 출생 계절과 일치한다 (전부-쌍둥이 mock 버그를 잡는 그물)', async () => {
     // 황경: 물병 300~330 / 게 90~120 / 전갈 210~240
     const feb = await sunLongitude(1995, 2, 9) // 물병 (≈320)

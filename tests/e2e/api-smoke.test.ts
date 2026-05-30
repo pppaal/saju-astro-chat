@@ -7,9 +7,9 @@ beforeAll(async () => {
 });
 
 describe("API smoke", () => {
-  it("cron notifications rejects wrong token and accepts correct", async () => {
+  it("cron reset-credits rejects wrong token and accepts correct", async () => {
     // Wrong token
-    const resUnauthorized = await fetchOrThrow(`${API_BASE}/api/cron/notifications`, {
+    const resUnauthorized = await fetchOrThrow(`${API_BASE}/api/cron/reset-credits`, {
       headers: { Authorization: "Bearer wrong" },
     });
     if (resUnauthorized.status === 500) {
@@ -18,7 +18,7 @@ describe("API smoke", () => {
     }
     expect(resUnauthorized.status).toBe(401);
 
-    const resAuthorized = await fetchOrThrow(`${API_BASE}/api/cron/notifications`, {
+    const resAuthorized = await fetchOrThrow(`${API_BASE}/api/cron/reset-credits`, {
       headers: { Authorization: `Bearer ${CRON_SECRET}` },
     });
     if (resAuthorized.status === 401) {

@@ -46,12 +46,10 @@ describe('Destiny Map Integration', () => {
     assertNamedExports('lib/destiny-map/reportService', ['generateReport']);
   });
 
-  it('should expose destiny matrix exports', () => {
-    assertNamedExports('lib/destiny-matrix/engine', ['calculateDestinyMatrix']);
-    assertNamedExports('lib/destiny-matrix/cache', ['getCachedMatrix', 'setCachedMatrix']);
-    assertNamedExports('lib/destiny-matrix/house-system', ['getHouseSystem']);
-    assertNamedExports('lib/destiny-matrix/interpreter/insight-generator', ['generateInsights']);
-  });
+  // The standalone destiny-matrix engine/cache/house-system/insight-generator
+  // modules (and calculateDestinyMatrix) were removed; matrix logic now lives in
+  // the interpretation/prediction utilities under lib/destiny-matrix. No
+  // remaining src code references the old exports, so that assertion is obsolete.
 
   it('should expose report helpers and local generator', () => {
     readModule('lib/destiny-map/report-helpers');

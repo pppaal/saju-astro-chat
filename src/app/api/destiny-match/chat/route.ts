@@ -12,7 +12,6 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
-import { sendPushNotification } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
 import { destinyMatchChatSchema, destinyMatchChatGetQuerySchema } from '@/lib/api/zodValidation'
 import { sanitizeHtml } from '@/lib/api/sanitizers'
@@ -125,7 +124,6 @@ export const GET = withApiMiddleware(
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const userId = context.userId!
-    const userName = context.session?.user?.name
 
     const rawBody = await req.json()
 
@@ -226,22 +224,6 @@ export const POST = withApiMiddleware(
           },
         }),
       ])
-
-      // 푸시 알림 전송 (비동기, 실패 시 경고 로그만)
-      const senderName = userName || '누군가'
-      sendPushNotification(recipientId, {
-        title: `💬 ${senderName}님의 메시지`,
-        message: content.length > 50 ? content.substring(0, 50) + '...' : content,
-        icon: '/icon-192.png',
-        tag: `chat-${connectionId}`,
-        data: {
-          url: `/destiny-match/chat/${connectionId}`,
-          type: 'match-chat',
-          connectionId,
-        },
-      }).catch((err) => {
-        logger.warn('[match-chat] Failed to send push notification', { error: err })
-      })
 
       return apiSuccess({ message })
     } catch (err) {

@@ -9,7 +9,6 @@ import { ClientProviders } from '@/app/ClientProviders'
 import { useI18n } from '@/i18n/I18nProvider'
 import { useToast } from '@/components/ui/Toast'
 import { useCreditModal } from '@/contexts/CreditModalContext'
-import { useNotification } from '@/contexts/NotificationContext'
 
 // Mock all provider modules
 vi.mock('@/i18n/I18nProvider', () => ({
@@ -33,11 +32,24 @@ vi.mock('@/contexts/CreditModalContext', () => ({
   useCreditModal: vi.fn(),
 }))
 
-vi.mock('@/contexts/NotificationContext', () => ({
-  NotificationProvider: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="notification-provider">{children}</div>
-  ),
-  useNotification: vi.fn(),
+// Side-effect / global UI components rendered by ClientProviders. They run their
+// own hooks (useI18n, effects, etc.) that are out of scope for provider-nesting
+// tests, so stub them to inert nodes. (Added when the in-app browser notice +
+// referral/consent/reward checkers were introduced.)
+vi.mock('@/components/ui/InAppBrowserNotice', () => ({
+  InAppBrowserNotice: () => null,
+}))
+vi.mock('@/components/pwa/ServiceWorkerStabilityGuard', () => ({
+  default: () => null,
+}))
+vi.mock('@/components/referral/ReferralLinker', () => ({
+  default: () => null,
+}))
+vi.mock('@/components/legal/LegalConsentModal', () => ({
+  default: () => null,
+}))
+vi.mock('@/components/ui/CreditRewardChecker', () => ({
+  default: () => null,
 }))
 
 describe('ClientProviders', () => {
@@ -82,16 +94,6 @@ describe('ClientProviders', () => {
     expect(screen.getByTestId('credit-modal-provider')).toBeInTheDocument()
   })
 
-  it('should wrap children in NotificationProvider', () => {
-    render(
-      <ClientProviders>
-        <div>Content</div>
-      </ClientProviders>
-    )
-
-    expect(screen.getByTestId('notification-provider')).toBeInTheDocument()
-  })
-
   it('should nest providers in correct order', () => {
     render(
       <ClientProviders>
@@ -99,18 +101,16 @@ describe('ClientProviders', () => {
       </ClientProviders>
     )
 
-    // Verify nesting order: I18n > Toast > CreditModal > Notification > Content
+    // Verify nesting order: I18n > Toast > CreditModal > Content
     const i18nProvider = screen.getByTestId('i18n-provider')
     const toastProvider = screen.getByTestId('toast-provider')
     const creditModalProvider = screen.getByTestId('credit-modal-provider')
-    const notificationProvider = screen.getByTestId('notification-provider')
     const content = screen.getByTestId('content')
 
     // Check that each provider contains the next one
     expect(i18nProvider).toContainElement(toastProvider)
     expect(toastProvider).toContainElement(creditModalProvider)
-    expect(creditModalProvider).toContainElement(notificationProvider)
-    expect(notificationProvider).toContainElement(content)
+    expect(creditModalProvider).toContainElement(content)
   })
 
   it('should handle multiple children', () => {
@@ -134,7 +134,6 @@ describe('ClientProviders', () => {
     expect(screen.getByTestId('i18n-provider')).toBeInTheDocument()
     expect(screen.getByTestId('toast-provider')).toBeInTheDocument()
     expect(screen.getByTestId('credit-modal-provider')).toBeInTheDocument()
-    expect(screen.getByTestId('notification-provider')).toBeInTheDocument()
   })
 
   it('should handle undefined children', () => {
@@ -229,28 +228,6 @@ describe('ClientProviders', () => {
     )
 
     expect(useCreditModal).toHaveBeenCalled()
-  })
-
-  it('should allow children to access Notification context', () => {
-    const mockNotification = {
-      notifications: [],
-      addNotification: vi.fn(),
-      removeNotification: vi.fn(),
-    }
-    vi.mocked(useNotification).mockReturnValue(mockNotification)
-
-    const TestComponent = () => {
-      const notif = useNotification()
-      return <div data-testid="notif-count">{notif.notifications.length}</div>
-    }
-
-    render(
-      <ClientProviders>
-        <TestComponent />
-      </ClientProviders>
-    )
-
-    expect(useNotification).toHaveBeenCalled()
   })
 
   it('should re-render when children change', () => {

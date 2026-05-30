@@ -6,7 +6,6 @@ import { prisma } from '@/lib/db/prisma'
 import { revokeGoogleTokensForAccount, revokeGoogleTokensForUser } from '@/lib/auth/tokenRevoke'
 import { encryptToken, hasTokenEncryptionKey } from '@/lib/security/tokenCrypto'
 import { generateReferralCode } from '@/lib/referral'
-import { sendWelcomeEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 
 // ============================================
@@ -341,24 +340,6 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn({ user, account, isNewUser }) {
-      // Send welcome email for new OAuth users
-      if (isNewUser && user?.email && user?.id) {
-        // Get user's referral code from DB
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id as string },
-          select: { settings: { select: { referralCode: true } } },
-        })
-        sendWelcomeEmail(
-          user.id as string,
-          user.email,
-          user.name || '',
-          'ko',
-          dbUser?.settings?.referralCode || undefined
-        ).catch((err) => {
-          logger.error('[auth] Failed to send welcome email:', err)
-        })
-      }
-
       if (process.env.NODE_ENV !== 'production') {
         return
       }

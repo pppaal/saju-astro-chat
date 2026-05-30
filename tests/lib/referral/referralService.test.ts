@@ -477,6 +477,7 @@ describe('Referral Service with mocked Prisma', () => {
         findFirst: vi.fn(),
         findMany: vi.fn(),
         update: vi.fn(),
+        updateMany: vi.fn(),
       },
       referralReward: {
         create: vi.fn(),
@@ -489,10 +490,6 @@ describe('Referral Service with mocked Prisma', () => {
 
   vi.mock('@/lib/credits/creditService', () => ({
     addBonusCredits: vi.fn().mockResolvedValue(undefined),
-  }))
-
-  vi.mock('@/lib/email', () => ({
-    sendReferralRewardEmail: vi.fn().mockResolvedValue(undefined),
   }))
 
   vi.mock('@/lib/logger', () => ({
@@ -598,7 +595,9 @@ describe('Referral Service with mocked Prisma', () => {
         referralCode: 'ABC12345',
         user: { id: 'referrer-1', name: 'Referrer' },
       } as never)
-      vi.mocked(prisma.user.update).mockResolvedValue({} as never)
+      // linkReferrer now uses a guarded updateMany (where referrerId: null);
+      // count > 0 means the link was claimed by this request.
+      vi.mocked(prisma.user.updateMany).mockResolvedValue({ count: 1 } as never)
       vi.mocked(prisma.referralReward.create).mockResolvedValue({} as never)
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         email: 'referrer@example.com',
@@ -643,9 +642,8 @@ describe('Referral Service with mocked Prisma', () => {
         referralCode: 'ABC12345',
         user: { id: 'referrer-1', name: 'Referrer' },
       } as never)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        referrerId: 'already-set',
-      } as never)
+      // Guarded updateMany matches 0 rows when the user already has a referrer.
+      vi.mocked(prisma.user.updateMany).mockResolvedValue({ count: 0 } as never)
 
       const result = await linkReferrer('new-user', 'ABC12345')
       expect(result).toEqual({ success: false, error: 'already_linked' })

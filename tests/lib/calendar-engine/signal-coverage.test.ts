@@ -42,27 +42,22 @@ describe('calendar engine signal coverage (saju×astrology cross)', () => {
     const sources = new Set(signals.map((s) => s.source))
     const kinds = [...new Set(signals.map((s) => s.kind))]
 
-    // 교차: 사주·점성 양쪽 신호가 모두 있어야 한다
+    // 교차: 사주·점성 양쪽 신호가 모두 있어야 한다. engineSignals 는 이제 payload
+    // 절감을 위해 hourly layer 만 노출하므로(다른 layer 는 응답에서 제거), 양쪽
+    // source 가 모두 들어오는지로 교차 소실(한쪽 extractor 죽음)을 가드한다.
     expect(sources.has('saju')).toBe(true)
     expect(sources.has('astro')).toBe(true)
 
-    // 매일 나오는 핵심 kind — 하나라도 빠지면 그 extractor가 죽은 것
+    // hourly layer 의 핵심 kind — 사주 시주 십신 + 점성 행성시. 하나라도 빠지면
+    // 그 hourly extractor 가 죽은 것.
     for (const kind of [
-      'pillar-sibsin', // 사주: 일진 십신/오행 생극/용신
-      'shinsal', // 사주: 신살
-      'hyeongchung', // 사주: 충/합/형
-      'transit', // 점성: 트랜짓 애스펙트
-      'planetary-hour', // 점성: 행성시
+      'pillar-sibsin', // 사주: 시주 십신/오행 생극/용신
+      'planetary-hour', // 점성: 행성시 (Chaldean)
     ]) {
       expect(kinds, `missing signal kind: ${kind}`).toContain(kind)
     }
 
-    // 교차가 얕지 않다는 최소 다양성
-    expect(kinds.length).toBeGreaterThanOrEqual(8)
-
-    // 본명 카이런·릴리스로 들어오는 트랜짓 신호가 있어야 한다 (extraPoints 배선 가드)
-    const names = signals.map((s) => String(s.name || ''))
-    expect(names.some((n) => /Chiron/.test(n))).toBe(true)
-    expect(names.some((n) => /Lilith/.test(n))).toBe(true)
+    // hourly 신호는 양쪽 source 가 함께 있어야 교차가 얕지 않다.
+    expect(kinds.length).toBeGreaterThanOrEqual(2)
   })
 })

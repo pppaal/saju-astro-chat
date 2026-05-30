@@ -14,6 +14,14 @@ vi.mock('next-auth/react', () => ({
   useSession: () => mockUseSession(),
 }))
 
+vi.mock('@/contexts/CreditModalContext', () => ({
+  useCreditModal: () => ({
+    showDepleted: vi.fn(),
+    showLowCredits: vi.fn(),
+    checkAndShowModal: vi.fn(() => false),
+  }),
+}))
+
 vi.mock('@/i18n/I18nProvider', () => ({
   useI18n: () => ({
     t: (_key: string, fallback?: string) => fallback || '',
