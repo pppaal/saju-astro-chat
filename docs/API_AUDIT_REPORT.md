@@ -2,19 +2,19 @@
 
 ## Summary
 
-- Total Next.js API routes: 74
-- Uses middleware/guards: 72 (97.3%)
-- Has validation signals: 55 (74.3%)
-- Rate limited (guard or option): 66 (89.2%)
-- Credit consumption configured: 5 (6.8%)
-- Requires auth: 42 (56.8%)
-- Requires token: 17 (23.0%)
-- skipCsrf enabled: 2 (2.7%)
+- Total Next.js API routes: 72
+- Uses middleware/guards: 70 (97.2%)
+- Has validation signals: 54 (75.0%)
+- Rate limited (guard or option): 65 (90.3%)
+- Credit consumption configured: 5 (6.9%)
+- Requires auth: 41 (56.9%)
+- Requires token: 17 (23.6%)
+- skipCsrf enabled: 2 (2.8%)
 
 ## Method Distribution
 
-- GET: 42
-- POST: 45
+- GET: 40
+- POST: 44
 - PUT: 0
 - PATCH: 5
 - DELETE: 10
@@ -30,12 +30,11 @@
 - src/app/api/counselor/realtime/route.ts [POST]
 - src/app/api/webhook/stripe/route.ts [POST]
 
-## Public Mutations (No Auth/Token) (7)
+## Public Mutations (No Auth/Token) (6)
 
 - src/app/api/auth/[...nextauth]/route.ts [GET,POST]
 - src/app/api/counselor/realtime/route.ts [POST]
 - src/app/api/cron/daily-fortune-post/route.ts [GET,POST]
-- src/app/api/cron/notifications/route.ts [GET,POST]
 - src/app/api/cron/reset-credits/route.ts [GET,POST]
 - src/app/api/csp-report/route.ts [POST,GET]
 - src/app/api/webhook/stripe/route.ts [POST]
