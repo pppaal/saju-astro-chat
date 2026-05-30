@@ -41,16 +41,12 @@ const assertNamedExports = (modulePath: string, exportNames: string[]) => {
 
 describe('Destiny Map Integration', () => {
   it('should expose core destiny map exports', () => {
-    // `lib/destiny-map/astrologyengine` module removed.
+    // astrologyengine / reportService(+report-helpers) modules removed —
+    // unused dead code; the live local report path is local-report-generator.
     assertNamedExports('lib/destiny-map/destinyCalendar', ['calculateYearlyImportantDates']);
-    assertNamedExports('lib/destiny-map/reportService', ['generateReport']);
   });
 
-  // destiny-matrix engine/cache/house-system/interpreter modules were removed
-  // in the fusion cleanup; their integration assertion is obsolete.
-
-  it('should expose report helpers and local generator', () => {
-    readModule('lib/destiny-map/report-helpers');
+  it('should expose the local report generator', () => {
     assertNamedExports('lib/destiny-map/local-report-generator', ['generateLocalReport']);
   });
 
