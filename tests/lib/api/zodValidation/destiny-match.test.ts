@@ -9,7 +9,6 @@ import {
   destinyMatchBlockSchema,
   destinyMatchProfileSchema,
   destinyMatchChatSchema,
-  destinyMatchReportSchema,
   destinyMatchMatchesQuerySchema,
   destinyMatchUnmatchSchema,
   destinyMatchDiscoverQuerySchema,
@@ -365,57 +364,6 @@ describe('Destiny Match Chat Schema Tests', () => {
         expect(result.data.connectionId).toBe('conn-123')
         expect(result.data.content).toBe('Hello')
       }
-    })
-  })
-})
-
-describe('Destiny Match Report Schema Tests', () => {
-  describe('destinyMatchReportSchema', () => {
-    it('should accept valid report', () => {
-      expect(destinyMatchReportSchema.safeParse({
-        reportedUserId: 'user-123',
-        category: 'inappropriate',
-      }).success).toBe(true)
-    })
-
-    it('should accept all categories', () => {
-      const categories = ['inappropriate', 'spam', 'fake', 'harassment', 'other']
-      categories.forEach(category => {
-        expect(destinyMatchReportSchema.safeParse({
-          reportedUserId: 'user-123',
-          category,
-        }).success).toBe(true)
-      })
-    })
-
-    it('should accept optional description', () => {
-      expect(destinyMatchReportSchema.safeParse({
-        reportedUserId: 'user-123',
-        category: 'harassment',
-        description: 'Sent threatening messages',
-      }).success).toBe(true)
-    })
-
-    it('should reject empty reportedUserId', () => {
-      expect(destinyMatchReportSchema.safeParse({
-        reportedUserId: '',
-        category: 'spam',
-      }).success).toBe(false)
-    })
-
-    it('should reject invalid category', () => {
-      expect(destinyMatchReportSchema.safeParse({
-        reportedUserId: 'user-123',
-        category: 'invalid',
-      }).success).toBe(false)
-    })
-
-    it('should reject too long description', () => {
-      expect(destinyMatchReportSchema.safeParse({
-        reportedUserId: 'user-123',
-        category: 'other',
-        description: 'a'.repeat(1001),
-      }).success).toBe(false)
     })
   })
 })

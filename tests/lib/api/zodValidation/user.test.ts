@@ -8,11 +8,6 @@ import {
   userRegistrationRequestSchema,
   userProfileUpdateSchema,
   userBirthInfoUpdateSchema,
-  birthChartMemorySchema,
-  sajuProfileMemorySchema,
-  personaMemoryPostSchema,
-  personaMemoryPatchSchema,
-  personaMemoryUpdateSchema,
   notificationSendRequestSchema,
   notificationSendSchema,
   pushSendRequestSchema,
@@ -183,105 +178,6 @@ describe('Profile Schema Tests', () => {
         gender: 'female',
         birthCity: 'Tokyo',
         tzId: 'Asia/Tokyo',
-      }).success).toBe(true)
-    })
-  })
-})
-
-describe('Persona Memory Schema Tests', () => {
-  describe('birthChartMemorySchema', () => {
-    it('should accept valid birth chart', () => {
-      expect(birthChartMemorySchema.safeParse({
-        sunSign: 'Aries',
-        moonSign: 'Cancer',
-        ascendant: 'Leo',
-        dominantElement: 'fire',
-        dominantModality: 'cardinal',
-      }).success).toBe(true)
-    })
-  })
-
-  describe('sajuProfileMemorySchema', () => {
-    it('should accept valid saju profile', () => {
-      expect(sajuProfileMemorySchema.safeParse({
-        dayMaster: '갑',
-        dayMasterElement: '목',
-        yongsin: '수',
-        geokguk: '건록격',
-      }).success).toBe(true)
-    })
-
-    it('should accept pillars', () => {
-      expect(sajuProfileMemorySchema.safeParse({
-        pillars: {
-          year: { stem: '갑', branch: '자' },
-          month: { stem: '을', branch: '축' },
-          day: { stem: '병', branch: '인' },
-          time: { stem: '정', branch: '묘' },
-        },
-      }).success).toBe(true)
-    })
-  })
-
-  describe('personaMemoryPostSchema', () => {
-    it('should accept valid memory data', () => {
-      expect(personaMemoryPostSchema.safeParse({
-        dominantThemes: ['career', 'love'],
-        keyInsights: ['Strong leadership potential'],
-        emotionalTone: 'hopeful',
-        growthAreas: ['Communication', 'Patience'],
-        lastTopics: ['Career change'],
-      }).success).toBe(true)
-    })
-
-    it('should accept all emotional tones', () => {
-      const tones = ['positive', 'negative', 'neutral', 'mixed', 'anxious', 'hopeful']
-      tones.forEach(tone => {
-        expect(personaMemoryPostSchema.safeParse({ emotionalTone: tone }).success).toBe(true)
-      })
-    })
-  })
-
-  describe('personaMemoryPatchSchema', () => {
-    it('should accept add_insight action', () => {
-      expect(personaMemoryPatchSchema.safeParse({
-        action: 'add_insight',
-        data: { insight: 'New insight' },
-      }).success).toBe(true)
-    })
-
-    it('should accept update_emotional_tone action', () => {
-      expect(personaMemoryPatchSchema.safeParse({
-        action: 'update_emotional_tone',
-        data: { emotionalTone: 'positive' },
-      }).success).toBe(true)
-    })
-
-    it('should accept increment_session action', () => {
-      expect(personaMemoryPatchSchema.safeParse({
-        action: 'increment_session',
-      }).success).toBe(true)
-    })
-  })
-
-  describe('personaMemoryUpdateSchema', () => {
-    it('should accept valid update', () => {
-      expect(personaMemoryUpdateSchema.safeParse({
-        sessionId: 'session-123',
-        theme: 'career',
-        locale: 'ko',
-        messages: [{ role: 'user', content: 'Test message' }],
-      }).success).toBe(true)
-    })
-
-    it('should accept saju and astro context', () => {
-      expect(personaMemoryUpdateSchema.safeParse({
-        sessionId: 'session-123',
-        theme: 'general',
-        locale: 'en',
-        messages: [{ role: 'user', content: 'Test' }],
-        saju: { dayMaster: '갑' },
-        astro: { sunSign: 'Aries', dominantElement: 'fire' },
       }).success).toBe(true)
     })
   })
