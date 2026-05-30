@@ -58,19 +58,23 @@ export async function calculateSecondaryProgressions(
     return createFallbackProgressedChart(targetDate || fallbackDate)
   }
 
-  // 출생일과 목표일 사이의 년수 계산
-  const natalDate = dayjs.tz(
-    `${natal.year}-${String(natal.month).padStart(2, '0')}-${String(natal.date).padStart(2, '0')}`,
-    natal.timeZone
-  )
-  const target = dayjs(targetDate)
-  const yearsProgressed = target.diff(natalDate, 'year', true)
-
-  // 1년 = 1일이므로, 진행된 년수 = 진행된 일수
-  const daysProgressed = yearsProgressed
-
-  // 출생 JD + 진행된 일수
+  // A4 fix: 옛 코드는 natalDate = dayjs.tz("YYYY-MM-DD", tz) 로 birth 의
+  // hour/minute 정보를 버리고 midnight 으로 처리 → progressed Moon 이 birth
+  // time 만큼 (최대 ~13°/일 × 시간비율) 어긋남. natalJD 는 정확한 birth instant
+  // 인데 yearsProgressed 계산에서 midnight 으로 어긋난 natalDate 를 써서
+  // diff 가 일관 안 됨. 정확한 fix: birth 와 target 의 절대 시각 차이를 일
+  // 단위로 직접 계산 후 365.25 일/년 으로 년수 환산.
   const natalJD = natalToJD(natal)
+
+  // targetDate → JD. dayjs 로 정확한 instant (epoch ms).
+  const targetMs = dayjs(targetDate).valueOf()
+  // JD epoch: 1970-01-01 UTC = JD 2440587.5
+  const targetJD = 2440587.5 + targetMs / 86400000
+
+  const totalDaysDiff = targetJD - natalJD
+  const yearsProgressed = totalDaysDiff / 365.25
+  // 1년 = 1일 (secondary progression)
+  const daysProgressed = yearsProgressed
   const progressedJD = natalJD + daysProgressed
 
   // 진행된 날짜의 하우스 계산 (출생지 기준)
@@ -99,8 +103,9 @@ export async function calculateSecondaryProgressions(
     return { name, longitude, ...info, house, speed, retrograde }
   })
 
-  // 진행된 날짜 계산
-  const progressedDate = natalDate.add(daysProgressed, 'day').format('YYYY-MM-DD')
+  // 진행된 날짜 계산. natalJD + daysProgressed 를 다시 calendar 로 환산.
+  const progressedMs = (progressedJD - 2440587.5) * 86400000
+  const progressedDate = dayjs(progressedMs).tz(natal.timeZone).format('YYYY-MM-DD')
 
   return {
     planets,

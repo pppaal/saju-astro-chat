@@ -14,59 +14,59 @@ import {
   getProgressionSummary,
   type ReturnChart,
   type ProgressedChart,
-} from "@/lib/astrology";
-import { logger } from "@/lib/logger";
+} from '@/lib/astrology'
+import { logger } from '@/lib/logger'
 
 export interface NatalInput {
-  year: number;
-  month: number;
-  date: number;
-  hour: number;
-  minute: number;
-  latitude: number;
-  longitude: number;
-  timeZone: string;
+  year: number
+  month: number
+  date: number
+  hour: number
+  minute: number
+  latitude: number
+  longitude: number
+  timeZone: string
 }
 
 export interface CurrentDate {
-  year: number;
-  month: number;
-  day: number;
+  year: number
+  month: number
+  day: number
 }
 
 export interface SolarReturnResult {
-  chart: ReturnChart;
-  summary: ReturnType<typeof getSolarReturnSummary>;
+  chart: ReturnChart
+  summary: ReturnType<typeof getSolarReturnSummary>
 }
 
 export interface LunarReturnResult {
-  chart: ReturnChart;
-  summary: ReturnType<typeof getLunarReturnSummary>;
+  chart: ReturnChart
+  summary: ReturnType<typeof getLunarReturnSummary>
 }
 
 export interface SecondaryProgressionResult {
-  chart: ProgressedChart;
-  moonPhase: ReturnType<typeof getProgressedMoonPhase>;
-  summary: ReturnType<typeof getProgressionSummary>;
+  chart: ProgressedChart
+  moonPhase: ReturnType<typeof getProgressedMoonPhase>
+  summary: ReturnType<typeof getProgressionSummary>
 }
 
 export interface SolarArcResult {
-  chart: ProgressedChart;
-  summary: ReturnType<typeof getProgressionSummary>;
+  chart: ProgressedChart
+  summary: ReturnType<typeof getProgressionSummary>
 }
 
 export interface ProgressionsResult {
-  secondary: SecondaryProgressionResult;
-  solarArc?: SolarArcResult;
+  secondary: SecondaryProgressionResult
+  solarArc?: SolarArcResult
 }
 
 export interface ReturnsProgressionsInput {
   /** Natal chart birth data */
-  natal: NatalInput;
+  natal: NatalInput
   /** Current date for calculations */
-  currentDate: CurrentDate;
+  currentDate: CurrentDate
   /** Include Solar Arc Directions (optional, adds computation time) */
-  includeSolarArc?: boolean;
+  includeSolarArc?: boolean
 }
 
 /**
@@ -94,32 +94,32 @@ export async function calculateSolarReturnChart(
   input: ReturnsProgressionsInput,
   enableDebugLogs = false
 ): Promise<SolarReturnResult> {
-  const { natal, currentDate } = input;
+  const { natal, currentDate } = input
 
   if (enableDebugLogs) {
-    logger.debug("[Solar Return] Calculating for year", currentDate.year);
+    logger.debug('[Solar Return] Calculating for year', currentDate.year)
   }
 
   try {
     const srChart = await calculateSolarReturn({
       natal,
       year: currentDate.year,
-    });
+    })
 
-    const srSummary = getSolarReturnSummary(srChart);
+    const srSummary = getSolarReturnSummary(srChart)
 
     if (enableDebugLogs) {
-      logger.debug("[Solar Return] Calculated", {
+      logger.debug('[Solar Return] Calculated', {
         year: currentDate.year,
         asc: srChart.ascendant?.sign,
         mc: srChart.mc?.sign,
-      });
+      })
     }
 
-    return { chart: srChart, summary: srSummary };
+    return { chart: srChart, summary: srSummary }
   } catch (err) {
-    logger.error("[Solar Return] Calculation failed", err);
-    throw err;
+    logger.error('[Solar Return] Calculation failed', err)
+    throw err
   }
 }
 
@@ -148,13 +148,13 @@ export async function calculateLunarReturnChart(
   input: ReturnsProgressionsInput,
   enableDebugLogs = false
 ): Promise<LunarReturnResult> {
-  const { natal, currentDate } = input;
+  const { natal, currentDate } = input
 
   if (enableDebugLogs) {
-    logger.debug("[Lunar Return] Calculating for month", {
+    logger.debug('[Lunar Return] Calculating for month', {
       year: currentDate.year,
       month: currentDate.month,
-    });
+    })
   }
 
   try {
@@ -162,21 +162,21 @@ export async function calculateLunarReturnChart(
       natal,
       month: currentDate.month,
       year: currentDate.year,
-    });
+    })
 
-    const lrSummary = getLunarReturnSummary(lrChart);
+    const lrSummary = getLunarReturnSummary(lrChart)
 
     if (enableDebugLogs) {
-      logger.debug("[Lunar Return] Calculated", {
+      logger.debug('[Lunar Return] Calculated', {
         month: currentDate.month,
-        moon: lrChart.planets.find((p) => p.name === "Moon")?.sign,
-      });
+        moon: lrChart.planets.find((p) => p.name === 'Moon')?.sign,
+      })
     }
 
-    return { chart: lrChart, summary: lrSummary };
+    return { chart: lrChart, summary: lrSummary }
   } catch (err) {
-    logger.error("[Lunar Return] Calculation failed", err);
-    throw err;
+    logger.error('[Lunar Return] Calculation failed', err)
+    throw err
   }
 }
 
@@ -210,46 +210,48 @@ export async function calculateSecondaryProgressionsChart(
   input: ReturnsProgressionsInput,
   enableDebugLogs = false
 ): Promise<SecondaryProgressionResult> {
-  const { natal, currentDate } = input;
+  const { natal, currentDate } = input
 
-  const targetDate = `${currentDate.year}-${String(currentDate.month).padStart(2, "0")}-${String(currentDate.day).padStart(2, "0")}`;
+  const targetDate = `${currentDate.year}-${String(currentDate.month).padStart(2, '0')}-${String(currentDate.day).padStart(2, '0')}`
 
   if (enableDebugLogs) {
-    logger.debug("[Secondary Progressions] Calculating for date", targetDate);
+    logger.debug('[Secondary Progressions] Calculating for date', targetDate)
   }
 
   try {
     const secProgChart = await calculateSecondaryProgressions({
       natal,
       targetDate,
-    });
+    })
 
-    const secProgSun = secProgChart.planets.find((p) => p.name === "Sun");
-    const secProgMoon = secProgChart.planets.find((p) => p.name === "Moon");
+    const secProgSun = secProgChart.planets.find((p) => p.name === 'Sun')
+    const secProgMoon = secProgChart.planets.find((p) => p.name === 'Moon')
 
+    // A1 fix: getProgressedMoonPhase 시그니처는 (progressedMoonLon, sunLon).
+    // 옛 호출은 (sun, moon) 으로 잘못 → 보름달 ↔ 그믐달 반전.
     const secMoonPhase: ReturnType<typeof getProgressedMoonPhase> =
       secProgSun && secProgMoon
-        ? getProgressedMoonPhase(secProgSun.longitude, secProgMoon.longitude)
-        : "Dark Moon";
+        ? getProgressedMoonPhase(secProgMoon.longitude, secProgSun.longitude)
+        : 'Dark Moon'
 
-    const secProgSummary = getProgressionSummary(secProgChart);
+    const secProgSummary = getProgressionSummary(secProgChart)
 
     if (enableDebugLogs) {
-      logger.debug("[Secondary Progressions] Calculated", {
+      logger.debug('[Secondary Progressions] Calculated', {
         progSun: secProgSun?.sign,
         progMoon: secProgMoon?.sign,
         moonPhase: secMoonPhase,
-      });
+      })
     }
 
     return {
       chart: secProgChart,
       moonPhase: secMoonPhase,
       summary: secProgSummary,
-    };
+    }
   } catch (err) {
-    logger.error("[Secondary Progressions] Calculation failed", err);
-    throw err;
+    logger.error('[Secondary Progressions] Calculation failed', err)
+    throw err
   }
 }
 
@@ -283,35 +285,35 @@ export async function calculateSolarArcChart(
   input: ReturnsProgressionsInput,
   enableDebugLogs = false
 ): Promise<SolarArcResult> {
-  const { natal, currentDate } = input;
+  const { natal, currentDate } = input
 
-  const targetDate = `${currentDate.year}-${String(currentDate.month).padStart(2, "0")}-${String(currentDate.day).padStart(2, "0")}`;
+  const targetDate = `${currentDate.year}-${String(currentDate.month).padStart(2, '0')}-${String(currentDate.day).padStart(2, '0')}`
 
   if (enableDebugLogs) {
-    logger.debug("[Solar Arc] Calculating for date", targetDate);
+    logger.debug('[Solar Arc] Calculating for date', targetDate)
   }
 
   try {
     const solarArcChart = await calculateSolarArcDirections({
       natal,
       targetDate,
-    });
+    })
 
-    const solarArcSummary = getProgressionSummary(solarArcChart);
+    const solarArcSummary = getProgressionSummary(solarArcChart)
 
     if (enableDebugLogs) {
-      logger.debug("[Solar Arc] Calculated", {
-        arcSun: solarArcChart.planets.find((p) => p.name === "Sun")?.sign,
-      });
+      logger.debug('[Solar Arc] Calculated', {
+        arcSun: solarArcChart.planets.find((p) => p.name === 'Sun')?.sign,
+      })
     }
 
     return {
       chart: solarArcChart,
       summary: solarArcSummary,
-    };
+    }
   } catch (err) {
-    logger.error("[Solar Arc] Calculation failed", err);
-    throw err;
+    logger.error('[Solar Arc] Calculation failed', err)
+    throw err
   }
 }
 
@@ -342,38 +344,35 @@ export async function calculateAllProgressions(
   input: ReturnsProgressionsInput,
   enableDebugLogs = false
 ): Promise<ProgressionsResult> {
-  const { includeSolarArc = true } = input;
+  const { includeSolarArc = true } = input
 
   if (enableDebugLogs) {
-    logger.debug("[Progressions] Starting calculation", {
+    logger.debug('[Progressions] Starting calculation', {
       includeSolarArc,
-    });
+    })
   }
 
   try {
-    const secondary = await calculateSecondaryProgressionsChart(
-      input,
-      enableDebugLogs
-    );
+    const secondary = await calculateSecondaryProgressionsChart(input, enableDebugLogs)
 
-    let solarArc: SolarArcResult | undefined = undefined;
+    let solarArc: SolarArcResult | undefined = undefined
     if (includeSolarArc) {
-      solarArc = await calculateSolarArcChart(input, enableDebugLogs);
+      solarArc = await calculateSolarArcChart(input, enableDebugLogs)
     }
 
     if (enableDebugLogs) {
-      logger.debug("[Progressions] Calculation complete", {
+      logger.debug('[Progressions] Calculation complete', {
         hasSecondary: true,
         hasSolarArc: !!solarArc,
-      });
+      })
     }
 
     return {
       secondary,
       solarArc,
-    };
+    }
   } catch (err) {
-    logger.error("[Progressions] Calculation failed", err);
-    throw err;
+    logger.error('[Progressions] Calculation failed', err)
+    throw err
   }
 }
