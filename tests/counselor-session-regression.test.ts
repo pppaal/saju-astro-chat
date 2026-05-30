@@ -196,7 +196,7 @@ describe('PersonCard — BirthInfoModal 톤 + CircleAddModal 제거 (#317)', () 
   // #475 화이트 디자인 이행: violet+navy → white/ink 톤. 카드/인풋/필드 위임을
   // 현재 디자인 토큰으로 검증한다.
   it('카드 배경: 화이트 톤 (white bg + hairline border)', () => {
-    expect(card).toMatch(/border-\[#e7e4df\]/)
+    expect(card).toMatch(/border-\[#e7e5e4\]/)
     expect(card).toMatch(/bg-white/)
   })
 
@@ -217,12 +217,14 @@ describe('PersonCard — BirthInfoModal 톤 + CircleAddModal 제거 (#317)', () 
 
   it('지인 dropdown UI 는 유지 (불러오기 기능)', () => {
     expect(card).toMatch(/onFillFromCircle/)
-    expect(card).toMatch(/onToggleCircleDropdown/)
+    expect(card).toMatch(/onToggleLoadDropdown/)
     expect(card).toMatch(/data-circle-dropdown/)
   })
 
   it('"내 프로필 불러오기" (idx 0) 유지', () => {
-    expect(card).toMatch(/loadMyProfile/)
+    // '내 정보'(me) 항목은 onLoadOption 경로로 통합됨 (옛 loadMyProfile 단일 버튼 대체).
+    expect(card).toMatch(/onLoadOption/)
+    expect(card).toMatch(/o\.key === 'me'/)
   })
 })
 
