@@ -2,29 +2,31 @@
 
 ## Summary
 
-- Total Next.js API routes: 72
-- Uses middleware/guards: 71 (98.6%)
-- Has validation signals: 55 (76.4%)
-- Rate limited (guard or option): 65 (90.3%)
-- Credit consumption configured: 4 (5.6%)
-- Requires auth: 41 (56.9%)
-- Requires token: 17 (23.6%)
-- skipCsrf enabled: 2 (2.8%)
+- Total Next.js API routes: 74
+- Uses middleware/guards: 72 (97.3%)
+- Has validation signals: 55 (74.3%)
+- Rate limited (guard or option): 66 (89.2%)
+- Credit consumption configured: 5 (6.8%)
+- Requires auth: 42 (56.8%)
+- Requires token: 17 (23.0%)
+- skipCsrf enabled: 2 (2.7%)
 
 ## Method Distribution
 
-- GET: 40
+- GET: 42
 - POST: 45
 - PUT: 0
 - PATCH: 5
 - DELETE: 10
 
-## Missing Middleware (1)
+## Missing Middleware (2)
 
 - src/app/api/auth/[...nextauth]/route.ts [GET,POST]
+- src/app/api/counselor/realtime/result/route.ts [GET]
 
-## Missing Validation (2)
+## Missing Validation (3)
 
+- src/app/api/counselor/realtime/result/route.ts [GET]
 - src/app/api/counselor/realtime/route.ts [POST]
 - src/app/api/webhook/stripe/route.ts [POST]
 

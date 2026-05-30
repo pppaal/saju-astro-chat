@@ -67,7 +67,6 @@ vi.mock('@/lib/astrology/foundation/ephe', () => ({
 import {
   calculateNatal,
   computePartOfFortune,
-  getNowInTimezone,
   calculateTransitsToLights,
   type NatalChartInput,
   type HouseCusp,
@@ -75,6 +74,8 @@ import {
   type LightPoint,
   type TransitAspect,
 } from '@/lib/destiny-map/astrology/natal-calculations';
+// getNowInTimezone moved to the astrology helpers (re-exported from the barrel).
+import { getNowInTimezone } from '@/lib/destiny-map/astrology/helpers';
 import type { PlanetData } from '@/lib/astrology';
 
 // ============================================================

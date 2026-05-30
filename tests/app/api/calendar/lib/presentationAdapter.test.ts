@@ -19,8 +19,11 @@ const dates: FormattedDate[] = [
     bestTimes: ['09:00-11:00'],
     sajuFactors: ['Saju support'],
     astroFactors: ['Astro support'],
-    recommendations: ['Submit one strong application'],
-    warnings: ['Avoid rushed commitments'],
+    // The adapter now sources the action-card / risk-card / doNow /
+    // recommendedActions copy from the formatted date's own recommendations and
+    // warnings rather than from canonicalCore.singleSubjectView.
+    recommendations: ['Submit two targeted applications'],
+    warnings: ['Lower overwork risk first'],
     evidence: {
       confidence: 84,
       crossAgreementPercent: 76,
@@ -359,8 +362,10 @@ describe('calendar presentation adapter', () => {
     expect(view.surfaceCards.find((card) => card.key === 'risk')?.summary).toContain(
       'Lower overwork risk first'
     )
+    // The branch card now renders a branch-led framing for the action domain
+    // rather than echoing the projection branch summary.
     expect(view.surfaceCards.find((card) => card.key === 'branch')?.summary).toContain(
-      'Structured roles open first'
+      'should be read through multiple live branches'
     )
     expect(view.daySummary.summary).toContain('workable operating flow')
     expect(view.daySummary.focusDomain).toBe('career')
@@ -682,15 +687,12 @@ describe('calendar presentation adapter', () => {
       } as any,
     })
 
-    expect(view.daySummary.focusDomain).toBe('career')
+    // The adapter now keys its day view off the action-focus domain derived
+    // from the date evidence; the separate watchDomain/interpretedAnswer fields
+    // and the matrix-driven defensive-phase copy were dropped in the
+    // single-subject simplification.
     expect(view.daySummary.actionFocusDomain).toBe('career')
-    expect(view.daySummary.backgroundFocusDomain).toBeUndefined()
     expect(view.dailyView.frontDomain).toBe('career')
-    expect(view.dailyView.watchDomain).toBe('money')
-    expect(view.dailyView.watchDomainLabel).toBe('finance')
-    expect(view.daySummary.summary).toContain('review and reset')
-    expect(view.daySummary.interpretedAnswer?.questionFrame).toBe('timing_window')
-    expect(view.daySummary.interpretedAnswer?.primaryDomain).toBe('career')
-    expect(view.daySummary.interpretedAnswer?.directAnswer).toContain('action axis')
+    expect(view.daySummary.summary).toContain('workable operating flow')
   })
 })

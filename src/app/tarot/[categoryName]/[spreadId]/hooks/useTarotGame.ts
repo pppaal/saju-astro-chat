@@ -303,15 +303,27 @@ export function useTarotGame(): UseTarotGameReturn {
   }, [])
 
   const handleStartReading = useCallback(async () => {
-    setGameState('picking')
     setDrawError(null)
+    // 크레딧/게스트 한도 사전 체크 + RAG prefetch 겸용. 한도 초과면 apiFetch 가
+    // 전역 크레딧/로그인 모달을 띄우므로(402 또는 401+X-Guest-Limit-Reached),
+    // 여기서는 단계 전환을 막아 질문 화면에 그대로 머무른다. 즉 카드 선택까지
+    // 진행시킨 뒤 결과에서 알리던 동작을 "시작 즉시 차단"으로 교정.
+    let allowed = true
+    try {
+      const res = await apiFetch('/api/tarot/prefetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoryId: categoryName, spreadId }),
+      })
+      allowed = res.ok
+    } catch {
+      // prefetch 네트워크 오류는 차단 사유가 아니다 — 실제 draw 단계에서 다시
+      // 게이팅되므로 결제 사용자 흐름을 끊지 않도록 그대로 진행시킨다.
+      allowed = true
+    }
+    if (!allowed) return
+    setGameState('picking')
     setIsSpreading(true)
-    // Prefetch RAG context (non-blocking)
-    apiFetch('/api/tarot/prefetch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ categoryId: categoryName, spreadId }),
-    }).catch(() => {})
   }, [categoryName, spreadId])
 
   const handleCardClick = useCallback(

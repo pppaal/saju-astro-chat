@@ -49,15 +49,16 @@ describe('API Validator', () => {
       expect(DateSchema.safeParse('2024-1-5').success).toBe(false)
     })
 
-    it('should accept dates outside 1900-2100 range (no year range validation)', () => {
-      // dateSchema only validates format, not year range
-      expect(DateSchema.safeParse('1899-12-31').success).toBe(true)
-      expect(DateSchema.safeParse('2101-01-01').success).toBe(true)
+    it('should reject dates outside the 1900..currentYear range', () => {
+      // dateSchema enforces 1900..currentYear to reject nonsensical birth dates
+      expect(DateSchema.safeParse('1899-12-31').success).toBe(false)
+      expect(DateSchema.safeParse('2101-01-01').success).toBe(false)
     })
 
     it('should validate edge years', () => {
       expect(DateSchema.safeParse('1900-01-01').success).toBe(true)
-      expect(DateSchema.safeParse('2100-12-31').success).toBe(true)
+      const currentYear = new Date().getUTCFullYear()
+      expect(DateSchema.safeParse(`${currentYear}-12-31`).success).toBe(true)
     })
 
     it('should reject clearly invalid dates', () => {
