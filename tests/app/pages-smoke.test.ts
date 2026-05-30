@@ -93,12 +93,6 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Notifications Pages (1)', () => {
-    it('should have notifications page', () => {
-      assertPages(['app/notifications/page'])
-    })
-  })
-
   describe('Policy Pages (3)', () => {
     it('should have policy pages', () => {
       assertPages(['app/policy/privacy/page', 'app/policy/refund/page', 'app/policy/terms/page'])
@@ -148,7 +142,6 @@ describe('Pages Smoke Tests', () => {
         'destiny-map',
         'destiny-match',
         'faq',
-        'notifications',
         'policy',
         'pricing',
         'profile',
@@ -156,7 +149,7 @@ describe('Pages Smoke Tests', () => {
         'tarot',
       ]
 
-      expect(categories.length).toBe(16)
+      expect(categories.length).toBe(15)
     })
   })
 })

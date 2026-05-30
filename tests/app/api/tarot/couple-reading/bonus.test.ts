@@ -50,10 +50,6 @@ vi.mock('@/lib/rateLimit', () => ({
 
 vi.mock('@/lib/request-ip', () => ({ getClientIp: vi.fn().mockReturnValue('127.0.0.1') }))
 
-vi.mock('@/lib/notifications/pushService', () => ({
-  sendPushNotification: vi.fn().mockResolvedValue(undefined),
-}))
-
 vi.mock('@/lib/api/zodValidation', () => ({
   coupleTarotReadingPostSchema: {
     safeParse: vi.fn((data: any) => ({ success: true, data })),

@@ -13,7 +13,6 @@ import type {
   UsersData,
   RevenueData,
   MatchingData,
-  NotificationsData,
   ContentData,
   ModerationData,
   AuditData,
@@ -28,7 +27,6 @@ import {
   UsersTab,
   RevenueTab,
   MatchingTab,
-  NotificationsTab,
   ContentTab,
   ModerationTab,
   AuditTab,
@@ -516,10 +514,6 @@ export default function MetricsDashboard() {
         return <RevenueTab data={getTabData<RevenueData>('revenue')} {...tabProps} />
       case 'matching':
         return <MatchingTab data={getTabData<MatchingData>('matching')} {...tabProps} />
-      case 'notifications':
-        return (
-          <NotificationsTab data={getTabData<NotificationsData>('notifications')} {...tabProps} />
-        )
       case 'content':
         return <ContentTab data={getTabData<ContentData>('content')} {...tabProps} />
       case 'moderation':

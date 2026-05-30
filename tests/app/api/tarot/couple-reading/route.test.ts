@@ -77,10 +77,6 @@ vi.mock('@/lib/request-ip', () => ({
   getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
 }))
 
-vi.mock('@/lib/notifications/pushService', () => ({
-  sendPushNotification: vi.fn().mockResolvedValue(undefined),
-}))
-
 // Mock Zod validation schemas
 vi.mock('@/lib/api/zodValidation', () => ({
   coupleTarotReadingPostSchema: {
@@ -922,26 +918,6 @@ describe('/api/tarot/couple-reading', () => {
         expect(data.data.readingId).toBe('reading-123')
       })
 
-      it('should send push notification to partner', async () => {
-        const { sendPushNotification } = await import('@/lib/notifications/pushService')
-
-        const req = new NextRequest('http://localhost:3000/api/tarot/couple-reading', {
-          method: 'POST',
-          body: JSON.stringify(validCoupleReadingData),
-        })
-
-        const { POST } = await import('@/app/api/tarot/couple-reading/route')
-        await POST(req)
-
-        expect(sendPushNotification).toHaveBeenCalledWith(
-          mockPartnerId,
-          expect.objectContaining({
-            title: '커플 타로가 도착했어요!',
-            tag: 'couple-tarot',
-          })
-        )
-      })
-
       it('should use bonus credits when regular credits are exhausted', async () => {
         const { prisma } = await import('@/lib/db/prisma')
         ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -1280,20 +1256,5 @@ describe('/api/tarot/couple-reading', () => {
       expect(data.data.readings[0].partner).toBeNull()
     })
 
-    it('should handle failed push notification gracefully', async () => {
-      const { sendPushNotification } = await import('@/lib/notifications/pushService')
-      ;(sendPushNotification as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Push failed'))
-
-      const req = new NextRequest('http://localhost:3000/api/tarot/couple-reading', {
-        method: 'POST',
-        body: JSON.stringify(validCoupleReadingData),
-      })
-
-      const { POST } = await import('@/app/api/tarot/couple-reading/route')
-      const response = await POST(req)
-
-      // Should still succeed even if push notification fails
-      expect(response.status).toBe(200)
-    })
   })
 })
