@@ -15,7 +15,8 @@ const SEOUL_MALE_1995 = {
   birthDate: '1995-02-09',
   birthTime: '06:40',
   gender: 'male' as const,
-  birthPlace: 'Seoul',
+  latitude: 37.5665,
+  longitude: 126.978,
   timeZone: 'Asia/Seoul',
 }
 

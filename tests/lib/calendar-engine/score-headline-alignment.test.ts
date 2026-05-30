@@ -19,7 +19,8 @@ const SEOUL_MALE_1995 = {
   birthDate: '1995-02-09',
   birthTime: '06:40',
   gender: 'male' as const,
-  birthPlace: 'Seoul',
+  latitude: 37.5665,
+  longitude: 126.978,
   timeZone: 'Asia/Seoul',
 }
 
@@ -48,7 +49,6 @@ describe('calendar two-axis score contract (v4)', () => {
       expect(typeof c.sajuAxis).toBe('number')
       expect(typeof c.astroAxis).toBe('number')
       expect(['aligned', 'mixed', 'opposed']).toContain(c.axisAgreement)
-      // 모든 점수 0~100
       for (const v of [c.derivedScore, c.sajuAxis!, c.astroAxis!]) {
         expect(v).toBeGreaterThanOrEqual(0)
         expect(v).toBeLessThanOrEqual(100)
@@ -60,11 +60,9 @@ describe('calendar two-axis score contract (v4)', () => {
     const cells = await buildMonth()
     const scores = cells.map((c) => c.derivedScore)
     const unique = new Set(scores)
-    // 옛 "전부 50" 회귀: 한 값으로 뭉치면 즉시 실패
     expect(unique.size).toBeGreaterThanOrEqual(5)
     const span = Math.max(...scores) - Math.min(...scores)
     expect(span).toBeGreaterThanOrEqual(15)
-    // 전부 정확히 50도 아니어야
     expect(scores.every((s) => s === 50)).toBe(false)
   })
 
