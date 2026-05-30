@@ -115,6 +115,11 @@ const mockBrightStars = [
   { name: 'Capella', name_ko: 'Capella', magnitude: 0.08 },
 ]
 
+vi.mock('@/lib/astrology/cached', async () => {
+  const astro = (await import('@/lib/astrology')) as { calculateNatalChart: (a: unknown) => unknown }
+  return { cachedCalculateNatalChart: (args: unknown) => astro.calculateNatalChart(args) }
+})
+
 vi.mock('@/lib/astrology', () => ({
   calculateNatalChart: vi.fn(),
   toChart: vi.fn(),

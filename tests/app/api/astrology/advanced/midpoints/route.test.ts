@@ -135,6 +135,15 @@ vi.mock('@/lib/astrology', () => ({
   findMidpointActivations: vi.fn(),
 }))
 
+// The route computes the chart via cachedCalculateNatalChart (the cached
+// wrapper) rather than calling calculateNatalChart directly. Route the wrapper
+// straight through to the mocked calculateNatalChart so existing spy
+// assertions (call args, mockResolvedValue/mockRejectedValue) keep working.
+vi.mock('@/lib/astrology/cached', async () => {
+  const astro = (await import('@/lib/astrology')) as { calculateNatalChart: (a: unknown) => unknown }
+  return { cachedCalculateNatalChart: (args: unknown) => astro.calculateNatalChart(args) }
+})
+
 // ============ Imports (after all mocks) ============
 
 import { POST } from '@/app/api/astrology/advanced/midpoints/route'
