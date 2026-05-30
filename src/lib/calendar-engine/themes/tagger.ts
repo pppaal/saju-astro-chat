@@ -1,10 +1,10 @@
 import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ActiveSignal, SignalEvidence } from '../types'
 import {
-  ASTRO_THEME_MAP,
-  SIBSIN_THEME_MAP,
-  SHINSAL_THEME_MAP,
-  ELEMENT_THEME_MAP,
+  SIBSIN_THEME_WEIGHT,
+  SHINSAL_THEME_WEIGHT,
+  ELEMENT_THEME_WEIGHT,
+  HOUSE_THEME_WEIGHT,
   PLANET_BENEFIC_MALEFIC,
   PLANET_THEME_WEIGHT,
 } from './featureMap'
@@ -13,9 +13,6 @@ export interface TaggedThemes {
   themes: AstroThemeKey[] // 멤버십 (룰/카드용)
   weights: Partial<Record<AstroThemeKey, number>> // 테마별 기여 가중 (themeScore용)
 }
-
-// 순서 있는 매핑(첫 항목 = primary)을 가중으로: primary 1.0, 이후 0.5.
-const RANK_WEIGHT = (i: number) => (i === 0 ? 1.0 : 0.5)
 
 /**
  * ActiveSignal에 테마 라벨 + 기여 가중을 자동 부여.
@@ -30,52 +27,47 @@ export function tagSignalWithThemes(
 ): TaggedThemes {
   const weights = new Map<AstroThemeKey, number>()
   const bump = (t: AstroThemeKey, w: number) => weights.set(t, Math.max(weights.get(t) ?? 0, w))
+  const bumpTable = (tbl?: Partial<Record<AstroThemeKey, number>>) => {
+    if (tbl) for (const [t, w] of Object.entries(tbl)) bump(t as AstroThemeKey, w as number)
+  }
 
   // 추출기가 명시한 테마 = primary
   for (const t of signal.themes) bump(t, 1.0)
   const ev = signal.evidence
 
-  // 사주 — 십신 (순서대로 primary/secondary)
-  if (ev.sibsin) SIBSIN_THEME_MAP[ev.sibsin]?.forEach((t, i) => bump(t, RANK_WEIGHT(i)))
+  // 사주 — 십신 (명시 가중표)
+  if (ev.sibsin) bumpTable(SIBSIN_THEME_WEIGHT[ev.sibsin])
 
   // 사주 — 연애(배우자성)는 성별로 다르다: 남명=재성(처), 여명=관성(부).
-  // SIBSIN_THEME_MAP은 성중립이라 love를 빼두고 여기서 성별로 부여.
+  // 가중표는 성중립이라 love를 빼두고 여기서 성별로 부여(본령<1, 랭킹 보존).
   if (ev.sibsin) {
-    // love는 보조 테마(<1) — money/career 같은 primary(1.0)를 안 넘게(랭킹 보존).
     if (gender === 'female') {
-      if (ev.sibsin === '정관') bump('love', 0.5)
-      else if (ev.sibsin === '편관') bump('love', 0.35)
+      if (ev.sibsin === '정관') bump('love', 0.6)
+      else if (ev.sibsin === '편관') bump('love', 0.4)
     } else {
-      if (ev.sibsin === '정재') bump('love', 0.5)
-      else if (ev.sibsin === '편재') bump('love', 0.35)
+      if (ev.sibsin === '정재') bump('love', 0.6)
+      else if (ev.sibsin === '편재') bump('love', 0.4)
     }
   }
 
-  // 사주 — 신살
+  // 사주 — 신살 (명시 가중표; 누락 신살은 growth 약하게 폴백)
   if (ev.shinsalName) {
-    const mapped = SHINSAL_THEME_MAP[ev.shinsalName]
-    if (mapped) mapped.forEach((t, i) => bump(t, RANK_WEIGHT(i)))
-    else bump('growth', 0.5) // 매핑 누락 신살 폴백 (카드는 표시되되 약하게)
+    const tbl = SHINSAL_THEME_WEIGHT[ev.shinsalName]
+    if (tbl) bumpTable(tbl)
+    else bump('growth', 0.5)
   }
 
-  // 사주/점성 공통 — 오행
-  if (ev.element) ELEMENT_THEME_MAP[ev.element]?.forEach((t, i) => bump(t, RANK_WEIGHT(i)))
+  // 사주/점성 공통 — 오행 (명시 가중표, 보조)
+  if (ev.element) bumpTable(ELEMENT_THEME_WEIGHT[ev.element])
 
   // 점성 — 행성 (행성별 테마 본령 가중)
   if (ev.planets?.length) {
-    for (const planet of ev.planets) {
-      const pw = PLANET_THEME_WEIGHT[planet]
-      if (pw) for (const [t, w] of Object.entries(pw)) bump(t as AstroThemeKey, w as number)
-    }
+    for (const planet of ev.planets) bumpTable(PLANET_THEME_WEIGHT[planet])
   }
 
-  // 점성 — 하우스 (행성보다 덜 specific → secondary 가중)
+  // 점성 — 하우스 (하우스별 본령 가중표)
   if (ev.houses?.length) {
-    for (const house of ev.houses) {
-      for (const [theme, config] of Object.entries(ASTRO_THEME_MAP)) {
-        if (config.houses.includes(house)) bump(theme as AstroThemeKey, 0.6)
-      }
-    }
+    for (const house of ev.houses) bumpTable(HOUSE_THEME_WEIGHT[house])
   }
 
   return { themes: Array.from(weights.keys()), weights: Object.fromEntries(weights) }
