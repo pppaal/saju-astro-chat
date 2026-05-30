@@ -5,8 +5,11 @@ import type { ActiveSignal, SignalLayer } from '../types'
  * 가중치 큰 순 + 길흉 강도 큰 순.
  */
 
-const LAYER_WEIGHT: Record<SignalLayer, number> = {
-  decadal: 1.0, yearly: 0.85, monthly: 0.7, daily: 0.55, hourly: 0.4, instant: 0.5,
+// 설명("왜")용 가중 — 그날 바뀌는 짧은 층(일진·트랜짓)을 우대. 점수(deriveScore)와
+// 달리 대운·세운 같은 한 달 상수 배경을 낮춰서, "왜"가 매일 다르게 나오게 한다.
+// (전엔 LAYER_WEIGHT로 대운 1.0 우대 → 매일 "대운 삼합격"만 떴음.)
+const REASON_RECENCY: Record<SignalLayer, number> = {
+  decadal: 0.12, yearly: 0.2, monthly: 0.4, daily: 1.0, hourly: 0.9, instant: 1.0,
 }
 
 export function deriveTopReasons(signals: ActiveSignal[], limit = 5): string[] {
@@ -15,7 +18,7 @@ export function deriveTopReasons(signals: ActiveSignal[], limit = 5): string[] {
     .filter((s) => s.polarity > 0)
     .map((s) => ({
       s,
-      impact: s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5),
+      impact: s.polarity * s.weight * (REASON_RECENCY[s.layer] ?? 0.5),
     }))
     .sort((a, b) => b.impact - a.impact)
     .slice(0, limit)
@@ -31,7 +34,7 @@ export function deriveCautions(signals: ActiveSignal[], limit = 5): string[] {
     .filter((s) => s.polarity < 0)
     .map((s) => ({
       s,
-      impact: Math.abs(s.polarity) * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5),
+      impact: Math.abs(s.polarity) * s.weight * (REASON_RECENCY[s.layer] ?? 0.5),
     }))
     .sort((a, b) => b.impact - a.impact)
     .slice(0, limit)
