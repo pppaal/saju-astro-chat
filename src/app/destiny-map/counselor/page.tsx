@@ -101,7 +101,27 @@ export default function CounselorPage() {
     initialQuestion,
     latitude,
     longitude,
+    timeZone,
   } = parsedParams
+
+  // '내 정보 수정' 모달을 현재 상담 중인 인물 정보로 채운다 — 상담사 데이터는
+  // URL/프로필에서 오므로 localStorage(getStoredBirthInfo) 가 비어 있어도
+  // 폼이 비지 않게. birth 정보가 없으면(맨몸 진입) localStorage 폴백.
+  const currentSubjectInfo: StoredBirthInfo | null =
+    birthDate && (gender === 'male' || gender === 'female')
+      ? {
+          name: name || undefined,
+          birthDate,
+          birthTime: birthTime || '',
+          birthTimeUnknown,
+          gender,
+          city: city || undefined,
+          latitude: typeof latitude === 'number' ? latitude : undefined,
+          longitude: typeof longitude === 'number' ? longitude : undefined,
+          timeZone: timeZone || undefined,
+          savedAt: new Date().toISOString(),
+        }
+      : getStoredBirthInfo()
 
   // handleLogin removed alongside the guest banner. If we reintroduce
   // an inline sign-in CTA, restore via:
@@ -456,10 +476,10 @@ export default function CounselorPage() {
 
       {initialQuestion && <InitialQuestionSender question={initialQuestion} />}
 
-      {/* 내 정보 수정 — 공용 BirthInfoModal 재사용. 저장된 내 정보로 채워서 연다. */}
+      {/* 내 정보 수정 — 공용 BirthInfoModal 재사용. 현재 상담 인물 정보로 채워 연다. */}
       <BirthInfoModal
         open={birthModalOpen}
-        initial={getStoredBirthInfo()}
+        initial={currentSubjectInfo}
         onClose={() => setBirthModalOpen(false)}
         onSaved={handleBirthSaved}
         locale={lang}
