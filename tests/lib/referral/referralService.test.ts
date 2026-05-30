@@ -477,6 +477,7 @@ describe('Referral Service with mocked Prisma', () => {
         findFirst: vi.fn(),
         findMany: vi.fn(),
         update: vi.fn(),
+        updateMany: vi.fn(),
       },
       referralReward: {
         create: vi.fn(),
@@ -598,7 +599,9 @@ describe('Referral Service with mocked Prisma', () => {
         referralCode: 'ABC12345',
         user: { id: 'referrer-1', name: 'Referrer' },
       } as never)
-      vi.mocked(prisma.user.update).mockResolvedValue({} as never)
+      // Linking is now an atomic updateMany (where referrerId:null) returning
+      // a count; count>0 means this request won the race.
+      vi.mocked(prisma.user.updateMany).mockResolvedValue({ count: 1 } as never)
       vi.mocked(prisma.referralReward.create).mockResolvedValue({} as never)
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         email: 'referrer@example.com',
@@ -643,9 +646,9 @@ describe('Referral Service with mocked Prisma', () => {
         referralCode: 'ABC12345',
         user: { id: 'referrer-1', name: 'Referrer' },
       } as never)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        referrerId: 'already-set',
-      } as never)
+      // Already linked: the atomic updateMany matches no rows (referrerId is
+      // no longer null), so it reports count:0 → 'already_linked'.
+      vi.mocked(prisma.user.updateMany).mockResolvedValue({ count: 0 } as never)
 
       const result = await linkReferrer('new-user', 'ABC12345')
       expect(result).toEqual({ success: false, error: 'already_linked' })

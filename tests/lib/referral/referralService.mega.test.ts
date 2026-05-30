@@ -32,6 +32,7 @@ vi.mock('@/lib/db/prisma', () => ({
       findFirst: vi.fn(),
       findMany: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       count: vi.fn(),
     },
     referralReward: {
@@ -39,6 +40,7 @@ vi.mock('@/lib/db/prisma', () => ({
       findFirst: vi.fn(),
       findMany: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }))
@@ -179,7 +181,7 @@ describe('Referral Service', () => {
         referralCode: mockReferrer.referralCode,
         user: { id: mockReferrer.id, name: mockReferrer.name },
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.user.updateMany as ReturnType<typeof vi.fn>).mockResolvedValue({ count: 1 })
       ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'referrer_123',
         email: 'referrer@test.com',
@@ -196,8 +198,9 @@ describe('Referral Service', () => {
       expect(result.success).toBe(true)
       expect(result.referrerId).toBe('referrer_123')
 
-      expect(prisma.user.update).toHaveBeenCalledWith({
-        where: { id: 'new_user_123' },
+      // Atomic link: updateMany only fills referrerId when still null.
+      expect(prisma.user.updateMany).toHaveBeenCalledWith({
+        where: { id: 'new_user_123', referrerId: null },
         data: { referrerId: 'referrer_123' },
       })
     })
@@ -216,7 +219,7 @@ describe('Referral Service', () => {
           data: expect.objectContaining({
             userId: 'referrer_123',
             referredUserId: 'new_user_123',
-            creditsAwarded: 3,
+            creditsAwarded: 10,
             rewardType: 'first_purchase',
             status: 'pending',
           }),
@@ -237,7 +240,7 @@ describe('Referral Service', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('invalid_code')
-      expect(prisma.user.update).not.toHaveBeenCalled()
+      expect(prisma.user.updateMany).not.toHaveBeenCalled()
     })
 
     it('should prevent self-referral', async () => {
@@ -249,7 +252,7 @@ describe('Referral Service', () => {
     })
 
     it('should handle database errors', async () => {
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockRejectedValue(
+      ;(prisma.user.updateMany as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error('DB connection failed')
       )
 
@@ -288,7 +291,8 @@ describe('Referral Service', () => {
       ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
         pendingReward
       )
-      ;(prisma.referralReward.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      // Reward is claimed atomically via updateMany (pending -> completed).
+      ;(prisma.referralReward.updateMany as ReturnType<typeof vi.fn>).mockResolvedValue({ count: 1 })
       ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         email: 'referrer@test.com',
         name: 'Referrer User',
@@ -300,9 +304,9 @@ describe('Referral Service', () => {
       expect(result.granted).toBe(true)
       expect(result.referrerId).toBe('referrer_123')
       expect(addBonusCredits).toHaveBeenCalledWith('referrer_123', 3, 'referral')
-      expect(prisma.referralReward.update).toHaveBeenCalledWith(
+      expect(prisma.referralReward.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: 'reward_fp' },
+          where: { id: 'reward_fp', status: 'pending' },
           data: expect.objectContaining({ status: 'completed', completedAt: expect.any(Date) }),
         })
       )
@@ -630,7 +634,7 @@ describe('Referral Service', () => {
         email: 'not-an-email',
         name: 'Referrer',
       })
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.user.updateMany as ReturnType<typeof vi.fn>).mockResolvedValue({ count: 1 })
       ;(prisma.referralReward.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
       ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
       ;(sendReferralRewardEmail as ReturnType<typeof vi.fn>).mockRejectedValue(
@@ -671,7 +675,7 @@ describe('Referral Service', () => {
       expect(referrer).toBeDefined()
 
       // 3. Link new user
-      ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
+      ;(prisma.user.updateMany as ReturnType<typeof vi.fn>).mockResolvedValue({ count: 1 })
       ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: 'referrer_123',
         email: 'ref@test.com',

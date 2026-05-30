@@ -37,9 +37,10 @@ describe('validator MEGA - DateSchema', () => {
       expect(DateSchema.safeParse('2024-02-29').success).toBe(true)
     })
 
-    it('should accept year range 1900-2100', () => {
+    it('should accept year range 1900-current year', () => {
+      const currentYear = new Date().getUTCFullYear()
       expect(DateSchema.safeParse('1900-01-01').success).toBe(true)
-      expect(DateSchema.safeParse('2100-12-31').success).toBe(true)
+      expect(DateSchema.safeParse(`${currentYear}-12-31`).success).toBe(true)
     })
   })
 
@@ -62,10 +63,10 @@ describe('validator MEGA - DateSchema', () => {
       expect(DateSchema.safeParse('2024-06-30').success).toBe(true)
     })
 
-    it('should accept year outside 1900-2100 (no year range validation)', () => {
-      // dateSchema only validates format, not year range
-      expect(DateSchema.safeParse('1899-12-31').success).toBe(true)
-      expect(DateSchema.safeParse('2101-01-01').success).toBe(true)
+    it('should reject years outside 1900-current year', () => {
+      // dateSchema rejects nonsensical birth years (too old / future)
+      expect(DateSchema.safeParse('1899-12-31').success).toBe(false)
+      expect(DateSchema.safeParse('2101-01-01').success).toBe(false)
     })
 
     it('should reject non-string input', () => {
@@ -474,8 +475,9 @@ describe('validator MEGA - DestinyMapRequestSchema', () => {
 describe('validator MEGA - Edge Cases', () => {
   describe('Boundary values', () => {
     it('should handle date boundaries', () => {
+      const currentYear = new Date().getUTCFullYear()
       expect(DateSchema.safeParse('1900-01-01').success).toBe(true)
-      expect(DateSchema.safeParse('2100-12-31').success).toBe(true)
+      expect(DateSchema.safeParse(`${currentYear}-12-31`).success).toBe(true)
     })
 
     it('should handle time boundaries', () => {

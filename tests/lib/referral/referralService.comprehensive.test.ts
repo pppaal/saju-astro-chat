@@ -25,12 +25,14 @@ vi.mock('@/lib/db/prisma', () => ({
       findUnique: vi.fn(),
       findMany: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
     referralReward: {
       create: vi.fn(),
       findFirst: vi.fn(),
       findMany: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }))
@@ -176,7 +178,7 @@ describe('Referral Service', () => {
         user: { id: 'referrer-1', name: 'Referrer' },
       }
       mockedPrisma.userSettings.findFirst.mockResolvedValue(referrerSettings as never)
-      mockedPrisma.user.update.mockResolvedValue({} as never)
+      mockedPrisma.user.updateMany.mockResolvedValue({ count: 1 } as never)
       mockedPrisma.referralReward.create.mockResolvedValue({} as never)
       mockedPrisma.user.findUnique.mockResolvedValue({
         email: 'ref@test.com',

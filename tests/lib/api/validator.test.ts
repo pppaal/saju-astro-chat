@@ -38,16 +38,16 @@ describe('API Validator', () => {
       expect(result.success).toBe(false)
     })
 
-    it('should accept year before 1900 (no year range validation)', () => {
-      // dateSchema only validates format, not year range
+    it('should reject year before 1900', () => {
+      // dateSchema rejects nonsensical birth years (< 1900).
       const result = DateSchema.safeParse('1899-01-01')
-      expect(result.success).toBe(true)
+      expect(result.success).toBe(false)
     })
 
-    it('should accept year after 2100 (no year range validation)', () => {
-      // dateSchema only validates format, not year range
+    it('should reject a future year', () => {
+      // dateSchema rejects years after the current year.
       const result = DateSchema.safeParse('2101-01-01')
-      expect(result.success).toBe(true)
+      expect(result.success).toBe(false)
     })
 
     it('should reject non-date string', () => {
