@@ -140,8 +140,10 @@ const BOUNDARY_CASES: GoldenCase[] = [
       daeunForward: true,
     },
   },
-  // 입춘 경계 — 1985 입춘은 KST 02-04 04:12. 그 직전(00:30)은 작년(갑자년),
-  // 그 이후(06:00)는 을축년으로 연주가 변해야 정통. 코드가 그렇게 동작함.
+  // 입춘 경계 — 1985 입춘은 KST 02-04 06:12 (한국 천문연 공식, PR L3 fix 후
+  // KASI 데이터가 SE 와 분 단위 일치). 옛 테스트는 wrong-by-construction 옛
+  // KASI 데이터 (04:12) 기반 → PR L3 으로 새 정답 갱신. 06:00 출생은 입춘
+  // 12분 전이라 여전히 작년(갑자년) 으로 처리되어야 정통.
   {
     birthDate: '1985-02-04',
     birthTime: '00:30',
@@ -163,13 +165,13 @@ const BOUNDARY_CASES: GoldenCase[] = [
     gender: 'male',
     timezone: 'Asia/Seoul',
     expected: {
-      year: ['乙', '丑'],
-      month: ['戊', '寅'],
+      year: ['甲', '子'],
+      month: ['丁', '丑'],
       day: ['甲', '戌'],
       time: ['丁', '卯'],
       dayMaster: '甲',
       daeunStartAge: 2,
-      daeunForward: false,
+      daeunForward: true,
     },
   },
   // 비KST timezone — 같은 instant가 다른 timezone에서 어떻게 보이는지
