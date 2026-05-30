@@ -788,6 +788,13 @@ export const GET = withApiMiddleware(
             d.evidence.confidence = v2.confidence
             d.evidence.crossAgreementPercent = v2.crossAgreementPercent
           }
+          // [단계 2c] 요인 칩(saju/astro factors)도 v2 셀 신호 기반으로 정합 —
+          // 구 함수가 v2 셀과 무관하게 만든 factorKeys 가 카드의 engineSignals/
+          // matchedPatterns 와 어긋나던 표시 불일치를 해소. recommendations/warnings 는
+          // 구 formatDateForResponse 의 coherence 게이팅(통신주의↔비가역행동 모순 방지)
+          // 을 유지해야 하므로 여기서 덮어쓰지 않는다(단계 4 에서 게이트째 이관).
+          if (v2.sajuFactors.length > 0) d.sajuFactors = v2.sajuFactors
+          if (v2.astroFactors.length > 0) d.astroFactors = v2.astroFactors
         }
       }
 
