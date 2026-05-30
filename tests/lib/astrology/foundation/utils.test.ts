@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { formatLongitude, angleDiff, shortestAngle, normalize360, clamp, ZODIAC_SIGNS } from '@/lib/astrology/foundation/utils';
+import { formatLongitude, angleDiff, shortestAngle, normalize360, ZODIAC_SIGNS } from '@/lib/astrology/foundation/utils';
+import { clamp } from '@/lib/utils/math';
 
 describe('Astrology Utils', () => {
   describe('ZODIAC_SIGNS', () => {

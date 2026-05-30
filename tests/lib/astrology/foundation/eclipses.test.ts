@@ -80,9 +80,12 @@ describe('eclipses', () => {
       });
     });
 
-    it('should return empty array when no eclipses in range', () => {
+    it('should compute eclipses for past years (dynamic, not hardcoded)', () => {
+      // Eclipses are computed from Swiss Ephemeris, so year 2000 yields real
+      // results rather than an empty hardcoded table.
       const eclipses = getEclipsesBetween('2000-01-01', '2000-12-31');
-      expect(eclipses).toEqual([]);
+      expect(Array.isArray(eclipses)).toBe(true);
+      expect(eclipses.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should handle single day range', () => {
@@ -106,9 +109,11 @@ describe('eclipses', () => {
       expect(eclipses.length).toBeLessThanOrEqual(5);
     });
 
-    it('should return empty array if no future eclipses', () => {
+    it('should still compute upcoming eclipses far in the future', () => {
+      // Dynamic computation returns eclipses even for 2100; just bound by count.
       const eclipses = getUpcomingEclipses(new Date('2100-01-01'), 5);
-      expect(eclipses).toEqual([]);
+      expect(Array.isArray(eclipses)).toBe(true);
+      expect(eclipses.length).toBeLessThanOrEqual(5);
     });
   });
 

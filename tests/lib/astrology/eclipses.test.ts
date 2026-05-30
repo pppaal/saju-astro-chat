@@ -62,9 +62,12 @@ describe("getEclipsesBetween", () => {
     });
   });
 
-  it("returns empty array for future dates beyond data", () => {
+  it("computes eclipses for future years (dynamic, not hardcoded data)", () => {
+    // Eclipses are now computed from Swiss Ephemeris, so future years like
+    // 2050 return real results rather than an empty hardcoded table.
     const eclipses = getEclipsesBetween("2050-01-01", "2050-12-31");
-    expect(eclipses).toHaveLength(0);
+    expect(Array.isArray(eclipses)).toBe(true);
+    expect(eclipses.length).toBeGreaterThanOrEqual(2);
   });
 
   it("returns multiple eclipses per year", () => {
@@ -265,36 +268,23 @@ describe("EclipseImpact interface", () => {
 describe("Eclipse signs in data", () => {
   const allEclipses = getAllEclipses();
 
-  it("includes eclipses in Aries", () => {
-    expect(allEclipses.some((e) => e.sign === "Aries")).toBe(true);
+  // Eclipses are computed dynamically (Swiss Ephemeris) over a window
+  // relative to today, so which specific signs appear shifts over time.
+  // Assert the meaningful invariant instead: eclipses span many signs and
+  // every sign reported is a valid zodiac sign.
+  it("spans multiple zodiac signs", () => {
+    const signs = new Set(allEclipses.map((e) => e.sign));
+    expect(signs.size).toBeGreaterThanOrEqual(3);
   });
 
-  it("includes eclipses in Taurus", () => {
-    expect(allEclipses.some((e) => e.sign === "Taurus")).toBe(true);
-  });
-
-  it("includes eclipses in Gemini", () => {
-    expect(allEclipses.some((e) => e.sign === "Gemini")).toBe(true);
-  });
-
-  it("includes eclipses in Cancer", () => {
-    expect(allEclipses.some((e) => e.sign === "Cancer")).toBe(true);
-  });
-
-  it("includes eclipses in Libra", () => {
-    expect(allEclipses.some((e) => e.sign === "Libra")).toBe(true);
-  });
-
-  it("includes eclipses in Scorpio", () => {
-    expect(allEclipses.some((e) => e.sign === "Scorpio")).toBe(true);
-  });
-
-  it("includes eclipses in Sagittarius", () => {
-    expect(allEclipses.some((e) => e.sign === "Sagittarius")).toBe(true);
-  });
-
-  it("includes eclipses in Capricorn", () => {
-    expect(allEclipses.some((e) => e.sign === "Capricorn")).toBe(true);
+  it("only reports valid zodiac signs", () => {
+    const valid = new Set([
+      "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+      "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+    ]);
+    for (const e of allEclipses) {
+      expect(valid.has(e.sign)).toBe(true);
+    }
   });
 });
 
