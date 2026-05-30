@@ -2,7 +2,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: linear-gradient(135deg, #0f0a1e 0%, #1a1030 100%);
   color: #fff;
 }
@@ -79,7 +79,7 @@
 .refreshBtn {
   margin-left: auto;
   padding: 0.5rem 1rem;
-  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  background: linear-gradient(90deg, #c19b56, #d4b572);
   border: none;
   border-radius: 8px;
   color: #fff;

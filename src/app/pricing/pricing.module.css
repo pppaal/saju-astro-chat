@@ -18,7 +18,7 @@
   --accent-line: rgba(212, 181, 114, 0.42);
 
   position: relative;
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(900px 600px at 20% 0%, rgba(99, 124, 200, 0.08), transparent 60%),
     radial-gradient(800px 600px at 90% 100%, rgba(212, 181, 114, 0.06), transparent 60%);
@@ -276,7 +276,9 @@
   width: 100%;
   padding: 13px 18px;
   margin-top: auto;
-  border-radius: 10px;
+  /* pill — site-wide secondary 버튼 표준 (999px). 옛 10px 모서리는 다른
+     다크 secondary (about, blog, error) 와 어긋났음. */
+  border-radius: 999px;
   border: 1px solid var(--border-strong);
   background: transparent;
   font-size: 13px;

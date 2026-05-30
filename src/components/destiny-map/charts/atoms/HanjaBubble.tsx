@@ -53,8 +53,12 @@ export function HanjaBubble({ hanja, children, className }: HanjaBubbleProps) {
       }}
       onTouchCancel={cancel}
       onClick={(e) => {
-        // 모바일 long-press 후에는 클릭이 따라오기도 — bubble 유지.
-        if (open) e.preventDefault()
+        // 모바일 long-press 후에는 click event 가 따라옴 — bubble 만 뜨고
+        // 부모 셀(PillarDrawer trigger) 까지 전파되지 않도록 차단.
+        if (open) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
       }}
     >
       {children}

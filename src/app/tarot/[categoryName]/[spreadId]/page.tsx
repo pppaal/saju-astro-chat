@@ -25,7 +25,7 @@ function TarotReadingPage() {
   const searchParams = useSearchParams()
   const { status } = useSession()
   const { translate, language } = useI18n()
-  const { showDepleted } = useCreditModal()
+  const { showDepleted, showGuestLimit } = useCreditModal()
   const [creditNotice, setCreditNotice] = useState<string | null>(null)
 
   const categoryName = params?.categoryName as string | undefined
@@ -136,6 +136,8 @@ function TarotReadingPage() {
         if (kind === 'insufficient_credits') {
           showDepleted()
         } else {
+          // 비로그인 무료 체험 한도 — 로그인 유도 모달 + 인라인 안내(모달 닫아도 남게).
+          showGuestLimit()
           const isKo = (language || 'ko') === 'ko'
           setCreditNotice(
             isKo
@@ -190,6 +192,7 @@ function TarotReadingPage() {
     cacheKeyFor,
     language,
     showDepleted,
+    showGuestLimit,
   ])
 
   // Card reveal with auto-scroll

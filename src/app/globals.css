@@ -103,6 +103,21 @@ select:focus-visible,
   --ds-gold-line: rgba(212, 181, 114, 0.42); /* 다크 페이지 골드 라인 */
   --ds-gold-soft-bg: rgba(160, 122, 60, 0.08); /* 라이트 골드 hover */
 
+  /* Error / validation — 페이지/컴포넌트마다 9개 hex 가 흩어져 있던 것을
+     라이트/다크 한 짝씩으로 정리 (text-red-600 ~ rose-300 변형 통합). */
+  --ds-error: #dc2626; /* 라이트 surface 본문 텍스트용 (red-600 표준) */
+  --ds-error-strong: #b91c1c; /* 라이트 surface 강조 (border, deep label) */
+  --ds-error-bg: #fef2f2; /* 라이트 surface 알림 박스 배경 (red-50) */
+  --ds-error-on-dark: #fca5a5; /* 다크 surface 본문 (rose-300/red-300 톤) */
+  --ds-error-on-dark-bg: rgba(220, 38, 38, 0.12); /* 다크 알림 박스 */
+
+  /* Focus ring — 11가지 ring 색이 흩어진 것을 정리. 라이트/다크 골드 + 위험 액션
+     붉은색 + 중립 회색. focus-visible 에서만 표시 (focus 와 차이). */
+  --ds-ring-gold: #a07a3c; /* 라이트 surface 기본 (compat / profile / error 와 정렬) */
+  --ds-ring-gold-on-dark: #d4b572; /* 다크 surface 골드 강조 */
+  --ds-ring-destructive: #dc2626;
+  --ds-ring-neutral: #78716c; /* stone-500 — link/ghost 등 비-CTA */
+
   /* =============================================================
      Legacy dark tokens — 기존 페이지 호환 (점진 마이그레이션)
      ============================================================= */
@@ -181,20 +196,30 @@ select:focus-visible,
 
 html {
   scroll-behavior: smooth;
+  /* rem 기준 고정 — 디바이스별로 폰트 크기가 들쭉날쭉하던 문제 해결.
+     사용자: "기기마다 폰트 크기도 달라지는데 수정. 어떤 기기든 잘나오게".
+     원인: 안드로이드 시스템 폰트 크기 / iOS Dynamic Type 가 default
+     html font-size 를 16px 보다 키우거나 줄여서 모든 rem 값이 함께 변동.
+     16px 로 고정해 layout 일관성 보장 — 사용자가 브라우저 zoom (Ctrl+/-)
+     으로는 여전히 키울 수 있어서 접근성도 보존. */
+  font-size: 16px;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   color-scheme: dark;
   scrollbar-gutter: stable;
   overflow-y: scroll;
   background-color: #050714;
-  /* Safe area insets for iPhone notch/dynamic island */
+}
+
+body {
+  /* Safe area insets for iPhone notch/dynamic island. iOS Safari double-counts
+     these when applied to <html> (parent already inside the safe area)
+     and also produces a horizontal scrollbar at the gutter — keeping them on
+     <body> avoids both issues. */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
-}
-
-body {
   background-color: var(--bg-color);
   color: var(--text-color);
   /* premium typography defaults — slashed zero + stylistic alt + contextual */
@@ -221,6 +246,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* iOS Safari 끝 bounce / Android pull-to-refresh 차단 — modal 안에서 scroll
+     하다가 부모 page 까지 스크롤 따라가 닫혀버리던 버그도 함께 해결. */
+  overscroll-behavior: contain;
 }
 
 /* Smooth transitions for interactive elements */
@@ -537,6 +565,20 @@ select:disabled {
   height: 100%;
   display: block;
 }
+/* aspect-ratio fallback — Safari 14 / iOS 14 / older Samsung Internet
+   don't support `aspect-ratio`. Without this fallback the element collapses
+   to 0 height. Use padding-hack to reserve a 16:8 (50%) box and position
+   the canvas absolutely to fill it. */
+@supports not (aspect-ratio: 1) {
+  .pp-ovoid {
+    padding-top: 50%;
+    height: 0;
+  }
+  .pp-ovoid > * {
+    position: absolute;
+    inset: 0;
+  }
+}
 .pp-visualCopy h2 {
   font-size: clamp(22px, 3.2vw, 32px);
   color: #ffffff;
@@ -725,10 +767,10 @@ body {
 body {
   display: flex;
   flex-direction: column;
-  /* dvh 로 동적 뷰포트(모바일 URL바 접힘)를 추적 — 100vh 면 URL바 표시 시
+  /* dvh 로 동적 뷰포트(모바일 URL바 접힘)를 추적 — 100dvh 면 URL바 표시 시
      viewport(작음)보다 body(큼)가 길어져 풀스크린 페이지(.page=100dvh) 아래로
      배경이 비치는 갭이 모든 모바일에서 생긴다. vh 는 구형 브라우저 폴백. */
-  min-height: 100vh;
+  min-height: 100dvh;
   min-height: 100dvh;
 }
 
@@ -829,6 +871,16 @@ body {
 }
 .chart-pop-in {
   animation: chart-pop-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 차트 모달 스크롤바 시각적으로 숨김 — 스크롤 동작은 유지. 모달이 navy
+   glass 라 OS 기본 회색 스크롤바가 떠 보였음. WebKit/Firefox/IE 다 커버. */
+.chart-modal-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.chart-modal-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge new */
 }
 
 @keyframes chart-rise-in {

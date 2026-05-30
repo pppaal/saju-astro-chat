@@ -10,7 +10,7 @@ const SwaggerUI = dynamic(() => import('swagger-ui-react'), {
   loading: () => (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4b572] mx-auto mb-4"></div>
         <p className="text-gray-400">API 문서 로딩중...</p>
       </div>
     </div>
@@ -28,7 +28,7 @@ export default function ApiDocsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4b572] mx-auto mb-4"></div>
           <p className="text-gray-400">API 문서 로딩중...</p>
         </div>
       </div>
@@ -38,12 +38,12 @@ export default function ApiDocsPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Custom Header */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 text-white py-6 px-8">
+      <div className="bg-[#07091a] border-b border-[rgba(212,181,114,0.15)] text-white py-6 px-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-2">🔮 Saju Astro Chat API</h1>
-          <p className="text-purple-200">동양과 서양의 운명학을 결합한 종합 API 문서</p>
+          <p className="text-[#e8cc8a]">동양과 서양의 운명학을 결합한 종합 API 문서</p>
           <div className="flex gap-4 mt-4 text-sm">
-            <span className="bg-purple-700/50 px-3 py-1 rounded-full">Version 1.0.0</span>
+            <span className="bg-[rgba(212,181,114,0.2)] px-3 py-1 rounded-full">Version 1.0.0</span>
             <span className="bg-green-700/50 px-3 py-1 rounded-full">✓ Production Ready</span>
           </div>
         </div>
@@ -53,25 +53,19 @@ export default function ApiDocsPage() {
       <div className="bg-gray-100 border-b py-4 px-8">
         <div className="max-w-7xl mx-auto flex flex-wrap gap-4 text-sm">
           <span className="font-semibold text-gray-700">Quick Links:</span>
-          <a href="#/Saju" className="text-purple-600 hover:underline">
+          <a href="#/Saju" className="text-[#d4b572] hover:underline">
             사주
           </a>
-          <a href="#/Astrology" className="text-purple-600 hover:underline">
+          <a href="#/Astrology" className="text-[#d4b572] hover:underline">
             점성술
           </a>
-          <a href="#/Tarot" className="text-purple-600 hover:underline">
+          <a href="#/Tarot" className="text-[#d4b572] hover:underline">
             타로
           </a>
-          <a href="#/Dream" className="text-purple-600 hover:underline">
-            꿈해몽
-          </a>
-          <a href="#/I%20Ching" className="text-purple-600 hover:underline">
-            주역
-          </a>
-          <a href="#/Compatibility" className="text-purple-600 hover:underline">
+          <a href="#/Compatibility" className="text-[#d4b572] hover:underline">
             궁합
           </a>
-          <a href="#/Destiny%20Match" className="text-purple-600 hover:underline">
+          <a href="#/Destiny%20Match" className="text-[#d4b572] hover:underline">
             매칭
           </a>
         </div>
@@ -111,7 +105,7 @@ export default function ApiDocsPage() {
         }
         .swagger-ui .opblock.opblock-post {
           border-color: #8b5cf6;
-          background: rgba(139, 92, 246, 0.05);
+          background: rgba(212, 181, 114, 0.05);
         }
         .swagger-ui .opblock.opblock-post .opblock-summary-method {
           background: #8b5cf6;

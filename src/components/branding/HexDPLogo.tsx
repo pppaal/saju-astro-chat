@@ -44,6 +44,12 @@ export default function HexDPLogo({ size = 64, pulse = false, epic = false }: He
       style={pulse || epic ? { animation: 'hexdp-pulse 2.4s ease-in-out infinite' } : undefined}
     >
       <defs>
+        {/* 브랜드 로고 그라데이션 — cyan → violet cosmic.
+         *
+         * 디자인 토큰의 "보라/네온 톤 사용 안 한다" 정책의 명시적 예외.
+         * 로고는 브랜드 자산 (Apple 무지개 사과, Slack 플러스 등) 이라
+         * 다른 UI 색상 시스템과 분리해 운영. 사주/타로/점성의 cosmic/
+         * 신비 정체성을 시그니처 색으로 표현. 다른 모든 UI 는 골드 유지. */}
         <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor="#63d2ff" />
           <stop offset="50%" stopColor="#a78bfa" />
@@ -80,7 +86,7 @@ export default function HexDPLogo({ size = 64, pulse = false, epic = false }: He
               opacity="0.85"
             />
           </g>
-          {/* Counter-rotating thin ring */}
+          {/* Counter-rotating thin ring — cosmic violet (브랜드 로고 색 예외). */}
           <g style={{ transformOrigin: '32px 36px', animation: 'hexdp-spin-rev 14s linear infinite' }}>
             <circle
               cx="32"
@@ -93,7 +99,7 @@ export default function HexDPLogo({ size = 64, pulse = false, epic = false }: He
               opacity="0.6"
             />
           </g>
-          {/* Orbital sparkles */}
+          {/* Orbital sparkles — 시그니처 cyan/violet */}
           <g style={{ transformOrigin: '32px 36px', animation: 'hexdp-spin 6s linear infinite' }}>
             <circle cx="32" cy="-14" r="1.8" fill="#cffafe" />
             <circle cx="78" cy="36" r="1.4" fill="#a78bfa" />

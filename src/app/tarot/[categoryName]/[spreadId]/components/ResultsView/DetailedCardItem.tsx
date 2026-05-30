@@ -63,16 +63,16 @@ export function DetailedCardItem({
   const keywords = (isKo ? meaning.keywordsKo || meaning.keywords : meaning.keywords).slice(0, 5)
 
   return (
-    <article className="rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-indigo-500/30 transition-colors p-5 md:p-6">
+    <article className="rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-[rgba(212,181,114,0.3)] transition-colors p-5 md:p-6">
       <header className="flex items-start gap-3 mb-4">
-        <span className="mt-0.5 flex items-center justify-center w-9 h-9 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-base font-semibold shrink-0">
+        <span className="mt-0.5 flex items-center justify-center w-9 h-9 rounded-full bg-[rgba(212,181,114,0.15)] border border-[rgba(212,181,114,0.3)] text-[#d4b572] text-base font-semibold shrink-0">
           {index + 1}
         </span>
         <div className="flex-1 min-w-0">
           <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
             {isKo ? '카드 자리' : 'Position'}
           </div>
-          <div className="text-xs uppercase tracking-wider text-indigo-300/80">{positionTitle}</div>
+          <div className="text-xs uppercase tracking-wider text-[rgba(212,181,114,0.8)]">{positionTitle}</div>
           <div className="mt-2 text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
             {isKo ? '카드명' : 'Card'}
           </div>
@@ -82,7 +82,7 @@ export function DetailedCardItem({
           </h3>
           {positionMeaning && (
             <p className="mt-1 text-sm text-slate-400 leading-snug">
-              <span className="text-indigo-300/70">{isKo ? '이 자리: ' : 'This seat: '}</span>
+              <span className="text-[rgba(212,181,114,0.7)]">{isKo ? '이 자리: ' : 'This seat: '}</span>
               {positionMeaning}
             </p>
           )}
@@ -140,10 +140,10 @@ export function DetailedCardItem({
           )}
 
           {/* AI 해석 — 메인 박스, 시각적으로 구분 */}
-          <div className="rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/5 border border-indigo-500/30 p-4 md:p-5 shadow-[0_0_24px_rgba(99,102,241,0.08)]">
+          <div className="rounded-xl bg-gradient-to-br from-[rgba(212,181,114,0.1)] to-[rgba(193,155,86,0.05)] border border-[rgba(212,181,114,0.3)] p-4 md:p-5 shadow-[0_0_24px_rgba(212,181,114,0.08)]">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-indigo-300" />
-              <div className="text-xs uppercase tracking-wider text-indigo-300 font-medium">
+              <Sparkles className="w-4 h-4 text-[#d4b572]" />
+              <div className="text-xs uppercase tracking-wider text-[#d4b572] font-medium">
                 {isKo ? '타로 마스터 리딩' : 'Tarot Master Reading'}
               </div>
             </div>
@@ -152,7 +152,7 @@ export function DetailedCardItem({
                 {renderHighlighted(aiInterpretation)}
               </p>
             ) : aiPending ? (
-              <div className="flex items-center gap-2 text-sm text-indigo-200/80 py-2">
+              <div className="flex items-center gap-2 text-sm text-[rgba(232,204,138,0.8)] py-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>
                   {isKo

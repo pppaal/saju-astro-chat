@@ -56,6 +56,9 @@ export {
   // Simple fetch wrapper for internal API calls
   apiFetch,
   type ApiFetchOptions,
+  // Central credit-limit modal signal (dispatched by apiFetch on 402/guest-limit)
+  CREDIT_MODAL_EVENT,
+  type CreditModalKind,
   // Backend API client class
   ApiClient,
   apiClient,

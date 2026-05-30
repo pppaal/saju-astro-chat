@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { getHanjaRich } from '@/lib/chart-dictionary'
 import { HanjaBubble } from './atoms/HanjaBubble'
 import { SibsinChip } from './atoms/SibsinChip'
 
@@ -39,6 +40,11 @@ interface SajuChartProps {
    * 톤 다운된 element pastel + gold 액센트.
    */
   theme?: Theme
+  /**
+   * 셀(기둥) 클릭 시 호출 — PillarDrawer 띄울 때 사용.
+   * 미지정 시 셀은 클릭 비활성 (기존 동작).
+   */
+  onPillarClick?: (pillar: 'time' | 'day' | 'month' | 'year') => void
 }
 
 // 오행 색 톤 — light/dark 양쪽 모두 그대로 element 의미는 유지.
@@ -59,64 +65,19 @@ const ELEMENT_STYLE_DARK: Record<string, { text: string; bg: string }> = {
 const DEFAULT_STYLE_LIGHT = { text: 'text-stone-700', bg: 'bg-stone-50' }
 const DEFAULT_STYLE_DARK = { text: 'text-slate-200', bg: 'bg-white/5' }
 
-// Hanja → Korean reading (신금 / 을목 / 해수)
-const STEM_READING: Record<string, string> = {
-  甲: '갑',
-  乙: '을',
-  丙: '병',
-  丁: '정',
-  戊: '무',
-  己: '기',
-  庚: '경',
-  辛: '신',
-  壬: '임',
-  癸: '계',
+// Hanja → 발음(한국어) / 물상(物像) — chart-dictionary(hanja-rich) 단일 출처에서 조회.
+// hanja-rich 의 `image` 필드는 "큰 나무·동량목 — 곧게…" 같이 풍부해 9px 셀 라벨에는
+// 길어서, 첫 어절(·/— 앞)만 잘라 기존 한 줄 라벨 길이를 유지한다.
+const readingOf = (name?: string, lang: 'ko' | 'en' = 'ko') => {
+  if (!name) return ''
+  return getHanjaRich(name, lang)?.name ?? name
 }
-const BRANCH_READING: Record<string, string> = {
-  子: '자',
-  丑: '축',
-  寅: '인',
-  卯: '묘',
-  辰: '진',
-  巳: '사',
-  午: '오',
-  未: '미',
-  申: '신',
-  酉: '유',
-  戌: '술',
-  亥: '해',
+const imageOf = (name?: string, lang: 'ko' | 'en' = 'ko') => {
+  if (!name) return ''
+  const raw = getHanjaRich(name, lang)?.image
+  if (!raw) return ''
+  return raw.split('·')[0].split('—')[0].trim()
 }
-const readingOf = (name?: string) =>
-  name ? (STEM_READING[name] ?? BRANCH_READING[name] ?? name) : ''
-
-// 물상(物像) — each character's everyday image, so users grasp it at a glance.
-const STEM_IMAGE: Record<string, string> = {
-  甲: '큰 나무',
-  乙: '유연한 풀',
-  丙: '태양',
-  丁: '촛불·등불',
-  戊: '넓은 산',
-  己: '기름진 밭',
-  庚: '큰 바위',
-  辛: '빛나는 보석',
-  壬: '큰 바다',
-  癸: '이슬·비',
-}
-const BRANCH_IMAGE: Record<string, string> = {
-  子: '깊은 물',
-  丑: '언 땅',
-  寅: '큰 나무',
-  卯: '여린 화초',
-  辰: '촉촉한 흙',
-  巳: '큰 불',
-  午: '한낮 태양',
-  未: '건조한 흙',
-  申: '단단한 금속',
-  酉: '예리한 칼',
-  戌: '마른 흙',
-  亥: '깊은 바다',
-}
-const imageOf = (name?: string) => (name ? (STEM_IMAGE[name] ?? BRANCH_IMAGE[name] ?? '') : '')
 
 function pickPillars(saju: SajuChartProps['saju']) {
   if (!saju) return null
@@ -128,7 +89,7 @@ function pickPillars(saju: SajuChartProps['saju']) {
   return { year, month, day, time }
 }
 
-export function SajuChart({ saju, lang = 'ko', theme = 'light' }: SajuChartProps) {
+export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }: SajuChartProps) {
   const pillars = pickPillars(saju)
   const isKo = lang === 'ko'
   const isDark = theme === 'dark'
@@ -228,6 +189,22 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light' }: SajuChartProps
 
   return (
     <div className={tokens.container} style={tokens.containerStyle}>
+      {/* Affordance hint — 모바일 비전공자에게 비주얼 단서 (가운데 = 나, 한자
+          long-press, 셀 탭) 노출. dark / light 모두 동일 톤 (gold accent). */}
+      <div
+        className="mb-2 rounded-md px-2.5 py-1.5 text-[10px] leading-snug"
+        style={{
+          background: 'rgba(212,181,114,0.06)',
+          color: 'var(--ds-dark-text-muted)',
+          border: '1px solid rgba(212,181,114,0.12)',
+        }}
+      >
+        <span style={{ color: 'var(--ds-gold-on-dark)' }}>ⓘ</span>{' '}
+        {isKo
+          ? "가운데 금색 = '나' (일주) · 한자 꾹 누르면 뜻 · 셀 탭 = 상세 풀이"
+          : 'Gold border = "me" (Day Pillar) · long-press a hanja for meaning · tap a column for detail'}
+      </div>
+
       {/* 컬럼 헤더: 한자 기둥명(時/日/月/年) + 시기 라벨 */}
       <div className="mb-3 grid grid-cols-4 gap-2">
         {order.map(({ key, isMe, pillarKo, posKo, posEn }) => (
@@ -259,8 +236,25 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light' }: SajuChartProps
           const branch = pillar.earthlyBranch
           const stemStyle = tokens.elementStyle[stem?.element || ''] || tokens.defaultStyle
           const branchStyle = tokens.elementStyle[branch?.element || ''] || tokens.defaultStyle
+          const clickable = !!onPillarClick
           return (
-            <div key={key} className="flex flex-col gap-1.5">
+            <div
+              key={key}
+              className={`flex flex-col gap-1.5 ${clickable ? 'cursor-pointer transition-transform hover:-translate-y-0.5' : ''}`}
+              onClick={clickable ? () => onPillarClick(key) : undefined}
+              role={clickable ? 'button' : undefined}
+              tabIndex={clickable ? 0 : undefined}
+              onKeyDown={
+                clickable
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onPillarClick(key)
+                      }
+                    }
+                  : undefined
+              }
+            >
               {/* 천간 (윗 셀) / 지지 (아래 셀) */}
               {[
                 { cell: stem, style: stemStyle, isStem: true },
@@ -268,25 +262,34 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light' }: SajuChartProps
               ].map((c, idx) => (
                 <div
                   key={idx}
-                  className={`flex min-h-[88px] w-full flex-col items-center justify-center gap-1 rounded-xl border p-1.5 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md ${c.style.bg} ${
+                  className={`flex min-h-[88px] w-full flex-col items-center justify-center gap-1 rounded-xl border p-1.5 shadow-sm ${c.style.bg} ${
                     isMe ? tokens.cellBorderMe : tokens.cellBorderNeutral
                   } ${c.isStem ? '' : 'opacity-95'}`}
                 >
-                  {/* 한자 (long-press / hover → 의미 bubble) */}
+                  {/* 한자 (long-press / hover → 의미 bubble) — 메인 표시. */}
                   {c.cell?.name ? (
                     <HanjaBubble
                       hanja={c.cell.name}
-                      className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
+                      className={`font-serif text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
                     >
-                      {cellText(c.cell)}
+                      {c.cell.name}
                     </HanjaBubble>
                   ) : (
                     <span
-                      className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
+                      className={`font-serif text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
                     >
-                      {cellText(c.cell)}
+                      ·
                     </span>
                   )}
+                  {/* 한자 아래: 한국 발음 + 오행 한 줄 (KO 모드만). 비전공자가 한자
+                      모르더라도 즉시 읽을 수 있게. */}
+                  {isKo && c.cell?.name && (
+                    <span className={`text-[10px] leading-none ${tokens.imageText}`}>
+                      {readingOf(c.cell.name)}
+                      {c.cell.element ? `·${c.cell.element}` : ''}
+                    </span>
+                  )}
+                  {/* 한자의 물상(物像) — "큰 나무" 같은 한 줄 의미. */}
                   {isKo && imageOf(c.cell?.name) && (
                     <span className={`text-[9px] leading-none ${tokens.imageText}`}>
                       {imageOf(c.cell?.name)}

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Sparkles } from 'lucide-react'
 import { drawClarifierCard, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface ClarifierCardModalProps {
   isOpen: boolean
@@ -24,6 +25,7 @@ export default function ClarifierCardModal({
 }: ClarifierCardModalProps) {
   const isKo = lang === 'ko'
   const [card, setCard] = useState<ClarifierCard | null>(null)
+  const trapRef = useFocusTrap(isOpen)
 
   // 모달이 열릴 때마다 새 카드를 뽑는다. 닫히면 다음 오픈을 위해 reset.
   useEffect(() => {
@@ -54,6 +56,7 @@ export default function ClarifierCardModal({
 
   return (
     <div
+      ref={trapRef}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -79,13 +82,13 @@ export default function ClarifierCardModal({
         onClick={(e) => e.stopPropagation()}
         style={{
           background: 'linear-gradient(160deg, #1e1b3a 0%, #0f0c24 100%)',
-          border: '1px solid rgba(34, 211, 238, 0.35)',
+          border: '1px solid rgba(212, 181, 114, 0.35)',
           borderRadius: '20px',
           padding: '28px 24px',
           maxWidth: '380px',
           width: '100%',
           textAlign: 'center',
-          boxShadow: '0 20px 60px rgba(34, 211, 238, 0.18)',
+          boxShadow: '0 20px 60px rgba(212, 181, 114, 0.18)',
           animation: 'clarifierCardReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
           // 짧은 화면 (모바일 가로 등) 에서도 콘텐츠 다 보이게.
           margin: 'auto',
@@ -181,9 +184,9 @@ export default function ClarifierCardModal({
               flex: 1.4,
               padding: '11px 16px',
               borderRadius: '999px',
-              border: '1px solid rgba(34, 211, 238, 0.55)',
+              border: '1px solid rgba(212, 181, 114, 0.55)',
               background:
-                'linear-gradient(135deg, rgba(34, 211, 238, 0.35) 0%, rgba(99, 102, 241, 0.35) 100%)',
+                'linear-gradient(135deg, rgba(193, 155, 86, 0.5) 0%, rgba(160, 122, 60, 0.5) 100%)',
               color: '#ffffff',
               fontSize: '14px',
               cursor: 'pointer',

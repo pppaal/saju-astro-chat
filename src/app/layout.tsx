@@ -78,12 +78,19 @@ const merriweather = localFont({
   preload: false,
 })
 
-export const viewport: Viewport = {
+// `interactiveWidget: 'resizes-content'` tells the browser to shrink the
+// layout viewport when the on-screen keyboard opens instead of pushing fixed
+// elements upward. Without this, iOS Safari shifts Toast/CreditDepletedModal
+// /InlineTarotModal/ShareButton/CounselorSidebar/ConsentBanner above the
+// keyboard, often off-screen. Next's Viewport type doesn't yet expose this
+// field, so we widen with an intersection type.
+export const viewport: Viewport & { interactiveWidget?: string } = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
   viewportFit: 'cover',
+  interactiveWidget: 'resizes-content',
 }
 
 export const metadata: Metadata = {
@@ -227,7 +234,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       lang={serverLocale}
       data-theme="dark"
       data-scroll-behavior="smooth"
-      style={{ colorScheme: 'dark', backgroundColor: '#0d1225' }}
+      style={{ colorScheme: 'dark', backgroundColor: '#07091a' }}
     >
       <head>
         <link rel="manifest" href="/manifest.json" />
@@ -235,7 +242,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="DestinyPal" />
-        <meta name="theme-color" content="#0d1225" />
+        <meta name="theme-color" content="#07091a" />
         <JsonLd data={websiteJsonLd} nonce={nonce} />
         <JsonLd data={organizationJsonLd} nonce={nonce} />
       </head>

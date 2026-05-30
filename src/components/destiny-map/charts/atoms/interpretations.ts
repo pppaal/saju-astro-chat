@@ -4,46 +4,79 @@
  * 차트 모달의 long-press tooltip, 십성 칩, persona 카드 등이 공통으로 사용.
  * 비전공자가 한자 / 약어 보고 즉시 의미 파악할 수 있게 1~2줄 plain 한국어.
  *
- * 출처: 정통 명리학 텍스트 (자평진전, 적천수) + 현대 사주 입문서 요약.
+ * 데이터 소스: `@/lib/chart-dictionary` (hanja-rich, geokguk-rich, saju-strength).
+ * 이 모듈은 외부에 노출되는 record/helper 시그니처를 유지하면서 내부 값을
+ * chart-dictionary 의 helper 호출로 빌드한다 → 미래 drift 방지.
+ *
+ * SIBSIN_COLOR 와 SIBSIN 의 category 매핑은 UI 토큰 / 개별 십성(비견·정관 등)
+ * 단위 의미여서 chart-dictionary 의 카테고리 단위 데이터로 대체 불가 → atoms 유지.
  */
+
+import {
+  getHanjaRich,
+  getGeokgukRich,
+  getSajuStrengthMeaning,
+} from '@/lib/chart-dictionary'
+
+// ── 한자 풀(stem / branch 순서) ───────────────────────────────────────────────
+const STEM_CHARS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const
+const BRANCH_CHARS = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'] as const
+
+// hanja-rich 의 image 필드는 "큰 나무·동량목(棟梁木) — 곧게 위로 자라는 거목" 형태.
+// 기존 atoms 시그니처는 짧은 자연 image("큰 나무") 만 노출 → 첫 ·/— 앞만 추출.
+function shortImage(rich: string | undefined): string {
+  if (!rich) return ''
+  return rich.split('—')[0].trim().split('·')[0].trim()
+}
 
 // 10 천간 — 음양 + 오행 + 자연 image + 성격 키워드
 export const HEAVENLY_STEMS: Record<
   string,
   { ko: string; yinYang: '양' | '음'; element: string; image: string; meaning: string }
-> = {
-  甲: { ko: '갑', yinYang: '양', element: '목', image: '큰 나무', meaning: '곧고 진취적, 리더십' },
-  乙: { ko: '을', yinYang: '음', element: '목', image: '풀·덩굴', meaning: '유연하고 적응력 강함' },
-  丙: { ko: '병', yinYang: '양', element: '화', image: '태양', meaning: '밝고 외향적, 열정' },
-  丁: { ko: '정', yinYang: '음', element: '화', image: '촛불·등불', meaning: '섬세하고 따뜻, 집중력' },
-  戊: { ko: '무', yinYang: '양', element: '토', image: '큰 산', meaning: '듬직하고 신뢰, 포용' },
-  己: { ko: '기', yinYang: '음', element: '토', image: '논밭', meaning: '실용적이고 부드러움' },
-  庚: { ko: '경', yinYang: '양', element: '금', image: '큰 쇠', meaning: '결단력·의리, 강함' },
-  辛: { ko: '신', yinYang: '음', element: '금', image: '보석·날카로움', meaning: '예리하고 자존심 강함' },
-  壬: { ko: '임', yinYang: '양', element: '수', image: '큰 강·바다', meaning: '지혜·포용, 유유함' },
-  癸: { ko: '계', yinYang: '음', element: '수', image: '비·이슬', meaning: '섬세하고 직관적, 흐름' },
-}
+> = (() => {
+  const map: Record<
+    string,
+    { ko: string; yinYang: '양' | '음'; element: string; image: string; meaning: string }
+  > = {}
+  for (const c of STEM_CHARS) {
+    const entry = getHanjaRich(c, 'ko')
+    if (!entry || !('yinYang' in entry)) continue
+    map[c] = {
+      ko: entry.name,
+      yinYang: entry.yinYang === '음' ? '음' : '양',
+      element: entry.element,
+      image: shortImage(entry.image),
+      meaning: entry.nature,
+    }
+  }
+  return map
+})()
 
 // 12 지지 — 동물 + 오행 + 의미
 export const EARTHLY_BRANCHES: Record<
   string,
   { ko: string; animal: string; element: string; meaning: string }
-> = {
-  子: { ko: '자', animal: '쥐', element: '수', meaning: '시작·번식·지혜·차가운 물' },
-  丑: { ko: '축', animal: '소', element: '토', meaning: '인내·축적·차가운 흙' },
-  寅: { ko: '인', animal: '호랑이', element: '목', meaning: '새출발·추진·따뜻한 나무' },
-  卯: { ko: '묘', animal: '토끼', element: '목', meaning: '성장·예술·부드러운 풀' },
-  辰: { ko: '진', animal: '용', element: '토', meaning: '변화·잠재력·축축한 흙' },
-  巳: { ko: '사', animal: '뱀', element: '화', meaning: '지혜·정열·밝은 불' },
-  午: { ko: '오', animal: '말', element: '화', meaning: '활동·표현·뜨거운 불' },
-  未: { ko: '미', animal: '양', element: '토', meaning: '온화·돌봄·메마른 흙' },
-  申: { ko: '신', animal: '원숭이', element: '금', meaning: '기민·창의·단단한 쇠' },
-  酉: { ko: '유', animal: '닭', element: '금', meaning: '정밀·완성·예리한 쇠' },
-  戌: { ko: '술', animal: '개', element: '토', meaning: '충성·수호·따뜻한 흙' },
-  亥: { ko: '해', animal: '돼지', element: '수', meaning: '풍요·여유·깊은 물' },
-}
+> = (() => {
+  const map: Record<
+    string,
+    { ko: string; animal: string; element: string; meaning: string }
+  > = {}
+  for (const c of BRANCH_CHARS) {
+    const entry = getHanjaRich(c, 'ko')
+    if (!entry || !('animal' in entry)) continue
+    map[c] = {
+      ko: entry.name,
+      animal: entry.animal,
+      element: entry.element,
+      meaning: entry.nature,
+    }
+  }
+  return map
+})()
 
-// 십성 (10 神) — 일간 기준 다른 천간/지지와의 관계
+// 십성 (10 神) — 일간 기준 다른 천간/지지와의 관계.
+// chart-dictionary 의 sibsin-category 는 카테고리(비겁/식상/...) 단위라 개별 십성
+// 의미(비견·겁재 등)는 없음 → 이 매핑은 atoms 에서 유지.
 export const SIBSIN: Record<
   string,
   { category: 'bigeop' | 'sikSang' | 'jaeSeong' | 'gwanSeong' | 'inSeong'; meaning: string }
@@ -60,7 +93,7 @@ export const SIBSIN: Record<
   정인: { category: 'inSeong', meaning: '학문·보호·전통 지원' },
 }
 
-// 십성 카테고리별 색 — 차트 전체에서 통일
+// 십성 카테고리별 색 — 차트 전체에서 통일 (UI 토큰, chart-dictionary 범위 밖)
 export const SIBSIN_COLOR: Record<
   'bigeop' | 'sikSang' | 'jaeSeong' | 'gwanSeong' | 'inSeong',
   { bg: string; text: string; ring: string; label: string }
@@ -72,8 +105,17 @@ export const SIBSIN_COLOR: Record<
   inSeong: { bg: 'bg-purple-500/15', text: 'text-purple-200', ring: 'ring-purple-500/30', label: '인성' },
 }
 
-// 격국 — 13 가지 정격 + 외격 (일반화 라벨 + 한 줄)
-export const GEOKGUK: Record<string, string> = {
+// 격국 — chart-dictionary 의 25 격국 tagline (정격 8 + 외격 17).
+// 키 누락 안전을 위해 hardcoded fallback 보관 (기존 atoms 에 있던 13 격국).
+const GEOKGUK_NAMES = [
+  '정관격', '편관격', '정재격', '편재격', '정인격', '편인격',
+  '식신격', '상관격', '건록격', '양인격',
+  '종왕격', '종강격', '종아격', '종재격', '종살격',
+  '갑기화토격', '을경화금격', '병신화수격', '정임화목격', '무계화화격',
+  '곡직격', '염상격', '가색격', '종혁격', '윤하격',
+] as const
+
+const GEOKGUK_FALLBACK: Record<string, string> = {
   정인격: '학문·보호·전통 — 학자 / 분석가 형',
   편인격: '특이한 지식·직관 — 연구·종교·예술가 형',
   정관격: '명예·정통 권위 — 공직·관리자 형',
@@ -89,14 +131,45 @@ export const GEOKGUK: Record<string, string> = {
   종관격: '관성에 종속 — 권력·명예의 길',
 }
 
-// 신강·신약 + 용신 한 줄
-export const STRENGTH_MEANING: Record<'strong' | 'medium' | 'weak', string> = {
+export const GEOKGUK: Record<string, string> = (() => {
+  const map: Record<string, string> = { ...GEOKGUK_FALLBACK }
+  for (const name of GEOKGUK_NAMES) {
+    const entry = getGeokgukRich(name, 'ko')
+    if (entry?.tagline) map[name] = entry.tagline
+  }
+  return map
+})()
+
+// 신강·신약 + 용신 한 줄 — chart-dictionary 의 통근 카테고리에서 추출.
+// sajuStrength 의 strong/weak/balanced 는 { label, explain } shape.
+const STRENGTH_FALLBACK: Record<'strong' | 'medium' | 'weak', string> = {
   strong: '의지·추진력 강함. 인성/비겁 너무 많으면 고집',
   medium: '균형 좋음. 외부 환경 따라 변화',
   weak: '주변 도움 / 운에 따라 잘 풀림. 무리한 추진 X',
 }
 
-// 오행 부족 시 처방 (Fire / Wood 같은 가벼운 색·방향 권장)
+function extractExplain(value: unknown): string | undefined {
+  if (value && typeof value === 'object' && 'explain' in value) {
+    const explain = (value as { explain?: unknown }).explain
+    if (typeof explain === 'string') return explain
+  }
+  return undefined
+}
+
+export const STRENGTH_MEANING: Record<'strong' | 'medium' | 'weak', string> = (() => {
+  const strong = extractExplain(getSajuStrengthMeaning('통근', 'strong', 'ko'))
+  const weak = extractExplain(getSajuStrengthMeaning('통근', 'weak', 'ko'))
+  const medium = extractExplain(getSajuStrengthMeaning('통근', 'balanced', 'ko'))
+  return {
+    strong: strong ?? STRENGTH_FALLBACK.strong,
+    medium: medium ?? STRENGTH_FALLBACK.medium,
+    weak: weak ?? STRENGTH_FALLBACK.weak,
+  }
+})()
+
+// 오행 부족 시 처방 (Fire / Wood 같은 가벼운 색·방향 권장).
+// chart-dictionary 의 용신 by_element 는 단일 문장 — atoms 의 분해된 {color, direction, activity}
+// shape 와 불일치 → personaCompute 등 기존 consumer 가 깨지지 않게 hardcoded 유지.
 export const ELEMENT_REMEDY: Record<
   string,
   { color: string; direction: string; activity: string }

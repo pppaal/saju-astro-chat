@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface RefundConsentModalProps {
   open: boolean
@@ -35,6 +36,7 @@ export function RefundConsentModal({
 }: RefundConsentModalProps) {
   const [agreed, setAgreed] = React.useState(false)
   const isKo = locale === 'ko'
+  const trapRef = useFocusTrap(open)
 
   // 모달 close 시 동의 상태 reset — 다음에 다시 열 때 깨끗하게.
   React.useEffect(() => {
@@ -55,6 +57,7 @@ export function RefundConsentModal({
 
   return (
     <div
+      ref={trapRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="refund-consent-title"

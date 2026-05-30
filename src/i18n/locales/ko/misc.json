@@ -107,18 +107,21 @@
     "cancel": "취소",
     "saving": "저장 중...",
     "error": "오류",
-    "selectLanguage": "언어 선택"
+    "selectLanguage": "언어 선택",
+    "copyLink": "링크 복사"
   },
   "auth": {
     "signInRequired": "로그인이 필요합니다",
     "signInDescription": "계속하려면 로그인해 주세요.",
-    "signIn": "로그인"
+    "signIn": "로그인",
+    "inAppBrowserBlockedTitle": "이 화면에서는 Google 로그인이 차단됩니다.",
+    "inAppBrowserBlockedGuide": "오른쪽 위 메뉴(⋮ 또는 ⋯)에서 \"다른 브라우저로 열기\"를 선택해 Chrome 또는 Safari로 열어 주세요."
   },
   "consent": {
-    "title": "개인정보 설정",
-    "description": "분석 및 광고를 위해 쿠키와 유사 기술을 사용합니다. 동의 전까지 Google Analytics/AdSense를 차단합니다.",
+    "title": "서비스 사용 분석 동의",
+    "description": "어떤 기능이 도움 됐는지 익명으로 분석해서 서비스 개선에 써요. 거부해도 모든 기능은 그대로 쓸 수 있어요.",
     "reject": "거부",
-    "accept": "수락"
+    "accept": "동의"
   },
   "numerologyDetail": {
     "lifePath": "인생 경로",
@@ -202,5 +205,14 @@
     "primaryCta": "로그인",
     "secondaryCta": "운명 지도 보기",
     "secondaryPricingCta": "크레딧 충전"
+  },
+  "pwa": {
+    "installAriaLabel": "앱으로 설치하기",
+    "installTitle": "앱으로 빠르게 — 홈 화면에 추가",
+    "installDescription": "브라우저보다 빠르게 열리고, 알림으로 새 답변을 받아볼 수 있어요.",
+    "installButton": "설치",
+    "iosGuide": "하단 공유 버튼(↑) → \"홈 화면에 추가\" 를 눌러 주세요.",
+    "loginWarningTitle": "앱에서 Google 로그인 후 돌아오지 못할 수 있어요.",
+    "loginWarningGuide": "로그인이 안 되면 링크를 복사해 Chrome / Safari 브라우저에서 열고 로그인해 주세요. 한 번 로그인하면 앱에서도 그대로 유지됩니다."
   }
 }

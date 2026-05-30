@@ -13,6 +13,30 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+// The panel now pulls the warning copy through useI18n() (context), separate
+// from its `locale` prop. Mock the provider with the real misc.json values for
+// the two asserted keys, switching by a test-controlled locale.
+const i18nState = vi.hoisted(() => ({ locale: 'ko' as 'ko' | 'en' }))
+
+vi.mock('@/i18n/I18nProvider', () => ({
+  I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useI18n: () => ({
+    locale: i18nState.locale,
+    setLocale: vi.fn(),
+    t: (key: string, fallback?: string) => {
+      const dict = {
+        ko: {
+          'auth.inAppBrowserBlockedTitle': '이 화면에서는 Google 로그인이 차단됩니다.',
+        },
+        en: {
+          'auth.inAppBrowserBlockedTitle': 'Google sign-in is blocked in this view.',
+        },
+      } as const
+      return (dict[i18nState.locale] as Record<string, string>)[key] ?? fallback ?? key
+    },
+  }),
+}))
+
 import GoogleLoginPanel from '@/components/auth/GoogleLoginPanel'
 
 const KAKAOTALK_UA =
@@ -38,6 +62,7 @@ function withUserAgent(ua: string, fn: () => void) {
 describe('GoogleLoginPanel — in-app browser warning', () => {
   beforeEach(() => {
     cleanup()
+    i18nState.locale = 'ko'
   })
   afterEach(() => {
     cleanup()
@@ -69,6 +94,7 @@ describe('GoogleLoginPanel — in-app browser warning', () => {
   })
 
   it('shows English copy when locale=en', () => {
+    i18nState.locale = 'en'
     withUserAgent(KAKAOTALK_UA, () => {
       act(() => {
         render(<GoogleLoginPanel locale="en" />)

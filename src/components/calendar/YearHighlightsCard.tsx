@@ -65,7 +65,7 @@ export default function YearHighlightsCard({
   return (
     <div className="bg-zinc-900/40 rounded-2xl border border-white/5 shadow-xl overflow-hidden">
       <div className="flex items-center gap-2 px-4 pt-4 pb-1">
-        <CalendarRange className="w-5 h-5 text-indigo-400" />
+        <CalendarRange className="w-5 h-5 text-[#d4b572]" />
         <h3 className="text-base font-bold text-zinc-200 tracking-wider">{year} 큰 날</h3>
         <span className="text-[11px] text-zinc-500 ml-auto">점성·사주 겹친 날</span>
       </div>

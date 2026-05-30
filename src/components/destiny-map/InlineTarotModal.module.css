@@ -9,6 +9,7 @@
   position: fixed;
   inset: 0;
   background: rgba(28, 25, 23, 0.5);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -161,7 +162,7 @@
 .concernInput:focus {
   outline: none;
   border-color: #a07a3c;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  box-shadow: 0 0 0 3px rgba(212, 181, 114, 0.15);
 }
 
 .concernInput::placeholder {
@@ -208,7 +209,7 @@
 .primaryButton:hover:not(:disabled) {
   background: #8a6730;
   border-color: #8a6730;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 4px 12px rgba(212, 181, 114, 0.2);
 }
 
 .primaryButton:disabled {
@@ -257,7 +258,7 @@
   background: #f6ecd6;
   border-color: #a07a3c;
   transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 4px 12px rgba(212, 181, 114, 0.1);
 }
 
 .spreadCardCount {
@@ -357,7 +358,7 @@
   background: #8a6730;
   border-color: #8a6730;
   transform: scale(1.05);
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 8px 24px rgba(212, 181, 114, 0.25);
 }
 
 .drawButton:disabled {
@@ -368,10 +369,10 @@
 @keyframes pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.3);
+    box-shadow: 0 0 0 0 rgba(212, 181, 114, 0.3);
   }
   50% {
-    box-shadow: 0 0 0 15px rgba(124, 58, 237, 0);
+    box-shadow: 0 0 0 15px rgba(212, 181, 114, 0);
   }
 }
 
@@ -422,8 +423,8 @@
   height: 80px;
   background: radial-gradient(
     circle at 30% 30%,
-    rgba(167, 139, 250, 0.5),
-    rgba(124, 58, 237, 0.25),
+    rgba(212, 181, 114, 0.5),
+    rgba(212, 181, 114, 0.25),
     transparent 70%
   );
   border-radius: 50%;

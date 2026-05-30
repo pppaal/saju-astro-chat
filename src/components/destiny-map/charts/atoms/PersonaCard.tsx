@@ -26,7 +26,7 @@ export function PersonaCard({ saju, persona, className }: PersonaCardProps) {
       className={`relative rounded-2xl p-5 text-center ${className ?? ''}`}
       style={{
         background:
-          'linear-gradient(135deg, rgba(212,181,114,0.10) 0%, rgba(212,181,114,0.05) 50%, rgba(124,58,237,0.08) 100%)',
+          'linear-gradient(135deg, rgba(212,181,114,0.10) 0%, rgba(212,181,114,0.05) 50%, rgba(212,181,114,0.08) 100%)',
         border: '1px solid var(--ds-gold-line)',
       }}
     >

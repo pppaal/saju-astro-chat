@@ -4,9 +4,12 @@ import React from 'react'
 import { X } from 'lucide-react'
 import { SajuChart } from '@/components/destiny-map/charts/SajuChart'
 import { ChartReading } from '@/components/destiny-map/charts/ChartReading'
+import { ScoreBreakdown } from '@/components/destiny-map/charts/atoms/ScoreBreakdown'
+import { CompatLines } from '@/components/destiny-map/charts/atoms/CompatLines'
 import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
 import { CompatNatalOverlay } from './CompatNatalOverlay'
 import { CompatRadarOverlay } from './CompatRadarOverlay'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /**
  * 궁합 차트 모달 — 두 사람 차트를 따로 쌓지 않고 하나로 합쳐 보여준다.
@@ -119,6 +122,7 @@ export function CompatChartModal({
   lang = 'ko',
 }: CompatChartModalProps) {
   const isKo = lang === 'ko'
+  const trapRef = useFocusTrap(open)
 
   React.useEffect(() => {
     if (!open) return
@@ -140,6 +144,7 @@ export function CompatChartModal({
 
   return (
     <div
+      ref={trapRef}
       className="chart-backdrop-in fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
       style={{ background: 'rgba(7, 9, 26, 0.85)' }}
       onClick={onClose}
@@ -188,13 +193,36 @@ export function CompatChartModal({
         </div>
 
         <div className="space-y-6">
+          {/* Level 0 — ScoreBreakdown: 총합 점수 + 5 카테고리 분해.
+              사주 합/충 + 오행 보완 + 시너스트리 자동 계산. */}
+          <div
+            className="chart-rise-in"
+            style={{ ['--i' as string]: 0 } as React.CSSProperties}
+          >
+            <ScoreBreakdown
+              sajuA={sajuA}
+              sajuB={sajuB}
+              astroA={astroA}
+              astroB={astroB}
+              lang={lang}
+            />
+          </div>
+
           {/* 한 줄 해석 — 두 사람 나란히 */}
           <div
             className="chart-rise-in grid grid-cols-1 gap-3 sm:grid-cols-2"
-            style={{ '--i': 0 } as React.CSSProperties}
+            style={{ ['--i' as string]: 1 } as React.CSSProperties}
           >
             <QuickRead name={labelA} accent="rose" saju={sajuA} astro={astroA} lang={lang} />
             <QuickRead name={labelB} accent="sky" saju={sajuB} astro={astroB} lang={lang} />
+          </div>
+
+          {/* CompatLines — 두 사람 사주 8글자 사이 합/충 라인 시각화 */}
+          <div
+            className="chart-rise-in"
+            style={{ ['--i' as string]: 2 } as React.CSSProperties}
+          >
+            <CompatLines sajuA={sajuA} sajuB={sajuB} lang={lang} />
           </div>
 
           {/* 동양 — 오행 · 사주팔자 비교 (한 그룹으로 묶음) */}

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { logger } from '@/lib/logger'
+import { apiFetch } from '@/lib/api'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { CHAT_I18N, detectCrisis, type LangKey } from '../chat-i18n'
 import { CHAT_TIMINGS, CHAT_LIMITS, type Message, type ConnectionStatus } from '../chat-constants'
@@ -67,7 +68,7 @@ export function useChatApi({
 }: UseChatApiOptions): UseChatApiReturn {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
-  const { showDepleted } = useCreditModal()
+  const { showDepleted, showGuestLimit } = useCreditModal()
 
   const [loading, setLoading] = React.useState(false)
   const [retryCount, setRetryCount] = React.useState(0)
@@ -99,6 +100,99 @@ export function useChatApi({
   React.useEffect(() => {
     onSaveMessageRef.current = onSaveMessage
   }, [onSaveMessage])
+
+  // 끊긴 턴 복원 — 서버는 연결이 끊겨도 끝까지 생성해 turnId 로 캐시에 저장한다
+  // (claudeSSE keepGeneratingOnDisconnect). 스트림이 불완전하게 끝났거나
+  // 사용자가 다른 앱에서 돌아오면(visibilitychange) 이 정보로 result 를
+  // 폴링해 완성 답으로 갈아끼운다.
+  const recoverableTurnRef = React.useRef<{
+    turnId: string
+    assistantMsgId: string
+    userText: string
+  } | null>(null)
+  const recoveringRef = React.useRef(false)
+
+  const attemptRecover = React.useCallback(async () => {
+    const info = recoverableTurnRef.current
+    if (!info || recoveringRef.current) return
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
+    recoveringRef.current = true
+    try {
+      // 서버가 아직 생성 중이면 ready=false → 2초 간격 재시도 (보이는 동안만).
+      for (let i = 0; i < 30; i++) {
+        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') break
+        if (recoverableTurnRef.current?.turnId !== info.turnId) break // 새 턴이 덮어씀
+        try {
+          const res = await fetch(
+            `/api/counselor/realtime/result?turnId=${encodeURIComponent(info.turnId)}`,
+            { credentials: 'include' }
+          )
+          if (res.ok) {
+            const data = (await res.json()) as { ready?: boolean; content?: string }
+            if (data.ready && typeof data.content === 'string' && data.content.length > 0) {
+              // 복원 답안에도 정상 스트림과 동일한 후처리 — ||FOLLOWUP|| 마커를
+              // 떼어내고(안 그러면 본문에 그대로 노출됨) 후속질문 칩으로 변환.
+              const { cleanContent, followUps } = streamProcessor.extractFollowUpQuestions(
+                data.content
+              )
+              const normalized = normalizeCounselorResponse(
+                cleanContent,
+                lang === 'ko' ? 'ko' : 'en'
+              )
+              setMessages((prev) => {
+                const updated = [...prev]
+                const idx = updated.findIndex((m) => m.id === info.assistantMsgId)
+                if (idx >= 0) {
+                  updated[idx] = {
+                    ...updated[idx],
+                    content: normalized,
+                    incomplete: false,
+                    streaming: false,
+                  }
+                }
+                return updated
+              })
+              // 후속질문 칩 — 정상 경로와 동일하게 generic 필터 + 부족분 폴백.
+              const goodAiFollowUps = followUps.filter((q) => !isGenericFollowUp(q, lang))
+              const needed = CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT - goodAiFollowUps.length
+              const mergedFollowUps =
+                needed > 0
+                  ? [
+                      ...goodAiFollowUps,
+                      ...generateFollowUpQuestions(
+                        info.userText,
+                        lang,
+                        CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT,
+                        normalized
+                      ).filter((q) => !goodAiFollowUps.includes(q)),
+                    ].slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+                  : goodAiFollowUps.slice(0, CHAT_LIMITS.FOLLOWUP_DISPLAY_COUNT)
+              setFollowUpQuestions(mergedFollowUps)
+              onSaveMessageRef.current?.(info.userText, normalized)
+              setNotice(null)
+              recoverableTurnRef.current = null
+              return
+            }
+          }
+        } catch {
+          /* 네트워크 흔들림 — 다음 루프에서 재시도 */
+        }
+        await new Promise((r) => setTimeout(r, 2000))
+      }
+    } finally {
+      recoveringRef.current = false
+    }
+  }, [lang, setMessages, setNotice, setFollowUpQuestions])
+
+  // 다른 앱/탭에서 돌아오면(visible) 끊겼던 턴의 완성 답을 복원 시도.
+  React.useEffect(() => {
+    if (typeof document === 'undefined') return
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void attemptRecover()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [attemptRecover])
 
   const flushMessageUpdate = React.useCallback(() => {
     if (pendingContentRef.current !== null) {
@@ -184,7 +278,7 @@ export function useChatApi({
         if (payload.idempotencyKey) {
           headers['x-idempotency-key'] = payload.idempotencyKey
         }
-        const res = await fetch('/api/counselor/realtime', {
+        const res = await apiFetch('/api/counselor/realtime', {
           method: 'POST',
           headers,
           body: JSON.stringify(payload),
@@ -229,6 +323,7 @@ export function useChatApi({
 
           if (res.status === 401 && res.headers.get('x-guest-limit-reached') === '1') {
             logger.info('[Chat] Guest counselor limit reached')
+            showGuestLimit()
             throw new Error('GUEST_LIMIT_REACHED')
           }
 
@@ -266,7 +361,7 @@ export function useChatApi({
         throw error
       }
     },
-    [ragSessionId, sessionIdRef, showDepleted]
+    [ragSessionId, sessionIdRef, showDepleted, showGuestLimit]
   )
 
   // Process SSE stream response using StreamProcessor
@@ -274,8 +369,9 @@ export function useChatApi({
     async (
       res: Response,
       controller: AbortController,
-      _assistantMsgId: string,
-      userText: string
+      assistantMsgId: string,
+      userText: string,
+      turnId?: string
     ): Promise<void> => {
       // Register the in-flight stream so the unmount cleanup (below) can
       // persist the buffered partial if the user navigates away mid-
@@ -297,6 +393,10 @@ export function useChatApi({
         armIdleTimer()
 
         const result = await streamProcessor.process(res, {
+          // 서버 heartbeat(`: hb`)를 포함해 어떤 바이트든 들어오면 idle 타이머
+          // 재무장 — Claude 가 토큰 사이 길게 멈춰도(heartbeat 만 흐름) 잘못된
+          // abort 로 답이 끊기지 않게 한다.
+          onActivity: () => armIdleTimer(),
           onChunk: (_accumulated, cleaned) => {
             armIdleTimer()
             // Update message in real-time as chunks arrive
@@ -364,6 +464,24 @@ export function useChatApi({
             onSaveMessage(userText, normalizedContent)
           }
         }
+
+        // 끊김/미완 처리 — 클라가 답을 끝까지 못 받았어도(빈 응답 or
+        // ||FOLLOWUP|| 마커 전 truncated) 서버는 keepGeneratingOnDisconnect 로
+        // 끝까지 생성해 turnId 캐시에 저장한다. 완성 전이면 복원 대상에 등록하고
+        // 즉시(이미 돌아와 있으면) 폴링 시작 — 아니면 visibility 시 재개.
+        const completedOk = !!result.content && result.success && !result.truncated
+        if (turnId && !completedOk) {
+          recoverableTurnRef.current = { turnId, assistantMsgId, userText }
+          setMessages((prev) => {
+            const updated = [...prev]
+            const idx = updated.findIndex((m) => m.id === assistantMsgId)
+            if (idx >= 0) updated[idx] = { ...updated[idx], incomplete: true }
+            return updated
+          })
+          void attemptRecover()
+        } else {
+          recoverableTurnRef.current = null
+        }
       } finally {
         inFlightStreamRef.current = null
       }
@@ -379,6 +497,7 @@ export function useChatApi({
       lang,
       onSaveMessage,
       setNotice,
+      attemptRecover,
     ]
   )
 
@@ -462,6 +581,9 @@ export function useChatApi({
             : `t${Date.now()}-${Math.random().toString(36).slice(2)}`),
       }
       lastTurnIdemKeyRef.current = payload.idempotencyKey ?? null
+      // 끊겨도 서버가 끝까지 생성해 이 키로 캐시에 저장 → 돌아오면 복원.
+      // idempotencyKey 와 동일 키 재사용(재시도도 같은 결과 키로 모임).
+      payload.turnId = payload.idempotencyKey
 
       try {
         const { res, controller } = await makeRequest(payload)
@@ -483,7 +605,7 @@ export function useChatApi({
         ])
         setLoading(false)
 
-        await processStream(res, controller, assistantMsgId, text)
+        await processStream(res, controller, assistantMsgId, text, payload.turnId)
       } catch (e: unknown) {
         logger.error('[Chat] send error:', e)
         const err = e as Error

@@ -3,8 +3,17 @@ import { useEffect, useRef, useCallback } from 'react';
 /**
  * WCAG 2.1 AA compliant focus trap hook for modal dialogs
  * Traps focus within a container and returns focus to trigger element on close
+ *
+ * `autoFocus` (default true): on open, move focus to the first focusable
+ * element inside the container. Pass `false` for modals whose first
+ * focusable element is a text input you do NOT want to auto-focus — on
+ * mobile, focusing an <input> pops the soft keyboard the moment the modal
+ * appears. With `false`, focus moves to the container itself instead (it
+ * must be `tabIndex={-1}`) so Tab-trapping + screen-reader hand-off still
+ * work, without summoning the keyboard.
  */
-export function useFocusTrap(isOpen: boolean) {
+export function useFocusTrap(isOpen: boolean, options?: { autoFocus?: boolean }) {
+  const autoFocus = options?.autoFocus ?? true
   const containerRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
@@ -64,12 +73,21 @@ export function useFocusTrap(isOpen: boolean) {
     // Store current active element to restore focus on close
     previousActiveElement.current = document.activeElement as HTMLElement;
 
-    // Focus first focusable element in container
-    const focusableElements = getFocusableElements();
-    if (focusableElements.length > 0) {
-      // Small delay to ensure DOM is ready
+    if (autoFocus) {
+      // Focus first focusable element in container
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length > 0) {
+        // Small delay to ensure DOM is ready
+        requestAnimationFrame(() => {
+          focusableElements[0].focus();
+        });
+      }
+    } else {
+      // Move focus to the dialog container itself (must be tabIndex={-1}) so
+      // the trap engages and SR users land in the dialog — without focusing
+      // an input and popping the mobile keyboard.
       requestAnimationFrame(() => {
-        focusableElements[0].focus();
+        containerRef.current?.focus();
       });
     }
 
@@ -84,7 +102,7 @@ export function useFocusTrap(isOpen: boolean) {
         previousActiveElement.current.focus();
       }
     };
-  }, [isOpen, handleKeyDown, getFocusableElements]);
+  }, [isOpen, handleKeyDown, getFocusableElements, autoFocus]);
 
   return containerRef;
 }

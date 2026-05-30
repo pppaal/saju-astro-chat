@@ -16,11 +16,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return generateLocalizedMetadata(
     {
       en: {
-        title: 'Destiny Map — AI Saju & Astrology Birth Chart',
+        title: 'Destiny Counselor — AI Saju & Astrology Birth Chart',
         description:
           'Get integrated destiny insights by combining Saju (Four Pillars) and Western astrology birth chart for profile, timing, and decision guidance.',
         keywords: [
-          'destiny map',
+          'destiny counselor',
           'saju',
           'four pillars of destiny',
           'birth chart',
@@ -32,11 +32,11 @@ export async function generateMetadata(): Promise<Metadata> {
         ],
       },
       ko: {
-        title: '운명 지도 — AI 사주·점성 종합 분석',
+        title: '운명 상담사 — AI 사주·점성 종합 분석',
         description:
-          '사주(사주팔자)와 서양 점성을 결합해 성향, 시기, 의사결정 가이드를 한 화면에서 보여주는 통합 운명 지도.',
+          '사주(사주팔자)와 서양 점성을 결합해 성향, 시기, 의사결정 가이드를 한 화면에서 보여주는 통합 운명 상담사.',
         keywords: [
-          '운명 지도',
+          '운명 상담사',
           '사주',
           '사주팔자',
           '천궁도',
@@ -56,7 +56,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function DestinyMapLayout({ children }: { children: ReactNode }) {
   const pageJsonLd = generateJsonLd({
     type: 'WebPage',
-    name: 'Destiny Map',
+    name: 'Destiny Counselor',
     description:
       'Get integrated destiny insights by combining Saju and Western astrology for profile, timing, and decision guidance.',
     url: `${baseUrl}/destiny-map`,

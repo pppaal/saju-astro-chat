@@ -271,11 +271,13 @@ describe('useInlineTarotAPI', () => {
         await result.current.drawCards()
       })
 
+      // apiFetch now authenticates via cookies (credentials: 'include') rather
+      // than injecting an x-api-token header.
       expect(mockFetch).toHaveBeenCalledWith('/api/tarot', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-token': expect.any(String),
         },
         body: JSON.stringify({
           categoryId: 'general-insight',

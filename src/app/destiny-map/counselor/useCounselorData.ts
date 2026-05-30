@@ -145,35 +145,83 @@ export function useCounselorData(sp: SearchParams) {
       advancedAstro = cached.advancedAstro ?? null
     }
 
-    // If no cached saju data, compute fresh from birth info
-    if (!saju || !saju.dayMaster) {
-      try {
-        logger.warn('[CounselorPage] Computing fresh saju data...')
-        const genderVal = normalizedGender
-        const computed = calculateSajuData(
-          birthDate,
-          birthTime,
-          genderVal,
-          'solar',
-          resolvedTimeZone
-        )
-        saju = computed as unknown as Record<string, unknown>
+    // /api/saju 호출 — calculateSajuData 직접 호출 시엔 advancedAnalysis /
+    // table.byPillar / relations / unse / iljin 등 풍부한 필드가 빠짐.
+    // PersonaCard / InsightStrip / CrossRefTable / PillarDrawer 가 이 풍부한
+    // shape 에 의존하므로 캐시 miss 시 반드시 /api/saju 응답을 받아야 함.
+    // 캐시 hit 이어도 cached.saju 가 advancedAnalysis 누락된 옛 shape 일 수 있어,
+    // dayMaster + advancedAnalysis 둘 다 있는 경우만 재사용.
+    const cachedRich = saju && saju.dayMaster && (saju as Record<string, unknown>).advancedAnalysis
 
-        logger.warn('[CounselorPage] Fresh saju computed:', {
-          dayMaster: computed.dayMaster?.name,
-          yearPillar: computed.yearPillar?.heavenlyStem?.name,
-        })
-      } catch (e: unknown) {
-        logger.warn('[CounselorPage] Failed to compute saju:', e)
-      }
-    }
-
-    // Set initial chartData (may be updated later by async advanced astro fetch)
+    // Set initial chartData (may be updated later by async fetches)
     setChartData({
       saju: saju || undefined,
       astro: astro || undefined,
       advancedAstro: advancedAstro || undefined,
     })
+
+    if (!cachedRich) {
+      const fetchRichSaju = async () => {
+        try {
+          const res = await fetch('/api/saju', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+            },
+            body: JSON.stringify({
+              birthDate,
+              birthTime,
+              gender: normalizedGender,
+              calendarType: 'solar',
+              timezone: resolvedTimeZone,
+              userTimezone: resolvedTimeZone,
+            }),
+          })
+          if (!res.ok) {
+            // /api/saju 실패 시 fallback — calculateSajuData 직접 호출 (옛 동작).
+            // PersonaCard 등은 빈 fallback 으로 떨어지지만 SajuChart 자체는 표시.
+            try {
+              const computed = calculateSajuData(
+                birthDate,
+                birthTime,
+                normalizedGender,
+                'solar',
+                resolvedTimeZone
+              )
+              setChartData((prev) => ({
+                saju: computed as unknown as Record<string, unknown>,
+                astro: prev?.astro,
+                advancedAstro: prev?.advancedAstro,
+              }))
+            } catch (e) {
+              logger.warn('[CounselorPage] fallback saju compute failed', e)
+            }
+            return
+          }
+          const json = (await res.json()) as { data?: Record<string, unknown> }
+          const richSaju = json?.data
+          if (!richSaju) return
+          setChartData((prev) => ({
+            saju: richSaju,
+            astro: prev?.astro,
+            advancedAstro: prev?.advancedAstro,
+          }))
+          try {
+            saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
+              saju: richSaju,
+              astro: (astro as Record<string, unknown>) || undefined,
+              advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
+            })
+          } catch {
+            /* ignore cache write error */
+          }
+        } catch (err) {
+          logger.warn('[CounselorPage] rich saju fetch failed:', err)
+        }
+      }
+      void fetchRichSaju()
+    }
 
     // Base natal chart fetch — `astro`가 캐시에 없으면 NatalChart 위젯이
     // "점성 데이터 없음"으로 뜬다. 이전엔 advanced astro만 fetch하고 base는
@@ -197,19 +245,28 @@ export function useCounselorData(sp: SearchParams) {
             }),
           })
           if (!res.ok) return
-          const json = (await res.json()) as { data?: { chartData?: unknown } }
+          const json = (await res.json()) as {
+            data?: { chartData?: unknown; aspects?: unknown }
+          }
           const baseChart = json?.data?.chartData
           if (!baseChart) return
+          // aspects 는 chartData 와 별개 필드로 옴 — NatalChart 가 휠 안에 aspect
+          // 라인 그리려면 같이 흘려줘야 함. astro 객체에 합쳐서 저장.
+          const aspects = json?.data?.aspects
+          const astroWithAspects = {
+            ...(baseChart as Record<string, unknown>),
+            ...(aspects ? { aspects } : {}),
+          }
           setChartData((prev) => ({
             saju: prev?.saju,
-            astro: baseChart as Record<string, unknown>,
+            astro: astroWithAspects,
             advancedAstro: prev?.advancedAstro,
           }))
           // 캐시에 저장해서 다음 방문 때 즉시 hit
           try {
             saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
               saju: (saju as Record<string, unknown>) || undefined,
-              astro: baseChart as Record<string, unknown>,
+              astro: astroWithAspects,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
             })
           } catch {
@@ -391,7 +448,14 @@ export function useCounselorData(sp: SearchParams) {
 
     // Python AI backend was removed — counselor RAG prefetch is now a no-op.
     // The chat itself runs through @anthropic-ai/sdk directly, no init step needed.
-  }, [birthDate, birthTime, normalizedGender, resolvedLatitude, resolvedLongitude, resolvedTimeZone])
+  }, [
+    birthDate,
+    birthTime,
+    normalizedGender,
+    resolvedLatitude,
+    resolvedLongitude,
+    resolvedTimeZone,
+  ])
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
@@ -505,6 +569,7 @@ export function useCounselorData(sp: SearchParams) {
     initialQuestion,
     latitude: resolvedLatitude,
     longitude: resolvedLongitude,
+    timeZone: resolvedTimeZone,
   }
 
   return {

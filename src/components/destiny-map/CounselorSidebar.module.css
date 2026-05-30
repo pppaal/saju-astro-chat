@@ -2,6 +2,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   opacity: 0;
   pointer-events: none;
@@ -21,7 +22,7 @@
   height: 100dvh;
   width: min(86vw, 320px);
   background: linear-gradient(180deg, #15102b 0%, #0d0a1c 100%);
-  border-right: 1px solid rgba(124, 58, 237, 0.25);
+  border-right: 1px solid rgba(212, 181, 114, 0.25);
   box-shadow: 8px 0 30px rgba(0, 0, 0, 0.45);
   transform: translateX(-100%);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -40,7 +41,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  border-bottom: 1px solid rgba(124, 58, 237, 0.18);
+  border-bottom: 1px solid rgba(212, 181, 114, 0.18);
 }
 
 .closeBtn {
@@ -124,7 +125,7 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(196, 181, 253, 0.55);
+  color: rgba(232, 204, 138, 0.55);
   padding: 0.5rem 0.625rem 0.25rem;
 }
 
@@ -161,12 +162,12 @@
 
 .divider {
   height: 1px;
-  background: rgba(124, 58, 237, 0.18);
+  background: rgba(212, 181, 114, 0.18);
   margin: 0 0.625rem;
 }
 
 .empty {
-  /* Was rgba(196,181,253,0.55) — too faint on OLED phones; user
+  /* Was rgba(232, 204, 138,0.55) — too faint on OLED phones; user
      couldn't tell whether the panel was empty, loading, or broken.
      Bumped to readable white at 0.85 alpha. */
   padding: 0.5rem 0.75rem;
@@ -254,6 +255,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+  /* flex item 이 자식(긴 이름/제목)의 min-content 너비로 안 부풀게 — 없으면
+     nowrap 긴 이름이 가로 overflow 를 일으켜 사이드바 정렬이 깨진다(모바일). */
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   text-decoration: none;
@@ -283,6 +289,8 @@
   font-weight: 500;
   line-height: 1.35;
   color: #ffffff;
+  max-width: 100%;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -292,9 +300,11 @@
    meta 가 있을 때만 렌더 — 구버전 데이터엔 없음. */
 .sessionSubtitle {
   font-size: 0.72rem;
-  color: rgba(196, 181, 253, 0.7);
+  color: rgba(232, 204, 138, 0.7);
   line-height: 1.25;
   margin-top: 1px;
+  max-width: 100%;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -302,7 +312,7 @@
 
 .sessionDate {
   font-size: 0.7rem;
-  color: rgba(196, 181, 253, 0.5);
+  color: rgba(232, 204, 138, 0.5);
 }
 
 /* === Per-row hover actions (kebab + reveal) === */
@@ -409,10 +419,33 @@
   border-color: rgba(212, 181, 114, 0.7);
 }
 
+/* 하단 바로가기 링크 — 소개 / 블로그. footer(로그인 버튼) 바로 위. */
+.navLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.25rem 0.625rem 0.5rem;
+}
+
+.navLink {
+  display: block;
+  padding: 0.5rem 0.5rem;
+  border-radius: 8px;
+  color: rgba(245, 243, 255, 0.78);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.navLink:hover {
+  background: rgba(99, 102, 241, 0.16);
+  color: #f5f3ff;
+}
+
 .footer {
   margin-top: auto;
   padding: 0.625rem;
-  border-top: 1px solid rgba(124, 58, 237, 0.18);
+  border-top: 1px solid rgba(212, 181, 114, 0.18);
 }
 
 .authBtn {
@@ -654,6 +687,15 @@
   border-top-color: #e7e5e4;
 }
 
+.lightTheme .navLink {
+  color: #57534e;
+}
+
+.lightTheme .navLink:hover {
+  background: #f5f5f4;
+  color: #1c1917;
+}
+
 .lightTheme .authBtn {
   color: #44403c;
   background: transparent;
@@ -702,12 +744,12 @@
 }
 
 .lightTheme .actionBtn:first-of-type {
-  background: #7c3aed;
+  background: #a07a3c;
   color: #fafaf9;
 }
 
 .lightTheme .actionBtn:first-of-type:hover {
-  background: #6d28d9;
+  background: #c19b56;
   color: #fafaf9;
 }
 

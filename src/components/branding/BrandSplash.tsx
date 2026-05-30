@@ -9,6 +9,12 @@ interface BrandSplashProps {
   submessage?: string
   /** Pixel size of the hex badge. */
   size?: number
+  /**
+   * 배경 톤 — 'light' 면 다음 페이지가 흰색인 라우트(상담사 채팅 등)에 맞춰
+   * 흰 배경 + 어두운 텍스트로. 기본 'dark'(우주 그라데이션). 로딩→실제 페이지
+   * 전환 시 배경색이 튀지 않게 다음 페이지 톤과 맞춘다.
+   */
+  variant?: 'dark' | 'light'
 }
 
 /**
@@ -18,7 +24,13 @@ interface BrandSplashProps {
  * glide bar underneath. Renders fixed-position so it covers the
  * viewport regardless of parent layout.
  */
-export default function BrandSplash({ message, submessage, size = 120 }: BrandSplashProps) {
+export default function BrandSplash({
+  message,
+  submessage,
+  size = 120,
+  variant = 'dark',
+}: BrandSplashProps) {
+  const isLight = variant === 'light'
   return (
     <main
       style={{
@@ -30,9 +42,10 @@ export default function BrandSplash({ message, submessage, size = 120 }: BrandSp
         alignItems: 'center',
         justifyContent: 'center',
         gap: '1.4rem',
-        background:
-          'radial-gradient(ellipse at 50% 35%, #2b1d5c 0%, #14123a 40%, #06081a 75%, #02030a 100%)',
-        color: '#e9ecff',
+        background: isLight
+          ? '#fafaf9'
+          : 'radial-gradient(ellipse at 50% 35%, #2b1d5c 0%, #14123a 40%, #06081a 75%, #02030a 100%)',
+        color: isLight ? '#1c1917' : '#e9ecff',
         padding: '2rem',
         fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
         overflow: 'hidden',
@@ -45,7 +58,7 @@ export default function BrandSplash({ message, submessage, size = 120 }: BrandSp
           position: 'absolute',
           inset: 0,
           background:
-            'radial-gradient(circle at 30% 40%, rgba(99, 210, 255, 0.18), transparent 45%), radial-gradient(circle at 70% 60%, rgba(167, 139, 250, 0.22), transparent 50%)',
+            'radial-gradient(circle at 30% 40%, rgba(232, 204, 138, 0.18), transparent 45%), radial-gradient(circle at 70% 60%, rgba(212, 181, 114, 0.22), transparent 50%)',
           animation: 'splash-nebula 14s ease-in-out infinite',
           pointerEvents: 'none',
         }}
@@ -62,7 +75,7 @@ export default function BrandSplash({ message, submessage, size = 120 }: BrandSp
           fontSize: '1.2rem',
           fontWeight: 700,
           letterSpacing: '0.05em',
-          background: 'linear-gradient(135deg, #63d2ff 0%, #a78bfa 50%, #8b5cf6 100%)',
+          background: 'linear-gradient(135deg, #e8cc8a 0%, #d4b572 50%, #a07a3c 100%)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -79,7 +92,7 @@ export default function BrandSplash({ message, submessage, size = 120 }: BrandSp
             zIndex: 1,
             margin: 0,
             fontSize: '0.95rem',
-            color: 'rgba(232, 226, 255, 0.92)',
+            color: isLight ? 'rgba(28, 25, 23, 0.72)' : 'rgba(232, 226, 255, 0.92)',
             letterSpacing: '0.02em',
             textAlign: 'center',
             maxWidth: '24rem',
@@ -115,7 +128,7 @@ export default function BrandSplash({ message, submessage, size = 120 }: BrandSp
           width: 36,
           height: 2,
           borderRadius: 2,
-          background: 'linear-gradient(90deg, transparent, #a78bfa, transparent)',
+          background: 'linear-gradient(90deg, transparent, #d4b572, transparent)',
           animation: 'splash-glide 1.4s ease-in-out infinite',
         }}
       />

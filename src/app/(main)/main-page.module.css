@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   min-height: 100dvh;
   width: 100%;
   color: var(--text-color);
@@ -20,7 +20,7 @@
      between dark/light states. The cosmic gradient lives on a separate
      .cosmicBackdrop layer that opacity-fades out when the user crosses
      into the premium-white state (see MainPageClient.tsx). */
-  background-color: #06091a;
+  background-color: #07091a;
 }
 
 .cosmicBackdrop {
@@ -41,7 +41,7 @@
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(900px 540px at 50% 0%, rgba(196, 181, 253, 0.35), transparent 70%),
+    radial-gradient(900px 540px at 50% 0%, rgba(232, 204, 138, 0.35), transparent 70%),
     radial-gradient(720px 480px at 90% 80%, rgba(255, 207, 240, 0.22), transparent 70%);
 }
 
@@ -87,7 +87,7 @@
 
 .scrollArrow span {
   font-size: 1rem;
-  color: rgba(99, 210, 255, 0.8);
+  color: rgba(232, 204, 138, 0.8);
   animation: scrollBounce 2s ease-in-out infinite;
 }
 
@@ -315,27 +315,29 @@
 
 /* CTA Section */
 
+/* iOS Safari 는 input/textarea/select 의 font-size 가 16px 미만이면
+   포커스 시 자동으로 확대(zoom-in) 후 원래대로 안 돌아옴. BirthInfoModal
+   이나 chat input 에서 매번 발생하던 거슬림.
+   iPad Safari (>=768px) 도 같은 자동 줌인이 일어나기 때문에 미디어 쿼리
+   밖으로 빼서 모든 너비에 적용한다. */
+.modalInput,
+.homeChatTextarea,
+.modalCancel,
+.modalSave,
+:global(input[type='text']),
+:global(input[type='email']),
+:global(input[type='number']),
+:global(input[type='tel']),
+:global(input[type='date']),
+:global(input[type='time']),
+:global(textarea),
+:global(select) {
+  font-size: 16px !important;
+}
+
 @media (max-width: 768px) {
   .particleCanvas {
     display: none;
-  }
-
-  /* iOS Safari 는 input/textarea/select 의 font-size 가 16px 미만이면
-     포커스 시 자동으로 확대(zoom-in) 후 원래대로 안 돌아옴. BirthInfoModal
-     이나 chat input 에서 매번 발생하던 거슬림 → 모바일에서만 16px 강제. */
-  .modalInput,
-  .homeChatTextarea,
-  .modalCancel,
-  .modalSave,
-  :global(input[type='text']),
-  :global(input[type='email']),
-  :global(input[type='number']),
-  :global(input[type='tel']),
-  :global(input[type='date']),
-  :global(input[type='time']),
-  :global(textarea),
-  :global(select) {
-    font-size: 16px !important;
   }
 
   .scrollArrow span {
@@ -457,10 +459,10 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   height: 100svh;
   height: 100dvh;
-  max-height: 100vh;
+  max-height: 100dvh;
   max-height: 100svh;
   max-height: 100dvh;
   padding: 0;
@@ -555,7 +557,7 @@
   .homeContainer {
     position: relative;
     height: auto;
-    min-height: 100vh;
+    min-height: 100dvh;
     min-height: 100svh;
     min-height: 100dvh;
     max-height: none;
@@ -591,7 +593,7 @@
   .homeContainer {
     position: relative;
     height: auto;
-    min-height: 100vh;
+    min-height: 100dvh;
     min-height: 100svh;
     min-height: 100dvh;
     max-height: none;
@@ -648,22 +650,8 @@
     font-size: 0.8rem;
   }
 
-  .homeChips {
-    gap: 0.35rem;
-  }
-
-  .homeChip {
-    padding: 0.45rem 0.7rem;
-    font-size: 0.76rem;
-  }
-
   .homeChatBarInner {
     padding: 0.55rem 0.65rem;
-  }
-
-  .homeChatToolBtn {
-    padding: 0.35rem 0.6rem;
-    font-size: 0.74rem;
   }
 }
 
@@ -714,60 +702,8 @@
   word-break: keep-all;
 }
 
-.homeBirthCtaText strong {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #ffffff;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.homeChips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  /* Keep the chip cluster compact even when the body breathes wider on
-     desktop — otherwise the 5 short pills float spread thin across the
-     row and look disconnected from the hero above. */
-  max-width: 480px;
-  margin: 0 auto;
-  flex: 0 0 auto;
-  padding: 0 0.25rem;
-}
-
-.homeChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid rgba(212, 181, 114, 0.25);
-  background: rgba(212, 181, 114, 0.08);
-  color: rgba(229, 231, 240, 0.92);
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.homeChip:hover,
-.homeChip:focus-visible {
-  border-color: rgba(212, 181, 114, 0.55);
-  background: rgba(212, 181, 114, 0.16);
-  transform: translateY(-1px);
-  outline: none;
-}
-
-.homeChipIcon {
-  font-size: 1rem;
-  line-height: 1;
-}
+/* homeChips / homeChip / homeChipIcon — RecommendationChips 컴포넌트 폐기
+   (메인 = 운명상담사 한 흐름). 룰 자체도 함께 정리. */
 
 .homeChatBar {
   width: 100%;
@@ -780,6 +716,7 @@
 }
 
 .homeChatBarInner {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -811,155 +748,21 @@
   color: rgba(229, 231, 240, 0.4);
 }
 
+/* 입력창 + 보내기 버튼 한 줄. 엔터(또는 ↑)는 운명 상담사로 직행. */
 .homeChatRow {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-end;
   gap: 0.5rem;
 }
 
-.homeChatTools {
-  display: flex;
-  gap: 0.4rem;
-  align-items: center;
-  flex-wrap: wrap;
+.homeChatRow .homeChatTextarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
 }
 
-.homeChatToolBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.4rem 0.7rem;
-  border-radius: 999px;
-  border: 1px solid rgba(212, 181, 114, 0.22);
-  background: rgba(212, 181, 114, 0.06);
-  color: rgba(229, 231, 240, 0.78);
-  font-size: 0.78rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.homeChatToolBtn:hover,
-.homeChatToolBtn:focus-visible {
-  border-color: rgba(212, 181, 114, 0.5);
-  background: rgba(212, 181, 114, 0.14);
-  outline: none;
-}
-
-.homeChatToolBtnActive {
-  border-color: rgba(212, 181, 114, 0.6);
-  background: rgba(212, 181, 114, 0.22);
-  color: #ffffff;
-}
-
-/* 서비스 선택 — 옛 ↑ 버튼 자리. dropdown 위치 기준점이라 relative. */
-.homeServicePickerWrap {
-  position: relative;
-  display: inline-flex;
-}
-
-.homeServicePickerBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  border: 0;
-  background: linear-gradient(135deg, #d4b572, #c19b56);
-  color: #1a1a1a;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    filter 0.18s ease,
-    transform 0.12s ease;
-  box-shadow: 0 0 18px rgba(212, 181, 114, 0.32);
-}
-
-.homeServicePickerBtn:hover,
-.homeServicePickerBtn:focus-visible {
-  filter: brightness(1.08);
-  outline: none;
-}
-
-.homeServicePickerBtn:active {
-  transform: translateY(1px);
-}
-
-/* Dropup — 버튼 위에 떠오름. mobile 에서 화면 하단 keyboard 와 안 겹치게. */
-.homeServicePickerMenu {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 6px);
-  min-width: 200px;
-  padding: 6px;
-  border-radius: 14px;
-  background: rgba(17, 24, 39, 0.96);
-  border: 1px solid var(--ds-gold-line);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  animation: homeServicePickerIn 0.16s ease-out;
-}
-
-@keyframes homeServicePickerIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.homeServicePickerItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: transparent;
-  border: 0;
-  color: rgba(245, 247, 251, 0.92);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease;
-}
-
-.homeServicePickerItem:hover,
-.homeServicePickerItem:focus-visible {
-  background: rgba(212, 181, 114, 0.16);
-  color: #ffffff;
-  outline: none;
-}
-
-/* Light 모드 (premium-white) — 다크 dropdown 톤이 너무 진해서 약간 라이트
-   variant. 메인 페이지 lightMode 토글과 일관. */
-.lightMode .homeServicePickerMenu {
-  background: #ffffff;
-  border-color: rgba(160, 122, 60, 0.32);
-  box-shadow: 0 18px 40px rgba(28, 25, 23, 0.18);
-}
-
-.lightMode .homeServicePickerItem {
-  color: #1c1917;
-}
-
-.lightMode .homeServicePickerItem:hover,
-.lightMode .homeServicePickerItem:focus-visible {
-  background: rgba(160, 122, 60, 0.12);
-  color: #1c1917;
-}
+/* homeServiceChips / homeServiceChip 룰 폐기 — 메인 = 운명상담사 한 흐름.
+   타로 / 궁합은 햄버거 사이드 메뉴에서만 접근. */
 
 .homeChatSubmit {
   width: 38px;
@@ -987,136 +790,6 @@
   transform: none;
 }
 
-/* Side drawer — left slide-in from hamburger */
-.drawerOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(3, 5, 12, 0.6);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 60;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-
-.drawerOverlayOpen {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.drawer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: min(86vw, 320px);
-  background: linear-gradient(180deg, #0b0f22, #060a18);
-  border-right: 1px solid rgba(212, 181, 114, 0.18);
-  z-index: 70;
-  transform: translateX(-100%);
-  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-  overflow-y: auto;
-}
-
-.drawerOpen {
-  transform: translateX(0);
-}
-
-.drawerHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 0.25rem 1rem;
-}
-
-.drawerLogo {
-  font-weight: 800;
-  font-size: 1.1rem;
-  color: #ffffff;
-}
-
-.drawerCloseBtn {
-  /* 사이즈 36 → 28 — 헤더의 작은 홈 아이콘과 시각적 무게 맞춤. */
-  width: 28px;
-  height: 28px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(229, 231, 240, 0.85);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.drawerSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  margin-top: 0.5rem;
-}
-
-.drawerSectionTitle {
-  margin: 0.6rem 0 0.4rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: rgba(212, 181, 114, 0.65);
-  text-transform: uppercase;
-}
-
-.drawerLink {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.7rem 0.75rem;
-  border-radius: 12px;
-  color: rgba(239, 247, 255, 0.92);
-  text-decoration: none;
-  font-size: 0.92rem;
-  transition: background 0.15s ease;
-}
-
-.drawerLink:hover,
-.drawerLink:focus-visible {
-  background: rgba(212, 181, 114, 0.1);
-  outline: none;
-}
-
-.drawerLinkIcon {
-  font-size: 1.05rem;
-  width: 22px;
-  display: inline-flex;
-  justify-content: center;
-}
-
-.drawerFooter {
-  margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 0.9rem;
-  font-size: 0.78rem;
-  color: rgba(229, 231, 240, 0.5);
-}
-
-.drawerFooterLink {
-  color: inherit;
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.drawerFooterLink:hover {
-  color: #ffffff;
-}
-
 /* Birth info modal (lightweight) */
 /* backdrop-filter 제거 — iOS Safari 가 backdrop-filter 부모 안의 native
    <select> picker 를 안 열어주는 버그(모달에서 생년월일 탭해도 무반응)
@@ -1124,7 +797,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(3, 5, 12, 0.82);
+  background: rgba(28, 25, 23, 0.65);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -1136,10 +809,14 @@
   width: 100%;
   max-width: 420px;
   border-radius: 22px;
-  border: 1px solid rgba(212, 181, 114, 0.26);
-  background: linear-gradient(180deg, #0c1024, #07091a);
+  /* 항상 라이트 — design tokens "라이트 = 로그인 후 개인 영역 (profile ·
+     compat · counselor chat 등)" 정책. 생년월일 입력도 개인 데이터라
+     모든 폼 (compat PersonCard / ProfileEditModal / CircleAddModal) 와
+     동일하게 흰색 카드 + 잉크 텍스트 통일. */
+  border: 1px solid #e7e5e4;
+  background: #ffffff;
   padding: 1.5rem;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -1147,14 +824,14 @@
 
 .modalTitle {
   margin: 0;
-  color: #ffffff;
+  color: #1c1917;
   font-size: 1.2rem;
   font-weight: 700;
 }
 
 .modalSubtitle {
   margin: -0.5rem 0 0;
-  color: rgba(229, 231, 240, 0.6);
+  color: #78716c;
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -1168,23 +845,30 @@
 .modalLabel {
   font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(229, 231, 240, 0.78);
+  color: #44403c;
   letter-spacing: 0.02em;
 }
 
 .modalInput {
   padding: 0.7rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid rgba(212, 181, 114, 0.22);
-  background: rgba(15, 17, 35, 0.7);
-  color: #ffffff;
-  font-size: 0.95rem;
+  border: 1px solid #e7e5e4;
+  background: #ffffff;
+  color: #1c1917;
+  /* 16px — iOS Safari 자동 줌-인(<16px) 방지 + 다른 모든 라이트 입력
+     (ProfileEditModal / PersonCard) 와 정렬. */
+  font-size: 16px;
   outline: none;
-  transition: border-color 0.18s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.modalInput::placeholder {
+  color: #a8a29e;
 }
 
 .modalInput:focus-visible {
-  border-color: rgba(212, 181, 114, 0.65);
+  border-color: #a8a29e;
+  box-shadow: 0 0 0 3px rgba(168, 162, 158, 0.18);
 }
 
 .modalRow {
@@ -1203,12 +887,18 @@
   flex: 1;
   padding: 0.85rem;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(229, 231, 240, 0.78);
+  border: 1px solid #e7e5e4;
+  background: transparent;
+  color: #57534e;
   font-size: 0.92rem;
   font-weight: 500;
   cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.modalCancel:hover {
+  background: #f5f5f4;
+  color: #1c1917;
 }
 
 .modalSave {
@@ -1216,16 +906,37 @@
   padding: 0.85rem;
   border-radius: 14px;
   border: none;
+  /* 골드 솔리드 — 브랜드 액션 (profile/compat save 와 동일 톤). */
   background: linear-gradient(135deg, #d4b572, #d4b572);
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 8px 24px rgba(212, 181, 114, 0.24);
 }
 
 .modalSave:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 저장된 생년월일 삭제 — 액션 줄 맨 왼쪽의 보조(위험) 버튼. */
+.modalDelete {
+  flex: 0 0 auto;
+  padding: 0.85rem 0.9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  background: transparent;
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.modalDelete:hover {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.5);
 }
 
 .modalLoadButton {
@@ -1235,9 +946,9 @@
   width: 100%;
   padding: 0.6rem 0.8rem;
   border-radius: 12px;
-  border: 1px solid rgba(212, 181, 114, 0.3);
-  background: rgba(212, 181, 114, 0.1);
-  color: rgba(232, 222, 255, 0.95);
+  border: 1px solid rgba(160, 122, 60, 0.3);
+  background: rgba(160, 122, 60, 0.08);
+  color: #1c1917;
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -1247,8 +958,8 @@
 }
 
 .modalLoadButton:hover {
-  border-color: rgba(212, 181, 114, 0.5);
-  background: rgba(212, 181, 114, 0.16);
+  border-color: rgba(160, 122, 60, 0.5);
+  background: rgba(160, 122, 60, 0.16);
 }
 
 .modalLoadList {
@@ -1259,10 +970,10 @@
   margin: 0;
   padding: 4px;
   list-style: none;
-  background: rgba(12, 16, 36, 0.98);
-  border: 1px solid rgba(212, 181, 114, 0.35);
+  background: #ffffff;
+  border: 1px solid rgba(160, 122, 60, 0.25);
   border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 40px rgba(28, 25, 23, 0.12);
   max-height: 240px;
   overflow-y: auto;
   z-index: 20;
@@ -1276,32 +987,13 @@
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: rgba(232, 222, 255, 0.95);
+  color: #1c1917;
   cursor: pointer;
   font-size: 0.88rem;
 }
 
 .modalLoadItem:hover {
-  background: rgba(212, 181, 114, 0.18);
-}
-
-.lightMode .modalLoadButton {
-  border-color: rgba(124, 58, 237, 0.3);
-  background: rgba(124, 58, 237, 0.08);
-  color: #4c1d95;
-}
-
-.lightMode .modalLoadList {
-  background: #ffffff;
-  border-color: rgba(124, 58, 237, 0.25);
-}
-
-.lightMode .modalLoadItem {
-  color: #3b2a63;
-}
-
-.lightMode .modalLoadItem:hover {
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(160, 122, 60, 0.1);
 }
 
 /* Hide the legacy MainHeader on the new home — we use our own minimal
@@ -1365,10 +1057,56 @@
   text-decoration: none;
 }
 
+/* 초록 생일 CTA — 아직 생일이 없을 때. 출발점이 생일임을 분명히 보여준다. */
+.homeBirthCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  align-self: flex-start;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.45);
+  color: rgba(187, 247, 208, 0.98);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0.35rem;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.12s ease;
+}
+
+.homeBirthCta:hover,
+.homeBirthCta:focus-visible {
+  background: rgba(34, 197, 94, 0.26);
+  border-color: rgba(34, 197, 94, 0.7);
+  outline: none;
+}
+
+.homeBirthCta:active {
+  transform: translateY(1px);
+}
+
+.lightMode .homeBirthCta {
+  background: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.45);
+  color: #15803d;
+}
+
+.lightMode .homeBirthCta:hover,
+.lightMode .homeBirthCta:focus-visible {
+  background: rgba(22, 163, 74, 0.2);
+  border-color: rgba(22, 163, 74, 0.65);
+}
+
+/* 저장된 생일 칩 — 이제 누르면 수정 모달이 열리는 버튼. */
 .homeBirthChip {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  align-self: flex-start;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   background: rgba(34, 197, 94, 0.12);
@@ -1376,7 +1114,28 @@
   color: rgba(187, 247, 208, 0.95);
   font-size: 0.74rem;
   font-weight: 500;
+  cursor: pointer;
   margin-bottom: 0.35rem;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.homeBirthChip:hover,
+.homeBirthChip:focus-visible {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.5);
+  outline: none;
+}
+
+.homeBirthChipEdit {
+  margin-left: 0.15rem;
+  padding-left: 0.45rem;
+  border-left: 1px solid rgba(34, 197, 94, 0.4);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.85;
 }
 
 /* Premium-white surface: the light-green text above is invisible on white,
@@ -1386,6 +1145,16 @@
   border-color: rgba(22, 163, 74, 0.4);
   color: #15803d;
   font-weight: 600;
+}
+
+.lightMode .homeBirthChip:hover,
+.lightMode .homeBirthChip:focus-visible {
+  background: rgba(22, 163, 74, 0.18);
+  border-color: rgba(22, 163, 74, 0.6);
+}
+
+.lightMode .homeBirthChipEdit {
+  border-left-color: rgba(22, 163, 74, 0.45);
 }
 
 /* Eyebrow — chat bar 위에 "이 박스는 입력하는 곳 + 아래 생일로 분석" 신호.
@@ -1430,12 +1199,14 @@
 .lightMode .homeTopBarHamburger {
   background: rgba(212, 181, 114, 0.1);
   border-color: rgba(212, 181, 114, 0.35);
-  color: #7c3aed;
+  /* 옛 보라 #7c3aed (violet-600) — 골드 ink 로 통일. premium-white
+     모드의 하나뿐인 보라 잔재였음. */
+  color: #1c1917;
   box-shadow: 0 0 16px rgba(212, 181, 114, 0.2);
 }
 
 .lightMode .homeTopBarHamburgerBar {
-  background: #7c3aed;
+  background: #1c1917;
 }
 
 .lightMode .homeTopBarLogo {
@@ -1460,46 +1231,6 @@
   filter: drop-shadow(0 8px 24px rgba(212, 181, 114, 0.25));
 }
 
-.lightMode .homeBirthCta {
-  background: #ffffff;
-  border-color: #e7e5e4;
-  color: #1c1917;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(0, 0, 0, 0.02);
-}
-
-.lightMode .homeBirthCta:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-}
-
-.lightMode .homeBirthCtaIcon {
-  background: #f5f5f4;
-  border-color: #e7e5e4;
-  color: #57534e;
-}
-
-.lightMode .homeBirthCtaText strong {
-  color: #1c1917;
-}
-
-.lightMode .homeBirthCtaHint {
-  color: #78716c;
-}
-
-.lightMode .homeChip {
-  background: #ffffff;
-  border-color: #e7e5e4;
-  color: #44403c;
-}
-
-.lightMode .homeChip:hover,
-.lightMode .homeChip:focus-visible {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-}
-
 .lightMode .homeChatBarInner {
   background: #ffffff;
   border-color: #e7e5e4;
@@ -1516,24 +1247,6 @@
   color: #a8a29e;
 }
 
-.lightMode .homeChatToolBtn {
-  background: transparent;
-  border-color: #e7e5e4;
-  color: #57534e;
-}
-
-.lightMode .homeChatToolBtn:hover,
-.lightMode .homeChatToolBtn:focus-visible {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-}
-
-.lightMode .homeChatToolBtnActive {
-  background: #1c1917;
-  border-color: #1c1917;
-  color: #fafaf9;
-}
-
 /* Submit button keeps the purple accent gradient on both themes — it's
    the page's brand action and reads well against both backdrops. Just
    tone the shadow on light. */
@@ -1542,114 +1255,12 @@
 }
 
 /* =====================================================================
- * SideDrawer + BirthInfoModal — premium-white mode override.
+ * BirthInfoModal — premium-white mode override.
  * 부모 .lightMode 가 토글되면 같이 라이트로. 다크 메인 위 다크 모달,
  * 라이트 메인 위 라이트 모달로 일관성 유지.
  * ===================================================================== */
 
-/* --- SideDrawer --- */
-.lightMode .drawerOverlay {
-  background: rgba(28, 25, 23, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-.lightMode .drawer {
-  background: #ffffff;
-  border-right: 1px solid #e7e5e4;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
-}
-
-.lightMode .drawerLogo {
-  color: #1c1917;
-}
-
-.lightMode .drawerCloseBtn {
-  background: transparent;
-  border-color: #e7e5e4;
-  color: #57534e;
-}
-
-.lightMode .drawerCloseBtn:hover {
-  background: #f5f5f4;
-}
-
-.lightMode .drawerSectionTitle {
-  color: #a8a29e;
-}
-
-.lightMode .drawerLink {
-  color: #44403c;
-}
-
-.lightMode .drawerLink:hover {
-  background: #f5f5f4;
-  color: #1c1917;
-}
-
-/* 로그인 후 lightMode 에선 푸터 색이 흰색 그대로 남아 흰 배경에 안 보임 →
-   다크 그레이로 분리. 호버 색도 진한 잉크로. */
-.lightMode .drawerFooter {
-  color: rgba(28, 25, 23, 0.55);
-  border-top-color: #ebe8e3;
-}
-
-.lightMode .drawerFooterLink:hover {
-  color: #1c1917;
-}
-
-/* --- BirthInfoModal --- */
-/* backdrop-filter 제거 — iOS native <select> picker 버그 회피 (위 .modalOverlay 코멘트 참조). */
-.lightMode .modalOverlay {
-  background: rgba(28, 25, 23, 0.65);
-}
-
-.lightMode .modalCard {
-  background: #ffffff;
-  border-color: #e7e5e4;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
-}
-
-.lightMode .modalTitle {
-  color: #1c1917;
-}
-
-.lightMode .modalSubtitle {
-  color: #78716c;
-}
-
-.lightMode .modalLabel {
-  color: #44403c;
-}
-
-.lightMode .modalInput {
-  background: #ffffff;
-  border-color: #e7e5e4;
-  color: #1c1917;
-}
-
-.lightMode .modalInput:focus-visible {
-  border-color: #a8a29e;
-  box-shadow: 0 0 0 3px rgba(168, 162, 158, 0.18);
-}
-
-.lightMode .modalInput::placeholder {
-  color: #a8a29e;
-}
-
-.lightMode .modalCancel {
-  background: transparent;
-  border-color: #e7e5e4;
-  color: #57534e;
-}
-
-.lightMode .modalCancel:hover {
-  background: #f5f5f4;
-  color: #1c1917;
-}
-
-/* modalSave 는 보라 그라데이션 유지 (브랜드 액션) — 라이트 톤에서도
-   살아남는 컬러. 그림자만 살짝 톤다운. */
-.lightMode .modalSave {
-  box-shadow: 0 8px 24px rgba(212, 181, 114, 0.24);
-}
+/* --- BirthInfoModal — `.lightMode` 오버라이드 폐기.
+ * design tokens "라이트 = 개인 데이터" 정책에 맞춰 base 룰을 직접 라이트
+ * 톤으로 통일. compat PersonCard / ProfileEditModal 과 동일한 항상-흰색
+ * 패턴. */

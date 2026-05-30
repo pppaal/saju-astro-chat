@@ -72,15 +72,15 @@ export const birthFieldClasses: Required<BirthFieldsClasses> = {
   // 이 과정에서 첫 탭이 picker 열기로 안 이어지고 무시되는 케이스가 있다.
   // 16px 로 맞춰 줌 자체를 방지 — Apple HIG 권장.
   input:
-    'w-full rounded-xl border border-[rgba(167,139,250,0.22)] bg-[rgba(15,17,35,0.7)] px-3 py-2.5 text-[16px] text-white outline-none transition focus:border-[rgba(167,139,250,0.6)] disabled:cursor-not-allowed disabled:opacity-50',
+    'w-full rounded-xl border border-[rgba(212,181,114,0.22)] bg-[rgba(15,17,35,0.7)] px-3 py-2.5 text-[16px] text-white outline-none transition focus:border-[rgba(212,181,114,0.6)] disabled:cursor-not-allowed disabled:opacity-50',
   row: 'grid grid-cols-2 gap-2.5',
   checkboxLabel:
-    'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[rgba(220,215,255,0.78)]',
-  checkbox: 'h-3.5 w-3.5 cursor-pointer accent-[#a78bfa]',
+    'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[rgba(245,247,251,0.78)]',
+  checkbox: 'h-3.5 w-3.5 cursor-pointer accent-[#d4b572]',
   suggestionList:
-    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-violet-400/30 bg-[#0c1024] p-1 shadow-[0_16px_40px_rgba(0,0,0,0.5)]',
+    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[rgba(212,181,114,0.3)] bg-[#0c1024] p-1 shadow-[0_16px_40px_rgba(0,0,0,0.5)]',
   suggestionItem:
-    'block w-full rounded-lg px-2.5 py-2 text-left text-[13px] text-slate-200 transition hover:bg-violet-400/15',
+    'block w-full rounded-lg px-2.5 py-2 text-left text-[13px] text-slate-200 transition hover:bg-[rgba(212,181,114,0.15)]',
 }
 
 export function BirthInfoFields({
@@ -102,6 +102,7 @@ export function BirthInfoFields({
 
   const { suggestions, openSug, setOpenSug, handleCityInputChange, handleCitySelect } =
     useCitySearch(locale)
+
   // 도시 dropdown 선택 시 키보드(모바일 soft keyboard)를 닫기 위해 input
   // 자체 ref. 사용자: "도시 선택하면 키보드 없어져야하는데" — focus 가
   // input 에 남아 있어서 키보드가 계속 떠 있던 회귀.

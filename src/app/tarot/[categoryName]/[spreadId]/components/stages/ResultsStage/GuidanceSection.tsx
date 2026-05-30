@@ -29,10 +29,10 @@ export function GuidanceSection({ guidance, language }: GuidanceSectionProps) {
   const isKo = language === 'ko'
 
   return (
-    <section className="rounded-2xl bg-slate-900/50 border border-indigo-500/20 shadow-[0_0_24px_rgba(99,102,241,0.08)] p-5 md:p-6 space-y-4">
+    <section className="rounded-2xl bg-slate-900/50 border border-[rgba(212,181,114,0.2)] shadow-[0_0_24px_rgba(212,181,114,0.08)] p-5 md:p-6 space-y-4">
       <div className="flex items-center gap-2">
-        <Sparkles className="w-4 h-4 text-indigo-400" />
-        <h2 className="text-sm font-medium text-indigo-300 tracking-wider uppercase">
+        <Sparkles className="w-4 h-4 text-[#d4b572]" />
+        <h2 className="text-sm font-medium text-[#d4b572] tracking-wider uppercase">
           {isKo ? '카드의 조언' : "Card's Advice"}
         </h2>
       </div>

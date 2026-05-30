@@ -198,6 +198,9 @@ export interface ChatPayload {
   // 방지용 멱등 키. 클라이언트가 매 user 메시지 보낼 때 UUID 생성, 같은
   // payload 가 재시도되면 그대로 재사용 → 서버는 한 번만 차감.
   idempotencyKey?: string
+  /** 이 턴의 고유 id. 연결이 끊겨도 서버가 끝까지 생성해 이 키로 캐시에
+   *  저장해 두면, 돌아왔을 때 result 엔드포인트로 완성 답을 복원한다. */
+  turnId?: string
 }
 
 // PDF text content item (from pdfjs-dist)
