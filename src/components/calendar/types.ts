@@ -127,6 +127,8 @@ export interface CalendarData {
     focusDomain?: string
   }
   allDates?: ImportantDate[]
+  /** 연 점수 분포 — getStarRating(score, scoreDistribution)으로 별 등급 percentile 산출용. */
+  scoreDistribution?: number[]
   /**
    * 본명 점성 정체성 — 헤더 뱃지 / 프로필 카드용.
    * sunSign은 항상 있음. ascendant/moon은 풀 차트 입력 시에만.

@@ -42,7 +42,7 @@ import astroMidpointExtractor from './extractors/astro-midpoint'
 import astroSoulPatternExtractor from './extractors/astro-soul-pattern'
 
 // derivers
-import { deriveScore } from './derivers/score'
+import { calibrateAxes, deriveCellAxes } from './derivers/axisScore'
 import { deriveThemeScores } from './derivers/themeScores'
 import { deriveTopReasons, deriveCautions } from './derivers/summary'
 import { derivePatterns } from './derivers/patterns'
@@ -78,7 +78,7 @@ export async function buildCalendar(
 
   // 3) 테마 라벨 + 기여 가중 보강
   for (const signal of allSignals) {
-    const tagged = tagSignalWithThemes(signal)
+    const tagged = tagSignalWithThemes(signal, ctx.natal.gender)
     signal.themes = tagged.themes
     signal.themeWeights = tagged.weights
   }
@@ -169,18 +169,29 @@ function groupIntoCells(
     }
   }
 
-  // derivers — 점수·테마점수·패턴·요약 계산 (점수는 부산물)
-  // 패턴을 먼저 검출하고, 점수 계산에 패턴 보너스 반영.
+  // derivers — 단일출처 두 축(사주/점성) → 헤드라인(비보상 결합)이 derivedScore.
+  // 옛 deriveScore(단일 산술 2단평균)는 제거 — 점수가 두 축 수렴 모델 하나로 통일.
+  // 보정(calibrateAxes)은 이 빌드 창 전체에서 1회 산출 → 같은 창 내 모든 셀 동일.
+  // (창=월 단위 캐시면 월상대 보정 — 연단위 안정화는 향후 per-natal 보정 캐시로.)
   //
-  // score/pattern 입력에서 'saju-pattern'(본명 격국 — lifetime decadal layer로
-  // 평생 emit되는 배경 신호)을 제외한다. 그날 가변 신호가 아니라 본명 자체
-  // 표지라 score/pattern 매칭에 넣으면 모든 셀에 같은 +impact를 깔아 강한 사주
-  // 사용자만 매일 좋음으로 inflate된다 ("다 좋네 ㅋ" 분포 편향). narrative
-  // (cell.signals 그대로 노출)에는 유지 — 사용자가 본명 격국을 카드에서 확인.
+  // score/axis 입력에서 'saju-pattern'(본명 격국 — 평생 배경 신호)을 제외:
+  // 그날 가변이 아니라 본명 표지라 모든 셀에 같은 +impact를 깔아 분포를 편향시킴.
+  // narrative(cell.signals 그대로)에는 유지.
+  const cellList = Array.from(cells.values())
+  const scoreInputCells = cellList.map((c) => ({
+    ...c,
+    signals: c.signals.filter((s) => s.kind !== 'saju-pattern'),
+  }))
+  const axisCal = calibrateAxes(scoreInputCells)
+
   for (const cell of cells.values()) {
     const scoreSignals = cell.signals.filter((s) => s.kind !== 'saju-pattern')
     cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(scoreSignals)
-    cell.derivedScore = deriveScore(scoreSignals, cell.matchedPatterns)
+    const axes = deriveCellAxes(scoreSignals, axisCal)
+    cell.derivedScore = axes.headline
+    cell.sajuAxis = axes.sajuAxis
+    cell.astroAxis = axes.astroAxis
+    cell.axisAgreement = axes.agreement
     cell.themeScores = deriveThemeScores(cell.signals)
     cell.topReasons = deriveTopReasons(cell.signals)
     cell.cautions = deriveCautions(cell.signals)

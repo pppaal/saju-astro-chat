@@ -459,14 +459,18 @@ export const GET = withApiMiddleware(
     // nowInTimezone stores the local components in the UTC fields, so read
     // them via getUTCMonth (getMonth would re-shift them if a dev machine
     // is not running in UTC).
-    const targetMonthIdx = nowInTimezone(timezone).getUTCMonth()
-    const prescoreMonths = [
-      Math.max(0, targetMonthIdx - 1),
-      targetMonthIdx,
-      Math.min(11, targetMonthIdx + 1),
-    ].filter((m, i, arr) => arr.indexOf(m) === i) // dedupe (Dec/Jan 경계)
+    // 12달 전체 prescore — 단일출처 축(axisByDate)을 365일 전부에 적용 + 보정
+    // (calibrateAxes)을 연 단위 고정 표본으로 산출하기 위함. 3달만 하면 (H1) 점수
+    // 모델이 달마다 갈리고 (H2) 보정이 조회 시점에 따라 흔들려 "뷰 무관 동일 점수"가
+    // 깨짐(버그헌트 지적). augment 블록이 어차피 같은 12달을 빌드하므로 cell-cache
+    // HIT로 총 작업량 동일. cold 첫 응답 지연↑은 라이브 프로파일 대상.
+    const prescoreMonths = Array.from({ length: 12 }, (_, m) => m)
 
     const engineScoreByDate: Record<string, number> = {}
+    const axisByDate: Record<
+      string,
+      { sajuAxis: number; astroAxis: number; headline: number; agreement: 'aligned' | 'mixed' | 'opposed' }
+    > = {}
     try {
       if (!sharedCeNatal) throw new Error('natal context unavailable')
       const ceNatal = sharedCeNatal
@@ -492,10 +496,20 @@ export const GET = withApiMiddleware(
           })
         })
       )
-      for (const { cells } of monthResults) {
-        for (const c of cells) {
-          const k = c.datetime.slice(0, 10)
-          if (typeof c.derivedScore === 'number') engineScoreByDate[k] = c.derivedScore
+      const allPrescoredCells = monthResults.flatMap((m) => m.cells)
+      // 셀이 이미 두 축(derivedScore=헤드라인, sajuAxis/astroAxis/axisAgreement)을
+      // 단일출처로 들고 있다(index.ts groupIntoCells → deriveCellAxes). route에서
+      // 재계산(중복)하지 않고 셀 값을 그대로 읽어 yearlyDates에 넘긴다.
+      for (const c of allPrescoredCells) {
+        const k = c.datetime.slice(0, 10)
+        if (typeof c.derivedScore === 'number') engineScoreByDate[k] = c.derivedScore
+        if (typeof c.sajuAxis === 'number' && typeof c.astroAxis === 'number') {
+          axisByDate[k] = {
+            sajuAxis: c.sajuAxis,
+            astroAxis: c.astroAxis,
+            headline: c.derivedScore,
+            agreement: c.axisAgreement ?? 'mixed',
+          }
         }
       }
     } catch (err) {
@@ -505,6 +519,7 @@ export const GET = withApiMiddleware(
       )
     }
     const hasEngineScores = Object.keys(engineScoreByDate).length > 0
+    const hasAxisScores = Object.keys(axisByDate).length > 0
 
     // 12달 narrative 다시 풀빌드 — 다른 달 클릭 시 즉시 보이려면 응답에 365일 모두 포함.
     // prescoreMonths 외 9 달은 v3 점수 fallback 사용 (engineScores 에 없는 날짜).
@@ -536,6 +551,7 @@ export const GET = withApiMiddleware(
           dailyRetrograde: (astroProfile as { dailyRetrograde?: Record<string, string[]> })
             .dailyRetrograde,
           engineScores: hasEngineScores ? engineScoreByDate : undefined,
+          axisScores: hasAxisScores ? axisByDate : undefined,
         }),
       CACHE_TTL.CALENDAR_DATA // 1 day
     )
@@ -871,6 +887,16 @@ export const GET = withApiMiddleware(
         place: birthPlace,
       },
       allDates: formattedDates,
+      // 연 점수 분포 — FE가 getStarRating(score, scoreDistribution)으로 "그 사람 평소
+      // 대비 상위 N%"를 별 등급으로 환산. 상대점수(평소=50)를 절대 별컷으로 매기면
+      // 대부분 2~3별로 뭉치므로 percentile 기준이 필요.
+      scoreDistribution: formattedDates
+        .map((d) => {
+          const s = (d as { displayScore?: number; score?: number }).displayScore
+          const sc = typeof s === 'number' ? s : (d as { score?: number }).score
+          return typeof sc === 'number' ? sc : null
+        })
+        .filter((s): s is number => s !== null),
       // 그 달 narrative — top-level 1개로 dedupe (이전 365 copies 회귀 fix).
       // EN locale 이면 themeBreakdown 라벨 + convergence keyDays 의 신호명 영문 swap.
       monthlyInterpretation: (() => {

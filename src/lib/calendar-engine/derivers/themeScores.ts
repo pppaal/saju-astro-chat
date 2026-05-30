@@ -42,6 +42,18 @@ const LAYER_WEIGHT: Record<SignalLayer, number> = {
 // 정합한다. 한 곳에서 export 해 공유.
 export const THEME_SCORE_SCALE = 24
 
+// 테마별 baseline(전체 인구 median) — "오늘 어느 테마가 평소보다 유난히 튀나"
+// 판정(deriveThemeDeviation)에만 사용. 표시 점수(themeScores 절대값)는 recenter
+// 안 함(Why-card 정합). 측정: calendar-theme-calibration. growth 도배(절대점수로
+// 1등 뽑으면 baseline 높은 growth가 매일 이김)를 deviation 비교로 해소.
+const THEME_BASELINE: Record<AstroThemeKey, number> = {
+  love: 55,
+  money: 53,
+  career: 54,
+  health: 49,
+  growth: 59,
+}
+
 export function deriveThemeScores(signals: ActiveSignal[]): Partial<Record<AstroThemeKey, number>> {
   const buckets = new Map<AstroThemeKey, { sum: number; weight: number }>()
 
@@ -72,4 +84,21 @@ export function deriveThemeScores(signals: ActiveSignal[]): Partial<Record<Astro
     )
   }
   return result
+}
+
+/**
+ * "오늘 어느 테마가 평소(baseline)보다 유난히 튀나" — 표시 점수가 아니라 **분야
+ * 판정용**. growth 처럼 baseline 이 구조적으로 높은 테마가 절대점수 비교에서 매일
+ * 1등 도배되는 걸 막는다. themeScores(절대) − baseline = deviation.
+ * UI 의 "오늘의 주제 테마" 선정·강조는 이 deviation 으로 해야 도배가 안 생김.
+ */
+export function deriveThemeDeviation(
+  themeScores: Partial<Record<AstroThemeKey, number>>
+): Partial<Record<AstroThemeKey, number>> {
+  const out: Partial<Record<AstroThemeKey, number>> = {}
+  for (const theme of Object.keys(themeScores) as AstroThemeKey[]) {
+    const v = themeScores[theme]
+    if (typeof v === 'number') out[theme] = v - THEME_BASELINE[theme]
+  }
+  return out
 }

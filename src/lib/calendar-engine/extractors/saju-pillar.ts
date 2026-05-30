@@ -32,6 +32,7 @@ const sajuPillarExtractor: SignalExtractor = {
     const dayMaster = pillarToStemInfo(natal.saju.pillars.day.heavenlyStem.name)
     if (!dayMaster) return []
     const yongsin = natal.saju.yongsin
+    const strength = natal.saju.strength // 신강/신약 — 십신 길흉 분기에 사용
 
     const signals: ActiveSignal[] = []
     const start = new Date(range.start)
@@ -65,6 +66,7 @@ const sajuPillarExtractor: SignalExtractor = {
           sibsin,
           element: stemInfo.element as FiveElement,
           yongsin,
+          strength,
           active: { start: startIso, peak: peakIso, end: endIso },
           weight: 1.0, // 대운은 인생 전체 흐름 — 최대 가중
           natalDayMaster: dayMaster.name,
@@ -101,6 +103,7 @@ const sajuPillarExtractor: SignalExtractor = {
           sibsin,
           element: stemInfo.element as FiveElement,
           yongsin,
+          strength,
           active: { start: yStart, peak: yPeak, end: yEnd },
           weight: 0.85,
           natalDayMaster: dayMaster.name,
@@ -131,6 +134,7 @@ const sajuPillarExtractor: SignalExtractor = {
               sibsin,
               element: stemInfo.element as FiveElement,
               yongsin,
+              strength,
               active: { start: mStart, peak: mPeak, end: mEnd },
               weight: 0.7,
               natalDayMaster: dayMaster.name,
@@ -161,6 +165,7 @@ const sajuPillarExtractor: SignalExtractor = {
           sibsin,
           element: stemInfo.element as FiveElement,
           yongsin,
+          strength,
           active: {
             start: `${dayIso}T00:00:00.000Z`,
             peak: `${dayIso}T12:00:00.000Z`,
@@ -183,13 +188,14 @@ interface BuildSignalArgs {
   sibsin: SibsinKind
   element: FiveElement
   yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
+  strength: 'strong' | 'medium' | 'weak'
   active: { start: string; peak: string; end: string }
   weight: number
   natalDayMaster: string
 }
 
 function buildSignal(args: BuildSignalArgs): ActiveSignal {
-  const polarity = polarityFromYongsin(args.element, args.yongsin)
+  const polarity = polarityFromSibsinYongsin(args.sibsin, args.element, args.yongsin, args.strength)
   return {
     id: `saju.pillar-sibsin.${args.idSuffix}`,
     source: 'saju',
@@ -215,20 +221,48 @@ function buildSignal(args: BuildSignalArgs): ActiveSignal {
 }
 
 /**
- * 용신과의 부합 여부로 polarity 결정.
- * - 용신 = +2~+3
- * - 보조용신 = +1~+2
- * - 기신·구신 (avoid) = -2~-3
- * - 그 외 중립 = 0
+ * 십신 종류(신강/신약 분기) + 용신 부합을 합산해 polarity 결정.
+ *
+ * 기존(polarityFromYongsin)은 오행이 용신이냐만 봐서 대부분 0 → 사주축이 +로만
+ * 쏠려(세운 십신 음수 거의 없음) 점성축과 음상관·분포 압축의 뿌리였다.
+ *
+ * 십신의 길흉은 신강/신약에 따라 뒤집힌다(자평 통설):
+ *  - 신강: 식상·재성·관성 = 길(설기·극이 균형) / 인성·비겁 = 흉(과다)
+ *  - 신약: 인성·비겁 = 길(생조·방조) / 식상·재성·관성 = 흉(누설·부담)
+ *  - medium: 약화(절반)
+ * 여기에 용신 부합(오행)을 더해 최종 -3~+3.
  */
-function polarityFromYongsin(
+const SIBSIN_GROUP: Record<SibsinKind, '식상' | '재성' | '관성' | '인성' | '비겁'> = {
+  식신: '식상', 상관: '식상',
+  편재: '재성', 정재: '재성',
+  편관: '관성', 정관: '관성',
+  편인: '인성', 정인: '인성',
+  비견: '비겁', 겁재: '비겁',
+}
+function sibsinBase(sibsin: SibsinKind, strength: 'strong' | 'medium' | 'weak'): number {
+  const g = SIBSIN_GROUP[sibsin]
+  // 신강 기준 기본 부호 (신약이면 반전)
+  const strongTone: Record<string, number> = { 식상: 1, 재성: 1, 관성: 1, 인성: -1, 비겁: -1 }
+  let base = strongTone[g] ?? 0
+  if (strength === 'weak') base = -base // 신약은 반전
+  else if (strength === 'medium') base = 0 // 중화는 십신 길흉 약화 → 용신만
+  return base
+}
+function polarityFromSibsinYongsin(
+  sibsin: SibsinKind,
   element: FiveElement,
-  yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
+  yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] },
+  strength: 'strong' | 'medium' | 'weak'
 ): Polarity {
-  if (element === yongsin.primary) return 3
-  if (element === yongsin.secondary) return 2
-  if (yongsin.avoid.includes(element)) return -2
-  return 0
+  // 용신 부합 (오행)
+  let yong = 0
+  if (element === yongsin.primary) yong = 2
+  else if (element === yongsin.secondary) yong = 1
+  else if (yongsin.avoid.includes(element)) yong = -2
+  // 십신 길흉 (신강약) — 1.5 가중으로 음수 자연 발생
+  const sib = sibsinBase(sibsin, strength) * 1.5
+  const sum = Math.round(yong + sib)
+  return Math.max(-3, Math.min(3, sum)) as Polarity
 }
 
 interface StemInfo {
