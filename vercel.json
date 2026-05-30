@@ -46,10 +46,6 @@
     {
       "path": "/api/cron/reset-credits",
       "schedule": "0 15 * * *"
-    },
-    {
-      "path": "/api/cron/daily-fortune-post",
-      "schedule": "0 22 * * *"
     }
   ],
   "headers": [

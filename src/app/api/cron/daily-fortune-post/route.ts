@@ -27,8 +27,11 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    logger.warn('[Cron] Unauthorized request')
+  // Fail-closed: CRON_SECRET 이 빈 값일 때 인증 자체를 skip 하던 옛 코드는
+  // 누구나 GET 호출 → Replicate 비용 폭주 / Instagram 자동 포스팅 악용 위험.
+  // 다른 cron (reset-credits 등) 의 fail-closed 패턴과 맞춤.
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    logger.warn('[Cron] Unauthorized request (CRON_SECRET missing or mismatch)')
     return createErrorResponse({
       code: ErrorCodes.UNAUTHORIZED,
       locale: extractLocale(request),
