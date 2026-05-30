@@ -1,11 +1,11 @@
 // src/lib/Saju/unse.ts
 
-import { toDate } from 'date-fns-tz'
 import { logger } from '@/lib/logger'
 import { STEMS, BRANCHES, MONTH_STEM_LOOKUP, getSolarTermKST } from './constants'
 import { isCheoneulGwiin } from './stemBranchUtils'
 // 십신 / 정기 매핑은 core 모듈이 single source — saju.ts/unse.ts 둘 다 같은 것 사용.
 import { getSibseong as getSibseongCore, getBranchSibsin } from './core/sibsin'
+import type { BirthInstant } from './core/birthInstant'
 import {
   FiveElement,
   YinYang,
@@ -39,24 +39,10 @@ function getSibseong(
   return getSibseongCore(dayMaster, target)
 }
 
-// 출생 시각을 "출생지 타임존" 기준 로컬 → UTC 타임스탬프로 정규화
-function normalizeBirthToUTC(birthDate: Date, timezone: string): Date {
-  const y = birthDate.getFullYear()
-  const m = birthDate.getMonth() + 1
-  const d = birthDate.getDate()
-  const hh = birthDate.getHours()
-  const mi = birthDate.getMinutes()
-  const ss = birthDate.getSeconds()
-
-  const isoLocal = `${String(y).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}T${String(hh).padStart(2, '0')}:${String(mi).padStart(2, '0')}:${String(ss).padStart(2, '0')}`
-  try {
-    // date-fns-tz: 문자열을 timezone 로컬 시각으로 해석해 UTC Date 반환
-    return toDate(isoLocal, { timeZone: timezone } as Parameters<typeof toDate>[1])
-  } catch {
-    // 폴백: 최소한 호스트 타임존 영향 없이 UTC로 동일 숫자 시각 구성
-    return utcDate(y, m, d, hh, mi, ss, 0)
-  }
-}
+// 옛 코드의 normalizeBirthToUTC 는 birthDate (이미 UTC instant) 를 server-local
+// accessor 로 재분해 → timezone 으로 재해석 하는 두 번 변환 패턴이라 UTC 서버
+// (Vercel) 에서 ±tzOffset 어긋났다 (S1). 사주 계산의 single source 는 UTC
+// instant 라서 그냥 그대로 사용. 변환 helper 자체를 제거.
 
 /* === 대운 라운딩 정책 === */
 const DAEUN_ROUNDING = CALCULATION_STANDARDS.saju.daeunRounding
@@ -76,13 +62,16 @@ function daysToDaeunAge(days: number): number {
 }
 
 export function getDaeunCycles(
-  birthDate: Date,
+  birthDate: BirthInstant,
   gender: 'male' | 'female',
   sajuPillars: SajuPillarsAll,
   dayMaster: DayMaster,
   timezone: string
 ): { daeunsu: number; cycles: DaeunData[] } {
-  if (!birthDate || !sajuPillars || !dayMaster || !timezone) {
+  // timezone 인자는 더 이상 사용 안 함 (절기 lookup 은 KASI KST 데이터). 호환성
+  // 위해 시그니처는 유지 — 호출자가 인자 빼면 BC 깨짐.
+  void timezone
+  if (!birthDate || !sajuPillars || !dayMaster) {
     logger.error('getDaeunCycles: 유효하지 않은 인자')
     return { daeunsu: 0, cycles: [] }
   }
@@ -92,7 +81,9 @@ export function getDaeunCycles(
     (yearStemYinYang === '양' && gender === 'male') ||
     (yearStemYinYang === '음' && gender === 'female')
 
-  const birthUTC = normalizeBirthToUTC(birthDate, timezone)
+  // birthDate 는 이미 UTC instant — saju.ts 의 toDate(..., {timeZone}) 결과.
+  // 재해석 없이 직접 KASI 절기 lookup (KST 변환은 getSolarTermKST 내부).
+  const birthUTC = birthDate
   const y = birthUTC.getUTCFullYear()
   const m = birthUTC.getUTCMonth() + 1
 
