@@ -33,12 +33,6 @@ export {
   mockRefundCredits,
   mockUpgradePlan,
   mockAddBonusCredits,
-  // Email Service
-  mockSendEmail,
-  mockSendPaymentReceiptEmail,
-  mockSendSubscriptionConfirmEmail,
-  mockSendSubscriptionCancelledEmail,
-  mockSendPaymentFailedEmail,
   // Backend API Client
   mockApiClient,
   mockBackendResponse,

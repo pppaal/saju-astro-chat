@@ -2,7 +2,6 @@ import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@prisma/client'
 import { addBonusCredits } from '@/lib/credits/creditService'
 import { randomBytes } from 'crypto'
-import { sendReferralRewardEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 
 // 추천 보상 — 친구의 첫 결제 시점에 지급.
@@ -209,15 +208,6 @@ export async function grantReferralRewardOnFirstPurchase(referredUserId: string)
       return { granted: false }
     }
     await addBonusCredits(pendingReward.userId, pendingReward.creditsAwarded, 'referral')
-
-    if (referrerUser.email) {
-      sendReferralRewardEmail(pendingReward.userId, referrerUser.email, {
-        userName: referrerUser.name || undefined,
-        creditsAwarded: pendingReward.creditsAwarded,
-      }).catch((err) => {
-        logger.error('[grantReferralRewardOnFirstPurchase] Failed to send email:', err)
-      })
-    }
 
     // 친구(피추천자) 본인에게도 첫 결제 보너스 지급. pendingReward 처리는
     // 이미 멱등 — 두 번째 호출 시 위에서 early return 되므로 referee 도

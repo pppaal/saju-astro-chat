@@ -6,7 +6,6 @@
 import { vi } from 'vitest'
 import { prisma } from '@/lib/db/prisma'
 import { addBonusCredits } from '@/lib/credits/creditService'
-import { sendReferralRewardEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 import {
   generateReferralCode,
@@ -47,10 +46,6 @@ vi.mock('@/lib/db/prisma', () => ({
 
 vi.mock('@/lib/credits/creditService', () => ({
   addBonusCredits: vi.fn(),
-}))
-
-vi.mock('@/lib/email', () => ({
-  sendReferralRewardEmail: vi.fn(),
 }))
 
 vi.mock('@/lib/logger', () => ({
@@ -191,7 +186,6 @@ describe('Referral Service', () => {
       })
       ;(prisma.referralReward.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
       ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
-      ;(sendReferralRewardEmail as ReturnType<typeof vi.fn>).mockResolvedValue({})
     })
 
     it('should link new user to referrer', async () => {
@@ -226,12 +220,6 @@ describe('Referral Service', () => {
           }),
         })
       )
-    })
-
-    it('should NOT send reward email at link time', async () => {
-      await linkReferrer('new_user_123', 'REF12345')
-
-      expect(sendReferralRewardEmail).not.toHaveBeenCalled()
     })
 
     it('should reject invalid referral code', async () => {
@@ -274,7 +262,6 @@ describe('Referral Service', () => {
       const result = await linkReferrer('new_user_123', 'REF12345')
 
       expect(result.success).toBe(true)
-      expect(sendReferralRewardEmail).not.toHaveBeenCalled()
     })
   })
 
@@ -313,7 +300,6 @@ describe('Referral Service', () => {
           data: expect.objectContaining({ status: 'completed', completedAt: expect.any(Date) }),
         })
       )
-      expect(sendReferralRewardEmail).toHaveBeenCalled()
     })
 
     it('is a no-op when there is no pending reward (no double payout on later purchases)', async () => {
@@ -640,9 +626,6 @@ describe('Referral Service', () => {
       ;(prisma.user.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
       ;(prisma.referralReward.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
       ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
-      ;(sendReferralRewardEmail as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error('Invalid email')
-      )
 
       const result = await linkReferrer('new_user_123', 'REF12345')
 
@@ -686,7 +669,6 @@ describe('Referral Service', () => {
       })
       ;(prisma.referralReward.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
       ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
-      ;(sendReferralRewardEmail as ReturnType<typeof vi.fn>).mockResolvedValue({})
 
       const linkResult = await linkReferrer('new_user_123', 'REF12345')
       expect(linkResult.success).toBe(true)

@@ -40,10 +40,6 @@ vi.mock('@/lib/credits/creditService', () => ({
   addBonusCredits: vi.fn().mockResolvedValue(undefined),
 }))
 
-vi.mock('@/lib/email', () => ({
-  sendReferralRewardEmail: vi.fn().mockResolvedValue(undefined),
-}))
-
 vi.mock('@/lib/logger', () => ({
   logger: {
     error: vi.fn(),

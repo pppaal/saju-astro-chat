@@ -7,7 +7,6 @@ import { recordCounter } from '@/lib/metrics'
 import { addBonusCredits, revokeBonusCreditPurchase } from '@/lib/credits/creditService'
 import { grantReferralRewardOnFirstPurchase } from '@/lib/referral'
 import { CREDIT_PACKS } from '@/lib/config/pricing'
-import { sendPaymentReceiptEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { HTTP_STATUS as _HTTP_STATUS } from '@/lib/constants/http'
@@ -346,20 +345,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // 발송 / referral 멱등 가드에 의존하게 되므로 여기서 종료.
   if (creditGrantWasDuplicate) {
     return
-  }
-
-  // 결제 완료 이메일 발송
-  if (user.email) {
-    const productName = `${creditPack.charAt(0).toUpperCase()}${creditPack.slice(1)} (${creditAmount} Credits)`
-    sendPaymentReceiptEmail(userId, user.email, {
-      userName: user.name || undefined,
-      amount: session.amount_total || 0,
-      currency: session.currency || 'krw',
-      productName,
-      transactionId: session.id,
-    }).catch((err) => {
-      logger.error('[Stripe Webhook] Failed to send payment receipt email:', err)
-    })
   }
 
   // 구매 기록 저장 (선택사항) - CreditPurchase 모델이 스키마에 없음

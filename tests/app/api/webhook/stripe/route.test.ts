@@ -112,18 +112,12 @@ vi.mock('@/lib/referral', () => ({
   grantReferralRewardOnFirstPurchase: vi.fn().mockResolvedValue({ granted: false }),
 }))
 
-// Mock email service
-vi.mock('@/lib/email', () => ({
-  sendPaymentReceiptEmail: vi.fn().mockResolvedValue(undefined),
-}))
-
 // ---------------------------------------------------------------------------
 // Import route handler and mocked modules AFTER all vi.mock calls
 // ---------------------------------------------------------------------------
 import { POST } from '@/app/api/webhook/stripe/route'
 import { prisma } from '@/lib/db/prisma'
 import { addBonusCredits, revokeBonusCreditPurchase } from '@/lib/credits/creditService'
-import { sendPaymentReceiptEmail } from '@/lib/email'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { logger } from '@/lib/logger'
@@ -444,17 +438,6 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         'purchase',
         'pi_test_123'
       )
-      expect(vi.mocked(sendPaymentReceiptEmail)).toHaveBeenCalledWith(
-        'user-1',
-        'alice@example.com',
-        expect.objectContaining({
-          userName: 'Alice',
-          amount: 9900,
-          currency: 'krw',
-          productName: 'Standard (40 Credits)',
-          transactionId: 'cs_test_123',
-        })
-      )
       // Verify success is recorded in event log
       expect(vi.mocked(prisma.stripeEventLog.update)).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -612,28 +595,6 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       expect(response.status).toBe(500)
     })
 
-    it('should not send email when user has no email', async () => {
-      const event = makeEvent('checkout.session.completed', {
-        id: 'cs_no_email',
-        metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'u1' },
-        amount_total: 1000,
-        currency: 'krw',
-        payment_status: 'paid',
-        payment_intent: 'pi_no_email',
-      })
-      mockConstructEvent.mockReturnValue(event)
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'u1',
-        name: null,
-        email: null,
-      } as any)
-      vi.mocked(addBonusCredits).mockResolvedValue(undefined as any)
-      vi.mocked(prisma.pendingCreditRevocation.findUnique).mockResolvedValue(null)
-
-      const response = await POST(makeWebhookRequest())
-      expect(response.status).toBe(200)
-      expect(vi.mocked(sendPaymentReceiptEmail)).not.toHaveBeenCalled()
-    })
   })
 
   // =========================================================================
@@ -969,8 +930,6 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         1,
         { pack: 'mini' }
       )
-      // Receipt email NOT sent (already sent on first attempt)
-      expect(vi.mocked(sendPaymentReceiptEmail)).not.toHaveBeenCalled()
     })
 
     it('B3: skips addBonusCredits when session.payment_status is "unpaid" (async payment)', async () => {
@@ -1002,8 +961,6 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       expect(data.received).toBe(true)
       // CRITICAL: no credit grant
       expect(vi.mocked(addBonusCredits)).not.toHaveBeenCalled()
-      // No receipt email (payment not actually completed)
-      expect(vi.mocked(sendPaymentReceiptEmail)).not.toHaveBeenCalled()
       // Skip metric emitted for observability
       expect(vi.mocked(recordCounter)).toHaveBeenCalledWith(
         'stripe_webhook_unpaid_checkout_skipped',
