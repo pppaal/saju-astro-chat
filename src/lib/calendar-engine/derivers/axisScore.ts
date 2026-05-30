@@ -202,7 +202,25 @@ export function deriveCellAxes(signals: ActiveSignal[], cal: AxisCalibration): C
   const sajuAxis = sided(sg, cal.sajuBias, cal.sajuScaleUp, cal.sajuScaleDn)
   const astroAxis = sided(ag, cal.astroBias, cal.astroScaleUp, cal.astroScaleDn)
   const headline = nonCompensatoryCombine(sajuAxis, astroAxis)
-  const gap = Math.abs(sajuAxis - astroAxis)
-  const agreement: AxisAgreement = gap <= 12 ? 'aligned' : gap <= 28 ? 'mixed' : 'opposed'
+  // agreement: 두 축이 각자 기준(50) 대비 같은 쪽이고 둘 다 뚜렷할 때만 aligned/opposed.
+  // 한쪽이라도 중립(±이내)이면 mixed — raw 음상관이 만드는 "둘 다 약한데 부호만 반대"를
+  // opposed로 과판정하던 걸 방지(데이터: 사주·점성 raw는 구조적 음상관 r≈-0.45라
+  // gap 단독 판정 시 opposed 폭증). 강도 게이트로 진짜 충돌만 opposed.
+  // 두 축이 각자 기준(50) 대비 "둘 다 뚜렷할 때만" 일치/충돌 판정. 한쪽이라도
+  // 평범하면 mixed. opposed는 **둘 다 강하게** 반대일 때만(약한 엇갈림은 mixed) —
+  // 사주·점성 raw가 구조적 음상관(r≈-0.45)이라, 약한 반대까지 opposed로 치면
+  // 허위 충돌이 폭증(30~66%). 강도 게이트로 "진짜 크게 싸우는 날"만 opposed.
+  const ds = sajuAxis - 50
+  const da = astroAxis - 50
+  const STRONG = 14 // 이만큼 벗어나야 "뚜렷한 방향"
+  let agreement: AxisAgreement
+  const bothStrong = Math.abs(ds) >= STRONG && Math.abs(da) >= STRONG
+  if (!bothStrong) {
+    agreement = 'mixed'
+  } else if (ds * da > 0) {
+    agreement = 'aligned'
+  } else {
+    agreement = 'opposed'
+  }
   return { sajuAxis, astroAxis, headline, agreement }
 }
