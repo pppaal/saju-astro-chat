@@ -47,13 +47,13 @@ describe('calendar engine signal coverage (saju×astrology cross)', () => {
     expect(sources.has('saju')).toBe(true)
     expect(sources.has('astro')).toBe(true)
 
-    // 매일 나오는 핵심 kind — 하나라도 빠지면 그 extractor가 죽은 것
+    // 매일 나오는 핵심 kind (day 빌드 기준) — 하나라도 빠지면 그 extractor가 죽은 것.
+    // planetary-hour는 hour 빌드 전용이라 day 커버리지엔 제외.
     for (const kind of [
       'pillar-sibsin', // 사주: 일진 십신/오행 생극/용신
       'shinsal', // 사주: 신살
       'hyeongchung', // 사주: 충/합/형
       'transit', // 점성: 트랜짓 애스펙트
-      'planetary-hour', // 점성: 행성시
     ]) {
       expect(kinds, `missing signal kind: ${kind}`).toContain(kind)
     }
