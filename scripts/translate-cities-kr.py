@@ -72,14 +72,17 @@ SYSTEM_PROMPT = (
 
 
 def load_cities() -> list[dict]:
-    with CITIES_PATH.open() as f:
+    # Windows 의 default encoding 은 cp1252 라 UTF-8 JSON 의 한글/특수문자 들이
+    # decode 실패 (UnicodeDecodeError: 'charmap' codec can't decode byte 0x81).
+    # encoding='utf-8' 명시로 OS-independent.
+    with CITIES_PATH.open(encoding="utf-8") as f:
         return json.load(f)
 
 
 def load_existing_kr() -> dict[str, str]:
     if not KR_PATH.exists():
         return {}
-    with KR_PATH.open() as f:
+    with KR_PATH.open(encoding="utf-8") as f:
         return json.load(f)
 
 

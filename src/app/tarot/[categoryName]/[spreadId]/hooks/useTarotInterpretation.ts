@@ -428,6 +428,9 @@ export function useTarotInterpretation({
         cards: cardPayload,
         userQuestion: userTopic,
         language: language || 'ko',
+        // 서버 발급 단일-사용 nonce — draw 응답에서 받은 그대로 전달.
+        // 차감 면제(무료 재해석) 판정을 서버 토큰에 묶기 위함.
+        drawNonce: result.drawNonce,
       }
 
       // 1) 스트리밍 엔드포인트 우선 — 깨끗한 LLM 출력 (post-processor 템플릿 없음)

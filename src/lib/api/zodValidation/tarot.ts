@@ -211,6 +211,10 @@ export const tarotInterpretStreamSchema = z.object({
   userQuestion: z.string().max(600).trim().optional(),
   language: z.enum(['ko', 'en']).optional(),
   questionContext: tarotQuestionContextSchema.optional(),
+  // 서버가 draw 응답에서 발급한 단일-사용 nonce. 차감 면제(무료 재해석)
+  // 판정을 클라이언트 헤더가 아닌 이 서버 발급 토큰에 묶는다. 없거나
+  // 위조면 정상 차감(면제 없음).
+  drawNonce: z.string().max(200).optional(),
 })
 
 export type TarotInterpretStreamValidated = z.infer<typeof tarotInterpretStreamSchema>

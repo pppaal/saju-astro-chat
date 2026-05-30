@@ -37,6 +37,9 @@ export interface ReadingResponse {
   spread: Spread
   drawnCards: DrawnCard[]
   questionContext?: TarotQuestionAnalysisSnapshot | null
+  // 서버(draw 라우트)가 발급한 단일-사용 nonce. interpret-stream 에 그대로
+  // 넘겨 차감 면제(무료 재해석) 판정에 사용. 게스트/구버전 응답엔 없을 수 있음.
+  drawNonce?: string
 }
 
 // Alias for component compatibility
