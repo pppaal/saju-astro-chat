@@ -114,14 +114,28 @@ const MIN_SAMPLES = 7
 const DEFAULT_SCALE = 16
 
 export interface AxisCalibration {
-  sajuBias: number; sajuScale: number
-  astroBias: number; astroScale: number
+  // median 기준 위/아래를 따로 스케일 — 사주 raw처럼 한쪽 꼬리가 긴 비대칭 분포에서
+  // 대칭 scale을 쓰면 긴 꼬리(낮은 날)가 0으로 짜부라져 양극화(opposed↑)됨.
+  sajuBias: number; sajuScaleUp: number; sajuScaleDn: number
+  astroBias: number; astroScaleUp: number; astroScaleDn: number
 }
 
-const robustScale = (xs: number[], med: number): number => {
-  if (xs.length < MIN_SAMPLES) return DEFAULT_SCALE // 표본 부족 → 폭주 방지(고정)
-  const robust = 1.4826 * mad(xs, med) // MAD → σ 환산(정규 기준)
-  return Math.min(MAX_SCALE, TARGET_SPREAD / Math.max(robust, MIN_ROBUST))
+const quantile = (sorted: number[], p: number): number => {
+  if (!sorted.length) return 0
+  return sorted[Math.max(0, Math.min(sorted.length - 1, Math.floor(sorted.length * p)))]
+}
+
+// median 위쪽/아래쪽을 각각 분위 폭으로 환산 — TARGET_SPREAD 점이 50±가 되도록.
+// 위(p90−med)와 아래(med−p10)를 따로 보고, 작은 쪽(robust)으로 scale.
+function sidedScales(xs: number[], med: number): { up: number; dn: number } {
+  if (xs.length < MIN_SAMPLES) return { up: DEFAULT_SCALE, dn: DEFAULT_SCALE }
+  const s = [...xs].sort((a, b) => a - b)
+  const upSpread = Math.max(MIN_ROBUST, quantile(s, 0.9) - med)
+  const dnSpread = Math.max(MIN_ROBUST, med - quantile(s, 0.1))
+  return {
+    up: Math.min(MAX_SCALE, TARGET_SPREAD / upSpread),
+    dn: Math.min(MAX_SCALE, TARGET_SPREAD / dnSpread),
+  }
 }
 
 /**
@@ -139,9 +153,11 @@ export function calibrateAxes(cells: CalendarCell[]): AxisCalibration {
   }
   const sMed = median(sRaw)
   const aMed = median(aRaw)
+  const sS = sidedScales(sRaw, sMed)
+  const aS = sidedScales(aRaw, aMed)
   return {
-    sajuBias: sMed, sajuScale: robustScale(sRaw, sMed),
-    astroBias: aMed, astroScale: robustScale(aRaw, aMed),
+    sajuBias: sMed, sajuScaleUp: sS.up, sajuScaleDn: sS.dn,
+    astroBias: aMed, astroScaleUp: aS.up, astroScaleDn: aS.dn,
   }
 }
 
@@ -178,8 +194,13 @@ export interface CellAxes {
 export function deriveCellAxes(signals: ActiveSignal[], cal: AxisCalibration): CellAxes {
   const sg = sourceGrandAvg(signals.filter((x) => x.source === 'saju'))
   const ag = sourceGrandAvg(signals.filter((x) => x.source === 'astro'))
-  const sajuAxis = sg == null ? 50 : clamp(50 + (sg - cal.sajuBias) * cal.sajuScale)
-  const astroAxis = ag == null ? 50 : clamp(50 + (ag - cal.astroBias) * cal.astroScale)
+  const sided = (raw: number | null, bias: number, up: number, dn: number): number => {
+    if (raw == null) return 50
+    const d = raw - bias
+    return clamp(50 + d * (d >= 0 ? up : dn))
+  }
+  const sajuAxis = sided(sg, cal.sajuBias, cal.sajuScaleUp, cal.sajuScaleDn)
+  const astroAxis = sided(ag, cal.astroBias, cal.astroScaleUp, cal.astroScaleDn)
   const headline = nonCompensatoryCombine(sajuAxis, astroAxis)
   const gap = Math.abs(sajuAxis - astroAxis)
   const agreement: AxisAgreement = gap <= 12 ? 'aligned' : gap <= 28 ? 'mixed' : 'opposed'
