@@ -180,13 +180,6 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
     },
   ]
 
-  const cellText = (cell?: GanjiCell) => {
-    if (!cell?.name) return '·'
-    if (!isKo) return cell.name
-    const r = readingOf(cell.name)
-    return cell.element ? `${r}${cell.element}` : r
-  }
-
   return (
     <div className={tokens.container} style={tokens.containerStyle}>
       {/* Affordance hint — 모바일 비전공자에게 비주얼 단서 (가운데 = 나, 한자

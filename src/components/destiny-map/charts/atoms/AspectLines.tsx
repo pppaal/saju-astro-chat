@@ -49,14 +49,6 @@ interface AspectStyle {
   isMajor: boolean
 }
 
-const MAJOR_ASPECTS = new Set([
-  'conjunction',
-  'sextile',
-  'square',
-  'trine',
-  'opposition',
-])
-
 function aspectStyle(type: string): AspectStyle {
   switch (type) {
     case 'conjunction':

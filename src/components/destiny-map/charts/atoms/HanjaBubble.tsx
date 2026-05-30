@@ -22,11 +22,6 @@ export function HanjaBubble({ hanja, children, className }: HanjaBubbleProps) {
   const meaning = meaningOf(hanja)
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null)
 
-  // 의미 없는 한자는 그냥 글자만 (bubble 없음).
-  if (!meaning) {
-    return <span className={className}>{children}</span>
-  }
-
   const start = () => {
     longPressTimer.current = setTimeout(() => setOpen(true), 300)
   }
@@ -35,11 +30,16 @@ export function HanjaBubble({ hanja, children, className }: HanjaBubbleProps) {
     longPressTimer.current = null
   }
 
-  // unmount 시 timer 누수 방지.
+  // unmount 시 timer 누수 방지. hook 은 early-return 보다 위에서 무조건 호출
+  // (rules-of-hooks) — 의미 없는 한자 분기는 hook 등록 뒤로 내린다.
   React.useEffect(() => {
     return () => cancel()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // 의미 없는 한자는 그냥 글자만 (bubble 없음).
+  if (!meaning) {
+    return <span className={className}>{children}</span>
+  }
 
   return (
     <span
