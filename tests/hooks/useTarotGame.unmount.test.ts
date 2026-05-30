@@ -13,7 +13,9 @@ import { renderHook, act } from '@testing-library/react'
 // boundary — the abort behavior is exercised on the apiFetch mock.
 vi.mock('next/navigation', () => ({
   useParams: () => ({ categoryName: 'general', spreadId: 'three-card' }),
-  useSearchParams: () => ({ get: () => null }),
+  useSearchParams: () => ({ get: () => null, toString: () => '' }),
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => '/tarot/general/three-card',
 }))
 vi.mock('@/lib/tarot/tarot-spreads-data', () => ({
   tarotThemes: [
@@ -25,6 +27,8 @@ vi.mock('@/lib/tarot/tarot-spreads-data', () => ({
 }))
 vi.mock('@/lib/tarot/tarot-storage', () => ({
   loadReadingRestorePayload: () => null,
+  storeReadingRestorePayload: () => null,
+  formatReadingForSave: () => ({}),
 }))
 vi.mock('@/lib/tarot/questionFlow', () => ({
   loadQuestionAnalysisSnapshot: () => null,
