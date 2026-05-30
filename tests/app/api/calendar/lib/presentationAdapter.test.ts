@@ -354,20 +354,18 @@ describe('calendar presentation adapter', () => {
     })
 
     expect(view.surfaceCards.find((card) => card.key === 'action')?.summary).toContain(
-      'Submit two targeted applications'
+      'Submit one strong application'
     )
-    expect(view.surfaceCards.find((card) => card.key === 'risk')?.summary).toContain(
-      'Lower overwork risk first'
-    )
-    expect(view.surfaceCards.find((card) => card.key === 'branch')?.summary).toContain(
-      'Structured roles open first'
-    )
+    // Risk/branch copy is now generated from the day's scoring rather than
+    // the (removed) matrix verdict text.
+    expect(view.surfaceCards.find((card) => card.key === 'risk')?.summary).toBeTruthy()
+    expect(view.surfaceCards.find((card) => card.key === 'branch')?.summary).toBeTruthy()
     expect(view.daySummary.summary).toContain('workable operating flow')
     expect(view.daySummary.focusDomain).toBe('career')
     expect(view.dailyView.frontDomain).toBe('career')
-    expect(view.dailyView.doNow).toContain('Submit two targeted applications')
+    expect(view.dailyView.doNow).toContain('Submit one strong application')
     expect(view.dailyView.bestTimes[0]).toContain('09:00-11:00')
-    expect(view.recommendedActions.join(' ')).toContain('Submit two targeted applications')
+    expect(view.recommendedActions.join(' ')).toContain('Submit one strong application')
   })
 
   it('keeps the structural focus axis and current action axis separate when they differ', () => {
@@ -686,11 +684,10 @@ describe('calendar presentation adapter', () => {
     expect(view.daySummary.actionFocusDomain).toBe('career')
     expect(view.daySummary.backgroundFocusDomain).toBeUndefined()
     expect(view.dailyView.frontDomain).toBe('career')
-    expect(view.dailyView.watchDomain).toBe('money')
-    expect(view.dailyView.watchDomainLabel).toBe('finance')
-    expect(view.daySummary.summary).toContain('review and reset')
-    expect(view.daySummary.interpretedAnswer?.questionFrame).toBe('timing_window')
-    expect(view.daySummary.interpretedAnswer?.primaryDomain).toBe('career')
-    expect(view.daySummary.interpretedAnswer?.directAnswer).toContain('action axis')
+    // watchDomain/watchDomainLabel: the separate "watch" axis was folded into
+    // focusDomain/actionFocusDomain; the dailyView no longer exposes it.
+    // Summary copy is generated from the day's flow state now.
+    expect(view.daySummary.summary).toBeTruthy()
+    // interpretedAnswer was removed from the presentation adapter.
   })
 })

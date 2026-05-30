@@ -83,7 +83,9 @@ describe('Astrology Advanced Routes (P3)', () => {
     time: '14:30',
     latitude: 37.5665,
     longitude: 126.978,
-    timeZone: '9',
+    // IANA zone — the routes derive the default year via nowInTimezone()
+    // (Intl.DateTimeFormat), which rejects bare numeric offsets like '9'.
+    timeZone: 'Asia/Seoul',
   }
 
   describe('Solar Return API', () => {
