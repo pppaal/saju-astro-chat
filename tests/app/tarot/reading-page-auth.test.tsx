@@ -65,6 +65,17 @@ vi.mock('@/app/tarot/[categoryName]/[spreadId]/utils', () => ({
   smoothScrollTo: vi.fn(),
 }))
 
+// The page consumes useCreditModal; provide a stub so the hook doesn't throw
+// outside its provider in this unit test.
+vi.mock('@/contexts/CreditModalContext', () => ({
+  useCreditModal: () => ({
+    showDepleted: vi.fn(),
+    showLowCredits: vi.fn(),
+    showGuestLimit: vi.fn(),
+    checkAndShowModal: vi.fn(),
+  }),
+}))
+
 describe('tarot reading page access', () => {
   beforeEach(() => {
     mockUseSession.mockReset()

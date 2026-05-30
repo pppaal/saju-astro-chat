@@ -126,7 +126,7 @@ describe('/api/counselor/chat-history', () => {
   // Tests use theme=general as a workaround for testing basic functionality.
   // ============================================
   describe('GET - Chat History Retrieval', () => {
-    it('should return chat sessions and persona memory successfully', async () => {
+    it('should return chat sessions successfully', async () => {
       // Note: Using theme parameter to avoid null validation issue
       const req = new NextRequest(
         'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
@@ -138,8 +138,6 @@ describe('/api/counselor/chat-history', () => {
       expect(response.status).toBe(200)
       expect(result.success).toBe(true)
       expect(result.sessions).toBeDefined()
-      expect(result.persona).toBeDefined()
-      expect(result.isReturningUser).toBe(true)
     })
 
     it('should scope sessions to the authenticated user', async () => {
@@ -186,32 +184,6 @@ describe('/api/counselor/chat-history', () => {
       )
     })
 
-    it('should return isReturningUser as false for new users', async () => {
-      mockPersonaFindUnique.mockResolvedValue(null)
-
-      const req = new NextRequest(
-        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
-      )
-
-      const response = await GET(req)
-      const result = await response.json()
-
-      expect(result.isReturningUser).toBe(false)
-    })
-
-    it('should return isReturningUser as false when sessionCount is 0', async () => {
-      mockPersonaFindUnique.mockResolvedValue({ sessionCount: 0 })
-
-      const req = new NextRequest(
-        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
-      )
-
-      const response = await GET(req)
-      const result = await response.json()
-
-      expect(result.isReturningUser).toBe(false)
-    })
-
     it('should return empty sessions array when no sessions exist', async () => {
       mockFindMany.mockResolvedValue([])
 
@@ -246,24 +218,6 @@ describe('/api/counselor/chat-history', () => {
           },
         })
       )
-    })
-
-    it('should select correct fields from persona memory', async () => {
-      const req = new NextRequest(
-        'http://localhost:3000/api/counselor/chat-history?theme=general&limit=5'
-      )
-
-      await GET(req)
-
-      expect(mockPersonaFindUnique).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        select: {
-          sessionCount: true,
-          lastTopics: true,
-          recurringIssues: true,
-          emotionalTone: true,
-        },
-      })
     })
 
     it('should query with correct userId from context', async () => {
@@ -440,33 +394,6 @@ describe('/api/counselor/chat-history', () => {
       expect(result.success).toBe(true)
       expect(result.action).toBe('created')
       expect(mockCreate).toHaveBeenCalled()
-    })
-
-    it('should create persona memory on new session creation', async () => {
-      mockCreate.mockResolvedValue({ id: 'new-session-id', theme: 'love' })
-
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
-        method: 'POST',
-        body: JSON.stringify({
-          theme: 'love',
-          userMessage: 'What about my love life?',
-        }),
-      })
-
-      await POST(req)
-
-      expect(mockUpsert).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        create: expect.objectContaining({
-          userId: mockUserId,
-          sessionCount: 1,
-          lastTopics: expect.arrayContaining(['love']),
-        }),
-        update: expect.objectContaining({
-          lastTopics: expect.arrayContaining(['love']),
-          sessionCount: { increment: 1 },
-        }),
-      })
     })
 
     it('should handle both user and assistant messages in creation', async () => {

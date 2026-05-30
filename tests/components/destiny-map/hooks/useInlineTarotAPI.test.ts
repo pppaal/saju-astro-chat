@@ -271,17 +271,18 @@ describe('useInlineTarotAPI', () => {
         await result.current.drawCards()
       })
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/tarot', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-token': expect.any(String),
-        },
-        body: JSON.stringify({
-          categoryId: 'general-insight',
-          spreadId: 'three-card',
-        }),
-      })
+      // apiFetch now uses cookie auth (credentials:'include') and no longer
+      // sends an always-empty x-api-token header; assert the payload intent.
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/tarot',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            categoryId: 'general-insight',
+            spreadId: 'three-card',
+          }),
+        })
+      )
     })
 
     it('should set drawn cards from response', async () => {
