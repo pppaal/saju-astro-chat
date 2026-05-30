@@ -2,14 +2,10 @@
 
 import { toDate } from 'date-fns-tz'
 import { logger } from '@/lib/logger'
-import {
-  STEMS,
-  BRANCHES,
-  MONTH_STEM_LOOKUP,
-  FIVE_ELEMENT_RELATIONS,
-  getSolarTermKST,
-} from './constants'
+import { STEMS, BRANCHES, MONTH_STEM_LOOKUP, getSolarTermKST } from './constants'
 import { isCheoneulGwiin } from './stemBranchUtils'
+// 십신 / 정기 매핑은 core 모듈이 single source — saju.ts/unse.ts 둘 다 같은 것 사용.
+import { getSibseong as getSibseongCore, getBranchSibsin } from './core/sibsin'
 import {
   FiveElement,
   YinYang,
@@ -27,31 +23,21 @@ import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 const utcDate = (y: number, m1to12: number, d: number, hh = 0, mm = 0, ss = 0, ms = 0) =>
   new Date(Date.UTC(y, m1to12 - 1, d, hh, mm, ss, ms))
 
+// 지지(branch)/천간(stem) 양쪽 인자를 받는 호환 wrapper — 옛 호출자가 stem/branch
+// 객체 둘 다 들어오는 패턴이라 그대로 유지. 지지면 정기 자동 lookup 으로 음양
+// 뒤집힘 (S3) 자동 fix. 천간이면 core getSibseong 호출.
 function getSibseong(
   dayMaster: { element: FiveElement; yin_yang: YinYang },
-  target: StemBranchInfo
+  target: StemBranchInfo & { name?: string }
 ): string {
-  if (!dayMaster || !target) {
-    return ''
+  if (!dayMaster || !target) return ''
+  // BRANCHES 안에 있으면 지지 — 정기 매핑.
+  if (target.name && BRANCHES.some((b) => b.name === target.name)) {
+    return getBranchSibsin(dayMaster, target.name)
   }
-  if (dayMaster.element === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '식신' : '상관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편재' : '정재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편관' : '정관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편인' : '정인'
-  }
-  return ''
+  // 천간 — core 직접 호출.
+  return getSibseongCore(dayMaster, target)
 }
-
 
 // 출생 시각을 "출생지 타임존" 기준 로컬 → UTC 타임스탬프로 정규화
 function normalizeBirthToUTC(birthDate: Date, timezone: string): Date {

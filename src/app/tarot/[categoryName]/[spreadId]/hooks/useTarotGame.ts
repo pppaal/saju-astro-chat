@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
 import {
@@ -14,7 +14,13 @@ import {
   type TarotQuestionAnalysisSnapshot,
 } from '@/lib/tarot/questionFlow'
 import { Spread, DeckStyle, type DrawnCard } from '@/lib/tarot/tarot.types'
-import { loadReadingRestorePayload, type SavedTarotReading } from '@/lib/tarot/tarot-storage'
+import {
+  loadReadingRestorePayload,
+  storeReadingRestorePayload,
+  formatReadingForSave,
+  type SavedTarotReading,
+} from '@/lib/tarot/tarot-storage'
+import { flattenTarotGuidance } from '@/lib/tarot/tarot-save-request'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import type { GameState, ReadingResponse, InterpretationResult } from '../types'
@@ -106,6 +112,8 @@ function buildRestoredInterpretation(reading: SavedTarotReading): Interpretation
 export function useTarotGame(): UseTarotGameReturn {
   const params = useParams()
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const { showDepleted } = useCreditModal()
   const categoryName = params?.categoryName as string | undefined
   const spreadId = params?.spreadId as string | undefined
@@ -296,6 +304,65 @@ export function useTarotGame(): UseTarotGameReturn {
     setIsSpreading(false)
     setGameState('results')
   }, [spreadInfo, restoreKeyFromUrl, categoryName])
+
+  // 모바일에서 앱을 백그라운드로 보냈다 돌아오면 브라우저가 페이지를 통째로
+  // 리로드해, 메모리에만 있던 readingResult 가 사라진다(결과창이 초기화됨).
+  // 완성된 리딩을 히스토리 복원과 동일한 포맷으로 sessionStorage 에 저장하고
+  // URL 에 restoreKey 를 심어두면, 리로드 후 위의 복원 effect 가 결과를 그대로
+  // 재구성한다. interpretation 이 완성된(fallback 아닌) 시점에만 저장한다 —
+  // 미완성 basic 을 저장하면 buildRestoredInterpretation 이 fallback:false 로
+  // 굳혀 빈 결과로 복원되기 때문.
+  const autoRestorePersistedRef = useRef(false)
+  useEffect(() => {
+    if (autoRestorePersistedRef.current) return
+    if (restoreKeyFromUrl) return // 이미 복원 가능한 진입(히스토리 등)
+    if (!readingResult || !spreadInfo) return
+    if (!interpretation || !interpretation.overall_message || interpretation.fallback) return
+    if (typeof window === 'undefined') return
+
+    // guidance 는 string | AdviceItem[] 라 저장 포맷(string)으로 평탄화.
+    const saveInterpretation = {
+      overall_message: interpretation.overall_message,
+      guidance: flattenTarotGuidance(interpretation.guidance),
+      card_insights: interpretation.card_insights,
+    }
+    const reading: SavedTarotReading = {
+      ...formatReadingForSave(
+        userTopic,
+        spreadInfo,
+        readingResult.drawnCards,
+        saveInterpretation,
+        categoryName || '',
+        spreadId || '',
+        selectedDeckStyle,
+        questionAnalysis
+      ),
+      id: `restore_${Date.now().toString(36)}`,
+      timestamp: Date.now(),
+    }
+    const key = storeReadingRestorePayload(reading)
+    if (!key) return
+
+    autoRestorePersistedRef.current = true
+    // 라이브 세션에서 복원 effect 가 현재 상태를 덮어쓰지 않도록 미리 마킹.
+    restoredReadingKeyRef.current = key
+    const nextParams = new URLSearchParams(searchParams?.toString() || '')
+    nextParams.set('restoreKey', key)
+    router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false })
+  }, [
+    readingResult,
+    interpretation,
+    spreadInfo,
+    restoreKeyFromUrl,
+    userTopic,
+    categoryName,
+    spreadId,
+    selectedDeckStyle,
+    questionAnalysis,
+    searchParams,
+    router,
+    pathname,
+  ])
 
   const handleColorSelect = useCallback((color: CardColor) => {
     setSelectedColor(color)

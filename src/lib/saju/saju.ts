@@ -30,59 +30,16 @@ import { isCheoneulGwiin } from './stemBranchUtils'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { getOffsetMinutes } from './timezone'
+// 십신 / 정기 매핑은 core 모듈이 single source.
+import { getBranchMainStem, getSibseong } from './core/sibsin'
 
 // 내부 타입(간단화)
 type DayMaster = { name: string; element: FiveElement; yin_yang: YinYang }
 
-/* ========== 십성 ==========
-   일간(dayMaster) 기준으로 목표 간지의 오행/음양과 비교해 십성 판정 */
-function getSibseong(
-  dayMaster: { element: FiveElement; yin_yang: YinYang },
-  target: { element: FiveElement; yin_yang: YinYang }
-): string {
-  if (dayMaster.element === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '식신' : '상관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편재' : '정재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편관' : '정관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayMaster.element] === target.element) {
-    return dayMaster.yin_yang === target.yin_yang ? '편인' : '정인'
-  }
-  return ''
-}
+// getSibseong + getBranchMainStem + MAIN_QI 매핑은 core/sibsin.ts 로 이동.
+// 호출자는 이 파일 내에서 import 한 helper 만 사용.
 
-/* ========== 지지 본기(정기) 보정 ========== */
-// 子의 정기는 癸 (음수, 한국 정통 명리). 옛 코드는 壬(양수) 으로 잘못 들어가
-// 子 가 들어간 모든 ji 의 십신이 음양 뒤집혔다 (예: 일간 戊 + 子 ji → 정재여야
-// 할 것이 편재로 잘못 분류). 다른 11개 지지 정기는 JIJANGGAN[*].정기 와 일치.
-const MAIN_QI: Record<string, string | undefined> = {
-  子: '癸',
-  丑: '己',
-  寅: '甲',
-  卯: '乙',
-  辰: '戊',
-  巳: '丙',
-  午: '丁',
-  未: '己',
-  申: '庚',
-  酉: '辛',
-  戌: '戊',
-  亥: '壬',
-}
-function getBranchMainStem(branchName: string) {
-  const name = MAIN_QI[branchName]
-  if (!name) {
-    return undefined
-  }
-  return STEMS.find((s) => s.name === name)
-}
+// MAIN_QI 매핑 + getBranchMainStem 은 core/sibsin.ts 로 이동.
 
 // 천을귀인 helper now lives in stemBranchUtils — see import block above.
 
