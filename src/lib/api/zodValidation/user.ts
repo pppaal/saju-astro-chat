@@ -81,56 +81,6 @@ export const userBirthInfoUpdateSchema = z.object({
 
 export type UserBirthInfoUpdateValidated = z.infer<typeof userBirthInfoUpdateSchema>
 
-// ============ Notification Schemas ============
-
-export const notificationSendRequestSchema = z.object({
-  userId: z.string().max(100).optional(),
-  title: z.string().min(1).max(200).trim(),
-  message: z.string().min(1).max(1000).trim(),
-  type: z.enum(['info', 'success', 'warning', 'error']).optional(),
-  link: z.string().max(500).url().optional(),
-  priority: z.enum(['low', 'normal', 'high']).optional(),
-})
-
-export type NotificationSendRequestValidated = z.infer<typeof notificationSendRequestSchema>
-
-export const notificationSendSchema = z.object({
-  targetUserId: z.string().min(1).max(200),
-  type: z.enum(['like', 'comment', 'reply', 'mention', 'system']),
-  title: z.string().min(1).max(200).trim(),
-  message: z.string().min(1).max(1000).trim(),
-  link: z.string().max(500).optional(),
-  avatar: z.string().max(500).optional(),
-})
-
-export const pushSendRequestSchema = z.object({
-  targetUserId: z.string().max(200).optional(),
-  title: z.string().min(1).max(200).trim(),
-  message: z.string().min(1).max(1000).trim(),
-  icon: z.string().max(500).optional(),
-  url: z.string().max(500).optional(),
-  tag: z.string().max(100).optional(),
-  test: z.boolean().optional(),
-})
-
-export type PushSendRequestValidated = z.infer<typeof pushSendRequestSchema>
-
-export const pushSubscribeSchema = z.object({
-  endpoint: z.string().min(1).max(2000),
-  keys: z.object({
-    p256dh: z.string().min(1).max(500),
-    auth: z.string().min(1).max(500),
-  }),
-})
-
-export type PushSubscribeValidated = z.infer<typeof pushSubscribeSchema>
-
-export const pushUnsubscribeSchema = z.object({
-  endpoint: z.string().min(1).max(2000),
-})
-
-export type PushUnsubscribeValidated = z.infer<typeof pushUnsubscribeSchema>
-
 // ============ Feedback Schemas ============
 
 export const feedbackRequestSchema = z.object({
@@ -629,12 +579,6 @@ export const cronAuthSchema = z.object({
 })
 
 export type CronAuthValidated = z.infer<typeof cronAuthSchema>
-
-export const cronNotificationsTriggerSchema = z.object({
-  hour: z.number().int().min(0).max(23).optional(),
-})
-
-export type CronNotificationsTriggerValidated = z.infer<typeof cronNotificationsTriggerSchema>
 
 export const cspReportSchema = z.object({
   'csp-report': z

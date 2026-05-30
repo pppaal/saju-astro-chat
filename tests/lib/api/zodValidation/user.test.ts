@@ -8,11 +8,6 @@ import {
   userRegistrationRequestSchema,
   userProfileUpdateSchema,
   userBirthInfoUpdateSchema,
-  notificationSendRequestSchema,
-  notificationSendSchema,
-  pushSendRequestSchema,
-  pushSubscribeSchema,
-  pushUnsubscribeSchema,
   feedbackRequestSchema,
   sectionFeedbackRequestSchema,
   feedbackGetQuerySchema,
@@ -46,7 +41,6 @@ import {
   referralValidateQuerySchema,
   meHistoryQuerySchema,
   cronAuthSchema,
-  cronNotificationsTriggerSchema,
   cspReportSchema,
 } from '@/lib/api/zodValidation/user'
 
@@ -185,78 +179,6 @@ describe('Profile Schema Tests', () => {
 
 // Persona Memory Schema Tests — birthChartMemorySchema / sajuProfileMemorySchema /
 // personaMemory* 스키마는 이 브랜치에 존재하지 않음 (feature 브랜치에서 추가 예정).
-
-describe('Notification Schema Tests', () => {
-  describe('notificationSendRequestSchema', () => {
-    it('should accept valid notification', () => {
-      expect(notificationSendRequestSchema.safeParse({
-        title: 'Daily Fortune',
-        message: 'Your daily fortune is ready!',
-      }).success).toBe(true)
-    })
-
-    it('should accept with userId and type', () => {
-      expect(notificationSendRequestSchema.safeParse({
-        userId: 'user-123',
-        title: 'Alert',
-        message: 'Important update',
-        type: 'warning',
-        priority: 'high',
-      }).success).toBe(true)
-    })
-  })
-
-  describe('pushSendRequestSchema', () => {
-    it('should accept valid push notification', () => {
-      expect(pushSendRequestSchema.safeParse({
-        title: 'New Reading',
-        message: 'Your tarot reading is complete',
-      }).success).toBe(true)
-    })
-
-    it('should accept with all options', () => {
-      expect(pushSendRequestSchema.safeParse({
-        targetUserId: 'user-123',
-        title: 'Fortune',
-        message: 'Check your fortune',
-        icon: '/icon.png',
-        url: '/fortune',
-        tag: 'fortune',
-        test: true,
-      }).success).toBe(true)
-    })
-  })
-
-  describe('pushSubscribeSchema', () => {
-    it('should accept valid subscription', () => {
-      expect(pushSubscribeSchema.safeParse({
-        endpoint: 'https://fcm.googleapis.com/fcm/send/example',
-        keys: {
-          p256dh: 'BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM=',
-          auth: 'tBHItJI5svbpez7KI4CCXg==',
-        },
-      }).success).toBe(true)
-    })
-
-    it('should reject missing keys', () => {
-      expect(pushSubscribeSchema.safeParse({
-        endpoint: 'https://example.com',
-        keys: {
-          p256dh: '',
-          auth: 'test',
-        },
-      }).success).toBe(false)
-    })
-  })
-
-  describe('pushUnsubscribeSchema', () => {
-    it('should accept valid unsubscribe', () => {
-      expect(pushUnsubscribeSchema.safeParse({
-        endpoint: 'https://fcm.googleapis.com/fcm/send/example',
-      }).success).toBe(true)
-    })
-  })
-})
 
 describe('Feedback Schema Tests', () => {
   describe('feedbackRequestSchema', () => {
@@ -698,24 +620,6 @@ describe('System Schema Tests', () => {
       expect(cronAuthSchema.safeParse({
         token: '',
       }).success).toBe(false)
-    })
-  })
-
-  describe('cronNotificationsTriggerSchema', () => {
-    it('should accept valid hour', () => {
-      expect(cronNotificationsTriggerSchema.safeParse({
-        hour: 9,
-      }).success).toBe(true)
-    })
-
-    it('should accept hour range 0-23', () => {
-      expect(cronNotificationsTriggerSchema.safeParse({ hour: 0 }).success).toBe(true)
-      expect(cronNotificationsTriggerSchema.safeParse({ hour: 23 }).success).toBe(true)
-    })
-
-    it('should reject invalid hour', () => {
-      expect(cronNotificationsTriggerSchema.safeParse({ hour: 24 }).success).toBe(false)
-      expect(cronNotificationsTriggerSchema.safeParse({ hour: -1 }).success).toBe(false)
     })
   })
 
