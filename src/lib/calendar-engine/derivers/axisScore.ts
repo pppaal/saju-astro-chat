@@ -98,8 +98,10 @@ function mad(xs: number[], med: number): number {
   return median(xs.map((x) => Math.abs(x - med)))
 }
 
-/** raw 방향값 분포를 0~100 으로 펴는 폭(중앙값 ± 이 정도가 50±TARGET). 프로토타입 검증값. */
-const TARGET_SPREAD = 12
+/** raw 방향값 분포를 0~100 으로 펴는 폭(중앙값 ± 이 정도가 50±TARGET).
+ *  12는 너무 보수적이라 "확실히 좋은/나쁜 날"이 안 나옴(전부 47~62) → 22로
+ *  확대(좋은날 65+/나쁜날 35- 가 실제로 생김, 옛 엔진 22~89 수준의 변별). */
+const TARGET_SPREAD = 22
 /** scale 폭발 방지: MAD 가 작아도 이 이상 못 커짐. */
 const MAX_SCALE = 400
 /** MAD 바닥값(이보다 작으면 신호 변별 거의 없음 → 폭발 차단). */
