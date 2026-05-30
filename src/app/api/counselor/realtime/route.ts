@@ -34,20 +34,21 @@ const idemStore = createIdempotencyStore('counselor-realtime')
 // 비로그인 게스트 무료 체험 — 궁합상담사와 동일하게 2 턴.
 // 쿠키 기반 카운터 (HttpOnly), 30 일 유지. 한도 초과 시 401 로 로그인 유도.
 const GUEST_DESTINY_TURN_LIMIT = 2
-const GUEST_DESTINY_TURN_COOKIE = 'guest_destiny_counselor_turns'
+export const GUEST_DESTINY_TURN_COOKIE_NAME = 'guest_destiny_counselor_turns'
 const GUEST_DESTINY_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
 const GUEST_DESTINY_RATE_LIMIT = { limit: 12, windowSeconds: 60 } as const
 
 function readGuestDestinyTurns(req: NextRequest): number {
-  const raw = req.cookies.get(GUEST_DESTINY_TURN_COOKIE)?.value
+  const raw = req.cookies.get(GUEST_DESTINY_TURN_COOKIE_NAME)?.value
   if (!raw) return 0
   const n = parseInt(raw, 10)
   return Number.isFinite(n) && n > 0 ? n : 0
 }
 
-function buildGuestDestinyTurnCookie(next: number): string {
+// refund-guest-turn endpoint 가 같은 형식으로 cookie set 하도록 export.
+export function buildGuestDestinyTurnCookieFromValue(next: number): string {
   const parts = [
-    `${GUEST_DESTINY_TURN_COOKIE}=${next}`,
+    `${GUEST_DESTINY_TURN_COOKIE_NAME}=${next}`,
     'Path=/',
     `Max-Age=${GUEST_DESTINY_COOKIE_MAX_AGE}`,
     'SameSite=Lax',
@@ -55,6 +56,10 @@ function buildGuestDestinyTurnCookie(next: number): string {
   ]
   if (process.env.NODE_ENV === 'production') parts.push('Secure')
   return parts.join('; ')
+}
+
+function buildGuestDestinyTurnCookie(next: number): string {
+  return buildGuestDestinyTurnCookieFromValue(next)
 }
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
@@ -98,6 +103,11 @@ interface RealtimeBody {
 // 게스트는 끊김 복구 기능 미지원 (turnId 보관 안 함).
 export const counselorTurnResultKey = (userId: string, turnId: string) =>
   `counselor:turn-result:${userId}:${turnId}`
+
+// 게스트 카운터 refund 자격 marker — handleFailure 시점에 저장, refund endpoint
+// 가 cookie -1 set 후 삭제. 클라가 임의로 cookie 깎지 못하도록 (게스트 무한채팅
+// 방지) abuse-proof. TTL 짧음 (60s) — refund 즉시 시도해야.
+export const guestRefundMarkerKey = (turnId: string) => `counselor:guest-refund:${turnId}`
 // 돌아와서 받아갈 시간을 충분히 (10분). 받아가면 그만이고 TTL 로 자동 소멸.
 const TURN_RESULT_TTL_SEC = 600
 
@@ -572,6 +582,8 @@ export async function POST(req: NextRequest) {
   // window they never got to use. Continuing turns weren't charged → no-op.
   // chargedThisTurn === true 는 userId 가 정의된 (로그인) 케이스에서만 발생 —
   // 위 consume 블록이 `if (userId)` 가드 안에 있음. assertion safe.
+  const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
+
   const onFailure =
     chargedThisTurn && userId
       ? async () => {
@@ -587,9 +599,19 @@ export async function POST(req: NextRequest) {
             logger.warn('[counselor/realtime] stream-failure refund failed', { err })
           }
         }
-      : undefined
-
-  const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
+      : isGuestMode && turnId
+        ? async () => {
+            // 게스트 turn 실패 → refund-eligible marker 저장. 클라가 별도
+            // endpoint 호출해 cookie -1 받아갈 수 있게. SSE response 헤더는
+            // stream 시작 시 flush 되어 mid-stream 에서 cookie 재set 불가 →
+            // 클라가 fetch 로 별도 refund endpoint 호출하는 우회 경로.
+            try {
+              await cacheSet(guestRefundMarkerKey(turnId), '1', 60)
+            } catch (err) {
+              logger.warn('[counselor/realtime] guest-refund marker save failed', { err })
+            }
+          }
+        : undefined
 
   return streamClaudeAsSSE({
     // req.signal 은 여전히 넘기지만, keepGeneratingOnDisconnect 가 true 라
