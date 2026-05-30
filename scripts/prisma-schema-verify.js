@@ -228,8 +228,22 @@ const REQUIRED_TABLES = [
 const REQUIRED_SCHEMA = [
   {
     table: 'UserSettings',
-    migration: '20260527000000_add_legal_consent',
+    migration: '20260208_split_user_profile_settings',
     columns: [
+      // referralCode 는 split_user_profile_settings(2026-02-08) 가 만든 컬럼인데,
+      // 그 migration 이 phantom-apply 되면 referral 코드 발급/조회가 P2022 로 죽는다
+      // (prod Sentry: prisma.userSettings.upsert → "column (not available) does not
+      // exist"). 컬럼 + 스키마의 @unique·@@index 둘 다 재생성해 복구.
+      {
+        name: 'referralCode',
+        ddl: `ADD COLUMN IF NOT EXISTS "referralCode" TEXT`,
+        postSql: `
+          CREATE UNIQUE INDEX IF NOT EXISTS "UserSettings_referralCode_key"
+            ON "UserSettings"("referralCode");
+          CREATE INDEX IF NOT EXISTS "UserSettings_referralCode_idx"
+            ON "UserSettings"("referralCode");
+        `,
+      },
       { name: 'legalAcceptedAt', ddl: `ADD COLUMN IF NOT EXISTS "legalAcceptedAt" TIMESTAMP(3)` },
       {
         name: 'legalAcceptedVersion',
