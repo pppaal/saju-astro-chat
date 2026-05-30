@@ -1,4 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+// @vitest-environment node
+// Needs the REAL Swiss Ephemeris + cache recompute path to emit saju×astro
+// signals; the global setup mocks both. Unmock and run under node.
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+vi.unmock('swisseph')
+vi.unmock('@/lib/astrology/foundation/ephe')
+vi.unmock('@/lib/db/prisma')
 import type { NextRequest } from 'next/server'
 import { GET as calendarGet } from '@/app/api/calendar/route'
 

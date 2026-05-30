@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+// @vitest-environment node
+// Builds the calendar engine end-to-end from REAL Swiss Ephemeris; the global
+// setup mocks swisseph/ephe with fixed fake positions which break score↔근거
+// consistency. Unmock and run under node.
+import { describe, it, expect, beforeAll, vi } from 'vitest'
+vi.unmock('swisseph')
+vi.unmock('@/lib/astrology/foundation/ephe')
+vi.unmock('@/lib/db/prisma')
 import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'

@@ -1,4 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+// @vitest-environment node
+// The calendar route augmentation runs REAL Swiss Ephemeris computation to
+// produce hourly engineSignals. The global setup mocks swisseph with fixed
+// fake positions (no realistic hourly transits → no hourly signals), so we
+// unmock it here and run under node like the other real-ephemeris tests.
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+vi.unmock('swisseph')
+vi.unmock('@/lib/astrology/foundation/ephe')
+// Use the real prisma client too — it can't reach the test DB, so the cache
+// layers gracefully fall through to recompute (the production path). With the
+// global prisma mock, cache lookups resolve undefined in a way that suppresses
+// the engine's signal augmentation.
+vi.unmock('@/lib/db/prisma')
 import type { NextRequest } from 'next/server'
 import { GET as calendarGet } from '@/app/api/calendar/route'
 
