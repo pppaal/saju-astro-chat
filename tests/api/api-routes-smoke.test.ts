@@ -117,23 +117,19 @@ describe('API Routes Smoke Tests', () => {
     })
   })
 
-  describe('Me Routes (5)', () => {
+  describe('Me Routes (4)', () => {
     it('should have user profile routes', () => {
+      // me/history 라우트는 제거됨.
       assertModules([
         'app/api/me/circle/route',
         'app/api/me/credits/route',
-        'app/api/me/history/route',
         'app/api/me/premium/route',
         'app/api/me/profile/route',
       ])
     })
   })
 
-  describe('Push Routes', () => {
-    it('should have push routes', () => {
-      assertModules(['app/api/push/subscribe/route'])
-    })
-  })
+  // Push 라우트군(app/api/push)은 제거된 기능 — describe 블록 삭제.
 
   describe('Referral Routes', () => {
     it('should have referral routes', () => {
@@ -186,7 +182,6 @@ describe('API Routes Smoke Tests', () => {
         'destiny-match',
         'feedback',
         'me',
-        'push',
         'referral',
         'saju',
         'tarot',

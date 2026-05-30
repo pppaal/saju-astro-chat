@@ -70,25 +70,18 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Destiny Map Pages (4)', () => {
+  describe('Destiny Map Pages (2)', () => {
     it('should have destiny map pages', () => {
-      assertPages([
-        'app/destiny-map/page',
-        'app/destiny-map/counselor/page',
-        'app/destiny-map/result/page',
-        'app/destiny-map/theme/page',
-      ])
+      // result/theme 서브페이지는 제거됨 — page + counselor 만 남음.
+      assertPages(['app/destiny-map/page', 'app/destiny-map/counselor/page'])
     })
   })
 
-  describe('Destiny Match Pages (4)', () => {
+  describe('Destiny Match Pages (1)', () => {
     it('should have destiny match pages', () => {
-      assertPages([
-        'app/destiny-match/page',
-        'app/destiny-match/matches/page',
-        'app/destiny-match/setup/page',
-        'app/destiny-match/chat/[connectionId]/page',
-      ])
+      // 출시 전 hide — matches/setup/chat 서브페이지는 제거됐고 진입 page 만
+      // redirect stub 으로 남아 있다.
+      assertPages(['app/destiny-match/page'])
     })
   })
 
@@ -98,25 +91,11 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('ICP Pages (3)', () => {
-    it('should have icp pages', () => {
-      assertPages(['app/icp/page', 'app/icp/quiz/page', 'app/icp/result/page'])
-    })
-  })
+  // ICP / Personality 페이지군은 제거된 기능 — 해당 describe 블록도 함께 삭제.
 
   describe('Notifications Pages (1)', () => {
     it('should have notifications page', () => {
       assertPages(['app/notifications/page'])
-    })
-  })
-
-  describe('Personality Pages (3)', () => {
-    it('should have personality pages', () => {
-      assertPages([
-        'app/personality/page',
-        'app/personality/quiz/page',
-        'app/personality/result/page',
-      ])
     })
   })
 
@@ -169,9 +148,7 @@ describe('Pages Smoke Tests', () => {
         'destiny-map',
         'destiny-match',
         'faq',
-        'icp',
         'notifications',
-        'personality',
         'policy',
         'pricing',
         'profile',
@@ -179,7 +156,7 @@ describe('Pages Smoke Tests', () => {
         'tarot',
       ]
 
-      expect(categories.length).toBe(18)
+      expect(categories.length).toBe(16)
     })
   })
 })
