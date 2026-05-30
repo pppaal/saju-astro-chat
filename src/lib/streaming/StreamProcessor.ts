@@ -310,5 +310,12 @@ export class StreamProcessor {
   }
 }
 
-// Singleton instance for convenience
-export const streamProcessor = new StreamProcessor()
+// 옛 코드: `new StreamProcessor()` singleton 을 모든 호출이 공유 → `sseBuffer`
+// 인스턴스 state 가 동시 stream (다른 탭에서 동시 채팅, 재시도 중 새 send, 등) 끼리
+// 덮어써져 SSE 파서 buffer 가 깨졌다. 매 호출마다 새 인스턴스로 격리.
+export const streamProcessor = {
+  process: (response: Response, options?: StreamProcessorOptions): Promise<StreamResult> =>
+    new StreamProcessor().process(response, options),
+  // 순수 helper (인스턴스 state 미사용) — 인스턴스 한 번 만들어 호출.
+  extractFollowUpQuestions: (text: string) => new StreamProcessor().extractFollowUpQuestions(text),
+}

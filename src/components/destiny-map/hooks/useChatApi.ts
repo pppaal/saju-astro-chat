@@ -79,6 +79,22 @@ export function useChatApi({
   const [showCrisisModal, setShowCrisisModal] = React.useState(false)
   const MAX_CHAT_MESSAGE_CHARS = 2000
 
+  // 게스트 무료 턴 카운터 refund — SSE 시작 시 cookie 이미 +1 됐는데 응답이
+  // 실패/끊김인 경우 별도 endpoint 로 cookie -1 복원. 서버가 marker 저장한
+  // turn 만 통과 (정상 답변엔 marker 없음 → 410). silent fail (refund 못 받아도
+  // UX 영향 최소).
+  const refundGuestTurnIfEligible = React.useCallback(async (turnId: string) => {
+    try {
+      await apiFetch('/api/counselor/realtime/refund-guest-turn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ turnId }),
+      })
+    } catch {
+      /* 카운터 복원 실패는 silent — 보호장치라 critical 아님 */
+    }
+  }, [])
+
   // Stream updates are buffered so the UI does not re-layout on every token.
   const pendingContentRef = React.useRef<string | null>(null)
   const updateTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -421,6 +437,10 @@ export function useChatApi({
         // Flush final content immediately (bypass throttle)
         if (!result.content) {
           flushFinalMessage(tr.noResponse)
+          // 게스트 + 빈 응답 → 무료 턴 카운터 refund 시도 (서버가 SSE 시작
+          // 시점에 이미 cookie +1 했지만, 응답 실패는 사용자 잘못 아니므로
+          // 별도 endpoint 로 cookie -1 복원). server-side marker 가 있어야 통과.
+          if (turnId) void refundGuestTurnIfEligible(turnId)
         } else {
           const normalizedContent = normalizeCounselorResponse(
             result.content,
@@ -439,6 +459,8 @@ export function useChatApi({
               }
               return updated
             })
+            // 게스트 + 실패/끊김 → refund 시도. 정상 답변 turn 엔 marker 없어 410 받음.
+            if (turnId) void refundGuestTurnIfEligible(turnId)
           }
 
           // Set follow-up questions — 모델이 가끔 generic 질문("더 알려줘"/
@@ -498,6 +520,7 @@ export function useChatApi({
       onSaveMessage,
       setNotice,
       attemptRecover,
+      refundGuestTurnIfEligible,
     ]
   )
 

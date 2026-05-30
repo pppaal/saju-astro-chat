@@ -82,10 +82,10 @@ function matchUser(row: UserCreditsRow, where: Record<string, unknown>): boolean
       if (row.userId !== v) return false
     } else if (v && typeof v === 'object' && 'gt' in (v as Record<string, unknown>)) {
       const val = row[k as keyof UserCreditsRow] as number
-      if (!(val > ((v as { gt: number }).gt))) return false
+      if (!(val > (v as { gt: number }).gt)) return false
     } else if (v && typeof v === 'object' && 'lt' in (v as Record<string, unknown>)) {
       const val = row[k as keyof UserCreditsRow] as number
-      if (!(val < ((v as { lt: number }).lt))) return false
+      if (!(val < (v as { lt: number }).lt)) return false
     } else {
       if ((row as Record<string, unknown>)[k] !== v) return false
     }
@@ -108,6 +108,9 @@ function matchPurchase(row: PurchaseRow, where: Record<string, unknown>): boolea
     } else if (v && typeof v === 'object' && 'lte' in (v as Record<string, unknown>)) {
       const val = (row as Record<string, unknown>)[k] as number
       if (!(val <= (v as { lte: number }).lte)) return false
+    } else if (v && typeof v === 'object' && 'gte' in (v as Record<string, unknown>)) {
+      const val = (row as Record<string, unknown>)[k] as number
+      if (!(val >= (v as { gte: number }).gte)) return false
     } else {
       if ((row as Record<string, unknown>)[k] !== v) return false
     }
@@ -119,10 +122,10 @@ function applyUpdateData(row: UserCreditsRow, data: Record<string, unknown>) {
   for (const [k, v] of Object.entries(data)) {
     if (v && typeof v === 'object' && 'increment' in (v as Record<string, unknown>)) {
       ;(row as Record<string, unknown>)[k] =
-        ((row as Record<string, unknown>)[k] as number) + ((v as { increment: number }).increment)
+        ((row as Record<string, unknown>)[k] as number) + (v as { increment: number }).increment
     } else if (v && typeof v === 'object' && 'decrement' in (v as Record<string, unknown>)) {
       ;(row as Record<string, unknown>)[k] =
-        ((row as Record<string, unknown>)[k] as number) - ((v as { decrement: number }).decrement)
+        ((row as Record<string, unknown>)[k] as number) - (v as { decrement: number }).decrement
     } else {
       ;(row as Record<string, unknown>)[k] = v
     }
@@ -133,10 +136,10 @@ function applyPurchaseUpdate(row: PurchaseRow, data: Record<string, unknown>) {
   for (const [k, v] of Object.entries(data)) {
     if (v && typeof v === 'object' && 'increment' in (v as Record<string, unknown>)) {
       ;(row as Record<string, unknown>)[k] =
-        ((row as Record<string, unknown>)[k] as number) + ((v as { increment: number }).increment)
+        ((row as Record<string, unknown>)[k] as number) + (v as { increment: number }).increment
     } else if (v && typeof v === 'object' && 'decrement' in (v as Record<string, unknown>)) {
       ;(row as Record<string, unknown>)[k] =
-        ((row as Record<string, unknown>)[k] as number) - ((v as { decrement: number }).decrement)
+        ((row as Record<string, unknown>)[k] as number) - (v as { decrement: number }).decrement
     } else {
       ;(row as Record<string, unknown>)[k] = v
     }
@@ -167,14 +170,12 @@ const fakePrisma: Record<string, unknown> = {
     findUnique: vi.fn(async (args: { where: { userId: string } }) => {
       return state.userCredits.get(args.where.userId) ?? null
     }),
-    update: vi.fn(
-      async (args: { where: { userId: string }; data: Record<string, unknown> }) => {
-        const row = state.userCredits.get(args.where.userId)
-        if (!row) throw new Error('userCredits not found')
-        applyUpdateData(row, args.data)
-        return row
-      }
-    ),
+    update: vi.fn(async (args: { where: { userId: string }; data: Record<string, unknown> }) => {
+      const row = state.userCredits.get(args.where.userId)
+      if (!row) throw new Error('userCredits not found')
+      applyUpdateData(row, args.data)
+      return row
+    }),
     updateMany: vi.fn(
       async (args: { where: Record<string, unknown>; data: Record<string, unknown> }) => {
         let count = 0
@@ -223,12 +224,14 @@ const fakePrisma: Record<string, unknown> = {
         for (const clause of obs.slice().reverse()) {
           const field = clause.expiresAt ? 'expiresAt' : 'createdAt'
           const dir = (clause.expiresAt ?? clause.createdAt) === 'asc' ? 1 : -1
-          rows = rows.slice().sort(
-            (a, b) =>
-              ((a[field as keyof PurchaseRow] as Date).getTime() -
-                (b[field as keyof PurchaseRow] as Date).getTime()) *
-              dir
-          )
+          rows = rows
+            .slice()
+            .sort(
+              (a, b) =>
+                ((a[field as keyof PurchaseRow] as Date).getTime() -
+                  (b[field as keyof PurchaseRow] as Date).getTime()) *
+                dir
+            )
         }
         return rows
       }
@@ -247,14 +250,12 @@ const fakePrisma: Record<string, unknown> = {
         return rows[0] ?? null
       }
     ),
-    update: vi.fn(
-      async (args: { where: { id: string }; data: Record<string, unknown> }) => {
-        const row = state.purchases.find((p) => p.id === args.where.id)
-        if (!row) throw new Error('purchase not found')
-        applyPurchaseUpdate(row, args.data)
-        return row
-      }
-    ),
+    update: vi.fn(async (args: { where: { id: string }; data: Record<string, unknown> }) => {
+      const row = state.purchases.find((p) => p.id === args.where.id)
+      if (!row) throw new Error('purchase not found')
+      applyPurchaseUpdate(row, args.data)
+      return row
+    }),
     updateMany: vi.fn(
       async (args: { where: Record<string, unknown>; data: Record<string, unknown> }) => {
         let count = 0
@@ -269,21 +270,23 @@ const fakePrisma: Record<string, unknown> = {
     ),
   },
   creditTransaction: {
-    create: vi.fn(async (args: { data: Omit<CreditTxn, 'id' | 'createdAt'> & { createdAt?: Date } }) => {
-      const row: CreditTxn = {
-        id: nextId('ctx'),
-        userId: args.data.userId,
-        type: args.data.type,
-        pool: args.data.pool,
-        amount: args.data.amount,
-        reason: args.data.reason,
-        sourceRef: args.data.sourceRef ?? null,
-        metadata: args.data.metadata ?? null,
-        createdAt: args.data.createdAt ?? new Date(),
+    create: vi.fn(
+      async (args: { data: Omit<CreditTxn, 'id' | 'createdAt'> & { createdAt?: Date } }) => {
+        const row: CreditTxn = {
+          id: nextId('ctx'),
+          userId: args.data.userId,
+          type: args.data.type,
+          pool: args.data.pool,
+          amount: args.data.amount,
+          reason: args.data.reason,
+          sourceRef: args.data.sourceRef ?? null,
+          metadata: args.data.metadata ?? null,
+          createdAt: args.data.createdAt ?? new Date(),
+        }
+        state.creditTransactions.push(row)
+        return row
       }
-      state.creditTransactions.push(row)
-      return row
-    }),
+    ),
     createMany: vi.fn(async (args: { data: Array<Omit<CreditTxn, 'id' | 'createdAt'>> }) => {
       for (const d of args.data) {
         state.creditTransactions.push({
@@ -444,9 +447,8 @@ describe('CreditTransaction sum-invariant', () => {
 
   it('per-pool sums (BONUS, MONTHLY) match counter deltas', async () => {
     const userId = 'user_pool'
-    const { initializeUserCredits, addBonusCredits, consumeCredits } = await import(
-      '@/lib/credits/creditService'
-    )
+    const { initializeUserCredits, addBonusCredits, consumeCredits } =
+      await import('@/lib/credits/creditService')
 
     await initializeUserCredits(userId) // +5 BONUS, ctx(SIGNUP_BONUS/BONUS +5)
     await addBonusCredits(userId, 7, 'purchase', 'pi_pool_1') // +7 BONUS, ctx +7
@@ -459,9 +461,8 @@ describe('CreditTransaction sum-invariant', () => {
 
   it('refund (reading→bonus) writes REFUND/BONUS with positive amount', async () => {
     const userId = 'user_refund'
-    const { initializeUserCredits, addBonusCredits, consumeCredits } = await import(
-      '@/lib/credits/creditService'
-    )
+    const { initializeUserCredits, addBonusCredits, consumeCredits } =
+      await import('@/lib/credits/creditService')
     const { refundCredits } = await import('@/lib/credits/creditRefund')
 
     await initializeUserCredits(userId)
@@ -484,9 +485,8 @@ describe('CreditTransaction sum-invariant', () => {
 
   it('every CONSUME/BONUS row carries sourceRef = purchase.id', async () => {
     const userId = 'user_src'
-    const { initializeUserCredits, addBonusCredits, consumeCredits } = await import(
-      '@/lib/credits/creditService'
-    )
+    const { initializeUserCredits, addBonusCredits, consumeCredits } =
+      await import('@/lib/credits/creditService')
 
     await initializeUserCredits(userId)
     await addBonusCredits(userId, 3, 'purchase', 'pi_src_1')
