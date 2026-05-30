@@ -537,10 +537,19 @@ export async function calculateSajuOrchestrated(
   const { birthDate, birthTime, gender, timezone } = input
   const safeBirthTime = formatBirthTime(birthTime)
 
-  // Parse birth date for cycle calculations
+  // Parse birth date for cycle calculations.
+  // R1 fix: 옛 코드 `new Date(Date.UTC(...))` 는 user-local wall-clock 을 UTC 로
+  // 잘못 해석 → PR #1019 가 unse.ts 에 대해 fix 한 S1 와 동일 클래스 버그가
+  // 여기서 재발. core/birthInstant 의 buildBirthInstant 사용.
   const [year, month, day] = birthDate.split('-').map(Number)
   const [hour, minute] = birthTime.split(':').map((v) => Number(v) || 0)
-  const birthDateObj = new Date(Date.UTC(year, month - 1, day, hour, minute))
+  const { buildBirthInstant } = await import('@/lib/datetime')
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const birthDateObj = buildBirthInstant(
+    `${year}-${pad(month)}-${pad(day)}`,
+    `${pad(hour)}:${pad(minute)}`,
+    timezone
+  )
 
   // Calculate core Saju data
   let sajuFacts: SajuFactsInput = {}

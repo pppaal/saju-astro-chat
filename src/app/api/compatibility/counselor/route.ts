@@ -483,7 +483,11 @@ export async function POST(req: NextRequest) {
           i: number
         ) => {
           const label = i === 0 ? 'A' : i === 1 ? 'B' : `P${i + 1}`
-          const name = p.name || ''
+          // T2 fix: partner name 은 클라 입력 (zod 120 chars 임의 문자열). 다른
+          // free-text 필드 (userQuestion, cvText, prior turns) 는 모두
+          // sanitizeForXmlTagBoundary 거치는데 name 만 raw 로 prompt 에 삽입돼
+          // prompt injection 가능했다.
+          const name = p.name ? sanitizeForXmlTagBoundary(p.name).slice(0, 120) : ''
           const head = name ? `${label} (${name})` : label
           // Show the current age inline. Without this the LLM has to
           // derive "what age is this person now" from the birth year
@@ -781,17 +785,18 @@ export async function POST(req: NextRequest) {
     // (양인·귀문관·원진·고신·금여성·천덕/월덕귀인) 만 1인 1줄로. 도화·홍염·
     // 백호·괴강·천을귀인 은 sajuSynastryFormatter 가 양방향 cross 처리해
     // 중복 제거.
+    // T2 fix: name 을 sanitize 후 prompt 에 삽입.
+    const safeNameOf = (idx: number): string => {
+      const raw = (persons?.[idx] as { name?: string } | undefined)?.name
+      return raw ? sanitizeForXmlTagBoundary(raw).slice(0, 120) : ''
+    }
     const personalShinsalLines = [
       formatPersonalShinsal(
-        (persons?.[0] as { name?: string } | undefined)?.name
-          ? `A(${(persons[0] as { name?: string }).name})`
-          : 'A',
+        safeNameOf(0) ? `A(${safeNameOf(0)})` : 'A',
         (effectivePerson1Saju as { extras?: { shinsal?: unknown } } | null)?.extras?.shinsal
       ),
       formatPersonalShinsal(
-        (persons?.[1] as { name?: string } | undefined)?.name
-          ? `B(${(persons[1] as { name?: string }).name})`
-          : 'B',
+        safeNameOf(1) ? `B(${safeNameOf(1)})` : 'B',
         (effectivePerson2Saju as { extras?: { shinsal?: unknown } } | null)?.extras?.shinsal
       ),
     ].filter(Boolean)
