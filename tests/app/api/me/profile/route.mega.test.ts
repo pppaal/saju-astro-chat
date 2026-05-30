@@ -113,8 +113,11 @@ vi.mock('@/lib/api/zodValidation', () => ({
 }))
 
 // Mock dependencies
-vi.mock('@/lib/db/prisma', () => ({
-  prisma: {
+vi.mock('@/lib/db/prisma', () => {
+  // The route wraps its writes in prisma.$transaction(async (tx) => …). Hand
+  // the same mock object back as `tx` so tx.user.update / tx.userProfile.upsert
+  // resolve to these spies and existing assertions keep working.
+  const prisma = {
     user: {
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -128,8 +131,10 @@ vi.mock('@/lib/db/prisma', () => ({
     userPreferences: {
       upsert: vi.fn(),
     },
-  },
-}))
+    $transaction: vi.fn(async (cb: (tx: unknown) => unknown) => cb(prisma)),
+  }
+  return { prisma }
+})
 
 vi.mock('@/lib/cache/redis-cache', () => ({
   clearCacheByPattern: vi.fn().mockResolvedValue(undefined),
