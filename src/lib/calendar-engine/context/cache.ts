@@ -29,7 +29,7 @@ import type { NatalContext } from './types'
 // v1-baseline: 초기.
 // v2-rich: NatalContext.saju 에 fiveElements + advancedAnalysis 추가 — 운명/궁합 차트
 //          PersonaCard·InsightStrip 가 cache hit 으로 격국/용신/십신/오행 분포 받게.
-const ENGINE_SIGNATURE = 'natal-v2-rich'
+const ENGINE_SIGNATURE = 'natal-v3-gender'
 
 interface NatalCacheKeyInput {
   birthDate: string

@@ -63,6 +63,7 @@ export function sourceGrandAvg(signals: ActiveSignal[]): number | null {
     // 종류별 가중평균
     const byKind = new Map<string, { sum: number; weight: number }>()
     for (const s of arr) {
+      if (s.polarity === 0) continue // 길흉 0(소행성 +0 등)은 평균·분모에서 제외(희석 방지)
       const acc = byKind.get(s.kind) ?? { sum: 0, weight: 0 }
       acc.sum += s.polarity * s.weight
       acc.weight += s.weight
@@ -103,9 +104,13 @@ function mad(xs: number[], med: number): number {
  *  확대(좋은날 65+/나쁜날 35- 가 실제로 생김, 옛 엔진 22~89 수준의 변별). */
 const TARGET_SPREAD = 22
 /** scale 폭발 방지: MAD 가 작아도 이 이상 못 커짐. */
-const MAX_SCALE = 400
-/** MAD 바닥값(이보다 작으면 신호 변별 거의 없음 → 폭발 차단). */
-const MIN_ROBUST = 0.03
+const MAX_SCALE = 150
+/** MAD 바닥값(이보다 작으면 신호 변별 거의 없음 → 폭발 차단). 0.03은 너무 낮아
+ *  짧은 창에서 scale 수백배 폭주(축 0/100 양극화) → 0.18로 상향. */
+const MIN_ROBUST = 0.18
+/** 표본 부족(짧은 창) 시 MAD 추정 자체가 불안정 → 보정 보류, 고정 보수 scale. */
+const MIN_SAMPLES = 7
+const DEFAULT_SCALE = 16
 
 export interface AxisCalibration {
   sajuBias: number; sajuScale: number
@@ -113,6 +118,7 @@ export interface AxisCalibration {
 }
 
 const robustScale = (xs: number[], med: number): number => {
+  if (xs.length < MIN_SAMPLES) return DEFAULT_SCALE // 표본 부족 → 폭주 방지(고정)
   const robust = 1.4826 * mad(xs, med) // MAD → σ 환산(정규 기준)
   return Math.min(MAX_SCALE, TARGET_SPREAD / Math.max(robust, MIN_ROBUST))
 }
