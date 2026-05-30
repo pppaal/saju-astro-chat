@@ -277,9 +277,10 @@ describe('timezone utilities', () => {
       expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
     });
 
-    it('should use Asia/Seoul as default', () => {
+    it('should use UTC as default', () => {
+      // Default zone is UTC (server-safe); explicit zones are passed by callers.
       const withDefault = getIsoInTimezone();
-      const withExplicit = getIsoInTimezone('Asia/Seoul');
+      const withExplicit = getIsoInTimezone('UTC');
       // Should be very close in time (within a second)
       expect(withDefault.slice(0, 16)).toBe(withExplicit.slice(0, 16));
     });
