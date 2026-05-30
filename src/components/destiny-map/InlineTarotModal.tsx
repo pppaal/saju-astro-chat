@@ -135,8 +135,11 @@ const InlineTarotModal = memo(function InlineTarotModal({
     }
   }
 
-  // Handle spread selection
-  const handleSpreadSelect = (spread: Spread) => {
+  // Handle spread selection — gate on credits first so a credit-less user is
+  // told right here instead of after tapping "draw" (and to catch the
+  // remaining=1 / 5-7-card-costs-2 case the draw's own ≥1 check would miss).
+  const handleSpreadSelect = async (spread: Spread) => {
+    if (!(await api.ensureCreditsFor(spread.cardCount))) return
     actions.setSelectedSpread(spread)
     actions.setStep('card-draw')
   }

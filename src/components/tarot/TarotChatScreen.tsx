@@ -18,6 +18,7 @@ import {
   type DeckStyle,
 } from '@/lib/tarot/tarot.types'
 import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
+import { fetchRemainingCredits } from '@/lib/credits/clientCredits'
 import type { Spread } from '@/lib/tarot/tarot.types'
 
 // 카테고리(테마) 안의 모든 spread 를 flat 하게 펼침 — chip 1개로 선택
@@ -107,18 +108,12 @@ export default function TarotChatScreen() {
     if (status === 'authenticated') {
       setCheckingCredits(true)
       try {
-        const res = await fetch('/api/me/credits')
-        if (res.ok) {
-          const data = await res.json()
-          const remaining: number = data?.credits?.remaining ?? 0
-          const cost = tarotCreditCostFor(selectedSpread.spread.cardCount)
-          if (remaining < cost) {
-            showDepleted()
-            return
-          }
+        const remaining = await fetchRemainingCredits()
+        const cost = tarotCreditCostFor(selectedSpread.spread.cardCount)
+        if (remaining !== null && remaining < cost) {
+          showDepleted()
+          return
         }
-      } catch {
-        // network error — don't trap the user; let the draw surface it
       } finally {
         setCheckingCredits(false)
       }

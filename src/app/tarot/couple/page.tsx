@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import styles from './couple-tarot.module.css'
 import { logger } from '@/lib/logger'
+import { useCreditModal } from '@/contexts/CreditModalContext'
+import { fetchRemainingCredits } from '@/lib/credits/clientCredits'
 
 type Match = {
   connectionId: string
@@ -50,6 +52,7 @@ type CoupleDraft = { partnerId: string | null; spread: string; question: string 
 export default function CoupleTarotPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const { showDepleted } = useCreditModal()
   const redirectedRef = useRef(false)
 
   const [loading, setLoading] = useState(true)
@@ -155,6 +158,15 @@ export default function CoupleTarotPage() {
 
     setSubmitting(true)
     setError(null)
+
+    // Upfront credit gate — don't send the user into the reading page only to
+    // be blocked at draw time. (Unknown balance / network error → proceed.)
+    const remaining = await fetchRemainingCredits()
+    if (remaining !== null && remaining < creditCost) {
+      setSubmitting(false)
+      showDepleted()
+      return
+    }
 
     try {
       // 타로 리딩 페이지로 이동 (커플 모드)

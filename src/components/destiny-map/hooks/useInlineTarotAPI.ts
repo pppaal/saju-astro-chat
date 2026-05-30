@@ -6,11 +6,12 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react'
-import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import type { DrawnCard, CardInsight } from '@/lib/tarot/tarot.types'
 import { logger } from '@/lib/logger'
 import { apiFetch } from '@/lib/api'
 import { useCreditModal } from '@/contexts/CreditModalContext'
+import { fetchRemainingCredits } from '@/lib/credits/clientCredits'
 import { extractPartialOverall, extractPartialCardTexts } from '@/lib/tarot/partialJsonParse'
 import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
@@ -482,10 +483,28 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
     }
   }, [])
 
+  // Upfront credit gate — checked when the user picks a spread, so a
+  // credit-less user is told *before* drawing instead of hitting a 402 on the
+  // draw. Returns false (and shows the depleted modal) when the balance is
+  // known to be short; guests / unknown balance return true and fall through
+  // to the server's own check at draw time.
+  const ensureCreditsFor = useCallback(
+    async (cardCount: number): Promise<boolean> => {
+      const remaining = await fetchRemainingCredits()
+      if (remaining !== null && remaining < tarotCreditCostFor(cardCount)) {
+        showDepleted()
+        return false
+      }
+      return true
+    },
+    [showDepleted]
+  )
+
   return {
     drawCards,
     saveReading,
     retryInterpretation,
+    ensureCreditsFor,
     cleanup,
   }
 }
