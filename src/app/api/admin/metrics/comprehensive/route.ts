@@ -23,7 +23,6 @@ const VALID_SECTIONS = [
   'users',
   'revenue',
   'matching',
-  'notifications',
   'content',
   'moderation',
   'audit',
@@ -179,57 +178,6 @@ async function fetchMatchingData(start: Date, end: Date) {
     },
     chatStartedCount,
     messageCount: messageStats._count.id,
-  }
-}
-
-async function fetchNotificationsData(start: Date, end: Date) {
-  const [
-    emailByStatus,
-    emailByType,
-    recentEmails,
-    activePushSubscriptions,
-    totalPushSubscriptions,
-  ] = await Promise.all([
-    prisma.emailLog.groupBy({
-      by: ['status'],
-      where: { createdAt: { gte: start, lte: end } },
-      _count: { id: true },
-    }),
-    prisma.emailLog.groupBy({
-      by: ['type'],
-      where: { createdAt: { gte: start, lte: end } },
-      _count: { id: true },
-    }),
-    prisma.emailLog.findMany({
-      where: { createdAt: { gte: start, lte: end } },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-    }),
-    prisma.pushSubscription.count({ where: { isActive: true } }),
-    prisma.pushSubscription.count(),
-  ])
-
-  return {
-    emailByStatus: emailByStatus.map((e) => ({
-      status: e.status,
-      count: e._count.id,
-    })),
-    emailByType: emailByType.map((e) => ({
-      type: e.type,
-      count: e._count.id,
-    })),
-    recentEmails: recentEmails.map((e) => ({
-      id: e.id,
-      email: e.email,
-      type: e.type,
-      status: e.status,
-      subject: e.subject,
-      errorMsg: e.errorMsg,
-      provider: e.provider,
-      createdAt: e.createdAt.toISOString(),
-    })),
-    activePushSubscriptions,
-    totalPushSubscriptions,
   }
 }
 
@@ -779,9 +727,6 @@ export const GET = withApiMiddleware(
           break
         case 'matching':
           data = await fetchMatchingData(start, end)
-          break
-        case 'notifications':
-          data = await fetchNotificationsData(start, end)
           break
         case 'content':
           data = await fetchContentData(start, end)

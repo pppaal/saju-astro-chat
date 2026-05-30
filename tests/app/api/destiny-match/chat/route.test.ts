@@ -123,11 +123,6 @@ vi.mock('@/lib/db/prisma', () => ({
   },
 }))
 
-// Mock push notifications
-vi.mock('@/lib/notifications/pushService', () => ({
-  sendPushNotification: vi.fn().mockResolvedValue({ success: true, sent: 1, failed: 0 }),
-}))
-
 // Mock sanitizers
 vi.mock('@/lib/api/sanitizers', () => ({
   sanitizeHtml: vi.fn((content: string, _maxLen?: number) => content),
@@ -211,7 +206,6 @@ vi.mock('@/lib/credits/creditRefund', () => ({
 import { GET, POST, DELETE } from '@/app/api/destiny-match/chat/route'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/db/prisma'
-import { sendPushNotification } from '@/lib/notifications/pushService'
 
 // ============================================================
 // Helpers
@@ -588,47 +582,6 @@ describe('Destiny Match Chat API - POST', () => {
       expect(data.data.message.id).toBe('msg-new')
     })
 
-    it('should send push notification to the recipient', async () => {
-      const req = createPostRequest({ connectionId: 'conn-1', content: 'Hello!' })
-      await POST(req)
-
-      expect(sendPushNotification).toHaveBeenCalledWith(
-        'user-456',
-        expect.objectContaining({
-          title: expect.stringContaining('Test User'),
-          message: 'Hello!',
-        })
-      )
-    })
-
-    it('should truncate long messages in push notification', async () => {
-      const longContent = 'A'.repeat(80)
-      vi.mocked(prisma.$transaction).mockResolvedValue([
-        { ...mockCreatedMessage, content: longContent },
-        {},
-      ])
-
-      const req = createPostRequest({ connectionId: 'conn-1', content: longContent })
-      await POST(req)
-
-      expect(sendPushNotification).toHaveBeenCalledWith(
-        'user-456',
-        expect.objectContaining({
-          message: expect.stringContaining('...'),
-        })
-      )
-    })
-
-    it('should handle push notification failure gracefully', async () => {
-      vi.mocked(sendPushNotification).mockRejectedValue(new Error('Push service down'))
-
-      const req = createPostRequest({ connectionId: 'conn-1', content: 'Hello!' })
-      const response = await POST(req)
-
-      // Should still succeed despite push failure
-      expect(response.status).toBe(200)
-    })
-
     it('should allow user2 to send messages', async () => {
       const session2 = { user: { id: 'user-456', name: 'User 2' }, expires: '2025-12-31' }
       vi.mocked(getServerSession).mockResolvedValue(session2 as any)
@@ -641,8 +594,6 @@ describe('Destiny Match Chat API - POST', () => {
       const response = await POST(req)
 
       expect(response.status).toBe(200)
-      // Notification should go to user1
-      expect(sendPushNotification).toHaveBeenCalledWith('user-123', expect.anything())
     })
 
     it('should default messageType to text', async () => {

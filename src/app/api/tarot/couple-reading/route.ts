@@ -14,7 +14,6 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@prisma/client'
-import { sendPushNotification } from '@/lib/notifications/pushService'
 import { logger } from '@/lib/logger'
 import { sanitizeHtml } from '@/lib/api/sanitizers'
 import { consumeBonusCreditOnceInTx } from '@/lib/credits/creditService'
@@ -292,27 +291,6 @@ export const POST = withApiMiddleware(
         }
         throw txErr
       }
-
-      // 파트너에게 푸시 알림 보내기 (비동기로 처리)
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { name: true },
-      })
-      const senderName = user?.name || '파트너'
-
-      sendPushNotification(partnerId, {
-        title: '커플 타로가 도착했어요!',
-        message: `${senderName}님이 함께 볼 커플 타로를 봤어요. 지금 확인해보세요!`,
-        icon: '/icon-192.png',
-        tag: 'couple-tarot',
-        data: {
-          url: `/tarot/couple/${result.id}`,
-          type: 'couple-tarot',
-          readingId: result.id,
-        },
-      }).catch((err) => {
-        logger.warn('[couple-reading] Failed to send push notification:', { err })
-      })
 
       return apiSuccess({
         success: true,

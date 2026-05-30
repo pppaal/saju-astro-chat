@@ -18,7 +18,6 @@ const PAGES_WITHOUT_BACK_BUTTON = [
   '/policy', // Has custom back button in page
   '/calendar', // Uses ServicePageLayout
   '/profile', // Has custom navigation
-  '/notifications', // Has custom navigation
   '/auth', // Has custom header with back button
   '/destiny-counselor', // Counselor pages have their own header/back button
   '/blog', // Has custom back button

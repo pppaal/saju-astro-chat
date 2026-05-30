@@ -16,7 +16,6 @@ export default function robots(): MetadataRoute.Robots {
           '/auth/',
           '/profile/',
           '/success/',
-          '/notifications/',
           '/api-docs/',
           '/offline/',
           '/shared/',

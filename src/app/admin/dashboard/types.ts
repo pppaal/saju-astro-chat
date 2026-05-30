@@ -26,7 +26,6 @@ export type TabKey =
   | 'users'
   | 'revenue'
   | 'matching'
-  | 'notifications'
   | 'content'
   | 'moderation'
   | 'audit'
@@ -70,23 +69,6 @@ export type MatchingData = {
   connections: { count: number; avgCompatibility: number | null }
   chatStartedCount: number
   messageCount: number
-}
-
-export type NotificationsData = {
-  emailByStatus: Array<{ status: string; count: number }>
-  emailByType: Array<{ type: string; count: number }>
-  recentEmails: Array<{
-    id: string
-    email: string
-    type: string
-    status: string
-    subject: string
-    errorMsg: string | null
-    provider: string
-    createdAt: string
-  }>
-  activePushSubscriptions: number
-  totalPushSubscriptions: number
 }
 
 export type ContentData = {
@@ -285,7 +267,6 @@ export const TAB_CONFIG: { key: TabKey; label: string }[] = [
   { key: 'users', label: '사용자' },
   { key: 'revenue', label: '수익' },
   { key: 'matching', label: '매칭' },
-  { key: 'notifications', label: '알림' },
   { key: 'content', label: '콘텐츠' },
   { key: 'moderation', label: '운영' },
   { key: 'audit', label: '감사로그' },
