@@ -164,18 +164,23 @@ export function calibrateAxes(cells: CalendarCell[]): AxisCalibration {
 const clamp = (x: number): number => Math.max(0, Math.min(100, Math.round(x)))
 
 /**
- * 비보상 결합 — 50 중심 보존.
- *  - 같은 방향(둘 다 +/둘 다 −): 부호별 기하평균 → 불균형 패널티(한쪽 약하면 끌림).
- *  - 반대 방향(엇갈림): 절반 감쇠 평균 → 중립(50)으로 (충돌은 타이밍 아님).
+ * 부분 비보상 결합 — 50 중심 보존. 산술(보상) + 기하(비보상) 블렌드.
+ *  - 순수 기하평균은 한쪽이 약하면(특히 중립) 헤드라인을 50으로 과하게 끌어당겨
+ *    분포가 좁아짐(축 15~94인데 헤드 26~71로 압축). → 산술 GEO_BLEND 만큼만 기하.
+ *  - 같은 방향: arith(평균)와 geo(기하)를 BLEND 가중 → 변별 유지 + 불균형 패널티.
+ *  - 반대 방향(엇갈림): 절반 감쇠 평균 → 중립(충돌은 타이밍 아님).
  */
+const GEO_BLEND = 0.35 // 0=순수산술(화끈) ~ 1=순수기하(빡셈). 0.35=변별 살리며 패널티 유지.
 function nonCompensatoryCombine(a: number, b: number): number {
   const da = a - 50
   const db = b - 50
-  if (da === 0 || db === 0) return clamp(50 + (da + db) / 2)
-  if (Math.sign(da) === Math.sign(db)) {
-    return clamp(50 + Math.sign(da) * Math.sqrt(Math.abs(da) * Math.abs(db)))
+  if (Math.sign(da) === Math.sign(db) && da !== 0 && db !== 0) {
+    const arith = (da + db) / 2
+    const geo = Math.sign(da) * Math.sqrt(Math.abs(da) * Math.abs(db))
+    return clamp(50 + arith * (1 - GEO_BLEND) + geo * GEO_BLEND)
   }
-  return clamp(50 + ((da + db) / 2) * 0.5)
+  // 한쪽 중립이거나 부호 반대 → 평균을 절반 감쇠(중립 쪽으로)
+  return clamp(50 + ((da + db) / 2) * 0.6)
 }
 
 export type AxisAgreement = 'aligned' | 'mixed' | 'opposed'
