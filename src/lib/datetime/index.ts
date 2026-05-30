@@ -8,4 +8,5 @@ export {
   getIsoInTimezone,
   isValidTimezone,
   DEFAULT_TIMEZONE,
-} from "./timezone";
+} from './timezone'
+export { buildBirthInstant, type BirthInstant } from './birthInstant'

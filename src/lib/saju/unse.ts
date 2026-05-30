@@ -5,7 +5,7 @@ import { STEMS, BRANCHES, MONTH_STEM_LOOKUP, getSolarTermKST } from './constants
 import { isCheoneulGwiin } from './stemBranchUtils'
 // 십신 / 정기 매핑은 core 모듈이 single source — saju.ts/unse.ts 둘 다 같은 것 사용.
 import { getSibseong as getSibseongCore, getBranchSibsin } from './core/sibsin'
-import type { BirthInstant } from './core/birthInstant'
+import type { BirthInstant } from '@/lib/datetime'
 import {
   FiveElement,
   YinYang,

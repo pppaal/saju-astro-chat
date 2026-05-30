@@ -394,7 +394,7 @@ export async function computeDestinyMapRefactored(input: CombinedInput): Promise
       // tz 의 wall-clock 을 UTC 로 잘못 해석 → transit JD 가 ±tzOffset 어긋남
       // (한국 사용자 9h → transit Moon ~5°, Sun ~0.4° 오차) (A2). buildBirthInstant
       // 와 동일 패턴 — local datetime + tz → UTC instant 정확히 변환.
-      const { buildBirthInstant } = await import('@/lib/saju/core/birthInstant')
+      const { buildBirthInstant } = await import('@/lib/datetime')
       const pad = (n: number) => String(n).padStart(2, '0')
       const transitIso = buildBirthInstant(
         `${userNow.year}-${pad(userNow.month)}-${pad(userNow.day)}`,

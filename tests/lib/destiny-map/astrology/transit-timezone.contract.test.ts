@@ -12,7 +12,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { buildBirthInstant } from '@/lib/saju/core/birthInstant'
+import { buildBirthInstant } from '@/lib/datetime'
 
 describe('transit chart 시각 변환 — A2 회귀', () => {
   it('같은 UTC 절대 순간 → buildBirthInstant 가 모든 timezone 입력에서 동일 instant 반환', () => {

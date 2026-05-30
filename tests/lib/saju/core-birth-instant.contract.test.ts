@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect, afterEach, beforeEach } from 'vitest'
-import { buildBirthInstant } from '@/lib/saju/core/birthInstant'
+import { buildBirthInstant } from '@/lib/datetime'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { getDaeunCycles } from '@/lib/saju/unse'
 
