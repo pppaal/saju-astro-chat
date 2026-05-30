@@ -145,3 +145,77 @@ describe('Saju cache key v2 — lunarLeap + timezone 분리', () => {
     expect(a.startsWith('saju:v2:')).toBe(true)
   })
 })
+
+/**
+ * 자시(子時) 학파 회귀 — 우리는 子正(자정 기준) 학파 채택.
+ *
+ * 명리학파 차이:
+ *  - 子正派(조자, 早子): 자정 00:00 기준으로 일주가 바뀐다. 23-24시 출생은 전날 일주,
+ *    00-01시 출생은 다음날 일주. 둘 다 시지는 子.
+ *  - 子初派(야자, 夜子): 23:00 기준으로 일주가 바뀐다. 23시 넘으면 무조건 다음날 일주.
+ *
+ * 우리 구현 = 子正派 (한국에서 가장 일반적). 다른 학파 도구와 다른 결과가 나올 수
+ * 있는데, 이걸 명시적으로 잠가둔다. 누가 子初派로 바꾸려 하면 이 테스트가 깨진다.
+ */
+describe('자시(子時) 일주 경계 — 子正派 회귀 (한국 LMT 보정 포함)', () => {
+  it('1990-05-15 23:30 KST → 5/15 일주(庚辰) + 子시 (자정 안 넘음)', () => {
+    const r = calculateSajuData('1990-05-15', '23:30', 'male', 'solar', 'Asia/Seoul')
+    expect(r.dayPillar.heavenlyStem.name).toBe('庚')
+    expect(r.dayPillar.earthlyBranch.name).toBe('辰')
+    expect(r.timePillar.earthlyBranch.name).toBe('子')
+  })
+
+  it('1990-05-16 00:00 KST → 5/16 일주(辛巳) + 子시 (자정 넘음)', () => {
+    const r = calculateSajuData('1990-05-16', '00:00', 'male', 'solar', 'Asia/Seoul')
+    expect(r.dayPillar.heavenlyStem.name).toBe('辛')
+    expect(r.dayPillar.earthlyBranch.name).toBe('巳')
+    expect(r.timePillar.earthlyBranch.name).toBe('子')
+  })
+
+  it('1990-05-16 00:30 KST → 여전히 5/16 일주(辛巳) + 子시', () => {
+    const r = calculateSajuData('1990-05-16', '00:30', 'male', 'solar', 'Asia/Seoul')
+    expect(r.dayPillar.heavenlyStem.name).toBe('辛')
+    expect(r.dayPillar.earthlyBranch.name).toBe('巳')
+    expect(r.timePillar.earthlyBranch.name).toBe('子')
+  })
+})
+
+/**
+ * 한국 DST(KDT) 시대 전환 순간 회귀.
+ *
+ * 1987 한국 DST 기간: 1987-05-10 ~ 1987-10-11.
+ *  - 봄 전환 (1987-05-10): 02:00 KST → 03:00 KDT (1시간 점프, "건너뛴 시각")
+ *  - 가을 전환 (1987-10-11): 03:00 KDT → 02:00 KST (1시간 중복, "모호한 시각")
+ *
+ * 전환 순간 자체에 출생 신고가 들어왔을 때 사주가 깨지지 않고 일관되게 계산되어야
+ * 한다. 정확한 "철학적 정답" 보다 — 일관/안정 동작을 잠그는 목적.
+ */
+describe('한국 DST 전환 순간 출생 — 일관성 회귀', () => {
+  it('1987-05-10 01:30 (DST 시작 직전 KST) 계산 성공', () => {
+    const r = calculateSajuData('1987-05-10', '01:30', 'male', 'solar', 'Asia/Seoul')
+    expect(r.dayPillar.heavenlyStem.name).toBeDefined()
+    expect(r.timePillar.earthlyBranch.name).toBeDefined()
+  })
+
+  it('1987-05-10 03:30 (DST 점프 직후 KDT) 계산 성공 + 일주 일관', () => {
+    const before = calculateSajuData('1987-05-10', '01:30', 'male', 'solar', 'Asia/Seoul')
+    const after = calculateSajuData('1987-05-10', '03:30', 'male', 'solar', 'Asia/Seoul')
+    // 같은 날 출생이라 일주 동일.
+    expect(after.dayPillar.heavenlyStem.name).toBe(before.dayPillar.heavenlyStem.name)
+    expect(after.dayPillar.earthlyBranch.name).toBe(before.dayPillar.earthlyBranch.name)
+  })
+
+  it('1987-10-11 02:30 (DST 종료 모호 시각) throw 안 되고 결정적으로 계산', () => {
+    const r1 = calculateSajuData('1987-10-11', '02:30', 'male', 'solar', 'Asia/Seoul')
+    const r2 = calculateSajuData('1987-10-11', '02:30', 'male', 'solar', 'Asia/Seoul')
+    // 같은 입력 두 번 호출 시 결정적이어야 함 (랜덤/시드 의존 X).
+    expect(r1.dayPillar.heavenlyStem.name).toBe(r2.dayPillar.heavenlyStem.name)
+    expect(r1.timePillar.earthlyBranch.name).toBe(r2.timePillar.earthlyBranch.name)
+  })
+
+  it('1987-10-11 03:30 (DST 종료 후 KST) 계산 성공', () => {
+    const r = calculateSajuData('1987-10-11', '03:30', 'male', 'solar', 'Asia/Seoul')
+    expect(r.dayPillar.heavenlyStem.name).toBeDefined()
+    expect(r.timePillar.earthlyBranch.name).toBeDefined()
+  })
+})
