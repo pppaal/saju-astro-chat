@@ -198,27 +198,46 @@ export async function POST(req: NextRequest) {
     const cardCountForCost = Array.isArray(body.cards) ? body.cards.length : 1
     creditCost = tarotCreditCostFor(cardCountForCost)
 
-    // 차감 면제 판정 — 서버 발급 draw nonce 의 단일-사용 소비에만 의존.
-    // nonce 는 draw 응답 body 의 drawNonce(권장) 또는 x-draw-nonce 헤더로 옴.
+    // T1 fix: 옛 코드는 nonce.consume() 이 credit check 전에 호출됐다. credit
+    // 부족 시 402 반환되는데 nonce 는 이미 burn. 사용자가 충전 후 같은 nonce
+    // 로 재시도 → consume='replay' → creditResult=null → 무료 reading.
+    //
+    // 순서 변경: 먼저 credit check 후 nonce consume. credit 충분할 때만 nonce
+    // burn → 차감 fail 시 nonce 보존되어 같은 free-pass 흐름 재진입 가능.
     const ownerKey = drawNonceOwnerKey(req, context.userId)
     const drawNonce = (body.drawNonce || req.headers.get('x-draw-nonce') || '').trim()
-    const consumeResult = drawNonce ? await drawNonceStore.consume(drawNonce, ownerKey) : 'unknown'
 
+    // 1) credit 먼저 — nonce 는 peek 만 (consume 안 함).
+    // peek 가 없으면 보수적으로: credit 확인 후 consume.
+    creditResult = await checkAndConsumeCredits('reading', creditCost, req)
+    if (!creditResult.allowed) {
+      // nonce 아직 burn 안 됨. 사용자가 충전 후 재시도 가능.
+      return creditErrorResponse(creditResult)
+    }
+
+    // 2) credit 차감 성공 후에야 nonce 소비. replay 면 차감 환불.
+    const consumeResult = drawNonce ? await drawNonceStore.consume(drawNonce, ownerKey) : 'unknown'
     if (consumeResult === 'replay') {
-      // 같은 nonce 의 진짜 재진입(새로고침/뒤로가기/탭 복제) — 첫 소비에서
-      // 이미 차감됐으므로 이번엔 차감 skip. Claude 호출은 정상 진행해 사용자가
-      // 해석을 다시 받지만 토큰은 안 먹는다.
-      logger.info('[tarot-stream] draw-nonce replay, skip credit consume', { ownerKey })
-      creditResult = null
-    } else {
-      // 'first'(정상 첫 해석) 또는 'unknown'(미발급/위조 nonce — free pass 없음).
-      // 둘 다 정상 차감. nonce 가 없거나 위조여도 거부하지 않고 정상 과금해
-      // 게스트/정상 흐름은 깨지 않으면서 무료 재해석만 막는다.
-      if (consumeResult === 'unknown' && drawNonce) {
-        logger.info('[tarot-stream] unknown/forged draw-nonce, charging normally', { ownerKey })
+      // 진짜 재진입 — 첫 호출 때 이미 차감 + reading 받음. 방금 차감한 credit
+      // refund 후 free pass.
+      logger.info('[tarot-stream] draw-nonce replay, refunding credit', { ownerKey })
+      try {
+        const { refundCredits } = await import('@/lib/credits/creditRefund')
+        if (context.userId) {
+          await refundCredits({
+            userId: context.userId,
+            creditType: 'reading',
+            amount: creditCost,
+            reason: 'tarot_nonce_replay',
+            apiRoute: '/api/tarot/interpret-stream',
+          })
+        }
+      } catch (refundErr) {
+        logger.warn('[tarot-stream] replay refund failed', { refundErr })
       }
-      creditResult = await checkAndConsumeCredits('reading', creditCost, req)
-      if (!creditResult.allowed) return creditErrorResponse(creditResult)
+      creditResult = null
+    } else if (consumeResult === 'unknown' && drawNonce) {
+      logger.info('[tarot-stream] unknown/forged draw-nonce, charging normally', { ownerKey })
     }
 
     const categoryId = body.categoryId

@@ -369,10 +369,13 @@ async function buildAutoSajuContext(
     //
     // Redis 캐시 — 두 사람 사주 매 요청 재계산하던 비용 제거. 같은 입력이면
     // 30일 TTL (immutable). 궁합 한 번에 2명 × 매번 = 큰 절감.
+    // L2 fix: CacheKeys.saju 의 timezone 인자 누락 → 옛 코드는 default
+    // 'Asia/Seoul' 로 떨어져 두 사용자가 다른 timezone 이라도 동일 캐시 키.
+    // 결과: 다른 도시 사용자가 첫 사용자의 사주를 받는 데이터 노출 + 부정확.
+    // seed.timeZone 명시 전달.
     const saju = await cacheOrCalculate(
-      CacheKeys.saju(seed.date, seed.time, seed.gender, 'solar'),
-      async () =>
-        calculateSajuData(seed.date, seed.time, seed.gender, 'solar', seed.timeZone),
+      CacheKeys.saju(seed.date, seed.time, seed.gender, 'solar', seed.timeZone),
+      async () => calculateSajuData(seed.date, seed.time, seed.gender, 'solar', seed.timeZone),
       CACHE_TTL.NATAL_CHART
     )
 

@@ -21,7 +21,6 @@ import {
   MONTH_STEM_LOOKUP,
   TIME_STEM_LOOKUP,
   JIJANGGAN,
-  FIVE_ELEMENT_RELATIONS,
   getSolarTermKST,
   assertKasiYearInRange,
 } from './constants'
@@ -312,8 +311,17 @@ export function calculateSajuData(
     if (calendarType === 'lunar') {
       const calendar = new Calendar()
       const [y, m, d] = birthDate.split('-').map(Number)
-      calendar.setLunarDate(y, m, d, !!lunarLeap)
+      const ok = calendar.setLunarDate(y, m, d, !!lunarLeap)
       const solar = calendar.getSolarCalendar()
+      // L1 fix: korean-lunar-calendar 가 범위 밖 (현재 2050-12-27 이후) lunar
+      // 입력에 대해 ok=false 와 (0/0/0) 을 반환. 옛 코드는 그걸 무시해
+      // `"0-00-00"` 문자열을 만들고 toDate() 가 Invalid Date → "Invalid birthLocal
+      // date object" 로 throw. 명시적으로 사용자 친화적 에러로.
+      if (!ok || !solar.year) {
+        throw new Error(
+          `음력 ${y}-${m}-${d} 변환 실패: 지원 범위(현재 ~2050-12-27 음력) 밖 입니다.`
+        )
+      }
       solarBirthDateStr = `${solar.year}-${String(solar.month).padStart(2, '0')}-${String(solar.day).padStart(2, '0')}`
     }
 
