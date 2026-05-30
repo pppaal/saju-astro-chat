@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
-import { calculateSajuData } from '@/lib/saju/calculations'
+import { calculateSajuData } from '@/lib/saju/saju'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 
 /**

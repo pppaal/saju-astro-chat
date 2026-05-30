@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
-import { calculateSajuData } from '@/lib/saju/calculations'
+import { calculateSajuData } from '@/lib/saju/saju'
 
 /**
  * 회귀 가드 — 캘린더 점수는 사주×점성 "교차"다. 한쪽 source가 통째로 빠지거나
