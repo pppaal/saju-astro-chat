@@ -459,12 +459,12 @@ export const GET = withApiMiddleware(
     // nowInTimezone stores the local components in the UTC fields, so read
     // them via getUTCMonth (getMonth would re-shift them if a dev machine
     // is not running in UTC).
-    const targetMonthIdx = nowInTimezone(timezone).getUTCMonth()
-    const prescoreMonths = [
-      Math.max(0, targetMonthIdx - 1),
-      targetMonthIdx,
-      Math.min(11, targetMonthIdx + 1),
-    ].filter((m, i, arr) => arr.indexOf(m) === i) // dedupe (Dec/Jan 경계)
+    // 12달 전체 prescore — 단일출처 축(axisByDate)을 365일 전부에 적용 + 보정
+    // (calibrateAxes)을 연 단위 고정 표본으로 산출하기 위함. 3달만 하면 (H1) 점수
+    // 모델이 달마다 갈리고 (H2) 보정이 조회 시점에 따라 흔들려 "뷰 무관 동일 점수"가
+    // 깨짐(버그헌트 지적). augment 블록이 어차피 같은 12달을 빌드하므로 cell-cache
+    // HIT로 총 작업량 동일. cold 첫 응답 지연↑은 라이브 프로파일 대상.
+    const prescoreMonths = Array.from({ length: 12 }, (_, m) => m)
 
     const engineScoreByDate: Record<string, number> = {}
     const axisByDate: Record<

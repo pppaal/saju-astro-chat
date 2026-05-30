@@ -74,6 +74,7 @@ export function sourceGrandAvg(signals: ActiveSignal[]): number | null {
     for (const [kind, acc] of byKind) {
       if (acc.weight === 0) continue
       const kAvg = acc.sum / acc.weight // 그 종류의 평균 polarity
+      if (Math.abs(kAvg) < 0.01) continue // net 0(+1/−1 상쇄 등)인 종류는 분모 희석 방지
       const t = kindTier(kind)
       kindWeightedSum += kAvg * t
       kindTierTotal += t
