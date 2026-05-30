@@ -58,6 +58,25 @@ export async function initializeUserCredits(userId: string) {
     })
 
     if (SIGNUP_BONUS > 0) {
+      // signup bonus 도 BonusCreditPurchase row 로 등록 — 그래야
+      // consumeBonusCreditsFromPurchasesInTx 가 차감 가능. 옛 코드는 row
+      // 안 만들어 invariant (UserCredits.bonusCredits = sum(remaining)) 가
+      // 깨졌다. 결과: 사용자가 signup bonus 를 일반 monthly 로 잘못 차감
+      // 받아 monthly 가 음수로 침범 가능.
+      const purchaseRow = (await tx.bonusCreditPurchase.create({
+        data: {
+          userId,
+          amount: SIGNUP_BONUS,
+          remaining: SIGNUP_BONUS,
+          // 90일 만료 — addBonusCredits 의 기본과 동일.
+          expiresAt: new Date(now.getTime() + 90 * 86_400_000),
+          expired: false,
+          source: 'signup',
+          stripePaymentId: null,
+        },
+      })) as { id?: string } | null | undefined
+      const purchaseId = purchaseRow?.id ?? null
+
       await tx.creditTransaction.create({
         data: {
           userId,
@@ -65,8 +84,8 @@ export async function initializeUserCredits(userId: string) {
           pool: 'BONUS',
           amount: SIGNUP_BONUS,
           reason: 'signup_bonus',
-          sourceRef: null,
-          metadata: { bonus: SIGNUP_BONUS },
+          sourceRef: purchaseId,
+          metadata: { bonus: SIGNUP_BONUS, purchaseId },
         },
       })
     }
@@ -290,9 +309,20 @@ export async function consumeCredits(
           fromBonus,
           { reason: 'consume_reading', emitAudit: true }
         )
-        // 실제 차감된 양과 다르면 조정 (레거시 데이터 대응)
+        // 실제 차감된 양이 의도한 양보다 적은 경우 — purchase 가 만료됐거나
+        // 동시 차감으로 race 났음. 옛 코드는 부족분을 그냥 fromMonthly 로
+        // 넘겨 usedCredits 증가 → monthly 가 음수로 침범 가능 (사용자에게
+        // 무료 사용 허용). 부족분을 monthly 로 넘기되 실제 monthly 잔액으로
+        // 검증해 부족하면 throw. monthly 잔액 = monthlyCredits - usedCredits.
+        // (그 시점 트랜잭션 안에선 아직 usedCredits 증가 전이라 fresh value.)
         if (actualBonusConsumed < fromBonus) {
-          fromMonthly += fromBonus - actualBonusConsumed
+          const shortfall = fromBonus - actualBonusConsumed
+          const monthlyAvailable = credits.monthlyCredits - credits.usedCredits
+          const newMonthly = fromMonthly + shortfall
+          if (monthlyAvailable < newMonthly) {
+            throw new CreditBusinessError('크레딧이 부족합니다')
+          }
+          fromMonthly = newMonthly
           fromBonus = actualBonusConsumed
         }
       }
@@ -348,7 +378,7 @@ export async function consumeCredits(
 // `opts.emitAudit` 가 true 면 차감한 purchase 행마다 CreditTransaction
 // (CONSUME / BONUS) 을 한 줄씩 남긴다. consumeCredits 가 부르는 경로는 항상
 // 켜고, 백필이나 fallback 경로에서는 호출자가 직접 audit 을 통제하도록 끈다.
-async function consumeBonusCreditsFromPurchasesInTx(
+export async function consumeBonusCreditsFromPurchasesInTx(
   tx: Prisma.TransactionClient,
   userId: string,
   amountToConsume: number,
@@ -378,13 +408,26 @@ async function consumeBonusCreditsFromPurchasesInTx(
     if (totalConsumed >= amountToConsume) break
 
     const toConsume = Math.min(purchase.remaining, amountToConsume - totalConsumed)
-    totalConsumed += toConsume
+    if (toConsume <= 0) continue
 
-    const newRemaining = purchase.remaining - toConsume
-    await tx.bonusCreditPurchase.update({
-      where: { id: purchase.id },
-      data: { remaining: newRemaining },
+    // 옛 코드: `purchase.remaining - toConsume` 절대값을 write 해 lost-update race
+    // (두 동시 트랜잭션이 같은 `remaining=5` 읽고 둘 다 `remaining=4` write → 차감 1번
+    // 누락). updateMany + relative decrement + `remaining >= toConsume` guard 로
+    // race-safe. consumeBonusCreditOnceInTx 와 동일 패턴.
+    const updated = await tx.bonusCreditPurchase.updateMany({
+      where: { id: purchase.id, remaining: { gte: toConsume } },
+      data: { remaining: { decrement: toConsume } },
     })
+
+    // Prisma 는 항상 `{ count }` 반환. count===0 은 race (다른 tx 가 이미 차감).
+    // mock 환경에서 count 가 undefined 반환되는 경우 옛 동작(항상 차감 성공) 유지.
+    const updatedCount = (updated as { count?: number } | undefined)?.count
+    if (updatedCount === 0) {
+      // race: 다른 트랜잭션이 이미 차감해 toConsume 만큼 안 남음. 이 purchase 는 skip.
+      continue
+    }
+
+    totalConsumed += toConsume
 
     if (opts.emitAudit) {
       await tx.creditTransaction.create({
@@ -468,9 +511,7 @@ export async function consumeBonusCreditOnceInTx(
     // UserCredits.bonusCredits 가 이미 0 — 위에서 purchase 만 줄였으니
     // 트랜잭션 롤백을 일으켜 정합성을 지킨다. (호출자는 catch 해서 다른
     // 경로로 fallback 하거나 INSUFFICIENT 으로 응답.)
-    throw new Error(
-      'consumeBonusCreditOnceInTx: UserCredits.bonusCredits already 0 (FIFO drift)'
-    )
+    throw new Error('consumeBonusCreditOnceInTx: UserCredits.bonusCredits already 0 (FIFO drift)')
   }
 
   // 감사 로그 — couple-reading / 다른 라우트가 이 헬퍼만 호출해도
@@ -717,9 +758,7 @@ export async function expireBonusCredits() {
   if (rejectedIdx.length > 0) {
     const retryEntries = rejectedIdx.map((i) => entries[i])
     const retryResults = await Promise.allSettled(
-      retryEntries.map(([uid, amt]) =>
-        runUserExpiry(uid, amt, userExpiredPurchases.get(uid) ?? [])
-      )
+      retryEntries.map(([uid, amt]) => runUserExpiry(uid, amt, userExpiredPurchases.get(uid) ?? []))
     )
     retryResults.forEach((r, j) => {
       const origIdx = rejectedIdx[j]
