@@ -55,9 +55,16 @@ const { progressedChart } = vi.hoisted(() => {
   }
 })
 
-vi.mock('@/lib/astrology/foundation/progressions', () => ({
-  calculateSecondaryProgressions: vi.fn().mockResolvedValue(progressedChart),
-}))
+// calculateSecondaryProgressions(Swiss Ephemeris)만 mock — Moon@0°의 결정적 차트.
+// findProgressedMoonAspects 등 나머지는 실제 구현 유지(importOriginal)해야 진행
+// 달이 본명 점과 맺는 마이너 어스펙트가 실제로 계산됨. (전엔 통째 mock해 함수 누락.)
+vi.mock('@/lib/astrology/foundation/progressions', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/astrology/foundation/progressions')>()
+  return {
+    ...actual,
+    calculateSecondaryProgressions: vi.fn().mockResolvedValue(progressedChart),
+  }
+})
 
 import astroProgressionExtractor from '@/lib/calendar-engine/extractors/astro-progression'
 import type { ExtractorContext, ExtractorCache } from '@/lib/calendar-engine/types'
