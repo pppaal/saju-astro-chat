@@ -89,14 +89,6 @@ export const mockRefundCredits = vi.fn()
 export const mockUpgradePlan = vi.fn()
 export const mockAddBonusCredits = vi.fn()
 
-// ============ Email Service Mock ============
-
-export const mockSendEmail = vi.fn().mockResolvedValue(undefined)
-export const mockSendPaymentReceiptEmail = vi.fn().mockResolvedValue(undefined)
-export const mockSendSubscriptionConfirmEmail = vi.fn().mockResolvedValue(undefined)
-export const mockSendSubscriptionCancelledEmail = vi.fn().mockResolvedValue(undefined)
-export const mockSendPaymentFailedEmail = vi.fn().mockResolvedValue(undefined)
-
 // ============ Backend API Client Mock ============
 
 export interface MockBackendResponse {
@@ -178,15 +170,6 @@ export function setupApiMocks() {
     refundCredits: mockRefundCredits,
     upgradePlan: mockUpgradePlan,
     addBonusCredits: mockAddBonusCredits,
-  }))
-
-  // Email Service
-  vi.mock('@/lib/email', () => ({
-    sendEmail: mockSendEmail,
-    sendPaymentReceiptEmail: mockSendPaymentReceiptEmail,
-    sendSubscriptionConfirmEmail: mockSendSubscriptionConfirmEmail,
-    sendSubscriptionCancelledEmail: mockSendSubscriptionCancelledEmail,
-    sendPaymentFailedEmail: mockSendPaymentFailedEmail,
   }))
 
   // Backend API Client

@@ -4,6 +4,9 @@ import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { isInAppBrowser } from '@/lib/auth/detectInAppBrowser'
+import { isStandalonePWA } from '@/lib/auth/detectPWA'
+import { useI18n } from '@/i18n/I18nProvider'
+import { copyToClipboard } from '@/lib/utils/clipboard'
 
 interface GoogleLoginPanelProps {
   locale: 'ko' | 'en'
@@ -51,6 +54,7 @@ export default function GoogleLoginPanel({
   panelId,
 }: GoogleLoginPanelProps) {
   const isKo = locale === 'ko'
+  const { t } = useI18n()
   const [agreed, setAgreed] = useState(false)
   // 동의 안 한 상태로 버튼 눌렀을 때만 빨갛게 강조. 사용자에게 "여기 눌러야 해요" 시각 안내.
   const [showWarn, setShowWarn] = useState(false)
@@ -59,8 +63,12 @@ export default function GoogleLoginPanel({
   // and warn before the user ever taps "Continue with Google". Hydration-safe:
   // false during SSR, set on the first client effect.
   const [inApp, setInApp] = useState(false)
+  // PWA standalone 모드 — OAuth callback 이 외부 브라우저로 빠지면 PWA 안
+  // 으로 못 돌아옴. 사용자에게 미리 안내 + URL 복사 옵션 제공.
+  const [pwa, setPwa] = useState(false)
   useEffect(() => {
     setInApp(isInAppBrowser())
+    setPwa(isStandalonePWA())
   }, [])
 
   const handleSignIn = () => {
@@ -73,13 +81,10 @@ export default function GoogleLoginPanel({
 
   const copyCurrentUrl = async () => {
     if (typeof window === 'undefined') return
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-    } catch {
-      // Older webviews lack the clipboard API; users can still long-press the
-      // address bar. Silent failure is fine — the warning text already tells
-      // them what to do.
-    }
+    // copyToClipboard handles HTTPS-only Clipboard API + execCommand fallback
+    // for in-app webviews. Silent failure is fine — warning text already tells
+    // users to long-press the address bar.
+    await copyToClipboard(window.location.href)
   }
 
   return (
@@ -104,21 +109,52 @@ export default function GoogleLoginPanel({
           className="rounded-md border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-100"
         >
           <p className="font-medium">
-            {isKo
-              ? '이 화면에서는 Google 로그인이 차단됩니다.'
-              : 'Google sign-in is blocked in this view.'}
+            {t('auth.inAppBrowserBlockedTitle', 'Google sign-in is blocked in this view.')}
           </p>
           <p className="mt-1 text-amber-100/85">
-            {isKo
-              ? '오른쪽 위 메뉴(⋮ 또는 ⋯)에서 "다른 브라우저로 열기"를 선택해 Chrome 또는 Safari로 열어 주세요.'
-              : 'Open this page in Chrome or Safari (via the top-right menu → "Open in browser") to continue.'}
+            {t(
+              'auth.inAppBrowserBlockedGuide',
+              'Open this page in Chrome or Safari (via the top-right menu → "Open in browser") to continue.'
+            )}
           </p>
           <button
             type="button"
             onClick={copyCurrentUrl}
             className="mt-2 inline-flex items-center rounded-md border border-amber-300/40 px-2 py-1 text-[11px] font-medium text-amber-100 hover:bg-amber-400/15"
           >
-            {isKo ? '링크 복사' : 'Copy link'}
+            {t('common.copyLink', 'Copy link')}
+          </button>
+        </div>
+      )}
+
+      {/* PWA (홈 화면 추가 앱) 사용자 — OAuth callback 이 외부 브라우저로
+          빠지면 PWA 안으로 못 돌아오는 케이스가 있다. 미리 안내 + 브라우저
+          에서 열기 옵션 제공. inApp 경고와 동시에 뜰 일은 거의 없음 (PWA
+          는 보통 in-app webview 와 다른 컨텍스트). */}
+      {pwa && !inApp && (
+        <div
+          data-testid="pwa-login-warning"
+          role="alert"
+          className="rounded-md border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-100"
+        >
+          <p className="font-medium">
+            {t(
+              'pwa.loginWarningTitle',
+              'Google sign-in from the installed app may not return correctly.'
+            )}
+          </p>
+          <p className="mt-1 text-amber-100/85">
+            {t(
+              'pwa.loginWarningGuide',
+              'If sign-in fails, copy this link and open it in Chrome / Safari to log in. The session will carry back into the app.'
+            )}
+          </p>
+          <button
+            type="button"
+            onClick={copyCurrentUrl}
+            className="mt-2 inline-flex items-center rounded-md border border-amber-300/40 px-2 py-1 text-[11px] font-medium text-amber-100 hover:bg-amber-400/15"
+          >
+            {t('common.copyLink', 'Copy link')}
           </button>
         </div>
       )}

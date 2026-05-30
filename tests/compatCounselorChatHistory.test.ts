@@ -125,8 +125,9 @@ describe('POST /api/counselor/chat-history — compat type', () => {
         data: expect.objectContaining({ type: 'destiny' }),
       })
     )
-    // Destiny path *does* touch persona memory (existing behavior).
-    expect(mockPersonaUpsert).toHaveBeenCalled()
+    // Persona-memory wiring was removed from the chat-history route, so no
+    // path (destiny or compat) touches persona memory anymore.
+    expect(mockPersonaUpsert).not.toHaveBeenCalled()
   })
 
   it('updates existing compat session without touching persona memory', async () => {

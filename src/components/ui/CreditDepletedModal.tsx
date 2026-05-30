@@ -1,15 +1,18 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
+import { useModalDismiss, useModalTransition } from '@/hooks/useModalA11y'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import styles from './CreditDepletedModal.module.css'
 
 interface CreditDepletedModalProps {
   isOpen: boolean
   onClose: () => void
   remainingCredits?: number
-  type?: 'depleted' | 'low'
+  // 'guest' — 비로그인 사용자가 무료 체험 한도에 도달. 구매 대신 로그인을 유도.
+  type?: 'depleted' | 'low' | 'guest'
 }
 
 export default function CreditDepletedModal({
@@ -20,83 +23,70 @@ export default function CreditDepletedModal({
 }: CreditDepletedModalProps) {
   const router = useRouter()
   const { t } = useI18n()
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true)
-      requestAnimationFrame(() => {
-        setIsAnimating(true)
-      })
-    } else {
-      setIsAnimating(false)
-      const timer = setTimeout(() => {
-        setIsVisible(false)
-      }, 300)
-      return () => clearTimeout(timer)
-    }
-  }, [isOpen])
+  const { isVisible, isAnimating } = useModalTransition(isOpen)
+  const trapRef = useFocusTrap(isOpen)
 
   const handlePurchase = useCallback(() => {
-    // 결제 후 돌아올 URL 저장
+    // 결제 후 돌아올 URL 저장 — 경로뿐 아니라 쿼리(질문·생년월일 등)까지
+    // 보존해야 결제 후 "그 자리"(보던 상담 화면)로 정확히 복귀한다.
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname
       if (currentPath !== '/pricing' && currentPath !== '/success') {
-        localStorage.setItem('checkout_return_url', currentPath)
+        localStorage.setItem('checkout_return_url', currentPath + window.location.search)
       }
     }
     onClose()
     router.push('/pricing')
   }, [onClose, router])
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    },
-    [onClose]
-  )
+  // 게스트 한도 → 로그인. /auth/signin 페이지 경유 — GoogleLoginPanel 안에
+  // in-app webview / PWA 경고 + URL 복사 가이드가 있어서, signIn() 직접
+  // 호출로 오는 "OAuth 차단 / PWA callback 실패" 케이스를 사전에 안내.
+  const handleLogin = useCallback(() => {
+    onClose()
+    const callbackUrl = typeof window !== 'undefined' ? window.location.href : '/'
+    router.push(`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+  }, [onClose, router])
 
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'hidden'
-    }
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [isOpen, handleKeyDown])
+  // Esc 닫기 + body 스크롤 잠금 (공용 훅).
+  useModalDismiss(isOpen, onClose)
 
   if (!isVisible) {
     return null
   }
 
   const isDepleted = type === 'depleted'
+  const isGuest = type === 'guest'
 
-  const getTitle = () =>
-    isDepleted
+  const getTitle = () => {
+    if (isGuest) return t('credits.guest.title', '무료 체험을 모두 사용했어요')
+    return isDepleted
       ? t('credits.depleted.title', '크레딧이 소진되었습니다')
       : t('credits.low.title', '크레딧이 부족합니다')
+  }
 
   const getDescription = () => (
     <p className={styles.mainDesc}>
-      {isDepleted
+      {isGuest
         ? t(
-            'credits.depleted.description',
-            '모든 크레딧을 사용하셨습니다. 크레딧을 충전하시면 더 많은 상담을 받아보실 수 있습니다.'
+            'credits.guest.description',
+            '로그인하면 가입 보너스 5 크레딧으로 상담을 계속 이용할 수 있어요.'
           )
-        : t(
-            'credits.low.description',
-            `잔여 크레딧이 ${remainingCredits}개 남았습니다. 서비스 이용을 위해 충전을 권장합니다.`
-          )}
+        : isDepleted
+          ? t(
+              'credits.depleted.description',
+              '모든 크레딧을 사용하셨습니다. 크레딧을 충전하시면 더 많은 상담을 받아보실 수 있습니다.'
+            )
+          : t(
+              'credits.low.description',
+              `잔여 크레딧이 ${remainingCredits}개 남았습니다. 서비스 이용을 위해 충전을 권장합니다.`
+            )}
     </p>
   )
 
   return (
     <div
+      ref={trapRef}
       className={`${styles.overlay} ${isAnimating ? styles.overlayVisible : ''}`}
       onClick={onClose}
       role="dialog"
@@ -123,26 +113,39 @@ export default function CreditDepletedModal({
 
         <div className={styles.description}>{getDescription()}</div>
 
-        <div className={styles.creditDisplay}>
-          <div className={styles.creditIcon} aria-hidden="true">
-            ✦
+        {/* 잔여 크레딧 표시는 크레딧 기반(로그인) 상태에서만 의미 있음 —
+            게스트 한도 안내에서는 숨긴다. */}
+        {!isGuest && (
+          <div className={styles.creditDisplay}>
+            <div className={styles.creditIcon} aria-hidden="true">
+              ✦
+            </div>
+            <div className={styles.creditInfo}>
+              <span className={styles.creditLabel}>{t('credits.remaining', '잔여 크레딧')}</span>
+              <span className={`${styles.creditValue} ${isDepleted ? styles.empty : styles.low}`}>
+                {remainingCredits}
+                <span className={styles.creditUnit}>{t('credits.unit', '개')}</span>
+              </span>
+            </div>
           </div>
-          <div className={styles.creditInfo}>
-            <span className={styles.creditLabel}>{t('credits.remaining', '잔여 크레딧')}</span>
-            <span className={`${styles.creditValue} ${isDepleted ? styles.empty : styles.low}`}>
-              {remainingCredits}
-              <span className={styles.creditUnit}>{t('credits.unit', '개')}</span>
-            </span>
-          </div>
-        </div>
+        )}
 
         <div className={styles.buttons}>
-          <button className={styles.purchaseButton} onClick={handlePurchase} autoFocus>
-            <span className={styles.buttonIcon} aria-hidden="true">
-              ✦
-            </span>
-            {t('credits.purchase', '크레딧 구매하기')}
-          </button>
+          {isGuest ? (
+            <button className={styles.purchaseButton} onClick={handleLogin} autoFocus>
+              <span className={styles.buttonIcon} aria-hidden="true">
+                ✦
+              </span>
+              {t('credits.guest.cta', '로그인하고 계속하기')}
+            </button>
+          ) : (
+            <button className={styles.purchaseButton} onClick={handlePurchase} autoFocus>
+              <span className={styles.buttonIcon} aria-hidden="true">
+                ✦
+              </span>
+              {t('credits.purchase', '크레딧 구매하기')}
+            </button>
+          )}
           <button className={styles.laterButton} onClick={onClose}>
             {t('common.later', '나중에')}
           </button>

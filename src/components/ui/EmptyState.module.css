@@ -1,3 +1,7 @@
+/* EmptyState — design tokens (gold + ink + neutral) 기준.
+   옛 violet/purple (#667eea, #764ba2, rgba(139,92,246,*), #c4b5fd) 일소 —
+   globals.css 의 "보라/네온 톤 사용 안 한다" 정책. */
+
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -16,7 +20,7 @@
 .icon {
   font-size: 80px;
   display: inline-block;
-  filter: drop-shadow(0 4px 12px rgba(139, 92, 246, 0.3));
+  filter: drop-shadow(0 4px 12px rgba(212, 181, 114, 0.28));
 }
 
 @keyframes float {
@@ -30,13 +34,10 @@
 
 .title {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 600;
   color: #ffffff;
   margin: 0 0 12px;
-  background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -0.01em;
 }
 
 .description {
@@ -50,8 +51,8 @@
 .suggestions {
   margin: 32px 0;
   padding: 24px;
-  background: rgba(139, 92, 246, 0.05);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(212, 181, 114, 0.05);
+  border: 1px solid rgba(212, 181, 114, 0.2);
   border-radius: 16px;
   max-width: 500px;
   width: 100%;
@@ -87,8 +88,8 @@
 }
 
 .suggestionItem:hover {
-  background: rgba(139, 92, 246, 0.1);
-  border-color: rgba(139, 92, 246, 0.3);
+  background: rgba(212, 181, 114, 0.1);
+  border-color: rgba(212, 181, 114, 0.3);
   transform: translateX(4px);
 }
 
@@ -108,21 +109,23 @@
   justify-content: center;
   min-height: 48px;
   padding: 12px 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* 골드 그라데이션 — 다른 다크 페이지 primary CTA (about, blog post)
+     와 정렬. 옛 purple #667eea→#764ba2 폐기. */
+  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
   color: #ffffff;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   border: none;
-  border-radius: 12px;
+  border-radius: 999px;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 16px rgba(160, 122, 60, 0.3);
 }
 
 .actionButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 24px rgba(160, 122, 60, 0.4);
 }
 
 .actionButton:active {
@@ -130,7 +133,7 @@
 }
 
 .actionButton:focus-visible {
-  outline: 3px solid rgba(139, 92, 246, 0.5);
+  outline: 3px solid rgba(160, 122, 60, 0.5);
   outline-offset: 3px;
 }
 
@@ -237,6 +240,6 @@
     min-height: 44px;
     padding: 10px 24px;
     font-size: 14px;
-    border-radius: 10px;
+    border-radius: 999px;
   }
 }

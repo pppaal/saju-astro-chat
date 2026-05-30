@@ -48,15 +48,11 @@ describe('Redis Cache Utilities (Mocked)', () => {
     it('should export all cache TTL values', async () => {
       const { CACHE_TTL } = await import('@/lib/cache/redis-cache')
 
-      expect(CACHE_TTL.SAJU_RESULT).toBe(60 * 60 * 24 * 7) // 7 days
+      // CACHE_TTL was trimmed to only the keys actually used.
       expect(CACHE_TTL.TAROT_READING).toBe(60 * 60 * 24) // 1 day
-      expect(CACHE_TTL.DESTINY_MAP).toBe(60 * 60 * 24 * 3) // 3 days
-      expect(CACHE_TTL.GRADING_RESULT).toBe(60 * 60 * 24) // 1 day
       expect(CACHE_TTL.CALENDAR_DATA).toBe(60 * 60 * 24) // 1 day
       expect(CACHE_TTL.COMPATIBILITY).toBe(60 * 60 * 24 * 7) // 7 days
-      expect(CACHE_TTL.TRANSIT_CHART).toBe(60 * 60) // 1 hour
       expect(CACHE_TTL.NATAL_CHART).toBe(60 * 60 * 24 * 30) // 30 days
-      expect(CACHE_TTL.SAJU).toBe(60 * 60 * 24 * 7) // 7 days
     })
   })
 
@@ -102,7 +98,7 @@ describe('Redis Cache Utilities (Mocked)', () => {
       const { CacheKeys } = await import('@/lib/cache/redis-cache')
 
       const key = CacheKeys.yearlyCalendar('1990-01-01', '12:00', 'M', 2024)
-      expect(key).toBe('yearly:v4:1990-01-01:12:00:M:2024:all:U2VvdWw=')
+      expect(key).toBe('yearly:v6:1990-01-01:12:00:M:2024:all:U2VvdWw=')
 
       const keyWithCategory = CacheKeys.yearlyCalendar(
         '1990-01-01',
@@ -112,7 +108,7 @@ describe('Redis Cache Utilities (Mocked)', () => {
         'health',
         'Busan'
       )
-      expect(keyWithCategory).toBe('yearly:v4:1990-01-01:12:00:M:2024:health:QnVzYW4=')
+      expect(keyWithCategory).toBe('yearly:v6:1990-01-01:12:00:M:2024:health:QnVzYW4=')
     })
 
     it('should generate compatibility cache key', async () => {

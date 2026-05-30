@@ -16,12 +16,60 @@ interface ElementRadarProps {
 
 export type Counts = { wood: number; fire: number; earth: number; metal: number; water: number }
 
-export const AXES: Array<{ key: keyof Counts; ko: string; en: string }> = [
-  { key: 'wood', ko: '창의력 (목)', en: 'Creativity (Wood)' },
-  { key: 'fire', ko: '추진력 (화)', en: 'Drive (Fire)' },
-  { key: 'earth', ko: '안정성 (토)', en: 'Stability (Earth)' },
-  { key: 'metal', ko: '결단력 (금)', en: 'Decision (Metal)' },
-  { key: 'water', ko: '유연성 (수)', en: 'Flexibility (Water)' },
+export const AXES: Array<{
+  key: keyof Counts
+  ko: string
+  en: string
+  koShort: string
+  koEl: string
+  enShort: string
+  enEl: string
+}> = [
+  {
+    key: 'wood',
+    ko: '창의력 (목)',
+    en: 'Creativity (Wood)',
+    koShort: '창의력',
+    koEl: '木',
+    enShort: 'Creativity',
+    enEl: 'Wood',
+  },
+  {
+    key: 'fire',
+    ko: '추진력 (화)',
+    en: 'Drive (Fire)',
+    koShort: '추진력',
+    koEl: '火',
+    enShort: 'Drive',
+    enEl: 'Fire',
+  },
+  {
+    key: 'earth',
+    ko: '안정성 (토)',
+    en: 'Stability (Earth)',
+    koShort: '안정성',
+    koEl: '土',
+    enShort: 'Stability',
+    enEl: 'Earth',
+  },
+  {
+    key: 'metal',
+    ko: '결단력 (금)',
+    en: 'Decision (Metal)',
+    koShort: '결단력',
+    koEl: '金',
+    enShort: 'Decision',
+    enEl: 'Metal',
+  },
+  {
+    key: 'water',
+    ko: '유연성 (수)',
+    en: 'Flexibility (Water)',
+    koShort: '유연성',
+    koEl: '水',
+    enShort: 'Flexibility',
+    enEl: 'Water',
+  },
 ]
 const TRAIT_EN: Record<keyof Counts, string> = {
   wood: 'creativity',
@@ -36,6 +84,22 @@ const PHRASE_KO: Record<keyof Counts, string> = {
   earth: '중심을 잡고 꾸준히 버티는 힘이 강해요.',
   metal: '결단과 마무리, 원칙이 분명해요.',
   water: '유연하게 적응하고 깊이 사고하는 힘이 강해요.',
+}
+
+// 약한 원소 처방 — counts === 0 또는 1 일 때만 노출. 균형 잡힌 사람은 표시 X.
+const WEAK_REMEDY_KO: Record<keyof Counts, string> = {
+  wood: '식물·산책·창작이 균형을 잡아줘요.',
+  fire: '운동·발표·뜨거운 색이 균형을 잡아줘요.',
+  earth: '실용·신뢰·돌봄 활동이 균형을 잡아줘요.',
+  metal: '정리·체계·결단 연습이 균형을 잡아줘요.',
+  water: '학습·명상·여행이 균형을 잡아줘요.',
+}
+const WEAK_REMEDY_EN: Record<keyof Counts, string> = {
+  wood: 'planting, walks, creative work help balance.',
+  fire: 'exercise, public speaking, warm colors help balance.',
+  earth: 'practical work, trust, caregiving help balance.',
+  metal: 'organizing, structure, decisiveness help balance.',
+  water: 'learning, meditation, travel help balance.',
 }
 
 const EL_KEY: Record<string, keyof Counts> = {
@@ -98,11 +162,13 @@ export function deriveCounts(saju: unknown): Counts {
   return any ? out : zero
 }
 
-// wide viewBox keeps side labels inside the canvas
-const W = 300
-const H = 232
-const CX = W / 2
-const CY = 108
+// wide viewBox keeps side labels inside the canvas — 좌·우 측 라벨 ("유연성"
+// 같은 3 글자) 가 잘리지 않도록 viewBox 좌측에 여백 둠 (x 음수 시작).
+const W = 320
+const H = 244
+const VB_X = -10 // viewBox 시작 x — 좌측 라벨 ('유연성') cutoff 방지
+const CX = 150 // 펜타곤 중심은 그대로 (라벨만 음수 영역으로 확장)
+const CY = 112
 const R = 60
 
 const pt = (r: number, i: number) => {
@@ -145,9 +211,17 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
   // dominant element → interpretation comment
   const domKey = (Object.keys(counts) as Array<keyof Counts>).reduce(
     (a, b) => (counts[b] > counts[a] ? b : a),
-    'wood'
+    'wood' as keyof Counts
   )
   const domEl = AXES.find((a) => a.key === domKey)!
+
+  // weak element — counts === 0 또는 1 일 때만 노출. 균형이면 약함 없음.
+  const weakKey = (Object.keys(counts) as Array<keyof Counts>).reduce(
+    (a, b) => (counts[b] < counts[a] ? b : a),
+    'wood' as keyof Counts
+  )
+  const weakEl = AXES.find((a) => a.key === weakKey)!
+  const showWeak = counts[weakKey] <= 1 && weakKey !== domKey
 
   return (
     <div
@@ -157,7 +231,7 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
         border: '1px solid var(--ds-gold-line)',
       }}
     >
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full">
+      <svg viewBox={`${VB_X} 0 ${W} ${H}`} className="h-auto w-full">
         {[0.25, 0.5, 0.75, 1].map((f) => (
           <polygon
             key={f}
@@ -194,24 +268,49 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
               데이터 polygon 만으로 충분히 읽힘. 점은 시각 노이즈만 됐음. */}
         </g>
         {AXES.map((a, i) => {
-          const lp = pt(R + 16, i)
+          const lp = pt(R + 18, i)
           const c = Math.cos(((-90 + i * 72) * Math.PI) / 180)
           const anchor = c > 0.3 ? 'start' : c < -0.3 ? 'end' : 'middle'
+          // 2줄 라벨 — 1줄: "창의력" (capability), 2줄: "木" (한자/element).
+          // 글자 짧아져 좌·우 cutoff 해결 + 한자가 시각적으로 강조됨.
+          const phrase = isKo ? a.koShort : a.enShort
+          const el = isKo ? a.koEl : a.enEl
           return (
             <text
               key={a.key}
               x={lp.x}
               y={lp.y}
               fill="#e5e7eb"
-              fontSize="12"
+              fontSize="11"
               fontWeight="600"
               textAnchor={anchor}
               dominantBaseline="middle"
             >
-              {isKo ? a.ko : a.en}
+              <tspan x={lp.x} dy="-0.42em">
+                {phrase}
+              </tspan>
+              <tspan
+                x={lp.x}
+                dy="1.12em"
+                fontSize="10"
+                fontWeight="500"
+                fill="#d4b572"
+              >
+                {el}
+              </tspan>
             </text>
           )
         })}
+        {/* "중심에서 멀수록 강함" 미세 라벨 — 시각 단서. */}
+        <text
+          x={CX}
+          y={H - 8}
+          fill="rgba(245,247,251,0.4)"
+          fontSize="9"
+          textAnchor="middle"
+        >
+          {isKo ? '중심 ← 약함 · 멀수록 강함 →' : 'center = weak · further out = stronger'}
+        </text>
       </svg>
 
       <div
@@ -221,8 +320,8 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
         <p className="text-sm leading-relaxed" style={{ color: 'var(--ds-dark-text)' }}>
           {isKo ? (
             <>
-              현재 <span className="font-bold text-[#e8cc8a]">{domEl.ko}</span>이(가) 가장
-              두드러집니다.
+              가장 강한 건 <span className="font-bold text-[#e8cc8a]">{domEl.koShort}</span> (
+              {domEl.koEl}) 이에요.
               <br />
               {PHRASE_KO[domKey]}
             </>
@@ -233,6 +332,24 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
             </>
           )}
         </p>
+        {showWeak && (
+          <p
+            className="mt-2 text-xs leading-relaxed"
+            style={{ color: 'var(--ds-dark-text-muted)' }}
+          >
+            {isKo ? (
+              <>
+                약한 건 <span className="font-semibold">{weakEl.koShort}</span> ({weakEl.koEl}).{' '}
+                {WEAK_REMEDY_KO[weakKey]}
+              </>
+            ) : (
+              <>
+                Weakest is <span className="font-semibold">{TRAIT_EN[weakKey]}</span> ({weakEl.en}
+                ). {WEAK_REMEDY_EN[weakKey]}
+              </>
+            )}
+          </p>
+        )}
       </div>
     </div>
   )

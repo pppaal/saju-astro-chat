@@ -7,12 +7,23 @@
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(4px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 16px;
+  /* 모바일에서는 풀스크린이므로 padding 0. 데스크탑은 상단에서
+     약간 띄워 시작 — 가운데 정렬 시 빈 공간이 위로 떠서
+     "왜 이렇게 가운데 떠 있지?" 위화감 회피. */
+  padding: 5vh 16px 16px;
   z-index: 200;
   overflow-y: auto;
   animation: pickerFadeIn 0.18s ease-out;
+  /* 스크롤바 숨김 — 스크롤 기능은 유지하되 막대만 감춘다(채팅 영역과 동일). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrim::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 @keyframes pickerFadeIn {
@@ -31,9 +42,16 @@
   width: min(720px, 100%);
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
-  margin: auto;
   display: flex;
   flex-direction: column;
+  /* 스크롤바 숨김 — 막대 제거(스크롤은 유지). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modal::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .modalHeader {
@@ -73,7 +91,7 @@
 }
 
 .hint {
-  border: 1px solid #e7e4df;
+  border: 1px solid #e7e5e4;
   background: #fcfbfa;
   color: #57534e;
   padding: 10px 14px;

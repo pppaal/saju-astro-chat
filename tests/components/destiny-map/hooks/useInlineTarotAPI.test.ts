@@ -141,6 +141,7 @@ describe('useInlineTarotAPI', () => {
       selectedSpread: mockSpread,
       selectedCategory: 'general-insight',
       drawnCards: [],
+      drawNonce: null,
       revealedCount: 0,
       isDrawing: false,
       overallMessage: '',
@@ -161,6 +162,7 @@ describe('useInlineTarotAPI', () => {
       setSelectedSpread: vi.fn(),
       setSelectedCategory: vi.fn(),
       setDrawnCards: vi.fn(),
+      setDrawNonce: vi.fn(),
       incrementRevealedCount: vi.fn(),
       setRevealedCount: vi.fn(),
       setInterpretFailed: vi.fn(),
@@ -271,11 +273,13 @@ describe('useInlineTarotAPI', () => {
         await result.current.drawCards()
       })
 
+      // apiFetch now authenticates via cookies (credentials: 'include') rather
+      // than injecting an x-api-token header.
       expect(mockFetch).toHaveBeenCalledWith('/api/tarot', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-token': expect.any(String),
         },
         body: JSON.stringify({
           categoryId: 'general-insight',

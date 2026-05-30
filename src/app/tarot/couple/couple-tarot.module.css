@@ -1,7 +1,7 @@
 /* Couple Tarot Styles */
 
 .page {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a1a1a 100%);
   color: #fff;
   padding: 1rem;

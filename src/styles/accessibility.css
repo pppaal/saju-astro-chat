@@ -50,7 +50,7 @@ a > svg,
    후에도 잔존해 "사각 테두리" 처럼 보이던 회귀.
    data-icon-only 버튼은 outline 도 더 좁게 (1.5px). */
 *:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.8);
+  outline: 2px solid rgba(212, 181, 114, 0.8);
   outline-offset: 2px;
 }
 
@@ -62,7 +62,7 @@ a > svg,
 /* 아이콘 버튼은 outline 더 좁게 — 큰 box-shadow ring 제거. */
 [data-icon-only]:focus-visible,
 .icon-only:focus-visible {
-  outline: 1.5px solid rgba(139, 92, 246, 0.7);
+  outline: 1.5px solid rgba(212, 181, 114, 0.7);
   outline-offset: 1px;
   box-shadow: none;
 }
@@ -71,9 +71,9 @@ a > svg,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.8);
+  outline: 2px solid rgba(212, 181, 114, 0.8);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 0 0 4px rgba(212, 181, 114, 0.15);
 }
 
 /* Input types that should have consistent focus */
@@ -87,7 +87,7 @@ input[type="number"]:focus,
 input[type="search"]:focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: rgba(212, 181, 114, 0.5);
   transition: all 0.2s ease;
 }
 
@@ -184,18 +184,18 @@ button:disabled,
   position: absolute;
   top: -100px;
   left: 0;
-  background: #667eea;
+  background: #a07a3c;
   color: white;
   padding: 12px 20px;
   text-decoration: none;
-  z-index: 9999;
+  z-index: var(--z-debug);
   border-radius: 0 0 4px 0;
   transition: top 0.2s ease;
 }
 
 .skip-to-content:focus {
   top: 0;
-  outline: 3px solid rgba(139, 92, 246, 0.8);
+  outline: 3px solid rgba(212, 181, 114, 0.8);
 }
 
 /* =====================================================
@@ -258,4 +258,26 @@ button:disabled,
   overflow: visible;
   clip: auto;
   white-space: normal;
+}
+
+/* =====================================================
+   WINDOWS HIGH CONTRAST MODE (forced-colors)
+   ===================================================== */
+/* Windows High Contrast Mode (forced-colors) — system overrides our gold/
+   gradient palette. Use system tokens (CanvasText, Highlight) for borders
+   and let SVGs adapt. */
+@media (forced-colors: active) {
+  button,
+  a,
+  [role="button"] {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+  }
+  *:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+  svg {
+    forced-color-adjust: auto;
+  }
 }

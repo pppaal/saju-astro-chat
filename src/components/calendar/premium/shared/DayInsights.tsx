@@ -247,12 +247,12 @@ function DayDomainsCard({
             {patterns.map((p) => (
               <div
                 key={p.id}
-                className="rounded-md bg-violet-500/10 border border-violet-500/15 px-2.5 py-2 text-[11px]"
+                className="rounded-md bg-[rgba(212,181,114,0.10)] border border-[rgba(212,181,114,0.15)] px-2.5 py-2 text-[11px]"
               >
                 <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                  <span className="font-semibold text-violet-200">{p.name}</span>
+                  <span className="font-semibold text-[#e8cc8a]">{p.name}</span>
                   {p.headline && (
-                    <span className="text-violet-200/75 font-medium">· {p.headline}</span>
+                    <span className="text-[#e8cc8a]/75 font-medium">· {p.headline}</span>
                   )}
                 </div>
                 {p.action && (
@@ -405,7 +405,7 @@ function WhyBlock({
         ? 'text-cyan-300/90'
         : tone === 'cross'
           ? 'text-emerald-300/90'
-          : 'text-violet-300/90'
+          : 'text-[#d4b572]/90'
   const dotColor =
     tone === 'saju'
       ? 'bg-amber-400'
@@ -413,7 +413,7 @@ function WhyBlock({
         ? 'bg-cyan-400'
         : tone === 'cross'
           ? 'bg-emerald-400'
-          : 'bg-violet-400'
+          : 'bg-[#d4b572]'
   return (
     <div>
       <h4 className={`text-sm font-bold mb-2 tracking-wide ${labelColor}`}>{label}</h4>

@@ -1,28 +1,28 @@
 'use client'
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import type { I18nMessages } from '@/i18n/utils'
 import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
+import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt'
 import HomeChatInput from './components/HomeChatInput'
 import BirthInfoModal from './components/BirthInfoModal'
-import { getStoredBirthInfo, saveBirthInfo, type StoredBirthInfo } from './birthInfoStorage'
+import {
+  getStoredBirthInfo,
+  saveBirthInfo,
+  buildCounselorHref,
+  type StoredBirthInfo,
+} from './birthInfoStorage'
 import HexDPLogo from '@/components/branding/HexDPLogo'
 
 type Locale = 'en' | 'ko'
-
-// The premium-white surface trigger is scoped to the current tab session
-// (sessionStorage), NOT localStorage. Birth data still persists across
-// visits for the chat, but the surface decision must not: otherwise a
-// returning logged-out visitor stays stuck on white forever from a stale
-// birth-info cache instead of seeing the cosmic brand surface again.
-const HOME_WHITE_SESSION_KEY = 'dp:home-white'
 
 interface MainPageClientProps {
   initialLocale: Locale
@@ -34,6 +34,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const locale = (activeLocale || initialLocale) as Locale
   const { status } = useSession()
   const isAuthed = status === 'authenticated'
+  const router = useRouter()
 
   const toggleLocale = () => {
     setLocale(locale === 'ko' ? 'en' : 'ko')
@@ -44,9 +45,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [birthModalOpen, setBirthModalOpen] = useState(false)
   const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
-  // Whether birth info was entered during THIS tab session — drives the
-  // premium-white surface (see HOME_WHITE_SESSION_KEY).
-  const [birthEnteredThisSession, setBirthEnteredThisSession] = useState(false)
+  // 생일 없이 운명상담사 질문을 던졌으면 그 질문을 여기 담아두고, 생일 저장
+  // 직후 운명상담사로 이동시킨다. (메인 = 운명상담사 한 흐름이라 service 분기 X)
+  const pendingQuestionRef = useRef<string | null>(null)
 
   // Hydrate birth info from localStorage after mount. Also auto-open
   // the modal when a service redirected here with `?openBirth=1` so the
@@ -54,9 +55,6 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   useEffect(() => {
     setBirthInfo(getStoredBirthInfo())
     if (typeof window === 'undefined') return
-    if (sessionStorage.getItem(HOME_WHITE_SESSION_KEY) === '1') {
-      setBirthEnteredThisSession(true)
-    }
     const sp = new URLSearchParams(window.location.search)
     if (sp.get('openBirth') === '1') setBirthModalOpen(true)
   }, [])
@@ -167,30 +165,53 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
     }
   }, [isAuthed])
 
+  // 생일 없이 운명상담사 질문을 던진 경우 — 질문을 기억하고 생일 모달을 띄운다.
+  const handleRequireBirth = (question: string) => {
+    pendingQuestionRef.current = question
+    setBirthModalOpen(true)
+  }
+
+  // 입력/수정용으로 생일 모달만 열기 — 저장 후 자동 이동 없이 메인에 머문다.
+  const handleOpenBirth = () => {
+    pendingQuestionRef.current = null
+    setBirthModalOpen(true)
+  }
+
+  // 저장된 생년월일 삭제 — 상태를 비우고 모달을 닫는다. 대기 중이던 질문도
+  // 취소(생일이 없어졌으니 이동할 수 없음).
+  const handleDeleted = () => {
+    pendingQuestionRef.current = null
+    setBirthInfo(null)
+    setBirthModalOpen(false)
+  }
+
   const handleSaved = (info: StoredBirthInfo) => {
     setBirthInfo(info)
     setBirthModalOpen(false)
-    // Entering birth info this session flips the home to the premium-white
-    // surface (and remembers it for the rest of the tab session).
-    setBirthEnteredThisSession(true)
+    // 저장만 하면 isPremiumWhite = isAuthed || !!birthInfo 에서 즉시 흰 모드.
+    // (sessionStorage flag 필요 없음 — birthInfo state 가 directly trigger.)
     if (typeof window === 'undefined') return
-    try {
-      sessionStorage.setItem(HOME_WHITE_SESSION_KEY, '1')
-    } catch {
-      // sessionStorage can throw (private mode / blocked) — non-fatal.
+
+    // 생일 입력이 운명상담사 질문에서 시작됐다면, 방금 저장한 정보 + 그 질문
+    // 으로 채팅 페이지에 직행 — 질문이 그대로 전달돼 자동으로 답변이 생성됨.
+    const pendingQuestion = pendingQuestionRef.current
+    pendingQuestionRef.current = null
+    if (pendingQuestion !== null) {
+      router.push(buildCounselorHref(info, pendingQuestion, locale))
+      return
     }
+
     const sp = new URLSearchParams(window.location.search)
     const next = sp.get('next')
     if (next && next.startsWith('/')) window.location.assign(next)
   }
 
   // Flip from the cosmic dark hero ("brand" surface) to the premium-white
-  // "product" surface once the visitor is signed in OR has entered birth
-  // info during THIS tab session. Scoped to the session (not the
-  // persisted birthInfo) so a returning logged-out visitor with cached
-  // birth data still gets the brand surface instead of being stuck on
-  // white forever.
-  const isPremiumWhite = isAuthed || birthEnteredThisSession
+  // "product" surface when the visitor is signed in OR has a saved
+  // birth info in localStorage. Logged-out visitors without saved birth
+  // see the cosmic surface; saved-birth visitors stay on white.
+  // (Earlier session-only logic was buggy on logout — see history.)
+  const isPremiumWhite = isAuthed || !!birthInfo
 
   return (
     <motion.main
@@ -198,7 +219,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         isPremiumWhite ? styles.lightMode : ''
       }`}
       animate={{
-        backgroundColor: isPremiumWhite ? '#fafaf9' : '#06091a',
+        backgroundColor: isPremiumWhite ? '#fafaf9' : '#07091a',
         color: isPremiumWhite ? '#1c1917' : '#ffffff',
       }}
       transition={{ duration: 1.2, ease: 'easeInOut' }}
@@ -277,14 +298,15 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           </h1>
           <p className={styles.homeSubline}>
             {locale === 'ko'
-              ? '생년월일을 알려주시고, 원하는 상담을 선택해 보세요'
-              : 'Share your birth date, then choose a reading'}
+              ? '생년월일을 입력하고, 궁금한 점을 자유롭게 물어보세요'
+              : 'Enter your birth info, then ask anything'}
           </p>
         </section>
 
         <HomeChatInput
           birthInfo={birthInfo}
-          onOpenBirthModal={() => setBirthModalOpen(true)}
+          onRequireBirth={handleRequireBirth}
+          onOpenBirth={handleOpenBirth}
           locale={locale}
         />
       </div>
@@ -301,8 +323,14 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         initial={birthInfo}
         onClose={() => setBirthModalOpen(false)}
         onSaved={handleSaved}
+        onDeleted={handleDeleted}
         locale={locale}
       />
+
+      {/* PWA 설치 안내 — 생일 입력 후 (= 한 번 써본) 사용자에게만 노출.
+          Chrome 계열: 네이티브 다이얼로그. iOS Safari: "공유 → 홈 화면 추가"
+          가이드. Firefox / in-app webview / 이미 설치된 PWA 는 자동으로 미노출. */}
+      <PWAInstallPrompt locale={locale} />
 
       <PrefetchLinks />
       <SpeedInsights />

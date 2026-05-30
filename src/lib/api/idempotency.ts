@@ -33,13 +33,21 @@ const IDEMPOTENCY_MAX_MEMORY_ENTRIES = 500
 export function createIdempotencyStore(routeName: string) {
   const memory = new Map<string, number>()
 
-  /** 클라이언트 헤더에서 키 추출. ownerKey 는 보통 userId 또는 ip. */
-  function keyFor(req: NextRequest, ownerKey: string): string | null {
+  /**
+   * 클라이언트 헤더에서 키 추출. ownerKey 는 보통 userId 또는 ip.
+   *
+   * contentTag — 요청 내용(예: followup 질문+카드)에서 파생한 짧은 discriminator.
+   * 주면 scopedKey 에 섞어 "같은 idempotency-key 를 서로 다른 내용으로
+   * 재사용해 두 번째부터 공짜로 받는" free-replay 누수를 막는다. 같은 키 +
+   * 같은 내용(진짜 새로고침/재전송)만 replay 로 인정. 미지정 시 기존 동작.
+   */
+  function keyFor(req: NextRequest, ownerKey: string, contentTag?: string): string | null {
     const raw = req.headers.get('x-idempotency-key')?.trim()
     if (!raw) return null
     // 길이 가드 — 비정상 헤더 거부.
     if (raw.length > 256) return null
-    return `${routeName}:${ownerKey}:${raw}`
+    const tag = contentTag ? `:${contentTag}` : ''
+    return `${routeName}:${ownerKey}:${raw}${tag}`
   }
 
   async function isReplay(scopedKey: string): Promise<boolean> {
@@ -117,3 +125,116 @@ export function createIdempotencyStore(routeName: string) {
 }
 
 export type IdempotencyStore = ReturnType<typeof createIdempotencyStore>
+
+// ---------------------------------------------------------------------------
+// Draw-nonce store — server-issued, single-use token.
+//
+// 배경: interpret-stream 의 "무료 재해석(free replay)" 판정이 클라이언트가
+// 보내는 x-idempotency-key 에만 의존하면, 악의적 클라가 같은 키를 재사용해
+// 첫 해석 이후 모든 해석을 공짜로 받을 수 있다. 그래서 차감 면제(skip)는
+// "서버가 발급한 nonce 가 정확히 한 번 소비됐을 때(=첫 소비에서 이미 차감됨)"
+// 에만 일어나야 한다.
+//
+// 정책:
+//   - draw 라우트가 issue(nonce) — 발급 사실을 (TTL) 기록.
+//   - interpret 라우트가 consume(nonce):
+//       'first'   → 서버가 발급했고 아직 소비 안 됨 → 정상 차감 후 소비 마킹.
+//       'replay'  → 같은 nonce 두 번째 — 첫 소비에서 이미 차감됨 → 차감 skip.
+//       'unknown' → 서버가 발급한 적 없는(위조/만료) nonce → free pass 없음.
+//                   호출자는 정상 차감 경로로 처리한다 (게스트/정상 흐름 보호).
+//
+// 저장: RequestIdempotencyLog 재사용 (별도 migration 불필요). nonce 당 두
+// scopedKey 를 쓴다 — `:issued` 마커와 `:consumed` 마커. consume 은 consumed
+// 마커를 atomic create 로 박아(이미 있으면 unique 충돌 → replay) 동시 요청
+// race 에서도 정확히 한 번만 'first' 가 나오게 한다.
+
+const DRAW_NONCE_TTL_MS = 6 * 60 * 60 * 1000
+
+export type ConsumeResult = 'first' | 'replay' | 'unknown'
+
+/**
+ * draw / interpret 양쪽이 같은 ownerKey 를 만들도록 단일 헬퍼. userId 가
+ * 있으면 그걸, 없으면 ip 로 scope. (interpret-stream 의 context.userId ||
+ * `ip:${context.ip}` 과 동일한 형태.)
+ */
+export function drawNonceOwnerKey(req: NextRequest, userId?: string | null): string {
+  if (userId) return userId
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    'unknown'
+  return `ip:${ip}`
+}
+
+export function createDrawNonceStore(routeName: string) {
+  function issuedKey(ownerKey: string, nonce: string): string {
+    return `${routeName}:issued:${ownerKey}:${nonce}`
+  }
+  function consumedKey(ownerKey: string, nonce: string): string {
+    return `${routeName}:consumed:${ownerKey}:${nonce}`
+  }
+
+  /** draw 라우트가 발급한 nonce 를 기록. */
+  async function issue(nonce: string, ownerKey: string): Promise<void> {
+    const expiresAt = new Date(Date.now() + DRAW_NONCE_TTL_MS)
+    try {
+      await prisma.requestIdempotencyLog.upsert({
+        where: { scopedKey: issuedKey(ownerKey, nonce) },
+        create: { scopedKey: issuedKey(ownerKey, nonce), expiresAt },
+        update: { expiresAt },
+      })
+    } catch (err) {
+      // 발급 기록 실패 시 fail-open 하지 않는다 — 기록이 없으면 interpret 가
+      // 'unknown' 으로 보고 정상 차감하므로 수익 누수는 없다. 로그만.
+      logger.warn('[draw-nonce] issue persist failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  /**
+   * nonce 를 소비. 반환값으로 차감 여부를 결정한다.
+   * race-safe: consumed 마커를 unique create 로 박아 동시 요청 중 하나만
+   * 'first' 를 받는다.
+   */
+  async function consume(nonce: string, ownerKey: string): Promise<ConsumeResult> {
+    let issued = false
+    try {
+      const issuedRow = await prisma.requestIdempotencyLog.findUnique({
+        where: { scopedKey: issuedKey(ownerKey, nonce) },
+        select: { expiresAt: true },
+      })
+      issued = Boolean(issuedRow && issuedRow.expiresAt >= new Date())
+    } catch (err) {
+      // 조회 실패: 위조로 단정할 근거가 없으니 'unknown' 으로 — 정상 차감.
+      logger.warn('[draw-nonce] issued lookup failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
+      return 'unknown'
+    }
+
+    if (!issued) return 'unknown'
+
+    // 소비 마킹을 atomic create 로. 성공 = 첫 소비(first). 충돌 = 이미 소비됨(replay).
+    const expiresAt = new Date(Date.now() + DRAW_NONCE_TTL_MS)
+    try {
+      await prisma.requestIdempotencyLog.create({
+        data: { scopedKey: consumedKey(ownerKey, nonce), expiresAt },
+      })
+      return 'first'
+    } catch (err) {
+      // P2002 (unique) = 이미 소비된 nonce → 정당한 재진입(replay).
+      const code = (err as { code?: string } | undefined)?.code
+      if (code === 'P2002') return 'replay'
+      // 그 외 DB 오류: 보수적으로 'first' 처리(차감) — 수익 보호 우선.
+      logger.warn('[draw-nonce] consume create failed, treat as first (charge)', {
+        err: err instanceof Error ? err.message : String(err),
+      })
+      return 'first'
+    }
+  }
+
+  return { issue, consume }
+}
+
+export type DrawNonceStore = ReturnType<typeof createDrawNonceStore>

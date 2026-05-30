@@ -12,58 +12,31 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
     makeEmptyPerson({ name: '', relation: 'lover' }),
   ])
 
-  // 자동 채움 우선순위: (1) 직전에 본 페어(localStorage) > (2) 홈 birth-info
-  // > (3) 빈 상태. 사용자가 카드를 한 번이라도 만졌으면(date 입력) 어떤
-  // 자동 채움도 덮어쓰지 않는다.
+  // 자동 채움 우선순위:
+  //   - Person 1 (= 본인): 홈 birth-info 가 있으면 항상 우선. 없으면 직전
+  //     페어[0]. 둘 다 없으면 빈 상태.
+  //   - Person 2 (= 상대): 항상 빈 상태로 시작.
   //
-  // 페어 자동 채움이 우선인 이유: 궁합은 같은 두 사람을 반복해서 보는
-  // 케이스가 압도적이라 매번 두 카드 다 다시 입력하는 게 번거롭다는 피드백.
+  // 이전엔 Person 2 를 직전 페어[1] 로 자동 채웠는데, 사용자 피드백
+  // "궁합폼에서 옛날 정보가 아직도 남음" — 폼을 다시 열 때마다 직전에 본
+  // 상대 정보가 그대로 박혀 있어 매번 지우고 새로 입력해야 했다. 내 정보만
+  // 살리고 상대는 비워서, 새 사람으로 보려는 흐름이 깔끔하게 시작되도록.
+  // (직전 페어로 다시 보고 싶으면 채팅 화면 sticky 바의 "최근 본 관계" 에서
+  // 한 번에 전환 가능 — localStorage 기록 자체는 그대로 유지된다.)
+  //
+  // Person 1 자동 채움도 사용자가 카드를 한 번이라도 만졌으면 (date 입력)
+  // 덮어쓰지 않는다.
   useEffect(() => {
     const latest = getLatestPair()
     const home = getStoredBirthInfo()
     if (!latest && !home?.birthDate) return
 
     setPersons((prev) => {
-      // 사용자 이미 만진 경우 → 어떤 자동 채움도 X.
       if (prev[0]?.date || prev[1]?.date) return prev
 
       const next = [...prev]
 
-      // (1) localStorage 페어 — 두 카드 동시에.
-      if (latest) {
-        const mapRel = (rel?: string): Relation | undefined => {
-          if (!rel) return undefined
-          if (rel === 'partner' || rel === 'lover') return 'lover'
-          if (rel === 'spouse') return 'spouse'
-          if (rel === 'family') return 'family'
-          if (rel === 'sibling') return 'sibling'
-          if (rel === 'friend') return 'friend'
-          if (rel === 'colleague') return 'colleague'
-          return 'other'
-        }
-        for (let i = 0; i < 2; i++) {
-          const src = latest.persons[i]
-          if (!src || !next[i]) continue
-          next[i] = {
-            ...next[i],
-            name: src.name,
-            date: src.date,
-            time: src.time,
-            gender: src.gender,
-            cityQuery: src.cityQuery
-              ? localizeStoredCity(src.cityQuery, locale)
-              : next[i].cityQuery,
-            lat: src.lat,
-            lon: src.lon,
-            timeZone: src.timeZone || getUserTimezone() || 'Asia/Seoul',
-            relation: i > 0 ? mapRel(src.relation) : undefined,
-            timeUnknown: src.timeUnknown,
-          }
-        }
-        return next
-      }
-
-      // (2) home birth-info — person 1 만.
+      // Person 1 — 홈 birth-info 우선, 없으면 페어[0].
       if (home?.birthDate && next[0]) {
         next[0] = {
           ...next[0],
@@ -72,8 +45,31 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
           time: home.birthTime || '',
           gender: home.gender === 'female' ? 'F' : 'M',
           cityQuery: home.city ? localizeStoredCity(home.city, locale) : next[0].cityQuery,
+          lat: home.latitude ?? null,
+          lon: home.longitude ?? null,
+          timeZone: home.timeZone || getUserTimezone() || 'Asia/Seoul',
+          timeUnknown: home.birthTimeUnknown,
+        }
+      } else if (latest?.persons[0] && next[0]) {
+        const src = latest.persons[0]
+        next[0] = {
+          ...next[0],
+          name: src.name,
+          date: src.date,
+          time: src.time,
+          gender: src.gender,
+          cityQuery: src.cityQuery
+            ? localizeStoredCity(src.cityQuery, locale)
+            : next[0].cityQuery,
+          lat: src.lat,
+          lon: src.lon,
+          timeZone: src.timeZone || getUserTimezone() || 'Asia/Seoul',
+          timeUnknown: src.timeUnknown,
         }
       }
+
+      // Person 2 (= 상대) 는 의도적으로 자동 채움 안 함 — 항상 빈 칸으로 시작.
+
       return next
     })
   }, [locale])

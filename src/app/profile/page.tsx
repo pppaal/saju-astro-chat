@@ -33,6 +33,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { clearClientCache, clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 import { logger } from '@/lib/logger'
+import { copyToClipboard } from '@/lib/utils/clipboard'
 import { ProfileEditModal } from './components/ProfileEditModal'
 import { CircleAddModal } from './components/CircleAddModal'
 // Firebase 직접 업로드는 NextAuth/Firebase Auth 분리로 인한 CORS·규칙
@@ -130,7 +131,7 @@ const INK = '#1c1917'
 
 // Shared surface classes, kept here so every section reads identically.
 const cardCls =
-  'rounded-3xl border border-[#e7e4df] bg-white p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04)] sm:p-6'
+  'rounded-3xl border border-[#e7e5e4] bg-white p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04)] sm:p-6'
 const sectionLabelCls =
   'flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a09a90]'
 const linkCls =
@@ -140,10 +141,10 @@ const ghostBtnCls =
 const inkBtnCls =
   'inline-flex items-center gap-1.5 rounded-full bg-[#1c1917] px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-[#3a3530]'
 const rowCls =
-  'flex items-center gap-3 rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] px-3.5 py-3'
-const emptyCls = 'mt-4 rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-4 py-6 text-center'
+  'flex items-center gap-3 rounded-2xl border border-[#e7e5e4] bg-[#fcfbfa] px-3.5 py-3'
+const emptyCls = 'mt-4 rounded-2xl border border-[#e7e5e4] bg-[#faf9f7] px-4 py-6 text-center'
 const loadingCls =
-  'mt-4 rounded-2xl border border-[#ebe8e3] bg-[#faf9f7] px-4 py-5 text-center text-[13px] text-[#a8a29e]'
+  'mt-4 rounded-2xl border border-[#e7e5e4] bg-[#faf9f7] px-4 py-5 text-center text-[13px] text-[#a8a29e]'
 
 // 섹션 로딩 스켈레톤 — 3 row pulse. 텍스트 "불러오는 중..." 가 frozen UI 처럼
 // 느껴지던 부분을 자연스러운 pulse 로 대체. prefers-reduced-motion 도 존중.
@@ -594,12 +595,12 @@ export default function ProfilePage() {
 
   const handleCopyReferral = async () => {
     if (!referral?.referralUrl) return
-    try {
-      await navigator.clipboard.writeText(referral.referralUrl)
+    const ok = await copyToClipboard(referral.referralUrl)
+    if (ok) {
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
-    } catch (err) {
-      logger.warn('[profile/referral] clipboard failed', err)
+    } else {
+      logger.warn('[profile/referral] clipboard failed')
     }
   }
 
@@ -909,7 +910,7 @@ export default function ProfilePage() {
                   {circle.map((p) => (
                     <li key={p.id} className={rowCls}>
                       <div
-                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e7e4df] bg-white text-[13px] font-semibold text-[#1c1917]"
+                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e7e5e4] bg-white text-[13px] font-semibold text-[#1c1917]"
                         style={serifStyle}
                       >
                         {p.name[0]?.toUpperCase() || '·'}
@@ -1201,7 +1202,7 @@ export default function ProfilePage() {
             aria-label={locale === 'ko' ? '계정 삭제 확인' : 'Confirm account deletion'}
           >
             <div
-              className="w-full max-w-sm rounded-2xl border border-[#e7e4df] bg-white p-5 shadow-[0_24px_48px_rgba(28,25,23,0.18)]"
+              className="w-full max-w-sm rounded-2xl border border-[#e7e5e4] bg-white p-5 shadow-[0_24px_48px_rgba(28,25,23,0.18)]"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-[16px] font-semibold text-[#1c1917]" style={serifStyle}>
@@ -1302,7 +1303,7 @@ function ReferralStat({
   gold?: boolean
 }) {
   return (
-    <div className="rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] px-3 py-3 text-center">
+    <div className="rounded-2xl border border-[#e7e5e4] bg-[#fcfbfa] px-3 py-3 text-center">
       <p
         className="text-[1.3rem] font-semibold leading-none"
         style={{ color: gold ? GOLD : INK, ...serifStyle }}
@@ -1328,7 +1329,7 @@ function InfoRow({
   loading: boolean
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-[#ebe8e3] bg-[#fcfbfa] px-3.5 py-3">
+    <div className="flex items-center gap-3 rounded-2xl border border-[#e7e5e4] bg-[#fcfbfa] px-3.5 py-3">
       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#f1efeb] text-[#a07a3c]">
         <Icon className="h-3.5 w-3.5" />
       </div>

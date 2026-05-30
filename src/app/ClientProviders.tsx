@@ -10,6 +10,16 @@ import ReferralLinker from '@/components/referral/ReferralLinker'
 import LegalConsentModal from '@/components/legal/LegalConsentModal'
 import CreditRewardChecker from '@/components/ui/CreditRewardChecker'
 import { InAppBrowserNotice } from '@/components/ui/InAppBrowserNotice'
+import { useKeyboardInset } from '@/hooks/useKeyboardInset'
+
+/**
+ * 단일 마운트 포인트로 VisualViewport API 를 구독해 --kb-inset 을 root 에
+ * 노출. fixed/sticky 요소가 iOS 키보드 위로 안 밀려나도록 CSS 에서 참조.
+ */
+function KeyboardInsetWatcher() {
+  useKeyboardInset()
+  return null
+}
 
 export function ClientProviders({
   children,
@@ -20,6 +30,7 @@ export function ClientProviders({
 }) {
   return (
     <I18nProvider initialLocale={initialLocale}>
+      <KeyboardInsetWatcher />
       <ServiceWorkerStabilityGuard />
       <ReferralLinker />
       {/* 카톡·페북·인스타 등 in-app webview 감지 시 sticky 배너 — Google

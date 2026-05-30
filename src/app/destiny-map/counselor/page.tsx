@@ -15,6 +15,13 @@ import styles from './counselor.module.css'
 import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
 import Chat from '@/components/destiny-map/Chat'
+import BirthInfoModal from '@/app/(main)/components/BirthInfoModal'
+import {
+  buildCounselorHref,
+  getStoredBirthInfo,
+  type StoredBirthInfo,
+} from '@/app/(main)/birthInfoStorage'
+import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -94,11 +101,74 @@ export default function CounselorPage() {
     initialQuestion,
     latitude,
     longitude,
+    timeZone,
   } = parsedParams
+
+  // '내 정보 수정' 모달을 현재 상담 중인 인물 정보로 채운다 — 상담사 데이터는
+  // URL/프로필에서 오므로 localStorage(getStoredBirthInfo) 가 비어 있어도
+  // 폼이 비지 않게. birth 정보가 없으면(맨몸 진입) localStorage 폴백.
+  const currentSubjectInfo: StoredBirthInfo | null =
+    birthDate && (gender === 'male' || gender === 'female')
+      ? {
+          name: name || undefined,
+          birthDate,
+          birthTime: birthTime || '',
+          birthTimeUnknown,
+          gender,
+          city: city || undefined,
+          latitude: typeof latitude === 'number' ? latitude : undefined,
+          longitude: typeof longitude === 'number' ? longitude : undefined,
+          timeZone: timeZone || undefined,
+          savedAt: new Date().toISOString(),
+        }
+      : getStoredBirthInfo()
 
   // handleLogin removed alongside the guest banner. If we reintroduce
   // an inline sign-in CTA, restore via:
   //   const handleLogin = () => router.push(buildSignInUrl(`/destiny-counselor/chat${search}`))
+
+  // ChatGPT 식 "마지막 채팅 이어서 띄우기" — 세션/질문/생년 파라미터 없이
+  // 맨몸으로 /destiny-map/counselor 를 열면 새 빈 채팅 대신 가장 최근에
+  // 저장된 대화를 자동으로 이어 띄운다. 명시적 질문(q/initialQuestion) 이나
+  // 특정 인물 생년 파라미터로 들어온 "새 리딩" 진입은 그대로 새 채팅 유지.
+  const hasUrlBirth = Boolean(
+    (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) &&
+    (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime)
+  )
+  const bareEntry = !initialSessionId && !initialQuestion && !hasUrlBirth
+  // mount 1 회만 시도 — 삭제 후 router.replace('/destiny-map/counselor') 로
+  // URL 이 다시 맨몸이 돼도 직전 채팅을 재-resume 하지 않도록 ref 로 가드.
+  const autoResumeAttemptedRef = useRef(false)
+  const [resumeChecking, setResumeChecking] = useState(bareEntry)
+  useEffect(() => {
+    if (!bareEntry) {
+      // 세션/질문/생년 파라미터가 붙은 진입 — resume 안 함.
+      setResumeChecking(false)
+      return
+    }
+    if (autoResumeAttemptedRef.current) {
+      // 이미 한 번 시도함(예: 삭제 후 맨몸 URL 로 복귀) — 직전 채팅을 다시
+      // 끌어오지 않고 새 빈 채팅 흐름으로 둔다.
+      setResumeChecking(false)
+      return
+    }
+    autoResumeAttemptedRef.current = true
+    let cancelled = false
+    setResumeChecking(true)
+    fetchLatestSessionId('destiny').then((id) => {
+      if (cancelled) return
+      if (id) {
+        // 같은 라우트 + ?session= → initialSessionId 로 흘러가 Chat 이 resume.
+        // bareEntry=false 가 되면 위 분기가 resumeChecking 을 내린다.
+        router.replace(`/destiny-map/counselor?session=${id}`)
+      } else {
+        setResumeChecking(false)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [bareEntry, router])
 
   const handleBack = useCallback(() => router.back(), [router])
   // Claude-style new chat: drop the chat instance in place by bumping a
@@ -107,6 +177,22 @@ export default function CounselorPage() {
   const handleChatReset = useCallback(() => {
     setChatResetKey((k) => k + 1)
   }, [])
+
+  // 대상 인물 변경 — '내 정보 수정'(프로필 저장) / '다른 사람 보기'(임시, 저장 X).
+  // 대상 인물 — '내 정보 수정' 하나만. 공용 BirthInfoModal 재사용, 저장되면
+  // 갱신된 사주로 새 대화 시작.
+  const [birthModalOpen, setBirthModalOpen] = useState(false)
+  const openEditMine = useCallback(() => {
+    setBirthModalOpen(true)
+  }, [])
+  const handleBirthSaved = useCallback(
+    (info: StoredBirthInfo) => {
+      setBirthModalOpen(false)
+      setChatResetKey((k) => k + 1) // 정보 바뀜 → 새 대화로 시작
+      router.push(buildCounselorHref(info, '', lang))
+    },
+    [router, lang]
+  )
 
   // Localized failure messages for rename/delete actions — used both by
   // the in-chat ⋮ menu and the sidebar's swipe actions. We prefer the
@@ -136,7 +222,7 @@ export default function CounselorPage() {
   // user may have valid birth info on their profile that we haven't
   // fetched yet. Keep lightTheme here too so switching past chats doesn't
   // flash the dark/purple base background for ~1s before the chat returns.
-  if (profileLoading) {
+  if (profileLoading || resumeChecking) {
     return <main className={`${styles.page} ${styles.lightTheme}`} />
   }
 
@@ -145,7 +231,7 @@ export default function CounselorPage() {
   // 안 됨. Chat 컴포넌트가 세션 로드하면서 birth 정보까지 복원함.
   if ((!birthDate || !birthTime) && !initialSessionId) {
     return (
-      <main className={styles.page}>
+      <main className={`${styles.page} ${styles.lightTheme}`}>
         <div className={styles.missingProfileCard}>
           <div className={styles.missingProfileIcon}>🔮</div>
           <h1 className={styles.missingProfileTitle}>
@@ -321,15 +407,25 @@ export default function CounselorPage() {
         </div>
       </header>
 
-      {/* 사용자 정보 sticky 바 — 어느 사람 정보로 본 채팅인지 한눈에.
-          채팅이 길어져도 헤더 바로 아래 고정. name 비어 있으면 (초기 게스트)
-          렌더 자체 생략. */}
-      {name?.trim() && (
-        <div className={styles.profileStickyBar} aria-label={lang === 'ko' ? '대상 인물' : 'Subject'}>
-          <span className={styles.profileStickyDot} aria-hidden="true">●</span>
-          <span className={styles.profileStickyName}>{name}</span>
-        </div>
-      )}
+      {/* 대상 인물 바 — 누르면 바로 '내 정보 수정' 모달. 이름 옆 작은 ✎. */}
+      <div className={styles.subjectBarWrap}>
+        <button
+          type="button"
+          className={styles.profileStickyBar}
+          onClick={openEditMine}
+          aria-label={lang === 'ko' ? '내 정보 수정' : 'Edit my info'}
+        >
+          <span className={styles.profileStickyDot} aria-hidden="true">
+            ●
+          </span>
+          <span className={styles.profileStickyName}>
+            {name?.trim() || (lang === 'ko' ? '나' : 'Me')}
+          </span>
+          <span className={styles.subjectChevron} aria-hidden="true">
+            ✎
+          </span>
+        </button>
+      </div>
 
       {/* Guest banner removed — fights the Claude-style centered hero
           empty state. Login CTA lives in the page header (top-right)
@@ -379,6 +475,15 @@ export default function CounselorPage() {
       </div>
 
       {initialQuestion && <InitialQuestionSender question={initialQuestion} />}
+
+      {/* 내 정보 수정 — 공용 BirthInfoModal 재사용. 현재 상담 인물 정보로 채워 연다. */}
+      <BirthInfoModal
+        open={birthModalOpen}
+        initial={currentSubjectInfo}
+        onClose={() => setBirthModalOpen(false)}
+        onSaved={handleBirthSaved}
+        locale={lang}
+      />
     </main>
   )
 }
@@ -386,7 +491,9 @@ export default function CounselorPage() {
 function InitialQuestionSender({ question }: { question: string }) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('counselor:seed', { detail: question }))
+      // useSeedEvent 는 detail.text 를 읽는다 — 문자열을 그대로 보내면
+      // detail.text 가 undefined 라 자동 전송이 안 됨. { text } 형태로 보낼 것.
+      window.dispatchEvent(new CustomEvent('counselor:seed', { detail: { text: question } }))
     }, 500)
     return () => clearTimeout(timer)
   }, [question])

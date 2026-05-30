@@ -3,15 +3,32 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown, Download } from 'lucide-react'
 import styles from '../main-page.module.css'
-import { saveBirthInfo, getStoredBirthInfo, type StoredBirthInfo } from '../birthInfoStorage'
+import {
+  saveBirthInfo,
+  getStoredBirthInfo,
+  clearBirthInfo,
+  normGender,
+  timeToState,
+  type StoredBirthInfo,
+} from '../birthInfoStorage'
 import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface BirthInfoModalProps {
   open: boolean
   initial: StoredBirthInfo | null
   onClose: () => void
   onSaved: (info: StoredBirthInfo) => void
+  // 저장된 생년월일을 삭제했을 때 — 부모가 상태를 비우고 모달을 닫는다.
+  onDeleted?: () => void
   locale?: 'ko' | 'en'
+  // false 면 내 프로필/localStorage 에 저장하지 않고 입력값만 onSaved 로 넘긴다.
+  // "다른 사람으로 보기"(임시 조회)처럼 내 정체성을 덮어쓰면 안 되는 경우용.
+  // 기본 true — 기존 "내 정보 저장" 동작.
+  persist?: boolean
+  // 헤더/버튼 카피 커스터마이즈 (예: '이 사람으로 보기').
+  title?: string
+  submitLabel?: string
 }
 
 interface LoadOption {
@@ -26,40 +43,35 @@ interface LoadOption {
   city: string
 }
 
-function normGender(g: unknown): 'male' | 'female' | '' {
-  const v = String(g ?? '').toLowerCase()
-  if (v === 'female' || v === 'f') return 'female'
-  if (v === 'male' || v === 'm') return 'male'
-  return ''
-}
-
-function timeToState(raw: unknown): { birthTime: string; timeUnknown: boolean } {
-  const t = typeof raw === 'string' ? raw : ''
-  if (!t || t === '00:00') return { birthTime: '', timeUnknown: true }
-  return { birthTime: t, timeUnknown: false }
-}
-
 export default function BirthInfoModal({
   open,
   initial,
   onClose,
   onSaved,
+  onDeleted,
   locale = 'ko',
+  persist = true,
+  title,
+  submitLabel,
 }: BirthInfoModalProps) {
   const isKo = locale === 'ko'
-  const [name, setName] = useState(initial?.name || '')
-  const [birthDate, setBirthDate] = useState(initial?.birthDate || '')
+  const trapRef = useFocusTrap(open)
+  // initial 이 안 넘어와도(메인 '생년월일 입력하세요' CTA 처럼) 저장된 내
+  // 생년월일이 있으면 그걸로 폼을 채운다 — "매번 비어 보임" 회귀 fix.
+  const seed = initial ?? getStoredBirthInfo()
+  const [name, setName] = useState(seed?.name || '')
+  const [birthDate, setBirthDate] = useState(seed?.birthDate || '')
   const [birthTime, setBirthTime] = useState(
-    initial?.birthTime && initial.birthTime !== '00:00' ? initial.birthTime : ''
+    seed?.birthTime && seed.birthTime !== '00:00' ? seed.birthTime : ''
   )
   // Default to "time known" for new users so the time input is enabled.
   // Only mark as unknown when a prior save explicitly used the 00:00
   // placeholder or set the flag.
   const [timeUnknown, setTimeUnknown] = useState(
-    initial?.birthTimeUnknown === true || initial?.birthTime === '00:00'
+    seed?.birthTimeUnknown === true || seed?.birthTime === '00:00'
   )
-  const [gender, setGender] = useState<'male' | 'female' | ''>(initial?.gender || '')
-  const [city, setCity] = useState(initial?.city || '')
+  const [gender, setGender] = useState<'male' | 'female' | ''>(seed?.gender || '')
+  const [city, setCity] = useState(seed?.city || '')
   // 사용자가 [저장하고 시작] 눌렀는데 isValid=false 일 때 어느 필드가
   // 비었는지 inline 안내. silent disabled 회귀 fix. 채우는 즉시 사라짐.
   const [missingNotice, setMissingNotice] = useState<string | null>(null)
@@ -69,12 +81,12 @@ export default function BirthInfoModal({
   // houses against the actual birth place instead of silently falling back
   // to Seoul. Reset every time the user retypes the city (see applyPatch).
   const [latitude, setLatitude] = useState<number | null>(
-    typeof initial?.latitude === 'number' ? initial.latitude : null
+    typeof seed?.latitude === 'number' ? seed.latitude : null
   )
   const [longitude, setLongitude] = useState<number | null>(
-    typeof initial?.longitude === 'number' ? initial.longitude : null
+    typeof seed?.longitude === 'number' ? seed.longitude : null
   )
-  const [timeZone, setTimeZone] = useState<string | null>(initial?.timeZone || null)
+  const [timeZone, setTimeZone] = useState<string | null>(seed?.timeZone || null)
 
   // 빠진 필드를 채우는 순간 안내가 사라지게. city + latitude 도 같이 — 사용자가
   // 자동완성에서 도시를 고르면 lat 가 채워지면서 안내 자동 사라짐.
@@ -273,35 +285,69 @@ export default function BirthInfoModal({
       longitude: lon,
       timeZone: tz,
     }
-    saveBirthInfo(payload)
-    // Sync to DB so /api/me/profile (the counselor route's fallback
-    // source — useCounselorData reads it, localStorage is ignored)
-    // sees the new value. Without this, logged-in users who change
-    // their birth info here keep getting the old DB value in
-    // counselor sessions. Guest users get 401; swallow — localStorage
-    // is enough for them. Server only persists tzId + birthCity (no
-    // lat/lon column yet) so coords stay client-side.
+    // persist=false ("다른 사람으로 보기") 면 내 프로필/localStorage 를 건드리지
+    // 않고 입력값만 부모로 넘긴다 — 내 정체성을 덮어쓰면 안 되므로.
+    if (persist) {
+      saveBirthInfo(payload)
+      // Sync to DB so /api/me/profile (the counselor route's fallback
+      // source — useCounselorData reads it, localStorage is ignored)
+      // sees the new value. Without this, logged-in users who change
+      // their birth info here keep getting the old DB value in
+      // counselor sessions. Guest users get 401; swallow — localStorage
+      // is enough for them. Server only persists tzId + birthCity (no
+      // lat/lon column yet) so coords stay client-side.
+      try {
+        await fetch('/api/me/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...(trimmedName ? { name: trimmedName } : {}),
+            birthDate,
+            birthTime: timeUnknown ? null : effectiveTime,
+            gender: gender as 'male' | 'female',
+            birthCity: trimmedCity ?? null,
+            tzId: tz ?? null,
+          }),
+        })
+      } catch {
+        // localStorage already saved; tolerate transient API failures.
+      }
+    }
+    onSaved({ ...payload, savedAt: new Date().toISOString() })
+  }
+
+  const handleDelete = async () => {
+    const ok =
+      typeof window === 'undefined' ||
+      window.confirm(
+        isKo
+          ? '저장된 생년월일 정보를 삭제할까요? 다음 상담을 시작할 때 다시 입력해야 해요.'
+          : 'Delete your saved birth info? You will need to enter it again next time.'
+      )
+    if (!ok) return
+    clearBirthInfo()
+    // 로그인 사용자는 서버 프로필도 비워야 다음 동기화 때 옛 값이 다시
+    // 살아나지 않음. 게스트는 401 — 로컬 삭제로 충분하니 swallow.
     try {
       await fetch('/api/me/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...(trimmedName ? { name: trimmedName } : {}),
-          birthDate,
-          birthTime: timeUnknown ? null : effectiveTime,
-          gender: gender as 'male' | 'female',
-          birthCity: trimmedCity ?? null,
-          tzId: tz ?? null,
+          birthDate: null,
+          birthTime: null,
+          birthCity: null,
+          tzId: null,
         }),
       })
     } catch {
-      // localStorage already saved; tolerate transient API failures.
+      // localStorage already cleared; tolerate transient API failures.
     }
-    onSaved({ ...payload, savedAt: new Date().toISOString() })
+    onDeleted?.()
   }
 
   return (
     <div
+      ref={trapRef}
       className={styles.modalOverlay}
       role="dialog"
       aria-modal="true"
@@ -312,7 +358,7 @@ export default function BirthInfoModal({
     >
       <div className={styles.modalCard}>
         <h2 id="birth-info-title" className={styles.modalTitle}>
-          {isKo ? '생년월일 정보 입력' : 'Enter birth info'}
+          {title ?? (isKo ? '생년월일 정보 입력' : 'Enter birth info')}
         </h2>
         <p className={styles.modalSubtitle}>
           {isKo
@@ -403,11 +449,16 @@ export default function BirthInfoModal({
         )}
 
         <div className={styles.modalActions}>
+          {seed?.birthDate && (
+            <button type="button" className={styles.modalDelete} onClick={handleDelete}>
+              {isKo ? '삭제' : 'Delete'}
+            </button>
+          )}
           <button type="button" className={styles.modalCancel} onClick={onClose}>
             {isKo ? '취소' : 'Cancel'}
           </button>
           <button type="button" className={styles.modalSave} onClick={handleSave}>
-            {isKo ? '저장하고 시작' : 'Save & start'}
+            {submitLabel ?? (isKo ? '저장하고 시작' : 'Save & start')}
           </button>
         </div>
       </div>

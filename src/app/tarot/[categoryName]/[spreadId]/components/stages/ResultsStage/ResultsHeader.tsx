@@ -30,9 +30,9 @@ export function ResultsHeader({
       {/* 사용자 질문 — 가장 위, 가운데 정렬. GlobalHeader (fixed top-4, ≈ 60px 높이) 와
           겹치지 않게 mt-20 (80px) 으로 충분히 띄움. */}
       {userTopic && (
-        <div className="mt-20 md:mt-16 rounded-2xl bg-gradient-to-br from-indigo-500/15 to-violet-500/10 border border-indigo-500/30 px-5 py-4 md:px-6 md:py-5">
+        <div className="mt-20 md:mt-16 rounded-2xl bg-gradient-to-br from-[rgba(212,181,114,0.15)] to-[rgba(193,155,86,0.1)] border border-[rgba(212,181,114,0.3)] px-5 py-4 md:px-6 md:py-5">
           <div className="flex flex-col items-center gap-2 text-center">
-            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500/25 border border-indigo-500/40 text-indigo-100 text-base font-semibold">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[rgba(212,181,114,0.25)] border border-[rgba(212,181,114,0.4)] text-[#fff8e1] text-base font-semibold">
               Q
             </span>
             <p className="text-2xl md:text-3xl text-slate-50 leading-snug font-semibold">
@@ -45,8 +45,8 @@ export function ResultsHeader({
       {/* 핵심 답변 + 보조 메타 */}
       <div className="text-center space-y-3">
         <div className="flex justify-center">
-          <div className="p-3 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-[0_0_24px_rgba(99,102,241,0.18)]">
-            <MoonStar className="w-7 h-7 text-indigo-400" />
+          <div className="p-3 bg-[rgba(212,181,114,0.1)] rounded-full border border-[rgba(212,181,114,0.2)] shadow-[0_0_24px_rgba(212,181,114,0.18)]">
+            <MoonStar className="w-7 h-7 text-[#d4b572]" />
           </div>
         </div>
         <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-slate-100">

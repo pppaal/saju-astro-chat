@@ -70,24 +70,19 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Destiny Map Pages (4)', () => {
+  describe('Destiny Map Pages (2)', () => {
     it('should have destiny map pages', () => {
       assertPages([
         'app/destiny-map/page',
         'app/destiny-map/counselor/page',
-        'app/destiny-map/result/page',
-        'app/destiny-map/theme/page',
       ])
     })
   })
 
-  describe('Destiny Match Pages (4)', () => {
+  describe('Destiny Match Pages (1)', () => {
     it('should have destiny match pages', () => {
       assertPages([
         'app/destiny-match/page',
-        'app/destiny-match/matches/page',
-        'app/destiny-match/setup/page',
-        'app/destiny-match/chat/[connectionId]/page',
       ])
     })
   })
@@ -98,25 +93,9 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('ICP Pages (3)', () => {
-    it('should have icp pages', () => {
-      assertPages(['app/icp/page', 'app/icp/quiz/page', 'app/icp/result/page'])
-    })
-  })
-
   describe('Notifications Pages (1)', () => {
     it('should have notifications page', () => {
       assertPages(['app/notifications/page'])
-    })
-  })
-
-  describe('Personality Pages (3)', () => {
-    it('should have personality pages', () => {
-      assertPages([
-        'app/personality/page',
-        'app/personality/quiz/page',
-        'app/personality/result/page',
-      ])
     })
   })
 
@@ -169,9 +148,7 @@ describe('Pages Smoke Tests', () => {
         'destiny-map',
         'destiny-match',
         'faq',
-        'icp',
         'notifications',
-        'personality',
         'policy',
         'pricing',
         'profile',
@@ -179,7 +156,7 @@ describe('Pages Smoke Tests', () => {
         'tarot',
       ]
 
-      expect(categories.length).toBe(18)
+      expect(categories.length).toBe(16)
     })
   })
 })

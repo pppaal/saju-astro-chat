@@ -4,11 +4,16 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from '../main-page.module.css'
 import type { StoredBirthInfo } from '../birthInfoStorage'
-import { buildBirthQuery } from '../birthInfoStorage'
+import { buildCounselorHref } from '../birthInfoStorage'
 
 interface HomeChatInputProps {
   birthInfo: StoredBirthInfo | null
-  onOpenBirthModal: () => void
+  // 생일 없이 질문을 입력하고 엔터한 경우 호출 — 부모가 생일 모달을 띄우고,
+  // 저장되면 그 질문을 들고 운명상담사로 이동시킨다.
+  onRequireBirth: (question: string) => void
+  // 그냥 생일 모달만 열기 — 입력/수정용(자동 이동 없음). 초록 CTA 탭,
+  // 또는 질문 없이 엔터쳤을 때.
+  onOpenBirth: () => void
   locale: 'en' | 'ko'
 }
 
@@ -34,87 +39,47 @@ const DELETE_SPEED_MS = 35
 const HOLD_AFTER_TYPED_MS = 1800
 const HOLD_AFTER_DELETED_MS = 250
 
-// 서비스 선택 dropdown — config/enabledServices.ts 와 동일 id·라벨.
-type ServiceId = 'destinyMap' | 'tarot' | 'compatibility' | 'calendar'
-const SERVICES: ReadonlyArray<{
-  id: ServiceId
-  icon: string
-  ko: string
-  en: string
-}> = [
-  { id: 'destinyMap', icon: '🗺️', ko: '운명 상담사', en: 'Destiny Counselor' },
-  { id: 'tarot', icon: '🔮', ko: '타로 상담사', en: 'Tarot Counselor' },
-  { id: 'compatibility', icon: '💕', ko: '궁합 상담사', en: 'Compatibility' },
-  { id: 'calendar', icon: '🗓️', ko: '일·월·년 운세', en: 'Fortune Calendar' },
-]
-
-export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: HomeChatInputProps) {
+export default function HomeChatInput({
+  birthInfo,
+  onRequireBirth,
+  onOpenBirth,
+  locale,
+}: HomeChatInputProps) {
   const router = useRouter()
   const [text, setText] = useState('')
   const [typedPlaceholder, setTypedPlaceholder] = useState('')
-  const [serviceMenuOpen, setServiceMenuOpen] = useState(false)
   const isKo = locale === 'ko'
 
-  // 외부 클릭으로 드롭업 닫기.
-  const serviceMenuRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!serviceMenuOpen) return
-    const onDown = (e: MouseEvent) => {
-      if (serviceMenuRef.current && !serviceMenuRef.current.contains(e.target as Node)) {
-        setServiceMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [serviceMenuOpen])
-
-  // 서비스 하나 골라서 즉시 이동 — 옛 ↑ 버튼 역할을 서비스 선택이 흡수.
-  // 생일 없으면 생일 모달 먼저. 질문(?q=) 은 운명 상담사만 받음.
-  const selectService = (service: ServiceId) => {
-    setServiceMenuOpen(false)
-    if (!birthInfo) {
-      onOpenBirthModal()
-      return
-    }
+  // 메인 페이지 = 운명상담사 한 흐름.
+  // - 생일 있음 → 바로 운명 상담사로 (질문 전달 → 자동 답변)
+  // - 생일 없고 질문 있음 → 생일 모달, 저장하면 그 질문 들고 운명상담사
+  // - 생일 없고 질문 비었음 → 생일 모달만 (자동 이동 X)
+  // 타로 / 궁합은 햄버거 사이드 메뉴에서만 접근 — 같은 입력란에 묶으면 사용자가
+  // "자유 질문" vs "modality 선택" 사이에서 혼란.
+  const goCounselor = () => {
     const trimmed = text.trim()
-    if (service === 'destinyMap') {
-      const query = buildBirthQuery(birthInfo)
-      const initial = trimmed ? `&q=${encodeURIComponent(trimmed)}` : ''
-      router.push(`/destiny-counselor?${query}${initial}`)
+    if (!birthInfo) {
+      if (trimmed) onRequireBirth(trimmed)
+      else onOpenBirth()
       return
     }
-    if (service === 'tarot') {
-      router.push('/tarot')
-      return
-    }
-    if (service === 'compatibility') {
-      router.push('/compatibility')
-      return
-    }
-    if (service === 'calendar') {
-      router.push('/calendar')
-      return
+    router.push(buildCounselorHref(birthInfo, trimmed, locale))
+  }
+
+  // 엔터(Shift 제외)로 바로 운명 상담사에게 전송. Shift+Enter 는 줄바꿈.
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      goCounselor()
     }
   }
 
-  const fallbackPlaceholder = birthInfo
-    ? isKo
-      ? '무엇이든 물어보세요'
-      : 'Ask anything'
-    : isKo
-      ? '먼저 생년월일 정보부터 — @생일 추가를 눌러주세요'
-      : 'Add birth info first — tap @birth'
-
   const typingActiveRef = useRef(true)
   useEffect(() => {
-    typingActiveRef.current = !!birthInfo && text.length === 0
-  }, [birthInfo, text])
+    typingActiveRef.current = text.length === 0
+  }, [text])
 
   useEffect(() => {
-    if (!birthInfo) {
-      setTypedPlaceholder('')
-      return
-    }
     const prompts = isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
     let cancelled = false
     let promptIdx = 0
@@ -161,69 +126,53 @@ export default function HomeChatInput({ birthInfo, onOpenBirthModal, locale }: H
     return () => {
       cancelled = true
     }
-  }, [birthInfo, isKo])
+  }, [isKo])
 
-  const placeholder = birthInfo ? typedPlaceholder || ' ' : fallbackPlaceholder
+  const placeholder = typedPlaceholder || ' '
 
   return (
     <div className={styles.homeChatBar}>
+      {/* 서비스 칩 폐기 — 메인 = 운명상담사 한 흐름. 타로 / 궁합은 햄버거
+          사이드에서 접근. 같은 입력란에 묶으면 "자유 질문 받음 (운명)" vs
+          "modality 별도 (타로/궁합)" 사이에서 사용자 헷갈림. */}
+
       <div className={styles.homeChatBarInner}>
-        {birthInfo && (
-          <span className={styles.homeBirthChip} aria-live="polite">
+        {/* 초록 생일 CTA — 출발점이 생일임을 보여주고, 저장된 뒤엔 수정 버튼이 된다. */}
+        {birthInfo ? (
+          <button
+            type="button"
+            className={styles.homeBirthChip}
+            onClick={onOpenBirth}
+            aria-label={isKo ? '생년월일 정보 수정' : 'Edit birth info'}
+          >
             ✓ {isKo ? '분석에 사용' : 'Reading for'}: {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
             {birthInfo.gender === 'male' ? (isKo ? '남성' : 'Male') : isKo ? '여성' : 'Female'}
-          </span>
+            <span className={styles.homeBirthChipEdit}>{isKo ? '수정' : 'Edit'}</span>
+          </button>
+        ) : (
+          <button type="button" className={styles.homeBirthCta} onClick={onOpenBirth}>
+            <span aria-hidden="true">📅</span>
+            {isKo ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth date'}
+          </button>
         )}
-        <textarea
-          className={styles.homeChatTextarea}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={placeholder}
-          rows={2}
-        />
-        <div className={styles.homeChatRow}>
-          <div className={styles.homeChatTools}>
-            <button
-              type="button"
-              className={`${styles.homeChatToolBtn} ${birthInfo ? styles.homeChatToolBtnActive : ''}`}
-              onClick={onOpenBirthModal}
-              aria-label={isKo ? '생년월일 정보 추가/변경' : 'Add or edit birth info'}
-            >
-              <span aria-hidden="true">📅</span>
-              {birthInfo ? (isKo ? '생일 ✓' : 'Birth ✓') : isKo ? '@생일 추가' : '@birth'}
-            </button>
 
-            {/* 서비스 선택 — 4개 중 하나 누르면 그 서비스로 즉시 이동.
-                옛 ↑ 보내기 버튼 자리. */}
-            <div className={styles.homeServicePickerWrap} ref={serviceMenuRef}>
-              <button
-                type="button"
-                className={styles.homeServicePickerBtn}
-                onClick={() => setServiceMenuOpen((o) => !o)}
-                aria-haspopup="menu"
-                aria-expanded={serviceMenuOpen}
-              >
-                <span>{isKo ? '서비스를 선택하세요' : 'Choose a service'}</span>
-                <span aria-hidden="true">▾</span>
-              </button>
-              {serviceMenuOpen && (
-                <div role="menu" className={styles.homeServicePickerMenu}>
-                  {SERVICES.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      role="menuitem"
-                      className={styles.homeServicePickerItem}
-                      onClick={() => selectService(s.id)}
-                    >
-                      <span aria-hidden="true">{s.icon}</span>
-                      <span>{isKo ? s.ko : s.en}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+        <div className={styles.homeChatRow}>
+          <textarea
+            className={styles.homeChatTextarea}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            rows={2}
+          />
+          <button
+            type="button"
+            className={styles.homeChatSubmit}
+            onClick={goCounselor}
+            aria-label={isKo ? '운명 상담사에게 질문하기' : 'Ask the destiny counselor'}
+          >
+            <span aria-hidden="true">↑</span>
+          </button>
         </div>
       </div>
     </div>

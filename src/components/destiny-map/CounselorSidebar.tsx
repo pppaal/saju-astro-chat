@@ -77,10 +77,7 @@ interface CounselorSidebarProps {
    * still rolls back its own optimistic state for rename; for delete the
    * row is only removed after success, so nothing to roll back).
    */
-  onActionError?: (info: {
-    kind: 'rename' | 'delete'
-    status?: number
-  }) => void
+  onActionError?: (info: { kind: 'rename' | 'delete'; status?: number }) => void
 }
 
 const SWIPE_REVEAL_PX = 60 // user must drag this far to lock the swipe-open state
@@ -237,9 +234,7 @@ export default function CounselorSidebar({
       })
       status = res.status
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      setSessions((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, title: next } : s))
-      )
+      setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title: next } : s)))
       cancelRename()
     } catch (e) {
       // The local `sessions` array is only updated after the request
@@ -384,11 +379,7 @@ export default function CounselorSidebar({
 
   return (
     <>
-      <div
-        className={scrimClass}
-        onClick={onClose}
-        aria-hidden={!open}
-      />
+      <div className={scrimClass} onClick={onClose} aria-hidden={!open} />
       <aside
         className={drawerClass}
         aria-hidden={!open && !desktopStatic}
@@ -471,9 +462,7 @@ export default function CounselorSidebar({
                 return (
                   <div key={bucket} className={styles.sessionGroup}>
                     <div className={styles.sessionGroupLabel}>{groupLabel}</div>
-                    <ul className={styles.sessionList}>
-                      {items.map(renderSessionRow)}
-                    </ul>
+                    <ul className={styles.sessionList}>{items.map(renderSessionRow)}</ul>
                   </div>
                 )
               })}
@@ -495,9 +484,7 @@ export default function CounselorSidebar({
             <button
               type="button"
               className={styles.authBtn}
-              onClick={() =>
-                void clearClientCacheAndSignOut(() => signOut({ callbackUrl: '/' }))
-              }
+              onClick={() => void clearClientCacheAndSignOut(() => signOut({ callbackUrl: '/' }))}
             >
               <span className={styles.actionIcon}>↩</span>
               <span>

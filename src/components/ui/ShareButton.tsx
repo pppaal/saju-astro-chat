@@ -8,6 +8,7 @@ import styles from "./ShareButton.module.css";
 import { buildSignInUrl } from "@/lib/auth/signInUrl";
 import { logger } from "@/lib/logger";
 import { UI_TIMEOUTS } from "@/lib/constants/formulas";
+import { copyToClipboard } from "@/lib/utils/clipboard";
 
 interface ShareButtonProps {
   variant?: "full" | "compact";
@@ -57,13 +58,13 @@ export default function ShareButton({ variant = "full", className }: ShareButton
     "I just got my destiny reading on DestinyPal! Try it yourself:"
   );
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(referralUrl);
+  const handleCopyLink = async () => {
+    const ok = await copyToClipboard(referralUrl);
+    if (ok) {
       setCopied(true);
       setTimeout(() => setCopied(false), UI_TIMEOUTS.TOAST_DISMISS);
-    } catch (err) {
-      logger.error("[ShareButton] Failed to copy:", err);
+    } else {
+      logger.error("[ShareButton] Failed to copy referral URL");
     }
   };
 
@@ -150,7 +151,7 @@ export default function ShareButton({ variant = "full", className }: ShareButton
               </span>
               <button
                 className={`${styles.copyBtn} ${copied ? styles.copied : ""}`}
-                onClick={copyToClipboard}
+                onClick={handleCopyLink}
                 aria-label={copied ? (t("share.copied", "Link copied")) : (t("share.copy", "Copy link"))}
               >
                 {copied ? "✓" : "📋"}

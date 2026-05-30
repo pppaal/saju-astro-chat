@@ -1,2 +1,2 @@
-export { PersonCard } from './PersonCard';
-export { SubmitButton } from './SubmitButton';
+export { PersonCard, type LoadOption } from './PersonCard'
+export { SubmitButton } from './SubmitButton'

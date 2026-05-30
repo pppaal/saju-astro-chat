@@ -7,7 +7,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
+import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import { Card, DrawnCard } from '@/lib/tarot/tarot.types'
 import { tarotDeck } from '@/lib/tarot/data'
 import {
@@ -15,6 +15,8 @@ import {
   checkCreditsOnly,
   creditErrorResponse,
 } from '@/lib/credits/withCredits'
+import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
+import { randomUUID } from 'crypto'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
 import { recordApiRequest } from '@/lib/metrics/index'
@@ -25,6 +27,10 @@ type TarotBody = {
   spreadId?: string
   questionContext?: unknown
 }
+
+// draw 가 발급하고 interpret-stream 이 소비하는 단일-사용 nonce 스토어.
+// 두 라우트가 같은 routeName 을 써야 scopedKey 가 일치한다.
+const drawNonceStore = createDrawNonceStore('tarot-draw')
 
 function drawCards(count: number): DrawnCard[] {
   // Partial Fisher-Yates: 필요한 카드 수만큼만 셔플 (O(count) vs O(deck.length))
@@ -70,12 +76,10 @@ export const POST = withApiMiddleware(
 
       const { categoryId, spreadId, questionContext } = validationResult.data
 
-      const creditResult = await checkCreditsOnly('reading', 1, req)
-      if (!creditResult.allowed) {
-        recordApiRequest('tarot', 'generate', 'error')
-        return creditErrorResponse(creditResult)
-      }
-
+      // 스프레드를 먼저 resolve — 카드 수에 따라 사전 크레딧 게이트 비용이
+      // 달라지므로 (≥5 장 = 2 크레딧). 게이트 비용은 interpret 단계의 실제
+      // 차감(tarotCreditCostFor)과 일치해야 가격 표시 불일치(1 이라 통과시켜
+      // 놓고 해석 단계에서 402)를 막는다.
       const theme = tarotThemes.find((t) => t.id === categoryId)
       if (!theme) {
         recordApiRequest('tarot', 'generate', 'error')
@@ -98,7 +102,21 @@ export const POST = withApiMiddleware(
         })
       }
 
+      const creditCost = tarotCreditCostFor(spread.cardCount)
+      const creditResult = await checkCreditsOnly('reading', creditCost, req)
+      if (!creditResult.allowed) {
+        recordApiRequest('tarot', 'generate', 'error')
+        return creditErrorResponse(creditResult)
+      }
+
       const drawnCards = drawCards(spread.cardCount)
+
+      // 서버 발급 단일-사용 nonce. interpret-stream 이 이 nonce 를 정확히 한
+      // 번 소비해 "무료 재해석" 면제 판정을 클라이언트 헤더가 아닌 서버 발급
+      // 토큰에 묶는다. (src/lib/api/idempotency.ts createDrawNonceStore)
+      const drawNonce = randomUUID()
+      const ownerKey = drawNonceOwnerKey(req, creditResult.userId)
+      await drawNonceStore.issue(drawNonce, ownerKey)
 
       recordApiRequest('tarot', 'generate', 'success', Date.now() - startTime)
       const response = NextResponse.json({
@@ -106,6 +124,7 @@ export const POST = withApiMiddleware(
         spread,
         drawnCards,
         questionContext: questionContext || null,
+        drawNonce,
       })
       return applyCreditResultCookies(response, creditResult, req)
     } catch (error) {

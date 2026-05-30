@@ -151,8 +151,7 @@ export function useCounselorData(sp: SearchParams) {
     // shape 에 의존하므로 캐시 miss 시 반드시 /api/saju 응답을 받아야 함.
     // 캐시 hit 이어도 cached.saju 가 advancedAnalysis 누락된 옛 shape 일 수 있어,
     // dayMaster + advancedAnalysis 둘 다 있는 경우만 재사용.
-    const cachedRich =
-      saju && saju.dayMaster && (saju as Record<string, unknown>).advancedAnalysis
+    const cachedRich = saju && saju.dayMaster && (saju as Record<string, unknown>).advancedAnalysis
 
     // Set initial chartData (may be updated later by async fetches)
     setChartData({
@@ -177,6 +176,11 @@ export function useCounselorData(sp: SearchParams) {
               calendarType: 'solar',
               timezone: resolvedTimeZone,
               userTimezone: resolvedTimeZone,
+              // 진경도(진태양시) 보정 — 도시 lon 을 같이 보내면 시지 계산이 도시별로 정확.
+              // resolvedLongitude 는 URL 에 좌표 없으면 서울 기본값 — 페이지의 다른 차트
+              // (astro 등) 와 일관. 캐시 키에도 같이 들어가 도시별 결과 분리.
+              latitude: resolvedLatitude,
+              longitude: resolvedLongitude,
             }),
           })
           if (!res.ok) {
@@ -246,19 +250,28 @@ export function useCounselorData(sp: SearchParams) {
             }),
           })
           if (!res.ok) return
-          const json = (await res.json()) as { data?: { chartData?: unknown } }
+          const json = (await res.json()) as {
+            data?: { chartData?: unknown; aspects?: unknown }
+          }
           const baseChart = json?.data?.chartData
           if (!baseChart) return
+          // aspects 는 chartData 와 별개 필드로 옴 — NatalChart 가 휠 안에 aspect
+          // 라인 그리려면 같이 흘려줘야 함. astro 객체에 합쳐서 저장.
+          const aspects = json?.data?.aspects
+          const astroWithAspects = {
+            ...(baseChart as Record<string, unknown>),
+            ...(aspects ? { aspects } : {}),
+          }
           setChartData((prev) => ({
             saju: prev?.saju,
-            astro: baseChart as Record<string, unknown>,
+            astro: astroWithAspects,
             advancedAstro: prev?.advancedAstro,
           }))
           // 캐시에 저장해서 다음 방문 때 즉시 hit
           try {
             saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
               saju: (saju as Record<string, unknown>) || undefined,
-              astro: baseChart as Record<string, unknown>,
+              astro: astroWithAspects,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
             })
           } catch {
@@ -440,7 +453,14 @@ export function useCounselorData(sp: SearchParams) {
 
     // Python AI backend was removed — counselor RAG prefetch is now a no-op.
     // The chat itself runs through @anthropic-ai/sdk directly, no init step needed.
-  }, [birthDate, birthTime, normalizedGender, resolvedLatitude, resolvedLongitude, resolvedTimeZone])
+  }, [
+    birthDate,
+    birthTime,
+    normalizedGender,
+    resolvedLatitude,
+    resolvedLongitude,
+    resolvedTimeZone,
+  ])
 
   // Premium: Load user context (persona + recent sessions) for returning users
   useEffect(() => {
@@ -554,6 +574,7 @@ export function useCounselorData(sp: SearchParams) {
     initialQuestion,
     latitude: resolvedLatitude,
     longitude: resolvedLongitude,
+    timeZone: resolvedTimeZone,
   }
 
   return {

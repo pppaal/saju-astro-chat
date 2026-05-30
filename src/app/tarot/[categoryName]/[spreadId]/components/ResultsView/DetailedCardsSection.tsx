@@ -36,7 +36,7 @@ export function DetailedCardsSection({
   return (
     <section ref={detailedSectionRef} className="space-y-4">
       <div className="flex items-center gap-2">
-        <h2 className="text-sm font-medium text-indigo-300 tracking-wider uppercase">
+        <h2 className="text-sm font-medium text-[#d4b572] tracking-wider uppercase">
           {translate(
             'tarot.results.detailedReadings',
             isKo ? '카드별 해석' : 'Per-Card Reading'

@@ -405,9 +405,10 @@ describe('CreditBadge', () => {
         }),
       })
 
-      // Mock window.location
+      // Mock window.location. Real browsers always expose location.search ('')
+      // and the component appends it to the saved return URL, so include it.
       delete (window as any).location
-      ;(window as any).location = { pathname: '/dream' }
+      ;(window as any).location = { pathname: '/dream', search: '' }
     })
 
     it('should save return URL when clicking badge', async () => {

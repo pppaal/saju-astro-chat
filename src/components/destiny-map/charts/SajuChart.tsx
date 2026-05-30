@@ -189,6 +189,22 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
 
   return (
     <div className={tokens.container} style={tokens.containerStyle}>
+      {/* Affordance hint — 모바일 비전공자에게 비주얼 단서 (가운데 = 나, 한자
+          long-press, 셀 탭) 노출. dark / light 모두 동일 톤 (gold accent). */}
+      <div
+        className="mb-2 rounded-md px-2.5 py-1.5 text-[10px] leading-snug"
+        style={{
+          background: 'rgba(212,181,114,0.06)',
+          color: 'var(--ds-dark-text-muted)',
+          border: '1px solid rgba(212,181,114,0.12)',
+        }}
+      >
+        <span style={{ color: 'var(--ds-gold-on-dark)' }}>ⓘ</span>{' '}
+        {isKo
+          ? "가운데 금색 = '나' (일주) · 한자 꾹 누르면 뜻 · 셀 탭 = 상세 풀이"
+          : 'Gold border = "me" (Day Pillar) · long-press a hanja for meaning · tap a column for detail'}
+      </div>
+
       {/* 컬럼 헤더: 한자 기둥명(時/日/月/年) + 시기 라벨 */}
       <div className="mb-3 grid grid-cols-4 gap-2">
         {order.map(({ key, isMe, pillarKo, posKo, posEn }) => (
@@ -250,21 +266,30 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
                     isMe ? tokens.cellBorderMe : tokens.cellBorderNeutral
                   } ${c.isStem ? '' : 'opacity-95'}`}
                 >
-                  {/* 한자 (long-press / hover → 의미 bubble) */}
+                  {/* 한자 (long-press / hover → 의미 bubble) — 메인 표시. */}
                   {c.cell?.name ? (
                     <HanjaBubble
                       hanja={c.cell.name}
-                      className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
+                      className={`font-serif text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
                     >
-                      {cellText(c.cell)}
+                      {c.cell.name}
                     </HanjaBubble>
                   ) : (
                     <span
-                      className={`${isKo ? 'text-[15px]' : 'font-serif text-lg'} font-bold tracking-tight ${c.style.text}`}
+                      className={`font-serif text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
                     >
-                      {cellText(c.cell)}
+                      ·
                     </span>
                   )}
+                  {/* 한자 아래: 한국 발음 + 오행 한 줄 (KO 모드만). 비전공자가 한자
+                      모르더라도 즉시 읽을 수 있게. */}
+                  {isKo && c.cell?.name && (
+                    <span className={`text-[10px] leading-none ${tokens.imageText}`}>
+                      {readingOf(c.cell.name)}
+                      {c.cell.element ? `·${c.cell.element}` : ''}
+                    </span>
+                  )}
+                  {/* 한자의 물상(物像) — "큰 나무" 같은 한 줄 의미. */}
                   {isKo && imageOf(c.cell?.name) && (
                     <span className={`text-[9px] leading-none ${tokens.imageText}`}>
                       {imageOf(c.cell?.name)}

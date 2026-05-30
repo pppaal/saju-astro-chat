@@ -1,30 +1,39 @@
 // tests/lib/destiny-map/calendar/astrology-analysis.test.ts
 import { describe, it, expect } from 'vitest';
+// The astrology-analysis facade was slimmed down to re-export only
+// getLunarPhase. The other helpers now live in their canonical modules:
+//  - transit-analysis.ts: getPlanetPosition / getAspect / analyzePlanetTransits / getMoonPhaseDetailed
+//  - planetary-hours.ts: isRetrograde / getRetrogradePlanetsForDate / checkVoidOfCourseMoon / checkEclipseImpact / getPlanetaryHourForDate
+//  - astrology/ submodules: getPlanetSign, ECLIPSES, and the shared types
 import {
   getPlanetPosition,
-  getPlanetSign,
+  getMoonPhaseDetailed,
+  getAspect,
+  analyzePlanetTransits,
+} from '@/lib/destiny-map/calendar/transit-analysis';
+import {
   isRetrograde,
   getRetrogradePlanetsForDate,
-  getLunarPhase,
-  getMoonPhaseDetailed,
   checkVoidOfCourseMoon,
   checkEclipseImpact,
   getPlanetaryHourForDate,
-  getAspect,
-  analyzePlanetTransits,
-  ECLIPSES,
-  type PlanetName,
-  type RetrogradePlanet,
-  type MoonPhaseType,
-  type PlanetPosition,
-  type EclipseImpact,
-  type VoidOfCourseResult,
-  type MoonPhaseResult,
-  type LunarPhaseResult,
-  type PlanetaryHourResult,
-  type AspectResult,
-  type PlanetTransitResult,
-} from '@/lib/destiny-map/calendar/astrology-analysis';
+} from '@/lib/destiny-map/calendar/planetary-hours';
+import { getLunarPhase } from '@/lib/destiny-map/calendar/astrology-analysis';
+import { getPlanetSign } from '@/lib/destiny-map/calendar/astrology/planetPosition';
+import { ECLIPSES } from '@/lib/destiny-map/calendar/astrology/constants';
+import type {
+  PlanetName,
+  RetrogradePlanet,
+  MoonPhaseType,
+  PlanetPosition,
+  EclipseImpact,
+  VoidOfCourseResult,
+  MoonPhaseResult,
+  LunarPhaseResult,
+  PlanetaryHourResult,
+  AspectResult,
+  PlanetTransitResult,
+} from '@/lib/destiny-map/calendar/astrology/types';
 
 describe('getPlanetPosition', () => {
   const planets: PlanetName[] = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn'];

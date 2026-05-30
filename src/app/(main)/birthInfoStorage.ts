@@ -147,3 +147,54 @@ export function buildBirthQuery(info: StoredBirthInfo | null): string {
   if (info.timeZone) params.set('timeZone', info.timeZone)
   return params.toString()
 }
+
+/**
+ * Deep-link straight into the counselor chat with birth info + the first
+ * question prefilled. We target `/destiny-map/counselor` directly (NOT the
+ * `/destiny-counselor` redirect) because that thin redirect drops `q`,
+ * `lat`/`lon` and `timeZone`, so the question never reaches the chat and
+ * the reading falls back to Seoul coords. Going direct lets
+ * useCounselorData read everything and InitialQuestionSender auto-send the
+ * question so the answer appears immediately.
+ */
+export function buildCounselorHref(
+  info: StoredBirthInfo,
+  question: string,
+  lang: 'en' | 'ko'
+): string {
+  const params = new URLSearchParams()
+  if (info.name) params.set('name', info.name)
+  params.set('birthDate', info.birthDate)
+  params.set('birthTime', info.birthTime)
+  params.set('gender', info.gender === 'male' ? 'M' : 'F')
+  // useCounselorData reads `city` (the redirect used to translate birthCity→city).
+  if (info.city) params.set('city', info.city)
+  if (info.birthTimeUnknown) params.set('birthTimeUnknown', '1')
+  if (typeof info.latitude === 'number') params.set('lat', String(info.latitude))
+  if (typeof info.longitude === 'number') params.set('lon', String(info.longitude))
+  if (info.timeZone) params.set('timeZone', info.timeZone)
+  params.set('lang', lang)
+  const q = question.trim()
+  if (q) params.set('q', q)
+  return `/destiny-map/counselor?${params.toString()}`
+}
+
+// ── 저장된 정보 불러오기 폼 헬퍼 ─────────────────────────────────────────
+// BirthInfoModal 과 CompatPersonPickerModal 이 DB 프로필/지인 응답을 폼 상태로
+// 옮길 때 똑같이 쓰던 두 함수. 'F'(한 글자) 매칭 누락 같은 회귀가 한쪽에만
+// 생기지 않도록 단일 출처로 둔다.
+
+/** 다양한 gender 표기를 폼 상태('male'|'female'|'') 로 정규화. */
+export function normGender(g: unknown): 'male' | 'female' | '' {
+  const v = String(g ?? '').toLowerCase()
+  if (v === 'female' || v === 'f') return 'female'
+  if (v === 'male' || v === 'm') return 'male'
+  return ''
+}
+
+/** birthTime 원본(빈값/'00:00' = 시간 모름)을 폼 상태로. */
+export function timeToState(raw: unknown): { birthTime: string; timeUnknown: boolean } {
+  const t = typeof raw === 'string' ? raw : ''
+  if (!t || t === '00:00') return { birthTime: '', timeUnknown: true }
+  return { birthTime: t, timeUnknown: false }
+}

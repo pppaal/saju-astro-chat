@@ -27,6 +27,39 @@ function buildDirectUrl() {
     .replace(/[?&]$/, '')
 }
 
+// :5432 session-mode 직결을 우선 시도하되 실패하면 원본 URL(pooler :6543)로
+// 폴백한다. Supabase 일부 환경은 IPv4 로 :5432 직결이 막혀 connect 자체가
+// 실패하는데, 그러면 이 스크립트가 아래 catch → exit 0 으로 조용히 죽어
+// 자동복구가 영영 안 돈다(phantom 테이블 누적의 실제 원인으로 의심). 단순
+// CREATE TABLE/INDEX/DO 블록은 pooler transaction mode 에서도 정상 실행되므로
+// 폴백이 안전하다.
+async function connect() {
+  const candidates = []
+  try {
+    candidates.push(buildDirectUrl())
+  } catch {
+    // DATABASE_URL 미설정 — candidates 가 비면 아래서 throw.
+  }
+  if (process.env.DATABASE_URL) candidates.push(process.env.DATABASE_URL)
+  let lastErr = null
+  for (const connectionString of candidates) {
+    const client = new Client({ connectionString, ssl: { rejectUnauthorized: false } })
+    try {
+      await client.connect()
+      return client
+    } catch (e) {
+      lastErr = e
+      console.error(`[schema-verify] connect 실패 (${connectionString.replace(/:[^:@/]+@/, ':***@')}): ${e.message}`)
+      try {
+        await client.end()
+      } catch {
+        /* noop */
+      }
+    }
+  }
+  throw lastErr ?? new Error('DATABASE_URL not set')
+}
+
 // 통째 missing 테이블 — phantom apply 로 CREATE TABLE 자체가 안 된 케이스.
 // 각 항목: { table, migration, createSql: 전체 SQL 문 (idempotent IF NOT EXISTS) }
 const REQUIRED_TABLES = [
@@ -60,6 +93,130 @@ const REQUIRED_TABLES = [
       );
       CREATE INDEX IF NOT EXISTS "RequestIdempotencyLog_expiresAt_idx"
         ON "RequestIdempotencyLog" ("expiresAt");
+    `,
+  },
+  {
+    // Decision Tracker. phantom-apply 로 prod 누락 관찰됨 (2026-05-30).
+    table: 'UserDecision',
+    migration: '20260501_add_user_decision',
+    createSql: `
+      CREATE TABLE IF NOT EXISTS "UserDecision" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        "decisionType" TEXT NOT NULL,
+        "context" TEXT NOT NULL,
+        "recommendedAction" TEXT,
+        "tookAction" BOOLEAN,
+        "decidedAt" TIMESTAMP(3),
+        "reviewAt" TIMESTAMP(3),
+        "outcome" TEXT,
+        "outcomeNote" TEXT,
+        "evaluatedAt" TIMESTAMP(3),
+        "signalAtDecision" JSONB,
+        CONSTRAINT "UserDecision_pkey" PRIMARY KEY ("id")
+      );
+      CREATE INDEX IF NOT EXISTS "UserDecision_userId_createdAt_idx"
+        ON "UserDecision"("userId", "createdAt");
+      CREATE INDEX IF NOT EXISTS "UserDecision_userId_outcome_idx"
+        ON "UserDecision"("userId", "outcome");
+      DO $$ BEGIN
+        ALTER TABLE "UserDecision" ADD CONSTRAINT "UserDecision_userId_fkey"
+          FOREIGN KEY ("userId") REFERENCES "User"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `,
+  },
+  {
+    // Stripe webhook out-of-order 방어 테이블. phantom-apply 로 prod 누락 관찰됨.
+    table: 'PendingCreditRevocation',
+    migration: '20260528120223_add_pending_credit_revocation',
+    createSql: `
+      CREATE TABLE IF NOT EXISTS "PendingCreditRevocation" (
+        "id" TEXT NOT NULL,
+        "stripePaymentIntentId" TEXT NOT NULL,
+        "refundAmountCents" INTEGER,
+        "currency" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "expiresAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "PendingCreditRevocation_pkey" PRIMARY KEY ("id")
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS "PendingCreditRevocation_stripePaymentIntentId_key"
+        ON "PendingCreditRevocation" ("stripePaymentIntentId");
+      CREATE INDEX IF NOT EXISTS "PendingCreditRevocation_expiresAt_idx"
+        ON "PendingCreditRevocation" ("expiresAt");
+    `,
+  },
+  {
+    // 본명 차트 영구 캐시. phantom-apply 로 prod 누락 관찰됨.
+    table: 'NatalContextCache',
+    migration: '20260529100000_add_natal_context_cache',
+    createSql: `
+      CREATE TABLE IF NOT EXISTS "NatalContextCache" (
+        "id" TEXT NOT NULL,
+        "birthKey" TEXT NOT NULL,
+        "engineSignature" TEXT NOT NULL,
+        "data" JSONB NOT NULL,
+        "builtAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "NatalContextCache_pkey" PRIMARY KEY ("id")
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS "NatalContextCache_birthKey_key"
+        ON "NatalContextCache"("birthKey");
+      CREATE INDEX IF NOT EXISTS "NatalContextCache_builtAt_idx"
+        ON "NatalContextCache"("builtAt");
+      CREATE INDEX IF NOT EXISTS "NatalContextCache_engineSignature_idx"
+        ON "NatalContextCache"("engineSignature");
+    `,
+  },
+  {
+    // 크레딧 감사 테이블. prod (Supabase) 에서 phantom-apply 로 CREATE TABLE
+    // 이 누락됐다 — 매 결제마다 addBonusCredits → creditTransaction.create 가
+    // "table does not exist" 로 죽어 트랜잭션 전체 롤백("결제 됐는데 크레딧 0
+    // + 영수증 메일 안 감"). enum 두 개는 Postgres 에 `CREATE TYPE IF NOT
+    // EXISTS` 가 없어 DO 블록(duplicate_object 무시)으로, FK 도 ADD CONSTRAINT
+    // 가 idempotent 하지 않아 DO 블록으로 감싼다. 전부 재실행 안전.
+    table: 'CreditTransaction',
+    migration: '20260529000000_add_credit_transaction',
+    createSql: `
+      DO $$ BEGIN
+        CREATE TYPE "CreditTxnType" AS ENUM (
+          'GRANT', 'CONSUME', 'REFUND', 'EXPIRE', 'REVOKE', 'SIGNUP_BONUS'
+        );
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      DO $$ BEGIN
+        CREATE TYPE "CreditPool" AS ENUM (
+          'BONUS', 'MONTHLY', 'COMPATIBILITY', 'FOLLOWUP'
+        );
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      CREATE TABLE IF NOT EXISTS "CreditTransaction" (
+        "id"        TEXT NOT NULL,
+        "userId"    TEXT NOT NULL,
+        "type"      "CreditTxnType" NOT NULL,
+        "pool"      "CreditPool" NOT NULL,
+        "amount"    INTEGER NOT NULL,
+        "reason"    TEXT NOT NULL,
+        "sourceRef" TEXT,
+        "metadata"  JSONB,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "CreditTransaction_pkey" PRIMARY KEY ("id")
+      );
+
+      DO $$ BEGIN
+        ALTER TABLE "CreditTransaction"
+          ADD CONSTRAINT "CreditTransaction_userId_fkey"
+          FOREIGN KEY ("userId") REFERENCES "User"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+      CREATE INDEX IF NOT EXISTS "CreditTransaction_userId_createdAt_idx"
+        ON "CreditTransaction" ("userId", "createdAt" DESC);
+      CREATE INDEX IF NOT EXISTS "CreditTransaction_sourceRef_idx"
+        ON "CreditTransaction" ("sourceRef");
+      CREATE INDEX IF NOT EXISTS "CreditTransaction_type_createdAt_idx"
+        ON "CreditTransaction" ("type", "createdAt");
     `,
   },
 ]
@@ -136,9 +293,7 @@ async function columnExists(client, table, column) {
 }
 
 async function main() {
-  const url = buildDirectUrl()
-  const client = new Client({ connectionString: url, ssl: { rejectUnauthorized: false } })
-  await client.connect()
+  const client = await connect()
   try {
     let totalFixed = 0
 

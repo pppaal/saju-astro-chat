@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { Sparkles, Send, Layers, X, MoonStar, ChevronRight, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
+import { apiFetch } from '@/lib/api'
 import {
   DECK_STYLES,
   DECK_STYLE_INFO,
@@ -45,6 +46,7 @@ export default function TarotChatScreen() {
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false)
   const [isSpreadModalOpen, setIsSpreadModalOpen] = useState(false)
   const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
+  const [isChecking, setIsChecking] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -82,9 +84,31 @@ export default function TarotChatScreen() {
     return () => window.clearTimeout(t)
   }, [selectedDeck])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!question.trim()) return
+    if (!question.trim() || isChecking) return
+
+    // 크레딧/게스트 한도 사전 체크 — 질문을 제출하는 이 첫 화면에서 바로 막는다.
+    // 한도 초과면 apiFetch 가 402/게스트-한도를 받아 전역 크레딧·로그인 모달을
+    // 띄우므로(CreditModalProvider), 여기서는 다음 화면으로 넘기지 않고 머문다.
+    // (소비는 아님 — 실제 차감은 카드 draw 성공 시.)
+    setIsChecking(true)
+    try {
+      const res = await apiFetch('/api/tarot/prefetch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          categoryId: selectedSpread.categoryId,
+          spreadId: selectedSpread.spread.id,
+        }),
+      })
+      if (!res.ok) return // 모달은 apiFetch 가 띄움 — 질문 화면 그대로 유지
+    } catch {
+      // prefetch 네트워크 오류는 차단 사유가 아님 — reading 단계에서 재게이팅된다.
+    } finally {
+      setIsChecking(false)
+    }
+
     const q = encodeURIComponent(question.trim())
     // birthInfo 는 더 이상 타로 cross 에 쓰이지 않음 — 순수 타로만 읽음.
     const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?question=${q}&deck=${selectedDeck}`
@@ -97,10 +121,10 @@ export default function TarotChatScreen() {
     : selectedSpread.spread.title
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col">
+    <div className="relative min-h-screen bg-[#07091a] text-slate-100 font-sans flex flex-col">
       {/* 배경 장식 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex justify-center items-center">
-        <div className="w-96 h-96 bg-indigo-900 rounded-full blur-3xl opacity-20"></div>
+        <div className="w-96 h-96 bg-[#a07a3c] rounded-full blur-3xl opacity-20"></div>
       </div>
 
       {/* 메인 — 환영 영역 + 예시 질문 */}
@@ -112,8 +136,8 @@ export default function TarotChatScreen() {
           className="text-center space-y-4 w-full max-w-xl"
         >
           <div className="flex justify-center mb-4">
-            <div className="p-4 bg-indigo-500/10 rounded-full border border-indigo-500/20 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
-              <MoonStar className="w-12 h-12 text-indigo-400" />
+            <div className="p-4 bg-[rgba(212,181,114,0.1)] rounded-full border border-[rgba(212,181,114,0.2)] shadow-[0_0_30px_rgba(212,181,114,0.2)]">
+              <MoonStar className="w-12 h-12 text-[#d4b572]" />
             </div>
           </div>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-100">
@@ -194,7 +218,7 @@ export default function TarotChatScreen() {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder={isKo ? '어떤 고민이 있으신가요?' : 'What is on your mind?'}
-              className="w-full bg-slate-800 border border-slate-700 focus:border-indigo-500 rounded-2xl p-4 pr-14 text-slate-100 placeholder-slate-500 resize-none outline-none text-base min-h-16 max-h-32 transition-colors"
+              className="w-full bg-slate-800 border border-slate-700 focus:border-[#d4b572] rounded-2xl p-4 pr-14 text-slate-100 placeholder-slate-500 resize-none outline-none text-base min-h-16 max-h-32 transition-colors"
               rows={1}
             />
             <button
@@ -202,7 +226,7 @@ export default function TarotChatScreen() {
               disabled={!question.trim()}
               className={`absolute right-2 bottom-2 p-2 rounded-xl transition-all ${
                 question.trim()
-                  ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                  ? 'bg-[#d4b572] hover:bg-[#e8cc8a] text-[#1c1917] shadow-lg shadow-[rgba(212,181,114,0.25)]'
                   : 'bg-slate-700 text-slate-500 cursor-not-allowed'
               }`}
               aria-label="Send"
@@ -221,11 +245,11 @@ export default function TarotChatScreen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[10005] bg-slate-950 flex flex-col"
+            className="fixed inset-0 z-[var(--z-modal)] bg-[#07091a] flex flex-col"
           >
             <div className="flex items-center justify-between gap-3 px-4 pl-16 pt-[max(env(safe-area-inset-top),1rem)] pb-4 border-b border-slate-800 bg-slate-900/50">
               <h2 className="text-lg font-semibold flex items-center gap-2 min-w-0">
-                <Layers className="w-5 h-5 text-indigo-400 shrink-0" />
+                <Layers className="w-5 h-5 text-[#d4b572] shrink-0" />
                 <span className="truncate">{isKo ? '타로 덱 선택' : 'Choose a Deck'}</span>
               </h2>
               <button
@@ -251,7 +275,7 @@ export default function TarotChatScreen() {
                       }}
                       className={`flex flex-col items-center text-center p-3 rounded-2xl border transition-all ${
                         selected
-                          ? 'border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.3)]'
+                          ? 'border-[#d4b572] shadow-[0_0_20px_rgba(212,181,114,0.3)]'
                           : 'border-slate-800 hover:border-slate-600'
                       }`}
                       style={{ background: info.gradient }}
@@ -297,7 +321,7 @@ export default function TarotChatScreen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[10005] bg-slate-950 flex flex-col"
+            className="fixed inset-0 z-[var(--z-modal)] bg-[#07091a] flex flex-col"
           >
             <div className="flex items-center justify-between gap-3 px-4 pl-16 pt-[max(env(safe-area-inset-top),1rem)] pb-4 border-b border-slate-800 bg-slate-900/50">
               <h2 className="text-lg font-semibold flex items-center gap-2 min-w-0">

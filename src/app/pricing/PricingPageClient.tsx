@@ -16,6 +16,7 @@ import {
   type CreditPackType,
 } from '@/lib/config/pricing'
 import { fetchWithRetry } from '@/lib/http'
+import { SSR_PRICING_KEYS } from './pricingCopyKeys'
 import { RefundConsentModal } from '@/components/pricing/RefundConsentModal'
 import { EmailCollectionModal } from '@/components/pricing/EmailCollectionModal'
 
@@ -45,48 +46,6 @@ const PRICING_FALLBACKS: Record<string, string> = {
   heroSub: 'Pay only for what you use. No subscription, no auto-renewal.',
   paymentError: 'Payment service temporarily unavailable',
 }
-const SSR_PRICING_KEYS = [
-  'paymentError',
-  'eyebrow',
-  'heroTitle',
-  'heroSub',
-  'creditPacks',
-  'creditPacksDesc',
-  'bestValue',
-  'readings',
-  'perReading',
-  'buyNow',
-  'howItWorks',
-  'oneReading',
-  'oneReadingDesc',
-  'freeFeature',
-  'freeFeatureDesc',
-  'validity',
-  'validityDesc',
-  'faq',
-  'faqs.q1',
-  'faqs.a1',
-  'faqs.q2',
-  'faqs.a2',
-  'faqs.q3',
-  'faqs.a3',
-  'faqs.q4',
-  'faqs.a4',
-  'faqs.q5',
-  'faqs.a5',
-  'faqs.q6',
-  'faqs.a6',
-  'faqs.q7',
-  'faqs.a7',
-  'faqs.q8',
-  'faqs.a8',
-  'guarantee',
-  'guaranteeDesc',
-  'ctaTitle',
-  'ctaSub',
-  'startFree',
-  'learnMore',
-] as const
 const SSR_PRICING_INDEX: Record<string, number> = SSR_PRICING_KEYS.reduce(
   (acc, key, idx) => {
     acc[key] = idx
@@ -147,7 +106,8 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
         if (referrerUrl.host === currentHost) {
           const path = referrerUrl.pathname
           if (path !== '/pricing' && path !== '/success' && !path.startsWith('/auth')) {
-            localStorage.setItem('checkout_return_url', path)
+            // 쿼리까지 보존해 결제 후 보던 화면으로 정확히 복귀.
+            localStorage.setItem('checkout_return_url', path + referrerUrl.search)
           }
         }
       }

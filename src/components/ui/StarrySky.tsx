@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import styles from './StarrySky.module.css'; // 자신만의 전용 스타일 파일을 import
+import { useLowEndDevice } from '@/hooks/useLowEndDevice';
 
 interface Star {
   id: number;
@@ -11,6 +12,7 @@ interface Star {
 export default function StarrySky() {
   const [stars, setStars] = useState<Star[]>([]);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const isLowEnd = useLowEndDevice();
 
   useEffect(() => {
     if (typeof window === "undefined") {return;}
@@ -27,7 +29,9 @@ export default function StarrySky() {
       return;
     }
     const width = typeof window !== "undefined" ? window.innerWidth : 1200;
-    const starCount = width < 640 ? 50 : width < 1024 ? 70 : 100;
+    // 저사양 기기 (메모리/CPU/회선/saveData) 는 별 개수 60% 절감 → FPS 회복.
+    const baseCount = width < 640 ? 50 : width < 1024 ? 70 : 100;
+    const starCount = isLowEnd ? Math.round(baseCount * 0.4) : baseCount;
 
     const timerId = window.setTimeout(() => {
       const generatedStars: Star[] = Array.from({ length: starCount }).map((_, i) => {
@@ -47,7 +51,7 @@ export default function StarrySky() {
     }, 120);
 
     return () => window.clearTimeout(timerId);
-  }, [reduceMotion]);
+  }, [reduceMotion, isLowEnd]);
 
   return (
     <div className={styles.starlightContainer}>

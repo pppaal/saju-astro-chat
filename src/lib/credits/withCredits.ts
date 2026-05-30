@@ -46,7 +46,8 @@ const GUEST_TAROT_USED_MAX_AGE = 60 * 60 * 24 * 30
 const GUEST_TAROT_INTERPRET_MAX_AGE = 60 * 30
 // 비로그인 사용자 무료 리딩 횟수. 카운터는 cookie GUEST_TAROT_USED_COOKIE에
 // 숫자로 저장 (legacy '1' 값은 1회 사용한 것으로 호환).
-const GUEST_TAROT_FREE_LIMIT = 2
+// 게스트는 무료 1회만 — 2회째 draw 부터 로그인 유도. UI 문구('무료 1회')와 일치.
+const GUEST_TAROT_FREE_LIMIT = 1
 
 function readCookie(request: CookieReadableRequest | undefined, name: string): string | null {
   return request?.cookies?.get(name)?.value || null
@@ -234,7 +235,16 @@ export async function checkCreditsOnly(
  */
 export function creditErrorResponse(result: CreditCheckResult): NextResponse {
   if (result.errorCode === 'not_authenticated' || result.errorCode === 'guest_limit_reached') {
-    return NextResponse.json({ error: result.error, code: result.errorCode }, { status: 401 })
+    const response = NextResponse.json(
+      { error: result.error, code: result.errorCode },
+      { status: 401 }
+    )
+    // 게스트 무료 체험 한도 → 클라이언트(apiFetch)가 전역 "로그인 유도" 모달을
+    // 띄울 수 있도록 헤더 동봉. not_authenticated(일반 인증 오류)에는 붙이지 않는다.
+    if (result.errorCode === 'guest_limit_reached') {
+      response.headers.set('X-Guest-Limit-Reached', '1')
+    }
+    return response
   }
 
   return NextResponse.json(

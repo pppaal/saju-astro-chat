@@ -1,5 +1,5 @@
 .container {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--ds-dark-bg);
   /* Pricing 표준 — 마케팅 페이지 공통 padding 120/32/80 */
   padding: 120px 32px 80px;
@@ -34,6 +34,7 @@
   left: 1rem;
   z-index: 1000;
   background: rgba(30, 30, 45, 0.8);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: 4px;
@@ -41,6 +42,7 @@
 
 .card {
   background: rgba(30, 30, 45, 0.6);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-radius: 24px;
   border: 1px solid rgba(212, 181, 114, 0.3);

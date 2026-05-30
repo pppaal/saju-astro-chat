@@ -11,6 +11,11 @@ import {
   type RelationCategory,
   type SajuStrengthLeaf,
 } from '@/lib/chart-dictionary'
+import {
+  getTwelveStageInterpretation,
+  getShinsalInterpretation,
+  type TwelveStageType,
+} from '@/lib/saju/interpretations'
 
 /**
  * PillarDrawer — 사주 8글자 한 기둥(시/일/월/년)에 대한 모든 raw + plain.
@@ -194,6 +199,40 @@ const KIND_TO_CATEGORY: Record<string, RelationCategory> = {
   원진: '원진',
 }
 
+// 합/충 카테고리 자체 한 줄 풀이 (비전공자용). 사전에 없는 카테고리는
+// 라벨만 보여주고 풀이는 조용히 skip.
+const KIND_HINT_KO: Record<string, string> = {
+  천간합: '두 천간이 짝지어 새 오행을 만듦',
+  천간충: '서로 부딪히는 천간',
+  지지육합: '두 지지가 짝지어 묶임',
+  지지삼합: '세 지지가 한 원소로 모임',
+  지지방합: '한 계절의 세 지지가 모임',
+  지지충: '서로 마주 보는 지지가 부딪힘',
+  지지형: '서로 자극·다툼',
+  지지파: '서로 깨뜨림',
+  지지해: '서로 해침',
+  원진: '미묘하게 어긋남',
+  공망: '비어 있음',
+}
+const KIND_HINT_EN: Record<string, string> = {
+  천간합: 'Two Stems pair and birth a new element',
+  천간충: 'Two Stems clash head-on',
+  지지육합: 'Two Branches pair and bind',
+  지지삼합: 'Three Branches merge into one element',
+  지지방합: 'Three Branches of one season gather',
+  지지충: 'Two opposite Branches clash',
+  지지형: 'Mutual friction · provocation',
+  지지파: 'Mutual breaking',
+  지지해: 'Mutual harm',
+  원진: 'Subtle misalignment',
+  공망: 'Emptiness',
+}
+function kindHint(kind: string | undefined, lang: 'ko' | 'en'): string | null {
+  if (!kind) return null
+  const table = lang === 'ko' ? KIND_HINT_KO : KIND_HINT_EN
+  return table[kind] ?? null
+}
+
 // detail "甲-己 합화토" / "寅-亥 육합" → 키 "甲己" / "寅亥" 시도.
 // dash 문자는 hyphen-minus(-), en-dash(–), em-dash(—), fullwidth hyphen-minus(－) 모두 허용.
 const RELATION_PAIR_RE = /([㐀-鿿])\s*[-–—－]\s*([㐀-鿿])/
@@ -271,10 +310,13 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
   const dmStem = getDayMasterStem(saju)
   const tonggeunKey = tonggeunKeyFromScore(strength?.tonggeun?.score)
   const tonggeunLeaf = tonggeunKey ? leafText(getSajuStrengthMeaning('통근', tonggeunKey, lang)) : null
+  const tonggeunCatMeaning = leafText(getSajuStrengthMeaning('통근', 'meaning', lang))?.explain ?? null
   const deukKey = deukryeongKey(strength?.deukryeong?.strength, strength?.deukryeong?.isDeukryeong)
   const deukLeaf = deukKey ? leafText(getSajuStrengthMeaning('득령', deukKey, lang)) : null
+  const deukCatMeaning = leafText(getSajuStrengthMeaning('득령', 'meaning', lang))?.explain ?? null
   const johuPrimary = strength?.johuYongsin?.primary
   const johuLeaf = johuPrimary ? leafText(getSajuStrengthMeaning('조후', johuPrimary, lang)) : null
+  const johuCatMeaning = leafText(getSajuStrengthMeaning('조후', 'meaning', lang))?.explain ?? null
 
   // jijanggan list.
   const jgList: string[] = Array.isArray(display?.jijanggan?.list) ? (display!.jijanggan!.list as string[]) : []
@@ -351,6 +393,19 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
               <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>—</span>
               <span style={{ color: 'var(--ds-dark-text-muted)' }}>{stemRich.nature}</span>
             </div>
+            {/* day pillar 일 때만 — 일간(나) 으로서 이 천간의 결. */}
+            {pillar === 'day' && 'as_daymaster' in stemRich && stemRich.as_daymaster && (
+              <div
+                className="mt-1 text-[11px] leading-snug"
+                style={{ color: 'var(--ds-dark-text-muted)' }}
+              >
+                <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>
+                  {lang === 'ko' ? `일주에 ${stem} 가 오면` : `With ${stem} as Day Master`}
+                </span>
+                <span className="mx-1.5">—</span>
+                <span>{stemRich.as_daymaster}</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -393,9 +448,12 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
                   .map((k) => {
                     const slot = jgObj[k]
                     if (!slot?.name) return null
-                    const kind = k === 'jeonggi' ? (lang === 'ko' ? '본기' : 'Primary')
-                      : k === 'junggi' ? (lang === 'ko' ? '중기' : 'Middle')
-                      : (lang === 'ko' ? '여기' : 'Residual')
+                    const kind =
+                      k === 'jeonggi'
+                        ? lang === 'ko' ? '본기 (주된 기운)' : 'Primary (main qi)'
+                        : k === 'junggi'
+                          ? lang === 'ko' ? '중기 (보조)' : 'Middle (support)'
+                          : lang === 'ko' ? '여기 (잔여)' : 'Residual (leftover)'
                     return `${slot.name}(${kind}${slot.sibsin ? ` · ${slot.sibsin}` : ''})`
                   })
                   .filter(Boolean)
@@ -408,9 +466,40 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
         {/* 12운성 */}
         {display?.twelveStage && (
           <Section title={SECTION_LABEL.twelveStage[lang]}>
-            <div className="text-[13px]" style={{ color: 'var(--ds-dark-text)' }}>
-              {display.twelveStage}
-            </div>
+            {(() => {
+              const stage = display.twelveStage as TwelveStageType
+              const interp = getTwelveStageInterpretation(stage)
+              const nameDisp = interp
+                ? lang === 'ko'
+                  ? `${interp.name}(${interp.hanja})`
+                  : `${interp.name_en}(${interp.hanja})`
+                : stage
+              const meaning = interp ? (lang === 'ko' ? interp.meaning : interp.meaning_en) : null
+              const personality = interp
+                ? lang === 'ko' ? interp.personality : interp.personality_en
+                : null
+              return (
+                <>
+                  <div className="text-[13px] leading-snug" style={{ color: 'var(--ds-dark-text)' }}>
+                    <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>{nameDisp}</span>
+                    {meaning && (
+                      <>
+                        <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>—</span>
+                        <span style={{ color: 'var(--ds-dark-text-muted)' }}>{meaning}</span>
+                      </>
+                    )}
+                  </div>
+                  {personality && (
+                    <div
+                      className="mt-1 text-[11px] leading-snug"
+                      style={{ color: 'var(--ds-dark-text-muted)' }}
+                    >
+                      {personality}
+                    </div>
+                  )}
+                </>
+              )
+            })()}
           </Section>
         )}
 
@@ -418,18 +507,56 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
         {((display?.twelveShinsal && display.twelveShinsal.length > 0) ||
           (display?.shinsal && display.shinsal.length > 0)) && (
           <Section title={SECTION_LABEL.twelveShinsal[lang]}>
-            {display?.twelveShinsal && display.twelveShinsal.length > 0 && (
-              <div className="text-[13px]" style={{ color: 'var(--ds-dark-text)' }}>
-                {display.twelveShinsal.join(' · ')}
-              </div>
-            )}
-            {display?.shinsal && display.shinsal.length > 0 && (
-              <div className="mt-1 text-[12px]" style={{ color: 'var(--ds-dark-text-muted)' }}>
-                {display.shinsal.join(' · ')}
-              </div>
-            )}
+            {(() => {
+              // twelveShinsal + shinsal 합쳐 중복 제거.
+              const names = Array.from(
+                new Set([...(display?.twelveShinsal ?? []), ...(display?.shinsal ?? [])])
+              )
+              return (
+                <ul className="space-y-1 text-[13px]">
+                  {names.map((name) => {
+                    const interp = getShinsalInterpretation(name)
+                    const nameDisp = interp
+                      ? lang === 'ko'
+                        ? `${interp.name}(${interp.hanja})`
+                        : `${interp.name_en}(${interp.hanja})`
+                      : name
+                    const meaning = interp
+                      ? lang === 'ko' ? interp.meaning : interp.meaning_en
+                      : null
+                    const effect = interp
+                      ? lang === 'ko' ? interp.effect : interp.effect_en
+                      : null
+                    return (
+                      <li key={name} className="leading-snug">
+                        <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>{nameDisp}</span>
+                        {meaning && (
+                          <>
+                            <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>
+                              —
+                            </span>
+                            <span style={{ color: 'var(--ds-dark-text)' }}>{meaning}</span>
+                          </>
+                        )}
+                        {effect && (
+                          <div
+                            className="mt-0.5 text-[11px] leading-snug"
+                            style={{ color: 'var(--ds-dark-text-muted)' }}
+                          >
+                            {effect}
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )
+            })()}
             {display?.shinsalSummary && (
-              <div className="mt-1 text-[12px] leading-snug" style={{ color: 'var(--ds-dark-text-muted)' }}>
+              <div
+                className="mt-1.5 text-[11px] leading-snug"
+                style={{ color: 'var(--ds-dark-text-muted)' }}
+              >
                 {display.shinsalSummary}
               </div>
             )}
@@ -444,9 +571,18 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
                 const cat = rel.kind ? KIND_TO_CATEGORY[rel.kind] : null
                 const pairKey = relationPairKey(rel.detail)
                 const meaning = cat && pairKey ? getRelationMeaning(cat, pairKey, lang) : null
+                const hint = kindHint(rel.kind, lang)
                 return (
                   <li key={idx} className="leading-snug">
                     <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>{rel.kind ?? '—'}</span>
+                    {hint && (
+                      <span
+                        className="ml-1 text-[11px]"
+                        style={{ color: 'var(--ds-dark-text-muted)' }}
+                      >
+                        ({hint})
+                      </span>
+                    )}
                     {rel.detail && (
                       <span className="ml-1.5" style={{ color: 'var(--ds-dark-text)' }}>
                         {rel.detail}
@@ -468,10 +604,11 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
         {/* 통근·득령·조후 */}
         {(tonggeunLeaf || deukLeaf || johuLeaf) && (
           <Section title={SECTION_LABEL.strength[lang]}>
-            <ul className="space-y-1 text-[13px]">
+            <ul className="space-y-2 text-[13px]">
               {tonggeunLeaf && (
                 <StrengthRow
                   label={lang === 'ko' ? '통근' : 'Tonggeun'}
+                  hint={tonggeunCatMeaning ?? undefined}
                   value={tonggeunLeaf.label}
                   explain={tonggeunLeaf.explain}
                 />
@@ -479,6 +616,7 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
               {deukLeaf && (
                 <StrengthRow
                   label={lang === 'ko' ? '득령' : 'Deukryeong'}
+                  hint={deukCatMeaning ?? undefined}
                   value={deukLeaf.label}
                   explain={deukLeaf.explain}
                 />
@@ -486,6 +624,7 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
               {johuLeaf && (
                 <StrengthRow
                   label={lang === 'ko' ? '조후' : 'Johu'}
+                  hint={johuCatMeaning ?? undefined}
                   value={johuLeaf.label ?? (dmStem ? `${dmStem}·${johuPrimary}` : johuPrimary)}
                   explain={johuLeaf.explain}
                 />
@@ -513,6 +652,22 @@ export function PillarDrawer({ open, onClose, pillar, saju, lang = 'ko' }: Pilla
                 </span>{' '}
                 {iljuArchetype.weakness}
               </div>
+              {iljuArchetype.career && (
+                <div>
+                  <span style={{ color: 'var(--ds-dark-text)' }}>
+                    {lang === 'ko' ? '직업 적합' : 'Career fit'}:
+                  </span>{' '}
+                  {iljuArchetype.career}
+                </div>
+              )}
+              {iljuArchetype.love && (
+                <div>
+                  <span style={{ color: 'var(--ds-dark-text)' }}>
+                    {lang === 'ko' ? '사랑 결' : 'Love style'}:
+                  </span>{' '}
+                  {iljuArchetype.love}
+                </div>
+              )}
             </div>
           </Section>
         )}
@@ -536,21 +691,43 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function StrengthRow({ label, value, explain }: { label: string; value?: string; explain?: string }) {
+function StrengthRow({
+  label,
+  hint,
+  value,
+  explain,
+}: {
+  label: string
+  /** 카테고리 자체 한 줄 정의 (비전공자용). 라벨 아래 보조 텍스트로 표시. */
+  hint?: string
+  value?: string
+  explain?: string
+}) {
   return (
     <li className="leading-snug">
-      <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>{label}</span>
-      {value && (
-        <>
-          <span className="mx-1" style={{ color: 'var(--ds-dark-text-muted)' }}>:</span>
-          <span style={{ color: 'var(--ds-dark-text)' }}>{value}</span>
-        </>
-      )}
-      {explain && (
-        <>
-          <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>—</span>
-          <span style={{ color: 'var(--ds-dark-text-muted)' }}>{explain}</span>
-        </>
+      <div>
+        <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>{label}</span>
+        {hint && (
+          <>
+            <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>—</span>
+            <span className="text-[11px]" style={{ color: 'var(--ds-dark-text-muted)' }}>
+              {hint}
+            </span>
+          </>
+        )}
+      </div>
+      {(value || explain) && (
+        <div className="mt-0.5">
+          {value && <span style={{ color: 'var(--ds-dark-text)' }}>{value}</span>}
+          {explain && (
+            <>
+              {value && (
+                <span className="mx-1.5" style={{ color: 'var(--ds-dark-text-muted)' }}>—</span>
+              )}
+              <span style={{ color: 'var(--ds-dark-text-muted)' }}>{explain}</span>
+            </>
+          )}
+        </div>
       )}
     </li>
   )

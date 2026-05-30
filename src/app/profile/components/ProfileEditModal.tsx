@@ -10,6 +10,7 @@ import {
   type BirthFieldsClasses,
   type BirthFieldsPatch,
 } from '@/components/birth/BirthInfoFields'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 // Light field styling that matches the profile page's premium white
 // surface. Passed to BirthInfoFields so the shared (dark-default) form
@@ -23,7 +24,7 @@ const lightFieldClasses: Required<BirthFieldsClasses> = {
   checkboxLabel: 'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[#57534e]',
   checkbox: 'h-3.5 w-3.5 cursor-pointer accent-[#a07a3c] [color-scheme:light]',
   suggestionList:
-    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e7e4df] bg-white p-1 shadow-[0_16px_40px_rgba(28,25,23,0.12)]',
+    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e7e5e4] bg-white p-1 shadow-[0_16px_40px_rgba(28,25,23,0.12)]',
   suggestionItem:
     'block w-full rounded-lg px-2.5 py-2 text-left text-[13px] text-[#44403c] transition hover:bg-[#f5f4f1]',
 }
@@ -56,6 +57,7 @@ export function ProfileEditModal({
   onSaved,
 }: ProfileEditModalProps) {
   const t = (ko: string, en: string) => (locale === 'ko' ? ko : en)
+  const trapRef = useFocusTrap(open)
 
   const [name, setName] = useState(initial.name ?? '')
   const [birthDate, setBirthDate] = useState(initial.birthDate ?? '')
@@ -142,14 +144,15 @@ export function ProfileEditModal({
 
   return (
     <div
+      ref={trapRef}
       className="fixed inset-0 z-[120] flex items-end justify-center bg-[rgba(28,25,23,0.65)] sm:items-center"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-[#e7e4df] bg-white shadow-[0_24px_48px_rgba(28,25,23,0.18)] sm:rounded-3xl"
+        className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-[#e7e5e4] bg-white shadow-[0_24px_48px_rgba(28,25,23,0.18)] sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center justify-between border-b border-[#eee9e3] px-5 py-4">
+        <header className="flex items-center justify-between border-b border-[#e7e5e4] px-5 py-4">
           <h2
             className="text-[16px] font-semibold tracking-[-0.01em] text-[#1c1917]"
             style={{ fontFamily: 'var(--font-cinzel), Georgia, serif' }}
@@ -159,7 +162,9 @@ export function ProfileEditModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1 text-[#a8a29e] transition hover:bg-[#f5f4f1] hover:text-[#1c1917]"
+            // 36×36 — 다른 모든 icon 버튼과 정렬 + touch target 가이드 (≥44 권장,
+            // 36+padding ≈ 44 effective). 옛 p-1 (~24px) 폐기.
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#a8a29e] transition hover:bg-[#f5f4f1] hover:text-[#1c1917]"
             aria-label="Close"
           >
             <X className="h-4 w-4" />

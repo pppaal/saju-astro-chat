@@ -66,7 +66,7 @@
   border-radius: 4px;
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 0.9em;
-  color: #c4b5fd;
+  color: #e8cc8a;
 }
 
 /* 링크 */
@@ -78,8 +78,8 @@
 }
 
 .link:hover {
-  color: #c4b5fd;
-  border-bottom-color: rgba(196, 181, 253, 0.6);
+  color: #e8cc8a;
+  border-bottom-color: rgba(232, 204, 138, 0.6);
 }
 
 /* 헤딩 */
@@ -106,7 +106,7 @@
 
 .heading3 {
   font-size: 1.08em;
-  color: rgba(196, 181, 253, 0.95);
+  color: rgba(232, 204, 138, 0.95);
 }
 
 /* 라이트 표면 변형 — 상담사 페이지는 흰 배경이라 기본(다크용) 헤딩·인용·
@@ -115,29 +115,42 @@
   color: #1c1917;
 }
 
+/* 라이트 톤 — 옛 보라 #7c3aed/#6d28d9 폐기, 골드 + 잉크로 통일
+   (compat/profile/destiny counselor 라이트와 정렬). */
 .light .heading2 {
-  color: #6d28d9;
-  border-left-color: rgba(124, 58, 237, 0.65);
+  color: #1c1917;
+  border-left-color: rgba(160, 122, 60, 0.65);
 }
 
 .light .heading3 {
-  color: #7c3aed;
+  color: #a07a3c;
 }
 
 .light .blockquote {
   color: #44403c;
-  border-left-color: #7c3aed;
-  background: rgba(124, 58, 237, 0.06);
+  border-left-color: #a07a3c;
+  background: rgba(160, 122, 60, 0.06);
 }
 
 .light .code {
-  color: #6d28d9;
-  background: rgba(124, 58, 237, 0.12);
+  color: #a07a3c;
+  background: rgba(160, 122, 60, 0.1);
 }
 
 .light .link {
-  color: #6d28d9;
-  border-bottom-color: rgba(124, 58, 237, 0.35);
+  color: #a07a3c;
+  border-bottom-color: rgba(160, 122, 60, 0.35);
+}
+
+/* WCAG AA — gold #d4b572 on light cream (#fafaf9) is 2.05:1, fails 4.5:1.
+   Override list bullet markers to #a07a3c (passes AA) on light surfaces.
+   Dark variant keeps #d4b572. */
+.light .list .listItem::marker {
+  color: #a07a3c;
+}
+
+.light .orderedList .listItem::marker {
+  color: #a07a3c;
 }
 
 /* 인용구 */
@@ -185,5 +198,26 @@
   .cardImage {
     max-width: 160px;
     width: 70%;
+  }
+}
+
+/* aspect-ratio fallback — Safari 14 / iOS 14 / older Samsung Internet
+   ignore `aspect-ratio` so the intrinsic-load layout shift returns. Since
+   .cardImage is an <img> (not a block container with children), the
+   padding-hack doesn't apply cleanly. Instead reserve a sensible
+   min-height matching the 5 : 8.5 ratio at the configured width so the
+   chat bubble doesn't reflow when the card loads. (200px * 8.5/5 = 340px
+   max; 60% width at typical 320px bubble = ~192px * 1.7 = ~326px.) */
+@supports not (aspect-ratio: 1) {
+  .cardImage {
+    min-height: 320px;
+  }
+}
+
+@supports not (aspect-ratio: 1) {
+  @media (max-width: 640px) {
+    .cardImage {
+      min-height: 250px;
+    }
   }
 }

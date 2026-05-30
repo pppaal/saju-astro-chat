@@ -21,6 +21,19 @@ export interface ClaudeSSEOptions extends CallClaudeOptions {
    */
   onFailure?: () => void | Promise<void>
   /**
+   * 스트림이 자연 종료(전체 생성 완료)됐을 때 서버측에서 1회 호출 — 클라이언트
+   * 연결 여부와 무관. fullText 를 세션/캐시에 영속화해 "사용자가 다른 앱 갔다
+   * 와도 완성된 답이 남아 있게" 하는 데 쓴다. 던진 예외는 무시.
+   */
+  onComplete?: (fullText: string) => void | Promise<void>
+  /**
+   * true 면 클라이언트 연결이 끊겨도(탭 백그라운드/닫기) 업스트림 생성을
+   * 중단하지 않고 끝까지 진행한 뒤 onComplete 로 영속화한다 (ChatGPT 식).
+   * 이때 연결 끊김은 "실패"가 아니므로 onFailure(환불)도 부르지 않는다.
+   * 기본 false — 기존처럼 끊기면 즉시 중단 + (빈 응답이면) 환불.
+   */
+  keepGeneratingOnDisconnect?: boolean
+  /**
    * true 면 max_tokens 도달 시 자동 이어쓰기 (claudeWithContinuation).
    * 궁합·운명·타로 같이 답이 길어질 수 있는 라우트에서 사용.
    * 기본 false — 기존 동작 유지.
@@ -51,6 +64,8 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
     transform,
     finalize,
     onFailure,
+    onComplete,
+    keepGeneratingOnDisconnect,
     enableContinuation,
     maxContinuations,
     maxTotalOutputChars,
@@ -64,7 +79,9 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
   // Anthropic tokens." Pass this signal down to callClaudeStream so the
   // upstream fetch dies with us.
   const pipelineAbort = new AbortController()
-  if (abortSignal) {
+  // keepGeneratingOnDisconnect 모드에선 클라 연결 끊김(req.signal)으로 업스트림을
+  // 중단하지 않는다 — 끝까지 생성해 onComplete 로 저장해야 하므로.
+  if (abortSignal && !keepGeneratingOnDisconnect) {
     if (abortSignal.aborted) {
       pipelineAbort.abort()
     } else {
@@ -85,6 +102,9 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
 
   const encoder = new TextEncoder()
   let fullText = ''
+  // 클라이언트 연결이 끊겼는지 (cancel() 또는 enqueue 실패로 감지). keep 모드면
+  // 이게 true 여도 생성은 계속하고, 화면 전송(enqueue)만 건너뛴다.
+  let clientGone = false
 
   // Invoke the refund/cleanup hook at most once. A thrown hook must never
   // break the stream, so swallow its errors here.
@@ -132,6 +152,18 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         }
       }
 
+      // 클라가 사라졌을 때(keep 모드) 화면 전송은 건너뛰되 생성은 계속하기 위한
+      // 안전 enqueue. enqueue 실패 = 연결 끊김 → clientGone 표시.
+      const safeEnqueue = (line: string): void => {
+        if (clientGone) return
+        try {
+          controller.enqueue(encoder.encode(line))
+        } catch {
+          clientGone = true
+          if (!keepGeneratingOnDisconnect) throw new Error('client disconnected')
+        }
+      }
+
       startHeartbeat()
       try {
         while (true) {
@@ -139,14 +171,25 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
           if (done) break
           const chunk = transform ? transform(value) : value
           fullText += chunk
-          const sseLine = `data: ${JSON.stringify({ content: chunk, done: false })}\n\n`
-          controller.enqueue(encoder.encode(sseLine))
+          safeEnqueue(`data: ${JSON.stringify({ content: chunk, done: false })}\n\n`)
         }
-        // No content delivered at all → treat as a failed turn (refund).
-        if (fullText.trim() === '') {
-          await handleFailure()
+
+        // 전체 생성 완료 → 서버측 영속화(클라 연결 여부와 무관). keep 모드에서
+        // 사용자가 다른 앱 갔다 와도 완성된 답을 되살릴 수 있게 한다.
+        if (fullText.trim() !== '' && onComplete) {
+          try {
+            await onComplete(fullText)
+          } catch {
+            /* persist 실패가 스트림을 깨지 않게 */
+          }
         }
-        // finalize
+
+        // 환불은 "빈 응답"일 때만. keep 모드에선 연결 끊김(clientGone)은 끝까지
+        // 생성·저장하므로 환불 사유가 아니다. 비 keep 모드는 기존대로 abort 도 환불.
+        const shouldRefund =
+          fullText.trim() === '' || (!keepGeneratingOnDisconnect && pipelineAbort.signal.aborted)
+        if (shouldRefund) await handleFailure()
+
         let finalChunk: string | null = null
         if (finalize) {
           try {
@@ -155,38 +198,52 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
             finalChunk = null
           }
         }
-        const finalLine = `data: ${JSON.stringify({
-          content: finalChunk || '',
-          done: true,
-        })}\n\n`
-        controller.enqueue(encoder.encode(finalLine))
+        safeEnqueue(`data: ${JSON.stringify({ content: finalChunk || '', done: true })}\n\n`)
         stopHeartbeat()
         streamClosed = true
-        controller.close()
-      } catch (err) {
-        // Errored before delivering any content → refund the charged turn.
-        if (fullText.trim() === '') {
-          await handleFailure()
+        try {
+          controller.close()
+        } catch {
+          /* cancel() 로 이미 닫혔을 수 있음 */
         }
-        const errLine = `data: ${JSON.stringify({
-          content: '',
-          done: true,
-          error: err instanceof Error ? err.message : String(err),
-        })}\n\n`
-        controller.enqueue(encoder.encode(errLine))
+      } catch (err) {
+        // 여기 도달 = 업스트림 에러(또는 비 keep 모드의 연결 끊김). 부분 출력이
+        // 전혀 없거나 abort 면 환불, 순수 mid-stream drop(부분 있음)은 청구 유지.
+        const shouldRefund =
+          fullText.trim() === '' || (!keepGeneratingOnDisconnect && pipelineAbort.signal.aborted)
+        if (shouldRefund) await handleFailure()
+        try {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                content: '',
+                done: true,
+                error: err instanceof Error ? err.message : String(err),
+              })}\n\n`
+            )
+          )
+        } catch {
+          /* client gone */
+        }
         stopHeartbeat()
         streamClosed = true
-        controller.close()
+        try {
+          controller.close()
+        } catch {
+          /* already closed */
+        }
       }
     },
-    // The framework calls cancel() when the outgoing Response is dropped
-    // (client disconnect, request abort). Without this hook, the inner
-    // reader.read() loop above keeps draining the open Anthropic connection
-    // and we keep paying for every output token until end_turn / max_tokens,
-    // even though no one will see them. Abort the pipeline → upstream fetch
-    // dies → reader.read() throws → catch path refunds when no content
-    // was delivered.
+    // 프레임워크가 outgoing Response 가 버려질 때(클라 disconnect/abort) 호출.
     cancel() {
+      if (keepGeneratingOnDisconnect) {
+        // 연결만 끊김 — 생성은 끝까지 계속(onComplete 로 저장)한다. pipeline
+        // abort/환불 안 함. start() 루프가 enqueue 실패를 잡고 계속 읽는다.
+        clientGone = true
+        return
+      }
+      // 기존: 끊기면 업스트림 중단 + (빈 응답이면) 환불해 출력 토큰 낭비 차단.
+      void handleFailure()
       pipelineAbort.abort()
       try {
         void reader.cancel()

@@ -23,7 +23,7 @@ import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
 import { buildFallbackPayload, buildInterpretStreamPrompts } from '@/lib/tarot/promptBuild'
 import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
 import { tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
-import { createIdempotencyStore } from '@/lib/api/idempotency'
+import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
@@ -38,9 +38,13 @@ const CLAUDE_TIMEOUT_MS = 60000
 
 // 카드 수 차등 가격은 tarot-spreads-data.ts 의 tarotCreditCostFor 가 SSOT.
 
-// 새로고침/뒤로가기/다른 탭 등으로 같은 리딩이 재진입할 때 크레딧 중복
-// 차감 방지. createIdempotencyStore — src/lib/api/idempotency.ts 참조.
-const idemStore = createIdempotencyStore('tarot-interpret-stream')
+// 무료 재해석(free replay) 누수 차단: 차감 면제 판정을 클라이언트가 보내는
+// x-idempotency-key 가 아니라 draw 라우트가 발급한 서버 nonce 의 단일-사용
+// 소비에 묶는다. 같은 nonce 의 진짜 재진입(새로고침/뒤로가기)만 차감을
+// 건너뛰고, 위조/미발급 nonce 는 면제 없이 정상 차감.
+// createDrawNonceStore — src/lib/api/idempotency.ts 참조. routeName 은 draw
+// 라우트와 동일해야 scopedKey 가 일치한다.
+const drawNonceStore = createDrawNonceStore('tarot-draw')
 
 // 차감 후 Claude 호출이 실패해 사용자가 가치를 못 받은 경우 호출.
 // 로그인 사용자는 refundCredits, 게스트는 호출자가 응답 cookie 증가를
@@ -182,24 +186,30 @@ export async function POST(req: NextRequest) {
 
     const cardCountForCost = Array.isArray(body.cards) ? body.cards.length : 1
     creditCost = tarotCreditCostFor(cardCountForCost)
-    const ownerKey = context.userId || `ip:${context.ip || 'unknown'}`
-    const scopedIdemKey = idemStore.keyFor(req, ownerKey)
-    const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
 
-    if (idempotentReplay) {
-      // 같은 리딩이 짧은 시간 안에 다시 들어옴(새로고침/뒤로가기/탭 복제 등).
-      // 크레딧 차감만 건너뛰고 Claude 호출은 정상 진행 — 사용자는 해석을
-      // 다시 받지만 토큰은 안 먹는다.
-      logger.info('[tarot-stream] idempotent replay, skip credit consume', {
-        ownerKey,
-      })
+    // 차감 면제 판정 — 서버 발급 draw nonce 의 단일-사용 소비에만 의존.
+    // nonce 는 draw 응답 body 의 drawNonce(권장) 또는 x-draw-nonce 헤더로 옴.
+    const ownerKey = drawNonceOwnerKey(req, context.userId)
+    const drawNonce = (body.drawNonce || req.headers.get('x-draw-nonce') || '').trim()
+    const consumeResult = drawNonce
+      ? await drawNonceStore.consume(drawNonce, ownerKey)
+      : 'unknown'
+
+    if (consumeResult === 'replay') {
+      // 같은 nonce 의 진짜 재진입(새로고침/뒤로가기/탭 복제) — 첫 소비에서
+      // 이미 차감됐으므로 이번엔 차감 skip. Claude 호출은 정상 진행해 사용자가
+      // 해석을 다시 받지만 토큰은 안 먹는다.
+      logger.info('[tarot-stream] draw-nonce replay, skip credit consume', { ownerKey })
       creditResult = null
     } else {
+      // 'first'(정상 첫 해석) 또는 'unknown'(미발급/위조 nonce — free pass 없음).
+      // 둘 다 정상 차감. nonce 가 없거나 위조여도 거부하지 않고 정상 과금해
+      // 게스트/정상 흐름은 깨지 않으면서 무료 재해석만 막는다.
+      if (consumeResult === 'unknown' && drawNonce) {
+        logger.info('[tarot-stream] unknown/forged draw-nonce, charging normally', { ownerKey })
+      }
       creditResult = await checkAndConsumeCredits('reading', creditCost, req)
       if (!creditResult.allowed) return creditErrorResponse(creditResult)
-      if (scopedIdemKey) {
-        await idemStore.mark(scopedIdemKey)
-      }
     }
 
     const categoryId = body.categoryId

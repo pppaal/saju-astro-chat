@@ -2,7 +2,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: linear-gradient(135deg, #0f0a1e 0%, #1a1030 100%);
   color: #fff;
 }
@@ -74,7 +74,7 @@
 }
 
 .timeRangeBtn.active {
-  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  background: linear-gradient(90deg, #c19b56, #d4b572);
   color: #fff;
 }
 
@@ -398,7 +398,7 @@
 }
 
 .tabActive {
-  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  background: linear-gradient(90deg, #c19b56, #d4b572);
   color: #fff;
 }
 
@@ -504,7 +504,7 @@
 
 .distributionBarInner {
   height: 100%;
-  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  background: linear-gradient(90deg, #c19b56, #d4b572);
   border-radius: 4px;
   transition: width 0.3s;
 }

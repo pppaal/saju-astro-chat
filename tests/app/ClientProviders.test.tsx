@@ -40,6 +40,26 @@ vi.mock('@/contexts/NotificationContext', () => ({
   useNotification: vi.fn(),
 }))
 
+// Side-effect / global UI components rendered by ClientProviders. They run their
+// own hooks (useI18n, effects, etc.) that are out of scope for provider-nesting
+// tests, so stub them to inert nodes. (Added when the in-app browser notice +
+// referral/consent/reward checkers were introduced.)
+vi.mock('@/components/ui/InAppBrowserNotice', () => ({
+  InAppBrowserNotice: () => null,
+}))
+vi.mock('@/components/pwa/ServiceWorkerStabilityGuard', () => ({
+  default: () => null,
+}))
+vi.mock('@/components/referral/ReferralLinker', () => ({
+  default: () => null,
+}))
+vi.mock('@/components/legal/LegalConsentModal', () => ({
+  default: () => null,
+}))
+vi.mock('@/components/ui/CreditRewardChecker', () => ({
+  default: () => null,
+}))
+
 describe('ClientProviders', () => {
   it('should render children', () => {
     render(

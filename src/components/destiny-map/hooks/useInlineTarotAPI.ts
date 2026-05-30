@@ -40,12 +40,13 @@ interface UseInlineTarotAPIOptions {
 
 export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarotAPIOptions) {
   const { state, actions } = stateManager
-  const { showDepleted } = useCreditModal()
+  const { showDepleted, showGuestLimit } = useCreditModal()
   const {
     selectedSpread,
     selectedCategory,
     concern,
     drawnCards,
+    drawNonce,
     overallMessage,
     cardInsights,
     guidance,
@@ -71,10 +72,14 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
 
   // Fetch streaming interpretation
   const fetchInterpretation = useCallback(
-    async (cards: DrawnCard[]) => {
+    // nonceOverride — 방금 draw 한 직후엔 state(drawNonce) 가 아직 안 반영됐을
+    // 수 있어 draw 핸들러가 응답에서 받은 nonce 를 직접 넘긴다 (drawnCards 와
+    // 동일 패턴). 미지정이면 state 의 drawNonce 사용 (retry 경로).
+    async (cards: DrawnCard[], nonceOverride?: string | null) => {
       if (!selectedSpread) {
         return
       }
+      const effectiveNonce = nonceOverride !== undefined ? nonceOverride : drawNonce
 
       // Cancel any existing request
       if (abortControllerRef.current) {
@@ -116,6 +121,8 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
         }),
         userQuestion: concern,
         language: lang,
+        // 서버 발급 단일-사용 nonce — draw 응답에서 받은 그대로 전달.
+        drawNonce: effectiveNonce || undefined,
       }
 
       try {
@@ -132,6 +139,9 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
           // it shows up in logs for diagnosis.
           if (res.status === 402) {
             showDepleted()
+          } else if (res.status === 401 && res.headers.get('x-guest-limit-reached') === '1') {
+            // 비로그인 무료 체험 한도 — 예전엔 조용히 무시했음. 로그인 유도 모달.
+            showGuestLimit()
           }
           throw new Error(`Interpretation failed (${res.status})`)
         }
@@ -275,11 +285,13 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       concern,
       lang,
       actions,
+      drawNonce,
       overallMessage,
       guidance,
       defaultOverallMessage,
       defaultGuidance,
       showDepleted,
+      showGuestLimit,
     ]
   )
 
@@ -301,11 +313,10 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       const owningTheme = tarotThemes.find((t) => t.spreads.some((s) => s.id === selectedSpread.id))
       const categoryId = owningTheme?.id || selectedCategory
 
-      const res = await fetch('/api/tarot', {
+      const res = await apiFetch('/api/tarot', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-token': process.env.NEXT_PUBLIC_API_TOKEN || '',
         },
         body: JSON.stringify({
           categoryId,
@@ -319,12 +330,16 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
         // 크레딧 소진(402) → 조용한 실패 대신 전역 크레딧 안내 모달.
         if (res.status === 402) {
           showDepleted()
+        } else if (res.status === 401 && res.headers.get('x-guest-limit-reached') === '1') {
+          // 비로그인 무료 체험 한도 — 로그인 유도 모달.
+          showGuestLimit()
         }
         throw new Error(`Failed to draw cards: ${res.status}`)
       }
 
       const data = await res.json()
       actions.setDrawnCards(data.drawnCards)
+      actions.setDrawNonce(data.drawNonce ?? null)
 
       // Reveal the whole spread at once. The old one-by-one flip (500ms each)
       // made the screen "keep changing" before the result settled.
@@ -335,7 +350,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       // overallMessage 비어 있을 때 inline 로딩 인디케이터를 자체적으로 띄움.
       // 사용자: "카드부터 보고 싶다" 피드백 반영.
       actions.setStep('result')
-      await fetchInterpretation(data.drawnCards)
+      await fetchInterpretation(data.drawnCards, data.drawNonce ?? null)
     } catch (err) {
       logger.error('[InlineTarot] draw error:', err)
       // 카드 뽑기 실패 시 화면이 '뽑는 중'에서 그대로 멈추지 않도록 스프레드
@@ -344,7 +359,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
     } finally {
       actions.setIsDrawing(false)
     }
-  }, [selectedSpread, selectedCategory, actions, fetchInterpretation, showDepleted])
+  }, [selectedSpread, selectedCategory, actions, fetchInterpretation, showDepleted, showGuestLimit])
 
   // Save tarot reading to database
   const saveReading = useCallback(async () => {

@@ -115,7 +115,7 @@ export function CardPickingScreen({
                 } rounded-xl border ${
                   filled
                     ? 'border-amber-500/50 bg-amber-900/20 shadow-[0_0_20px_rgba(245,158,11,0.15)]'
-                    : 'border-indigo-900/40 bg-indigo-950/10'
+                    : 'border-[rgba(160,122,60,0.4)] bg-[rgba(160,122,60,0.1)]'
                 }`}
               >
                 {filled ? (
@@ -128,11 +128,11 @@ export function CardPickingScreen({
                   />
                 ) : (
                   <div className="flex flex-col items-center">
-                    <span className="text-indigo-800/50 text-xs font-medium tracking-widest">
+                    <span className="text-[rgba(160,122,60,0.5)] text-xs font-medium tracking-widest">
                       {i + 1}
                     </span>
                     {posTitle && (
-                      <span className="text-indigo-700/40 text-[9px] mt-1 px-1 truncate max-w-full">
+                      <span className="text-[rgba(160,122,60,0.4)] text-[9px] mt-1 px-1 truncate max-w-full">
                         {posTitle}
                       </span>
                     )}
@@ -143,7 +143,7 @@ export function CardPickingScreen({
           })}
         </div>
 
-        <p className="text-indigo-200/60 text-xs md:text-sm tracking-widest font-light text-center">
+        <p className="text-[rgba(232,204,138,0.6)] text-xs md:text-sm tracking-widest font-light text-center">
           {isKo
             ? `${selectedIndices.length}/${MAX_SELECTED} · 마음이 이끄는 카드를 선택하세요`
             : `${selectedIndices.length}/${MAX_SELECTED} · Choose the cards your heart calls to`}
@@ -270,7 +270,7 @@ export function CardPickingScreen({
         <button
           onClick={onRedraw}
           disabled={selectedIndices.length === 0 || isSpreading || gameState === 'revealing'}
-          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-950/30 hover:bg-indigo-900/50 disabled:opacity-30 disabled:cursor-not-allowed text-amber-100/80 rounded-lg text-sm transition-all duration-300 border border-indigo-800/30 hover:border-amber-700/50 hover:shadow-[0_0_15px_rgba(245,158,11,0.1)]"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[rgba(160,122,60,0.15)] hover:bg-[#a07a3c]/50 disabled:opacity-30 disabled:cursor-not-allowed text-amber-100/80 rounded-lg text-sm transition-all duration-300 border border-[rgba(160,122,60,0.3)] hover:border-amber-700/50 hover:shadow-[0_0_15px_rgba(245,158,11,0.1)]"
         >
           <RotateCcw className="w-4 h-4" />
           <span className="tracking-wider">{isKo ? '다시 섞기' : 'Reshuffle'}</span>

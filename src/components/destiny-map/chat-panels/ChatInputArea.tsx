@@ -253,7 +253,8 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                 aria-label={chartAria}
                 title={chartTitle}
               >
-                <span aria-hidden="true">&#x2728;</span>
+                {/* ☯ 음양 — 사주/동양 전통의 차트 정체성. 옛 ✨ sparkles 폐기. */}
+                <span aria-hidden="true">&#x262F;</span>
                 <span className={styles.toolLabel}>{chartLabel}</span>
               </button>
             )}

@@ -226,8 +226,10 @@ describe('withCredits helpers', () => {
         },
       })
 
-      // Policy: anonymous draw no longer rejected based on guest cookie alone.
-      expect(result.allowed).toBe(true)
+      // Policy: guests get 1 free reading (GUEST_TAROT_FREE_LIMIT=1); once the
+      // used-count reaches the limit, the next draw is rejected → login prompt.
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('guest_limit_reached')
     })
 
     it('should bypass credits when BYPASS_CREDITS is true', async () => {

@@ -1,11 +1,14 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import CreditDepletedModal from '@/components/ui/CreditDepletedModal'
+import { CREDIT_MODAL_EVENT, type CreditModalKind } from '@/lib/api/ApiClient'
 
 interface CreditModalContextType {
   showDepleted: () => void
   showLowCredits: (remaining: number) => void
+  // 비로그인 사용자가 무료 체험 한도에 도달했을 때 — 구매 대신 로그인 유도.
+  showGuestLimit: () => void
   checkAndShowModal: (remaining: number, threshold?: number) => boolean
 }
 
@@ -13,11 +16,17 @@ const CreditModalContext = createContext<CreditModalContextType | null>(null)
 
 export function CreditModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [modalType, setModalType] = useState<'depleted' | 'low'>('depleted')
+  const [modalType, setModalType] = useState<'depleted' | 'low' | 'guest'>('depleted')
   const [remainingCredits, setRemainingCredits] = useState(0)
 
   const showDepleted = useCallback(() => {
     setModalType('depleted')
+    setRemainingCredits(0)
+    setIsOpen(true)
+  }, [])
+
+  const showGuestLimit = useCallback(() => {
+    setModalType('guest')
     setRemainingCredits(0)
     setIsOpen(true)
   }, [])
@@ -49,8 +58,24 @@ export function CreditModalProvider({ children }: { children: ReactNode }) {
     setIsOpen(false)
   }, [])
 
+  // 단일 표시 지점 — apiFetch 가 크레딧(402)/게스트 한도(401) 응답을 감지해
+  // 쏘는 전역 이벤트를 듣고 적절한 모달을 띄운다. 크레딧 쓰는 모든 호출이
+  // 자동으로 동일한 안내를 받게 되어, 화면마다 따로 붙일 필요가 없다.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onSignal = (e: Event) => {
+      const kind = (e as CustomEvent<{ kind?: CreditModalKind }>).detail?.kind
+      if (kind === 'guest') showGuestLimit()
+      else showDepleted()
+    }
+    window.addEventListener(CREDIT_MODAL_EVENT, onSignal)
+    return () => window.removeEventListener(CREDIT_MODAL_EVENT, onSignal)
+  }, [showGuestLimit, showDepleted])
+
   return (
-    <CreditModalContext.Provider value={{ showDepleted, showLowCredits, checkAndShowModal }}>
+    <CreditModalContext.Provider
+      value={{ showDepleted, showLowCredits, showGuestLimit, checkAndShowModal }}
+    >
       {children}
       <CreditDepletedModal
         isOpen={isOpen}

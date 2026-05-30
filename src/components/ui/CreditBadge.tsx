@@ -125,10 +125,11 @@ export default function CreditBadge({ variant = 'default', className = '' }: Cre
   // 결제 후 돌아올 URL을 저장하면서 pricing 페이지로 이동
   const handleClick = () => {
     if (typeof window !== 'undefined') {
-      // 현재 페이지 경로 저장 (pricing 페이지 제외)
+      // 현재 페이지 저장 (pricing 페이지 제외). 쿼리까지 보존해 결제 후
+      // 보던 화면으로 정확히 복귀한다.
       const currentPath = window.location.pathname
       if (currentPath !== '/pricing' && currentPath !== '/success') {
-        localStorage.setItem('checkout_return_url', currentPath)
+        localStorage.setItem('checkout_return_url', currentPath + window.location.search)
       }
     }
   }
