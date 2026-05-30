@@ -16,6 +16,7 @@ import { motion } from 'framer-motion'
 import { Sparkles, BookOpen, Clock3 } from 'lucide-react'
 import type { ImportantDate } from '../../types'
 import type { GradeInfo } from '../../scoreGrade'
+import { getStarRating } from '../../scoreGrade'
 import DailyHourlyChart from '../../DailyHourlyChart'
 import { getCalLabels, type CalLocale } from '../labels'
 import { useCountUp } from './useCountUp'
@@ -146,8 +147,13 @@ function DayVerdictCard({
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-3 leading-none mb-1.5">
-            <span className="text-4xl sm:text-5xl font-black tabular-nums bg-gradient-to-br from-white to-zinc-300 bg-clip-text text-transparent">
-              {animatedScore}
+            <span
+              className="text-3xl sm:text-4xl font-black tracking-tight text-amber-300 leading-none"
+              title={String(animatedScore)}
+              aria-label={`${getStarRating(score).stars} / 5`}
+            >
+              {'★'.repeat(getStarRating(score).stars)}
+              <span className="text-zinc-700">{'☆'.repeat(5 - getStarRating(score).stars)}</span>
             </span>
             <span className={`text-base font-black ${grade.colorClass}`}>
               {t.gradeLabel(grade.key)}
