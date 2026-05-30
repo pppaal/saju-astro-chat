@@ -182,6 +182,7 @@ export default function HomeChatInput({
             placeholder={placeholder}
             rows={2}
           />
+          {/* 전송 버튼 — 입력창 안 우하단(absolute). homeChatRow 가 relative. */}
           <button
             type="button"
             className={styles.homeChatSubmit}
