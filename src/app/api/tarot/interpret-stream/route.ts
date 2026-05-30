@@ -31,10 +31,21 @@ import {
 } from '@/lib/credits/withCredits'
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { getUserDisplayName } from '@/lib/user/displayName'
+import { cacheSet } from '@/lib/cache/redis-cache'
 
 // 단일 Claude 호출의 최대 wall-clock — Sonnet 4.5 + 7장 streaming 기준
 // Haiku 보다 응답 길어 통상 15-30s. 여유 있게 60s.
 const CLAUDE_TIMEOUT_MS = 60000
+
+// 끊긴 턴의 완성 리딩(raw JSON 문자열)을 잠깐 보관하는 캐시 키 — result
+// 엔드포인트가 같은 키로 읽음. userId 를 키에 포함해 ownership 검증 (다른
+// 사용자가 turnId 알아도 조회 불가). 게스트는 복구 미지원 (turnId 보관 안 함).
+// counselor/realtime 의 counselorTurnResultKey 패턴과 동일.
+export const tarotTurnResultKey = (userId: string, turnId: string) =>
+  `tarot:turn-result:${userId}:${turnId}`
+
+// 돌아와서 받아갈 시간을 충분히 (10분). 받아가면 그만이고 TTL 로 자동 소멸.
+const TURN_RESULT_TTL_SEC = 600
 
 // 카드 수 차등 가격은 tarot-spreads-data.ts 의 tarotCreditCostFor 가 SSOT.
 
@@ -191,9 +202,7 @@ export async function POST(req: NextRequest) {
     // nonce 는 draw 응답 body 의 drawNonce(권장) 또는 x-draw-nonce 헤더로 옴.
     const ownerKey = drawNonceOwnerKey(req, context.userId)
     const drawNonce = (body.drawNonce || req.headers.get('x-draw-nonce') || '').trim()
-    const consumeResult = drawNonce
-      ? await drawNonceStore.consume(drawNonce, ownerKey)
-      : 'unknown'
+    const consumeResult = drawNonce ? await drawNonceStore.consume(drawNonce, ownerKey) : 'unknown'
 
     if (consumeResult === 'replay') {
       // 같은 nonce 의 진짜 재진입(새로고침/뒤로가기/탭 복제) — 첫 소비에서
@@ -229,6 +238,13 @@ export async function POST(req: NextRequest) {
     // prompt template uses markdown headers (no XML wrappers), but this
     // matches the rest of the LLM routes — defense in depth.
     const userQuestion = sanitizeForXmlTagBoundary((body.userQuestion || '').trim())
+
+    // 끊김 복구용 turnId. 로그인 사용자(context.userId) + turnId 가 둘 다
+    // 있을 때만 "복구 가능한 턴". counselor 와 동일하게 slice(0,80).
+    // 게스트는 복구 미지원 — turnId 가 있어도 무시(아래 recoverable=false).
+    const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
+    const recoverableUserId = context.userId || ''
+    const isRecoverable = Boolean(turnId && recoverableUserId)
 
     logger.info('Tarot stream payload', {
       categoryId,
@@ -284,15 +300,24 @@ export async function POST(req: NextRequest) {
       userLen: userPrompt.length,
     })
 
+    // 복구 가능한 턴(로그인 + turnId)이면 업스트림 생성을 req.signal 에 묶지
+    // 않는다 — 클라가 끊겨도 끝까지 생성해 cacheSet 으로 저장(아래)해야 돌아온
+    // 사용자가 result 엔드포인트로 복원할 수 있기 때문(counselor 식 keep-
+    // generating-on-disconnect). 대신 별도 AbortController 를 만들어 넘긴다.
+    // 이 컨트롤러는 req.signal 로 abort 되지 않으므로, 끊겨도 timeoutMs(아래
+    // CLAUDE_TIMEOUT_MS) 가 만료 보호선으로 동작한다.
+    // 복구 불가(게스트 / turnId 없음)면 기존대로 req.signal 을 그대로 넘겨,
+    // 받아갈 사람도 없는데 토큰만 태우는 일을 막는다.
+    const upstreamAbort = new AbortController()
+    const upstreamSignal = isRecoverable ? upstreamAbort.signal : req.signal
     let claudeStream: ReadableStream<string>
     try {
       // streamClaudeWithContinuation — maxTokens 도달해도 자동 이어쓰기
       // 라 카드 7장 같은 깊은 해석도 중간에 안 잘림.
       claudeStream = await streamClaudeWithContinuation({
-        // Client disconnect → upstream Anthropic fetch aborts. Without this,
-        // tarot interpret-stream keeps reading 5k tokens for nobody if the
-        // user navigates away mid-reading.
-        abortSignal: req.signal,
+        // 복구 불가 턴: client disconnect → upstream Anthropic fetch aborts.
+        // 복구 가능 턴: 끊겨도 끝까지 생성(별도 컨트롤러). 위 주석 참조.
+        abortSignal: upstreamSignal,
         systemPrompt,
         userPrompt,
         model: PREMIUM_CLAUDE_MODEL,
@@ -325,13 +350,46 @@ export async function POST(req: NextRequest) {
     // extractPartialOverall / extractPartialCardTexts 가 부분 JSON 파싱.
     const encoder = new TextEncoder()
     const reader = claudeStream.getReader()
+    // 복구 가능 턴에서 클라가 사라졌는지(enqueue 실패로 감지). true 여도 생성은
+    // 계속 읽고(아래 while), 화면 전송(enqueue)만 건너뛴다.
+    let clientGone = false
+    // 전체 누적 텍스트(raw JSON 리딩). 끝까지 생성되면 cacheSet 으로 저장해
+    // 끊긴 사용자가 result 엔드포인트로 복원한다.
+    let fullText = ''
     const sseStream = new ReadableStream({
       async start(controller) {
+        // 클라가 사라졌을 때(복구 턴) 화면 전송은 건너뛰되 생성은 계속하기 위한
+        // 안전 enqueue. enqueue 실패 = 연결 끊김 → clientGone 표시.
+        // 복구 불가 턴은 enqueue 실패를 그대로 throw 해 기존 catch/환불 경로로.
+        const safeEnqueue = (line: Uint8Array): void => {
+          if (clientGone) return
+          try {
+            controller.enqueue(line)
+          } catch (enqueueErr) {
+            clientGone = true
+            if (!isRecoverable) throw enqueueErr
+          }
+        }
+        // 끝까지 생성된 완성 리딩을 캐시에 저장 — 끊겼다가 돌아온 로그인 사용자가
+        // /api/tarot/interpret-stream/result?turnId=… 로 받아간다. 캐시 실패는
+        // 무시(복원만 안 될 뿐 스트림엔 영향 없음).
+        const persistIfRecoverable = async () => {
+          if (!isRecoverable || fullText.trim() === '') return
+          try {
+            await cacheSet(
+              tarotTurnResultKey(recoverableUserId, turnId),
+              fullText,
+              TURN_RESULT_TTL_SEC
+            )
+          } catch {
+            /* 캐시 실패 무시 */
+          }
+        }
         // Claude 첫 토큰까지 시간이 걸려도 SSE 자체가 살아있음을 확인할 수
         // 있게 즉시 빈 content 이벤트 emit — Vercel/네트워크 buffering 도
         // 깨우는 효과. (한 줄 emit 이라 클라 parser 는 무시 가능 — 빈 content
         // 는 accumulated 에 안 더해짐.)
-        controller.enqueue(encoder.encode(createSSEEvent({ content: '' })))
+        safeEnqueue(encoder.encode(createSSEEvent({ content: '' })))
         let receivedAny = false
         let bytesEmitted = 0
         try {
@@ -341,7 +399,8 @@ export async function POST(req: NextRequest) {
             if (value) {
               receivedAny = true
               bytesEmitted += typeof value === 'string' ? value.length : 0
-              controller.enqueue(encoder.encode(createSSEEvent({ content: value })))
+              fullText += value
+              safeEnqueue(encoder.encode(createSSEEvent({ content: value })))
             }
           }
           recordExternalCall(
@@ -350,7 +409,9 @@ export async function POST(req: NextRequest) {
             'success',
             Date.now() - claudeStartTime
           )
-          controller.enqueue(encoder.encode(createSSEDoneEvent()))
+          // 정상 완료 → 복구 가능 턴이면 완성 리딩 캐시 저장. (클라 연결 여부 무관.)
+          await persistIfRecoverable()
+          safeEnqueue(encoder.encode(createSSEDoneEvent()))
         } catch (streamErr) {
           recordExternalCall(
             'anthropic',
@@ -413,10 +474,16 @@ export async function POST(req: NextRequest) {
         }
       },
       // Framework calls cancel() when the outgoing Response is dropped
-      // (client disconnect). Cancel the inner reader so the upstream
-      // Anthropic fetch (already abort-aware via req.signal) finishes
-      // tearing down instead of being left dangling on a slow GC.
+      // (client disconnect).
+      // 복구 불가 턴: inner reader 를 취소해 upstream Anthropic fetch (req.signal
+      // abort-aware) 가 매달려 있지 않고 정리되게 한다.
+      // 복구 가능 턴: reader 를 취소하지 않는다 — 취소하면 upstream 생성이
+      // 중단돼 cacheSet(persistIfRecoverable) 로 저장할 완성 리딩이 사라진다.
+      // 대신 start() 의 while 루프가 enqueue 실패(clientGone)를 잡고 끝까지
+      // 읽어 저장한다 (counselor 의 keep-generating-on-disconnect 와 동일).
       cancel() {
+        clientGone = true
+        if (isRecoverable) return
         try {
           void reader.cancel()
         } catch {

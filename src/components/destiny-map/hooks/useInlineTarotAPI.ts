@@ -38,6 +38,15 @@ interface UseInlineTarotAPIOptions {
   origin?: 'destiny' | 'compat'
 }
 
+// 클라 생성 turnId — 끊겨도 서버가 끝까지 생성해 이 키로 캐시에 저장하고,
+// 돌아온 사용자가 result 엔드포인트로 복원한다 (counselor 와 동일 패턴).
+function genTurnId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `t-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
 export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarotAPIOptions) {
   const { state, actions } = stateManager
   const { showDepleted, showGuestLimit } = useCreditModal()
@@ -55,6 +64,12 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
     isSaved,
   } = state
   const abortControllerRef = useRef<AbortController | null>(null)
+  // 끊긴 해석 복원 — 스트림이 완성 JSON 없이 끝났을 때(interpretFailed) turnId 를
+  // 여기 등록해 두고, 사용자가 다른 앱에서 돌아오면(visibilitychange) result
+  // 엔드포인트를 폴링해 완성 리딩으로 갈아끼운다. counselor 의 attemptRecover 와
+  // 동일한 shape. cards 는 복원 시 정적 폴백 채우기에 필요해 함께 보관.
+  const recoverableTurnRef = useRef<{ turnId: string; cards: DrawnCard[] } | null>(null)
+  const recoveringRef = useRef(false)
   // 한 번 저장 시도해서 실패하면 자동 저장 useEffect 가 같은 리딩에 대해
   // 무한 재시도하던 회귀(콘솔에 [InlineTarot] save error 가 수십 줄씩 쌓이던 케이스)
   // 차단용 — 서버가 500 을 반환해도 사용자가 '다시 뽑기' 로 카드를 새로 뽑기 전까진
@@ -69,6 +84,116 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
     lang === 'ko'
       ? '오늘은 큰 결론보다, 바로 실행 가능한 한 가지 행동부터 시작해 보세요.'
       : 'Today, start with one practical action rather than forcing a big conclusion.'
+
+  // Static per-card meaning — shown when the AI text is missing so cards are
+  // never blank. Hoisted out of fetchInterpretation so the recovery path
+  // (applyAccumulatedReading) can reuse the exact same fallback.
+  const staticCardMeaning = useCallback(
+    (dc: DrawnCard): string => {
+      const m = dc.isReversed ? dc.card.reversed : dc.card.upright
+      return (lang === 'ko' ? m.meaningKo || m.meaning : m.meaning) || ''
+    },
+    [lang]
+  )
+
+  // 누적된 raw JSON 텍스트를 overall/cardInsights/guidance 로 파싱해 상태에
+  // 반영한다 — 정상 완료 경로와 복원 경로가 같은 파싱을 쓰도록 추출. 유효한
+  // JSON 을 찾아 overall 을 채웠으면 true 반환(복원 성공 판정용).
+  const applyAccumulatedReading = useCallback(
+    (
+      accumulated: string,
+      cards: DrawnCard[],
+      spread: NonNullable<typeof selectedSpread>
+    ): boolean => {
+      let parsed: Record<string, unknown> | null = null
+      try {
+        const match = accumulated.match(/\{[\s\S]*\}/)
+        if (match) parsed = JSON.parse(match[0]) as Record<string, unknown>
+      } catch {
+        parsed = null
+      }
+
+      const overallRaw = parsed && typeof parsed.overall === 'string' ? parsed.overall : ''
+      const adviceRaw = parsed && typeof parsed.advice === 'string' ? parsed.advice : ''
+      const streamedCards = Array.isArray(parsed?.cards)
+        ? (parsed.cards as Array<{ position?: string; interpretation?: string }>)
+        : []
+
+      const nextOverall = overallRaw.trim() || defaultOverallMessage
+      const nextGuidance = adviceRaw.trim() || defaultGuidance
+      const nextInsights: CardInsight[] = cards.map((dc, idx) => {
+        const streamed = streamedCards[idx] || {}
+        return {
+          position:
+            streamed.position ||
+            (lang === 'ko'
+              ? spread.positions[idx]?.titleKo || spread.positions[idx]?.title
+              : spread.positions[idx]?.title) ||
+            `${idx + 1}`,
+          card_name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
+          is_reversed: dc.isReversed,
+          interpretation: streamed.interpretation || staticCardMeaning(dc),
+        }
+      })
+
+      actions.setOverallMessage(nextOverall)
+      actions.setCardInsights(nextInsights)
+      actions.setGuidance(nextGuidance)
+      return overallRaw.trim().length > 0
+    },
+    [actions, defaultOverallMessage, defaultGuidance, lang, staticCardMeaning]
+  )
+
+  // 끊긴 해석 복원 — recoverableTurnRef 에 등록된 turnId 를 result 엔드포인트로
+  // 폴링한다. ready=true 면 완성 리딩을 정상 완료와 동일한 파싱 경로로 반영하고
+  // interpretFailed 를 해제한다. 보이는 동안만 ~30×2s 재시도. counselor 의
+  // attemptRecover 와 동일 shape. 로그인 사용자만 서버가 캐시(게스트는 401).
+  const attemptRecover = useCallback(async () => {
+    const info = recoverableTurnRef.current
+    if (!info || recoveringRef.current) return
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
+    if (!selectedSpread) return
+    recoveringRef.current = true
+    try {
+      for (let i = 0; i < 30; i++) {
+        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') break
+        if (recoverableTurnRef.current?.turnId !== info.turnId) break // 새 턴이 덮어씀
+        try {
+          const res = await apiFetch(
+            `/api/tarot/interpret-stream/result?turnId=${encodeURIComponent(info.turnId)}`,
+            { method: 'GET' }
+          )
+          if (res.ok) {
+            const data = (await res.json()) as { ready?: boolean; content?: string }
+            if (data.ready && typeof data.content === 'string' && data.content.length > 0) {
+              const ok = applyAccumulatedReading(data.content, info.cards, selectedSpread)
+              if (ok) {
+                actions.setInterpretFailed(false)
+                actions.setStep('result')
+                recoverableTurnRef.current = null
+                return
+              }
+            }
+          }
+        } catch {
+          /* 네트워크 흔들림 — 다음 루프에서 재시도 */
+        }
+        await new Promise((r) => setTimeout(r, 2000))
+      }
+    } finally {
+      recoveringRef.current = false
+    }
+  }, [actions, applyAccumulatedReading, selectedSpread])
+
+  // 다른 앱/탭에서 돌아오면(visible) 끊겼던 해석의 완성본을 복원 시도.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void attemptRecover()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [attemptRecover])
 
   // Fetch streaming interpretation
   const fetchInterpretation = useCallback(
@@ -94,12 +219,9 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       }, INTERPRET_TIMEOUT_MS)
       actions.setInterpretFailed(false)
 
-      // Static per-card meaning — shown when the AI text is missing so cards are
-      // never blank (also the failure fallback below).
-      const staticCardMeaning = (dc: DrawnCard): string => {
-        const m = dc.isReversed ? dc.card.reversed : dc.card.upright
-        return (lang === 'ko' ? m.meaningKo || m.meaning : m.meaning) || ''
-      }
+      // 이 해석 요청의 고유 id — 끊겨도 서버가 끝까지 생성해 캐시에 저장하고,
+      // 돌아온 사용자가 result 엔드포인트로 복원한다. 로그인 사용자만 서버가 캐시.
+      const turnId = genTurnId()
 
       // Mirror the *exact* request the main tarot reading makes (that one works;
       // the inline one was hanging). Minimal payload + apiFetch (adds the public
@@ -123,6 +245,8 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
         language: lang,
         // 서버 발급 단일-사용 nonce — draw 응답에서 받은 그대로 전달.
         drawNonce: effectiveNonce || undefined,
+        // 끊김 복구용 turnId — 서버가 끝까지 생성한 완성 리딩을 이 키로 캐시.
+        turnId,
       }
 
       try {
@@ -206,46 +330,21 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
           }
         }
 
-        let parsed: Record<string, unknown> | null = null
-        try {
-          const match = accumulated.match(/\{[\s\S]*\}/)
-          if (match) parsed = JSON.parse(match[0]) as Record<string, unknown>
-        } catch {
-          parsed = null
+        // 누적 텍스트를 overall/cardInsights/guidance 로 파싱·반영 (정상 완료/복원
+        // 공통 경로). interpret-stream 은 affirmation 을 따로 emit 하지 않으므로
+        // 직전 리딩 값 그대로 둔다.
+        const ok = applyAccumulatedReading(accumulated, cards, selectedSpread)
+        if (!ok) {
+          // 스트림은 끝났으나 유효한 overall JSON 이 안 옴(끊김/잘림) — 끝까지
+          // 생성된 완성본을 turnId 로 복원할 수 있게 등록하고 실패 표시. 사용자가
+          // 다른 앱에서 돌아오면 visibilitychange → attemptRecover 로 갈아끼움.
+          recoverableTurnRef.current = { turnId, cards }
+          actions.setInterpretFailed(true)
+          actions.setStep('result')
+          void attemptRecover()
+          return
         }
-
-        const overallRaw = parsed && typeof parsed.overall === 'string' ? parsed.overall : ''
-        const adviceRaw = parsed && typeof parsed.advice === 'string' ? parsed.advice : ''
-        const streamedCards = Array.isArray(parsed?.cards)
-          ? (parsed.cards as Array<{ position?: string; interpretation?: string }>)
-          : []
-
-        const nextOverall = overallRaw.trim() || defaultOverallMessage
-        const nextGuidance = adviceRaw.trim() || defaultGuidance
-        // interpret-stream emits `{ position, interpretation }`. Pair each
-        // streamed entry with the drawn card we already have to fill the
-        // card_name / is_reversed columns the consumer expects.
-        const nextInsights: CardInsight[] = cards.map((dc, idx) => {
-          const streamed = streamedCards[idx] || {}
-          return {
-            position:
-              streamed.position ||
-              (lang === 'ko'
-                ? selectedSpread.positions[idx]?.titleKo || selectedSpread.positions[idx]?.title
-                : selectedSpread.positions[idx]?.title) ||
-              `${idx + 1}`,
-            card_name: lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name,
-            is_reversed: dc.isReversed,
-            interpretation: streamed.interpretation || staticCardMeaning(dc),
-          }
-        })
-
-        actions.setOverallMessage(nextOverall)
-        actions.setCardInsights(nextInsights)
-        actions.setGuidance(nextGuidance)
-        // interpret-stream doesn't emit a dedicated `affirmation`. Leave
-        // whatever the previous reading left in state untouched.
-
+        recoverableTurnRef.current = null
         actions.setStep('result')
       } catch (err) {
         // A fresh fetchInterpretation aborted this one — let the newer call own
@@ -275,6 +374,11 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
         )
         actions.setInterpretFailed(true)
         actions.setStep('result')
+        // 끊김(타임아웃/네트워크/탭 백그라운드)으로 실패 — 서버는 복구 가능
+        // 턴이면 끝까지 생성해 turnId 로 캐시에 저장한다. 복원 대상으로 등록하고
+        // 즉시(보이면) 한 번 폴링 시도. 돌아오면 visibilitychange 로도 재시도.
+        recoverableTurnRef.current = { turnId, cards }
+        void attemptRecover()
       } finally {
         clearTimeout(timeoutId)
       }
@@ -292,6 +396,9 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       defaultGuidance,
       showDepleted,
       showGuestLimit,
+      staticCardMeaning,
+      applyAccumulatedReading,
+      attemptRecover,
     ]
   )
 

@@ -102,9 +102,7 @@ export const tarotSaveRequestSchema = z.object({
   // 'counselor-destiny' / 'counselor-compat' 는 운명/궁합 상담사 안에서 띄운
   // 인라인 타로 — 히스토리 UI 에서 origin 배지를 띄우려고 origin 별로 분리해
   // 받는다. 'counselor' 는 구버전 호환 fallback.
-  source: z
-    .enum(['standalone', 'counselor', 'counselor-destiny', 'counselor-compat'])
-    .optional(),
+  source: z.enum(['standalone', 'counselor', 'counselor-destiny', 'counselor-compat']).optional(),
   counselorSessionId: z.string().max(100).optional(),
   locale: localeSchema.optional(),
   questionContext: tarotQuestionContextSchema.optional(),
@@ -215,6 +213,10 @@ export const tarotInterpretStreamSchema = z.object({
   // 판정을 클라이언트 헤더가 아닌 이 서버 발급 토큰에 묶는다. 없거나
   // 위조면 정상 차감(면제 없음).
   drawNonce: z.string().max(200).optional(),
+  // 이 해석 요청의 고유 id(클라 생성). 연결이 끊겨도 서버가 끝까지 생성한
+  // 완성 리딩을 이 키로 캐시에 저장해 두면, 사용자가 돌아왔을 때 result
+  // 엔드포인트로 복원한다. 로그인 사용자만 캐시(게스트는 보관 안 함).
+  turnId: z.string().max(80).optional(),
 })
 
 export type TarotInterpretStreamValidated = z.infer<typeof tarotInterpretStreamSchema>

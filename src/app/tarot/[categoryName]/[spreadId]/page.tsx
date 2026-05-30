@@ -57,6 +57,7 @@ function TarotReadingPage() {
   const interpretationFallback = gameHook.interpretation?.fallback
   const setInterpretation = gameHook.setInterpretation
   const fetchInterpretation = interpretationHook.fetchInterpretation
+  const recoverLastInterpretation = interpretationHook.recoverLastInterpretation
 
   const readingSignature = useMemo(() => {
     if (!readingResult) {
@@ -193,6 +194,40 @@ function TarotReadingPage() {
     language,
     showDepleted,
     showGuestLimit,
+  ])
+
+  // 끊긴 해석 복원 — 해석이 실패/끊김으로 끝난 상태에서 사용자가 다른 앱에서
+  // 돌아오면(visibilitychange), 서버가 끝까지 생성해 turnId 로 캐시에 저장한
+  // 완성 리딩을 result 엔드포인트로 폴링해 갈아끼운다 (counselor 식 복원).
+  // 성공 시 캐시에도 저장해 새로고침에도 유지. 로그인 사용자만 가능.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (!interpretationFailed) return
+    const onVis = () => {
+      if (document.visibilityState !== 'visible') return
+      void recoverLastInterpretation().then((recovered) => {
+        if (!recovered) return
+        setInterpretation(recovered)
+        setInterpretationFailed(false)
+        if (typeof window !== 'undefined' && readingSignature) {
+          try {
+            window.sessionStorage.setItem(cacheKeyFor(readingSignature), JSON.stringify(recovered))
+          } catch {
+            // quota exceeded 등은 무시.
+          }
+        }
+      })
+    }
+    // 이미 보이는 상태면(탭 안 떠났는데 그냥 실패) 즉시 한 번 시도.
+    if (document.visibilityState === 'visible') onVis()
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [
+    interpretationFailed,
+    recoverLastInterpretation,
+    setInterpretation,
+    readingSignature,
+    cacheKeyFor,
   ])
 
   // Card reveal with auto-scroll
