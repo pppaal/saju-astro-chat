@@ -16,6 +16,14 @@
   z-index: 200;
   overflow-y: auto;
   animation: pickerFadeIn 0.18s ease-out;
+  /* 스크롤바 숨김 — 스크롤 기능은 유지하되 막대만 감춘다(채팅 영역과 동일). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrim::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 @keyframes pickerFadeIn {
@@ -36,6 +44,14 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  /* 스크롤바 숨김 — 막대 제거(스크롤은 유지). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modal::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .modalHeader {
