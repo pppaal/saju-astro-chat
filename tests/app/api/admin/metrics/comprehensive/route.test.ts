@@ -638,7 +638,7 @@ describe('GET /api/admin/metrics/comprehensive', () => {
       expect(data.data.data).toHaveProperty('destinyMatrix')
       expect(data.data.data).toHaveProperty('tarotReadings')
       expect(data.data.data).toHaveProperty('readingsByType')
-      expect(data.data.data).toHaveProperty('pastLifeCount')
+      // pastLifeCount metric was removed with the past-life feature.
       expect(data.data.data).toHaveProperty('compatibilityCount')
     })
   })

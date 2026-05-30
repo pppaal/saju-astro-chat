@@ -407,7 +407,7 @@ describe('CreditBadge', () => {
 
       // Mock window.location
       delete (window as any).location
-      ;(window as any).location = { pathname: '/dream' }
+      ;(window as any).location = { pathname: '/dream', search: '' }
     })
 
     it('should save return URL when clicking badge', async () => {

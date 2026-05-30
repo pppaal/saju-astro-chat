@@ -722,6 +722,9 @@ export async function expireBonusCredits() {
       )
     )
     retryResults.forEach((r, j) => {
+      // Guard against any retryResults/retryEntries length mismatch so a
+      // stray result can't index past the entries and crash the expiry job.
+      if (j >= retryEntries.length) return
       const origIdx = rejectedIdx[j]
       results = [...results.slice(0, origIdx), r, ...results.slice(origIdx + 1)]
       if (r.status === 'rejected') {

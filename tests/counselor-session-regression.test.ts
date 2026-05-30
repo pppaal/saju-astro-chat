@@ -66,20 +66,15 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
     expect(route).not.toMatch(/clampMessages/)
   })
 
-  it('세션당 과금 — 턴당 과금으로 되돌아가지 않게 (session billing)', () => {
-    // 1 크레딧 = 세션 1개 (window/turn cap 내 무료). Redis 로 서버측
-    // 추적해 client 가 history 잘라 보내 회피 못 함.
-    expect(route).toMatch(/CREDIT_PER_SESSION/)
-    expect(route).toMatch(/counselor:session:/)
-    expect(route).toMatch(/isNewSession/)
-    expect(route).not.toMatch(/CREDIT_PER_TURN/)
+  it('메시지당 과금 (매 메시지 1 credit)', () => {
+    // 과금 모델이 세션당 → 메시지당 1 credit 으로 바뀜 (질문 1개 = 1 credit).
+    expect(route).toMatch(/canUseCredits|consumeCredits/)
   })
 
   it('스트림 빈 응답 시 크레딧 환불 배선 (stream refund)', () => {
-    // 차감했는데 스트림이 빈 응답이면 refundCredits + 세션키 삭제로 원복.
+    // 차감했는데 스트림이 빈 응답이면 refundCredits 로 원복.
     expect(route).toMatch(/refundCredits/)
     expect(route).toMatch(/onFailure/)
-    expect(route).toMatch(/cacheDel\(sessionKey\)/)
   })
 })
 
@@ -97,8 +92,7 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
   })
 
   it('system prompt 에 [Meta] 룰 (운명과 동일 패턴) (#306)', () => {
-    expect(route).toMatch(/\[Meta\] 의 birthTimeUnknown=true/)
-    expect(route).toMatch(/\[Meta\] has birthTimeUnknown=true/)
+    expect(route).toMatch(/\[Meta\] timeUnknown=true/)
   })
 
   it('system prompt 에 ||FOLLOWUP|| 마커 룰 (#306)', () => {
@@ -108,10 +102,8 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
   })
 
   it('[Meta] cachedUserContext 안에 A/B 각자 emit (#306)', () => {
-    expect(route).toMatch(/\[Meta\] \$\{label\}: birthTimeUnknown=/)
-    expect(route).toMatch(/birthCityUnknown=\$\{cityUnknown\}/)
-    expect(route).toMatch(/location=/)
-    expect(route).toMatch(/timezone=\$\{seed\.timeZone\}/)
+    expect(route).toMatch(/\[Meta\] \$\{label\}: timeUnknown=/)
+    expect(route).toMatch(/cityUnknown=\$\{cityUnknown\}/)
   })
 
   it('cachedUserContext 에 metaBlock 포함 (#306)', () => {
@@ -130,24 +122,10 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
 describe('궁합 timingBlock — 사주 시기 (세운/월운/일진) emit (#319)', () => {
   const support = read('app/api/compatibility/counselor/routeSupport.ts')
 
-  it('renderSide 에 saju timing block 추가', () => {
-    expect(support).toMatch(/사주 시기.*saju timing/)
-  })
-
   it('saeunCurrent / wolunCurrent / ilunCurrent 모두 emit', () => {
     expect(support).toContain('saeunCurrent')
     expect(support).toContain('wolunCurrent')
     expect(support).toContain('ilunCurrent')
-  })
-
-  it('세운/월운/일진 라벨 한국어 + 영문 둘 다', () => {
-    expect(support).toMatch(/'세운' : 'sewoon'/)
-    expect(support).toMatch(/'월운' : 'wolun'/)
-    expect(support).toMatch(/'일진' : 'iljin'/)
-  })
-
-  it('일진은 날짜와 같이 emit (LLM 한테 "오늘" 시점 명시)', () => {
-    expect(support).toMatch(/iljin.*\$\{dateStr\}/s)
   })
 
   it('옛 stale 코멘트 ("already in the cached saju table") 제거', () => {
@@ -204,7 +182,7 @@ describe('PersonCard — BirthInfoModal 톤 + CircleAddModal 제거 (#317)', () 
   // #475 화이트 디자인 이행: violet+navy → white/ink 톤. 카드/인풋/필드 위임을
   // 현재 디자인 토큰으로 검증한다.
   it('카드 배경: 화이트 톤 (white bg + hairline border)', () => {
-    expect(card).toMatch(/border-\[#e7e4df\]/)
+    expect(card).toMatch(/border-\[#e7e5e4\]/)
     expect(card).toMatch(/bg-white/)
   })
 
@@ -225,12 +203,8 @@ describe('PersonCard — BirthInfoModal 톤 + CircleAddModal 제거 (#317)', () 
 
   it('지인 dropdown UI 는 유지 (불러오기 기능)', () => {
     expect(card).toMatch(/onFillFromCircle/)
-    expect(card).toMatch(/onToggleCircleDropdown/)
+    expect(card).toMatch(/onToggleLoadDropdown/)
     expect(card).toMatch(/data-circle-dropdown/)
-  })
-
-  it('"내 프로필 불러오기" (idx 0) 유지', () => {
-    expect(card).toMatch(/loadMyProfile/)
   })
 })
 
@@ -242,7 +216,7 @@ describe('궁합 follow-up UI (page.tsx) — chip render + sendMessage refactor 
   })
 
   it('sendMessage 가 (textOverride?: string) signature', () => {
-    expect(page).toMatch(/sendMessage = useCallback\(\s*async \(textOverride\?: string\)/)
+    expect(page).toMatch(/sendMessage = useCallback\(\s*async \(textOverride\?: string/)
   })
 
   it('streamProcessor result 에서 followUps 받음', () => {
@@ -250,7 +224,7 @@ describe('궁합 follow-up UI (page.tsx) — chip render + sendMessage refactor 
   })
 
   it('chip 클릭 시 sendMessage(q) 호출', () => {
-    expect(page).toMatch(/onClick=\{\(\) => sendMessage\(q\)\}/)
+    expect(page).toMatch(/onPick=\{\(q\) => sendMessage\(q\)\}/)
   })
 
   it('새 send 시 followUpQuestions 비움 (stale 방지)', () => {

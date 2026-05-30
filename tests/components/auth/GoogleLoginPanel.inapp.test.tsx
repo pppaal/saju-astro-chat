@@ -6,6 +6,23 @@ vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
 }))
 
+// GoogleLoginPanel reads its warning title via useI18n's t() (locale-aware),
+// while other copy follows the `locale` prop. Provide a locale-aware stub and
+// set the active locale per test to mirror the prop.
+const i18nState = vi.hoisted(() => ({ locale: 'ko' as 'ko' | 'en' }))
+vi.mock('@/i18n/I18nProvider', () => ({
+  useI18n: () => ({
+    locale: i18nState.locale,
+    setLocale: vi.fn(),
+    t: (key: string, fallback?: string) => {
+      if (i18nState.locale === 'ko' && key === 'auth.inAppBrowserBlockedTitle') {
+        return 'Google 로그인이 차단됩니다'
+      }
+      return fallback ?? key
+    },
+  }),
+}))
+
 // Link mock keeps the test focused on the warning markup, not next/link routing.
 vi.mock('next/link', () => ({
   default: ({ children, ...rest }: { children: React.ReactNode }) => (
@@ -38,6 +55,7 @@ function withUserAgent(ua: string, fn: () => void) {
 describe('GoogleLoginPanel — in-app browser warning', () => {
   beforeEach(() => {
     cleanup()
+    i18nState.locale = 'ko'
   })
   afterEach(() => {
     cleanup()
@@ -69,6 +87,7 @@ describe('GoogleLoginPanel — in-app browser warning', () => {
   })
 
   it('shows English copy when locale=en', () => {
+    i18nState.locale = 'en'
     withUserAgent(KAKAOTALK_UA, () => {
       act(() => {
         render(<GoogleLoginPanel locale="en" />)

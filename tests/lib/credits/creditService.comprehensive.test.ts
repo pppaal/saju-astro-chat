@@ -88,7 +88,7 @@ describe('Credit Service', () => {
             monthlyCredits: 0,
             usedCredits: 0,
             // signup bonus
-            bonusCredits: 4,
+            bonusCredits: 5,
           }),
         })
       )
@@ -522,10 +522,17 @@ describe('Credit Service', () => {
         mockExpiredPurchases
       )
 
-      vi.spyOn(Promise, 'allSettled').mockResolvedValue([
-        { status: 'fulfilled', value: undefined },
-        { status: 'rejected', reason: new Error('DB error') },
-      ] as any)
+      // expireBonusCredits retries rejected users once; model the retry
+      // settle (only the failed user) failing again so the final tally stays
+      // 1 succeeded / 1 failed.
+      vi.spyOn(Promise, 'allSettled')
+        .mockResolvedValueOnce([
+          { status: 'fulfilled', value: undefined },
+          { status: 'rejected', reason: new Error('DB error') },
+        ] as any)
+        .mockResolvedValueOnce([
+          { status: 'rejected', reason: new Error('DB error') },
+        ] as any)
 
       const result = await expireBonusCredits()
 

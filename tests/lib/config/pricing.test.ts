@@ -19,7 +19,7 @@ describe('PricingConfig', () => {
     it('should have mini pack config', () => {
       const mini = CREDIT_PACKS.mini
       expect(mini.id).toBe('mini')
-      expect(mini.credits).toBe(5)
+      expect(mini.credits).toBe(10)
       expect(mini.pricing.krw).toBe(1900)
     })
 

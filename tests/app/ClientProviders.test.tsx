@@ -16,7 +16,7 @@ vi.mock('@/i18n/I18nProvider', () => ({
   I18nProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="i18n-provider">{children}</div>
   ),
-  useI18n: vi.fn(),
+  useI18n: vi.fn(() => ({ locale: 'en', t: (k: string) => k, setLocale: vi.fn() })),
 }))
 
 vi.mock('@/components/ui/Toast', () => ({

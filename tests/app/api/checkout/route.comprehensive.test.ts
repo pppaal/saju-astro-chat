@@ -514,7 +514,7 @@ describe('/api/checkout', () => {
 
       const createCall = mockStripeCheckoutCreate.mock.calls[0][0]
       expect(createCall.success_url).toBe(
-        'https://example.com/success?session_id={CHECKOUT_SESSION_ID}'
+        'https://example.com/success?session_id={CHECKOUT_SESSION_ID}&pack=mini'
       )
     })
 

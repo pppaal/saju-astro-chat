@@ -46,12 +46,8 @@ describe('Destiny Map Integration', () => {
     assertNamedExports('lib/destiny-map/reportService', ['generateReport']);
   });
 
-  it('should expose destiny matrix exports', () => {
-    assertNamedExports('lib/destiny-matrix/engine', ['calculateDestinyMatrix']);
-    assertNamedExports('lib/destiny-matrix/cache', ['getCachedMatrix', 'setCachedMatrix']);
-    assertNamedExports('lib/destiny-matrix/house-system', ['getHouseSystem']);
-    assertNamedExports('lib/destiny-matrix/interpreter/insight-generator', ['generateInsights']);
-  });
+  // destiny-matrix engine/cache/house-system/interpreter modules were removed
+  // in the fusion cleanup; their integration assertion is obsolete.
 
   it('should expose report helpers and local generator', () => {
     readModule('lib/destiny-map/report-helpers');
