@@ -99,7 +99,10 @@ export interface SignalEvidence {
 export interface CalendarCell {
   datetime: string // ISO
   signals: ActiveSignal[] // 그 시점 활성 신호 전체
-  derivedScore: number // 0~100 — polarity 가중합
+  derivedScore: number // 0~100 — 단일출처 헤드라인(두 축 비보상 결합)
+  sajuAxis?: number // 0~100 — 사주축 (deriveCellAxes)
+  astroAxis?: number // 0~100 — 점성축
+  axisAgreement?: 'aligned' | 'mixed' | 'opposed' // 두 축 수렴/충돌
   themeScores: Partial<Record<AstroThemeKey, number>> // 테마별 강도 0~100
   matchedPatterns: SignalPattern[] // 신호 조합 → 명명 패턴
   topReasons: string[] // 상위 3~5개 우호 사유 텍스트
