@@ -2,8 +2,12 @@
   /* Use dynamic viewport height so the page tracks URL-bar collapse on
      mobile instead of leaving a strip of dead space below 100svh. Lock
      overscroll so pull-to-refresh and rubber-band bounce can't move the
-     whole layout — the inner messages panel handles its own scroll. */
+     whole layout — the inner messages panel handles its own scroll.
+     vh 폴백 필수 — dvh 미지원(구형 안드/웹뷰) 폰에선 dvh 줄이 통째 무시돼
+     height:auto 가 되며 헤더·입력바가 화면에 고정되지 않던 회귀. */
+  height: 100vh;
   height: 100dvh;
+  max-height: 100vh;
   max-height: 100dvh;
   background: #07091a;
   display: flex;
@@ -289,17 +293,35 @@
 
 /* ============ Profile Sticky Bar ============
    헤더 바로 아래 한 줄 — 누구 정보로 본 채팅인지 노출. */
+/* 대상 인물 바 = 클릭하면 작은 메뉴(수정 / 다른 사람 보기)가 뜨는 트리거.
+   궁합 ProfileStickyBar 와 동일한 컴팩트 패턴 — 이름 옆 작은 ▾. */
+.subjectBarWrap {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 6;
+}
+
 .profileStickyBar {
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
   padding: 4px 14px 5px;
   background: var(--ds-light-bg);
+  border: 0;
   border-bottom: 1px solid var(--ds-light-border);
   font-size: 0.78rem;
   color: var(--ds-light-text-muted);
   flex-shrink: 0;
   z-index: 5;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.profileStickyBar:hover {
+  background: var(--ds-light-bg-soft, rgba(212, 181, 114, 0.06));
 }
 
 .profileStickyDot {
@@ -316,28 +338,45 @@
   text-overflow: ellipsis;
 }
 
-/* 대상 인물 변경 액션 — '수정' / '다른 사람 보기'. 얇은 골드 pill. */
-.subjectAction {
-  flex-shrink: 0;
-  padding: 2px 9px;
-  border-radius: 999px;
-  border: 1px solid var(--ds-light-border);
-  background: transparent;
+.subjectChevron {
+  margin-left: 4px;
+  font-size: 0.7rem;
   color: var(--ds-light-text-muted);
-  font-size: 0.72rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+  line-height: 1;
 }
 
-.subjectAction:hover,
-.subjectAction:focus-visible {
-  border-color: var(--ds-gold-on-dark, #d4b572);
+/* 작은 드롭다운 메뉴 — 바 아래로 떨어짐. */
+.subjectMenu {
+  position: absolute;
+  top: 100%;
+  left: 10px;
+  margin-top: 4px;
+  min-width: 150px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid var(--ds-light-border);
+  box-shadow: 0 12px 32px rgba(28, 25, 23, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.subjectMenuItem {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
   color: var(--ds-light-text);
-  background: rgba(212, 181, 114, 0.08);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.subjectMenuItem:hover,
+.subjectMenuItem:focus-visible {
+  background: rgba(212, 181, 114, 0.12);
   outline: none;
 }
 
@@ -494,13 +533,14 @@
 
 .lightTheme .backButton {
   background: transparent;
-  border: 1px solid var(--ds-light-border);
+  /* 테두리 제거 — 햄버거에 원형 테두리가 남던 원인. 다른 헤더 아이콘
+     (⋮·홈) 과 동일하게 글리프만. */
+  border: 0;
   color: var(--ds-light-text-muted);
 }
 
 .lightTheme .backButton:hover {
   background: var(--ds-light-bg-soft);
-  border-color: var(--ds-light-border-strong);
   color: var(--ds-light-text);
 }
 

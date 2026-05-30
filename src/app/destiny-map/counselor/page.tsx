@@ -118,6 +118,20 @@ export default function CounselorPage() {
   // 둘 다 공용 BirthInfoModal 재사용. 저장되면 그 사람 사주로 새 대화 시작.
   const [birthModalOpen, setBirthModalOpen] = useState(false)
   const [birthMode, setBirthMode] = useState<'edit' | 'view'>('edit')
+  // 대상 인물 바의 작은 ▾ 메뉴 (수정 / 다른 사람 보기).
+  const [subjectMenuOpen, setSubjectMenuOpen] = useState(false)
+  const subjectMenuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!subjectMenuOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (subjectMenuRef.current && !subjectMenuRef.current.contains(e.target as Node)) {
+        setSubjectMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [subjectMenuOpen])
+
   const openEditMine = useCallback(() => {
     setBirthMode('edit')
     setBirthModalOpen(true)
@@ -348,23 +362,53 @@ export default function CounselorPage() {
         </div>
       </header>
 
-      {/* 대상 인물 sticky 바 — 어느 사람 정보로 본 채팅인지 + 변경 액션.
-          채팅이 길어져도 헤더 바로 아래 고정. */}
-      <div className={styles.profileStickyBar} aria-label={lang === 'ko' ? '대상 인물' : 'Subject'}>
-        <span className={styles.profileStickyDot} aria-hidden="true">
-          ●
-        </span>
-        <span className={styles.profileStickyName}>
-          {name?.trim() || (lang === 'ko' ? '나' : 'Me')}
-        </span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-          <button type="button" className={styles.subjectAction} onClick={openEditMine}>
-            {lang === 'ko' ? '수정' : 'Edit'}
-          </button>
-          <button type="button" className={styles.subjectAction} onClick={openViewOther}>
-            {lang === 'ko' ? '다른 사람 보기' : 'View other'}
-          </button>
-        </div>
+      {/* 대상 인물 바 — 이름 옆 작은 ▾. 누르면 수정 / 다른 사람 보기 메뉴.
+          궁합 ProfileStickyBar 와 동일한 컴팩트 패턴. */}
+      <div className={styles.subjectBarWrap} ref={subjectMenuRef}>
+        <button
+          type="button"
+          className={styles.profileStickyBar}
+          onClick={() => setSubjectMenuOpen((o) => !o)}
+          aria-haspopup="menu"
+          aria-expanded={subjectMenuOpen}
+          aria-label={lang === 'ko' ? '대상 인물 변경' : 'Change subject'}
+        >
+          <span className={styles.profileStickyDot} aria-hidden="true">
+            ●
+          </span>
+          <span className={styles.profileStickyName}>
+            {name?.trim() || (lang === 'ko' ? '나' : 'Me')}
+          </span>
+          <span className={styles.subjectChevron} aria-hidden="true">
+            ▾
+          </span>
+        </button>
+        {subjectMenuOpen && (
+          <div role="menu" className={styles.subjectMenu}>
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.subjectMenuItem}
+              onClick={() => {
+                setSubjectMenuOpen(false)
+                openEditMine()
+              }}
+            >
+              {lang === 'ko' ? '내 정보 수정' : 'Edit my info'}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.subjectMenuItem}
+              onClick={() => {
+                setSubjectMenuOpen(false)
+                openViewOther()
+              }}
+            >
+              {lang === 'ko' ? '다른 사람 보기' : 'View another person'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Guest banner removed — fights the Claude-style centered hero
