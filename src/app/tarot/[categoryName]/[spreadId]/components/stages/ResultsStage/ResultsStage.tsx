@@ -53,7 +53,7 @@ import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../
 import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { FollowupChat } from './FollowupChat'
-import { renderHighlighted } from '../../ResultsView/highlight'
+import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -203,7 +203,7 @@ export function ResultsStage(props: ResultsStageProps) {
             </div>
             {insight?.overall_message ? (
               <p className="text-lg md:text-[19px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-                {renderHighlighted(insight.overall_message)}
+                {renderWithLastSentenceHighlight(insight.overall_message)}
                 {aiPending && (
                   <span
                     className="inline-block w-1.5 h-4 ml-0.5 align-middle animate-pulse"

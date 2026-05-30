@@ -6,7 +6,7 @@ import { Sparkles, Loader2 } from 'lucide-react'
 import type { DrawnCard, DeckStyle } from '@/lib/tarot/tarot.types'
 import type { CardInsight } from '../../types'
 import { getCardImagePath } from '@/lib/tarot/tarot.types'
-import { renderHighlighted } from './highlight'
+import { renderWithLastSentenceHighlight } from './highlight'
 
 interface DetailedCardItemProps {
   drawnCard: DrawnCard
@@ -72,7 +72,9 @@ export function DetailedCardItem({
           <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
             {isKo ? '카드 자리' : 'Position'}
           </div>
-          <div className="text-xs uppercase tracking-wider text-[rgba(212,181,114,0.8)]">{positionTitle}</div>
+          <div className="text-xs uppercase tracking-wider text-[rgba(212,181,114,0.8)]">
+            {positionTitle}
+          </div>
           <div className="mt-2 text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">
             {isKo ? '카드명' : 'Card'}
           </div>
@@ -82,7 +84,9 @@ export function DetailedCardItem({
           </h3>
           {positionMeaning && (
             <p className="mt-1 text-sm text-slate-400 leading-snug">
-              <span className="text-[rgba(212,181,114,0.7)]">{isKo ? '이 자리: ' : 'This seat: '}</span>
+              <span className="text-[rgba(212,181,114,0.7)]">
+                {isKo ? '이 자리: ' : 'This seat: '}
+              </span>
               {positionMeaning}
             </p>
           )}
@@ -149,7 +153,7 @@ export function DetailedCardItem({
             </div>
             {hasAiText ? (
               <p className="text-lg md:text-[19px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-                {renderHighlighted(aiInterpretation)}
+                {renderWithLastSentenceHighlight(aiInterpretation)}
               </p>
             ) : aiPending ? (
               <div className="flex items-center gap-2 text-sm text-[rgba(232,204,138,0.8)] py-2">
