@@ -46,7 +46,8 @@ const GUEST_TAROT_USED_MAX_AGE = 60 * 60 * 24 * 30
 const GUEST_TAROT_INTERPRET_MAX_AGE = 60 * 30
 // 비로그인 사용자 무료 리딩 횟수. 카운터는 cookie GUEST_TAROT_USED_COOKIE에
 // 숫자로 저장 (legacy '1' 값은 1회 사용한 것으로 호환).
-const GUEST_TAROT_FREE_LIMIT = 2
+// 게스트는 무료 1회만 — 2회째 draw 부터 로그인 유도. UI 문구('무료 1회')와 일치.
+const GUEST_TAROT_FREE_LIMIT = 1
 
 function readCookie(request: CookieReadableRequest | undefined, name: string): string | null {
   return request?.cookies?.get(name)?.value || null
