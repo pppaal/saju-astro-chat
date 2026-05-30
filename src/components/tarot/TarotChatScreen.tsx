@@ -6,9 +6,11 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Sparkles, Send, Layers, X, MoonStar, ChevronRight, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
+import { useCreditModal } from '@/contexts/CreditModalContext'
 import {
   DECK_STYLES,
   DECK_STYLE_INFO,
@@ -37,6 +39,8 @@ const DEFAULT_SPREAD =
 export default function TarotChatScreen() {
   const router = useRouter()
   const { locale } = useI18n()
+  const { status } = useSession()
+  const { showDepleted } = useCreditModal()
   const isKo = locale === 'ko'
 
   const [question, setQuestion] = useState('')
@@ -45,6 +49,7 @@ export default function TarotChatScreen() {
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false)
   const [isSpreadModalOpen, setIsSpreadModalOpen] = useState(false)
   const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
+  const [checkingCredits, setCheckingCredits] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -82,13 +87,44 @@ export default function TarotChatScreen() {
     return () => window.clearTimeout(t)
   }, [selectedDeck])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!question.trim()) return
+  const navigateToReading = () => {
     const q = encodeURIComponent(question.trim())
     // birthInfo 는 더 이상 타로 cross 에 쓰이지 않음 — 순수 타로만 읽음.
     const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?question=${q}&deck=${selectedDeck}`
     router.push(path)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!question.trim() || checkingCredits) return
+
+    // Upfront credit gate — previously a credit-less user only found out
+    // *after* drawing the whole spread (the /api/tarot draw returns 402 once
+    // every card is picked). Check the balance the moment they submit the
+    // question and show the depleted modal right away. Guests fall through
+    // (their free-trial limit is enforced server-side at draw time); a
+    // network hiccup also falls through so we never block a paying user.
+    if (status === 'authenticated') {
+      setCheckingCredits(true)
+      try {
+        const res = await fetch('/api/me/credits')
+        if (res.ok) {
+          const data = await res.json()
+          const remaining: number = data?.credits?.remaining ?? 0
+          const cost = tarotCreditCostFor(selectedSpread.spread.cardCount)
+          if (remaining < cost) {
+            showDepleted()
+            return
+          }
+        }
+      } catch {
+        // network error — don't trap the user; let the draw surface it
+      } finally {
+        setCheckingCredits(false)
+      }
+    }
+
+    navigateToReading()
   }
 
   const deckInfo = DECK_STYLE_INFO[selectedDeck]
@@ -199,9 +235,9 @@ export default function TarotChatScreen() {
             />
             <button
               type="submit"
-              disabled={!question.trim()}
+              disabled={!question.trim() || checkingCredits}
               className={`absolute right-2 bottom-2 p-2 rounded-xl transition-all ${
-                question.trim()
+                question.trim() && !checkingCredits
                   ? 'bg-[#d4b572] hover:bg-[#e8cc8a] text-[#1c1917] shadow-lg shadow-[rgba(212,181,114,0.25)]'
                   : 'bg-slate-700 text-slate-500 cursor-not-allowed'
               }`}
