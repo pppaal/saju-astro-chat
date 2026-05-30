@@ -219,3 +219,65 @@ describe('한국 DST 전환 순간 출생 — 일관성 회귀', () => {
     expect(r.timePillar.earthlyBranch.name).toBeDefined()
   })
 })
+
+/**
+ * supported range(1940-2050) 경계 회귀.
+ *
+ * 옛 버그: 1940-01-XX 입춘 이전 출생자는 大運 시작점 계산에서 1939/12 大雪 절기
+ * lookup 이 필요한데 KASI 데이터가 1940 부터라 `Cannot determine Daeun: solar
+ * term data missing for 1939/12` 로 throw 됐다. 광고 범위는 1940-2050 인데 그
+ * 첫 5일 정도가 사용 불가였다.
+ *
+ * 2050-12-08 이후도 같은 패턴으로 2051/01 lookup 필요. 1939, 2051 전체 절기를
+ * Swiss Ephemeris 로 계산해 데이터에 보강. 입력 검증 범위는 그대로.
+ */
+describe('지원 연도 경계 — 1940/2050 첫/끝 출생 회귀', () => {
+  it('1940-01-01 출생 — throw 없이 계산', () => {
+    const r = calculateSajuData('1940-01-01', '12:00', 'male', 'solar', 'Asia/Seoul')
+    expect(r.daeWoon?.startAge).toBeGreaterThan(0)
+  })
+
+  it('1940-01-05 출생 — throw 없이 계산 (입춘 이전, 1939/12 大雪 lookup)', () => {
+    const r = calculateSajuData('1940-01-05', '12:00', 'male', 'solar', 'Asia/Seoul')
+    expect(r.daeWoon?.startAge).toBeGreaterThan(0)
+  })
+
+  it('2050-12-31 출생 — throw 없이 계산 (2051/01 小寒 lookup)', () => {
+    const r = calculateSajuData('2050-12-31', '12:00', 'male', 'solar', 'Asia/Seoul')
+    expect(r.daeWoon?.startAge).toBeGreaterThan(0)
+  })
+
+  it('1939 / 2051 은 범위 밖 — 명시적 throw', async () => {
+    const { assertKasiYearInRange } = await import('../../../src/lib/saju/constants')
+    expect(() => assertKasiYearInRange(1939)).toThrow(/range/)
+    expect(() => assertKasiYearInRange(2051)).toThrow(/range/)
+  })
+})
+
+/**
+ * 子(자) 본기(정기) = 癸(음수) 잠금.
+ *
+ * 옛 버그: MAIN_QI['子'] 가 '壬'(양수) 로 잘못 들어가 子 가 들어간 모든 지지의
+ * 십신이 음양 뒤집혔다. 다른 11개 지지는 모두 JIJANGGAN[*].정기 와 일치.
+ *
+ * 한국 정통 명리: 子정기=癸. JIJANGGAN['子'].정기='癸' 와 MAIN_QI['子']='癸' 가
+ * 일관되어야 한다.
+ */
+describe('子 본기(정기) = 癸 일관성', () => {
+  it('MAIN_QI[子] 와 JIJANGGAN[子].정기 가 모두 癸', async () => {
+    const { JIJANGGAN } = await import('../../../src/lib/saju/constants')
+    expect(JIJANGGAN['子'].정기).toBe('癸')
+  })
+
+  it('일간 戊 + 子 지지 — 정재(正財) 로 분류 (정기 癸 기준)', () => {
+    // 戊(양토) + 癸(음수) = 정재 (음양 다름). 옛 버그(MAIN_QI 子=壬) 였다면 戊+壬
+    // (양양 같음) = 편재 로 잘못 분류됨.
+    // 1990-01-23 12:00 KST → 일주 戊子 (戊 일간 + 子 지지).
+    const r = calculateSajuData('1990-01-23', '12:00', 'male', 'solar', 'Asia/Seoul')
+    expect(r.dayPillar.heavenlyStem.name).toBe('戊')
+    expect(r.dayPillar.earthlyBranch.name).toBe('子')
+    expect((r.dayPillar.jijanggan as any).jeonggi.name).toBe('癸')
+    // 지지 子 의 sibsin (정기 기준 계산) — 정재여야 함. fix 의 직접 효과.
+    expect((r.dayPillar.earthlyBranch as any).sibsin).toBe('정재')
+  })
+})

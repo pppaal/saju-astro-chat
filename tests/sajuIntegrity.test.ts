@@ -22,14 +22,18 @@ describe('Saju constants', () => {
     expect(branchNames.size).toBe(12)
   })
 
-  it('has solar terms from start to end year with 12 months each', () => {
-    expect(Object.keys(KASI_SOLAR_TERMS).length).toBe(KASI_END_YEAR - KASI_START_YEAR + 1)
-    const first = KASI_SOLAR_TERMS[KASI_START_YEAR]
-    const last = KASI_SOLAR_TERMS[KASI_END_YEAR]
-    expect(first).toBeDefined()
-    expect(last).toBeDefined()
-    expect(Object.keys(first)).toHaveLength(12)
-    expect(Object.keys(last)).toHaveLength(12)
+  it('has solar terms covering start to end year with 12 months each', () => {
+    // 입력 검증 범위(1940-2050) 모든 연도가 12개씩 있어야 함.
+    for (let y = KASI_START_YEAR; y <= KASI_END_YEAR; y++) {
+      const yearData = KASI_SOLAR_TERMS[y]
+      expect(yearData, `Missing solar terms for year ${y}`).toBeDefined()
+      expect(Object.keys(yearData), `Year ${y} should have 12 terms`).toHaveLength(12)
+    }
+    // 경계 大運 lookup 보강용 1939/2051 도 (선택적으로) 있다면 12개씩.
+    for (const y of [KASI_START_YEAR - 1, KASI_END_YEAR + 1]) {
+      const yearData = KASI_SOLAR_TERMS[y]
+      if (yearData) expect(Object.keys(yearData)).toHaveLength(12)
+    }
   })
 
   it('month/hour stem lookups cover 10 stems', () => {
