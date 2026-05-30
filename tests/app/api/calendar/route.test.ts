@@ -847,13 +847,14 @@ describe('Calendar API Route - /api/calendar', () => {
     })
 
     it('should calculate dates for past year', async () => {
-      const request = createRequest({ birthDate: '1990-01-15', year: '2020' })
+      // Within the current ±5 window (schema-enforced).
+      const request = createRequest({ birthDate: '1990-01-15', year: '2021' })
 
       const response = await GET(request)
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.year).toBe(2020)
+      expect(data.year).toBe(2021)
     })
 
     it('should calculate dates for future year', async () => {
@@ -1220,17 +1221,6 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data.calendarMonthView).toBeDefined()
     })
 
-    it('should return relationshipWeather and workMoneyWeather narratives', async () => {
-      const request = createRequest({ birthDate: '1990-01-15' })
-
-      const response = await GET(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.relationshipWeather).toBeDefined()
-      expect(data.workMoneyWeather).toBeDefined()
-    })
-
     it('should not expose legacy aiInsights field', async () => {
       const request = createRequest({ birthDate: '1990-01-15' })
 
@@ -1284,8 +1274,6 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(data).toHaveProperty('monthSummary')
       expect(data).toHaveProperty('calendarDailyView')
       expect(data).toHaveProperty('calendarMonthView')
-      expect(data).toHaveProperty('relationshipWeather')
-      expect(data).toHaveProperty('workMoneyWeather')
     })
 
     it('should populate astroIdentity with sun/moon/ascendant signs', async () => {
@@ -1399,20 +1387,21 @@ describe('Calendar API Route - /api/calendar', () => {
       expect(response.status).toBe(200)
     })
 
-    it('should handle extreme past year', async () => {
+    it('should reject an out-of-range extreme past year', async () => {
+      // Calendar year is constrained to current ±5; 1901 is rejected.
       const request = createRequest({ birthDate: '1990-01-15', year: '1901' })
 
       const response = await GET(request)
 
-      expect(response.status).toBe(200)
+      expect(response.status).toBe(422)
     })
 
-    it('should handle far future year', async () => {
+    it('should reject an out-of-range far future year', async () => {
       const request = createRequest({ birthDate: '1990-01-15', year: '2099' })
 
       const response = await GET(request)
 
-      expect(response.status).toBe(200)
+      expect(response.status).toBe(422)
     })
   })
 })

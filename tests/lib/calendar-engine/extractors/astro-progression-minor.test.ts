@@ -55,9 +55,16 @@ const { progressedChart } = vi.hoisted(() => {
   }
 })
 
-vi.mock('@/lib/astrology/foundation/progressions', () => ({
-  calculateSecondaryProgressions: vi.fn().mockResolvedValue(progressedChart),
-}))
+vi.mock('@/lib/astrology/foundation/progressions', async (importActual) => {
+  // Keep the real findProgressedMoonAspects (this is exactly what the test
+  // exercises — minor aspects between the progressed Moon and natal planets);
+  // only stub the ephemeris-backed chart calc with the fixture.
+  const actual = await importActual<typeof import('@/lib/astrology/foundation/progressions')>()
+  return {
+    ...actual,
+    calculateSecondaryProgressions: vi.fn().mockResolvedValue(progressedChart),
+  }
+})
 
 import astroProgressionExtractor from '@/lib/calendar-engine/extractors/astro-progression'
 import type { ExtractorContext, ExtractorCache } from '@/lib/calendar-engine/types'
