@@ -234,7 +234,16 @@ export async function checkCreditsOnly(
  */
 export function creditErrorResponse(result: CreditCheckResult): NextResponse {
   if (result.errorCode === 'not_authenticated' || result.errorCode === 'guest_limit_reached') {
-    return NextResponse.json({ error: result.error, code: result.errorCode }, { status: 401 })
+    const response = NextResponse.json(
+      { error: result.error, code: result.errorCode },
+      { status: 401 }
+    )
+    // 게스트 무료 체험 한도 → 클라이언트(apiFetch)가 전역 "로그인 유도" 모달을
+    // 띄울 수 있도록 헤더 동봉. not_authenticated(일반 인증 오류)에는 붙이지 않는다.
+    if (result.errorCode === 'guest_limit_reached') {
+      response.headers.set('X-Guest-Limit-Reached', '1')
+    }
+    return response
   }
 
   return NextResponse.json(

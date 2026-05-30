@@ -173,11 +173,50 @@ vi.mock('@/lib/api/validator', () => ({
   },
 }))
 
+// Credit pre-flight mock — prefetch now gates on checkCreditsOnly up front so
+// the user is blocked on the question screen. Default: allowed. Tests flip
+// creditState to exercise the blocked (402 / guest-limit) paths.
+const creditState = vi.hoisted(() => ({
+  allowed: true,
+  errorCode: undefined as string | undefined,
+  error: undefined as string | undefined,
+}))
+vi.mock('@/lib/credits/withCredits', () => {
+  const { NextResponse } = require('next/server')
+  return {
+    checkCreditsOnly: vi.fn(async () => ({
+      allowed: creditState.allowed,
+      error: creditState.error,
+      errorCode: creditState.errorCode,
+    })),
+    creditErrorResponse: vi.fn((result: { error?: string; errorCode?: string }) => {
+      const isAuthish =
+        result.errorCode === 'guest_limit_reached' || result.errorCode === 'not_authenticated'
+      const res = NextResponse.json(
+        { error: result.error, code: result.errorCode },
+        { status: isAuthish ? 401 : 402 }
+      )
+      if (result.errorCode === 'guest_limit_reached') {
+        res.headers.set('X-Guest-Limit-Reached', '1')
+      }
+      return res
+    }),
+  }
+})
+
 // ---------------------------------------------------------------------------
 // Import route handlers AFTER all mocks
 // ---------------------------------------------------------------------------
 
 import { POST } from '@/app/api/tarot/prefetch/route'
+
+// Reset the credit pre-flight to "allowed" before every test so a blocked-path
+// test can't leak into the next one (module-level creditState).
+beforeEach(() => {
+  creditState.allowed = true
+  creditState.errorCode = undefined
+  creditState.error = undefined
+})
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -689,5 +728,49 @@ describe('Tarot Prefetch API - Concurrency', () => {
       expect(response.status).toBe(200)
       expect(data.status).toBe('prefetching')
     }
+  })
+})
+
+// ===================================================================
+// POST /api/tarot/prefetch - Credit / guest-limit pre-flight
+// ===================================================================
+describe('Tarot Prefetch API - Credit pre-flight', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockApiClientPost.mockResolvedValue({ ok: true, data: { status: 'ok' } })
+  })
+
+  it('blocks with 401 + X-Guest-Limit-Reached when the guest free limit is reached', async () => {
+    creditState.allowed = false
+    creditState.errorCode = 'guest_limit_reached'
+    creditState.error = '무료 체험 리딩은 이미 사용했습니다.'
+
+    const response = await POST(makePostRequest(VALID_REQUEST_BODY))
+
+    expect(response.status).toBe(401)
+    expect(response.headers.get('X-Guest-Limit-Reached')).toBe('1')
+    // Must not kick off the background RAG prefetch when blocked.
+    expect(mockApiClientPost).not.toHaveBeenCalled()
+  })
+
+  it('blocks with 402 when a signed-in user has no credits', async () => {
+    creditState.allowed = false
+    creditState.errorCode = 'no_credits'
+    creditState.error = '크레딧이 부족합니다'
+
+    const response = await POST(makePostRequest(VALID_REQUEST_BODY))
+
+    expect(response.status).toBe(402)
+    expect(mockApiClientPost).not.toHaveBeenCalled()
+  })
+
+  it('proceeds (200) when credits are available', async () => {
+    creditState.allowed = true
+
+    const response = await POST(makePostRequest(VALID_REQUEST_BODY))
+    const data = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(data.status).toBe('prefetching')
   })
 })

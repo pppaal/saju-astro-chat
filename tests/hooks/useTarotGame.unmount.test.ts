@@ -50,7 +50,13 @@ let abortedSignals = 0
 let resolveFetch: ((value: unknown) => void) | null = null
 
 vi.mock('@/lib/api', () => ({
-  apiFetch: vi.fn((_url: string, init?: RequestInit) => {
+  apiFetch: vi.fn((url: string, init?: RequestInit) => {
+    // handleStartReading now does an up-front credit pre-flight via the
+    // prefetch endpoint; resolve it OK so the flow proceeds to the draw, which
+    // is the abortable in-flight fetch this test exercises.
+    if (url.includes('/api/tarot/prefetch')) {
+      return Promise.resolve({ ok: true, status: 200, json: async () => ({ status: 'prefetching' }) })
+    }
     const signal = init?.signal
     return new Promise((resolve, reject) => {
       resolveFetch = resolve as (value: unknown) => void
@@ -87,9 +93,10 @@ describe('useTarotGame — unmount safety', () => {
     // Drive the state machine to picking, then click 3 cards to trigger
     // the auto-fetch effect. The effect is debounced via a 500ms
     // setTimeout(fetchReading), so we also advance past that.
-    act(() => {
+    await act(async () => {
       result.current.handleColorSelect({ id: 'celestial', name: 'celestial' } as never)
-      result.current.handleStartReading()
+      // Await the async pre-flight so the hook advances to 'picking'.
+      await result.current.handleStartReading()
     })
     // Stop spreading animation (800ms guard).
     act(() => {
