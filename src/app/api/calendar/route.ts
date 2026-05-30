@@ -705,6 +705,33 @@ export const GET = withApiMiddleware(
       // ※ displayScore는 여기서 덮어쓰지 않는다. yearlyDates가 engineScores 주입으로
       //   cell.derivedScore를 score=displayScore 둘 다에 동일 할당했으므로 그대로 흐름.
       const cellByDate = new Map(allCells.map((c) => [c.datetime.slice(0, 10), c]))
+
+      // [마이그레이션 단계 2b] v2-native 서사·신뢰지표 오버레이.
+      // 2a 가 displayScore·grade 를 12달 v2 로 통일했지만, 카드의 title/description/
+      // summary 는 구 yearlyDates 의 pickBySeed 텍스트, evidence.confidence/
+      // crossAgreementPercent 는 구 함수 계산값이라 "점수는 v2인데 문구·신뢰지표는 구
+      // 함수 출처" 라는 잔여 불일치가 있었다. 같은 allCells 로 어댑터를 돌려 패턴 기반
+      // 제목·본문과 cross-verify 지표를 뽑아 덮어쓴다 → 카드의 점수·문구·신뢰지표가
+      // 전부 같은 v2 셀에서 나온다. categories/factors/scoreBreakdown 은 구 경로 유지
+      // (golden 튜플·category 필터 시맨틱 보존, 단계 4 에서 마저 이관).
+      const v2ByDate = new Map<
+        string,
+        import('@/lib/calendar-engine/adapters/cellsToYearlyDates').V2CalendarDate
+      >()
+      try {
+        const { cellsToYearlyDates } = await import(
+          '@/lib/calendar-engine/adapters/cellsToYearlyDates'
+        )
+        const v2Lang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
+        const v2Dates = cellsToYearlyDates(allCells, { lang: v2Lang })
+        for (const v of v2Dates) v2ByDate.set(v.date.slice(0, 10), v)
+      } catch (err) {
+        logger.warn?.(
+          '[calendar-engine v2 adapter overlay] skipped:',
+          err instanceof Error ? err.message : String(err)
+        )
+      }
+
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
@@ -746,6 +773,21 @@ export const GET = withApiMiddleware(
         }
         if (Object.keys(cell.themeScores).length > 0) {
           d.themeScores = cell.themeScores
+        }
+
+        // [단계 2b] 패턴 기반 v2 서사·신뢰지표로 덮어쓰기 — 점수와 같은 셀 출처로 정합.
+        const v2 = v2ByDate.get(d.date.slice(0, 10))
+        if (v2) {
+          if (v2.title?.trim()) d.title = v2.title
+          if (v2.description?.trim()) {
+            d.description = v2.description
+            d.summary = v2.description
+          }
+          // evidence 객체(matrix.domain 등)는 보존하고 cross-verify 수치만 v2 로 동기화.
+          if (d.evidence) {
+            d.evidence.confidence = v2.confidence
+            d.evidence.crossAgreementPercent = v2.crossAgreementPercent
+          }
         }
       }
 
