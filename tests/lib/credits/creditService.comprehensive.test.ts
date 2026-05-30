@@ -359,6 +359,7 @@ describe('Credit Service', () => {
           bonusCreditPurchase: {
             findMany: vi.fn().mockResolvedValue(mockPurchases),
             update: vi.fn().mockResolvedValue({}),
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
           },
           creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         })
@@ -530,9 +531,7 @@ describe('Credit Service', () => {
           { status: 'fulfilled', value: undefined },
           { status: 'rejected', reason: new Error('DB error') },
         ] as any)
-        .mockResolvedValueOnce([
-          { status: 'rejected', reason: new Error('DB error') },
-        ] as any)
+        .mockResolvedValueOnce([{ status: 'rejected', reason: new Error('DB error') }] as any)
 
       const result = await expireBonusCredits()
 
