@@ -1,7 +1,7 @@
 import React from 'react'
 import { Sparkles } from 'lucide-react'
 import type { AdviceItem } from '../../../types'
-import { renderHighlighted } from '../../ResultsView/highlight'
+import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
 
 interface GuidanceSectionProps {
   guidance: string | AdviceItem[]
@@ -44,7 +44,7 @@ export function GuidanceSection({ guidance, language }: GuidanceSectionProps) {
             )}
             {item.detail && (
               <p className="text-lg md:text-[19px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-                {renderHighlighted(item.detail)}
+                {renderWithLastSentenceHighlight(item.detail)}
               </p>
             )}
           </div>
