@@ -81,6 +81,58 @@ describe('Saju time/date 4 bugs — 회귀 테스트', () => {
   })
 })
 
+describe('Saju 진경도(진태양시) 보정 — longitude 옵션', () => {
+  it('longitude 미전달 시 기존 한국 LMT 동작 보존 (회귀 보호)', () => {
+    // longitude 없으면 옛 동작 그대로. 1990-05-15 10:00 KST → 巳.
+    const r = calculateSajuData('1990-05-15', '10:00', 'female', 'solar', 'Asia/Seoul')
+    expect(r.timePillar.earthlyBranch.name).toBe('巳')
+  })
+
+  it('longitude 같이 전달하면 도시별로 시지가 달라질 수 있다 (서울 vs 부산)', () => {
+    // KST 표준자오선 135°E. 서울 ≈ 126.98°E → 보정 (126.98-135)*4 = -32분.
+    // 부산 ≈ 129.07°E → 보정 (129.07-135)*4 = -24분. 9분 차이.
+    // 11:24 시계시 →
+    //   서울: 11:24-32=10:52 → 巳(09-11)? 아니 PLAIN 巳=09-11 → 10:52 → 巳.
+    //   부산: 11:24-24=11:00 → PLAIN 午=11-13 → 11:00 → 午.
+    const seoul = calculateSajuData(
+      '1990-05-15',
+      '11:24',
+      'female',
+      'solar',
+      'Asia/Seoul',
+      false,
+      126.98
+    )
+    const busan = calculateSajuData(
+      '1990-05-15',
+      '11:24',
+      'female',
+      'solar',
+      'Asia/Seoul',
+      false,
+      129.07
+    )
+    expect(seoul.timePillar.earthlyBranch.name).toBe('巳')
+    expect(busan.timePillar.earthlyBranch.name).toBe('午')
+  })
+
+  it('미국 동부 (NYC ≈ -74°W, EST 표준자오선 -75°E) → 보정 ~+4분', () => {
+    // 2000-06-15 11:00 America/New_York. EDT(UTC-4) → 표준자오선 -60°E.
+    // NYC lon -74 → 보정 = (-74 - (-60)) * 4 = -56분 → 11:00 - 56 = 10:04.
+    // PLAIN 巳 = 09-11 → 10:04 → 巳.
+    const r = calculateSajuData(
+      '2000-06-15',
+      '11:00',
+      'male',
+      'solar',
+      'America/New_York',
+      false,
+      -74
+    )
+    expect(r.timePillar.earthlyBranch.name).toBe('巳')
+  })
+})
+
 describe('Saju cache key v2 — lunarLeap + timezone 분리', () => {
   it('CacheKeys.saju 는 lunarLeap 과 timezone 을 구분한다', async () => {
     const { CacheKeys } = await import('../../../src/lib/cache/redis-cache')

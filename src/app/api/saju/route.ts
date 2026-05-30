@@ -72,6 +72,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     timezone,
     userTimezone,
     lunarLeap: lunarLeapRaw,
+    longitude,
   } = validationResult.data
   // calendarType==='solar' 인데 lunarLeap=true 가 들어와도 무시되도록 정규화.
   const lunarLeap = calendarType === 'lunar' && lunarLeapRaw === true
@@ -103,15 +104,14 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 30일 TTL (NATAL_CHART) — 사주 데이터는 immutable. 캐시 hit 시 Swiss
   // Ephemeris / 절기 lookup 등 ~150ms CPU 일 통째 절약. 이벤트 트래픽 시
   // 동일 사용자 재방문 / 가족 같은 생년월일 등에서 95%+ hit 기대.
+  // longitude 가 캐시 키에 들어가야 — 진경도 보정 결과가 도시별로 다르기 때문.
+  // 옛 키(longitude 없음) 도 그대로 hit 되도록 별도 segment 로 추가.
+  const lonKey =
+    typeof longitude === 'number' && Number.isFinite(longitude)
+      ? `:lon=${longitude.toFixed(4)}`
+      : ''
   const sajuResult = await cacheOrCalculate(
-    CacheKeys.saju(
-      birthDateString,
-      adjustedBirthTime,
-      sajuGender,
-      calendarType,
-      timezone,
-      lunarLeap
-    ),
+    `${CacheKeys.saju(birthDateString, adjustedBirthTime, sajuGender, calendarType, timezone, lunarLeap)}${lonKey}`,
     async () =>
       calculateSajuData(
         birthDateString,
@@ -119,7 +119,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
         sajuGender,
         calendarType,
         timezone,
-        lunarLeap
+        lunarLeap,
+        longitude
       ),
     CACHE_TTL.NATAL_CHART
   )
