@@ -993,6 +993,9 @@ describe('/api/tarot/save', () => {
             guidance: true,
             cardInsights: true,
             source: true,
+            // new columns selected on the primary attempt (P2022 fallback drops them)
+            clarifierCard: true,
+            followupTurns: true,
           },
         })
       })
@@ -1238,6 +1241,8 @@ describe('/api/tarot/save', () => {
               guidance: true,
               cardInsights: true,
               source: true,
+              clarifierCard: true,
+              followupTurns: true,
             },
           })
         )

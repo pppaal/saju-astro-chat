@@ -106,6 +106,14 @@ vi.mock('@/lib/llm/claude', () => ({
   callClaudeStream: (...args: unknown[]) => mockCallClaudeStream(...args),
   isClaudeAvailable: () => mockIsClaudeAvailable(),
   DEFAULT_CLAUDE_MODEL: 'claude-haiku-4-5-test',
+  PREMIUM_CLAUDE_MODEL: 'claude-opus-4-test',
+}))
+
+// The route streams via streamClaudeWithContinuation now (auto-continues past
+// maxTokens). Route it to the same spy so the existing call-arg/stream
+// assertions (mockCallClaudeStream.mock.calls[0][0].userPrompt, etc.) hold.
+vi.mock('@/lib/llm/claudeWithContinuation', () => ({
+  streamClaudeWithContinuation: (...args: unknown[]) => mockCallClaudeStream(...args),
 }))
 
 // Mock Zod validation schema
