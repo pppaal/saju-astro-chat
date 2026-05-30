@@ -59,7 +59,12 @@ const TYPEWRITER_PROMPTS_EN = [
 ] as const
 
 function CounselorLoading({ lang = 'ko' }: { lang?: 'ko' | 'en' }) {
-  return <BrandSplash message={lang === 'ko' ? '상담사 준비 중…' : 'Preparing your counselor…'} />
+  return (
+    <BrandSplash
+      variant="light"
+      message={lang === 'ko' ? '상담사 준비 중…' : 'Preparing your counselor…'}
+    />
+  )
 }
 
 type ChatMessage = {

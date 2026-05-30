@@ -101,6 +101,9 @@ export default function DestinyMapPageClient({ initialLocale }: DestinyMapPageCl
   }, [router, locale])
 
   return (
-    <BrandSplash message={locale === 'ko' ? '운명 상담사 준비 중…' : 'Preparing your counselor…'} />
+    <BrandSplash
+      variant="light"
+      message={locale === 'ko' ? '운명 상담사 준비 중…' : 'Preparing your counselor…'}
+    />
   )
 }

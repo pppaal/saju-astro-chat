@@ -113,7 +113,7 @@ export default function CounselorPage() {
   // 특정 인물 생년 파라미터로 들어온 "새 리딩" 진입은 그대로 새 채팅 유지.
   const hasUrlBirth = Boolean(
     (Array.isArray(sp.birthDate) ? sp.birthDate[0] : sp.birthDate) &&
-      (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime)
+    (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime)
   )
   const bareEntry = !initialSessionId && !initialQuestion && !hasUrlBirth
   // mount 1 회만 시도 — 삭제 후 router.replace('/destiny-map/counselor') 로
@@ -159,35 +159,16 @@ export default function CounselorPage() {
   }, [])
 
   // 대상 인물 변경 — '내 정보 수정'(프로필 저장) / '다른 사람 보기'(임시, 저장 X).
-  // 둘 다 공용 BirthInfoModal 재사용. 저장되면 그 사람 사주로 새 대화 시작.
+  // 대상 인물 — '내 정보 수정' 하나만. 공용 BirthInfoModal 재사용, 저장되면
+  // 갱신된 사주로 새 대화 시작.
   const [birthModalOpen, setBirthModalOpen] = useState(false)
-  const [birthMode, setBirthMode] = useState<'edit' | 'view'>('edit')
-  // 대상 인물 바의 작은 ▾ 메뉴 (수정 / 다른 사람 보기).
-  const [subjectMenuOpen, setSubjectMenuOpen] = useState(false)
-  const subjectMenuRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!subjectMenuOpen) return
-    const onDown = (e: MouseEvent) => {
-      if (subjectMenuRef.current && !subjectMenuRef.current.contains(e.target as Node)) {
-        setSubjectMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [subjectMenuOpen])
-
   const openEditMine = useCallback(() => {
-    setBirthMode('edit')
-    setBirthModalOpen(true)
-  }, [])
-  const openViewOther = useCallback(() => {
-    setBirthMode('view')
     setBirthModalOpen(true)
   }, [])
   const handleBirthSaved = useCallback(
     (info: StoredBirthInfo) => {
       setBirthModalOpen(false)
-      setChatResetKey((k) => k + 1) // 사람 바뀜 → 새 대화로 시작
+      setChatResetKey((k) => k + 1) // 정보 바뀜 → 새 대화로 시작
       router.push(buildCounselorHref(info, '', lang))
     },
     [router, lang]
@@ -406,16 +387,13 @@ export default function CounselorPage() {
         </div>
       </header>
 
-      {/* 대상 인물 바 — 이름 옆 작은 ▾. 누르면 수정 / 다른 사람 보기 메뉴.
-          궁합 ProfileStickyBar 와 동일한 컴팩트 패턴. */}
-      <div className={styles.subjectBarWrap} ref={subjectMenuRef}>
+      {/* 대상 인물 바 — 누르면 바로 '내 정보 수정' 모달. 이름 옆 작은 ✎. */}
+      <div className={styles.subjectBarWrap}>
         <button
           type="button"
           className={styles.profileStickyBar}
-          onClick={() => setSubjectMenuOpen((o) => !o)}
-          aria-haspopup="menu"
-          aria-expanded={subjectMenuOpen}
-          aria-label={lang === 'ko' ? '대상 인물 변경' : 'Change subject'}
+          onClick={openEditMine}
+          aria-label={lang === 'ko' ? '내 정보 수정' : 'Edit my info'}
         >
           <span className={styles.profileStickyDot} aria-hidden="true">
             ●
@@ -424,35 +402,9 @@ export default function CounselorPage() {
             {name?.trim() || (lang === 'ko' ? '나' : 'Me')}
           </span>
           <span className={styles.subjectChevron} aria-hidden="true">
-            ▾
+            ✎
           </span>
         </button>
-        {subjectMenuOpen && (
-          <div role="menu" className={styles.subjectMenu}>
-            <button
-              type="button"
-              role="menuitem"
-              className={styles.subjectMenuItem}
-              onClick={() => {
-                setSubjectMenuOpen(false)
-                openEditMine()
-              }}
-            >
-              {lang === 'ko' ? '내 정보 수정' : 'Edit my info'}
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              className={styles.subjectMenuItem}
-              onClick={() => {
-                setSubjectMenuOpen(false)
-                openViewOther()
-              }}
-            >
-              {lang === 'ko' ? '다른 사람 보기' : 'View another person'}
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Guest banner removed — fights the Claude-style centered hero
@@ -504,29 +456,13 @@ export default function CounselorPage() {
 
       {initialQuestion && <InitialQuestionSender question={initialQuestion} />}
 
-      {/* 대상 인물 변경 — 공용 BirthInfoModal 재사용.
-          edit: 내 프로필 저장 / view: 저장 없이 그 사람 사주로만 이동. */}
+      {/* 내 정보 수정 — 공용 BirthInfoModal 재사용. 저장된 내 정보로 채워서 연다. */}
       <BirthInfoModal
         open={birthModalOpen}
-        initial={birthMode === 'edit' ? getStoredBirthInfo() : null}
+        initial={getStoredBirthInfo()}
         onClose={() => setBirthModalOpen(false)}
         onSaved={handleBirthSaved}
         locale={lang}
-        persist={birthMode === 'edit'}
-        title={
-          birthMode === 'view'
-            ? lang === 'ko'
-              ? '다른 사람으로 보기'
-              : 'View another person'
-            : undefined
-        }
-        submitLabel={
-          birthMode === 'view'
-            ? lang === 'ko'
-              ? '이 사람으로 보기'
-              : 'View this person'
-            : undefined
-        }
       />
     </main>
   )

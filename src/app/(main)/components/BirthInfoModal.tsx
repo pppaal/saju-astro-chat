@@ -56,19 +56,22 @@ export default function BirthInfoModal({
 }: BirthInfoModalProps) {
   const isKo = locale === 'ko'
   const trapRef = useFocusTrap(open)
-  const [name, setName] = useState(initial?.name || '')
-  const [birthDate, setBirthDate] = useState(initial?.birthDate || '')
+  // initial 이 안 넘어와도(메인 '생년월일 입력하세요' CTA 처럼) 저장된 내
+  // 생년월일이 있으면 그걸로 폼을 채운다 — "매번 비어 보임" 회귀 fix.
+  const seed = initial ?? getStoredBirthInfo()
+  const [name, setName] = useState(seed?.name || '')
+  const [birthDate, setBirthDate] = useState(seed?.birthDate || '')
   const [birthTime, setBirthTime] = useState(
-    initial?.birthTime && initial.birthTime !== '00:00' ? initial.birthTime : ''
+    seed?.birthTime && seed.birthTime !== '00:00' ? seed.birthTime : ''
   )
   // Default to "time known" for new users so the time input is enabled.
   // Only mark as unknown when a prior save explicitly used the 00:00
   // placeholder or set the flag.
   const [timeUnknown, setTimeUnknown] = useState(
-    initial?.birthTimeUnknown === true || initial?.birthTime === '00:00'
+    seed?.birthTimeUnknown === true || seed?.birthTime === '00:00'
   )
-  const [gender, setGender] = useState<'male' | 'female' | ''>(initial?.gender || '')
-  const [city, setCity] = useState(initial?.city || '')
+  const [gender, setGender] = useState<'male' | 'female' | ''>(seed?.gender || '')
+  const [city, setCity] = useState(seed?.city || '')
   // 사용자가 [저장하고 시작] 눌렀는데 isValid=false 일 때 어느 필드가
   // 비었는지 inline 안내. silent disabled 회귀 fix. 채우는 즉시 사라짐.
   const [missingNotice, setMissingNotice] = useState<string | null>(null)
@@ -78,12 +81,12 @@ export default function BirthInfoModal({
   // houses against the actual birth place instead of silently falling back
   // to Seoul. Reset every time the user retypes the city (see applyPatch).
   const [latitude, setLatitude] = useState<number | null>(
-    typeof initial?.latitude === 'number' ? initial.latitude : null
+    typeof seed?.latitude === 'number' ? seed.latitude : null
   )
   const [longitude, setLongitude] = useState<number | null>(
-    typeof initial?.longitude === 'number' ? initial.longitude : null
+    typeof seed?.longitude === 'number' ? seed.longitude : null
   )
-  const [timeZone, setTimeZone] = useState<string | null>(initial?.timeZone || null)
+  const [timeZone, setTimeZone] = useState<string | null>(seed?.timeZone || null)
 
   // 빠진 필드를 채우는 순간 안내가 사라지게. city + latitude 도 같이 — 사용자가
   // 자동완성에서 도시를 고르면 lat 가 채워지면서 안내 자동 사라짐.
@@ -446,7 +449,7 @@ export default function BirthInfoModal({
         )}
 
         <div className={styles.modalActions}>
-          {initial?.birthDate && (
+          {seed?.birthDate && (
             <button type="button" className={styles.modalDelete} onClick={handleDelete}>
               {isKo ? '삭제' : 'Delete'}
             </button>

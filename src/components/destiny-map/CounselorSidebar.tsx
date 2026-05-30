@@ -77,10 +77,7 @@ interface CounselorSidebarProps {
    * still rolls back its own optimistic state for rename; for delete the
    * row is only removed after success, so nothing to roll back).
    */
-  onActionError?: (info: {
-    kind: 'rename' | 'delete'
-    status?: number
-  }) => void
+  onActionError?: (info: { kind: 'rename' | 'delete'; status?: number }) => void
 }
 
 const SWIPE_REVEAL_PX = 60 // user must drag this far to lock the swipe-open state
@@ -98,8 +95,7 @@ export default function CounselorSidebar({
   footerSlot,
   onActionError,
 }: CounselorSidebarProps) {
-  const { t, locale } = useI18n()
-  const isKo = locale?.toLowerCase().startsWith('ko')
+  const { t } = useI18n()
   const { data: session, status } = useSession()
   const [sessions, setSessions] = useState<SessionItem[]>([])
   const [loadingList, setLoadingList] = useState(false)
@@ -238,9 +234,7 @@ export default function CounselorSidebar({
       })
       status = res.status
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      setSessions((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, title: next } : s))
-      )
+      setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title: next } : s)))
       cancelRename()
     } catch (e) {
       // The local `sessions` array is only updated after the request
@@ -385,11 +379,7 @@ export default function CounselorSidebar({
 
   return (
     <>
-      <div
-        className={scrimClass}
-        onClick={onClose}
-        aria-hidden={!open}
-      />
+      <div className={scrimClass} onClick={onClose} aria-hidden={!open} />
       <aside
         className={drawerClass}
         aria-hidden={!open && !desktopStatic}
@@ -472,9 +462,7 @@ export default function CounselorSidebar({
                 return (
                   <div key={bucket} className={styles.sessionGroup}>
                     <div className={styles.sessionGroupLabel}>{groupLabel}</div>
-                    <ul className={styles.sessionList}>
-                      {items.map(renderSessionRow)}
-                    </ul>
+                    <ul className={styles.sessionList}>{items.map(renderSessionRow)}</ul>
                   </div>
                 )
               })}
@@ -491,26 +479,12 @@ export default function CounselorSidebar({
           </>
         )}
 
-        {/* 소개 · 블로그 — 사이드바 하단(로그인 버튼 위)에 별도 링크로 노출.
-            전역 MenuDrawerPanel 푸터와 동일한 진입점을 상담사 사이드바에도. */}
-        <div className={styles.divider} />
-        <nav className={styles.navLinks} aria-label={isKo ? '바로가기' : 'Links'}>
-          <Link href="/about" onClick={onClose} className={styles.navLink}>
-            {isKo ? '소개' : 'About'}
-          </Link>
-          <Link href="/blog" onClick={onClose} className={styles.navLink}>
-            {isKo ? '블로그' : 'Blog'}
-          </Link>
-        </nav>
-
         <div className={styles.footer}>
           {status === 'authenticated' ? (
             <button
               type="button"
               className={styles.authBtn}
-              onClick={() =>
-                void clearClientCacheAndSignOut(() => signOut({ callbackUrl: '/' }))
-              }
+              onClick={() => void clearClientCacheAndSignOut(() => signOut({ callbackUrl: '/' }))}
             >
               <span className={styles.actionIcon}>↩</span>
               <span>
