@@ -40,7 +40,7 @@ async function buildYearCells(): Promise<CalendarCell[]> {
 
 describe('cellsToYearlyDates (v2-native adapter)', () => {
   it(
-    'reproduces v2 scores exactly where the current hybrid used v2 (prescored window)',
+    'matches the (all-v2) migration golden grade + displayScore for every date (profile B)',
     async () => {
       const goldenPath = join(__dirname, '../../../app/api/calendar/__golden__/migration-baseline.json')
       if (!existsSync(goldenPath)) {
@@ -55,31 +55,23 @@ describe('cellsToYearlyDates (v2-native adapter)', () => {
       const dates = cellsToYearlyDates(cells, { lang: 'ko' })
       expect(dates.length).toBe(Object.keys(goldenDates).length)
 
-      // 월별 일치율 — 현재 하이브리드는 "오늘" 기준 ±1달만 v2 displayScore 를 쓰고
-      // 나머지 9달은 구 v3 blend 를 쓴다. v2 였던 달은 어댑터(전 달 v2)와 100% 일치
-      // 해야 하고, v3 였던 달은 의도적으로 달라진다(마이그레이션이 고치는 불일치).
+      // 단계 2a 이후 라우트는 12달 전부 v2 derivedScore 를 displayScore 로 쓴다.
+      // 어댑터도 동일 cells 에서 derivedScore 를 쓰므로 365일 grade·displayScore 가
+      // byte 동일해야 한다 — route ↔ adapter 완전 동등성 잠금(단계 2 전환 안전망).
       const perMonth: Record<string, { total: number; match: number }> = {}
       for (const d of dates) {
-        const mk = d.date.slice(0, 7)
         const g = goldenDates[d.date]
         expect(g, `golden missing ${d.date}`).toBeTruthy()
+        const mk = d.date.slice(0, 7)
         perMonth[mk] = perMonth[mk] ?? { total: 0, match: 0 }
         perMonth[mk].total++
         if (d.displayScore === g[1] && d.grade === g[0]) perMonth[mk].match++
       }
-
-      const fullMatchMonths = Object.entries(perMonth).filter(([, v]) => v.match === v.total)
       const summary = Object.entries(perMonth)
         .map(([m, v]) => `${m}:${v.match}/${v.total}`)
         .join('  ')
-      console.error('[adapter↔golden 월별 일치]', summary)
-
-      // 현재 하이브리드가 v2 를 쓴 달(prescore 윈도우, 최소 3달)은 점수·등급이
-      // byte 동일해야 한다 — 어댑터가 v2 경로를 정확히 재현한다는 증명.
-      expect(
-        fullMatchMonths.length,
-        `v2-scored 달이 어댑터와 100% 일치해야 함. 실측: ${summary}`
-      ).toBeGreaterThanOrEqual(3)
+      const fullMatch = Object.values(perMonth).every((v) => v.match === v.total)
+      expect(fullMatch, `route↔adapter 전 달 100% 일치해야 함. 실측: ${summary}`).toBe(true)
     },
     180000
   )

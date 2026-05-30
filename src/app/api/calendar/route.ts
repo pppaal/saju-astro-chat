@@ -450,21 +450,14 @@ export const GET = withApiMiddleware(
       )
     }
 
-    // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
-    // prescore (v2 셀) 만 current ± 1 month 로 cold 단축 — 나머지 9 달은 v3 점수
-    // fallback 으로 narrative/augment 가 채움. PR #830 회귀(다른 달 비어보임) fix.
-    // 0-11. Use the user's local month, not the server's UTC month, so a
-    // US-West user opening the calendar late evening doesn't pre-score
-    // next month and miss the current one entirely.
-    // nowInTimezone stores the local components in the UTC fields, so read
-    // them via getUTCMonth (getMonth would re-shift them if a dev machine
-    // is not running in UTC).
-    const targetMonthIdx = nowInTimezone(timezone).getUTCMonth()
-    const prescoreMonths = [
-      Math.max(0, targetMonthIdx - 1),
-      targetMonthIdx,
-      Math.min(11, targetMonthIdx + 1),
-    ].filter((m, i, arr) => arr.indexOf(m) === i) // dedupe (Dec/Jan 경계)
+    // ── v2(calendar-engine) 점수 선계산 → 전 달 narrative 주입 ──
+    // [마이그레이션 단계 2a] prescore 를 12달 전체로 확장 — 이전엔 current ±1달만
+    // v2 점수를 쓰고 나머지 9달은 구 v3 blend 를 displayScore 로 써서 "다른 달을 클릭
+    // 하면 점수 출처가 달라지는" 불일치가 있었다(점수↔서사 모순의 뿌리). 어차피 아래
+    // augment 블록이 12달 전부를 cell-cache 에 빌드하므로, prescore 를 12달로 늘려도
+    // 추가 비용 0(augment 가 in-memory HIT). 결과: displayScore·grade·narrative 가
+    // 12달 모두 같은 v2 derivedScore 기준으로 일관.
+    const prescoreMonths = Array.from({ length: 12 }, (_, i) => i)
 
     const engineScoreByDate: Record<string, number> = {}
     try {
