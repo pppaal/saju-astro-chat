@@ -48,10 +48,6 @@ vi.mock('@/lib/referral', () => ({
   generateReferralCode: vi.fn(() => 'REF123ABC'),
 }))
 
-vi.mock('@/lib/email', () => ({
-  sendWelcomeEmail: vi.fn(() => Promise.resolve()),
-}))
-
 vi.mock('@/lib/logger', () => ({
   logger: {
     info: vi.fn(),
@@ -251,84 +247,6 @@ describe('authOptions', () => {
   })
 
   describe('events', () => {
-    it('should send welcome email for new users', async () => {
-      process.env.NEXTAUTH_SECRET = 'test-secret'
-      process.env.NODE_ENV = 'development'
-
-      const { sendWelcomeEmail } = await import('@/lib/email')
-      const { prisma } = await import('@/lib/db/prisma')
-
-      ;(prisma.user.findUnique as any).mockResolvedValue({
-        settings: { referralCode: 'REF123' },
-      })
-
-      vi.resetModules()
-      const { authOptions } = await import('@/lib/auth/authOptions')
-
-      await authOptions.events?.signIn?.({
-        user: { id: 'user-123', email: 'new@example.com', name: 'Test User' },
-        account: { provider: 'google', type: 'oauth', providerAccountId: '123' },
-        isNewUser: true,
-        profile: undefined,
-      })
-
-      expect(sendWelcomeEmail).toHaveBeenCalledWith(
-        'user-123',
-        'new@example.com',
-        'Test User',
-        'ko',
-        'REF123'
-      )
-    })
-
-    it('should not send welcome email for existing users', async () => {
-      process.env.NEXTAUTH_SECRET = 'test-secret'
-      process.env.NODE_ENV = 'development'
-
-      const { sendWelcomeEmail } = await import('@/lib/email')
-
-      vi.resetModules()
-      const { authOptions } = await import('@/lib/auth/authOptions')
-
-      await authOptions.events?.signIn?.({
-        user: { id: 'user-123', email: 'existing@example.com' },
-        account: { provider: 'google', type: 'oauth', providerAccountId: '123' },
-        isNewUser: false,
-        profile: undefined,
-      })
-
-      expect(sendWelcomeEmail).not.toHaveBeenCalled()
-    })
-
-    it('should handle welcome email failure gracefully', async () => {
-      process.env.NEXTAUTH_SECRET = 'test-secret'
-      process.env.NODE_ENV = 'development'
-
-      const { sendWelcomeEmail } = await import('@/lib/email')
-      const { prisma } = await import('@/lib/db/prisma')
-      const { logger } = await import('@/lib/logger')
-
-      ;(prisma.user.findUnique as any).mockResolvedValue({
-        settings: { referralCode: 'REF123' },
-      })
-      ;(sendWelcomeEmail as any).mockRejectedValue(new Error('Email failed'))
-
-      vi.resetModules()
-      const { authOptions } = await import('@/lib/auth/authOptions')
-
-      await authOptions.events?.signIn?.({
-        user: { id: 'user-123', email: 'new@example.com', name: 'Test' },
-        account: { provider: 'google', type: 'oauth', providerAccountId: '123' },
-        isNewUser: true,
-        profile: undefined,
-      })
-
-      // Wait for async error handling
-      await new Promise((resolve) => setTimeout(resolve, 100))
-
-      expect(logger.error).toHaveBeenCalled()
-    })
-
     it('should capture Sentry event on sign in (production)', async () => {
       process.env.NEXTAUTH_SECRET = 'test-secret'
       process.env.NODE_ENV = 'production'

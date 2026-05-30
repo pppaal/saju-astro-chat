@@ -67,13 +67,6 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-vi.mock('@/lib/email', () => ({
-  sendPaymentReceiptEmail: vi.fn().mockResolvedValue(undefined),
-  sendSubscriptionConfirmEmail: vi.fn().mockResolvedValue(undefined),
-  sendSubscriptionCancelledEmail: vi.fn().mockResolvedValue(undefined),
-  sendPaymentFailedEmail: vi.fn().mockResolvedValue(undefined),
-}))
-
 vi.mock('@/lib/payments/prices', () => ({
   getPlanFromPriceId: vi.fn(() => ({ plan: 'premium', billingCycle: 'monthly' })),
 }))

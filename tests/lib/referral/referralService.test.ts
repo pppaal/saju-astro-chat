@@ -492,10 +492,6 @@ describe('Referral Service with mocked Prisma', () => {
     addBonusCredits: vi.fn().mockResolvedValue(undefined),
   }))
 
-  vi.mock('@/lib/email', () => ({
-    sendReferralRewardEmail: vi.fn().mockResolvedValue(undefined),
-  }))
-
   vi.mock('@/lib/logger', () => ({
     logger: {
       error: vi.fn(),
