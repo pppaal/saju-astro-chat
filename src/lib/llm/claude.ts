@@ -379,7 +379,16 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
   } = opts
 
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  // 옛 코드: setTimeout(..., timeoutMs) 가 stream 전체 시간을 제한 → 긴 답변
+  // (Sonnet 4.5 + 2500 토큰 continuation 등) 도중 abort 됨. CHAT timeout 이
+  // 처음 응답 헤더 받을 때까지 / 매 chunk 간 idle 만 제한하도록 분리.
+  // initial header timeout: timeoutMs (응답 시작 안 하면 abort).
+  // chunk-idle timeout: 같은 timeoutMs (마지막 chunk 후 idle 시 abort, chunk 마다 reset).
+  let timer: ReturnType<typeof setTimeout> = setTimeout(() => controller.abort(), timeoutMs)
+  const resetIdleTimer = () => {
+    clearTimeout(timer)
+    timer = setTimeout(() => controller.abort(), timeoutMs)
+  }
   // Forward the caller's abort (client disconnect) into the upstream fetch.
   // If the caller already aborted, abort synchronously before fetch starts.
   let onExternalAbort: (() => void) | null = null
@@ -457,6 +466,8 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
+          // 매 chunk 도착 시 idle timer reset — 긴 답변도 chunk 가 꾸준히 흐르면 abort 안 됨.
+          resetIdleTimer()
           buffer += decoder.decode(value, { stream: true })
           // SSE format: each event is "data: {...}\n\n"
           let idx
@@ -534,6 +545,14 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
         streamController.error(err)
       } finally {
         clearTimeout(timer)
+        // Reader cleanup — 옛 코드는 throw 후 reader 가 lock 된 채 남아 HTTP
+        // 연결이 풀에 안 돌아가고 Anthropic 빌링도 계속 됐다. cancel 로
+        // upstream 끊고 reader 해제.
+        try {
+          await reader.cancel()
+        } catch {
+          /* 이미 닫혔거나 abort — 무시 */
+        }
         if (onExternalAbort && abortSignal) {
           abortSignal.removeEventListener('abort', onExternalAbort)
         }
