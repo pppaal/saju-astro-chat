@@ -212,6 +212,17 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         const shouldRefund =
           fullText.trim() === '' || (!keepGeneratingOnDisconnect && pipelineAbort.signal.aborted)
         if (shouldRefund) await handleFailure()
+        // 부분 출력이 있고 환불 안 되는 경우 → 사용자에게 이미 과금된 답변이라
+        // disconnect-recovery 캐시에 저장해 result?turnId= 로 받아갈 수 있게 한다.
+        // 옛 코드는 natural end 만 onComplete 호출 → mid-stream throw 시 빈 결과
+        // 영영 복구 불가 + 사용자 손해.
+        if (!shouldRefund && fullText.trim() !== '' && onComplete) {
+          try {
+            await onComplete(fullText)
+          } catch {
+            /* persist 실패가 stream 깨지 않게 */
+          }
+        }
         try {
           controller.enqueue(
             encoder.encode(
