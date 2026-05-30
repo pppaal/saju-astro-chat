@@ -150,12 +150,17 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   }
 
   // 5. Calculate fortune cycles (운세)
+  // birthDate 는 이미 UTC instant (toDate 결과). 옛 코드는 5번째 인자에
+  // 'Asia/Seoul' 하드코딩 → unse.ts 의 normalizeBirthToUTC 가 비한국 출생자
+  // 의 UTC instant 를 KST 로 잘못 재해석 (S2). normalizeBirthToUTC 는 PR
+  // #1019 에서 identity 로 fix 됐고 timezone 인자도 unused 지만 BC 위해
+  // 정확한 timezone 전달.
   const daeunInfo = getDaeunCycles(
     birthDate,
     sajuGender,
     sajuPillars,
     sajuResult.dayMaster,
-    'Asia/Seoul'
+    timezone
   )
   const userNow = getNowInTimezone(effectiveUserTz)
   const yeonun = getAnnualCycles(userNow.year, 10, sajuResult.dayMaster)
