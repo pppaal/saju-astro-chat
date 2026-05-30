@@ -57,7 +57,10 @@ export function CompatPersonPickerModal({
   const isKo = normalizedLocale === 'ko'
   const { data: session, status } = useSession()
   // 부모가 조건부 mount 하므로 mount=open. 언제나 true 로 전달.
-  const trapRef = useFocusTrap(true)
+  // autoFocus: false — 폼이 뜨자마자 첫 입력(이름)에 focus 가 가면 모바일
+  // 키보드가 자동으로 올라온다("궁합폼 열면 키보드 자동으로 뜸"). 대신
+  // 모달 컨테이너(tabIndex=-1)에 focus 를 둬 trap 만 건다.
+  const trapRef = useFocusTrap(true, { autoFocus: false })
 
   const { count, persons, setPersons, updatePerson, fillFromCircle } = useCompatibilityForm(
     2,
@@ -264,7 +267,13 @@ export function CompatPersonPickerModal({
 
   return (
     <div className={styles.scrim}>
-      <div ref={trapRef} className={styles.modal} role="dialog" aria-modal="true">
+      <div
+        ref={trapRef}
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+      >
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>
             {title ?? compatT('compatibilityPage.analysisTitle', 'Compatibility Analysis')}

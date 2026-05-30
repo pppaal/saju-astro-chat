@@ -35,6 +35,7 @@ import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
 import { pushRecentPair, getRecentPairs, type RecentPair } from '@/app/compatibility/lib'
 import { normalizeGender } from '@/lib/utils/gender'
 import { CompatPersonPickerModal, type PickedPersonData } from './CompatPersonPickerModal'
+import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
@@ -197,13 +198,23 @@ function CompatibilityCounselorContent() {
 
     const initializeData = async () => {
       try {
-        // 1) Past-chat resume path: ?session=<id>. Restore both the
-        //    conversation and the couple snapshot we saved alongside.
         const sessionParam = searchParams.get('session')
-        if (sessionParam) {
+        const personsParam = searchParams.get('persons')
+
+        // ChatGPT 식 "마지막 채팅 이어서 띄우기" — ?session= / ?persons= 둘 다
+        // 없는 맨몸 진입이면 가장 최근 궁합 채팅을 자동으로 이어 띄운다.
+        // (비로그인이면 null → 아래에서 picker 로 떨어짐.)
+        let resumeId: string | null = sessionParam
+        if (!resumeId && !personsParam) {
+          resumeId = await fetchLatestSessionId('compat')
+        }
+
+        // 1) Past-chat resume path: ?session=<id> 또는 자동 resume. Restore both
+        //    the conversation and the couple snapshot we saved alongside.
+        if (resumeId) {
           try {
             const res = await fetch(
-              `/api/counselor/session/load?sessionId=${encodeURIComponent(sessionParam)}`
+              `/api/counselor/session/load?sessionId=${encodeURIComponent(resumeId)}`
             )
             if (res.ok) {
               const loaded = (await res.json()) as {
@@ -246,8 +257,6 @@ function CompatibilityCounselorContent() {
         }
 
         // 2) Fresh-start path: ?persons=... from the form.
-        const personsParam = searchParams.get('persons')
-
         if (personsParam) {
           const parsed = JSON.parse(decodeURIComponent(personsParam)) as PersonData[]
           setPersons(parsed)
@@ -440,15 +449,17 @@ function CompatibilityCounselorContent() {
     }
   }, [])
 
-  // Pop the soft keyboard the moment the page is ready — focusToken 갱신만
-  // 하면 ChatInputArea 내부 effect 가 textarea 에 focus. iOS Safari 는 사용자
-  // 제스처 밖이면 무시(=커서만 위치) — 정상 동작.
-  // 자동 height 조절은 ChatInputArea 안에서 직접 처리하므로 별도 effect 불필요.
+  // 채팅 준비되면 입력창에 focus — focusToken 갱신만 하면 ChatInputArea
+  // 내부 effect 가 textarea 에 focus.
+  // 단, picker 폼(모달)이 떠 있는 동안엔 focus 하지 않는다 — 모달 뒤
+  // 입력창에 focus 가 가면 모바일에서 폼만 봤는데 키보드가 자동으로
+  // 올라오는 회귀("궁합폼 열면 키보드 자동으로 뜸"). picker 를 닫고
+  // (=제출) 채팅으로 들어올 때 showPicker→false 로 effect 가 다시 돌아 focus.
   useEffect(() => {
-    if (!isInitializing) {
+    if (!isInitializing && !showPicker) {
       setFocusToken((n) => n + 1)
     }
-  }, [isInitializing])
+  }, [isInitializing, showPicker])
 
   // 채팅 우상단 ⋮ 메뉴 핸들러 — 운명 상담사 PR #621 과 동일.
   // 저장된 session 이 없으면 (chatSessionId undefined) 아무것도 안 함.

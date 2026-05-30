@@ -98,7 +98,8 @@ export default function CounselorSidebar({
   footerSlot,
   onActionError,
 }: CounselorSidebarProps) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const isKo = locale?.toLowerCase().startsWith('ko')
   const { data: session, status } = useSession()
   const [sessions, setSessions] = useState<SessionItem[]>([])
   const [loadingList, setLoadingList] = useState(false)
@@ -489,6 +490,18 @@ export default function CounselorSidebar({
             <div className={styles.footerSlot}>{footerSlot}</div>
           </>
         )}
+
+        {/* 소개 · 블로그 — 사이드바 하단(로그인 버튼 위)에 별도 링크로 노출.
+            전역 MenuDrawerPanel 푸터와 동일한 진입점을 상담사 사이드바에도. */}
+        <div className={styles.divider} />
+        <nav className={styles.navLinks} aria-label={isKo ? '바로가기' : 'Links'}>
+          <Link href="/about" onClick={onClose} className={styles.navLink}>
+            {isKo ? '소개' : 'About'}
+          </Link>
+          <Link href="/blog" onClick={onClose} className={styles.navLink}>
+            {isKo ? '블로그' : 'Blog'}
+          </Link>
+        </nav>
 
         <div className={styles.footer}>
           {status === 'authenticated' ? (
