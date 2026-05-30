@@ -39,6 +39,23 @@ const DELETE_SPEED_MS = 35
 const HOLD_AFTER_TYPED_MS = 1800
 const HOLD_AFTER_DELETED_MS = 250
 
+// 칩 표시용 — "1995년 2월 9일 06:40am (남)" 형식.
+function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
+  const [y, m, d] = info.birthDate.split('-').map((n) => parseInt(n, 10))
+  const datePart = isKo
+    ? `${y}년 ${m}월 ${d}일`
+    : `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  let timePart = ''
+  if (!info.birthTimeUnknown && info.birthTime && info.birthTime !== '00:00') {
+    const [hh, mm] = info.birthTime.split(':').map((n) => parseInt(n, 10))
+    const ampm = hh < 12 ? 'am' : 'pm'
+    const h12 = hh % 12 === 0 ? 12 : hh % 12
+    timePart = ` ${String(h12).padStart(2, '0')}:${String(mm).padStart(2, '0')}${ampm}`
+  }
+  const g = info.gender === 'male' ? (isKo ? '남' : 'M') : isKo ? '여' : 'F'
+  return `${datePart}${timePart} (${g})`
+}
+
 export default function HomeChatInput({
   birthInfo,
   onRequireBirth,
@@ -145,9 +162,9 @@ export default function HomeChatInput({
             onClick={onOpenBirth}
             aria-label={isKo ? '생년월일 정보 수정' : 'Edit birth info'}
           >
-            ✓ {isKo ? '분석에 사용' : 'Reading for'}: {birthInfo.birthDate} {birthInfo.birthTime} ·{' '}
-            {birthInfo.gender === 'male' ? (isKo ? '남성' : 'Male') : isKo ? '여성' : 'Female'}
-            <span className={styles.homeBirthChipEdit}>{isKo ? '수정' : 'Edit'}</span>
+            {isKo ? '상담자: ' : 'Subject: '}
+            {formatSubject(birthInfo, isKo)}
+            <span className={styles.homeBirthChipEdit}>{isKo ? '정보 변경' : 'Edit'}</span>
           </button>
         ) : (
           <button type="button" className={styles.homeBirthCta} onClick={onOpenBirth}>
