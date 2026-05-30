@@ -130,6 +130,15 @@ function CompatibilityCounselorContent() {
   // 호출만 다시 돌린다(라우트의 idemStore.isReplay 분기). 새 user 발화가
   // 들어오면 새 UUID 로 덮어씀.
   const lastTurnIdemKeyRef = useRef<string | null>(null)
+  // 끊긴 턴 복원 — 서버는 연결이 끊겨도 끝까지 생성해 turnId 로 캐시에 저장한다
+  // (claudeSSE keepGeneratingOnDisconnect). 스트림이 불완전하게 끝났거나
+  // 사용자가 다른 앱에서 돌아오면(visibilitychange) 이 정보로 result 를
+  // 폴링해 완성 답으로 갈아끼운다. 마지막 assistant 메시지를 교체한다.
+  const recoverableTurnRef = useRef<{ turnId: string; userText: string } | null>(null)
+  const recoveringRef = useRef(false)
+  // attemptRecover 는 sendMessage 보다 아래에 선언되므로(같은 컴포넌트 body),
+  // sendMessage 안에서 직접 부르면 use-before-declaration. ref 로 우회.
+  const attemptRecoverRef = useRef<(() => void) | null>(null)
   // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 사이드바 리스트의 항상 보이던
   // 아이콘들을 대체 (운명 상담사와 동일 패턴, PR #621).
   const [chatMenuOpen, setChatMenuOpen] = useState(false)
@@ -559,6 +568,10 @@ function CompatibilityCounselorContent() {
           lang: locale,
           messages: recentHistory,
           useRag: true,
+          // 끊김 복구용 턴 식별자 — idempotencyKey 와 동일 값. 서버는 연결이
+          // 끊겨도 끝까지 생성한 답을 이 키로 캐시하고, 사용자가 돌아오면
+          // /api/compatibility/counselor/result?turnId=… 로 복원한다.
+          turnId: idempotencyKey,
           ...(cvText ? { cvText } : {}),
         })
         let response: Response | null = null
@@ -701,6 +714,12 @@ function CompatibilityCounselorContent() {
             }
             return updated
           })
+          // 끊김/미완 — 서버는 keepGeneratingOnDisconnect 로 끝까지 생성해 turnId
+          // 캐시에 저장한다. 복원 대상에 등록하고 즉시(이미 돌아와 있으면) 폴링
+          // 시작 — 아니면 visibility 시 재개. 게스트는 turnId 캐시가 없어 result
+          // 가 항상 ready=false → 폴링이 자연히 만료되므로 별도 가드 불필요.
+          recoverableTurnRef.current = { turnId: idempotencyKey, userText: text }
+          attemptRecoverRef.current?.()
         }
         // 운명 상담사와 동일 패턴 — LLM 의 generic followup ("더 알려줘",
         // "tell me more" 등) 을 클라이언트에서 결정적으로 필터링 + 부족분만
@@ -847,6 +866,111 @@ function CompatibilityCounselorContent() {
     setFollowUpQuestions([])
     void sendMessage(lastUserText, { isRetry: true })
   }, [isLoading, messages, sendMessage])
+
+  // 끊긴 턴 복원 — 서버는 연결이 끊겨도 끝까지 생성해 turnId 로 캐시에 저장하므로
+  // (claudeSSE keepGeneratingOnDisconnect → route 의 onComplete), 여기서 result
+  // 엔드포인트를 폴링해 완성 답으로 마지막 assistant 메시지를 갈아끼운다.
+  const attemptRecover = useCallback(async () => {
+    const info = recoverableTurnRef.current
+    if (!info || recoveringRef.current) return
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
+    recoveringRef.current = true
+    try {
+      // 서버가 아직 생성 중이면 ready=false → 2초 간격 재시도 (보이는 동안만).
+      for (let i = 0; i < 30; i++) {
+        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') break
+        if (recoverableTurnRef.current?.turnId !== info.turnId) break // 새 턴이 덮어씀
+        try {
+          const res = await fetch(
+            `/api/compatibility/counselor/result?turnId=${encodeURIComponent(info.turnId)}`,
+            { credentials: 'include' }
+          )
+          if (res.ok) {
+            const data = (await res.json()) as { ready?: boolean; content?: string }
+            if (data.ready && typeof data.content === 'string' && data.content.length > 0) {
+              // 복원 답안에도 정상 스트림과 동일한 후처리 — ||FOLLOWUP|| 마커를
+              // 떼어내고(안 그러면 본문에 그대로 노출됨) 후속질문 칩으로 변환.
+              const { cleanContent, followUps } = streamProcessor.extractFollowUpQuestions(
+                data.content
+              )
+              if (!mountedRef.current) return
+              setMessages((prev) => {
+                const updated = [...prev]
+                // 마지막 assistant 메시지를 완성본으로 교체 + incomplete 해제.
+                for (let idx = updated.length - 1; idx >= 0; idx--) {
+                  if (updated[idx].role === 'assistant') {
+                    updated[idx] = { ...updated[idx], content: cleanContent, incomplete: false }
+                    break
+                  }
+                }
+                return updated
+              })
+              // 후속질문 칩 — 정상 경로와 동일하게 generic 필터 + 부족분 폴백.
+              const lang = locale === 'ko' ? 'ko' : 'en'
+              const goodAiFollowUps = followUps.filter((q) => !isGenericFollowUp(q, lang))
+              const needed = 2 - goodAiFollowUps.length
+              const merged =
+                needed > 0
+                  ? [
+                      ...goodAiFollowUps,
+                      ...generateFollowUpQuestions(info.userText, lang, 2, cleanContent).filter(
+                        (q) => !goodAiFollowUps.includes(q)
+                      ),
+                    ].slice(0, 2)
+                  : goodAiFollowUps.slice(0, 2)
+              setFollowUpQuestions(merged)
+              // 복원 답안도 정상 경로와 동일하게 past-chats 사이드바에 저장.
+              const body: Record<string, unknown> = {
+                sessionId: chatSessionId,
+                locale: lang,
+                userMessage: info.userText,
+                assistantMessage: cleanContent,
+                type: 'compat',
+              }
+              fetch('/api/counselor/chat-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+              })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d: { success?: boolean; session?: { id: string } } | null) => {
+                  if (!mountedRef.current) return
+                  if (d?.success && d.session?.id && !chatSessionId) {
+                    setChatSessionId(d.session.id)
+                  }
+                })
+                .catch((err) =>
+                  logger.warn('[CompatCounselor] recover chat-history save failed', { error: err })
+                )
+              setError(null)
+              recoverableTurnRef.current = null
+              return
+            }
+          }
+        } catch {
+          /* 네트워크 흔들림 — 다음 루프에서 재시도 */
+        }
+        await new Promise((r) => setTimeout(r, 2000))
+      }
+    } finally {
+      recoveringRef.current = false
+    }
+  }, [locale, chatSessionId])
+
+  // sendMessage 가 선언 순서상 위에 있어 직접 못 부르므로 ref 로 노출.
+  useEffect(() => {
+    attemptRecoverRef.current = () => void attemptRecover()
+  }, [attemptRecover])
+
+  // 다른 앱/탭에서 돌아오면(visible) 끊겼던 턴의 완성 답을 복원 시도.
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void attemptRecover()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [attemptRecover])
 
   // 🃏 클래리파이어 — 공통 hook (운명상담사 / followup 동일).
   const clarifier = useClarifierCard({

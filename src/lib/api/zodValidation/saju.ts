@@ -728,6 +728,10 @@ export const compatibilityCounselorRequestSchema = z.object({
   // Parsed text of a user-attached file (notes/chat log). Injected into the
   // current turn so the LLM can reference it. Client trims to ~6000 chars.
   cvText: z.string().max(8000).optional(),
+  // 끊김 복구용 턴 식별자 — 클라이언트가 idempotencyKey 와 동일 값을 보냄.
+  // 서버는 keepGeneratingOnDisconnect 로 끝까지 생성한 답을 이 키로 캐시해
+  // 두고, 사용자가 돌아오면 /result?turnId=… 로 복원한다.
+  turnId: z.string().max(80).optional(),
 })
 
 export type CompatibilityCounselorRequestValidated = z.infer<

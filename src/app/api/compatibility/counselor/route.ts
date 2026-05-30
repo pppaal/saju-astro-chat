@@ -20,7 +20,15 @@ import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptS
 import { consumeCredits } from '@/lib/credits/creditService'
 import { refundCredits } from '@/lib/credits/creditRefund'
 import { createIdempotencyStore } from '@/lib/api/idempotency'
+import { cacheSet } from '@/lib/cache/redis-cache'
 import type { Relation } from '../types'
+
+// 끊긴 턴 복원용 캐시 키 — userId 를 포함해 ownership 검증 (다른 사용자가
+// turnId 알아도 조회 불가). 게스트는 끊김 복구 미지원 (turnId 보관 안 함).
+export const compatTurnResultKey = (userId: string, turnId: string) =>
+  `compat:turn-result:${userId}:${turnId}`
+
+export const COMPAT_TURN_RESULT_TTL_SEC = 600
 
 // 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
 // 중복 차감 방지. 클라이언트가 매 메시지에 UUID 를 x-idempotency-key 헤더로
@@ -219,7 +227,13 @@ export async function POST(req: NextRequest) {
       lang = context.locale,
       messages = [],
       cvText,
+      turnId: rawTurnId,
     } = validationResult.data
+
+    // 끊김 복구용 턴 식별자. 로그인 사용자만 캐시 → 게스트는 turnId 가 있어도
+    // 복원 대상에서 제외(아래 onComplete 가 recoverUserId 가드).
+    const turnId = typeof rawTurnId === 'string' ? rawTurnId.slice(0, 80) : ''
+    const recoverUserId = context.userId // string | null — 로그인 사용자만 복구 캐시
 
     const trimmedHistory = clampMessages(messages)
 
@@ -819,9 +833,28 @@ export async function POST(req: NextRequest) {
 
     try {
       return await streamClaudeAsSSE({
-        // Propagate client disconnect into the upstream Anthropic fetch so
-        // output-token billing stops when the user closes the tab mid-stream.
+        // req.signal 은 여전히 넘기지만, keepGeneratingOnDisconnect 가 true 라
+        // 클라가 끊겨도 업스트림을 중단하지 않고 끝까지 생성한다 (아래 onComplete
+        // 로 캐시 저장 → 사용자가 돌아오면 result 엔드포인트로 복원).
         abortSignal: req.signal,
+        keepGeneratingOnDisconnect: true,
+        // 생성이 끝나면(클라 연결 여부 무관) 완성 답안을 캐시에 저장. 끊겼다가
+        // 돌아온 사용자가 /api/compatibility/counselor/result?turnId=… 로 받아간다.
+        // 게스트(recoverUserId 없음) 는 끊김 복구 미지원 — turnId 가 있어도 캐시 안 함.
+        onComplete:
+          turnId && recoverUserId
+            ? async (full) => {
+                try {
+                  await cacheSet(
+                    compatTurnResultKey(recoverUserId, turnId),
+                    full,
+                    COMPAT_TURN_RESULT_TTL_SEC
+                  )
+                } catch {
+                  /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
+                }
+              }
+            : undefined,
         systemPrompt,
         cachedUserContext,
         userPrompt,
