@@ -890,8 +890,12 @@ export const GET = withApiMiddleware(
       // 연 점수 분포 — FE가 getStarRating(score, scoreDistribution)으로 "그 사람 평소
       // 대비 상위 N%"를 별 등급으로 환산. 상대점수(평소=50)를 절대 별컷으로 매기면
       // 대부분 2~3별로 뭉치므로 percentile 기준이 필요.
-      scoreDistribution: (formattedDates as Array<Record<string, unknown>>)
-        .map((d) => (typeof d.displayScore === 'number' ? (d.displayScore as number) : null))
+      scoreDistribution: formattedDates
+        .map((d) => {
+          const s = (d as { displayScore?: number; score?: number }).displayScore
+          const sc = typeof s === 'number' ? s : (d as { score?: number }).score
+          return typeof sc === 'number' ? sc : null
+        })
         .filter((s): s is number => s !== null),
       // 그 달 narrative — top-level 1개로 dedupe (이전 365 copies 회귀 fix).
       // EN locale 이면 themeBreakdown 라벨 + convergence keyDays 의 신호명 영문 swap.
