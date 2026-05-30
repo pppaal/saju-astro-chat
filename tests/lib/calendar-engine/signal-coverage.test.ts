@@ -1,48 +1,54 @@
 // @vitest-environment node
-// Needs the REAL Swiss Ephemeris + cache recompute path to emit saju×astro
-// signals; the global setup mocks both. Unmock and run under node.
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+// Needs the REAL Swiss Ephemeris; the global setup mocks swisseph/ephe with
+// fixed fake positions. Unmock and run under node.
+import { describe, it, expect, vi } from 'vitest'
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 vi.unmock('@/lib/db/prisma')
-import type { NextRequest } from 'next/server'
-import { GET as calendarGet } from '@/app/api/calendar/route'
-
-const asNextRequest = (request: Request) => request as unknown as NextRequest
+import { calculateSajuData } from '@/lib/saju/saju'
+import { buildNatalContext } from '@/lib/calendar-engine/context/build'
+import { buildCalendar } from '@/lib/calendar-engine'
 
 /**
  * 회귀 가드 — 캘린더 점수는 사주×점성 "교차"다. 한쪽 source(saju/astro)가
- * 통째로 빠지거나 핵심 extractor가 조용히 죽으면 교차가 얕아진다. 실제 API
- * 응답의 engineSignals(= v2 셀 신호)가 (1) 양쪽 source를 모두 포함하고
- * (2) 매일 나오는 핵심 사주/점성 kind를 포함하는지 확인해 커버리지 회귀를 잡는다.
+ * 통째로 빠지거나 핵심 extractor가 조용히 죽으면 교차가 얕아진다.
+ *
+ * 엔진 셀을 직접 빌드해 *모든 레이어*의 신호를 검사한다. (API 응답의
+ * engineSignals 는 payload 절감을 위해 hourly layer 만 노출하므로, daily 사주
+ * 신호(shinsal/hyeongchung)·daily transit·natal extraPoints 커버리지를
+ * 확인하려면 셀 레벨에서 봐야 한다.)
  */
 describe('calendar engine signal coverage (saju×astrology cross)', () => {
-  const originalToken = process.env.PUBLIC_API_TOKEN
-
-  beforeEach(() => {
-    process.env.PUBLIC_API_TOKEN = 'public-token'
-  })
-  afterEach(() => {
-    if (originalToken === undefined) delete process.env.PUBLIC_API_TOKEN
-    else process.env.PUBLIC_API_TOKEN = originalToken
-  })
+  const SEOUL_MALE_1995 = {
+    birthDate: '1995-02-09',
+    birthTime: '06:40',
+    gender: 'male' as const,
+    latitude: 37.5665,
+    longitude: 126.978,
+    timeZone: 'Asia/Seoul',
+  }
 
   it('emits both saju and astro signals covering core extractor kinds', async () => {
-    const response = await calendarGet(
-      asNextRequest(
-        new Request(
-          'http://localhost:3000/api/calendar?birthDate=1995-02-09&birthTime=06:40&birthPlace=Seoul&year=2026&month=2026-05&locale=ko',
-          { headers: { 'x-api-token': 'public-token' } }
-        )
-      )
+    const saju = calculateSajuData(
+      SEOUL_MALE_1995.birthDate,
+      SEOUL_MALE_1995.birthTime,
+      SEOUL_MALE_1995.gender,
+      'solar',
+      SEOUL_MALE_1995.timeZone
     )
-    expect(response.status).toBe(200)
-    const payload = (await response.json()) as { allDates?: Array<Record<string, any>> }
-    const may = (payload.allDates || []).filter((d) => String(d.date).startsWith('2026-05'))
-    expect(may.length).toBeGreaterThan(20)
+    const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+    const cells = await buildCalendar(
+      natal,
+      {
+        start: '2026-05-01T00:00:00.000Z',
+        end: '2026-05-31T23:59:59.000Z',
+        granularity: 'day',
+      },
+      { includeEvidence: true }
+    )
 
-    const signals = may.flatMap((d) => (d.engineSignals as Array<Record<string, any>>) || [])
-    // engine augmentation 자체가 죽으면(교차 소실) 신호가 0 → 즉시 실패
+    const signals = cells.flatMap((c) => c.signals)
+    // engine 자체가 죽으면(교차 소실) 신호가 0 → 즉시 실패
     expect(signals.length).toBeGreaterThan(50)
 
     const sources = new Set(signals.map((s) => s.source))
