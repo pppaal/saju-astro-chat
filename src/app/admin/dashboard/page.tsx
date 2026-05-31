@@ -151,9 +151,18 @@ export default function MetricsDashboard() {
       const errors: string[] = []
 
       if (funnelRes.status === 'fulfilled' && funnelRes.value.ok) {
-        const data = await funnelRes.value.json()
-        if (data.data) setFunnel(data.data)
-        else {
+        const json = await funnelRes.value.json()
+        // funnel route 는 apiSuccess({ data: funnelData, timeRange }) 로
+        // 반환해 최종 응답이 { data: { data: funnelData, timeRange } } 로
+        // 이중 래핑된다. 화면은 funnel.visitors 를 기대하므로 한 겹 더
+        // 벗긴다(json.data.data). 혹시 단일 래핑(json.data 에 visitors 직접)
+        // 으로 바뀌어도 동작하도록 visitors 키 존재로 판별.
+        const outer = json?.data
+        const funnelData =
+          outer && typeof outer === 'object' && 'visitors' in outer ? outer : outer?.data
+        if (funnelData && funnelData.visitors) {
+          setFunnel(funnelData)
+        } else {
           errors.push('Funnel: 응답에 data 없음')
           setFunnel(null)
         }
@@ -406,13 +415,13 @@ export default function MetricsDashboard() {
             <div className={styles.funnelStep}>
               <div className={styles.funnelIcon}>👥</div>
               <div className={styles.funnelLabel}>방문자</div>
-              <div className={styles.funnelValue}>{formatNumber(funnel?.visitors.daily || 0)}</div>
+              <div className={styles.funnelValue}>{formatNumber(funnel?.visitors?.daily || 0)}</div>
               <div
                 className={styles.funnelTrend}
-                data-positive={funnel?.visitors.trend && funnel.visitors.trend > 0}
+                data-positive={funnel?.visitors?.trend && funnel.visitors.trend > 0}
               >
-                {funnel?.visitors.trend && funnel.visitors.trend > 0 ? '↑' : '↓'}{' '}
-                {Math.abs(funnel?.visitors.trend || 0).toFixed(1)}%
+                {funnel?.visitors?.trend && funnel.visitors.trend > 0 ? '↑' : '↓'}{' '}
+                {Math.abs(funnel?.visitors?.trend || 0).toFixed(1)}%
               </div>
             </div>
             <div className={styles.funnelArrow}>→</div>
@@ -420,10 +429,10 @@ export default function MetricsDashboard() {
               <div className={styles.funnelIcon}>📝</div>
               <div className={styles.funnelLabel}>회원가입</div>
               <div className={styles.funnelValue}>
-                {formatNumber(funnel?.registrations.daily || 0)}
+                {formatNumber(funnel?.registrations?.daily || 0)}
               </div>
               <div className={styles.funnelRate}>
-                {funnel?.registrations.conversionRate?.toFixed(1)}%
+                {funnel?.registrations?.conversionRate?.toFixed(1)}%
               </div>
             </div>
             <div className={styles.funnelArrow}>→</div>
@@ -431,9 +440,9 @@ export default function MetricsDashboard() {
               <div className={styles.funnelIcon}>✅</div>
               <div className={styles.funnelLabel}>활성화</div>
               <div className={styles.funnelValue}>
-                {formatNumber(funnel?.activations.total || 0)}
+                {formatNumber(funnel?.activations?.total || 0)}
               </div>
-              <div className={styles.funnelRate}>{funnel?.activations.rate?.toFixed(1)}%</div>
+              <div className={styles.funnelRate}>{funnel?.activations?.rate?.toFixed(1)}%</div>
             </div>
           </div>
         </section>
@@ -444,28 +453,28 @@ export default function MetricsDashboard() {
             <div className={styles.metricCard}>
               <div className={styles.metricLabel}>DAU</div>
               <div className={styles.metricValue}>
-                {formatNumber(funnel?.engagement.dailyActiveUsers || 0)}
+                {formatNumber(funnel?.engagement?.dailyActiveUsers || 0)}
               </div>
               <div className={styles.metricSubtext}>일일 활성 사용자</div>
             </div>
             <div className={styles.metricCard}>
               <div className={styles.metricLabel}>WAU</div>
               <div className={styles.metricValue}>
-                {formatNumber(funnel?.engagement.weeklyActiveUsers || 0)}
+                {formatNumber(funnel?.engagement?.weeklyActiveUsers || 0)}
               </div>
               <div className={styles.metricSubtext}>주간 활성 사용자</div>
             </div>
             <div className={styles.metricCard}>
               <div className={styles.metricLabel}>세션 시간</div>
               <div className={styles.metricValue}>
-                {funnel?.engagement.avgSessionDuration?.toFixed(1) || 0}분
+                {funnel?.engagement?.avgSessionDuration?.toFixed(1) || 0}분
               </div>
               <div className={styles.metricSubtext}>평균 체류 시간</div>
             </div>
             <div className={styles.metricCard}>
               <div className={styles.metricLabel}>리딩/사용자</div>
               <div className={styles.metricValue}>
-                {funnel?.engagement.readingsPerUser?.toFixed(1) || 0}
+                {funnel?.engagement?.readingsPerUser?.toFixed(1) || 0}
               </div>
               <div className={styles.metricSubtext}>사용자당 리딩 수</div>
             </div>
