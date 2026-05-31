@@ -202,8 +202,13 @@ function validateOrigin(request: NextRequest): boolean {
 /**
  * Build CSP header (only nonce is dynamic, rest is cached at module level)
  */
-function buildCsp(nonce: string): string {
-  const scriptSrc = `script-src ${_cspScriptSrcBase.join(' ')} 'nonce-${nonce}'`
+function buildCsp(nonce: string, allowEval = false): string {
+  // admin 대시보드 번들은 eval 기반 코드가 있어 prod 의 엄격한 script-src
+  // (unsafe-eval 없음) 아래서 "문제가 발생했어요" 로 통째 죽는다. admin 은
+  // 인증 + noindex 로 격리된 내부 경로라 일반 사용자 공격면이 아니므로 이
+  // 경로에 한해 unsafe-eval 을 허용한다. 공개 페이지의 CSP 는 그대로 엄격.
+  const base = allowEval ? [..._cspScriptSrcBase, "'unsafe-eval'"] : _cspScriptSrcBase
+  const scriptSrc = `script-src ${base.join(' ')} 'nonce-${nonce}'`
   return `${_cspStaticPrefix}; ${scriptSrc}; ${_cspStaticSuffix}`
 }
 
