@@ -174,9 +174,6 @@ vi.mock('@/lib/astrology/foundation/aspects', () => ({
   ]),
 }))
 
-vi.mock('@/app/api/calendar/lib/yearlyDates', () => ({
-  calculateYearlyImportantDates: vi.fn(),
-}))
 
 vi.mock('@/lib/cache/redis-cache', () => ({
   cacheOrCalculate: vi.fn((key, fn) => fn()),
@@ -467,7 +464,6 @@ vi.mock('@/i18n/locales/en', () => ({
 import { GET } from '@/app/api/calendar/route'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
-import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
 import { cacheOrCalculate } from '@/lib/cache/redis-cache'
 import { apiClient } from '@/lib/api/ApiClient'
 import { logger } from '@/lib/logger'
@@ -501,81 +497,6 @@ const mockSajuResult = {
 }
 
 // Mock important dates
-const mockImportantDates = [
-  {
-    date: '2025-03-15',
-    grade: 0,
-    score: 95,
-    categories: ['career'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-16',
-    grade: 1,
-    score: 85,
-    categories: ['wealth'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-17',
-    grade: 2,
-    score: 70,
-    categories: ['love'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-18',
-    grade: 3,
-    score: 50,
-    categories: ['health'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-19',
-    grade: 4,
-    score: 30,
-    categories: ['travel'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-20',
-    grade: 5,
-    score: 10,
-    categories: ['study'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-]
-
 describe('Calendar API Route - /api/calendar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -637,7 +558,6 @@ describe('Calendar API Route - /api/calendar', () => {
         sign: 'Aries',
       })),
     } as any)
-    vi.mocked(calculateYearlyImportantDates).mockReturnValue(mockImportantDates as any)
   })
 
   afterEach(() => {
