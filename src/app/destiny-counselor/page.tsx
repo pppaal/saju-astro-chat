@@ -2,7 +2,6 @@
 
 import { useEffect, useCallback, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ErrorBoundary, ChatErrorFallback } from '@/components/ErrorBoundary'
@@ -171,7 +170,6 @@ export default function CounselorPage() {
     }
   }, [bareEntry, router])
 
-  const handleBack = useCallback(() => router.back(), [router])
   // Claude-style new chat: drop the chat instance in place by bumping a
   // remount key. No page reload, no loading screen — the Chat tree just
   // remounts with empty state.
@@ -230,35 +228,11 @@ export default function CounselorPage() {
     return <CounselorLoading />
   }
 
-  // session=<id> 가 URL 에 있으면 사이드바의 "과거 채팅" 링크로 들어온
-  // 케이스 — 저장된 세션이 birth 컨텍스트를 들고 있어서, 게이트가 막으면
-  // 안 됨. Chat 컴포넌트가 세션 로드하면서 birth 정보까지 복원함.
-  if ((!birthDate || !birthTime) && !initialSessionId) {
-    return (
-      <main className={`${styles.page} ${styles.lightTheme}`}>
-        <div className={styles.missingProfileCard}>
-          <div className={styles.missingProfileIcon}>🔮</div>
-          <h1 className={styles.missingProfileTitle}>
-            {t('destinyMap.counselor.title', 'Destiny Counselor')}
-          </h1>
-          <p className={styles.missingProfileText}>
-            {t(
-              'destinyMap.counselor.missingProfile',
-              '상담을 시작하려면 먼저 생년월일과 출생 시간을 입력해 주세요.'
-            )}
-          </p>
-          <div className={styles.missingProfileActions}>
-            <Link href="/destiny-counselor" className={styles.primaryAction}>
-              {t('destinyMap.counselor.goToForm', '정보 입력하러 가기')}
-            </Link>
-            <button type="button" className={styles.secondaryAction} onClick={handleBack}>
-              {t('common.back', 'Back')}
-            </button>
-          </div>
-        </div>
-      </main>
-    )
-  }
+  // 생년월일·출생시간이 없어도 더 이상 게이트 화면으로 막지 않는다 — 바로
+  // 채팅을 띄운다(사용자 요청: "바로 채팅창 가야한다"). 사주 계산에 필요한
+  // 정보는, 정보 없는 사용자가 첫 메시지를 보낼 때 onSendBlocked 가
+  // BirthInfoModal 을 대신 띄워서 받는다(아래 <Chat onSendBlocked> 참조).
+  const needsBirthInfo = !birthDate || !birthTime
 
   return (
     <main className={`${styles.page} ${styles.lightTheme}`}>
@@ -475,6 +449,15 @@ export default function CounselorPage() {
             autoFocus
             initialSessionId={initialSessionId}
             onSessionChange={setActiveSession}
+            onSendBlocked={(_text) => {
+              // 생년월일·출생시간이 없으면 전송 대신 입력 모달을 띄운다.
+              // (게이트 화면 대체 — 바로 채팅하다가 첫 전송 시 정보 요청.)
+              if (needsBirthInfo) {
+                setBirthModalOpen(true)
+                return true
+              }
+              return false
+            }}
           />
         </ErrorBoundary>
       </div>
