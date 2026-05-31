@@ -16,6 +16,46 @@ import { generateFollowUpQuestions, isGenericFollowUp } from '../chat-followups'
 import type { ChatProps, ChatPayload } from '../chat-types'
 import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
 
+// 끊긴 턴 복원용 영속 정보 — recoverableTurnRef 는 메모리라 탭/앱을 완전히
+// 닫았다 다시 열면(=새로고침) 사라진다. turnId 를 localStorage 에 같이 남겨,
+// 서버가 keepGeneratingOnDisconnect 로 끝까지 만들어 둔 완성본을 마운트 시
+// result 캐시에서 자동으로 받아와 잘린 답을 갈아끼운다(ChatGPT 식). TTL 은
+// 서버 result 캐시(10분)와 맞춘다 — 그 뒤엔 캐시가 비어 복원 불가.
+const PENDING_TURN_KEY = 'destinyCounselor:pendingTurn'
+const PENDING_TURN_TTL_MS = 10 * 60 * 1000
+type PendingTurn = { turnId: string; userText: string; ts: number }
+
+function readPendingTurn(): PendingTurn | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(PENDING_TURN_KEY)
+    if (!raw) return null
+    const t = JSON.parse(raw) as PendingTurn
+    if (!t?.turnId || typeof t.ts !== 'number') return null
+    return t
+  } catch {
+    return null
+  }
+}
+
+function writePendingTurn(t: PendingTurn): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(PENDING_TURN_KEY, JSON.stringify(t))
+  } catch {
+    /* 저장 실패(quota/private mode) — 영속 복원만 포기, 인메모리 경로는 유지 */
+  }
+}
+
+function clearPendingTurn(): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(PENDING_TURN_KEY)
+  } catch {
+    /* noop */
+  }
+}
+
 interface UseChatApiOptions {
   sessionIdRef: React.MutableRefObject<string>
   messages: Message[]
@@ -157,7 +197,18 @@ export function useChatApi({
               )
               setMessages((prev) => {
                 const updated = [...prev]
-                const idx = updated.findIndex((m) => m.id === info.assistantMsgId)
+                // 정상 경로는 assistantMsgId 로 매칭. 새로고침 후 복원이면 그 id 가
+                // 이번 마운트의 메시지에 없을 수 있어, 끝에 남은 미완성 assistant
+                // 메시지를 폴백 대상으로 잡는다.
+                let idx = updated.findIndex((m) => m.id === info.assistantMsgId)
+                if (idx < 0) {
+                  for (let i = updated.length - 1; i >= 0; i--) {
+                    if (updated[i].role === 'assistant') {
+                      idx = i
+                      break
+                    }
+                  }
+                }
                 if (idx >= 0) {
                   updated[idx] = {
                     ...updated[idx],
@@ -187,6 +238,7 @@ export function useChatApi({
               onSaveMessageRef.current?.(info.userText, normalized)
               setNotice(null)
               recoverableTurnRef.current = null
+              clearPendingTurn()
               return
             }
           }
@@ -209,6 +261,45 @@ export function useChatApi({
     document.addEventListener('visibilitychange', onVis)
     return () => document.removeEventListener('visibilitychange', onVis)
   }, [attemptRecover])
+
+  // 새로고침/앱 재실행 복원 — 탭을 완전히 닫았다 열면 recoverableTurnRef(메모리)는
+  // 사라지지만, 잘린 답은 서버 세션/게스트 드래프트로 복원돼 화면 맨 끝에 미완성
+  // assistant 로 남는다. localStorage 의 turnId 가 아직 살아 있고(서버 캐시 TTL
+  // 내) 마지막 메시지가 그 미완성 답이면, 사용자가 아무것도 안 해도 result 캐시를
+  // 폴링해 완성본으로 갈아끼운다. 마운트당 1회, 새 전송이 시작되면 무효화.
+  const mountRecoverDoneRef = React.useRef(false)
+  React.useEffect(() => {
+    if (mountRecoverDoneRef.current) return
+    if (loading) return
+    const pending = readPendingTurn()
+    if (!pending) {
+      mountRecoverDoneRef.current = true
+      return
+    }
+    if (Date.now() - pending.ts > PENDING_TURN_TTL_MS) {
+      clearPendingTurn()
+      mountRecoverDoneRef.current = true
+      return
+    }
+    // 대화가 아직 복원되는 중일 수 있다(드래프트/서버 resume 은 비동기) — 메시지가
+    // 채워질 때까지 기다렸다가, 마지막이 미완성 assistant 일 때만 복원한다.
+    const last = messages[messages.length - 1]
+    if (!last) return
+    if (last.role !== 'assistant' || !last.incomplete) {
+      // 복원된 대화가 미완성으로 끝나지 않음 → 살릴 게 없음.
+      clearPendingTurn()
+      mountRecoverDoneRef.current = true
+      return
+    }
+    mountRecoverDoneRef.current = true
+    recoverableTurnRef.current = {
+      // id 가 없으면 attemptRecover 의 폴백(끝의 미완성 assistant 탐색)이 처리.
+      turnId: pending.turnId,
+      assistantMsgId: last.id ?? '',
+      userText: pending.userText,
+    }
+    void attemptRecover()
+  }, [messages, loading, attemptRecover])
 
   const flushMessageUpdate = React.useCallback(() => {
     if (pendingContentRef.current !== null) {
@@ -494,6 +585,8 @@ export function useChatApi({
         const completedOk = !!result.content && result.success && !result.truncated
         if (turnId && !completedOk) {
           recoverableTurnRef.current = { turnId, assistantMsgId, userText }
+          // 새로고침/앱 재실행 후에도 살릴 수 있게 turnId 를 localStorage 에도 남김.
+          writePendingTurn({ turnId, userText, ts: Date.now() })
           setMessages((prev) => {
             const updated = [...prev]
             const idx = updated.findIndex((m) => m.id === assistantMsgId)
@@ -503,6 +596,7 @@ export function useChatApi({
           void attemptRecover()
         } else {
           recoverableTurnRef.current = null
+          clearPendingTurn()
         }
       } finally {
         inFlightStreamRef.current = null
@@ -540,6 +634,11 @@ export function useChatApi({
       }
 
       setFollowUpQuestions([])
+
+      // 새 전송 시작 → 마운트 복원 경로 무효화. 직전 미완성 턴의 영속 turnId 가
+      // 새 답변에 잘못 덮어쓰이지 않게 하고, 이 턴이 끊기면 아래에서 새로 기록한다.
+      mountRecoverDoneRef.current = true
+      clearPendingTurn()
 
       const userMsgId = generateMessageId('user')
       const nextMessages: Message[] = [...messages, { role: 'user', content: text, id: userMsgId }]
