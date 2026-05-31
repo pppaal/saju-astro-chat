@@ -52,6 +52,17 @@ export const JIJANGGAN: { [branchName: string]: { [key: string]: string } } = {
   亥: { 여기: '戊', 중기: '甲', 정기: '壬' },
 }
 
+// 지장간을 "강도 순서" 배열(정기 → 중기 → 여기)로 펼친 형태. calendar-engine 의
+// 타이밍/초정밀 레이어가 hiddenStems[0]=정기(본기, 100) · [1]=중기(70) · [2]=여기(40)
+// 로 강도를 매기는 데 쓴다. JIJANGGAN(dict) 에서 파생하므로 글자·구성은 단일 소스이고,
+// 순서도 강도 규약과 항상 일치한다(예전 일부 지지의 여기↔중기 자리 뒤바뀜 교정).
+export const JIJANGGAN_ORDERED: Record<string, string[]> = Object.fromEntries(
+  Object.entries(JIJANGGAN).map(([branch, j]) => [
+    branch,
+    [j['정기'], j['중기'], j['여기']].filter((s): s is string => Boolean(s)),
+  ])
+)
+
 export const MONTH_STEM_LOOKUP: { [key: string]: string } = {
   甲: '丙',
   己: '丙',

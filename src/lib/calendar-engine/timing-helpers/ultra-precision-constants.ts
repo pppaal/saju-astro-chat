@@ -4,7 +4,7 @@
  */
 
 import type { ShinsalRule } from './ultra-precision-types';
-import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants';
+import { STEM_NAMES, BRANCH_NAMES, JIJANGGAN_ORDERED } from '@/lib/saju/constants';
 
 // ============================================================
 // 천간/지지 기본 상수
@@ -20,21 +20,10 @@ export const HOUR_BRANCHES = [...BRANCH_NAMES];
 // ============================================================
 // 지장간 (지지 속에 숨은 천간)
 // ============================================================
+// 정본 JIJANGGAN 에서 파생한 강도 순서(정기→중기→여기) 배열. 별도 복사본을 두지
+// 않아 정본과 갈라지지 않는다. (hiddenStems[0]=본기 가정 — strength 계산부 참조.)
 
-export const HIDDEN_STEMS: Record<string, string[]> = {
-  '子': ['癸'],
-  '丑': ['己', '癸', '辛'],
-  '寅': ['甲', '丙', '戊'],
-  '卯': ['乙'],
-  '辰': ['戊', '乙', '癸'],
-  '巳': ['丙', '戊', '庚'],
-  '午': ['丁', '己', '丙'], // 정기丁·중기己·여기丙
-  '未': ['己', '丁', '乙'],
-  '申': ['庚', '壬', '戊'],
-  '酉': ['辛'],
-  '戌': ['戊', '辛', '丁'],
-  '亥': ['壬', '甲', '戊'], // 정기壬·중기甲·여기戊 (생지 3개)
-};
+export const HIDDEN_STEMS: Record<string, string[]> = JIJANGGAN_ORDERED;
 
 // ============================================================
 // 공망 - 지지별 영향 영역
