@@ -1,18 +1,17 @@
 /**
  * stemData.ts - 천간 데이터
+ *
+ * 천간의 오행/음양/이름은 saju/constants 의 정본(STEMS)을 단일 소스로 삼고,
+ * 여기서는 타이밍 레이어가 쓰는 형태(이름키 Record + camelCase yinYang)로
+ * 변환만 한다. 값을 다시 적지 않으므로 정본과 절대 갈라지지 않는다.
  */
 
+import { STEMS as CANON_STEMS } from '@/lib/saju/constants';
 import type { StemInfo } from '../types';
 
-export const STEMS: Record<string, StemInfo> = {
-  '甲': { name: '甲', element: '목', yinYang: '양' },
-  '乙': { name: '乙', element: '목', yinYang: '음' },
-  '丙': { name: '丙', element: '화', yinYang: '양' },
-  '丁': { name: '丁', element: '화', yinYang: '음' },
-  '戊': { name: '戊', element: '토', yinYang: '양' },
-  '己': { name: '己', element: '토', yinYang: '음' },
-  '庚': { name: '庚', element: '금', yinYang: '양' },
-  '辛': { name: '辛', element: '금', yinYang: '음' },
-  '壬': { name: '壬', element: '수', yinYang: '양' },
-  '癸': { name: '癸', element: '수', yinYang: '음' },
-};
+export const STEMS: Record<string, StemInfo> = Object.fromEntries(
+  CANON_STEMS.map((s): [string, StemInfo] => [
+    s.name,
+    { name: s.name, element: s.element, yinYang: s.yin_yang },
+  ])
+);

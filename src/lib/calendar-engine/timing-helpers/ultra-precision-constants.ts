@@ -4,14 +4,18 @@
  */
 
 import type { ShinsalRule } from './ultra-precision-types';
+import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants';
 
 // ============================================================
 // 천간/지지 기본 상수
 // ============================================================
+// 이름 배열은 saju/constants 정본에서 파생 — 천간/지지 글자·순서를 한 곳에서만
+// 관리한다 (복사본을 따로 적지 않아 갈라지지 않음). 새 배열로 복사해 소비처의
+// 우발적 변형이 정본에 새지 않게 한다.
 
-export const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-export const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-export const HOUR_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+export const STEMS = [...STEM_NAMES];
+export const BRANCHES = [...BRANCH_NAMES];
+export const HOUR_BRANCHES = [...BRANCH_NAMES];
 
 // ============================================================
 // 지장간 (지지 속에 숨은 천간)
