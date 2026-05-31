@@ -269,6 +269,7 @@ export default function CounselorPage() {
         onNewChat={handleChatReset}
         lightTheme
         enableGrouping
+        fallbackName={name}
         onActionError={({ kind, status }) => showActionFailureToast(kind, status)}
       />
       <header className={styles.header}>
