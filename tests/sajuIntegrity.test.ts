@@ -43,14 +43,13 @@ describe('Saju constants', () => {
 
   it('jijanggan maps 12 branches with correct stem entries', () => {
     expect(Object.keys(JIJANGGAN)).toHaveLength(12)
-    // 子, 卯, 酉: 정기만 (1개)
-    // 午: 여기 + 정기 (2개)
-    // 나머지(亥 포함 — 생지라 여기·중기·정기 3개): 3개
+    // 子, 卯, 酉(왕지): 정기만 (1개)
+    // 나머지(午·亥 포함): 여기·중기·정기 3개
     const expectedCounts: Record<string, number> = {
       子: 1,
       卯: 1,
       酉: 1,
-      午: 2,
+      午: 3,
       亥: 3,
       丑: 3,
       寅: 3,
