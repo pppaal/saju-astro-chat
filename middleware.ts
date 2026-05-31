@@ -299,7 +299,10 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   })
-  response.headers.set('Content-Security-Policy', buildCsp(nonce))
+  response.headers.set(
+    'Content-Security-Policy',
+    buildCsp(nonce, pathname.startsWith('/admin'))
+  )
   response.headers.set('Content-Language', locale)
   // Tell crawlers/CDNs the same URL serves different content per cookie
   response.headers.set('Vary', 'Cookie, Accept-Language')
