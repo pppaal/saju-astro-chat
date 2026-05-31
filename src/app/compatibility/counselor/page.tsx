@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
-import BrandSplash from '@/components/branding/BrandSplash'
+import CounselorLoadingScreen from '@/components/branding/CounselorLoading'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
@@ -58,13 +58,12 @@ const TYPEWRITER_PROMPTS_EN = [
   'Where do we differ?',
 ] as const
 
-function CounselorLoading({ lang = 'ko' }: { lang?: 'ko' | 'en' }) {
-  return (
-    <BrandSplash
-      variant="light"
-      message={lang === 'ko' ? '상담사 준비 중…' : 'Preparing your counselor…'}
-    />
-  )
+// 메인/상담 화면과 톤이 끊기지 않는 조용한 로더(따뜻한 화이트 + 헥사 마크)로
+// 통일 — 운명 상담사와 동일. lang 인자는 호출부 호환을 위해 남겨두되, 로더
+// 자체는 문구 없이 색·로고 연속성만으로 "로딩 걸린지도 모르게" 전환되게 한다.
+function CounselorLoading(_props: { lang?: 'ko' | 'en' }) {
+  void _props
+  return <CounselorLoadingScreen />
 }
 
 type ChatMessage = {
