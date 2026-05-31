@@ -128,16 +128,17 @@ describe('interpret-stream — single-use draw nonce gating (Fix A)', () => {
     expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1, expect.anything())
   })
 
-  it('does NOT double-charge a genuine replay of the SAME nonce', async () => {
+  it('does NOT net-double-charge a genuine replay (charges then refunds the SAME nonce)', async () => {
     mockConsume.mockResolvedValue('replay')
     await POST(makeReq(BODY_3CARD, 'valid-nonce'))
-    // T1 fix(route): credit 부족 시 nonce 가 burn 되던 버그 때문에 순서를 바꿔
-    // credit 을 *먼저* 차감하고(checkAndConsumeCredits), replay 로 판정되면
-    // 방금 차감분을 refundCredits 로 환불한다 → 순효과 이중차지 0. 따라서 차감은
-    // 1회 호출되고, 환불이 뒤따른다(옛 동작인 "차감 자체 skip" 아님).
+    // T1 fix(route): credit 를 먼저 차감하고(크레딧 부족 재시도 시 nonce 가
+    // 미리 burn 돼 무료 reading 누수되던 버그 차단), replay 로 판정되면 방금
+    // 차감한 금액을 즉시 환불한다 → 순 이중과금 0. 옛 테스트는 "차감 자체를
+    // skip" 하는 이전 설계를 기대해 실패했으므로, 환불로 상쇄됨을 검증한다.
     expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(1)
+    expect(mockRefund).toHaveBeenCalledTimes(1)
     expect(mockRefund).toHaveBeenCalledWith(
-      expect.objectContaining({ creditType: 'reading', reason: 'tarot_nonce_replay' })
+      expect.objectContaining({ creditType: 'reading', amount: 1, reason: 'tarot_nonce_replay' })
     )
   })
 

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { logger } from '@/lib/logger'
+import { apiFetch } from '@/lib/api'
 import { clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 import styles from './CounselorSidebar.module.css'
 import HexDPLogo from '@/components/branding/HexDPLogo'
@@ -23,20 +24,25 @@ type SessionItem = {
   } | null
 }
 
-/** 한 채팅 row 의 부제 — destiny: 'Jun' / compat: 'Jun ↔ Yuna'. meta 가
- *  비어 있거나 (구버전 데이터) name 이 없으면 null 반환해 부제 자체 생략. */
-function getSessionSubtitle(item: SessionItem, serviceType: ServiceType): string | null {
+/** 한 채팅 row 의 부제 — destiny: 'Jun' / compat: 'Jun ↔ Yuna'. compat 는
+ *  meta.persons 가 없으면 (구버전 데이터) 부제 생략. destiny 는 저장된
+ *  profile.name 우선, 없으면 현재 프로필 이름(fallbackName)으로 폴백해서
+ *  meta 가 비어 있던 옛 세션도 이름이 한 줄 뜨게 한다. */
+function getSessionSubtitle(
+  item: SessionItem,
+  serviceType: ServiceType,
+  fallbackName?: string | null
+): string | null {
   const meta = item.meta
-  if (!meta) return null
   if (serviceType === 'compat') {
-    const a = meta.persons?.[0]?.name?.trim()
-    const b = meta.persons?.[1]?.name?.trim()
+    const a = meta?.persons?.[0]?.name?.trim()
+    const b = meta?.persons?.[1]?.name?.trim()
     if (a && b) return `${a} ↔ ${b}`
     if (a || b) return (a || b) as string
     return null
   }
-  const name = meta.profile?.name?.trim()
-  return name || null
+  const name = meta?.profile?.name?.trim()
+  return name || fallbackName?.trim() || null
 }
 
 type ServiceType = 'destiny' | 'compat'
@@ -68,6 +74,11 @@ interface CounselorSidebarProps {
   /** Extra footer content (tarot / chart triggers) rendered above the auth button. */
   footerSlot?: React.ReactNode
   /**
+   * destiny 전용 — 세션 meta 에 저장된 profile.name 이 없을 때(meta 가 추가되기
+   * 전에 만들어진 옛 세션) 부제에 띄울 현재 프로필 이름. compat 은 무시.
+   */
+  fallbackName?: string | null
+  /**
    * Called when a rename/delete request fails so the parent can surface a
    * toast / notice in the user's locale instead of the old blocking
    * `window.alert()` (jarring on mobile, untranslated, freezes the page).
@@ -94,6 +105,7 @@ export default function CounselorSidebar({
   lightTheme = false,
   footerSlot,
   onActionError,
+  fallbackName,
 }: CounselorSidebarProps) {
   const { t } = useI18n()
   const { data: session, status } = useSession()
@@ -132,7 +144,7 @@ export default function CounselorSidebar({
     if (status !== 'authenticated') return
     let cancelled = false
     setLoadingList(true)
-    fetch(`/api/counselor/session/list?limit=30&type=${serviceType}`)
+    apiFetch(`/api/counselor/session/list?limit=30&type=${serviceType}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return
@@ -185,7 +197,7 @@ export default function CounselorSidebar({
       if (!ok) return
       let status: number | undefined
       try {
-        const res = await fetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`, {
+        const res = await apiFetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`, {
           method: 'DELETE',
         })
         status = res.status
@@ -227,7 +239,7 @@ export default function CounselorSidebar({
     }
     let status: number | undefined
     try {
-      const res = await fetch('/api/counselor/session/list', {
+      const res = await apiFetch('/api/counselor/session/list', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: id, title: next }),
@@ -341,7 +353,7 @@ export default function CounselorSidebar({
           >
             <span className={styles.sessionTitle}>{displayName}</span>
             {(() => {
-              const subtitle = getSessionSubtitle(s, serviceType)
+              const subtitle = getSessionSubtitle(s, serviceType, fallbackName)
               if (!subtitle) return null
               return <span className={styles.sessionSubtitle}>{subtitle}</span>
             })()}

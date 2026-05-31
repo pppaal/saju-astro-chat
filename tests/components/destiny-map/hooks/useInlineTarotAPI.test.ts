@@ -421,8 +421,12 @@ describe('useInlineTarotAPI', () => {
         await result.current.saveReading()
       })
 
+      // saveReading goes through apiFetch — authenticates via session cookies
+      // (credentials: 'include') so logged-in saves are not dropped on mobile
+      // in-app browsers where the native-fetch default would omit the cookie.
       expect(mockFetch).toHaveBeenCalledWith('/api/tarot/save', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },

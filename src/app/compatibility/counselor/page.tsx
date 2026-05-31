@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
-import BrandSplash from '@/components/branding/BrandSplash'
+import CounselorLoadingScreen from '@/components/branding/CounselorLoading'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
@@ -58,13 +58,12 @@ const TYPEWRITER_PROMPTS_EN = [
   'Where do we differ?',
 ] as const
 
-function CounselorLoading({ lang = 'ko' }: { lang?: 'ko' | 'en' }) {
-  return (
-    <BrandSplash
-      variant="light"
-      message={lang === 'ko' ? '상담사 준비 중…' : 'Preparing your counselor…'}
-    />
-  )
+// 메인/상담 화면과 톤이 끊기지 않는 조용한 로더(따뜻한 화이트 + 헥사 마크)로
+// 통일 — 운명 상담사와 동일. lang 인자는 호출부 호환을 위해 남겨두되, 로더
+// 자체는 문구 없이 색·로고 연속성만으로 "로딩 걸린지도 모르게" 전환되게 한다.
+function CounselorLoading(_props: { lang?: 'ko' | 'en' }) {
+  void _props
+  return <CounselorLoadingScreen />
 }
 
 type ChatMessage = {
@@ -227,7 +226,7 @@ function CompatibilityCounselorContent() {
         //    the conversation and the couple snapshot we saved alongside.
         if (resumeId) {
           try {
-            const res = await fetch(
+            const res = await apiFetch(
               `/api/counselor/session/load?sessionId=${encodeURIComponent(resumeId)}`
             )
             if (res.ok) {
@@ -483,7 +482,7 @@ function CompatibilityCounselorContent() {
     const next = window.prompt(isKo ? '대화 이름' : 'Chat name', chatTitle || '')
     if (!next || !next.trim()) return
     try {
-      await fetch('/api/counselor/session/list', {
+      await apiFetch('/api/counselor/session/list', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: chatSessionId, title: next.trim() }),
@@ -502,7 +501,7 @@ function CompatibilityCounselorContent() {
     )
     if (!confirmed) return
     try {
-      await fetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(chatSessionId)}`, {
+      await apiFetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(chatSessionId)}`, {
         method: 'DELETE',
       })
     } catch (err) {
@@ -762,7 +761,10 @@ function CompatibilityCounselorContent() {
               person2Astro,
             }
           }
-          fetch('/api/counselor/chat-history', {
+          // apiFetch — 세션 쿠키를 항상 실어 모바일 인앱 브라우저에서도 저장이
+          // 성공하도록. 저장이 실패하면 이어 띄울 "최신 채팅"이 없어 매번 폼이
+          // 떴다(#1037 와 동일한 native-fetch 쿠키 누락 이슈).
+          apiFetch('/api/counselor/chat-history', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -927,7 +929,7 @@ function CompatibilityCounselorContent() {
                 assistantMessage: cleanContent,
                 type: 'compat',
               }
-              fetch('/api/counselor/chat-history', {
+              apiFetch('/api/counselor/chat-history', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),

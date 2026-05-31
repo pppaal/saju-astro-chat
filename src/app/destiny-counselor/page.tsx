@@ -15,6 +15,7 @@ import styles from './counselor.module.css'
 import { logger } from '@/lib/logger'
 import { useCounselorData } from './useCounselorData'
 import Chat from '@/components/destiny-map/Chat'
+import CounselorLoading from '@/components/branding/CounselorLoading'
 import BirthInfoModal from '@/app/(main)/components/BirthInfoModal'
 import {
   buildCounselorHref,
@@ -223,7 +224,10 @@ export default function CounselorPage() {
   // fetched yet. Keep lightTheme here too so switching past chats doesn't
   // flash the dark/purple base background for ~1s before the chat returns.
   if (profileLoading || resumeChecking) {
-    return <main className={`${styles.page} ${styles.lightTheme}`} />
+    // Same quiet loader the route-level loading.tsx uses — keeps the warm
+    // white surface + centered hex mark continuous from the home screen so
+    // the in-page fetch reads as the page settling, not a second flash.
+    return <CounselorLoading />
   }
 
   // session=<id> 가 URL 에 있으면 사이드바의 "과거 채팅" 링크로 들어온
@@ -265,6 +269,7 @@ export default function CounselorPage() {
         onNewChat={handleChatReset}
         lightTheme
         enableGrouping
+        fallbackName={name}
         onActionError={({ kind, status }) => showActionFailureToast(kind, status)}
       />
       <header className={styles.header}>
