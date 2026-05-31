@@ -10,13 +10,6 @@ import { resolve } from 'path'
 describe('Scripts Smoke Tests', () => {
   const scriptsDir = resolve(process.cwd(), 'scripts')
 
-  describe('Automation Scripts', () => {
-    it('should have daily fortune post script', () => {
-      const filePath = resolve(scriptsDir, 'auto-post-daily-fortune.mjs')
-      expect(existsSync(filePath)).toBe(true)
-    })
-  })
-
   describe('Code Quality Scripts', () => {
     it('should have migrate console to logger script', () => {
       const filePath = resolve(scriptsDir, 'migrate-console-to-logger.js')
@@ -58,7 +51,6 @@ describe('Scripts Smoke Tests', () => {
   describe('Scripts Summary', () => {
     it('should have all essential script files', () => {
       const scripts = [
-        'auto-post-daily-fortune.mjs',
         'migrate-console-to-logger.js',
         'wait-for-server.mjs',
         'owasp-zap-baseline.mjs',
@@ -72,7 +64,7 @@ describe('Scripts Smoke Tests', () => {
         expect(existsSync(filePath)).toBe(true)
       })
 
-      expect(scripts.length).toBe(7)
+      expect(scripts.length).toBe(6)
     })
   })
 })
