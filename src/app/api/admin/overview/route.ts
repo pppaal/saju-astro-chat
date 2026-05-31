@@ -21,6 +21,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
+import type { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,16 @@ export const GET = withApiMiddleware(
       const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
+      // "실제 회원" 정의 — 로그인 수단이 있는 계정만. prod User 테이블엔 앱
+      // 가입 경로(next-auth createUser) 외에, 출처 불명의 대량 레코드 약 41,500
+      // 행이 섞여 있다(OAuth Account 도 passwordHash 도 없어 로그인 불가능한
+      // 껍데기 — 과거 외부 임포트로 추정). prisma.user.count() 를 그대로 쓰면
+      // 이 껍데기까지 회원으로 집계돼 41,709 처럼 부풀려진다. 그래서 OAuth
+      // Account 연결이 있거나 passwordHash 가 있는 행만 회원으로 센다.
+      const realUserWhere: Prisma.UserWhereInput = {
+        OR: [{ accounts: { some: {} } }, { passwordHash: { not: null } }],
+      }
+
       const [
         usersTotal,
         usersToday,
@@ -56,10 +67,10 @@ export const GET = withApiMiddleware(
         payingUsers,
         recentSignups,
       ] = await Promise.all([
-        prisma.user.count(),
-        prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
-        prisma.user.count({ where: { createdAt: { gte: last7d } } }),
-        prisma.user.count({ where: { createdAt: { gte: last30d } } }),
+        prisma.user.count({ where: realUserWhere }),
+        prisma.user.count({ where: { AND: [realUserWhere, { createdAt: { gte: startOfToday } }] } }),
+        prisma.user.count({ where: { AND: [realUserWhere, { createdAt: { gte: last7d } }] } }),
+        prisma.user.count({ where: { AND: [realUserWhere, { createdAt: { gte: last30d } }] } }),
         prisma.reading.count(),
         prisma.reading.count({ where: { createdAt: { gte: startOfToday } } }),
         prisma.reading
@@ -84,6 +95,7 @@ export const GET = withApiMiddleware(
           .groupBy({ by: ['userId'], where: { source: 'purchase' } })
           .then((rows) => rows.length),
         prisma.user.findMany({
+          where: realUserWhere,
           orderBy: { createdAt: 'desc' },
           take: 10,
           select: { id: true, email: true, name: true, createdAt: true },
