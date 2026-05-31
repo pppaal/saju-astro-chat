@@ -750,8 +750,17 @@ export const GET = withApiMiddleware(
 
       return apiSuccess({ data, section, timeRange } as Record<string, unknown>)
     } catch (err) {
-      logger.error('[Comprehensive API Error]', err)
-      return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
+      // 어드민 전용 엔드포인트라 실제 에러 메시지를 그대로 노출한다.
+      // 'Internal server error' 로 뭉개면 어떤 테이블/컬럼(phantom-apply 등)이
+      // 깨졌는지 운영자가 알 수 없어 디버깅이 불가능했다. 일반 사용자에게
+      // 닿지 않는 경로이므로 상세 노출이 안전.
+      const detail = err instanceof Error ? err.message : String(err)
+      const code = (err as { code?: string } | null)?.code
+      logger.error('[Comprehensive API Error]', { section: new URL(req.url).searchParams.get('section'), code, err })
+      return apiError(
+        ErrorCodes.INTERNAL_ERROR,
+        `comprehensive failed${code ? ` [${code}]` : ''}: ${detail}`
+      )
     }
   },
   createAuthenticatedGuard({
