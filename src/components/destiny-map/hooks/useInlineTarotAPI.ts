@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import type { DrawnCard, CardInsight } from '@/lib/tarot/tarot.types'
+import { saveReading as saveReadingLocally, formatReadingForSave } from '@/lib/tarot/tarot-storage'
 import { logger } from '@/lib/logger'
 import { apiFetch } from '@/lib/api'
 import { useCreditModal } from '@/contexts/CreditModalContext'
@@ -371,6 +372,34 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
     }
     saveAttemptedRef.current = true
 
+    // 게스트(서버 401) 또는 서버 저장 실패 시 로컬 히스토리에 폴백 저장 —
+    // 단독 타로 페이지(useTarotInterpretation)의 게스트 동선과 동일. 이렇게
+    // 저장된 로컬 리딩은 타로 히스토리(getSavedReadings)에 바로 뜨고,
+    // 나중에 로그인하면 migrateLocalReadingsToServer 가 계정으로 이전한다.
+    const persistLocally = (): boolean => {
+      if (!selectedSpread) return false
+      try {
+        saveReadingLocally(
+          formatReadingForSave(
+            concern,
+            selectedSpread,
+            drawnCards,
+            {
+              overall_message: overallMessage,
+              guidance,
+              card_insights: cardInsights,
+            },
+            selectedCategory,
+            selectedSpread.id
+          )
+        )
+        return true
+      } catch (e) {
+        logger.error('[InlineTarot] local save error:', e)
+        return false
+      }
+    }
+
     actions.setIsSaving(true)
     try {
       const res = await fetch('/api/tarot/save', {
@@ -424,9 +453,11 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       } else {
         const err = await res.json().catch(() => ({}))
         logger.error('[InlineTarot] save error:', err)
+        if (persistLocally()) actions.setIsSaved(true)
       }
     } catch (err) {
       logger.error('[InlineTarot] save error:', err)
+      if (persistLocally()) actions.setIsSaved(true)
     } finally {
       actions.setIsSaving(false)
     }

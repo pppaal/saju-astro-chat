@@ -490,7 +490,7 @@ describe('useInlineTarotAPI', () => {
       expect(stateManager.actions.setIsSaved).toHaveBeenCalledWith(true)
     })
 
-    it('should handle save error', async () => {
+    it('falls back to a local history save when the server save fails (guest 401 etc.)', async () => {
       const stateManager = createMockStateManager({
         drawnCards: mockDrawnCards,
       })
@@ -512,7 +512,9 @@ describe('useInlineTarotAPI', () => {
         await result.current.saveReading()
       })
 
-      expect(stateManager.actions.setIsSaved).not.toHaveBeenCalledWith(true)
+      // 서버 저장 실패(게스트 401 포함) 시 단독 타로 페이지와 동일하게 로컬
+      // 히스토리에 폴백 저장하고, 저장됨으로 표시한다 — 리딩이 통째로 소실되지 않도록.
+      expect(stateManager.actions.setIsSaved).toHaveBeenCalledWith(true)
       expect(stateManager.actions.setIsSaving).toHaveBeenLastCalledWith(false)
     })
 
