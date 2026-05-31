@@ -36,42 +36,6 @@
     "readTime": 12
   },
   {
-    "slug": "numerology-life-path-numbers-explained",
-    "title": "Numerology Life Path Numbers: Discover Your Destiny Through Numbers",
-    "titleKo": "수비학 생명 경로 숫자: 숫자로 운명 발견하기",
-    "excerpt": "Calculate your Life Path Number and learn what it reveals about your personality, purpose, and potential.",
-    "excerptKo": "생명 경로 숫자를 계산하고 성격, 목적, 잠재력에 대해 무엇을 드러내는지 알아보세요.",
-    "category": "Numerology",
-    "categoryKo": "수비학",
-    "icon": "🔢",
-    "date": "2024-11-28",
-    "readTime": 7
-  },
-  {
-    "slug": "iching-beginners-guide-hexagrams",
-    "title": "I Ching Guide: Understanding the Ancient Book of Changes",
-    "titleKo": "주역 가이드: 고대 변화의 책 이해하기",
-    "excerpt": "Learn the basics of I Ching divination, how to consult the oracle, and interpret the 64 hexagrams.",
-    "excerptKo": "주역 점술의 기본, 신탁에 묻는 법, 64괘 해석법을 배워보세요.",
-    "category": "I Ching",
-    "categoryKo": "주역",
-    "icon": "☯",
-    "date": "2024-11-20",
-    "readTime": 9
-  },
-  {
-    "slug": "dream-interpretation-symbols-meanings",
-    "title": "Dream Interpretation: Common Symbols and Their Hidden Meanings",
-    "titleKo": "꿈 해몽: 일반적인 상징과 숨겨진 의미",
-    "excerpt": "Unlock the messages in your dreams by understanding universal dream symbols and their psychological significance.",
-    "excerptKo": "보편적인 꿈 상징과 심리적 의미를 이해하여 꿈 속 메시지를 해독하세요.",
-    "category": "Dream",
-    "categoryKo": "꿈해몽",
-    "icon": "💭",
-    "date": "2024-11-15",
-    "readTime": 8
-  },
-  {
     "slug": "compatibility-astrology-relationship-guide",
     "title": "Relationship Compatibility: How Astrology Reveals Your Perfect Match",
     "titleKo": "관계 궁합: 점성술로 완벽한 짝 찾기",
@@ -82,18 +46,6 @@
     "icon": "💕",
     "date": "2024-11-10",
     "readTime": 10
-  },
-  {
-    "slug": "personality-types-astrology-mbti-zodiac",
-    "title": "Personality Types & Astrology: How MBTI Connects with Your Zodiac Sign",
-    "titleKo": "성격 유형과 점성술: MBTI와 별자리의 놀라운 연결고리",
-    "excerpt": "Explore the fascinating connections between MBTI personality types and zodiac signs to gain deeper self-understanding.",
-    "excerptKo": "MBTI 성격 유형과 황도대 별자리 사이의 흥미로운 연결을 탐구하여 더 깊은 자기 이해를 얻어보세요.",
-    "category": "Personality",
-    "categoryKo": "성격",
-    "icon": "🧠",
-    "date": "2025-01-15",
-    "readTime": 9
   },
   {
     "slug": "destiny-map-life-blueprint-guide",
