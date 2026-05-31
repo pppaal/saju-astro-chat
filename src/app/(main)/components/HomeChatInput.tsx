@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import styles from '../main-page.module.css'
 import type { StoredBirthInfo } from '../birthInfoStorage'
 import { buildCounselorHref } from '../birthInfoStorage'
+import { ChatInputArea } from '@/components/destiny-map/chat-panels'
 
 interface HomeChatInputProps {
   birthInfo: StoredBirthInfo | null
@@ -17,6 +18,8 @@ interface HomeChatInputProps {
   locale: 'en' | 'ko'
 }
 
+// 메인 입력창 타이프라이터 — 운명/궁합 상담사와 동일한 공용 ChatInputArea 에
+// placeholderPrompts 로 주입. (상담사들도 같은 컴포넌트라 입력창 모양 통일.)
 const TYPEWRITER_PROMPTS_KO = [
   '무엇이든 물어보세요',
   '올해 이직 시기 어때?',
@@ -34,12 +37,8 @@ const TYPEWRITER_PROMPTS_EN = [
   'When will money flow?',
 ]
 
-const TYPE_SPEED_MS = 65
-const DELETE_SPEED_MS = 35
-const HOLD_AFTER_TYPED_MS = 1800
-const HOLD_AFTER_DELETED_MS = 250
-
-// 칩 표시용 — "1995년 2월 9일 06:40am (남)" 형식.
+// 칩 표시용 — "1995년 2월 9일 6:40am (남)" 형식. 시(hour)는 앞 0 없이(4am),
+// 분(minute)만 2자리 유지(4:05am).
 function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
   const [y, m, d] = info.birthDate.split('-').map((n) => parseInt(n, 10))
   const datePart = isKo
@@ -50,7 +49,7 @@ function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
     const [hh, mm] = info.birthTime.split(':').map((n) => parseInt(n, 10))
     const ampm = hh < 12 ? 'am' : 'pm'
     const h12 = hh % 12 === 0 ? 12 : hh % 12
-    timePart = ` ${String(h12).padStart(2, '0')}:${String(mm).padStart(2, '0')}${ampm}`
+    timePart = ` ${h12}:${String(mm).padStart(2, '0')}${ampm}`
   }
   const g = info.gender === 'male' ? (isKo ? '남' : 'M') : isKo ? '여' : 'F'
   return `${datePart}${timePart} (${g})`
@@ -64,15 +63,12 @@ export default function HomeChatInput({
 }: HomeChatInputProps) {
   const router = useRouter()
   const [text, setText] = useState('')
-  const [typedPlaceholder, setTypedPlaceholder] = useState('')
   const isKo = locale === 'ko'
 
   // 메인 페이지 = 운명상담사 한 흐름.
   // - 생일 있음 → 바로 운명 상담사로 (질문 전달 → 자동 답변)
   // - 생일 없고 질문 있음 → 생일 모달, 저장하면 그 질문 들고 운명상담사
   // - 생일 없고 질문 비었음 → 생일 모달만 (자동 이동 X)
-  // 타로 / 궁합은 햄버거 사이드 메뉴에서만 접근 — 같은 입력란에 묶으면 사용자가
-  // "자유 질문" vs "modality 선택" 사이에서 혼란.
   const goCounselor = () => {
     const trimmed = text.trim()
     if (!birthInfo) {
@@ -91,68 +87,8 @@ export default function HomeChatInput({
     }
   }
 
-  const typingActiveRef = useRef(true)
-  useEffect(() => {
-    typingActiveRef.current = text.length === 0
-  }, [text])
-
-  useEffect(() => {
-    const prompts = isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN
-    let cancelled = false
-    let promptIdx = 0
-    let charIdx = 0
-    let mode: 'typing' | 'holding' | 'deleting' = 'typing'
-
-    const tick = () => {
-      if (cancelled) return
-      if (!typingActiveRef.current) {
-        window.setTimeout(tick, 400)
-        return
-      }
-      const current = prompts[promptIdx % prompts.length]
-      if (mode === 'typing') {
-        charIdx += 1
-        setTypedPlaceholder(current.slice(0, charIdx))
-        if (charIdx >= current.length) {
-          mode = 'holding'
-          window.setTimeout(tick, HOLD_AFTER_TYPED_MS)
-          return
-        }
-        window.setTimeout(tick, TYPE_SPEED_MS)
-        return
-      }
-      if (mode === 'holding') {
-        mode = 'deleting'
-        window.setTimeout(tick, DELETE_SPEED_MS)
-        return
-      }
-      charIdx -= 1
-      setTypedPlaceholder(current.slice(0, Math.max(0, charIdx)))
-      if (charIdx <= 0) {
-        promptIdx += 1
-        mode = 'typing'
-        window.setTimeout(tick, HOLD_AFTER_DELETED_MS)
-        return
-      }
-      window.setTimeout(tick, DELETE_SPEED_MS)
-    }
-
-    setTypedPlaceholder('')
-    window.setTimeout(tick, 300)
-
-    return () => {
-      cancelled = true
-    }
-  }, [isKo])
-
-  const placeholder = typedPlaceholder || ' '
-
   return (
     <div className={styles.homeChatBar}>
-      {/* 서비스 칩 폐기 — 메인 = 운명상담사 한 흐름. 타로 / 궁합은 햄버거
-          사이드에서 접근. 같은 입력란에 묶으면 "자유 질문 받음 (운명)" vs
-          "modality 별도 (타로/궁합)" 사이에서 사용자 헷갈림. */}
-
       <div className={styles.homeChatBarInner}>
         {/* 초록 생일 CTA — 출발점이 생일임을 보여주고, 저장된 뒤엔 수정 버튼이 된다. */}
         {birthInfo ? (
@@ -173,25 +109,27 @@ export default function HomeChatInput({
           </button>
         )}
 
-        <div className={styles.homeChatRow}>
-          <textarea
-            className={styles.homeChatTextarea}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            rows={2}
-          />
-          {/* 전송 버튼 — 입력창 안 우하단(absolute). homeChatRow 가 relative. */}
-          <button
-            type="button"
-            className={styles.homeChatSubmit}
-            onClick={goCounselor}
-            aria-label={isKo ? '운명 상담사에게 질문하기' : 'Ask the destiny counselor'}
-          >
-            <span aria-hidden="true">↑</span>
-          </button>
-        </div>
+        {/* 운명/궁합 상담사와 동일한 공용 입력창. 메인은 첨부/타로/차트 도구가
+            없어 ⋮ 메뉴는 자동으로 숨겨지고, 보내기=상담사로 네비게이트. */}
+        <ChatInputArea
+          input={text}
+          loading={false}
+          cvName=""
+          parsingPdf={false}
+          usedFallback={false}
+          labels={{
+            placeholder: isKo ? '무엇이든 물어보세요' : 'Ask anything',
+            send: isKo ? '운명 상담사에게 질문하기' : 'Ask the destiny counselor',
+            uploadCv: '',
+            parsingPdf: '',
+          }}
+          lang={isKo ? 'ko' : 'en'}
+          onInputChange={setText}
+          onKeyDown={handleKeyDown}
+          onSend={goCounselor}
+          placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
+          theme="light"
+        />
       </div>
     </div>
   )
