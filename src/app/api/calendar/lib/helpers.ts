@@ -631,6 +631,13 @@ export function formatDateForResponse(
     scoreBreakdown: (
       date as { scoreBreakdown?: import('./yearlyDates').YearlyImportantDate['scoreBreakdown'] }
     ).scoreBreakdown,
+    // 시간 층 흐름 + 운끼리 충/합/형 — FlowLadder UI 가 소비.
+    longCycleContext: (
+      date as { longCycleContext?: import('./yearlyDates').YearlyImportantDate['longCycleContext'] }
+    ).longCycleContext,
+    cycleInteractions: (
+      date as { cycleInteractions?: import('./yearlyDates').YearlyImportantDate['cycleInteractions'] }
+    ).cycleInteractions,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)
     ),

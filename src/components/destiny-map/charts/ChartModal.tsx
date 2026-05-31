@@ -35,6 +35,20 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
   // 셀 탭 → PillarDrawer. null 이면 닫힘.
   const [openPillar, setOpenPillar] = React.useState<'time' | 'day' | 'month' | 'year' | null>(null)
 
+  // 모바일 ghost-tap 방어 — 모달이 열리는 그 탭이 갓 마운트된 내부 버튼(특히 하단
+  // "→ 캘린더" 링크)으로 통과해 즉시 navigate 되던 버그. 데이터가 비어 모달이 짧을 때
+  // 캘린더 버튼이 ☯ 버튼 위치 근처에 떠서 더 잘 터졌다. 연 직후 ~320ms 는 상호작용을
+  // 막아 여는 탭을 무력화한다.
+  const [armed, setArmed] = React.useState(false)
+  React.useEffect(() => {
+    if (!open) {
+      setArmed(false)
+      return
+    }
+    const id = window.setTimeout(() => setArmed(true), 320)
+    return () => window.clearTimeout(id)
+  }, [open])
+
   React.useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -58,7 +72,9 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
     <div
       ref={trapRef}
       className="chart-backdrop-in fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={() => {
+        if (armed) onClose()
+      }}
       role="dialog"
       aria-modal="true"
       aria-label={isKo ? '내 차트' : 'My chart'}
@@ -72,6 +88,8 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
           WebkitBackdropFilter: 'blur(20px)',
           boxShadow: '0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
           maxHeight: '96dvh',
+          // armed 전(연 직후 ~320ms)엔 내부 버튼 클릭 차단 — ghost-tap 방어.
+          pointerEvents: armed ? 'auto' : 'none',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -295,6 +313,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
           <button
             type="button"
             onClick={() => {
+              if (!armed) return // ghost-tap 방어 — 연 직후 여는 탭으로 navigate 금지
               onClose()
               router.push('/calendar')
             }}

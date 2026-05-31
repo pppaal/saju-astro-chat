@@ -15,10 +15,31 @@ export type { FortuneArea };
 export type ImportanceGrade = 0 | 1 | 2 | 3 | 4;
 export type EventCategory = "wealth" | "career" | "love" | "health" | "travel" | "study" | "general";
 
+/**
+ * 트랜짓 어스펙트 근거 (점성). 구 transit-analysis.ts 의 동명 타입에서 이관한
+ * 최소 정의 — 응답 타입 계층(calendarMatrixEvidenceSupport)이 읽는 필드만.
+ * v2 경로는 이 필드를 생성하지 않으므로(항상 undefined) 타입 호환용으로만 유지.
+ */
+export interface TransitAspectEvidence {
+  key: string;
+  planetA: string;
+  planetB: string;
+  signA: string;
+  signB: string;
+  aspect: string;
+  orb: number;
+  tone: string;
+  impactScore: number;
+  context?: unknown;
+}
+
 export interface ImportantDate {
   date: string;
   grade: ImportanceGrade;
   score: number;
+  rawScore?: number;
+  adjustedScore?: number;
+  displayScore?: number;
   categories: EventCategory[];     // 복수 카테고리 지원
   titleKey: string;                // i18n key for title
   descKey: string;                 // i18n key for description
@@ -29,6 +50,86 @@ export interface ImportantDate {
   astroFactorKeys: string[];       // 점성술 분석 요소 키
   recommendationKeys: string[];    // 추천 활동 키
   warningKeys: string[];           // 주의사항 키
+  confidence?: number;
+  confidenceNote?: string;
+  crossAgreementPercent?: number;
+  /** 사주 ↔ 점성 교차 확인 한 줄 + 신뢰도 % */
+  crossCheck?: { line: string; agreementPercent: number };
+  /** 대운 / 세운 / 월운 / 일운 — 본명 일간 기준 십신까지 박은 풀 흐름 컨텍스트 */
+  longCycleContext?: {
+    daeun?: {
+      ganji: string;
+      ageStart: number;
+      ageEnd: number;
+      sibsinStem?: string;
+      yearsToNext?: number;
+      transitionImminent?: boolean;
+      nextGanji?: string;
+      nextSibsinStem?: string;
+    };
+    sewoon?: { ganji: string; year: number; sibsinStem?: string };
+    wolwoon?: { ganji: string; sibsinStem?: string };
+    iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string };
+  };
+  /** 운끼리의 충/합/형 */
+  cycleInteractions?: Array<{
+    pair: string;
+    kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형';
+    blurb: string;
+  }>;
+  /** 점수 분해 — 사주축 / 점성축 표시값 + 두 축 일치도 + 최종 점수. */
+  scoreBreakdown?: {
+    sajuAxis: number;
+    astroAxis: number;
+    sajuAxisRaw: number;
+    astroAxisRaw: number;
+    axisAgreement: 'aligned' | 'mixed' | 'opposed';
+    finalScore: number;
+  };
+  // ── 구 엔진 호환 필드 (v2 경로는 미생성, 응답 타입 계층 호환용) ──
+  gongmangStatus?: {
+    isEmpty: boolean;
+    emptyBranches: string[];
+    affectedAreas: string[];
+  };
+  shinsalActive?: {
+    name: string;
+    type: 'lucky' | 'unlucky' | 'special';
+    affectedArea: string;
+  }[];
+  energyFlow?: {
+    strength: 'very_strong' | 'strong' | 'moderate' | 'weak' | 'very_weak';
+    dominantElement: string;
+    tonggeunCount: number;
+    tuechulCount: number;
+  };
+  bestHours?: {
+    hour: number;
+    siGan: string;
+    quality: 'excellent' | 'good' | 'neutral' | 'caution';
+  }[];
+  transitSync?: {
+    isMajorTransitYear: boolean;
+    transitType?: string;
+    synergyType?: 'amplify' | 'clash' | 'balance' | 'neutral';
+    synergyScore?: number;
+  };
+  activityScores?: {
+    marriage?: number;
+    career?: number;
+    investment?: number;
+    moving?: number;
+    surgery?: number;
+    study?: number;
+  };
+  timeContext?: {
+    isPast: boolean;
+    isFuture: boolean;
+    isToday: boolean;
+    daysFromToday: number;
+    retrospectiveNote?: string;
+  };
+  astroAspectEvidence?: TransitAspectEvidence[];
 }
 
 export interface CalendarMonth {

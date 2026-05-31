@@ -115,25 +115,35 @@ export async function getOrBuildNatalContext(
   const context = await buildNatalContext(input, preComputed ?? {})
 
   // 4. fire-and-forget DB + Redis 저장. 실패해도 사용자한테 영향 X.
-  void prisma.natalContextCache
-    .upsert({
-      where: { birthKey },
-      create: {
-        birthKey,
-        engineSignature: ENGINE_SIGNATURE,
-        data: context as unknown as object,
-      },
-      update: {
-        engineSignature: ENGINE_SIGNATURE,
-        data: context as unknown as object,
-        builtAt: new Date(),
-      },
-    })
-    .catch((err) => {
-      logger.warn('[natal-cache] db save failed', {
-        err: err instanceof Error ? err.message : String(err),
+  // DATABASE_URL 미설정 시 prisma 게터가 동기 throw(Proxy), 또는 클라이언트 미생성 시
+  // prisma.natalContextCache 가 undefined → .upsert 접근이 동기 throw 한다. 둘 다 .catch()
+  // 로는 못 잡으므로(프라미스 생성 전에 던짐) try 로 감싼다. 캐시는 옵셔널 — 저장이 죽어도
+  // 계산된 context 는 그대로 반환해 캘린더가 v2 로 동작한다. (cell-cache.ts 와 같은 가드)
+  try {
+    void prisma.natalContextCache
+      .upsert({
+        where: { birthKey },
+        create: {
+          birthKey,
+          engineSignature: ENGINE_SIGNATURE,
+          data: context as unknown as object,
+        },
+        update: {
+          engineSignature: ENGINE_SIGNATURE,
+          data: context as unknown as object,
+          builtAt: new Date(),
+        },
       })
+      .catch((err) => {
+        logger.warn('[natal-cache] db save failed', {
+          err: err instanceof Error ? err.message : String(err),
+        })
+      })
+  } catch (err) {
+    logger.warn('[natal-cache] db save skipped', {
+      err: err instanceof Error ? err.message : String(err),
     })
+  }
 
   void cacheSet(redisKey(birthKey), context, CACHE_TTL.NATAL_CHART).catch(() => {})
 

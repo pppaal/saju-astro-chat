@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>운세 캘린더 — v2 시안</title>
+<style>
+  :root{
+    --gold:#a07a3c; --gold-soft:#d4b572; --ink:#1c1917; --ink-2:#44403c;
+    --muted:#78716c; --line:#e7e5e4; --line-2:#efece6; --bg:#faf9f7; --card:#ffffff;
+    --good:#3f7d5b; --ok:#7a8b3f; --warn:#b08a3a; --bad:#b5564b; --top:#2f6f57;
+    --love:#c2557a; --money:#b0843a; --career:#3f6f9e; --health:#3f8d6a; --growth:#7a5fa3;
+    --shadow:0 1px 2px rgba(28,25,23,.05), 0 12px 36px rgba(28,25,23,.07);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 18px 60px}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+    padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-2)}
+  .muted{color:var(--muted)}
+  /* header */
+  header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+  .who{display:flex;align-items:center;gap:11px}
+  .who .dot{width:9px;height:9px;border-radius:50%;background:var(--gold-soft)}
+  .who h1{font-size:18px;margin:0;font-weight:700;letter-spacing:-.01em}
+  .who p{margin:1px 0 0;font-size:12px}
+  .ident{display:flex;gap:6px;flex-wrap:wrap}
+  .nav{display:flex;align-items:center;gap:8px}
+  .nav button{border:1px solid var(--line);background:#fff;border-radius:10px;width:34px;height:34px;
+    font-size:16px;color:var(--ink-2);cursor:pointer}
+  .nav .month{font-weight:700;font-size:15px;min-width:96px;text-align:center}
+
+  .grid2{display:grid;grid-template-columns:1.15fr .95fr;gap:18px}
+  @media(max-width:880px){.grid2{grid-template-columns:1fr}}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+  .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line-2)}
+  .panel .hd h2{font-size:13.5px;margin:0;font-weight:700}
+  .panel .bd{padding:14px 16px}
+
+  /* calendar */
+  .cal{padding:8px 10px 12px}
+  .dow{display:grid;grid-template-columns:repeat(7,1fr);font-size:11px;color:var(--muted);text-align:center;padding:6px 4px}
+  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .day{position:relative;aspect-ratio:1/1;border:1px solid var(--line-2);border-radius:11px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;
+    background:#fff;transition:.12s}
+  .day:hover{border-color:var(--gold-soft);transform:translateY(-1px)}
+  .day.empty{border:none;background:none;cursor:default}
+  .day .n{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+  .day .sc{font-size:10px;color:var(--muted)}
+  .day .g{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%}
+  .day.sel{border-color:var(--gold);box-shadow:0 0 0 2px rgba(160,122,60,.18)}
+  .day.today{background:linear-gradient(180deg,#fffdf7,#fff)}
+  .day.today .n{color:var(--gold)}
+  .g.g0{background:var(--top)} .g.g1{background:var(--good)} .g.g2{background:var(--ok)}
+  .g.g3{background:var(--warn)} .g.g4{background:var(--bad)}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;padding:10px 12px 2px;font-size:11px;color:var(--muted)}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+  /* day detail */
+  .dtop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .dtop .date{font-size:13px;color:var(--muted)}
+  .dtop .title{font-size:18px;font-weight:750;letter-spacing:-.01em;margin:2px 0 0}
+  .scorebig{text-align:right}
+  .scorebig .v{font-size:30px;font-weight:800;line-height:1;color:var(--gold)}
+  .scorebig .l{font-size:11px;color:var(--muted)}
+  .ganji{margin:11px 0 4px;font-size:12.5px;color:var(--ink-2);background:#faf8f4;border:1px solid var(--line-2);
+    border-radius:10px;padding:9px 11px}
+  .ganji b{color:var(--gold)}
+
+  /* theme bars */
+  .themes{margin:14px 0 4px}
+  .tb{display:grid;grid-template-columns:54px 1fr 34px;align-items:center;gap:9px;margin:7px 0}
+  .tb .nm{font-size:12px;color:var(--ink-2)}
+  .tb .track{height:8px;border-radius:6px;background:#f0ede8;overflow:hidden}
+  .tb .fill{height:100%;border-radius:6px}
+  .tb .num{font-size:11.5px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  .f-love{background:var(--love)} .f-money{background:var(--money)} .f-career{background:var(--career)}
+  .f-health{background:var(--health)} .f-growth{background:var(--growth)}
+
+  /* patterns */
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px}
+  .chip{font-size:11px;padding:4px 9px;border-radius:999px;background:#f6f2ea;border:1px solid #ece4d4;color:var(--ink-2)}
+  .chip.pos{background:#eef5ef;border-color:#d3e6d7;color:#2f6f57}
+  .chip.neg{background:#fbeeec;border-color:#f0d6d1;color:#a8463c}
+
+  /* hourly timeline */
+  .hours{display:flex;gap:2px;align-items:flex-end;height:46px;margin:8px 0 3px}
+  .hours .h{flex:1;border-radius:3px 3px 0 0;background:#e9e4dc;min-height:4px}
+  .hx-good{background:var(--good)} .hx-ok{background:var(--ok)} .hx-warn{background:var(--warn)} .hx-bad{background:var(--bad)}
+  .hlabel{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+
+  /* do/watch */
+  .dw{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  @media(max-width:560px){.dw{grid-template-columns:1fr}}
+  .dw .box{border:1px solid var(--line-2);border-radius:12px;padding:11px 12px;background:#fff}
+  .dw .box h4{margin:0 0 7px;font-size:11.5px;letter-spacing:.02em}
+  .dw .do h4{color:var(--good)} .dw .watch h4{color:var(--bad)}
+  .dw ul{margin:0;padding-left:16px;font-size:12.5px;color:var(--ink-2)}
+  .dw li{margin:4px 0}
+
+  .reli{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11.5px;color:var(--muted)}
+  .reli .bar{flex:1;height:6px;background:#f0ede8;border-radius:5px;overflow:hidden}
+  .reli .bar i{display:block;height:100%;background:var(--gold-soft)}
+
+  /* month summary / convergence */
+  .full{margin-top:18px}
+  .msum{font-size:13.5px;color:var(--ink-2)}
+  .msum p{margin:0 0 9px}
+  .conv{display:flex;align-items:center;gap:14px;margin-top:6px}
+  .ring{--p:72;width:74px;height:74px;border-radius:50%;flex:none;
+    background:conic-gradient(var(--gold) calc(var(--p)*1%), #efece6 0);display:grid;place-items:center}
+  .ring .in{width:56px;height:56px;border-radius:50%;background:#fff;display:grid;place-items:center;text-align:center}
+  .ring .in b{font-size:18px;color:var(--gold)} .ring .in s{font-size:9px;color:var(--muted);text-decoration:none;display:block}
+  .yearstrip{display:flex;gap:3px;margin-top:8px}
+  .yearstrip .m{flex:1;text-align:center;font-size:10px;color:var(--muted)}
+  .yearstrip .m .b{height:30px;border-radius:4px;margin-bottom:3px;background:#eee}
+
+  .tag{font-size:10px;color:var(--gold);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .note{margin-top:26px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+  .note b{color:var(--ink-2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="who">
+      <span class="dot"></span>
+      <div>
+        <h1>지윤님의 5월 흐름</h1>
+        <p class="muted">사주 × 점성 교차 · 룰 기반 (LLM 0회)</p>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="ident">
+        <span class="badge">☀ 물병 24°</span>
+        <span class="badge">☾ 게 12°</span>
+        <span class="badge">↑ 처녀 15°</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="nav" style="justify-content:flex-end;margin:-6px 0 14px">
+    <button>‹</button><div class="month">2026년 5월</div><button>›</button>
+  </div>
+
+  <div class="grid2">
+    <!-- LEFT: month calendar -->
+    <div class="panel">
+      <div class="hd"><h2>월 캘린더</h2><span class="tag">v2 점수·등급</span></div>
+      <div class="cal">
+        <div class="dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="days" id="days"></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--top)"></i>최상</span>
+        <span><i style="background:var(--good)"></i>좋음</span>
+        <span><i style="background:var(--ok)"></i>무난</span>
+        <span><i style="background:var(--warn)"></i>주의</span>
+        <span><i style="background:var(--bad)"></i>휴식</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: day detail -->
+    <div class="panel" id="detail">
+      <div class="hd"><h2>하루 상세</h2><span class="badge" id="gradeBadge">좋음 · 등급 1</span></div>
+      <div class="bd">
+        <div class="dtop">
+          <div>
+            <div class="date" id="dDate">5월 15일 (금) · 갑자일</div>
+            <div class="title" id="dTitle">결정을 밀어붙이기 좋은 날</div>
+          </div>
+          <div class="scorebig"><div class="v" id="dScore">74</div><div class="l">/100</div></div>
+        </div>
+
+        <div class="ganji" id="dGanji">🀄 <b>갑자(甲子)</b> 일진 — 본명 일간 기준 <b>편재</b>가 들어와 바깥 활동·제안에 힘이 실립니다.</div>
+
+        <div class="themes" id="themes"></div>
+
+        <div style="margin-top:12px">
+          <div class="tag" style="margin-bottom:6px">매칭 패턴</div>
+          <div class="chips">
+            <span class="chip pos">정관 + 목성 트라인 — 공적 인정</span>
+            <span class="chip">달 ↔ 금성 — 관계 온기</span>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="tag" style="margin-bottom:6px">시간대 신호</div>
+          <div class="hours" id="hours"></div>
+          <div class="hlabel"><span>0시</span><span>6시</span><span>12시</span><span>18시</span><span>24시</span></div>
+        </div>
+
+        <div class="dw">
+          <div class="box do"><h4>지금 하면 좋은 것</h4>
+            <ul><li>중요한 제안·계약 제출</li><li>윗사람과의 미팅</li></ul></div>
+          <div class="box watch"><h4>조심할 것</h4>
+            <ul><li>오후 충동 지출</li><li>감정적 단정</li></ul></div>
+        </div>
+
+        <div class="reli">
+          <span>신뢰도 (사주↔점성 일치)</span>
+          <div class="bar"><i style="width:78%"></i></div>
+          <span>78%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL: month summary + convergence -->
+  <div class="grid2 full">
+    <div class="panel">
+      <div class="hd"><h2>이번 달 흐름</h2><span class="tag">룰 기반 서사</span></div>
+      <div class="bd msum">
+        <p>5월은 <b>밖으로 펼치는 달</b>입니다. 직업·금전 축에 목성 트라인과 정관 신호가 겹쳐
+          공적 인정과 제안이 들어오는 시기예요. 다만 중순 이후 화성 자극으로 충동적 결정은 한 박자 늦추는 게 좋습니다.</p>
+        <p class="muted" style="font-size:12px">지난달 대비 — 금전 <b style="color:var(--good)">▲ +12</b> · 관계 <b style="color:var(--muted)">≈</b> · 건강 <b style="color:var(--bad)">▼ -6</b></p>
+        <div class="themes" id="mthemes" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="hd"><h2>수렴 (Convergence)</h2><span class="tag">사주·점성 겹침</span></div>
+      <div class="bd">
+        <div class="conv">
+          <div class="ring" style="--p:72"><div class="in"><div><b>72</b><s>이달 강도</s></div></div></div>
+          <div style="font-size:12.5px;color:var(--ink-2)">
+            올해 5월은 <b>커리어 전환 창</b>이 가장 강하게 열립니다.
+            토성 리턴(8월)·대운 경계와 맞물려 연중 상위 구간이에요.
+          </div>
+        </div>
+        <div class="tag" style="margin:14px 0 4px">연간 수렴</div>
+        <div class="yearstrip" id="year"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>시안 안내</b> — v2 calendar-engine 데이터(테마점수·룰 서사·매칭 패턴·시간대 신호·수렴)를 전면에 쓴 방향입니다.
+    숫자/문구는 예시 더미값이며, 실제 전환 시 동일 입력에 대해 기존과의 동등성을 골든 테스트로 검증합니다.
+    이 방향으로 갈지, 아니면 <b>기존 카드 레이아웃 유지 + 데이터만 v2</b>로 갈지 골라주세요.
+  </div>
+</div>
+
+<script>
+  // ---- sample month data (dummy) ----
+  const grades = [2,1,3,2,4,1,0, 2,2,1,3,2,2,1, 1,0,2,3,2,1,2, 3,2,1,2,4,2,1, 0,2,3];
+  const startDow = 5; // 2026-05-01 is Friday
+  const sel = 15;
+  const daysEl = document.getElementById('days');
+  for(let i=0;i<startDow;i++){const d=document.createElement('div');d.className='day empty';daysEl.appendChild(d);}
+  for(let n=1;n<=31;n++){
+    const g = grades[n-1]??2;
+    const sc = [0,'',88,76,64,52,40][1+ (4-g)] || (52+ (4-g)*9);
+    const d=document.createElement('div');
+    d.className='day'+(n===sel?' sel':'')+(n===15?' today':'');
+    d.innerHTML='<span class="g g'+g+'"></span><span class="n">'+n+'</span><span class="sc">'+ (90-g*12) +'</span>';
+    daysEl.appendChild(d);
+  }
+  // ---- theme bars ----
+  const themes=[['연애','love',61],['금전','money',82],['직업','career',77],['건강','health',46],['성장','growth',68]];
+  function bars(el,data){el.innerHTML=data.map(([nm,k,v])=>
+    `<div class="tb"><span class="nm">${nm}</span><div class="track"><div class="fill f-${k}" style="width:${v}%"></div></div><span class="num">${v}</span></div>`).join('');}
+  bars(document.getElementById('themes'),themes);
+  bars(document.getElementById('mthemes'),[['연애','love',58],['금전','money',79],['직업','career',74],['건강','health',49],['성장','growth',64]]);
+  // ---- hourly signals ----
+  const hv=[3,3,2,2,1,1,2,3,4,4,3,3,4,3,2,2,3,4,3,2,2,1,2,3]; const cls=['','hx-bad','hx-warn','hx-ok','hx-good'];
+  document.getElementById('hours').innerHTML=hv.map(v=>`<div class="h ${cls[v]}" style="height:${10+v*9}px"></div>`).join('');
+  // ---- year strip ----
+  const yc=[40,52,48,60,72,55,49,80,63,57,51,46]; const ym=['1','2','3','4','5','6','7','8','9','10','11','12'];
+  document.getElementById('year').innerHTML=yc.map((v,i)=>`<div class="m"><div class="b" style="height:${10+v*0.4}px;background:${v>=70?'#a07a3c':v>=55?'#c7a86a':'#e3dccb'}"></div>${ym[i]}</div>`).join('');
+</script>
+</body>
+</html>
