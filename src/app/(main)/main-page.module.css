@@ -321,7 +321,6 @@
    iPad Safari (>=768px) 도 같은 자동 줌인이 일어나기 때문에 미디어 쿼리
    밖으로 빼서 모든 너비에 적용한다. */
 .modalInput,
-.homeChatTextarea,
 .modalCancel,
 .modalSave,
 :global(input[type='text']),
@@ -544,10 +543,6 @@
   .homeChatBarInner {
     padding: 0.55rem 0.7rem;
   }
-
-  .homeChatTextarea {
-    min-height: 40px;
-  }
 }
 
 /* Very short viewports — small phones, landscape, in-app browsers
@@ -729,68 +724,10 @@
   -webkit-backdrop-filter: blur(18px);
 }
 
-.homeChatTextarea {
-  width: 100%;
-  min-height: 48px;
-  max-height: 120px;
-  resize: none;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #ffffff;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  font-family: inherit;
-  padding: 0.35rem 0.25rem;
-}
-
-.homeChatTextarea::placeholder {
-  color: rgba(229, 231, 240, 0.4);
-}
-
-/* 입력창 + 보내기 버튼 한 줄. 엔터(또는 ↑)는 운명 상담사로 직행. */
-.homeChatRow {
-  position: relative;
-}
-
-.homeChatRow .homeChatTextarea {
-  flex: 1 1 auto;
-  min-width: 0;
-  width: auto;
-}
-
-/* homeServiceChips / homeServiceChip 룰 폐기 — 메인 = 운명상담사 한 흐름.
-   타로 / 궁합은 햄버거 사이드 메뉴에서만 접근. */
-
-.homeChatSubmit {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, #d4b572, #c19b56);
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1.05rem;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(160, 122, 60, 0.3);
-  transition: transform 0.18s ease;
-}
-
-.homeChatSubmit:hover {
-  transform: translateY(-1px);
-}
-
-.homeChatSubmit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
+/* 입력창 본체(textarea/전송 버튼/한 줄 row)는 공용 ChatInputArea 컴포넌트로
+   이전 — 메인·운명·궁합 입력창 통일(2026-06). 옛 .homeChatTextarea /
+   .homeChatRow / .homeChatSubmit 룰은 그래서 제거. .homeChatBar /
+   .homeChatBarInner(바깥 래퍼)만 남겨 레이아웃 유지. */
 
 /* Birth info modal (lightweight) */
 /* backdrop-filter 제거 — iOS Safari 가 backdrop-filter 부모 안의 native
@@ -1247,20 +1184,8 @@
   -webkit-backdrop-filter: none;
 }
 
-.lightMode .homeChatTextarea {
-  color: #1c1917;
-}
-
-.lightMode .homeChatTextarea::placeholder {
-  color: #a8a29e;
-}
-
-/* Submit button keeps the purple accent gradient on both themes — it's
-   the page's brand action and reads well against both backdrops. Just
-   tone the shadow on light. */
-.lightMode .homeChatSubmit {
-  box-shadow: 0 6px 16px rgba(212, 181, 114, 0.28);
-}
+/* textarea/전송 버튼의 light 오버라이드도 공용 ChatInputArea(data-theme=
+   "light")로 이전 — 옛 .lightMode .homeChatTextarea / .homeChatSubmit 제거. */
 
 /* =====================================================================
  * BirthInfoModal — premium-white mode override.
