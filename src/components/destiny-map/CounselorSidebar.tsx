@@ -107,7 +107,7 @@ export default function CounselorSidebar({
 
   const hrefBase =
     sessionHrefBase ??
-    (serviceType === 'compat' ? '/compatibility/counselor' : '/destiny-map/counselor')
+    (serviceType === 'compat' ? '/compatibility/counselor' : '/destiny-counselor')
 
   // Reset transient row state every time the drawer reopens. Without this,
   // a row left in swipe / rename mode from a previous open stays mid-swipe

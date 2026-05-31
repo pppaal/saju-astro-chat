@@ -74,7 +74,7 @@ export default function CounselorPage() {
     return () => document.removeEventListener('mousedown', handler)
   }, [chatMenuOpen])
 
-  // /destiny-map/counselor?session=<id> — sidebar's past-chats list
+  // /destiny-counselor?session=<id> — sidebar's past-chats list
   // hands us a saved CounselorChatSession id here. We pass it to <Chat>
   // which resumes the conversation on mount (was previously dropped on
   // the floor, hence "눌러도 안 불러와져").
@@ -128,7 +128,7 @@ export default function CounselorPage() {
   //   const handleLogin = () => router.push(buildSignInUrl(`/destiny-counselor/chat${search}`))
 
   // ChatGPT 식 "마지막 채팅 이어서 띄우기" — 세션/질문/생년 파라미터 없이
-  // 맨몸으로 /destiny-map/counselor 를 열면 새 빈 채팅 대신 가장 최근에
+  // 맨몸으로 /destiny-counselor 를 열면 새 빈 채팅 대신 가장 최근에
   // 저장된 대화를 자동으로 이어 띄운다. 명시적 질문(q/initialQuestion) 이나
   // 특정 인물 생년 파라미터로 들어온 "새 리딩" 진입은 그대로 새 채팅 유지.
   const hasUrlBirth = Boolean(
@@ -136,7 +136,7 @@ export default function CounselorPage() {
     (Array.isArray(sp.birthTime) ? sp.birthTime[0] : sp.birthTime)
   )
   const bareEntry = !initialSessionId && !initialQuestion && !hasUrlBirth
-  // mount 1 회만 시도 — 삭제 후 router.replace('/destiny-map/counselor') 로
+  // mount 1 회만 시도 — 삭제 후 router.replace('/destiny-counselor') 로
   // URL 이 다시 맨몸이 돼도 직전 채팅을 재-resume 하지 않도록 ref 로 가드.
   const autoResumeAttemptedRef = useRef(false)
   const [resumeChecking, setResumeChecking] = useState(bareEntry)
@@ -160,7 +160,7 @@ export default function CounselorPage() {
       if (id) {
         // 같은 라우트 + ?session= → initialSessionId 로 흘러가 Chat 이 resume.
         // bareEntry=false 가 되면 위 분기가 resumeChecking 을 내린다.
-        router.replace(`/destiny-map/counselor?session=${id}`)
+        router.replace(`/destiny-counselor?session=${id}`)
       } else {
         setResumeChecking(false)
       }
@@ -244,7 +244,7 @@ export default function CounselorPage() {
             )}
           </p>
           <div className={styles.missingProfileActions}>
-            <Link href="/destiny-map" className={styles.primaryAction}>
+            <Link href="/destiny-counselor" className={styles.primaryAction}>
               {t('destinyMap.counselor.goToForm', '정보 입력하러 가기')}
             </Link>
             <button type="button" className={styles.secondaryAction} onClick={handleBack}>
@@ -387,7 +387,7 @@ export default function CounselorPage() {
                         return
                       }
                       // \uc0c8 \ucc44\ud305\uc73c\ub85c \ub9ac\uc14b \u2014 session \ucffc\ub9ac \ub5bc\uace0 \ud0a4 \uac31\uc2e0\ud574 Chat \uc7ac\ub9c8\uc6b4\ud2b8.
-                      router.replace('/destiny-map/counselor')
+                      router.replace('/destiny-counselor')
                       handleChatReset()
                       setActiveSession({ sessionId: null, title: null })
                     }}

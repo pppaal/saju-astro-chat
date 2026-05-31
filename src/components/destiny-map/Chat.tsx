@@ -68,7 +68,6 @@ const Chat = memo(function Chat({
   const [renamingId, setRenamingId] = React.useState<string | null>(null)
   const [renameValue, setRenameValue] = React.useState('')
 
-
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
   const [showTarotModal, setShowTarotModal] = React.useState(false)
@@ -162,7 +161,6 @@ const Chat = memo(function Chat({
     void handleSendRef.current?.(lastUserText, { isRetry: true })
   }, [loading, messages, setMessages, setFollowUpQuestions])
 
-
   React.useEffect(() => {
     setActiveSessionId(sessionIdRef.current)
   }, [sessionIdRef])
@@ -210,7 +208,7 @@ const Chat = memo(function Chat({
   }, [loadSessionHistory])
 
   // Resume a past session when the page hands us an id (e.g. from
-  // /destiny-map/counselor?session=…). Guarded so we only hit the
+  // /destiny-counselor?session=…). Guarded so we only hit the
   // load endpoint once per id, even if the parent rerenders.
   const resumedSessionIdRef = React.useRef<string | null>(null)
   React.useEffect(() => {

@@ -19,7 +19,7 @@ export function EmptyDeck({ copy }: EmptyDeckProps) {
       <h2 className="text-xl font-bold">{copy.emptyTitle}</h2>
       <p className="mt-3 text-sm leading-relaxed text-white/80">{copy.emptyBody}</p>
       <Link
-        href="/destiny-map"
+        href="/destiny-counselor"
         className="mt-6 inline-flex items-center justify-center rounded-full border border-white/30 px-7 py-3 text-sm font-medium text-white/95 transition hover:bg-white/10"
       >
         {copy.emptyBack}
