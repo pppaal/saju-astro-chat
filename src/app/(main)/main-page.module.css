@@ -1021,7 +1021,9 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  margin-bottom: 0.35rem;
+  /* 입력 박스 안 topSlot 으로 들어가 .inputBox gap 이 간격을 담당하므로
+     칩 자체 margin-bottom 은 0. */
+  margin-bottom: 0;
   transition:
     background 0.16s ease,
     border-color 0.16s ease,
@@ -1065,7 +1067,8 @@
   font-size: 0.74rem;
   font-weight: 500;
   cursor: pointer;
-  margin-bottom: 0.35rem;
+  /* topSlot 안에 들어가므로 .inputBox gap 이 간격 담당 — 칩 margin 0. */
+  margin-bottom: 0;
   transition:
     background 0.16s ease,
     border-color 0.16s ease;

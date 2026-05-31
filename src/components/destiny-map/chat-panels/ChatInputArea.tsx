@@ -140,6 +140,12 @@ interface ChatInputAreaProps {
    * 박스와 한 덩어리처럼 보이게 한다(메인 홈: 생년월일 칩 + 입력을 한 박스로).
    */
   embedded?: boolean
+  /**
+   * 입력 박스(.inputBox) 안쪽 최상단(textarea 위)에 끼워 넣을 노드. 메인 홈에서
+   * 생년월일 칩을 입력창 바깥 위가 아니라 textarea 와 같은 박스 안 좌상단에
+   * 넣기 위해 사용. 미지정 시 아무것도 렌더하지 않는다.
+   */
+  topSlot?: React.ReactNode
 }
 
 export const ChatInputArea = React.memo(function ChatInputArea({
@@ -168,6 +174,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   focusToken,
   theme = 'dark',
   embedded = false,
+  topSlot,
 }: ChatInputAreaProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const styles = stylesOverride ?? internalStyles
@@ -231,6 +238,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   return (
     <div className={styles.inputArea} data-theme={theme} data-embedded={embedded || undefined}>
       <div className={styles.inputBox}>
+        {topSlot ? <div className={styles.inputBoxTop}>{topSlot}</div> : null}
         <textarea
           ref={textareaRef}
           value={input}
