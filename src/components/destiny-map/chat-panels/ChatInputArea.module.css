@@ -364,18 +364,21 @@
    어울리는 단색으로(사용자 요청: "그라데이션 없애고 배경이랑 어울리게").
    이전엔 흰색→투명 페이드 밴드가 warm 배경 위에 떠 보였다. */
 .inputArea[data-theme='light'] {
-  background: #fdfbf7;
+  /* 사이트 표준 light 배경(--ds-light-bg: #fafaf9) 과 정확히 일치 — 홈(흰
+     모드) / 궁합 상담사 모두 페이지 배경이 #fafaf9 라, sticky 입력 영역이
+     배경 위에 다른 색 밴드로 떠 보이지 않게 한다. */
+  background: #fafaf9;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
 .inputArea[data-theme='light'] .inputBox {
-  /* 입력 박스도 배경과 같은 톤 계열의 살짝 밝은 warm white — 흰 카드가
-     배경 위에 도드라지지 않게. */
-  background: #fffdf9;
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  /* 입력 박스만 살짝 밝은 흰색 + 옅은 테두리로, 같은 톤 안에서 입력 영역이
+     어디인지 부드럽게 구분되게(배경과 1~2점 차이라 도드라지지 않음). */
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
