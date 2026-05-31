@@ -6,7 +6,8 @@
  *
  * 지장간(hiddenStems)만 로컬로 둔다: 이 레이어가 쓰는 "정기 우선" 배열 순서가
  * 정본 JIJANGGAN(여기/중기/정기 dict)의 표현과 달라 단순 파생이 불가능하다.
- * (도메인 NOTE: 亥 지장간이 정본 {戊,壬} 과 여기 {壬,甲} 로 불일치 — 별도 검토 필요.)
+ * 단, 글자 구성(집합)은 정본 JIJANGGAN 과 동일해야 하며 가드 테스트
+ * (timing-constants-ssot.test.ts)가 이를 강제한다.
  */
 
 import { BRANCHES as CANON_BRANCHES } from '@/lib/saju/constants';
@@ -24,7 +25,7 @@ const HIDDEN_STEMS_BY_BRANCH: Record<string, string[]> = {
   '申': ['庚', '壬', '戊'],
   '酉': ['辛'],
   '戌': ['戊', '辛', '丁'],
-  '亥': ['壬', '甲'],
+  '亥': ['壬', '甲', '戊'], // 정기壬·중기甲·여기戊 (생지 3개 — 寅申巳 와 동일 체계)
 };
 
 export const BRANCHES: Record<string, BranchInfo> = Object.fromEntries(

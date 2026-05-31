@@ -110,14 +110,14 @@ describe('Saju Constants', () => {
         expect(Object.keys(JIJANGGAN[branch])).toHaveLength(1)
       })
 
-      // 午, 亥: 여기 + 정기 (2개)
-      const doubleOnly = ['午', '亥']
+      // 午: 여기 + 정기 (2개)
+      const doubleOnly = ['午']
       doubleOnly.forEach((branch) => {
         expect(Object.keys(JIJANGGAN[branch])).toHaveLength(2)
       })
 
-      // 나머지: 여기 + 중기 + 정기 (3개)
-      const tripleOnly = ['丑', '寅', '辰', '巳', '未', '申', '戌']
+      // 나머지: 여기 + 중기 + 정기 (3개). 亥 는 생지(寅申巳亥)라 3개.
+      const tripleOnly = ['丑', '寅', '辰', '巳', '未', '申', '戌', '亥']
       tripleOnly.forEach((branch) => {
         expect(Object.keys(JIJANGGAN[branch])).toHaveLength(3)
       })

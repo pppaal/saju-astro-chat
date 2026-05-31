@@ -35,7 +35,8 @@ export const STEM_NAMES = STEMS.map((s) => s.name)
 export const BRANCH_NAMES = BRANCHES.map((b) => b.name)
 
 // 지장간: 여기(餘氣)=잔여기운, 중기(中氣)=과도기, 정기(正氣)=본기
-// 자/묘/유는 정기만, 오/해는 여기+정기만 (중기 없음)
+// 자/묘/유는 정기만, 오는 여기+정기만 (중기 없음). 해(亥)는 생지(寅申巳亥)라
+// 다른 생지처럼 여기·중기·정기 3개를 모두 둔다 — 戊(여기)·甲(중기)·壬(정기).
 export const JIJANGGAN: { [branchName: string]: { [key: string]: string } } = {
   子: { 정기: '癸' },
   丑: { 여기: '癸', 중기: '辛', 정기: '己' },
@@ -48,7 +49,7 @@ export const JIJANGGAN: { [branchName: string]: { [key: string]: string } } = {
   申: { 여기: '戊', 중기: '壬', 정기: '庚' },
   酉: { 정기: '辛' },
   戌: { 여기: '辛', 중기: '丁', 정기: '戊' },
-  亥: { 여기: '戊', 정기: '壬' },
+  亥: { 여기: '戊', 중기: '甲', 정기: '壬' },
 }
 
 export const MONTH_STEM_LOOKUP: { [key: string]: string } = {
