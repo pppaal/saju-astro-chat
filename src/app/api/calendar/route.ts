@@ -21,7 +21,7 @@ import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { normalizeGender } from '@/lib/utils/gender'
 import { nowInTimezone } from '@/lib/utils/timezone'
-import { calculateYearlyImportantDates } from './lib/yearlyDates'
+import { cellsToImportantDates } from './lib/cellsToImportantDates'
 
 import {
   getPillarStemName,
@@ -450,23 +450,16 @@ export const GET = withApiMiddleware(
       )
     }
 
-    // ── v2(calendar-engine) 점수 선계산 → v3 narrative 주입 ──
-    // prescore (v2 셀) 만 current ± 1 month 로 cold 단축 — 나머지 9 달은 v3 점수
-    // fallback 으로 narrative/augment 가 채움. PR #830 회귀(다른 달 비어보임) fix.
-    // 0-11. Use the user's local month, not the server's UTC month, so a
-    // US-West user opening the calendar late evening doesn't pre-score
-    // next month and miss the current one entirely.
-    // nowInTimezone stores the local components in the UTC fields, so read
-    // them via getUTCMonth (getMonth would re-shift them if a dev machine
-    // is not running in UTC).
-    const targetMonthIdx = nowInTimezone(timezone).getUTCMonth()
-    const prescoreMonths = [
-      Math.max(0, targetMonthIdx - 1),
-      targetMonthIdx,
-      Math.min(11, targetMonthIdx + 1),
-    ].filter((m, i, arr) => arr.indexOf(m) === i) // dedupe (Dec/Jan 경계)
+    // ── v2(calendar-engine) 단일 점수·서사 출처 ───────────────────────────
+    // [마이그레이션 단계 4] 구 calculateYearlyImportantDates(사주·점성 blend) 제거.
+    // 12달 셀을 빌드해 cellsToImportantDates 로 ImportantDate[] 를 직접 만든다.
+    // 점수·등급·축분해·교차검증은 셀에서, formatDateForResponse 의 모순방지 게이트가
+    // 먹는 recommendation/warningKeys 는 순수 빌더로 재현(브릿지 내부). 아래 augment
+    // 블록이 같은 12달(cell-cache in-memory HIT)로 narrative/신호/패턴/일진을 부착한다
+    // — 점수·문구·신호·게이트가 전부 단일 v2 출처. 구 v3 blend·engineScores 주입 폐기.
+    const prescoreMonths = Array.from({ length: 12 }, (_, i) => i)
 
-    const engineScoreByDate: Record<string, number> = {}
+    const prescoreCells: import('@/lib/calendar-engine/types').CalendarCell[] = []
     try {
       if (!sharedCeNatal) throw new Error('natal context unavailable')
       const ceNatal = sharedCeNatal
@@ -477,7 +470,6 @@ export const GET = withApiMiddleware(
         birthPlace,
         gender: gender || 'Male',
       })
-      // prescoreMonths 만 병렬 — 나머지 9 달은 augment 단계가 cell-cache MISS 로 빌드.
       const monthResults = await Promise.all(
         prescoreMonths.map((month) => {
           const start = new Date(Date.UTC(year, month, 1))
@@ -492,53 +484,26 @@ export const GET = withApiMiddleware(
           })
         })
       )
-      for (const { cells } of monthResults) {
-        for (const c of cells) {
-          const k = c.datetime.slice(0, 10)
-          if (typeof c.derivedScore === 'number') engineScoreByDate[k] = c.derivedScore
-        }
-      }
+      for (const { cells } of monthResults) prescoreCells.push(...cells)
     } catch (err) {
       logger.warn?.(
-        '[calendar-engine v2 prescore] skipped:',
+        '[calendar-engine v2 build] skipped:',
         err instanceof Error ? err.message : String(err)
       )
     }
-    const hasEngineScores = Object.keys(engineScoreByDate).length > 0
 
-    // 12달 narrative 다시 풀빌드 — 다른 달 클릭 시 즉시 보이려면 응답에 365일 모두 포함.
-    // prescoreMonths 외 9 달은 v3 점수 fallback 사용 (engineScores 에 없는 날짜).
-    const cacheKey = CacheKeys.yearlyCalendar(
-      birthDateParam,
-      birthTimeParam,
-      gender,
-      year,
-      category || undefined,
-      birthPlace
-    )
-    const localDates = await cacheOrCalculate(
-      cacheKey,
-      async () =>
-        calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
-          minGrade: 4, // grade 4(최악의 날)까지 포함
-          locale: locale === 'en' ? 'en' : 'ko',
-          birthDate: birthDateParam,
-          dailyTransitScores: (astroProfile as { dailyTransitScores?: Record<string, number> })
-            .dailyTransitScores,
-          dailyTransitTightest: (
-            astroProfile as {
-              dailyTransitTightest?: Record<
-                string,
-                Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
-              >
-            }
-          ).dailyTransitTightest,
-          dailyRetrograde: (astroProfile as { dailyRetrograde?: Record<string, string[]> })
-            .dailyRetrograde,
-          engineScores: hasEngineScores ? engineScoreByDate : undefined,
-        }),
-      CACHE_TTL.CALENDAR_DATA // 1 day
-    )
+    // 365일 ImportantDate — v2 셀에서 직접. minGrade 게이팅은 셀 점수 기준이라 불필요
+    // (전 날짜 포함). 카테고리 필터는 아래에서 적용.
+    const localDates = cellsToImportantDates(prescoreCells, {
+      locale: locale === 'en' ? 'en' : 'ko',
+      sunSign: astroProfile.sunSign,
+      natal: {
+        dayMaster: sajuProfile.dayMaster,
+        dayBranch: sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || '',
+        daeunCycles: sajuProfile.daeunCycles,
+        birthYear: sajuProfile.birthYear,
+      },
+    })
 
     // 카테고리 필터링
     let filteredDates = localDates
@@ -712,6 +677,33 @@ export const GET = withApiMiddleware(
       // ※ displayScore는 여기서 덮어쓰지 않는다. yearlyDates가 engineScores 주입으로
       //   cell.derivedScore를 score=displayScore 둘 다에 동일 할당했으므로 그대로 흐름.
       const cellByDate = new Map(allCells.map((c) => [c.datetime.slice(0, 10), c]))
+
+      // [마이그레이션 단계 2b] v2-native 서사·신뢰지표 오버레이.
+      // 2a 가 displayScore·grade 를 12달 v2 로 통일했지만, 카드의 title/description/
+      // summary 는 구 yearlyDates 의 pickBySeed 텍스트, evidence.confidence/
+      // crossAgreementPercent 는 구 함수 계산값이라 "점수는 v2인데 문구·신뢰지표는 구
+      // 함수 출처" 라는 잔여 불일치가 있었다. 같은 allCells 로 어댑터를 돌려 패턴 기반
+      // 제목·본문과 cross-verify 지표를 뽑아 덮어쓴다 → 카드의 점수·문구·신뢰지표가
+      // 전부 같은 v2 셀에서 나온다. categories/factors/scoreBreakdown 은 구 경로 유지
+      // (golden 튜플·category 필터 시맨틱 보존, 단계 4 에서 마저 이관).
+      const v2ByDate = new Map<
+        string,
+        import('@/lib/calendar-engine/adapters/cellsToYearlyDates').V2CalendarDate
+      >()
+      try {
+        const { cellsToYearlyDates } = await import(
+          '@/lib/calendar-engine/adapters/cellsToYearlyDates'
+        )
+        const v2Lang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
+        const v2Dates = cellsToYearlyDates(allCells, { lang: v2Lang })
+        for (const v of v2Dates) v2ByDate.set(v.date.slice(0, 10), v)
+      } catch (err) {
+        logger.warn?.(
+          '[calendar-engine v2 adapter overlay] skipped:',
+          err instanceof Error ? err.message : String(err)
+        )
+      }
+
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
@@ -753,6 +745,28 @@ export const GET = withApiMiddleware(
         }
         if (Object.keys(cell.themeScores).length > 0) {
           d.themeScores = cell.themeScores
+        }
+
+        // [단계 2b] 패턴 기반 v2 서사·신뢰지표로 덮어쓰기 — 점수와 같은 셀 출처로 정합.
+        const v2 = v2ByDate.get(d.date.slice(0, 10))
+        if (v2) {
+          if (v2.title?.trim()) d.title = v2.title
+          if (v2.description?.trim()) {
+            d.description = v2.description
+            d.summary = v2.description
+          }
+          // evidence 객체(matrix.domain 등)는 보존하고 cross-verify 수치만 v2 로 동기화.
+          if (d.evidence) {
+            d.evidence.confidence = v2.confidence
+            d.evidence.crossAgreementPercent = v2.crossAgreementPercent
+          }
+          // [단계 2c] 요인 칩(saju/astro factors)도 v2 셀 신호 기반으로 정합 —
+          // 구 함수가 v2 셀과 무관하게 만든 factorKeys 가 카드의 engineSignals/
+          // matchedPatterns 와 어긋나던 표시 불일치를 해소. recommendations/warnings 는
+          // 구 formatDateForResponse 의 coherence 게이팅(통신주의↔비가역행동 모순 방지)
+          // 을 유지해야 하므로 여기서 덮어쓰지 않는다(단계 4 에서 게이트째 이관).
+          if (v2.sajuFactors.length > 0) d.sajuFactors = v2.sajuFactors
+          if (v2.astroFactors.length > 0) d.astroFactors = v2.astroFactors
         }
       }
 

@@ -174,14 +174,52 @@ vi.mock('@/lib/astrology/foundation/aspects', () => ({
   ]),
 }))
 
-vi.mock('@/app/api/calendar/lib/yearlyDates', () => ({
-  calculateYearlyImportantDates: vi.fn(),
-}))
 
 vi.mock('@/lib/cache/redis-cache', () => ({
   cacheOrCalculate: vi.fn((key, fn) => fn()),
-  CacheKeys: { yearlyCalendar: vi.fn(() => 'test-cache-key') },
-  CACHE_TTL: { CALENDAR_DATA: 86400 },
+  CacheKeys: {
+    yearlyCalendar: vi.fn(() => 'test-cache-key'),
+    transitBatch: vi.fn(() => 'test-transit-key'),
+  },
+  CACHE_TTL: { CALENDAR_DATA: 86400, NATAL_CHART: 2592000 },
+}))
+
+// 단계 4: 라우트가 v2 셀에서 직접 날짜를 만든다 — natal context + 월별 셀 빌드를
+// 모킹해 결정적 6개 날짜(grade 0~4 스팬, 3월)를 주입한다. 구 calculateYearlyImportantDates
+// 모킹은 더 이상 allDates 출처가 아니다(모듈 삭제 전까지 import 호환용으로만 유지).
+vi.mock('@/lib/calendar-engine/context/cache', () => ({
+  getOrBuildNatalContext: vi.fn(async () => ({
+    context: { natal: { saju: {}, astro: {} } },
+    source: 'test',
+  })),
+}))
+
+vi.mock('@/lib/calendar-engine/cell-cache', () => ({
+  makeBirthKey: vi.fn(() => 'test-birth-key'),
+  getOrBuildMonth: vi.fn(async ({ monthKey }: { monthKey: string }) => {
+    const [yy, mm] = monthKey.split('-')
+    if (mm !== '03') return { cells: [], cached: false }
+    const specs = [
+      { day: 15, score: 95, theme: 'career' }, // grade 0
+      { day: 16, score: 60, theme: 'money' }, // grade 1
+      { day: 17, score: 48, theme: 'love' }, // grade 2
+      { day: 18, score: 36, theme: 'health' }, // grade 3
+      { day: 19, score: 20, theme: 'growth' }, // grade 4
+      { day: 20, score: 10, theme: 'health' }, // grade 4
+    ]
+    return {
+      cells: specs.map((s) => ({
+        datetime: `${yy}-03-${String(s.day).padStart(2, '0')}T12:00:00.000Z`,
+        derivedScore: s.score,
+        themeScores: { [s.theme]: 80 },
+        signals: [],
+        matchedPatterns: [],
+        topReasons: ['mock reason'],
+        cautions: [],
+      })),
+      cached: false,
+    }
+  }),
 }))
 
 vi.mock('@/lib/logger', () => ({
@@ -426,7 +464,6 @@ vi.mock('@/i18n/locales/en', () => ({
 import { GET } from '@/app/api/calendar/route'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { calculateNatalChart } from '@/lib/astrology/foundation/astrologyService'
-import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
 import { cacheOrCalculate } from '@/lib/cache/redis-cache'
 import { apiClient } from '@/lib/api/ApiClient'
 import { logger } from '@/lib/logger'
@@ -460,81 +497,6 @@ const mockSajuResult = {
 }
 
 // Mock important dates
-const mockImportantDates = [
-  {
-    date: '2025-03-15',
-    grade: 0,
-    score: 95,
-    categories: ['career'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-16',
-    grade: 1,
-    score: 85,
-    categories: ['wealth'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-17',
-    grade: 2,
-    score: 70,
-    categories: ['love'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-18',
-    grade: 3,
-    score: 50,
-    categories: ['health'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-19',
-    grade: 4,
-    score: 30,
-    categories: ['travel'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-  {
-    date: '2025-03-20',
-    grade: 5,
-    score: 10,
-    categories: ['study'],
-    titleKey: 'calendar.good_day',
-    descKey: 'calendar.good_desc',
-    sajuFactorKeys: [],
-    astroFactorKeys: [],
-    recommendationKeys: [],
-    warningKeys: [],
-  },
-]
-
 describe('Calendar API Route - /api/calendar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -596,7 +558,6 @@ describe('Calendar API Route - /api/calendar', () => {
         sign: 'Aries',
       })),
     } as any)
-    vi.mocked(calculateYearlyImportantDates).mockReturnValue(mockImportantDates as any)
   })
 
   afterEach(() => {
@@ -838,24 +799,17 @@ describe('Calendar API Route - /api/calendar', () => {
 
       expect(response.status).toBe(200)
       expect(data.year).toBe(2025)
-      expect(vi.mocked(calculateYearlyImportantDates)).toHaveBeenCalledWith(
-        2025,
-        expect.any(Object),
-        expect.any(Object),
-        expect.any(Object)
-      )
     })
 
     it('should calculate dates for past year', async () => {
-      // year is validated to [currentYear-5, currentYear+5]; use an in-range past year.
-      const pastYear = new Date().getFullYear() - 3
-      const request = createRequest({ birthDate: '1990-01-15', year: String(pastYear) })
+      // Within the current ±5 window (schema-enforced).
+      const request = createRequest({ birthDate: '1990-01-15', year: '2021' })
 
       const response = await GET(request)
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.year).toBe(pastYear)
+      expect(data.year).toBe(2021)
     })
 
     it('should calculate dates for future year', async () => {
@@ -1151,37 +1105,9 @@ describe('Calendar API Route - /api/calendar', () => {
   })
 
   describe('Caching', () => {
-    it('should use cacheOrCalculate for date calculations', async () => {
-      const request = createRequest({ birthDate: '1990-01-15' })
-
-      await GET(request)
-
-      expect(vi.mocked(cacheOrCalculate)).toHaveBeenCalled()
-    })
-
-    it('should generate unique cache key based on parameters', async () => {
-      const { CacheKeys } = await import('@/lib/cache/redis-cache')
-
-      const request = createRequest({
-        birthDate: '1990-01-15',
-        birthTime: '14:30',
-        birthPlace: 'Busan',
-        gender: 'female',
-        year: '2025',
-        category: 'career',
-      })
-
-      await GET(request)
-
-      expect(CacheKeys.yearlyCalendar).toHaveBeenCalledWith(
-        '1990-01-15',
-        '14:30',
-        'female',
-        2025,
-        'career',
-        'Busan'
-      )
-    })
+    // 단계 4: 날짜 계산 캐싱(cacheOrCalculate + CacheKeys.yearlyCalendar)은
+    // 제거됨 — 캐싱이 cell-cache(getOrBuildMonth) 계층으로 이동했고 라우트는 셀에서
+    // 직접 ImportantDate 를 파생하므로 yearlyCalendar 캐시 키가 더 이상 없다.
 
     it('should set Cache-Control header for response', async () => {
       const request = createRequest({ birthDate: '1990-01-15' })
@@ -1358,18 +1284,18 @@ describe('Calendar API Route - /api/calendar', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty date results', async () => {
-      vi.mocked(calculateYearlyImportantDates).mockReturnValue([])
+      // 단계 4: 셀 빌드가 빈 결과를 내도 라우트 표면은 well-formed.
+      const { getOrBuildMonth } = await import('@/lib/calendar-engine/cell-cache')
+      vi.mocked(getOrBuildMonth).mockResolvedValue({ cells: [], cached: false } as never)
 
       const request = createRequest({ birthDate: '1990-01-15' })
 
       const response = await GET(request)
       const data = await response.json()
 
-      // calculateYearlyImportantDates mock returning [] zeroes out the
-      // pre-engine feed, but the calendar-engine still synthesises the
-      // 365-day cell grid. The route surface stays well-formed.
       expect(response.status).toBe(200)
       expect(Array.isArray(data.allDates)).toBe(true)
+      expect(data.allDates.length).toBe(0)
     })
 
     it('should handle birthDate at year boundary (Jan 1)', async () => {
@@ -1389,7 +1315,7 @@ describe('Calendar API Route - /api/calendar', () => {
     })
 
     it('should reject an out-of-range extreme past year', async () => {
-      // year is validated to [CURRENT_YEAR-5, CURRENT_YEAR+5]; 1901 is rejected.
+      // Calendar year is constrained to current ±5; 1901 is rejected.
       const request = createRequest({ birthDate: '1990-01-15', year: '1901' })
 
       const response = await GET(request)
