@@ -180,7 +180,7 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
     },
   ]
 
-  const cellText = (cell?: GanjiCell) => {
+  const _cellText = (cell?: GanjiCell) => {
     if (!cell?.name) return '·'
     if (!isKo) return cell.name
     const r = readingOf(cell.name)
