@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import path from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { describe, it, expect } from 'vitest'
+import path from 'path'
+import { existsSync, readFileSync } from 'fs'
 
 const resolveModuleFile = (modulePath: string) => {
-  const basePath = path.join(process.cwd(), 'src', modulePath);
+  const basePath = path.join(process.cwd(), 'src', modulePath)
   const candidates = [
     `${basePath}.ts`,
     `${basePath}.tsx`,
@@ -13,38 +13,38 @@ const resolveModuleFile = (modulePath: string) => {
     path.join(basePath, 'index.tsx'),
     path.join(basePath, 'index.js'),
     path.join(basePath, 'index.jsx'),
-  ];
+  ]
 
   for (const candidate of candidates) {
     if (existsSync(candidate)) {
-      return candidate;
+      return candidate
     }
   }
 
-  return null;
-};
+  return null
+}
 
 const readModule = (modulePath: string) => {
-  const filePath = resolveModuleFile(modulePath);
+  const filePath = resolveModuleFile(modulePath)
   if (!filePath) {
-    throw new Error(`Missing module file for ${modulePath}`);
+    throw new Error(`Missing module file for ${modulePath}`)
   }
-  return readFileSync(filePath, 'utf8');
-};
+  return readFileSync(filePath, 'utf8')
+}
 
 const assertNamedExports = (modulePath: string, exportNames: string[]) => {
-  const content = readModule(modulePath);
+  const content = readModule(modulePath)
   exportNames.forEach((name) => {
-    expect(content).toMatch(new RegExp(`\\b${name}\\b`));
-  });
-};
+    expect(content).toMatch(new RegExp(`\\b${name}\\b`))
+  })
+}
 
 describe('Destiny Map Integration', () => {
   it('should expose core destiny map exports', () => {
-    // `lib/destiny-map/astrologyengine` module removed.
-    assertNamedExports('lib/destiny-map/destinyCalendar', ['calculateYearlyImportantDates']);
-    assertNamedExports('lib/destiny-map/reportService', ['generateReport']);
-  });
+    // `lib/destiny-map/astrologyengine` and `lib/destiny-map/reportService`
+    // removed in cleanup (report logic moved into report-helpers.ts).
+    assertNamedExports('lib/destiny-map/destinyCalendar', ['calculateYearlyImportantDates'])
+  })
 
   // The standalone destiny-matrix engine/cache/house-system/insight-generator
   // modules (and calculateDestinyMatrix) were removed; matrix logic now lives in
@@ -52,27 +52,27 @@ describe('Destiny Map Integration', () => {
   // remaining src code references the old exports, so that assertion is obsolete.
 
   it('should expose report helpers and local generator', () => {
-    readModule('lib/destiny-map/report-helpers');
-    assertNamedExports('lib/destiny-map/local-report-generator', ['generateLocalReport']);
-  });
+    readModule('lib/destiny-map/report-helpers')
+    assertNamedExports('lib/destiny-map/local-report-generator', ['generateLocalReport'])
+  })
 
   it('should expose calendar scoring modules', () => {
     assertNamedExports('lib/destiny-map/calendar/category-scoring', [
       'calculateAreaScoresForCategories',
       'getBestAreaCategory',
-    ]);
-    assertNamedExports('lib/destiny-map/calendar/grading', ['calculateGrade']);
-    readModule('lib/destiny-map/calendar/daily-fortune-helpers');
-  });
+    ])
+    assertNamedExports('lib/destiny-map/calendar/grading', ['calculateGrade'])
+    readModule('lib/destiny-map/calendar/daily-fortune-helpers')
+  })
 
   it('should calculate grade from score', async () => {
-    const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading');
+    const { calculateGrade } = await import('@/lib/destiny-map/calendar/grading')
 
     // GRADE_THRESHOLDS refined: grade0>=63, grade1>=57, grade2>=44, grade3>=34.
-    expect(calculateGrade(80)).toBe(0);
-    expect(calculateGrade(65)).toBe(0);
-    expect(calculateGrade(45)).toBe(2);
-    expect(calculateGrade(30)).toBe(4);
-    expect(calculateGrade(20)).toBe(4);
-  });
-});
+    expect(calculateGrade(80)).toBe(0)
+    expect(calculateGrade(65)).toBe(0)
+    expect(calculateGrade(45)).toBe(2)
+    expect(calculateGrade(30)).toBe(4)
+    expect(calculateGrade(20)).toBe(4)
+  })
+})
