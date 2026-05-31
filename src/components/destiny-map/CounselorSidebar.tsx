@@ -212,6 +212,7 @@ export default function CounselorSidebar({
         status = res.status
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         setSessions((prev) => prev.filter((s) => s.id !== id))
+        onDeleteLocal?.(id)
         setSwipedId(null)
       } catch (e) {
         // No optimistic row removal yet — the list is only mutated after
@@ -223,7 +224,7 @@ export default function CounselorSidebar({
         onActionError?.({ kind: 'delete', status })
       }
     },
-    [t, onActionError]
+    [t, onActionError, onDeleteLocal]
   )
 
   // ---- Rename ----
