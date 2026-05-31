@@ -26,14 +26,15 @@ vi.mock('@/lib/credits/withCredits', () => ({
   applyCreditResultCookies: (res: Response) => res,
 }))
 
-vi.mock('@/lib/credits/creditRefund', () => ({ refundCredits: vi.fn() }))
+vi.mock('@/lib/credits/creditRefund', () => ({ refundCredits: mockRefund }))
 
 // draw-nonce store mock — consume() 반환값을 테스트마다 제어.
 // vi.hoisted: mock factory 가 hoist 되어 module-scope createDrawNonceStore()
 // 가 실행될 때 mockConsume 가 이미 초기화돼 있어야 한다.
-const { mockConsume, mockIssue } = vi.hoisted(() => ({
+const { mockConsume, mockIssue, mockRefund } = vi.hoisted(() => ({
   mockConsume: vi.fn(),
   mockIssue: vi.fn(),
+  mockRefund: vi.fn(),
 }))
 vi.mock('@/lib/api/idempotency', () => ({
   createDrawNonceStore: () => ({ consume: mockConsume, issue: mockIssue }),
@@ -130,7 +131,14 @@ describe('interpret-stream — single-use draw nonce gating (Fix A)', () => {
   it('does NOT double-charge a genuine replay of the SAME nonce', async () => {
     mockConsume.mockResolvedValue('replay')
     await POST(makeReq(BODY_3CARD, 'valid-nonce'))
-    expect(mockCheckAndConsumeCredits).not.toHaveBeenCalled()
+    // T1 fix(route): credit 부족 시 nonce 가 burn 되던 버그 때문에 순서를 바꿔
+    // credit 을 *먼저* 차감하고(checkAndConsumeCredits), replay 로 판정되면
+    // 방금 차감분을 refundCredits 로 환불한다 → 순효과 이중차지 0. 따라서 차감은
+    // 1회 호출되고, 환불이 뒤따른다(옛 동작인 "차감 자체 skip" 아님).
+    expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(1)
+    expect(mockRefund).toHaveBeenCalledWith(
+      expect.objectContaining({ creditType: 'reading', reason: 'tarot_nonce_replay' })
+    )
   })
 
   it('charges normally for a forged/unknown nonce (no free pass)', async () => {
