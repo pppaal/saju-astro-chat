@@ -136,7 +136,13 @@ export function calculateVertex(
   // 실제로는 prime vertical의 서쪽 교점이지만,
   // 대부분의 차트에서 5-8하우스 사이에 위치
 
-  const housesRes = swisseph.swe_houses(ut_jd, latitude, longitude, "P");
+  // Vertex/ASC 는 하우스 시스템과 무관. Placidus 는 극권(위도 >~66.5°)에서
+  // 실패하므로 거기선 항상 계산되는 Whole Sign('W')으로 폴백해 차트가 throw
+  // 되지 않게 한다. 일반 위도에서는 'P' 가 성공해 기존 동작과 동일.
+  let housesRes = swisseph.swe_houses(ut_jd, latitude, longitude, "P");
+  if ("error" in housesRes) {
+    housesRes = swisseph.swe_houses(ut_jd, latitude, longitude, "W");
+  }
   if ("error" in housesRes) {throw new Error(`Vertex calculation error: ${housesRes.error}`);}
 
   // Vertex는 보통 houses 결과의 vertex 필드에 있음 (있는 경우)

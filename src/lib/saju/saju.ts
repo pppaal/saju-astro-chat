@@ -243,6 +243,9 @@ function daysToDaeunAge(days: number): number {
   }
   // Display in Korean age (한국나이): everyone counts age 1 at birth and
   // gains a year on Jan 1, so the "days/3" man-nai value is bumped by 1.
+  // NOTE: 절기 ±3일 출생(대운수 0)은 여기서 한국나이 2 로 나온다(만나이 clamp
+  // 가 +1 바깥). "대운수 최소 1" 관례로 볼 수도 있고 determinism-golden 으로
+  // 잠겨 있어, 논쟁적 1살 차이를 임의로 바꾸지 않고 현행 유지한다.
   return Math.max(1, age) + 1
 }
 
