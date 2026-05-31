@@ -10,6 +10,7 @@ const NAV_ITEMS: { href: string; label: string }[] = [
   { href: '/admin/grant-credits', label: '크레딧 지급' },
   { href: '/admin/refunds', label: '환불' },
   { href: '/admin/feedback', label: '피드백' },
+  { href: '/admin/usage', label: '사용량 분석' },
   { href: '/admin/dashboard', label: '상세 지표' },
 ]
 
