@@ -113,6 +113,15 @@ export function isClaudeAvailable(): boolean {
 const PROMPT_CACHE_BETA_HEADER = 'extended-cache-ttl-2025-04-11'
 const CACHE_CONTROL_1H = { type: 'ephemeral' as const, ttl: '1h' as const }
 
+// 모델별 최소 캐시 prefix (토큰). 이보다 짧은 prefix 는 cache_control 을 달아도
+// "조용히" 캐시되지 않는다(에러 없음). Haiku 4.5 는 4096 이라, 1024~4095 토큰
+// 프롬프트는 Sonnet 에선 캐시되지만 Haiku 에선 안 된다 — 캐시 미스 경고가 이
+// 사각지대를 "버그"로 오탐하지 않도록 모델별 임계값을 쓴다.
+const MIN_CACHE_PREFIX_TOKENS: Record<string, number> = {
+  'claude-haiku-4-5-20251001': 4096,
+  'claude-sonnet-4-5-20250929': 1024,
+}
+
 type UserMessageContent =
   | string
   | Array<
@@ -178,6 +187,22 @@ function buildMessages(
       snapshotAttached = true
     } else {
       messages.push({ role: turn.role, content: safeContent })
+    }
+  }
+  // 멀티턴 대화 히스토리 캐싱 — 마지막 prior turn 의 마지막 블록에 cache_control
+  // breakpoint 를 찍어, 다음 턴부터 system+컨텍스트+직전 대화 전체가 cache read
+  // 로 들어가게 한다. 이전엔 priorTurns 에 마커가 없어 매 턴 대화 히스토리가
+  // full-price 로 재처리됐다(긴 세션일수록 손해). breakpoint 개수: system +
+  // cachedUserContext + 여기 = 최대 3개로 한도(4) 이내.
+  const lastPrior = messages[messages.length - 1]
+  if (lastPrior) {
+    if (typeof lastPrior.content === 'string') {
+      lastPrior.content = [
+        { type: 'text', text: lastPrior.content, cache_control: CACHE_CONTROL_1H },
+      ]
+    } else if (Array.isArray(lastPrior.content) && lastPrior.content.length > 0) {
+      const i = lastPrior.content.length - 1
+      lastPrior.content[i] = { ...lastPrior.content[i], cache_control: CACHE_CONTROL_1H }
     }
   }
   // Latest user question
@@ -300,11 +325,15 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
       model,
       label,
     })
-    // 캐시될 만한 큰 호출인데 hit ratio 가 0 이면 prefix 가 매번 달라지는
-    // (silent invalidator) 신호 — 경고로 surface.
-    if (cacheable > 2000 && cacheHitRatio < 0.05 && cacheCreateTokens === 0) {
+    // 모델 최소 prefix 를 넘는 큰 호출인데 hit ratio 가 0 이면 prefix 가 매번
+    // 달라지는(silent invalidator) 신호 — 경고로 surface. 임계값을 모델별 최소
+    // 캐시 prefix 로 둬서, Haiku 사각지대(<4096) 의 "어차피 캐시 불가" 케이스를
+    // 진짜 버그로 오탐하지 않는다.
+    const minCachePrefix = MIN_CACHE_PREFIX_TOKENS[model] ?? 1024
+    if (cacheable > minCachePrefix && cacheHitRatio < 0.05 && cacheCreateTokens === 0) {
       logger.warn(`[${label}] Claude cache miss on large prefix`, {
         cacheable,
+        minCachePrefix,
         cacheReadTokens,
         cacheCreateTokens,
         model,
