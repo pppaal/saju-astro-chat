@@ -39,6 +39,18 @@ const KIND_EN: Record<string, string> = {
 
 const HARMONY_KINDS = new Set(['천간합', '지지합'])
 
+// 배지가 잘릴 때(>6) 중요한 충·형이 가려지지 않게 — 심각도 내림차순 정렬.
+const KIND_SEVERITY: Record<string, number> = {
+  천간충: 5,
+  지지충: 5,
+  지지형: 4,
+  자형: 4,
+  지지파: 3,
+  지지해: 3,
+  천간합: 2,
+  지지합: 2,
+}
+
 function title(label: string, sub: string) {
   return `${label} · ${sub}`
 }
@@ -47,11 +59,14 @@ function Rung({
   layer,
   ganji,
   sibsin,
+  transition,
   locale,
 }: {
   layer: string
   ganji: string
   sibsin?: string
+  /** 대운 전환 임박 — 다음 간지로 곧 바뀜. */
+  transition?: { nextGanji: string }
   locale: CalLocale
 }) {
   const reading = locale === 'ko' ? ganjiToKorean(ganji) : null
@@ -65,6 +80,14 @@ function Rung({
       {sibsin && (
         <span className="mt-0.5 px-1.5 py-0.5 rounded-md bg-amber-400/10 text-amber-300/90 text-[10px] font-medium border border-amber-400/15">
           {sibsin}
+        </span>
+      )}
+      {transition && (
+        <span
+          title={locale === 'ko' ? '대운 전환 임박' : 'Decade shift approaching'}
+          className="mt-0.5 px-1.5 py-0.5 rounded-md bg-fuchsia-400/10 text-fuchsia-300/90 text-[9px] font-medium border border-fuchsia-400/20 whitespace-nowrap"
+        >
+          {locale === 'ko' ? `전환 임박 → ${transition.nextGanji}` : `shift → ${transition.nextGanji}`}
         </span>
       )}
     </div>
@@ -85,8 +108,22 @@ export default function FlowLadder({
   const { daeun, sewoon, wolwoon, iljin } = longCycle
 
   // 표시할 층 — daeun 은 daeunCycles 없으면 생략.
-  const rungs: Array<{ key: string; layer: string; ganji: string; sibsin?: string }> = []
-  if (daeun?.ganji) rungs.push({ key: 'daeun', layer: L.daeun, ganji: daeun.ganji, sibsin: daeun.sibsinStem })
+  const rungs: Array<{
+    key: string
+    layer: string
+    ganji: string
+    sibsin?: string
+    transition?: { nextGanji: string }
+  }> = []
+  if (daeun?.ganji)
+    rungs.push({
+      key: 'daeun',
+      layer: L.daeun,
+      ganji: daeun.ganji,
+      sibsin: daeun.sibsinStem,
+      transition:
+        daeun.transitionImminent && daeun.nextGanji ? { nextGanji: daeun.nextGanji } : undefined,
+    })
   if (sewoon?.ganji) rungs.push({ key: 'sewoon', layer: L.sewoon, ganji: sewoon.ganji, sibsin: sewoon.sibsinStem })
   if (wolwoon?.ganji) rungs.push({ key: 'wolwoon', layer: L.wolwoon, ganji: wolwoon.ganji, sibsin: wolwoon.sibsinStem })
   if (iljin?.ganji) rungs.push({ key: 'iljin', layer: L.iljin, ganji: iljin.ganji, sibsin: iljin.sibsinStem })
@@ -115,7 +152,13 @@ export default function FlowLadder({
       <div className="flex items-center gap-1 overflow-x-auto pb-1 -mx-1 px-1">
         {rungs.map((r, i) => (
           <div key={r.key} className="flex items-center gap-1">
-            <Rung layer={r.layer} ganji={r.ganji} sibsin={r.sibsin} locale={locale} />
+            <Rung
+              layer={r.layer}
+              ganji={r.ganji}
+              sibsin={r.sibsin}
+              transition={r.transition}
+              locale={locale}
+            />
             {i < rungs.length - 1 && (
               <ChevronRight className="w-4 h-4 text-zinc-700 shrink-0" />
             )}
@@ -126,7 +169,10 @@ export default function FlowLadder({
       {/* 운끼리 충/합/형 배지 */}
       {interactions.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2.5 border-t border-white/5">
-          {interactions.slice(0, 6).map((it, i) => {
+          {[...interactions]
+            .sort((a, b) => (KIND_SEVERITY[b.kind] ?? 0) - (KIND_SEVERITY[a.kind] ?? 0))
+            .slice(0, 6)
+            .map((it, i) => {
             const harmony = HARMONY_KINDS.has(it.kind)
             const kindLabel = locale === 'ko' ? it.kind : (KIND_EN[it.kind] ?? it.kind)
             return (

@@ -54,6 +54,20 @@ describe('FlowLadder', () => {
     expect(screen.getByText('乙巳')).toBeTruthy() // 세운은 남음
   })
 
+  it('shows the daeun transition indicator when transitionImminent', () => {
+    const transitioning = {
+      ...longCycle,
+      daeun: { ...longCycle.daeun, transitionImminent: true, nextGanji: '己巳' },
+    }
+    render(<FlowLadder longCycle={transitioning} locale="ko" />)
+    expect(screen.getByText(/전환 임박 → 己巳/)).toBeTruthy()
+  })
+
+  it('hides the transition indicator when not imminent', () => {
+    render(<FlowLadder longCycle={longCycle} locale="ko" />)
+    expect(screen.queryByText(/전환 임박/)).toBeNull()
+  })
+
   it('returns null when no layers are present', () => {
     const { container } = render(<FlowLadder longCycle={{}} locale="ko" />)
     expect(container.firstChild).toBeNull()

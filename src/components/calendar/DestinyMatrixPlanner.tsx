@@ -382,9 +382,10 @@ export default function DestinyMatrixPlanner({
 
       {/* --- Main Content Area --- */}
       <div className="flex-1 overflow-y-auto relative z-10 pb-10">
-        {/* 흐름 사다리 — 대운→세운→월운→일진, 모든 탭 공통 상단 컨텍스트 */}
+        {/* 흐름 사다리 — 대운→세운→월운→일진. 스크롤해도 상단 고정돼 "지금 어느
+            흐름 위에 서 있는지" 컨텍스트를 모든 탭에서 항상 보여준다. */}
         {selectedImportantDate?.longCycleContext && (
-          <div className="px-5 pt-4">
+          <div className="sticky top-0 z-20 px-5 pt-4 pb-2 bg-[#07091a]/85 backdrop-blur-md">
             <FlowLadder
               longCycle={selectedImportantDate.longCycleContext}
               interactions={selectedImportantDate.cycleInteractions}
