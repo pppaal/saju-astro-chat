@@ -77,23 +77,20 @@
   margin-top: 0.25rem;
 }
 
-/* 좁은 화면 (특히 ko 라벨 "궁합차트" 처럼 길 때) 에서 도구 버튼 한 줄이
-   가로 overflow 되면서 화면 끝 잘려나가 보이지 않던 버그 (사용자: "맨밑에
-   차트랑 타로가 안보여 길이가 안맞아서"). 가로 스크롤 허용 + 스크롤바는
-   숨김 — 손가락으로 스와이프해서 잘린 버튼 노출. */
+/* 도구(파일/타로/차트)는 이제 ⋮ 버튼 하나로 접혀 있어 가로 overflow 가
+   없다. 예전엔 버튼 한 줄이 길어 잘리던 걸 overflow-x:auto 로 막았는데,
+   overflow-x:auto 는 세로축까지 클리핑(CSS 규격)해서 ⋮ 위로 펼쳐지는 도구
+   팝오버(.toolMenuPopover)가 통째로 잘려 "점 세개 눌러도 아무것도 안 뜨던"
+   회귀를 만들었다. overflow:visible 로 되돌려 팝오버가 보이게 한다. 첨부
+   파일명(.fileName)은 자체 ellipsis(overflow:hidden) 로 줄어드니 가로 넘침
+   걱정 없음. */
 .inputBoxActionsLeft {
   display: flex;
   align-items: center;
   gap: 0.25rem;
   flex: 1 1 auto;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.inputBoxActionsLeft::-webkit-scrollbar {
-  display: none;
+  overflow: visible;
 }
 
 /* 라벨이 긴 ko 모드에서 더 좁은 폰 (≤ 360px) 은 라벨까지 잘려 보이므로
