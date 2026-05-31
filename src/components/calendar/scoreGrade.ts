@@ -1,10 +1,10 @@
 /**
  * 점수 → 3단계 등급 매핑.
  *
- * 절대 cutoff. yearlyDates의 scoreToGrade(63/57/44/34) 및 narrative grade와 정렬:
- *   ≥57 → 좋은 날      (grade 0~1)
- *   ≥44 → 보통          (grade 2)
- *   <44 → 조심할 날     (grade 3~4)
+ * 절대 cutoff. 엔진 scoreToGrade(74/64/46/33) 및 narrative grade와 정렬:
+ *   ≥64 → 좋은 날      (grade 0~1)
+ *   ≥46 → 보통          (grade 2)
+ *   <46 → 조심할 날     (grade 3~4)
  *
  * 분포 percentile 기반(상위/하위 20%)으로 매기던 이전 방식은 narrative grade
  * (절대 cutoff)와 같은 60점 날을 yearly에선 "좋음", daily에선 "보통"으로 분리해서
@@ -38,10 +38,11 @@ export interface GradeThresholds {
 }
 
 /**
- * 절대 cutoff — yearlyDates.scoreToGrade의 grade≤1 / grade=2 / grade≥3 경계와 일치.
- * 결과: 같은 점수 60이 yearly·daily 어디서나 "좋은 날(grade 1)"로 일관.
+ * 절대 cutoff — 엔진 scoreToGrade의 grade≤1 / grade=2 / grade≥3 경계와 일치.
+ * (좋은날=grade≤1=≥64, 조심할날=grade≥3=<46 → unluckyMax=45)
+ * 결과: 같은 점수가 yearly·daily 어디서나 같은 라벨로 일관.
  */
-const ABSOLUTE: GradeThresholds = { luckyMin: 57, unluckyMax: 43 }
+const ABSOLUTE: GradeThresholds = { luckyMin: 64, unluckyMax: 45 }
 
 /**
  * @deprecated 분포 기반 임계값은 narrative grade와 어긋나 모순을 만들었음.

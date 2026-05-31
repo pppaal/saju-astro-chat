@@ -5,25 +5,28 @@
  * 구 destiny-map 경로에 묶여 있었다. v2 일원화에서 어댑터(cellsToYearlyDates)가
  * derivedScore 만으로 등급을 만들 수 있도록 엔진으로 이관 — 이게 정본.
  *
- * 임계값은 yearlyDates 의 scoreToGrade 와 byte-for-byte 동일하게 유지한다.
- * (단계 0 골든 검증: grade === scoreToGrade(displayScore) 가 365/365 일치하므로,
- *  같은 임계값을 derivedScore 에 적용하면 현재 등급을 정확히 재현한다.)
+ * 목표 분포 5/15/50/25/5 를 노린 분위수 캘리브레이션:
+ *   ≥74 최고(0)  ≥64 좋음(1)  ≥46 평범(2)  ≥33 조심(3)  <33 지키기(4)
  *
- * 1460-date 표본(4 차트) 분위수 기준 5/15/50/25/5 분포를 노린 캘리브레이션:
- *   ≥63 최고(0)  ≥57 좋음(1)  ≥44 평범(2)  ≥34 조심(3)  <34 지키기(4)
+ * v2 일원화 직후 임계값(63/57/44/34)은 구 v3 표본 기준이라 v2 derivedScore
+ * 분포에 맞지 않아 등급이 위로 심하게 쏠렸다(최고 23.5% · 좋음 13.6% — 목표
+ * 5/15 대비 과다). migration-baseline 의 1095-date(3차트×365) displayScore
+ * 분포를 실측하고 분위수(p95≈74 / p80≈64 / p30≈46 / p5≈33) 격자 탐색으로
+ * 목표 오차 최소화 → 실측 분포 5.8 / 15.3 / 50.1 / 23.7 / 5.2 로 수렴.
  *
- * ※ v2 derivedScore 의 실제 분포는 위 v3 표본보다 높게 쏠려(예: 일부 차트는
- *   grade 0 가 40%+) 분위수 타깃과 어긋난다. 이는 마이그레이션 범위 밖의
- *   "기존 동작"이라 여기서 임계값을 바꾸지 않는다 — 별도 튜닝 과제.
+ * ※ UI 3단계 사본 src/components/calendar/scoreGrade.ts(luckyMin/unluckyMax)
+ *   와 경계를 동기화할 것: 좋은날=grade≤1=≥64, 조심할날=grade≥3=<46.
+ * ※ 임계값 변경 시 migration-baseline golden 재생성 필요
+ *   (UPDATE_CALENDAR_GOLDEN=1 npx vitest run …/migration-golden.test.ts).
  */
 
 /** 0(최고) ~ 4(지키기). UI ImportanceGrade 와 동일 도메인. */
 export type CalendarGrade = 0 | 1 | 2 | 3 | 4
 
 export function scoreToGrade(score: number): CalendarGrade {
-  if (score >= 63) return 0
-  if (score >= 57) return 1
-  if (score >= 44) return 2
-  if (score >= 34) return 3
+  if (score >= 74) return 0
+  if (score >= 64) return 1
+  if (score >= 46) return 2
+  if (score >= 33) return 3
   return 4
 }
