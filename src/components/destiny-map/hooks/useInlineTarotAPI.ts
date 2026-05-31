@@ -402,7 +402,11 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
 
     actions.setIsSaving(true)
     try {
-      const res = await fetch('/api/tarot/save', {
+      // apiFetch (draw/interpret 와 동일) — credentials:'include' 로 세션 쿠키를
+      // 항상 실어 보낸다. native fetch 의 기본값('same-origin')은 모바일 인앱
+      // 브라우저(카카오톡 등) 등 일부 환경에서 쿠키가 누락돼, 로그인 사용자
+      // 인데도 서버가 게스트(401)로 보고 저장이 조용히 누락되던 회귀 차단.
+      const res = await apiFetch('/api/tarot/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
