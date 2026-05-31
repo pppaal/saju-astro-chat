@@ -19,7 +19,7 @@ const PAGES_WITHOUT_BACK_BUTTON = [
   '/calendar', // Uses ServicePageLayout
   '/profile', // Has custom navigation
   '/auth', // Has custom header with back button
-  '/destiny-counselor', // Counselor pages have their own header/back button
+  '/destiny-map', // Counselor pages have their own header/back button
   '/blog', // Has custom back button
   '/success', // Has custom back button
   '/icp', // Has custom back button

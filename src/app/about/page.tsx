@@ -38,7 +38,7 @@ const SERVICE_DETAILS: Partial<
   >
 > = {
   destinyMap: {
-    href: '/destiny-counselor',
+    href: '/destiny-map',
     nameKo: '운명 상담사',
     nameEn: 'Destiny Counselor',
     summaryKo: '궁금한 게 있으면 무엇이든 물어보세요. 사주와 별자리를 같이 보고 답해드려요.',
@@ -143,7 +143,7 @@ export default function AboutPage() {
                 : 'When Eastern Saju and Western astrology are read together, your current flow comes into sharper focus.'}
             </p>
             <div className={styles.heroActions}>
-              <Link href="/destiny-counselor" className={styles.primaryBtn}>
+              <Link href="/destiny-map" className={styles.primaryBtn}>
                 {isKo ? '무료로 상담 시작하기' : 'Start free counseling'}
               </Link>
               <Link href="/pricing" className={styles.secondaryBtn}>
@@ -279,7 +279,7 @@ export default function AboutPage() {
               : 'One question is enough to start. Curious about the flow? Open the Fortune Calendar.'}
           </p>
           <div className={styles.heroActions}>
-            <Link href="/destiny-counselor" className={styles.primaryBtn}>
+            <Link href="/destiny-map" className={styles.primaryBtn}>
               {isKo ? '무료로 상담 시작' : 'Start free counseling'}
             </Link>
             <Link href="/calendar" className={styles.secondaryBtn}>

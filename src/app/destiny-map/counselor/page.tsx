@@ -244,7 +244,7 @@ export default function CounselorPage() {
             )}
           </p>
           <div className={styles.missingProfileActions}>
-            <Link href="/destiny-counselor" className={styles.primaryAction}>
+            <Link href="/destiny-map" className={styles.primaryAction}>
               {t('destinyMap.counselor.goToForm', '정보 입력하러 가기')}
             </Link>
             <button type="button" className={styles.secondaryAction} onClick={handleBack}>

@@ -19,7 +19,7 @@ export type EnabledService = {
 const ALL_SERVICES: readonly EnabledService[] = [
   {
     id: 'destinyMap',
-    href: '/destiny-counselor',
+    href: '/destiny-map',
     icon: '🗺️',
     menuKey: 'menu.destinyMap',
     descriptionKey: 'services.destinyMap.desc',

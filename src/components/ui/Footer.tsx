@@ -11,7 +11,6 @@ import styles from './Footer.module.css'
 // the viewport. Policy pages, /about, /faq, /contact, /pricing, /profile,
 // /auth, /admin, /blog still show the footer.
 const HIDE_FOOTER_PREFIXES = [
-  '/destiny-counselor',
   '/destiny-map',
   '/destiny-match',
   '/tarot',

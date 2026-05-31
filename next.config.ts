@@ -312,6 +312,24 @@ const nextConfig = {
         destination: '/blog',
         permanent: true,
       },
+      // 옛 라우트 /destiny-counselor → 현재 /destiny-map 으로 통합 (PR 시점에
+      // /destiny-counselor 디렉토리 삭제). SEO 자산 + 외부 링크 보호 위해
+      // 영구 redirect.
+      {
+        source: '/destiny-counselor',
+        destination: '/destiny-map',
+        permanent: true,
+      },
+      {
+        source: '/destiny-counselor/chat',
+        destination: '/destiny-map/counselor',
+        permanent: true,
+      },
+      {
+        source: '/destiny-counselor/:path*',
+        destination: '/destiny-map/:path*',
+        permanent: true,
+      },
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'www.destinypal.com' }],
