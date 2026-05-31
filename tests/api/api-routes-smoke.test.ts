@@ -97,10 +97,7 @@ describe('API Routes Smoke Tests', () => {
 
   describe('Cron Routes', () => {
     it('should have cron routes', () => {
-      assertModules([
-        'app/api/cron/daily-fortune-post/route',
-        'app/api/cron/reset-credits/route',
-      ])
+      assertModules(['app/api/cron/reset-credits/route'])
     })
   })
 
