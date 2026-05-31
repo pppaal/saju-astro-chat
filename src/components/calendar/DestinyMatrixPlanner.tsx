@@ -20,6 +20,7 @@ import YearHighlightsCard from './YearHighlightsCard'
 import YearDashboard from './premium/YearDashboard'
 import MonthDashboard from './premium/MonthDashboard'
 import DayInsights from './premium/shared/DayInsights'
+import FlowLadder from './premium/shared/FlowLadder'
 import { tabVariants } from './premium/shared/motionVariants'
 import { getGrade } from './scoreGrade'
 import { getCalLabels, type CalLocale } from './premium/labels'
@@ -381,6 +382,16 @@ export default function DestinyMatrixPlanner({
 
       {/* --- Main Content Area --- */}
       <div className="flex-1 overflow-y-auto relative z-10 pb-10">
+        {/* 흐름 사다리 — 대운→세운→월운→일진, 모든 탭 공통 상단 컨텍스트 */}
+        {selectedImportantDate?.longCycleContext && (
+          <div className="px-5 pt-4">
+            <FlowLadder
+              longCycle={selectedImportantDate.longCycleContext}
+              interactions={selectedImportantDate.cycleInteractions}
+              locale={locale}
+            />
+          </div>
+        )}
         <AnimatePresence mode="wait">
           {/* 0. YEARLY VIEW — 올해 큰 날 (오늘→이달→올해 줌의 가장 바깥) */}
           {viewMode === 'yearly' && (
