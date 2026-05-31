@@ -106,7 +106,9 @@ interface ChatInputAreaProps {
   onInputChange: (value: string) => void
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
   onSend: () => void
-  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void | Promise<void>
+  /** 파일 첨부 핸들러. 미지정 시 ⋮ 메뉴에 '파일' 항목 미노출 (예: 메인
+   *  랜딩 입력창처럼 첨부할 대화가 없는 곳). */
+  onFileUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void | Promise<void>
   onClearFile?: () => void
   /** Chart/tarot 진입점 — 사이드바 푸터(데스크탑) 와 동일 동선. */
   onOpenTarot?: () => void
@@ -166,6 +168,22 @@ export const ChatInputArea = React.memo(function ChatInputArea({
     placeholderPrompts ?? DEFAULT_TYPEWRITER_PROMPTS[lang] ?? DEFAULT_TYPEWRITER_PROMPTS.en
   )
 
+  // 좌상단 ⋮ 도구 메뉴 — 파일/타로/차트를 인라인 아이콘 줄 대신 하나의
+  // 케밥 버튼으로 접어둔다(ChatGPT/Claude 식). 클릭 시 팝오버, 바깥 클릭/
+  // 항목 선택 시 닫힘.
+  const [toolsOpen, setToolsOpen] = React.useState(false)
+  const toolsRef = React.useRef<HTMLDivElement>(null)
+  React.useEffect(() => {
+    if (!toolsOpen) return
+    const handler = (e: MouseEvent) => {
+      if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) {
+        setToolsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [toolsOpen])
+
   // iOS Safari restricts programmatic focus outside a user gesture so the
   // textarea won't pop the soft keyboard automatically — desktop / Android only.
   React.useEffect(() => {
@@ -217,46 +235,87 @@ export const ChatInputArea = React.memo(function ChatInputArea({
         />
         <div className={styles.inputBoxActions}>
           <div className={styles.inputBoxActionsLeft}>
-            <label
-              className={`${styles.attachButton} ${styles.toolWithLabel}`}
-              aria-label={labels.uploadCv}
-              title={labels.uploadCv}
-            >
-              <span aria-hidden="true">&#x1F4CE;</span>
-              <span className={styles.toolLabel}>{lang === 'ko' ? '파일' : 'File'}</span>
-              <input
-                type="file"
-                accept={fileAccept}
-                className={styles.fileInput}
-                onChange={onFileUpload}
-              />
-            </label>
-            {onOpenTarot && (
+            {/* 좌상단 ⋮ 도구 메뉴 — 파일/타로/차트를 한 버튼으로 접음. 도구가
+                하나도 없으면(메인 랜딩 입력창) 버튼 자체를 숨긴다. */}
+            {(onFileUpload || onOpenTarot || onOpenChart) && (
+            <div className={styles.toolMenu} ref={toolsRef}>
               <button
                 type="button"
-                onClick={onOpenTarot}
-                disabled={tarotDisabled || loading}
-                className={`${styles.attachButton} ${styles.toolWithLabel} ${styles.mobileOnlyTool}`}
-                aria-label={tarotAria}
-                title={tarotTitle}
+                className={styles.attachButton}
+                onClick={() => setToolsOpen((o) => !o)}
+                aria-label={lang === 'ko' ? '도구' : 'Tools'}
+                aria-haspopup="menu"
+                aria-expanded={toolsOpen}
+                title={lang === 'ko' ? '도구' : 'Tools'}
               >
-                <span aria-hidden="true">&#x1F0CF;</span>
-                <span className={styles.toolLabel}>{tarotLabel}</span>
+                <span aria-hidden="true">&#x22EE;</span>
               </button>
-            )}
-            {onOpenChart && (
-              <button
-                type="button"
-                onClick={onOpenChart}
-                disabled={chartDisabled}
-                className={`${styles.attachButton} ${styles.toolWithLabel} ${styles.mobileOnlyTool}`}
-                aria-label={chartAria}
-                title={chartTitle}
-              >
-                {/* ☯ 음양 — 사주/동양 전통의 차트 정체성. 옛 ✨ sparkles 폐기. */}
-                <span aria-hidden="true">&#x262F;</span>
-                <span className={styles.toolLabel}>{chartLabel}</span>
-              </button>
+              {toolsOpen && (
+                <div role="menu" className={styles.toolMenuPopover}>
+                  {onFileUpload && (
+                  <label
+                    role="menuitem"
+                    className={styles.toolMenuItem}
+                    aria-label={labels.uploadCv}
+                    title={labels.uploadCv}
+                  >
+                    <span aria-hidden="true" className={styles.toolMenuIcon}>
+                      &#x1F4CE;
+                    </span>
+                    <span>{lang === 'ko' ? '파일' : 'File'}</span>
+                    <input
+                      type="file"
+                      accept={fileAccept}
+                      className={styles.fileInput}
+                      onChange={(e) => {
+                        setToolsOpen(false)
+                        void onFileUpload(e)
+                      }}
+                    />
+                  </label>
+                  )}
+                  {onOpenTarot && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setToolsOpen(false)
+                        onOpenTarot()
+                      }}
+                      disabled={tarotDisabled || loading}
+                      className={styles.toolMenuItem}
+                      aria-label={tarotAria}
+                      title={tarotTitle}
+                    >
+                      <span aria-hidden="true" className={styles.toolMenuIcon}>
+                        &#x1F0CF;
+                      </span>
+                      <span>{tarotLabel}</span>
+                    </button>
+                  )}
+                  {onOpenChart && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setToolsOpen(false)
+                        onOpenChart()
+                      }}
+                      disabled={chartDisabled}
+                      className={styles.toolMenuItem}
+                      aria-label={chartAria}
+                      title={chartTitle}
+                    >
+                      {/* ☯ 음양 — 사주/동양 전통의 차트 정체성. */}
+                      <span aria-hidden="true" className={styles.toolMenuIcon}>
+                        &#x262F;
+                      </span>
+                      <span>{chartLabel}</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
             )}
             {parsingPdf && (
               <span className={styles.fileName}>

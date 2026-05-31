@@ -153,6 +153,68 @@
   padding: 0 8px;
 }
 
+/* ⋮ 도구 메뉴 — 좌상단 케밥 버튼 + 위로 열리는 팝오버. 파일/타로/차트를
+   인라인 아이콘 줄 대신 하나로 접어 입력창을 깔끔하게(ChatGPT/Claude 식). */
+.toolMenu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.toolMenuPopover {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 148px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 181, 114, 0.22);
+  background: rgba(20, 12, 30, 0.98);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.toolMenuItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(220, 215, 255, 0.92);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.toolMenuItem:hover:not(:disabled) {
+  background: rgba(212, 181, 114, 0.18);
+  color: #fff;
+}
+
+.toolMenuItem:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolMenuIcon {
+  font-size: 15px;
+  line-height: 1;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .toolLabel {
   font-size: 12px;
   font-weight: 600;
@@ -332,6 +394,23 @@
 
 .inputArea[data-theme='light'] .fileName {
   color: rgba(31, 41, 55, 0.65);
+}
+
+.inputArea[data-theme='light'] .toolMenuPopover {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.inputArea[data-theme='light'] .toolMenuItem {
+  color: rgba(31, 41, 55, 0.9);
+}
+
+.inputArea[data-theme='light'] .toolMenuItem:hover:not(:disabled) {
+  background: rgba(212, 181, 114, 0.18);
+  color: #1f2937;
 }
 
 .inputArea[data-theme='light'] .fallbackNote {
