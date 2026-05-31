@@ -48,7 +48,7 @@ export function useCounselorData(sp: SearchParams) {
   const initialQuestion = (Array.isArray(rawQ) ? rawQ[0] : rawQ) ?? ''
 
   // Returning users (e.g. opening a saved session from the sidebar)
-  // arrive at /destiny-map/counselor without birth params on the URL.
+  // arrive at /destiny-counselor without birth params on the URL.
   // Fall back to /api/me/profile so the gate stops re-prompting them.
   // Loading is true until either: the URL already has birthDate+
   // birthTime, or the profile fetch resolves.

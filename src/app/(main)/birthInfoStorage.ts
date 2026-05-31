@@ -150,7 +150,7 @@ export function buildBirthQuery(info: StoredBirthInfo | null): string {
 
 /**
  * Deep-link straight into the counselor chat with birth info + the first
- * question prefilled. We target `/destiny-map/counselor` directly (NOT the
+ * question prefilled. We target `/destiny-counselor` directly (NOT the
  * `/destiny-counselor` redirect) because that thin redirect drops `q`,
  * `lat`/`lon` and `timeZone`, so the question never reaches the chat and
  * the reading falls back to Seoul coords. Going direct lets
@@ -176,7 +176,7 @@ export function buildCounselorHref(
   params.set('lang', lang)
   const q = question.trim()
   if (q) params.set('q', q)
-  return `/destiny-map/counselor?${params.toString()}`
+  return `/destiny-counselor?${params.toString()}`
 }
 
 // ── 저장된 정보 불러오기 폼 헬퍼 ─────────────────────────────────────────

@@ -15,7 +15,7 @@ export const CATEGORY_ROUTES: Record<string, string> = {
   Astrology: '/astrology',
   Tarot: '/tarot',
   Compatibility: '/compatibility',
-  'Destiny Counselor': '/destiny-map',
+  'Destiny Counselor': '/destiny-counselor',
 } as const
 
 /**
@@ -28,7 +28,7 @@ export const ROUTES = {
   ASTROLOGY: '/astrology',
   TAROT: '/tarot',
   COMPATIBILITY: '/compatibility',
-  DESTINY_MAP: '/destiny-map',
+  DESTINY_MAP: '/destiny-counselor',
   COUNSELOR: '/counselor',
   PROFILE: '/profile',
   SETTINGS: '/settings',
@@ -40,6 +40,6 @@ export const ROUTES = {
  * @param fallback - Fallback route if category not found
  * @returns Route path
  */
-export function getCategoryRoute(category: string, fallback = '/destiny-map'): string {
+export function getCategoryRoute(category: string, fallback = '/destiny-counselor'): string {
   return CATEGORY_ROUTES[category] || fallback
 }

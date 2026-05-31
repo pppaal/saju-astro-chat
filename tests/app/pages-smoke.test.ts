@@ -70,20 +70,15 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Destiny Map Pages (2)', () => {
-    it('should have destiny map pages', () => {
-      assertPages([
-        'app/destiny-map/page',
-        'app/destiny-map/counselor/page',
-      ])
+  describe('Destiny Counselor Page', () => {
+    it('should have destiny counselor page', () => {
+      assertPages(['app/destiny-counselor/page'])
     })
   })
 
   describe('Destiny Match Pages (1)', () => {
     it('should have destiny match pages', () => {
-      assertPages([
-        'app/destiny-match/page',
-      ])
+      assertPages(['app/destiny-match/page'])
     })
   })
 
@@ -139,7 +134,7 @@ describe('Pages Smoke Tests', () => {
         'calendar',
         'compatibility',
         'contact',
-        'destiny-map',
+        'destiny-counselor',
         'destiny-match',
         'faq',
         'policy',

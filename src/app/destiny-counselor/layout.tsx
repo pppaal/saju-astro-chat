@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
         description: '사주와 점성을 함께 풀어 실행 가능한 조언까지 제시하는 1:1 AI 운명 상담 채팅.',
         keywords: ['운명 상담', 'AI 상담', '사주 상담', '점성 상담', 'AI 운명 상담사', '운세 상담'],
       },
-      canonicalUrl: `${baseUrl}/destiny-map/counselor`,
+      canonicalUrl: `${baseUrl}/destiny-counselor`,
       ogImage: '/og-image.png',
     },
     locale
