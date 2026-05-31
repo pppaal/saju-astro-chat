@@ -22,6 +22,7 @@ import type { ImportanceGrade } from '@/lib/destiny-map/calendar/types'
 import type { DomainKey } from './types'
 import type { CalendarCell, ActiveSignal } from '@/lib/calendar-engine/types'
 import { cellToYearlyDate, type CalendarLang } from '@/lib/calendar-engine/adapters/cellsToYearlyDates'
+import { patternsToCategories } from '@/lib/calendar-engine/derivers/categories'
 import type { YearlyImportantDate } from './yearlyDates'
 import { clamp } from '@/lib/utils/math'
 
@@ -41,14 +42,6 @@ function hashSeed(seed: string): number {
 function pickBySeed<T>(seed: string, list: readonly T[]): T {
   if (!list.length) return undefined as unknown as T
   return list[hashSeed(seed) % list.length]
-}
-
-const DOMAIN_TO_CATEGORY: Record<DomainKey, 'career' | 'love' | 'wealth' | 'health' | 'travel'> = {
-  career: 'career',
-  love: 'love',
-  money: 'wealth',
-  health: 'health',
-  move: 'travel',
 }
 
 function buildRecommendations(grade: ImportanceGrade, domain: DomainKey, seed: string): string[] {
@@ -193,8 +186,14 @@ export function cellToImportantDate(
   const crossAgreementPercent = v2.crossAgreementPercent
   const seed = `${v2.date}|${domain}|${grade}`
 
-  // categories — 구 엔진 시맨틱 보존: [primary domain → EventCategory, 'general'].
-  const categories = [DOMAIN_TO_CATEGORY[domain], 'general'] as YearlyImportantDate['categories']
+  // categories — 일일-패턴 기반 deriver. v2 5테마(love/money/career/health/growth)로
+  // 일원화하되, 정적인 themeScores 대신 그날 발동한 patterns 의 themes 로 뽑아 일별
+  // 다양성을 살린다(themeScores 직접 사용 시 본명-지배적이라 360/365일 동일해 필터가
+  // 무용해짐). UI 도메인 필터가 이 테마값으로 동작.
+  const categories = patternsToCategories(
+    cell.matchedPatterns,
+    cell.themeScores
+  ) as unknown as YearlyImportantDate['categories']
 
   // factor 토큰 — saju/astro 신호에서 게이트 토큰 추출 (부가 맥락 라인용).
   const sajuFactorKeys: string[] = []

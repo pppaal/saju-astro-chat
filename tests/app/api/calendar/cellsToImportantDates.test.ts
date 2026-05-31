@@ -58,12 +58,28 @@ describe('cellsToImportantDates (v2-native bridge, 단계 4)', () => {
     expect(cellToImportantDate(makeCell({ derivedScore: 99 })).confidence).toBe(99)
   })
 
-  it('derives primary domain → categories from top themeScore', () => {
+  it('derives categories from themeScores via v2 deriver (5-theme scheme)', () => {
+    // v2 카테고리는 5테마(love/money/career/health/growth) — 구 EventCategory
+    // (wealth/general/travel) 폐기. UI 도메인 필터와 정합.
     const love = cellToImportantDate(makeCell({ themeScores: { love: 80, career: 10 } }))
     expect(love.categories).toContain('love')
-    expect(love.categories).toContain('general')
+    expect(love.categories).not.toContain('general')
     const money = cellToImportantDate(makeCell({ themeScores: { money: 90 } }))
-    expect(money.categories).toContain('wealth') // money domain → wealth category
+    expect(money.categories).toContain('money') // wealth→money 통일
+  })
+
+  it('drives categories from the day’s matchedPatterns themes (daily variety)', () => {
+    // 패턴이 그날 발동 → 카테고리가 themeScores(정적) 대신 패턴 themes 로 결정돼
+    // 일별로 달라진다. themeScores 는 career 우세지만 패턴이 money 면 money 가 뜬다.
+    const d = cellToImportantDate(
+      makeCell({
+        themeScores: { career: 90, money: 5 },
+        matchedPatterns: [
+          { id: 'p1', name: '재물', themes: ['money'], matchedSignalIds: [], strength: 80 },
+        ] as never,
+      })
+    )
+    expect(d.categories).toContain('money')
   })
 
   it('maps v2 saju 충/형 signals → chung/xing factor tokens (gate context)', () => {

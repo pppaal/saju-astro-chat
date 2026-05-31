@@ -40,3 +40,41 @@ export function themeScoresToCategories(
   }
   return picked
 }
+
+// 비-최상위 패턴 테마는 최상위 가중치의 이 비율 이상이면 동급 카테고리로 포함.
+const PATTERN_REL_GAP = 0.6
+
+/**
+ * 그날 발동한 패턴(matchedPatterns)의 themes → 카테고리 deriver (v2 소유).
+ *
+ * themeScoresToCategories 는 themeScores(본명-지배적, 일별 거의 정적) 기반이라
+ * 카테고리가 매일 같아져 도메인 필터가 무용해진다. 반면 패턴은 그날의 신호 조합으로
+ * 발동/소멸하므로 일별로 달라진다 — 패턴 themes 를 strength 가중 합산해 그날 "두드러진
+ * 라이프 영역"을 카테고리로 뽑으면 일별 다양성이 살아난다. 발동 패턴이 없는 날은
+ * themeScores 폴백.
+ */
+export function patternsToCategories(
+  matchedPatterns: ReadonlyArray<{ themes: readonly AstroThemeKey[]; strength: number }>,
+  themeScores: Partial<Record<AstroThemeKey, number>>
+): ThemeCategory[] {
+  const weight: Partial<Record<AstroThemeKey, number>> = {}
+  for (const p of matchedPatterns) {
+    const s = typeof p.strength === 'number' && p.strength > 0 ? p.strength : 1
+    for (const t of p.themes) weight[t] = (weight[t] ?? 0) + s
+  }
+  const entries = THEME_ORDER.map((k) => [k, weight[k] ?? 0] as const).filter(([, v]) => v > 0)
+  // 발동 패턴 themes 가 없으면 themeScores 폴백 (정적이지만 빈 카테고리보단 낫다).
+  if (entries.length === 0) return themeScoresToCategories(themeScores)
+
+  const sorted = [...entries].sort((a, b) => {
+    if (b[1] !== a[1]) return b[1] - a[1]
+    return THEME_ORDER.indexOf(a[0]) - THEME_ORDER.indexOf(b[0])
+  })
+  const [topKey, topScore] = sorted[0]
+  const picked: ThemeCategory[] = [topKey]
+  for (const [k, v] of sorted.slice(1)) {
+    if (picked.length >= MAX_CATEGORIES) break
+    if (v >= topScore * PATTERN_REL_GAP) picked.push(k)
+  }
+  return picked
+}

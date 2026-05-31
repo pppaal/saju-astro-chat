@@ -21,7 +21,7 @@ import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { normalizeGender } from '@/lib/utils/gender'
 import { nowInTimezone } from '@/lib/utils/timezone'
-import { calculateYearlyImportantDates } from './lib/yearlyDates'
+import { cellsToImportantDates } from './lib/cellsToImportantDates'
 
 import {
   getPillarStemName,
@@ -450,16 +450,16 @@ export const GET = withApiMiddleware(
       )
     }
 
-    // ── v2(calendar-engine) 점수 선계산 → 전 달 narrative 주입 ──
-    // [마이그레이션 단계 2a] prescore 를 12달 전체로 확장 — 이전엔 current ±1달만
-    // v2 점수를 쓰고 나머지 9달은 구 v3 blend 를 displayScore 로 써서 "다른 달을 클릭
-    // 하면 점수 출처가 달라지는" 불일치가 있었다(점수↔서사 모순의 뿌리). 어차피 아래
-    // augment 블록이 12달 전부를 cell-cache 에 빌드하므로, prescore 를 12달로 늘려도
-    // 추가 비용 0(augment 가 in-memory HIT). 결과: displayScore·grade·narrative 가
-    // 12달 모두 같은 v2 derivedScore 기준으로 일관.
+    // ── v2(calendar-engine) 단일 점수·서사 출처 ───────────────────────────
+    // [마이그레이션 단계 4] 구 calculateYearlyImportantDates(사주·점성 blend) 제거.
+    // 12달 셀을 빌드해 cellsToImportantDates 로 ImportantDate[] 를 직접 만든다.
+    // 점수·등급·축분해·교차검증은 셀에서, formatDateForResponse 의 모순방지 게이트가
+    // 먹는 recommendation/warningKeys 는 순수 빌더로 재현(브릿지 내부). 아래 augment
+    // 블록이 같은 12달(cell-cache in-memory HIT)로 narrative/신호/패턴/일진을 부착한다
+    // — 점수·문구·신호·게이트가 전부 단일 v2 출처. 구 v3 blend·engineScores 주입 폐기.
     const prescoreMonths = Array.from({ length: 12 }, (_, i) => i)
 
-    const engineScoreByDate: Record<string, number> = {}
+    const prescoreCells: import('@/lib/calendar-engine/types').CalendarCell[] = []
     try {
       if (!sharedCeNatal) throw new Error('natal context unavailable')
       const ceNatal = sharedCeNatal
@@ -470,7 +470,6 @@ export const GET = withApiMiddleware(
         birthPlace,
         gender: gender || 'Male',
       })
-      // prescoreMonths 만 병렬 — 나머지 9 달은 augment 단계가 cell-cache MISS 로 빌드.
       const monthResults = await Promise.all(
         prescoreMonths.map((month) => {
           const start = new Date(Date.UTC(year, month, 1))
@@ -485,53 +484,20 @@ export const GET = withApiMiddleware(
           })
         })
       )
-      for (const { cells } of monthResults) {
-        for (const c of cells) {
-          const k = c.datetime.slice(0, 10)
-          if (typeof c.derivedScore === 'number') engineScoreByDate[k] = c.derivedScore
-        }
-      }
+      for (const { cells } of monthResults) prescoreCells.push(...cells)
     } catch (err) {
       logger.warn?.(
-        '[calendar-engine v2 prescore] skipped:',
+        '[calendar-engine v2 build] skipped:',
         err instanceof Error ? err.message : String(err)
       )
     }
-    const hasEngineScores = Object.keys(engineScoreByDate).length > 0
 
-    // 12달 narrative 다시 풀빌드 — 다른 달 클릭 시 즉시 보이려면 응답에 365일 모두 포함.
-    // prescoreMonths 외 9 달은 v3 점수 fallback 사용 (engineScores 에 없는 날짜).
-    const cacheKey = CacheKeys.yearlyCalendar(
-      birthDateParam,
-      birthTimeParam,
-      gender,
-      year,
-      category || undefined,
-      birthPlace
-    )
-    const localDates = await cacheOrCalculate(
-      cacheKey,
-      async () =>
-        calculateYearlyImportantDates(year, sajuProfile, astroProfile, {
-          minGrade: 4, // grade 4(최악의 날)까지 포함
-          locale: locale === 'en' ? 'en' : 'ko',
-          birthDate: birthDateParam,
-          dailyTransitScores: (astroProfile as { dailyTransitScores?: Record<string, number> })
-            .dailyTransitScores,
-          dailyTransitTightest: (
-            astroProfile as {
-              dailyTransitTightest?: Record<
-                string,
-                Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
-              >
-            }
-          ).dailyTransitTightest,
-          dailyRetrograde: (astroProfile as { dailyRetrograde?: Record<string, string[]> })
-            .dailyRetrograde,
-          engineScores: hasEngineScores ? engineScoreByDate : undefined,
-        }),
-      CACHE_TTL.CALENDAR_DATA // 1 day
-    )
+    // 365일 ImportantDate — v2 셀에서 직접. minGrade 게이팅은 셀 점수 기준이라 불필요
+    // (전 날짜 포함). 카테고리 필터는 아래에서 적용.
+    const localDates = cellsToImportantDates(prescoreCells, {
+      locale: locale === 'en' ? 'en' : 'ko',
+      sunSign: astroProfile.sunSign,
+    })
 
     // 카테고리 필터링
     let filteredDates = localDates
