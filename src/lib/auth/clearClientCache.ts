@@ -61,6 +61,33 @@ export async function clearClientCache(): Promise<ClearClientCacheResult> {
 }
 
 /**
+ * Per-user data persisted in localStorage that must NOT survive a
+ * sign-out. Cache Storage (above) only covered SW-cached API responses;
+ * the birth info / profile a user typed lives in localStorage and was
+ * lingering after logout — so "Load saved info" kept showing for the
+ * next (signed-out) visitor, and their name/birthdate leaked on shared
+ * devices. Keys mirror their owning modules:
+ *   - 'destinypal:birthInfo:v1'   → src/app/(main)/birthInfoStorage.ts (KEY)
+ *   - 'destinypal_user_profile'   → src/lib/userProfile.ts (USER_PROFILE_KEY)
+ */
+const LOCAL_USER_DATA_KEYS = ['destinypal:birthInfo:v1', 'destinypal_user_profile'] as const
+
+/**
+ * Remove per-user birth/profile data from localStorage. Safe in
+ * non-browser environments and never throws.
+ */
+export function clearLocalUserData(): void {
+  if (typeof window === 'undefined' || !('localStorage' in window)) return
+  for (const key of LOCAL_USER_DATA_KEYS) {
+    try {
+      window.localStorage.removeItem(key)
+    } catch {
+      // Best-effort: a single failing key must not block sign-out.
+    }
+  }
+}
+
+/**
  * Convenience wrapper for sign-out flows. Clears the client cache
  * then invokes the provided sign-out callback. Cache clearing runs
  * first so that even if `signOut` redirects mid-flight, the caches
@@ -71,6 +98,7 @@ export async function clearClientCacheAndSignOut(
 ): Promise<void> {
   try {
     await clearClientCache()
+    clearLocalUserData()
   } catch {
     // Never let cache clearing block sign-out.
   }
