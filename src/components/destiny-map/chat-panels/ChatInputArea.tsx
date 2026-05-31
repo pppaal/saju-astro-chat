@@ -199,11 +199,17 @@ export const ChatInputArea = React.memo(function ChatInputArea({
     }
   }, [focusToken])
 
+  // textarea auto-grow (Claude 식) — 내용 높이만큼 위로 늘리되, CSS max-height
+  // (40vh) 를 넘으면 거기서 멈추고 내부 스크롤. height 를 auto 로 리셋한 뒤
+  // scrollHeight 를 읽어야 줄을 지웠을 때 다시 줄어든다.
   React.useEffect(() => {
     const el = textareaRef.current
     if (!el) return
     el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
+    const max = Math.round(window.innerHeight * 0.4) // 40vh — CSS max-height 와 일치
+    const next = Math.min(el.scrollHeight, max)
+    el.style.height = `${next}px`
+    el.style.overflowY = el.scrollHeight > max ? 'auto' : 'hidden'
   }, [input])
 
   const tarotLabel = tarot?.label ?? (lang === 'ko' ? '타로' : 'Tarot')
