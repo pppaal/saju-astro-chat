@@ -208,7 +208,7 @@ At the very end, append *exactly* this line (hidden from the user, rendered as b
 function birthFingerprint(b: RealtimeBody): string {
   return [
     b.birthDate ?? '',
-    b.birthTime ?? '12:00',
+    b.birthTime ?? '00:00',
     b.gender ?? 'male',
     b.timezone ?? 'Asia/Seoul',
     b.latitude ?? '',
@@ -361,7 +361,7 @@ export async function POST(req: NextRequest) {
       const queryDate = new Date(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0)
       const tz = body.timezone ?? 'Asia/Seoul'
       const birthDate = body.birthDate
-      const birthTime = body.birthTime ?? '12:00'
+      const birthTime = body.birthTime ?? '00:00'
       // 'F' / 'Female' 다 처리 — 기존 `=== 'female'` 정확 매칭은 'F' 한 글자
       // 나 'Female' 대문자는 'male' 로 떨어져 여자 사용자 대운 방향 거꾸로.
       const gender: 'male' | 'female' =

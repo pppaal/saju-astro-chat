@@ -248,7 +248,7 @@ function runFindBestDates(
 ): DateRecommendation[] {
   const saju = calculateSajuData(
     person.birthDate,
-    person.birthTime || '12:00',
+    person.birthTime || '00:00',
     person.gender === 'F' ? 'female' : 'male',
     'solar',
     person.timezone || 'Asia/Seoul'

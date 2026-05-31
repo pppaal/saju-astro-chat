@@ -70,14 +70,14 @@ describe('quickCompatibility', () => {
 
       expect(calculateSajuData).toHaveBeenCalledWith(
         '1991-01-01',
-        '12:00',
+        '00:00',
         'female',
         'solar',
         'Asia/Seoul'
       )
       expect(calculateSajuData).toHaveBeenCalledWith(
         '1993-02-02',
-        '12:00',
+        '00:00',
         'male',
         'solar',
         'Asia/Seoul'

@@ -489,7 +489,7 @@ export type CalendarQueryValidated = z.infer<typeof calendarQuerySchema>
 const CURRENT_YEAR = new Date().getFullYear()
 export const calendarMainQuerySchema = z.object({
   birthDate: dateSchema,
-  birthTime: timeSchema.optional().default('12:00'),
+  birthTime: timeSchema.optional().default('00:00'),
   birthPlace: z.string().max(100).trim().optional().default('Seoul'),
   year: z.coerce
     .number()

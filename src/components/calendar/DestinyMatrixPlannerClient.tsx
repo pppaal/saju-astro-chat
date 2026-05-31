@@ -310,7 +310,7 @@ export default function DestinyMatrixPlannerClient() {
       const hasCoords = typeof next.latitude === 'number' && typeof next.longitude === 'number'
       const normalized: BirthInfo = {
         ...next,
-        birthTime: next.birthTime || '12:00',
+        birthTime: next.birthTime || '00:00',
         birthPlace: next.birthPlace || 'Seoul',
         latitude: hasCoords ? next.latitude : 37.5665,
         longitude: hasCoords ? next.longitude : 126.978,

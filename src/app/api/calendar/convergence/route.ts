@@ -93,7 +93,7 @@ export const GET = withApiMiddleware(
       const natal = await buildNatalContext(
         {
           birthDate: birthDateParam,
-          birthTime: birthTimeParam || '12:00',
+          birthTime: birthTimeParam || '00:00',
           gender: sajuGender,
           latitude: coords.lat,
           longitude: coords.lng,
@@ -105,7 +105,7 @@ export const GET = withApiMiddleware(
       const { makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
       const birthKey = makeBirthKey({
         birthDate: birthDateParam,
-        birthTime: birthTimeParam || '12:00',
+        birthTime: birthTimeParam || '00:00',
         birthPlace,
         gender: gender || 'Male',
       })

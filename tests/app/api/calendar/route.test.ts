@@ -712,7 +712,7 @@ describe('Calendar API Route - /api/calendar', () => {
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.birthInfo.time).toBe('12:00') // default
+      expect(data.birthInfo.time).toBe('00:00') // default
       expect(data.birthInfo.place).toBe('Seoul') // default
     })
 

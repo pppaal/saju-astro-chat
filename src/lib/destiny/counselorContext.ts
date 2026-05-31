@@ -378,7 +378,7 @@ export async function buildDestinyContext(
   let astroTiming = '' // moves under ## 타이밍 (transits/eclipses/SR/progression/profection)
   try {
     const [Y, M, D] = birth.birthDate.split('-').map(Number)
-    const [h, mi] = (birth.birthTime || '12:00').split(':').map(Number)
+    const [h, mi] = (birth.birthTime || '00:00').split(':').map(Number)
     const natal = await calculateNatalChart({
       year: Y,
       month: M,
