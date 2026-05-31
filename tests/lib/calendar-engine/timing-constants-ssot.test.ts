@@ -1,10 +1,7 @@
 /**
- * 타이밍/초정밀 레이어의 천간·지지 상수가 saju/constants 정본과 어긋나지 않도록
- * 잠그는 가드. 현재는 정본에서 파생(import)하므로 자동 통과하지만, 누군가 다시
- * 리터럴로 하드코딩하면서 오행/음양/글자를 바꾸면 여기서 바로 실패한다.
- *
- * (지장간 hiddenStems 는 레이어별 배열 순서가 달라 파생 대상에서 제외 — 별도
- *  도메인 검토 사항. 특히 亥 지장간이 정본 JIJANGGAN 과 불일치.)
+ * 타이밍/초정밀 레이어의 천간·지지 상수(오행·음양·이름·지장간)가 saju/constants
+ * 정본과 어긋나지 않도록 잠그는 가드. 전부 정본에서 파생(import)하므로 자동
+ * 통과하지만, 누군가 다시 리터럴로 하드코딩하면서 값을 바꾸면 여기서 바로 실패한다.
  */
 import { describe, it, expect } from 'vitest'
 import {
@@ -13,6 +10,7 @@ import {
   STEM_NAMES,
   BRANCH_NAMES,
   JIJANGGAN,
+  JIJANGGAN_ORDERED,
 } from '@/lib/saju/constants'
 import { STEMS as TIMING_STEMS } from '@/lib/calendar-engine/timing-helpers/timing/constants/stemData'
 import {
@@ -60,16 +58,17 @@ describe('timing/ultra 천간·지지 상수 ↔ saju/constants 정본 SSOT', ()
     expect(ULTRA_HOUR_BRANCHES).toEqual(BRANCH_NAMES)
   })
 
-  // 지장간(hiddenStems)은 레이어마다 배열 순서가 달라 그대로 두지만, 글자
-  // 구성(집합)은 정본 JIJANGGAN 과 반드시 같아야 한다. 亥 처럼 한 글자씩
-  // 흘려 갈라지던 류의 회귀를 차단.
-  it('지장간 집합이 정본 JIJANGGAN ↔ timing ↔ ultra 에서 모두 일치', () => {
+  // 지장간(hiddenStems)도 정본 JIJANGGAN 에서 파생한 강도순 배열(JIJANGGAN_ORDERED)을
+  // timing·ultra 가 그대로 쓴다. 글자 구성(집합)은 물론, 배열 자체와 [0]=정기(본기)
+  // 순서까지 정본과 정확히 일치해야 한다.
+  it('지장간 배열이 정본 JIJANGGAN_ORDERED ↔ timing ↔ ultra 에서 정확히 일치', () => {
     for (const name of BRANCH_NAMES) {
-      const canon = asSet(Object.values(JIJANGGAN[name]))
-      const timing = asSet(TIMING_BRANCHES[name].hiddenStems)
-      const ultra = asSet(ULTRA_HIDDEN_STEMS[name])
-      expect(timing, `timing ${name}`).toBe(canon)
-      expect(ultra, `ultra ${name}`).toBe(canon)
+      const ordered = JIJANGGAN_ORDERED[name]
+      // 집합은 dict 와, 배열·순서는 ORDERED 와 일치.
+      expect(asSet(ordered), `set ${name}`).toBe(asSet(Object.values(JIJANGGAN[name])))
+      expect(ordered[0], `정기 first ${name}`).toBe(JIJANGGAN[name]['정기'])
+      expect(TIMING_BRANCHES[name].hiddenStems, `timing ${name}`).toEqual(ordered)
+      expect(ULTRA_HIDDEN_STEMS[name], `ultra ${name}`).toEqual(ordered)
     }
   })
 })
