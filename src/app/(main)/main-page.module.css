@@ -715,13 +715,16 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 0.75rem 0.85rem;
-  border-radius: 22px;
-  border: 1px solid rgba(212, 181, 114, 0.28);
-  background: linear-gradient(180deg, rgba(15, 17, 35, 0.92), rgba(10, 12, 26, 0.94));
-  box-shadow: 0 12px 36px rgba(8, 8, 24, 0.45);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  /* 래퍼 자체의 배경/테두리/그림자 제거 — 안에 들어가는 공용 ChatInputArea
+     (dark theme) 가 자기 박스(어두운 둥근 사각 + 테두리)를 이미 그린다.
+     이전엔 래퍼 다크 박스 + 흰(light) 입력박스가 겹쳐 "흰 박스 + 검은 틈 +
+     보라 배경" 3색이 따로 놀았다. 래퍼는 레이아웃(생일칩+입력창 세로 묶음)만
+     담당하고 시각 표면은 ChatInputArea 에 위임 → 보라 배경 위에 어두운
+     입력창 하나만 자연스럽게 얹힌다. */
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 /* 입력창 본체(textarea/전송 버튼/한 줄 row)는 공용 ChatInputArea 컴포넌트로

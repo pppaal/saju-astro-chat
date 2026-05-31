@@ -193,6 +193,21 @@ export default function CounselorPage() {
     [router, lang]
   )
 
+  // 생년월일·출생시간이 없으면 진입하자마자 입력 폼을 띄운다(사용자 요청:
+  // "생년월일 없으면 생년월일 폼 줘야지"). 게이트 화면은 없앴지만 — 채팅은
+  // 즉시 보이되, 사주 계산에 꼭 필요한 정보가 없으면 폼을 먼저 연다.
+  // 단, ?session= 으로 과거 채팅을 복원하는 경우엔 세션이 birth 컨텍스트를
+  // 들고 있으므로 강제하지 않는다(profileLoading/resumeChecking 동안에도 대기).
+  const autoBirthPromptedRef = useRef(false)
+  useEffect(() => {
+    if (profileLoading || resumeChecking) return
+    if (initialSessionId) return
+    if (birthDate && birthTime) return
+    if (autoBirthPromptedRef.current) return
+    autoBirthPromptedRef.current = true
+    setBirthModalOpen(true)
+  }, [profileLoading, resumeChecking, initialSessionId, birthDate, birthTime])
+
   // Localized failure messages for rename/delete actions — used both by
   // the in-chat ⋮ menu and the sidebar's swipe actions. We prefer the
   // user's locale via `lang` (matches the rest of this header's ko/en
