@@ -569,7 +569,7 @@ describe('Calendar Schema Tests', () => {
     it('should use defaults', () => {
       const result = calendarMainQuerySchema.safeParse({ birthDate: '1990-05-15' })
       if (result.success) {
-        expect(result.data.birthTime).toBe('12:00')
+        expect(result.data.birthTime).toBe('00:00')
         expect(result.data.birthPlace).toBe('Seoul')
         expect(result.data.gender).toBe('male')
         expect(result.data.locale).toBe('ko')

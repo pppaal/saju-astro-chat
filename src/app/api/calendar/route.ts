@@ -302,8 +302,8 @@ export const GET = withApiMiddleware(
       birthDay: birthDate.getDate(),
     }
     try {
-      const birthHour = Number.parseInt((birthTimeParam || '12:00').split(':')[0] || '12', 10)
-      const birthMinute = Number.parseInt((birthTimeParam || '12:00').split(':')[1] || '0', 10)
+      const birthHour = Number.parseInt((birthTimeParam || '00:00').split(':')[0] || '0', 10)
+      const birthMinute = Number.parseInt((birthTimeParam || '00:00').split(':')[1] || '0', 10)
       const [
         { calculateNatalChart, toChart },
         { calculateTransitChart, findMajorTransits, findTransitAspects },
@@ -428,7 +428,7 @@ export const GET = withApiMiddleware(
       const { context, source } = await getOrBuildNatalContext(
         {
           birthDate: birthDateParam,
-          birthTime: birthTimeParam || '12:00',
+          birthTime: birthTimeParam || '00:00',
           gender: normalizeGender(gender) === 'female' ? 'female' : 'male',
           latitude: coords.lat,
           longitude: coords.lng,
@@ -466,7 +466,7 @@ export const GET = withApiMiddleware(
       const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
       const birthKey = makeBirthKey({
         birthDate: birthDateParam,
-        birthTime: birthTimeParam || '12:00',
+        birthTime: birthTimeParam || '00:00',
         birthPlace,
         gender: gender || 'Male',
       })
@@ -575,7 +575,7 @@ export const GET = withApiMiddleware(
       const { getOrBuildMonth, makeBirthKey } = await import('@/lib/calendar-engine/cell-cache')
       const birthKey = makeBirthKey({
         birthDate: birthDateParam,
-        birthTime: birthTimeParam || '12:00',
+        birthTime: birthTimeParam || '00:00',
         birthPlace,
         gender: gender || 'Male',
       })

@@ -252,7 +252,7 @@ export function CompatPersonPickerModal({
       name: p.name,
       date: p.date,
       // 시간 모름 시 12:00 정오 기준 (입력 페이지와 동일 fallback).
-      time: p.time || '12:00',
+      time: p.time || '00:00',
       city: p.cityQuery || '',
       latitude: p.lat ?? undefined,
       longitude: p.lon ?? undefined,

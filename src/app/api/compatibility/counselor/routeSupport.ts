@@ -321,7 +321,7 @@ function parseTimeString(input: unknown): string | null {
 function buildPersonSeed(person: Record<string, unknown> | null | undefined): PersonSeed | null {
   if (!person) return null
   const date = parseDateString(person.birthDate ?? person.date)
-  const time = parseTimeString(person.birthTime ?? person.time) || '12:00'
+  const time = parseTimeString(person.birthTime ?? person.time) || '00:00'
   if (!date) return null
 
   const latRaw = typeof person.latitude === 'number' ? person.latitude : null

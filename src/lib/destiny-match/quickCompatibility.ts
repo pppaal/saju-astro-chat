@@ -75,8 +75,8 @@ async function analyzeSajuPair(
 
   const date1 = new Date(person1.birthDate)
   const date2 = new Date(person2.birthDate)
-  const time1 = person1.birthTime || '12:00'
-  const time2 = person2.birthTime || '12:00'
+  const time1 = person1.birthTime || '00:00'
+  const time2 = person2.birthTime || '00:00'
   const timezone1 = person1.timezone || 'Asia/Seoul'
   const timezone2 = person2.timezone || 'Asia/Seoul'
 
@@ -163,8 +163,8 @@ export async function calculateDetailedCompatibility(
     const date2 = new Date(person2.birthDate)
 
     // 시간 형식 변환
-    const time1 = person1.birthTime || '12:00'
-    const time2 = person2.birthTime || '12:00'
+    const time1 = person1.birthTime || '00:00'
+    const time2 = person2.birthTime || '00:00'
     const timezone1 = person1.timezone || 'Asia/Seoul'
     const timezone2 = person2.timezone || 'Asia/Seoul'
 

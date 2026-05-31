@@ -72,7 +72,7 @@ export const GET = withApiMiddleware(
       const { getOrBuildNatalContext } = await import('@/lib/calendar-engine/context/cache')
       const { context: natal } = await getOrBuildNatalContext({
         birthDate,
-        birthTime: birthTime || '12:00',
+        birthTime: birthTime || '00:00',
         gender: (gender === 'female' ? 'female' : 'male') as 'male' | 'female',
         latitude: coords.lat,
         longitude: coords.lng,
