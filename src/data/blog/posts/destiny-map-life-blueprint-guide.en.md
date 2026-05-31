@@ -161,4 +161,4 @@ Review the core reading once, then revisit timing layers (annual Seun, current D
 
 Your Destiny Counselor reading is like a GPS for life's journey. It doesn't drive for you, but it shows the terrain ahead, highlights scenic routes, and warns of difficult passages. Used well—with attention to where traditions converge and humility about where they don't—it becomes a tool for clearer self-knowledge and more conscious choice.
 
-Ready to discover your complete life blueprint? Get your personalized Destiny Counselor reading with our [Destiny Counselor](/destiny-counselor) and explore the wisdom of integrated divination.
+Ready to discover your complete life blueprint? Get your personalized Destiny Counselor reading with our [Destiny Counselor](/destiny-map) and explore the wisdom of integrated divination.

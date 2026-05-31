@@ -72,7 +72,7 @@ export default function DestinyMapPageClient({ initialLocale }: DestinyMapPageCl
     }
     if (!birthDate) {
       autoRedirectRef.current = true
-      router.replace('/?openBirth=1&next=/destiny-counselor')
+      router.replace('/?openBirth=1&next=/destiny-map/counselor')
       return
     }
 
