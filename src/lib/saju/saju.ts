@@ -338,7 +338,11 @@ export function calculateSajuData(
       if (/^\d{1,2}$/.test(t)) {
         return `${t.padStart(2, '0')}:00:00`
       }
-      return t
+      // AM/PM 등 비표준 표기 — parseHourMinute 로 24h 정규화. 이게 없으면
+      // SajuTimeSchema 가 허용하는 "11:30 PM" 같은 값이 그대로 ISO 문자열에
+      // 들어가 toDate → Invalid Date → 전체 계산이 throw 하던 버그.
+      const { h, m } = parseHourMinute(t)
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`
     })()
 
     const isoString = `${solarBirthDateStr}T${safeTime}`
