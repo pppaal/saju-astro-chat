@@ -226,7 +226,7 @@ function CompatibilityCounselorContent() {
         //    the conversation and the couple snapshot we saved alongside.
         if (resumeId) {
           try {
-            const res = await fetch(
+            const res = await apiFetch(
               `/api/counselor/session/load?sessionId=${encodeURIComponent(resumeId)}`
             )
             if (res.ok) {
@@ -482,7 +482,7 @@ function CompatibilityCounselorContent() {
     const next = window.prompt(isKo ? '대화 이름' : 'Chat name', chatTitle || '')
     if (!next || !next.trim()) return
     try {
-      await fetch('/api/counselor/session/list', {
+      await apiFetch('/api/counselor/session/list', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: chatSessionId, title: next.trim() }),
@@ -501,7 +501,7 @@ function CompatibilityCounselorContent() {
     )
     if (!confirmed) return
     try {
-      await fetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(chatSessionId)}`, {
+      await apiFetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(chatSessionId)}`, {
         method: 'DELETE',
       })
     } catch (err) {
@@ -761,7 +761,10 @@ function CompatibilityCounselorContent() {
               person2Astro,
             }
           }
-          fetch('/api/counselor/chat-history', {
+          // apiFetch — 세션 쿠키를 항상 실어 모바일 인앱 브라우저에서도 저장이
+          // 성공하도록. 저장이 실패하면 이어 띄울 "최신 채팅"이 없어 매번 폼이
+          // 떴다(#1037 와 동일한 native-fetch 쿠키 누락 이슈).
+          apiFetch('/api/counselor/chat-history', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
@@ -926,7 +929,7 @@ function CompatibilityCounselorContent() {
                 assistantMessage: cleanContent,
                 type: 'compat',
               }
-              fetch('/api/counselor/chat-history', {
+              apiFetch('/api/counselor/chat-history', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
