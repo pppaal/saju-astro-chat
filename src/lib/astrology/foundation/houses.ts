@@ -11,25 +11,34 @@ export function calcHouses(
   system: HouseSystem = 'Placidus'
 ) {
   const swisseph = getSwisseph()
-  if (system === 'Placidus') {
-    const res = swisseph.swe_houses(ut_jd, lat, lon, 'P')
-    if ('error' in res) {
-      throw new Error(String(res.error))
-    }
-    return res
-  }
 
-  if (system === 'WholeSign') {
-    // Whole Sign: ASC의 별자리 시작을 1하우스 0°로, 각 30도씩 등분
-    const base = swisseph.swe_houses(ut_jd, lat, lon, 'P')
+  // Whole Sign: ASC 가 속한 별자리의 0°를 1하우스로, 30도씩 등분. ASC/MC 는
+  // 하우스 시스템과 무관하므로 'W' 로 받는다. 'W' 는 Placidus 와 달리 극권
+  // (위도 >~66.5°)에서도 항상 계산되므로, 고위도 출생의 폴백으로도 쓴다.
+  const wholeSign = () => {
+    const base = swisseph.swe_houses(ut_jd, lat, lon, 'W')
     if ('error' in base) {
       throw new Error(String(base.error))
     }
     const asc = normalize360(base.ascendant)
     const signStart = Math.floor(asc / 30) * 30 // 그 별자리의 0°
     const house: number[] = new Array(12).fill(0).map((_, i) => normalize360(signStart + i * 30))
-    const mc = normalize360(base.mc) // MC는 Placidus 계산치 사용
-    return { house, ascendant: asc, mc }
+    return { house, ascendant: asc, mc: normalize360(base.mc) }
+  }
+
+  if (system === 'WholeSign') {
+    return wholeSign()
+  }
+
+  if (system === 'Placidus') {
+    // 극권에서 swe_houses('P') 는 "Can't calculate houses" 에러를 낸다 — 이 경우
+    // 차트가 통째로 throw 되던 것을 Whole Sign 으로 폴백해 막는다. 일반 위도에서는
+    // 'P' 가 성공하므로 기존 동작과 100% 동일(폴백 미작동).
+    const res = swisseph.swe_houses(ut_jd, lat, lon, 'P')
+    if ('error' in res) {
+      return wholeSign()
+    }
+    return res
   }
 
   throw new Error(`Unsupported house system: ${system}`)
