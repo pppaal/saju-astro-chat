@@ -58,11 +58,6 @@ export default function BlogClient() {
     <main className={styles.page}>
       <div className={styles.stars} />
 
-      <Link href="/" className={styles.backButton}>
-        <span className={styles.backArrow}>←</span>
-        <span>{isKo ? '홈으로' : 'Home'}</span>
-      </Link>
-
       <div className={styles.main}>
         {/* Hero Section */}
         <section className={styles.hero}>
