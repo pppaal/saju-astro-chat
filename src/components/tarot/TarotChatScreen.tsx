@@ -217,6 +217,22 @@ export default function TarotChatScreen() {
               ref={textareaRef}
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => {
+                // Enter → submit. Shift+Enter → newline. IME 한글 조합 중에는 skip.
+                // 일부 모바일 키보드 (Samsung 등) 가 isComposing 을 onCompositionEnd
+                // 후에도 true 로 들고 있어 keyCode 229 도 같이 체크.
+                if (
+                  e.key === 'Enter' &&
+                  !e.shiftKey &&
+                  !e.nativeEvent.isComposing &&
+                  e.keyCode !== 229
+                ) {
+                  e.preventDefault()
+                  if (question.trim()) {
+                    e.currentTarget.form?.requestSubmit()
+                  }
+                }
+              }}
               placeholder={isKo ? '어떤 고민이 있으신가요?' : 'What is on your mind?'}
               className="w-full bg-slate-800 border border-slate-700 focus:border-[#d4b572] rounded-2xl p-4 pr-14 text-slate-100 placeholder-slate-500 resize-none outline-none text-base min-h-16 max-h-32 transition-colors"
               rows={1}

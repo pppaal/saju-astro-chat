@@ -479,6 +479,9 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
     saveAttemptedRef.current = true
 
     actions.setIsSaving(true)
+    // 저장 실패 시 lock 해제 — 옛 코드는 한 번 실패하면 retry 영영 안 됨.
+    // 성공 시는 isSaved=true 가드로 중복 방지.
+    let saveSucceeded = false
     try {
       const res = await fetch('/api/tarot/save', {
         method: 'POST',
@@ -528,6 +531,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
         const newReadingId = savedJson?.readingId ?? savedJson?.data?.readingId ?? null
         if (newReadingId) actions.setReadingId(newReadingId)
         actions.setIsSaved(true)
+        saveSucceeded = true
       } else {
         const err = await res.json().catch(() => ({}))
         logger.error('[InlineTarot] save error:', err)
@@ -536,6 +540,8 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
       logger.error('[InlineTarot] save error:', err)
     } finally {
       actions.setIsSaving(false)
+      // 실패 시 lock 해제 — 다음 effect tick 에서 재시도 가능.
+      if (!saveSucceeded) saveAttemptedRef.current = false
     }
   }, [
     selectedSpread,

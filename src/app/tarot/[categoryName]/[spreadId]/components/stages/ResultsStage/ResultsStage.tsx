@@ -112,6 +112,32 @@ export function ResultsStage(props: ResultsStageProps) {
   const isKo = language === 'ko'
   const insight = interpretation
   const aiPending = insight?.fallback === true && !interpretationFailed
+
+  // 자동 저장 — AI 해석 완료 + 미저장 + 게스트 아님 시점에 한 번. 사용자가
+  // "저장" 버튼 안 눌러도 history 에 자동 등록 → 과거 기록 페이지에 방금 본
+  // 결과가 항상 최신으로 보이게.
+  React.useEffect(() => {
+    if (
+      !aiPending &&
+      insight?.overall_message &&
+      !isSaved &&
+      !isSaving &&
+      !interpretationFailed &&
+      !isGuestUser
+    ) {
+      handleSaveReading().catch(() => {
+        /* save 실패는 silent — Save 버튼이 backup */
+      })
+    }
+  }, [
+    aiPending,
+    insight?.overall_message,
+    isSaved,
+    isSaving,
+    interpretationFailed,
+    isGuestUser,
+    handleSaveReading,
+  ])
   const hasGuidance =
     insight?.guidance &&
     (Array.isArray(insight.guidance)
