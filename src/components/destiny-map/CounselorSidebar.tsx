@@ -89,6 +89,13 @@ interface CounselorSidebarProps {
    * row is only removed after success, so nothing to roll back).
    */
   onActionError?: (info: { kind: 'rename' | 'delete'; status?: number }) => void
+  /**
+   * 사이드바에서 이름 변경/삭제가 성공했을 때 부모에게 알린다. 부모는 현재
+   * 보고 있는 대화(activeId 비교)면 상단 헤더 제목/상태를 같이 갱신해 사이드바
+   * ↔ 헤더가 어긋나지 않게 한다. 미연결이면 사이드바 목록만 갱신(기존 동작).
+   */
+  onRenameLocal?: (sessionId: string, title: string) => void
+  onDeleteLocal?: (sessionId: string) => void
 }
 
 const SWIPE_REVEAL_PX = 60 // user must drag this far to lock the swipe-open state
@@ -106,6 +113,8 @@ export default function CounselorSidebar({
   footerSlot,
   onActionError,
   fallbackName,
+  onRenameLocal,
+  onDeleteLocal,
 }: CounselorSidebarProps) {
   const { t } = useI18n()
   const { data: session, status } = useSession()
@@ -247,6 +256,7 @@ export default function CounselorSidebar({
       status = res.status
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title: next } : s)))
+      onRenameLocal?.(id, next)
       cancelRename()
     } catch (e) {
       // The local `sessions` array is only updated after the request
@@ -258,7 +268,7 @@ export default function CounselorSidebar({
       cancelRename()
       onActionError?.({ kind: 'rename', status })
     }
-  }, [renamingId, renameValue, cancelRename, onActionError])
+  }, [renamingId, renameValue, cancelRename, onActionError, onRenameLocal])
 
   // ---- Mobile swipe-to-reveal ----
   const onTouchStart = (e: React.TouchEvent, id: string) => {

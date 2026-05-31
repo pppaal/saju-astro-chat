@@ -1100,14 +1100,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         serviceType="compat"
         enableGrouping
         lightTheme
-        activeSessionId={chatSessionId}
-        /* 사이드바에서 이름 변경 시 — 현재 보고 있는 대화면 상단 헤더 제목도
-           즉시 갱신. 이전엔 콜백 미연결로 사이드바만 바뀌고 맨 위 제목은 옛날
-           그대로였다. */
-        onRenameLocal={(id, title) => {
+        /* 사이드바에서 이름 변경/삭제 시 — 현재 보고 있는 대화면 상단 헤더
+           제목·상태도 즉시 갱신. 이전엔 콜백 미연결로 사이드바 목록만 바뀌고
+           맨 위 헤더 제목은 옛날 그대로였다. */
+        onRenameLocal={(id: string, title: string) => {
           if (id === chatSessionId) setChatTitle(title)
         }}
-        onDeleteLocal={(id) => {
+        onDeleteLocal={(id: string) => {
           if (id !== chatSessionId) return
           setMessages([])
           setChatSessionId(undefined)
