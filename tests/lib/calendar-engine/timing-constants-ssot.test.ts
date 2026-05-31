@@ -7,7 +7,13 @@
  *  도메인 검토 사항. 특히 亥 지장간이 정본 JIJANGGAN 과 불일치.)
  */
 import { describe, it, expect } from 'vitest'
-import { STEMS as CANON_STEMS, BRANCHES as CANON_BRANCHES, STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
+import {
+  STEMS as CANON_STEMS,
+  BRANCHES as CANON_BRANCHES,
+  STEM_NAMES,
+  BRANCH_NAMES,
+  JIJANGGAN,
+} from '@/lib/saju/constants'
 import { STEMS as TIMING_STEMS } from '@/lib/calendar-engine/timing-helpers/timing/constants/stemData'
 import {
   BRANCHES as TIMING_BRANCHES,
@@ -17,7 +23,10 @@ import {
   STEMS as ULTRA_STEMS,
   BRANCHES as ULTRA_BRANCHES,
   HOUR_BRANCHES as ULTRA_HOUR_BRANCHES,
+  HIDDEN_STEMS as ULTRA_HIDDEN_STEMS,
 } from '@/lib/calendar-engine/timing-helpers/ultra-precision-constants'
+
+const asSet = (xs: string[]) => [...xs].sort().join(',')
 
 describe('timing/ultra 천간·지지 상수 ↔ saju/constants 정본 SSOT', () => {
   it('timing stemData.STEMS 의 오행/음양/이름이 정본과 일치', () => {
@@ -49,5 +58,18 @@ describe('timing/ultra 천간·지지 상수 ↔ saju/constants 정본 SSOT', ()
     expect(ULTRA_STEMS).toEqual(STEM_NAMES)
     expect(ULTRA_BRANCHES).toEqual(BRANCH_NAMES)
     expect(ULTRA_HOUR_BRANCHES).toEqual(BRANCH_NAMES)
+  })
+
+  // 지장간(hiddenStems)은 레이어마다 배열 순서가 달라 그대로 두지만, 글자
+  // 구성(집합)은 정본 JIJANGGAN 과 반드시 같아야 한다. 亥 처럼 한 글자씩
+  // 흘려 갈라지던 류의 회귀를 차단.
+  it('지장간 집합이 정본 JIJANGGAN ↔ timing ↔ ultra 에서 모두 일치', () => {
+    for (const name of BRANCH_NAMES) {
+      const canon = asSet(Object.values(JIJANGGAN[name]))
+      const timing = asSet(TIMING_BRANCHES[name].hiddenStems)
+      const ultra = asSet(ULTRA_HIDDEN_STEMS[name])
+      expect(timing, `timing ${name}`).toBe(canon)
+      expect(ultra, `ultra ${name}`).toBe(canon)
+    }
   })
 })
