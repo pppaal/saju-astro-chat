@@ -23,6 +23,7 @@ import {
   type StoredBirthInfo,
 } from '@/app/(main)/birthInfoStorage'
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
+import { loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -154,6 +155,14 @@ export default function CounselorPage() {
       return
     }
     autoResumeAttemptedRef.current = true
+    // 게스트 진행 드래프트가 있으면(한도→로그인/구매 직전 채팅) 서버 자동 resume
+    // 대신 그 드래프트를 복원하도록 bare 진입을 유지한다 — Chat 이 마운트 시 복원.
+    // 방금까지 보던 게 가장 최근이라 옛 서버 채팅보다 우선.
+    const draft = loadPendingChat<{ messages?: unknown[] }>('destiny')
+    if (draft && Array.isArray(draft.messages) && draft.messages.length > 0) {
+      setResumeChecking(false)
+      return
+    }
     let cancelled = false
     setResumeChecking(true)
     fetchLatestSessionId('destiny').then((id) => {
@@ -176,6 +185,7 @@ export default function CounselorPage() {
   // remount key. No page reload, no loading screen — the Chat tree just
   // remounts with empty state.
   const handleChatReset = useCallback(() => {
+    clearPendingChat('destiny')
     setChatResetKey((k) => k + 1)
   }, [])
 

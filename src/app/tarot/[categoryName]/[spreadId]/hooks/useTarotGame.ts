@@ -90,11 +90,15 @@ function buildRestoredReadingResult(
 }
 
 function buildRestoredInterpretation(reading: SavedTarotReading): InterpretationResult {
+  // 저장된 해석이 비어 있으면(카드만 먼저 저장된 미완성 — 예: 게스트 한도로 해석
+  // 중단) fallback:true 로 표시해, 복원 직후 페이지의 해석 effect 가 다시 fetch
+  // 하게 한다. 완성본(overallMessage 있음)은 fallback:false 라 즉시 그대로 표시.
+  const hasRealInterpretation = Boolean(reading.interpretation.overallMessage?.trim())
   return {
     overall_message: reading.interpretation.overallMessage || '',
     guidance: reading.interpretation.guidance || '',
     affirmation: '',
-    fallback: false,
+    fallback: !hasRealInterpretation,
     card_insights: reading.interpretation.cardInsights.map((insight) => {
       const matchedCard = reading.cards.find(
         (card) => card.position === insight.position || card.name === insight.cardName
@@ -305,27 +309,35 @@ export function useTarotGame(): UseTarotGameReturn {
     setGameState('results')
   }, [spreadInfo, restoreKeyFromUrl, categoryName])
 
-  // 모바일에서 앱을 백그라운드로 보냈다 돌아오면 브라우저가 페이지를 통째로
-  // 리로드해, 메모리에만 있던 readingResult 가 사라진다(결과창이 초기화됨).
-  // 완성된 리딩을 히스토리 복원과 동일한 포맷으로 sessionStorage 에 저장하고
-  // URL 에 restoreKey 를 심어두면, 리로드 후 위의 복원 effect 가 결과를 그대로
-  // 재구성한다. interpretation 이 완성된(fallback 아닌) 시점에만 저장한다 —
-  // 미완성 basic 을 저장하면 buildRestoredInterpretation 이 fallback:false 로
-  // 굳혀 빈 결과로 복원되기 때문.
-  const autoRestorePersistedRef = useRef(false)
+  // 리딩을 sessionStorage 에 저장하고 URL 에 restoreKey 를 심어, 리로드(모바일
+  // 백그라운드 복귀)나 비로그인→로그인/크레딧 구매 왕복 후에도 위의 복원 effect 가
+  // 결과창을 그대로 재구성하게 한다.
+  //  - 카드가 뽑히면(readingResult) "즉시" 카드만이라도 저장해 restoreKey 를 URL 에
+  //    확보한다 → 해석 도중 게스트 한도가 터져 로그인하러 가도 카드가 살아남고,
+  //    복원 시 buildRestoredInterpretation(빈 해석→fallback:true)이 재fetch 를 부른다.
+  //  - 해석이 완성되면(overall_message && !fallback) 같은 키로 payload 를 업그레이드
+  //    해, 완성본은 복원 즉시 그대로(재fetch 없이) 표시되게 한다.
+  const restorePersistKeyRef = useRef<string | null>(null)
+  const restorePersistCompleteRef = useRef(false)
   useEffect(() => {
-    if (autoRestorePersistedRef.current) return
-    if (restoreKeyFromUrl) return // 이미 복원 가능한 진입(히스토리 등)
-    if (!readingResult || !spreadInfo) return
-    if (!interpretation || !interpretation.overall_message || interpretation.fallback) return
     if (typeof window === 'undefined') return
+    if (!readingResult || !spreadInfo) return
+    // 우리가 심지 않은 restoreKey(히스토리 등 외부 복원 진입) 는 건드리지 않는다.
+    if (restoreKeyFromUrl && restorePersistKeyRef.current !== restoreKeyFromUrl) return
+    if (restorePersistCompleteRef.current) return // 완성본 저장 끝 — 더 안 함
 
+    const isComplete = Boolean(
+      interpretation && interpretation.overall_message && !interpretation.fallback
+    )
     // guidance 는 string | AdviceItem[] 라 저장 포맷(string)으로 평탄화.
-    const saveInterpretation = {
-      overall_message: interpretation.overall_message,
-      guidance: flattenTarotGuidance(interpretation.guidance),
-      card_insights: interpretation.card_insights,
-    }
+    const saveInterpretation = isComplete
+      ? {
+          overall_message: interpretation!.overall_message,
+          guidance: flattenTarotGuidance(interpretation!.guidance),
+          card_insights: interpretation!.card_insights,
+        }
+      : { overall_message: '', guidance: '', card_insights: [] }
+
     const reading: SavedTarotReading = {
       ...formatReadingForSave(
         userTopic,
@@ -340,15 +352,19 @@ export function useTarotGame(): UseTarotGameReturn {
       id: `restore_${Date.now().toString(36)}`,
       timestamp: Date.now(),
     }
-    const key = storeReadingRestorePayload(reading)
+    const key = storeReadingRestorePayload(reading, restorePersistKeyRef.current || undefined)
     if (!key) return
 
-    autoRestorePersistedRef.current = true
-    // 라이브 세션에서 복원 effect 가 현재 상태를 덮어쓰지 않도록 미리 마킹.
-    restoredReadingKeyRef.current = key
-    const nextParams = new URLSearchParams(searchParams?.toString() || '')
-    nextParams.set('restoreKey', key)
-    router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false })
+    if (!restorePersistKeyRef.current) {
+      // 첫 저장(카드 확보) — URL 에 restoreKey 심기. 라이브 세션에서 복원 effect 가
+      // 현재 상태를 덮어쓰지 않도록 ref 도 함께 마킹.
+      restorePersistKeyRef.current = key
+      restoredReadingKeyRef.current = key
+      const nextParams = new URLSearchParams(searchParams?.toString() || '')
+      nextParams.set('restoreKey', key)
+      router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false })
+    }
+    if (isComplete) restorePersistCompleteRef.current = true
   }, [
     readingResult,
     interpretation,

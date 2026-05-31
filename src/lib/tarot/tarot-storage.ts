@@ -161,12 +161,17 @@ export function deleteReading(id: string): boolean {
   }
 }
 
-export function storeReadingRestorePayload(reading: SavedTarotReading): string | null {
+export function storeReadingRestorePayload(
+  reading: SavedTarotReading,
+  // 기존 키를 넘기면 같은 슬롯을 덮어쓴다 — 카드만 먼저 저장해 두고(즉시 restoreKey
+  // 확보), 해석이 완성되면 같은 키로 업그레이드하기 위함. 없으면 새 키 생성.
+  existingKey?: string
+): string | null {
   if (typeof window === 'undefined') {
     return null
   }
 
-  const key = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
+  const key = existingKey || `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
   try {
     window.sessionStorage.setItem(
       `${RESTORE_STORAGE_PREFIX}${key}`,
