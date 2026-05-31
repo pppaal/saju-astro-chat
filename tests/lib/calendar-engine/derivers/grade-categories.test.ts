@@ -5,16 +5,15 @@ import { scoreToGrade } from '@/lib/calendar-engine/derivers/grade'
 import { themeScoresToCategories } from '@/lib/calendar-engine/derivers/categories'
 
 describe('scoreToGrade (v2 deriver)', () => {
-  it('matches the calibrated thresholds', () => {
-    expect(scoreToGrade(70)).toBe(0)
-    expect(scoreToGrade(63)).toBe(0)
-    expect(scoreToGrade(62)).toBe(1)
-    expect(scoreToGrade(57)).toBe(1)
-    expect(scoreToGrade(56)).toBe(2)
-    expect(scoreToGrade(44)).toBe(2)
-    expect(scoreToGrade(43)).toBe(3)
-    expect(scoreToGrade(34)).toBe(3)
-    expect(scoreToGrade(33)).toBe(4)
+  it('matches the calibrated thresholds (74/64/46/33)', () => {
+    expect(scoreToGrade(74)).toBe(0)
+    expect(scoreToGrade(73)).toBe(1)
+    expect(scoreToGrade(64)).toBe(1)
+    expect(scoreToGrade(63)).toBe(2)
+    expect(scoreToGrade(46)).toBe(2)
+    expect(scoreToGrade(45)).toBe(3)
+    expect(scoreToGrade(33)).toBe(3)
+    expect(scoreToGrade(32)).toBe(4)
     expect(scoreToGrade(0)).toBe(4)
   })
 
