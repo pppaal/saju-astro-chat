@@ -134,6 +134,12 @@ interface ChatInputAreaProps {
   focusToken?: unknown
   /** 'dark' (운명 — 어두운 배경 페이지) / 'light' (궁합 — 흰 배경 페이지). 기본 'dark'. */
   theme?: 'dark' | 'light'
+  /**
+   * 호출자가 이미 박스(배경+테두리)를 그리고 그 안에 입력창을 끼워 넣을 때 true.
+   * 입력창 자체의 sticky/배경/테두리/그림자를 모두 끄고 레이아웃만 남겨, 부모
+   * 박스와 한 덩어리처럼 보이게 한다(메인 홈: 생년월일 칩 + 입력을 한 박스로).
+   */
+  embedded?: boolean
 }
 
 export const ChatInputArea = React.memo(function ChatInputArea({
@@ -161,6 +167,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   autoFocus = false,
   focusToken,
   theme = 'dark',
+  embedded = false,
 }: ChatInputAreaProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const styles = stylesOverride ?? internalStyles
@@ -222,7 +229,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   const chartTitle = chart?.title ?? (lang === 'ko' ? '나의 운세 차트' : 'My destiny chart')
 
   return (
-    <div className={styles.inputArea} data-theme={theme}>
+    <div className={styles.inputArea} data-theme={theme} data-embedded={embedded || undefined}>
       <div className={styles.inputBox}>
         <textarea
           ref={textareaRef}

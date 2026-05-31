@@ -133,6 +133,7 @@ export default function HomeChatInput({
           onSend={goCounselor}
           placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
           theme={lightMode ? 'light' : 'dark'}
+          embedded
         />
       </div>
     </div>
