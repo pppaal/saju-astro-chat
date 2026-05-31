@@ -65,11 +65,6 @@ export default function BlogPostClient({ post, relatedPosts }: BlogPostClientPro
     <main className={styles.page}>
       <div className={styles.stars} />
 
-      <Link href="/blog" className={styles.backButton}>
-        <span className={styles.backArrow}>←</span>
-        <span>{isKo ? "블로그" : "Blog"}</span>
-      </Link>
-
       <article className={styles.main}>
         {/* Header */}
         <header className={styles.header}>
