@@ -6,4 +6,3 @@
 
 // Shared hooks
 export { useSeedEvent } from './hooks/useSeedEvent'
-export { useWelcomeBack } from './hooks/useWelcomeBack'
