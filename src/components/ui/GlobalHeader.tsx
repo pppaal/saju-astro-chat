@@ -51,8 +51,10 @@ function GlobalHeaderContent() {
   )
 
   // 라이트 페이지 위에 떴을 때 ink 톤으로 자동 전환. 다크 cosmic 페이지
-  // (pricing, calendar 등) 에서는 기존 dark variant 유지.
-  const LIGHT_PAGE_PREFIXES = ['/profile', '/compatibility', '/destiny-counselor', '/about']
+  // (destiny-map, pricing, calendar 등) 에서는 기존 dark variant 유지.
+  // /destiny-counselor 는 next.config redirects 로 /destiny-map 으로 영구 redirect
+  // → 더 이상 LIGHT prefix 등록 불필요.
+  const LIGHT_PAGE_PREFIXES = ['/profile', '/compatibility', '/about']
   const isLightPage = Boolean(
     pathname && LIGHT_PAGE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
   )
