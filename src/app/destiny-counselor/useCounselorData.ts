@@ -7,6 +7,7 @@ import { normalizeGender } from '@/lib/utils/gender'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
 import { logger } from '@/lib/logger'
+import { apiFetch } from '@/lib/api'
 
 type SearchParams = Record<string, string | string[] | undefined>
 const DEFAULT_LATITUDE = 37.5665
@@ -489,7 +490,7 @@ export function useCounselorData(sp: SearchParams) {
           // Ignore localStorage errors
         }
 
-        const res = await fetch(`/api/counselor/chat-history?limit=3`)
+        const res = await apiFetch(`/api/counselor/chat-history?limit=3`)
         if (res.ok) {
           const data = (await res.json()) as CounselorContextResponse
           if (data.success) {
@@ -542,7 +543,7 @@ export function useCounselorData(sp: SearchParams) {
         if (!chatSessionId && name) {
           body.meta = { profile: { name } }
         }
-        const res = await fetch('/api/counselor/chat-history', {
+        const res = await apiFetch('/api/counselor/chat-history', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),

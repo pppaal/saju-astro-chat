@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { logger } from '@/lib/logger'
+import { apiFetch } from '@/lib/api'
 import { clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 import styles from './CounselorSidebar.module.css'
 import HexDPLogo from '@/components/branding/HexDPLogo'
@@ -143,7 +144,7 @@ export default function CounselorSidebar({
     if (status !== 'authenticated') return
     let cancelled = false
     setLoadingList(true)
-    fetch(`/api/counselor/session/list?limit=30&type=${serviceType}`)
+    apiFetch(`/api/counselor/session/list?limit=30&type=${serviceType}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return
@@ -196,7 +197,7 @@ export default function CounselorSidebar({
       if (!ok) return
       let status: number | undefined
       try {
-        const res = await fetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`, {
+        const res = await apiFetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`, {
           method: 'DELETE',
         })
         status = res.status
@@ -238,7 +239,7 @@ export default function CounselorSidebar({
     }
     let status: number | undefined
     try {
-      const res = await fetch('/api/counselor/session/list', {
+      const res = await apiFetch('/api/counselor/session/list', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: id, title: next }),
