@@ -1,5 +1,5 @@
-import BrandSplash from '@/components/branding/BrandSplash'
+import CounselorLoading from '@/components/branding/CounselorLoading'
 
 export default function Loading() {
-  return <BrandSplash variant="light" />
+  return <CounselorLoading />
 }
