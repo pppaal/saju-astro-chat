@@ -32,6 +32,11 @@ export default function CounselorLoading() {
         // 1-point difference — imperceptible.
         background: '#faf9f7',
         zIndex: 50,
+        // 이전 페이지가 다크일 때(예: 다크 페이지 → 운명/궁합/홈 진입) 흰
+        // 배경이 갑자기 튀지 않고 transparent → #faf9f7 로 서서히 차오르게
+        // 한다(사용자 요청: "전 페이지가 다크면 천천히 색이 바뀌게"). 같은
+        // 라이트끼리의 전환은 차이가 없어 그대로 자연스럽다.
+        animation: 'counselor-loading-bg 0.45s ease-out',
       }}
     >
       <div
@@ -57,6 +62,10 @@ export default function CounselorLoading() {
         @keyframes counselor-loading-spin {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
+        }
+        @keyframes counselor-loading-bg {
+          from { background-color: transparent; }
+          to   { background-color: #faf9f7; }
         }
       `}</style>
     </main>
