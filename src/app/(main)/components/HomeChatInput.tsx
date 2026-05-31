@@ -91,30 +91,31 @@ export default function HomeChatInput({
     }
   }
 
+  // 생년월일 칩 / CTA — 입력 textarea 와 같은 박스 안 좌상단(topSlot)에 들어간다.
+  const birthSlot = birthInfo ? (
+    <button
+      type="button"
+      className={styles.homeBirthChip}
+      onClick={onOpenBirth}
+      aria-label={isKo ? '생년월일 정보 수정' : 'Edit birth info'}
+    >
+      {isKo ? '상담자: ' : 'Subject: '}
+      {formatSubject(birthInfo, isKo)}
+      <span className={styles.homeBirthChipEdit}>{isKo ? '정보 변경' : 'Edit'}</span>
+    </button>
+  ) : (
+    <button type="button" className={styles.homeBirthCta} onClick={onOpenBirth}>
+      <span aria-hidden="true">📅</span>
+      {isKo ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth date'}
+    </button>
+  )
+
   return (
     <div className={styles.homeChatBar}>
       <div className={styles.homeChatBarInner}>
-        {/* 초록 생일 CTA — 출발점이 생일임을 보여주고, 저장된 뒤엔 수정 버튼이 된다. */}
-        {birthInfo ? (
-          <button
-            type="button"
-            className={styles.homeBirthChip}
-            onClick={onOpenBirth}
-            aria-label={isKo ? '생년월일 정보 수정' : 'Edit birth info'}
-          >
-            {isKo ? '상담자: ' : 'Subject: '}
-            {formatSubject(birthInfo, isKo)}
-            <span className={styles.homeBirthChipEdit}>{isKo ? '정보 변경' : 'Edit'}</span>
-          </button>
-        ) : (
-          <button type="button" className={styles.homeBirthCta} onClick={onOpenBirth}>
-            <span aria-hidden="true">📅</span>
-            {isKo ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth date'}
-          </button>
-        )}
-
         {/* 운명/궁합 상담사와 동일한 공용 입력창. 메인은 첨부/타로/차트 도구가
-            없어 ⋮ 메뉴는 자동으로 숨겨지고, 보내기=상담사로 네비게이트. */}
+            없어 ⋮ 메뉴는 자동으로 숨겨지고, 보내기=상담사로 네비게이트.
+            생년월일 칩은 topSlot 으로 박스 안쪽 좌상단에 들어간다. */}
         <ChatInputArea
           input={text}
           loading={false}
@@ -134,6 +135,7 @@ export default function HomeChatInput({
           placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
           theme={lightMode ? 'light' : 'dark'}
           embedded
+          topSlot={birthSlot}
         />
       </div>
     </div>

@@ -28,13 +28,24 @@
 .inputBox {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.5rem 0.6rem;
-  border-radius: 16px;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 14px;
   border: none;
   background: rgba(20, 12, 30, 0.7);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
+}
+
+/* topSlot — 입력 박스 안쪽 최상단(textarea 위) 좌측 정렬 슬롯. 메인 홈의
+   생년월일 칩이 textarea 와 같은 박스 안 좌상단에 들어가도록(사용자 요청:
+   "칩을 채팅창 안에"). 칩 자체의 배경/패딩은 호출자 스타일을 그대로 쓴다. */
+.inputBoxTop {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
 /* embedded — 호출자(예: 메인 홈)가 이미 박스를 그리고 그 안에 끼워 넣는 경우.
@@ -64,13 +75,13 @@
      먹게 한다. */
   display: block;
   width: 100%;
-  min-height: 1.5rem;
+  min-height: 1.25rem;
   /* Claude 식 — 입력이 길어지면 박스가 위로 충분히 자라 쓴 내용이 다 보이게.
      scrollHeight 가 이 값을 넘으면 그때부터 내부 스크롤. */
   max-height: 40vh;
   resize: none;
   overflow-y: auto;
-  padding: 0.25rem 0.4rem;
+  padding: 0.15rem 0.3rem;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -78,7 +89,7 @@
   /* 16px keeps iOS Safari from auto-zooming the viewport on focus. */
   font-size: 16px;
   font-family: inherit;
-  line-height: 1.5;
+  line-height: 1.4;
   box-shadow: none;
   outline: none;
 }
@@ -105,7 +116,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-top: 0.25rem;
+  margin-top: 0.1rem;
 }
 
 /* 도구(파일/타로/차트)는 이제 ⋮ 버튼 하나로 접혀 있어 가로 overflow 가
