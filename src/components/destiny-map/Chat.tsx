@@ -45,6 +45,7 @@ const Chat = memo(function Chat({
   autoFocus = false,
   initialSessionId,
   onSessionChange,
+  onSendBlocked,
 }: ChatProps) {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
@@ -120,10 +121,16 @@ const Chat = memo(function Chat({
       if (!text) {
         return
       }
+      // 부모 가드 — 생년월일·출생시간이 없으면 전송 대신 입력 모달을 띄운다.
+      // 입력은 지우지 않고 그대로 둬, 모달에서 정보 저장 후 그대로 다시 보낼
+      // 수 있게 한다(운명 상담사 게이트 화면 대체).
+      if (onSendBlocked?.(text)) {
+        return
+      }
       setInput('')
       await apiHandleSend(text, options)
     },
-    [input, apiHandleSend]
+    [input, apiHandleSend, onSendBlocked]
   )
 
   const handleSendRef = React.useRef<

@@ -171,6 +171,10 @@ export interface ChatProps {
   // 있도록 활성 세션 정보를 노출. id 는 항상 있고, title 은 저장 전이거나
   // 아직 로드 안 됐을 때 null.
   onSessionChange?: (info: { sessionId: string; title: string | null }) => void
+  // 전송 직전 부모가 가로채는 가드. true 를 반환하면 전송을 막는다(입력은
+  // 그대로 보존). 운명 상담사에서 생년월일·출생시간이 없는 채로 첫 메시지를
+  // 보내려 할 때 BirthInfoModal 을 대신 띄우는 용도. 미지정 시 항상 전송.
+  onSendBlocked?: (text: string) => boolean
 }
 
 // Chat API request payload
