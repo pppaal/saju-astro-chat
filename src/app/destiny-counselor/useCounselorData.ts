@@ -8,6 +8,7 @@ import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
 import { logger } from '@/lib/logger'
 import { apiFetch } from '@/lib/api'
+import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 
 type SearchParams = Record<string, string | string[] | undefined>
 const DEFAULT_LATITUDE = 37.5665
@@ -20,6 +21,10 @@ interface ProfileFallback {
   gender?: string
   birthCity?: string
   tzId?: string
+  // localStorage 폴백이 좌표까지 들고 올 수 있어 추가 — 비로그인 사용자가 홈에서
+  // 도시를 골라 저장한 경우 사주/하우스 계산이 서울 기본값으로 안 떨어지게.
+  latitude?: number
+  longitude?: number
 }
 
 export function useCounselorData(sp: SearchParams) {
@@ -54,7 +59,25 @@ export function useCounselorData(sp: SearchParams) {
   // Loading is true until either: the URL already has birthDate+
   // birthTime, or the profile fetch resolves.
   const hasUrlBirthInfo = Boolean(urlBirthDate && urlBirthTime)
-  const [profileFallback, setProfileFallback] = useState<ProfileFallback>({})
+  // localStorage 에 저장된 생년월일을 동기적으로 시드 — 비로그인 사용자가 홈에서
+  // 입력만 해두면(서버 프로필 없음) 운명상담사 진입 시 매번 폼이 뜨던 문제 해소.
+  // URL > 서버프로필 > localStorage 우선순위는 아래 병합부에서 보장.
+  const [profileFallback, setProfileFallback] = useState<ProfileFallback>(() => {
+    if (hasUrlBirthInfo) return {}
+    if (typeof window === 'undefined') return {}
+    const stored = getStoredBirthInfo()
+    if (!stored) return {}
+    return {
+      name: stored.name,
+      birthDate: stored.birthDate,
+      birthTime: stored.birthTime,
+      gender: stored.gender,
+      birthCity: stored.city,
+      tzId: stored.timeZone,
+      latitude: stored.latitude,
+      longitude: stored.longitude,
+    }
+  })
   const [profileLoading, setProfileLoading] = useState(!hasUrlBirthInfo)
 
   useEffect(() => {
@@ -66,14 +89,19 @@ export function useCounselorData(sp: SearchParams) {
         if (cancelled) return
         const u = data?.user
         if (u) {
-          setProfileFallback({
-            name: u.name ?? undefined,
-            birthDate: u.birthDate ?? undefined,
-            birthTime: u.birthTime ?? undefined,
-            gender: u.gender ?? undefined,
-            birthCity: u.birthCity ?? undefined,
-            tzId: u.tzId ?? undefined,
-          })
+          // 서버 프로필 값이 우선이되, 비어 있는 필드는 localStorage 시드를
+          // 보존한다(prev). 서버에 생일이 없는 게스트/부분프로필 사용자가
+          // localStorage 로 채운 값을 덮어쓰지 않게.
+          setProfileFallback((prev) => ({
+            name: u.name ?? prev.name,
+            birthDate: u.birthDate ?? prev.birthDate,
+            birthTime: u.birthTime ?? prev.birthTime,
+            gender: u.gender ?? prev.gender,
+            birthCity: u.birthCity ?? prev.birthCity,
+            tzId: u.tzId ?? prev.tzId,
+            latitude: prev.latitude,
+            longitude: prev.longitude,
+          }))
         }
       })
       .catch((e) => logger.warn('[useCounselorData] profile fallback failed', { e }))
@@ -102,8 +130,13 @@ export function useCounselorData(sp: SearchParams) {
 
   const latitude = latStr ? Number(latStr) : NaN
   const longitude = lonStr ? Number(lonStr) : NaN
-  const resolvedLatitude = Number.isFinite(latitude) ? latitude : DEFAULT_LATITUDE
-  const resolvedLongitude = Number.isFinite(longitude) ? longitude : DEFAULT_LONGITUDE
+  // URL 좌표 > localStorage 폴백 좌표 > 서울 기본값.
+  const resolvedLatitude = Number.isFinite(latitude)
+    ? latitude
+    : profileFallback.latitude ?? DEFAULT_LATITUDE
+  const resolvedLongitude = Number.isFinite(longitude)
+    ? longitude
+    : profileFallback.longitude ?? DEFAULT_LONGITUDE
 
   // Honor the birth-place timezone when the home modal forwarded one
   // (URL or server profile). Falling back to the browser's tz is wrong
