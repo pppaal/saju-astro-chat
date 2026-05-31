@@ -21,11 +21,6 @@ const LAYER_LABEL: Record<CalLocale, { daeun: string; sewoon: string; wolwoon: s
   en: { daeun: '10-yr', sewoon: 'Year', wolwoon: 'Month', iljin: 'Day' },
 }
 
-const LAYER_SUB: Record<CalLocale, { daeun: string; sewoon: string; wolwoon: string; iljin: string }> = {
-  ko: { daeun: '10년 흐름', sewoon: '올해', wolwoon: '이번 달', iljin: '오늘' },
-  en: { daeun: 'decade', sewoon: 'this year', wolwoon: 'this month', iljin: 'today' },
-}
-
 const KIND_EN: Record<string, string> = {
   천간합: 'stem harmony',
   지지합: 'branch harmony',
@@ -49,10 +44,6 @@ const KIND_SEVERITY: Record<string, number> = {
   지지해: 3,
   천간합: 2,
   지지합: 2,
-}
-
-function title(label: string, sub: string) {
-  return `${label} · ${sub}`
 }
 
 function Rung({
@@ -104,7 +95,6 @@ export default function FlowLadder({
   locale?: CalLocale
 }) {
   const L = LAYER_LABEL[locale]
-  const S = LAYER_SUB[locale]
   const { daeun, sewoon, wolwoon, iljin } = longCycle
 
   // 표시할 층 — daeun 은 daeunCycles 없으면 생략.
