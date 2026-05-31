@@ -9,6 +9,9 @@
   position: sticky;
   bottom: 0;
   z-index: 6;
+  /* 메시지 영역과 같은 flex 부모 안에서 압축되지 않게 — 입력창이 커질 땐
+     자기 콘텐츠(textarea) 높이만큼 차지하고 메시지 영역이 줄어든다. */
+  flex-shrink: 0;
   /* 좌우 패딩 축소 — 입력창을 화면 양끝까지 넓힘(사용자 요청). */
   padding: 6px 8px 8px;
   background: linear-gradient(
@@ -35,10 +38,15 @@
 }
 
 .textarea {
-  flex: 1;
+  /* flex:1 (=flex-basis:0) 은 세로축 기준을 0 으로 잡아 JS 가 넣어주는
+     scrollHeight 인라인 height 와 충돌 → 글이 늘어도 박스가 안 컸다.
+     block + width:100% 로 바꿔 JS auto-grow(높이=scrollHeight) 가 그대로
+     먹게 한다. */
+  display: block;
+  width: 100%;
   min-height: 1.5rem;
   /* Claude 식 — 입력이 길어지면 박스가 위로 충분히 자라 쓴 내용이 다 보이게.
-     이전 6rem(약 4줄)은 긴 글이 작은 칸 안에서 스크롤돼 안 보였다. */
+     scrollHeight 가 이 값을 넘으면 그때부터 내부 스크롤. */
   max-height: 40vh;
   resize: none;
   overflow-y: auto;

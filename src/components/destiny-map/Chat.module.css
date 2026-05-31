@@ -373,7 +373,10 @@
 
 /* ========== Messages Panel ========== */
 .messagesPanel {
-  min-height: 200px;
+  /* min-height:0 — 입력창이 길어질 때(Claude 식 auto-grow) 메시지 영역이
+     줄어들며 공간을 양보해야 입력 박스가 위로 커질 수 있다. 200px 고정이면
+     shell 이 넘쳐 입력창이 화면 밖으로 밀렸다. */
+  min-height: 0;
   overflow-y: auto;
   /* 가로 패딩 0 — 바깥 chatWrapper(0.75rem) 가 좌우 여백을 담당해 궁합 상담사와
      동일한 가로 폭(이중 패딩 제거). */
