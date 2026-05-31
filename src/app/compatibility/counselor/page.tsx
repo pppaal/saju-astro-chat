@@ -293,7 +293,13 @@ function CompatibilityCounselorContent() {
           }
 
           if (parsed.length >= 2) {
-            await fetchPersonData(parsed)
+            // 차트 데이터(사주·점성 4개 호출)는 채팅 입력에 필수가 아니므로
+            // 초기화를 막지 않는다 — await 하면 4개 API 가 끝날 때까지
+            // isInitializing 이 true 라 입력창·도구(＋) 메뉴가 통째로 안 떠서
+            // "로딩이 느리다 / 입력창이 안 보인다 / 옵션 3개가 안 나온다"는
+            // 회귀였다. 백그라운드로 로드하고(준비되면 '궁합 차트' 도구 활성화)
+            // 입력창은 즉시 보여준다.
+            void fetchPersonData(parsed)
           }
         } else {
           // 3) Direct entry with no couple — inline picker 모달 노출.
@@ -1094,6 +1100,20 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         serviceType="compat"
         enableGrouping
         lightTheme
+        activeSessionId={chatSessionId}
+        /* 사이드바에서 이름 변경 시 — 현재 보고 있는 대화면 상단 헤더 제목도
+           즉시 갱신. 이전엔 콜백 미연결로 사이드바만 바뀌고 맨 위 제목은 옛날
+           그대로였다. */
+        onRenameLocal={(id, title) => {
+          if (id === chatSessionId) setChatTitle(title)
+        }}
+        onDeleteLocal={(id) => {
+          if (id !== chatSessionId) return
+          setMessages([])
+          setChatSessionId(undefined)
+          setChatTitle(null)
+          clarifier.reset()
+        }}
         /* 타로/카드 뽑기/궁합차트 버튼은 입력창 도구로 통일 — 사이드바는
            채팅 목록 전용. (이전엔 사이드바 + 입력창 양쪽에 있어 중복 + 헷갈림.) */
       />
