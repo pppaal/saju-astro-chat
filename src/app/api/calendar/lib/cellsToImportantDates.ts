@@ -23,6 +23,15 @@ import type { DomainKey } from './types'
 import type { CalendarCell, ActiveSignal } from '@/lib/calendar-engine/types'
 import { cellToYearlyDate, type CalendarLang } from '@/lib/calendar-engine/adapters/cellsToYearlyDates'
 import { patternsToCategories } from '@/lib/calendar-engine/derivers/categories'
+import {
+  pickDaeunForDate,
+  sewoonForYear,
+  wolwoonFromPillar,
+  buildCycleInteractions,
+  getSibsinKo,
+  type DaeunCycleInput,
+} from '@/lib/saju/cycleRelations'
+import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import type { YearlyImportantDate } from './yearlyDates'
 import { clamp } from '@/lib/utils/math'
 
@@ -171,6 +180,55 @@ export interface CellsToImportantDatesOptions {
   locale?: CalendarLang
   /** 본명 태양 별자리 — transitSunSign 표시값. */
   sunSign?: string
+  /** 본명 사주 — 대운/세운/월운/일진 흐름 사다리 + 운끼리 충/합/형 계산용. */
+  natal?: {
+    dayMaster: string
+    dayBranch: string
+    daeunCycles?: DaeunCycleInput[]
+    birthYear: number | null
+  }
+}
+
+/**
+ * 시간 층 흐름(대운→세운→월운→일진) + 운끼리 충/합/형 계산.
+ * v2 시그니처 기능 — 단계 4 마이그레이션에서 빠졌던 longCycleContext/cycleInteractions
+ * 를 saju cycleRelations 헬퍼로 재생성한다. iljin 은 셀이 이미 계산한 ganzhi 재사용해
+ * 카드 표시값과 일관.
+ */
+function buildLongCycle(
+  v2Ganzhi: string,
+  date: string,
+  natal: NonNullable<CellsToImportantDatesOptions['natal']>
+): Pick<YearlyImportantDate, 'longCycleContext' | 'cycleInteractions'> {
+  const dateObj = new Date(`${date}T12:00:00.000Z`)
+  if (Number.isNaN(dateObj.valueOf()) || !natal.dayMaster) return {}
+  const { dayMaster, dayBranch } = natal
+  const monthPillar = getMonthPillarForDate(dateObj)
+  const daeun = pickDaeunForDate(natal.daeunCycles, natal.birthYear, dayMaster, dateObj)
+  const sewoon = sewoonForYear(dateObj.getUTCFullYear(), dayMaster)
+  const wolwoon = wolwoonFromPillar(monthPillar.stem, monthPillar.branch, dayMaster)
+  const iljinStem = v2Ganzhi.charAt(0)
+  const iljinBranch = v2Ganzhi.charAt(1)
+  return {
+    longCycleContext: {
+      daeun: daeun ?? undefined,
+      sewoon,
+      wolwoon,
+      iljin: {
+        ganji: v2Ganzhi,
+        sibsinStem: iljinStem ? getSibsinKo(dayMaster, iljinStem) : undefined,
+        sibsinBranch: iljinBranch ? getSibsinKo(dayMaster, iljinBranch) : undefined,
+      },
+    },
+    cycleInteractions: buildCycleInteractions(
+      dayMaster,
+      dayBranch || '',
+      daeun,
+      sewoon,
+      wolwoon,
+      { ganji: v2Ganzhi }
+    ),
+  }
 }
 
 /** 한 셀 → ImportantDate. */
@@ -211,7 +269,11 @@ export function cellToImportantDate(
 
   const warningKeys = buildWarnings(grade, crossAgreementPercent, domain, `${seed}|warn`)
 
+  // 시간 층 흐름(대운/세운/월운/일진) + 운끼리 충/합/형 — natal 주어질 때만.
+  const longCycle = options.natal ? buildLongCycle(v2.ganzhi, v2.date, options.natal) : {}
+
   return {
+    ...longCycle,
     date: v2.date,
     grade,
     score,

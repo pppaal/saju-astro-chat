@@ -110,6 +110,28 @@ export interface ImportantDate {
   monthlyInterpretation?: CalendarInterpretation
   /** 그 날 60갑자(일진) + 본명 일간 십신 개인화 한 줄 (API 가 일별 부착) */
   dailyGanjiNarrative?: string
+  /** 시간 층 흐름(대운/세운/월운/일진) — 본명 일간 기준 십신까지. FlowLadder 가 소비. */
+  longCycleContext?: {
+    daeun?: {
+      ganji: string
+      ageStart: number
+      ageEnd: number
+      sibsinStem?: string
+      yearsToNext?: number
+      transitionImminent?: boolean
+      nextGanji?: string
+      nextSibsinStem?: string
+    }
+    sewoon?: { ganji: string; year: number; sibsinStem?: string }
+    wolwoon?: { ganji: string; sibsinStem?: string }
+    iljin?: { ganji: string; sibsinStem?: string; sibsinBranch?: string }
+  }
+  /** 운끼리(본명 일주·대운·세운·월운·일진)의 충/합/형 — FlowLadder 배지. */
+  cycleInteractions?: Array<{
+    pair: string
+    kind: '천간합' | '천간충' | '지지합' | '지지충' | '지지형' | '지지해' | '지지파' | '자형'
+    blurb: string
+  }>
 }
 
 export interface CalendarData {

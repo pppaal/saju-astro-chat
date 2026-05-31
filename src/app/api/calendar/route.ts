@@ -497,6 +497,12 @@ export const GET = withApiMiddleware(
     const localDates = cellsToImportantDates(prescoreCells, {
       locale: locale === 'en' ? 'en' : 'ko',
       sunSign: astroProfile.sunSign,
+      natal: {
+        dayMaster: sajuProfile.dayMaster,
+        dayBranch: sajuProfile.dayBranch || sajuProfile.pillars?.day?.branch || '',
+        daeunCycles: sajuProfile.daeunCycles,
+        birthYear: sajuProfile.birthYear,
+      },
     })
 
     // 카테고리 필터링

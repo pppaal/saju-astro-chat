@@ -104,6 +104,25 @@ describe('cellsToImportantDates (v2-native bridge, 단계 4)', () => {
     expect(d.astroFactorKeys).toContain('retrograde')
   })
 
+  it('builds longCycleContext + cycleInteractions when natal is given (FlowLadder data)', () => {
+    const d = cellToImportantDate(makeCell({ datetime: '2026-03-15T12:00:00.000Z' }), {
+      locale: 'ko',
+      natal: { dayMaster: '甲', dayBranch: '子', daeunCycles: [], birthYear: 1990 },
+    })
+    expect(d.longCycleContext).toBeDefined()
+    expect(d.longCycleContext?.sewoon?.year).toBe(2026)
+    expect(d.longCycleContext?.wolwoon?.ganji).toMatch(/.{2}/)
+    expect(d.longCycleContext?.iljin?.ganji).toBe(d.ganzhi)
+    expect(typeof d.longCycleContext?.iljin?.sibsinStem).toBe('string')
+    expect(Array.isArray(d.cycleInteractions)).toBe(true)
+  })
+
+  it('omits longCycleContext when natal is absent', () => {
+    const d = cellToImportantDate(makeCell(), { locale: 'ko' })
+    expect(d.longCycleContext).toBeUndefined()
+    expect(d.cycleInteractions).toBeUndefined()
+  })
+
   it('is deterministic — same cell yields identical keys', () => {
     const c = makeCell()
     const a = cellToImportantDate(c)
