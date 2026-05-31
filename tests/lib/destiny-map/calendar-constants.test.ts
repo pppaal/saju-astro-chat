@@ -144,10 +144,9 @@ describe("JIJANGGAN (지장간)", () => {
     expect(JIJANGGAN["丑"]).toHaveProperty("정기");
   });
 
-  it("午 has 여기 and 정기 only", () => {
-    expect(JIJANGGAN["午"]).toHaveProperty("여기");
-    expect(JIJANGGAN["午"]).toHaveProperty("정기");
-    expect(JIJANGGAN["午"]).not.toHaveProperty("중기");
+  it("午 is orthodox 丙·己·丁 (여기·중기·정기 — 정본과 동일)", () => {
+    // 정본 saju/constants 를 재export 하므로 午 는 중기 己 를 포함한다.
+    expect(JIJANGGAN["午"]).toEqual({ 여기: "丙", 중기: "己", 정기: "丁" });
   });
 });
 
