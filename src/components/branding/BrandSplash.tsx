@@ -50,6 +50,10 @@ export default function BrandSplash({
         fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
         overflow: 'hidden',
         zIndex: 50,
+        // 다크 우주 로더가 이전 페이지 위로 부드럽게 페이드인 — 전/후 페이지
+        // 색감이 다를 때(예: 라이트 페이지 → 이 다크 로더) 갑자기 검게 튀지
+        // 않고 자연스럽게 덮인다. (흰 로더 CounselorLoading 은 건드리지 않음.)
+        animation: 'splash-fade-in 0.45s ease-out',
       }}
     >
       <div
@@ -134,6 +138,10 @@ export default function BrandSplash({
       />
 
       <style>{`
+        @keyframes splash-fade-in {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
         @keyframes splash-glide {
           0%, 100% { transform: translateX(-14px); opacity: 0.4; }
           50%      { transform: translateX(14px);  opacity: 1;   }
