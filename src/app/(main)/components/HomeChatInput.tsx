@@ -128,7 +128,6 @@ export default function HomeChatInput({
           onKeyDown={handleKeyDown}
           onSend={goCounselor}
           placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
-          theme="light"
         />
       </div>
     </div>

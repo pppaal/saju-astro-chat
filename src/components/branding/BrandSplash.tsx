@@ -50,6 +50,11 @@ export default function BrandSplash({
         fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
         overflow: 'hidden',
         zIndex: 50,
+        // 이전 페이지 위로 천천히 페이드인 — 전/후 페이지 색감이 다를 때
+        // (예: 다크 → 화이트) 로딩창이 갑자기 색이 튀지 않고 부드럽게 덮어
+        // 들어와 색 전환이 자연스럽게 보인다(사용자 요청). 운명·궁합 채팅은
+        // 별도의 CounselorLoading(연속 라이트) 을 써서 이 컴포넌트와 무관.
+        animation: 'splash-fade-in 0.5s ease-out',
       }}
     >
       <div
@@ -134,6 +139,10 @@ export default function BrandSplash({
       />
 
       <style>{`
+        @keyframes splash-fade-in {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
         @keyframes splash-glide {
           0%, 100% { transform: translateX(-14px); opacity: 0.4; }
           50%      { transform: translateX(14px);  opacity: 1;   }
