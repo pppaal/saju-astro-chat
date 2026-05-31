@@ -1,4 +1,5 @@
 import { STEMS, BRANCHES } from '@/lib/saju/constants'
+import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 
@@ -130,45 +131,26 @@ function weightForDailyShinsal(polarity: Polarity): number {
 
 /**
  * Date → 일지(地支) 한 글자 계산.
- * saju.ts:getIljinCalendar의 JDN 알고리즘과 동일.
+ * 일기둥 계산은 @/lib/saju/dayPillar 단일 소스를 쓴다 (saju 본 계산 ·
+ * 일진 달력과 동일 JDN 공식).
  */
 function computeDayBranch(date: Date): string | null {
-  const year = date.getUTCFullYear()
-  const month = date.getUTCMonth() + 1
-  const day = date.getUTCDate()
-  const a = Math.floor((14 - month) / 12)
-  const y = year + 4800 - a
-  const m = month + 12 * a - 3
-  const jdn =
-    day +
-    Math.floor((153 * m + 2) / 5) +
-    365 * y +
-    Math.floor(y / 4) -
-    Math.floor(y / 100) +
-    Math.floor(y / 400) -
-    32045
-  const branch = BRANCHES[(jdn + 49) % 12]
-  return branch?.name ?? null
+  const { branchIndex } = computeDayPillarIndices(
+    date.getUTCFullYear(),
+    date.getUTCMonth() + 1,
+    date.getUTCDate()
+  )
+  return BRANCHES[branchIndex]?.name ?? null
 }
 
 /** 일진의 천간 — 다른 추출기에서도 쓰일 수 있어 export. */
 export function computeDayStem(date: Date): string | null {
-  const year = date.getUTCFullYear()
-  const month = date.getUTCMonth() + 1
-  const day = date.getUTCDate()
-  const a = Math.floor((14 - month) / 12)
-  const y = year + 4800 - a
-  const m = month + 12 * a - 3
-  const jdn =
-    day +
-    Math.floor((153 * m + 2) / 5) +
-    365 * y +
-    Math.floor(y / 4) -
-    Math.floor(y / 100) +
-    Math.floor(y / 400) -
-    32045
-  const stem = STEMS[(jdn + 49) % 10]
-  return stem?.name ?? null
+  const { stemIndex } = computeDayPillarIndices(
+    date.getUTCFullYear(),
+    date.getUTCMonth() + 1,
+    date.getUTCDate()
+  )
+  return STEMS[stemIndex]?.name ?? null
 }
 
 export { computeDayBranch }

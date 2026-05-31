@@ -26,6 +26,7 @@ import {
 } from './constants'
 import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
 import { isCheoneulGwiin } from './stemBranchUtils'
+import { computeDayPillarIndices } from './dayPillar'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { getOffsetMinutes } from './timezone'
@@ -422,19 +423,7 @@ export function calculateSajuData(
     const monthPillar = { stem: STEMS[monthStemIndex], branch: BRANCHES[monthBranchIndex] }
 
     /* ---------------- 일기둥 ---------------- */
-    const a = Math.floor((14 - M) / 12)
-    const y_ = Y + 4800 - a
-    const m_ = M + 12 * a - 3
-    const jdn =
-      D +
-      Math.floor((153 * m_ + 2) / 5) +
-      365 * y_ +
-      Math.floor(y_ / 4) -
-      Math.floor(y_ / 100) +
-      Math.floor(y_ / 400) -
-      32045
-    const dayStemIndex = (jdn + 49) % 10
-    const dayBranchIndex = (jdn + 49) % 12
+    const { stemIndex: dayStemIndex, branchIndex: dayBranchIndex } = computeDayPillarIndices(Y, M, D)
     const dayPillar = { stem: STEMS[dayStemIndex], branch: BRANCHES[dayBranchIndex] }
     const dayMaster: StemBranchInfo = {
       ...dayPillar.stem,
@@ -795,19 +784,9 @@ export function getIljinCalendar(year: number, month: number, dayMaster: DayMast
   const daysInMonth = new Date(year, month, 0).getDate()
   const calendar: IljinData[] = []
   for (let day = 1; day <= daysInMonth; day++) {
-    const a = Math.floor((14 - month) / 12)
-    const y_ = year + 4800 - a
-    const m_ = month + 12 * a - 3
-    const jdn =
-      day +
-      Math.floor((153 * m_ + 2) / 5) +
-      365 * y_ +
-      Math.floor(y_ / 4) -
-      Math.floor(y_ / 100) +
-      Math.floor(y_ / 400) -
-      32045
-    const stem = STEMS[(jdn + 49) % 10]
-    const branch = BRANCHES[(jdn + 49) % 12]
+    const { stemIndex, branchIndex } = computeDayPillarIndices(year, month, day)
+    const stem = STEMS[stemIndex]
+    const branch = BRANCHES[branchIndex]
     const mainForB = getBranchMainStem(branch.name)
     calendar.push({
       year,
