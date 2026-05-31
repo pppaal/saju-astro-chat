@@ -36,6 +36,7 @@ import { pushRecentPair, getRecentPairs, type RecentPair } from '@/app/compatibi
 import { normalizeGender } from '@/lib/utils/gender'
 import { CompatPersonPickerModal, type PickedPersonData } from './CompatPersonPickerModal'
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
+import { savePendingChat, loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
@@ -214,6 +215,44 @@ function CompatibilityCounselorContent() {
         const sessionParam = searchParams.get('session')
         const personsParam = searchParams.get('persons')
 
+        // 게스트 진행 드래프트 복원 — 비로그인/크레딧 소진 상태로 채팅하다 한도에
+        // 걸려 로그인·크레딧 구매로 페이지가 풀 리로드돼도, 직전 채팅을 그대로
+        // 되살린다(게스트는 서버 저장이 안 되므로 localStorage 드래프트가 유일한
+        // 단서). ?session= 명시 진입이 아니면 서버 자동 resume 보다 우선한다 —
+        // 방금까지 보던 진행분이 가장 최근이기 때문. 다음 턴부터는 (로그인 후)
+        // 서버에 저장되며 드래프트는 정리된다.
+        if (!sessionParam) {
+          const draft = loadPendingChat<{
+            persons: PersonData[]
+            person1Saju: Record<string, unknown> | null
+            person2Saju: Record<string, unknown> | null
+            person1Astro: Record<string, unknown> | null
+            person2Astro: Record<string, unknown> | null
+            messages: ChatMessage[]
+            chatTitle: string | null
+          }>('compat')
+          if (
+            draft &&
+            Array.isArray(draft.persons) &&
+            draft.persons.length >= 2 &&
+            Array.isArray(draft.messages) &&
+            draft.messages.length > 0
+          ) {
+            setPersons(draft.persons)
+            setPerson1Saju(draft.person1Saju ?? null)
+            setPerson2Saju(draft.person2Saju ?? null)
+            setPerson1Astro(draft.person1Astro ?? null)
+            setPerson2Astro(draft.person2Astro ?? null)
+            setMessages(
+              draft.messages.filter(
+                (m): m is ChatMessage => !!m && (m.role === 'user' || m.role === 'assistant')
+              )
+            )
+            if (draft.chatTitle) setChatTitle(draft.chatTitle)
+            return // 서버 자동 resume / picker 건너뜀
+          }
+        }
+
         // ChatGPT 식 "마지막 채팅 이어서 띄우기" — ?session= / ?persons= 둘 다
         // 없는 맨몸 진입이면 가장 최근 궁합 채팅을 자동으로 이어 띄운다.
         // (비로그인이면 null → 아래에서 picker 로 떨어짐.)
@@ -315,6 +354,40 @@ function CompatibilityCounselorContent() {
     initializeData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
+
+  // 게스트(서버 저장 전) 진행 채팅을 localStorage 드래프트로 보존 — 한도→로그인/
+  // 구매 왕복 후 마운트에서 복원하기 위함. 서버 세션이 생기면(chatSessionId) 서버가
+  // 정본이므로 드래프트를 지운다(로그인 사용자에겐 사실상 no-op). 스트리밍 중
+  // (isLoading)엔 저장하지 않고, 턴이 끝난 최종 상태만 기록.
+  useEffect(() => {
+    if (isInitializing || isLoading) return
+    if (chatSessionId) {
+      clearPendingChat('compat')
+      return
+    }
+    if (persons.length >= 2 && messages.length > 0) {
+      savePendingChat('compat', {
+        persons,
+        person1Saju,
+        person2Saju,
+        person1Astro,
+        person2Astro,
+        messages,
+        chatTitle,
+      })
+    }
+  }, [
+    isInitializing,
+    isLoading,
+    chatSessionId,
+    persons,
+    messages,
+    person1Saju,
+    person2Saju,
+    person1Astro,
+    person2Astro,
+    chatTitle,
+  ])
 
   const fetchPersonData = async (personList: PersonData[]) => {
     chartFetchRef.current = true
@@ -1074,6 +1147,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         onClose={() => setSidebarOpen(false)}
         onNewChat={() => {
           if (isLoading) return
+          clearPendingChat('compat')
           setMessages([])
           setError(null)
           setInput('')

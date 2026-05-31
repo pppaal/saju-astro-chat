@@ -10,6 +10,7 @@ import { type TarotResultSummary } from './InlineTarotModal'
 import { CHAT_I18N } from './chat-i18n'
 import { generateMessageId } from './chat-utils'
 import type { ChatProps } from './chat-types'
+import { savePendingChat, loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
 import { useChatSession } from './hooks/useChatSession'
 import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
@@ -114,6 +115,39 @@ const Chat = memo(function Chat({
     onSaveMessage,
     setNotice,
   })
+
+  // 게스트 진행 채팅 복원 — 한도→로그인/구매로 풀 리로드된 뒤, 서버 세션 resume
+  // (initialSessionId)이 아닌 맨몸 진입이면 localStorage 드래프트에서 직전 대화를
+  // 되살린다(게스트는 서버 저장이 안 되므로 이게 유일한 단서). 마운트 1회.
+  const draftHandledRef = React.useRef(false)
+  React.useEffect(() => {
+    if (draftHandledRef.current) return
+    draftHandledRef.current = true
+    if (initialSessionId) return // 서버 세션 resume 중 — 드래프트보다 우선
+    const draft = loadPendingChat<{ messages: typeof messages }>('destiny')
+    const restored = draft?.messages?.filter(
+      (m) => !!m && (m.role === 'user' || m.role === 'assistant')
+    )
+    if (restored && restored.length > 0) {
+      setMessages((prev) => [...prev.filter((m) => m.role === 'system'), ...restored])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 게스트(서버 미저장) 진행 채팅을 드래프트로 보존 — 한도→로그인/구매 왕복 후
+  // 복원용. 서버 세션이 생기면(_chatSessionId) 서버가 정본이므로 드래프트 제거.
+  // 스트리밍 중(loading)엔 저장하지 않고 턴이 끝난 최종 상태만 기록.
+  React.useEffect(() => {
+    if (loading) return
+    if (_chatSessionId) {
+      clearPendingChat('destiny')
+      return
+    }
+    const real = messages.filter((m) => m.role === 'user' || m.role === 'assistant')
+    if (real.length > 0) {
+      savePendingChat('destiny', { messages: real })
+    }
+  }, [loading, _chatSessionId, messages])
 
   const handleSend = React.useCallback(
     async (directText?: string, options?: { isRetry?: boolean }) => {
