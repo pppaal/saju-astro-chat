@@ -18,12 +18,6 @@ export function BehaviorTab({
     return '#ef4444' // red
   }
 
-  const getRiskColor = (score: number) => {
-    if (score >= 80) return styles.badgeDanger
-    if (score >= 50) return styles.badgeWarning
-    return styles.badge
-  }
-
   return (
     <>
       {/* User Activity Summary */}
@@ -123,60 +117,6 @@ export function BehaviorTab({
           </>
         ) : (
           <div className={styles.emptyState}>코호트 데이터 없음</div>
-        )}
-      </section>
-
-      {/* Churn Prediction */}
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>이탈 예측</h2>
-        <div className={styles.metricsGrid}>
-          <div className={styles.metricCard}>
-            <div className={styles.metricLabel}>위험 사용자</div>
-            <div className={styles.metricValue}>{formatNumber(data.churnPrediction.totalAtRisk)}</div>
-          </div>
-          <div className={styles.metricCard}>
-            <div className={styles.metricLabel}>30일 내 예상 이탈</div>
-            <div className={styles.metricValue}>{formatNumber(data.churnPrediction.predictedChurnNext30Days)}</div>
-          </div>
-        </div>
-
-        {data.churnPrediction.atRiskUsers.length > 0 && (
-          <div className={styles.subSection}>
-            <h3 className={styles.subSectionTitle}>이탈 위험 사용자 목록</h3>
-            <div className={styles.servicesTable}>
-              <div className={styles.tableHeader}>
-                <span>이메일</span>
-                <span>이름</span>
-                <span>미활동 일수</span>
-                <span>위험 점수</span>
-                <span>위험 요인</span>
-              </div>
-              {data.churnPrediction.atRiskUsers.slice(0, 20).map((user) => (
-                <div key={user.userId} className={styles.tableRow}>
-                  <span>{user.email || '—'}</span>
-                  <span>{user.name || '—'}</span>
-                  <span>{user.daysSinceLastActivity}일</span>
-                  <span>
-                    <span className={`${styles.badge} ${getRiskColor(user.riskScore)}`}>
-                      {user.riskScore}
-                    </span>
-                  </span>
-                  <span>
-                    {user.riskFactors.map((factor, i) => (
-                      <span key={i} className={styles.riskFactor}>
-                        {factor === 'inactive_7d' && '7일 미접속'}
-                        {factor === 'inactive_14d' && '14일 미접속'}
-                        {factor === 'inactive_30d' && '30일 미접속'}
-                        {factor === 'cancelled_subscription' && '구독 취소'}
-                        {factor === 'no_readings_14d' && '14일 리딩 없음'}
-                        {i < user.riskFactors.length - 1 && ', '}
-                      </span>
-                    ))}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         )}
       </section>
 

@@ -29,7 +29,6 @@ export type TabKey =
   | 'moderation'
   | 'audit'
   | 'system'
-  | 'performance'
   | 'behavior'
 
 export type UsersData = {
@@ -151,60 +150,6 @@ export type SystemData = {
   sharedResults: Array<{ resultType: string; count: number; totalViews: number }>
 }
 
-export type PerformanceData = {
-  apiMetrics: Array<{
-    endpoint: string
-    method: string
-    totalRequests: number
-    avgLatencyMs: number
-    p50LatencyMs: number
-    p95LatencyMs: number
-    p99LatencyMs: number
-    errorRate: number
-    errorCount: number
-  }>
-  bottlenecks: Array<{
-    endpoint: string
-    issue: 'slow_response' | 'high_error_rate'
-    severity: 'warning' | 'critical'
-    avgLatencyMs: number
-    threshold: number
-    recommendation: string
-  }>
-  ragMetrics: {
-    totalTraces: number
-    avgDurationMs: number
-    p50DurationMs: number
-    p95DurationMs: number
-    maxDurationMs: number
-    errorRate: number
-    sourceMetrics: Record<string, { count: number; avgMs: number; p95Ms: number; maxMs: number }>
-  }
-  cacheMetrics: {
-    hitRate: number
-    hits: number
-    misses: number
-    errors: number
-    backend: 'redis' | 'memory'
-    memoryEntries: number
-  }
-  distributedTraces: Array<{
-    traceId: string
-    query: string
-    domain: string
-    totalDurationMs: number
-    timestamp: string
-    eventCount: number
-    hasError: boolean
-  }>
-  systemHealth: {
-    status: 'healthy' | 'degraded' | 'critical'
-    memoryMb: number
-    totalRequests: number
-    errorRatePercent: number
-  }
-}
-
 export type BehaviorData = {
   cohortAnalysis: {
     cohorts: Array<{
@@ -223,19 +168,6 @@ export type BehaviorData = {
       dropoffRate: number
     }>
     overallConversion: number
-  }
-  churnPrediction: {
-    atRiskUsers: Array<{
-      userId: string
-      email: string | null
-      name: string | null
-      lastActive: string
-      riskScore: number
-      riskFactors: string[]
-      daysSinceLastActivity: number
-    }>
-    totalAtRisk: number
-    predictedChurnNext30Days: number
   }
   engagementByService: Array<{
     service: string
@@ -270,7 +202,6 @@ export const TAB_CONFIG: { key: TabKey; label: string }[] = [
   { key: 'moderation', label: '운영' },
   { key: 'audit', label: '감사로그' },
   { key: 'system', label: '시스템' },
-  { key: 'performance', label: '성능분석' },
   { key: 'behavior', label: '행동분석' },
 ]
 

@@ -17,7 +17,6 @@ import type {
   ModerationData,
   AuditData,
   SystemData,
-  PerformanceData,
   BehaviorData,
   TabRenderProps,
 } from './types'
@@ -31,7 +30,6 @@ import {
   ModerationTab,
   AuditTab,
   SystemTab,
-  PerformanceTab,
   BehaviorTab,
 } from './tabs'
 
@@ -539,8 +537,6 @@ export default function MetricsDashboard() {
         return <AuditTab data={getTabData<AuditData>('audit')} {...tabProps} />
       case 'system':
         return <SystemTab data={getTabData<SystemData>('system')} {...tabProps} />
-      case 'performance':
-        return <PerformanceTab data={getTabData<PerformanceData>('performance')} {...tabProps} />
       case 'behavior':
         return <BehaviorTab data={getTabData<BehaviorData>('behavior')} {...tabProps} />
       default:

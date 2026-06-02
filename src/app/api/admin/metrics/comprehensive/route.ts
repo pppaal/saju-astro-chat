@@ -27,7 +27,6 @@ const VALID_SECTIONS = [
   'moderation',
   'audit',
   'system',
-  'performance',
   'behavior',
 ] as const
 
@@ -429,43 +428,6 @@ async function fetchSystemData(start: Date, end: Date) {
   }
 }
 
-async function fetchPerformanceData(_start: Date, _end: Date) {
-  // Python AI backend was removed — performance analytics now return defaults.
-  // (Admin can wire up first-party telemetry/datadog/etc later.)
-  return getDefaultPerformanceData()
-}
-
-function getDefaultPerformanceData() {
-  return {
-    apiMetrics: [],
-    bottlenecks: [],
-    ragMetrics: {
-      totalTraces: 0,
-      avgDurationMs: 0,
-      p50DurationMs: 0,
-      p95DurationMs: 0,
-      maxDurationMs: 0,
-      errorRate: 0,
-      sourceMetrics: {},
-    },
-    cacheMetrics: {
-      hitRate: 0,
-      hits: 0,
-      misses: 0,
-      errors: 0,
-      backend: 'memory' as const,
-      memoryEntries: 0,
-    },
-    distributedTraces: [],
-    systemHealth: {
-      status: 'healthy' as const,
-      memoryMb: 0,
-      totalRequests: 0,
-      errorRatePercent: 0,
-    },
-  }
-}
-
 async function fetchBehaviorData(start: Date, end: Date) {
   const [cohortData, funnelData, engagementData, activityData] = await Promise.allSettled([
     fetchCohortAnalysis(),
@@ -474,15 +436,11 @@ async function fetchBehaviorData(start: Date, end: Date) {
     fetchUserActivitySummary(),
   ])
 
-  // Python AI backend was removed — churn prediction returns empty defaults.
-  const churnData = { atRiskUsers: [], totalAtRisk: 0, predictedChurnNext30Days: 0 }
-
   return {
     cohortAnalysis:
       cohortData.status === 'fulfilled' ? cohortData.value : { cohorts: [], avgRetentionRate: 0 },
     retentionFunnel:
       funnelData.status === 'fulfilled' ? funnelData.value : { stages: [], overallConversion: 0 },
-    churnPrediction: churnData,
     engagementByService: engagementData.status === 'fulfilled' ? engagementData.value : [],
     userActivitySummary:
       activityData.status === 'fulfilled'
@@ -739,9 +697,6 @@ export const GET = withApiMiddleware(
           break
         case 'system':
           data = await fetchSystemData(start, end)
-          break
-        case 'performance':
-          data = await fetchPerformanceData(start, end)
           break
         case 'behavior':
           data = await fetchBehaviorData(start, end)
