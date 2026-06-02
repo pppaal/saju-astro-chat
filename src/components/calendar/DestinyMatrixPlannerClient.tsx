@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BrandSplash from '@/components/branding/BrandSplash'
-import DestinyMatrixPlanner from '@/components/calendar/DestinyMatrixPlanner'
+import DestinyMatrixPlanner from '@/components/calendar/premium/PremiumDestinyPlanner'
 import { loadSharedBirthInfo } from '@/components/calendar/sharedBirthInfo'
 import { useI18n } from '@/i18n/I18nProvider'
 import { getCalLabels } from '@/components/calendar/premium/labels'
@@ -338,17 +338,6 @@ export default function DestinyMatrixPlannerClient() {
     if (birthInfo.birthDate) void fetchCalendar(birthInfo)
   }, [birthInfo, fetchCalendar])
 
-  // 연도 경계 — 사용자가 cached year 밖으로 이동하면 재호출. early return 위에
-  // 둬야 React Hooks 순서 보장.
-  const handleYearChange = useCallback(
-    (newYear: number) => {
-      if (!birthInfo.birthDate) return
-      if (data?.year === newYear) return
-      void fetchCalendar(birthInfo, newYear)
-    },
-    [birthInfo, data, fetchCalendar]
-  )
-
   if (!hasBirthInfo) {
     return <BrandSplash message={lang === 'ko' ? '홈으로 이동 중…' : 'Redirecting to home…'} />
   }
@@ -384,7 +373,6 @@ export default function DestinyMatrixPlannerClient() {
       birthInfo={birthInfo}
       yearlyConvergence={yearlyConvergence}
       yearlyMonthly={yearlyMonthly}
-      onYearChange={handleYearChange}
       locale={lang}
     />
   )
