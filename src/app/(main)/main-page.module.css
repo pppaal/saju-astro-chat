@@ -716,11 +716,13 @@
 
 
 .homeChatBar {
-  width: 100%;
+  width: calc(100% + 24px);
   /* margin-top: auto pins the chat bar to the bottom of the viewport
      while hero + chips stay clustered at the top — one clean whitespace
-     gap between them instead of three evenly-spread blocks. */
-  margin: auto auto 0;
+     gap between them instead of three evenly-spread blocks.
+     좌우 -12px: 메인 homeBody 의 가로 padding 으로 입력창이 상담사보다
+     24px 좀게 되던 것을 상쇄 — 폭이 안 차면 좀은 화면에서도 상담사와 동일. */
+  margin: auto -12px 0;
   padding: 0 0.25rem max(1.25rem, env(safe-area-inset-bottom));
   flex: 0 0 auto;
 }
