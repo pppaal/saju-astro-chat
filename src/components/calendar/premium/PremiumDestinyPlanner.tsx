@@ -270,6 +270,8 @@ export default function PremiumDestinyPlanner({
                   importantDate={selDate}
                   fusion={fusion}
                   shinsal={shinsal}
+                  transitSunSign={dateDetail?.transitSunSign}
+                  transitSync={dateDetail?.transitSync}
                   isToday={isToday}
                   nowHour={today.getHours()}
                   todayHourly={data?.todayHourlyTimeSlots}
@@ -894,6 +896,8 @@ function DayView({
   importantDate,
   fusion,
   shinsal,
+  transitSunSign,
+  transitSync,
   isToday,
   nowHour,
   todayHourly,
@@ -905,6 +909,8 @@ function DayView({
   importantDate: ImportantDate | null
   fusion: NonNullable<ReturnType<typeof useDateDetail>['detail']>['fusion'] | undefined
   shinsal: NonNullable<NonNullable<ReturnType<typeof useDateDetail>['detail']>['shinsalActive']>
+  transitSunSign?: string
+  transitSync?: NonNullable<ReturnType<typeof useDateDetail>['detail']>['transitSync']
   isToday: boolean
   nowHour: number
   todayHourly?: CalendarData['todayHourlyTimeSlots']
@@ -1034,7 +1040,12 @@ function DayView({
 
           {/* 충/합/형 — 쉬운말 라벨 + 한 줄 설명(blurb 뒷부분) */}
           {(importantDate?.cycleInteractions?.length ?? 0) > 0 && (
-            <div className="space-y-2 pt-1">
+            <div className="space-y-2 pt-2 border-t border-white/5">
+              <p className="text-[11px] text-zinc-500">
+                {locale === 'en'
+                  ? 'How your luck cycles meet today (combine / clash):'
+                  : '오늘 운들이 만나는 결 — 잘 맞으면 순조롭고, 부딪히면 변동·긴장이 커져요'}
+              </p>
               {importantDate!.cycleInteractions!.map((ix, i) => {
                 const easy = easyCycleLabel(ix.kind, locale)
                 // ko: 엔진 blurb 뒷부분(쉬운 설명) / en: blurb 가 한글뿐이라 영어 설명 사용
@@ -1054,6 +1065,33 @@ function DayView({
                 )
               })}
             </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* ── 오늘의 점성 — 사주 카드와 짝. 태양 통과 별자리 + 큰 행성 전환 ── */}
+      {(transitSunSign || transitSync?.isMajorTransitYear) && (
+        <motion.div
+          variants={itemVariants}
+          className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-3"
+        >
+          <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
+            {locale === 'en' ? "Today's Astrology" : '오늘의 점성'}
+          </h3>
+          {transitSunSign && (
+            <p className="text-sm text-zinc-300 font-light">
+              {locale === 'en'
+                ? `Sun transiting ${transitSunSign}`
+                : `태양이 ${signKo(transitSunSign)}를 지나는 때`}
+            </p>
+          )}
+          {transitSync?.isMajorTransitYear && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-cyan-500/10 border border-cyan-500/20 text-cyan-200/90">
+              {locale === 'en' ? 'Major planet shift year' : '큰 행성 전환기'}
+              {transitSync.transitType && (
+                <span className="text-zinc-500 font-light">· {transitSync.transitType}</span>
+              )}
+            </span>
           )}
         </motion.div>
       )}
@@ -1332,6 +1370,25 @@ function BigDayRow({
       </div>
     </div>
   )
+}
+
+/** 별자리 영어명 → 한글 (transitSunSign 표시용) */
+function signKo(sign: string): string {
+  const m: Record<string, string> = {
+    Aries: '양자리',
+    Taurus: '황소자리',
+    Gemini: '쌍둥이자리',
+    Cancer: '게자리',
+    Leo: '사자자리',
+    Virgo: '처녀자리',
+    Libra: '천칭자리',
+    Scorpio: '전갈자리',
+    Sagittarius: '사수자리',
+    Capricorn: '염소자리',
+    Aquarius: '물병자리',
+    Pisces: '물고기자리',
+  }
+  return m[sign] ?? sign
 }
 
 /** 십신(편인/정관…) → 쉬운말 의미. 원어는 chip title 로 보존. */
