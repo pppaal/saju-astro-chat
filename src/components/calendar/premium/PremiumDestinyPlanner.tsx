@@ -976,11 +976,17 @@ function DayView({
             (() => {
               const ilj = importantDate.longCycleContext!.iljin!
               const ko = locale === 'en' ? ilj.ganji : ganjiToKorean(ilj.ganji)
-              const sib = [ilj.sibsinStem, ilj.sibsinBranch].filter(Boolean).join('·')
+              const raw = [ilj.sibsinStem, ilj.sibsinBranch].filter(Boolean) as string[]
+              const meanings = Array.from(new Set(raw.map((s) => easySibsin(s, locale))))
               return (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 border border-amber-500/20 text-amber-200/90">
-                  {ko} {locale === 'en' ? 'day' : '일진'}
-                  {sib && <span className="text-zinc-500 font-light">· {sib}</span>}
+                <span
+                  title={raw.join('·')}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 border border-amber-500/20 text-amber-200/90"
+                >
+                  {ko} {locale === 'en' ? 'day energy' : '그날 기운'}
+                  {meanings.length > 0 && (
+                    <span className="text-zinc-500 font-light">· {meanings.join(' · ')}</span>
+                  )}
                 </span>
               )
             })()}
@@ -1265,6 +1271,35 @@ function BigDayRow({
       </div>
     </div>
   )
+}
+
+/** 십신(편인/정관…) → 쉬운말 의미. 원어는 chip title 로 보존. */
+function easySibsin(name: string, locale?: CalLocale): string {
+  const ko: Record<string, string> = {
+    비견: '경쟁·자립',
+    겁재: '경쟁·지출',
+    식신: '표현·여유',
+    상관: '재능·돌파',
+    편재: '큰 재물·기회',
+    정재: '안정 재물',
+    편관: '압박·도전',
+    정관: '책임·명예',
+    편인: '아이디어·전문성',
+    정인: '배움·보호',
+  }
+  const en: Record<string, string> = {
+    비견: 'self-reliance',
+    겁재: 'rivalry·spending',
+    식신: 'expression·ease',
+    상관: 'talent·breakthrough',
+    편재: 'big money·chance',
+    정재: 'steady money',
+    편관: 'pressure·challenge',
+    정관: 'duty·honor',
+    편인: 'ideas·expertise',
+    정인: 'learning·support',
+  }
+  return (locale === 'en' ? en : ko)[name] ?? name
 }
 
 /** 충/합/형 한자 용어 → 쉬운말 라벨 + 색. (천간/지지 구분 없이 의미만) */
