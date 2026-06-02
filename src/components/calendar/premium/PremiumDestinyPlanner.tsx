@@ -67,7 +67,6 @@ const THEME_ORDER: ThemeKey[] = ['love', 'money', 'career', 'health', 'growth']
 
 // 섹션 scope 라우팅 — 월 해석에 평생/연 섹션이 섞이지 않게 분리.
 type NarrativeSection = { section: string; title: string; text: string }
-const YEAR_SECTIONS = new Set(['seun']) // 올해의 운 → 연 탭
 // 월 탭에서 제외: 인생/연/일 스코프(natal·daeun·today) + domain-*(영역별 점수 카드가 대체).
 // 인생 탭은 타임라인 + 인생 전체 흐름으로 구성(타고난 결 아코디언 제거).
 const MONTH_EXCLUDE = new Set(['natal', 'daeun', 'seun', 'today'])
@@ -528,15 +527,9 @@ function YearView({
       <motion.div variants={itemVariants} className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl sm:text-4xl font-light text-white mb-1">{year}</h2>
-          {(() => {
-            // phaseLabel 이 비면 '올해의 운' 섹션 첫 문장을 연 요약으로 끌어올림.
-            const sum =
-              phaseLabel ||
-              leadSummary((sections ?? []).find((s) => s.section === 'seun')?.text, true)
-            return sum ? (
-              <p className="text-sm text-zinc-400 font-light max-w-sm leading-relaxed">{sum}</p>
-            ) : null
-          })()}
+          {phaseLabel && (
+            <p className="text-sm text-zinc-400 font-light max-w-sm leading-relaxed">{phaseLabel}</p>
+          )}
         </div>
         {yearScore > 0 && (
           <div className="text-right">
@@ -553,6 +546,23 @@ function YearView({
           </div>
         )}
       </motion.div>
+
+      {/* 올해 한마디 — 엔진 seun 해석을 숨기지 않고 hero 바로 아래 펼쳐 노출 */}
+      {(() => {
+        const seun = (sections ?? []).find((s) => s.section === 'seun')
+        return seun ? (
+          <motion.div
+            variants={itemVariants}
+            className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5"
+          >
+            <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase mb-3 flex items-center">
+              <ScrollText size={14} className="mr-2 text-amber-200/70" />
+              {locale === 'en' ? 'This year' : '올해 한마디'}
+            </h3>
+            <NarrativeText text={seun.text} />
+          </motion.div>
+        ) : null
+      })()}
 
       {/* 12개월 흐름 */}
       <motion.div
@@ -631,12 +641,6 @@ function YearView({
         </motion.div>
       )}
 
-      {/* 올해의 운 해석 (seun 섹션 — 월 탭에서 이리로 이동) */}
-      <SectionsAccordion
-        sections={(sections ?? []).filter((s) => YEAR_SECTIONS.has(s.section))}
-        title={locale === 'en' ? 'This year' : '올해 해석'}
-        locale={locale}
-      />
     </motion.div>
   )
 }
@@ -1481,19 +1485,6 @@ function easyCycleLabel(
   if (kind.includes('파'))
     return { label: en ? 'Off-track' : '흐트러짐', cls: amber, en: 'things drift slightly off track' }
   return { label: kind, cls: neutral, en: '' }
-}
-
-/** 섹션 텍스트 → 헤드라인 한 줄. stripHeaderDash=true 면 '**간지** … —' 접두 제거. */
-function leadSummary(text?: string, stripHeaderDash = false): string | null {
-  if (!text) return null
-  let s = text.split('\n').map((l) => l.trim()).find(Boolean) ?? ''
-  if (stripHeaderDash) {
-    const i = s.indexOf('—')
-    if (i >= 0) s = s.slice(i + 1)
-  }
-  s = s.replace(/\*\*/g, '').trim()
-  const m = s.match(/^[^.!?。]*[.!?。]/)
-  return (m ? m[0] : s).trim() || null
 }
 
 /** 섹션 접이식 리스트 — 3탭이 각자 scope 의 섹션을 같은 모양으로 표시 */
