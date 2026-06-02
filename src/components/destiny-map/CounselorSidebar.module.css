@@ -25,7 +25,10 @@
   border-right: 1px solid rgba(212, 181, 114, 0.25);
   box-shadow: 8px 0 30px rgba(0, 0, 0, 0.45);
   transform: translateX(-100%);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 열릴 때 살짝 튕기는 spring 느낌(overshoot) — 좌측에서 미끄러져 들어와
+     자연스럽게 안착. 스와이프 드래그 중엔 인라인 transform 이 우선하므로
+     영향 없음. */
+  transition: transform 0.36s cubic-bezier(0.34, 1.56, 0.64, 1);
   display: flex;
   flex-direction: column;
   z-index: 80;
