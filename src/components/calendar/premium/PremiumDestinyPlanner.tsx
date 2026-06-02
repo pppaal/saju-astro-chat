@@ -329,11 +329,21 @@ function LifetimeView({
         <h2 className="text-3xl sm:text-4xl font-light text-white mb-3 tracking-tight">
           {locale === 'en' ? 'Turning points ahead' : '운명의 전환기'}
         </h2>
-        <p className="text-sm text-zinc-400 font-light">
-          {locale === 'en'
-            ? 'The next 10 years — where sky and chart turn together.'
-            : '지금부터 10년, 사주·점성이 함께 도는 큰 시기'}
-        </p>
+        {(() => {
+          // '타고난 결'의 '당신은 …' 본질 문장을 인생 요약으로. 없으면 고정 문구.
+          const natalText = (sections ?? []).find((s) => s.section === 'natal')?.text
+          const essence =
+            natalText?.split('\n').map((l) => l.trim()).find((l) => l.startsWith('당신은'))
+          const sum = locale === 'en' ? null : leadSummary(essence)
+          return (
+            <p className="text-sm text-zinc-400 font-light max-w-md mx-auto leading-relaxed">
+              {sum ??
+                (locale === 'en'
+                  ? 'The next 10 years — where sky and chart turn together.'
+                  : '지금부터 10년, 사주·점성이 함께 도는 큰 시기')}
+            </p>
+          )
+        })()}
       </motion.div>
 
       {list.length === 0 ? (
@@ -498,7 +508,15 @@ function YearView({
       <motion.div variants={itemVariants} className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl sm:text-4xl font-light text-white mb-1">{year}</h2>
-          {phaseLabel && <p className="text-sm text-zinc-400 font-light">{phaseLabel}</p>}
+          {(() => {
+            // phaseLabel 이 비면 '올해의 운' 섹션 첫 문장을 연 요약으로 끌어올림.
+            const sum =
+              phaseLabel ||
+              leadSummary((sections ?? []).find((s) => s.section === 'seun')?.text, true)
+            return sum ? (
+              <p className="text-sm text-zinc-400 font-light max-w-sm leading-relaxed">{sum}</p>
+            ) : null
+          })()}
         </div>
         {yearScore > 0 && (
           <div className="text-right">
@@ -1443,6 +1461,19 @@ function easyCycleLabel(
   if (kind.includes('파'))
     return { label: en ? 'Off-track' : '흐트러짐', cls: amber, en: 'things drift slightly off track' }
   return { label: kind, cls: neutral, en: '' }
+}
+
+/** 섹션 텍스트 → 헤드라인 한 줄. stripHeaderDash=true 면 '**간지** … —' 접두 제거. */
+function leadSummary(text?: string, stripHeaderDash = false): string | null {
+  if (!text) return null
+  let s = text.split('\n').map((l) => l.trim()).find(Boolean) ?? ''
+  if (stripHeaderDash) {
+    const i = s.indexOf('—')
+    if (i >= 0) s = s.slice(i + 1)
+  }
+  s = s.replace(/\*\*/g, '').trim()
+  const m = s.match(/^[^.!?。]*[.!?。]/)
+  return (m ? m[0] : s).trim() || null
 }
 
 /** 섹션 접이식 리스트 — 3탭이 각자 scope 의 섹션을 같은 모양으로 표시 */
