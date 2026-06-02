@@ -967,74 +967,80 @@ function DayView({
         </motion.p>
       )}
 
-      {/* 일진 간지·십신 + 충/합/형 — FlowLadder 의 사주 알맹이를 일 탭 inline 으로.
-          (사다리 구조 자체는 4탭이 대체하므로 위젯은 생략) */}
+      {/* ── 오늘의 사주 — 그날 기운·신살·충합형을 한 카드로 (쉬운말) ──
+          FlowLadder 의 사주 알맹이를 일 탭 inline 으로. 사다리 구조는 4탭이 대체. */}
       {(importantDate?.longCycleContext?.iljin ||
+        shinsal.length > 0 ||
         (importantDate?.cycleInteractions?.length ?? 0) > 0) && (
-        <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-2">
-          {importantDate?.longCycleContext?.iljin &&
-            (() => {
-              const ilj = importantDate.longCycleContext!.iljin!
-              const ko = locale === 'en' ? ilj.ganji : ganjiToKorean(ilj.ganji)
-              const raw = [ilj.sibsinStem, ilj.sibsinBranch].filter(Boolean) as string[]
-              const meanings = Array.from(new Set(raw.map((s) => easySibsin(s, locale))))
-              return (
-                <span
-                  title={raw.join('·')}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 border border-amber-500/20 text-amber-200/90"
-                >
-                  {ko} {locale === 'en' ? 'day energy' : '그날 기운'}
-                  {meanings.length > 0 && (
-                    <span className="text-zinc-500 font-light">· {meanings.join(' · ')}</span>
-                  )}
-                </span>
-              )
-            })()}
-        </motion.div>
-      )}
+        <motion.div
+          variants={itemVariants}
+          className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-4"
+        >
+          <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
+            {locale === 'en' ? "Today's Saju" : '오늘의 사주'}
+          </h3>
 
-      {/* 충/합/형 — 한자 용어 대신 쉬운말 + 한 줄 설명(blurb 뒷부분) */}
-      {(importantDate?.cycleInteractions?.length ?? 0) > 0 && (
-        <motion.div variants={itemVariants} className="space-y-2">
-          {importantDate!.cycleInteractions!.map((ix, i) => {
-            const easy = easyCycleLabel(ix.kind)
-            // blurb 예: "...이 천간충 — 결정 압박이 크게 들어옵니다." → 뒷부분만 쉬운 설명
-            const meaning = ix.blurb.split('—').slice(1).join('—').trim() || ix.blurb
-            return (
-              <div key={`${ix.pair}-${i}`} className="flex items-start gap-2 text-xs">
-                <span
-                  className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-md font-medium border ${easy.cls}`}
-                >
-                  {easy.label}
-                </span>
-                <span className="text-zinc-400 font-light leading-relaxed">{meaning}</span>
-              </div>
-            )
-          })}
-        </motion.div>
-      )}
+          {/* 그날 기운(일진+십신) + 신살 칩 */}
+          {(importantDate?.longCycleContext?.iljin || shinsal.length > 0) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {importantDate?.longCycleContext?.iljin &&
+                (() => {
+                  const ilj = importantDate.longCycleContext!.iljin!
+                  const ko = locale === 'en' ? ilj.ganji : ganjiToKorean(ilj.ganji)
+                  const raw = [ilj.sibsinStem, ilj.sibsinBranch].filter(Boolean) as string[]
+                  const meanings = Array.from(new Set(raw.map((s) => easySibsin(s, locale))))
+                  return (
+                    <span
+                      title={raw.join('·')}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 border border-amber-500/20 text-amber-200/90"
+                    >
+                      {ko} {locale === 'en' ? 'day energy' : '그날 기운'}
+                      {meanings.length > 0 && (
+                        <span className="text-zinc-500 font-light">· {meanings.join(' · ')}</span>
+                      )}
+                    </span>
+                  )
+                })()}
+              {shinsal.map((s, i) => {
+                const bad = s.type.includes('흉') || s.type.toLowerCase().includes('inausp')
+                return (
+                  <span
+                    key={`${s.name}-${i}`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium border ${
+                      bad
+                        ? 'bg-rose-500/10 border-rose-500/20 text-rose-200/90'
+                        : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200/90'
+                    }`}
+                  >
+                    {s.name}
+                    {s.affectedArea && (
+                      <span className="text-zinc-500 font-light">· {s.affectedArea}</span>
+                    )}
+                  </span>
+                )
+              })}
+            </div>
+          )}
 
-      {/* 신살 — 그 날 발동분 (date-detail 일별). 길신=emerald / 흉신=rose */}
-      {shinsal.length > 0 && (
-        <motion.div variants={itemVariants} className="flex flex-wrap gap-2">
-          {shinsal.map((s, i) => {
-            const bad = s.type.includes('흉') || s.type.toLowerCase().includes('inausp')
-            return (
-              <span
-                key={`${s.name}-${i}`}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium border ${
-                  bad
-                    ? 'bg-rose-500/10 border-rose-500/20 text-rose-200/90'
-                    : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200/90'
-                }`}
-              >
-                {s.name}
-                {s.affectedArea && (
-                  <span className="text-zinc-500 font-light">· {s.affectedArea}</span>
-                )}
-              </span>
-            )
-          })}
+          {/* 충/합/형 — 쉬운말 라벨 + 한 줄 설명(blurb 뒷부분) */}
+          {(importantDate?.cycleInteractions?.length ?? 0) > 0 && (
+            <div className="space-y-2 pt-1">
+              {importantDate!.cycleInteractions!.map((ix, i) => {
+                const easy = easyCycleLabel(ix.kind)
+                const meaning = ix.blurb.split('—').slice(1).join('—').trim() || ix.blurb
+                return (
+                  <div key={`${ix.pair}-${i}`} className="flex items-start gap-2 text-xs">
+                    <span
+                      className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-md font-medium border ${easy.cls}`}
+                    >
+                      {easy.label}
+                    </span>
+                    <span className="text-zinc-400 font-light leading-relaxed">{meaning}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </motion.div>
       )}
 
