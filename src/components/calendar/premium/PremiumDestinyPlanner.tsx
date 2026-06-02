@@ -148,6 +148,8 @@ export default function PremiumDestinyPlanner({
   const { detail: dateDetail } = useDateDetail({
     selectedDay: selJsDate,
     birthInfo: birthInfo ?? { birthDate: '', birthTime: '', birthPlace: '', gender: 'Male' },
+    // 일 탭일 때만 fetch — 다른 탭에선 fusion 미사용이라 불필요한 호출 차단.
+    enabled: viewMode === 'day',
   })
   const fusion = dateDetail?.fusion
 
@@ -161,11 +163,16 @@ export default function PremiumDestinyPlanner({
     setViewMode('day')
   }
 
+  const isToday =
+    year === today.getFullYear() &&
+    selMonth === today.getMonth() &&
+    selDay === today.getDate()
   const tabs: Array<{ id: ViewMode; label: string; icon: typeof Globe }> = [
     { id: 'lifetime', label: locale === 'en' ? 'Lifetime' : '인생', icon: Globe },
     { id: 'year', label: String(year), icon: Calendar },
     { id: 'month', label: t.fmtMonth(selMonth + 1), icon: CalendarDays },
-    { id: 'day', label: t.tabDay, icon: Clock },
+    // 오늘이면 "오늘", 다른 날을 보고 있으면 그 날짜를 라벨에 반영.
+    { id: 'day', label: isToday ? t.tabDay : t.fmtMonthDay(selMonth + 1, selDay), icon: Clock },
   ]
 
   return (
@@ -284,7 +291,7 @@ export default function PremiumDestinyPlanner({
                   weekday={t.weekdayFull[selJsDate.getDay()]}
                   importantDate={selDate}
                   fusion={fusion}
-                  isToday={selDateStr === `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`}
+                  isToday={isToday}
                   nowHour={today.getHours()}
                   todayHourly={data?.todayHourlyTimeSlots}
                   locale={locale}
