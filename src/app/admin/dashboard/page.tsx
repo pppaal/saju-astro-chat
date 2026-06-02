@@ -550,7 +550,7 @@ export default function MetricsDashboard() {
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerLeft}>
-          <h1 className={styles.title}>Core Metrics Dashboard</h1>
+          <h1 className={styles.title}>상세 지표</h1>
           <p className={styles.subtitle}>핵심 퍼널 지표 및 종합 모니터링</p>
         </div>
         <div className={styles.headerRight}>
@@ -576,10 +576,11 @@ export default function MetricsDashboard() {
       {apiError && (
         <div
           style={{
-            background: '#dc2626',
-            color: 'white',
+            background: '#fff1f2',
+            color: '#be123c',
+            border: '1px solid #fecdd3',
             padding: '12px 16px',
-            borderRadius: '8px',
+            borderRadius: '12px',
             marginBottom: '16px',
             fontSize: '14px',
           }}
