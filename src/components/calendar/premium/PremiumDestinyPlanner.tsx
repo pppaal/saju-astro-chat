@@ -931,12 +931,43 @@ function MonthView({
         </motion.p>
       )}
 
-      {/* ── 이달의 해석 — 월 scope 섹션만 (올해의 운·타고난 결·대운·오늘은 각 탭으로) ── */}
+      {/* ── 이달 한마디 — 사주(wolun) × 점성(transit) 교차 카드 ── */}
+      {(() => {
+        const wolun = (interp?.sections ?? []).find((s) => s.section === 'wolun')
+        const transit = (interp?.sections ?? []).find((s) => s.section === 'transit')
+        if (!wolun && !transit) return null
+        return (
+          <motion.div
+            variants={itemVariants}
+            className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-3"
+          >
+            <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase flex items-center">
+              <ScrollText size={14} className="mr-2 text-amber-200/70" />
+              {locale === 'en' ? 'This month' : '이달 한마디'}
+            </h3>
+            {wolun && <NarrativeText text={wolun.text} />}
+            {transit && (
+              <div className="pt-2 border-t border-white/5">
+                <span className="text-[11px] font-medium text-cyan-400/70">점성</span>
+                <div className="mt-1">
+                  <NarrativeText text={transit.text} />
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )
+      })()}
+
+      {/* ── 자세히 — 나머지 월 섹션(패턴·행운 별 등). 이달 한마디(wolun·transit)는 위로 뺌 ── */}
       <SectionsAccordion
         sections={(interp?.sections ?? []).filter(
-          (s) => !MONTH_EXCLUDE.has(s.section) && !s.section.startsWith('domain-')
+          (s) =>
+            !MONTH_EXCLUDE.has(s.section) &&
+            !s.section.startsWith('domain-') &&
+            s.section !== 'wolun' &&
+            s.section !== 'transit'
         )}
-        title={locale === 'en' ? 'Reading' : '이달의 해석'}
+        title={locale === 'en' ? 'In detail' : '자세히'}
         locale={locale}
       />
     </motion.div>

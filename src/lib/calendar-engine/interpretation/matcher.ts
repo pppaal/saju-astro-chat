@@ -342,6 +342,12 @@ export function buildInterpretation(args: {
     }
   }
 
+  // 문체 — 한글 룰 템플릿에 하드코딩된 영어 행성/용어(Saturn Return, Jupiter…)를
+  // 한글로 후처리(ko 출력 일관성). 룰 수백 개를 일일이 안 고쳐도 됨.
+  if (lang === 'ko') {
+    for (const s of sections) s.text = koAstroTerms(s.text)
+  }
+
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
 
   // 테마 점수 — 신호 기반(셀별 themeScores)의 월 평균.
@@ -896,6 +902,42 @@ function buildBaseVars(natal: NatalContext): TemplateVars {
     primaryYongsin: natal.saju.yongsin.primary,
     yongsinElement: natal.saju.yongsin.primary,
   }
+}
+
+// 영어 점성 용어 → 한글 (멀티워드 먼저). ko narrative 문체 일관용.
+const ASTRO_KO_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bSaturn Return\b/g, '토성 회귀'],
+  [/\bJupiter Return\b/g, '목성 회귀'],
+  [/\bSolar Return\b/g, '태양 회귀'],
+  [/\bLunar Return\b/g, '달 회귀'],
+  [/\bTrue Node\b/g, '북교점'],
+  [/\bNorth Node\b/g, '북교점'],
+  [/\bSouth Node\b/g, '남교점'],
+  [/\bSun\b/g, '태양'],
+  [/\bMoon\b/g, '달'],
+  [/\bMercury\b/g, '수성'],
+  [/\bVenus\b/g, '금성'],
+  [/\bMars\b/g, '화성'],
+  [/\bJupiter\b/g, '목성'],
+  [/\bSaturn\b/g, '토성'],
+  [/\bUranus\b/g, '천왕성'],
+  [/\bNeptune\b/g, '해왕성'],
+  [/\bPluto\b/g, '명왕성'],
+  [/\bChiron\b/g, '카이런'],
+  [/\bLilith\b/g, '릴리스'],
+  [/\bAscendant\b/g, '상승점'],
+  // aspect 명 (영어 잔존분)
+  [/\bConjunction\b/gi, '컨정션'],
+  [/\bOpposition\b/gi, '어포지션'],
+  [/\bSquare\b/gi, '스퀘어'],
+  [/\bTrine\b/gi, '트라인'],
+  [/\bSextile\b/gi, '섹스타일'],
+  [/\bQuintile\b/gi, '퀸타일'],
+]
+function koAstroTerms(text: string): string {
+  let s = text
+  for (const [re, ko] of ASTRO_KO_REPLACEMENTS) s = s.replace(re, ko)
+  return s
 }
 
 function fillTemplate(template: string, vars: TemplateVars): string {

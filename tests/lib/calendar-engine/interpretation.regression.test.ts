@@ -972,15 +972,17 @@ describe('calendar-engine regression', () => {
     it('age-29 chart renders Saturn Return (not a different planet)', async () => {
       // 1996 birth → saturn_return_1 active in 2026
       const { interp } = await buildForDate(profile('1996-05-10'), '2026-05-15')
-      expect(interp.narrative).toContain('Saturn Return')
-      expect(interp.narrative).not.toContain('Pluto Square')
+      // ko 출력은 영어 행성/용어를 한글화(koAstroTerms) — 'Saturn Return' → '토성 회귀'
+      expect(interp.narrative).toContain('토성 회귀')
+      expect(interp.narrative).not.toContain('명왕성 스퀘어')
     })
 
     it('age-39 chart renders Pluto Square — the old Saturn-Return mismatch is gone', async () => {
       // 1987 birth → pluto_square_pluto active in 2026 (was wrongly showing Saturn Return)
       const { interp } = await buildForDate(profile('1987-05-10'), '2026-05-15')
-      expect(interp.narrative).toContain('Pluto Square')
-      expect(interp.narrative).not.toContain('Saturn Return')
+      // ko 출력은 영어 행성/용어를 한글화(koAstroTerms) — 'Pluto Square' → '명왕성 스퀘어'
+      expect(interp.narrative).toContain('명왕성 스퀘어')
+      expect(interp.narrative).not.toContain('토성 회귀')
     })
   })
 
