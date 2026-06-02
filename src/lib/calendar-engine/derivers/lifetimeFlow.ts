@@ -56,6 +56,21 @@ const CAT: Record<string, { phrase: string; outcome: string }> = {
   },
 }
 
+const SIGN_KO: Record<string, string> = {
+  Aries: '양자리',
+  Taurus: '황소자리',
+  Gemini: '쌍둥이자리',
+  Cancer: '게자리',
+  Leo: '사자자리',
+  Virgo: '처녀자리',
+  Libra: '천칭자리',
+  Scorpio: '전갈자리',
+  Sagittarius: '사수자리',
+  Capricorn: '염소자리',
+  Aquarius: '물병자리',
+  Pisces: '물고기자리',
+}
+
 const BANDS: Array<[number, number, string]> = [
   [0, 19, '초년기'],
   [20, 39, '청년기'],
@@ -90,7 +105,23 @@ export function deriveLifetimeFlow(
         ? '기운이 강한 편이라'
         : '기운이 비교적 균형 잡혀'
   const yong = [natal.saju.yongsin.primary, natal.saju.yongsin.secondary].filter(Boolean).join('·')
-  const intro = `${dm} 일간으로 ${strengthKo}, 용신 ${yong}의 기운이 받쳐줄 때 진가가 드러나는 사주. 사주 대운(10년 흐름)과 점성 인생 마디를 교차해 본 큰 흐름이에요.`
+
+  // 점성 정체성 (태양·상승) — 사주 일간과 교차해 intro 에 함께 제시
+  const planets = (natal.astro?.chart?.planets ?? []) as Array<{ name?: string; sign?: string }>
+  const sunSign = planets.find((p) => p.name === 'Sun')?.sign
+  const ascSign = (natal.astro?.chart?.ascendant as { sign?: string } | undefined)?.sign
+  const astroId = [
+    sunSign ? `태양 ${SIGN_KO[sunSign] ?? sunSign}` : '',
+    ascSign ? `상승 ${SIGN_KO[ascSign] ?? ascSign}` : '',
+  ]
+    .filter(Boolean)
+    .join('·')
+
+  const intro =
+    `사주로는 ${dm} 일간으로 ${strengthKo}, 용신 ${yong}가 받쳐줄 때 빛나는 결이에요.` +
+    (astroId
+      ? ` 점성으로는 ${astroId}의 기질을 타고났고요. 이 둘이 평생 흐름의 무대를 만들고, 그 위에서 아래 시기들이 펼쳐져요.`
+      : ` 사주 대운과 점성 인생 마디를 교차해 본 큰 흐름이에요.`)
 
   const events = buildLifecycleTiming(birthYear, birthYear + 90, true).events.map((e) => {
     // 라벨 '두 번째 목성 회귀 — 진로의 큰 그림' → 사람말 의미('진로의 큰 그림') 우선
