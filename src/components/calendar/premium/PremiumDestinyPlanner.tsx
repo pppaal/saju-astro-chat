@@ -65,6 +65,12 @@ interface Props {
 
 const THEME_ORDER: ThemeKey[] = ['love', 'money', 'career', 'health', 'growth']
 
+// 섹션 scope 라우팅 — 월 해석에 평생/연 섹션이 섞여 범벅이 되던 것 분리.
+type NarrativeSection = { section: string; title: string; text: string }
+const LIFE_SECTIONS = new Set(['natal', 'daeun']) // 타고난 결 · 10년 큰 흐름 → 인생 탭
+const YEAR_SECTIONS = new Set(['seun']) //            올해의 운 → 연 탭
+// 월 탭: 위(인생/연) + today(일) 를 뺀 나머지(이번 달·주요 흐름·패턴·도메인…)
+
 function avg(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
 }
@@ -221,6 +227,7 @@ export default function PremiumDestinyPlanner({
                 <LifetimeView
                   key="lifetime"
                   pivots={data?.monthlyInterpretation?.lifetimePivots?.pivots}
+                  sections={data?.monthlyInterpretation?.sections}
                   onZoom={() => setViewMode('year')}
                   locale={locale}
                 />
@@ -238,6 +245,7 @@ export default function PremiumDestinyPlanner({
                     null
                   }
                   selMonth={selMonth}
+                  sections={data?.monthlyInterpretation?.sections}
                   onMonthClick={drillToMonth}
                   locale={locale}
                 />
@@ -290,12 +298,14 @@ export default function PremiumDestinyPlanner({
 
 function LifetimeView({
   pivots,
+  sections,
   onZoom,
   locale,
 }: {
   pivots?: NonNullable<
     NonNullable<ImportantDate['monthlyInterpretation']>['lifetimePivots']
   >['pivots']
+  sections?: NarrativeSection[]
   onZoom: () => void
   locale?: CalLocale
 }) {
@@ -408,6 +418,13 @@ function LifetimeView({
           </div>
         </div>
       )}
+
+      {/* 타고난 결 · 10년 큰 흐름 (natal·daeun 섹션 — 월 탭에서 이리로 이동) */}
+      <SectionsAccordion
+        sections={(sections ?? []).filter((s) => LIFE_SECTIONS.has(s.section))}
+        title={locale === 'en' ? 'Your chart' : '타고난 흐름'}
+        locale={locale}
+      />
     </motion.div>
   )
 }
@@ -421,6 +438,7 @@ function YearView({
   yearlyConvergence,
   phaseLabel,
   selMonth,
+  sections,
   onMonthClick,
   locale,
 }: {
@@ -430,6 +448,7 @@ function YearView({
   yearlyConvergence?: NonNullable<ImportantDate['monthlyInterpretation']>['yearlyConvergence']
   phaseLabel: string | null
   selMonth: number
+  sections?: NarrativeSection[]
   onMonthClick: (m: number) => void
   locale?: CalLocale
 }) {
@@ -572,6 +591,13 @@ function YearView({
           ))}
         </motion.div>
       )}
+
+      {/* 올해의 운 해석 (seun 섹션 — 월 탭에서 이리로 이동) */}
+      <SectionsAccordion
+        sections={(sections ?? []).filter((s) => YEAR_SECTIONS.has(s.section))}
+        title={locale === 'en' ? 'This year' : '올해 해석'}
+        locale={locale}
+      />
     </motion.div>
   )
 }
@@ -852,31 +878,14 @@ function MonthView({
         </motion.p>
       )}
 
-      {/* ── 이달의 해석 (sections) — narrative 는 sections 를 join 한 동일 텍스트라
-          중복 제거하고 접이식 sections 만 노출(기본 첫 섹션만 펼침). ── */}
-      {interp?.sections && interp.sections.length > 0 && (
-        <motion.div variants={itemVariants} className="space-y-3">
-          <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase flex items-center">
-            <ScrollText size={14} className="mr-2 text-amber-200/70" />
-            {locale === 'en' ? 'Reading' : '이달의 해석'}
-          </h3>
-          {interp.sections.map((s, i) => (
-            <details
-              key={`${s.section}-${i}`}
-              className="group bg-zinc-900/20 rounded-2xl border border-white/5 overflow-hidden"
-              open={i === 0}
-            >
-              <summary className="cursor-pointer list-none px-5 py-3.5 flex items-center justify-between text-sm font-medium text-zinc-200 hover:bg-white/[0.02]">
-                {s.title}
-                <ChevronRight className="w-4 h-4 text-zinc-600 transition-transform group-open:rotate-90" />
-              </summary>
-              <div className="px-5 pb-4 -mt-1">
-                <NarrativeText text={s.text} />
-              </div>
-            </details>
-          ))}
-        </motion.div>
-      )}
+      {/* ── 이달의 해석 — 월 scope 섹션만 (올해의 운·타고난 결·대운·오늘은 각 탭으로) ── */}
+      <SectionsAccordion
+        sections={(interp?.sections ?? []).filter(
+          (s) => !LIFE_SECTIONS.has(s.section) && !YEAR_SECTIONS.has(s.section) && s.section !== 'today'
+        )}
+        title={locale === 'en' ? 'Reading' : '이달의 해석'}
+        locale={locale}
+      />
     </motion.div>
   )
 }
@@ -1445,6 +1454,42 @@ function easyCycleLabel(
   if (kind.includes('파'))
     return { label: en ? 'Off-track' : '흐트러짐', cls: amber, en: 'things drift slightly off track' }
   return { label: kind, cls: neutral, en: '' }
+}
+
+/** 섹션 접이식 리스트 — 3탭이 각자 scope 의 섹션을 같은 모양으로 표시 */
+function SectionsAccordion({
+  sections,
+  title,
+  locale: _locale,
+}: {
+  sections: NarrativeSection[]
+  title: string
+  locale?: CalLocale
+}) {
+  if (sections.length === 0) return null
+  return (
+    <motion.div variants={itemVariants} className="space-y-3">
+      <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase flex items-center">
+        <ScrollText size={14} className="mr-2 text-amber-200/70" />
+        {title}
+      </h3>
+      {sections.map((s, i) => (
+        <details
+          key={`${s.section}-${i}`}
+          className="group bg-zinc-900/20 rounded-2xl border border-white/5 overflow-hidden"
+          open={i === 0}
+        >
+          <summary className="cursor-pointer list-none px-5 py-3.5 flex items-center justify-between text-sm font-medium text-zinc-200 hover:bg-white/[0.02]">
+            {s.title}
+            <ChevronRight className="w-4 h-4 text-zinc-600 transition-transform group-open:rotate-90" />
+          </summary>
+          <div className="px-5 pb-4 -mt-1">
+            <NarrativeText text={s.text} />
+          </div>
+        </details>
+      ))}
+    </motion.div>
+  )
 }
 
 /** narrative / section 텍스트 — 줄바꿈 단락 + 간단한 마크다운(**굵게**) 처리 */
