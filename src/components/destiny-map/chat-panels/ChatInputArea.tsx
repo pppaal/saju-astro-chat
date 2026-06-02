@@ -295,7 +295,14 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                     <span aria-hidden="true" className={styles.toolMenuIcon}>
                       &#x1F4CE;
                     </span>
-                    <span>{lang === 'ko' ? '파일' : 'File'}</span>
+                    <span className={styles.toolMenuText}>
+                      <span className={styles.toolMenuLabel}>
+                        {lang === 'ko' ? '파일' : 'File'}
+                      </span>
+                      <span className={styles.toolMenuDesc}>
+                        {lang === 'ko' ? '이력서·문서 첨부해 분석' : 'Attach a CV or document'}
+                      </span>
+                    </span>
                     <input
                       type="file"
                       accept={fileAccept}
@@ -323,7 +330,14 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                       <span aria-hidden="true" className={styles.toolMenuIcon}>
                         &#x1F0CF;
                       </span>
-                      <span>{tarotLabel}</span>
+                      <span className={styles.toolMenuText}>
+                        <span className={styles.toolMenuLabel}>{tarotLabel}</span>
+                        <span className={styles.toolMenuDesc}>
+                          {lang === 'ko'
+                            ? '다음 질문을 타로 카드로 보기'
+                            : 'See your next question as tarot'}
+                        </span>
+                      </span>
                     </button>
                   )}
                   {onOpenChart && (
@@ -343,7 +357,13 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                       <span aria-hidden="true" className={styles.toolMenuIcon}>
                         &#x262F;
                       </span>
-                      <span>{chartLabel}</span>
+                      <span className={styles.toolMenuText}>
+                        <span className={styles.toolMenuLabel}>{chartLabel}</span>
+                        <span className={styles.toolMenuDesc}>
+                          {chart?.title ??
+                            (lang === 'ko' ? '내 사주·운세 차트 보기' : 'View your destiny chart')}
+                        </span>
+                      </span>
                     </button>
                   )}
                 </div>
