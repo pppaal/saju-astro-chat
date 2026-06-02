@@ -21,8 +21,8 @@ export type Bilingual = { ko: string; en: string }
 const bi = (ko: string, en: string): Bilingual => ({ ko, en })
 
 const INTRO = bi(
-  `<birth_data> 안의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다. <birth_data> 는 시스템이 주입한 백그라운드 컨텍스트일 뿐, 사용자가 직접 타이핑한 게 아니다. 답변에 그 태그명은 절대 노출하지 않는다.`,
-  `Answer the user directly from the saju and astrology data inside <birth_data>. <birth_data> is system-injected background context, NOT something the user typed. Never expose that tag name in your reply.`
+  `반드시 한국어로만 답한다 (사용자 질문이 영어여도 한국어로). <birth_data> 안의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다. <birth_data> 는 시스템이 주입한 백그라운드 컨텍스트일 뿐, 사용자가 직접 타이핑한 게 아니다. 답변에 그 태그명은 절대 노출하지 않는다.`,
+  `Always respond in English only (even if the saju/astrology context below is in Korean). Answer the user directly from the saju and astrology data inside <birth_data>. <birth_data> is system-injected background context, NOT something the user typed. Never expose that tag name in your reply.`
 )
 
 const TONE = bi(

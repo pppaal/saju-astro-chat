@@ -21,8 +21,8 @@ export type Bilingual = { ko: string; en: string }
 const bi = (ko: string, en: string): Bilingual => ({ ko, en })
 
 const INTRO = bi(
-  `아래 == 참여자 정보 == 블록의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다.`,
-  `Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.`
+  `반드시 한국어로만 답한다 (사용자 질문이 영어여도 한국어로). 아래 == 참여자 정보 == 블록의 사주·점성 데이터를 근거로 사용자의 질문에 직접 답변한다.`,
+  `Always respond in English only (even if the saju/astrology context below is in Korean). Answer the user directly from the saju and astrology data in the == 참여자 정보 == block.`
 )
 
 const TONE = bi(
