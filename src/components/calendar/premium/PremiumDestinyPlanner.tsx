@@ -248,6 +248,7 @@ export default function PremiumDestinyPlanner({
                   }
                   selMonth={selMonth}
                   sections={data?.monthlyInterpretation?.sections}
+                  yearAstro={data?.monthlyInterpretation?.yearAstro}
                   onMonthClick={drillToMonth}
                   locale={locale}
                 />
@@ -469,6 +470,7 @@ function YearView({
   phaseLabel,
   selMonth,
   sections,
+  yearAstro,
   onMonthClick,
   locale,
 }: {
@@ -479,6 +481,7 @@ function YearView({
   phaseLabel: string | null
   selMonth: number
   sections?: NarrativeSection[]
+  yearAstro?: string
   onMonthClick: (m: number) => void
   locale?: CalLocale
 }) {
@@ -547,21 +550,28 @@ function YearView({
         )}
       </motion.div>
 
-      {/* 올해 한마디 — 엔진 seun 해석을 숨기지 않고 hero 바로 아래 펼쳐 노출 */}
+      {/* 올해 한마디 — 사주(seun) × 점성(연간 프로펙션) 교차, hero 바로 아래 펼쳐 노출 */}
       {(() => {
         const seun = (sections ?? []).find((s) => s.section === 'seun')
-        return seun ? (
+        if (!seun && !yearAstro) return null
+        return (
           <motion.div
             variants={itemVariants}
-            className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5"
+            className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-3"
           >
-            <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase mb-3 flex items-center">
+            <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase flex items-center">
               <ScrollText size={14} className="mr-2 text-amber-200/70" />
               {locale === 'en' ? 'This year' : '올해 한마디'}
             </h3>
-            <NarrativeText text={seun.text} />
+            {seun && <NarrativeText text={seun.text} />}
+            {yearAstro && (
+              <p className="flex gap-1.5 text-sm pt-2 border-t border-white/5">
+                <span className="shrink-0 text-cyan-400/70 font-medium">점성</span>
+                <span className="text-zinc-400 font-light leading-relaxed">{yearAstro}</span>
+              </p>
+            )}
           </motion.div>
-        ) : null
+        )
       })()}
 
       {/* 12개월 흐름 */}

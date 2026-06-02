@@ -164,6 +164,8 @@ export interface Interpretation {
   lifetimePivots?: LifetimePivots
   /** "인생 전체 흐름" — 대운 십신 아크 × 점성 인생 마디를 연령대로 합성. monthly scope. */
   lifetimeFlow?: LifetimeFlow
+  /** 올해 점성 한 줄 (연간 프로펙션) — 연 탭 사주&점성 교차용 */
+  yearAstro?: string
   /**
    * "지난달 대비" — 전월 themeScore / 전체 흐름 점수와의 차이. prevCells 가
    * 주어진 monthly scope 에서만 채워짐 (retention hook).

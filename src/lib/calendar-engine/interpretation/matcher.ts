@@ -9,6 +9,7 @@ import { deriveKeyEvents } from '../derivers/keyEvents'
 import { deriveConvergence } from '../derivers/convergence'
 import { deriveLifetimePivots } from '../derivers/lifetimePivots'
 import { deriveLifetimeFlow } from '../derivers/lifetimeFlow'
+import { deriveYearAstro } from '../derivers/yearAstro'
 import { deriveMonthComparison } from '../derivers/monthComparison'
 
 /**
@@ -385,6 +386,11 @@ export function buildInterpretation(args: {
   // monthly 카드에 함께 노출). 순수 산술이라 매월 재계산해도 저렴.
   const lifetimePivots = scope === 'monthly' ? deriveLifetimePivots(natal, lang) : undefined
   const lifetimeFlow = scope === 'monthly' ? deriveLifetimeFlow(natal, lang) : undefined
+  // 올해 점성 한 줄 (연간 프로펙션) — seun(사주)에 점성 짝을 맞춰 연 탭이 교차되게.
+  const yearAstro =
+    scope === 'monthly'
+      ? deriveYearAstro(natal, Number(cells[0]?.datetime?.slice(0, 4)) || new Date().getFullYear(), lang)
+      : undefined
 
   // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전월 themeScore 를 같은
   // 모델로 얻기 위해 재귀 호출(단, prevCells 미전달 → 무한재귀 없음).
@@ -411,6 +417,7 @@ export function buildInterpretation(args: {
     convergence,
     lifetimePivots,
     lifetimeFlow,
+    yearAstro,
     monthComparison,
   }
 }
