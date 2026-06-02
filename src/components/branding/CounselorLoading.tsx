@@ -47,8 +47,10 @@ export default function CounselorLoading({ showChatChrome = false }: { showChatC
               left: 0,
               right: 0,
               height: 48,
-              background: '#ffffff',
-              borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+              // 한 칼라 — 헤더가 페이지와 같은 색·무테두리로 바뀌어, 로더의
+              // 상단 placeholder 도 같은 플랫 색으로(흰 바 안 보이게). app-topbar
+              // 이름만 유지해 view transition 슬롯을 잇는다.
+              background: '#faf9f7',
               viewTransitionName: 'app-topbar',
             }}
           />
