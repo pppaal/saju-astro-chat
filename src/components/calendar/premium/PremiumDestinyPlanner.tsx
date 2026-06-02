@@ -399,8 +399,18 @@ function LifetimeView({
                   )}
                   {(p.astro || p.saju) && (
                     <div className="mt-1 flex flex-wrap gap-x-3 text-[11px] text-zinc-600">
-                      {p.astro && <span>☿ {p.astro}</span>}
-                      {p.saju && <span>干 {p.saju}</span>}
+                      {p.astro && (
+                        <span>
+                          <span className="text-cyan-400/70">{locale === 'en' ? 'Astro' : '점성'}</span>{' '}
+                          {p.astro}
+                        </span>
+                      )}
+                      {p.saju && (
+                        <span>
+                          <span className="text-amber-400/70">{locale === 'en' ? 'Saju' : '사주'}</span>{' '}
+                          {p.saju}
+                        </span>
+                      )}
                     </div>
                   )}
                 </motion.div>
