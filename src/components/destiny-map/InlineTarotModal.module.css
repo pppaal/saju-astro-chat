@@ -613,7 +613,7 @@
 }
 
 .resultSectionTitle {
-  font-size: 1.18rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #a07a3c;
   margin: 0 0 14px;
@@ -688,12 +688,199 @@
 }
 
 .resultText {
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: #1c1917;
-  line-height: 1.82;
+  line-height: 1.8;
   letter-spacing: 0.01em;
   margin: 0;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ===== 카드별 구조화 리딩 (단독 타로 DetailedCardItem 의 라이트 버전) ===== */
+.cardReadingList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cardReadingItem {
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.cardReadingHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cardReadingBadge {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(160, 122, 60, 0.12);
+  border: 1px solid rgba(160, 122, 60, 0.3);
+  color: #a07a3c;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.cardReadingHeaderText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cardReadingPosition {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a07a3c;
+}
+
+.cardReadingName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.cardReadingOrientation {
+  margin-left: 6px;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #78716c;
+}
+
+/* 모바일: 이미지가 가로로 안 삐져나오게 세로 스택. 데스크탑은 이미지+텍스트 2열. */
+.cardReadingBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cardReadingImageWrap {
+  position: relative;
+  flex-shrink: 0;
+  align-self: center;
+  max-width: 150px;
+  width: 100%;
+}
+
+.cardReadingImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 2px solid rgba(160, 122, 60, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.cardReadingImageReversed {
+  transform: rotate(180deg);
+}
+
+.cardReadingReversedBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(190, 80, 80, 0.92);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.cardReadingDetail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardReadingKeywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.cardReadingKeywordTag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #a07a3c;
+  background: rgba(160, 122, 60, 0.1);
+  border: 1px solid rgba(160, 122, 60, 0.25);
+  border-radius: 999px;
+  padding: 3px 10px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.cardReadingAiBox {
+  background: linear-gradient(135deg, rgba(160, 122, 60, 0.08), rgba(160, 122, 60, 0.03));
+  border: 1px solid rgba(160, 122, 60, 0.25);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+}
+
+.cardReadingAiLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a07a3c;
+}
+
+.cardReadingAiText {
+  font-size: 1rem;
+  line-height: 1.78;
+  color: #1c1917;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.cardReadingPending {
+  font-size: 0.9rem;
+  color: #a07a3c;
+  font-style: italic;
+  margin: 0;
+}
+
+/* 데스크탑: 카드 이미지 + 해석을 2열로 */
+@media (min-width: 640px) {
+  .cardReadingBody {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .cardReadingImageWrap {
+    align-self: flex-start;
+    width: 150px;
+  }
 }
 
 .affirmationBox {
@@ -713,11 +900,13 @@
 }
 
 .affirmationText {
-  font-size: 1.22rem;
+  font-size: 1rem;
   color: #1c1917;
   font-style: italic;
   line-height: 1.72;
   margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .resultActions {
@@ -931,13 +1120,27 @@
   }
 
   .resultSectionTitle {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     margin-bottom: 10px;
   }
 
   .resultText {
-    font-size: 1.12rem;
+    font-size: 0.95rem;
     line-height: 1.7;
+  }
+
+  .cardReadingItem {
+    padding: 14px 14px;
+    border-radius: 14px;
+  }
+
+  .cardReadingName {
+    font-size: 1.02rem;
+  }
+
+  .cardReadingAiText {
+    font-size: 0.95rem;
+    line-height: 1.72;
   }
 
   .affirmationBox {

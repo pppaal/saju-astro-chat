@@ -2,6 +2,7 @@
 
 import React, { memo, useEffect, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import TarotCard from '@/components/tarot/TarotCard'
 import type { Spread } from '@/lib/tarot/tarot.types'
 import { splitReadableText } from '@/lib/tarot/splitReadableText'
@@ -659,43 +660,6 @@ function ResultStep({
         </div>
       )}
 
-      {/* Cards Display */}
-      <div className={styles.resultCardsRow}>
-        {drawnCards.map((dc, idx) => (
-          <div key={idx} className={styles.resultCardWrapper}>
-            <TarotCard
-              name={lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name}
-              image={dc.card.image}
-              isReversed={dc.isReversed}
-              language={lang === 'ko' ? 'ko' : 'en'}
-              position={
-                // 자리명은 메인 타로와 동일하게 LLM 이 명명한 cardInsights[idx].position
-                // 을 우선 사용. 동적 스프레드는 selectedSpread.positions 가 비어 있어
-                // 폴백만으론 라벨이 빈다.
-                cardInsights[idx]?.position ||
-                (lang === 'ko'
-                  ? selectedSpread?.positions[idx]?.titleKo || selectedSpread?.positions[idx]?.title
-                  : selectedSpread?.positions[idx]?.title)
-              }
-              keywords={
-                dc.isReversed
-                  ? lang === 'ko'
-                    ? dc.card.reversed.keywordsKo || dc.card.reversed.keywords
-                    : dc.card.reversed.keywords
-                  : lang === 'ko'
-                    ? dc.card.upright.keywordsKo || dc.card.upright.keywords
-                    : dc.card.upright.keywords
-              }
-              meaning={cardInsights[idx]?.interpretation}
-              size="medium"
-              expandable={true}
-              interactive={true}
-              priority={idx < 3}
-            />
-          </div>
-        ))}
-      </div>
-
       {/* Draw Again 버튼 — 자동 저장 도입 후 저장 버튼 + 인디케이터 둘
           다 제거. 사용자 액션 자리는 "다시 뽑기" 하나만. */}
       <div className={styles.resultTopActions}>
@@ -705,9 +669,7 @@ function ResultStep({
       </div>
 
       {/* 해석 중 인디케이터 — overallMessage 도착 전까지 자리 잡고 사용자
-          에게 "지금 카드 읽고 있다" 신호. 옛 separate InterpretingStep
-          (orb + 잘린 텍스트 박스) 대신 cards 와 함께 같은 화면에서 자연
-          스럽게 노출. fallback 실패면 안 띄움 (그땐 retry alert 가 따로 뜸). */}
+          에게 "지금 카드 읽고 있다" 신호. 라이트 테마에 맞춘 색. */}
       {!overallMessage && !interpretFailed && drawnCards.length > 0 && (
         <div
           style={{
@@ -718,7 +680,7 @@ function ResultStep({
             padding: '14px 16px',
             marginTop: 8,
             marginBottom: 8,
-            color: 'var(--ds-gold-on-dark-soft)',
+            color: '#a07a3c',
             fontSize: 14,
           }}
         >
@@ -728,7 +690,7 @@ function ResultStep({
               width: 14,
               height: 14,
               borderRadius: '50%',
-              border: '2px solid var(--ds-gold-on-dark)',
+              border: '2px solid #a07a3c',
               borderTopColor: 'transparent',
               animation: 'spin 0.9s linear infinite',
             }}
@@ -738,8 +700,8 @@ function ResultStep({
         </div>
       )}
 
-      {/* Overall Message — split into readable paragraphs to match the main
-          tarot counselor's format (was one plain wall-of-text block). */}
+      {/* Overall Message — 전체 해석을 먼저, 단독 타로 결과와 동일하게 박스로.
+          split into readable paragraphs (was one plain wall-of-text block). */}
       {overallMessage && (
         <div className={styles.resultSection}>
           <h4 className={styles.resultSectionTitle}>✨ {tr.overallMessage}</h4>
@@ -752,6 +714,96 @@ function ResultStep({
           </div>
         </div>
       )}
+
+      {/* 카드별 구조화 박스 — 단독 타로 상담사(DetailedCardItem)의 구조를
+          라이트 테마로 옮김. 번호 배지 + 자리명 + 카드 이미지 + 키워드 칩 +
+          AI 해석. 모바일에서 이미지/텍스트가 가로로 안 넘치게 세로 스택. */}
+      <div className={styles.cardReadingList}>
+        {drawnCards.map((dc, idx) => {
+          const cardName = lang === 'ko' ? dc.card.nameKo || dc.card.name : dc.card.name
+          const orientation = dc.isReversed
+            ? isKo
+              ? '역방향'
+              : 'Reversed'
+            : isKo
+              ? '정방향'
+              : 'Upright'
+          const positionTitle =
+            cardInsights[idx]?.position ||
+            (lang === 'ko'
+              ? selectedSpread?.positions[idx]?.titleKo || selectedSpread?.positions[idx]?.title
+              : selectedSpread?.positions[idx]?.title) ||
+            `${idx + 1}`
+          const kwSource = dc.isReversed ? dc.card.reversed : dc.card.upright
+          const keywords = (
+            (lang === 'ko' ? kwSource.keywordsKo || kwSource.keywords : kwSource.keywords) || []
+          ).slice(0, 5)
+          const aiText = cardInsights[idx]?.interpretation?.trim() || ''
+          return (
+            <article key={idx} className={styles.cardReadingItem}>
+              <header className={styles.cardReadingHeader}>
+                <span className={styles.cardReadingBadge}>{idx + 1}</span>
+                <div className={styles.cardReadingHeaderText}>
+                  <span className={styles.cardReadingPosition}>{positionTitle}</span>
+                  <h5 className={styles.cardReadingName}>
+                    {cardName}
+                    <span className={styles.cardReadingOrientation}>({orientation})</span>
+                  </h5>
+                </div>
+              </header>
+
+              <div className={styles.cardReadingBody}>
+                <div className={styles.cardReadingImageWrap}>
+                  <Image
+                    src={dc.card.image}
+                    alt={cardName}
+                    width={150}
+                    height={263}
+                    className={`${styles.cardReadingImage} ${dc.isReversed ? styles.cardReadingImageReversed : ''}`}
+                    priority={idx < 3}
+                  />
+                  {dc.isReversed && (
+                    <span className={styles.cardReadingReversedBadge}>
+                      {isKo ? '역방향' : 'Reversed'}
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles.cardReadingDetail}>
+                  {keywords.length > 0 && (
+                    <div className={styles.cardReadingKeywords}>
+                      {keywords.map((kw, i) => (
+                        <span key={i} className={styles.cardReadingKeywordTag}>
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {aiText ? (
+                    <div className={styles.cardReadingAiBox}>
+                      <span className={styles.cardReadingAiLabel}>
+                        🔮 {isKo ? '타로 마스터 리딩' : 'Tarot Master Reading'}
+                      </span>
+                      {splitReadableText(aiText).map((para, i) => (
+                        <p key={i} className={styles.cardReadingAiText}>
+                          {para}
+                        </p>
+                      ))}
+                    </div>
+                  ) : (
+                    !interpretFailed && (
+                      <p className={styles.cardReadingPending}>
+                        {isKo ? 'AI가 이 카드를 읽고 있어요…' : 'AI is reading this card…'}
+                      </p>
+                    )
+                  )}
+                </div>
+              </div>
+            </article>
+          )
+        })}
+      </div>
 
       {/* Guidance */}
       {guidance && (
@@ -789,6 +841,7 @@ function ResultStep({
             userTopic={concern}
             language={lang}
             readingId={readingId}
+            theme="light"
           />
         </div>
       )}
