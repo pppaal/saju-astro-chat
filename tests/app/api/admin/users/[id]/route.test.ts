@@ -146,8 +146,7 @@ describe('GET /api/admin/users/[id]', () => {
       providers: ['google'],
     })
     expect(data.credits).toMatchObject({
-      plan: 'free',
-      monthlyRemaining: 6, // 10 - 4
+      usable: 126, // monthly 10 - used 4 + bonus 120
       bonusCredits: 120,
       totalBonusReceived: 200,
     })

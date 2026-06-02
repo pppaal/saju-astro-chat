@@ -132,7 +132,7 @@ function UserListPanel({
               <tr className="border-b border-stone-200 text-left text-[12px] uppercase text-stone-400">
                 <th className="px-4 py-2 font-medium">이메일</th>
                 <th className="px-4 py-2 font-medium">이름</th>
-                <th className="px-4 py-2 text-right font-medium">{isActive ? '오늘 리딩' : '가입일'}</th>
+                <th className="px-4 py-2 text-right font-medium">{isActive ? '오늘 활동' : '가입일'}</th>
                 {isActive && <th className="px-4 py-2 text-right font-medium">마지막 활동</th>}
               </tr>
             </thead>
@@ -328,12 +328,12 @@ export default function AdminOverviewClient() {
             <Stat
               label="오늘 활성 유저"
               value={fmt(data.users.activeToday)}
-              hint="오늘 리딩한 유저"
+              hint="오늘 사주·타로·상담한 유저"
               onClick={() => loadSegment('active-today')}
               expanded={openSegment === 'active-today'}
             />
-            <Stat label="오늘 리딩" value={fmt(data.readings.today)} />
-            <Stat label="총 리딩" value={fmt(data.readings.total)} />
+            <Stat label="오늘 활동" value={fmt(data.readings.today)} hint="리딩+타로+상담" />
+            <Stat label="총 활동" value={fmt(data.readings.total)} hint="리딩+타로+상담" />
           </Section>
           {renderPanel(['active-today'])}
 

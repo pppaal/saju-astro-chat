@@ -22,10 +22,7 @@ interface UserDetail {
     providers: string[]
   }
   credits: {
-    plan: string
-    monthlyCredits: number
-    usedCredits: number
-    monthlyRemaining: number
+    usable: number
     bonusCredits: number
     totalBonusReceived: number
   } | null
@@ -255,9 +252,8 @@ export default function UsersClient() {
                 <div className="mb-2 text-[12px] font-medium uppercase tracking-wide text-stone-400">
                   크레딧
                 </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Field label="플랜" value={detail.credits?.plan ?? '—'} />
-                  <Field label="월간 잔여" value={fmt(detail.credits?.monthlyRemaining)} />
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <Field label="사용가능 잔액" value={fmt(detail.credits?.usable)} />
                   <Field label="보너스 크레딧" value={fmt(detail.credits?.bonusCredits)} />
                   <Field label="총 받은 보너스" value={fmt(detail.credits?.totalBonusReceived)} />
                 </div>

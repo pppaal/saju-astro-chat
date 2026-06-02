@@ -26,6 +26,8 @@ vi.mock('@/lib/security/csrf', () => ({ csrfGuard: vi.fn(() => null) }))
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     reading: { groupBy: vi.fn() },
+    tarotReading: { groupBy: vi.fn() },
+    counselorChatSession: { groupBy: vi.fn() },
     user: { findMany: vi.fn() },
   },
 }))
@@ -53,6 +55,8 @@ function setupHappyPath() {
     { userId: 'u1', _count: { id: 2 }, _max: { createdAt: new Date('2026-06-02T09:00:00Z') } },
     { userId: 'u2', _count: { id: 5 }, _max: { createdAt: new Date('2026-06-02T11:00:00Z') } },
   ] as any)
+  vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([] as any)
+  vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
   vi.mocked(prisma.user.findMany).mockResolvedValue([
     { id: 'u1', email: 'a@b.com', name: 'A' },
     { id: 'u2', email: 'c@d.com', name: null },
@@ -124,9 +128,38 @@ describe('GET /api/admin/active-users', () => {
       vi.mocked(prisma.reading.groupBy).mockResolvedValue([
         { userId: 'ghost', _count: { id: 1 }, _max: { createdAt: new Date() } },
       ] as any)
+      vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([] as any)
+      vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
       vi.mocked(prisma.user.findMany).mockResolvedValue([] as any)
       const data = (await (await GET(createRequest())).json()).data
       expect(data.users[0]).toMatchObject({ id: 'ghost', email: null, name: null, readings: 1 })
+    })
+
+    it('merges activity across reading, tarot and counselor per user', async () => {
+      vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
+      vi.mocked(isAdminUser).mockResolvedValue(true)
+      // u1: 2 리딩 + 3 타로 = 5, 마지막 활동은 타로(더 늦음)
+      vi.mocked(prisma.reading.groupBy).mockResolvedValue([
+        { userId: 'u1', _count: { id: 2 }, _max: { createdAt: new Date('2026-06-02T09:00:00Z') } },
+      ] as any)
+      vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([
+        { userId: 'u1', _count: { id: 3 }, _max: { createdAt: new Date('2026-06-02T12:00:00Z') } },
+      ] as any)
+      // u9: 상담만 1
+      vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([
+        { userId: 'u9', _count: { id: 1 }, _max: { createdAt: new Date('2026-06-02T10:00:00Z') } },
+      ] as any)
+      vi.mocked(prisma.user.findMany).mockResolvedValue([
+        { id: 'u1', email: 'a@b.com', name: 'A' },
+        { id: 'u9', email: 'i@j.com', name: 'I' },
+      ] as any)
+
+      const data = (await (await GET(createRequest())).json()).data
+      expect(data.count).toBe(2)
+      // u1 합산 5건으로 1위
+      expect(data.users[0]).toMatchObject({ id: 'u1', readings: 5 })
+      expect(data.users[0].lastActiveAt).toBe(new Date('2026-06-02T12:00:00Z').toISOString())
+      expect(data.users[1]).toMatchObject({ id: 'u9', readings: 1 })
     })
   })
 

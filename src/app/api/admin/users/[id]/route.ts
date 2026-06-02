@@ -4,7 +4,7 @@
  * GET /api/admin/users/[id]
  *
  * 검색 결과에서 유저 한 명을 클릭했을 때 보여줄 종합 상세:
- * 프로필 · 크레딧(플랜/월간/보너스) · 결제 이력 · 활동(리딩/타로/상담) 요약.
+ * 프로필 · 크레딧(사용가능 잔액) · 결제 이력 · 활동 타임라인 요약.
  */
 
 import { NextRequest } from 'next/server'
@@ -170,10 +170,11 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
           },
           credits: credits
             ? {
-                plan: credits.plan,
-                monthlyCredits: credits.monthlyCredits,
-                usedCredits: credits.usedCredits,
-                monthlyRemaining: Math.max(0, credits.monthlyCredits - credits.usedCredits),
+                // 구독 플랜은 폐지됨 — 실제 사용가능 잔액(보너스/구매 크레딧)만 노출.
+                usable: Math.max(
+                  0,
+                  credits.monthlyCredits - credits.usedCredits + credits.bonusCredits
+                ),
                 bonusCredits: credits.bonusCredits,
                 totalBonusReceived: credits.totalBonusReceived,
               }

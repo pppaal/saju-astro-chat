@@ -3,10 +3,10 @@
  *
  * GET /api/admin/active-users
  *
- * 개요 페이지의 "오늘 활성 유저" 카드(= 오늘 리딩한 유저)를 클릭했을 때,
- * 그 유저들이 누구인지 보여주기 위한 목록. 카드 숫자와 개수가 정확히
- * 일치하도록 overview 와 동일한 정의(오늘 자정 이후 reading 을 만든 유저)를
- * 쓴다. 리딩 횟수 많은 순 → 같으면 최근 활동 순으로 정렬한다.
+ * 개요 페이지의 "오늘 활성 유저" 카드를 클릭했을 때, 그 유저들이 누구인지
+ * 보여주기 위한 목록. 카드 숫자와 개수가 정확히 일치하도록 overview 의
+ * activeToday 와 동일한 정의(오늘 자정 이후 리딩·타로·상담 중 하나라도 한
+ * 유저)를 쓴다. 활동 횟수 많은 순 → 같으면 최근 활동 순으로 정렬한다.
  */
 
 import { NextRequest } from 'next/server'
@@ -37,16 +37,31 @@ export const GET = withApiMiddleware(
 
       const startOfToday = new Date()
       startOfToday.setHours(0, 0, 0, 0)
+      const where = { createdAt: { gte: startOfToday } }
 
-      // overview 의 activeToday 와 동일 기준: 오늘 reading 을 만든 distinct 유저.
-      const grouped = await prisma.reading.groupBy({
-        by: ['userId'],
-        where: { createdAt: { gte: startOfToday } },
-        _count: { id: true },
-        _max: { createdAt: true },
-      })
+      // overview 의 activeToday 와 동일 기준: 오늘 리딩·타로·상담 중 하나라도
+      // 한 distinct 유저. 세 소스의 활동 횟수와 마지막 활동시각을 유저별로 합친다.
+      const [readingG, tarotG, counselorG] = await Promise.all([
+        prisma.reading.groupBy({ by: ['userId'], where, _count: { id: true }, _max: { createdAt: true } }),
+        prisma.tarotReading.groupBy({ by: ['userId'], where, _count: { id: true }, _max: { createdAt: true } }),
+        prisma.counselorChatSession.groupBy({
+          by: ['userId'],
+          where,
+          _count: { id: true },
+          _max: { createdAt: true },
+        }),
+      ])
 
-      const userIds = grouped.map((g) => g.userId)
+      const agg = new Map<string, { count: number; last: Date | null }>()
+      for (const g of [...readingG, ...tarotG, ...counselorG]) {
+        const cur = agg.get(g.userId) ?? { count: 0, last: null }
+        cur.count += g._count.id
+        const last = g._max.createdAt
+        if (last && (!cur.last || last > cur.last)) cur.last = last
+        agg.set(g.userId, cur)
+      }
+
+      const userIds = Array.from(agg.keys())
       const users = userIds.length
         ? await prisma.user.findMany({
             where: { id: { in: userIds } },
@@ -55,15 +70,16 @@ export const GET = withApiMiddleware(
         : []
       const userMap = new Map(users.map((u) => [u.id, u]))
 
-      const list = grouped
-        .map((g) => {
-          const u = userMap.get(g.userId)
+      const list = userIds
+        .map((id) => {
+          const u = userMap.get(id)
+          const a = agg.get(id)!
           return {
-            id: g.userId,
+            id,
             email: u?.email ?? null,
             name: u?.name ?? null,
-            readings: g._count.id,
-            lastActiveAt: g._max.createdAt ? g._max.createdAt.toISOString() : null,
+            readings: a.count,
+            lastActiveAt: a.last ? a.last.toISOString() : null,
           }
         })
         .sort((a, b) => {
