@@ -17,6 +17,7 @@ import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildEvidenceGroundingGuide } from '@/lib/prompts/evidenceGroundingGuide'
 import { buildCompatibilityCounselorPrompt } from '@/lib/prompts/compatibilityCounselorPrompt'
+import { detectMessageLang } from '@/lib/utils/detectMessageLang'
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { consumeCredits } from '@/lib/credits/creditService'
 import { refundCredits } from '@/lib/credits/creditRefund'
@@ -225,7 +226,7 @@ export async function POST(req: NextRequest) {
       person1Astro = null,
       person2Astro = null,
       fullContext,
-      lang = context.locale,
+      lang: requestedLang = context.locale,
       messages = [],
       cvText,
       turnId: rawTurnId,
@@ -240,6 +241,11 @@ export async function POST(req: NextRequest) {
 
     // Safety check
     const lastUser = [...trimmedHistory].reverse().find((m) => m.role === 'user')
+    // Reply in the language the user actually typed — the app i18n flag /
+    // browser Accept-Language often disagree with the current message. Fall
+    // back to the requested locale only when the message has no script signal.
+    const lang: 'ko' | 'en' =
+      detectMessageLang(lastUser?.content) ?? (requestedLang === 'ko' ? 'ko' : 'en')
     if (lastUser && containsForbidden(lastUser.content)) {
       // X-Counselor-Fallback: 1 — 클라이언트가 "스트림이 잘림" 으로 잘못
       // 인식해 retry 칩을 띄우지 않도록. fallback / 안전 응답은 ||FOLLOWUP||
