@@ -492,7 +492,11 @@
      across a tall viewport. */
   justify-content: flex-start;
   width: 100%;
-  max-width: 560px;
+  /* 상담사(chatMain 860px) 기준으로 메인 입력창 폭을 맞춤 — 입력창 크기가
+     상담사와 달라 보이던 문제 해소. 헤드라인/서브라인은 .homeHero 가 내용
+     폭으로 가운데 정렬되므로 넓어지지 않고, 하단 입력창(width:100%)만 상담사와
+     같은 폭으로 펼쳐진다. */
+  max-width: 860px;
   margin: 0 auto;
   padding: 3.5rem 1.25rem 0;
   gap: 1.1rem;
@@ -502,7 +506,7 @@
 
 @media (min-width: 768px) {
   .homeBody {
-    max-width: 600px;
+    max-width: 860px;
     padding-top: 5rem;
     gap: 1.75rem;
   }
