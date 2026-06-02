@@ -967,6 +967,45 @@ function DayView({
         </motion.p>
       )}
 
+      {/* 일진 간지·십신 + 충/합/형 — FlowLadder 의 사주 알맹이를 일 탭 inline 으로.
+          (사다리 구조 자체는 4탭이 대체하므로 위젯은 생략) */}
+      {(importantDate?.longCycleContext?.iljin ||
+        (importantDate?.cycleInteractions?.length ?? 0) > 0) && (
+        <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-2">
+          {importantDate?.longCycleContext?.iljin &&
+            (() => {
+              const ilj = importantDate.longCycleContext!.iljin!
+              const ko = locale === 'en' ? ilj.ganji : ganjiToKorean(ilj.ganji)
+              const sib = [ilj.sibsinStem, ilj.sibsinBranch].filter(Boolean).join('·')
+              return (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 border border-amber-500/20 text-amber-200/90">
+                  {ko} {locale === 'en' ? 'day' : '일진'}
+                  {sib && <span className="text-zinc-500 font-light">· {sib}</span>}
+                </span>
+              )
+            })()}
+          {(importantDate?.cycleInteractions ?? []).map((ix, i) => {
+            const isClash = ix.kind.includes('충')
+            const isCombine = ix.kind.includes('합')
+            const cls = isClash
+              ? 'bg-rose-500/10 border-rose-500/20 text-rose-200/90'
+              : isCombine
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200/90'
+                : 'bg-zinc-500/10 border-white/10 text-zinc-300'
+            return (
+              <span
+                key={`${ix.pair}-${i}`}
+                title={ix.blurb}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium border ${cls}`}
+              >
+                {ix.kind}
+                <span className="text-zinc-500 font-light">· {ix.pair}</span>
+              </span>
+            )
+          })}
+        </motion.div>
+      )}
+
       {/* 신살 — 그 날 발동분 (date-detail 일별). 길신=emerald / 흉신=rose */}
       {shinsal.length > 0 && (
         <motion.div variants={itemVariants} className="flex flex-wrap gap-2">
