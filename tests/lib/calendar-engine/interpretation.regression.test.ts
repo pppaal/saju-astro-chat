@@ -1390,5 +1390,31 @@ describe('calendar-engine regression', () => {
       // 신약(1995 辛, weak)은 식상·재성·관성운이 '고비'로 적어도 한 번 나온다
       expect(flow.phases.some((p) => p.text.includes('고비를 넘으며'))).toBe(true)
     })
+
+    it('cycleTone(SSOT): 신약·신강에 따라 같은 십신이 순탄/고비로 갈린다', async () => {
+      const { favorOf, deriveCycleTone } = await import(
+        '@/lib/calendar-engine/derivers/cycleTone'
+      )
+      // 신약: 인성·비겁 우호, 식상·재성·관성 고비
+      expect(favorOf('weak', '인성')).toBe('good')
+      expect(favorOf('weak', '재성')).toBe('hard')
+      // 신강: 정반대
+      expect(favorOf('strong', '인성')).toBe('hard')
+      expect(favorOf('strong', '재성')).toBe('good')
+      // 중화: 중립
+      expect(favorOf('medium', '관성')).toBe('mid')
+      // 같은 재성이라도 신약↔신강이 다른 톤 문장 (올해 탭)
+      const weakYear = deriveCycleTone('year', 'weak', '재성')
+      const strongYear = deriveCycleTone('year', 'strong', '재성')
+      expect(weakYear).toBeTruthy()
+      expect(strongYear).toBeTruthy()
+      expect(weakYear).not.toBe(strongYear)
+      // period별로 문구가 다르다 (올해/이달/오늘)
+      expect(deriveCycleTone('year', 'weak', '재성')).toContain('올해')
+      expect(deriveCycleTone('month', 'weak', '재성')).toContain('이달')
+      expect(deriveCycleTone('day', 'weak', '재성')).toContain('오늘')
+      // 십신 못 구하면 undefined (가드)
+      expect(deriveCycleTone('day', 'weak', undefined)).toBeUndefined()
+    })
   })
 })

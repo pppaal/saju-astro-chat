@@ -11,6 +11,7 @@ import { deriveLifetimePivots } from '../derivers/lifetimePivots'
 import { deriveLifetimeFlow } from '../derivers/lifetimeFlow'
 import { deriveYearAstro } from '../derivers/yearAstro'
 import { deriveMonthComparison } from '../derivers/monthComparison'
+import { SIBSIN_CAT, deriveCycleTone } from '../derivers/cycleTone'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -340,6 +341,27 @@ export function buildInterpretation(args: {
       if (insertAt === -1) sections.push(sec)
       else sections.splice(insertAt, 0, sec)
     }
+  }
+
+  // ── 순탄/고비 톤 — 세운(올해)·월운(이달) 섹션 맨 앞에 한 줄 ──
+  // 인생 흐름(대운)과 동일한 신강·신약 × 십신 규칙(cycleTone, SSOT)으로, 그 주기가
+  // 우호적인지 힘에 부치는지 사람마다 다르게 표시. 세운/월운 십신은 신호에서 가져옴.
+  if (lang === 'ko') {
+    const layerCat = (layer: ActiveSignal['layer']) => {
+      for (const s of allSignals) {
+        const sib = s.evidence?.sibsin as string | undefined
+        if (s.layer === layer && sib && SIBSIN_CAT[sib]) return SIBSIN_CAT[sib]
+      }
+      return undefined
+    }
+    const prepend = (sectionId: string, line?: string) => {
+      if (!line) return
+      const sec = sections.find((s) => s.section === sectionId)
+      if (sec) sec.text = `${line}\n${sec.text}`
+    }
+    const strength = natal.saju?.strength
+    prepend('seun', deriveCycleTone('year', strength, layerCat('yearly')))
+    prepend('wolun', deriveCycleTone('month', strength, layerCat('monthly')))
   }
 
   // 문체 — 한글 룰 템플릿에 하드코딩된 영어 행성/용어(Saturn Return, Jupiter…)를

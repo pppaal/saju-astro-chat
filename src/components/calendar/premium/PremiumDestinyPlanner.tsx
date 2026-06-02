@@ -282,6 +282,7 @@ export default function PremiumDestinyPlanner({
                   fusion={fusion}
                   shinsal={shinsal}
                   astroHighlights={dateDetail?.astroHighlights}
+                  dayTone={dateDetail?.dayTone}
                   isToday={isToday}
                   nowHour={today.getHours()}
                   todayHourly={data?.todayHourlyTimeSlots}
@@ -984,6 +985,7 @@ function DayView({
   fusion,
   shinsal,
   astroHighlights,
+  dayTone,
   isToday,
   nowHour,
   todayHourly,
@@ -996,6 +998,7 @@ function DayView({
   fusion: NonNullable<ReturnType<typeof useDateDetail>['detail']>['fusion'] | undefined
   shinsal: NonNullable<NonNullable<ReturnType<typeof useDateDetail>['detail']>['shinsalActive']>
   astroHighlights?: { text: string; good: boolean }[]
+  dayTone?: string
   isToday: boolean
   nowHour: number
   todayHourly?: CalendarData['todayHourlyTimeSlots']
@@ -1071,6 +1074,16 @@ function DayView({
           className="text-sm text-zinc-300 font-light leading-relaxed bg-zinc-900/20 rounded-2xl border border-white/5 px-5 py-4"
         >
           {oneLine}
+        </motion.p>
+      )}
+
+      {/* 순탄/고비 한 줄 — 일진 십신 × 신강·신약 (다른 탭과 동일 규칙) */}
+      {dayTone && (
+        <motion.p
+          variants={itemVariants}
+          className="text-sm text-amber-100/90 font-light leading-relaxed"
+        >
+          {dayTone}
         </motion.p>
       )}
 

@@ -7,6 +7,7 @@
 import type { NatalContext } from '../context/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { buildLifecycleTiming } from '../lifecycle/astroLifecycle'
+import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
 
 export interface LifePhase {
   label: string // 초년기 …
@@ -20,19 +21,7 @@ export interface LifetimeFlow {
   phases: LifePhase[]
 }
 
-const SIBSIN_CAT: Record<string, string> = {
-  비견: '비겁',
-  겁재: '비겁',
-  식신: '식상',
-  상관: '식상',
-  정재: '재성',
-  편재: '재성',
-  정관: '관성',
-  편관: '관성',
-  정인: '인성',
-  편인: '인성',
-}
-type Cat = '관성' | '재성' | '식상' | '비겁' | '인성'
+type Cat = SibsinCat
 // 생애 단계 × 십신 — 그 시기가 "무엇에 관한" 시기인지. 같은 십신도 단계에 맞게:
 // 초년기는 가정·학업·기질, 청년기는 자립·진로, 중년기는 책임·결실, 장년기는 수확·
 // 정리로 푼다 (어린아이에게 '사회적 토대' 같은 어른말이 가지 않도록).
@@ -66,14 +55,8 @@ const BAND_CAT: Record<string, Record<Cat, string>> = {
     인성: '지혜와 내면이 무르익어 다음 세대에 전해요',
   },
 }
-// 신강/신약 × 십신 = 그 시기가 순탄한지 고비인지. 신약은 인성·비겁이 받쳐주고
-// 식상·재성·관성이 힘에 부친다. 신강은 그 반대 — 사람마다 같은 십신이 다르게 읽힘.
-function favorOf(strength: string | undefined, cat: Cat): 'good' | 'hard' | 'mid' {
-  const support: Cat[] = ['인성', '비겁']
-  if (strength === 'weak') return support.includes(cat) ? 'good' : 'hard'
-  if (strength === 'strong') return support.includes(cat) ? 'hard' : 'good'
-  return 'mid'
-}
+// favorOf(신강·신약 × 십신 = 순탄/고비)는 cycleTone(SSOT)에서 가져와 인생 흐름·
+// 올해·이달·오늘 탭이 같은 판정을 쓴다. 아래 TONE 은 단계 카드 전용 문구.
 const TONE: Record<'good' | 'hard' | 'mid', string> = {
   good: '흐름이 순해서 노력한 만큼 잘 풀리는 편이에요.',
   hard: '쉽지 않은 고비를 넘으며 단단해지는 시기예요.',
