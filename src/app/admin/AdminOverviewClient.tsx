@@ -144,6 +144,7 @@ export default function AdminOverviewClient() {
   }, [load])
 
   const SHORTCUTS = [
+    { href: '/admin/users', title: '유저 검색', desc: '이메일·이름으로 찾아 상세 보기' },
     { href: '/admin/grant-credits', title: '크레딧 지급', desc: '유저에게 보너스 크레딧 충전' },
     { href: '/admin/refunds', title: '환불', desc: '크레딧팩 환불 처리' },
     { href: '/admin/dashboard', title: '상세 지표', desc: '퍼널·리텐션·매출 상세' },

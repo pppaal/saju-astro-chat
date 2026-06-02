@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 // 새 페이지를 추가하면 NAV_ITEMS 에 한 줄만 더하면 자동으로 연결된다.
 const NAV_ITEMS: { href: string; label: string }[] = [
   { href: '/admin', label: '개요' },
+  { href: '/admin/users', label: '유저 검색' },
   { href: '/admin/grant-credits', label: '크레딧 지급' },
   { href: '/admin/refunds', label: '환불' },
   { href: '/admin/usage', label: '사용량 분석' },
