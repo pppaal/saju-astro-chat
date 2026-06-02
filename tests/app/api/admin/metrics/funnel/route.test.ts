@@ -1,6 +1,12 @@
 /**
- * Comprehensive tests for Admin Funnel Metrics API
+ * Tests for Admin Funnel Metrics API
  * GET /api/admin/metrics/funnel - Get core funnel metrics
+ *
+ * NOTE: This route was rewritten to return ONLY real, measurable metrics
+ * (registrations / activations / engagement). The old "visitors" block and
+ * hardcoded multipliers (visitors = newUsers*30, trend=8.5, DAU=total*0.15,
+ * avgSessionDuration=7.5) were removed because there is no analytics/visitor
+ * tracking table to measure them. These tests assert the real-data shape.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -63,11 +69,17 @@ vi.mock('@/lib/db/prisma', () => ({
       findUnique: vi.fn(),
       count: vi.fn(),
     },
-    subscription: {
-      count: vi.fn(),
-    },
     reading: {
       count: vi.fn(),
+      groupBy: vi.fn(),
+    },
+    tarotReading: {
+      count: vi.fn(),
+      groupBy: vi.fn(),
+    },
+    counselorChatSession: {
+      count: vi.fn(),
+      groupBy: vi.fn(),
     },
   },
 }))
@@ -118,31 +130,43 @@ const nonAdminSession = {
   expires: '2099-12-31',
 }
 
+/** Build an array of distinct {userId} rows, mimicking prisma groupBy output. */
+function makeUsers(n: number): Array<{ userId: string }> {
+  return Array.from({ length: n }, (_, i) => ({ userId: `u${i}` }))
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
 /**
- * Setup mock data for happy path tests
+ * Setup mock data for happy-path tests. All values are independently
+ * controllable so we can assert that the route reports REAL DB-derived
+ * numbers rather than fabricated multiples.
  */
 function setupHappyPath(overrides?: {
   totalUsers?: number
   newUsers?: number
-  activeSubscriptions?: number
-  newSubscriptions?: number
-  cancelledSubscriptions?: number
-  recentReadings?: number
+  prevNewUsers?: number
+  activatedUsers?: number
+  dau?: number
+  wau?: number
+  weeklyReadings?: number
+  weeklyTarot?: number
+  weeklyCounsel?: number
 }) {
   const {
     totalUsers = 1000,
     newUsers = 50,
-    activeSubscriptions = 200,
-    newSubscriptions = 25,
-    cancelledSubscriptions = 5,
-    recentReadings = 500,
+    prevNewUsers = 40,
+    activatedUsers = 600,
+    dau = 80,
+    wau = 200,
+    weeklyReadings = 300,
+    weeklyTarot = 100,
+    weeklyCounsel = 50,
   } = overrides ?? {}
 
-  // Auth setup
   vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
   vi.mocked(isAdminUser).mockResolvedValue(true)
-
-  // Rate limit setup
   vi.mocked(rateLimit).mockResolvedValue({
     allowed: true,
     remaining: 29,
@@ -151,40 +175,33 @@ function setupHappyPath(overrides?: {
     headers: new Headers(),
   })
 
-  // Prisma mocks
-  const userCountMock = vi.mocked(prisma.user.count)
-  userCountMock.mockImplementation(async (args?: any) => {
-    // Total users (no filter)
-    if (!args || !args.where) {
-      return totalUsers
-    }
-    // New users (with createdAt filter)
-    if (args.where?.createdAt) {
-      return newUsers
-    }
-    return totalUsers
+  // user.count: 1st no-where call = total; subsequent windowed calls in route
+  // order are [current window = newUsers] then [previous window = prevNewUsers].
+  let windowedCalls = 0
+  vi.mocked(prisma.user.count).mockImplementation(async (args?: any) => {
+    if (!args || !args.where) return totalUsers
+    windowedCalls += 1
+    return windowedCalls === 1 ? newUsers : prevNewUsers
   })
 
-  const subscriptionCountMock = vi.mocked(prisma.subscription.count)
-  subscriptionCountMock.mockImplementation(async (args?: any) => {
-    if (!args || !args.where) {
-      return activeSubscriptions
-    }
-    // Active subscriptions
-    if (args.where?.status?.in) {
-      if (args.where?.createdAt) {
-        return newSubscriptions
-      }
-      return activeSubscriptions
-    }
-    // Cancelled subscriptions
-    if (args.where?.canceledAt) {
-      return cancelledSubscriptions
-    }
-    return activeSubscriptions
+  // groupBy distinguishes the window by its createdAt.gte:
+  //   gte === epoch(0)          → all-time activated users
+  //   gte within last ~2 days   → DAU window
+  //   otherwise (7d ago)        → WAU window
+  // All distinct ids are returned via reading.groupBy; the other two return []
+  // so the route's Set union equals exactly the intended count.
+  vi.mocked(prisma.reading.groupBy).mockImplementation(async (args: any) => {
+    const gte = new Date(args.where.createdAt.gte).getTime()
+    if (gte === 0) return makeUsers(activatedUsers) as any
+    if (gte > Date.now() - 2 * DAY_MS) return makeUsers(dau) as any
+    return makeUsers(wau) as any
   })
+  vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([] as any)
+  vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
 
-  vi.mocked(prisma.reading.count).mockResolvedValue(recentReadings)
+  vi.mocked(prisma.reading.count).mockResolvedValue(weeklyReadings)
+  vi.mocked(prisma.tarotReading.count).mockResolvedValue(weeklyTarot)
+  vi.mocked(prisma.counselorChatSession.count).mockResolvedValue(weeklyCounsel)
 }
 
 // ===========================================================================
@@ -208,8 +225,7 @@ describe('GET /api/admin/metrics/funnel', () => {
     it('should reject unauthenticated requests', async () => {
       vi.mocked(getServerSession).mockResolvedValue(null)
 
-      const req = createRequest()
-      const response = await GET(req)
+      const response = await GET(createRequest())
       const data = await response.json()
 
       expect(response.status).toBe(401)
@@ -223,8 +239,7 @@ describe('GET /api/admin/metrics/funnel', () => {
         expires: '2099-12-31',
       } as any)
 
-      const req = createRequest()
-      const response = await GET(req)
+      const response = await GET(createRequest())
       const data = await response.json()
 
       expect(response.status).toBe(401)
@@ -237,8 +252,7 @@ describe('GET /api/admin/metrics/funnel', () => {
         expires: '2099-12-31',
       } as any)
 
-      const req = createRequest()
-      const response = await GET(req)
+      const response = await GET(createRequest())
       const data = await response.json()
 
       expect(response.status).toBe(401)
@@ -249,8 +263,7 @@ describe('GET /api/admin/metrics/funnel', () => {
       vi.mocked(getServerSession).mockResolvedValue(nonAdminSession as any)
       vi.mocked(isAdminUser).mockResolvedValue(false)
 
-      const req = createRequest()
-      const response = await GET(req)
+      const response = await GET(createRequest())
       const data = await response.json()
 
       expect(response.status).toBe(403)
@@ -267,39 +280,10 @@ describe('GET /api/admin/metrics/funnel', () => {
     it('should allow admin users', async () => {
       setupHappyPath()
 
-      const req = createRequest()
-      const response = await GET(req)
+      const response = await GET(createRequest())
 
       expect(response.status).toBe(200)
       expect(isAdminUser).toHaveBeenCalledWith('admin-user-123')
-    })
-
-    it('should log warning when session exists but no userId', async () => {
-      // Session exists but without user id - this triggers the log within the route handler
-      vi.mocked(getServerSession).mockResolvedValue({
-        user: { email: 'test@example.com' },
-        expires: '2099-12-31',
-      } as any)
-      // Mock rate limit to allow through
-      vi.mocked(rateLimit).mockResolvedValue({
-        allowed: true,
-        remaining: 29,
-        reset: Date.now() + 60000,
-        limit: 30,
-        headers: new Headers(),
-      })
-
-      const req = createRequest()
-      await GET(req)
-
-      expect(logger.warn).toHaveBeenCalledWith(
-        '[Funnel] No session or userId',
-        expect.objectContaining({
-          hasSession: true,
-          hasUserId: false,
-          hasEmail: true,
-        })
-      )
     })
   })
 
@@ -321,8 +305,7 @@ describe('GET /api/admin/metrics/funnel', () => {
         headers: new Headers({ 'X-RateLimit-Remaining': '0' }),
       })
 
-      const req = createRequest()
-      const response = await GET(req)
+      const response = await GET(createRequest())
       const data = await response.json()
 
       expect(response.status).toBe(429)
@@ -331,10 +314,7 @@ describe('GET /api/admin/metrics/funnel', () => {
 
     it('should allow requests within rate limit', async () => {
       setupHappyPath()
-
-      const req = createRequest()
-      const response = await GET(req)
-
+      const response = await GET(createRequest())
       expect(response.status).toBe(200)
     })
   })
@@ -348,155 +328,126 @@ describe('GET /api/admin/metrics/funnel', () => {
     })
 
     it('should default to 24h timeRange', async () => {
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
+      const data = await (await GET(createRequest())).json()
       expect(data.data.timeRange).toBe('24h')
     })
 
-    it('should accept valid timeRange 1h', async () => {
-      const req = createRequest({ timeRange: '1h' })
-      const response = await GET(req)
+    it.each(['1h', '6h', '24h', '7d', '30d'])('should accept valid timeRange %s', async (tr) => {
+      const response = await GET(createRequest({ timeRange: tr }))
       const data = await response.json()
-
       expect(response.status).toBe(200)
-      expect(data.data.timeRange).toBe('1h')
-    })
-
-    it('should accept valid timeRange 6h', async () => {
-      const req = createRequest({ timeRange: '6h' })
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.data.timeRange).toBe('6h')
-    })
-
-    it('should accept valid timeRange 7d', async () => {
-      const req = createRequest({ timeRange: '7d' })
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.data.timeRange).toBe('7d')
-    })
-
-    it('should accept valid timeRange 30d', async () => {
-      const req = createRequest({ timeRange: '30d' })
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      expect(data.data.timeRange).toBe('30d')
+      expect(data.data.timeRange).toBe(tr)
     })
 
     it('should reject invalid timeRange', async () => {
-      const req = createRequest({ timeRange: 'invalid' })
-      const response = await GET(req)
+      const response = await GET(createRequest({ timeRange: 'invalid' }))
       const data = await response.json()
-
       expect(response.status).toBe(422)
       expect(data.error.code).toBe('VALIDATION_ERROR')
       expect(data.error.message).toBe('Invalid timeRange parameter')
     })
 
     it('should reject unsupported timeRange values', async () => {
-      const req = createRequest({ timeRange: '2h' })
-      const response = await GET(req)
+      const response = await GET(createRequest({ timeRange: '2h' }))
       const data = await response.json()
-
       expect(response.status).toBe(422)
       expect(data.error.code).toBe('VALIDATION_ERROR')
     })
   })
 
   // =========================================================================
-  // Funnel Data Response Structure
+  // Funnel Data Response Structure (real metrics only)
   // =========================================================================
   describe('Funnel Data Response Structure', () => {
     beforeEach(() => {
-      setupHappyPath({
-        totalUsers: 1000,
-        newUsers: 50,
-        activeSubscriptions: 200,
-        newSubscriptions: 25,
-        cancelledSubscriptions: 5,
-        recentReadings: 500,
-      })
+      setupHappyPath()
     })
 
-    it('should return success response with correct structure', async () => {
-      const req = createRequest()
-      const response = await GET(req)
+    it('should return success response with correct envelope', async () => {
+      const response = await GET(createRequest())
       const data = await response.json()
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
-      expect(data.data).toBeDefined()
       expect(data.data.data).toBeDefined()
       expect(data.data.timeRange).toBe('24h')
     })
 
-    it('should include visitors metrics', async () => {
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(data.data.data.visitors).toBeDefined()
-      expect(data.data.data.visitors.daily).toBeGreaterThanOrEqual(0)
-      expect(data.data.data.visitors.weekly).toBeGreaterThanOrEqual(0)
-      expect(data.data.data.visitors.monthly).toBeGreaterThanOrEqual(0)
-      expect(data.data.data.visitors.trend).toBe(8.5)
+    it('should NOT include the removed fake "visitors" block', async () => {
+      const data = (await (await GET(createRequest())).json()).data.data
+      expect(data.visitors).toBeUndefined()
     })
 
-    it('should include registrations metrics', async () => {
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(data.data.data.registrations).toBeDefined()
-      expect(data.data.data.registrations.total).toBe(1000)
-      expect(data.data.data.registrations.daily).toBe(50)
-      expect(data.data.data.registrations.conversionRate).toBeGreaterThanOrEqual(0)
+    it('should include real registrations metrics', async () => {
+      const data = (await (await GET(createRequest())).json()).data.data
+      expect(data.registrations.total).toBe(1000)
+      expect(data.registrations.daily).toBe(50)
+      expect(typeof data.registrations.trend).toBe('number')
+      // removed fabricated field
+      expect(data.registrations.conversionRate).toBeUndefined()
     })
 
-    it('should include activations metrics', async () => {
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(data.data.data.activations).toBeDefined()
-      expect(data.data.data.activations.total).toBeDefined()
-      expect(data.data.data.activations.rate).toBeGreaterThanOrEqual(0)
-      expect(data.data.data.activations.rate).toBeLessThanOrEqual(100)
+    it('should include real activations metrics', async () => {
+      const data = (await (await GET(createRequest())).json()).data.data
+      expect(data.activations.total).toBe(600)
+      expect(data.activations.rate).toBeGreaterThanOrEqual(0)
+      expect(data.activations.rate).toBeLessThanOrEqual(100)
     })
 
-    it('should include engagement metrics', async () => {
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
+    it('should include real engagement metrics', async () => {
+      const data = (await (await GET(createRequest())).json()).data.data
+      expect(data.engagement.dailyActiveUsers).toBe(80)
+      expect(data.engagement.weeklyActiveUsers).toBe(200)
+      expect(data.engagement.readingsPerUser).toBeGreaterThanOrEqual(0)
+      // removed fabricated field
+      expect(data.engagement.avgSessionDuration).toBeUndefined()
+    })
+  })
 
-      expect(data.data.data.engagement).toBeDefined()
-      expect(data.data.data.engagement.dailyActiveUsers).toBeGreaterThanOrEqual(0)
-      expect(data.data.data.engagement.weeklyActiveUsers).toBeGreaterThanOrEqual(0)
-      expect(data.data.data.engagement.avgSessionDuration).toBe(7.5)
-      expect(data.data.data.engagement.readingsPerUser).toBeGreaterThanOrEqual(0)
+  // =========================================================================
+  // Real Metric Calculations
+  // =========================================================================
+  describe('Real Metric Calculations', () => {
+    it('should compute activation rate from distinct active users', async () => {
+      setupHappyPath({ totalUsers: 1000, activatedUsers: 600 })
+      const data = (await (await GET(createRequest())).json()).data.data
+      // 600 / 1000 * 100
+      expect(data.activations.total).toBe(600)
+      expect(data.activations.rate).toBeCloseTo(60, 5)
     })
 
-    it('should cap readingsPerUser at 10', async () => {
-      setupHappyPath({
-        totalUsers: 10,
-        newUsers: 1,
-        recentReadings: 100, // 100 / 1 = 100, should be capped at 10
-      })
+    it('should report DAU/WAU as distinct active-user counts', async () => {
+      setupHappyPath({ dau: 33, wau: 111 })
+      const data = (await (await GET(createRequest())).json()).data.data
+      expect(data.engagement.dailyActiveUsers).toBe(33)
+      expect(data.engagement.weeklyActiveUsers).toBe(111)
+    })
 
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
+    it('should compute readingsPerUser from weekly actions / WAU', async () => {
+      setupHappyPath({ wau: 100, weeklyReadings: 300, weeklyTarot: 100, weeklyCounsel: 100 })
+      const data = (await (await GET(createRequest())).json()).data.data
+      // (300 + 100 + 100) / 100 = 5
+      expect(data.engagement.readingsPerUser).toBeCloseTo(5, 5)
+    })
 
-      expect(data.data.data.engagement.readingsPerUser).toBeLessThanOrEqual(10)
+    it('should compute a positive registration trend vs previous period', async () => {
+      setupHappyPath({ newUsers: 60, prevNewUsers: 40 })
+      const data = (await (await GET(createRequest())).json()).data.data
+      // (60 - 40) / 40 * 100 = 50
+      expect(data.registrations.trend).toBeCloseTo(50, 5)
+    })
+
+    it('should compute a negative registration trend when signups fall', async () => {
+      setupHappyPath({ newUsers: 20, prevNewUsers: 40 })
+      const data = (await (await GET(createRequest())).json()).data.data
+      // (20 - 40) / 40 * 100 = -50
+      expect(data.registrations.trend).toBeCloseTo(-50, 5)
+    })
+
+    it('should report 100% trend when previous period had zero signups', async () => {
+      setupHappyPath({ newUsers: 10, prevNewUsers: 0 })
+      const data = (await (await GET(createRequest())).json()).data.data
+      expect(data.registrations.trend).toBe(100)
     })
   })
 
@@ -504,64 +455,41 @@ describe('GET /api/admin/metrics/funnel', () => {
   // Edge Cases
   // =========================================================================
   describe('Edge Cases', () => {
-    it('should handle zero users', async () => {
+    it('should handle zero users/activity', async () => {
       setupHappyPath({
         totalUsers: 0,
         newUsers: 0,
-        activeSubscriptions: 0,
-        newSubscriptions: 0,
-        cancelledSubscriptions: 0,
-        recentReadings: 0,
+        prevNewUsers: 0,
+        activatedUsers: 0,
+        dau: 0,
+        wau: 0,
+        weeklyReadings: 0,
+        weeklyTarot: 0,
+        weeklyCounsel: 0,
       })
 
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
+      const response = await GET(createRequest())
+      const data = (await response.json()).data.data
 
       expect(response.status).toBe(200)
-      expect(data.data.data.registrations.total).toBe(0)
-      expect(data.data.data.registrations.conversionRate).toBe(0)
-      expect(data.data.data.activations.rate).toBe(0)
-      expect(data.data.data.engagement.readingsPerUser).toBe(0)
+      expect(data.registrations.total).toBe(0)
+      expect(data.registrations.trend).toBe(0)
+      expect(data.activations.rate).toBe(0)
+      expect(data.engagement.readingsPerUser).toBe(0)
     })
 
     it('should handle large numbers', async () => {
-      setupHappyPath({
-        totalUsers: 1000000,
-        newUsers: 50000,
-        activeSubscriptions: 200000,
-        newSubscriptions: 10000,
-        cancelledSubscriptions: 500,
-        recentReadings: 5000000,
-      })
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
+      setupHappyPath({ totalUsers: 1_000_000, activatedUsers: 750_000 })
+      const response = await GET(createRequest())
+      const data = (await response.json()).data.data
       expect(response.status).toBe(200)
-      expect(data.data.data.registrations.total).toBe(1000000)
-    })
-
-    it('should handle database query with zero new users', async () => {
-      setupHappyPath({
-        totalUsers: 100,
-        newUsers: 0,
-        recentReadings: 50,
-      })
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(response.status).toBe(200)
-      // readingsPerUser = 50 / Math.max(1, 0) = 50, capped at 10
-      expect(data.data.data.engagement.readingsPerUser).toBeLessThanOrEqual(10)
+      expect(data.registrations.total).toBe(1_000_000)
+      expect(data.activations.rate).toBeCloseTo(75, 5)
     })
   })
 
   // =========================================================================
-  // Error Handling
+  // Error Handling (Promise.allSettled → graceful fallbacks)
   // =========================================================================
   describe('Error Handling', () => {
     beforeEach(() => {
@@ -576,60 +504,38 @@ describe('GET /api/admin/metrics/funnel', () => {
       })
     })
 
-    // NOTE: The route uses Promise.allSettled for resilient error handling.
-    // Individual query failures use fallback values (0) instead of throwing.
-    // This is intentional behavior to ensure partial data is still returned.
-    it('should use fallback values when prisma.user.count throws', async () => {
-      vi.mocked(prisma.user.count).mockRejectedValue(new Error('Database connection error'))
-      vi.mocked(prisma.subscription.count).mockResolvedValue(10)
-      vi.mocked(prisma.reading.count).mockResolvedValue(5)
+    it('should fall back to 0 registrations when user.count throws', async () => {
+      setupHappyPath()
+      vi.mocked(prisma.user.count).mockRejectedValue(new Error('DB error'))
 
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
+      const response = await GET(createRequest())
+      const data = (await response.json()).data.data
 
-      // Route uses Promise.allSettled - returns 200 with fallback values
       expect(response.status).toBe(200)
-      expect(data.data.data.registrations.total).toBe(0) // Fallback value
+      expect(data.registrations.total).toBe(0)
     })
 
-    it('should use fallback values when prisma.reading.count throws', async () => {
-      vi.mocked(prisma.user.count).mockResolvedValue(100)
-      vi.mocked(prisma.subscription.count).mockResolvedValue(50)
-      vi.mocked(prisma.reading.count).mockRejectedValue(new Error('Reading query failed'))
+    it('should fall back to 0 activations/DAU/WAU when groupBy throws', async () => {
+      setupHappyPath()
+      vi.mocked(prisma.reading.groupBy).mockRejectedValue(new Error('groupBy failed'))
 
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
+      const response = await GET(createRequest())
+      const data = (await response.json()).data.data
 
-      // Route uses Promise.allSettled - returns 200 with fallback values
       expect(response.status).toBe(200)
-      expect(data.data.data.engagement.readingsPerUser).toBe(0) // Fallback value
+      expect(data.activations.total).toBe(0)
+      expect(data.engagement.dailyActiveUsers).toBe(0)
+      expect(data.engagement.weeklyActiveUsers).toBe(0)
     })
 
-    it('should handle isAdminUser throwing', async () => {
+    it('should return 500 when isAdminUser throws', async () => {
       vi.mocked(isAdminUser).mockRejectedValue(new Error('Admin check failed'))
 
-      const req = createRequest()
-      const response = await GET(req)
+      const response = await GET(createRequest())
       const data = await response.json()
 
       expect(response.status).toBe(500)
       expect(data.error.code).toBe('INTERNAL_ERROR')
-    })
-
-    it('should use fallback values for all failed queries', async () => {
-      vi.mocked(prisma.user.count).mockRejectedValue(new Error('Unexpected error'))
-      vi.mocked(prisma.subscription.count).mockResolvedValue(0)
-      vi.mocked(prisma.reading.count).mockResolvedValue(0)
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // Route uses Promise.allSettled - returns 200 with fallback values
-      expect(response.status).toBe(200)
-      expect(data.data.data.registrations.total).toBe(0)
     })
   })
 
@@ -641,143 +547,26 @@ describe('GET /api/admin/metrics/funnel', () => {
       setupHappyPath()
     })
 
-    it('should pass correct date range to prisma queries for 1h', async () => {
-      const req = createRequest({ timeRange: '1h' })
-      await GET(req)
-
-      expect(prisma.user.count).toHaveBeenCalled()
-    })
-
-    it('should pass correct date range to prisma queries for 6h', async () => {
-      const req = createRequest({ timeRange: '6h' })
-      await GET(req)
-
-      expect(prisma.user.count).toHaveBeenCalled()
-    })
-
-    it('should pass correct date range to prisma queries for 24h', async () => {
-      const req = createRequest({ timeRange: '24h' })
-      await GET(req)
-
-      expect(prisma.user.count).toHaveBeenCalled()
-    })
-
-    it('should pass correct date range to prisma queries for 7d', async () => {
-      const req = createRequest({ timeRange: '7d' })
-      await GET(req)
-
-      expect(prisma.user.count).toHaveBeenCalled()
-    })
-
-    it('should pass correct date range to prisma queries for 30d', async () => {
-      const req = createRequest({ timeRange: '30d' })
-      await GET(req)
-
-      expect(prisma.user.count).toHaveBeenCalled()
-    })
+    it.each(['1h', '6h', '24h', '7d', '30d'])(
+      'should query the database for timeRange %s',
+      async (tr) => {
+        await GET(createRequest({ timeRange: tr }))
+        expect(prisma.user.count).toHaveBeenCalled()
+      }
+    )
   })
 
   // =========================================================================
   // Parallel Query Execution
   // =========================================================================
   describe('Parallel Query Execution', () => {
-    it('should execute all queries in parallel using Promise.all', async () => {
+    it('should execute user, groupBy and count queries', async () => {
       setupHappyPath()
+      await GET(createRequest())
 
-      const userCountMock = vi.mocked(prisma.user.count)
-      const readingCountMock = vi.mocked(prisma.reading.count)
-
-      const req = createRequest()
-      await GET(req)
-
-      // All queries should be called
-      expect(userCountMock).toHaveBeenCalled()
-      expect(readingCountMock).toHaveBeenCalled()
-    })
-  })
-
-  // =========================================================================
-  // Calculated Metrics
-  // =========================================================================
-  describe('Calculated Metrics', () => {
-    it('should calculate daily visitors based on newUsers', async () => {
-      setupHappyPath({ newUsers: 10 })
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // dailyVisitors = Math.round(newUsers * 30) = 10 * 30 = 300
-      expect(data.data.data.visitors.daily).toBe(300)
-    })
-
-    it('should calculate weekly visitors based on daily', async () => {
-      setupHappyPath({ newUsers: 10 })
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // weeklyVisitors = Math.round(dailyVisitors * 5) = 300 * 5 = 1500
-      expect(data.data.data.visitors.weekly).toBe(1500)
-    })
-
-    it('should calculate monthly visitors based on daily', async () => {
-      setupHappyPath({ newUsers: 10 })
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // monthlyVisitors = Math.round(dailyVisitors * 25) = 300 * 25 = 7500
-      expect(data.data.data.visitors.monthly).toBe(7500)
-    })
-
-    it('should calculate activation rate correctly', async () => {
-      setupHappyPath({ totalUsers: 100 })
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // activatedUsers = Math.round(totalUsers * 0.75) = 75
-      // rate = (75 / 100) * 100 = 75%
-      expect(data.data.data.activations.total).toBe(75)
-      expect(data.data.data.activations.rate).toBe(75)
-    })
-
-    it('should calculate daily active users as 15% of total', async () => {
-      setupHappyPath({ totalUsers: 100 })
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // dailyActiveUsers = Math.round(totalUsers * 0.15) = 15
-      expect(data.data.data.engagement.dailyActiveUsers).toBe(15)
-    })
-
-    it('should calculate weekly active users as 35% of total', async () => {
-      setupHappyPath({ totalUsers: 100 })
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // weeklyActiveUsers = Math.round(totalUsers * 0.35) = 35
-      expect(data.data.data.engagement.weeklyActiveUsers).toBe(35)
-    })
-
-    it('should calculate conversion rate correctly', async () => {
-      setupHappyPath({ newUsers: 50 })
-
-      const req = createRequest()
-      const response = await GET(req)
-      const data = await response.json()
-
-      // dailyVisitors = 50 * 30 = 1500
-      // conversionRate = (50 / 1500) * 100 = 3.33...
-      expect(data.data.data.registrations.conversionRate).toBeCloseTo(3.33, 1)
+      expect(prisma.user.count).toHaveBeenCalled()
+      expect(prisma.reading.groupBy).toHaveBeenCalled()
+      expect(prisma.reading.count).toHaveBeenCalled()
     })
   })
 })

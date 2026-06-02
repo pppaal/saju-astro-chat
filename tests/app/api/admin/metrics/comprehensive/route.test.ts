@@ -736,7 +736,11 @@ describe('GET /api/admin/metrics/comprehensive', () => {
 
       expect(response.status).toBe(500)
       expect(data.error.code).toBe('INTERNAL_ERROR')
-      expect(logger.error).toHaveBeenCalledWith('[Comprehensive API Error]', expect.any(Error))
+      // Route logs a structured context object ({ section, code, err }), not a bare Error.
+      expect(logger.error).toHaveBeenCalledWith(
+        '[Comprehensive API Error]',
+        expect.objectContaining({ section: 'users' })
+      )
     })
 
     it('should handle prisma.user.findMany errors gracefully', async () => {
