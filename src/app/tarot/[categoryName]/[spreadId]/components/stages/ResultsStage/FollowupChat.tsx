@@ -22,9 +22,95 @@ interface FollowupChatProps {
   language: string
   /** 자동 저장된 리딩의 서버 ID. null 이면 미저장 (게스트 등) — PATCH 호출 skip. */
   readingId?: string | null
+  /**
+   * 표시 테마. 기본 'dark' = 단독 타로 결과 페이지(어두운 배경) 그대로.
+   * 'light' = 운명/궁합 상담사 안 인라인 타로(흰 모달) — 채팅창이 어두워
+   * 안 보이던 것을 흰색 계열로.
+   */
+  theme?: 'dark' | 'light'
 }
 
 type Turn = { role: 'user' | 'assistant'; content: string; pending?: boolean }
+
+// 테마별 색 팔레트 — dark 는 기존 CSS 변수 그대로(단독 페이지 무변화),
+// light 는 인라인 모달의 흰 배경에 맞춘 라이트 톤.
+interface FollowupPalette {
+  panelBg: string
+  panelBorder: string
+  panelBlur: string
+  accent: string
+  accentSoft: string
+  userBubbleBg: string
+  userBubbleBorder: string
+  bubbleText: string
+  asstBubbleBg: string
+  asstBubbleBorder: string
+  inputBg: string
+  inputBorder: string
+  inputText: string
+  inputFocusBorder: string
+  sendActiveBg: string
+  sendActiveText: string
+  sendIdleBg: string
+  sendIdleText: string
+  noticeBg: string
+  noticeBorder: string
+  hint: string
+  placeholderClass: string
+  bubbleTheme: 'dark' | 'light'
+}
+
+const DARK_PALETTE: FollowupPalette = {
+  panelBg: 'rgba(17, 24, 39, 0.42)',
+  panelBorder: 'var(--ds-gold-line)',
+  panelBlur: 'blur(16px)',
+  accent: 'var(--ds-gold-on-dark)',
+  accentSoft: 'var(--ds-gold-on-dark-soft)',
+  userBubbleBg: 'rgba(212, 181, 114, 0.15)',
+  userBubbleBorder: 'var(--ds-gold-line)',
+  bubbleText: 'var(--ds-dark-text)',
+  asstBubbleBg: 'var(--ds-dark-surface-strong)',
+  asstBubbleBorder: 'var(--ds-dark-border)',
+  inputBg: 'var(--ds-dark-surface-strong)',
+  inputBorder: 'var(--ds-dark-border)',
+  inputText: 'var(--ds-dark-text)',
+  inputFocusBorder: 'var(--ds-gold-line)',
+  sendActiveBg: 'var(--ds-gold-on-dark)',
+  sendActiveText: 'var(--ds-dark-bg)',
+  sendIdleBg: 'var(--ds-dark-surface-strong)',
+  sendIdleText: 'var(--ds-dark-text-subtle)',
+  noticeBg: 'rgba(212, 181, 114, 0.10)',
+  noticeBorder: 'var(--ds-gold-line)',
+  hint: 'var(--ds-dark-text-subtle)',
+  placeholderClass: 'placeholder-slate-500',
+  bubbleTheme: 'dark',
+}
+
+const LIGHT_PALETTE: FollowupPalette = {
+  panelBg: '#ffffff',
+  panelBorder: '#e7e5e4',
+  panelBlur: 'none',
+  accent: '#a07a3c',
+  accentSoft: '#8a6730',
+  userBubbleBg: 'rgba(160, 122, 60, 0.12)',
+  userBubbleBorder: '#e7d8b8',
+  bubbleText: '#1c1917',
+  asstBubbleBg: '#f5f5f4',
+  asstBubbleBorder: '#e7e5e4',
+  inputBg: '#ffffff',
+  inputBorder: '#e7e5e4',
+  inputText: '#1c1917',
+  inputFocusBorder: '#a07a3c',
+  sendActiveBg: '#a07a3c',
+  sendActiveText: '#ffffff',
+  sendIdleBg: '#f5f5f4',
+  sendIdleText: '#a8a29e',
+  noticeBg: 'rgba(160, 122, 60, 0.08)',
+  noticeBorder: '#e7d8b8',
+  hint: '#78716c',
+  placeholderClass: 'placeholder-stone-400',
+  bubbleTheme: 'light',
+}
 
 export function FollowupChat({
   readingResult,
@@ -32,8 +118,10 @@ export function FollowupChat({
   userTopic,
   language,
   readingId,
+  theme = 'dark',
 }: FollowupChatProps) {
   const isKo = language === 'ko'
+  const pal = theme === 'light' ? LIGHT_PALETTE : DARK_PALETTE
   const { showDepleted, showGuestLimit } = useCreditModal()
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<Turn[]>([])
@@ -341,17 +429,17 @@ export function FollowupChat({
       ref={containerRef}
       className="rounded-2xl p-5 md:p-6 space-y-4 border"
       style={{
-        background: 'rgba(17, 24, 39, 0.42)',
-        borderColor: 'var(--ds-gold-line)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        background: pal.panelBg,
+        borderColor: pal.panelBorder,
+        backdropFilter: pal.panelBlur,
+        WebkitBackdropFilter: pal.panelBlur,
       }}
     >
       <div className="flex items-center gap-2">
-        <MessageCircle className="w-4 h-4" style={{ color: 'var(--ds-gold-on-dark)' }} />
+        <MessageCircle className="w-4 h-4" style={{ color: pal.accent }} />
         <h2
           className="text-sm font-medium tracking-wider uppercase"
-          style={{ color: 'var(--ds-gold-on-dark)' }}
+          style={{ color: pal.accent }}
         >
           {isKo ? '이 리딩에 대해 더 묻기' : 'Ask about this reading'}
         </h2>
@@ -366,14 +454,14 @@ export function FollowupChat({
                 style={
                   t.role === 'user'
                     ? {
-                        background: 'rgba(212, 181, 114, 0.15)',
-                        borderColor: 'var(--ds-gold-line)',
-                        color: 'var(--ds-dark-text)',
+                        background: pal.userBubbleBg,
+                        borderColor: pal.userBubbleBorder,
+                        color: pal.bubbleText,
                       }
                     : {
-                        background: 'var(--ds-dark-surface-strong)',
-                        borderColor: 'var(--ds-dark-border)',
-                        color: 'var(--ds-dark-text)',
+                        background: pal.asstBubbleBg,
+                        borderColor: pal.asstBubbleBorder,
+                        color: pal.bubbleText,
                       }
                 }
               >
@@ -384,13 +472,13 @@ export function FollowupChat({
                   pendingNode={
                     <div
                       className="flex items-center gap-2 text-sm"
-                      style={{ color: 'var(--ds-gold-on-dark-soft)' }}
+                      style={{ color: pal.accentSoft }}
                     >
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       {isKo ? '답변 준비 중…' : 'Thinking…'}
                     </div>
                   }
-                  theme="dark"
+                  theme={pal.bubbleTheme}
                 />
               </div>
             </div>
@@ -403,9 +491,9 @@ export function FollowupChat({
         <p
           className="text-xs rounded-md px-3 py-2 border"
           style={{
-            background: 'rgba(212, 181, 114, 0.10)',
-            borderColor: 'var(--ds-gold-line)',
-            color: 'var(--ds-gold-on-dark-soft)',
+            background: pal.noticeBg,
+            borderColor: pal.noticeBorder,
+            color: pal.accentSoft,
           }}
         >
           {clarifierNotice}
@@ -418,9 +506,9 @@ export function FollowupChat({
           {...clarifier.buttonProps}
           className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           style={{
-            background: 'rgba(212, 181, 114, 0.10)',
-            borderColor: 'var(--ds-gold-line)',
-            color: 'var(--ds-gold-on-dark-soft)',
+            background: pal.noticeBg,
+            borderColor: pal.noticeBorder,
+            color: pal.accentSoft,
           }}
         >
           <Sparkles className="h-3.5 w-3.5" />
@@ -441,17 +529,17 @@ export function FollowupChat({
           }}
           placeholder={isKo ? '더 궁금한 점을 적어주세요' : 'Ask another question'}
           rows={1}
-          className="flex-1 rounded-full px-4 py-2.5 text-sm h-11 max-h-32 outline-none resize-none transition-colors leading-6 border placeholder-slate-500"
+          className={`flex-1 rounded-full px-4 py-2.5 text-sm h-11 max-h-32 outline-none resize-none transition-colors leading-6 border ${pal.placeholderClass}`}
           style={{
-            background: 'var(--ds-dark-surface-strong)',
-            borderColor: 'var(--ds-dark-border)',
-            color: 'var(--ds-dark-text)',
+            background: pal.inputBg,
+            borderColor: pal.inputBorder,
+            color: pal.inputText,
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = 'var(--ds-gold-line)'
+            e.currentTarget.style.borderColor = pal.inputFocusBorder
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'var(--ds-dark-border)'
+            e.currentTarget.style.borderColor = pal.inputBorder
           }}
           disabled={submitting}
         />
@@ -462,13 +550,13 @@ export function FollowupChat({
           style={
             input.trim() && !submitting
               ? {
-                  background: 'var(--ds-gold-on-dark)',
-                  color: 'var(--ds-dark-bg)',
+                  background: pal.sendActiveBg,
+                  color: pal.sendActiveText,
                   cursor: 'pointer',
                 }
               : {
-                  background: 'var(--ds-dark-surface-strong)',
-                  color: 'var(--ds-dark-text-subtle)',
+                  background: pal.sendIdleBg,
+                  color: pal.sendIdleText,
                   cursor: 'not-allowed',
                 }
           }
@@ -479,7 +567,7 @@ export function FollowupChat({
       </form>
 
       {history.length === 0 && (
-        <p className="text-xs" style={{ color: 'var(--ds-dark-text-subtle)' }}>
+        <p className="text-xs" style={{ color: pal.hint }}>
           {isKo
             ? '예: "3번 카드가 왜 거기 떴나요?", "지금 결정 미루는 게 나아요?"'
             : 'e.g. "Why did the 3rd card land there?", "Should I wait on the decision?"'}
