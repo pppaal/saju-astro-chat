@@ -96,6 +96,7 @@ export default function HomeChatInput({
           onKeyDown={handleKeyDown}
           onSend={goCounselor}
           placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
+          loopPlaceholder
           theme={lightMode ? 'light' : 'dark'}
           viewTransitionName="destiny-input"
         />

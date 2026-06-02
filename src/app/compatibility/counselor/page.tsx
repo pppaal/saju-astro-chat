@@ -42,23 +42,8 @@ import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
 
-// 궁합 콘텍스트용 짧은 한 줄 프롬프트 — ChatInputArea 의 placeholderPrompts 로
-// 주입. 원본 단일 placeholder("두 사람에 대해 깊이 있는…") 가 모바일에서 2줄로
-// 깨지던 문제 회피 + 무엇을 물을지 막막한 사용자한테 힌트 역할.
-const TYPEWRITER_PROMPTS_KO = [
-  '우리 인연의 의미는?',
-  '갈등은 어떻게 풀까?',
-  '함께할 미래의 흐름?',
-  '관계의 강점은?',
-  '서로 다른 점은?',
-] as const
-const TYPEWRITER_PROMPTS_EN = [
-  'What is our bond about?',
-  'How do we handle conflict?',
-  'Where is this heading?',
-  'What are our strengths?',
-  'Where do we differ?',
-] as const
+// (타이프라이터 placeholder 제거 — 사용자 요청으로 운명·궁합 입력창은 움직이는
+// 문구 없이 정적 placeholder 로 통일. 메인 홈 입력창만 순환 타이프라이터 유지.)
 
 // 메인/상담 화면과 톤이 끊기지 않는 조용한 로더(따뜻한 화이트 + 헥사 마크)로
 // 통일 — 운명 상담사와 동일. lang 인자는 호출부 호환을 위해 남겨두되, 로더
@@ -1427,7 +1412,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               parsingPdf: isKo ? 'PDF 읽는 중…' : 'Parsing…',
             }}
             lang={locale}
-            placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
+            placeholderPrompts={[]}
             onInputChange={setInput}
             onKeyDown={handleKeyDown}
             onSend={() => sendMessage()}
