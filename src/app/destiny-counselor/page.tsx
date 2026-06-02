@@ -502,14 +502,32 @@ export default function CounselorPage() {
 }
 
 function InitialQuestionSender({ question }: { question: string }) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const sentRef = useRef(false)
   useEffect(() => {
+    // strict-mode 더블 invoke / 리렌더로 effect 가 다시 돌아도 1회만.
+    if (sentRef.current) return
+    sentRef.current = true
     const timer = setTimeout(() => {
       // useSeedEvent 는 detail.text 를 읽는다 — 문자열을 그대로 보내면
       // detail.text 가 undefined 라 자동 전송이 안 됨. { text } 형태로 보낼 것.
       window.dispatchEvent(new CustomEvent('counselor:seed', { detail: { text: question } }))
+      // 전송 직후 URL 에서 q 를 제거 — 안 그러면 모바일이 백그라운드 탭을
+      // 죽였다가 복귀하며 페이지를 reload 할 때 ?q= 가 남아 있어 같은 질문이
+      // 또 자동 전송되던 버그. birthDate 등 다른 파라미터는 보존한다. q 가
+      // 사라지면 부모에서 initialQuestion 이 undefined 가 되어 이 컴포넌트는
+      // 언마운트되고, reload 시에도 재전송되지 않는다. (chatResetKey 와 무관해
+      // Chat 은 remount 되지 않으므로 이미 보낸 메시지/스트림은 유지된다.)
+      const params = new URLSearchParams(Array.from(searchParams.entries()))
+      if (params.has('q')) {
+        params.delete('q')
+        const qs = params.toString()
+        router.replace(qs ? `/destiny-counselor?${qs}` : '/destiny-counselor')
+      }
     }, 500)
     return () => clearTimeout(timer)
-  }, [question])
+  }, [question, router, searchParams])
 
   return null
 }
