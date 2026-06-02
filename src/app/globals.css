@@ -1120,3 +1120,24 @@ body {
     display: none !important;
   }
 }
+
+/* =====================================================================
+ * 페이지 ↔ 페이지 색감 전환 (View Transitions)
+ * next.config 의 experimental.viewTransition 으로 라우트 이동이 브라우저
+ * View Transition 으로 감싸진다. 기본 교차 디졸브(~0.25s)는 라이트 메인 ↔
+ * 어두운 타로처럼 큰 색 변화에선 다소 툭 끊겨 보여서, root 크로스페이드를
+ * 더 길고 부드럽게(0.45s ease) 늘려 색감이 스르륵 넘어가게 한다.
+ * (서로 다른 라우트라 framer 로는 못 잇는 구간 — View Transition 이 담당.)
+ * ===================================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms;
+  }
+}
