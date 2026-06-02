@@ -351,7 +351,6 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           onRequireBirth={handleRequireBirth}
           onOpenBirth={handleOpenBirth}
           locale={locale}
-          lightMode={isPremiumWhite}
         />
       </div>
 
