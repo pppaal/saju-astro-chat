@@ -32,6 +32,7 @@ import {
   SystemTab,
   BehaviorTab,
 } from './tabs'
+import { TabErrorBoundary } from './TabErrorBoundary'
 
 // ============ Helpers (styles-dependent) ============
 
@@ -587,7 +588,9 @@ export default function MetricsDashboard() {
         id={`tabpanel-${activeTab}`}
         aria-label={TAB_CONFIG.find((t) => t.key === activeTab)?.label}
       >
-        {renderTabContent()}
+        <TabErrorBoundary resetKey={activeTab} styles={styles}>
+          {renderTabContent()}
+        </TabErrorBoundary>
       </div>
     </div>
   )
