@@ -28,9 +28,10 @@ vi.mock('@/lib/db/prisma', () => ({
     user: { findUnique: vi.fn() },
     userCredits: { findUnique: vi.fn() },
     bonusCreditPurchase: { count: vi.fn(), findMany: vi.fn() },
-    reading: { count: vi.fn(), findFirst: vi.fn() },
-    tarotReading: { count: vi.fn() },
-    counselorChatSession: { count: vi.fn() },
+    reading: { count: vi.fn(), findFirst: vi.fn(), findMany: vi.fn() },
+    tarotReading: { count: vi.fn(), findMany: vi.fn() },
+    counselorChatSession: { count: vi.fn(), findMany: vi.fn() },
+    creditTransaction: { findMany: vi.fn() },
   },
 }))
 vi.mock('@/lib/auth/admin', () => ({ isAdminUser: vi.fn() }))
@@ -87,6 +88,19 @@ function setupHappyPath() {
   vi.mocked(prisma.reading.findFirst).mockResolvedValue({
     createdAt: new Date('2026-06-01T10:00:00Z'),
   } as any)
+  // 타임라인용 최근 활동
+  vi.mocked(prisma.reading.findMany).mockResolvedValue([
+    { createdAt: new Date('2026-06-01T10:00:00Z') },
+  ] as any)
+  vi.mocked(prisma.tarotReading.findMany).mockResolvedValue([
+    { createdAt: new Date('2026-05-20T10:00:00Z') },
+  ] as any)
+  vi.mocked(prisma.counselorChatSession.findMany).mockResolvedValue([
+    { createdAt: new Date('2026-05-25T10:00:00Z'), type: 'compat' },
+  ] as any)
+  vi.mocked(prisma.creditTransaction.findMany).mockResolvedValue([
+    { createdAt: new Date('2026-06-01T09:00:00Z'), amount: -1, reason: 'consume_reading', type: 'CONSUME' },
+  ] as any)
 }
 
 describe('GET /api/admin/users/[id]', () => {
@@ -141,6 +155,23 @@ describe('GET /api/admin/users/[id]', () => {
     expect(typeof data.activity.lastReadingAt).toBe('string')
     expect(data.purchases.paidCount).toBe(3)
     expect(data.purchases.recent[0]).toMatchObject({ amount: 100, remaining: 80, source: 'purchase' })
+  })
+
+  it('returns a merged timeline sorted by time desc', async () => {
+    setupHappyPath()
+    const data = (await (await call('u1')).json()).data
+    // reading/tarot/counselor/purchase/credit 가 모두 섞여 들어온다
+    const types = data.timeline.map((e: { type: string }) => e.type)
+    expect(types).toContain('reading')
+    expect(types).toContain('tarot')
+    expect(types).toContain('counselor')
+    expect(types).toContain('purchase')
+    expect(types).toContain('credit')
+    // 시간 내림차순
+    const ats = data.timeline.map((e: { at: string }) => e.at)
+    expect([...ats]).toEqual([...ats].sort().reverse())
+    // 궁합 상담 라벨 매핑 확인
+    expect(data.timeline.find((e: { type: string }) => e.type === 'counselor').label).toBe('궁합 상담')
   })
 
   it('handles a user with no credits row', async () => {

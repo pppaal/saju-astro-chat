@@ -47,6 +47,7 @@ interface UserDetail {
       stripePaymentId: string | null
     }[]
   }
+  timeline?: { type: string; label: string; detail: string; at: string }[]
 }
 
 function fmt(n: number | undefined | null): string {
@@ -318,6 +319,31 @@ export default function UsersClient() {
                   </div>
                 )}
               </div>
+
+              {/* 활동 타임라인 (리딩·타로·상담·구매·크레딧 시간순) */}
+              {detail.timeline && detail.timeline.length > 0 && (
+                <div>
+                  <div className="mb-2 text-[12px] font-medium uppercase tracking-wide text-stone-400">
+                    최근 활동 타임라인
+                  </div>
+                  <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+                    {detail.timeline.map((e, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between gap-3 border-b border-stone-100 px-4 py-2 text-sm last:border-0"
+                      >
+                        <span className="shrink-0 rounded-full bg-stone-100 px-2 py-0.5 text-[12px] text-stone-600">
+                          {e.label}
+                        </span>
+                        <span className="flex-1 truncate text-[13px] text-stone-500">{e.detail}</span>
+                        <span className="shrink-0 text-[13px] text-stone-400">
+                          {new Date(e.at).toLocaleString('ko-KR')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : null}
         </section>

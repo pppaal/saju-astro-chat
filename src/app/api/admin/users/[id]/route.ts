@@ -58,32 +58,104 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
           return apiError(ErrorCodes.NOT_FOUND, 'user_not_found')
         }
 
-        const [credits, purchases, recentPurchases, readings, tarot, counselor, lastReading] =
-          await Promise.all([
-            prisma.userCredits.findUnique({ where: { userId: id } }),
-            prisma.bonusCreditPurchase.count({ where: { userId: id, source: 'purchase' } }),
-            prisma.bonusCreditPurchase.findMany({
-              where: { userId: id },
-              orderBy: { createdAt: 'desc' },
-              take: 10,
-              select: {
-                amount: true,
-                remaining: true,
-                source: true,
-                expired: true,
-                createdAt: true,
-                stripePaymentId: true,
-              },
-            }),
-            prisma.reading.count({ where: { userId: id } }),
-            prisma.tarotReading.count({ where: { userId: id } }),
-            prisma.counselorChatSession.count({ where: { userId: id } }),
-            prisma.reading.findFirst({
-              where: { userId: id },
-              orderBy: { createdAt: 'desc' },
-              select: { createdAt: true },
-            }),
-          ])
+        const [
+          credits,
+          purchases,
+          recentPurchases,
+          readings,
+          tarot,
+          counselor,
+          lastReading,
+          recentReadings,
+          recentTarot,
+          recentCounselor,
+          recentTx,
+        ] = await Promise.all([
+          prisma.userCredits.findUnique({ where: { userId: id } }),
+          prisma.bonusCreditPurchase.count({ where: { userId: id, source: 'purchase' } }),
+          prisma.bonusCreditPurchase.findMany({
+            where: { userId: id },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+            select: {
+              amount: true,
+              remaining: true,
+              source: true,
+              expired: true,
+              createdAt: true,
+              stripePaymentId: true,
+            },
+          }),
+          prisma.reading.count({ where: { userId: id } }),
+          prisma.tarotReading.count({ where: { userId: id } }),
+          prisma.counselorChatSession.count({ where: { userId: id } }),
+          prisma.reading.findFirst({
+            where: { userId: id },
+            orderBy: { createdAt: 'desc' },
+            select: { createdAt: true },
+          }),
+          // 타임라인용 최근 활동 (각 소스에서 조금씩 가져와 병합)
+          prisma.reading.findMany({
+            where: { userId: id },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+            select: { createdAt: true },
+          }),
+          prisma.tarotReading.findMany({
+            where: { userId: id },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+            select: { createdAt: true },
+          }),
+          prisma.counselorChatSession.findMany({
+            where: { userId: id },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+            select: { createdAt: true, type: true },
+          }),
+          prisma.creditTransaction.findMany({
+            where: { userId: id },
+            orderBy: { createdAt: 'desc' },
+            take: 15,
+            select: { createdAt: true, amount: true, reason: true, type: true },
+          }),
+        ])
+
+        // 여러 소스를 하나의 시간순 타임라인으로 병합 (최근 25개)
+        const timeline = [
+          ...recentReadings.map((r) => ({
+            type: 'reading',
+            label: '리딩',
+            detail: '',
+            at: r.createdAt.toISOString(),
+          })),
+          ...recentTarot.map((t) => ({
+            type: 'tarot',
+            label: '타로',
+            detail: '',
+            at: t.createdAt.toISOString(),
+          })),
+          ...recentCounselor.map((c) => ({
+            type: 'counselor',
+            label: c.type === 'compat' ? '궁합 상담' : '사주 상담',
+            detail: '',
+            at: c.createdAt.toISOString(),
+          })),
+          ...recentPurchases.map((p) => ({
+            type: 'purchase',
+            label: p.source === 'purchase' ? '구매' : `보너스(${p.source})`,
+            detail: `+${p.amount} 크레딧`,
+            at: p.createdAt.toISOString(),
+          })),
+          ...recentTx.map((tx) => ({
+            type: 'credit',
+            label: tx.type === 'CONSUME' ? '크레딧 소비' : '크레딧 적립',
+            detail: `${tx.amount > 0 ? '+' : ''}${tx.amount} · ${tx.reason}`,
+            at: tx.createdAt.toISOString(),
+          })),
+        ]
+          .sort((a, b) => (a.at < b.at ? 1 : -1))
+          .slice(0, 25)
 
         return apiSuccess({
           user: {
@@ -124,6 +196,7 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
               stripePaymentId: p.stripePaymentId,
             })),
           },
+          timeline,
         } as Record<string, unknown>)
       } catch (err) {
         logger.error('[admin/users/:id] error', err)
