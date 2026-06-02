@@ -28,7 +28,7 @@ interface ProfileFallback {
 }
 
 export function useCounselorData(sp: SearchParams) {
-  const { setLocale } = useI18n()
+  const { locale: i18nLocale, setLocale } = useI18n()
 
   const [chartData, setChartData] = useState<ChartData | null>(null)
   const [sessionId] = useState<string | null>(null)
@@ -46,8 +46,12 @@ export function useCounselorData(sp: SearchParams) {
     : sp.birthTimeUnknown
   const urlCity = (Array.isArray(sp.city) ? sp.city[0] : sp.city) ?? ''
   const rawGender = (Array.isArray(sp.gender) ? sp.gender[0] : sp.gender) ?? ''
-  const langParam = (Array.isArray(sp.lang) ? sp.lang[0] : sp.lang) ?? 'ko'
-  const lang: Lang = langParam === 'en' ? 'en' : 'ko'
+  // Answer language follows the app i18n toggle (useI18n). An explicit URL
+  // ?lang= only seeds it (deep links); without it we mirror the live locale
+  // instead of forcing 'ko', so toggling EN/KO actually controls the answer.
+  const urlLangRaw = Array.isArray(sp.lang) ? sp.lang[0] : sp.lang
+  const urlLang: Lang | null = urlLangRaw === 'en' ? 'en' : urlLangRaw === 'ko' ? 'ko' : null
+  const lang: Lang = urlLang ?? i18nLocale
   // 메인페이지 입력 → `&q=...`, destiny-map 경유 → `&initialQuestion=...`.
   // 둘 다 받아서 어느 쪽이든 카운슬러가 첫 질문을 잃지 않도록.
   const rawQ = sp.q ?? sp.initialQuestion
@@ -153,12 +157,12 @@ export function useCounselorData(sp: SearchParams) {
   const normalizedGender: 'male' | 'female' =
     normalizeGender(effectiveGender) === 'female' ? 'female' : 'male'
 
-  // Set locale from URL parameter
+  // Seed the app i18n from an explicit URL ?lang= (deep-link intent) only.
+  // Never force the default — otherwise landing here would reset the user's
+  // chosen app language back to Korean.
   useEffect(() => {
-    if (lang && (lang === 'en' || lang === 'ko')) {
-      setLocale(lang)
-    }
-  }, [lang, setLocale])
+    if (urlLang) setLocale(urlLang)
+  }, [urlLang, setLocale])
 
   // Load pre-computed chart data from cache OR compute fresh
   useEffect(() => {
