@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
+import { apiFetch } from '@/lib/api'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
 
 import {
@@ -146,15 +147,18 @@ export default function TarotHistoryClient() {
 
   const loadReadings = useCallback(async () => {
     try {
-      const response = await fetch('/api/tarot/save?limit=100', {
-        credentials: 'same-origin',
-      })
+      // apiFetch (credentials:'include' + x-api-token) — native fetch 의
+      // 'same-origin' 은 모바일 인앱 브라우저(카카오톡 등)에서 세션 쿠키가
+      // 누락돼 GET 이 401 로 떨어지고, catch 가 로컬(getSavedReadings) 로만
+      // 폴백해 서버에 저장된 리딩이 히스토리에 안 뜨던 회귀 차단 (#1037 의
+      // 인라인 save 와 동일 수정).
+      const response = await apiFetch('/api/tarot/save?limit=100')
       if (response.ok) {
         // 로그인 사용자임을 확인 — 게스트 시절 localStorage 에 쌓인 리딩이 있으면 서버로 1회 이전.
         // flag 로 한 번만 실행되고, 실패 시 다음 방문에 재시도하지 않으려고 flag 안 박음.
         const migration = await migrateLocalReadingsToServer()
         const raw = (await (migration.migrated > 0
-          ? fetch('/api/tarot/save?limit=100', { credentials: 'same-origin' }).then((r) => r.json())
+          ? apiFetch('/api/tarot/save?limit=100').then((r) => r.json())
           : response.json())) as {
           readings?: Array<Parameters<typeof mapServerReadingToSavedReading>[0]>
           data?: { readings?: Array<Parameters<typeof mapServerReadingToSavedReading>[0]> }
@@ -253,9 +257,8 @@ export default function TarotHistoryClient() {
 
     if (reading.storageOrigin === 'server') {
       try {
-        const response = await fetch(`/api/tarot/save/${reading.id}`, {
+        const response = await apiFetch(`/api/tarot/save/${reading.id}`, {
           method: 'DELETE',
-          credentials: 'same-origin',
         })
         if (response.ok) {
           setReadings((prev) => prev.filter((item) => item.id !== reading.id))

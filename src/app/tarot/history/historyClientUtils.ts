@@ -1,5 +1,6 @@
 'use client'
 
+import { apiFetch } from '@/lib/api'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 
 /**
@@ -193,10 +194,11 @@ export async function migrateLocalReadingsToServer(): Promise<{
         source: 'standalone' as const,
         locale: 'ko',
       }
-      const res = await fetch('/api/tarot/save', {
+      // apiFetch — 모바일 인앱 브라우저 쿠키 누락 시 게스트 리딩 이전이
+      // 401 로 죽지 않도록 credentials:'include' (#1037 과 동일).
+      const res = await apiFetch('/api/tarot/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
         body: JSON.stringify(payload),
       })
       if (res.ok) migrated++
