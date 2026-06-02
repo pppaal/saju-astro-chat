@@ -40,24 +40,6 @@ const TYPEWRITER_PROMPTS_EN = [
   'When will money flow?',
 ]
 
-// 칩 표시용 — "1995년 2월 9일 6:40am (남)" 형식. 시(hour)는 앞 0 없이(4am),
-// 분(minute)만 2자리 유지(4:05am).
-function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
-  const [y, m, d] = info.birthDate.split('-').map((n) => parseInt(n, 10))
-  const datePart = isKo
-    ? `${y}년 ${m}월 ${d}일`
-    : `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-  let timePart = ''
-  if (!info.birthTimeUnknown && info.birthTime && info.birthTime !== '00:00') {
-    const [hh, mm] = info.birthTime.split(':').map((n) => parseInt(n, 10))
-    const ampm = hh < 12 ? 'am' : 'pm'
-    const h12 = hh % 12 === 0 ? 12 : hh % 12
-    timePart = ` ${h12}:${String(mm).padStart(2, '0')}${ampm}`
-  }
-  const g = info.gender === 'male' ? (isKo ? '남' : 'M') : isKo ? '여' : 'F'
-  return `${datePart}${timePart} (${g})`
-}
-
 export default function HomeChatInput({
   birthInfo,
   onRequireBirth,
@@ -91,31 +73,12 @@ export default function HomeChatInput({
     }
   }
 
-  // 생년월일 칩 / CTA — 입력 textarea 와 같은 박스 안 좌상단(topSlot)에 들어간다.
-  const birthSlot = birthInfo ? (
-    <button
-      type="button"
-      className={styles.homeBirthChip}
-      onClick={onOpenBirth}
-      aria-label={isKo ? '생년월일 정보 수정' : 'Edit birth info'}
-    >
-      {isKo ? '상담자: ' : 'Subject: '}
-      {formatSubject(birthInfo, isKo)}
-      <span className={styles.homeBirthChipEdit}>{isKo ? '정보 변경' : 'Edit'}</span>
-    </button>
-  ) : (
-    <button type="button" className={styles.homeBirthCta} onClick={onOpenBirth}>
-      <span aria-hidden="true">📅</span>
-      {isKo ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth date'}
-    </button>
-  )
-
   return (
     <div className={styles.homeChatBar}>
       <div className={styles.homeChatBarInner}>
         {/* 운명/궁합 상담사와 동일한 공용 입력창. 메인은 첨부/타로/차트 도구가
             없어 ⋮ 메뉴는 자동으로 숨겨지고, 보내기=상담사로 네비게이트.
-            생년월일 칩은 topSlot 으로 박스 안쪽 좌상단에 들어간다. */}
+            생년월일은 입력창 밖 상단 바(MainPageClient)로 분리됨. */}
         <ChatInputArea
           input={text}
           loading={false}
@@ -135,7 +98,6 @@ export default function HomeChatInput({
           placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
           theme={lightMode ? 'light' : 'dark'}
           embedded
-          topSlot={birthSlot}
           viewTransitionName="destiny-input"
         />
       </div>
