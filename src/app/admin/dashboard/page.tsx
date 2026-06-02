@@ -183,9 +183,16 @@ export default function MetricsDashboard() {
         )
         if (res.ok) {
           const json = await res.json()
+          // comprehensive 는 apiSuccess({ data, section, timeRange }) 로 반환해
+          // 최종 응답이 { data: { data: <섹션데이터>, section, timeRange } } 로
+          // 이중 래핑된다. 탭은 섹션데이터를 직접 기대하므로 한 겹 더 벗긴다.
+          // (혹시 단일 래핑으로 바뀌어도 동작하도록 data 키 유무로 판별.)
+          const outer = json?.data
+          const sectionData =
+            outer && typeof outer === 'object' && 'data' in outer ? outer.data : outer
           setSections((prev) => ({
             ...prev,
-            [section]: { data: json.data, loading: false, error: null, lastUpdated: new Date() },
+            [section]: { data: sectionData, loading: false, error: null, lastUpdated: new Date() },
           }))
         } else {
           const errBody = await res.json().catch(() => ({}))
