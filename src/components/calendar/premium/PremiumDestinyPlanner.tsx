@@ -314,7 +314,7 @@ function LifetimeView({
     >
       <motion.div variants={itemVariants} className="mb-10 text-center">
         <h2 className="text-3xl sm:text-4xl font-light text-white mb-3 tracking-tight">
-          {locale === 'en' ? 'Turning points ahead' : '앞으로의 큰 전환점'}
+          {locale === 'en' ? 'Turning points ahead' : '운명의 전환기'}
         </h2>
         <p className="text-sm text-zinc-400 font-light">
           {locale === 'en'
