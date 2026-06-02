@@ -92,7 +92,6 @@ export default function AdminOverviewClient() {
   const SHORTCUTS = [
     { href: '/admin/grant-credits', title: '크레딧 지급', desc: '유저에게 보너스 크레딧 충전' },
     { href: '/admin/refunds', title: '환불', desc: '크레딧팩 환불 처리' },
-    { href: '/admin/feedback', title: '피드백', desc: '사용자 피드백 모아보기' },
     { href: '/admin/dashboard', title: '상세 지표', desc: '퍼널·리텐션·매출 상세' },
   ]
 

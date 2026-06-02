@@ -149,7 +149,6 @@
 /* Shared card surface */
 .slaCard,
 .metricCard,
-.subscriptionCard,
 .skeletonCard {
   background: #fff;
   border: 1px solid #e7e5e4;
@@ -350,31 +349,6 @@
 .metricSubtext {
   font-size: 0.74rem;
   color: #a8a29e;
-}
-
-/* Subscription Grid */
-.subscriptionGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-}
-
-.subscriptionCard {
-  padding: 1.25rem;
-  text-align: center;
-}
-
-.subscriptionLabel {
-  font-size: 0.82rem;
-  color: #78716c;
-  margin-bottom: 0.5rem;
-}
-
-.subscriptionValue {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1c1917;
-  font-variant-numeric: tabular-nums;
 }
 
 /* Services Table */
@@ -923,14 +897,6 @@
     font-size: 1.25rem;
   }
 
-  .subscriptionGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .subscriptionValue {
-    font-size: 1.25rem;
-  }
-
   .tableHeader,
   .tableRow {
     grid-template-columns: 1fr 1fr;
@@ -991,8 +957,7 @@
   }
 
   .slaGrid,
-  .metricsGrid,
-  .subscriptionGrid {
+  .metricsGrid {
     grid-template-columns: 1fr;
   }
 
