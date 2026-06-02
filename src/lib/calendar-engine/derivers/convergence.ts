@@ -87,21 +87,24 @@ function composeMeaning(
   lang: 'ko' | 'en',
   dateStr?: string
 ): string | undefined {
-  const top = (Object.entries(themeAcc) as Array<[AstroThemeKey, number]>)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 2)
-    .map(([k]) => THEME_LABEL[lang][k])
-  if (top.length === 0) return undefined
+  const entries = (Object.entries(themeAcc) as Array<[AstroThemeKey, number]>).sort(
+    (a, b) => b[1] - a[1]
+  )
+  if (entries.length === 0) return undefined
   const ratio = sumImp > 0 ? netPol / sumImp : 0
   const toneKey: 'positive' | 'negative' | 'neutral' =
     ratio > 0.15 ? 'positive' : ratio < -0.15 ? 'negative' : 'neutral'
-  // 날짜 hash 로 같은 톤에서도 다른 템플릿 — UI 가 여러 날 나란히 보일 때 단조로움 회피
-  const dayNum = dateStr ? parseInt(dateStr.slice(-2), 10) : 0
+  // 날짜 hash 로 톤 템플릿 + "그날 두드러진 테마" 중 하나를 회전 선택. 항상 지배 테마
+  // top-2(예: 직업·성장)를 붙이면 큰 날 목록이 같은 테마로 도배돼, 그날 notable
+  // 테마(최댓값의 60% 이상) 중 날짜별로 하나만 골라 다양화(여전히 그날 실제 테마).
+  const maxV = entries[0][1]
+  const notable = entries.filter(([, v]) => v >= maxV * 0.6).map(([k]) => k)
+  const dayNum = dateStr ? Math.abs(parseInt(dateStr.slice(-2), 10)) : 0
   const pool = lang === 'en' ? TONE_POOL_EN : TONE_POOL_KO
   const templates = pool[toneKey]
-  const tmpl = templates[Math.abs(dayNum) % templates.length]
-  const areas = lang === 'en' ? top.join(' · ') : top.join('·')
-  return tmpl(areas)
+  const tmpl = templates[dayNum % templates.length]
+  const area = THEME_LABEL[lang][notable[dayNum % notable.length]]
+  return tmpl(area)
 }
 
 export interface ConvergenceDay {

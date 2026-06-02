@@ -329,7 +329,7 @@ export function buildCalendarPresentationView(input: {
       locale === 'ko'
         ? compactSummaryLines(
             [
-              `${monthKey} 한 달은 ${monthDomainLabel} 중심으로 보는 편이 맞습니다.`,
+              `${monthDomainLabel} 중심으로 보는 편이 맞습니다.`,
               `이번 달 평균 흐름은 ${Math.round(monthAvg)}/100 수준이며, 크게 벌리기보다 우선순위를 분명히 할수록 안정적입니다.`,
               crossConflictText,
             ],
@@ -337,7 +337,7 @@ export function buildCalendarPresentationView(input: {
           )
         : compactSummaryLines(
             [
-              `${monthKey} is best read through ${monthDomain?.label || focusDomainLabel}.`,
+              `This month is best read through ${monthDomain?.label || focusDomainLabel}.`,
               `Average intensity is ${Math.round(monthAvg)}/100, with review and operation mixed into the month.`,
               crossConflictText,
             ],

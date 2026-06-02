@@ -21,6 +21,8 @@ export type DateDetailResponse = {
   warningKeys: string[]
   gongmangStatus?: { isEmpty: boolean; emptyBranches: string[]; affectedAreas: string[] }
   shinsalActive?: { name: string; type: string; affectedArea: string }[]
+  /** 그날 주요 점성 transit (행성명 한글화) — 일 탭 '오늘의 점성' 카드 */
+  astroHighlights?: { text: string; good: boolean }[]
   energyFlow?: {
     strength: string
     dominantElement: string
@@ -105,8 +107,11 @@ export function useDateDetail(input: {
   birthInfo: BirthInfo | undefined
   selectedDay: Date | null
   enabled?: boolean
+  /** UI 선택 locale — date-detail 응답(신살·점성 등)을 같은 언어로. 미전달 시
+   *  라우트가 accept-language(브라우저 언어)로 폴백해 앱 언어와 어긋날 수 있음. */
+  locale?: 'ko' | 'en'
 }): { detail: DateDetailResponse | null; status: 'idle' | 'loading' | 'ready' | 'error' } {
-  const { birthInfo, selectedDay, enabled = true } = input
+  const { birthInfo, selectedDay, enabled = true, locale } = input
   const [detail, setDetail] = useState<DateDetailResponse | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const cacheRef = useRef<Cache>({})
@@ -125,7 +130,7 @@ export function useDateDetail(input: {
     }
 
     const target = dateKey(selectedDay)
-    const cacheKey = `${birthInfo.birthDate}|${birthInfo.birthTime ?? ''}|${birthInfo.gender ?? ''}|${birthInfo.birthPlace ?? ''}|${target}`
+    const cacheKey = `${birthInfo.birthDate}|${birthInfo.birthTime ?? ''}|${birthInfo.gender ?? ''}|${birthInfo.birthPlace ?? ''}|${target}|${locale ?? ''}`
     const cached = cacheRef.current[cacheKey]
     if (cached) {
       setDetail(cached)
@@ -150,6 +155,9 @@ export function useDateDetail(input: {
     // 이 다르면 hour pillar 경계 + "지금" reference line 이 어긋남 (4차 audit).
     if (birthInfo.timezone) params.set('timezone', birthInfo.timezone)
     params.set('date', target)
+    // 앱에서 고른 언어를 명시 — 라우트 extractLocale 이 ?locale 우선 사용(없으면
+    // 브라우저 accept-language 폴백이라 영어 브라우저의 한국 유저가 날만 영어로 뜸).
+    if (locale) params.set('locale', locale)
 
     void (async () => {
       try {
@@ -187,6 +195,7 @@ export function useDateDetail(input: {
     birthInfo?.gender,
     birthInfo?.birthPlace,
     birthInfo?.timezone,
+    locale,
   ])
 
   return { detail, status }

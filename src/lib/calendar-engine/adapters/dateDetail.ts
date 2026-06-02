@@ -85,6 +85,8 @@ export interface V2DateDetailResponse {
   }
   shinsalActive: Array<{ name: string; type: string; affectedArea: string }>
   gongmangStatus: { isAffected: boolean; areas: string[] }
+  /** 그날 주요 점성 transit (행성명 한글화). 일 탭 '오늘의 점성' 카드. */
+  astroHighlights: Array<{ text: string; good: boolean }>
 }
 
 export interface BuildDateDetailInput {
@@ -112,7 +114,64 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
     sajuExtras: buildSajuExtras(natal),
     shinsalActive: buildShinsalActive(dayCell, lang),
     gongmangStatus: buildGongmangStatus(natal, dayCell),
+    astroHighlights: buildAstroHighlights(dayCell, lang),
   }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// astroHighlights — 그날 주요 점성 transit (신호 korean 에서, 행성/포인트 한글화)
+// ──────────────────────────────────────────────────────────────────────
+
+// 멀티워드(True Node) 먼저 — 단어 단위 치환에서 'Node' 잔존 방지.
+const ASTRO_TERM_KO: Array<[RegExp, string]> = [
+  [/\bTrue Node\b/g, '북교점'],
+  [/\bAscendant\b/g, '상승점'],
+  [/\bDescendant\b/g, '하강점'],
+  [/\bMC\b/g, '천정'],
+  [/\bIC\b/g, '천저'],
+  [/\bSun\b/g, '태양'],
+  [/\bMoon\b/g, '달'],
+  [/\bMercury\b/g, '수성'],
+  [/\bVenus\b/g, '금성'],
+  [/\bMars\b/g, '화성'],
+  [/\bJupiter\b/g, '목성'],
+  [/\bSaturn\b/g, '토성'],
+  [/\bUranus\b/g, '천왕성'],
+  [/\bNeptune\b/g, '해왕성'],
+  [/\bPluto\b/g, '명왕성'],
+  [/\bChiron\b/g, '카이런'],
+  [/\bLilith\b/g, '릴리스'],
+]
+function koAstroName(name: string): string {
+  let s = name
+  for (const [re, ko] of ASTRO_TERM_KO) s = s.replace(re, ko)
+  return s
+}
+function buildAstroHighlights(
+  dayCell: CalendarCell,
+  lang: 'ko' | 'en' = 'ko'
+): V2DateDetailResponse['astroHighlights'] {
+  // transit aspect(행성↔본명)만 — kind=transit 안에 dignity('금성 엑잘테이션 (Pisces)')도
+  // 섞여 있어 '본명' 포함(=natal 포인트와의 aspect)으로 한정. ZR/dignity/별자리 jargon 배제.
+  const astro = dayCell.signals.filter(
+    (s) =>
+      s.source === 'astro' &&
+      s.kind === 'transit' &&
+      (s.korean ?? '').includes('본명') &&
+      Math.abs(s.polarity) * s.weight > 0
+  )
+  astro.sort((a, b) => Math.abs(b.polarity) * b.weight - Math.abs(a.polarity) * a.weight)
+  const out: V2DateDetailResponse['astroHighlights'] = []
+  const seen = new Set<string>()
+  for (const s of astro) {
+    const raw = (lang === 'ko' ? (s.korean ?? s.name) : s.name) || ''
+    const text = lang === 'ko' ? koAstroName(raw) : raw
+    if (!text || seen.has(text)) continue
+    seen.add(text)
+    out.push({ text, good: s.polarity > 0 })
+    if (out.length >= 4) break
+  }
+  return out
 }
 
 // ──────────────────────────────────────────────────────────────────────

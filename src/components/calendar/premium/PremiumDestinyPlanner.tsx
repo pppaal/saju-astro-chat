@@ -67,9 +67,12 @@ const THEME_ORDER: ThemeKey[] = ['love', 'money', 'career', 'health', 'growth']
 
 // 섹션 scope 라우팅 — 월 해석에 평생/연 섹션이 섞여 범벅이 되던 것 분리.
 type NarrativeSection = { section: string; title: string; text: string }
-const LIFE_SECTIONS = new Set(['natal', 'daeun']) // 타고난 결 · 10년 큰 흐름 → 인생 탭
-const YEAR_SECTIONS = new Set(['seun']) //            올해의 운 → 연 탭
-// 월 탭: 위(인생/연) + today(일) 를 뺀 나머지(이번 달·주요 흐름·패턴·도메인…)
+// 인생 탭 아코디언 = 타고난 결만. 대운(daeun)은 위 전환점 타임라인이 이미 보여주므로
+// 아코디언 중복 노출하지 않는다(사용자 혼란: "10년이 두 번").
+const LIFE_SECTIONS = new Set(['natal'])
+const YEAR_SECTIONS = new Set(['seun']) // 올해의 운 → 연 탭
+// 월 탭에서 제외: 인생/연/일 스코프(daeun 포함) + domain-*(영역별 점수 카드가 대체).
+const MONTH_EXCLUDE = new Set(['natal', 'daeun', 'seun', 'today'])
 
 function avg(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
@@ -149,6 +152,8 @@ export default function PremiumDestinyPlanner({
     birthInfo: birthInfo ?? { birthDate: '', birthTime: '', birthPlace: '', gender: 'Male' },
     // 일 탭일 때만 fetch — 다른 탭에선 fusion 미사용이라 불필요한 호출 차단.
     enabled: viewMode === 'day',
+    // 앱 언어 명시 — 미전달 시 신살·점성이 브라우저 언어로 떨어져 앱과 어긋남.
+    locale: locale === 'en' ? 'en' : 'ko',
   })
   const fusion = dateDetail?.fusion
   // 신살은 연간 응답엔 없고 date-detail(일별)에서만 계산됨 — 일 탭에서 그 날 발동분.
@@ -278,8 +283,7 @@ export default function PremiumDestinyPlanner({
                   importantDate={selDate}
                   fusion={fusion}
                   shinsal={shinsal}
-                  transitSunSign={dateDetail?.transitSunSign}
-                  transitSync={dateDetail?.transitSync}
+                  astroHighlights={dateDetail?.astroHighlights}
                   isToday={isToday}
                   nowHour={today.getHours()}
                   todayHourly={data?.todayHourlyTimeSlots}
@@ -328,11 +332,21 @@ function LifetimeView({
         <h2 className="text-3xl sm:text-4xl font-light text-white mb-3 tracking-tight">
           {locale === 'en' ? 'Turning points ahead' : '운명의 전환기'}
         </h2>
-        <p className="text-sm text-zinc-400 font-light">
-          {locale === 'en'
-            ? 'The next 10 years — where sky and chart turn together.'
-            : '지금부터 10년, 사주·점성이 함께 도는 큰 시기'}
-        </p>
+        {(() => {
+          // '타고난 결'의 '당신은 …' 본질 문장을 인생 요약으로. 없으면 고정 문구.
+          const natalText = (sections ?? []).find((s) => s.section === 'natal')?.text
+          const essence =
+            natalText?.split('\n').map((l) => l.trim()).find((l) => l.startsWith('당신은'))
+          const sum = locale === 'en' ? null : leadSummary(essence)
+          return (
+            <p className="text-sm text-zinc-400 font-light max-w-md mx-auto leading-relaxed">
+              {sum ??
+                (locale === 'en'
+                  ? 'The next 10 years — where sky and chart turn together.'
+                  : '지금부터 10년, 사주·점성이 함께 도는 큰 시기')}
+            </p>
+          )
+        })()}
       </motion.div>
 
       {list.length === 0 ? (
@@ -388,7 +402,8 @@ function LifetimeView({
                     )}
                   </div>
                   <h3 className="text-xl sm:text-2xl font-light text-zinc-200 mb-1 group-hover:text-white transition-colors flex items-center">
-                    {p.label}
+                    {/* 라벨의 '— 설명' 접미는 아래 meaning 과 중복이라 제목엔 앞부분만 */}
+                    {p.label.split('—')[0].trim()}
                     {highlight && (
                       <ChevronRight className="w-5 h-5 ml-2 text-amber-300/50 opacity-0 group-hover:opacity-100 transition-opacity" />
                     )}
@@ -497,7 +512,15 @@ function YearView({
       <motion.div variants={itemVariants} className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl sm:text-4xl font-light text-white mb-1">{year}</h2>
-          {phaseLabel && <p className="text-sm text-zinc-400 font-light">{phaseLabel}</p>}
+          {(() => {
+            // phaseLabel 이 비면 '올해의 운' 섹션 첫 문장을 연 요약으로 끌어올림.
+            const sum =
+              phaseLabel ||
+              leadSummary((sections ?? []).find((s) => s.section === 'seun')?.text, true)
+            return sum ? (
+              <p className="text-sm text-zinc-400 font-light max-w-sm leading-relaxed">{sum}</p>
+            ) : null
+          })()}
         </div>
         {yearScore > 0 && (
           <div className="text-right">
@@ -881,7 +904,7 @@ function MonthView({
       {/* ── 이달의 해석 — 월 scope 섹션만 (올해의 운·타고난 결·대운·오늘은 각 탭으로) ── */}
       <SectionsAccordion
         sections={(interp?.sections ?? []).filter(
-          (s) => !LIFE_SECTIONS.has(s.section) && !YEAR_SECTIONS.has(s.section) && s.section !== 'today'
+          (s) => !MONTH_EXCLUDE.has(s.section) && !s.section.startsWith('domain-')
         )}
         title={locale === 'en' ? 'Reading' : '이달의 해석'}
         locale={locale}
@@ -899,8 +922,7 @@ function DayView({
   importantDate,
   fusion,
   shinsal,
-  transitSunSign,
-  transitSync,
+  astroHighlights,
   isToday,
   nowHour,
   todayHourly,
@@ -912,8 +934,7 @@ function DayView({
   importantDate: ImportantDate | null
   fusion: NonNullable<ReturnType<typeof useDateDetail>['detail']>['fusion'] | undefined
   shinsal: NonNullable<NonNullable<ReturnType<typeof useDateDetail>['detail']>['shinsalActive']>
-  transitSunSign?: string
-  transitSync?: NonNullable<ReturnType<typeof useDateDetail>['detail']>['transitSync']
+  astroHighlights?: { text: string; good: boolean }[]
   isToday: boolean
   nowHour: number
   todayHourly?: CalendarData['todayHourlyTimeSlots']
@@ -944,6 +965,15 @@ function DayView({
   const shinsalUniq = Array.from(new Map(shinsal.map((s) => [s.name, s])).values())
   const shinsalShown = shinsalUniq.slice(0, 6)
   const shinsalExtra = shinsalUniq.length - shinsalShown.length
+
+  // 충/합/형이 하루 10개씩 나와 도배됨 → 오늘(일운/일진) 관련을 앞으로 정렬 후 5개만.
+  const cyc = [...(importantDate?.cycleInteractions ?? [])].sort((a, b) => {
+    const aDay = /일운|일진/.test(a.pair) ? 0 : 1
+    const bDay = /일운|일진/.test(b.pair) ? 0 : 1
+    return aDay - bDay
+  })
+  const cycShown = cyc.slice(0, 5)
+  const cycExtra = cyc.length - cycShown.length
 
   return (
     <motion.div
@@ -1049,15 +1079,15 @@ function DayView({
             </div>
           )}
 
-          {/* 충/합/형 — 쉬운말 라벨 + 한 줄 설명(blurb 뒷부분) */}
-          {(importantDate?.cycleInteractions?.length ?? 0) > 0 && (
+          {/* 충/합/형 — 쉬운말 라벨 + 한 줄 설명(blurb 뒷부분). 일운 우선 5개만. */}
+          {cycShown.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-white/5">
               <p className="text-[11px] text-zinc-500">
                 {locale === 'en'
                   ? 'How your luck cycles meet today (combine / clash):'
                   : '오늘 여러 운이 서로 어떻게 작용하는지 — 잘 맞으면 순조롭고, 부딪히면 변동·긴장이 커져요'}
               </p>
-              {importantDate!.cycleInteractions!.map((ix, i) => {
+              {cycShown.map((ix, i) => {
                 const easy = easyCycleLabel(ix.kind, locale)
                 // ko: 엔진 blurb 뒷부분(쉬운 설명) / en: blurb 가 한글뿐이라 영어 설명 사용
                 const meaning =
@@ -1075,13 +1105,18 @@ function DayView({
                   </div>
                 )
               })}
+              {cycExtra > 0 && (
+                <p className="text-[11px] text-zinc-600 pl-1">
+                  {locale === 'en' ? `+${cycExtra} more` : `+${cycExtra}개 더`}
+                </p>
+              )}
             </div>
           )}
         </motion.div>
       )}
 
-      {/* ── 오늘의 점성 — 사주 카드와 짝. 태양 통과 별자리 + 큰 행성 전환 ── */}
-      {(transitSunSign || transitSync?.isMajorTransitYear) && (
+      {/* ── 오늘의 점성 — 사주 카드와 짝. 그날 주요 transit aspect(행성↔본명) ── */}
+      {astroHighlights && astroHighlights.length > 0 && (
         <motion.div
           variants={itemVariants}
           className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-3"
@@ -1089,21 +1124,16 @@ function DayView({
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
             {locale === 'en' ? "Today's Astrology" : '오늘의 점성'}
           </h3>
-          {transitSunSign && (
-            <p className="text-sm text-zinc-300 font-light">
-              {locale === 'en'
-                ? `Sun transiting ${transitSunSign}`
-                : `태양이 ${signKo(transitSunSign)}를 지나는 때`}
-            </p>
-          )}
-          {transitSync?.isMajorTransitYear && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-cyan-500/10 border border-cyan-500/20 text-cyan-200/90">
-              {locale === 'en' ? 'Major planet shift year' : '큰 행성 전환기'}
-              {transitSync.transitType && (
-                <span className="text-zinc-500 font-light">· {transitSync.transitType}</span>
-              )}
-            </span>
-          )}
+          <div className="space-y-1.5">
+            {astroHighlights.map((a, i) => (
+              <div key={i} className="flex items-start gap-2 text-sm">
+                <span className={`mt-0.5 ${a.good ? 'text-emerald-400/70' : 'text-rose-400/70'}`}>
+                  {a.good ? '↑' : '↓'}
+                </span>
+                <span className="text-zinc-300 font-light">{a.text}</span>
+              </div>
+            ))}
+          </div>
         </motion.div>
       )}
 
@@ -1383,25 +1413,6 @@ function BigDayRow({
   )
 }
 
-/** 별자리 영어명 → 한글 (transitSunSign 표시용) */
-function signKo(sign: string): string {
-  const m: Record<string, string> = {
-    Aries: '양자리',
-    Taurus: '황소자리',
-    Gemini: '쌍둥이자리',
-    Cancer: '게자리',
-    Leo: '사자자리',
-    Virgo: '처녀자리',
-    Libra: '천칭자리',
-    Scorpio: '전갈자리',
-    Sagittarius: '사수자리',
-    Capricorn: '염소자리',
-    Aquarius: '물병자리',
-    Pisces: '물고기자리',
-  }
-  return m[sign] ?? sign
-}
-
 /** 십신(편인/정관…) → 쉬운말 의미. 원어는 chip title 로 보존. */
 function easySibsin(name: string, locale?: CalLocale): string {
   const ko: Record<string, string> = {
@@ -1454,6 +1465,19 @@ function easyCycleLabel(
   if (kind.includes('파'))
     return { label: en ? 'Off-track' : '흐트러짐', cls: amber, en: 'things drift slightly off track' }
   return { label: kind, cls: neutral, en: '' }
+}
+
+/** 섹션 텍스트 → 헤드라인 한 줄. stripHeaderDash=true 면 '**간지** … —' 접두 제거. */
+function leadSummary(text?: string, stripHeaderDash = false): string | null {
+  if (!text) return null
+  let s = text.split('\n').map((l) => l.trim()).find(Boolean) ?? ''
+  if (stripHeaderDash) {
+    const i = s.indexOf('—')
+    if (i >= 0) s = s.slice(i + 1)
+  }
+  s = s.replace(/\*\*/g, '').trim()
+  const m = s.match(/^[^.!?。]*[.!?。]/)
+  return (m ? m[0] : s).trim() || null
 }
 
 /** 섹션 접이식 리스트 — 3탭이 각자 scope 의 섹션을 같은 모양으로 표시 */
