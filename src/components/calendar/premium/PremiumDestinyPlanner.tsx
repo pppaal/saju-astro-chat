@@ -797,7 +797,8 @@ function MonthView({
             return (
               <div key={r.theme}>
                 <ThemeBar label={t.themeName(r.theme)} score={r.score} />
-                {factors.length > 0 && (
+                {/* why-칩은 상위 2개 테마만 — 5테마 전부면 칩이 과해짐(엔진은 다 계산) */}
+                {r.rank <= 2 && factors.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {factors.slice(0, 3).map((f, i) => (
                       <span
@@ -926,6 +927,11 @@ function DayView({
   const warnings =
     importantDate?.warnings?.length ? importantDate.warnings : (fusion?.advice?.avoid ?? [])
 
+  // 신살은 엔진이 캡 없이 전부 내보내 하루 5~10개씩 쏟아짐 → 이름 dedup 후 6개만.
+  const shinsalUniq = Array.from(new Map(shinsal.map((s) => [s.name, s])).values())
+  const shinsalShown = shinsalUniq.slice(0, 6)
+  const shinsalExtra = shinsalUniq.length - shinsalShown.length
+
   return (
     <motion.div
       variants={containerVariants}
@@ -1004,7 +1010,7 @@ function DayView({
                     </span>
                   )
                 })()}
-              {shinsal.map((s, i) => {
+              {shinsalShown.map((s, i) => {
                 const bad = s.type.includes('흉') || s.type.toLowerCase().includes('inausp')
                 return (
                   <span
@@ -1022,6 +1028,11 @@ function DayView({
                   </span>
                 )
               })}
+              {shinsalExtra > 0 && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] text-zinc-500">
+                  +{shinsalExtra}
+                </span>
+              )}
             </div>
           )}
 
