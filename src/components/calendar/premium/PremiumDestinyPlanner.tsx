@@ -152,6 +152,8 @@ export default function PremiumDestinyPlanner({
     enabled: viewMode === 'day',
   })
   const fusion = dateDetail?.fusion
+  // 신살은 연간 응답엔 없고 date-detail(일별)에서만 계산됨 — 일 탭에서 그 날 발동분.
+  const shinsal = dateDetail?.shinsalActive ?? []
 
   const drillToMonth = (m: number) => {
     setSelMonth(m)
@@ -291,6 +293,7 @@ export default function PremiumDestinyPlanner({
                   weekday={t.weekdayFull[selJsDate.getDay()]}
                   importantDate={selDate}
                   fusion={fusion}
+                  shinsal={shinsal}
                   isToday={isToday}
                   nowHour={today.getHours()}
                   todayHourly={data?.todayHourlyTimeSlots}
@@ -881,6 +884,7 @@ function DayView({
   weekday,
   importantDate,
   fusion,
+  shinsal,
   isToday,
   nowHour,
   todayHourly,
@@ -891,6 +895,7 @@ function DayView({
   weekday: string
   importantDate: ImportantDate | null
   fusion: NonNullable<ReturnType<typeof useDateDetail>['detail']>['fusion'] | undefined
+  shinsal: NonNullable<NonNullable<ReturnType<typeof useDateDetail>['detail']>['shinsalActive']>
   isToday: boolean
   nowHour: number
   todayHourly?: CalendarData['todayHourlyTimeSlots']
@@ -960,6 +965,30 @@ function DayView({
         >
           {oneLine}
         </motion.p>
+      )}
+
+      {/* 신살 — 그 날 발동분 (date-detail 일별). 길신=emerald / 흉신=rose */}
+      {shinsal.length > 0 && (
+        <motion.div variants={itemVariants} className="flex flex-wrap gap-2">
+          {shinsal.map((s, i) => {
+            const bad = s.type.includes('흉') || s.type.toLowerCase().includes('inausp')
+            return (
+              <span
+                key={`${s.name}-${i}`}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium border ${
+                  bad
+                    ? 'bg-rose-500/10 border-rose-500/20 text-rose-200/90'
+                    : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200/90'
+                }`}
+              >
+                {s.name}
+                {s.affectedArea && (
+                  <span className="text-zinc-500 font-light">· {s.affectedArea}</span>
+                )}
+              </span>
+            )
+          })}
+        </motion.div>
       )}
 
       {/* Energy Axis — 사주/점성 분해 */}
