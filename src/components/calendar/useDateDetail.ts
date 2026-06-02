@@ -21,6 +21,8 @@ export type DateDetailResponse = {
   warningKeys: string[]
   gongmangStatus?: { isEmpty: boolean; emptyBranches: string[]; affectedAreas: string[] }
   shinsalActive?: { name: string; type: string; affectedArea: string }[]
+  /** 그날 주요 점성 transit (행성명 한글화) — 일 탭 '오늘의 점성' 카드 */
+  astroHighlights?: { text: string; good: boolean }[]
   energyFlow?: {
     strength: string
     dominantElement: string
