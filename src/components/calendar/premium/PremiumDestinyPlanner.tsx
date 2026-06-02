@@ -358,7 +358,7 @@ function LifetimeView({
                     <span
                       className={`text-xs font-semibold tracking-widest ${highlight ? 'text-amber-300' : 'text-zinc-500'}`}
                     >
-                      {locale === 'en' ? `age ${p.age}` : `${p.age}세`} · {p.year}
+                      {p.year}
                     </span>
                     {p.bothSystems && (
                       <span className="text-[9px] uppercase tracking-wider bg-fuchsia-500/10 text-fuchsia-200/80 px-2 py-0.5 rounded border border-fuchsia-500/20">

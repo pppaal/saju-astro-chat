@@ -37,9 +37,7 @@ export function deriveLifetimePivots(
 ): LifetimePivots {
   const birthYear = natal.input?.year
   if (!birthYear) return { pivots: [] }
-  // 한국나이(세는나이) 통일 — 대운 startAge 가 한국나이(saju.ts +1)라 점성 나이도
-  // 같은 기준으로 맞춰야 "나이 ↔ 연도"가 정합. (한국나이 = 연도 − 출생연도 + 1)
-  const currentAge = new Date().getUTCFullYear() - birthYear + 1
+  const currentAge = new Date().getUTCFullYear() - birthYear
   const isKo = lang === 'ko'
 
   const phaseOf = (age: number): LifePivot['phase'] =>
@@ -51,7 +49,7 @@ export function deriveLifetimePivots(
 
   // 점성 라이프사이클 마일스톤 (출생~90세) — 이름 있는 핵심 전환들, 절대 누락 금지.
   const astroEvents = buildLifecycleTiming(birthYear, birthYear + 90, isKo).events.map((e) => ({
-    age: e.startYear - birthYear + 1, // 한국나이
+    age: e.startYear - birthYear,
     year: e.startYear,
     label: e.label,
     meaning: e.meaning,
