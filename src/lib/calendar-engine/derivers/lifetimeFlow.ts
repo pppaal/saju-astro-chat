@@ -32,29 +32,52 @@ const SIBSIN_CAT: Record<string, string> = {
   정인: '인성',
   편인: '인성',
 }
-// 카테고리 → (에너지 자체를 쉬운말로 푼 수식구 '~는', 결론). 어느 연령대에 와도
-// 맞도록 *에너지 중심*으로 (초년기엔 학습·기질로, 장년기엔 결실로 자연 해석되게).
-const CAT: Record<string, { phrase: string; outcome: string }> = {
-  관성: {
-    phrase: '규율과 책임의 기운이 강한',
-    outcome: '자기 절제와 사회적 토대가 단단해져요',
+type Cat = '관성' | '재성' | '식상' | '비겁' | '인성'
+// 생애 단계 × 십신 — 그 시기가 "무엇에 관한" 시기인지. 같은 십신도 단계에 맞게:
+// 초년기는 가정·학업·기질, 청년기는 자립·진로, 중년기는 책임·결실, 장년기는 수확·
+// 정리로 푼다 (어린아이에게 '사회적 토대' 같은 어른말이 가지 않도록).
+const BAND_CAT: Record<string, Record<Cat, string>> = {
+  초년기: {
+    관성: '규율과 통제 속에서 자라요. 엄한 환경이나 또렷한 규칙을 일찍 겪는 편이에요',
+    재성: '현실 감각이 일찍 트여요. 용돈·물건·결과에 눈이 밝은 아이예요',
+    식상: '끼와 표현욕이 일찍 피어나요. 말·그림·놀이로 자기를 드러내요',
+    비겁: '또래·형제 속에서 고집과 주체성을 키워요',
+    인성: '배움과 보살핌을 잘 받아들여요. 공부·독서·어른의 사랑이 자양분이 돼요',
   },
-  재성: {
-    phrase: '현실 감각과 결실의 기운이 흐르는',
-    outcome: '단단한 기반과 실속이 다져져요',
+  청년기: {
+    관성: '진로·직장·책임이 본격화돼요. 자기 자리를 만들어가요',
+    재성: '현실 성취와 돈·연애의 무대가 열려요. 실속을 다져요',
+    식상: '재능과 표현으로 세상에 나가요. 자기 목소리를 내요',
+    비겁: '독립과 경쟁 속에서 홀로서기를 해요. 내 길을 찾아요',
+    인성: '더 깊이 배우고 전문성을 쌓아요. 내공을 다져요',
   },
-  식상: {
-    phrase: '표현과 재능의 기운이 피어나는',
-    outcome: '자기만의 목소리와 창조력이 자라요',
+  중년기: {
+    관성: '사회적 위치와 책임이 정점에 올라요. 무게를 감당하는 시기예요',
+    재성: '재물과 결실을 거두는 시기예요. 노력이 형태로 남아요',
+    식상: '쌓인 경험이 표현·창작·후배로 흘러나와요',
+    비겁: '관계와 동료 속에서 내 자리를 다시 정의해요',
+    인성: '배움을 갈무리하고 내면이 깊어져요',
   },
-  비겁: {
-    phrase: '자립과 경쟁 속에 주체성을 키우는',
-    outcome: '사람 사이에서 진짜 내 자리를 찾아요',
+  장년기: {
+    관성: '오랜 책임을 내려놓고 자리를 정리하는 시기예요',
+    재성: '쌓아온 것을 누리고 나누는 시기예요. 결실을 거둬요',
+    식상: '여유 속에서 취미·표현·지혜를 풀어내요',
+    비겁: '사람들과 어울리며 진짜 내 자리를 즐겨요',
+    인성: '지혜와 내면이 무르익어 다음 세대에 전해요',
   },
-  인성: {
-    phrase: '배움을 받아들이고 갈무리하는',
-    outcome: '내면과 지혜가 깊어져요',
-  },
+}
+// 신강/신약 × 십신 = 그 시기가 순탄한지 고비인지. 신약은 인성·비겁이 받쳐주고
+// 식상·재성·관성이 힘에 부친다. 신강은 그 반대 — 사람마다 같은 십신이 다르게 읽힘.
+function favorOf(strength: string | undefined, cat: Cat): 'good' | 'hard' | 'mid' {
+  const support: Cat[] = ['인성', '비겁']
+  if (strength === 'weak') return support.includes(cat) ? 'good' : 'hard'
+  if (strength === 'strong') return support.includes(cat) ? 'hard' : 'good'
+  return 'mid'
+}
+const TONE: Record<'good' | 'hard' | 'mid', string> = {
+  good: '흐름이 순해서 노력한 만큼 잘 풀리는 편이에요.',
+  hard: '쉽지 않은 고비를 넘으며 단단해지는 시기예요.',
+  mid: '큰 굴곡 없이 차분히 자기 몫을 다지는 흐름이에요.',
 }
 
 const SIGN_KO: Record<string, string> = {
@@ -126,8 +149,11 @@ export function deriveLifetimeFlow(
 
   const events = buildLifecycleTiming(birthYear, birthYear + 90, true).events.map((e) => {
     // 라벨 '두 번째 목성 회귀 — 진로의 큰 그림' → 사람말 의미('진로의 큰 그림') 우선
-    const desc = e.label.split('—').slice(1).join('—').trim()
-    return { age: e.startYear - birthYear, desc: desc || e.label.trim() }
+    const after = e.label.split('—').slice(1).join('—').trim()
+    const desc = (after || e.label.trim())
+      .replace(/\s*\(.*?\)/g, '') // 군더더기 괄호 ('자유의 각성 (중년 변혁)' → '자유의 각성')
+      .replace(/감정 사이클의 졸업/, '감정 흐름의 한 매듭')
+    return { age: e.startYear - birthYear, desc }
   })
   const currentAge = new Date().getUTCFullYear() - birthYear + 1 // 한국나이
 
@@ -138,18 +164,16 @@ export function deriveLifetimeFlow(
       daeun.find((x) => x.startAge <= mid && x.startAge + 10 > mid) ??
       daeun.filter((x) => x.startAge <= hi).at(-1)
     if (!d) continue
-    const cat = SIBSIN_CAT[getSibsinKo(dm, d.stem)]
-    const info = cat ? CAT[cat] : undefined
-    if (!info) continue
+    const cat = SIBSIN_CAT[getSibsinKo(dm, d.stem)] as Cat | undefined
+    const body = cat ? BAND_CAT[label]?.[cat] : undefined
+    if (!cat || !body) continue
+    const fav = favorOf(natal.saju.strength, cat)
 
     const evs = events.filter((e) => e.age >= lo && e.age <= hi).slice(0, 2)
-    let text: string
-    if (evs.length) {
-      const descs = evs.map((e) => e.desc).join(', ')
-      text = `${cat}운 — ${info.phrase} 시기예요. 점성으로도 ${descs}${gaI(evs.at(-1)!.desc)} 겹쳐, ${info.outcome}.`
-    } else {
-      text = `${cat}운 — ${info.phrase} 시기예요. ${info.outcome}.`
-    }
+    const astro = evs.length
+      ? ` 점성으로는 ${evs.map((e) => e.desc).join(', ')}${gaI(evs.at(-1)!.desc)} 함께 흘러요.`
+      : ''
+    const text = `${cat}운 — ${body}. ${TONE[fav]}${astro}`
     phases.push({
       label,
       ageRange: `${lo}~${hi}세 · ${birthYear + lo}~${birthYear + hi}`,

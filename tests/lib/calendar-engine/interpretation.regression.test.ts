@@ -1369,5 +1369,26 @@ describe('calendar-engine regression', () => {
         expect(josa, `용신 '${yong}' 조사`).toBe(expected)
       }
     })
+
+    it('인생 흐름 단계마다 순탄/고비 톤이 붙고, 신강·신약에 따라 갈린다', async () => {
+      const { deriveLifetimeFlow } = await import(
+        '@/lib/calendar-engine/derivers/lifetimeFlow'
+      )
+      const TONES = ['잘 풀리는 편이에요', '고비를 넘으며 단단해지는', '차분히 자기 몫을 다지는']
+      const saju = calculateSajuData(
+        SEOUL_MALE_1995.birthDate, SEOUL_MALE_1995.birthTime, SEOUL_MALE_1995.gender,
+        'solar', SEOUL_MALE_1995.timeZone
+      )
+      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
+      const flow = deriveLifetimeFlow(natal, 'ko')!
+      expect(flow.phases.length).toBeGreaterThanOrEqual(3)
+      // 단계마다 정확히 하나의 톤 문장을 가진다 (잘풀림/고비/중화)
+      for (const ph of flow.phases) {
+        const hits = TONES.filter((t) => ph.text.includes(t))
+        expect(hits.length, `phase '${ph.label}' tone`).toBe(1)
+      }
+      // 신약(1995 辛, weak)은 식상·재성·관성운이 '고비'로 적어도 한 번 나온다
+      expect(flow.phases.some((p) => p.text.includes('고비를 넘으며'))).toBe(true)
+    })
   })
 })
