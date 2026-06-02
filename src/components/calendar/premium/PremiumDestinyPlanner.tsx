@@ -450,8 +450,21 @@ function LifetimeView({
                   )}
                   <span className="text-[11px] text-zinc-500">{p.ageRange}</span>
                 </div>
-                <div className="text-[13px] text-zinc-300 font-light mb-0.5">{p.theme}</div>
-                <div className="text-xs text-zinc-500 font-light leading-relaxed">{p.text}</div>
+                <div className="text-[13px] font-medium text-indigo-200/90 mb-2">{p.theme}</div>
+                <div className="space-y-1.5 text-xs leading-relaxed">
+                  <p className="flex gap-1.5">
+                    <span className="shrink-0 text-amber-400/70 font-medium">사주</span>
+                    <span className="text-zinc-400 font-light">{p.saju}</span>
+                  </p>
+                  <p className="flex gap-1.5">
+                    <span className="shrink-0 text-cyan-400/70 font-medium">점성</span>
+                    <span className="text-zinc-400 font-light">{p.astro}</span>
+                  </p>
+                  <p className="flex gap-1.5 pt-1 border-t border-white/5">
+                    <span className="shrink-0 text-fuchsia-300/70 font-medium">교차</span>
+                    <span className="text-zinc-300 font-light">{p.cross}</span>
+                  </p>
+                </div>
               </div>
             ))}
           </div>
