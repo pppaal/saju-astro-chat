@@ -89,6 +89,14 @@ interface CounselorSidebarProps {
    * row is only removed after success, so nothing to roll back).
    */
   onActionError?: (info: { kind: 'rename' | 'delete'; status?: number }) => void
+  /**
+   * 현재 활성(보고 있는) 세션 id/title. 새 채팅을 시작하거나 첫 메시지를 보내면
+   * 서버 저장(2초 디바운스)보다 먼저 이 값으로 목록 맨 위에 낙관적으로 노출해,
+   * "새 채팅이 사이드바에 바로 안 뜨던" 문제를 없앤다. 서버 list 와 같은 id 체계
+   * (counselorChatSession)라 다음 refetch 때 자연스럽게 합쳐진다.
+   */
+  activeSessionId?: string | null
+  activeSessionTitle?: string | null
 }
 
 const SWIPE_REVEAL_PX = 60 // user must drag this far to lock the swipe-open state
@@ -106,6 +114,8 @@ export default function CounselorSidebar({
   footerSlot,
   onActionError,
   fallbackName,
+  activeSessionId,
+  activeSessionTitle,
 }: CounselorSidebarProps) {
   const { t } = useI18n()
   const { data: session, status } = useSession()
@@ -134,20 +144,19 @@ export default function CounselorSidebar({
     setRenameValue('')
   }, [open])
 
-  useEffect(() => {
-    // 인증된 시점부터 즉시 fetch — open / desktopStatic 무관. 이전엔 open
-    // 이 true 가 되는 시점(=햄버거 클릭 직후)에 처음 시작했는데, 모바일에서
-    // 클릭 → 빈 화면 → 500ms~2s 후 list 가 갑자기 떠 사용자에게 "버퍼링"
-    // 으로 보였다. 페이지 mount 직후부터 백그라운드로 받아두면 첫 클릭 시
-    // 이미 데이터 준비 완료 → 즉시 노출. 사이드바를 한 번도 안 열어도 응답
-    // 자체가 작아서(메타데이터만, 30 row cap) 낭비 미미.
+  // 세션 목록 조회 — mount/auth 직후 1회 + 사이드바를 열 때마다 다시 불러와
+  // 새로 생긴 채팅·제목 변경·삭제가 반영되게 한다. reqId 로 마지막 응답만
+  // 반영해 경쟁(race) 방지. 기존 목록은 비우지 않고 성공 시 교체 → 재오픈 시
+  // 깜빡임 없음(스켈레톤은 목록이 빈 첫 로드에서만 노출).
+  const reqIdRef = useRef(0)
+  const loadSessions = useCallback(() => {
     if (status !== 'authenticated') return
-    let cancelled = false
+    const reqId = ++reqIdRef.current
     setLoadingList(true)
     apiFetch(`/api/counselor/session/list?limit=30&type=${serviceType}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (cancelled) return
+        if (reqId !== reqIdRef.current) return
         const list = Array.isArray(data?.sessions)
           ? (data.sessions as SessionItem[])
           : Array.isArray(data)
@@ -157,16 +166,38 @@ export default function CounselorSidebar({
       })
       .catch((e) => logger.warn('[CounselorSidebar] session list failed', { e }))
       .finally(() => {
-        if (!cancelled) setLoadingList(false)
+        if (reqId === reqIdRef.current) setLoadingList(false)
       })
-    return () => {
-      cancelled = true
-    }
-    // open / desktopStatic 은 의도적으로 deps 에서 빠짐 — 매번 여닫을 때마다
-    // 재 fetch 하면 (a) 불필요한 네트워크 trip, (b) loading 상태로 깜빡임.
-    // mount 1 회만 받고 새 채팅 저장 등의 갱신은 별도 경로로 처리. 두 변수
-    // 모두 effect body 안에서 안 읽으므로 exhaustive-deps 규칙도 만족.
   }, [status, serviceType])
+
+  // mount/auth 직후 백그라운드 prefetch — 첫 클릭 시 이미 준비 완료.
+  useEffect(() => {
+    loadSessions()
+  }, [loadSessions])
+
+  // 사이드바를 열 때마다 갱신 — 직전에 만든 새 채팅/제목 변경이 바로 보이게.
+  useEffect(() => {
+    if (open) loadSessions()
+  }, [open, loadSessions])
+
+  // 활성 세션을 목록에 낙관적으로 합친다 — 새 채팅/첫 메시지가 서버 저장보다
+  // 먼저 사이드바 맨 위에 뜨게. 이미 있으면 제목만 갱신, 없으면 맨 위에 추가.
+  const displaySessions = useMemo<SessionItem[]>(() => {
+    if (!activeSessionId) return sessions
+    const idx = sessions.findIndex((s) => s.id === activeSessionId)
+    if (idx >= 0) {
+      if (activeSessionTitle && sessions[idx].title !== activeSessionTitle) {
+        const copy = [...sessions]
+        copy[idx] = { ...copy[idx], title: activeSessionTitle }
+        return copy
+      }
+      return sessions
+    }
+    return [
+      { id: activeSessionId, title: activeSessionTitle ?? null, updatedAt: new Date().toISOString() },
+      ...sessions,
+    ]
+  }, [sessions, activeSessionId, activeSessionTitle])
 
   // History grouping — Today / Previous 7 Days / Older. Only used when
   // enableGrouping is on (compat counselor page). The flat list path
@@ -179,14 +210,14 @@ export default function CounselorSidebar({
     const today: SessionItem[] = []
     const week: SessionItem[] = []
     const older: SessionItem[] = []
-    for (const s of sessions) {
+    for (const s of displaySessions) {
       const ts = s.updatedAt ? new Date(s.updatedAt).getTime() : 0
       if (ts >= startOfToday.getTime()) today.push(s)
       else if (ts >= sevenDaysAgo) week.push(s)
       else older.push(s)
     }
     return { today, week, older }
-  }, [sessions, enableGrouping])
+  }, [displaySessions, enableGrouping])
 
   const closeSwipe = useCallback(() => setSwipedId(null), [])
 
@@ -440,7 +471,7 @@ export default function CounselorSidebar({
             <p className={styles.empty}>
               {t('destinyMap.counselor.signInToSee', 'Sign in to see past chats.')}
             </p>
-          ) : loadingList && sessions.length === 0 ? (
+          ) : loadingList && displaySessions.length === 0 ? (
             // 스켈레톤 — 빈 텍스트 "불러오는 중..." 대신 4 row ghost.
             // 사용자 시각에선 list 자체의 형태가 즉시 잡혀, 실제 채워질 때
             // 깜빡임 대신 자연스러운 fade-in 으로 인식된다.
@@ -456,7 +487,7 @@ export default function CounselorSidebar({
                 </li>
               ))}
             </ul>
-          ) : sessions.length === 0 ? (
+          ) : displaySessions.length === 0 ? (
             <p className={styles.empty}>
               {t('destinyMap.counselor.noPastChats', '아직 저장된 채팅이 없어요.')}
             </p>
@@ -480,7 +511,7 @@ export default function CounselorSidebar({
               })}
             </>
           ) : (
-            <ul className={styles.sessionList}>{sessions.map(renderSessionRow)}</ul>
+            <ul className={styles.sessionList}>{displaySessions.map(renderSessionRow)}</ul>
           )}
         </div>
 
