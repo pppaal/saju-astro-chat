@@ -710,68 +710,6 @@
   flex: 0 0 auto;
 }
 
-/* 상담사 선택 카드 — 사주(밝음)/타로(어둠)/궁합(로즈) 톤 대비. 각 카드는
-   불투명 배경이라 다크 코스믹/프리미엄 화이트 어느 메인 배경에서도 대비가
-   일정하다. 탭 애니메이션(scale)은 framer whileTap 으로. */
-.homeCounselorCards {
-  display: flex;
-  gap: 0.6rem;
-  width: 100%;
-  flex: 0 0 auto;
-}
-
-.counselorCard {
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.95rem 0.5rem;
-  border-radius: 16px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: center;
-  box-shadow: 0 6px 20px rgba(8, 8, 24, 0.18);
-}
-
-.counselorCardIcon {
-  font-size: 1.45rem;
-  line-height: 1;
-}
-
-.counselorCardLabel {
-  font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.counselorCardDesc {
-  font-size: 0.7rem;
-  opacity: 0.66;
-}
-
-/* 사주 — 밝은 크림 톤 */
-.counselorCardSaju {
-  background: #faf7ef;
-  border-color: #e8dcc0;
-  color: #1c1917;
-}
-
-/* 타로 — 어두운 네이비 톤 */
-.counselorCardTarot {
-  background: linear-gradient(180deg, #15102b 0%, #0d0a1c 100%);
-  border-color: rgba(212, 181, 114, 0.32);
-  color: #f5f3ff;
-}
-
-/* 궁합 — 로즈 톤 */
-.counselorCardCompat {
-  background: #fdf2f8;
-  border-color: #fbcfe8;
-  color: #1c1917;
-}
 
 .homeChatBar {
   width: 100%;
