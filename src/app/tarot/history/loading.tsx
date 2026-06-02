@@ -1,5 +1,5 @@
-import BrandSplash from '@/components/branding/BrandSplash'
+import TarotLoading from '@/components/branding/TarotLoading'
 
 export default function Loading() {
-  return <BrandSplash />
+  return <TarotLoading />
 }
