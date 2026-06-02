@@ -26,7 +26,6 @@ import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { createIdempotencyStore } from '@/lib/api/idempotency'
 import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPrompt'
-import { detectMessageLang } from '@/lib/utils/detectMessageLang'
 
 // 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
 // 중복 차감 방지. 클라이언트가 매 user 메시지에 UUID 를 x-idempotency-key
@@ -232,12 +231,13 @@ export async function POST(req: NextRequest) {
   }
 
   const userMessage = body.messages[body.messages.length - 1]?.content ?? ''
-  // Reply in the language the user actually typed — the client lang flag /
-  // browser locale often disagree with the current message (e.g. English UI
-  // but a Korean question, or vice-versa). Fall back to the requested flag
-  // only when the message has no clear script signal.
-  const requestedLang: 'ko' | 'en' = body.lang === 'en' ? 'en' : 'ko'
-  const lang: 'ko' | 'en' = detectMessageLang(userMessage) ?? requestedLang
+  // Answer language follows the app i18n setting: the client sends it as
+  // body.lang, and the I18nProvider also mirrors it into the `locale` cookie
+  // (auto-sent with every request), so we still honor the toggle even if the
+  // body flag is ever missing.
+  const cookieLocale = req.cookies.get('locale')?.value
+  const lang: 'ko' | 'en' =
+    body.lang === 'en' || body.lang === 'ko' ? body.lang : cookieLocale === 'en' ? 'en' : 'ko'
   if (!userMessage.trim()) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
   }
