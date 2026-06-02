@@ -115,6 +115,9 @@ export default function MonthDashboard({
   const verdict = monthSummary?.trim() || t.monthVerdictFallback(t.gradeLabel(data.grade.key))
   const finalInterp = monthInterp ?? monthDates[0]?.monthlyInterpretation
   const cmp = finalInterp?.monthComparison
+  // BigTurnsCard 가 정렬 수렴일을 보여줄 때만 CrossInsightCard 의 aligned 스팟을 숨겨 중복 제거.
+  const hasBigTurns =
+    (finalInterp?.convergence?.keyDays ?? []).filter((d) => d.bothSystems && d.meaning).length > 0
 
   // 이달 평균 사주↔점성 합치율
   const monthAgreement = (() => {
@@ -146,7 +149,7 @@ export default function MonthDashboard({
 
       <MonthInsights interp={finalInterp} month={month} locale={locale} onDayClick={onDayClick} />
 
-      <CrossInsightCard dates={monthDates} locale={locale} />
+      <CrossInsightCard dates={monthDates} locale={locale} suppressAlignedSpot={hasBigTurns} />
 
       <FlowChart
         data={data.flowData}

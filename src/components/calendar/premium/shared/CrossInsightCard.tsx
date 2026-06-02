@@ -24,6 +24,12 @@ interface Props {
   locale?: CalLocale
   /** monthlyInterpretation.convergence.keyDays 의 bothSystems 일자 */
   convergenceDays?: Array<{ date: string; bothSystems: boolean }>
+  /**
+   * BigTurnsCard / YearBigDaysCard 가 같은 화면에서 정렬 수렴일을 이미
+   * 보여줄 때 true. 그 경우 aligned CrossingSpot 만 숨겨 중복을 없앤다.
+   * (opposed 스팟·차트·메시지는 유지)
+   */
+  suppressAlignedSpot?: boolean
 }
 
 interface SignalRank {
@@ -56,7 +62,12 @@ interface WindowPick {
   kind: 'aligned' | 'opposed'
 }
 
-export default function CrossInsightCard({ dates, locale, convergenceDays }: Props) {
+export default function CrossInsightCard({
+  dates,
+  locale,
+  convergenceDays,
+  suppressAlignedSpot,
+}: Props) {
   const t = getCalLabels(locale)
 
   // ── 일자별 집계 ──────────────────────────────────────────────────
@@ -105,7 +116,8 @@ export default function CrossInsightCard({ dates, locale, convergenceDays }: Pro
   const flowOpposed = pickWindow(agg, 'opposed')
 
   // ── CrossingSpot — bridges 풀텍스트 보유 day 우선 ───────────────
-  const bestSpot = pickSpot(agg, 'aligned')
+  // suppressAlignedSpot 일 때 aligned 스팟은 숨긴다 (BigTurns/YearBigDays 중복 제거).
+  const bestSpot = suppressAlignedSpot ? null : pickSpot(agg, 'aligned')
   const worstSpot = pickSpot(agg, 'opposed')
 
   // 아무것도 보여줄 게 없으면 카드 자체 렌더 X

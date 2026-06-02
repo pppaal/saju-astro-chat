@@ -179,7 +179,6 @@ vi.mock('@/lib/cache/redis-cache', () => ({
   cacheOrCalculate: vi.fn((key, fn) => fn()),
   CacheKeys: {
     yearlyCalendar: vi.fn(() => 'test-cache-key'),
-    transitBatch: vi.fn(() => 'test-transit-key'),
   },
   CACHE_TTL: { CALENDAR_DATA: 86400, NATAL_CHART: 2592000 },
 }))

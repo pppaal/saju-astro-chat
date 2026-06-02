@@ -73,16 +73,18 @@ describe('calendar headline alignment (R1/R2/R3 regression guards)', () => {
     const payload = (await response.json()) as { allDates?: Array<Record<string, unknown>> }
     const all = payload.allDates || []
 
-    // 5월 보는데 1월·12월처럼 ±1달 밖 카드도 engineSignals 부착돼야 한다. 빠지면
-    // 점수는 v2지만 narrative는 fallback이라 카드 안 모순(score-narrative drift) 재발.
-    const monthsWithSignals = new Set<string>()
+    // 5월 보는데 1월·12월처럼 ±1달 밖 카드도 v2 augment(themeScores)가 부착돼야
+    // 한다. 빠지면 점수는 v2지만 narrative는 fallback이라 카드 안 모순(score-
+    // narrative drift) 재발. themeScores 로 가드한다 — engineSignals(hourly)는
+    // payload 절감을 위해 선택 월에만 싣으므로 12달 커버리지 지표로 부적절.
+    const monthsWithAugment = new Set<string>()
     for (const d of all) {
-      const signals = d.engineSignals as unknown[] | undefined
-      if (Array.isArray(signals) && signals.length > 0) {
-        monthsWithSignals.add(String(d.date).slice(0, 7))
+      const scores = d.themeScores as Record<string, number> | undefined
+      if (scores && Object.keys(scores).length > 0) {
+        monthsWithAugment.add(String(d.date).slice(0, 7))
       }
     }
-    expect(monthsWithSignals.size).toBeGreaterThanOrEqual(12)
+    expect(monthsWithAugment.size).toBeGreaterThanOrEqual(12)
   })
 
   it('override-active dates expose sajuAxisRaw/astroAxisRaw on scoreBreakdown (R3 guard)', async () => {
