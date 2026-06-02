@@ -6,6 +6,9 @@
  * 월운/일진 흐름"과 "충/합/형" 칩이 이 모듈 한 곳에서 나온다.
  */
 
+import { getSibseong } from './core/sibsin'
+import type { FiveElement } from './types'
+
 // ── 천간/지지 기본 ──
 const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
 const STEM_YIN: Record<string, boolean> = {
@@ -144,23 +147,17 @@ const BRANCH_WONJIN_PAIRS = new Set([
 ])
 
 // ── 십신 (본명 일간 기준 상대 십신) ──
+// SSOT: 정본 getSibseong(core/sibsin) 에 위임. 이전엔 인덱스 연산으로 직접 구현했으나
+// 전 100조합 대조 결과 정본과 동일 — 출처 둘로 갈리지 않게 위임으로 통일.
+// (이 함수는 천간 한자를 받으므로 stem→{element,yin_yang} 매핑만 여기서 한다.)
 export function getSibsinKo(dayStem: string, targetStem: string): string {
   const dayEl = STEM_TO_KO_ELEMENT[dayStem]
   const tEl = STEM_TO_KO_ELEMENT[targetStem]
   if (!dayEl || !tEl) return ''
-  const elements = ['목', '화', '토', '금', '수']
-  const samePolarity = STEM_YIN[dayStem] === STEM_YIN[targetStem]
-  const dayIdx = elements.indexOf(dayEl)
-  const tIdx = elements.indexOf(tEl)
-  const diff = (tIdx - dayIdx + 5) % 5
-  const labels = [
-    ['비견', '겁재'],
-    ['식신', '상관'],
-    ['편재', '정재'],
-    ['편관', '정관'],
-    ['편인', '정인'],
-  ]
-  return labels[diff][samePolarity ? 0 : 1]
+  return getSibseong(
+    { element: dayEl as FiveElement, yin_yang: STEM_YIN[dayStem] ? '음' : '양' },
+    { element: tEl as FiveElement, yin_yang: STEM_YIN[targetStem] ? '음' : '양' }
+  )
 }
 
 // ── 운별 갑자 컨텍스트 ──
