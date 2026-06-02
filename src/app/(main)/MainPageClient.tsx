@@ -29,6 +29,24 @@ interface MainPageClientProps {
   initialMessages: I18nMessages
 }
 
+// 생년월일 칩 표기 — "1995년 2월 9일 6:40am (남)". 시는 앞 0 없이(4am), 분만
+// 2자리(4:05am). (이전엔 HomeChatInput 안에 있었으나 칩을 상단 바로 빼면서 이동.)
+function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
+  const [y, m, d] = info.birthDate.split('-').map((n) => parseInt(n, 10))
+  const datePart = isKo
+    ? `${y}년 ${m}월 ${d}일`
+    : `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  let timePart = ''
+  if (!info.birthTimeUnknown && info.birthTime && info.birthTime !== '00:00') {
+    const [hh, mm] = info.birthTime.split(':').map((n) => parseInt(n, 10))
+    const ampm = hh < 12 ? 'am' : 'pm'
+    const h12 = hh % 12 === 0 ? 12 : hh % 12
+    timePart = ` ${h12}:${String(mm).padStart(2, '0')}${ampm}`
+  }
+  const g = info.gender === 'male' ? (isKo ? '남' : 'M') : isKo ? '여' : 'F'
+  return `${datePart}${timePart} (${g})`
+}
+
 export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const { locale: activeLocale, setLocale } = useI18n()
   const locale = (activeLocale || initialLocale) as Locale
@@ -302,6 +320,31 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
               : 'Enter your birth info, then ask anything'}
           </p>
         </section>
+
+        {/* 생년월일 — 입력창 안 칩에서 상단(히어로 아래)으로 분리. 항상 보이게
+            둬서 "먼저 생년월일부터" 흐름이 명확하다. 저장 전엔 CTA, 저장 후엔
+            요약 칩(탭하면 수정 모달). */}
+        <div className={styles.homeBirthBar}>
+          {birthInfo ? (
+            <button
+              type="button"
+              className={styles.homeBirthChip}
+              onClick={handleOpenBirth}
+              aria-label={locale === 'ko' ? '생년월일 정보 수정' : 'Edit birth info'}
+            >
+              {locale === 'ko' ? '상담자: ' : 'Subject: '}
+              {formatSubject(birthInfo, locale === 'ko')}
+              <span className={styles.homeBirthChipEdit}>
+                {locale === 'ko' ? '정보 변경' : 'Edit'}
+              </span>
+            </button>
+          ) : (
+            <button type="button" className={styles.homeBirthCta} onClick={handleOpenBirth}>
+              <span aria-hidden="true">📅</span>
+              {locale === 'ko' ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth date'}
+            </button>
+          )}
+        </div>
 
         <HomeChatInput
           birthInfo={birthInfo}
