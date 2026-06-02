@@ -460,7 +460,10 @@ function YearView({
     return { flow, yearScore, themeBars }
   }, [year, allDates, yearlyMonthly])
 
-  const bigDays = (yearlyConvergence?.keyDays ?? []).slice(0, 6)
+  // keyDays 는 수렴 강도 내림차순 → 중요 상위 8개를 고른 뒤 날짜순으로 정렬해 표시.
+  const bigDays = [...(yearlyConvergence?.keyDays ?? [])]
+    .slice(0, 8)
+    .sort((a, b) => a.date.localeCompare(b.date))
 
   return (
     <motion.div
@@ -483,6 +486,9 @@ function YearView({
             <div className="text-4xl font-light text-amber-200">
               {yearScore}
               <span className="text-xl text-zinc-600">/100</span>
+            </div>
+            <div className="text-[10px] text-zinc-600 mt-0.5">
+              {locale === 'en' ? '12-month avg' : '12개월 평균'}
             </div>
           </div>
         )}
@@ -617,7 +623,10 @@ function MonthView({
   // synergy / conflict — keyEvents 우선, 없으면 convergence
   const best = interp?.keyEvents?.best
   const avoidDates = interp?.keyEvents?.avoid?.dates ?? []
-  const bigDays = (interp?.convergence?.keyDays ?? []).filter((d) => d.bothSystems).slice(0, 4)
+  const bigDays = [...(interp?.convergence?.keyDays ?? [])]
+    .filter((d) => d.bothSystems)
+    .slice(0, 4)
+    .sort((a, b) => a.date.localeCompare(b.date))
   const cmp = interp?.monthComparison
 
   return (
@@ -1250,6 +1259,20 @@ function AxisBar({
   )
 }
 
+/** 큰 날 톤 — meaning 문구로 기회/주의/전환 추정 (convergence.score 는 0~100 이 아니라
+ *  raw 강도라 숫자로 안 보여주고, 대신 한눈에 읽히는 톤 배지로). */
+function bigDayTone(meaning: string | undefined, locale?: CalLocale): { label: string; cls: string } {
+  const emerald = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+  const rose = 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+  const amber = 'bg-amber-500/10 border-amber-500/20 text-amber-300'
+  const m = meaning ?? ''
+  if (/시험|점검|무거|신중|tested|needs review|heavier|caution/i.test(m))
+    return { label: locale === 'en' ? 'Caution' : '주의', cls: rose }
+  if (/기회|모이|무르익|강해지|opens up|momentum|resolves|strengthens/i.test(m))
+    return { label: locale === 'en' ? 'Opportunity' : '기회', cls: emerald }
+  return { label: locale === 'en' ? 'Big shift' : '큰 전환', cls: amber }
+}
+
 function BigDayRow({
   day,
   locale,
@@ -1259,25 +1282,52 @@ function BigDayRow({
   >['keyDays'][number]
   locale?: CalLocale
 }) {
+  const t = getCalLabels(locale)
+  const d = new Date(`${day.date}T12:00:00`)
+  const tone = bigDayTone(day.meaning, locale)
   return (
-    <div className="bg-zinc-900/20 p-4 rounded-2xl border border-white/5 flex items-center justify-between gap-3">
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-zinc-200">{day.date.slice(5)}</div>
+    <div className="bg-zinc-900/20 p-4 rounded-2xl border border-white/5 flex items-start gap-3">
+      {/* 날짜 */}
+      <div className="shrink-0 w-12 text-center">
+        <div className="text-base font-semibold text-zinc-100 tabular-nums leading-none">
+          {d.getMonth() + 1}/{d.getDate()}
+        </div>
+        <div className="text-[10px] text-zinc-500 mt-1">{t.weekdayShort[d.getDay()]}</div>
+      </div>
+      <div className="w-px self-stretch bg-white/5" />
+      {/* 본문 */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 flex-wrap mb-1">
+          <span
+            className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${tone.cls}`}
+          >
+            {tone.label}
+          </span>
+          {day.bothSystems && (
+            <span className="text-[9px] uppercase tracking-wider text-fuchsia-300/70 bg-fuchsia-500/10 border border-fuchsia-500/20 px-1.5 py-0.5 rounded">
+              {locale === 'en' ? 'Saju + Astro' : '사주·점성 수렴'}
+            </span>
+          )}
+        </div>
         {day.meaning && (
-          <p className="text-xs text-zinc-500 font-light truncate">{day.meaning}</p>
+          <p className="text-sm text-zinc-300 font-light leading-snug">{day.meaning}</p>
         )}
         {(day.saju.length > 0 || day.astro.length > 0) && (
-          <p className="text-[10px] text-zinc-600 mt-0.5 truncate">
-            {[...day.saju.slice(0, 1), ...day.astro.slice(0, 1)].join(' · ')}
+          <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">
+            {day.saju.length > 0 && (
+              <>
+                <span className="text-amber-400/70">{locale === 'en' ? 'Saju' : '사주'}</span>{' '}
+                {day.saju.join('·')}
+              </>
+            )}
+            {day.saju.length > 0 && day.astro.length > 0 && <span className="text-zinc-700"> · </span>}
+            {day.astro.length > 0 && (
+              <>
+                <span className="text-cyan-400/70">{locale === 'en' ? 'Astro' : '점성'}</span>{' '}
+                {day.astro.join('·')}
+              </>
+            )}
           </p>
-        )}
-      </div>
-      <div className="text-right shrink-0">
-        <div className="text-lg font-light text-amber-200 tabular-nums">{Math.round(day.score)}</div>
-        {day.bothSystems && (
-          <div className="text-[9px] uppercase tracking-wider text-fuchsia-300/70">
-            {locale === 'en' ? 'both' : '수렴'}
-          </div>
         )}
       </div>
     </div>
