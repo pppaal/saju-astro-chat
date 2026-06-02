@@ -127,13 +127,7 @@ export function FollowupChat({
   const [history, setHistory] = useState<Turn[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [clarifierNotice, setClarifierNotice] = useState<string | null>(null)
-  // containerRef — 클래리파이어 confirm 직후 페이지 viewport 를 채팅 박스
-  // 시작 위치로 가져오기 위해 section 자체에 박는다.
-  const containerRef = useRef<HTMLElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  // 클래리파이어 confirm 직후 일정 시간 자동 스크롤 hijack 끄기 — 자세한
-  // 정책은 useClarifierCard hook 참조.
-  const suspendAutoScrollRef = useRef(false)
   // Track mount lifecycle so the post-await setHistory / setSubmitting
   // inside sendQuestionText below bail when the user navigates away
   // mid-call. Without this, navigating off the results page while
@@ -163,7 +157,6 @@ export function FollowupChat({
   // 맨 끝에 박으면 hook 이 박스(parent) scrollTop 으로 따라간다.
   const { endRef } = useChatAutoScroll({
     messages: history,
-    suspendRef: suspendAutoScrollRef,
   })
 
   // 결과 페이지에 채팅 박스가 처음 마운트될 때 — 텍스트영역 자동 포커스 → 모바일 키보드 자동.
@@ -393,19 +386,16 @@ export function FollowupChat({
   }
 
   // 🃏 클래리파이어 카드 — 공통 hook (운명상담사/궁합상담사 동일).
-  // onSendUserText 안에서 main 의 viewport scroll fix 도 함께 (사용자가
-  // 페이지 위쪽에 있을 때 클래리파이어 결과 안 보이는 회귀 방지).
+  // 새 카드 결과는 안쪽 대화창의 자동 스크롤로 노출 — 섹션 전체를 강제로
+  // 스크롤하지 않는다(페이지가 위로 튀던 회귀 방지).
   const clarifier = useClarifierCard({
     lang: isKo ? 'ko' : 'en',
     onSendUserText: (text) => {
       setClarifierNotice(null)
-      // 두 frame 뒤 scroll — modal close + history 갱신 commit 이 paint 된
-      // 다음에 가져와야 새 카드 메시지 위치가 정확.
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        })
-      })
+      // 새 카드 메시지 + 답변은 안쪽 대화창(max-h-80 overflow-y-auto)에 쌓이고
+      // useChatAutoScroll 이 그 컨테이너를 맨 아래로 따라간다 → 그대로 보이게 둔다.
+      // (이전: containerRef.scrollIntoView({ block:'start' }) 로 섹션 전체를
+      //  뷰포트 맨 위로 끌어올려 "페이지가 위로 튀고 진행이 안 됨" 회귀.)
       void sendQuestionText(text)
     },
     // 클래리파이어 카드는 별도 컬럼 (TarotReading.clarifierCard) 에도 저장 —
@@ -420,13 +410,15 @@ export function FollowupChat({
       })
     },
     onLockedNotice: setClarifierNotice,
-    suspendAutoScrollRef,
+    // suspendAutoScrollRef 는 일부러 주지 않는다 — 여기 대화창은 자체 overflow
+    // 스크롤 박스라 새 메시지가 오면 안쪽 컨테이너가 따라 내려가야(자동 스크롤)
+    // 새 카드 결과가 보인다. 자동 스크롤을 끄면 답변이 박스 아래로 가려져
+    // "진행이 안 됨" 으로 보이는 회귀가 난다.
     disabled: submitting,
   })
 
   return (
     <section
-      ref={containerRef}
       className="rounded-2xl p-5 md:p-6 space-y-4 border"
       style={{
         background: pal.panelBg,

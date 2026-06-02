@@ -153,7 +153,7 @@ export function DetailedCardItem({
             </div>
             {hasAiText ? (
               <p className="text-lg md:text-[19px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-                {renderWithLastSentenceHighlight(aiInterpretation)}
+                {renderWithLastSentenceHighlight(aiInterpretation, !aiPending)}
               </p>
             ) : aiPending ? (
               <div className="flex items-center gap-2 text-sm text-[rgba(232,204,138,0.8)] py-2">
