@@ -10,6 +10,7 @@ import type { FiveElement, SibsinKind } from '@/lib/saju/types'
 import type { KeyEvents } from '../derivers/keyEvents'
 import type { Convergence } from '../derivers/convergence'
 import type { LifetimePivots } from '../derivers/lifetimePivots'
+import type { LifetimeFlow } from '../derivers/lifetimeFlow'
 import type { MonthComparison } from '../derivers/monthComparison'
 
 /** 룰이 매칭되는 시점 */
@@ -161,6 +162,8 @@ export interface Interpretation {
    * 스케일 큰 시기. natal 에서만 결정되며 monthly scope 에서 함께 노출.
    */
   lifetimePivots?: LifetimePivots
+  /** "인생 전체 흐름" — 대운 십신 아크 × 점성 인생 마디를 연령대로 합성. monthly scope. */
+  lifetimeFlow?: LifetimeFlow
   /**
    * "지난달 대비" — 전월 themeScore / 전체 흐름 점수와의 차이. prevCells 가
    * 주어진 monthly scope 에서만 채워짐 (retention hook).

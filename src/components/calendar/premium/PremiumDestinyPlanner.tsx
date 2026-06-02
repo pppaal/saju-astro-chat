@@ -65,13 +65,11 @@ interface Props {
 
 const THEME_ORDER: ThemeKey[] = ['love', 'money', 'career', 'health', 'growth']
 
-// 섹션 scope 라우팅 — 월 해석에 평생/연 섹션이 섞여 범벅이 되던 것 분리.
+// 섹션 scope 라우팅 — 월 해석에 평생/연 섹션이 섞이지 않게 분리.
 type NarrativeSection = { section: string; title: string; text: string }
-// 인생 탭 아코디언 = 타고난 결만. 대운(daeun)은 위 전환점 타임라인이 이미 보여주므로
-// 아코디언 중복 노출하지 않는다(사용자 혼란: "10년이 두 번").
-const LIFE_SECTIONS = new Set(['natal'])
 const YEAR_SECTIONS = new Set(['seun']) // 올해의 운 → 연 탭
-// 월 탭에서 제외: 인생/연/일 스코프(daeun 포함) + domain-*(영역별 점수 카드가 대체).
+// 월 탭에서 제외: 인생/연/일 스코프(natal·daeun·today) + domain-*(영역별 점수 카드가 대체).
+// 인생 탭은 타임라인 + 인생 전체 흐름으로 구성(타고난 결 아코디언 제거).
 const MONTH_EXCLUDE = new Set(['natal', 'daeun', 'seun', 'today'])
 
 function avg(xs: number[]): number {
@@ -232,7 +230,7 @@ export default function PremiumDestinyPlanner({
                 <LifetimeView
                   key="lifetime"
                   pivots={data?.monthlyInterpretation?.lifetimePivots?.pivots}
-                  sections={data?.monthlyInterpretation?.sections}
+                  flow={data?.monthlyInterpretation?.lifetimeFlow}
                   onZoom={() => setViewMode('year')}
                   locale={locale}
                 />
@@ -302,14 +300,14 @@ export default function PremiumDestinyPlanner({
 
 function LifetimeView({
   pivots,
-  sections,
+  flow,
   onZoom,
   locale,
 }: {
   pivots?: NonNullable<
     NonNullable<ImportantDate['monthlyInterpretation']>['lifetimePivots']
   >['pivots']
-  sections?: NarrativeSection[]
+  flow?: NonNullable<ImportantDate['monthlyInterpretation']>['lifetimeFlow']
   onZoom: () => void
   locale?: CalLocale
 }) {
@@ -329,24 +327,9 @@ function LifetimeView({
       className="h-full flex flex-col"
     >
       <motion.div variants={itemVariants} className="mb-10 text-center">
-        <h2 className="text-3xl sm:text-4xl font-light text-white mb-3 tracking-tight">
+        <h2 className="text-3xl sm:text-4xl font-light text-white tracking-tight">
           {locale === 'en' ? 'Turning points ahead' : '운명의 전환기'}
         </h2>
-        {(() => {
-          // '타고난 결'의 '당신은 …' 본질 문장을 인생 요약으로. 없으면 고정 문구.
-          const natalText = (sections ?? []).find((s) => s.section === 'natal')?.text
-          const essence =
-            natalText?.split('\n').map((l) => l.trim()).find((l) => l.startsWith('당신은'))
-          const sum = locale === 'en' ? null : leadSummary(essence)
-          return (
-            <p className="text-sm text-zinc-400 font-light max-w-md mx-auto leading-relaxed">
-              {sum ??
-                (locale === 'en'
-                  ? 'The next 10 years — where sky and chart turn together.'
-                  : '지금부터 10년, 사주·점성이 함께 도는 큰 시기')}
-            </p>
-          )
-        })()}
       </motion.div>
 
       {list.length === 0 ? (
@@ -434,12 +417,46 @@ function LifetimeView({
         </div>
       )}
 
-      {/* 타고난 결 · 10년 큰 흐름 (natal·daeun 섹션 — 월 탭에서 이리로 이동) */}
-      <SectionsAccordion
-        sections={(sections ?? []).filter((s) => LIFE_SECTIONS.has(s.section))}
-        title={locale === 'en' ? 'Your chart' : '타고난 흐름'}
-        locale={locale}
-      />
+      {/* ── 인생 전체 흐름 (교차엔진: 대운 십신 아크 × 점성 마디) — 차트 아래 ── */}
+      {flow && flow.phases.length > 0 && (
+        <motion.div variants={itemVariants} className="mt-10 pt-6 border-t border-white/5 space-y-4">
+          <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase flex items-center">
+            <Activity size={14} className="mr-2 text-indigo-400" />
+            {locale === 'en' ? 'Life flow' : '인생 전체 흐름'}
+          </h3>
+          {flow.intro && (
+            <p className="text-sm text-zinc-300 font-light leading-relaxed">{flow.intro}</p>
+          )}
+          <div className="space-y-3">
+            {flow.phases.map((p, i) => (
+              <div
+                key={i}
+                className={`rounded-2xl border p-4 ${
+                  p.current
+                    ? 'bg-amber-500/[0.06] border-amber-500/25'
+                    : 'bg-zinc-900/20 border-white/5'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className={`text-sm font-medium ${p.current ? 'text-amber-200' : 'text-zinc-200'}`}
+                  >
+                    {p.label}
+                  </span>
+                  {p.current && (
+                    <span className="text-[9px] uppercase tracking-wider bg-amber-500/10 text-amber-200/80 px-1.5 py-0.5 rounded border border-amber-500/20">
+                      {locale === 'en' ? 'Now' : '지금'}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-zinc-500">{p.ageRange}</span>
+                </div>
+                <div className="text-[13px] text-zinc-300 font-light mb-0.5">{p.theme}</div>
+                <div className="text-xs text-zinc-500 font-light leading-relaxed">{p.text}</div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }

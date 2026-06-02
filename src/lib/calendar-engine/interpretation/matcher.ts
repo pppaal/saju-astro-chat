@@ -8,6 +8,7 @@ import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
 import { deriveKeyEvents } from '../derivers/keyEvents'
 import { deriveConvergence } from '../derivers/convergence'
 import { deriveLifetimePivots } from '../derivers/lifetimePivots'
+import { deriveLifetimeFlow } from '../derivers/lifetimeFlow'
 import { deriveMonthComparison } from '../derivers/monthComparison'
 
 /**
@@ -383,6 +384,7 @@ export function buildInterpretation(args: {
   // 인생 분기점 — 점성 라이프사이클 × 대운 전환 (natal 스케일, 월과 무관하나
   // monthly 카드에 함께 노출). 순수 산술이라 매월 재계산해도 저렴.
   const lifetimePivots = scope === 'monthly' ? deriveLifetimePivots(natal, lang) : undefined
+  const lifetimeFlow = scope === 'monthly' ? deriveLifetimeFlow(natal, lang) : undefined
 
   // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전월 themeScore 를 같은
   // 모델로 얻기 위해 재귀 호출(단, prevCells 미전달 → 무한재귀 없음).
@@ -408,6 +410,7 @@ export function buildInterpretation(args: {
     keyEvents,
     convergence,
     lifetimePivots,
+    lifetimeFlow,
     monthComparison,
   }
 }
