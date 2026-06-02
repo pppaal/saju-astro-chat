@@ -213,8 +213,11 @@ export default function PremiumDestinyPlanner({
                 return (
                   <button
                     key={tab.id}
+                    type="button"
                     onClick={() => setViewMode(tab.id)}
-                    className="relative flex-1 flex flex-col sm:flex-row items-center justify-center py-3 space-y-1 sm:space-y-0 sm:space-x-2 group outline-none"
+                    aria-pressed={isActive}
+                    aria-label={tab.label}
+                    className="relative flex-1 flex flex-col sm:flex-row items-center justify-center py-3 space-y-1 sm:space-y-0 sm:space-x-2 group outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-xl"
                   >
                     {isActive && (
                       <motion.div
@@ -939,11 +942,6 @@ function DayView({
             {t.fmtMonthDay(month, day)}{' '}
             <span className="text-xl text-zinc-500">{weekday}</span>
           </h2>
-          {importantDate?.dailyGanjiNarrative && (
-            <p className="text-sm text-zinc-400 font-light leading-relaxed max-w-xs">
-              {importantDate.dailyGanjiNarrative}
-            </p>
-          )}
         </div>
         {dayScore !== null && (
           <div className="text-right">
@@ -979,6 +977,12 @@ function DayView({
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
             {locale === 'en' ? "Today's Saju" : '오늘의 사주'}
           </h3>
+
+          {importantDate?.dailyGanjiNarrative && (
+            <p className="text-sm text-zinc-300 font-light leading-relaxed">
+              {importantDate.dailyGanjiNarrative}
+            </p>
+          )}
 
           {/* 그날 기운(일진+십신) + 신살 칩 */}
           {(importantDate?.longCycleContext?.iljin || shinsal.length > 0) && (
@@ -1026,8 +1030,12 @@ function DayView({
           {(importantDate?.cycleInteractions?.length ?? 0) > 0 && (
             <div className="space-y-2 pt-1">
               {importantDate!.cycleInteractions!.map((ix, i) => {
-                const easy = easyCycleLabel(ix.kind)
-                const meaning = ix.blurb.split('—').slice(1).join('—').trim() || ix.blurb
+                const easy = easyCycleLabel(ix.kind, locale)
+                // ko: 엔진 blurb 뒷부분(쉬운 설명) / en: blurb 가 한글뿐이라 영어 설명 사용
+                const meaning =
+                  locale === 'en'
+                    ? easy.en
+                    : ix.blurb.split('—').slice(1).join('—').trim() || ix.blurb
                 return (
                   <div key={`${ix.pair}-${i}`} className="flex items-start gap-2 text-xs">
                     <span
@@ -1308,18 +1316,29 @@ function easySibsin(name: string, locale?: CalLocale): string {
   return (locale === 'en' ? en : ko)[name] ?? name
 }
 
-/** 충/합/형 한자 용어 → 쉬운말 라벨 + 색. (천간/지지 구분 없이 의미만) */
-function easyCycleLabel(kind: string): { label: string; cls: string } {
+/** 충/합/형 한자 용어 → 쉬운말 라벨 + 색 + 영어 설명. (천간/지지 구분 없이 의미만) */
+function easyCycleLabel(
+  kind: string,
+  locale?: CalLocale
+): { label: string; cls: string; en: string } {
   const rose = 'bg-rose-500/10 border-rose-500/20 text-rose-200/90'
   const emerald = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200/90'
   const amber = 'bg-amber-500/10 border-amber-500/20 text-amber-200/90'
-  if (kind.includes('자형')) return { label: '스스로 부담', cls: amber }
-  if (kind.includes('합')) return { label: '잘 맞음', cls: emerald }
-  if (kind.includes('충')) return { label: '부딪힘', cls: rose }
-  if (kind.includes('형')) return { label: '마찰', cls: amber }
-  if (kind.includes('해')) return { label: '어긋남', cls: amber }
-  if (kind.includes('파')) return { label: '흐트러짐', cls: amber }
-  return { label: kind, cls: 'bg-zinc-500/10 border-white/10 text-zinc-300' }
+  const neutral = 'bg-zinc-500/10 border-white/10 text-zinc-300'
+  const en = locale === 'en'
+  if (kind.includes('자형'))
+    return { label: en ? 'Self-strain' : '스스로 부담', cls: amber, en: 'self-imposed strain' }
+  if (kind.includes('합'))
+    return { label: en ? 'Harmony' : '잘 맞음', cls: emerald, en: 'two flows mesh and support each other' }
+  if (kind.includes('충'))
+    return { label: en ? 'Clash' : '부딪힘', cls: rose, en: 'strong pressure to decide; change or movement' }
+  if (kind.includes('형'))
+    return { label: en ? 'Friction' : '마찰', cls: amber, en: 'friction, slips or gossip — take care' }
+  if (kind.includes('해'))
+    return { label: en ? 'Discord' : '어긋남', cls: amber, en: 'misunderstandings, small rifts' }
+  if (kind.includes('파'))
+    return { label: en ? 'Off-track' : '흐트러짐', cls: amber, en: 'things drift slightly off track' }
+  return { label: kind, cls: neutral, en: '' }
 }
 
 /** narrative / section 텍스트 — 줄바꿈 단락 + 간단한 마크다운(**굵게**) 처리 */
