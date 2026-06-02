@@ -36,6 +36,7 @@ import { pushRecentPair, getRecentPairs, type RecentPair } from '@/app/compatibi
 import { normalizeGender } from '@/lib/utils/gender'
 import { CompatPersonPickerModal, type PickedPersonData } from './CompatPersonPickerModal'
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
+import { useCounselorNewChat } from '@/lib/counselor/useCounselorNewChat'
 import { savePendingChat, loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
@@ -91,6 +92,12 @@ function CompatibilityCounselorContent() {
   const { locale } = useI18n()
   const searchParams = useSearchParams()
   const router = useRouter()
+  // '새 채팅' 세션 정리를 운명 상담사와 공유. 단 궁합은 resume 효과에 자동복원
+  // 가드가 없어 ?session= 을 떼면 직전 채팅이 되살아나므로 URL 은 건드리지 않고
+  // (stripSessionParam:false) 드래프트 정리 + 상태 리셋만 공유한다.
+  const startNewChat = useCounselorNewChat('/compatibility/counselor', 'compat', {
+    stripSessionParam: false,
+  })
   const { showDepleted, showGuestLimit } = useCreditModal()
 
   const [persons, setPersons] = useState<PersonData[]>([])
@@ -1149,23 +1156,28 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         onClose={() => setSidebarOpen(false)}
         onNewChat={() => {
           if (isLoading) return
-          clearPendingChat('compat')
-          setMessages([])
-          setError(null)
-          setInput('')
-          setChatSessionId(undefined)
-          setChatTitle(null)
-          clarifier.reset()
-          // 새 채팅 = 새 폼. persons 초기화 → picker 모달 자동 노출.
-          // 사용자: "새로운 채팅창은 새로운 폼 나오고"
-          setPersons([])
-          setPerson1Saju(null)
-          setPerson2Saju(null)
-          setPerson1Astro(null)
-          setPerson2Astro(null)
-          chartFetchRef.current = false
-          setShowPicker(true)
-          setFocusToken((n) => n + 1)
+          // 세션 정리(게스트 드래프트)는 운명 상담사와 공유하는 useCounselorNewChat
+          // 으로 통일. 단 궁합은 URL ?session= 은 떼지 않는다(stripSessionParam:false)
+          // — resume 효과에 자동복원 가드가 없어 bare URL 이 되면 직전 채팅을 다시
+          // 끌어오기 때문. 상태 리셋 + picker 노출은 아래 onReset 에서.
+          startNewChat(() => {
+            setMessages([])
+            setError(null)
+            setInput('')
+            setChatSessionId(undefined)
+            setChatTitle(null)
+            clarifier.reset()
+            // 새 채팅 = 새 폼. persons 초기화 → picker 모달 자동 노출.
+            // 사용자: "새로운 채팅창은 새로운 폼 나오고"
+            setPersons([])
+            setPerson1Saju(null)
+            setPerson2Saju(null)
+            setPerson1Astro(null)
+            setPerson2Astro(null)
+            chartFetchRef.current = false
+            setShowPicker(true)
+            setFocusToken((n) => n + 1)
+          })
         }}
         serviceType="compat"
         enableGrouping
