@@ -984,23 +984,25 @@ function DayView({
                 </span>
               )
             })()}
-          {(importantDate?.cycleInteractions ?? []).map((ix, i) => {
-            const isClash = ix.kind.includes('충')
-            const isCombine = ix.kind.includes('합')
-            const cls = isClash
-              ? 'bg-rose-500/10 border-rose-500/20 text-rose-200/90'
-              : isCombine
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200/90'
-                : 'bg-zinc-500/10 border-white/10 text-zinc-300'
+        </motion.div>
+      )}
+
+      {/* 충/합/형 — 한자 용어 대신 쉬운말 + 한 줄 설명(blurb 뒷부분) */}
+      {(importantDate?.cycleInteractions?.length ?? 0) > 0 && (
+        <motion.div variants={itemVariants} className="space-y-2">
+          {importantDate!.cycleInteractions!.map((ix, i) => {
+            const easy = easyCycleLabel(ix.kind)
+            // blurb 예: "...이 천간충 — 결정 압박이 크게 들어옵니다." → 뒷부분만 쉬운 설명
+            const meaning = ix.blurb.split('—').slice(1).join('—').trim() || ix.blurb
             return (
-              <span
-                key={`${ix.pair}-${i}`}
-                title={ix.blurb}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium border ${cls}`}
-              >
-                {ix.kind}
-                <span className="text-zinc-500 font-light">· {ix.pair}</span>
-              </span>
+              <div key={`${ix.pair}-${i}`} className="flex items-start gap-2 text-xs">
+                <span
+                  className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-md font-medium border ${easy.cls}`}
+                >
+                  {easy.label}
+                </span>
+                <span className="text-zinc-400 font-light leading-relaxed">{meaning}</span>
+              </div>
             )
           })}
         </motion.div>
@@ -1263,6 +1265,20 @@ function BigDayRow({
       </div>
     </div>
   )
+}
+
+/** 충/합/형 한자 용어 → 쉬운말 라벨 + 색. (천간/지지 구분 없이 의미만) */
+function easyCycleLabel(kind: string): { label: string; cls: string } {
+  const rose = 'bg-rose-500/10 border-rose-500/20 text-rose-200/90'
+  const emerald = 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200/90'
+  const amber = 'bg-amber-500/10 border-amber-500/20 text-amber-200/90'
+  if (kind.includes('자형')) return { label: '스스로 부담', cls: amber }
+  if (kind.includes('합')) return { label: '잘 맞음', cls: emerald }
+  if (kind.includes('충')) return { label: '부딪힘', cls: rose }
+  if (kind.includes('형')) return { label: '마찰', cls: amber }
+  if (kind.includes('해')) return { label: '어긋남', cls: amber }
+  if (kind.includes('파')) return { label: '흐트러짐', cls: amber }
+  return { label: kind, cls: 'bg-zinc-500/10 border-white/10 text-zinc-300' }
 }
 
 /** narrative / section 텍스트 — 줄바꿈 단락 + 간단한 마크다운(**굵게**) 처리 */
