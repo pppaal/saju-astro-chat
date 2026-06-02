@@ -16,6 +16,8 @@ interface HomeChatInputProps {
   // 또는 질문 없이 엔터쳤을 때.
   onOpenBirth: () => void
   locale: 'en' | 'ko'
+  // 메인 배경(흰/어두운)에 맞춰 입력창 테마 — 어두운 코스믹 메인에선 dark 유지.
+  lightMode?: boolean
 }
 
 // 메인 입력창 타이프라이터 — 운명/궁합 상담사와 동일한 공용 ChatInputArea 에
@@ -42,6 +44,7 @@ export default function HomeChatInput({
   onRequireBirth,
   onOpenBirth,
   locale,
+  lightMode = false,
 }: HomeChatInputProps) {
   const router = useRouter()
   const [text, setText] = useState('')
@@ -93,7 +96,7 @@ export default function HomeChatInput({
           onSend={goCounselor}
           placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
           loopPlaceholder
-          theme="light"
+          theme={lightMode ? 'light' : 'dark'}
           viewTransitionName="destiny-input"
         />
       </div>

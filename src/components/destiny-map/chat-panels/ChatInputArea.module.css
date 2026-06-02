@@ -35,6 +35,13 @@
   background: rgba(20, 12, 30, 0.7);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
+  /* 입력 박스 폭을 어디서나 정확히 동일하게 — 메인(homeBody)·운명·궁합 컨테이너
+     폭이 달라도 박스 자체는 같은 최대폭으로 가운데 정렬되어 크기가 일치한다.
+     모든 컨테이너가 이보다 넓으므로(메인 ~812 / 상담사 ~844 가용폭) 데스크탑에선
+     정확히 이 폭, 좁은 화면에선 100% 로 자연스럽게 줄어든다. */
+  width: 100%;
+  max-width: 780px;
+  margin-inline: auto;
 }
 
 /* topSlot — 입력 박스 안쪽 최상단(textarea 위) 좌측 정렬 슬롯. 메인 홈의
