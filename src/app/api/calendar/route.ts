@@ -704,6 +704,16 @@ export const GET = withApiMiddleware(
         )
       }
 
+      // 시간별 신호(hourly engineSignals)는 (1) DailyHourlyChart 가 날짜 클릭 직후
+      // date-detail(fusion.hourly.slots) 도착 전 잠깐 보여주는 폴백, (2) 사주×점성
+      // 교차 extractor 가 살아있는지 가드하는 신호 커버리지 지표로 쓰인다. 365일
+      // 전부 부착하면 ~1.6MB(raw)로 응답이 비대한데, 실제 사용처는 "사용자가 지금
+      // 보고 있는 달" 뿐이다(다른 달 날짜를 클릭하면 그 달로 전환 후 재요청). 그래서
+      // hourly 는 선택 월(month 파라미터, 기본=유저 로컬 현재 월) 한 달치에만 싣고
+      // 나머지 11달은 비워 응답을 ~1.5MB 줄인다. 다른 날 클릭 시 date-detail 이
+      // 0.2~0.5s 내 진짜 시간대 데이터를 채운다.
+      const hourlyKeepPrefix = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`
+
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
@@ -723,11 +733,12 @@ export const GET = withApiMiddleware(
             }
           })
         }
-        // engineSignals — hourly layer 만 부착. 나머지 layer (decadal/yearly/
-        // monthly/daily/instant) 는 UI 사용처 없어 365 × 130 bytes = ~600KB
-        // 부풀림 제거. hourly 는 ~30/day × 365 = 1.6MB raw (~400KB gzip) 유지
-        // 해 DailyHourlyChart 가 fusion 백필 기다리지 않고 즉시 렌더.
-        if (cell.signals.length > 0) {
+        // engineSignals — hourly layer 만, 그것도 *선택 월* 셀에만 부착.
+        // 나머지 layer (decadal/yearly/monthly/daily/instant) 는 UI 사용처 없어
+        // 제거됨. hourly 는 DailyHourlyChart 폴백 + 신호 커버리지 가드용인데, 사용
+        // 처가 "지금 보고 있는 달" 뿐이라 선택 월 한 달치면 충분 — 365일 전부 싣던
+        // ~1.6MB(raw)를 ~130KB 로 줄인다. 다른 달은 전환 시 재요청으로 채워진다.
+        if (cell.signals.length > 0 && d.date.slice(0, 10).startsWith(hourlyKeepPrefix)) {
           const hourlySigs = cell.signals.filter((s) => s.layer === 'hourly')
           if (hourlySigs.length > 0) {
             d.engineSignals = hourlySigs.map((s) => ({
