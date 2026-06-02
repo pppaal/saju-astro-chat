@@ -119,7 +119,7 @@ export function deriveLifetimeFlow(
     .join('·')
 
   const intro =
-    `사주로는 ${dm} 일간으로 ${strengthKo}, 용신 ${yong}가 받쳐줄 때 빛나는 결이에요.` +
+    `사주로는 ${dm} 일간으로 ${strengthKo}, 용신 ${yong}${gaI(yong)} 받쳐줄 때 빛나는 결이에요.` +
     (astroId
       ? ` 점성으로는 ${astroId}의 기질을 타고났고요. 이 둘이 평생 흐름의 무대를 만들고, 그 위에서 아래 시기들이 펼쳐져요.`
       : ` 사주 대운과 점성 인생 마디를 교차해 본 큰 흐름이에요.`)

@@ -1308,4 +1308,66 @@ describe('calendar-engine regression', () => {
       }
     })
   })
+
+  describe('생애 단계(나이·상황) 맞춤 어휘', () => {
+    const minor: Profile = { ...SEOUL_MALE_1995, birthDate: '2018-04-10' } // 2026 한국나이 9
+    const senior: Profile = { ...SEOUL_MALE_1995, birthDate: '1948-04-10' } // 2026 한국나이 79
+
+    it('미성년 narrative 에 성인 전용 어휘(결혼·창업·이직·현금흐름)가 안 나온다', async () => {
+      const { interp } = await buildForDate(minor, '2026-05-15')
+      for (const term of ['결혼', '창업', '이직', '현금흐름', '취업']) {
+        expect(interp.narrative, `minor narrative leaked '${term}'`).not.toContain(term)
+      }
+    })
+
+    it('노년 narrative 에 취업·이직·창업·포트폴리오가 안 나온다', async () => {
+      const { interp } = await buildForDate(senior, '2026-05-15')
+      for (const term of ['취업', '이직', '창업', '포트폴리오']) {
+        expect(interp.narrative, `senior narrative leaked '${term}'`).not.toContain(term)
+      }
+    })
+
+    it('성인(default) narrative 는 어휘 보정 대상이 아니다 — 어휘 그대로', async () => {
+      // 1995 출생(2026 한국나이 32) → adult. 보정 어휘가 끼어들지 않아야 한다.
+      const { interp } = await buildForDate(SEOUL_MALE_1995, '2026-05-15')
+      // adult 밴드는 미성년/노년 전용 대체어가 끼지 않음 (무변경 보장 회귀 가드)
+      expect(interp.narrative).not.toContain('취미·기록·작품')
+      expect(interp.narrative).not.toContain('욕심내기보다 차근차근')
+    })
+
+    it('치환된 대체 어휘의 목적격 조사가 받침에 맞다 (작품+를 → 작품을)', async () => {
+      // swapNoun 이 새 어휘 받침에 맞춰 조사를 재부착하는지 — 대체어 뒤 깨진
+      // 변이형('작품를'·'기록를'·'성과을') 이 없어야 한다. (대체어는 한정적이라
+      // verb 어미 오탐 없이 정확히 검사 가능.)
+      const REPLACED = ['작품', '기록', '취미', '진로', '성과', '도전', '용돈']
+      for (const p of [minor, senior]) {
+        const { interp } = await buildForDate(p, '2026-05-15')
+        for (const w of REPLACED) {
+          const jong = (w.charCodeAt(w.length - 1) - 0xac00) % 28 !== 0
+          const bad = jong ? `${w}를` : `${w}을` // 받침 ↔ 조사 불일치 = 비문
+          expect(interp.narrative, `broken josa near '${w}'`).not.toContain(bad)
+        }
+      }
+    })
+
+    it('인생 흐름 intro 의 용신 조사가 받침에 맞다 (목·금가 → 목·금이)', async () => {
+      const { deriveLifetimeFlow } = await import(
+        '@/lib/calendar-engine/derivers/lifetimeFlow'
+      )
+      const hasJong = (ch: string) => {
+        const c = ch.charCodeAt(0)
+        return c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 !== 0
+      }
+      for (const p of [SEOUL_MALE_1995, minor, senior]) {
+        const saju = calculateSajuData(p.birthDate, p.birthTime, p.gender, 'solar', p.timeZone)
+        const natal = await buildNatalContext(p, { saju })
+        const flow = deriveLifetimeFlow(natal, 'ko')
+        const m = flow?.intro.match(/용신 (\S+?)(가|이) 받쳐줄/)
+        if (!m) continue
+        const [, yong, josa] = m
+        const expected = hasJong(yong[yong.length - 1]) ? '이' : '가'
+        expect(josa, `용신 '${yong}' 조사`).toBe(expected)
+      }
+    })
+  })
 })
