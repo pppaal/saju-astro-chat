@@ -6,6 +6,7 @@
 import type { NatalContext } from '../context/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { buildLifecycleTiming } from '../lifecycle/astroLifecycle'
+import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
 
 export interface LifePhase {
   label: string // 초년기 …
@@ -36,35 +37,30 @@ const SIBSIN_CAT: Record<string, string> = {
 }
 
 // 카테고리별 상세 — kw(교차에서 쓸 핵심), saju(사주 줄), outcome(교차 결론)
-const CAT: Record<string, { short: string; kw: string; saju: string; outcome: string }> = {
+const CAT: Record<string, { short: string; kw: string; outcome: string }> = {
   관성: {
     short: '책임·자리·명예',
     kw: '책임·자리 욕구',
-    saju: '규율과 평가 속에서 자기를 다듬는 힘이 강해요. 틀을 받아들이며 사회적 자리를 세우는 시기.',
     outcome: '사회적 토대와 신뢰의 뼈대를 세워요',
   },
   재성: {
     short: '성취·현실·재물',
     kw: '성취·현실 감각',
-    saju: '노력이 재물·결과로 환원되기 시작해요. 욕심을 현실로 옮겨 기반을 닦는 시기.',
     outcome: '커리어와 자산의 기초가 잡혀요',
   },
   식상: {
     short: '표현·재능·창조',
     kw: '표현·창조 욕구',
-    saju: '자기만의 목소리와 결과물이 터져 나와요. 쌓아온 걸 밖으로 풀어내는 시기.',
     outcome: '낡은 틀을 깨고 자기다운 길을 새로 그려요',
   },
   비겁: {
     short: '자립·동료·경쟁',
     kw: '자립·경쟁심',
-    saju: '내 발로 서고 동료와 어깨를 나란히 하는 힘이 강해요. 주체성이 시험받는 시기.',
     outcome: '관계와 독립 사이에서 진짜 내 자리를 찾아요',
   },
   인성: {
     short: '배움·내면·정리',
     kw: '수용·정리',
-    saju: '배움과 내면이 깊어지고 갈무리하는 힘이 커요. 받아들이며 성숙해지는 시기.',
     outcome: '삶의 의미를 다시 정돈해요',
   },
 }
@@ -148,7 +144,8 @@ export function deriveLifetimeFlow(
       label,
       ageRange: `${lo}~${hi}세 · ${birthYear + lo}~${birthYear + hi}`,
       theme: `${cat} — ${info.short}`,
-      saju: info.saju,
+      // 사주 줄 = 기존 대운 해석 엔진(getGanjiTransitNarrative) 그대로 재사용.
+      saju: getGanjiTransitNarrative(`${d.stem}${d.branch}`, 'decadal', 'ko'),
       astro,
       cross,
       current: currentAge >= lo + 1 && currentAge <= hi + 1,
