@@ -67,9 +67,12 @@ const THEME_ORDER: ThemeKey[] = ['love', 'money', 'career', 'health', 'growth']
 
 // 섹션 scope 라우팅 — 월 해석에 평생/연 섹션이 섞여 범벅이 되던 것 분리.
 type NarrativeSection = { section: string; title: string; text: string }
-const LIFE_SECTIONS = new Set(['natal', 'daeun']) // 타고난 결 · 10년 큰 흐름 → 인생 탭
-const YEAR_SECTIONS = new Set(['seun']) //            올해의 운 → 연 탭
-// 월 탭: 위(인생/연) + today(일) 를 뺀 나머지(이번 달·주요 흐름·패턴·도메인…)
+// 인생 탭 아코디언 = 타고난 결만. 대운(daeun)은 위 전환점 타임라인이 이미 보여주므로
+// 아코디언 중복 노출하지 않는다(사용자 혼란: "10년이 두 번").
+const LIFE_SECTIONS = new Set(['natal'])
+const YEAR_SECTIONS = new Set(['seun']) // 올해의 운 → 연 탭
+// 월 탭에서 제외: 인생/연/일 스코프(daeun 포함) + domain-*(영역별 점수 카드가 대체).
+const MONTH_EXCLUDE = new Set(['natal', 'daeun', 'seun', 'today'])
 
 function avg(xs: number[]): number {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
@@ -399,7 +402,8 @@ function LifetimeView({
                     )}
                   </div>
                   <h3 className="text-xl sm:text-2xl font-light text-zinc-200 mb-1 group-hover:text-white transition-colors flex items-center">
-                    {p.label}
+                    {/* 라벨의 '— 설명' 접미는 아래 meaning 과 중복이라 제목엔 앞부분만 */}
+                    {p.label.split('—')[0].trim()}
                     {highlight && (
                       <ChevronRight className="w-5 h-5 ml-2 text-amber-300/50 opacity-0 group-hover:opacity-100 transition-opacity" />
                     )}
@@ -900,7 +904,7 @@ function MonthView({
       {/* ── 이달의 해석 — 월 scope 섹션만 (올해의 운·타고난 결·대운·오늘은 각 탭으로) ── */}
       <SectionsAccordion
         sections={(interp?.sections ?? []).filter(
-          (s) => !LIFE_SECTIONS.has(s.section) && !YEAR_SECTIONS.has(s.section) && s.section !== 'today'
+          (s) => !MONTH_EXCLUDE.has(s.section) && !s.section.startsWith('domain-')
         )}
         title={locale === 'en' ? 'Reading' : '이달의 해석'}
         locale={locale}
