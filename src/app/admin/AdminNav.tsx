@@ -24,7 +24,6 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: '지표',
     items: [
-      { href: '/admin/usage', label: '사용량 분석' },
       { href: '/admin/dashboard', label: '상세 지표' },
       { href: '/admin/revenue', label: '매출·크레딧' },
       { href: '/admin/funnel', label: '전환 퍼널' },

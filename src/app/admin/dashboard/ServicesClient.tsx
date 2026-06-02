@@ -2,21 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-// 상세지표 — 서비스 3개(사주·궁합·타로) 중심 재구성.
-// 공통개요는 /api/admin/overview, 서비스별 이용량·인기주제·시간대는
-// /api/admin/usage 를 조합한다. 모든 서비스는 1건 = 크레딧 1개라 이용 건수가
-// 곧 소비 크레딧이다.
-
-interface Overview {
-  users: { total: number; today: number; activeToday: number; paying: number }
-  readings: { total: number; today: number }
-  credits: { outstanding: number }
-  purchases: { total: number; today: number; last30d: number }
-}
+// 상세지표 — 서비스 3개(사주·궁합·타로) 중심. 서비스별 이용량·일별/시간대
+// 추이·인기주제를 /api/admin/usage 에서 가져온다. 모든 서비스는 1건 = 크레딧
+// 1개라 이용 건수가 곧 소비 크레딧이다. (회원·결제 요약은 '개요' 페이지 참고)
 
 interface Usage {
   rangeDays: number
   services: { service: string; count: number }[]
+  daily: { day: string; counselor: number; tarot: number; total: number }[]
   hourly: { hour: number; counselor: number; tarot: number; total: number }[]
   topTopics: { topic: string; count: number }[]
   topTarotQuestions: { question: string; count: number }[]
@@ -43,28 +36,11 @@ function fmt(n: number | undefined | null): string {
   return n.toLocaleString('ko-KR')
 }
 
-function Stat({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }) {
-  return (
-    <div
-      className={
-        accent
-          ? 'rounded-2xl border border-stone-900 bg-stone-900 p-5 text-white shadow-sm'
-          : 'rounded-2xl border border-stone-200 bg-white p-5 shadow-sm'
-      }
-    >
-      <div className={accent ? 'text-[13px] text-stone-300' : 'text-[13px] text-stone-500'}>{label}</div>
-      <div className="mt-2 font-mono text-2xl font-semibold tabular-nums">{value}</div>
-      {hint && <div className="mt-1 text-[12px] text-stone-400">{hint}</div>}
-    </div>
-  )
-}
-
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">{children}</h2>
 }
 
 export default function ServicesClient() {
-  const [overview, setOverview] = useState<Overview | null>(null)
   const [usage, setUsage] = useState<Usage | null>(null)
   const [days, setDays] = useState(30)
   const [loading, setLoading] = useState(true)
@@ -74,16 +50,10 @@ export default function ServicesClient() {
     setLoading(true)
     setError(null)
     try {
-      const [ovRes, usRes] = await Promise.all([
-        fetch('/api/admin/overview', { cache: 'no-store' }),
-        fetch(`/api/admin/usage?days=${days}`, { cache: 'no-store' }),
-      ])
-      const ovJson = await ovRes.json()
-      const usJson = await usRes.json()
-      if (!ovRes.ok) throw new Error(ovJson?.error?.message || ovJson?.error || `개요 HTTP ${ovRes.status}`)
-      if (!usRes.ok) throw new Error(usJson?.error?.message || usJson?.error || `사용량 HTTP ${usRes.status}`)
-      setOverview((ovJson?.data || ovJson) as Overview)
-      setUsage((usJson?.data || usJson) as Usage)
+      const res = await fetch(`/api/admin/usage?days=${days}`, { cache: 'no-store' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json?.error?.message || json?.error || `사용량 HTTP ${res.status}`)
+      setUsage((json?.data || json) as Usage)
     } catch (err) {
       setError(err instanceof Error ? err.message : '알 수 없는 오류')
     } finally {
@@ -98,6 +68,7 @@ export default function ServicesClient() {
   const buckets = usage ? bucketServices(usage.services) : null
   const serviceTotal = buckets ? buckets.saju + buckets.compat + buckets.tarot : 0
   const maxHour = usage ? Math.max(1, ...usage.hourly.map((h) => h.total)) : 1
+  const maxDay = usage ? Math.max(1, ...usage.daily.map((d) => d.total)) : 1
 
   return (
     <div>
@@ -134,27 +105,12 @@ export default function ServicesClient() {
         <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>
       )}
 
-      {loading && !overview ? (
+      {loading && !usage ? (
         <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-500">
           불러오는 중…
         </div>
       ) : (
         <>
-          {/* 공통 개요 */}
-          {overview && (
-            <section className="mb-8">
-              <SectionTitle>공통 개요</SectionTitle>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                <Stat label="총 회원" value={fmt(overview.users.total)} accent />
-                <Stat label="오늘 신규" value={fmt(overview.users.today)} />
-                <Stat label="오늘 활성" value={fmt(overview.users.activeToday)} />
-                <Stat label="결제 유저" value={fmt(overview.users.paying)} />
-                <Stat label="총 구매" value={fmt(overview.purchases.total)} hint="크레딧팩 결제" />
-                <Stat label="미사용 크레딧" value={fmt(overview.credits.outstanding)} hint="만료 전 잔여" />
-              </div>
-            </section>
-          )}
-
           {/* 서비스별 이용량 / 매출(=소비 크레딧) */}
           {buckets && (
             <section className="mb-8">
@@ -186,6 +142,29 @@ export default function ServicesClient() {
                 모든 서비스는 1건당 크레딧 1개 소비 → 이용 건수 = 소비 크레딧. (사주=운명상담,
                 궁합=궁합상담, 타로=타로 리딩 기준)
               </p>
+            </section>
+          )}
+
+          {/* 일별 추이 */}
+          {usage && usage.daily.some((d) => d.total > 0) && (
+            <section className="mb-8">
+              <SectionTitle>일별 추이 (최근 {days}일)</SectionTitle>
+              <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                <div className="flex h-32 items-end gap-px">
+                  {usage.daily.map((d) => (
+                    <div
+                      key={d.day}
+                      title={`${d.day}: ${d.total}건 (상담 ${d.counselor} / 타로 ${d.tarot})`}
+                      className="flex-1 rounded-t bg-stone-800"
+                      style={{ height: `${Math.max((d.total / maxDay) * 100, d.total > 0 ? 4 : 0)}%` }}
+                    />
+                  ))}
+                </div>
+                <div className="mt-2 flex justify-between text-[11px] text-stone-400">
+                  <span>{usage.daily[0]?.day.slice(5)}</span>
+                  <span>{usage.daily[usage.daily.length - 1]?.day.slice(5)}</span>
+                </div>
+              </div>
             </section>
           )}
 
