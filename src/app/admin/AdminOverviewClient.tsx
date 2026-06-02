@@ -123,7 +123,7 @@ export default function AdminOverviewClient() {
 
       {loading && !data ? (
         <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-500">
-          지표를 불러오는 중…
+          불러오는 중…
         </div>
       ) : data ? (
         <>

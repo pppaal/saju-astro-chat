@@ -58,49 +58,11 @@ function getBadgeClass(status: string): string {
   return map[status] || styles.badgePending
 }
 
-// ============ Skeleton Components ============
+// ============ Loading ============
 
-function SkeletonCards({ count = 4 }: { count?: number }) {
-  return (
-    <div className={styles.skeletonGrid}>
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className={styles.skeletonCard}>
-          <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
-          <div className={`${styles.skeletonLine} ${styles.skeletonLineTall}`} />
-          <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function SkeletonTable({ rows = 5 }: { rows?: number }) {
-  return (
-    <div className={styles.skeletonTable}>
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className={styles.skeletonTableRow}>
-          <div className={styles.skeletonTableCell}>
-            <div className={styles.skeletonLine} />
-          </div>
-          <div className={styles.skeletonTableCell}>
-            <div className={styles.skeletonLine} />
-          </div>
-          <div className={styles.skeletonTableCell}>
-            <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
+// 개요·사용량 페이지와 동일한 단일 로딩 카드로 통일.
 function SectionSkeleton() {
-  return (
-    <div className={styles.sectionLoading}>
-      <SkeletonCards count={4} />
-      <SkeletonTable rows={4} />
-    </div>
-  )
+  return <div className={styles.loadingCard}>불러오는 중…</div>
 }
 
 // ============ Component ============
