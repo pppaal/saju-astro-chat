@@ -2352,10 +2352,12 @@
 }
 
 .lightTheme .userMessage {
-  background: #292524;
-  border: 0;
-  color: #fafaf9;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* 한 칼라 — 다크 말풍선 대신 페이지와 거의 같은 옅은 톤 + 잉크 텍스트.
+     지피티식으로 유저 메시지가 한 면 위에 살짝 얹힌 정도로만 구분된다. */
+  background: var(--ds-light-bg-soft);
+  border: 1px solid var(--ds-light-border);
+  color: var(--ds-light-text);
+  box-shadow: none;
   border-radius: 16px 4px 16px 16px;
 }
 
