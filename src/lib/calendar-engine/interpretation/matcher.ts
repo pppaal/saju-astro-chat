@@ -862,17 +862,18 @@ function buildWeeklyBreakdownLine(cells: CalendarCell[], lang: InterpretationLan
     const w = weeks.find((w) => d.day >= w.lo && d.day <= w.hi)
     if (w) w.scores.push(d.score)
   }
-  const labelKo = (avg: number) =>
-    avg >= 75 ? '강한 주' : avg >= 60 ? '순한 주' : avg >= 45 ? '평이한 주' : '조심할 주'
-  const labelEn = (avg: number) =>
-    avg >= 75 ? 'strong' : avg >= 60 ? 'smooth' : avg >= 45 ? 'steady' : 'careful'
+  // 그 달 평균 대비 *상대* 라벨 — derivedScore(raw)는 displayScore(표시)와 스케일이
+  // 달라 절대 임계(75/60/45)를 쓰면 "전부 조심할 주"가 됐다. 주간 편차로만 판단해
+  // 스케일에 무관하고, 그 달 안에서의 강약만 표시한다(혼란스런 raw 숫자도 제거).
+  const monthAvg = dated.reduce((a, b) => a + b.score, 0) / dated.length
+  const labelKo = (d: number) => (d >= 4 ? '좋은 주' : d <= -4 ? '주의 주' : '평이한 주')
+  const labelEn = (d: number) => (d >= 4 ? 'good' : d <= -4 ? 'careful' : 'steady')
   const parts: string[] = []
   weeks.forEach((w, i) => {
     if (w.scores.length === 0) return
-    const avg = Math.round(w.scores.reduce((a, b) => a + b, 0) / w.scores.length)
-    parts.push(
-      lang === 'en' ? `W${i + 1} ${labelEn(avg)}(${avg})` : `${i + 1}주 ${labelKo(avg)}(${avg})`
-    )
+    const avg = w.scores.reduce((a, b) => a + b, 0) / w.scores.length
+    const dev = avg - monthAvg
+    parts.push(lang === 'en' ? `W${i + 1} ${labelEn(dev)}` : `${i + 1}주 ${labelKo(dev)}`)
   })
   if (parts.length === 0) return ''
   return lang === 'en' ? `By week: ${parts.join(' · ')}.` : `주차별 흐름: ${parts.join(' · ')}.`
@@ -888,11 +889,18 @@ function buildBaseVars(natal: NatalContext): TemplateVars {
 }
 
 function fillTemplate(template: string, vars: TemplateVars): string {
-  return template.replace(/\{(\w+)\}/g, (m, key) => {
+  const filled = template.replace(/\{(\w+)\}/g, (m, key) => {
     const v = vars[key as keyof TemplateVars]
     if (v == null) return m // 변수 없으면 원본 그대로 (디버그 용이)
     return String(v)
   })
+  // 빈 변수(예: 월간지 미보유 신호)로 생긴 깨진 마크다운/공백 정리:
+  //   '**{monthGanji}**' → '****' → 제거,  중복 스페이스/줄머리 공백 정돈.
+  //   '**[제목]**' 처럼 내용 있는 bold 는 매칭 안 됨([ \t]* 는 같은 줄 빈 bold 만).
+  return filled
+    .replace(/\*\*[ \t]*\*\*/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/^[ \t]+/gm, '')
 }
 
 function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string {

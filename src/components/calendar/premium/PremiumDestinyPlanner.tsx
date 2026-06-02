@@ -623,8 +623,14 @@ function MonthView({
   const breakdown = interp?.themeBreakdown ?? {}
 
   // synergy / conflict — keyEvents 우선, 없으면 convergence
-  const best = interp?.keyEvents?.best
-  const avoidDates = interp?.keyEvents?.avoid?.dates ?? []
+  // "가장 좋은 날 / 조심할 날" — 그리드·흐름과 같은 displayScore 기준으로 뽑아
+  // 점수를 일치시킨다(이전엔 keyEvents 의 raw derivedScore 라 그래프와 어긋남).
+  const dayByScore = monthDates
+    .map((d) => ({ day: parseInt(d.date.slice(8, 10), 10), score: Math.round(pickScore(d)) }))
+    .sort((a, b) => b.score - a.score)
+  const bestDay = dayByScore[0] ?? null
+  const worstDay = dayByScore.length > 1 ? dayByScore[dayByScore.length - 1] : null
+  const showWorst = worstDay ? getGrade(worstDay.score).key === 'unlucky' : false
   const bigDays = [...(interp?.convergence?.keyDays ?? [])]
     .filter((d) => d.bothSystems)
     .slice(0, 4)
@@ -753,30 +759,30 @@ function MonthView({
         </div>
       </motion.div>
 
-      {/* Synergy / Conflict */}
-      {(best || avoidDates.length > 0) && (
+      {/* Synergy / Conflict — displayScore 기준 (그래프와 일치) */}
+      {(bestDay || showWorst) && (
         <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {best && (
+          {bestDay && (
             <div className="bg-zinc-900/20 p-5 rounded-2xl border border-white/5">
               <h3 className="text-xs font-medium tracking-widest text-emerald-400/80 mb-3 flex items-center uppercase">
                 <Star size={14} className="mr-2" />
                 {locale === 'en' ? 'Best day' : '가장 좋은 날'}
               </h3>
-              <div className="text-zinc-200 font-medium mb-1">{best.date}</div>
+              <div className="text-zinc-200 font-medium mb-1">{t.fmtMonthDay(month + 1, bestDay.day)}</div>
               <p className="text-sm text-zinc-500 font-light">
-                {locale === 'en' ? `score ${best.score}` : `흐름 점수 ${best.score}`}
+                {locale === 'en' ? `score ${bestDay.score}` : `흐름 점수 ${bestDay.score}`}
               </p>
             </div>
           )}
-          {avoidDates.length > 0 && (
+          {showWorst && worstDay && (
             <div className="bg-zinc-900/20 p-5 rounded-2xl border border-white/5">
               <h3 className="text-xs font-medium tracking-widest text-rose-400/80 mb-3 flex items-center uppercase">
                 <AlertCircle size={14} className="mr-2" />
                 {locale === 'en' ? 'Take care' : '조심할 날'}
               </h3>
-              <div className="text-zinc-200 font-medium mb-1">{avoidDates.join(', ')}</div>
+              <div className="text-zinc-200 font-medium mb-1">{t.fmtMonthDay(month + 1, worstDay.day)}</div>
               <p className="text-sm text-zinc-500 font-light">
-                {locale === 'en' ? 'Keep it steady.' : '무리한 결정은 미루기'}
+                {locale === 'en' ? `score ${worstDay.score} · keep it steady` : `흐름 점수 ${worstDay.score} · 무리한 결정은 미루기`}
               </p>
             </div>
           )}
@@ -918,14 +924,12 @@ function DayView({
   const hourSeries = fusion?.hourly?.slots ?? null
   const bestHour = fusion?.hourly?.bestHours?.[0] ?? todayHourly?.best?.[0]
 
-  const oneLine =
-    importantDate?.summary ?? fusion?.topInsights?.[0] ?? fusion?.advice?.do?.[0] ?? null
+  // summary/recommendations/warnings 는 route(helpers)가 번역 텍스트로 채운다.
+  // fusion.advice/topInsights 는 raw 내부 신호(↑[세운]丙午…)라 노출하지 않는다.
+  const oneLine = importantDate?.summary ?? null
 
-  // 추진 / 보류 — engine 우선, 없으면 fusion advice
-  const recommendations =
-    importantDate?.recommendations?.length ? importantDate.recommendations : (fusion?.advice?.do ?? [])
-  const warnings =
-    importantDate?.warnings?.length ? importantDate.warnings : (fusion?.advice?.avoid ?? [])
+  const recommendations = importantDate?.recommendations ?? []
+  const warnings = importantDate?.warnings ?? []
 
   // 신살은 엔진이 캡 없이 전부 내보내 하루 5~10개씩 쏟아짐 → 이름 dedup 후 6개만.
   const shinsalUniq = Array.from(new Map(shinsal.map((s) => [s.name, s])).values())
