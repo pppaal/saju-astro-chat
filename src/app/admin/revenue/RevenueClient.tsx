@@ -30,6 +30,34 @@ function num(n: number): string {
   return n.toLocaleString('ko-KR')
 }
 
+function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
+  if (rows.length === 0) return
+  const headers = Object.keys(rows[0])
+  const esc = (v: unknown) => {
+    const s = v === null || v === undefined ? '' : String(v)
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function CsvButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-full border border-stone-300 bg-white px-3 py-1 text-[12px] font-medium text-stone-600 transition hover:bg-stone-100"
+    >
+      CSV 내보내기
+    </button>
+  )
+}
+
 function Stat({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }) {
   return (
     <div
@@ -130,7 +158,10 @@ export default function RevenueClient() {
 
           {data.revenue.daily.some((d) => d.krw > 0) && (
             <section className="mb-8">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">일별 매출</h2>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">일별 매출</h2>
+                <CsvButton onClick={() => downloadCsv('revenue-daily.csv', data.revenue.daily)} />
+              </div>
               <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                 <div className="flex h-32 items-end gap-px">
                   {data.revenue.daily.map((d) => (
@@ -152,7 +183,10 @@ export default function RevenueClient() {
 
           {data.revenue.byPack.length > 0 && (
             <section className="mb-8">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">팩별 판매</h2>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">팩별 판매</h2>
+                <CsvButton onClick={() => downloadCsv('revenue-by-pack.csv', data.revenue.byPack)} />
+              </div>
               <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
                 <table className="w-full text-sm">
                   <thead>

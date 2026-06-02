@@ -17,6 +17,25 @@ interface Overview {
   credits: { outstanding: number }
   purchases: { total: number; today: number; last30d: number }
   recentSignups: { id: string; email: string | null; name: string | null; createdAt: string }[]
+  signupsDaily: { date: string; count: number }[]
+}
+
+// 배열 데이터를 CSV 로 직렬화해 즉시 다운로드 (브라우저). 추가 API 불필요.
+function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
+  if (rows.length === 0) return
+  const headers = Object.keys(rows[0])
+  const esc = (v: unknown) => {
+    const s = v === null || v === undefined ? '' : String(v)
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 // 카드 클릭 시 펼쳐지는 유저 행. 세그먼트에 따라 일부 필드만 채워진다.
@@ -115,10 +134,31 @@ function UserListPanel({
   const capped = count !== null && users !== null && count > users.length
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
-        {SEGMENT_TITLE[seg] || seg}
-        {count !== null && ` (${fmt(count)}명${capped ? `, 최근 ${users!.length}명 표시` : ''})`}
-      </h2>
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+          {SEGMENT_TITLE[seg] || seg}
+          {count !== null && ` (${fmt(count)}명${capped ? `, 최근 ${users!.length}명 표시` : ''})`}
+        </h2>
+        {users && users.length > 0 && (
+          <button
+            onClick={() =>
+              downloadCsv(
+                `${seg}-users.csv`,
+                users.map((u) => ({
+                  id: u.id,
+                  email: u.email ?? '',
+                  name: u.name ?? '',
+                  createdAt: u.createdAt ?? '',
+                  readings: u.readings ?? '',
+                }))
+              )
+            }
+            className="rounded-full border border-stone-300 bg-white px-3 py-1 text-[12px] font-medium text-stone-600 transition hover:bg-stone-100"
+          >
+            CSV 내보내기
+          </button>
+        )}
+      </div>
       {loading ? (
         <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-500">
           불러오는 중…
@@ -323,6 +363,41 @@ export default function AdminOverviewClient() {
             />
           </Section>
           {renderPanel(['total', 'today', '7d', '30d'])}
+
+          {data.signupsDaily && data.signupsDaily.some((d) => d.count > 0) && (
+            <section className="mb-8">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+                  일별 신규 가입 (최근 30일)
+                </h2>
+                <button
+                  onClick={() => downloadCsv('signups-daily.csv', data.signupsDaily)}
+                  className="rounded-full border border-stone-300 bg-white px-3 py-1 text-[12px] font-medium text-stone-600 transition hover:bg-stone-100"
+                >
+                  CSV 내보내기
+                </button>
+              </div>
+              <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                <div className="flex h-28 items-end gap-px">
+                  {data.signupsDaily.map((d) => {
+                    const max = Math.max(1, ...data.signupsDaily.map((x) => x.count))
+                    return (
+                      <div
+                        key={d.date}
+                        title={`${d.date}: ${d.count}명`}
+                        className="flex-1 rounded-t bg-stone-800"
+                        style={{ height: `${Math.max((d.count / max) * 100, d.count > 0 ? 4 : 0)}%` }}
+                      />
+                    )
+                  })}
+                </div>
+                <div className="mt-2 flex justify-between text-[11px] text-stone-400">
+                  <span>{data.signupsDaily[0]?.date.slice(5)}</span>
+                  <span>{data.signupsDaily[data.signupsDaily.length - 1]?.date.slice(5)}</span>
+                </div>
+              </div>
+            </section>
+          )}
 
           <Section title="활동">
             <Stat

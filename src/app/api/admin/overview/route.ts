@@ -66,6 +66,7 @@ export const GET = withApiMiddleware(
         purchases30d,
         payingUsers,
         recentSignups,
+        signupRows,
       ] = await Promise.all([
         prisma.user.count({ where: realUserWhere }),
         prisma.user.count({ where: { AND: [realUserWhere, { createdAt: { gte: startOfToday } }] } }),
@@ -122,7 +123,27 @@ export const GET = withApiMiddleware(
           take: 10,
           select: { id: true, email: true, name: true, createdAt: true },
         }),
+        // 일별 가입 추이용: 최근 30일 신규 실회원의 가입일시.
+        prisma.user.findMany({
+          where: { AND: [realUserWhere, { createdAt: { gte: last30d } }] },
+          select: { createdAt: true },
+        }),
       ])
+
+      // 최근 30일 일별 신규 가입 (빈 날도 0)
+      const signupStart = new Date(now)
+      signupStart.setHours(0, 0, 0, 0)
+      signupStart.setDate(signupStart.getDate() - 29)
+      const signupMap = new Map<string, number>()
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(signupStart.getTime() + i * 24 * 60 * 60 * 1000)
+        signupMap.set(d.toISOString().slice(0, 10), 0)
+      }
+      for (const u of signupRows) {
+        const k = u.createdAt.toISOString().slice(0, 10)
+        if (signupMap.has(k)) signupMap.set(k, (signupMap.get(k) ?? 0) + 1)
+      }
+      const signupsDaily = Array.from(signupMap.entries()).map(([date, count]) => ({ date, count }))
 
       return apiSuccess({
         generatedAt: now.toISOString(),
@@ -152,6 +173,7 @@ export const GET = withApiMiddleware(
           name: u.name,
           createdAt: u.createdAt.toISOString(),
         })),
+        signupsDaily,
       } as Record<string, unknown>)
     } catch (err) {
       logger.error('[admin/overview] error', err)
