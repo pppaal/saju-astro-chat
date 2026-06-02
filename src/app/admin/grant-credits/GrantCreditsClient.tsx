@@ -88,7 +88,7 @@ export default function GrantCreditsClient() {
             value={userIdOrEmail}
             onChange={(e) => setUserIdOrEmail(e.target.value)}
             placeholder="user@example.com 또는 cuid..."
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm focus:border-stone-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-mono text-sm focus:border-stone-500 focus:outline-none"
             autoComplete="off"
           />
           <span className="mt-1 block text-[12px] text-stone-500">
@@ -104,7 +104,7 @@ export default function GrantCreditsClient() {
             max={10000}
             value={amount}
             onChange={(e) => setAmount(Math.max(1, parseInt(e.target.value || '0', 10) || 0))}
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-sm focus:border-stone-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 font-mono text-sm focus:border-stone-500 focus:outline-none"
           />
         </label>
 
@@ -113,7 +113,7 @@ export default function GrantCreditsClient() {
           <select
             value={source}
             onChange={(e) => setSource(e.target.value as 'gift' | 'promotion')}
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm focus:border-stone-500 focus:outline-none"
           >
             <option value="gift">gift (선물·사과 보상·테스트)</option>
             <option value="promotion">promotion (프로모션 캠페인)</option>
@@ -128,7 +128,7 @@ export default function GrantCreditsClient() {
             onChange={(e) => setNote(e.target.value)}
             placeholder="예: 결제 실패 보상 / QA 테스트"
             maxLength={500}
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm focus:border-stone-500 focus:outline-none"
           />
           <span className="mt-1 block text-[12px] text-stone-500">
             서버 로그에 남음. 화면이나 사용자에겐 안 보임.
