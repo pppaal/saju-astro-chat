@@ -724,18 +724,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  /* 래퍼가 "한 박스" 다 — 생년월일 칩 + 입력창(ChatInputArea embedded)을
-     이 하나의 박스 안에 담는다. ChatInputArea 는 embedded 라 자기 박스
-     배경/테두리를 끄고 레이아웃만 차지하므로, 흰 테두리가 두 겹 보이던
-     문제가 사라진다. 기본 dark(보라 배경 위 어두운 박스). */
-  padding: 0.6rem 0.7rem;
-  border-radius: 22px;
-  border: 1px solid rgba(212, 181, 114, 0.28);
-  background: linear-gradient(180deg, rgba(15, 17, 35, 0.92), rgba(10, 12, 26, 0.94));
-  box-shadow: 0 12px 36px rgba(8, 8, 24, 0.45);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  /* 입력창은 이제 상담사와 동일하게 공용 ChatInputArea 가 '자기 박스'를 그린다
+     (embedded 아님). 그래서 이 래퍼는 박스(테두리/배경/그림자)를 그리지 않고
+     레이아웃만 담당 — 메인 입력창이 운명/궁합 상담사 입력창과 똑같아 보이게. */
 }
 /* 흰(premium-white) 모드 오버라이드는 아래 .lightMode .homeChatBarInner 참조. */
 
@@ -1194,13 +1185,8 @@
   filter: drop-shadow(0 8px 24px rgba(212, 181, 114, 0.25));
 }
 
-.lightMode .homeChatBarInner {
-  background: #ffffff;
-  border-color: #e7e5e4;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
+/* .lightMode .homeChatBarInner 박스 오버라이드 제거 — 입력창 박스는 공용
+   ChatInputArea(data-theme="light")가 그리므로 래퍼는 투명 유지. */
 
 /* textarea/전송 버튼의 light 오버라이드도 공용 ChatInputArea(data-theme=
    "light")로 이전 — 옛 .lightMode .homeChatTextarea / .homeChatSubmit 제거. */
