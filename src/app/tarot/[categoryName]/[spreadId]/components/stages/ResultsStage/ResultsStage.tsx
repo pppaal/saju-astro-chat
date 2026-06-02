@@ -229,7 +229,7 @@ export function ResultsStage(props: ResultsStageProps) {
             </div>
             {insight?.overall_message ? (
               <p className="text-lg md:text-[19px] text-slate-100 leading-relaxed whitespace-pre-wrap">
-                {renderWithLastSentenceHighlight(insight.overall_message)}
+                {renderWithLastSentenceHighlight(insight.overall_message, !aiPending)}
                 {aiPending && (
                   <span
                     className="inline-block w-1.5 h-4 ml-0.5 align-middle animate-pulse"

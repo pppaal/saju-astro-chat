@@ -48,10 +48,19 @@ const LAST_SENTENCE_MAX_CHARS = 200
  *
  * LLM 이 박는 `**` / `*` 마커는 강조 안 함 (사용자 요청 — 일관성). 마커는
  * plain text 에서 제거됨.
+ *
+ * `enableHighlight=false` (스트리밍 진행 중) 면 강조를 건너뛰고 plain text 만
+ * 반환한다 — 스트리밍 중엔 "마지막 문장" 이 토큰마다 늘어나 amber 박스가
+ * 계속 밀려 보이는 회귀를 막기 위함. 스트리밍이 끝난(=aiPending false) 뒤에만
+ * 최종 문장을 자연스럽게 강조한다.
  */
-export function renderWithLastSentenceHighlight(text: string): React.ReactNode {
+export function renderWithLastSentenceHighlight(
+  text: string,
+  enableHighlight: boolean = true
+): React.ReactNode {
   if (!text || typeof text !== 'string') return text
   const cleaned = stripMarkers(text)
+  if (!enableHighlight) return cleaned
   const sentences = splitIntoSentences(cleaned)
   if (sentences.length <= 1) return cleaned
 
