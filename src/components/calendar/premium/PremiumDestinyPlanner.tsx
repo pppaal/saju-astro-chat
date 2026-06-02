@@ -109,13 +109,6 @@ export default function PremiumDestinyPlanner({
   const [selMonth, setSelMonth] = useState<number>(() => today.getMonth()) // 0-indexed
   const [selDay, setSelDay] = useState<number>(() => today.getDate())
 
-  // ── 본명 뱃지 (제목 자리를 대체 — 누구의 운인지) ──
-  const natalSaju = useMemo(
-    () => data?.allDates?.find((d) => d.natalSaju)?.natalSaju ?? null,
-    [data]
-  )
-  const natalDayPillar = natalSaju ? `${natalSaju.dayStem}${natalSaju.dayBranch}` : null
-
   // ── month 단위 파생 ──
   const monthDates = useMemo<ImportantDate[]>(() => {
     if (!data?.allDates) return []
@@ -184,28 +177,8 @@ export default function PremiumDestinyPlanner({
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-indigo-500/20 blur-3xl rounded-full pointer-events-none" />
 
         <div className="relative bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden flex flex-col min-h-[800px]">
-          {/* Header — 제목 제거. 본명 일주/별자리만 정체성으로 남긴다. */}
-          {(natalDayPillar || data?.astroIdentity?.sunSign) && (
-            <header className="px-8 pt-8 pb-2 flex items-center justify-center gap-2 text-[11px] font-medium">
-              {natalDayPillar && (
-                <span className="inline-flex items-center gap-1 text-amber-300/85">
-                  <Sparkles className="w-3 h-3" />
-                  {locale === 'en'
-                    ? `${natalDayPillar} pillar`
-                    : `${ganjiToKorean(natalDayPillar)} 일주`}
-                </span>
-              )}
-              {natalDayPillar && data?.astroIdentity?.sunSign && (
-                <span className="text-zinc-700">·</span>
-              )}
-              {data?.astroIdentity?.sunSign && (
-                <span className="text-cyan-300/85">{data.astroIdentity.sunSign}</span>
-              )}
-            </header>
-          )}
-
-          {/* Tab Bar */}
-          <div className="px-8 pt-6 mb-8">
+          {/* Tab Bar — 맨 위 (정체성 헤더 제거) */}
+          <div className="px-6 sm:px-8 pt-6 mb-8">
             <div className="flex items-center p-1 bg-zinc-950/50 rounded-2xl border border-white/5 shadow-inner">
               {tabs.map((tab) => {
                 const isActive = tab.id === viewMode
@@ -324,7 +297,13 @@ function LifetimeView({
   onZoom: () => void
   locale?: CalLocale
 }) {
-  const list = pivots ?? []
+  // 엔진의 phase 는 '연 나이(올해−출생연도)' 기준이라 만나이와 ±1 어긋날 수 있어
+  // 신뢰하지 않는다. pivot.year(절대연도)로 "지금부터 +10년"만 필터·정렬하고,
+  // 가장 가까운 분기점을 하이라이트한다.
+  const nowYear = new Date().getFullYear()
+  const list = (pivots ?? [])
+    .filter((p) => p.year >= nowYear && p.year <= nowYear + 10)
+    .sort((a, b) => a.year - b.year)
   return (
     <motion.div
       variants={containerVariants}
@@ -335,25 +314,29 @@ function LifetimeView({
     >
       <motion.div variants={itemVariants} className="mb-10 text-center">
         <h2 className="text-3xl sm:text-4xl font-light text-white mb-3 tracking-tight">
-          {locale === 'en' ? 'Life trajectory' : '인생의 궤적'}
+          {locale === 'en' ? 'Turning points ahead' : '운명의 전환기'}
         </h2>
         <p className="text-sm text-zinc-400 font-light">
           {locale === 'en'
-            ? 'Major pivots where sky and chart turn together.'
-            : '점성·사주가 함께 도는 큰 전환의 시기들'}
+            ? 'The next 10 years — where sky and chart turn together.'
+            : '지금부터 10년, 사주·점성이 함께 도는 큰 시기'}
         </p>
       </motion.div>
 
       {list.length === 0 ? (
         <motion.p variants={itemVariants} className="text-center text-sm text-zinc-600 py-16">
-          {locale === 'en' ? 'No lifetime pivots available.' : '인생 분기점 데이터가 없습니다.'}
+          {locale === 'en'
+            ? 'No major turning points in the next 10 years — a steady stretch.'
+            : '앞으로 10년 안엔 큰 전환점이 없어요 — 비교적 안정적인 시기예요.'}
         </motion.p>
       ) : (
         <div className="relative flex-1 max-w-md mx-auto w-full">
           <div className="absolute left-[15px] top-4 bottom-4 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
           <div className="space-y-10">
             {list.map((p, idx) => {
-              const highlight = p.phase === 'current'
+              // 가장 가까운(첫) 분기점을 하이라이트 — 연도 기준이라 만나이 오차와 무관
+              const highlight = idx === 0
+              const thisYear = p.year === nowYear
               return (
                 <motion.div
                   variants={itemVariants}
@@ -366,9 +349,7 @@ function LifetimeView({
                     className={`absolute left-[11px] top-2 w-2 h-2 rounded-full transition-all duration-500 ${
                       highlight
                         ? 'bg-amber-300 shadow-lg shadow-amber-300/50 scale-125'
-                        : p.phase === 'past'
-                          ? 'bg-zinc-800'
-                          : 'bg-zinc-700 group-hover:bg-zinc-500'
+                        : 'bg-zinc-700 group-hover:bg-zinc-500'
                     }`}
                   />
                   <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-2">
@@ -384,7 +365,13 @@ function LifetimeView({
                     )}
                     {highlight && (
                       <span className="text-[9px] uppercase tracking-wider bg-amber-500/10 text-amber-200/80 px-2 py-0.5 rounded border border-amber-500/20">
-                        {locale === 'en' ? 'Current Phase' : '지금 이 시기'}
+                        {thisYear
+                          ? locale === 'en'
+                            ? 'This year'
+                            : '올해'
+                          : locale === 'en'
+                            ? 'Coming up'
+                            : '다가오는 시기'}
                       </span>
                     )}
                   </div>
