@@ -175,6 +175,10 @@ export interface ChatProps {
   // 그대로 보존). 운명 상담사에서 생년월일·출생시간이 없는 채로 첫 메시지를
   // 보내려 할 때 BirthInfoModal 을 대신 띄우는 용도. 미지정 시 항상 전송.
   onSendBlocked?: (text: string) => boolean
+  // 입력창(.inputBox)에 줄 view-transition-name. 메인 홈 입력창과 같은 이름을
+  // 주면 라우트 전환 시 입력창이 하나로 이어져(morph) 보인다. 운명 상담사
+  // 페이지에서만 넘기고, 타로/궁합 인라인처럼 입력창이 여러 개인 곳엔 넘기지 말 것.
+  inputViewTransitionName?: string
 }
 
 // Chat API request payload

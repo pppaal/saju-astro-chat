@@ -136,6 +136,7 @@ export default function HomeChatInput({
           theme={lightMode ? 'light' : 'dark'}
           embedded
           topSlot={birthSlot}
+          viewTransitionName="destiny-input"
         />
       </div>
     </div>

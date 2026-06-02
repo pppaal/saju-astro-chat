@@ -146,6 +146,14 @@ interface ChatInputAreaProps {
    * 넣기 위해 사용. 미지정 시 아무것도 렌더하지 않는다.
    */
   topSlot?: React.ReactNode
+  /**
+   * 입력 박스(.inputBox)에 부여할 CSS view-transition-name. 메인 홈 입력창과
+   * 운명 상담사 입력창에 같은 이름을 주면, 라우트 전환 시 브라우저 View
+   * Transitions API 가 두 박스를 하나로 이어(morph) 애니메이션한다. 한 페이지에
+   * 같은 이름이 둘 이상이면 전환이 무효화되므로, 입력창이 하나뿐인 곳에서만
+   * 넘길 것(타로/궁합 인라인처럼 여러 개면 넘기지 말 것).
+   */
+  viewTransitionName?: string
 }
 
 export const ChatInputArea = React.memo(function ChatInputArea({
@@ -175,6 +183,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   theme = 'dark',
   embedded = false,
   topSlot,
+  viewTransitionName,
 }: ChatInputAreaProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const styles = stylesOverride ?? internalStyles
@@ -237,7 +246,10 @@ export const ChatInputArea = React.memo(function ChatInputArea({
 
   return (
     <div className={styles.inputArea} data-theme={theme} data-embedded={embedded || undefined}>
-      <div className={styles.inputBox}>
+      <div
+        className={styles.inputBox}
+        style={viewTransitionName ? { viewTransitionName } : undefined}
+      >
         {topSlot ? <div className={styles.inputBoxTop}>{topSlot}</div> : null}
         <textarea
           ref={textareaRef}

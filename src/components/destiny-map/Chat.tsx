@@ -47,6 +47,7 @@ const Chat = memo(function Chat({
   initialSessionId,
   onSessionChange,
   onSendBlocked,
+  inputViewTransitionName,
 }: ChatProps) {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
@@ -629,6 +630,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onOpenChart={goToChart}
               autoFocus={autoFocus}
               theme="light"
+              viewTransitionName={inputViewTransitionName}
             />
           </div>
         </section>
