@@ -1131,7 +1131,7 @@ body {
  * ===================================================================== */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.45s;
+  animation-duration: 0.55s;
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 

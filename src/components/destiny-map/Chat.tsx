@@ -605,6 +605,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                 fallbackNote: tr.fallbackNote,
               }}
               lang={lang}
+              placeholderPrompts={[]}
               onInputChange={setInput}
               onKeyDown={onKeyDown}
               onSend={() => void handleSend()}
