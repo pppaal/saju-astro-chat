@@ -104,6 +104,9 @@ export default function YearDashboard({
       if (m >= 1 && m <= 12) convergenceMonths.add(m)
     }
   }
+  // YearBigDaysCard 가 정렬 수렴일을 보여줄 때만 CrossInsightCard 의 aligned 스팟을 숨겨 중복 제거.
+  const hasYearBigDays =
+    (yearlyConvergence?.keyDays ?? []).filter((d) => d.bothSystems && d.meaning).length > 0
 
   // Flow chart 데이터
   const flowData: FlowPoint[] = yearlyMonthly.map((m) => {
@@ -166,7 +169,9 @@ export default function YearDashboard({
         onMonthClick={onMonthClick}
       />
 
-      {allDates && allDates.length > 0 && <CrossInsightCard dates={allDates} locale={locale} />}
+      {allDates && allDates.length > 0 && (
+        <CrossInsightCard dates={allDates} locale={locale} suppressAlignedSpot={hasYearBigDays} />
+      )}
 
       {lifeEntries.length > 0 && <LifeTimeline entries={lifeEntries} locale={locale} />}
     </div>
