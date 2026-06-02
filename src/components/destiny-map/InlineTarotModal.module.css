@@ -16,7 +16,8 @@
   justify-content: center;
   z-index: 1000;
   padding: 20px;
-  animation: fadeIn 0.3s ease-out;
+  /* 열기/닫기 + 색 페이드는 framer-motion(AnimatePresence)으로 처리 —
+     CSS keyframe 과 중복되지 않게 제거. */
 }
 
 .modal {
@@ -33,7 +34,6 @@
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.04),
     0 20px 50px rgba(0, 0, 0, 0.12);
-  animation: slideUp 0.4s ease-out;
 }
 
 @supports not (height: 100dvh) {
