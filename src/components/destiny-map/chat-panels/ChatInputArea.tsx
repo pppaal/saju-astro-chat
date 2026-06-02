@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { LangKey } from '../chat-i18n'
 import { useTypewriterPlaceholder } from '@/hooks/useTypewriterPlaceholder'
 import internalStyles from './ChatInputArea.module.css'
@@ -283,8 +284,17 @@ export const ChatInputArea = React.memo(function ChatInputArea({
               >
                 <span aria-hidden="true">&#x22EE;</span>
               </button>
+              <AnimatePresence>
               {toolsOpen && (
-                <div role="menu" className={styles.toolMenuPopover}>
+                <motion.div
+                  role="menu"
+                  className={styles.toolMenuPopover}
+                  initial={{ opacity: 0, scale: 0.96, y: 6 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: 6 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                  style={{ transformOrigin: 'bottom left' }}
+                >
                   {onFileUpload && (
                   <label
                     role="menuitem"
@@ -366,8 +376,9 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                       </span>
                     </button>
                   )}
-                </div>
+                </motion.div>
               )}
+              </AnimatePresence>
             </div>
             )}
             {parsingPdf && (
