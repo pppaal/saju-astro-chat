@@ -266,11 +266,13 @@ function TarotReadingPage() {
   // FollowupChat 안의 PATCH 로 같은 row 에 갱신. 운명·궁합 상담사 채팅이
   // 이미 자동 저장이라 타로만 수동이던 일관성 격차 제거.
   //
-  // saveAttemptedSignatureRef — 한 readingSignature 에 대해 한 번 시도하면
-  // 실패해도 자동 재시도하지 않는다. 서버 측 일시적 오류(500)일 때 useEffect 가
-  // isSaving toggle 로 무한 루프 돌던 회귀 차단. 사용자가 새 리딩을 뽑아
-  // readingSignature 가 바뀌면 자연스럽게 새 시도가 가능.
-  const saveAttemptedSignatureRef = useRef<string | null>(null)
+  // readingSignature → 저장 시도 횟수. 직전 구현은 ref 에 signature 하나만
+  // 박아 "한 번 시도하면 성공·실패 무관 영구 차단" 이었는데, 모바일에서 첫
+  // POST 가 일시 네트워크 오류로 실패하면 그 리딩이 영영 저장 안 되고 (수동
+  // 저장 버튼도 없어) 조용히 누락되던 회귀의 원인. 성공하면 isSaved=true 로
+  // 아래 가드가 멈추고, 실패하면 isSaving 토글로 effect 가 재실행되며 최대
+  // 3 회까지 재시도 — 영구 오류(검증/500)에서의 무한 루프는 cap 으로 차단.
+  const saveAttemptsRef = useRef<Map<string, number>>(new Map())
   React.useEffect(() => {
     if (status !== 'authenticated') return
     if (interpretationHook.isSaved || isSaving) return
@@ -280,8 +282,9 @@ function TarotReadingPage() {
     // 히스토리에 쌓일 위험.
     if (gameHook.interpretation.fallback === true) return
     if (!readingSignature) return
-    if (saveAttemptedSignatureRef.current === readingSignature) return
-    saveAttemptedSignatureRef.current = readingSignature
+    const attempts = saveAttemptsRef.current.get(readingSignature) ?? 0
+    if (attempts >= 3) return
+    saveAttemptsRef.current.set(readingSignature, attempts + 1)
     void handleSaveReading()
   }, [
     status,

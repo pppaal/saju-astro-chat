@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { MessageCircle, Loader2, AlertCircle, History, RotateCcw } from 'lucide-react'
+import { MessageCircle, Loader2, AlertCircle, History, RotateCcw, Check, Save } from 'lucide-react'
 
 /**
  * Haiku 스트림이 30-60s 가 걸리는 경우가 있어, 단순 spinner 만 노출하면
@@ -102,7 +102,7 @@ export function ResultsStage(props: ResultsStageProps) {
     isCardRevealed,
     isSaving,
     isSaved,
-    saveMessage: _saveMessage, // 자동 저장 통일 후 UI 미사용 (호환성 prop 만 유지)
+    saveMessage,
     handleSaveReading,
     handleReset,
     interpretationFailed = false,
@@ -113,31 +113,10 @@ export function ResultsStage(props: ResultsStageProps) {
   const insight = interpretation
   const aiPending = insight?.fallback === true && !interpretationFailed
 
-  // 자동 저장 — AI 해석 완료 + 미저장 + 게스트 아님 시점에 한 번. 사용자가
-  // "저장" 버튼 안 눌러도 history 에 자동 등록 → 과거 기록 페이지에 방금 본
-  // 결과가 항상 최신으로 보이게.
-  React.useEffect(() => {
-    if (
-      !aiPending &&
-      insight?.overall_message &&
-      !isSaved &&
-      !isSaving &&
-      !interpretationFailed &&
-      !isGuestUser
-    ) {
-      handleSaveReading().catch(() => {
-        /* save 실패는 silent — Save 버튼이 backup */
-      })
-    }
-  }, [
-    aiPending,
-    insight?.overall_message,
-    isSaved,
-    isSaving,
-    interpretationFailed,
-    isGuestUser,
-    handleSaveReading,
-  ])
+  // 자동 저장은 page.tsx 의 effect 한 곳에서만 (status==='authenticated' +
+  // readingSignature 별 최대 3회 재시도 cap). 여기 있던 중복 effect 는
+  // 재시도 cap 이 없어 영구 실패 시 isSaving 토글로 무한 루프 위험 → 제거.
+  // 자동 저장이 실패해도 아래 "기록에 저장" 수동 버튼으로 사용자가 만회.
   const hasGuidance =
     insight?.guidance &&
     (Array.isArray(insight.guidance)
@@ -179,6 +158,49 @@ export function ResultsStage(props: ResultsStageProps) {
               {isKo ? '로그인하고 계속 보기' : 'Sign In To Continue'}
             </Link>
           </section>
+        )}
+
+        {/* 저장 상태 — 자동 저장이 (모바일 일시 오류 등으로) 실패해도 사용자가
+            직접 만회할 수 있게 상태 + 수동 저장 버튼 노출. 로그인 사용자 +
+            정상 LLM 해석 도착 후에만. (#1072 자동저장 도입 후 무음 누락 보완) */}
+        {!isGuestUser && !aiPending && insight?.overall_message && (
+          <div className="flex items-center justify-center">
+            {isSaved ? (
+              <span className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                {isKo ? '기록에 저장됨' : 'Saved to history'}
+              </span>
+            ) : (
+              <div className="flex flex-col items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => void handleSaveReading()}
+                  disabled={isSaving}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[rgba(212,181,114,0.12)] hover:bg-[rgba(212,181,114,0.2)] border border-[rgba(212,181,114,0.35)] text-[#e8cc8a] text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  {isSaving
+                    ? isKo
+                      ? '저장 중…'
+                      : 'Saving…'
+                    : isKo
+                      ? '기록에 저장'
+                      : 'Save to history'}
+                </button>
+                {(saveMessage === '저장 실패' || saveMessage === 'Save failed') && (
+                  <span className="text-[11px] text-rose-300/80">
+                    {isKo
+                      ? '저장에 실패했어요. 잠시 후 다시 눌러주세요.'
+                      : 'Saving failed. Please tap again in a moment.'}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {/* ② 카드 펼치기 */}
