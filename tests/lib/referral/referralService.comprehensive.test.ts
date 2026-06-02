@@ -246,7 +246,7 @@ describe('Referral Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.creditsAwarded).toBe(5)
-      expect(addBonusCredits).toHaveBeenCalledWith('referrer-1', 5)
+      expect(addBonusCredits).toHaveBeenCalledWith('referrer-1', 5, 'referral')
     })
 
     it('should return error when no pending reward', async () => {

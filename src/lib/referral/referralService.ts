@@ -257,8 +257,9 @@ export async function claimReferralReward(
       return { success: false, error: 'no_pending_reward' }
     }
 
-    // 추천인에게 크레딧 지급
-    await addBonusCredits(pendingReward.userId, pendingReward.creditsAwarded)
+    // 추천인에게 크레딧 지급 (source 를 명시하지 않으면 addBonusCredits 기본값
+    // 'purchase' 로 기록돼 결제 지표에 잡히므로 반드시 'referral' 로 지정).
+    await addBonusCredits(pendingReward.userId, pendingReward.creditsAwarded, 'referral')
 
     // 보상 상태 업데이트
     await prisma.referralReward.update({

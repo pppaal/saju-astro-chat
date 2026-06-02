@@ -117,7 +117,7 @@ describe('GET /api/admin/users-by', () => {
     expect(data.segment).toBe('paying')
     expect(data.count).toBe(2) // distinct purchasers
     const gb = vi.mocked(prisma.bonusCreditPurchase.groupBy).mock.calls[0][0] as any
-    expect(gb.where.source).toBe('purchase')
+    expect(gb.where.stripePaymentId).toEqual({ not: null })
   })
 
   it('returns empty paying list without querying users when nobody paid', async () => {

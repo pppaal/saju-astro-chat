@@ -58,11 +58,12 @@ export const GET = withApiMiddleware(
       const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-      // 결제유저: 실결제(source=purchase) 한 distinct userId → 그 회원들.
+      // 결제유저: 실결제(Stripe 표식 stripePaymentId 있음) distinct userId → 그
+      // 회원들. source='purchase' 는 addBonusCredits 기본값이라 추천·지급도 섞임.
       if (segment === 'paying') {
         const grouped = await prisma.bonusCreditPurchase.groupBy({
           by: ['userId'],
-          where: { source: 'purchase' },
+          where: { stripePaymentId: { not: null } },
         })
         const ids = grouped.map((g) => g.userId)
         const users = ids.length

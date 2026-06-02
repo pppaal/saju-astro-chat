@@ -57,20 +57,24 @@ export const GET = withApiMiddleware(
       const startOfToday = new Date(now)
       startOfToday.setHours(0, 0, 0, 0)
 
+      // 실결제 표식. source 기본값이 'purchase' 라 신뢰 불가 →
+      // Stripe 결제 표식(stripePaymentId)이 있는 행만 '구매'로 본다.
+      const paidWhere = { stripePaymentId: { not: null } }
+
       const [windowPurchases, economy, consumeAgg, refunds] = await Promise.all([
-        // 기간 내 유료 구매 (일별·팩별·매출 추정용)
+        // 기간 내 실결제 구매 (일별·팩별·매출 추정용)
         prisma.bonusCreditPurchase.findMany({
-          where: { source: 'purchase', createdAt: { gte: since } },
+          where: { ...paidWhere, createdAt: { gte: since } },
           select: { amount: true, createdAt: true },
         }),
         // 크레딧 경제 스냅샷(전체 기간): 발행/잔여/만료
         Promise.all([
           prisma.bonusCreditPurchase.aggregate({
-            where: { source: 'purchase' },
+            where: paidWhere,
             _sum: { amount: true },
           }),
           prisma.bonusCreditPurchase.aggregate({
-            where: { source: { not: 'purchase' } },
+            where: { stripePaymentId: null },
             _sum: { amount: true },
           }),
           prisma.bonusCreditPurchase.aggregate({

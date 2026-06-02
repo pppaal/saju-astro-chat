@@ -90,23 +90,31 @@ export const GET = withApiMiddleware(
             where: { createdAt: { gte: startOfToday } },
           }),
         ]).then(([a, b]) => new Set([...a, ...b].map((r) => r.userId)).size),
-        // 만료 전 잔여 보너스 크레딧 합계 (실제 미사용 부채).
+        // 만료 전 미사용 '구매' 크레딧 (실제 결제 후 미사용 = 환불 위험 부채).
+        // source 기본값이 'purchase' 라 신뢰 불가 → 실결제 표식인 stripePaymentId
+        // 가 있는 행만 집계한다.
         prisma.bonusCreditPurchase
           .aggregate({
-            where: { expired: false, expiresAt: { gt: now }, remaining: { gt: 0 } },
+            where: {
+              stripePaymentId: { not: null },
+              expired: false,
+              expiresAt: { gt: now },
+              remaining: { gt: 0 },
+            },
             _sum: { remaining: true },
           })
           .then((r) => r._sum.remaining ?? 0),
-        // 실결제(크레딧팩 구매)만 — source='purchase'.
-        prisma.bonusCreditPurchase.count({ where: { source: 'purchase' } }),
+        // 실결제(크레딧팩 구매)만 — Stripe 결제 표식(stripePaymentId)이 있는 행.
+        // (source='purchase' 는 addBonusCredits 기본값이라 추천·지급도 섞인다.)
+        prisma.bonusCreditPurchase.count({ where: { stripePaymentId: { not: null } } }),
         prisma.bonusCreditPurchase.count({
-          where: { source: 'purchase', createdAt: { gte: startOfToday } },
+          where: { stripePaymentId: { not: null }, createdAt: { gte: startOfToday } },
         }),
         prisma.bonusCreditPurchase.count({
-          where: { source: 'purchase', createdAt: { gte: last30d } },
+          where: { stripePaymentId: { not: null }, createdAt: { gte: last30d } },
         }),
         prisma.bonusCreditPurchase
-          .groupBy({ by: ['userId'], where: { source: 'purchase' } })
+          .groupBy({ by: ['userId'], where: { stripePaymentId: { not: null } } })
           .then((rows) => rows.length),
         prisma.user.findMany({
           where: realUserWhere,

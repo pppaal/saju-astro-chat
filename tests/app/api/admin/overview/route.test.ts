@@ -185,13 +185,17 @@ describe('GET /api/admin/overview', () => {
       expect(data.credits.outstanding).toBe(1234)
     })
 
-    it('counts only real purchases (source=purchase)', async () => {
+    it('counts only real Stripe purchases (stripePaymentId not null)', async () => {
       const data = (await (await GET(createRequest())).json()).data
       expect(data.purchases.total).toBe(80)
       expect(data.purchases.today).toBe(2)
       expect(data.purchases.last30d).toBe(25)
+      // source 기본값이 'purchase' 라 신뢰 불가 → stripePaymentId 로 실결제 판별
       const purchaseWhere = vi.mocked(prisma.bonusCreditPurchase.count).mock.calls[0][0] as any
-      expect(purchaseWhere.where.source).toBe('purchase')
+      expect(purchaseWhere.where.stripePaymentId).toEqual({ not: null })
+      // paying users 도 동일 기준
+      const payingWhere = vi.mocked(prisma.bonusCreditPurchase.groupBy).mock.calls[0][0] as any
+      expect(payingWhere.where.stripePaymentId).toEqual({ not: null })
     })
 
     it('serializes recent signups with ISO dates', async () => {

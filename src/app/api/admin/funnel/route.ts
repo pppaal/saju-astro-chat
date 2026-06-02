@@ -62,7 +62,9 @@ export const GET = withApiMiddleware(
             select: { userId: true },
           }),
           prisma.bonusCreditPurchase.findMany({
-            where: { ...inIds, source: 'purchase' },
+            // 실결제 표식(stripePaymentId)이 있는 행만 — source='purchase' 는
+            // addBonusCredits 기본값이라 추천·지급도 섞인다.
+            where: { ...inIds, stripePaymentId: { not: null } },
             distinct: ['userId'],
             select: { userId: true },
           }),

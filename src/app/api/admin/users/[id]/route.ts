@@ -72,7 +72,9 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
           recentTx,
         ] = await Promise.all([
           prisma.userCredits.findUnique({ where: { userId: id } }),
-          prisma.bonusCreditPurchase.count({ where: { userId: id, source: 'purchase' } }),
+          prisma.bonusCreditPurchase.count({
+            where: { userId: id, stripePaymentId: { not: null } },
+          }),
           prisma.bonusCreditPurchase.findMany({
             where: { userId: id },
             orderBy: { createdAt: 'desc' },
@@ -143,7 +145,8 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
           })),
           ...recentPurchases.map((p) => ({
             type: 'purchase',
-            label: p.source === 'purchase' ? '구매' : `보너스(${p.source})`,
+            // 실결제 여부는 source 기본값('purchase') 대신 stripePaymentId 로 판별.
+            label: p.stripePaymentId ? '구매' : `보너스(${p.source})`,
             detail: `+${p.amount} 크레딧`,
             at: p.createdAt.toISOString(),
           })),

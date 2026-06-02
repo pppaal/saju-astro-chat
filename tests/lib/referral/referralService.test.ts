@@ -679,7 +679,7 @@ describe('Referral Service with mocked Prisma', () => {
 
       expect(result.success).toBe(true)
       expect(result.creditsAwarded).toBe(3)
-      expect(addBonusCredits).toHaveBeenCalledWith('referrer-1', 3)
+      expect(addBonusCredits).toHaveBeenCalledWith('referrer-1', 3, 'referral')
     })
 
     it('handles database errors', async () => {

@@ -334,7 +334,7 @@ describe('Referral Service', () => {
       expect(result.success).toBe(true)
       expect(result.creditsAwarded).toBe(5)
 
-      expect(addBonusCredits).toHaveBeenCalledWith('referrer_123', 5)
+      expect(addBonusCredits).toHaveBeenCalledWith('referrer_123', 5, 'referral')
       expect(prisma.referralReward.update).toHaveBeenCalledWith({
         where: { id: 'reward_123' },
         data: {

@@ -349,9 +349,9 @@ export default function AdminOverviewClient() {
             <Stat label="오늘 구매" value={fmt(data.purchases.today)} />
             <Stat label="최근 30일 구매" value={fmt(data.purchases.last30d)} />
             <Stat
-              label="미사용 보너스 크레딧"
+              label="미사용 구매 크레딧"
               value={fmt(data.credits.outstanding)}
-              hint="만료 전 잔여 합계"
+              hint="결제 후 미사용 (만료 전)"
             />
           </Section>
           {renderPanel(['paying'])}
