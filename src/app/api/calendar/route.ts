@@ -17,7 +17,6 @@ import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
 import { logger } from '@/lib/logger'
-import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { normalizeGender } from '@/lib/utils/gender'
 import { nowInTimezone } from '@/lib/utils/timezone'
@@ -344,65 +343,13 @@ export const GET = withApiMiddleware(
       astroProfile.transitAspects = transitAspects
       astroProfile.majorTransits = majorTransits
 
-      // ── Full-year transit scores ──
-      // Compute longitude-only transit aspects for all 365 days against
-      // the user's natal chart. ~350ms total (Swiss ephemeris is fast
-      // enough for batch). Results threaded into engine as a new
-      // dailyTransitScores axis.
-      try {
-        const { calculateTransitPlanetsBatch, scoreTransitDay } =
-          await import('@/lib/astrology/foundation/transitBatch')
-        const isoList: string[] = []
-        const dateKeys: string[] = []
-        const yearStart = new Date(year, 0, 1)
-        const yearEnd = new Date(year, 11, 31)
-        for (let d = new Date(yearStart); d <= yearEnd; d.setDate(d.getDate() + 1)) {
-          const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-          dateKeys.push(ymd)
-          isoList.push(`${ymd}T12:00:00`)
-        }
-        // transit batch (365일 행성 위치) 는 결정적 — year + timezone 만 의존.
-        // 사용자 별로 다시 계산하지 않고 Redis 공유 캐시 → 첫 사용자가 ~350ms
-        // 부담하면 그 다음 같은 (year, tz) 모든 사용자 즉시 HIT.
-        const batch = await cacheOrCalculate(
-          CacheKeys.transitBatch(year, timezone),
-          async () => calculateTransitPlanetsBatch(isoList, timezone),
-          CACHE_TTL.NATAL_CHART // 30일 — 트랜짓 데이터는 연도 단위로 결정됨
-        )
-        const natalLongs: Record<string, number> = {}
-        for (const p of natalChartData.planets || []) natalLongs[p.name] = p.longitude
-        if (natalChartData.ascendant) natalLongs['Ascendant'] = natalChartData.ascendant.longitude
-        if (natalChartData.mc) natalLongs['MC'] = natalChartData.mc.longitude
-        const dailyTransitScores: Record<string, number> = {}
-        const dailyTransitTightest: Record<
-          string,
-          Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
-        > = {}
-        const dailyRetrograde: Record<string, string[]> = {}
-        for (let i = 0; i < batch.length; i++) {
-          const result = scoreTransitDay(natalLongs, batch[i])
-          dailyTransitScores[dateKeys[i]] = result.score
-          dailyTransitTightest[dateKeys[i]] = result.tightest
-          const rxs = batch[i].planets.filter((p) => p.retrograde).map((p) => p.name)
-          if (rxs.length > 0) dailyRetrograde[dateKeys[i]] = rxs
-        }
-        ;(astroProfile as { dailyTransitScores?: Record<string, number> }).dailyTransitScores =
-          dailyTransitScores
-        ;(
-          astroProfile as {
-            dailyTransitTightest?: Record<
-              string,
-              Array<{ transitPlanet: string; natalPoint: string; aspect: string; orb: number }>
-            >
-          }
-        ).dailyTransitTightest = dailyTransitTightest
-        ;(astroProfile as { dailyRetrograde?: Record<string, string[]> }).dailyRetrograde =
-          dailyRetrograde
-      } catch (batchError) {
-        logger.warn('[calendar] full-year transit batch failed', {
-          error: batchError instanceof Error ? batchError.message : String(batchError),
-        })
-      }
+      // NOTE: 이전엔 여기서 365일 longitude-only transit batch 를 돌려
+      // astroProfile.dailyTransitScores / dailyTransitTightest / dailyRetrograde
+      // 에 채웠다(~350ms). v2(calendar-engine) 마이그레이션에서 점수·서사를 셀
+      // 출처 단일화하며 그 axis 주입 배선이 끊겼고(구 v3 blend·engineScores 폐기),
+      // 세 필드는 어디서도 읽히지 않는 dead write 로 남아 매 cold 요청에 ~350ms
+      // 를 헛되이 태우고 있었다. 블록 전체 제거 — 트랜짓 신호는 calendar-engine
+      // 의 astro extractor 가 셀 빌드 시점에 자체 계산한다.
     } catch (astroError) {
       logger.error('[Calendar] full astrology input failed', {
         error: astroError instanceof Error ? astroError.message : String(astroError),
