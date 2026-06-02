@@ -70,7 +70,7 @@ export default function GrantCreditsClient() {
   return (
     <div className="mx-auto max-w-xl px-5 py-10">
       <header className="mb-6">
-        <h1 className="text-xl font-semibold text-stone-900">크레딧 충전 (어드민)</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-stone-900">크레딧 충전 (어드민)</h1>
         <p className="mt-2 text-sm leading-relaxed text-stone-600">
           유저 이메일 또는 User ID 로 즉시 보너스 크레딧 지급. 만료 3개월. 테스트·사과 보상·프로모션
           용도.

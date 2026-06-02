@@ -36,7 +36,7 @@
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   margin-bottom: 0.25rem;
@@ -128,11 +128,15 @@
   margin-bottom: 2rem;
 }
 
+/* 개요·사용량 페이지의 섹션 라벨과 동일한 스타일
+   (text-sm font-semibold uppercase tracking-wide text-stone-500) */
 .sectionTitle {
-  font-size: 1.05rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  margin-bottom: 1rem;
-  color: #292524;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.85rem;
+  color: #78716c;
 }
 
 .subSectionTitle {
@@ -154,6 +158,17 @@
   border: 1px solid #e7e5e4;
   border-radius: 1rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* 큰 숫자 지표는 개요 페이지처럼 monospace + tabular-nums 로 통일해
+   자릿수가 흔들리지 않게 한다. (Tailwind font-mono 와 동일 스택) */
+.slaValue,
+.metricValue,
+.funnelValue,
+.distributionCount,
+.cohortUsers,
+.cohortCell {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
 /* SLA Grid */
