@@ -346,6 +346,61 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           )}
         </div>
 
+        {/* 상담사 선택 카드 — 사주(밝은 톤)·타로(어두운 톤)·궁합(로즈) 으로 톤을
+            대비. 탭하면 살짝 눌리고(whileTap) 해당 상담사 라우트로 이동(앱 전체
+            View Transition 으로 부드럽게). 입력창은 운명 상담 빠른 진입으로 유지. */}
+        <div className={styles.homeCounselorCards}>
+          <motion.button
+            type="button"
+            className={`${styles.counselorCard} ${styles.counselorCardSaju}`}
+            whileTap={{ scale: 0.96 }}
+            whileHover={{ y: -2 }}
+            onClick={() =>
+              router.push(birthInfo ? buildCounselorHref(birthInfo, '', locale) : '/destiny-counselor')
+            }
+          >
+            <span className={styles.counselorCardIcon} aria-hidden="true">
+              🔮
+            </span>
+            <span className={styles.counselorCardLabel}>
+              {locale === 'ko' ? '운명 상담' : 'Destiny'}
+            </span>
+            <span className={styles.counselorCardDesc}>{locale === 'ko' ? '사주·운세' : 'Saju'}</span>
+          </motion.button>
+
+          <motion.button
+            type="button"
+            className={`${styles.counselorCard} ${styles.counselorCardTarot}`}
+            whileTap={{ scale: 0.96 }}
+            whileHover={{ y: -2 }}
+            onClick={() => router.push('/tarot')}
+          >
+            <span className={styles.counselorCardIcon} aria-hidden="true">
+              🃏
+            </span>
+            <span className={styles.counselorCardLabel}>{locale === 'ko' ? '타로' : 'Tarot'}</span>
+            <span className={styles.counselorCardDesc}>
+              {locale === 'ko' ? '카드 리딩' : 'Card reading'}
+            </span>
+          </motion.button>
+
+          <motion.button
+            type="button"
+            className={`${styles.counselorCard} ${styles.counselorCardCompat}`}
+            whileTap={{ scale: 0.96 }}
+            whileHover={{ y: -2 }}
+            onClick={() => router.push('/compatibility/counselor')}
+          >
+            <span className={styles.counselorCardIcon} aria-hidden="true">
+              💞
+            </span>
+            <span className={styles.counselorCardLabel}>{locale === 'ko' ? '궁합' : 'Match'}</span>
+            <span className={styles.counselorCardDesc}>
+              {locale === 'ko' ? '두 사람' : 'Two people'}
+            </span>
+          </motion.button>
+        </div>
+
         <HomeChatInput
           birthInfo={birthInfo}
           onRequireBirth={handleRequireBirth}
