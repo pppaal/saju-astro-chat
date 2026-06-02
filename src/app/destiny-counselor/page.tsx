@@ -182,8 +182,19 @@ export default function CounselorPage() {
   // remounts with empty state.
   const handleChatReset = useCallback(() => {
     clearPendingChat('destiny')
+    // 과거 채팅(?session=)을 보던 중이면 URL 에서 session 파라미터를 떼어내야
+    // 한다. 안 떼면 remount 직후 Chat 이 initialSessionId 로 같은 세션을 다시
+    // resume 해서 '새 채팅'이 빈 화면으로 안 보인다("새 채팅 눌러도 그대로").
+    // 생년월일 등 인물 컨텍스트 파라미터는 보존. (자동복원은 ref 로 가드돼
+    // bare 진입이 돼도 직전 채팅을 재-resume 하지 않는다.)
+    if (initialSessionId) {
+      const params = new URLSearchParams(Array.from(rawSearchParams?.entries() ?? []))
+      params.delete('session')
+      const qs = params.toString()
+      router.replace(qs ? `/destiny-counselor?${qs}` : '/destiny-counselor')
+    }
     setChatResetKey((k) => k + 1)
-  }, [])
+  }, [initialSessionId, rawSearchParams, router])
 
   // 대상 인물 변경 — '내 정보 수정'(프로필 저장) / '다른 사람 보기'(임시, 저장 X).
   // 대상 인물 — '내 정보 수정' 하나만. 공용 BirthInfoModal 재사용, 저장되면
