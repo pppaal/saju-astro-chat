@@ -165,17 +165,33 @@ export function deriveConvergence(
     })
   }
   scored.sort((a, b) => b.score - a.score)
-  // 같은 구간 중복 줄이기 — 3일 이내 근접일은 상위 하나만.
   const picked: ConvergenceDay[] = []
+  const tooClose = (d: ConvergenceDay) =>
+    picked.some(
+      (p) => Math.abs(new Date(p.date).getTime() - new Date(d.date).getTime()) < 3 * 86_400_000
+    )
+  // 다양성 — 같은 사주 근거 묶음(예: 亥-일진의 지지형/육합/파)이 큰 날을 도배하지
+  // 않게 동일 사주 시그니처는 최대 2개. (astro 는 날마다 달라 점성-only 빈 사주는 캡 제외)
+  const SAJU_SIG_CAP = 2
+  const sigCount = new Map<string, number>()
+  const sigOf = (d: ConvergenceDay) => [...d.saju].sort().join('|')
+  // pass 1: 근접 dedup + 사주 시그니처 캡
   for (const d of scored) {
     if (picked.length >= topN) break
-    if (
-      picked.some(
-        (p) => Math.abs(new Date(p.date).getTime() - new Date(d.date).getTime()) < 3 * 86_400_000
-      )
-    )
-      continue
+    if (tooClose(d)) continue
+    const sig = sigOf(d)
+    if (sig && (sigCount.get(sig) ?? 0) >= SAJU_SIG_CAP) continue
     picked.push(d)
+    if (sig) sigCount.set(sig, (sigCount.get(sig) ?? 0) + 1)
+  }
+  // pass 2: 캡 때문에 topN 못 채웠으면 캡 무시하고 채움(근접 dedup 유지)
+  if (picked.length < topN) {
+    for (const d of scored) {
+      if (picked.length >= topN) break
+      if (picked.includes(d)) continue
+      if (tooClose(d)) continue
+      picked.push(d)
+    }
   }
   return { keyDays: picked }
 }
