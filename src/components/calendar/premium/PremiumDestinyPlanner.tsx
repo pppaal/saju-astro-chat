@@ -799,7 +799,7 @@ function MonthView({
                 <ThemeBar label={t.themeName(r.theme)} score={r.score} />
                 {factors.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {factors.map((f, i) => (
+                    {factors.slice(0, 3).map((f, i) => (
                       <span
                         key={i}
                         className={`text-[10px] px-2 py-0.5 rounded-md border ${
@@ -845,26 +845,13 @@ function MonthView({
         </motion.p>
       )}
 
-      {/* ── 합성 서사 (narrative) — 그동안 화면에 없던 산문 ── */}
-      {interp?.narrative && (
-        <motion.div
-          variants={itemVariants}
-          className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5"
-        >
-          <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase mb-4 flex items-center">
-            <ScrollText size={14} className="mr-2 text-amber-200/70" />
-            {locale === 'en' ? 'Reading' : '이달의 해석'}
-          </h3>
-          <NarrativeText text={interp.narrative} />
-        </motion.div>
-      )}
-
-      {/* ── 섹션별 해석 (sections) — month tier 에서 치환됐던 룰 원문 전부 ── */}
+      {/* ── 이달의 해석 (sections) — narrative 는 sections 를 join 한 동일 텍스트라
+          중복 제거하고 접이식 sections 만 노출(기본 첫 섹션만 펼침). ── */}
       {interp?.sections && interp.sections.length > 0 && (
         <motion.div variants={itemVariants} className="space-y-3">
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase flex items-center">
-            <ChevronRight size={14} className="mr-1.5 text-zinc-500" />
-            {locale === 'en' ? 'In detail' : '자세히 보기'}
+            <ScrollText size={14} className="mr-2 text-amber-200/70" />
+            {locale === 'en' ? 'Reading' : '이달의 해석'}
           </h3>
           {interp.sections.map((s, i) => (
             <details

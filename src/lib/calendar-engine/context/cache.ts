@@ -29,7 +29,9 @@ import type { NatalContext } from './types'
 // v1-baseline: 초기.
 // v2-rich: NatalContext.saju 에 fiveElements + advancedAnalysis 추가 — 운명/궁합 차트
 //          PersonaCard·InsightStrip 가 cache hit 으로 격국/용신/십신/오행 분포 받게.
-const ENGINE_SIGNATURE = 'natal-v2-rich'
+// 'natal-v3-daeunyear' — 대운 시작연도 −1 보정(한국나이→연도)으로 daeun.startYear 가
+// 바뀌어, 옛 캐시(±1 어긋난 연도)를 무효화하기 위해 시그니처 bump.
+const ENGINE_SIGNATURE = 'natal-v3-daeunyear'
 
 interface NatalCacheKeyInput {
   birthDate: string
