@@ -2,14 +2,13 @@ import type React from 'react'
 
 // ============ Data Types ============
 
+// 모두 실측값. 익명 방문자는 추적 인프라가 없어 측정 불가능하므로 제거했다.
 export type FunnelMetrics = {
-  visitors: { daily: number; weekly: number; monthly: number; trend: number }
-  registrations: { total: number; daily: number; conversionRate: number }
+  registrations: { total: number; daily: number; trend: number }
   activations: { total: number; rate: number }
   engagement: {
     dailyActiveUsers: number
     weeklyActiveUsers: number
-    avgSessionDuration: number
     readingsPerUser: number
   }
 }

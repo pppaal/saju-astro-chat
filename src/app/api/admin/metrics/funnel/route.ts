@@ -75,60 +75,79 @@ export const GET = withApiMiddleware(
       const timeRange = validationResult.data
       const { start, end } = getDateRange(timeRange)
 
-      // Use Promise.allSettled for resilient error handling
+      // 이전 기간(추세 계산용): 선택 기간과 같은 길이의 직전 구간
+      const windowMs = end.getTime() - start.getTime()
+      const prevStart = new Date(start.getTime() - windowMs)
+      const prevEnd = start
+
+      // DAU/WAU 는 정의상 고정 윈도(최근 24h / 7d) — 선택한 timeRange 와 무관
+      const now = Date.now()
+      const dayAgo = new Date(now - 24 * 60 * 60 * 1000)
+      const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000)
+
+      // 핵심 활동 테이블에서 윈도 내 활동한 distinct userId 집합을 구한다.
+      // (리딩 / 타로 / 상담챗 — 제품의 주요 행동) 모두 userId+createdAt 보유.
+      async function activeUserIds(since: Date): Promise<Set<string>> {
+        const [r, t, c] = await Promise.all([
+          prisma.reading.groupBy({ by: ['userId'], where: { createdAt: { gte: since } } }),
+          prisma.tarotReading.groupBy({ by: ['userId'], where: { createdAt: { gte: since } } }),
+          prisma.counselorChatSession.groupBy({
+            by: ['userId'],
+            where: { createdAt: { gte: since } },
+          }),
+        ])
+        const ids = new Set<string>()
+        for (const row of [...r, ...t, ...c]) if (row.userId) ids.add(row.userId)
+        return ids
+      }
+
+      // 전부 실측. 측정 불가능한 익명 '방문자' 지표는 제거했다.
       const results = await Promise.allSettled([
-        prisma.user.count(),
-        prisma.user.count({
-          where: {
-            createdAt: { gte: start, lte: end },
-          },
-        }),
-        prisma.reading.count({
-          where: {
-            createdAt: { gte: start, lte: end },
-          },
-        }),
+        prisma.user.count(), // [0] 누적 가입
+        prisma.user.count({ where: { createdAt: { gte: start, lte: end } } }), // [1] 기간 내 신규
+        prisma.user.count({ where: { createdAt: { gte: prevStart, lte: prevEnd } } }), // [2] 직전 기간 신규(추세)
+        activeUserIds(new Date(0)), // [3] 한 번이라도 활동한 사용자(=활성화)
+        activeUserIds(dayAgo), // [4] DAU
+        activeUserIds(weekAgo), // [5] WAU
+        prisma.reading.count({ where: { createdAt: { gte: weekAgo } } }), // [6] 최근 7일 리딩 수
+        prisma.tarotReading.count({ where: { createdAt: { gte: weekAgo } } }), // [7]
+        prisma.counselorChatSession.count({ where: { createdAt: { gte: weekAgo } } }), // [8]
       ])
 
-      // Extract values with fallbacks for failed queries
-      const totalUsers = results[0].status === 'fulfilled' ? results[0].value : 0
-      const newUsers = results[1].status === 'fulfilled' ? results[1].value : 0
-      const recentReadings = results[2].status === 'fulfilled' ? results[2].value : 0
+      const val = <T>(i: number, fallback: T): T =>
+        results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback
 
-      // Log failures without exposing sensitive details
+      const totalUsers = val(0, 0)
+      const newUsers = val(1, 0)
+      const prevNewUsers = val(2, 0)
+      const activatedUsers = val<Set<string>>(3, new Set()).size
+      const dau = val<Set<string>>(4, new Set()).size
+      const wau = val<Set<string>>(5, new Set()).size
+      const weeklyActions = val(6, 0) + val(7, 0) + val(8, 0)
+
       const failedCount = results.filter((r) => r.status === 'rejected').length
       if (failedCount > 0) {
         logger.warn(`[Admin Funnel] ${failedCount} queries failed, using fallback values`)
       }
 
-      const dailyVisitors = Math.round(newUsers * 30)
-      const weeklyVisitors = Math.round(dailyVisitors * 5)
-      const monthlyVisitors = Math.round(dailyVisitors * 25)
-
-      const activatedUsers = Math.round(totalUsers * 0.75)
-      const readingsPerUser = totalUsers > 0 ? recentReadings / Math.max(1, newUsers) : 0
+      // 신규 가입 추세: 직전 동일 기간 대비 증감률 (실측)
+      const registrationTrend =
+        prevNewUsers > 0 ? ((newUsers - prevNewUsers) / prevNewUsers) * 100 : newUsers > 0 ? 100 : 0
 
       const funnelData = {
-        visitors: {
-          daily: dailyVisitors,
-          weekly: weeklyVisitors,
-          monthly: monthlyVisitors,
-          trend: 8.5,
-        },
         registrations: {
           total: totalUsers,
           daily: newUsers,
-          conversionRate: dailyVisitors > 0 ? (newUsers / dailyVisitors) * 100 : 0,
+          trend: Math.round(registrationTrend * 10) / 10,
         },
         activations: {
           total: activatedUsers,
           rate: totalUsers > 0 ? (activatedUsers / totalUsers) * 100 : 0,
         },
         engagement: {
-          dailyActiveUsers: Math.round(totalUsers * 0.15),
-          weeklyActiveUsers: Math.round(totalUsers * 0.35),
-          avgSessionDuration: 7.5,
-          readingsPerUser: Math.min(readingsPerUser, 10),
+          dailyActiveUsers: dau,
+          weeklyActiveUsers: wau,
+          readingsPerUser: wau > 0 ? Math.round((weeklyActions / wau) * 10) / 10 : 0,
         },
       }
 
