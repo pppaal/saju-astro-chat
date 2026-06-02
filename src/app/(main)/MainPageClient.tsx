@@ -265,7 +265,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         <ParticleCanvas />
       </motion.div>
 
-      <div className={styles.homeTopBar}>
+      <div className={styles.homeTopBar} style={{ viewTransitionName: 'app-topbar' }}>
         <button
           type="button"
           className={styles.homeTopBarHamburger}
