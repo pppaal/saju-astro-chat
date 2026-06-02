@@ -1,8 +1,0 @@
-export { UsersTab } from './UsersTab'
-export { RevenueTab } from './RevenueTab'
-export { MatchingTab } from './MatchingTab'
-export { ContentTab } from './ContentTab'
-export { ModerationTab } from './ModerationTab'
-export { AuditTab } from './AuditTab'
-export { SystemTab } from './SystemTab'
-export { BehaviorTab } from './BehaviorTab'

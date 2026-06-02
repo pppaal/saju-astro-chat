@@ -12,6 +12,7 @@ const NAV_ITEMS: { href: string; label: string }[] = [
   { href: '/admin/refunds', label: '환불' },
   { href: '/admin/usage', label: '사용량 분석' },
   { href: '/admin/dashboard', label: '상세 지표' },
+  { href: '/admin/audit', label: '감사로그' },
 ]
 
 export default function AdminNav() {
