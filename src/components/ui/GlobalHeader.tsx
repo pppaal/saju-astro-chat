@@ -60,8 +60,12 @@ function GlobalHeaderContent() {
 
   const headerAriaLabel = t('nav.header') || 'Site header'
 
+  // 어드민은 자체 상단 네비(AdminNav)를 쓰고 다국어가 필요 없으므로 글로벌
+  // 헤더(햄버거 + 언어 토글)를 숨긴다.
+  const isAdminPage = Boolean(pathname && pathname.startsWith('/admin'))
+
   // Hide on pages with their own top navigation/header
-  if (isMainPage || hasCustomPageHeader) {
+  if (isMainPage || hasCustomPageHeader || isAdminPage) {
     return null
   }
 
