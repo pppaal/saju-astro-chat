@@ -474,6 +474,7 @@ export default function CounselorPage() {
             autoFocus
             initialSessionId={initialSessionId}
             onSessionChange={setActiveSession}
+            inputViewTransitionName="destiny-input"
             onSendBlocked={(_text) => {
               // 생년월일·출생시간이 없으면 전송 대신 입력 모달을 띄운다.
               // (게이트 화면 대체 — 바로 채팅하다가 첫 전송 시 정보 요청.)

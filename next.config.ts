@@ -162,6 +162,12 @@ const nextConfig = {
   experimental: {
     optimizeCss: false, // Avoid critters/CSS post-processing failures in local and CI environments
     scrollRestoration: true, // Remember scroll position
+    // 라우터 클라이언트 네비게이션을 document.startViewTransition 으로 감싼다.
+    // 메인 홈 입력창 ↔ 운명 상담사 입력창에 동일한 view-transition-name
+    // ("destiny-input") 을 줘, 전환 시 입력창이 하나로 이어져(morph) 보이게 한다.
+    // (수동 startViewTransition 은 SPA 에서 새 라우트 렌더 완료를 못 기다려
+    //  모핑이 깨지므로 Next 내장 통합이 필요하다.)
+    viewTransition: true,
     optimizePackageImports: [
       'framer-motion',
       'chart.js',
