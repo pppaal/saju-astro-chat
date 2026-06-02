@@ -22,8 +22,14 @@ function formatKrw(n: number) {
   return `₩${n.toLocaleString()}`
 }
 
-export default function RefundClient() {
-  const [paymentId, setPaymentId] = useState('')
+export default function RefundClient({
+  initialPaymentId = '',
+  embedded = false,
+}: {
+  initialPaymentId?: string
+  embedded?: boolean
+} = {}) {
+  const [paymentId, setPaymentId] = useState(initialPaymentId)
   const [force, setForce] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -64,14 +70,16 @@ export default function RefundClient() {
   }
 
   return (
-    <div className="mx-auto max-w-xl px-5 py-10">
-      <header className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight text-stone-900">크레딧팩 환불 처리</h1>
-        <p className="mt-2 text-sm leading-relaxed text-stone-600">
-          Stripe 결제수수료(약 3.5% + ₩300)를 차감해 부분 환불하고, 남은 크레딧을 자동 회수합니다.
-          기본: 미사용 + 7일 이내만 가능 (관리자 강제 옵션 있음).
-        </p>
-      </header>
+    <div className={embedded ? '' : 'mx-auto max-w-xl px-5 py-10'}>
+      {!embedded && (
+        <header className="mb-6">
+          <h1 className="text-xl font-semibold tracking-tight text-stone-900">크레딧팩 환불 처리</h1>
+          <p className="mt-2 text-sm leading-relaxed text-stone-600">
+            Stripe 결제수수료(약 3.5% + ₩300)를 차감해 부분 환불하고, 남은 크레딧을 자동 회수합니다.
+            기본: 미사용 + 7일 이내만 가능 (관리자 강제 옵션 있음).
+          </p>
+        </header>
+      )}
 
       <form
         onSubmit={onSubmit}

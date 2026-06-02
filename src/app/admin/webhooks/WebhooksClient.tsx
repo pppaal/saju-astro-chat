@@ -47,7 +47,17 @@ export default function WebhooksClient() {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-stone-900">결제 · 웹훅 모니터</h1>
-          <p className="mt-1 text-sm text-stone-500">Stripe 웹훅 처리 결과 · 최근 {days}일</p>
+          <p className="mt-1 text-sm text-stone-500">
+            Stripe 웹훅 처리 결과 · 최근 {days}일 ·{' '}
+            <a
+              href="https://dashboard.stripe.com/webhooks"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-stone-600 underline underline-offset-2 hover:text-stone-900"
+            >
+              ↗ Stripe 웹훅
+            </a>
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex gap-1 rounded-full border border-stone-200 bg-white p-1">

@@ -17,8 +17,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: '운영',
     items: [
       { href: '/admin/users', label: '유저 검색' },
-      { href: '/admin/grant-credits', label: '크레딧 지급' },
-      { href: '/admin/refunds', label: '환불' },
+      { href: '/admin/credits', label: '크레딧 관리' },
     ],
   },
   {

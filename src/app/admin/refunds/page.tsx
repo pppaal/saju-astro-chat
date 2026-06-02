@@ -1,18 +1,6 @@
-import { notFound, redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
-import { isAdminUser } from '@/lib/auth/admin'
-import RefundClient from './RefundClient'
+import { redirect } from 'next/navigation'
 
-export default async function RefundsPage() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
-    redirect(`/auth/signin?callbackUrl=${encodeURIComponent('/admin/refunds')}`)
-  }
-  // isAdminUser = DB User.role ('admin'|'superadmin') OR env ADMIN_EMAILS.
-  if (!(await isAdminUser(session.user.id))) {
-    notFound()
-  }
-
-  return <RefundClient />
+// 환불은 '크레딧 관리'(/admin/credits) 페이지로 통합됨. 기존 링크/북마크 보존용.
+export default function RefundsRedirect() {
+  redirect('/admin/credits?tab=refund')
 }

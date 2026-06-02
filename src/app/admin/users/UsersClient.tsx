@@ -249,8 +249,14 @@ export default function UsersClient() {
 
               {/* 크레딧 */}
               <div>
-                <div className="mb-2 text-[12px] font-medium uppercase tracking-wide text-stone-400">
-                  크레딧
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[12px] font-medium uppercase tracking-wide text-stone-400">크레딧</span>
+                  <a
+                    href={`/admin/credits?tab=grant&user=${encodeURIComponent(detail.user.email || detail.user.id)}`}
+                    className="rounded-full border border-stone-300 bg-white px-3 py-1 text-[12px] font-medium text-stone-700 transition hover:bg-stone-100"
+                  >
+                    크레딧 지급
+                  </a>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <Field label="사용가능 잔액" value={fmt(detail.credits?.usable)} />
@@ -290,13 +296,14 @@ export default function UsersClient() {
                           <th className="px-4 py-2 text-right font-medium">지급</th>
                           <th className="px-4 py-2 text-right font-medium">잔여</th>
                           <th className="px-4 py-2 text-right font-medium">일시</th>
+                          <th className="px-4 py-2 text-right font-medium"></th>
                         </tr>
                       </thead>
                       <tbody>
                         {detail.purchases.recent.map((p, i) => (
                           <tr key={i} className="border-b border-stone-100 last:border-0">
                             <td className="px-4 py-2 text-stone-600">
-                              {p.source}
+                              {p.stripePaymentId ? '구매' : p.source}
                               {p.expired && <span className="ml-1 text-rose-500">(만료)</span>}
                             </td>
                             <td className="px-4 py-2 text-right font-mono tabular-nums text-stone-700">
@@ -307,6 +314,16 @@ export default function UsersClient() {
                             </td>
                             <td className="px-4 py-2 text-right text-[13px] text-stone-500">
                               {new Date(p.createdAt).toLocaleDateString('ko-KR')}
+                            </td>
+                            <td className="px-4 py-2 text-right">
+                              {p.stripePaymentId && !p.expired && p.remaining > 0 && (
+                                <a
+                                  href={`/admin/credits?tab=refund&pid=${encodeURIComponent(p.stripePaymentId)}`}
+                                  className="rounded-full border border-stone-300 bg-white px-2.5 py-0.5 text-[12px] font-medium text-stone-700 transition hover:bg-stone-100"
+                                >
+                                  환불
+                                </a>
+                              )}
                             </td>
                           </tr>
                         ))}
