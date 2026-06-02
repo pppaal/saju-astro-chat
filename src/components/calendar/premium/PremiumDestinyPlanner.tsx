@@ -128,11 +128,13 @@ export default function PremiumDestinyPlanner({
     [monthDates]
   )
 
-  // monthlyInterpretation 은 API 가 서빙한 달 기준 top-level. 다른 달로 이동하면
-  // 해당 narrative 가 없을 수 있어 그대로 존재할 때만 노출(정직).
+  // monthlyInterpretation 은 API 가 서빙한 "이번 달" 고정 top-level 객체다.
+  // 따라서 다른 달을 선택했을 때 그대로 붙이면 8월 헤더 밑에 6월 해석이 박히는
+  // 오부착이 된다 — 이번 달과 일치할 때만 노출(나머지 달은 점수·흐름만, 정직).
+  const isCurrentMonth = year === today.getFullYear() && selMonth === today.getMonth()
   const monthInterp = useMemo(
-    () => data?.monthlyInterpretation ?? monthDates[0]?.monthlyInterpretation ?? null,
-    [data, monthDates]
+    () => (isCurrentMonth ? (data?.monthlyInterpretation ?? null) : null),
+    [isCurrentMonth, data]
   )
 
   const selDateStr = `${year}-${pad2(selMonth + 1)}-${pad2(selDay)}`
@@ -264,7 +266,12 @@ export default function PremiumDestinyPlanner({
                   monthDates={monthDates}
                   monthScore={monthScore}
                   interp={monthInterp}
-                  summary={data?.monthSummary?.summary ?? data?.calendarMonthView?.oneLineSummary}
+                  summary={
+                    isCurrentMonth
+                      ? (data?.monthSummary?.summary ?? data?.calendarMonthView?.oneLineSummary)
+                      : null
+                  }
+                  showReadingHint={!isCurrentMonth && monthScore !== null}
                   onDayClick={drillToDay}
                   locale={locale}
                 />
@@ -561,6 +568,7 @@ function MonthView({
   monthScore,
   interp,
   summary,
+  showReadingHint,
   onDayClick,
   locale,
 }: {
@@ -571,6 +579,7 @@ function MonthView({
   monthScore: number | null
   interp: NonNullable<ImportantDate['monthlyInterpretation']> | null
   summary?: string | null
+  showReadingHint?: boolean
   onDayClick: (d: number) => void
   locale?: CalLocale
 }) {
@@ -801,6 +810,18 @@ function MonthView({
             <BigDayRow key={d.date} day={d} locale={locale} />
           ))}
         </motion.div>
+      )}
+
+      {/* 다른 달 — 상세 해석은 이번 달만 제공(서빙 달 한정). 정직한 안내. */}
+      {showReadingHint && (
+        <motion.p
+          variants={itemVariants}
+          className="text-center text-xs text-zinc-600 font-light py-6 px-4 leading-relaxed"
+        >
+          {locale === 'en'
+            ? 'Detailed reading is available for the current month. Other months show the flow and scores only.'
+            : '상세 해석은 이번 달에서 볼 수 있어요. 다른 달은 흐름과 점수만 표시돼요.'}
+        </motion.p>
       )}
 
       {/* ── 합성 서사 (narrative) — 그동안 화면에 없던 산문 ── */}
