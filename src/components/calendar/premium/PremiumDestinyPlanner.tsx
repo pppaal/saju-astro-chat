@@ -1044,7 +1044,7 @@ function DayView({
               <p className="text-[11px] text-zinc-500">
                 {locale === 'en'
                   ? 'How your luck cycles meet today (combine / clash):'
-                  : '오늘 운들이 만나는 결 — 잘 맞으면 순조롭고, 부딪히면 변동·긴장이 커져요'}
+                  : '오늘 여러 운이 서로 맞물리는 방식 — 잘 맞으면 순조롭고, 부딪히면 변동·긴장이 커져요'}
               </p>
               {importantDate!.cycleInteractions!.map((ix, i) => {
                 const easy = easyCycleLabel(ix.kind, locale)
