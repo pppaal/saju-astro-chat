@@ -92,12 +92,10 @@ function CompatibilityCounselorContent() {
   const { locale } = useI18n()
   const searchParams = useSearchParams()
   const router = useRouter()
-  // '새 채팅' 세션 정리를 운명 상담사와 공유. 단 궁합은 resume 효과에 자동복원
-  // 가드가 없어 ?session= 을 떼면 직전 채팅이 되살아나므로 URL 은 건드리지 않고
-  // (stripSessionParam:false) 드래프트 정리 + 상태 리셋만 공유한다.
-  const startNewChat = useCounselorNewChat('/compatibility/counselor', 'compat', {
-    stripSessionParam: false,
-  })
+  // '새 채팅' 세션 정리를 운명 상담사와 완전히 동일하게 공유 — 드래프트 정리 +
+  // URL ?session= 제거 + 상태 리셋. resume 효과에 자동복원 가드(autoResumeAttemptedRef)
+  // 를 달아 bare URL 이 돼도 직전 채팅을 다시 끌어오지 않으므로 strip 을 켤 수 있다.
+  const startNewChat = useCounselorNewChat('/compatibility/counselor', 'compat')
   const { showDepleted, showGuestLimit } = useCreditModal()
 
   const [persons, setPersons] = useState<PersonData[]>([])
@@ -212,6 +210,9 @@ function CompatibilityCounselorContent() {
    *  refactor 전 inputRef.current?.focus() 자리를 대체. */
   const [focusToken, setFocusToken] = useState(0)
 
+  // 자동 "최근 채팅 이어보기"는 최초 진입 1회만 허용 — '새 채팅'으로 URL 이
+  // bare 가 돼도 직전 채팅을 다시 끌어오지 않도록 가드(운명 상담사와 동일 패턴).
+  const autoResumeAttemptedRef = useRef(false)
   useEffect(() => {
     if (!searchParams) {
       return
@@ -221,6 +222,13 @@ function CompatibilityCounselorContent() {
       try {
         const sessionParam = searchParams.get('session')
         const personsParam = searchParams.get('persons')
+
+        // 이번이 최초 진입인지 기록. 최초 1회에 한해서만 "가장 최근 채팅 자동
+        // 이어보기"를 허용한다. 이후(예: 새 채팅으로 bare URL 이 된 재실행)엔
+        // 자동복원을 건너뛰어 새 채팅이 옛 대화로 덮이지 않게 한다. 명시적
+        // ?session= resume 은 이 가드와 무관하게 항상 동작한다.
+        const isFirstEntry = !autoResumeAttemptedRef.current
+        autoResumeAttemptedRef.current = true
 
         // 게스트 진행 드래프트 복원 — 비로그인/크레딧 소진 상태로 채팅하다 한도에
         // 걸려 로그인·크레딧 구매로 페이지가 풀 리로드돼도, 직전 채팅을 그대로
@@ -264,7 +272,7 @@ function CompatibilityCounselorContent() {
         // 없는 맨몸 진입이면 가장 최근 궁합 채팅을 자동으로 이어 띄운다.
         // (비로그인이면 null → 아래에서 picker 로 떨어짐.)
         let resumeId: string | null = sessionParam
-        if (!resumeId && !personsParam) {
+        if (!resumeId && !personsParam && isFirstEntry) {
           resumeId = await fetchLatestSessionId('compat')
         }
 
@@ -1156,10 +1164,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         onClose={() => setSidebarOpen(false)}
         onNewChat={() => {
           if (isLoading) return
-          // 세션 정리(게스트 드래프트)는 운명 상담사와 공유하는 useCounselorNewChat
-          // 으로 통일. 단 궁합은 URL ?session= 은 떼지 않는다(stripSessionParam:false)
-          // — resume 효과에 자동복원 가드가 없어 bare URL 이 되면 직전 채팅을 다시
-          // 끌어오기 때문. 상태 리셋 + picker 노출은 아래 onReset 에서.
+          // 세션 정리(드래프트 + URL ?session= 제거)는 운명 상담사와 공유하는
+          // useCounselorNewChat 으로 통일. 상태 리셋 + picker 노출은 아래 onReset.
           startNewChat(() => {
             setMessages([])
             setError(null)
