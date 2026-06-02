@@ -17,7 +17,7 @@ import HexDPLogo from './HexDPLogo'
  * as the page settling rather than a separate loading screen flashing in
  * between ("로딩 걸린지도 모르게").
  */
-export default function CounselorLoading() {
+export default function CounselorLoading({ showChatChrome = false }: { showChatChrome?: boolean }) {
   return (
     <main
       style={{
@@ -34,6 +34,44 @@ export default function CounselorLoading() {
         zIndex: 50,
       }}
     >
+      {/* 채팅 크롬 플레이스홀더 — 메인 입력창 → 상담사 입력창 View Transition 이
+          로딩 화면을 거치며 끊기지 않게, 목적지(상담사)와 같은 위치·이름의 상단
+          헤더 / 하단 입력창 자리를 미리 그려둔다. 입력창은 중앙(홈)에서 하단으로
+          이어지고, 헤더는 제자리에 머물러 "툭 나타나는" 흰 헤더를 없앤다.
+          showChatChrome 가 true 인 상담사 로더에서만 — 홈 로더는 가운데 마크만. */}
+      {showChatChrome && (
+        <>
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 48,
+              background: '#ffffff',
+              borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+              viewTransitionName: 'app-topbar',
+            }}
+          />
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: 8,
+              right: 8,
+              bottom: 10,
+              height: 46,
+              background: '#ffffff',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
+              borderRadius: 14,
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+              viewTransitionName: 'destiny-input',
+            }}
+          />
+        </>
+      )}
+
       <div
         aria-hidden="true"
         style={{

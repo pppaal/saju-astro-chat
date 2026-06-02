@@ -250,7 +250,7 @@ export default function CounselorPage() {
     // Same quiet loader the route-level loading.tsx uses — keeps the warm
     // white surface + centered hex mark continuous from the home screen so
     // the in-page fetch reads as the page settling, not a second flash.
-    return <CounselorLoading />
+    return <CounselorLoading showChatChrome />
   }
 
   // 생년월일·출생시간이 없어도 더 이상 게이트 화면으로 막지 않는다 — 바로
@@ -271,7 +271,7 @@ export default function CounselorPage() {
         fallbackName={name}
         onActionError={({ kind, status }) => showActionFailureToast(kind, status)}
       />
-      <header className={styles.header}>
+      <header className={styles.header} style={{ viewTransitionName: 'app-topbar' }}>
         <div className={styles.headerLeft}>
           <button
             type="button"
