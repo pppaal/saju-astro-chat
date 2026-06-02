@@ -149,6 +149,8 @@ export default function PremiumDestinyPlanner({
     birthInfo: birthInfo ?? { birthDate: '', birthTime: '', birthPlace: '', gender: 'Male' },
     // 일 탭일 때만 fetch — 다른 탭에선 fusion 미사용이라 불필요한 호출 차단.
     enabled: viewMode === 'day',
+    // 앱 언어 명시 — 미전달 시 신살·점성이 브라우저 언어로 떨어져 앱과 어긋남.
+    locale: locale === 'en' ? 'en' : 'ko',
   })
   const fusion = dateDetail?.fusion
   // 신살은 연간 응답엔 없고 date-detail(일별)에서만 계산됨 — 일 탭에서 그 날 발동분.
@@ -942,6 +944,15 @@ function DayView({
   const shinsalShown = shinsalUniq.slice(0, 6)
   const shinsalExtra = shinsalUniq.length - shinsalShown.length
 
+  // 충/합/형이 하루 10개씩 나와 도배됨 → 오늘(일운/일진) 관련을 앞으로 정렬 후 5개만.
+  const cyc = [...(importantDate?.cycleInteractions ?? [])].sort((a, b) => {
+    const aDay = /일운|일진/.test(a.pair) ? 0 : 1
+    const bDay = /일운|일진/.test(b.pair) ? 0 : 1
+    return aDay - bDay
+  })
+  const cycShown = cyc.slice(0, 5)
+  const cycExtra = cyc.length - cycShown.length
+
   return (
     <motion.div
       variants={containerVariants}
@@ -1046,15 +1057,15 @@ function DayView({
             </div>
           )}
 
-          {/* 충/합/형 — 쉬운말 라벨 + 한 줄 설명(blurb 뒷부분) */}
-          {(importantDate?.cycleInteractions?.length ?? 0) > 0 && (
+          {/* 충/합/형 — 쉬운말 라벨 + 한 줄 설명(blurb 뒷부분). 일운 우선 5개만. */}
+          {cycShown.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-white/5">
               <p className="text-[11px] text-zinc-500">
                 {locale === 'en'
                   ? 'How your luck cycles meet today (combine / clash):'
                   : '오늘 여러 운이 서로 어떻게 작용하는지 — 잘 맞으면 순조롭고, 부딪히면 변동·긴장이 커져요'}
               </p>
-              {importantDate!.cycleInteractions!.map((ix, i) => {
+              {cycShown.map((ix, i) => {
                 const easy = easyCycleLabel(ix.kind, locale)
                 // ko: 엔진 blurb 뒷부분(쉬운 설명) / en: blurb 가 한글뿐이라 영어 설명 사용
                 const meaning =
@@ -1072,6 +1083,11 @@ function DayView({
                   </div>
                 )
               })}
+              {cycExtra > 0 && (
+                <p className="text-[11px] text-zinc-600 pl-1">
+                  {locale === 'en' ? `+${cycExtra} more` : `+${cycExtra}개 더`}
+                </p>
+              )}
             </div>
           )}
         </motion.div>
