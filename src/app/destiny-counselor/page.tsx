@@ -269,6 +269,8 @@ export default function CounselorPage() {
         lightTheme
         enableGrouping
         fallbackName={name}
+        activeSessionId={activeSession.sessionId}
+        activeSessionTitle={activeSession.title}
         onActionError={({ kind, status }) => showActionFailureToast(kind, status)}
       />
       <header className={styles.header} style={{ viewTransitionName: 'app-topbar' }}>

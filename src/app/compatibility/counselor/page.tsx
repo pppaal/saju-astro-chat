@@ -1144,6 +1144,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
     <main className={`${styles.page} ${styles.fadeIn}`}>
       <CounselorSidebar
         open={sidebarOpen}
+        activeSessionId={chatSessionId}
+        activeSessionTitle={chatTitle}
         onClose={() => setSidebarOpen(false)}
         onNewChat={() => {
           if (isLoading) return
