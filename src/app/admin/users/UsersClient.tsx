@@ -265,9 +265,9 @@ export default function UsersClient() {
                   활동 (마지막 리딩 {dt(detail.activity.lastReadingAt)})
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Field label="리딩(사주 등)" value={fmt(detail.activity.readings)} />
+                  <Field label="저장 리딩" value={fmt(detail.activity.readings)} />
                   <Field label="타로" value={fmt(detail.activity.tarot)} />
-                  <Field label="상담 챗" value={fmt(detail.activity.counselor)} />
+                  <Field label="상담(사주·궁합)" value={fmt(detail.activity.counselor)} />
                   <Field label="총 활동" value={fmt(detail.activity.total)} />
                 </div>
               </div>

@@ -5,8 +5,8 @@
  *
  * 개요 페이지의 "오늘 활성 유저" 카드를 클릭했을 때, 그 유저들이 누구인지
  * 보여주기 위한 목록. 카드 숫자와 개수가 정확히 일치하도록 overview 의
- * activeToday 와 동일한 정의(오늘 자정 이후 리딩·타로·상담 중 하나라도 한
- * 유저)를 쓴다. 활동 횟수 많은 순 → 같으면 최근 활동 순으로 정렬한다.
+ * activeToday 와 동일한 정의(오늘 자정 이후 타로·상담 중 하나라도 한 유저)를
+ * 쓴다. 활동 횟수 많은 순 → 같으면 최근 활동 순으로 정렬한다.
  */
 
 import { NextRequest } from 'next/server'
@@ -39,10 +39,9 @@ export const GET = withApiMiddleware(
       startOfToday.setHours(0, 0, 0, 0)
       const where = { createdAt: { gte: startOfToday } }
 
-      // overview 의 activeToday 와 동일 기준: 오늘 리딩·타로·상담 중 하나라도
-      // 한 distinct 유저. 세 소스의 활동 횟수와 마지막 활동시각을 유저별로 합친다.
-      const [readingG, tarotG, counselorG] = await Promise.all([
-        prisma.reading.groupBy({ by: ['userId'], where, _count: { id: true }, _max: { createdAt: true } }),
+      // overview 의 activeToday 와 동일 기준: 오늘 타로·상담 중 하나라도 한
+      // distinct 유저. 두 소스의 활동 횟수와 마지막 활동시각을 유저별로 합친다.
+      const [tarotG, counselorG] = await Promise.all([
         prisma.tarotReading.groupBy({ by: ['userId'], where, _count: { id: true }, _max: { createdAt: true } }),
         prisma.counselorChatSession.groupBy({
           by: ['userId'],
@@ -53,7 +52,7 @@ export const GET = withApiMiddleware(
       ])
 
       const agg = new Map<string, { count: number; last: Date | null }>()
-      for (const g of [...readingG, ...tarotG, ...counselorG]) {
+      for (const g of [...tarotG, ...counselorG]) {
         const cur = agg.get(g.userId) ?? { count: 0, last: null }
         cur.count += g._count.id
         const last = g._max.createdAt

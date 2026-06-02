@@ -328,12 +328,12 @@ export default function AdminOverviewClient() {
             <Stat
               label="오늘 활성 유저"
               value={fmt(data.users.activeToday)}
-              hint="오늘 사주·타로·상담한 유저"
+              hint="오늘 타로·상담한 유저"
               onClick={() => loadSegment('active-today')}
               expanded={openSegment === 'active-today'}
             />
-            <Stat label="오늘 활동" value={fmt(data.readings.today)} hint="리딩+타로+상담" />
-            <Stat label="총 활동" value={fmt(data.readings.total)} hint="리딩+타로+상담" />
+            <Stat label="오늘 활동" value={fmt(data.readings.today)} hint="타로+상담" />
+            <Stat label="총 활동" value={fmt(data.readings.total)} hint="타로+상담" />
           </Section>
           {renderPanel(['active-today'])}
 

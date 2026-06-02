@@ -71,27 +71,25 @@ export const GET = withApiMiddleware(
         prisma.user.count({ where: { AND: [realUserWhere, { createdAt: { gte: startOfToday } }] } }),
         prisma.user.count({ where: { AND: [realUserWhere, { createdAt: { gte: last7d } }] } }),
         prisma.user.count({ where: { AND: [realUserWhere, { createdAt: { gte: last30d } }] } }),
-        // 총 활동 = 리딩 + 타로 + 상담 (서비스 전체). reading 테이블만 세면
-        // 타로·상담이 빠져 과소집계된다.
+        // 총 활동 = 타로 + 상담(사주·궁합). Reading 테이블은 타로 커플리딩이
+        // 부수적으로 쓰는 것이라 tarotReading 과 중복 → 집계에서 제외(사용량
+        // 분석·상세지표와 동일하게 tarot + counselor 기준).
         Promise.all([
-          prisma.reading.count(),
           prisma.tarotReading.count(),
           prisma.counselorChatSession.count(),
-        ]).then(([a, b, c]) => a + b + c),
+        ]).then(([a, b]) => a + b),
         Promise.all([
-          prisma.reading.count({ where: { createdAt: { gte: startOfToday } } }),
           prisma.tarotReading.count({ where: { createdAt: { gte: startOfToday } } }),
           prisma.counselorChatSession.count({ where: { createdAt: { gte: startOfToday } } }),
-        ]).then(([a, b, c]) => a + b + c),
-        // 오늘 활성 = 오늘 리딩·타로·상담 중 하나라도 한 distinct 유저.
+        ]).then(([a, b]) => a + b),
+        // 오늘 활성 = 오늘 타로·상담 중 하나라도 한 distinct 유저.
         Promise.all([
-          prisma.reading.groupBy({ by: ['userId'], where: { createdAt: { gte: startOfToday } } }),
           prisma.tarotReading.groupBy({ by: ['userId'], where: { createdAt: { gte: startOfToday } } }),
           prisma.counselorChatSession.groupBy({
             by: ['userId'],
             where: { createdAt: { gte: startOfToday } },
           }),
-        ]).then(([a, b, c]) => new Set([...a, ...b, ...c].map((r) => r.userId)).size),
+        ]).then(([a, b]) => new Set([...a, ...b].map((r) => r.userId)).size),
         // 만료 전 잔여 보너스 크레딧 합계 (실제 미사용 부채).
         prisma.bonusCreditPurchase
           .aggregate({

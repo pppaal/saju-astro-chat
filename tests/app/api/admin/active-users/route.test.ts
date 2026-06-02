@@ -25,7 +25,6 @@ vi.mock('@/lib/security/csrf', () => ({ csrfGuard: vi.fn(() => null) }))
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
-    reading: { groupBy: vi.fn() },
     tarotReading: { groupBy: vi.fn() },
     counselorChatSession: { groupBy: vi.fn() },
     user: { findMany: vi.fn() },
@@ -51,11 +50,10 @@ const adminSession = { user: { id: 'admin-1', email: 'admin@example.com' }, expi
 function setupHappyPath() {
   vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
   vi.mocked(isAdminUser).mockResolvedValue(true)
-  vi.mocked(prisma.reading.groupBy).mockResolvedValue([
+  vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([
     { userId: 'u1', _count: { id: 2 }, _max: { createdAt: new Date('2026-06-02T09:00:00Z') } },
     { userId: 'u2', _count: { id: 5 }, _max: { createdAt: new Date('2026-06-02T11:00:00Z') } },
   ] as any)
-  vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([] as any)
   vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
   vi.mocked(prisma.user.findMany).mockResolvedValue([
     { id: 'u1', email: 'a@b.com', name: 'A' },
@@ -107,9 +105,9 @@ describe('GET /api/admin/active-users', () => {
       expect(typeof data.users[0].lastActiveAt).toBe('string')
     })
 
-    it('only counts readings since the start of today', async () => {
+    it('only counts activity since the start of today', async () => {
       await GET(createRequest())
-      const where = vi.mocked(prisma.reading.groupBy).mock.calls[0][0] as any
+      const where = vi.mocked(prisma.tarotReading.groupBy).mock.calls[0][0] as any
       const since = new Date(where.where.createdAt.gte)
       expect(since.getHours()).toBe(0)
       expect(since.getMinutes()).toBe(0)
@@ -117,36 +115,33 @@ describe('GET /api/admin/active-users', () => {
     })
 
     it('returns an empty list when nobody is active and does not query users', async () => {
-      vi.mocked(prisma.reading.groupBy).mockResolvedValue([] as any)
+      vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([] as any)
+      vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
       const data = (await (await GET(createRequest())).json()).data
       expect(data.count).toBe(0)
       expect(data.users).toEqual([])
       expect(prisma.user.findMany).not.toHaveBeenCalled()
     })
 
-    it('tolerates a missing user record (orphaned reading)', async () => {
-      vi.mocked(prisma.reading.groupBy).mockResolvedValue([
+    it('tolerates a missing user record (orphaned activity)', async () => {
+      vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([
         { userId: 'ghost', _count: { id: 1 }, _max: { createdAt: new Date() } },
       ] as any)
-      vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([] as any)
       vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
       vi.mocked(prisma.user.findMany).mockResolvedValue([] as any)
       const data = (await (await GET(createRequest())).json()).data
       expect(data.users[0]).toMatchObject({ id: 'ghost', email: null, name: null, readings: 1 })
     })
 
-    it('merges activity across reading, tarot and counselor per user', async () => {
+    it('merges activity across tarot and counselor per user', async () => {
       vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
       vi.mocked(isAdminUser).mockResolvedValue(true)
-      // u1: 2 리딩 + 3 타로 = 5, 마지막 활동은 타로(더 늦음)
-      vi.mocked(prisma.reading.groupBy).mockResolvedValue([
-        { userId: 'u1', _count: { id: 2 }, _max: { createdAt: new Date('2026-06-02T09:00:00Z') } },
-      ] as any)
+      // u1: 타로 3 + 상담 2 = 5, 마지막 활동은 타로(더 늦음)
       vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([
         { userId: 'u1', _count: { id: 3 }, _max: { createdAt: new Date('2026-06-02T12:00:00Z') } },
       ] as any)
-      // u9: 상담만 1
       vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([
+        { userId: 'u1', _count: { id: 2 }, _max: { createdAt: new Date('2026-06-02T09:00:00Z') } },
         { userId: 'u9', _count: { id: 1 }, _max: { createdAt: new Date('2026-06-02T10:00:00Z') } },
       ] as any)
       vi.mocked(prisma.user.findMany).mockResolvedValue([
@@ -167,7 +162,7 @@ describe('GET /api/admin/active-users', () => {
     it('returns 500 when the query throws', async () => {
       vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
       vi.mocked(isAdminUser).mockResolvedValue(true)
-      vi.mocked(prisma.reading.groupBy).mockRejectedValue(new Error('DB down'))
+      vi.mocked(prisma.tarotReading.groupBy).mockRejectedValue(new Error('DB down'))
       const res = await GET(createRequest())
       expect(res.status).toBe(500)
       expect((await res.json()).error.code).toBe('INTERNAL_ERROR')

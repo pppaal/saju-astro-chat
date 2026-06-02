@@ -26,7 +26,6 @@ vi.mock('@/lib/security/csrf', () => ({ csrfGuard: vi.fn(() => null) }))
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: { count: vi.fn(), findMany: vi.fn() },
-    reading: { count: vi.fn(), groupBy: vi.fn() },
     tarotReading: { count: vi.fn(), groupBy: vi.fn() },
     counselorChatSession: { count: vi.fn(), groupBy: vi.fn() },
     bonusCreditPurchase: { aggregate: vi.fn(), count: vi.fn(), groupBy: vi.fn() },
@@ -93,19 +92,16 @@ function setupHappyPath(overrides?: {
     return [o.usersToday, o.users7d, o.users30d][windowedUserCalls - 1] ?? 0
   })
 
-  // 활동 집계는 reading+tarot+counselor 합산. 테스트는 reading 에만 값을 주고
-  // 나머지 두 소스는 0/[] 로 둬, 합산 결과가 reading 단독값과 같게 유지한다.
-  // reading.count: where(createdAt) 있으면 today, 없으면 total.
-  vi.mocked(prisma.reading.count).mockImplementation(async (args?: any) =>
+  // 활동 집계 = tarot + counselor (reading 은 타로 중복이라 제외). 테스트는
+  // tarot 에만 값을 주고 counselor 는 0/[] 로 둬, 합산이 tarot 단독값과 같게 한다.
+  // tarotReading.count: where(createdAt) 있으면 today, 없으면 total.
+  vi.mocked(prisma.tarotReading.count).mockImplementation(async (args?: any) =>
     args?.where?.createdAt ? o.readingsToday : o.readingsTotal
   )
-  vi.mocked(prisma.tarotReading.count).mockResolvedValue(0)
   vi.mocked(prisma.counselorChatSession.count).mockResolvedValue(0)
-
-  vi.mocked(prisma.reading.groupBy).mockResolvedValue(
+  vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue(
     Array.from({ length: o.activeToday }, (_, i) => ({ userId: `u${i}` })) as any
   )
-  vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([] as any)
   vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
 
   vi.mocked(prisma.bonusCreditPurchase.aggregate).mockResolvedValue({
