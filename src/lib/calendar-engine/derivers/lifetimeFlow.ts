@@ -32,13 +32,28 @@ const SIBSIN_CAT: Record<string, string> = {
   정인: '인성',
   편인: '인성',
 }
-// 카테고리 → (교차에서 쓸 핵심 욕구, 그 시기 결론)
-const CAT: Record<string, { kw: string; outcome: string }> = {
-  관성: { kw: '책임·자리 욕구', outcome: '사회적 토대와 신뢰의 뼈대를 세워요' },
-  재성: { kw: '성취·현실 감각', outcome: '커리어와 자산의 기초가 잡혀요' },
-  식상: { kw: '표현·창조 욕구', outcome: '낡은 틀을 깨고 자기다운 길을 새로 그려요' },
-  비겁: { kw: '자립·경쟁심', outcome: '관계와 독립 사이에서 진짜 내 자리를 찾아요' },
-  인성: { kw: '수용·정리의 힘', outcome: '삶의 의미를 다시 정돈해요' },
+// 카테고리 → (그 시기를 쉬운말로 푼 수식구 '~는', 그 시기 결론)
+const CAT: Record<string, { phrase: string; outcome: string }> = {
+  관성: {
+    phrase: '책임을 짊어지고 사회적 자리를 잡아가는',
+    outcome: '사회적 토대와 신뢰가 단단해져요',
+  },
+  재성: {
+    phrase: '노력이 현실의 성취·재물로 돌아오는',
+    outcome: '커리어와 자산의 기초가 잡혀요',
+  },
+  식상: {
+    phrase: '쌓아온 걸 표현하고 결과물로 터뜨리는',
+    outcome: '낡은 틀을 깨고 자기다운 길을 새로 그려요',
+  },
+  비겁: {
+    phrase: '내 발로 서며 주체성과 인연을 시험받는',
+    outcome: '관계와 독립 사이에서 진짜 내 자리를 찾아요',
+  },
+  인성: {
+    phrase: '받아들이고 갈무리하며 내면이 깊어지는',
+    outcome: '삶의 의미를 다시 정돈해요',
+  },
 }
 
 const BANDS: Array<[number, number, string]> = [
@@ -77,10 +92,11 @@ export function deriveLifetimeFlow(
   const yong = [natal.saju.yongsin.primary, natal.saju.yongsin.secondary].filter(Boolean).join('·')
   const intro = `${dm} 일간으로 ${strengthKo}, 용신 ${yong}의 기운이 받쳐줄 때 진가가 드러나는 사주. 사주 대운(10년 흐름)과 점성 인생 마디를 교차해 본 큰 흐름이에요.`
 
-  const events = buildLifecycleTiming(birthYear, birthYear + 90, true).events.map((e) => ({
-    age: e.startYear - birthYear,
-    name: e.label.split('—')[0].trim(),
-  }))
+  const events = buildLifecycleTiming(birthYear, birthYear + 90, true).events.map((e) => {
+    // 라벨 '두 번째 목성 회귀 — 진로의 큰 그림' → 사람말 의미('진로의 큰 그림') 우선
+    const desc = e.label.split('—').slice(1).join('—').trim()
+    return { age: e.startYear - birthYear, desc: desc || e.label.trim() }
+  })
   const currentAge = new Date().getUTCFullYear() - birthYear + 1 // 한국나이
 
   const phases: LifePhase[] = []
@@ -97,10 +113,10 @@ export function deriveLifetimeFlow(
     const evs = events.filter((e) => e.age >= lo && e.age <= hi).slice(0, 2)
     let text: string
     if (evs.length) {
-      const names = evs.map((e) => e.name).join(', ')
-      text = `사주로는 ${cat}운이 흐르며 ${info.kw}${gaI(info.kw)} 커지고, 점성으로 ${names}${gaI(evs.at(-1)!.name)} 겹쳐 — ${info.outcome}.`
+      const descs = evs.map((e) => e.desc).join(', ')
+      text = `${cat}운 — ${info.phrase} 시기예요. 점성으로도 ${descs}${gaI(evs.at(-1)!.desc)} 겹쳐, ${info.outcome}.`
     } else {
-      text = `사주로는 ${cat}운이 흐르며 ${info.kw}${gaI(info.kw)} 무르익어 — ${info.outcome}.`
+      text = `${cat}운 — ${info.phrase} 시기예요. ${info.outcome}.`
     }
     phases.push({
       label,
