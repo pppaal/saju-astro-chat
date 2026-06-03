@@ -1415,11 +1415,9 @@ describe('calendar-engine regression', () => {
       expect(deriveCycleTone('day', 'weak', '재성')).toContain('오늘')
       // 십신 못 구하면 undefined (가드)
       expect(deriveCycleTone('day', 'weak', undefined)).toBeUndefined()
-      // 톤 문장이 십신을 박아 변별 — '재성운 —' 처럼 십신명이 들어간다
-      expect(deriveCycleTone('year', 'weak', '재성')).toContain('재성운 —')
-      expect(deriveCycleTone('year', 'weak', '관성')).toContain('관성운 —')
-      // 문장부호 — 종결('…해예요.') 뒤 마침표가 붙는다 (해예요_다만 비문 방지)
-      expect(deriveCycleTone('year', 'weak', '재성')).toContain('해예요. ')
+      // 톤은 십신명 + 짧은 테마(괄호) — '재성운(돈·현실) —' 식으로 변별 (간지 룰과 비중복)
+      expect(deriveCycleTone('year', 'weak', '재성')).toContain('재성운(돈·현실) —')
+      expect(deriveCycleTone('year', 'weak', '관성')).toContain('관성운(책임·자리) —')
     })
 
     it('deriveAstroTone: 올해·이달·오늘 모두 본명 aspect polarity 부호로 우호/마찰 갈림', async () => {
