@@ -93,6 +93,22 @@ export const SIBSIN: Record<
   정인: { category: 'inSeong', meaning: '학문·보호·전통 지원' },
 }
 
+// 십성 → 한 줄(2~5자) plain 한국어 키워드. 셀 칩 밑에 inline 으로 노출해서
+// "비견 뭐지" 라는 인지 부담 제거. 위의 SIBSIN.meaning 은 tooltip 용 풍부한 설명이고
+// 아래는 칩 옆에 항상 보이는 한 줄 라벨.
+export const SIBSIN_SHORT: Record<string, string> = {
+  비견: '자존·동료',
+  겁재: '경쟁·라이벌',
+  식신: '표현·창의',
+  상관: '재능·개성',
+  편재: '기회·재물',
+  정재: '안정·재물',
+  편관: '권력·압박',
+  정관: '명예·규율',
+  편인: '직관·지식',
+  정인: '학문·보호',
+}
+
 // 십성 카테고리별 색 — 차트 전체에서 통일 (UI 토큰, chart-dictionary 범위 밖)
 export const SIBSIN_COLOR: Record<
   'bigeop' | 'sikSang' | 'jaeSeong' | 'gwanSeong' | 'inSeong',

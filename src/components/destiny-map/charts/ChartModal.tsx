@@ -9,7 +9,6 @@ import { NatalChart } from './NatalChart'
 import { ChartReading } from './ChartReading'
 import { CrossRefTable } from './atoms/CrossRefTable'
 import { PillarDrawer } from './atoms/PillarDrawer'
-import { DaeunTimeline } from './atoms/DaeunTimeline'
 import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
@@ -19,13 +18,6 @@ interface ChartModalProps {
   saju?: unknown
   astro?: unknown
   lang?: 'ko' | 'en'
-}
-
-/** 대운 데이터 있는지 — saju.daeun.list 또는 saju.daeWoon.list 둘 다 확인. */
-function hasDaeunList(saju: unknown): boolean {
-  if (!saju || typeof saju !== 'object') return false
-  const s = saju as { daeun?: { list?: unknown[] }; daeWoon?: { list?: unknown[] } }
-  return (s.daeun?.list?.length ?? 0) > 0 || (s.daeWoon?.list?.length ?? 0) > 0
 }
 
 export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartModalProps) {
@@ -61,7 +53,6 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
   if (!open) return null
 
   const readLine = generateChartSummary(saju, astro, lang)
-  const birthYear = (saju as { birthYear?: number } | undefined)?.birthYear
   // 자연어 아직 로딩 중 (사주 fetch 안 끝남) 표시 fallback. readLine 이 빈 string 이면 saju 가 advancedAnalysis 없거나 fetch 중.
   const sajuReady =
     !!saju &&
@@ -119,8 +110,8 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
           </p>
         </div>
 
-        {/* 자연어 종합 — 격국·신강약·일간·오행·태양/달·대운 흐르는 한 문단.
-            generateChartSummary 가 advancedAnalysis 기반 6-10 문장 생성.
+        {/* 자연어 종합 — 격국·신강약·일간·오행·태양/달 흐르는 한 문단.
+            generateChartSummary 가 advancedAnalysis 기반 6 문장 생성.
             sajuReady false 면 fetch 중 — skeleton 표시. */}
         <div
           className="chart-rise-in mb-4 rounded-2xl p-4 sm:mb-6 sm:p-5"
@@ -208,7 +199,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
                   className="px-1 text-[11px] font-medium uppercase tracking-wider"
                   style={{ color: 'var(--ds-gold-on-dark)' }}
                 >
-                  {isKo ? '사주팔자 (탭 → 상세)' : '4 Pillars (tap → detail)'}
+                  {isKo ? '사주팔자' : '4 Pillars'}
                 </div>
                 <SajuChart
                   saju={saju as never}
@@ -227,20 +218,6 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
                 <ElementRadar saju={saju} lang={lang} />
               </div>
             </div>
-
-            {/* 대운 timeline — 인생 10년 단위 흐름 8개 가로 펼침.
-                데이터 없으면 (saju.daeun.list / daeWoon.list 둘 다 비어 있으면) 헤더까지 hide. */}
-            {hasDaeunList(saju) && (
-              <div className="space-y-1.5">
-                <div
-                  className="px-1 text-[11px] font-medium uppercase tracking-wider"
-                  style={{ color: 'var(--ds-gold-on-dark)' }}
-                >
-                  {isKo ? '대운 — 인생의 흐름' : 'Daeun — Life Cycles'}
-                </div>
-                <DaeunTimeline saju={saju} birthYear={birthYear} lang={lang} />
-              </div>
-            )}
           </section>
 
           {/* 서양 — 네이탈 차트 */}

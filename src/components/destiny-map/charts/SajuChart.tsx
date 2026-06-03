@@ -4,6 +4,7 @@ import React from 'react'
 import { getHanjaRich } from '@/lib/chart-dictionary'
 import { HanjaBubble } from './atoms/HanjaBubble'
 import { SibsinChip } from './atoms/SibsinChip'
+import { SIBSIN_SHORT } from './atoms/interpretations'
 
 type FiveElement = '목' | '화' | '토' | '금' | '수' | string
 
@@ -66,15 +67,22 @@ const DEFAULT_STYLE_LIGHT = { text: 'text-stone-700', bg: 'bg-stone-50' }
 const DEFAULT_STYLE_DARK = { text: 'text-slate-200', bg: 'bg-white/5' }
 
 // Hanja → 발음(한국어) / 물상(物像) — chart-dictionary(hanja-rich) 단일 출처에서 조회.
-// hanja-rich 의 `image` 필드는 "큰 나무·동량목 — 곧게…" 같이 풍부해 9px 셀 라벨에는
-// 길어서, 첫 어절(·/— 앞)만 잘라 기존 한 줄 라벨 길이를 유지한다.
 const readingOf = (name?: string, lang: 'ko' | 'en' = 'ko') => {
   if (!name) return ''
   return getHanjaRich(name, lang)?.name ?? name
 }
-const imageOf = (name?: string, lang: 'ko' | 'en' = 'ko') => {
+// 셀에 한 줄로 들어갈 짧은 물상 라벨.
+//   천간(stems) → 자연 image 첫 어절 ("큰 나무" → "큰 나무")
+//   지지(branches) → 동물명 ("봄비머금은옥토위의용" 대신 "용"). 좁은 폰에서도 깔끔.
+// 옛 동작(긴 image 그대로)에서 모바일 셀 폭 부족으로 글자 단위 줄바꿈 발생 → animal 로 교체.
+const imageOf = (name?: string, lang: 'ko' | 'en' = 'ko'): string => {
   if (!name) return ''
-  const raw = getHanjaRich(name, lang)?.image
+  const entry = getHanjaRich(name, lang) as
+    | { image?: string; animal?: string }
+    | null
+  if (!entry) return ''
+  if (entry.animal) return entry.animal
+  const raw = entry.image
   if (!raw) return ''
   return raw.split('·')[0].split('—')[0].trim()
 }
@@ -97,7 +105,7 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
   // 테마별 톤 — 컨테이너, 헤더 텍스트, "내 일주" ring, 행 라벨, 빈 상태.
   const tokens = isDark
     ? {
-        container: 'rounded-2xl border p-4',
+        container: 'rounded-2xl border p-2.5 sm:p-4',
         containerStyle: {
           background: 'var(--ds-dark-surface)',
           borderColor: 'var(--ds-dark-border)',
@@ -120,7 +128,7 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
       }
     : {
         container:
-          'rounded-2xl border border-stone-200 bg-gradient-to-br from-stone-50 to-white p-4 shadow-sm',
+          'rounded-2xl border border-stone-200 bg-gradient-to-br from-stone-50 to-white p-2.5 sm:p-4 shadow-sm',
         containerStyle: undefined as React.CSSProperties | undefined,
         headerHanja: 'text-stone-400',
         headerLabelNeutral: 'text-stone-500',
@@ -189,26 +197,10 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
 
   return (
     <div className={tokens.container} style={tokens.containerStyle}>
-      {/* Affordance hint — 모바일 비전공자에게 비주얼 단서 (가운데 = 나, 한자
-          long-press, 셀 탭) 노출. dark / light 모두 동일 톤 (gold accent). */}
-      <div
-        className="mb-2 rounded-md px-2.5 py-1.5 text-[10px] leading-snug"
-        style={{
-          background: 'rgba(212,181,114,0.06)',
-          color: 'var(--ds-dark-text-muted)',
-          border: '1px solid rgba(212,181,114,0.12)',
-        }}
-      >
-        <span style={{ color: 'var(--ds-gold-on-dark)' }}>ⓘ</span>{' '}
-        {isKo
-          ? "가운데 금색 = '나' (일주) · 한자 꾹 누르면 뜻 · 셀 탭 = 상세 풀이"
-          : 'Gold border = "me" (Day Pillar) · long-press a hanja for meaning · tap a column for detail'}
-      </div>
-
       {/* 컬럼 헤더: 한자 기둥명(時/日/月/年) + 시기 라벨 */}
-      <div className="mb-3 grid grid-cols-4 gap-2">
+      <div className="mb-3 grid grid-cols-4 gap-1.5 sm:gap-2">
         {order.map(({ key, isMe, pillarKo, posKo, posEn }) => (
-          <div key={`hd-${key}`} className="flex flex-col items-center gap-0.5">
+          <div key={`hd-${key}`} className="flex min-w-0 flex-col items-center gap-0.5">
             {isKo && (
               <span
                 className={`font-serif text-sm font-semibold tracking-wide ${tokens.headerHanja}`}
@@ -217,11 +209,17 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
               </span>
             )}
             {isMe ? (
-              <span className={tokens.headerLabelMe} style={tokens.headerLabelMeStyle}>
+              <span
+                className={`${tokens.headerLabelMe} max-w-full whitespace-nowrap`}
+                style={tokens.headerLabelMeStyle}
+              >
                 {isKo ? posKo : posEn}
               </span>
             ) : (
-              <span className={`text-[11px] ${tokens.headerLabelNeutral}`}>
+              <span
+                className={`max-w-full text-center text-[10px] sm:text-[11px] ${tokens.headerLabelNeutral}`}
+                style={{ wordBreak: 'keep-all' }}
+              >
                 {isKo ? posKo : posEn}
               </span>
             )}
@@ -229,8 +227,10 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
         ))}
       </div>
 
-      {/* 천간 / 지지 그리드 */}
-      <div className="grid grid-cols-4 gap-2">
+      {/* 천간 / 지지 그리드. min-w-0 — grid item 기본 min-width:auto 가
+          긴 한국어 텍스트(예 '측유물엄동안의돼지') 때문에 열을 못 줄여
+          뷰포트 밖으로 밀어내던 회귀 방지. */}
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
         {order.map(({ key, pillar, isMe }) => {
           const stem = pillar.heavenlyStem
           const branch = pillar.earthlyBranch
@@ -240,7 +240,7 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
           return (
             <div
               key={key}
-              className={`flex flex-col gap-1.5 ${clickable ? 'cursor-pointer transition-transform hover:-translate-y-0.5' : ''}`}
+              className={`flex min-w-0 flex-col gap-1.5 ${clickable ? 'cursor-pointer transition-transform hover:-translate-y-0.5' : ''}`}
               onClick={clickable ? () => onPillarClick(key) : undefined}
               role={clickable ? 'button' : undefined}
               tabIndex={clickable ? 0 : undefined}
@@ -262,7 +262,7 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
               ].map((c, idx) => (
                 <div
                   key={idx}
-                  className={`flex min-h-[88px] w-full flex-col items-center justify-center gap-1 rounded-xl border p-1.5 shadow-sm ${c.style.bg} ${
+                  className={`flex min-h-[88px] w-full min-w-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border p-1 sm:p-1.5 shadow-sm ${c.style.bg} ${
                     isMe ? tokens.cellBorderMe : tokens.cellBorderNeutral
                   } ${c.isStem ? '' : 'opacity-95'}`}
                 >
@@ -270,33 +270,53 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
                   {c.cell?.name ? (
                     <HanjaBubble
                       hanja={c.cell.name}
-                      className={`font-serif text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
+                      className={`font-serif text-[17px] sm:text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
                     >
                       {c.cell.name}
                     </HanjaBubble>
                   ) : (
                     <span
-                      className={`font-serif text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
+                      className={`font-serif text-[17px] sm:text-[18px] font-bold leading-tight tracking-tight ${c.style.text}`}
                     >
                       ·
                     </span>
                   )}
-                  {/* 한자 아래: 한국 발음 + 오행 한 줄 (KO 모드만). 비전공자가 한자
-                      모르더라도 즉시 읽을 수 있게. */}
+                  {/* 한자 아래: 한국 발음 + 오행 (KO 모드만). 예: "신·금".
+                      keep-all — Korean 기본 word-break 가 좁은 셀에서 글자 단위로
+                      깨던 회귀 방지 (예 "임\n·\n수"). */}
                   {isKo && c.cell?.name && (
-                    <span className={`text-[10px] leading-none ${tokens.imageText}`}>
+                    <span
+                      className={`text-center text-[10px] leading-none ${tokens.imageText}`}
+                      style={{ wordBreak: 'keep-all' }}
+                    >
                       {readingOf(c.cell.name)}
                       {c.cell.element ? `·${c.cell.element}` : ''}
                     </span>
                   )}
-                  {/* 한자의 물상(物像) — "큰 나무" 같은 한 줄 의미. */}
+                  {/* 한자의 물상 — stems "보석/큰강" · branches "용/호랑이/돼지".
+                      옛 긴 image("봄비머금은옥토위의용") → animal 로 단축. */}
                   {isKo && imageOf(c.cell?.name) && (
-                    <span className={`text-[9px] leading-none ${tokens.imageText}`}>
+                    <span
+                      className={`max-w-full px-0.5 text-center text-[9px] leading-tight ${tokens.imageText}`}
+                      style={{ wordBreak: 'keep-all' }}
+                    >
                       {imageOf(c.cell?.name)}
                     </span>
                   )}
-                  {/* 십성 chip — 색만 봐도 카테고리 (비겁/식상/재성/관성/인성) 직관 */}
-                  {c.cell?.sibsin && <SibsinChip sibsin={c.cell.sibsin} size="xs" />}
+                  {/* 십성 chip + 평이 한국어 의미 (예: "비견" 아래 "자존·동료"). */}
+                  {c.cell?.sibsin && (
+                    <div className="flex flex-col items-center gap-0.5">
+                      <SibsinChip sibsin={c.cell.sibsin} size="xs" />
+                      {isKo && SIBSIN_SHORT[c.cell.sibsin] && (
+                        <span
+                          className={`text-center text-[8.5px] leading-tight ${tokens.imageText}`}
+                          style={{ wordBreak: 'keep-all' }}
+                        >
+                          {SIBSIN_SHORT[c.cell.sibsin]}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

@@ -41,7 +41,7 @@ export function SibsinChip({ sibsin, size = 'xs', className }: SibsinChipProps) 
       }}
     >
       <span
-        className={`inline-block rounded-md font-medium ring-1 leading-tight ${info.color.bg} ${info.color.text} ${info.color.ring} ${sizeClass}`}
+        className={`inline-block whitespace-nowrap rounded-md font-medium ring-1 leading-tight ${info.color.bg} ${info.color.text} ${info.color.ring} ${sizeClass}`}
       >
         {sibsin}
       </span>
