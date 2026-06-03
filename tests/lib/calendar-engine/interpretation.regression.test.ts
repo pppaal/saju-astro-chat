@@ -1415,6 +1415,25 @@ describe('calendar-engine regression', () => {
       expect(deriveCycleTone('day', 'weak', '재성')).toContain('오늘')
       // 십신 못 구하면 undefined (가드)
       expect(deriveCycleTone('day', 'weak', undefined)).toBeUndefined()
+      // 톤 문장이 십신을 박아 변별 — '재성운 —' 처럼 십신명이 들어간다
+      expect(deriveCycleTone('year', 'weak', '재성')).toContain('재성운 —')
+      expect(deriveCycleTone('year', 'weak', '관성')).toContain('관성운 —')
+      // 문장부호 — 종결('…해예요.') 뒤 마침표가 붙는다 (해예요_다만 비문 방지)
+      expect(deriveCycleTone('year', 'weak', '재성')).toContain('해예요. ')
+    })
+
+    it('deriveAstroMonthTone: 본명 aspect polarity 부호로 우호/마찰/혼합 갈림', async () => {
+      const { deriveAstroMonthTone } = await import(
+        '@/lib/calendar-engine/derivers/cycleTone'
+      )
+      const sig = (polarity: number) => ({
+        source: 'astro', kind: 'transit', korean: '화성 스퀘어 본명 토성', polarity, weight: 1,
+      })
+      expect(deriveAstroMonthTone([sig(3), sig(2)])).toContain('우호적')
+      expect(deriveAstroMonthTone([sig(-3), sig(-2)])).toContain('부딪히는')
+      // 본명 aspect 신호 없으면 undefined (하늘 상태만으론 개인화 안 함)
+      expect(deriveAstroMonthTone([{ source: 'astro', kind: 'dignity', korean: '목성 자리', polarity: 2, weight: 1 }])).toBeUndefined()
+      expect(deriveAstroMonthTone([])).toBeUndefined()
     })
   })
 })

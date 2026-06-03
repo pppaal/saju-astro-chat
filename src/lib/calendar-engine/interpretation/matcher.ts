@@ -11,7 +11,7 @@ import { deriveLifetimePivots } from '../derivers/lifetimePivots'
 import { deriveLifetimeFlow } from '../derivers/lifetimeFlow'
 import { deriveYearAstro } from '../derivers/yearAstro'
 import { deriveMonthComparison } from '../derivers/monthComparison'
-import { SIBSIN_CAT, deriveCycleTone } from '../derivers/cycleTone'
+import { SIBSIN_CAT, deriveCycleTone, deriveAstroMonthTone } from '../derivers/cycleTone'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -362,6 +362,10 @@ export function buildInterpretation(args: {
     const strength = natal.saju?.strength
     prepend('seun', deriveCycleTone('year', strength, layerCat('yearly')))
     prepend('wolun', deriveCycleTone('month', strength, layerCat('monthly')))
+    // 점성도 사람마다 — 이달 transit 섹션 맨 앞에, 그 달 '본명에 닿는' 각도(개인
+    // 차트 대비)의 우호/마찰을 한 줄로. 하늘 상태(만인 공통)가 아닌 natal aspect라
+    // 사람마다 갈림. (올해=프로펙션 하우스, 오늘=일별 aspect 가 이미 개인화 담당)
+    prepend('transit', deriveAstroMonthTone(allSignals))
   }
 
   // 문체 — 한글 룰 템플릿에 하드코딩된 영어 행성/용어(Saturn Return, Jupiter…)를
