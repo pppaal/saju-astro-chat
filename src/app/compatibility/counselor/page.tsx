@@ -60,6 +60,47 @@ type ChatMessage = {
   incomplete?: boolean
 }
 
+// 끊긴 턴 복원용 영속 정보 — recoverableTurnRef 는 메모리라 크레딧 구매 등으로
+// 페이지를 떠났다 돌아오면(=remount/새로고침) 사라진다. turnId 를 localStorage 에
+// 같이 남겨, 서버가 keepGeneratingOnDisconnect 로 끝까지 만들어 둔 완성본을 마운트
+// 시 result 캐시에서 자동으로 받아와 잘린 답을 갈아끼운다(ChatGPT 식). TTL 은 서버
+// result 캐시(10분)와 맞춘다 — 그 뒤엔 캐시가 비어 복원 불가. (destiny useChatApi
+// 의 PENDING_TURN_KEY 패턴 그대로 이식.)
+const PENDING_TURN_KEY = 'compatCounselor:pendingTurn'
+const PENDING_TURN_TTL_MS = 10 * 60 * 1000
+type PendingTurn = { turnId: string; userText: string; ts: number }
+
+function readPendingTurn(): PendingTurn | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(PENDING_TURN_KEY)
+    if (!raw) return null
+    const t = JSON.parse(raw) as PendingTurn
+    if (!t?.turnId || typeof t.ts !== 'number') return null
+    return t
+  } catch {
+    return null
+  }
+}
+
+function writePendingTurn(t: PendingTurn): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(PENDING_TURN_KEY, JSON.stringify(t))
+  } catch {
+    /* 저장 실패(quota/private mode) — 영속 복원만 포기, 인메모리 경로는 유지 */
+  }
+}
+
+function clearPendingTurn(): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(PENDING_TURN_KEY)
+  } catch {
+    /* noop */
+  }
+}
+
 type PersonData = {
   name: string
   date: string
@@ -126,6 +167,10 @@ function CompatibilityCounselorContent() {
   // 폴링해 완성 답으로 갈아끼운다. 마지막 assistant 메시지를 교체한다.
   const recoverableTurnRef = useRef<{ turnId: string; userText: string } | null>(null)
   const recoveringRef = useRef(false)
+  // 마운트 1회 복원 가드 — 크레딧 구매 등으로 페이지를 떠났다 돌아오면
+  // recoverableTurnRef(메모리)는 비지만 localStorage 의 pending turn 과 복원된
+  // 마지막 미완성 assistant 가 단서로 남는다. 마운트당 한 번만 시도.
+  const mountRecoverDoneRef = useRef(false)
   // attemptRecover 는 sendMessage 보다 아래에 선언되므로(같은 컴포넌트 body),
   // sendMessage 안에서 직접 부르면 use-before-declaration. ref 로 우회.
   const attemptRecoverRef = useRef<(() => void) | null>(null)
@@ -249,6 +294,9 @@ function CompatibilityCounselorContent() {
               )
             )
             if (draft.chatTitle) setChatTitle(draft.chatTitle)
+            // 복원한 대화는 맨 아래(최신)부터 보여줘야 함 — 기본은 TOP 정렬이라
+            // 사용자가 직접 스크롤해야 했던 회귀. destiny Chat.tsx 와 동일 패턴.
+            scrollToBottomImmediate()
             return // 서버 자동 resume / picker 건너뜀
           }
         }
@@ -299,6 +347,9 @@ function CompatibilityCounselorContent() {
                 if (s.meta?.person2Saju !== undefined) setPerson2Saju(s.meta.person2Saju ?? null)
                 if (s.meta?.person1Astro !== undefined) setPerson1Astro(s.meta.person1Astro ?? null)
                 if (s.meta?.person2Astro !== undefined) setPerson2Astro(s.meta.person2Astro ?? null)
+                // 과거 세션 resume — 최신 메시지(맨 아래)로 즉시 스크롤. destiny
+                // Chat.tsx 의 scrollToLatest() 와 동일 (기본 TOP 정렬 회귀 방지).
+                scrollToBottomImmediate()
                 return // skip fresh-start path
               }
             }
@@ -511,7 +562,7 @@ function CompatibilityCounselorContent() {
 
   // 자동 스크롤 — 공통 hook (destiny / followup 동일). externalRef 로 기존
   // messagesEndRef 그대로 사용.
-  useChatAutoScroll({
+  const { scrollToBottomImmediate } = useChatAutoScroll({
     messages,
     loading: isLoading,
     suspendRef: suspendAutoScrollRef,
@@ -594,6 +645,10 @@ function CompatibilityCounselorContent() {
         return
       }
 
+      // 새 전송 시작 → 마운트 복원 경로 무효화. 직전 미완성 턴의 영속 turnId 가
+      // 새 답변의 복원에 끼어들지 않게 하고, 이 턴의 turnId 는 아래에서 새로 쓴다.
+      mountRecoverDoneRef.current = true
+
       const userMessage: ChatMessage = { role: 'user', content: text }
       setMessages((prev) => [...prev, userMessage])
       if (!textOverride) setInput('')
@@ -619,6 +674,12 @@ function CompatibilityCounselorContent() {
             ? crypto.randomUUID()
             : `t${Date.now()}-${Math.random().toString(36).slice(2)}`)
         lastTurnIdemKeyRef.current = idempotencyKey
+        // 끊겨도(혹은 크레딧 구매로 페이지를 떠났다 돌아와도) 서버가 끝까지 생성해
+        // 이 turnId 로 캐시에 저장 → 마운트 복원 effect 가 잘린 답을 완성본으로
+        // 갈아끼운다. 전송 시점에 미리 남겨, 응답이 끊긴 뒤 remount 돼도 복원 단서가
+        // 살아 있게 한다(메모리 ref 만으로는 navigate-away 에 소실). 정상 완료 시
+        // 아래에서 clear. retry 도 같은 turnId 라 그대로 덮어써 무방.
+        writePendingTurn({ turnId: idempotencyKey, userText: text, ts: Date.now() })
         // 운명 상담사의 useChatApi 패턴을 그대로 이식 — 헤더 도착까지의 절대
         // 시간 cap 과 chunk 사이 idle cap 을 분리해서 관리한다. 헤더가 30s
         // 안에 안 오면 abort, 헤더 받은 뒤엔 chunk idle 45s 기준으로 따로
@@ -791,7 +852,14 @@ function CompatibilityCounselorContent() {
           // 시작 — 아니면 visibility 시 재개. 게스트는 turnId 캐시가 없어 result
           // 가 항상 ready=false → 폴링이 자연히 만료되므로 별도 가드 불필요.
           recoverableTurnRef.current = { turnId: idempotencyKey, userText: text }
+          // 새로고침/페이지 이탈 후에도 살릴 수 있게 turnId 를 localStorage 에 갱신.
+          writePendingTurn({ turnId: idempotencyKey, userText: text, ts: Date.now() })
           attemptRecoverRef.current?.()
+        } else if (finalAssistantContent) {
+          // 정상 완료 — 더 이상 복원할 게 없으니 영속 단서 정리. (truncate/에러
+          // 가 아닌, 실제 완결 답이 도착한 경우만.)
+          recoverableTurnRef.current = null
+          clearPendingTurn()
         }
         // 운명 상담사와 동일 패턴 — LLM 의 generic followup ("더 알려줘",
         // "tell me more" 등) 을 클라이언트에서 결정적으로 필터링 + 부족분만
@@ -1019,6 +1087,7 @@ function CompatibilityCounselorContent() {
                 )
               setError(null)
               recoverableTurnRef.current = null
+              clearPendingTurn()
               return
             }
           }
@@ -1037,14 +1106,59 @@ function CompatibilityCounselorContent() {
     attemptRecoverRef.current = () => void attemptRecover()
   }, [attemptRecover])
 
-  // 다른 앱/탭에서 돌아오면(visible) 끊겼던 턴의 완성 답을 복원 시도.
+  // 새로고침/페이지 이탈 후 복원 — 크레딧 구매로 페이지를 떠났다 돌아오면(remount)
+  // recoverableTurnRef(메모리)는 사라지지만, 잘린 답은 드래프트/서버 resume 으로
+  // 화면 맨 끝에 미완성(또는 빈) assistant 로 남는다. localStorage 의 turnId 가 아직
+  // 살아 있고(서버 캐시 TTL 내) 마지막 메시지가 그 미완성 답이면, 사용자가 아무것도
+  // 안 해도 result 캐시를 폴링해 완성본으로 갈아끼운다. 마운트당 1회, 새 전송이
+  // 시작되면 sendMessage 가 무효화. (destiny useChatApi.ts 의 마운트 복원 패턴 이식.)
+  useEffect(() => {
+    if (mountRecoverDoneRef.current) return
+    if (isLoading) return
+    const pending = readPendingTurn()
+    if (!pending) {
+      mountRecoverDoneRef.current = true
+      return
+    }
+    if (Date.now() - pending.ts > PENDING_TURN_TTL_MS) {
+      clearPendingTurn()
+      mountRecoverDoneRef.current = true
+      return
+    }
+    // 대화가 아직 복원되는 중일 수 있다(드래프트/서버 resume 은 비동기) — 메시지가
+    // 채워질 때까지 기다렸다가, 마지막이 미완성/빈 assistant 일 때만 복원한다.
+    const last = messages[messages.length - 1]
+    if (!last) return
+    const lastIsRecoverable = last.role === 'assistant' && (last.incomplete || !last.content)
+    if (!lastIsRecoverable) {
+      // 복원된 대화가 미완성으로 끝나지 않음 → 살릴 게 없음.
+      clearPendingTurn()
+      mountRecoverDoneRef.current = true
+      return
+    }
+    mountRecoverDoneRef.current = true
+    recoverableTurnRef.current = { turnId: pending.turnId, userText: pending.userText }
+    void attemptRecover()
+  }, [messages, isLoading, attemptRecover])
+
+  // 다른 앱/탭에서 돌아오거나(visible/focus) 네트워크가 복구되면(online) 끊겼던
+  // 턴의 완성 답을 복원 시도. attemptRecover 자체가 visibility/recoverableTurnRef
+  // 로 가드돼 있어 안전하게 여러 이벤트에서 호출 가능. (탭 전환/복귀 후 새로고침
+  // 없이도 복원되게 — visibilitychange 만으로는 일부 모바일 브라우저에서 포커스만
+  // 돌아오는 케이스를 놓쳤다.)
   useEffect(() => {
     if (typeof document === 'undefined') return
-    const onVis = () => {
+    const onResume = () => {
       if (document.visibilityState === 'visible') void attemptRecover()
     }
-    document.addEventListener('visibilitychange', onVis)
-    return () => document.removeEventListener('visibilitychange', onVis)
+    document.addEventListener('visibilitychange', onResume)
+    window.addEventListener('online', onResume)
+    window.addEventListener('focus', onResume)
+    return () => {
+      document.removeEventListener('visibilitychange', onResume)
+      window.removeEventListener('online', onResume)
+      window.removeEventListener('focus', onResume)
+    }
   }, [attemptRecover])
 
   // 🃏 클래리파이어 — 공통 hook (운명상담사 / followup 동일).
@@ -1375,6 +1489,35 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 styles={styles as never}
               />
             )}
+
+            {/* 요청 단계 로딩 — assistant 버블은 응답 헤더가 도착해야 push 되는데
+                (setMessages 위쪽), setIsLoading(true) 는 전송 즉시 켜진다. 그
+                사이(요청 진행 중) 사용자는 자기 질문만 보고 아무 피드백이 없어
+                "멈췄나?" 회귀. 마지막이 user 이거나 비어 있을 때만 standalone
+                "생각 중" 블록을 띄운다 — assistant 버블이 채워지면 그 버블의
+                pendingNode 로 넘어가므로 이 블록은 자동으로 사라진다. */}
+            {isLoading &&
+              (messages.length === 0 || messages[messages.length - 1].role === 'user') && (
+                <div className={styles.message}>
+                  <div className={styles.messageAvatar} aria-hidden="true">
+                    {'\u{1F495}'}
+                  </div>
+                  <div className={styles.messageBubble}>
+                    <span className={styles.thinkingMessage}>
+                      <span className={styles.typing}>
+                        <span />
+                        <span />
+                        <span />
+                      </span>
+                      <span className={styles.thinkingText}>
+                        {isKo
+                          ? '당신의 궁합을 깊게 알아보고 있습니다'
+                          : 'Looking deeply into your compatibility…'}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              )}
 
             {/* 도구 안내 — 첫 답변(turn 1) 에만 1회 노출. turn 2+ 자동 X.
                 "다시 안 보기" 또는 도구 사용 시 영구 dismiss (localStorage).

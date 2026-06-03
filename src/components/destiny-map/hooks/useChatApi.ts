@@ -252,14 +252,26 @@ export function useChatApi({
     }
   }, [lang, setMessages, setNotice, setFollowUpQuestions])
 
-  // 다른 앱/탭에서 돌아오면(visible) 끊겼던 턴의 완성 답을 복원 시도.
+  // 다른 앱/탭에서 돌아오거나(visible/focus) 네트워크가 복구되면(online) 끊겼던
+  // 턴의 완성 답을 복원 시도. attemptRecover 자체가 (복원 대상 없음 / 문서 비가시 /
+  // 이미 복원 중) 가드를 가지고 있어, 세 이벤트가 겹쳐 발화해도 중복 폴링은 안 생긴다.
   React.useEffect(() => {
     if (typeof document === 'undefined') return
-    const onVis = () => {
+    const onResume = () => {
       if (document.visibilityState === 'visible') void attemptRecover()
     }
-    document.addEventListener('visibilitychange', onVis)
-    return () => document.removeEventListener('visibilitychange', onVis)
+    document.addEventListener('visibilitychange', onResume)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', onResume)
+      window.addEventListener('focus', onResume)
+    }
+    return () => {
+      document.removeEventListener('visibilitychange', onResume)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', onResume)
+        window.removeEventListener('focus', onResume)
+      }
+    }
   }, [attemptRecover])
 
   // 새로고침/앱 재실행 복원 — 탭을 완전히 닫았다 열면 recoverableTurnRef(메모리)는
@@ -706,6 +718,15 @@ export function useChatApi({
       // 끊겨도 서버가 끝까지 생성해 이 키로 캐시에 저장 → 돌아오면 복원.
       // idempotencyKey 와 동일 키 재사용(재시도도 같은 결과 키로 모임).
       payload.turnId = payload.idempotencyKey
+
+      // 전송 시점에 곧바로 pendingTurn 을 영속화한다. 탭이 백그라운드로 가
+      // abort/stall 이 truncation 분기(아래 processStream)에 도달하지 못한 채
+      // 클로저가 멈추면 그 분기의 writePendingTurn 이 안 돌아 복원 단서가 사라진다.
+      // 전송 즉시 남겨두면 어떤 식으로 멈춰도 result 캐시로 복원 가능 (truncation
+      // 시점 write 와 같은 shape/TTL — idempotent). 정상 완료 시 clearPendingTurn 으로 지움.
+      if (payload.turnId) {
+        writePendingTurn({ turnId: payload.turnId, userText: text, ts: Date.now() })
+      }
 
       try {
         const { res, controller } = await makeRequest(payload)
