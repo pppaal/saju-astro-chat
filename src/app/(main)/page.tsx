@@ -67,6 +67,9 @@ export async function generateMetadata({
         ],
       },
       canonicalUrl: baseUrl,
+      // 동적 OG 카드(app/opengraph-image)를 og:image 로 사용 — 기본 og-image.png
+      // 대신 브랜드 카드가 카톡/와츠앱 미리보기에 뜨게 한다.
+      ogImage: '/opengraph-image',
     },
     locale
   )

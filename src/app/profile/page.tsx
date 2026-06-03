@@ -606,9 +606,9 @@ export default function ProfilePage() {
 
   const handleShareReferral = async () => {
     if (!referral?.referralUrl) return
-    // 공유 문구는 항상 영어로 통일 — 앱(카톡/와츠앱 등)마다 문구가 갈려 보이던 것을
-    // 줄이고 글로벌 일관성 유지. (사용자 요청: 레퍼럴은 영어로 통일.)
-    const text = `Join me on DestinyPal! ${referral.referralUrl}`
+    // 공유 문구는 항상 영어로 통일(글로벌 일관성). URL 은 text 에 넣지 않고 url
+    // 필드로만 보낸다 — text 에도 넣으면 카톡 등에서 링크가 두 번 찍힌다.
+    const text = 'Join me on DestinyPal!'
     if (typeof navigator !== 'undefined' && 'share' in navigator) {
       try {
         await (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share({
