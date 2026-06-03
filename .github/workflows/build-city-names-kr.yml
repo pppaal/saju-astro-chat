@@ -1,0 +1,53 @@
+name: Build City Names (KR) from GeoNames
+
+# 한국어 도시명(city-names-kr.json) 을 GeoNames 로 자동 보강한다.
+# 로컬/샌드박스에서 download.geonames.org 가 막혀도, Actions 러너는 네트워크가
+# 열려 있어 여기서 실행한다. 수동 트리거(버튼) → 보강 → 변경 있으면 자동 커밋.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'GeoNames 인구 하한 (작을수록 도시 수↑/파일 큼)'
+        type: choice
+        required: true
+        default: 'cities5000'
+        options:
+          - cities500
+          - cities1000
+          - cities5000
+          - cities15000
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build city-names-kr.json from GeoNames
+        run: python3 scripts/build-city-names-kr-geonames.py --source "${{ inputs.source }}"
+
+      - name: Commit if changed
+        run: |
+          set -e
+          if git diff --quiet -- src/lib/cities/data/city-names-kr.json; then
+            echo "변경 없음 — 커밋 생략"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          before=$(git show HEAD:src/lib/cities/data/city-names-kr.json | python3 -c "import json,sys; print(len(json.load(sys.stdin)))")
+          after=$(python3 -c "import json; print(len(json.load(open('src/lib/cities/data/city-names-kr.json'))))")
+          git add src/lib/cities/data/city-names-kr.json
+          git commit -m "chore(cities): GeoNames 한국어 도시명 보강 (${{ inputs.source }}: ${before} → ${after})"
+          git push origin HEAD:${{ github.ref_name }}
+          echo "커밋 완료: ${before} → ${after} 개"
