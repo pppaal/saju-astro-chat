@@ -37,16 +37,24 @@ export default function ClarifierCardModal({
   }, [isOpen])
 
   // Esc 로 닫기 + 모달 열린 동안 body 스크롤 잠금.
+  // 모바일(특히 iOS Safari)에서 body{overflow:hidden} 토글이 스크롤 위치를
+  // 0(맨 위)으로 리셋해, 모달을 닫으면 페이지가 맨 위로 튀고 "한 장 더 뽑기가
+  // 진행 안 됨"처럼 보이던 회귀 → 잠그기 전 위치/overflow 를 저장했다가 닫을 때
+  // 복원. prevOverflow 가 비어있을 때(= 우리가 최상위 잠금)만 scrollTo 로 원위치
+  // (인라인 타로 모달 위에 중첩으로 열린 경우엔 배경 잠금을 유지).
   useEffect(() => {
     if (!isOpen) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', onKey)
+    const scrollY = window.scrollY
+    const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
+      document.body.style.overflow = prevOverflow
+      if (!prevOverflow) window.scrollTo(0, scrollY)
     }
   }, [isOpen, onClose])
 

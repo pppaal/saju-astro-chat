@@ -712,13 +712,21 @@ export function useTarotInterpretation({
 
           if (!preferredSaveResponse.ok) {
             const errorPayload = (await preferredSaveResponse.json().catch(() => null)) as {
-              error?: { message?: string }
+              error?: {
+                message?: string
+                details?: Array<{ path?: string; message?: string }>
+              }
               message?: string
             } | null
+            // 검증 실패(400) 시 어느 필드가 막혔는지 첫 detail 을 끌어와 사용자
+            // 화면 + 로그에 그대로 노출 — 무음으로 "그냥 실패" 하지 않게.
+            const detail = errorPayload?.error?.details?.[0]
+            const detailMsg = detail ? `${detail.path ?? ''} ${detail.message ?? ''}`.trim() : ''
             const errorMessage =
+              detailMsg ||
               errorPayload?.error?.message ||
               errorPayload?.message ||
-              `Save failed (${preferredSaveResponse.status})`
+              `${preferredSaveResponse.status}`
             throw new Error(errorMessage)
           }
 
@@ -759,8 +767,18 @@ export function useTarotInterpretation({
       } catch (error) {
         tarotLogger.error('Failed to save reading', error instanceof Error ? error : undefined)
         if (!mountedRef.current) return
-        setSaveMessage(language === 'ko' ? '저장 실패' : 'Save failed')
-        scheduleClearSaveMessage()
+        const reason = error instanceof Error ? error.message : ''
+        // 실패 메시지는 자동 clear 하지 않는다 — 사용자가 원인을 확인/캡처하고
+        // 수동 저장 버튼으로 재시도할 수 있게 유지.
+        setSaveMessage(
+          language === 'ko'
+            ? reason
+              ? `저장 실패: ${reason}`
+              : '저장 실패'
+            : reason
+              ? `Save failed: ${reason}`
+              : 'Save failed'
+        )
       }
     },
     [

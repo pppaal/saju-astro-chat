@@ -77,9 +77,11 @@ export function useFocusTrap(isOpen: boolean, options?: { autoFocus?: boolean })
       // Focus first focusable element in container
       const focusableElements = getFocusableElements();
       if (focusableElements.length > 0) {
-        // Small delay to ensure DOM is ready
+        // Small delay to ensure DOM is ready. preventScroll: 모바일에서
+        // .focus() 가 대상 요소로 페이지를 스크롤시켜(모달 열고 닫을 때 화면이
+        // 튀던 회귀) UX 를 해치는 걸 막는다.
         requestAnimationFrame(() => {
-          focusableElements[0].focus();
+          focusableElements[0].focus({ preventScroll: true });
         });
       }
     } else {
@@ -87,7 +89,7 @@ export function useFocusTrap(isOpen: boolean, options?: { autoFocus?: boolean })
       // the trap engages and SR users land in the dialog — without focusing
       // an input and popping the mobile keyboard.
       requestAnimationFrame(() => {
-        containerRef.current?.focus();
+        containerRef.current?.focus({ preventScroll: true });
       });
     }
 
@@ -97,9 +99,10 @@ export function useFocusTrap(isOpen: boolean, options?: { autoFocus?: boolean })
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
 
-      // Restore focus to previous element
+      // Restore focus to previous element. preventScroll: 닫을 때 트리거
+      // 버튼으로 페이지가 스크롤되며 튀는 걸 막는다.
       if (previousActiveElement.current && previousActiveElement.current.focus) {
-        previousActiveElement.current.focus();
+        previousActiveElement.current.focus({ preventScroll: true });
       }
     };
   }, [isOpen, handleKeyDown, getFocusableElements, autoFocus]);
