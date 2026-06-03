@@ -20,7 +20,7 @@ import { buildEvidenceGroundingGuide } from '@/lib/prompts/evidenceGroundingGuid
 import { buildCompatibilityCounselorPrompt } from '@/lib/prompts/compatibilityCounselorPrompt'
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { consumeCredits } from '@/lib/credits/creditService'
-import { refundCredits } from '@/lib/credits/creditRefund'
+import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { createIdempotencyStore } from '@/lib/api/idempotency'
 import { cacheSet } from '@/lib/cache/redis-cache'
 import type { Relation } from '../types'
@@ -142,8 +142,10 @@ function formatPersonalShinsal(label: string, shinsal: unknown): string | null {
 export async function POST(req: NextRequest) {
   // Hoisted to function scope so the outer catch can refund a credit that was
   // charged before a failure (e.g. a throw during chart building, which the
-  // stream's own onFailure/claudeErr refunds never reach).
+  // stream's own onFailure/claudeErr refunds never reach). refundKey is the
+  // shared per-turn idempotency key so inner + outer refunds never double-pay.
   let chargedUserId: string | null = null
+  let refundKey: string | null = null
   try {
     // Apply middleware: prefer authenticated guard (with credits) but fall
     // back to guest guard so first-time visitors can sample 2 turns before
@@ -301,6 +303,7 @@ export async function POST(req: NextRequest) {
           })
         }
         chargedUserId = context.userId
+        refundKey = turnId ? `compat:${chargedUserId}:${turnId}` : null
         if (scopedIdemKey) await idemStore.mark(scopedIdemKey)
       }
     }
@@ -311,7 +314,7 @@ export async function POST(req: NextRequest) {
     const refundChargedCredit = async (reason: string) => {
       if (!chargedUserId) return
       try {
-        await refundCredits({
+        await refundCreditsOnce(refundKey, {
           userId: chargedUserId,
           creditType: 'compatibility',
           amount: 1,
@@ -846,7 +849,9 @@ export async function POST(req: NextRequest) {
     // only runs for pre-stream failures → no double refund.
     if (chargedUserId) {
       try {
-        await refundCredits({
+        // Idempotent: same key as refundChargedCredit, so if an inner path
+        // already refunded this turn, this is a no-op (no double refund).
+        await refundCreditsOnce(refundKey, {
           userId: chargedUserId,
           creditType: 'compatibility',
           amount: 1,
