@@ -21,6 +21,7 @@ import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptS
 import { logger } from '@/lib/logger'
 import { normalizeGender } from '@/lib/utils/gender'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
+import { isSelfHarm, crisisMessage } from '@/lib/safety/crisis'
 import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
@@ -240,6 +241,12 @@ export async function POST(req: NextRequest) {
     body.lang === 'en' || body.lang === 'ko' ? body.lang : cookieLocale === 'en' ? 'en' : 'ko'
   if (!userMessage.trim()) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
+  }
+  // Self-harm / suicidal intent → crisis hotline, NOT the dry "restricted
+  // topic" refusal. Checked before containsForbidden (which is English-only
+  // for self-harm) and before any credit charge.
+  if (isSelfHarm(userMessage)) {
+    return NextResponse.json({ message: crisisMessage(lang) }, { status: 200 })
   }
   if (containsForbidden(userMessage)) {
     return NextResponse.json({ message: safetyMessage(lang) }, { status: 200 })

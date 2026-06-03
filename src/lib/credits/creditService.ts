@@ -9,15 +9,24 @@ const DEFAULT_HISTORY_RETENTION_DAYS = 365
 // 기능 게이트도 플랜과 함께 폐지 — 크레딧만 있으면 모든 기능 사용 가능.
 export type FeatureType = string
 
-// 테스트용 크레딧 우회 — CREDITS_BYPASS=true 일 때 동작한다. 운영 빌드에서도
-// 켜지므로(배포 환경 테스트용) 실제 과금에 직접 영향을 준다. 켜면 타로/궁합/
-// 운명 등 모든 크레딧 검사·차감이 통과된다. 테스트가 끝나면 반드시 끌 것.
-const CREDITS_BYPASS = process.env.CREDITS_BYPASS === 'true'
+// 테스트용 크레딧 우회 — CREDITS_BYPASS=true *이고* 개발/테스트 환경일 때만 동작.
+// 운영(production)에서는 env 가 켜져 있어도 절대 우회하지 않는다 — env 하나
+// 잘못 켜서 전 기능이 무료가 되는 사고를 막는 과금 안전장치. (withCredits.ts 의
+// BYPASS_CREDITS 게이트와 동일한 정책.)
+const CREDITS_BYPASS_NONPROD =
+  process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+const CREDITS_BYPASS = process.env.CREDITS_BYPASS === 'true' && CREDITS_BYPASS_NONPROD
 
-// 켜져 있으면 프로세스 시작 시 한 번 경고 — 운영에 켜둔 채 방치하지 않도록.
+// 운영에 env 가 켜진 채 배포된 경우 — 우회는 막혔지만 명확히 경고.
+if (process.env.CREDITS_BYPASS === 'true' && !CREDITS_BYPASS_NONPROD) {
+  logger.error(
+    '[creditService] CREDITS_BYPASS 가 production 에 설정됨 — 무시합니다(우회 비활성). 즉시 env 를 제거하세요.'
+  )
+}
+// dev/test 에서 실제로 켜졌으면 프로세스 시작 시 한 번 경고.
 if (CREDITS_BYPASS) {
   logger.warn(
-    '[creditService] CREDITS_BYPASS 활성화 — 모든 크레딧 검사·차감이 우회됩니다. 운영에 켜져 있지 않은지 확인하세요.'
+    '[creditService] CREDITS_BYPASS 활성화(dev/test 전용) — 모든 크레딧 검사·차감이 우회됩니다.'
   )
 }
 
