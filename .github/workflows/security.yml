@@ -27,12 +27,14 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
       - name: Run npm audit
-        run: npm audit --audit-level=high
+        # production 의존성만 — dev/test 도구(vitest 등) CVE 로 릴리스 게이트를
+        # 막지 않는다(그 취약점은 빌드 산출물에 안 실림). 런타임 의존성만 본다.
+        run: npm audit --omit=dev --audit-level=high
         continue-on-error: true
 
       - name: Check for vulnerabilities
         run: |
-          AUDIT_RESULT=$(npm audit --json 2>/dev/null || true)
+          AUDIT_RESULT=$(npm audit --omit=dev --json 2>/dev/null || true)
           HIGH_VULNS=$(echo "$AUDIT_RESULT" | jq '.metadata.vulnerabilities.high // 0')
           CRITICAL_VULNS=$(echo "$AUDIT_RESULT" | jq '.metadata.vulnerabilities.critical // 0')
 
