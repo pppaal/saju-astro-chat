@@ -73,11 +73,29 @@ export function useChatAutoScroll(options: UseChatAutoScrollOptions): UseChatAut
   }, [messages, loading, enabled, suspendRef])
 
   const scrollToBottomImmediate = () => {
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        endRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' })
-      })
-    )
+    // Jump the scroll container (preferred — most reliable) or fall back to
+    // scrollIntoView on the end anchor when the page itself scrolls.
+    const jump = () => {
+      const end = endRef.current
+      if (!end) return
+      const container = end.parentElement
+      if (container && container.scrollHeight > container.clientHeight) {
+        container.scrollTop = container.scrollHeight
+      } else {
+        end.scrollIntoView({ behavior: 'auto', block: 'end' })
+      }
+    }
+    // After a session/draft load the bubbles' content (markdown, avatars,
+    // fonts) lays out across several frames AFTER the first jump, growing
+    // scrollHeight — so a single double-rAF jump lands on a stale (too-short)
+    // height and leaves the view near the top. Retry over a short window so we
+    // settle at the real bottom. (Only fires right after a load, before the
+    // user reads, so re-pinning to bottom is safe.)
+    jump()
+    requestAnimationFrame(() => requestAnimationFrame(jump))
+    for (const delay of [80, 180, 320, 500, 800]) {
+      setTimeout(jump, delay)
+    }
   }
 
   return { endRef, scrollToBottomImmediate }
