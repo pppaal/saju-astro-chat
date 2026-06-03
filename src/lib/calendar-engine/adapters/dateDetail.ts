@@ -406,12 +406,15 @@ function buildCurrentDaeun(
   birthYear: number
 ): V2DateDetailResponse['currentDaeun'] {
   const year = parseInt(date.slice(0, 4), 10)
-  const age = year - birthYear
+  // 대운 startAge 는 한국나이(세는나이) 기준 — build.ts(startYear=birthYear+age-1)·
+  // 인생 탭 lifetimePivots 와 동일 convention. 만나이로 고르면 경계연도에서 직전
+  // 대운을 집어 인생 탭과 1주기 어긋난다(#1096 과 같은 버그). 한국나이로 통일.
+  const koreanAge = year - birthYear + 1
   const list = natal.saju.daeun
   if (!list || list.length === 0) return undefined
   let current = list[0]
   for (const d of list) {
-    if (d.startAge <= age) current = d
+    if (d.startAge <= koreanAge) current = d
     else break
   }
   return {
