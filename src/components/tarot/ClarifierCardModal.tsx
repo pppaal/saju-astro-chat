@@ -37,24 +37,43 @@ export default function ClarifierCardModal({
   }, [isOpen])
 
   // Esc 로 닫기 + 모달 열린 동안 body 스크롤 잠금.
-  // 모바일(특히 iOS Safari)에서 body{overflow:hidden} 토글이 스크롤 위치를
-  // 0(맨 위)으로 리셋해, 모달을 닫으면 페이지가 맨 위로 튀고 "한 장 더 뽑기가
-  // 진행 안 됨"처럼 보이던 회귀 → 잠그기 전 위치/overflow 를 저장했다가 닫을 때
-  // 복원. prevOverflow 가 비어있을 때(= 우리가 최상위 잠금)만 scrollTo 로 원위치
-  // (인라인 타로 모달 위에 중첩으로 열린 경우엔 배경 잠금을 유지).
+  // 모바일(iOS Safari/Chrome)에서 body{overflow:hidden} 만으로는 잠금이 안 되고
+  // 스크롤 위치가 0(맨 위)으로 튀어, "한 장 더 뽑기" 를 열거나 닫으면 페이지가
+  // 맨 위로 올라가던 회귀 → position:fixed + top:-scrollY 로 본문을 그 자리에
+  // 고정(표준 모바일 스크롤 락)했다가 닫을 때 정확히 복원한다.
+  // alreadyLocked: 인라인 타로 모달 위에 중첩으로 열린 경우엔 부모가 이미 잠갔으니
+  // 우리가 건드리지 않는다(닫을 때 배경이 풀려 튀는 것 방지).
   useEffect(() => {
     if (!isOpen) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     document.addEventListener('keydown', onKey)
-    const scrollY = window.scrollY
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+
+    const body = document.body
+    const alreadyLocked = body.style.position === 'fixed' || body.style.overflow === 'hidden'
+    let scrollY = 0
+    if (!alreadyLocked) {
+      scrollY = window.scrollY
+      body.style.position = 'fixed'
+      body.style.top = `-${scrollY}px`
+      body.style.left = '0'
+      body.style.right = '0'
+      body.style.width = '100%'
+      body.style.overflow = 'hidden'
+    }
+
     return () => {
       document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prevOverflow
-      if (!prevOverflow) window.scrollTo(0, scrollY)
+      if (!alreadyLocked) {
+        body.style.position = ''
+        body.style.top = ''
+        body.style.left = ''
+        body.style.right = ''
+        body.style.width = ''
+        body.style.overflow = ''
+        window.scrollTo(0, scrollY)
+      }
     }
   }, [isOpen, onClose])
 
