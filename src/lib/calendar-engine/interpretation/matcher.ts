@@ -347,10 +347,13 @@ export function buildInterpretation(args: {
   // 인생 흐름(대운)과 동일한 신강·신약 × 십신 규칙(cycleTone, SSOT)으로, 그 주기가
   // 우호적인지 힘에 부치는지 사람마다 다르게 표시. 세운/월운 십신은 신호에서 가져옴.
   if (lang === 'ko') {
-    const layerCat = (layer: ActiveSignal['layer']) => {
+    // 그 레이어 십신 + 오행(용신 판정용) — sibsin 있는 첫 신호에서.
+    const layerInfo = (layer: ActiveSignal['layer']) => {
       for (const s of allSignals) {
         const sib = s.evidence?.sibsin as string | undefined
-        if (s.layer === layer && sib && SIBSIN_CAT[sib]) return SIBSIN_CAT[sib]
+        if (s.layer === layer && sib && SIBSIN_CAT[sib]) {
+          return { cat: SIBSIN_CAT[sib], element: s.evidence?.element as string | undefined }
+        }
       }
       return undefined
     }
@@ -360,8 +363,11 @@ export function buildInterpretation(args: {
       if (sec) sec.text = `${line}\n${sec.text}`
     }
     const strength = natal.saju?.strength
-    prepend('seun', deriveCycleTone('year', strength, layerCat('yearly')))
-    prepend('wolun', deriveCycleTone('month', strength, layerCat('monthly')))
+    const yong = natal.saju?.yongsin
+    const yearI = layerInfo('yearly')
+    const monthI = layerInfo('monthly')
+    prepend('seun', deriveCycleTone('year', strength, yearI?.cat, yearI?.element, yong))
+    prepend('wolun', deriveCycleTone('month', strength, monthI?.cat, monthI?.element, yong))
     // 점성도 사람마다 — 이달 transit 섹션 맨 앞에, 그 달 '본명에 닿는' 각도(개인
     // 차트 대비)의 우호/마찰을 한 줄로. 하늘 상태(만인 공통)가 아닌 natal aspect라
     // 사람마다 갈림. (올해=프로펙션 하우스, 오늘=일별 aspect 가 이미 개인화 담당)

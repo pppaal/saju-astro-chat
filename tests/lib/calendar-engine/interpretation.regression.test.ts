@@ -1435,5 +1435,22 @@ describe('calendar-engine regression', () => {
       expect(deriveAstroMonthTone([{ source: 'astro', kind: 'dignity', korean: '목성 자리', polarity: 2, weight: 1 }])).toBeUndefined()
       expect(deriveAstroMonthTone([])).toBeUndefined()
     })
+
+    it('favorOf: 용신운이면 십신 부담이라도 순탄 — 모순 해소(병오=정관이지만 火가 용신)', async () => {
+      const { favorOf, deriveCycleTone } = await import(
+        '@/lib/calendar-engine/derivers/cycleTone'
+      )
+      const yong = { primary: '화', secondary: '토', avoid: ['금'] } // 辛 신약 용신
+      // 정관(관성)은 신약에 본래 '고비'지만, 그 오행(火)이 용신이면 '순탄'으로 뒤집힘
+      expect(favorOf('weak', '관성')).toBe('hard') // 오행 없으면 십신 fallback
+      expect(favorOf('weak', '관성', '화', yong)).toBe('good') // 용신운 → 순탄
+      // 같은 火가 기신인 사람(丙, avoid 火)에겐 같은 십신·오행이 '고비'
+      const yong2 = { primary: '수', secondary: '목', avoid: ['화'] }
+      expect(favorOf('weak', '비겁', '화', yong2)).toBe('hard') // 기신운 → 고비
+      // 한신(용신도 기신도 아님) → 중립
+      expect(favorOf('weak', '재성', '수', yong)).toBe('mid')
+      // 문장도 뒤집힘 — 용신운 관성은 '받쳐줘서 …결과가 따라와요'
+      expect(deriveCycleTone('year', 'weak', '관성', '화', yong)).toContain('받쳐줘서')
+    })
   })
 })

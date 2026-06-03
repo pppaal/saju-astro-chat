@@ -24,7 +24,30 @@ export const SIBSIN_CAT: Record<string, SibsinCat> = {
 
 export type Favor = 'good' | 'hard' | 'mid'
 
-export function favorOf(strength: string | undefined, cat: SibsinCat): Favor {
+/** 용신 구조 (오행 한글: 목·화·토·금·수). avoid = 기신·구신. */
+export interface YongsinLike {
+  primary?: string
+  secondary?: string
+  avoid?: string[]
+}
+
+/**
+ * 그 주기가 순탄/고비인지. **모든 조합**을 덮는다:
+ *  1순위 — 용신운 판정(가장 정확): 그 주기 오행이 용신/희신이면 순탄, 기신/구신이면
+ *          고비, 한신이면 중립. (예: 병오 정관이라도 火가 용신이면 '순탄')
+ *  2순위 — 오행/용신 정보가 없을 때만 신강·신약 × 십신 fallback.
+ */
+export function favorOf(
+  strength: string | undefined,
+  cat: SibsinCat,
+  element?: string,
+  yongsin?: YongsinLike
+): Favor {
+  if (element && yongsin) {
+    if (element === yongsin.primary || element === yongsin.secondary) return 'good'
+    if (yongsin.avoid?.includes(element)) return 'hard'
+    return 'mid'
+  }
   const support: SibsinCat[] = ['인성', '비겁']
   if (strength === 'weak') return support.includes(cat) ? 'good' : 'hard'
   if (strength === 'strong') return support.includes(cat) ? 'hard' : 'good'
@@ -76,10 +99,12 @@ const FAV_CLAUSE: Record<'year' | 'month' | 'day', Record<Favor, string>> = {
 export function deriveCycleTone(
   period: 'year' | 'month' | 'day',
   strength: string | undefined,
-  cat: SibsinCat | undefined
+  cat: SibsinCat | undefined,
+  element?: string,
+  yongsin?: YongsinLike
 ): string | undefined {
   if (!cat) return undefined
-  const fav = favorOf(strength, cat)
+  const fav = favorOf(strength, cat, element, yongsin)
   return `${PERIOD_LEAD[period]} ${cat}운 — ${SIBSIN_THEME[cat]} ${PERIOD_TAIL[period]}. ${FAV_CLAUSE[period][fav]}`
 }
 

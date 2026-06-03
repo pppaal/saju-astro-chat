@@ -132,7 +132,8 @@ function buildDayTone(
   for (const s of dayCell.signals) {
     const sib = s.evidence?.sibsin as string | undefined
     if (s.layer === 'daily' && sib && SIBSIN_CAT[sib]) {
-      return deriveCycleTone('day', natal.saju?.strength, SIBSIN_CAT[sib])
+      const element = s.evidence?.element as string | undefined
+      return deriveCycleTone('day', natal.saju?.strength, SIBSIN_CAT[sib], element, natal.saju?.yongsin)
     }
   }
   return undefined
