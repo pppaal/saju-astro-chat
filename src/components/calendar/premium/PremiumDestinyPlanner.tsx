@@ -1078,19 +1078,9 @@ function DayView({
         </motion.p>
       )}
 
-      {/* 순탄/고비 한 줄 — 일진 십신 × 신강·신약 (다른 탭과 동일 규칙) */}
-      {dayTone && (
-        <motion.p
-          variants={itemVariants}
-          className="text-sm text-amber-100/90 font-light leading-relaxed"
-        >
-          {dayTone}
-        </motion.p>
-      )}
-
-      {/* ── 오늘의 사주 — 그날 기운·신살·충합형을 한 카드로 (쉬운말) ──
-          FlowLadder 의 사주 알맹이를 일 탭 inline 으로. 사다리 구조는 4탭이 대체. */}
-      {(importantDate?.longCycleContext?.iljin ||
+      {/* ── 오늘의 사주 — 순탄/고비 한 줄 + 그날 기운·신살·충합형 (dayTone 을 카드로 병합) ── */}
+      {(dayTone ||
+        importantDate?.longCycleContext?.iljin ||
         shinsal.length > 0 ||
         (importantDate?.cycleInteractions?.length ?? 0) > 0) && (
         <motion.div
@@ -1100,6 +1090,10 @@ function DayView({
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
             {locale === 'en' ? "Today's Saju" : '오늘의 사주'}
           </h3>
+
+          {dayTone && (
+            <p className="text-sm text-amber-100/90 font-light leading-relaxed">{dayTone}</p>
+          )}
 
           {importantDate?.dailyGanjiNarrative && (
             <p className="text-sm text-zinc-300 font-light leading-relaxed">
