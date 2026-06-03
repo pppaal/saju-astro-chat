@@ -105,6 +105,31 @@ def main() -> None:
     if coord_dropped:
         print(f"  (동일좌표 중복 제거: {coord_dropped})")
 
+    # 3차: 같은 한국어명 + 좌표 근접 = 같은 도시(로마자 표기 차이,
+    # Hongch'ŏn/Hongcheon, T'aebaek/Taebaek-si 등 MR/RR 중복). 한국어명으로
+    # 묶어 0.5° 이내면 하나만. 0.5° 초과 동명(고성 강원/경남)은 보존.
+    CITY_KR = {capitalize_words(strip_quotes(k)): v for k, v in kr.items()}
+    def koname(c):
+        return CITY_KR.get(capitalize_words(c.get("name") or ""), "")
+    kgroups: dict = {}
+    deduped2 = []
+    kr_dup = 0
+    for c in kept:
+        kn = koname(c)
+        if not kn:
+            deduped2.append(c)
+            continue
+        g = (kn, (c.get("country") or "").upper())
+        lat, lon = float(c.get("lat", 0)), float(c.get("lon", 0))
+        if any(abs(lat - x) < 0.5 and abs(lon - y) < 0.5 for x, y in kgroups.get(g, [])):
+            kr_dup += 1
+            continue
+        kgroups.setdefault(g, []).append((lat, lon))
+        deduped2.append(c)
+    kept = deduped2
+    if kr_dup:
+        print(f"  (한국어명 동일 중복 제거: {kr_dup})")
+
     print(f"cities: {len(cities)} → {len(kept)} (필터/중복제거, 악센트중복 {dropped})")
     kr_kept = sum(1 for c in kept if (c.get('country') or '').upper() == 'KR')
     print(f"  (한국 도시 유지: {kr_kept})")
