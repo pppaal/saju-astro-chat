@@ -46,7 +46,10 @@ test.describe('Main page — controls reachable on small phones', () => {
 
     // The send button (round arrow) lives in the bottom-right of the
     // chat bar. If the chat bar is clipped, this gets cut off entirely.
-    const send = page.getByRole('button', { name: /보내기|Send/i })
+    // The home composer labels it "운명 상담사에게 질문하기" / "Ask the destiny
+    // counselor" (it navigates to the counselor), so the old /보내기|Send/
+    // regex never matched it (element not found) — match those labels too.
+    const send = page.getByRole('button', { name: /보내기|Send|질문하기|counselor/i })
     await expect(send).toBeVisible()
     const sendBox = await send.boundingBox()
     expect(sendBox).not.toBeNull()
