@@ -24,7 +24,14 @@ public/data/cities.min.json 을 '한국어 이름이 있는 도시'만 남기도
 import argparse
 import json
 import re
+import unicodedata
 from pathlib import Path
+
+
+def fold(s: str) -> str:
+    """악센트 제거 + 소문자 (Córdoba/Cordoba 를 같게 본다)."""
+    nfkd = unicodedata.normalize("NFKD", s)
+    return "".join(c for c in nfkd if not unicodedata.combining(c)).lower().strip()
 
 ROOT = Path(__file__).resolve().parent.parent
 CITIES_PATH = ROOT / "public" / "data" / "cities.min.json"
@@ -58,7 +65,23 @@ def main() -> None:
         if country == "KR" or capitalize_words(name) in covered:
             kept.append(c)
 
-    print(f"cities: {len(cities)} → {len(kept)} (제거 {len(cities) - len(kept)})")
+    # 악센트 차이 중복 제거: 같은 국가에서 악센트만 다르고 좌표가 거의 같은
+    # 도시(Córdoba vs Cordoba)는 한 곳만 남긴다. 좌표를 0.1° 로 반올림해 키에
+    # 넣어, 이름만 같고 위치가 다른 동명 도시(여러 Springfield 등)는 보존한다.
+    seen = set()
+    deduped = []
+    dropped = 0
+    for c in kept:
+        key = (fold(c.get("name") or ""), (c.get("country") or "").upper(),
+               round(float(c.get("lat", 0)), 1), round(float(c.get("lon", 0)), 1))
+        if key in seen:
+            dropped += 1
+            continue
+        seen.add(key)
+        deduped.append(c)
+    kept = deduped
+
+    print(f"cities: {len(cities)} → {len(kept)} (필터/중복제거, 악센트중복 {dropped})")
     kr_kept = sum(1 for c in kept if (c.get('country') or '').upper() == 'KR')
     print(f"  (한국 도시 유지: {kr_kept})")
 
