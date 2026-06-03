@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -49,5 +51,14 @@ jobs:
           after=$(python3 -c "import json; print(len(json.load(open('src/lib/cities/data/city-names-kr.json'))))")
           git add src/lib/cities/data/city-names-kr.json
           git commit -m "chore(cities): GeoNames 한국어 도시명 보강 (${{ inputs.source }}: ${before} → ${after})"
-          git push origin HEAD:${{ github.ref_name }}
-          echo "커밋 완료: ${before} → ${after} 개"
+          # 큐 대기 중 main 이 앞서나가면 push 가 거부되므로 rebase 후 재시도.
+          # city-names-kr.json 은 이 잡만 건드려 rebase 충돌이 없다.
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin "${{ github.ref_name }}" || true
+            if git push origin HEAD:${{ github.ref_name }}; then
+              echo "커밋 완료: ${before} → ${after} 개"
+              exit 0
+            fi
+            echo "push 재시도 $i ..."; sleep 5
+          done
+          echo "5회 재시도 후에도 push 실패"; exit 1
