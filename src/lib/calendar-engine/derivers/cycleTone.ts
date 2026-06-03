@@ -54,29 +54,24 @@ export function favorOf(
   return 'mid'
 }
 
-const SIBSIN_THEME: Record<SibsinCat, string> = {
-  재성: '돈·현실 성취가 전면에 나오는',
-  관성: '책임·자리·평가가 들어오는',
-  식상: '표현·재능·아이디어가 살아나는',
-  비겁: '경쟁·독립·내 힘으로 밀어붙이는',
-  인성: '배움·내면·받쳐주는 힘이 깊어지는',
+// 십신 짧은 테마 — 괄호로 한 번만. 풀어쓴 문장은 간지 룰(계사 月…)과 겹쳐서 압축.
+const SIBSIN_SHORT: Record<SibsinCat, string> = {
+  재성: '돈·현실',
+  관성: '책임·자리',
+  식상: '표현·재능',
+  비겁: '경쟁·독립',
+  인성: '배움·내면',
 }
 const PERIOD_LEAD: Record<'year' | 'month' | 'day', string> = {
   year: '올해는',
   month: '이달은',
   day: '오늘은',
 }
-// 받침 맞춘 종결('날'은 이에요)
-const PERIOD_TAIL: Record<'year' | 'month' | 'day', string> = {
-  year: '해예요',
-  month: '시기예요',
-  day: '날이에요',
-}
-// 순탄/고비 결론 — 같은 십신도 신강·신약에 따라 다른 말. (period × favor)
+// 순탄/고비 결론 — 같은 십신도 신강·신약(용신)에 따라 다른 말. (period × favor)
 const FAV_CLAUSE: Record<'year' | 'month' | 'day', Record<Favor, string>> = {
   year: {
     good: '기운이 잘 받쳐줘서 밀어붙인 만큼 결과가 따라와요.',
-    hard: '다만 그만큼 힘이 실리는 자리라, 무리한 확장보다 내실·건강을 먼저 챙기는 게 이득이에요.',
+    hard: '힘이 실리는 자리라, 무리한 확장보다 내실·건강을 먼저 챙기는 게 이득이에요.',
     mid: '큰 굴곡 없이 꾸준함이 그대로 성과가 되는 흐름이에요.',
   },
   month: {
@@ -92,8 +87,8 @@ const FAV_CLAUSE: Record<'year' | 'month' | 'day', Record<Favor, string>> = {
 }
 
 /**
- * 그 주기의 십신 + 일간 강약 → 사주 순탄/고비 한 줄 (ko). 십신을 문장에 박아
- * "무엇에 관한 시기인지"까지 말한다(같은 십신×강약이면 같은 문장, 5×3=15종/주기).
+ * 그 주기의 십신 + 일간 강약(용신) → 사주 순탄/고비 한 줄 (ko). 십신명 + 짧은
+ * 테마(괄호)만 달고 곧장 순탄/고비 결론으로 — 풀어쓰면 간지 룰과 겹쳐서 압축.
  * 못 구하면 undefined.
  */
 export function deriveCycleTone(
@@ -105,7 +100,7 @@ export function deriveCycleTone(
 ): string | undefined {
   if (!cat) return undefined
   const fav = favorOf(strength, cat, element, yongsin)
-  return `${PERIOD_LEAD[period]} ${cat}운 — ${SIBSIN_THEME[cat]} ${PERIOD_TAIL[period]}. ${FAV_CLAUSE[period][fav]}`
+  return `${PERIOD_LEAD[period]} ${cat}운(${SIBSIN_SHORT[cat]}) — ${FAV_CLAUSE[period][fav]}`
 }
 
 // 점성 순탄/고비 — period별 문구. year 는 프로펙션 줄 뒤에 이어 붙어 '점성으로는' 생략.
