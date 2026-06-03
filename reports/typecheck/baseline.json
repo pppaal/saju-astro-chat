@@ -1,0 +1,10 @@
+{
+  "generatedAt": "2026-06-03T00:00:00.000Z",
+  "project": "tsconfig.json",
+  "command": "tsc -p tsconfig.json --noEmit --pretty false",
+  "tscExitCode": 0,
+  "totalErrors": 0,
+  "errorCodes": {},
+  "hotspotCount": 0,
+  "hotspots": []
+}

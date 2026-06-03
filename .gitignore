@@ -162,6 +162,7 @@ public/fallback-*.js.map
 !/reports/quality/README.md
 /reports/typecheck/*
 !/reports/typecheck/README.md
+!/reports/typecheck/baseline.json
 /reports/*.md
 /reports/*.json
 /reports/*.txt

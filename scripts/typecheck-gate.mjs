@@ -12,12 +12,14 @@ const baselinePath = readArg('--baseline') ?? 'reports/typecheck/baseline.json'
 const project = readArg('--project') ?? 'tsconfig.json'
 
 if (!fs.existsSync(baselinePath)) {
-  // PR CI doesn't restore baseline artifacts; absence means "first run" — skip
-  // rather than block. Nightly/main runs regenerate the baseline downstream.
-  console.warn(
-    `[typecheck-gate] baseline not found at ${path.normalize(baselinePath)}; skipping regression gate.`
+  // The baseline is committed to the repo, so its absence indicates a real
+  // problem (deleted/moved/misconfigured path) rather than a benign first run.
+  // Fail loudly so the regression gate can never silently no-op.
+  console.error(
+    `[typecheck-gate] FAILED: baseline not found at ${path.normalize(baselinePath)}. ` +
+      `Commit a baseline (npm run ops:typecheck:update-baseline) or pass --baseline.`
   )
-  process.exit(0)
+  process.exit(1)
 }
 
 const baseline = readJson(baselinePath)
