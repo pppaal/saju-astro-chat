@@ -123,13 +123,15 @@ export function buildInterpretation(args: {
   const domainPicks = new Map<string, typeof matched>()
   const picked: typeof matched = []
 
-  // 시간 cycle 섹션은 2줄까지 허용 (대운/세운/월운) — 룰은 이미 12/24/29개
-  // 있는데 1줄만 표출돼 얇았음. 두 번째 룰(다른 조건 분기)까지 풀어 깊이 ↑.
-  // shinsal/transit/pattern 은 회전 섹션 — cap 2 로 올려 앵커 1 + 회전 1 확보.
+  // 시간 cycle 섹션 cap. 대운/세운은 2줄(둘째가 다른 테마 — 귀인 등 — 으로 깊이↑).
+  // 월운은 1줄: 간지 성격 룰(gwanseong-weak·summer-fire 등)이 모두 '{월간지} 월 —'
+  // 접두를 달아 2줄이면 '계사 월 —'이 두 번 + 서로 polarity 가 어긋나 모순(부담↔우호)
+  // 까지 났다. 순탄/고비 톤(deriveCycleTone)이 이미 '판정+조언'을 담으므로 월운은
+  // 간지 성격 한 줄이면 충분.
   const SECTION_CAP: Record<string, number> = {
     daeun: 2,
     seun: 2,
-    wolun: 2,
+    wolun: 1,
     today: 4,
     flow: 2,
     shinsal: 2,
