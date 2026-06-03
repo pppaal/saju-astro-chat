@@ -45,9 +45,34 @@ export default function TarotChatScreen() {
   const [selectedSpread, setSelectedSpread] = useState(DEFAULT_SPREAD)
   const [isDeckModalOpen, setIsDeckModalOpen] = useState(false)
   const [isSpreadModalOpen, setIsSpreadModalOpen] = useState(false)
+  // 하단 입력창 좌측 "덱·스프레드" 버튼이 여는 팝오버 (운명상담사 ⋮ 도구 메뉴와
+  // 같은 패턴 — 단, 핵심 선택이라 라벨을 노출).
+  const [optionsOpen, setOptionsOpen] = useState(false)
+  const optionsRef = useRef<HTMLDivElement>(null)
   const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
   const [isChecking, setIsChecking] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // 팝오버 바깥 클릭 / Esc 로 닫기.
+  useEffect(() => {
+    if (!optionsOpen) return
+    const onPointer = (e: MouseEvent | TouchEvent) => {
+      if (optionsRef.current && !optionsRef.current.contains(e.target as Node)) {
+        setOptionsOpen(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOptionsOpen(false)
+    }
+    document.addEventListener('mousedown', onPointer)
+    document.addEventListener('touchstart', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onPointer)
+      document.removeEventListener('touchstart', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [optionsOpen])
 
   useEffect(() => {
     textareaRef.current?.focus()
@@ -143,6 +168,13 @@ export default function TarotChatScreen() {
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-100">
             {isKo ? '타로 마스터가 기다리고 있습니다' : 'The Tarot Master Awaits'}
           </h1>
+          {/* 입력창 좌측 "덱·스프레드" 버튼 발견성 보완 — 덱/스프레드를
+              한 버튼으로 접었으므로 어디서 고르는지 안내. */}
+          <p className="text-sm text-slate-400">
+            {isKo
+              ? '아래에서 덱과 스프레드를 골라 질문을 입력하세요'
+              : 'Pick a deck and spread below, then type your question'}
+          </p>
 
           {/* 선택한 덱·스프레드 카드백 부채꼴 미리보기 — 빈 공간을 채우고
               현재 선택(덱/카드 수)을 시각화. 덱·스프레드 바꾸면 실시간 갱신. */}
@@ -185,34 +217,15 @@ export default function TarotChatScreen() {
         </motion.div>
       </div>
 
-      {/* 하단 입력창 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]">
-        <div className="max-w-3xl mx-auto p-3 md:p-4 flex flex-col gap-3">
-          {/* 덱·카드 매수 chips */}
-          <div className="flex items-center gap-2 px-1 overflow-x-auto">
-            <button
-              onClick={() => setIsDeckModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-xs text-slate-300 transition-colors whitespace-nowrap"
-            >
-              <Layers className="w-3.5 h-3.5" style={{ color: deckInfo.accent }} />
-              <span>{isKo ? deckInfo.nameKo : deckInfo.name}</span>
-              <ChevronRight className="w-3.5 h-3.5 opacity-50" />
-            </button>
-
-            <button
-              onClick={() => setIsSpreadModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-xs text-slate-300 transition-colors whitespace-nowrap"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>
-                {spreadTitle} ({selectedSpread.spread.cardCount})
-              </span>
-              <ChevronRight className="w-3.5 h-3.5 opacity-50" />
-            </button>
-          </div>
-
-          {/* 텍스트 입력 + 전송 */}
-          <form onSubmit={handleSubmit} className="relative flex items-end gap-2">
+      {/* 하단 입력창 — 운명상담사(ChatInputArea) 구조와 통일: 둥근 입력 박스
+          안에 textarea + 하단 액션 줄(왼쪽 덱·스프레드 / 오른쪽 전송). 색은
+          타로 골드 톤 그대로 유지. */}
+      <div className="fixed bottom-0 left-0 right-0 z-20">
+        <div className="max-w-3xl mx-auto p-3 md:p-4">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-2 rounded-2xl border border-slate-700 bg-slate-900/95 backdrop-blur-md p-2.5 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] focus-within:border-[#d4b572] transition-colors"
+          >
             <textarea
               ref={textareaRef}
               value={question}
@@ -234,21 +247,100 @@ export default function TarotChatScreen() {
                 }
               }}
               placeholder={isKo ? '어떤 고민이 있으신가요?' : 'What is on your mind?'}
-              className="w-full bg-slate-800 border border-slate-700 focus:border-[#d4b572] rounded-2xl p-4 pr-14 text-slate-100 placeholder-slate-500 resize-none outline-none text-base min-h-16 max-h-32 transition-colors"
+              className="w-full bg-transparent px-2 pt-1 text-slate-100 placeholder-slate-500 resize-none outline-none text-base min-h-[44px] max-h-32"
               rows={1}
             />
-            <button
-              type="submit"
-              disabled={!question.trim()}
-              className={`absolute right-2 bottom-2 p-2 rounded-xl transition-all ${
-                question.trim()
-                  ? 'bg-[#d4b572] hover:bg-[#e8cc8a] text-[#1c1917] shadow-lg shadow-[rgba(212,181,114,0.25)]'
-                  : 'bg-slate-700 text-slate-500 cursor-not-allowed'
-              }`}
-              aria-label="Send"
-            >
-              <Send className="w-5 h-5" />
-            </button>
+
+            {/* 액션 줄 — 왼쪽: 덱·스프레드 선택 / 오른쪽: 전송 */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="relative" ref={optionsRef}>
+                <button
+                  type="button"
+                  onClick={() => setOptionsOpen((o) => !o)}
+                  aria-haspopup="menu"
+                  aria-expanded={optionsOpen}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-xs text-slate-300 transition-colors whitespace-nowrap"
+                >
+                  <Layers className="w-3.5 h-3.5" style={{ color: deckInfo.accent }} />
+                  <span>{isKo ? '덱·스프레드' : 'Deck & Spread'}</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 opacity-50 transition-transform ${optionsOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {optionsOpen && (
+                    <motion.div
+                      role="menu"
+                      initial={{ opacity: 0, scale: 0.96, y: 6 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.96, y: 6 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      style={{ transformOrigin: 'bottom left' }}
+                      className="absolute bottom-full left-0 mb-2 w-64 rounded-xl border border-slate-700 bg-slate-900 p-1.5 shadow-xl shadow-black/50 z-30"
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setOptionsOpen(false)
+                          setIsDeckModalOpen(true)
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-slate-800 transition-colors text-left"
+                      >
+                        <Layers
+                          className="w-4 h-4 shrink-0"
+                          style={{ color: deckInfo.accent }}
+                        />
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-sm text-slate-100">
+                            {isKo ? '덱 선택' : 'Deck'}
+                          </span>
+                          <span className="block text-xs text-slate-400 truncate">
+                            {isKo ? deckInfo.nameKo : deckInfo.name}
+                          </span>
+                        </span>
+                        <ChevronRight className="w-3.5 h-3.5 opacity-50 shrink-0" />
+                      </button>
+
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setOptionsOpen(false)
+                          setIsSpreadModalOpen(true)
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-slate-800 transition-colors text-left"
+                      >
+                        <Sparkles className="w-4 h-4 shrink-0 text-amber-400" />
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-sm text-slate-100">
+                            {isKo ? '스프레드 선택' : 'Spread'}
+                          </span>
+                          <span className="block text-xs text-slate-400 truncate">
+                            {spreadTitle} ({selectedSpread.spread.cardCount})
+                          </span>
+                        </span>
+                        <ChevronRight className="w-3.5 h-3.5 opacity-50 shrink-0" />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <button
+                type="submit"
+                disabled={!question.trim()}
+                className={`p-2 rounded-xl transition-all ${
+                  question.trim()
+                    ? 'bg-[#d4b572] hover:bg-[#e8cc8a] text-[#1c1917] shadow-lg shadow-[rgba(212,181,114,0.25)]'
+                    : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                }`}
+                aria-label="Send"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
           </form>
         </div>
       </div>
