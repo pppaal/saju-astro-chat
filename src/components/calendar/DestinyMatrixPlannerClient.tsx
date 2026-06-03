@@ -116,33 +116,65 @@ export default function DestinyMatrixPlannerClient() {
       const year = targetYear ?? new Date().getFullYear()
       const cKey = cacheKey(info, year, lang)
 
+      const params = new URLSearchParams({
+        year: String(year),
+        locale: lang,
+        birthDate: info.birthDate,
+        birthTime: info.birthTime,
+        birthPlace: info.birthPlace,
+      })
+      const apiGender = normalizeGender(info.gender)
+      if (apiGender) params.set('gender', apiGender)
+      const apiHeaders = { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' }
+
       // 1) cache hit → 즉시 데이터 노출 (loading 띄우지 않음 — 사용자 perceived 0ms)
       const cached = readCache<YearMonthly, YearlyConvergence>(cKey)
+      // 화면에 이미 보여줄 데이터가 있으면 true — 풀 요청이 실패해도 error 화면으로
+      // 덮어쓰지 않게 (지연 빌드: 이달 먼저 페인트한 뒤 풀 연도 백그라운드).
+      let painted = false
       if (cached) {
         setData(cached.data)
         if (cached.yearlyConvergence) setYearlyConvergence(cached.yearlyConvergence)
         if (cached.yearlyMonthly) setYearlyMonthly(cached.yearlyMonthly)
         setLoading(false) // 화면 보이고 그 위로 백그라운드 refresh
+        painted = true
       } else {
         // cache miss → 초기 빈 상태로 loading
         setLoading(true)
         setYearlyConvergence(undefined)
         setYearlyMonthly(undefined)
+        // [지연 빌드] 빠른 첫 페인트 — '이달만'(scope=month) 먼저 빌드해 받음.
+        // 실패해도 아래 풀 연도 요청이 데이터를 보장하므로 조용히 무시.
+        try {
+          const mp = new URLSearchParams(params)
+          mp.set('scope', 'month')
+          const mr = await fetch(`/api/calendar?${mp}`, {
+            headers: apiHeaders,
+            signal: controller.signal,
+          })
+          if (!controller.signal.aborted && mr.ok) {
+            const mj = (await mr.json()) as Partial<CalendarData> & { success?: boolean }
+            if (
+              !controller.signal.aborted &&
+              mj &&
+              mj.success !== false &&
+              Array.isArray(mj.allDates) &&
+              mj.allDates.length > 0
+            ) {
+              setData(mj as CalendarData)
+              setLoading(false) // 첫 페인트 — 이달/오늘 탭 즉시 인터랙티브
+              painted = true
+            }
+          }
+        } catch {
+          // 무시 — 풀 연도 요청이 받음
+        }
       }
 
       try {
-        const params = new URLSearchParams({
-          year: String(year),
-          locale: lang,
-          birthDate: info.birthDate,
-          birthTime: info.birthTime,
-          birthPlace: info.birthPlace,
-        })
-        const apiGender = normalizeGender(info.gender)
-        if (apiGender) params.set('gender', apiGender)
-
+        // 2) 풀 연도 — allDates 365 일 채워 월 이동·연 탭 활성화 (백그라운드)
         const res = await fetch(`/api/calendar?${params}`, {
-          headers: { 'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '' },
+          headers: apiHeaders,
           signal: controller.signal,
         })
 
@@ -174,7 +206,8 @@ export default function DestinyMatrixPlannerClient() {
             const msg = (errField as { message?: unknown }).message
             if (typeof msg === 'string') serverMessage = msg
           }
-          setError(serverMessage || `엔진 응답 비어있음 (status ${res.status})`)
+          // 이미 이달 데이터가 떠 있으면(painted) 풀 요청 실패해도 그 화면 유지.
+          if (!painted) setError(serverMessage || `엔진 응답 비어있음 (status ${res.status})`)
           return
         }
 
@@ -221,13 +254,13 @@ export default function DestinyMatrixPlannerClient() {
         // AbortError + timedOut: 사용자에게 타임아웃 알림.
         // AbortError + !timedOut: race(새 fetch 시작) — 조용히 무시.
         if ((err as { name?: string })?.name === 'AbortError') {
-          if (timedOut) {
+          if (timedOut && !painted) {
             setError(tLabels.fetchTimeout)
           }
           return
         }
         logger.error('[CalendarPreview] fetch failed', err)
-        setError(err instanceof Error ? err.message : 'fetch failed')
+        if (!painted) setError(err instanceof Error ? err.message : 'fetch failed')
       } finally {
         clearTimeout(timeoutId)
         // 이 호출이 여전히 latest 일 때만 loading 해제 (race 시 stale 호출이
