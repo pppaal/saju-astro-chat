@@ -23,8 +23,9 @@ export interface BirthKeyInput {
 
 // 엔진 시그니처 — 본명 차트에 들어가는 천체/점 셋이 바뀔 때 bump.
 // v3-chironlilith: 본명 카이런·릴리스를 트랜짓 어스펙트 대상에 추가 (PR #560).
-// bump 안 하면 기존 캐시된 사용자가 새 신호를 영원히 못 받음.
-const ENGINE_SIGNATURE = 'v3-chironlilith'
+// v4-tz-bucketing: 타임존 day-bucketing 수정으로 convergence peak 계산·셀 점수가
+// 바뀜 — bump 안 하면 기존 캐시된 사용자가 옛 점수를 계속 받음.
+const ENGINE_SIGNATURE = 'v4-tz-bucketing'
 export function makeBirthKey(input: BirthKeyInput): string {
   return createHash('sha1')
     .update(
