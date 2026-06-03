@@ -525,6 +525,15 @@ export async function POST(req: NextRequest) {
       creditResult
     )
   } catch (err) {
+    // Charge-without-delivery guard: refund a consumed credit if we threw
+    // before the stream started. The inner fallback paths refund-and-return,
+    // so this only fires for un-refunded pre-stream failures (no double refund).
+    await refundOnFailure(
+      creditResult,
+      'tarot_handler_error',
+      creditCost,
+      err instanceof Error ? err.message : String(err)
+    )
     logger.error('Tarot stream error:', { error: err })
     return withCreditCookies(
       createErrorResponse({
@@ -532,7 +541,7 @@ export async function POST(req: NextRequest) {
         route: 'tarot/interpret-stream',
         originalError: err instanceof Error ? err : new Error(String(err)),
       }),
-      creditResult
+      clearGuestAccessOnFailure(creditResult)
     )
   }
 }

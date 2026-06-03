@@ -3,28 +3,12 @@
 // 위험 질문(자살·자해 등) 감지 + 위기 응답 페이로드 생성.
 // /api/tarot/interpret-stream 해석 직전 가드에서 사용.
 
-export const DANGEROUS_KEYWORDS = [
-  '자살',
-  '죽고 싶',
-  '죽을래',
-  '살기 싫',
-  '끝내고 싶',
-  '죽어버릴',
-  '자해',
-  '목숨',
-  '생을 마감',
-  '세상 떠나',
-  '사라지고 싶',
-  'suicide',
-  'kill myself',
-  'end my life',
-  'want to die',
-]
+// Detection now lives in the shared crisis module (single source, reused by the
+// counselors). Re-exported here so existing tarot imports keep working.
+import { SELF_HARM_KEYWORDS, isSelfHarm } from '@/lib/safety/crisis'
 
-export function isDangerousQuestion(q: string): boolean {
-  const n = (q || '').toLowerCase()
-  return DANGEROUS_KEYWORDS.some((kw) => n.includes(kw.toLowerCase()))
-}
+export const DANGEROUS_KEYWORDS = SELF_HARM_KEYWORDS
+export const isDangerousQuestion = isSelfHarm
 
 export interface CrisisPayloadInput {
   language: 'ko' | 'en'

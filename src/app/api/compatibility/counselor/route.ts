@@ -12,6 +12,7 @@ import { extractLocale } from '@/lib/api/middleware'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
+import { isSelfHarm, crisisMessage } from '@/lib/safety/crisis'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
@@ -139,6 +140,10 @@ function formatPersonalShinsal(label: string, shinsal: unknown): string | null {
 }
 
 export async function POST(req: NextRequest) {
+  // Hoisted to function scope so the outer catch can refund a credit that was
+  // charged before a failure (e.g. a throw during chart building, which the
+  // stream's own onFailure/claudeErr refunds never reach).
+  let chargedUserId: string | null = null
   try {
     // Apply middleware: prefer authenticated guard (with credits) but fall
     // back to guest guard so first-time visitors can sample 2 turns before
@@ -252,6 +257,15 @@ export async function POST(req: NextRequest) {
           : context.locale === 'ko'
             ? 'ko'
             : 'en'
+    // Self-harm / suicidal intent → crisis hotline, before the dry "restricted
+    // topic" refusal and before any credit charge. containsForbidden is
+    // English-only for self-harm, so this also covers Korean distress.
+    if (lastUser && isSelfHarm(lastUser.content)) {
+      return createFallbackSSEStream(
+        { content: crisisMessage(lang), done: true },
+        { 'X-Counselor-Fallback': '1' }
+      )
+    }
     if (lastUser && containsForbidden(lastUser.content)) {
       // X-Counselor-Fallback: 1 — 클라이언트가 "스트림이 잘림" 으로 잘못
       // 인식해 retry 칩을 띄우지 않도록. fallback / 안전 응답은 ||FOLLOWUP||
@@ -265,7 +279,7 @@ export async function POST(req: NextRequest) {
     // 크레딧 차감 — 인증 사용자만. 새로고침/탭 복제 idempotent replay 시
     // 차감 스킵. 게스트는 위 GUEST_COMPAT_TURN_LIMIT cookie counter 로 별도
     // 처리. middleware 의 requireCredits 가 false 라서 여기서 명시 처리.
-    let chargedUserId: string | null = null
+    // chargedUserId 는 함수 스코프에 hoist 됨 (외부 catch 환불용).
     if (!isGuestMode && context.userId) {
       const scopedIdemKey = idemStore.keyFor(req, `user:${context.userId}`)
       const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
@@ -826,6 +840,25 @@ export async function POST(req: NextRequest) {
       )
     }
   } catch (error) {
+    // Charge-without-delivery guard: if a credit was consumed before the
+    // failure (e.g. chart building threw before the stream started), refund it
+    // here. The inner claudeErr catch returns instead of rethrowing, so this
+    // only runs for pre-stream failures → no double refund.
+    if (chargedUserId) {
+      try {
+        await refundCredits({
+          userId: chargedUserId,
+          creditType: 'compatibility',
+          amount: 1,
+          reason: 'api_error',
+          apiRoute: 'compatibility/counselor',
+          errorMessage: `handler error: ${error instanceof Error ? error.name : 'Unknown'}`,
+        })
+        logger.info('[compat/counselor] credit refunded in outer catch', { userId: chargedUserId })
+      } catch (refundErr) {
+        logger.error('[compat/counselor] outer-catch refund failed', { refundErr })
+      }
+    }
     logger.error('[Compatibility Counselor] Error:', { error: error })
     // We've been chasing a recurring generic "오류가 발생했습니다" on the
     // client and have no signal beyond "something threw inside the
