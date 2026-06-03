@@ -314,12 +314,17 @@ function LifetimeView({
   locale?: CalLocale
 }) {
   // 엔진의 phase 는 '연 나이(올해−출생연도)' 기준이라 만나이와 ±1 어긋날 수 있어
-  // 신뢰하지 않는다. pivot.year(절대연도)로 "지금부터 +10년"만 필터·정렬하고,
-  // 가장 가까운 분기점을 하이라이트한다.
+  // 신뢰하지 않는다. pivot.year(절대연도)로 "지난 5년 ~ 앞으로 10년"을 필터·정렬하고,
+  // 현재(또는 가장 가까운 다가오는) 분기점을 하이라이트한다.
   const nowYear = new Date().getFullYear()
   const list = (pivots ?? [])
-    .filter((p) => p.year >= nowYear && p.year <= nowYear + 10)
+    .filter((p) => p.year >= nowYear - 5 && p.year <= nowYear + 10)
     .sort((a, b) => a.year - b.year)
+  // 하이라이트 = 올해 또는 가장 가까운 미래 전환점(과거 제외). 없으면 마지막.
+  const highlightIdx = (() => {
+    const i = list.findIndex((p) => p.year >= nowYear)
+    return i === -1 ? list.length - 1 : i
+  })()
   return (
     <motion.div
       variants={containerVariants}
@@ -330,29 +335,33 @@ function LifetimeView({
     >
       <motion.div variants={itemVariants} className="mb-10 text-center">
         <h2 className="text-3xl sm:text-4xl font-light text-white tracking-tight">
-          {locale === 'en' ? 'Turning points ahead' : '운명의 전환기'}
+          {locale === 'en' ? 'Turning points' : '운명의 전환기'}
         </h2>
+        <p className="text-xs text-zinc-500 mt-2">
+          {locale === 'en' ? 'Past 5 years → next 10 years' : '지난 5년 → 앞으로 10년'}
+        </p>
       </motion.div>
 
       {list.length === 0 ? (
         <motion.p variants={itemVariants} className="text-center text-sm text-zinc-600 py-16">
           {locale === 'en'
-            ? 'No major turning points in the next 10 years — a steady stretch.'
-            : '앞으로 10년 안엔 큰 전환점이 없어요 — 비교적 안정적인 시기예요.'}
+            ? 'No major turning points in this window — a steady stretch.'
+            : '지난 5년·앞으로 10년 사이엔 큰 전환점이 없어요 — 비교적 안정적인 시기예요.'}
         </motion.p>
       ) : (
         <div className="relative flex-1 max-w-md mx-auto w-full">
           <div className="absolute left-[15px] top-4 bottom-4 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
           <div className="space-y-10">
             {list.map((p, idx) => {
-              // 가장 가까운(첫) 분기점을 하이라이트 — 연도 기준이라 만나이 오차와 무관
-              const highlight = idx === 0
+              // 현재/가장 가까운 미래 분기점을 하이라이트. 과거는 흐릿하게.
+              const highlight = idx === highlightIdx
               const thisYear = p.year === nowYear
+              const past = p.year < nowYear
               return (
                 <motion.div
                   variants={itemVariants}
                   key={`${p.year}-${idx}`}
-                  className="relative pl-12 group"
+                  className={`relative pl-12 group ${past ? 'opacity-60' : ''}`}
                   onClick={highlight ? onZoom : undefined}
                   style={{ cursor: highlight ? 'pointer' : 'default' }}
                 >
@@ -360,7 +369,9 @@ function LifetimeView({
                     className={`absolute left-[11px] top-2 w-2 h-2 rounded-full transition-all duration-500 ${
                       highlight
                         ? 'bg-amber-300 shadow-lg shadow-amber-300/50 scale-125'
-                        : 'bg-zinc-700 group-hover:bg-zinc-500'
+                        : past
+                          ? 'bg-zinc-800'
+                          : 'bg-zinc-700 group-hover:bg-zinc-500'
                     }`}
                   />
                   <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-2">
@@ -369,6 +380,11 @@ function LifetimeView({
                     >
                       {p.year}
                     </span>
+                    {past && (
+                      <span className="text-[9px] uppercase tracking-wider bg-zinc-700/20 text-zinc-500 px-2 py-0.5 rounded border border-white/5">
+                        {locale === 'en' ? 'Past' : '지난 시기'}
+                      </span>
+                    )}
                     {p.bothSystems && (
                       <span className="text-[9px] uppercase tracking-wider bg-fuchsia-500/10 text-fuchsia-200/80 px-2 py-0.5 rounded border border-fuchsia-500/20">
                         {locale === 'en' ? 'Saju + Astro' : '사주·점성 수렴'}
