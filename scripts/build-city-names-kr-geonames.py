@@ -55,6 +55,9 @@ KR_PATH = ROOT / "src" / "lib" / "cities" / "data" / "city-names-kr.json"
 
 GEONAMES_BASE = "https://download.geonames.org/export/dump/"
 HANGUL = re.compile(r"[가-힣]")
+# dr5hn 에 누락된 이 인구 이상 도시는 GeoNames 좌표로 보충(상하이·항저우 등
+# 직할시/주요도시 빈틈 메우기). 너무 낮추면 노이즈 → 50만으로 보수적.
+SUPPLEMENT_MIN_POP = 500_000
 
 
 def norm(s: str) -> str:
@@ -129,17 +132,21 @@ def build_geo_kr_full(source: str) -> tuple[dict, dict]:
     """전체 모드: alternateNamesV2(언어 태그된 ko 이름) + citiesN(geonameid↔이름)
     을 join 해 최대 커버리지의 한국어 lookup 을 만든다. truncated 필드보다 훨씬
     많은 도시를 잡는다."""
-    # 1) citiesN: geonameid → (name, asciiname, country)
-    geo: dict[str, tuple[str, str, str]] = {}
+    # 1) citiesN: geonameid → (name, asciiname, country, lat, lon, population)
+    geo: dict[str, tuple] = {}
     cpath = download_to_temp(f"{GEONAMES_BASE}{source}.zip")
     with zipfile.ZipFile(cpath) as zf:
         txt = next(n for n in zf.namelist() if n.endswith(".txt"))
         with zf.open(txt) as f:
             for raw in io.TextIOWrapper(f, encoding="utf-8"):
                 c = raw.rstrip("\n").split("\t")
-                if len(c) < 9:
+                if len(c) < 15:
                     continue
-                geo[c[0]] = (c[1], c[2], c[8])
+                try:
+                    lat, lon, pop = float(c[4]), float(c[5]), int(c[14] or 0)
+                except ValueError:
+                    continue
+                geo[c[0]] = (c[1], c[2], c[8], lat, lon, pop)
     print(f"cities geonameids: {len(geo)}", file=sys.stderr)
 
     # 2) alternateNamesV2: geonameid → ko 이름 (isPreferredName 우선)
@@ -164,14 +171,15 @@ def build_geo_kr_full(source: str) -> tuple[dict, dict]:
                         pref.add(gid)
     print(f"ko alternate names: {len(kr_by_id)}", file=sys.stderr)
 
-    # 3) join → (이름,국가)→ko, 이름→ko
+    # 3) join → (이름,국가)→ko, 이름→ko + 대도시 보충 후보
     by_name_country: dict[tuple[str, str], str] = {}
     by_name: dict[str, str] = {}
+    supplement: list[dict] = []  # 한국어명 있는 대도시 (dr5hn 누락분 보충용)
     for gid, kr in kr_by_id.items():
         meta = geo.get(gid)
         if not meta:
             continue
-        name, ascii_name, country = meta
+        name, ascii_name, country, lat, lon, pop = meta
         for nm in {ascii_name, name}:
             if not nm:
                 continue
@@ -179,7 +187,11 @@ def build_geo_kr_full(source: str) -> tuple[dict, dict]:
             by_name.setdefault(key, kr)
             if country:
                 by_name_country.setdefault((key, country.upper()), kr)
-    return by_name_country, by_name
+        if pop >= SUPPLEMENT_MIN_POP:
+            supplement.append({"name": ascii_name or name, "country": country,
+                               "lat": lat, "lon": lon, "region": "", "_kr": kr})
+    print(f"supplement candidates(pop≥{SUPPLEMENT_MIN_POP}): {len(supplement)}", file=sys.stderr)
+    return by_name_country, by_name, supplement
 
 
 def main() -> None:
@@ -198,11 +210,34 @@ def main() -> None:
     existing = json.loads(KR_PATH.read_text(encoding="utf-8"))
     print(f"cities: {len(cities)} / existing KR: {len(existing)}", file=sys.stderr)
 
+    supplement: list[dict] = []
     if args.full:
-        by_name_country, by_name = build_geo_kr_full(args.source)
+        by_name_country, by_name, supplement = build_geo_kr_full(args.source)
     else:
         by_name_country, by_name = build_geo_kr(download_geonames(args.source))
     print(f"GeoNames KR names: {len(by_name)} (by name)", file=sys.stderr)
+
+    # 대도시 보충: dr5hn 에 누락된 인구 SUPPLEMENT_MIN_POP 이상 도시(상하이 등)를
+    # GeoNames 좌표로 cities.min.json 에 추가. (전체 모드 + dry-run 아닐 때만)
+    if args.full and not args.dry_run and not args.limit and supplement:
+        present = {(capitalize_words(c.get("name") or ""), (c.get("country") or "").upper())
+                   for c in cities}
+        sup_added = 0
+        seen_sup = set()
+        for s in supplement:
+            key = (capitalize_words(s["name"]), (s["country"] or "").upper())
+            if key in present or key in seen_sup:
+                continue
+            seen_sup.add(key)
+            cities.append({"name": s["name"], "country": s["country"],
+                           "lat": s["lat"], "lon": s["lon"], "region": s["region"]})
+            sup_added += 1
+        print(f"supplement added to city list: {sup_added}", file=sys.stderr)
+        if sup_added:
+            CITIES_PATH.write_text(
+                json.dumps(cities, ensure_ascii=False, separators=(",", ":")) + "\n",
+                encoding="utf-8",
+            )
 
     merged = dict(existing)  # 기존 수기 매핑 보존
     added = 0
