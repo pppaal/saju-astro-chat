@@ -133,10 +133,7 @@ export function deriveLifetimeFlow(
   const events = buildLifecycleTiming(birthYear, birthYear + 90, true).events.map((e) => {
     // 라벨 '두 번째 목성 회귀 — 진로의 큰 그림' → 사람말 의미('진로의 큰 그림') 우선
     const after = e.label.split('—').slice(1).join('—').trim()
-    const desc = (after || e.label.trim())
-      .replace(/\s*\(.*?\)/g, '') // 군더더기 괄호 ('자유의 각성 (중년 변혁)' → '자유의 각성')
-      .replace(/감정 사이클의 졸업/, '감정 흐름의 한 매듭')
-    return { age: e.startYear - birthYear, desc }
+    return { age: e.startYear - birthYear, desc: after || e.label.trim() }
   })
   const currentAge = new Date().getUTCFullYear() - birthYear + 1 // 한국나이
 
