@@ -289,7 +289,8 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(extractErrorMessage(data)).toContain('stripe_error')
+      // Security: raw Stripe error no longer leaked to the client.
+      expect(extractErrorMessage(data)).not.toContain('stripe_error')
     })
 
     it('should handle Stripe card declined error', async () => {
@@ -310,7 +311,8 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(extractErrorMessage(data)).toContain('Your card was declined')
+      // Raw Stripe message is no longer reflected to the client (generic msg).
+      expect(extractErrorMessage(data)).not.toContain('Your card was declined')
     })
 
     it('should handle Stripe invalid request error', async () => {

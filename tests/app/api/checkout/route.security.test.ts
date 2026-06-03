@@ -439,7 +439,9 @@ describe('/api/checkout - Security Tests', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(extractErrorMessage(data)).toContain('stripe_error')
+      // Security: the raw Stripe error must NOT leak to the client.
+      expect(extractErrorMessage(data)).not.toContain('stripe_error')
+      expect(extractErrorMessage(data)).not.toContain('invalid_api_key')
     })
 
     it('should handle missing checkout URL', async () => {

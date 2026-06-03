@@ -283,8 +283,9 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      logger.warn(
-        `[auth] signIn callback: provider=${account?.provider} user=${user?.email} profile=${!!profile}`
+      // Don't log the raw email (PII) on every sign-in; log presence only.
+      logger.info(
+        `[auth] signIn callback: provider=${account?.provider} hasEmail=${!!user?.email} profile=${!!profile}`
       )
       return true
     },

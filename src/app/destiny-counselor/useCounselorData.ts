@@ -170,6 +170,16 @@ export function useCounselorData(sp: SearchParams) {
       return
     }
 
+    // Guard against stale async writes: if the effect re-runs (birth data /
+    // location / locale change) or the component unmounts before a fetch
+    // resolves, a late response must NOT overwrite fresh chart data. applyChart
+    // drops any write once this run is cancelled.
+    let cancelled = false
+    const chartSetter = setChartData
+    const applyChart = (next: Parameters<typeof setChartData>[0]) => {
+      if (!cancelled) chartSetter(next)
+    }
+
     let saju: Record<string, unknown> | null = null
     let astro: Record<string, unknown> | null = null
     let advancedAstro: Record<string, unknown> | null = null
@@ -192,7 +202,7 @@ export function useCounselorData(sp: SearchParams) {
     const cachedRich = saju && saju.dayMaster && (saju as Record<string, unknown>).advancedAnalysis
 
     // Set initial chartData (may be updated later by async fetches)
-    setChartData({
+    applyChart({
       saju: saju || undefined,
       astro: astro || undefined,
       advancedAstro: advancedAstro || undefined,
@@ -232,7 +242,7 @@ export function useCounselorData(sp: SearchParams) {
                 'solar',
                 resolvedTimeZone
               )
-              setChartData((prev) => ({
+              applyChart((prev) => ({
                 saju: computed as unknown as Record<string, unknown>,
                 astro: prev?.astro,
                 advancedAstro: prev?.advancedAstro,
@@ -245,7 +255,7 @@ export function useCounselorData(sp: SearchParams) {
           const json = (await res.json()) as { data?: Record<string, unknown> }
           const richSaju = json?.data
           if (!richSaju) return
-          setChartData((prev) => ({
+          applyChart((prev) => ({
             saju: richSaju,
             astro: prev?.astro,
             advancedAstro: prev?.advancedAstro,
@@ -300,7 +310,7 @@ export function useCounselorData(sp: SearchParams) {
             ...(baseChart as Record<string, unknown>),
             ...(aspects ? { aspects } : {}),
           }
-          setChartData((prev) => ({
+          applyChart((prev) => ({
             saju: prev?.saju,
             astro: astroWithAspects,
             advancedAstro: prev?.advancedAstro,
@@ -470,7 +480,7 @@ export function useCounselorData(sp: SearchParams) {
           logger.warn('[CounselorPage] ✅ Advanced astrology fetched:', Object.keys(advanced))
 
           // Update chartData with advanced astrology
-          setChartData((prev) => ({
+          applyChart((prev) => ({
             ...prev,
             advancedAstro: advanced,
           }))
@@ -491,6 +501,11 @@ export function useCounselorData(sp: SearchParams) {
 
     // Python AI backend was removed — counselor RAG prefetch is now a no-op.
     // The chat itself runs through @anthropic-ai/sdk directly, no init step needed.
+
+    // Cancel stale async writes on re-run / unmount.
+    return () => {
+      cancelled = true
+    }
   }, [
     birthDate,
     birthTime,
