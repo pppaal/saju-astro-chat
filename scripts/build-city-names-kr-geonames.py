@@ -109,10 +109,85 @@ def build_geo_kr(zip_bytes: bytes) -> tuple[dict, dict]:
     return by_name_country, by_name
 
 
+def download_to_temp(url: str) -> str:
+    """대용량 파일은 메모리 대신 임시파일로 받는다. 경로 반환."""
+    import tempfile
+    print(f"downloading {url} ...", file=sys.stderr)
+    req = urllib.request.Request(url, headers={"User-Agent": "saju-city-build/1.0"})
+    fd, path = tempfile.mkstemp(suffix=".zip")
+    import os
+    with urllib.request.urlopen(req, timeout=600) as r, os.fdopen(fd, "wb") as out:
+        while True:
+            chunk = r.read(1 << 20)
+            if not chunk:
+                break
+            out.write(chunk)
+    return path
+
+
+def build_geo_kr_full(source: str) -> tuple[dict, dict]:
+    """전체 모드: alternateNamesV2(언어 태그된 ko 이름) + citiesN(geonameid↔이름)
+    을 join 해 최대 커버리지의 한국어 lookup 을 만든다. truncated 필드보다 훨씬
+    많은 도시를 잡는다."""
+    # 1) citiesN: geonameid → (name, asciiname, country)
+    geo: dict[str, tuple[str, str, str]] = {}
+    cpath = download_to_temp(f"{GEONAMES_BASE}{source}.zip")
+    with zipfile.ZipFile(cpath) as zf:
+        txt = next(n for n in zf.namelist() if n.endswith(".txt"))
+        with zf.open(txt) as f:
+            for raw in io.TextIOWrapper(f, encoding="utf-8"):
+                c = raw.rstrip("\n").split("\t")
+                if len(c) < 9:
+                    continue
+                geo[c[0]] = (c[1], c[2], c[8])
+    print(f"cities geonameids: {len(geo)}", file=sys.stderr)
+
+    # 2) alternateNamesV2: geonameid → ko 이름 (isPreferredName 우선)
+    kr_by_id: dict[str, str] = {}
+    pref: set[str] = set()
+    apath = download_to_temp(f"{GEONAMES_BASE}alternateNamesV2.zip")
+    with zipfile.ZipFile(apath) as zf:
+        txt = next(n for n in zf.namelist() if n.endswith(".txt") and "alternateNames" in n)
+        with zf.open(txt) as f:
+            for raw in io.TextIOWrapper(f, encoding="utf-8"):
+                c = raw.rstrip("\n").split("\t")
+                if len(c) < 4 or c[2] != "ko":
+                    continue
+                gid, name, is_pref = c[1], c[3], (len(c) > 4 and c[4] == "1")
+                if not HANGUL.search(name):
+                    continue
+                if gid in pref:
+                    continue
+                if is_pref or gid not in kr_by_id:
+                    kr_by_id[gid] = name
+                    if is_pref:
+                        pref.add(gid)
+    print(f"ko alternate names: {len(kr_by_id)}", file=sys.stderr)
+
+    # 3) join → (이름,국가)→ko, 이름→ko
+    by_name_country: dict[tuple[str, str], str] = {}
+    by_name: dict[str, str] = {}
+    for gid, kr in kr_by_id.items():
+        meta = geo.get(gid)
+        if not meta:
+            continue
+        name, ascii_name, country = meta
+        for nm in {ascii_name, name}:
+            if not nm:
+                continue
+            key = norm(nm)
+            by_name.setdefault(key, kr)
+            if country:
+                by_name_country.setdefault((key, country.upper()), kr)
+    return by_name_country, by_name
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", default="cities5000",
                     choices=["cities500", "cities1000", "cities5000", "cities15000"])
+    ap.add_argument("--full", action="store_true",
+                    help="alternateNamesV2(전체 ko 이름) 사용 — 커버리지 최대(느림/대용량)")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
@@ -123,7 +198,10 @@ def main() -> None:
     existing = json.loads(KR_PATH.read_text(encoding="utf-8"))
     print(f"cities: {len(cities)} / existing KR: {len(existing)}", file=sys.stderr)
 
-    by_name_country, by_name = build_geo_kr(download_geonames(args.source))
+    if args.full:
+        by_name_country, by_name = build_geo_kr_full(args.source)
+    else:
+        by_name_country, by_name = build_geo_kr(download_geonames(args.source))
     print(f"GeoNames KR names: {len(by_name)} (by name)", file=sys.stderr)
 
     merged = dict(existing)  # 기존 수기 매핑 보존

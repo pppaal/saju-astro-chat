@@ -11,7 +11,7 @@ on:
         description: 'GeoNames 인구 하한 (작을수록 도시 수↑/파일 큼)'
         type: choice
         required: true
-        default: 'cities5000'
+        default: 'cities1000'
         options:
           - cities500
           - cities1000
@@ -35,28 +35,37 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Build city-names-kr.json from GeoNames
-        run: python3 scripts/build-city-names-kr-geonames.py --source "${{ inputs.source }}"
+      # 필터된 cities.min.json 만 repo 에 남으므로, 빌드 매칭을 위해 dr5hn 에서
+      # 전체 도시 목록을 먼저 재생성한다(이 단계 산출물은 커밋 직전 필터로 다시
+      # 줄어든다).
+      - name: Regenerate full city list (dr5hn)
+        run: python3 scripts/build-cities-min.py
+
+      - name: Build city-names-kr.json (full alternateNamesV2)
+        run: python3 scripts/build-city-names-kr-geonames.py --full --source "${{ inputs.source }}"
+
+      - name: Filter cities to translated-only
+        run: python3 scripts/filter-cities-to-translated.py
 
       - name: Commit if changed
         run: |
           set -e
-          if git diff --quiet -- src/lib/cities/data/city-names-kr.json; then
+          files="src/lib/cities/data/city-names-kr.json public/data/cities.min.json"
+          if git diff --quiet -- $files; then
             echo "변경 없음 — 커밋 생략"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          before=$(git show HEAD:src/lib/cities/data/city-names-kr.json | python3 -c "import json,sys; print(len(json.load(sys.stdin)))")
-          after=$(python3 -c "import json; print(len(json.load(open('src/lib/cities/data/city-names-kr.json'))))")
-          git add src/lib/cities/data/city-names-kr.json
-          git commit -m "chore(cities): GeoNames 한국어 도시명 보강 (${{ inputs.source }}: ${before} → ${after})"
-          # 큐 대기 중 main 이 앞서나가면 push 가 거부되므로 rebase 후 재시도.
-          # city-names-kr.json 은 이 잡만 건드려 rebase 충돌이 없다.
+          krn=$(python3 -c "import json; print(len(json.load(open('src/lib/cities/data/city-names-kr.json'))))")
+          cnt=$(python3 -c "import json; print(len(json.load(open('public/data/cities.min.json'))))")
+          git add $files
+          git commit -m "chore(cities): GeoNames(full) 한국어 보강 — KR명 ${krn}개, 도시 ${cnt}개"
+          # 큐 대기 중 main 이 앞서나가면 push 거부 → rebase 후 재시도.
           for i in 1 2 3 4 5; do
             git pull --rebase origin "${{ github.ref_name }}" || true
             if git push origin HEAD:${{ github.ref_name }}; then
-              echo "커밋 완료: ${before} → ${after} 개"
+              echo "커밋 완료: KR ${krn}, 도시 ${cnt}"
               exit 0
             fi
             echo "push 재시도 $i ..."; sleep 5
