@@ -6,29 +6,50 @@ import { JsonLd } from '@/components/seo/JsonLd'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getServerLocale()
-  return generateLocalizedMetadata(
-    {
-      en: {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}): Promise<Metadata> {
+  const sp = await searchParams
+  // 레퍼럴 링크(?ref=코드)는 카톡/와츠앱 등에서 미리보기 문구가 갈리지 않게
+  // 영어 초대 OG 로 통일한다 — 공유 text('Join me on DestinyPal!')와 톤 일치.
+  // (카톡은 보낸 text 대신 링크 OG 로 카드를 만들기 때문.) 그 외 진입은 기존 locale 기반.
+  const isReferral = typeof sp?.ref === 'string' && sp.ref.length > 0
+  const locale = isReferral ? 'en' : await getServerLocale()
+
+  const enKeywords = [
+    'DestinyPal',
+    'ai saju',
+    'saju reading',
+    'four pillars of destiny',
+    'ai astrology',
+    'natal chart reading',
+    'ai tarot reading',
+    'horoscope today',
+    'compatibility test',
+    'synastry chart',
+    'fortune calendar',
+    'ai life counselor',
+  ]
+
+  const en = isReferral
+    ? {
+        title: 'Join me on DestinyPal — AI Saju, Astrology & Tarot',
+        description:
+          "I'm on DestinyPal! AI reads your Saju & natal astrology for daily counsel, tarot, and compatibility. Open the link to get your own free AI reading.",
+        keywords: enKeywords,
+      }
+    : {
         title: 'DestinyPal — AI Saju, Astrology, Tarot, Compatibility & Fortune Calendar',
         description:
           'AI reads your Saju (Korean Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
-        keywords: [
-          'DestinyPal',
-          'ai saju',
-          'saju reading',
-          'four pillars of destiny',
-          'ai astrology',
-          'natal chart reading',
-          'ai tarot reading',
-          'horoscope today',
-          'compatibility test',
-          'synastry chart',
-          'fortune calendar',
-          'ai life counselor',
-        ],
-      },
+        keywords: enKeywords,
+      }
+
+  return generateLocalizedMetadata(
+    {
+      en,
       ko: {
         title: 'DestinyPal — AI 사주·점성·타로·궁합·캘린더',
         description:
