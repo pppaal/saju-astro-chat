@@ -30,7 +30,8 @@ import type { Relation } from '../types'
 export const compatTurnResultKey = (userId: string, turnId: string) =>
   `compat:turn-result:${userId}:${turnId}`
 
-export const COMPAT_TURN_RESULT_TTL_SEC = 600
+// 30분 — 크레딧 충전하러 갔다 오는 왕복도 복구되게 (10→30분).
+export const COMPAT_TURN_RESULT_TTL_SEC = 1800
 
 // 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
 // 중복 차감 방지. 클라이언트가 매 메시지에 UUID 를 x-idempotency-key 헤더로

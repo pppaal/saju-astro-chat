@@ -110,8 +110,9 @@ export const counselorTurnResultKey = (userId: string, turnId: string) =>
 // 가 cookie -1 set 후 삭제. 클라가 임의로 cookie 깎지 못하도록 (게스트 무한채팅
 // 방지) abuse-proof. TTL 짧음 (60s) — refund 즉시 시도해야.
 export const guestRefundMarkerKey = (turnId: string) => `counselor:guest-refund:${turnId}`
-// 돌아와서 받아갈 시간을 충분히 (10분). 받아가면 그만이고 TTL 로 자동 소멸.
-const TURN_RESULT_TTL_SEC = 600
+// 돌아와서 받아갈 시간을 충분히 (30분) — 크레딧 충전하러 갔다 오는 왕복도
+// 커버. 받아가면 그만이고 TTL 로 자동 소멸.
+const TURN_RESULT_TTL_SEC = 1800
 
 // Cap injected attachment text so a huge upload can't blow the context
 // window (the client already trims, this is defense-in-depth).
