@@ -244,6 +244,27 @@ const REQUIRED_SCHEMA = [
     columns: [
       { name: 'clarifierCard', ddl: `ADD COLUMN IF NOT EXISTS "clarifierCard" JSONB` },
       { name: 'followupTurns', ddl: `ADD COLUMN IF NOT EXISTS "followupTurns" JSONB` },
+      // 아래 컬럼들은 20260130 마이그레이션이 "CREATE TABLE IF NOT EXISTS" 로만
+      // 정의 → _init 으로 이미 만들어진 prod 테이블엔 실제로 추가가 안 돼(no-op),
+      // 저장 INSERT 가 P2022 ("column does not exist") 로 죽던 원인. 모두 nullable
+      // 또는 DEFAULT 가 있어 기존 행에도 안전하게 ADD COLUMN 가능.
+      { name: 'overallMessage', ddl: `ADD COLUMN IF NOT EXISTS "overallMessage" TEXT` },
+      { name: 'cardInsights', ddl: `ADD COLUMN IF NOT EXISTS "cardInsights" JSONB` },
+      { name: 'guidance', ddl: `ADD COLUMN IF NOT EXISTS "guidance" TEXT` },
+      { name: 'affirmation', ddl: `ADD COLUMN IF NOT EXISTS "affirmation" TEXT` },
+      {
+        name: 'source',
+        ddl: `ADD COLUMN IF NOT EXISTS "source" TEXT NOT NULL DEFAULT 'standalone'`,
+      },
+      { name: 'counselorSessionId', ddl: `ADD COLUMN IF NOT EXISTS "counselorSessionId" TEXT` },
+      {
+        name: 'isSharedReading',
+        ddl: `ADD COLUMN IF NOT EXISTS "isSharedReading" BOOLEAN NOT NULL DEFAULT false`,
+      },
+      { name: 'sharedWithUserId', ddl: `ADD COLUMN IF NOT EXISTS "sharedWithUserId" TEXT` },
+      { name: 'matchConnectionId', ddl: `ADD COLUMN IF NOT EXISTS "matchConnectionId" TEXT` },
+      { name: 'paidByUserId', ddl: `ADD COLUMN IF NOT EXISTS "paidByUserId" TEXT` },
+      { name: 'locale', ddl: `ADD COLUMN IF NOT EXISTS "locale" TEXT NOT NULL DEFAULT 'ko'` },
     ],
   },
   {
