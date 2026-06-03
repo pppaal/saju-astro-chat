@@ -283,6 +283,7 @@ export default function PremiumDestinyPlanner({
                   shinsal={shinsal}
                   astroHighlights={dateDetail?.astroHighlights}
                   dayTone={dateDetail?.dayTone}
+                  dayAstroTone={dateDetail?.dayAstroTone}
                   isToday={isToday}
                   nowHour={today.getHours()}
                   todayHourly={data?.todayHourlyTimeSlots}
@@ -622,22 +623,18 @@ function YearView({
             </BarChart>
           </ResponsiveContainer>
         </div>
+        {/* 12개월 평균 테마 — 같은 카드 안에 합침 */}
+        {themeBars.length > 0 && (
+          <div className="mt-6 pt-5 border-t border-white/5 space-y-4">
+            <h4 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
+              {locale === 'en' ? 'Areas this year' : '올해 영역별 흐름'}
+            </h4>
+            {themeBars.map((b) => (
+              <ThemeBar key={b.theme} label={t.themeName(b.theme)} score={b.score} />
+            ))}
+          </div>
+        )}
       </motion.div>
-
-      {/* 12개월 평균 테마 */}
-      {themeBars.length > 0 && (
-        <motion.div
-          variants={itemVariants}
-          className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-4"
-        >
-          <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
-            {locale === 'en' ? 'Areas this year' : '올해 영역별 흐름'}
-          </h3>
-          {themeBars.map((b) => (
-            <ThemeBar key={b.theme} label={t.themeName(b.theme)} score={b.score} />
-          ))}
-        </motion.div>
-      )}
 
       {/* 올해 큰 날 */}
       {bigDays.length > 0 && (
@@ -869,12 +866,12 @@ function MonthView({
         </motion.div>
       )}
 
+      {/* ── 점수 근거 · 큰 날 — 보조 카드 접기 ── */}
+      {(ranking.length > 0 || bigDays.length > 0) && (
+        <Collapsible title={locale === 'en' ? 'Scores & big days' : '점수 근거 · 큰 날'}>
       {/* 영역별 점수 + 전체 themeBreakdown (why) */}
       {ranking.length > 0 && (
-        <motion.div
-          variants={itemVariants}
-          className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-5"
-        >
+        <div className="space-y-5">
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
             {locale === 'en' ? 'Why these scores' : '영역별 점수와 근거'}
           </h3>
@@ -904,12 +901,12 @@ function MonthView({
               </div>
             )
           })}
-        </motion.div>
+        </div>
       )}
 
       {/* 이번 달 큰 날 (수렴) */}
       {bigDays.length > 0 && (
-        <motion.div variants={itemVariants} className="space-y-3">
+        <div className="space-y-3">
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase flex items-center">
             <Sparkles size={14} className="mr-2 text-fuchsia-300/70" />
             {locale === 'en' ? 'Convergence days' : '사주·점성이 겹치는 큰 날'}
@@ -917,7 +914,9 @@ function MonthView({
           {bigDays.map((d) => (
             <BigDayRow key={d.date} day={d} locale={locale} />
           ))}
-        </motion.div>
+        </div>
+      )}
+        </Collapsible>
       )}
 
       {/* 다른 달 — 상세 해석은 이번 달만 제공(서빙 달 한정). 정직한 안내. */}
@@ -986,6 +985,7 @@ function DayView({
   shinsal,
   astroHighlights,
   dayTone,
+  dayAstroTone,
   isToday,
   nowHour,
   todayHourly,
@@ -999,6 +999,7 @@ function DayView({
   shinsal: NonNullable<NonNullable<ReturnType<typeof useDateDetail>['detail']>['shinsalActive']>
   astroHighlights?: { text: string; good: boolean }[]
   dayTone?: string
+  dayAstroTone?: string
   isToday: boolean
   nowHour: number
   todayHourly?: CalendarData['todayHourlyTimeSlots']
@@ -1189,8 +1190,8 @@ function DayView({
         </motion.div>
       )}
 
-      {/* ── 오늘의 점성 — 사주 카드와 짝. 그날 주요 transit aspect(행성↔본명) ── */}
-      {astroHighlights && astroHighlights.length > 0 && (
+      {/* ── 오늘의 점성 — 사주 카드와 짝. 순탄/고비 한 줄 + 그날 transit aspect(행성↔본명) ── */}
+      {((astroHighlights && astroHighlights.length > 0) || dayAstroTone) && (
         <motion.div
           variants={itemVariants}
           className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-3"
@@ -1198,8 +1199,11 @@ function DayView({
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
             {locale === 'en' ? "Today's Astrology" : '오늘의 점성'}
           </h3>
+          {dayAstroTone && (
+            <p className="text-sm text-cyan-100/90 font-light leading-relaxed">{dayAstroTone}</p>
+          )}
           <div className="space-y-1.5">
-            {astroHighlights.map((a, i) => (
+            {(astroHighlights ?? []).map((a, i) => (
               <div key={i} className="flex items-start gap-2 text-sm">
                 <span className={`mt-0.5 ${a.good ? 'text-emerald-400/70' : 'text-rose-400/70'}`}>
                   {a.good ? '↑' : '↓'}
@@ -1211,12 +1215,13 @@ function DayView({
         </motion.div>
       )}
 
-      {/* Energy Axis — 사주/점성 분해 */}
-      {(typeof sajuAxis === 'number' || typeof astroAxis === 'number') && (
-        <motion.div
-          variants={itemVariants}
-          className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-5"
-        >
+      {/* ── 자세히 (보조 카드 접기): 에너지 축 + 24시간 흐름 ── */}
+      {((typeof sajuAxis === 'number' || typeof astroAxis === 'number') ||
+        (hourSeries && hourSeries.length > 0)) && (
+        <Collapsible title={locale === 'en' ? 'More detail' : '자세히'}>
+          {/* Energy Axis — 사주/점성 분해 */}
+          {(typeof sajuAxis === 'number' || typeof astroAxis === 'number') && (
+        <div className="space-y-5">
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
             {locale === 'en' ? 'Energy Axis' : '에너지 축'}
           </h3>
@@ -1255,15 +1260,12 @@ function DayView({
               </span>
             </p>
           )}
-        </motion.div>
-      )}
+        </div>
+          )}
 
-      {/* 24h Timeline */}
-      {hourSeries && hourSeries.length > 0 && (
-        <motion.div
-          variants={itemVariants}
-          className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5"
-        >
+          {/* 24h Timeline */}
+          {hourSeries && hourSeries.length > 0 && (
+        <div>
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 mb-5 flex items-center uppercase">
             <Clock size={14} className="mr-2 text-amber-200/70" />
             {locale === 'en' ? '24H Timeline' : '24시간 흐름'}
@@ -1312,7 +1314,9 @@ function DayView({
               ) : null}
             </p>
           )}
-        </motion.div>
+        </div>
+          )}
+        </Collapsible>
       )}
 
       {/* 추진 / 보류 */}
@@ -1574,6 +1578,31 @@ function SectionsAccordion({
         </details>
       ))}
     </motion.div>
+  )
+}
+
+/** 보조 카드 묶음을 접는 일반 컬랩서블 — 핵심 카드는 펼쳐두고 부가 정보는 접어 둠 */
+function Collapsible({
+  title,
+  children,
+  defaultOpen = false,
+}: {
+  title: string
+  children: React.ReactNode
+  defaultOpen?: boolean
+}) {
+  return (
+    <motion.details
+      variants={itemVariants}
+      className="group bg-zinc-900/20 rounded-2xl border border-white/5 overflow-hidden"
+      open={defaultOpen}
+    >
+      <summary className="cursor-pointer list-none px-5 py-3.5 flex items-center justify-between text-xs font-medium tracking-widest text-zinc-400 uppercase hover:bg-white/[0.02]">
+        <span>{title}</span>
+        <ChevronRight className="w-4 h-4 text-zinc-600 transition-transform group-open:rotate-90" />
+      </summary>
+      <div className="px-4 sm:px-5 pb-5 pt-1 space-y-5">{children}</div>
+    </motion.details>
   )
 }
 

@@ -6,6 +6,7 @@
  */
 import type { NatalContext } from '../context/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
+import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import { buildLifecycleTiming } from '../lifecycle/astroLifecycle'
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
 
@@ -147,7 +148,8 @@ export function deriveLifetimeFlow(
     const cat = SIBSIN_CAT[getSibsinKo(dm, d.stem)] as Cat | undefined
     const body = cat ? BAND_CAT[label]?.[cat] : undefined
     if (!cat || !body) continue
-    const fav = favorOf(natal.saju.strength, cat)
+    // 그 대운 오행이 용신인지(순탄)·기신인지(고비) 1순위, 없으면 신강·신약×십신.
+    const fav = favorOf(natal.saju.strength, cat, getStemElement(d.stem), natal.saju.yongsin)
 
     const evs = events.filter((e) => e.age >= lo && e.age <= hi).slice(0, 2)
     const astro = evs.length
