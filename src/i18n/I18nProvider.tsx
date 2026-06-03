@@ -106,7 +106,7 @@ function repairDictMojibakeValue(value: unknown): unknown {
  * IMPORTANT: this MUST be code-point aware. A naive UTF-16 code-unit scan treats
  * the surrogate range (U+D800–U+DFFF) as illegal, but every astral-plane emoji
  * (🌟 🌍 🎯 📊 💰, all U+1F300+) is encoded as a surrogate *pair* in JS strings.
- * The old regex `[^...퟿-�]` excluded the surrogate range and so
+ * The old regex `[^...퟿-\uFFFD]` excluded the surrogate range and so
  * flagged ~7% of perfectly valid Korean strings (those containing emoji) as
  * corrupted — Korean users silently saw the English fallback instead.
  *
@@ -121,7 +121,8 @@ export function isLikelyCorrupted(value: string): boolean {
   }
 
   // Hard signal: Unicode replacement char always means a decode went wrong.
-  if (value.includes('�')) {
+  // (escape so the mojibake linter doesn't flag this detector's own literal)
+  if (value.includes('\uFFFD')) {
     return true
   }
 
