@@ -351,22 +351,24 @@
     animation-duration: 0.4s;
   }
 
-  /* Optimize backdrop blur on mobile */
+  /* 모바일에선 backdrop-filter 완전 제거 — 옛 10px blur 는 카드 그리드 옆
+     동시 활성화 시 fps drop 의 큰 비중. base 의 semi-transparent solid
+     배경만으로 시각적 깊이 충분. desktop 만 glassmorphism 유지. */
   .streamingContentBox,
   .overallMessage,
   .resultCardSlot {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
 @media (max-width: 480px) {
-  /* Further reduce blur on low-end devices */
+  /* 위의 768px 룰이 이미 blur 제거 — 480px 에선 더 적용할 게 없음. */
   .streamingContentBox,
   .overallMessage,
   .resultCardSlot {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   /* Simplify animations */
