@@ -44,8 +44,9 @@ const CLAUDE_TIMEOUT_MS = 60000
 export const tarotTurnResultKey = (userId: string, turnId: string) =>
   `tarot:turn-result:${userId}:${turnId}`
 
-// 돌아와서 받아갈 시간을 충분히 (10분). 받아가면 그만이고 TTL 로 자동 소멸.
-const TURN_RESULT_TTL_SEC = 600
+// 돌아와서 받아갈 시간을 충분히 (30분) — 크레딧 충전하러 갔다 오는 왕복도
+// 커버. 받아가면 그만이고 TTL 로 자동 소멸.
+const TURN_RESULT_TTL_SEC = 1800
 
 // 카드 수 차등 가격은 tarot-spreads-data.ts 의 tarotCreditCostFor 가 SSOT.
 
