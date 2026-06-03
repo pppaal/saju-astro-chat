@@ -336,8 +336,8 @@ describe('cities/formatter', () => {
     })
 
     it('should handle special characters in city names', () => {
-      // Xi'an has no Korean translation in the lookup, so the English name is used with Korean country
-      expect(formatCityName("Xi'an", 'CN', { locale: 'ko' })).toBe("Xi'an, 중국")
+      // Xi'an (아포스트로피 포함) 도 한국어명(시안)으로 정상 매핑된다.
+      expect(formatCityName("Xi'an", 'CN', { locale: 'ko' })).toBe('시안, 중국')
     })
 
     it('should handle cities with multiple spaces', () => {

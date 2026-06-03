@@ -54,7 +54,7 @@ describe('cities/lookups', () => {
     it('should have reasonable number of entries', () => {
       const count = Object.keys(CITY_NAME_KR).length
       expect(count).toBeGreaterThan(100) // At least 100 cities
-      expect(count).toBeLessThan(5000) // But not absurdly many
+      expect(count).toBeLessThan(50000) // But not absurdly many (GeoNames 보강 후 ~7.6k)
     })
   })
 
