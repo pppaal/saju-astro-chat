@@ -63,7 +63,7 @@ export function buildGuestDestinyTurnCookieFromValue(next: number): string {
 function buildGuestDestinyTurnCookie(next: number): string {
   return buildGuestDestinyTurnCookieFromValue(next)
 }
-import { refundCredits } from '@/lib/credits/creditRefund'
+import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
@@ -534,11 +534,12 @@ export async function POST(req: NextRequest) {
   // 위 consume 블록이 `if (userId)` 가드 안에 있음. assertion safe.
   const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
 
+  const refundKey = turnId && userId ? `counselor-realtime:${userId}:${turnId}` : null
   const onFailure =
     chargedThisTurn && userId
       ? async () => {
           try {
-            await refundCredits({
+            await refundCreditsOnce(refundKey, {
               userId,
               creditType: 'reading',
               amount: 1,

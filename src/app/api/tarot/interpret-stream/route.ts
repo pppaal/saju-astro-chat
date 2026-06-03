@@ -29,7 +29,7 @@ import {
   checkAndConsumeCredits,
   creditErrorResponse,
 } from '@/lib/credits/withCredits'
-import { refundCredits } from '@/lib/credits/creditRefund'
+import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { getUserDisplayName } from '@/lib/user/displayName'
 import { cacheSet } from '@/lib/cache/redis-cache'
 
@@ -65,11 +65,13 @@ async function refundOnFailure(
   creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null,
   reason: string,
   amount: number,
-  errorMessage?: string
+  errorMessage?: string,
+  idempotencyKey?: string | null
 ) {
   if (!creditResult?.userId || !creditResult.chargedAs) return
   try {
-    await refundCredits({
+    // Idempotent: every failure path may call this, but a turn refunds once.
+    await refundCreditsOnce(idempotencyKey ?? null, {
       userId: creditResult.userId,
       creditType: creditResult.chargedAs,
       amount,
@@ -148,6 +150,8 @@ export const maxDuration = 90
 export async function POST(req: NextRequest) {
   let creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null = null
   let creditCost = 1
+  // Hoisted so the outer catch can pass the same per-turn idempotent refund key.
+  let refundKey: string | null = null
 
   try {
     const guardOptions = createPublicStreamGuard({
@@ -264,6 +268,9 @@ export async function POST(req: NextRequest) {
     const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
     const recoverableUserId = context.userId || ''
     const isRecoverable = Boolean(turnId && recoverableUserId)
+    // Per-turn key so every refund path (fallback / claude error / stream error
+    // / outer catch) refunds this turn at most once. (declared at fn scope above)
+    refundKey = turnId ? `tarot-interpret:${turnId}` : null
 
     logger.info('Tarot stream payload', {
       categoryId,
@@ -297,7 +304,8 @@ export async function POST(req: NextRequest) {
         creditResult,
         'tarot_llm_unavailable',
         creditCost,
-        'ANTHROPIC_API_KEY missing'
+        'ANTHROPIC_API_KEY missing',
+        refundKey
       )
       const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(
@@ -354,7 +362,8 @@ export async function POST(req: NextRequest) {
         creditResult,
         'tarot_claude_error',
         creditCost,
-        claudeErr instanceof Error ? claudeErr.message : String(claudeErr)
+        claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
+        refundKey
       )
       const fallback = buildFallbackPayload(rawCards, language)
       return withCreditCookies(
@@ -455,7 +464,8 @@ export async function POST(req: NextRequest) {
               creditResult,
               receivedAny ? 'tarot_claude_stream_partial' : 'tarot_claude_stream_no_content',
               creditCost,
-              `${streamErr instanceof Error ? streamErr.message : String(streamErr)} (bytes=${bytesEmitted})`
+              `${streamErr instanceof Error ? streamErr.message : String(streamErr)} (bytes=${bytesEmitted})`,
+              refundKey
             )
             if (!receivedAny) {
               const fallback = buildFallbackPayload(rawCards, language)
@@ -532,7 +542,8 @@ export async function POST(req: NextRequest) {
       creditResult,
       'tarot_handler_error',
       creditCost,
-      err instanceof Error ? err.message : String(err)
+      err instanceof Error ? err.message : String(err),
+      refundKey
     )
     logger.error('Tarot stream error:', { error: err })
     return withCreditCookies(
