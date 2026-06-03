@@ -30,7 +30,7 @@ const assertModules = (modulePaths: string[]) => {
 describe('API Routes Smoke Tests', () => {
   describe('Admin Routes (1)', () => {
     it('should have admin routes', () => {
-      assertModules(['app/api/admin/metrics/comprehensive/route'])
+      assertModules(['app/api/admin/overview/route', 'app/api/admin/metrics/route'])
     })
   })
 
@@ -107,12 +107,6 @@ describe('API Routes Smoke Tests', () => {
     })
   })
 
-  describe('Feedback Routes (2)', () => {
-    it('should have feedback routes', () => {
-      assertModules(['app/api/feedback/route', 'app/api/feedback/records/route'])
-    })
-  })
-
   describe('Me Routes (4)', () => {
     it('should have user profile routes', () => {
       assertModules([
@@ -173,7 +167,6 @@ describe('API Routes Smoke Tests', () => {
         'counselor',
         'cron',
         'destiny-match',
-        'feedback',
         'me',
         'referral',
         'saju',

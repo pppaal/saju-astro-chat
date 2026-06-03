@@ -36,7 +36,7 @@ describe('Pages Smoke Tests', () => {
 
   describe('Admin Pages (2)', () => {
     it('should have admin pages', () => {
-      assertPages(['app/admin/feedback/page', 'app/admin/dashboard/page'])
+      assertPages(['app/admin/dashboard/page'])
     })
   })
 
