@@ -11,6 +11,7 @@
   "scripts": {
     "postinstall": "prisma generate --config prisma.config.ts",
     "cities:translate-kr": "python3 scripts/translate-cities-kr.py",
+    "cities:build-kr-geonames": "python3 scripts/build-city-names-kr-geonames.py",
     "vercel-build": "prisma generate --config prisma.config.ts && node scripts/prisma-migrate-recovery.js && prisma migrate deploy && node scripts/prisma-schema-verify.js && node scripts/copy-pdf-worker.mjs && next build",
     "dev": "next dev",
     "dev:webpack": "next dev --webpack",
