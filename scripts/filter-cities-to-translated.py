@@ -74,19 +74,20 @@ def main() -> None:
     if bad_coord:
         print(f"  (좌표 오류 제외: {bad_coord})")
 
-    # 악센트 차이 중복 제거: 같은 국가에서 악센트만 다르고 좌표가 거의 같은
-    # 도시(Córdoba vs Cordoba)는 한 곳만 남긴다. 좌표를 0.1° 로 반올림해 키에
-    # 넣어, 이름만 같고 위치가 다른 동명 도시(여러 Springfield 등)는 보존한다.
-    seen = set()
+    # 악센트/철자 차이 중복 제거: 같은 국가에서 (악센트 무시) 이름이 같고
+    # 좌표가 0.5° 이내면 같은 도시로 보고 한 곳만 남긴다(Córdoba/Cordoba,
+    # Cuiabá/Cuiaba, Montréal/Montreal 등). 같은 이름이라도 0.5° 넘게 떨어진
+    # 동명 다른 도시(여러 Springfield 등)는 보존한다.
+    groups: dict = {}
     deduped = []
     dropped = 0
     for c in kept:
-        key = (fold(c.get("name") or ""), (c.get("country") or "").upper(),
-               round(float(c.get("lat", 0)), 1), round(float(c.get("lon", 0)), 1))
-        if key in seen:
+        g = (fold(c.get("name") or ""), (c.get("country") or "").upper())
+        lat, lon = float(c.get("lat", 0)), float(c.get("lon", 0))
+        if any(abs(lat - x) < 0.5 and abs(lon - y) < 0.5 for x, y in groups.get(g, [])):
             dropped += 1
             continue
-        seen.add(key)
+        groups.setdefault(g, []).append((lat, lon))
         deduped.append(c)
     kept = deduped
 
