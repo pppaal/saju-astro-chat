@@ -3,6 +3,7 @@
 
 import { Chart, PlanetBase, AspectHit, AspectType, ZodiacKo } from "./types";
 import { shortestAngle, normalize360 } from "./utils";
+import { evaluateAspect, AspectEngineConfig } from "./aspectCore";
 
 export interface SynastryInput {
   chartA: Chart;
@@ -56,6 +57,33 @@ const ASPECT_ORBS: Record<AspectType, number> = {
 const HARMONY_ASPECTS: AspectType[] = ["conjunction", "trine", "sextile"];
 const TENSION_ASPECTS: AspectType[] = ["square", "opposition", "quincunx"];
 
+// 시너스트리(두 차트 비교) 엔진 config — 코어 evaluateAspect 에 주입할
+// *시너스트리 고유* 산술. 이전엔 findAspectBetween 이 "최단 분리각 → orb 테스트
+// → score" 로직을 aspects.ts/transit.ts 와 무관하게 세 번째로 따로 구현하고
+// 있었다. 이제 그 *알고리즘* 만 aspectCore 로 통합한다 (orb 테이블 ASPECT_ORBS
+// 와 score 식 같은 *튜닝 상수* 는 시너스트리 전용으로 유지 — natal/transit 과
+// 병합하지 않음).
+//
+// CONSOLIDATION 보존 포인트 (출력 바이트 단위 동일):
+//  - targetAngle : ASPECT_ANGLES[aspect]  (기존과 동일 테이블)
+//  - orb         : |diff - target|, diff = shortestAngle(lonA, lonB) (0..180)
+//  - limit       : ASPECT_ORBS[aspect]    (시너스트리 전용 orb 테이블)
+//  - accepted    : orb <= limit
+//  - score       : 1 - orb/limit          (기존 1 - orb/maxOrb 와 동일)
+//  - applying    : 시너스트리는 부호 있는 속도 정보를 쓰지 않으므로 의미 없음.
+//                  코어는 항상 applying 을 계산하지만 시너스트리는 그 값을
+//                  *무시* 하고 AspectHit 에 applying 필드를 넣지 않는다 →
+//                  기존 출력(orb/score/type/from/to 만)과 정확히 일치.
+const SYNASTRY_ASPECT_CONFIG: AspectEngineConfig = {
+  desiredAngle: (a) => ASPECT_ANGLES[a],
+  computeOrb: (sep, target) => Math.abs(sep - target),
+  computeLimit: (_aName, _bName, aspect) => ASPECT_ORBS[aspect],
+  // 시너스트리는 applying/separating 을 보고하지 않는다. 코어가 호출은 하지만
+  // 결과를 버리므로 부작용 없는 false 를 반환한다.
+  isApplying: () => false,
+  computeScore: ({ orb, limit }) => 1 - orb / limit,
+};
+
 function findAspectBetween(
   pA: PlanetBase,
   pB: PlanetBase,
@@ -66,11 +94,19 @@ function findAspectBetween(
   const diff = shortestAngle(pA.longitude, pB.longitude);
 
   for (const aspectType of aspects) {
-    const targetAngle = ASPECT_ANGLES[aspectType];
-    const orb = Math.abs(diff - targetAngle);
-    const maxOrb = ASPECT_ORBS[aspectType];
+    // relSpeed 슬롯은 시너스트리에서 미사용(applying 을 보고하지 않음) → 0.
+    const evalResult = evaluateAspect(
+      pA.name,
+      pA.longitude,
+      pB.name,
+      pB.longitude,
+      diff,
+      0,
+      aspectType,
+      SYNASTRY_ASPECT_CONFIG
+    );
 
-    if (orb <= maxOrb) {
+    if (evalResult.accepted) {
       return {
         from: {
           name: pA.name,
@@ -87,8 +123,8 @@ function findAspectBetween(
           longitude: pB.longitude,
         },
         type: aspectType,
-        orb,
-        score: 1 - orb / maxOrb,
+        orb: evalResult.orb,
+        score: evalResult.score,
       };
     }
   }
