@@ -23,6 +23,8 @@ export type DateDetailResponse = {
   shinsalActive?: { name: string; type: string; affectedArea: string }[]
   /** 그날 주요 점성 transit (행성명 한글화) — 일 탭 '오늘의 점성' 카드 */
   astroHighlights?: { text: string; good: boolean }[]
+  /** 오늘 순탄/고비 한 줄 — 일진 십신 × 신강·신약 (다른 탭과 동일 규칙) */
+  dayTone?: string
   energyFlow?: {
     strength: string
     dominantElement: string

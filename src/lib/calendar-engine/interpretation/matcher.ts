@@ -8,7 +8,10 @@ import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
 import { deriveKeyEvents } from '../derivers/keyEvents'
 import { deriveConvergence } from '../derivers/convergence'
 import { deriveLifetimePivots } from '../derivers/lifetimePivots'
+import { deriveLifetimeFlow } from '../derivers/lifetimeFlow'
+import { deriveYearAstro } from '../derivers/yearAstro'
 import { deriveMonthComparison } from '../derivers/monthComparison'
+import { SIBSIN_CAT, deriveCycleTone } from '../derivers/cycleTone'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -340,6 +343,47 @@ export function buildInterpretation(args: {
     }
   }
 
+  // ── 순탄/고비 톤 — 세운(올해)·월운(이달) 섹션 맨 앞에 한 줄 ──
+  // 인생 흐름(대운)과 동일한 신강·신약 × 십신 규칙(cycleTone, SSOT)으로, 그 주기가
+  // 우호적인지 힘에 부치는지 사람마다 다르게 표시. 세운/월운 십신은 신호에서 가져옴.
+  if (lang === 'ko') {
+    const layerCat = (layer: ActiveSignal['layer']) => {
+      for (const s of allSignals) {
+        const sib = s.evidence?.sibsin as string | undefined
+        if (s.layer === layer && sib && SIBSIN_CAT[sib]) return SIBSIN_CAT[sib]
+      }
+      return undefined
+    }
+    const prepend = (sectionId: string, line?: string) => {
+      if (!line) return
+      const sec = sections.find((s) => s.section === sectionId)
+      if (sec) sec.text = `${line}\n${sec.text}`
+    }
+    const strength = natal.saju?.strength
+    prepend('seun', deriveCycleTone('year', strength, layerCat('yearly')))
+    prepend('wolun', deriveCycleTone('month', strength, layerCat('monthly')))
+  }
+
+  // 문체 — 한글 룰 템플릿에 하드코딩된 영어 행성/용어(Saturn Return, Jupiter…)를
+  // 한글로 후처리(ko 출력 일관성). 룰 수백 개를 일일이 안 고쳐도 됨.
+  // 이어서 생애 단계(미성년/노년)에 맞춰 어휘 보정 — 성인은 무변경.
+  if (lang === 'ko') {
+    const band = ((): AgeBand => {
+      const birthYear = natal.input?.year
+      const scopeYear = (() => {
+        const iso = cells[0]?.datetime
+        const d = iso ? new Date(iso) : null
+        return d && !Number.isNaN(d.getTime()) ? d.getUTCFullYear() : new Date().getUTCFullYear()
+      })()
+      if (!birthYear) return 'adult'
+      const koreanAge = scopeYear - birthYear + 1
+      if (koreanAge < 19) return 'minor'
+      if (koreanAge >= 66) return 'senior'
+      return 'adult'
+    })()
+    for (const s of sections) s.text = koAgeAdjust(koAstroTerms(s.text), band)
+  }
+
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
 
   // 테마 점수 — 신호 기반(셀별 themeScores)의 월 평균.
@@ -383,6 +427,12 @@ export function buildInterpretation(args: {
   // 인생 분기점 — 점성 라이프사이클 × 대운 전환 (natal 스케일, 월과 무관하나
   // monthly 카드에 함께 노출). 순수 산술이라 매월 재계산해도 저렴.
   const lifetimePivots = scope === 'monthly' ? deriveLifetimePivots(natal, lang) : undefined
+  const lifetimeFlow = scope === 'monthly' ? deriveLifetimeFlow(natal, lang) : undefined
+  // 올해 점성 한 줄 (연간 프로펙션) — seun(사주)에 점성 짝을 맞춰 연 탭이 교차되게.
+  const yearAstro =
+    scope === 'monthly'
+      ? deriveYearAstro(natal, Number(cells[0]?.datetime?.slice(0, 4)) || new Date().getFullYear(), lang)
+      : undefined
 
   // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전월 themeScore 를 같은
   // 모델로 얻기 위해 재귀 호출(단, prevCells 미전달 → 무한재귀 없음).
@@ -408,6 +458,8 @@ export function buildInterpretation(args: {
     keyEvents,
     convergence,
     lifetimePivots,
+    lifetimeFlow,
+    yearAstro,
     monthComparison,
   }
 }
@@ -886,6 +938,108 @@ function buildBaseVars(natal: NatalContext): TemplateVars {
     primaryYongsin: natal.saju.yongsin.primary,
     yongsinElement: natal.saju.yongsin.primary,
   }
+}
+
+// 영어 점성 용어 → 한글 (멀티워드 먼저). ko narrative 문체 일관용.
+const ASTRO_KO_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bSaturn Return\b/g, '토성 회귀'],
+  [/\bJupiter Return\b/g, '목성 회귀'],
+  [/\bSolar Return\b/g, '태양 회귀'],
+  [/\bLunar Return\b/g, '달 회귀'],
+  [/\bTrue Node\b/g, '북교점'],
+  [/\bNorth Node\b/g, '북교점'],
+  [/\bSouth Node\b/g, '남교점'],
+  [/\bSun\b/g, '태양'],
+  [/\bMoon\b/g, '달'],
+  [/\bMercury\b/g, '수성'],
+  [/\bVenus\b/g, '금성'],
+  [/\bMars\b/g, '화성'],
+  [/\bJupiter\b/g, '목성'],
+  [/\bSaturn\b/g, '토성'],
+  [/\bUranus\b/g, '천왕성'],
+  [/\bNeptune\b/g, '해왕성'],
+  [/\bPluto\b/g, '명왕성'],
+  [/\bChiron\b/g, '카이런'],
+  [/\bLilith\b/g, '릴리스'],
+  [/\bAscendant\b/g, '상승점'],
+  // aspect 명 (영어 잔존분)
+  [/\bConjunction\b/gi, '컨정션'],
+  [/\bOpposition\b/gi, '어포지션'],
+  [/\bSquare\b/gi, '스퀘어'],
+  [/\bTrine\b/gi, '트라인'],
+  [/\bSextile\b/gi, '섹스타일'],
+  [/\bQuintile\b/gi, '퀸타일'],
+]
+function koAstroTerms(text: string): string {
+  let s = text
+  for (const [re, ko] of ASTRO_KO_REPLACEMENTS) s = s.replace(re, ko)
+  return s
+}
+
+// ── 나이·상황 맞춤 어휘 (ko) ──
+// 룰 템플릿은 일하는 성인 기준으로 쓰여 있어, 미성년/노년 사용자에겐 어색한
+// 용어(이직·창업·취업·현금흐름·포트폴리오…)가 그대로 나온다. 사주/점성 *판정*은
+// 그대로 두고, 출력 *문구*만 생애 단계에 맞게 바꾼다(결정론적·LLM 무사용).
+// 성인(19~65)은 무변경.
+function lastCharHasJong(s: string): { jong: boolean; rieul: boolean } {
+  const t = s.trim()
+  if (!t) return { jong: false, rieul: false }
+  const c = t.charCodeAt(t.length - 1)
+  if (c < 0xac00 || c > 0xd7a3) return { jong: false, rieul: false }
+  const j = (c - 0xac00) % 28
+  return { jong: j !== 0, rieul: j === 8 }
+}
+type JosaType = 'obj' | 'subj' | 'top' | 'and' | 'dir'
+const JOSA_VAR: Record<string, JosaType> = {
+  을: 'obj', 를: 'obj', 이: 'subj', 가: 'subj', 은: 'top', 는: 'top',
+  과: 'and', 와: 'and', 으로: 'dir', 로: 'dir',
+}
+function josaFor(type: JosaType, word: string): string {
+  const { jong, rieul } = lastCharHasJong(word)
+  switch (type) {
+    case 'obj': return jong ? '을' : '를'
+    case 'subj': return jong ? '이' : '가'
+    case 'top': return jong ? '은' : '는'
+    case 'and': return jong ? '과' : '와'
+    case 'dir': return !jong || rieul ? '로' : '으로'
+  }
+}
+// 명사 치환 — 뒤따르는 가변 조사를 새 명사 받침에 맞게 다시 붙여 비문 방지.
+function swapNoun(text: string, from: string, to: string): string {
+  const esc = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(`${esc}(으로|로|을|를|이|가|은|는|과|와)?`, 'g')
+  return text.replace(re, (_m, josa?: string) => {
+    if (josa && JOSA_VAR[josa]) return to + josaFor(JOSA_VAR[josa], to)
+    return to + (josa ?? '')
+  })
+}
+type AgeBand = 'minor' | 'adult' | 'senior'
+// 복합어(생애 이벤트 묶음)를 먼저, 단일 명사를 나중에 — 전부 swapNoun 경유라
+// 뒤따르는 조사를 새 어휘 받침에 맞춰 다시 붙인다(작품+를→작품을 식 비문 방지).
+const AGE_ENTRIES: Record<Exclude<AgeBand, 'adult'>, Array<[string, string]>> = {
+  minor: [
+    ['계약·결혼·이직·창업', '새로운 도전'],
+    ['이직·창업', '새 도전'],
+    ['SNS·블로그·포트폴리오', '취미·기록·작품'],
+    ['자격증·시험·전문성 강화', '공부·시험·실력 다지기'],
+    ['수입 확보·자산 정리·계약', '용돈 관리·정리·약속'],
+    ['큰 투자보다 현금흐름 안정', '욕심내기보다 차근차근 모으기'],
+    ['현금흐름', '용돈'], ['취업', '진로'], ['이직', '진로 변화'], ['창업', '새 도전'],
+    ['승진', '인정받기'], ['연봉', '성과'], ['면접', '시험·발표'], ['포트폴리오', '작품'],
+  ],
+  senior: [
+    ['계약·결혼·이직·창업', '새로운 결정'],
+    ['이직·창업', '새 역할·새 시작'],
+    ['SNS·블로그·포트폴리오', '취미·기록·작품'],
+    ['취업', '새 활동'], ['이직', '새 역할'], ['창업', '새 시작'],
+    ['승진', '인정'], ['연봉', '보람'], ['면접', '만남'], ['포트폴리오', '기록'],
+  ],
+}
+function koAgeAdjust(text: string, band: AgeBand): string {
+  if (band === 'adult') return text
+  let s = text
+  for (const [from, to] of AGE_ENTRIES[band]) s = swapNoun(s, from, to)
+  return s
 }
 
 function fillTemplate(template: string, vars: TemplateVars): string {
