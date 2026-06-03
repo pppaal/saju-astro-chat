@@ -33,6 +33,24 @@ export const SIGN_KO = [
   '물고기',
 ] as const
 
+/** 행성 이름 → 한국어. 차트 범례에서 glyph(☉/☽…) 옆에 한국어 이름을 같이
+    노출해서 비전공자가 기호를 외우지 않아도 즉시 이해 가능. */
+export const PLANET_KO: Record<string, string> = {
+  Sun: '태양',
+  Moon: '달',
+  Mercury: '수성',
+  Venus: '금성',
+  Mars: '화성',
+  Jupiter: '목성',
+  Saturn: '토성',
+  Uranus: '천왕',
+  Neptune: '해왕',
+  Pluto: '명왕',
+  Node: '노드',
+  'True Node': '노드',
+  'North Node': '북노드',
+}
+
 export const PLANET_GLYPHS: Record<string, string> = {
   Sun: '☉',
   Moon: '☽',

@@ -6,6 +6,7 @@ import {
   ZODIAC_GLYPHS,
   SIGN_KO,
   PLANET_GLYPHS,
+  PLANET_KO,
   PLANET_ORDER,
   NATAL_CHART_PAD as PAD,
   screenDeg,
@@ -100,9 +101,11 @@ export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
   const ringInner = 80
   const glyphR = 92
 
-  // stagger planet radius by draw order to reduce label collisions
+  // stagger planet radius by draw order to reduce label collisions.
+  // 옛 2단계(50/63) 는 별자리 하나에 행성 5~6개 군집된 차트(예 ASC 부근 물병/염소
+  // 클러스터)에서 글리프가 겹쳐 보였다 → 4단계(50/57/64/71) 로 분산.
   const sortedByLon = [...visible].sort((a, b) => a.longitude - b.longitude)
-  const radiusOf = (name: string) => 50 + (sortedByLon.findIndex((p) => p.name === name) % 2) * 13
+  const radiusOf = (name: string) => 50 + (sortedByLon.findIndex((p) => p.name === name) % 4) * 7
 
   // aspects — 응답이 aspects 또는 aspectsPlus 둘 다 가능.
   const aspectList: AspectInput[] = React.useMemo(
@@ -118,6 +121,27 @@ export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
         border: '1px solid var(--ds-gold-line)',
       }}
     >
+      {/* "이게 뭐예요?" 한 줄 인트로 — 비전공자가 차트 정체 즉시 파악.
+          ChartModal 의 상위 부제는 섹션 헤더성이고, 이건 차트 바로 위라 더 즉각적. */}
+      <div
+        className="mb-2 w-full rounded-md px-2 py-1.5 text-[10.5px] leading-snug"
+        style={{
+          background: 'rgba(212, 181, 114, 0.06)',
+          border: '1px solid rgba(212, 181, 114, 0.14)',
+          color: 'var(--ds-dark-text-muted)',
+          wordBreak: 'keep-all',
+        }}
+      >
+        <span style={{ color: 'var(--ds-gold-on-dark)', fontWeight: 600 }}>
+          {isKo ? '🌌 내가 태어난 순간의 하늘' : '🌌 The sky at your birth moment'}
+        </span>
+        <span className="ml-1">
+          {isKo
+            ? '— 태양·달·행성이 어디 있었는지 한 장에 그린 그림이에요. 위치가 성격·재능·인생 영역과 연결돼요.'
+            : '— a snapshot of where the sun, moon, and planets were. Their positions reflect personality, talents, and life areas.'}
+        </span>
+      </div>
+
       <svg viewBox={`${-PAD} 0 ${SIZE + PAD * 2} ${SIZE}`} className="h-auto w-full">
         <g className="chart-spin-in">
           {/* indigo (rgba(99,102,241)) → gold (212,181,114). navy+gold 통일. */}
@@ -279,12 +303,18 @@ export function NatalChart({ astro, lang = 'ko' }: NatalChartProps) {
             const sign = Math.floor(lon / 30)
             const deg = Math.floor(lon % 30)
             const signName = SIGN_NAMES[sign]
+            const planetKo = PLANET_KO[p.name]
             return (
-              <span key={p.name} className="flex items-center gap-1">
+              <span
+                key={p.name}
+                className="flex items-center gap-1"
+                style={{ wordBreak: 'keep-all' }}
+              >
                 <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>
                   {PLANET_GLYPHS[p.name]}
                 </span>
                 <span>
+                  {isKo && planetKo ? `${planetKo} · ` : ''}
                   {isKo ? SIGN_KO[sign] : ZODIAC_GLYPHS[sign]} {deg}°
                 </span>
                 {/* 행성 위신 — Domicile/Exalt/Detriment/Fall 일 때만 칩 표시 (Peregrine 은 hide) */}
