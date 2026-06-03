@@ -1,18 +1,17 @@
 // src/app/api/saju/route.ts
 
 import { NextRequest } from 'next/server'
-import { toDate } from 'date-fns-tz'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { normalizeGender } from '@/lib/utils/gender'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getCreditBalance } from '@/lib/credits/creditService'
 import { getNowInTimezone } from '@/lib/datetime'
-import {
-  getDaeunCycles,
-  getAnnualCycles,
-  getMonthlyCycles,
-  getIljinCalendar,
-} from '@/lib/saju/unse'
+// 대운(daeun)은 더 이상 unse.getDaeunCycles 로 재계산하지 않는다 — single
+// source 는 calculateSajuData 가 LMT/진경도 보정된 출생 instant 로 산출한
+// sajuResult.daeWoon (determinism-golden 으로 잠긴 정답). 옛 코드는 raw(보정
+// 전) instant 를 unse.getDaeunCycles 에 넘겨 절기 경계 출생자의 대운수가 ±1
+// 어긋나고, 음력 출생은 solar 변환 전 날짜로 계산되는 divergence 가 있었다.
+import { getAnnualCycles, getMonthlyCycles, getIljinCalendar } from '@/lib/saju/unse'
 import type { SajuPillars } from '@/lib/saju/types'
 import {
   getShinsalHits,
@@ -92,7 +91,6 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
 
   // 3. Calculate Saju
   const effectiveUserTz = userTimezone || timezone
-  const birthDate = toDate(`${birthDateString}T${birthTimeRaw}:00`, { timeZone: timezone })
   const adjustedBirthTime = String(birthTimeRaw)
 
   // 'F' / 'Female' / 'female' / 'f' 다 처리하는 공용 normalizer 사용.
@@ -150,18 +148,26 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   }
 
   // 5. Calculate fortune cycles (운세)
-  // birthDate 는 이미 UTC instant (toDate 결과). 옛 코드는 5번째 인자에
-  // 'Asia/Seoul' 하드코딩 → unse.ts 의 normalizeBirthToUTC 가 비한국 출생자
-  // 의 UTC instant 를 KST 로 잘못 재해석 (S2). normalizeBirthToUTC 는 PR
-  // #1019 에서 identity 로 fix 됐고 timezone 인자도 unused 지만 BC 위해
-  // 정확한 timezone 전달.
-  const daeunInfo = getDaeunCycles(
-    birthDate,
-    sajuGender,
-    sajuPillars,
-    sajuResult.dayMaster,
-    timezone
-  )
+  // 대운: single source = sajuResult.daeWoon. calculateSajuData 안에서
+  // LMT/진경도 보정된 출생 instant + 절기-연도 롤백 로직으로 산출되어
+  // determinism-golden 테스트로 잠긴 정답이다. 옛 코드는 여기서
+  // unse.getDaeunCycles 를 raw(보정 전) instant 로 다시 호출해 같은 사람에게
+  // 두 개의 대운수가 존재했고(절기 경계 ±1, 음력 solar 변환 누락), 서빙되는
+  // 값은 보정 안 된 쪽이었다. 이제 보정된 daeWoon 하나만 서빙한다.
+  //
+  // 응답 shape 호환: 기존 소비자는 daeun.list (DaeunTimeline/CrossRefTable),
+  // daeun.cycles (compatibility/routeSupport), daeun.current
+  // (sajuTableFormatter), daeunsu(startAge) 를 읽는다. daeWoon 은 startAge/
+  // isForward/current/list 를 갖고 있으므로 cycles/daeunsu 별칭만 추가해
+  // 모든 reader 를 만족시킨다.
+  const daeunInfo = {
+    startAge: sajuResult.daeWoon.startAge,
+    daeunsu: sajuResult.daeWoon.startAge,
+    isForward: sajuResult.daeWoon.isForward,
+    current: sajuResult.daeWoon.current,
+    list: sajuResult.daeWoon.list,
+    cycles: sajuResult.daeWoon.list,
+  }
   const userNow = getNowInTimezone(effectiveUserTz)
   const yeonun = getAnnualCycles(userNow.year, 10, sajuResult.dayMaster)
   const wolun = getMonthlyCycles(userNow.year, sajuResult.dayMaster)
@@ -288,7 +294,12 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   return apiSuccess({
     isPremium,
     isLoggedIn: context.isAuthenticated,
-    birthYear: new Date(birthDateString).getFullYear(),
+    // birthYear = 출생지 그레고리력 연도. 옛 코드 new Date("YYYY-MM-DD")
+    // 는 자정 UTC 로 파싱돼 음수 offset 서버 TZ 에서 전년으로 어긋났다
+    // (예: LA 서버에서 1990-01-01 → 1989). 입력 문자열의 연도 4자리를 직접
+    // 쓰면 TZ 무관하게 사용자가 입력한 달력 연도를 그대로 보존한다.
+    // (UI 의 currentAge = thisYear − birthYear 용도라 그레고리 연도가 정답.)
+    birthYear: Number(birthDateString.slice(0, 4)),
     birthDate: birthDateString,
     analysisDate,
     userTimezone: effectiveUserTz,

@@ -3,6 +3,8 @@
 import { logger } from '@/lib/logger'
 import { STEMS, BRANCHES, MONTH_STEM_LOOKUP, getSolarTermKST } from './constants'
 import { isCheoneulGwiin } from './stemBranchUtils'
+// 일주(일간·일지) 산정의 single source — JDN+49 공식.
+import { computeDayPillarIndices } from './dayPillar'
 // 십신 / 정기 매핑은 core 모듈이 single source — saju.ts/unse.ts 둘 다 같은 것 사용.
 import { getSibseong as getSibseongCore, getBranchSibsin } from './core/sibsin'
 import type { BirthInstant } from '@/lib/datetime'
@@ -296,30 +298,19 @@ export function getMonthlyCycles(
 }
 
 /* ===================== 일진(KST 기준) 확정 ===================== */
+// 일간/일지 산정은 dayPillar.ts(computeDayPillarIndices, JDN+49) 가 single
+// source. 이전엔 여기서 1984-02-04 KST 기준 epoch-days 공식을 따로 들고 있어
+// calculateSajuData/dayPillar 와 갈라질 위험이 있었다. 두 공식은 1940~2050
+// 전 구간에서 byte-단위로 동일함을 확인했고(테스트 saju-singlesource.iljin),
+// 이제 JDN 한 곳으로 위임한다 — 출력 변화 없음.
 export function getIljinCalendar(year: number, month: number, dayMaster: DayMaster): IljinData[] {
   const calendar: IljinData[] = []
 
-  const kstMidnightUTC = (Y: number, M: number, D: number): number =>
-    Date.UTC(Y, M - 1, D, -9, 0, 0, 0)
+  // 월의 일수 — 그레고리력 (윤년 포함). day=0 trick 으로 말일 획득.
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
 
-  // 1984-02-04 00:00 KST == 1984-02-03 15:00 UTC
-  const BASE_UTC_MS = Date.UTC(1984, 1, 3, 15, 0, 0, 0)
-  const BASE_EPOCH_DAYS = Math.floor(BASE_UTC_MS / 86400000)
-  const DAY_MS = 86400000
-
-  const firstUTC = kstMidnightUTC(year, month, 1)
-  const nextMonth = month === 12 ? 1 : month + 1
-  const nextYear = month === 12 ? year + 1 : year
-  const nextFirstUTC = kstMidnightUTC(nextYear, nextMonth, 1)
-
-  let d = 1
-  for (let ms = firstUTC; ms < nextFirstUTC; ms += DAY_MS, d++) {
-    const curDays = Math.floor(ms / DAY_MS)
-    const offset = curDays - BASE_EPOCH_DAYS + 4 // 포함 보정
-
-    const stemIndex = ((offset % 10) + 10) % 10
-    const branchIndex = ((offset % 12) + 12) % 12
-
+  for (let d = 1; d <= daysInMonth; d++) {
+    const { stemIndex, branchIndex } = computeDayPillarIndices(year, month, d)
     const stem = STEMS[stemIndex]
     const branch = BRANCHES[branchIndex]
     if (!stem || !branch) {

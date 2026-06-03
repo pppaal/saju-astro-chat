@@ -135,11 +135,15 @@ const astroHouseTransitExtractor: SignalExtractor = {
     const angleSegs: AngleSeg[] = []
 
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
-      const iso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
+      // chartIso: 차트 계산용(location timeZone wall-clock). tz suffix 금지.
+      const chartIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
+      // iso: seg startIso/endIso 저장용 — 동일 wall-clock + 명시적 `Z` 로 downstream
+      // new Date() 파싱을 서버 TZ 무관 UTC 정오로 고정 (현지 날짜 버킷은 slice 로 유지).
+      const iso = chartIso + '.000Z'
       let chart: Chart
       try {
         chart = await getCachedTransitChart({
-          iso,
+          iso: chartIso,
           latitude: natal.astro.location.latitude,
           longitude: natal.astro.location.longitude,
           timeZone: natal.astro.location.timeZone,

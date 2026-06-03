@@ -1,28 +1,113 @@
 // src/lib/datetime/timezone.ts
-// Timezone helpers. The "now" primitives live in lib/utils/timezone
-// (single source of truth — previously there were three drifting
-// copies with different fallbacks); this file forwards to them and
-// adds the IANA-name validator + the default constant that callers
-// of this module have always imported from here.
+//
+// CANONICAL timezone utility module.
+//
+// History: there used to be three drifting copies of the "now in a
+// timezone" primitives (saju/timezone.ts — OUT OF SCOPE, left alone —
+// plus datetime/timezone.ts and utils/timezone.ts). utils/timezone.ts
+// previously held the implementation and datetime/ forwarded to it.
+// That direction is now reversed: this module is the single source of
+// truth, and lib/utils/timezone.ts is a thin re-export shim kept so
+// out-of-scope callers (destiny-map, astrology routes) don't have to
+// change their imports.
+//
+// Production runs on a UTC server, so `new Date().getMonth()` and
+// friends return UTC values. Anything that means "the user's wall clock
+// right now" must go through one of these helpers instead.
 
-import { getNowInTimezone as canonicalGetNow } from '@/lib/utils/timezone'
+// ── core: read the wall-clock components currently shown at a tz ──
+
+export type TzNowComponents = {
+  year: number // YYYY (e.g. 2026)
+  month: number // 1-12, **not** 0-11 (matches the get*InTimezone consumers
+  // and the Intl format output)
+  day: number // 1-31
+  hour: number // 0-23
+  minute: number // 0-59
+  second: number // 0-59
+}
+
+function partsFor(timezone: string | undefined): TzNowComponents {
+  const tz = timezone || 'UTC'
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date())
+  const lookup = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? '0')
+  // Intl returns '24' for midnight in some locales; coerce back to 0 so
+  // Date.UTC doesn't roll the day forward and a downstream "today" check
+  // doesn't read tomorrow.
+  const hour = lookup('hour')
+  return {
+    year: lookup('year'),
+    month: lookup('month'),
+    day: lookup('day'),
+    hour: hour === 24 ? 0 : hour,
+    minute: lookup('minute'),
+    second: lookup('second'),
+  }
+}
+
+/**
+ * Build a Date whose UTC fields hold the local wall clock at the given
+ * timezone. Use when downstream code reads `.getUTCMonth()` /
+ * `.getUTCDate()` and expects user-local values.
+ */
+export function nowInTimezone(timezone: string): Date {
+  const { year, month, day, hour, minute, second } = partsFor(timezone)
+  return new Date(Date.UTC(year, month - 1, day, hour, minute, second))
+}
+
+/**
+ * Full component-shape of "now". `month` is **1-12**. Defaults to UTC
+ * when no timezone is supplied. Internal/canonical shape — the public
+ * `getNowInTimezone` below narrows to {year, month, day} to preserve the
+ * historical datetime/ signature its callers depend on.
+ */
+export function getNowComponentsInTimezone(timezone?: string): TzNowComponents {
+  try {
+    return partsFor(timezone)
+  } catch {
+    // Invalid IANA name — fall back to plain UTC rather than throwing so a
+    // malformed profile doesn't break the entire request.
+    return partsFor('UTC')
+  }
+}
+
+/** Convenience: the user's local year right now at the given timezone. */
+export function currentYearInTimezone(timezone: string): number {
+  return getNowComponentsInTimezone(timezone).year
+}
+
+/** Convenience: the user's local month (0-11) right now at the given timezone. */
+export function currentMonthInTimezone(timezone: string): number {
+  return getNowComponentsInTimezone(timezone).month - 1
+}
+
+// ── public date helpers (the historical datetime/timezone surface) ──
 
 /**
  * Get current date components in a specific timezone.
  *
- * Historical note: this used to default to Asia/Seoul, the canonical
- * version defaults to UTC. None of the live callers rely on the
- * implicit default — every site passes an explicit timezone — so the
- * tightening is safe, and a request without a timezone now silently
- * falls back to UTC instead of getting wrong-by-9h values labeled
- * "Seoul".
+ * Returns the narrowed {year, month, day} shape this module's callers
+ * have always consumed. Use getNowComponentsInTimezone() when you also
+ * need hour/minute/second.
+ *
+ * Defaults to UTC when no timezone is supplied — pass an explicit IANA
+ * name for user-facing values.
  */
 export function getNowInTimezone(tz?: string): {
   year: number
   month: number
   day: number
 } {
-  const { year, month, day } = canonicalGetNow(tz)
+  const { year, month, day } = getNowComponentsInTimezone(tz)
   return { year, month, day }
 }
 
@@ -30,7 +115,7 @@ export function getNowInTimezone(tz?: string): {
  * Get current date string in user's timezone (YYYY-MM-DD)
  */
 export function getDateInTimezone(tz?: string): string {
-  const { year, month, day } = canonicalGetNow(tz)
+  const { year, month, day } = getNowComponentsInTimezone(tz)
   return formatDateString(year, month, day)
 }
 
@@ -45,7 +130,7 @@ export function formatDateString(year: number, month: number, day: number): stri
  * Get current datetime in ISO format for a specific timezone
  */
 export function getIsoInTimezone(tz?: string): string {
-  const { year, month, day, hour, minute, second } = canonicalGetNow(tz)
+  const { year, month, day, hour, minute, second } = getNowComponentsInTimezone(tz)
   return `${formatDateString(year, month, day)}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`
 }
 

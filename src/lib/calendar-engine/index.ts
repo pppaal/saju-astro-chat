@@ -133,6 +133,14 @@ function getRegisteredExtractors(): SignalExtractor[] {
 /**
  * 신호 배열을 (date, hour?) 셀로 그룹핑.
  * derivers는 다음 wave에서 채움 — 일단 구조만.
+ *
+ * ── Timezone / day-bucketing contract (server-TZ-independent) ──
+ * 셀 키는 항상 UTC midnight(day) 또는 UTC hour 로 정규화한다. extractor 가
+ * 내보내는 active window ISO 가 (1) `...Z` UTC, (2) tz-less `...T12:00:00`
+ * 둘 다 들어올 수 있는데, 어느 쪽이든 **문자열 prefix slice** 로만 키를 만든다.
+ * `new Date()` 파싱을 거치지 않으므로 process.env.TZ(서버 타임존)에 무관하게
+ * 같은 입력 → 같은 버킷이 보장된다. (옛 버그: tz-less 문자열을 `new Date()` 로
+ * 파싱하면 서버 로컬로 해석돼 Seoul/LA 서버에서 ±1일 버킷이 달라졌다.)
  */
 function groupIntoCells(
   signals: ActiveSignal[],
@@ -140,6 +148,11 @@ function groupIntoCells(
   options: CalendarBuildOptions
 ): CalendarCell[] {
   const cells = new Map<string, CalendarCell>()
+  // 셀 키 정규화 — 순수 문자열 prefix slice. tz-less / `...Z` 모두 동일 처리.
+  // day:  'YYYY-MM-DD' + 'T00:00:00.000Z'
+  // hour: 'YYYY-MM-DDTHH' + ':00:00.000Z'
+  // (slice(0,13) 은 'YYYY-MM-DDTHH' 까지 — tz-less·Z 무관하게 wall-clock hour
+  //  prefix 를 그대로 키로 쓴다. 서버 TZ 미사용.)
   const isoForCell = (iso: string) =>
     range.granularity === 'hour'
       ? iso.slice(0, 13) + ':00:00.000Z'
@@ -189,9 +202,23 @@ function groupIntoCells(
   return Array.from(cells.values()).sort((a, b) => a.datetime.localeCompare(b.datetime))
 }
 
+/**
+ * ISO 문자열을 UTC epoch ms 로 — server-TZ 무관.
+ * `...Z` / `+09:00` 등 오프셋이 명시된 문자열은 그대로 `Date.parse`.
+ * tz-less(예 `2026-03-15T12:00:00`, `2026-03-15`) 는 명시적으로 UTC 로 간주
+ * (`Z` 부착) 해서 서버 로컬 파싱(±tzOffset 드리프트)을 막는다.
+ */
+function toUtcMs(iso: string): number {
+  const hasOffset = /[zZ]$|[+\-]\d{2}:?\d{2}$/.test(iso)
+  if (hasOffset) return Date.parse(iso)
+  // tz-less → UTC 강제. 'YYYY-MM-DD' 만 오면 'T00:00:00' 채워 자정 UTC.
+  const normalized = iso.length <= 10 ? `${iso}T00:00:00Z` : `${iso}Z`
+  return Date.parse(normalized)
+}
+
 function* iterateRange(range: CalendarRange): Generator<string> {
-  const start = new Date(range.start).getTime()
-  const end = new Date(range.end).getTime()
+  const start = toUtcMs(range.start)
+  const end = toUtcMs(range.end)
   const step = range.granularity === 'hour' ? 3600_000 : 86_400_000
   for (let t = start; t <= end; t += step) {
     yield new Date(t).toISOString()
@@ -203,8 +230,10 @@ function* cellsBetween(
   endIso: string,
   granularity: 'day' | 'hour'
 ): Generator<string> {
-  const start = new Date(startIso).getTime()
-  const end = new Date(endIso).getTime()
+  // startIso/endIso 는 이미 isoForCell 로 `...Z` 정규화된 키지만, 방어적으로
+  // toUtcMs 를 거쳐 어떤 입력이 와도 서버 TZ 에 흔들리지 않게 한다.
+  const start = toUtcMs(startIso)
+  const end = toUtcMs(endIso)
   const step = granularity === 'hour' ? 3600_000 : 86_400_000
   for (let t = start; t <= end; t += step) {
     yield new Date(t).toISOString()
@@ -217,3 +246,17 @@ function stripEvidence(signal: ActiveSignal): ActiveSignal {
 
 export type { ActiveSignal, CalendarCell, CalendarRange, CalendarBuildOptions } from './types'
 export type { NatalContext } from './context/types'
+
+/**
+ * Test-only surface for the pure, deterministic day/hour bucketing.
+ *
+ * Exposed so `tests/lib/calendar-engine/calendar-tz.*` can pin that
+ * signal→cell bucketing is server-TZ-independent (process.env.TZ has no
+ * effect) without paying the Swiss Ephemeris cost of a full
+ * `buildCalendar`. NOT part of the engine's public API — do not import
+ * from product code.
+ */
+export const __bucketingInternals = {
+  groupIntoCells,
+  toUtcMs,
+}

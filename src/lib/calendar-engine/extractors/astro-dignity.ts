@@ -68,7 +68,11 @@ const astroDignityExtractor: SignalExtractor = {
     }
     const hits: Hit[] = []
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
+      // noonIso: 차트 계산용(location timeZone wall-clock). tz suffix 금지.
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
+      // windowIso: hit/active window 저장용 — 동일 wall-clock + 명시적 `Z` 로
+      // downstream new Date() 파싱을 서버 TZ 무관 UTC 정오로 고정 (현지 날짜 버킷 유지).
+      const windowIso = noonIso + '.000Z'
       let chart: Chart
       try {
         chart = await getCachedTransitChart({
@@ -92,7 +96,7 @@ const astroDignityExtractor: SignalExtractor = {
         // peregrine + no minor tier match → skip (truly no rulership)
         if (d === 'peregrine' && !trip && !term && !face) continue
         hits.push({
-          iso: noonIso,
+          iso: windowIso,
           planet: p.name,
           sign,
           degree: p.degree,
