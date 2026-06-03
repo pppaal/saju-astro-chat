@@ -101,6 +101,7 @@ const JARGON = bi(
   - 한자 (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 등) 출력 X
   - 점성 기호 (☌ ⚹ □ △ ☍ ⚻) 출력 X — 사용자 화면에 □ 등 깨진 글자로 보임. 반드시 한국어로 풀어: □→"긴장 결" ☌→"결합" ⚹→"협력" △→"조화" ☍→"대립" ⚻→"미세 조정".
   - 용어 (일간, 십성, 대운, 천을귀인, 트랜짓, 어스펙트, 하우스, 합·충·형·해, Conjunction·Square·Trine 등) 출력 X
+  - 컨텍스트의 압축 표기도 그대로 인용 X — "(t)"=지금 흐르는(현재 트랜짓), "R"=역행, "P태양/P달"=마음이 성숙해가는 흐름, "(natal)"=타고난, "[domicile]"=강함 "[detriment]"=약함. 예: "수성(t)" → "지금 흐르는 소통·생각의 기운", "화성R" → "되짚어 다잡는 추진력".
   - 데이터를 일상 한국어로 *완전 번역*해서 답:
     · "辛 일간 음금" → "예민하고 정제된 결"
     · "未丑충" → "감정·생활 패턴이 부딪힘"
@@ -110,6 +111,7 @@ const JARGON = bi(
   - No CJK characters (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 etc.).
   - No astrology glyphs (☌ ⚹ □ △ ☍ ⚻) — they render as broken □ boxes on the user's screen. Always spell them out in words: □→"tension", ☌→"union", ⚹→"cooperation", △→"harmony", ☍→"opposition", ⚻→"fine-tuning".
   - No technical terms (day master, ten gods, daeun, cheoneul-gwiin, transit, aspect, house, 합·충·형·해, Conjunction·Square·Trine, etc.).
+  - Don't quote the context's compact markers either — "(t)"=current transit (what's flowing now), "R"=retrograde, "P-Sun/P-Moon"=an inner-maturing current, "(natal)"=innate, "[domicile]"=strong "[detriment]"=weak. e.g. "Mercury(t)" → "the communication/thinking current moving through you right now".
   - *Fully translate* the data into plain language:
     · "辛 day master, yin metal" → "a sensitive, refined edge"
     · "未丑충" → "your emotions and daily rhythm pulling against each other"
