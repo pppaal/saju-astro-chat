@@ -29,7 +29,12 @@ const astroMoonNodesExtractor: SignalExtractor = {
     const hits: Hit[] = []
 
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
+      // noonIso: 차트 계산용(location timeZone wall-clock). tz suffix 금지.
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
+      // windowIso: active window 저장/버킷팅용 — 동일 wall-clock + 명시적 `Z`.
+      // 현지 날짜 버킷 유지 + downstream new Date() 파싱을 서버 TZ 무관 UTC 정오로
+      // 고정 (astro-transit / astro-asteroid 와 동일 규칙).
+      const windowIso = noonIso + '.000Z'
       let chart: Chart
       try {
         chart = await getCachedTransitChart({
@@ -52,12 +57,12 @@ const astroMoonNodesExtractor: SignalExtractor = {
         // North Node ☌ natal
         const diffNorth = shortestAngle(transitNorth.longitude, natalP.longitude)
         if (diffNorth <= ORB_DEG) {
-          hits.push({ iso: noonIso, orb: diffNorth, nodeKind: 'north', natalPoint: natalP.name })
+          hits.push({ iso: windowIso, orb: diffNorth, nodeKind: 'north', natalPoint: natalP.name })
         }
         // South Node ☌ natal
         const diffSouth = shortestAngle(transitSouth, natalP.longitude)
         if (diffSouth <= ORB_DEG) {
-          hits.push({ iso: noonIso, orb: diffSouth, nodeKind: 'south', natalPoint: natalP.name })
+          hits.push({ iso: windowIso, orb: diffSouth, nodeKind: 'south', natalPoint: natalP.name })
         }
       }
     }

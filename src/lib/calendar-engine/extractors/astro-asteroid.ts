@@ -104,7 +104,13 @@ const astroAsteroidExtractor: SignalExtractor = {
     const asteroidHitsByKey = new Map<string, AsteroidHit[]>()
 
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
+      // noonIso: 차트/JD 계산용 — isoToJD 가 location timeZone wall-clock 로 해석.
+      // tz suffix 금지 (JD/캐시 키 의미 변경됨).
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
+      // windowIso: 신호 active window 저장/버킷팅용 — 동일 wall-clock 에 명시적 `Z`.
+      // slice(0,10) 현지 날짜 버킷은 유지하되 downstream new Date() 파싱을 서버 TZ
+      // 무관 UTC 정오로 고정 (astro-transit 와 동일 규칙).
+      const windowIso = noonIso + '.000Z'
 
       // 트랜짓 차트 (행성)
       let transitChart: Chart
@@ -128,7 +134,7 @@ const astroAsteroidExtractor: SignalExtractor = {
           const key = `transit-to-natal-asteroid|${a.to.name}|${aName}|${a.type}`
           const arr = transitHitsByKey.get(key) ?? []
           arr.push({
-            iso: noonIso,
+            iso: windowIso,
             orb: a.orb,
             transitPlanet: a.to.name,
             natalAsteroid: aName,
@@ -155,7 +161,7 @@ const astroAsteroidExtractor: SignalExtractor = {
             const key = `transit-asteroid-to-natal|${aName}|${a.to.name}|${a.type}`
             const arr = asteroidHitsByKey.get(key) ?? []
             arr.push({
-              iso: noonIso,
+              iso: windowIso,
               orb: a.orb,
               transitAsteroid: aName,
               natalPlanet: a.to.name,

@@ -61,6 +61,7 @@ export async function calculateTransitChart(
 
 import { AspectHit, AspectType, PlanetBase } from './types'
 import { angleDiff } from './utils'
+import { evaluateAspect, AspectEngineConfig } from './aspectCore'
 
 export interface TransitAspect extends AspectHit {
   transitPlanet: string
@@ -130,31 +131,58 @@ export function findTransitAspects(
   const transitPlanets = transitChart.planets
   const natalPoints = [...natalChart.planets, natalChart.ascendant, natalChart.mc]
 
+  // 트랜짓 엔진 config — 코어 evaluateAspect 에 주입할 *트랜짓 고유* 산술.
+  // 기존 인라인 구현과 1:1 로 동일하게 동작하도록 작성했다 (calendar-engine 이
+  // 소비하므로 orb/score/applying 출력이 바이트 단위로 보존돼야 함).
+  //
+  // 핵심 보존 포인트:
+  //  - orb 계산: `|sep - target|`. (옛 orbAlt 제거 — no-op, 아래 reasoning.)
+  //  - limit: TRANSIT_ORBS[aspect] * PLANET_ORB_MULTIPLIER[transit 이름] * orbMultiplier.
+  //           transit(=from, 즉 aName) 행성 배율만 쓰고 natal 쪽은 안 본다.
+  //  - applying: determineApplying — transit speed(=relSpeed 슬롯) 만 사용.
+  //  - score: `1 - orb/limit`.
+  const config: AspectEngineConfig = {
+    desiredAngle: (a) => TRANSIT_ASPECT_ANGLES[a],
+    // orbAlt 제거 근거: angleDiff() 는 이미 0..180 최단각을 돌려준다. 따라서
+    //   orb    = |sep - target|
+    //   orbAlt = |360 - sep - target|  (= 360 - sep - target, sep+target ≤ 360 이므로)
+    // 이고 Math.min(orb, orbAlt) 가 orb 와 달라지는 경우는 오직 target=180 일 때
+    // 인데, 그때 orb = 180 - sep, orbAlt = 360 - sep - 180 = 180 - sep 로 *수학적
+    // 으로 동일* 하다. accepted window (opposition 은 sep≈[171.6,180]) 안에서는
+    // 두 값이 부동소수점까지 비트 동일(orb===orbAlt)이라 min 이 orb 를 그대로
+    // 돌려준다. ~2.8e-14 의 fp 차이는 sep 가 작을 때(orb≈180)만 나타나는데 그건
+    // 어떤 orb 한도(<=8.4°)보다도 커서 항상 reject 되므로 기록값에 영향 없음.
+    computeOrb: (sep, target) => Math.abs(sep - target),
+    computeLimit: (aName, _bName, aspect) => {
+      const baseOrb = TRANSIT_ORBS[aspect]
+      const planetMultiplier = PLANET_ORB_MULTIPLIER[aName] ?? 1.0
+      return baseOrb * planetMultiplier * orbMultiplier
+    },
+    // relSpeed 슬롯에 transitSpeed 를 흘려준다 (트랜짓은 transit 행성 속도만 사용).
+    isApplying: (lonA, lonB, transitSpeed, targetAngle) =>
+      determineApplying(lonA, lonB, transitSpeed, targetAngle),
+    computeScore: ({ orb, limit }) => 1 - orb / limit,
+  }
+
   for (const transit of transitPlanets) {
     for (const natal of natalPoints) {
       const diff = angleDiff(transit.longitude, natal.longitude)
+      const transitSpeed = transit.speed ?? 0
 
       for (const aspectType of aspectTypes) {
-        const targetAngle = TRANSIT_ASPECT_ANGLES[aspectType]
-        const baseOrb = TRANSIT_ORBS[aspectType]
-        const planetMultiplier = PLANET_ORB_MULTIPLIER[transit.name] ?? 1.0
-        const maxOrb = baseOrb * planetMultiplier * orbMultiplier
+        const evalResult = evaluateAspect(
+          transit.name,
+          transit.longitude,
+          natal.name,
+          natal.longitude,
+          diff,
+          // 트랜짓 엔진은 transit 행성 속도만 보므로 relSpeed 슬롯에 그대로 전달.
+          transitSpeed,
+          aspectType,
+          config
+        )
 
-        const orb = Math.abs(diff - targetAngle)
-        // 180도 근처에서 다른 방향 체크
-        const orbAlt = Math.abs(360 - diff - targetAngle)
-        const actualOrb = Math.min(orb, orbAlt)
-
-        if (actualOrb <= maxOrb) {
-          // 접근/분리 판단 (속도 기반)
-          const transitSpeed = transit.speed ?? 0
-          const isApplying = determineApplying(
-            transit.longitude,
-            natal.longitude,
-            transitSpeed,
-            targetAngle
-          )
-
+        if (evalResult.accepted) {
           aspects.push({
             from: {
               name: transit.name,
@@ -171,11 +199,11 @@ export function findTransitAspects(
               longitude: natal.longitude,
             },
             type: aspectType,
-            orb: actualOrb,
-            score: 1 - actualOrb / maxOrb,
+            orb: evalResult.orb,
+            score: evalResult.score,
             transitPlanet: transit.name,
             natalPoint: natal.name,
-            isApplying,
+            isApplying: evalResult.applying,
           })
         }
       }

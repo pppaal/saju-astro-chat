@@ -347,6 +347,14 @@ jobs:
         run: npm audit --audit-level=moderate
         continue-on-error: true
 
+      - name: Dependency vulnerability audit (high)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Unused code/deps audit (knip)
+        run: npm run audit:unused
+        continue-on-error: true
+
       - name: Check for secrets
         run: |
           # Check changed files for potential secrets. Skip workflow files —

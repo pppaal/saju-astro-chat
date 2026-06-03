@@ -74,7 +74,16 @@ const astroTransitExtractor: SignalExtractor = {
     const start = new Date(range.start)
     const end = new Date(range.end)
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
+      // noonIso: 차트 계산용 — `isoToJD(iso, timeZone)` 가 이 문자열을 location
+      // timeZone 의 wall-clock(현지 정오) 로 해석한다. tz suffix 를 절대 붙이지 말 것
+      // (붙이면 JD/캐시 키 의미가 바뀜).
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
+      // windowIso: 신호 active window 저장/버킷팅용 — 동일 wall-clock 에 명시적 `Z`.
+      // 이렇게 하면 (1) slice(0,10) 으로 얻는 현지 날짜 버킷은 그대로,
+      // (2) downstream `new Date(window)` 파싱이 서버 TZ 에 흔들리지 않고 항상 UTC
+      // 정오로 고정된다 (convergence exactnessFactor 등). 이전엔 tz-less 문자열이
+      // 서버 로컬로 파싱돼 Seoul/LA 서버에서 점수가 달라졌다.
+      const windowIso = noonIso + '.000Z'
       const chart = await getCachedTransitChart({
         iso: noonIso,
         latitude: natal.astro.location.latitude,
@@ -82,7 +91,7 @@ const astroTransitExtractor: SignalExtractor = {
         timeZone: natal.astro.location.timeZone,
         inMemoryCache: cache,
       })
-      dailyCharts.push({ iso: noonIso, chart })
+      dailyCharts.push({ iso: windowIso, chart })
     }
 
     // 2) 매일 어스펙트 hits 수집 → (transit, natal, aspect) 키로 그룹핑
