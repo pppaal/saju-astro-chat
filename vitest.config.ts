@@ -48,7 +48,6 @@ export default defineConfig({
       // Node.js native test runner tests (use `npm run test:node` instead)
       'tests/metrics.test.ts',
       'tests/textGuards.test.ts',
-      'tests/i18nKeys.test.ts',
       // API smoke tests import server-only routes (run separately)
       'tests/apiSmoke.test.ts',
       // E2E tests require a running server; opt in via `npm run test:e2e`

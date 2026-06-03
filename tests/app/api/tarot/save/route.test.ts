@@ -810,7 +810,9 @@ describe('/api/tarot/save', () => {
 
         const { POST } = await import('@/app/api/tarot/save/route')
 
-        await expect(POST(req)).rejects.toThrow('Database connection failed')
+        // DB failure now returns a sanitized 500 (no raw error leak) instead of throwing.
+        const res = await POST(req)
+        expect(res.status).toBe(500)
       })
 
       it('should handle database timeout error', async () => {
@@ -834,7 +836,8 @@ describe('/api/tarot/save', () => {
 
         const { POST } = await import('@/app/api/tarot/save/route')
 
-        await expect(POST(req)).rejects.toThrow('Query timeout')
+        const res = await POST(req)
+        expect(res.status).toBe(500)
       })
 
       it('should handle unique constraint violation', async () => {
@@ -858,7 +861,8 @@ describe('/api/tarot/save', () => {
 
         const { POST } = await import('@/app/api/tarot/save/route')
 
-        await expect(POST(req)).rejects.toThrow('Unique constraint violation')
+        const res = await POST(req)
+        expect(res.status).toBe(500)
       })
     })
   })

@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enabledServices'
+import { validateOrigin } from '@/lib/security/csrf'
 
 // Routes that should skip CSRF validation
 const CSRF_SKIP_ROUTES = new Set([
@@ -19,65 +20,6 @@ const CSRF_SKIP_ROUTES = new Set([
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 // ── Module-level caches (computed once at cold start, reused across requests) ──
-
-// Cached allowed origins (env vars don't change at runtime)
-let _cachedAllowedOrigins: Set<string> | null = null
-function getAllowedOrigins(): Set<string> {
-  if (_cachedAllowedOrigins) return _cachedAllowedOrigins
-  const origins = new Set<string>()
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-  if (baseUrl) {
-    try {
-      origins.add(new URL(baseUrl).origin)
-    } catch {
-      /* invalid base URL */
-    }
-  }
-  const vercelUrl = process.env.VERCEL_URL
-  if (vercelUrl) {
-    try {
-      origins.add(new URL(`https://${vercelUrl}`).origin)
-    } catch {
-      /* invalid VERCEL_URL */
-    }
-  }
-  const additional = process.env.ALLOWED_ORIGINS?.split(',') || []
-  for (const o of additional) {
-    const trimmed = o.trim()
-    if (!trimmed) continue
-    try {
-      origins.add(new URL(trimmed).origin)
-    } catch {
-      // Keep backwards compatibility when ALLOWED_ORIGINS already stores origin strings
-      origins.add(trimmed)
-    }
-  }
-  _cachedAllowedOrigins = origins
-  return origins
-}
-
-function getRequestHosts(request: NextRequest): Set<string> {
-  const hosts = new Set<string>()
-  const host = request.headers.get('host')
-  if (host) hosts.add(host.toLowerCase())
-  const forwardedHost = request.headers.get('x-forwarded-host')
-  if (forwardedHost) {
-    for (const value of forwardedHost.split(',')) {
-      const normalized = value.trim().toLowerCase()
-      if (normalized) hosts.add(normalized)
-    }
-  }
-  return hosts
-}
-
-function isSameHostUrl(urlValue: string, requestHosts: Set<string>): boolean {
-  try {
-    const parsed = new URL(urlValue)
-    return requestHosts.has(parsed.host.toLowerCase())
-  } catch {
-    return false
-  }
-}
 
 // Cached CSP static parts (only nonce changes per request)
 const _isProd = process.env.NODE_ENV === 'production'
@@ -141,58 +83,6 @@ function shouldSkipCsrf(pathname: string): boolean {
   for (const route of CSRF_SKIP_ROUTES) {
     if (pathname.startsWith(route + '/')) {
       return true
-    }
-  }
-
-  return false
-}
-
-/**
- * Validate request origin for CSRF protection
- */
-function validateOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get('origin')
-  const referer = request.headers.get('referer')
-  const requestHosts = getRequestHosts(request)
-
-  // SECURITY: Require origin/referer even in development for better security hygiene
-  // Only allow localhost bypass for specific safe ports to prevent DNS rebinding attacks
-  if (!origin && !referer) {
-    if (process.env.NODE_ENV === 'development') {
-      const host = request.headers.get('host')
-      // Strict localhost check with specific port patterns
-      const safeLocalPattern = /^(localhost|127\.0\.0\.1):(3000|3001|4000)$/
-      if (host && safeLocalPattern.test(host)) {
-        return true
-      }
-    }
-    return false
-  }
-
-  const allowedOrigins = getAllowedOrigins()
-
-  // Same-host requests are always allowed (supports Vercel preview + custom domains)
-  if (origin && isSameHostUrl(origin, requestHosts)) {
-    return true
-  }
-  if (referer && isSameHostUrl(referer, requestHosts)) {
-    return true
-  }
-
-  // Check origin header
-  if (origin && allowedOrigins.has(origin)) {
-    return true
-  }
-
-  // Check referer header as fallback
-  if (referer) {
-    try {
-      const refererUrl = new URL(referer)
-      if (allowedOrigins.has(refererUrl.origin)) {
-        return true
-      }
-    } catch {
-      // Invalid referer URL
     }
   }
 
@@ -270,8 +160,8 @@ export function middleware(request: NextRequest) {
       return NextResponse.next()
     }
 
-    // Validate origin
-    if (!validateOrigin(request)) {
+    // Validate origin (shared validator — see src/lib/security/csrf.ts)
+    if (!validateOrigin(request.headers)) {
       // Log the failed attempt (will appear in Vercel logs)
       console.warn(`[CSRF] Origin validation failed: ${pathname}`, {
         origin: request.headers.get('origin'),

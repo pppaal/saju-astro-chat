@@ -262,7 +262,14 @@ export async function POST(req: NextRequest) {
     // Self-harm / suicidal intent → crisis hotline, before the dry "restricted
     // topic" refusal and before any credit charge. containsForbidden is
     // English-only for self-harm, so this also covers Korean distress.
-    if (lastUser && isSelfHarm(lastUser.content)) {
+    // Screen EVERY user turn in the request, not just the latest: the client
+    // replays prior user turns to the model via priorTurns, so a self-harm
+    // expression in an earlier turn must still route to crisis even if the
+    // current message looks benign. Messages are already in memory — cheap.
+    const anyUserSelfHarm = trimmedHistory.some(
+      (m) => m.role === 'user' && isSelfHarm(m.content ?? '')
+    )
+    if (anyUserSelfHarm) {
       return createFallbackSSEStream(
         { content: crisisMessage(lang), done: true },
         { 'X-Counselor-Fallback': '1' }

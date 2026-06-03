@@ -70,6 +70,17 @@ const pickLocale = (raw?: string | null): ServerLocale | null => {
 }
 
 async function detectServerLocale(): Promise<ServerLocale> {
+  // Prefer the middleware-set `x-locale` header first. Middleware resolves the
+  // locale (cookie → accept-language) once per request and stamps it on both the
+  // request headers and the layout's `<html lang>` / initialLocale. Reading it
+  // here keeps server components in agreement with the layout — even on a
+  // brand-new visit where the locale cookie hasn't been persisted yet.
+  const requestHeaders = await headers()
+  const middlewareLocale = pickLocale(requestHeaders.get('x-locale'))
+  if (middlewareLocale) {
+    return middlewareLocale
+  }
+
   const cookieStore = await cookies()
   const localeCookie = cookieStore.get('locale')?.value ?? cookieStore.get('NEXT_LOCALE')?.value
   const cookieLocale = pickLocale(localeCookie)
@@ -77,7 +88,6 @@ async function detectServerLocale(): Promise<ServerLocale> {
     return cookieLocale
   }
 
-  const requestHeaders = await headers()
   const headerLocale = pickLocale(requestHeaders.get('accept-language'))
   return headerLocale ?? 'en'
 }

@@ -65,9 +65,38 @@ async function loadLocaleDict(locale: Locale): Promise<DictValue> {
     }
   }
 
+  // Repair mojibake ONCE here, at dict-load time, instead of on every `t()` call.
+  // The dict is static build-time JSON, so repairing each string value a single
+  // time when the locale is loaded/merged produces identical output to the old
+  // per-lookup repair while avoiding the repeated work on the hot translation path.
+  const repaired = repairDictMojibake(dict)
+
   // Cache the result
-  dictsCache[locale] = dict
-  return dict
+  dictsCache[locale] = repaired
+  return repaired
+}
+
+// Recursively repair mojibake in every string value of a (just-loaded) dict.
+// Mirrors the prior per-lookup `repairMojibakeText(value)` so output is unchanged.
+function repairDictMojibake(value: unknown): DictValue {
+  return repairDictMojibakeValue(value) as DictValue
+}
+
+function repairDictMojibakeValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return repairMojibakeText(value)
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => repairDictMojibakeValue(item))
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = repairDictMojibakeValue(v)
+    }
+    return out
+  }
+  return value
 }
 
 /**
@@ -220,11 +249,15 @@ const isRawKeyLeak = (value: string, path: string) => {
   return value === path || value === leaf
 }
 
+// Mojibake repair now happens once at dict-load time (see repairDictMojibake),
+// so the per-lookup normalize only trims. Dict values arrive pre-repaired; the
+// trim preserves the previous `repairMojibakeText(value).trim()` output (and also
+// trims caller-supplied fallback strings exactly as before).
 const normalizeTranslationText = (value: string) => {
   if (!value) {
     return value
   }
-  return repairMojibakeText(value).trim()
+  return value.trim()
 }
 
 // Read locale from cookie on first render so SSR + client agree

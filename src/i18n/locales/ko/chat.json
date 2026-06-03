@@ -46,6 +46,18 @@
       "generatingAnswer": "응답 생성 중...",
       "organizingInsights": "조언 정리 중...",
       "interpretingCards": "카드 해석 중..."
+    },
+    "rail": {
+      "savedLabel": "저장된 상담 기록",
+      "loading": "불러오는 중...",
+      "empty": "아직 저장된 상담 기록이 없습니다.",
+      "groupToday": "오늘",
+      "groupWeek": "지난 7일",
+      "groupOlder": "이전",
+      "deleteConfirm": "삭제할까요?",
+      "delete": "삭제",
+      "cancel": "취소",
+      "rename": "이름 변경"
     }
   }
 }

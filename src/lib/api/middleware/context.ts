@@ -63,6 +63,8 @@ function validateCsrf(
   const isTestEnv = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true'
 
   if (!options.skipCsrf && !isTestEnv && mutatingMethods.includes(req.method)) {
+    // csrfGuard delegates to the single shared validateOrigin in
+    // src/lib/security/csrf.ts (same validator used by the edge middleware).
     const csrfError = csrfGuard(req.headers)
     if (csrfError) {
       logger.warn(`[CSRF] Origin validation failed`, {
