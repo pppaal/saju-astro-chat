@@ -21,6 +21,7 @@ import {
   type StoredBirthInfo,
 } from './birthInfoStorage'
 import HexDPLogo from '@/components/branding/HexDPLogo'
+import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
 
 type Locale = 'en' | 'ko'
 
@@ -283,28 +284,19 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
         <ParticleCanvas />
       </motion.div>
 
-      <div className={styles.homeTopBar} style={{ viewTransitionName: 'app-topbar' }}>
-        <button
-          type="button"
-          className={styles.homeTopBarHamburger}
-          onClick={() => setDrawerOpen(true)}
-          aria-label={locale === 'ko' ? '메뉴 열기' : 'Open menu'}
-        >
-          <span className={styles.homeTopBarHamburgerBar} />
-          <span className={styles.homeTopBarHamburgerBar} />
-          <span className={styles.homeTopBarHamburgerBar} />
-        </button>
-        <span className={styles.homeTopBarLogo}>DestinyPal</span>
-        <button
-          type="button"
-          onClick={toggleLocale}
-          className={styles.homeTopBarLogin}
-          aria-label={localeAriaLabel}
-          title={localeAriaLabel}
-        >
-          {nextLocaleLabel}
-        </button>
-      </div>
+      <AppHeader
+        layout="home"
+        theme={isPremiumWhite ? 'light' : 'cosmic'}
+        onMenuClick={() => setDrawerOpen(true)}
+        menuLabel={locale === 'ko' ? '메뉴 열기' : 'Open menu'}
+        centerSlot="DestinyPal"
+        rightSlot={
+          <AppHeaderIconButton onClick={toggleLocale} label={localeAriaLabel} isText>
+            {nextLocaleLabel}
+          </AppHeaderIconButton>
+        }
+        viewTransitionName="app-topbar"
+      />
 
       <div className={styles.homeBody}>
         <section className={styles.homeHero} aria-labelledby="home-headline">
@@ -332,7 +324,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
               onClick={handleOpenBirth}
               aria-label={locale === 'ko' ? '생년월일 정보 수정' : 'Edit birth info'}
             >
-              {locale === 'ko' ? '상담자: ' : 'Subject: '}
+              {locale === 'ko' ? '상담자: ' : 'Client: '}
               {formatSubject(birthInfo, locale === 'ko')}
               <span className={styles.homeBirthChipEdit}>
                 {locale === 'ko' ? '정보 변경' : 'Edit'}

@@ -1,0 +1,400 @@
+/* PolicyDocument — shared layout for terms / privacy / refund.
+   Clean light theme inspired by Stripe / Linear with a sticky TOC. */
+
+.container {
+  min-height: 100dvh;
+  background: #fafaf7;
+  color: #1f2233;
+  /* GlobalHeader는 fixed top-4 + 버튼 36px = 약 52px 영역. 본문이 그 밑에
+     숨쉴 공간을 가지도록 80px. */
+  padding: 80px 24px 96px;
+  position: relative;
+  font-feature-settings: 'ss01', 'ss02', 'cv11';
+}
+
+.progressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #a07a3c, #d4b572);
+  transform-origin: left center;
+  transition: transform 80ms linear;
+  will-change: transform;
+}
+
+.layout {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 56px;
+  align-items: start;
+}
+
+/* Sidebar TOC */
+.toc {
+  position: sticky;
+  top: 96px;
+  align-self: start;
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
+  padding-right: 8px;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.tocHeading {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6f80;
+  margin: 0 0 12px 16px;
+}
+
+.tocList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tocItem {
+  display: block;
+  padding: 6px 16px;
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #5a5e72;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.tocItem:hover {
+  color: #1f2233;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.tocItemActive {
+  color: #1f2233;
+  font-weight: 600;
+  border-left-color: #a07a3c;
+}
+
+/* Main article */
+.article {
+  min-width: 0;
+}
+
+.header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 28px;
+  margin-bottom: 40px;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a07a3c;
+  margin: 0 0 12px;
+}
+
+.title {
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: #14172a;
+  margin: 0 0 16px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  font-size: 0.875rem;
+  color: #6b6f80;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metaLabel {
+  font-weight: 500;
+  color: #4b4f63;
+}
+
+/* Quick summary callout (refund) */
+.quickSummary {
+  margin-bottom: 40px;
+  padding: 20px 24px;
+  border-radius: 12px;
+  background: #f2f8f1;
+  border: 1px solid rgba(46, 122, 60, 0.18);
+}
+
+.quickSummaryTitle {
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2e7a3c;
+}
+
+.quickSummaryList {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #2c3043;
+  line-height: 1.65;
+  font-size: 0.95rem;
+}
+
+.quickSummaryList li + li {
+  margin-top: 6px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+
+.section {
+  scroll-margin-top: 96px;
+}
+
+.sectionNumber {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #a07a3c;
+  margin: 0 0 8px;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #14172a;
+  margin: 0 0 20px;
+}
+
+.sectionBody {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #2c3043;
+  white-space: pre-wrap;
+  font-family: inherit;
+  margin: 0;
+  max-width: 68ch;
+}
+
+.sectionBody strong {
+  color: #14172a;
+  font-weight: 600;
+}
+
+/* Strict (collapsible) section — used for sensitive/legal-heavy passages */
+.strictDetails {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 16px 20px;
+}
+
+.strictDetails[open] {
+  padding-bottom: 20px;
+}
+
+.strictSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  color: #14172a;
+}
+
+.strictSummary::-webkit-details-marker {
+  display: none;
+}
+
+.strictSummaryTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.strictHint {
+  font-size: 0.78rem;
+  color: #6b6f80;
+  font-weight: 500;
+}
+
+.strictBody {
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #2c3043;
+  white-space: pre-wrap;
+  font-family: inherit;
+  max-width: 68ch;
+}
+
+.strictBody strong {
+  color: #14172a;
+  font-weight: 600;
+}
+
+.footer {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.875rem;
+  color: #6b6f80;
+}
+
+/* Mobile TOC (collapsible) */
+.mobileToc {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .toc {
+    display: none;
+  }
+
+  .mobileToc {
+    display: block;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .mobileTocSummary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2233;
+  }
+
+  .mobileTocSummary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobileTocChevron {
+    transition: transform 200ms ease;
+    color: #6b6f80;
+  }
+
+  details[open] > .mobileTocSummary > .mobileTocChevron {
+    transform: rotate(180deg);
+  }
+
+  .mobileTocList {
+    list-style: none;
+    padding: 4px 0 8px;
+    margin: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    max-height: 50dvh;
+    overflow-y: auto;
+  }
+
+  .mobileTocItem {
+    display: block;
+    padding: 10px 16px;
+    font-size: 0.875rem;
+    color: #4b4f63;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .mobileTocItem:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 76px 16px 64px;
+  }
+
+  .header {
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+
+  .content {
+    gap: 40px;
+  }
+
+  .sectionTitle {
+    font-size: 1.25rem;
+  }
+
+  .sectionBody,
+  .strictBody {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .strictSummaryTitle {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 72px 14px 56px;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.15rem;
+  }
+
+  .sectionBody,
+  .strictBody {
+    font-size: 0.9rem;
+  }
+
+  .quickSummary {
+    padding: 16px 18px;
+  }
+}

@@ -52,18 +52,18 @@
   },
   "policy": {
     "privacy": {
-      "title": "Privacy Policy",
-      "effective": "발효 날짜",
+      "title": "개인정보처리방침",
+      "effective": "시행일",
       "footer": "부칙"
     },
     "terms": {
-      "title": "Terms of Service",
-      "effective": "발효 날짜",
+      "title": "이용약관",
+      "effective": "시행일",
       "footer": "부칙"
     },
     "refund": {
-      "title": "Refunds and Billing Policy",
-      "effective": "발효 날짜",
+      "title": "환불 및 결제 정책",
+      "effective": "시행일",
       "footer": "부칙"
     }
   },
