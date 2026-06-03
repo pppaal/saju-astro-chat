@@ -338,17 +338,20 @@ export default function DestinyMatrixPlannerClient() {
     if (birthInfo.birthDate) void fetchCalendar(birthInfo)
   }, [birthInfo, fetchCalendar])
 
-  if (!hasBirthInfo) {
-    return <BrandSplash message={lang === 'ko' ? '홈으로 이동 중…' : 'Redirecting to home…'} />
-  }
-
-  if (loading) {
+  // 로딩 스플래시는 한 번만 — hydration(스토리지 읽기) 중이거나 birth info 로
+  // fetch 중이면 동일한 '계산 중' 화면 하나로 유지. (이전엔 hydration 전에
+  // '홈 이동 중' 스플래시가 먼저 떴다가 '계산 중'으로 바뀌어 두 번 깜빡였음.)
+  if (!hydrated || loading) {
     return (
       <BrandSplash
         message={lang === 'ko' ? '운명 흐름을 계산 중이에요' : 'Reading your destiny flow…'}
         submessage={lang === 'ko' ? '잠시만요…' : 'Just a moment…'}
       />
     )
+  }
+
+  if (!hasBirthInfo) {
+    return <BrandSplash message={lang === 'ko' ? '홈으로 이동 중…' : 'Redirecting to home…'} />
   }
 
   if (error) {
