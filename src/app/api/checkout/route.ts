@@ -118,7 +118,9 @@ export const POST = withApiMiddleware(
       logger.error('Stripe error:', msg)
       recordCounter('stripe_checkout_error', 1, { reason: err?.code || 'unknown' })
       captureServerError(e, { route: '/api/checkout', message: msg })
-      return apiError(ErrorCodes.BAD_REQUEST, `stripe_error: ${msg}`)
+      // Don't leak the raw Stripe error to the client; log it server-side
+      // (above) and return a generic, safe message.
+      return apiError(ErrorCodes.BAD_REQUEST, 'Could not start checkout. Please try again.')
     }
   },
   createAuthenticatedGuard({

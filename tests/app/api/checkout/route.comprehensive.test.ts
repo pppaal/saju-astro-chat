@@ -457,7 +457,9 @@ describe('/api/checkout', () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(extractErrorMessage(data)).toContain('stripe_error')
+      // Security: raw Stripe error no longer leaked to the client.
+      expect(extractErrorMessage(data)).not.toContain('stripe_error')
+      expect(extractErrorMessage(data)).not.toContain('Stripe API error')
     })
 
     it('should handle invalid JSON body', async () => {

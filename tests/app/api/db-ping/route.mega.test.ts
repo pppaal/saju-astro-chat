@@ -171,7 +171,8 @@ describe('GET /api/db-ping', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error.message).toContain('Connection refused')
+    // Security: raw DB driver error is captured server-side, not reflected.
+    expect(data.error.message).not.toContain('Connection refused')
     expect(captureServerError).toHaveBeenCalledWith(
       expect.any(Error),
       expect.objectContaining({ route: '/api/db-ping' })
@@ -192,7 +193,8 @@ describe('GET /api/db-ping', () => {
     const data = await response.json()
 
     expect(response.status).toBe(500)
-    expect(data.error.message).toContain('Query failed')
+    // Security: raw DB driver error is captured server-side, not reflected.
+    expect(data.error.message).not.toContain('Query failed')
     expect(captureServerError).toHaveBeenCalled()
   })
 

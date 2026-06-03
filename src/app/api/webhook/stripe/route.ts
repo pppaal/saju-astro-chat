@@ -69,6 +69,23 @@ export const POST = withApiMiddleware(
 
     logger.info(`[Stripe Webhook] Event: ${event.type}`, { eventId: event.id, ip })
 
+    // 🔒 livemode 검증: 운영(prod)에서는 test-mode 이벤트를 절대 처리하지 않는다.
+    // test webhook secret 이 prod 엔드포인트에 잘못 걸리면 가짜(test) 결제로
+    // 실제 크레딧이 지급되는 사고를 막는다. (비-prod 는 staging 의 test/live
+    // 혼용을 허용하기 위해 거부하지 않는다.)
+    if (process.env.NODE_ENV === 'production' && !event.livemode) {
+      logger.error('[Stripe Webhook] test-mode event rejected in production', {
+        eventId: event.id,
+        type: event.type,
+      })
+      recordCounter('stripe_webhook_livemode_mismatch', 1, { event: event.type })
+      return createErrorResponse({
+        code: ErrorCodes.BAD_REQUEST,
+        message: 'Webhook environment mismatch',
+        route: 'webhook/stripe',
+      })
+    }
+
     // 🔒 타임스탬프 검증: 5분 이상 오래된 이벤트는 거부 (Replay Attack 방지)
     const eventAgeSeconds = Math.floor(Date.now() / 1000) - event.created
     if (eventAgeSeconds > 300) {

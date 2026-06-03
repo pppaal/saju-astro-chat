@@ -68,10 +68,9 @@ export const GET = withApiMiddleware(
       })
     } catch (e: unknown) {
       captureServerError(e, { route: '/api/db-ping' })
-      return apiError(
-        ErrorCodes.DATABASE_ERROR,
-        e instanceof Error ? e.message : 'Database connection failed'
-      )
+      // Don't reflect the raw DB driver error to the client (it's captured
+      // server-side above); return a generic message.
+      return apiError(ErrorCodes.DATABASE_ERROR, 'Database connection failed')
     }
   },
   {
