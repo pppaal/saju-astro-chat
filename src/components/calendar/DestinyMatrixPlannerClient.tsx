@@ -234,7 +234,6 @@ export default function DestinyMatrixPlannerClient() {
             const cj = (await cr.json()) as {
               convergence?: YearlyConvergence
               monthly?: YearMonthly[]
-              daily?: Array<{ date: string; score: number }>
             }
             if (controller.signal.aborted) return
             if (cj?.convergence) setYearlyConvergence(cj.convergence)
