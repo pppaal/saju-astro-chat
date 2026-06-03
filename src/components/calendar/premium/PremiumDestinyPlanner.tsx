@@ -571,7 +571,8 @@ function YearView({
       {/* 올해 한마디 — 사주(seun) × 점성(연간 프로펙션) 교차, hero 바로 아래 펼쳐 노출 */}
       {(() => {
         const seun = (sections ?? []).find((s) => s.section === 'seun')
-        if (!seun && !yearAstro) return null
+        const axes = avgAxes(allDates.filter((d) => d.date.startsWith(`${year}-`)))
+        if (!seun && !yearAstro && !axes) return null
         return (
           <motion.div
             variants={itemVariants}
@@ -587,6 +588,11 @@ function YearView({
                 <span className="shrink-0 text-cyan-400/70 font-medium">점성</span>
                 <span className="text-zinc-400 font-light leading-relaxed">{yearAstro}</span>
               </p>
+            )}
+            {axes && (
+              <div className="pt-3 border-t border-white/5">
+                <CrossAxisChart saju={axes.saju} astro={axes.astro} locale={locale} />
+              </div>
             )}
           </motion.div>
         )
@@ -951,7 +957,8 @@ function MonthView({
       {(() => {
         const wolun = (interp?.sections ?? []).find((s) => s.section === 'wolun')
         const transit = (interp?.sections ?? []).find((s) => s.section === 'transit')
-        if (!wolun && !transit) return null
+        const axes = avgAxes(monthDates)
+        if (!wolun && !transit && !axes) return null
         return (
           <motion.div
             variants={itemVariants}
@@ -968,6 +975,11 @@ function MonthView({
                 <div className="mt-1">
                   <NarrativeText text={transit.text} />
                 </div>
+              </div>
+            )}
+            {axes && (
+              <div className="pt-3 border-t border-white/5">
+                <CrossAxisChart saju={axes.saju} astro={axes.astro} locale={locale} />
               </div>
             )}
           </motion.div>
@@ -1092,6 +1104,16 @@ function DayView({
         >
           {oneLine}
         </motion.p>
+      )}
+
+      {/* 사주 ↔ 점성 교차 — 한눈 차트. 예전엔 '자세히'에 접혀 사주가 잘 안 보였음 → 전면 노출 */}
+      {typeof sajuAxis === 'number' && typeof astroAxis === 'number' && (
+        <motion.div
+          variants={itemVariants}
+          className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5"
+        >
+          <CrossAxisChart saju={sajuAxis} astro={astroAxis} locale={locale} />
+        </motion.div>
       )}
 
       {/* ── 오늘의 사주 — 순탄/고비 한 줄 + 그날 기운·신살·충합형 (dayTone 을 카드로 병합) ── */}
@@ -1225,54 +1247,9 @@ function DayView({
         </motion.div>
       )}
 
-      {/* ── 자세히 (보조 카드 접기): 에너지 축 + 24시간 흐름 ── */}
-      {((typeof sajuAxis === 'number' || typeof astroAxis === 'number') ||
-        (hourSeries && hourSeries.length > 0)) && (
+      {/* ── 자세히 (접기): 24시간 흐름. 사주↔점성 교차는 위 카드로 전면 노출함 ── */}
+      {hourSeries && hourSeries.length > 0 && (
         <Collapsible title={locale === 'en' ? 'More detail' : '자세히'}>
-          {/* Energy Axis — 사주/점성 분해 */}
-          {(typeof sajuAxis === 'number' || typeof astroAxis === 'number') && (
-        <div className="space-y-5">
-          <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
-            {locale === 'en' ? 'Energy Axis' : '에너지 축'}
-          </h3>
-          {typeof sajuAxis === 'number' && (
-            <AxisBar
-              label={locale === 'en' ? 'Saju' : '사주'}
-              value={Math.round(sajuAxis)}
-              from="from-indigo-600"
-              to="to-indigo-400"
-            />
-          )}
-          {typeof astroAxis === 'number' && (
-            <AxisBar
-              label={locale === 'en' ? 'Astrology' : '점성'}
-              value={Math.round(astroAxis)}
-              from="from-emerald-600"
-              to="to-emerald-400"
-              delay={0.15}
-            />
-          )}
-          {importantDate?.scoreBreakdown?.axisAgreement && (
-            <p className="text-[11px] text-zinc-500">
-              {locale === 'en' ? 'Agreement: ' : '합치도: '}
-              <span className="text-zinc-300">
-                {importantDate.scoreBreakdown.axisAgreement === 'aligned'
-                  ? locale === 'en'
-                    ? 'aligned'
-                    : '일치'
-                  : importantDate.scoreBreakdown.axisAgreement === 'opposed'
-                    ? locale === 'en'
-                      ? 'opposed'
-                      : '상충'
-                    : locale === 'en'
-                      ? 'mixed'
-                      : '혼재'}
-              </span>
-            </p>
-          )}
-        </div>
-          )}
-
           {/* 24h Timeline */}
           {hourSeries && hourSeries.length > 0 && (
         <div>
@@ -1393,6 +1370,66 @@ function ThemeBar({ label, score }: { label: string; score: number }) {
       </div>
     </div>
   )
+}
+
+/** 사주 ↔ 점성 교차 한눈 차트 — 두 축 점수를 막대로 + 한 줄 풀이.
+ *  "교차를 차트로 보여줘" 요청 — 일/월/연 모두 scoreBreakdown 축에서 뽑는다. */
+function CrossAxisChart({
+  saju,
+  astro,
+  locale,
+}: {
+  saju: number
+  astro: number
+  locale?: CalLocale
+}) {
+  const s = Math.round(saju)
+  const a = Math.round(astro)
+  const read =
+    Math.abs(s - a) < 8
+      ? locale === 'en'
+        ? 'Saju and astrology pull about evenly — read both together.'
+        : '사주와 점성이 비슷하게 작용해요 — 둘을 같이 보면 돼요.'
+      : s > a
+        ? locale === 'en'
+          ? 'Your saju cycles lead this stretch more than the sky.'
+          : '하늘(점성)보다 내 사주 주기가 더 크게 작용하는 흐름이에요.'
+        : locale === 'en'
+          ? 'Sky transits lead this stretch more than your saju cycles.'
+          : '내 사주 주기보다 하늘(점성) 흐름이 더 크게 작용해요.'
+  return (
+    <div className="space-y-2.5">
+      <h4 className="text-[11px] font-medium tracking-widest text-zinc-500 uppercase">
+        {locale === 'en' ? 'Saju ↔ Astrology' : '사주 ↔ 점성 교차'}
+      </h4>
+      <AxisBar
+        label={locale === 'en' ? 'Saju' : '사주'}
+        value={s}
+        from="from-amber-500"
+        to="to-amber-300"
+      />
+      <AxisBar
+        label={locale === 'en' ? 'Astrology' : '점성'}
+        value={a}
+        from="from-cyan-500"
+        to="to-cyan-300"
+        delay={0.12}
+      />
+      <p className="text-xs text-zinc-400 font-light leading-relaxed pt-0.5">{read}</p>
+    </div>
+  )
+}
+
+/** ImportantDate 묶음에서 사주/점성 축 평균 — 월/연 교차 차트용. 없으면 null. */
+function avgAxes(dates: ImportantDate[]): { saju: number; astro: number } | null {
+  const withBreak = dates.filter(
+    (d) => d.scoreBreakdown && typeof d.scoreBreakdown.sajuAxis === 'number'
+  )
+  if (withBreak.length === 0) return null
+  return {
+    saju: avg(withBreak.map((d) => d.scoreBreakdown!.sajuAxis)),
+    astro: avg(withBreak.map((d) => d.scoreBreakdown!.astroAxis)),
+  }
 }
 
 function AxisBar({
