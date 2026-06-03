@@ -16,10 +16,13 @@ export const tarotCardSaveSchema = z.object({
 })
 
 export const tarotCardInsightSchema = z.object({
-  position: z.string().max(100),
-  card_name: z.string().max(120),
+  // LLM 이 질문 맥락에 맞춰 자유 명명 → 한 문장급으로 길어질 수 있어 여유.
+  position: z.string().max(300),
+  card_name: z.string().max(200),
   is_reversed: z.boolean(),
-  interpretation: z.string().max(5000),
+  // 카드별 해석. 장문(특히 한국어) 리딩이 5000 자를 넘어 저장이 통째로
+  // 검증 실패(400)하던 회귀 → 넉넉히 상향.
+  interpretation: z.string().max(12000),
 })
 
 export const tarotCardSchema = z.object({
@@ -56,7 +59,7 @@ const tarotQuestionProfileFieldSchema = z.object({
 })
 
 const tarotQuestionContextSchema = z.object({
-  question_summary: z.string().max(1000).optional(),
+  question_summary: z.string().max(4000).optional(),
   question_profile: z
     .object({
       type: tarotQuestionProfileFieldSchema,
@@ -66,7 +69,7 @@ const tarotQuestionContextSchema = z.object({
       tone: tarotQuestionProfileFieldSchema,
     })
     .optional(),
-  direct_answer: z.string().max(1000).optional(),
+  direct_answer: z.string().max(4000).optional(),
   intent: z.string().max(200).optional(),
   intent_label: z.string().max(300).optional(),
 })
@@ -95,10 +98,12 @@ export const tarotSaveRequestSchema = z.object({
   spreadId: z.string().min(1).max(100),
   spreadTitle: z.string().min(1).max(200),
   cards: z.array(tarotCardSaveSchema).min(1).max(20),
-  overallMessage: z.string().max(5000).optional(),
+  // LLM 생성 본문 — 사용자 본인 리딩 내용이라 넉넉히. 직전 5000/2000/500
+  // 제한이 장문 한국어 리딩에서 검증 실패(400) → "저장 안 됨" 의 원인.
+  overallMessage: z.string().max(12000).optional(),
   cardInsights: z.array(tarotCardInsightSchema).optional(),
-  guidance: z.string().max(2000).optional(),
-  affirmation: z.string().max(500).optional(),
+  guidance: z.string().max(12000).optional(),
+  affirmation: z.string().max(2000).optional(),
   // 'counselor-destiny' / 'counselor-compat' 는 운명/궁합 상담사 안에서 띄운
   // 인라인 타로 — 히스토리 UI 에서 origin 배지를 띄우려고 origin 별로 분리해
   // 받는다. 'counselor' 는 구버전 호환 fallback.

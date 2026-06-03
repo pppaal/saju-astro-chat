@@ -191,11 +191,10 @@ export function ResultsStage(props: ResultsStageProps) {
                       ? '기록에 저장'
                       : 'Save to history'}
                 </button>
-                {(saveMessage === '저장 실패' || saveMessage === 'Save failed') && (
-                  <span className="text-[11px] text-rose-300/80">
-                    {isKo
-                      ? '저장에 실패했어요. 잠시 후 다시 눌러주세요.'
-                      : 'Saving failed. Please tap again in a moment.'}
+                {(saveMessage.startsWith('저장 실패') ||
+                  saveMessage.startsWith('Save failed')) && (
+                  <span className="text-[11px] text-rose-300/80 text-center max-w-xs">
+                    {saveMessage}
                   </span>
                 )}
               </div>
