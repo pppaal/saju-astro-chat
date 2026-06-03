@@ -59,11 +59,20 @@ def main() -> None:
     covered = {capitalize_words(strip_quotes(k)) for k in kr}
 
     kept = []
+    bad_coord = 0
     for c in cities:
         name = c.get("name") or ""
         country = (c.get("country") or "").upper()
+        # 좌표 (0,0) 은 소스(dr5hn) 데이터 오류(바다 한가운데) — 사주 계산에
+        # 쓸 수 없으므로 제외. 위경도 누락도 제외.
+        lat, lon = c.get("lat"), c.get("lon")
+        if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)) or (lat == 0 and lon == 0):
+            bad_coord += 1
+            continue
         if country == "KR" or capitalize_words(name) in covered:
             kept.append(c)
+    if bad_coord:
+        print(f"  (좌표 오류 제외: {bad_coord})")
 
     # 악센트 차이 중복 제거: 같은 국가에서 악센트만 다르고 좌표가 거의 같은
     # 도시(Córdoba vs Cordoba)는 한 곳만 남긴다. 좌표를 0.1° 로 반올림해 키에
