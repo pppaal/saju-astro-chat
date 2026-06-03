@@ -108,26 +108,58 @@ export const POST = withApiMiddleware(
       createData.followupTurns = followupTurns
     }
 
-    // P2022 (column not found) defensive retry — 마이그레이션이 prod 에 늦게
-    // 닿는 환경에서 INSERT 자체가 죽으면 사용자 결과가 영영 안 저장됨. 신규
-    // 컬럼(clarifierCard / followupTurns) 만 빼고 한 번 더 시도해서 옛 컬럼
-    // 만으로라도 row 는 생성. Sentry 의 PrismaClientKnownRequestError P2022
-    // 회귀 차단.
+    // 누락 컬럼(P2022) 방어 — 마이그레이션이 prod 에 늦게 닿아 어떤 컬럼이
+    // 아직 없으면 INSERT 가 통째로 500 으로 죽어 사용자 리딩이 영영 저장 안 됨.
+    // 죽인 컬럼이 "빼도 되는" optional 이면 그 컬럼만 빼고 재시도해서 최소한
+    // row 는 만든다. (직전엔 clarifierCard/followupTurns 만 처리 → 다른 컬럼이
+    // 원인이면 여전히 500.)
+    const STRIPPABLE = [
+      'overallMessage',
+      'cardInsights',
+      'guidance',
+      'affirmation',
+      'counselorSessionId',
+      'clarifierCard',
+      'followupTurns',
+      'locale',
+      'source',
+    ]
     let tarotReading
     try {
-      tarotReading = await prisma.tarotReading.create({ data: createData })
+      for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+          tarotReading = await prisma.tarotReading.create({ data: createData })
+          break
+        } catch (err) {
+          const e = err as { code?: string; meta?: { column?: unknown } }
+          const col = typeof e?.meta?.column === 'string' ? e.meta.column : ''
+          const hit =
+            e?.code === 'P2022' ? STRIPPABLE.find((s) => col.includes(s)) : undefined
+          if (!hit) throw err
+          logger.warn('[TarotSave] column missing on DB — stripping & retrying', { column: col })
+          delete (createData as Record<string, unknown>)[hit]
+        }
+      }
+      if (!tarotReading) throw new Error('create exhausted retries')
     } catch (err) {
-      const code = (err as { code?: string } | null)?.code
-      if (code !== 'P2022') throw err
-      logger.warn('[TarotSave] new columns missing on DB — retrying without them', { code })
-      delete createData.clarifierCard
-      delete createData.followupTurns
-      tarotReading = await prisma.tarotReading.create({ data: createData })
+      // 안전한 진단만 응답에 노출 (Prisma 코드 + 컬럼/제약 이름 — PII·시크릿 없음).
+      // 클라이언트가 "저장 실패: 500 db P2022 cardInsights" 식으로 화면에 띄워
+      // 원인을 한 번에 특정할 수 있게 한다.
+      const e = err as { code?: string; meta?: { column?: unknown; constraint?: unknown } }
+      logger.error('[TarotSave] create failed', err instanceof Error ? err : undefined)
+      const diag = [
+        e?.code,
+        typeof e?.meta?.column === 'string' ? e.meta.column : undefined,
+        typeof e?.meta?.constraint === 'string' ? e.meta.constraint : undefined,
+      ]
+        .filter(Boolean)
+        .join(' ')
+      return apiError(ErrorCodes.DATABASE_ERROR, `db ${diag || 'create_failed'}`)
     }
 
     return apiSuccess({
       success: true,
-      readingId: tarotReading.id,
+      readingId: tarotReading!.id,
     })
   },
   createAuthenticatedGuard({
