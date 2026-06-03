@@ -7,7 +7,6 @@
 import type { NatalContext } from '../context/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
-import { buildLifecycleTiming } from '../lifecycle/astroLifecycle'
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
 
 export interface LifePhase {
@@ -131,11 +130,6 @@ export function deriveLifetimeFlow(
       ? ` 점성으로는 ${astroId}의 기질을 타고났고요. 이 둘이 평생 흐름의 무대를 만들고, 그 위에서 아래 시기들이 펼쳐져요.`
       : ` 사주 대운과 점성 인생 마디를 교차해 본 큰 흐름이에요.`)
 
-  const events = buildLifecycleTiming(birthYear, birthYear + 90, true).events.map((e) => {
-    // 라벨 '두 번째 목성 회귀 — 진로의 큰 그림' → 사람말 의미('진로의 큰 그림') 우선
-    const after = e.label.split('—').slice(1).join('—').trim()
-    return { age: e.startYear - birthYear, desc: after || e.label.trim() }
-  })
   const currentAge = new Date().getUTCFullYear() - birthYear + 1 // 한국나이
 
   const phases: LifePhase[] = []
@@ -151,11 +145,10 @@ export function deriveLifetimeFlow(
     // 그 대운 오행이 용신인지(순탄)·기신인지(고비) 1순위, 없으면 신강·신약×십신.
     const fav = favorOf(natal.saju.strength, cat, getStemElement(d.stem), natal.saju.yongsin)
 
-    const evs = events.filter((e) => e.age >= lo && e.age <= hi).slice(0, 2)
-    const astro = evs.length
-      ? ` 점성으로는 ${evs.map((e) => e.desc).join(', ')}${gaI(evs.at(-1)!.desc)} 함께 흘러요.`
-      : ''
-    const text = `${cat}운 — ${body}. ${TONE[fav]}${astro}`
+    // 점성 마디(회귀·외행성 transit)는 아래 '분기점' 타임라인이 날짜·의미까지 상세히
+    // 보여주므로, 흐름 단계에선 중복을 피해 사주 아크(십신 + 순탄/고비)만 — 교차는
+    // intro(일간 × 태양·상승)와 분기점이 담당.
+    const text = `${cat}운 — ${body}. ${TONE[fav]}`
     phases.push({
       label,
       ageRange: `${lo}~${hi}세 · ${birthYear + lo}~${birthYear + hi}`,
