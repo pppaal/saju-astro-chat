@@ -3,6 +3,7 @@ import { HouseSystem } from './types'
 import { formatLongitude, normalize360 } from './utils'
 import { getSwisseph } from './ephe'
 import { toAstroHouseId } from '../graphIds'
+import { resolveHouseOrWarn } from './shared'
 
 export function calcHouses(
   ut_jd: number,
@@ -23,7 +24,9 @@ export function calcHouses(
     const asc = normalize360(base.ascendant)
     const signStart = Math.floor(asc / 30) * 30 // 그 별자리의 0°
     const house: number[] = new Array(12).fill(0).map((_, i) => normalize360(signStart + i * 30))
-    return { house, ascendant: asc, mc: normalize360(base.mc) }
+    // houseSystem reflects what actually produced these cusps so a polar
+    // fallback is not mislabeled as the requested system in meta.
+    return { house, ascendant: asc, mc: normalize360(base.mc), houseSystem: 'WholeSign' as HouseSystem }
   }
 
   if (system === 'WholeSign') {
@@ -36,26 +39,23 @@ export function calcHouses(
     // 'P' 가 성공하므로 기존 동작과 100% 동일(폴백 미작동).
     const res = swisseph.swe_houses(ut_jd, lat, lon, 'P')
     if ('error' in res) {
+      // Polar fallback: WholeSign produced the cusps, so report WholeSign as
+      // the actual house system used (the wholeSign() result already carries
+      // houseSystem='WholeSign'). Callers should read result.houseSystem when
+      // populating meta instead of assuming the requested system.
       return wholeSign()
     }
-    return res
+    return { ...res, houseSystem: 'Placidus' as HouseSystem }
   }
 
   throw new Error(`Unsupported house system: ${system}`)
 }
 
 export function inferHouseOf(longitude: number, houseCusps: number[]): number {
-  // Placidus/WholeSign 공통: 오른쪽 진행, 12→1 래핑 고려
-  const L = normalize360(longitude)
-  for (let i = 0; i < 12; i++) {
-    const start = houseCusps[i]
-    const end = houseCusps[(i + 1) % 12]
-    const inHouse = start > end ? L >= start || L < end : L >= start && L < end
-    if (inHouse) {
-      return i + 1
-    }
-  }
-  return 12
+  // Placidus/WholeSign 공통: 오른쪽 진행, 12→1 래핑 고려. 단일 진실 소스인
+  // resolveHouseOrWarn 으로 위임 — cusp 미매칭(malformed) 시 12 를 날조하지
+  // 않고 UNKNOWN_HOUSE(0) 를 돌려주며 logger.warn 으로 관측 가능하게 한다.
+  return resolveHouseOrWarn(longitude, houseCusps, 'inferHouseOf')
 }
 
 export function mapHouseCupsFormatted(houseCusps: number[]) {

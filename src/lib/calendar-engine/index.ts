@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import type {
   ActiveSignal,
   CalendarBuildOptions,
@@ -242,6 +243,41 @@ function* cellsBetween(
 
 function stripEvidence(signal: ActiveSignal): ActiveSignal {
   return { ...signal, evidence: { module: signal.evidence.module, detail: {} } }
+}
+
+/**
+ * 빌드 옵션을 캐시 키용 결정론적 해시로 정규화.
+ *
+ * `getOrBuildMonth` / 인-프로세스 memCache 는 본래 (birthKey, monthKey) 만으로
+ * 키를 잡았는데, 실제 빌드된 cells 는 `includeEvidence`(evidence 포함 여부) ·
+ * `enablePatterns`(패턴 매칭 on/off) · `enabledExtractors` · `focusThemes` 옵션에
+ * 따라 달라진다 (index.ts groupIntoCells 참고). 지금은 모든 caller 가
+ * `{ includeEvidence: true }` 한 가지만 넘겨서 충돌이 잠복해 있을 뿐이다.
+ * 다른 옵션을 넘기는 미래 caller 가 잘못된 캐시 cell 을 받지 않도록 옵션을
+ * 캐시 키에 접는다.
+ *
+ * 키만 짧고 안정적이면 되므로:
+ *  - 결정론을 위해 객체 키를 정렬해 정준(canonical) JSON 으로 만든다.
+ *  - cells 결과에 실제로 영향을 주는 옵션만 포함한다 (현재 인터페이스의 4개 전부).
+ *  - 배열 옵션(enabledExtractors/focusThemes)도 정렬해 순서 무관 동일 키.
+ * 기존 단일 옵션 형태 `{ includeEvidence: true }` 의 해시는 안정적으로 고정된다.
+ */
+export function makeOptionsKey(options: CalendarBuildOptions = {}): string {
+  const sortStrings = (xs?: readonly string[]) =>
+    xs ? [...xs].sort() : undefined
+  // 정준 형태 — 키 알파벳 순, 미지정(undefined) 필드는 생략해 안정성 확보.
+  const canonical: Record<string, unknown> = {}
+  if (options.enabledExtractors !== undefined)
+    canonical.enabledExtractors = sortStrings(options.enabledExtractors)
+  if (options.enablePatterns !== undefined)
+    canonical.enablePatterns = options.enablePatterns
+  if (options.focusThemes !== undefined)
+    canonical.focusThemes = sortStrings(options.focusThemes)
+  if (options.includeEvidence !== undefined)
+    canonical.includeEvidence = options.includeEvidence
+  const keys = Object.keys(canonical).sort()
+  const json = JSON.stringify(canonical, keys)
+  return createHash('sha1').update(json).digest('hex').slice(0, 16)
 }
 
 export type { ActiveSignal, CalendarCell, CalendarRange, CalendarBuildOptions } from './types'

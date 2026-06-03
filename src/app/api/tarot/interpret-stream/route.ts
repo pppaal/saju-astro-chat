@@ -137,6 +137,44 @@ function streamJsonPayload(
   })
 }
 
+// "전달됨(delivered)" 판정 — 스트림이 정상 종료(done)했더라도, 누적된
+// fullText 가 *쓸 수 있는* 리딩으로 파싱되는지 검증한다. 빈 cards 배열,
+// 파싱 불가 JSON, 필수 필드 누락 등 "과금했지만 가치 없음" 케이스를
+// 전달 실패로 처리하기 위함. 파싱은 스트리밍 도중 잘린 부분 JSON 이 아니라
+// *완성된* JSON 을 가정 (success path 에서만 호출). 관대하게: 끝의 트레일링
+// 잡음/코드펜스 등 LLM 잡티는 첫 `{` ~ 마지막 `}` 구간만 떼어 파싱 시도.
+function isUsableReading(fullText: string): boolean {
+  const text = (fullText || '').trim()
+  if (text === '') return false
+  // LLM 이 ```json 펜스나 앞뒤 잡담을 붙였을 수 있어 첫 `{`~마지막 `}` 만 추출.
+  const start = text.indexOf('{')
+  const end = text.lastIndexOf('}')
+  if (start < 0 || end <= start) return false
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text.slice(start, end + 1))
+  } catch {
+    return false
+  }
+  if (typeof parsed !== 'object' || parsed === null) return false
+  const reading = parsed as { overall?: unknown; cards?: unknown }
+  // overall 은 비어있지 않은 문자열.
+  if (typeof reading.overall !== 'string' || reading.overall.trim() === '') return false
+  // cards 는 비어있지 않은 배열이고, 각 항목이 비어있지 않은 interpretation 을 가진다.
+  if (!Array.isArray(reading.cards) || reading.cards.length === 0) return false
+  const everyCardUsable = reading.cards.every((c) => {
+    if (typeof c !== 'object' || c === null) return false
+    const card = c as { position?: unknown; interpretation?: unknown }
+    return (
+      typeof card.position === 'string' &&
+      card.position.trim() !== '' &&
+      typeof card.interpretation === 'string' &&
+      card.interpretation.trim() !== ''
+    )
+  })
+  return everyCardUsable
+}
+
 // Vercel 런타임 설정 — 누락되면 default 10s 함수 timeout 에 걸려 Claude
 // 응답 받기 전에 함수가 죽는다 (운영에서 "카드를 해석하고 있어요..." 무한
 // 루프의 원인이었음). counselor/realtime 과 동일하게 nodejs runtime,
@@ -444,9 +482,36 @@ export async function POST(req: NextRequest) {
             'success',
             Date.now() - claudeStartTime
           )
-          // 정상 완료 → 복구 가능 턴이면 완성 리딩 캐시 저장. (클라 연결 여부 무관.)
-          await persistIfRecoverable()
-          safeEnqueue(encoder.encode(createSSEDoneEvent()))
+          // "delivered" 정의 강화: 스트림이 정상 종료했어도 fullText 가 쓸 수
+          // 있는 리딩(비어있지 않은 cards 의 유효 JSON)으로 파싱되지 않으면 —
+          // 예: 빈 cards 배열 / 파싱 불가 JSON / 필수 필드 누락 — "과금했지만
+          // 가치 없음" 이므로 전달 실패로 처리한다. partial/empty 환불 경로와
+          // 동일하게 환불(refundKey 로 idempotent — 이중 환불 없음) 후 정적
+          // fallback 을 emit. 쓸 수 없는 리딩은 캐시에 저장하지 않는다
+          // (persistIfRecoverable 스킵) — 돌아온 사용자에게 쓰레기 복원 방지.
+          if (!isUsableReading(fullText)) {
+            logger.warn('[tarot-stream] empty/unusable reading after normal completion', {
+              bytesEmitted,
+              fullTextLen: fullText.length,
+              isRecoverable,
+            })
+            await refundOnFailure(
+              creditResult,
+              'tarot_empty_reading',
+              creditCost,
+              `unusable reading (bytes=${bytesEmitted}, len=${fullText.length})`,
+              refundKey
+            )
+            const fallback = buildFallbackPayload(rawCards, language)
+            // 복구 턴에서 클라가 사라졌어도 enqueue 는 안전하게 무시되어야 하므로
+            // safeEnqueue 사용 (기존 success path 와 동일 동작).
+            safeEnqueue(encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) })))
+            safeEnqueue(encoder.encode(createSSEDoneEvent()))
+          } else {
+            // 정상 완료 → 복구 가능 턴이면 완성 리딩 캐시 저장. (클라 연결 여부 무관.)
+            await persistIfRecoverable()
+            safeEnqueue(encoder.encode(createSSEDoneEvent()))
+          }
         } catch (streamErr) {
           recordExternalCall(
             'anthropic',

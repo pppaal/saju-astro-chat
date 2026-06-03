@@ -12,28 +12,36 @@ import { NatalInput, PlanetBase, House } from './types'
 import { formatLongitude, normalize360 } from './utils'
 import { toAstroPlanetId, toAstroPointId } from '../graphIds'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
+import { logger } from '@/lib/logger'
 
 // ============================================================
 // Planet List (cached singleton)
 // ============================================================
 
-let planetListCache: Record<string, number> | null = null
+// Cache keyed by the config that actually influences the result. When the
+// relevant config (node type) changes, the key changes and the value is
+// recomputed — so config edits (and test overrides) take effect instead of
+// being frozen at first call.
+let planetListCache: { key: string; value: Record<string, number> } | null = null
 
 /**
- * Get the standard planet list with Swiss Ephemeris IDs
- * Uses cached value after first call
+ * Get the standard planet list with Swiss Ephemeris IDs.
+ * Cached, but the cache is keyed on the config that affects the output, so a
+ * change to `CALCULATION_STANDARDS.astrology.nodeType` is honored.
  */
 export function getPlanetList(): Record<string, number> {
-  if (planetListCache) {
-    return planetListCache
+  const nodeType = CALCULATION_STANDARDS.astrology.nodeType
+  const key = `node:${nodeType}`
+  if (planetListCache && planetListCache.key === key) {
+    return planetListCache.value
   }
 
   const sw = getSwisseph()
-  const useTrueNode = CALCULATION_STANDARDS.astrology.nodeType === 'true'
+  const useTrueNode = nodeType === 'true'
   const meanNodeId = (sw as unknown as { SE_MEAN_NODE?: number }).SE_MEAN_NODE
   const nodeId = useTrueNode ? sw.SE_TRUE_NODE : (meanNodeId ?? sw.SE_TRUE_NODE)
   const nodeLabel = useTrueNode ? 'True Node' : 'Mean Node'
-  planetListCache = {
+  const value = {
     Sun: sw.SE_SUN,
     Moon: sw.SE_MOON,
     Mercury: sw.SE_MERCURY,
@@ -46,7 +54,17 @@ export function getPlanetList(): Record<string, number> {
     Pluto: sw.SE_PLUTO,
     [nodeLabel]: nodeId,
   }
-  return planetListCache
+  planetListCache = { key, value }
+  return value
+}
+
+/**
+ * Reset cached config-derived singletons (planet list, flags). Intended for
+ * tests that mutate CALCULATION_STANDARDS between cases.
+ */
+export function resetSharedCaches(): void {
+  planetListCache = null
+  swFlagsCache = null
 }
 
 // ============================================================
@@ -217,34 +235,83 @@ export function getMidpoint(lon1: number, lon2: number): number {
 // ============================================================
 
 /**
- * Find which house a longitude falls into
- * @param longitude - The longitude to check
- * @param houses - Array of house objects with cusp property
- * @returns House number (1-12)
+ * Sentinel returned when a longitude matches no house cusp (malformed cusps).
+ * Distinct from any real house (1-12) so the unknown placement is observable
+ * downstream instead of being silently fabricated as a plausible house.
  */
-export function findHouseForLongitude(longitude: number, houses: House[]): number {
+export const UNKNOWN_HOUSE = 0
+
+/**
+ * Pure cusp lookup: which 1-12 house does `longitude` fall into, given 12
+ * cusps in degrees? Returns `null` when nothing matches (e.g. fewer than 12
+ * cusps, NaN cusps, or otherwise malformed input). Handles 360 wrap-around.
+ *
+ * This is the single source of truth for house inference. Both
+ * `findHouseForLongitude` (House[]) and `inferHouseOf` (number[]) delegate
+ * here so there is exactly one fallback behavior, not three.
+ */
+export function matchHouseForCusps(longitude: number, cusps: number[]): number | null {
+  if (!Array.isArray(cusps) || cusps.length < 12) {
+    return null
+  }
   const lon = normalize360(longitude)
 
   for (let i = 0; i < 12; i++) {
-    const nextI = (i + 1) % 12
-    const cusp = houses[i].cusp
-    let nextCusp = houses[nextI].cusp
+    const cusp = cusps[i]
+    const nextCusp = cusps[(i + 1) % 12]
+    if (!Number.isFinite(cusp) || !Number.isFinite(nextCusp)) {
+      return null
+    }
 
-    if (nextCusp < cusp) {
-      nextCusp += 360
+    const start = normalize360(cusp)
+    let end = normalize360(nextCusp)
+    if (end < start) {
+      end += 360
     }
     let testLon = lon
-    if (testLon < cusp) {
+    if (testLon < start) {
       testLon += 360
     }
 
-    if (testLon >= cusp && testLon < nextCusp) {
+    if (testLon >= start && testLon < end) {
       return i + 1
     }
   }
 
-  // Fallback (should not normally reach here)
-  return 1
+  return null
+}
+
+/**
+ * Resolve a house from raw cusps, logging an observable warning and returning
+ * the UNKNOWN_HOUSE sentinel when no cusp matches. Centralizes the previously
+ * divergent silent fallbacks (12 in houses.ts, 1 here).
+ */
+export function resolveHouseOrWarn(
+  longitude: number,
+  cusps: number[],
+  context: string
+): number {
+  const match = matchHouseForCusps(longitude, cusps)
+  if (match !== null) {
+    return match
+  }
+  logger.warn(`[astrology] house inference fell through; cusps may be malformed`, {
+    context,
+    longitude,
+    cuspCount: Array.isArray(cusps) ? cusps.length : 0,
+  })
+  return UNKNOWN_HOUSE
+}
+
+/**
+ * Find which house a longitude falls into.
+ * @param longitude - The longitude to check
+ * @param houses - Array of house objects with cusp property
+ * @returns House number (1-12), or UNKNOWN_HOUSE (0) if no cusp matches
+ */
+export function findHouseForLongitude(longitude: number, houses: House[]): number {
+  const cusps = Array.isArray(houses) ? houses.map((h) => h?.cusp) : []
+  return resolveHouseOrWarn(longitude, cusps, 'findHouseForLongitude')
 }
 
 /**

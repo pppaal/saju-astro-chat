@@ -46,6 +46,18 @@
       "generatingAnswer": "Generating answer...",
       "organizingInsights": "Organizing insights...",
       "interpretingCards": "Analyzing cards..."
+    },
+    "rail": {
+      "savedLabel": "Saved conversation",
+      "loading": "Loading...",
+      "empty": "No saved conversations yet.",
+      "groupToday": "Today",
+      "groupWeek": "Previous 7 Days",
+      "groupOlder": "Older",
+      "deleteConfirm": "Delete?",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "rename": "Rename"
     }
   }
 }

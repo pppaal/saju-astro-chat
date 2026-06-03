@@ -245,7 +245,14 @@ export async function POST(req: NextRequest) {
   // Self-harm / suicidal intent → crisis hotline, NOT the dry "restricted
   // topic" refusal. Checked before containsForbidden (which is English-only
   // for self-harm) and before any credit charge.
-  if (isSelfHarm(userMessage)) {
+  // Screen EVERY user turn in the request, not just the latest: the client
+  // replays prior user turns to the model via priorTurns, so a self-harm
+  // expression in an earlier turn must still route to crisis even if the
+  // current message looks benign. Messages are already in memory — cheap.
+  const anyUserSelfHarm = body.messages.some(
+    (m) => m.role === 'user' && isSelfHarm(m.content ?? '')
+  )
+  if (anyUserSelfHarm) {
     return NextResponse.json({ message: crisisMessage(lang) }, { status: 200 })
   }
   if (containsForbidden(userMessage)) {

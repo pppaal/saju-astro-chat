@@ -205,6 +205,58 @@ describe('Redis Rate Limiting (Mocked)', () => {
       expect(result.limit).toBe(5)
     })
 
+    it('should deny when failClosed:true and backend disabled (dev, no Upstash)', async () => {
+      delete process.env.UPSTASH_REDIS_REST_URL
+      delete process.env.UPSTASH_REDIS_REST_TOKEN
+      process.env.NODE_ENV = 'development'
+
+      vi.resetModules()
+
+      const { rateLimit } = await import('@/lib/cache/redis-rate-limit')
+
+      // Opt-in fail-closed: no authoritative backend available → deny.
+      const denied = await rateLimit('failclosed-dev', {
+        limit: 5,
+        windowSeconds: 60,
+        failClosed: true,
+      })
+      expect(denied.allowed).toBe(false)
+      expect(denied.remaining).toBe(0)
+      expect(denied.backend).toBe('disabled')
+      expect(denied.headers.get('Retry-After')).toBe('60')
+
+      // Default (no flag) still allows under the same conditions.
+      const allowed = await rateLimit('failopen-dev', { limit: 5, windowSeconds: 60 })
+      expect(allowed.allowed).toBe(true)
+      expect(allowed.backend).toBe('disabled')
+    })
+
+    it('should deny when failClosed:true and Upstash is down (prod)', async () => {
+      process.env.UPSTASH_REDIS_REST_URL = 'https://test.upstash.io'
+      process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+      process.env.NODE_ENV = 'production'
+
+      vi.resetModules()
+
+      // Upstash increment fails → backend unavailable.
+      mockPipeline.exec.mockRejectedValue(new Error('Upstash down'))
+
+      const { rateLimit } = await import('@/lib/cache/redis-rate-limit')
+
+      const denied = await rateLimit('failclosed-prod', {
+        limit: 5,
+        windowSeconds: 60,
+        failClosed: true,
+      })
+      expect(denied.allowed).toBe(false)
+      expect(denied.backend).toBe('disabled')
+
+      // Default (no flag) falls back to in-memory and allows.
+      const allowed = await rateLimit('failopen-prod', { limit: 5, windowSeconds: 60 })
+      expect(allowed.allowed).toBe(true)
+      expect(allowed.backend).toBe('memory')
+    })
+
     it('should deny in production when all backends unavailable', async () => {
       delete process.env.UPSTASH_REDIS_REST_URL
       delete process.env.UPSTASH_REDIS_REST_TOKEN

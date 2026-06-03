@@ -10,30 +10,59 @@
 // `scopedKey` collision => P2002 => already refunded). No migration needed —
 // same mechanism the charge-idempotency / draw-nonce stores use.
 
+import { createHash } from 'crypto'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { refundCredits, type CreditRefundParams } from './creditRefund'
 
 const REFUND_IDEM_TTL_MS = 24 * 60 * 60 * 1000 // 24h
 
+// Coarse time bucket for synthesized keys: refunds with identical params landing
+// in the same wall-clock hour collapse to one. Wide enough to swallow retry
+// storms, narrow enough that a genuinely-new refund an hour later still goes
+// through. (See header note re: synthesized-key tradeoffs.)
+const SYNTH_BUCKET_MS = 60 * 60 * 1000 // 1h
+
+/**
+ * Build a deterministic dedupe key for the no-idempotency-key path.
+ *
+ * Derived from the refund's identifying params plus a coarse hourly time bucket,
+ * so a rapid double-call with identical params dedupes, while different params
+ * (or the same params an hour later) each get their own claim.
+ */
+function synthesizeRefundKey(params: CreditRefundParams): string {
+  const bucket = Math.floor(Date.now() / SYNTH_BUCKET_MS)
+  const material = [
+    params.userId,
+    params.creditType,
+    params.reason,
+    params.amount,
+    params.apiRoute ?? '',
+    bucket,
+  ].join(':')
+  return `synth:${createHash('sha256').update(material).digest('hex').slice(0, 32)}`
+}
+
 /**
  * Refund a charged credit at most once for the given idempotency key.
  *
  * @param idempotencyKey  Stable per-turn key (e.g. `compat:<userId>:<turnId>`).
- *   When null/empty we can't dedupe, so we fall back to a single best-effort
- *   refund (callers should pass a key whenever a turnId is available).
+ *   When null/empty we have no turn-level key, so we SYNTHESIZE a deterministic
+ *   one from the refund params plus a coarse hourly bucket — liberal retries
+ *   with identical params still dedupe within the window instead of skipping
+ *   dedup entirely (callers should still pass a key whenever a turnId exists).
  * @returns true if a refund was performed, false if it was skipped as a dupe.
  */
 export async function refundCreditsOnce(
   idempotencyKey: string | null | undefined,
   params: CreditRefundParams
 ): Promise<boolean> {
-  if (!idempotencyKey) {
-    // No key → no dedupe possible. Better to refund (fail-safe) than to skip.
-    return refundCredits(params)
-  }
-
-  const scopedKey = `refund:${idempotencyKey}`
+  // Keyed path: use the caller key verbatim. No-key path: fall back to a
+  // synthesized, params-derived key so the previously-undeduped path still
+  // collapses rapid double-calls.
+  const scopedKey = idempotencyKey
+    ? `refund:${idempotencyKey}`
+    : synthesizeRefundKey(params)
   const expiresAt = new Date(Date.now() + REFUND_IDEM_TTL_MS)
 
   // Claim the refund atomically. First claim wins → perform refund. A unique

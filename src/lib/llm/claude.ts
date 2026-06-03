@@ -599,6 +599,72 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
 }
 
 /**
+ * 텍스트에서 첫 번째 JSON 객체를 견고하게 추출해 파싱한다.
+ *
+ * 동작 순서:
+ *   1) 빠른 경로 — 전체(트림된) 텍스트가 그 자체로 유효한 JSON 객체면 그대로 사용.
+ *   2) 균형 중괄호 스캔 — 첫 `{` 부터 시작해 문자열 리터럴/이스케이프를 존중하며
+ *      `{`/`}` 카운트가 0 이 되는 지점을 닫는 괄호로 본다. 각 후보를 `JSON.parse`
+ *      로 검증하고, 성공하는 첫 객체를 반환한다. 실패하면 다음 `{` 로 이동.
+ *
+ * 탐욕적 `text.match(/\{[\s\S]*\}/)` 와 달리 산문 안의 `{...}`, 문자열 값 내부의
+ * 중괄호(`{"a":"} {"}`), 뒤따르는 빈 `{}` 등에 오염되지 않는다.
+ */
+export function extractJsonObject<T = unknown>(input: string): T | null {
+  const text = input.trim()
+
+  // 1) 빠른 경로: 깔끔한 JSON 응답.
+  if (text.startsWith('{') && text.endsWith('}')) {
+    try {
+      return JSON.parse(text) as T
+    } catch {
+      /* fall through to scan */
+    }
+  }
+
+  // 2) 균형 중괄호 스캔.
+  for (let start = text.indexOf('{'); start !== -1; start = text.indexOf('{', start + 1)) {
+    let depth = 0
+    let inString = false
+    let escaped = false
+
+    for (let i = start; i < text.length; i++) {
+      const ch = text[i]
+
+      if (inString) {
+        if (escaped) {
+          escaped = false
+        } else if (ch === '\\') {
+          escaped = true
+        } else if (ch === '"') {
+          inString = false
+        }
+        continue
+      }
+
+      if (ch === '"') {
+        inString = true
+      } else if (ch === '{') {
+        depth++
+      } else if (ch === '}') {
+        depth--
+        if (depth === 0) {
+          const candidate = text.slice(start, i + 1)
+          try {
+            return JSON.parse(candidate) as T
+          } catch {
+            /* not valid JSON — try next opening brace */
+          }
+          break // 이 start 에서 균형은 맞았으나 파싱 실패 → 다음 `{` 로
+        }
+      }
+    }
+  }
+
+  return null
+}
+
+/**
  * JSON 응답 보장형 호출. 응답에서 첫 번째 JSON 객체만 파싱해 반환.
  */
 async function callClaudeJson<T = unknown>(
@@ -611,17 +677,7 @@ async function callClaudeJson<T = unknown>(
     systemPrompt: opts.systemPrompt + jsonInstruction,
   })
 
-  const text = result.text.trim()
-  // 코드 펜스가 들어왔을 경우 추출
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
-  let parsed: T | null = null
-  if (jsonMatch) {
-    try {
-      parsed = JSON.parse(jsonMatch[0]) as T
-    } catch {
-      parsed = null
-    }
-  }
+  const parsed = extractJsonObject<T>(result.text)
 
   return {
     data: parsed,

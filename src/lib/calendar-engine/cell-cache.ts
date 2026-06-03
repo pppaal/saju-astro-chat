@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { buildCalendar } from './index'
+import { buildCalendar, makeOptionsKey } from './index'
 import type { NatalContext } from './context/types'
 import type { CalendarCell, CalendarRange, CalendarBuildOptions } from './types'
 
@@ -69,7 +69,17 @@ export async function getOrBuildMonth(args: {
   options?: CalendarBuildOptions
 }): Promise<{ cells: CalendarCell[]; cached: boolean }> {
   const { birthKey, monthKey, natal, range, options } = args
-  const memKey = `${birthKey}:${monthKey}`
+
+  // 빌드된 cells 는 옵션(includeEvidence/enablePatterns/enabledExtractors/
+  // focusThemes)에 따라 달라지므로 옵션 해시를 캐시 키에 접는다. 안 그러면
+  // 다른 옵션을 넘기는 caller 가 잘못된 캐시 cell 을 받는다.
+  // DB 는 (birthKey, monthKey) 복합 unique 만 있어 스키마를 못 바꾸므로,
+  // 옵션 해시를 monthKey 에 접미해 DB 키에도 반영한다. (monthKey 는 캐시
+  // 판별자일 뿐 — 표시용이 아니다.) 기존 단일 옵션 형태에선 해시가 고정이라
+  // 동작/캐시 무효화가 발생하지 않는다.
+  const optionsKey = makeOptionsKey(options)
+  const dbMonthKey = `${monthKey}#${optionsKey}`
+  const memKey = `${birthKey}:${dbMonthKey}`
 
   // 0. In-memory hit — DB 호출조차 안 함 (가장 빠른 path).
   const memHit = memCacheGet(memKey)
@@ -80,7 +90,7 @@ export async function getOrBuildMonth(args: {
   // 1. DB 캐시 lookup
   try {
     const hit = await prisma.calendarBuildCache.findUnique({
-      where: { birthKey_monthKey: { birthKey, monthKey } },
+      where: { birthKey_monthKey: { birthKey, monthKey: dbMonthKey } },
     })
     if (hit) {
       const cells = hit.data as unknown as CalendarCell[]
@@ -103,7 +113,7 @@ export async function getOrBuildMonth(args: {
       .create({
         data: {
           birthKey,
-          monthKey,
+          monthKey: dbMonthKey,
           data: cells as unknown as object,
         },
       })

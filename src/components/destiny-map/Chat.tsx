@@ -16,6 +16,7 @@ import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
 import { MessagesPanel, ChatInputArea } from './chat-panels'
+import { useI18n } from '@/i18n/I18nProvider'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
 import { useChatAutoSave } from '@/hooks/useChatAutoSave'
@@ -50,6 +51,7 @@ const Chat = memo(function Chat({
 }: ChatProps) {
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
+  const { t } = useI18n()
 
   const {
     sessionIdRef,
@@ -324,7 +326,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
   const sessionLabel = (s: { title?: string; summary?: string }) =>
     s.title?.trim() ||
     s.summary?.slice(0, 60) ||
-    (effectiveLang === 'ko' ? '저장된 상담 기록' : 'Saved conversation')
+    t('chat.rail.savedLabel', 'Saved conversation')
 
   const startRename = (s: { id: string; title?: string; summary?: string }) => {
     setRenamingId(s.id)
@@ -422,14 +424,10 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
 
           <div className={styles.historyRailList}>
             {historyLoading ? (
-              <div className={styles.historyRailEmpty}>
-                {effectiveLang === 'ko' ? '\uBD88\uB7EC\uC624\uB294 \uC911...' : 'Loading...'}
-              </div>
+              <div className={styles.historyRailEmpty}>{t('chat.rail.loading', 'Loading...')}</div>
             ) : sessionHistory.length === 0 ? (
               <div className={styles.historyRailEmpty}>
-                {effectiveLang === 'ko'
-                  ? '\uC544\uC9C1 \uC800\uC7A5\uB41C \uC0C1\uB2F4 \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.'
-                  : 'No saved conversations yet.'}
+                {t('chat.rail.empty', 'No saved conversations yet.')}
               </div>
             ) : (
               <>
@@ -438,16 +436,10 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                   if (items.length === 0) return null
                   const groupLabel =
                     bucket === 'today'
-                      ? effectiveLang === 'ko'
-                        ? '\uC624\uB298'
-                        : 'Today'
+                      ? t('chat.rail.groupToday', 'Today')
                       : bucket === 'week'
-                        ? effectiveLang === 'ko'
-                          ? '\uC9C0\uB09C 7\uC77C'
-                          : 'Previous 7 Days'
-                        : effectiveLang === 'ko'
-                          ? '\uC774\uC804'
-                          : 'Older'
+                        ? t('chat.rail.groupWeek', 'Previous 7 Days')
+                        : t('chat.rail.groupOlder', 'Older')
                   return (
                     <div key={bucket} className={styles.historyRailGroup}>
                       <h3 className={styles.historyRailGroupLabel}>{groupLabel}</h3>
@@ -483,23 +475,21 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                             ) : isConfirming ? (
                               <div className={styles.historyRailConfirm}>
                                 <span className={styles.historyRailConfirmText}>
-                                  {effectiveLang === 'ko'
-                                    ? '\uC0AD\uC81C\uD560\uAE4C\uC694?'
-                                    : 'Delete?'}
+                                  {t('chat.rail.deleteConfirm', 'Delete?')}
                                 </span>
                                 <button
                                   type="button"
                                   className={styles.historyRailConfirmYes}
                                   onClick={() => void handleDeleteSession(session.id)}
                                 >
-                                  {effectiveLang === 'ko' ? '\uC0AD\uC81C' : 'Delete'}
+                                  {t('chat.rail.delete', 'Delete')}
                                 </button>
                                 <button
                                   type="button"
                                   className={styles.historyRailConfirmNo}
                                   onClick={() => setDeleteConfirmId(null)}
                                 >
-                                  {effectiveLang === 'ko' ? '\uCDE8\uC18C' : 'Cancel'}
+                                  {t('chat.rail.cancel', 'Cancel')}
                                 </button>
                               </div>
                             ) : (
@@ -521,16 +511,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                                     type="button"
                                     className={styles.historyRailItemAction}
                                     onClick={() => startRename(session)}
-                                    aria-label={
-                                      effectiveLang === 'ko'
-                                        ? '\uC774\uB984 \uBCC0\uACBD'
-                                        : 'Rename'
-                                    }
-                                    title={
-                                      effectiveLang === 'ko'
-                                        ? '\uC774\uB984 \uBCC0\uACBD'
-                                        : 'Rename'
-                                    }
+                                    aria-label={t('chat.rail.rename', 'Rename')}
+                                    title={t('chat.rail.rename', 'Rename')}
                                   >
                                     \u270E
                                   </button>
@@ -538,8 +520,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                                     type="button"
                                     className={`${styles.historyRailItemAction} ${styles.historyRailItemActionDanger}`}
                                     onClick={() => setDeleteConfirmId(session.id)}
-                                    aria-label={effectiveLang === 'ko' ? '\uC0AD\uC81C' : 'Delete'}
-                                    title={effectiveLang === 'ko' ? '\uC0AD\uC81C' : 'Delete'}
+                                    aria-label={t('chat.rail.delete', 'Delete')}
+                                    title={t('chat.rail.delete', 'Delete')}
                                   >
                                     \uD83D\uDDD1
                                   </button>

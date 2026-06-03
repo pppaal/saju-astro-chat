@@ -211,16 +211,48 @@ export type RateLimitResult = {
 }
 
 /**
+ * Per-call options for {@link rateLimit}.
+ *
+ * `failClosed` opts an individual call into fail-closed behavior: when the
+ * authoritative Upstash backend is unavailable (down, quota-disabled, or not
+ * configured), the request is DENIED rather than silently allowed. This is the
+ * caller-scoped counterpart to the deployment-wide RATE_LIMIT_FAIL_CLOSED env
+ * flag — use it on security-sensitive routes (auth, admin, credit/billing)
+ * where bypassing the limiter is worse than rejecting a request. For most
+ * routes, availability-first (the default fail-open behavior) is preferred and
+ * `failClosed` should be omitted.
+ *
+ * Example (do NOT add this here — wire it up in the route handler):
+ *   await rateLimit(`auth:${ip}`, { limit: 5, windowSeconds: 60, failClosed: true })
+ */
+export type RateLimitOptions = {
+  limit?: number
+  windowSeconds?: number
+  /**
+   * Opt this call into fail-closed behavior. When true and the authoritative
+   * Upstash backend is unavailable, the request is denied instead of falling
+   * back to the per-instance (bypassable) in-memory store. Defaults to false to
+   * preserve the existing availability-first behavior for all current callers.
+   */
+  failClosed?: boolean
+}
+
+/**
  * Main rate limiting function with fallback:
  *   1. Try Upstash Redis (shared, authoritative).
- *   2. If Upstash is unavailable and RATE_LIMIT_FAIL_CLOSED=true (production),
- *      deny the request.
- *   3. Otherwise fall back to the per-instance in-memory store.
- * Development without Upstash configured → allow all (disabled).
+ *   2. If Upstash is unavailable, decide based on fail-closed policy:
+ *        - Per-call `failClosed: true` OR deployment-wide
+ *          RATE_LIMIT_FAIL_CLOSED=true → DENY the request.
+ *        - Otherwise fall back to the per-instance in-memory store.
+ * Development without Upstash configured → allow all (disabled), UNLESS the
+ * caller passed `failClosed: true`, in which case the request is denied.
+ *
+ * The signature is backward-compatible: `failClosed` is optional and defaults
+ * to false, so existing callers behave exactly as before.
  */
 export async function rateLimit(
   key: string,
-  { limit = 60, windowSeconds = 60 }: { limit?: number; windowSeconds?: number } = {}
+  { limit = 60, windowSeconds = 60, failClosed = false }: RateLimitOptions = {}
 ): Promise<RateLimitResult> {
   const headers = new Headers()
   headers.set('X-RateLimit-Limit', String(limit))
@@ -256,26 +288,14 @@ export async function rateLimit(
 
   const isDev = process.env.NODE_ENV === 'development'
 
-  // Development mode without Redis: allow all
-  if (isDev && !UPSTASH_URL) {
-    headers.set('X-RateLimit-Remaining', 'unlimited')
-    headers.set('X-RateLimit-Backend', 'disabled')
-    return { allowed: true, limit, remaining: limit, reset: 0, headers, backend: 'disabled' }
-  }
-
-  // 1. Try Upstash Redis
-  const upstashCount = await upstashIncrement(fullKey, windowSeconds)
-  if (upstashCount !== null) {
-    recordCounter('api.rate_limit.check', 1, { backend: 'upstash' })
-    return buildResult(upstashCount, 'upstash')
-  }
-
-  // 2. Upstash unavailable. Optionally fail closed in production rather than
-  // using the per-instance in-memory store, which an attacker can bypass by
-  // spreading requests across serverless instances.
-  if (!isDev && isFailClosed()) {
+  /**
+   * Build a fail-closed (denied) result for when the authoritative backend is
+   * unavailable. Used both for the dev-without-Upstash path and the
+   * Upstash-down path when fail-closed is requested.
+   */
+  const buildDeniedResult = (reason: string): RateLimitResult => {
     recordCounter('api.rate_limit.fail_closed', 1, { key })
-    logger.error('[RateLimit] Upstash unavailable — failing closed (deny)', {
+    logger.error(`[RateLimit] ${reason} — failing closed (deny)`, {
       env: process.env.NODE_ENV || 'unknown',
       key,
     })
@@ -291,6 +311,35 @@ export async function rateLimit(
       headers,
       backend: 'disabled',
     }
+  }
+
+  // Development mode without Redis: allow all — UNLESS this call opted into
+  // fail-closed (security-sensitive route), in which case deny rather than
+  // silently allowing when no authoritative backend exists.
+  if (isDev && !UPSTASH_URL) {
+    if (failClosed) {
+      return buildDeniedResult('Upstash unavailable (dev, not configured)')
+    }
+    headers.set('X-RateLimit-Remaining', 'unlimited')
+    headers.set('X-RateLimit-Backend', 'disabled')
+    return { allowed: true, limit, remaining: limit, reset: 0, headers, backend: 'disabled' }
+  }
+
+  // 1. Try Upstash Redis
+  const upstashCount = await upstashIncrement(fullKey, windowSeconds)
+  if (upstashCount !== null) {
+    recordCounter('api.rate_limit.check', 1, { backend: 'upstash' })
+    return buildResult(upstashCount, 'upstash')
+  }
+
+  // 2. Upstash unavailable. Fail closed when either this specific call requested
+  // it (`failClosed`) or the deployment-wide RATE_LIMIT_FAIL_CLOSED flag is set,
+  // rather than using the per-instance in-memory store, which an attacker can
+  // bypass by spreading requests across serverless instances. The per-call
+  // option fails closed in any environment (including dev) so security-sensitive
+  // routes are consistently protected; the env flag remains production-only.
+  if (failClosed || (!isDev && isFailClosed())) {
+    return buildDeniedResult('Upstash unavailable')
   }
 
   // 3. Fall back to in-memory (per-instance; see RATE_LIMIT_FAIL_CLOSED).
