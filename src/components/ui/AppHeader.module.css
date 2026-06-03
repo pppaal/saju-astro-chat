@@ -1,0 +1,156 @@
+/* 공용 상단 헤더 — 홈/운명/궁합 세 페이지가 같은 source 를 import 하도록
+   2026-06 에 추출. 옛날에는 페이지마다 .header/.homeTopBar 가 따로 박혀
+   있어서 한쪽만 손대고 다른 쪽은 드리프트(36px vs 30px, padding 12 vs 2
+   같은) 가 반복적으로 발생. 모든 헤더 도형(30×30 원형 버튼, 좌우 2px
+   padding, hover 톤) 의 단일 source. */
+
+/* 컬러 토큰은 variant 클래스가 CSS 변수로 주입 — 안쪽 버튼이 별도 className
+   없이도 부모 theme 을 자연스럽게 흡수. */
+.header {
+  --hdr-text: rgba(245, 243, 255, 0.92);
+  --hdr-text-muted: rgba(229, 231, 240, 0.85);
+  --hdr-hover-bg: rgba(212, 181, 114, 0.18);
+  --hdr-border-bottom: 1px solid rgba(212, 181, 114, 0.2);
+
+  align-items: center;
+  /* 햄버거/⋮가 화면 가장자리에 바싹 붙도록 좌우 padding 2px. 세 페이지
+     완전 통일(사용자 요청). */
+  padding: 0.375rem 0.125rem;
+  min-width: 0;
+  flex-shrink: 0;
+  /* backdrop-filter 가 새 stacking context 를 만들면, 안의 position:absolute
+     드롭다운이 헤더 외부 chatWrapper(DOM 뒤에 오는 형제)에 가려진다.
+     position:relative + z-index 로 헤더 전체를 메시지 영역 위에 둔다. */
+  position: relative;
+  z-index: 10;
+}
+
+/* ===== Layout: home (3-column flex, 가운데 로고) ===== */
+.layoutHome {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  /* 입력박스 컨테이너(.homeBody 의 max-width 860) 와 통일 — 데스크탑에서도
+     양끝 위치가 어긋나지 않게. */
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.centerSlot {
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  color: var(--hdr-text);
+}
+
+/* ===== Layout: counselor (좌측 그룹 + 우측 그룹 2-column grid) ===== */
+.layoutCounselor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  border-bottom: var(--hdr-border-bottom);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hdr-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* flex 자식에서 ellipsize 하려면 min-width:0 필수. */
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+/* ===== Theme: cosmic (홈 dark — 입자 배경 위에 떠 있음) ===== */
+.themeCosmic {
+  --hdr-text: #ffffff;
+  --hdr-text-muted: rgba(229, 231, 240, 0.92);
+  background: transparent;
+}
+.themeCosmic.layoutCounselor {
+  border-bottom: 1px solid rgba(212, 181, 114, 0.12);
+}
+
+/* ===== Theme: dark (운명 카운슬러 — 어두운 cosmic 헤더) ===== */
+.themeDark {
+  --hdr-text: rgba(245, 243, 255, 0.92);
+  --hdr-text-muted: #d4b572;
+  background: rgba(15, 10, 30, 0.8);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* ===== Theme: light (궁합 카운슬러 / 홈 premium-white) ===== */
+.themeLight {
+  --hdr-text: var(--ds-light-text, #1c1917);
+  --hdr-text-muted: var(--ds-light-text-muted, #57534e);
+  --hdr-hover-bg: var(--ds-light-bg-soft, rgba(212, 181, 114, 0.1));
+  --hdr-border-bottom: 1px solid var(--ds-light-border, rgba(28, 25, 23, 0.08));
+  background: #ffffff;
+  color: var(--hdr-text);
+}
+.themeLight.layoutHome {
+  /* 홈 premium-white 일 때는 페이지 전체 배경이 #fafaf9 와 어울리도록 투명. */
+  background: transparent;
+}
+
+/* ===== sticky 모드 — 키보드 올라와도 헤더가 화면 위에 고정 ===== */
+.sticky {
+  position: sticky;
+  top: 0;
+}
+
+/* ===== 30×30 원형 아이콘 버튼 — 햄버거/⋮/EN 토글 모두 동일 ===== */
+.iconButton {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* 글리프 크기 통일 — backIcon/chatMenuButton/localeToggle 옛 코멘트 16px. */
+  font-size: 16px;
+  line-height: 1;
+  color: var(--hdr-text-muted);
+  transition: background 0.18s ease;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.iconButton:hover:not(:disabled) {
+  background: var(--hdr-hover-bg);
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 글자 글리프(EN/KO 같은 텍스트) 는 살짝 작게 — 16px 단일 글리프 기준 */
+.iconButtonText {
+  font-size: 0.75rem;
+}
