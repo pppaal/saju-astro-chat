@@ -541,7 +541,7 @@
   }
 
   .homeChatBar {
-    padding-bottom: 0.85rem;
+    padding-bottom: 0.3rem;
   }
 
   .homeChatBarInner {
@@ -582,7 +582,7 @@
 
   .homeChatBar {
     margin-top: 0.75rem;
-    padding-bottom: 1rem;
+    padding-bottom: 0.3rem;
   }
 }
 
@@ -723,7 +723,10 @@
      좌우 -12px: 메인 homeBody 의 가로 padding 으로 입력창이 상담사보다
      24px 좀게 되던 것을 상쇄 — 폭이 안 차면 좀은 화면에서도 상담사와 동일. */
   margin: auto -12px 0;
-  padding: 0 0.25rem max(1.25rem, env(safe-area-inset-bottom));
+  /* 입력창을 화면 맨 아래에 바싹 붙임 — 하단 빈 공간 제거(사용자 요청).
+     safe-area 는 .homeContainer 가 이미 padding-bottom 으로 처리하므로 여기서
+     또 넣으면 아이폰에서 이중 갭이 된다 → 작은 고정값만. */
+  padding: 0 0.25rem 0.35rem;
   flex: 0 0 auto;
 }
 

@@ -12,8 +12,9 @@
   /* 메시지 영역과 같은 flex 부모 안에서 압축되지 않게 — 입력창이 커질 땐
      자기 콘텐츠(textarea) 높이만큼 차지하고 메시지 영역이 줄어든다. */
   flex-shrink: 0;
-  /* 좌우 패딩 축소 — 입력창을 화면 양끝까지 넓힘(사용자 요청). */
-  padding: 6px 8px 8px;
+  /* 좌우 패딩 축소 — 입력창을 화면 양끝까지 넓힘(사용자 요청). 하단은 화면
+     맨 아래에 바싹 붙이되 아이폰 홈 인디케이터(safe-area)만 확보. */
+  padding: 6px 8px max(6px, env(safe-area-inset-bottom));
   background: linear-gradient(
     180deg,
     rgba(8, 11, 22, 0) 0%,
