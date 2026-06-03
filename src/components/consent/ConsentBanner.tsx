@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useConsent } from '@/contexts/ConsentContext'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -14,9 +15,7 @@ export function ConsentBanner() {
   const [legalNeedsConsent, setLegalNeedsConsent] = useState<boolean | null>(null)
 
   // 로그인 직후 LegalConsentModal 이 강제로 떠 있을 가능성 — 그 위에 쿠키
-  // 배너까지 겹치면 사용자가 두 개 모달을 동시에 처리해야 함. 로그인된 사
-  // 용자는 /api/me/legal-consent 결과를 먼저 보고, needsConsent=true 면
-  // LegalConsentModal 가 닫힐 때까지 쿠키 배너 보류.
+  // 배너까지 겹치면 사용자가 두 개 모달을 동시에 처리해야 함.
   useEffect(() => {
     if (authStatus !== 'authenticated') {
       setLegalNeedsConsent(false)
@@ -39,8 +38,6 @@ export function ConsentBanner() {
   }, [authStatus])
 
   useEffect(() => {
-    // pending 일 때만 + Legal 모달이 안 떠 있을 때만 표시.
-    // legalNeedsConsent === null = 아직 조회 중 → 안전하게 보류.
     setVisible(status === 'pending' && legalNeedsConsent === false)
   }, [status, legalNeedsConsent])
 
@@ -54,13 +51,30 @@ export function ConsentBanner() {
       role="dialog"
       aria-live="polite"
       aria-labelledby="consent-banner-title"
+      aria-describedby="consent-banner-desc"
     >
       <div className={styles.text}>
-        <strong id="consent-banner-title">{t('consent.title', 'Privacy choices')}</strong>
-        <p>{t('consent.description', 'We use cookies and similar tech for analytics and ads.')}</p>
+        <strong id="consent-banner-title" className={styles.title}>
+          {t('consent.title', 'Cookie preferences')}
+        </strong>
+        <p id="consent-banner-desc" className={styles.description}>
+          {t(
+            'consent.description',
+            'We use cookies to analyze traffic and improve your experience. You can change this anytime.'
+          )}{' '}
+          <Link
+            href="/policy/privacy"
+            className={styles.policyLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t('consent.policyLink', 'Privacy Policy')}
+          </Link>
+        </p>
       </div>
       <div className={styles.actions}>
         <button
+          type="button"
           className={styles.secondary}
           onClick={() => {
             deny()
@@ -70,6 +84,7 @@ export function ConsentBanner() {
           {t('consent.reject', 'Reject')}
         </button>
         <button
+          type="button"
           className={styles.primary}
           onClick={() => {
             grant()
