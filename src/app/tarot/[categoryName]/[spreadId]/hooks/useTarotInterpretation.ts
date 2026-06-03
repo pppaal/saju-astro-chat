@@ -711,23 +711,27 @@ export function useTarotInterpretation({
           })
 
           if (!preferredSaveResponse.ok) {
+            const status = preferredSaveResponse.status
             const errorPayload = (await preferredSaveResponse.json().catch(() => null)) as {
               error?: {
                 message?: string
-                details?: Array<{ path?: string; message?: string }>
+                // route 는 apiError(code,msg,{details:[...]}) 로 보내 → 서버 응답은
+                // error.details.details[] 형태. 평평한 error.details[] 도 호환.
+                details?:
+                  | Array<{ path?: string; message?: string }>
+                  | { details?: Array<{ path?: string; message?: string }> }
               }
               message?: string
             } | null
-            // 검증 실패(400) 시 어느 필드가 막혔는지 첫 detail 을 끌어와 사용자
-            // 화면 + 로그에 그대로 노출 — 무음으로 "그냥 실패" 하지 않게.
-            const detail = errorPayload?.error?.details?.[0]
-            const detailMsg = detail ? `${detail.path ?? ''} ${detail.message ?? ''}`.trim() : ''
-            const errorMessage =
-              detailMsg ||
-              errorPayload?.error?.message ||
-              errorPayload?.message ||
-              `${preferredSaveResponse.status}`
-            throw new Error(errorMessage)
+            const rawDetails = errorPayload?.error?.details
+            const issues = Array.isArray(rawDetails) ? rawDetails : rawDetails?.details
+            const first = Array.isArray(issues) ? issues[0] : undefined
+            const detailMsg = first ? `${first.path ?? ''} ${first.message ?? ''}`.trim() : ''
+            const reason =
+              detailMsg || errorPayload?.error?.message || errorPayload?.message || ''
+            // HTTP 상태를 항상 앞에 — 401(로그인)/402(크레딧)/400(데이터)/500(서버)
+            // 을 한눈에 구분. 무음 실패 끝.
+            throw new Error(`${status}${reason ? ` ${reason}` : ''}`)
           }
 
           // 서버가 부여한 readingId 회수 — 이후 클래리파이어 / followup
