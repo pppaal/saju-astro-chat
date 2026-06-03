@@ -8,12 +8,10 @@ import {
   YinYang,
   CalculateSajuDataResult,
   DaeunPillar,
-  CycleData,
   StemBranchInfo,
   PillarData,
   AnnualCycleData,
   MonthlyCycleData,
-  IljinData,
 } from './types'
 import {
   STEMS,
@@ -25,8 +23,9 @@ import {
   assertKasiYearInRange,
 } from './constants'
 import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
-import { isCheoneulGwiin } from './stemBranchUtils'
 import { computeDayPillarIndices } from './dayPillar'
+// 연운/월운/일진 stem-branch 산술의 single source.
+import { annualStemBranch, sajuMonthStemBranch } from './cycles'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { getOffsetMinutes } from './timezone'
@@ -632,13 +631,12 @@ export function calculateSajuData(
         .reverse()
         .find((d) => currentAge >= d.age) || daeWoonList[0]
 
-    // 연운 (현재 연도부터 6년치)
+    // 연운 (현재 연도부터 6년치) — stem-branch 산술은 cycles.ts(single source) 위임.
+    // baseAllDataPrompt/어댑터가 기대하는 wide shape(ganji/element 포함) 으로 매핑.
     const annualCycles: AnnualCycleData[] = []
     for (let i = 0; i < 6; i++) {
       const yr = yNowLocal + i
-      const idx60 = (yr - 4 + 6000) % 60
-      const stem = STEMS[idx60 % 10]
-      const branch = BRANCHES[idx60 % 12]
+      const { stem, branch } = annualStemBranch(yr)
       const mainForB = getBranchMainStem(branch.name)
       annualCycles.push({
         year: yr,
@@ -654,7 +652,7 @@ export function calculateSajuData(
       })
     }
 
-    // 월운 (현재 월부터 12개월치)
+    // 월운 (현재 월부터 12개월치) — 사주월(寅-first) 산술은 cycles.ts 위임.
     const monthlyCycles: MonthlyCycleData[] = []
     for (let i = 0; i < 12; i++) {
       let yr = yNowLocal
@@ -663,13 +661,7 @@ export function calculateSajuData(
         mo -= 12
         yr += 1
       }
-      const idx60 = (yr - 4 + 6000) % 60
-      const yearStemName = STEMS[idx60 % 10].name
-      const firstMonthStemName = MONTH_STEM_LOOKUP[yearStemName]
-      const firstMonthStemIndex = STEMS.findIndex((s) => s.name === firstMonthStemName)
-      const branchOrder = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]
-      const stem = STEMS[(firstMonthStemIndex + mo - 1) % 10]
-      const branch = BRANCHES[branchOrder[(mo - 1) % 12]]
+      const { stem, branch } = sajuMonthStemBranch(yr, mo - 1)
       const mainForB = getBranchMainStem(branch.name)
       monthlyCycles.push({
         year: yr,
@@ -741,72 +733,12 @@ export function calculateSajuData(
   }
 }
 
-/* ========== 연/월/일 유틸 ========== */
-export function getAnnualCycles(startYear: number, count: number, dayMaster: DayMaster) {
-  const cycles: CycleData[] = []
-  for (let i = 0; i < count; i++) {
-    const year = startYear + i
-    const idx60 = (year - 4 + 6000) % 60
-    const stem = STEMS[idx60 % 10]
-    const branch = BRANCHES[idx60 % 12]
-    const mainForB = getBranchMainStem(branch.name)
-    cycles.push({
-      year,
-      heavenlyStem: stem.name,
-      earthlyBranch: branch.name,
-      sibsin: {
-        cheon: getSibseong(dayMaster, stem),
-        ji: getSibseong(dayMaster, mainForB ?? branch),
-      },
-    })
-  }
-  return cycles
-}
-
-export function getMonthlyCycles(year: number, dayMaster: DayMaster) {
-  const cycles: CycleData[] = []
-  const idx60 = (year - 4 + 6000) % 60
-  const yearStemName = STEMS[idx60 % 10].name
-  const firstMonthStemName = MONTH_STEM_LOOKUP[yearStemName]
-  const firstMonthStemIndex = STEMS.findIndex((s) => s.name === firstMonthStemName)
-  const branchOrder = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]
-  for (let i = 0; i < 12; i++) {
-    const stem = STEMS[(firstMonthStemIndex + i) % 10]
-    const branch = BRANCHES[branchOrder[i]]
-    const mainForB = getBranchMainStem(branch.name)
-    cycles.push({
-      month: i + 1,
-      heavenlyStem: stem.name,
-      earthlyBranch: branch.name,
-      sibsin: {
-        cheon: getSibseong(dayMaster, stem),
-        ji: getSibseong(dayMaster, mainForB ?? branch),
-      },
-    })
-  }
-  return cycles.sort((a, b) => (a.month ?? 0) - (b.month ?? 0))
-}
-
-export function getIljinCalendar(year: number, month: number, dayMaster: DayMaster): IljinData[] {
-  const daysInMonth = new Date(year, month, 0).getDate()
-  const calendar: IljinData[] = []
-  for (let day = 1; day <= daysInMonth; day++) {
-    const { stemIndex, branchIndex } = computeDayPillarIndices(year, month, day)
-    const stem = STEMS[stemIndex]
-    const branch = BRANCHES[branchIndex]
-    const mainForB = getBranchMainStem(branch.name)
-    calendar.push({
-      year,
-      month,
-      day,
-      heavenlyStem: stem.name,
-      earthlyBranch: branch.name,
-      sibsin: {
-        cheon: getSibseong(dayMaster, stem),
-        ji: getSibseong(dayMaster, mainForB ?? branch),
-      },
-      isCheoneulGwiin: isCheoneulGwiin(dayMaster.name, branch.name),
-    })
-  }
-  return calendar
-}
+/* ========== 연/월/일 유틸 ==========
+ * 산술은 cycles.ts(single source) 로 위임. 아래 export 는 BC(테스트·옛 호출자)
+ * 유지를 위한 thin re-export — 출력 byte 동일.
+ */
+export {
+  getAnnualCycles,
+  getSajuMonthlyCycles as getMonthlyCycles,
+  getIljinCalendar,
+} from './cycles'

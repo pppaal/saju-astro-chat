@@ -17,6 +17,20 @@ describe('safety/crisis', () => {
       expect(isSelfHarm('살기 싫어')).toBe(true)
     })
 
+    it('detects no-space / colloquial Korean phrasings (whitespace-normalized)', () => {
+      expect(isSelfHarm('죽고싶어요')).toBe(true) // no space
+      expect(isSelfHarm('죽고 싶어')).toBe(true)
+      expect(isSelfHarm('사라지고싶다')).toBe(true) // no space
+      expect(isSelfHarm('목숨을 끊고')).toBe(true)
+      expect(isSelfHarm('이제 없어지고 싶어')).toBe(true)
+    })
+
+    it('detects additional English crisis phrasings', () => {
+      expect(isSelfHarm("don't want to live")).toBe(true)
+      expect(isSelfHarm('I want to end it all')).toBe(true)
+      expect(isSelfHarm('just kill me')).toBe(true)
+    })
+
     it('is case-insensitive', () => {
       expect(isSelfHarm('SUICIDE')).toBe(true)
       expect(isSelfHarm('Kill Myself')).toBe(true)
@@ -26,6 +40,12 @@ describe('safety/crisis', () => {
       expect(isSelfHarm('내 연애운 어때?')).toBe(false)
       expect(isSelfHarm('Will I get a promotion this year?')).toBe(false)
       expect(isSelfHarm('우리 궁합 좋아?')).toBe(false)
+      expect(isSelfHarm('주식운 좋아?')).toBe(false)
+    })
+
+    it('does not flag benign idioms containing 목숨 (no longer a bare keyword)', () => {
+      expect(isSelfHarm('목숨 걸고 응원해')).toBe(false)
+      expect(isSelfHarm('목숨 걸고 열심히 할게')).toBe(false)
     })
 
     it('handles empty / nullish input', () => {

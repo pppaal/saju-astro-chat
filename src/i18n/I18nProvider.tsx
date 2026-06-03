@@ -70,6 +70,92 @@ async function loadLocaleDict(locale: Locale): Promise<DictValue> {
   return dict
 }
 
+/**
+ * Heuristic to detect genuinely mojibake / corrupted translation strings so we
+ * can fall back to English rather than show garbage to the user.
+ *
+ * IMPORTANT: this MUST be code-point aware. A naive UTF-16 code-unit scan treats
+ * the surrogate range (U+D800–U+DFFF) as illegal, but every astral-plane emoji
+ * (🌟 🌍 🎯 📊 💰, all U+1F300+) is encoded as a surrogate *pair* in JS strings.
+ * The old regex `[^...퟿-�]` excluded the surrogate range and so
+ * flagged ~7% of perfectly valid Korean strings (those containing emoji) as
+ * corrupted — Korean users silently saw the English fallback instead.
+ *
+ * We instead iterate Unicode code points (`[...value]`) and explicitly allow the
+ * emoji/symbol/pictograph blocks while still catching the real corruption cases
+ * this was designed for: U+FFFD replacement chars, stray Cyrillic embedded in
+ * otherwise-Korean text, control characters, and dense Latin-1 mojibake runs.
+ */
+export function isLikelyCorrupted(value: string): boolean {
+  if (!value) {
+    return true
+  }
+
+  // Hard signal: Unicode replacement char always means a decode went wrong.
+  if (value.includes('�')) {
+    return true
+  }
+
+  let suspiciousLatin1 = 0
+  let codePointCount = 0
+
+  for (const ch of value) {
+    codePointCount++
+    const cp = ch.codePointAt(0)!
+
+    // Allowed: emoji, symbols, pictographs and their helpers.
+    if (
+      (cp >= 0x1f000 && cp <= 0x1faff) || // emoji & supplementary symbols/pictographs
+      (cp >= 0x2600 && cp <= 0x27bf) || // misc symbols + dingbats
+      (cp >= 0x2190 && cp <= 0x21ff) || // arrows
+      (cp >= 0x2300 && cp <= 0x23ff) || // misc technical (⌚ etc.)
+      (cp >= 0x2b00 && cp <= 0x2bff) || // misc symbols & arrows (⭐ etc.)
+      (cp >= 0x1f1e6 && cp <= 0x1f1ff) || // regional indicators (flags)
+      (cp >= 0xfe00 && cp <= 0xfe0f) || // variation selectors
+      cp === 0x200d || // zero-width joiner (emoji sequences)
+      cp === 0x20e3 // combining enclosing keycap
+    ) {
+      continue
+    }
+
+    // Allowed plain text: tab / newline / CR.
+    if (cp === 0x09 || cp === 0x0a || cp === 0x0d) {
+      continue
+    }
+
+    // Disallowed: other control characters (C0 + C1 + DEL).
+    if (cp < 0x20 || (cp >= 0x7f && cp <= 0x9f)) {
+      return true
+    }
+
+    // Disallowed: stray Cyrillic embedded in (otherwise Korean) UI text — a
+    // classic single-byte decode artifact.
+    if (cp >= 0x0400 && cp <= 0x04ff) {
+      return true
+    }
+
+    // Count Latin-1 chars that commonly appear in UTF-8-decoded-as-Latin-1
+    // mojibake (Ã Â â ì ë ê í ð …). A few may be legitimate; a dense run is not.
+    if (
+      cp === 0x00c3 ||
+      cp === 0x00c2 ||
+      cp === 0x00e2 ||
+      cp === 0x00ec ||
+      cp === 0x00eb ||
+      cp === 0x00ea ||
+      cp === 0x00ed ||
+      cp === 0x00f0
+    ) {
+      suspiciousLatin1++
+    }
+  }
+
+  if (suspiciousLatin1 >= 3) {
+    return true
+  }
+  return suspiciousLatin1 / Math.max(1, codePointCount) > 0.15
+}
+
 // Fill missing translations with English fallback
 function fillMissing(base: Record<string, unknown>, target: Record<string, unknown>) {
   for (const [k, v] of Object.entries(base)) {
@@ -233,24 +319,6 @@ export function I18nProvider({
         }
       }
       return cur
-    }
-
-    const isLikelyCorrupted = (value: string) => {
-      if (!value) {
-        return true
-      }
-      if (/[^\u0009\u000A\u000D\u0020-\u007E\u00A0-\uD7FF\uE000-\uFFFD]/.test(value)) {
-        return true
-      }
-      if (/[\u0400-\u04FF]/.test(value) || value.includes('\uFFFD')) {
-        return true
-      }
-      const suspiciousMatches =
-        value.match(/[\u00C3\u00C2\u00E2\u00EC\u00EB\u00EA\u00ED\u00F0]/g) || []
-      if (suspiciousMatches.length >= 3) {
-        return true
-      }
-      return suspiciousMatches.length / Math.max(1, value.length) > 0.15
     }
 
     return (path: string, fallback?: string) => {

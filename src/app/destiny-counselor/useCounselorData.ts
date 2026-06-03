@@ -175,6 +175,13 @@ export function useCounselorData(sp: SearchParams) {
     // resolves, a late response must NOT overwrite fresh chart data. applyChart
     // drops any write once this run is cancelled.
     let cancelled = false
+    // Abort the in-flight network requests on re-run / unmount. The `cancelled`
+    // flag + applyChart already drop stale *writes*, but without aborting, the
+    // ~12 fetches this effect fires (saju + astro + 9 advanced) keep running to
+    // completion on every dep change (locale toggle, birth edit). One shared
+    // controller threaded through every fetch tears them all down at once.
+    // Matches the AbortController style in useChatApi / useInlineTarotAPI.
+    const controller = new AbortController()
     const chartSetter = setChartData
     const applyChart = (next: Parameters<typeof setChartData>[0]) => {
       if (!cancelled) chartSetter(next)
@@ -230,6 +237,7 @@ export function useCounselorData(sp: SearchParams) {
               latitude: resolvedLatitude,
               longitude: resolvedLongitude,
             }),
+            signal: controller.signal,
           })
           if (!res.ok) {
             // /api/saju 실패 시 fallback — calculateSajuData 직접 호출 (옛 동작).
@@ -270,6 +278,9 @@ export function useCounselorData(sp: SearchParams) {
             /* ignore cache write error */
           }
         } catch (err) {
+          // An abort (effect re-run / unmount) is expected — don't log it as
+          // a failure. The write-guard above also drops any resolved-before-abort write.
+          if ((err as { name?: string })?.name === 'AbortError') return
           logger.warn('[CounselorPage] rich saju fetch failed:', err)
         }
       }
@@ -296,6 +307,7 @@ export function useCounselorData(sp: SearchParams) {
               longitude: resolvedLongitude,
               timeZone: resolvedTimeZone,
             }),
+            signal: controller.signal,
           })
           if (!res.ok) return
           const json = (await res.json()) as {
@@ -326,6 +338,7 @@ export function useCounselorData(sp: SearchParams) {
             /* ignore cache write error */
           }
         } catch (err) {
+          if ((err as { name?: string })?.name === 'AbortError') return
           logger.warn('[CounselorPage] base natal fetch failed:', err)
         }
       }
@@ -388,52 +401,61 @@ export function useCounselorData(sp: SearchParams) {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
+              signal: controller.signal,
             }).catch(() => null),
             fetch(`/api/astrology/advanced/draconic`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
+              signal: controller.signal,
             }).catch(() => null),
             fetch(`/api/astrology/advanced/harmonics`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
+              signal: controller.signal,
             }).catch(() => null),
             // Solar Return (현재 연도)
             fetch(`/api/astrology/advanced/solar-return`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
+              signal: controller.signal,
             }).catch(() => null),
             // Lunar Return (현재 월)
             fetch(`/api/astrology/advanced/lunar-return`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
+              signal: controller.signal,
             }).catch(() => null),
             // Progressions (현재 날짜)
             fetch(`/api/astrology/advanced/progressions`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
+              signal: controller.signal,
             }).catch(() => null),
             // Fixed Stars (항성)
             fetch(`/api/astrology/advanced/fixed-stars`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
+              signal: controller.signal,
             }).catch(() => null),
             // Eclipses (이클립스)
             fetch(`/api/astrology/advanced/eclipses`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
+              signal: controller.signal,
             }).catch(() => null),
             // Midpoints (미드포인트)
             fetch(`/api/astrology/advanced/midpoints`, {
               method: 'POST',
               headers: advancedHeaders,
               body: JSON.stringify(requestBody),
+              signal: controller.signal,
             }).catch(() => null),
           ])
 
@@ -492,6 +514,7 @@ export function useCounselorData(sp: SearchParams) {
             advancedAstro: advanced,
           })
         } catch (e) {
+          if ((e as { name?: string })?.name === 'AbortError') return
           logger.warn('[CounselorPage] Failed to fetch advanced astrology:', e)
         }
       }
@@ -502,9 +525,14 @@ export function useCounselorData(sp: SearchParams) {
     // Python AI backend was removed — counselor RAG prefetch is now a no-op.
     // The chat itself runs through @anthropic-ai/sdk directly, no init step needed.
 
-    // Cancel stale async writes on re-run / unmount.
+    // Cancel stale async writes AND abort in-flight requests on re-run / unmount.
     return () => {
       cancelled = true
+      try {
+        controller.abort()
+      } catch {
+        /* AbortController throws if already aborted; ignore. */
+      }
     }
   }, [
     birthDate,

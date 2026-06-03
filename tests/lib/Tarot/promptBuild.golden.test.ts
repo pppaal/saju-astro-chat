@@ -237,6 +237,47 @@ describe('buildInterpretStreamPrompts — English', () => {
     })
     expect(blank.userPrompt).toContain('"general reading"')
   })
+
+  it('declares the JSON output schema in the system prompt', () => {
+    expect(built.systemPrompt).toContain('"overall"')
+    expect(built.systemPrompt).toContain('"cards"')
+    expect(built.systemPrompt).toContain('"advice"')
+    expect(built.systemPrompt).toContain('"position"')
+    expect(built.systemPrompt).toContain('"interpretation"')
+  })
+
+  // Parity backfill: the EN branch had drifted thinner than KO, missing the
+  // voice-restate, the numbered self-check, and several format rules. These
+  // assert the previously-missing sections are now present in EN (matching KO).
+  it('restates the conversational voice inside the JSON values (tone-restate)', () => {
+    expect(built.systemPrompt).toContain('Tone restated')
+    expect(built.systemPrompt).toMatch(/across-the-table speaking voice/)
+    expect(built.systemPrompt).toMatch(/This card represents/)
+  })
+
+  it('carries the numbered self-check checklist before finishing', () => {
+    expect(built.systemPrompt).toContain('Self-check before finishing')
+    expect(built.systemPrompt).toMatch(/1\) The whole thing parses as valid JSON/)
+    expect(built.systemPrompt).toMatch(/2\) The cards array length is exactly equal/)
+    expect(built.systemPrompt).toMatch(/3\) None of overall, advice/)
+    expect(built.systemPrompt).toMatch(/4\) Each position is distinct/)
+  })
+
+  it('carries the backfilled format rules at parity with KO', () => {
+    // reversed-orientation, overall-vs-advice split, no card-dictionary,
+    // card-relationship, seat-emphasis, time-anchor, and off-topic redirect.
+    expect(built.systemPrompt).toMatch(/must reflect that card's upright\/reversed orientation/)
+    expect(built.systemPrompt).toMatch(/overall and advice do different jobs/)
+    expect(built.systemPrompt).toContain('card-dictionary')
+    expect(built.systemPrompt).toMatch(/name the relationship between them/)
+    expect(built.systemPrompt).toMatch(/different emphasis depending on its seat/)
+    expect(built.systemPrompt).toMatch(/relative time anchor/)
+    expect(built.systemPrompt).toMatch(/steer naturally back to the reading/)
+  })
+
+  it('keeps the EN system prompt free of Hangul (no KO bleed after backfill)', () => {
+    expect(built.systemPrompt).not.toMatch(/[가-힯]/)
+  })
 })
 
 describe('buildInterpretStreamPrompts — schema directives', () => {

@@ -2,9 +2,11 @@
 
 import { logger } from '@/lib/logger'
 import { STEMS, BRANCHES, MONTH_STEM_LOOKUP, getSolarTermKST } from './constants'
-import { isCheoneulGwiin } from './stemBranchUtils'
-// 일주(일간·일지) 산정의 single source — JDN+49 공식.
-import { computeDayPillarIndices } from './dayPillar'
+// 연운/일진 산술의 single source.
+import {
+  getAnnualCycles as getAnnualCyclesCanonical,
+  getIljinCalendar as getIljinCalendarCanonical,
+} from './cycles'
 // 십신 / 정기 매핑은 core 모듈이 single source — saju.ts/unse.ts 둘 다 같은 것 사용.
 import { getSibseong as getSibseongCore, getBranchSibsin } from './core/sibsin'
 import type { BirthInstant } from '@/lib/datetime'
@@ -156,28 +158,13 @@ export function getDaeunCycles(
   return { daeunsu, cycles }
 }
 
+// 연운 산술은 cycles.ts(single source) 로 위임 — 출력 byte 동일.
 export function getAnnualCycles(
   startYear: number,
   count: number,
   dayMaster: DayMaster
 ): YeonunData[] {
-  const cycles: YeonunData[] = []
-  // 연도순으로 정렬: startYear, startYear+1, startYear+2, ...
-  for (let i = 0; i < count; i++) {
-    const year = startYear + i
-    const gapja_index = (year - 4 + 6000) % 60
-    const stem = STEMS[gapja_index % 10]
-    const branch = BRANCHES[gapja_index % 12]
-    if (stem && branch) {
-      cycles.push({
-        year,
-        heavenlyStem: stem.name,
-        earthlyBranch: branch.name,
-        sibsin: { cheon: getSibseong(dayMaster, stem), ji: getSibseong(dayMaster, branch) },
-      })
-    }
-  }
-  return cycles
+  return getAnnualCyclesCanonical(startYear, count, dayMaster)
 }
 
 // 절기(월) → 지지 매핑: 절기월 2=寅, 3=卯, ... 12=子, 1=丑
@@ -303,33 +290,7 @@ export function getMonthlyCycles(
 // calculateSajuData/dayPillar 와 갈라질 위험이 있었다. 두 공식은 1940~2050
 // 전 구간에서 byte-단위로 동일함을 확인했고(테스트 saju-singlesource.iljin),
 // 이제 JDN 한 곳으로 위임한다 — 출력 변화 없음.
+// 일진 산술은 cycles.ts(single source) 로 위임 — 출력 byte 동일.
 export function getIljinCalendar(year: number, month: number, dayMaster: DayMaster): IljinData[] {
-  const calendar: IljinData[] = []
-
-  // 월의 일수 — 그레고리력 (윤년 포함). day=0 trick 으로 말일 획득.
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const { stemIndex, branchIndex } = computeDayPillarIndices(year, month, d)
-    const stem = STEMS[stemIndex]
-    const branch = BRANCHES[branchIndex]
-    if (!stem || !branch) {
-      continue
-    }
-
-    calendar.push({
-      year,
-      month,
-      day: d,
-      heavenlyStem: stem.name,
-      earthlyBranch: branch.name,
-      sibsin: {
-        cheon: getSibseong(dayMaster, stem),
-        ji: getSibseong(dayMaster, branch),
-      },
-      isCheoneulGwiin: isCheoneulGwiin(dayMaster.name, branch.name),
-    })
-  }
-
-  return calendar
+  return getIljinCalendarCanonical(year, month, dayMaster)
 }

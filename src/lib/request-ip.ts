@@ -73,12 +73,33 @@ function isTrustedProxy(ip: string): boolean {
   return false
 }
 
+/**
+ * Whether the deployment is genuinely fronted by Cloudflare.
+ *
+ * SECURITY: We must NOT infer "behind Cloudflare" from the mere presence of a
+ * `cf-ray` header. On a deployment that is not actually behind Cloudflare (e.g.
+ * a plain Vercel/Node host), a client can forge `cf-ray`; treating that as proof
+ * of a trusted proxy would let the attacker also supply forged
+ * `x-forwarded-for` / `x-real-ip` to rotate the per-IP rate-limit key.
+ *
+ * Cloudflare trust is therefore opt-in via an explicit operator-controlled flag.
+ * Set `TRUST_CLOUDFLARE=true` ONLY on deployments whose traffic is guaranteed to
+ * pass through Cloudflare (so client-supplied cf-* headers are always stripped
+ * and re-set by Cloudflare).
+ */
+function isBehindCloudflare(): boolean {
+  return process.env.TRUST_CLOUDFLARE === 'true'
+}
+
 function shouldTrustProxyHeaders(headers: Headers, remoteAddr?: string): boolean {
   if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') return true
   if (process.env.TRUST_PROXY === 'true') return true
   const vercelEnv = process.env.VERCEL
   if (vercelEnv === '1' || vercelEnv === 'true') return true
-  if (headers.get('cf-ray')) return true
+  // Only trust Cloudflare-supplied headers when the deployment is genuinely
+  // fronted by Cloudflare. A forged `cf-ray` alone must NOT flip trust on a
+  // host that is not actually behind Cloudflare.
+  if (isBehindCloudflare() && headers.get('cf-ray')) return true
   if (remoteAddr && isTrustedProxy(remoteAddr)) return true
   return false
 }

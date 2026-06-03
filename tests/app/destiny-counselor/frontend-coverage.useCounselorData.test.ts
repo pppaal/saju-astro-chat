@@ -329,3 +329,88 @@ describe('useCounselorData — profile-fallback merge precedence', () => {
     await waitFor(() => expect(result.current.profileLoading).toBe(false))
   })
 })
+
+// --- Request cancellation (AbortController on chart-load effect) -------------
+
+describe('useCounselorData — chart-load request cancellation', () => {
+  const CHART_FETCH_URLS = [
+    '/api/saju',
+    '/api/astrology',
+    '/api/astrology/advanced/asteroids',
+    '/api/astrology/advanced/midpoints',
+  ]
+
+  it('passes an AbortSignal to every chart-load fetch', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>
+    renderHook(() =>
+      useCounselorData({ birthDate: '1995-02-09', birthTime: '06:40' })
+    )
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some((c) => String(c[0]).startsWith('/api/astrology/advanced/'))
+      ).toBe(true)
+    })
+
+    for (const url of CHART_FETCH_URLS) {
+      const call = fetchMock.mock.calls.find((c) => c[0] === url)
+      expect(call, `expected a fetch to ${url}`).toBeDefined()
+      const init = call?.[1] as RequestInit | undefined
+      expect(init?.signal, `expected signal on fetch to ${url}`).toBeInstanceOf(AbortSignal)
+      expect(init?.signal?.aborted).toBe(false)
+    }
+  })
+
+  it('aborts the in-flight chart-load requests on unmount', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>
+    const { unmount } = renderHook(() =>
+      useCounselorData({ birthDate: '1995-02-09', birthTime: '06:40' })
+    )
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some((c) => c[0] === '/api/saju')).toBe(true)
+    })
+
+    // Capture the signal handed to /api/saju before tearing the hook down.
+    const sajuCall = fetchMock.mock.calls.find((c) => c[0] === '/api/saju')
+    const signal = (sajuCall?.[1] as RequestInit | undefined)?.signal
+    expect(signal?.aborted).toBe(false)
+
+    unmount()
+
+    // Cleanup must abort the shared controller, flipping every signal.
+    expect(signal?.aborted).toBe(true)
+  })
+
+  it('aborts and re-fires when a chart dep changes (e.g. timeZone toggle)', async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>
+    const { rerender } = renderHook(
+      (props: Record<string, string>) => useCounselorData(props),
+      {
+        initialProps: {
+          birthDate: '1995-02-09',
+          birthTime: '06:40',
+          timeZone: 'Asia/Seoul',
+        },
+      }
+    )
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some((c) => c[0] === '/api/saju')).toBe(true)
+    })
+    const firstSignal = (
+      fetchMock.mock.calls.find((c) => c[0] === '/api/saju')?.[1] as RequestInit | undefined
+    )?.signal
+    expect(firstSignal?.aborted).toBe(false)
+
+    // Changing a dep (timeZone) re-runs the effect: the cleanup aborts the
+    // first run's controller, and a fresh batch of fetches fires.
+    rerender({ birthDate: '1995-02-09', birthTime: '06:40', timeZone: 'Asia/Tokyo' })
+
+    expect(firstSignal?.aborted).toBe(true)
+    await waitFor(() => {
+      const sajuCalls = fetchMock.mock.calls.filter((c) => c[0] === '/api/saju')
+      expect(sajuCalls.length).toBeGreaterThanOrEqual(2)
+    })
+  })
+})
