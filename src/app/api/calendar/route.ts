@@ -404,7 +404,19 @@ export const GET = withApiMiddleware(
     // 먹는 recommendation/warningKeys 는 순수 빌더로 재현(브릿지 내부). 아래 augment
     // 블록이 같은 12달(cell-cache in-memory HIT)로 narrative/신호/패턴/일진을 부착한다
     // — 점수·문구·신호·게이트가 전부 단일 v2 출처. 구 v3 blend·engineScores 주입 폐기.
-    const prescoreMonths = Array.from({ length: 12 }, (_, i) => i)
+    //
+    // [지연 빌드] scope=month 면 "지금 보는 달" 한 달만 빌드해 응답 — 첫 화면이
+    // 12배 빨라짐. 클라가 곧바로 scope 없는 풀 연도 요청을 백그라운드로 보내
+    // allDates 를 365일로 채운다(월 이동·연 탭). prescore·augment 둘 다 같은
+    // 범위를 써야 cellByDate/v2 데코가 빈 칸 없이 일관됨.
+    const monthOnly = searchParams.get('scope') === 'month'
+    const focusMonthMatch = searchParams.get('month')?.match(/^(\d{4})-(\d{1,2})$/)
+    const focusMonthIdx = focusMonthMatch
+      ? Number(focusMonthMatch[2]) - 1
+      : nowInTimezone(timezone).getUTCMonth()
+    const prescoreMonths = monthOnly
+      ? [focusMonthIdx]
+      : Array.from({ length: 12 }, (_, i) => i)
 
     const prescoreCells: import('@/lib/calendar-engine/types').CalendarCell[] = []
     try {
@@ -530,7 +542,10 @@ export const GET = withApiMiddleware(
       // 빌드 대상 12달 전부 — 응답에 12달 narrative/engineSignals/themeScores 포함되어야
       // 다른 달 클릭 시 monthInsights 빈 화면 안 나옴. prescore 3달은 in-memory HIT,
       // 나머지 9 달은 cell-cache MISS → 빌드 (~150ms × 9 ≈ 1.35s, cell-cache 적재).
-      const monthsToBuildAugment = Array.from({ length: 12 }, (_, month) => {
+      // [지연 빌드] scope=month 면 prescore 와 동일하게 그 달만 — allDates 와
+      // 데코(cellByDate/v2ByDate)가 같은 1달로 일관. 풀 연도는 클라 백그라운드 요청.
+      const augmentMonths = monthOnly ? [focusMonthIdx] : Array.from({ length: 12 }, (_, i) => i)
+      const monthsToBuildAugment = augmentMonths.map((month) => {
         const start = new Date(Date.UTC(year, month, 1))
         const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59))
         return {
