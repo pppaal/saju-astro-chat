@@ -90,6 +90,20 @@ def main() -> None:
         deduped.append(c)
     kept = deduped
 
+    # 2차: 완전히 같은 좌표 = 같은 장소의 철자 변형(Köln/Koeln, Mecca/Makkah,
+    # Łódź/Lodz 등). 악센트(비ASCII) 많은 '정식 표기'를 우선해 하나만 남긴다.
+    winner: dict = {}
+    for i, c in enumerate(kept):
+        k = (round(float(c.get("lat", 0)), 5), round(float(c.get("lon", 0)), 5))
+        score = sum(1 for ch in (c.get("name") or "") if ord(ch) > 127)
+        if k not in winner or score > winner[k][1]:
+            winner[k] = (i, score)
+    keep_idx = {v[0] for v in winner.values()}
+    coord_dropped = len(kept) - len(keep_idx)
+    kept = [c for i, c in enumerate(kept) if i in keep_idx]
+    if coord_dropped:
+        print(f"  (동일좌표 중복 제거: {coord_dropped})")
+
     print(f"cities: {len(cities)} → {len(kept)} (필터/중복제거, 악센트중복 {dropped})")
     kr_kept = sum(1 for c in kept if (c.get('country') or '').upper() == 'KR')
     print(f"  (한국 도시 유지: {kr_kept})")
