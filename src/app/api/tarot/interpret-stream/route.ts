@@ -418,6 +418,13 @@ export async function POST(req: NextRequest) {
         // 깨우는 효과. (한 줄 emit 이라 클라 parser 는 무시 가능 — 빈 content
         // 는 accumulated 에 안 더해짐.)
         safeEnqueue(encoder.encode(createSSEEvent({ content: '' })))
+        // SSE heartbeat — emit a comment line periodically so NAT/edge idle
+        // timeouts don't kill a long (e.g. 7-card) read while Claude is still
+        // generating. Client parsers act only on `data:` lines, so `: hb` is
+        // safely ignored. (counselor routes get this via streamClaudeAsSSE.)
+        const heartbeat = setInterval(() => {
+          safeEnqueue(encoder.encode(': hb\n\n'))
+        }, 15000)
         let receivedAny = false
         let bytesEmitted = 0
         try {
@@ -495,6 +502,7 @@ export async function POST(req: NextRequest) {
           }
           controller.enqueue(encoder.encode(createSSEDoneEvent()))
         } finally {
+          clearInterval(heartbeat)
           try {
             controller.close()
           } catch {
