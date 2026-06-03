@@ -1422,18 +1422,23 @@ describe('calendar-engine regression', () => {
       expect(deriveCycleTone('year', 'weak', '재성')).toContain('해예요. ')
     })
 
-    it('deriveAstroMonthTone: 본명 aspect polarity 부호로 우호/마찰/혼합 갈림', async () => {
-      const { deriveAstroMonthTone } = await import(
-        '@/lib/calendar-engine/derivers/cycleTone'
-      )
+    it('deriveAstroTone: 올해·이달·오늘 모두 본명 aspect polarity 부호로 우호/마찰 갈림', async () => {
+      const { deriveAstroTone } = await import('@/lib/calendar-engine/derivers/cycleTone')
       const sig = (polarity: number) => ({
         source: 'astro', kind: 'transit', korean: '화성 스퀘어 본명 토성', polarity, weight: 1,
       })
-      expect(deriveAstroMonthTone([sig(3), sig(2)])).toContain('우호적')
-      expect(deriveAstroMonthTone([sig(-3), sig(-2)])).toContain('부딪히는')
+      // 세 주기 모두 우호/마찰 판정이 나온다 (점성도 사주처럼 favorability 보유)
+      for (const p of ['year', 'month', 'day'] as const) {
+        expect(deriveAstroTone(p, [sig(3), sig(2)])).toBeTruthy()
+        expect(deriveAstroTone(p, [sig(-3), sig(-2)])).toBeTruthy()
+      }
+      expect(deriveAstroTone('month', [sig(3), sig(2)])).toContain('우호적')
+      expect(deriveAstroTone('month', [sig(-3), sig(-2)])).toContain('부딪히는')
+      // 하루는 신호가 적어 부호만으로 (단일 음수도 마찰)
+      expect(deriveAstroTone('day', [sig(-1)])).toContain('부딪히는')
       // 본명 aspect 신호 없으면 undefined (하늘 상태만으론 개인화 안 함)
-      expect(deriveAstroMonthTone([{ source: 'astro', kind: 'dignity', korean: '목성 자리', polarity: 2, weight: 1 }])).toBeUndefined()
-      expect(deriveAstroMonthTone([])).toBeUndefined()
+      expect(deriveAstroTone('month', [{ source: 'astro', kind: 'dignity', korean: '목성 자리', polarity: 2, weight: 1 }])).toBeUndefined()
+      expect(deriveAstroTone('year', [])).toBeUndefined()
     })
 
     it('favorOf: 용신운이면 십신 부담이라도 순탄 — 모순 해소(병오=정관이지만 火가 용신)', async () => {

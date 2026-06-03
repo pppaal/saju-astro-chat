@@ -9,7 +9,7 @@
 import type { CalendarCell, ActiveSignal } from '../types'
 import type { NatalContext } from '../context/types'
 import { getGongmang } from '@/lib/saju/pillarLookup'
-import { SIBSIN_CAT, deriveCycleTone } from '../derivers/cycleTone'
+import { SIBSIN_CAT, deriveCycleTone, deriveAstroTone } from '../derivers/cycleTone'
 
 const ZH_TO_KO_BRANCH: Record<string, string> = {
   子: '자',
@@ -88,8 +88,10 @@ export interface V2DateDetailResponse {
   gongmangStatus: { isAffected: boolean; areas: string[] }
   /** 그날 주요 점성 transit (행성명 한글화). 일 탭 '오늘의 점성' 카드. */
   astroHighlights: Array<{ text: string; good: boolean }>
-  /** 오늘 순탄/고비 한 줄 — 일진 십신 × 신강·신약(cycleTone, 다른 탭과 동일 규칙) */
+  /** 오늘 순탄/고비 한 줄 — 일진 십신 × 용신(cycleTone, 다른 탭과 동일 규칙) */
   dayTone?: string
+  /** 오늘 점성 순탄/고비 한 줄 — 그날 본명 aspect 우호/마찰 (사주 dayTone 과 짝) */
+  dayAstroTone?: string
 }
 
 export interface BuildDateDetailInput {
@@ -119,6 +121,7 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
     gongmangStatus: buildGongmangStatus(natal, dayCell),
     astroHighlights: buildAstroHighlights(dayCell, lang),
     dayTone: buildDayTone(natal, dayCell, lang),
+    dayAstroTone: lang === 'ko' ? deriveAstroTone('day', dayCell.signals) : undefined,
   }
 }
 

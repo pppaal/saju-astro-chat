@@ -283,6 +283,7 @@ export default function PremiumDestinyPlanner({
                   shinsal={shinsal}
                   astroHighlights={dateDetail?.astroHighlights}
                   dayTone={dateDetail?.dayTone}
+                  dayAstroTone={dateDetail?.dayAstroTone}
                   isToday={isToday}
                   nowHour={today.getHours()}
                   todayHourly={data?.todayHourlyTimeSlots}
@@ -986,6 +987,7 @@ function DayView({
   shinsal,
   astroHighlights,
   dayTone,
+  dayAstroTone,
   isToday,
   nowHour,
   todayHourly,
@@ -999,6 +1001,7 @@ function DayView({
   shinsal: NonNullable<NonNullable<ReturnType<typeof useDateDetail>['detail']>['shinsalActive']>
   astroHighlights?: { text: string; good: boolean }[]
   dayTone?: string
+  dayAstroTone?: string
   isToday: boolean
   nowHour: number
   todayHourly?: CalendarData['todayHourlyTimeSlots']
@@ -1189,8 +1192,8 @@ function DayView({
         </motion.div>
       )}
 
-      {/* ── 오늘의 점성 — 사주 카드와 짝. 그날 주요 transit aspect(행성↔본명) ── */}
-      {astroHighlights && astroHighlights.length > 0 && (
+      {/* ── 오늘의 점성 — 사주 카드와 짝. 순탄/고비 한 줄 + 그날 transit aspect(행성↔본명) ── */}
+      {((astroHighlights && astroHighlights.length > 0) || dayAstroTone) && (
         <motion.div
           variants={itemVariants}
           className="bg-zinc-900/30 p-5 sm:p-6 rounded-3xl border border-white/5 space-y-3"
@@ -1198,8 +1201,11 @@ function DayView({
           <h3 className="text-xs font-medium tracking-widest text-zinc-400 uppercase">
             {locale === 'en' ? "Today's Astrology" : '오늘의 점성'}
           </h3>
+          {dayAstroTone && (
+            <p className="text-sm text-cyan-100/90 font-light leading-relaxed">{dayAstroTone}</p>
+          )}
           <div className="space-y-1.5">
-            {astroHighlights.map((a, i) => (
+            {(astroHighlights ?? []).map((a, i) => (
               <div key={i} className="flex items-start gap-2 text-sm">
                 <span className={`mt-0.5 ${a.good ? 'text-emerald-400/70' : 'text-rose-400/70'}`}>
                   {a.good ? '↑' : '↓'}

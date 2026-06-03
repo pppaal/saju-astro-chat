@@ -11,7 +11,7 @@ import { deriveLifetimePivots } from '../derivers/lifetimePivots'
 import { deriveLifetimeFlow } from '../derivers/lifetimeFlow'
 import { deriveYearAstro } from '../derivers/yearAstro'
 import { deriveMonthComparison } from '../derivers/monthComparison'
-import { SIBSIN_CAT, deriveCycleTone, deriveAstroMonthTone } from '../derivers/cycleTone'
+import { SIBSIN_CAT, deriveCycleTone, deriveAstroTone } from '../derivers/cycleTone'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -371,7 +371,7 @@ export function buildInterpretation(args: {
     // 점성도 사람마다 — 이달 transit 섹션 맨 앞에, 그 달 '본명에 닿는' 각도(개인
     // 차트 대비)의 우호/마찰을 한 줄로. 하늘 상태(만인 공통)가 아닌 natal aspect라
     // 사람마다 갈림. (올해=프로펙션 하우스, 오늘=일별 aspect 가 이미 개인화 담당)
-    prepend('transit', deriveAstroMonthTone(allSignals))
+    prepend('transit', deriveAstroTone('month', allSignals))
   }
 
   // 문체 — 한글 룰 템플릿에 하드코딩된 영어 행성/용어(Saturn Return, Jupiter…)를
@@ -438,11 +438,17 @@ export function buildInterpretation(args: {
   // monthly 카드에 함께 노출). 순수 산술이라 매월 재계산해도 저렴.
   const lifetimePivots = scope === 'monthly' ? deriveLifetimePivots(natal, lang) : undefined
   const lifetimeFlow = scope === 'monthly' ? deriveLifetimeFlow(natal, lang) : undefined
-  // 올해 점성 한 줄 (연간 프로펙션) — seun(사주)에 점성 짝을 맞춰 연 탭이 교차되게.
-  const yearAstro =
-    scope === 'monthly'
-      ? deriveYearAstro(natal, Number(cells[0]?.datetime?.slice(0, 4)) || new Date().getFullYear(), lang)
-      : undefined
+  // 올해 점성 한 줄 (연간 프로펙션 + 순탄/고비) — seun(사주)에 점성 짝을 맞춰 교차.
+  // 프로펙션(영역) 뒤에 본명 aspect 우호/시험(deriveAstroTone)을 이어 붙여 favorability 까지.
+  const yearAstro = (() => {
+    if (scope !== 'monthly') return undefined
+    const year = Number(cells[0]?.datetime?.slice(0, 4)) || new Date().getFullYear()
+    const base = deriveYearAstro(natal, year, lang)
+    if (!base) return undefined
+    if (lang !== 'ko') return base
+    const fav = deriveAstroTone('year', allSignals)
+    return fav ? `${base} ${fav}` : base
+  })()
 
   // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전월 themeScore 를 같은
   // 모델로 얻기 위해 재귀 호출(단, prevCells 미전달 → 무한재귀 없음).

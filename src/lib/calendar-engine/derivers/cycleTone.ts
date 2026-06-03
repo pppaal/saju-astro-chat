@@ -108,18 +108,32 @@ export function deriveCycleTone(
   return `${PERIOD_LEAD[period]} ${cat}운 — ${SIBSIN_THEME[cat]} ${PERIOD_TAIL[period]}. ${FAV_CLAUSE[period][fav]}`
 }
 
-const ASTRO_MONTH_CLAUSE: Record<Favor, string> = {
-  good: '점성으로도 이번 달 본명에 닿는 각도가 대체로 우호적이라, 큰 마찰 없이 흐름을 타기 좋아요.',
-  hard: '점성으로는 이번 달 본명에 부딪히는 각도가 많아, 관계·결정에서 마찰이 생기기 쉬우니 한 박자 늦춰 가세요.',
-  mid: '점성으로는 이번 달 본명에 닿는 각도가 좋고 나쁨이 팽팽히 섞여, 날마다 결이 갈려요.',
+// 점성 순탄/고비 — period별 문구. year 는 프로펙션 줄 뒤에 이어 붙어 '점성으로는' 생략.
+const ASTRO_CLAUSE: Record<'year' | 'month' | 'day', Record<Favor, string>> = {
+  year: {
+    good: '본명에 닿는 흐름도 대체로 우호적이라, 새 시도·확장에 바람이 실려요.',
+    hard: '다만 본명을 흔드는 각도가 강한 해라, 변화·관계의 시험이 잦으니 단단히 버티는 게 나아요.',
+    mid: '본명에 닿는 흐름은 좋고 나쁨이 섞여, 시기별로 결이 갈려요.',
+  },
+  month: {
+    good: '점성으로도 이번 달 본명에 닿는 각도가 대체로 우호적이라, 큰 마찰 없이 흐름을 타기 좋아요.',
+    hard: '점성으로는 이번 달 본명에 부딪히는 각도가 많아, 관계·결정에서 마찰이 생기기 쉬우니 한 박자 늦춰 가세요.',
+    mid: '점성으로는 이번 달 본명에 닿는 각도가 좋고 나쁨이 팽팽히 섞여, 날마다 결이 갈려요.',
+  },
+  day: {
+    good: '점성으로도 오늘 본명에 닿는 각도가 우호적이라, 흐름을 타기 좋은 날이에요.',
+    hard: '점성으로는 오늘 본명에 부딪히는 각도가 있어, 마찰·충돌은 피하고 가볍게 가세요.',
+    mid: '점성으로는 오늘 본명에 닿는 각도가 섞여, 상황 봐가며 움직이는 게 나아요.',
+  },
 }
 
 /**
- * 이달 점성 한 줄 — 그 달 transit 이 *본명 차트*에 닿는 각도(natal aspect)의 우호/
- * 마찰 합으로 판정. '그 달 하늘'(만인 공통)이 아니라 개인 차트 대비라 사람마다 갈린다.
- * astro·transit·'본명' 포함 신호의 polarity×weight 합 부호로 good/hard/mid.
+ * 점성 순탄/고비 한 줄 — transit 이 *본명 차트*에 닿는 각도(natal aspect)의 polarity
+ * 합 부호로 판정. '그 시기 하늘'(만인 공통)이 아니라 개인 차트 대비라 사람마다 갈린다.
+ * 올해·이달·오늘 모두 같은 방식 — 사주(용신) 톤과 짝을 이뤄 9조합을 만든다.
  */
-export function deriveAstroMonthTone(
+export function deriveAstroTone(
+  period: 'year' | 'month' | 'day',
   signals: Array<{ source?: string; kind?: string; korean?: string; polarity?: number; weight?: number }>
 ): string | undefined {
   let sum = 0
@@ -131,6 +145,7 @@ export function deriveAstroMonthTone(
     n++
   }
   if (n === 0) return undefined
-  const fav: Favor = sum > 1 ? 'good' : sum < -1 ? 'hard' : 'mid'
-  return ASTRO_MONTH_CLAUSE[fav]
+  const thr = period === 'day' ? 0 : 1 // 하루는 신호가 적어 부호만으로
+  const fav: Favor = sum > thr ? 'good' : sum < -thr ? 'hard' : 'mid'
+  return ASTRO_CLAUSE[period][fav]
 }
