@@ -50,7 +50,9 @@ export async function calculateTransitChart(
       timeZone: input.timeZone,
       latitude: input.latitude,
       longitude: input.longitude,
-      houseSystem: system,
+      // 극권 폴백 시 실제 사용된 system(WholeSign)을 기록. calcHouses 가 미보고/
+      // 모킹된 경우엔 요청값(system)으로 폴백 — 기존 동작 보존.
+      houseSystem: housesRes.houseSystem ?? system,
     },
   }
 }
