@@ -4,6 +4,7 @@
 import { FiveElement } from './types'
 import { JIJANGGAN } from './constants'
 import { getStemElement } from './stemBranchUtils'
+import { getSibseong } from './core/sibsin'
 import { iga, eulReul } from '../i18n/koParticle'
 
 // ============================================================
@@ -132,22 +133,13 @@ const STEM_YIN_YANG: Record<string, '양' | '음'> = {
 // 십신 계산 함수
 // ============================================================
 
+// 십신 산정은 core/sibsin.getSibseong(SSOT)에 위임. 이전엔 여기서 diff*2+polarity
+// index-math 로 독자 구현했으나(드리프트 위험), 정본과 전 100조합 동일 — 위임으로 통일.
 function getSibsin(dayStem: string, targetStem: string): SibsinType {
-  const dayElement = getStemElement(dayStem)
-  const targetElement = getStemElement(targetStem)
-  const dayYinYang = STEM_YIN_YANG[dayStem]
-  const targetYinYang = STEM_YIN_YANG[targetStem]
-  const samePolarity = dayYinYang === targetYinYang
-
-  const elements: FiveElement[] = ['목', '화', '토', '금', '수']
-  const dayIdx = elements.indexOf(dayElement)
-  const targetIdx = elements.indexOf(targetElement)
-
-  const diff = (targetIdx - dayIdx + 5) % 5
-  const baseIndex = diff * 2
-  const sibsinIndex = samePolarity ? baseIndex : baseIndex + 1
-
-  return SIBSIN_TYPES[sibsinIndex]
+  return getSibseong(
+    { element: getStemElement(dayStem), yin_yang: STEM_YIN_YANG[dayStem] },
+    { element: getStemElement(targetStem), yin_yang: STEM_YIN_YANG[targetStem] }
+  ) as SibsinType
 }
 
 function getSibsinCategory(sibsin: SibsinType): SibsinCategory {

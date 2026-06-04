@@ -14,6 +14,7 @@ import {
   calculateSibsin,
 } from './advancedTimingEngine';
 import { normalizeScore } from './utils/scoring-utils';
+import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup';
 
 // ============================================================
 // 타입 정의
@@ -380,13 +381,9 @@ function calculateActivityScore(
   };
 }
 
-// 간략한 공망 계산
+// 공망 계산 — pillarLookup.getGongmang(SSOT, 旬空) 위임.
 function calculateGongmangSimple(dayStem: string, dayBranch: string): string[] {
-  const stemIdx = STEMS.indexOf(dayStem);
-  const branchIdx = BRANCHES.indexOf(dayBranch);
-  const xunStart = (branchIdx - stemIdx + 12) % 12;
-  const gongmangStart = (xunStart + 10) % 12;
-  return [BRANCHES[gongmangStart], BRANCHES[(gongmangStart + 1) % 12]];
+  return getGongmangByPillar(`${dayStem}${dayBranch}`) ?? [];
 }
 
 // ============================================================

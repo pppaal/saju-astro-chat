@@ -296,12 +296,28 @@ describe('relations.ts', () => {
     })
 
     describe('원진 (Yuanjin)', () => {
-      it('detects 酉-戌 원진', () => {
-        const pillars = makePillars(['甲', '酉'], ['乙', '戌'], ['丙', '子'], ['丁', '丑'])
+      // 표준 원진 6쌍: 子未 丑午 寅酉 卯申 辰亥 巳戌 (해(害)와 혼동 금지)
+      it('detects 寅-酉 원진', () => {
+        const pillars = makePillars(['甲', '寅'], ['乙', '酉'], ['丙', '子'], ['丁', '丑'])
         const result = analyzeRelations({ pillars })
         const yuanjin = result.find((h) => h.kind === '원진')
         expect(yuanjin).toBeDefined()
         expect(yuanjin?.detail).toContain('원진')
+      })
+
+      it('detects 巳-戌 원진', () => {
+        const pillars = makePillars(['甲', '巳'], ['乙', '戌'], ['丙', '子'], ['丁', '丑'])
+        const result = analyzeRelations({ pillars })
+        const yuanjin = result.find((h) => h.kind === '원진')
+        expect(yuanjin?.detail).toContain('원진')
+      })
+
+      // 酉-戌 은 해(害)이지 원진이 아니다 — 과거 원진 표가 해 표로 잘못 복제된 회귀 방지
+      it('does NOT treat 酉-戌 (해) as 원진', () => {
+        const pillars = makePillars(['甲', '酉'], ['乙', '戌'], ['丙', '子'], ['丁', '丑'])
+        const result = analyzeRelations({ pillars })
+        expect(result.find((h) => h.kind === '원진')).toBeUndefined()
+        expect(result.find((h) => h.kind === '지지해')).toBeDefined()
       })
     })
 

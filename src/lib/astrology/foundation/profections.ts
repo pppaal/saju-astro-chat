@@ -5,21 +5,10 @@
 
 import type { Chart, ZodiacKo } from './types'
 import type { AstroPlanetName } from '../interpretations'
+import { SIGN_RULERS_BY_SIGN } from './dignities'
 
-const SIGN_RULERS: Record<ZodiacKo, AstroPlanetName> = {
-  Aries: 'Mars',
-  Taurus: 'Venus',
-  Gemini: 'Mercury',
-  Cancer: 'Moon',
-  Leo: 'Sun',
-  Virgo: 'Mercury',
-  Libra: 'Venus',
-  Scorpio: 'Mars',
-  Sagittarius: 'Jupiter',
-  Capricorn: 'Saturn',
-  Aquarius: 'Saturn', // Hellenistic 전통: Saturn ruler (modern은 Uranus)
-  Pisces: 'Jupiter',  // Hellenistic 전통: Jupiter ruler (modern은 Neptune)
-}
+// 별자리 지배 행성은 dignities.ts(SSOT)에서 파생. 로컬 복제 금지.
+const SIGN_RULERS = SIGN_RULERS_BY_SIGN as Record<ZodiacKo, AstroPlanetName>
 
 export interface ProfectionResult {
   age: number
