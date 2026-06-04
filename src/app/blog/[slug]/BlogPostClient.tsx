@@ -8,6 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getCategoryRoute } from "@/lib/constants/routes";
 import BlogArt from "../BlogArt";
+import { CosmicBackdrop } from "@/components/ui/CosmicBackdrop";
 import styles from "./post.module.css";
 
 interface BlogPostClientProps {
@@ -64,6 +65,7 @@ export default function BlogPostClient({ post, relatedPosts }: BlogPostClientPro
 
   return (
     <main className={styles.page}>
+      <CosmicBackdrop />
       <div className={styles.stars} />
 
       <article className={styles.main}>
