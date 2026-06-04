@@ -1131,13 +1131,35 @@ body {
  * ===================================================================== */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.55s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  /* 입력박스 폭이 페이지 간 동일해진 뒤부턴 짧고 시원한 크로스페이드가
+     자연스럽게 읽힌다 — 0.55s 는 모션은 부드럽지만 클릭 반응성이 떨어져
+     "느리다"는 인상을 주므로 0.28s 로 축소. */
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 입력창·헤더는 폭이 두 페이지에서 같으므로 morph 가 실제로 보이는 변화는
+   없지만, View Transition group 자체는 켜둬서 "한 객체로 흘러간다"는 인지
+   연속성을 유지한다. 길이는 root 와 맞춰서 모두 같은 박자로 정착. */
+::view-transition-group(destiny-input),
+::view-transition-old(destiny-input),
+::view-transition-new(destiny-input),
+::view-transition-group(app-topbar),
+::view-transition-old(app-topbar),
+::view-transition-new(app-topbar) {
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 0.01ms;
+  ::view-transition-new(root),
+  ::view-transition-group(destiny-input),
+  ::view-transition-old(destiny-input),
+  ::view-transition-new(destiny-input),
+  ::view-transition-group(app-topbar),
+  ::view-transition-old(app-topbar),
+  ::view-transition-new(app-topbar) {
+    animation-duration: 1ms;
   }
 }

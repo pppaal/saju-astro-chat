@@ -7,8 +7,9 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { ErrorBoundary, ChatErrorFallback } from '@/components/ErrorBoundary'
 import CreditBadge from '@/components/ui/CreditBadge'
 import { useToast } from '@/components/ui/Toast'
-import PromptModal from '@/components/ui/PromptModal'
 import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
+import ChatActionModals from '@/components/counselor/ChatActionModals'
+import { useChatActions } from '@/lib/counselor/useChatActions'
 // buildSignInUrl import removed alongside the guest banner — restore
 // when reintroducing inline login CTA.
 import styles from './counselor.module.css'
@@ -59,29 +60,12 @@ export default function CounselorPage() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // 페이지 헤더에 표시할 활성 세션 정보 + ⋮ 메뉴 상태. Chat 컴포넌트가
-  // onSessionChange 콜백으로 sessionId/title 을 알려준다. 메뉴 클릭 시
-  // 직접 /api/counselor/session/list (PATCH/DELETE) 호출.
+  // 페이지 헤더에 표시할 활성 세션 정보. Chat 컴포넌트가 onSessionChange
+  // 콜백으로 sessionId/title 을 알려준다.
   const [activeSession, setActiveSession] = useState<{
     sessionId: string | null
     title: string | null
   }>({ sessionId: null, title: null })
-  const [chatMenuOpen, setChatMenuOpen] = useState(false)
-  // 네이티브 prompt/confirm 대체 — ⋮ 메뉴의 '이름 변경'/'삭제'를 인앱 모달로
-  // 처리한다(인앱 웹뷰에서 네이티브 대화상자가 막히던 회귀 + a11y).
-  const [renameModalOpen, setRenameModalOpen] = useState(false)
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const chatMenuRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!chatMenuOpen) return
-    const handler = (e: MouseEvent) => {
-      if (chatMenuRef.current && !chatMenuRef.current.contains(e.target as Node)) {
-        setChatMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [chatMenuOpen])
 
   // /destiny-counselor?session=<id> — sidebar's past-chats list
   // hands us a saved CounselorChatSession id here. We pass it to <Chat>
@@ -250,71 +234,31 @@ export default function CounselorPage() {
     [lang, toast]
   )
 
-  // 대화 이름 변경 — PromptModal(텍스트 입력)에서 새 이름을 받아 실행.
-  // 기존 window.prompt 흐름과 동일: optimistic 헤더 갱신 후 PATCH, 실패 시
-  // 직전 제목으로 롤백 + 토스트.
-  const handleRenameConfirm = useCallback(
-    async (nextTitle: string) => {
-      setRenameModalOpen(false)
-      const id = activeSession.sessionId
-      const trimmed = nextTitle.trim()
-      if (!id || !trimmed) return
-      // Optimistic title update so the header re-renders immediately. We
-      // capture the previous title so we can roll back if the PATCH fails —
-      // without this, a failed rename would leave the wrong title in the
-      // header until the next page load.
-      const prevTitle = activeSession.title
-      setActiveSession((s) => ({ ...s, title: trimmed }))
-      let status: number | undefined
-      try {
-        const res = await fetch('/api/counselor/session/list', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId: id, title: trimmed }),
-        })
-        status = res.status
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      } catch (err) {
-        logger.warn('[Counselor] rename failed', { err, status })
-        // Roll back the optimistic header title — only touch state if the
-        // active session is still the same chat (user may have navigated
-        // away during the in-flight request).
-        setActiveSession((s) => (s.sessionId === id ? { ...s, title: prevTitle } : s))
-        showActionFailureToast('rename', status)
-      }
-    },
-    [activeSession.sessionId, activeSession.title, showActionFailureToast]
-  )
-
-  // 대화 삭제 — PromptModal(확인)에서 확정을 받아 실행. 서버가 삭제를
-  // 확인(res.ok)한 뒤에만 새 채팅으로 리셋한다. 실패 시 토스트만 띄우고
-  // 현재 대화를 유지(예전엔 무조건 리셋해 데이터 유실처럼 보이던 회귀).
-  const handleDeleteConfirm = useCallback(async () => {
-    setDeleteModalOpen(false)
-    const id = activeSession.sessionId
-    if (!id) return
-    let status: number | undefined
-    let ok2 = false
-    try {
-      const res = await fetch(
-        `/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`,
-        { method: 'DELETE' }
-      )
-      status = res.status
-      ok2 = res.ok
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    } catch (err) {
-      logger.warn('[Counselor] delete failed', { err, status })
-    }
-    if (!ok2) {
-      showActionFailureToast('delete', status)
-      return
-    }
-    // 새 채팅으로 리셋 — session 쿼리 떼고 키 갱신해 Chat 재마운트.
-    router.replace('/destiny-counselor')
-    handleChatReset()
-    setActiveSession({ sessionId: null, title: null })
-  }, [activeSession.sessionId, showActionFailureToast, router, handleChatReset])
+  // ⋮ 메뉴 + Rename / Delete 모달 — 공용 hook 으로 위임. 옵티미스틱 헤더 갱신,
+  // PATCH/DELETE 실패 시 롤백, 401 토스트 안내는 hook 안에서 처리되고 여기는
+  // page-specific 정리(URL 리셋, Chat 재마운트, activeSession 비우기)만 담당.
+  const chatActions = useChatActions({
+    sessionId: activeSession.sessionId,
+    title: activeSession.title,
+    lang,
+    onRenamed: useCallback((nextTitle: string) => {
+      // hook 이 optimistic / rollback 둘 다 onRenamed 로 호출 — 항상 받은 값으로
+      // 활성 세션 제목 동기화. 다른 세션으로 이동했으면 건드리지 않는다.
+      setActiveSession((s) => ({ ...s, title: nextTitle || null }))
+    }, []),
+    onDeleted: useCallback(() => {
+      router.replace('/destiny-counselor')
+      handleChatReset()
+      setActiveSession({ sessionId: null, title: null })
+    }, [router, handleChatReset]),
+    // showActionFailureToast 는 (kind, status?) 시그니처 — hook 은
+    // ({ kind, status }) 객체를 넘기므로 한 번 풀어준다.
+    onError: useCallback(
+      ({ kind, status }: { kind: 'rename' | 'delete'; status?: number }) =>
+        showActionFailureToast(kind, status),
+      [showActionFailureToast]
+    ),
+  })
 
   // Don't flash the gate while the profile fallback is loading — the
   // user may have valid birth info on their profile that we haven't
@@ -370,26 +314,22 @@ export default function CounselorPage() {
         rightSlot={
           <>
             {activeSession.sessionId && (
-              <div ref={chatMenuRef} className={styles.chatMenuArea}>
+              <div ref={chatActions.chatMenuRef} className={styles.chatMenuArea}>
                 <AppHeaderIconButton
-                  onClick={() => setChatMenuOpen((o) => !o)}
+                  onClick={chatActions.toggleChatMenu}
                   label={lang === 'ko' ? '\ub300\ud654 \uba54\ub274' : 'Chat menu'}
-                  aria-expanded={chatMenuOpen}
+                  aria-expanded={chatActions.chatMenuOpen}
                   aria-haspopup="menu"
                 >
                   <span aria-hidden="true">{'\u22ee'}</span>
                 </AppHeaderIconButton>
-                {chatMenuOpen && (
+                {chatActions.chatMenuOpen && (
                   <div role="menu" className={styles.chatMenuDropdown}>
                     <button
                       type="button"
                       role="menuitem"
                       className={styles.chatMenuItem}
-                      onClick={() => {
-                        setChatMenuOpen(false)
-                        if (!activeSession.sessionId) return
-                        setRenameModalOpen(true)
-                      }}
+                      onClick={chatActions.openRenameModal}
                     >
                       <span>{lang === 'ko' ? '\uc774\ub984 \ubcc0\uacbd' : 'Rename'}</span>
                       <span aria-hidden="true" className={styles.chatMenuIcon}>{'\u270e'}</span>
@@ -398,11 +338,7 @@ export default function CounselorPage() {
                       type="button"
                       role="menuitem"
                       className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
-                      onClick={() => {
-                        setChatMenuOpen(false)
-                        if (!activeSession.sessionId) return
-                        setDeleteModalOpen(true)
-                      }}
+                      onClick={chatActions.openDeleteModal}
                     >
                       <span>{lang === 'ko' ? '\uc0ad\uc81c' : 'Delete'}</span>
                       <span aria-hidden="true" className={styles.chatMenuIcon}>{'\ud83d\uddd1'}</span>
@@ -463,7 +399,9 @@ export default function CounselorPage() {
             autoFocus
             initialSessionId={initialSessionId}
             onSessionChange={setActiveSession}
-            inputViewTransitionName="destiny-input"
+            // inputViewTransitionName 제거 — morph 비활성화. root 크로스페이드만
+            // 으로 두 페이지를 잇는다(메인 ↔ 운명상담사 입력창 폭 차이로 인한
+            // "툭 늘어나는" 인상 제거).
             onSendBlocked={(_text) => {
               // 생년월일·출생시간이 없으면 전송 대신 입력 모달을 띄운다.
               // (게이트 화면 대체 — 바로 채팅하다가 첫 전송 시 정보 요청.)
@@ -488,34 +426,16 @@ export default function CounselorPage() {
         locale={lang}
       />
 
-      {/* 대화 이름 변경 — 네이티브 window.prompt 대체(인앱 모달, 텍스트 입력). */}
-      <PromptModal
-        mode="prompt"
-        open={renameModalOpen}
-        title={lang === 'ko' ? '대화 이름 변경' : 'Rename chat'}
-        inputLabel={lang === 'ko' ? '대화 이름' : 'Chat name'}
-        initialValue={activeSession.title || ''}
-        confirmLabel={lang === 'ko' ? '저장' : 'Save'}
-        cancelLabel={lang === 'ko' ? '취소' : 'Cancel'}
-        onClose={() => setRenameModalOpen(false)}
-        onConfirm={handleRenameConfirm}
-      />
-
-      {/* 대화 삭제 — 네이티브 window.confirm 대체(인앱 모달, 확인). */}
-      <PromptModal
-        mode="confirm"
-        open={deleteModalOpen}
-        title={lang === 'ko' ? '대화 삭제' : 'Delete chat'}
-        message={
-          lang === 'ko'
-            ? '이 대화를 삭제할까요? 되돌릴 수 없어요.'
-            : 'Delete this chat? Cannot be undone.'
-        }
-        confirmLabel={lang === 'ko' ? '삭제' : 'Delete'}
-        cancelLabel={lang === 'ko' ? '취소' : 'Cancel'}
-        danger
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleDeleteConfirm}
+      {/* ⋮ 메뉴 Rename / Delete 모달 — 공용 ChatActionModals 로 위임. */}
+      <ChatActionModals
+        lang={lang}
+        currentTitle={activeSession.title}
+        renameOpen={chatActions.renameModalOpen}
+        onCloseRename={chatActions.closeRenameModal}
+        onConfirmRename={chatActions.handleRenameConfirm}
+        deleteOpen={chatActions.deleteModalOpen}
+        onCloseDelete={chatActions.closeDeleteModal}
+        onConfirmDelete={chatActions.handleDeleteConfirm}
       />
     </main>
   )

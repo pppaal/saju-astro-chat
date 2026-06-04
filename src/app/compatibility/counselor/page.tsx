@@ -38,6 +38,8 @@ import { pushRecentPair, getRecentPairs, type RecentPair } from '@/app/compatibi
 import { normalizeGender } from '@/lib/utils/gender'
 import { CompatPersonPickerModal, type PickedPersonData } from './CompatPersonPickerModal'
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
+import ChatActionModals from '@/components/counselor/ChatActionModals'
+import { useChatActions } from '@/lib/counselor/useChatActions'
 import { useCounselorNewChat } from '@/lib/counselor/useCounselorNewChat'
 import { savePendingChat, loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
 import {
@@ -150,20 +152,10 @@ function CompatibilityCounselorContent() {
   // attemptRecover 는 sendMessage 보다 아래에 선언되므로(같은 컴포넌트 body),
   // sendMessage 안에서 직접 부르면 use-before-declaration. ref 로 우회.
   const attemptRecoverRef = useRef<(() => void) | null>(null)
-  // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 사이드바 리스트의 항상 보이던
-  // 아이콘들을 대체 (운명 상담사와 동일 패턴, PR #621).
-  const [chatMenuOpen, setChatMenuOpen] = useState(false)
-  const chatMenuRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!chatMenuOpen) return
-    const handler = (e: MouseEvent) => {
-      if (chatMenuRef.current && !chatMenuRef.current.contains(e.target as Node)) {
-        setChatMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [chatMenuOpen])
+  // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 운명 상담사와 동일한 공용 hook
+  // (`useChatActions`) 으로 위임 — 이전엔 여기서 window.prompt/window.confirm 을
+  // 직접 띄웠는데, 인앱 웹뷰에서 native dialog 가 막혀 이름 변경/삭제가
+  // 안 되던 회귀를 해소(In‑app PromptModal 로 자동 마이그레이션).
   // 파일 첨부 — 운명 상담사와 동일한 훅. 업로드 텍스트(cvText)는 sendMessage
   // payload 로 전달돼 라우트가 현재 턴 프롬트에 주입한다.
   const [fileNotice, setFileNotice] = useState<string | null>(null)
@@ -560,45 +552,27 @@ function CompatibilityCounselorContent() {
     }
   }, [isInitializing, showPicker])
 
-  // 채팅 우상단 ⋮ 메뉴 핸들러 — 운명 상담사 PR #621 과 동일.
-  // 저장된 session 이 없으면 (chatSessionId undefined) 아무것도 안 함.
-  const handleChatRename = useCallback(async () => {
-    setChatMenuOpen(false)
-    if (!chatSessionId) return
-    const next = window.prompt(isKo ? '대화 이름' : 'Chat name', chatTitle || '')
-    if (!next || !next.trim()) return
-    try {
-      await apiFetch('/api/counselor/session/list', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: chatSessionId, title: next.trim() }),
-      })
-      setChatTitle(next.trim())
-    } catch (err) {
-      logger.warn('[CompatCounselor] rename failed', { err })
-    }
-  }, [chatSessionId, isKo, chatTitle])
-
-  const handleChatDelete = useCallback(async () => {
-    setChatMenuOpen(false)
-    if (!chatSessionId) return
-    const confirmed = window.confirm(
-      isKo ? '이 대화를 삭제할까요? 되돌릴 수 없어요.' : 'Delete this chat? This cannot be undone.'
-    )
-    if (!confirmed) return
-    try {
-      await apiFetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(chatSessionId)}`, {
-        method: 'DELETE',
-      })
-    } catch (err) {
-      logger.warn('[CompatCounselor] delete failed', { err })
-    }
-    setMessages([])
-    setChatSessionId(undefined)
-    setChatTitle(null)
-    clarifier.reset()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- clarifier.reset 은 hook 내부 useCallback 이라 stable. clarifier 객체는 매 render 새 reference.
-  }, [chatSessionId, isKo])
+  // ⋮ 메뉴 + Rename / Delete 모달 — 공용 hook 으로 위임. 인앱 PromptModal 로
+  // 통일 + optimistic title update + rollback + 401 토스트는 hook 안에서 처리.
+  // 페이지는 onRenamed/onDeleted/onError 콜백으로 자기 state 정리만 담당.
+  const chatActions = useChatActions({
+    sessionId: chatSessionId ?? null,
+    title: chatTitle,
+    lang: locale,
+    onRenamed: useCallback((nextTitle: string) => {
+      setChatTitle(nextTitle || null)
+    }, []),
+    onDeleted: useCallback(() => {
+      setMessages([])
+      setChatSessionId(undefined)
+      setChatTitle(null)
+      clarifier.reset()
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- clarifier.reset 은 hook 내부 useCallback 이라 stable.
+    }, []),
+    onError: useCallback(({ kind, status }: { kind: 'rename' | 'delete'; status?: number }) => {
+      logger.warn('[CompatCounselor] action failed', { kind, status })
+    }, []),
+  })
 
   const sendMessage = useCallback(
     async (textOverride?: string, options?: { isRetry?: boolean }) => {
@@ -1246,7 +1220,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           title={
             <>
               {!chatTitle && (
-                <span className={styles.headerHeart} aria-hidden="true">{'💕'}</span>
+                <span className={styles.headerHeart} aria-hidden="true">{'❤️'}</span>
               )}
               {chatTitle?.trim() || (isKo ? '궁합 상담사' : 'Compatibility Counselor')}
             </>
@@ -1254,22 +1228,22 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           rightSlot={
             <>
               {chatSessionId && (
-                <div ref={chatMenuRef} className={styles.chatMenuArea}>
+                <div ref={chatActions.chatMenuRef} className={styles.chatMenuArea}>
                   <AppHeaderIconButton
-                    onClick={() => setChatMenuOpen((o) => !o)}
+                    onClick={chatActions.toggleChatMenu}
                     label={isKo ? '대화 메뉴' : 'Chat menu'}
-                    aria-expanded={chatMenuOpen}
+                    aria-expanded={chatActions.chatMenuOpen}
                     aria-haspopup="menu"
                   >
                     <span aria-hidden="true">{'⋮'}</span>
                   </AppHeaderIconButton>
-                  {chatMenuOpen && (
+                  {chatActions.chatMenuOpen && (
                     <div role="menu" className={styles.chatMenuDropdown}>
                       <button
                         type="button"
                         role="menuitem"
                         className={styles.chatMenuItem}
-                        onClick={handleChatRename}
+                        onClick={chatActions.openRenameModal}
                       >
                         <span>{isKo ? '이름 변경' : 'Rename'}</span>
                         <span aria-hidden="true" className={styles.chatMenuIcon}>{'✎'}</span>
@@ -1278,7 +1252,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                         type="button"
                         role="menuitem"
                         className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
-                        onClick={handleChatDelete}
+                        onClick={chatActions.openDeleteModal}
                       >
                         <span>{isKo ? '삭제' : 'Delete'}</span>
                         <span aria-hidden="true" className={styles.chatMenuIcon}>{'🗑'}</span>
@@ -1331,7 +1305,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
             {error && <div className={styles.errorMessage}>{error}</div>}
             {messages.length === 0 && (
               <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>{'\u{1F495}'}</div>
+                <div className={styles.emptyIcon}>{'❤️'}</div>
                 <p className={styles.emptyText}>
                   {isKo ? '두 사람에 대해서 물어보세요' : 'Ask about the two of you'}
                 </p>
@@ -1349,7 +1323,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               return (
                 <div key={idx} className={`${styles.message} ${isUser ? styles.userMessage : ''}`}>
                   <div className={styles.messageAvatar} aria-hidden="true">
-                    {isUser ? '\u{1F464}' : '\u{1F495}'}
+                    {isUser ? '\u{1F464}' : '❤️'}
                   </div>
                   <div className={styles.messageBubble}>
                     <ChatBubbleContent
@@ -1434,7 +1408,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               (messages.length === 0 || messages[messages.length - 1].role === 'user') && (
                 <div className={styles.message}>
                   <div className={styles.messageAvatar} aria-hidden="true">
-                    {'\u{1F495}'}
+                    {'❤️'}
                   </div>
                   <div className={styles.messageBubble}>
                     <span className={styles.thinkingMessage}>
@@ -1569,6 +1543,19 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
         nameA={persons[0]?.name || ''}
         nameB={persons[1]?.name || ''}
         lang={isKo ? 'ko' : 'en'}
+      />
+
+      {/* ⋮ 메뉴 Rename / Delete 모달 — 공용 ChatActionModals. window.prompt/
+          window.confirm 에서 인앱 PromptModal 로 마이그레이션(인앱 웹뷰 호환). */}
+      <ChatActionModals
+        lang={locale}
+        currentTitle={chatTitle}
+        renameOpen={chatActions.renameModalOpen}
+        onCloseRename={chatActions.closeRenameModal}
+        onConfirmRename={chatActions.handleRenameConfirm}
+        deleteOpen={chatActions.deleteModalOpen}
+        onCloseDelete={chatActions.closeDeleteModal}
+        onConfirmDelete={chatActions.handleDeleteConfirm}
       />
     </main>
   )

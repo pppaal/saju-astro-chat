@@ -19,7 +19,11 @@ interface HorizontalCardsGridProps {
   translate: (key: string, fallback: string) => string
 }
 
-export function HorizontalCardsGrid({
+// React.memo — LLM 해석이 20s+ 스트리밍되는 동안 부모(ResultsStage)가 매
+// 토큰마다 리렌더된다. memo 가 없으면 카드 그리드도 매번 리렌더돼 움직이는
+// webp 카드가 재로드되며 "처음 모션으로 튀고 버벅"이는 회귀. props(차트/덱/
+// revealedCards/콜백)가 안 바뀌면 리렌더를 건너뛰어 애니메이션이 끊기지 않는다.
+export const HorizontalCardsGrid = React.memo(function HorizontalCardsGrid({
   readingResult,
   selectedColor,
   selectedDeckStyle,
@@ -95,6 +99,10 @@ export function HorizontalCardsGrid({
                       height={315}
                       className={styles.resultCardImageLarge}
                       placeholder="empty"
+                      // 일부 카드는 애니메이션 webp(움직이는 그림). next/image 최적화를
+                      // 거치면 애니메이션이 잘리거나 첫 프레임으로 튀며 버벅임 → 원본을
+                      // 그대로 서빙해 자연스럽게 재생되도록 unoptimized.
+                      unoptimized
                       onError={(event) => {
                         event.currentTarget.style.opacity = '0.3'
                       }}
@@ -155,4 +163,4 @@ export function HorizontalCardsGrid({
       })}
     </div>
   )
-}
+})

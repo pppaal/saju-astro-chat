@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, useReducedMotion } from 'framer-motion'
 import styles from '../main-page.module.css'
 import type { StoredBirthInfo } from '../birthInfoStorage'
 import { buildCounselorHref } from '../birthInfoStorage'
@@ -48,6 +49,12 @@ export default function HomeChatInput({
 }: HomeChatInputProps) {
   const router = useRouter()
   const [text, setText] = useState('')
+  // 운명상담사로 넘어가기 직전, 입력창에 "떠오르는" 모션을 살짝 주기 위한 상태.
+  // 시각적 시작과 View Transition morph 가 겹치면서 morph 가 사용자에게 "툭
+  // 늘어나는 순간"이 아니라 "입력창이 흐름을 타고 다음 페이지로 흘러간" 한
+  // 동작으로 읽히게 한다.
+  const [submitting, setSubmitting] = useState(false)
+  const reduceMotion = useReducedMotion()
   const isKo = locale === 'ko'
 
   // 메인 페이지 = 운명상담사 한 흐름.
@@ -61,6 +68,10 @@ export default function HomeChatInput({
       else onOpenBirth()
       return
     }
+    // 입력박스 폭이 두 페이지에서 동일해진 뒤부턴 View Transition + root
+    // 크로스페이드만으로 충분히 부드럽다 — Framer 모션은 "눌렀다"는 시각
+    // 피드백용으로 짧게 켜고, 라우터는 같은 프레임에 바로 넘긴다(딜레이 0).
+    if (!reduceMotion) setSubmitting(true)
     router.push(buildCounselorHref(birthInfo, trimmed, locale))
   }
 
@@ -73,7 +84,11 @@ export default function HomeChatInput({
   }
 
   return (
-    <div className={styles.homeChatBar}>
+    <motion.div
+      className={styles.homeChatBar}
+      animate={submitting ? { scale: 0.99 } : { scale: 1 }}
+      transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className={styles.homeChatBarInner}>
         {/* 운명/궁합 상담사와 동일한 공용 입력창. 메인은 첨부/타로/차트 도구가
             없어 ⋮ 메뉴는 자동으로 숨겨지고, 보내기=상담사로 네비게이트.
@@ -97,9 +112,12 @@ export default function HomeChatInput({
           placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
           loopPlaceholder
           theme={lightMode ? 'light' : 'dark'}
-          viewTransitionName="destiny-input"
+          // viewTransitionName 제거 — morph 가 폭이 다른 두 입력창 사이에서
+          // "툭 늘어나는" 인상을 줘서, root 크로스페이드만으로 잇기로 한다.
+          // 두 페이지 입력창은 각자 자기 페이지의 일부로 자연스럽게 사라지고
+          // 나타난다.
         />
       </div>
-    </div>
+    </motion.div>
   )
 }
