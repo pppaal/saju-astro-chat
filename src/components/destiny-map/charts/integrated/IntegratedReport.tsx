@@ -128,7 +128,7 @@ function Wheel({ astro }: { astro: ReportData['astro'] }) {
         return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={stroke} strokeWidth={1} opacity={0.55} />
       })}
       {/* 행성 */}
-      {planetsSorted.map((p) => {
+      {planetsSorted.map((p, i) => {
         const [px, py] = polar(cx, cy, rPlanet, screen(p.lon))
         return (
           <g key={p.name}>
@@ -385,11 +385,6 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
             </div>
             <div className={`${s.card} ${s.cardPad} ${s.digList}`}>
               <div className={s.subcap}>위계 · Dignities</div>
-              {A.dignities.length === 0 && (
-                <div className={s.digRow} style={{ color: 'var(--ink-3)' }}>
-                  뚜렷한 위계 없음 — 행성이 모두 중립(peregrine) 자리예요.
-                </div>
-              )}
               {A.dignities.map((d, i) => {
                 const p = A.planets.find((x) => x.name === d.planet)
                 const sg = SIGN_META[abbr(d.sign)]
