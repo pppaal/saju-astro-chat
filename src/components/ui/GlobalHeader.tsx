@@ -1,120 +1,98 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
-import { HamburgerDrawer } from './GlobalHeader/HamburgerDrawer'
-import { styles } from './GlobalHeader/styles'
-import type { HeaderWrapperProps } from './GlobalHeader/types'
+import { AppHeader, AppHeaderIconButton } from './AppHeader'
+import { MenuDrawerPanel } from './MenuDrawerPanel'
 
-// ============================================
-// Header Wrapper Component
-// ============================================
-function HeaderWrapper({ children, headerRef, onKeyDown, ariaLabel }: HeaderWrapperProps) {
-  return (
-    <header
-      ref={headerRef}
-      className={styles.header}
-      role="banner"
-      aria-label={ariaLabel}
-      onKeyDown={onKeyDown}
-    >
-      {children}
-    </header>
-  )
-}
+// 비-메인/비-상담사/비-타로 페이지(블로그·정책·FAQ·요금제 등)의 상단 헤더.
+// 메인/타로/운명상담사/궁합과 동일한 공용 AppHeader 컴포넌트를 사용해서
+// 햄버거(왼쪽) + 워드마크(가운데) + EN/KO 토글(오른쪽)이 모든 페이지에서
+// 같은 X 좌표에 위치하도록 통일한다. 드로어 내용은 MenuDrawerPanel 이
+// 위임받아 처리(타로 경로일 땐 자동으로 "타로 리딩 기록" 항목 추가).
 
-// ============================================
-// Main GlobalHeaderContent Component
-// ============================================
 function GlobalHeaderContent() {
-  const { t, locale, setLocale } = useI18n()
+  const { locale, setLocale } = useI18n()
   const pathname = usePathname()
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
-  const toggleLocale = () => {
-    setLocale(locale === 'ko' ? 'en' : 'ko')
-  }
-  const nextLocaleLabel = locale === 'ko' ? 'EN' : 'KO'
-  const localeAriaLabel = locale === 'ko' ? 'Switch to English' : '한국어로 전환'
+  const isKo = locale === 'ko'
+  const nextLocaleLabel = isKo ? 'EN' : 'KO'
+  const localeAriaLabel = isKo ? 'Switch to English' : '한국어로 전환'
 
+  // 자기 상단 네비를 가진 페이지에서는 글로벌 헤더를 숨긴다 — 두 헤더가 겹쳐
+  // 보이는 사고 방지. 메인/타로/상담사 페이지가 여기에 해당.
   const isMainPage = !pathname || pathname === '/' || pathname === ''
-  // Pages with their own full-screen layouts (chat, calendar grid,
-  // streaming reports) hide the global header to avoid clashing with
-  // their own toolbars. Entry pages of those services now render the
-  // global header instead so the hamburger and locale toggle stay
-  // consistent.
   const hasCustomPageHeader = Boolean(
     pathname &&
-    ['/destiny-counselor', '/astrology/counselor', '/compatibility/counselor', '/tarot'].includes(pathname)
+      ['/destiny-counselor', '/astrology/counselor', '/compatibility/counselor', '/tarot'].includes(
+        pathname
+      )
   )
-
-  // 라이트 페이지 위에 떴을 때 ink 톤으로 자동 전환. 다크 cosmic 페이지
-  // (destiny-map, pricing, calendar 등) 에서는 기존 dark variant 유지.
-  // /destiny-counselor 는 next.config redirects 로 /destiny-map 으로 영구 redirect
-  // → 더 이상 LIGHT prefix 등록 불필요.
-  const LIGHT_PAGE_PREFIXES = ['/profile', '/compatibility', '/policy', '/contact']
-  const isLightPage = Boolean(
-    pathname && LIGHT_PAGE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
-  )
-  const variant: 'light' | 'dark' = isLightPage ? 'light' : 'dark'
-
-  const headerAriaLabel = t('nav.header') || 'Site header'
-
-  // 어드민은 자체 상단 네비(AdminNav)를 쓰고 다국어가 필요 없으므로 글로벌
-  // 헤더(햄버거 + 언어 토글)를 숨긴다.
   const isAdminPage = Boolean(pathname && pathname.startsWith('/admin'))
-
-  // Hide on pages with their own top navigation/header
   if (isMainPage || hasCustomPageHeader || isAdminPage) {
     return null
   }
 
-  // Single header layout for everyone: hamburger left + locale toggle right.
-  // Account / credits / dropdown all live inside the hamburger drawer to keep
-  // the header visually clean.
+  // 라이트 페이지 위에 떴을 땐 ink 톤(흰 배경) 으로, 다크 cosmic 페이지에선
+  // cosmic 변형(투명 배경). AppHeader 의 theme 토큰으로 직접 전달.
+  const LIGHT_PAGE_PREFIXES = ['/profile', '/compatibility', '/policy', '/contact']
+  const isLightPage = Boolean(
+    pathname && LIGHT_PAGE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+  )
+  const theme: 'cosmic' | 'light' = isLightPage ? 'light' : 'cosmic'
+  const drawerVariant: 'dark' | 'light' = isLightPage ? 'light' : 'dark'
+
   return (
-    <HeaderWrapper ariaLabel={headerAriaLabel}>
-      <div className={styles.headerSlotLeft}>
-        <HamburgerDrawer locale={locale} variant={variant} />
+    <>
+      {/* fixed 컨테이너로 viewport 상단에 고정. AppHeader 자체는 layout:home 으로
+          max-w 860 가운데 정렬 → 메인 페이지 햄버거와 정확히 같은 X 좌표. */}
+      <div
+        className="fixed top-0 inset-x-0 z-[var(--z-sticky-header)]"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <AppHeader
+          layout="home"
+          theme={theme}
+          onMenuClick={() => setDrawerOpen(true)}
+          menuLabel={isKo ? '메뉴 열기' : 'Open menu'}
+          centerSlot="DestinyPal"
+          rightSlot={
+            <AppHeaderIconButton
+              onClick={() => setLocale(isKo ? 'en' : 'ko')}
+              label={localeAriaLabel}
+              isText
+            >
+              {nextLocaleLabel}
+            </AppHeaderIconButton>
+          }
+        />
       </div>
-      <nav className={styles.headerSlotRight} aria-label={t('nav.main') || 'Main navigation'}>
-        <button
-          type="button"
-          onClick={toggleLocale}
-          className={`text-[13px] font-semibold tracking-wide
-            w-9 h-9 rounded-full backdrop-blur-md cursor-pointer
-            inline-flex items-center justify-center ${styles.buttonBase} ${
-              variant === 'light'
-                ? 'bg-white/85 hover:bg-white text-[#1c1917] focus-visible:ring-[#a07a3c] focus-visible:ring-offset-[#fafaf9] shadow-[0_1px_2px_rgba(28,25,23,0.06)]'
-                : `text-[#EAE6FF] ${styles.blueButton}`
-            }`}
-          aria-label={localeAriaLabel}
-          title={localeAriaLabel}
-        >
-          {nextLocaleLabel}
-        </button>
-      </nav>
-    </HeaderWrapper>
+
+      <MenuDrawerPanel
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        locale={locale === 'ko' ? 'ko' : 'en'}
+        variant={drawerVariant}
+      />
+    </>
   )
 }
 
-// ============================================
-// Skeleton Component
-// ============================================
+// Suspense fallback — 헤더 영역의 reserved 공간만 표시(레이아웃 점프 방지).
 function GlobalHeaderSkeleton() {
   return (
-    <header className={styles.header} role="banner" aria-busy="true" aria-label="Loading header">
-      <div
-        className="w-9 h-9 rounded-full bg-blue-400/10 border border-transparent animate-pulse"
-        aria-hidden="true"
-      />
-    </header>
+    <div
+      className="fixed top-0 inset-x-0 z-[var(--z-sticky-header)] h-12"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      role="banner"
+      aria-busy="true"
+      aria-label="Loading header"
+    />
   )
 }
 
-// ============================================
-// Export
-// ============================================
 export default function GlobalHeader() {
   return (
     <Suspense fallback={<GlobalHeaderSkeleton />}>

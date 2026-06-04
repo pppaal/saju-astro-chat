@@ -43,12 +43,17 @@
   color: var(--hdr-text);
 }
 
-/* ===== Layout: counselor (좌측 그룹 + 우측 그룹 2-column grid) ===== */
+/* ===== Layout: counselor (좌측 그룹 + 우측 그룹 2-column grid) =====
+   햄버거 X 좌표를 메인/타로(layoutHome) 와 통일하기 위해 max-width 860 을
+   주고 가운데 정렬. 데스크탑에서 페이지 이동 시 햄버거가 점프하지 않도록. */
 .layoutCounselor {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.5rem;
   border-bottom: var(--hdr-border-bottom);
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .left {
