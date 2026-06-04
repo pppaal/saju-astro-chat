@@ -192,24 +192,17 @@ const FIXED_STARS: FixedStar[] = [
   },
   {
     name: 'Alcyone',
-    name_ko: '알키오네 (플레이아데스)',
-    longitude: 60.0, // 0 Gemini
+    name_ko: '알키오네 (플레이아데스 7자매)',
+    longitude: 59.98, // 29 Taurus 58
     magnitude: 2.87,
     nature: 'Moon/Mars',
     constellation: 'Taurus',
     keywords: ['슬픔', '눈', '판단력', '야망'],
     interpretation: '야망과 명예. 눈 관련 문제에 주의. 플레이아데스 7자매 중 가장 밝은 별.',
   },
-  {
-    name: 'Pleiades',
-    name_ko: '플레이아데스 (7자매)',
-    longitude: 59.98, // 29 Taurus 58
-    magnitude: 1.6,
-    nature: 'Moon/Mars',
-    constellation: 'Taurus',
-    keywords: ['슬픔', '비애', '사랑', '야망'],
-    interpretation: '사랑과 야망, 하지만 슬픔과 눈물도 동반됩니다.',
-  },
+  // (Pleiades 제거 — 플레이아데스 성단의 대표별이 Alcyone 이라 동일 지점이다.
+  //  과거 Alcyone(60.0, "0 Gemini") 와 Pleiades(59.98, "29 Taurus 58") 가 같은 점을
+  //  서로 다른 별자리로 표기하던 모순을 Alcyone 단일 항목(29 Taurus 58)으로 통일.)
   {
     name: 'Hyades',
     name_ko: '히아데스 (비의 별)',
@@ -492,16 +485,8 @@ const FIXED_STARS: FixedStar[] = [
     keywords: ['용기', '힘', '대담함', '폭력'],
     interpretation: '용기와 힘. 폭력에 주의.',
   },
-  {
-    name: 'Wega',
-    name_ko: '웨가 (떨어지는 독수리)',
-    longitude: 285.27, // 15 Capricorn 19
-    magnitude: 0.03,
-    nature: 'Venus/Mercury',
-    constellation: 'Lyra',
-    keywords: ['음악', '매력', '예술', '호프'],
-    interpretation: '음악과 예술적 재능. 희망과 이상주의.',
-  },
+  // (Wega 제거 — Vega 의 독일식 철자 중복 항목으로, 좌표가 285.27 로 어긋나 있고
+  //  Vega(285.32, 정확) 와 같은 별이라 중복 conjunction 을 만들었다. Vega 로 단일화.)
   {
     name: 'Denebola',
     name_ko: '데네볼라 (사자 꼬리)',

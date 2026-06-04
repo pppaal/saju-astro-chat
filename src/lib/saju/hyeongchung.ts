@@ -15,6 +15,22 @@
 // Re-export all types from modules
 export * from './hyeongchung/types'
 
+// 지지 관계 도그마는 relationTables.ts(SSOT)에서 파생. 로컬 복제 금지.
+import {
+  SIX_HARMONY,
+  THREE_HARMONY,
+  DIRECTIONAL_HARMONY,
+  BRANCH_CLASH,
+  HARM_PAIRS,
+  BREAK_PAIRS,
+  RESENTMENT_PAIRS,
+  PUNISHMENT_TRIOS,
+  PUNISHMENT_PAIR,
+  SELF_PUNISHMENT_STRICT,
+  ELEMENT_HANJA,
+  toBidiRecord,
+} from './relationTables'
+
 // Import types for internal use
 import type {
   Pillar,
@@ -29,116 +45,55 @@ import type {
 
 // ============ 상수 정의 ============
 
-/** 육합 (六合) */
-const YUKAP: Record<string, { partner: string; element: MergedElement }> = {
-  子: { partner: '丑', element: '土' },
-  丑: { partner: '子', element: '土' },
-  寅: { partner: '亥', element: '木' },
-  亥: { partner: '寅', element: '木' },
-  卯: { partner: '戌', element: '火' },
-  戌: { partner: '卯', element: '火' },
-  辰: { partner: '酉', element: '金' },
-  酉: { partner: '辰', element: '金' },
-  巳: { partner: '申', element: '水' },
-  申: { partner: '巳', element: '水' },
-  午: { partner: '未', element: '土' },
-  未: { partner: '午', element: '土' },
-}
+/** 육합 (六合) — canon 파생 */
+const YUKAP: Record<string, { partner: string; element: MergedElement }> = (() => {
+  const r: Record<string, { partner: string; element: MergedElement }> = {}
+  for (const { pair, element } of SIX_HARMONY) {
+    r[pair[0]] = { partner: pair[1], element: ELEMENT_HANJA[element] }
+    r[pair[1]] = { partner: pair[0], element: ELEMENT_HANJA[element] }
+  }
+  return r
+})()
 
-/** 삼합 (三合) */
-const SAMHAP: Record<string, { members: string[]; element: MergedElement }> = {
-  수국: { members: ['申', '子', '辰'], element: '水' },
-  목국: { members: ['亥', '卯', '未'], element: '木' },
-  화국: { members: ['寅', '午', '戌'], element: '火' },
-  금국: { members: ['巳', '酉', '丑'], element: '金' },
-}
+/** 삼합 (三合) — canon 파생. 키 = 합화오행국(수국/목국/화국/금국). */
+const SAMHAP: Record<string, { members: string[]; element: MergedElement }> = Object.fromEntries(
+  THREE_HARMONY.map((t) => [
+    `${t.element}국`,
+    { members: [...t.members], element: ELEMENT_HANJA[t.element] },
+  ])
+)
 
-/** 방합 (方合) */
-const BANGHAP: Record<string, { members: string[]; element: MergedElement }> = {
-  동방: { members: ['寅', '卯', '辰'], element: '木' },
-  남방: { members: ['巳', '午', '未'], element: '火' },
-  서방: { members: ['申', '酉', '戌'], element: '金' },
-  북방: { members: ['亥', '子', '丑'], element: '水' },
-}
+/** 방합 (方合) — canon 파생. 키 = 방위. */
+const BANGHAP: Record<string, { members: string[]; element: MergedElement }> = Object.fromEntries(
+  DIRECTIONAL_HARMONY.map((d) => [
+    d.direction,
+    { members: [...d.members], element: ELEMENT_HANJA[d.element] },
+  ])
+)
 
 /** 충 (沖) */
-const CHUNG: Record<string, string> = {
-  子: '午',
-  午: '子',
-  丑: '未',
-  未: '丑',
-  寅: '申',
-  申: '寅',
-  卯: '酉',
-  酉: '卯',
-  辰: '戌',
-  戌: '辰',
-  巳: '亥',
-  亥: '巳',
-}
+const CHUNG: Record<string, string> = toBidiRecord(BRANCH_CLASH)
 
 /** 형 (刑) - 삼형 */
 const SAMHYEONG: Record<string, string[]> = {
-  인사신형: ['寅', '巳', '申'],
-  축술미형: ['丑', '戌', '未'],
+  인사신형: [...PUNISHMENT_TRIOS[0]],
+  축술미형: [...PUNISHMENT_TRIOS[1]],
 }
 
 /** 형 (刑) - 자형 */
-const JAHYEONG = ['辰', '午', '酉', '亥']
+const JAHYEONG = [...SELF_PUNISHMENT_STRICT]
 
 /** 형 (刑) - 상형 */
-const SANGHYEONG: Record<string, string> = {
-  子: '卯',
-  卯: '子',
-}
+const SANGHYEONG: Record<string, string> = toBidiRecord([PUNISHMENT_PAIR])
 
 /** 해 (害) */
-const HAE: Record<string, string> = {
-  子: '未',
-  未: '子',
-  丑: '午',
-  午: '丑',
-  寅: '巳',
-  巳: '寅',
-  卯: '辰',
-  辰: '卯',
-  申: '亥',
-  亥: '申',
-  酉: '戌',
-  戌: '酉',
-}
+const HAE: Record<string, string> = toBidiRecord(HARM_PAIRS)
 
 /** 파 (破) */
-const PA: Record<string, string> = {
-  子: '酉',
-  酉: '子',
-  丑: '辰',
-  辰: '丑',
-  寅: '亥',
-  亥: '寅',
-  卯: '午',
-  午: '卯',
-  巳: '申',
-  申: '巳',
-  未: '戌',
-  戌: '未',
-}
+const PA: Record<string, string> = toBidiRecord(BREAK_PAIRS)
 
-/** 원진 (怨嗔) */
-const WONJIN: Record<string, string> = {
-  子: '未',
-  未: '子',
-  丑: '午',
-  午: '丑',
-  寅: '巳',
-  巳: '寅',
-  卯: '辰',
-  辰: '卯',
-  申: '亥',
-  亥: '申',
-  酉: '戌',
-  戌: '酉',
-}
+/** 원진 (怨嗔) — 표준 6쌍(canon). 과거 해(害) 표로 잘못 복제되던 버그를 SSOT로 제거. */
+const WONJIN: Record<string, string> = toBidiRecord(RESENTMENT_PAIRS)
 
 /** 귀문관살 (鬼門關殺) */
 const GWIMUN: Record<string, string> = {

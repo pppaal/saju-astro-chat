@@ -32,6 +32,7 @@ import {
 } from './ultra-precision-constants';
 
 import { getStemElement } from './ultra-precision-helpers';
+import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup';
 
 // ============================================================
 // 일진(日辰) 계산
@@ -108,25 +109,10 @@ export function analyzeDailyPillar(
 // ============================================================
 
 /**
- * 공망 지지 계산
- * 일주의 순(旬)에 따라 2개의 빈 지지 결정
+ * 공망 지지 계산 — pillarLookup.getGongmang(SSOT, 旬空) 위임.
  */
 export function calculateGongmang(dayStem: string, dayBranch: string): string[] {
-  // 60갑자에서 순(旬) 찾기
-  const stemIdx = STEMS.indexOf(dayStem);
-  const branchIdx = BRANCHES.indexOf(dayBranch);
-
-  // 순의 시작점 (갑일)
-  const xunStart = (branchIdx - stemIdx + 12) % 12;
-
-  // 공망은 순의 마지막 2개 지지
-  // 갑자순 → 戌亥 공망, 갑술순 → 申酉 공망...
-  const gongmangStart = (xunStart + 10) % 12;
-
-  return [
-    BRANCHES[gongmangStart],
-    BRANCHES[(gongmangStart + 1) % 12],
-  ];
+  return getGongmangByPillar(`${dayStem}${dayBranch}`) ?? [];
 }
 
 /**

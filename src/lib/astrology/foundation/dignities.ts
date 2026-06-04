@@ -28,6 +28,35 @@ export const DOMICILE: Record<string, string[]> = {
   // Uranus/Neptune/Pluto: 전통 헬레니즘 dignity 없음 (modern 점성 추가). 제거.
 }
 
+// 별자리 → 전통(헬레니즘) 지배 행성. DOMICILE(행성→별자리)에서 파생한 SSOT.
+// 과거 profections / zodiacalReleasing / calendar-engine(yearAstro) 가 각자 똑같은
+// SIGN_RULERS 표를 복제해 들고 있었다 — 모두 이 한 곳을 import 해 드리프트를 막는다.
+const EN_ZODIAC = [
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
+]
+export const SIGN_RULERS_BY_SIGN: Record<string, string> = (() => {
+  const r: Record<string, string> = {}
+  for (const [planet, signs] of Object.entries(DOMICILE)) {
+    for (const s of signs) {
+      if (EN_ZODIAC.includes(s)) {
+        r[s] = planet
+      }
+    }
+  }
+  return r
+})()
+
 export const EXALTATION: Record<string, string[]> = {
   Sun: ['Aries', '양자리'],
   Moon: ['Taurus', '황소자리'],

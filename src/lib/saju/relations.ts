@@ -1,7 +1,26 @@
 // src/lib/Saju/relations.ts
 
 import { STEMS } from './constants'
-import type { PillarKind, RelationHit } from './types'
+import type { FiveElement, PillarKind, RelationHit } from './types'
+import {
+  STEM_COMBINE,
+  STEM_CLASH_4,
+  STEM_CLASH_5_EXTRA,
+  STEM_CLASH_10,
+  SIX_HARMONY,
+  THREE_HARMONY,
+  BRANCH_CLASH,
+  BREAK_PAIRS,
+  HARM_PAIRS,
+  RESENTMENT_PAIRS,
+  PUNISHMENT_TRIOS,
+  PUNISHMENT_PAIR,
+  ALL_BRANCHES,
+  toBidiRecord,
+  toPairKeySet,
+  halfHarmonyPairs,
+} from './relationTables'
+import { getGongmang as getGongmangByPillar } from './pillarLookup'
 
 /* ========== 옵션/유틸 ========== */
 export interface AnalyzeRelationsOptions {
@@ -59,81 +78,22 @@ export function normalizeBranchName(n: string): string {
   return BRANCH_KO_TO_HAN[t] || t
 }
 
-/* ========== 천간 관계 ========== */
-// 천간합(합화 오행)
-const HEAVENLY_COMBINES: Record<
-  string,
-  { pair: string; transform?: '목' | '화' | '토' | '금' | '수' }
-> = {
-  甲: { pair: '己', transform: '토' },
-  乙: { pair: '庚', transform: '금' },
-  丙: { pair: '辛', transform: '수' },
-  丁: { pair: '壬', transform: '목' },
-  戊: { pair: '癸', transform: '화' },
-}
+/* ========== 천간 관계 — relationTables.ts(SSOT)에서 파생 ========== */
+// 천간합(합화 오행). canon STEM_COMBINE 의 첫 천간 기준 5키.
+const HEAVENLY_COMBINES: Record<string, { pair: string; transform?: FiveElement }> = (() => {
+  const r: Record<string, { pair: string; transform?: FiveElement }> = {}
+  for (const { pair, element } of STEM_COMBINE) {
+    r[pair[0]] = { pair: pair[1], transform: element }
+  }
+  return r
+})()
 
 // 천간충 세트(모드별)
 const HEAVENLY_CLASH_SETS = {
-  '4': new Set(['甲-庚', '庚-甲', '乙-辛', '辛-乙', '丙-壬', '壬-丙', '丁-癸', '癸-丁']),
-  '5': new Set([
-    '甲-庚',
-    '庚-甲',
-    '乙-辛',
-    '辛-乙',
-    '丙-壬',
-    '壬-丙',
-    '丁-癸',
-    '癸-丁',
-    '戊-甲',
-    '甲-戊',
-    '己-乙',
-    '乙-己',
-  ]),
+  '4': toPairKeySet(STEM_CLASH_4),
+  '5': toPairKeySet([...STEM_CLASH_4, ...STEM_CLASH_5_EXTRA]),
   // 10쌍: 양간끼리/음간끼리 상충 전부
-  '10': new Set([
-    // 양간: 甲丙戊庚壬
-    '甲-丙',
-    '丙-甲',
-    '甲-戊',
-    '戊-甲',
-    '甲-庚',
-    '庚-甲',
-    '甲-壬',
-    '壬-甲',
-    '丙-戊',
-    '戊-丙',
-    '丙-庚',
-    '庚-丙',
-    '丙-壬',
-    '壬-丙',
-    '戊-庚',
-    '庚-戊',
-    '戊-壬',
-    '壬-戊',
-    '庚-壬',
-    '壬-庚',
-    // 음간: 乙丁己辛癸
-    '乙-丁',
-    '丁-乙',
-    '乙-己',
-    '己-乙',
-    '乙-辛',
-    '辛-乙',
-    '乙-癸',
-    '癸-乙',
-    '丁-己',
-    '己-丁',
-    '丁-辛',
-    '辛-丁',
-    '丁-癸',
-    '癸-丁',
-    '己-辛',
-    '辛-己',
-    '己-癸',
-    '癸-己',
-    '辛-癸',
-    '癸-辛',
-  ]),
+  '10': toPairKeySet(STEM_CLASH_10),
 }
 
 function analyzeHeavenly(
@@ -173,131 +133,34 @@ function analyzeHeavenly(
   return hits
 }
 
-/* ========== 지지 관계 ========== */
+/* ========== 지지 관계 — relationTables.ts(SSOT)에서 파생 ========== */
 // 육합
-const EARTHLY_SIX_COMBINES: Record<string, string> = {
-  子: '丑',
-  丑: '子',
-  寅: '亥',
-  亥: '寅',
-  卯: '戌',
-  戌: '卯',
-  辰: '酉',
-  酉: '辰',
-  巳: '申',
-  申: '巳',
-  午: '未',
-  未: '午',
-}
+const EARTHLY_SIX_COMBINES: Record<string, string> = toBidiRecord(SIX_HARMONY.map((h) => h.pair))
 
 // 삼합(삼합국)
-const EARTHLY_TRINES: Array<{ set: [string, string, string]; element: '목' | '화' | '금' | '수' }> =
-  [
-    { set: ['申', '子', '辰'], element: '수' },
-    { set: ['亥', '卯', '未'], element: '목' },
-    { set: ['寅', '午', '戌'], element: '화' },
-    { set: ['巳', '酉', '丑'], element: '금' },
-  ]
+const EARTHLY_TRINES: Array<{ set: [string, string, string]; element: FiveElement }> =
+  THREE_HARMONY.map((t) => ({ set: [...t.members] as [string, string, string], element: t.element }))
 
-// 방합(반합)
-const EARTHLY_HALF_TRINES: Array<{ pair: [string, string]; element: '목' | '화' | '금' | '수' }> = [
-  { pair: ['申', '子'], element: '수' },
-  { pair: ['子', '辰'], element: '수' },
-  { pair: ['亥', '卯'], element: '목' },
-  { pair: ['卯', '未'], element: '목' },
-  { pair: ['寅', '午'], element: '화' },
-  { pair: ['午', '戌'], element: '화' },
-  { pair: ['巳', '酉'], element: '금' },
-  { pair: ['酉', '丑'], element: '금' },
-]
+// 방합(반합) — 삼합 트리오의 인접 2지지 반합 쌍
+const EARTHLY_HALF_TRINES: Array<{ pair: [string, string]; element: FiveElement }> =
+  halfHarmonyPairs().map((h) => ({ pair: [...h.pair] as [string, string], element: h.element }))
 
 // 충(정충)
-const EARTHLY_CLASH_PAIRS = new Set([
-  '子-午',
-  '午-子',
-  '丑-未',
-  '未-丑',
-  '寅-申',
-  '申-寅',
-  '卯-酉',
-  '酉-卯',
-  '辰-戌',
-  '戌-辰',
-  '巳-亥',
-  '亥-巳',
-])
+const EARTHLY_CLASH_PAIRS = toPairKeySet(BRANCH_CLASH)
 
-// 형(삼형 + 특수형 + 자기형 옵션)
-const EARTHLY_PUNISH_SETS: Array<Set<string>> = [
-  new Set(['寅', '巳', '申']), // 인사신 삼형
-  new Set(['丑', '戌', '未']), // 축술미 삼형
-]
-const EARTHLY_PUNISH_PAIRS = new Set([
-  '子-卯',
-  '卯-子', // 무은형
-])
-const SELF_PUNISH_PAIRS = new Set([
-  '子-子',
-  '丑-丑',
-  '寅-寅',
-  '卯-卯',
-  '辰-辰',
-  '巳-巳',
-  '午-午',
-  '未-未',
-  '申-申',
-  '酉-酉',
-  '戌-戌',
-  '亥-亥',
-])
+// 형(삼형 + 특수형 + 자기형 옵션). 자형은 엔진 정책상 12지지 전부 인정(완화판).
+const EARTHLY_PUNISH_SETS: Array<Set<string>> = PUNISHMENT_TRIOS.map((t) => new Set(t))
+const EARTHLY_PUNISH_PAIRS = toPairKeySet([PUNISHMENT_PAIR])
+const SELF_PUNISH_PAIRS = new Set(ALL_BRANCHES.map((b) => `${b}-${b}`))
 
 // 파
-const EARTHLY_BREAK_PAIRS = new Set([
-  '子-酉',
-  '酉-子',
-  '丑-辰',
-  '辰-丑',
-  '寅-亥',
-  '亥-寅',
-  '卯-午',
-  '午-卯',
-  '申-巳',
-  '巳-申',
-  '未-戌',
-  '戌-未',
-])
+const EARTHLY_BREAK_PAIRS = toPairKeySet(BREAK_PAIRS)
 
 // 해
-const EARTHLY_HARM_PAIRS = new Set([
-  '子-未',
-  '未-子',
-  '丑-午',
-  '午-丑',
-  '寅-巳',
-  '巳-寅',
-  '卯-辰',
-  '辰-卯',
-  '申-亥',
-  '亥-申',
-  '酉-戌',
-  '戌-酉',
-])
+const EARTHLY_HARM_PAIRS = toPairKeySet(HARM_PAIRS)
 
-// 원진 — 수정(표준 6쌍 대칭)
-const EARTHLY_YUANJIN_PAIRS = new Set([
-  '子-未',
-  '未-子',
-  '丑-午',
-  '午-丑',
-  '寅-巳',
-  '巳-寅',
-  '卯-辰',
-  '辰-卯',
-  '申-亥',
-  '亥-申',
-  '酉-戌',
-  '戌-酉',
-])
+// 원진 — 표준 6쌍(canon). 과거 해(害) 표로 잘못 복제되던 버그를 SSOT로 제거.
+const EARTHLY_YUANJIN_PAIRS = toPairKeySet(RESENTMENT_PAIRS)
 
 function analyzeEarthly(
   p: PillarInput,
@@ -387,75 +250,8 @@ function analyzeEarthly(
 }
 
 /* ========== 공망(空亡) ========== */
-// 60갑자 일주 기준 공망표(이미지 표와 일치)
-const GONGMANG_BY_DAY_PILLAR: Record<string, [string, string]> = {
-  // 戌亥
-  甲子: ['戌', '亥'],
-  乙丑: ['戌', '亥'],
-  丙寅: ['戌', '亥'],
-  丁卯: ['戌', '亥'],
-  戊辰: ['戌', '亥'],
-  己巳: ['戌', '亥'],
-  庚午: ['戌', '亥'],
-  辛未: ['戌', '亥'],
-  壬申: ['戌', '亥'],
-  癸酉: ['戌', '亥'],
-  // 申酉
-  甲戌: ['申', '酉'],
-  乙亥: ['申', '酉'],
-  丙子: ['申', '酉'],
-  丁丑: ['申', '酉'],
-  戊寅: ['申', '酉'],
-  己卯: ['申', '酉'],
-  庚辰: ['申', '酉'],
-  辛巳: ['申', '酉'],
-  壬午: ['申', '酉'],
-  癸未: ['申', '酉'],
-  // 午未
-  甲申: ['午', '未'],
-  乙酉: ['午', '未'],
-  丙戌: ['午', '未'],
-  丁亥: ['午', '未'],
-  戊子: ['午', '未'],
-  己丑: ['午', '未'],
-  庚寅: ['午', '未'],
-  辛卯: ['午', '未'],
-  壬辰: ['午', '未'],
-  癸巳: ['午', '未'],
-  // 辰巳
-  甲午: ['辰', '巳'],
-  乙未: ['辰', '巳'],
-  丙申: ['辰', '巳'],
-  丁酉: ['辰', '巳'],
-  戊戌: ['辰', '巳'],
-  己亥: ['辰', '巳'],
-  庚子: ['辰', '巳'],
-  辛丑: ['辰', '巳'],
-  壬寅: ['辰', '巳'],
-  癸卯: ['辰', '巳'],
-  // 寅卯
-  甲辰: ['寅', '卯'],
-  乙巳: ['寅', '卯'],
-  丙午: ['寅', '卯'],
-  丁未: ['寅', '卯'],
-  戊申: ['寅', '卯'],
-  己酉: ['寅', '卯'],
-  庚戌: ['寅', '卯'],
-  辛亥: ['寅', '卯'],
-  壬子: ['寅', '卯'],
-  癸丑: ['寅', '卯'],
-  // 子丑
-  甲寅: ['子', '丑'],
-  乙卯: ['子', '丑'],
-  丙辰: ['子', '丑'],
-  丁巳: ['子', '丑'],
-  戊午: ['子', '丑'],
-  己未: ['子', '丑'],
-  庚申: ['子', '丑'],
-  辛酉: ['子', '丑'],
-  壬戌: ['子', '丑'],
-  癸亥: ['子', '丑'],
-}
+// 60갑자 일주 기준 공망표 — pillarLookup.getGongmang(SSOT, 旬空 규칙)에 위임.
+// 과거 여기 60칸을 손으로 들고 있었으나(드리프트 위험) 제거.
 
 // 종전: 일간/연간만으로 6패턴 반복
 const GONGMANG_BY_STEM_INDEX: Record<number, [string, string]> = {
@@ -483,7 +279,7 @@ function analyzeGongmang(
 
   if (policy === 'dayPillar-60jiazi') {
     const dayPillar = `${p.day.heavenlyStem}${normalizeBranchName(p.day.earthlyBranch)}`
-    gm = GONGMANG_BY_DAY_PILLAR[dayPillar]
+    gm = getGongmangByPillar(dayPillar) ?? undefined
   } else {
     // basic 모드: 일간/연간의 천간으로 공망 계산
     let baseStem = dayMasterStem ?? p.day.heavenlyStem

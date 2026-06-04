@@ -1,6 +1,8 @@
 // src/lib/Saju/shinsal.ts
-import { BRANCHES, STEMS } from './constants'
+import { BRANCHES, STEMS, JIJANGGAN, CHEONEUL_GWIIN_MAP } from './constants'
 import type { FiveElement, YinYang, PillarKind, TwelveStage } from './types'
+import { RESENTMENT_PAIRS, toBidiRecord } from './relationTables'
+import { getGongmang as getGongmangByPillar } from './pillarLookup'
 
 export type { PillarKind, TwelveStage }
 
@@ -438,18 +440,8 @@ function isGosin(monthBranch: string, target: string): boolean {
 //   丙丁   → 亥酉
 //   壬癸   → 巳卯
 //   辛     → 寅午  (六辛逢馬虎)
-const CHEONEUL_BY_DAY_STEM: Record<string, string[]> = {
-  甲: ['丑', '未'],
-  戊: ['丑', '未'],
-  庚: ['丑', '未'],
-  乙: ['子', '申'],
-  己: ['子', '申'],
-  丙: ['亥', '酉'],
-  丁: ['亥', '酉'],
-  壬: ['巳', '卯'],
-  癸: ['巳', '卯'],
-  辛: ['寅', '午'],
-}
+// 천을귀인은 constants.CHEONEUL_GWIIN_MAP(SSOT)에서 가져온다. 로컬 복제 금지.
+const CHEONEUL_BY_DAY_STEM: Record<string, string[]> = CHEONEUL_GWIIN_MAP
 const TAEGEUK_BY_DAY_STEM: Record<string, string[]> = {
   甲: ['子', '午'],
   乙: ['子', '午'],
@@ -505,78 +497,11 @@ function isMunGok(dayStem: string, branch: string): boolean {
 
 /* ===== 확장 신살 테이블 ===== */
 
-// 공망(空亡): 일주의 순(旬)에서 빠진 두 지지
-// 갑자순 → 戌亥 공망, 갑술순 → 申酉 공망, ...
-const GONGMANG_BY_DAY_PILLAR: Record<string, string[]> = {
-  // 갑자순 (甲子~癸酉)
-  甲子: ['戌', '亥'],
-  乙丑: ['戌', '亥'],
-  丙寅: ['戌', '亥'],
-  丁卯: ['戌', '亥'],
-  戊辰: ['戌', '亥'],
-  己巳: ['戌', '亥'],
-  庚午: ['戌', '亥'],
-  辛未: ['戌', '亥'],
-  壬申: ['戌', '亥'],
-  癸酉: ['戌', '亥'],
-  // 갑술순 (甲戌~癸未)
-  甲戌: ['申', '酉'],
-  乙亥: ['申', '酉'],
-  丙子: ['申', '酉'],
-  丁丑: ['申', '酉'],
-  戊寅: ['申', '酉'],
-  己卯: ['申', '酉'],
-  庚辰: ['申', '酉'],
-  辛巳: ['申', '酉'],
-  壬午: ['申', '酉'],
-  癸未: ['申', '酉'],
-  // 갑신순 (甲申~癸巳)
-  甲申: ['午', '未'],
-  乙酉: ['午', '未'],
-  丙戌: ['午', '未'],
-  丁亥: ['午', '未'],
-  戊子: ['午', '未'],
-  己丑: ['午', '未'],
-  庚寅: ['午', '未'],
-  辛卯: ['午', '未'],
-  壬辰: ['午', '未'],
-  癸巳: ['午', '未'],
-  // 갑오순 (甲午~癸卯)
-  甲午: ['辰', '巳'],
-  乙未: ['辰', '巳'],
-  丙申: ['辰', '巳'],
-  丁酉: ['辰', '巳'],
-  戊戌: ['辰', '巳'],
-  己亥: ['辰', '巳'],
-  庚子: ['辰', '巳'],
-  辛丑: ['辰', '巳'],
-  壬寅: ['辰', '巳'],
-  癸卯: ['辰', '巳'],
-  // 갑진순 (甲辰~癸丑)
-  甲辰: ['寅', '卯'],
-  乙巳: ['寅', '卯'],
-  丙午: ['寅', '卯'],
-  丁未: ['寅', '卯'],
-  戊申: ['寅', '卯'],
-  己酉: ['寅', '卯'],
-  庚戌: ['寅', '卯'],
-  辛亥: ['寅', '卯'],
-  壬子: ['寅', '卯'],
-  癸丑: ['寅', '卯'],
-  // 갑인순 (甲寅~癸亥)
-  甲寅: ['子', '丑'],
-  乙卯: ['子', '丑'],
-  丙辰: ['子', '丑'],
-  丁巳: ['子', '丑'],
-  戊午: ['子', '丑'],
-  己未: ['子', '丑'],
-  庚申: ['子', '丑'],
-  辛酉: ['子', '丑'],
-  壬戌: ['子', '丑'],
-  癸亥: ['子', '丑'],
-}
+// 공망(空亡): 일주의 순(旬)에서 빠진 두 지지. 산정은 pillarLookup.getGongmang(SSOT)에
+// 위임 — SIXTY_PILLARS 의 旬空 규칙 한 곳에서만 계산. 과거 여기 60칸 표를 손으로
+// 들고 있었으나(드리프트 위험) 제거.
 export function getGongmang(dayStem: string, dayBranch: string): string[] {
-  return GONGMANG_BY_DAY_PILLAR[dayStem + dayBranch] || []
+  return getGongmangByPillar(`${dayStem}${dayBranch}`) ?? []
 }
 
 // 천의성(天醫星): 월지 기준으로 다음 지지
@@ -640,21 +565,9 @@ function isCheonraJimang(branch: string): '천라지망' | null {
   return null
 }
 
-// 원진(元嗔): 6해 관계의 특수 형태
-const WONJIN_PAIRS: Record<string, string> = {
-  子: '未',
-  丑: '午',
-  寅: '巳',
-  卯: '辰',
-  辰: '卯',
-  巳: '寅',
-  午: '丑',
-  未: '子',
-  申: '亥',
-  酉: '戌',
-  戌: '酉',
-  亥: '申',
-}
+// 원진(怨嗔): 표준 6쌍(canon). 子未 丑午 寅酉 卯申 辰亥 巳戌.
+// (과거 "6해의 특수형태"로 오인해 해(害) 표를 복제하던 버그를 SSOT로 제거.)
+const WONJIN_PAIRS: Record<string, string> = toBidiRecord(RESENTMENT_PAIRS)
 function isWonjin(dayBranch: string, targetBranch: string): boolean {
   return WONJIN_PAIRS[dayBranch] === targetBranch
 }
@@ -1495,21 +1408,31 @@ export function getLuckySingleByPillar(p: SajuPillarsLike): {
 }
 
 /* ===== 지장간 텍스트 ===== */
-// 순서: 여기 → 중기 → 정기 (정기만 있는 지지는 하나만)
-export const JIJANGGAN_TEXT_BY_BRANCH: Record<string, string> = {
-  子: '계', // 정기만
-  丑: '계신기', // 여기(계) 중기(신) 정기(기)
-  寅: '무병갑', // 여기(무) 중기(병) 정기(갑)
-  卯: '을', // 정기만
-  辰: '을계무', // 여기(을) 중기(계) 정기(무)
-  巳: '무경병', // 여기(무) 중기(경) 정기(병)
-  午: '기정', // 여기(기) 정기(정) - 중기 없음
-  未: '정을기', // 여기(정) 중기(을) 정기(기)
-  申: '무임경', // 여기(무) 중기(임) 정기(경)
-  酉: '신', // 정기만
-  戌: '신정무', // 여기(신) 중기(정) 정기(무)
-  亥: '무임', // 여기(무) 정기(임) - 중기 없음
+// 순서: 여기 → 중기 → 정기 (정기만 있는 지지는 하나만).
+// 정본 JIJANGGAN(constants, 한자)에서 한글 독음으로 파생 — 로컬 복제 금지.
+// (과거 손으로 적다가 午='기정'(丙 누락)·亥='무임'(甲 누락) 으로 드리프트했던 버그를
+//  SSOT 파생으로 제거. 이제 午=병기정, 亥=무갑임.)
+const STEM_HAN_TO_KO: Record<string, string> = {
+  甲: '갑',
+  乙: '을',
+  丙: '병',
+  丁: '정',
+  戊: '무',
+  己: '기',
+  庚: '경',
+  辛: '신',
+  壬: '임',
+  癸: '계',
 }
+export const JIJANGGAN_TEXT_BY_BRANCH: Record<string, string> = Object.fromEntries(
+  Object.entries(JIJANGGAN).map(([branch, j]) => [
+    branch,
+    [j['여기'], j['중기'], j['정기']]
+      .filter((s): s is string => Boolean(s))
+      .map((s) => STEM_HAN_TO_KO[s])
+      .join(''),
+  ])
+)
 export function getJijangganText(branchNameRaw: string): string {
   const b = normalizeBranchName(branchNameRaw)
   return JIJANGGAN_TEXT_BY_BRANCH[b] || ''

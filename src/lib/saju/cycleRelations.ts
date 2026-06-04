@@ -8,6 +8,21 @@
 
 import { getSibseong } from './core/sibsin'
 import type { FiveElement } from './types'
+import {
+  STEM_COMBINE,
+  STEM_CLASH_4,
+  SIX_HARMONY,
+  BRANCH_CLASH,
+  HARM_PAIRS,
+  BREAK_PAIRS,
+  PUNISHMENT_TRIOS,
+  PUNISHMENT_PAIR,
+  THREE_HARMONY,
+  DIRECTIONAL_HARMONY,
+  RESENTMENT_PAIRS,
+  toBidiRecord,
+  toPairKeySet,
+} from './relationTables'
 
 // ── 천간/지지 기본 ──
 const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
@@ -37,114 +52,38 @@ const STEM_TO_KO_ELEMENT: Record<string, string> = {
 }
 const BRANCHES_BY_INDEX = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
 
-// ── 관계 상수 ──
-const STEM_HAP_PARTNER: Record<string, { partner: string; transform: string }> = {
-  甲: { partner: '己', transform: '토' },
-  乙: { partner: '庚', transform: '금' },
-  丙: { partner: '辛', transform: '수' },
-  丁: { partner: '壬', transform: '목' },
-  戊: { partner: '癸', transform: '화' },
-  己: { partner: '甲', transform: '토' },
-  庚: { partner: '乙', transform: '금' },
-  辛: { partner: '丙', transform: '수' },
-  壬: { partner: '丁', transform: '목' },
-  癸: { partner: '戊', transform: '화' },
-}
-const STEM_CHUNG_SET = new Set([
-  '甲-庚',
-  '庚-甲',
-  '乙-辛',
-  '辛-乙',
-  '丙-壬',
-  '壬-丙',
-  '丁-癸',
-  '癸-丁',
-])
-const BRANCH_HAP_PARTNER: Record<string, string> = {
-  子: '丑',
-  丑: '子',
-  寅: '亥',
-  亥: '寅',
-  卯: '戌',
-  戌: '卯',
-  辰: '酉',
-  酉: '辰',
-  巳: '申',
-  申: '巳',
-  午: '未',
-  未: '午',
-}
-const BRANCH_CHUNG_PARTNER: Record<string, string> = {
-  子: '午',
-  午: '子',
-  丑: '未',
-  未: '丑',
-  寅: '申',
-  申: '寅',
-  卯: '酉',
-  酉: '卯',
-  辰: '戌',
-  戌: '辰',
-  巳: '亥',
-  亥: '巳',
-}
-const BRANCH_HAE_PAIRS = new Set([
-  '子-未',
-  '未-子',
-  '丑-午',
-  '午-丑',
-  '寅-巳',
-  '巳-寅',
-  '卯-辰',
-  '辰-卯',
-  '申-亥',
-  '亥-申',
-  '酉-戌',
-  '戌-酉',
-])
-const BRANCH_PA_PAIRS = new Set([
-  '子-酉',
-  '酉-子',
-  '丑-辰',
-  '辰-丑',
-  '寅-亥',
-  '亥-寅',
-  '卯-午',
-  '午-卯',
-  '申-巳',
-  '巳-申',
-  '未-戌',
-  '戌-未',
-])
-const BRANCH_HYUNG_TRIO = ['寅', '巳', '申']
-const BRANCH_HYUNG_TRIO2 = ['丑', '戌', '未']
-const BRANCH_HYUNG_PAIR = new Set(['子-卯', '卯-子'])
-const BRANCH_TRIPLES_SAMHAP: Array<{ members: string[]; result: string; label: string }> = [
-  { members: ['亥', '卯', '未'], result: '목', label: '亥卯未 목 삼합' },
-  { members: ['寅', '午', '戌'], result: '화', label: '寅午戌 화 삼합' },
-  { members: ['巳', '酉', '丑'], result: '금', label: '巳酉丑 금 삼합' },
-  { members: ['申', '子', '辰'], result: '수', label: '申子辰 수 삼합' },
-]
-const BRANCH_TRIPLES_BANGHAP: Array<{ members: string[]; result: string; label: string }> = [
-  { members: ['寅', '卯', '辰'], result: '목', label: '寅卯辰 봄 방합' },
-  { members: ['巳', '午', '未'], result: '화', label: '巳午未 여름 방합' },
-  { members: ['申', '酉', '戌'], result: '금', label: '申酉戌 가을 방합' },
-  { members: ['亥', '子', '丑'], result: '수', label: '亥子丑 겨울 방합' },
-]
-const BRANCH_WONJIN_PAIRS = new Set([
-  '子-未',
-  '未-子',
-  '丑-午',
-  '午-丑',
-  '寅-酉',
-  '酉-寅',
-  '卯-申',
-  '申-卯',
-  '辰-亥',
-  '亥-辰',
-  '巳-戌',
-  '戌-巳',
-])
+// ── 관계 상수 — relationTables.ts(SSOT)에서 파생. 로컬 복제 금지. ──
+const STEM_HAP_PARTNER: Record<string, { partner: string; transform: string }> = (() => {
+  const r: Record<string, { partner: string; transform: string }> = {}
+  for (const { pair, element } of STEM_COMBINE) {
+    r[pair[0]] = { partner: pair[1], transform: element }
+    r[pair[1]] = { partner: pair[0], transform: element }
+  }
+  return r
+})()
+const STEM_CHUNG_SET = toPairKeySet(STEM_CLASH_4)
+const BRANCH_HAP_PARTNER: Record<string, string> = toBidiRecord(SIX_HARMONY.map((h) => h.pair))
+const BRANCH_CHUNG_PARTNER: Record<string, string> = toBidiRecord(BRANCH_CLASH)
+const BRANCH_HAE_PAIRS = toPairKeySet(HARM_PAIRS)
+const BRANCH_PA_PAIRS = toPairKeySet(BREAK_PAIRS)
+const BRANCH_HYUNG_TRIO = [...PUNISHMENT_TRIOS[0]]
+const BRANCH_HYUNG_TRIO2 = [...PUNISHMENT_TRIOS[1]]
+const BRANCH_HYUNG_PAIR = toPairKeySet([PUNISHMENT_PAIR])
+// 삼합/방합 — 합화오행·라벨·나열순서는 표시용이라 보존하되, 멤버/오행은 canon에서 파생.
+const BRANCH_TRIPLES_SAMHAP: Array<{ members: string[]; result: string; label: string }> = (
+  ['목', '화', '금', '수'] as const
+).map((el) => {
+  const t = THREE_HARMONY.find((x) => x.element === el)!
+  return { members: [...t.members], result: el, label: `${t.members.join('')} ${el} 삼합` }
+})
+const BANGHAP_SEASON: Record<string, string> = { 목: '봄', 화: '여름', 금: '가을', 수: '겨울' }
+const BRANCH_TRIPLES_BANGHAP: Array<{ members: string[]; result: string; label: string }> =
+  DIRECTIONAL_HARMONY.map((d) => ({
+    members: [...d.members],
+    result: d.element,
+    label: `${d.members.join('')} ${BANGHAP_SEASON[d.element]} 방합`,
+  }))
+const BRANCH_WONJIN_PAIRS = toPairKeySet(RESENTMENT_PAIRS)
 
 // ── 십신 (본명 일간 기준 상대 십신) ──
 // SSOT: 정본 getSibseong(core/sibsin) 에 위임. 이전엔 인덱스 연산으로 직접 구현했으나

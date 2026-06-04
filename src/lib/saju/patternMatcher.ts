@@ -3,6 +3,16 @@
 
 import { FiveElement, SajuPillars, SibsinKind, PillarKind } from './types'
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
+import { SIX_HARMONY, BRANCH_CLASH, STEM_COMBINE, THREE_HARMONY, toBidiRecord } from './relationTables'
+
+// 관계 도그마는 relationTables.ts(SSOT)에서 파생. 로컬 복제 금지.
+const PM_YUKHAP_MAP: Record<string, string> = toBidiRecord(SIX_HARMONY.map((h) => h.pair))
+const PM_CHUNG_MAP: Record<string, string> = toBidiRecord(BRANCH_CLASH)
+const PM_STEM_HAP: Record<string, string> = toBidiRecord(STEM_COMBINE.map((s) => s.pair))
+// 삼합 그룹 — 표시 순서(화·금·수·목) 보존.
+const PM_SAMHAP_GROUPS: string[][] = (['화', '금', '수', '목'] as const).map((el) => [
+  ...THREE_HARMONY.find((x) => x.element === el)!.members,
+])
 import { getStemElement, getBranchElement, getStemYinYang } from './stemBranchUtils'
 
 // ============================================================
@@ -143,20 +153,7 @@ const PATTERN_DEFINITIONS: PatternDefinition[] = [
         pillars.day.earthlyBranch.name,
         pillars.time.earthlyBranch.name,
       ]
-      const YUKHAP_MAP: Record<string, string> = {
-        子: '丑',
-        丑: '子',
-        寅: '亥',
-        亥: '寅',
-        卯: '戌',
-        戌: '卯',
-        辰: '酉',
-        酉: '辰',
-        巳: '申',
-        申: '巳',
-        午: '未',
-        未: '午',
-      }
+      const YUKHAP_MAP = PM_YUKHAP_MAP
       let hapCount = 0
       for (let i = 0; i < branches.length; i++) {
         for (let j = i + 1; j < branches.length; j++) {
@@ -183,12 +180,7 @@ const PATTERN_DEFINITIONS: PatternDefinition[] = [
         pillars.day.earthlyBranch.name,
         pillars.time.earthlyBranch.name,
       ]
-      const SAMHAP_GROUPS = [
-        ['寅', '午', '戌'],
-        ['巳', '酉', '丑'],
-        ['申', '子', '辰'],
-        ['亥', '卯', '未'],
-      ]
+      const SAMHAP_GROUPS = PM_SAMHAP_GROUPS
       for (const group of SAMHAP_GROUPS) {
         const matches = group.filter((b) => branches.includes(b)).length
         if (matches === 3) {
@@ -214,20 +206,7 @@ const PATTERN_DEFINITIONS: PatternDefinition[] = [
         pillars.day.earthlyBranch.name,
         pillars.time.earthlyBranch.name,
       ]
-      const CHUNG_MAP: Record<string, string> = {
-        子: '午',
-        午: '子',
-        丑: '未',
-        未: '丑',
-        寅: '申',
-        申: '寅',
-        卯: '酉',
-        酉: '卯',
-        辰: '戌',
-        戌: '辰',
-        巳: '亥',
-        亥: '巳',
-      }
+      const CHUNG_MAP = PM_CHUNG_MAP
       let chungCount = 0
       for (let i = 0; i < branches.length; i++) {
         for (let j = i + 1; j < branches.length; j++) {
@@ -312,32 +291,8 @@ const PATTERN_DEFINITIONS: PatternDefinition[] = [
       const dayBranch = pillars.day.earthlyBranch.name
       const timeBranch = pillars.time.earthlyBranch.name
 
-      const STEM_HAP: Record<string, string> = {
-        甲: '己',
-        己: '甲',
-        乙: '庚',
-        庚: '乙',
-        丙: '辛',
-        辛: '丙',
-        丁: '壬',
-        壬: '丁',
-        戊: '癸',
-        癸: '戊',
-      }
-      const YUKHAP_MAP: Record<string, string> = {
-        子: '丑',
-        丑: '子',
-        寅: '亥',
-        亥: '寅',
-        卯: '戌',
-        戌: '卯',
-        辰: '酉',
-        酉: '辰',
-        巳: '申',
-        申: '巳',
-        午: '未',
-        未: '午',
-      }
+      const STEM_HAP = PM_STEM_HAP
+      const YUKHAP_MAP = PM_YUKHAP_MAP
 
       const stemHap = STEM_HAP[dayStem] === timeStem
       const branchHap = YUKHAP_MAP[dayBranch] === timeBranch

@@ -4,6 +4,7 @@
 
 import { FiveElement, YinYang, SajuPillarsInput } from './types'
 import { JIJANGGAN } from './constants'
+import { THREE_HARMONY, DIRECTIONAL_HARMONY } from './relationTables'
 import { getStemElement, getStemYinYang, getBranchElement } from './stemBranchUtils'
 
 // Re-export for backward compatibility
@@ -252,40 +253,35 @@ export function getMonthBranchTransparency(pillars: SajuPillarsInput): {
 /**
  * 삼합 정의
  */
-const SAMHAP: Array<{ branches: string[]; result: FiveElement }> = [
-  { branches: ['申', '子', '辰'], result: '수' }, // 신자진 수국
-  { branches: ['寅', '午', '戌'], result: '화' }, // 인오술 화국
-  { branches: ['巳', '酉', '丑'], result: '금' }, // 사유축 금국
-  { branches: ['亥', '卯', '未'], result: '목' }, // 해묘미 목국
-]
+// canon 파생. 표시 순서(수·화·금·목) 보존.
+const SAMHAP: Array<{ branches: string[]; result: FiveElement }> = (
+  ['수', '화', '금', '목'] as const
+).map((el) => {
+  const t = THREE_HARMONY.find((x) => x.element === el)!
+  return { branches: [...t.members], result: el }
+})
 
 /**
- * 방합 정의
+ * 방합 정의 — canon 파생
  */
-const BANGHAP: Array<{ branches: string[]; result: FiveElement }> = [
-  { branches: ['寅', '卯', '辰'], result: '목' }, // 인묘진 동방목국
-  { branches: ['巳', '午', '未'], result: '화' }, // 사오미 남방화국
-  { branches: ['申', '酉', '戌'], result: '금' }, // 신유술 서방금국
-  { branches: ['亥', '子', '丑'], result: '수' }, // 해자축 북방수국
-]
+const BANGHAP: Array<{ branches: string[]; result: FiveElement }> = DIRECTIONAL_HARMONY.map((d) => ({
+  branches: [...d.members],
+  result: d.element,
+}))
 
 /**
- * 반합(半合) 정의 - 삼합의 2개만 있는 경우
+ * 반합(半合) 정의 - 삼합의 왕지 포함 인접 2지지. canon 파생, center=왕지(가운데).
  */
-const BANHAP: Array<{ branches: string[]; result: FiveElement; center: string }> = [
-  // 수국 반합
-  { branches: ['申', '子'], result: '수', center: '子' },
-  { branches: ['子', '辰'], result: '수', center: '子' },
-  // 화국 반합
-  { branches: ['寅', '午'], result: '화', center: '午' },
-  { branches: ['午', '戌'], result: '화', center: '午' },
-  // 금국 반합
-  { branches: ['巳', '酉'], result: '금', center: '酉' },
-  { branches: ['酉', '丑'], result: '금', center: '酉' },
-  // 목국 반합
-  { branches: ['亥', '卯'], result: '목', center: '卯' },
-  { branches: ['卯', '未'], result: '목', center: '卯' },
-]
+const BANHAP: Array<{ branches: string[]; result: FiveElement; center: string }> = (
+  ['수', '화', '금', '목'] as const
+).flatMap((el) => {
+  const t = THREE_HARMONY.find((x) => x.element === el)!
+  const [first, center, last] = t.members
+  return [
+    { branches: [first, center], result: el, center },
+    { branches: [center, last], result: el, center },
+  ]
+})
 
 /**
  * 회국 계산
