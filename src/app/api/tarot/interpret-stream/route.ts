@@ -173,7 +173,17 @@ function isUsableReading(fullText: string): boolean {
       card.interpretation.trim() !== ''
     )
   })
-  return everyCardUsable
+  if (!everyCardUsable) return false
+
+  // 자리(position) 중복 금지 — 프롬프트가 룰로 박았지만 모델이 어기면 두 카드에
+  // 같은 라벨이 떠 클라이언트가 "둘 다 다가올 흐름?" 같은 깨진 결과를 보여준다.
+  // trim + lowercase 로 정규화해서 비교 (공백/대소문자만 다른 변형도 잡힘).
+  const positions = (reading.cards as Array<{ position: string }>).map((c) =>
+    c.position.trim().toLowerCase()
+  )
+  if (new Set(positions).size !== positions.length) return false
+
+  return true
 }
 
 // Vercel 런타임 설정 — 누락되면 default 10s 함수 timeout 에 걸려 Claude
