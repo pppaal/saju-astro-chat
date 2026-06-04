@@ -10,6 +10,7 @@ import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
 import { useRecoverOnResume } from '@/hooks/useRecoverOnResume'
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
@@ -545,21 +546,7 @@ function CompatibilityCounselorContent() {
   })
 
   // dvh layout requires html/body scroll lock — same trick as destiny-counselor.
-  useEffect(() => {
-    const html = document.documentElement
-    const body = document.body
-    const prevHtmlOverflow = html.style.overflow
-    const prevBodyOverflow = body.style.overflow
-    const prevBodyOverscroll = body.style.overscrollBehavior
-    html.style.overflow = 'hidden'
-    body.style.overflow = 'hidden'
-    body.style.overscrollBehavior = 'contain'
-    return () => {
-      html.style.overflow = prevHtmlOverflow
-      body.style.overflow = prevBodyOverflow
-      body.style.overscrollBehavior = prevBodyOverscroll
-    }
-  }, [])
+  useBodyScrollLock()
 
   // 채팅 준비되면 입력창에 focus — focusToken 갱신만 하면 ChatInputArea
   // 내부 effect 가 textarea 에 focus.

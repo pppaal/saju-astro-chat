@@ -15,46 +15,18 @@ import {
 import { generateFollowUpQuestions, isGenericFollowUp } from '../chat-followups'
 import type { ChatProps, ChatPayload } from '../chat-types'
 import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
+import {
+  readPendingTurn as readPendingTurnRaw,
+  writePendingTurn as writePendingTurnRaw,
+  clearPendingTurn as clearPendingTurnRaw,
+  PENDING_TURN_TTL_MS,
+  type PendingTurn,
+} from '@/lib/chat/pendingTurn'
+import { useRecoverOnResume } from '@/hooks/useRecoverOnResume'
 
-// 끊긴 턴 복원용 영속 정보 — recoverableTurnRef 는 메모리라 탭/앱을 완전히
-// 닫았다 다시 열면(=새로고침) 사라진다. turnId 를 localStorage 에 같이 남겨,
-// 서버가 keepGeneratingOnDisconnect 로 끝까지 만들어 둔 완성본을 마운트 시
-// result 캐시에서 자동으로 받아와 잘린 답을 갈아끼운다(ChatGPT 식). TTL 은
-// 서버 result 캐시(10분)와 맞춘다 — 그 뒤엔 캐시가 비어 복원 불가.
-const PENDING_TURN_KEY = 'destinyCounselor:pendingTurn'
-const PENDING_TURN_TTL_MS = 10 * 60 * 1000
-type PendingTurn = { turnId: string; userText: string; ts: number }
-
-function readPendingTurn(): PendingTurn | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(PENDING_TURN_KEY)
-    if (!raw) return null
-    const t = JSON.parse(raw) as PendingTurn
-    if (!t?.turnId || typeof t.ts !== 'number') return null
-    return t
-  } catch {
-    return null
-  }
-}
-
-function writePendingTurn(t: PendingTurn): void {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(PENDING_TURN_KEY, JSON.stringify(t))
-  } catch {
-    /* 저장 실패(quota/private mode) — 영속 복원만 포기, 인메모리 경로는 유지 */
-  }
-}
-
-function clearPendingTurn(): void {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.removeItem(PENDING_TURN_KEY)
-  } catch {
-    /* noop */
-  }
-}
+const readPendingTurn = (): PendingTurn | null => readPendingTurnRaw('destiny')
+const writePendingTurn = (t: PendingTurn): void => writePendingTurnRaw('destiny', t)
+const clearPendingTurn = (): void => clearPendingTurnRaw('destiny')
 
 interface UseChatApiOptions {
   sessionIdRef: React.MutableRefObject<string>
@@ -252,27 +224,7 @@ export function useChatApi({
     }
   }, [lang, setMessages, setNotice, setFollowUpQuestions])
 
-  // 다른 앱/탭에서 돌아오거나(visible/focus) 네트워크가 복구되면(online) 끊겼던
-  // 턴의 완성 답을 복원 시도. attemptRecover 자체가 (복원 대상 없음 / 문서 비가시 /
-  // 이미 복원 중) 가드를 가지고 있어, 세 이벤트가 겹쳐 발화해도 중복 폴링은 안 생긴다.
-  React.useEffect(() => {
-    if (typeof document === 'undefined') return
-    const onResume = () => {
-      if (document.visibilityState === 'visible') void attemptRecover()
-    }
-    document.addEventListener('visibilitychange', onResume)
-    if (typeof window !== 'undefined') {
-      window.addEventListener('online', onResume)
-      window.addEventListener('focus', onResume)
-    }
-    return () => {
-      document.removeEventListener('visibilitychange', onResume)
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('online', onResume)
-        window.removeEventListener('focus', onResume)
-      }
-    }
-  }, [attemptRecover])
+  useRecoverOnResume(attemptRecover)
 
   // 새로고침/앱 재실행 복원 — 탭을 완전히 닫았다 열면 recoverableTurnRef(메모리)는
   // 사라지지만, 잘린 답은 서버 세션/게스트 드래프트로 복원돼 화면 맨 끝에 미완성
