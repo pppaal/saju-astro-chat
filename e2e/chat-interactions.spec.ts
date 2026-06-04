@@ -294,18 +294,12 @@ test.describe('Chat Interactions Tests', () => {
   })
 
   test.describe('Tarot Pages', () => {
-    test('should load tarot couple page with Korean content', async ({ page }) => {
+    // 커플 타로 비활성화 — /tarot/couple 은 이제 일반 타로로 redirect 된다.
+    test('disabled couple tarot redirects to /tarot', async ({ page }) => {
       await page.goto('/tarot/couple', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-
-      const hasTarotContent =
-        bodyText!.includes('타로') ||
-        bodyText!.includes('커플') ||
-        bodyText!.includes('연인')
-      expect(hasTarotContent).toBe(true)
+      // redirect 결과 URL 이 /tarot (couple 아님) 이어야 한다.
+      await expect(page).toHaveURL(/\/tarot(?!\/couple)/)
     })
 
     test('should display tarot content on main page', async ({ page }) => {
