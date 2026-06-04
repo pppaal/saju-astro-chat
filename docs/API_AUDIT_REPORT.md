@@ -21,35 +21,35 @@
 
 ## Missing Middleware (5)
 
-- src\app\api\auth\[...nextauth]\route.ts [GET,POST]
-- src\app\api\compatibility\counselor\result\route.ts [GET]
-- src\app\api\counselor\realtime\refund-guest-turn\route.ts [POST]
-- src\app\api\counselor\realtime\result\route.ts [GET]
-- src\app\api\tarot\interpret-stream\result\route.ts [GET]
+- src/app/api/auth/[...nextauth]/route.ts [GET,POST]
+- src/app/api/compatibility/counselor/result/route.ts [GET]
+- src/app/api/counselor/realtime/refund-guest-turn/route.ts [POST]
+- src/app/api/counselor/realtime/result/route.ts [GET]
+- src/app/api/tarot/interpret-stream/result/route.ts [GET]
 
 ## Missing Validation (12)
 
-- src\app\api\admin\anomalies\route.ts [GET]
-- src\app\api\admin\audit-log\route.ts [GET]
-- src\app\api\admin\funnel\route.ts [GET]
-- src\app\api\admin\revenue\route.ts [GET]
-- src\app\api\admin\usage\route.ts [GET]
-- src\app\api\admin\webhook-events\route.ts [GET]
-- src\app\api\compatibility\counselor\result\route.ts [GET]
-- src\app\api\counselor\realtime\refund-guest-turn\route.ts [POST]
-- src\app\api\counselor\realtime\result\route.ts [GET]
-- src\app\api\counselor\realtime\route.ts [POST]
-- src\app\api\tarot\interpret-stream\result\route.ts [GET]
-- src\app\api\webhook\stripe\route.ts [POST]
+- src/app/api/admin/anomalies/route.ts [GET]
+- src/app/api/admin/audit-log/route.ts [GET]
+- src/app/api/admin/funnel/route.ts [GET]
+- src/app/api/admin/revenue/route.ts [GET]
+- src/app/api/admin/usage/route.ts [GET]
+- src/app/api/admin/webhook-events/route.ts [GET]
+- src/app/api/compatibility/counselor/result/route.ts [GET]
+- src/app/api/counselor/realtime/refund-guest-turn/route.ts [POST]
+- src/app/api/counselor/realtime/result/route.ts [GET]
+- src/app/api/counselor/realtime/route.ts [POST]
+- src/app/api/tarot/interpret-stream/result/route.ts [GET]
+- src/app/api/webhook/stripe/route.ts [POST]
 
 ## Public Mutations (No Auth/Token) (6)
 
-- src\app\api\auth\[...nextauth]\route.ts [GET,POST]
-- src\app\api\counselor\realtime\refund-guest-turn\route.ts [POST]
-- src\app\api\counselor\realtime\route.ts [POST]
-- src\app\api\cron\reset-credits\route.ts [GET,POST]
-- src\app\api\csp-report\route.ts [POST,GET]
-- src\app\api\webhook\stripe\route.ts [POST]
+- src/app/api/auth/[...nextauth]/route.ts [GET,POST]
+- src/app/api/counselor/realtime/refund-guest-turn/route.ts [POST]
+- src/app/api/counselor/realtime/route.ts [POST]
+- src/app/api/cron/reset-credits/route.ts [GET,POST]
+- src/app/api/csp-report/route.ts [POST,GET]
+- src/app/api/webhook/stripe/route.ts [POST]
 
 ## Notes
 
