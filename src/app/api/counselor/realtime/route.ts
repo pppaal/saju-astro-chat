@@ -250,13 +250,18 @@ export async function POST(req: NextRequest) {
   // replays prior user turns to the model via priorTurns, so a self-harm
   // expression in an earlier turn must still route to crisis even if the
   // current message looks benign. Messages are already in memory — cheap.
-  const anyUserSelfHarm = body.messages.some(
-    (m) => m.role === 'user' && isSelfHarm(m.content ?? '')
-  )
+  // 첨부파일(cvText)도 동일하게 위기/금지어 검사 대상에 포함. 시스템 프롬프트가
+  // <attached_file> 내용을 "읽고 조언에 녹여라"고 지시하므로, 파일에 자살/금지
+  // 표현을 넣으면 채팅 메시지만 검사하던 기존 로직을 우회해 위기 핫라인 안내를
+  // 건너뛰고 일반 운세 답변이 나가던 안전 구멍을 막는다.
+  const cvTextForScreen = typeof body.cvText === 'string' ? body.cvText : ''
+  const anyUserSelfHarm =
+    body.messages.some((m) => m.role === 'user' && isSelfHarm(m.content ?? '')) ||
+    isSelfHarm(cvTextForScreen)
   if (anyUserSelfHarm) {
     return NextResponse.json({ message: crisisMessage(lang) }, { status: 200 })
   }
-  if (containsForbidden(userMessage)) {
+  if (containsForbidden(userMessage) || containsForbidden(cvTextForScreen)) {
     return NextResponse.json({ message: safetyMessage(lang) }, { status: 200 })
   }
 
