@@ -153,6 +153,11 @@ export default function ClarifierCardModal({
             transform: card.isReversed ? 'rotate(180deg)' : 'none',
           }}
         >
+          {/* 일부 카드 그림은 애니메이션 webp — next/image 최적화 엔드포인트
+              (/_next/image)가 애니메이션 webp 를 처리 못 해 이미지가 통째로
+              안 뜨던 회귀. unoptimized 로 원본을 직접 서빙해 정적/애니메이션
+              둘 다 확실히 표시한다. (Next 경고: "animated image ... add the
+              unoptimized property".) */}
           <Image
             src={card.image}
             alt={displayName}
@@ -160,6 +165,7 @@ export default function ClarifierCardModal({
             sizes="180px"
             style={{ objectFit: 'cover' }}
             priority
+            unoptimized
           />
         </div>
 

@@ -101,6 +101,8 @@ export function DetailedCardItem({
             width={180}
             height={315}
             className={`rounded-xl shadow-lg ${drawnCard.isReversed ? 'rotate-180' : ''}`}
+            // 애니메이션 webp 카드가 next/image 최적화로 버벅이지 않게 원본 서빙.
+            unoptimized
             onError={(event) => {
               event.currentTarget.style.opacity = '0.3'
             }}
