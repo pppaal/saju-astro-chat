@@ -698,8 +698,10 @@ export function useChatApi({
             streaming: true,
           },
         ])
-        setLoading(false)
-
+        // NOTE: setLoading(false)을 stream 완료 후(finally)로 옮긴다.
+        // 이전엔 여기서 false 로 풀어서 스트리밍 중에 사용자가 다음 질문을
+        // 보낼 수 있었고, 그러면 1번 스트림의 토큰이 2번 질문 답변 자리에
+        // 잘못 누적되어 답변이 섞이는 회귀가 있었다(useChatApi.ts:701).
         await processStream(res, controller, assistantMsgId, text, payload.turnId)
       } catch (e: unknown) {
         logger.error('[Chat] send error:', e)
@@ -721,8 +723,13 @@ export function useChatApi({
         // 에러를 assistant 챗 버블로 추가하지 않음 — 위의 notice 배너가
         // 에러 표시의 단일 출처. 챗 버블로 넣으면 일반 응답처럼 렌더되어
         // 👍/👎 피드백 UI 까지 따라붙는데, 에러에 대해 피드백은 의미 없음.
-        setLoading(false)
         setRetryCount(0)
+      } finally {
+        // 정상 완료 + 에러 + abort 모두 여기서 loading 해제 — 스트리밍 도중
+        // setLoading(false) 가 풀려 동시 send 가 발생하던 회귀(답변 토큰 섞임)
+        // 차단. 두 번째 메시지는 위 handleSend 의 `if (loading) return` 가드에
+        // 명확하게 막힌다.
+        setLoading(false)
       }
     },
     [

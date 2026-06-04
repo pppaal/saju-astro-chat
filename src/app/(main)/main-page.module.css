@@ -544,8 +544,10 @@
     padding-bottom: 0.3rem;
   }
 
+  /* homeChatBarInner 가로 패딩 제거 — 상담사(.chatMain) 과 일치시켜야
+     입력박스 폭이 정확히 같아진다. */
   .homeChatBarInner {
-    padding: 0.55rem 0.7rem;
+    padding: 0.55rem 0;
   }
 }
 
@@ -716,17 +718,19 @@
 
 
 .homeChatBar {
-  width: calc(100% + 24px);
-  /* margin-top: auto pins the chat bar to the bottom of the viewport
-     while hero + chips stay clustered at the top — one clean whitespace
-     gap between them instead of three evenly-spread blocks.
-     좌우 -12px: 메인 homeBody 의 가로 padding 으로 입력창이 상담사보다
-     24px 좀게 되던 것을 상쇄 — 폭이 안 차면 좀은 화면에서도 상담사와 동일. */
-  margin: auto -12px 0;
-  /* 입력창을 화면 맨 아래에 바싹 붙임 — 하단 빈 공간 제거(사용자 요청).
-     safe-area 는 .homeContainer 가 이미 padding-bottom 으로 처리하므로 여기서
-     또 넣으면 아이폰에서 이중 갭이 된다 → 작은 고정값만. */
-  padding: 0 0.25rem 0.35rem;
+  /* 상담사(.chatMain)와 입력박스 폭을 픽셀 단위로 동일하게 맞춤 — 페이지
+     이동 시 cross-fade 중 폭 차이가 보이지 않도록.
+     계산:
+       homeBody.padding-inline = 1.25rem (20px) 각각 → content 가 max-width
+       860px 중 820px 만 차지
+       chatMain.max-width = 860px, padding 없음 → content = 860px
+     => homeChatBar 가 homeBody 의 좌우 패딩을 완전히 무시하고 (margin -20px)
+        width: calc(100% + 40px) 로 펴져야 둘이 같은 860px (small viewport는
+        viewport_width) 폭을 가진다. 추가로 homeChatBar 자체의 가로 padding 도
+        0 으로 — chatMain 은 그게 없으니까. */
+  width: calc(100% + 40px);
+  margin: auto -20px 0;
+  padding: 0 0 0.35rem;
   flex: 0 0 auto;
 }
 

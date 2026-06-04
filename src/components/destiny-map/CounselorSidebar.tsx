@@ -9,6 +9,7 @@ import { apiFetch } from '@/lib/api'
 import { clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 import styles from './CounselorSidebar.module.css'
 import HexDPLogo from '@/components/branding/HexDPLogo'
+import PromptModal from '@/components/ui/PromptModal'
 
 type SessionItem = {
   id: string
@@ -124,6 +125,10 @@ export default function CounselorSidebar({
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [swipedId, setSwipedId] = useState<string | null>(null)
+  // 삭제 확인 모달 상태 — window.confirm 대체. 인앱 웹뷰(카카오 등)에서
+  // native confirm 이 막혀 삭제 자체가 안 되던 회귀 + 페이지 헤더의 ⋮ 메뉴와
+  // 동일한 PromptModal UX 로 통일.
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const swipeStartXRef = useRef<number | null>(null)
   const swipeRowIdRef = useRef<string | null>(null)
 
@@ -222,10 +227,16 @@ export default function CounselorSidebar({
   const closeSwipe = useCallback(() => setSwipedId(null), [])
 
   // ---- Delete ----
-  const handleDelete = useCallback(
+  // 1단계: 스와이프 삭제 버튼/⋮ 메뉴에서 호출 — 바로 삭제하지 않고 확인 모달만 띄움.
+  // 2단계: 모달의 onConfirm 이 performDelete(id) 호출 → 실제 DELETE.
+  // 이전엔 window.confirm 을 직접 띄웠는데, 인앱 웹뷰(카카오톡 등)에서
+  // native 대화상자가 막혀 삭제가 안 되던 회귀가 있었다 — PromptModal 로 통일.
+  const handleDelete = useCallback((id: string) => {
+    setPendingDeleteId(id)
+  }, [])
+
+  const performDelete = useCallback(
     async (id: string) => {
-      const ok = window.confirm(t('destinyMap.counselor.confirmDelete', 'Delete this chat?'))
-      if (!ok) return
       let status: number | undefined
       try {
         const res = await apiFetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`, {
@@ -238,14 +249,12 @@ export default function CounselorSidebar({
       } catch (e) {
         // No optimistic row removal yet — the list is only mutated after
         // the request succeeds. So nothing to roll back here; we just hand
-        // off to the parent so it can surface a localized toast (replaces
-        // the old `window.alert()` which was jarring on mobile and
-        // untranslated).
+        // off to the parent so it can surface a localized toast.
         logger.warn('[CounselorSidebar] delete failed', { id, status, e })
         onActionError?.({ kind: 'delete', status })
       }
     },
-    [t, onActionError]
+    [onActionError]
   )
 
   // ---- Rename ----
@@ -547,6 +556,28 @@ export default function CounselorSidebar({
           )}
         </div>
       </aside>
+
+      {/* 삭제 확인 모달 — window.confirm 대체. 인앱 웹뷰(카카오톡 등)에서
+          native 대화상자가 막혀 삭제가 안 되던 회귀 차단 + 페이지 헤더 ⋮ 메뉴
+          의 PromptModal 과 동일 UX. */}
+      <PromptModal
+        mode="confirm"
+        open={pendingDeleteId !== null}
+        title={t('destinyMap.counselor.confirmDeleteTitle', 'Delete chat')}
+        message={t(
+          'destinyMap.counselor.confirmDelete',
+          'Delete this chat? Cannot be undone.'
+        )}
+        confirmLabel={t('common.delete', 'Delete')}
+        cancelLabel={t('common.cancel', 'Cancel')}
+        danger
+        onClose={() => setPendingDeleteId(null)}
+        onConfirm={() => {
+          const id = pendingDeleteId
+          setPendingDeleteId(null)
+          if (id) void performDelete(id)
+        }}
+      />
     </>
   )
 }

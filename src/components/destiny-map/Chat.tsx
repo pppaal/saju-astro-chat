@@ -158,6 +158,20 @@ const Chat = memo(function Chat({
       if (!text) {
         return
       }
+      // 답변 스트리밍 중에 한 번 더 보내려는 경우 — 이전엔 setInput('') 가
+      // 먼저 실행돼 입력창이 조용히 비워진 뒤 apiHandleSend 의 `loading`
+      // 가드에서 silent return 됐다. 사용자는 "왜 안 보내지지?" 다시 타이핑.
+      // 이제 명시적 안내 배너만 띄우고 입력은 보존한다(text 와 setInput 둘 다
+      // 그대로). 재시도 흐름(isRetry)에는 적용 안 함 — 자동 재호출이라 사용자
+      // 텍스트가 없으니 안내가 의미 없음.
+      if (loading && !options?.isRetry) {
+        setNotice(
+          lang === 'ko'
+            ? '답변이 끝나면 다시 보내 주세요.'
+            : 'Please wait until the current reply finishes.'
+        )
+        return
+      }
       // 부모 가드 — 생년월일·출생시간이 없으면 전송 대신 입력 모달을 띄운다.
       // 입력은 지우지 않고 그대로 둬, 모달에서 정보 저장 후 그대로 다시 보낼
       // 수 있게 한다(운명 상담사 게이트 화면 대체).
@@ -167,7 +181,7 @@ const Chat = memo(function Chat({
       setInput('')
       await apiHandleSend(text, options)
     },
-    [input, apiHandleSend, onSendBlocked]
+    [input, apiHandleSend, onSendBlocked, loading, lang]
   )
 
   const handleSendRef = React.useRef<
