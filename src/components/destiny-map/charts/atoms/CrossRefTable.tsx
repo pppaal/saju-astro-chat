@@ -561,16 +561,17 @@ function toneStyle(tone: RowTone): { background: string; border: string } {
 }
 
 function toneBadge(tone: RowTone, lang: Lang): string | null {
-  if (tone === 'complement') return lang === 'ko' ? '보완' : 'complement'
-  if (tone === 'resonant') return lang === 'ko' ? '동조 ✓' : 'resonant ✓'
-  if (tone === 'tension') return lang === 'ko' ? '긴장 ⚡' : 'tension ⚡'
-  return null
+  if (tone === 'complement') return lang === 'ko' ? '서로 채워줘요' : 'fills in'
+  if (tone === 'resonant') return lang === 'ko' ? '잘 맞아요 ✓' : 'a match ✓'
+  if (tone === 'tension') return lang === 'ko' ? '부딪혀요 ⚡' : 'pulls apart ⚡'
+  return lang === 'ko' ? '따로따로' : 'separate'
 }
 
 function toneBadgeColor(tone: RowTone): string {
   if (tone === 'tension') return 'rgba(248, 113, 113, 0.95)'
   if (tone === 'complement') return 'var(--ds-gold-on-dark)'
-  return 'rgba(167, 139, 250, 0.95)'
+  if (tone === 'resonant') return 'rgba(167, 139, 250, 0.95)'
+  return 'var(--ds-dark-text-muted)'
 }
 
 // ── 용어 정의 사전 ──────────────────────────────────────────────────────
@@ -673,13 +674,8 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
         </div>
         <p className="text-[11px] leading-snug" style={{ color: 'var(--ds-dark-text-muted)' }}>
           {lang === 'ko'
-            ? '같은 영역을 사주와 별자리가 어떻게 보는지 — 둘이 같은 결을 가리키면 동조, 다르게 채워주면 보완, 서로 당기면 긴장이에요.'
-            : 'How each life area looks in both systems — same direction = resonant, fills a gap = complement, pulls apart = tension.'}
-        </p>
-        <p className="text-[10px] leading-snug" style={{ color: 'var(--ds-dark-text-muted)' }}>
-          {lang === 'ko'
-            ? '📍 동조 = 같은 결 강조 · 보완 = 부족한 결 채움 · 긴장 = 서로 당김'
-            : '💡 resonant = same direction · complement = fills the gap · tension = pulling against'}
+            ? '한 가지를 사주랑 별자리가 각각 어떻게 보는지 짝지어 봤어요. 두 풀이가 같은 말을 하면 "잘 맞아요", 서로 다른 걸 채워주면 "서로 채워줘요", 어긋나면 "부딪혀요" 예요.'
+            : 'For each trait, we pair how Saju and astrology read it — “a match” when they agree, “fills in” when they complete each other, “pulls apart” when they clash.'}
         </p>
       </div>
 
