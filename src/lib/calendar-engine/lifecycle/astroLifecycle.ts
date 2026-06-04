@@ -230,19 +230,54 @@ export interface LifecycleTimingResult {
  *                  this value will not be flagged as upcoming.
  * @param isKo      When true (default) use Korean labels; otherwise English.
  */
+/**
+ * 정확한 transit 기반 마일스톤 오버라이드 — calculateOuterPlanetMilestones
+ * 결과를 그대로 넘기면 각 event 의 startYear/ageRange 가 평균 테이블 대신
+ * 실제 swisseph 교차 연도로 교체된다. 같은 출생연도의 두 사람이라도
+ * 토성/목성 회귀가 다른 연도에 떨어지는 차이를 반영하기 위한 hook.
+ *
+ * 없는 kind 는 평균 테이블로 폴백 — 부분 오버라이드 허용.
+ */
+export interface LifecycleMilestoneOverride {
+  kind: AstroLifecycleEventKind
+  startYear: number | null
+  age: number | null
+  /** Optional — 외행성 transit 의 정확 일시 ISO. lifetimeFlow 가 단계 카드에
+   *  "토성 회귀 2024년 3월" 식으로 월까지 표기할 때 사용. 없으면 연도만. */
+  exactDateISO?: string | null
+}
+
 export function buildLifecycleTiming(
   birthYear: number,
   endYear: number,
-  isKo: boolean = true
+  isKo: boolean = true,
+  /**
+   * Optional — kind 별 실제 transit 결과로 startYear/age 를 덮어쓰기. 미지정
+   * 시 옛 동작(평균 나이대 테이블) 그대로 유지(backward compat).
+   */
+  overrides?: readonly LifecycleMilestoneOverride[]
 ): LifecycleTimingResult {
   const currentYear = new Date().getUTCFullYear()
+  const overrideByKind = new Map<AstroLifecycleEventKind, LifecycleMilestoneOverride>()
+  if (overrides) {
+    for (const o of overrides) overrideByKind.set(o.kind, o)
+  }
   const events: LifecycleEntry[] = TABLE.map((evt) => {
-    const startYear = birthYear + evt.ageStart
-    const endYearOfEvent = birthYear + evt.ageEnd
+    const override = overrideByKind.get(evt.kind)
+    // override 가 있고 실제 연도/나이가 잡혔으면 그걸 쓴다. 못 잡혔으면
+    // 평균 테이블 폴백.
+    const useOverride = override && override.startYear != null && override.age != null
+    const startYear = useOverride ? override!.startYear! : birthYear + evt.ageStart
+    const age = useOverride ? override!.age! : evt.ageStart
+    // ageRange 표기 — override 일 땐 단일 나이("29세") 평균 테이블일 땐
+    // 옛 윈도우("28~31세") 그대로. 단일 표기가 transit 정밀도와 더 일치.
+    const ageRange = useOverride ? (isKo ? `${age}세` : `age ${age}`) : `${evt.ageStart}~${evt.ageEnd}세`
+    // isPast/Current/Upcoming 도 override 의 단일 연도 기준으로 재계산.
+    const endYearOfEvent = useOverride ? startYear : birthYear + evt.ageEnd
     return {
       event: evt.kind,
       label: isKo ? evt.labelKo : evt.labelEn,
-      ageRange: `${evt.ageStart}~${evt.ageEnd}세`,
+      ageRange,
       startYear,
       isPast: currentYear > endYearOfEvent,
       isCurrent: currentYear >= startYear && currentYear <= endYearOfEvent,

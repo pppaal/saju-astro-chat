@@ -964,9 +964,15 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 720px;
+  /* 하단 입력 박스와 좌우 끝을 맞추되, padding 을 추가 축소(16 → 6px) 해서
+     햄버거/EN 버튼을 화면 양끝에 더 바싹 붙임(사용자 요청: "맨위 왼쪽
+     오른쪽도 더 옆으로 붙여줘"). inputBox 도 같이 모서리 쪽으로 당겨지므로
+     양끝 라인이 자연스럽게 유지된다. */
+  max-width: 860px;
   margin: 0 auto;
-  padding: 0.85rem 1rem;
+  /* 운명/궁합 상담사 헤더와 통일 — 좌우 padding 2px. 햄버거/EN 이 화면
+     가장자리에 바싹 붙는 동일한 시각 비율. */
+  padding: 0.85rem 0.125rem;
   position: relative;
   z-index: 5;
   flex: 0 0 auto;
@@ -974,16 +980,16 @@
 
 @media (max-height: 740px) {
   .homeTopBar {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.125rem;
   }
 }
 
 .homeTopBarHamburger {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  border: 1px solid rgba(212, 181, 114, 0.22);
-  background: rgba(15, 17, 35, 0.6);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
   color: rgba(229, 231, 240, 0.85);
   display: inline-flex;
   align-items: center;
@@ -991,10 +997,11 @@
   flex-direction: column;
   gap: 4px;
   cursor: pointer;
+  padding: 0;
 }
 
 .homeTopBarHamburgerBar {
-  width: 16px;
+  width: 14px;
   height: 2px;
   border-radius: 999px;
   background: rgba(229, 231, 240, 0.92);
@@ -1008,14 +1015,28 @@
 }
 
 .homeTopBarLogin {
-  padding: 0.45rem 0.95rem;
-  border-radius: 999px;
-  border: 1px solid rgba(212, 181, 114, 0.32);
-  background: rgba(212, 181, 114, 0.12);
+  /* 헤더 도형 통일 — 30×30 원형(운명/궁합 상담사 backButton/localeToggle 과
+     동일). 옛 알약(border + tinted bg) 폐기. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
   color: #e9deff;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.homeTopBarLogin:hover {
+  background: rgba(212, 181, 114, 0.15);
 }
 
 /* 초록 생일 CTA — 아직 생일이 없을 때. 출발점이 생일임을 분명히 보여준다. */
@@ -1161,12 +1182,8 @@
  * ===================================================================== */
 
 .lightMode .homeTopBarHamburger {
-  background: rgba(212, 181, 114, 0.1);
-  border-color: rgba(212, 181, 114, 0.35);
-  /* 옛 보라 #7c3aed (violet-600) — 골드 ink 로 통일. premium-white
-     모드의 하나뿐인 보라 잔재였음. */
+  background: transparent;
   color: #1c1917;
-  box-shadow: 0 0 16px rgba(212, 181, 114, 0.2);
 }
 
 .lightMode .homeTopBarHamburgerBar {
@@ -1178,9 +1195,12 @@
 }
 
 .lightMode .homeTopBarLogin {
-  background: #ffffff;
-  border-color: #e7e5e4;
+  background: transparent;
   color: #44403c;
+}
+
+.lightMode .homeTopBarLogin:hover {
+  background: var(--ds-light-bg-soft, rgba(212, 181, 114, 0.1));
 }
 
 .lightMode .homeHeadline {

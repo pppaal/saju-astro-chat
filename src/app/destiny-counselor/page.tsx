@@ -25,6 +25,7 @@ import {
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
 import { useCounselorNewChat } from '@/lib/counselor/useCounselorNewChat'
 import { loadPendingChat } from '@/lib/chat/pendingChat'
+import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -345,97 +346,80 @@ export default function CounselorPage() {
         activeSessionTitle={activeSession.title}
         onActionError={({ kind, status }) => showActionFailureToast(kind, status)}
       />
-      <header className={styles.header} style={{ viewTransitionName: 'app-topbar' }}>
-        <div className={styles.headerLeft}>
+      <AppHeader
+        layout="counselor"
+        theme="light"
+        onMenuClick={() => setSidebarOpen(true)}
+        menuLabel={t('destinyMap.counselor.menu', 'Menu')}
+        title={activeSession.title?.trim() || t('destinyMap.counselor.title', 'Destiny Counselor')}
+        titleChip={
           <button
             type="button"
-            data-icon-only="true"
-            className={styles.backButton}
-            onClick={() => setSidebarOpen(true)}
-            aria-label={t('destinyMap.counselor.menu', 'Menu')}
+            className={styles.profileStickyBar}
+            onClick={openEditMine}
+            aria-label={lang === 'ko' ? '\ub0b4 \uc815\ubcf4 \uc218\uc815' : 'Edit my info'}
           >
-            <span className={styles.backIcon}>{'\u2630'}</span>
+            <span className={styles.profileStickyDot} aria-hidden="true">{'\u25cf'}</span>
+            <span className={styles.profileStickyName}>
+              {name?.trim() || (lang === 'ko' ? '\ub098' : 'Me')}
+            </span>
+            <span className={styles.subjectChevron} aria-hidden="true">{'\u270e'}</span>
           </button>
-
-          <h1 className={styles.headerTitle}>
-            {activeSession.title?.trim() || t('destinyMap.counselor.title', 'Destiny Counselor')}
-          </h1>
-        </div>
-
-        <div className={styles.headerActions}>
-          {activeSession.sessionId && (
-            <div ref={chatMenuRef} className={styles.chatMenuArea}>
-              <button
-                type="button"
-                className={styles.chatMenuButton}
-                onClick={() => setChatMenuOpen((o) => !o)}
-                aria-label={lang === 'ko' ? '\ub300\ud654 \uba54\ub274' : 'Chat menu'}
-                aria-expanded={chatMenuOpen}
-                aria-haspopup="menu"
-              >
-                <span aria-hidden="true">{'\u22ee'}</span>
-              </button>
-              {chatMenuOpen && (
-                <div role="menu" className={styles.chatMenuDropdown}>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={styles.chatMenuItem}
-                    onClick={() => {
-                      setChatMenuOpen(false)
-                      if (!activeSession.sessionId) return
-                      setRenameModalOpen(true)
-                    }}
-                  >
-                    <span>{lang === 'ko' ? '\uc774\ub984 \ubcc0\uacbd' : 'Rename'}</span>
-                    <span aria-hidden="true" className={styles.chatMenuIcon}>
-                      {'\u270e'}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
-                    onClick={() => {
-                      setChatMenuOpen(false)
-                      if (!activeSession.sessionId) return
-                      setDeleteModalOpen(true)
-                    }}
-                  >
-                    <span>{lang === 'ko' ? '\uc0ad\uc81c' : 'Delete'}</span>
-                    <span aria-hidden="true" className={styles.chatMenuIcon}>
-                      {'\ud83d\uddd1'}
-                    </span>
-                  </button>
-                </div>
-              )}
+        }
+        rightSlot={
+          <>
+            {activeSession.sessionId && (
+              <div ref={chatMenuRef} className={styles.chatMenuArea}>
+                <AppHeaderIconButton
+                  onClick={() => setChatMenuOpen((o) => !o)}
+                  label={lang === 'ko' ? '\ub300\ud654 \uba54\ub274' : 'Chat menu'}
+                  aria-expanded={chatMenuOpen}
+                  aria-haspopup="menu"
+                >
+                  <span aria-hidden="true">{'\u22ee'}</span>
+                </AppHeaderIconButton>
+                {chatMenuOpen && (
+                  <div role="menu" className={styles.chatMenuDropdown}>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.chatMenuItem}
+                      onClick={() => {
+                        setChatMenuOpen(false)
+                        if (!activeSession.sessionId) return
+                        setRenameModalOpen(true)
+                      }}
+                    >
+                      <span>{lang === 'ko' ? '\uc774\ub984 \ubcc0\uacbd' : 'Rename'}</span>
+                      <span aria-hidden="true" className={styles.chatMenuIcon}>{'\u270e'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
+                      onClick={() => {
+                        setChatMenuOpen(false)
+                        if (!activeSession.sessionId) return
+                        setDeleteModalOpen(true)
+                      }}
+                    >
+                      <span>{lang === 'ko' ? '\uc0ad\uc81c' : 'Delete'}</span>
+                      <span aria-hidden="true" className={styles.chatMenuIcon}>{'\ud83d\uddd1'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className={styles.creditBadgeWrap}>
+              <CreditBadge variant="compact" />
             </div>
-          )}
-          <div className={styles.creditBadgeWrap}>
-            <CreditBadge variant="compact" />
-          </div>
-        </div>
-      </header>
+          </>
+        }
+        viewTransitionName="app-topbar"
+      />
 
-      {/* 대상 인물 바 — 누르면 바로 '내 정보 수정' 모달. 이름 옆 작은 ✎. */}
-      <div className={styles.subjectBarWrap}>
-        <button
-          type="button"
-          className={styles.profileStickyBar}
-          onClick={openEditMine}
-          aria-label={lang === 'ko' ? '내 정보 수정' : 'Edit my info'}
-        >
-          <span className={styles.profileStickyDot} aria-hidden="true">
-            ●
-          </span>
-          <span className={styles.profileStickyName}>
-            {name?.trim() || (lang === 'ko' ? '나' : 'Me')}
-          </span>
-          <span className={styles.subjectChevron} aria-hidden="true">
-            ✎
-          </span>
-        </button>
-      </div>
+      {/* 대상 인물 바는 이제 헤더 .headerLeft 안에 인라인으로 들어간다 —
+          위 헤더 블록 참조(사용자 요청: "me 를 제목 옆으로"). */}
 
       {/* Guest banner removed — fights the Claude-style centered hero
           empty state. Login CTA lives in the page header (top-right)

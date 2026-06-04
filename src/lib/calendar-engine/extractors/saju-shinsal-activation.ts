@@ -1,0 +1,207 @@
+import { computeDayBranch } from './saju-shinsal'
+import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
+import type { ShinsalHit } from '@/lib/saju/types'
+
+/**
+ * 본명 신살 일진 활성 추출기 (natalShinsal × daily branch).
+ *
+ * `natal.saju.natalShinsal` 에 본명 4기둥이 가진 신살(각 hit 의 `target` 은
+ * 해당 지지)이 정리돼 있다. 매일 일진의 지지가 그 anchor 지지와 일치하면
+ * "오늘 그 신살이 활성화되었다" 로 본다.
+ *
+ *  e.g.  본명에 일지 巳 = 천을귀인 → 일진 지지가 巳 인 날 천을귀인 활성.
+ *
+ * shinsal extractor 와 차이:
+ *  - saju-shinsal.ts 는 본명 일주 stem/branch 기준으로 day pillar 와 매칭해
+ *    "타게팅 신살"을 새로 계산한다 (rule re-eval).
+ *  - 이 추출기는 본명 차트가 이미 가지고 있던 신살이 그 anchor 지지를 만난
+ *    날 깨어난다는 관점 — `natal.saju.natalShinsal` 필드를 소비.
+ *
+ * 활성 윈도우: 해당 일진 1일.
+ */
+
+// 신살별 polarity. saju-shinsal.ts 의 분류와 일관되게 유지.
+const SHINSAL_POLARITY: Record<string, Polarity> = {
+  // ─── 길신 (귀인·문창류) ───
+  천을귀인: 2,
+  태극귀인: 2,
+  천덕귀인: 2,
+  월덕귀인: 2,
+  천주귀인: 2,
+  암록: 2,
+  금여성: 2,
+  천의성: 2,
+  천문성: 2,
+  문창: 2,
+  문곡: 2,
+  학당귀인: 2,
+  건록: 2,
+  제왕: 1,
+
+  // ─── 중립·사회 활성 ───
+  도화: 0,
+  홍염살: 0,
+
+  // ─── 변동·이동 ───
+  역마: -1,
+  역마살: -1,
+  지살: 0,
+  년살: 0,
+  반안: 1,
+  반안살: 1,
+  장성: 2,
+  장성살: 2,
+  화개: 1,
+  화개살: 1,
+  육해: -1,
+  육해살: -1,
+
+  // ─── 흉신 ───
+  망신: -2,
+  망신살: -2,
+  겁살: -2,
+  재살: -2,
+  천살: -2,
+  월살: -1,
+  백호: -2,
+  양인: -2,
+  공망: -2,
+  괴강: -1,
+  현침: -1,
+  고신: -1,
+  과숙: -1,
+  귀문관: -1,
+  원진: -2,
+  천라지망: -2,
+  삼재: -2,
+}
+
+// 영문 라벨. 셀에 노출되는 `name` 필드용.
+const SHINSAL_EN_LABEL: Record<string, string> = {
+  천을귀인: 'Cheoneul Nobleman',
+  태극귀인: 'Taegeuk Nobleman',
+  천덕귀인: 'Cheondeok Nobleman',
+  월덕귀인: 'Woldeok Nobleman',
+  천주귀인: 'Cheonju Nobleman',
+  암록: 'Amrok (Hidden Stipend)',
+  금여성: 'Geumyeo (Golden Carriage)',
+  천의성: 'Cheoneui (Heavenly Healer)',
+  천문성: 'Cheonmun (Heavenly Gate)',
+  문창: 'Muchang (Literary Brilliance)',
+  문곡: 'Mungok',
+  학당귀인: 'Hakdang Nobleman',
+  건록: 'Geonrok',
+  제왕: 'Jewang',
+  도화: 'Dohwa (Peach Blossom)',
+  홍염살: 'Hongyeom',
+  역마: 'Yeokma (Travel Horse)',
+  역마살: 'Yeokma (Travel Horse)',
+  지살: 'Jisal',
+  년살: 'Nyeonsal',
+  반안: 'Banan',
+  반안살: 'Banan',
+  장성: 'Jangseong (Commander)',
+  장성살: 'Jangseong (Commander)',
+  화개: 'Hwagae (Artistic Canopy)',
+  화개살: 'Hwagae (Artistic Canopy)',
+  육해: 'Yukhae',
+  육해살: 'Yukhae',
+  망신: 'Mangsin',
+  망신살: 'Mangsin',
+  겁살: 'Geopsal',
+  재살: 'Jaesal',
+  천살: 'Cheonsal',
+  월살: 'Wolsal',
+  백호: 'Baekho (White Tiger)',
+  양인: 'Yangin',
+  공망: 'Gongmang (Void)',
+  괴강: 'Goegang',
+  현침: 'Hyeonchim',
+  고신: 'Gosin',
+  과숙: 'Gwasuk',
+  귀문관: 'Gwimun Gate',
+  원진: 'Wonjin',
+  천라지망: 'Cheonra-Jimang',
+  삼재: 'Samjae',
+}
+
+const sajuShinsalActivationExtractor: SignalExtractor = {
+  source: 'saju',
+  kind: 'shinsal',
+  extract(ctx: ExtractorContext): ActiveSignal[] {
+    const signals: ActiveSignal[] = []
+    const { natal, range } = ctx
+    const natalShinsal: ShinsalHit[] = natal.saju?.natalShinsal ?? []
+    if (natalShinsal.length === 0) return signals
+
+    // 같은 지지에 여러 신살이 anchor 돼있을 수 있어 anchor branch → kinds 맵.
+    // 중복 hit (동일 신살이 여러 기둥에 anchor) 는 set 으로 dedup.
+    const anchorMap = new Map<string, Map<string, Set<string>>>()
+    // branch → kind → Set<pillarKind>
+    for (const hit of natalShinsal) {
+      const branch = hit.target
+      if (!branch) continue
+      const inner = anchorMap.get(branch) ?? new Map<string, Set<string>>()
+      const pillars = inner.get(hit.kind) ?? new Set<string>()
+      for (const p of hit.pillars) pillars.add(p)
+      inner.set(hit.kind, pillars)
+      anchorMap.set(branch, inner)
+    }
+
+    if (anchorMap.size === 0) return signals
+
+    const start = new Date(range.start)
+    const end = new Date(range.end)
+    for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
+      const date = new Date(t)
+      const targetBranch = computeDayBranch(date)
+      if (!targetBranch) continue
+      const hitsForBranch = anchorMap.get(targetBranch)
+      if (!hitsForBranch) continue
+
+      const dayIso = date.toISOString().slice(0, 10)
+      const startIso = `${dayIso}T00:00:00.000Z`
+      const peakIso = `${dayIso}T12:00:00.000Z`
+      const endIso = `${dayIso}T23:59:59.999Z`
+
+      for (const [kind, pillarSet] of hitsForBranch) {
+        const polarity = (SHINSAL_POLARITY[kind] ?? 0) as Polarity
+        const enLabel = SHINSAL_EN_LABEL[kind] ?? kind
+        const pillars = Array.from(pillarSet).sort()
+        signals.push({
+          id: `saju.shinsal-activation.${kind}.${dayIso}`,
+          source: 'saju',
+          kind: 'shinsal',
+          name: `${enLabel} active`,
+          korean: `오늘 ${kind} 활성`,
+          themes: [],
+          polarity,
+          layer: 'daily',
+          active: { start: startIso, peak: peakIso, end: endIso },
+          weight: weightFor(polarity),
+          evidence: {
+            module: 'saju-shinsal-activation',
+            shinsalName: kind,
+            pillars,
+            detail: {
+              source: 'natal-anchor',
+              anchorBranch: targetBranch,
+              natalPillars: pillars,
+            },
+          },
+        })
+      }
+    }
+
+    return signals
+  },
+}
+
+function weightFor(polarity: Polarity): number {
+  // 본명에 새겨진 신살이 깨어나는 날이라 saju-shinsal (룰 계산) 보다 한 단계
+  // 더 무겁게: base 0.65 + |polarity|/3 * 0.25.
+  const intensity = Math.abs(polarity) / 3
+  return 0.65 + intensity * 0.25
+}
+
+export default sajuShinsalActivationExtractor

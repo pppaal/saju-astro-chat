@@ -114,9 +114,12 @@ interface ChatInputAreaProps {
   /** Chart/tarot 진입점 — 사이드바 푸터(데스크탑) 와 동일 동선. */
   onOpenTarot?: () => void
   onOpenChart?: () => void
+  /** 흐름표(대운/캘린더) 진입점 — ⋮ 메뉴에서 차트와 분리된 4번째 항목. */
+  onOpenFlow?: () => void
   /** 타로/차트 비활성 조건 — 궁합 상담사에서 인물 < 2 / 차트 데이터 없음 등. */
   tarotDisabled?: boolean
   chartDisabled?: boolean
+  flowDisabled?: boolean
   /** 타로/차트 라벨·aria·툴팁 오버라이드 — 궁합("궁합차트")처럼 콘텍스트별 문구. */
   tarot?: ChatInputAreaToolOverride
   chart?: ChatInputAreaToolOverride
@@ -175,8 +178,10 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   onClearFile,
   onOpenTarot,
   onOpenChart,
+  onOpenFlow,
   tarotDisabled = false,
   chartDisabled = false,
+  flowDisabled = false,
   tarot,
   chart,
   placeholderPrompts,
@@ -212,6 +217,32 @@ export const ChatInputArea = React.memo(function ChatInputArea({
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [toolsOpen])
+
+  // ⋮ 도구 안내 풍선 — 첫 방문자에게만 "클릭해서 써보세요" 1회 노출. 한 번
+  // 도구 메뉴를 열면 localStorage 플래그를 세워 다시 보이지 않게 한다.
+  const TOOL_HINT_STORAGE_KEY = 'destinypal.counselor.toolHint.seen'
+  const [showToolHint, setShowToolHint] = React.useState(false)
+  React.useEffect(() => {
+    // 도구가 하나도 없으면(메인 홈처럼) ⋮ 버튼 자체가 안 그려지니 힌트도 X.
+    if (!(onFileUpload || onOpenTarot || onOpenChart || onOpenFlow)) return
+    if (typeof window === 'undefined') return
+    try {
+      if (window.localStorage.getItem(TOOL_HINT_STORAGE_KEY) === '1') return
+    } catch {
+      // localStorage 접근 실패(시크릿 모드 등)면 보수적으로 표시 안 함.
+      return
+    }
+    setShowToolHint(true)
+  }, [onFileUpload, onOpenTarot, onOpenChart, onOpenFlow])
+  const dismissToolHint = React.useCallback(() => {
+    setShowToolHint(false)
+    if (typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem(TOOL_HINT_STORAGE_KEY, '1')
+    } catch {
+      // 무시 — 다음 마운트에서 다시 표시되더라도 큰 문제 없음.
+    }
+  }, [])
 
   // iOS Safari restricts programmatic focus outside a user gesture so the
   // textarea won't pop the soft keyboard automatically — desktop / Android only.
@@ -276,12 +307,15 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           <div className={styles.inputBoxActionsLeft}>
             {/* 좌상단 ⋮ 도구 메뉴 — 파일/타로/차트를 한 버튼으로 접음. 도구가
                 하나도 없으면(메인 랜딩 입력창) 버튼 자체를 숨긴다. */}
-            {(onFileUpload || onOpenTarot || onOpenChart) && (
+            {(onFileUpload || onOpenTarot || onOpenChart || onOpenFlow) && (
             <div className={styles.toolMenu} ref={toolsRef}>
               <button
                 type="button"
                 className={styles.attachButton}
-                onClick={() => setToolsOpen((o) => !o)}
+                onClick={() => {
+                  dismissToolHint()
+                  setToolsOpen((o) => !o)
+                }}
                 aria-label={lang === 'ko' ? '도구' : 'Tools'}
                 aria-haspopup="menu"
                 aria-expanded={toolsOpen}
@@ -289,6 +323,18 @@ export const ChatInputArea = React.memo(function ChatInputArea({
               >
                 <span aria-hidden="true">&#x22EE;</span>
               </button>
+              {showToolHint && !toolsOpen && (
+                <div
+                  className={styles.toolHintBubble}
+                  role="status"
+                  aria-live="polite"
+                  onClick={dismissToolHint}
+                >
+                  <span className={styles.toolHintText}>
+                    {lang === 'ko' ? '클릭해서 써보세요' : 'Tap to try'}
+                  </span>
+                </div>
+              )}
               <AnimatePresence>
               {toolsOpen && (
                 <motion.div
@@ -381,6 +427,35 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                       </span>
                     </button>
                   )}
+                  {onOpenFlow && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setToolsOpen(false)
+                        onOpenFlow()
+                      }}
+                      disabled={flowDisabled}
+                      className={styles.toolMenuItem}
+                      aria-label={lang === 'ko' ? '운세 흐름표' : 'Fortune flow'}
+                      title={lang === 'ko' ? '운세 흐름표' : 'Fortune flow'}
+                    >
+                      {/* 📈 시간의 흐름 — 대운·연운·캘린더 진입. */}
+                      <span aria-hidden="true" className={styles.toolMenuIcon}>
+                        &#x1F4C8;
+                      </span>
+                      <span className={styles.toolMenuText}>
+                        <span className={styles.toolMenuLabel}>
+                          {lang === 'ko' ? '흐름표' : 'Flow'}
+                        </span>
+                        <span className={styles.toolMenuDesc}>
+                          {lang === 'ko'
+                            ? '대운·연운·달력으로 시간 흐름 보기'
+                            : 'View daeun, yearly cycles, and calendar'}
+                        </span>
+                      </span>
+                    </button>
+                  )}
                 </motion.div>
               )}
               </AnimatePresence>
@@ -443,7 +518,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
             aria-label={labels.send}
             title={labels.send}
           >
-            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
             </svg>
           </button>

@@ -7,9 +7,19 @@ import { determineGeokguk } from '@/lib/saju/geokguk'
 import { annotateShinsal, type ShinsalHit as ShinsalHitInternal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { performAdvancedAnalysis } from '@/app/api/saju/services/advancedAnalysis'
-import type { NatalContext } from './types'
+import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
+import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
+import { calculateArabicLots } from '@/lib/astrology/foundation/arabicParts'
+import { dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
+import { logger } from '@/lib/logger'
+import type {
+  NatalContext,
+  ZodiacalReleasingResult,
+  DignityResult,
+  NatalDignityEntry,
+} from './types'
 import type { FiveElement, SajuPillarsInput, CalculateSajuDataResult } from '@/lib/saju/types'
-import type { NatalInput, Chart } from '@/lib/astrology/foundation/types'
+import type { AspectHit, NatalInput, Chart, ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 
 export interface BuildContextInput {
@@ -187,6 +197,87 @@ export async function buildNatalContext(
     extraPoints = undefined
   }
 
+  // ─── 본명 aspects (major + minor) ──────────────────────────────────────
+  // findNatalAspects 의 default rules — natal orb +3°, maxResults=100, major
+  // only (rules.includeMinor 안 켜면). 한 명당 보통 30-50 hits.
+  // chart 가 깨져있어도 안전하게 빈 배열 반환하도록 try/catch.
+  let natalAspects: AspectHit[]
+  try {
+    natalAspects = findNatalAspects(chart, { includeMinor: true })
+  } catch (err) {
+    logger.warn('[natal-context] findNatalAspects failed, defaulting to []', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+    natalAspects = []
+  }
+
+  // ─── Zodiacal Releasing L1 (Spirit / Fortune) ──────────────────────────
+  // ZR 시작점은 Spirit / Fortune 두 lot 의 sign. 두 lot 모두 캐시 — 어느 추출기가
+  // 어느 쪽을 부를지 모름. 한 lot 이 빠지면 (chart missing planet 등) null 로
+  // 저장하고 계속 진행.
+  let zodiacalReleasing: ZodiacalReleasingResult = { spirit: null, fortune: null }
+  try {
+    const lots = calculateArabicLots(chart, sect === 'day')
+    const spiritLot = lots.find((l) => l.name === 'Spirit')
+    const fortuneLot = lots.find((l) => l.name === 'Fortune')
+    const result: ZodiacalReleasingResult = { spirit: null, fortune: null }
+    if (spiritLot) {
+      try {
+        result.spirit = {
+          startSign: spiritLot.sign,
+          periods: calculateZodiacalReleasing(spiritLot.sign as ZodiacKo, 90),
+        }
+      } catch (err) {
+        logger.warn('[natal-context] ZR Spirit calc failed', {
+          err: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
+    if (fortuneLot) {
+      try {
+        result.fortune = {
+          startSign: fortuneLot.sign,
+          periods: calculateZodiacalReleasing(fortuneLot.sign as ZodiacKo, 90),
+        }
+      } catch (err) {
+        logger.warn('[natal-context] ZR Fortune calc failed', {
+          err: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
+    zodiacalReleasing = result
+  } catch (err) {
+    logger.warn('[natal-context] Arabic lots calc failed; ZR cache empty', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+    zodiacalReleasing = { spirit: null, fortune: null }
+  }
+
+  // ─── 본명 5-tier dignities (per planet) ─────────────────────────────────
+  // dignityTiers() 자체는 table look-up 이지만 chart.planets 전체에 매번 부르는
+  // 게 extractor 코드 양을 늘림. 캐시 = 본명 행성 list × tiers + score.
+  const dignities: DignityResult = []
+  for (const p of chart.planets) {
+    if (!p.sign) continue
+    try {
+      const tiers = dignityTiers(p.name, p.sign, p.degree, sect)
+      const score = dignityScore(tiers)
+      const entry: NatalDignityEntry = {
+        planet: p.name,
+        sign: p.sign,
+        degree: p.degree,
+        tiers,
+        score,
+      }
+      dignities.push(entry)
+    } catch (err) {
+      logger.warn('[natal-context] dignityTiers failed for planet', {
+        planet: p.name,
+        err: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
   return {
     input: natalInput,
     saju: {
@@ -218,6 +309,9 @@ export async function buildNatalContext(
         longitude: input.longitude,
         timeZone: input.timeZone,
       },
+      natalAspects,
+      zodiacalReleasing,
+      dignities,
     },
   }
 }

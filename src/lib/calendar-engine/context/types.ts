@@ -1,6 +1,55 @@
-import type { Chart, NatalInput, PlanetBase } from '@/lib/astrology/foundation/types'
+import type {
+  AspectHit,
+  Chart,
+  NatalInput,
+  PlanetBase,
+  ZodiacKo,
+} from '@/lib/astrology/foundation/types'
+import type {
+  ZRPeriod,
+  ZRStartLot,
+} from '@/lib/astrology/foundation/zodiacalReleasing'
+import type { DignityTiers } from '@/lib/astrology/foundation/dignities'
 import type { SajuPillars, FiveElement, ShinsalHit, RelationHit, DayMaster } from '@/lib/saju/types'
 import type { AdvancedAnalysisResult } from '@/app/api/saju/services/advancedAnalysis'
+
+/**
+ * Per-lot Zodiacal Releasing cache shape — L1 periods are pre-computed up to
+ * ~90 years from birth (foundation default). Sub-periods (L2/L3/L4) are NOT
+ * cached because they explode in size (12 L2 × 12 L3 × 12 L4 = 1728 nodes per
+ * L1) and the consumer (astro-zr extractor) only expands the few L1s that
+ * overlap the requested range. Caching the L1 spine is cheap and removes the
+ * Lot-of-Spirit / Lot-of-Fortune look-up + sign-walk on every request.
+ */
+export interface ZodiacalReleasingResult {
+  spirit: {
+    startSign: ZodiacKo
+    periods: ZRPeriod[]
+  } | null
+  fortune: {
+    startSign: ZodiacKo
+    periods: ZRPeriod[]
+  } | null
+}
+
+/**
+ * Per-planet 5-tier dignity snapshot. `tiers` is the raw booleans from
+ * dignityTiers(); `score` is the polarity-style numeric (Almuten-ish).
+ * Used by astro-dignity extractor's natal-Almuten snapshot pass.
+ */
+export interface NatalDignityEntry {
+  planet: string
+  sign: ZodiacKo
+  /** within-sign degree, 0..30 — required for term/face matching */
+  degree: number
+  tiers: DignityTiers
+  score: number
+}
+
+export type DignityResult = NatalDignityEntry[]
+
+// Re-export so consumers can import from one place.
+export type { AspectHit, ZRPeriod, ZRStartLot, DignityTiers }
 
 /**
  * 본명 컨텍스트 — 사용자별로 1회 계산 후 캐시.
@@ -66,4 +115,25 @@ export interface NatalAstroContext {
     longitude: number
     timeZone: string
   }
+  /**
+   * 본명 행성 간 aspects (major + minor) — extractor 가 매번 재계산 하지 않게
+   * 캐시. findNatalAspects() 기본 설정(major only, +3° natal-orb, maxResults=100)
+   * 으로 ~30-50 hits per chart. 차트 자체가 dependency 이므로 chart 빌드 직후
+   * 한 번만 계산.
+   */
+  natalAspects: AspectHit[]
+  /**
+   * Zodiacal Releasing L1 시퀀스 — Spirit / Fortune 각각 ~90년치 sign-walk.
+   * Lot 계산 + sign-walk + ruler-years 합산이 의외로 핫(요청당 두 번씩). L1 만
+   * 캐시; L2/L3/L4 는 astro-zr extractor 가 range 와 겹치는 L1 만 on-demand
+   * 펼친다 (1728-node 폭발 회피).
+   */
+  zodiacalReleasing: ZodiacalReleasingResult
+  /**
+   * 행성별 dignity (도밀시리·익절테이션·트리플리시티·텀·페이스) + almuten 점수.
+   * dignityTiers() 는 pure-table look-up 이라 그 자체는 싸지만, astro-dignity
+   * extractor 가 본명 10행성에 매번 부른다 — 캐시하면 본명 Almuten 스냅샷
+   * 신호를 위한 보일러플레이트가 사라진다.
+   */
+  dignities: DignityResult
 }

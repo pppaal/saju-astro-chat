@@ -594,17 +594,57 @@ export const GET = withApiMiddleware(
         }
       }
 
-      // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
+      // 외행성 마일스톤(토성·목성·천왕성·해왕성·명왕성·카이런) 실제 transit
+      // 기반 정확 연도 — 옛 평균 나이대 테이블 폴백 대체. 같은 출생연도의
+      // 두 사람도 토성 회귀가 다른 연도에 떨어지는 진짜 개인화. swisseph
+      // 짧은 윈도우 검색이라 ms 단위로 끝나지만 실패해도 buildInterpretation
+      // 은 자동 폴백되므로 try/catch 로 안전하게 감싼다.
+      let astroMilestoneOverrides: Awaited<
+        ReturnType<typeof import('@/lib/astrology/foundation/planetReturns').calculateOuterPlanetMilestones>
+      > | undefined
+      try {
+        const { calculateOuterPlanetMilestones } = await import(
+          '@/lib/astrology/foundation/planetReturns'
+        )
+        const birthHourLocal = Number.parseInt((birthTimeParam || '00:00').split(':')[0] || '0', 10)
+        const birthMinuteLocal = Number.parseInt(
+          (birthTimeParam || '00:00').split(':')[1] || '0',
+          10
+        )
+        astroMilestoneOverrides = calculateOuterPlanetMilestones({
+          year: birthDate.getFullYear(),
+          month: birthDate.getMonth() + 1,
+          date: birthDate.getDate(),
+          hour: birthHourLocal,
+          minute: birthMinuteLocal,
+          latitude: coords.lat,
+          longitude: coords.lng,
+          timeZone: timezone,
+        })
+      } catch (e) {
+        logger.warn?.(
+          '[calendar] outer planet milestones failed; falling back to age table:',
+          e instanceof Error ? e.message : String(e)
+        )
+      }
+
       // 그 달 narrative 생성 (룰 DB 기반, LLM 0번 호출)
       try {
         const { buildInterpretation } = await import('@/lib/calendar-engine/interpretation')
         const interpLang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
+        // TODO(solar-return): calculateSolarReturn(ceNatal.input, currentYear)
+        // 를 try/catch 로 호출해 SolarReturnSummary({ ascSign, sunHouse }) 로
+        // 채워 넘기면 yearAstro 한 줄 뒤에 "올해의 솔라 리턴: …" 가 합성된다.
+        // swisseph 부담을 미루기 위해 v1 은 undefined 패스-스루.
+        const solarReturnSummary = undefined
         const interp = buildInterpretation({
           natal: ceNatal,
           cells: ceCells,
           scope: 'monthly',
           lang: interpLang,
           prevCells: prevMonthCells,
+          astroMilestoneOverrides,
+          solarReturnSummary,
         })
         // 로그인 사용자면 narrative 맨 앞에 호명 인사 추가 — 메인페이지에서
         // 저장된 이름(DB User.name)을 사용해 즉시 반영. 게스트는 인사 생략.

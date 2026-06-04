@@ -5,6 +5,7 @@
 
 import React, { memo } from 'react'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
 import styles from './Chat.module.css'
 import { type TarotResultSummary } from './InlineTarotModal'
 import { CHAT_I18N } from './chat-i18n'
@@ -270,6 +271,13 @@ const Chat = memo(function Chat({
   const goToChart = React.useCallback(() => {
     setShowChartModal(true)
   }, [])
+  // 흐름표 — 시간 흐름은 캘린더 책임이라 /calendar 로 직접 진입. 차트 모달
+  // 안의 캘린더 cross-link 와 동일 동선이지만 한 번 더 탭 줄여서 ⋮ 메뉴에서
+  // 바로 가게(사용자 요청: "흐름표 따로 빼자").
+  const router = useRouter()
+  const goToFlow = React.useCallback(() => {
+    router.push('/calendar')
+  }, [router])
 
   // 🃏 클래리파이어 카드 — 공통 hook (compat/followup 동일). 정책 단일 출처.
   const clarifier = useClarifierCard({
@@ -597,6 +605,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               onClearFile={clearFile}
               onOpenTarot={goToTarot}
               onOpenChart={goToChart}
+              onOpenFlow={goToFlow}
               autoFocus={autoFocus}
               theme="light"
               viewTransitionName={inputViewTransitionName}

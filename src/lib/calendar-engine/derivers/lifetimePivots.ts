@@ -1,4 +1,7 @@
-import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import {
+  buildLifecycleTiming,
+  type LifecycleMilestoneOverride,
+} from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import type { NatalContext } from '../context/types'
 
 /**
@@ -33,7 +36,13 @@ export interface LifetimePivots {
 
 export function deriveLifetimePivots(
   natal: NatalContext,
-  lang: 'ko' | 'en' = 'ko'
+  lang: 'ko' | 'en' = 'ko',
+  /**
+   * Optional — calculateOuterPlanetMilestones 결과를 그대로 넘기면 토성/목성/
+   * 천왕성 등 외행성 마일스톤 연도가 실제 transit 기반으로 교체된다. 미지정
+   * 시 옛 평균 나이대 테이블 그대로(backward compat).
+   */
+  astroMilestoneOverrides?: readonly LifecycleMilestoneOverride[]
 ): LifetimePivots {
   const birthYear = natal.input?.year
   if (!birthYear) return { pivots: [] }
@@ -48,7 +57,12 @@ export function deriveLifetimePivots(
         : 'current'
 
   // 점성 라이프사이클 마일스톤 (출생~90세) — 이름 있는 핵심 전환들, 절대 누락 금지.
-  const astroEvents = buildLifecycleTiming(birthYear, birthYear + 90, isKo).events.map((e) => ({
+  const astroEvents = buildLifecycleTiming(
+    birthYear,
+    birthYear + 90,
+    isKo,
+    astroMilestoneOverrides
+  ).events.map((e) => ({
     age: e.startYear - birthYear,
     year: e.startYear,
     label: e.label,

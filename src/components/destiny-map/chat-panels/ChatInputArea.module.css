@@ -29,19 +29,22 @@
 .inputBox {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.35rem 0.5rem;
+  gap: 0.15rem;
+  /* 좌우 padding 축소(8 → 4px) — ⋮ 도구 버튼과 send 버튼이 입력박스 모서리에
+     더 가까이 붙도록(사용자 요청: "더 옆으로 붙여줘"). 위아래는 손대지 않아
+     textarea 가 손가락에 닿는 영역은 유지. */
+  padding: 0.2rem 0.25rem;
   border-radius: 14px;
   border: none;
   background: rgba(20, 12, 30, 0.7);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  /* 입력 박스 폭을 어디서나 정확히 동일하게 — 메인(homeBody)·운명·궁합 컨테이너
-     폭이 달라도 박스 자체는 같은 최대폭으로 가운데 정렬되어 크기가 일치한다.
-     모든 컨테이너가 이보다 넓으므로(메인 ~812 / 상담사 ~844 가용폭) 데스크탑에선
-     정확히 이 폭, 좁은 화면에선 100% 로 자연스럽게 줄어든다. */
+  /* 입력 박스가 부모(inputArea content) 전체 폭을 차지하게 — 메인 홈에선
+     상단 바 햄버거/EN 버튼의 좌우 끝과 box 의 좌우 모서리가 정확히 같은 X
+     위치에 오도록(사용자 요청: 위/아래 줄 맞추기). 컨테이너 폭이 페이지마다
+     달라도 inputArea 내부 padding(8px) 만큼만 여백을 두므로 box 자체의 좌우
+     포지션은 부모 컨테이너 폭에 그대로 종속된다. */
   width: 100%;
-  max-width: 780px;
   margin-inline: auto;
 }
 
@@ -207,6 +210,57 @@
   flex-shrink: 0;
 }
 
+/* 첫 방문자 안내 풍선 — ⋮ 버튼 위쪽에 떠 있는 말풍선. "클릭해서 써보세요"
+   를 보여주고 메뉴를 한 번 열면 영구 dismiss(localStorage). 메뉴가 열려 있을
+   동안에는 숨겨 풍선과 팝오버가 겹치지 않게 한다(렌더 단에서 조건부). */
+.toolHintBubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 19;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(212, 181, 114, 0.96);
+  color: #1c1917;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  pointer-events: auto;
+  animation: toolHintFloat 1.6s ease-in-out infinite;
+}
+
+/* 풍선 꼬리 — 버튼 쪽으로 내려가는 작은 삼각형. background 와 같은 색. */
+.toolHintBubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 14px;
+  width: 0;
+  height: 0;
+  border: 5px solid transparent;
+  border-top-color: rgba(212, 181, 114, 0.96);
+  border-bottom: 0;
+}
+
+.toolHintText {
+  display: inline-block;
+}
+
+@keyframes toolHintFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
 .toolMenuPopover {
   position: absolute;
   bottom: calc(100% + 6px);
@@ -321,12 +375,13 @@
 
 .sendButton {
   margin-left: auto;
-  /* 전송 버튼 추가 축소 — 글 쓰는 영역 최대화(사용자: "엔터 버튼 너무 크다"). */
-  min-width: 24px;
-  width: 24px;
-  height: 24px;
+  /* 전송 버튼 추가 축소(24 → 18px) — 글 쓰는 영역 최대화(사용자: "엔터 버튼
+     크기 줄여줘"). 안의 화살표 SVG 도 12px 로 축소(아래 svg 룰 참조). */
+  min-width: 18px;
+  width: 18px;
+  height: 18px;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: linear-gradient(135deg, #d4b572 0%, #d4b572 100%);
   border: none;
   color: #fff;

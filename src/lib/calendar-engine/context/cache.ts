@@ -31,7 +31,10 @@ import type { NatalContext } from './types'
 //          PersonaCard·InsightStrip 가 cache hit 으로 격국/용신/십신/오행 분포 받게.
 // 'natal-v3-daeunyear' — 대운 시작연도 −1 보정(한국나이→연도)으로 daeun.startYear 가
 // 바뀌어, 옛 캐시(±1 어긋난 연도)를 무효화하기 위해 시그니처 bump.
-const ENGINE_SIGNATURE = 'natal-v3-daeunyear'
+// 'natal-v4-aspects-zr-dignity' — NatalAstroContext 에 natalAspects /
+// zodiacalReleasing / dignities 추가 (extractor 중복 계산 제거). shape 가 바뀌어
+// 옛 row 들은 강제 재계산.
+const ENGINE_SIGNATURE = 'natal-v4-aspects-zr-dignity'
 
 interface NatalCacheKeyInput {
   birthDate: string

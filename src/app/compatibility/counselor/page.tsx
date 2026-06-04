@@ -9,6 +9,7 @@ import CounselorLoadingScreen from '@/components/branding/CounselorLoading'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
+import { useRecoverOnResume } from '@/hooks/useRecoverOnResume'
 import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
@@ -38,6 +39,14 @@ import { CompatPersonPickerModal, type PickedPersonData } from './CompatPersonPi
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
 import { useCounselorNewChat } from '@/lib/counselor/useCounselorNewChat'
 import { savePendingChat, loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
+import {
+  readPendingTurn as readPendingTurnRaw,
+  writePendingTurn as writePendingTurnRaw,
+  clearPendingTurn as clearPendingTurnRaw,
+  PENDING_TURN_TTL_MS,
+  type PendingTurn,
+} from '@/lib/chat/pendingTurn'
+import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
@@ -60,46 +69,12 @@ type ChatMessage = {
   incomplete?: boolean
 }
 
-// 끊긴 턴 복원용 영속 정보 — recoverableTurnRef 는 메모리라 크레딧 구매 등으로
-// 페이지를 떠났다 돌아오면(=remount/새로고침) 사라진다. turnId 를 localStorage 에
-// 같이 남겨, 서버가 keepGeneratingOnDisconnect 로 끝까지 만들어 둔 완성본을 마운트
-// 시 result 캐시에서 자동으로 받아와 잘린 답을 갈아끼운다(ChatGPT 식). TTL 은 서버
-// result 캐시(10분)와 맞춘다 — 그 뒤엔 캐시가 비어 복원 불가. (destiny useChatApi
-// 의 PENDING_TURN_KEY 패턴 그대로 이식.)
-const PENDING_TURN_KEY = 'compatCounselor:pendingTurn'
-const PENDING_TURN_TTL_MS = 10 * 60 * 1000
-type PendingTurn = { turnId: string; userText: string; ts: number }
-
-function readPendingTurn(): PendingTurn | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(PENDING_TURN_KEY)
-    if (!raw) return null
-    const t = JSON.parse(raw) as PendingTurn
-    if (!t?.turnId || typeof t.ts !== 'number') return null
-    return t
-  } catch {
-    return null
-  }
-}
-
-function writePendingTurn(t: PendingTurn): void {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(PENDING_TURN_KEY, JSON.stringify(t))
-  } catch {
-    /* 저장 실패(quota/private mode) — 영속 복원만 포기, 인메모리 경로는 유지 */
-  }
-}
-
-function clearPendingTurn(): void {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.removeItem(PENDING_TURN_KEY)
-  } catch {
-    /* noop */
-  }
-}
+// 끊긴 턴 복원용 영속 정보는 공용 모듈(@/lib/chat/pendingTurn)을 'compat' 네임스페이스로
+// 바인딩해서 사용. 운명상담사는 같은 모듈을 'destiny' 로 바인딩 — read/write/clear 시그니처
+// 호환을 유지하려 namespace 인자를 미리 채운 얇은 래퍼만 둔다.
+const readPendingTurn = (): PendingTurn | null => readPendingTurnRaw('compat')
+const writePendingTurn = (t: PendingTurn): void => writePendingTurnRaw('compat', t)
+const clearPendingTurn = (): void => clearPendingTurnRaw('compat')
 
 type PersonData = {
   name: string
@@ -1141,25 +1116,7 @@ function CompatibilityCounselorContent() {
     void attemptRecover()
   }, [messages, isLoading, attemptRecover])
 
-  // 다른 앱/탭에서 돌아오거나(visible/focus) 네트워크가 복구되면(online) 끊겼던
-  // 턴의 완성 답을 복원 시도. attemptRecover 자체가 visibility/recoverableTurnRef
-  // 로 가드돼 있어 안전하게 여러 이벤트에서 호출 가능. (탭 전환/복귀 후 새로고침
-  // 없이도 복원되게 — visibilitychange 만으로는 일부 모바일 브라우저에서 포커스만
-  // 돌아오는 케이스를 놓쳤다.)
-  useEffect(() => {
-    if (typeof document === 'undefined') return
-    const onResume = () => {
-      if (document.visibilityState === 'visible') void attemptRecover()
-    }
-    document.addEventListener('visibilitychange', onResume)
-    window.addEventListener('online', onResume)
-    window.addEventListener('focus', onResume)
-    return () => {
-      document.removeEventListener('visibilitychange', onResume)
-      window.removeEventListener('online', onResume)
-      window.removeEventListener('focus', onResume)
-    }
-  }, [attemptRecover])
+  useRecoverOnResume(attemptRecover)
 
   // 🃏 클래리파이어 — 공통 hook (운명상담사 / followup 동일).
   const clarifier = useClarifierCard({
@@ -1293,70 +1250,60 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
       <div className={styles.mainColumn}>
         {/* Header — locale toggle removed (lives on main / entry page only).
             Heart accent kept next to the title to preserve the page's tone. */}
-        <header className={styles.header}>
-          <div className={styles.headerLeft}>
-            <button
-              type="button"
-              data-icon-only="true"
-              className={styles.backButton}
-              onClick={() => setSidebarOpen(true)}
-              aria-label={isKo ? '메뉴' : 'Menu'}
-            >
-              <span className={styles.backIcon}>{'☰'}</span>
-            </button>
-            <h1 className={styles.headerTitle}>
+        <AppHeader
+          layout="counselor"
+          theme="light"
+          sticky
+          onMenuClick={() => setSidebarOpen(true)}
+          menuLabel={isKo ? '메뉴' : 'Menu'}
+          title={
+            <>
               {!chatTitle && (
-                <span className={styles.headerHeart} aria-hidden="true">
-                  {'💕'}
-                </span>
+                <span className={styles.headerHeart} aria-hidden="true">{'💕'}</span>
               )}
               {chatTitle?.trim() || (isKo ? '궁합 상담사' : 'Compatibility Counselor')}
-            </h1>
-          </div>
-          <div className={styles.headerActions}>
-            {chatSessionId && (
-              <div ref={chatMenuRef} className={styles.chatMenuArea}>
-                <button
-                  type="button"
-                  className={styles.chatMenuButton}
-                  onClick={() => setChatMenuOpen((o) => !o)}
-                  aria-label={isKo ? '대화 메뉴' : 'Chat menu'}
-                  aria-expanded={chatMenuOpen}
-                  aria-haspopup="menu"
-                >
-                  <span aria-hidden="true">⋮</span>
-                </button>
-                {chatMenuOpen && (
-                  <div role="menu" className={styles.chatMenuDropdown}>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className={styles.chatMenuItem}
-                      onClick={handleChatRename}
-                    >
-                      <span>{isKo ? '이름 변경' : 'Rename'}</span>
-                      <span aria-hidden="true" className={styles.chatMenuIcon}>
-                        ✎
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
-                      onClick={handleChatDelete}
-                    >
-                      <span>{isKo ? '삭제' : 'Delete'}</span>
-                      <span aria-hidden="true" className={styles.chatMenuIcon}>
-                        🗑
-                      </span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-            <CreditBadge variant="compact" />
-          </div>
-        </header>
+            </>
+          }
+          rightSlot={
+            <>
+              {chatSessionId && (
+                <div ref={chatMenuRef} className={styles.chatMenuArea}>
+                  <AppHeaderIconButton
+                    onClick={() => setChatMenuOpen((o) => !o)}
+                    label={isKo ? '대화 메뉴' : 'Chat menu'}
+                    aria-expanded={chatMenuOpen}
+                    aria-haspopup="menu"
+                  >
+                    <span aria-hidden="true">{'⋮'}</span>
+                  </AppHeaderIconButton>
+                  {chatMenuOpen && (
+                    <div role="menu" className={styles.chatMenuDropdown}>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className={styles.chatMenuItem}
+                        onClick={handleChatRename}
+                      >
+                        <span>{isKo ? '이름 변경' : 'Rename'}</span>
+                        <span aria-hidden="true" className={styles.chatMenuIcon}>{'✎'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
+                        onClick={handleChatDelete}
+                      >
+                        <span>{isKo ? '삭제' : 'Delete'}</span>
+                        <span aria-hidden="true" className={styles.chatMenuIcon}>{'🗑'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              <CreditBadge variant="compact" />
+            </>
+          }
+        />
 
         {/* 두 사람 sticky 바 — 헤더 바로 아래. 클릭하면 최근 본 페어
             popover 열려서 다른 관계로 즉시 전환. persons 비어 있는 동안엔

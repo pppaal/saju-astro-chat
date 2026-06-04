@@ -468,7 +468,47 @@ function LifetimeView({
                   )}
                   <span className="text-[11px] text-zinc-500">{p.ageRange}</span>
                 </div>
+                {/* 대운 흐름 — 본문 위 작은 라벨 줄. 한자 + 한글 음 + 연도. */}
+                {p.daeunLine && (
+                  <p className="text-[11px] text-zinc-500 font-light leading-relaxed mb-1">
+                    {p.daeunLine}
+                  </p>
+                )}
                 <p className="text-[13px] text-zinc-300 font-light leading-relaxed">{p.text}</p>
+                {/* 외행성 마디 — 본문 아래 작은 사실 줄. "이 안에" 접두로 명시. */}
+                {p.milestoneLine && (
+                  <p className="text-[11px] text-zinc-500 font-light leading-relaxed mt-1.5">
+                    <span className="text-zinc-600">{locale === 'en' ? 'within: ' : '이 안에: '}</span>
+                    {p.milestoneLine}
+                  </p>
+                )}
+                {/* 본명 합·충 — 단계 대운 지지가 본명 4지지와 충/육합인지. v3 신규. */}
+                {p.relationLine && (
+                  <p className="text-[11px] text-zinc-500 font-light leading-relaxed mt-1">
+                    <span className="text-zinc-600">
+                      {locale === 'en' ? 'Natal clash/harmony: ' : '본명 합·충: '}
+                    </span>
+                    {p.relationLine}
+                  </p>
+                )}
+                {/* 본명 신살 활성 — 단계 대운 지지/천간이 본명 신살 anchor 와 일치할 때. v3 신규. */}
+                {p.shinsalLine && (
+                  <p className="text-[11px] text-zinc-500 font-light leading-relaxed mt-1">
+                    <span className="text-zinc-600">
+                      {locale === 'en' ? '✦ Shinsal: ' : '✦ 신살: '}
+                    </span>
+                    {p.shinsalLine}
+                  </p>
+                )}
+                {/* 일간 기준 단계 대운 지지의 12운성 — 본 결의 생애주기 위치. v4 신규. */}
+                {p.twelveStageLine && (
+                  <p className="text-[11px] text-zinc-500 font-light leading-relaxed mt-1">
+                    <span className="text-zinc-600">
+                      {locale === 'en' ? '◯ 12-Stage: ' : '◯ 12운성: '}
+                    </span>
+                    {p.twelveStageLine}
+                  </p>
+                )}
               </div>
             ))}
           </div>

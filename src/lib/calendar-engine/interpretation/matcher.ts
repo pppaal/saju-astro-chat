@@ -8,8 +8,9 @@ import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
 import { deriveKeyEvents } from '../derivers/keyEvents'
 import { deriveConvergence } from '../derivers/convergence'
 import { deriveLifetimePivots } from '../derivers/lifetimePivots'
+import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { deriveLifetimeFlow } from '../derivers/lifetimeFlow'
-import { deriveYearAstro } from '../derivers/yearAstro'
+import { deriveYearAstro, type SolarReturnSummary } from '../derivers/yearAstro'
 import { deriveMonthComparison } from '../derivers/monthComparison'
 import { SIBSIN_CAT, deriveCycleTone, deriveAstroTone } from '../derivers/cycleTone'
 
@@ -43,8 +44,31 @@ export function buildInterpretation(args: {
   prevCells?: CalendarCell[]
   /** 디버그 — 캡 적용 전 매칭 룰 ID 도 반환 (룰 커버리지 감사용) */
   debug?: boolean
+  /**
+   * 외행성 마일스톤(토성·목성·천왕성·해왕성·명왕성·카이런) 의 실제 transit
+   * 기반 정확 연도. 미지정 시 deriveLifetimePivots 가 평균 나이대 테이블로
+   * 폴백(옛 동작). 호출자(api/calendar)가 calculateOuterPlanetMilestones 로
+   * 미리 계산해 전달한다 — 그래야 같은 출생연도 두 명의 토성 회귀가 다른
+   * 연도로 표기되는 진짜 개인화가 발생.
+   */
+  astroMilestoneOverrides?: readonly LifecycleMilestoneOverride[]
+  /**
+   * Solar Return 요약 — 호출자(api/calendar)가 swisseph 기반으로 미리 계산해
+   * 전달. yearAstro 한 줄 뒤에 "올해의 솔라 리턴: ASC … / 태양 …" 형태로 합성.
+   * 미지정 시 솔라 리턴 라인 생략 (astroMilestoneOverrides 와 동일 패턴).
+   */
+  solarReturnSummary?: SolarReturnSummary
 }): Interpretation {
-  const { natal, cells, scope = 'monthly', lang = 'ko', prevCells, debug } = args
+  const {
+    natal,
+    cells,
+    scope = 'monthly',
+    lang = 'ko',
+    prevCells,
+    debug,
+    astroMilestoneOverrides,
+    solarReturnSummary,
+  } = args
 
   // 모든 셀에서 신호 + 패턴 합치기
   const allSignals = cells.flatMap((c) => c.signals)
@@ -438,14 +462,20 @@ export function buildInterpretation(args: {
   const convergence = scope === 'monthly' ? deriveConvergence(cells, 5, lang) : undefined
   // 인생 분기점 — 점성 라이프사이클 × 대운 전환 (natal 스케일, 월과 무관하나
   // monthly 카드에 함께 노출). 순수 산술이라 매월 재계산해도 저렴.
-  const lifetimePivots = scope === 'monthly' ? deriveLifetimePivots(natal, lang) : undefined
-  const lifetimeFlow = scope === 'monthly' ? deriveLifetimeFlow(natal, lang) : undefined
+  const lifetimePivots =
+    scope === 'monthly'
+      ? deriveLifetimePivots(natal, lang, astroMilestoneOverrides)
+      : undefined
+  const lifetimeFlow =
+    scope === 'monthly'
+      ? deriveLifetimeFlow(natal, lang, astroMilestoneOverrides)
+      : undefined
   // 올해 점성 한 줄 (연간 프로펙션 + 순탄/고비) — seun(사주)에 점성 짝을 맞춰 교차.
   // 프로펙션(영역) 뒤에 본명 aspect 우호/시험(deriveAstroTone)을 이어 붙여 favorability 까지.
   const yearAstro = (() => {
     if (scope !== 'monthly') return undefined
     const year = Number(cells[0]?.datetime?.slice(0, 4)) || new Date().getFullYear()
-    const base = deriveYearAstro(natal, year, lang)
+    const base = deriveYearAstro(natal, year, lang, solarReturnSummary)
     if (!base) return undefined
     if (lang !== 'ko') return base
     const fav = deriveAstroTone('year', allSignals)

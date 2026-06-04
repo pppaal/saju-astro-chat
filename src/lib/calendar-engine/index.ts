@@ -22,6 +22,9 @@ import sajuHourExtractor from './extractors/saju-hour'
 import sajuElementFlowExtractor from './extractors/saju-element-flow'
 import sajuIljuArchetypeExtractor from './extractors/saju-ilju-archetype'
 import sajuJohuYongsinExtractor from './extractors/saju-johu-yongsin'
+import sajuShinsalActivationExtractor from './extractors/saju-shinsal-activation'
+import sajuNatalBranchRelationExtractor from './extractors/saju-natal-branch-relation'
+import sajuElementBalanceExtractor from './extractors/saju-element-balance'
 import astroTransitExtractor from './extractors/astro-transit'
 import astroEclipseExtractor from './extractors/astro-eclipse'
 import astroProfectionExtractor from './extractors/astro-profection'
@@ -107,6 +110,10 @@ function getRegisteredExtractors(): SignalExtractor[] {
     sajuElementFlowExtractor,
     sajuIljuArchetypeExtractor,
     sajuJohuYongsinExtractor,
+    // ── 본명 fact-layer 활성화 (natalShinsal / natalRelations / fiveElements) ──
+    sajuShinsalActivationExtractor,
+    sajuNatalBranchRelationExtractor,
+    sajuElementBalanceExtractor,
 
     // ── astro (13) ──
     astroTransitExtractor,

@@ -604,22 +604,28 @@ export function calculateComprehensiveScore(
     unse = calculateUnseHarmonyScore(pillars, options.unseInfo)
   }
 
-  // 종합 점수 계산 (가중 평균)
-  const overall = Math.round(
+  // 종합 점수 계산 (가중 평균) — raw 는 0-100 범위.
+  const rawScore =
     strength.total * 0.35 + geokguk.purity * 0.2 + geokguk.stability * 0.15 + yongsin.fitScore * 0.3
-  )
 
-  // 등급 결정
+  // 사용자 노출 점수는 30-90 범위로 선형 재조정. 사주는 어떤 사주든 "0점/F등급"
+  // 같은 가혹한 인상을 주지 않게 하한 30, "100점 만점" 환상도 피해 상한 90 으로
+  // 압축한다. raw 분포의 차이는 그대로 유지(곱셈 0.6)되, 절대값은 더 인간적.
+  // 2026-06 사용자 요청: "점수 30-90 범위로".
+  const overall = Math.round(30 + rawScore * 0.6)
+
+  // 등급 임계값은 새 30-90 범위에 맞춰 재조정 (옛 90/80/70/60/50 임계는 50-90 만
+  // 쓰던 기형이라 D/F 가 거의 안 떴음. 새 등급은 30-90 균등 6분할 ≈ 각 10점).
   let grade: ComprehensiveScore['grade']
-  if (overall >= 90) {
+  if (overall >= 84) {
     grade = 'S'
-  } else if (overall >= 80) {
+  } else if (overall >= 75) {
     grade = 'A'
-  } else if (overall >= 70) {
+  } else if (overall >= 66) {
     grade = 'B'
-  } else if (overall >= 60) {
+  } else if (overall >= 57) {
     grade = 'C'
-  } else if (overall >= 50) {
+  } else if (overall >= 48) {
     grade = 'D'
   } else {
     grade = 'F'
