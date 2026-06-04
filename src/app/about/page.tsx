@@ -614,7 +614,7 @@ function TarotSpread() {
   const allFlipped = flipped.every(Boolean) && hand !== null
   const summary = allFlipped && hand
     ? isKo
-      ? `과거의 ${hand[0].card.kr}, 현재의 ${hand[1].card.kr}, 그리고 미래의 ${hand[2].card.kr}. 세 장이 가리키는 방향은 하나입니다 — 지금 내딛는 한 걸음을 믿어도 좋다는 것.`
+      ? `지난 자리의 ${hand[0].card.kr}, 지금 자리의 ${hand[1].card.kr}, 그리고 다가오는 자리의 ${hand[2].card.kr}. 세 장이 가리키는 방향은 하나입니다 — 지금 내딛는 한 걸음을 믿어도 좋다는 것.`
       : `${hand[0].card.name} in the past, ${hand[1].card.name} now, and ${hand[2].card.name} drawing near. The three point in one direction — trust the step you are taking right now.`
     : ''
 
@@ -651,7 +651,7 @@ function TarotSpread() {
                     <div className={s.tcardFrontIn}>
                       {draw && (
                         <>
-                          <div className={s.tcardNum}>{draw.card.n} · ARCANA</div>
+                          <div className={s.tcardNum}>{draw.card.n} · {isKo ? '아르카나' : 'ARCANA'}</div>
                           <div className={`${s.tcardSym} ${s.holoText}`}>{draw.card.sym}</div>
                           <div className={s.tcardName}>
                             {isKo ? draw.card.kr : draw.card.name}
@@ -993,24 +993,14 @@ export default function AboutPage() {
             </div>
 
             <h1 className={s.heroTitle} data-reveal data-d="1">
-              <span
-                className={s.chrome}
-                style={{ fontFamily: 'var(--font-montserrat), system-ui, sans-serif' }}
-              >
-                Destiny
-              </span>
-              <span
-                className={`${s.lower} ${s.holoText}`}
-                style={{ fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace' }}
-              >
-                Pal
-              </span>
+              <span className={s.chrome}>Destiny</span>
+              <span className={`${s.lower} ${s.holoText}`}>Pal</span>
             </h1>
 
             <div className={s.heroSubwrap} data-reveal data-d="2">
               <div>
                 {isKo ? (
-                  <p className={s.heroSubKr}>사주와 별자리, AI가 한 화면에서 함께 읽어 드립니다.</p>
+                  <p className={s.heroSubKr}>사주와 별자리를 AI가 한 화면에서 함께 읽어 드립니다.</p>
                 ) : (
                   <p className={s.heroSubKr} style={{ fontFamily: 'inherit' }}>
                     Saju and the stars, read together on one screen by AI.
@@ -1060,17 +1050,17 @@ export default function AboutPage() {
               </p>
             ) : (
               <p className={s.editorialLead} data-reveal data-d="1">
-                Reading the stars is an <em>old wisdom.</em> DestinyPal lets a machine learn it again — softly, and <em>just for you.</em>
+                Reading the stars is an <em>ancient wisdom.</em> DestinyPal lets a machine learn it again — softly, and <em>just for you.</em>
               </p>
             )}
             {isKo ? (
               <div className={`${s.editorialCols} ${s.dropcap}`} data-reveal data-d="2">
                 <p>오랜 시간 사람들은 별과 사주의 네 기둥, 그리고 한 장의 카드에서 자신의 길을 읽어 왔습니다. 그 마음은 사라지지 않았습니다. 다만 누군가와 마주 앉아 가만히 풀이를 듣는 시간이 멀어졌을 뿐입니다. DestinyPal은 그 빈자리를 채웁니다. 사주, 서양 점성술, 타로를 하나의 모델로 엮어, 당신이 태어난 바로 그 시각에 맞춰 함께 읽어 드립니다.</p>
-                <p>돌아오는 리딩은 모두에게 똑같이 찍혀 나오는 운세가 아닙니다. 당신의 시각, 당신이 서 있는 자리, 오늘 밤 천천히 지나가는 행성까지 함께 본 당신만의 차트입니다 — 모르는 것은 모른다고 솔직하게. 입 밖으로 꺼내기 어려운 질문 옆에, 조용히 함께 있어 드릴게요.</p>
+                <p>돌아오는 리딩은 모두에게 똑같이 찍혀 나오는 운세가 아닙니다. 당신의 시각, 당신이 서 있는 자리, 오늘 밤 천천히 지나가는 행성까지 함께 본 당신만의 차트입니다 — 모르는 것은 모른다고 솔직하게 말씀드립니다. 입 밖으로 꺼내기 어려운 질문 옆에 조용히 함께 있어 드립니다.</p>
               </div>
             ) : (
               <div className={`${s.editorialCols} ${s.dropcap}`} data-reveal data-d="2">
-                <p>For thousands of years, people have read their path in the stars, in the four pillars of birth, and in a single card laid down. That instinct never went away. What faded was the time to sit with a true reader, in quiet. DestinyPal fills that empty seat. It weaves classical Saju, Western astrology, and tarot into one model, then reads them together against the exact moment you arrived.</p>
+                <p>For thousands of years, people have read their path in the stars, in the four pillars of birth, and in a single card laid down. That instinct never went away. What faded was the quiet time to sit with a true reader. DestinyPal fills that empty seat. It weaves classical Saju, Western astrology, and tarot into one model, then reads them together against the exact moment you arrived.</p>
                 <p>What comes back is not a horoscope stamped out for the millions. It is a chart that knows your hour, the ground you stand on, and the slow planet passing overhead tonight — honest about what it cannot see. A quiet companion for the questions you would rather not say out loud.</p>
               </div>
             )}
@@ -1092,7 +1082,7 @@ export default function AboutPage() {
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
-                  <>별자리를 골라보세요. <em>지도가 스스로 그려집니다.</em></>
+                  <>별자리를 골라 보세요. <em>지도가 스스로 그려집니다.</em></>
                 ) : (
                   <>Choose a sign. <em>Watch your map draw itself.</em></>
                 )}
@@ -1174,7 +1164,7 @@ export default function AboutPage() {
           <div className={s.wrap}>
             <div className={s.secHead}>
               <span className={s.kicker} data-reveal>
-                {isKo ? '№ 04 — 당신을 읽는 다섯 방법' : '№ 04 — Five Ways to Read You'}
+                {isKo ? '№ 04 — 당신을 읽는 다섯 가지 방법' : '№ 04 — Five Ways to Read You'}
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
@@ -1254,7 +1244,7 @@ export default function AboutPage() {
                   <div className={s.featKr}>{isKo ? '78장의 아르카나' : '78 arcana'}</div>
                   <p className={s.featD}>
                     {isKo
-                      ? '질문 하나에 카드 한 장씩 펼치고, 모델은 당신의 차트가 이미 알려준 모든 맥락 위에서 78 아르카나를 읽어 냅니다 — 카드 혼자서는 결코 가질 수 없는 깊이로.'
+                      ? '질문 하나에 카드 한 장씩 펼치고, 모델은 당신의 차트가 이미 알려준 모든 맥락 위에서 78 아르카나를 읽어 냅니다 — 카드 혼자서는 닿지 못하는 깊이로.'
                       : 'Ask a question, pull a spread, and let the model read the 78 arcana against everything it already knows about your chart — context the cards alone can never carry.'}
                   </p>
                 </div>
@@ -1323,7 +1313,7 @@ export default function AboutPage() {
               <div className={s.readingCard} data-reveal>
                 <div className={s.readingInner}>
                   <div className={s.readingTop}>
-                    <span>{isKo ? 'DestinyPal · 일일' : 'DestinyPal · Daily'}</span>
+                    <span>{isKo ? 'DestinyPal · 일일 리딩' : 'DestinyPal · Daily'}</span>
                     <span>{isKo ? '2026.06.04 · KST' : '04 JUN 2026 · KST'}</span>
                   </div>
                   <div className={s.readingSign}>
@@ -1377,7 +1367,7 @@ export default function AboutPage() {
                     <b>{isKo ? '타로' : 'TAROT'}</b>
                     <span>
                       {isKo
-                        ? 'The Star, 정방향 — 긴 노력 끝에 찾아오는 조용한 회복.'
+                        ? '별, 정방향 — 긴 노력 끝에 찾아오는 조용한 회복.'
                         : 'The Star, upright — quiet renewal after a long stretch of effort.'}
                     </span>
                   </div>
@@ -1398,7 +1388,7 @@ export default function AboutPage() {
               )}
             </blockquote>
             <cite data-reveal data-d="1">
-              {isKo ? '— 서울의 한 초기 사용자 · ★★★★★' : '— Early reader, Seoul · ★★★★★'}
+              {isKo ? '— 서울의 한 초기 사용자 · ★★★★★' : '— Early user, Seoul · ★★★★★'}
             </cite>
           </div>
         </section>
@@ -1445,7 +1435,7 @@ export default function AboutPage() {
                 <div className={s.footerCol}>
                   <h4>{isKo ? '문의' : 'Contact'}</h4>
                   <a href="mailto:rheeco88@gmail.com">rheeco88@gmail.com</a>
-                  <a href="#">@destinypal</a>
+                  <a href="#">@DestinyPal</a>
                 </div>
               </div>
             </div>

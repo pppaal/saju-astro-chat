@@ -252,22 +252,23 @@
 }
 
 .heroTitle {
-  font-family: var(--display);
-  font-weight: 500;
-  line-height: 0.86;
-  letter-spacing: -0.02em;
-  /* italic mono "Pal" is wider than chrome "Destiny" — keep max moderate so
-     it doesn't get clipped by the rotating zodiac ring on wide screens. */
-  font-size: clamp(48px, 9.4vw, 148px);
+  /* DestinyPal wordmark — Montserrat for the whole word so "Destiny" and
+     "Pal" share the same typeface. Color split (chrome vs holo) carries the
+     visual contrast; italic was dropped because the slanted "l" kept clipping
+     against the hero edge. */
+  font-family: var(--sans);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  font-size: clamp(40px, 6.4vw, 96px);
   margin: 0;
-  padding-right: 0.18em;
+  overflow: visible;
 }
 
 .heroTitle .lower {
-  font-style: italic;
-  /* tighten the gap between "Destiny" and "Pal" so the italic mono can sit
-     comfortably without being pushed off the right edge */
-  margin-left: 0.08em;
+  /* Upright (no italic) so the closing "l" has no rightward overhang. */
+  display: inline-block;
+  margin-left: 0.04em;
 }
 
 .heroSubwrap {

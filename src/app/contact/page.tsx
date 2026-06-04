@@ -9,8 +9,8 @@ import styles from './contact.module.css'
 const INQUIRY_TYPES_KO = [
   { tag: '01', label: '일반 문의', description: '서비스 이용 관련 질문' },
   { tag: '02', label: '기술 지원', description: '오류나 버그 신고' },
-  { tag: '03', label: '결제·환불', description: '결제 전 환불정책을 먼저 확인해 주세요' },
-  { tag: '04', label: '개인정보', description: '개인정보처리방침 §12 의 보호책임자에게 문의' },
+  { tag: '03', label: '결제·환불', description: '결제 전 환불 정책을 먼저 확인해 주세요' },
+  { tag: '04', label: '개인정보', description: '개인정보처리방침 §12의 보호책임자에게 문의' },
   { tag: '05', label: '피드백', description: '서비스 개선 제안' },
   { tag: '06', label: '제휴 문의', description: '비즈니스 협력 제안' },
 ]
@@ -19,7 +19,7 @@ const INQUIRY_TYPES_EN = [
   { tag: '01', label: 'General', description: 'Questions about using the service' },
   { tag: '02', label: 'Technical Support', description: 'Bug reports and errors' },
   { tag: '03', label: 'Billing & Refund', description: 'Please review our Refund Policy first' },
-  { tag: '04', label: 'Privacy', description: 'Contact the Privacy Officer listed in Privacy Policy §12' },
+  { tag: '04', label: 'Privacy', description: 'Contact the Privacy Officer listed in our Privacy Policy §12' },
   { tag: '05', label: 'Feedback', description: 'Service improvement suggestions' },
   { tag: '06', label: 'Partnership', description: 'Business collaboration proposals' },
 ]
@@ -34,12 +34,12 @@ export default function ContactPage() {
       <div className={styles.wrap}>
         {/* Header */}
         <header className={styles.header}>
-          <p className={styles.eyebrow}>DestinyPal · {isKo ? '연락처' : 'Contact'}</p>
+          <p className={styles.eyebrow}>{isKo ? '연락처' : 'Contact'}</p>
           <h1 className={styles.title}>{isKo ? '말을 건네 주세요' : 'Get in touch'}</h1>
           <p className={styles.subtitle}>
             {isKo
-              ? '궁금한 점이나 의견을 이메일로 보내 주세요. 영업일 기준 2일 안에 답변드리도록 노력합니다.'
-              : 'Send your questions or feedback by email. We aim to respond within two business days.'}
+              ? '궁금한 점이나 의견을 이메일로 보내 주세요. 영업일 기준 2일 안에 회신해 드립니다.'
+              : 'Send your questions or feedback by email. We reply within two business days.'}
           </p>
         </header>
 
@@ -68,8 +68,8 @@ export default function ContactPage() {
           </a>
           <p className={styles.emailHint}>
             {isKo
-              ? '제목에 문의 유형을 적어 주시면 빠르게 도와드릴 수 있어요.'
-              : 'Mention the inquiry type in the subject line so we can help faster.'}
+              ? '제목에 문의 유형을 적어 주시면 더 빠르게 안내해 드립니다.'
+              : 'Mention the inquiry type in the subject line so we can respond faster.'}
           </p>
         </section>
 
@@ -80,8 +80,8 @@ export default function ContactPage() {
             <h3 className={styles.tileTitle}>{isKo ? '영업일 2일 내' : 'Within 2 business days'}</h3>
             <p className={styles.tileBody}>
               {isKo
-                ? '평일 기준이며, 주말·공휴일은 다음 영업일에 회신합니다.'
-                : 'On weekdays. Replies to weekend or holiday inquiries arrive the next business day.'}
+                ? '평일 기준이며, 주말·공휴일에 접수된 문의는 다음 영업일에 회신해 드립니다.'
+                : 'Business days only — inquiries received on weekends or holidays are answered on the next business day.'}
             </p>
           </div>
           <div className={styles.tile}>
@@ -89,7 +89,7 @@ export default function ContactPage() {
             <h3 className={styles.tileTitle}>{isKo ? '법정 10일 이내' : 'Within 10 days'}</h3>
             <p className={styles.tileBody}>
               {isKo
-                ? '개인정보 보호법에 따라 개인정보 관련 요청은 10일 이내 회신합니다.'
+                ? '「개인정보 보호법」에 따라 관련 요청은 10일 이내에 회신해 드립니다.'
                 : 'Per the Korean Personal Information Protection Act, privacy-related requests are answered within 10 days.'}
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function ContactPage() {
             <h2 id="contact-policy-heading" className={styles.sectionTitle}>
               {isKo ? '관련 정책' : 'Related policies'}
             </h2>
-            <span className={styles.sectionMeta}>{isKo ? '먼저 살펴보기' : 'Try first'}</span>
+            <span className={styles.sectionMeta}>{isKo ? '먼저 살펴보기' : 'Start here'}</span>
           </div>
           <div className={styles.linkRow}>
             <Link href="/faq" className={styles.policyLink}>

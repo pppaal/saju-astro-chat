@@ -1,4 +1,5 @@
-/* Contact — light editorial theme matching /policy/*  */
+/* Contact — light editorial theme. Typography mirrors /about: Lora display
+   headlines, Montserrat sans body, mono labels, Noto Sans KR for Korean. */
 
 .container {
   min-height: 100dvh;
@@ -7,6 +8,14 @@
   padding: 80px 24px 96px;
   position: relative;
   font-feature-settings: 'ss01', 'ss02', 'cv11';
+
+  /* Match the about page's font system so both pages feel like one site */
+  --display: var(--font-lora), var(--font-noto-kr), 'Apple SD Gothic Neo', Georgia, serif;
+  --sans: var(--font-montserrat), var(--font-noto-kr), 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, 'Cascadia Mono', Consolas, monospace;
+  --kr: var(--font-noto-kr), 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+
+  font-family: var(--sans);
 }
 
 .wrap {
@@ -23,25 +32,42 @@
   margin-bottom: 48px;
 }
 
+/* Editorial kicker — same pattern as about page (mono + line decoration).
+   No uppercase so the brand "DestinyPal" PascalCase is preserved, and
+   Korean text doesn't visually mismatch English. */
 .eyebrow {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   color: #a07a3c;
-  margin: 0 0 12px;
+  margin: 0 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 22px;
+  height: 1px;
+  background: rgba(160, 122, 60, 0.45);
+  display: inline-block;
 }
 
 .title {
+  font-family: var(--display);
   font-size: clamp(2rem, 4.5vw, 3rem);
-  font-weight: 700;
-  letter-spacing: -0.025em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   color: #14172a;
   margin: 0 0 16px;
+  text-wrap: balance;
 }
 
 .subtitle {
+  font-family: var(--sans);
   font-size: 1rem;
   line-height: 1.65;
   color: #4b4f63;
@@ -86,9 +112,10 @@
 }
 
 .emailLabel {
+  font-family: var(--mono);
   font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #6b6f80;
   margin: 0 0 10px;
@@ -96,8 +123,9 @@
 }
 
 .emailLink {
-  font-size: clamp(1.4rem, 3vw, 1.85rem);
-  font-weight: 600;
+  font-family: var(--mono);
+  font-size: clamp(1.2rem, 2.6vw, 1.6rem);
+  font-weight: 500;
   letter-spacing: -0.01em;
   color: #14172a;
   text-decoration: none;
@@ -148,18 +176,20 @@
 }
 
 .tileLabel {
+  font-family: var(--mono);
   font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #a07a3c;
   margin: 0;
 }
 
 .tileTitle {
-  font-size: 1.05rem;
+  font-family: var(--display);
+  font-size: 1.2rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   color: #14172a;
   margin: 0;
 }
@@ -192,17 +222,19 @@
 }
 
 .sectionTitle {
-  font-size: 1.4rem;
+  font-family: var(--display);
+  font-size: 1.55rem;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   color: #14172a;
   margin: 0;
 }
 
 .sectionMeta {
-  font-size: 0.78rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #6b6f80;
 }
@@ -244,8 +276,10 @@
   border-radius: 50%;
   background: rgba(212, 181, 114, 0.1);
   color: #a07a3c;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -257,17 +291,20 @@
 }
 
 .inquiryLabel {
-  font-size: 0.95rem;
+  font-family: var(--display);
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: -0.005em;
   color: #14172a;
-  margin: 0 0 3px;
+  margin: 0 0 4px;
 }
 
 .inquiryDesc {
+  font-family: var(--sans);
   font-size: 0.85rem;
   color: #6b6f80;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 /* ===== Related policies links ===== */
