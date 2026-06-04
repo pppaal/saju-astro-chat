@@ -175,13 +175,18 @@ function isUsableReading(fullText: string): boolean {
   })
   if (!everyCardUsable) return false
 
-  // 자리(position) 중복 금지 — 프롬프트가 룰로 박았지만 모델이 어기면 두 카드에
-  // 같은 라벨이 떠 클라이언트가 "둘 다 다가올 흐름?" 같은 깨진 결과를 보여준다.
-  // trim + lowercase 로 정규화해서 비교 (공백/대소문자만 다른 변형도 잡힘).
+  // 자리(position) 라벨 중복은 *표시 품질* 이슈일 뿐, "가치 없음" 이 아니다.
+  // 사용자는 overall + 모든 카드 해석이 든 완성 리딩을 이미 스트림으로 받았다.
+  // 이걸 이유로 환불(=delivered 실패)하면 정상 리딩을 공짜로 주는 매출 누수가
+  // 된다. 따라서 환불 게이트에서는 중복을 실패로 보지 않고 경고만 남긴다.
   const positions = (reading.cards as Array<{ position: string }>).map((c) =>
     c.position.trim().toLowerCase()
   )
-  if (new Set(positions).size !== positions.length) return false
+  if (new Set(positions).size !== positions.length) {
+    logger.warn('[tarot-stream] duplicate card positions in delivered reading (not refunding)', {
+      positions,
+    })
+  }
 
   return true
 }
@@ -319,7 +324,15 @@ export async function POST(req: NextRequest) {
     const isRecoverable = Boolean(turnId && recoverableUserId)
     // Per-turn key so every refund path (fallback / claude error / stream error
     // / outer catch) refunds this turn at most once. (declared at fn scope above)
-    refundKey = turnId ? `tarot-interpret:${turnId}` : null
+    // turnId 가 없으면 draw nonce(서버 발급, draw 마다 고유)로 대체 — 둘 다
+    // 없을 때만 null. null 이면 refundCreditsOnce 가 시간대 버킷으로 합성 키를
+    // 만드는데, 같은 유저·같은 시간·같은 사유의 서로 다른 두 실패가 한 키로
+    // 뭉쳐 두 번째 진짜 실패가 "이미 환불됨" 으로 누락되던 충돌이 있었다.
+    refundKey = turnId
+      ? `tarot-interpret:${turnId}`
+      : drawNonce
+        ? `tarot-interpret:nonce:${drawNonce}`
+        : null
 
     logger.info('Tarot stream payload', {
       categoryId,

@@ -39,6 +39,10 @@ export interface FetchInterpretationOptions {
   // 사용자가 *왜* 진짜 LLM 응답이 안 왔는지 알게 하려면 페이지 단의
   // showDepleted() 같은 전역 모달 트리거가 필요.
   onCreditError?: (kind: 'insufficient_credits' | 'guest_or_login_required') => void
+  // 재시도 시 이전 interpret-stream 요청을 끊기 위한 외부 abort 신호. 없으면
+  // 내부 타임아웃 컨트롤러만 사용. 페이지가 재시도 직전 prior 요청을 abort 해
+  // 두 스트림이 동시에 도는 레이스를 막는다.
+  signal?: AbortSignal
 }
 
 interface UseTarotInterpretationReturn {
@@ -484,6 +488,7 @@ export function useTarotInterpretation({
             method: 'POST',
             headers: interpretHeaders,
             body: JSON.stringify(requestBody),
+            signal: options?.signal,
           },
           STREAM_INTERPRET_TIMEOUT_MS
         )

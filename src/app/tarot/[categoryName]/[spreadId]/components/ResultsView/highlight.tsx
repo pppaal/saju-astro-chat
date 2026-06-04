@@ -69,8 +69,14 @@ export function renderWithLastSentenceHighlight(
     return cleaned
   }
 
-  // 원문에서 마지막 문장의 시작 인덱스 찾기 — split 후 join 시 공백 손실 방지.
-  const lastIdx = cleaned.lastIndexOf(last)
+  // 원문에서 마지막 문장의 시작 인덱스 찾기. 마지막 문장은 항상 텍스트 끝에
+  // 있으므로 *끝에서* 앵커링한다 — lastIndexOf(last) 로 내용 검색하면, 마지막
+  // 문장 텍스트가 앞 문장의 substring 일 때 엉뚱한 위치(단어 중간)에 매칭돼
+  // lead 가 잘리고 강조가 깨지던 버그가 있었다.
+  const trimmedEnd = cleaned.replace(/\s+$/, '')
+  const lastIdx = trimmedEnd.endsWith(last)
+    ? trimmedEnd.length - last.length
+    : cleaned.lastIndexOf(last)
   if (lastIdx < 0) return cleaned
   const lead = cleaned.slice(0, lastIdx)
 
