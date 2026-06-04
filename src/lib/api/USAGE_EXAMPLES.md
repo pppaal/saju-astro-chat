@@ -571,7 +571,6 @@ import {
 import { TarotInterpretRequestSchema } from '@/lib/api/schemas';
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler';
 import { interpretTarot } from '@/services/tarotService';
-import { saveConsultation } from '@/services/consultationService';
 
 export async function POST(req: NextRequest) {
   // 1. Middleware 초기화 (토큰 + Rate Limit + 크레딧)
@@ -633,26 +632,11 @@ export async function POST(req: NextRequest) {
       userId: context.userId, // 로그인한 경우만 제공
     });
 
-    // 6. 결과 저장 (인증된 사용자만)
-    let saved = false;
-    if (context.isAuthenticated && context.userId) {
-      await saveConsultation({
-        userId: context.userId,
-        theme: 'tarot',
-        category,
-        summary: interpretation.overall,
-        fullReport: JSON.stringify(interpretation),
-        locale: context.locale,
-      });
-      saved = true;
-    }
-
-    // 7. 성공 응답
+    // 6. 성공 응답
     return NextResponse.json({
       success: true,
       data: {
         ...interpretation,
-        saved,
       },
       meta: {
         timestamp: new Date().toISOString(),
