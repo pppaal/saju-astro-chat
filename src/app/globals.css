@@ -1131,11 +1131,14 @@ body {
  * ===================================================================== */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  /* 입력박스 폭이 페이지 간 동일해진 뒤부턴 짧고 시원한 크로스페이드가
-     자연스럽게 읽힌다 — 0.55s 는 모션은 부드럽지만 클릭 반응성이 떨어져
-     "느리다"는 인상을 주므로 0.28s 로 축소. */
-  animation-duration: 0.28s;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  /* root 크로스페이드는 페이지 색감 자체가 바뀌는 구간(예: 어두운 cosmic →
+     라이트 프로필, 타로 entry 의 보라/블루 글로우 → 타로 리딩 sub 페이지의
+     플레인 다크) 을 부드럽게 잇는다. 0.28s 에 ease-out-quart 는 클릭 반응성은
+     좋지만 큰 색 점프에선 "툭" 끊겨 보였음 → 0.4s ease-in-out 로 약간 늘려
+     색이 진짜 섞여 들어가는 인상을 준다. (morph 그룹 0.28s 는 그대로 유지 —
+     같은 객체가 흘러가는 건 빠른 게 자연스러움.) */
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 입력창·헤더는 폭이 두 페이지에서 같으므로 morph 가 실제로 보이는 변화는
