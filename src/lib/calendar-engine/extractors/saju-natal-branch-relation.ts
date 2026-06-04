@@ -66,11 +66,13 @@ const sajuNatalBranchRelationExtractor: SignalExtractor = {
     const { natal, range } = ctx
     const p = natal.saju?.pillars
     if (!p) return []
+    // 각 kind 에 `as PillarKind` — 배열 리터럴이 `string` 으로 wide 되면서
+    // `.filter()` 결과가 PillarKind 와 호환 안 되던 TS 빌드 에러 fix (2026-06).
     const natalBranches: Array<{ kind: PillarKind; branch: string }> = [
-      { kind: 'year', branch: p.year?.earthlyBranch?.name ?? '' },
-      { kind: 'month', branch: p.month?.earthlyBranch?.name ?? '' },
-      { kind: 'day', branch: p.day?.earthlyBranch?.name ?? '' },
-      { kind: 'time', branch: p.time?.earthlyBranch?.name ?? '' },
+      { kind: 'year' as PillarKind, branch: p.year?.earthlyBranch?.name ?? '' },
+      { kind: 'month' as PillarKind, branch: p.month?.earthlyBranch?.name ?? '' },
+      { kind: 'day' as PillarKind, branch: p.day?.earthlyBranch?.name ?? '' },
+      { kind: 'time' as PillarKind, branch: p.time?.earthlyBranch?.name ?? '' },
     ].filter((b) => b.branch)
 
     if (natalBranches.length === 0) return []
