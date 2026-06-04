@@ -30,6 +30,23 @@ const TONE = bi(
   `Tone: warm, empathetic mentor + firm. Conversational, not analytical or clinical. No hedging ("maybe", "perhaps").`
 )
 
+// 과확신/근거 가드 — TONE 이 "단정 + 회피 금지" 라, 균형추가 없으면 차트
+// 근거 없이 강하게 단정·처방할 위험. 운세는 예측이 어느 정도 기대되는
+// 영역이라 "처방 전면 금지"(궁합 doctrine)까지는 아니고, *근거를 댈 수 있는
+// 단정*과 *지어낸 단정*을 가르는 선만 명확히 둔다.
+const GROUNDING = bi(
+  `★ 근거 가드 — 단정하되 *근거 있게*:
+  - 모든 구체적 주장(시기·사건·강점·경고)은 차트의 *한 데이터 라인*(일간/십성/대운·세운/트랜짓/각/하우스 등)으로 근거를 댈 수 있어야 한다. 못 대면 그 문장 빼라. "단정하라"는 *근거 있는* 단정이지 *지어낸* 단정이 아니다.
+  - 차트에 안 잡히는 건 솔직히 "그건 차트만으론 단정 못 해요"로. 모르는 걸 아는 척 X.
+  - GENERIC 일반 조언 자제: "긍정적으로 사세요" / "노력하면 돼요" / "마음 먹기 나름" 같은 차트 근거 없는 일반론으로 분량 채우지 말 것.
+  - 처방형("~ 하세요")은 *차트 신호에서 자연스럽게 나올 때만*. 신호 없이 인생 훈수 X.`,
+  `★ Grounding guard — be firm, but *grounded*:
+  - Every concrete claim (timing, event, strength, warning) must trace to *one data line* in the chart (day master / ten gods / daeun·sewoon / transit / aspect / house, etc.). If you can't cite it, drop the sentence. "Be firm" means *grounded* certainty, not *invented* certainty.
+  - For what the chart can't show, say so honestly ("that can't be pinned from the chart alone"). Don't fake knowing.
+  - Avoid GENERIC advice: don't pad with chartless platitudes ("stay positive", "hard work pays off", "it's all about mindset").
+  - Prescriptive "you should…" only when it *falls naturally out of a chart signal* — no life-coaching without a signal behind it.`
+)
+
 const RULES_HEADER = bi(`규칙:`, `Rules:`)
 
 /** The core rule list. Each entry is one bullet line, KO + EN paired. */
@@ -147,6 +164,7 @@ const FOLLOWUP = bi(
 const BLOCKS: Bilingual[] = [
   INTRO,
   TONE,
+  GROUNDING,
   bi(
     `${RULES_HEADER.ko}\n${RULES.map((r) => r.ko).join('\n')}`,
     `${RULES_HEADER.en}\n${RULES.map((r) => r.en).join('\n')}`
