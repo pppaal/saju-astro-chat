@@ -88,13 +88,20 @@ const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
 
 **선택:** 정통 12지지 지장간. 子·卯·午·酉 = 정기만, 나머지 8지지 = 3층.
 
-| 강도 가중치 | 정기 | 중기 | 여기 |
-|---|---|---|---|
-| 값 | 0.70 | 0.50 | 0.35 |
+**구성·정기 lookup:** [`constants.ts:JIJANGGAN, JIJANGGAN_ORDERED`](./constants.ts) — 어느 지지가 어떤 천간들을 품는지(정기/중기/여기 라벨)는 *전체 코드 공유 단일 출처*.
 
-**위치:** [`constants.ts:JIJANGGAN, JIJANGGAN_ORDERED`](./constants.ts), [`calendar-engine/extractors/saju-jijanggan.ts:50-54`](../calendar-engine/extractors/saju-jijanggan.ts#L50-L54)
+**가중치 — 용도별로 의도적으로 다름:**
 
-**참고:** 학파별로 寅·亥 등의 미세 차이가 있으나, 2026-05 commit 에서 정통 도메인 기준으로 통일 — 변경 시 golden test가 막는다.
+| 용도 | 정기 | 중기 | 여기 | 위치 |
+|---|---|---|---|---|
+| 캘린더 시그널 (`saju-jijanggan` extractor) | 0.70 | 0.50 | 0.35 | [`calendar-engine/extractors/saju-jijanggan.ts:50-54`](../calendar-engine/extractors/saju-jijanggan.ts#L50-L54) |
+| 강약 점수 (`strengthScore`) | 0.60 | 0.25 | 0.15 | [`strengthScore.ts:99-103`](./strengthScore.ts#L99-L103) |
+
+**왜 둘이 다른가:** *의도된 분리*. 캘린더 시그널은 *부드러운 비율* (정기 ~2× 여기) — 본명-시기 매트릭스에서 본기 뿐 아니라 중기·여기까지 폭넓게 잡아내야 일진 색채가 풍부해진다. 강약 점수는 *가파른 비율* (정기 ~4× 여기) — 일간 강약 판정은 본기 위주가 정통이고 잔기는 미세 보정 정도로만.
+
+**원칙:** 위 둘 외 다른 가중치를 새로 만들지 말 것. *제3의 값*이 필요해 보이면 둘 중 하나에 합칠 수 있는지 먼저 검토 → 정말 따로 필요하면 이 표에 행을 추가하고 *왜 다른지*를 함께 기록.
+
+**구성 정확도:** 학파별로 寅·亥 등의 미세 차이가 있으나, 2026-05 commit 에서 정통 도메인 기준으로 통일 — 변경 시 golden test가 막는다.
 
 ---
 
