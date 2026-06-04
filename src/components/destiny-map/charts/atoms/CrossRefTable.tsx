@@ -33,6 +33,8 @@ import {
   type NatalSynthesis,
 } from '@/lib/destiny-map/natalCross'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
+import { SIGN_EN_TO_KO, PLANET_LABEL, ELEMENT_LABEL } from '@/lib/destiny-map/chartLabels'
+import { SIGN_TO_ASTRO_ELEMENT } from '@/lib/fusion/bridges/element'
 
 /**
  * 차트 모달 Level 2 — 사주 ↔ 점성 교차 표.
@@ -100,35 +102,10 @@ interface AstroLike {
   extraPoints?: { partOfFortune?: { sign?: string; house?: number } }
 }
 
-// ── 표시용 매핑 (우측 점성 값에 원소 라벨 붙이기) ───────────────────────────
-const SIGN_TO_WESTERN_ELEMENT: Record<string, 'fire' | 'earth' | 'air' | 'water'> = {
-  // KO
-  양자리: 'fire', 사자자리: 'fire', 사수자리: 'fire',
-  황소자리: 'earth', 처녀자리: 'earth', 염소자리: 'earth',
-  쌍둥이자리: 'air', 천칭자리: 'air', 물병자리: 'air',
-  게자리: 'water', 전갈자리: 'water', 물고기자리: 'water',
-  // EN
-  Aries: 'fire', Leo: 'fire', Sagittarius: 'fire',
-  Taurus: 'earth', Virgo: 'earth', Capricorn: 'earth',
-  Gemini: 'air', Libra: 'air', Aquarius: 'air',
-  Cancer: 'water', Scorpio: 'water', Pisces: 'water',
-}
+// 별자리 → 4원소(표시용)는 fusion 브릿지의 단일 소스를 재사용.
+const SIGN_TO_WESTERN_ELEMENT = SIGN_TO_ASTRO_ELEMENT
 
-/** 점성 sign 영문 → 한국어. */
-const SIGN_EN_TO_KO: Record<string, string> = {
-  Aries: '양자리',
-  Taurus: '황소자리',
-  Gemini: '쌍둥이자리',
-  Cancer: '게자리',
-  Leo: '사자자리',
-  Virgo: '처녀자리',
-  Libra: '천칭자리',
-  Scorpio: '전갈자리',
-  Sagittarius: '사수자리',
-  Capricorn: '염소자리',
-  Aquarius: '물병자리',
-  Pisces: '물고기자리',
-}
+// 별자리 영문↔한국어는 공용 chartLabels 에서 (SIGN_EN_TO_KO import).
 const SIGN_KO_EN: Record<string, string> = Object.fromEntries(
   Object.entries(SIGN_EN_TO_KO).map(([en, ko]) => [ko, en]),
 )
@@ -152,28 +129,16 @@ function localizeElement(el: string | undefined, lang: 'ko' | 'en'): string {
   return ELEMENT_EN_TO_KO[el] ?? el
 }
 
-// 강점 행 표시용 — 행성명·위신 라벨.
-const PLANET_DISPLAY: Record<string, { ko: string; en: string }> = {
-  Sun: { ko: '태양', en: 'Sun' },
-  Moon: { ko: '달', en: 'Moon' },
-  Mercury: { ko: '수성', en: 'Mercury' },
-  Venus: { ko: '금성', en: 'Venus' },
-  Mars: { ko: '화성', en: 'Mars' },
-  Jupiter: { ko: '목성', en: 'Jupiter' },
-  Saturn: { ko: '토성', en: 'Saturn' },
-}
+// 행성명은 공용 chartLabels 의 PLANET_LABEL 을 그대로 사용.
+const PLANET_DISPLAY = PLANET_LABEL
 const DIGNITY_LABEL: Record<string, { ko: string; en: string }> = {
   domicile: { ko: '입궁', en: 'Domicile' },
   exaltation: { ko: '고양', en: 'Exaltation' },
 }
-// 5원소·십신그룹 표시 라벨.
-const SAJU_EL_LABEL: Record<string, { ko: string; en: string }> = {
-  wood: { ko: '목(나무)', en: 'Wood' },
-  fire: { ko: '화(불)', en: 'Fire' },
-  earth: { ko: '토(흙)', en: 'Earth' },
-  metal: { ko: '금(쇠)', en: 'Metal' },
-  water: { ko: '수(물)', en: 'Water' },
-}
+// 오행 표시 라벨 — 공용 ELEMENT_LABEL 의 긴 형태('목(나무)') 사용.
+const SAJU_EL_LABEL: Record<string, { ko: string; en: string }> = Object.fromEntries(
+  Object.entries(ELEMENT_LABEL).map(([el, v]) => [el, { ko: v.koLong, en: v.en }]),
+)
 const SIBSIN_GROUP_LABEL: Record<string, { ko: string; en: string }> = {
   비겁: { ko: '주체성', en: 'Independence' },
   식상: { ko: '표현', en: 'Expression' },
@@ -193,18 +158,6 @@ function dominantAstroElementLabel(signs: string[], lang: Lang): string | undefi
 function dominantGroupLabel(details: Record<string, number> | undefined, lang: Lang): string | undefined {
   const g = dominantSibsinGroup(details)
   return g ? SIBSIN_GROUP_LABEL[g]?.[lang] ?? g : undefined
-}
-
-// 격국 → 점성 MC sign "동조" 폴백 휴리스틱 (평가기 매핑 미해당 시).
-const GEOKGUK_RESONANT_SIGNS: Record<string, string[]> = {
-  정관격: ['염소자리', 'Capricorn', '천칭자리', 'Libra'],
-  편관격: ['전갈자리', 'Scorpio', '양자리', 'Aries'],
-  정인격: ['게자리', 'Cancer', '물고기자리', 'Pisces'],
-  편인격: ['물병자리', 'Aquarius', '사수자리', 'Sagittarius'],
-  식신격: ['황소자리', 'Taurus', '게자리', 'Cancer'],
-  상관격: ['쌍둥이자리', 'Gemini', '사자자리', 'Leo'],
-  정재격: ['황소자리', 'Taurus', '처녀자리', 'Virgo'],
-  편재격: ['사수자리', 'Sagittarius', '쌍둥이자리', 'Gemini'],
 }
 
 // ── 도움 함수 ───────────────────────────────────────────────────────────
@@ -314,6 +267,8 @@ function buildRows(
   const rows: CrossRow[] = []
   const verdicts: CrossVerdict[] = []
   let sharedElement: ReturnType<typeof normSajuElement> = undefined
+  // 강조 행성은 한 번만 계산해서 재사용 (에너지·추진력 행이 공유).
+  const emphasized = emphasizedPlanets(astro)
 
   // 1. 정체성: 일간 ↔ 태양
   {
@@ -371,17 +326,14 @@ function buildRows(
     }
   }
 
-  // 3. 사회 역할: 격국 ↔ MC
+  // 3. 사회 역할: 격국 ↔ MC. 격국이 '미정' 등 매핑 불가면 설명을 못 다니 행 생략.
   {
     const geokguk = saju.advancedAnalysis?.geokguk?.primary
     const mc = getMc(astro)
-    if (geokguk && mc?.sign) {
+    const verdict = geokguk && mc?.sign ? evalSocialRole(geokguk, mc.sign) : null
+    if (geokguk && mc?.sign && verdict) {
       const taglineEntry = getGeokgukRich(geokguk, lang)
-      const verdict = evalSocialRole(geokguk, mc.sign)
-      if (verdict) verdicts.push(verdict)
-      const fallbackTone: RowTone = GEOKGUK_RESONANT_SIGNS[geokguk]?.includes(mc.sign)
-        ? 'resonant'
-        : 'neutral'
+      verdicts.push(verdict)
       rows.push({
         category: lang === 'ko' ? '사회 역할' : 'Social Role',
         leftLabel: lang === 'ko' ? '격국' : 'Geokguk',
@@ -389,8 +341,8 @@ function buildRows(
         leftHint: taglineEntry?.tagline,
         rightLabel: lang === 'ko' ? 'MC (천직)' : 'MC',
         rightValue: localizeSign(mc.sign, lang),
-        tone: verdict?.tone ?? fallbackTone,
-        reason: verdict?.reason[lang],
+        tone: verdict.tone,
+        reason: verdict.reason[lang],
       })
     }
   }
@@ -500,7 +452,6 @@ function buildRows(
   // 8. 에너지 방향: 십신 우세 그룹(전체) ↔ 강조된 행성
   {
     const details = saju.advancedAnalysis?.sibsin?.categoryCount
-    const emphasized = emphasizedPlanets(astro)
     const verdict = evalEnergyDirection(details, emphasized)
     if (verdict) {
       verdicts.push(verdict)
@@ -542,8 +493,7 @@ function buildRows(
   // 10. 추진력: 신강약 ↔ 자기주장 행성(태양·화성) 강조
   {
     const strength = saju.advancedAnalysis?.yongsin?.daymasterStrength
-    const emph = emphasizedPlanets(astro)
-    const selfEmphasized = emph.has('Sun') || emph.has('Mars')
+    const selfEmphasized = emphasized.has('Sun') || emphasized.has('Mars')
     const verdict = evalDrive(strength, selfEmphasized)
     if (verdict) {
       verdicts.push(verdict)

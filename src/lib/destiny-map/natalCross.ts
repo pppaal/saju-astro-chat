@@ -25,6 +25,7 @@ import {
   type CrossMapping,
 } from '@/lib/calendar-engine/data/saju-astro-mapping'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
+import { SIGN_KO_TO_EN, PLANET_LABEL, ELEMENT_LABEL } from './chartLabels'
 
 export type CrossTone = 'resonant' | 'complement' | 'tension' | 'neutral'
 export type Lang = 'ko' | 'en'
@@ -39,37 +40,23 @@ export interface NatalSynthesis {
   text: { ko: string; en: string }
 }
 
-// ── 라벨 사전 ─────────────────────────────────────────────────────────────
+// ── 라벨 사전 (공용 chartLabels 에서 파생 — 단일 소스) ──────────────────────
 const EL_KO: Record<SajuElement, string> = {
-  wood: '목',
-  fire: '화',
-  earth: '토',
-  metal: '금',
-  water: '수',
+  wood: ELEMENT_LABEL.wood.ko,
+  fire: ELEMENT_LABEL.fire.ko,
+  earth: ELEMENT_LABEL.earth.ko,
+  metal: ELEMENT_LABEL.metal.ko,
+  water: ELEMENT_LABEL.water.ko,
 }
 const EL_EN: Record<SajuElement, string> = {
-  wood: 'Wood',
-  fire: 'Fire',
-  earth: 'Earth',
-  metal: 'Metal',
-  water: 'Water',
+  wood: ELEMENT_LABEL.wood.en,
+  fire: ELEMENT_LABEL.fire.en,
+  earth: ELEMENT_LABEL.earth.en,
+  metal: ELEMENT_LABEL.metal.en,
+  water: ELEMENT_LABEL.water.en,
 }
 
-// 점성 sign 한↔영 정규화 (dignityOf 는 영문 sign 만 인식).
-const SIGN_KO_TO_EN: Record<string, string> = {
-  양자리: 'Aries',
-  황소자리: 'Taurus',
-  쌍둥이자리: 'Gemini',
-  게자리: 'Cancer',
-  사자자리: 'Leo',
-  처녀자리: 'Virgo',
-  천칭자리: 'Libra',
-  전갈자리: 'Scorpio',
-  사수자리: 'Sagittarius',
-  염소자리: 'Capricorn',
-  물병자리: 'Aquarius',
-  물고기자리: 'Pisces',
-}
+// dignityOf 는 영문 sign 만 인식 → 한국어면 영문으로 정규화.
 const EN_SIGNS = new Set(Object.values(SIGN_KO_TO_EN))
 
 function toEnSign(sign: string | undefined): string | undefined {
@@ -544,11 +531,6 @@ const ASPECT_PAIR_THEME: Record<string, { ko: string; en: string; group: string 
   'Mercury|Venus': { ko: '말·글·미적 감각이 좋은 표현형이에요.', en: 'A natural communicator with good taste.', group: '식상' },
   'Mercury|Sun': { ko: '생각이 또렷하고 자기 표현이 분명한 편이에요.', en: 'Clear-minded and articulate about who you are.', group: '식상' },
 }
-const PLANET_KO_PAIR: Record<string, string> = {
-  Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성',
-  Mars: '화성', Jupiter: '목성', Saturn: '토성',
-}
-
 interface AspectLike {
   from?: { name?: string }
   to?: { name?: string }
@@ -573,7 +555,7 @@ export function evalKeyAspect(
     if (!ASPECT_PAIR_THEME[key]) continue
     const orb = typeof a.orb === 'number' ? Math.abs(a.orb) : 99
     if (!best || orb < best.orb) {
-      const pairKo = `${PLANET_KO_PAIR[p1] ?? p1}·${PLANET_KO_PAIR[p2] ?? p2}`
+      const pairKo = `${PLANET_LABEL[p1]?.ko ?? p1}·${PLANET_LABEL[p2]?.ko ?? p2}`
       best = { key, pairKo, orb }
     }
   }
@@ -583,8 +565,8 @@ export function evalKeyAspect(
   return {
     tone: matches ? 'resonant' : 'complement',
     reason: {
-      ko: `${best.pairKo} 각이 가장 또렷해요 — ${theme.ko}${matches ? ' 사주에서도 같은 결이라 이 면이 특히 도드라져요.' : ''}`,
-      en: `Your tightest aspect: ${theme.en}${matches ? ' Saju echoes it, so this stands out.' : ''}`,
+      ko: `${best.pairKo} 각이 두드러져요 — ${theme.ko}${matches ? ' 사주에서도 같은 결이라 이 면이 특히 도드라져요.' : ''}`,
+      en: `A standout aspect: ${theme.en}${matches ? ' Saju echoes it, so this stands out.' : ''}`,
     },
   }
 }
