@@ -195,3 +195,4 @@ score-check.js
 
 .vercel
 .env*.local
+report-render.html
