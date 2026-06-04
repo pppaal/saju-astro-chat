@@ -34,7 +34,10 @@ import type { NatalContext } from './types'
 // 'natal-v4-aspects-zr-dignity' — NatalAstroContext 에 natalAspects /
 // zodiacalReleasing / dignities 추가 (extractor 중복 계산 제거). shape 가 바뀌어
 // 옛 row 들은 강제 재계산.
-const ENGINE_SIGNATURE = 'natal-v4-aspects-zr-dignity'
+// 'natal-v5-manage-unify' (2026-06) — 사주/점성 전체를 만 나이 한 컨벤션으로
+// 통일하면서 daeun.startAge·startYear 가 모두 1 어긋남. 옛 캐시(한국 나이 base)
+// 를 무효화하기 위해 시그니처 bump.
+const ENGINE_SIGNATURE = 'natal-v5-manage-unify'
 
 interface NatalCacheKeyInput {
   birthDate: string

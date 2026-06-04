@@ -28,8 +28,8 @@ const GOLDEN_CASES: GoldenCase[] = [
       day: ['庚', '辰'],
       time: ['辛', '巳'],
       dayMaster: '庚',
-      // 이전 갱신: 7. 엔진 미세 변경 후 8로 안정화 (2026-05).
-      daeunStartAge: 8,
+      // 만 나이 통일(2026-06): 옛 한국나이 8 → 만 나이 7.
+      daeunStartAge: 7,
       daeunForward: true,
     },
   },
@@ -43,8 +43,8 @@ const GOLDEN_CASES: GoldenCase[] = [
       day: ['庚', '寅'],
       time: ['丙', '子'],
       dayMaster: '庚',
-      // 직전 절기를 정확히 잡도록 saju.ts 버그 수정 후 (2026 정리). 이전 갱신 8 → 9 (2026-05).
-      daeunStartAge: 9,
+      // 만 나이 통일(2026-06): 옛 한국나이 9 → 만 나이 8.
+      daeunStartAge: 8,
       daeunForward: false,
     },
   },
@@ -58,8 +58,8 @@ const GOLDEN_CASES: GoldenCase[] = [
       day: ['丙', '戌'],
       time: ['庚', '寅'],
       dayMaster: '丙',
-      // 이전: 15
-      daeunStartAge: 5,
+      // 만 나이 통일(2026-06): 옛 한국나이 5 → 만 나이 4.
+      daeunStartAge: 4,
       daeunForward: false,
     },
   },
@@ -73,8 +73,8 @@ const GOLDEN_CASES: GoldenCase[] = [
       day: ['壬', '寅'],
       time: ['庚', '子'],
       dayMaster: '壬',
-      // 이전: 20
-      daeunStartAge: 10,
+      // 만 나이 통일(2026-06): 옛 한국나이 10 → 만 나이 9.
+      daeunStartAge: 9,
       daeunForward: false,
     },
   },
@@ -88,8 +88,8 @@ const GOLDEN_CASES: GoldenCase[] = [
       day: ['辛', '未'],
       time: ['辛', '卯'],
       dayMaster: '辛',
-      // 이전: 11
-      daeunStartAge: 2,
+      // 만 나이 통일(2026-06): 옛 한국나이 2 → 만 나이 1.
+      daeunStartAge: 1,
       daeunForward: false,
     },
   },
@@ -121,7 +121,7 @@ const BOUNDARY_CASES: GoldenCase[] = [
       day: ['庚', '午'],
       time: ['丙', '子'],
       dayMaster: '庚',
-      daeunStartAge: 2,
+      daeunStartAge: 1,
       daeunForward: true,
     },
   },
@@ -136,7 +136,7 @@ const BOUNDARY_CASES: GoldenCase[] = [
       day: ['辛', '未'],
       time: ['戊', '子'],
       dayMaster: '辛',
-      daeunStartAge: 2,
+      daeunStartAge: 1,
       daeunForward: true,
     },
   },
@@ -155,7 +155,7 @@ const BOUNDARY_CASES: GoldenCase[] = [
       day: ['甲', '戌'],
       time: ['甲', '子'],
       dayMaster: '甲',
-      daeunStartAge: 2,
+      daeunStartAge: 1,
       daeunForward: true,
     },
   },
@@ -170,7 +170,7 @@ const BOUNDARY_CASES: GoldenCase[] = [
       day: ['甲', '戌'],
       time: ['丁', '卯'],
       dayMaster: '甲',
-      daeunStartAge: 2,
+      daeunStartAge: 1,
       daeunForward: true,
     },
   },
@@ -186,7 +186,7 @@ const BOUNDARY_CASES: GoldenCase[] = [
       day: ['辛', '亥'],
       time: ['乙', '未'],
       dayMaster: '辛',
-      daeunStartAge: 8,
+      daeunStartAge: 7,
       daeunForward: true,
     },
   },
@@ -201,7 +201,7 @@ const BOUNDARY_CASES: GoldenCase[] = [
       day: ['甲', '戌'],
       time: ['甲', '子'],
       dayMaster: '甲',
-      daeunStartAge: 2,
+      daeunStartAge: 1,
       daeunForward: true,
     },
   },

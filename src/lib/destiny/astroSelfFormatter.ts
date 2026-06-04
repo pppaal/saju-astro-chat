@@ -120,8 +120,8 @@ export interface AstroSelfInput {
   latitude: number
   longitude: number
   timeZone: string
-  /** 한국 나이 (Profection 계산용) — 없으면 skip */
-  koreanAge?: number
+  /** 만 나이 (Profection 계산용; calculateProfection 과 같은 컨벤션) — 없으면 skip */
+  age?: number
   /** 현재 시간 (transit aspects 기준) — default now */
   now?: Date
   /** Solar Return / Lunar Return 계산용 natal input — 없으면 SR/LR skip */
@@ -261,9 +261,10 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   }
 
   // Profection — 해 단위 house. house 기반이라 skipAngles 면 전체 skip.
-  if (!skipAngles && typeof input.koreanAge === 'number' && input.koreanAge > 0) {
-    const profectionHouse = (input.koreanAge % 12) + 1  // 0세 1H, 1세 2H, ... 12세 1H 반복
-    out.push(`[Profection — 이번 해 (${input.koreanAge}세) 활성 house]`)
+  // 만 나이 기준 (calculateProfection 과 동일): 만 0세 1H, 1세 2H, ... 11세 12H, 12세 1H 반복.
+  if (!skipAngles && typeof input.age === 'number' && input.age >= 0) {
+    const profectionHouse = (input.age % 12) + 1
+    out.push(`[Profection — 이번 해 (만 ${input.age}세) 활성 house]`)
     out.push(`해 단위 활성 house: ${profectionHouse}H (시점·자아 강조 영역)`)
     out.push('')
   }

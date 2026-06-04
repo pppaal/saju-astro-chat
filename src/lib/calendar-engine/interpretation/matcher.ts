@@ -412,9 +412,12 @@ export function buildInterpretation(args: {
         return d && !Number.isNaN(d.getTime()) ? d.getUTCFullYear() : new Date().getUTCFullYear()
       })()
       if (!birthYear) return 'adult'
-      const koreanAge = scopeYear - birthYear + 1
-      if (koreanAge < 19) return 'minor'
-      if (koreanAge >= 66) return 'senior'
+      // 만 나이 기준 — 사주/점성 전체 컨벤션 일치 (2026-06: +1 한국나이 제거).
+      // 임계값은 옛 한국나이 boundary(19/66)에서 −1 — 같은 사람을 같은 카테고리로
+      // 분류 (born <= scopeYear-18 → minor, born <= scopeYear-65 → senior).
+      const manAge = scopeYear - birthYear
+      if (manAge < 18) return 'minor'
+      if (manAge >= 65) return 'senior'
       return 'adult'
     })()
     for (const s of sections) s.text = koAgeAdjust(koAstroTerms(s.text), band)

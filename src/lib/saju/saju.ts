@@ -27,7 +27,7 @@ import { computeDayPillarIndices } from './dayPillar'
 // 연운/월운/일진 stem-branch 산술의 single source.
 import { annualStemBranch, sajuMonthStemBranch } from './cycles'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
-import { currentKoreanAge } from '@/lib/datetime/currentAge'
+import { currentManAge } from '@/lib/datetime/currentAge'
 import { daysToDaeunAge } from '@/lib/saju/daeunAge'
 import { getOffsetMinutes } from './timezone'
 // 십신 / 정기 매핑은 core 모듈이 single source.
@@ -602,9 +602,15 @@ export function calculateSajuData(
     const mNowLocal = Number(
       new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'numeric' }).format(new Date())
     )
-    // 한국 나이 — 출생지 시간대 기준 (자정 경계 사용자에서 ±1 회귀 방지).
-    // currentKoreanAge 가 SSOT 이므로 화면 어디서나 동일 값 보장.
-    const currentAge = currentKoreanAge({ birthYear: Y, birthTimeZone: timezone })
+    // 만 나이 — 출생지 시간대 기준 (자정 경계 사용자에서 ±1 회귀 방지).
+    // currentManAge 가 SSOT — 사주/점성 전체가 만 나이 한 컨벤션이라 화면
+    // 어디서나 동일 값 보장. 대운 list 의 d.age 도 만 나이라 비교 일관.
+    const currentAge = currentManAge({
+      birthYear: Y,
+      birthMonth: M,
+      birthDate: D,
+      birthTimeZone: timezone,
+    })
     const currentLuckPillar =
       daeWoonList
         .slice()

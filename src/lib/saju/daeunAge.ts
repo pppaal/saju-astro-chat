@@ -1,16 +1,15 @@
 /**
- * daeunAge — 대운 시작 나이 (한국나이) 계산 단일 출처.
+ * daeunAge — 대운 시작 나이 (만 나이) 계산 단일 출처.
  *
- * 옛 회귀: saju.ts 와 unse.ts 가 동일한 daysToDaeunAge() 를 각자 복사본으로
- * 갖고 있어, 라운딩 정책(CALCULATION_STANDARDS.saju.daeunRounding) 을 한 곳만
- * 바꾸면 사주 차트와 대운 표시가 다른 결과를 내는 위험. 한 모듈로 합쳤다.
+ * 정책 변경 (2026-06): 옛 코드는 마지막에 +1 해서 *한국 나이* 로 반환했다.
+ * 2023년 한국 법 개정으로 만 나이가 공식 표준이 됐고, 사주/점성 화면 전체를
+ * 만 나이 한 컨벤션으로 통일하면서 +1 제거 — 이제 글로벌(한국·미국·아프리카)
+ * 사용자가 동일 숫자를 본다. 대운 *전환 연도* 자체는 변하지 않고 라벨만 변함.
  *
- * 정책 메모 (legacy, golden test 로 잠겨 있음):
- *  - days/3 → ceil/floor/round (정책 따라)
- *  - 결과 < 1 이면 1 로 clamp
- *  - 마지막에 +1 (한국나이 변환: 만 0세 → 한국 1세)
- *  - 절기 ±3일 출생(만 0)은 결과 2 가 나옴. "대운수 최소 1" 관례로 볼 수 있고
- *    determinism-golden 으로 잠겨 있어 임의로 바꾸지 않는다.
+ * 정책 메모:
+ *  - days/3 → ceil/floor/round (CALCULATION_STANDARDS.saju.daeunRounding)
+ *  - 결과 < 1 이면 1 로 clamp (출생 직후 첫 대운은 만 1세부터 표기 — 만 0
+ *    근방은 의미가 약해 묶음)
  */
 
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
@@ -27,5 +26,5 @@ export function daysToDaeunAge(days: number): number {
   } else {
     age = Math.round(v)
   }
-  return Math.max(1, age) + 1
+  return Math.max(1, age)
 }

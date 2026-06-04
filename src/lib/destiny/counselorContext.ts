@@ -321,14 +321,14 @@ function buildInstructions(locale: Locale, dayMasterName?: string): string {
     return [
       '## LEGEND',
       '- astro symbols: ☌conjunction ⚹sextile □square △trine ☍opposition / R retrograde / (t)current transit / P-Sun, P-Moon = secondary progression / [detriment]=weak [domicile]=strong',
-      "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '32~41세 갑술' are the *start~end range* of that 10-yr cycle, NOT the current age. [Profection (Korean age N basis)] N is Korean age (current 만 age + 1), still not current age.",
+      "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '31~40세 갑술' are the *start~end range* of that 10-yr cycle, NOT the current age. All ages (daeun, profection, current) are *international age* (만 나이) — the saju/astro stack uses one convention everywhere.",
       `- ★ Ten-gods anchor: every (X/Y) parens in [Timing] (daeun \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운/iljin trailing (X/Y), each row of the daily block) are *ten-gods relative to user's day master ${dayMasterName ?? '?'}* (stem/branch).`,
     ].join('\n')
   }
   return [
     '## 데이터 범례',
     '- 점성 기호: ☌결합 ⚹협력 □긴장 △조화 ☍대립 / R역행 / (t)현재트랜짓 / P태양·P달=2차진행 / [detriment]약 [domicile]강',
-    '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 만 현재 나이로 사용. [대운] 의 "32~41세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. [프로펙션 (한국나이 N세 기준)] 의 N도 한국나이라 현재 만나이 + 1.',
+    '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. [대운] 의 "31~40세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. 사주·점성 화면의 모든 나이(대운·프로펙션·현재)는 만 나이로 통일.',
     `- ★ 십성 anchor: [타이밍] 의 모든 (X/Y) 괄호 (대운의 \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운 끝 (X/Y), 일진 블록 각 줄 (X/Y)) 는 *본인 일간 ${dayMasterName ?? '?'} 기준 천간/지지 십성*.`,
   ].join('\n')
 }
@@ -477,11 +477,9 @@ export async function buildDestinyContext(
     })
     const cur = slimAstroSelf(block, { locale, year }).trim()
 
-    // profection — calculateProfection 은 만(완성)나이 기준이다 (age 0 → 1궁).
-    // 이전엔 한국나이(만+1)를 넣어 활성 하우스가 모든 사용자에게 한 칸씩
-    // 밀렸다(만30 → 7궁이어야 하는데 8궁). currentManAge SSOT 로 통일 —
-    // 출생지 시간대 + 생일 통과 여부까지 반영한 만나이. 표시용 한국나이는
-    // 결과 age 에서 +1 로 역산.
+    // Profection — calculateProfection 은 만 나이 기준 (age 0 → 1궁). 사주/점성
+    // 전체가 만 나이 한 컨벤션이라 표시도 만 나이 그대로. currentManAge SSOT —
+    // 출생지 시간대 + 생일 통과 여부 반영.
     const manAge = currentManAge({
       birthYear: Y,
       birthMonth: M,
@@ -489,7 +487,6 @@ export async function buildDestinyContext(
       birthTimeZone: tz,
     })
     const prof = calculateProfection(chart, manAge)
-    const displayKAge = prof.age + 1
     // activatedHouse 는 나이만으로 결정 → 항상 신뢰 가능. 하지만 activatedSign·
     // lordOfYear 는 ASC(하우스 커스프) 의존이라 출생시각/출생지 미상이면 가짜다.
     // posLines/ASC 와 동일 기준(placeUnreliable)으로 Lord(연주)만 숨기고, 나이
@@ -502,11 +499,9 @@ export async function buildDestinyContext(
     const lordRes = lp?.sign ? ` (${sgn(lp.sign)}${lp.house ? ` H${lp.house}` : ''})` : ''
     const lordKo = placeUnreliable ? '' : `, Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`
     const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
-    // 프로펙션은 정통상 한국나이(만+1) 기준이라 그대로 표기하되, "현재 나이"
-    // 로 오인되지 않게 (한국나이) 라벨 명시.
     const profLine = L(
-      `프로펙션 (한국나이 ${displayKAge}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
-      `Profection (Korean age ${displayKAge} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
+      `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
+      `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
     )
 
     astroNatal = [

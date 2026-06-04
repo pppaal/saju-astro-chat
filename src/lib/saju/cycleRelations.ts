@@ -197,10 +197,9 @@ export function pickDaeunForDate(
   const yearStart = new Date(d.getFullYear(), 0, 1).getTime()
   const yearEnd = new Date(d.getFullYear() + 1, 0, 1).getTime()
   const fractionalYear = d.getFullYear() + (d.getTime() - yearStart) / (yearEnd - yearStart)
-  // cycles[].age 는 한국나이(saju.ts daysToDaeunAge 가 +1)다. 비교 기준 나이도
-  // 한국나이로 맞춰야 한다 — 이전엔 만나이로 비교해 경계 해(年)에 직전 대운을
-  // 골랐다(예: 2026 시작 대운을 전 대운으로 표시, 인생탭 build.ts 와 불일치).
-  const ageAtDate = fractionalYear - birthYear + 1
+  // cycles[].age 는 만 나이 (daeunAge SSOT, 2026-06 +1 제거). 비교 기준도 만
+  // 나이 — fractionalYear - birthYear 로 일관 비교.
+  const ageAtDate = fractionalYear - birthYear
   let activeIdx = 0
   for (let i = 0; i < cycles.length; i++) {
     if (cycles[i].age <= Math.floor(ageAtDate)) activeIdx = i

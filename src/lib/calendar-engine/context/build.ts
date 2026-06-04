@@ -159,9 +159,9 @@ export async function buildNatalContext(
     ).daeWoon?.list ?? []
   const daeun = daeWoonList.map((d) => ({
     startAge: d.age,
-    // d.age 는 한국나이(daysToDaeunAge 가 +1). 한국나이 N 은 (출생연도 + N − 1)년에
-    // 도달하므로 −1 해야 실제 시작연도가 된다. (이전엔 +1 어긋나 2026 대운이 2027 로)
-    startYear: natalInput.year + d.age - 1,
+    // d.age 는 만 나이 — daysToDaeunAge SSOT (2026-06: +1 제거, 글로벌 만 나이
+    // 통일). 만 N세는 (출생연도 + N) 년에 도달하므로 그대로 더한다.
+    startYear: natalInput.year + d.age,
     stem: d.heavenlyStem,
     branch: d.earthlyBranch,
   }))

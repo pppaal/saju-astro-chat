@@ -9,7 +9,7 @@
  *    (Saturn return ≈ 29.5세 / 59세, Uranus opposition ≈ 41세,
  *     Jupiter return ≈ 12·24·36·48·60세, Pluto square ≈ 36-40세)
  *
- * 한국 나이(만나이+1)로 표시 — 사주 표기 관행과 일치.
+ * 만 나이 표시 — 사주/점성 화면 전체가 만 나이 한 컨벤션으로 통일 (2026-06).
  */
 
 import type { TimelineEntry } from './LifeTimeline'
@@ -26,16 +26,18 @@ interface Args {
 }
 
 interface AstroMilestone {
-  /** 한국 나이 */
-  ageKr: number
+  /** 만 나이 (사주/점성 전체 컨벤션). */
+  ageMan: number
   title: { ko: string; en: string }
   desc: { ko: string; en: string }
 }
 
 // 표준 astro 분기점 — Western astrology 의 generation milestones.
+// 만 나이 기준 (Saturn return ~29, Pluto square ~35, Uranus opposition ~40,
+// Neptune square ~41, 2nd Saturn return ~59).
 const ASTRO_MILESTONES: AstroMilestone[] = [
   {
-    ageKr: 30,
+    ageMan: 29,
     title: { ko: '첫 번째 토성 회귀', en: 'First Saturn Return' },
     desc: {
       ko: '책임·구조·자기 길의 첫 큰 정렬. 본격적인 어른의 길로 진입',
@@ -43,7 +45,7 @@ const ASTRO_MILESTONES: AstroMilestone[] = [
     },
   },
   {
-    ageKr: 36,
+    ageMan: 35,
     title: { ko: '명왕성 사각', en: 'Pluto Square' },
     desc: {
       ko: '정체성과 내면 깊은 곳의 강한 재구성 — 변화는 외부보다 안에서',
@@ -51,7 +53,7 @@ const ASTRO_MILESTONES: AstroMilestone[] = [
     },
   },
   {
-    ageKr: 41,
+    ageMan: 40,
     title: { ko: '천왕성 마주봄', en: 'Uranus Opposition' },
     desc: {
       ko: '진짜 자기와 맞지 않는 길이 깨지는 중년 각성기',
@@ -59,7 +61,7 @@ const ASTRO_MILESTONES: AstroMilestone[] = [
     },
   },
   {
-    ageKr: 42,
+    ageMan: 41,
     title: { ko: '해왕성 사각', en: 'Neptune Square' },
     desc: {
       ko: '의미와 환상이 시험대에 오르는 시기',
@@ -67,7 +69,7 @@ const ASTRO_MILESTONES: AstroMilestone[] = [
     },
   },
   {
-    ageKr: 60,
+    ageMan: 59,
     title: { ko: '두 번째 토성 회귀', en: 'Second Saturn Return' },
     desc: {
       ko: '인생 후반의 방향성을 결정하는 큰 정렬',
@@ -81,9 +83,10 @@ const PHASE_DESC = {
   en: 'Current 10-year decade luck — this flow sets the tone for the next few years.',
 }
 
-function koreanAge(birthYear: number, refYear: number): number {
-  // 한국 나이 = 현재 연도 - 출생 연도 + 1
-  return refYear - birthYear + 1
+function manAgeApprox(birthYear: number, refYear: number): number {
+  // 만 나이 근사 — refYear 기준 (생일 통과는 timeline 표시상 중요하지 않음).
+  // 정확한 생일-aware 만 나이가 필요한 곳은 currentManAge() (datetime/currentAge) 사용.
+  return refYear - birthYear
 }
 
 export function computeLifeTimeline({
@@ -98,21 +101,21 @@ export function computeLifeTimeline({
   const birthYear = parseInt(match[1], 10)
   if (!Number.isFinite(birthYear)) return []
   const refYear = thisYear ?? new Date().getFullYear()
-  const currentKrAge = koreanAge(birthYear, refYear)
+  const currentAge = manAgeApprox(birthYear, refYear)
   const lang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
   const ageSuffix = (a: number) => (lang === 'en' ? `age ${a}` : `${a}세`)
 
   // 과거 + 현재 + 미래 모두 — chronological.
-  const past = ASTRO_MILESTONES.filter((m) => m.ageKr < currentKrAge)
-  const future = ASTRO_MILESTONES.filter((m) => m.ageKr > currentKrAge)
+  const past = ASTRO_MILESTONES.filter((m) => m.ageMan < currentAge)
+  const future = ASTRO_MILESTONES.filter((m) => m.ageMan > currentAge)
 
   const entries: TimelineEntry[] = []
 
   // 1. 과거 milestones — 가장 가까운 2개
   for (const m of past.slice(-2)) {
-    const yearAt = birthYear + m.ageKr - 1
+    const yearAt = birthYear + m.ageMan
     entries.push({
-      ageLabel: ageSuffix(m.ageKr),
+      ageLabel: ageSuffix(m.ageMan),
       year: yearAt,
       title: m.title[lang],
       description: m.desc[lang],
@@ -122,7 +125,7 @@ export function computeLifeTimeline({
   // 2. 현재 대운 — engine 제공 라벨 그대로 (이미 KO 만 — 별건). active 표시.
   if (currentPhaseLabel) {
     entries.push({
-      ageLabel: ageSuffix(currentKrAge),
+      ageLabel: ageSuffix(currentAge),
       year: refYear,
       title: currentPhaseLabel,
       description: PHASE_DESC[lang],
@@ -132,9 +135,9 @@ export function computeLifeTimeline({
 
   // 3. 미래 milestones — 최대 3개.
   for (const m of future.slice(0, 3)) {
-    const yearAt = birthYear + m.ageKr - 1
+    const yearAt = birthYear + m.ageMan
     entries.push({
-      ageLabel: ageSuffix(m.ageKr),
+      ageLabel: ageSuffix(m.ageMan),
       year: yearAt,
       title: m.title[lang],
       description: m.desc[lang],
