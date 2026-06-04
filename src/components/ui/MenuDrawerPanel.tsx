@@ -214,6 +214,7 @@ export function MenuDrawerPanel({
                 callbackUrl="/"
                 onLinkNavigate={onClose}
                 panelId="menu-drawer-login-panel"
+                variant={variant}
               />
             )}
           </div>

@@ -21,6 +21,9 @@ interface GoogleLoginPanelProps {
   className?: string
   // 패널 id (aria-controls 용)
   panelId?: string
+  // 'dark' = 다크 배경(기본). 'light' = 흰 배경(예: premium-white 드로어).
+  // light 일 때 흰 글자/연한 cyan 링크가 안 보이는 문제를 막기 위해 색 반전.
+  variant?: 'dark' | 'light'
 }
 
 const GoogleIcon = () => (
@@ -52,8 +55,10 @@ export default function GoogleLoginPanel({
   errorMessage,
   className,
   panelId,
+  variant = 'dark',
 }: GoogleLoginPanelProps) {
   const isKo = locale === 'ko'
+  const isLight = variant === 'light'
   const { t } = useI18n()
   const [agreed, setAgreed] = useState(false)
   // 동의 안 한 상태로 버튼 눌렀을 때만 빨갛게 강조. 사용자에게 "여기 눌러야 해요" 시각 안내.
@@ -87,41 +92,57 @@ export default function GoogleLoginPanel({
     await copyToClipboard(window.location.href)
   }
 
+  // 경고 박스(인앱 브라우저 / PWA) — light 에서도 읽히도록 색 반전.
+  const warnBoxClass = isLight
+    ? 'rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-800'
+    : 'rounded-md border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-100'
+  const warnSubClass = isLight ? 'mt-1 text-amber-700' : 'mt-1 text-amber-100/85'
+  const warnBtnClass = isLight
+    ? 'mt-2 inline-flex items-center rounded-md border border-amber-400/60 px-2 py-1 text-[11px] font-medium text-amber-800 hover:bg-amber-100'
+    : 'mt-2 inline-flex items-center rounded-md border border-amber-300/40 px-2 py-1 text-[11px] font-medium text-amber-100 hover:bg-amber-400/15'
+
   return (
     <div
       id={panelId}
-      className={'flex flex-col gap-3 rounded-xl bg-white/[0.04] px-3.5 py-3 ' + (className ?? '')}
+      className={
+        'flex flex-col gap-3 rounded-xl px-3.5 py-3 ' +
+        (isLight ? 'bg-black/[0.03] ' : 'bg-white/[0.04] ') +
+        (className ?? '')
+      }
     >
-      <p className="text-[13px] font-medium text-white/90">
+      <p
+        className={
+          'text-[13px] font-medium ' + (isLight ? 'text-stone-800' : 'text-white/90')
+        }
+      >
         {isKo ? '로그인하고 계속하기' : 'Sign in to continue'}
       </p>
 
       {errorMessage && (
-        <div className="rounded-md border border-red-400/20 bg-red-500/10 px-3 py-2 text-[12px] text-red-200">
+        <div
+          className={
+            'rounded-md px-3 py-2 text-[12px] ' +
+            (isLight
+              ? 'border border-red-300 bg-red-50 text-red-700'
+              : 'border border-red-400/20 bg-red-500/10 text-red-200')
+          }
+        >
           {errorMessage}
         </div>
       )}
 
       {inApp && (
-        <div
-          data-testid="inapp-browser-warning"
-          role="alert"
-          className="rounded-md border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-100"
-        >
+        <div data-testid="inapp-browser-warning" role="alert" className={warnBoxClass}>
           <p className="font-medium">
             {t('auth.inAppBrowserBlockedTitle', 'Google sign-in is blocked in this view.')}
           </p>
-          <p className="mt-1 text-amber-100/85">
+          <p className={warnSubClass}>
             {t(
               'auth.inAppBrowserBlockedGuide',
               'Open this page in Chrome or Safari (via the top-right menu → "Open in browser") to continue.'
             )}
           </p>
-          <button
-            type="button"
-            onClick={copyCurrentUrl}
-            className="mt-2 inline-flex items-center rounded-md border border-amber-300/40 px-2 py-1 text-[11px] font-medium text-amber-100 hover:bg-amber-400/15"
-          >
+          <button type="button" onClick={copyCurrentUrl} className={warnBtnClass}>
             {t('common.copyLink', 'Copy link')}
           </button>
         </div>
@@ -132,28 +153,20 @@ export default function GoogleLoginPanel({
           에서 열기 옵션 제공. inApp 경고와 동시에 뜰 일은 거의 없음 (PWA
           는 보통 in-app webview 와 다른 컨텍스트). */}
       {pwa && !inApp && (
-        <div
-          data-testid="pwa-login-warning"
-          role="alert"
-          className="rounded-md border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-100"
-        >
+        <div data-testid="pwa-login-warning" role="alert" className={warnBoxClass}>
           <p className="font-medium">
             {t(
               'pwa.loginWarningTitle',
               'Google sign-in from the installed app may not return correctly.'
             )}
           </p>
-          <p className="mt-1 text-amber-100/85">
+          <p className={warnSubClass}>
             {t(
               'pwa.loginWarningGuide',
               'If sign-in fails, copy this link and open it in Chrome / Safari to log in. The session will carry back into the app.'
             )}
           </p>
-          <button
-            type="button"
-            onClick={copyCurrentUrl}
-            className="mt-2 inline-flex items-center rounded-md border border-amber-300/40 px-2 py-1 text-[11px] font-medium text-amber-100 hover:bg-amber-400/15"
-          >
+          <button type="button" onClick={copyCurrentUrl} className={warnBtnClass}>
             {t('common.copyLink', 'Copy link')}
           </button>
         </div>
@@ -162,7 +175,11 @@ export default function GoogleLoginPanel({
       {/* 동의 체크박스 — 버튼보다 위에 두어 사용자가 먼저 읽도록 함 */}
       <label
         className={`flex cursor-pointer select-none items-start gap-2.5 rounded-lg px-2 py-2 transition-colors ${
-          showWarn && !agreed ? 'bg-rose-500/15 ring-1 ring-rose-400/60' : 'hover:bg-white/[0.04]'
+          showWarn && !agreed
+            ? 'bg-rose-500/15 ring-1 ring-rose-400/60'
+            : isLight
+              ? 'hover:bg-black/[0.04]'
+              : 'hover:bg-white/[0.04]'
         }`}
       >
         <input
@@ -177,19 +194,25 @@ export default function GoogleLoginPanel({
         />
         <span
           aria-hidden="true"
-          className={`mt-[1px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border-[1.5px] transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-white/60 ${
+          className={`mt-[1px] flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border-[1.5px] transition-all peer-focus-visible:ring-2 ${
+            isLight ? 'peer-focus-visible:ring-stone-500/60' : 'peer-focus-visible:ring-white/60'
+          } ${
             agreed
-              ? 'border-white bg-white'
+              ? isLight
+                ? 'border-stone-800 bg-stone-800'
+                : 'border-white bg-white'
               : showWarn
                 ? 'border-rose-300 bg-transparent'
-                : 'border-white/70 bg-transparent'
+                : isLight
+                  ? 'border-stone-400 bg-transparent'
+                  : 'border-white/70 bg-transparent'
           }`}
         >
           {agreed && (
             <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" aria-hidden="true">
               <path
                 d="M2.5 6.2 5 8.7l4.5-5"
-                stroke="#0f172a"
+                stroke={isLight ? '#ffffff' : '#0f172a'}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -197,12 +220,19 @@ export default function GoogleLoginPanel({
             </svg>
           )}
         </span>
-        <span className="text-[12px] leading-relaxed text-white/85">
+        <span
+          className={
+            'text-[12px] leading-relaxed ' + (isLight ? 'text-stone-600' : 'text-white/85')
+          }
+        >
           {isKo ? '계속하면 ' : 'By continuing you agree to the '}
           <Link
             href="/policy/terms"
             onClick={onLinkNavigate}
-            className="text-cyan-300 underline-offset-2 hover:underline"
+            className={
+              (isLight ? 'text-sky-700 underline' : 'text-cyan-300 hover:underline') +
+              ' underline-offset-2'
+            }
             target="_blank"
             rel="noreferrer"
           >
@@ -212,7 +242,10 @@ export default function GoogleLoginPanel({
           <Link
             href="/policy/privacy"
             onClick={onLinkNavigate}
-            className="text-cyan-300 underline-offset-2 hover:underline"
+            className={
+              (isLight ? 'text-sky-700 underline' : 'text-cyan-300 hover:underline') +
+              ' underline-offset-2'
+            }
             target="_blank"
             rel="noreferrer"
           >
@@ -223,7 +256,10 @@ export default function GoogleLoginPanel({
       </label>
 
       {showWarn && !agreed && (
-        <p id="consent-warn" className="-mt-1.5 px-1 text-[11px] text-rose-300">
+        <p
+          id="consent-warn"
+          className={'-mt-1.5 px-1 text-[11px] ' + (isLight ? 'text-rose-600' : 'text-rose-300')}
+        >
           {isKo
             ? '계속하려면 위 약관 동의에 체크해 주세요.'
             : 'Please check the consent box above to continue.'}
