@@ -15,6 +15,7 @@
 import { useState, type ReactNode } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { AppHeader, AppHeaderIconButton } from './AppHeader'
+import { CosmicBackdrop } from './CosmicBackdrop'
 import { MenuDrawerPanel } from './MenuDrawerPanel'
 
 export interface AppShellProps {
@@ -107,20 +108,10 @@ export function AppShell({
       }}
     >
       {/* Cosmic gradient backdrop — 같은 톤이 모든 페이지에 깔려야 라우트 전환
-          시 root cross-fade 가 끊겨 보이지 않음. light 테마에선 생략. */}
-      {theme === 'cosmic' && (
-        <div
-          className="absolute inset-0 z-0 pointer-events-none"
-          aria-hidden
-          style={{
-            background:
-              'radial-gradient(1200px 760px at 50% 18%, rgba(68, 95, 255, 0.2), transparent 62%),' +
-              'radial-gradient(980px 680px at 50% 46%, rgba(191, 96, 255, 0.28), transparent 58%),' +
-              'radial-gradient(760px 540px at 22% 22%, rgba(87, 207, 255, 0.16), transparent 60%),' +
-              'radial-gradient(900px 620px at 82% 78%, rgba(117, 76, 255, 0.14), transparent 64%)',
-          }}
-        />
-      )}
+          시 root cross-fade 가 끊겨 보이지 않음. light 테마에선 생략.
+          AppShell 외 페이지(타로 sub 등)도 같은 컴포넌트를 직접 import 해서
+          동일한 backdrop 을 깐다 — 단일 source. */}
+      {theme === 'cosmic' && <CosmicBackdrop />}
 
       {/* 페이지별 액센트 — cosmic backdrop 위에 얹힘. 클릭 통과(pointer-events:none)
           를 컨테이너에서 보장. accentLayer 안쪽 노드는 자기 포지션만 신경쓰면 됨. */}

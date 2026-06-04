@@ -9,6 +9,7 @@ import { useTarotGame, useTarotInterpretation } from './hooks'
 import { smoothScrollTo } from './utils'
 import { PageContent } from './components/PageContent'
 import BrandSplash from '@/components/branding/BrandSplash'
+import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 
 export default function TarotReadingPageWrapper() {
@@ -334,40 +335,45 @@ function TarotReadingPage() {
     return <BrandSplash />
   }
   return (
-    <>
-      {creditNotice && (
-        <div
-          role="status"
-          style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-            padding: '10px 16px',
-            background: '#fdfbf6',
-            borderBottom: '1px solid #ece4d4',
-            color: '#57534e',
-            fontSize: 13,
-            textAlign: 'center',
-          }}
-        >
-          {creditNotice}
-        </div>
-      )}
-      <PageContent
-        {...gameHook}
-        {...interpretationHook}
-        detailedSectionRef={detailedSectionRef}
-        isSaving={isSaving}
-        isGuestUser={isGuestUser}
-        signInUrl={signInUrl}
-        handleCardReveal={handleCardReveal}
-        handleSaveReading={handleSaveReading}
-        handleReset={handleReset}
-        interpretationFailed={interpretationFailed}
-        handleRetryInterpretation={handleRetryInterpretation}
-        language={language}
-        translate={translate}
-      />
-    </>
+    <div className="relative min-h-screen">
+      {/* 공용 cosmic gradient backdrop — 메인/타로 entry/타로 history 와 같은
+          톤. 카드 stage 인터랙션은 안 건드리고 배경 레이어만 추가. */}
+      <CosmicBackdrop />
+      <div className="relative z-10">
+        {creditNotice && (
+          <div
+            role="status"
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 50,
+              padding: '10px 16px',
+              background: '#fdfbf6',
+              borderBottom: '1px solid #ece4d4',
+              color: '#57534e',
+              fontSize: 13,
+              textAlign: 'center',
+            }}
+          >
+            {creditNotice}
+          </div>
+        )}
+        <PageContent
+          {...gameHook}
+          {...interpretationHook}
+          detailedSectionRef={detailedSectionRef}
+          isSaving={isSaving}
+          isGuestUser={isGuestUser}
+          signInUrl={signInUrl}
+          handleCardReveal={handleCardReveal}
+          handleSaveReading={handleSaveReading}
+          handleReset={handleReset}
+          interpretationFailed={interpretationFailed}
+          handleRetryInterpretation={handleRetryInterpretation}
+          language={language}
+          translate={translate}
+        />
+      </div>
+    </div>
   )
 }
