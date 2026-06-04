@@ -1,118 +1,101 @@
+/* FAQ — light editorial theme, aligned with /policy/* + /contact.
+   Clean Stripe / Linear feel: cream surface, dark ink, gold accents,
+   narrow readable column, flat accordion rows with hairline dividers. */
+
 .container {
-  /* Pricing 표준 — 마케팅 페이지 공통 max-width 1120 + 패딩 120/32/80.
-     내부 컨텐츠 (.faqList) 는 자체 max-width 760 으로 가독성 유지. */
   min-height: 100dvh;
   width: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 120px 32px 80px;
+  padding: 120px 24px 96px;
   position: relative;
-}
-
-.backgroundGlow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  /* 표준 다크 베이스 + 골드 radial 오버레이 — 옛 body fallback (#0d1225 legacy)
-     로 떨어지던 회귀를 차단하고 다른 다크 페이지 (#07091a) 와 정렬. */
+  color: #1f2233;
+  /* Full-bleed cream surface + faint warm wash — opaque, painted on the
+     container itself (not a z-index:-1 layer) so it covers the app's dark
+     shell. Mirrors /contact + /policy. */
   background:
-    radial-gradient(circle at 20% 20%, rgba(160, 122, 60, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(212, 181, 114, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(193, 155, 86, 0.08) 0%, transparent 60%),
-    #07091a;
-  pointer-events: none;
-  z-index: -1;
+    radial-gradient(900px 600px at 50% -5%, rgba(193, 155, 86, 0.06), transparent 60%),
+    #fafaf7;
+  font-feature-settings: 'ss01', 'ss02', 'cv11';
 }
 
-/* Hero Section */
+/* legacy element still rendered by page — neutralized. */
+.backgroundGlow {
+  display: none;
+}
+
+.inner {
+  max-width: 760px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Hero */
 .hero {
   text-align: center;
-  margin-bottom: 48px;
-  padding: 80px 0 24px;
+  padding: 8px 0 36px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 32px;
 }
 
+/* legacy hero icon — no longer rendered; kept neutral if referenced. */
 .heroIcon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 20px;
-  background: linear-gradient(135deg, rgba(160, 122, 60, 0.3) 0%, rgba(193, 155, 86, 0.3) 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  font-weight: 700;
-  color: #e8cc8a;
-  box-shadow: 0 0 40px rgba(160, 122, 60, 0.3);
-  animation: pulse 3s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 40px rgba(160, 122, 60, 0.3);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 60px rgba(160, 122, 60, 0.5);
-  }
+  display: none;
 }
 
 .eyebrow {
-  color: #c19b56;
-  font-size: 12px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a07a3c;
+  margin: 0 0 12px;
 }
 
 .title {
-  font-size: clamp(28px, 5vw, 42px);
-  font-weight: 600;
-  color: var(--ds-dark-text);
-  margin: 0 0 16px;
-  font-family: var(--font-cinzel), Georgia, serif;
-  letter-spacing: -0.01em;
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.12;
+  color: #14172a;
+  margin: 0 0 14px;
 }
 
 .subtitle {
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0;
-  font-size: 16px;
+  color: #6b6f80;
+  margin: 0 auto;
+  max-width: 46ch;
+  font-size: 1rem;
   line-height: 1.6;
 }
 
-/* Search Box */
+/* Search */
 .searchContainer {
-  max-width: 700px;
-  margin: 0 auto 32px;
+  margin: 0 auto 20px;
 }
 
 .searchBox {
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(30, 30, 45, 0.6);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  border: 1px solid rgba(160, 122, 60, 0.3);
-  padding: 16px 20px;
-  transition: all 0.3s ease;
+  gap: 10px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 12px 16px;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .searchBox:focus-within {
-  border-color: rgba(160, 122, 60, 0.6);
-  box-shadow: 0 4px 20px rgba(160, 122, 60, 0.2);
+  border-color: #c19b56;
+  box-shadow: 0 0 0 3px rgba(193, 155, 86, 0.18);
 }
 
 .searchIcon {
-  font-size: 20px;
-  margin-right: 12px;
-  opacity: 0.7;
+  display: inline-flex;
+  color: #9a8050;
+  flex-shrink: 0;
 }
 
 .searchInput {
@@ -120,641 +103,269 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #ffffff;
-  font-size: 15px;
-  font-family: inherit;
+  color: #1f2233;
+  font-size: 0.95rem;
 }
 
 .searchInput::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: #9aa0b0;
 }
 
 .searchClear {
-  background: rgba(160, 122, 60, 0.3);
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  color: #6b6f80;
   cursor: pointer;
-  color: #ffffff;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  margin-left: 8px;
+  font-size: 13px;
+  line-height: 1;
+  transition: background 120ms ease;
 }
 
 .searchClear:hover {
-  background: rgba(160, 122, 60, 0.5);
-  transform: scale(1.1);
+  background: rgba(0, 0, 0, 0.12);
+  color: #1f2233;
 }
 
-/* Category Filter */
+/* Category filter + expand-all */
 .categoryContainer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 28px;
 }
 
 .categoryButtons {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
-  flex: 1;
+  gap: 8px;
 }
 
 .categoryButton {
-  padding: 8px 16px;
-  background: rgba(30, 30, 45, 0.6);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(160, 122, 60, 0.2);
-  border-radius: 24px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
+  padding: 7px 14px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  color: #4b4f63;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
 }
 
 .categoryButton:hover {
-  border-color: rgba(160, 122, 60, 0.4);
-  background: rgba(160, 122, 60, 0.15);
-  color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.22);
+  color: #1f2233;
 }
 
 .categoryButton.active {
-  background: var(--ds-gold);
-  border-color: rgba(160, 122, 60, 0.6);
+  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
+  border-color: transparent;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(160, 122, 60, 0.3);
 }
 
 .expandAllButton {
-  padding: 8px 16px;
-  background: rgba(160, 122, 60, 0.2);
-  border: 1px solid rgba(160, 122, 60, 0.3);
-  border-radius: 24px;
-  color: #e8cc8a;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 7px 12px;
+  background: transparent;
+  border: none;
+  color: #a07a3c;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
+  transition: color 120ms ease;
 }
 
 .expandAllButton:hover {
-  background: rgba(160, 122, 60, 0.3);
-  border-color: rgba(160, 122, 60, 0.5);
-  color: #ffffff;
+  color: #7c5f2c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-/* Results Count */
 .resultsCount {
-  text-align: center;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
+  font-size: 0.85rem;
+  color: #6b6f80;
   margin-bottom: 16px;
-  font-style: italic;
 }
 
-/* No Results */
-.noResults {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.noResultsIcon {
-  font-size: 64px;
-  margin-bottom: 16px;
-  opacity: 0.3;
-}
-
-.noResultsText {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 16px;
-  margin: 0;
-}
-
-/* FAQ Section */
+/* Accordion list — flat rows with hairline dividers */
 .faqSection {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-/* Accordion */
-/* Pricing 의 .faqItem 패턴과 동일 — radius 14, subtle border, hover 정돈. */
 .accordion {
-  background: var(--ds-dark-surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-radius: 14px;
-  border: 1px solid var(--ds-dark-border);
-  overflow: hidden;
-  transition:
-    border-color 0.25s ease,
-    background 0.25s ease;
-}
-
-.accordion:hover {
-  border-color: var(--ds-dark-border-strong);
-}
-
-.accordion.open {
-  border-color: var(--ds-gold-line);
-  background: var(--ds-dark-surface-strong);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .accordionHeader {
-  width: 100%;
-  padding: 18px 22px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 16px;
-  text-align: left;
-  transition: background 0.18s ease;
-}
-
-.accordionHeader:hover {
+  width: 100%;
+  padding: 20px 4px;
   background: transparent;
-}
-
-.accordionIcon {
-  font-size: 24px;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(160, 122, 60, 0.2);
-  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: color 120ms ease;
 }
 
 .accordionQuestion {
   flex: 1;
-  font-size: 16px;
+  font-size: 1.02rem;
   font-weight: 600;
-  color: #e5e7eb;
-  line-height: 1.4;
+  color: #14172a;
+  line-height: 1.45;
+}
+
+.accordionHeader:hover .accordionQuestion {
+  color: #a07a3c;
 }
 
 .accordionToggle {
-  width: 32px;
-  height: 32px;
-  display: flex;
+  flex-shrink: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: 300;
-  color: #e8cc8a;
-  background: rgba(160, 122, 60, 0.15);
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition: all 0.3s ease;
+  width: 26px;
+  height: 26px;
+  font-size: 18px;
+  font-weight: 400;
+  color: #a07a3c;
+  transition: transform 200ms ease;
 }
 
 .accordion.open .accordionToggle {
-  background: rgba(160, 122, 60, 0.3);
   transform: rotate(180deg);
 }
 
+/* Smooth auto-height reveal (grid-rows trick) */
 .accordionContent {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition:
-    max-height 0.4s ease,
-    opacity 0.3s ease;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms ease;
 }
 
 .accordion.open .accordionContent {
-  max-height: 1500px;
-  opacity: 1;
+  grid-template-rows: 1fr;
 }
 
 .accordionAnswer {
+  overflow: hidden;
   min-height: 0;
-  padding: 0 24px 24px 80px;
-  margin: 0;
-  color: rgba(224, 224, 255, 0.85);
-  font-size: 15px;
-  line-height: 1.8;
 }
 
 .accordionAnswer p {
   margin: 0;
+  padding: 0 36px 22px 4px;
+  font-size: 0.97rem;
+  line-height: 1.7;
+  color: #2c3043;
+  max-width: 64ch;
 }
 
-/* Contact Section */
+/* No results */
+.noResults {
+  text-align: center;
+  padding: 64px 20px;
+  color: #6b6f80;
+}
+
+.noResultsIcon {
+  display: inline-flex;
+  color: #c2c6d2;
+  margin-bottom: 14px;
+}
+
+.noResultsText {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Contact card */
 .contactSection {
-  margin-top: 64px;
+  margin-top: 48px;
 }
 
 .contactCard {
-  background: rgba(160, 122, 60, 0.18);
-  border: 1px solid rgba(160, 122, 60, 0.3);
-  border-radius: 24px;
-  padding: 48px 32px;
   text-align: center;
+  padding: 36px 28px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .contactIcon {
-  font-size: 48px;
-  margin-bottom: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(193, 155, 86, 0.12);
+  color: #a07a3c;
 }
 
 .contactTitle {
-  font-size: 24px;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 12px;
+  color: #14172a;
+  margin: 0 0 8px;
 }
 
 .contactDesc {
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 24px;
-  font-size: 15px;
+  color: #6b6f80;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 22px;
 }
 
 .contactButton {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 32px;
-  background: var(--ds-gold);
-  color: white;
+  justify-content: center;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
+  border-radius: 999px;
+  color: #ffffff;
   font-weight: 600;
-  font-size: 15px;
-  border-radius: 12px;
+  font-size: 0.95rem;
   text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(160, 122, 60, 0.4);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+  box-shadow: 0 6px 20px rgba(160, 122, 60, 0.22);
 }
 
 .contactButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(160, 122, 60, 0.5);
+  box-shadow: 0 10px 28px rgba(160, 122, 60, 0.32);
 }
 
-/* Responsive */
 @media (max-width: 640px) {
   .container {
-    padding: 24px 16px 100px;
-  }
-
-  .heroIcon {
-    width: 64px;
-    height: 64px;
-    font-size: 28px;
-  }
-
-  .searchContainer {
-    margin-bottom: 24px;
-  }
-
-  .searchBox {
-    padding: 14px 16px;
-  }
-
-  .searchIcon {
-    font-size: 18px;
-    margin-right: 10px;
-  }
-
-  .searchInput {
-    font-size: 14px;
+    padding: 96px 18px 72px;
   }
 
   .categoryContainer {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
-  .categoryButtons {
-    justify-content: center;
-  }
-
-  .categoryButton {
-    padding: 7px 14px;
-    font-size: 13px;
-  }
-
-  .expandAllButton {
-    width: 100%;
-    padding: 10px 16px;
-  }
-
-  .accordionHeader {
-    padding: 16px 20px;
-    gap: 12px;
-  }
-
-  .accordionIcon {
-    width: 36px;
-    height: 36px;
-    font-size: 20px;
+    justify-content: flex-start;
   }
 
   .accordionQuestion {
-    font-size: 14px;
+    font-size: 0.97rem;
   }
 
-  .accordionAnswer {
-    padding: 0 20px 20px 68px;
-    font-size: 14px;
-  }
-
-  .contactCard {
-    padding: 32px 24px;
-  }
-
-  .contactTitle {
-    font-size: 20px;
-  }
-}
-
-/* Mobile responsive - Small */
-@media (max-width: 480px) {
-  .container {
-    padding: 20px 14px 80px;
-  }
-
-  .hero {
-    margin-bottom: 36px;
-    padding: 70px 0 20px;
-  }
-
-  .heroIcon {
-    width: 56px;
-    height: 56px;
-    font-size: 24px;
-    margin-bottom: 16px;
-  }
-
-  .eyebrow {
-    font-size: 11px;
-    margin-bottom: 10px;
-  }
-
-  .subtitle {
-    font-size: 14px;
-  }
-
-  .searchContainer {
-    margin-bottom: 20px;
-  }
-
-  .searchBox {
-    padding: 12px 14px;
-  }
-
-  .searchIcon {
-    font-size: 16px;
-  }
-
-  .searchInput {
-    font-size: 13px;
-  }
-
-  .categoryButton {
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-
-  .expandAllButton {
-    padding: 9px 14px;
-    font-size: 13px;
-  }
-
-  .resultsCount {
-    font-size: 13px;
-    margin-bottom: 12px;
-  }
-
-  .noResultsIcon {
-    font-size: 48px;
-  }
-
-  .noResultsText {
-    font-size: 14px;
-  }
-
-  .faqSection {
-    gap: 12px;
-  }
-
-  .accordion {
-    border-radius: 14px;
-  }
-
-  .accordionHeader {
-    padding: 14px 16px;
-    gap: 10px;
-  }
-
-  .accordionIcon {
-    width: 32px;
-    height: 32px;
-    font-size: 18px;
-    border-radius: 10px;
-  }
-
-  .accordionQuestion {
-    font-size: 13px;
-  }
-
-  .accordionToggle {
-    width: 28px;
-    height: 28px;
-    font-size: 20px;
-  }
-
-  .accordionAnswer {
-    padding: 0 16px 16px 58px;
-    font-size: 13px;
-    line-height: 1.7;
-  }
-
-  .contactSection {
-    margin-top: 48px;
-  }
-
-  .contactCard {
-    padding: 28px 20px;
-    border-radius: 20px;
-  }
-
-  .contactIcon {
-    font-size: 40px;
-    margin-bottom: 14px;
-  }
-
-  .contactTitle {
-    font-size: 18px;
-    margin-bottom: 10px;
-  }
-
-  .contactDesc {
-    font-size: 14px;
-    margin-bottom: 20px;
-  }
-
-  .contactButton {
-    padding: 12px 28px;
-    font-size: 14px;
-    border-radius: 10px;
-    gap: 6px;
-  }
-}
-
-/* Mobile responsive - Extra Small */
-@media (max-width: 360px) {
-  .container {
-    padding: 16px 12px 70px;
-  }
-
-  .hero {
-    margin-bottom: 28px;
-    padding: 60px 0 16px;
-  }
-
-  .heroIcon {
-    width: 48px;
-    height: 48px;
-    font-size: 20px;
-    margin-bottom: 14px;
-  }
-
-  .eyebrow {
-    font-size: 10px;
-  }
-
-  .subtitle {
-    font-size: 13px;
-  }
-
-  .searchContainer {
-    margin-bottom: 16px;
-  }
-
-  .searchBox {
-    padding: 10px 12px;
-  }
-
-  .searchIcon {
-    font-size: 14px;
-    margin-right: 8px;
-  }
-
-  .searchInput {
-    font-size: 12px;
-  }
-
-  .searchClear {
-    width: 20px;
-    height: 20px;
-    font-size: 12px;
-  }
-
-  .categoryButtons {
-    gap: 6px;
-  }
-
-  .categoryButton {
-    padding: 5px 10px;
-    font-size: 11px;
-  }
-
-  .expandAllButton {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-
-  .resultsCount {
-    font-size: 12px;
-  }
-
-  .noResultsIcon {
-    font-size: 40px;
-  }
-
-  .noResultsText {
-    font-size: 13px;
-  }
-
-  .faqSection {
-    gap: 10px;
-  }
-
-  .accordion {
-    border-radius: 12px;
-  }
-
-  .accordionHeader {
-    padding: 12px 14px;
-    gap: 8px;
-  }
-
-  .accordionIcon {
-    width: 28px;
-    height: 28px;
-    font-size: 16px;
-    border-radius: 8px;
-  }
-
-  .accordionQuestion {
-    font-size: 12px;
-  }
-
-  .accordionToggle {
-    width: 24px;
-    height: 24px;
-    font-size: 18px;
-  }
-
-  .accordionAnswer {
-    padding: 0 14px 14px 50px;
-    font-size: 12px;
-    line-height: 1.6;
-  }
-
-  .contactSection {
-    margin-top: 40px;
-  }
-
-  .contactCard {
-    padding: 24px 16px;
-    border-radius: 16px;
-  }
-
-  .contactIcon {
-    font-size: 36px;
-    margin-bottom: 12px;
-  }
-
-  .contactTitle {
-    font-size: 16px;
-    margin-bottom: 8px;
-  }
-
-  .contactDesc {
-    font-size: 13px;
-    margin-bottom: 16px;
-  }
-
-  .contactButton {
-    padding: 10px 24px;
-    font-size: 13px;
-    border-radius: 8px;
+  .accordionAnswer p {
+    padding-right: 8px;
   }
 }
