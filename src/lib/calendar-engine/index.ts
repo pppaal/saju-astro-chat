@@ -25,6 +25,8 @@ import sajuJohuYongsinExtractor from './extractors/saju-johu-yongsin'
 import sajuShinsalActivationExtractor from './extractors/saju-shinsal-activation'
 import sajuNatalBranchRelationExtractor from './extractors/saju-natal-branch-relation'
 import sajuElementBalanceExtractor from './extractors/saju-element-balance'
+import sajuJijangganExtractor from './extractors/saju-jijanggan'
+import sajuGeokgukExtractor from './extractors/saju-geokguk'
 import astroTransitExtractor from './extractors/astro-transit'
 import astroEclipseExtractor from './extractors/astro-eclipse'
 import astroProfectionExtractor from './extractors/astro-profection'
@@ -114,6 +116,8 @@ function getRegisteredExtractors(): SignalExtractor[] {
     sajuShinsalActivationExtractor,
     sajuNatalBranchRelationExtractor,
     sajuElementBalanceExtractor,
+    sajuJijangganExtractor,
+    sajuGeokgukExtractor,
 
     // ── astro (13) ──
     astroTransitExtractor,

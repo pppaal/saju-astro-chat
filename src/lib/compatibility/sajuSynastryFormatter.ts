@@ -14,6 +14,8 @@
  * dev 검증: scripts/saju-synastry-format.ts.
  */
 
+import { HYEONG_PAIR_TRIO, BRANCH_HYEONG_PAIR, SELF_HYEONG, isHyeong } from '@/lib/saju/hyeong'
+
 const STEM_HAP: Record<string, { other: string; element: string }> = {
   '甲': { other: '己', element: '토' },
   '己': { other: '甲', element: '토' },
@@ -76,14 +78,8 @@ const BRANCH_PA: Record<string, string> = {
   '戌': '未', '未': '戌',
 }
 
-// 삼형(寅巳申·丑戌未)의 실제 "형" 쌍만. 두 글자만 만났을 땐 형으로 보되,
-// trio 중 충에 해당하는 쌍(寅申·丑未)은 제외(그건 충이지 형이 아님).
-// 옛 코드는 trio에 2지만 있어도 "3형"으로 격상해 丑未(충)까지 형으로 잘못 잡음.
-const HYEONG_PAIR_TRIO = new Set(['寅巳', '巳寅', '巳申', '申巳', '丑戌', '戌丑', '戌未', '未戌'])
-const BRANCH_HYEONG_PAIR: Record<string, string> = {
-  '子': '卯', '卯': '子',
-}
-const SELF_HYEONG = new Set(['辰', '午', '酉', '亥'])
+// 형(刑) 교리는 @/lib/saju/hyeong 단일 소스(상단 import). destiny counselor 와
+// 동일 교리를 공유 — 이전엔 여기에 복붙돼 있어 한쪽만 고치면 드리프트했음.
 
 const TRI_HAP = [
   { branches: ['申', '子', '辰'], element: '수' },
@@ -453,8 +449,6 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   {
     const seun = currentSeun(input.now ?? new Date())
     const ss = seun.stem, sb = seun.branch
-    const isHyeong = (a: string, b: string) =>
-      BRANCH_HYEONG_PAIR[a] === b || HYEONG_PAIR_TRIO.has(a + b) || (SELF_HYEONG.has(a) && a === b)
     const seunLines: string[] = []
     const crossNatal = (lbl: string, day: SajuPillarInput) => {
       if (STEM_HAP[ss]?.other === day.stem) seunLines.push(`세운천간 ${ss} + ${lbl} 일간 ${day.stem} — ${ss}${day.stem}合化${STEM_HAP[ss]!.element} (올해 끌림·기회)`)

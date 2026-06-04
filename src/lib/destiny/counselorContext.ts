@@ -18,6 +18,7 @@ import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
+import { isHyeong } from '@/lib/saju/hyeong'
 import { getNowInTimezone } from '@/lib/datetime'
 import type { DayMaster } from '@/lib/saju/types'
 
@@ -127,6 +128,21 @@ const PERIOD_EN: Record<string, string> = {
   세운: 'Annual',
   월운: 'Monthly',
   일진: 'Daily',
+}
+// 12운성(十二運星) 단계 — EN 로케일에서 한국어가 새지 않도록 영어 라벨 맵.
+const STAGE_EN: Record<string, string> = {
+  장생: 'birth',
+  목욕: 'bath',
+  관대: 'coming-of-age',
+  건록: 'prosperity',
+  제왕: 'peak',
+  쇠: 'decline',
+  병: 'illness',
+  사: 'death',
+  묘: 'tomb',
+  절: 'void',
+  태: 'conception',
+  양: 'nurture',
 }
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -241,24 +257,10 @@ const ASP_SYM: Record<string, string> = {
   trine: '△',
   opposition: '☍',
 }
-// 형(刑) doctrine — compat sajuSynastryFormatter 와 동일 학파 (partial 三刑
-// 인정, 단 충 페어는 충 only). 韓 명리 표준:
-//   - 丑戌未 三刑 의 페어: 丑戌·戌未 = 형, 丑未 = 충 only (형 X)
-//   - 寅巳申 三刑 의 페어: 寅巳·巳申 = 형, 寅申 = 충 only (형 X)
-//   - 子卯 상형
-//   - 자형: 辰辰/午午/酉酉/亥亥
-// 이전 코드 (HYEONG_SETS.some(...)) 는 trio 안 둘이면 무조건 형 → 丑未/寅申
-// 충 페어를 잘못 형으로 잡았음. compat 와 inconsistent 했던 doctrinal 버그 fix.
-const HYEONG_PAIR_TRIO = new Set([
-  '寅巳', '巳寅', '巳申', '申巳',
-  '丑戌', '戌丑', '戌未', '未戌',
-])
-const BRANCH_HYEONG_PAIR: Record<string, string> = { 子: '卯', 卯: '子' }
-const SELF_HYEONG = new Set(['辰', '午', '酉', '亥'])
-const hyeongPair = (a: string, b: string) =>
-  a === b
-    ? SELF_HYEONG.has(a)
-    : BRANCH_HYEONG_PAIR[a] === b || HYEONG_PAIR_TRIO.has(a + b)
+// 형(刑) 판정은 @/lib/saju/hyeong 의 isHyeong 단일 소스를 쓴다 — 본명 합충
+// 블록(아래 shown 필터)과 타이밍 교차 블록이 같은 보정 교리를 공유한다.
+// (이전엔 이 파일에 HYEONG_PAIR_TRIO/SELF_HYEONG/hyeongPair 가 복붙돼 있어
+//  compat sajuSynastryFormatter 의 동일 복사본과 드리프트할 위험이 있었음.)
 // 천간합 → 化 element (hangul) + fiveElements key
 const STEM_HAP_EL: Record<string, string> = {}
 for (const [a, b, el] of [
@@ -393,14 +395,23 @@ export async function buildDestinyContext(
     const sgn = (s: string) => (locale === 'ko' ? (SIGN_KO_A[s] ?? s).replace(/자리$/, '') : s)
     const pl = (n: string) => (n === 'Ascendant' ? 'ASC' : n === 'MC' ? 'MC' : pkA(n, locale))
 
-    // positions (sign·house·dignity); dignity tag is English in both locales
+    // positions (sign·house·dignity); dignity tag is English in both locales.
+    // 하우스·ASC·MC 는 정확한 출생시각 + 출생지 둘 다 있어야 의미가 있다.
+    // 둘 중 하나라도 미상이면 엔진은 서울/자정 폴백으로 *그럴듯하지만 틀린*
+    // 하우스/각을 계산한다. 프롬프트가 "인용 금지" 로 막고 있긴 하나, 데이터
+    // 자체에 남겨두면 모델이 규칙을 놓칠 때 새어 나간다 — 원천에서 제거해
+    // 말이 아니라 구조로 차단 (defense-in-depth).
+    const placeUnreliable = !!birth.birthTimeUnknown || !!birth.birthCityUnknown
     const posLines: string[] = []
     for (const p of natal.planets) {
       const dg = dignityOf(p.name, p.sign)
       const dgTag = dg && dg !== 'peregrine' ? ` [${dg}]` : ''
-      posLines.push(`  ${pl(p.name)} ${sgn(p.sign)} H${p.house}${p.retrograde ? ' R' : ''}${dgTag}`)
+      const houseTag = placeUnreliable ? '' : ` H${p.house}`
+      posLines.push(`  ${pl(p.name)} ${sgn(p.sign)}${houseTag}${p.retrograde ? ' R' : ''}${dgTag}`)
     }
-    posLines.push(`  ASC ${sgn(natal.ascendant.sign)}`, `  MC ${sgn(natal.mc.sign)}`)
+    // ASC/MC 는 출생시각·출생지 의존 → 미상이면 줄 자체를 생략.
+    if (!placeUnreliable)
+      posLines.push(`  ASC ${sgn(natal.ascendant.sign)}`, `  MC ${sgn(natal.mc.sign)}`)
 
     // aspects: planet-planet (engine) + planet→ASC/MC, banded by orb, symbols
     const aspects: Array<{ from: string; to: string; type: string; orb: number }> = []
@@ -414,18 +425,22 @@ export async function buildDestinyContext(
       { deg: 120, t: 'trine' },
       { deg: 180, t: 'opposition' },
     ]
-    for (const ang of [natal.ascendant, natal.mc])
-      for (const p of natal.planets) {
-        let dd = Math.abs(ang.longitude - p.longitude)
-        if (dd > 180) dd = 360 - dd
-        for (const a of ANG) {
-          const orb = Math.abs(dd - a.deg)
-          if (orb < 5) {
-            aspects.push({ from: p.name, to: ang.name, type: a.t, orb })
-            break
+    // 행성↔ASC/MC 각도 — ASC/MC 자체가 출생시각·출생지 의존이므로, 그것들을
+    // posLines 에서 뺀 것과 같은 이유로 미상이면 각도도 만들지 않는다.
+    // (안 막으면 "태양 □ ASC" 식으로 ASC/MC 가 우회 노출됨.)
+    if (!placeUnreliable)
+      for (const ang of [natal.ascendant, natal.mc])
+        for (const p of natal.planets) {
+          let dd = Math.abs(ang.longitude - p.longitude)
+          if (dd > 180) dd = 360 - dd
+          for (const a of ANG) {
+            const orb = Math.abs(dd - a.deg)
+            if (orb < 5) {
+              aspects.push({ from: p.name, to: ang.name, type: a.t, orb })
+              break
+            }
           }
         }
-      }
     const fmtAsp = (a: { from: string; to: string; type: string; orb: number }) =>
       `  ${pl(a.from)} ${ASP_SYM[a.type] ?? a.type} ${pl(a.to)} ${a.orb.toFixed(1)}°`
     const strong = aspects
@@ -454,22 +469,39 @@ export async function buildDestinyContext(
         longitude: lon,
         timeZone: tz,
       },
-      skipAngles: birth.birthCityUnknown,
+      // ASC/MC/하우스는 정확한 출생시각 *과* 출생지 둘 다 필요 → 둘 중 하나라도
+      // 미상이면 각을 건너뛴다. 이전엔 birthCityUnknown 만 봤어서, 출생지는
+      // 알고 시간만 모르는 경우 midnight 폴백 ASC 기반 하우스/각이 새어나갔다.
+      skipAngles: placeUnreliable,
     })
     const cur = slimAstroSelf(block, { locale, year }).trim()
 
-    // profection (Korean-age convention) — compact one-liner
-    const kAge = year - Y + 1
-    const prof = calculateProfection(chart, kAge)
-    const lp = chart.planets.find((p) => p.name === prof.lordOfYear) as
-      | { sign?: string; house?: number }
-      | undefined
+    // profection — calculateProfection 은 만(완성)나이 기준이다 (age 0 → 1궁).
+    // 이전엔 한국나이(만+1)를 넣어 활성 하우스가 모든 사용자에게 한 칸씩
+    // 밀렸다(만30 → 7궁이어야 하는데 8궁). 생일 통과 여부까지 반영한 만나이를
+    // 넣고, 표시용 한국나이는 결과 age 에서 +1 로 역산한다.
+    const hadBirthdayThisYear =
+      localNow.month > M || (localNow.month === M && localNow.day >= D)
+    const manAge = Math.max(0, year - Y - (hadBirthdayThisYear ? 0 : 1))
+    const prof = calculateProfection(chart, manAge)
+    const displayKAge = prof.age + 1
+    // activatedHouse 는 나이만으로 결정 → 항상 신뢰 가능. 하지만 activatedSign·
+    // lordOfYear 는 ASC(하우스 커스프) 의존이라 출생시각/출생지 미상이면 가짜다.
+    // posLines/ASC 와 동일 기준(placeUnreliable)으로 Lord(연주)만 숨기고, 나이
+    // 기반 하우스 테마는 유지한다.
+    const lp = placeUnreliable
+      ? undefined
+      : (chart.planets.find((p) => p.name === prof.lordOfYear) as
+          | { sign?: string; house?: number }
+          | undefined)
     const lordRes = lp?.sign ? ` (${sgn(lp.sign)}${lp.house ? ` H${lp.house}` : ''})` : ''
+    const lordKo = placeUnreliable ? '' : `, Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`
+    const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
     // 프로펙션은 정통상 한국나이(만+1) 기준이라 그대로 표기하되, "현재 나이"
     // 로 오인되지 않게 (한국나이) 라벨 명시.
     const profLine = L(
-      `프로펙션 (한국나이 ${kAge}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]}), Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`,
-      `Profection (Korean age ${kAge} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]}), Lord ${prof.lordOfYear}${lordRes}`
+      `프로펙션 (한국나이 ${displayKAge}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
+      `Profection (Korean age ${displayKAge} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
     )
 
     astroNatal = [
@@ -519,12 +551,18 @@ export function buildSajuSection(
   localNow?: { year: number; month: number; day: number }
 ): { natal: string; timing: string; iljinWindow: string; dayMasterName: string } {
   const tz = birth.timezone ?? 'Asia/Seoul'
+  // longitude 를 넘겨 진태양시(진경도) 보정 — 없으면 엔진이 한국 평균
+  // LMT(+30분) 로 폴백해 해외 출생자의 시주(時柱)가 틀린다. 또 route.ts 의
+  // 현재운(세운/월운/일진) 빌더는 longitude 를 이미 넘기므로, 여기서 빠지면
+  // 본명과 현재운이 서로 다른 태양시 기준으로 계산돼 모순이 난다.
   const saju = calculateSajuData(
     birth.birthDate,
     birth.birthTime,
     birth.gender,
     'solar',
-    tz
+    tz,
+    undefined,
+    birth.longitude
   ) as unknown as {
     pillars: Record<
       'year' | 'month' | 'day' | 'time',
@@ -706,7 +744,18 @@ export function buildSajuSection(
     const el = m ? (m[3] ?? '') : ''
     return { entities, word, el }
   }
-  const shown = rel.filter((r) => r.kind !== '지지파')
+  const shown = rel.filter((r) => {
+    if (r.kind === '지지파') return false
+    // 엔진(relations.ts)은 삼형 세트의 임의 두 지지를 형으로 잡아 丑未/寅申
+    // (충 only)까지, 자형도 12지 전부를 형으로 표기한다. 타이밍 교차 블록과
+    // 동일한 보정 교리(isHyeong)로 본명 형도 걸러 두 블록이 일관되게 한다.
+    if (r.kind === '지지형') {
+      const bs = (r.detail || '').match(BRANCH_RE) ?? []
+      const [b0, b1] = bs
+      if (b0 != null && b1 != null && !isHyeong(b0, b1)) return false
+    }
+    return true
+  })
   if (shown.length) {
     out.push(L('합충:', 'combos:'))
     const gong: string[] = [],
@@ -831,10 +880,15 @@ export function buildSajuSection(
     })
     const stages = getTwelveStagesForPillars(pillarsLike, 'day')
     if (stages) {
+      // EN 로케일에선 단계명도 영어로 — 이전엔 stages[k] (장생/목욕…) 와
+      // 괄호 anchor '(일간 X 기준)' 가 한국어 그대로 영어 컨텍스트에 새었다.
+      const stg = (s: string) => (locale === 'en' ? (STAGE_EN[s] ?? s) : s)
       const parts = (['year', 'month', 'day', 'time'] as const)
-        .map((k) => `${plab[k]}${stages[k]}`)
+        .map((k) => `${plab[k]}${stg(stages[k])}`)
         .join('·')
-      out.push(`${L('12운성', '12-stages')}(일간 ${day} 기준): ${parts}`)
+      out.push(
+        `${L('12운성', '12-stages')}${L(`(일간 ${day} 기준)`, `(rel. to day master ${day})`)}: ${parts}`
+      )
     }
   } catch {
     /* */
@@ -967,7 +1021,7 @@ export function buildSajuSection(
       const br = pBranch[k]
       if (br)
         for (const [lab, nb] of natalBr)
-          if (hyeongPair(br, nb)) {
+          if (isHyeong(br, nb)) {
             crossLines.push(
               `  ${pfx}${sp}${br} ↔ ${locale === 'en' ? (PMAP[lab] ?? lab) : lab}${sp}${nb} ${shortK('지지형')} ${hyeongTag(br, nb)}`
             )

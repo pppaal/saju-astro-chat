@@ -2,7 +2,7 @@
 // 고급 분석 실행 함수들
 
 import { logger } from '@/lib/logger'
-import { determineGeokguk, getGeokgukDescription } from '@/lib/saju/geokguk'
+import { determineGeokgukAdvanced, getGeokgukDescription } from '@/lib/saju/geokguk'
 import {
   determineYongsin,
   getYongsinDescription,
@@ -36,7 +36,7 @@ export interface PillarsWithHour {
 }
 
 export interface AdvancedAnalysisResult {
-  geokguk: (ReturnType<typeof determineGeokguk> & { description: string }) | null
+  geokguk: (ReturnType<typeof determineGeokgukAdvanced> & { description: string }) | null
   yongsin:
     | (ReturnType<typeof determineYongsin> & {
         description: string
@@ -85,9 +85,11 @@ export function performAdvancedAnalysis(
     interpretations: { twelveStages: {}, elements: {} },
   }
 
-  // 1. 격국 분석
+  // 1. 격국 분석 — determineGeokgukAdvanced 는 (a) 잡기격 보완 판정 (b) 정격·비격에
+  // 대해 evaluateGeokgukStatus 로 성격/파격/반성반파 statusResult 를 결과에 부착.
+  // 차트 PersonaCard 와 calendar saju-geokguk extractor 가 성패 정보를 소비.
   try {
-    const geokguk = determineGeokguk(simplePillars)
+    const geokguk = determineGeokgukAdvanced(simplePillars)
     result.geokguk = {
       ...geokguk,
       description: getGeokgukDescription(geokguk.primary),

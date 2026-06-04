@@ -1,4 +1,4 @@
-import { STEMS, BRANCHES, getSolarTermKST } from '@/lib/saju/constants'
+import { STEMS, BRANCHES, JIJANGGAN, getSolarTermKST } from '@/lib/saju/constants'
 import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import type {
@@ -44,32 +44,80 @@ const sajuPillarExtractor: SignalExtractor = {
     const bMonth = natal.input.month - 1
     const bDate = natal.input.date
 
-    // ─── 1) 대운 (decadal) ───
+    // ─── 1) 대운 (decadal) — 정통 자평: 천간 5년 / 지지 5년 분리 ───
+    // 한 대운 10년은 "천간 5년 + 지지 5년" 으로 운영함이 정통. 한 마디 앞 5년은
+    // 천간의 십신·통근이, 뒤 5년은 지지의 12운성·지장간 십신이 주도한다.
+    // 기존엔 10년 통째로 천간 십신 1개만 emit돼서 지지 운기가 통째로 손실됐다.
     for (const d of natal.saju.daeun) {
       const stemInfo = STEMS.find((s) => s.name === d.stem)
       if (!stemInfo) continue
-      const sibsin = getSibsin(dayMaster, stemInfo)
-      if (!sibsin) continue
+      const stemSibsin = getSibsin(dayMaster, stemInfo)
 
-      const startIso = new Date(Date.UTC(d.startYear, bMonth, bDate)).toISOString()
-      const endIso = new Date(Date.UTC(d.startYear + 10, bMonth, bDate) - 1).toISOString()
-      // range와 겹치는 부분만
-      if (new Date(endIso) < start || new Date(startIso) > end) continue
-      const peakIso = new Date(Date.UTC(d.startYear + 5, bMonth, bDate)).toISOString()
+      const baseStart = Date.UTC(d.startYear, bMonth, bDate)
+      const midPoint = Date.UTC(d.startYear + 5, bMonth, bDate)
+      const endPoint = Date.UTC(d.startYear + 10, bMonth, bDate) - 1
 
-      signals.push(
-        buildSignal({
-          idSuffix: `daeun.${d.startYear}.${d.stem}${d.branch}`,
-          layer: 'decadal',
-          ganji: `${d.stem}${d.branch}`,
-          sibsin,
-          element: stemInfo.element as FiveElement,
-          yongsin,
-          active: { start: startIso, peak: peakIso, end: endIso },
-          weight: 1.0, // 대운은 인생 전체 흐름 — 최대 가중
-          natalDayMaster: dayMaster.name,
-        })
-      )
+      // ── 1a) 천간 5년 ──
+      if (stemSibsin && new Date(endPoint) >= start && new Date(baseStart) <= end) {
+        const stemStartIso = new Date(baseStart).toISOString()
+        const stemEndIso = new Date(midPoint - 1).toISOString()
+        const stemPeakIso = new Date(Date.UTC(d.startYear + 2, bMonth, Math.max(1, bDate))).toISOString()
+        if (new Date(stemEndIso) >= start && new Date(stemStartIso) <= end) {
+          signals.push(
+            buildSignal({
+              idSuffix: `daeun-stem.${d.startYear}.${d.stem}`,
+              layer: 'decadal',
+              ganji: `${d.stem}${d.branch}`,
+              sibsin: stemSibsin,
+              element: stemInfo.element as FiveElement,
+              yongsin,
+              active: { start: stemStartIso, peak: stemPeakIso, end: stemEndIso },
+              weight: 1.0, // 대운 천간 — 인생 전체 흐름 핵심
+              natalDayMaster: dayMaster.name,
+              detailExtra: {
+                phase: 'stem-half',
+                phaseLabel: '대운 천간 5년',
+              },
+            })
+          )
+        }
+      }
+
+      // ── 1b) 지지 5년 ──
+      // 지지의 십신은 지장간 본기(정기)로 잡는다. 본기 = 그 지지의 대표 오행/천간.
+      const branchInfo = BRANCHES.find((b) => b.name === d.branch)
+      const branchJijanggan = JIJANGGAN[d.branch]
+      const jeonggiStem = branchJijanggan?.['정기']
+      const jeonggiStemInfo = jeonggiStem ? STEMS.find((s) => s.name === jeonggiStem) : null
+      const branchSibsin = jeonggiStemInfo ? getSibsin(dayMaster, jeonggiStemInfo) : null
+      const branchElement = (branchInfo?.element ?? jeonggiStemInfo?.element ?? stemInfo.element) as FiveElement
+
+      if (branchSibsin && new Date(endPoint) >= start && new Date(midPoint) <= end) {
+        const branchStartIso = new Date(midPoint).toISOString()
+        const branchEndIso = new Date(endPoint).toISOString()
+        const branchPeakIso = new Date(Date.UTC(d.startYear + 7, bMonth, Math.max(1, bDate))).toISOString()
+        if (new Date(branchEndIso) >= start && new Date(branchStartIso) <= end) {
+          signals.push(
+            buildSignal({
+              idSuffix: `daeun-branch.${d.startYear}.${d.branch}`,
+              layer: 'decadal',
+              ganji: `${d.stem}${d.branch}`,
+              sibsin: branchSibsin,
+              element: branchElement,
+              yongsin,
+              active: { start: branchStartIso, peak: branchPeakIso, end: branchEndIso },
+              weight: 0.95, // 대운 지지 — 천간보다 약간 낮으나 본기 십신이 강하게 작동
+              natalDayMaster: dayMaster.name,
+              detailExtra: {
+                phase: 'branch-half',
+                phaseLabel: '대운 지지 5년',
+                branchJeonggi: jeonggiStem,
+                branchName: d.branch,
+              },
+            })
+          )
+        }
+      }
     }
 
     // ─── 2) 세운 (yearly) — 입춘 경계 ───
@@ -186,6 +234,7 @@ interface BuildSignalArgs {
   active: { start: string; peak: string; end: string }
   weight: number
   natalDayMaster: string
+  detailExtra?: Record<string, unknown>
 }
 
 function buildSignal(args: BuildSignalArgs): ActiveSignal {
@@ -209,6 +258,7 @@ function buildSignal(args: BuildSignalArgs): ActiveSignal {
         natalDayMaster: args.natalDayMaster,
         yongsin: args.yongsin.primary,
         avoid: args.yongsin.avoid,
+        ...(args.detailExtra ?? {}),
       },
     },
   }
@@ -243,8 +293,5 @@ function pillarToStemInfo(stemName: string): StemInfo | null {
   return found as StemInfo
 }
 
-
-// 미사용 import suppress
-void BRANCHES
 
 export default sajuPillarExtractor

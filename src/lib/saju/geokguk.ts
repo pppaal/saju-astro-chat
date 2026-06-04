@@ -222,63 +222,166 @@ function countSipsung(pillars: SajuPillarsInput): Record<Sipsung, number> {
   return counts
 }
 
-// 신강/신약 판정
+// ───────────────────────────────────────────────────────────────────────────
+// 신강/신약 판정 — 정통 자평명리 4기준 (得令·通根·得勢·得時)
+// ───────────────────────────────────────────────────────────────────────────
+// 이전: 천간 3개 + 지지 본기 4개 = 총 7개 십성 카운트만으로 supporting / opposing
+// 차이가 ±2 이상이면 신강/신약. 지장간 中氣·餘氣가 무시돼 통근 평가가 무너지고,
+// 임계 ±2 가 너무 가팔라 한 글자 차이로 신강 ↔ 신약 뒤집힘. strengthScore.ts
+// 의 4기준(득령 30 / 통근 25 / 인성 20 / 비겁 15) 점수와 같은 로직으로
+// 일관화 — 단 strengthScore 가 요구하는 SajuPillars(full) 대신 여기는
+// SajuPillarsInput(simple) 로 받아 동작하도록 내부 helper 로 짠다.
+//
+// 점수 기준:
+//   득령 (월령) 0~30점 — 일간이 월지와 같은 오행이면 30 (왕지)
+//   통근 (지지 근) 0~25점 — 지장간 정·중·여기에 일간 오행이 있으면 가산
+//   인성 지원 0~20점 — 일간을 생하는 오행의 존재감
+//   비겁 지원 0~15점 — 일간과 동일 오행의 존재감
+//   설기·재성·관성 음수 — 일간을 소모/극하는 오행의 존재감
+//
+// 임계: total ≥ 60 → 신강 / 40 ≤ total < 60 → 중화 / total < 40 → 신약
+
+function calculateDeukryeong(dayElement: FiveElement, monthElement: FiveElement): number {
+  if (dayElement === monthElement) return 30
+  if (FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement] === monthElement) return 25
+  if (FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement] === monthElement) return 10
+  if (FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement] === monthElement) return 5
+  if (FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement] === monthElement) return 0
+  return 15
+}
+
+function calculateTonggeun(pillars: SajuPillarsInput, dayElement: FiveElement): number {
+  let score = 0
+  const branches = [
+    normalizeBranch(pillars.year.branch),
+    normalizeBranch(pillars.month.branch),
+    normalizeBranch(pillars.day.branch),
+    normalizeBranch(pillars.time.branch),
+  ]
+  for (const branch of branches) {
+    const jj = JIJANGGAN[branch]
+    if (!jj) continue
+    for (const [qi, stem] of Object.entries(jj)) {
+      if (getStemElement(stem) === dayElement) {
+        const qiWeight = qi === '정기' ? 8 : qi === '중기' ? 5 : 3
+        score += qiWeight
+      }
+    }
+  }
+  return Math.min(25, score)
+}
+
+function calculateElementPresence(
+  pillars: SajuPillarsInput,
+  element: FiveElement,
+  maxScore: number
+): number {
+  let score = 0
+  const stems = [
+    normalizeStem(pillars.year.stem),
+    normalizeStem(pillars.month.stem),
+    normalizeStem(pillars.day.stem),
+    normalizeStem(pillars.time.stem),
+  ]
+  for (const stem of stems) {
+    if (getStemElement(stem) === element) score += 3
+  }
+  const branches = [
+    normalizeBranch(pillars.year.branch),
+    normalizeBranch(pillars.month.branch),
+    normalizeBranch(pillars.day.branch),
+    normalizeBranch(pillars.time.branch),
+  ]
+  for (const branch of branches) {
+    if (getBranchElement(branch) === element) score += 2
+    const jj = JIJANGGAN[branch]
+    if (jj) {
+      for (const stem of Object.values(jj)) {
+        if (getStemElement(stem) === element) score += 1
+      }
+    }
+  }
+  return Math.min(maxScore, score)
+}
+
+/**
+ * 정통 자평명리 4기준 강약 종합 점수 (0~100, 50 중심).
+ * strengthScore.ts 의 calculateStrengthScore() 와 같은 알고리즘이지만
+ * SajuPillarsInput 으로 동작.
+ */
+export function getStrengthScore(pillars: SajuPillarsInput): number {
+  const dayS = normalizeStem(pillars.day.stem)
+  const dayElement = getStemElement(dayS)
+
+  const monthB = normalizeBranch(pillars.month.branch)
+  const monthElement = getBranchElement(monthB)
+
+  // 도움받는 점수 (support)
+  const deukryeong = calculateDeukryeong(dayElement, monthElement)
+  const tonggeun = calculateTonggeun(pillars, dayElement)
+  const inseongElement = FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement]
+  const inseong = calculateElementPresence(pillars, inseongElement, 20)
+  const bigyeob = calculateElementPresence(pillars, dayElement, 15)
+  const supportScore = deukryeong + tonggeun + inseong + bigyeob
+
+  // 소모·극제 점수 (resist)
+  const siksangElement = FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement]
+  const siksang = calculateElementPresence(pillars, siksangElement, 15)
+  const jaeseongElement = FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement]
+  const jaeseong = calculateElementPresence(pillars, jaeseongElement, 15)
+  const gwanseongElement = FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement]
+  const gwanseong = calculateElementPresence(pillars, gwanseongElement, 20)
+  const resistScore = siksang + jaeseong + gwanseong
+
+  const balance = supportScore - resistScore
+  return Math.max(0, Math.min(100, 50 + balance))
+}
+
+/**
+ * 신강·중화·신약 라벨. getStrengthScore() 점수 → 3분류.
+ */
 function getStrength(pillars: SajuPillarsInput): '신강' | '신약' | '중화' {
-  const counts = countSipsung(pillars)
-
-  // 비겁 + 인성 = 일간을 돕는 세력
-  const supporting = counts['비견'] + counts['겁재'] + counts['편인'] + counts['정인']
-  // 식상 + 재성 + 관성 = 일간을 소모/극하는 세력
-  const opposing =
-    counts['식신'] +
-    counts['상관'] +
-    counts['편재'] +
-    counts['정재'] +
-    counts['편관'] +
-    counts['정관']
-
-  if (supporting >= opposing + 2) {
-    return '신강'
-  }
-  if (opposing >= supporting + 2) {
-    return '신약'
-  }
+  const total = getStrengthScore(pillars)
+  if (total >= 60) return '신강'
+  if (total < 40) return '신약'
   return '중화'
 }
 
-// 종격 판정
+/**
+ * 극신강·극신약 — 종격 판정에 필요. 일반 신강/신약 보다 강한 임계.
+ */
+function getStrengthExtreme(pillars: SajuPillarsInput): '극신강' | '극신약' | null {
+  const total = getStrengthScore(pillars)
+  if (total >= 80) return '극신강'
+  if (total <= 20) return '극신약'
+  return null
+}
+
+// 종격 판정 — 정통: 극신강(從旺·從強) 또는 극신약(從兒·從財·從殺) 분기.
+// 옛 코드는 strength === '신강' (40-점 중간 임계) 만으로도 종격 후보가 되어
+// 부드러운 신강 사주가 종격으로 잘못 분류되는 경향. 4기준 점수 80+ 만 통과.
 function checkJonggyeok(pillars: SajuPillarsInput): GeokgukType | null {
-  const strength = getStrength(pillars)
+  const extreme = getStrengthExtreme(pillars)
+  if (!extreme) return null
+
   const counts = countSipsung(pillars)
 
-  // 극신강: 비겁/인성이 압도적
-  if (strength === '신강') {
+  // 從旺·從強: 극신강 — 비겁/인성이 압도적이라 일간을 따라가는 격
+  if (extreme === '극신강') {
     const bigeop = counts['비견'] + counts['겁재']
     const insung = counts['편인'] + counts['정인']
-
-    if (bigeop >= 5) {
-      return '종왕격'
-    } // 비겁이 압도적
-    if (insung >= 4 && bigeop >= 2) {
-      return '종강격'
-    } // 인성+비겁
+    if (bigeop >= 5) return '종왕격' // 비겁이 압도적
+    if (insung >= 4 && bigeop >= 2) return '종강격' // 인성+비겁
   }
 
-  // 극신약: 다른 오행이 압도적
-  if (strength === '신약') {
+  // 從兒·從財·從殺: 극신약 — 다른 오행이 압도적이라 종(從)할 수밖에 없음
+  if (extreme === '극신약') {
     const siksang = counts['식신'] + counts['상관']
     const jaesung = counts['편재'] + counts['정재']
     const gwansung = counts['편관'] + counts['정관']
-
-    if (siksang >= 4) {
-      return '종아격'
-    } // 식상 종격
-    if (jaesung >= 4) {
-      return '종재격'
-    } // 재성 종격
-    if (gwansung >= 4) {
-      return '종살격'
-    } // 관성 종격
+    if (siksang >= 4) return '종아격' // 식상 종격
+    if (jaesung >= 4) return '종재격' // 재성 종격
+    if (gwansung >= 4) return '종살격' // 관성 종격
   }
 
   return null

@@ -11,6 +11,18 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  * 추출기는 호출과 ActiveSignal 변환만 담당.
  *
  * 활성 윈도우: 해당 일진 1일 (00:00 ~ 23:59), peak는 정오.
+ *
+ * ── 정통 사주의 신살 등급화 ──
+ * 자평명리(子平命理)에서 신살은 격국·용신·십신의 보조 신호로, 단독으로
+ * 일진의 핵심 신호가 되어선 안 된다. 그러나 등급은 분명히 존재한다:
+ *
+ *  1. classical-noble: 4길성(천을·천덕·월덕·태극귀인). 정통 doctrine 최상위.
+ *  2. rok-ma:          록·마류(건록·역마·금여·문창귀인 등). 활동·기회 신호.
+ *  3. dohwa-hwagae:    도화·화개·홍염류. 인연·예술 신호. 부드러운 강도.
+ *  4. common:          속명 흉살(공망·고진과숙·양인·백호·괴강·재살 등).
+ *
+ * base weight 도 십신(0.55~0.85)·격국·용신 대비 종속적인 0.4 로 낮춤.
+ * 등급 보너스는 0.0(common) → 0.20(classical-noble) 범위.
  */
 
 // 신살 polarity 테이블. 키는 extractor가 실제 emit하는 hit.kind 이름.
@@ -62,6 +74,60 @@ const SHINSAL_POLARITY: Record<string, Polarity> = {
   삼재:   -2,
 }
 
+/**
+ * 신살 등급 분류.
+ * 정통 doctrine 상의 길성·흉살 위계를 한 곳에 정의.
+ */
+export type ShinsalGrade =
+  | 'classical-noble' // 정통 4길성 (천을·천덕·월덕·태극귀인) — 최상위
+  | 'rok-ma'          // 록·마류 (건록·역마·금여·문창·암록·학당) — 활동
+  | 'dohwa-hwagae'    // 도화·화개·홍염류 — 인연·예술
+  | 'common'          // 속명 흉살 / 12신살 잡살 — 부차
+
+const SHINSAL_GRADE: Record<string, ShinsalGrade> = {
+  // classical-noble: 정통 4길성
+  천을귀인: 'classical-noble',
+  천덕귀인: 'classical-noble',
+  월덕귀인: 'classical-noble',
+  태극귀인: 'classical-noble',
+
+  // rok-ma: 록·마 활동류
+  건록:     'rok-ma',
+  역마:     'rok-ma',
+  역마살:   'rok-ma',
+  금여성:   'rok-ma',
+  문창:     'rok-ma',
+  문곡:     'rok-ma',
+  학당귀인: 'rok-ma',
+  암록:     'rok-ma',
+  천주귀인: 'rok-ma',
+  천의성:   'rok-ma',
+  천문성:   'rok-ma',
+  제왕:     'rok-ma',
+
+  // dohwa-hwagae: 도화·화개·홍염류
+  도화:     'dohwa-hwagae',
+  년살:     'dohwa-hwagae', // = 도화살의 이명
+  홍염살:   'dohwa-hwagae',
+  화개:     'dohwa-hwagae',
+  화개살:   'dohwa-hwagae',
+
+  // 나머지 12신살 잡살 + 흉살은 default common 으로 처리.
+}
+
+const GRADE_WEIGHT: Record<ShinsalGrade, number> = {
+  // 일진 신살은 격국·용신(0.65~0.85)·십신(0.55~0.85) 대비 부차.
+  // 정통 4길성만 십신 daily 최저(0.55)에 비교될 정도로 격상.
+  'classical-noble': 0.60,
+  'rok-ma':          0.50,
+  'dohwa-hwagae':    0.45,
+  'common':          0.35,
+}
+
+function gradeOf(shinsalName: string): ShinsalGrade {
+  return SHINSAL_GRADE[shinsalName] ?? 'common'
+}
+
 const sajuShinsalExtractor: SignalExtractor = {
   source: 'saju',
   kind: 'shinsal',
@@ -100,6 +166,7 @@ const sajuShinsalExtractor: SignalExtractor = {
 
       for (const hit of hits) {
         const polarity = SHINSAL_POLARITY[hit.kind] ?? 0
+        const grade = gradeOf(hit.kind)
         signals.push({
           id: `saju.shinsal.${hit.kind}.${dayIso}`,
           source: 'saju',
@@ -109,11 +176,17 @@ const sajuShinsalExtractor: SignalExtractor = {
           polarity,
           layer: 'daily',
           active: { start: startIso, peak: peakIso, end: endIso },
-          weight: weightForDailyShinsal(polarity),
+          weight: weightForDailyShinsal(polarity, grade),
           evidence: {
             module: 'saju-shinsal',
             shinsalName: hit.kind,
-            detail: { basis: hit.basis, targetBranch, natalDayStem, natalDayBranch },
+            detail: {
+              basis: hit.basis,
+              targetBranch,
+              natalDayStem,
+              natalDayBranch,
+              grade,
+            },
           },
         })
       }
@@ -123,10 +196,22 @@ const sajuShinsalExtractor: SignalExtractor = {
   },
 }
 
-function weightForDailyShinsal(polarity: Polarity): number {
-  // 일진 신살은 단발이라 가중치 0.6 base. 강한 길흉은 +0.2.
-  const intensity = Math.abs(polarity) / 3   // 0~1
-  return 0.6 + intensity * 0.3
+/**
+ * 일진 신살 weight 계산.
+ *
+ * 정통 사주에서 신살은 격국·용신·십신의 보조 신호다. 따라서:
+ *  - base 는 등급별로 0.35 ~ 0.60 사이.
+ *  - 길흉 강도(polarity)는 등급 안에서 ±0.10 의 작은 보너스만 부여.
+ *
+ * 이전(2.x audit) 구현은 base 0.60 + intensity 0.30 으로 강한 신살이
+ * 일진 신호의 최상위로 떠올라 십신·격국을 압도하던 문제가 있었다.
+ */
+function weightForDailyShinsal(polarity: Polarity, grade: ShinsalGrade): number {
+  const base = GRADE_WEIGHT[grade]
+  const intensity = Math.abs(polarity) / 3   // 0 ~ 1
+  // classical-noble 만 강한 폴라리티에 +0.10 까지, 나머지는 +0.05 미만.
+  const polarityBonus = grade === 'classical-noble' ? intensity * 0.10 : intensity * 0.05
+  return Math.min(base + polarityBonus, 0.70)
 }
 
 /**
