@@ -4,7 +4,7 @@ import type {
   ImportantDate,
 } from '@/lib/destiny-map/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
-import type { DomainKey, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
+import type { DomainKey, MonthlyOverlapPoint } from '@/lib/calendar-engine/matrix/types'
 import type { MatrixCalendarContext } from './calendarMatrixTextSupport'
 import {
   GRADE_THRESHOLDS,
@@ -17,9 +17,9 @@ import {
   describeEvidenceConfidence,
   describeExecutionStance,
   describePhaseFlow,
-} from '@/lib/destiny-matrix/interpretation/humanSemantics'
-import type { CrossSystemTone } from '@/lib/destiny-matrix/interpretation/humanSemanticsConflictSupport'
-import { focusDomainFromCategory } from '@/lib/destiny-matrix/interpretation/humanSemanticsFocusDomain'
+} from '@/lib/calendar-engine/matrix/interpretation/humanSemantics'
+import type { CrossSystemTone } from '@/lib/calendar-engine/matrix/interpretation/humanSemanticsConflictSupport'
+import { focusDomainFromCategory } from '@/lib/calendar-engine/matrix/interpretation/humanSemanticsFocusDomain'
 import { sanitizeMatrixNarrativeLine } from './calendarMatrixTextSupport'
 import { clamp01 } from '@/lib/utils/math'
 import { dedupeTexts } from './textDedupe'
