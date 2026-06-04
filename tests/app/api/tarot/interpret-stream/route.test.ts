@@ -584,8 +584,12 @@ describe('POST /api/tarot/interpret-stream', () => {
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
       const text = await response.text()
 
-      // Should contain Korean text
-      expect(text).toContain('카드')
+      // Should contain Korean text. 이전엔 '카드' 를 기대했지만 현재 폴백
+      // 카피엔 그 단어가 없어 항상 실패하던 stale assertion 이었다. 실제로
+      // 렌더되는 한국어 문자열로 검증 — 카드 방향(정방향, 영문 'upright' 대응)
+      // 과 overall 안내 문구('크레딧').
+      expect(text).toContain('정방향')
+      expect(text).toContain('크레딧')
     })
 
     it('should return English fallback messages for en locale', async () => {

@@ -43,6 +43,9 @@ function TarotReadingPage() {
   const [interpretationFailed, setInterpretationFailed] = useState(false)
   const requestedInterpretationKeyRef = useRef<string | null>(null)
   const isInterpretationFetchingRef = useRef(false)
+  // 진행 중인 interpret-stream 요청의 abort 컨트롤러 — 재시도 시 이전 요청을
+  // 끊어 두 스트림이 동시에 도는 레이스를 막는다.
+  const interpretAbortRef = useRef<AbortController | null>(null)
 
   // Custom hooks
   const gameHook = useTarotGame()
@@ -125,8 +128,14 @@ function TarotReadingPage() {
     isInterpretationFetchingRef.current = true
     let cancelled = false
 
+    // 혹시 남아있는 이전 요청을 끊고 새 컨트롤러로 교체.
+    interpretAbortRef.current?.abort()
+    const abortController = new AbortController()
+    interpretAbortRef.current = abortController
+
     fetchInterpretation(readingResult, {
       idempotencyKey: readingSignature,
+      signal: abortController.signal,
       // 스트리밍 도중 overall 텍스트 누적분을 받아 즉시 UI 반영 (fallback=true 로 유지).
       onProgress: (snapshot) => {
         if (cancelled) return
@@ -248,8 +257,13 @@ function TarotReadingPage() {
     [gameHook, detailedSectionRef]
   )
 
+  // 동기 더블클릭 가드는 ref 로 — isSaving 은 state 라 같은 tick 의 두 번째
+  // 클릭이 stale false 를 읽어 가드를 통과, /api/tarot/save 가 2 번 POST 되던
+  // 문제. ref 는 즉시 반영되어 두 번째 호출을 막는다.
+  const isSavingRef = useRef(false)
   const handleSaveReading = useCallback(async () => {
-    if (isSaving || interpretationHook.isSaved) return
+    if (isSavingRef.current || interpretationHook.isSaved) return
+    isSavingRef.current = true
     setIsSaving(true)
     try {
       await interpretationHook.handleSaveReading(
@@ -258,9 +272,10 @@ function TarotReadingPage() {
         gameHook.interpretation
       )
     } finally {
+      isSavingRef.current = false
       setIsSaving(false)
     }
-  }, [interpretationHook, gameHook, isSaving])
+  }, [interpretationHook, gameHook])
 
   // 자동 저장 — interpretation 이 도착하면 (그리고 로그인 상태면) 사용자가
   // 버튼 안 눌러도 1회 POST. 그 다음 클래리파이어 / followup 채팅은
@@ -305,6 +320,9 @@ function TarotReadingPage() {
   // 이상 혹시 모를 잔여 캐시도 함께 지워서 항상 새 호출이 가도록 한다.
   const handleRetryInterpretation = useCallback(() => {
     if (!gameHook.readingResult) return
+    // 진행 중일 수 있는 이전 요청을 먼저 끊어 두 스트림 동시 실행을 방지.
+    interpretAbortRef.current?.abort()
+    interpretAbortRef.current = null
     setInterpretationFailed(false)
     requestedInterpretationKeyRef.current = null
     isInterpretationFetchingRef.current = false
