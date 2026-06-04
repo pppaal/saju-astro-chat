@@ -10,17 +10,34 @@ import {
   type HouseNumber,
   type HanjaStemLangEntry,
 } from '@/lib/chart-dictionary'
+import {
+  evalIdentity,
+  evalNeeds,
+  evalSocialRole,
+  evalFortune,
+  evalRelations,
+  evalStrength,
+  evalTemperament,
+  evalEnergyDirection,
+  evalPersona,
+  synthesize,
+  normSajuElement,
+  signToSajuElement,
+  dominantSajuElement,
+  dominantAstroElement,
+  dominantSibsinGroup,
+  type CrossVerdict,
+  type CrossTone,
+  type NatalSynthesis,
+} from '@/lib/destiny-map/natalCross'
+import { dignityOf } from '@/lib/astrology/foundation/dignities'
 
 /**
- * 차트 모달 Level 2 — 사주 ↔ 점성 교차 raw 표.
+ * 차트 모달 Level 2 — 사주 ↔ 점성 교차 표.
  *
- * 동양 (사주) raw 와 서양 (점성) raw 를 같은 영역끼리 좌/우 나란히 보여줌.
- * 비전공자가 "내 정체성·욕망·역할·흐름" 등 7 영역에서 두 시스템이 일치(동조)
- * 하는지 보완하는지 즉시 파악.
- *
- * 보완 (예: 일간 金 ↔ 태양 Earth — 다른 결을 채워줌) → gold 하이라이트.
- * 동조 (예: 격국 정관격 ↔ MC 염소자리 — 같은 결 강조) → checkmark.
- * (충돌 감지는 다음 PR — 일단 보완·동조만.)
+ * 9개 삶의 영역에서 동·서양을 교차해 동조/보완/긴장/중립을 판정하고,
+ * 각 행마다 "왜 그런지" 쉬운 말 한 줄 + 맨 위 종합 정체성 한 문장을 보여준다.
+ * 판정 로직·문구는 모두 @/lib/destiny-map/natalCross 에 있다 (DB 의존 없음).
  */
 interface CrossRefTableProps {
   saju: unknown
@@ -31,9 +48,13 @@ interface CrossRefTableProps {
 // ── Narrow shape interfaces (둘 다 /api/* 응답 또는 NatalContext 모두 수용) ──
 interface SajuLike {
   dayMaster?: { name?: string; element?: string }
+  // 오행 분포 — 한/영 키 혼용 가능 (목/wood 등). 기질 교차에 사용.
+  fiveElements?: Record<string, number>
   advancedAnalysis?: {
     geokguk?: { primary?: string }
     yongsin?: { primaryYongsin?: string }
+    // 신강약 분석 — details 가 십신 5그룹 분포(비겁/인성/식상/재성/관성).
+    strength?: { level?: string; details?: Record<string, number> }
   }
   table?: {
     byPillar?: {
@@ -62,6 +83,7 @@ interface AstroLike {
   }
   planets?: PlanetLike[]
   mc?: PlanetLike | { sign?: string; formatted?: string }
+  ascendant?: PlanetLike
   advanced?: {
     points?: PlanetLike[]
   }
@@ -69,28 +91,13 @@ interface AstroLike {
   chart?: {
     planets?: PlanetLike[]
     mc?: PlanetLike
+    ascendant?: PlanetLike
     extraPoints?: { partOfFortune?: { sign?: string; house?: number } }
   }
   extraPoints?: { partOfFortune?: { sign?: string; house?: number } }
 }
 
-// ── Element 매핑 (사주 오행 ↔ 서양 4원소) ─────────────────────────────────
-// 사주 5 원소 → 서양 4 원소 mapping (금 은 서양 4 원소에 대응 없음 — null).
-// 목 → Air, 화 → Fire, 토 → Earth, 수 → Water, 금 → null (매칭 X).
-// null 인 경우 동조/보완 판정에서 제외 — 5 원소 → 4 원소 정보 손실 방지.
-const SAJU_TO_WESTERN_ELEMENT: Record<string, 'fire' | 'earth' | 'air' | 'water' | null> = {
-  목: 'air',
-  화: 'fire',
-  토: 'earth',
-  금: null, // 금 (metal) 은 서양 4 원소에 직접 대응 X — 별도 분류
-  수: 'water',
-  wood: 'air',
-  fire: 'fire',
-  earth: 'earth',
-  metal: null,
-  water: 'water',
-}
-
+// ── 표시용 매핑 (우측 점성 값에 원소 라벨 붙이기) ───────────────────────────
 const SIGN_TO_WESTERN_ELEMENT: Record<string, 'fire' | 'earth' | 'air' | 'water'> = {
   // KO
   양자리: 'fire', 사자자리: 'fire', 사수자리: 'fire',
@@ -104,7 +111,7 @@ const SIGN_TO_WESTERN_ELEMENT: Record<string, 'fire' | 'earth' | 'air' | 'water'
   Cancer: 'water', Scorpio: 'water', Pisces: 'water',
 }
 
-/** 점성 sign 영문 → 한국어. API 가 영문만 반환해 KO 모드에서 비전공자에 어색. */
+/** 점성 sign 영문 → 한국어. */
 const SIGN_EN_TO_KO: Record<string, string> = {
   Aries: '양자리',
   Taurus: '황소자리',
@@ -119,8 +126,11 @@ const SIGN_EN_TO_KO: Record<string, string> = {
   Aquarius: '물병자리',
   Pisces: '물고기자리',
 }
+const SIGN_KO_EN: Record<string, string> = Object.fromEntries(
+  Object.entries(SIGN_EN_TO_KO).map(([en, ko]) => [ko, en]),
+)
 
-/** 4 원소 영문 → 한국어. KO 모드 친화. */
+/** 4 원소 영문 → 한국어. */
 const ELEMENT_EN_TO_KO: Record<string, string> = {
   fire: '불',
   earth: '흙',
@@ -128,7 +138,6 @@ const ELEMENT_EN_TO_KO: Record<string, string> = {
   water: '물',
 }
 
-/** sign 을 KO 모드면 한국어로, EN 모드면 영어 그대로. element 도 동일. */
 function localizeSign(sign: string | undefined, lang: 'ko' | 'en'): string {
   if (!sign) return ''
   if (lang === 'en') return sign
@@ -140,7 +149,50 @@ function localizeElement(el: string | undefined, lang: 'ko' | 'en'): string {
   return ELEMENT_EN_TO_KO[el] ?? el
 }
 
-// 격국 → 점성 MC sign "동조" (책임/표현/조화 등 결 일치). 단순 가시화 휴리스틱.
+// 강점 행 표시용 — 행성명·위신 라벨.
+const PLANET_DISPLAY: Record<string, { ko: string; en: string }> = {
+  Sun: { ko: '태양', en: 'Sun' },
+  Moon: { ko: '달', en: 'Moon' },
+  Mercury: { ko: '수성', en: 'Mercury' },
+  Venus: { ko: '금성', en: 'Venus' },
+  Mars: { ko: '화성', en: 'Mars' },
+  Jupiter: { ko: '목성', en: 'Jupiter' },
+  Saturn: { ko: '토성', en: 'Saturn' },
+}
+const DIGNITY_LABEL: Record<string, { ko: string; en: string }> = {
+  domicile: { ko: '입궁', en: 'Domicile' },
+  exaltation: { ko: '고양', en: 'Exaltation' },
+}
+// 5원소·십신그룹 표시 라벨.
+const SAJU_EL_LABEL: Record<string, { ko: string; en: string }> = {
+  wood: { ko: '목(나무)', en: 'Wood' },
+  fire: { ko: '화(불)', en: 'Fire' },
+  earth: { ko: '토(흙)', en: 'Earth' },
+  metal: { ko: '금(쇠)', en: 'Metal' },
+  water: { ko: '수(물)', en: 'Water' },
+}
+const SIBSIN_GROUP_LABEL: Record<string, { ko: string; en: string }> = {
+  비겁: { ko: '주체성', en: 'Independence' },
+  식상: { ko: '표현', en: 'Expression' },
+  재성: { ko: '실리', en: 'Practicality' },
+  관성: { ko: '책임', en: 'Duty' },
+  인성: { ko: '배움', en: 'Learning' },
+}
+
+function dominantElementLabel(counts: Record<string, number> | undefined, lang: Lang): string | undefined {
+  const el = dominantSajuElement(counts)
+  return el ? SAJU_EL_LABEL[el][lang] : undefined
+}
+function dominantAstroElementLabel(signs: string[], lang: Lang): string | undefined {
+  const el = dominantAstroElement(signs)
+  return el ? SAJU_EL_LABEL[el][lang] : undefined
+}
+function dominantGroupLabel(details: Record<string, number> | undefined, lang: Lang): string | undefined {
+  const g = dominantSibsinGroup(details)
+  return g ? SIBSIN_GROUP_LABEL[g]?.[lang] ?? g : undefined
+}
+
+// 격국 → 점성 MC sign "동조" 폴백 휴리스틱 (평가기 매핑 미해당 시).
 const GEOKGUK_RESONANT_SIGNS: Record<string, string[]> = {
   정관격: ['염소자리', 'Capricorn', '천칭자리', 'Libra'],
   편관격: ['전갈자리', 'Scorpio', '양자리', 'Aries'],
@@ -180,25 +232,87 @@ function getPof(astro: AstroLike): { sign?: string; house?: number } | undefined
   return astro.extraPoints?.partOfFortune ?? astro.chart?.extraPoints?.partOfFortune
 }
 
+function getAllPlanets(astro: AstroLike): PlanetLike[] {
+  for (const list of [astro.chartData?.planets, astro.planets, astro.chart?.planets]) {
+    if (Array.isArray(list) && list.length > 0) return list
+  }
+  return []
+}
+
+function getAscSign(astro: AstroLike): string | undefined {
+  return astro.chartData?.ascendant?.sign ?? astro.ascendant?.sign ?? astro.chart?.ascendant?.sign
+}
+
+// 점성 aspect 배열에서 조화각(trine·sextile) / 긴장각(square·opposition) 개수.
+function countAspectTones(aspects: unknown[]): { harmonious: number; hard: number } {
+  let harmonious = 0
+  let hard = 0
+  for (const a of aspects) {
+    const t = (
+      (a as { type?: string; aspect?: string; name?: string })?.type ??
+      (a as { aspect?: string })?.aspect ??
+      (a as { name?: string })?.name ??
+      ''
+    ).toLowerCase()
+    if (t === 'trine' || t === 'sextile') harmonious++
+    else if (t === 'square' || t === 'opposition') hard++
+  }
+  return { harmonious, hard }
+}
+
+// 차트 행성 중 essential dignity 가 가장 강한 것(입궁·고양).
+function findTopDignity(astro: AstroLike): { planet: string; status: string } | null {
+  for (const p of getAllPlanets(astro)) {
+    if (!p?.name || !p?.sign) continue
+    const en = SIGN_KO_EN[p.sign] ?? p.sign
+    const status = dignityOf(p.name, en)
+    if (status === 'domicile' || status === 'exaltation') return { planet: p.name, status }
+  }
+  return null
+}
+
+// 차트에서 "강조된" 행성 — 앵귤러 하우스(1·4·7·10) 또는 dignity(입궁·고양).
+function emphasizedPlanets(astro: AstroLike): Set<string> {
+  const out = new Set<string>()
+  const ANGLES = new Set([1, 4, 7, 10])
+  for (const p of getAllPlanets(astro)) {
+    if (!p?.name) continue
+    if (typeof p.house === 'number' && ANGLES.has(p.house)) out.add(p.name)
+    if (p.sign) {
+      const en = SIGN_KO_EN[p.sign] ?? p.sign
+      const status = dignityOf(p.name, en)
+      if (status === 'domicile' || status === 'exaltation') out.add(p.name)
+    }
+  }
+  return out
+}
+
 // ── Row 데이터 모델 ──────────────────────────────────────────────────────
-type RowTone = 'neutral' | 'complement' | 'resonant'
+type RowTone = CrossTone
 
 interface CrossRow {
-  category: string // "정체성" / "필요" 등
-  leftLabel: string // "일간" / "용신"
-  leftValue: string // "辛 (음·금)"
-  leftHint?: string // 한자 의미 / tagline (mouseover 용 — title 속성)
-  rightLabel: string // "태양 sign" / "달 sign"
-  rightValue: string // "Virgo (Earth)"
+  category: string
+  leftLabel: string
+  leftValue: string
+  leftHint?: string
+  rightLabel: string
+  rightValue: string
   rightHint?: string
   tone: RowTone
+  reason?: string // 교차 판정의 근거 한 줄 (쉬운 말)
 }
 
 // ── Row 빌더 ───────────────────────────────────────────────────────────
-function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
+function buildRows(
+  saju: SajuLike,
+  astro: AstroLike,
+  lang: Lang,
+): { rows: CrossRow[]; synthesis: NatalSynthesis | null } {
   const rows: CrossRow[] = []
+  const verdicts: CrossVerdict[] = []
+  let sharedElement: ReturnType<typeof normSajuElement> = undefined
 
-  // 1. 정체성: 일간 ↔ 태양 sign
+  // 1. 정체성: 일간 ↔ 태양
   {
     const dm = saju.dayMaster?.name
     const sun = findPlanet(astro, 'Sun')
@@ -209,10 +323,12 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
       const leftValue = stem
         ? `${dm} (${stem.yinYang}·${stem.element})`
         : `${dm}${dmEl ? ` (${dmEl})` : ''}`
-      const sajuWest = dmEl ? SAJU_TO_WESTERN_ELEMENT[dmEl] : undefined
       const sunWest = SIGN_TO_WESTERN_ELEMENT[sun.sign]
-      const tone: RowTone =
-        sajuWest && sunWest ? (sajuWest === sunWest ? 'resonant' : 'complement') : 'neutral'
+      const verdict = evalIdentity(dmEl, sun.sign)
+      if (verdict) verdicts.push(verdict)
+      const dmSaju = normSajuElement(dmEl)
+      const sunSaju = signToSajuElement(sun.sign)
+      if (dmSaju && dmSaju === sunSaju) sharedElement = dmSaju
       rows.push({
         category: lang === 'ko' ? '정체성' : 'Identity',
         leftLabel: lang === 'ko' ? '일간 (나)' : 'Day Master',
@@ -223,20 +339,20 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
           ? `${localizeSign(sun.sign, lang)} (${localizeElement(sunWest, lang)})`
           : localizeSign(sun.sign, lang),
         rightHint: getPlanetCore('Sun', lang)?.principle,
-        tone,
+        tone: verdict?.tone ?? 'neutral',
+        reason: verdict?.reason[lang],
       })
     }
   }
 
-  // 2. 필요/욕망: 용신 ↔ 달 sign
+  // 2. 필요/욕망: 용신 ↔ 달
   {
     const yongsin = saju.advancedAnalysis?.yongsin?.primaryYongsin
     const moon = findPlanet(astro, 'Moon')
     if (yongsin && moon?.sign) {
-      const yongWest = SAJU_TO_WESTERN_ELEMENT[yongsin]
       const moonWest = SIGN_TO_WESTERN_ELEMENT[moon.sign]
-      const tone: RowTone =
-        yongWest && moonWest && yongWest === moonWest ? 'complement' : 'neutral'
+      const verdict = evalNeeds(yongsin, moon.sign)
+      if (verdict) verdicts.push(verdict)
       rows.push({
         category: lang === 'ko' ? '필요·욕망' : 'Needs',
         leftLabel: lang === 'ko' ? '용신 (필요 원소)' : 'Yongsin',
@@ -246,19 +362,23 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
           ? `${localizeSign(moon.sign, lang)} (${localizeElement(moonWest, lang)})`
           : localizeSign(moon.sign, lang),
         rightHint: getPlanetCore('Moon', lang)?.principle,
-        tone,
+        tone: verdict?.tone ?? 'neutral',
+        reason: verdict?.reason[lang],
       })
     }
   }
 
-  // 3. 사회 역할: 격국 ↔ MC sign
+  // 3. 사회 역할: 격국 ↔ MC
   {
     const geokguk = saju.advancedAnalysis?.geokguk?.primary
     const mc = getMc(astro)
     if (geokguk && mc?.sign) {
       const taglineEntry = getGeokgukRich(geokguk, lang)
-      const resonantList = GEOKGUK_RESONANT_SIGNS[geokguk]
-      const tone: RowTone = resonantList?.includes(mc.sign) ? 'resonant' : 'neutral'
+      const verdict = evalSocialRole(geokguk, mc.sign)
+      if (verdict) verdicts.push(verdict)
+      const fallbackTone: RowTone = GEOKGUK_RESONANT_SIGNS[geokguk]?.includes(mc.sign)
+        ? 'resonant'
+        : 'neutral'
       rows.push({
         category: lang === 'ko' ? '사회 역할' : 'Social Role',
         leftLabel: lang === 'ko' ? '격국' : 'Geokguk',
@@ -266,12 +386,13 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         leftHint: taglineEntry?.tagline,
         rightLabel: lang === 'ko' ? 'MC (천직)' : 'MC',
         rightValue: localizeSign(mc.sign, lang),
-        tone,
+        tone: verdict?.tone ?? fallbackTone,
+        reason: verdict?.reason[lang],
       })
     }
   }
 
-  // 5. 길흉: 12신살 (일주) ↔ POF house
+  // 4. 길흉: 일주 신살 ↔ 행운점
   {
     const dayCell = saju.table?.byPillar?.day
     const luckySource = dayCell?.shinsal ?? []
@@ -280,14 +401,14 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
     if (lucky.length > 0 || pof?.house || pof?.sign) {
       const right =
         pof && (pof.house || pof.sign)
-          ? `${pof.sign ? localizeSign(pof.sign, lang) : ''}${
-              pof.house ? ` ${pof.house}H` : ''
-            }`.trim()
+          ? `${pof.sign ? localizeSign(pof.sign, lang) : ''}${pof.house ? ` ${pof.house}H` : ''}`.trim()
           : lang === 'ko' ? '아직 없음' : 'N/A'
       const houseHint =
         pof?.house && pof.house >= 1 && pof.house <= 12
           ? getHouseRich(pof.house as HouseNumber, lang)?.domain
           : undefined
+      const verdict = evalFortune(lucky)
+      if (verdict) verdicts.push(verdict)
       rows.push({
         category: lang === 'ko' ? '길흉' : 'Fortune',
         leftLabel: lang === 'ko' ? '12 신살 (일주)' : 'Sinsal (day)',
@@ -295,12 +416,13 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         rightLabel: lang === 'ko' ? '행운점 (POF)' : 'Part of Fortune',
         rightValue: right,
         rightHint: houseHint,
-        tone: 'neutral',
+        tone: verdict?.tone ?? 'neutral',
+        reason: verdict?.reason[lang],
       })
     }
   }
 
-  // 6. 관계: 합/충 (사주 내) ↔ 주요 aspect (개수)
+  // 5. 관계: 합/충 ↔ aspect 조화/긴장
   {
     const relations = saju.relations ?? []
     const aspects = Array.isArray(astro.aspects) ? astro.aspects : []
@@ -310,6 +432,9 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
       const leftParts: string[] = []
       if (hapCount > 0) leftParts.push(lang === 'ko' ? `합 ${hapCount}` : `${hapCount} hap`)
       if (chungCount > 0) leftParts.push(lang === 'ko' ? `충 ${chungCount}` : `${chungCount} chung`)
+      const { harmonious, hard } = countAspectTones(aspects)
+      const verdict = evalRelations(hapCount, chungCount, harmonious, hard)
+      if (verdict) verdicts.push(verdict)
       rows.push({
         category: lang === 'ko' ? '관계' : 'Relations',
         leftLabel: lang === 'ko' ? '합·충 (사주 내)' : 'Hap/Chung',
@@ -318,45 +443,115 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         rightValue:
           aspects.length > 0
             ? lang === 'ko'
-              ? `${aspects.length}개`
-              : `${aspects.length}`
+              ? `조화 ${harmonious} · 긴장 ${hard}`
+              : `${harmonious} soft · ${hard} hard`
             : lang === 'ko' ? '아직 없음' : 'N/A',
-        tone: 'neutral',
+        tone: verdict?.tone ?? 'neutral',
+        reason: verdict?.reason[lang],
       })
     }
   }
 
-  // 7. 강점: 12운성 (일주) ↔ 행성 dignity (강한 것)
+  // 6. 강점: 12운성 ↔ 가장 위신 높은 행성
   {
     const stage = saju.table?.byPillar?.day?.twelveStage
-    // dignity 강세 표시 — 데이터 없으므로 N/A.
-    if (stage) {
+    const topDignity = findTopDignity(astro)
+    if (stage || topDignity) {
+      const verdict = evalStrength(stage, topDignity)
+      if (verdict) verdicts.push(verdict)
+      const rightValue = topDignity
+        ? `${PLANET_DISPLAY[topDignity.planet]?.[lang] ?? topDignity.planet} (${DIGNITY_LABEL[topDignity.status]?.[lang] ?? topDignity.status})`
+        : lang === 'ko' ? '뚜렷한 강세 없음' : 'No standout'
       rows.push({
         category: lang === 'ko' ? '강점' : 'Strength',
         leftLabel: lang === 'ko' ? '12 운성 (일주)' : 'Twelve Stage',
-        leftValue: stage,
+        leftValue: stage ?? (lang === 'ko' ? '아직 없음' : 'N/A'),
         rightLabel: lang === 'ko' ? '행성 위신' : 'Planet dignity',
-        rightValue: lang === 'ko' ? '아직 없음' : 'N/A',
-        tone: 'neutral',
+        rightValue,
+        tone: verdict?.tone ?? 'neutral',
+        reason: verdict?.reason[lang],
       })
     }
   }
 
-  return rows
+  // 7. 기질: 오행 분포(전체) ↔ 점성 원소 분포(전체)
+  {
+    const sajuCounts = saju.fiveElements
+    const planets = getAllPlanets(astro)
+    const astroSigns = planets.map((p) => p.sign).filter((s): s is string => !!s)
+    const verdict = evalTemperament(sajuCounts, astroSigns)
+    if (verdict) {
+      verdicts.push(verdict)
+      rows.push({
+        category: lang === 'ko' ? '기질' : 'Temperament',
+        leftLabel: lang === 'ko' ? '오행 분포' : 'Five-element mix',
+        leftValue: dominantElementLabel(sajuCounts, lang) ?? (lang === 'ko' ? '아직 없음' : 'N/A'),
+        rightLabel: lang === 'ko' ? '원소 분포' : 'Element mix',
+        rightValue: dominantAstroElementLabel(astroSigns, lang) ?? (lang === 'ko' ? '아직 없음' : 'N/A'),
+        tone: verdict.tone,
+        reason: verdict.reason[lang],
+      })
+    }
+  }
+
+  // 8. 에너지 방향: 십신 우세 그룹(전체) ↔ 강조된 행성
+  {
+    const details = saju.advancedAnalysis?.strength?.details
+    const emphasized = emphasizedPlanets(astro)
+    const verdict = evalEnergyDirection(details, emphasized)
+    if (verdict) {
+      verdicts.push(verdict)
+      rows.push({
+        category: lang === 'ko' ? '에너지 방향' : 'Energy',
+        leftLabel: lang === 'ko' ? '십신 우세' : 'Ten-god lead',
+        leftValue: dominantGroupLabel(details, lang) ?? (lang === 'ko' ? '아직 없음' : 'N/A'),
+        rightLabel: lang === 'ko' ? '강조 행성' : 'Emphasis',
+        rightValue:
+          [...emphasized]
+            .map((p) => PLANET_DISPLAY[p]?.[lang] ?? p)
+            .slice(0, 3)
+            .join(' · ') || (lang === 'ko' ? '뚜렷한 강조 없음' : 'None'),
+        tone: verdict.tone,
+        reason: verdict.reason[lang],
+      })
+    }
+  }
+
+  // 9. 드러나는 나: 일간(본질) ↔ ASC(첫인상)
+  {
+    const dmEl = saju.dayMaster?.element
+    const ascSign = getAscSign(astro)
+    const verdict = evalPersona(dmEl, ascSign)
+    if (verdict) {
+      verdicts.push(verdict)
+      rows.push({
+        category: lang === 'ko' ? '드러나는 나' : 'Persona',
+        leftLabel: lang === 'ko' ? '일간 (본질)' : 'Day Master',
+        leftValue: saju.dayMaster?.name ?? (lang === 'ko' ? '아직 없음' : 'N/A'),
+        rightLabel: lang === 'ko' ? 'ASC (첫인상)' : 'Ascendant',
+        rightValue: ascSign ? localizeSign(ascSign, lang) : lang === 'ko' ? '아직 없음' : 'N/A',
+        tone: verdict.tone,
+        reason: verdict.reason[lang],
+      })
+    }
+  }
+
+  const synthesis = synthesize(verdicts, sharedElement)
+  return { rows, synthesis }
 }
 
 // ── Tone 별 styling ─────────────────────────────────────────────────────
 function toneStyle(tone: RowTone): { background: string; border: string } {
-  if (tone === 'complement') {
+  if (tone === 'complement' || tone === 'resonant') {
     return {
       background: 'rgba(212, 181, 114, 0.08)',
       border: '1px solid rgba(212, 181, 114, 0.35)',
     }
   }
-  if (tone === 'resonant') {
+  if (tone === 'tension') {
     return {
-      background: 'rgba(212, 181, 114, 0.08)',
-      border: '1px solid rgba(212, 181, 114, 0.35)',
+      background: 'rgba(248, 113, 113, 0.07)',
+      border: '1px solid rgba(248, 113, 113, 0.32)',
     }
   }
   return {
@@ -368,12 +563,17 @@ function toneStyle(tone: RowTone): { background: string; border: string } {
 function toneBadge(tone: RowTone, lang: Lang): string | null {
   if (tone === 'complement') return lang === 'ko' ? '보완' : 'complement'
   if (tone === 'resonant') return lang === 'ko' ? '동조 ✓' : 'resonant ✓'
+  if (tone === 'tension') return lang === 'ko' ? '긴장 ⚡' : 'tension ⚡'
   return null
 }
 
+function toneBadgeColor(tone: RowTone): string {
+  if (tone === 'tension') return 'rgba(248, 113, 113, 0.95)'
+  if (tone === 'complement') return 'var(--ds-gold-on-dark)'
+  return 'rgba(167, 139, 250, 0.95)'
+}
+
 // ── 용어 정의 사전 ──────────────────────────────────────────────────────
-// 비전공자가 모르는 동·서양 차트 전문 용어를 한 줄 정의로 노출.
-// `row.leftLabel` / `row.rightLabel` 의 문자열과 정확히 일치해야 매핑됨.
 const TERM_DEFINITION_KO: Record<string, string> = {
   '일간 (나)': '사주 4 기둥 중 태어난 날의 천간 — 나 자신을 대표하는 한 글자.',
   '용신 (필요 원소)': '사주의 균형을 잡아주는 핵심 원소 — 인생의 보약 같은 존재.',
@@ -387,6 +587,10 @@ const TERM_DEFINITION_KO: Record<string, string> = {
   '태양 별자리': '태어난 순간 태양이 머문 별자리 — 핵심 자아·정체성.',
   '달 별자리': '태어난 순간 달이 머문 별자리 — 감정·내면의 필요.',
   '행성 위신': '행성이 자기 별자리에 있을 때 가지는 힘 — dignity (입묘·격락 등).',
+  '오행 분포': '사주 여덟 글자에 목·화·토·금·수가 각각 얼마나 있는지 — 타고난 기질의 균형.',
+  '십신 우세': '사주에서 가장 강한 에너지 방향 (책임·실리·배움·표현·주체성 중 하나).',
+  '일간 (본질)': '태어난 날의 천간 — 꾸미지 않은 속 모습.',
+  'ASC (첫인상)': '태어난 순간 동쪽 지평선의 별자리 — 남에게 비치는 첫인상.',
 }
 const TERM_DEFINITION_EN: Record<string, string> = {
   'Day Master': "The day-of-birth heavenly stem — your core 'I' character.",
@@ -401,12 +605,11 @@ const TERM_DEFINITION_EN: Record<string, string> = {
   'Sun sign': 'The zodiac the Sun was in at birth — core identity.',
   'Moon sign': 'The zodiac the Moon was in at birth — emotions and inner needs.',
   'Planet dignity': 'A planet’s strength based on the sign it sits in.',
+  'Five-element mix': 'How much of each element (Wood/Fire/Earth/Metal/Water) your chart holds.',
+  'Ten-god lead': 'Your strongest drive (duty, practicality, learning, expression, or independence).',
+  Ascendant: 'The sign rising at birth — the first impression you give.',
 }
 
-/**
- * 용어 옆에 작은 ⓘ 아이콘 — tap (모바일) / hover (데스크탑) 시 popover.
- * `title` 속성은 모바일에서 dead 라서 직접 popover 를 띄움.
- */
 function TermHint({ term, definition }: { term: string; definition: string }) {
   const [open, setOpen] = React.useState(false)
   return (
@@ -445,7 +648,6 @@ function TermHint({ term, definition }: { term: string; definition: string }) {
   )
 }
 
-/** 라벨 → 해당 lang 의 정의 lookup. 없으면 undefined. */
 function lookupDefinition(label: string, lang: Lang): string | undefined {
   const dict = lang === 'ko' ? TERM_DEFINITION_KO : TERM_DEFINITION_EN
   return dict[label]
@@ -454,7 +656,7 @@ function lookupDefinition(label: string, lang: Lang): string | undefined {
 // ── Component ──────────────────────────────────────────────────────────
 export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) {
   if (!saju || !astro) return null
-  const rows = buildRows(saju as SajuLike, astro as AstroLike, lang)
+  const { rows, synthesis } = buildRows(saju as SajuLike, astro as AstroLike, lang)
   if (rows.length === 0) return null
 
   return (
@@ -471,15 +673,42 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
         </div>
         <p className="text-[11px] leading-snug" style={{ color: 'var(--ds-dark-text-muted)' }}>
           {lang === 'ko'
-            ? '같은 영역을 두 시스템에서 어떻게 보는지 — 금색 박스(✓)는 두 시스템이 같은 결을 가리킬 때 표시돼요.'
-            : 'How each life area looks in both systems — gold boxes (✓) mark where they point to the same thing.'}
+            ? '같은 영역을 사주와 별자리가 어떻게 보는지 — 둘이 같은 결을 가리키면 동조, 다르게 채워주면 보완, 서로 당기면 긴장이에요.'
+            : 'How each life area looks in both systems — same direction = resonant, fills a gap = complement, pulls apart = tension.'}
         </p>
         <p className="text-[10px] leading-snug" style={{ color: 'var(--ds-dark-text-muted)' }}>
           {lang === 'ko'
-            ? '📍 보완 = 부족한 결을 채움 · 동조 = 두 시스템이 같은 결 강조'
-            : "💡 complement = fills in what's missing · resonant = both point to same direction"}
+            ? '📍 동조 = 같은 결 강조 · 보완 = 부족한 결 채움 · 긴장 = 서로 당김'
+            : '💡 resonant = same direction · complement = fills the gap · tension = pulling against'}
         </p>
       </div>
+
+      {/* 종합 정체성 — 동·서 교차를 한 문장으로 요약 */}
+      {synthesis && (
+        <div
+          className="rounded-xl px-3 py-2.5"
+          style={{
+            background:
+              synthesis.tone === 'tension'
+                ? 'rgba(248, 113, 113, 0.08)'
+                : 'rgba(212, 181, 114, 0.10)',
+            border:
+              synthesis.tone === 'tension'
+                ? '1px solid rgba(248, 113, 113, 0.30)'
+                : '1px solid rgba(212, 181, 114, 0.30)',
+          }}
+        >
+          <div
+            className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider"
+            style={{ color: 'var(--ds-gold-on-dark)' }}
+          >
+            {lang === 'ko' ? '🧬 종합 정체성' : '🧬 Identity synthesis'}
+          </div>
+          <p className="text-xs leading-snug sm:text-[13px]" style={{ color: 'var(--ds-dark-text)' }}>
+            {synthesis.text[lang]}
+          </p>
+        </div>
+      )}
 
       <ul className="space-y-1.5">
         {rows.map((row, idx) => {
@@ -491,7 +720,6 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
               className="relative rounded-lg px-3 py-2"
               style={{ background: style.background, border: style.border }}
             >
-              {/* 카테고리 칩 + tone 배지 (우상단) */}
               <div className="mb-1 flex items-center justify-between">
                 <span
                   className="rounded-full px-2 py-0.5 text-[10px] font-medium"
@@ -504,30 +732,15 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
                   {row.category}
                 </span>
                 {badge && (
-                  <span
-                    className="text-[10px] font-medium"
-                    style={{
-                      color:
-                        row.tone === 'complement'
-                          ? 'var(--ds-gold-on-dark)'
-                          : 'rgba(167, 139, 250, 0.95)',
-                    }}
-                  >
+                  <span className="text-[10px] font-medium" style={{ color: toneBadgeColor(row.tone) }}>
                     {badge}
                   </span>
                 )}
               </div>
 
-              {/* 좌 (사주) ↔ 우 (점성) */}
-              <div
-                className="grid items-start gap-2"
-                style={{ gridTemplateColumns: '1fr auto 1fr' }}
-              >
+              <div className="grid items-start gap-2" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
                 <div className="min-w-0">
-                  <div
-                    className="text-[10px]"
-                    style={{ color: 'var(--ds-dark-text-muted)' }}
-                  >
+                  <div className="text-[10px]" style={{ color: 'var(--ds-dark-text-muted)' }}>
                     {lookupDefinition(row.leftLabel, lang) ? (
                       <TermHint
                         term={row.leftLabel}
@@ -555,10 +768,7 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
                 </div>
 
                 <div className="min-w-0 text-right">
-                  <div
-                    className="text-[10px]"
-                    style={{ color: 'var(--ds-dark-text-muted)' }}
-                  >
+                  <div className="text-[10px]" style={{ color: 'var(--ds-dark-text-muted)' }}>
                     {lookupDefinition(row.rightLabel, lang) ? (
                       <TermHint
                         term={row.rightLabel}
@@ -577,6 +787,16 @@ export function CrossRefTable({ saju, astro, lang = 'ko' }: CrossRefTableProps) 
                   </div>
                 </div>
               </div>
+
+              {/* 교차 판정의 근거 한 줄 — 쉬운 말 */}
+              {row.reason && (
+                <p
+                  className="mt-1.5 border-t pt-1.5 text-[11px] leading-snug"
+                  style={{ color: 'var(--ds-dark-text-muted)', borderColor: 'rgba(212, 181, 114, 0.15)' }}
+                >
+                  {row.reason}
+                </p>
+              )}
             </li>
           )
         })}
