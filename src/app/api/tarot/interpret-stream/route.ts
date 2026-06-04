@@ -309,12 +309,31 @@ export async function POST(req: NextRequest) {
           : context.locale === 'en'
             ? 'en'
             : 'ko'
-    const rawCards = body.cards
     // sanitizeForXmlTagBoundary strips `<`/`>` from attacker-controlled
     // question text so it can't fake server tags. The current tarot
     // prompt template uses markdown headers (no XML wrappers), but this
     // matches the rest of the LLM routes — defense in depth.
     const userQuestion = sanitizeForXmlTagBoundary((body.userQuestion || '').trim())
+
+    // 카드 필드도 클라이언트가 보내는 *공격자 제어* 값이다. 직전엔 userQuestion
+    // 만 걸러서, 카드 name/nameKo/keywords/position 에 프롬프트 인젝션 텍스트를
+    // 넣으면 renderCardList(promptBuild.ts)가 그대로 LLM 프롬프트에 박아넣던
+    // 구멍이 있었다. followup 라우트는 이미 카드 필드를 sanitize 하는데 이
+    // 라우트만 누락 — 동일하게 모든 자유 텍스트 필드를 거른다(isReversed 는
+    // boolean 이라 안전). 아래 buildInterpretStreamPrompts / buildFallbackPayload
+    // 둘 다 이 sanitize 된 배열을 사용한다.
+    const sani = (s?: string) => (s ? sanitizeForXmlTagBoundary(s) : s)
+    const rawCards = body.cards.map((c) => ({
+      ...c,
+      name: sanitizeForXmlTagBoundary(c.name),
+      nameKo: sani(c.nameKo),
+      position: sani(c.position),
+      positionKo: sani(c.positionKo),
+      positionMeaning: sani(c.positionMeaning),
+      positionMeaningKo: sani(c.positionMeaningKo),
+      keywords: c.keywords?.map((k) => sanitizeForXmlTagBoundary(k)),
+      keywordsKo: c.keywordsKo?.map((k) => sanitizeForXmlTagBoundary(k)),
+    }))
 
     // 끊김 복구용 turnId. 로그인 사용자(context.userId) + turnId 가 둘 다
     // 있을 때만 "복구 가능한 턴". counselor 와 동일하게 slice(0,80).
