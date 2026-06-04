@@ -982,8 +982,8 @@ describe('Calendar API Route - /api/calendar', () => {
         expect.any(String),
         'solar',
         'America/New_York',
-        undefined,
-        expect.any(Number)
+        undefined, // lunarLeap
+        expect.any(Number) // 진태양시 보정용 경도 (coords.lng)
       )
     })
   })
@@ -1004,8 +1004,8 @@ describe('Calendar API Route - /api/calendar', () => {
         'female',
         'solar',
         'Asia/Seoul',
-        undefined,
-        expect.any(Number)
+        undefined, // lunarLeap
+        expect.any(Number) // 진태양시 보정용 경도 (coords.lng)
       )
     })
 
@@ -1063,8 +1063,8 @@ describe('Calendar API Route - /api/calendar', () => {
         'male',
         'solar',
         expect.any(String),
-        undefined,
-        expect.any(Number)
+        undefined, // lunarLeap
+        expect.any(Number) // 진태양시 보정용 경도 (coords.lng)
       )
     })
   })
