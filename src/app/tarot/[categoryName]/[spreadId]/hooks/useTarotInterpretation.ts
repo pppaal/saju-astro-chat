@@ -224,6 +224,8 @@ function parseStreamedInterpretation(
     overall?: string
     advice?: string
     cards?: Array<{ position?: string; interpretation?: string }>
+    // 서버 정적 폴백 마커 — true 면 진짜 LLM 리딩이 아니라 서비스 실패 폴백.
+    degraded?: boolean
   }
   let parsed: ParsedShape
   try {
@@ -238,6 +240,12 @@ function parseStreamedInterpretation(
     }
   }
   const parsedCards = Array.isArray(parsed.cards) ? parsed.cards : []
+
+  // 서버 정적 폴백(degraded:true)이면 진짜 리딩이 아니다 — fallback:true +
+  // emergency_fallback 으로 표시해 페이지가 실패로 처리(재시도 노출 + 캐시
+  // skip)하게 한다. 직전엔 fallback:false 로 하드코딩돼 에러 폴백이 진짜
+  // 리딩처럼 렌더되고 캐시까지 됐다(새로고침해도 에러문구가 "내 리딩"으로).
+  const isDegradedFallback = parsed.degraded === true
 
   return {
     overall_message: parsed.overall || '',
@@ -261,8 +269,8 @@ function parseStreamedInterpretation(
     guidance:
       parsed.advice || (isKorean ? '카드의 메시지에 귀 기울여보세요.' : 'Listen to the cards.'),
     affirmation: isKorean ? '오늘 하루도 나답게 가면 돼요.' : 'Just be yourself today.',
-    fallback: false,
-    interpretation_source: 'stream_sse_fallback',
+    fallback: isDegradedFallback,
+    interpretation_source: isDegradedFallback ? 'emergency_fallback' : 'stream_sse_fallback',
   }
 }
 
