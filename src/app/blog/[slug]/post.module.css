@@ -79,9 +79,15 @@
 }
 
 .headerIcon {
-  font-size: 72px;
-  margin-bottom: 24px;
-  filter: drop-shadow(0 4px 20px rgba(136, 179, 247, 0.4));
+  width: min(440px, 100%);
+  height: 184px;
+  margin: 0 auto 24px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  border: 1px solid rgba(232, 204, 138, 0.18);
+  background: linear-gradient(135deg, rgba(193, 155, 86, 0.12) 0%, rgba(160, 122, 60, 0.06) 100%);
+  filter: drop-shadow(0 8px 30px rgba(160, 122, 60, 0.25));
 }
 
 .category {
@@ -328,8 +334,13 @@
 }
 
 .relatedIcon {
-  font-size: 36px;
+  display: block;
+  width: 100%;
+  height: 88px;
   margin-bottom: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(232, 204, 138, 0.14);
 }
 
 .relatedCardTitle {
@@ -447,7 +458,7 @@
   }
 
   .headerIcon {
-    font-size: 56px;
+    height: 156px;
     margin-bottom: 18px;
   }
 
@@ -599,7 +610,7 @@
   }
 
   .headerIcon {
-    font-size: 48px;
+    height: 132px;
     margin-bottom: 14px;
   }
 

@@ -15,7 +15,7 @@
 import { Chart, ZodiacKo } from "./types";
 import { shortestAngle, formatLongitude, ZODIAC_SIGNS } from "./utils";
 import { getSwisseph } from "./ephe";
-import { extractSwissLongitude, getSwissEphFlags } from "./shared";
+import { extractSwissLongitude, getSwissEphFlags, findHouseForLongitude } from "./shared";
 import { logger } from "@/lib/logger";
 
 export interface Eclipse {
@@ -392,22 +392,10 @@ export function findEclipseImpact(
   const allPoints = [...chart.planets, chart.ascendant, chart.mc];
 
   for (const eclipse of list) {
-    // 이클립스가 떨어지는 하우스 찾기
-    let eclipseHouse = 1;
-    for (let i = 0; i < 12; i++) {
-      const nextI = (i + 1) % 12;
-      const cusp = chart.houses[i].cusp;
-      let nextCusp = chart.houses[nextI].cusp;
-
-      if (nextCusp < cusp) {nextCusp += 360;}
-      let testLon = eclipse.longitude;
-      if (testLon < cusp) {testLon += 360;}
-
-      if (testLon >= cusp && testLon < nextCusp) {
-        eclipseHouse = i + 1;
-        break;
-      }
-    }
+    // 이클립스가 떨어지는 하우스 — 단일 진실 소스(findHouseForLongitude)로 위임.
+    // 옛 코드는 cusp 루프를 재구현하고 미매칭 시 house 1 을 날조했는데, 이제
+    // 공유 헬퍼가 미매칭 시 UNKNOWN_HOUSE(0) + logger.warn 으로 관측 가능하게 한다.
+    const eclipseHouse = findHouseForLongitude(eclipse.longitude, chart.houses);
 
     for (const point of allPoints) {
       const diff = shortestAngle(point.longitude, eclipse.longitude);

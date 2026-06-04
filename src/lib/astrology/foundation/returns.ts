@@ -65,7 +65,13 @@ function findSunAtLongitude(
 }
 
 /**
- * 특정 경도에 달이 도달하는 정확한 시간 찾기 (이분법)
+ * 특정 경도에 달이 도달하는 정확한 시간 찾기.
+ *
+ * 달은 ~13°/일 로 빨라서 32일 검색창 안에서 target 을 여러 번 지나친다 →
+ * signed angular diff 가 단조가 아니므로 전체 구간 단순 이분법은 엉뚱한 교차
+ * (또는 비근)에 수렴할 수 있었다. 그래서 (1) 거친 스캔으로 "달이 target 에
+ * 막 도달하는 첫 교차(부호 음→양)" 구간을 bracketing 한 뒤 (2) 그 좁은 구간
+ * 안에서만 이분법으로 수렴시킨다. 좁은 구간 내에서는 diff 가 단조 증가라 안전.
  */
 function findMoonAtLongitude(
   targetLon: number,
@@ -75,32 +81,52 @@ function findMoonAtLongitude(
 ): number {
   const swisseph = getSwisseph()
   const SW_FLAGS = getSwissEphFlags()
-  let low = startJD
-  let high = endJD
 
-  for (let i = 0; i < 50; i++) {
-    const mid = (low + high) / 2
-    const moonRes = swisseph.swe_calc_ut(mid, swisseph.SE_MOON, SW_FLAGS)
-    if ('error' in moonRes) {
-      throw new Error(`Moon calc error: ${moonRes.error}`)
+  // target 대비 달의 signed 각도차 (-180..180). 음수=아직 못 미침, 양수=지나침.
+  const signedDiff = (jd: number): number => {
+    const res = swisseph.swe_calc_ut(jd, swisseph.SE_MOON, SW_FLAGS)
+    if ('error' in res) {
+      throw new Error(`Moon calc error: ${res.error}`)
     }
-
-    const moonLon = extractSwissLongitude(moonRes as unknown as Record<string, unknown>)
+    const moonLon = extractSwissLongitude(res as unknown as Record<string, unknown>)
     const diff = normalize360(moonLon - targetLon)
-    const adjustedDiff = diff > 180 ? diff - 360 : diff
+    return diff > 180 ? diff - 360 : diff
+  }
 
-    if (Math.abs(adjustedDiff) < tolerance) {
+  // (1) 거친 스캔으로 첫 음→양 교차 bracketing. STEP(6시간) 안에서 달은 ~3.3°
+  //     이동 → wraparound(±180 점프) 없이 국소 단조. 그 점프는 (d-prev)>=180 으로 배제.
+  const STEP = 0.25
+  let lo = startJD
+  let hi = endJD
+  let prevJD = startJD
+  let prevDiff = signedDiff(prevJD)
+  for (let jd = startJD + STEP; jd <= endJD + 1e-9; jd += STEP) {
+    const d = signedDiff(jd)
+    if (prevDiff <= 0 && d > 0 && d - prevDiff < 180) {
+      lo = prevJD
+      hi = jd
+      break
+    }
+    prevJD = jd
+    prevDiff = d
+  }
+  // bracketing 실패(32일 내 회귀가 없는 이론상 케이스)면 전체 구간으로 폴백.
+
+  // (2) bracket 안 이분법 — 좁은 구간이라 diff 단조, 정확한 근으로 수렴.
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2
+    const d = signedDiff(mid)
+    if (Math.abs(d) < tolerance) {
       return mid
     }
-
-    if (adjustedDiff > 0) {
-      high = mid
+    if (d > 0) {
+      hi = mid
     } else {
-      low = mid
+      lo = mid
     }
   }
 
-  return (low + high) / 2
+  return (lo + hi) / 2
 }
 
 /**

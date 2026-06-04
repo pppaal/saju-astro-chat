@@ -10,6 +10,7 @@ import { getBlogPostsIndex } from '@/data/blogPostLoader'
 import type { BlogPost } from '@/data/blog-posts'
 import blogMetadata from '@/data/blog/metadata/blog-metadata.json'
 import { isBlockedBlogPost } from '@/data/blog/publicFilters'
+import BlogArt, { BlogHeroArt, StarGlyph, ClockGlyph } from './BlogArt'
 import styles from './blog.module.css'
 
 const fallbackBlogPosts = (blogMetadata as BlogPost[]).filter((post) => !isBlockedBlogPost(post))
@@ -62,7 +63,7 @@ export default function BlogClient() {
         {/* Hero Section */}
         <section className={styles.hero}>
           <div className={styles.heroIcon} role="img" aria-label={isKo ? '블로그' : 'Blog'}>
-            📚
+            <BlogHeroArt />
           </div>
           <p className={styles.eyebrow}>DestinyPal Blog</p>
           <h1 className={styles.title}>{isKo ? '인사이트 & 가이드' : 'Insights & Guides'}</h1>
@@ -105,14 +106,12 @@ export default function BlogClient() {
                   role="img"
                   aria-label={isKo ? featuredPost.categoryKo : featuredPost.category}
                 >
-                  {featuredPost.icon}
+                  <BlogArt slug={featuredPost.slug} category={featuredPost.category} />
                 </div>
               </div>
               <div className={styles.cardContent}>
                 <span className={styles.featuredBadge}>
-                  <span role="img" aria-hidden="true">
-                    ⭐
-                  </span>{' '}
+                  <StarGlyph />{' '}
                   {isKo ? '추천' : 'Featured'}
                 </span>
                 <span className={styles.cardCategory}>
@@ -127,9 +126,7 @@ export default function BlogClient() {
                 <div className={styles.cardMeta}>
                   <span className={styles.cardGuide}>{guideLabel}</span>
                   <span className={styles.cardReadTime}>
-                    <span role="img" aria-hidden="true">
-                      ⏱
-                    </span>{' '}
+                    <ClockGlyph />{' '}
                     {featuredPost.readTime} {isKo ? '분' : 'min read'}
                   </span>
                 </div>
@@ -146,7 +143,7 @@ export default function BlogClient() {
                   role="img"
                   aria-label={isKo ? post.categoryKo : post.category}
                 >
-                  {post.icon}
+                  <BlogArt slug={post.slug} category={post.category} />
                 </div>
               </div>
               <div className={styles.cardContent}>
@@ -158,9 +155,7 @@ export default function BlogClient() {
                 <div className={styles.cardMeta}>
                   <span className={styles.cardGuide}>{guideLabel}</span>
                   <span className={styles.cardReadTime}>
-                    <span role="img" aria-hidden="true">
-                      ⏱
-                    </span>{' '}
+                    <ClockGlyph />{' '}
                     {post.readTime} {isKo ? '분' : 'min read'}
                   </span>
                 </div>

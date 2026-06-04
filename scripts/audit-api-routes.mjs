@@ -134,7 +134,9 @@ const stats = routeFiles
 
     return {
       filePath,
-      relPath,
+      // 출력은 항상 POSIX 정슬래시로 — Windows(역슬래시)에서 재생성해도
+      // CI(Linux) 와 동일한 바이트가 나와 git diff --exit-code 게이트 통과.
+      relPath: normalizedRelPath,
       methods,
       usesMiddleware,
       hasValidation,

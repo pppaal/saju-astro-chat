@@ -178,6 +178,25 @@ export function isoToJD(iso: string, timeZone: string): number {
   return jdResult.julianDayUT
 }
 
+/**
+ * Convert a progression / direction TARGET date to Julian Day deterministically.
+ *
+ * The target date ("which date to progress to", usually today) must NOT be
+ * parsed in the host/server timezone — `dayjs('2026-06-04')` resolves to local
+ * midnight, so the day-count shifts by the deploy region's UTC offset and the
+ * result becomes non-deterministic across regions (up to ~1 day off).
+ *
+ * Convention (single source of truth for all date-only target inputs): a bare
+ * 'YYYY-MM-DD' is anchored to **noon UTC** — farthest from either midnight, so
+ * the slow-moving progressed/directed points never flip a calendar day — while
+ * an explicit datetime is honored as UTC. Server-location independent.
+ */
+export function targetDateToJD(targetDate: string): number {
+  const trimmed = targetDate.trim()
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? `${trimmed}T12:00:00` : trimmed
+  return isoToJD(iso, 'UTC')
+}
+
 // ============================================================
 // Swiss Ephemeris Error Helpers
 // ============================================================
