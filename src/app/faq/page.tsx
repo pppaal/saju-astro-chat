@@ -6,6 +6,32 @@ import { useI18n } from '@/i18n/I18nProvider'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 import styles from './faq.module.css'
 
+/** 단색 라인 아이콘 — light editorial 톤. 컬러 이모지 대체. */
+function SearchIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <line x1="16.5" y1="16.5" x2="21" y2="21" />
+    </svg>
+  )
+}
+
+function ChevronIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  )
+}
+
+function ChatIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.38 8.38 0 0 1-9 8.3 9 9 0 0 1-3.4-.6L3 20.5l1.3-4.1A8.4 8.4 0 0 1 3.5 11 8.5 8.5 0 0 1 12 3a8.5 8.5 0 0 1 9 8.5Z" />
+    </svg>
+  )
+}
+
 interface FaqItem {
   q: string
   qKo: string
@@ -222,10 +248,15 @@ function FaqAccordion({
 }) {
   return (
     <div className={`${styles.accordion} ${isOpen ? styles.open : ''}`}>
-      <button className={styles.accordionHeader} onClick={onClick}>
-        <span className={styles.accordionIcon}>{item.icon}</span>
+      <button
+        className={styles.accordionHeader}
+        onClick={onClick}
+        aria-expanded={isOpen}
+      >
         <span className={styles.accordionQuestion}>{isKo ? item.qKo : item.q}</span>
-        <span className={styles.accordionToggle}>{isOpen ? '−' : '+'}</span>
+        <span className={styles.accordionToggle}>
+          <ChevronIcon />
+        </span>
       </button>
       <div className={styles.accordionContent}>
         <div className={styles.accordionAnswer}>
@@ -289,7 +320,7 @@ export default function FaqPage() {
 
   return (
     <main className={styles.container}>
-      <div className={styles.backgroundGlow} />
+      <div className={styles.inner}>
 
       <section className={styles.hero}>
         <p className={styles.eyebrow}>DestinyPal FAQ</p>
@@ -304,7 +335,9 @@ export default function FaqPage() {
       {/* Search Box */}
       <div className={styles.searchContainer}>
         <div className={styles.searchBox}>
-          <span className={styles.searchIcon}>🔍</span>
+          <span className={styles.searchIcon}>
+            <SearchIcon />
+          </span>
           <input
             type="text"
             className={styles.searchInput}
@@ -367,7 +400,9 @@ export default function FaqPage() {
           })
         ) : (
           <div className={styles.noResults}>
-            <div className={styles.noResultsIcon}>🔍</div>
+            <div className={styles.noResultsIcon}>
+            <SearchIcon size={36} />
+          </div>
             <p className={styles.noResultsText}>
               {isKo
                 ? '검색 결과가 없습니다. 다른 키워드를 시도해보세요.'
@@ -379,7 +414,9 @@ export default function FaqPage() {
 
       <section className={styles.contactSection}>
         <div className={styles.contactCard}>
-          <div className={styles.contactIcon}>💬</div>
+          <div className={styles.contactIcon}>
+            <ChatIcon />
+          </div>
           <h3 className={styles.contactTitle}>
             {isKo ? '더 궁금한 점이 있으신가요?' : 'Still have questions?'}
           </h3>
@@ -393,6 +430,8 @@ export default function FaqPage() {
           </Link>
         </div>
       </section>
+
+      </div>
 
       <ScrollToTop label={isKo ? '맨 위로' : 'Top'} />
     </main>
