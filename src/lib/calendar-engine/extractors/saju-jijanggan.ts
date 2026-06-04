@@ -38,8 +38,9 @@ import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
  *
  * polarity 결정:
  *   통근 : 본명 강약 따라 — 신약자에 +2, 신강자에 -1 (과강 우려)
- *   암합 : 본명 천간과 합화 — 보통 +1, 합화 오행이 용신과 같으면 +2
- *   충   : -2 (강도 평탄, 본기충은 -3)
+ *   암합 : 합화 오행 vs 용신 체계 4-way 비교
+ *           용신=+2, 희신=+1, 한신=0, 합반=-1, 합거(1차 기신)=-2
+ *   충   : 층 조합별 3-tier ladder — 정기↔정기 -3, 정기↔중기 -2, 그 외 -1
  *
  * 이 신호들은 십신(pillar-sibsin)과 별개의 결로 작동 — pillar-sibsin 은 시기
  * 천간 1개의 십신 1개만 보지만, 이쪽은 지지 1개의 지장간 3개와 본명 천간 4개·
@@ -73,7 +74,15 @@ const STEM_COMBINE: Record<string, { pair: string; transform: FiveElement }> = {
   癸: { pair: '戊', transform: '화' },
 }
 
-// 천간충 — 본기끼리 상충하면 지장간 충.
+// 천간충 — 본명·시기 지장간 사이 천간충 페어.
+// 4쌍의 천간충(甲庚/乙辛/丙壬/丁癸)으로 지지충 6쌍(子↔午, 寅↔申, 巳↔亥) 본기
+// 페어가 모두 동일 구조로 환원된다:
+//   子 본기 癸 ↔ 午 본기 丁 = 癸-丁
+//   寅 본기 甲 ↔ 申 본기 庚 = 甲-庚
+//   巳 본기 丙 ↔ 亥 본기 壬 = 丙-壬
+// 丑-未, 辰-戌 본기는 동일 戊·己 (충 아님). 따라서 별도 지지충 테이블을 두지
+// 않고 본명 일지·시기 지지의 지장간 3층 매트릭스만 돌리면 정통 지지충 본기
+// 페어가 모두 자동 검출된다.
 const STEM_CLASH: Set<string> = new Set([
   '甲-庚', '庚-甲', '乙-辛', '辛-乙',
   '丙-壬', '壬-丙', '丁-癸', '癸-丁',
@@ -330,20 +339,23 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
     }
 
     // ── 3) 지장간 충 — 시기 지장간 ↔ 본명 일지 지장간 ──
+    // 층 조합별 3-tier ladder (정통 본기/중기/여기 강도 차):
+    //   정기↔정기 : polarity -3, weight 1.00 — 본기 정충(正沖)
+    //   정기↔중기 또는 중기↔정기 : -2, 0.80 — 한쪽이 본기인 비대칭 충
+    //   중기↔중기 / 여기 포함 페어 : -1, 0.60 — 미세 잠재 충 (암충 餘衝)
     for (const [natalLayer, natalStem] of Object.entries(args.natalDayBranchJijanggan)) {
       if (STEM_CLASH.has(`${stemName}-${natalStem}`)) {
-        const isBothJeonggi = layer === '정기' && natalLayer === '정기'
-        const polarity: Polarity = isBothJeonggi ? -3 : -2
+        const ladder = chungLadder(layer, natalLayer)
         out.push({
           id: `${args.idPrefix}.chung.${layer}.${stemName}-${natalLayer}.${natalStem}`,
           source: 'saju',
           kind: 'jijanggan',
           name: `${args.branchName} 지장간 ${layerLabel}(${stemName}) ↔ 본명 일지 ${JIJANGGAN_LABEL[natalLayer] ?? natalLayer}(${natalStem}) 충`,
           themes: [],
-          polarity,
+          polarity: ladder.polarity,
           layer: args.layer,
           active: args.active,
-          weight: args.baseWeight * layerWeight * (isBothJeonggi ? 1.0 : 0.8),
+          weight: args.baseWeight * layerWeight * ladder.weightFactor,
           evidence: {
             module: 'saju-jijanggan',
             element: stemInfo.element,
@@ -354,6 +366,7 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
               jijangganStem: stemName,
               natalDayLayer: natalLayer,
               natalDayStem: natalStem,
+              chungTier: ladder.tier,
               branch: args.branchName,
             },
           },
@@ -378,15 +391,62 @@ function polarityForTonggeun(
   return strength === 'weak' ? 1 : 0
 }
 
+/**
+ * 암합(暗合) polarity — 합화 오행을 용신 체계와 4-way 비교.
+ *
+ * 정통(자평·적천수)에서 암합은 단순히 "합" 자체가 길흉 중립이 아니라, 합화
+ * 결과 오행이 본명에서 어떤 역할(용신·희신·기신·한신)인지에 따라 부작용이
+ * 크게 갈린다:
+ *
+ *  - 합화 = primary 용신     : +2  (희사 — 합으로 길성을 끌어옴)
+ *  - 합화 = secondary 희신   : +1  (보조 길)
+ *  - 합화 = avoid[0] 1차 기신 : -2  (합거 合去 — 합으로 기신이 도드라짐, 가장 흉)
+ *  - 합화 = avoid[1+] 2차 기신: -1  (합반 合絆 — 본명 십신이 묶이는 약한 흉)
+ *  - 그 외 한신                : 0  (합 자체는 무해)
+ *
+ * 합거(合去)는 일간을 극하거나 길성을 묶어 무력화시키는 합으로, 1차 기신과
+ * 합화될 때 가장 또렷이 드러난다. 합반(合絆)은 그보다 약한 부작용으로,
+ * 본명 십신이 시기 천간과 묶여 제 역할을 못하는 상태.
+ */
 function polarityForAmhap(
   transform: FiveElement,
   yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
 ): Polarity {
-  // 합화 오행이 용신이면 길, 기신·구신이면 흉.
   if (transform === yongsin.primary) return 2
   if (transform === yongsin.secondary) return 1
-  if (yongsin.avoid.includes(transform)) return -1
-  return 1 // 합 자체는 약한 길
+  if (yongsin.avoid.length > 0 && yongsin.avoid[0] === transform) return -2 // 합거
+  if (yongsin.avoid.includes(transform)) return -1 // 합반
+  return 0 // 한신 — 합 자체는 중립
+}
+
+/**
+ * 지장간 충의 층 조합별 강도 ladder.
+ *
+ *   정기↔정기  : tier 'jeonggi-jeonggi', polarity -3, weight 1.00
+ *   정기↔중기  : tier 'jeonggi-junggi',  polarity -2, weight 0.80
+ *   중기↔중기  : tier 'junggi-junggi',   polarity -1, weight 0.60
+ *   여기 포함  : tier 'yeogi-mixed',     polarity -1, weight 0.60
+ */
+function chungLadder(
+  periodLayer: string,
+  natalLayer: string
+): { polarity: Polarity; weightFactor: number; tier: string } {
+  if (periodLayer === '정기' && natalLayer === '정기') {
+    return { polarity: -3, weightFactor: 1.0, tier: 'jeonggi-jeonggi' }
+  }
+  // 한쪽이 정기인 비대칭 (정기↔중기 또는 중기↔정기).
+  if (
+    (periodLayer === '정기' && natalLayer === '중기') ||
+    (periodLayer === '중기' && natalLayer === '정기')
+  ) {
+    return { polarity: -2, weightFactor: 0.8, tier: 'jeonggi-junggi' }
+  }
+  // 중기↔중기.
+  if (periodLayer === '중기' && natalLayer === '중기') {
+    return { polarity: -1, weightFactor: 0.6, tier: 'junggi-junggi' }
+  }
+  // 여기 포함 (정기↔여기, 중기↔여기, 여기↔여기) — 가장 미세.
+  return { polarity: -1, weightFactor: 0.6, tier: 'yeogi-mixed' }
 }
 
 /**

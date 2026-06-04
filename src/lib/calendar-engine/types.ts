@@ -10,6 +10,7 @@ export type SajuSignalKind =
   | 'tonggeun-shift' // 대운 진입에 따른 통근 강약 변화
   | 'saju-pattern' // 격국·패턴 컨텍스트화
   | 'jijanggan' // 시기 지지의 지장간(여기·중기·정기) 본명 일간 대비 통근/암합/충
+  | 'geokguk-status' // 본명 격국 성패(成敗) 상태 — 매일 점수 frame (saju-pattern 필터 통과)
 
 export type AstroSignalKind =
   | 'transit' // 트랜짓 어스펙트 (본명 → 트랜짓 행성)

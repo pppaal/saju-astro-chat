@@ -5,31 +5,32 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  *
  * `advancedAnalysis.geokguk.statusResult` 에 정격·비격 사주의 성격/파격/반성반파
  * 판정이 담겨 있다 (build.ts → performAdvancedAnalysis → determineGeokgukAdvanced).
- * 이를 본명 lifetime 배경 신호로 띄움 — 평생 활성, 시점 무관.
+ * 이를 매일 frame 신호로 띄움 — 본명 평생 활성이지만 score 에 매일 기여.
  *
  * saju-pattern 과의 차이:
- *  - saju-pattern: 격국명(label) 만 emit. polarity +1, weight 0.9.
- *  - saju-geokguk: 격국의 성패(quality) 신호. 성격→+2, 파격→−2, 반성반파→0.
- *    같은 격국이라도 보좌·파괴 요소에 따라 길흉이 갈라짐 — 정통 자평명리의 핵심.
+ *  - saju-pattern: 격국명(label) 만 emit. polarity +1, weight 0.9, decadal layer.
+ *    index.ts groupIntoCells 의 `scoreSignals.filter((s) => s.kind !== 'saju-pattern')`
+ *    에 걸려 매일 score 에서 제외. narrative(cell.signals)에만 노출.
+ *  - saju-geokguk: 격국의 성패(quality) 신호. kind='geokguk-status' 라 위 필터 통과 →
+ *    매일 score 에 기여. layer 'daily' 로 cell 마다 1개 emit.
  *
- * decadal layer 로 emit (사주 본질이라 평생 활성이지만 엔진 시간 스케일 상 가장 김).
+ * Phase 2 변경 (재감사 이슈 #1):
+ *  - 종전: 'saju-pattern' kind + decadal layer (lifetime 1회) → score 에서 제외돼 매일 점수 미반영.
+ *  - 현재: 'geokguk-status' kind + daily layer (매일 1회 emit) → 매일 점수에 약한 frame 으로 반영.
+ *    weight 를 낮춰(0.25) 격국 1개가 모든 셀을 inflate 하던 본질 문제는 피하면서,
+ *    성패 자체는 매일 ±1 정도의 frame 으로 작동.
  *
- * 점수 영향:
- *  - 성격: polarity +2, weight 0.95 — 길/덕성 강조
- *  - 파격: polarity −2, weight 0.95 — 흉/조정 필요 강조
- *  - 반성반파: polarity 0, weight 0.85 — 중립, 노출 라벨만 의미
- *
- * derivers 의 score 가 saju-pattern 과 동일 정책(평생 배경 신호 제외) 으로
- * 다루도록 `kind: 'saju-pattern'` 을 재사용 — index.ts groupIntoCells 의
- * `scoreSignals.filter((s) => s.kind !== 'saju-pattern')` 에 그대로 걸려서
- * 매일 score 에 +impact 를 깔지 않는다. narrative (cell.signals) 에는 유지.
+ * 점수 영향 (각 셀당):
+ *  - 성격: polarity +1, weight 0.25 — 길 frame
+ *  - 파격: polarity −1, weight 0.25 — 흉 frame
+ *  - 반성반파: polarity 0, weight 0.20 — 중립 표지만
  */
 
 import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 
 const sajuGeokgukExtractor: SignalExtractor = {
   source: 'saju',
-  kind: 'saju-pattern',
+  kind: 'geokguk-status',
   extract(ctx: ExtractorContext): ActiveSignal[] {
     const { natal, range } = ctx
     const signals: ActiveSignal[] = []
@@ -46,23 +47,11 @@ const sajuGeokgukExtractor: SignalExtractor = {
     } }).statusResult
     if (!statusResult) return signals
 
-    // 활성 윈도우 — saju-pattern 과 동일하게 lifetime(생애 전체) ∩ range.
-    const lifetimeStart = new Date(
-      Date.UTC(natal.input.year, natal.input.month - 1, natal.input.date)
-    ).toISOString()
-    const lifetimeEnd = new Date(Date.UTC(natal.input.year + 120, 0, 1)).toISOString()
-    const rangeStart = new Date(range.start).toISOString()
-    const rangeEnd = new Date(range.end).toISOString()
-    const activeWindow = {
-      start: rangeStart > lifetimeStart ? rangeStart : lifetimeStart,
-      peak: rangeStart,
-      end: rangeEnd < lifetimeEnd ? rangeEnd : lifetimeEnd,
-    }
-
     const geokguk = advanced.primary as string
     const status = statusResult.status
-    const polarity: Polarity = status === '성격' ? 2 : status === '파격' ? -2 : 0
-    const weight = status === '반성반파' ? 0.85 : 0.95
+    const polarity: Polarity = status === '성격' ? 1 : status === '파격' ? -1 : 0
+    const weight = status === '반성반파' ? 0.20 : 0.25
+    const themes = themesForGeokguk(geokguk)
 
     // reason — positive·negative 요인을 사람이 읽을 수 있게 한 줄로.
     const reasonParts: string[] = []
@@ -74,31 +63,44 @@ const sajuGeokgukExtractor: SignalExtractor = {
     }
     const reason = reasonParts.length > 0 ? reasonParts.join(' · ') : statusResult.description
 
-    signals.push({
-      id: `saju.geokguk.status.${geokguk}.${status}`,
-      source: 'saju',
-      kind: 'saju-pattern',
-      name: `${geokguk} (${status})`,
-      korean: `${geokguk} ${status}`,
-      themes: themesForGeokguk(geokguk),
-      polarity,
-      layer: 'decadal',
-      active: activeWindow,
-      weight,
-      evidence: {
-        module: 'saju-geokguk',
-        detail: {
-          geokguk,
-          category: advanced.category,
-          status,
-          reason,
-          positiveFactors: statusResult.factors.positive,
-          negativeFactors: statusResult.factors.negative,
-          description: statusResult.description,
-          kind: 'geokguk-status',
+    // 매일 frame — range 의 모든 day cell 에 1 signal 씩 emit.
+    // layer 'daily' + 24h active window 로 1 day cell 에 정확히 1번 들어감.
+    const start = new Date(range.start)
+    const end = new Date(range.end)
+    for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
+      const d = new Date(t)
+      const dayIso = d.toISOString().slice(0, 10)
+      signals.push({
+        id: `saju.geokguk-status.${dayIso}.${geokguk}.${status}`,
+        source: 'saju',
+        kind: 'geokguk-status',
+        name: `${geokguk} (${status})`,
+        korean: `${geokguk} ${status}`,
+        themes,
+        polarity,
+        layer: 'daily',
+        active: {
+          start: `${dayIso}T00:00:00.000Z`,
+          peak: `${dayIso}T12:00:00.000Z`,
+          end: `${dayIso}T23:59:59.999Z`,
         },
-      },
-    })
+        weight,
+        evidence: {
+          module: 'saju-geokguk',
+          detail: {
+            geokguk,
+            category: advanced.category,
+            status,
+            reason,
+            positiveFactors: statusResult.factors.positive,
+            negativeFactors: statusResult.factors.negative,
+            description: statusResult.description,
+            kind: 'geokguk-status',
+            framePhase: 'daily-frame',
+          },
+        },
+      })
+    }
 
     return signals
   },
