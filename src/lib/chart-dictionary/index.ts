@@ -13,6 +13,23 @@ export type Lang = 'ko' | 'en';
 
 // ── Categorical unions (typo guard + IDE autocomplete) ──────────────────────
 export type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성';
+
+/**
+ * 정/편 십신 10종 → 5 카테고리 매핑. 카테고리 단위 dictionary 와 짝을 이뤄
+ * "비견·겁재 → 비겁" 같은 정/편 통합을 한 곳에서 관리. SSOT.
+ */
+export const SIBSIN_NAME_TO_CATEGORY: Record<string, SibsinCategory> = {
+  비견: '비겁',
+  겁재: '비겁',
+  식신: '식상',
+  상관: '식상',
+  정재: '재성',
+  편재: '재성',
+  정관: '관성',
+  편관: '관성',
+  정인: '인성',
+  편인: '인성',
+};
 export type RelationCategory =
   | '천간합'
   | '천간충'

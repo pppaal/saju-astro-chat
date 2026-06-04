@@ -6,21 +6,12 @@
  * 원리: 신약(身弱)은 일간을 받쳐주는 인성·비겁이 우호, 기운을 빼가거나 치는
  * 식상·재성·관성이 고비. 신강(身强)은 반대 — 같은 십신도 사람마다 다르게 읽힌다.
  */
-export type SibsinCat = '관성' | '재성' | '식상' | '비겁' | '인성'
-
-/** 정/편 십신 10종 → 5 카테고리 */
-export const SIBSIN_CAT: Record<string, SibsinCat> = {
-  비견: '비겁',
-  겁재: '비겁',
-  식신: '식상',
-  상관: '식상',
-  정재: '재성',
-  편재: '재성',
-  정관: '관성',
-  편관: '관성',
-  정인: '인성',
-  편인: '인성',
-}
+// SSOT: 십신 카테고리 타입과 10→5 매핑은 chart-dictionary 에 정의.
+// 여기서는 기존 import 사이트(matcher/lifetimeFlow/dateDetail)가 그대로 동작하도록
+// 동일한 이름으로 alias 후 re-export 한다.
+import type { SibsinCategory } from '@/lib/chart-dictionary'
+export { SIBSIN_NAME_TO_CATEGORY as SIBSIN_CAT } from '@/lib/chart-dictionary'
+export type SibsinCat = SibsinCategory
 
 export type Favor = 'good' | 'hard' | 'mid'
 
