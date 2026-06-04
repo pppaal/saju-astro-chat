@@ -20,10 +20,15 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { sanitizeForXmlTagBoundary } from '@/lib/llm/promptSafety'
 import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
-import { buildFallbackPayload, buildInterpretStreamPrompts } from '@/lib/tarot/promptBuild'
+import {
+  buildFallbackPayload,
+  buildInterpretStreamPrompts,
+  type PromptCardInput,
+} from '@/lib/tarot/promptBuild'
 import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
 import { tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
+import { loadDrawCards } from '@/lib/tarot/drawCardsCache'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
@@ -253,7 +258,28 @@ export async function POST(req: NextRequest) {
       return streamJsonPayload(crisisPayload, { 'X-Tarot-Safety': '1' })
     }
 
-    const cardCountForCost = Array.isArray(body.cards) ? body.cards.length : 1
+    const ownerKey = drawNonceOwnerKey(req, context.userId)
+    const drawNonce = (body.drawNonce || req.headers.get('x-draw-nonce') || '').trim()
+
+    // 권위 있는 카드: draw 가 nonce 로 저장해 둔 서버 보관 카드를 *차감 전에*
+    // peek(consume 아님)한다. 캐시에 있으면 그게 draw 가 실제로 뽑은 카드 —
+    // 클라이언트가 올려보낸 cards 대신 이걸 써서 "뽑힌 카드 = 해석된 카드"
+    // 무결성을 보장한다. 또 카드 수 기반 비용도 이 권위 값으로 산정해, 클라가
+    // 카드를 적게 보내 2→1 크레딧으로 깎는 비용 회피까지 막는다. miss(만료/
+    // redis 다운/위조·미발급 nonce/레거시·인라인 경로)면 null → body.cards 폴백.
+    // (캐시 존재 자체가 정당한 발급+드로우의 증거 — 위조 nonce 는 항상 miss.)
+    const serverCards = drawNonce ? await loadDrawCards(ownerKey, drawNonce) : null
+    if (serverCards) {
+      logger.info('[tarot-stream] using server-stored draw cards (authoritative)', {
+        count: serverCards.length,
+      })
+    }
+
+    const cardCountForCost = serverCards
+      ? serverCards.length
+      : Array.isArray(body.cards)
+        ? body.cards.length
+        : 1
     creditCost = tarotCreditCostFor(cardCountForCost)
 
     // T1 fix: 옛 코드는 nonce.consume() 이 credit check 전에 호출됐다. credit
@@ -262,8 +288,6 @@ export async function POST(req: NextRequest) {
     //
     // 순서 변경: 먼저 credit check 후 nonce consume. credit 충분할 때만 nonce
     // burn → 차감 fail 시 nonce 보존되어 같은 free-pass 흐름 재진입 가능.
-    const ownerKey = drawNonceOwnerKey(req, context.userId)
-    const drawNonce = (body.drawNonce || req.headers.get('x-draw-nonce') || '').trim()
 
     // 1) credit 먼저 — nonce 는 peek 만 (consume 안 함).
     // peek 가 없으면 보수적으로: credit 확인 후 consume.
@@ -315,25 +339,27 @@ export async function POST(req: NextRequest) {
     // matches the rest of the LLM routes — defense in depth.
     const userQuestion = sanitizeForXmlTagBoundary((body.userQuestion || '').trim())
 
-    // 카드 필드도 클라이언트가 보내는 *공격자 제어* 값이다. 직전엔 userQuestion
-    // 만 걸러서, 카드 name/nameKo/keywords/position 에 프롬프트 인젝션 텍스트를
-    // 넣으면 renderCardList(promptBuild.ts)가 그대로 LLM 프롬프트에 박아넣던
-    // 구멍이 있었다. followup 라우트는 이미 카드 필드를 sanitize 하는데 이
-    // 라우트만 누락 — 동일하게 모든 자유 텍스트 필드를 거른다(isReversed 는
-    // boolean 이라 안전). 아래 buildInterpretStreamPrompts / buildFallbackPayload
-    // 둘 다 이 sanitize 된 배열을 사용한다.
+    // 서버 보관 카드가 있으면 그게 권위(우리 덱 데이터라 sanitize 불필요).
+    // 없으면(폴백) 클라이언트가 보낸 카드를 쓰되 — 카드 필드도 공격자 제어
+    // 값이므로 userQuestion 과 동일하게 sanitize 한다. 직전엔 question 만 걸러서
+    // 카드 name/keywords/position 에 프롬프트 인젝션 텍스트를 넣으면 그대로 LLM
+    // 에 박히던 구멍이 있었다(followup 라우트는 이미 sanitize). isReversed 는
+    // boolean 이라 안전. 아래 buildInterpretStreamPrompts / buildFallbackPayload
+    // 둘 다 이 배열을 사용한다.
     const sani = (s?: string) => (s ? sanitizeForXmlTagBoundary(s) : s)
-    const rawCards = body.cards.map((c) => ({
-      ...c,
-      name: sanitizeForXmlTagBoundary(c.name),
-      nameKo: sani(c.nameKo),
-      position: sani(c.position),
-      positionKo: sani(c.positionKo),
-      positionMeaning: sani(c.positionMeaning),
-      positionMeaningKo: sani(c.positionMeaningKo),
-      keywords: c.keywords?.map((k) => sanitizeForXmlTagBoundary(k)),
-      keywordsKo: c.keywordsKo?.map((k) => sanitizeForXmlTagBoundary(k)),
-    }))
+    const rawCards: PromptCardInput[] = serverCards
+      ? serverCards
+      : body.cards.map((c) => ({
+          ...c,
+          name: sanitizeForXmlTagBoundary(c.name),
+          nameKo: sani(c.nameKo),
+          position: sani(c.position),
+          positionKo: sani(c.positionKo),
+          positionMeaning: sani(c.positionMeaning),
+          positionMeaningKo: sani(c.positionMeaningKo),
+          keywords: c.keywords?.map((k) => sanitizeForXmlTagBoundary(k)),
+          keywordsKo: c.keywordsKo?.map((k) => sanitizeForXmlTagBoundary(k)),
+        }))
 
     // 끊김 복구용 turnId. 로그인 사용자(context.userId) + turnId 가 둘 다
     // 있을 때만 "복구 가능한 턴". counselor 와 동일하게 slice(0,80).

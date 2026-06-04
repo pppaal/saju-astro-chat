@@ -16,6 +16,7 @@ import {
   creditErrorResponse,
 } from '@/lib/credits/withCredits'
 import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
+import { storeDrawCards, type StoredDrawCard } from '@/lib/tarot/drawCardsCache'
 import { randomUUID } from 'crypto'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
@@ -117,6 +118,21 @@ export const POST = withApiMiddleware(
       const drawNonce = randomUUID()
       const ownerKey = drawNonceOwnerKey(req, creditResult.userId)
       await drawNonceStore.issue(drawNonce, ownerKey)
+
+      // 권위 있는 뽑힌 카드를 nonce 로 보관 → interpret-stream 이 클라이언트가
+      // 올려보낸 cards 대신 이걸 써서 "뽑힌 카드 = 해석된 카드" 무결성 보장.
+      // 프롬프트가 쓰는 최소 필드만 저장(키워드는 정/역 의미에서 8개까지).
+      const storedCards: StoredDrawCard[] = drawnCards.map((dc) => {
+        const meaning = dc.isReversed ? dc.card.reversed : dc.card.upright
+        return {
+          name: dc.card.name,
+          nameKo: dc.card.nameKo,
+          isReversed: dc.isReversed,
+          keywords: (meaning.keywords || []).slice(0, 8),
+          keywordsKo: (meaning.keywordsKo || []).slice(0, 8),
+        }
+      })
+      await storeDrawCards(ownerKey, drawNonce, storedCards)
 
       recordApiRequest('tarot', 'generate', 'success', Date.now() - startTime)
       const response = NextResponse.json({
