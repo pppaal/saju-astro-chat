@@ -7,7 +7,7 @@ import {
   renderTimingAbortSentence,
   renderTimingEntrySentence,
   withTopicParticle,
-} from '@/lib/destiny-matrix/interpretation/humanSemanticsSupport'
+} from '@/lib/calendar-engine/matrix/interpretation/humanSemanticsSupport'
 
 export type HumanSemanticsLang = 'ko' | 'en'
 

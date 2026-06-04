@@ -1,4 +1,4 @@
-import type { DomainKey } from '@/lib/destiny-matrix/types'
+import type { DomainKey } from '@/lib/calendar-engine/matrix/types'
 import type { CalendarDailyView, CalendarMonthView, CalendarWeekView, FormattedDate } from './types'
 import { clamp01 } from '@/lib/utils/math'
 

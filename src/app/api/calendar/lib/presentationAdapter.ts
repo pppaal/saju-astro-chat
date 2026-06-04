@@ -1,7 +1,7 @@
 import {
   describeDataTrustSummary,
   describeSajuAstroConflictByDomain,
-} from '@/lib/destiny-matrix/interpretation/humanSemantics'
+} from '@/lib/calendar-engine/matrix/interpretation/humanSemantics'
 import type { FormattedDate } from './types'
 
 import {

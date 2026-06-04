@@ -1,4 +1,4 @@
-import type { HumanSemanticsLang, HumanTimingWindow } from '@/lib/destiny-matrix/interpretation/humanSemantics'
+import type { HumanSemanticsLang, HumanTimingWindow } from '@/lib/calendar-engine/matrix/interpretation/humanSemantics'
 
 export function describeProbeWindowBucket(probeDay: number, lang: HumanSemanticsLang): string {
   if (lang === 'ko') {

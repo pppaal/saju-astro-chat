@@ -12,8 +12,8 @@ import {
   describePhaseFlow,
   describeSajuAstroRole,
   describeTimingWindowBrief,
-} from '@/lib/destiny-matrix/interpretation/humanSemantics'
-import { focusDomainFromCategory } from '@/lib/destiny-matrix/interpretation/humanSemanticsFocusDomain'
+} from '@/lib/calendar-engine/matrix/interpretation/humanSemantics'
+import { focusDomainFromCategory } from '@/lib/calendar-engine/matrix/interpretation/humanSemanticsFocusDomain'
 import { isAlignedAcrossSystems } from './calendarMatrixTextSupport'
 
 type MessageGroup = string | Record<string, string>

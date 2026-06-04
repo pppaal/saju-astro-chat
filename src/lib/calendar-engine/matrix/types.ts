@@ -1,5 +1,5 @@
-// src/lib/destiny-matrix/types.ts
-// Destiny Fusion Matrix™ - Type Definitions
+// src/lib/calendar-engine/matrix/types.ts
+// 캘린더 영역(domain)·타이밍 타입 정의 (구 destiny-matrix 에서 이전).
 
 import type {
   FiveElement,
@@ -7,8 +7,8 @@ import type {
   TwelveStageStandard,
   TwelveStage,
   RelationHit,
-} from '../saju/types'
-import type { AspectType, ZodiacKo } from '../astrology/foundation/types'
+} from '@/lib/saju/types'
+import type { AspectType, ZodiacKo } from '@/lib/astrology/foundation/types'
 
 // Re-export types for use in other modules
 export type { TwelveStage, ZodiacKo, AspectType }
