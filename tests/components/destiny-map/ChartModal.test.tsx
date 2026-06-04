@@ -22,7 +22,6 @@ vi.mock('@/components/destiny-map/charts/NatalChart', () => ({ NatalChart: () =>
 vi.mock('@/components/destiny-map/charts/ChartReading', () => ({ ChartReading: () => null }))
 vi.mock('@/components/destiny-map/charts/atoms/CrossRefTable', () => ({ CrossRefTable: () => null }))
 vi.mock('@/components/destiny-map/charts/atoms/PillarDrawer', () => ({ PillarDrawer: () => null }))
-vi.mock('@/components/destiny-map/charts/atoms/DaeunTimeline', () => ({ DaeunTimeline: () => null }))
 
 import ChartModal from '@/components/destiny-map/charts/ChartModal'
 

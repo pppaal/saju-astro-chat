@@ -20,7 +20,7 @@ import FlowChart, { type FlowPoint } from './shared/FlowChart'
 import LifeTimeline from './shared/LifeTimeline'
 import YearInsights from './shared/YearInsights'
 import CrossInsightCard from './shared/CrossInsightCard'
-import { computeLifeTimeline } from './shared/lifeTimeline'
+import { computeLifeTimeline } from './shared/computeLifeTimeline'
 import { getCalLabels, type CalLocale } from './labels'
 
 interface Props {
