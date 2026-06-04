@@ -443,14 +443,14 @@ export function evalEnergyDirection(
     return {
       tone: 'resonant',
       reason: {
-        ko: `타고나길 '${theme.ko}'을(를) 가장 중요하게 여기는데, 별자리도 같은 쪽을 가리켜요 — 에너지가 한 방향으로 모인 사람.`,
+        ko: `타고나길 가장 중요하게 여기는 게 '${theme.ko}'인데, 별자리도 같은 쪽을 가리켜요 — 에너지가 한 방향으로 모인 사람.`,
         en: `You most value ${theme.en}, and your chart points the same way — energy gathered in one direction.`,
       },
     }
   return {
     tone: 'complement',
     reason: {
-      ko: `타고나길 '${theme.ko}'이(가) 강한데, 별자리는 그 힘을 다른 통로로 풀어줘요 — 한 가지를 여러 방식으로 쓰는 타입.`,
+      ko: `타고나길 '${theme.ko}' 쪽이 강한데, 별자리는 그 힘을 다른 통로로 풀어줘요 — 한 가지를 여러 방식으로 쓰는 타입.`,
       en: `You lean strongly toward ${theme.en}, and your chart channels it through other routes.`,
     },
   }
@@ -518,8 +518,8 @@ export function synthesize(
   return {
     tone,
     text: {
-      ko: `9개 영역 중 동조 ${resonant} · 보완 ${complement} · 긴장 ${tension} — ${labelKo} 사람이에요.${axisKo}`,
-      en: `Across the areas: ${resonant} resonant · ${complement} complement · ${tension} tension — a ${labelEn} identity.${axisEn}`,
+      ko: `잘 맞는 게 ${resonant}개, 서로 채워주는 게 ${complement}개, 부딪히는 게 ${tension}개 — ${labelKo} 사람이에요.${axisKo}`,
+      en: `${resonant} match · ${complement} fill-in · ${tension} clash — a ${labelEn} identity.${axisEn}`,
     },
   }
 }

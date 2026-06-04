@@ -55,10 +55,10 @@ describe('운세 차트 교차표 — 데모 출력', () => {
       { cat: '드러나는나', v: evalPersona(saju.dayMaster.element, astro.asc) },
     ]
     const TONE: Record<string, string> = {
-      resonant: '동조 ✓',
-      complement: '보완',
-      tension: '긴장 ⚡',
-      neutral: '중립',
+      resonant: '잘 맞아요 ✓',
+      complement: '서로 채워줘요',
+      tension: '부딪혀요 ⚡',
+      neutral: '따로따로',
     }
     const verdicts = rows.map((r) => r.v).filter((v): v is CrossVerdict => !!v)
     const synth = synthesize(verdicts)
