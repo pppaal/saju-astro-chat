@@ -27,6 +27,9 @@ import sajuNatalBranchRelationExtractor from './extractors/saju-natal-branch-rel
 import sajuElementBalanceExtractor from './extractors/saju-element-balance'
 import sajuJijangganExtractor from './extractors/saju-jijanggan'
 import sajuGeokgukExtractor from './extractors/saju-geokguk'
+import sajuGongmangExtractor from './extractors/saju-gongmang'
+import sajuAppliedPatternExtractor from './extractors/saju-applied-pattern'
+import { extractCrossActivations } from './extractors/cross-activation'
 import astroTransitExtractor from './extractors/astro-transit'
 import astroEclipseExtractor from './extractors/astro-eclipse'
 import astroProfectionExtractor from './extractors/astro-profection'
@@ -82,6 +85,13 @@ export async function buildCalendar(
   const signalArrays = await Promise.all(extractors.map((ex) => ex.extract(ctx)))
   const allSignals = signalArrays.flat()
 
+  // 2b) Cross-activation post-pass — 사주 × 점성 동시 활성 페어 (A등급 매핑) 합성.
+  //     표준 extractor 와 달리 *다른 추출기들의 결과* 를 입력으로 받기 때문에
+  //     extract 패스 이후에 1회 실행. emit 된 cross 신호는 일반 신호처럼 tagger·
+  //     groupIntoCells 를 거쳐 cell.signals 에 그대로 들어간다 (matcher 가
+  //     conditions.signalKinds: ['cross-activation'] 으로 매칭).
+  allSignals.push(...extractCrossActivations(allSignals))
+
   // 3) 테마 라벨 + 기여 가중 보강
   for (const signal of allSignals) {
     const tagged = tagSignalWithThemes(signal)
@@ -118,6 +128,8 @@ function getRegisteredExtractors(): SignalExtractor[] {
     sajuElementBalanceExtractor,
     sajuJijangganExtractor,
     sajuGeokgukExtractor,
+    sajuGongmangExtractor,
+    sajuAppliedPatternExtractor,
 
     // ── astro (13) ──
     astroTransitExtractor,

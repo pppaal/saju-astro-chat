@@ -10,20 +10,17 @@ import type {
 import { inferAspectPolarity } from '../themes/tagger'
 import { getCachedTransitChart } from '../ephe-cache'
 
-// 메이저 5종 + 마이너 5종. quincunx·semisextile 도 foundation 의
-// TRANSIT_ORBS (1.5°) 가 좁히고, 나머지 마이너는 같은 1.5° 윗단 — minor 신호가
-// 너무 길게 윈도우를 열지 않도록 한다.
+// Hellenistic 정통화 (Phase 2): minor aspect 5종 (semisextile/quincunx/
+// quintile/biquintile/sesquiquadrate) 은 비정통 (Kepler 이후 modern). 추출기에서
+// 차단 — TRANSIT_ASPECTS 에서 빼고, 혹시 모를 minor 누출에 대비해 MINOR_ASPECT_SET
+// 가드를 유지 (defense-in-depth). foundation aspects.ts 의 resolveAspectList
+// 도 minor 를 필터링하므로 이중 안전.
 const TRANSIT_ASPECTS: AspectType[] = [
   'conjunction',
   'sextile',
   'square',
   'trine',
   'opposition',
-  'semisextile',
-  'quincunx',
-  'quintile',
-  'biquintile',
-  'sesquiquadrate',
 ]
 const MINOR_ASPECT_SET = new Set<string>([
   'semisextile',
@@ -33,11 +30,8 @@ const MINOR_ASPECT_SET = new Set<string>([
   'sesquiquadrate',
 ])
 
-// 마이너 5종 polarity 오버라이드 — task spec.
-// 정수만 허용하는 Polarity 타입 (−3..3) 에 맞춰 round-half-up.
-// quincunx (-0.5) → -1, quintile/biquintile (+0.5) → +1,
-// sesquiquadrate (-0.3) → -1 (작은 긴장 신호 살리려고 0 대신 -1 로 round).
-// semisextile (0) → 0.
+// (legacy) — minor aspect polarity 오버라이드. 이제 minor 자체가 차단되므로
+// 사용되지 않지만 타입 호환과 추후 옵션 재활성 가능성 위해 보존.
 const MINOR_POLARITY_OVERRIDE: Record<string, Polarity> = {
   semisextile: 0,
   quincunx: -1,
@@ -106,10 +100,8 @@ const astroTransitExtractor: SignalExtractor = {
     for (const { iso, chart } of dailyCharts) {
       const aspects = findTransitAspects(chart, natalChart, TRANSIT_ASPECTS)
       for (const a of aspects) {
-        // foundation TRANSIT_ORBS 가 마이너는 1.5° 로 좁혀 두지만 PLANET_ORB_MULTIPLIER
-        // (e.g. Pluto 1.4×) 가 1.5° 를 2.1° 까지 늘릴 수 있다. 마이너 신호는 무조건
-        // raw orb 1.5° 안쪽으로만 받아 calendar 흐름 노이즈 차단.
-        if (MINOR_ASPECT_SET.has(a.type) && a.orb > 1.5) continue
+        // Hellenistic 정통화: minor aspect 는 emit 안 함. defense-in-depth.
+        if (MINOR_ASPECT_SET.has(a.type)) continue
         const key = `${a.transitPlanet}|${a.natalPoint}|${a.type}`
         const arr = hitsByKey.get(key) ?? []
         arr.push({

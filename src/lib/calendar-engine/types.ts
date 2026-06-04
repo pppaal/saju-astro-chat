@@ -11,6 +11,8 @@ export type SajuSignalKind =
   | 'saju-pattern' // 격국·패턴 컨텍스트화
   | 'jijanggan' // 시기 지지의 지장간(여기·중기·정기) 본명 일간 대비 통근/암합/충
   | 'geokguk-status' // 본명 격국 성패(成敗) 상태 — 매일 점수 frame (saju-pattern 필터 통과)
+  | 'gongmang' // 본명 일주 공망 2지지가 시기 지지(대운/세운/월운/일진)에 닿을 때 활성
+  | 'applied-pattern' // 응용 격국 동적 매칭 (상관견관·식신제살·관인상생 등 본명+시기 페어)
 
 export type AstroSignalKind =
   | 'transit' // 트랜짓 어스펙트 (본명 → 트랜짓 행성)
@@ -36,7 +38,10 @@ export type AstroSignalKind =
   | 'draconic' // 드라코닉 차트 (영혼 결) 트랜짓 컨택
   | 'harmonic' // 하모닉 차트 (특정 결 패턴 — 4/5/7/9) 트랜짓 컨택
 
-export type SignalKind = SajuSignalKind | AstroSignalKind
+export type CrossSignalKind =
+  | 'cross-activation' // 사주-점성 동시 활성 페어 (A등급 매핑 사전 기반 의미 신호)
+
+export type SignalKind = SajuSignalKind | AstroSignalKind | CrossSignalKind
 
 export type SignalLayer =
   | 'decadal' // 대운 / ZR 메이저 / outer transit (10년대)

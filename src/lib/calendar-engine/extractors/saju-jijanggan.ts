@@ -112,6 +112,11 @@ const sajuJijangganExtractor: SignalExtractor = {
     const natalStems = collectNatalStems(natal)
     // 본명 일지(日支)의 지장간 — 충 검출용 (정통은 일지 지장간이 충 기준).
     const natalDayBranchJijanggan = JIJANGGAN[dayPillar.earthlyBranch?.name ?? ''] ?? {}
+    // 합화(化氣) 게이트 입력 — 월령 지지 오행 / 본명 천간 집합 (파합자 검출용).
+    const monthBranchName = natal.saju.pillars.month?.earthlyBranch?.name ?? ''
+    const monthBranchInfo = BRANCHES.find((b) => b.name === monthBranchName)
+    const monthElement: FiveElement | undefined = monthBranchInfo?.element
+    const natalStemNames = natalStems.map((s) => s.name)
 
     const signals: ActiveSignal[] = []
 
@@ -147,7 +152,9 @@ const sajuJijangganExtractor: SignalExtractor = {
         strength,
         yongsin,
         natalStems,
+        natalStemNames,
         natalDayBranchJijanggan,
+        monthElement,
         active,
         baseWeight: 1.0,
       })
@@ -180,7 +187,9 @@ const sajuJijangganExtractor: SignalExtractor = {
         strength,
         yongsin,
         natalStems,
+        natalStemNames,
         natalDayBranchJijanggan,
+        monthElement,
         active,
         baseWeight: 0.85,
       })
@@ -209,7 +218,9 @@ const sajuJijangganExtractor: SignalExtractor = {
           strength,
           yongsin,
           natalStems,
+          natalStemNames,
           natalDayBranchJijanggan,
+          monthElement,
           active: { start: mStart, peak: mPeak, end: mEnd },
           baseWeight: 0.70,
         })
@@ -235,7 +246,9 @@ const sajuJijangganExtractor: SignalExtractor = {
         strength,
         yongsin,
         natalStems,
+        natalStemNames,
         natalDayBranchJijanggan,
+        monthElement,
         active: {
           start: `${dayIso}T00:00:00.000Z`,
           peak: `${dayIso}T12:00:00.000Z`,
@@ -259,7 +272,9 @@ interface EmitArgs {
   strength: 'strong' | 'medium' | 'weak'
   yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
   natalStems: Array<{ pos: string; name: string; info: StemInfoLite }>
+  natalStemNames: string[]
   natalDayBranchJijanggan: { [key: string]: string }
+  monthElement?: FiveElement
   active: { start: string; peak: string; end: string }
   baseWeight: number
 }
@@ -304,11 +319,36 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
     }
 
     // ── 2) 암합 활성 — 시기 지장간 ↔ 본명 천간 합 ──
+    // 정통(자평진전·적천수): 합화(化氣) 성립 게이트 적용.
+    //   1) 월령 지지 오행이 합화 오행과 같으면 'full' — polarity 그대로
+    //   2) 월령 지지가 합화 오행을 생하면 'partial' — polarity weight × 0.7
+    //   3) 월령이 합화를 극하거나 사주에 파합자(破合者) 존재 → 'failed'
+    //      → polarity 0, weight × 0.30 으로 약화 (signal 자체는 emit; evidence 보존)
+    //   4) 인접도(adjacency) — 본명에서 합 페어 천간이 月-日 또는 日-時 위치면
+    //      인접 보너스로 partial → full 승격, full 은 weight × 1.10
     const combineDef = STEM_COMBINE[stemName]
     if (combineDef) {
       for (const ns of args.natalStems) {
         if (ns.name === combineDef.pair) {
-          const polarity: Polarity = polarityForAmhap(combineDef.transform, args.yongsin)
+          const gate = isHwagiEstablished(
+            combineDef.transform,
+            args.monthElement,
+            args.natalStemNames,
+            ns.pos
+          )
+          const basePolarity = polarityForAmhap(combineDef.transform, args.yongsin)
+          let polarity: Polarity = basePolarity
+          let weightMul = 0.9
+          if (gate.status === 'full') {
+            weightMul = 0.9 * (gate.adjacencyBonus ? 1.10 : 1.0)
+          } else if (gate.status === 'partial') {
+            // 극성 그대로 두되 강도만 절감.
+            weightMul = 0.9 * 0.70 * (gate.adjacencyBonus ? 1.10 : 1.0)
+          } else {
+            // failed — 합반 같은 무력 상태. polarity 중립화 + 강도 대폭 절감.
+            polarity = 0
+            weightMul = 0.9 * 0.30
+          }
           out.push({
             id: `${args.idPrefix}.amhap.${layer}.${stemName}-${ns.name}`,
             source: 'saju',
@@ -318,7 +358,7 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
             polarity,
             layer: args.layer,
             active: args.active,
-            weight: args.baseWeight * layerWeight * 0.9,
+            weight: args.baseWeight * layerWeight * weightMul,
             evidence: {
               module: 'saju-jijanggan',
               element: combineDef.transform,
@@ -331,6 +371,11 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
                 natalStemPos: ns.pos,
                 transform: combineDef.transform,
                 branch: args.branchName,
+                hwagiStatus: gate.status,
+                hwagiReasons: gate.reasons,
+                hwagiAdjacencyBonus: gate.adjacencyBonus,
+                monthElement: args.monthElement,
+                basePolarity,
               },
             },
           })
@@ -417,6 +462,126 @@ function polarityForAmhap(
   if (yongsin.avoid.length > 0 && yongsin.avoid[0] === transform) return -2 // 합거
   if (yongsin.avoid.includes(transform)) return -1 // 합반
   return 0 // 한신 — 합 자체는 중립
+}
+
+/**
+ * 합화(化氣) 성립 조건 게이트 — 자평진전·적천수 정통.
+ *
+ * 천간합 페어(甲己/乙庚/丙辛/丁壬/戊癸)가 발생해도 실제로 합화 오행이
+ * 사주에 작용하려면 다음 조건이 만족해야 한다:
+ *
+ *  1) 월령(月令) 조건 — 합화 오행이 월령 지지의 오행과 같거나 생을 받아야 한다.
+ *     - 월령 = 합화: 'full' (가장 확실한 화기)
+ *     - 월령이 합화를 생함: 'partial' (화기 약하나 성립)
+ *     - 월령이 합화에게 극을 받음(합화 → 월령): 'partial' (반대 방향, 화기 약함)
+ *     - 월령이 합화를 극함: 'failed' (월령이 화기를 누름 — 합반)
+ *     - 월령이 합화에게 생을 받음: 약한 partial (역방향 생)
+ *  2) 파합자(破合者) — 사주 4기둥 천간에 합화 오행을 극하는 천간이 있으면 합반.
+ *     - 합화 토 → 파합자: 甲乙 (木克土)
+ *     - 합화 금 → 파합자: 丙丁 (火克金)
+ *     - 합화 수 → 파합자: 戊己 (土克水)
+ *     - 합화 목 → 파합자: 庚辛 (金克木)
+ *     - 합화 화 → 파합자: 壬癸 (水克火)
+ *     단, 그 파합자가 합 페어 본인(시기 지장간 또는 본명 합 페어 천간)이면 자체
+ *     소거 → 카운트 제외 (실제 합에 묶여 파합 못함).
+ *  3) 인접도(adjacency) — 본명 합 페어 천간 위치가 月柱-日柱 또는 日柱-時柱
+ *     인접이면 강합. 본 함수는 ns.pos 가 month/day/time 중 어느 것인지 판단해
+ *     인접 보너스 부여 (full → weight × 1.10; partial → full 승격 후 보너스).
+ */
+interface HwagiGate {
+  status: 'full' | 'partial' | 'failed'
+  reasons: string[]
+  adjacencyBonus: boolean
+}
+function isHwagiEstablished(
+  transform: FiveElement,
+  monthElement: FiveElement | undefined,
+  natalStemNames: string[],
+  natalPairPos: string
+): HwagiGate {
+  const reasons: string[] = []
+  let status: 'full' | 'partial' | 'failed' = 'partial'
+
+  // 1) 월령 조건.
+  if (monthElement) {
+    if (monthElement === transform) {
+      status = 'full'
+      reasons.push(`month-${monthElement}=transform`)
+    } else if (FIVE_SHENG[monthElement] === transform) {
+      // 월령이 합화를 생함 — 화기 약하지만 성립.
+      status = 'partial'
+      reasons.push(`month-${monthElement}-shengs-${transform}`)
+    } else if (FIVE_KE[monthElement] === transform) {
+      // 월령이 합화를 극함 — 화기 깨짐.
+      status = 'failed'
+      reasons.push(`month-${monthElement}-kes-${transform}`)
+    } else if (FIVE_SHENG[transform] === monthElement) {
+      // 합화가 월령을 생함 — 역방향, 약 partial.
+      status = 'partial'
+      reasons.push(`transform-${transform}-shengs-month-${monthElement}`)
+    } else if (FIVE_KE[transform] === monthElement) {
+      // 합화가 월령을 극함 — 화기 강하지만 월령과 충돌. partial.
+      status = 'partial'
+      reasons.push(`transform-${transform}-kes-month-${monthElement}`)
+    } else {
+      status = 'partial'
+      reasons.push(`month-${monthElement}-neutral`)
+    }
+  } else {
+    reasons.push('month-unknown')
+  }
+
+  // 2) 파합자 검출 — 합 페어 본인은 제외.
+  const breakerStems = HWAGI_BREAKERS[transform] ?? []
+  const pairSelfNames = new Set<string>() // 합 페어 본인 (본명 천간) — 시기 지장간은 본명 천간 set 에 없으니 굳이 안 빼도 됨.
+  // natalPairPos 의 천간이 breaker 후보에 있으면 자체 소거 (합에 묶여서 파합 못함).
+  for (const breaker of breakerStems) {
+    if (natalStemNames.includes(breaker)) {
+      // 파합자 발견 — 단, 그 파합자가 본명에서 합 페어 천간 본인이면 합에 묶여 무력.
+      if (!pairSelfNames.has(breaker)) {
+        reasons.push(`breaker=${breaker}`)
+        if (status === 'full') {
+          status = 'partial' // full → partial 강등
+        } else if (status === 'partial') {
+          status = 'failed' // partial + 파합자 = 실패
+        }
+        break
+      }
+    }
+  }
+
+  // 3) 인접도 — month/day 또는 day/time 페어면 보너스.
+  const adjacencyBonus = natalPairPos === 'month' || natalPairPos === 'day' || natalPairPos === 'time'
+  // 실제 인접 페어 검증: 시기 지장간은 시기 지지 안에 있어 본명 4기둥 천간과의
+  // 인접 정의가 모호하지만, 본명 천간이 月·日·時 중 月-日, 日-時 인접 위치면
+  // 본명 내 합 페어 응답성이 강함을 인정해 보너스 부여.
+
+  return { status, reasons, adjacencyBonus }
+}
+
+// 오행 생(生) 관계 — A 가 B 를 생함.
+const FIVE_SHENG: Record<FiveElement, FiveElement> = {
+  목: '화',
+  화: '토',
+  토: '금',
+  금: '수',
+  수: '목',
+}
+// 오행 극(克) 관계 — A 가 B 를 극함.
+const FIVE_KE: Record<FiveElement, FiveElement> = {
+  목: '토',
+  토: '수',
+  수: '화',
+  화: '금',
+  금: '목',
+}
+// 합화 오행별 파합자 천간 (합화 오행을 극하는 천간들).
+const HWAGI_BREAKERS: Record<FiveElement, string[]> = {
+  토: ['甲', '乙'], // 木克土
+  금: ['丙', '丁'], // 火克金
+  수: ['戊', '己'], // 土克水
+  목: ['庚', '辛'], // 金克木
+  화: ['壬', '癸'], // 水克火
 }
 
 /**

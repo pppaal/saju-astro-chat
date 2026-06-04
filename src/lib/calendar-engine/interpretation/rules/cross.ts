@@ -332,4 +332,294 @@ export const RULES_CROSS: InterpretationRule[] = [
     themes: ['growth', 'career'],
     authorNote: 'cross-axis: 신강 + 천왕성 트랜짓 → 자기 주도 변혁 호기',
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // Cross-activation A등급 매핑 — 사주 × 점성 동시 활성 페어 narrative.
+  //
+  // cross-activation extractor 가 emit 한 'cross-activation' kind 신호를
+  // 직접 매칭. 이미 부모 두 신호가 동시 활성일 때만 emit 되므로 conditions
+  // 는 signalKinds + planet/sibsin/shinsalName 만으로 충분 (natalStrength·
+  // yongsin 제거 → 신호 자체가 페어 활성을 보장). 룰 텍스트는 mapping
+  // 데이터의 meaning 보다 더 풍부한 시기적 권유로 작성.
+  // ═══════════════════════════════════════════════════════════
+  {
+    id: 'cross-jeonggwan-saturn',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 84,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      sibsin: ['정관'],
+      planet: ['Saturn'],
+    },
+    template:
+      `**정관 × 토성 — 책임의 시기가 사주·점성 두 축에서 같은 방향으로 ` +
+      `흘러요.** 공식 절차·약속·구조를 다듬을 호기예요. 미뤘던 계약, ` +
+      `자격, 직장 내 정식 자리를 단단히 박기에 평소보다 두 배 매끄러워요. ` +
+      `흐름은 {duration}.`,
+    templateEn:
+      `**Right Officer × Saturn — responsibility runs along both axes in the same ` +
+      `direction.** A window to tighten formal procedures, commitments, and structure. ` +
+      `Deferred contracts, credentials, and locking in your official seat at work flow ` +
+      `about twice as smoothly. The current runs for {duration}.`,
+    themes: ['career'],
+    authorNote: 'cross-activation A등급: 정관 ↔ Saturn (책임·구조)',
+  },
+  {
+    id: 'cross-pyeongwan-mars',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 84,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      sibsin: ['편관'],
+      planet: ['Mars'],
+    },
+    template:
+      `**편관 × 화성 — 강제·압박·돌발이 사주·점성 두 축에서 동시에 짙어지는 ` +
+      `시기.** 결단은 빠르게, 충돌은 한 박자 늦춰서. 칼·차·운동·언쟁에서 ` +
+      `평소보다 한 단계 더 조심하세요. 흐름은 {duration}.`,
+    templateEn:
+      `**Seven Killings × Mars — pressure, force, and sudden moves thicken on both axes.** ` +
+      `Decide fast, but slow any clash by a beat. Take one extra notch of care with blades, ` +
+      `vehicles, intense exercise, and arguments. The current runs for {duration}.`,
+    themes: ['career', 'health'],
+    authorNote: 'cross-activation A등급: 편관 ↔ Mars (압박·돌발)',
+  },
+  {
+    id: 'cross-jeongjae-venus',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 82,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      sibsin: ['정재'],
+      planet: ['Venus'],
+    },
+    template:
+      `**정재 × 금성 — 안정된 가치·관계·자산의 결이 사주·점성 두 축에서 ` +
+      `같은 방향으로 살아나요.** 결혼·약속·구매·정착에 우호. 들떠서가 ` +
+      `아니라 차분히 결정한 한 가지가 오래 갑니다. 흐름은 {duration}.`,
+    templateEn:
+      `**Right Wealth × Venus — stable value, relationships, and assets light up on both ` +
+      `axes in the same direction.** Favours marriage, formal commitments, purchases, and ` +
+      `settling. The one thing you decide calmly (not in a lit-up rush) is what lasts. The ` +
+      `current runs for {duration}.`,
+    themes: ['money', 'love'],
+    authorNote: 'cross-activation A등급: 정재 ↔ Venus (안정·가치)',
+  },
+  {
+    id: 'cross-pyeonjae-mercury',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 78,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      sibsin: ['편재'],
+      planet: ['Mercury'],
+    },
+    template:
+      `**편재 × 수성 — 동산·상업·기회 포착의 결이 두 축에서 빨라지는 시기.** ` +
+      `단타·중개·정보 거래·새 거래선 개척에 우호. 단, 손이 빨라진 만큼 ` +
+      `놓치는 디테일도 늘어요 — 큰 계약은 두 번 읽고 사인하세요. 흐름은 {duration}.`,
+    templateEn:
+      `**Indirect Wealth × Mercury — speed and opportunity in moveable assets, trade, and ` +
+      `info-flow accelerate on both axes.** Favours quick trades, brokerage, info deals, and ` +
+      `opening new pipelines. Just note the same speed leaks details — read big contracts ` +
+      `twice before you sign. The current runs for {duration}.`,
+    themes: ['money', 'career'],
+    authorNote: 'cross-activation A등급: 편재 ↔ Mercury (동산·상업)',
+  },
+  {
+    id: 'cross-siksin-mercury',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 78,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      sibsin: ['식신'],
+      planet: ['Mercury'],
+    },
+    template:
+      `**식신 × 수성 — 표현·창의·소통이 두 축에서 같은 방향으로 풀리는 시기.** ` +
+      `글·말·작품 산출, 발표, 인터뷰, 콘텐츠 만들기에 결결이 좋아요. ` +
+      `머릿속 메모를 밖으로 내보내는 일이라면 평소보다 한 발 더. 흐름은 {duration}.`,
+    templateEn:
+      `**Eating God × Mercury — expression, creativity, and communication flow open on ` +
+      `both axes.** Writing, speaking, creative output, presentations, interviews, and ` +
+      `content all come together. Anything that moves a head-note out into the world is ` +
+      `worth one extra step. The current runs for {duration}.`,
+    themes: ['growth', 'career'],
+    authorNote: 'cross-activation A등급: 식신 ↔ Mercury (표현·창의)',
+  },
+  {
+    id: 'cross-jeongin-jupiter',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 82,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      sibsin: ['정인'],
+      planet: ['Jupiter'],
+    },
+    template:
+      `**정인 × 목성 — 학습·확장·정통의 결이 사주·점성 두 축에서 같은 ` +
+      `방향으로 흘러요.** 자격·학위·해외·정식 인장(자격증·면허)·정통 ` +
+      `공부에 우호. 미뤘던 큰 배움을 시작하기에 이만한 결이 드물어요. ` +
+      `흐름은 {duration}.`,
+    templateEn:
+      `**Right Print × Jupiter — learning, expansion, and orthodoxy run in the same ` +
+      `direction on both axes.** Favours credentials, degrees, overseas moves, official ` +
+      `licences, and orthodox study. A rare window for starting the big learning you have ` +
+      `been deferring. The current runs for {duration}.`,
+    themes: ['growth', 'career'],
+    authorNote: 'cross-activation A등급: 정인 ↔ Jupiter (학습·확장)',
+  },
+  {
+    id: 'cross-jeongin-moon',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 74,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      sibsin: ['정인'],
+      planet: ['Moon'],
+    },
+    template:
+      `**정인 × 달 — 수용·돌봄·어머니의 결이 두 축에서 두 배.** 휴식·치유· ` +
+      `가족 챙기기, 잠자리·식사·집안 정돈에 우호. 외부를 향해 더 벌리지 ` +
+      `말고, 안쪽을 채우는 일에 시간을 주세요. 흐름은 {duration}.`,
+    templateEn:
+      `**Right Print × Moon — reception, care, and the maternal note doubled on both axes.** ` +
+      `Favours rest, healing, family, sleep, meals, and tending the home. Do not spin up ` +
+      `more outward — give time to filling the inside. The current runs for {duration}.`,
+    themes: ['health', 'love'],
+    authorNote: 'cross-activation A등급: 정인 ↔ Moon (수용·어머니)',
+  },
+  {
+    id: 'cross-bigeon-sun',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 76,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      sibsin: ['비견'],
+      planet: ['Sun'],
+    },
+    template:
+      `**비견 × 태양 — 자아·주체성·동료의 결이 두 축에서 살아나는 시기.** ` +
+      `본인 이름으로 나서기, 동업·협업·새 팀 합류, 자기 브랜드 만들기에 ` +
+      `우호. 단, 같은 결의 사람들과의 경쟁이 동시에 짙어지니 차별점 한 ` +
+      `가지는 분명히. 흐름은 {duration}.`,
+    templateEn:
+      `**Friend × Sun — self, agency, and peer presence light up on both axes.** A window ` +
+      `for stepping out under your own name, joining a partnership, a new team, or building ` +
+      `a personal brand. Just note competition with similar peers thickens at the same time — ` +
+      `keep one differentiator crisp. The current runs for {duration}.`,
+    themes: ['career', 'growth'],
+    authorNote: 'cross-activation A등급: 비견 ↔ Sun (자아·주체)',
+  },
+  {
+    id: 'cross-dohwa-venus',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 80,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      shinsalName: ['도화', '도화살'],
+      planet: ['Venus'],
+    },
+    template:
+      `**도화살 × 금성 — 관계·매력·인기 결이 두 축에서 동시에 살아남.** ` +
+      `사교·연애·미적 활동·자기 표현에 우호. 끌리는 결이 평소보다 강하니 ` +
+      `한 박자 즐기되, 큰 약속(이사·계약)은 다음 달까지 미루는 게 안전. ` +
+      `흐름은 {duration}.`,
+    templateEn:
+      `**Peach-Blossom × Venus — connection, charm, and popularity light up together on ` +
+      `both axes.** Favours socials, romance, aesthetic work, and self-presentation. The ` +
+      `pull runs hotter than usual — enjoy a beat, but defer big commitments (moving, ` +
+      `contracts) to next month for safety. The current runs for {duration}.`,
+    themes: ['love', 'growth'],
+    authorNote: 'cross-activation A등급: 도화 ↔ Venus (관계·매력)',
+  },
+  {
+    id: 'cross-yeokma-mercury',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 76,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      shinsalName: ['역마', '역마살'],
+      planet: ['Mercury'],
+    },
+    template:
+      `**역마살 × 수성 — 이동·소통·정보의 결이 두 축에서 두 배.** 출장·여행· ` +
+      `교섭·매체 활용·새 도시 답사에 우호. 손에 잡히는 만큼 잡고, 지나친 ` +
+      `약속은 다음 도시에서 후회로 돌아와요. 흐름은 {duration}.`,
+    templateEn:
+      `**Travelling Horse × Mercury — movement, messages, and info-flow doubled on both ` +
+      `axes.** Favours travel, negotiation, media work, and scouting a new city. Take what ` +
+      `you can actually hold — over-promising returns as regret in the next stop. The ` +
+      `current runs for {duration}.`,
+    themes: ['career', 'growth'],
+    authorNote: 'cross-activation A등급: 역마 ↔ Mercury (이동·소통)',
+  },
+  {
+    id: 'cross-yangin-mars',
+    scope: 'monthly',
+    section: 'shinsal',
+    priority: 80,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      shinsalName: ['양인'],
+      planet: ['Mars'],
+    },
+    template:
+      `**양인살 × 화성 — 직진·과열·돌발이 두 축에서 한 시기에 몰리는 결.** ` +
+      `칼·차·운동·언쟁·강한 발화에서 평소보다 두 단계 조심. 결단력은 ` +
+      `필요한 자리에서만 쓰고, 모서리는 한 박자 늦춰 돌아가세요. 흐름은 ` +
+      `{duration}.`,
+    templateEn:
+      `**Yang-Blade × Mars — straight-line drive, over-heat, and sudden moves pile up on ` +
+      `both axes.** Take two extra notches of care with blades, vehicles, intense workouts, ` +
+      `arguments, and harsh words. Spend decisiveness where it is actually needed, and ` +
+      `round any sharp corner one beat slower. The current runs for {duration}.`,
+    themes: ['health', 'career'],
+    authorNote: 'cross-activation A등급: 양인 ↔ Mars (직진·과열)',
+  },
+  {
+    id: 'cross-geonrok-jupiter',
+    scope: 'monthly',
+    section: 'transit',
+    priority: 80,
+    conditions: {
+      signalSource: 'saju',
+      signalKinds: ['cross-activation'],
+      shinsalName: ['건록'],
+      planet: ['Jupiter'],
+    },
+    template:
+      `**건록 × 목성 — 실력·인정·확장이 두 축에서 같은 방향으로 흘러요.** ` +
+      `자기 자리를 잡고 키우기에 최적. 미뤘던 승진 신청, 정식 자리 ` +
+      `요청, 자기 브랜드 본격 가동에 평소보다 한 단계 더 매끄러워요. ` +
+      `흐름은 {duration}.`,
+    templateEn:
+      `**Established Stipend × Jupiter — competence, recognition, and expansion run ` +
+      `together on both axes.** The best window for claiming your own seat and growing ` +
+      `it. Deferred promotion requests, asking for the formal title, and seriously ` +
+      `running your own brand all flow one notch smoother. The current runs for {duration}.`,
+    themes: ['career', 'money'],
+    authorNote: 'cross-activation A등급: 건록 ↔ Jupiter (실력·인정)',
+  },
 ]

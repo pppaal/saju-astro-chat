@@ -575,7 +575,7 @@ const GONGMANG_BY_DAY_PILLAR: Record<string, string[]> = {
   壬戌: ['子', '丑'],
   癸亥: ['子', '丑'],
 }
-function getGongmang(dayStem: string, dayBranch: string): string[] {
+export function getGongmang(dayStem: string, dayBranch: string): string[] {
   return GONGMANG_BY_DAY_PILLAR[dayStem + dayBranch] || []
 }
 

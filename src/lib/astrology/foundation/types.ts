@@ -45,6 +45,16 @@ export type AspectRules = {
   scoring?: {
     weights?: { orb?: number; aspect?: number; speed?: number }
   }
+  /**
+   * Hellenistic whole-sign aspect (정통). true 이면 두 점이 같은 표지 구조에 있으면
+   * regard (=aspect) 로 간주 — degree-based orb 무관. 사인-사인 간 각 (0/60/90/120/180)
+   * 이 만족되면 accept.
+   *
+   * 기본은 false → 기존 degree-based + moiety orb 정책 유지. true 로 켜면
+   * 모든 sign-to-sign regard 가 전부 잡혀 신호 수가 크게 늘어남 (Hellenistic 본래
+   * 의도는 sign-based 만으로 충분, degree orb 는 modern 의 정밀화).
+   */
+  useWholeSign?: boolean
 }
 
 export type PlanetBase = {

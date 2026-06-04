@@ -45,6 +45,16 @@ const DIGNITY_LABEL: Record<string, string> = {
 const SLOW = new Set(['Saturn', 'Uranus', 'Neptune', 'Pluto'])
 const MEDIUM = new Set(['Jupiter', 'Mars'])
 
+// Hellenistic 정통: 외행성 + non-traditional points 는 essential dignity 보유 X.
+// 이 추출기는 traditional 7행성에 한해서만 dignity 신호를 emit.
+const TRADITIONAL_PLANETS = new Set([
+  'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn',
+])
+const DIGNITY_BLOCKED = new Set([
+  'Uranus', 'Neptune', 'Pluto',
+  'True Node', 'Mean Node', 'Chiron', 'Lilith',
+])
+
 const astroDignityExtractor: SignalExtractor = {
   source: 'astro',
   kind: 'transit',   // 별도 SignalKind 없이 transit 카테고리에 묶음
@@ -89,6 +99,10 @@ const astroDignityExtractor: SignalExtractor = {
       for (const p of chart.planets) {
         const sign = p.sign
         if (!sign) continue
+        // Hellenistic 정통: 외행성·노드·Chiron·Lilith 는 dignity 미부여 → skip.
+        // 단 transit/position 자체는 다른 모듈에서 활용 유지 (여기서만 emit 차단).
+        if (DIGNITY_BLOCKED.has(p.name)) continue
+        if (!TRADITIONAL_PLANETS.has(p.name)) continue
         const d = dignityOf(p.name, sign)
         const trip = triplicityOf(p.name, sign, sect === 'day') !== null
         const term = termOf(p.name, sign, p.degree) !== null
@@ -227,6 +241,9 @@ const astroDignityExtractor: SignalExtractor = {
     const natalPlanets = natal.astro.chart.planets ?? []
     for (const p of natalPlanets) {
       if (!p.sign) continue
+      // Hellenistic 정통: 외행성·노드·키론·릴리스 — natal Almuten 도 emit 안 함.
+      if (DIGNITY_BLOCKED.has(p.name)) continue
+      if (!TRADITIONAL_PLANETS.has(p.name)) continue
       const tiers = dignityTiers(p.name, p.sign, p.degree, sect)
       const matchedMinor: string[] = []
       if (tiers.triplicity) matchedMinor.push('triplicity')

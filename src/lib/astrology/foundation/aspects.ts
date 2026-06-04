@@ -5,14 +5,52 @@ import { shortestAngle } from './utils'
 import { clamp } from '@/lib/utils/math'
 import { evaluateAspect, AspectEngineConfig } from './aspectCore'
 
+// ===== Hellenistic whole-sign regard helpers =====
+// 사인 0=Aries..11=Pisces. 두 점이 같은 사인 = 0, 6번째 차이 = opposition 등.
+// (영문 사인 이름만 인덱스가 살아있으면 OK. ZodiacKo 도 영문 12개.)
+const SIGN_IDX: Record<string, number> = {
+  Aries: 0, Taurus: 1, Gemini: 2, Cancer: 3,
+  Leo: 4, Virgo: 5, Libra: 6, Scorpio: 7,
+  Sagittarius: 8, Capricorn: 9, Aquarius: 10, Pisces: 11,
+}
+function lonToSignIdx(lon: number): number {
+  const norm = ((lon % 360) + 360) % 360
+  return Math.floor(norm / 30)
+}
+const WHOLE_SIGN_DIST: Partial<Record<AspectType, number>> = {
+  conjunction: 0,
+  sextile: 2,
+  square: 3,
+  trine: 4,
+  opposition: 6,
+}
+/**
+ * Hellenistic whole-sign regard 판정.
+ * 두 점의 사인 거리(0..6) 가 aspect 의 expected sign-distance 와 일치하면 true.
+ * sextile=2, square=3, trine=4, opposition=6, conjunction=0 (같은 사인).
+ * minor aspect 는 whole-sign 에서는 의미 없음 (정통 헬레니즘이 minor 를 안 다룸).
+ */
+function isWholeSignRegard(lonA: number, lonB: number, aspect: AspectType): boolean {
+  const expected = WHOLE_SIGN_DIST[aspect]
+  if (expected === undefined) return false
+  const a = lonToSignIdx(lonA)
+  const b = lonToSignIdx(lonB)
+  const diff = Math.min((a - b + 12) % 12, (b - a + 12) % 12)
+  return diff === expected
+}
+
 const MAJOR_ASPECTS: AspectType[] = ['conjunction', 'sextile', 'square', 'trine', 'opposition']
-const MINOR_ASPECTS: AspectType[] = [
+// Hellenistic 정통화 (Phase 2): minor aspect 5종은 비정통 (Kepler/Lilly 이후 modern 영역).
+// 타입은 backward compat 위해 보존하지만 런타임에서는 빈 배열 → 어디서도 emit 안 됨.
+// 외부 호출자가 rules.aspects 에 명시적으로 넣어도 resolveAspectList 에서 필터링.
+const MINOR_ASPECTS: AspectType[] = []
+const BLOCKED_MINOR = new Set<AspectType>([
   'semisextile',
   'quincunx',
   'quintile',
   'biquintile',
   'sesquiquadrate',
-]
+])
 
 const DESIRED_ANGLES: Record<AspectType, number> = {
   conjunction: 0,
@@ -58,10 +96,55 @@ function desiredAngle(a: AspectType) {
   return DESIRED_ANGLES[a]
 }
 
-// Orb defaults follow Robert Hand's modern standard (Planets in Transit / Horoscope Symbols).
-// Previous values were 4-5x narrower — they reliably missed real natal/transit aspects
-// that any traditional astrologer would interpret. Callers can still override via
-// AspectRules.orbs when tighter tolerance is needed (e.g. composite charts).
+// Hellenistic moiety (per-planet half-orb) policy.
+// 정통 헬레니즘 ~ 르네상스 (Lilly/Ptolemy 흐름): 각 행성은 고유한 orb 가 있고,
+// 두 행성 사이 aspect 의 maximal orb = (moietyA + moietyB) / 2.
+// (Pseudo-Ptolemaic / Lilly Christian Astrology 표 기반)
+//   Sun 15, Moon 12, Mercury 7, Venus 7, Mars 8, Jupiter 9, Saturn 9.
+//   외행성/Node/Chiron/Lilith 는 비정통 → 5 (좁게).
+//
+// 이전엔 Robert Hand modern 8° 단일 정책 + 행성별 5-8° 분리 운영. 그 잔재는
+// getOrbLimitByName 에 fallback 으로 남겨둔다 (callers 가 명시 rules.orbs 를
+// 넘기는 경로용). 기본 path 는 PLANET_MOIETY → pairMoietyOrb 로 흐른다.
+export const PLANET_MOIETY: Record<string, number> = {
+  Sun: 15,
+  Moon: 12,
+  Mercury: 7,
+  Venus: 7,
+  Mars: 8,
+  Jupiter: 9,
+  Saturn: 9,
+  // 외행성·노드·키론·릴리스 — 헬레니즘에서 다루지 않음. 좁은 5 로 통일.
+  Uranus: 5,
+  Neptune: 5,
+  Pluto: 5,
+  'True Node': 5,
+  'Mean Node': 5,
+  Chiron: 5,
+  Lilith: 5,
+  // ASC/MC 는 angle — sect light 와 동급 권한 (Lilly 5; 일부 학파 12).
+  // 보수적 5 로 시작.
+  Ascendant: 5,
+  MC: 5,
+}
+
+/**
+ * 두 점 사이 aspect 의 maximal orb (Hellenistic pair moiety).
+ * = (moietyA + moietyB) / 2.
+ * rules.orbs 가 명시되면 그쪽이 우선 (legacy 경로 호환).
+ */
+export function pairMoietyOrb(aName: string, bName: string, rules: AspectRules = {}): number {
+  if (rules.orbs && Object.keys(rules.orbs).length > 0) {
+    // legacy 경로 — 둘 중 더 큰 per-name limit 사용 (기존 동작).
+    return Math.max(getOrbLimitByName(aName, rules), getOrbLimitByName(bName, rules))
+  }
+  const a = PLANET_MOIETY[aName] ?? 5
+  const b = PLANET_MOIETY[bName] ?? 5
+  return (a + b) / 2
+}
+
+// Legacy per-name orb (modern Hand-style). 호출자가 rules.orbs 를 명시할 때만 활성.
+// 새 코드 경로(pairMoietyOrb) 가 기본이지만 외부 callers 가 orbs 를 명시하면 우선.
 function getOrbLimitByName(name: string, rules: AspectRules) {
   const { orbs = {} } = rules
   if (name === 'Sun') {
@@ -125,10 +208,12 @@ function applyingFlagByTarget(
 }
 
 function resolveAspectList(rules: AspectRules) {
+  // 정통 Hellenistic: minor aspect 는 항상 차단. rules.aspects 가 명시돼도 minor 는 필터.
+  // includeMinor=true 옵션은 backward compat 위해 받지만 무시.
   if (rules.aspects) {
-    return rules.aspects
+    return rules.aspects.filter((a) => !BLOCKED_MINOR.has(a))
   }
-  return rules.includeMinor ? [...MAJOR_ASPECTS, ...MINOR_ASPECTS] : MAJOR_ASPECTS
+  return MAJOR_ASPECTS
 }
 
 /**
@@ -137,6 +222,7 @@ function resolveAspectList(rules: AspectRules) {
 export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {}): AspectHit[] {
   const aspects = resolveAspectList(rules)
   const maxResults = rules.maxResults ?? 50
+  const useWholeSign = rules.useWholeSign === true
 
   // ✅ 안전하게 undefined 체크
   const natalPlanets = Array.isArray(natal?.planets) ? natal.planets : []
@@ -177,12 +263,16 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
 
   // 트랜짓-네이탈(synastry/transit overlay) 엔진 config.
   // 코어에 주입하지만 orb/limit/applying/score 식은 기존 findAspects 와 동일.
+  // useWholeSign 모드: computeOrb 는 sign 거리 만족이면 0, 아니면 999 반환.
+  // limit 은 항상 1 → orb=0(매치) 만 accept, orb=999(미매치) 는 reject.
+  // 이렇게 하면 evaluateAspect 의 일반 path 를 그대로 쓰면서도 sign-based regard 가능.
   const config: AspectEngineConfig = {
     desiredAngle: (a) => desiredAngle(a),
     computeOrb: (sep, target) => Math.abs(sep - target),
     computeLimit: (aName, bName, a) => {
       const pairOverride = getPairOrbOverride(aName, bName, a, rules)
-      const baseLimit = Math.max(getOrbLimitByName(aName, rules), getOrbLimitByName(bName, rules))
+      // Hellenistic moiety pair orb (정통). rules.orbs 가 명시되면 legacy max-per-name 사용.
+      const baseLimit = pairMoietyOrb(aName, bName, rules)
       const aspectDefault = rules.perAspectOrbs?.[a]
       let limit = pairOverride ?? aspectDefault ?? baseLimit
       // 빠른/느린 행성에 따른 미세 보정 (source 속도 기준).
@@ -211,6 +301,35 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
       const relSpeed = (t.speed ?? 0) - (('speed' in n ? n.speed : 0) ?? 0)
       currentSourceSpeed = t.speed ?? 0
       for (const a of aspects) {
+        // Hellenistic whole-sign: sign 거리만 보고 accept. orb=0 으로 보고.
+        if (useWholeSign) {
+          if (!isWholeSignRegard(t.longitude, n.longitude, a)) continue
+          // applying/score 는 degree-based 와 호환되게 합리적 디폴트.
+          const applying =
+            applyingFlagByTarget(t.longitude, n.longitude, relSpeed, desiredAngle(a))
+          const score = 0.6 + 0.3 * baseAspectWeight(a) // whole-sign 은 항상 같은 base score
+          hits.push({
+            from: {
+              name: t.name,
+              kind: 'transit',
+              longitude: t.longitude,
+              house: t.house,
+              sign: t.sign,
+            },
+            to: {
+              name: n.name,
+              kind: 'natal',
+              longitude: n.longitude,
+              house: 'house' in n ? n.house : undefined,
+              sign: 'sign' in n ? n.sign : undefined,
+            },
+            type: a,
+            orb: 0,
+            applying,
+            score: Number(score.toFixed(3)),
+          })
+          break
+        }
         const evalResult = evaluateAspect(
           t.name,
           t.longitude,
@@ -262,6 +381,7 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
 export function findNatalAspects(natal: Chart, rules: AspectRules = {}): AspectHit[] {
   const aspects = resolveAspectList(rules)
   const maxResults = rules.maxResults ?? 100
+  const useWholeSign = rules.useWholeSign === true
   const ps = Array.isArray(natal?.planets) ? natal.planets : []
   const hits: AspectHit[] = []
 
@@ -277,8 +397,9 @@ export function findNatalAspects(natal: Chart, rules: AspectRules = {}): AspectH
     computeOrb: (sep, target) => Math.abs(sep - target),
     computeLimit: (aName, bName, a) => {
       const pairOverride = getPairOrbOverride(aName, bName, a, rules)
-      const baseLimit =
-        Math.max(getOrbLimitByName(aName, rules), getOrbLimitByName(bName, rules)) + 3 // natal은 +3
+      // Natal 차트는 transit 대비 +3 (natal aspect 는 일생 유지되므로 더 관대).
+      // Hellenistic moiety 기준 + 3 (legacy 동작 유지).
+      const baseLimit = pairMoietyOrb(aName, bName, rules) + 3
       const aspectDefault = rules.perAspectOrbs?.[a]
       return pairOverride ?? aspectDefault ?? baseLimit
     },
@@ -298,6 +419,33 @@ export function findNatalAspects(natal: Chart, rules: AspectRules = {}): AspectH
       const sep = shortestAngle(A.longitude, B.longitude)
       const relSpeed = (A.speed ?? 0) - (B.speed ?? 0)
       for (const t of aspects) {
+        if (useWholeSign) {
+          if (!isWholeSignRegard(A.longitude, B.longitude, t)) continue
+          const applying =
+            applyingFlagByTarget(A.longitude, B.longitude, relSpeed, DESIRED_ANGLES[t])
+          const score = 0.6 + 0.35 * baseAspectWeight(t)
+          hits.push({
+            from: {
+              name: A.name,
+              kind: 'natal',
+              longitude: A.longitude,
+              house: A.house,
+              sign: A.sign,
+            },
+            to: {
+              name: B.name,
+              kind: 'natal',
+              longitude: B.longitude,
+              house: B.house,
+              sign: B.sign,
+            },
+            type: t,
+            orb: 0,
+            applying,
+            score: Number(score.toFixed(3)),
+          })
+          break
+        }
         const evalResult = evaluateAspect(
           A.name,
           A.longitude,

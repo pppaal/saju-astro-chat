@@ -13,6 +13,10 @@
 
 export type DignityStatus = 'domicile' | 'exaltation' | 'detriment' | 'fall' | 'peregrine'
 
+// Hellenistic 정통화 (Phase 2): 외행성 (Uranus/Neptune/Pluto) 은 전통 7행성에
+// 없으므로 essential dignity 를 부여하지 않는다. 외행성의 transit/position 자체는
+// 살리지만 (다른 모듈에서 활용), domicile/exaltation/detriment/fall 에서는 빠짐.
+// 노드/Chiron 도 dignity 없음.
 export const DOMICILE: Record<string, string[]> = {
   Sun: ['Leo', '사자자리'],
   Moon: ['Cancer', '게자리'],
@@ -21,9 +25,7 @@ export const DOMICILE: Record<string, string[]> = {
   Mars: ['Aries', '양자리', 'Scorpio', '전갈자리'],
   Jupiter: ['Sagittarius', '사수자리', 'Pisces', '물고기자리'],
   Saturn: ['Capricorn', '염소자리', 'Aquarius', '물병자리'],
-  Uranus: ['Aquarius', '물병자리'],
-  Neptune: ['Pisces', '물고기자리'],
-  Pluto: ['Scorpio', '전갈자리'],
+  // Uranus/Neptune/Pluto: 전통 헬레니즘 dignity 없음 (modern 점성 추가). 제거.
 }
 
 export const EXALTATION: Record<string, string[]> = {
