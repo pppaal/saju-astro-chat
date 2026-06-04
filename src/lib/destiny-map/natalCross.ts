@@ -474,6 +474,121 @@ export function evalPersona(
   })
 }
 
+/** 추진력: 신강약(사주) ↔ 자기주장 행성(태양·화성) 강조 여부. */
+export function evalDrive(
+  strengthLevel: string | undefined,
+  selfEmphasized: boolean,
+): CrossVerdict | null {
+  if (!strengthLevel) return null
+  const s = strengthLevel.toLowerCase()
+  const strong = /강|strong/.test(s) && !/약/.test(strengthLevel)
+  const weak = /약|weak/.test(s)
+  if (strong)
+    return selfEmphasized
+      ? {
+          tone: 'resonant',
+          reason: {
+            ko: '타고나길 자기 주도로 밀어붙이는 힘이 강하고, 별자리도 앞에 나서는 기질을 받쳐줘요 — 리더·행동파.',
+            en: 'You’re wired to drive things yourself, and your chart backs that up — a leader/doer.',
+          },
+        }
+      : {
+          tone: 'complement',
+          reason: {
+            ko: '타고난 추진력은 센데, 별자리는 그 힘을 부드럽게 다듬어줘요 — 세지만 거칠지 않은 타입.',
+            en: 'Strong inner drive, softened by your chart — forceful but not rough.',
+          },
+        }
+  if (weak)
+    return selfEmphasized
+      ? {
+          tone: 'tension',
+          reason: {
+            ko: '타고나길 받쳐주고 조율하는 쪽인데 별자리는 앞에 나서라 부추겨요 — 속도와 무대가 엇갈릴 수 있어요.',
+            en: 'You’re built to support, but your chart pushes you forward — pace and stage can clash.',
+          },
+        }
+      : {
+          tone: 'resonant',
+          reason: {
+            ko: '타고나길 혼자 밀어붙이기보다 받쳐주고 조율하는 데 강한데, 별자리도 같은 결 — 든든한 조력자형.',
+            en: 'You shine at supporting and harmonizing rather than forcing — your chart agrees.',
+          },
+        }
+  return {
+    tone: 'neutral',
+    reason: {
+      ko: '주도와 조율 사이에서 균형 잡힌 편 — 상황에 따라 앞에 서기도, 받쳐주기도 해요.',
+      en: 'Balanced between leading and supporting — you do both as the moment calls.',
+    },
+  }
+}
+
+// 행성 쌍 → 의미·테마(쉬운 말). 키는 알파벳순 "A|B".
+const PERSONAL_PLANETS = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'])
+const MAJOR_ASPECTS = new Set(['conjunction', 'sextile', 'square', 'trine', 'opposition'])
+const ASPECT_PAIR_THEME: Record<string, { ko: string; en: string; group: string }> = {
+  'Jupiter|Sun': { ko: '타고난 낙천과 자신감 — 기회를 크게 보고 사람을 끌어요.', en: 'Born optimism and confidence — you think big and draw people in.', group: '인성' },
+  'Mars|Sun': { ko: '에너지가 넘치고 앞장서는 행동파예요.', en: 'High energy, first to act — a doer.', group: '비겁' },
+  'Saturn|Sun': { ko: '일찍 철든 책임감형 — 인정은 늦게 와도 단단하게 쌓여요.', en: 'Mature and responsible early — recognition comes slow but solid.', group: '관성' },
+  'Moon|Venus': { ko: '정 많고 사람을 끄는 다정한 매력형이에요.', en: 'Warm and magnetic — people feel at ease with you.', group: '재성' },
+  'Moon|Saturn': { ko: '감정을 안으로 삭이는 진중하고 어른스러운 타입이에요.', en: 'You hold feelings in — steady and grown-up.', group: '인성' },
+  'Mars|Moon': { ko: '감정이 솔직하고 열정적 — 가끔 욱하지만 뒤끝은 없어요.', en: 'Honest, passionate feelings — quick to flare, quick to let go.', group: '비겁' },
+  'Mercury|Saturn': { ko: '말과 생각이 신중하고 논리적인 편이에요.', en: 'Careful, logical in thought and speech.', group: '관성' },
+  'Mars|Venus': { ko: '관계·연애에 적극적이고 매력을 잘 드러내요.', en: 'Forward in love and quick to show your charm.', group: '재성' },
+  'Saturn|Venus': { ko: '관계에 신중하고 진지 — 한번 정하면 오래가요.', en: 'Careful and serious in love — once you commit, it lasts.', group: '관성' },
+  'Mars|Saturn': { ko: '참을성 있게 끝까지 밀어붙이는 인내형이에요.', en: 'Patient, you push through to the end.', group: '관성' },
+  'Moon|Sun': { ko: '속과 겉이 한 방향 — 자기 자신과 잘 합의된 사람.', en: 'Inner and outer in sync — at peace with yourself.', group: '비겁' },
+  'Jupiter|Mercury': { ko: '배우고 가르치는 데 강하고 시야가 넓어요.', en: 'Strong at learning and teaching, with a wide view.', group: '인성' },
+  'Jupiter|Moon': { ko: '정서가 넉넉하고 낙천적이라 사람들이 편하게 느껴요.', en: 'Generous, easygoing feelings — others relax around you.', group: '인성' },
+  'Mercury|Venus': { ko: '말·글·미적 감각이 좋은 표현형이에요.', en: 'A natural communicator with good taste.', group: '식상' },
+  'Mercury|Sun': { ko: '생각이 또렷하고 자기 표현이 분명한 편이에요.', en: 'Clear-minded and articulate about who you are.', group: '식상' },
+}
+const PLANET_KO_PAIR: Record<string, string> = {
+  Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성',
+  Mars: '화성', Jupiter: '목성', Saturn: '토성',
+}
+
+interface AspectLike {
+  from?: { name?: string }
+  to?: { name?: string }
+  type?: string
+  orb?: number
+}
+
+/** 핵심 각: 가장 강한(orb 작은) 주요 행성 각 1개의 의미 ↔ 사주 우세 십신. */
+export function evalKeyAspect(
+  aspects: AspectLike[] | undefined,
+  sajuDominantGroup: string | undefined,
+): CrossVerdict | null {
+  if (!aspects || aspects.length === 0) return null
+  let best: { key: string; pairKo: string; orb: number } | null = null
+  for (const a of aspects) {
+    const p1 = a.from?.name
+    const p2 = a.to?.name
+    const type = String(a.type ?? '').toLowerCase()
+    if (!p1 || !p2 || !PERSONAL_PLANETS.has(p1) || !PERSONAL_PLANETS.has(p2)) continue
+    if (!MAJOR_ASPECTS.has(type)) continue
+    const key = [p1, p2].sort().join('|')
+    if (!ASPECT_PAIR_THEME[key]) continue
+    const orb = typeof a.orb === 'number' ? Math.abs(a.orb) : 99
+    if (!best || orb < best.orb) {
+      const pairKo = `${PLANET_KO_PAIR[p1] ?? p1}·${PLANET_KO_PAIR[p2] ?? p2}`
+      best = { key, pairKo, orb }
+    }
+  }
+  if (!best) return null
+  const theme = ASPECT_PAIR_THEME[best.key]
+  const matches = sajuDominantGroup === theme.group
+  return {
+    tone: matches ? 'resonant' : 'complement',
+    reason: {
+      ko: `${best.pairKo} 각이 가장 또렷해요 — ${theme.ko}${matches ? ' 사주에서도 같은 결이라 이 면이 특히 도드라져요.' : ''}`,
+      en: `Your tightest aspect: ${theme.en}${matches ? ' Saju echoes it, so this stands out.' : ''}`,
+    },
+  }
+}
+
 // ── 종합 ──────────────────────────────────────────────────────────────────
 
 /** 도메인 판정들을 모아 전체 정체성 한 문장 생성. */

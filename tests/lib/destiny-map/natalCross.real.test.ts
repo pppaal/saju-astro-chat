@@ -16,6 +16,9 @@ import {
   evalTemperament,
   evalEnergyDirection,
   evalPersona,
+  evalDrive,
+  evalKeyAspect,
+  dominantSibsinGroup,
   synthesize,
   type CrossVerdict,
 } from '@/lib/destiny-map/natalCross'
@@ -101,6 +104,21 @@ describe('운세 차트 — 실제 엔진 통합', () => {
       { cat: '기질     ', v: evalTemperament(fiveElements, planetSigns) },
       { cat: '에너지   ', v: evalEnergyDirection(details, emphasized) },
       { cat: '드러나는나', v: evalPersona(dmEl, ascSign) },
+      {
+        cat: '추진력   ',
+        v: evalDrive(
+          (adv as { yongsin?: { daymasterStrength?: string } })?.yongsin?.daymasterStrength ??
+            saju.strength,
+          emphasized.has('Sun') || emphasized.has('Mars'),
+        ),
+      },
+      {
+        cat: '핵심성향 ',
+        v: evalKeyAspect(
+          astro.natalAspects as Parameters<typeof evalKeyAspect>[0],
+          dominantSibsinGroup(details),
+        ),
+      },
     ]
     const verdicts = rows.map((r) => r.v).filter((v): v is CrossVerdict => !!v)
     const synth = synthesize(verdicts)

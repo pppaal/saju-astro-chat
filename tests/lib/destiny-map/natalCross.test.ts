@@ -12,6 +12,8 @@ import {
   evalTemperament,
   evalEnergyDirection,
   evalPersona,
+  evalDrive,
+  evalKeyAspect,
   dominantSajuElement,
   dominantAstroElement,
   dominantSibsinGroup,
@@ -99,6 +101,42 @@ describe('natalCross — 분포·전체급 교차', () => {
   it('드러나는 나: 같은 원소 동조 / 상극 긴장', () => {
     expect(evalPersona('화', 'Leo')?.tone).toBe('resonant')
     expect(evalPersona('목', 'Capricorn')?.tone).toBe('tension')
+  })
+})
+
+describe('natalCross — 추진력 (신강약 ↔ 자기주장 행성)', () => {
+  it('신강 + 태양/화성 강조 → 동조', () => {
+    expect(evalDrive('강', true)?.tone).toBe('resonant')
+    expect(evalDrive('strong', true)?.tone).toBe('resonant')
+  })
+  it('신강 + 강조 없음 → 보완', () => {
+    expect(evalDrive('신강', false)?.tone).toBe('complement')
+  })
+  it('신약 + 강조 없음 → 동조 / 신약 + 강조 → 긴장', () => {
+    expect(evalDrive('약', false)?.tone).toBe('resonant')
+    expect(evalDrive('weak', true)?.tone).toBe('tension')
+  })
+  it('중화 → 중립, 없음 → null', () => {
+    expect(evalDrive('중', false)?.tone).toBe('neutral')
+    expect(evalDrive(undefined, true)).toBeNull()
+  })
+})
+
+describe('natalCross — 핵심 각 (가장 센 행성 각)', () => {
+  const aspects = [
+    { from: { name: 'Sun' }, to: { name: 'Saturn' }, type: 'square', orb: 1.2 },
+    { from: { name: 'Moon' }, to: { name: 'Venus' }, type: 'trine', orb: 4.5 },
+  ]
+  it('가장 orb 작은 각을 고르고 사주 그룹 일치 시 동조', () => {
+    // 태양·토성(관성) 이 orb 1.2 로 최강 → 사주 우세 관성이면 동조
+    expect(evalKeyAspect(aspects, '관성')?.tone).toBe('resonant')
+  })
+  it('그룹 불일치 → 보완', () => {
+    expect(evalKeyAspect(aspects, '재성')?.tone).toBe('complement')
+  })
+  it('매핑된 각 없으면 null', () => {
+    expect(evalKeyAspect([{ from: { name: 'Pluto' }, to: { name: 'Neptune' }, type: 'trine', orb: 1 }], '관성')).toBeNull()
+    expect(evalKeyAspect([], '관성')).toBeNull()
   })
 })
 
