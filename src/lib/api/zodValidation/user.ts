@@ -66,6 +66,8 @@ export const userProfileUpdateSchema = z.object({
   birthTime: timeSchema.optional().nullable(),
   gender: genderSchema.optional().nullable(),
   birthCity: z.string().max(200).trim().optional().nullable(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
   tzId: timezoneSchema.optional().nullable(),
 })
 
@@ -76,6 +78,8 @@ export const userBirthInfoUpdateSchema = z.object({
   birthTime: timeSchema.optional().nullable(),
   gender: genderSchema.optional().nullable(),
   birthCity: z.string().max(200).trim().optional().nullable(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
   tzId: timezoneSchema.optional().nullable(),
 })
 

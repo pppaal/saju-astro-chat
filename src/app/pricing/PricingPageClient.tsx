@@ -54,6 +54,47 @@ const SSR_PRICING_INDEX: Record<string, number> = SSR_PRICING_KEYS.reduce(
   {} as Record<string, number>
 )
 
+// 인라인 장식 아이콘 — i18n/외부 의존 없는 순수 SVG. stroke 색은 CSS 에서 지정.
+function Check() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
+}
+
+function ShieldCheck() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 2 L20 6 V11 C20 16 16.5 20 12 22 C7.5 20 4 16 4 11 V6 Z" />
+      <polyline points="9 12 11 14 15 9.5" />
+    </svg>
+  )
+}
+
+function ClockIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 15.5 14" />
+    </svg>
+  )
+}
+
 type Locale = 'en' | 'ko'
 
 interface PricingPageClientProps {
@@ -242,6 +283,17 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           <p className={styles.eyebrow}>{pt('eyebrow')}</p>
           <h1 className={styles.mainTitle}>{pt('heroTitle')}</h1>
           <p className={styles.mainSubtitle}>{pt('heroSub')}</p>
+          <div className={styles.nosub}>
+            {(isKo
+              ? ['구독 없음', '자동결제 없음', '무료 기능으로 시작']
+              : ['No subscription', 'No auto-renewal', 'Free features to start']
+            ).map((label) => (
+              <span key={label}>
+                <Check />
+                {label}
+              </span>
+            ))}
+          </div>
         </section>
 
         {/* Credit Packs */}
@@ -383,16 +435,32 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           </ul>
         </section>
 
-        {/* Guarantee */}
-        <section className={styles.guarantee}>
-          <div className={styles.guaranteeIcon}>SAFE</div>
-          <h3 className={styles.guaranteeTitle}>{pt('guarantee')}</h3>
-          <p className={styles.guaranteeText}>{pt('guaranteeDesc')}</p>
-          <p className={styles.guaranteeText}>
-            {isKo
-              ? `기준 단가: 1 크레딧 ≈ ${formatKrw(BASE_CREDIT_PRICE_KRW)} (VAT 포함)`
-              : `Reference rate: 1 credit ≈ ${formatUsd(baseCreditPriceUsd)} (tax included)`}
-          </p>
+        {/* Trust strip — 환불 보장 + 사용한 만큼만 결제 */}
+        <section className={styles.trust}>
+          <div className={styles.trustCard}>
+            <div className={styles.trustIcon}>
+              <ShieldCheck />
+            </div>
+            <div>
+              <div className={styles.trustPill}>{isKo ? '안전' : 'Safe'}</div>
+              <h4>{pt('guarantee')}</h4>
+              <p>{pt('guaranteeDesc')}</p>
+            </div>
+          </div>
+          <div className={styles.trustCard}>
+            <div className={styles.trustIcon}>
+              <ClockIcon />
+            </div>
+            <div>
+              <div className={styles.trustPill}>{isKo ? '유연' : 'Flexible'}</div>
+              <h4>{isKo ? '사용한 만큼만 결제' : 'Pay only for what you use'}</h4>
+              <p>
+                {isKo
+                  ? '구독도, 자동결제도, 깜짝 청구도 없습니다. 리딩이 필요할 때 팩을 구매하면 끝입니다.'
+                  : 'No subscription, no auto-renewal, no surprise charges. Buy a pack when you want a reading — that’s it.'}
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* CTA */}
@@ -408,6 +476,20 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
             </Link>
           </div>
         </section>
+
+        {/* Footer — 기준 단가 + 공통 안내 (guarantee 카드에서 이동) */}
+        <footer className={styles.footer}>
+          <div className={styles.footerRef}>
+            {isKo
+              ? `기준 단가: 1 크레딧 ≈ ${formatKrw(BASE_CREDIT_PRICE_KRW)} (VAT 포함)`
+              : `Reference rate: 1 credit ≈ ${formatUsd(baseCreditPriceUsd)} (tax included)`}
+          </div>
+          <div>
+            {isKo
+              ? '© 2026 destinypal.com · 모든 가격 VAT 포함 · 크레딧은 구매일로부터 3개월 유효'
+              : '© 2026 destinypal.com · All prices include tax · Credits valid 3 months from purchase'}
+          </div>
+        </footer>
       </main>
 
       {/* 이메일 보충 모달 — session.user.email 이 비어 있을 때만 노출.

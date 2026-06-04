@@ -66,7 +66,13 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
               user: {
                 select: {
                   profile: {
-                    select: { birthDate: true, birthTime: true, gender: true, tzId: true },
+                    select: {
+                      birthDate: true,
+                      birthTime: true,
+                      gender: true,
+                      tzId: true,
+                      longitude: true,
+                    },
                   },
                 },
               },
@@ -77,7 +83,13 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
               user: {
                 select: {
                   profile: {
-                    select: { birthDate: true, birthTime: true, gender: true, tzId: true },
+                    select: {
+                      birthDate: true,
+                      birthTime: true,
+                      gender: true,
+                      tzId: true,
+                      longitude: true,
+                    },
                   },
                 },
               },
@@ -126,12 +138,14 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
             birthTime: profile1.birthTime ?? undefined,
             gender: profile1.gender ?? undefined,
             timezone: profile1.tzId ?? undefined,
+            longitude: profile1.longitude ?? undefined,
           },
           person2: {
             birthDate: profile2.birthDate,
             birthTime: profile2.birthTime ?? undefined,
             gender: profile2.gender ?? undefined,
             timezone: profile2.tzId ?? undefined,
+            longitude: profile2.longitude ?? undefined,
           },
         })
         await cacheSet(cacheKey, reading, CACHE_TTL.TAROT_READING)

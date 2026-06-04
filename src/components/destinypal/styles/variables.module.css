@@ -1,0 +1,68 @@
+/* ============================================================
+   destinypal · 만세력 — ink-on-hanji design tokens
+   고서(古書) 결: 따뜻한 종이 · 먹 · 주사(朱) · 쪽빛(藍)
+   포팅 출처: destinypal-extracted/css-ink/base.css
+   ============================================================ */
+
+.destinypalScope {
+  /* hanji paper */
+  --dp-bg: #ece2cd;
+  --dp-bg-2: #e6dac1;
+  --dp-bg-3: #ddcfb1;
+  --dp-void: #f3ecdc;
+
+  /* ink (먹) */
+  --dp-ink: #2a2318;
+  --dp-ink-dim: #4d4334;
+  --dp-ink-mute: #82745c;
+  --dp-ink-faint: #b4a584;
+
+  /* accent — 쪽빛 indigo (astro / now) */
+  --dp-accent: #34406f;
+  --dp-accent-2: #4f5d96;
+  --dp-accent-deep: #222a4e;
+  --dp-accent-glow: rgba(52, 64, 111, 0.28);
+
+  /* saju — 주사 vermilion */
+  --dp-ember: #b03a22;
+  --dp-ember-2: #c8492c;
+  --dp-ember-glow: rgba(176, 58, 34, 0.26);
+
+  /* 자초 plum secondary (astro outer) */
+  --dp-violet: #6c4a73;
+  --dp-violet-2: #855a8d;
+
+  /* polarity */
+  --dp-pos: #2f7d5b;
+  --dp-neg: #b03a22;
+  --dp-neu: #8a7c61;
+
+  /* 오행 five elements — earthy pigments */
+  --dp-el-wood: #4f7a40;
+  --dp-el-fire: #bd472b;
+  --dp-el-earth: #b3873a;
+  --dp-el-metal: #6f7689;
+  --dp-el-water: #345a86;
+
+  /* surfaces — translucent fresher-page cards over aged paper */
+  --dp-panel: rgba(255, 251, 242, 0.46);
+  --dp-panel-2: rgba(255, 251, 242, 0.74);
+  --dp-line: rgba(58, 46, 28, 0.18);
+  --dp-line-soft: rgba(58, 46, 28, 0.1);
+  --dp-now-ring: rgba(52, 64, 111, 0.85);
+
+  /* type */
+  --dp-serif: "Newsreader", "Gowun Batang", "Noto Serif KR", serif;
+  --dp-serif-ko: "Gowun Batang", "Noto Serif KR", serif;
+  --dp-sans: "Gowun Dodum", "Noto Sans KR", system-ui, sans-serif;
+  --dp-mono: "IBM Plex Mono", "Noto Sans KR", monospace;
+
+  --dp-r: 6px;
+  --dp-r-lg: 10px;
+
+  color: var(--dp-ink);
+  font-family: var(--dp-sans);
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  line-break: strict;
+}

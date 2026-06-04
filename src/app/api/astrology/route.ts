@@ -12,6 +12,16 @@ import {
   findNatalAspectsPlus,
   buildEngineMeta,
 } from '@/lib/astrology'
+import { calculateArabicLots } from '@/lib/astrology/foundation/arabicParts'
+import {
+  calculateZodiacalReleasing,
+  getActiveZRSub,
+  annotateZRMarkers,
+  type ZRPeriod,
+} from '@/lib/astrology/foundation/zodiacalReleasing'
+import { dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
+import { calculateAlmutenFiguris } from '@/lib/astrology/foundation/almutenFiguris'
+import type { Chart, ZodiacKo } from '@/lib/astrology/foundation/types'
 import {
   pickLabels,
   normalizeLocale,
@@ -165,6 +175,131 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     aspectsPlus,
   }
 
+  // ── natalAdvanced — destinypal Life tier 가 요구하는 5개 헬레니즘 신호.
+  // 기존 응답이 행성 위치/aspects 만 노출해 격국·sect·ZR 챕터·dignity 5-tier·
+  // Arabic Lots·Almuten Figuris 가 누락돼 있었다. NatalContext 와 동일 함수로
+  // 산출해 같은 본명에서 calendar-engine 과 일관된 값. 실패는 부분 graceful
+  // — sect/lots 가 살아있으면 ZR/Almuten 도 계산, dignity 는 행성 단위 try.
+  let natalAdvanced: {
+    sect: 'day' | 'night'
+    lots: ReturnType<typeof calculateArabicLots>
+    zr: {
+      spirit: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
+      fortune: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
+      currentAge: number | null
+      currentSpirit: ReturnType<typeof getActiveZRSub> | null
+      currentFortune: ReturnType<typeof getActiveZRSub> | null
+    }
+    dignities: Array<{
+      planet: string
+      sign: string
+      degree: number
+      tiers: ReturnType<typeof dignityTiers>
+      score: number
+    }>
+    almutenFiguris: ReturnType<typeof calculateAlmutenFiguris> | null
+  } | undefined
+  try {
+    const chartFull = chart as Chart
+    const sun = chartFull.planets.find((p) => p.name === 'Sun')
+    // sect — Sun 이 지평선 위 (house 7..12) 이면 day. NatalContext.build 와 같은 규칙.
+    const sect: 'day' | 'night' = sun && (sun.house ?? 0) >= 7 ? 'day' : 'night'
+
+    let lots: ReturnType<typeof calculateArabicLots> = []
+    try {
+      lots = calculateArabicLots(chartFull, sect === 'day')
+    } catch (err) {
+      logger.warn('[astrology] Arabic lots calc failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
+    }
+
+    const spiritLot = lots.find((l) => l.name === 'Spirit')
+    const fortuneLot = lots.find((l) => l.name === 'Fortune')
+
+    const ageNow = Math.max(0, local.year() - year - (local.month() < month - 1 ? 1 : 0))
+    let spirit: { startSign: ZodiacKo; periods: ZRPeriod[] } | null = null
+    let fortune: { startSign: ZodiacKo; periods: ZRPeriod[] } | null = null
+    try {
+      if (spiritLot) {
+        const periods = annotateZRMarkers(
+          spiritLot.sign,
+          calculateZodiacalReleasing(spiritLot.sign, 90)
+        )
+        spirit = { startSign: spiritLot.sign, periods }
+      }
+      if (fortuneLot) {
+        const periods = annotateZRMarkers(
+          fortuneLot.sign,
+          calculateZodiacalReleasing(fortuneLot.sign, 90)
+        )
+        fortune = { startSign: fortuneLot.sign, periods }
+      }
+    } catch (err) {
+      logger.warn('[astrology] ZR calc failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
+    }
+    const currentSpirit = spirit ? getActiveZRSub(spirit.periods, ageNow) : null
+    const currentFortune = fortune ? getActiveZRSub(fortune.periods, ageNow) : null
+
+    // 5-tier dignities per 본명 행성 (10 planets 일반)
+    const dignitiesList: NonNullable<typeof natalAdvanced>['dignities'] = []
+    for (const p of chartFull.planets) {
+      if (!p.sign) continue
+      try {
+        const tiers = dignityTiers(p.name, p.sign, p.degree, sect)
+        dignitiesList.push({
+          planet: p.name,
+          sign: p.sign,
+          degree: p.degree,
+          tiers,
+          score: dignityScore(tiers),
+        })
+      } catch (err) {
+        logger.warn('[astrology] dignityTiers failed', {
+          planet: p.name,
+          err: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
+
+    // Almuten Figuris — 4-point (Sun/Moon/ASC + Fortune). Lunation 생략 (생략 가능).
+    let almutenFiguris: ReturnType<typeof calculateAlmutenFiguris> | null = null
+    try {
+      almutenFiguris = calculateAlmutenFiguris({
+        chart: chartFull,
+        sect,
+        fortune: fortuneLot
+          ? { longitude: fortuneLot.longitude }
+          : undefined,
+      })
+    } catch (err) {
+      logger.warn('[astrology] Almuten Figuris failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
+    }
+
+    natalAdvanced = {
+      sect,
+      lots,
+      zr: {
+        spirit,
+        fortune,
+        currentAge: ageNow,
+        currentSpirit,
+        currentFortune,
+      },
+      dignities: dignitiesList,
+      almutenFiguris,
+    }
+  } catch (err) {
+    logger.warn('[astrology] natalAdvanced block failed; omitting', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+    natalAdvanced = undefined
+  }
+
   // 7. Return success response
   return apiSuccess(
     {
@@ -173,6 +308,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
       aspects: aspectsPlus,
       interpretation,
       advanced,
+      natalAdvanced,
       debug: { locale: locKey, opts },
     },
     { status: HTTP_STATUS.OK }

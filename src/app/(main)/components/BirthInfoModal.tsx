@@ -306,6 +306,10 @@ export default function BirthInfoModal({
             birthTime: timeUnknown ? null : effectiveTime,
             gender: gender as 'male' | 'female',
             birthCity: trimmedCity ?? null,
+            // 출생지 좌표 — 사주 진태양시 보정이 운세 차트·캘린더·궁합·
+            // 운명매치에서 동일하게 적용되도록 함께 저장.
+            latitude,
+            longitude,
             tzId: tz ?? null,
           }),
         })

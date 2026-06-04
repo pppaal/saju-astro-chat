@@ -68,19 +68,25 @@ describe('quickCompatibility', () => {
 
       await calculateQuickCompatibility(person1, person2)
 
+      // 마지막 두 인자: lunarLeap(undefined) + longitude(undefined — 좌표 미제공 시
+      // 한국 LMT 폴백). 다른 화면과 동일한 진태양시 보정 시그니처.
       expect(calculateSajuData).toHaveBeenCalledWith(
         '1991-01-01',
         '00:00',
         'female',
         'solar',
-        'Asia/Seoul'
+        'Asia/Seoul',
+        undefined,
+        undefined
       )
       expect(calculateSajuData).toHaveBeenCalledWith(
         '1993-02-02',
         '00:00',
         'male',
         'solar',
-        'Asia/Seoul'
+        'Asia/Seoul',
+        undefined,
+        undefined
       )
     })
 
@@ -95,14 +101,18 @@ describe('quickCompatibility', () => {
         '10:00',
         'male',
         'solar',
-        'America/New_York'
+        'America/New_York',
+        undefined,
+        undefined
       )
       expect(calculateSajuData).toHaveBeenCalledWith(
         '1995-04-04',
         '18:00',
         'male',
         'solar',
-        'Europe/London'
+        'Europe/London',
+        undefined,
+        undefined
       )
     })
 

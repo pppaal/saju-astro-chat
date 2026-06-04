@@ -32,6 +32,8 @@ export interface OracleBirthInfo {
   birthTime?: string
   gender?: string
   timezone?: string
+  // 출생지 경도 — 사주 진태양시(진경도) 보정용. 없으면 한국 LMT 폴백.
+  longitude?: number
 }
 
 export interface AuspiciousHour {
@@ -251,7 +253,10 @@ function runFindBestDates(
     person.birthTime || '00:00',
     person.gender === 'F' ? 'female' : 'male',
     'solar',
-    person.timezone || 'Asia/Seoul'
+    person.timezone || 'Asia/Seoul',
+    undefined,
+    // 진태양시(진경도) 보정 — 다른 화면과 동일하게 출생지 경도 반영.
+    person.longitude
   )
 
   const stems = [
