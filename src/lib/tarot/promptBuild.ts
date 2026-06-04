@@ -294,6 +294,13 @@ export interface FallbackPayload {
 /**
  * Deterministic fallback when both LLM providers are unavailable. Every
  * drawn card still gets a per-card line so the UI never breaks.
+ *
+ * Tone is *honest system-error*, not fake reading — earlier copy ("카드에서
+ * 전해지는 핵심 메시지", "highlights a key point...") pretended to be a real
+ * interpretation, which felt empty and broke trust. The new payload tells the
+ * user the service briefly failed, that the credit refund is in flight (the
+ * route calls refundOnFailure right before emitting this), and surfaces the
+ * card name + one keyword so the user at least sees *which* cards landed.
  */
 export function buildFallbackPayload(
   cards: PromptCardInput[],
@@ -301,11 +308,11 @@ export function buildFallbackPayload(
 ): FallbackPayload {
   const isKorean = language === 'ko'
   const overall = isKorean
-    ? '카드에서 전해지는 핵심 메시지를 정리했습니다.'
-    : 'Here is the core message the cards are pointing to.'
+    ? '리딩 시스템이 잠시 응답하지 않아 해석을 만들지 못했어요. 차감된 크레딧은 자동 환불됩니다 — 잠시 후 같은 질문으로 다시 펼쳐 주세요.'
+    : "The reading service briefly didn't respond, so we couldn't generate a reading. Your credit is being refunded — please try the same question again in a moment."
   const advice = isKorean
-    ? '오늘 할 수 있는 작은 행동부터 시작해 보세요.'
-    : 'Start with one small, concrete step you can take today.'
+    ? '지금은 한 박자 쉬고 잠시 후 다시 시도해 주세요.'
+    : 'Take a beat and try again in a moment.'
 
   const cardsPayload = cards.map((card, index) => {
     const position =
@@ -318,9 +325,10 @@ export function buildFallbackPayload(
       : isKorean
         ? '정방향'
         : 'upright'
+    const keyword = (isKorean ? card.keywordsKo?.[0] : card.keywords?.[0]) || ''
     const interpretation = isKorean
-      ? `${name} (${orientation}) 카드는 현재 상황에서 중요한 포인트를 짚어 줍니다.`
-      : `${name} (${orientation}) highlights a key point in your current situation.`
+      ? `${name} (${orientation})${keyword ? ` — 키워드: ${keyword}` : ''}. 자세한 해석은 재시도 시 도착해요.`
+      : `${name} (${orientation})${keyword ? ` — keyword: ${keyword}` : ''}. The detailed reading will arrive on retry.`
     return { position, interpretation }
   })
 
