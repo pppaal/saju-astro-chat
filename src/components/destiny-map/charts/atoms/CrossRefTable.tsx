@@ -53,8 +53,8 @@ interface SajuLike {
   advancedAnalysis?: {
     geokguk?: { primary?: string }
     yongsin?: { primaryYongsin?: string }
-    // 신강약 분석 — details 가 십신 5그룹 분포(비겁/인성/식상/재성/관성).
-    strength?: { level?: string; details?: Record<string, number> }
+    // 십신 종합 — categoryCount 가 5그룹 분포(비겁/식상/재성/관성/인성).
+    sibsin?: { categoryCount?: Record<string, number> }
   }
   table?: {
     byPillar?: {
@@ -496,7 +496,7 @@ function buildRows(
 
   // 8. 에너지 방향: 십신 우세 그룹(전체) ↔ 강조된 행성
   {
-    const details = saju.advancedAnalysis?.strength?.details
+    const details = saju.advancedAnalysis?.sibsin?.categoryCount
     const emphasized = emphasizedPlanets(astro)
     const verdict = evalEnergyDirection(details, emphasized)
     if (verdict) {
