@@ -255,7 +255,7 @@ function SkyCanvas() {
 
     let W = 0, H = 0, DPR = 1
     let stars: Star[] = []
-    let shooting: Shoot[] = []
+    const shooting: Shoot[] = []
     const mouse = { x: -9999, y: -9999, active: false }
     let raf = 0
     let t = 0
@@ -820,7 +820,7 @@ function CompatibilityPanel() {
 
 function useScrollReveal(inClass: string) {
   useEffect(() => {
-    let els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'))
+    const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'))
     let ticking = false
 
     function check() {
