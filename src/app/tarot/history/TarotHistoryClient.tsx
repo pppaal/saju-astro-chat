@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
+import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
 
 import {
@@ -300,14 +301,10 @@ export default function TarotHistoryClient() {
   return (
     <div
       className="min-h-screen text-slate-100 relative"
-      style={{
-        background: `
-          radial-gradient(900px 600px at 20% 0%, rgba(99, 124, 200, 0.08), transparent 60%),
-          radial-gradient(800px 600px at 90% 100%, rgba(212, 181, 114, 0.06), transparent 60%),
-          var(--ds-dark-bg)
-        `,
-      }}
+      style={{ background: 'var(--ds-dark-bg)' }}
     >
+      {/* 공용 cosmic gradient backdrop — 메인/타로 entry 와 같은 톤. */}
+      <CosmicBackdrop />
       {/* 글로벌 헤더 (☰ / EN) 와 안 겹치게 상단 여백 충분히.
           About/FAQ/Pricing 과 같은 max-w + padding 으로 통일. */}
       <div className="max-w-2xl mx-auto px-4 pt-20 pb-16 relative z-10">
