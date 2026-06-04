@@ -31,18 +31,9 @@ interface CrossRefTableProps {
 // ── Narrow shape interfaces (둘 다 /api/* 응답 또는 NatalContext 모두 수용) ──
 interface SajuLike {
   dayMaster?: { name?: string; element?: string }
-  birthYear?: number
   advancedAnalysis?: {
     geokguk?: { primary?: string }
     yongsin?: { primaryYongsin?: string }
-  }
-  daeun?: {
-    list?: Array<{
-      age?: number
-      heavenlyStem?: string
-      earthlyBranch?: string
-      ganji?: string
-    }>
   }
   table?: {
     byPillar?: {
@@ -162,10 +153,6 @@ const GEOKGUK_RESONANT_SIGNS: Record<string, string[]> = {
 }
 
 // ── 도움 함수 ───────────────────────────────────────────────────────────
-function isFiniteNumber(n: unknown): n is number {
-  return typeof n === 'number' && Number.isFinite(n)
-}
-
 function findPlanet(astro: AstroLike, name: string): PlanetLike | undefined {
   const lists: Array<PlanetLike[] | undefined> = [
     astro.chartData?.planets,
@@ -191,23 +178,6 @@ function getMc(astro: AstroLike): PlanetLike | undefined {
 
 function getPof(astro: AstroLike): { sign?: string; house?: number } | undefined {
   return astro.extraPoints?.partOfFortune ?? astro.chart?.extraPoints?.partOfFortune
-}
-
-function findCurrentDaeun(
-  daeunList: NonNullable<NonNullable<SajuLike['daeun']>['list']>,
-  birthYear: number | undefined
-): { age?: number; heavenlyStem?: string; earthlyBranch?: string; ganji?: string } | undefined {
-  if (daeunList.length === 0) return undefined
-  if (isFiniteNumber(birthYear)) {
-    const currentAge = new Date().getFullYear() - birthYear
-    let current = daeunList[0]
-    for (const c of daeunList) {
-      if ((c.age ?? 0) <= currentAge) current = c
-      else break
-    }
-    return current
-  }
-  return daeunList[Math.min(2, daeunList.length - 1)]
 }
 
 // ── Row 데이터 모델 ──────────────────────────────────────────────────────
@@ -298,27 +268,6 @@ function buildRows(saju: SajuLike, astro: AstroLike, lang: Lang): CrossRow[] {
         rightValue: localizeSign(mc.sign, lang),
         tone,
       })
-    }
-  }
-
-  // 4. 현재 흐름: 현재 대운 ↔ 활성 transit (없으면 N/A — row 자체는 출력)
-  {
-    const daeunList = saju.daeun?.list ?? []
-    const current = findCurrentDaeun(daeunList, saju.birthYear)
-    if (current) {
-      const stem = current.heavenlyStem ?? ''
-      const branch = current.earthlyBranch ?? ''
-      const ganji = current.ganji ?? `${stem}${branch}`.trim()
-      if (ganji) {
-        rows.push({
-          category: lang === 'ko' ? '현재 흐름' : 'Current Flow',
-          leftLabel: lang === 'ko' ? '현재 대운' : 'Current Daeun',
-          leftValue: `${current.age ?? 0}~ ${ganji}`,
-          rightLabel: lang === 'ko' ? '활성 transit' : 'Active transit',
-          rightValue: lang === 'ko' ? '아직 없음' : 'N/A',
-          tone: 'neutral',
-        })
-      }
     }
   }
 
@@ -432,14 +381,12 @@ const TERM_DEFINITION_KO: Record<string, string> = {
   '12 신살 (일주)': '일주에 깃든 길흉의 별 — 천을귀인(귀인의 도움) 같은 의미 부여.',
   '12 운성 (일주)': '일간이 지지에서 어느 단계인지 — 장생(시작)~묘(끝) 12 단계.',
   '행운점 (POF)': 'Part of Fortune — 점성에서 영혼·몸·정신이 만나는 행운 지점.',
-  '현재 대운': '지금 들어와 있는 10년 단위 운기 — 인생의 흐름을 바꾸는 시기.',
   'MC (천직)': '점성 차트 천정 — 사회적 자아·직업·평판 영역.',
   '주요 aspect': '점성 행성끼리의 각도 — 합·삼각·직각·대립 등 관계.',
   '합·충 (사주 내)': '사주 글자끼리 짝지어(합) 또는 부딪혀(충) 만드는 관계.',
   '태양 별자리': '태어난 순간 태양이 머문 별자리 — 핵심 자아·정체성.',
   '달 별자리': '태어난 순간 달이 머문 별자리 — 감정·내면의 필요.',
   '행성 위신': '행성이 자기 별자리에 있을 때 가지는 힘 — dignity (입묘·격락 등).',
-  '활성 transit': '현재 하늘의 행성이 내 출생 차트를 자극하는 흐름.',
 }
 const TERM_DEFINITION_EN: Record<string, string> = {
   'Day Master': "The day-of-birth heavenly stem — your core 'I' character.",
@@ -448,14 +395,12 @@ const TERM_DEFINITION_EN: Record<string, string> = {
   'Sinsal (day)': 'Auspicious/inauspicious stars on your day pillar — e.g. Nobleman.',
   'Twelve Stage': 'Where your Day Master sits in the 12-stage life cycle (birth → grave).',
   'Part of Fortune': 'Arabic part where soul, body, and mind meet — your luck point.',
-  'Current Daeun': 'The current 10-year luck cycle shaping your life now.',
   MC: 'Midheaven — your career, reputation, and social self in astrology.',
   'Major aspects': 'Angles between planets — conjunction, trine, square, opposition.',
   'Hap/Chung': 'How saju characters bond (hap) or clash (chung) with each other.',
   'Sun sign': 'The zodiac the Sun was in at birth — core identity.',
   'Moon sign': 'The zodiac the Moon was in at birth — emotions and inner needs.',
   'Planet dignity': 'A planet’s strength based on the sign it sits in.',
-  'Active transit': 'Current sky planets activating points in your natal chart.',
 }
 
 /**

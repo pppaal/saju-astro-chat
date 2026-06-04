@@ -1,7 +1,16 @@
 // src/lib/destiny-map/local-report-generator.ts
 // Local template-based report generation (AI 없이 사주/점성 데이터만으로)
 
-import type { CombinedResult } from './astrology'
+/**
+ * Permissive shape used by chart summary extractors.
+ * 옛 `destiny-map/astrology` 모듈에서 export 되던 `CombinedResult` 의
+ * 최소 구조 — 이 파일의 extractSajuData / extractAstroData 가 내부에서
+ * 모든 필드를 optional cast 로 다루므로 두 최상위 키만 있으면 충분.
+ */
+type CombinedResult = {
+  saju: Record<string, unknown> | null | undefined
+  astrology: Record<string, unknown> | null | undefined
+}
 import { logger } from '@/lib/logger'
 import { getIljuArchetype } from '@/lib/saju/iljuDictionary'
 import {
@@ -438,7 +447,7 @@ const ELEM_COMBO: Record<string, { ko: string; en: string }> = {
 
 // ── Extended summary helpers ──────────────────────────────────────────────
 //
-// generateChartSummary 가 격국·신강약·십성·용신·대운 까지 다루도록 확장하면서
+// generateChartSummary 가 격국·신강약·십성·용신·태양/달 까지 다루도록 확장하면서
 // 필요한 보조 데이터·헬퍼들을 한 곳에 모음. 모두 deterministic, lang 무관 키.
 
 /** 영문 오행 키 → 한국어 한 글자 키. saju.fiveElements 가 영문이므로 변환용. */
@@ -557,30 +566,6 @@ function shortSibsinHint(category: SibsinCategory, isKo: boolean): string {
   return SIBSIN_CATEGORY_HINT[category][isKo ? 'ko' : 'en']
 }
 
-/** 현재 대운 찾기 — birthYear 있으면 정확 매칭, 없으면 중간쯤. */
-interface DaeunEntry {
-  age?: number
-  heavenlyStem?: string
-  earthlyBranch?: string
-  ganji?: string
-}
-function findCurrentDaeun(
-  daeunList: DaeunEntry[],
-  birthYear: number | undefined
-): DaeunEntry | undefined {
-  if (!daeunList || daeunList.length === 0) return undefined
-  if (birthYear && Number.isFinite(birthYear)) {
-    const currentAge = new Date().getFullYear() - birthYear
-    let current = daeunList[0]
-    for (const c of daeunList) {
-      if ((c.age ?? 0) <= currentAge) current = c
-      else break
-    }
-    return current
-  }
-  return daeunList[Math.min(2, daeunList.length - 1)]
-}
-
 /**
  * 차트 헤더용 자연어 요약을 생성한다.
  *
@@ -591,7 +576,6 @@ function findCurrentDaeun(
  *  s4. 주변 오행 기운 (기존 s2)
  *  s5. 용신 보충 처방 ("다만 火(빨강·남쪽)가 부족해서 …")
  *  s6. 태양/달 별자리 + 흐름 (기존 s3)
- *  s7. 현재 대운 ("지금은 22세대 乙亥 대운에 있어 …")
  *
  * 톤: 비전공자 친화 ("…에요/이에요"). 영문은 평이한 setting talk.
  */
@@ -704,21 +688,6 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
       : getElementName(KO_TO_EN_ELEMENT[remedyKoKey] ?? '', false)
     : ''
 
-  // ── 현재 대운 ─────────────────────────────────────────────────────────
-  const daeunRoot = s?.daeun as
-    | { list?: DaeunEntry[]; current?: DaeunEntry | null }
-    | undefined
-  const birthYear =
-    typeof s?.birthYear === 'number' ? (s.birthYear as number) : undefined
-  const currentDaeun =
-    daeunRoot?.current ??
-    findCurrentDaeun(Array.isArray(daeunRoot?.list) ? daeunRoot!.list! : [], birthYear)
-  const daeunGanji = currentDaeun
-    ? (currentDaeun.ganji ??
-        `${currentDaeun.heavenlyStem ?? ''}${currentDaeun.earthlyBranch ?? ''}`.trim())
-    : ''
-  const daeunAge = currentDaeun?.age
-
   if (isKo) {
     // s1 — 일주 archetype + 흐름 (호흡을 위해 — 로 묶음)
     const lead = iljuChar
@@ -782,14 +751,7 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
       s6 = `태양은 ${sunName}에 있어요.`
     }
 
-    // s7 — 현재 대운
-    let s7 = ''
-    if (daeunGanji) {
-      const agePart = typeof daeunAge === 'number' ? `${daeunAge}세대 ` : ''
-      s7 = `지금은 ${agePart}${daeunGanji} 대운에 있어 흐름의 시기를 보내고 있어요.`
-    }
-
-    return [s1, s2, s3, s4, s5, s6, s7].filter(Boolean).join(' ')
+    return [s1, s2, s3, s4, s5, s6].filter(Boolean).join(' ')
   }
 
   // ── English variant ────────────────────────────────────────────────────
@@ -844,12 +806,5 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
     s6 = `Sun in ${sunName}.`
   }
 
-  // s7 — current daeun
-  let s7 = ''
-  if (daeunGanji) {
-    const agePart = typeof daeunAge === 'number' ? ` from age ${daeunAge}` : ''
-    s7 = `Right now you are in the ${daeunGanji} decade-luck${agePart}, a current you are riding.`
-  }
-
-  return [s1, s2, s3, s4, s5, s6, s7].filter(Boolean).join(' ')
+  return [s1, s2, s3, s4, s5, s6].filter(Boolean).join(' ')
 }
