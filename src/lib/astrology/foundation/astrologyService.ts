@@ -127,7 +127,10 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
       timeZone: input.timeZone,
       latitude: input.latitude,
       longitude: input.longitude,
-      houseSystem: CALCULATION_STANDARDS.astrology.houseSystem,
+      // 극권 폴백 시 calcHouses 가 실제 사용 system(WholeSign)을 돌려주므로 그걸
+      // 우선 기록해 라벨 거짓을 막는다. (calcHouses 가 system 미보고/모킹된 경우엔
+      // 요청값으로 폴백 — 기존 동작 보존.)
+      houseSystem: housesRes.houseSystem ?? CALCULATION_STANDARDS.astrology.houseSystem,
     },
   }
 }
