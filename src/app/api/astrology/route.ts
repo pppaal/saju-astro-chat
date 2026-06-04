@@ -176,31 +176,29 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   }
 
   // ── natalAdvanced — destinypal Life tier 가 요구하는 5개 헬레니즘 신호.
-  // 기존 응답이 행성 위치/aspects 만 노출해 sect / ZR 챕터 / dignity 5-tier /
-  // Arabic Lots / Almuten Figuris 가 누락돼 있었다. NatalContext 와 동일 함수로
+  // 기존 응답이 행성 위치/aspects 만 노출해 격국·sect·ZR 챕터·dignity 5-tier·
+  // Arabic Lots·Almuten Figuris 가 누락돼 있었다. NatalContext 와 동일 함수로
   // 산출해 같은 본명에서 calendar-engine 과 일관된 값. 실패는 부분 graceful
   // — sect/lots 가 살아있으면 ZR/Almuten 도 계산, dignity 는 행성 단위 try.
-  let natalAdvanced:
-    | {
-        sect: 'day' | 'night'
-        lots: ReturnType<typeof calculateArabicLots>
-        zr: {
-          spirit: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
-          fortune: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
-          currentAge: number | null
-          currentSpirit: ReturnType<typeof getActiveZRSub> | null
-          currentFortune: ReturnType<typeof getActiveZRSub> | null
-        }
-        dignities: Array<{
-          planet: string
-          sign: string
-          degree: number
-          tiers: ReturnType<typeof dignityTiers>
-          score: number
-        }>
-        almutenFiguris: ReturnType<typeof calculateAlmutenFiguris> | null
-      }
-    | undefined
+  let natalAdvanced: {
+    sect: 'day' | 'night'
+    lots: ReturnType<typeof calculateArabicLots>
+    zr: {
+      spirit: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
+      fortune: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
+      currentAge: number | null
+      currentSpirit: ReturnType<typeof getActiveZRSub> | null
+      currentFortune: ReturnType<typeof getActiveZRSub> | null
+    }
+    dignities: Array<{
+      planet: string
+      sign: string
+      degree: number
+      tiers: ReturnType<typeof dignityTiers>
+      score: number
+    }>
+    almutenFiguris: ReturnType<typeof calculateAlmutenFiguris> | null
+  } | undefined
   try {
     const chartFull = chart as Chart
     const sun = chartFull.planets.find((p) => p.name === 'Sun')
@@ -219,11 +217,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     const spiritLot = lots.find((l) => l.name === 'Spirit')
     const fortuneLot = lots.find((l) => l.name === 'Fortune')
 
-    // 현재 나이 — 본명 vs viewer 시점 차이. 표시 시점 ageNow 로 활성 ZR 챕터 산출.
-    const ageNow = Math.max(
-      0,
-      local.year() - year - (local.month() < month - 1 ? 1 : 0)
-    )
+    const ageNow = Math.max(0, local.year() - year - (local.month() < month - 1 ? 1 : 0))
     let spirit: { startSign: ZodiacKo; periods: ZRPeriod[] } | null = null
     let fortune: { startSign: ZodiacKo; periods: ZRPeriod[] } | null = null
     try {
@@ -276,7 +270,9 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
       almutenFiguris = calculateAlmutenFiguris({
         chart: chartFull,
         sect,
-        fortune: fortuneLot ? { longitude: fortuneLot.longitude } : undefined,
+        fortune: fortuneLot
+          ? { longitude: fortuneLot.longitude }
+          : undefined,
       })
     } catch (err) {
       logger.warn('[astrology] Almuten Figuris failed', {

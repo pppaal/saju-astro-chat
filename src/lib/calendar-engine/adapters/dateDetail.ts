@@ -57,8 +57,8 @@ export interface V2DateDetailResponse {
         planetaryHour?: string
       }>
       /**
-       * 시진 24h 전체 breakdown — Day tier 가 24 시진 라인업을 그리려 best/worst top-N 만으론
-       * 부족하다. 0~23시 각 시점의 score / topTheme / themeScores 한 줄씩 노출.
+       * 시진 24h 전체 breakdown — Day tier 가 24 시진 라인업을 그리려 best/worst top-N 만으로는
+       * 부족하다. 0~23시 각 시점의 score / topTheme / hourPillar 를 한 줄씩 노출.
        * (별도 시진 emit 명시 — destinypal Day 페이지 spec.)
        */
       all24: Array<{
