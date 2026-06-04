@@ -921,7 +921,9 @@ describe('Calendar API Route - /api/calendar', () => {
         expect.any(String),
         expect.any(String),
         'solar',
-        'Asia/Seoul' // Falls back to Seoul timezone
+        'Asia/Seoul', // Falls back to Seoul timezone
+        undefined, // lunarLeap
+        expect.any(Number) // 진태양시 보정용 경도 (coords.lng)
       )
     })
 
@@ -979,7 +981,9 @@ describe('Calendar API Route - /api/calendar', () => {
         expect.any(String),
         expect.any(String),
         'solar',
-        'America/New_York'
+        'America/New_York',
+        undefined,
+        expect.any(Number)
       )
     })
   })
@@ -999,7 +1003,9 @@ describe('Calendar API Route - /api/calendar', () => {
         '14:30',
         'female',
         'solar',
-        'Asia/Seoul'
+        'Asia/Seoul',
+        undefined,
+        expect.any(Number)
       )
     })
 
@@ -1056,7 +1062,9 @@ describe('Calendar API Route - /api/calendar', () => {
         expect.any(String),
         'male',
         'solar',
-        expect.any(String)
+        expect.any(String),
+        undefined,
+        expect.any(Number)
       )
     })
   })

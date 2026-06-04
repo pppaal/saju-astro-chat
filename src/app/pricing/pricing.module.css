@@ -1,39 +1,46 @@
 /* ============================================================
-   Pricing — dark minimal cosmic
-   Palette: deep navy + gold accent + soft glass
+   Pricing — celestial / editorial cosmic
+   Palette: deep indigo + gold + violet, glass panels, serif display
+   Fonts: --display / --sans matched to about & contact pages
+   (self-hosted via next/font/local — no google fetch at build)
    ============================================================ */
 
 .page {
-  --bg: #07091a;
+  --bg: #0a0a1f;
+  --bg-2: #0e0c24;
+  --bg-3: #08081a;
   --surface: rgba(255, 255, 255, 0.035);
   --surface-strong: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --text: #f5f7fb;
-  --text-2: rgba(245, 247, 251, 0.62);
-  --text-3: rgba(245, 247, 251, 0.4);
-  --accent: #d4b572;
-  --accent-2: #e8cc8a;
-  --accent-soft: rgba(212, 181, 114, 0.16);
-  --accent-line: rgba(212, 181, 114, 0.42);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --text: #f4f1ea;
+  --text-2: #b9b4c7;
+  --text-3: #807a92;
+  --gold: #e8c170;
+  --gold-soft: #f0d59a;
+  --gold-deep: #b8893a;
+  --violet: #8b7bd8;
+  --violet-soft: #b3a6f0;
+  --accent-soft: rgba(232, 193, 112, 0.12);
+  --accent-line: rgba(232, 193, 112, 0.42);
+
+  /* Site self-hosted fonts (next/font/local), matched to about/contact pages.
+     Korean is covered by Noto Sans KR across both. Lora = editorial serif. */
+  --display: var(--font-lora), var(--font-noto-kr), 'Apple SD Gothic Neo', Georgia, serif;
+  --sans: var(--font-montserrat), var(--font-noto-kr), 'Apple SD Gothic Neo', system-ui, sans-serif;
 
   position: relative;
   min-height: 100dvh;
   background:
-    radial-gradient(900px 600px at 20% 0%, rgba(99, 124, 200, 0.08), transparent 60%),
-    radial-gradient(800px 600px at 90% 100%, rgba(212, 181, 114, 0.06), transparent 60%);
+    radial-gradient(120% 80% at 50% -10%, #1a1640 0%, transparent 55%),
+    radial-gradient(90% 60% at 85% 15%, rgba(139, 123, 216, 0.16) 0%, transparent 50%),
+    radial-gradient(80% 55% at 12% 75%, rgba(232, 193, 112, 0.08) 0%, transparent 55%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 60%, var(--bg-3) 100%);
   background-color: var(--bg);
   color: var(--text);
   overflow-x: hidden;
-  padding-bottom: 120px;
-  font-family:
-    'Inter',
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-  font-feature-settings: 'ss01', 'cv11';
+  padding-bottom: 56px;
+  font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -45,39 +52,60 @@
 }
 
 .main {
-  max-width: 1120px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 120px 32px 80px;
+  padding: 120px 32px 40px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
+/* ----------------- cosmic backdrop ----------------- */
 .stars {
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(1.5px 1.5px at 22% 28%, rgba(255, 255, 255, 0.42), transparent),
-    radial-gradient(1.5px 1.5px at 78% 18%, rgba(255, 255, 255, 0.32), transparent),
-    radial-gradient(1px 1px at 42% 72%, rgba(255, 255, 255, 0.26), transparent),
-    radial-gradient(1px 1px at 68% 58%, rgba(255, 255, 255, 0.22), transparent),
-    radial-gradient(1px 1px at 14% 82%, rgba(255, 255, 255, 0.18), transparent),
-    radial-gradient(1px 1px at 92% 48%, rgba(255, 255, 255, 0.18), transparent);
-  opacity: 0.5;
+    radial-gradient(1.6px 1.6px at 22% 28%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.6px 1.6px at 78% 18%, rgba(240, 213, 154, 0.45), transparent),
+    radial-gradient(1.2px 1.2px at 42% 72%, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1.2px 1.2px at 68% 58%, rgba(179, 166, 240, 0.32), transparent),
+    radial-gradient(1px 1px at 14% 82%, rgba(255, 255, 255, 0.22), transparent),
+    radial-gradient(1px 1px at 92% 48%, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(1px 1px at 33% 12%, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(1px 1px at 56% 90%, rgba(255, 255, 255, 0.18), transparent);
+  opacity: 0.7;
   pointer-events: none;
   z-index: 0;
+  animation: twinkle 5.5s ease-in-out infinite alternate;
+}
+
+.stars::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(140% 100% at 50% 40%, transparent 55%, rgba(5, 5, 18, 0.55) 100%);
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 0.85;
+  }
 }
 
 /* ----------------- Hero ----------------- */
 .hero {
   text-align: center;
   margin-bottom: 96px;
-  animation: fadeInUp 0.7s ease-out;
+  animation: fadeInUp 0.7s ease-out both;
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(22px);
   }
   to {
     opacity: 1;
@@ -86,212 +114,283 @@
 }
 
 .eyebrow {
-  color: var(--accent);
-  font-weight: 500;
-  letter-spacing: 0.24em;
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--gold-soft);
+  font-weight: 600;
+  letter-spacing: 0.32em;
   font-size: 12px;
   text-transform: uppercase;
-  margin-bottom: 20px;
+  margin-bottom: 26px;
+}
+
+.eyebrow::before,
+.eyebrow::after {
+  content: '';
+  width: 30px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-deep));
+}
+
+.eyebrow::after {
+  background: linear-gradient(90deg, var(--gold-deep), transparent);
 }
 
 .mainTitle {
-  font-size: clamp(36px, 5.4vw, 56px);
-  font-weight: 600;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
-  margin: 0 0 18px;
+  font-family: var(--display);
+  font-size: clamp(48px, 8vw, 92px);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  margin: 0;
   color: var(--text);
 }
 
+.mainTitle em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--gold-soft) 10%, var(--gold) 50%, var(--gold-deep) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .mainSubtitle {
-  max-width: 580px;
-  margin: 0 auto;
+  max-width: 540px;
+  margin: 24px auto 0;
   color: var(--text-2);
   line-height: 1.6;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 400;
 }
 
-/* ----------------- Credit Packs ----------------- */
-.creditSection {
-  margin-bottom: 120px;
+.nosub {
+  margin-top: 22px;
+  display: inline-flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-size: 13.5px;
+  color: var(--text-3);
 }
 
+.nosub span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.nosub svg {
+  width: 15px;
+  height: 15px;
+  stroke: var(--gold);
+  flex-shrink: 0;
+}
+
+/* ----------------- Section header ----------------- */
 .sectionHeader {
   text-align: center;
-  margin-bottom: 56px;
+  margin-bottom: 40px;
+}
+
+.kicker {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--violet-soft);
+  font-weight: 600;
+  margin-bottom: 10px;
 }
 
 .sectionTitle {
-  font-size: clamp(26px, 3.6vw, 34px);
-  font-weight: 600;
-  letter-spacing: -0.018em;
-  margin: 0 0 12px;
+  font-family: var(--display);
+  font-size: clamp(34px, 5vw, 52px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
   color: var(--text);
 }
 
 .sectionDesc {
   color: var(--text-2);
-  font-size: 15px;
-  margin: 0;
+  font-size: 16px;
+  margin: 10px 0 0;
 }
 
-/* .withdrawalConsent — 인라인 체크박스 패턴 제거. 동의는 RefundConsentModal
-   에서 받음 (사용자가 체크박스 인지 못한 채 결제 버튼 누르고 "결제 안 됨"으로
-   보고하던 회귀 fix). */
+/* ----------------- Credit Packs ----------------- */
+.creditSection {
+  margin-bottom: 28px;
+}
 
 .creditGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
-  max-width: 1100px;
-  margin: 0 auto;
+  gap: 16px;
+  align-items: stretch;
 }
 
 .creditCard {
-  background: var(--surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  overflow: visible;
-  transition:
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.35s ease,
-    background 0.35s ease;
   position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 22px 26px;
   display: flex;
   flex-direction: column;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  overflow: hidden;
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.7, 0.3, 1),
+    border-color 0.28s ease,
+    box-shadow 0.28s ease,
+    background 0.28s ease;
+}
+
+.creditCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.06), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
 }
 
 .creditCard:hover {
-  transform: translateY(-4px);
-  border-color: var(--border-strong);
-  background: var(--surface-strong);
+  transform: translateY(-6px);
+  border-color: rgba(232, 193, 112, 0.35);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.creditCard:hover::before {
+  opacity: 1;
 }
 
 .popularCredit {
-  border-color: var(--accent-line);
-  background:
-    linear-gradient(180deg, rgba(212, 181, 114, 0.05) 0%, transparent 40%), var(--surface-strong);
+  background: linear-gradient(170deg, rgba(232, 193, 112, 0.13), rgba(139, 123, 216, 0.06));
+  border-color: rgba(232, 193, 112, 0.5);
+  box-shadow:
+    0 18px 50px rgba(232, 193, 112, 0.1),
+    inset 0 0 0 1px rgba(232, 193, 112, 0.12);
 }
 
 .popularCredit:hover {
-  border-color: var(--accent);
+  border-color: rgba(232, 193, 112, 0.7);
 }
 
 .popularCreditBadge {
   position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: var(--bg);
-  color: var(--accent);
+  top: 14px;
+  right: 14px;
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  padding: 5px 12px;
-  border: 1px solid var(--accent-line);
-  border-radius: 999px;
-  z-index: 10;
-  white-space: nowrap;
+  font-weight: 700;
+  color: var(--bg);
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+  padding: 5px 10px;
+  border-radius: 100px;
+  z-index: 2;
 }
 
 .creditHeader {
-  padding: 28px 20px 16px;
-  text-align: center;
+  text-align: left;
 }
 
 .creditName {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-2);
-  letter-spacing: 0.06em;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  margin: 0 0 14px;
+  color: var(--text);
+  margin: 0;
 }
 
 .creditPrice {
-  font-size: 26px;
+  font-family: var(--display);
+  font-size: 42px;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  margin-top: 16px;
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
 
 .vatNote {
-  margin-top: 4px;
-  font-size: 11px;
-  color: var(--text-2);
-  letter-spacing: 0.02em;
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-weight: 500;
 }
 
 .creditBody {
-  padding: 8px 20px 24px;
-  text-align: center;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
 .creditReadings {
-  margin-bottom: 8px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
 }
 
 .creditNumber {
-  font-size: 44px;
-  font-weight: 300;
-  color: var(--text);
-  letter-spacing: -0.04em;
-  display: block;
+  font-family: var(--display);
+  font-size: 34px;
+  font-weight: 600;
+  color: var(--gold-soft);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .creditLabel {
-  font-size: 11px;
-  color: var(--text-3);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  margin-top: 6px;
-  display: inline-block;
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
 }
 
 .perReading {
-  font-size: 12px;
+  margin-top: 12px;
+  font-size: 12.5px;
   color: var(--text-3);
-  margin: 16px 0 20px;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
 }
 
 .discountInline {
-  color: var(--accent);
-  font-weight: 500;
-  margin-left: 4px;
+  color: var(--gold);
+  font-weight: 700;
 }
 
 .creditButton {
+  margin-top: 20px;
   width: 100%;
-  padding: 13px 18px;
-  margin-top: auto;
-  /* pill — site-wide secondary 버튼 표준 (999px). 옛 10px 모서리는 다른
-     다크 secondary (about, blog, error) 와 어긋났음. */
-  border-radius: 999px;
-  border: 1px solid var(--border-strong);
-  background: transparent;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  padding: 12px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text);
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s;
 }
 
 .creditButton:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: var(--border-strong);
 }
 
 .creditButton:disabled {
@@ -300,35 +399,34 @@
 }
 
 .creditButtonPopular {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #1a1408;
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+  color: var(--bg);
+  border-color: transparent;
+  font-weight: 700;
 }
 
 .creditButtonPopular:hover {
-  background: var(--accent-2);
-  border-color: var(--accent-2);
+  box-shadow: 0 8px 22px rgba(232, 193, 112, 0.35);
 }
 
-/* ----------------- How It Works ----------------- */
+/* ----------------- How Credits Work ----------------- */
 .howItWorks {
-  margin-bottom: 120px;
+  margin-bottom: 28px;
 }
 
 .howItWorksGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  margin-top: 28px;
 }
 
 .howItWorksCard {
+  position: relative;
   background: var(--surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border);
   border-radius: 18px;
-  padding: 36px 28px;
-  text-align: center;
+  padding: 30px 26px;
   transition:
     border-color 0.3s ease,
     background 0.3s ease;
@@ -340,28 +438,19 @@
 }
 
 .howIcon {
-  font-size: 11px;
+  font-family: var(--display);
+  font-size: 40px;
   font-weight: 600;
-  letter-spacing: 0.22em;
-  color: var(--accent);
-  margin-bottom: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px;
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--accent-line);
-  border-radius: 999px;
-  background: var(--accent-soft);
+  color: var(--gold-soft);
+  line-height: 1;
+  margin-bottom: 14px;
 }
 
 .howItWorksCard h4 {
   font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
+  font-weight: 700;
   color: var(--text);
-  margin: 0 0 10px;
+  margin: 0 0 8px;
 }
 
 .howItWorksCard p {
@@ -371,12 +460,68 @@
   line-height: 1.6;
 }
 
+/* ----------------- Trust strip ----------------- */
+.trust {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.trustCard {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  background: linear-gradient(170deg, rgba(139, 123, 216, 0.08), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 26px 28px;
+}
+
+.trustIcon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  border: 1px solid rgba(232, 193, 112, 0.25);
+}
+
+.trustIcon svg {
+  width: 22px;
+  height: 22px;
+  stroke: var(--gold-soft);
+}
+
+.trustPill {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.trustCard h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 5px;
+  color: var(--text);
+}
+
+.trustCard p {
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0;
+}
+
 /* ----------------- FAQ ----------------- */
 .faqSection {
-  margin-bottom: 96px;
   max-width: 760px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 auto 28px;
 }
 
 .faqList {
@@ -385,13 +530,11 @@
   gap: 10px;
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 24px 0 0;
 }
 
 .faqItem {
   background: var(--surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
@@ -416,7 +559,7 @@
   align-items: center;
   padding: 18px 22px;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text);
   width: 100%;
   background: transparent;
@@ -424,11 +567,10 @@
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  letter-spacing: -0.005em;
 }
 
 .faqQuestion:focus-visible {
-  outline: 1px solid var(--accent);
+  outline: 1px solid var(--gold);
   outline-offset: -1px;
   border-radius: 14px;
 }
@@ -443,7 +585,7 @@
 }
 
 .faqItem.open .faqArrow {
-  color: var(--accent);
+  color: var(--gold);
   transform: rotate(180deg);
 }
 
@@ -464,36 +606,34 @@
   }
 }
 
-/* ----------------- Guarantee ----------------- */
+/* ----------------- Guarantee (legacy single card, kept for fallback) ----------------- */
 .guarantee {
   text-align: center;
-  padding: 44px 36px;
+  padding: 40px 36px;
   background: var(--surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border);
   border-radius: 20px;
   max-width: 620px;
-  margin: 0 auto 96px;
+  margin: 0 auto 28px;
 }
 
 .guaranteeIcon {
   display: inline-block;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.24em;
-  color: var(--accent);
+  color: var(--gold);
   padding: 6px 14px;
   border: 1px solid var(--accent-line);
   border-radius: 999px;
   background: var(--accent-soft);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .guaranteeTitle {
-  font-size: 22px;
+  font-family: var(--display);
+  font-size: 24px;
   font-weight: 600;
-  letter-spacing: -0.015em;
   color: var(--text);
   margin: 0 0 12px;
 }
@@ -505,43 +645,39 @@
   line-height: 1.65;
 }
 
-.guaranteeText:last-child {
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--text-3);
-  font-variant-numeric: tabular-nums;
-}
-
-/* ----------------- CTA ----------------- */
+/* ----------------- Final CTA ----------------- */
 .cta {
+  position: relative;
   text-align: center;
-  padding: 72px 32px;
+  margin: 62px 0 40px;
+  padding: 64px 32px;
+  border-radius: 28px;
   background:
-    radial-gradient(800px 400px at 50% 0%, rgba(212, 181, 114, 0.06), transparent 60%),
-    var(--surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+    radial-gradient(100% 120% at 50% 0%, rgba(232, 193, 112, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
   border: 1px solid var(--border);
-  border-radius: 24px;
+  overflow: hidden;
 }
 
 .ctaTitle {
-  font-size: clamp(26px, 3.6vw, 34px);
-  font-weight: 600;
-  letter-spacing: -0.018em;
-  margin: 0 0 14px;
+  font-family: var(--display);
+  font-size: clamp(34px, 5vw, 56px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
   color: var(--text);
 }
 
 .ctaSub {
   color: var(--text-2);
-  font-size: 16px;
-  margin: 0 0 32px;
+  font-size: 17px;
+  margin: 14px 0 0;
 }
 
 .ctaButtons {
+  margin-top: 30px;
   display: flex;
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -551,70 +687,78 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 14px 28px;
-  border-radius: 999px;
-  font-weight: 500;
-  font-size: 14px;
-  letter-spacing: 0.02em;
+  padding: 15px 32px;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 15px;
   text-decoration: none;
-  transition: all 0.25s ease;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .ctaPrimary {
-  background: var(--accent);
-  color: #1a1408;
-  border: 1px solid var(--accent);
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+  color: var(--bg);
+  border: 1px solid transparent;
+  box-shadow: 0 10px 34px rgba(232, 193, 112, 0.28);
 }
 
 .ctaPrimary:hover {
-  background: var(--accent-2);
-  border-color: var(--accent-2);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 42px rgba(232, 193, 112, 0.4);
 }
 
 .ctaSecondary {
   background: transparent;
   color: var(--text);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
+  font-weight: 600;
 }
 
 .ctaSecondary:hover {
-  background: var(--surface-strong);
-  border-color: rgba(255, 255, 255, 0.28);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-strong);
+}
+
+/* ----------------- Footer ----------------- */
+.footer {
+  text-align: center;
+  padding: 36px 0 8px;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.footerRef {
+  margin-bottom: 8px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ----------------- Responsive ----------------- */
-@media (max-width: 1024px) {
+@media (max-width: 1000px) {
   .creditGrid {
-    grid-template-columns: repeat(3, 1fr);
-    max-width: 720px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .popularCredit {
+    order: -1;
   }
   .howItWorksGrid {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 640px;
-    margin: 0 auto;
+    grid-template-columns: 1fr;
+  }
+  .trust {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
   .main {
-    padding: 96px 20px 64px;
+    padding: 96px 20px 40px;
   }
   .hero {
     margin-bottom: 64px;
-  }
-  .creditSection,
-  .howItWorks {
-    margin-bottom: 80px;
-  }
-  .creditGrid {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 520px;
-  }
-  .howItWorksGrid {
-    grid-template-columns: 1fr;
-    max-width: 420px;
   }
   .ctaButtons {
     flex-direction: column;
@@ -630,28 +774,36 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 560px) {
+  .main {
+    padding: 88px 16px 32px;
+  }
   .creditGrid {
     grid-template-columns: 1fr;
-    max-width: 360px;
   }
-  .creditNumber {
-    font-size: 38px;
+  .nosub {
+    gap: 14px;
   }
 }
 
 @media (max-width: 359px) {
   .main {
-    padding: 80px 14px 48px;
-  }
-  .creditHeader {
-    padding: 22px 16px 12px;
-  }
-  .creditBody {
-    padding: 8px 16px 20px;
+    padding: 80px 14px 28px;
   }
   .faqQuestion {
     padding: 14px 16px;
     font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    animation: none;
+  }
+  .stars {
+    animation: none;
+  }
+  .faqAnswer {
+    animation: none;
   }
 }

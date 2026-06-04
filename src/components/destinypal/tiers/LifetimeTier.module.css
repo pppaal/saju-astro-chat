@@ -1,0 +1,711 @@
+/* ============================================================
+   LifetimeTier — destinypal lifetime.jsx 포팅
+   tiers.css 의 lifetime 섹션 + lifetime.jsx 인라인 스타일 통합.
+   destinypal-ink 라이트 톤 (베이지 cream + 빨강·금색) 변형은
+   atoms/styles/tokens 가 노출하는 CSS 변수에 의존하되, 폴백을
+   inline RGB 로 채워 atoms 모듈이 아직 빠져있어도 컴파일 통과.
+   ============================================================ */
+
+.root {
+  --lt-bg: var(--destinypal-bg, #f3ecd9);
+  --lt-panel: var(--destinypal-panel, rgba(80, 50, 30, 0.04));
+  --lt-line: var(--destinypal-line, rgba(80, 50, 30, 0.12));
+  --lt-line-soft: var(--destinypal-line-soft, rgba(80, 50, 30, 0.06));
+  --lt-ink: var(--destinypal-ink, #2a1f15);
+  --lt-ink-dim: var(--destinypal-ink-dim, #5a4a38);
+  --lt-ink-mute: var(--destinypal-ink-mute, #8b7660);
+  --lt-ink-faint: var(--destinypal-ink-faint, #b8a78c);
+  --lt-accent: var(--destinypal-accent, #b8442a);
+  --lt-accent-2: var(--destinypal-accent-2, #d65a3b);
+  --lt-accent-glow: var(--destinypal-accent-glow, rgba(184, 68, 42, 0.32));
+  --lt-ember: var(--destinypal-ember, #c89a3a);
+  --lt-ember-2: var(--destinypal-ember-2, #e0b653);
+  --lt-violet-2: var(--destinypal-violet-2, #9b6dde);
+  --lt-r: var(--destinypal-r, 14px);
+  --lt-r-lg: var(--destinypal-r-lg, 22px);
+}
+
+.inner {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: clamp(76px, 9vh, 120px) clamp(18px, 4vw, 44px) 160px;
+  color: var(--lt-ink);
+}
+
+/* ---------- common typography ---------- */
+.eyebrow {
+  font-family: var(--destinypal-mono, "IBM Plex Mono", monospace);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--lt-ink-mute);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--lt-accent);
+}
+
+.display {
+  font-family: var(--destinypal-serif, "Cormorant Garamond", serif);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: 0.01em;
+  font-size: clamp(30px, 5vw, 52px);
+  margin: 14px 0 6px;
+}
+
+.tiny {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--lt-ink-faint);
+}
+.lead {
+  font-size: clamp(14.5px, 1.7vw, 16.5px);
+  line-height: 1.75;
+  color: var(--lt-ink-dim);
+  text-wrap: pretty;
+}
+.leadEn {
+  font-size: 13px;
+  color: var(--lt-ink-mute);
+  margin-top: 12px;
+  font-style: italic;
+  font-family: var(--destinypal-serif, serif);
+}
+.metaLine {
+  margin-bottom: 26px;
+}
+.sectRow {
+  margin-top: 6px;
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 11px;
+  color: var(--lt-ink-mute);
+  letter-spacing: 0.04em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: baseline;
+}
+.sectRow b {
+  color: var(--lt-accent-2);
+  font-weight: 500;
+}
+
+/* ---------- panel ---------- */
+.panel {
+  background: var(--lt-panel);
+  border: 1px solid var(--lt-line);
+  border-radius: var(--lt-r);
+  padding: 20px;
+}
+.panelLifetime {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ---------- intro grid ---------- */
+.introGrid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 30px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .introGrid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+}
+
+.introRight {
+  flex: 1;
+  min-width: 150px;
+}
+.idChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border-radius: 10px;
+  background: var(--lt-panel);
+  border: 1px solid var(--lt-line);
+  font-size: 12px;
+  color: var(--lt-ink-dim);
+}
+.chip .k {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lt-ink-faint);
+}
+.chip .v {
+  color: var(--lt-ink);
+}
+.chip .han {
+  font-family: var(--destinypal-serif, serif);
+  font-size: 15px;
+  color: var(--lt-ember-2);
+}
+.elementsCaption {
+  margin-bottom: 4px;
+}
+.elementsBox {
+  margin-top: 26px;
+}
+
+/* ---------- lots row ---------- */
+.lotsRow {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--lt-line);
+}
+.lotsRowHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.lotsRowHead b {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lt-ember);
+  font-weight: 500;
+}
+.lotsRowHead span {
+  font-size: 11px;
+  color: var(--lt-ink-faint);
+}
+.lotsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+}
+.lotChip {
+  border: 1px solid var(--lt-line);
+  background: rgba(217, 168, 74, 0.06);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.2;
+}
+.lotName {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--lt-ember);
+}
+.lotSign {
+  font-family: var(--destinypal-serif, serif);
+  font-size: 14px;
+  color: var(--lt-ink);
+}
+.lotMeta {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 9.5px;
+  color: var(--lt-ink-faint);
+}
+
+/* ---------- block / sec head ---------- */
+.block {
+  margin-top: 40px;
+}
+.secHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.secTitle {
+  font-family: var(--destinypal-serif, serif);
+  font-size: clamp(20px, 3vw, 27px);
+  color: var(--lt-ink);
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- constellation ---------- */
+.constellation {
+  position: relative;
+  margin: 38px 0 8px;
+  padding: 30px 0 50px;
+}
+.constSvg {
+  width: 100%;
+  height: 150px;
+  display: block;
+  overflow: visible;
+}
+
+.stageCards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 6px;
+}
+@media (max-width: 860px) {
+  .stageCards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .stageCards {
+    grid-template-columns: 1fr;
+  }
+}
+.stageCard {
+  background: var(--lt-panel);
+  border: 1px solid var(--lt-line);
+  border-radius: var(--lt-r);
+  padding: 16px;
+  position: relative;
+  transition: all 0.3s;
+  cursor: default;
+}
+.stageCardNow {
+  background: linear-gradient(160deg, rgba(184, 68, 42, 0.12), rgba(184, 68, 42, 0.03));
+  border-color: rgba(184, 68, 42, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(184, 68, 42, 0.2),
+    0 18px 50px -20px rgba(184, 68, 42, 0.35);
+  cursor: pointer;
+}
+.stageName {
+  font-family: var(--destinypal-serif, serif);
+  font-size: 22px;
+  color: var(--lt-ink);
+}
+.stageAge {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10.5px;
+  color: var(--lt-ink-mute);
+  letter-spacing: 0.05em;
+  margin-top: 3px;
+}
+.stageTone {
+  font-size: 12.5px;
+  color: var(--lt-ink-dim);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+.stageNowTag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--lt-accent-2);
+  padding: 3px 8px;
+  border: 1px solid rgba(184, 68, 42, 0.45);
+  border-radius: 20px;
+}
+.stageDiveHint {
+  margin-top: 12px;
+  color: var(--lt-accent-2);
+}
+
+/* ---------- stage detail (per-stage, applied to all stages) ---------- */
+.stageDetail {
+  margin-top: 26px;
+}
+.daewoonRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 26px;
+  flex-wrap: wrap;
+}
+.daewoonItem {
+  display: flex;
+  align-items: flex-end;
+  gap: 26px;
+}
+.daewoonCell {
+  text-align: center;
+}
+.daewoonRange {
+  margin-top: 8px;
+}
+.daewoonSibsin {
+  font-size: 11px;
+  color: var(--lt-ember-2);
+  margin-top: 3px;
+}
+.daewoonArrow {
+  color: var(--lt-ink-faint);
+  font-size: 18px;
+  padding-bottom: 22px;
+}
+.daewoonPanel {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+@media (max-width: 760px) {
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.dcard {
+  background: var(--lt-panel);
+  border: 1px solid var(--lt-line);
+  border-radius: 12px;
+  padding: 14px 15px;
+}
+.dcard .h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lt-ink-mute);
+  margin-bottom: 9px;
+}
+.dcard .t {
+  font-family: var(--destinypal-serif, serif);
+  font-size: 17px;
+  color: var(--lt-ink);
+}
+.dcard .r {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10px;
+  color: var(--lt-ink-faint);
+  font-style: italic;
+  margin: 2px 0 8px;
+}
+.dcard .b {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--lt-ink-dim);
+}
+.glyphMini {
+  font-size: 13px;
+}
+
+/* ---------- outer planets (extended kind set) ---------- */
+.outerWrap {
+  margin-top: 22px;
+}
+.outerHead {
+  display: inline-block;
+  margin-left: 12px;
+}
+.outerRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.outerChip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--lt-panel);
+  border: 1px solid var(--lt-line);
+}
+.outerChip .ic {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  flex: none;
+}
+.outerChip.jupiter .ic {
+  background: rgba(217, 168, 74, 0.16);
+  color: var(--lt-ember-2);
+  border: 1px solid rgba(217, 168, 74, 0.4);
+}
+.outerChip.saturn .ic {
+  background: rgba(155, 109, 222, 0.12);
+  color: var(--lt-violet-2);
+  border: 1px solid rgba(155, 109, 222, 0.4);
+}
+.outerChip.uranus .ic {
+  background: rgba(91, 141, 239, 0.12);
+  color: #5b8def;
+  border: 1px solid rgba(91, 141, 239, 0.4);
+}
+.outerChip.neptune .ic {
+  background: rgba(95, 174, 106, 0.12);
+  color: #5fae6a;
+  border: 1px solid rgba(95, 174, 106, 0.4);
+}
+.outerChip.pluto .ic {
+  background: rgba(140, 60, 100, 0.14);
+  color: #c4477f;
+  border: 1px solid rgba(140, 60, 100, 0.4);
+}
+.outerChip.chiron .ic {
+  background: rgba(80, 110, 150, 0.14);
+  color: #5b8db0;
+  border: 1px solid rgba(80, 110, 150, 0.4);
+}
+.outerChip.progressed_moon .ic,
+.outerChip.progressedMoon .ic {
+  background: rgba(217, 168, 74, 0.1);
+  color: var(--lt-ember);
+  border: 1px solid rgba(217, 168, 74, 0.4);
+}
+.outerChip.astro .ic,
+.outerChip.unknown .ic {
+  background: var(--lt-panel);
+  color: var(--lt-ink-mute);
+  border: 1px solid var(--lt-line);
+}
+.outerChip .ot .l {
+  font-size: 12px;
+  color: var(--lt-ink);
+}
+.outerChip .ot .d {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10px;
+  color: var(--lt-ink-mute);
+}
+
+/* ---------- ZR chapter carousel ---------- */
+.zrSection {
+  margin-top: 34px;
+}
+.zrLanes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+@media (max-width: 720px) {
+  .zrLanes {
+    grid-template-columns: 1fr;
+  }
+}
+.zrLane {
+  background: var(--lt-panel);
+  border: 1px solid var(--lt-line);
+  border-radius: var(--lt-r);
+  padding: 14px 16px;
+}
+.zrLaneHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.zrLaneHead b {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lt-accent-2);
+  font-weight: 500;
+}
+.zrLaneHead span {
+  font-family: var(--destinypal-serif, serif);
+  font-size: 14px;
+  color: var(--lt-ink);
+  font-style: italic;
+}
+.zrCarousel {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
+}
+.zrCarousel::-webkit-scrollbar {
+  height: 6px;
+}
+.zrCarousel::-webkit-scrollbar-thumb {
+  background: var(--lt-line);
+  border-radius: 6px;
+}
+.zrCard {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  min-width: 140px;
+  padding: 10px 12px;
+  border: 1px solid var(--lt-line);
+  border-radius: 10px;
+  background: rgba(184, 68, 42, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.zrCardNow {
+  border-color: var(--lt-accent);
+  background: linear-gradient(135deg, rgba(184, 68, 42, 0.12), rgba(184, 68, 42, 0.02));
+  box-shadow: 0 0 0 1px var(--lt-accent-glow);
+}
+.zrSignLine {
+  font-family: var(--destinypal-serif, serif);
+  font-size: 16px;
+  color: var(--lt-ink);
+}
+.zrRulerLine {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10px;
+  color: var(--lt-ember);
+  letter-spacing: 0.04em;
+}
+.zrYearLine {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10px;
+  color: var(--lt-ink-mute);
+}
+.zrNowTag {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  color: var(--lt-accent-2);
+  margin-top: 2px;
+}
+.zrRemainLine {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 9.5px;
+  color: var(--lt-accent-2);
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- milestone timeline ---------- */
+.miles {
+  margin-top: 34px;
+}
+.mileTrack {
+  position: relative;
+  margin-top: 18px;
+  padding-left: 4px;
+}
+.mileTrack::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 6px;
+  bottom: 6px;
+  width: 1.5px;
+  background: linear-gradient(180deg, var(--lt-line), var(--lt-accent), var(--lt-line));
+}
+.mile {
+  display: grid;
+  grid-template-columns: 30px 64px 1fr;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 0;
+  position: relative;
+}
+.mileNode {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--lt-panel);
+  border: 1.5px solid var(--lt-ink-faint);
+  margin-left: 0;
+}
+.mileNow .mileNode {
+  border-color: var(--lt-accent);
+  background: var(--lt-accent);
+  box-shadow:
+    0 0 0 4px rgba(184, 68, 42, 0.18),
+    0 0 14px var(--lt-accent-glow);
+}
+.mileYr {
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 13px;
+  color: var(--lt-ink);
+}
+.mileYr small {
+  color: var(--lt-ink-mute);
+  font-size: 10px;
+  display: block;
+}
+.mileLab {
+  font-size: 13px;
+  color: var(--lt-ink-dim);
+  line-height: 1.4;
+}
+.mileNow .mileLab {
+  color: var(--lt-accent-2);
+}
+.mileNowMark {
+  color: var(--lt-accent-2);
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 10px;
+  margin-left: 8px;
+}
+
+/* ---------- dive button ---------- */
+.diveWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+.dive {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 22px 13px 24px;
+  background: linear-gradient(120deg, rgba(184, 68, 42, 0.14), rgba(184, 68, 42, 0.04));
+  border: 1px solid rgba(184, 68, 42, 0.4);
+  border-radius: 100px;
+  color: var(--lt-accent-2);
+  cursor: pointer;
+  font-family: var(--destinypal-mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.3s;
+  position: relative;
+}
+.dive:hover {
+  border-color: var(--lt-accent);
+  background: linear-gradient(120deg, rgba(184, 68, 42, 0.22), rgba(184, 68, 42, 0.08));
+  box-shadow: 0 0 28px rgba(184, 68, 42, 0.2);
+}
+.diveArrow {
+  font-size: 15px;
+  animation: lifetimeBob 2.4s ease-in-out infinite;
+}
+@keyframes lifetimeBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}

@@ -14,6 +14,66 @@ import type {
 } from './shared'
 
 // ============================================================================
+// 응용 격국 패턴 — 한 달 동안 며칠 활성됐는가 (Phase B 보강).
+// ============================================================================
+
+export interface DestinyMonthAppliedPattern {
+  /** 한국어 이름 — '재생관'. */
+  name: string
+  /** 영문 — 'Wealth-Generates-Officer' (옵션). */
+  nameEn?: string
+  /** 30일 중 이 패턴이 활성된 날짜 수. */
+  activeDays: number
+  /** 0..100 평균 강도 (옵션). */
+  averageScore?: number
+}
+
+// ============================================================================
+// 조후(調候) — 월령 기반 한난조습 균형 가이드.
+// ============================================================================
+
+export interface DestinyMonthJohu {
+  /** 월령 지지 — '巳'. */
+  monthBranch: string
+  /** 핵심 한 줄 — '巳월 조후 — 수(水) 절실, 화(火) 과중 시 신장·심화 균형'. */
+  oneLine: string
+  /** 절실한 오행 — '水'. */
+  needed?: string
+  /** 과중·억제 대상 — '火'. */
+  excess?: string
+  /** 출처 표식 (어느 derivers 인지). */
+  source?: string
+}
+
+// ============================================================================
+// narrative card source 메타 (Phase B 보강) — 어느 derivers/extractor 산출인지.
+// ============================================================================
+
+export interface DestinyMonthNarrativeCard extends TaggedNarrative {
+  /** 출처 — 'sajuMonthDerivers' / 'astroMonthExtractor' / 'crossActivation' 등. */
+  source?: string
+}
+
+// ============================================================================
+// ZR L2 진행률 — narrative 위 1줄.
+// ============================================================================
+
+export interface DestinyMonthZRProgress {
+  /** ZR 종류 — 'fortune' | 'spirit'. */
+  kind: 'fortune' | 'spirit'
+  /** L2 sign 한국어 — '염소자리'. */
+  sign: string
+  /** L2 ruler 한국어 — '토성'. */
+  ruler: string
+  /** 0..1 진행률. */
+  progress: number
+  /** 'YYYY-MM' 시작. */
+  start?: string
+  /** 'YYYY-MM' 종료. */
+  end?: string
+}
+
+// ============================================================================
 // Month theme bar — data.js monthThemes[] 와 동형.
 // ============================================================================
 
@@ -37,6 +97,10 @@ export type DestinyDayMark =
   | 'best'      // 최고일 1개 (data.js month.bestDay)
   | 'converge'  // 사주·점성 converge 일 (data.js month.converge.date)
   | 'focus'     // 사용자 다이브 일 (data.js month.focusDay)
+  | 'phase'     // 달 위상 변환 — 신월/상현/보름/하현 (◐)
+  | 'voc'       // void-of-course 구간 (회색 띠)
+  | 'return'    // Lunar Return ○
+  | 'lifecycle' // 외행성 exact (목성/토성/천왕성/해왕성/명왕성 transit exact) ◇
 
 export interface DestinyCalendarCell {
   /** 일자 1..31. */
@@ -117,4 +181,18 @@ export interface DestinyMonth {
   voidOfCourseDates?: string[]
   /** Lunar Return ISO (옵션). */
   lunarReturnIso?: string
+  /** 응용 격국 패턴 daily count 블록 (Phase B 보강). */
+  appliedPatterns?: DestinyMonthAppliedPattern[]
+  /** 조후 한 줄 (월령 지지 기반). */
+  johu?: DestinyMonthJohu
+  /** narrative card 에 source 메타 (TaggedNarrative 의 super-set). */
+  narrativeWithSource?: DestinyMonthNarrativeCard[]
+  /** 월운 천간 십신 영문 — '편관'. */
+  woolunStemSibsin?: SibsinKind | string
+  /** 월운 지지 십신 — '편관'. */
+  woolunBranchSibsin?: SibsinKind | string
+  /** 월운 한 줄 — '재생관 흐름' 같은 패턴 라벨. */
+  woolunPatternLabel?: string
+  /** ZR L2 progress — narrative 위 1줄. */
+  zrL2Progress?: DestinyMonthZRProgress
 }
