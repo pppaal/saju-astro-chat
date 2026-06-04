@@ -201,7 +201,17 @@ export const GET = withApiMiddleware(
       // 매칭 실패해 여자 사용자의 대운 방향이 거꾸로 가던 회귀.
       const sajuGender: 'male' | 'female' = normalizeGender(gender) === 'female' ? 'female' : 'male'
       const { calculateSajuData } = await import('@/lib/saju/saju')
-      sajuResult = calculateSajuData(birthDateParam, birthTimeParam, sajuGender, 'solar', timezone)
+      // 진태양시(진경도) 보정 — 운세 차트와 동일하게 출생지 경도(coords.lng)를 넘긴다.
+      // 없으면 한국 LMT 폴백. 화면 간 시주 일치를 위해 통일.
+      sajuResult = calculateSajuData(
+        birthDateParam,
+        birthTimeParam,
+        sajuGender,
+        'solar',
+        timezone,
+        undefined,
+        coords.lng
+      )
     } catch (sajuError) {
       logger.error('[Calendar] Saju calculation error:', sajuError)
       return createErrorResponse({

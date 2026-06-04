@@ -86,7 +86,10 @@ export const GET = withApiMiddleware(
         birthTimeParam,
         sajuGender,
         'solar',
-        timezone
+        timezone,
+        undefined,
+        // 진태양시(진경도) 보정 — 운세 차트와 동일하게 출생지 경도를 넘긴다.
+        coords.lng
       )
 
       const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
