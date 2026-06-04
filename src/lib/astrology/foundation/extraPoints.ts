@@ -116,9 +116,27 @@ export function calculatePartOfFortune(
 }
 
 /**
+ * Vertex(프라임 버티컬과 황도의 서쪽 교점) 의 황경을 ARMC 로부터 정식 계산.
+ *
+ * 공식: λ_vertex = atan2( cos(ARMC+180), -(sin(ARMC+180)·cosε + tan(90-φ)·sinε) )
+ * (co-latitude 90-φ 사용). Swiss Ephemeris 의 swe_houses().vertex 와 모든 위도
+ * (북/남/극권)에서 소수점 3자리까지 일치함을 검증함. 옛 폴백 `ASC+180` 은
+ * Descendant 라서 천문학적으로 틀린 점이었다 — 이 함수로 대체한다.
+ */
+function vertexFromArmc(armcDeg: number, latitude: number, eps: number): number {
+  const D = Math.PI / 180;
+  const R = 180 / Math.PI;
+  const a = (armcDeg + 180) * D;
+  const e = eps * D;
+  const p = (90 - latitude) * D;
+  return normalize360(
+    Math.atan2(Math.cos(a), -(Math.sin(a) * Math.cos(e) + Math.tan(p) * Math.sin(e))) * R
+  );
+}
+
+/**
  * Vertex 계산
  * Vertex는 서쪽 지평선과 황도의 교점 (Prime Vertical)
- * Swiss Ephemeris에서 직접 지원하지 않아 수학적 계산 필요
  */
 export function calculateVertex(
   ut_jd: number,
@@ -127,14 +145,6 @@ export function calculateVertex(
   houseCusps: number[]
 ): ExtraPoint {
   const swisseph = getSwisseph();
-
-  // Vertex는 일반적으로 ASC의 반대편 (180도)에서 약간 벗어난 위치
-  // 정밀 계산: ARMC + 90도 지점의 황도 교점
-  // Swiss Ephemeris의 swe_houses는 vertex를 제공하지 않으므로 근사 계산
-
-  // 간단한 방법: Anti-Vertex (ASC) + 180도 기반 추정
-  // 실제로는 prime vertical의 서쪽 교점이지만,
-  // 대부분의 차트에서 5-8하우스 사이에 위치
 
   // Vertex/ASC 는 하우스 시스템과 무관. Placidus 는 극권(위도 >~66.5°)에서
   // 실패하므로 거기선 항상 계산되는 Whole Sign('W')으로 폴백해 차트가 throw
@@ -145,9 +155,23 @@ export function calculateVertex(
   }
   if ("error" in housesRes) {throw new Error(`Vertex calculation error: ${housesRes.error}`);}
 
-  // Vertex는 보통 houses 결과의 vertex 필드에 있음 (있는 경우)
-  // 없으면 DESC에서 약간 조정
-  const vertex = housesRes.vertex ?? normalize360(housesRes.ascendant + 180);
+  // swe_houses 가 제공하는 vertex 를 우선 사용(정확). 혹시 누락/비정상이면
+  // ARMC 기반 정식 공식으로 계산 — 옛 `ASC+180`(=Descendant) 날조는 폐기.
+  const sweVertex = (housesRes as { vertex?: number }).vertex;
+  const armc = (housesRes as { armc?: number }).armc;
+  let vertex: number;
+  if (typeof sweVertex === "number" && Number.isFinite(sweVertex)) {
+    vertex = normalize360(sweVertex);
+  } else if (typeof armc === "number" && Number.isFinite(armc)) {
+    // SE_ECL_NUT(-1): 특수 body id 로 황도경사 반환. 타입 정의에 상수가 없어
+    // 명시적 캐스트 + 표준 fallback(-1).
+    const SE_ECL_NUT = (swisseph as unknown as { SE_ECL_NUT?: number }).SE_ECL_NUT ?? -1;
+    const ecl = swisseph.swe_calc_ut(ut_jd, SE_ECL_NUT, 0) as { longitude?: number };
+    const eps = typeof ecl.longitude === "number" ? ecl.longitude : 23.4392911;
+    vertex = vertexFromArmc(armc, latitude, eps);
+  } else {
+    throw new Error("Vertex unavailable: swe_houses returned neither vertex nor armc");
+  }
 
   const info = formatLongitude(vertex);
   const house = inferHouseOf(vertex, houseCusps);

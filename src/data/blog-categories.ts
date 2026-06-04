@@ -4,5 +4,4 @@ export const categories = [
   { id: 'Astrology', name: 'Astrology', nameKo: '점성술' },
   { id: 'Tarot', name: 'Tarot', nameKo: '타로' },
   { id: 'Compatibility', name: 'Compatibility', nameKo: '궁합' },
-  { id: 'Destiny Counselor', name: 'Destiny Counselor', nameKo: '운명 상담사' },
 ]

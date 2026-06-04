@@ -40,35 +40,6 @@
   z-index: 1;
 }
 
-.backButton {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 100;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.backButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-.backArrow {
-  font-size: 16px;
-}
-
 /* Hero Section */
 .hero {
   text-align: center;
@@ -88,9 +59,10 @@
 }
 
 .heroIcon {
-  font-size: 64px;
+  display: flex;
+  justify-content: center;
   margin-bottom: 20px;
-  filter: drop-shadow(0 4px 20px rgba(136, 179, 247, 0.4));
+  filter: drop-shadow(0 4px 20px rgba(232, 204, 138, 0.35));
 }
 
 .eyebrow {
@@ -246,12 +218,6 @@
   gap: 16px;
   color: rgba(255, 255, 255, 0.5);
   font-size: 13px;
-}
-
-.cardDate {
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .cardGuide {
@@ -455,12 +421,5 @@
     padding: 4px 10px;
     font-size: 10px;
     margin-bottom: 12px;
-  }
-
-  .backButton {
-    top: 12px;
-    left: 12px;
-    padding: 8px 12px;
-    font-size: 12px;
   }
 }

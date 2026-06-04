@@ -14,6 +14,7 @@ import { getSwisseph } from './ephe'
 import {
   getPlanetList,
   natalToJD,
+  targetDateToJD,
   throwIfSwissEphError,
   getSwissEphFlags,
   extractLongitudeSpeed,
@@ -66,10 +67,9 @@ export async function calculateSecondaryProgressions(
   // 단위로 직접 계산 후 365.25 일/년 으로 년수 환산.
   const natalJD = natalToJD(natal)
 
-  // targetDate → JD. dayjs 로 정확한 instant (epoch ms).
-  const targetMs = dayjs(targetDate).valueOf()
-  // JD epoch: 1970-01-01 UTC = JD 2440587.5
-  const targetJD = 2440587.5 + targetMs / 86400000
+  // targetDate → JD. 결정적 UTC 정오 앵커(targetDateToJD) — 옛 dayjs(targetDate)
+  // 는 서버 로컬 자정으로 파싱돼 배포 지역마다 day-count 가 ~1일 흔들렸다.
+  const targetJD = targetDateToJD(targetDate)
 
   const totalDaysDiff = targetJD - natalJD
   const yearsProgressed = totalDaysDiff / 365.25
@@ -191,16 +191,13 @@ export async function calculateSolarArcDirections(
   const SW_FLAGS = getSwissEphFlags()
   const { natal, targetDate } = input
 
-  // 출생일과 목표일 사이의 년수
-  const natalDate = dayjs.tz(
-    `${natal.year}-${String(natal.month).padStart(2, '0')}-${String(natal.date).padStart(2, '0')}`,
-    natal.timeZone
-  )
-  const target = dayjs(targetDate)
-  const yearsProgressed = target.diff(natalDate, 'year', true)
-
-  // 출생 차트의 태양 위치 구하기
+  // 출생일과 목표일 사이의 년수 — secondary progression 과 동일 기준으로 통일.
+  // 옛 코드는 natalDate 를 date-only(dayjs.tz)로 만들어 생시(hour/min)를 버리고,
+  // target 을 dayjs(targetDate)로 서버 로컬 파싱해 부정확+비결정적이었다. 정확한
+  // birth instant(natalToJD)와 결정적 UTC target(targetDateToJD)의 일수차로 환산.
   const natalJD = natalToJD(natal)
+  const targetJD = targetDateToJD(targetDate)
+  const yearsProgressed = (targetJD - natalJD) / 365.25
 
   // Secondary Progression으로 태양의 진행 위치 계산
   const progressedJD = natalJD + yearsProgressed // 1일 = 1년

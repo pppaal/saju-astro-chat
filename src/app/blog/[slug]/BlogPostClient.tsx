@@ -7,6 +7,7 @@ import type { BlogPost } from "@/data/blog-posts";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getCategoryRoute } from "@/lib/constants/routes";
+import BlogArt from "../BlogArt";
 import styles from "./post.module.css";
 
 interface BlogPostClientProps {
@@ -68,7 +69,9 @@ export default function BlogPostClient({ post, relatedPosts }: BlogPostClientPro
       <article className={styles.main}>
         {/* Header */}
         <header className={styles.header}>
-          <div className={styles.headerIcon} role="img" aria-label={isKo ? post.categoryKo : post.category}>{post.icon}</div>
+          <div className={styles.headerIcon} role="img" aria-label={isKo ? post.categoryKo : post.category}>
+            <BlogArt slug={post.slug} category={post.category} />
+          </div>
           <span className={styles.category}>
             {isKo ? post.categoryKo : post.category}
           </span>
@@ -129,7 +132,9 @@ export default function BlogPostClient({ post, relatedPosts }: BlogPostClientPro
                   href={`/blog/${rPost.slug}`}
                   className={styles.relatedCard}
                 >
-                  <span className={styles.relatedIcon} role="img" aria-label={isKo ? rPost.categoryKo : rPost.category}>{rPost.icon}</span>
+                  <span className={styles.relatedIcon} role="img" aria-label={isKo ? rPost.categoryKo : rPost.category}>
+                    <BlogArt slug={rPost.slug} category={rPost.category} />
+                  </span>
                   <h4 className={styles.relatedCardTitle}>
                     {isKo ? rPost.titleKo : rPost.title}
                   </h4>
