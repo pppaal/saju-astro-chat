@@ -1,5 +1,13 @@
 'use client'
 
+/* eslint-disable react-hooks/refs --
+   useChatActions() 가 ref(chatMenuRef) + 상태(chatMenuOpen, renameModalOpen…)
+   + 콜백(toggleChatMenu…)을 한 객체로 반환한다. ref 는 ref={} 로 넘기고 상태/
+   콜백은 렌더 중 읽는 게 정상인데, 이 규칙이 객체에 ref 가 하나라도 있으면
+   chatActions.* 전체 접근을 "렌더 중 ref 접근" 으로 오인(false positive)한다.
+   (compatibility/counselor 의 동일 패턴은 안 걸리는 룰 오작동.) eslint.config
+   가 이미 같은 사유로 performance 유틸에 이 룰을 끈 전례와 동일. */
+
 import { useEffect, useCallback, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
