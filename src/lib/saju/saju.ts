@@ -27,7 +27,8 @@ import { computeDayPillarIndices } from './dayPillar'
 // 연운/월운/일진 stem-branch 산술의 single source.
 import { annualStemBranch, sajuMonthStemBranch } from './cycles'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
-import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
+import { currentKoreanAge } from '@/lib/datetime/currentAge'
+import { daysToDaeunAge } from '@/lib/saju/daeunAge'
 import { getOffsetMinutes } from './timezone'
 // 십신 / 정기 매핑은 core 모듈이 single source.
 import { getBranchMainStem, getSibseong } from './core/sibsin'
@@ -226,26 +227,6 @@ function parseHourMinute(t: string): { h: number; m: number } {
     m = 59
   }
   return { h, m }
-}
-
-/* ========== 대운 시작나이 라운딩 정책 ========== */
-const DAEUN_ROUNDING = CALCULATION_STANDARDS.saju.daeunRounding
-function daysToDaeunAge(days: number): number {
-  const v = days / 3
-  let age: number
-  if (DAEUN_ROUNDING === 'ceil') {
-    age = Math.ceil(v)
-  } else if (DAEUN_ROUNDING === 'floor') {
-    age = Math.floor(v)
-  } else {
-    age = Math.round(v)
-  }
-  // Display in Korean age (한국나이): everyone counts age 1 at birth and
-  // gains a year on Jan 1, so the "days/3" man-nai value is bumped by 1.
-  // NOTE: 절기 ±3일 출생(대운수 0)은 여기서 한국나이 2 로 나온다(만나이 clamp
-  // 가 +1 바깥). "대운수 최소 1" 관례로 볼 수도 있고 determinism-golden 으로
-  // 잠겨 있어, 논쟁적 1살 차이를 임의로 바꾸지 않고 현행 유지한다.
-  return Math.max(1, age) + 1
 }
 
 /* ========== 메모이제이션 캐시 ========== */
@@ -621,10 +602,9 @@ export function calculateSajuData(
     const mNowLocal = Number(
       new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'numeric' }).format(new Date())
     )
-    const birthYearLocal = Y
-    // Korean age: current_year - birth_year + 1 (everyone is 1 at birth
-    // and gains a year on Jan 1).
-    const currentAge = yNowLocal - birthYearLocal + 1
+    // 한국 나이 — 출생지 시간대 기준 (자정 경계 사용자에서 ±1 회귀 방지).
+    // currentKoreanAge 가 SSOT 이므로 화면 어디서나 동일 값 보장.
+    const currentAge = currentKoreanAge({ birthYear: Y, birthTimeZone: timezone })
     const currentLuckPillar =
       daeWoonList
         .slice()

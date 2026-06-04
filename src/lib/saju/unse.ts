@@ -22,6 +22,7 @@ import {
   SajuPillars as SajuPillarsAll,
 } from './types'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
+import { daysToDaeunAge } from '@/lib/saju/daeunAge'
 
 // 내부 유틸: 로컬 타임존 영향 제거용 UTC Date 생성
 const utcDate = (y: number, m1to12: number, d: number, hh = 0, mm = 0, ss = 0, ms = 0) =>
@@ -48,22 +49,7 @@ function getSibseong(
 // (Vercel) 에서 ±tzOffset 어긋났다 (S1). 사주 계산의 single source 는 UTC
 // instant 라서 그냥 그대로 사용. 변환 helper 자체를 제거.
 
-/* === 대운 라운딩 정책 === */
-const DAEUN_ROUNDING = CALCULATION_STANDARDS.saju.daeunRounding
-function daysToDaeunAge(days: number): number {
-  const v = days / 3
-  let age: number
-  if (DAEUN_ROUNDING === 'ceil') {
-    age = Math.ceil(v)
-  } else if (DAEUN_ROUNDING === 'floor') {
-    age = Math.floor(v)
-  } else {
-    age = Math.round(v)
-  }
-  // Display in Korean age (한국나이): everyone counts age 1 at birth and
-  // gains a year on Jan 1, so the "days/3" man-nai value is bumped by 1.
-  return Math.max(1, age) + 1
-}
+// 대운 시작 나이 계산은 src/lib/saju/daeunAge.ts (saju.ts 와 단일 출처 공유).
 
 export function getDaeunCycles(
   birthDate: BirthInstant,

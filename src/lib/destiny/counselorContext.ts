@@ -6,6 +6,7 @@
  * Increment ①: SAJU section.
  */
 import { calculateSajuData } from '@/lib/saju/saju'
+import { currentManAge } from '@/lib/datetime/currentAge'
 import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
 import { calculateStrengthScore } from '@/lib/saju/strengthScore'
@@ -478,11 +479,15 @@ export async function buildDestinyContext(
 
     // profection — calculateProfection 은 만(완성)나이 기준이다 (age 0 → 1궁).
     // 이전엔 한국나이(만+1)를 넣어 활성 하우스가 모든 사용자에게 한 칸씩
-    // 밀렸다(만30 → 7궁이어야 하는데 8궁). 생일 통과 여부까지 반영한 만나이를
-    // 넣고, 표시용 한국나이는 결과 age 에서 +1 로 역산한다.
-    const hadBirthdayThisYear =
-      localNow.month > M || (localNow.month === M && localNow.day >= D)
-    const manAge = Math.max(0, year - Y - (hadBirthdayThisYear ? 0 : 1))
+    // 밀렸다(만30 → 7궁이어야 하는데 8궁). currentManAge SSOT 로 통일 —
+    // 출생지 시간대 + 생일 통과 여부까지 반영한 만나이. 표시용 한국나이는
+    // 결과 age 에서 +1 로 역산.
+    const manAge = currentManAge({
+      birthYear: Y,
+      birthMonth: M,
+      birthDate: D,
+      birthTimeZone: tz,
+    })
     const prof = calculateProfection(chart, manAge)
     const displayKAge = prof.age + 1
     // activatedHouse 는 나이만으로 결정 → 항상 신뢰 가능. 하지만 activatedSign·

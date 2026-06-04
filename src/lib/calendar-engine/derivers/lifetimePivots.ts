@@ -3,6 +3,7 @@ import {
   type LifecycleMilestoneOverride,
 } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import type { NatalContext } from '../context/types'
+import { currentManAge } from '@/lib/datetime/currentAge'
 
 /**
  * 인생 분기점(lifetime pivots) 디라이버 — 월 단위 convergence 와 달리 "인생 스케일"
@@ -46,7 +47,14 @@ export function deriveLifetimePivots(
 ): LifetimePivots {
   const birthYear = natal.input?.year
   if (!birthYear) return { pivots: [] }
-  const currentAge = new Date().getUTCFullYear() - birthYear
+  // 만 나이 — 출생지 시간대 + 생일 통과 여부 반영 (옛 회귀: UTC year 만 빼서
+  // 자정 경계 사용자가 화면마다 ±1 보였음).
+  const currentAge = currentManAge({
+    birthYear,
+    birthMonth: natal.input.month,
+    birthDate: natal.input.date,
+    birthTimeZone: natal.input.timeZone,
+  })
   const isKo = lang === 'ko'
 
   const phaseOf = (age: number): LifePivot['phase'] =>

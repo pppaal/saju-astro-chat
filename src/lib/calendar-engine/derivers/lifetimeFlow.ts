@@ -22,6 +22,7 @@ import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import { currentKoreanAge } from '@/lib/datetime/currentAge'
 
 export interface LifePhase {
   label: string // 초년기 …
@@ -823,7 +824,9 @@ export function deriveLifetimeFlow(
     intro = parts.join(' ')
   }
 
-  const currentAge = new Date().getUTCFullYear() - birthYear + 1 // 한국나이
+  // 한국 나이 — 출생지 시간대 기준 (SSOT: currentKoreanAge). 옛 회귀: UTC year 만
+  // 빼서 자정 경계 사용자에게 화면마다 ±1 차이 났음.
+  const currentAge = currentKoreanAge({ birthYear, birthTimeZone: natal.input.timeZone })
 
   // ── 외행성 마디 사실 — kind 별로 (라벨, 정확 일시) 맵. 없거나 null 은 무시. ──
   const milestoneFacts: Array<{ kind: string; age: number; dateStr: string }> = []
