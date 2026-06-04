@@ -79,7 +79,10 @@ export async function buildNatalContext(
       input.gender,
       input.calendarType ?? 'solar',
       input.timeZone,
-      input.lunarLeap
+      input.lunarLeap,
+      // 진태양시(진경도) 보정 — 출생지 경도가 있으면 운세 차트와 동일하게 적용.
+      // 없으면 undefined → 한국 LMT 기존 동작 유지.
+      input.longitude
     )
   const pillars = saju.pillars
 

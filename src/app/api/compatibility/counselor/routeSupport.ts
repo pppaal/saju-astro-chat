@@ -373,9 +373,28 @@ async function buildAutoSajuContext(
     // 'Asia/Seoul' 로 떨어져 두 사용자가 다른 timezone 이라도 동일 캐시 키.
     // 결과: 다른 도시 사용자가 첫 사용자의 사주를 받는 데이터 노출 + 부정확.
     // seed.timeZone 명시 전달.
+    // 진태양시(진경도) 보정 — 운세 차트와 동일하게 출생지 경도(seed.longitude)를
+    // 넘긴다. 캐시 키에도 같이 넣어 도시별 결과가 섞이지 않도록 한다.
     const saju = await cacheOrCalculate(
-      CacheKeys.saju(seed.date, seed.time, seed.gender, 'solar', seed.timeZone),
-      async () => calculateSajuData(seed.date, seed.time, seed.gender, 'solar', seed.timeZone),
+      CacheKeys.saju(
+        seed.date,
+        seed.time,
+        seed.gender,
+        'solar',
+        seed.timeZone,
+        false,
+        seed.longitude
+      ),
+      async () =>
+        calculateSajuData(
+          seed.date,
+          seed.time,
+          seed.gender,
+          'solar',
+          seed.timeZone,
+          undefined,
+          seed.longitude
+        ),
       CACHE_TTL.NATAL_CHART
     )
 

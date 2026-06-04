@@ -194,9 +194,15 @@ export const CacheKeys = {
     gender: string,
     calendar: string = 'solar',
     timezone: string = 'Asia/Seoul',
-    lunarLeap: boolean = false
+    lunarLeap: boolean = false,
+    // 진태양시(진경도) 보정 경도. 도시별로 시주가 달라지므로 키에 포함해야
+    // 다른 도시 사용자끼리 캐시가 섞이지 않는다. 경도 없으면 옛 키 형태 유지.
+    longitude?: number
   ) =>
-    `saju:v2:${birthDate}:${birthTime}:${gender}:${calendar}:${timezone}:${lunarLeap ? 'L' : 'N'}`,
+    `saju:v2:${birthDate}:${birthTime}:${gender}:${calendar}:${timezone}:${lunarLeap ? 'L' : 'N'}` +
+    (typeof longitude === 'number' && Number.isFinite(longitude)
+      ? `:lon=${longitude.toFixed(4)}`
+      : ''),
 
   tarot: (userId: string, question: string, spread: string) =>
     `tarot:v1:${userId}:${safeBase64Encode(question)}:${spread}`,
