@@ -114,6 +114,13 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
         parsed = null
       }
 
+      // 서버 정적 폴백(degraded:true)은 진짜 리딩이 아니다 — 적용하지 않고
+      // false 를 돌려 호출자가 실패 경로(재시도 노출 + turnId 복원 등록)로
+      // 흐르게 한다. 직전엔 이 에러 폴백을 정상 리딩처럼 렌더했다.
+      if (parsed?.degraded === true) {
+        return false
+      }
+
       const overallRaw = parsed && typeof parsed.overall === 'string' ? parsed.overall : ''
       const adviceRaw = parsed && typeof parsed.advice === 'string' ? parsed.advice : ''
       const streamedCards = Array.isArray(parsed?.cards)

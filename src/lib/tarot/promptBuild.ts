@@ -289,6 +289,12 @@ export interface FallbackPayload {
   overall: string
   cards: FallbackPayloadCard[]
   advice: string
+  // 진짜 LLM 리딩과 구분하는 마커. 정적 폴백(서비스 실패 시 emit)에만 true.
+  // 클라이언트가 이 필드를 보고 "이건 진짜 리딩이 아니라 에러 폴백" 임을 알아
+  // 실패 처리(재시도 노출 + 캐시 skip)한다. 진짜 리딩 JSON 엔 이 키가 없다.
+  // 스트림 본문 자체에 마커를 실어, 헤더(X-Fallback)를 못 읽는 SSE 경로에서도
+  // 진짜/가짜가 구분되게 한다.
+  degraded: true
 }
 
 /**
@@ -332,5 +338,5 @@ export function buildFallbackPayload(
     return { position, interpretation }
   })
 
-  return { overall, cards: cardsPayload, advice }
+  return { overall, cards: cardsPayload, advice, degraded: true }
 }
