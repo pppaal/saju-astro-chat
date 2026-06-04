@@ -10,6 +10,8 @@ import { Sparkles, Send, Layers, X, MoonStar, ChevronRight, ChevronDown } from '
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
+import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
+import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
 import {
   DECK_STYLES,
   DECK_STYLE_INFO,
@@ -37,9 +39,10 @@ const DEFAULT_SPREAD =
 
 export default function TarotChatScreen() {
   const router = useRouter()
-  const { locale } = useI18n()
+  const { locale, setLocale } = useI18n()
   const isKo = locale === 'ko'
 
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [question, setQuestion] = useState('')
   const [selectedDeck, setSelectedDeck] = useState<DeckStyle>(DEFAULT_DECK)
   const [selectedSpread, setSelectedSpread] = useState(DEFAULT_SPREAD)
@@ -150,6 +153,29 @@ export default function TarotChatScreen() {
       {/* 배경 장식 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex justify-center items-center">
         <div className="w-96 h-96 bg-[#a07a3c] rounded-full blur-3xl opacity-20"></div>
+      </div>
+
+      {/* 공용 상단 헤더 — 메인/운명상담사와 동일 컴포넌트.
+          viewTransitionName="app-topbar" 으로 라우트 전환 시 헤더가 자연스럽게
+          morph 된다(메인→타로 진입 시 "헤더가 툭 사라지는" 인상 제거). */}
+      <div className="relative z-20">
+        <AppHeader
+          layout="home"
+          theme="cosmic"
+          onMenuClick={() => setDrawerOpen(true)}
+          menuLabel={isKo ? '메뉴 열기' : 'Open menu'}
+          centerSlot="DestinyPal"
+          rightSlot={
+            <AppHeaderIconButton
+              onClick={() => setLocale(isKo ? 'en' : 'ko')}
+              label={isKo ? 'Switch to English' : '한국어로 전환'}
+              isText
+            >
+              {isKo ? 'EN' : 'KO'}
+            </AppHeaderIconButton>
+          }
+          viewTransitionName="app-topbar"
+        />
       </div>
 
       {/* 메인 — 환영 영역 + 예시 질문 */}
@@ -563,6 +589,13 @@ export default function TarotChatScreen() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <MenuDrawerPanel
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        locale={isKo ? 'ko' : 'en'}
+        variant="dark"
+      />
     </div>
   )
 }

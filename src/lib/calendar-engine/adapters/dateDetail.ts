@@ -56,6 +56,17 @@ export interface V2DateDetailResponse {
         hourPillar?: string
         planetaryHour?: string
       }>
+      /**
+       * 시진 24h 전체 breakdown — Day tier 가 24 시진 라인업을 그리려 best/worst top-N 만으론
+       * 부족하다. 0~23시 각 시점의 score / topTheme / themeScores 한 줄씩 노출.
+       * (별도 시진 emit 명시 — destinypal Day 페이지 spec.)
+       */
+      all24: Array<{
+        hour: number
+        score: number
+        topDomain: string | null
+        themeScores: Partial<Record<string, number>>
+      }>
     }
     advice: { do: string[]; avoid: string[] }
     confidence: number
@@ -92,6 +103,26 @@ export interface V2DateDetailResponse {
   dayTone?: string
   /** 오늘 점성 순탄/고비 한 줄 — 그날 본명 aspect 우호/마찰 (사주 dayTone 과 짝) */
   dayAstroTone?: string
+  /**
+   * 그날 활성 신호 전체 (cat/source/polarity/weight 포함) — Day tier 가 사주·점성·
+   * cross 페어 모두 표시하려 raw 신호 dump 가 필요. allSignals = 사주 + 점성 + cross.
+   * 각 요소: { id, source, cat(=kind), name, korean?, themes, polarity, layer, weight,
+   * active }. evidence 는 includeEvidence true 일 때만 포함.
+   */
+  signalsRaw: Array<{
+    id: string
+    source: 'saju' | 'astro'
+    cat: string // kind alias (Day tier 용)
+    kind: string
+    name: string
+    korean?: string
+    themes: string[]
+    polarity: number
+    layer: string
+    weight: number
+    active: { start: string; peak: string; end: string }
+    evidence?: Record<string, unknown>
+  }>
 }
 
 export interface BuildDateDetailInput {
@@ -122,7 +153,35 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
     astroHighlights: buildAstroHighlights(dayCell, lang),
     dayTone: buildDayTone(natal, dayCell, lang),
     dayAstroTone: lang === 'ko' ? deriveAstroTone('day', dayCell.signals) : undefined,
+    signalsRaw: buildSignalsRaw(dayCell),
   }
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// signalsRaw — 그날 활성 신호 전체 dump (Day tier 가 cat/source/polarity/weight 다 표시)
+// ──────────────────────────────────────────────────────────────────────
+
+function buildSignalsRaw(
+  dayCell: CalendarCell
+): V2DateDetailResponse['signalsRaw'] {
+  const out: V2DateDetailResponse['signalsRaw'] = []
+  for (const s of dayCell.signals) {
+    out.push({
+      id: s.id,
+      source: s.source,
+      cat: s.kind, // destinypal Day tier 호환 alias
+      kind: s.kind,
+      name: s.name,
+      korean: s.korean,
+      themes: [...s.themes],
+      polarity: s.polarity,
+      layer: s.layer,
+      weight: s.weight,
+      active: { start: s.active.start, peak: s.active.peak, end: s.active.end },
+      evidence: s.evidence as unknown as Record<string, unknown>,
+    })
+  }
+  return out
 }
 
 // 오늘 순탄/고비 — 일진(daily layer) 십신 × 신강·신약. 다른 탭과 같은 cycleTone 규칙.
@@ -248,6 +307,16 @@ function buildFusion(
     }))
     .sort((a, b) => a.score - b.score)
     .slice(0, 2)
+  // all24 — 0..23 시진 전체 라인업 (destinypal Day tier 시진 카드). 같은 hourlyCells
+  // 에서 hour 순으로 정렬 + themeScores 통째로.
+  const all24 = hourlyCells
+    .map((c) => ({
+      hour: new Date(c.datetime).getUTCHours(),
+      score: Math.round(c.derivedScore),
+      topDomain: topThemeOfCell(c),
+      themeScores: { ...c.themeScores } as Partial<Record<string, number>>,
+    }))
+    .sort((a, b) => a.hour - b.hour)
 
   // advice — 시간대 카드(DayHourly)의 추진/보류 리스트.
   // 옛 구현은 matchedPatterns.action 을 그대로 복사했는데,
@@ -269,7 +338,7 @@ function buildFusion(
     overallScore,
     domainScores,
     domainCross,
-    hourly: { bestHours, worstHours },
+    hourly: { bestHours, worstHours, all24 },
     advice: { do: doList.slice(0, 3), avoid: avoidList.slice(0, 3) },
     confidence,
     agreement,

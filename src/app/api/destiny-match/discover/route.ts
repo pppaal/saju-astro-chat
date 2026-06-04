@@ -79,6 +79,7 @@ export const GET = withApiMiddleware(
                 birthTime: true,
                 birthCity: true,
                 gender: true,
+                longitude: true,
               },
             },
           },
@@ -205,6 +206,7 @@ export const GET = withApiMiddleware(
                 birthTime: true,
                 birthCity: true,
                 gender: true,
+                longitude: true,
               },
             },
           },
@@ -296,11 +298,13 @@ export const GET = withApiMiddleware(
                 birthDate: myBirthDate,
                 birthTime: myProfile.user.profile?.birthTime || undefined,
                 gender: myProfile.user.profile?.gender || undefined,
+                longitude: myProfile.user.profile?.longitude ?? undefined,
               },
               {
                 birthDate: profileBirthDate,
                 birthTime: profile.user.profile?.birthTime || undefined,
                 gender: profile.user.profile?.gender || undefined,
+                longitude: profile.user.profile?.longitude ?? undefined,
               },
               { zodiac1: myZodiacSign, zodiac2: profileZodiacSign }
             )

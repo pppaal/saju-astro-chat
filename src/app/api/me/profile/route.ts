@@ -28,6 +28,8 @@ export const GET = withApiMiddleware(
             birthTime: true,
             gender: true,
             birthCity: true,
+            latitude: true,
+            longitude: true,
             tzId: true,
           },
         },
@@ -55,6 +57,8 @@ export const GET = withApiMiddleware(
       birthTime: user.profile?.birthTime ?? null,
       gender: user.profile?.gender ?? null,
       birthCity: user.profile?.birthCity ?? null,
+      latitude: user.profile?.latitude ?? null,
+      longitude: user.profile?.longitude ?? null,
       tzId: user.profile?.tzId ?? null,
     }
 
@@ -102,6 +106,10 @@ export const PATCH = withApiMiddleware(
     if (birthTime !== undefined) profileData.birthTime = birthTime
     if (gender !== undefined) profileData.gender = gender
     if (body.birthCity !== undefined) profileData.birthCity = body.birthCity
+    // 진태양시(진경도) 보정용 출생지 좌표 — 사주·점성이 화면 간 일관되게
+    // 같은 좌표를 쓰도록 영구 저장. 도시 자동완성에서 선택 시 클라가 채워 보냄.
+    if (body.latitude !== undefined) profileData.latitude = body.latitude
+    if (body.longitude !== undefined) profileData.longitude = body.longitude
     if (body.tzId !== undefined) profileData.tzId = body.tzId
 
     // Wrap the two writes so a second concurrent PATCH on the same user
@@ -142,6 +150,8 @@ export const PATCH = withApiMiddleware(
             birthTime: true,
             gender: true,
             birthCity: true,
+            latitude: true,
+            longitude: true,
             tzId: true,
           },
         },
@@ -199,6 +209,8 @@ export const PATCH = withApiMiddleware(
       birthTime: updatedUser.profile?.birthTime ?? null,
       gender: updatedUser.profile?.gender ?? null,
       birthCity: updatedUser.profile?.birthCity ?? null,
+      latitude: updatedUser.profile?.latitude ?? null,
+      longitude: updatedUser.profile?.longitude ?? null,
       tzId: updatedUser.profile?.tzId ?? null,
     } : null
 
