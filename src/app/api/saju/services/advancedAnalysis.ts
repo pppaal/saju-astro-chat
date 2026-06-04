@@ -16,9 +16,9 @@ import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { analyzeSibsinComprehensive } from '@/lib/saju/sibsinAnalysis'
 import { analyzeHealth, analyzeCareer } from '@/lib/saju/healthCareer'
 import { calculateComprehensiveScore } from '@/lib/saju/strengthScore'
-import { getTwelveStageInterpretation, getElementInterpretation } from '@/lib/saju/interpretations'
-import type { SajuPillars, FiveElement } from '@/lib/saju/types'
-import { isFiveElement, isTwelveStageType } from './utilities'
+import { getTwelveStageInterpretation } from '@/lib/saju/interpretations'
+import type { SajuPillars } from '@/lib/saju/types'
+import { isTwelveStageType } from './utilities'
 
 export interface SimplePillars {
   year: { stem: string; branch: string }
@@ -55,7 +55,6 @@ export interface AdvancedAnalysisResult {
   score: ReturnType<typeof calculateComprehensiveScore> | null
   interpretations: {
     twelveStages: Record<string, ReturnType<typeof getTwelveStageInterpretation>>
-    elements: Record<string, ReturnType<typeof getElementInterpretation>>
   }
 }
 
@@ -69,7 +68,8 @@ export function performAdvancedAnalysis(
   dayMasterStem: string,
   monthBranch: string,
   twelveStages: Record<string, string>,
-  fiveElements: Record<string, number>
+  // fiveElements 는 더 이상 쓰지 않지만(오행 해석 제거) 호출부 시그니처 유지를 위해 보존.
+  _fiveElements: Record<string, number>
 ): AdvancedAnalysisResult {
   const result: AdvancedAnalysisResult = {
     geokguk: null,
@@ -82,7 +82,7 @@ export function performAdvancedAnalysis(
     health: null,
     career: null,
     score: null,
-    interpretations: { twelveStages: {}, elements: {} },
+    interpretations: { twelveStages: {} },
   }
 
   // 1. 격국 분석 — determineGeokgukAdvanced 는 (a) 잡기격 보완 판정 (b) 정격·비격에
@@ -189,13 +189,6 @@ export function performAdvancedAnalysis(
     for (const [pillar, stage] of Object.entries(twelveStages)) {
       if (stage && typeof stage === 'string' && isTwelveStageType(stage)) {
         result.interpretations.twelveStages[pillar] = getTwelveStageInterpretation(stage)
-      }
-    }
-    // 오행 해석
-    for (const [elem, count] of Object.entries(fiveElements)) {
-      const countValue = Number(count)
-      if (countValue > 0 && isFiveElement(elem)) {
-        result.interpretations.elements[elem] = getElementInterpretation(elem as FiveElement)
       }
     }
   } catch (e) {

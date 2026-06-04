@@ -282,25 +282,3 @@ export type {
   AsteroidInterpretation,
   ExtendedChartWithAsteroids,
 } from "./foundation/asteroids";
-
-// ======================================================
-// 🔧 Rectification (출생 시간 교정)
-// ======================================================
-export {
-  estimateAscendantByAppearance,
-  generateTimeRangeCandidates,
-  evaluateRectificationCandidates,
-  performRectification,
-  getAscendantAppearance,
-  getSajuHourRange,
-  getEventSignature,
-  generateRectificationGuide,
-} from "./foundation/rectification";
-
-export type {
-  LifeEvent,
-  LifeEventType,
-  RectificationCandidate,
-  RectificationResult,
-  PhysicalAppearanceProfile,
-} from "./foundation/rectification";

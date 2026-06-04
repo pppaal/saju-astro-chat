@@ -117,7 +117,6 @@ export const advancedAstrologyRequestSchema = z.object({
     'lunar-return',
     'midpoints',
     'progressions',
-    'rectification',
   ]),
   targetDate: dateSchema.optional(),
   options: advancedAstrologyOptionsSchema.optional(),
