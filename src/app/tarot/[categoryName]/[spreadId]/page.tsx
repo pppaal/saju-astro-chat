@@ -8,14 +8,17 @@ import { buildSignInUrl } from '@/lib/auth/signInUrl'
 import { useTarotGame, useTarotInterpretation } from './hooks'
 import { smoothScrollTo } from './utils'
 import { PageContent } from './components/PageContent'
-import BrandSplash from '@/components/branding/BrandSplash'
+import TarotLoading from '@/components/branding/TarotLoading'
 import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { useRequireLogin } from '@/contexts/LoginModalContext'
 
 export default function TarotReadingPageWrapper() {
   return (
-    <Suspense fallback={<BrandSplash />}>
+    // 타로 배경색과 같은 "보이지 않는" 로더 — useSearchParams suspend 등으로
+    // 잠깐 fallback 이 떠도 우주 스플래시(BrandSplash)가 결과 화면을 덮지
+    // 않도록. (route loading.tsx 와 동일 정책)
+    <Suspense fallback={<TarotLoading />}>
       <TarotReadingPage />
     </Suspense>
   )
@@ -393,9 +396,11 @@ function TarotReadingPage() {
     void gameHook.handleStartReading()
   }, [requireLogin, callbackUrl, gameHook.handleStartReading]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Session loading state
-  if (status === 'loading') {
-    return <BrandSplash />
+  // Session loading state — 단, 이미 뽑은 리딩이 화면에 있으면 절대 전체를
+  // 로더로 갈아엎지 않는다. 세션 리페치 등으로 status 가 잠깐 'loading' 으로
+  // 돌아가도 결과 페이지가 "starry sky" 로더로 사라지던 회귀 방지.
+  if (status === 'loading' && !readingResult) {
+    return <TarotLoading />
   }
   return (
     <div className="relative min-h-screen">

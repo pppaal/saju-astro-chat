@@ -3,6 +3,7 @@
 import { getProviders } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useI18n } from '@/i18n/I18nProvider'
 import GoogleLoginPanel from './GoogleLoginPanel'
 
@@ -29,6 +30,10 @@ export default function LoginRequiredModal({
   const isKo = normalizedLocale === 'ko'
 
   const [providersReady, setProvidersReady] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // 모달이 떠 있는 동안 배경 스크롤 잠금.
   useEffect(() => {
@@ -55,9 +60,11 @@ export default function LoginRequiredModal({
     void getProviders().then((p) => setProvidersReady(Boolean(p?.google)))
   }, [isOpen])
 
-  if (!isOpen) {return null}
+  if (!isOpen || !mounted) {return null}
 
-  return (
+  // createPortal — 부모 트리의 transform/filter 가 position:fixed 의 컨테이닝
+  // 블록을 viewport 가 아닌 부모로 바꿔 모달이 화면 밖에 mount 되던 회귀 차단.
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -140,6 +147,7 @@ export default function LoginRequiredModal({
           />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

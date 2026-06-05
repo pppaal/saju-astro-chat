@@ -5,6 +5,7 @@
 // 같은 모달을 공유한다 — 카드는 모달 마운트 시점에 뽑혀 즉시 노출.
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { Sparkles } from 'lucide-react'
 import { drawClarifierCard, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
@@ -25,7 +26,14 @@ export default function ClarifierCardModal({
 }: ClarifierCardModalProps) {
   const isKo = lang === 'ko'
   const [card, setCard] = useState<ClarifierCard | null>(null)
-  const trapRef = useFocusTrap(isOpen)
+  const [mounted, setMounted] = useState(false)
+  // autoFocus:false — 모바일에서 첫 focusable(닫기 버튼)에 .focus() 가 호출되면서
+  // 페이지가 모달 위치로 점프해 frozen 처럼 보이던 회귀.
+  const trapRef = useFocusTrap(isOpen, { autoFocus: false })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // 모달이 열릴 때마다 새 카드를 뽑는다. 닫히면 다음 오픈을 위해 reset.
   useEffect(() => {
@@ -50,26 +58,40 @@ export default function ClarifierCardModal({
     }
     document.addEventListener('keydown', onKey)
 
-    // Body 스크롤 잠금만 — position:fixed 는 페이지가 맨 위로 점프하는 회귀
-    // (CLS=1 poor) 가 있어 overflow:hidden 만 사용. cleanup 에서 항상 빈
-    // 문자열로 복원해 (prevOverflow leak 방지) 모달 닫혀도 페이지 frozen
-    // 회귀 없게.
-    const body = document.body
-    body.style.overflow = 'hidden'
+    // Body 스크롤 잠금을 의도적으로 안 함 — 모달 backdrop overlay 만으로 충분.
+    // 이전엔 position:fixed (페이지 점프) → overflow:hidden (cleanup leak 시
+    // 페이지 frozen) 두 회귀 차례로 겪었음. 모달은 z-index 99999 + backdrop
+    // 으로 충분히 보이므로 body 손대지 않는 게 가장 안전.
 
     return () => {
       document.removeEventListener('keydown', onKey)
-      body.style.overflow = ''
     }
   }, [isOpen, onClose])
 
-  if (!isOpen || !card) return null
+  // 안전망: 컴포넌트 unmount 또는 isOpen false 전환 시점에 혹시 다른 모달이
+  // 남긴 body.overflow lock 도 풀어준다. (사용자가 햄버거 메뉴를 열어야 frozen
+  // 풀리던 회귀 차단)
+  useEffect(() => {
+    if (!isOpen) {
+      if (document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = ''
+      }
+    }
+  }, [isOpen])
+
+  if (!isOpen || !card || !mounted) return null
 
   const displayName = isKo && card.nameKo ? card.nameKo : card.name
 
-  return (
+  // createPortal — ResultsStage 트리 안 어딘가 transform/filter 가 걸린 부모가
+  // position:fixed 의 기준을 viewport 가 아니라 자기로 만들어버려, 모달이 화면
+  // 일부만 덮거나 viewport 밖으로 밀려 페이지가 frozen 처럼 보이던 회귀
+  // ("한 장 더 뽑기 누르면 별만 내려"). document.body 직접 mount 로 stacking
+  // context 완전히 격리.
+  return createPortal(
     <div
       ref={trapRef}
+      tabIndex={-1}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -77,9 +99,9 @@ export default function ClarifierCardModal({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(10, 10, 20, 0.75)',
-        backdropFilter: 'blur(6px)',
-        zIndex: 1100,
+        background: 'rgba(10, 10, 20, 0.85)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 99999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -130,7 +152,7 @@ export default function ClarifierCardModal({
           style={{
             position: 'relative',
             margin: '0 auto 16px',
-            width: '180px',
+            width: 'min(160px, 22vh)',
             aspectRatio: '5 / 8',
             borderRadius: '12px',
             overflow: 'hidden',
@@ -237,6 +259,7 @@ export default function ClarifierCardModal({
           }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   )
 }
