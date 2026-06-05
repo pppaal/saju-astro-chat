@@ -26,7 +26,7 @@ import {
   type PromptCardInput,
 } from '@/lib/tarot/promptBuild'
 import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
-import { tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
+import { tarotCreditCostFor, tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
 import { loadDrawCards } from '@/lib/tarot/drawCardsCache'
 import {
@@ -287,11 +287,19 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // 비용 산정 — 클라이언트가 카드를 적게 보내 2→1 크레딧으로 깎는 회피 차단.
+    // 1) serverCards(드로우 시 nonce 로 보관한 권위 카드)가 있으면 그 개수가 진짜.
+    // 2) 없으면(Redis 다운/미발급 nonce/레거시) 클라 배열 길이만 믿지 않고,
+    //    서버 스프레드 정의(spreadId→cardCount, in-memory·Redis 무관)와 클라
+    //    카드 수 중 *큰 값* 으로 매긴다. 가격을 깎으려면 spreadId 와 cards 를
+    //    모두 줄여야 하는데, 그러면 실제 받는 리딩도 같이 줄어 이득이 없다.
+    const spreadCardCount = tarotThemes
+      .find((t) => t.id === body.categoryId)
+      ?.spreads.find((s) => s.id === body.spreadId)?.cardCount
+    const clientCardCount = Array.isArray(body.cards) ? body.cards.length : 1
     const cardCountForCost = serverCards
       ? serverCards.length
-      : Array.isArray(body.cards)
-        ? body.cards.length
-        : 1
+      : Math.max(spreadCardCount ?? 0, clientCardCount, 1)
     creditCost = tarotCreditCostFor(cardCountForCost)
 
     // T1 fix: 옛 코드는 nonce.consume() 이 credit check 전에 호출됐다. credit
