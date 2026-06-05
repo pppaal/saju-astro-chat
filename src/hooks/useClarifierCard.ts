@@ -116,13 +116,19 @@ export function useClarifierCard(options: UseClarifierCardOptions): UseClarifier
   const messages = MESSAGES[lang] ?? MESSAGES.en
 
   const openClarifier = useCallback(() => {
-    if (disabled) return
+    console.log('[CLARIFIER] openClarifier called', { disabled, used, currentShowModal: showModal })
+    if (disabled) {
+      console.log('[CLARIFIER] blocked: disabled=true')
+      return
+    }
     if (used) {
+      console.log('[CLARIFIER] blocked: used=true (locked)')
       onLockedNotice?.(messages.lockedNotice)
       return
     }
+    console.log('[CLARIFIER] setShowModal(true)')
     setShowModal((prev) => (prev ? prev : true))
-  }, [disabled, used, onLockedNotice, messages.lockedNotice])
+  }, [disabled, used, onLockedNotice, messages.lockedNotice, showModal])
 
   const handleConfirm = useCallback(
     (card: ClarifierCard) => {
