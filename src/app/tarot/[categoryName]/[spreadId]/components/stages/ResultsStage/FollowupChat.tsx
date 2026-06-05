@@ -438,7 +438,7 @@ export function FollowupChat({
       </div>
 
       {history.length > 0 && (
-        <div className="max-h-80 overflow-y-auto space-y-3 pr-1">
+        <div className="max-h-[60vh] min-h-[200px] overflow-y-auto space-y-3 pr-1">
           {history.map((t, i) => (
             <div key={i} className={`flex ${t.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
