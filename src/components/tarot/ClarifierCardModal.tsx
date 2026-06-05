@@ -5,6 +5,7 @@
 // 같은 모달을 공유한다 — 카드는 모달 마운트 시점에 뽑혀 즉시 노출.
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { Sparkles } from 'lucide-react'
 import { drawClarifierCard, type ClarifierCard } from '@/lib/tarot/drawClarifierCard'
@@ -25,7 +26,14 @@ export default function ClarifierCardModal({
 }: ClarifierCardModalProps) {
   const isKo = lang === 'ko'
   const [card, setCard] = useState<ClarifierCard | null>(null)
-  const trapRef = useFocusTrap(isOpen)
+  const [mounted, setMounted] = useState(false)
+  // autoFocus:false — 모바일에서 첫 focusable(닫기 버튼)에 .focus() 가 호출되면서
+  // 페이지가 모달 위치로 점프해 frozen 처럼 보이던 회귀.
+  const trapRef = useFocusTrap(isOpen, { autoFocus: false })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // 모달이 열릴 때마다 새 카드를 뽑는다. 닫히면 다음 오픈을 위해 reset.
   useEffect(() => {
@@ -71,13 +79,19 @@ export default function ClarifierCardModal({
     }
   }, [isOpen])
 
-  if (!isOpen || !card) return null
+  if (!isOpen || !card || !mounted) return null
 
   const displayName = isKo && card.nameKo ? card.nameKo : card.name
 
-  return (
+  // createPortal — ResultsStage 트리 안 어딘가 transform/filter 가 걸린 부모가
+  // position:fixed 의 기준을 viewport 가 아니라 자기로 만들어버려, 모달이 화면
+  // 일부만 덮거나 viewport 밖으로 밀려 페이지가 frozen 처럼 보이던 회귀
+  // ("한 장 더 뽑기 누르면 별만 내려"). document.body 직접 mount 로 stacking
+  // context 완전히 격리.
+  return createPortal(
     <div
       ref={trapRef}
+      tabIndex={-1}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -245,6 +259,7 @@ export default function ClarifierCardModal({
           }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   )
 }
