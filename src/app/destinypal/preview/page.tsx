@@ -12,6 +12,7 @@ import PreviewClient from './PreviewClient'
 
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
+import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
@@ -368,6 +369,17 @@ export default async function DestinypalPreview() {
     woolunBranch,
     narrative: monthNarrative,
   })
+  // 이달의 큰 날 — convergence keyDays(윈도우+신뢰도). 페이지에서 직접 호출해
+  // 월 카드에 실어준다(이전엔 deriveConvergence 가 아예 안 불려 큰 날이 비었음).
+  const monthKeyDays = deriveConvergence(monthCells, 5, 'ko').keyDays.map((k) => ({
+    date: k.date.slice(5), // MM-DD
+    meaning: k.meaning,
+    astro: k.astro,
+    saju: k.saju,
+    bothSystems: k.bothSystems,
+    window: k.window,
+    confidence: k.confidence,
+  }))
   // DestinyMonth 는 woolun / converge / bestDay 가 필수 — adapter 미채움 시 fallback.
   const month: DestinyMonth = {
     label: monthAdapter.label,
@@ -379,6 +391,7 @@ export default async function DestinypalPreview() {
     avoidDays: monthAdapter.avoidDays,
     themes: monthAdapter.themes,
     narrative: monthAdapter.narrative,
+    keyDays: monthKeyDays,
     converge: monthAdapter.converge
       ? {
           date: monthAdapter.converge.date,

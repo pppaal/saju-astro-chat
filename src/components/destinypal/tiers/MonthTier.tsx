@@ -523,6 +523,45 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
         )}
       </div>
 
+      {/* ===== 이달의 큰 날 (convergence keyDays — 윈도우+신뢰도) ===== */}
+      {month.keyDays && month.keyDays.length > 0 && (
+        <div className={styles.bigDays}>
+          <div className={styles.eyebrow}>이달의 큰 날 · 사주×점성 수렴</div>
+          {month.keyDays.map((k, i) => (
+            <div className={styles.bigDay} key={`kd-${i}`}>
+              <div className={styles.bigDayHead}>
+                <span className={styles.bigDayDate}>{k.date}</span>
+                {k.window && (
+                  <span className={styles.bigDayWindow}>
+                    {k.window.start.slice(5, 10)} ~ {k.window.end.slice(5, 10)} · 정점{' '}
+                    {k.window.peak.slice(5, 10)}
+                  </span>
+                )}
+                {k.bothSystems && <span className={styles.bigDayBoth}>사주×점성</span>}
+                {typeof k.confidence === 'number' && (
+                  <span className={styles.bigDayConf}>신뢰 {k.confidence}</span>
+                )}
+              </div>
+              {k.meaning && <div className={styles.bigDayMeaning}>{k.meaning}</div>}
+              {(k.saju.length > 0 || k.astro.length > 0) && (
+                <div className={styles.bigDayChips}>
+                  {k.saju.map((s, j) => (
+                    <span className={[styles.chip, styles.chipSaju].join(' ')} key={`s-${j}`}>
+                      {s}
+                    </span>
+                  ))}
+                  {k.astro.map((a, j) => (
+                    <span className={[styles.chip, styles.chipAstro].join(' ')} key={`a-${j}`}>
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ===== theme scores + key events 50:50 row ===== */}
       <div className={styles.split} style={{ marginTop: 30 }}>
         <div className={[styles.panel, styles.panelSaju].join(' ')}>

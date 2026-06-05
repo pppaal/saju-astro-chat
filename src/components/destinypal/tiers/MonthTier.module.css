@@ -479,3 +479,72 @@
   .convergeDate { font-size: 24px; }
   .convergeMeaning { font-size: 14px; line-height: 1.45; }
 }
+
+/* ── 이달의 큰 날 (convergence keyDays — 윈도우+신뢰도) ── */
+.bigDays {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bigDay {
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r-lg);
+  background: var(--dp-panel);
+  padding: 12px 14px;
+}
+.bigDayHead {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bigDayDate {
+  font-family: var(--dp-serif-ko);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--dp-ink);
+}
+.bigDayWindow {
+  font-family: var(--dp-mono);
+  font-size: 11.5px;
+  color: var(--dp-accent);
+  letter-spacing: 0.02em;
+}
+.bigDayBoth {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--dp-ember);
+  border: 1px solid var(--dp-ember-glow);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.bigDayConf {
+  margin-left: auto;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  color: var(--dp-ink-mute);
+}
+.bigDayMeaning {
+  font-family: var(--dp-serif-ko);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dp-ink-dim);
+  margin-top: 7px;
+}
+.bigDayChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+}
+.chip {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 3px 9px;
+  border: 1px solid var(--dp-line);
+  color: var(--dp-ink-mute);
+}
+.chipSaju { border-color: var(--dp-ember-glow); color: var(--dp-ember-2); }
+.chipAstro { border-color: var(--dp-accent-glow); color: var(--dp-accent-2); }
