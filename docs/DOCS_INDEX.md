@@ -38,7 +38,7 @@ Last audited: 2026-05-17 (Asia/Hong_Kong)
 | `docs/CROSS_RULES_ROADMAP.md`           | Cross-rules priorities (P0~P4) + release hygiene discipline       | Backend/AI engineers       | 2026-05-06   |
 | `docs/AUDIT_FUSION.md`                  | Saju × Astro fusion verification + maturity scorecard             | Backend/AI engineers       | 2026-03-11   |
 | `docs/AUDIT_SAJU.md`                    | Saju calculation audit                                            | Backend engineers          | 2026-03-11   |
-| `docs/AUDIT_ASTRO.md`                   | Astrology calculation audit                                       | Backend engineers          | 2026-03-11   |
+| `src/lib/astrology/CONVENTIONS.md`      | Astrology calc/doctrine SSOT (absorbed AUDIT_ASTRO 2026-06)       | Backend engineers          | 2026-06-05   |
 | `docs/SOLAR_TIME_CONVENTION.md`         | True solar time policy and boundary handling                      | Backend engineers          | 2026-03-11   |
 
 ## Generated And Audit Docs
