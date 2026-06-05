@@ -47,6 +47,16 @@ function TarotReadingPage() {
   // 끊어 두 스트림이 동시에 도는 레이스를 막는다.
   const interpretAbortRef = useRef<AbortController | null>(null)
 
+  // 언마운트 시에만 진행 중인 해석 스트림을 끊는다. 직전엔 fetch effect 의
+  // cleanup 이 cancelled 플래그만 세워 setState 만 막고, 실제 SSE 연결은
+  // 백그라운드에서 최대 ~70s 계속 살아있었다(자원 누수). dep 변경 cleanup 이
+  // 아니라 *언마운트* 에서만 끊어, 정상 dep 변경 중인 fetch 는 건드리지 않는다.
+  useEffect(() => {
+    return () => {
+      interpretAbortRef.current?.abort()
+    }
+  }, [])
+
   // Custom hooks
   const gameHook = useTarotGame()
   const interpretationHook = useTarotInterpretation({

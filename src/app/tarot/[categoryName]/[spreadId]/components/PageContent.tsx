@@ -38,6 +38,7 @@ export interface PageContentProps {
   handleCardClick: (index: number) => void
   handleCardReveal: (index: number) => void
   handleRedraw: () => void
+  handleRetryDraw: () => void
   isCardRevealed: (index: number) => boolean
   canRevealCard: (index: number) => boolean
   handleSaveReading: () => Promise<void>
@@ -102,6 +103,17 @@ export function PageContent(props: PageContentProps) {
           ? translate('auth.signIn', '로그인')
           : undefined
 
+    // 일시적(네트워크/서버) 드로우 실패에만 같은 화면 재시도 노출. 크레딧/
+    // 게스트/인증 에러는 재시도해도 또 실패하므로 각자의 액션(충전/로그인)만.
+    // spreadInfo 자체가 없는(잘못된 접근) 경우도 재시도 대상 아님.
+    const canRetryDraw =
+      gameState === 'error' &&
+      !!spreadInfo &&
+      drawError != null &&
+      drawError.code !== 'credit_exhausted' &&
+      drawError.code !== 'guest_limit_reached' &&
+      drawError.code !== 'auth_failed'
+
     return (
       <ErrorState
         title={errorTitle}
@@ -109,6 +121,8 @@ export function PageContent(props: PageContentProps) {
         linkText={translate('tarot.reading.backToHome', 'Back to Home')}
         primaryActionHref={primaryActionHref}
         primaryActionText={primaryActionText}
+        onRetry={canRetryDraw ? props.handleRetryDraw : undefined}
+        retryText={translate('tarot.reading.retry', '다시 시도')}
       />
     )
   }
