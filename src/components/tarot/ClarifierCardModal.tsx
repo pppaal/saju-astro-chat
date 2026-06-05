@@ -37,19 +37,12 @@ export default function ClarifierCardModal({
 
   // 모달이 열릴 때마다 새 카드를 뽑는다. 닫히면 다음 오픈을 위해 reset.
   useEffect(() => {
-    console.log('[CLARIFIER-MODAL] isOpen changed:', isOpen, 'mounted:', mounted)
     if (isOpen) {
-      try {
-        const drawn = drawClarifierCard()
-        console.log('[CLARIFIER-MODAL] card drawn:', drawn?.name)
-        setCard(drawn)
-      } catch (e) {
-        console.error('[CLARIFIER-MODAL] drawClarifierCard threw:', e)
-      }
+      setCard(drawClarifierCard())
     } else {
       setCard(null)
     }
-  }, [isOpen, mounted])
+  }, [isOpen])
 
   // Esc 로 닫기 + 모달 열린 동안 body 스크롤 잠금.
   // 모바일(iOS Safari/Chrome)에서 body{overflow:hidden} 만으로는 잠금이 안 되고
@@ -86,11 +79,7 @@ export default function ClarifierCardModal({
     }
   }, [isOpen])
 
-  if (!isOpen || !card || !mounted) {
-    console.log('[CLARIFIER-MODAL] render null:', { isOpen, hasCard: !!card, mounted })
-    return null
-  }
-  console.log('[CLARIFIER-MODAL] rendering portal with card:', card.name)
+  if (!isOpen || !card || !mounted) return null
 
   const displayName = isKo && card.nameKo ? card.nameKo : card.name
 
