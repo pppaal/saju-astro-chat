@@ -268,6 +268,20 @@ const REQUIRED_SCHEMA = [
     ],
   },
   {
+    // 출생지 좌표(진태양시·하우스 보정용). 20260604 마이그레이션이 prod 에서
+    // phantom-apply 돼 latitude/longitude 가 실제로는 누락 → /api/me/profile 의
+    // findUnique(select profile.latitude/longitude) 가 "column does not exist"
+    // (PrismaClientKnownRequestError) 로 죽어 프로필 조회·저장이 전부 실패했다.
+    // tzId 는 오래전부터 있었지만 같은 select 에 포함돼 함께 가드(idempotent).
+    table: 'UserProfile',
+    migration: '20260604000000_add_userprofile_coords',
+    columns: [
+      { name: 'latitude', ddl: `ADD COLUMN IF NOT EXISTS "latitude" DOUBLE PRECISION` },
+      { name: 'longitude', ddl: `ADD COLUMN IF NOT EXISTS "longitude" DOUBLE PRECISION` },
+      { name: 'tzId', ddl: `ADD COLUMN IF NOT EXISTS "tzId" TEXT` },
+    ],
+  },
+  {
     table: 'BonusCreditPurchase',
     migration: '20260528123217_add_bonus_credit_acknowledged_at',
     columns: [
