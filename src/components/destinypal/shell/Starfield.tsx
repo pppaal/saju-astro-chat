@@ -1,22 +1,22 @@
 'use client'
 
-/**
- * Starfield — canvas 별/먼지 배경 (ink-on-hanji 파스텔 톤).
- * 포팅 출처: destinypal-extracted/js-ink/app.jsx initStarfield()
- *
- * camDepth (0..3) 를 ref 로 받아 부드러운 parallax + 줌 느낌을 표현.
- * 부모 (DestinypalShell) 가 매 프레임 setCamDepth(cam) 으로 값을 갱신하면
- * 다음 RAF tick 에서 별들이 바깥쪽으로 드리프트한다.
- *
- * SSR safe: useEffect 안에서만 canvas/window 접근.
- */
+/* ============================================================
+   destinypal · Starfield — canvas 별 parallax 배경
+   직역 출처: destinypal-extracted/js/app.jsx initStarfield()
+   forwardRef 로 setCamDepth(cam) imperative 핸들 노출 — Shell 의
+   카메라 depth (float 0..3) 가 그대로 parallax zoom 인자가 됨.
+   ============================================================ */
 
-import * as React from 'react'
-import shellStyles from '../styles/shell.module.css'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from 'react'
+import styles from '../styles/shell.module.css'
 
 export interface StarfieldHandle {
-  /** 부모 (DestinypalShell) 가 각 frame 의 카메라 깊이를 흘려주는 setter. */
-  setCamDepth: (depth: number) => void
+  setCamDepth: (cam: number) => void
 }
 
 interface Star {
@@ -26,26 +26,26 @@ interface Star {
   r: number
   tw: number
   tws: number
-  drift: number
   hue: number
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface StarfieldProps {}
+export const Starfield = forwardRef<StarfieldHandle, { className?: string }>(
+  function Starfield({ className }, ref) {
+    const cvRef = useRef<HTMLCanvasElement | null>(null)
+    const depthRef = useRef(0)
 
-export const Starfield = React.forwardRef<StarfieldHandle, StarfieldProps>(
-  function Starfield(_props, ref) {
-    const canvasRef = React.useRef<HTMLCanvasElement | null>(null)
-    const depthRef = React.useRef(0)
+    useImperativeHandle(
+      ref,
+      () => ({
+        setCamDepth: (cam: number) => {
+          depthRef.current = cam
+        },
+      }),
+      [],
+    )
 
-    React.useImperativeHandle(ref, () => ({
-      setCamDepth: (d: number) => {
-        depthRef.current = d
-      },
-    }))
-
-    React.useEffect(() => {
-      const cv = canvasRef.current
+    useEffect(() => {
+      const cv = cvRef.current
       if (!cv) return
       const ctx = cv.getContext('2d')
       if (!ctx) return
@@ -55,83 +55,86 @@ export const Starfield = React.forwardRef<StarfieldHandle, StarfieldProps>(
       let dpr = 1
       let stars: Star[] = []
       let rafId = 0
-      let mounted = true
+      let cancelled = false
 
-      const resize = (): void => {
+      const resize = () => {
         dpr = Math.min(2, window.devicePixelRatio || 1)
-        W = cv.width = window.innerWidth * dpr
-        H = cv.height = window.innerHeight * dpr
-        cv.style.width = window.innerWidth + 'px'
-        cv.style.height = window.innerHeight + 'px'
-        const n = Math.floor((window.innerWidth * window.innerHeight) / 9500)
+        const w = window.innerWidth
+        const h = window.innerHeight
+        W = cv.width = w * dpr
+        H = cv.height = h * dpr
+        cv.style.width = w + 'px'
+        cv.style.height = h + 'px'
+        const n = Math.floor((w * h) / 6500)
         stars = Array.from({ length: n }, () => ({
           x: Math.random(),
           y: Math.random(),
           z: Math.random() * 0.9 + 0.1,
-          r: Math.random() * 1.6 + 0.4,
+          r: Math.random() * 1.3 + 0.2,
           tw: Math.random() * Math.PI * 2,
-          tws: Math.random() * 0.7 + 0.2,
-          drift: (Math.random() - 0.5) * 0.0009,
-          // pigment: ink-fleck (0), sepia dust (45), faint gold (30)
+          tws: Math.random() * 1.6 + 0.4,
           hue:
-            Math.random() < 0.2
-              ? 0
-              : Math.random() < 0.5
-                ? 45
-                : 30,
+            Math.random() < 0.22 ? 210 : Math.random() < 0.5 ? 45 : 0,
         }))
       }
-
       resize()
       window.addEventListener('resize', resize)
 
       let t = 0
-      const draw = (): void => {
-        if (!mounted) return
+      const draw = () => {
+        if (cancelled) return
         t += 0.016
         ctx.clearRect(0, 0, W, H)
         const depth = depthRef.current || 0
         for (const s of stars) {
-          // parallax: deeper cam → motes drift outward & scale (zoom feel)
           const zoom = 1 + depth * 0.12 * s.z
-          const cx =
-            0.5 +
-            (s.x - 0.5) * zoom +
-            Math.sin(t * 0.25 + s.tw) * s.drift * 60
-          const cy = 0.44 + (s.y - 0.44) * zoom + t * s.drift
-          const wrapY = ((cy % 1) + 1) % 1
-          if (cx < -0.1 || cx > 1.1) continue
+          const cx = 0.5 + (s.x - 0.5) * zoom
+          const cy = 0.44 + (s.y - 0.44) * zoom
+          if (cx < -0.1 || cx > 1.1 || cy < -0.1 || cy > 1.1) continue
           const px = cx * W
-          const py = wrapY * H
-          const tw = 0.6 + 0.4 * Math.sin(t * s.tws + s.tw)
-          const alpha = tw * (0.18 + s.z * 0.3)
-          const rad = s.r * dpr * (1 + s.z * 0.5)
+          const py = cy * H
+          const tw = 0.55 + 0.45 * Math.sin(t * s.tws + s.tw)
+          const alpha = tw * (0.35 + s.z * 0.5)
+          const rad = s.r * dpr * (1 + s.z * 0.6)
           let col: string
-          if (s.hue === 0) col = `rgba(70,56,36,${alpha * 0.7})` // ink fleck
-          else if (s.hue === 45) col = `rgba(150,118,66,${alpha})` // sepia
-          else col = `rgba(186,150,86,${alpha * 0.9})` // faint gold
-
-          const grd = ctx.createRadialGradient(px, py, 0, px, py, rad * 2.4)
-          grd.addColorStop(0, col)
-          grd.addColorStop(1, col.replace(/[\d.]+\)$/, '0)'))
+          if (s.hue === 210) col = `rgba(150,185,255,${alpha})`
+          else if (s.hue === 45) col = `rgba(240,210,150,${alpha * 0.85})`
+          else col = `rgba(230,236,255,${alpha})`
           ctx.beginPath()
-          ctx.arc(px, py, rad * 2.4, 0, Math.PI * 2)
-          ctx.fillStyle = grd
+          ctx.arc(px, py, rad, 0, Math.PI * 2)
+          ctx.fillStyle = col
           ctx.fill()
+          if (s.z > 0.7 && tw > 0.85) {
+            ctx.globalAlpha = (tw - 0.85) * 2
+            ctx.strokeStyle = col
+            ctx.lineWidth = 0.5 * dpr
+            ctx.beginPath()
+            ctx.moveTo(px - rad * 3, py)
+            ctx.lineTo(px + rad * 3, py)
+            ctx.moveTo(px, py - rad * 3)
+            ctx.lineTo(px, py + rad * 3)
+            ctx.stroke()
+            ctx.globalAlpha = 1
+          }
         }
         rafId = requestAnimationFrame(draw)
       }
-
       rafId = requestAnimationFrame(draw)
 
       return () => {
-        mounted = false
-        window.removeEventListener('resize', resize)
+        cancelled = true
         cancelAnimationFrame(rafId)
+        window.removeEventListener('resize', resize)
       }
     }, [])
 
-    return <canvas ref={canvasRef} className={shellStyles.stars} aria-hidden="true" />
+    return (
+      <canvas
+        ref={cvRef}
+        className={[styles.stars, className].filter(Boolean).join(' ')}
+        aria-hidden
+      />
+    )
   },
 )
 

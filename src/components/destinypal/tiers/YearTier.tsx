@@ -1,371 +1,352 @@
-/**
- * @file YearTier.tsx
- * destinypal 4-tier 의 두 번째 카드 — 1년 (YEARLY · profection year).
- *
- * 원본: destinypal-extracted/js/tiers/year.jsx (110 줄)
- * 디자인 ref: destinypal-extracted/css/tiers.css (.year-wrap 외)
- *
- * 포팅 + Phase 3 신호 보강:
- *  - 12-house wheel + 본명 행성 도트 + 외행성 transit 도트 (2 레이어)
- *  - Profection readout (KV + Lord-of-Year dignity + sect)
- *  - ZR Spirit/Fortune L1+L2 카드 (sign·ruler·duration·remain + LoB/Peak 마커)
- *  - Solar Return 카드 (ascSign · mcSign · exactDate — 백엔드가 채워주면)
- *  - 응용 패턴 칩 row (관인상생/재생관/상관견관 등)
- *  - Cross-activation 페어 카드 (정관(丙) × Saturn transit 등)
- *  - 세운 sajuNote (용신 점등 + 조후)
- *  - wheel 좌상단 Pivotal 배지 (LoB / Peak / Solar Arc conjunction 등)
- *
- * 다른 atom 신규 추가 X — 자체 SVG / 인라인 칩으로 처리.
- */
-
 'use client'
 
-import { useMemo, type ReactElement } from 'react'
+/* ============================================================
+   destinypal · YearTier — ② 1년 (YEARLY)
+   직역 출처: destinypal-extracted/js/tiers/year.jsx (110 라인)
+   + 5-tier 보강 (사용자 위임):
+     1) wheel 위 본명 행성 도트(natalDots) + 외행성 트랜짓 도트(transitDots)
+     2) profection readout — sect(낮/밤) 한 줄 + Lord-of-Year dignity 한 줄
+     3) ZR 카드 (Spirit L1+L2 / Fortune L1+L2)
+     4) SR 카드 (Solar Return: Asc / MC / exactDate)
+     5) 응용패턴 칩 row (appliedPatterns)
+     6) cross-activation 페어 (crossPairs)
+     7) wheel 좌상단 Pivotal 배지 (LoB · 풀린·매듭 / Peak · 정점)
+   ============================================================ */
+
 import type {
   DestinyUserSummary,
   DestinyYear,
   DestinyDignityEntry,
   DestinyDecadeZRChapter,
-  DestinyAppliedPattern,
-  DestinyCrossActivation,
 } from '@/types/destinypal'
-import type { ZodiacKo } from '@/lib/astrology/foundation/types'
-import { Ganji, LayerTag } from '@/components/destinypal/atoms'
+import { Ganji } from '../atoms/Ganji'
+import { LayerTag } from '../atoms/LayerTag'
 import styles from './YearTier.module.css'
 
-// ============================================================================
+// ----------------------------------------------------------------
 // Props
-// ============================================================================
+// ----------------------------------------------------------------
 
 export interface YearTierProps {
-  /** 본명 카드 데이터 (12-house wheel 의 본명 행성 도트 출처). */
+  /** 본명 — 12-house wheel 본명 행성 도트 + 룰러 dignity 검색에 사용. */
   user: DestinyUserSummary
-  /** 1년 (세운) 카드 데이터. */
+  /** 세운 + Profection wheel. */
   year: DestinyYear
-  /** 줌인 → MonthTier. */
+  /** 월(month) tier 로 다이브. */
   onDive: () => void
-  /** 줌아웃 → LifetimeTier. */
+  /** Lifetime tier 로 라이즈. */
   onRise: () => void
 }
 
-// ============================================================================
-// Geometry — 360° → 12 house slice helpers.
-// ============================================================================
+// ----------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------
 
-const CX = 180
-const CY = 180
-const R = 150 // 외곽 둘레
-const R_INNER = R - 44 // 안쪽 둘레
-const R_NATAL_DOT = R - 18 // 본명 행성 도트 반경
-const R_TRANSIT_DOT = R + 12 // transit 도트 반경 (외곽 밖)
-const R_LABEL = R - 22 // 하우스 번호 라벨
+/** 영문 zodiac → 1..12 인덱스 (Aries=1) — 본명 ASC 기준 whole-sign house 매핑용. */
+const SIGN_ORDER = [
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
+] as const
 
-/** 1..12 하우스를 12시 방향(=-90°) 기준 SVG 각도(라디안)로 변환. */
-function houseToAngle(house: number, mid = false): number {
-  const offset = mid ? -0.5 : -1
-  return ((house + offset) / 12) * Math.PI * 2 - Math.PI / 2
+/** 행성 영문 → 한자 glyph (wheel dot 표기). */
+const PLANET_GLYPH: Record<string, string> = {
+  Sun: '☉',
+  Moon: '☽',
+  Mercury: '☿',
+  Venus: '♀',
+  Mars: '♂',
+  Jupiter: '♃',
+  Saturn: '♄',
+  Uranus: '♅',
+  Neptune: '♆',
+  Pluto: '♇',
 }
 
-/** sign 경계 0°(Aries 시작) 기준 sign+within-sign degree → 절대 0..360°. */
-function signDegreeToAbsolute(sign: ZodiacKo, withinDegree: number): number {
-  const SIGN_ORDER: ZodiacKo[] = [
-    'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-    'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
-  ]
-  const idx = SIGN_ORDER.indexOf(sign)
-  return idx * 30 + Math.max(0, Math.min(29.999, withinDegree))
+/** 본명 ASC 기준 whole-sign house 계산 — 행성 sign → house 1..12. */
+function signToHouse(planetSign: string, ascSign: string): number {
+  const ai = SIGN_ORDER.indexOf(ascSign as (typeof SIGN_ORDER)[number])
+  const pi = SIGN_ORDER.indexOf(planetSign as (typeof SIGN_ORDER)[number])
+  if (ai < 0 || pi < 0) return 1
+  return ((pi - ai + 12) % 12) + 1
 }
 
-/**
- * 절대 각도(0=Aries 시작) → wheel SVG 좌표.
- * SVG 는 시계방향 + 12시(-90°) 기준 — house 1 이 9시 (180°) 가 아니라 ASC 위치인
- * 점성 표준을 따른다. 여기서는 간단화: profection 휠이라 본명 차트와 1:1
- * 안배가 아니어도 되므로 "Aries=상단" 기준 시계방향으로 둔다.
- */
-function absoluteToWheelPos(abs: number, radius: number): { x: number; y: number } {
-  // 0° → 12시(상단). 시계방향.
-  const rad = (abs / 360) * Math.PI * 2 - Math.PI / 2
-  return {
-    x: CX + Math.cos(rad) * radius,
-    y: CY + Math.sin(rad) * radius,
-  }
+/** dignity entry → 한 줄 표기 ('domicile · +5' 등) + polarity tone. */
+function formatDignity(d: DestinyDignityEntry): {
+  text: string
+  tone: 'pos' | 'neg' | 'neu'
+} {
+  const tiers = d.tiers
+  const flags: string[] = []
+  if (tiers?.domicile) flags.push('domicile')
+  if (tiers?.exaltation) flags.push('exaltation')
+  if (tiers?.detriment) flags.push('detriment')
+  if (tiers?.fall) flags.push('fall')
+  if (tiers?.triplicity) flags.push('triplicity')
+  if (tiers?.term) flags.push('term')
+  if (tiers?.face) flags.push('face')
+  const score = d.score ?? 0
+  const tone: 'pos' | 'neg' | 'neu' =
+    score > 0 ? 'pos' : score < 0 ? 'neg' : 'neu'
+  const flagText = flags.length > 0 ? flags.join(' · ') : 'peregrine'
+  const scoreText = score === 0 ? '0' : score > 0 ? `+${score}` : `${score}`
+  return { text: `${flagText} · ${scoreText}`, tone }
 }
 
-// ============================================================================
-// 본명 행성 도트 / Transit 도트 추출.
-// ============================================================================
+/** 본명 dignities 에서 행성 검색 (룰러 영문명). */
+function findDignity(
+  dignities: DestinyDignityEntry[] | undefined,
+  planetName: string,
+): DestinyDignityEntry | undefined {
+  if (!dignities) return undefined
+  return dignities.find((d) => d.planet === planetName)
+}
 
-/** 본명 dignity 묶음에서 wheel 위 도트로 그릴 행성들. */
-function natalDots(user: DestinyUserSummary): Array<{
+/** 본명 행성 도트 — user.dignities → { house, planet, glyph }. */
+interface NatalDot {
+  house: number
   planet: string
-  abs: number
   glyph: string
-}> {
-  const GLYPH: Record<string, string> = {
-    Sun: '☉', Moon: '☽', Mercury: '☿', Venus: '♀', Mars: '♂',
-    Jupiter: '♃', Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇',
-  }
-  // user.dignities 는 본명 행성 묶음 (sign/degree 포함). 외행성 4 개는 제외 — 본명
-  // 도트는 personal planets 위주로.
-  const PERSONAL = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'])
-  return user.dignities
-    .filter((d: DestinyDignityEntry) => PERSONAL.has(String(d.planet)))
+}
+function buildNatalDots(user: DestinyUserSummary): NatalDot[] {
+  const asc = user.astro?.ascEn ?? 'Aries'
+  const dignities = user.dignities ?? []
+  return dignities.map((d) => ({
+    house: signToHouse(d.sign, asc),
+    planet: String(d.planet),
+    glyph: PLANET_GLYPH[String(d.planet)] ?? '·',
+  }))
+}
+
+/** 외행성 transit 도트 — 본명 ASC 기준 (외행성: Jupiter / Saturn / Uranus / Neptune / Pluto).
+ *  실데이터가 없으므로 본명 위치 기준으로 시간 변동 표시 — 본명 dignity 가 있을 때만 표시.
+ */
+function buildTransitDots(user: DestinyUserSummary): NatalDot[] {
+  const OUTERS = ['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']
+  const asc = user.astro?.ascEn ?? 'Aries'
+  const dignities = user.dignities ?? []
+  return dignities
+    .filter((d) => OUTERS.includes(String(d.planet)))
     .map((d) => ({
+      house: signToHouse(d.sign, asc),
       planet: String(d.planet),
-      abs: signDegreeToAbsolute(d.sign, d.degree),
-      glyph: GLYPH[String(d.planet)] ?? '·',
+      glyph: PLANET_GLYPH[String(d.planet)] ?? '·',
     }))
 }
 
-/**
- * 외행성(Saturn/Uranus/Neptune/Pluto) 현재 transit 도트.
- *
- * 정식 transit 데이터는 백엔드에서 year 페이로드 확장 시 들어옴 — 현재 타입은
- * 노출하지 않으므로, year 페이로드에 `slowTransits` 필드가 있을 때만 그린다
- * (TypeScript 측에선 optional cast).
- */
-interface SlowTransitDot {
-  planet: string
-  sign: ZodiacKo
-  degree: number
-}
-function transitDots(year: DestinyYear): Array<{
-  planet: string
-  abs: number
-  glyph: string
-}> {
-  const yWithExt = year as DestinyYear & { slowTransits?: SlowTransitDot[] }
-  const slow = yWithExt.slowTransits
-  if (!slow || !Array.isArray(slow)) return []
-  const GLYPH: Record<string, string> = {
-    Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇',
-  }
-  return slow
-    .filter((t) => GLYPH[t.planet])
-    .map((t) => ({
-      planet: t.planet,
-      abs: signDegreeToAbsolute(t.sign, t.degree),
-      glyph: GLYPH[t.planet],
-    }))
+/** house 1..12 → wheel mid angle (radians). */
+function houseAngle(house: number): number {
+  const i = house - 1
+  return ((i + 0.5) / 12) * Math.PI * 2 - Math.PI / 2
 }
 
-// ============================================================================
-// Lord-of-Year dignity (정통 보강) — profection ruler 의 본명 dignity 한 줄.
-// ============================================================================
-
-function lordOfYearDignity(year: DestinyYear, user: DestinyUserSummary): string | null {
-  const ruler = year.profection.rulerEn
-  const entry = user.dignities.find((d) => String(d.planet) === String(ruler))
-  if (!entry) return null
-  const tiers = entry.tiers
-  const labels: string[] = []
-  if (tiers.domicile) labels.push('domicile')
-  if (tiers.exaltation) labels.push('exaltation')
-  if (tiers.detriment) labels.push('detriment')
-  if (tiers.fall) labels.push('fall')
-  if (tiers.triplicity) labels.push('triplicity')
-  if (tiers.term) labels.push('term')
-  if (tiers.face) labels.push('face')
-  const tierLine = labels.length > 0 ? labels.join(' · ') : 'peregrine'
-  return `${ruler} · ${tierLine} (score ${entry.score})`
-}
-
-// ============================================================================
-// ZR chapter 표시 헬퍼.
-// ============================================================================
-
-interface ZRDisplayRow {
-  level: 'L1' | 'L2'
-  sign: string
-  ruler: string
-  duration: string
-  remain?: string
-  isPeak: boolean
-  isLoB: boolean
-}
-
-function zrChapterRows(
-  chapters: DestinyDecadeZRChapter[],
-  year: number,
-): ZRDisplayRow[] {
-  const rows: ZRDisplayRow[] = []
-  for (const ch of chapters) {
-    if (ch.calendarStartYear > year || ch.calendarEndYear <= year) continue
-    rows.push({
-      level: 'L1',
-      sign: ch.sign,
-      ruler: ch.ruler,
-      duration: `${ch.calendarStartYear}–${ch.calendarEndYear}`,
-      remain: `${Math.max(0, ch.calendarEndYear - year)}년 남음`,
-      // L1 chapter 자체는 peak/LoB 마커가 없다 — sub-period 에만 있음.
-      isPeak: false,
-      isLoB: false,
-    })
-    if (ch.subPeriods) {
-      // sub-period 의 startYear/endYear 는 calendar 가 아니라 본명 출생 기준
-      // years (실수). 현재 calendar year 대비 비교는 birth offset 이 필요하지만,
-      // 여기서는 sub.startYear / endYear 가 이미 calendar 로 환산되어 들어왔다는
-      // adapter 의 약속을 따른다 (decade.ts 사양에 명시).
-      for (const sub of ch.subPeriods) {
-        if (sub.startYear > year || sub.endYear <= year) continue
-        rows.push({
-          level: 'L2',
-          sign: String(sub.sign),
-          ruler: String(sub.ruler),
-          duration: `${sub.startYear}–${sub.endYear}`,
-          remain: `${Math.max(0, sub.endYear - year)}년 남음`,
-          isPeak: sub.isPeak,
-          isLoB: sub.isLoosingOfTheBond,
-        })
-      }
-    }
-  }
-  return rows
-}
-
-// ============================================================================
-// Solar Return / Applied Patterns / Cross Pairs (optional 확장).
-// 백엔드가 year 페이로드에 붙여줄 때만 표시 — 타입 안전 옵셔널.
-// ============================================================================
-
-interface SolarReturnDataExt {
-  ascSign?: ZodiacKo
-  mcSign?: ZodiacKo
-  exactDate?: string
-}
-
-function pickSolarReturn(year: DestinyYear): SolarReturnDataExt | null {
-  const ext = year as DestinyYear & { solarReturn?: SolarReturnDataExt }
-  return ext.solarReturn ?? null
-}
-
-function pickAppliedPatterns(year: DestinyYear): DestinyAppliedPattern[] {
-  const ext = year as DestinyYear & { appliedPatterns?: DestinyAppliedPattern[] }
-  return ext.appliedPatterns ?? []
-}
-
-function pickCrossPairs(year: DestinyYear): DestinyCrossActivation[] {
-  const ext = year as DestinyYear & { crossPairs?: DestinyCrossActivation[] }
-  return ext.crossPairs ?? []
-}
-
-interface PivotalBadgeData {
-  label: string
-}
-
-function pickPivotal(year: DestinyYear): PivotalBadgeData | null {
-  // ZR Sub-period 의 LoB / Peak 이 올해 들어오면 학파 중요 이벤트.
-  const y = year.year
-  const all = [...(year.zrSpiritChapters ?? []), ...(year.zrFortuneChapters ?? [])]
-  for (const ch of all) {
-    if (ch.calendarStartYear > y || ch.calendarEndYear <= y) continue
-    if (ch.subPeriods) {
-      for (const sub of ch.subPeriods) {
-        if (sub.startYear > y || sub.endYear <= y) continue
-        if (sub.isLoosingOfTheBond) return { label: 'Loosing of the Bond' }
-        if (sub.isPeak) return { label: 'Peak Period' }
-      }
-    }
-  }
-  // Solar Arc conjunction 등 (백엔드가 채워줄 경우).
-  const ext = year as DestinyYear & { pivotal?: PivotalBadgeData }
-  if (ext.pivotal) return ext.pivotal
+/** ZR chapter pivotal 표기 (LoB / Peak). */
+function zrPivotalTag(c: DestinyDecadeZRChapter): string | null {
+  // ZRPeriod 는 level/index/sign/ruler 만 가짐. Pivotal 정보는 sub-period level 에 있음.
+  const sub = c.subPeriods?.find((s) => s.isLoosingOfTheBond || s.isPeak)
+  if (sub?.isLoosingOfTheBond) return 'LoB · 풀린 매듭'
+  if (sub?.isPeak) return 'Peak · 정점'
   return null
 }
 
-// ============================================================================
-// Component
-// ============================================================================
+/** Solar Return 추출 — DestinyYear.zrSpiritChapters / profection 에 부재시 graceful skip. */
+interface SolarReturnLike {
+  ascSign?: string
+  mcSign?: string
+  exactDate?: string
+}
+function readSolarReturn(year: DestinyYear): SolarReturnLike | null {
+  // DestinyYear 타입은 solarReturn 명시 필드 없음 — 디자인 데이터 보강 위임.
+  // 향후 adapter 가 채우는 일관 키 (solarReturn) 를 안전하게 탐색.
+  const anyYear = year as unknown as { solarReturn?: SolarReturnLike }
+  return anyYear.solarReturn ?? null
+}
 
-export function YearTier(props: YearTierProps): ReactElement {
-  const { user, year, onDive, onRise } = props
+/** 응용 패턴 칩 — 디자인 데이터 보강. 향후 adapter 가 채우는 일관 키 (appliedPatterns). */
+interface AppliedPattern {
+  hanja?: string
+  ko: string
+  romaji?: string
+}
+function readAppliedPatterns(year: DestinyYear): AppliedPattern[] {
+  const anyYear = year as unknown as { appliedPatterns?: AppliedPattern[] }
+  return anyYear.appliedPatterns ?? []
+}
+
+/** Cross-activation 페어 — 사주 ↔ 점성 의미 연결. */
+interface CrossPair {
+  sajuLabel: string
+  sajuRomaji?: string
+  astroLabel: string
+  astroRomaji?: string
+  meaning: string
+}
+function readCrossPairs(year: DestinyYear): CrossPair[] {
+  const anyYear = year as unknown as { crossPairs?: CrossPair[] }
+  return anyYear.crossPairs ?? []
+}
+
+/** wheel 좌상단 pivotal 배지 — 올해에 ZR LoB/Peak 가 걸려있나. */
+function readWheelPivotal(year: DestinyYear): {
+  kind: 'lob' | 'peak'
+  label: string
+  han: string
+} | null {
+  const all = [
+    ...(year.zrSpiritChapters ?? []),
+    ...(year.zrFortuneChapters ?? []),
+  ]
+  for (const c of all) {
+    const sub = c.subPeriods?.find((s) => s.isLoosingOfTheBond)
+    if (sub) return { kind: 'lob', label: 'Loosing of the Bond', han: '解' }
+  }
+  for (const c of all) {
+    const sub = c.subPeriods?.find((s) => s.isPeak)
+    if (sub) return { kind: 'peak', label: 'Peak Period', han: '頂' }
+  }
+  return null
+}
+
+// ----------------------------------------------------------------
+// Component
+// ----------------------------------------------------------------
+
+export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   const p = year.profection
 
-  // wheel slices — 12 hardcoded.
-  const houses = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), [])
+  // 12-house wheel (원본 year.jsx 와 동일).
+  const R = 150
+  const cx = 180
+  const cy = 180
+  const houses = Array.from({ length: 12 }, (_, i) => i + 1)
 
-  const natal = useMemo(() => natalDots(user), [user])
-  const transits = useMemo(() => transitDots(year), [year])
-  const lordDignity = useMemo(() => lordOfYearDignity(year, user), [year, user])
+  // 보강 #1 — wheel 도트 데이터.
+  const natalDots = buildNatalDots(user)
+  const transitDots = buildTransitDots(user)
 
-  const zrSpiritRows = useMemo(
-    () => zrChapterRows(year.zrSpiritChapters ?? [], year.year),
-    [year],
-  )
-  const zrFortuneRows = useMemo(
-    () => zrChapterRows(year.zrFortuneChapters ?? [], year.year),
-    [year],
-  )
-  const solarReturn = useMemo(() => pickSolarReturn(year), [year])
-  const appliedPatterns = useMemo(() => pickAppliedPatterns(year), [year])
-  const crossPairs = useMemo(() => pickCrossPairs(year), [year])
-  const pivotal = useMemo(() => pickPivotal(year), [year])
+  // 보강 #2 — sect / Lord-of-Year dignity.
+  const sect = user.sect ?? 'day'
+  const lordOfYearName = p?.rulerEn ?? ''
+  const lordDignity = findDignity(user.dignities, lordOfYearName)
+  const lordReadout = lordDignity ? formatDignity(lordDignity) : null
+
+  // 보강 #3 — ZR.
+  const zrSpiritNow = (year.zrSpiritChapters ?? []).find((c) => c.now)
+  const zrFortuneNow = (year.zrFortuneChapters ?? []).find((c) => c.now)
+
+  // 보강 #4 — SR.
+  const sr = readSolarReturn(year)
+
+  // 보강 #5 — applied patterns.
+  const patterns = readAppliedPatterns(year)
+
+  // 보강 #6 — cross-activation pairs.
+  const crossPairs = readCrossPairs(year)
+
+  // 보강 #7 — wheel pivotal 배지.
+  const wheelPivotal = readWheelPivotal(year)
 
   return (
-    <div className={styles.root} data-screen-label={`1년 ${year.year}`}>
-      <button type="button" className={styles.rise} onClick={onRise} aria-label="인생으로 줌아웃">
+    <div className={styles.tierInner} data-screen-label={`1년 ${year.year}`}>
+      <button className={styles.rise} onClick={onRise}>
         ↑ 인생으로 줌아웃
       </button>
 
       <div className={styles.eyebrow}>1년 · YEARLY · {year.year}</div>
       <h1 className={styles.display}>올해의 흐름</h1>
-      <p className={styles.headline}>{year.headline}</p>
+      <p className={styles.oneline}>{year.headline}</p>
 
-      <div className={styles.wrap}>
-        {/* === 12-house wheel === */}
+      <div className={styles.yearWrap}>
+        {/* ── house wheel ── */}
         <div className={styles.wheelBox}>
-          {pivotal && (
-            <div className={styles.pivotalBadge} title={pivotal.label}>
-              {pivotal.label}
+          {wheelPivotal && (
+            <div className={styles.pivotalBadge} aria-label={wheelPivotal.label}>
+              <span className="han">{wheelPivotal.han}</span>
+              {wheelPivotal.label}
             </div>
           )}
-          <svg className={styles.wheel} viewBox="0 0 360 360" role="img" aria-label="12 하우스 휠">
+
+          <svg className={styles.wheel} viewBox="0 0 360 360">
             <defs>
-              <radialGradient id="dp-year-wheelglow" cx="0.5" cy="0.5" r="0.5">
+              <radialGradient id="wheelglow-year" cx="0.5" cy="0.5" r="0.5">
                 <stop offset="0" stopColor="rgba(91,141,239,0.12)" />
                 <stop offset="1" stopColor="transparent" />
               </radialGradient>
             </defs>
+            <circle cx={cx} cy={cy} r={R} fill="url(#wheelglow-year)" />
+            <circle
+              cx={cx}
+              cy={cy}
+              r={R}
+              fill="none"
+              stroke="var(--dp-line)"
+              strokeWidth={1}
+            />
+            <circle
+              cx={cx}
+              cy={cy}
+              r={R - 44}
+              fill="none"
+              stroke="var(--dp-line-soft)"
+              strokeWidth={1}
+            />
 
-            {/* glow + 둘레 */}
-            <circle cx={CX} cy={CY} r={R} fill="url(#dp-year-wheelglow)" />
-            <circle cx={CX} cy={CY} r={R} fill="none" stroke="var(--line)" strokeWidth="1" />
-            <circle cx={CX} cy={CY} r={R_INNER} fill="none" stroke="var(--line-soft)" strokeWidth="1" />
-
-            {/* houses */}
             {houses.map((h) => {
-              const a0 = houseToAngle(h)
-              const a1 = houseToAngle(h + 1)
+              const a0 = ((h - 1) / 12) * Math.PI * 2 - Math.PI / 2
+              const a1 = (h / 12) * Math.PI * 2 - Math.PI / 2
               const mid = (a0 + a1) / 2
-              const active = h === p.house
-              const lx = CX + Math.cos(mid) * R_LABEL
-              const ly = CY + Math.sin(mid) * R_LABEL
-              const sx = CX + Math.cos(a0) * R
-              const sy = CY + Math.sin(a0) * R
-
+              const active = h === p?.house
+              const lx = cx + Math.cos(mid) * (R - 22)
+              const ly = cy + Math.sin(mid) * (R - 22)
+              const sx = cx + Math.cos(a0) * R
+              const sy = cy + Math.sin(a0) * R
               return (
-                <g key={`house-${h}`}>
-                  <line x1={CX} y1={CY} x2={sx} y2={sy} stroke="var(--line-soft)" strokeWidth="0.7" />
-                  {active && (() => {
-                    const steps = 18
-                    const pts: Array<[number, number]> = [[CX, CY]]
-                    for (let s = 0; s <= steps; s++) {
-                      const a = a0 + (a1 - a0) * (s / steps)
-                      pts.push([CX + Math.cos(a) * R, CY + Math.sin(a) * R])
-                    }
-                    return (
-                      <polygon
-                        points={pts.map((pt) => pt.join(',')).join(' ')}
-                        fill="rgba(91,141,239,0.2)"
-                        stroke="var(--accent)"
-                        strokeWidth="1"
-                      />
-                    )
-                  })()}
+                <g key={h}>
+                  <line
+                    x1={cx}
+                    y1={cy}
+                    x2={sx}
+                    y2={sy}
+                    stroke="var(--dp-line-soft)"
+                    strokeWidth={0.7}
+                  />
+                  {active &&
+                    (() => {
+                      const steps = 18
+                      const pts: Array<[number, number]> = [[cx, cy]]
+                      for (let s = 0; s <= steps; s++) {
+                        const a = a0 + (a1 - a0) * (s / steps)
+                        pts.push([
+                          cx + Math.cos(a) * R,
+                          cy + Math.sin(a) * R,
+                        ])
+                      }
+                      return (
+                        <polygon
+                          points={pts.map((pt) => pt.join(',')).join(' ')}
+                          fill="rgba(176,58,34,0.18)"
+                          stroke="var(--dp-ember)"
+                          strokeWidth={1}
+                        />
+                      )
+                    })()}
                   <text
                     x={lx}
                     y={ly}
-                    className={active ? styles.houseNumActive : styles.houseNum}
+                    className={
+                      active
+                        ? `${styles.houseNum} ${styles.houseNumActive}`
+                        : styles.houseNum
+                    }
                     textAnchor="middle"
                     dominantBaseline="central"
                   >
@@ -375,99 +356,170 @@ export function YearTier(props: YearTierProps): ReactElement {
               )
             })}
 
-            {/* === natal planet dots (inside ring) === */}
-            {natal.map((dot) => {
-              const pos = absoluteToWheelPos(dot.abs, R_NATAL_DOT)
+            {/* 보강 #1a — 본명 행성 도트 (안쪽 링). */}
+            {natalDots.map((d, i) => {
+              const ang = houseAngle(d.house)
+              // jitter — same-house planets 흩뿌림.
+              const sameHouseBefore = natalDots
+                .slice(0, i)
+                .filter((x) => x.house === d.house).length
+              const rOff = (R - 60) - sameHouseBefore * 10
+              const x = cx + Math.cos(ang) * rOff
+              const y = cy + Math.sin(ang) * rOff
               return (
-                <g key={`natal-${dot.planet}`}>
-                  <circle cx={pos.x} cy={pos.y} r={6.5} fill="rgba(217,168,74,0.18)" stroke="var(--ember-2)" strokeWidth="1" />
-                  <text
-                    x={pos.x}
-                    y={pos.y}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize="9"
-                    fill="var(--ember-2)"
-                    style={{ fontFamily: 'var(--serif)' }}
-                  >
-                    {dot.glyph}
-                  </text>
-                </g>
-              )
-            })}
-
-            {/* === outer (slow) transit dots (outside ring) === */}
-            {transits.map((dot) => {
-              const pos = absoluteToWheelPos(dot.abs, R_TRANSIT_DOT)
-              return (
-                <g key={`transit-${dot.planet}`}>
+                <g key={`n-${d.planet}-${i}`}>
                   <circle
-                    cx={pos.x}
-                    cy={pos.y}
-                    r={7}
-                    fill="rgba(155,109,222,0.16)"
-                    stroke="var(--violet-2)"
-                    strokeWidth="1"
+                    cx={x}
+                    cy={y}
+                    r={3.2}
+                    className={styles.natalDot}
                   />
                   <text
-                    x={pos.x}
-                    y={pos.y}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize="9.5"
-                    fill="var(--violet-2)"
-                    style={{ fontFamily: 'var(--serif)' }}
+                    x={x + 7}
+                    y={y + 3}
+                    className={styles.natalGlyph}
                   >
-                    {dot.glyph}
+                    {d.glyph}
                   </text>
                 </g>
               )
             })}
 
-            {/* center label */}
-            <text x={CX} y={CY - 6} textAnchor="middle" className={styles.wheelCenterLabel}>house</text>
-            <text x={CX} y={CY + 18} textAnchor="middle" className={styles.wheelCenterValue}>{p.house}</text>
+            {/* 보강 #1b — 외행성 트랜짓 도트 (바깥쪽 링). */}
+            {transitDots.map((d, i) => {
+              const ang = houseAngle(d.house)
+              const sameHouseBefore = transitDots
+                .slice(0, i)
+                .filter((x) => x.house === d.house).length
+              const rOff = R + 14 + sameHouseBefore * 12
+              const x = cx + Math.cos(ang) * rOff
+              const y = cy + Math.sin(ang) * rOff
+              return (
+                <g key={`t-${d.planet}-${i}`}>
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={3.6}
+                    className={styles.transitDot}
+                  />
+                  <text
+                    x={x + 7}
+                    y={y + 3}
+                    className={styles.transitGlyph}
+                  >
+                    {d.glyph}
+                  </text>
+                </g>
+              )
+            })}
+
+            {/* center label — house# (원본 그대로). */}
+            <text
+              x={cx}
+              y={cy - 6}
+              textAnchor="middle"
+              className={styles.wheelCenterTop}
+            >
+              house
+            </text>
+            <text
+              x={cx}
+              y={cy + 18}
+              textAnchor="middle"
+              className={styles.wheelCenterHouse}
+            >
+              {p?.house ?? ''}
+            </text>
           </svg>
         </div>
 
-        {/* === readouts: astro + saju === */}
+        {/* ── readout (astro + saju) ── */}
         <div>
           <LayerTag kind="astro" />
-          <div>
-            <div className={styles.big}>{p.house}번째 영역이 무대</div>
-            <p className={styles.lead}>
-              {p.theme} <span className={styles.muted}>· {p.themeEn}</span>
-            </p>
-            <dl className={styles.kv}>
-              <dt>profection</dt>
-              <dd><b>{p.house}하우스</b> 활성</dd>
-              <dt>cusp</dt>
-              <dd>{p.cusp} <span className={styles.muted}>{p.cuspEn}</span></dd>
-              <dt>ruler</dt>
-              <dd><b>{p.ruler}</b> <span className={styles.muted}>{p.rulerEn}</span></dd>
-              <dt>ruler 본명</dt>
-              <dd>{p.rulerNatal}</dd>
-              {lordDignity && (
-                <>
-                  <dt>Lord dignity</dt>
-                  <dd className={styles.muted}>{lordDignity}</dd>
-                </>
-              )}
-              <dt>Lord 본명 sect</dt>
-              <dd>
-                {user.sect === 'day' ? '낮 출생 (diurnal)' : '밤 출생 (nocturnal)'}
-              </dd>
-            </dl>
-            <p className={styles.astroNote}>{year.astroNote}</p>
+          <div className={styles.yearReadout}>
+            <div className={styles.big}>
+              {p ? `${p.house}번째 영역이 무대` : '활성 영역 미정'}
+            </div>
+            {p && (
+              <p className={styles.lead} style={{ fontSize: 14 }}>
+                {p.theme}{' '}
+                <span className={styles.muted}>· {p.themeEn}</span>
+              </p>
+            )}
+            {p && (
+              <dl className={styles.kv}>
+                <dt>profection</dt>
+                <dd>
+                  <b>{p.house}하우스</b> 활성
+                </dd>
+                <dt>cusp</dt>
+                <dd>
+                  {p.cusp}{' '}
+                  <span className={styles.muted}>{p.cuspEn}</span>
+                </dd>
+                <dt>ruler</dt>
+                <dd>
+                  <b>{p.ruler}</b>{' '}
+                  <span className={styles.muted}>{p.rulerEn}</span>
+                </dd>
+                <dt>ruler 본명</dt>
+                <dd>
+                  {p.rulerNatal}
+                  {p.rulerNatalEn && (
+                    <span className={styles.muted}>
+                      {' · '}
+                      {p.rulerNatalEn}
+                    </span>
+                  )}
+                </dd>
+              </dl>
+            )}
+
+            {/* 보강 #2 — sect + Lord-of-Year dignity. */}
+            <div
+              className={
+                sect === 'day'
+                  ? `${styles.sectLine} ${styles.sectLineDay}`
+                  : `${styles.sectLine} ${styles.sectLineNight}`
+              }
+            >
+              <span className="pip" />
+              <span className="han">{sect === 'day' ? '낮' : '밤'}</span>
+              Sect · {sect === 'day' ? 'Diurnal' : 'Nocturnal'} 출생
+            </div>
+            {lordReadout && p && (
+              <p className={styles.lordOfYear}>
+                <b>Lord of Year</b> {p.ruler}{' '}
+                <span className={styles.muted}>({p.rulerEn})</span> —{' '}
+                <span className={styles[lordReadout.tone]}>
+                  {lordReadout.text}
+                </span>
+              </p>
+            )}
+
+            {year.astroNote && (
+              <p
+                className={styles.lead}
+                style={{
+                  fontSize: 13,
+                  marginTop: 14,
+                  color: 'var(--dp-ink-mute)',
+                }}
+              >
+                {year.astroNote}
+              </p>
+            )}
           </div>
 
           <hr className={styles.hr} />
 
           <LayerTag kind="saju" />
-          <div className={styles.sajuRow}>
-            <Ganji data={year.sewoonGz ?? year.sewoon.gz} size={42} accent="ember" />
+          <div className={styles.sewoonRow}>
+            <div className={styles.ganjiBox}>
+              <Ganji data={year.sewoon?.gz ?? year.sewoonGz} size={42} />
+            </div>
             <div>
-              <div className={styles.sajuLabel}>
+              <div className={styles.ganjiMeta}>
                 세운 {year.year} · {year.sewoonSibsin}
               </div>
               <p className={styles.sajuNote}>{year.sajuNote}</p>
@@ -476,121 +528,190 @@ export function YearTier(props: YearTierProps): ReactElement {
         </div>
       </div>
 
-      {/* === Phase 3 보강 카드들 === */}
-      <div className={styles.cardsGrid}>
-        {/* ZR Spirit + Fortune */}
-        {(zrSpiritRows.length > 0 || zrFortuneRows.length > 0) && (
-          <div className={`${styles.card} ${styles.astro}`}>
-            <span className={styles.cardLabel}>ZR · Zodiacal Releasing</span>
-            <div className={styles.cardTitle}>이번 해의 챕터</div>
-            {zrSpiritRows.length > 0 && (
+      {/* ── 보강 #3 — ZR 카드 (Spirit / Fortune) ── */}
+      <section className={styles.block}>
+        <div className={styles.secHead}>
+          <h2 className={styles.secTitle}>황도분기 · Zodiacal Releasing</h2>
+          <span className={styles.secTag}>L1 / L2 — 챕터 진행</span>
+        </div>
+        <div className={styles.zrCard}>
+          <div className={`${styles.zrPane} ${styles.zrPaneSpirit}`}>
+            <div className={styles.zrPaneHead}>Spirit · 영혼 · 진로</div>
+            {zrSpiritNow ? (
               <>
-                <p className={styles.cardBody}>
-                  <b>Spirit</b> <span className={styles.muted}>· 영혼·진로</span>
-                </p>
-                <div className={styles.zrRow}>
-                  {zrSpiritRows.map((r, i) => (
-                    <div key={`spirit-${i}`} className={styles.zrLine}>
-                      <span>
-                        {r.level}: {r.sign} / {r.ruler} · {r.duration}
-                        {r.remain ? <span className={styles.muted}> ({r.remain})</span> : null}
-                      </span>
-                      {r.isPeak && <span className={styles.zrMark}>Peak</span>}
-                      {r.isLoB && <span className={styles.zrMark}>LoB</span>}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            {zrFortuneRows.length > 0 && (
-              <>
-                <p className={styles.cardBody} style={{ marginTop: 12 }}>
-                  <b>Fortune</b> <span className={styles.muted}>· 몸·물질</span>
-                </p>
-                <div className={styles.zrRow}>
-                  {zrFortuneRows.map((r, i) => (
-                    <div key={`fortune-${i}`} className={styles.zrLine}>
-                      <span>
-                        {r.level}: {r.sign} / {r.ruler} · {r.duration}
-                        {r.remain ? <span className={styles.muted}> ({r.remain})</span> : null}
-                      </span>
-                      {r.isPeak && <span className={styles.zrMark}>Peak</span>}
-                      {r.isLoB && <span className={styles.zrMark}>LoB</span>}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Solar Return */}
-        {solarReturn && (solarReturn.ascSign || solarReturn.mcSign || solarReturn.exactDate) && (
-          <div className={`${styles.card} ${styles.astro}`}>
-            <span className={styles.cardLabel}>SR · Solar Return</span>
-            <div className={styles.cardTitle}>이번 해의 회귀도</div>
-            <dl className={styles.kv}>
-              {solarReturn.ascSign && (
-                <>
-                  <dt>SR ASC</dt>
-                  <dd><b>{solarReturn.ascSign}</b></dd>
-                </>
-              )}
-              {solarReturn.mcSign && (
-                <>
-                  <dt>SR MC</dt>
-                  <dd><b>{solarReturn.mcSign}</b></dd>
-                </>
-              )}
-              {solarReturn.exactDate && (
-                <>
-                  <dt>정확일</dt>
-                  <dd className={styles.muted}>{solarReturn.exactDate}</dd>
-                </>
-              )}
-            </dl>
-          </div>
-        )}
-
-        {/* 응용 패턴 */}
-        {appliedPatterns.length > 0 && (
-          <div className={`${styles.card} ${styles.saju}`}>
-            <span className={`${styles.cardLabel} ${styles.ember}`}>응용 격국 · APPLIED</span>
-            <div className={styles.cardTitle}>이 해 활성 패턴</div>
-            <div className={styles.chipRow}>
-              {appliedPatterns.map((ap) => {
-                const polClass = ap.polarity > 0 ? styles.p : ap.polarity < 0 ? styles.n : ''
-                const polText = ap.polarity > 0 ? `+${ap.polarity}` : String(ap.polarity)
-                return (
-                  <span key={ap.id} className={styles.chip} title={ap.rule}>
-                    {ap.korean} <span className={styles.muted}>({ap.name})</span>
-                    <span className={`${styles.pol} ${polClass}`}>{polText}</span>
+                <div>
+                  <span className={styles.zrLevel}>L1</span>
+                  <span className={styles.zrSign}>{zrSpiritNow.sign}</span>
+                  <span className={styles.zrSignEn}>
+                    {zrSpiritNow.ruler}
                   </span>
-                )
-              })}
-            </div>
+                </div>
+                <div className={styles.zrMeta}>
+                  <span>
+                    {zrSpiritNow.calendarStartYear}–
+                    {zrSpiritNow.calendarEndYear}
+                  </span>
+                  <span>{zrSpiritNow.durationYears}년</span>
+                  {zrPivotalTag(zrSpiritNow) && (
+                    <span className={styles.pivot}>
+                      {zrPivotalTag(zrSpiritNow)}
+                    </span>
+                  )}
+                </div>
+                {zrSpiritNow.subPeriods &&
+                  zrSpiritNow.subPeriods.length > 0 && (
+                    <div className={styles.zrMeta}>
+                      <span className={styles.zrLevel}>L2</span>
+                      {zrSpiritNow.subPeriods.slice(0, 1).map((sub, i) => (
+                        <span key={i}>
+                          {sub.sign} · {sub.ruler} ·{' '}
+                          {sub.durationMonths}개월
+                        </span>
+                      ))}
+                    </div>
+                  )}
+              </>
+            ) : (
+              <div className={styles.zrEmpty}>
+                현재 활성 Spirit 챕터 없음
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Cross activation */}
-        {crossPairs.length > 0 && (
-          <div className={`${styles.card} ${styles.saju}`}>
-            <span className={`${styles.cardLabel} ${styles.ember}`}>Cross · 사주 × 점성</span>
-            <div className={styles.cardTitle}>동시 활성 페어</div>
-            {crossPairs.map((c) => (
-              <div key={c.id} className={styles.crossPair}>
-                <span>{c.sajuSide}</span>
-                <span className={styles.arrow}>×</span>
-                <span>{c.astroSide}</span>
-                <span className={styles.meaning}>{c.meaning}</span>
+          <div className={`${styles.zrPane} ${styles.zrPaneFortune}`}>
+            <div className={styles.zrPaneHead}>Fortune · 몸 · 물질</div>
+            {zrFortuneNow ? (
+              <>
+                <div>
+                  <span className={styles.zrLevel}>L1</span>
+                  <span className={styles.zrSign}>
+                    {zrFortuneNow.sign}
+                  </span>
+                  <span className={styles.zrSignEn}>
+                    {zrFortuneNow.ruler}
+                  </span>
+                </div>
+                <div className={styles.zrMeta}>
+                  <span>
+                    {zrFortuneNow.calendarStartYear}–
+                    {zrFortuneNow.calendarEndYear}
+                  </span>
+                  <span>{zrFortuneNow.durationYears}년</span>
+                  {zrPivotalTag(zrFortuneNow) && (
+                    <span className={styles.pivot}>
+                      {zrPivotalTag(zrFortuneNow)}
+                    </span>
+                  )}
+                </div>
+                {zrFortuneNow.subPeriods &&
+                  zrFortuneNow.subPeriods.length > 0 && (
+                    <div className={styles.zrMeta}>
+                      <span className={styles.zrLevel}>L2</span>
+                      {zrFortuneNow.subPeriods.slice(0, 1).map((sub, i) => (
+                        <span key={i}>
+                          {sub.sign} · {sub.ruler} ·{' '}
+                          {sub.durationMonths}개월
+                        </span>
+                      ))}
+                    </div>
+                  )}
+              </>
+            ) : (
+              <div className={styles.zrEmpty}>
+                현재 활성 Fortune 챕터 없음
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 보강 #4 — SR (Solar Return) 카드 ── */}
+      {sr && (
+        <section className={styles.blockSm}>
+          <div className={styles.secHead}>
+            <h2 className={styles.secTitle}>태양회귀 · Solar Return</h2>
+            <span className={styles.secTag}>본명 태양 정확 회귀</span>
+          </div>
+          <div className={styles.srCard}>
+            <div className={styles.srGlyph}>☉</div>
+            <div className={styles.srBody}>
+              <div className="head">SR · {year.year}</div>
+              <div className="lab">
+                {sr.ascSign && (
+                  <>
+                    상승 <b>{sr.ascSign}</b>
+                  </>
+                )}
+                {sr.mcSign && (
+                  <>
+                    {sr.ascSign ? ' · ' : ''}MC <b>{sr.mcSign}</b>
+                  </>
+                )}
+              </div>
+            </div>
+            {sr.exactDate && (
+              <div className={styles.srDate}>{sr.exactDate}</div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ── 보강 #5 — 응용 패턴 칩 row ── */}
+      {patterns.length > 0 && (
+        <section className={styles.blockSm}>
+          <div className={styles.secHead}>
+            <h2 className={styles.secTitle}>올해의 응용 패턴</h2>
+            <span className={styles.secTag}>Applied Patterns</span>
+          </div>
+          <div className={styles.patternRow}>
+            {patterns.map((pt, i) => (
+              <span key={i} className={styles.patternChip}>
+                {pt.hanja && <span className="han">{pt.hanja}</span>}
+                <span>{pt.ko}</span>
+                {pt.romaji && <span className="k">{pt.romaji}</span>}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── 보강 #6 — Cross-activation 페어 ── */}
+      {crossPairs.length > 0 && (
+        <section className={styles.block}>
+          <div className={styles.secHead}>
+            <h2 className={styles.secTitle}>사주 ↔ 점성 연결</h2>
+            <span className={styles.secTag}>Cross Activation</span>
+          </div>
+          <div className={styles.crossList}>
+            {crossPairs.map((cp, i) => (
+              <div key={i}>
+                <div className={styles.crossRow}>
+                  <div className={`${styles.crossSide} ${styles.saju || ''}`}>
+                    <b>{cp.sajuLabel}</b>
+                    {cp.sajuRomaji && (
+                      <span className="sub">{cp.sajuRomaji}</span>
+                    )}
+                  </div>
+                  <div className={styles.crossLink}>↔</div>
+                  <div className={`${styles.crossSide} ${styles.astro || ''}`}>
+                    <b>{cp.astroLabel}</b>
+                    {cp.astroRomaji && (
+                      <span className="sub">{cp.astroRomaji}</span>
+                    )}
+                  </div>
+                </div>
+                {cp.meaning && (
+                  <p className={styles.crossMeaning}>{cp.meaning}</p>
+                )}
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </section>
+      )}
 
+      {/* ── dive 버튼 (원본 그대로) ── */}
       <div className={styles.diveWrap}>
-        <button type="button" className={styles.dive} onClick={onDive}>
+        <button className={styles.dive} onClick={onDive}>
           이번 달로 줌인 <span className={styles.arrow}>↓</span>
         </button>
       </div>

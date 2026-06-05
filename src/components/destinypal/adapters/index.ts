@@ -23,6 +23,9 @@ export type {
   ToLifeStagesOptions,
 } from './toLifeStages'
 
+export { toLifetime } from './toLifetime'
+export type { ToLifetimeOptions } from './toLifetime'
+
 export { toDaewoon } from './toDaewoon'
 export type { DestinypalDaewoonEntry, ToDaewoonOptions } from './toDaewoon'
 

@@ -1,67 +1,50 @@
 'use client'
 
-/**
- * ElementBars — 오행(목·화·토·금·수) 분포 막대.
- * 포팅 출처: destinypal-extracted/js-ink/util.jsx ElementBars
- *
- * 입력은 5개 element key → count 맵. 최대값을 기준으로 막대 높이를 정규화.
- */
+/* ============================================================
+   destinypal · ElementBars — 5 오행 분포 막대
+   출처: destinypal-extracted/js/util.jsx ElementBars() + EL_META.
+   ============================================================ */
 
-import * as React from 'react'
 import type { ElementCounts } from '@/types/destinypal'
 import styles from '../styles/atoms.module.css'
 
-interface ElMeta {
-  color: string
-  en: string
-}
+const EL_META = {
+  목: { c: 'var(--dp-el-wood)',  en: 'Wood'  },
+  화: { c: 'var(--dp-el-fire)',  en: 'Fire'  },
+  토: { c: 'var(--dp-el-earth)', en: 'Earth' },
+  금: { c: 'var(--dp-el-metal)', en: 'Metal' },
+  수: { c: 'var(--dp-el-water)', en: 'Water' },
+} as const
 
-export const EL_META: Record<keyof ElementCounts, ElMeta> = {
-  목: { color: 'var(--dp-el-wood)', en: 'Wood' },
-  화: { color: 'var(--dp-el-fire)', en: 'Fire' },
-  토: { color: 'var(--dp-el-earth)', en: 'Earth' },
-  금: { color: 'var(--dp-el-metal)', en: 'Metal' },
-  수: { color: 'var(--dp-el-water)', en: 'Water' },
-}
-
-const ORDER: Array<keyof ElementCounts> = ['목', '화', '토', '금', '수']
+export type { ElementCounts }
+export { EL_META }
 
 export interface ElementBarsProps {
-  /** 5 원소별 카운트. */
   elements: ElementCounts
-  /** 추가 className. */
   className?: string
 }
 
-export function ElementBars({
-  elements,
-  className,
-}: ElementBarsProps): React.ReactElement {
-  const values = ORDER.map((k) => elements[k])
-  const max = Math.max(...values, 1) // avoid div-by-zero
-
+export function ElementBars({ elements, className }: ElementBarsProps) {
+  const values = Object.values(elements)
+  const max = Math.max(...values, 1)
   return (
     <div className={[styles.elementRow, className].filter(Boolean).join(' ')}>
-      {ORDER.map((k) => {
-        const v = elements[k]
-        const meta = EL_META[k]
-        return (
+      {(Object.entries(elements) as Array<[keyof typeof EL_META, number]>).map(
+        ([k, v]) => (
           <div
-            key={k}
             className={styles.elBar}
+            key={k}
             style={{
               height: 16 + (v / max) * 30,
-              background: `linear-gradient(180deg, ${meta.color}, rgba(255,255,255,0.04))`,
-              boxShadow: `0 0 12px -2px ${meta.color}`,
+              background: `linear-gradient(180deg, ${EL_META[k].c}, rgba(255,255,255,0.04))`,
+              boxShadow: `0 0 12px -2px ${EL_META[k].c}`,
             }}
           >
-            <span className={styles.glyph} style={{ color: meta.color }}>
-              {k}
-            </span>
-            <small className={styles.count}>{v}</small>
+            <span style={{ color: EL_META[k].c }}>{k}</span>
+            <small>{v}</small>
           </div>
-        )
-      })}
+        ),
+      )}
     </div>
   )
 }

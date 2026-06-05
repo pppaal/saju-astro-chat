@@ -33,6 +33,16 @@ import {
   ymdFromIso,
 } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
+import { getGongmang } from '@/lib/saju/shinsal'
+
+// 천간(한자) → 5원소 룩업. destinypal Day 의 jijanggan layer element 산출.
+const STEM_TO_ELEMENT: Record<string, '목' | '화' | '토' | '금' | '수'> = {
+  甲: '목', 乙: '목',
+  丙: '화', 丁: '화',
+  戊: '토', 己: '토',
+  庚: '금', 辛: '금',
+  壬: '수', 癸: '수',
+}
 
 export interface DestinypalDayThemeBar {
   key: 'love' | 'money' | 'career' | 'health' | 'growth'
@@ -75,17 +85,43 @@ export interface DestinypalDayCrossActivation {
 }
 
 export interface DestinypalDayGongmang {
+  /** 본명 일주에서 산출된 공망 2지지 — ['戌','亥'] 등 (항상 2개). */
+  natalBranches: [string, string]
+  /** 현재 시점에서 활성화된 공망 지지들 (대운/세운/월운/일진 등과 겹친 것). */
+  activeBranches: string[]
+  /** 활성화의 축 — '일진'/'월운'/'세운'/'대운' 중. */
+  activeAxes: Array<'대운' | '세운' | '월운' | '일진'>
+  /** 한 줄 의미. */
+  note?: string
+  /** 활성 여부 (activeBranches.length > 0) — UI compat helper. */
   active: boolean
-  branches: string[] // 본명 일주 공망 2지지
-  reason?: string // "오늘 일진 지지 ↔ 본명 공망 지지"
+  /** 활성된 공망 branches — natalBranches 와 같은 의미 (legacy alias). */
+  branches: string[]
+  /** 활성 reason 한 줄 (legacy alias of note). */
+  reason?: string
 }
 
 export interface DestinypalDayJijangganLayer {
-  branch: string // 그 날 지지
-  layer: '여기' | '중기' | '정기'
-  stem: string // 그 층의 천간
-  sibsin: string // 일간 vs 이 천간 십신
-  weight: number // 0.35 / 0.50 / 0.70
+  /** 그 층의 천간 한자. */
+  stem: string
+  /** 일간 기준 십신. */
+  sibsin: string
+  /** 5원소 — '목'/'화'/'토'/'금'/'수'. */
+  element: '목' | '화' | '토' | '금' | '수'
+  /** 지장간 강도 라벨. */
+  layer: '정기' | '중기' | '여기'
+}
+
+/**
+ * destinypal Day 의 지장간 3층 — 본명 일주(=일지) 의 정기·중기·여기.
+ *
+ * 백엔드 NatalContext.saju.dayJijanggan (정기/중기/여기 한자) 를 그대로 받아
+ * 일간 기준 십신 + 오행 lookup 으로 한 번에 평탄화.
+ */
+export interface DestinypalDayJijangganObj {
+  jeonggi: DestinypalDayJijangganLayer
+  junggi?: DestinypalDayJijangganLayer
+  yeogi?: DestinypalDayJijangganLayer
 }
 
 export interface DestinypalDay {
@@ -104,9 +140,29 @@ export interface DestinypalDay {
   // ── Phase 3 정통화 ──
   appliedPatterns: DestinypalDayAppliedPattern[]
   crossActivations: DestinypalDayCrossActivation[]
-  gongmang?: DestinypalDayGongmang
-  jijanggan: DestinypalDayJijangganLayer[]
+  /**
+   * 공망 — 본명 일주 공망 2지지 + 현재 활성 지지.
+   * destinypal DestinyGongmang shape 과 호환.
+   */
+  gongmang: DestinypalDayGongmang
+  /**
+   * 본명 일주(=일지) 지장간 — 정기/중기/여기 객체 shape.
+   * destinypal DayTier 가 `jijanggan.jeonggi / .junggi / .yeogi` 로 직접 읽음.
+   */
+  jijanggan: DestinypalDayJijangganObj
   geokgukStatus?: string
+
+  // ── DayTier optional 필드 — adapter 가 빈 배열로라도 채워서 .map() 안전 ──
+  /** cross-activation 페어 (DestinyCrossActivation 호환 — 일단 빈 배열로 prefill). */
+  crossSignals: DestinypalDayCrossActivation[]
+  /** 모든 신호 — UI 가 .allSignals?.length 로 fallback 분기. */
+  allSignals: DestinypalDaySignal[]
+  /** narrative chip 묶음 — DayTier 가 .map. */
+  narrative: Array<{ tag: string; body: string }>
+  /** 상위 우호 사유 — CalendarCell.topReasons 그대로. */
+  topReasons: string[]
+  /** 상위 주의 사유 — CalendarCell.cautions 그대로. */
+  cautions: string[]
 }
 
 const THEME_KO: Record<DestinypalDayThemeBar['key'], string> = {
@@ -211,8 +267,8 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   const shinsalActiveSet = new Set<string>()
   const appliedPatterns: DestinypalDayAppliedPattern[] = []
   const crossActivations: DestinypalDayCrossActivation[] = []
-  const jijanggan: DestinypalDayJijangganLayer[] = []
-  let gongmang: DestinypalDayGongmang | undefined
+  // cell.signals 의 jijanggan signal 활성 layer 표시용 (보조). primary 는 natal.dayJijanggan.
+  let gongmangActiveFromSignal: { branches: string[]; reason?: string } | null = null
 
   for (const s of cell.signals) {
     const polarity = clampPolarity(maybeCap(s, applyCap))
@@ -266,33 +322,18 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
       continue
     }
 
-    // gongmang
+    // gongmang signal — 활성 정보 보조 capture (primary 는 natal.dayJijanggan).
     if (s.kind === 'gongmang') {
       const branches: string[] = []
       const detailBranches = s.evidence?.detail?.gongmangBranches
       if (Array.isArray(detailBranches)) {
         for (const b of detailBranches) if (typeof b === 'string') branches.push(b)
       }
-      gongmang = {
-        active: true,
+      gongmangActiveFromSignal = {
         branches,
         reason: stringDetail(s, 'reason') ?? '오늘 시기 지지가 본명 일주 공망에 닿음',
       }
       // 일반 signals 풀에도 넣어 UI 가 카드 그릴 수 있게
-    }
-
-    // jijanggan
-    if (s.kind === 'jijanggan') {
-      const detail = s.evidence?.detail ?? {}
-      const branch = stringDetail(s, 'branch') ?? ''
-      const layer = (stringDetail(s, 'layer') ?? '정기') as DestinypalDayJijangganLayer['layer']
-      const stem = stringDetail(s, 'stem') ?? ''
-      const weight =
-        typeof detail.weight === 'number'
-          ? (detail.weight as number)
-          : layer === '정기' ? 0.7 : layer === '중기' ? 0.5 : 0.35
-      const sib = dm && stem ? safeSibsin(dm, stem) : '—'
-      jijanggan.push({ branch, layer, stem, sibsin: sib, weight })
     }
 
     signals.push({
@@ -323,6 +364,12 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     statusResult?.factors?.negative,
   )
 
+  // ── 본명 일주 지장간 3층 (정기/중기/여기) 객체 빌드 ──
+  const jijanggan = buildJijangganObj(natal)
+
+  // ── 공망 — 본명 일주에서 산출 + cell.signals 의 gongmang signal 활성 분 합쳐 정리 ──
+  const gongmang = buildGongmang(natal, gongmangActiveFromSignal)
+
   return {
     date: dateIso,
     dateKo,
@@ -340,6 +387,80 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     gongmang,
     jijanggan,
     geokgukStatus,
+    // optional 빈 컬렉션 — DayTier 가 .map() / .length 로 무조건 읽음.
+    crossSignals: [],
+    allSignals: signals,
+    narrative: [],
+    topReasons: cell.topReasons ?? [],
+    cautions: cell.cautions ?? [],
+  }
+}
+
+/**
+ * NatalContext.saju.dayJijanggan (정기/중기/여기 한자) → 객체 shape.
+ *
+ * 각 층마다 일간 기준 십신 + STEM_TO_ELEMENT 룩업으로 오행 채움.
+ * jeonggi 가 없으면 '—' 폴백 단일층으로 채움 (UI 가 jeonggi 를 무조건 읽음).
+ */
+function buildJijangganObj(natal: NatalContext): DestinypalDayJijangganObj {
+  const dm = natal.saju?.dayMaster?.name ?? ''
+  const dj = natal.saju.dayJijanggan
+  function buildLayer(
+    stem: string | undefined,
+    layer: '정기' | '중기' | '여기',
+  ): DestinypalDayJijangganLayer | undefined {
+    if (!stem) return undefined
+    return {
+      stem,
+      sibsin: dm ? safeSibsin(dm, stem) : '—',
+      element: STEM_TO_ELEMENT[stem] ?? '토',
+      layer,
+    }
+  }
+  const jeonggi = buildLayer(dj?.jeonggi, '정기') ?? {
+    stem: '—',
+    sibsin: '—',
+    element: '토' as const,
+    layer: '정기' as const,
+  }
+  return {
+    jeonggi,
+    junggi: buildLayer(dj?.junggi, '중기'),
+    yeogi: buildLayer(dj?.yeogi, '여기'),
+  }
+}
+
+/**
+ * 본명 일주에서 공망 2지지 산출 (getGongmang) + cell.signals 의 gongmang signal
+ * 활성 데이터 합쳐 DestinypalDayGongmang 객체로 정리.
+ *
+ * activeAxes 는 일진 컨텍스트(가장 빠른 시기) 로 고정 — extractor 가 어떤 axis
+ * 로 gongmang 을 점등했는지는 cell.signals.layer / scope 로 결정해도 되지만
+ * 현재 풀에는 'daily' 가 표준이라 '일진' 으로 prefill.
+ */
+function buildGongmang(
+  natal: NatalContext,
+  active: { branches: string[]; reason?: string } | null,
+): DestinypalDayGongmang {
+  const dayStem = natal.saju?.pillars?.day?.heavenlyStem?.name ?? ''
+  const dayBranch = natal.saju?.pillars?.day?.earthlyBranch?.name ?? ''
+  const natalRaw = dayStem && dayBranch ? getGongmang(dayStem, dayBranch) : []
+  const natalBranches: [string, string] = [
+    natalRaw[0] ?? '—',
+    natalRaw[1] ?? '—',
+  ]
+  const activeBranches = active?.branches ?? []
+  const activeAxes: Array<'대운' | '세운' | '월운' | '일진'> =
+    activeBranches.length > 0 ? ['일진'] : []
+  return {
+    natalBranches,
+    activeBranches,
+    activeAxes,
+    note: active?.reason,
+    // legacy aliases
+    active: activeBranches.length > 0,
+    branches: natalBranches,
+    reason: active?.reason,
   }
 }
 

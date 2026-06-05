@@ -314,6 +314,17 @@ const nextConfig = {
         destination: '/blog',
         permanent: true,
       },
+      // Phase D 통합: 기존 /calendar(PremiumDestinyPlanner)는 새로운 5-tier
+      // destinypal 뷰(/destinypal)로 흡수됨. 북마크·외부 링크·내부
+      // router.push('/calendar') 가 끊기지 않도록 edge-level 308 (permanent)
+      // 으로 라우팅. next.config 의 redirects() 는 Next 라우터·SSR 보다
+      // 먼저 실행되므로, app/calendar/page.tsx 의 server-side redirect()
+      // 처럼 200 + meta-refresh fallback 으로 떨어지지 않고 깔끔한 3xx 가 난다.
+      {
+        source: '/calendar',
+        destination: '/destinypal',
+        permanent: true,
+      },
       // 옛 라우트 /destiny-map/* → 현재 /destiny-counselor 로 통합.
       // SEO 자산 + 외부 링크 보호 위해 영구 redirect. 옛 /destiny-counselor 도
       // 다른 path 였다가 (PR #1026) 다시 본래 라우트로 복원 (자동 통과).

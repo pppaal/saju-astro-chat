@@ -1,63 +1,56 @@
 'use client'
 
-/**
- * DestinypalRail — 좌측 vertical depth rail (4-stop).
- * 포팅 출처: destinypal-extracted/js-ink/app.jsx (rail block)
- *
- * Phase B 는 4-tier (life / year / month / day) — decade 는 Phase C 에서 슬롯 추가.
- */
+/* ============================================================
+   destinypal · Rail — 좌측 vertical 5-stop depth rail.
+   직역 출처: destinypal-extracted/js/app.jsx <nav className="rail"> 블록.
+   각 stop 은 한 tier 로 이동. 활성 stop 은 ember 색 + glow.
+   tiers prop 으로 stop 개수 결정 (life/decade/year/month/day = 5).
+   ============================================================ */
 
-import * as React from 'react'
-import shellStyles from '../styles/shell.module.css'
+import { Fragment } from 'react'
+import styles from '../styles/shell.module.css'
 
-export interface DestinypalRailStop {
-  /** TIERS[].id — 'life' | 'year' | 'month' | 'day' (Phase B). */
+export interface RailTier {
   id: string
-  /** 한국어 라벨 — '인생' / '1년' 등. */
   ko: string
-  /** 영문 라벨 — 'LIFETIME'. (현재 rail UI 에는 미사용 — 보존용) */
   en: string
-  /** 스케일 라벨 — '84년' / '12달' 등. */
   scale: string
 }
 
 export interface DestinypalRailProps {
-  /** 4 stop. */
-  stops: DestinypalRailStop[]
-  /** 활성 stop index. */
+  tiers: ReadonlyArray<RailTier>
   activeIndex: number
-  /** stop 클릭 시 호출. */
-  onStop: (index: number) => void
+  onSelect: (index: number) => void
 }
 
 export function DestinypalRail({
-  stops,
+  tiers,
   activeIndex,
-  onStop,
-}: DestinypalRailProps): React.ReactElement {
+  onSelect,
+}: DestinypalRailProps) {
   return (
-    <nav className={shellStyles.rail} aria-label="Depth navigation">
-      {stops.map((t, i) => (
-        <React.Fragment key={t.id}>
+    <nav className={styles.rail} aria-label="destinypal depth rail">
+      {tiers.map((t, i) => (
+        <Fragment key={t.id}>
           <button
             type="button"
             className={[
-              shellStyles.railStop,
-              activeIndex === i ? shellStyles.active : null,
+              styles.railStop,
+              activeIndex === i ? styles.railActive : '',
             ]
               .filter(Boolean)
               .join(' ')}
-            onClick={() => onStop(i)}
+            onClick={() => onSelect(i)}
             aria-label={t.ko}
             aria-current={activeIndex === i ? 'true' : undefined}
           >
-            <span className={shellStyles.dot} />
-            <span className={shellStyles.lbl}>
-              {t.ko} <span className={shellStyles.scale}>{t.scale}</span>
+            <span className="dot" />
+            <span className={styles.railLbl}>
+              {t.ko} <span className={styles.railScale}>{t.scale}</span>
             </span>
           </button>
-          {i < stops.length - 1 && <span className={shellStyles.railLine} />}
-        </React.Fragment>
+          {i < tiers.length - 1 && <span className={styles.railLine} />}
+        </Fragment>
       ))}
     </nav>
   )
