@@ -32,10 +32,17 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
-      - name: Verify API audit report
+      - name: Verify API audit report (non-blocking)
+        # 자동생성 인벤토리 리포트라 동시 머지 시 항상 뒷북으로 어긋남 → 과거엔
+        # git diff --exit-code 로 hard fail 해 무관한 PR 들이 빨갛게 떴음.
+        # 이제 drift 는 경고 annotation 으로만 알리고 PR 을 막지 않는다.
+        # (리포트 갱신은 PR 작성자가 `npm run audit:api` 후 커밋하면 됨.)
         run: |
           npm run audit:api
-          git diff --exit-code docs/API_AUDIT_REPORT.md
+          if ! git diff --quiet docs/API_AUDIT_REPORT.md; then
+            echo "::warning::docs/API_AUDIT_REPORT.md 가 최신이 아닙니다. 'npm run audit:api' 실행 후 커밋하세요. (non-blocking)"
+            git diff docs/API_AUDIT_REPORT.md || true
+          fi
 
       - name: Check PR title
         run: |
