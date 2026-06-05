@@ -250,7 +250,7 @@ export async function buildNatalContext(
   // ─── Zodiacal Releasing L1 (Spirit / Fortune) ──────────────────────────
   // ZR 시작점은 Spirit / Fortune 두 lot 의 sign. 위에서 이미 산출한 lots 재사용 —
   // 한 lot 이 빠지면 (chart missing planet 등) null 로 저장하고 계속 진행.
-  let zodiacalReleasing: ZodiacalReleasingResult = { spirit: null, fortune: null }
+  const zodiacalReleasing: ZodiacalReleasingResult = { spirit: null, fortune: null }
   const spiritLot = lots.find((l) => l.name === 'Spirit')
   const fortuneLot = lots.find((l) => l.name === 'Fortune')
   if (spiritLot) {
