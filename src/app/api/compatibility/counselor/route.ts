@@ -92,12 +92,8 @@ import {
   countObjectKeys,
   extractTimingDetails,
   buildPersonSeed,
-  buildAutoSajuContext,
-  buildAutoAstroContext,
   collectMissingSajuKeys,
   collectMissingAstroKeys,
-  mergeSajuContext,
-  mergeAstroContext,
   getAgeFromBirthDate,
 } from './routeSupport'
 
@@ -346,14 +342,15 @@ export async function POST(req: NextRequest) {
     const person1Seed = buildPersonSeed((persons?.[0] as Record<string, unknown>) || null)
     const person2Seed = buildPersonSeed((persons?.[1] as Record<string, unknown>) || null)
     const now = new Date()
-    const autoPerson1Saju = await buildAutoSajuContext(person1Seed, now)
-    const autoPerson2Saju = await buildAutoSajuContext(person2Seed, now)
-    const autoPerson1Astro = await buildAutoAstroContext(person1Seed, now)
-    const autoPerson2Astro = await buildAutoAstroContext(person2Seed, now)
-    const effectivePerson1Saju = mergeSajuContext(person1Saju, autoPerson1Saju)
-    const effectivePerson2Saju = mergeSajuContext(person2Saju, autoPerson2Saju)
-    const effectivePerson1Astro = mergeAstroContext(person1Astro, autoPerson1Astro)
-    const effectivePerson2Astro = mergeAstroContext(person2Astro, autoPerson2Astro)
+    // Phase A/B 후 사주/점성 시나스트리 블록은 compatSajuFacts / compatAstroFacts
+    // 가 만든다. 옛 auto enrichment (buildAutoSajuContext / buildAutoAstroContext)
+    // 결과는 LLM 으로 들어가지 않고 모니터링 로그에만 갔으므로 호출 자체를
+    // 제거한다 (Phase C). effectivePerson*Saju/Astro 는 client 가 fullContext
+    // 채널로 직접 보낸 raw 만 담는다 (legacy 호환). 보통 빈 객체/null.
+    const effectivePerson1Saju = person1Saju ?? null
+    const effectivePerson2Saju = person2Saju ?? null
+    const effectivePerson1Astro = person1Astro ?? null
+    const effectivePerson2Astro = person2Astro ?? null
     const strictCompleteness =
       process.env.NODE_ENV !== 'test' && process.env.COMPATIBILITY_COUNSELOR_STRICT === 'true'
     const completenessMissing = [
@@ -438,16 +435,8 @@ export async function POST(req: NextRequest) {
         person2: (timingDetails.person2.counts as Record<string, number>) || {},
       },
       autoEnrichment: {
-        person1: {
-          hasSeed: !!person1Seed,
-          hasAutoSaju: !!autoPerson1Saju,
-          hasAutoAstro: !!autoPerson1Astro,
-        },
-        person2: {
-          hasSeed: !!person2Seed,
-          hasAutoSaju: !!autoPerson2Saju,
-          hasAutoAstro: !!autoPerson2Astro,
-        },
+        person1: { hasSeed: !!person1Seed },
+        person2: { hasSeed: !!person2Seed },
       },
       person1SajuKeys: countObjectKeys(effectivePerson1Saju),
       person2SajuKeys: countObjectKeys(effectivePerson2Saju),
