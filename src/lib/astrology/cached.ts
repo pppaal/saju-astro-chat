@@ -21,7 +21,7 @@ export async function cachedCalculateNatalChart(
   const dateStr = `${input.year}-${pad(input.month)}-${pad(input.date)}`
   const timeStr = `${pad(input.hour)}:${pad(input.minute)}`
   return cacheOrCalculate(
-    CacheKeys.natalChart(dateStr, timeStr, input.latitude, input.longitude),
+    CacheKeys.natalChart(dateStr, timeStr, input.latitude, input.longitude, input.timeZone),
     async () => calculateNatalChart(input),
     CACHE_TTL.NATAL_CHART
   )
