@@ -52,6 +52,7 @@ import { getRelation, buildRelationToneBlock } from '@/lib/compatibility/counsel
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
 import { formatCompositeChart } from '@/lib/compatibility/compositeChartFormatter'
+import { collectCompatSajuFacts } from '@/lib/compatibility/compatSajuFacts'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
@@ -595,53 +596,37 @@ export async function POST(req: NextRequest) {
     let sajuSynastryBlock = ''
     let astroSynastryBlock = ''
     let compositeChartBlock = ''
+    // ── 재료 준비실 (사주편) ──
+    // 옛 코드는 raw `effectivePerson*Saju` 를 두 번 캐스트해 (pillars + daeWoon)
+    // formatSajuSynastry / formatPersonalShinsal 입력으로 변형했다.
+    // Phase A (2026-06-06): collectCompatSajuFacts 가 두 사람치 정제 facts
+    // 한 번에 만들어, 라우트는 facts 의 평탄 필드만 읽음. raw shape 변경에
+    // formatter 두 개가 더 이상 묶이지 않음.
+    const compatSaju = person1Seed && person2Seed
+      ? collectCompatSajuFacts(
+          {
+            birthDate: person1Seed.date,
+            birthTime: person1Seed.time,
+            gender: person1Seed.gender,
+            timezone: person1Seed.timeZone,
+            longitude: person1Seed.longitude,
+          },
+          {
+            birthDate: person2Seed.date,
+            birthTime: person2Seed.time,
+            gender: person2Seed.gender,
+            timezone: person2Seed.timeZone,
+            longitude: person2Seed.longitude,
+          },
+        )
+      : null
     try {
-      const aP = (
-        effectivePerson1Saju as {
-          pillars?: Record<
-            string,
-            { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
-          >
-        } | null
-      )?.pillars
-      const bP = (
-        effectivePerson2Saju as {
-          pillars?: Record<
-            string,
-            { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } }
-          >
-        } | null
-      )?.pillars
-      if (aP && bP) {
-        const toPair = (
-          p: { heavenlyStem?: { name?: string }; earthlyBranch?: { name?: string } } | undefined
-        ) => ({
-          stem: p?.heavenlyStem?.name ?? '',
-          branch: p?.earthlyBranch?.name ?? '',
-        })
-        const aDae = (
-          effectivePerson1Saju as {
-            daeWoon?: {
-              current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number }
-            } | null
-          } | null
-        )?.daeWoon?.current
-        const bDae = (
-          effectivePerson2Saju as {
-            daeWoon?: {
-              current?: { heavenlyStem?: string; earthlyBranch?: string; age?: number }
-            } | null
-          } | null
-        )?.daeWoon?.current
+      if (compatSaju) {
         sajuSynastryBlock = formatSajuSynastry({
-          pillarsA: [toPair(aP.year), toPair(aP.month), toPair(aP.day), toPair(aP.time)],
-          pillarsB: [toPair(bP.year), toPair(bP.month), toPair(bP.day), toPair(bP.time)],
-          currentDaeunA: aDae
-            ? { stem: aDae.heavenlyStem ?? '', branch: aDae.earthlyBranch ?? '', age: aDae.age }
-            : null,
-          currentDaeunB: bDae
-            ? { stem: bDae.heavenlyStem ?? '', branch: bDae.earthlyBranch ?? '', age: bDae.age }
-            : null,
+          pillarsA: compatSaju.a.synastryPillars,
+          pillarsB: compatSaju.b.synastryPillars,
+          currentDaeunA: compatSaju.a.currentDaeun,
+          currentDaeunB: compatSaju.b.currentDaeun,
           nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
           nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
         })
@@ -733,11 +718,11 @@ export async function POST(req: NextRequest) {
     const personalShinsalLines = [
       formatPersonalShinsal(
         safeNameOf(0) ? `A(${safeNameOf(0)})` : 'A',
-        (effectivePerson1Saju as { extras?: { shinsal?: unknown } } | null)?.extras?.shinsal
+        compatSaju?.a.shinsal,
       ),
       formatPersonalShinsal(
         safeNameOf(1) ? `B(${safeNameOf(1)})` : 'B',
-        (effectivePerson2Saju as { extras?: { shinsal?: unknown } } | null)?.extras?.shinsal
+        compatSaju?.b.shinsal,
       ),
     ].filter(Boolean)
     const personalShinsalBlock = personalShinsalLines.length
