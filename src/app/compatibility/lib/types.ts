@@ -18,11 +18,15 @@ export type SavedPerson = {
 
 export type Relation =
   | 'lover'
+  | 'crush'
   | 'spouse'
+  | 'engaged'
+  | 'ex'
   | 'family'
   | 'sibling'
   | 'friend'
   | 'colleague'
+  | 'business'
   | 'other'
 
 export type CityItem = {

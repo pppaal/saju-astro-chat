@@ -226,12 +226,18 @@ export const PersonCard = React.memo<PersonCardProps>(
                   <option value="lover">
                     {t('compatibilityPage.partnerLover', 'Partner / Lover 💕')}
                   </option>
+                  <option value="crush">{t('compatibilityPage.crush', 'Crush / Talking 💗')}</option>
                   <option value="spouse">{t('compatibilityPage.spouse', 'Spouse 💍')}</option>
+                  <option value="engaged">{t('compatibilityPage.engaged', 'Engaged 💐')}</option>
+                  <option value="ex">{t('compatibilityPage.ex', 'Ex 💔')}</option>
                   <option value="family">{t('compatibilityPage.family', 'Family 🏠')}</option>
                   <option value="sibling">{t('compatibilityPage.sibling', 'Sibling 👯')}</option>
                   <option value="friend">{t('compatibilityPage.friend', 'Friend 🤝')}</option>
                   <option value="colleague">
                     {t('compatibilityPage.colleague', 'Colleague 💼')}
+                  </option>
+                  <option value="business">
+                    {t('compatibilityPage.business', 'Business partner 🤝')}
                   </option>
                   <option value="other">
                     {t('compatibilityPage.other', 'Other / describe freely ✨')}

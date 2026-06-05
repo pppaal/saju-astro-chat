@@ -43,16 +43,12 @@ const idemStore = createIdempotencyStore('compatibility-counselor')
 // only remaining caller. Keep in lockstep with Relation in ../types and
 // the <select> in src/app/compatibility/components/form/PersonCard.tsx.
 function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string): string {
-  const isKo = locale === 'ko'
-  if (relation === 'lover') return isKo ? '연인' : 'lover'
-  if (relation === 'spouse') return isKo ? '배우자' : 'spouse'
-  if (relation === 'family') return isKo ? '가족' : 'family'
-  if (relation === 'sibling') return isKo ? '형제자매' : 'sibling'
-  if (relation === 'friend') return isKo ? '친구' : 'friend'
-  if (relation === 'colleague') return isKo ? '동료' : 'colleague'
-  if (relation === 'other') return note?.trim() || (isKo ? '기타' : 'other')
-  return isKo ? '관계' : 'related'
+  if (!relation) return locale === 'ko' ? '관계' : 'related'
+  const opt = getRelation(relation)
+  if (opt.key === 'other') return note?.trim() || (locale === 'ko' ? '기타' : 'other')
+  return locale === 'ko' ? opt.labelKo : opt.labelEn
 }
+import { getRelation, buildRelationToneBlock } from '@/lib/compatibility/counselor/relationConfig'
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
 import { formatCompositeChart } from '@/lib/compatibility/compositeChartFormatter'
@@ -567,7 +563,17 @@ export async function POST(req: NextRequest) {
     // four hard safety/format guards. Tone is whatever the data
     // suggests; the model is no longer told *how* to sound.
     const counselorLang: 'ko' | 'en' = lang === 'ko' ? 'ko' : 'en'
-    const systemPrompt = buildCompatibilityCounselorPrompt(counselorLang)
+    // 관계 유형별 상담 톤 — 사용자가 폼에서 고른 관계(연인/썸/부부/예비부부/
+    // 헤어진사이/친구/가족/형제자매/동료/비즈니스/기타)에 맞춰 한 줄 디렉티브를
+    // 시스템 프롬프트에 주입한다. 친구 페어에 결혼 얘기, 동료 페어에 로맨스 같은
+    // 미스매치를 막는다. 상대(persons[1]) 기준 — anchor(persons[0])는 본인.
+    const counterpart = persons[1] as { relation?: string; relationNote?: string } | undefined
+    const relationToneBlock = buildRelationToneBlock(
+      counterpart?.relation,
+      counselorLang,
+      counterpart?.relationNote
+    )
+    const systemPrompt = buildCompatibilityCounselorPrompt(counselorLang) + relationToneBlock
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:
     //  - cachedUserContext: 두 사람의 차트와 분석 (테마·세션 무관, 진짜 안정)
