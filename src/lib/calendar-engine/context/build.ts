@@ -139,25 +139,12 @@ export async function buildNatalContext(
   }
   const fiveElementsRaw = (saju as unknown as { fiveElements: NatalContext['saju']['fiveElements'] })
     .fiveElements
-  // performAdvancedAnalysis 의 fiveElements 인자는 Record<string, number> 라
-  // Korean key 도 English key 도 다 받지만, 내부적으로 isFiveElement 로 한자만
-  // pick 하므로 wood/fire/etc. 던지면 elements 해석이 비어 나옴. Korean key 로
-  // 변환해서 전달.
-  const fiveElementsKo: Record<string, number> = {
-    목: fiveElementsRaw.wood,
-    화: fiveElementsRaw.fire,
-    토: fiveElementsRaw.earth,
-    금: fiveElementsRaw.metal,
-    수: fiveElementsRaw.water,
-  }
   const advancedAnalysis = performAdvancedAnalysis(
     simplePillarsWithHour,
     pillarsWithHourForAdvanced,
-    pillars,
     dayMasterStem,
     monthBranch,
     twelveStages,
-    fiveElementsKo
   )
 
   // 대운 리스트 (CalculateSajuDataResult.daeWoon에서)

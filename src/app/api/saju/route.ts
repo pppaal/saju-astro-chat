@@ -326,11 +326,9 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   const advancedResult = performAdvancedAnalysis(
     simplePillars,
     pillarsWithHour,
-    sajuPillars,
     dayMasterStem,
     sajuResult.monthPillar.earthlyBranch.name,
     twelveStages,
-    sajuResult.fiveElements
   )
 
   const analysisDate = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`

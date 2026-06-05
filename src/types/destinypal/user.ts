@@ -133,10 +133,7 @@ export interface DestinyUserSummary {
   place: string
   /** 성별 — '남' / '여'. */
   sex: '남' | '여'
-  /** 사주 종합 점수 0..100. */
-  score: number
-  /** 등급 라벨 — 'F' 'A+' 등. */
-  grade: string
+  // 옛 score/grade — 가짜 "calculateComprehensiveScore" 산출이라 2026-06-06 폐기.
 
   // ── 사주 본명 ──
   ilgan: DestinyIlgan
