@@ -10,11 +10,12 @@
 // transit / solar return / progression 은 formatAstroSelf 가 별도로 책임지므로
 // 본 facts 는 본명(natal) + profection 만 다룬다.
 
-import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
+import { calculateNatalChart, toChart, type NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { calculateProfection } from '@/lib/astrology/foundation/profections'
 import { currentManAge } from '@/lib/datetime/currentAge'
+import type { Chart } from '@/lib/astrology/foundation/types'
 
 export interface AstroFactsInput {
   birthDate: string // 'YYYY-MM-DD'
@@ -71,6 +72,19 @@ export interface AstroFacts {
     /** 군주 행성의 현재 위치 (placeUnreliable 시 null). */
     lordPlacement: { sign: string; house?: number } | null
   } | null
+  /**
+   * 옛 raw natal chart 객체 (Swiss Ephemeris 결과) — formatAstroSelf 처럼
+   * chart 인스턴스 자체가 필요한 함수가 별도 calculateNatalChart 호출을
+   * 피할 수 있게 노출. 평탄화된 facts 만으론 chart 형식의 메서드/관계 같은
+   * 게 빠지므로 같은 입력으로 재계산하는 비용/코드중복을 피하려고 escape
+   * hatch 로 둠. 신규 호출자는 정제된 natal 필드부터 시도, 안 되면 _chart.
+   */
+  _chart: Chart
+  /**
+   * 옛 raw natal data (toChart 전 NatalChartData) — formatAstroSelf 의
+   * 옛 인터페이스가 그대로 받음. _chart 와 같은 escape hatch.
+   */
+  _natalRaw: NatalChartData
 }
 
 const MAJOR_TYPES = new Set(['conjunction', 'sextile', 'square', 'trine', 'opposition'])
@@ -189,5 +203,7 @@ export async function collectAstroFacts(
     },
     aspects: { strong, mid },
     profection,
+    _chart: chart,
+    _natalRaw: natal,
   }
 }

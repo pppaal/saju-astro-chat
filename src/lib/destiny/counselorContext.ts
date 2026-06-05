@@ -5,15 +5,10 @@
  *
  * Increment ①: SAJU section.
  */
-import { calculateSajuData } from '@/lib/saju/saju'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
-import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
-import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
-import { calculateProfection } from '@/lib/astrology/foundation/profections'
-import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
@@ -216,8 +211,17 @@ const RELKIND_EN: Record<string, string> = {
   원진: 'Resentment',
   공망: 'Void',
 }
-const sibEN = (s?: string) => (s ? (SIBSIN_EN[s] ?? s) : '-')
+const sibEN = (s?: string | null) => (s ? (SIBSIN_EN[s] ?? s) : '-')
 const pkA = (n: string, l: Locale) => (l === 'ko' ? (PLANET_KO_A[n] ?? n) : n)
+
+// facts.pillars 의 평탄 형태(stem/branch + element) → toSajuPillarsLike 의 raw
+// 형식으로 변환. SajuFacts SSOT 라 element 도 facts 가 제공.
+function factPillarToShinsalInput(p: { stem: string; stemElement: string; branch: string; branchElement: string }) {
+  return {
+    heavenlyStem: { name: p.stem, element: p.stemElement as never },
+    earthlyBranch: { name: p.branch, element: p.branchElement as never },
+  }
+}
 
 const ELEM: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
 const STEM_INFO: Record<string, { el: string; yang: boolean }> = {
@@ -400,18 +404,9 @@ export async function buildDestinyContext(
     )
     if (!aFacts) throw new Error('astro facts unavailable')
 
-    // chart 는 formatAstroSelf 에 넘기기 위해 별도 한 번 더 만든다 (LRU cache hit).
-    const natal = await calculateNatalChart({
-      year: Y,
-      month: M,
-      date: D,
-      hour: h,
-      minute: mi,
-      latitude: lat,
-      longitude: lon,
-      timeZone: tz,
-    })
-    const chart = toChart(natal)
+    // chart / natal raw 는 facts 의 escape hatch 에서 받음 — 별도 raw 재호출 없음.
+    // formatAstroSelf 가 옛 chart 인스턴스를 요구해서 _chart 로 그대로 넘긴다.
+    const chart = aFacts._chart
     const sgn = (s: string) => (locale === 'ko' ? (SIGN_KO_A[s] ?? s).replace(/자리$/, '') : s)
     const pl = (n: string) => (n === 'Ascendant' ? 'ASC' : n === 'MC' ? 'MC' : pkA(n, locale))
 
@@ -529,47 +524,12 @@ export function buildSajuSection(
     timezone: tz,
     longitude: birth.longitude,
   })
-  const saju = calculateSajuData(
-    birth.birthDate,
-    birth.birthTime,
-    birth.gender,
-    'solar',
-    tz,
-    undefined,
-    birth.longitude
-  ) as unknown as {
-    pillars: Record<
-      'year' | 'month' | 'day' | 'time',
-      {
-        heavenlyStem: { name: string; sibsin?: string }
-        earthlyBranch: { name: string; sibsin?: string }
-        jijanggan?: {
-          chogi?: { name: string }
-          junggi?: { name: string }
-          jeonggi?: { name: string }
-        }
-      }
-    >
-    dayMaster: { name: string; element?: string; yin_yang?: string }
-    fiveElements: Record<string, number>
-    daeWoon?: {
-      current?: {
-        heavenlyStem?: string
-        earthlyBranch?: string
-        age?: number
-        sibsin?: { cheon?: string; ji?: string }
-      } | null
-      list?: Array<{
-        age?: number
-        heavenlyStem?: string
-        earthlyBranch?: string
-        sibsin?: { cheon?: string; ji?: string }
-      }>
-    }
-    shinsal?: string[]
-  }
-  const P = saju.pillars
-  const day = P.day.heavenlyStem.name
+  // 옛 코드는 calculateSajuData 를 sajuFacts 안에서 한 번 + 여기서 daeWoon/
+  // pillars 위한 raw 한 번 = 두 번 호출했음 (LRU cache hit 으로 무료지만 코드
+  // 스멜). Phase C(2026-06-06): facts.pillars/dayMaster/fiveElements/daeun
+  // 직접 사용으로 raw 호출 1개 제거. shinsal 입력 만들 때는 facts.pillars
+  // → toSajuPillarsLike 형식으로 변환.
+  const day = facts.pillars.day.stem
 
   const strengthLabel = facts.strength
   const geok = facts.geokguk ?? ''
@@ -590,20 +550,20 @@ export function buildSajuSection(
   out.push(L('## 사주', '## SAJU'), '')
 
   // day master: stem(yin/yang+element) strength rootedness(통근)
-  const dm = saju.dayMaster
+  const dm = facts.dayMaster
   const dmElDisp = dm.element
     ? locale === 'en'
       ? (ELEM_EN[dm.element] ?? dm.element)
       : dm.element
     : ''
-  const yinyang = dm.yin_yang === '음' ? L('음', 'yin') : L('양', 'yang')
+  const yinyang = dm.yinYang === '음' ? L('음', 'yin') : L('양', 'yang')
   const strLab = locale === 'en' ? (STRENGTH_EN[strengthLabel] ?? strengthLabel) : strengthLabel
   // 통근 — facts.dayMaster.rooted 가 이미 계산 (sajuFacts.ts SSOT).
   const rootLab = locale === 'en'
-    ? facts.dayMaster.rooted ? 'rooted' : 'rootless'
-    : facts.dayMaster.rooted ? '유근' : '무근'
+    ? dm.rooted ? 'rooted' : 'rootless'
+    : dm.rooted ? '유근' : '무근'
   out.push(`${L('일간', 'day_master')}: ${dm.name}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`)
-  const fe = saju.fiveElements
+  const fe = facts.fiveElements
   out.push(
     `${L('오행', 'elements')}: 木${fe.wood} 火${fe.fire} 土${fe.earth} 金${fe.metal} 水${fe.water}`
   )
@@ -642,22 +602,20 @@ export function buildSajuSection(
 
   // 기둥 (bare 십성, no gloss / no pipe)
   out.push(L('기둥:', 'pillars:'))
-  const bareSib = (t?: string) =>
+  const bareSib = (t?: string | null) =>
     !t || t === '-' ? (t ?? '-') : locale === 'en' ? (SIBSIN_EN[t] ?? t) : t
   for (const k of ['year', 'month', 'day', 'time'] as const) {
-    const st = P[k].heavenlyStem,
-      br = P[k].earthlyBranch
-    const ss = k === 'day' ? (locale === 'en' ? 'Self' : '일간') : bareSib(st.sibsin)
-    out.push(`  ${plab[k]} ${st.name}${br.name} ${ss}/${bareSib(br.sibsin)}`)
+    const p = facts.pillars[k]
+    const ss = k === 'day' ? (locale === 'en' ? 'Self' : '일간') : bareSib(p.stemSibsin)
+    out.push(`  ${plab[k]} ${p.stem}${p.branch} ${ss}/${bareSib(p.branchSibsin)}`)
   }
   out.push('')
 
   // 지장간 (stems only)
   out.push(L('지장간:', 'hidden_stems:'))
   for (const k of ['year', 'month', 'day', 'time'] as const) {
-    const jg = P[k].jijanggan
-    const stems = [jg?.chogi?.name, jg?.junggi?.name, jg?.jeonggi?.name].filter(Boolean) as string[]
-    if (stems.length) out.push(`  ${P[k].earthlyBranch.name}: ${stems.join('·')}`)
+    const p = facts.pillars[k]
+    if (p.jijanggan.length) out.push(`  ${p.branch}: ${p.jijanggan.join('·')}`)
   }
   out.push('')
 
@@ -745,12 +703,12 @@ export function buildSajuSection(
   // 필요). 화이트리스트로 노이즈 신살 (공망은 [합충] 에 이미 있어 제외)
   // 만 빼고 짧은 의미 라벨로 압축.
   try {
-    // saju 의 local 타입엔 element 가 없지만 runtime 엔 있음 — cast.
+    // facts.pillars 에서 toSajuPillarsLike 형식으로 변환 (element 평탄화됨).
     const pillarsLike = toSajuPillarsLike({
-      yearPillar: saju.pillars.year as never,
-      monthPillar: saju.pillars.month as never,
-      dayPillar: saju.pillars.day as never,
-      timePillar: saju.pillars.time as never,
+      yearPillar: factPillarToShinsalInput(facts.pillars.year),
+      monthPillar: factPillarToShinsalInput(facts.pillars.month),
+      dayPillar: factPillarToShinsalInput(facts.pillars.day),
+      timePillar: factPillarToShinsalInput(facts.pillars.time),
     })
     const allHits = getShinsalHits(pillarsLike, {
       includeGeneralShinsal: true,
@@ -803,12 +761,12 @@ export function buildSajuSection(
 
   // 12운성 — 일간 기준 각 기둥의 wāngshuāi 단계. "신약 무근" 의 디테일.
   try {
-    // saju 의 local 타입엔 element 가 없지만 runtime 엔 있음 — cast.
+    // facts.pillars 에서 toSajuPillarsLike 형식으로 변환 (element 평탄화됨).
     const pillarsLike = toSajuPillarsLike({
-      yearPillar: saju.pillars.year as never,
-      monthPillar: saju.pillars.month as never,
-      dayPillar: saju.pillars.day as never,
-      timePillar: saju.pillars.time as never,
+      yearPillar: factPillarToShinsalInput(facts.pillars.year),
+      monthPillar: factPillarToShinsalInput(facts.pillars.month),
+      dayPillar: factPillarToShinsalInput(facts.pillars.day),
+      timePillar: factPillarToShinsalInput(facts.pillars.time),
     })
     const stages = getTwelveStagesForPillars(pillarsLike, 'day')
     if (stages) {
@@ -833,11 +791,12 @@ export function buildSajuSection(
   try {
     const tally: Record<string, number> = {}
     for (const k of ['year', 'month', 'day', 'time'] as const) {
+      const p = facts.pillars[k]
       if (k !== 'day') {
-        const s = sibsinOf(day, P[k].heavenlyStem.name)
+        const s = sibsinOf(day, p.stem)
         if (s && s !== '-') tally[s] = (tally[s] ?? 0) + 1
       }
-      const b = sibsinOf(day, BRANCH_MAINQI[P[k].earthlyBranch.name] ?? '')
+      const b = sibsinOf(day, BRANCH_MAINQI[p.branch] ?? '')
       if (b && b !== '-') tally[b] = (tally[b] ?? 0) + 1
     }
     if (Object.keys(tally).length) {
@@ -851,9 +810,9 @@ export function buildSajuSection(
 
   // ── timing (대운 흐름 + 세운 + 교차) — returned separately for the ## 타이밍 block
   const timing: string[] = []
-  const cur = saju.daeWoon?.current
-  const dlist = saju.daeWoon?.list ?? []
-  const sib1 = (s?: string) => (locale === 'en' ? sibEN(s) : s || '-')
+  const cur = facts.daeun.current
+  const dlist = facts.daeun.list
+  const sib1 = (s?: string | null) => (locale === 'en' ? sibEN(s) : s || '-')
   // 대운 흐름 (full timeline, current marked with its 십성) — prevents the LLM
   // from inventing past/future 대운 ages it can't see.
   // 나이 표기는 시작~끝 범위로. 단순 `32甲戌` 이면 LLM 이 "현재 32세 갑술
@@ -868,7 +827,7 @@ export function buildSajuSection(
             ? `${d.age}~${nextAge - 1}세`
             : `${d.age}세~`
           : '?세'
-      const gz = `${ageLabel} ${d.heavenlyStem ?? ''}${d.earthlyBranch ?? ''}`
+      const gz = `${ageLabel} ${d.heavenlyStem}${d.earthlyBranch}`
       return cur && d.age === cur.age
         ? `${gz}(${L('현재 ', 'now ')}${sib1(d.sibsin?.cheon)}/${sib1(d.sibsin?.ji)})`
         : gz
@@ -877,7 +836,7 @@ export function buildSajuSection(
   } else if (cur) {
     const endAge = typeof cur.age === 'number' ? `${cur.age}~${cur.age + 9}세` : '?세'
     timing.push(
-      `${L('대운', 'daeun')} ${endAge}: ${cur.heavenlyStem ?? ''}${cur.earthlyBranch ?? ''} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`
+      `${L('대운', 'daeun')} ${endAge}: ${cur.heavenlyStem}${cur.earthlyBranch} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`
     )
   }
   // 세운 / 월운 / 일진 lines (세운 carries the year)
@@ -901,10 +860,10 @@ export function buildSajuSection(
   {
     const relsBy = (src: string) => (current?.relations ?? []).filter((r) => r.source === src)
     const natalBr: Array<[string, string]> = [
-      ['년', P.year.earthlyBranch.name],
-      ['월', P.month.earthlyBranch.name],
-      ['일', P.day.earthlyBranch.name],
-      ['시', P.time.earthlyBranch.name],
+      ['년', facts.pillars.year.branch],
+      ['월', facts.pillars.month.branch],
+      ['일', facts.pillars.day.branch],
+      ['시', facts.pillars.time.branch],
     ]
     const sp = locale === 'en' ? ' ' : ''
     const arrow = (s: string) =>
@@ -990,7 +949,7 @@ export function buildSajuSection(
   }
 
   const iljinWindow = localNow
-    ? buildIljinWindowBlock(saju.dayMaster as unknown as DayMaster, localNow, 7, locale)
+    ? buildIljinWindowBlock(facts.dayMaster as unknown as DayMaster, localNow, 7, locale)
     : ''
 
   return {
@@ -1004,6 +963,6 @@ export function buildSajuSection(
       .replace(/\n{3,}/g, '\n\n')
       .trim(),
     iljinWindow,
-    dayMasterName: saju.dayMaster?.name ?? '',
+    dayMasterName: facts.dayMaster.name,
   }
 }

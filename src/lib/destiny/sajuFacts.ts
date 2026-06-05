@@ -25,6 +25,10 @@ export interface SajuFactsInput {
 export interface SajuPillarFact {
   stem: string
   branch: string
+  /** 천간 오행 한글 (木·火·土·金·水) — toSajuPillarsLike 등 element 필요 호출용. */
+  stemElement: string
+  /** 지지 본기 오행 한글. */
+  branchElement: string
   stemSibsin: string | null
   branchSibsin: string | null
   jijanggan: string[] // 지장간 천간 0~3개 (정기, 중기, 여기 순)
@@ -46,11 +50,28 @@ export interface SajuFacts {
   relations: Array<{ kind: string; detail?: string; pillars?: string[] }>
   /** 정관 AND 편관 같이 있는 관살혼잡 형국. */
   gwansalHonjap: boolean
+  /** 대운 (10년 단위) — current 진입 단계 + 전체 리스트. 출생연도 미정 시 null. */
+  daeun: {
+    current: DaeunEntry | null
+    list: DaeunEntry[]
+  }
+}
+
+export interface DaeunEntry {
+  age: number
+  heavenlyStem: string
+  earthlyBranch: string
+  /** 일간 기준 그 단계 천간/지지 십신. 엔진이 null 보낼 수도 있음. */
+  sibsin: { cheon: string | null; ji: string | null } | null
 }
 
 const STEM_ELEMENT: Record<string, string> = {
   '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토', '己': '토',
   '庚': '금', '辛': '금', '壬': '수', '癸': '수',
+}
+const BRANCH_ELEMENT: Record<string, string> = {
+  '子': '수', '丑': '토', '寅': '목', '卯': '목', '辰': '토', '巳': '화',
+  '午': '화', '未': '토', '申': '금', '酉': '금', '戌': '토', '亥': '수',
 }
 
 /**
@@ -159,6 +180,29 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
     yongsin,
     relations,
     gwansalHonjap,
+    daeun: {
+      current: raw.daeWoon?.current
+        ? {
+            age: raw.daeWoon.current.age ?? 0,
+            heavenlyStem: raw.daeWoon.current.heavenlyStem ?? '',
+            earthlyBranch: raw.daeWoon.current.earthlyBranch ?? '',
+            sibsin: raw.daeWoon.current.sibsin
+              ? {
+                  cheon: raw.daeWoon.current.sibsin.cheon ?? null,
+                  ji: raw.daeWoon.current.sibsin.ji ?? null,
+                }
+              : null,
+          }
+        : null,
+      list: (raw.daeWoon?.list ?? []).map((d) => ({
+        age: d.age ?? 0,
+        heavenlyStem: d.heavenlyStem ?? '',
+        earthlyBranch: d.earthlyBranch ?? '',
+        sibsin: d.sibsin
+          ? { cheon: d.sibsin.cheon ?? null, ji: d.sibsin.ji ?? null }
+          : null,
+      })),
+    },
   }
 }
 
@@ -178,6 +222,20 @@ interface RawSajuShape {
   pillars: Record<'year' | 'month' | 'day' | 'time', RawSajuPillar>
   dayMaster: { name: string; element?: string; yin_yang?: string }
   fiveElements: { wood?: number; fire?: number; earth?: number; metal?: number; water?: number }
+  daeWoon?: {
+    current?: {
+      heavenlyStem?: string
+      earthlyBranch?: string
+      age?: number
+      sibsin?: { cheon?: string | null; ji?: string | null }
+    } | null
+    list?: Array<{
+      age?: number
+      heavenlyStem?: string
+      earthlyBranch?: string
+      sibsin?: { cheon?: string | null; ji?: string | null }
+    }>
+  }
 }
 
 function pillarToFact(p: RawSajuPillar): SajuPillarFact {
@@ -189,6 +247,8 @@ function pillarToFact(p: RawSajuPillar): SajuPillarFact {
   return {
     stem: p.heavenlyStem.name,
     branch: p.earthlyBranch.name,
+    stemElement: STEM_ELEMENT[p.heavenlyStem.name] ?? '',
+    branchElement: BRANCH_ELEMENT[p.earthlyBranch.name] ?? '',
     stemSibsin: p.heavenlyStem.sibsin ?? null,
     branchSibsin: p.earthlyBranch.sibsin ?? null,
     jijanggan: stems,
