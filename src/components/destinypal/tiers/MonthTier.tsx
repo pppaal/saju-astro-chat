@@ -93,33 +93,36 @@ interface CellGlow {
 }
 
 function cellGlow(intensity: number, mark: string | null | undefined): CellGlow {
+  // 대비 강화 — 점수 중간대(46~63 → intensity 0.46~0.63)가 비슷한 약한 글로우로
+  // 뭉쳐 변별이 안 되던 문제. 0.5 기준 1.8배 stretch 해 좋은날↑/조심날↓ 또렷이.
+  const c = Math.max(0, Math.min(1, 0.5 + (intensity - 0.5) * 1.8))
   // avoid: 주사(주의) 톤
   if (mark === 'avoid') {
     return {
-      bg: 'rgba(176,58,34,0.08)',
+      bg: 'rgba(176,58,34,' + (0.06 + c * 0.16) + ')',
       glow:
-        'radial-gradient(circle at 60% 40%, rgba(176,58,34,' +
-        (0.08 + intensity * 0.18) +
-        '), transparent 70%)',
+        'radial-gradient(circle at 55% 42%, rgba(176,58,34,' +
+        (0.12 + c * 0.32) +
+        '), transparent 64%)',
     }
   }
   // converge: 토(土) 골드 톤
   if (mark === 'converge') {
-    const op = 0.1 + intensity * 0.55
     return {
-      bg: 'rgba(179,135,58,' + (0.10 + intensity * 0.18) + ')',
+      bg: 'rgba(179,135,58,' + (0.12 + c * 0.2) + ')',
       glow:
-        'radial-gradient(circle at 60% 40%, rgba(217,168,74,' + op + '), transparent 72%)',
+        'radial-gradient(circle at 55% 42%, rgba(217,168,74,' +
+        (0.16 + c * 0.62) +
+        '), transparent 66%)',
     }
   }
-  // good/best: 쪽빛 인디고 톤
-  const op = 0.06 + intensity * 0.5
+  // good/best: 쪽빛 인디고 톤. 글로우 더 진하게 + 가장자리(64%)에서 끊어 또렷하게.
   return {
-    bg: 'rgba(52,64,111,' + (intensity * 0.14) + ')',
+    bg: 'rgba(52,64,111,' + c * 0.16 + ')',
     glow:
-      'radial-gradient(circle at 60% 40%, rgba(79,93,150,' +
-      op +
-      '), transparent 70%)',
+      'radial-gradient(circle at 55% 42%, rgba(79,93,150,' +
+      (0.05 + c * 0.6) +
+      '), transparent 64%)',
   }
 }
 
