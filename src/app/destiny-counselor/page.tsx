@@ -18,6 +18,7 @@ import { useToast } from '@/components/ui/Toast'
 import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import ChatActionModals from '@/components/counselor/ChatActionModals'
 import { useChatActions } from '@/lib/counselor/useChatActions'
+import { useLoginModal } from '@/contexts/LoginModalContext'
 // buildSignInUrl import removed alongside the guest banner — restore
 // when reintroducing inline login CTA.
 import styles from './counselor.module.css'
@@ -63,7 +64,7 @@ export default function CounselorPage() {
 
   const router = useRouter()
   const { status: authStatus } = useSession()
-  void authStatus
+  const { showLogin } = useLoginModal()
   const toast = useToast()
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -411,8 +412,14 @@ export default function CounselorPage() {
             // 으로 두 페이지를 잇는다(메인 ↔ 운명상담사 입력창 폭 차이로 인한
             // "툭 늘어나는" 인상 제거).
             onSendBlocked={(_text) => {
+              // 운명 상담은 유료 서비스 — 비로그인이면 전송 대신 로그인 모달.
+              // (게스트 사용 제거: 로그인해야만 상담 가능.) 'loading' 중에는
+              // 막지 않아 로그인 사용자의 자동 seed 전송이 끊기지 않게 한다.
+              if (authStatus === 'unauthenticated') {
+                showLogin()
+                return true
+              }
               // 생년월일·출생시간이 없으면 전송 대신 입력 모달을 띄운다.
-              // (게이트 화면 대체 — 바로 채팅하다가 첫 전송 시 정보 요청.)
               if (needsBirthInfo) {
                 setBirthModalOpen(true)
                 return true

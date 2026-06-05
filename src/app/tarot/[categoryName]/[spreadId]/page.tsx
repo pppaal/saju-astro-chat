@@ -11,6 +11,7 @@ import { PageContent } from './components/PageContent'
 import BrandSplash from '@/components/branding/BrandSplash'
 import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { useCreditModal } from '@/contexts/CreditModalContext'
+import { useRequireLogin } from '@/contexts/LoginModalContext'
 
 export default function TarotReadingPageWrapper() {
   return (
@@ -27,6 +28,7 @@ function TarotReadingPage() {
   const { status } = useSession()
   const { translate, language } = useI18n()
   const { showDepleted, showGuestLimit } = useCreditModal()
+  const requireLogin = useRequireLogin()
   const [creditNotice, setCreditNotice] = useState<string | null>(null)
 
   const categoryName = params?.categoryName as string | undefined
@@ -365,6 +367,15 @@ function TarotReadingPage() {
     })
   }, [gameHook.readingResult, setInterpretation, readingSignature, cacheKeyFor])
 
+  // 타로는 유료 서비스 — 리딩 시작 전에 로그인 가드. 비로그인이면 카드 뽑기로
+  // 진입하지 않고 로그인 모달을 띄운다. (로그인 사용자만 handleStartReading 진행.)
+  const gatedStartReading = useCallback(() => {
+    if (!requireLogin(callbackUrl)) {
+      return
+    }
+    void gameHook.handleStartReading()
+  }, [requireLogin, callbackUrl, gameHook.handleStartReading]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Session loading state
   if (status === 'loading') {
     return <BrandSplash />
@@ -400,6 +411,7 @@ function TarotReadingPage() {
           isSaving={isSaving}
           isGuestUser={isGuestUser}
           signInUrl={signInUrl}
+          handleStartReading={gatedStartReading}
           handleCardReveal={handleCardReveal}
           handleSaveReading={handleSaveReading}
           handleReset={handleReset}
