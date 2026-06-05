@@ -279,6 +279,40 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 
 ---
 
+## 16. 진입점 / 결정성 / 리스크 (감사 통합)
+
+> 기존 `docs/AUDIT_SAJU.md`(2026-03 감사 리포트)를 흡수·대체. 2026-06.
+
+**진입점**
+- 메인 계산: `calculateSajuData()` ([`saju.ts`](./saju.ts))
+- API: `src/app/api/saju/route.ts` — 입력 검증 후 엔진 위임
+- 출력: 4기둥(년/월/일/시), 일간, 오행, 대운/세운/월운/일진 파생 타이밍
+
+**결정성(Determinism)**
+- 동일 입력 반복 결정성: [`tests/lib/Saju/determinism-golden.test.ts`](../../../tests/lib/Saju/determinism-golden.test.ts)
+- 골든 케이스가 5개 출생의 기둥 간지 + 대운 시작/흐름 고정
+- 불변식: 대운 리스트 길이·+10년 step, 오행 합 invariant
+- doctrine 회귀(12운성·12신살·관계·신살): [`tests/saju-astro-doctrine-regressions.test.ts`](../../../tests/saju-astro-doctrine-regressions.test.ts)
+
+**정확성 코드 근거**
+- 타임존 변환 `toDate(..., { timeZone })` (`saju.ts`)
+- 절기 연도 범위(1940-2050) 가드 — 범위 밖 hard fail (`constants.ts`)
+- 절기 KST 테이블 `getSolarTermKST()` (`constants.ts`)
+- 일주 JDN 공식 (`dayPillar.ts`)
+- 십성 매핑 단일 출처 (`core/sibsin.ts`)
+
+**리스크 / 엣지 케이스**
+1. 연도 1940-2050 하드 제한 — 그 밖은 hard fail
+2. KST/아시아 중심 가정 (절기표 KST 기반) — 비아시아 검증 약함
+3. DST 경계(한국 외) 회귀 세트 보강 필요
+4. 음력 변환 외부 오라클 미검증
+5. 대운수 라운딩 정책(`daeunRounding`)의 외부 레퍼런스 자동 검증 부재
+6. 고급 해석 경로의 contract 테스트가 코어 기둥 산출보다 약함
+
+(사주 correctness confidence: 결정성·코어 산출은 구체적·테스트됨, 외부 오라클 parity·타임존 엣지 커버리지는 보강 여지.)
+
+---
+
 ## 의도적으로 *지원하지 않는* 옵션
 
 다음은 우리 코드가 **명시적으로 채택하지 않은** 학파/관습이다. 사용자 신고가 들어와도 *우리 컨벤션이 자평파이기 때문에 다르다*고 답한다:
