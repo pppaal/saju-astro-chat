@@ -4,7 +4,7 @@
 // 시작 sign 의 ruler 의 행성년수만큼 1차 period 진행 → 황도 순서로 다음 sign 으로 transition.
 //
 // 행성년수 (Hellenistic 표준):
-//   Sun 19, Moon 25, Mercury 20, Venus 8, Mars 15, Jupiter 12, Saturn 27
+//   Sun 19, Moon 25, Mercury 20, Venus 8, Mars 15, Jupiter 12, Saturn 30
 //
 // 본 모듈:
 //  - L1 period (years)
@@ -43,7 +43,7 @@ const PLANET_YEARS: Record<AstroPlanetName, number> = {
   Venus: 8,
   Mars: 15,
   Jupiter: 12,
-  Saturn: 27,
+  Saturn: 30, // Hellenistic ZR Lesser Years — 정설 30 (이전 27은 오답, audit 2026-06)
   // 외행성은 ZR에 사용 안 함 — 0 으로 처리해 skip.
   Uranus: 0,
   Neptune: 0,

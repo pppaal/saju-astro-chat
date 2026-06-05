@@ -61,7 +61,7 @@ describe('DEFAULT_RELATION_OPTIONS', () => {
     expect(DEFAULT_RELATION_OPTIONS.includeEarthly).toBe(true)
     expect(DEFAULT_RELATION_OPTIONS.includeGongmang).toBe(true)
     expect(DEFAULT_RELATION_OPTIONS.gongmangPolicy).toBe('dayPillar-60jiazi')
-    expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe('5')
+    expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe('4')
   })
 })
 

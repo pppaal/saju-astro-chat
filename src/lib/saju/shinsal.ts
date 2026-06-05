@@ -340,17 +340,15 @@ const YEARMONTH_SHINSAL_BY_MONTH_BRANCH: Record<
 }
 
 /* ===== 일반 신살/길성 ===== */
+// 양인(羊刃): 양간(甲丙戊庚壬)의 겁재 왕지(帝旺). 음간에는 양인을 두지 않는
+// 통설을 따른다(geokguk.ts yanginMap 과 동일 기준). 이전엔 음간에 앞 양간 값을
+// 그대로 복사해(乙→卯 등) 음일간마다 가짜 양인이 떴음 — audit 2026-06.
 const YANGIN_BY_DAY_STEM: Record<string, string> = {
   甲: '卯',
-  乙: '卯',
   丙: '午',
-  丁: '午',
   戊: '午',
-  己: '午',
   庚: '酉',
-  辛: '酉',
   壬: '子',
-  癸: '子',
 }
 // 괴강(魁罡) — 정통 5종: 庚辰, 庚戌, 壬辰, 壬戌, 戊戌
 const GWAEGANG_DAY_PAIRS = new Set(['庚辰', '庚戌', '壬辰', '壬戌', '戊戌'])
@@ -462,8 +460,23 @@ const TAEGEUK_BY_DAY_STEM: Record<string, string[]> = {
   壬: ['寅', '申'],
   癸: ['寅', '申'],
 }
-function isGeumYeoseong(branch: string): boolean {
-  return branch === '酉' || branch === '辰'
+// 금여성(金輿星): 일간 건록의 +2 지지(제왕 다음). 일간별로 다르다.
+//   甲辰 乙巳 丙未 丁申 戊未 己申 庚戌 辛亥 壬丑 癸寅
+// (이전엔 일간 무시하고 辰·酉 고정이라 모든 사주에 오판정 — audit 2026-06)
+const GEUMYEO_BY_DAY_STEM: Record<string, string> = {
+  甲: '辰',
+  乙: '巳',
+  丙: '未',
+  丁: '申',
+  戊: '未',
+  己: '申',
+  庚: '戌',
+  辛: '亥',
+  壬: '丑',
+  癸: '寅',
+}
+function isGeumYeoseong(dayStem: string, branch: string): boolean {
+  return GEUMYEO_BY_DAY_STEM[dayStem] === branch
 }
 function isCheonMunSeong(branch: string): boolean {
   return branch === '子' || branch === '午'
@@ -640,54 +653,59 @@ function isCheonraJimang(branch: string): '천라지망' | null {
   return null
 }
 
-// 원진(元嗔): 6해 관계의 특수 형태
+// 원진(元嗔/怨嗔): 子未 丑午 寅酉 卯申 辰亥 巳戌 (양방향)
+// (이전엔 해(害) 테이블을 복붙해 寅巳·卯辰·申亥·酉戌로 잘못돼 있었음 — audit 2026-06)
 const WONJIN_PAIRS: Record<string, string> = {
   子: '未',
-  丑: '午',
-  寅: '巳',
-  卯: '辰',
-  辰: '卯',
-  巳: '寅',
-  午: '丑',
   未: '子',
-  申: '亥',
-  酉: '戌',
-  戌: '酉',
-  亥: '申',
+  丑: '午',
+  午: '丑',
+  寅: '酉',
+  酉: '寅',
+  卯: '申',
+  申: '卯',
+  辰: '亥',
+  亥: '辰',
+  巳: '戌',
+  戌: '巳',
 }
 function isWonjin(dayBranch: string, targetBranch: string): boolean {
   return WONJIN_PAIRS[dayBranch] === targetBranch
 }
 
-// 천주귀인(天廚貴人): 일간 기준
+// 천주귀인(天廚貴人): 일간 식신(食神)의 건록지.
+//   甲巳 乙午 丙巳 丁午 戊申 己酉 庚亥 辛子 壬寅 癸卯
+// (이전엔 戊巳·己午·壬亥·癸子로 4개가 틀려 있었음 — 식신 건록 기준 재산출, audit 2026-06)
 const CHEONJU_BY_DAY_STEM: Record<string, string> = {
   甲: '巳',
   乙: '午',
   丙: '巳',
   丁: '午',
-  戊: '巳',
-  己: '午',
+  戊: '申',
+  己: '酉',
   庚: '亥',
   辛: '子',
-  壬: '亥',
-  癸: '子',
+  壬: '寅',
+  癸: '卯',
 }
 function isCheonjuGwiin(dayStem: string, targetBranch: string): boolean {
   return CHEONJU_BY_DAY_STEM[dayStem] === targetBranch
 }
 
-// 암록(暗祿): 건록의 충(沖) 지지
+// 암록(暗祿): 건록과 六合하는 지지.
+//   甲亥 乙戌 丙申 丁未 戊申 己未 庚巳 辛辰 壬寅 癸丑
+// (이전엔 충(沖) 기준이라 설명·값 모두 정설과 불일치했음 — audit 2026-06)
 const AMNOK_BY_DAY_STEM: Record<string, string> = {
-  甲: '酉',
-  乙: '申',
-  丙: '亥',
-  丁: '戌',
-  戊: '亥',
-  己: '戌',
-  庚: '卯',
-  辛: '寅',
-  壬: '巳',
-  癸: '辰',
+  甲: '亥',
+  乙: '戌',
+  丙: '申',
+  丁: '未',
+  戊: '申',
+  己: '未',
+  庚: '巳',
+  辛: '辰',
+  壬: '寅',
+  癸: '丑',
 }
 function isAmnok(dayStem: string, targetBranch: string): boolean {
   return AMNOK_BY_DAY_STEM[dayStem] === targetBranch
@@ -729,19 +747,21 @@ function isJewang(dayStem: string, targetBranch: string): boolean {
 
 // 삼재(三災): 년지 기준으로 3년 주기의 불운
 // 寅午戌 → 申酉戌 삼재, 巳酉丑 → 寅卯辰 삼재, 申子辰 → 巳午未 삼재, 亥卯未 → 亥子丑 삼재
+// 정설: 申子辰生→寅卯辰, 巳酉丑生→亥子丑, 寅午戌生→申酉戌, 亥卯未生→巳午未.
+// (이전엔 巳酉丑/申子辰/亥卯未 3개 그룹이 한 칸씩 밀려 잘못 매핑돼 있었음 — audit 2026-06)
 const SAMJAE_BY_YEAR_BRANCH: Record<string, string[]> = {
   寅: ['申', '酉', '戌'],
   午: ['申', '酉', '戌'],
   戌: ['申', '酉', '戌'],
-  巳: ['寅', '卯', '辰'],
-  酉: ['寅', '卯', '辰'],
-  丑: ['寅', '卯', '辰'],
-  申: ['巳', '午', '未'],
-  子: ['巳', '午', '未'],
-  辰: ['巳', '午', '未'],
-  亥: ['亥', '子', '丑'],
-  卯: ['亥', '子', '丑'],
-  未: ['亥', '子', '丑'],
+  巳: ['亥', '子', '丑'],
+  酉: ['亥', '子', '丑'],
+  丑: ['亥', '子', '丑'],
+  申: ['寅', '卯', '辰'],
+  子: ['寅', '卯', '辰'],
+  辰: ['寅', '卯', '辰'],
+  亥: ['巳', '午', '未'],
+  卯: ['巳', '午', '未'],
+  未: ['巳', '午', '未'],
 }
 function isSamjae(yearBranch: string, currentYearBranch: string): boolean {
   const samjaeBranches = SAMJAE_BY_YEAR_BRANCH[yearBranch]
@@ -965,8 +985,8 @@ export function getShinsalHitsForDailyTarget(
 
   // ─── target branch 단독 기준 ───
   // 금여성 (안정·풍요)
-  if (isGeumYeoseong(targetBranch)) {
-    hits.push({ kind: '금여성', basis: `target=${targetBranch}` })
+  if (isGeumYeoseong(natalDayStem, targetBranch)) {
+    hits.push({ kind: '금여성', basis: `일간(${natalDayStem})` })
   }
   // 천문성 (영성·종교·예지)
   if (isCheonMunSeong(targetBranch)) {
@@ -1149,7 +1169,7 @@ export function getShinsalHits(
         if (tg.includes(br)) {
           hits.push({ kind: '태극귀인', pillars: [kind], target: br })
         }
-        if (isGeumYeoseong(br)) {
+        if (isGeumYeoseong(dayStem, br)) {
           hits.push({ kind: '금여성', pillars: [kind], target: br })
         }
         if (isCheonMunSeong(br)) {

@@ -7,8 +7,10 @@
 
 import { describe, it, expect } from 'vitest'
 import { getTwelveStage } from '@/lib/saju/shinsal'
-import { getShinsalHits } from '@/lib/saju/shinsal'
+import { getShinsalHits, getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
 import { calculateSajuData } from '@/lib/saju/saju'
+import { analyzeRelations } from '@/lib/saju/relations'
+import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
 import { angleDiff } from '@/lib/astrology/foundation/utils'
 import { normalizeGender } from '@/lib/utils/gender'
 
@@ -161,6 +163,163 @@ describe('saju 대운 방향 — 음양남녀 doctrine', () => {
     expect(normalizeGender('M')).toBe('male')
     expect(normalizeGender('Male')).toBe('male')
     expect(normalizeGender('male')).toBe('male')
+  })
+})
+
+describe('saju 신살 글자표 — audit 2026-06 교정 회귀', () => {
+  // getShinsalHitsForDailyTarget(natalDayStem, natalDayBranch, targetBranch, ...)
+  const kinds = (stem: string, dayBranch: string, target: string) =>
+    getShinsalHitsForDailyTarget(stem, dayBranch, target).map((h) => h.kind as string)
+
+  describe('금여성(金輿) — 일간별 (이전 辰·酉 고정 버그)', () => {
+    // 정설: 甲辰 乙巳 丙未 丁申 戊未 己申 庚戌 辛亥 壬丑 癸寅
+    const table: Array<[string, string]> = [
+      ['甲', '辰'], ['乙', '巳'], ['丙', '未'], ['丁', '申'], ['戊', '未'],
+      ['己', '申'], ['庚', '戌'], ['辛', '亥'], ['壬', '丑'], ['癸', '寅'],
+    ]
+    for (const [stem, br] of table) {
+      it(`일간 ${stem} → ${br} = 금여성`, () => {
+        expect(kinds(stem, '子', br)).toContain('금여성')
+      })
+    }
+    it('일간 甲 → 酉 는 금여성 아님 (이전 버그)', () => {
+      expect(kinds('甲', '子', '酉')).not.toContain('금여성')
+    })
+  })
+
+  describe('천주귀인(天廚) — 식신 건록 (戊己壬癸 교정)', () => {
+    // 정설: 甲巳 乙午 丙巳 丁午 戊申 己酉 庚亥 辛子 壬寅 癸卯
+    const table: Array<[string, string]> = [
+      ['戊', '申'], ['己', '酉'], ['壬', '寅'], ['癸', '卯'],
+    ]
+    for (const [stem, br] of table) {
+      it(`일간 ${stem} → ${br} = 천주귀인`, () => {
+        expect(kinds(stem, '子', br)).toContain('천주귀인')
+      })
+    }
+    it('일간 戊 → 巳 는 천주귀인 아님 (이전 버그)', () => {
+      expect(kinds('戊', '子', '巳')).not.toContain('천주귀인')
+    })
+  })
+
+  describe('암록(暗祿) — 건록의 六合 (전면 교정)', () => {
+    // 정설: 甲亥 乙戌 丙申 丁未 戊申 己未 庚巳 辛辰 壬寅 癸丑
+    const table: Array<[string, string]> = [
+      ['甲', '亥'], ['乙', '戌'], ['丙', '申'], ['丁', '未'], ['戊', '申'],
+      ['己', '未'], ['庚', '巳'], ['辛', '辰'], ['壬', '寅'], ['癸', '丑'],
+    ]
+    for (const [stem, br] of table) {
+      it(`일간 ${stem} → ${br} = 암록`, () => {
+        expect(kinds(stem, '子', br)).toContain('암록')
+      })
+    }
+    it('일간 甲 → 酉 는 암록 아님 (이전 버그)', () => {
+      expect(kinds('甲', '子', '酉')).not.toContain('암록')
+    })
+  })
+
+  describe('양인(羊刃) — 양간 전용 (음간 가짜 양인 제거)', () => {
+    it('양간 甲 → 卯 = 양인', () => {
+      expect(kinds('甲', '子', '卯')).toContain('양인')
+    })
+    it('음간 辛 → 酉 는 양인 아님 (이전 버그: 앞 양간값 복사)', () => {
+      expect(kinds('辛', '丑', '酉')).not.toContain('양인')
+    })
+    it('음간 乙 → 卯 는 양인 아님', () => {
+      expect(kinds('乙', '子', '卯')).not.toContain('양인')
+    })
+  })
+
+  describe('원진(怨嗔) — 子未 丑午 寅酉 卯申 辰亥 巳戌', () => {
+    it('일지 寅 → 酉 = 원진', () => {
+      expect(kinds('甲', '寅', '酉')).toContain('원진')
+    })
+    it('일지 寅 → 巳 는 원진 아님 (이전 해(害) 복붙 버그)', () => {
+      expect(kinds('甲', '寅', '巳')).not.toContain('원진')
+    })
+    it('일지 辰 → 亥 = 원진', () => {
+      expect(kinds('甲', '辰', '亥')).toContain('원진')
+    })
+  })
+})
+
+describe('saju 삼재(三災) — 띠별 3년 (3개 그룹 밀림 교정)', () => {
+  // 정설: 申子辰生→寅卯辰, 巳酉丑生→亥子丑, 寅午戌生→申酉戌, 亥卯未生→巳午未
+  const stem = { name: '甲', element: '木', yin_yang: '양' as const, koreanName: '갑', polarity: '+' as const }
+  const mk = (yearBranch: string) => {
+    const b = (n: string) => ({ name: n, element: '土', yin_yang: '양' as const, koreanName: n, animal: '', season: '' })
+    return {
+      year: { heavenlyStem: stem, earthlyBranch: b(yearBranch) },
+      month: { heavenlyStem: stem, earthlyBranch: b('寅') },
+      day: { heavenlyStem: stem, earthlyBranch: b('寅') },
+      time: { heavenlyStem: stem, earthlyBranch: b('寅') },
+    } as Parameters<typeof getShinsalHits>[0]
+  }
+  const samjaeTarget = (yearBranch: string) => {
+    const hit = getShinsalHits(mk(yearBranch)).find((h) => h.kind === '삼재')
+    return hit?.target ?? ''
+  }
+  it('申(申子辰)생 → 삼재 寅卯辰', () => {
+    expect(samjaeTarget('申')).toBe('寅,卯,辰')
+  })
+  it('酉(巳酉丑)생 → 삼재 亥子丑', () => {
+    expect(samjaeTarget('酉')).toBe('亥,子,丑')
+  })
+  it('午(寅午戌)생 → 삼재 申酉戌', () => {
+    expect(samjaeTarget('午')).toBe('申,酉,戌')
+  })
+  it('亥(亥卯未)생 → 삼재 巳午未 (이전 亥子丑 버그)', () => {
+    expect(samjaeTarget('亥')).toBe('巳,午,未')
+  })
+})
+
+describe('saju relations — audit 2026-06 교정 회귀', () => {
+  const mk = (
+    year: [string, string], month: [string, string], day: [string, string], time: [string, string]
+  ) => ({
+    pillars: {
+      year: { heavenlyStem: year[0], earthlyBranch: year[1] },
+      month: { heavenlyStem: month[0], earthlyBranch: month[1] },
+      day: { heavenlyStem: day[0], earthlyBranch: day[1] },
+      time: { heavenlyStem: time[0], earthlyBranch: time[1] },
+    },
+  })
+  const kindsBetween = (input: ReturnType<typeof mk>) =>
+    analyzeRelations(input).map((h) => h.kind as string)
+
+  it('원진: 寅↔酉 성립', () => {
+    expect(kindsBetween(mk(['甲', '寅'], ['甲', '酉'], ['甲', '子'], ['甲', '子']))).toContain('원진')
+  })
+  it('원진: 寅↔巳 는 원진 아님 (해 복붙 버그)', () => {
+    const hits = analyzeRelations(mk(['甲', '寅'], ['甲', '巳'], ['甲', '子'], ['甲', '子']))
+    expect(hits.filter((h) => h.kind === '원진' && (h.detail?.includes('寅') || h.detail?.includes('巳')))).toHaveLength(0)
+  })
+  it('자형: 辰辰 성립', () => {
+    expect(kindsBetween(mk(['甲', '辰'], ['甲', '辰'], ['甲', '子'], ['甲', '子']))).toContain('지지형')
+  })
+  it('자형: 子子 는 형 아님 (자형 12종 → 4종 교정)', () => {
+    // 필러는 형 관계를 안 만드는 巳/丑 사용. 子子 자형만 격리 검사.
+    const hits = analyzeRelations(mk(['甲', '子'], ['甲', '子'], ['丙', '巳'], ['丁', '丑']))
+    expect(hits.filter((h) => h.kind === '지지형' && h.detail?.includes('子'))).toHaveLength(0)
+  })
+  it('천간충 기본: 戊↔甲 은 충 아님 (기본 4모드)', () => {
+    const hits = analyzeRelations(mk(['戊', '子'], ['甲', '丑'], ['丙', '寅'], ['丙', '卯']))
+    expect(hits.filter((h) => h.kind === '천간충')).toHaveLength(0)
+  })
+  it('천간충 기본: 甲↔庚 은 충 성립', () => {
+    expect(kindsBetween(mk(['甲', '子'], ['庚', '丑'], ['丙', '寅'], ['丙', '卯']))).toContain('천간충')
+  })
+})
+
+describe('astrology Zodiacal Releasing — 행성년수 (Saturn 30)', () => {
+  it('Capricorn 시작 (ruler 土星) 첫 L1 period = 30년', () => {
+    const periods = calculateZodiacalReleasing('Capricorn', 35)
+    expect(periods[0]?.ruler).toBe('Saturn')
+    expect(periods[0]?.durationYears).toBe(30)
+  })
+  it('Leo 시작 (ruler 태양) 첫 period = 19년 (회귀 hook)', () => {
+    const periods = calculateZodiacalReleasing('Leo', 25)
+    expect(periods[0]?.durationYears).toBe(19)
   })
 })
 

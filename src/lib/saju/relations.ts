@@ -33,7 +33,9 @@ export const DEFAULT_RELATION_OPTIONS: AnalyzeRelationsOptions = {
   includeTrineElementNote: true,
   includeSelfPunish: true,
   gongmangPolicy: 'dayPillar-60jiazi',
-  heavenlyClashMode: '5',
+  // 정통 천간충은 4쌍(甲庚·乙辛·丙壬·丁癸). 戊·己(土)는 충 부재가 통설이라
+  // 기본값을 '5'(戊甲·己乙 포함, 소수설)에서 '4'로 교정 — audit 2026-06.
+  heavenlyClashMode: '4',
 }
 
 const stemIndex = (name: string) => STEMS.findIndex((s) => s.name === name)
@@ -236,18 +238,12 @@ const EARTHLY_PUNISH_PAIRS = new Set([
   '子-卯',
   '卯-子', // 무은형
 ])
+// 자형(自刑) — 정설 4종: 辰辰 午午 酉酉 亥亥.
+// (이전엔 12지 전부를 자형으로 인정해 子子·丑丑 등 8종이 오판정됐음 — audit 2026-06)
 const SELF_PUNISH_PAIRS = new Set([
-  '子-子',
-  '丑-丑',
-  '寅-寅',
-  '卯-卯',
   '辰-辰',
-  '巳-巳',
   '午-午',
-  '未-未',
-  '申-申',
   '酉-酉',
-  '戌-戌',
   '亥-亥',
 ])
 
@@ -283,20 +279,21 @@ const EARTHLY_HARM_PAIRS = new Set([
   '戌-酉',
 ])
 
-// 원진 — 수정(표준 6쌍 대칭)
+// 원진(怨嗔) — 표준 6쌍: 子未 丑午 寅酉 卯申 辰亥 巳戌.
+// (이전엔 해(害) 페어를 복붙해 寅巳·卯辰·申亥·酉戌로 잘못돼 있었음 — audit 2026-06)
 const EARTHLY_YUANJIN_PAIRS = new Set([
   '子-未',
   '未-子',
   '丑-午',
   '午-丑',
-  '寅-巳',
-  '巳-寅',
-  '卯-辰',
-  '辰-卯',
-  '申-亥',
-  '亥-申',
-  '酉-戌',
-  '戌-酉',
+  '寅-酉',
+  '酉-寅',
+  '卯-申',
+  '申-卯',
+  '辰-亥',
+  '亥-辰',
+  '巳-戌',
+  '戌-巳',
 ])
 
 function analyzeEarthly(

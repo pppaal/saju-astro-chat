@@ -71,7 +71,7 @@ describe('relations.ts', () => {
       expect(DEFAULT_RELATION_OPTIONS.includeTrineElementNote).toBe(true)
       expect(DEFAULT_RELATION_OPTIONS.includeSelfPunish).toBe(true)
       expect(DEFAULT_RELATION_OPTIONS.gongmangPolicy).toBe('dayPillar-60jiazi')
-      expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe('5')
+      expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe('4')
     })
   })
 
@@ -296,12 +296,19 @@ describe('relations.ts', () => {
     })
 
     describe('원진 (Yuanjin)', () => {
-      it('detects 酉-戌 원진', () => {
-        const pillars = makePillars(['甲', '酉'], ['乙', '戌'], ['丙', '子'], ['丁', '丑'])
+      // 정설 원진: 子未 丑午 寅酉 卯申 辰亥 巳戌. (酉-戌은 해(害)이지 원진 아님 — audit 2026-06)
+      it('detects 寅-酉 원진', () => {
+        const pillars = makePillars(['甲', '寅'], ['乙', '酉'], ['丙', '子'], ['丁', '丑'])
         const result = analyzeRelations({ pillars })
         const yuanjin = result.find((h) => h.kind === '원진')
         expect(yuanjin).toBeDefined()
         expect(yuanjin?.detail).toContain('원진')
+      })
+
+      it('酉-戌 은 원진이 아님 (해(害)임)', () => {
+        const pillars = makePillars(['甲', '酉'], ['乙', '戌'], ['丙', '子'], ['丁', '丑'])
+        const result = analyzeRelations({ pillars })
+        expect(result.find((h) => h.kind === '원진')).toBeUndefined()
       })
     })
 
