@@ -198,35 +198,21 @@ export {
   type SibsinComprehensiveAnalysis,
 } from './sibsinAnalysis'
 
-// 건강 및 직업 적성 심층 분석 모듈
-export {
-  analyzeHealth,
-  analyzeCareer,
-  analyzeHealthCareer,
-  getElementRecommendations,
-  type OrganHealth,
-  type HealthAnalysis,
-  type CareerField,
-  type WorkStyle,
-  type CareerAnalysis,
-  type HealthCareerComprehensive,
-  type ElementRecommendations,
-} from './healthCareer'
+// 옛 건강·직업 모듈(./healthCareer) — 모호한 텍스트 예측이라 2026-06-06 삭제.
 
-// 사주 강약 종합 점수화 시스템
+// 사주 강약 점수화 — 옛 calculateComprehensiveScore/ComprehensiveScore/
+// UnseHarmonyScore 는 "종합 점수 S~F 등급" 가짜 분석이라 2026-06-06 삭제.
+// 진짜 사주 강약은 calculateStrengthScore 가 책임.
 export {
   calculateElementScores,
   calculateStrengthScore,
   calculateGeokgukScore,
   calculateYongsinFitScore,
-  calculateComprehensiveScore,
   type ScoreItem,
   type ElementScore,
   type StrengthScore,
   type GeokgukScore,
   type YongsinFitScore,
-  type UnseHarmonyScore,
-  type ComprehensiveScore,
 } from './strengthScore'
 
 // ============================================================

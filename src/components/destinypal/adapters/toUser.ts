@@ -82,8 +82,8 @@ export interface DestinypalUser {
   birthKo: string // "1995년 2월 9일 06:40"
   place: string
   sex: '남' | '여' | string
-  score: number
-  grade: string // "S" | "A" | "B" | "C" | "D" | "F"
+  // 옛 score/grade — 가짜 "종합 점수 S~F" 등급이라 2026-06-06 제거. 사주는
+  // 정량 등급으로 압축되지 않는다 (사용자 요청 + 아키텍처 정리).
   ilgan: {
     hanja: string
     kr: string // "신금"
@@ -364,9 +364,7 @@ export function toUser(
   opts: ToUserOptions = {},
 ): DestinypalUser {
   const advanced = natal.saju.advancedAnalysis
-  const score = advanced?.score
-  const grade = score?.grade ?? 'C'
-  const overall = score?.overall ?? 0
+  // 옛 score/grade — 2026-06-06 폐기.
 
   // dominant sibsin
   let dominantSibsin: { name: string; pct: number } = { name: '', pct: 0 }
@@ -431,8 +429,6 @@ export function toUser(
     birthKo,
     place: opts.place ?? '',
     sex: opts.sex ?? '',
-    score: overall,
-    grade,
     ilgan: deriveIlgan(natal),
     yongsin: yongsinTriad(natal),
     huisin: huisinTriad(natal),

@@ -619,39 +619,12 @@ export function deriveLifetimeFlow(
     elemIntroEn = `Across your eight characters ${ELEMENT_EN[topElemKey]} dominates — ${ELEMENT_IMPLICATION_EN[topElemKey]}.`
   }
 
-  // ── 추가 팩트(advancedAnalysis 미노출 8필드) ──
+  // ── 추가 팩트(advancedAnalysis 미노출 필드) ──
   const advanced = natal.saju.advancedAnalysis
 
-  // (1) 종합 점수 — calculateComprehensiveScore.overall (0-100) + grade S~F
-  let scoreIntroKo = ''
-  let scoreIntroEn = ''
-  if (advanced?.score) {
-    const s = advanced.score
-    const tierKo: Record<string, string> = {
-      S: '최상위 5%',
-      A: '상위 20%',
-      B: '상위 40%',
-      C: '평균권',
-      D: '아쉬운 편',
-      F: '보완이 많이 필요한',
-    }
-    const tierEn: Record<string, string> = {
-      S: 'top 5%',
-      A: 'top 20%',
-      B: 'top 40%',
-      C: 'average tier',
-      D: 'below average',
-      F: 'needs a lot of shoring up',
-    }
-    const tk = tierKo[s.grade] ?? ''
-    const te = tierEn[s.grade] ?? ''
-    scoreIntroKo = tk
-      ? `사주 종합 점수 ${s.overall}점(${s.grade}등급, ${tk}).`
-      : `사주 종합 점수 ${s.overall}점(${s.grade}등급).`
-    scoreIntroEn = te
-      ? `Composite Saju score ${s.overall} (grade ${s.grade}, ${te}).`
-      : `Composite Saju score ${s.overall} (grade ${s.grade}).`
-  }
+  // 옛 (1) 종합 점수 — calculateComprehensiveScore + S~F 등급은 2026-06-06 폐기.
+  const scoreIntroKo = ''
+  const scoreIntroEn = ''
 
   // (2) 십성 비중 — sibsin.categoryCount 의 dominant 카테고리 (% 환산)
   let sibsinIntroKo = ''
@@ -753,32 +726,11 @@ export function deriveLifetimeFlow(
     }
   }
 
-  // (5) 건강 + 직업 — 한 줄 요약 (취약 오행 / 본 직업 영역)
-  let lifeIntroKo = ''
-  let lifeIntroEn = ''
-  if (advanced?.health || advanced?.career) {
-    const partsKo: string[] = []
-    const partsEn: string[] = []
-    if (advanced.health) {
-      const h = advanced.health
-      partsKo.push(`건강은 ${h.weakElement} 오행 관련 신호 주시`)
-      const HEALTH_EN: Record<string, string> = {
-        목: 'Wood (liver/eyes)',
-        화: 'Fire (heart/sleep)',
-        토: 'Earth (digestion)',
-        금: 'Metal (lungs/skin)',
-        수: 'Water (kidneys/bones)',
-      }
-      partsEn.push(`health watchpoint: ${HEALTH_EN[h.weakElement] ?? h.weakElement}`)
-    }
-    if (advanced.career && advanced.career.primaryFields.length > 0) {
-      const cat = advanced.career.primaryFields[0].category
-      partsKo.push(`본 직업 결은 ${cat} 계열`)
-      partsEn.push(`career resonance: ${cat}`)
-    }
-    if (partsKo.length > 0) lifeIntroKo = `${partsKo.join(' / ')}.`
-    if (partsEn.length > 0) lifeIntroEn = `${partsEn.join(' / ')}.`
-  }
+  // 옛 (5) 건강 + 직업 — analyzeHealth/analyzeCareer 의 모호한 텍스트 예측이라
+  // 2026-06-06 폐기. LLM 답변이 같은 정보를 컨텍스트(오행 분포 + 십신 분포) 기반으로
+  // 더 정확하게 만들 수 있음.
+  const lifeIntroKo = ''
+  const lifeIntroEn = ''
 
   // ── intro 합성 ──
   let intro = ''

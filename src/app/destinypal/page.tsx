@@ -162,8 +162,6 @@ export default async function DestinypalPage() {
     birthKo: userBase.birthKo,
     place: userBase.place,
     sex: (userBase.sex === '남' || userBase.sex === '여' ? userBase.sex : '남'),
-    score: userBase.score,
-    grade: userBase.grade,
     ilgan: {
       hanja: userBase.ilgan.hanja,
       kr: userBase.ilgan.kr,

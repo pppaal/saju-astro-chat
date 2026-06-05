@@ -79,68 +79,9 @@ function Ganji({
   )
 }
 
-function ScoreOrb({
-  score,
-  grade,
-  max = 100,
-}: {
-  score: number
-  grade: string
-  max?: number
-}) {
-  const r = 58
-  const c = 2 * Math.PI * r
-  const frac = Math.max(0, Math.min(1, score / max))
-  return (
-    <div className={styles.scoreOrb}>
-      <svg width="132" height="132" viewBox="0 0 132 132">
-        <defs>
-          <linearGradient id="dp-orbg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="#222a4e" />
-            <stop offset="1" stopColor="#4f5d96" />
-          </linearGradient>
-        </defs>
-        <circle
-          cx="66"
-          cy="66"
-          r={r}
-          fill="none"
-          stroke="rgba(58,46,28,0.14)"
-          strokeWidth="4"
-        />
-        <circle
-          cx="66"
-          cy="66"
-          r={r}
-          fill="none"
-          stroke="url(#dp-orbg)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - frac)}
-          transform="rotate(-90 66 66)"
-        />
-        {Array.from({ length: 60 }).map((_, i) => {
-          const a = (i / 60) * Math.PI * 2 - Math.PI / 2
-          const on = i / 60 <= frac
-          return (
-            <circle
-              key={i}
-              cx={66 + Math.cos(a) * 50}
-              cy={66 + Math.sin(a) * 50}
-              r={on ? 0.9 : 0.5}
-              fill={on ? '#4f5d96' : 'rgba(58,46,28,0.18)'}
-            />
-          )
-        })}
-      </svg>
-      <div className={styles.num}>
-        <b>{score}</b>
-        <span>SCORE · {grade}</span>
-      </div>
-    </div>
-  )
-}
+// 옛 ScoreOrb — 사용자 점수/등급 표시 위젯이었으나, 그 점수 자체가 가짜
+// "calculateComprehensiveScore" 의 산출물이라 2026-06-06 폐기. 사용자 호출처
+// (LifetimeTier introPanel) 에서도 같이 제거.
 
 const EL_META: Record<keyof ElementCounts, { c: string; en: string }> = {
   목: { c: 'var(--el-wood)', en: 'Wood' },
@@ -312,7 +253,6 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </div>
 
         <div className={`${styles.panel} ${styles.introPanel}`}>
-          <ScoreOrb score={user.score} grade={user.grade} max={100} />
           <div className={styles.introPanelSide}>
             <div className={styles.idChips}>
               <span className={styles.chip}>

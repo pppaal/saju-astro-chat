@@ -14,10 +14,7 @@ import { analyzeHyeongchung } from '@/lib/saju/hyeongchung'
 import { calculateTonggeun, calculateDeukryeong } from '@/lib/saju/tonggeun'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { analyzeSibsinComprehensive } from '@/lib/saju/sibsinAnalysis'
-import { analyzeHealth, analyzeCareer } from '@/lib/saju/healthCareer'
-import { calculateComprehensiveScore } from '@/lib/saju/strengthScore'
 import { getTwelveStageInterpretation } from '@/lib/saju/interpretations'
-import type { SajuPillars } from '@/lib/saju/types'
 import { isTwelveStageType } from './utilities'
 
 export interface SimplePillars {
@@ -50,9 +47,6 @@ export interface AdvancedAnalysisResult {
   deukryeong: ReturnType<typeof calculateDeukryeong> | null
   johuYongsin: ReturnType<typeof getJohuYongsin> | null
   sibsin: ReturnType<typeof analyzeSibsinComprehensive> | null
-  health: ReturnType<typeof analyzeHealth> | null
-  career: ReturnType<typeof analyzeCareer> | null
-  score: ReturnType<typeof calculateComprehensiveScore> | null
   interpretations: {
     twelveStages: Record<string, ReturnType<typeof getTwelveStageInterpretation>>
   }
@@ -64,12 +58,9 @@ export interface AdvancedAnalysisResult {
 export function performAdvancedAnalysis(
   simplePillars: SimplePillars,
   pillarsWithHour: PillarsWithHour,
-  sajuPillars: SajuPillars,
   dayMasterStem: string,
   monthBranch: string,
   twelveStages: Record<string, string>,
-  // fiveElements 는 더 이상 쓰지 않지만(오행 해석 제거) 호출부 시그니처 유지를 위해 보존.
-  _fiveElements: Record<string, number>
 ): AdvancedAnalysisResult {
   const result: AdvancedAnalysisResult = {
     geokguk: null,
@@ -79,9 +70,6 @@ export function performAdvancedAnalysis(
     deukryeong: null,
     johuYongsin: null,
     sibsin: null,
-    health: null,
-    career: null,
-    score: null,
     interpretations: { twelveStages: {} },
   }
 
@@ -156,34 +144,10 @@ export function performAdvancedAnalysis(
     }
   }
 
-  // 7. 건강 분석
-  try {
-    result.health = analyzeHealth(pillarsWithHour)
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] Health analysis failed:', e)
-    }
-  }
+  // 옛 7·8·9 (analyzeHealth/Career/calculateComprehensiveScore) — 모호한 텍스트
+  // 예측 + 가짜 등급이라 2026-06-06 삭제.
 
-  // 8. 직업 적성 분석
-  try {
-    result.career = analyzeCareer(pillarsWithHour)
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] Career analysis failed:', e)
-    }
-  }
-
-  // 9. 종합 점수
-  try {
-    result.score = calculateComprehensiveScore(sajuPillars)
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] Comprehensive score failed:', e)
-    }
-  }
-
-  // 11. 해석 데이터 수집
+  // 10. 해석 데이터 수집
   try {
     // 12운성 해석
     for (const [pillar, stage] of Object.entries(twelveStages)) {
