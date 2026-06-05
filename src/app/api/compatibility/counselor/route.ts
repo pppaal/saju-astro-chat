@@ -87,13 +87,7 @@ function buildGuestCompatTurnCookie(next: number): string {
 
 import {
   clampMessages,
-  stringifyForPrompt,
-  prunePromptContext,
-  countObjectKeys,
-  extractTimingDetails,
   buildPersonSeed,
-  collectMissingSajuKeys,
-  collectMissingAstroKeys,
   getAgeFromBirthDate,
 } from './routeSupport'
 
@@ -221,16 +215,15 @@ export async function POST(req: NextRequest) {
 
     const {
       persons,
-      person1Saju = null,
-      person2Saju = null,
-      person1Astro = null,
-      person2Astro = null,
-      fullContext,
       lang: bodyLang,
       messages = [],
       cvText,
       turnId: rawTurnId,
     } = validationResult.data
+    // person*Saju / person*Astro / fullContext 는 옛 client 가 보내던
+    // legacy 필드 (Phase E 에 제거). 입력 validation 에서는 optional 로
+    // 유지해 옛 client request 가 400 으로 막히지 않게 하되, 라우트에서는
+    // 무시한다.
 
     // 끊김 복구용 턴 식별자. 로그인 사용자만 캐시 → 게스트는 turnId 가 있어도
     // 복원 대상에서 제외(아래 onComplete 가 recoverUserId 가드).
@@ -341,113 +334,24 @@ export async function POST(req: NextRequest) {
     // better itself.
     const person1Seed = buildPersonSeed((persons?.[0] as Record<string, unknown>) || null)
     const person2Seed = buildPersonSeed((persons?.[1] as Record<string, unknown>) || null)
-    const now = new Date()
-    // Phase A/B 후 사주/점성 시나스트리 블록은 compatSajuFacts / compatAstroFacts
-    // 가 만든다. 옛 auto enrichment (buildAutoSajuContext / buildAutoAstroContext)
-    // 결과는 LLM 으로 들어가지 않고 모니터링 로그에만 갔으므로 호출 자체를
-    // 제거한다 (Phase C). effectivePerson*Saju/Astro 는 client 가 fullContext
-    // 채널로 직접 보낸 raw 만 담는다 (legacy 호환). 보통 빈 객체/null.
-    const effectivePerson1Saju = person1Saju ?? null
-    const effectivePerson2Saju = person2Saju ?? null
-    const effectivePerson1Astro = person1Astro ?? null
-    const effectivePerson2Astro = person2Astro ?? null
-    const strictCompleteness =
-      process.env.NODE_ENV !== 'test' && process.env.COMPATIBILITY_COUNSELOR_STRICT === 'true'
-    const completenessMissing = [
-      ...collectMissingSajuKeys('person1', effectivePerson1Saju),
-      ...collectMissingSajuKeys('person2', effectivePerson2Saju),
-      ...collectMissingAstroKeys('person1', effectivePerson1Astro),
-      ...collectMissingAstroKeys('person2', effectivePerson2Astro),
-    ]
-    if (strictCompleteness && completenessMissing.length > 0) {
-      logger.error('[compatibility/counselor] strict completeness failed', {
-        missing: completenessMissing,
-      })
-      return createFallbackSSEStream(
-        {
-          content:
-            lang === 'ko'
-              ? `필수 데이터 누락으로 리포트 생성을 중단했습니다. 누락: ${completenessMissing.join(', ')}`
-              : `Report generation stopped due to missing required data: ${completenessMissing.join(', ')}`,
-          done: true,
-        },
-        { 'X-Counselor-Fallback': '1' }
-      )
-    }
-    if (!strictCompleteness && completenessMissing.length > 0) {
-      logger.warn('[compatibility/counselor] continuing with partial context', {
-        missing: completenessMissing,
-      })
-    }
-    const p1Age = getAgeFromBirthDate(persons?.[0]?.date)
-    const p2Age = getAgeFromBirthDate(persons?.[1]?.date)
-    const timingDetails = {
-      person1: extractTimingDetails(effectivePerson1Saju, p1Age, now),
-      person2: extractTimingDetails(effectivePerson2Saju, p2Age, now),
-    }
 
-    // Raw chart context. Previously this was a pruned JSON dump of the
-    // saju + natal objects (~25k chars even after PR #197's prunes).
-    // 99% of the bytes were JSON quotes, brackets, and repeated key
-    // names ("heavenlyStem", "earthlyBranch", "sibsin"...) that say
-    // nothing to the model — the actual signal per character was tiny.
-    //
-    // Replaced with a flat, pipe-separated table form. Same info,
-    // ~5× less tokens. The model reads pipes fine; we don't need a
-    // visual table on the wire.
-    //
-    // If the caller supplies a pre-baked fullContext (legacy clients),
-    // we still serialize that as JSON because we can't guarantee its
-    // shape.
-    const resolvedFullContext =
-      fullContext ||
-      ({
-        persons,
-        person1Saju: effectivePerson1Saju,
-        person2Saju: effectivePerson2Saju,
-        person1Astro: effectivePerson1Astro,
-        person2Astro: effectivePerson2Astro,
-      } as Record<string, unknown>)
-    // Surface time-unknown flags as a header so the LLM can see which
-    // sides should skip time-pillar / 일진 / ASC / MC / hour-dependent
-    // signals. Without this the model just sees `time: 00:00` and
-    // treats it as a real midnight birth.
+    // Phase E (2026-06-06): stale 모니터링 정리.
+    // Phase A/B 후 사주/점성 시나스트리 블록은 compatSajuFacts /
+    // compatAstroFacts 가 server-side 에서 만든다. client 가 보내는
+    // person*Saju/Astro 는 LLM 으로 안 가고 contextTrace 디버그 로그·
+    // strict completeness 검증에만 쓰였다. strict ENV (COMPATIBILITY_
+    // COUNSELOR_STRICT) 는 production .env 에 없어 항상 false → fallback
+    // path 도 dead. fullContext 채널은 client 송신처 0 (옛 legacy 가정
+    // 만 남아 dead). 모두 제거.
+
+    // 시간 미상 헤더는 살린다 — A/B 둘 다 시간 모를 때 LLM 이 자정 폴백
+    // 으로 그럴듯한 ASC/MC 를 만들지 않게 막는다.
     const personA = persons[0] as { timeUnknown?: boolean } | undefined
     const personB = persons[1] as { timeUnknown?: boolean } | undefined
     const unknownNotices: string[] = []
     if (personA?.timeUnknown) unknownNotices.push('# A 시간 미상.')
     if (personB?.timeUnknown) unknownNotices.push('# B 시간 미상.')
-
-    // legacy fullContext 입력(있을 때)만 raw JSON으로 직렬화. self 블록이
-    // 각 사람 raw + cross 다 cover하므로 fullContext가 없으면 fullContextText는
-    // 빈 string — cached의 == 전체 raw 컨텍스트 == 섹션 자체가 생략됨.
-    const fullContextText = fullContext
-      ? stringifyForPrompt(prunePromptContext(resolvedFullContext))
-      : [...unknownNotices].filter(Boolean).join('\n')
-    const contextTrace = {
-      currentDateIso: new Date().toISOString().slice(0, 10),
-      hasDaeun: Boolean(timingDetails.person1.hasDaeun) || Boolean(timingDetails.person2.hasDaeun),
-      hasSaeun: Boolean(timingDetails.person1.hasSaeun) || Boolean(timingDetails.person2.hasSaeun),
-      hasWolun: Boolean(timingDetails.person1.hasWolun) || Boolean(timingDetails.person2.hasWolun),
-      hasIlun: Boolean(timingDetails.person1.hasIlun) || Boolean(timingDetails.person2.hasIlun),
-      timingCoverage: {
-        person1: (timingDetails.person1.counts as Record<string, number>) || {},
-        person2: (timingDetails.person2.counts as Record<string, number>) || {},
-      },
-      autoEnrichment: {
-        person1: { hasSeed: !!person1Seed },
-        person2: { hasSeed: !!person2Seed },
-      },
-      person1SajuKeys: countObjectKeys(effectivePerson1Saju),
-      person2SajuKeys: countObjectKeys(effectivePerson2Saju),
-      person1AstroKeys: countObjectKeys(effectivePerson1Astro),
-      person2AstroKeys: countObjectKeys(effectivePerson2Astro),
-      fullContextKeys: countObjectKeys(resolvedFullContext),
-      strictCompleteness,
-      missingFields: completenessMissing,
-    }
-    // contextTrace는 prompt에서 빠졌으므로 server-side 디버깅 용도로만 남긴다.
-    logger.debug('[compatibility/counselor] context trace', { contextTrace })
+    const timeUnknownNotices = unknownNotices.join('\n')
 
     // 진짜 multi-turn — assistant 답변을 LLM이 자기 발화로 정확히
     // 인식하게. 예전엔 Q:/A: 한 덩어리 string으로 박아서 직전 답 톤이
@@ -726,7 +630,7 @@ export async function POST(req: NextRequest) {
       sajuSynastryBlock,
       astroSynastryBlock,
       compositeChartBlock,
-      fullContextText, // legacy fullContext (보통 빈 string)
+      timeUnknownNotices,
     ]
       .filter(Boolean)
       .join('\n')
