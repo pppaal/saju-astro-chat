@@ -77,9 +77,9 @@ export default function ClarifierCardModal({
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(10, 10, 20, 0.75)',
-        backdropFilter: 'blur(6px)',
-        zIndex: 1100,
+        background: 'rgba(10, 10, 20, 0.85)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 99999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
