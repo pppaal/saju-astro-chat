@@ -15,7 +15,6 @@ the source of truth for the rules.
 | Surface | Entry | Purpose |
 | --- | --- | --- |
 | Main reading | `src/app/tarot/[categoryName]/[spreadId]/page.tsx` | Category × spread × question → interpretation |
-| Couple reading | `src/app/tarot/couple/[readingId]/page.tsx` | Two-person reading detail view |
 | Inline modal | `src/components/destiny-map/InlineTarotModal.tsx` | Tarot inside the destiny counselor flow |
 | History | `src/app/tarot/history/` | Saved readings list |
 
@@ -64,7 +63,6 @@ Bumped in PR #260 (2026-05-17) — readability complaint baseline.
 | Overall / card AI text (Tailwind in `ResultsStage.tsx`, `DetailedCardItem.tsx`) | 17px md | 19px md |
 | Advice / followup chat (Tailwind) | 15px | 17px |
 | `InlineTarotModal` `.resultText` | 1.05rem | 1.2rem |
-| Couple result inline `<div>`/`<p>` | browser default | 1.15–1.25rem explicit |
 
 Mobile media queries scaled proportionally.
 
