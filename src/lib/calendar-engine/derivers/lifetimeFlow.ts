@@ -20,6 +20,12 @@ import type { NatalContext } from '../context/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import { getTwelveStage } from '@/lib/saju/shinsal'
+import { getJohuYongsin } from '@/lib/saju/johuYongsin'
+import { getTwelveStageInterpretation, type TwelveStageType } from '@/lib/saju/interpretations'
+
+const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
+  '장생', '목욕', '관대', '건록', '제왕', '쇠', '병', '사', '묘', '절', '태', '양',
+])
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { currentManAge } from '@/lib/datetime/currentAge'
@@ -711,18 +717,22 @@ export function deriveLifetimeFlow(
     }
   }
 
-  // (4) 조후 용신 — primary yongsin 과 다를 때만 노출 (중복 회피)
+  // (4) 조후 용신 — primary yongsin 과 다를 때만 노출 (중복 회피).
+  // raw 응답에서 분리됐기 때문에 (2026-06-06) 여기서 직접 호출. 일간 + 월지로
+  // pure-lookup 이라 cost 무시.
   let johuIntroKo = ''
   let johuIntroEn = ''
-  if (advanced?.johuYongsin) {
-    const jy = advanced.johuYongsin
-    const johuElem = jy.primaryYongsin
-    const ekbu = natal.saju.yongsin?.primary
-    // 같으면 노출 생략 (이미 head 줄에서 yongsin 으로 다뤄짐)
-    if (johuElem && johuElem !== ekbu) {
-      const johuEnElem = ELEMENT_EN[ELEMENT_KO_TO_KEY[johuElem]] ?? johuElem
-      johuIntroKo = `조후로 보면 ${johuElem} 기운이 필요한 결이라 ${jy.reasoning}`
-      johuIntroEn = `Seasonally you need ${johuEnElem} — ${jy.reasoning_en}`
+  const monthBranchForJohu = natal.saju.pillars?.month?.earthlyBranch?.name
+  if (dm && monthBranchForJohu) {
+    const jy = getJohuYongsin(dm, monthBranchForJohu)
+    if (jy) {
+      const johuElem = jy.primaryYongsin
+      const ekbu = natal.saju.yongsin?.primary
+      if (johuElem && johuElem !== ekbu) {
+        const johuEnElem = ELEMENT_EN[ELEMENT_KO_TO_KEY[johuElem]] ?? johuElem
+        johuIntroKo = `조후로 보면 ${johuElem} 기운이 필요한 결이라 ${jy.reasoning}`
+        johuIntroEn = `Seasonally you need ${johuEnElem} — ${jy.reasoning_en}`
+      }
     }
   }
 
@@ -961,25 +971,20 @@ export function deriveLifetimeFlow(
       }
     }
 
-    // 사실 5: 일간 기준 이 단계 대운 지지의 12운성. advancedAnalysis 가 제공
-    // 하는 12운성 interpretation 은 본명 4기둥만이라 대운 지지엔 직접 매핑
-    // 못한다 — getTwelveStage 로 단계 직접 계산 + 기존 JSON interp 의 meaning
-    // 만 1줄 압축으로 노출.
+    // 사실 5: 일간 기준 이 단계 대운 지지의 12운성. 옛 advanced.interpretations
+    // 캐시 사용했지만 raw 응답에서 제거됐기 때문에 (2026-06-06) 직접 호출.
+    // getTwelveStage + getTwelveStageInterpretation 둘 다 pure-table lookup 이라
+    // cost 무시.
     let twelveStageLine: string | undefined
     try {
       const stage = getTwelveStage(dm, primary.branch)
-      const interp = advanced?.interpretations?.twelveStages
-      // 우선 동일 brunch 의 본명 interp 가 있으면 재사용 (이미 캐시됨); 없으면
-      // null. 둘 다 안 되면 stage 이름만이라도 노출.
       let meaningKo = ''
       let meaningEn = ''
-      if (interp) {
-        for (const v of Object.values(interp)) {
-          if (v && v.name === stage) {
-            meaningKo = v.meaning
-            meaningEn = v.meaning_en
-            break
-          }
+      if (stage && TWELVE_STAGE_TYPES.has(stage as TwelveStageType)) {
+        const interp = getTwelveStageInterpretation(stage as TwelveStageType)
+        if (interp) {
+          meaningKo = interp.meaning ?? ''
+          meaningEn = interp.meaning_en ?? ''
         }
       }
       if (stage) {

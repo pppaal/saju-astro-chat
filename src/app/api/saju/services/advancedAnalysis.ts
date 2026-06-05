@@ -12,10 +12,7 @@ import {
 } from '@/lib/saju/yongsin'
 import { analyzeHyeongchung } from '@/lib/saju/hyeongchung'
 import { calculateTonggeun, calculateDeukryeong } from '@/lib/saju/tonggeun'
-import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { analyzeSibsinComprehensive } from '@/lib/saju/sibsinAnalysis'
-import { getTwelveStageInterpretation } from '@/lib/saju/interpretations'
-import { isTwelveStageType } from './utilities'
 
 export interface SimplePillars {
   year: { stem: string; branch: string }
@@ -45,11 +42,9 @@ export interface AdvancedAnalysisResult {
   hyeongchung: ReturnType<typeof analyzeHyeongchung> | null
   tonggeun: ReturnType<typeof calculateTonggeun> | null
   deukryeong: ReturnType<typeof calculateDeukryeong> | null
-  johuYongsin: ReturnType<typeof getJohuYongsin> | null
   sibsin: ReturnType<typeof analyzeSibsinComprehensive> | null
-  interpretations: {
-    twelveStages: Record<string, ReturnType<typeof getTwelveStageInterpretation>>
-  }
+  // 옛 johuYongsin/interpretations — 해석/텍스트라 raw 응답에서 제거(2026-06-06).
+  // 운흐름/소비자가 raw 받아 getJohuYongsin/getTwelveStageInterpretation 직접 호출.
 }
 
 /**
@@ -60,7 +55,6 @@ export function performAdvancedAnalysis(
   pillarsWithHour: PillarsWithHour,
   dayMasterStem: string,
   monthBranch: string,
-  twelveStages: Record<string, string>,
 ): AdvancedAnalysisResult {
   const result: AdvancedAnalysisResult = {
     geokguk: null,
@@ -68,9 +62,7 @@ export function performAdvancedAnalysis(
     hyeongchung: null,
     tonggeun: null,
     deukryeong: null,
-    johuYongsin: null,
     sibsin: null,
-    interpretations: { twelveStages: {} },
   }
 
   // 1. 격국 분석 — determineGeokgukAdvanced 는 (a) 잡기격 보완 판정 (b) 정격·비격에
@@ -126,16 +118,7 @@ export function performAdvancedAnalysis(
     }
   }
 
-  // 5. 조후용신 (궁통보감)
-  try {
-    result.johuYongsin = getJohuYongsin(dayMasterStem, monthBranch)
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] JohuYongsin analysis failed:', e)
-    }
-  }
-
-  // 6. 십신 종합 분석
+  // 5. 십신 종합 분석
   try {
     result.sibsin = analyzeSibsinComprehensive(pillarsWithHour)
   } catch (e) {
@@ -144,22 +127,11 @@ export function performAdvancedAnalysis(
     }
   }
 
-  // 옛 7·8·9 (analyzeHealth/Career/calculateComprehensiveScore) — 모호한 텍스트
-  // 예측 + 가짜 등급이라 2026-06-06 삭제.
-
-  // 10. 해석 데이터 수집
-  try {
-    // 12운성 해석
-    for (const [pillar, stage] of Object.entries(twelveStages)) {
-      if (stage && typeof stage === 'string' && isTwelveStageType(stage)) {
-        result.interpretations.twelveStages[pillar] = getTwelveStageInterpretation(stage)
-      }
-    }
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] Interpretations failed:', e)
-    }
-  }
+  // 옛 johuYongsin / interpretations.twelveStages / health / career / score —
+  // 모두 해석/텍스트 라 raw 응답에서 제거(2026-06-06). 소비자가 직접 호출:
+  //   getJohuYongsin(dayMasterStem, monthBranch)
+  //   getTwelveStageInterpretation(stage)
+  //   analyze...
 
   return result
 }
