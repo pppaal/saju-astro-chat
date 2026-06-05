@@ -51,6 +51,7 @@ function GlobalHeaderContent() {
       <div
         className="fixed top-0 inset-x-0 z-[var(--z-sticky-header)]"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        role="banner"
       >
         <AppHeader
           layout="home"
