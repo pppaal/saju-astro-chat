@@ -30,6 +30,56 @@ function exactnessFactor(cellDate: string, s: ActiveSignal): number {
   return Math.max(0.3, 1 - days / PEAK_WINDOW_DAYS)
 }
 
+/**
+ * 큰 날의 활성 구간 — 구성 무거운 신호들의 active window 를 합쳐 하나의 구간으로.
+ * start = 가장 이른 시작, end = 가장 늦은 끝, peak = impact 최대 신호의 정점.
+ */
+function aggregateWindow(
+  sigs: ActiveSignal[]
+): { start: string; peak: string; end: string } | undefined {
+  let startMs = Number.POSITIVE_INFINITY
+  let endMs = Number.NEGATIVE_INFINITY
+  let peakIso: string | undefined
+  let peakImp = -1
+  for (const s of sigs) {
+    const st = s.active?.start ? Date.parse(s.active.start) : NaN
+    const en = s.active?.end ? Date.parse(s.active.end) : NaN
+    if (!Number.isNaN(st)) startMs = Math.min(startMs, st)
+    if (!Number.isNaN(en)) endMs = Math.max(endMs, en)
+    const imp = Math.abs(s.polarity) * s.weight
+    if (imp > peakImp && s.active?.peak) {
+      peakImp = imp
+      peakIso = s.active.peak
+    }
+  }
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) return undefined
+  const fallbackPeak = new Date((startMs + endMs) / 2).toISOString()
+  return {
+    start: new Date(startMs).toISOString(),
+    peak: peakIso ?? fallbackPeak,
+    end: new Date(endMs).toISOString(),
+  }
+}
+
+/**
+ * 큰 날 신뢰도 0~100. crossAgreement 와 같은 결: 무거운 신호 질량(|polarity|≥2
+ * 개수) + 둘 다 존재 보너스 + 사주↔점성 *방향 일치*(같은 방향 +8 / 반대 −8).
+ */
+function convergenceConfidence(
+  sigs: ActiveSignal[],
+  bothSystems: boolean,
+  astroPolNet: number,
+  sajuPolNet: number
+): number {
+  const heavyCount = sigs.filter((s) => Math.abs(s.polarity) >= 2).length
+  let c = 45 + Math.min(heavyCount, 6) * 6 + (bothSystems ? 10 : 0)
+  if (bothSystems && astroPolNet !== 0 && sajuPolNet !== 0) {
+    const same = Math.sign(astroPolNet) === Math.sign(sajuPolNet)
+    c += same ? 8 : -8
+  }
+  return Math.max(0, Math.min(100, Math.round(c)))
+}
+
 const THEME_LABEL: Record<'ko' | 'en', Record<AstroThemeKey, string>> = {
   ko: { love: '연애', money: '재물', career: '직업', health: '건강', growth: '성장' },
   en: { love: 'love', money: 'money', career: 'career', health: 'health', growth: 'growth' },
@@ -114,6 +164,18 @@ export interface ConvergenceDay {
   saju: string[] // 그날 무거운 사주 이벤트
   bothSystems: boolean // 점성·사주 둘 다 무거운 게 있었나 (진짜 수렴)
   meaning?: string // 영역(theme) + 톤(polarity) 한 줄 의미
+  /**
+   * 그 큰 날의 *활성 구간* — 구성 무거운 신호들의 active window 집계.
+   * start=가장 이른 시작, end=가장 늦은 끝, peak=가장 강한 신호의 정점.
+   * "7/15 좋음"(점)이 아니라 "7/10~20 빌드업→정점→소멸"(구간)을 위해.
+   * 윈도우 정보 있는 무거운 신호가 없으면 undefined.
+   */
+  window?: { start: string; peak: string; end: string }
+  /**
+   * 그 큰 날의 신뢰도 0~100 — 무거운 신호 질량 + 사주↔점성 *방향 일치*.
+   * 둘 다 무겁고 같은 방향이면 ↑, 반대 방향이면 ↓ (수렴이지만 갈등).
+   */
+  confidence?: number
 }
 
 export interface Convergence {
@@ -135,18 +197,25 @@ export function deriveConvergence(
     const themeAcc: Partial<Record<AstroThemeKey, number>> = {}
     let netPol = 0
     let sumImp = 0
+    // 윈도우 집계·confidence 용: 그날 무거운 신호와 source 별 방향(polarity×imp) 합.
+    const heavySignals: ActiveSignal[] = []
+    let astroPolNet = 0
+    let sajuPolNet = 0
     for (const s of c.signals) {
       const imp = Math.abs(s.polarity) * s.weight
       if (imp < MIN_IMPACT) continue
       const heavyAstro = isHeavyAstro(s)
       const heavySaju = !heavyAstro && isHeavySaju(s)
       if (!heavyAstro && !heavySaju) continue
+      heavySignals.push(s)
       if (heavyAstro) {
         astroHeavy += imp * exactnessFactor(c.datetime, s)
+        astroPolNet += s.polarity * imp
         const n = cleanName(s)
         if (n && astro.length < 3 && !astro.includes(n)) astro.push(n)
       } else {
         sajuHeavy += imp
+        sajuPolNet += s.polarity * imp
         const n = cleanName(s)
         if (n && saju.length < 3 && !saju.includes(n)) saju.push(n)
       }
@@ -165,6 +234,8 @@ export function deriveConvergence(
       saju,
       bothSystems,
       meaning: composeMeaning(themeAcc, netPol, sumImp, lang, c.datetime.slice(0, 10)),
+      window: aggregateWindow(heavySignals),
+      confidence: convergenceConfidence(heavySignals, bothSystems, astroPolNet, sajuPolNet),
     })
   }
   scored.sort((a, b) => b.score - a.score)
