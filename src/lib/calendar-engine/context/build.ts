@@ -144,7 +144,6 @@ export async function buildNatalContext(
     pillarsWithHourForAdvanced,
     dayMasterStem,
     monthBranch,
-    twelveStages,
   )
 
   // 대운 리스트 (CalculateSajuDataResult.daeWoon에서)
