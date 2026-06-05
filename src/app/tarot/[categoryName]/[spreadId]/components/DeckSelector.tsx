@@ -65,8 +65,8 @@ export default function DeckSelector({
             <div className={styles.guestTrialBanner}>
               <p className={styles.guestTrialText}>
                 {isKo
-                  ? '비로그인 무료 1회 체험 중입니다. 이번 리딩은 끝까지 볼 수 있고, 다음 리딩부터는 로그인이 필요합니다.'
-                  : 'You are using the one free guest reading. This reading will complete, and the next one will require sign-in.'}
+                  ? '타로 리딩은 로그인 후 이용할 수 있어요. 시작하면 로그인 창이 열립니다.'
+                  : 'Tarot readings require sign-in. Starting a reading will open the sign-in window.'}
               </p>
               <Link href={signInUrl} className={styles.guestTrialLink}>
                 {isKo ? '지금 로그인' : 'Sign In Now'}

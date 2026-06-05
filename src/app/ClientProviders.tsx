@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import { I18nProvider } from '@/i18n/I18nProvider'
 import { ToastProvider } from '@/components/ui/Toast'
 import { CreditModalProvider } from '@/contexts/CreditModalContext'
+import { LoginModalProvider } from '@/contexts/LoginModalContext'
 import ServiceWorkerStabilityGuard from '@/components/pwa/ServiceWorkerStabilityGuard'
 import ReferralLinker from '@/components/referral/ReferralLinker'
 import LegalConsentModal from '@/components/legal/LegalConsentModal'
@@ -38,7 +39,11 @@ export function ClientProviders({
       <InAppBrowserNotice />
       <ToastProvider>
         <CreditModalProvider>
-          {children}
+          {/* 유료 서비스(궁합·운명·타로)를 비로그인 상태로 사용하려 하면
+              로그인 모달을 띄우는 컨텍스트. useRequireLogin() 으로 액션을 가드. */}
+          <LoginModalProvider>
+            {children}
+          </LoginModalProvider>
         </CreditModalProvider>
       </ToastProvider>
       {/* 첫 로그인 후 약관·개인정보·14세+ 동의 모달. 동의 안 받으면 backdrop
