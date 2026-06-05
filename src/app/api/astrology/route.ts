@@ -88,11 +88,12 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     // Natal chart Redis 캐시 — 생년월일·시간·좌표 동일하면 같은 차트.
     // 30일 TTL (NATAL_CHART) — 천체력 데이터 immutable. 캐시 hit 시 Swiss
     // Ephemeris ~250ms × 10 planets 통째로 절약. 캐시 키는 birthDate-birthTime
-    // -lat-lon 으로 timeZone 차이는 무시 (lat/lon 으로 충분히 unique).
+    // -lat-lon-timeZone. timeZone 은 현지시각→UT 변환에 들어가 차트를 바꾸므로
+    // 키에 반드시 포함해야 한다 (좌표만으론 unique 보장 안 됨 — tz override 가능).
     const birthDateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     const birthTimeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
     natal = await cacheOrCalculate(
-      CacheKeys.natalChart(birthDateStr, birthTimeStr, latitude, longitude),
+      CacheKeys.natalChart(birthDateStr, birthTimeStr, latitude, longitude, String(timeZone)),
       async () =>
         calculateNatalChart({
           year,
