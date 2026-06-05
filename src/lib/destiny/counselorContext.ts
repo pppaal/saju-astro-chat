@@ -8,6 +8,7 @@
 import { calculateSajuData } from '@/lib/saju/saju'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
+import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
@@ -379,6 +380,27 @@ export async function buildDestinyContext(
   try {
     const [Y, M, D] = birth.birthDate.split('-').map(Number)
     const [h, mi] = (birth.birthTime || '00:00').split(':').map(Number)
+    // ── 재료 준비실 ──
+    // 옛 코드는 raw 호출(calculateNatalChart/findNatalAspects/dignityOf/
+    // calculateProfection) + 어스펙트 분류 + 포매팅을 한 try 블록에서 다 했음.
+    // 2026-06-06 분리:
+    //   - collectAstroFacts → 순수 데이터 객체 (planets/aspects/profection)
+    //   - 아래 코드는 그 facts 를 텍스트로 포매팅
+    const aFacts = await collectAstroFacts(
+      {
+        birthDate: birth.birthDate,
+        birthTime: birth.birthTime,
+        latitude: lat,
+        longitude: lon,
+        timezone: tz,
+        birthTimeUnknown: birth.birthTimeUnknown,
+        birthCityUnknown: birth.birthCityUnknown,
+      },
+      now,
+    )
+    if (!aFacts) throw new Error('astro facts unavailable')
+
+    // chart 는 formatAstroSelf 에 넘기기 위해 별도 한 번 더 만든다 (LRU cache hit).
     const natal = await calculateNatalChart({
       year: Y,
       month: M,
@@ -393,62 +415,21 @@ export async function buildDestinyContext(
     const sgn = (s: string) => (locale === 'ko' ? (SIGN_KO_A[s] ?? s).replace(/자리$/, '') : s)
     const pl = (n: string) => (n === 'Ascendant' ? 'ASC' : n === 'MC' ? 'MC' : pkA(n, locale))
 
-    // positions (sign·house·dignity); dignity tag is English in both locales.
-    // 하우스·ASC·MC 는 정확한 출생시각 + 출생지 둘 다 있어야 의미가 있다.
-    // 둘 중 하나라도 미상이면 엔진은 서울/자정 폴백으로 *그럴듯하지만 틀린*
-    // 하우스/각을 계산한다. 프롬프트가 "인용 금지" 로 막고 있긴 하나, 데이터
-    // 자체에 남겨두면 모델이 규칙을 놓칠 때 새어 나간다 — 원천에서 제거해
-    // 말이 아니라 구조로 차단 (defense-in-depth).
-    const placeUnreliable = !!birth.birthTimeUnknown || !!birth.birthCityUnknown
+    const placeUnreliable = aFacts.natal.placeUnreliable
     const posLines: string[] = []
-    for (const p of natal.planets) {
-      const dg = dignityOf(p.name, p.sign)
-      const dgTag = dg && dg !== 'peregrine' ? ` [${dg}]` : ''
+    for (const p of aFacts.natal.planets) {
+      const dgTag = p.dignity !== 'peregrine' ? ` [${p.dignity}]` : ''
       const houseTag = placeUnreliable ? '' : ` H${p.house}`
       posLines.push(`  ${pl(p.name)} ${sgn(p.sign)}${houseTag}${p.retrograde ? ' R' : ''}${dgTag}`)
     }
-    // ASC/MC 는 출생시각·출생지 의존 → 미상이면 줄 자체를 생략.
-    if (!placeUnreliable)
-      posLines.push(`  ASC ${sgn(natal.ascendant.sign)}`, `  MC ${sgn(natal.mc.sign)}`)
+    if (!placeUnreliable) {
+      posLines.push(`  ASC ${sgn(aFacts.natal.ascendant.sign)}`, `  MC ${sgn(aFacts.natal.mc.sign)}`)
+    }
 
-    // aspects: planet-planet (engine) + planet→ASC/MC, banded by orb, symbols
-    const aspects: Array<{ from: string; to: string; type: string; orb: number }> = []
-    for (const a of findNatalAspects(chart))
-      if (MAJOR_TYPES.has(a.type) && a.orb < 5)
-        aspects.push({ from: a.from.name, to: a.to.name, type: a.type, orb: a.orb })
-    const ANG: Array<{ deg: number; t: string }> = [
-      { deg: 0, t: 'conjunction' },
-      { deg: 60, t: 'sextile' },
-      { deg: 90, t: 'square' },
-      { deg: 120, t: 'trine' },
-      { deg: 180, t: 'opposition' },
-    ]
-    // 행성↔ASC/MC 각도 — ASC/MC 자체가 출생시각·출생지 의존이므로, 그것들을
-    // posLines 에서 뺀 것과 같은 이유로 미상이면 각도도 만들지 않는다.
-    // (안 막으면 "태양 □ ASC" 식으로 ASC/MC 가 우회 노출됨.)
-    if (!placeUnreliable)
-      for (const ang of [natal.ascendant, natal.mc])
-        for (const p of natal.planets) {
-          let dd = Math.abs(ang.longitude - p.longitude)
-          if (dd > 180) dd = 360 - dd
-          for (const a of ANG) {
-            const orb = Math.abs(dd - a.deg)
-            if (orb < 5) {
-              aspects.push({ from: p.name, to: ang.name, type: a.t, orb })
-              break
-            }
-          }
-        }
     const fmtAsp = (a: { from: string; to: string; type: string; orb: number }) =>
       `  ${pl(a.from)} ${ASP_SYM[a.type] ?? a.type} ${pl(a.to)} ${a.orb.toFixed(1)}°`
-    const strong = aspects
-      .filter((a) => a.orb <= 2)
-      .sort((x, y) => x.orb - y.orb)
-      .map(fmtAsp)
-    const mid = aspects
-      .filter((a) => a.orb > 2 && a.orb < 5)
-      .sort((x, y) => x.orb - y.orb)
-      .map(fmtAsp)
+    const strong = aFacts.aspects.strong.map(fmtAsp)
+    const mid = aFacts.aspects.mid.map(fmtAsp)
 
     // current (transits / eclipses / solar return / progression) via astroSlim v2
     const block = await formatAstroSelf({
@@ -474,32 +455,19 @@ export async function buildDestinyContext(
     })
     const cur = slimAstroSelf(block, { locale, year }).trim()
 
-    // Profection — calculateProfection 은 만 나이 기준 (age 0 → 1궁). 사주/점성
-    // 전체가 만 나이 한 컨벤션이라 표시도 만 나이 그대로. currentManAge SSOT —
-    // 출생지 시간대 + 생일 통과 여부 반영.
-    const manAge = currentManAge({
-      birthYear: Y,
-      birthMonth: M,
-      birthDate: D,
-      birthTimeZone: tz,
-    })
-    const prof = calculateProfection(chart, manAge)
-    // activatedHouse 는 나이만으로 결정 → 항상 신뢰 가능. 하지만 activatedSign·
-    // lordOfYear 는 ASC(하우스 커스프) 의존이라 출생시각/출생지 미상이면 가짜다.
-    // posLines/ASC 와 동일 기준(placeUnreliable)으로 Lord(연주)만 숨기고, 나이
-    // 기반 하우스 테마는 유지한다.
-    const lp = placeUnreliable
-      ? undefined
-      : (chart.planets.find((p) => p.name === prof.lordOfYear) as
-          | { sign?: string; house?: number }
-          | undefined)
-    const lordRes = lp?.sign ? ` (${sgn(lp.sign)}${lp.house ? ` H${lp.house}` : ''})` : ''
-    const lordKo = placeUnreliable ? '' : `, Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`
-    const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
-    const profLine = L(
-      `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
-      `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
-    )
+    // Profection — facts.profection 에서 raw 값 받아 포매팅만.
+    const prof = aFacts.profection
+    let profLine = ''
+    if (prof) {
+      const lp = prof.lordPlacement
+      const lordRes = lp?.sign ? ` (${sgn(lp.sign)}${lp.house ? ` H${lp.house}` : ''})` : ''
+      const lordKo = placeUnreliable ? '' : `, Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`
+      const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
+      profLine = L(
+        `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
+        `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`,
+      )
+    }
 
     astroNatal = [
       L('## 점성', '## ASTRO'),
