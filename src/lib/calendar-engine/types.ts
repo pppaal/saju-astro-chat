@@ -124,6 +124,11 @@ export interface SignalPattern {
   action?: string
   /** 패턴 발동 강조 — UI에서 "오늘 발동!" 형식으로 노출 */
   headline?: string
+  /**
+   * 패턴 부가 메타 — 다층 정렬 패턴이 *몇 개 층이 같은 방향인지* 카운트.
+   * "5층 정렬 발동(yes/no)"이 아니라 "사주 4/5, 점성 3/4" 처럼 정밀 노출용.
+   */
+  meta?: { sajuLayers?: number; astroLayers?: number }
 }
 
 // ============================================================================

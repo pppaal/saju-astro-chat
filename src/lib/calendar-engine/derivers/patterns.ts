@@ -15,7 +15,12 @@ interface PatternRule {
   id: string
   name: string
   themes: AstroThemeKey[]
-  match: (signals: ActiveSignal[]) => { matched: boolean; strength: number; matchedIds: string[] }
+  match: (signals: ActiveSignal[]) => {
+    matched: boolean
+    strength: number
+    matchedIds: string[]
+    meta?: { sajuLayers?: number; astroLayers?: number }
+  }
   /** 근거 한 줄 — 어떤 신호 조합인지 */
   description?: string
   /** 사용자 액션 추천 — 발동 시 "이 날엔 X 하세요" */
@@ -208,7 +213,7 @@ const RULES: PatternRule[] = [
         layers: SignalLayer[],
         minLayers: number,
         minMag: number
-      ): 'positive' | 'negative' | null {
+      ): { dir: 'positive' | 'negative' | null; count: number } {
         const layerAvgs: Record<string, number> = {}
         let valid = 0
         for (const l of layers) {
@@ -220,29 +225,38 @@ const RULES: PatternRule[] = [
           layerAvgs[l] = sigs.reduce((a, s) => a + s.polarity * s.weight, 0) / sigs.length
           valid++
         }
-        if (valid < minLayers) return null
         const present = layers.filter((l) => layerAvgs[l] !== 0)
+        const count = present.length // 신호 있고 정렬에 참여하는 층 수
+        if (valid < minLayers) return { dir: null, count }
         const allPos = present.every((l) => layerAvgs[l] > 0)
         const allNeg = present.every((l) => layerAvgs[l] < 0)
-        const minAbsMag = Math.min(...present.map((l) => Math.abs(layerAvgs[l])))
-        if (allPos && minAbsMag >= minMag) return 'positive'
-        if (allNeg && minAbsMag >= minMag) return 'negative'
-        return null
+        const minAbsMag = present.length
+          ? Math.min(...present.map((l) => Math.abs(layerAvgs[l])))
+          : 0
+        if (allPos && minAbsMag >= minMag) return { dir: 'positive', count }
+        if (allNeg && minAbsMag >= minMag) return { dir: 'negative', count }
+        return { dir: null, count }
       }
 
       // 동시 매칭 = 사주 5층 alignment AND 점성 4층 alignment + 같은 방향
       // (saju-five-layer · astro-five-layer 룰과 동일 조건 사용 — 동시는 그 교집합)
       const sajuAlign = alignment('saju', sajuLayers, 4, 0.2)
       const astroAlign = alignment('astro', astroLayers, 3, 0.15)
-      if (!sajuAlign || !astroAlign || sajuAlign !== astroAlign) {
+      if (!sajuAlign.dir || !astroAlign.dir || sajuAlign.dir !== astroAlign.dir) {
         return { matched: false, strength: 0, matchedIds: [] }
       }
 
-      const dominant = sajuAlign
+      const dominant = sajuAlign.dir
       const matched = signals.filter((s) =>
         dominant === 'positive' ? s.polarity >= 1 : s.polarity <= -1
       )
-      return { matched: true, strength: 99, matchedIds: matched.map((s) => s.id) }
+      // 몇 개 층이 같은 방향인지 — "사주 N/5, 점성 M/4" UI 헤드라인용.
+      return {
+        matched: true,
+        strength: 99,
+        matchedIds: matched.map((s) => s.id),
+        meta: { sajuLayers: sajuAlign.count, astroLayers: astroAlign.count },
+      }
     },
   },
 
@@ -284,7 +298,12 @@ const RULES: PatternRule[] = [
       const matched = signals.filter(
         (s) => s.source === 'saju' && layers.includes(s.layer) && s.polarity * dominant >= 1
       )
-      return { matched: true, strength: 92, matchedIds: matched.map((s) => s.id) }
+      return {
+        matched: true,
+        strength: 92,
+        matchedIds: matched.map((s) => s.id),
+        meta: { sajuLayers: present.length },
+      }
     },
   },
 
@@ -325,7 +344,12 @@ const RULES: PatternRule[] = [
       const matched = signals.filter(
         (s) => s.source === 'astro' && layers.includes(s.layer) && s.polarity * dominant >= 1
       )
-      return { matched: true, strength: 90, matchedIds: matched.map((s) => s.id) }
+      return {
+        matched: true,
+        strength: 90,
+        matchedIds: matched.map((s) => s.id),
+        meta: { astroLayers: present.length },
+      }
     },
   },
 
@@ -571,6 +595,7 @@ export function derivePatterns(signals: ActiveSignal[]): SignalPattern[] {
       description: rule.description,
       headline: rule.headline,
       action: rule.action,
+      meta: result.meta,
     })
   }
   return matched
