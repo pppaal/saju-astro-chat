@@ -589,67 +589,78 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
           <ThemeBars items={day.themes} warm />
         </div>
         <div className={`${styles.panel} ${styles.astro}`}>
-          <div className={styles.eyebrow}>점성 트랜짓 · 본명과의 각도</div>
-          <div className={styles.transitRow}>
-            {innerTransits.map((t, i) => {
-              const body = (t as { body?: string }).body ?? ''
-              const aspect = (t as { aspect?: string }).aspect ?? ''
-              const target = (t as { target?: string }).target ?? ''
-              const glyph = (t as { glyph?: string }).glyph ?? '✦'
-              return (
-                <div className={styles.transit} key={`it-${i}`}>
-                  <span className="g">{glyph}</span>
-                  <div className="tt">
-                    <div className="a">
-                      {body} {aspect} <span className="aTarget">→ {target}</span>
-                    </div>
-                    <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
-                  </div>
-                  <PolChip v={t.polarity} />
-                </div>
-              )
-            })}
-          </div>
-
-          {outerTransits.length > 0 && (
-            <>
-              <hr className={styles.hr} />
-              <div className={`${styles.layerTag} ${styles.eyebrowViolet}`}>
-                <span style={{ color: 'var(--dp-violet-2)' }}>✦</span> 외행성 트랜짓
-              </div>
-              <div className={styles.transitRow}>
-                {outerTransits.map((t, i) => {
-                  const body = (t as { body?: string }).body ?? ''
-                  const aspect = (t as { aspect?: string }).aspect ?? ''
-                  const target = (t as { target?: string }).target ?? ''
-                  const glyph = (t as { glyph?: string }).glyph ?? '✦'
-                  return (
-                    <div className={`${styles.transit} ${styles.outer}`} key={`ot-${i}`}>
-                      <span className="g">{glyph}</span>
-                      <div className="tt">
-                        <div className="a">
-                          {body}({PLANET_KO[body] ?? ''}) {aspect}{' '}
-                          <span className="aTarget">→ {target}</span>
-                        </div>
-                        <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
-                      </div>
-                      <PolChip v={t.polarity} />
-                    </div>
-                  )
-                })}
-              </div>
-            </>
+          {/* 합치기: 날것 트랜짓 덤프 → "이렇게 읽은 이유"(사람 말). 엔진이 만든
+              topReasons/cautions 를 우선 노출하고, 원자료(점성 트랜짓)는 접어둔다.
+              (premium DayWhyCard 패턴 + destinypal 만세력 스킨) */}
+          <div className={styles.eyebrow}>이렇게 읽은 이유</div>
+          {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
+            <p className={styles.whyMuted}>오늘은 두드러진 신호 없이 무난한 흐름이에요.</p>
+          ) : (
+            <ul className={styles.whyList}>
+              {(day.topReasons ?? []).map((r, i) => (
+                <li className={styles.whyPos} key={`wp-${i}`}>
+                  <span className={styles.whyArrow}>↑</span> {r}
+                </li>
+              ))}
+              {(day.cautions ?? []).map((c, i) => (
+                <li className={styles.whyNeg} key={`wn-${i}`}>
+                  <span className={styles.whyArrow}>↓</span> {c}
+                </li>
+              ))}
+            </ul>
           )}
 
-          <hr className={styles.hr} />
-          <div className={styles.layerTag} style={{ marginBottom: 8 }}>
-            <span style={{ color: 'var(--dp-violet-2)' }}>✦</span> 일진 신살 활성
-          </div>
-          <div className={styles.shinsalRow}>
-            {day.shinsalActive.map((s, i) => (
-              <span className={styles.ssPill} key={i}>{s}</span>
-            ))}
-          </div>
+          {day.shinsalActive.length > 0 && (
+            <div className={styles.shinsalRow}>
+              {day.shinsalActive.map((s, i) => (
+                <span className={styles.ssPill} key={i}>{s}</span>
+              ))}
+            </div>
+          )}
+
+          {/* 근거 신호 (점성 트랜짓 원자료) — 기본 접힘. 원하는 사람만 펼침. */}
+          <details className={styles.evidence}>
+            <summary className={styles.evidenceSummary}>근거 신호 보기 · 점성 트랜짓</summary>
+            <div className={styles.transitRow}>
+              {innerTransits.map((t, i) => {
+                const body = (t as { body?: string }).body ?? ''
+                const aspect = (t as { aspect?: string }).aspect ?? ''
+                const target = (t as { target?: string }).target ?? ''
+                const glyph = (t as { glyph?: string }).glyph ?? '✦'
+                return (
+                  <div className={styles.transit} key={`it-${i}`}>
+                    <span className="g">{glyph}</span>
+                    <div className="tt">
+                      <div className="a">
+                        {body} {aspect} <span className="aTarget">→ {target}</span>
+                      </div>
+                      <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
+                    </div>
+                    <PolChip v={t.polarity} />
+                  </div>
+                )
+              })}
+              {outerTransits.map((t, i) => {
+                const body = (t as { body?: string }).body ?? ''
+                const aspect = (t as { aspect?: string }).aspect ?? ''
+                const target = (t as { target?: string }).target ?? ''
+                const glyph = (t as { glyph?: string }).glyph ?? '✦'
+                return (
+                  <div className={`${styles.transit} ${styles.outer}`} key={`ot-${i}`}>
+                    <span className="g">{glyph}</span>
+                    <div className="tt">
+                      <div className="a">
+                        {body}({PLANET_KO[body] ?? ''}) {aspect}{' '}
+                        <span className="aTarget">→ {target}</span>
+                      </div>
+                      <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
+                    </div>
+                    <PolChip v={t.polarity} />
+                  </div>
+                )
+              })}
+            </div>
+          </details>
         </div>
       </div>
 
