@@ -1,6 +1,17 @@
 // src/lib/Saju/constants.ts
 
 import { FiveElement, StemBranchInfo } from './types'
+import {
+  SIX_HARMONY,
+  BRANCH_CLASH,
+  THREE_HARMONY,
+  HARM_PAIRS,
+  BREAK_PAIRS,
+  PUNISHMENT_TRIOS,
+  PUNISHMENT_PAIR,
+  SELF_PUNISHMENT_STRICT,
+  toBidiRecord,
+} from './relationTables'
 
 export const STEMS: StemBranchInfo[] = [
   { name: '甲', element: '목', yin_yang: '양' },
@@ -115,94 +126,41 @@ export const CHEONEUL_GWIIN_MAP: { [key: string]: string[] } = {
   辛: ['寅', '午'],
 }
 
-// 지지 관계 (합충형파해) - 중앙화된 정의
+// 지지 관계 (합충형파해) — 표는 relationTables.ts(SSOT)에서 파생. 로컬 복제 금지.
 // 육합 (六合) - 조화와 결합
-export const YUKHAP: Record<string, string> = {
-  子: '丑',
-  丑: '子',
-  寅: '亥',
-  亥: '寅',
-  卯: '戌',
-  戌: '卯',
-  辰: '酉',
-  酉: '辰',
-  巳: '申',
-  申: '巳',
-  午: '未',
-  未: '午',
-}
+export const YUKHAP: Record<string, string> = toBidiRecord(SIX_HARMONY.map((h) => h.pair))
 
 // 충 (冲) - 반대 지지, 충돌
-export const CHUNG: Record<string, string> = {
-  子: '午',
-  午: '子',
-  丑: '未',
-  未: '丑',
-  寅: '申',
-  申: '寅',
-  卯: '酉',
-  酉: '卯',
-  辰: '戌',
-  戌: '辰',
-  巳: '亥',
-  亥: '巳',
-}
+export const CHUNG: Record<string, string> = toBidiRecord(BRANCH_CLASH)
 
-// 삼합 (三合) - 가장 강력한 조화
-export const SAMHAP: Record<string, string[]> = {
-  수: ['申', '子', '辰'], // 수국
-  목: ['亥', '卯', '未'], // 목국
-  화: ['寅', '午', '戌'], // 화국
-  금: ['巳', '酉', '丑'], // 금국
-}
+// 삼합 (三合) - 가장 강력한 조화. 키 = 합화 오행(수/목/화/금).
+export const SAMHAP: Record<string, string[]> = Object.fromEntries(
+  THREE_HARMONY.map((t) => [t.element, [...t.members]])
+)
 
-// 형 (刑) - 형벌, 장애 (복수 대상 가능)
-export const XING: Record<string, string[]> = {
-  寅: ['巳', '申'],
-  巳: ['寅', '申'],
-  申: ['寅', '巳'], // 무은지형
-  丑: ['戌', '未'],
-  戌: ['丑', '未'],
-  未: ['丑', '戌'], // 지세지형
-  子: ['卯'],
-  卯: ['子'], // 무례지형
-  辰: ['辰'],
-  午: ['午'],
-  酉: ['酉'],
-  亥: ['亥'], // 자형
+// 형 (刑) - 형벌, 장애 (복수 대상 가능). 삼형/상형/자형(표준 4지지)을 canon에서 조립.
+function buildXing(): Record<string, string[]> {
+  const r: Record<string, string[]> = {}
+  for (const trio of PUNISHMENT_TRIOS) {
+    for (const b of trio) {
+      r[b] = trio.filter((x) => x !== b)
+    }
+  }
+  const [pa, pb] = PUNISHMENT_PAIR
+  r[pa] = [pb]
+  r[pb] = [pa]
+  for (const b of SELF_PUNISHMENT_STRICT) {
+    r[b] = [b]
+  }
+  return r
 }
+export const XING: Record<string, string[]> = buildXing()
 
 // 해 (害) - 서로 해침
-export const HAI: Record<string, string> = {
-  子: '未',
-  未: '子',
-  丑: '午',
-  午: '丑',
-  寅: '巳',
-  巳: '寅',
-  卯: '辰',
-  辰: '卯',
-  申: '亥',
-  亥: '申',
-  酉: '戌',
-  戌: '酉',
-}
+export const HAI: Record<string, string> = toBidiRecord(HARM_PAIRS)
 
 // 파 (破) - 깨뜨림
-export const PA: Record<string, string> = {
-  子: '酉',
-  酉: '子',
-  丑: '辰',
-  辰: '丑',
-  寅: '亥',
-  亥: '寅',
-  卯: '午',
-  午: '卯',
-  巳: '申',
-  申: '巳',
-  未: '戌',
-  戌: '未',
-}
+export const PA: Record<string, string> = toBidiRecord(BREAK_PAIRS)
 
 // 절기 데이터 지원 범위(연도)
 export const KASI_START_YEAR = 1940

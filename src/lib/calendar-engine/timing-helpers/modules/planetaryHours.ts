@@ -8,6 +8,7 @@ import type { PlanetaryHour } from './types'
 // 행성시 설정
 // ============================================================
 
+// 행성시 진행 순서(칼데안 순서를 Sun 부터 순환) — 매 시간 다음 행성.
 const DAY_PLANET_ORDER: PlanetaryHour['planet'][] = [
   'Sun',
   'Venus',
@@ -16,6 +17,18 @@ const DAY_PLANET_ORDER: PlanetaryHour['planet'][] = [
   'Saturn',
   'Jupiter',
   'Mars',
+]
+
+// 요일별 지배 행성 (일=0 … 토=6) — 그 날 첫 행성시(일출)의 행성.
+// 표준: 일=Sun 월=Moon 화=Mars 수=Mercury 목=Jupiter 금=Venus 토=Saturn.
+const DAY_RULER: PlanetaryHour['planet'][] = [
+  'Sun',
+  'Moon',
+  'Mars',
+  'Mercury',
+  'Jupiter',
+  'Venus',
+  'Saturn',
 ]
 
 const PLANET_ELEMENT: Record<PlanetaryHour['planet'], FiveElement> = {
@@ -72,9 +85,13 @@ export function calculatePlanetaryHours(
   const dayHourLength = dayLength / 12
   const nightHourLength = nightLength / 12
 
-  // 요일별 첫 행성시 행성
+  // 요일별 첫 행성시(일출)는 그 요일의 지배 행성 — DAY_PLANET_ORDER 에서 그 행성의
+  // 위치를 시작점으로 삼는다. (버그 수정: 이전엔 firstPlanetIndex = dayOfWeek 로
+  // DAY_PLANET_ORDER 를 직접 인덱싱해 일요일만 맞고 월~토는 첫 행성이 어긋났다 —
+  // 예: 월요일 → Venus(오답, 정답 Moon). 동일 계산의 정본은
+  // calendar-engine/extractors/astro-planetary-hour.ts.)
   const dayOfWeek = date.getDay() // 0=일, 1=월, ...
-  const firstPlanetIndex = dayOfWeek // 일=Sun, 월=Moon, ...
+  const firstPlanetIndex = DAY_PLANET_ORDER.indexOf(DAY_RULER[dayOfWeek])
 
   const hours: PlanetaryHour[] = []
 

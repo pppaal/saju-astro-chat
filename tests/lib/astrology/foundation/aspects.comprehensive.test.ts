@@ -150,7 +150,7 @@ describe('aspects.ts', () => {
       expect(tooWide).toBeUndefined()
     })
 
-    it('should include minor aspects when requested', () => {
+    it('blocks minor aspects even when includeMinor requested (Hellenistic)', () => {
       const natal: Chart = {
         planets: [{ name: 'Sun', longitude: 0, house: 1, sign: 'Aries', speed: 1 }],
         ascendant: { longitude: 0, sign: 'Aries', house: 1 },
@@ -171,7 +171,8 @@ describe('aspects.ts', () => {
 
       const quincunx = results.find((h) => h.type === 'quincunx')
 
-      expect(quincunx).toBeDefined()
+      // 정통 Hellenistic 정책: minor aspect 는 항상 차단, includeMinor 무시.
+      expect(quincunx).toBeUndefined()
     })
 
     it('should not include minor aspects by default', () => {
@@ -484,7 +485,7 @@ describe('aspects.ts', () => {
       }
     })
 
-    it('should include minor aspects when requested', () => {
+    it('blocks minor aspects even when includeMinor requested (Hellenistic)', () => {
       const chart: Chart = {
         planets: [
           { name: 'Sun', longitude: 0, house: 1, sign: 'Aries', speed: 1 },
@@ -499,7 +500,8 @@ describe('aspects.ts', () => {
 
       const semisextile = results.find((h) => h.type === 'semisextile')
 
-      expect(semisextile).toBeDefined()
+      // 정통 Hellenistic 정책: minor aspect 는 항상 차단, includeMinor 무시.
+      expect(semisextile).toBeUndefined()
     })
 
     it('should handle undefined chart safely', () => {

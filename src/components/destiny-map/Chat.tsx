@@ -282,15 +282,25 @@ const Chat = memo(function Chat({
   const goToTarot = React.useCallback(() => {
     setShowTarotModal(true)
   }, [])
-  const goToChart = React.useCallback(() => {
-    setShowChartModal(true)
-  }, [])
-  // 흐름표 — 시간 흐름은 캘린더 책임이라 /calendar 로 직접 진입. 차트 모달
-  // 안의 캘린더 cross-link 와 동일 동선이지만 한 번 더 탭 줄여서 ⋮ 메뉴에서
-  // 바로 가게(사용자 요청: "흐름표 따로 빼자").
   const router = useRouter()
+  // ⋮ '차트' — 옛 ChartModal 대신 새 통합 명식 리포트(/integrated-report)로 진입.
+  // 프로필 출생정보를 쿼리로 넘긴다(없으면 페이지가 샘플로 폴백). gender 는
+  // 페이지가 'female' | else→'male' 로만 분기하므로 거기 맞춰 정규화.
+  const goToChart = React.useCallback(() => {
+    const p = profile
+    const params = new URLSearchParams()
+    if (p?.birthDate) params.set('date', p.birthDate)
+    if (p?.birthTime) params.set('time', p.birthTime)
+    if (typeof p?.latitude === 'number') params.set('lat', String(p.latitude))
+    if (typeof p?.longitude === 'number') params.set('lng', String(p.longitude))
+    const g = (p?.gender ?? '').toString().toLowerCase()
+    params.set('gender', g === 'female' || g === 'f' || g === '여' || g === '여성' ? 'female' : 'male')
+    const qs = params.toString()
+    router.push(qs ? `/integrated-report?${qs}` : '/integrated-report')
+  }, [profile, router])
+  // 흐름표 — 시간 흐름은 캘린더 책임이라 destinypal 5-tier 뷰로 직접 진입.
   const goToFlow = React.useCallback(() => {
-    router.push('/calendar')
+    router.push('/destinypal')
   }, [router])
 
   // 🃏 클래리파이어 카드 — 공통 hook (compat/followup 동일). 정책 단일 출처.

@@ -18,6 +18,8 @@ interface BirthInfo {
   birthTime?: string
   gender?: string
   timezone?: string
+  // 출생지 경도 — 사주 진태양시(진경도) 보정용. 없으면 한국 LMT 폴백.
+  longitude?: number
 }
 
 // 간단한 메모리 캐시 — synergy 포함
@@ -35,8 +37,19 @@ const compatibilityCache = new Map<string, CachedAnalysis>()
 function getCacheKey(person1: BirthInfo, person2: BirthInfo): string {
   const sep = CACHE_KEY.SEPARATOR
   // 각 사람의 정보를 JSON으로 직렬화
-  const key1 = JSON.stringify([person1.birthDate, person1.birthTime || '', person1.gender || ''])
-  const key2 = JSON.stringify([person2.birthDate, person2.birthTime || '', person2.gender || ''])
+  // 경도까지 키에 포함 — 도시별 진태양시 보정 결과가 다르므로 캐시 분리.
+  const key1 = JSON.stringify([
+    person1.birthDate,
+    person1.birthTime || '',
+    person1.gender || '',
+    person1.longitude ?? '',
+  ])
+  const key2 = JSON.stringify([
+    person2.birthDate,
+    person2.birthTime || '',
+    person2.gender || '',
+    person2.longitude ?? '',
+  ])
   // 정렬하여 순서 무관하게 동일한 키 생성
   const sorted = [key1, key2].sort()
   return `${CACHE_KEY.PREFIX.COMPATIBILITY}${sep}${sorted.join(sep)}`
@@ -85,14 +98,18 @@ async function analyzeSajuPair(
     time1,
     person1.gender === 'F' ? 'female' : 'male',
     'solar',
-    timezone1
+    timezone1,
+    undefined,
+    person1.longitude
   )
   const saju2 = calculateSajuData(
     person2.birthDate,
     time2,
     person2.gender === 'F' ? 'female' : 'male',
     'solar',
-    timezone2
+    timezone2,
+    undefined,
+    person2.longitude
   )
 
   const subject1: CompatibilitySubject = {
@@ -174,7 +191,9 @@ export async function calculateDetailedCompatibility(
       time1,
       person1.gender === 'F' ? 'female' : 'male',
       'solar',
-      timezone1
+      timezone1,
+      undefined,
+      person1.longitude
     )
 
     const saju2 = calculateSajuData(
@@ -182,7 +201,9 @@ export async function calculateDetailedCompatibility(
       time2,
       person2.gender === 'F' ? 'female' : 'male',
       'solar',
-      timezone2
+      timezone2,
+      undefined,
+      person2.longitude
     )
 
     // CompatibilitySubject 형식으로 변환

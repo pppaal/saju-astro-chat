@@ -90,11 +90,15 @@ export type CompatibilityBackendResponse =
 
 export type Relation =
   | 'lover'
+  | 'crush'
   | 'spouse'
+  | 'engaged'
+  | 'ex'
   | 'family'
   | 'sibling'
   | 'friend'
   | 'colleague'
+  | 'business'
   | 'other'
 
 export interface PersonInput {

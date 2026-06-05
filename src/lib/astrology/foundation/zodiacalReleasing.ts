@@ -15,26 +15,15 @@
 
 import type { ZodiacKo } from './types'
 import type { AstroPlanetName } from '../interpretations'
+import { SIGN_RULERS_BY_SIGN } from './dignities'
 
 const ZODIAC_ORDER: ZodiacKo[] = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
   'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
 ]
 
-const SIGN_RULERS: Record<ZodiacKo, AstroPlanetName> = {
-  Aries: 'Mars',
-  Taurus: 'Venus',
-  Gemini: 'Mercury',
-  Cancer: 'Moon',
-  Leo: 'Sun',
-  Virgo: 'Mercury',
-  Libra: 'Venus',
-  Scorpio: 'Mars',
-  Sagittarius: 'Jupiter',
-  Capricorn: 'Saturn',
-  Aquarius: 'Saturn',
-  Pisces: 'Jupiter',
-}
+// 별자리 지배 행성은 dignities.ts(SSOT)에서 파생. 로컬 복제 금지.
+const SIGN_RULERS = SIGN_RULERS_BY_SIGN as Record<ZodiacKo, AstroPlanetName>
 
 const PLANET_YEARS: Record<AstroPlanetName, number> = {
   Sun: 19,

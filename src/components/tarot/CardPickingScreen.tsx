@@ -247,7 +247,7 @@ export function CardPickingScreen({
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-amber-500 text-[#030308] text-[10px] font-bold flex items-center justify-center z-10"
                       style={{ boxShadow: '0 0 8px rgba(245,158,11,0.6)' }}
                     >
-                      {pickOrder + 1}
+                      {pickOrder}
                     </div>
                   )}
 
@@ -269,7 +269,15 @@ export function CardPickingScreen({
         </span>
         <button
           onClick={onRedraw}
-          disabled={selectedIndices.length === 0 || isSpreading || gameState === 'revealing'}
+          // 선택 완료(>= 스프레드 카드 수) 시점부터는 드로우가 확정 — 이때
+          // 재섞기를 허용하면 500ms 뒤 발화하는 fetch 와 레이스가 난다. gameState
+          // 가 'revealing' 으로 바뀌기 전 창에서도 막기 위해 length 기준으로도 차단.
+          disabled={
+            selectedIndices.length === 0 ||
+            selectedIndices.length >= MAX_SELECTED ||
+            isSpreading ||
+            gameState === 'revealing'
+          }
           className="flex items-center gap-2 px-5 py-2.5 bg-[rgba(160,122,60,0.15)] hover:bg-[#a07a3c]/50 disabled:opacity-30 disabled:cursor-not-allowed text-amber-100/80 rounded-lg text-sm transition-all duration-300 border border-[rgba(160,122,60,0.3)] hover:border-amber-700/50 hover:shadow-[0_0_15px_rgba(245,158,11,0.1)]"
         >
           <RotateCcw className="w-4 h-4" />

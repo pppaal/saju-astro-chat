@@ -50,30 +50,16 @@ export default function ClarifierCardModal({
     }
     document.addEventListener('keydown', onKey)
 
+    // Body 스크롤 잠금만 — position:fixed 는 페이지가 맨 위로 점프하는 회귀
+    // (CLS=1 poor) 가 있어 overflow:hidden 만 사용. cleanup 에서 항상 빈
+    // 문자열로 복원해 (prevOverflow leak 방지) 모달 닫혀도 페이지 frozen
+    // 회귀 없게.
     const body = document.body
-    const alreadyLocked = body.style.position === 'fixed' || body.style.overflow === 'hidden'
-    let scrollY = 0
-    if (!alreadyLocked) {
-      scrollY = window.scrollY
-      body.style.position = 'fixed'
-      body.style.top = `-${scrollY}px`
-      body.style.left = '0'
-      body.style.right = '0'
-      body.style.width = '100%'
-      body.style.overflow = 'hidden'
-    }
+    body.style.overflow = 'hidden'
 
     return () => {
       document.removeEventListener('keydown', onKey)
-      if (!alreadyLocked) {
-        body.style.position = ''
-        body.style.top = ''
-        body.style.left = ''
-        body.style.right = ''
-        body.style.width = ''
-        body.style.overflow = ''
-        window.scrollTo(0, scrollY)
-      }
+      body.style.overflow = ''
     }
   }, [isOpen, onClose])
 

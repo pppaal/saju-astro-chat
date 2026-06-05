@@ -2,99 +2,64 @@
 // 궁합 분석 상수
 
 import { FiveElement } from '../types'
+// 지지/천간 관계 도그마는 relationTables.ts(SSOT)에서 파생. 로컬 복제 금지.
+import {
+  STEM_COMBINE,
+  STEM_CLASH_4,
+  SIX_HARMONY,
+  THREE_HARMONY,
+  BRANCH_CLASH,
+  HARM_PAIRS,
+  PUNISHMENT_TRIOS,
+  PUNISHMENT_PAIR,
+  SELF_PUNISHMENT_STRICT,
+  toBidiRecord,
+} from '../relationTables'
 
 /** 천간합 */
-export const STEM_HAP: Record<string, { partner: string; result: FiveElement }> = {
-  甲: { partner: '己', result: '토' },
-  己: { partner: '甲', result: '토' },
-  乙: { partner: '庚', result: '금' },
-  庚: { partner: '乙', result: '금' },
-  丙: { partner: '辛', result: '수' },
-  辛: { partner: '丙', result: '수' },
-  丁: { partner: '壬', result: '목' },
-  壬: { partner: '丁', result: '목' },
-  戊: { partner: '癸', result: '화' },
-  癸: { partner: '戊', result: '화' },
-}
+export const STEM_HAP: Record<string, { partner: string; result: FiveElement }> = (() => {
+  const r: Record<string, { partner: string; result: FiveElement }> = {}
+  for (const { pair, element } of STEM_COMBINE) {
+    r[pair[0]] = { partner: pair[1], result: element }
+    r[pair[1]] = { partner: pair[0], result: element }
+  }
+  return r
+})()
 
 /** 천간충 */
-export const STEM_CHUNG: Record<string, string> = {
-  甲: '庚',
-  庚: '甲',
-  乙: '辛',
-  辛: '乙',
-  丙: '壬',
-  壬: '丙',
-  丁: '癸',
-  癸: '丁',
-}
+export const STEM_CHUNG: Record<string, string> = toBidiRecord(STEM_CLASH_4)
 
 /** 지지육합 */
-export const BRANCH_YUKHAP: Record<string, { partner: string; result: FiveElement }> = {
-  子: { partner: '丑', result: '토' },
-  丑: { partner: '子', result: '토' },
-  寅: { partner: '亥', result: '목' },
-  亥: { partner: '寅', result: '목' },
-  卯: { partner: '戌', result: '화' },
-  戌: { partner: '卯', result: '화' },
-  辰: { partner: '酉', result: '금' },
-  酉: { partner: '辰', result: '금' },
-  巳: { partner: '申', result: '수' },
-  申: { partner: '巳', result: '수' },
-  午: { partner: '未', result: '토' },
-  未: { partner: '午', result: '토' },
-}
+export const BRANCH_YUKHAP: Record<string, { partner: string; result: FiveElement }> = (() => {
+  const r: Record<string, { partner: string; result: FiveElement }> = {}
+  for (const { pair, element } of SIX_HARMONY) {
+    r[pair[0]] = { partner: pair[1], result: element }
+    r[pair[1]] = { partner: pair[0], result: element }
+  }
+  return r
+})()
 
-/** 지지삼합 */
-export const BRANCH_SAMHAP: Array<{ branches: string[]; result: FiveElement }> = [
-  { branches: ['寅', '午', '戌'], result: '화' },
-  { branches: ['巳', '酉', '丑'], result: '금' },
-  { branches: ['申', '子', '辰'], result: '수' },
-  { branches: ['亥', '卯', '未'], result: '목' },
-]
+/** 지지삼합 (표시 순서 화·금·수·목 보존) */
+export const BRANCH_SAMHAP: Array<{ branches: string[]; result: FiveElement }> = (
+  ['화', '금', '수', '목'] as const
+).map((el) => {
+  const t = THREE_HARMONY.find((x) => x.element === el)!
+  return { branches: [...t.members], result: el }
+})
 
 /** 지지충 */
-export const BRANCH_CHUNG: Record<string, string> = {
-  子: '午',
-  午: '子',
-  丑: '未',
-  未: '丑',
-  寅: '申',
-  申: '寅',
-  卯: '酉',
-  酉: '卯',
-  辰: '戌',
-  戌: '辰',
-  巳: '亥',
-  亥: '巳',
-}
+export const BRANCH_CHUNG: Record<string, string> = toBidiRecord(BRANCH_CLASH)
 
 /** 지지형 */
 export const BRANCH_HYEONG: Array<{ branches: string[]; type: string }> = [
-  { branches: ['寅', '巳', '申'], type: '무은지형' },
-  { branches: ['丑', '戌', '未'], type: '지세지형' },
-  { branches: ['子', '卯'], type: '무례지형' },
-  { branches: ['辰', '辰'], type: '자형' },
-  { branches: ['午', '午'], type: '자형' },
-  { branches: ['酉', '酉'], type: '자형' },
-  { branches: ['亥', '亥'], type: '자형' },
+  { branches: [...PUNISHMENT_TRIOS[0]], type: '무은지형' },
+  { branches: [...PUNISHMENT_TRIOS[1]], type: '지세지형' },
+  { branches: [...PUNISHMENT_PAIR], type: '무례지형' },
+  ...SELF_PUNISHMENT_STRICT.map((b) => ({ branches: [b, b], type: '자형' })),
 ]
 
 /** 지지해 */
-export const BRANCH_HAE: Record<string, string> = {
-  子: '未',
-  未: '子',
-  丑: '午',
-  午: '丑',
-  寅: '巳',
-  巳: '寅',
-  卯: '辰',
-  辰: '卯',
-  申: '亥',
-  亥: '申',
-  酉: '戌',
-  戌: '酉',
-}
+export const BRANCH_HAE: Record<string, string> = toBidiRecord(HARM_PAIRS)
 
 /** 일간 관계별 기본 점수 */
 export const DAY_MASTER_RELATION_SCORES: Record<string, number> = {

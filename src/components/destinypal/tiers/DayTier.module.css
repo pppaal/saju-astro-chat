@@ -1,0 +1,912 @@
+/* ============================================================
+   DayTier (1일 24시) — destinypal 5-tier 최하단
+   day.jsx 88줄 포팅 + Phase 3 5신호 시각화 + HourBreakdown
+   ink build (베이지 hanji + 朱 ember + 藍 accent).
+   ============================================================ */
+
+.tierInner {
+  position: relative;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: clamp(80px, 9vh, 120px) clamp(30px, 5vw, 64px) 170px;
+  color: var(--dp-ink);
+  font-family: var(--dp-sans);
+}
+.tierInner::before {
+  content: "";
+  position: absolute;
+  left: clamp(12px, 2.2vw, 30px);
+  right: clamp(12px, 2.2vw, 30px);
+  top: clamp(54px, 6vh, 80px);
+  bottom: 92px;
+  border: 1px solid var(--dp-line);
+  box-shadow: inset 0 0 0 3px var(--dp-bg), inset 0 0 0 4px var(--dp-line-soft);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ---------- rise button ---------- */
+.rise {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: none;
+  border: 0;
+  color: var(--dp-ink-mute);
+  cursor: pointer;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 6px 4px;
+  transition: color .25s;
+  margin-bottom: 6px;
+}
+.rise:hover { color: var(--dp-ember); }
+.riseSmall { font-size: 12px; }
+.riseCenter { display: flex; justify-content: center; margin-top: 40px; }
+
+/* ---------- eyebrow ---------- */
+.eyebrow {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--dp-ink-dim);
+}
+.eyebrowEmber { color: var(--dp-ember); }
+.eyebrowEmber::before { background: var(--dp-ember); }
+.eyebrowViolet::before { background: var(--dp-violet); }
+
+/* ---------- head chips (보강) ---------- */
+.headChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 3px;
+  background: var(--dp-panel-2);
+  border: 1px solid var(--dp-line);
+  font-family: var(--dp-serif-ko);
+  font-size: 12px;
+  color: var(--dp-ink);
+}
+.statusChip .kHan {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  color: var(--dp-ember);
+}
+.statusChip .kStatus {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.statusChip .kStatusOk { color: var(--dp-pos); }
+.statusChip .kStatusBad { color: var(--dp-neg); }
+.statusChip .kStatusMid { color: var(--dp-ember); }
+
+.gongmangBanner {
+  margin-top: 12px;
+  padding: 9px 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(108, 74, 115, 0.32);
+  background: rgba(108, 74, 115, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--dp-serif-ko);
+  font-size: 12px;
+  color: var(--dp-violet);
+}
+.gongmangBanner .gmHead {
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dp-violet);
+}
+.gongmangBanner .gmBranch {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--dp-violet);
+  padding: 2px 8px;
+  border: 1px solid rgba(108, 74, 115, 0.4);
+  border-radius: 2px;
+}
+.gongmangBanner .gmNote {
+  color: var(--dp-ink-dim);
+}
+
+.vocBanner {
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: 3px;
+  border: 1px solid var(--dp-line);
+  background: rgba(130, 116, 92, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  color: var(--dp-ink-mute);
+  letter-spacing: .04em;
+}
+.vocBanner .vocLabel {
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--dp-ink-dim);
+}
+.vocBanner .vocTime {
+  color: var(--dp-ink);
+}
+
+/* ---------- day head ---------- */
+.dayHead {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  align-items: center;
+  margin-top: 16px;
+}
+@media (max-width: 680px) {
+  .dayHead { grid-template-columns: 1fr; gap: 18px; }
+}
+.iljinBig {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.iljinBig .han {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: 72px;
+  line-height: .9;
+  color: #f6ecd9;
+  background: var(--dp-ember);
+  padding: 10px 16px;
+  border-radius: 4px;
+  box-shadow: 0 10px 26px -14px rgba(176, 58, 34, 0.7);
+}
+.iljinBig .meta .kr {
+  font-family: var(--dp-mono);
+  font-size: 14px;
+  color: var(--dp-ink);
+  letter-spacing: .08em;
+}
+.iljinBig .meta .en {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  color: var(--dp-ink-faint);
+  font-style: italic;
+}
+.iljinBig .meta .ss {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: var(--dp-serif-ko);
+  font-size: 11px;
+  color: var(--dp-ink-dim);
+  border: 1px solid var(--dp-line);
+  border-radius: 3px;
+  padding: 3px 10px;
+}
+
+.dayScore {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.oneline {
+  font-family: var(--dp-serif-ko);
+  font-style: italic;
+  font-size: clamp(16px, 2.4vw, 21px);
+  line-height: 1.5;
+  color: var(--dp-ink);
+  flex: 1;
+  text-wrap: pretty;
+}
+
+/* ---------- split panel ---------- */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 30px;
+}
+@media (max-width: 760px) {
+  .split { grid-template-columns: 1fr; }
+}
+.panel {
+  background: var(--dp-panel);
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r);
+  padding: 20px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+.panel.saju { border-left: 3px solid var(--dp-ember); }
+.panel.astro { border-left: 3px solid var(--dp-accent); }
+
+/* ---------- theme bars ---------- */
+.themebars {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.tbRow {
+  display: grid;
+  grid-template-columns: 64px 1fr 30px;
+  align-items: center;
+  gap: 11px;
+}
+.tbRow .tbLbl {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  color: var(--dp-ink-dim);
+  letter-spacing: .03em;
+}
+.tbTrack {
+  height: 5px;
+  border-radius: 0;
+  background: rgba(58, 46, 28, 0.12);
+  overflow: hidden;
+  position: relative;
+}
+.tbFill {
+  height: 100%;
+  border-radius: 0;
+}
+.tbFillWarm {
+  background: linear-gradient(90deg, rgba(217, 168, 74, 0.5), var(--dp-ember));
+  box-shadow: 0 0 10px var(--dp-ember-glow);
+}
+.tbFillCool {
+  background: linear-gradient(90deg, var(--dp-accent-deep), var(--dp-accent));
+  box-shadow: 0 0 10px var(--dp-accent-glow);
+}
+.tbRow .tbVal {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  color: var(--dp-ink-mute);
+  text-align: right;
+}
+
+/* ---------- transit row ---------- */
+.transitRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 0;
+}
+.transit {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 14px;
+  border-radius: 4px;
+  background: var(--dp-panel);
+  border: 1px solid var(--dp-line);
+}
+.transit.outer {
+  border-color: rgba(108, 74, 115, 0.32);
+  background: rgba(108, 74, 115, 0.06);
+}
+.transit .g {
+  font-size: 20px;
+  color: var(--dp-accent);
+  width: 26px;
+  text-align: center;
+}
+.transit.outer .g { color: var(--dp-violet); }
+.transit .tt .a {
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  color: var(--dp-ink);
+  line-height: 1.4;
+}
+.transit .tt .aTarget {
+  color: var(--dp-ink-mute);
+}
+.transit .tt .s {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  color: var(--dp-ink-mute);
+  margin-top: 3px;
+}
+
+/* ---------- hr ---------- */
+.hr {
+  height: 1px;
+  background: var(--dp-line-soft);
+  border: 0;
+  margin: 18px 0;
+}
+
+/* ---------- shinsal pills ---------- */
+.shinsalRow {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 0;
+}
+.ssPill {
+  font-family: var(--dp-serif-ko);
+  font-size: 12px;
+  color: var(--dp-violet);
+  border: 1px solid rgba(108, 74, 115, 0.4);
+  background: rgba(108, 74, 115, 0.07);
+  border-radius: 3px;
+  padding: 5px 13px;
+}
+
+.layerTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  margin-bottom: 8px;
+}
+
+/* ---------- section ---------- */
+.block {
+  margin-top: 40px;
+}
+.blockSm {
+  margin-top: 26px;
+}
+.secHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.secTitle {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: clamp(20px, 3vw, 27px);
+  color: var(--dp-ink);
+  margin: 0;
+  letter-spacing: -.01em;
+}
+.tiny {
+  font-family: var(--dp-mono);
+  font-size: 10.5px;
+  letter-spacing: .04em;
+  color: var(--dp-ink-faint);
+}
+
+/* ---------- signal stream ---------- */
+.signalStream {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 10px;
+}
+.sig {
+  display: grid;
+  grid-template-columns: 132px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.sig .cat {
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.catSaju { color: var(--dp-ember-2); }
+.catAstro { color: var(--dp-accent-2); }
+.catCross { color: var(--dp-violet-2); }
+.catNeutral { color: var(--dp-ink-faint); }
+
+.sig .body .lb {
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  color: var(--dp-ink);
+}
+.sig .body .rm {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  color: var(--dp-ink-faint);
+  font-style: italic;
+}
+.sigMore {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  color: var(--dp-ink-mute);
+  text-align: center;
+  padding: 14px;
+  letter-spacing: .05em;
+}
+
+/* ---------- polarity chip ---------- */
+.pol {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: .04em;
+  padding: 2px 7px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.polPos {
+  color: var(--dp-pos);
+  border-color: rgba(47, 125, 91, 0.45);
+  background: rgba(47, 125, 91, 0.08);
+}
+.polNeg {
+  color: var(--dp-neg);
+  border-color: rgba(176, 58, 34, 0.4);
+  background: rgba(176, 58, 34, 0.07);
+}
+.polNeu {
+  color: var(--dp-neu);
+  border-color: var(--dp-line);
+}
+
+/* ---------- score dial ---------- */
+.scoreDial {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  flex: none;
+}
+.scoreDial .sdNum {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.scoreDial .sdNum b {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: 30px;
+  color: var(--dp-ink);
+  line-height: 1;
+}
+.scoreDial .sdNum span {
+  font-family: var(--dp-mono);
+  font-size: 8.5px;
+  letter-spacing: .16em;
+  color: var(--dp-ink-mute);
+  margin-top: 3px;
+}
+
+/* ============================================================
+   Phase 3 — CrossActivationCard
+   ============================================================ */
+.crossGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.crossCard {
+  padding: 14px 16px;
+  border-radius: 4px;
+  background: var(--dp-panel);
+  border: 1px solid var(--dp-line);
+  border-left: 3px solid var(--dp-violet);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.crossPair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  color: var(--dp-ink);
+}
+.crossPair .pSaju {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.crossPair .pSaju::before {
+  content: "◆";
+  font-size: 8px;
+  color: var(--dp-ember);
+  margin-right: 2px;
+}
+.crossPair .pAstro {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.crossPair .pAstro::before {
+  content: "✦";
+  font-size: 9px;
+  color: var(--dp-accent);
+  margin-right: 2px;
+}
+.crossPair .pArrow {
+  color: var(--dp-ink-faint);
+  font-family: var(--dp-mono);
+  font-size: 11px;
+}
+.crossMeaning {
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  color: var(--dp-ink-dim);
+  line-height: 1.55;
+}
+.crossFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+.crossWeight {
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  color: var(--dp-ink-mute);
+  letter-spacing: .06em;
+}
+
+/* ============================================================
+   Phase 3 — AppliedPatternBadge
+   ============================================================ */
+.appliedRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.appliedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 3px;
+  background: var(--dp-panel);
+  border: 1px solid var(--dp-line);
+  font-family: var(--dp-serif-ko);
+}
+.appliedBadge.polPosBg {
+  border-color: rgba(47, 125, 91, 0.36);
+  background: rgba(47, 125, 91, 0.06);
+}
+.appliedBadge.polNegBg {
+  border-color: rgba(176, 58, 34, 0.36);
+  background: rgba(176, 58, 34, 0.05);
+}
+.appliedHan {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--dp-ember);
+  letter-spacing: .02em;
+}
+.appliedKo {
+  font-family: var(--dp-serif-ko);
+  font-size: 12px;
+  color: var(--dp-ink);
+}
+.appliedBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ============================================================
+   Phase 3 — JijangganChips (3층)
+   ============================================================ */
+.jijangganRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.jjChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  border-radius: 3px;
+  background: var(--dp-panel);
+  border: 1px solid var(--dp-line);
+}
+.jjChip.jjMain {
+  border-color: rgba(176, 58, 34, 0.45);
+  background: rgba(176, 58, 34, 0.06);
+  box-shadow: 0 4px 12px -8px rgba(176, 58, 34, 0.45);
+}
+.jjLayer {
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid var(--dp-line);
+}
+.jjChip.jjMain .jjLayer {
+  color: var(--dp-ember);
+  border-color: rgba(176, 58, 34, 0.4);
+}
+.jjStem {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--dp-ember-2);
+}
+.jjMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.jjSibsin {
+  font-family: var(--dp-serif-ko);
+  font-size: 12px;
+  color: var(--dp-ink);
+}
+.jjEl {
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  color: var(--dp-ink-mute);
+  letter-spacing: .04em;
+}
+
+/* ============================================================
+   Phase 3 — TwelveStageMatrix (본명 4기둥 × 일진 지지)
+   ============================================================ */
+.tsMatrix {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+@media (max-width: 560px) {
+  .tsMatrix { grid-template-columns: repeat(2, 1fr); }
+}
+.tsCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  border-radius: 3px;
+  background: var(--dp-panel);
+  border: 1px solid var(--dp-line);
+}
+.tsPillar {
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+}
+.tsStage {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dp-ink);
+}
+.tsBranch {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  color: var(--dp-ink-faint);
+}
+
+/* ============================================================
+   Phase 3 — FixedStarRow / ArabicLotRow
+   ============================================================ */
+.starRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.starChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border-radius: 3px;
+  border: 1px solid var(--dp-line);
+  background: var(--dp-panel);
+  font-family: var(--dp-serif-ko);
+  font-size: 12px;
+  color: var(--dp-ink);
+}
+.starChip.fixed {
+  border-color: rgba(217, 168, 74, 0.4);
+  background: rgba(217, 168, 74, 0.07);
+}
+.starChip.lot {
+  border-color: rgba(79, 93, 150, 0.4);
+  background: rgba(79, 93, 150, 0.07);
+}
+.starGlyph {
+  font-size: 13px;
+}
+.starChip.fixed .starGlyph { color: var(--dp-ember); }
+.starChip.lot .starGlyph { color: var(--dp-accent-2); }
+
+/* ============================================================
+   HourBreakdown — 24시 (子~亥)
+   ============================================================ */
+.hourGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 5px;
+  margin-top: 12px;
+}
+@media (max-width: 760px) {
+  .hourGrid { grid-template-columns: repeat(6, 1fr); }
+}
+.hourCell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 4px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--dp-line-soft);
+  background: var(--dp-panel);
+  min-height: 64px;
+  overflow: hidden;
+}
+.hourCell .hourGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 3px;
+}
+.hourCell .hourBranch {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dp-ink);
+  position: relative;
+  z-index: 2;
+}
+.hourCell .hourLabel {
+  font-family: var(--dp-mono);
+  font-size: 9px;
+  color: var(--dp-ink-mute);
+  letter-spacing: .04em;
+  margin-top: 2px;
+  position: relative;
+  z-index: 2;
+}
+.hourCell .hourScore {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  color: var(--dp-ink-dim);
+  margin-top: 3px;
+  position: relative;
+  z-index: 2;
+}
+.hourCell .hourDomain {
+  font-family: var(--dp-serif-ko);
+  font-size: 10px;
+  color: var(--dp-ink-mute);
+  margin-top: 2px;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+.hourCell.hourBest {
+  border-color: rgba(47, 125, 91, 0.42);
+}
+.hourCell.hourBest .hourGlow {
+  background: radial-gradient(circle at 50% 60%, rgba(47, 125, 91, 0.18), transparent 70%);
+}
+.hourCell.hourBest .hourScore { color: var(--dp-pos); }
+.hourCell.hourAvoid {
+  border-color: rgba(176, 58, 34, 0.42);
+}
+.hourCell.hourAvoid .hourGlow {
+  background: radial-gradient(circle at 50% 60%, rgba(176, 58, 34, 0.16), transparent 70%);
+}
+.hourCell.hourAvoid .hourScore { color: var(--dp-neg); }
+.hourCell.hourMid .hourGlow {
+  background: radial-gradient(circle at 50% 60%, rgba(217, 168, 74, 0.12), transparent 70%);
+}
+.hourCell.hourMid .hourScore { color: var(--dp-ember); }
+
+/* ============================================================
+   Mobile breakpoints — 640px / 480px
+   ============================================================ */
+
+@media (max-width: 640px) {
+  .tierInner {
+    padding: clamp(56px, 10vh, 86px) 16px calc(140px + env(safe-area-inset-bottom, 0px));
+  }
+  .tierInner::before {
+    left: 6px; right: 6px;
+    top: clamp(40px, 6vh, 60px);
+    bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+  }
+  .iljinBig .han {
+    font-size: 56px;
+    padding: 8px 12px;
+  }
+  .iljinBig .meta .kr { font-size: 12.5px; }
+  .iljinBig .meta .en { font-size: 10px; }
+  .oneline { font-size: clamp(14px, 4vw, 17px); }
+  .secTitle { font-size: clamp(17px, 4.6vw, 22px); }
+  .block { margin-top: 30px; }
+  .blockSm { margin-top: 20px; }
+  .panel { padding: 16px; }
+  .split { gap: 12px; margin-top: 22px; }
+  /* signal stream — collapse the leading 132px category col to compact width */
+  .sig {
+    grid-template-columns: 78px 1fr auto;
+    gap: 10px;
+    padding: 10px 2px;
+  }
+  .sig .cat { font-size: 9px; }
+  .sig .body .lb { font-size: 12.5px; }
+  .scoreDial { width: 80px; height: 80px; }
+  .scoreDial .sdNum b { font-size: 26px; }
+  /* 24h grid: 12 → 4 columns */
+  .hourGrid { grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .hourCell { min-height: 56px; padding: 7px 3px 8px; }
+  .hourCell .hourBranch { font-size: 14px; }
+  .hourCell .hourLabel { font-size: 8.5px; }
+  .hourCell .hourScore { font-size: 9.5px; }
+  .hourCell .hourDomain { font-size: 9px; }
+  /* matrices */
+  .tsMatrix { grid-template-columns: repeat(2, 1fr); }
+  .crossGrid { grid-template-columns: 1fr; gap: 10px; }
+  .crossCard { padding: 12px 14px; }
+  .appliedBadge { padding: 8px 12px; }
+  .appliedHan { font-size: 14px; }
+  .jjChip { padding: 7px 10px; }
+  .jjStem { font-size: 16px; }
+  .statusChip { font-size: 11.5px; padding: 5px 10px; }
+  .gongmangBanner, .vocBanner { padding: 8px 12px; font-size: 11.5px; }
+  .transit { padding: 9px 11px; }
+  .ssPill { font-size: 11.5px; padding: 4px 11px; }
+  .riseCenter { margin-top: 28px; }
+}
+
+@media (max-width: 480px) {
+  .tierInner { padding: clamp(50px, 9vh, 78px) 12px calc(130px + env(safe-area-inset-bottom, 0px)); }
+  .iljinBig .han { font-size: 48px; padding: 6px 10px; }
+  /* signal stream — stack score under body to give label more room */
+  .sig {
+    grid-template-columns: 64px 1fr auto;
+    gap: 8px;
+  }
+  .hourGrid { grid-template-columns: repeat(4, 1fr); gap: 3px; }
+  .hourCell { min-height: 50px; padding: 6px 2px 7px; }
+  .hourCell .hourBranch { font-size: 13px; }
+}

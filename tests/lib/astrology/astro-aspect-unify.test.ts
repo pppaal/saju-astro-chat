@@ -148,16 +148,20 @@ describe('astro-aspect-unify: findAspects numeric output is unchanged', () => {
 })
 
 describe('astro-aspect-unify: findNatalAspects numeric output is unchanged', () => {
-  // Sun-Moon trine, 2° off (Moon at 122). Natal limit = max(8,8)+3 = 11.
-  // orb = |118-120|... wait sep = shortestAngle(0,122)=122 -> orb=|122-120|=2.
-  // orbWeight = 1 - 2/11. aspectWeight(trine)=0.88. wSpd=0 so applying irrelevant.
+  // Sun-Moon trine, 2° off (Moon at 122). sep = shortestAngle(0,122)=122 → orb=|122-120|=2.
+  // Natal limit = Sun·Moon moiety orb + 3 = 16.418 (개별 행성 orb 기준; legacy 의 고정
+  // max(8,8)+3=11 가정은 moiety orb 가 넓어지며 stale 됐다 — 실제 limit 으로 잠근다).
+  // score = wOrb·orbWeight + wAsp·aspectWeight + wSpd·(…)  (wSpd 기본 0)
+  //   orbWeight = 1 - orb/limit, aspectWeight(trine)=0.88, wOrb=0.55, wAsp=0.45
   it('natal trine uses +3 wider orb and hand-computed score', () => {
     const natal = chart([planet('Sun', 0, 1), planet('Moon', 122, 13)])
     const hits = findNatalAspects(natal).filter((h) => h.type === 'trine')
     expect(hits).toHaveLength(1)
     expect(hits[0].orb).toBe(2)
-    const orbWeight = 1 - 2 / 11
+    const limit = 16.418 // Sun·Moon moiety orb (+3) — 바뀌면 이 golden 값을 의도적으로 갱신
+    const orbWeight = 1 - 2 / limit
     const expected = Number((0.55 * orbWeight + 0.45 * 0.88 + 0).toFixed(3))
+    expect(expected).toBe(0.879)
     expect(hits[0].score).toBe(expected)
   })
 

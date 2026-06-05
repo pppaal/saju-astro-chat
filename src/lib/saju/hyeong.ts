@@ -12,17 +12,40 @@
  * 일관된 보정 교리를 적용한다.
  */
 
-// 삼형(寅巳申·丑戌未) 중 실제 "형" 쌍 — 충 페어(寅申·丑未)는 제외.
-export const HYEONG_PAIR_TRIO = new Set([
-  '寅巳', '巳寅', '巳申', '申巳',
-  '丑戌', '戌丑', '戌未', '未戌',
-])
+import {
+  PUNISHMENT_TRIOS,
+  PUNISHMENT_PAIR,
+  SELF_PUNISHMENT_STRICT,
+  BRANCH_CLASH,
+  toBidiRecord,
+  toPairKeySet,
+} from './relationTables'
 
-// 상형(서로 형): 子卯.
-export const BRANCH_HYEONG_PAIR: Record<string, string> = { 子: '卯', 卯: '子' }
+// 삼형(寅巳申·丑戌未) 중 실제 "형" 쌍 — 충 페어(寅申·丑未)는 제외. canon 파생.
+export const HYEONG_PAIR_TRIO: Set<string> = (() => {
+  const clash = toPairKeySet(BRANCH_CLASH, '') // "寅申"/"申寅" 형태
+  const s = new Set<string>()
+  for (const [a, b, c] of PUNISHMENT_TRIOS) {
+    for (const [x, y] of [
+      [a, b],
+      [a, c],
+      [b, c],
+    ] as const) {
+      if (clash.has(`${x}${y}`)) {
+        continue // 충 페어(寅申·丑未)는 형이 아니다
+      }
+      s.add(`${x}${y}`)
+      s.add(`${y}${x}`)
+    }
+  }
+  return s
+})()
 
-// 자형(自刑): 같은 지지끼리 — 표준 4쌍.
-export const SELF_HYEONG = new Set(['辰', '午', '酉', '亥'])
+// 상형(서로 형): 子卯. canon 파생.
+export const BRANCH_HYEONG_PAIR: Record<string, string> = toBidiRecord([PUNISHMENT_PAIR])
+
+// 자형(自刑): 같은 지지끼리 — 표준 4쌍(canon).
+export const SELF_HYEONG = new Set(SELF_PUNISHMENT_STRICT)
 
 /** 두 지지(한자)가 형(자형 포함) 관계인지. a===b 면 자형 여부로 판정. */
 export function isHyeong(a: string, b: string): boolean {

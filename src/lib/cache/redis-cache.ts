@@ -244,8 +244,17 @@ export const CacheKeys = {
     return `transit:v1:${dateHour}:${latitude.toFixed(2)}:${longitude.toFixed(2)}`
   },
 
-  natalChart: (birthDate: string, birthTime: string, latitude: number, longitude: number) =>
-    `natal:v1:${birthDate}:${birthTime}:${latitude.toFixed(2)}:${longitude.toFixed(2)}`,
+  natalChart: (
+    birthDate: string,
+    birthTime: string,
+    latitude: number,
+    longitude: number,
+    timeZone: string
+  ) =>
+    // timeZone 은 현지시각→UT 변환(natalToJD)에 들어가 모든 행성·ASC·MC·하우스를
+    // 바꾼다. 키에서 빠지면 같은 날짜/시각/좌표라도 tz 다른 두 요청이 충돌해 두
+    // 번째가 첫 번째의 잘못된 차트를 받는다. v1→v2 로 기존(누락) 캐시 무효화.
+    `natal:v2:${birthDate}:${birthTime}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}`,
 } as const
 
 /**

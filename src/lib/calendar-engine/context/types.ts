@@ -10,6 +10,8 @@ import type {
   ZRStartLot,
 } from '@/lib/astrology/foundation/zodiacalReleasing'
 import type { DignityTiers } from '@/lib/astrology/foundation/dignities'
+import type { ArabicLot } from '@/lib/astrology/foundation/arabicParts'
+import type { AlmutenFigurisResult } from '@/lib/astrology/foundation/almutenFiguris'
 import type { SajuPillars, FiveElement, ShinsalHit, RelationHit, DayMaster } from '@/lib/saju/types'
 import type { AdvancedAnalysisResult } from '@/app/api/saju/services/advancedAnalysis'
 
@@ -48,8 +50,43 @@ export interface NatalDignityEntry {
 
 export type DignityResult = NatalDignityEntry[]
 
+/**
+ * 일주(日柱) 지지의 지장간 3층 (정기/중기/여기). 본명 일주에서 한 번만 결정되는
+ * 정적 속성이라 컨텍스트에 캐시. destinypal Persona 카드 3층 일주 표시 + 일진·세운
+ * extractor 가 본명 일지 지장간을 cross 할 때 같은 데이터를 매번 JIJANGGAN[branch]
+ * 로 꺼내지 않도록 buildNatalContext 가 미리 펴 둔다.
+ *
+ * 子·卯·午·酉 (왕지) 등 일부 지지는 정기만 있고 중기/여기는 비어 있을 수 있다.
+ */
+export interface NatalDayJijanggan {
+  /** 정기 (본기) 천간 — 항상 존재. 예: 未 → '己'. */
+  jeonggi: string
+  /** 중기 천간 — 일부 지지에서 부재. 예: 未 → '乙'. */
+  junggi?: string
+  /** 여기 (餘氣, 초기 잔기) 천간 — 일부 지지에서 부재. 예: 未 → '丁'. */
+  yeogi?: string
+}
+
+/**
+ * 본명 ArabicLot + house 매핑.
+ * ArabicLot 자체는 sign + degreeInSign + longitude 만 들고 있고, house 는 chart
+ * cusp 룩업으로 채워지므로 컨텍스트 레이어에서 합성한다. UNKNOWN_HOUSE(0) 이면
+ * cusp 결손 / 이상치 — UI 는 미표시.
+ */
+export interface NatalArabicLot extends ArabicLot {
+  /** 1-12 house — 0 이면 cusp 룩업 실패 sentinel. */
+  house: number
+}
+
 // Re-export so consumers can import from one place.
-export type { AspectHit, ZRPeriod, ZRStartLot, DignityTiers }
+export type {
+  AspectHit,
+  ZRPeriod,
+  ZRStartLot,
+  DignityTiers,
+  ArabicLot,
+  AlmutenFigurisResult,
+}
 
 /**
  * 본명 컨텍스트 — 사용자별로 1회 계산 후 캐시.
@@ -100,6 +137,14 @@ export interface NatalSajuContext {
    * 캐시된 결과 그대로 클라이언트에 반환해도 안전.
    */
   advancedAnalysis: AdvancedAnalysisResult
+  /**
+   * 본명 일주(日柱) 지지의 지장간 3층 — destinypal Persona 카드의 "일주 3층"
+   * 표시가 매번 JIJANGGAN[branch] 룩업을 다시 하지 않도록 컨텍스트에 캐시.
+   * 정기는 항상 존재, 중기/여기는 지지에 따라 부재 (子·卯·午·酉 왕지 등).
+   * NB: pillars.day.jijanggan 에도 동일 정보가 PillarData 형태로 들어있으나,
+   * 이쪽은 *천간 글자만* 미리 추출한 평면 형태 (UI 가 한 번에 소비).
+   */
+  dayJijanggan: NatalDayJijanggan
 }
 
 export interface NatalAstroContext {
@@ -136,4 +181,32 @@ export interface NatalAstroContext {
    * 신호를 위한 보일러플레이트가 사라진다.
    */
   dignities: DignityResult
+  /**
+   * 7대 Arabic Parts (Fortune / Spirit / Eros / Necessity / Courage / Victory /
+   * Nemesis) — Hellenistic 산술점. 각 lot 의 sign · within-sign degree · house
+   * 가 destinypal 본명 차트의 lots 패널 + ZR 시작점 (Spirit/Fortune) 으로 직접
+   * 소비된다. 낮/밤 sect 공식 반영 후 미리 계산해 두면 ZR L1 chapter 갱신, lot-
+   * 트랜짓 신호 둘 다 같은 source 를 보게 된다.
+   *
+   * 차트 결손 (행성 missing) 으로 부분 실패 시 빈 배열. 단일 lot 만 빠지는
+   * 패턴은 없음 — 모두 ASC + 두 천체의 산술이라 한 행성이라도 빠지면 전 lot 실패.
+   */
+  lots: NatalArabicLot[]
+  /**
+   * Almuten Figuris — 4 hyleg points (Sun · Moon · ASC · Fortune) 각각에서
+   * 5 essential dignity tier (Domicile 5, Exalt 4, Triplicity 3, Bound 2, Face 1)
+   * 별 점수를 누적해 최고점 행성. 정통 Bonatti/Ibn Ezra 의 "삶 전체의 지배자".
+   *
+   * 결과 shape (foundation/almutenFiguris.ts SSOT):
+   *   - winner: 최고점 행성 (동점이면 winners[0])
+   *   - winners: 동점 행성 list (tie-aware)
+   *   - scores: 행성별 누적 점수
+   *   - points: point 별 ruler breakdown (감사용)
+   *
+   * Prenatal Lunation 은 swe_sol_eclipse iteration 비용이 커 modern Holden-식
+   * 4-point 로 시작; 정밀도가 더 필요해지면 5번째 point 만 추가하면 score 자동 보강.
+   *
+   * 차트 결손 또는 dignity 매칭 실패 시 null — UI 가 fallback 처리.
+   */
+  almutenFiguris: AlmutenFigurisResult | null
 }

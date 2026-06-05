@@ -8,6 +8,7 @@ import {
   ErrorCodes,
 } from '@/lib/api/middleware'
 import { Prisma } from '@prisma/client'
+import { createHash } from 'crypto'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { tarotSaveRequestSchema, tarotQuerySchema } from '@/lib/api/zodValidation'
@@ -42,6 +43,27 @@ function normalizeTarotSavePayload(raw: unknown): unknown {
       }
     }),
   }
+}
+
+// 같은 리딩의 중복 저장을 막기 위한 *결정적* PK. 같은 사용자가 같은
+// 스프레드·카드·해석(overallMessage)을 저장하면 항상 같은 id 로 떨어져,
+// DB 유니크 PK 가 두 번째 INSERT 를 원자적으로 거부한다(P2002). 이로써
+// 자동저장+수동저장 레이스 / 재시도 / 로컬→서버 마이그레이션 재POST 에서
+// 생기던 중복 히스토리 행을 막는다. 클라이언트 변경 불필요.
+//
+// overallMessage(LLM 고유 출력)를 키에 포함하므로 *서로 다른* 리딩(우연히
+// 같은 카드 조합)끼리는 충돌하지 않는다. 해석이 비어 식별이 불안하면 null →
+// cuid 자동 생성으로 폴백(오병합 방지가 중복 방지보다 우선).
+function deterministicReadingId(
+  userId: string,
+  spreadId: string,
+  cards: unknown,
+  overallMessage?: string | null
+): string | null {
+  const overall = (overallMessage || '').trim()
+  if (!overall) return null
+  const sig = JSON.stringify({ userId, spreadId, cards, overall })
+  return `tr_${createHash('sha256').update(sig).digest('hex').slice(0, 24)}`
 }
 
 export const POST = withApiMiddleware(
@@ -108,6 +130,18 @@ export const POST = withApiMiddleware(
       createData.followupTurns = followupTurns
     }
 
+    // 중복 저장 방지용 결정적 PK. 같은 리딩은 같은 id → 두 번째 INSERT 는
+    // 유니크 제약으로 거부되고 아래에서 기존 행을 그대로 돌려준다.
+    const dedupeId = deterministicReadingId(
+      context.userId!,
+      spreadId,
+      createData.cards,
+      overallMessage
+    )
+    if (dedupeId) {
+      createData.id = dedupeId
+    }
+
     // 누락 컬럼(P2022) 방어 — 마이그레이션이 prod 에 늦게 닿아 어떤 컬럼이
     // 아직 없으면 INSERT 가 통째로 500 으로 죽어 사용자 리딩이 영영 저장 안 됨.
     // 죽인 컬럼이 "빼도 되는" optional 이면 그 컬럼만 빼고 재시도해서 최소한
@@ -132,6 +166,20 @@ export const POST = withApiMiddleware(
           break
         } catch (err) {
           const e = err as { code?: string; meta?: { column?: unknown } }
+          // 같은 리딩의 중복 저장 — deterministic PK 충돌(P2002). 새 행을 만들지
+          // 않고 이미 저장된 행을 그대로 반환해 멱등 보장. (자동저장+수동저장
+          // 동시 요청도 DB 유니크 PK 가 원자적으로 막아 check-then-create 레이스
+          // 없음. Postgres 는 선행 INSERT 커밋까지 블록 후 P2002 → 아래 조회 성공.)
+          if (e?.code === 'P2002' && dedupeId) {
+            const existing = await prisma.tarotReading.findUnique({ where: { id: dedupeId } })
+            if (existing) {
+              logger.info('[TarotSave] duplicate save — returning existing reading', {
+                id: dedupeId,
+              })
+              tarotReading = existing
+              break
+            }
+          }
           const col = typeof e?.meta?.column === 'string' ? e.meta.column : ''
           const hit =
             e?.code === 'P2022' ? STRIPPABLE.find((s) => col.includes(s)) : undefined

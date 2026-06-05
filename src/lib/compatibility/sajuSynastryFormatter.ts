@@ -15,6 +15,9 @@
  */
 
 import { HYEONG_PAIR_TRIO, BRANCH_HYEONG_PAIR, SELF_HYEONG, isHyeong } from '@/lib/saju/hyeong'
+// 공망·12신살은 saju SSOT(pillarLookup / shinsal)에 위임. 로컬 복제 금지.
+import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
+import { pickTwelveSingle } from '@/lib/saju/shinsal'
 
 const STEM_HAP: Record<string, { other: string; element: string }> = {
   '甲': { other: '己', element: '토' },
@@ -199,36 +202,14 @@ function sibsinOf(dayStem: string, otherStem: string): string | null {
   return null
 }
 
-// 공망(空亡) — 일주 기준 비어 있는 2지지. 旬首=(지지-천간)에서 시작, 마지막
-// 두 칸이 공망. synastry: 한 쪽 공망이 상대 지지에 걸리면 그 영역이 공허·초연.
+// 공망(空亡) — 일주 기준 비어 있는 2지지. pillarLookup.getGongmang(SSOT) 위임.
 function gongmangOf(stem: string, branch: string): string[] {
-  const s = STEM_ORDER.indexOf(stem)
-  const b = BRANCH_ORDER.indexOf(branch)
-  if (s < 0 || b < 0) return []
-  const start = (((b - s) % 12) + 12) % 12
-  return [BRANCH_ORDER[(start + 10) % 12], BRANCH_ORDER[(start + 11) % 12]]
+  return getGongmangByPillar(`${stem}${branch}`) ?? []
 }
 
-// 12신살 — 일지 기준, 상대 지지에 라벨 부여 (synastry: A의 일지 → B 4지지)
-const TWELVE_SHINSAL_LABELS = [
-  '겁살', '재살', '천살', '지살', '년살', '월살',
-  '망신', '장성', '반안', '역마', '육해', '화개',
-] as const
-const TWELVE_SHINSAL_START: Record<string, string> = {
-  '申': '巳', '子': '巳', '辰': '巳',
-  '亥': '申', '卯': '申', '未': '申',
-  '寅': '亥', '午': '亥', '戌': '亥',
-  '巳': '寅', '酉': '寅', '丑': '寅',
-}
+// 12신살 — 일지 기준, 상대 지지에 라벨. shinsal.pickTwelveSingle(SSOT) 위임.
 function twelveShinsalLabel(baseBranch: string, targetBranch: string): string | null {
-  const start = TWELVE_SHINSAL_START[baseBranch]
-  if (!start) return null
-  const startIdx = BRANCH_ORDER.indexOf(start)
-  const tIdx = BRANCH_ORDER.indexOf(targetBranch)
-  if (startIdx < 0 || tIdx < 0) return null
-  let offset = tIdx - startIdx
-  while (offset < 0) offset += 12
-  return TWELVE_SHINSAL_LABELS[offset % 12]
+  return pickTwelveSingle(baseBranch, targetBranch)
 }
 
 const PILLAR_LABELS = ['년', '월', '일', '시'] as const

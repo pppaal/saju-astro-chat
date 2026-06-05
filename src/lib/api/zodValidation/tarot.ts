@@ -270,7 +270,9 @@ export const coupleTarotReadingPostSchema = z.object({
   connectionId: z.string().min(1).max(200).trim(),
   spreadId: z.string().min(1).max(120).trim(),
   spreadTitle: z.string().max(120).trim().optional(),
-  cards: z.array(tarotCardSaveSchema),
+  // 표준 저장(line 100)과 동일하게 1~20 장으로 제한 — 직전엔 상한이 없어
+  // 임의 크기 배열을 커플 리딩으로 영속화할 수 있었다(방어).
+  cards: z.array(tarotCardSaveSchema).min(1).max(20),
   question: z.string().max(600).trim().optional(),
   overallMessage: z.string().max(10000).optional(),
   cardInsights: z.array(tarotCardInsightSchema).optional(),

@@ -107,6 +107,8 @@ model UserProfile {
   birthTime String? // HH:mm
   gender    String? // M, F, U
   birthCity String?
+  latitude  Float? // 출생지 위도 — 점성 하우스/진태양시 보정용
+  longitude Float? // 출생지 경도 — 사주 진태양시(진경도) 보정용
   tzId      String? // Timezone ID
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

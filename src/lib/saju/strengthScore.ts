@@ -3,6 +3,7 @@
 
 import { FiveElement, SajuPillars, PillarData, SibsinKind } from './types'
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
+import { BRANCH_CLASH, SIX_HARMONY, toBidiRecord } from './relationTables'
 import { getStemElement, getBranchElement, getStemYinYang } from './stemBranchUtils'
 
 // ============================================================
@@ -462,14 +463,7 @@ export function calculateGeokgukScore(pillars: SajuPillars, geokgukType: string)
 }
 
 function checkChungPresence(pillars: SajuPillars): boolean {
-  const CHUNG_PAIRS: [string, string][] = [
-    ['子', '午'],
-    ['丑', '未'],
-    ['寅', '申'],
-    ['卯', '酉'],
-    ['辰', '戌'],
-    ['巳', '亥'],
-  ]
+  const CHUNG_PAIRS: [string, string][] = BRANCH_CLASH.map((p) => [p[0], p[1]])
 
   const branches = [
     pillars.year.earthlyBranch.name,
@@ -487,14 +481,7 @@ function checkChungPresence(pillars: SajuPillars): boolean {
 }
 
 function checkHapPresence(pillars: SajuPillars): boolean {
-  const YUKHAP_PAIRS: [string, string][] = [
-    ['子', '丑'],
-    ['寅', '亥'],
-    ['卯', '戌'],
-    ['辰', '酉'],
-    ['巳', '申'],
-    ['午', '未'],
-  ]
+  const YUKHAP_PAIRS: [string, string][] = SIX_HARMONY.map((h) => [h.pair[0], h.pair[1]])
 
   const branches = [
     pillars.year.earthlyBranch.name,
@@ -752,21 +739,8 @@ function calculateUnseHarmonyScore(
   }
 }
 
+const CHUNG_MAP: Record<string, string> = toBidiRecord(BRANCH_CLASH)
 function isChungPair(a: string, b: string): boolean {
-  const CHUNG_MAP: Record<string, string> = {
-    子: '午',
-    午: '子',
-    丑: '未',
-    未: '丑',
-    寅: '申',
-    申: '寅',
-    卯: '酉',
-    酉: '卯',
-    辰: '戌',
-    戌: '辰',
-    巳: '亥',
-    亥: '巳',
-  }
   return CHUNG_MAP[a] === b
 }
 

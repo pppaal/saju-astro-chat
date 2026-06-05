@@ -49,6 +49,7 @@ export const POST = withApiMiddleware(
                   birthDate: true,
                   birthTime: true,
                   gender: true,
+                  longitude: true,
                 },
               },
             },
@@ -65,6 +66,7 @@ export const POST = withApiMiddleware(
                   birthDate: true,
                   birthTime: true,
                   gender: true,
+                  longitude: true,
                 },
               },
             },
@@ -118,6 +120,7 @@ export const POST = withApiMiddleware(
                       birthDate: true,
                       birthTime: true,
                       gender: true,
+                      longitude: true,
                     },
                   },
                 },
@@ -251,11 +254,13 @@ export const POST = withApiMiddleware(
                 birthDate: myBirthDate,
                 birthTime: updatedMyProfile.user.profile?.birthTime || undefined,
                 gender: updatedMyProfile.user.profile?.gender || undefined,
+                longitude: updatedMyProfile.user.profile?.longitude ?? undefined,
               },
               {
                 birthDate: targetBirthDate,
                 birthTime: targetProfile.user.profile?.birthTime || undefined,
                 gender: targetProfile.user.profile?.gender || undefined,
+                longitude: targetProfile.user.profile?.longitude ?? undefined,
               }
             )
           } catch (e) {

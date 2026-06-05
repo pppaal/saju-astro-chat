@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
+import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
 
 import {
@@ -129,6 +130,32 @@ function EmptyState({
   )
 }
 
+// 한 페이지 크기. 직전엔 limit=100 으로 한 번만 받고 멈춰서, 리딩이 100 개를
+// 넘는 사용자는 오래된 리딩이 히스토리·통계에서 조용히 누락됐다. offset 기반
+// "더 보기" 로 전부 접근 가능하게 한다.
+const HISTORY_PAGE_SIZE = 50
+
+type RawHistoryResponse = {
+  readings?: Array<Parameters<typeof mapServerReadingToSavedReading>[0]>
+  hasMore?: boolean
+  data?: {
+    readings?: Array<Parameters<typeof mapServerReadingToSavedReading>[0]>
+    hasMore?: boolean
+  }
+}
+
+// API 는 { success, data: { readings, hasMore } } 로 감싸므로 nested 우선,
+// flat 도 호환. readings 매핑 + 다음 페이지 존재 여부 반환.
+function parseHistoryPage(raw: RawHistoryResponse): {
+  readings: SavedTarotReading[]
+  hasMore: boolean
+} {
+  const list = raw.data?.readings ?? raw.readings
+  const hasMore = raw.data?.hasMore ?? raw.hasMore ?? false
+  const readings = Array.isArray(list) ? list.map((r) => mapServerReadingToSavedReading(r)) : []
+  return { readings, hasMore }
+}
+
 export default function TarotHistoryClient() {
   const router = useRouter()
   const { language } = useI18n()
@@ -144,6 +171,10 @@ export default function TarotHistoryClient() {
   const [showStats, setShowStats] = useState(false)
   const [isLoadingReadings, setIsLoadingReadings] = useState(true)
   const [deleteNotice, setDeleteNotice] = useState('')
+  // 페이지네이션 — 서버에 더 받을 리딩이 남았는지 + 다음 조회 offset.
+  const [hasMore, setHasMore] = useState(false)
+  const [nextOffset, setNextOffset] = useState(0)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   const loadReadings = useCallback(async () => {
     try {
@@ -152,25 +183,19 @@ export default function TarotHistoryClient() {
       // 누락돼 GET 이 401 로 떨어지고, catch 가 로컬(getSavedReadings) 로만
       // 폴백해 서버에 저장된 리딩이 히스토리에 안 뜨던 회귀 차단 (#1037 의
       // 인라인 save 와 동일 수정).
-      const response = await apiFetch('/api/tarot/save?limit=100')
+      const firstPageUrl = `/api/tarot/save?limit=${HISTORY_PAGE_SIZE}&offset=0`
+      const response = await apiFetch(firstPageUrl)
       if (response.ok) {
         // 로그인 사용자임을 확인 — 게스트 시절 localStorage 에 쌓인 리딩이 있으면 서버로 1회 이전.
         // flag 로 한 번만 실행되고, 실패 시 다음 방문에 재시도하지 않으려고 flag 안 박음.
         const migration = await migrateLocalReadingsToServer()
         const raw = (await (migration.migrated > 0
-          ? apiFetch('/api/tarot/save?limit=100').then((r) => r.json())
-          : response.json())) as {
-          readings?: Array<Parameters<typeof mapServerReadingToSavedReading>[0]>
-          data?: { readings?: Array<Parameters<typeof mapServerReadingToSavedReading>[0]> }
-        }
-        // The API wraps payloads as { success, data: { readings } }. Read the
-        // nested path (tolerate a flat shape too) — reading top-level `readings`
-        // returned undefined, so saved readings never showed for logged-in users.
-        const list = raw.data?.readings ?? raw.readings
-        const serverReadings = Array.isArray(list)
-          ? list.map((reading) => mapServerReadingToSavedReading(reading))
-          : []
-        setReadings(serverReadings)
+          ? apiFetch(firstPageUrl).then((r) => r.json())
+          : response.json())) as RawHistoryResponse
+        const page = parseHistoryPage(raw)
+        setReadings(page.readings)
+        setNextOffset(page.readings.length)
+        setHasMore(page.hasMore)
         if (migration.migrated > 0) {
           setDeleteNotice(
             isKo
@@ -184,7 +209,33 @@ export default function TarotHistoryClient() {
       // Fall back to local storage when server history is unavailable.
     }
     setReadings(getSavedReadings())
+    setHasMore(false)
   }, [isKo])
+
+  // "더 보기" — 다음 페이지를 받아 기존 목록에 append. id 중복은 제거(혹시
+  // 모를 동시 저장/경계 케이스 방어). 실패해도 조용히 — 버튼은 남아 재시도 가능.
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return
+    setIsLoadingMore(true)
+    try {
+      const response = await apiFetch(
+        `/api/tarot/save?limit=${HISTORY_PAGE_SIZE}&offset=${nextOffset}`
+      )
+      if (response.ok) {
+        const page = parseHistoryPage((await response.json()) as RawHistoryResponse)
+        setReadings((prev) => {
+          const seen = new Set(prev.map((r) => r.id))
+          return [...prev, ...page.readings.filter((r) => !seen.has(r.id))]
+        })
+        setNextOffset((prev) => prev + page.readings.length)
+        setHasMore(page.hasMore)
+      }
+    } catch {
+      // 무시 — 사용자가 버튼으로 다시 시도 가능.
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }, [isLoadingMore, hasMore, nextOffset])
 
   useEffect(() => {
     let cancelled = false
@@ -262,6 +313,9 @@ export default function TarotHistoryClient() {
         })
         if (response.ok) {
           setReadings((prev) => prev.filter((item) => item.id !== reading.id))
+          // 서버 행이 하나 줄었으니 다음 페이지 offset 도 보정 — 안 하면 다음
+          // "더 보기" 가 한 줄을 건너뛴다.
+          setNextOffset((prev) => Math.max(0, prev - 1))
           setDeleteNotice(isKo ? '리딩을 삭제했습니다.' : 'Reading deleted.')
         } else {
           setDeleteNotice(
@@ -300,14 +354,10 @@ export default function TarotHistoryClient() {
   return (
     <div
       className="min-h-screen text-slate-100 relative"
-      style={{
-        background: `
-          radial-gradient(900px 600px at 20% 0%, rgba(99, 124, 200, 0.08), transparent 60%),
-          radial-gradient(800px 600px at 90% 100%, rgba(212, 181, 114, 0.06), transparent 60%),
-          var(--ds-dark-bg)
-        `,
-      }}
+      style={{ background: 'var(--ds-dark-bg)' }}
     >
+      {/* 공용 cosmic gradient backdrop — 메인/타로 entry 와 같은 톤. */}
+      <CosmicBackdrop />
       {/* 글로벌 헤더 (☰ / EN) 와 안 겹치게 상단 여백 충분히.
           About/FAQ/Pricing 과 같은 max-w + padding 으로 통일. */}
       <div className="max-w-2xl mx-auto px-4 pt-20 pb-16 relative z-10">
@@ -630,6 +680,31 @@ export default function TarotHistoryClient() {
                     }
               }
             />
+          )}
+
+          {/* 더 보기 — 서버에 남은 리딩이 있을 때만. 페이지당 50 개씩 append. */}
+          {hasMore && !isLoadingReadings && (
+            <button
+              type="button"
+              onClick={loadMore}
+              disabled={isLoadingMore}
+              className="w-full rounded-2xl border p-4 text-sm font-medium transition-colors disabled:opacity-60"
+              style={{
+                background: 'rgba(17, 24, 39, 0.42)',
+                borderColor: 'var(--ds-dark-border)',
+                color: 'var(--ds-dark-text)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+              }}
+            >
+              {isLoadingMore
+                ? isKo
+                  ? '불러오는 중…'
+                  : 'Loading…'
+                : isKo
+                  ? '더 보기'
+                  : 'Load more'}
+            </button>
           )}
         </div>
       </div>

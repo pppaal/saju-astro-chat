@@ -34,9 +34,17 @@ export function calcHouses(
   }
 
   if (system === 'Placidus') {
-    // 극권에서 swe_houses('P') 는 "Can't calculate houses" 에러를 낸다 — 이 경우
-    // 차트가 통째로 throw 되던 것을 Whole Sign 으로 폴백해 막는다. 일반 위도에서는
-    // 'P' 가 성공하므로 기존 동작과 100% 동일(폴백 미작동).
+    // Placidus(및 Koch)는 극권(|위도| > 66.56°, = 90° − 황도경사 23.44°) 너머에서
+    // 수학적으로 정의되지 않는다(뜨지 않는 황도점 존재). swisseph 의 error 신호에만
+    // 의존하면 native 빌드/환경(vitest vs 런타임)에 따라 극권에서도 degenerate cusp 를
+    // error 없이 돌려줘 폴백을 놓치는 경우가 있다 → 위도로도 *선제* 폴백한다
+    // (천문학적으로 옳고 환경 독립적). 일반 위도(|lat| ≤ 66.56°)는 기존 동작 100% 동일.
+    const POLAR_CIRCLE_DEG = 66.56
+    if (Math.abs(lat) > POLAR_CIRCLE_DEG) {
+      return wholeSign()
+    }
+    // 극권 아래에서도 혹시 모를 swe_houses('P') 에러는 Whole Sign 으로 폴백해
+    // 차트가 통째로 throw 되던 것을 막는다.
     const res = swisseph.swe_houses(ut_jd, lat, lon, 'P')
     if ('error' in res) {
       // Polar fallback: WholeSign produced the cusps, so report WholeSign as

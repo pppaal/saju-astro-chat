@@ -108,6 +108,15 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
           <p className="text-xs" style={{ color: 'var(--ds-gold-on-dark)' }}>
             {isKo ? '사주팔자와 네이탈 차트' : 'Saju Pillars & Natal Chart'}
           </p>
+          <a
+            href="/destinypal"
+            className="inline-block mt-2 text-xs underline"
+            style={{ color: 'var(--ds-gold-on-dark)' }}
+          >
+            {isKo
+              ? '✦ 5스케일 운세차트로 보기 (인생→대운→연→월→일) →'
+              : '✦ Open 5-scale destiny timeline →'}
+          </a>
         </div>
 
         {/* 자연어 종합 — 격국·신강약·일간·오행·태양/달 흐르는 한 문단.
@@ -286,13 +295,15 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
             <CrossRefTable saju={saju} astro={astro} lang={lang} />
           </section>
 
-          {/* 캘린더 cross-link — 시간 흐름은 캘린더 책임 */}
+          {/* 캘린더 cross-link — 시간 흐름은 destinypal 5-tier 뷰 책임.
+              Phase D 통합 후 /calendar 는 /destinypal 의 308 alias 라서
+              redirect hop 줄이려 canonical 라우트로 바로 push. */}
           <button
             type="button"
             onClick={() => {
               if (!armed) return // ghost-tap 방어 — 연 직후 여는 탭으로 navigate 금지
               onClose()
-              router.push('/calendar')
+              router.push('/destinypal')
             }}
             className="chart-rise-in flex w-full items-center justify-center gap-2 rounded-xl p-3 text-sm transition-colors hover:bg-white/5"
             style={

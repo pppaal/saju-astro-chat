@@ -443,7 +443,7 @@ async function buildAutoAstroContext(
     // Redis 캐시 — 같은 출생 좌표면 같은 natal chart. Swiss Ephemeris × 10
     // 행성 매번 ~250ms 비용을 30일 TTL 로 절감.
     const natal = await cacheOrCalculate(
-      CacheKeys.natalChart(seed.date, seed.time, seed.latitude, seed.longitude),
+      CacheKeys.natalChart(seed.date, seed.time, seed.latitude, seed.longitude, seed.timeZone),
       async () =>
         calculateNatalChart({
           year: y,

@@ -20,10 +20,15 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { sanitizeForXmlTagBoundary } from '@/lib/llm/promptSafety'
 import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
-import { buildFallbackPayload, buildInterpretStreamPrompts } from '@/lib/tarot/promptBuild'
+import {
+  buildFallbackPayload,
+  buildInterpretStreamPrompts,
+  type PromptCardInput,
+} from '@/lib/tarot/promptBuild'
 import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
-import { tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
+import { tarotCreditCostFor, tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
+import { loadDrawCards } from '@/lib/tarot/drawCardsCache'
 import {
   applyCreditResultCookies,
   checkAndConsumeCredits,
@@ -144,7 +149,7 @@ function streamJsonPayload(
 // 전달 실패로 처리하기 위함. 파싱은 스트리밍 도중 잘린 부분 JSON 이 아니라
 // *완성된* JSON 을 가정 (success path 에서만 호출). 관대하게: 끝의 트레일링
 // 잡음/코드펜스 등 LLM 잡티는 첫 `{` ~ 마지막 `}` 구간만 떼어 파싱 시도.
-function isUsableReading(fullText: string): boolean {
+function isUsableReading(fullText: string, expectedCardCount: number): boolean {
   const text = (fullText || '').trim()
   if (text === '') return false
   // LLM 이 ```json 펜스나 앞뒤 잡담을 붙였을 수 있어 첫 `{`~마지막 `}` 만 추출.
@@ -163,6 +168,18 @@ function isUsableReading(fullText: string): boolean {
   if (typeof reading.overall !== 'string' || reading.overall.trim() === '') return false
   // cards 는 비어있지 않은 배열이고, 각 항목이 비어있지 않은 interpretation 을 가진다.
   if (!Array.isArray(reading.cards) || reading.cards.length === 0) return false
+  // 카드 수 = 실제 뽑힌 카드 수와 정확히 일치해야 한다. 클라이언트는 카드와
+  // 해석을 *배열 순서로만* 매핑하므로(card_insights = drawnCards.map((dc,i) =>
+  // parsedCards[i])), 모델이 카드를 적게/많게 emit 하면 뒤쪽 카드가 엉뚱한
+  // 해석(또는 정적 폴백 의미)에 묶여 *조용히 잘못된 리딩* 이 된다. 개수가
+  // 다르면 "전달 실패" 로 보고 환불 + 폴백 처리 — 깨진 매핑을 과금하지 않는다.
+  if (reading.cards.length !== expectedCardCount) {
+    logger.warn('[tarot-stream] card count mismatch — treating as unusable', {
+      got: reading.cards.length,
+      expected: expectedCardCount,
+    })
+    return false
+  }
   const everyCardUsable = reading.cards.every((c) => {
     if (typeof c !== 'object' || c === null) return false
     const card = c as { position?: unknown; interpretation?: unknown }
@@ -175,13 +192,18 @@ function isUsableReading(fullText: string): boolean {
   })
   if (!everyCardUsable) return false
 
-  // 자리(position) 중복 금지 — 프롬프트가 룰로 박았지만 모델이 어기면 두 카드에
-  // 같은 라벨이 떠 클라이언트가 "둘 다 다가올 흐름?" 같은 깨진 결과를 보여준다.
-  // trim + lowercase 로 정규화해서 비교 (공백/대소문자만 다른 변형도 잡힘).
+  // 자리(position) 라벨 중복은 *표시 품질* 이슈일 뿐, "가치 없음" 이 아니다.
+  // 사용자는 overall + 모든 카드 해석이 든 완성 리딩을 이미 스트림으로 받았다.
+  // 이걸 이유로 환불(=delivered 실패)하면 정상 리딩을 공짜로 주는 매출 누수가
+  // 된다. 따라서 환불 게이트에서는 중복을 실패로 보지 않고 경고만 남긴다.
   const positions = (reading.cards as Array<{ position: string }>).map((c) =>
     c.position.trim().toLowerCase()
   )
-  if (new Set(positions).size !== positions.length) return false
+  if (new Set(positions).size !== positions.length) {
+    logger.warn('[tarot-stream] duplicate card positions in delivered reading (not refunding)', {
+      positions,
+    })
+  }
 
   return true
 }
@@ -248,7 +270,36 @@ export async function POST(req: NextRequest) {
       return streamJsonPayload(crisisPayload, { 'X-Tarot-Safety': '1' })
     }
 
-    const cardCountForCost = Array.isArray(body.cards) ? body.cards.length : 1
+    const ownerKey = drawNonceOwnerKey(req, context.userId)
+    const drawNonce = (body.drawNonce || req.headers.get('x-draw-nonce') || '').trim()
+
+    // 권위 있는 카드: draw 가 nonce 로 저장해 둔 서버 보관 카드를 *차감 전에*
+    // peek(consume 아님)한다. 캐시에 있으면 그게 draw 가 실제로 뽑은 카드 —
+    // 클라이언트가 올려보낸 cards 대신 이걸 써서 "뽑힌 카드 = 해석된 카드"
+    // 무결성을 보장한다. 또 카드 수 기반 비용도 이 권위 값으로 산정해, 클라가
+    // 카드를 적게 보내 2→1 크레딧으로 깎는 비용 회피까지 막는다. miss(만료/
+    // redis 다운/위조·미발급 nonce/레거시·인라인 경로)면 null → body.cards 폴백.
+    // (캐시 존재 자체가 정당한 발급+드로우의 증거 — 위조 nonce 는 항상 miss.)
+    const serverCards = drawNonce ? await loadDrawCards(ownerKey, drawNonce) : null
+    if (serverCards) {
+      logger.info('[tarot-stream] using server-stored draw cards (authoritative)', {
+        count: serverCards.length,
+      })
+    }
+
+    // 비용 산정 — 클라이언트가 카드를 적게 보내 2→1 크레딧으로 깎는 회피 차단.
+    // 1) serverCards(드로우 시 nonce 로 보관한 권위 카드)가 있으면 그 개수가 진짜.
+    // 2) 없으면(Redis 다운/미발급 nonce/레거시) 클라 배열 길이만 믿지 않고,
+    //    서버 스프레드 정의(spreadId→cardCount, in-memory·Redis 무관)와 클라
+    //    카드 수 중 *큰 값* 으로 매긴다. 가격을 깎으려면 spreadId 와 cards 를
+    //    모두 줄여야 하는데, 그러면 실제 받는 리딩도 같이 줄어 이득이 없다.
+    const spreadCardCount = tarotThemes
+      .find((t) => t.id === body.categoryId)
+      ?.spreads.find((s) => s.id === body.spreadId)?.cardCount
+    const clientCardCount = Array.isArray(body.cards) ? body.cards.length : 1
+    const cardCountForCost = serverCards
+      ? serverCards.length
+      : Math.max(spreadCardCount ?? 0, clientCardCount, 1)
     creditCost = tarotCreditCostFor(cardCountForCost)
 
     // T1 fix: 옛 코드는 nonce.consume() 이 credit check 전에 호출됐다. credit
@@ -257,8 +308,6 @@ export async function POST(req: NextRequest) {
     //
     // 순서 변경: 먼저 credit check 후 nonce consume. credit 충분할 때만 nonce
     // burn → 차감 fail 시 nonce 보존되어 같은 free-pass 흐름 재진입 가능.
-    const ownerKey = drawNonceOwnerKey(req, context.userId)
-    const drawNonce = (body.drawNonce || req.headers.get('x-draw-nonce') || '').trim()
 
     // 1) credit 먼저 — nonce 는 peek 만 (consume 안 함).
     // peek 가 없으면 보수적으로: credit 확인 후 consume.
@@ -304,12 +353,33 @@ export async function POST(req: NextRequest) {
           : context.locale === 'en'
             ? 'en'
             : 'ko'
-    const rawCards = body.cards
     // sanitizeForXmlTagBoundary strips `<`/`>` from attacker-controlled
     // question text so it can't fake server tags. The current tarot
     // prompt template uses markdown headers (no XML wrappers), but this
     // matches the rest of the LLM routes — defense in depth.
     const userQuestion = sanitizeForXmlTagBoundary((body.userQuestion || '').trim())
+
+    // 서버 보관 카드가 있으면 그게 권위(우리 덱 데이터라 sanitize 불필요).
+    // 없으면(폴백) 클라이언트가 보낸 카드를 쓰되 — 카드 필드도 공격자 제어
+    // 값이므로 userQuestion 과 동일하게 sanitize 한다. 직전엔 question 만 걸러서
+    // 카드 name/keywords/position 에 프롬프트 인젝션 텍스트를 넣으면 그대로 LLM
+    // 에 박히던 구멍이 있었다(followup 라우트는 이미 sanitize). isReversed 는
+    // boolean 이라 안전. 아래 buildInterpretStreamPrompts / buildFallbackPayload
+    // 둘 다 이 배열을 사용한다.
+    const sani = (s?: string) => (s ? sanitizeForXmlTagBoundary(s) : s)
+    const rawCards: PromptCardInput[] = serverCards
+      ? serverCards
+      : body.cards.map((c) => ({
+          ...c,
+          name: sanitizeForXmlTagBoundary(c.name),
+          nameKo: sani(c.nameKo),
+          position: sani(c.position),
+          positionKo: sani(c.positionKo),
+          positionMeaning: sani(c.positionMeaning),
+          positionMeaningKo: sani(c.positionMeaningKo),
+          keywords: c.keywords?.map((k) => sanitizeForXmlTagBoundary(k)),
+          keywordsKo: c.keywordsKo?.map((k) => sanitizeForXmlTagBoundary(k)),
+        }))
 
     // 끊김 복구용 turnId. 로그인 사용자(context.userId) + turnId 가 둘 다
     // 있을 때만 "복구 가능한 턴". counselor 와 동일하게 slice(0,80).
@@ -319,7 +389,15 @@ export async function POST(req: NextRequest) {
     const isRecoverable = Boolean(turnId && recoverableUserId)
     // Per-turn key so every refund path (fallback / claude error / stream error
     // / outer catch) refunds this turn at most once. (declared at fn scope above)
-    refundKey = turnId ? `tarot-interpret:${turnId}` : null
+    // turnId 가 없으면 draw nonce(서버 발급, draw 마다 고유)로 대체 — 둘 다
+    // 없을 때만 null. null 이면 refundCreditsOnce 가 시간대 버킷으로 합성 키를
+    // 만드는데, 같은 유저·같은 시간·같은 사유의 서로 다른 두 실패가 한 키로
+    // 뭉쳐 두 번째 진짜 실패가 "이미 환불됨" 으로 누락되던 충돌이 있었다.
+    refundKey = turnId
+      ? `tarot-interpret:${turnId}`
+      : drawNonce
+        ? `tarot-interpret:nonce:${drawNonce}`
+        : null
 
     logger.info('Tarot stream payload', {
       categoryId,
@@ -500,7 +578,7 @@ export async function POST(req: NextRequest) {
           // 동일하게 환불(refundKey 로 idempotent — 이중 환불 없음) 후 정적
           // fallback 을 emit. 쓸 수 없는 리딩은 캐시에 저장하지 않는다
           // (persistIfRecoverable 스킵) — 돌아온 사용자에게 쓰레기 복원 방지.
-          if (!isUsableReading(fullText)) {
+          if (!isUsableReading(fullText, rawCards.length)) {
             logger.warn('[tarot-stream] empty/unusable reading after normal completion', {
               bytesEmitted,
               fullTextLen: fullText.length,

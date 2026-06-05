@@ -1,9 +1,9 @@
 'use client'
 
-// 타로 서비스 메인페이지 — 운명상담사/메인페이지와 같은 셸(AppHeader + 공용
-// ChatInputArea + cosmic backdrop) 위에 타로 골드 톤 + 덱·스프레드 콘텐츠가
-// 얹힌 구조. 라우트 전환 시 view-transition(`app-topbar`)으로 헤더 모핑 +
-// 같은 폭(860px)의 입력창으로 cross-fade 가 매끄럽게 이어지도록 설계.
+// 타로 서비스 메인페이지 — 공용 AppShell 위에 타로 골드 톤 + 덱·스프레드
+// 콘텐츠가 얹힌 구조. 셸(cosmic backdrop / AppHeader / MenuDrawerPanel /
+// body 컨테이너)은 AppShell 이 책임지고, 페이지는 액센트 레이어(골드 후광)
+// 와 본문(히어로 + ChatInputArea + 모달)만 신경쓴다.
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
@@ -20,8 +20,7 @@ import {
 } from '@/lib/tarot/tarot.types'
 import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import type { Spread } from '@/lib/tarot/tarot.types'
-import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
-import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
+import { AppShell } from '@/components/ui/AppShell'
 import { ChatInputArea } from '@/components/destiny-map/chat-panels'
 
 // 카테고리(테마) 안의 모든 spread 를 flat 하게 펼침 — chip 1개로 선택
@@ -40,12 +39,22 @@ const DEFAULT_DECK: DeckStyle = DECK_STYLES[0]
 const DEFAULT_SPREAD =
   ALL_SPREADS.find((s) => s.spread.id === 'past-present-future') ?? ALL_SPREADS[0]
 
+// 타로 페이지의 골드 후광 — AppShell 의 accentLayer 슬롯으로 주입. 부모
+// 컨테이너가 absolute inset-0/overflow-hidden/pointer-events-none 을 이미
+// 잡아주므로 안쪽은 flex 가운데 정렬만 신경쓰면 된다.
+function TarotGoldHalo() {
+  return (
+    <div className="flex justify-center items-center w-full h-full">
+      <div className="w-96 h-96 bg-[#a07a3c] rounded-full blur-3xl opacity-20" />
+    </div>
+  )
+}
+
 export default function TarotChatScreen() {
   const router = useRouter()
-  const { locale, setLocale } = useI18n()
+  const { locale } = useI18n()
   const isKo = locale === 'ko'
 
-  const [drawerOpen, setDrawerOpen] = useState(false)
   const [question, setQuestion] = useState('')
   const [selectedDeck, setSelectedDeck] = useState<DeckStyle>(DEFAULT_DECK)
   const [selectedSpread, setSelectedSpread] = useState(DEFAULT_SPREAD)
@@ -146,58 +155,10 @@ export default function TarotChatScreen() {
   const spreadTitle = isKo
     ? (selectedSpread.spread.titleKo ?? selectedSpread.spread.title)
     : selectedSpread.spread.title
-  const drawerLocale: 'en' | 'ko' = isKo ? 'ko' : 'en'
 
   return (
-    <div
-      className="fixed inset-0 flex flex-col bg-[#07091a] text-slate-100 font-sans overflow-x-hidden overflow-y-auto"
-      style={{
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)',
-      }}
-    >
-      {/* Cosmic gradient backdrop — 메인페이지 .cosmicBackdrop 과 동일한 패턴.
-          라우트 전환 시 root cross-fade 가 같은 톤 위에서 일어나도록. */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none"
-        aria-hidden
-        style={{
-          background:
-            'radial-gradient(1200px 760px at 50% 18%, rgba(68, 95, 255, 0.2), transparent 62%),' +
-            'radial-gradient(980px 680px at 50% 46%, rgba(191, 96, 255, 0.28), transparent 58%),' +
-            'radial-gradient(760px 540px at 22% 22%, rgba(87, 207, 255, 0.16), transparent 60%),' +
-            'radial-gradient(900px 620px at 82% 78%, rgba(117, 76, 255, 0.14), transparent 64%)',
-        }}
-      />
-
-      {/* 타로 골드 후광 — 이 페이지의 액센트 시그널 */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none flex justify-center items-center z-0">
-        <div className="w-96 h-96 bg-[#a07a3c] rounded-full blur-3xl opacity-20" />
-      </div>
-
-      <AppHeader
-        layout="home"
-        theme="cosmic"
-        onMenuClick={() => setDrawerOpen(true)}
-        menuLabel={isKo ? '메뉴 열기' : 'Open menu'}
-        centerSlot="DestinyPal"
-        rightSlot={
-          <AppHeaderIconButton
-            onClick={() => setLocale(isKo ? 'en' : 'ko')}
-            label={isKo ? 'Switch to English' : '한국어로 전환'}
-            isText
-          >
-            {isKo ? 'EN' : 'KO'}
-          </AppHeaderIconButton>
-        }
-        viewTransitionName="app-topbar"
-      />
-
-      {/* 본문 — 메인페이지 .homeBody 와 동일한 max-w 860 / 가운데 정렬.
-          상단: 히어로 (moonstar + 부채꼴 카드백) / 하단: 공용 ChatInputArea. */}
-      <div className="relative z-10 flex-1 flex flex-col w-full mx-auto px-5 pt-14 md:pt-20 pb-0 min-h-0 max-w-[860px] box-border">
+    <>
+      <AppShell accentLayer={<TarotGoldHalo />}>
         <div className="flex-1 flex flex-col items-center justify-center min-h-0">
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
@@ -220,7 +181,10 @@ export default function TarotChatScreen() {
             </p>
 
             <div className="pt-6 flex flex-col items-center gap-2.5">
-              <div className="relative h-36 w-full max-w-xs mx-auto" aria-hidden>
+              {/* z-0: 카드 인라인 zIndex(8~10)를 이 컨테이너 stacking context 안에
+                  가둬, 위로 열리는 덱·스프레드 메뉴(입력창 z-index:6 안)가 카드에
+                  가려지지 않게 한다. */}
+              <div className="relative z-0 h-36 w-full max-w-xs mx-auto" aria-hidden>
                 {Array.from({ length: Math.min(selectedSpread.spread.cardCount, 5) }).map(
                   (_, i, arr) => {
                     const n = arr.length
@@ -288,11 +252,7 @@ export default function TarotChatScreen() {
                 className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-800/60 hover:bg-slate-700/70 border border-slate-700 rounded-full text-[11px] text-slate-300 transition-colors whitespace-nowrap"
               >
                 <Layers className="w-3 h-3" style={{ color: deckInfo.accent }} />
-                <span>
-                  {isKo
-                    ? `${deckInfo.nameKo} · ${selectedSpread.spread.cardCount}장`
-                    : `${deckInfo.name} · ${selectedSpread.spread.cardCount}`}
-                </span>
+                <span>{isKo ? '덱·스프레드 선택' : 'Deck & Spread'}</span>
                 <ChevronDown
                   className={`w-3 h-3 opacity-50 transition-transform ${optionsOpen ? 'rotate-180' : ''}`}
                 />
@@ -302,12 +262,12 @@ export default function TarotChatScreen() {
                 {optionsOpen && (
                   <motion.div
                     role="menu"
-                    initial={{ opacity: 0, scale: 0.96, y: -6 }}
+                    initial={{ opacity: 0, scale: 0.96, y: 6 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.96, y: -6 }}
+                    exit={{ opacity: 0, scale: 0.96, y: 6 }}
                     transition={{ duration: 0.15, ease: 'easeOut' }}
-                    style={{ transformOrigin: 'top left' }}
-                    className="absolute top-full left-0 mt-2 w-64 rounded-xl border border-slate-700 bg-slate-900 p-1.5 shadow-xl shadow-black/50 z-30"
+                    style={{ transformOrigin: 'bottom left' }}
+                    className="absolute bottom-full left-0 mb-2 w-64 rounded-xl border border-slate-700 bg-slate-900 p-1.5 shadow-xl shadow-black/50 z-30"
                   >
                     <button
                       type="button"
@@ -356,16 +316,9 @@ export default function TarotChatScreen() {
             </div>
           }
         />
-      </div>
+      </AppShell>
 
-      <MenuDrawerPanel
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        locale={drawerLocale}
-        variant="dark"
-      />
-
-      {/* 덱 선택 모달 */}
+      {/* 덱 선택 모달 — AppShell 형제로 렌더(fixed inset-0 자체 포지셔닝) */}
       <AnimatePresence>
         {isDeckModalOpen && (
           <motion.div
@@ -573,6 +526,6 @@ export default function TarotChatScreen() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   )
 }
