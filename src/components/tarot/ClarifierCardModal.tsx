@@ -51,15 +51,15 @@ export default function ClarifierCardModal({
     document.addEventListener('keydown', onKey)
 
     // Body 스크롤 잠금만 — position:fixed 는 페이지가 맨 위로 점프하는 회귀
-    // (CLS=1 poor) 가 있어 overflow:hidden 만 사용. iOS 한정 elastic scroll 은
-    // touch-action 으로 대신 막는다.
+    // (CLS=1 poor) 가 있어 overflow:hidden 만 사용. cleanup 에서 항상 빈
+    // 문자열로 복원해 (prevOverflow leak 방지) 모달 닫혀도 페이지 frozen
+    // 회귀 없게.
     const body = document.body
-    const prevOverflow = body.style.overflow
     body.style.overflow = 'hidden'
 
     return () => {
       document.removeEventListener('keydown', onKey)
-      body.style.overflow = prevOverflow
+      body.style.overflow = ''
     }
   }, [isOpen, onClose])
 
