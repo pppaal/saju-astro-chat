@@ -164,8 +164,14 @@ function TarotReadingPage() {
           setInterpretation(result)
         }
         // LLM 이 완전 실패해 정적 fallback 으로 떨어진 경우 → 사용자에게 재시도 옵션 제공.
+        // overall_message 가 비어있으면 fallback 값과 무관하게 실패로 본다.
+        // 직전엔 fallback:false + 빈 overall(스트림이 카드만 주고 overall 을 못
+        // 끝낸 부분-에러 경로 등) 이면 실패 감지를 통과해, ResultsStage 의 저장·
+        // 후속·재시도 버튼이 모두 overall_message 게이트에 막혀 사라지고 에러도
+        // 안 뜨는 *멈춘 화면* 이 됐다. 빈 overall 을 실패로 잡아 재시도를 띄운다.
         const failedToLLM =
           !result ||
+          !result.overall_message?.trim() ||
           result.interpretation_source === 'local_personalized_fallback' ||
           result.interpretation_source === 'emergency_fallback' ||
           (result.fallback === true &&
