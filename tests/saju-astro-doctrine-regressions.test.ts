@@ -311,6 +311,28 @@ describe('saju relations — audit 2026-06 교정 회귀', () => {
   })
 })
 
+describe('saju 태극귀인 — 甲乙子午 丙丁卯酉 戊己辰戌丑未 庚辛寅亥 壬癸巳申 (외부 3곳 교차검증)', () => {
+  const kinds = (stem: string, target: string) =>
+    getShinsalHitsForDailyTarget(stem, '子', target).map((h) => h.kind as string)
+  const ok: Array<[string, string]> = [
+    ['甲', '子'], ['甲', '午'], ['丙', '卯'], ['丁', '酉'],
+    ['戊', '辰'], ['戊', '丑'], ['己', '未'], ['己', '戌'],
+    ['庚', '寅'], ['庚', '亥'], ['辛', '寅'], ['辛', '亥'],
+    ['壬', '巳'], ['壬', '申'], ['癸', '巳'], ['癸', '申'],
+  ]
+  for (const [s, b] of ok) {
+    it(`${s} 일간 → ${b} = 태극귀인`, () => {
+      expect(kinds(s, b)).toContain('태극귀인')
+    })
+  }
+  it('辛 일간 → 未 는 태극귀인 아님 (이전 庚辛→丑未 버그)', () => {
+    expect(kinds('辛', '未')).not.toContain('태극귀인')
+  })
+  it('壬 일간 → 寅 은 태극귀인 아님 (이전 壬癸→寅申 버그)', () => {
+    expect(kinds('壬', '寅')).not.toContain('태극귀인')
+  })
+})
+
 describe("saju 신살 'your' 룰 — SSOT 오염 차단 (audit 2026-06)", () => {
   const stem = { name: '辛', element: '金' }
   const branch = (n: string) => ({ name: n, element: '土' })
