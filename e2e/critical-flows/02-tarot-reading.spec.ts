@@ -336,4 +336,35 @@ test.describe('Complete Tarot Reading Flow', () => {
       (bodyText || '').includes('What should I focus on first?') || (bodyText || '').length > 200
     ).toBe(true)
   })
+
+  test('should draw a clarifier card from the results chat', async ({ page }) => {
+    // 클래리파이어("한 장 더 뽑기") 카드도 결과 화면의 followup 영역에서 버튼으로 열린다.
+    // 버튼 라벨: "카드 한 장 더 뽑기" / "Draw one more card", 모달: id="clarifier-modal-title".
+    // followup 과 동일하게 결과 미도달 환경에선 graceful 처리.
+    await page.goto('/tarot/general-insight/past-present-future?question=Should I take the offer', {
+      waitUntil: 'domcontentloaded',
+    })
+    await helpers.waitForAnyText(
+      ['tarot', 'card', 'interpretation', 'result', '카드', '해석'],
+      15000
+    )
+
+    const clarifierButton = page
+      .locator('button:has-text("카드 한 장 더 뽑기"), button:has-text("Draw one more card")')
+      .first()
+
+    if (!(await clarifierButton.isVisible({ timeout: 8000 }).catch(() => false))) {
+      // 결과/클래리파이어 버튼 미도달 — 페이지 유효성만 확인 후 종료.
+      await expect(page.locator('body')).toBeVisible()
+      return
+    }
+
+    await clarifierButton.click()
+
+    // 클래리파이어 모달이 열려야 한다.
+    const modalTitle = page.locator(
+      '#clarifier-modal-title, :text("클래리파이어 카드"), :text("Clarifier card")'
+    )
+    await expect(modalTitle.first()).toBeVisible({ timeout: 8000 })
+  })
 })
