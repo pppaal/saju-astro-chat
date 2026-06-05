@@ -50,18 +50,26 @@ export default function ClarifierCardModal({
     }
     document.addEventListener('keydown', onKey)
 
-    // Body 스크롤 잠금만 — position:fixed 는 페이지가 맨 위로 점프하는 회귀
-    // (CLS=1 poor) 가 있어 overflow:hidden 만 사용. cleanup 에서 항상 빈
-    // 문자열로 복원해 (prevOverflow leak 방지) 모달 닫혀도 페이지 frozen
-    // 회귀 없게.
-    const body = document.body
-    body.style.overflow = 'hidden'
+    // Body 스크롤 잠금을 의도적으로 안 함 — 모달 backdrop overlay 만으로 충분.
+    // 이전엔 position:fixed (페이지 점프) → overflow:hidden (cleanup leak 시
+    // 페이지 frozen) 두 회귀 차례로 겪었음. 모달은 z-index 99999 + backdrop
+    // 으로 충분히 보이므로 body 손대지 않는 게 가장 안전.
 
     return () => {
       document.removeEventListener('keydown', onKey)
-      body.style.overflow = ''
     }
   }, [isOpen, onClose])
+
+  // 안전망: 컴포넌트 unmount 또는 isOpen false 전환 시점에 혹시 다른 모달이
+  // 남긴 body.overflow lock 도 풀어준다. (사용자가 햄버거 메뉴를 열어야 frozen
+  // 풀리던 회귀 차단)
+  useEffect(() => {
+    if (!isOpen) {
+      if (document.body.style.overflow === 'hidden') {
+        document.body.style.overflow = ''
+      }
+    }
+  }, [isOpen])
 
   if (!isOpen || !card) return null
 
