@@ -64,6 +64,7 @@ interface UseTarotGameReturn {
   handleCardClick: (index: number) => void
   handleCardReveal: (index: number) => void
   handleRedraw: () => void
+  handleRetryDraw: () => void
   isCardRevealed: (index: number) => boolean
   canRevealCard: (index: number) => boolean
 }
@@ -466,6 +467,17 @@ export function useTarotGame(): UseTarotGameReturn {
     setIsSpreading(true)
   }, [])
 
+  // 일시적(네트워크/서버) 드로우 실패에서 *같은 선택 카드 그대로* 재시도.
+  // selectedIndices 는 에러 시에도 그대로 차 있으므로, drawError 를 지우고
+  // fetchTriggeredRef 를 풀어 gameState 를 'picking' 으로 되돌리면 위 fetch
+  // effect 가 같은 선택으로 다시 트리거된다. (크레딧/게스트/인증 에러는 재시도
+  // 해도 또 실패하므로 PageContent 에서 이 핸들러를 전달하지 않는다.)
+  const handleRetryDraw = useCallback(() => {
+    setDrawError(null)
+    fetchTriggeredRef.current = false
+    setGameState('picking')
+  }, [])
+
   const isCardRevealed = useCallback(
     (index: number) => revealedCards.includes(index),
     [revealedCards]
@@ -652,6 +664,7 @@ export function useTarotGame(): UseTarotGameReturn {
     handleCardClick,
     handleCardReveal,
     handleRedraw,
+    handleRetryDraw,
     isCardRevealed,
     canRevealCard,
   }
