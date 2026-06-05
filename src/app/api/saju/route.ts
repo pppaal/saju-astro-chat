@@ -185,10 +185,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 값은 보정 안 된 쪽이었다. 이제 보정된 daeWoon 하나만 서빙한다.
   //
   // 응답 shape 호환: 기존 소비자는 daeun.list (DaeunTimeline/CrossRefTable),
-  // daeun.cycles (compatibility/routeSupport), daeun.current
-  // (sajuTableFormatter), daeunsu(startAge) 를 읽는다. daeWoon 은 startAge/
-  // isForward/current/list 를 갖고 있으므로 cycles/daeunsu 별칭만 추가해
-  // 모든 reader 를 만족시킨다.
+  // daeunsu(startAge) 를 읽는다. daeWoon 은 startAge/isForward/current/list
+  // 를 갖고 있으므로 cycles/daeunsu 별칭만 추가해 모든 reader 를 만족시킨다.
   const userNow = getNowInTimezone(effectiveUserTz)
 
   // daeWoon.current 는 saju.ts 에서 출생 타임존("now")의 연도로 선택된다.

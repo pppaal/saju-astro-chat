@@ -412,7 +412,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
 
   // 6. 현재 대운 cross → IMPORTANT
   // 나이 표기는 `시작~끝세` 범위로 (cycle 10년). 단순 `32세` 면 LLM 이
-  // "현재 32세" 로 오인용 — sajuTableFormatter 와 동일 fix.
+  // "현재 32세" 로 오인 가능.
   if (input.currentDaeunA && input.currentDaeunB) {
     const dA = input.currentDaeunA, dB = input.currentDaeunB
     const ageRange = (age?: number) =>

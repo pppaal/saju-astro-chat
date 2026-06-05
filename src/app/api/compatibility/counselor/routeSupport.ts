@@ -1,8 +1,5 @@
 import { logger } from '@/lib/logger'
-import { calculateSajuData } from '@/lib/saju/saju'
-import { calculateNatalChart } from '@/lib/astrology'
 import { normalizeGender } from '@/lib/utils/gender'
-import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import type { ChatMessage } from '@/lib/api'
 function clampMessages(messages: ChatMessage[], max = 8) {
   return messages.slice(-max)
@@ -357,167 +354,6 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
   }
 }
 
-async function buildAutoSajuContext(
-  seed: PersonSeed | null,
-  now: Date
-): Promise<Record<string, unknown> | null> {
-  if (!seed || process.env.NODE_ENV === 'test') return null
-  try {
-    // 궁합은 오로지 교차 → 개인 타임라인(세운 10년/월운/일진)은 프롬프트에
-    // 안 들어가므로 계산도 안 한다. 관계 시기는 사주 synastry 안 세운/대운
-    // cross가 담당. 여기선 교차에 쓰는 pillars·대운·개별 신살만 산출.
-    //
-    // Redis 캐시 — 두 사람 사주 매 요청 재계산하던 비용 제거. 같은 입력이면
-    // 30일 TTL (immutable). 궁합 한 번에 2명 × 매번 = 큰 절감.
-    // L2 fix: CacheKeys.saju 의 timezone 인자 누락 → 옛 코드는 default
-    // 'Asia/Seoul' 로 떨어져 두 사용자가 다른 timezone 이라도 동일 캐시 키.
-    // 결과: 다른 도시 사용자가 첫 사용자의 사주를 받는 데이터 노출 + 부정확.
-    // seed.timeZone 명시 전달.
-    // 진태양시(진경도) 보정 — 운세 차트와 동일하게 출생지 경도(seed.longitude)를
-    // 넘긴다. 캐시 키에도 같이 넣어 도시별 결과가 섞이지 않도록 한다.
-    const saju = await cacheOrCalculate(
-      CacheKeys.saju(
-        seed.date,
-        seed.time,
-        seed.gender,
-        'solar',
-        seed.timeZone,
-        false,
-        seed.longitude
-      ),
-      async () =>
-        calculateSajuData(
-          seed.date,
-          seed.time,
-          seed.gender,
-          'solar',
-          seed.timeZone,
-          undefined,
-          seed.longitude
-        ),
-      CACHE_TTL.NATAL_CHART
-    )
-
-    // 개별 신살(self)만 계산 — [개별 신살] 블록이 쓰는 유일한 enrichment.
-    // 예전엔 격국·용신·12운성·natalRelations도 계산했지만(운명 상담사 미러용)
-    // 지금 궁합 프롬프트엔 안 들어가므로 제거했다 (계산 비용만 들던 죽은 출력).
-    let extras: Record<string, unknown> = {}
-    try {
-      const { getShinsalHits, toSajuPillarsLike } = await import('@/lib/saju/shinsal')
-      const pillarsLike = toSajuPillarsLike(saju)
-      const shinsal = getShinsalHits(pillarsLike, {
-        includeGeneralShinsal: true,
-        includeLuckyDetails: true,
-      }) as unknown[]
-      extras = { shinsal }
-    } catch (err) {
-      logger.warn('[compatibility/counselor] shinsal compute failed (non-fatal)', { err })
-    }
-
-    return {
-      ...saju,
-      daeun: saju.daeWoon,
-      currentDaeun: saju.daeWoon?.current ?? null,
-      extras,
-      autoComputedMeta: {
-        source: seed.source,
-        computedAtIso: now.toISOString(),
-      },
-    }
-  } catch (error) {
-    logger.warn('[compatibility/counselor] auto saju enrichment failed', { error })
-    return null
-  }
-}
-
-async function buildAutoAstroContext(
-  seed: PersonSeed | null,
-  now: Date
-): Promise<Record<string, unknown> | null> {
-  if (!seed || process.env.NODE_ENV === 'test') return null
-  try {
-    const [y, m, d] = seed.date.split('-').map((v) => Number(v))
-    const [hh, mm] = seed.time.split(':').map((v) => Number(v))
-    if ([y, m, d, hh, mm].some((v) => !Number.isFinite(v))) return null
-
-    // Redis 캐시 — 같은 출생 좌표면 같은 natal chart. Swiss Ephemeris × 10
-    // 행성 매번 ~250ms 비용을 30일 TTL 로 절감.
-    const natal = await cacheOrCalculate(
-      CacheKeys.natalChart(seed.date, seed.time, seed.latitude, seed.longitude, seed.timeZone),
-      async () =>
-        calculateNatalChart({
-          year: y,
-          month: m,
-          date: d,
-          hour: hh,
-          minute: mm,
-          latitude: seed.latitude,
-          longitude: seed.longitude,
-          timeZone: seed.timeZone,
-        }),
-      CACHE_TTL.NATAL_CHART
-    )
-    // 궁합=교차 → 개인 트랜짓/솔라·루나 리턴은 프롬프트에 안 들어가므로
-    // 계산 안 함(가장 무거운 ephemeris 호출). 교차·완전성 체크에 쓰는
-    // natal 행성만 추출.
-    const nowIso = now.toISOString()
-
-    const toSimplePlanet = (name: string): Record<string, unknown> | null => {
-      const p = natal.planets.find((it) => String(it.name).toLowerCase() === name.toLowerCase())
-      if (!p) return null
-      return {
-        sign: p.sign,
-        degree: p.degree,
-        longitude: p.longitude,
-        house: p.house,
-        retrograde: p.retrograde,
-      }
-    }
-
-    const sun = toSimplePlanet('Sun')
-    const moon = toSimplePlanet('Moon')
-    const venus = toSimplePlanet('Venus')
-    const mars = toSimplePlanet('Mars')
-    const mercury = toSimplePlanet('Mercury')
-    const asc = {
-      sign: natal.ascendant.sign,
-      degree: natal.ascendant.degree,
-      longitude: natal.ascendant.longitude,
-      house: natal.ascendant.house,
-    }
-
-    return {
-      sun,
-      moon,
-      venus,
-      mars,
-      mercury,
-      ascendant: asc,
-      planets: {
-        sun,
-        moon,
-        venus,
-        mars,
-        mercury,
-        ascendant: asc,
-      },
-      natalData: {
-        ascendant: natal.ascendant,
-        mc: natal.mc,
-        houses: natal.houses,
-        planets: natal.planets,
-      },
-      autoComputedMeta: {
-        source: seed.source,
-        computedAtIso: nowIso,
-      },
-    }
-  } catch (error) {
-    logger.warn('[compatibility/counselor] auto astro enrichment failed', { error })
-    return null
-  }
-}
-
 function hasArrayData(value: unknown): boolean {
   return Array.isArray(value) && value.length > 0
 }
@@ -571,79 +407,6 @@ function collectMissingAstroKeys(label: string, astro: Record<string, unknown> |
   return missing
 }
 
-function mergeSajuContext(
-  existing: Record<string, unknown> | null | undefined,
-  auto: Record<string, unknown> | null
-): Record<string, unknown> | null {
-  if (!existing && !auto) return null
-  if (!existing) return auto
-  if (!auto) return existing
-
-  const existingUnse = asRecord(existing.unse)
-  const autoUnse = asRecord(auto.unse)
-  return {
-    ...auto,
-    ...existing,
-    daeWoon: asRecord(existing.daeWoon) || asRecord(existing.daeun) || asRecord(auto.daeWoon),
-    daeun: asRecord(existing.daeun) || asRecord(existing.daeWoon) || asRecord(auto.daeun),
-    yeonun: hasArrayData(existing.yeonun) ? existing.yeonun : auto.yeonun,
-    wolun: hasArrayData(existing.wolun) ? existing.wolun : auto.wolun,
-    iljin: hasArrayData(existing.iljin) ? existing.iljin : auto.iljin,
-    unse: {
-      ...(autoUnse || {}),
-      ...(existingUnse || {}),
-      daeun: hasArrayData(existingUnse?.daeun) ? existingUnse?.daeun : autoUnse?.daeun,
-      annual: hasArrayData(existingUnse?.annual) ? existingUnse?.annual : autoUnse?.annual,
-      monthly: hasArrayData(existingUnse?.monthly) ? existingUnse?.monthly : autoUnse?.monthly,
-      iljin: hasArrayData(existingUnse?.iljin) ? existingUnse?.iljin : autoUnse?.iljin,
-    },
-    currentDaeun: asRecord(existing.currentDaeun) || asRecord(auto.currentDaeun) || null,
-    currentSaeun: asRecord(existing.currentSaeun) || asRecord(auto.currentSaeun) || null,
-  }
-}
-
-function mergeAstroContext(
-  existing: Record<string, unknown> | null | undefined,
-  auto: Record<string, unknown> | null
-): Record<string, unknown> | null {
-  if (!existing && !auto) return null
-  if (!existing) return auto
-  if (!auto) return existing
-
-  const existingNatal = asRecord(existing.natalData)
-  const autoNatal = asRecord(auto.natalData)
-  const existingTransits = asRecord(existing.currentTransits)
-  const autoTransits = asRecord(auto.currentTransits)
-
-  return {
-    ...auto,
-    ...existing,
-    planets: {
-      ...(asRecord(auto.planets) || {}),
-      ...(asRecord(existing.planets) || {}),
-    },
-    natalData: {
-      ...(autoNatal || {}),
-      ...(existingNatal || {}),
-      planets: hasArrayData(existingNatal?.planets) ? existingNatal?.planets : autoNatal?.planets,
-      houses: hasArrayData(existingNatal?.houses) ? existingNatal?.houses : autoNatal?.houses,
-      aspects: hasArrayData(existingNatal?.aspects) ? existingNatal?.aspects : autoNatal?.aspects,
-    },
-    currentTransits: {
-      ...(autoTransits || {}),
-      ...(existingTransits || {}),
-      majorTransits: hasArrayData(existingTransits?.majorTransits)
-        ? existingTransits?.majorTransits
-        : autoTransits?.majorTransits,
-      aspects: hasArrayData(existingTransits?.aspects)
-        ? existingTransits?.aspects
-        : autoTransits?.aspects,
-    },
-    progressions: asRecord(existing.progressions) || asRecord(auto.progressions) || null,
-    returns: asRecord(existing.returns) || asRecord(auto.returns) || null,
-  }
-}
-
 function getAgeFromBirthDate(date?: string): number {
   if (!date) return 30
   const d = new Date(date)
@@ -662,11 +425,7 @@ export {
   countObjectKeys,
   extractTimingDetails,
   buildPersonSeed,
-  buildAutoSajuContext,
-  buildAutoAstroContext,
   collectMissingSajuKeys,
   collectMissingAstroKeys,
-  mergeSajuContext,
-  mergeAstroContext,
   getAgeFromBirthDate,
 }
