@@ -12,7 +12,6 @@ import type {
 import type { DignityTiers } from '@/lib/astrology/foundation/dignities'
 import type { ArabicLot } from '@/lib/astrology/foundation/arabicParts'
 import type { AlmutenFigurisResult } from '@/lib/astrology/foundation/almutenFiguris'
-import type { ZRCurrent } from '@/lib/calendar-engine/derivers/zrCurrentChapter'
 import type { SajuPillars, FiveElement, ShinsalHit, RelationHit, DayMaster } from '@/lib/saju/types'
 import type { AdvancedAnalysisResult } from '@/app/api/saju/services/advancedAnalysis'
 
@@ -87,7 +86,6 @@ export type {
   DignityTiers,
   ArabicLot,
   AlmutenFigurisResult,
-  ZRCurrent,
 }
 
 /**
@@ -211,18 +209,4 @@ export interface NatalAstroContext {
    * 차트 결손 또는 dignity 매칭 실패 시 null — UI 가 fallback 처리.
    */
   almutenFiguris: AlmutenFigurisResult | null
-  /**
-   * ZR 현재 활성 챕터 — Spirit / Fortune 각각의 L1 + L2 sub-period 를 *현재 만 나이*
-   * 기준으로 골라 둔 viewmodel.
-   *
-   * buildNatalContext 가 currentManAge() 로 viewer 의 만 나이를 계산해 deriveZRCurrent
-   * 를 호출한다. 본 필드는 *그 시점의 ZR 챕터* 이라 destinypal Timeline ZR-bar 가
-   * 매번 90년 sequence 를 훑지 않아도 된다. 컨텍스트 캐시 TTL 이 하루 이상이면
-   * 다음날 챕터 경계를 지나는 사용자에서 ±1 챕터 스킵 가능성 있으니, 캐시 TTL
-   * 은 24시간 이하로 유지.
-   *
-   * spirit/fortune 둘 다 null 가능 — 차트 결손으로 zodiacalReleasing.spirit /
-   * fortune 자체가 null 일 때.
-   */
-  zrCurrent: ZRCurrent | null
 }

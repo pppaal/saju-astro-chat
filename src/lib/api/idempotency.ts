@@ -89,20 +89,24 @@ export function createIdempotencyStore(routeName: string) {
     memory.set(scopedKey, expiresAt.getTime())
     pruneMemoryIfNeeded()
 
-    // DB write — upsert (중복 키 fail 무시). fire-and-forget 으로 latency
-    // 영향 최소화. 실패해도 다음 같은 키는 memory hit 으로 보호.
-    prisma.requestIdempotencyLog
-      .upsert({
+    // DB write 를 *await* 한다(응답 전에 영속화). 직전엔 fire-and-forget 이라,
+    // 첫 호출이 차감 후 응답까지 보냈는데 DB upsert 가 아직 안 끝난 사이 다른
+    // 서버 인스턴스(Vercel 수평 확장)로 재시도가 들어오면 memory(인스턴스 로컬)
+    // 에도 DB 에도 마커가 없어 replay 로 못 보고 *이중 차감* 됐다. 응답 전에
+    // 마커를 DB 에 박아 교차-인스턴스 재시도가 replay 로 잡히게 한다. upsert
+    // 실패는 비치명적(로그만) — 같은 인스턴스 재진입은 memory 가 계속 보호.
+    try {
+      await prisma.requestIdempotencyLog.upsert({
         where: { scopedKey },
         create: { scopedKey, expiresAt },
         update: { expiresAt },
       })
-      .catch((err) => {
-        logger.warn('[idempotency] DB upsert failed (memory still set)', {
-          scopedKey,
-          err: err instanceof Error ? err.message : String(err),
-        })
+    } catch (err) {
+      logger.warn('[idempotency] DB upsert failed (memory still set)', {
+        scopedKey,
+        err: err instanceof Error ? err.message : String(err),
       })
+    }
   }
 
   function pruneMemoryIfNeeded() {

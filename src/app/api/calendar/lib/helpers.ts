@@ -26,7 +26,7 @@ import {
   resolveWarningTranslation,
 } from './calendarRecommendationSupport'
 import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
-import { normalizeUserFacingGuidance } from '@/lib/destiny-matrix/guidanceLanguage'
+import { normalizeUserFacingGuidance } from '@/lib/calendar-engine/matrix/guidanceLanguage'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 export { generateBestTimes, generateSummary } from './calendarSummarySupport'
 import { generateBestTimes, generateSummary } from './calendarSummarySupport'

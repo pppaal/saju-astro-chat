@@ -49,6 +49,16 @@ function TarotReadingPage() {
   // 끊어 두 스트림이 동시에 도는 레이스를 막는다.
   const interpretAbortRef = useRef<AbortController | null>(null)
 
+  // 언마운트 시에만 진행 중인 해석 스트림을 끊는다. 직전엔 fetch effect 의
+  // cleanup 이 cancelled 플래그만 세워 setState 만 막고, 실제 SSE 연결은
+  // 백그라운드에서 최대 ~70s 계속 살아있었다(자원 누수). dep 변경 cleanup 이
+  // 아니라 *언마운트* 에서만 끊어, 정상 dep 변경 중인 fetch 는 건드리지 않는다.
+  useEffect(() => {
+    return () => {
+      interpretAbortRef.current?.abort()
+    }
+  }, [])
+
   // Custom hooks
   const gameHook = useTarotGame()
   const interpretationHook = useTarotInterpretation({
@@ -89,9 +99,16 @@ function TarotReadingPage() {
   // 캐시 키에 categoryName 을 포함시켜 카테고리가 늘어도 동일 spreadId 끼리
   // 충돌 없게 한다. 또 인라인 타로 모달이 같은 cards/spread 로 리딩해도
   // 모달은 sessionStorage 에 쓰지 않으므로 메인 페이지 캐시와 분리.
+  //
+  // language 는 *일부러* 키에서 뺀다. 리딩은 드로우 시점 언어로 1회 생성되는
+  // 유료 결과물 — 이후 UI 언어를 토글한다고 재생성(=재과금)하지 않는다. 직전엔
+  // 키에 language 가 있어, 언어를 바꾸고 새로고침하면 다른-언어 키로 캐시
+  // miss → 재fetch(재과금/중복 호출)가 났고, readingSignature 가드(언어 미포함)
+  // 와도 어긋나 표시 언어와 캐시가 갈라졌다. 키를 언어-무관하게 만들어 토글·
+  // 새로고침에도 같은(원래 언어) 리딩을 재호출 없이 그대로 보여준다.
   const cacheKeyFor = useCallback(
-    (sig: string) => `tarot:interp:${categoryName ?? 'unknown'}:${sig}:${language}`,
-    [language, categoryName]
+    (sig: string) => `tarot:interp:${categoryName ?? 'unknown'}:${sig}`,
+    [categoryName]
   )
 
   // Fetch interpretation once per reading result (prevents re-fetch loop/rewrite)

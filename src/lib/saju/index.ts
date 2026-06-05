@@ -278,21 +278,11 @@ export {
 // 1000% 급 초고급 모듈들
 // ============================================================
 
-// 사주 고급 핵심 엔진 (종격, 화격, 일주론, 공망, 삼기)
+// 사주 고급 핵심 엔진 (공망 심화 + 종합 orchestrator)
 export {
-  analyzeJonggeok,
-  analyzeHwagyeok,
-  analyzeIljuDeep,
   analyzeGongmangDeep,
-  analyzeSamgi,
   performUltraAdvancedAnalysis,
-  type JonggeokType,
-  type JonggeokAnalysis,
-  type HwagyeokType,
-  type HwagyeokAnalysis,
-  type IljuDeepAnalysis,
   type GongmangDeepAnalysis,
-  type SamgiAnalysis,
   type UltraAdvancedAnalysis,
 } from './advancedSajuCore'
 

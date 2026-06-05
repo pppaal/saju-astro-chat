@@ -117,7 +117,6 @@ export const advancedAstrologyRequestSchema = z.object({
     'lunar-return',
     'midpoints',
     'progressions',
-    'rectification',
   ]),
   targetDate: dateSchema.optional(),
   options: advancedAstrologyOptionsSchema.optional(),
@@ -575,11 +574,15 @@ export const personDataSchema = z.object({
 
 export const relationTypeSchema = z.enum([
   'lover',
+  'crush',
   'spouse',
+  'engaged',
+  'ex',
   'family',
   'sibling',
   'friend',
   'colleague',
+  'business',
   'other',
 ])
 

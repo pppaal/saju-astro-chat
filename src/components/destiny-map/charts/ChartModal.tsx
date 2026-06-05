@@ -108,6 +108,15 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
           <p className="text-xs" style={{ color: 'var(--ds-gold-on-dark)' }}>
             {isKo ? '사주팔자와 네이탈 차트' : 'Saju Pillars & Natal Chart'}
           </p>
+          <a
+            href="/destinypal"
+            className="inline-block mt-2 text-xs underline"
+            style={{ color: 'var(--ds-gold-on-dark)' }}
+          >
+            {isKo
+              ? '✦ 5스케일 운세차트로 보기 (인생→대운→연→월→일) →'
+              : '✦ Open 5-scale destiny timeline →'}
+          </a>
         </div>
 
         {/* 자연어 종합 — 격국·신강약·일간·오행·태양/달 흐르는 한 문단.

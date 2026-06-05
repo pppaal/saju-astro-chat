@@ -15,8 +15,6 @@ import {
   calculateAlmutenFiguris,
   type AlmutenFigurisResult,
 } from '@/lib/astrology/foundation/almutenFiguris'
-import { deriveZRCurrent, type ZRCurrent } from '@/lib/calendar-engine/derivers/zrCurrentChapter'
-import { currentManAge } from '@/lib/datetime/currentAge'
 import { JIJANGGAN } from '@/lib/saju/constants'
 import { logger } from '@/lib/logger'
 import type {
@@ -250,7 +248,7 @@ export async function buildNatalContext(
   // ─── Zodiacal Releasing L1 (Spirit / Fortune) ──────────────────────────
   // ZR 시작점은 Spirit / Fortune 두 lot 의 sign. 위에서 이미 산출한 lots 재사용 —
   // 한 lot 이 빠지면 (chart missing planet 등) null 로 저장하고 계속 진행.
-  let zodiacalReleasing: ZodiacalReleasingResult = { spirit: null, fortune: null }
+  const zodiacalReleasing: ZodiacalReleasingResult = { spirit: null, fortune: null }
   const spiritLot = lots.find((l) => l.name === 'Spirit')
   const fortuneLot = lots.find((l) => l.name === 'Fortune')
   if (spiritLot) {
@@ -276,26 +274,6 @@ export async function buildNatalContext(
         err: err instanceof Error ? err.message : String(err),
       })
     }
-  }
-
-  // ─── ZR 현재 활성 챕터 — viewer 만 나이 기준 L1+L2 ──────────────────
-  // currentManAge SSOT 사용 (출생 타임존 기준 만 나이). zrCurrent 가 cache 에
-  // 들어가지만 TTL <= 24h 정책이라 다음 생일 전엔 안정. age 자체가 안 만들어진
-  // 결측 케이스 (입력 결손) 는 try/catch 로 null 처리.
-  let zrCurrent: ZRCurrent | null = null
-  try {
-    const viewerAge = currentManAge({
-      birthYear: natalInput.year,
-      birthMonth: natalInput.month,
-      birthDate: natalInput.date,
-      birthTimeZone: input.timeZone,
-    })
-    zrCurrent = deriveZRCurrent(zodiacalReleasing, viewerAge)
-  } catch (err) {
-    logger.warn('[natal-context] zrCurrent derive failed', {
-      err: err instanceof Error ? err.message : String(err),
-    })
-    zrCurrent = null
   }
 
   // ─── 본명 5-tier dignities (per planet) ─────────────────────────────────
@@ -388,7 +366,6 @@ export async function buildNatalContext(
       dignities,
       lots: lotsWithHouse,
       almutenFiguris,
-      zrCurrent,
     },
   }
 }
