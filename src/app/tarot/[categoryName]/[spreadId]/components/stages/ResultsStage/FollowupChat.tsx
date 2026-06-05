@@ -9,6 +9,7 @@ import { useClarifierCard } from '@/hooks/useClarifierCard'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
 import { useCreditModal } from '@/contexts/CreditModalContext'
+import { useRequireLogin } from '@/contexts/LoginModalContext'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
@@ -123,6 +124,7 @@ export function FollowupChat({
   const isKo = language === 'ko'
   const pal = theme === 'light' ? LIGHT_PALETTE : DARK_PALETTE
   const { showDepleted, showGuestLimit } = useCreditModal()
+  const requireLogin = useRequireLogin()
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<Turn[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -367,6 +369,9 @@ export function FollowupChat({
     const q = input.trim()
     if (!q || submitting) return
 
+    // 비로그인 → 로그인 모달 ("Sign in, it's FREE!") 먼저, API 호출 skip.
+    if (!requireLogin()) return
+
     if (matchesDrawIntent(q)) {
       setInput('')
       if (clarifier.isLocked) {
@@ -392,6 +397,10 @@ export function FollowupChat({
     lang: isKo ? 'ko' : 'en',
     onSendUserText: (text) => {
       setClarifierNotice(null)
+      // 비로그인 사용자는 followup API 가 401 → 우리 로그인 모달 (Saju · Astrology
+      // · Tarot — Sign in, it's FREE!) 을 먼저 띄워 깔끔하게 안내. true 면 인증
+      // 완료 → 그대로 진행.
+      if (!requireLogin()) return
       // 새 카드 메시지 + 답변은 안쪽 대화창(max-h-80 overflow-y-auto)에 쌓이고
       // useChatAutoScroll 이 그 컨테이너를 맨 아래로 따라간다 → 그대로 보이게 둔다.
       // (이전: containerRef.scrollIntoView({ block:'start' }) 로 섹션 전체를
