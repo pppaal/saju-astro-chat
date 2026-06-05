@@ -143,8 +143,8 @@ describe('궁합 timingBlock — 사주 시기 (세운/월운/일진) (#319)', (
   })
 
   it('옛 stale 코멘트 ("already in the cached saju table") 제거', () => {
-    // sajuTableFormatter 가 orphan 인데 그걸 가정하는 코멘트가
-    // 다시 들어오면 같은 regression 반복.
+    // sajuTableFormatter 는 Phase D (2026-06-06) 에 dead 로 제거됐지만,
+    // 옛 가정 코멘트가 다시 들어오면 같은 stale 패턴 반복 가능 → 가드 유지.
     expect(support).not.toMatch(/already in the cached saju table/)
   })
 })
