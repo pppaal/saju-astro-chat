@@ -18,13 +18,6 @@
 // 타입 Export
 // ============================================================
 export type {
-  JonggeokType,
-  JonggeokAnalysis,
-  HwagyeokType,
-  HwagyeokAnalysis,
-  IljuDeepAnalysis,
   GongmangDeepAnalysis,
-  SamgiAnalysis,
-  AdvancedInteractionAnalysis,
   UltraAdvancedAnalysis,
 } from './types'
