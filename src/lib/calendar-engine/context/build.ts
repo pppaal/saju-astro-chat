@@ -15,8 +15,6 @@ import {
   calculateAlmutenFiguris,
   type AlmutenFigurisResult,
 } from '@/lib/astrology/foundation/almutenFiguris'
-import { deriveZRCurrent, type ZRCurrent } from '@/lib/calendar-engine/derivers/zrCurrentChapter'
-import { currentManAge } from '@/lib/datetime/currentAge'
 import { JIJANGGAN } from '@/lib/saju/constants'
 import { logger } from '@/lib/logger'
 import type {
@@ -278,26 +276,6 @@ export async function buildNatalContext(
     }
   }
 
-  // ─── ZR 현재 활성 챕터 — viewer 만 나이 기준 L1+L2 ──────────────────
-  // currentManAge SSOT 사용 (출생 타임존 기준 만 나이). zrCurrent 가 cache 에
-  // 들어가지만 TTL <= 24h 정책이라 다음 생일 전엔 안정. age 자체가 안 만들어진
-  // 결측 케이스 (입력 결손) 는 try/catch 로 null 처리.
-  let zrCurrent: ZRCurrent | null = null
-  try {
-    const viewerAge = currentManAge({
-      birthYear: natalInput.year,
-      birthMonth: natalInput.month,
-      birthDate: natalInput.date,
-      birthTimeZone: input.timeZone,
-    })
-    zrCurrent = deriveZRCurrent(zodiacalReleasing, viewerAge)
-  } catch (err) {
-    logger.warn('[natal-context] zrCurrent derive failed', {
-      err: err instanceof Error ? err.message : String(err),
-    })
-    zrCurrent = null
-  }
-
   // ─── 본명 5-tier dignities (per planet) ─────────────────────────────────
   // dignityTiers() 자체는 table look-up 이지만 chart.planets 전체에 매번 부르는
   // 게 extractor 코드 양을 늘림. 캐시 = 본명 행성 list × tiers + score.
@@ -388,7 +366,6 @@ export async function buildNatalContext(
       dignities,
       lots: lotsWithHouse,
       almutenFiguris,
-      zrCurrent,
     },
   }
 }
