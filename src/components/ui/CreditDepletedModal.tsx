@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
 import { useModalDismiss, useModalTransition } from '@/hooks/useModalA11y'
@@ -25,6 +26,10 @@ export default function CreditDepletedModal({
   const { t } = useI18n()
   const { isVisible, isAnimating } = useModalTransition(isOpen)
   const trapRef = useFocusTrap(isOpen)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handlePurchase = useCallback(() => {
     // 결제 후 돌아올 URL 저장 — 경로뿐 아니라 쿼리(질문·생년월일 등)까지
@@ -51,7 +56,7 @@ export default function CreditDepletedModal({
   // Esc 닫기 + body 스크롤 잠금 (공용 훅).
   useModalDismiss(isOpen, onClose)
 
-  if (!isVisible) {
+  if (!isVisible || !mounted) {
     return null
   }
 
@@ -84,7 +89,10 @@ export default function CreditDepletedModal({
     </p>
   )
 
-  return (
+  // createPortal — 부모 트리에 transform/filter 가 걸려 있으면 position:fixed
+  // 의 컨테이닝 블록이 viewport 가 아니라 그 부모가 돼서 모달이 화면 밖에
+  // mount 되던 회귀 (ClarifierCardModal 과 동일 회귀, 같은 fix).
+  return createPortal(
     <div
       ref={trapRef}
       className={`${styles.overlay} ${isAnimating ? styles.overlayVisible : ''}`}
@@ -159,6 +167,7 @@ export default function CreditDepletedModal({
           ✕
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
