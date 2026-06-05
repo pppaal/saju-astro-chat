@@ -17,9 +17,16 @@ vi.mock('next-auth/react', () => ({
 vi.mock('@/contexts/CreditModalContext', () => ({
   useCreditModal: () => ({
     showDepleted: vi.fn(),
+    showGuestLimit: vi.fn(),
     showLowCredits: vi.fn(),
     checkAndShowModal: vi.fn(() => false),
   }),
+}))
+
+// 페이지가 useRequireLogin(LoginModalContext) 을 쓰므로 모킹 — 안 하면
+// "useLoginModal must be used within LoginModalProvider" 로 렌더가 throw.
+vi.mock('@/contexts/LoginModalContext', () => ({
+  useRequireLogin: () => vi.fn(),
 }))
 
 vi.mock('@/i18n/I18nProvider', () => ({
