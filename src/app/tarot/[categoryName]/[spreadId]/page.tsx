@@ -74,6 +74,11 @@ function TarotReadingPage() {
     return `${spreadKey}:${cardsKey}`
   }, [readingResult, spreadId])
 
+  // 항상 최신 readingSignature 를 가리키는 ref — 비동기 복원이 끝났을 때
+  // "지금 화면의 리딩" 과 같은지 비교하기 위함(아래 복원 effect 참조).
+  const readingSignatureRef = useRef(readingSignature)
+  readingSignatureRef.current = readingSignature
+
   // 새로고침 시 크레딧이 또 차감되던 회귀 — 같은 리딩에 대해선 해석 결과를
   // sessionStorage 에 캐시해 두고 우선 그걸 본다. 캐시 hit 이면 API 호출 자체를
   // 건너뛰어 토큰 차감이 없고, miss 면 정상 호출하되 idempotencyKey 헤더로
@@ -221,8 +226,14 @@ function TarotReadingPage() {
     if (!interpretationFailed) return
     const onVis = () => {
       if (document.visibilityState !== 'visible') return
+      // 복원 폴링은 최대 ~60s 걸릴 수 있다. 그 사이 사용자가 "다시 섞기"/리셋
+      // 으로 다른 카드를 뽑으면, 복원된 *옛* 리딩을 *새* 카드 위에 덮어쓰는
+      // 회귀가 난다. 폴링 시작 시점의 signature 를 캡처해 두고, 적용 직전에
+      // 현재 signature 와 다르면 버린다.
+      const sigAtStart = readingSignatureRef.current
       void recoverLastInterpretation().then((recovered) => {
         if (!recovered) return
+        if (readingSignatureRef.current !== sigAtStart) return
         setInterpretation(recovered)
         setInterpretationFailed(false)
         if (typeof window !== 'undefined' && readingSignature) {
