@@ -51,6 +51,7 @@ import {
 } from '@/lib/chat/pendingTurn'
 import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
 import { useCreditModal } from '@/contexts/CreditModalContext'
+import { useRequireLogin } from '@/contexts/LoginModalContext'
 import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
 
@@ -101,6 +102,7 @@ function CompatibilityCounselorContent() {
   // 를 달아 bare URL 이 돼도 직전 채팅을 다시 끌어오지 않으므로 strip 을 켤 수 있다.
   const startNewChat = useCounselorNewChat('/compatibility/counselor', 'compat')
   const { showDepleted, showGuestLimit } = useCreditModal()
+  const requireLogin = useRequireLogin()
 
   const [persons, setPersons] = useState<PersonData[]>([])
   const [person1Saju, setPerson1Saju] = useState<Record<string, unknown> | null>(null)
@@ -581,6 +583,12 @@ function CompatibilityCounselorContent() {
         return
       }
 
+      // 궁합 상담은 유료 서비스 — 비로그인이면 전송 대신 로그인 모달.
+      // (게스트 무료 체험 제거: 로그인해야만 사용 가능.)
+      if (!requireLogin()) {
+        return
+      }
+
       // 새 전송 시작 → 마운트 복원 경로 무효화. 직전 미완성 턴의 영속 turnId 가
       // 새 답변의 복원에 끼어들지 않게 하고, 이 턴의 turnId 는 아래에서 새로 쓴다.
       mountRecoverDoneRef.current = true
@@ -919,6 +927,7 @@ function CompatibilityCounselorContent() {
       cvText,
       showDepleted,
       showGuestLimit,
+      requireLogin,
     ]
   )
 
