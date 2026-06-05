@@ -43,7 +43,7 @@ import {
   coerceJijanggan,
   enrichSibsin,
   buildJijangganRaw,
-  performAdvancedAnalysis,
+  performAnalyses,
 } from './services'
 
 /**
@@ -323,7 +323,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     hour: simplePillars.time,
   }
 
-  const advancedResult = performAdvancedAnalysis(
+  const advancedResult = performAnalyses(
     simplePillars,
     pillarsWithHour,
     dayMasterStem,
@@ -380,6 +380,6 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
       })
       .filter((x) => x.name && x.scope),
     relations,
-    advancedAnalysis: fullAdvancedAnalysis,
+    analyses: fullAdvancedAnalysis,
   })
 }, createSajuGuard())

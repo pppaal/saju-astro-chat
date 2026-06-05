@@ -1,4 +1,4 @@
-// src/app/api/saju/services/advancedAnalysis.ts
+// src/app/api/saju/services/analyses.ts
 // 고급 분석 실행 함수들
 
 import { logger } from '@/lib/logger'
@@ -29,7 +29,7 @@ export interface PillarsWithHour {
   hour: { stem: string; branch: string }
 }
 
-export interface AdvancedAnalysisResult {
+export interface AnalysesResult {
   geokguk: (ReturnType<typeof determineGeokgukAdvanced> & { description: string }) | null
   yongsin:
     | (ReturnType<typeof determineYongsin> & {
@@ -50,13 +50,13 @@ export interface AdvancedAnalysisResult {
 /**
  * 고급 분석 실행
  */
-export function performAdvancedAnalysis(
+export function performAnalyses(
   simplePillars: SimplePillars,
   pillarsWithHour: PillarsWithHour,
   dayMasterStem: string,
   monthBranch: string,
-): AdvancedAnalysisResult {
-  const result: AdvancedAnalysisResult = {
+): AnalysesResult {
+  const result: AnalysesResult = {
     geokguk: null,
     yongsin: null,
     hyeongchung: null,

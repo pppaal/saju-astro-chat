@@ -587,8 +587,8 @@ export function deriveLifetimeFlow(
   const astroId = astroIdParts.join(isEn ? ', ' : '·')
 
   // ── 격국 (advancedAnalysis.geokguk) ──
-  const geokgukPrimary = natal.saju.advancedAnalysis?.geokguk?.primary as string | undefined
-  const geokgukDescription = natal.saju.advancedAnalysis?.geokguk?.description as string | undefined
+  const geokgukPrimary = natal.saju.analyses?.geokguk?.primary as string | undefined
+  const geokgukDescription = natal.saju.analyses?.geokguk?.description as string | undefined
   let geokgukIntroKo = ''
   let geokgukIntroEn = ''
   if (geokgukPrimary && geokgukPrimary !== '미정') {
@@ -626,7 +626,7 @@ export function deriveLifetimeFlow(
   }
 
   // ── 추가 팩트(advancedAnalysis 미노출 필드) ──
-  const advanced = natal.saju.advancedAnalysis
+  const advanced = natal.saju.analyses
 
   // 옛 (1) 종합 점수 — calculateComprehensiveScore + S~F 등급은 2026-06-06 폐기.
   const scoreIntroKo = ''

@@ -408,7 +408,7 @@ export default async function DestinypalPreview() {
   })
   // DestinyDay 는 geokgukStatus 가 *객체* shape (name / status / factors / description) —
   // 본명 advancedAnalysis 에서 그대로 재구성.
-  const advanced = natal.saju.advancedAnalysis
+  const advanced = natal.saju.analyses
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
   // ── 일진 cell.signals → DestinySignal[] 풀세트 projection ──

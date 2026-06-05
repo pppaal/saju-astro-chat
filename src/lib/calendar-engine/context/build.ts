@@ -6,7 +6,7 @@ import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
 import { annotateShinsal, type ShinsalHit as ShinsalHitInternal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
-import { performAdvancedAnalysis } from '@/app/api/saju/services/advancedAnalysis'
+import { performAnalyses } from '@/app/api/saju/services/analyses'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
 import { calculateArabicLots, type ArabicLot } from '@/lib/astrology/foundation/arabicParts'
@@ -139,7 +139,7 @@ export async function buildNatalContext(
   }
   const fiveElementsRaw = (saju as unknown as { fiveElements: NatalContext['saju']['fiveElements'] })
     .fiveElements
-  const advancedAnalysis = performAdvancedAnalysis(
+  const analyses = performAnalyses(
     simplePillarsWithHour,
     pillarsWithHourForAdvanced,
     dayMasterStem,
@@ -335,7 +335,7 @@ export async function buildNatalContext(
       natalRelations: relations,
       daeun,
       fiveElements: fiveElementsRaw,
-      advancedAnalysis,
+      analyses,
       dayJijanggan,
     },
     astro: {

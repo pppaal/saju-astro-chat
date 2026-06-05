@@ -3,7 +3,7 @@
 // destinypal Life intro 본명 카드의 prop 타입.
 // data.js window.DESTINY.user 와 동형 — 사주 본명 + 점성 본명 + 통합 인트로.
 //
-// 백엔드 매핑은 NatalContext (NatalSajuContext.advancedAnalysis +
+// 백엔드 매핑은 NatalContext (NatalSajuContext.analyses +
 // NatalAstroContext.chart) → adapters/user.ts 에서 흡수.
 
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'

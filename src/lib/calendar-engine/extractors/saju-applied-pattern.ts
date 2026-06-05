@@ -41,7 +41,7 @@ import type { AstroThemeKey } from '@/lib/astrology/themes/types'
  *    (時 일진은 별도 hour extractor가 담당)
  *
  * 본명 조건 sourcing:
- *  - sibsinCount: natal.saju.advancedAnalysis.sibsin.count → 정관/편관/정재/편재/비견/겁재 카운트
+ *  - sibsinCount: natal.saju.analyses.sibsin.count → 정관/편관/정재/편재/비견/겁재 카운트
  *  - 본명 정관 보유 / 본명 칠살 보유 / 본명 재성 약(0~1) 여부 판정
  *  - 신약: natal.saju.strength === 'weak'
  *
@@ -374,7 +374,7 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
     // 본명 sibsin 카운트 — advancedAnalysis.sibsin.count 가 SSOT.
     // 없으면 (advancedAnalysis 실패 시) 빈 카운트로 안전 폴백 → natal-조건
     // 패턴(상관견관/식신제살/비겁탈재) 은 매칭되지 않고 시기-only 4종만 작동.
-    const sibsinCount = natal.saju.advancedAnalysis?.sibsin?.count
+    const sibsinCount = natal.saju.analyses?.sibsin?.count
     const count: Record<SibsinKind, number> = {
       '비견': sibsinCount?.['비견'] ?? 0,
       '겁재': sibsinCount?.['겁재'] ?? 0,
