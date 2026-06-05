@@ -149,7 +149,7 @@ function streamJsonPayload(
 // 전달 실패로 처리하기 위함. 파싱은 스트리밍 도중 잘린 부분 JSON 이 아니라
 // *완성된* JSON 을 가정 (success path 에서만 호출). 관대하게: 끝의 트레일링
 // 잡음/코드펜스 등 LLM 잡티는 첫 `{` ~ 마지막 `}` 구간만 떼어 파싱 시도.
-function isUsableReading(fullText: string): boolean {
+function isUsableReading(fullText: string, expectedCardCount: number): boolean {
   const text = (fullText || '').trim()
   if (text === '') return false
   // LLM 이 ```json 펜스나 앞뒤 잡담을 붙였을 수 있어 첫 `{`~마지막 `}` 만 추출.
@@ -168,6 +168,18 @@ function isUsableReading(fullText: string): boolean {
   if (typeof reading.overall !== 'string' || reading.overall.trim() === '') return false
   // cards 는 비어있지 않은 배열이고, 각 항목이 비어있지 않은 interpretation 을 가진다.
   if (!Array.isArray(reading.cards) || reading.cards.length === 0) return false
+  // 카드 수 = 실제 뽑힌 카드 수와 정확히 일치해야 한다. 클라이언트는 카드와
+  // 해석을 *배열 순서로만* 매핑하므로(card_insights = drawnCards.map((dc,i) =>
+  // parsedCards[i])), 모델이 카드를 적게/많게 emit 하면 뒤쪽 카드가 엉뚱한
+  // 해석(또는 정적 폴백 의미)에 묶여 *조용히 잘못된 리딩* 이 된다. 개수가
+  // 다르면 "전달 실패" 로 보고 환불 + 폴백 처리 — 깨진 매핑을 과금하지 않는다.
+  if (reading.cards.length !== expectedCardCount) {
+    logger.warn('[tarot-stream] card count mismatch — treating as unusable', {
+      got: reading.cards.length,
+      expected: expectedCardCount,
+    })
+    return false
+  }
   const everyCardUsable = reading.cards.every((c) => {
     if (typeof c !== 'object' || c === null) return false
     const card = c as { position?: unknown; interpretation?: unknown }
@@ -558,7 +570,7 @@ export async function POST(req: NextRequest) {
           // 동일하게 환불(refundKey 로 idempotent — 이중 환불 없음) 후 정적
           // fallback 을 emit. 쓸 수 없는 리딩은 캐시에 저장하지 않는다
           // (persistIfRecoverable 스킵) — 돌아온 사용자에게 쓰레기 복원 방지.
-          if (!isUsableReading(fullText)) {
+          if (!isUsableReading(fullText, rawCards.length)) {
             logger.warn('[tarot-stream] empty/unusable reading after normal completion', {
               bytesEmitted,
               fullTextLen: fullText.length,
