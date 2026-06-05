@@ -302,12 +302,12 @@ export default function TarotChatScreen() {
                 {optionsOpen && (
                   <motion.div
                     role="menu"
-                    initial={{ opacity: 0, scale: 0.96, y: -6 }}
+                    initial={{ opacity: 0, scale: 0.96, y: 6 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.96, y: -6 }}
+                    exit={{ opacity: 0, scale: 0.96, y: 6 }}
                     transition={{ duration: 0.15, ease: 'easeOut' }}
-                    style={{ transformOrigin: 'top left' }}
-                    className="absolute top-full left-0 mt-2 w-64 rounded-xl border border-slate-700 bg-slate-900 p-1.5 shadow-xl shadow-black/50 z-30"
+                    style={{ transformOrigin: 'bottom left' }}
+                    className="absolute bottom-full left-0 mb-2 w-64 rounded-xl border border-slate-700 bg-slate-900 p-1.5 shadow-xl shadow-black/50 z-30"
                   >
                     <button
                       type="button"
