@@ -92,6 +92,8 @@ const faqs: FaqItem[] = [
     a: 'Choose a spread (1, 2, 3, 5, or 7 cards), set your intention, then draw. Couple readings use the 3-, 5-, or 7-card spreads through a relationship lens. Our AI interprets each card in context — considering its position, neighboring cards, your Saju/astrology profile, and the question you asked. You can ask follow-up questions on the same reading to deepen the interpretation without redrawing.',
     aKo: '스프레드를 선택하고(1·2·3·5·7장) 의도를 설정한 뒤 카드를 뽑습니다. 커플 리딩은 3·5·7장 스프레드를 관계의 관점에서 풀어냅니다. AI 가 각 카드를 위치·인접 카드·귀하의 사주/점성 프로필·질문 맥락에 따라 해석합니다. 같은 리딩에 대해 후속 질문을 이어가며 해석을 더 깊이 파고들 수 있고, 다시 뽑지 않아도 됩니다.',
   },
+  // 커플 타로 비활성화 — 기능이 꺼져 있어 FAQ 항목도 숨김. 재활성화 시 복원.
+  /*
   {
     category: 'services',
     icon: '👫',
@@ -100,6 +102,7 @@ const faqs: FaqItem[] = [
     a: "A couple reading interprets the cards through the lens of a specific relationship — drawing from both partners' charts and the dynamic between them. You and your matched partner each draw, and the AI integrates both perspectives into one shared interpretation. Both partners need an active connection on DestinyPal; if a partner has disconnected or blocked the connection, the couple reading is no longer available.",
     aKo: '커플 리딩은 특정 관계의 관점에서 카드를 해석합니다. 두 사람의 차트와 관계 역학을 함께 반영하며, 매칭된 상대와 각자 카드를 뽑으면 AI 가 두 시점을 하나의 공유 해석으로 통합합니다. DestinyPal 내에서 연결된 상태여야 하며, 상대가 연결을 해제하거나 차단한 경우 커플 리딩은 더 이상 이용할 수 없습니다.',
   },
+  */
   {
     category: 'services',
     icon: '💕',

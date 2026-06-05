@@ -1,96 +1,51 @@
-/**
- * LifetimeTier — destinypal 5-tier 의 최상위 (인생 84년) tsx 포팅.
- *
- * 원본: destinypal-extracted/js/tiers/lifetime.jsx (181줄)
- *
- * Phase B 적용 변형 7개:
- *   1. intro panel 하단 SectRow (Sect + sect light + lord of Asc 한 줄).
- *   2. 격국 chip 을 user.gyeokgukStatus 로 교체 (예: "정인격 · 반성반파").
- *   3. 재성 chip 을 user.rootStatus 로 교체 (예: "월령 寅 실령 · 통근 얇음").
- *   4. outer-row kind 매핑을 jupiter/saturn 외 pluto/uranus/neptune/chiron/
- *      progressed_moon glyph 까지 확장.
- *   5. detail 카드가 lifeStages 의 모든 단계에 대해 (detail!=null 인 경우) 렌더링.
- *   6. NatalLotsRow 섹션 — user.lots 7개 (Fortune/Spirit/Eros/Necessity/
- *      Courage/Victory/Nemesis) chip 그리드.
- *   7. ZR L1 챕터 carousel — lifetime.zrSpiritChapters / zrFortuneChapters
- *      두 lane 으로 표시. 정통 헬레니즘 핵심.
- *
- * NB. 본 컴포넌트는 atoms/* (Agent A) 가 noop 일 때도 컴파일·렌더 되도록
- *     필요 atom 의 최소 inline 버전을 동봉. Agent A 가 ships 하면
- *     `../atoms` import 로 한 줄 교체.
- */
-
 'use client'
 
-import { useMemo } from 'react'
+// destinypal · LifetimeTier
+//
+// Ported from destinypal-extracted/js/tiers/lifetime.jsx (181 lines)
+// — preserved structure (intro / constellation 4 nodes / now-stage detail /
+//   daewoon spine / hapchung·shinsal·unseong cards / outer chip row /
+//   milestones timeline / dive button)
+// — added Phase 3 enrichments (sect row / gyeokguk·root status chips /
+//   outer-row 7 kinds / all-stages detail cards / NatalLotsRow /
+//   ZR L1 carousel).
+// Light-tone (ink-on-hanji) palette. atoms not yet shipped → inline stubs
+// (Ganji / ScoreOrb / ElementBars / LayerTag) gated by local primitives,
+// to be replaced by `import { ... } from '@/components/destinypal/atoms'`
+// once Agent A finishes.
+
 import type { CSSProperties, ReactNode } from 'react'
+
 import type {
-  DestinyUserSummary,
-  DestinyLifetime,
-  DestinyDaewoon,
-  DestinyLifeStage,
-  DestinyMilestone,
-  DestinyZRChapter,
   DestinyArabicLot,
-  Ganji as GanjiData,
+  DestinyLifeStage,
+  DestinyLifetime,
+  DestinyUserSummary,
+  DestinyZRChapter,
   ElementCounts,
+  Ganji as GanjiData,
 } from '@/types/destinypal'
+
 import styles from './LifetimeTier.module.css'
 
-// ── Phase 3 정통화 확장: spec 이 요구하는 user.gyeokgukStatus / user.rootStatus
-//    는 src/types/destinypal/user.ts 의 DestinyUserSummary 에 아직 미공개.
-//    canonical 타입을 깨지 않으려고 LifetimeTier 의 prop 만 intersection 으로
-//    옵셔널 확장. adapters/toUser.ts (Phase A) 가 항상 채워 보낸다.
-export interface LifetimeTierUser extends DestinyUserSummary {
-  /** 정통화 격국 상태 한 줄 — "정인격 · 반성반파 (+편인 보호 / -재성 분탈)". */
-  gyeokgukStatus?: string
-  /** 일간 뿌리 정통화 한 줄 — "월령 寅 실령 · 통근 얇음". */
-  rootStatus?: string
-}
+// ============================================================================
+// Props
+// ============================================================================
 
 export interface LifetimeTierProps {
-  user: LifetimeTierUser
+  user: DestinyUserSummary & {
+    /** 격국 상태 한 줄 — '정인격 · 반성반파 (+정인 / -재성)'. */
+    gyeokgukStatus?: string
+    /** 일간 통근 한 줄 — '월령 寅 실령 · 통근 얇음'. */
+    rootStatus?: string
+  }
   lifetime: DestinyLifetime
-  /** YearTier 로 줌인. constellation NOW 카드 + 하단 dive 버튼이 호출. */
   onDive: () => void
 }
 
 // ============================================================================
-// Atoms — Agent A 가 ships 하면 `import { Ganji, ScoreOrb, ElementBars,
-// LayerTag } from '../atoms'` 로 교체. 그 전까지 inline 동봉.
+// Inline atom stubs (Agent A 가 atoms barrel 을 deliver 하면 import 한 줄로 교체)
 // ============================================================================
-
-type LayerKind = 'saju' | 'astro'
-
-function LayerTag({ kind }: { kind: LayerKind }) {
-  const isSaju = kind === 'saju'
-  const pipStyle: CSSProperties = {
-    width: 7,
-    height: 7,
-    borderRadius: '50%',
-    background: isSaju ? 'var(--destinypal-ember, #c89a3a)' : 'var(--destinypal-accent, #b8442a)',
-    boxShadow: isSaju
-      ? '0 0 8px rgba(217,168,74,0.42)'
-      : '0 0 8px rgba(184,68,42,0.32)',
-    display: 'inline-block',
-  }
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 7,
-        fontFamily: 'var(--destinypal-mono, monospace)',
-        fontSize: 10,
-        letterSpacing: '0.18em',
-        textTransform: 'uppercase',
-        color: 'var(--destinypal-ink-mute, #8b7660)',
-      }}
-    >
-      <span style={pipStyle} /> {isSaju ? '사주 · SAJU' : '점성 · ASTRO'}
-    </span>
-  )
-}
 
 function Ganji({
   data,
@@ -102,220 +57,139 @@ function Ganji({
   en?: boolean
 }) {
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        flexDirection: 'column',
-        lineHeight: 1,
-        alignItems: 'center',
-      }}
-    >
-      <span
-        style={{
-          fontFamily: 'var(--destinypal-serif, serif)',
-          fontSize: size,
-          color: 'var(--destinypal-ember-2, #e0b653)',
-          letterSpacing: '0.02em',
-        }}
-      >
+    <span className={styles.ganji}>
+      <span className={styles.hanja} style={{ fontSize: size }}>
         {data.hanja}
       </span>
       <span
-        style={{
-          fontFamily: 'var(--destinypal-mono, monospace)',
-          color: 'var(--destinypal-ink-mute, #8b7660)',
-          letterSpacing: '0.04em',
-          fontSize: Math.max(10, size * 0.32),
-          marginTop: 5,
-        }}
+        className={styles.kr}
+        style={{ fontSize: Math.max(10, size * 0.32) }}
       >
         {data.kr}
       </span>
-      {en ? (
+      {en && (
         <span
-          style={{
-            fontFamily: 'var(--destinypal-mono, monospace)',
-            color: 'var(--destinypal-ink-faint, #b8a78c)',
-            fontStyle: 'italic',
-            letterSpacing: '0.02em',
-            fontSize: Math.max(9, size * 0.28),
-            marginTop: 2,
-          }}
+          className={styles.en}
+          style={{ fontSize: Math.max(9, size * 0.28) }}
         >
           {data.en}
         </span>
-      ) : null}
+      )}
     </span>
   )
 }
 
-function ScoreOrb({ score, grade }: { score: number; grade: string }) {
+function ScoreOrb({
+  score,
+  grade,
+  max = 100,
+}: {
+  score: number
+  grade: string
+  max?: number
+}) {
   const r = 58
   const c = 2 * Math.PI * r
-  const frac = Math.max(0, Math.min(1, score / 100))
+  const frac = Math.max(0, Math.min(1, score / max))
   return (
-    <div
-      style={{
-        position: 'relative',
-        width: 132,
-        height: 132,
-        flex: 'none',
-      }}
-    >
+    <div className={styles.scoreOrb}>
       <svg width="132" height="132" viewBox="0 0 132 132">
         <defs>
-          <linearGradient id="lifetime-orb-grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor="var(--destinypal-accent, #b8442a)" />
-            <stop offset="1" stopColor="var(--destinypal-accent-2, #d65a3b)" />
+          <linearGradient id="dp-orbg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#222a4e" />
+            <stop offset="1" stopColor="#4f5d96" />
           </linearGradient>
         </defs>
-        <circle cx="66" cy="66" r={r} fill="none" stroke="rgba(80,50,30,0.10)" strokeWidth="4" />
         <circle
           cx="66"
           cy="66"
           r={r}
           fill="none"
-          stroke="url(#lifetime-orb-grad)"
+          stroke="rgba(58,46,28,0.14)"
+          strokeWidth="4"
+        />
+        <circle
+          cx="66"
+          cy="66"
+          r={r}
+          fill="none"
+          stroke="url(#dp-orbg)"
           strokeWidth="4"
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - frac)}
           transform="rotate(-90 66 66)"
         />
+        {Array.from({ length: 60 }).map((_, i) => {
+          const a = (i / 60) * Math.PI * 2 - Math.PI / 2
+          const on = i / 60 <= frac
+          return (
+            <circle
+              key={i}
+              cx={66 + Math.cos(a) * 50}
+              cy={66 + Math.sin(a) * 50}
+              r={on ? 0.9 : 0.5}
+              fill={on ? '#4f5d96' : 'rgba(58,46,28,0.18)'}
+            />
+          )
+        })}
       </svg>
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <b
-          style={{
-            fontFamily: 'var(--destinypal-serif, serif)',
-            fontSize: 46,
-            lineHeight: 1,
-            color: 'var(--destinypal-ink, #2a1f15)',
-          }}
-        >
-          {score}
-        </b>
-        <span
-          style={{
-            fontFamily: 'var(--destinypal-mono, monospace)',
-            fontSize: 10,
-            letterSpacing: '0.2em',
-            color: 'var(--destinypal-ink-mute, #8b7660)',
-            marginTop: 4,
-          }}
-        >
-          SCORE · {grade}
-        </span>
+      <div className={styles.num}>
+        <b>{score}</b>
+        <span>SCORE · {grade}</span>
       </div>
     </div>
   )
 }
 
-const ELEMENT_COLORS: Record<keyof ElementCounts, string> = {
-  목: 'var(--destinypal-el-wood, #5fae6a)',
-  화: 'var(--destinypal-el-fire, #e0654f)',
-  토: 'var(--destinypal-el-earth, #cda14e)',
-  금: 'var(--destinypal-el-metal, #9aa0b0)',
-  수: 'var(--destinypal-el-water, #4f86d6)',
+const EL_META: Record<keyof ElementCounts, { c: string; en: string }> = {
+  목: { c: 'var(--el-wood)', en: 'Wood' },
+  화: { c: 'var(--el-fire)', en: 'Fire' },
+  토: { c: 'var(--el-earth)', en: 'Earth' },
+  금: { c: 'var(--el-metal)', en: 'Metal' },
+  수: { c: 'var(--el-water)', en: 'Water' },
 }
 
 function ElementBars({ elements }: { elements: ElementCounts }) {
-  const entries = Object.entries(elements) as Array<[keyof ElementCounts, number]>
-  const max = Math.max(...entries.map(([, v]) => v), 1)
+  const values = Object.values(elements)
+  const max = Math.max(...values, 1)
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 5,
-        alignItems: 'flex-end',
-        height: 46,
-        marginTop: 6,
-      }}
-    >
-      {entries.map(([k, v]) => {
-        const col = ELEMENT_COLORS[k]
-        return (
+    <div className={styles.elementRow}>
+      {(Object.entries(elements) as Array<[keyof ElementCounts, number]>).map(
+        ([k, v]) => (
           <div
+            className={styles.elBar}
             key={k}
             style={{
-              flex: 1,
-              borderRadius: '4px 4px 2px 2px',
-              position: 'relative',
-              minHeight: 6,
-              opacity: 0.9,
               height: 16 + (v / max) * 30,
-              background: `linear-gradient(180deg, ${col}, rgba(0,0,0,0.04))`,
-              boxShadow: `0 0 12px -2px ${col}`,
+              background: `linear-gradient(180deg, ${EL_META[k].c}, rgba(255,251,242,0.04))`,
+              boxShadow: `0 0 12px -2px ${EL_META[k].c}`,
             }}
           >
-            <span
-              style={{
-                position: 'absolute',
-                top: -17,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                fontFamily: 'var(--destinypal-serif, serif)',
-                fontSize: 13,
-                color: col,
-              }}
-            >
-              {k}
-            </span>
-            <small
-              style={{
-                position: 'absolute',
-                bottom: -16,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                fontFamily: 'var(--destinypal-mono, monospace)',
-                fontSize: 9,
-                color: 'var(--destinypal-ink-faint, #b8a78c)',
-              }}
-            >
-              {v}
-            </small>
+            <span style={{ color: EL_META[k].c }}>{k}</span>
+            <small>{v}</small>
           </div>
-        )
-      })}
+        ),
+      )}
     </div>
   )
 }
 
-// ============================================================================
-// 헬퍼
-// ============================================================================
-
-/** 한자 → 한글 lord-of-asc 이름. ('Saturn'/'토성' 둘 다 받아냄.) */
-const PLANET_KO_FALLBACK: Record<string, string> = {
-  Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
-  Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성',
-}
-function planetKo(name: string | undefined): string {
-  if (!name) return ''
-  return PLANET_KO_FALLBACK[name] ?? name
+function LayerTag({ kind }: { kind: 'saju' | 'astro' }) {
+  const isSaju = kind === 'saju'
+  return (
+    <span className={`${styles.layerTag} ${isSaju ? styles.saju : styles.astro}`}>
+      <span className={styles.pip} /> {isSaju ? '사주 · SAJU' : '점성 · ASTRO'}
+    </span>
+  )
 }
 
-/** outer-row kind 매핑 확장 — destinypal demo 의 jupiter/saturn 외 정통 신호. */
-type OuterKind =
-  | 'jupiter'
-  | 'saturn'
-  | 'uranus'
-  | 'neptune'
-  | 'pluto'
-  | 'chiron'
-  | 'progressed_moon'
-  | 'astro'
-  | 'unknown'
+// ============================================================================
+// Helpers
+// ============================================================================
 
-const OUTER_GLYPH: Record<OuterKind, string> = {
+/** 외행성 glyph 매핑 — Phase 3 확장: 7가지 kind 모두. */
+const OUTER_GLYPH: Record<string, string> = {
   jupiter: '♃',
   saturn: '♄',
   uranus: '♅',
@@ -323,379 +197,398 @@ const OUTER_GLYPH: Record<OuterKind, string> = {
   pluto: '♇',
   chiron: '⚷',
   progressed_moon: '☾',
-  astro: '✦',
-  unknown: '·',
+  progressedMoon: '☾',
 }
 
-function normalizeOuterKind(raw: string | undefined): OuterKind {
-  if (!raw) return 'unknown'
-  const k = raw.toLowerCase().replace(/[-\s]/g, '_')
-  if (
-    k === 'jupiter' ||
-    k === 'saturn' ||
-    k === 'uranus' ||
-    k === 'neptune' ||
-    k === 'pluto' ||
-    k === 'chiron' ||
-    k === 'progressed_moon'
-  ) {
-    return k
+const OUTER_CLASS: Record<string, string> = {
+  jupiter: styles.jupiter,
+  saturn: styles.saturn,
+  uranus: styles.uranus,
+  neptune: styles.neptune,
+  pluto: styles.pluto,
+  chiron: styles.chiron,
+  progressed_moon: styles.progressedMoon,
+  progressedMoon: styles.progressedMoon,
+}
+
+/** Lot 이름 → 한자 1글자 짧은 마크. */
+const LOT_MARK: Record<string, string> = {
+  Fortune: '福',
+  Spirit: '神',
+  Eros: '愛',
+  Necessity: '必',
+  Courage: '勇',
+  Victory: '勝',
+  Nemesis: '罰',
+}
+
+/** ZR sign Korean (zodiac signs). */
+function zodiacKo(signEn: string): string {
+  const m: Record<string, string> = {
+    Aries: '양자리',
+    Taurus: '황소자리',
+    Gemini: '쌍둥이자리',
+    Cancer: '게자리',
+    Leo: '사자자리',
+    Virgo: '처녀자리',
+    Libra: '천칭자리',
+    Scorpio: '전갈자리',
+    Sagittarius: '사수자리',
+    Capricorn: '염소자리',
+    Aquarius: '물병자리',
+    Pisces: '물고기자리',
   }
-  if (k === 'astro') return 'astro'
-  return 'unknown'
-}
-
-/** 카드 클래스 분기 — module CSS 키 누락 시 폴백. */
-function outerChipClass(kind: OuterKind): string {
-  const map: Record<OuterKind, string | undefined> = {
-    jupiter: styles.jupiter,
-    saturn: styles.saturn,
-    uranus: styles.uranus,
-    neptune: styles.neptune,
-    pluto: styles.pluto,
-    chiron: styles.chiron,
-    progressed_moon: styles.progressed_moon ?? styles.progressedMoon,
-    astro: styles.astro,
-    unknown: styles.unknown,
-  }
-  return [styles.outerChip, map[kind]].filter(Boolean).join(' ')
-}
-
-/** ArabicLot name → 한국어 라벨. */
-const LOT_KO: Record<string, string> = {
-  Fortune: '복점·재물',
-  Spirit: '영혼·소명',
-  Eros: '에로스·욕망',
-  Necessity: '필요·운명',
-  Courage: '용기·전투',
-  Victory: '승리·성취',
-  Nemesis: '응보·시험',
-}
-
-/** chapter 표시 라벨 보정. */
-function zrLaneTitle(startLot: 'Spirit' | 'Fortune'): {
-  ko: string
-  en: string
-} {
-  if (startLot === 'Spirit') return { ko: '영혼 · Spirit', en: '진로·외적 사건' }
-  return { ko: '복점 · Fortune', en: '몸·물질·체질' }
+  return m[signEn] ?? signEn
 }
 
 // ============================================================================
-// 컴포넌트
+// LifetimeTier
 // ============================================================================
 
 export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
-  const { lifeStages, daewoon, milestones } = lifetime
+  const { lifeStages, daewoon, milestones, zrSpiritChapters, zrFortuneChapters } =
+    lifetime
 
-  // constellation node positions across the width — lifetime.jsx:10-11
+  // constellation node positions across the width (원본과 동일)
   const nodeX = [12, 38, 62, 88] // %
   const nodeY = [62, 38, 50, 70]
 
-  // 정통화 라벨 폴백
-  const gyeokgukLabel = user.gyeokgukStatus ?? user.gyeokguk
-  const rootStatusLabel =
-    user.rootStatus ??
-    (user.dominantSibsin
-      ? `${user.dominantSibsin.name} ${user.dominantSibsin.pct}%`
-      : '')
+  // current life stage (Phase 3: 모든 stage detail 카드를 그릴 수 있도록 보존)
+  // C5: lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지)
+  if (!lifeStages?.length) {
+    return (
+      <div className={styles.tier} data-screen-label="인생 84년">
+        <p style={{ padding: 40, opacity: 0.6 }}>본명 정보를 불러오는 중...</p>
+      </div>
+    )
+  }
+  const nowStage =
+    lifeStages.find((s) => s.now) ?? lifeStages[1] ?? lifeStages[0]
 
-  // Sect 한 줄
-  const sectLine = useMemo(() => buildSectLine(user), [user])
+  // C2: dominant 오행 계산 (하드코딩 "목 최다" 제거)
+  const EL_HANJA: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
+  const elementsEntries = Object.entries(user.elements || {}).sort(
+    (a, b) => Number(b[1]) - Number(a[1]),
+  )
+  const dominantEl = elementsEntries[0]?.[0]
+  const elementsLabelText = dominantEl
+    ? `사주 8자 오행 분포 — ${dominantEl}(${EL_HANJA[dominantEl] ?? dominantEl}) 최다`
+    : '사주 8자 오행 분포'
 
-  // detail 이 채워진 stage 들 (변형 5: 모든 단계가 detail 받게)
-  const stagesWithDetail = lifeStages.filter((s) => s.detail != null)
+  // C1: astro 메타 한 줄 — 누락 세그먼트 hide
+  const astroSegs = [
+    user.astro?.sunEn && `Sun ${user.astro.sunEn}`,
+    user.astro?.ascEn && `Asc ${user.astro.ascEn}`,
+    user.astro?.mcEn && `MC ${user.astro.mcEn}`,
+  ].filter(Boolean) as string[]
 
-  // 현재 진행 stage (가장 우선 — onDive 표지 + dive 버튼 라벨 보조)
-  const currentStage = lifeStages.find((s) => s.now)
-
-  // milestone 의 next-up 표시 연도 (dive 버튼 라벨 보조)
-  const targetYear = lifetime.currentYear
+  // C4: rootStatus 있을 때만 "통근" 라벨, 없으면 "주십신"
+  const hasRootStatus = !!user.rootStatus
 
   return (
-    <div className={styles.root}>
-      <div className={styles.inner} data-screen-label="인생 84년">
-        {/* ---------- intro ---------- */}
-        <div className={styles.eyebrow}>인생 · LIFETIME · 84년</div>
-        <h1 className={styles.display}>내 인생 전체 흐름</h1>
-        <p className={`${styles.tiny} ${styles.metaLine}`}>
-          {user.birthKo} · {user.place} · {user.sex} &nbsp;|&nbsp; Sun {user.astro.sunEn} · Asc {user.astro.ascEn} · MC {user.astro.mcEn}
-        </p>
-
-        <div className={styles.introGrid}>
-          <div>
-            <p className={styles.lead}>{user.intro}</p>
-            {user.introEn ? <p className={styles.leadEn}>{user.introEn}</p> : null}
-
-            {/* (변형 1) Sect 한 줄 — intro 좌측, lead 본문 아래 */}
-            {sectLine ? (
-              <div className={styles.sectRow}>
-                <b>Sect</b> {sectLine}
-              </div>
-            ) : null}
-          </div>
-
-          <div className={`${styles.panel} ${styles.panelLifetime}`}>
-            <ScoreOrb score={user.score} grade={user.grade} />
-            <div className={styles.introRight}>
-              <div className={styles.idChips}>
-                <span className={styles.chip}>
-                  <span className="k">일간</span>
-                  <span className="han">{user.ilgan.hanja}</span>
-                  <span className="v">{user.ilgan.kr}</span>
-                </span>
-
-                {/* (변형 2) 격국 → gyeokgukStatus. F등급 라벨 표기 없음. */}
-                <span className={styles.chip}>
-                  <span className="k">격국</span>
-                  <span className="v">{gyeokgukLabel}</span>
-                </span>
-
-                <span className={styles.chip}>
-                  <span className="k">용신</span>
-                  {user.yongsin?.hanja ? <span className="han">{user.yongsin.hanja}</span> : null}
-                </span>
-
-                <span className={styles.chip}>
-                  <span className="k">강약</span>
-                  <span className="v">{user.gangyak}</span>
-                </span>
-
-                {/* (변형 3) 재성 → rootStatus (월령/통근). */}
-                {rootStatusLabel ? (
-                  <span className={styles.chip}>
-                    <span className="k">뿌리</span>
-                    <span className="v">{rootStatusLabel}</span>
-                  </span>
-                ) : null}
-              </div>
-              <div className={styles.elementsBox}>
-                <div className={`${styles.tiny} ${styles.elementsCaption}`}>
-                  사주 8자 오행 분포 {dominantElementLabel(user.elements)}
-                </div>
-                <ElementBars elements={user.elements} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* (변형 6) ---------- Natal Lots row ---------- */}
-        {user.lots && user.lots.length > 0 ? (
-          <div className={styles.lotsRow}>
-            <div className={styles.lotsRowHead}>
-              <b>Arabic Lots · 7대 점성 점</b>
-              <span>본명 sect 적용</span>
-            </div>
-            <div className={styles.lotsGrid}>
-              {user.lots.map((lot) => (
-                <LotChip key={lot.name} lot={lot} />
-              ))}
-            </div>
-          </div>
+    <div className={styles.tier} data-screen-label="인생 84년">
+      {/* ============================================================
+          intro
+      ============================================================ */}
+      <div className={styles.eyebrow}>인생 · LIFETIME · 84년</div>
+      <h1 className={styles.display}>내 인생 전체 흐름</h1>
+      <p className={`${styles.tiny} ${styles.headerMeta}`}>
+        {user.birthKo} · {user.place} · {user.sex}
+        {astroSegs.length > 0 ? (
+          <>
+            <span className={styles.pipe}>|</span>
+            {astroSegs.join(' · ')}
+          </>
         ) : null}
+      </p>
 
-        {/* ---------- constellation of life stages ---------- */}
-        <div className={styles.block}>
-          <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>네 시기의 별자리</h2>
-            <span className={styles.tiny}>0 → 84세 · 대운 10년 주기</span>
-          </div>
+      <div className={styles.introGrid}>
+        <div>
+          <p className={styles.lead}>{user.intro}</p>
+          <p className={`${styles.lead} ${styles.leadEn}`}>{user.introEn}</p>
 
-          <div className={styles.constellation}>
-            <svg
-              className={styles.constSvg}
-              viewBox="0 0 100 150"
-              preserveAspectRatio="none"
-            >
-              {/* connecting line */}
-              <polyline
-                points={nodeX.map((x, i) => `${x},${nodeY[i]}`).join(' ')}
-                fill="none"
-                stroke="rgba(184,68,42,0.35)"
-                strokeWidth="0.4"
-                vectorEffect="non-scaling-stroke"
-                strokeDasharray="2 1.5"
-              />
-              {lifeStages.map((s, i) => (
-                <g key={s.id}>
-                  <circle
-                    cx={nodeX[i] ?? 0}
-                    cy={nodeY[i] ?? 0}
-                    r={s.now ? 3.2 : 2}
-                    fill={s.now ? 'var(--destinypal-accent, #b8442a)' : 'rgba(80,50,30,0.06)'}
-                    stroke={
-                      s.now
-                        ? 'var(--destinypal-accent-2, #d65a3b)'
-                        : 'var(--destinypal-ink-faint, #b8a78c)'
-                    }
-                    strokeWidth={s.now ? 1 : 0.6}
-                    vectorEffect="non-scaling-stroke"
-                    style={
-                      s.now
-                        ? {
-                            filter:
-                              'drop-shadow(0 0 5px rgba(184,68,42,0.45))',
-                          }
-                        : undefined
-                    }
-                  />
-                  {s.now ? (
-                    <circle
-                      cx={nodeX[i] ?? 0}
-                      cy={nodeY[i] ?? 0}
-                      r="5.5"
-                      fill="none"
-                      stroke="var(--destinypal-accent, #b8442a)"
-                      strokeWidth="0.4"
-                      opacity="0.55"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  ) : null}
-                </g>
-              ))}
-            </svg>
-          </div>
-
-          <div className={styles.stageCards}>
-            {lifeStages.map((s) => (
-              <StageCard
-                key={s.id}
-                stage={s}
-                onDive={s.now ? onDive : undefined}
-              />
-            ))}
-          </div>
+          {/* ── Phase 3 보강 ①: Sect 한 줄 ── */}
+          {user.sect ? <SectRow user={user} /> : null}
         </div>
 
-        {/* (변형 5) ---------- per-stage detail (모든 detail!=null 단계) ---------- */}
-        {stagesWithDetail.map((stage) => (
-          <StageDetail
+        <div className={`${styles.panel} ${styles.introPanel}`}>
+          <ScoreOrb score={user.score} grade={user.grade} max={100} />
+          <div className={styles.introPanelSide}>
+            <div className={styles.idChips}>
+              <span className={styles.chip}>
+                <span className={styles.k}>일간</span>
+                <span className={styles.han}>{user.ilgan.hanja}</span>
+                <span className={styles.v}>{user.ilgan.kr}</span>
+              </span>
+
+              {/* ── Phase 3 보강 ②: 격국 chip → gyeokgukStatus ── */}
+              <span className={styles.chip}>
+                <span className={styles.k}>격국</span>
+                <span className={styles.v}>
+                  {user.gyeokgukStatus ?? user.gyeokguk}
+                </span>
+              </span>
+
+              <span className={styles.chip}>
+                <span className={styles.k}>용신</span>
+                <span className={styles.han}>{user.yongsin.hanja}</span>
+              </span>
+              <span className={styles.chip}>
+                <span className={styles.k}>강약</span>
+                <span className={styles.v}>{user.gangyak}</span>
+              </span>
+
+              {/* ── Phase 3 보강 ③: 재성 chip → rootStatus (C4: 라벨 조건부) ── */}
+              <span className={styles.chip}>
+                <span className={styles.k}>{hasRootStatus ? '통근' : '주십신'}</span>
+                <span className={styles.v}>
+                  {user.rootStatus ??
+                    `${user.dominantSibsin.name} ${user.dominantSibsin.pct}%`}
+                </span>
+              </span>
+            </div>
+
+            <div className={styles.elementsWrap}>
+              <div className={`${styles.tiny} ${styles.elementsLabel}`}>
+                {elementsLabelText}
+              </div>
+              <ElementBars elements={user.elements} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================
+          constellation of life stages
+      ============================================================ */}
+      <div className={styles.block}>
+        <div className={styles.sectionHead}>
+          <h2 className={styles.sectionTitle}>네 시기의 별자리</h2>
+          <span className={styles.tiny}>0 → 84세 · 대운 10년 주기</span>
+        </div>
+
+        <div className={styles.constellation}>
+          <svg
+            className={styles.constSvg}
+            viewBox="0 0 100 150"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            {/* connecting line */}
+            <polyline
+              points={nodeX.map((x, i) => `${x},${nodeY[i]}`).join(' ')}
+              fill="none"
+              stroke="rgba(52,64,111,0.45)"
+              strokeWidth="0.4"
+              vectorEffect="non-scaling-stroke"
+              strokeDasharray="2 1.5"
+            />
+            {lifeStages.map((s, i) => (
+              <g key={s.id}>
+                <circle
+                  cx={nodeX[i] ?? 50}
+                  cy={nodeY[i] ?? 50}
+                  r={s.now ? 3.2 : 2}
+                  fill={s.now ? 'var(--ember)' : 'var(--bg-3)'}
+                  stroke={s.now ? 'var(--ember-2)' : 'var(--ink-faint)'}
+                  strokeWidth={s.now ? 1 : 0.6}
+                  vectorEffect="non-scaling-stroke"
+                  style={
+                    s.now
+                      ? { filter: 'drop-shadow(0 0 5px var(--ember-glow))' }
+                      : undefined
+                  }
+                />
+                {s.now && (
+                  <circle
+                    cx={nodeX[i] ?? 50}
+                    cy={nodeY[i] ?? 50}
+                    r="5.5"
+                    fill="none"
+                    stroke="var(--ember)"
+                    strokeWidth="0.4"
+                    opacity="0.55"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                )}
+              </g>
+            ))}
+          </svg>
+        </div>
+
+        <div className={styles.stageCards}>
+          {lifeStages.map((s) => (
+            <div
+              key={s.id}
+              className={`${styles.stageCard} ${s.now ? styles.now : ''}`}
+              onClick={s.now ? onDive : undefined}
+            >
+              {s.now && <span className={styles.nowtag}>지금 · NOW</span>}
+              <div className={styles.nm}>{s.name}</div>
+              <div className={styles.age}>
+                {s.ageFrom}–{s.ageTo}세 · {s.yearFrom}–{s.yearTo}
+              </div>
+              <div className={styles.tone}>{s.tone}</div>
+              {s.now && (
+                <div className={styles.diveHint}>탭하면 올해로 줌인 ↘</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ============================================================
+          stage detail blocks
+          (원본: 청년기 detail 만. Phase 3 보강 ④: detail 있는 모든 stage)
+      ============================================================ */}
+      {lifeStages
+        .filter((s) => s.detail !== null)
+        .map((stage) => (
+          <StageDetailBlock
             key={stage.id}
             stage={stage}
             daewoon={daewoon}
-            isCurrent={stage.now}
+            isCurrent={stage.id === nowStage?.id}
           />
         ))}
 
-        {/* (변형 7) ---------- ZR L1 챕터 carousel ---------- */}
-        {(lifetime.zrSpiritChapters?.length || lifetime.zrFortuneChapters?.length) ? (
-          <div className={styles.zrSection}>
-            <div className={styles.secHead}>
-              <h2 className={styles.secTitle}>Zodiacal Releasing · 챕터</h2>
-              <span className={styles.tiny}>Hellenistic L1 — Spirit / Fortune</span>
-            </div>
-            <div className={styles.zrLanes}>
-              <ZRLane
-                lane="Spirit"
-                chapters={lifetime.zrSpiritChapters}
-                currentYear={lifetime.currentYear}
-                birthYear={lifetime.birthYear}
-              />
-              <ZRLane
-                lane="Fortune"
-                chapters={lifetime.zrFortuneChapters}
-                currentYear={lifetime.currentYear}
-                birthYear={lifetime.birthYear}
-              />
-            </div>
-          </div>
-        ) : null}
+      {/* ============================================================
+          Phase 3 보강 ⑥: Natal Lots row
+      ============================================================ */}
+      {user.lots && user.lots.length > 0 && (
+        <NatalLotsRow lots={user.lots} />
+      )}
 
-        {/* ---------- milestone timeline ---------- */}
-        <div className={styles.miles}>
-          <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>분기점 타임라인</h2>
-            <span className={styles.tiny}>사주 · 점성 수렴 마디</span>
-          </div>
-          <div className={styles.mileTrack}>
-            {milestones.map((m) => (
-              <MilestoneRow key={`${m.year}-${m.kind}`} m={m} />
-            ))}
-          </div>
-        </div>
+      {/* ============================================================
+          Phase 3 보강 ⑦: ZR L1 carousel (Spirit / Fortune)
+      ============================================================ */}
+      {(zrSpiritChapters?.length > 0 || zrFortuneChapters?.length > 0) && (
+        <ZRCarousel
+          spirit={zrSpiritChapters ?? []}
+          fortune={zrFortuneChapters ?? []}
+        />
+      )}
 
-        <div className={styles.diveWrap}>
-          <button type="button" className={styles.dive} onClick={onDive}>
-            {`${targetYear}${currentStage ? ` · ${currentStage.name}` : ''} 으로 줌인`}{' '}
-            <span className={styles.diveArrow}>↓</span>
-          </button>
+      {/* ============================================================
+          milestone timeline
+      ============================================================ */}
+      <div className={styles.miles}>
+        <div className={styles.sectionHead}>
+          <h2 className={styles.sectionTitle}>분기점 타임라인</h2>
+          <span className={styles.tiny}>사주 · 점성 수렴 마디</span>
         </div>
+        <div className={styles.mileTrack}>
+          {milestones.map((m, i) => (
+            <div
+              key={`${m.year}-${i}`}
+              className={`${styles.mile} ${m.now ? styles.now : ''}`}
+            >
+              <span className={styles.node} />
+              <span className={styles.yr}>
+                {m.year}
+                <small>{m.age}세</small>
+              </span>
+              <span className={styles.lab}>
+                {m.label}
+                {m.now && <span className={styles.nowMark}>← 지금</span>}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.diveWrap}>
+        <button className={styles.dive} onClick={onDive} type="button">
+          올해 {lifetime.currentYear}으로 줌인{' '}
+          <span className={styles.arrow}>↓</span>
+        </button>
       </div>
     </div>
   )
 }
 
-export default LifetimeTier
-
 // ============================================================================
-// Sub-components
+// Phase 3 보강 ①: Sect Row
 // ============================================================================
 
-function StageCard({
-  stage,
-  onDive,
-}: {
-  stage: DestinyLifeStage
-  onDive?: () => void
-}) {
-  const isNow = stage.now
+function SectRow({ user }: { user: DestinyUserSummary }) {
+  const isNight = user.sect === 'night'
+  const sectKo = isNight ? '밤' : '낮'
+  const sectEn = isNight ? 'Night' : 'Day'
+  const sectLight = isNight ? 'Moon' : 'Sun'
+  // Lord of Asc — DestinyDignityEntry 에서 직접 매핑 못 하니 기본 라벨만.
+  // 백엔드에서 adapter 가 채워줄 자리 (없을 때 graceful fallback).
+  const ascSign = user.astro.asc
+  const lordOfAsc = ascSignRuler(user.astro.ascEn)
+
   return (
-    <div
-      className={`${styles.stageCard} ${isNow ? styles.stageCardNow : ''}`}
-      onClick={onDive}
-      role={onDive ? 'button' : undefined}
-      tabIndex={onDive ? 0 : undefined}
-      onKeyDown={
-        onDive
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                onDive()
-              }
-            }
-          : undefined
-      }
-    >
-      {isNow ? <span className={styles.stageNowTag}>지금 · NOW</span> : null}
-      <div className={styles.stageName}>{stage.name}</div>
-      <div className={styles.stageAge}>
-        {stage.ageFrom}–{stage.ageTo}세 · {stage.yearFrom}–{stage.yearTo}
-      </div>
-      <div className={styles.stageTone}>{stage.tone}</div>
-      {isNow ? (
-        <div className={`${styles.tiny} ${styles.stageDiveHint}`}>
-          탭하면 올해로 줌인 ↘
-        </div>
-      ) : null}
+    <div className={styles.sectRow}>
+      <span>
+        <span className={styles.sectMark}>Sect</span>{' '}
+        {sectKo}({sectEn})
+      </span>
+      <span className={styles.sectSep} />
+      <span>Sect light = {sectLight}</span>
+      {lordOfAsc && (
+        <>
+          <span className={styles.sectSep} />
+          <span>
+            Lord of Asc = {lordOfAsc} ({ascSign})
+          </span>
+        </>
+      )}
     </div>
   )
 }
 
-function StageDetail({
+/** ZodiacKo 영문 → traditional ruler. */
+function ascSignRuler(sign: string): string | null {
+  const m: Record<string, string> = {
+    Aries: 'Mars',
+    Taurus: 'Venus',
+    Gemini: 'Mercury',
+    Cancer: 'Moon',
+    Leo: 'Sun',
+    Virgo: 'Mercury',
+    Libra: 'Venus',
+    Scorpio: 'Mars',
+    Sagittarius: 'Jupiter',
+    Capricorn: 'Saturn',
+    Aquarius: 'Saturn',
+    Pisces: 'Jupiter',
+  }
+  return m[sign] ?? null
+}
+
+// ============================================================================
+// Stage detail block (원본 youth-detail 섹션 + Phase 3: 모든 detail stage)
+// ============================================================================
+
+function StageDetailBlock({
   stage,
   daewoon,
   isCurrent,
 }: {
   stage: DestinyLifeStage
-  daewoon: DestinyDaewoon[]
+  daewoon: DestinyLifetime['daewoon']
   isCurrent: boolean
 }) {
   const detail = stage.detail
   if (!detail) return null
 
-  // 현재 stage 만 전체 대운 스파인 노출. 과거 stage 는 stage 본인 ageRange 와
-  // 교차하는 대운만 추려 시각화. data 가 작아 단순 필터로 충분.
-  const relevantDaewoon: DestinyDaewoon[] = isCurrent
-    ? daewoon
-    : daewoon.filter(
-        (d) => d.start <= stage.yearTo && d.end >= stage.yearFrom,
-      )
+  // 이 stage 범위에 걸치는 대운만 추림 (전부 그리면 과부하)
+  const stageDaewoon = daewoon.filter(
+    (dw) => dw.end > stage.yearFrom && dw.start <= stage.yearTo,
+  )
+
+  const headerNote = isCurrent
+    ? '지금의 결'
+    : `${stage.ageFrom}–${stage.ageTo}세 · ${stage.yearFrom}–${stage.yearTo}`
 
   return (
     <div className={styles.stageDetail}>
-      <div className={styles.secHead}>
-        <h2 className={styles.secTitle}>
-          {stage.name} — {isCurrent ? '지금의 결' : '그 시기의 결'}
+      <div className={styles.sectionHead}>
+        <h2 className={styles.sectionTitle}>
+          {stage.name} — {headerNote}
         </h2>
         <span className={styles.tiny}>
           {stage.ageFrom}–{stage.ageTo}세 · {stage.yearFrom}–{stage.yearTo}
@@ -703,86 +596,102 @@ function StageDetail({
       </div>
 
       {/* daewoon spine */}
-      {relevantDaewoon.length > 0 ? (
-        <div className={`${styles.panel} ${styles.daewoonPanel}`}>
-          <LayerTag kind="saju" />
-          <div className={styles.daewoonRow}>
-            {relevantDaewoon.map((dw, i) => (
-              <div className={styles.daewoonItem} key={`${dw.gz.hanja}-${dw.start}`}>
-                <div className={styles.daewoonCell}>
-                  <Ganji data={dw.gz} size={30} />
-                  <div className={`${styles.tiny} ${styles.daewoonRange}`}>
-                    {dw.start}–{dw.end}
-                  </div>
-                  {dw.sibsin !== '—' ? (
-                    <div className={styles.daewoonSibsin}>{dw.sibsin}</div>
-                  ) : null}
+      <div className={`${styles.panel} ${styles.daewoonSpine}`}>
+        <LayerTag kind="saju" />
+        <div className={styles.daewoonRow}>
+          {stageDaewoon.map((dw, i) => (
+            <div key={`${dw.start}-${i}`} className={styles.daewoonCell}>
+              <div className={styles.daewoonCellInner}>
+                <Ganji data={dw.gz} size={30} />
+                <div className={styles.daewoonRange}>
+                  {dw.start}–{dw.end}
                 </div>
-                {i < relevantDaewoon.length - 1 ? (
-                  <span className={styles.daewoonArrow}>→</span>
-                ) : null}
+                {dw.sibsin !== '—' && (
+                  <div className={styles.daewoonSibsin}>{dw.sibsin}</div>
+                )}
               </div>
-            ))}
-          </div>
+              {i < stageDaewoon.length - 1 && (
+                <span className={styles.daewoonArrow}>→</span>
+              )}
+            </div>
+          ))}
         </div>
-      ) : null}
+      </div>
 
-      {detail.body && detail.body.length > 0 ? (
+      {detail.body.length > 0 && (
         <p className={styles.lead} style={{ marginTop: 16 }}>
           {detail.body.join(' ')}
         </p>
-      ) : null}
+      )}
 
-      {detail.hapchung || detail.shinsal || detail.unseong ? (
-        <div className={styles.detailGrid}>
-          {detail.hapchung ? (
-            <DCard
-              icon="⚡"
-              iconColor="var(--destinypal-accent-2, #d65a3b)"
-              head="합충 · HAPCHUNG"
-              chip={detail.hapchung}
-            />
-          ) : null}
-          {detail.shinsal ? (
-            <DCard
-              icon="✦"
-              iconColor="var(--destinypal-violet-2, #9b6dde)"
-              head="신살 · SHINSAL"
-              chip={detail.shinsal}
-            />
-          ) : null}
-          {detail.unseong ? (
-            <DCard
-              icon="◯"
-              iconColor="var(--destinypal-ink-dim, #5a4a38)"
-              head="12운성 · UNSEONG"
-              chip={detail.unseong}
-            />
-          ) : null}
-        </div>
-      ) : null}
+      <div className={styles.detailGrid}>
+        {detail.hapchung && (
+          <DetailCard
+            heading={
+              <>
+                <span
+                  className={`${styles.glyphMini} ${styles.glyphEmber}`}
+                >
+                  ⚡
+                </span>{' '}
+                합충 · HAPCHUNG
+              </>
+            }
+            chip={detail.hapchung}
+          />
+        )}
+        {detail.shinsal && (
+          <DetailCard
+            heading={
+              <>
+                <span
+                  className={`${styles.glyphMini} ${styles.glyphViolet}`}
+                >
+                  ✦
+                </span>{' '}
+                신살 · SHINSAL
+              </>
+            }
+            chip={detail.shinsal}
+          />
+        )}
+        {detail.unseong && (
+          <DetailCard
+            heading={
+              <>
+                <span className={`${styles.glyphMini} ${styles.glyphDim}`}>
+                  ◯
+                </span>{' '}
+                12운성 · UNSEONG
+              </>
+            }
+            chip={detail.unseong}
+          />
+        )}
+      </div>
 
-      {/* (변형 4) outer planets — kind 매핑 확장 */}
-      {detail.outer && detail.outer.length > 0 ? (
+      {/* outer planets — Phase 3 보강 ⑤: 7가지 kind 모두 매핑 */}
+      {detail.outer.length > 0 && (
         <div className={styles.outerWrap}>
           <LayerTag kind="astro" />
-          <span className={`${styles.tiny} ${styles.outerHead}`}>
+          <span className={`${styles.tiny} ${styles.outerLabel}`}>
             외행성 마디 · Outer-planet returns
           </span>
           <div className={styles.outerRow}>
             {detail.outer.map((o, i) => {
-              const kind = normalizeOuterKind(o.kind)
+              const kind = o.kind ?? 'jupiter'
+              const cls = OUTER_CLASS[kind] ?? styles.jupiter
+              const glyph = OUTER_GLYPH[kind] ?? '★'
               return (
                 <div
                   key={`${o.label}-${i}`}
-                  className={outerChipClass(kind)}
+                  className={`${styles.outerChip} ${cls}`}
                 >
-                  <span className="ic">{OUTER_GLYPH[kind]}</span>
-                  <div className="ot">
-                    <div className="l">{o.label}</div>
-                    <div className="d">
-                      {o.date ? `${o.date} · ` : ''}
-                      {o.body}
+                  <span className={styles.ic}>{glyph}</span>
+                  <div className={styles.ot}>
+                    <div className={styles.l}>{o.label}</div>
+                    <div className={styles.d}>
+                      {o.date} · {o.body}
                     </div>
                   </div>
                 </div>
@@ -790,117 +699,58 @@ function StageDetail({
             })}
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   )
 }
 
-function DCard({
-  icon,
-  iconColor,
-  head,
+function DetailCard({
+  heading,
   chip,
 }: {
-  icon: ReactNode
-  iconColor: string
-  head: string
+  heading: ReactNode
   chip: { title: string; romaji?: string; body: string }
 }) {
   return (
     <div className={styles.dcard}>
-      <div className="h">
-        <span className={styles.glyphMini} style={{ color: iconColor }}>
-          {icon}
-        </span>{' '}
-        {head}
+      <div className={styles.h}>{heading}</div>
+      <div className={styles.t}>{chip.title}</div>
+      {chip.romaji && <div className={styles.r}>{chip.romaji}</div>}
+      <div className={styles.b}>{chip.body}</div>
+    </div>
+  )
+}
+
+// ============================================================================
+// Phase 3 보강 ⑥: Natal Lots row (7개 gold chip)
+// ============================================================================
+
+function NatalLotsRow({ lots }: { lots: DestinyArabicLot[] }) {
+  return (
+    <div className={`${styles.block} ${styles.lotsWrap}`}>
+      <div className={styles.sectionHead}>
+        <h2 className={styles.sectionTitle}>본명 7대 점(點) · Arabic Lots</h2>
+        <span className={styles.tiny}>Hellenistic · sect-aware</span>
       </div>
-      <div className="t">{chip.title}</div>
-      {chip.romaji ? <div className="r">{chip.romaji}</div> : null}
-      <div className="b">{chip.body}</div>
-    </div>
-  )
-}
-
-function MilestoneRow({ m }: { m: DestinyMilestone }) {
-  return (
-    <div className={`${styles.mile} ${m.now ? styles.mileNow : ''}`}>
-      <span className={styles.mileNode} />
-      <span className={styles.mileYr}>
-        {m.year}
-        <small>{m.age}세</small>
+      <LayerTag kind="astro" />
+      <span className={`${styles.tiny} ${styles.lotsLabel}`}>
+        Lots — Fortune · Spirit · Eros · Necessity · Courage · Victory · Nemesis
       </span>
-      <span className={styles.mileLab}>
-        {m.label}
-        {m.now ? <span className={styles.mileNowMark}>← 지금</span> : null}
-      </span>
-    </div>
-  )
-}
-
-function LotChip({ lot }: { lot: DestinyArabicLot }) {
-  const koLabel = lot.korean ?? LOT_KO[lot.name] ?? lot.name
-  return (
-    <div className={styles.lotChip}>
-      <span className={styles.lotName}>{lot.name}</span>
-      <span className={styles.lotSign}>
-        {lot.sign} · {koLabel}
-      </span>
-      <span className={styles.lotMeta}>
-        {Math.round(lot.degree)}° · {lot.house}H
-      </span>
-    </div>
-  )
-}
-
-function ZRLane({
-  lane,
-  chapters,
-  currentYear,
-  birthYear,
-}: {
-  lane: 'Spirit' | 'Fortune'
-  chapters: DestinyZRChapter[] | undefined
-  currentYear: number
-  birthYear: number
-}) {
-  if (!chapters || chapters.length === 0) return null
-  const title = zrLaneTitle(lane)
-  return (
-    <div className={styles.zrLane}>
-      <div className={styles.zrLaneHead}>
-        <b>{title.ko}</b>
-        <span>{title.en}</span>
-      </div>
-      <div className={styles.zrCarousel}>
-        {chapters.map((ch, i) => {
-          const startYear = ch.calendarStartYear ?? birthYear + ch.startYear
-          const endYear = ch.calendarEndYear ?? birthYear + ch.endYear
-          const isNow = ch.now
-          const remain = isNow ? Math.max(0, endYear - currentYear) : null
+      <div className={styles.lotsGrid}>
+        {lots.map((lot) => {
+          const mark = LOT_MARK[lot.name] ?? lot.name.charAt(0)
+          const sign = zodiacKo(lot.sign)
           return (
-            <div
-              key={`${lane}-${i}-${ch.sign}-${startYear}`}
-              className={`${styles.zrCard} ${isNow ? styles.zrCardNow : ''}`}
-            >
-              <span className={styles.zrSignLine}>
-                {ch.sign}
-              </span>
-              <span className={styles.zrRulerLine}>
-                {planetKo(ch.ruler)} · {ch.ruler}
-              </span>
-              <span className={styles.zrYearLine}>
-                {startYear}–{endYear} · {Math.round(ch.durationYears)}yr
-              </span>
-              {isNow ? (
-                <>
-                  <span className={styles.zrNowTag}>NOW · 현재 챕터</span>
-                  {remain != null ? (
-                    <span className={styles.zrRemainLine}>
-                      남은 {remain}년
-                    </span>
-                  ) : null}
-                </>
-              ) : null}
+            <div key={lot.name} className={styles.lotChip}>
+              <span className={styles.ic}>{mark}</span>
+              <div className={styles.meta}>
+                <span className={styles.nm}>
+                  {lot.korean ?? lot.name}
+                </span>
+                <span className={styles.pos}>
+                  {sign} {Math.floor(lot.degree)}° · {lot.house}H
+                </span>
+              </div>
             </div>
           )
         })}
@@ -910,40 +760,80 @@ function ZRLane({
 }
 
 // ============================================================================
-// 라벨 헬퍼
+// Phase 3 보강 ⑦: ZR L1 carousel
 // ============================================================================
 
-function dominantElementLabel(elements: ElementCounts): string {
-  const entries = Object.entries(elements) as Array<
-    [keyof ElementCounts, number]
-  >
-  if (entries.length === 0) return ''
-  entries.sort((a, b) => b[1] - a[1])
-  const [top] = entries
-  if (!top || top[1] <= 0) return ''
-  const elementEn: Record<keyof ElementCounts, string> = {
-    목: 'Wood',
-    화: 'Fire',
-    토: 'Earth',
-    금: 'Metal',
-    수: 'Water',
-  }
-  return `— ${top[0]}(${elementEn[top[0]]}) 최다`
+function ZRCarousel({
+  spirit,
+  fortune,
+}: {
+  spirit: DestinyZRChapter[]
+  fortune: DestinyZRChapter[]
+}) {
+  return (
+    <div className={styles.zrWrap}>
+      <div className={styles.sectionHead}>
+        <h2 className={styles.sectionTitle}>ZR L1 챕터 · Zodiacal Releasing</h2>
+        <span className={styles.tiny}>Spirit 진로 · Fortune 체질</span>
+      </div>
+      <div className={styles.zrLanes}>
+        <ZRLane
+          title="Spirit Lot — 진로·외적 사건"
+          kindLabel="SPIRIT"
+          kindClass={styles.spirit}
+          chapters={spirit}
+        />
+        <ZRLane
+          title="Fortune Lot — 몸·물질·체질"
+          kindLabel="FORTUNE"
+          kindClass={styles.fortune}
+          chapters={fortune}
+        />
+      </div>
+    </div>
+  )
 }
 
-function buildSectLine(user: DestinyUserSummary): string | null {
-  const sectKo = user.sect === 'day' ? '낮(Day)' : user.sect === 'night' ? '밤(Night)' : null
-  if (!sectKo) return null
-  const sectLight = user.sect === 'day' ? 'Sun' : 'Moon'
-  const sectLightKo = user.sect === 'day' ? '태양' : '달'
-  // Lord of Asc — almutenFiguris.planet 사용 (Asc dispositor 대체 — Phase A
-  // 의 toUser 는 dignities 최대값 행성을 채워두므로 Lord of Asc 와 유사한
-  // signal 로 활용. 정확한 Asc ruler 가 추후 들어오면 그때 교체.)
-  const lordAsc = user.almutenFiguris?.planet
-  const lordKo = planetKo(lordAsc)
-  const parts: string[] = []
-  parts.push(sectKo)
-  parts.push(`Sect light = ${sectLight} (${sectLightKo})`)
-  if (lordAsc) parts.push(`Lord of Asc ≈ ${lordKo} (${lordAsc})`)
-  return parts.join(' · ')
+function ZRLane({
+  title,
+  kindLabel,
+  kindClass,
+  chapters,
+}: {
+  title: string
+  kindLabel: string
+  kindClass: string
+  chapters: DestinyZRChapter[]
+}) {
+  return (
+    <div className={styles.zrLane}>
+      <div className={styles.laneHead}>
+        <span className={styles.laneTitle}>{title}</span>
+        <span className={`${styles.laneKind} ${kindClass}`}>{kindLabel}</span>
+      </div>
+      <div className={styles.zrTrack}>
+        {chapters.map((c, i) => {
+          const sign = zodiacKo(c.sign)
+          const cellStyle: CSSProperties | undefined = c.now
+            ? undefined
+            : undefined
+          return (
+            <div
+              key={`${kindLabel}-${c.calendarStartYear}-${i}`}
+              className={`${styles.zrChapter} ${c.now ? styles.now : ''}`}
+              style={cellStyle}
+            >
+              <span className={styles.sign}>{sign}</span>
+              <span className={styles.ruler}>{c.ruler}</span>
+              <span className={styles.years}>
+                {c.calendarStartYear}–{c.calendarEndYear}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
+
+export default LifetimeTier

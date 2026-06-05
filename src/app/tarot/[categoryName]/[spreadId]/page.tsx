@@ -9,6 +9,7 @@ import { useTarotGame, useTarotInterpretation } from './hooks'
 import { smoothScrollTo } from './utils'
 import { PageContent } from './components/PageContent'
 import BrandSplash from '@/components/branding/BrandSplash'
+import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { useRequireLogin } from '@/contexts/LoginModalContext'
 
@@ -44,6 +45,19 @@ function TarotReadingPage() {
   const [interpretationFailed, setInterpretationFailed] = useState(false)
   const requestedInterpretationKeyRef = useRef<string | null>(null)
   const isInterpretationFetchingRef = useRef(false)
+  // 진행 중인 interpret-stream 요청의 abort 컨트롤러 — 재시도 시 이전 요청을
+  // 끊어 두 스트림이 동시에 도는 레이스를 막는다.
+  const interpretAbortRef = useRef<AbortController | null>(null)
+
+  // 언마운트 시에만 진행 중인 해석 스트림을 끊는다. 직전엔 fetch effect 의
+  // cleanup 이 cancelled 플래그만 세워 setState 만 막고, 실제 SSE 연결은
+  // 백그라운드에서 최대 ~70s 계속 살아있었다(자원 누수). dep 변경 cleanup 이
+  // 아니라 *언마운트* 에서만 끊어, 정상 dep 변경 중인 fetch 는 건드리지 않는다.
+  useEffect(() => {
+    return () => {
+      interpretAbortRef.current?.abort()
+    }
+  }, [])
 
   // Custom hooks
   const gameHook = useTarotGame()
@@ -71,6 +85,11 @@ function TarotReadingPage() {
       .join('|')
     return `${spreadKey}:${cardsKey}`
   }, [readingResult, spreadId])
+
+  // 항상 최신 readingSignature 를 가리키는 ref — 비동기 복원이 끝났을 때
+  // "지금 화면의 리딩" 과 같은지 비교하기 위함(아래 복원 effect 참조).
+  const readingSignatureRef = useRef(readingSignature)
+  readingSignatureRef.current = readingSignature
 
   // 새로고침 시 크레딧이 또 차감되던 회귀 — 같은 리딩에 대해선 해석 결과를
   // sessionStorage 에 캐시해 두고 우선 그걸 본다. 캐시 hit 이면 API 호출 자체를
@@ -126,8 +145,14 @@ function TarotReadingPage() {
     isInterpretationFetchingRef.current = true
     let cancelled = false
 
+    // 혹시 남아있는 이전 요청을 끊고 새 컨트롤러로 교체.
+    interpretAbortRef.current?.abort()
+    const abortController = new AbortController()
+    interpretAbortRef.current = abortController
+
     fetchInterpretation(readingResult, {
       idempotencyKey: readingSignature,
+      signal: abortController.signal,
       // 스트리밍 도중 overall 텍스트 누적분을 받아 즉시 UI 반영 (fallback=true 로 유지).
       onProgress: (snapshot) => {
         if (cancelled) return
@@ -156,8 +181,14 @@ function TarotReadingPage() {
           setInterpretation(result)
         }
         // LLM 이 완전 실패해 정적 fallback 으로 떨어진 경우 → 사용자에게 재시도 옵션 제공.
+        // overall_message 가 비어있으면 fallback 값과 무관하게 실패로 본다.
+        // 직전엔 fallback:false + 빈 overall(스트림이 카드만 주고 overall 을 못
+        // 끝낸 부분-에러 경로 등) 이면 실패 감지를 통과해, ResultsStage 의 저장·
+        // 후속·재시도 버튼이 모두 overall_message 게이트에 막혀 사라지고 에러도
+        // 안 뜨는 *멈춘 화면* 이 됐다. 빈 overall 을 실패로 잡아 재시도를 띄운다.
         const failedToLLM =
           !result ||
+          !result.overall_message?.trim() ||
           result.interpretation_source === 'local_personalized_fallback' ||
           result.interpretation_source === 'emergency_fallback' ||
           (result.fallback === true &&
@@ -207,8 +238,14 @@ function TarotReadingPage() {
     if (!interpretationFailed) return
     const onVis = () => {
       if (document.visibilityState !== 'visible') return
+      // 복원 폴링은 최대 ~60s 걸릴 수 있다. 그 사이 사용자가 "다시 섞기"/리셋
+      // 으로 다른 카드를 뽑으면, 복원된 *옛* 리딩을 *새* 카드 위에 덮어쓰는
+      // 회귀가 난다. 폴링 시작 시점의 signature 를 캡처해 두고, 적용 직전에
+      // 현재 signature 와 다르면 버린다.
+      const sigAtStart = readingSignatureRef.current
       void recoverLastInterpretation().then((recovered) => {
         if (!recovered) return
+        if (readingSignatureRef.current !== sigAtStart) return
         setInterpretation(recovered)
         setInterpretationFailed(false)
         if (typeof window !== 'undefined' && readingSignature) {
@@ -249,8 +286,13 @@ function TarotReadingPage() {
     [gameHook, detailedSectionRef]
   )
 
+  // 동기 더블클릭 가드는 ref 로 — isSaving 은 state 라 같은 tick 의 두 번째
+  // 클릭이 stale false 를 읽어 가드를 통과, /api/tarot/save 가 2 번 POST 되던
+  // 문제. ref 는 즉시 반영되어 두 번째 호출을 막는다.
+  const isSavingRef = useRef(false)
   const handleSaveReading = useCallback(async () => {
-    if (isSaving || interpretationHook.isSaved) return
+    if (isSavingRef.current || interpretationHook.isSaved) return
+    isSavingRef.current = true
     setIsSaving(true)
     try {
       await interpretationHook.handleSaveReading(
@@ -259,9 +301,10 @@ function TarotReadingPage() {
         gameHook.interpretation
       )
     } finally {
+      isSavingRef.current = false
       setIsSaving(false)
     }
-  }, [interpretationHook, gameHook, isSaving])
+  }, [interpretationHook, gameHook])
 
   // 자동 저장 — interpretation 이 도착하면 (그리고 로그인 상태면) 사용자가
   // 버튼 안 눌러도 1회 POST. 그 다음 클래리파이어 / followup 채팅은
@@ -306,6 +349,9 @@ function TarotReadingPage() {
   // 이상 혹시 모를 잔여 캐시도 함께 지워서 항상 새 호출이 가도록 한다.
   const handleRetryInterpretation = useCallback(() => {
     if (!gameHook.readingResult) return
+    // 진행 중일 수 있는 이전 요청을 먼저 끊어 두 스트림 동시 실행을 방지.
+    interpretAbortRef.current?.abort()
+    interpretAbortRef.current = null
     setInterpretationFailed(false)
     requestedInterpretationKeyRef.current = null
     isInterpretationFetchingRef.current = false
@@ -345,41 +391,46 @@ function TarotReadingPage() {
     return <BrandSplash />
   }
   return (
-    <>
-      {creditNotice && (
-        <div
-          role="status"
-          style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-            padding: '10px 16px',
-            background: '#fdfbf6',
-            borderBottom: '1px solid #ece4d4',
-            color: '#57534e',
-            fontSize: 13,
-            textAlign: 'center',
-          }}
-        >
-          {creditNotice}
-        </div>
-      )}
-      <PageContent
-        {...gameHook}
-        {...interpretationHook}
-        detailedSectionRef={detailedSectionRef}
-        isSaving={isSaving}
-        isGuestUser={isGuestUser}
-        signInUrl={signInUrl}
-        handleStartReading={gatedStartReading}
-        handleCardReveal={handleCardReveal}
-        handleSaveReading={handleSaveReading}
-        handleReset={handleReset}
-        interpretationFailed={interpretationFailed}
-        handleRetryInterpretation={handleRetryInterpretation}
-        language={language}
-        translate={translate}
-      />
-    </>
+    <div className="relative min-h-screen">
+      {/* 공용 cosmic gradient backdrop — 메인/타로 entry/타로 history 와 같은
+          톤. 카드 stage 인터랙션은 안 건드리고 배경 레이어만 추가. */}
+      <CosmicBackdrop />
+      <div className="relative z-10">
+        {creditNotice && (
+          <div
+            role="status"
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 50,
+              padding: '10px 16px',
+              background: '#fdfbf6',
+              borderBottom: '1px solid #ece4d4',
+              color: '#57534e',
+              fontSize: 13,
+              textAlign: 'center',
+            }}
+          >
+            {creditNotice}
+          </div>
+        )}
+        <PageContent
+          {...gameHook}
+          {...interpretationHook}
+          detailedSectionRef={detailedSectionRef}
+          isSaving={isSaving}
+          isGuestUser={isGuestUser}
+          signInUrl={signInUrl}
+          handleStartReading={gatedStartReading}
+          handleCardReveal={handleCardReveal}
+          handleSaveReading={handleSaveReading}
+          handleReset={handleReset}
+          interpretationFailed={interpretationFailed}
+          handleRetryInterpretation={handleRetryInterpretation}
+          language={language}
+          translate={translate}
+        />
+      </div>
+    </div>
   )
 }

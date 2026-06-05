@@ -78,16 +78,40 @@ function extractStringFrom(
 }
 
 /**
+ * `"key"` 가 *객체 키 위치* 에서 등장하는 지점을 찾아, 그 값의 여는 따옴표
+ * 인덱스를 돌려준다. 키 위치 = 여는 따옴표 앞(공백 제외)이 `{` 또는 `,` (또는
+ * 버퍼 맨 앞). 단순 indexOf 는 이전에 흘러온 *문자열 값* 안에 우연히 같은
+ * 토큰(예: 값 텍스트에 따옴표로 감싼 "overall")이 있으면 거기에 latch 되어
+ * 전체 스트림 동안 엉뚱한 문자열을 뽑던 버그가 있었다. 키 위치로 anchor 해서
+ * 방지. 값 문자열 안의 토큰은 앞 문자가 보통 일반 문자라 통과 못 한다.
+ */
+function findValueOpenQuote(buffer: string, key: string): number | null {
+  const token = `"${key}"`
+  let from = 0
+  while (true) {
+    const idx = buffer.indexOf(token, from)
+    if (idx < 0) return null
+    let p = idx - 1
+    while (p >= 0 && /\s/.test(buffer[p])) p -= 1
+    const prev = p >= 0 ? buffer[p] : ''
+    if (prev === '{' || prev === ',' || prev === '') {
+      const colonIdx = buffer.indexOf(':', idx + token.length)
+      if (colonIdx < 0) return null
+      const openQuote = buffer.indexOf('"', colonIdx + 1)
+      if (openQuote < 0) return null
+      return openQuote
+    }
+    from = idx + token.length
+  }
+}
+
+/**
  * 누적 버퍼에서 "overall" 의 부분 문자열을 뽑는다.
  * 종료 따옴표가 아직 안 왔어도 현재까지의 텍스트는 그대로 보여줄 수 있게.
  */
 export function extractPartialOverall(buffer: string): string | null {
-  const idx = buffer.indexOf('"overall"')
-  if (idx < 0) return null
-  const colonIdx = buffer.indexOf(':', idx)
-  if (colonIdx < 0) return null
-  const openQuote = buffer.indexOf('"', colonIdx + 1)
-  if (openQuote < 0) return null
+  const openQuote = findValueOpenQuote(buffer, 'overall')
+  if (openQuote === null) return null
   return extractStringFrom(buffer, openQuote).value
 }
 

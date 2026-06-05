@@ -389,8 +389,30 @@ describe('fixedStars', () => {
     it('should have famous fixed stars', () => {
       expect(getFixedStar('Algol')).toBeDefined(); // Demon star
       expect(getFixedStar('Spica')).toBeDefined(); // Fortune star
-      expect(getFixedStar('Pleiades')).toBeDefined(); // Seven sisters
+      expect(getFixedStar('Alcyone')).toBeDefined(); // Seven sisters (Pleiades 대표별)
       expect(getFixedStar('Polaris')).toBeDefined(); // North star
+    });
+
+    // 회귀 가드: 같은 별의 중복 항목(Vega/Wega, Alcyone/Pleiades)이 다시 들어오지 않게.
+    it('중복 항성 항목이 없다 (이름 유니크 + 동일 지점 별자리 모순 없음)', () => {
+      const stars = getAllFixedStars();
+      // 이름 유니크(대소문자 무시)
+      const names = stars.map((s) => s.name.toLowerCase());
+      expect(new Set(names).size).toBe(names.length);
+      // 제거된 중복 별은 사라졌고, 정본은 남아있다
+      expect(getFixedStar('Wega')).toBeUndefined();
+      expect(getFixedStar('Pleiades')).toBeUndefined();
+      expect(getFixedStar('Vega')).toBeDefined();
+      // 0.1° 이내로 붙은 두 별은 같은 지점을 다른 별자리로 표기하면 안 된다
+      for (let i = 0; i < stars.length; i++) {
+        for (let j = i + 1; j < stars.length; j++) {
+          const d = Math.abs(stars[i].longitude - stars[j].longitude);
+          const near = Math.min(d, 360 - d);
+          if (near < 0.1) {
+            expect(stars[i].constellation).toBe(stars[j].constellation);
+          }
+        }
+      }
     });
 
     it('should have keywords for all stars', () => {

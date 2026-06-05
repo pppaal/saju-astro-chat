@@ -11,6 +11,7 @@ import type { BlogPost } from '@/data/blog-posts'
 import blogMetadata from '@/data/blog/metadata/blog-metadata.json'
 import { isBlockedBlogPost } from '@/data/blog/publicFilters'
 import BlogArt, { BlogHeroArt, StarGlyph, ClockGlyph } from './BlogArt'
+import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import styles from './blog.module.css'
 
 const fallbackBlogPosts = (blogMetadata as BlogPost[]).filter((post) => !isBlockedBlogPost(post))
@@ -57,6 +58,7 @@ export default function BlogClient() {
 
   return (
     <main className={styles.page}>
+      <CosmicBackdrop />
       <div className={styles.stars} />
 
       <div className={styles.main}>

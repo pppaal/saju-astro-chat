@@ -11,6 +11,7 @@
 import type { NatalContext } from '../context/types'
 import type { ZodiacKo, House, PlanetBase } from '@/lib/astrology/foundation/types'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
+import { SIGN_RULERS_BY_SIGN } from '@/lib/astrology/foundation/dignities'
 
 type Lang = 'ko' | 'en'
 type RulerPlanet =
@@ -68,21 +69,8 @@ const SIGN_EN: Record<ZodiacKo, string> = {
   Pisces: 'Pisces',
 }
 
-/** Hellenistic traditional sign rulers (no modern outers). */
-const SIGN_RULERS: Record<ZodiacKo, RulerPlanet> = {
-  Aries: 'Mars',
-  Taurus: 'Venus',
-  Gemini: 'Mercury',
-  Cancer: 'Moon',
-  Leo: 'Sun',
-  Virgo: 'Mercury',
-  Libra: 'Venus',
-  Scorpio: 'Mars',
-  Sagittarius: 'Jupiter',
-  Capricorn: 'Saturn',
-  Aquarius: 'Saturn',
-  Pisces: 'Jupiter',
-}
+/** Hellenistic traditional sign rulers (no modern outers). dignities.ts(SSOT) 파생. */
+const SIGN_RULERS = SIGN_RULERS_BY_SIGN as Record<ZodiacKo, RulerPlanet>
 
 const PLANET_KO: Record<RulerPlanet, string> = {
   Sun: '태양',

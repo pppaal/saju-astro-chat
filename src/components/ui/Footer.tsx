@@ -14,7 +14,8 @@ const HIDE_FOOTER_PREFIXES = [
   '/destiny-counselor',
   '/destiny-match',
   '/tarot',
-  '/calendar',
+  '/destinypal', // Phase D — canonical 5-tier fortune route (replaces /calendar)
+  '/calendar', // Legacy alias → /destinypal (308 at edge); kept defensively
   '/compatibility',
   '/report',
   '/astrology/counselor',

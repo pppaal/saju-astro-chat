@@ -14,6 +14,8 @@
 
 import { FiveElement, SajuPillars, SibsinKind, PillarKind } from './types'
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS, BRANCHES } from './constants'
+import { STEM_COMBINE } from './relationTables'
+import { getGongmang as getGongmangByPillar } from './pillarLookup'
 import { getTwelveStage } from './shinsal'
 import { iga, eulReul, euroRo } from '../i18n/koParticle'
 import {
@@ -269,19 +271,15 @@ function generateJonggeokAdvice(
 // 화격 분석
 // ============================================================
 
-/** 천간합 화 */
-const STEM_HAP_HWA: Record<string, { partner: string; result: FiveElement }> = {
-  甲: { partner: '己', result: '토' },
-  己: { partner: '甲', result: '토' },
-  乙: { partner: '庚', result: '금' },
-  庚: { partner: '乙', result: '금' },
-  丙: { partner: '辛', result: '수' },
-  辛: { partner: '丙', result: '수' },
-  丁: { partner: '壬', result: '목' },
-  壬: { partner: '丁', result: '목' },
-  戊: { partner: '癸', result: '화' },
-  癸: { partner: '戊', result: '화' },
-}
+/** 천간합 화 — relationTables.ts(SSOT)에서 파생 */
+const STEM_HAP_HWA: Record<string, { partner: string; result: FiveElement }> = (() => {
+  const r: Record<string, { partner: string; result: FiveElement }> = {}
+  for (const { pair, element } of STEM_COMBINE) {
+    r[pair[0]] = { partner: pair[1], result: element }
+    r[pair[1]] = { partner: pair[0], result: element }
+  }
+  return r
+})()
 
 /**
  * 화격 분석
@@ -467,10 +465,10 @@ export function analyzeIljuDeep(pillars: SajuPillars): IljuDeepAnalysis {
   // 12운성
   const twelveStage = calculateTwelveStage(dayMaster, dayBranch)
 
-  // 공망
+  // 공망 — 일주(日柱) 기준(전통 日柱空亡). 이전엔 연주(年柱)로 잘못 계산했음.
   const gongmang = calculateGongmang(
-    pillars.year.heavenlyStem.name,
-    pillars.year.earthlyBranch.name
+    pillars.day.heavenlyStem.name,
+    pillars.day.earthlyBranch.name
   )
 
   // 납음
@@ -519,16 +517,10 @@ function calculateTwelveStage(dayStem: string, branch: string): string {
   return getTwelveStage(dayStem, branch)
 }
 
-function calculateGongmang(yearStem: string, yearBranch: string): string[] {
-  const stemIndex = getStemIndex(yearStem)
-  const branchIndex = getBranchIndex(yearBranch)
-
-  // 간략화된 공망 계산
-  const gongmangStart = (10 - stemIndex + branchIndex) % 12
-  const gongmang1 = BRANCHES[gongmangStart % 12].name
-  const gongmang2 = BRANCHES[(gongmangStart + 1) % 12].name
-
-  return [gongmang1, gongmang2]
+// 공망 산정은 pillarLookup.getGongmang(SSOT, 旬空)에 위임. 과거 자체 공식
+// (10−stem+branch)%12 으로 따로 구현했으나 60갑자 전부 동일 — 위임으로 통일.
+function calculateGongmang(stem: string, branch: string): string[] {
+  return getGongmangByPillar(`${stem}${branch}`) ?? []
 }
 
 function calculateNaeum(stem: string, branch: string): string {
@@ -610,8 +602,8 @@ function getLuckyFactors(element: FiveElement): {
  */
 export function analyzeGongmangDeep(pillars: SajuPillars): GongmangDeepAnalysis {
   const gongmangBranches = calculateGongmang(
-    pillars.year.heavenlyStem.name,
-    pillars.year.earthlyBranch.name
+    pillars.day.heavenlyStem.name,
+    pillars.day.earthlyBranch.name
   )
 
   const branches = [

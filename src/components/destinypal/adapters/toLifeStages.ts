@@ -19,7 +19,11 @@ import type { LifetimeFlow, LifePhase } from '@/lib/calendar-engine/derivers/lif
 export interface DestinypalLifeStageDetail {
   daeunText?: string // "丙子(병자) 2006–16 → 乙亥(을해) 2016–26 → 甲戌(갑술) 2026–36"
   body: string[]
-  outer?: Array<{
+  /**
+   * 외행성 마일스톤 — 항상 배열 (없으면 빈 배열).
+   * destinypal LifetimeTier 가 .map / .length 로 무조건 읽으므로 normalize.
+   */
+  outer: Array<{
     label: string
     date: string
     body: string
@@ -145,7 +149,9 @@ export function toLifeStages(
             ...(phase.relationLine ? [phase.relationLine] : []),
             ...(phase.twelveStageLine ? [phase.twelveStageLine] : []),
           ],
-          outer: phase.milestoneLine ? [{ label: phase.milestoneLine, date: '', body: phase.milestoneLine }] : undefined,
+          outer: phase.milestoneLine
+            ? [{ label: phase.milestoneLine, date: '', body: phase.milestoneLine }]
+            : [],
           shinsal: phase.shinsalLine
             ? { title: '신살 활성', body: phase.shinsalLine }
             : undefined,

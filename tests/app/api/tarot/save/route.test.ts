@@ -456,6 +456,8 @@ describe('/api/tarot/save', () => {
         expect(data.readingId).toBe('reading-123')
         expect(prisma.tarotReading.create).toHaveBeenCalledWith({
           data: {
+            // 중복 저장 방지용 결정적 PK (overallMessage 가 있으므로 부여됨).
+            id: expect.any(String),
             userId: mockUserId,
             question: 'What does my career hold?',
             spreadId: 'three-card',

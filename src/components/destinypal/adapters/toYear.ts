@@ -13,21 +13,31 @@
  */
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
-import type { ActiveSignal } from '@/lib/calendar-engine/types'
+import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 import { toGanji, type Ganji, SIGN_KO, PLANET_KO } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
+import type { AstroPlanetName } from '@/lib/astrology/interpretations'
+import type {
+  DestinyProfectionWheelSlice,
+  DestinyDecadeZRChapter,
+} from '@/types/destinypal'
+import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalReleasing'
 
 export interface DestinypalYearProfection {
   house: number // 1..12
   theme: string
   themeEn: string
   cusp: string // 한글 사인
-  cuspEn: string // 영문 사인
+  cuspEn: ZodiacKo // 영문 사인
   ruler: string // 한글 행성
-  rulerEn: string
+  rulerEn: AstroPlanetName
   rulerNatal: string // "1궁 (물병자리)"
   rulerNatalEn: string
+  /** 본명 룰러 하우스. */
+  rulerNatalHouse: number
+  /** 본명 룰러 sign. */
+  rulerNatalSign: ZodiacKo
 }
 
 export interface DestinypalYearZRChapter {
@@ -39,18 +49,37 @@ export interface DestinypalYearZRChapter {
   duration: string // "~10년 1개월" 등
 }
 
+export interface DestinypalYearSewoon {
+  gz: Ganji
+  sibsin: string
+  score?: number
+}
+
 export interface DestinypalYear {
   year: number
-  sewoon: Ganji
+  sewoon: DestinypalYearSewoon
+  /** sewoon alias — destinypal DestinyYear.sewoonGz 와 호환. */
+  sewoonGz: Ganji
   sewoonSibsin: string // 세운 천간 vs 일간 십신
   headline: string
   profection?: DestinypalYearProfection
+  /**
+   * 12-슬롯 profection wheel — Asc sign 부터 whole-sign 순서로 1..12궁 cusp + ruler.
+   * profection 활성 하우스만 `active=true`.
+   */
+  profectionWheel: DestinyProfectionWheelSlice[]
   /** ZR 챕터 (L1 + L2) Phase 3 신규 */
   zr?: { l1?: DestinypalYearZRChapter; l2?: DestinypalYearZRChapter }
   /** Solar Return Asc sign — Phase 3 신규 */
   solarReturnAsc?: { sign: string; signEn: string }
   sajuNote: string
   astroNote: string
+  /** 12개월 점수 스파인 (선택 — cells 또는 monthlyScores 옵션이 들어오면). */
+  monthlyScores?: Array<{ month: number; score: number; bestDay?: string }>
+  /** 이번 해 활성 ZR Spirit 챕터. (natal.zodiacalReleasing.spirit 에서 자동 산출). */
+  zrSpiritChapters: DestinyDecadeZRChapter[]
+  /** 이번 해 활성 ZR Fortune 챕터. */
+  zrFortuneChapters: DestinyDecadeZRChapter[]
 }
 
 const PROFECTION_THEMES: Record<number, { theme: string; themeEn: string }> = {
@@ -82,6 +111,27 @@ const ZR_RULERS: Record<ZodiacKo, string> = {
   Aquarius: 'Saturn',
   Pisces: 'Jupiter',
 }
+
+// Hellenistic 정통 sign ruler — profection wheel 12 슬롯의 cusp ruler 룩업.
+const SIGN_RULER: Record<ZodiacKo, AstroPlanetName> = {
+  Aries: 'Mars',
+  Taurus: 'Venus',
+  Gemini: 'Mercury',
+  Cancer: 'Moon',
+  Leo: 'Sun',
+  Virgo: 'Mercury',
+  Libra: 'Venus',
+  Scorpio: 'Mars',
+  Sagittarius: 'Jupiter',
+  Capricorn: 'Saturn',
+  Aquarius: 'Saturn',
+  Pisces: 'Jupiter',
+}
+
+const ZODIAC_ORDER: ZodiacKo[] = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+]
 const ZR_DURATION_KO: Record<ZodiacKo, string> = {
   // Spirit/Fortune 공통 — sign-walk 기본 연수
   Cancer: '25년', Leo: '19년', Virgo: '20년', Libra: '8년',
@@ -99,6 +149,14 @@ export interface ToYearOptions {
   /** 사주 / 점성 노트 한 줄 (선택). */
   sajuNote?: string
   astroNote?: string
+  /**
+   * 한 해 12 달 cells 전체 (또는 일부) — adapter 가 datetime prefix 로 month
+   * grouping 해 monthlyScores 12 슬롯 평균을 자동으로 빌드.
+   * 없으면 monthlyScores 빈 배열.
+   */
+  cells?: CalendarCell[]
+  /** 미지정 시 평균 score 계산 — fallback 빈 슬롯 점수. */
+  monthlyFallbackScore?: number
 }
 
 /**
@@ -140,9 +198,31 @@ export function toYear(
   const srSignal = (opts.yearlySignals ?? []).find((s) => s.kind === 'solar-return')
   const solarReturnAsc = srSignal ? extractSRAsc(srSignal) : undefined
 
+  // ── Profection wheel: 12 슬롯 (Asc sign 부터 whole-sign 순서) ──
+  const profectionWheel = buildProfectionWheel(natal, profection?.house)
+
+  // ── monthlyScores: cells 가 들어오면 month grouping → 평균 score ──
+  const monthlyScores = buildMonthlyScores(opts)
+
+  // ── 이번 해 활성 ZR Spirit / Fortune 챕터 ──
+  const birthYear = natal.input?.year ?? opts.year
+  const zrSpiritChapters = projectYearZRChapters(
+    natal.astro.zodiacalReleasing.spirit?.periods,
+    'Spirit',
+    birthYear,
+    opts.year,
+  )
+  const zrFortuneChapters = projectYearZRChapters(
+    natal.astro.zodiacalReleasing.fortune?.periods,
+    'Fortune',
+    birthYear,
+    opts.year,
+  )
+
   return {
     year: opts.year,
-    sewoon,
+    sewoon: { gz: sewoon, sibsin: sewoonSibsin },
+    sewoonGz: sewoon,
     sewoonSibsin,
     headline:
       opts.headline ??
@@ -150,6 +230,7 @@ export function toYear(
         ? `올해의 무게중심은 ${profection.house}번째 영역으로 기울어요.`
         : `${opts.year}년 — 흐름이 새로 짜이는 해.`),
     profection,
+    profectionWheel,
     zr,
     solarReturnAsc,
     sajuNote:
@@ -160,7 +241,98 @@ export function toYear(
       (profection
         ? `Profection이 ${profection.house}하우스를 점등 — 룰러 ${profection.ruler}가 본명 ${profection.rulerNatal}.`
         : ''),
+    monthlyScores,
+    zrSpiritChapters,
+    zrFortuneChapters,
   }
+}
+
+/**
+ * Profection wheel 12 슬롯 빌드 — whole-sign 기준.
+ *
+ *  1궁 = 본명 Asc sign (없으면 Aries fallback)
+ *  2궁 = Asc sign + 1 (황도 순)
+ *  ...
+ *  12궁 = Asc sign + 11
+ *
+ * 각 슬롯의 ruler = SIGN_RULER[cusp sign] (Hellenistic 정통).
+ * natalPlanets = 그 sign 에 위치한 본명 행성 이름들.
+ * active = activeHouse (profection.house) 와 일치하는 슬롯.
+ */
+function buildProfectionWheel(
+  natal: NatalContext,
+  activeHouse: number | undefined,
+): DestinyProfectionWheelSlice[] {
+  const ascSign: ZodiacKo = natal.astro.chart.ascendant?.sign ?? 'Aries'
+  const ascIdx = ZODIAC_ORDER.indexOf(ascSign)
+  const planets = natal.astro.chart.planets ?? []
+
+  const wheel: DestinyProfectionWheelSlice[] = []
+  for (let h = 1; h <= 12; h++) {
+    const signIdx = (ascIdx + (h - 1)) % 12
+    const cuspSign = ZODIAC_ORDER[signIdx]
+    const cuspRuler = SIGN_RULER[cuspSign]
+    // 그 sign 에 들어있는 본명 행성들
+    const natalPlanets = planets
+      .filter((p) => p.sign === cuspSign)
+      .map((p) => p.name)
+    wheel.push({
+      house: h,
+      cuspSign,
+      cuspRuler,
+      natalPlanets,
+      active: activeHouse === h,
+    })
+  }
+  return wheel
+}
+
+/**
+ * cells 가 들어오면 datetime prefix `YYYY-MM` 으로 month grouping 해 평균
+ * derivedScore 를 12 슬롯 배열로 환원. cells 가 없으면 빈 배열.
+ */
+function buildMonthlyScores(opts: ToYearOptions): DestinypalYear['monthlyScores'] {
+  if (!opts.cells || opts.cells.length === 0) return []
+  const yPrefix = String(opts.year)
+  const fallback = opts.monthlyFallbackScore ?? 50
+  return Array.from({ length: 12 }, (_, i) => {
+    const ym = `${yPrefix}-${String(i + 1).padStart(2, '0')}`
+    const monthCells = opts.cells!.filter((c) => c.datetime.slice(0, 7) === ym)
+    if (monthCells.length === 0) {
+      return { month: i + 1, score: fallback }
+    }
+    const sum = monthCells.reduce((a, b) => a + b.derivedScore, 0)
+    return { month: i + 1, score: Math.round(sum / monthCells.length) }
+  })
+}
+
+/**
+ * 본명 ZR L1 period 시퀀스 → 이번 해 활성 챕터(들) 만 골라 DestinyDecadeZRChapter
+ * shape 으로 변환. 같은 해에 챕터 경계가 걸치면 둘 다 포함.
+ */
+function projectYearZRChapters(
+  periods: ZRPeriod[] | undefined,
+  startLot: ZRStartLot,
+  birthYear: number,
+  currentYear: number,
+): DestinyDecadeZRChapter[] {
+  if (!periods || periods.length === 0) return []
+  const out: DestinyDecadeZRChapter[] = []
+  for (const p of periods) {
+    const calStart = birthYear + Math.round(p.startYear)
+    const calEnd = birthYear + Math.round(p.endYear)
+    // 이번 해와 겹치는 챕터만
+    if (calEnd <= currentYear) continue
+    if (calStart > currentYear) break
+    out.push({
+      ...p,
+      startLot,
+      calendarStartYear: calStart,
+      calendarEndYear: calEnd,
+      now: currentYear >= calStart && currentYear < calEnd,
+    })
+  }
+  return out
 }
 
 function safeSibsin(dm: string, stem: string): string {
@@ -193,11 +365,13 @@ function extractProfection(
     theme: theme.theme,
     themeEn: theme.themeEn,
     cusp: cuspSign ? (SIGN_KO[cuspSign] ?? cuspSign) : '',
-    cuspEn: cuspSign,
+    cuspEn: (cuspSign || 'Aries') as ZodiacKo,
     ruler: PLANET_KO[ruler] ?? ruler,
-    rulerEn: ruler,
+    rulerEn: (ruler || 'Sun') as AstroPlanetName,
     rulerNatal,
     rulerNatalEn,
+    rulerNatalHouse: rulerPlanet?.house ?? 0,
+    rulerNatalSign: (rulerPlanet?.sign ?? 'Aries') as ZodiacKo,
   }
 }
 

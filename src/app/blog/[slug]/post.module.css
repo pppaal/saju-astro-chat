@@ -1,8 +1,8 @@
 .page {
   position: relative;
   min-height: 100dvh;
-  background: radial-gradient(1200px 800px at 25% 5%, rgba(99, 210, 255, 0.12), transparent),
-              radial-gradient(1000px 700px at 80% 95%, rgba(124, 242, 156, 0.10), transparent);
+  /* cosmic backdrop 은 CosmicBackdrop 컴포넌트가 깔아주므로 여기선 베이스
+     색만 — 모든 다크 페이지(메인/타로/블로그)가 같은 톤 위에 떠 있도록. */
   background-color: #07091a;
   color: var(--text-color, #e8ecf5);
   overflow-x: hidden;

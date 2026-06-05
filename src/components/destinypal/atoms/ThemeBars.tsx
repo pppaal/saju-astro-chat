@@ -1,53 +1,46 @@
 'use client'
 
-/**
- * ThemeBars — 5 테마 점수 막대 (love/money/career/health/growth).
- * 포팅 출처: destinypal-extracted/js-ink/util.jsx ThemeBars
- *
- * warm=true → 주사(ember) 그라데이션, false → 쪽빛(accent).
- */
+/* ============================================================
+   destinypal · ThemeBars — 5축 테마 막대 (0-100)
+   출처: destinypal-extracted/js/util.jsx ThemeBars()
+   warm=false → 쪽빛(accent) / warm=true → 주사(ember).
+   ============================================================ */
 
-import * as React from 'react'
 import styles from '../styles/atoms.module.css'
 
 export interface ThemeBarItem {
-  /** React key. data.js 의 themes[].key 그대로. */
   key: string
-  /** 한국어 라벨 — '사랑' / '재물' 등. */
   ko: string
-  /** 0..100 값. */
   v: number
 }
 
 export interface ThemeBarsProps {
-  /** 5 항목 (정렬·필터는 호출측 책임). */
-  items: ThemeBarItem[]
-  /** warm=true 면 주사 톤. 기본 false (쪽빛). */
+  items: ReadonlyArray<ThemeBarItem>
   warm?: boolean
-  /** 추가 className. */
   className?: string
 }
 
-export function ThemeBars({
-  items,
-  warm = false,
-  className,
-}: ThemeBarsProps): React.ReactElement {
-  const fillBg = warm
-    ? 'linear-gradient(90deg, rgba(200,73,44,0.55), var(--dp-ember))'
-    : 'linear-gradient(90deg, var(--dp-accent-deep), var(--dp-accent))'
+export function ThemeBars({ items, warm = false, className }: ThemeBarsProps) {
   return (
     <div className={[styles.themebars, className].filter(Boolean).join(' ')}>
       {items.map((t) => (
         <div className={styles.tbRow} key={t.key}>
-          <span className={styles.lbl}>{t.ko}</span>
+          <span className="lbl">{t.ko}</span>
           <span className={styles.tbTrack}>
             <span
               className={styles.tbFill}
-              style={{ width: t.v + '%', background: fillBg }}
+              style={{
+                width: t.v + '%',
+                background: warm
+                  ? 'linear-gradient(90deg, rgba(217,168,74,0.5), var(--dp-ember))'
+                  : 'linear-gradient(90deg, var(--dp-accent-deep), var(--dp-accent))',
+                boxShadow: warm
+                  ? '0 0 10px var(--dp-ember-glow)'
+                  : '0 0 10px var(--dp-accent-glow)',
+              }}
             />
           </span>
-          <span className={styles.val}>{t.v}</span>
+          <span className="val">{t.v}</span>
         </div>
       ))}
     </div>
