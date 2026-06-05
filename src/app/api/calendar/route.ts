@@ -865,7 +865,7 @@ export const GET = withApiMiddleware(
     })
 
     const { persistDestinyPredictionSnapshot } =
-      await import('@/lib/destiny-matrix/predictionSnapshot')
+      await import('@/lib/calendar-engine/matrix/predictionSnapshot')
     // matrix 코어 제거됨 — focus/timing 관련 필드 다 undefined. predictionClaim 만 의미.
     const predictionId = await persistDestinyPredictionSnapshot({
       userId: context.userId,

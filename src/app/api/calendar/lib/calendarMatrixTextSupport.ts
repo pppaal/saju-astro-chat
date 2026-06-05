@@ -1,5 +1,5 @@
-import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/destiny-matrix/types'
-import type { TimingCalibrationSummary } from '@/lib/destiny-matrix/types'
+import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/calendar-engine/matrix/types'
+import type { TimingCalibrationSummary } from '@/lib/calendar-engine/matrix/types'
 import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 

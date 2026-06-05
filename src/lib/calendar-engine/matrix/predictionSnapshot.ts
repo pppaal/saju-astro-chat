@@ -11,7 +11,7 @@ import {
   type DestinyTimingConflictMode,
   type DestinyTimingGranularity,
   type DestinyTimingWindow,
-} from '@/lib/destiny-matrix/predictionLogging'
+} from '@/lib/calendar-engine/matrix/predictionLogging'
 
 export interface PersistDestinyPredictionSnapshotInput {
   userId?: string | null
