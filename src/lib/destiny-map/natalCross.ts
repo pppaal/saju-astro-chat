@@ -571,6 +571,59 @@ export function evalKeyAspect(
   }
 }
 
+/**
+ * 공망 × South Node — 둘 다 "이번 생에 자연스럽게 만들어지지 않는 영역"을
+ * 가리키는 표상. 사주의 공망 지지(허虛한 자리)와 점성의 사우스노드 sign(과거
+ * 카르마/익숙해서 자동으로 떨어지는 지점) 이 같은 오행을 가리키면 두 시스템이
+ * 같은 카르마를 같은 방향으로 짚는 셈 — tension 으로 강하게 발현. 다른 오행을
+ * 가리키면 카르마가 두 갈래로 흩어진 neutral.
+ *
+ * 지지 본기 오행 매핑 (子=水, 丑=土, 寅卯=木, 辰=土, 巳午=火, 未=土, 申酉=金,
+ * 戌=土, 亥=水) — 인라인 상수로 두어 외부 의존 없음.
+ */
+const BRANCH_TO_ELEMENT: Record<string, SajuElement> = {
+  '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood', '辰': 'earth',
+  '巳': 'fire', '午': 'fire', '未': 'earth', '申': 'metal', '酉': 'metal',
+  '戌': 'earth', '亥': 'water',
+}
+
+export function evalVoid(
+  gongmangBranches: string[] | undefined,
+  southNodeSign: string | undefined,
+): CrossVerdict | null {
+  if (!gongmangBranches?.length || !southNodeSign) return null
+
+  const branches = gongmangBranches.slice(0, 2).join('·')
+  const branchEl = BRANCH_TO_ELEMENT[gongmangBranches[0]]
+  const enSign = toEnSign(southNodeSign) ?? southNodeSign
+  const astroEl = SIGN_TO_ASTRO_ELEMENT[enSign]
+  // 4원소(air) → 사주(wood/metal) 대응 시 둘 중 하나라도 일치하면 매치로 본다.
+  const sajuFromAstro: SajuElement[] | undefined =
+    astroEl === 'fire' ? ['fire']
+      : astroEl === 'earth' ? ['earth']
+        : astroEl === 'water' ? ['water']
+          : astroEl === 'air' ? ['wood', 'metal']
+            : undefined
+  const matches = !!branchEl && !!sajuFromAstro && sajuFromAstro.includes(branchEl)
+
+  if (matches) {
+    return {
+      tone: 'tension',
+      reason: {
+        ko: `공망(${branches})과 사우스노드(${southNodeSign})가 같은 ${EL_KO[branchEl]} 결을 가리켜요 — 동·서양 둘 다 같은 자리에서 "이번 생엔 자동으로 안 풀린다"고 말하는 셈. 의식적으로 만들어가야 하는 평생 과제예요.`,
+        en: `Gongmang (${branches}) and South Node (${southNodeSign}) both point to the ${EL_EN[branchEl]} domain — both systems flag the same area as "won't manifest on its own this life". A lifelong task requiring conscious effort.`,
+      },
+    }
+  }
+  return {
+    tone: 'neutral',
+    reason: {
+      ko: `공망(${branches})과 사우스노드(${southNodeSign})가 서로 다른 영역의 비어있음을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있음. 한 번에 하나씩 다루는 게 안전해요.`,
+      en: `Gongmang (${branches}) and South Node (${southNodeSign}) point to different empty domains — karmic work is spread across two threads. Better to address one at a time.`,
+    },
+  }
+}
+
 // ── 종합 ──────────────────────────────────────────────────────────────────
 
 /** 도메인 판정들을 모아 전체 정체성 한 문장 생성. */
