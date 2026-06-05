@@ -52,9 +52,9 @@
   --dp-now-ring:  rgba(52,64,111,0.85);
 
   /* type */
-  --dp-serif:    "Newsreader", "Gowun Batang", "Noto Serif KR", serif;
-  --dp-serif-ko: "Gowun Batang", "Noto Serif KR", serif;
-  --dp-sans:     "Gowun Dodum", "Noto Sans KR", system-ui, sans-serif;
+  --dp-serif:    "Newsreader", "Gowun Batang", "Noto Serif KR", "Noto Serif CJK KR", "Source Han Serif KR", serif;
+  --dp-serif-ko: "Gowun Batang", "Noto Serif KR", "Noto Serif CJK KR", "Source Han Serif KR", "Apple SD Gothic Neo", serif;
+  --dp-sans:     "Gowun Dodum", "Noto Sans KR", "Noto Sans CJK KR", "Apple SD Gothic Neo", system-ui, sans-serif;
   --dp-mono:     "IBM Plex Mono", "Noto Sans KR", monospace;
 
   --dp-r:    6px;

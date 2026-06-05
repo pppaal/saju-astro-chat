@@ -72,6 +72,13 @@
 .tierName b { font-weight: 400; font-family: var(--dp-mono); font-size: 11px; color: var(--dp-ember); letter-spacing: .14em; }
 
 /* ---- topbar mobile collapse ---- */
+@media (max-width: 375px) {
+  /* H4: very-narrow phone — 작은 화면 overflow 방지 */
+  .topbar { padding: 8px 10px; gap: 4px; }
+  .brandMark { font-size: 17px; }
+  .brandWho { font-size: 9px; max-width: 32vw; }
+  .tierName { font-size: 11px; }
+}
 @media (max-width: 640px) {
   .topbar {
     padding: 10px 14px;

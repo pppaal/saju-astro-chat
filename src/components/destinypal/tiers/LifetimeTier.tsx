@@ -254,8 +254,36 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const nodeY = [62, 38, 50, 70]
 
   // current life stage (Phase 3: 모든 stage detail 카드를 그릴 수 있도록 보존)
+  // C5: lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지)
+  if (!lifeStages?.length) {
+    return (
+      <div className={styles.tier} data-screen-label="인생 84년">
+        <p style={{ padding: 40, opacity: 0.6 }}>본명 정보를 불러오는 중...</p>
+      </div>
+    )
+  }
   const nowStage =
     lifeStages.find((s) => s.now) ?? lifeStages[1] ?? lifeStages[0]
+
+  // C2: dominant 오행 계산 (하드코딩 "목 최다" 제거)
+  const EL_HANJA: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
+  const elementsEntries = Object.entries(user.elements || {}).sort(
+    (a, b) => Number(b[1]) - Number(a[1]),
+  )
+  const dominantEl = elementsEntries[0]?.[0]
+  const elementsLabelText = dominantEl
+    ? `사주 8자 오행 분포 — ${dominantEl}(${EL_HANJA[dominantEl] ?? dominantEl}) 최다`
+    : '사주 8자 오행 분포'
+
+  // C1: astro 메타 한 줄 — 누락 세그먼트 hide
+  const astroSegs = [
+    user.astro?.sunEn && `Sun ${user.astro.sunEn}`,
+    user.astro?.ascEn && `Asc ${user.astro.ascEn}`,
+    user.astro?.mcEn && `MC ${user.astro.mcEn}`,
+  ].filter(Boolean) as string[]
+
+  // C4: rootStatus 있을 때만 "통근" 라벨, 없으면 "주십신"
+  const hasRootStatus = !!user.rootStatus
 
   return (
     <div className={styles.tier} data-screen-label="인생 84년">
@@ -266,8 +294,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       <h1 className={styles.display}>내 인생 전체 흐름</h1>
       <p className={`${styles.tiny} ${styles.headerMeta}`}>
         {user.birthKo} · {user.place} · {user.sex}
-        <span className={styles.pipe}>|</span>
-        Sun {user.astro.sunEn} · Asc {user.astro.ascEn} · MC {user.astro.mcEn}
+        {astroSegs.length > 0 ? (
+          <>
+            <span className={styles.pipe}>|</span>
+            {astroSegs.join(' · ')}
+          </>
+        ) : null}
       </p>
 
       <div className={styles.introGrid}>
@@ -280,7 +312,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </div>
 
         <div className={`${styles.panel} ${styles.introPanel}`}>
-          <ScoreOrb score={user.score} grade={user.grade} />
+          <ScoreOrb score={user.score} grade={user.grade} max={100} />
           <div className={styles.introPanelSide}>
             <div className={styles.idChips}>
               <span className={styles.chip}>
@@ -306,9 +338,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 <span className={styles.v}>{user.gangyak}</span>
               </span>
 
-              {/* ── Phase 3 보강 ③: 재성 chip → rootStatus ── */}
+              {/* ── Phase 3 보강 ③: 재성 chip → rootStatus (C4: 라벨 조건부) ── */}
               <span className={styles.chip}>
-                <span className={styles.k}>통근</span>
+                <span className={styles.k}>{hasRootStatus ? '통근' : '주십신'}</span>
                 <span className={styles.v}>
                   {user.rootStatus ??
                     `${user.dominantSibsin.name} ${user.dominantSibsin.pct}%`}
@@ -318,7 +350,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 
             <div className={styles.elementsWrap}>
               <div className={`${styles.tiny} ${styles.elementsLabel}`}>
-                사주 8자 오행 분포 — 목(木) 최다
+                {elementsLabelText}
               </div>
               <ElementBars elements={user.elements} />
             </div>
@@ -339,7 +371,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           <svg
             className={styles.constSvg}
             viewBox="0 0 100 150"
-            preserveAspectRatio="none"
+            preserveAspectRatio="xMidYMid meet"
           >
             {/* connecting line */}
             <polyline
@@ -586,9 +618,11 @@ function StageDetailBlock({
         </div>
       </div>
 
-      <p className={styles.lead} style={{ marginTop: 16 }}>
-        {detail.body.join(' ')}
-      </p>
+      {detail.body.length > 0 && (
+        <p className={styles.lead} style={{ marginTop: 16 }}>
+          {detail.body.join(' ')}
+        </p>
+      )}
 
       <div className={styles.detailGrid}>
         {detail.hapchung && (
