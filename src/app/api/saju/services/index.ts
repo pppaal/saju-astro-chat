@@ -23,8 +23,8 @@ export {
 } from './jijangganFormatter'
 
 export {
-  performAdvancedAnalysis,
+  performAnalyses,
   type SimplePillars,
   type PillarsWithHour,
-  type AdvancedAnalysisResult,
-} from './advancedAnalysis'
+  type AnalysesResult,
+} from './analyses'

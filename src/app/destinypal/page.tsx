@@ -417,7 +417,7 @@ export default async function DestinypalPage() {
     cell: dayCell,
     natal,
   })
-  const advanced = natal.saju.advancedAnalysis
+  const advanced = natal.saju.analyses
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
   const day: DestinyDay = {

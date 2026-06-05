@@ -473,7 +473,7 @@ export const sajuResultSchema = z.object({
   shinsalRaw: z.array(shinsalHitSchema).optional(),
 
   // Advanced analysis
-  advancedAnalysis: advancedSajuAnalysisSchema.nullable().optional(),
+  analyses: advancedSajuAnalysisSchema.nullable().optional(),
 
   // Metadata
   birthYear: z.number().int().optional(),

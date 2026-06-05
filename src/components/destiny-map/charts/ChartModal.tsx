@@ -57,7 +57,7 @@ export function ChartModal({ open, onClose, saju, astro, lang = 'ko' }: ChartMod
   const sajuReady =
     !!saju &&
     typeof saju === 'object' &&
-    (saju as { advancedAnalysis?: unknown }).advancedAnalysis !== undefined
+    (saju as { analyses?: unknown }).analyses !== undefined
 
   return (
     <div

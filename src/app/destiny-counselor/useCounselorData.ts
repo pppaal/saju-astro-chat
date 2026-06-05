@@ -206,7 +206,7 @@ export function useCounselorData(sp: SearchParams) {
     // shape 에 의존하므로 캐시 miss 시 반드시 /api/saju 응답을 받아야 함.
     // 캐시 hit 이어도 cached.saju 가 advancedAnalysis 누락된 옛 shape 일 수 있어,
     // dayMaster + advancedAnalysis 둘 다 있는 경우만 재사용.
-    const cachedRich = saju && saju.dayMaster && (saju as Record<string, unknown>).advancedAnalysis
+    const cachedRich = saju && saju.dayMaster && (saju as Record<string, unknown>).analyses
 
     // Set initial chartData (may be updated later by async fetches)
     applyChart({

@@ -363,7 +363,7 @@ export function toUser(
   natal: NatalContext,
   opts: ToUserOptions = {},
 ): DestinypalUser {
-  const advanced = natal.saju.advancedAnalysis
+  const advanced = natal.saju.analyses
   // 옛 score/grade — 2026-06-06 폐기.
 
   // dominant sibsin

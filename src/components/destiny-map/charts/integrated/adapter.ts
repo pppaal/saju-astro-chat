@@ -60,7 +60,7 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
   const S = ctx.saju ?? {}
   const A = ctx.astro ?? {}
   const inp = ctx.input ?? {}
-  const adv = S.advancedAnalysis ?? {}
+  const adv = S.analyses ?? {}
 
   const date = `${String(inp.year).padStart(4, '0')}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}`
   const time = `${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
@@ -177,7 +177,7 @@ export interface CrossRowOut { category: string; tone: CrossVerdict['tone']; rea
 export function buildCrossRows(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): { synthesis?: string; rows: CrossRowOut[] } {
   const S = ctx.saju ?? {}
   const A = ctx.astro ?? {}
-  const adv = S.advancedAnalysis ?? {}
+  const adv = S.analyses ?? {}
   const planets = A.chart?.planets ?? A.planets ?? []
   const find = (n: string) => planets.find((p: any) => p.name === n)
   const dmEl = S.dayMaster?.element

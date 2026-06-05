@@ -150,7 +150,7 @@ interface StrengthAdvanced {
 
 function getStrength(saju: unknown): StrengthAdvanced | null {
   if (!isObj(saju)) return null
-  const adv = saju.advancedAnalysis
+  const adv = saju.analyses
   if (!isObj(adv)) return null
   return adv as StrengthAdvanced
 }
