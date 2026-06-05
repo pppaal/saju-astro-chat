@@ -1034,15 +1034,22 @@ export function getShinsalHitsForDailyTarget(
   return hits
 }
 
-/* your 룰 오버라이드 */
-function applyYourOverrides() {
-  const row = TWELVE_SHINSAL_BY_DAY_BRANCH['未']
-  if (row) {
-    row.장성 = '卯' // 시지 장성
-    row.화개 = '未' // 일지 화개
-    row.망신 = '寅' // 월지 망신
-  }
-  HYEONCHIM_BY_STEM['辛'] = '未' // 현침 오버라이드(일간 辛 → 未)
+/* your 룰 오버라이드 — 전역 SSOT 표를 변형하지 않고 이 호출에서만 적용되는 순수 조회.
+ *
+ * 이전엔 applyYourOverrides() 가 HYEONCHIM_BY_STEM / TWELVE_SHINSAL_BY_DAY_BRANCH
+ * 전역을 직접 덮어쓰고 되돌리지 않았다. 그래서 'your' 호출이 한 번이라도 돌면
+ * 그 다음 standard·일진(getShinsalHitsForDailyTarget) 계산까지 같은 오염된 표를
+ * 읽어, 같은 입력에 호출 순서에 따라 다른 결과가 나왔다(=SSOT 붕괴). audit 2026-06.
+ *
+ * 12신살 未-row 오버라이드(장성=卯·화개=未·망신=寅)는 pickTwelveSingle(三合 anchor)
+ * 가 이미 동일 결과를 내므로 불필요 — 제거. 남는 차이는 현침(辛→未) 하나뿐이라
+ * 전역 변형 없이 순수 함수로 처리한다. */
+function resolveHyeonchimBranch(
+  dayStem: string,
+  ruleSet: 'standard' | 'your'
+): string | undefined {
+  if (ruleSet === 'your' && dayStem === '辛') return '未' // 현침 오버라이드(일간 辛 → 未)
+  return HYEONCHIM_BY_STEM[dayStem]
 }
 
 /* ===== 신살 계산 ===== */
@@ -1051,9 +1058,6 @@ export function getShinsalHits(
   options?: Partial<AnnotateOptions>
 ): ShinsalHit[] {
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) }
-  if (opt.ruleSet === 'your') {
-    applyYourOverrides()
-  }
 
   const hits: ShinsalHit[] = []
 
@@ -1125,7 +1129,7 @@ export function getShinsalHits(
         if (getGwimunOn(monthBranch, br, opt.ruleSet)) {
           hits.push({ kind: '귀문관', pillars: [kind], target: br })
         }
-        if (isHyeonchim(dayStem, br)) {
+        if (resolveHyeonchimBranch(dayStem, opt.ruleSet) === br) {
           hits.push({ kind: '현침', pillars: [kind], target: br })
         }
         if (isGosin(monthBranch, br)) {
@@ -1424,9 +1428,8 @@ export function getTwelveShinsalSingleByPillar(
   options?: Partial<AnnotateOptions>
 ): { year: string; month: string; day: string; time: string } {
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) }
-  if (opt.ruleSet === 'your') {
-    applyYourOverrides()
-  }
+  // 'your' 룰의 12신살 차이는 pickTwelveSingle(三合 anchor)이 이미 반영하므로
+  // 전역 표를 변형할 필요가 없다(과거 applyYourOverrides 제거 — SSOT 보존).
 
   const dayBranch = normalizeBranchName(p.day.earthlyBranch.name)
   const monthBranch = normalizeBranchName(p.month.earthlyBranch.name)

@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { getTwelveStage } from '@/lib/saju/shinsal'
-import { getShinsalHits, getShinsalHitsForDailyTarget } from '@/lib/saju/shinsal'
+import { getShinsalHits, getShinsalHitsForDailyTarget, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { analyzeRelations } from '@/lib/saju/relations'
 import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
@@ -308,6 +308,36 @@ describe('saju relations — audit 2026-06 교정 회귀', () => {
   })
   it('천간충 기본: 甲↔庚 은 충 성립', () => {
     expect(kindsBetween(mk(['甲', '子'], ['庚', '丑'], ['丙', '寅'], ['丙', '卯']))).toContain('천간충')
+  })
+})
+
+describe("saju 신살 'your' 룰 — SSOT 오염 차단 (audit 2026-06)", () => {
+  const stem = { name: '辛', element: '金' }
+  const branch = (n: string) => ({ name: n, element: '土' })
+  const yourPillars = {
+    yearPillar: { heavenlyStem: stem, earthlyBranch: branch('子') },
+    monthPillar: { heavenlyStem: stem, earthlyBranch: branch('子') },
+    dayPillar: { heavenlyStem: stem, earthlyBranch: branch('未') },
+    timePillar: { heavenlyStem: stem, earthlyBranch: branch('子') },
+  }
+  const dailyHyeonchimAt未 = () =>
+    getShinsalHitsForDailyTarget('辛', '子', '未').some((h) => h.kind === '현침')
+
+  it("standard 일진은 'your' 호출 전후로 동일 (오염 없음)", () => {
+    const before = dailyHyeonchimAt未()
+    // /api/saju 와 동일하게 ruleSet:'your' 를 한 번 호출
+    getShinsalHits(toSajuPillarsLike(yourPillars as never), { ruleSet: 'your' })
+    const after = dailyHyeonchimAt未()
+    expect(after).toBe(before)
+  })
+
+  it('standard 현침: 辛 일간 + 未 는 현침 아님 (辛 현침=午)', () => {
+    expect(dailyHyeonchimAt未()).toBe(false)
+  })
+
+  it("'your' 현침 오버라이드는 그대로 동작: 辛 일간 + 未 = 현침", () => {
+    const hits = getShinsalHits(toSajuPillarsLike(yourPillars as never), { ruleSet: 'your' })
+    expect(hits.some((h) => h.kind === '현침' && h.target === '未')).toBe(true)
   })
 })
 
