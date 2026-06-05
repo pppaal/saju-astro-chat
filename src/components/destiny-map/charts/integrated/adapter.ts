@@ -10,9 +10,11 @@ import { SIGN_ABBR } from './reportTypes'
 import {
   evalIdentity, evalNeeds, evalSocialRole, evalFortune, evalRelations, evalStrength,
   evalTemperament, evalEnergyDirection, evalPersona, evalDrive, evalKeyAspect,
+  evalVoid,
   synthesize, dominantSibsinGroup, type CrossVerdict,
 } from '@/lib/destiny-map/natalCross'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
+import { getSouthNodeOppositeSign } from '@/lib/astrology/interpretations'
 
 // 오행 한글 → 영문 키
 const EL_KO_EN: Record<string, string> = { 목: 'wood', 화: 'fire', 토: 'earth', 금: 'metal', 수: 'water' }
@@ -210,6 +212,14 @@ export function buildCrossRows(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): { synthes
   const stage = S.twelveStages?.day
   const strength = adv.yongsin?.daymasterStrength ?? S.strength
 
+  // 공망 × South Node 교차용 데이터 — 공망 지지(advanced 우선, 없으면 top-level)
+  // + North Node sign 으로부터 South Node sign 유도. 둘 다 비면 evalVoid 가 null
+  // 반환해 자동 행 생략.
+  const gongmangBranches = adv.gongmang?.gongmangBranches ?? S.gongmang ?? []
+  const northNode = planets.find((p: any) => p.name === 'North Node' || p.name === 'Node')
+  const northSignFull = northNode?.sign ? (SIGN_KO_FULL[northNode.sign] ?? northNode.sign) : undefined
+  const southNodeSign = northSignFull ? getSouthNodeOppositeSign(northSignFull as never) : undefined
+
   const items: Array<[string, CrossVerdict | null]> = [
     ['정체성', evalIdentity(dmEl, sunSign)],
     ['욕망', evalNeeds(S.yongsin?.primary, moonSign)],
@@ -222,6 +232,7 @@ export function buildCrossRows(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): { synthes
     ['드러나는 나', evalPersona(dmEl, ascSign)],
     ['추진력', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
     ['핵심 성향', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
+    ['공망/카르마', evalVoid(gongmangBranches, southNodeSign)],
   ]
   const verdicts = items.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
   const synth = synthesize(verdicts)
