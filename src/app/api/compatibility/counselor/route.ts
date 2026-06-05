@@ -53,7 +53,7 @@ import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
 import { formatCompositeChart } from '@/lib/compatibility/compositeChartFormatter'
 import { collectCompatSajuFacts } from '@/lib/compatibility/compatSajuFacts'
-import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
+import { collectCompatAstroFacts } from '@/lib/compatibility/compatAstroFacts'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
 export const dynamic = 'force-dynamic'
@@ -636,53 +636,51 @@ export async function POST(req: NextRequest) {
         err: err instanceof Error ? err.message : String(err),
       })
     }
-    if (person1Seed && person2Seed && process.env.NODE_ENV !== 'test') {
-      try {
-        const [Y1, M1, D1] = person1Seed.date.split('-').map(Number)
-        const [h1, mi1] = person1Seed.time.split(':').map(Number)
-        const [Y2, M2, D2] = person2Seed.date.split('-').map(Number)
-        const [h2, mi2] = person2Seed.time.split(':').map(Number)
-        if ([Y1, M1, D1, h1, mi1, Y2, M2, D2, h2, mi2].every(Number.isFinite)) {
-          const [natalA, natalB] = await Promise.all([
-            calculateNatalChart({
-              year: Y1,
-              month: M1,
-              date: D1,
-              hour: h1,
-              minute: mi1,
+    // ── 재료 준비실 (점성편) ──
+    // 옛 코드는 라우트 안에서 시각 파싱 + calculateNatalChart × 2 + toChart
+    // × 2 를 직접 했다. Phase B (2026-06-06): collectCompatAstroFacts 가
+    // 두 사람치 chart 페어 한 번에 만들어, formatter 둘 다 평탄 필드만 읽음.
+    const compatAstro =
+      person1Seed && person2Seed && process.env.NODE_ENV !== 'test'
+        ? await collectCompatAstroFacts(
+            {
+              birthDate: person1Seed.date,
+              birthTime: person1Seed.time,
               latitude: person1Seed.latitude,
               longitude: person1Seed.longitude,
-              timeZone: person1Seed.timeZone,
-            }),
-            calculateNatalChart({
-              year: Y2,
-              month: M2,
-              date: D2,
-              hour: h2,
-              minute: mi2,
+              timezone: person1Seed.timeZone,
+            },
+            {
+              birthDate: person2Seed.date,
+              birthTime: person2Seed.time,
               latitude: person2Seed.latitude,
               longitude: person2Seed.longitude,
-              timeZone: person2Seed.timeZone,
-            }),
-          ])
-          const chartA = toChart(natalA)
-          const chartB = toChart(natalB)
-          const nA = (persons?.[0] as { name?: string } | undefined)?.name ?? null
-          const nB = (persons?.[1] as { name?: string } | undefined)?.name ?? null
-          astroSynastryBlock = formatAstroSynastry({
-            chartA,
-            chartB,
-            latA: person1Seed.latitude,
-            lonA: person1Seed.longitude,
-            latB: person2Seed.latitude,
-            lonB: person2Seed.longitude,
-            nameA: nA,
-            nameB: nB,
-          })
-          // Composite chart — 두 차트의 entity 톤 (관계 자체). synastry 가
-          // "서로에게 어떻게 반응하나" 면 composite 은 "둘이 같이 만드는 분위기".
-          compositeChartBlock = formatCompositeChart({ chartA, chartB, nameA: nA, nameB: nB })
-        }
+              timezone: person2Seed.timeZone,
+            },
+          )
+        : null
+    if (compatAstro) {
+      try {
+        const nA = (persons?.[0] as { name?: string } | undefined)?.name ?? null
+        const nB = (persons?.[1] as { name?: string } | undefined)?.name ?? null
+        astroSynastryBlock = formatAstroSynastry({
+          chartA: compatAstro.a.chart,
+          chartB: compatAstro.b.chart,
+          latA: compatAstro.a.latitude,
+          lonA: compatAstro.a.longitude,
+          latB: compatAstro.b.latitude,
+          lonB: compatAstro.b.longitude,
+          nameA: nA,
+          nameB: nB,
+        })
+        // Composite chart — 두 차트의 entity 톤 (관계 자체). synastry 가
+        // "서로에게 어떻게 반응하나" 면 composite 은 "둘이 같이 만드는 분위기".
+        compositeChartBlock = formatCompositeChart({
+          chartA: compatAstro.a.chart,
+          chartB: compatAstro.b.chart,
+          nameA: nA,
+          nameB: nB,
+        })
       } catch (err) {
         logger.warn('[compat counselor] astro synastry failed', {
           err: err instanceof Error ? err.message : String(err),
