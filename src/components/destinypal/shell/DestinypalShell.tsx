@@ -1,11 +1,11 @@
 'use client'
 
 /* ============================================================
-   destinypal · Shell — 4-tier 줌 컨트롤러
+   destinypal · Shell — 5-tier 줌 컨트롤러
    직역 출처: destinypal-extracted/js/app.jsx App()
-   - 카메라 depth (float 0..3) state + RAF 보간 (DUR=680, easeInOut)
+   - 카메라 depth (float 0..4) state + RAF 보간 (DUR=680, easeInOut)
    - layerStyle(L): scale(BASE^(cam-L)) + smoothstep opacity + blur(ar²·2.4)
-   - 키보드: ArrowLeft rise / ArrowRight dive / '1'..'4' direct
+   - 키보드: ArrowLeft rise / ArrowRight dive / '1'..'5' direct
    - 휠 overscroll 누적 170 도달 시 zoom
    - localStorage('dp_tier') 마지막 tier 복원 (SSR-safe, mount 후 적용)
    - Starfield ref.setCamDepth() 로 parallax 동기화
@@ -25,12 +25,14 @@ import { DestinypalTopbar } from './DestinypalTopbar'
 import { Starfield, type StarfieldHandle } from './Starfield'
 
 const TIERS: ReadonlyArray<RailTier> = [
-  { id: 'life',  ko: '인생',  en: 'LIFETIME', scale: '84년' },
-  { id: 'year',  ko: '1년',   en: 'YEARLY',   scale: '12달' },
-  { id: 'month', ko: '1달',   en: 'MONTHLY',  scale: '30일' },
-  { id: 'day',   ko: '1일',   en: 'DAILY',    scale: '24시' },
+  { id: 'life',   ko: '인생',  en: 'LIFETIME', scale: '84년' },
+  { id: 'decade', ko: '10년',  en: 'DECADE',   scale: '甲戌 대운' },
+  { id: 'year',   ko: '1년',   en: 'YEARLY',   scale: '12달' },
+  { id: 'month',  ko: '1달',   en: 'MONTHLY',  scale: '30일' },
+  { id: 'day',    ko: '1일',   en: 'DAILY',    scale: '24시' },
 ] as const
 
+const MAX_TIER = TIERS.length - 1
 const BASE = 5
 const DUR = 680
 const STORAGE_KEY = 'dp_tier'
@@ -52,10 +54,11 @@ export interface DestinypalTierRenderArgs {
 
 export interface DestinypalShellProps {
   topbar: DestinypalShellTopbar
-  renderLife:  (args: DestinypalTierRenderArgs) => ReactNode
-  renderYear:  (args: DestinypalTierRenderArgs) => ReactNode
-  renderMonth: (args: DestinypalTierRenderArgs & { onFocusDay: () => void }) => ReactNode
-  renderDay:   (args: DestinypalTierRenderArgs) => ReactNode
+  renderLife:   (args: DestinypalTierRenderArgs) => ReactNode
+  renderDecade: (args: DestinypalTierRenderArgs) => ReactNode
+  renderYear:   (args: DestinypalTierRenderArgs) => ReactNode
+  renderMonth:  (args: DestinypalTierRenderArgs & { onFocusDay: () => void }) => ReactNode
+  renderDay:    (args: DestinypalTierRenderArgs) => ReactNode
   initialTier?: number
   className?: string
 }
@@ -67,13 +70,14 @@ interface AnimState {
 export function DestinypalShell({
   topbar,
   renderLife,
+  renderDecade,
   renderYear,
   renderMonth,
   renderDay,
   initialTier = 0,
   className,
 }: DestinypalShellProps) {
-  const clampTier = (n: number) => Math.max(0, Math.min(3, n))
+  const clampTier = (n: number) => Math.max(0, Math.min(MAX_TIER, n))
   const initial = clampTier(initialTier)
 
   const [tier, setTier] = useState<number>(initial)
@@ -82,6 +86,7 @@ export function DestinypalShell({
   const camRef = useRef<number>(initial)
 
   const scrollRefs = [
+    useRef<HTMLDivElement | null>(null),
     useRef<HTMLDivElement | null>(null),
     useRef<HTMLDivElement | null>(null),
     useRef<HTMLDivElement | null>(null),
@@ -151,7 +156,7 @@ export function DestinypalShell({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // keyboard: ← rise / → dive / 1..4 direct.
+  // keyboard: ← rise / → dive / 1..5 direct.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
@@ -160,7 +165,7 @@ export function DestinypalShell({
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         goTo(Math.round(camRef.current) - 1)
-      } else if (e.key >= '1' && e.key <= '4') {
+      } else if (e.key >= '1' && e.key <= '5') {
         goTo(parseInt(e.key, 10) - 1)
       }
     }
@@ -185,7 +190,7 @@ export function DestinypalShell({
         resetTimer = setTimeout(() => {
           accRef.current = 0
         }, 220)
-        if (accRef.current > 170 && tier < 3) {
+        if (accRef.current > 170 && tier < MAX_TIER) {
           accRef.current = 0
           goTo(tier + 1)
         } else if (accRef.current < -170 && tier > 0) {
@@ -200,6 +205,58 @@ export function DestinypalShell({
     return () => {
       el.removeEventListener('wheel', onWheel)
       if (resetTimer) clearTimeout(resetTimer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tier, goTo])
+
+  // touch swipe → zoom (mobile dive/rise) — mirrors wheel overscroll policy.
+  // 세로 스와이프 거리 임계 80px, 스크롤이 끝(또는 시작)에 닿았을 때만.
+  const touchRef = useRef<{ y0: number; t0: number; active: boolean }>({
+    y0: 0,
+    t0: 0,
+    active: false,
+  })
+  useEffect(() => {
+    const el = scrollRefs[tier]?.current
+    if (!el) return
+    const THRESHOLD = 80 // px
+
+    const onStart = (e: TouchEvent) => {
+      if (animRef.current) return
+      const t = e.touches[0]
+      if (!t) return
+      touchRef.current = { y0: t.clientY, t0: performance.now(), active: true }
+    }
+    const onMove = (e: TouchEvent) => {
+      if (!touchRef.current.active || animRef.current) return
+      const t = e.touches[0]
+      if (!t) return
+      const dy = t.clientY - touchRef.current.y0
+      const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 3
+      const atTop = el.scrollTop <= 1
+      // upward swipe at bottom → dive
+      if (dy < -THRESHOLD && atBottom && tier < MAX_TIER) {
+        touchRef.current.active = false
+        goTo(tier + 1)
+      }
+      // downward swipe at top → rise
+      else if (dy > THRESHOLD && atTop && tier > 0) {
+        touchRef.current.active = false
+        goTo(tier - 1)
+      }
+    }
+    const onEnd = () => {
+      touchRef.current.active = false
+    }
+    el.addEventListener('touchstart', onStart, { passive: true })
+    el.addEventListener('touchmove', onMove, { passive: true })
+    el.addEventListener('touchend', onEnd, { passive: true })
+    el.addEventListener('touchcancel', onEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', onStart)
+      el.removeEventListener('touchmove', onMove)
+      el.removeEventListener('touchend', onEnd)
+      el.removeEventListener('touchcancel', onEnd)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tier, goTo])
@@ -267,20 +324,25 @@ export function DestinypalShell({
         </div>
         <div className={styles.tierLayer} style={layerStyle(1)}>
           <div className={styles.tierScroll} ref={scrollRefs[1]}>
-            {renderYear(renderArgs(1))}
+            {renderDecade(renderArgs(1))}
           </div>
         </div>
         <div className={styles.tierLayer} style={layerStyle(2)}>
           <div className={styles.tierScroll} ref={scrollRefs[2]}>
-            {renderMonth({
-              ...renderArgs(2),
-              onFocusDay: () => goTo(3),
-            })}
+            {renderYear(renderArgs(2))}
           </div>
         </div>
         <div className={styles.tierLayer} style={layerStyle(3)}>
           <div className={styles.tierScroll} ref={scrollRefs[3]}>
-            {renderDay(renderArgs(3))}
+            {renderMonth({
+              ...renderArgs(3),
+              onFocusDay: () => goTo(4),
+            })}
+          </div>
+        </div>
+        <div className={styles.tierLayer} style={layerStyle(4)}>
+          <div className={styles.tierScroll} ref={scrollRefs[4]}>
+            {renderDay(renderArgs(4))}
           </div>
         </div>
       </div>

@@ -1,22 +1,31 @@
 /* ============================================================
-   /destinypal/preview — Phase F (adapters 완전 wire-up) 실데이터 검증 페이지
+   /destinypal — Phase D 정식 라우트 (실 사용자 본명)
    ───────────────────────────────────────────────────────────
-   본명 1995-02-09 06:40 Asia/Seoul Male — 진짜 NatalContext +
-   2026년 CalendarCell 으로 5 tier UI 를 자동으로 채운다.
+   /destinypal/preview (1995 고정 본명) 와 동일한 흐름이지만, BIRTH 상수
+   를 next-auth getServerSession + prisma UserProfile 로 동적으로 대체.
 
-   임시 처리 / `as unknown as` 캐스팅 0건 — adapter 가 NatalContext →
-   destinypal tier props 까지 100% 책임.
+   인증·본명 가드:
+     · 세션 없음           → BirthRequiredFallback reason="login"
+     · 세션 OK, 본명 부족  → BirthRequiredFallback reason="no-birth"
+     · 둘 다 OK            → preview 와 동일한 5 tier 어셈블 진행
+
+   "본명 부족" 판정:
+     · birthDate, birthTime, latitude, longitude, tzId 중 하나라도 null/공란
+       이면 본명 미입력으로 본다. (gender 는 'U' 도 허용 — male/female 로
+       강제 매핑되므로 buildNatalContext 가 받아낼 수 있음.)
    ============================================================ */
 
-import PreviewClient from './PreviewClient'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth/authOptions'
+import { prisma } from '@/lib/db/prisma'
+
+import PreviewClient from './preview/PreviewClient'
+import BirthRequiredFallback from './birth-required'
 
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
-import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
-import { getMonthPillarForDate } from '@/lib/saju/datePillars'
-import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 
 import {
   toUser,
@@ -35,83 +44,116 @@ import type {
   DestinyYear,
 } from '@/types/destinypal'
 
-// Server component: 빌드 비용(Swiss Ephemeris) 을 서버에서 한 번만 치름.
+// 서버 컴포넌트 — Swiss Ephemeris 비용 서버에서 한 번에 치름.
+// 세션 기반이므로 force-dynamic 필수 (정적 캐시 금지).
 export const dynamic = 'force-dynamic'
 
-// 본명 입력 — 1995-02-09 06:40 Asia/Seoul Male.
-const BIRTH = {
-  birthDate: '1995-02-09',
-  birthTime: '06:40',
-  gender: 'male' as const,
-  latitude: 37.5665,
-  longitude: 126.978,
-  timeZone: 'Asia/Seoul',
+// DB UserProfile.gender ('M' | 'F' | 'U' | null) → BuildContextInput.gender
+// ('male' | 'female') 매핑. 미상은 male 로 기본 (calendar-engine 이 둘 중
+// 하나를 요구 — 향후 unknown 지원 시 여기서 분기).
+function normalizeGender(g: string | null | undefined): 'male' | 'female' {
+  if (g === 'F') return 'female'
+  return 'male'
 }
 
-const BIRTH_YEAR = 1995
-const TARGET_YEAR = 2026
-const TARGET_MONTH = 6 // 6월 — preview default focus month
-const TARGET_DAY_ISO = '2026-06-15' // preview default focus day
+// MM-DD 한국어 표기 — preview 와 동일한 whoBirthLine 형식 ('1995.2.9 06:40').
+function formatBirthLine(birthDate: string, birthTime: string): string {
+  const [y, m, d] = birthDate.split('-')
+  const ymd = `${Number(y)}.${Number(m)}.${Number(d)}`
+  return `${ymd} ${birthTime}`
+}
 
-export default async function DestinypalPreview() {
-  // ─── 1) NatalContext (사주 + 점성 본명) ────────────────────────────────
+export default async function DestinypalPage() {
+  // ─── 1) 세션 검사 ─────────────────────────────────────────────────────
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    return <BirthRequiredFallback reason="login" />
+  }
+
+  // ─── 2) UserProfile 본명 fetch (prisma 직접 — /api/me/profile 와 동일 스키마) ──
+  const userRow = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      profile: {
+        select: {
+          birthDate: true,
+          birthTime: true,
+          gender: true,
+          birthCity: true,
+          latitude: true,
+          longitude: true,
+          tzId: true,
+        },
+      },
+    },
+  })
+  const profile = userRow?.profile
+  const isBirthComplete =
+    !!profile?.birthDate &&
+    !!profile?.birthTime &&
+    typeof profile?.latitude === 'number' &&
+    typeof profile?.longitude === 'number' &&
+    !!profile?.tzId
+
+  if (!isBirthComplete || !profile) {
+    return <BirthRequiredFallback reason="no-birth" />
+  }
+
+  // ─── 3) BIRTH 동적 구성 (preview 의 상수 자리) ────────────────────────
+  const BIRTH = {
+    birthDate: profile.birthDate!,
+    birthTime: profile.birthTime!,
+    gender: normalizeGender(profile.gender),
+    latitude: profile.latitude!,
+    longitude: profile.longitude!,
+    timeZone: profile.tzId!,
+  }
+  const BIRTH_YEAR = Number(profile.birthDate!.split('-')[0])
+
+  // 현재 연·월·일 — 서버 시각 기준. preview 의 TARGET_YEAR/MONTH/DAY 고정값 대체.
+  const now = new Date()
+  const TARGET_YEAR = now.getFullYear()
+  const TARGET_MONTH = now.getMonth() + 1
+  const targetDayIso = now.toISOString().slice(0, 10)
+
+  // ─── 4) NatalContext (사주 + 점성 본명) ───────────────────────────────
   const natal = await buildNatalContext(BIRTH)
 
-  // ─── 2) 2026 한 해 캘린더 (cell.signals 풀 = 4 tier 의 본체) ───────────
+  // ─── 5) 올해 캘린더 (cell.signals 풀 = 4 tier 의 본체) ────────────────
   const cells = await buildCalendar(
     natal,
     {
-      start: '2026-01-01T00:00:00.000Z',
-      end: '2026-12-31T23:59:59.999Z',
+      start: `${TARGET_YEAR}-01-01T00:00:00.000Z`,
+      end: `${TARGET_YEAR}-12-31T23:59:59.999Z`,
       granularity: 'day',
     },
     { includeEvidence: true },
   )
 
-  // ─── 3) lifetimeFlow / lifetimePivots derivers (lifeStages·milestones 원료) ──
+  // ─── 6) lifetimeFlow / lifetimePivots derivers ─────────────────────────
   const lifetimeFlow = deriveLifetimeFlow(natal)
   const lifetimePivots = deriveLifetimePivots(natal)
 
-  // ─── 4) yearly / month / day cell 슬라이스 ─────────────────────────────
-  const monthPrefix = `2026-${String(TARGET_MONTH).padStart(2, '0')}`
+  // ─── 7) yearly / month / day 슬라이스 ─────────────────────────────────
+  const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
   const dayCell =
-    cells.find((c) => c.datetime.slice(0, 10) === TARGET_DAY_ISO) ?? cells[0]
-  // yearly signals — cell.signals 중 layer='yearly' 인 것만 풀.
+    cells.find((c) => c.datetime.slice(0, 10) === targetDayIso) ?? cells[0]
   const yearlySignals = cells
     .flatMap((c) => c.signals)
     .filter((s) => s.layer === 'yearly')
 
-  // ─── 4.5) iljin (일진) / woolun (월운) 60갑자 계산 ───────────────────
-  // 각각 dayPillar / datePillars 표준 헬퍼 (KASI 절기 룩업) 한 줄 사용.
-  // adapter 가 stem/branch 를 받으면 toGanji 로 한자/한글/로마자 풀세트 생성.
-  const focusDate = new Date(`${TARGET_DAY_ISO}T00:00:00`)
-  const dayIdx = computeDayPillarIndices(
-    focusDate.getFullYear(),
-    focusDate.getMonth() + 1,
-    focusDate.getDate(),
-  )
-  const iljinStem = STEM_NAMES[dayIdx.stemIndex]
-  const iljinBranch = BRANCH_NAMES[dayIdx.branchIndex]
+  // ─── 8) adapter 호출 (5 tier prop 자동 어셈블 — preview 와 동일) ──────
+  const birthDisplay = formatBirthLine(profile.birthDate!, profile.birthTime!)
+  const place = profile.birthCity || '미입력'
 
-  // 월운 — TARGET_MONTH 의 절기-기반 월주.
-  const woolunRef = getMonthPillarForDate(
-    new Date(`2026-${String(TARGET_MONTH).padStart(2, '0')}-15T00:00:00`),
-  )
-  const woolunStem = woolunRef.stem
-  const woolunBranch = woolunRef.branch
-
-  // ─── 5) adapter 호출 (5 tier prop 자동 어셈블) ─────────────────────────
-  // toUser — dignities / almutenFiguris / lotsFull 까지 한 번에.
   const userBase = toUser(natal, {
-    birthDisplay: '1995-02-09 06:40',
-    place: '서울',
-    sex: '남',
+    birthDisplay,
+    place,
+    sex: BIRTH.gender === 'female' ? '여' : '남',
     lots: natal.astro.lots,
     intro: lifetimeFlow?.intro,
   })
-  // toUser 의 sect 는 객체 (kind/ko/light/lightKo); DestinyUserSummary.sect 는
-  // literal 'day'|'night' — sectKind alias 로 평탄화.
   const user: DestinyUserSummary & {
     gyeokgukStatus?: string
     rootStatus?: string
@@ -166,7 +208,6 @@ export default async function DestinypalPreview() {
     rootStatus: userBase.rootStatus,
   }
 
-  // toLifetime — daewoon + lifeStages + milestones + ZR Spirit/Fortune 챕터 자동.
   const lifetime = toLifetime(natal, {
     birthYear: BIRTH_YEAR,
     currentYear: TARGET_YEAR,
@@ -185,10 +226,6 @@ export default async function DestinypalPreview() {
     decadalSignals,
     focusYear: TARGET_YEAR,
   })
-
-  // DestinyDecade 는 sewoonNow / hapchung / unseong / zrSpiritChapters /
-  // zrFortuneChapters 가 필수 — adapter 미채움 시 fallback.
-  // pillar 도 DestinyDecadePillar(element 포함) 로 평탄화.
   type FE = DestinyDecade['pillar']['cheongan']['element']
   const STEM_EL_FALLBACK: Record<string, FE> = {
     甲: '목', 乙: '목', 丙: '화', 丁: '화',
@@ -203,7 +240,6 @@ export default async function DestinypalPreview() {
   function pickElement(hanja: string, fallback: Record<string, FE>): FE {
     return fallback[hanja] ?? '목'
   }
-
   const decade: DestinyDecade & {
     crossActivations?: Array<{
       signalId: string
@@ -282,7 +318,6 @@ export default async function DestinypalPreview() {
         geokgukStatus: decadeAdapter.geokgukStatus,
       }
     : {
-        // adapter null fallback — 본명 사주가 부족할 때만.
         gz: { hanja: '—', kr: '—', en: '—' },
         start: TARGET_YEAR,
         end: TARGET_YEAR + 10,
@@ -309,14 +344,11 @@ export default async function DestinypalPreview() {
         crossActivations: [],
       }
 
-  // toYear — profectionWheel 12 슬롯 / monthlyScores 12개월 / ZR 챕터 자동.
   const yearAdapter = toYear(natal, {
     year: TARGET_YEAR,
     yearlySignals,
-    cells, // monthlyScores 자동 빌드용
+    cells,
   })
-  // DestinyYear 는 profection 이 *필수* — yearlySignals 에 profection signal 이 없으면
-  // 만나이 % 12 + 1 fallback 으로 활성 하우스만 채우고 wheel 룩업.
   const ageThisYear = TARGET_YEAR - BIRTH_YEAR
   const fallbackHouse = ((ageThisYear % 12) + 12) % 12 + 1
   const wheelSlot = yearAdapter.profectionWheel.find((w) => w.house === fallbackHouse)
@@ -347,28 +379,11 @@ export default async function DestinypalPreview() {
     monthlyScores: yearAdapter.monthlyScores,
   }
 
-  // toMonth — 30일 캘린더 + themes + bestDay 자동 + 월운(woolun) GZ.
-  // narrative — lifetimeFlow.intro 한 줄 + 그 달 cell.topReasons 상위 5개 chip.
-  const monthNarrative: Array<{ tag: string; body: string }> = []
-  if (lifetimeFlow?.intro) {
-    monthNarrative.push({ tag: '타고난 결', body: lifetimeFlow.intro })
-  }
-  const monthTopReasons = monthCells
-    .flatMap((c) => (c.topReasons ?? []).map((r) => ({ score: c.derivedScore, body: r })))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4)
-  for (const r of monthTopReasons) {
-    monthNarrative.push({ tag: '이 달의 결', body: r.body })
-  }
   const { month: monthAdapter, calendar } = toMonth({
     ym: monthPrefix,
     label: `${TARGET_YEAR}년 ${TARGET_MONTH}월`,
     cells: monthCells,
-    woolunStem,
-    woolunBranch,
-    narrative: monthNarrative,
   })
-  // DestinyMonth 는 woolun / converge / bestDay 가 필수 — adapter 미채움 시 fallback.
   const month: DestinyMonth = {
     label: monthAdapter.label,
     ym: monthAdapter.ym,
@@ -400,128 +415,13 @@ export default async function DestinypalPreview() {
     calendar,
   }
 
-  // toDay — jijanggan obj / gongmang / topReasons / cautions / allSignals 자동.
-  // iljinStem/iljinBranch 를 넘기면 adapter 가 hanja/kr/en 풀 ganji + 일간기준 십신.
   const dayAdapter = toDay({
     cell: dayCell,
     natal,
-    iljinStem,
-    iljinBranch,
   })
-  // DestinyDay 는 geokgukStatus 가 *객체* shape (name / status / factors / description) —
-  // 본명 advancedAnalysis 에서 그대로 재구성.
   const advanced = natal.saju.advancedAnalysis
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
-  // ── 일진 cell.signals → DestinySignal[] 풀세트 projection ──
-  // adapter 의 DestinypalDaySignal 은 id/weight/layer/source 를 버리는데
-  // DayTier 의 signal stream + FixedStarRow + ArabicLotRow 정렬·필터에 모두 필요.
-  // 여기서 한 번에 평탄화한다 (transit 도 동일한 stream 안에 넣어 sortSignals 가
-  // layer priority 로 정렬).
-  type DSig = DestinyDay['allSignals'][number]
-  const SIG_KIND_TO_CAT: Record<string, string> = {
-    shinsal: 'saju/shinsal',
-    hyeongchung: 'saju/hyeongchung',
-    'pillar-sibsin': 'saju/pillar-sibsin',
-    'tonggeun-shift': 'saju/tonggeun-shift',
-    'saju-pattern': 'saju/saju-pattern',
-    jijanggan: 'saju/jijanggan',
-    'geokguk-status': 'saju/geokguk-status',
-    gongmang: 'saju/gongmang',
-    'applied-pattern': 'saju/applied-pattern',
-    transit: 'astro/transit',
-    eclipse: 'astro/eclipse',
-    progression: 'astro/progression',
-    'progressed-moon': 'astro/progressed-moon',
-    'solar-return': 'astro/solar-return',
-    'lunar-return': 'astro/lunar-return',
-    profection: 'astro/profection',
-    'zodiacal-releasing': 'astro/zodiacal-releasing',
-    lifecycle: 'astro/lifecycle',
-    electional: 'astro/electional',
-    'moon-phase': 'astro/moon-phase',
-    'void-of-course': 'astro/void-of-course',
-    'fixed-star': 'astro/fixed-star',
-    'arabic-part': 'astro/arabic-part',
-    'house-transit': 'astro/house-transit',
-    'angle-contact': 'astro/angle-contact',
-    midpoint: 'astro/midpoint',
-    asteroid: 'astro/asteroid',
-    'solar-arc': 'astro/solar-arc',
-    draconic: 'astro/draconic',
-    harmonic: 'astro/harmonic',
-    'cross-activation': 'cross/activation',
-  }
-  const allDaySignals: DSig[] = dayCell.signals.map((s) => {
-    const base = {
-      id: s.id,
-      cat: SIG_KIND_TO_CAT[s.kind] ?? `${s.source}/${s.kind}`,
-      label: s.name,
-      polarity: s.polarity,
-      weight: s.weight,
-      kind: s.kind,
-      layer: s.layer,
-      themes: s.themes,
-    }
-    if (s.source === 'astro') {
-      const planets = s.evidence?.planets ?? []
-      return {
-        ...base,
-        source: 'astro' as const,
-        body: planets[0],
-        aspect: s.evidence?.aspectType,
-        target: planets[1] ? `본명 ${planets[1]}` : undefined,
-      }
-    }
-    return { ...base, source: 'saju' as const }
-  }) as DSig[]
-  const dayTransits = allDaySignals.filter((s) => s.kind === 'transit') as DestinyDay['transits']
-  const daySajuSignals = allDaySignals.filter((s) => s.kind !== 'transit' && s.kind !== 'cross-activation') as DestinyDay['signals']
-  const dayCrossSignals = allDaySignals.filter((s) => s.kind === 'cross-activation') as DestinyDay['crossSignals']
-
-  // applied-pattern / cross-activation 풀 — DestinyDay shape 에 맞춰 채움.
-  const dayAppliedPatterns: DestinyDay['appliedPatterns'] = dayCell.signals
-    .filter((s) => s.kind === 'applied-pattern')
-    .map((s) => ({
-      id: s.id,
-      name: s.name,
-      korean:
-        typeof s.evidence?.detail?.korean === 'string'
-          ? (s.evidence.detail.korean as string)
-          : s.name,
-      polarity: s.polarity,
-      weight: s.weight,
-      themes: s.themes,
-      activeAxes:
-        Array.isArray(s.evidence?.detail?.activeAxes)
-          ? (s.evidence!.detail!.activeAxes as string[])
-          : [],
-      rule:
-        typeof s.evidence?.detail?.rule === 'string'
-          ? (s.evidence!.detail!.rule as string)
-          : '',
-    }))
-  const dayCrossActivations: DestinyDay['crossActivations'] = dayCell.signals
-    .filter((s) => s.kind === 'cross-activation')
-    .map((s) => ({
-      id: s.id,
-      sajuSide:
-        typeof s.evidence?.detail?.sajuName === 'string'
-          ? (s.evidence.detail.sajuName as string)
-          : '',
-      astroSide:
-        typeof s.evidence?.detail?.astroName === 'string'
-          ? (s.evidence.detail.astroName as string)
-          : '',
-      meaning:
-        typeof s.evidence?.detail?.meaning === 'string'
-          ? (s.evidence.detail.meaning as string)
-          : '',
-      polarity: s.polarity,
-      weight: s.weight,
-      themes: s.themes,
-    }))
-
   const day: DestinyDay = {
     date: dayAdapter.date,
     dateKo: dayAdapter.dateKo,
@@ -531,10 +431,10 @@ export default async function DestinypalPreview() {
     oneLine: dayAdapter.oneLine,
     totalSignals: dayAdapter.totalSignals,
     themes: dayAdapter.themes,
-    signals: daySajuSignals,
-    transits: dayTransits,
-    crossSignals: dayCrossSignals,
-    allSignals: allDaySignals,
+    signals: [],
+    transits: [],
+    crossSignals: [],
+    allSignals: [],
     jijanggan: dayAdapter.jijanggan,
     geokgukStatus: {
       name: geokgukName,
@@ -548,22 +448,21 @@ export default async function DestinypalPreview() {
       activeAxes: dayAdapter.gongmang.activeAxes,
       note: dayAdapter.gongmang.note,
     },
-    appliedPatterns: dayAppliedPatterns,
-    crossActivations: dayCrossActivations,
+    appliedPatterns: [],
+    crossActivations: [],
     shinsalActive: dayAdapter.shinsalActive,
     narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
     cautions: dayAdapter.cautions,
   }
 
-  // ilgan 한자 (Topbar) — adapter user.ilgan.hanja 그대로.
   const ilganHanja = user.ilgan.hanja || '辛'
 
   return (
     <PreviewClient
       topbar={{
-        whoBirthLine: '1995.2.9 06:40',
-        place: '서울',
+        whoBirthLine: birthDisplay,
+        place,
         ilganHanja,
       }}
       user={user}

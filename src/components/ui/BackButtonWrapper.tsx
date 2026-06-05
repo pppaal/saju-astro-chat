@@ -15,7 +15,8 @@ const PAGES_WITHOUT_BACK_BUTTON = [
   '/faq', // Has custom back button in page
   '/pricing', // Has custom navigation
   '/policy', // Has custom back button in page
-  '/calendar', // Uses ServicePageLayout
+  '/destinypal', // 5-tier destiny view — has its own back affordance + crowded header
+  '/calendar', // Legacy alias → /destinypal (308 at edge); kept defensively
   '/profile', // Has custom navigation
   '/auth', // Has custom header with back button
   '/destiny-counselor', // Counselor pages have their own header/back button

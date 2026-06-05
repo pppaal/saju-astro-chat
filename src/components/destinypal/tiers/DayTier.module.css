@@ -840,3 +840,73 @@
   background: radial-gradient(circle at 50% 60%, rgba(217, 168, 74, 0.12), transparent 70%);
 }
 .hourCell.hourMid .hourScore { color: var(--dp-ember); }
+
+/* ============================================================
+   Mobile breakpoints — 640px / 480px
+   ============================================================ */
+
+@media (max-width: 640px) {
+  .tierInner {
+    padding: clamp(56px, 10vh, 86px) 16px calc(140px + env(safe-area-inset-bottom, 0px));
+  }
+  .tierInner::before {
+    left: 6px; right: 6px;
+    top: clamp(40px, 6vh, 60px);
+    bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+  }
+  .iljinBig .han {
+    font-size: 56px;
+    padding: 8px 12px;
+  }
+  .iljinBig .meta .kr { font-size: 12.5px; }
+  .iljinBig .meta .en { font-size: 10px; }
+  .oneline { font-size: clamp(14px, 4vw, 17px); }
+  .secTitle { font-size: clamp(17px, 4.6vw, 22px); }
+  .block { margin-top: 30px; }
+  .blockSm { margin-top: 20px; }
+  .panel { padding: 16px; }
+  .split { gap: 12px; margin-top: 22px; }
+  /* signal stream — collapse the leading 132px category col to compact width */
+  .sig {
+    grid-template-columns: 78px 1fr auto;
+    gap: 10px;
+    padding: 10px 2px;
+  }
+  .sig .cat { font-size: 9px; }
+  .sig .body .lb { font-size: 12.5px; }
+  .scoreDial { width: 80px; height: 80px; }
+  .scoreDial .sdNum b { font-size: 26px; }
+  /* 24h grid: 12 → 4 columns */
+  .hourGrid { grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .hourCell { min-height: 56px; padding: 7px 3px 8px; }
+  .hourCell .hourBranch { font-size: 14px; }
+  .hourCell .hourLabel { font-size: 8.5px; }
+  .hourCell .hourScore { font-size: 9.5px; }
+  .hourCell .hourDomain { font-size: 9px; }
+  /* matrices */
+  .tsMatrix { grid-template-columns: repeat(2, 1fr); }
+  .crossGrid { grid-template-columns: 1fr; gap: 10px; }
+  .crossCard { padding: 12px 14px; }
+  .appliedBadge { padding: 8px 12px; }
+  .appliedHan { font-size: 14px; }
+  .jjChip { padding: 7px 10px; }
+  .jjStem { font-size: 16px; }
+  .statusChip { font-size: 11.5px; padding: 5px 10px; }
+  .gongmangBanner, .vocBanner { padding: 8px 12px; font-size: 11.5px; }
+  .transit { padding: 9px 11px; }
+  .ssPill { font-size: 11.5px; padding: 4px 11px; }
+  .riseCenter { margin-top: 28px; }
+}
+
+@media (max-width: 480px) {
+  .tierInner { padding: clamp(50px, 9vh, 78px) 12px calc(130px + env(safe-area-inset-bottom, 0px)); }
+  .iljinBig .han { font-size: 48px; padding: 6px 10px; }
+  /* signal stream — stack score under body to give label more room */
+  .sig {
+    grid-template-columns: 64px 1fr auto;
+    gap: 8px;
+  }
+  .hourGrid { grid-template-columns: repeat(4, 1fr); gap: 3px; }
+  .hourCell { min-height: 50px; padding: 6px 2px 7px; }
+  .hourCell .hourBranch { font-size: 13px; }
+}

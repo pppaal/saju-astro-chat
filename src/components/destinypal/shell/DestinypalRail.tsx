@@ -1,9 +1,10 @@
 'use client'
 
 /* ============================================================
-   destinypal · Rail — 좌측 vertical 4-stop depth rail.
+   destinypal · Rail — 좌측 vertical 5-stop depth rail.
    직역 출처: destinypal-extracted/js/app.jsx <nav className="rail"> 블록.
    각 stop 은 한 tier 로 이동. 활성 stop 은 ember 색 + glow.
+   tiers prop 으로 stop 개수 결정 (life/decade/year/month/day = 5).
    ============================================================ */
 
 import { Fragment } from 'react'

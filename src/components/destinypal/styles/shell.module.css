@@ -53,13 +53,15 @@
   padding: 16px clamp(18px, 4vw, 40px);
   background: linear-gradient(180deg, rgba(236,226,205,0.96), rgba(236,226,205,0));
   pointer-events: none;
+  gap: 12px;
 }
-.brand { display: flex; align-items: center; gap: 11px; pointer-events: auto; }
+.brand { display: flex; align-items: center; gap: 11px; pointer-events: auto; min-width: 0; }
 .brandMark { font-family: var(--dp-serif); font-size: 23px; letter-spacing: .01em; color: var(--dp-ink); align-self: center; }
 .brandMark em { font-style: italic; color: var(--dp-ember); }
 .brandWho {
   font-family: var(--dp-mono); font-size: 11px; letter-spacing: .02em;
   color: var(--dp-ink-mute); border-left: 1px solid var(--dp-line); padding-left: 11px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tierName {
   pointer-events: auto;
@@ -68,6 +70,27 @@
   display: flex; align-items: baseline; gap: 10px;
 }
 .tierName b { font-weight: 400; font-family: var(--dp-mono); font-size: 11px; color: var(--dp-ember); letter-spacing: .14em; }
+
+/* ---- topbar mobile collapse ---- */
+@media (max-width: 640px) {
+  .topbar {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .brandMark { font-size: 19px; }
+  .brandWho {
+    font-size: 10px;
+    padding-left: 8px;
+    max-width: 38vw;
+  }
+  .tierName {
+    font-size: 13px;
+    gap: 6px;
+    margin-left: auto;
+  }
+  .tierName b { font-size: 9.5px; letter-spacing: .1em; }
+}
 
 /* ---------- depth rail ---------- */
 .rail {
@@ -103,6 +126,40 @@
   .railLbl, .railScale { display: none; }
 }
 @media (max-width: 640px) {
-  .rail { left: 6px; gap: 0; }
-  .railLine { height: 20px; }
+  /* vertical rail → horizontal bottom strip on mobile */
+  .rail {
+    left: 0; right: 0; top: auto; bottom: 0;
+    transform: none;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+    gap: 0;
+    background: linear-gradient(0deg, rgba(236,226,205,0.96), rgba(236,226,205,0));
+    pointer-events: auto;
+  }
+  .railStop {
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 8px;
+    font-size: 9px;
+    letter-spacing: .08em;
+  }
+  .railStop .dot {
+    width: 10px;
+    height: 10px;
+  }
+  .railLine {
+    /* convert vertical connector to horizontal — placed between stops */
+    width: 18px;
+    height: 1.5px;
+    margin: 0;
+    align-self: center;
+  }
+  .railLbl {
+    display: inline;
+    font-size: 8.5px;
+    letter-spacing: .1em;
+  }
+  .railScale { display: none; }
 }
