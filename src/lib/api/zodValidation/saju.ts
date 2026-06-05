@@ -575,11 +575,15 @@ export const personDataSchema = z.object({
 
 export const relationTypeSchema = z.enum([
   'lover',
+  'crush',
   'spouse',
+  'engaged',
+  'ex',
   'family',
   'sibling',
   'friend',
   'colleague',
+  'business',
   'other',
 ])
 

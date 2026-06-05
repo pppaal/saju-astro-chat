@@ -252,7 +252,19 @@ const CompatibilityPersonSchema = z.object({
   city: z.string().max(LIMITS.CITY).optional(),
   gender: z.string().optional(),
   relationToP1: z
-    .enum(['lover', 'spouse', 'family', 'sibling', 'friend', 'colleague', 'other'])
+    .enum([
+      'lover',
+      'crush',
+      'spouse',
+      'engaged',
+      'ex',
+      'family',
+      'sibling',
+      'friend',
+      'colleague',
+      'business',
+      'other',
+    ])
     .optional(),
   relationNoteToP1: z.string().max(LIMITS.NOTE).optional(),
 })
