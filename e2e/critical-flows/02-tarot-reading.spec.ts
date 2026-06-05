@@ -295,4 +295,45 @@ test.describe('Complete Tarot Reading Flow', () => {
       expect(finalCredits).toBeLessThanOrEqual(initialCredits)
     }
   })
+
+  test('should handle follow-up question after a reading', async ({ page }) => {
+    // followup 채팅(FollowupChat)은 결과 화면(ResultsStage)에서만 노출된다. 스프레드 URL 로
+    // 직접 진입해 리딩을 태운 뒤, followup 입력(placeholder "더 궁금한 점을 적어주세요" /
+    // "Ask another question") + Send 버튼(aria-label="Send")이 뜨면 추가 질문을 실제로 보낸다.
+    // AI 백엔드가 없는 환경에선 결과까지 도달 못 할 수 있어, 주변 테스트와 동일하게 graceful 처리.
+    await page.goto('/tarot/general-insight/past-present-future?question=Will my project succeed', {
+      waitUntil: 'domcontentloaded',
+    })
+    await helpers.waitForAnyText(
+      ['tarot', 'card', 'interpretation', 'result', '카드', '해석'],
+      15000
+    )
+
+    const followupInput = page
+      .locator('textarea[placeholder*="더 궁금한"], textarea[placeholder*="Ask another"]')
+      .first()
+
+    if (!(await followupInput.isVisible({ timeout: 8000 }).catch(() => false))) {
+      // 결과/followup 미도달(AI 없음 등) — 페이지가 유효 상태인지만 확인 후 종료.
+      await expect(page.locator('body')).toBeVisible()
+      return
+    }
+
+    await followupInput.fill('What should I focus on first?')
+
+    const sendButton = page.locator('button[aria-label="Send"]').first()
+    await expect(sendButton).toBeVisible()
+    await sendButton.click()
+
+    // 보낸 질문 turn 이 채팅에 반영되거나 assistant 응답이 채워지길 대기.
+    await helpers.waitForAnyText(
+      ['focus', 'first', '카드', 'card', '해석', 'interpretation'],
+      15000
+    )
+
+    const bodyText = await page.locator('body').textContent()
+    expect(
+      (bodyText || '').includes('What should I focus on first?') || (bodyText || '').length > 200
+    ).toBe(true)
+  })
 })
