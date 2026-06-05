@@ -7,10 +7,7 @@
  */
 import { calculateSajuData } from '@/lib/saju/saju'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { determineYongsin } from '@/lib/saju/yongsin'
-import { determineGeokguk } from '@/lib/saju/geokguk'
-import { calculateStrengthScore } from '@/lib/saju/strengthScore'
-import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
@@ -551,10 +548,19 @@ export function buildSajuSection(
   localNow?: { year: number; month: number; day: number }
 ): { natal: string; timing: string; iljinWindow: string; dayMasterName: string } {
   const tz = birth.timezone ?? 'Asia/Seoul'
-  // longitude 를 넘겨 진태양시(진경도) 보정 — 없으면 엔진이 한국 평균
-  // LMT(+30분) 로 폴백해 해외 출생자의 시주(時柱)가 틀린다. 또 route.ts 의
-  // 현재운(세운/월운/일진) 빌더는 longitude 를 이미 넘기므로, 여기서 빠지면
-  // 본명과 현재운이 서로 다른 태양시 기준으로 계산돼 모순이 난다.
+  // ── 재료 준비실 ──
+  // 옛 코드는 raw 호출(calculateSajuData/Strength/Geokguk/Yongsin/Relations) +
+  // 텍스트 포매팅을 한 함수에서 다 했음. 2026-06-06 분리:
+  //   - collectSajuFacts → 순수 데이터 객체 (다른 서비스도 같이 받아씀)
+  //   - 아래 코드는 그 facts 를 텍스트로 포매팅하는 부분만 담당
+  // daeWoon / shinsal 은 아직 facts 에 없어 raw saju 한 번 더 가져옴 (LRU cache hit).
+  const facts = collectSajuFacts({
+    birthDate: birth.birthDate,
+    birthTime: birth.birthTime,
+    gender: birth.gender,
+    timezone: tz,
+    longitude: birth.longitude,
+  })
   const saju = calculateSajuData(
     birth.birthDate,
     birth.birthTime,
@@ -596,49 +602,12 @@ export function buildSajuSection(
   }
   const P = saju.pillars
   const day = P.day.heavenlyStem.name
-  const simple = {
-    year: { stem: P.year.heavenlyStem.name, branch: P.year.earthlyBranch.name },
-    month: { stem: P.month.heavenlyStem.name, branch: P.month.earthlyBranch.name },
-    day: { stem: P.day.heavenlyStem.name, branch: P.day.earthlyBranch.name },
-    time: { stem: P.time.heavenlyStem.name, branch: P.time.earthlyBranch.name },
-  }
 
-  let strengthLabel = ''
-  try {
-    const s = calculateStrengthScore(saju.pillars as never)
-    strengthLabel = ['극강', '강', '중강'].includes(s.level) ? '신강' : '신약'
-  } catch {
-    /* */
-  }
-
-  let geok = ''
-  try {
-    geok = determineGeokguk(simple as never).primary
-  } catch {
-    /* */
-  }
-  const y = (() => {
-    try {
-      return determineYongsin(simple as never)
-    } catch {
-      return null
-    }
-  })()
-
-  const rel = (() => {
-    try {
-      return analyzeRelations(toAnalyzeInputFromSaju(P as never, day))
-    } catch {
-      return [] as Array<{ kind: string; detail?: string; pillars?: string[] }>
-    }
-  })()
-
-  // 관살혼잡: 정관 AND 편관 both present across stems+branches sibsin
-  const allSibsin = (['year', 'month', 'day', 'time'] as const).flatMap((k) => [
-    P[k].heavenlyStem.sibsin,
-    P[k].earthlyBranch.sibsin,
-  ])
-  const gwansalHonjap = allSibsin.includes('정관') && allSibsin.includes('편관')
+  const strengthLabel = facts.strength
+  const geok = facts.geokguk ?? ''
+  const y = facts.yongsin
+  const rel = facts.relations
+  const gwansalHonjap = facts.gwansalHonjap
 
   const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
   const plab: Record<string, string> =
@@ -661,15 +630,10 @@ export function buildSajuSection(
     : ''
   const yinyang = dm.yin_yang === '음' ? L('음', 'yin') : L('양', 'yang')
   const strLab = locale === 'en' ? (STRENGTH_EN[strengthLabel] ?? strengthLabel) : strengthLabel
-  // 통근: a branch hidden-stem shares the day master's element (비겁 root)
-  const dayElRoot = STEM_INFO[day]?.el
-  const rooted = (['year', 'month', 'day', 'time'] as const).some((k) => {
-    const jg = P[k].jijanggan
-    return [jg?.chogi?.name, jg?.junggi?.name, jg?.jeonggi?.name].some(
-      (s) => !!s && STEM_INFO[s]?.el === dayElRoot
-    )
-  })
-  const rootLab = locale === 'en' ? (rooted ? 'rooted' : 'rootless') : rooted ? '유근' : '무근'
+  // 통근 — facts.dayMaster.rooted 가 이미 계산 (sajuFacts.ts SSOT).
+  const rootLab = locale === 'en'
+    ? facts.dayMaster.rooted ? 'rooted' : 'rootless'
+    : facts.dayMaster.rooted ? '유근' : '무근'
   out.push(`${L('일간', 'day_master')}: ${dm.name}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`)
   const fe = saju.fiveElements
   out.push(
