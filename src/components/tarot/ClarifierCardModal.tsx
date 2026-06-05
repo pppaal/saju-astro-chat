@@ -138,7 +138,7 @@ export default function ClarifierCardModal({
           style={{
             position: 'relative',
             margin: '0 auto 16px',
-            width: '180px',
+            width: 'min(160px, 22vh)',
             aspectRatio: '5 / 8',
             borderRadius: '12px',
             overflow: 'hidden',
