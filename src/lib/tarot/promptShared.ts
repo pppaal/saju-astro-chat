@@ -166,10 +166,6 @@ const FOLLOWUP_PARTS: Array<Bilingual | ''> = [
 const TAROT_FOLLOWUP_RULES_KO = block('ko', FOLLOWUP_PARTS)
 const TAROT_FOLLOWUP_RULES_EN = block('en', FOLLOWUP_PARTS)
 
-export function pickTarotRules(lang: 'ko' | 'en'): string {
-  return lang === 'ko' ? TAROT_RULES_KO : TAROT_RULES_EN
-}
-
 export function pickTarotFollowupRules(lang: 'ko' | 'en'): string {
   return lang === 'ko' ? TAROT_FOLLOWUP_RULES_KO : TAROT_FOLLOWUP_RULES_EN
 }

@@ -1,5 +1,17 @@
 import { test, expect } from '@playwright/test'
 
+// 타로 스모크 — 페이지 로드/입력/탐색/모바일/성능의 얕은 검증.
+// 깊은 리딩 플로우(질문→결과→저장→히스토리·크레딧)는 critical-flows/02-tarot-reading.spec.ts,
+// 4 스프레드 라우팅/쿼리파람은 tarot-classic-flow.spec.ts, 대형 스프레드 해석은
+// tarot-large-spread.spec.ts 가 담당.
+//
+// (audit 2026-06) 이전엔 이 파일이 이름과 달리 Dream/I-Ching/Compatibility/Calendar
+// 까지 함께 스모크해 전용 스펙과 중복됐음 — 해당 섹션 제거하고 타로 전용으로 축소.
+//   Dream        → dream-flow.spec.ts
+//   I-Ching      → iching-flow.spec.ts
+//   Calendar     → calendar-flow.spec.ts
+//   Compatibility→ pages-load / chat-interactions / form-validation 등
+
 test.describe('Tarot Flow', () => {
   test('should load tarot homepage with Korean content', async ({ page }) => {
     await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
@@ -87,224 +99,6 @@ test.describe('Tarot Flow', () => {
   // 카테고리 단위 테스트는 tarot-classic-flow.spec.ts 에 4 스프레드 라우트 검증으로 대체.
 })
 
-test.describe('Dream Interpretation Flow', () => {
-  test('should load dream page with Korean content', async ({ page }) => {
-    await page.goto('/dream', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-
-    const hasDreamContent =
-      bodyText!.includes('꿈') ||
-      bodyText!.includes('Dream') ||
-      bodyText!.includes('해몽')
-    expect(hasDreamContent).toBe(true)
-  })
-
-  test('should have dream input area and accept input', async ({ page }) => {
-    await page.goto('/dream', { waitUntil: 'domcontentloaded' })
-
-    const textareas = page.locator('textarea')
-    const textareaCount = await textareas.count()
-
-    if (textareaCount > 0) {
-      const textarea = textareas.first()
-      if (await textarea.isVisible()) {
-        await textarea.fill('어젯밤 꿈에서 높은 산을 올랐습니다')
-        const value = await textarea.inputValue()
-        expect(value).toContain('산')
-      }
-    }
-  })
-
-  test('should have submit button visible', async ({ page }) => {
-    await page.goto('/dream', { waitUntil: 'domcontentloaded' })
-
-    const submitButton = page.locator(
-      'button[type="submit"], button:has-text("해석"), button:has-text("시작"), button:has-text("분석")'
-    )
-    const count = await submitButton.count()
-
-    if (count > 0) {
-      let visibleButton = false
-      for (let i = 0; i < count; i++) {
-        if (await submitButton.nth(i).isVisible()) {
-          visibleButton = true
-          break
-        }
-      }
-      expect(visibleButton).toBe(true)
-    }
-  })
-})
-
-test.describe('I-Ching Flow', () => {
-  test('should load I-Ching page with Korean content', async ({ page }) => {
-    await page.goto('/iching', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-
-    const hasIChingContent =
-      bodyText!.includes('주역') ||
-      bodyText!.includes('I-Ching') ||
-      bodyText!.includes('易') ||
-      bodyText!.includes('점') ||
-      bodyText!.includes('괘')
-    expect(hasIChingContent).toBe(true)
-  })
-
-  test('should have question input for I-Ching', async ({ page }) => {
-    await page.goto('/iching', { waitUntil: 'domcontentloaded' })
-
-    const inputs = page.locator('input, textarea')
-    const inputCount = await inputs.count()
-
-    if (inputCount > 0) {
-      const input = inputs.first()
-      if (await input.isVisible()) {
-        await input.fill('이 일을 해도 될까요?')
-        const value = await input.inputValue()
-        expect(value).toContain('일')
-      }
-    }
-  })
-
-  test('should have hexagram visualization or buttons', async ({ page }) => {
-    await page.goto('/iching', { waitUntil: 'domcontentloaded' })
-
-    const elements = page.locator('button, [class*="hexagram"], [class*="line"]')
-    const count = await elements.count()
-    expect(count).toBeGreaterThan(0)
-
-    let visibleElement = false
-    for (let i = 0; i < Math.min(count, 10); i++) {
-      if (await elements.nth(i).isVisible()) {
-        visibleElement = true
-        break
-      }
-    }
-    expect(visibleElement).toBe(true)
-  })
-})
-
-test.describe('Compatibility Flow', () => {
-  test('should load compatibility page with Korean content', async ({ page }) => {
-    await page.goto('/compatibility', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-
-    const hasCompatibilityContent =
-      bodyText!.includes('궁합') ||
-      bodyText!.includes('Compatibility') ||
-      bodyText!.includes('상성') ||
-      bodyText!.includes('연인')
-    expect(hasCompatibilityContent).toBe(true)
-  })
-
-  test('should load compatibility chat page', async ({ page }) => {
-    await page.goto('/compatibility/chat', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should load compatibility insights page', async ({ page }) => {
-    await page.goto('/compatibility/insights', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(10)
-  })
-
-  test('should have form for two people info', async ({ page }) => {
-    await page.goto('/compatibility', { waitUntil: 'domcontentloaded' })
-
-    const inputs = page.locator('input')
-    const inputCount = await inputs.count()
-    expect(inputCount).toBeGreaterThan(0)
-
-    // 첫 번째 입력 필드가 보여야 함
-    const firstInput = inputs.first()
-    if (await firstInput.isVisible()) {
-      await expect(firstInput).toBeVisible()
-    }
-  })
-
-  test('should accept name input for compatibility', async ({ page }) => {
-    await page.goto('/compatibility', { waitUntil: 'domcontentloaded' })
-
-    const nameInput = page.locator('input[type="text"], input[name*="name"]').first()
-    if ((await nameInput.count()) > 0 && (await nameInput.isVisible())) {
-      await nameInput.fill('홍길동')
-      const value = await nameInput.inputValue()
-      expect(value).toBe('홍길동')
-    }
-  })
-})
-
-test.describe('Calendar Flow', () => {
-  test('should load calendar page with content', async ({ page }) => {
-    await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should display calendar grid or month view', async ({ page }) => {
-    await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
-
-    const calendarElements = page.locator(
-      '[class*="calendar"], [class*="month"], [class*="day"], table'
-    )
-    const count = await calendarElements.count()
-    expect(count).toBeGreaterThan(0)
-
-    let visibleElement = false
-    for (let i = 0; i < Math.min(count, 10); i++) {
-      if (await calendarElements.nth(i).isVisible()) {
-        visibleElement = true
-        break
-      }
-    }
-    expect(visibleElement).toBe(true)
-  })
-
-  test('should have navigation for months', async ({ page }) => {
-    await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
-
-    const navButtons = page.locator('button')
-    const count = await navButtons.count()
-    expect(count).toBeGreaterThan(0)
-
-    let visibleButton = false
-    for (let i = 0; i < Math.min(count, 10); i++) {
-      if (await navButtons.nth(i).isVisible()) {
-        visibleButton = true
-        break
-      }
-    }
-    expect(visibleButton).toBe(true)
-  })
-
-  test('should be able to click on a day', async ({ page }) => {
-    await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
-
-    const dayElement = page.locator('[class*="day"], td, button').first()
-    if ((await dayElement.count()) > 0 && (await dayElement.isVisible())) {
-      await dayElement.click()
-      await page.waitForTimeout(300)
-      await expect(page.locator('body')).toBeVisible()
-    }
-  })
-})
-
 test.describe('Tarot Mobile Experience', () => {
   test('should render tarot page without horizontal scroll on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 })
@@ -341,24 +135,6 @@ test.describe('Tarot Page Load Performance', () => {
   test('should load tarot page within acceptable time', async ({ page }) => {
     const startTime = Date.now()
     await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
-    const loadTime = Date.now() - startTime
-
-    expect(loadTime).toBeLessThan(10000)
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load dream page within acceptable time', async ({ page }) => {
-    const startTime = Date.now()
-    await page.goto('/dream', { waitUntil: 'domcontentloaded' })
-    const loadTime = Date.now() - startTime
-
-    expect(loadTime).toBeLessThan(10000)
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load iching page within acceptable time', async ({ page }) => {
-    const startTime = Date.now()
-    await page.goto('/iching', { waitUntil: 'domcontentloaded' })
     const loadTime = Date.now() - startTime
 
     expect(loadTime).toBeLessThan(10000)

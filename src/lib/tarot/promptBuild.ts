@@ -245,41 +245,6 @@ ${openingInstructionEn}`
   return { systemPrompt, userPrompt }
 }
 
-export interface ChunkUserPromptInput extends InterpretStreamPromptInput {
-  startIdx: number
-  endIdx: number
-  includeMeta: boolean
-}
-
-/**
- * Large-spread (>=8 cards) chunk variant. Chunk A carries overall + advice,
- * chunk B is per-card only. Same system prompt, different user prompt.
- */
-export function buildChunkUserPrompt(input: ChunkUserPromptInput): string {
-  const { language, spreadTitle, cards, userQuestion, startIdx, endIdx, includeMeta } = input
-  const isKorean = language === 'ko'
-  const trimmed = (userQuestion || '').trim()
-  const q = trimmed || (isKorean ? '일반 운세' : 'general reading')
-  const cardListText = renderCardList(cards, language)
-  const totalCards = cards.length
-
-  const chunkInfo = isKorean
-    ? `(전체 ${totalCards}장 중 ${startIdx + 1}~${endIdx}번 카드만 해석)`
-    : `(interpret only cards ${startIdx + 1}-${endIdx} of ${totalCards})`
-  const task = includeMeta
-    ? isKorean
-      ? `# 작성 지시\n- 전체 카드 흐름을 보고 overall + advice 작성하고, ${chunkInfo} 의 카드별 cards[] 항목을 채우세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
-      : `# Instructions\n- Read the full ${totalCards}-card flow; write overall + advice, fill cards[] with per-card interpretations ${chunkInfo}.\n- cards[] length must be exactly ${endIdx - startIdx}.`
-    : isKorean
-      ? `# 작성 지시\n- 전체 카드 흐름은 컨텍스트로만 참고. ${chunkInfo} 의 카드별 해석만 cards[] 에 채우세요. overall/advice 는 출력하지 마세요.\n- cards 배열 길이 정확히 ${endIdx - startIdx} 개.`
-      : `# Instructions\n- Use the full ${totalCards}-card flow as context only. Output ONLY per-card interpretations ${chunkInfo} in cards[]. Do NOT include overall/advice.\n- cards[] length must be exactly ${endIdx - startIdx}.`
-
-  if (isKorean) {
-    return `# 사용자의 질문\n"${q}"\n\n# 스프레드\n${spreadTitle} (${totalCards}장)\n\n# 뽑힌 카드 — 전체 (순서대로)\n${cardListText}\n\n${task}`
-  }
-  return `# User's Question\n"${q}"\n\n# Spread\n${spreadTitle} (${totalCards} cards)\n\n# Cards Drawn — full list (in order)\n${cardListText}\n\n${task}`
-}
-
 export interface FallbackPayloadCard {
   position: string
   interpretation: string
