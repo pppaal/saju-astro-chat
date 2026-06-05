@@ -53,10 +53,15 @@ describe('timezone utilities', () => {
       expect(result.day).toBeLessThanOrEqual(31);
     });
 
-    it('should use Asia/Seoul as default timezone', () => {
+    it('returns valid date components when no timezone is given', () => {
+      // 전 세계 서비스 — 무인자 기본값을 한국으로 가정하지 않는다. 유효성만 보장.
+      // (옛 default==Asia/Seoul 단언은 KST 자정~오전9시 플래키 — audit 2026-06)
       const withDefault = getNowInTimezone();
-      const withExplicit = getNowInTimezone('Asia/Seoul');
-      expect(withDefault).toEqual(withExplicit);
+      expect(withDefault.year).toBeGreaterThan(2020);
+      expect(withDefault.month).toBeGreaterThanOrEqual(1);
+      expect(withDefault.month).toBeLessThanOrEqual(12);
+      expect(withDefault.day).toBeGreaterThanOrEqual(1);
+      expect(withDefault.day).toBeLessThanOrEqual(31);
     });
 
     TIMEZONES.forEach((tz) => {
@@ -70,10 +75,14 @@ describe('timezone utilities', () => {
       });
     });
 
-    it('should fallback to Asia/Seoul on invalid timezone', () => {
+    it('falls back to a valid date (no throw) on invalid timezone', () => {
+      // 잘못된 타임존은 요청을 깨뜨리지 않고 중립 폴백 — 국가 가정 없음.
       const result = getNowInTimezone('Invalid/Timezone');
-      const seoul = getNowInTimezone('Asia/Seoul');
-      expect(result).toEqual(seoul);
+      expect(result.year).toBeGreaterThan(2020);
+      expect(result.month).toBeGreaterThanOrEqual(1);
+      expect(result.month).toBeLessThanOrEqual(12);
+      expect(result.day).toBeGreaterThanOrEqual(1);
+      expect(result.day).toBeLessThanOrEqual(31);
     });
 
     it('should handle UTC', () => {

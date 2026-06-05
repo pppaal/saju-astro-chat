@@ -42,13 +42,17 @@ describe("Timezone Utilities", () => {
       expect(result.day).toBeLessThanOrEqual(31);
     });
 
-    it("should use Asia/Seoul as default timezone", () => {
+    it("returns valid date components when no timezone is given", () => {
+      // 전 세계 서비스 — 무인자 기본값을 특정 국가(한국)로 가정하지 않는다.
+      // 실사용 경로는 항상 사용자 타임존을 넘기므로 여기선 유효성만 보장.
+      // (옛 테스트는 default==Asia/Seoul 을 단언해 KST 자정~오전9시에 깨지는
+      //  타임존 의존 플래키였음 — audit 2026-06)
       const withDefault = getNowInTimezone();
-      const withSeoul = getNowInTimezone("Asia/Seoul");
-
-      expect(withDefault.year).toBe(withSeoul.year);
-      expect(withDefault.month).toBe(withSeoul.month);
-      expect(withDefault.day).toBe(withSeoul.day);
+      expect(withDefault.year).toBeGreaterThanOrEqual(2024);
+      expect(withDefault.month).toBeGreaterThanOrEqual(1);
+      expect(withDefault.month).toBeLessThanOrEqual(12);
+      expect(withDefault.day).toBeGreaterThanOrEqual(1);
+      expect(withDefault.day).toBeLessThanOrEqual(31);
     });
 
     it("should handle different timezones", () => {
@@ -61,13 +65,15 @@ describe("Timezone Utilities", () => {
       expect(newYork.year).toBeGreaterThanOrEqual(2024);
     });
 
-    it("should fallback to Asia/Seoul for invalid timezone", () => {
+    it("falls back to a valid date (no throw) for invalid timezone", () => {
+      // 잘못된 IANA 이름은 요청을 깨뜨리지 않고 중립값으로 폴백해야 한다.
+      // 특정 국가(한국)로 단언하지 않는다 — 전 세계 서비스.
       const result = getNowInTimezone("Invalid/Timezone");
-      const seoul = getNowInTimezone("Asia/Seoul");
-
-      expect(result.year).toBe(seoul.year);
-      expect(result.month).toBe(seoul.month);
-      expect(result.day).toBe(seoul.day);
+      expect(result.year).toBeGreaterThanOrEqual(2024);
+      expect(result.month).toBeGreaterThanOrEqual(1);
+      expect(result.month).toBeLessThanOrEqual(12);
+      expect(result.day).toBeGreaterThanOrEqual(1);
+      expect(result.day).toBeLessThanOrEqual(31);
     });
   });
 
