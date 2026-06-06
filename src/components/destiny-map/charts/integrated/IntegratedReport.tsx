@@ -303,6 +303,32 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
                 <div className={s.gaugeHead}><span>일간 {S.dayMaster} · {S.geokguk}</span><b>{S.strength === 'strong' ? '신강' : S.strength === 'weak' ? '신약' : '중화'}</b></div>
                 <div className={s.gauge}><div className={s.gaugeFill} style={{ width: `${strengthPct}%` }} /></div>
                 <div className={s.gaugeScale}><i>신약</i><i>중화</i><i>신강</i></div>
+                {/* 회색 3 셀 (RAW_DISTRIBUTION v5.4): 통근 / 공망 / 조후 — 정통
+                    사주 보조 정보. 한 줄 노출 + title 툴팁. 없으면 자동 생략. */}
+                {(S.rooted !== undefined || (S.gongmang && S.gongmang.length) || S.johuYongsin) && (
+                  <div className={s.gaugeScale} style={{ marginTop: 6, gap: 8, flexWrap: 'wrap' }}>
+                    {S.rooted !== undefined && (
+                      <i title={S.rooted
+                        ? '통근 — 일간의 오행이 지지 지장간에 박혀있음. 일간 강도 보강.'
+                        : '무근 — 일간 오행이 지지에 박혀있지 않음. 강도 약화 요인.'}>
+                        {S.rooted ? '뿌리 ✓' : '뿌리 ✗'}
+                      </i>
+                    )}
+                    {S.gongmang && S.gongmang.length > 0 && (
+                      <i title="공망 — 일주 60갑자 그룹에서 비어있는 지지 2개. 해당 지지의 작용이 약함.">
+                        공망 {S.gongmang.join(' · ')}
+                      </i>
+                    )}
+                    {S.johuYongsin && (
+                      <i
+                        className={elClass[S.johuYongsin.primary]}
+                        title={`조후용신 — 계절 균형 관점의 보조 용신. 긴급도 ${S.johuYongsin.rating}/5.`}>
+                        조후 {ELEMENTS[S.johuYongsin.primary]?.han ?? S.johuYongsin.primary}
+                        {S.johuYongsin.rating >= 4 && ' ⚡'}
+                      </i>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <div className={s.subcap}>용신 · 희신 · 기신</div>

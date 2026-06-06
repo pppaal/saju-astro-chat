@@ -166,6 +166,11 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
       // 옛 패턴을 ctx 안으로 흡수. NatalContext type 에는 없지만 caller 가
       // 사용하므로 안전한 추가 필드로 둠.
       twelveStages,
+      // 회색 3 셀 해소 (RAW_DISTRIBUTION v5.4): facts 가 만들지만 ctx 가 안
+      // 받던 정통 사주 보조 정보. adapter 가 사주 카드 옆 한 줄로 표시.
+      rooted: sajuFacts.dayMaster.rooted,
+      gongmang: sajuFacts.gongmang,
+      johuYongsin: sajuFacts.johuYongsin,
     } as unknown as NatalContext['saju'],
     astro: {
       chart,

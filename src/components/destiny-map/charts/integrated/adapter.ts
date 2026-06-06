@@ -204,6 +204,12 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
       },
       fiveElements: S.fiveElements ?? { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 },
       natalShinsal, natalRelations, daeun,
+      // 회색 3 셀 해소 (RAW_DISTRIBUTION v5.4 — buildReportContext 가 흘려줌).
+      rooted: typeof S.rooted === 'boolean' ? S.rooted : undefined,
+      gongmang: Array.isArray(S.gongmang) ? S.gongmang : undefined,
+      johuYongsin: S.johuYongsin
+        ? { primary: elEn(S.johuYongsin.primaryYongsin), rating: S.johuYongsin.rating ?? 0 }
+        : null,
     },
     astro: {
       sect: A.sect ?? 'day', houseSystem: A.houseSystem ?? 'Placidus',
