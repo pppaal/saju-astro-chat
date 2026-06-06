@@ -271,16 +271,17 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
 
   // 1. 일간 cross — 항상 CRITICAL
   if (elA && elB) {
-    if (elA === elB) {
-      critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — 같은 오행 (비견)`)
-    } else if (EL_CONTROLS[elA] === elB) {
+    {
       const a = nmA || 'A', b = nmB || 'B'
-      critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
-    } else if (EL_CONTROLS[elB] === elA) {
-      const a = nmA || 'A', b = nmB || 'B'
-      critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
-    } else {
-      important.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — 상생 (서로 보완)`)
+      if (elA === elB) {
+        critical.push(`${a}·${b} 타고난 기질이 같은 결 — 쉽게 통하지만 비슷해서 부딪히면 둘 다 잘 안 굽힘`)
+      } else if (EL_CONTROLS[elA] === elB) {
+        critical.push(`${a}이(가) ${b}을(를) 정리·다듬는 흐름 — ${b}은(는) 처음엔 이끌어준다 느끼다 시간이 지나면 따끔·제약처럼 느낄 수 있음 (방향 고정: ${a}→${b}, 반대로 쓰지 말 것)`)
+      } else if (EL_CONTROLS[elB] === elA) {
+        critical.push(`${b}이(가) ${a}을(를) 정리·다듬는 흐름 — ${a}은(는) 처음엔 이끌어준다 느끼다 시간이 지나면 따끔·제약처럼 느낄 수 있음 (방향 고정: ${b}→${a}, 반대로 쓰지 말 것)`)
+      } else {
+        important.push(`${a}·${b} 서로 북돋우는 흐름 — 한쪽이 다른 쪽 기운을 키워줌 (보완)`)
+      }
     }
   }
 
@@ -291,7 +292,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const bSeesA = sibsinOf(bDay.stem, aDay.stem) // B 일간 입장에서 A 일간은
     if (aSeesB && bSeesA) {
       critical.push(
-        `십성 cross — ${labelA} 입장에서 ${labelB}는 ${aSeesB}(${SIBSIN_GLOSS[aSeesB] ?? ''}), ${labelB} 입장에서 ${labelA}는 ${bSeesA}(${SIBSIN_GLOSS[bSeesA] ?? ''})`
+        `${labelA} 입장에서 ${labelB}는 [${SIBSIN_GLOSS[aSeesB] ?? aSeesB}] 결 · ${labelB} 입장에서 ${labelA}는 [${SIBSIN_GLOSS[bSeesA] ?? bSeesA}] 결`
       )
     }
   }
@@ -711,7 +712,11 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // ── 조립: 우선순위 티어 ── (헤더 짧게, 빈자료 블록 생략, 빈 라인 제거)
   const out: string[] = ['== 시너스트리 (사주 cross) ==']
   if (elA && elB) {
-    out.push(`[고정] ${labelA} 일간 ${aDay.stem}(${elA}) · ${labelB} 일간 ${bDay.stem}(${elB}) — 오행·방향 절대 뒤집지 말 것`)
+    const a = nmA || 'A', b = nmB || 'B'
+    let dir = ''
+    if (EL_CONTROLS[elA] === elB) dir = ` — ${a}이(가) ${b}을(를) 정리·다듬는 쪽`
+    else if (EL_CONTROLS[elB] === elA) dir = ` — ${b}이(가) ${a}을(를) 정리·다듬는 쪽`
+    out.push(`[고정] ${a} ↔ ${b} 관계 방향 닻${dir} (방향 반대로 쓰지 말 것)`)
   }
   if (critical.length) {
     out.push('[CRITICAL · 일간 극/천간합/일지 충형]')
