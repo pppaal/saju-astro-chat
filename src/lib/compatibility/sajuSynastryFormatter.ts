@@ -273,16 +273,17 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (elA && elB) {
     {
       const a = nmA || 'A', b = nmB || 'B'
-      // 오행만 짧게 (A 금 ↔ B 목) + 한 줄 결/방향. 한자·"금극목" 같은 표기는 빼고
-      // 오행 한 글자만 남긴다.
+      // 천간+오행 붙임 (A 신금 ↔ B 갑목) + 한 줄 결/방향. 끝의 koreanize 가
+      // 辛→신 변환하므로 stem(한자)+elA(한글) 이 "신금" 으로 나온다.
+      const dgA = `${aDay.stem}${elA}`, dgB = `${bDay.stem}${elB}`
       if (elA === elB) {
-        critical.push(`${a} ${elA} ↔ ${b} ${elB} — 같은 기운 (통하지만 비슷해 부딪힐 수도)`)
+        critical.push(`${a} ${dgA} ↔ ${b} ${dgB} — 같은 기운 (통하지만 비슷해 부딪힐 수도)`)
       } else if (EL_CONTROLS[elA] === elB) {
-        critical.push(`${a} ${elA} ↔ ${b} ${elB} — ${a}가 ${b}를 정리·다듬는 결 (방향: ${a}→${b})`)
+        critical.push(`${a} ${dgA} ↔ ${b} ${dgB} — ${a}가 ${b}를 정리·다듬는 결 (방향: ${a}→${b})`)
       } else if (EL_CONTROLS[elB] === elA) {
-        critical.push(`${a} ${elA} ↔ ${b} ${elB} — ${b}가 ${a}를 정리·다듬는 결 (방향: ${b}→${a})`)
+        critical.push(`${a} ${dgA} ↔ ${b} ${dgB} — ${b}가 ${a}를 정리·다듬는 결 (방향: ${b}→${a})`)
       } else {
-        important.push(`${a} ${elA} ↔ ${b} ${elB} — 서로 기운 북돋움 (보완)`)
+        important.push(`${a} ${dgA} ↔ ${b} ${dgB} — 서로 기운 북돋움 (보완)`)
       }
     }
   }
@@ -718,7 +719,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     let dir = ''
     if (EL_CONTROLS[elA] === elB) dir = ` — 방향 ${a}→${b}`
     else if (EL_CONTROLS[elB] === elA) dir = ` — 방향 ${b}→${a}`
-    out.push(`[고정] ${a} ${elA} · ${b} ${elB}${dir} (뒤집지 말 것)`)
+    out.push(`[고정] ${a} ${aDay.stem}${elA} · ${b} ${bDay.stem}${elB}${dir} (뒤집지 말 것)`)
   }
   if (critical.length) {
     out.push('[CRITICAL · 일간 극/천간합/일지 충형]')
