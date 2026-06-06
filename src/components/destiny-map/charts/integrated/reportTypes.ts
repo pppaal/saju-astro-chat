@@ -36,6 +36,11 @@ export interface ReportData {
     natalShinsal: Array<{ name: string; ko: string; pillar: string; sub?: string; polarity: number }>
     natalRelations: Array<{ type: string; detail: string; tone: 'pos' | 'neg' | 'neutral' }>
     daeun: Array<{ age: number; stem: string; branch: string; sibsin: string; current: boolean }>
+    // 회색 3 셀 해소 (RAW_DISTRIBUTION v5.4) — 정통 사주 보조 정보.
+    // 옛 SAMPLE_REPORT 호환 위해 optional.
+    rooted?: boolean                                       // 일간 통근 여부
+    gongmang?: string[]                                    // 공망 지지 2개
+    johuYongsin?: { primary: string; rating: number } | null // 조후용신 (계절 균형)
   }
   astro: {
     sect: string

@@ -14,6 +14,7 @@ import { determineGeokguk } from '@/lib/saju/geokguk'
 import { calculateStrengthScore } from '@/lib/saju/strengthScore'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { getJohuYongsin, type JohuYongsinInfo } from '@/lib/saju/johuYongsin'
+import { getGongmang } from '@/lib/saju/shinsal'
 
 export interface SajuFactsInput {
   birthDate: string // 'YYYY-MM-DD'
@@ -70,6 +71,12 @@ export interface SajuFacts {
    * 매핑 미정의 사주 (일부 일간×월지 조합) 는 null.
    */
   johuYongsin: JohuYongsinInfo | null
+  /**
+   * 공망 (空亡) — 일주(日柱) 의 60갑자 그룹에서 비어있는 지지 2개. 운명상담사
+   * LLM (counselorContext) 도 같은 함수 호출. 통합 리포트가 공망 라벨 표시.
+   * 임시정 일주 (드물게 60갑자 매칭 실패) 는 빈 배열.
+   */
+  gongmang: string[]
   /**
    * 옛 raw saju 객체 (calculateSajuData 결과) — buildNatalContext / 캘린더
    * 엔진처럼 raw shape 자체가 필요한 caller 가 별도 calculateSajuData 호출을
@@ -230,6 +237,7 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
     },
     // 조후용신 — JOHU_YONGSIN_DB 정적 룩업. 비용 거의 0.
     johuYongsin: getJohuYongsin(day, P.month.earthlyBranch.name),
+    gongmang: getGongmang(day, P.day.earthlyBranch.name),
     _raw: raw as unknown as CalculateSajuDataResult,
   }
 }
