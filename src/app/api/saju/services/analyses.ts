@@ -2,7 +2,7 @@
 // 고급 분석 실행 함수들
 
 import { logger } from '@/lib/logger'
-import { determineGeokgukAdvanced, getGeokgukDescription } from '@/lib/saju/geokguk'
+import { determineGeokgukAdvanced } from '@/lib/saju/geokguk'
 import {
   determineYongsin,
   getYongsinDescription,
@@ -30,7 +30,9 @@ export interface PillarsWithHour {
 }
 
 export interface AnalysesResult {
-  geokguk: (ReturnType<typeof determineGeokgukAdvanced> & { description: string }) | null
+  // description (1줄 풀이) 제거 — chart-dictionary/geokguk-rich.json + lifetimeFlow
+  // GEOKGUK_SHORT_KO 가 SSOT. 옛 1줄 description 은 dead fallback.
+  geokguk: ReturnType<typeof determineGeokgukAdvanced> | null
   yongsin:
     | (ReturnType<typeof determineYongsin> & {
         description: string
@@ -69,11 +71,7 @@ export function performAnalyses(
   // 대해 evaluateGeokgukStatus 로 성격/파격/반성반파 statusResult 를 결과에 부착.
   // 차트 PersonaCard 와 calendar saju-geokguk extractor 가 성패 정보를 소비.
   try {
-    const geokguk = determineGeokgukAdvanced(simplePillars)
-    result.geokguk = {
-      ...geokguk,
-      description: getGeokgukDescription(geokguk.primary),
-    }
+    result.geokguk = determineGeokgukAdvanced(simplePillars)
   } catch (e) {
     if (process.env.NODE_ENV !== 'production') {
       logger.warn('[Saju API] Geokguk analysis failed:', e)

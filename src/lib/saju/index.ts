@@ -48,7 +48,6 @@ export * from './timezone'
 // 격국 판정 모듈
 export {
   determineGeokguk,
-  getGeokgukDescription,
   type GeokgukResult,
   type GeokgukType as GeokgukTypeNew,
 } from './geokguk'
