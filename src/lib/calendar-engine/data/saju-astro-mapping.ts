@@ -17,7 +17,7 @@
  * pair.weight  = saju.weight × astro.weight × 0.6 (cross 신호 noise 방지)
  */
 
-import type { Polarity } from '../types'
+import type { Polarity, SignalLayer } from '../types'
 
 /** 사주 측의 매칭 키 — 십신 또는 신살명. */
 export type SajuMatchKey =
@@ -259,7 +259,71 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     grade: 'A',
     note: '건록(자기 자리·실력의 록) ↔ Jupiter(recognition·expansion). 양쪽 모두 인정축.',
   },
+
+  // ─── 외행성 × 십신 (B등급) — *장주기 전용* ───
+  // 천왕·해왕·명왕은 너무 느려 일/월에서 교차하면 노이즈(윈도우가 수년). 그래서
+  // CROSS_LAYER_BAND 로 *대운(decadal) 층에서만* 발화하게 막는다. 대운(10년)은
+  // 외행성 한 sign 체류(~7~15년)와 같은 장주기 급이라 의미 대응이 자연스럽다.
+  {
+    saju: '편관',
+    astro: 'Pluto',
+    meaning: {
+      ko: '편관 × 명왕성 — 이 대운은 권력·강제·근본 변형의 결. 끝과 시작이 함께 오니 무리한 통제보다 큰 재구성에 맡기기.',
+      en: 'Seven Killings × Pluto — this decade carries power, coercion, and deep transformation. Endings and beginnings together; surrender to the big restructuring.',
+    },
+    polarity: -1,
+    grade: 'B',
+    note: '편관(七殺·강제·위기) ↔ Pluto(변형·권력). decadal 전용(밴드).',
+  },
+  {
+    saju: '편인',
+    astro: 'Neptune',
+    meaning: {
+      ko: '편인 × 해왕성 — 이 대운은 영성·직관·비주류 학문이 깊어지되 현실 감각이 흐려질 수 있는 결.',
+      en: 'Indirect Print × Neptune — this decade deepens spirituality, intuition, and unconventional study, but reality can blur.',
+    },
+    polarity: 0,
+    grade: 'B',
+    note: '편인(이단·고독 학문·직관) ↔ Neptune(영성·환상·용해). decadal 전용(밴드).',
+  },
+  {
+    saju: '상관',
+    astro: 'Uranus',
+    meaning: {
+      ko: '상관 × 천왕성 — 이 대운은 틀을 깨는 재능·혁신·반항의 결. 돌파구가 열리되 기존 질서와 부딪칠 수 있어요.',
+      en: 'Hurting Officer × Uranus — this decade carries rule-breaking talent, innovation, and rebellion. Breakthroughs open, but they can clash with the old order.',
+    },
+    polarity: 0,
+    grade: 'B',
+    note: '상관(예봉·반관·천재성) ↔ Uranus(돌발·혁명·천재성). decadal 전용(밴드).',
+  },
 ]
+
+/**
+ * 층별 교차 밴드 — 행성마다 *어느 시간 층에서* 교차신호를 낼 수 있는지.
+ * 행성 속도에 맞춘다: 빠른 행성은 일/월에서만(긴 층에선 무의미), 느린/외행성은
+ * 대운/장주기에서만(짧은 층에선 노이즈 — 윈도우가 수개월~수년이라 상시 발화).
+ * cross-activation 이 합성 신호의 layer 가 이 밴드에 없으면 emit 하지 않는다.
+ * → "전부 켜기/끄기"가 아니라 *층마다 맞는 행성만* 교차.
+ */
+export const CROSS_LAYER_BAND: Record<AstroMatchKey, readonly SignalLayer[]> = {
+  Moon: ['daily'],
+  Sun: ['daily', 'monthly'],
+  Mercury: ['daily', 'monthly'],
+  Venus: ['daily', 'monthly'],
+  Mars: ['daily', 'monthly'],
+  Jupiter: ['monthly', 'yearly', 'decadal'],
+  Saturn: ['yearly', 'decadal'],
+  Uranus: ['decadal'],
+  Neptune: ['decadal'],
+  Pluto: ['decadal'],
+}
+
+/** 합성 교차신호의 layer 가 그 행성의 밴드에 드는지. 미정의 행성은 허용(보수적). */
+export function crossLayerAllowed(astro: string, layer: SignalLayer): boolean {
+  const band = CROSS_LAYER_BAND[astro as AstroMatchKey]
+  return band ? band.includes(layer) : true
+}
 
 /**
  * 빠른 매칭용 인덱스 — saju 키 + astro 키 → CrossMapping.

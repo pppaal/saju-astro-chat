@@ -141,6 +141,27 @@ export interface DestinyConverge {
   meaning: string
 }
 
+/**
+ * "이달의 큰 날" — convergence keyDays 1줄. 점(date)이 아니라 *구간(window)* 과
+ * 사주↔점성 신뢰도(confidence)를 함께 담아 타이밍을 또렷이 보여준다.
+ */
+export interface DestinyMonthKeyDay {
+  /** 표시용 'MM-DD' (또는 포맷된 라벨). */
+  date: string
+  /** 한 줄 의미. */
+  meaning?: string
+  /** 점성측 무거운 신호 라벨들. */
+  astro: string[]
+  /** 사주측 무거운 신호 라벨들. */
+  saju: string[]
+  /** 두 시스템 모두 무거웠나 (진짜 수렴). */
+  bothSystems: boolean
+  /** 활성 구간 — 빌드업→정점→소멸 (ISO). */
+  window?: { start: string; peak: string; end: string }
+  /** 사주↔점성 신뢰도 0~100. */
+  confidence?: number
+}
+
 // ============================================================================
 // Month 카드 prop.
 // ============================================================================
@@ -173,6 +194,8 @@ export interface DestinyMonth {
   narrative: TaggedNarrative[]
   /** Converge 일. */
   converge: DestinyConverge
+  /** 이달의 큰 날 리스트 (convergence keyDays — 윈도우+신뢰도). */
+  keyDays?: DestinyMonthKeyDay[]
   /** 사용자 다이브 일자 (1..31). */
   focusDay: number
   /** 30일 캘린더 그라프. */
