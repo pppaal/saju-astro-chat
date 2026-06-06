@@ -4,6 +4,8 @@
 > 각각 무엇을 받아야 하는지의 SSOT. consumer 가 자기 분석을 자기 책임으로 호출하는 패턴
 > (sajuFacts/astroFacts 정제 + consumer 가 직접 분석 함수 호출).
 >
+> **v5.1 (2026-06-06)** — raw 행 정밀화: 점성 raw 행 분리 (ASC/MC vs houses) +
+> sect 를 분석 행으로 이동 (Sun house derive). 운명 LLM houses 셀 정정 (부분 사용 — H번호만).
 > **v5 (2026-06-06)** — 3 Opus 병렬 운명/궁합/통합 시점 코드 실측 재검증 + PR #1230 (조후) /
 > PR #1231 (buildReportContext) 반영. 운명 LLM 8 셀 / 궁합 3 셀 / 통합 4 셀 정정.
 > (v4: 4 consumer 진입점 검증, 흐름성 축 도입. v3: 엔진 output type 대조.)
@@ -102,8 +104,10 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 | unseRelations (세운/월운/일진 ↔ 본명/대운) | 분석 | 동사 | ✅ | - | - | - |
 | **점성 raw** | | | | | | |
 | planets (10행성 + 노드) | raw | 명사 | ✅ | ✅ | ✅ | ✅ |
-| ASC / MC · sect · houses | raw | 명사 | ✅ | ✅ | ✅ | ✅ |
+| ASC / MC | raw | 명사 | ✅ | ✅ | ✅ | ✅ |
+| houses (12 cusp) | raw | 명사 | 부분(H번호만) | ✅ | ✅ | ✅ |
 | **점성 분석** (raw 위에 추가) | | | | | | |
+| sect (Sun house → day/night) | 분석 | 명사 | ✅ | ✅ | ✅ | ✅ |
 | 본명 aspects (major) | 분석 | 명사 | ✅ | ✅ | ✅ | - |
 | dignity (단순 per planet) | 분석 | 명사 | ✅ | - | ✅ | - |
 | dignity 5-tier (dignityTiers) | 분석 | 명사/동사 | - | - | -(PR #1231) | ✅(트랜짓) |
@@ -270,6 +274,10 @@ PR #1230 으로 운명 LLM 도입 (rating ≥4 만). 궁합 LLM 은 미도입 (c
   - 궁합 LLM 3 셀 (통근 ✅→`-`, 공망 cross 신규 행, fiveElements 자체 재계산).
   - 통합 리포트 4 셀 (Lots/ZR/Almuten/5-tier dignity ⚠️dead→`-`) — PR #1231 (`buildReportContext`) 로 해소.
   - 신규 후속 결정 E (운명 LLM slimAstroSelf drop) / F (buildNatalContext 폐기 Phase 추적).
+- 2026-06-06 **v5.1** — raw 행 정밀화:
+  - 점성 raw 행 분리: "ASC/MC·sect·houses" → "ASC/MC" + "houses (12 cusp)" 2 행.
+  - `sect` (Sun house → day/night) 를 점성 분석 섹션으로 이동 — derive 데이터라 raw 아님.
+  - 운명 LLM houses 셀: ✅ → `부분(H번호만)` — 행성의 하우스 번호만 표시, cusp 자체는 미사용.
 - TODO: C(궁합 분석 확장) / E(slimAstroSelf 매칭) 결정 + V3 캘린더 엔진(§2.5 의 🔴 제거 / ◐ 분리) → implementation
 
 ## 9. 참고
