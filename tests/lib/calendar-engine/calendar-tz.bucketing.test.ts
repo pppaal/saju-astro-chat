@@ -136,6 +136,69 @@ describe('calendar-tz: groupIntoCells buckets signals deterministically', () => 
   })
 })
 
+/**
+ * Hour-granularity boundary regression.
+ *
+ * A date-only `end` ('YYYY-MM-DD') resolves to 00:00 of that day. With hour
+ * granularity that made a single-day range (start === end === 'YYYY-MM-DD')
+ * yield ONLY the 00:00 cell, so 시진(時柱)/planetary-hour signals — emitted at
+ * 01,03,…23h — had no cell to land in and silently vanished (the day-level
+ * 대운/세운 signals, which contain 00:00, masked the gap). Fix: iterateRange
+ * treats a date-only `end` as "through the end of that day", expanding the
+ * range to all 24 hour cells. Datetime ends (length > 10) are honored as-is,
+ * so production (date-detail passes '…T23:00:00.000Z') and day granularity
+ * are unaffected.
+ */
+describe('calendar-tz: hour granularity expands a date-only single-day range', () => {
+  const DAY = '2030-04-20'
+
+  it('a date-only single-day range yields all 24 hour cells, not just 00:00', () => {
+    const range: CalendarRange = { start: DAY, end: DAY, granularity: 'hour' }
+    const cells = groupIntoCells([], range, OPTS)
+    expect(cells.length).toBe(24)
+    expect(cells[0].datetime).toBe(`${DAY}T00:00:00.000Z`)
+    expect(cells[23].datetime).toBe(`${DAY}T23:00:00.000Z`)
+    for (const c of cells) {
+      expect(c.datetime).toMatch(/^2030-04-20T\d{2}:00:00\.000Z$/)
+    }
+  })
+
+  it('an hourly signal lands on its real hour cell (was lost before the fix)', () => {
+    // 시진-like: active only 01:00–03:00, so before the fix (single 00:00 cell)
+    // it had nowhere to go.
+    const sijin = transitLikeSignal(
+      'sijin',
+      `${DAY}T01:00:00.000Z`,
+      `${DAY}T02:00:00.000Z`,
+      `${DAY}T03:00:00.000Z`
+    )
+    const range: CalendarRange = { start: DAY, end: DAY, granularity: 'hour' }
+    const cells = groupIntoCells([sijin], range, OPTS)
+    const hit = cells.filter((c) => c.signals.some((s) => s.id === 'sijin')).map((c) => c.datetime)
+    expect(hit).toEqual([
+      `${DAY}T01:00:00.000Z`,
+      `${DAY}T02:00:00.000Z`,
+      `${DAY}T03:00:00.000Z`,
+    ])
+  })
+
+  it('explicit datetime end (production style) is unchanged — still 24 cells', () => {
+    const range: CalendarRange = {
+      start: `${DAY}T00:00:00.000Z`,
+      end: `${DAY}T23:00:00.000Z`,
+      granularity: 'hour',
+    }
+    expect(groupIntoCells([], range, OPTS).length).toBe(24)
+  })
+
+  it('day granularity with a date-only single day is unchanged — still 1 cell', () => {
+    const range: CalendarRange = { start: DAY, end: DAY, granularity: 'day' }
+    const cells = groupIntoCells([], range, OPTS)
+    expect(cells.length).toBe(1)
+    expect(cells[0].datetime).toBe(`${DAY}T00:00:00.000Z`)
+  })
+})
+
 describe('calendar-tz: convergence exactness is now server-TZ independent', () => {
   // exactnessFactor (derivers/convergence.ts) does
   //   |new Date(cellDate) - new Date(peak)| / 86_400_000

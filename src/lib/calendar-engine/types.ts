@@ -106,7 +106,14 @@ export interface SignalEvidence {
 export interface CalendarCell {
   datetime: string // ISO
   signals: ActiveSignal[] // 그 시점 활성 신호 전체
-  derivedScore: number // 0~100 — polarity 가중합
+  derivedScore: number // 0~100 — polarity 가중합 (우호도: 좋다/나쁘다)
+  /**
+   * 현저도("큰 날") — 드문(−logP) × 강한(|polarity|·weight) 신호의 지배 top-k 기여 합.
+   * derivedScore(우호도)와 *직교*하는 축: 이 날이 얼마나 두드러지는가(좋고나쁨 무관).
+   * groupIntoCells 가 빌드된 셀 묶음(=base-rate 모집단) 기준으로 계산. derivers/surprise.ts.
+   * 모집단이 빌드 청크(보통 한 달)라 cross-chunk 절대비교엔 주의 — 청크 내 상대 현저도.
+   */
+  salience: number
   themeScores: Partial<Record<AstroThemeKey, number>> // 테마별 강도 0~100
   matchedPatterns: SignalPattern[] // 신호 조합 → 명명 패턴
   topReasons: string[] // 상위 3~5개 우호 사유 텍스트

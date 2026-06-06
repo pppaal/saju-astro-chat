@@ -55,6 +55,7 @@ import { deriveScore } from './derivers/score'
 import { deriveThemeScores } from './derivers/themeScores'
 import { deriveTopReasons, deriveCautions } from './derivers/summary'
 import { derivePatterns } from './derivers/patterns'
+import { computeBaseRates, cellSurprise } from './derivers/surprise'
 
 /**
  * 캘린더 엔진 진입점.
@@ -195,6 +196,7 @@ function groupIntoCells(
       datetime: day,
       signals: [],
       derivedScore: 50,
+      salience: 0,
       themeScores: {},
       matchedPatterns: [],
       topReasons: [],
@@ -216,13 +218,16 @@ function groupIntoCells(
   // derivers — 점수·테마점수·패턴·요약 계산 (점수는 부산물)
   // 패턴을 먼저 검출하고, 점수 계산에 패턴 보너스 반영.
   //
-  // score/pattern 입력에서 'saju-pattern'(본명 격국 — lifetime decadal layer로
-  // 평생 emit되는 배경 신호)을 제외한다. 그날 가변 신호가 아니라 본명 자체
-  // 표지라 score/pattern 매칭에 넣으면 모든 셀에 같은 +impact를 깔아 강한 사주
-  // 사용자만 매일 좋음으로 inflate된다 ("다 좋네 ㅋ" 분포 편향). narrative
-  // (cell.signals 그대로 노출)에는 유지 — 사용자가 본명 격국을 카드에서 확인.
+  // score/pattern 입력에서 *정적 본명*(명사) 신호를 제외한다. 그날 가변 신호가
+  // 아니라 본명 자체 표지라 매일 같은 impact를 깔아 점수를 오염시킨다(강한 사주
+  // 사용자만 매일 좋음으로 inflate — "다 좋네 ㅋ" 편향). narrative(cell.signals
+  // 그대로)에는 유지 — 카드에서 본명 격국 확인. 흐름/리포트 분리는
+  // docs/운흐름.md §0.5.8 / RAW_DISTRIBUTION.md §2.5(🔴) 참조.
+  //  - 'saju-pattern'   : 본명 격국명·일주 archetype (decadal 배경)
+  //  - 'geokguk-status' : 본명 격국 성패(±1, daily emit) — v4 추가
+  const STATIC_NATAL_KINDS = new Set(['saju-pattern', 'geokguk-status'])
   for (const cell of cells.values()) {
-    const scoreSignals = cell.signals.filter((s) => s.kind !== 'saju-pattern')
+    const scoreSignals = cell.signals.filter((s) => !STATIC_NATAL_KINDS.has(s.kind))
     cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(scoreSignals)
     cell.derivedScore = deriveScore(scoreSignals, cell.matchedPatterns)
     cell.themeScores = deriveThemeScores(cell.signals)
@@ -230,7 +235,16 @@ function groupIntoCells(
     cell.cautions = deriveCautions(cell.signals)
   }
 
-  return Array.from(cells.values()).sort((a, b) => a.datetime.localeCompare(b.datetime))
+  // 현저도(salience) — derivedScore(우호도)와 직교하는 "큰 날" 축. base-rate 는
+  // *이 빌드 청크* 셀 전체를 모집단으로 1회 측정 후 각 셀에 cellSurprise 적용.
+  // 셀당 독립 계산이 아니라 묶음 통계가 필요해서 deriver 루프와 분리한다.
+  const cellList = Array.from(cells.values())
+  const rates = computeBaseRates(cellList)
+  for (const cell of cellList) {
+    cell.salience = cellSurprise(cell, rates).total
+  }
+
+  return cellList.sort((a, b) => a.datetime.localeCompare(b.datetime))
 }
 
 /**
@@ -249,7 +263,13 @@ function toUtcMs(iso: string): number {
 
 function* iterateRange(range: CalendarRange): Generator<string> {
   const start = toUtcMs(range.start)
-  const end = toUtcMs(range.end)
+  // 경계 해석 — date-only('YYYY-MM-DD') end 는 "그 날의 끝까지"로 본다. 그래야
+  // hour granularity 의 단일일 범위({start:'…', end:'…', 같은 날})가 00:00 한 칸이
+  // 아니라 00~23시 전부로 펼쳐진다(시진·행성시 신호가 시각별 셀에 들어가도록).
+  // 시각이 명시된 end(길이>10, 예: '…T23:00:00.000Z')는 그대로 존중하므로
+  // 프로덕션(date-detail 라우트)·day granularity 동작은 바뀌지 않는다.
+  const end =
+    range.end.length <= 10 ? toUtcMs(range.end) + 86_400_000 - 1 : toUtcMs(range.end)
   const step = range.granularity === 'hour' ? 3600_000 : 86_400_000
   for (let t = start; t <= end; t += step) {
     yield new Date(t).toISOString()

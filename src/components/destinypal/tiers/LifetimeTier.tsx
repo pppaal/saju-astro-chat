@@ -247,9 +247,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         <div>
           <p className={styles.lead}>{user.intro}</p>
           <p className={`${styles.lead} ${styles.leadEn}`}>{user.introEn}</p>
-
-          {/* ── Phase 3 보강 ①: Sect 한 줄 ── */}
-          {user.sect ? <SectRow user={user} /> : null}
+          {/* Sect/Lord-of-Asc 행 제거 — 정적 본명 메타(헬레니즘 섹트)는 타이밍
+              흐름과 무관, 리포트(본명 해설)감이라 흐름에서 뺀다. */}
         </div>
 
         <div className={`${styles.panel} ${styles.introPanel}`}>
@@ -409,6 +408,66 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       )}
 
       {/* ============================================================
+          운명의 전환기 — 지난 5년 → 앞으로 10년 (세로 작대기 창)
+          프리미엄 LifetimeView 의 windowed pivot 뷰 포팅. 기존 가로 "분기점
+          타임라인"(전 생애)과 별개로, *근미래에 집중한* 세로 타임라인.
+      ============================================================ */}
+      {(() => {
+        const nowYear = lifetime.currentYear
+        const win = milestones
+          .filter((m) => m.year >= nowYear - 5 && m.year <= nowYear + 10)
+          .sort((a, b) => a.year - b.year)
+        if (win.length === 0) return null
+        // 하이라이트 = 올해 또는 가장 가까운 다가오는 전환점. 없으면 마지막.
+        const hi = (() => {
+          const i = win.findIndex((m) => m.year >= nowYear)
+          return i === -1 ? win.length - 1 : i
+        })()
+        const sysOf = (k: string) => (k === 'saju' || k === 'daewoon' ? '사주' : '점성')
+        return (
+          <div className={styles.pivots}>
+            <div className={styles.sectionHead}>
+              <h2 className={styles.sectionTitle}>운명의 전환기</h2>
+              <span className={styles.tiny}>지난 5년 → 앞으로 10년</span>
+            </div>
+            <div className={styles.pivotList}>
+              {win.map((m, idx) => {
+                const past = m.year < nowYear
+                const highlight = idx === hi
+                const [titleRaw, ...rest] = m.label.split('—')
+                const meaning = rest.join('—').trim()
+                return (
+                  <div
+                    key={`pv-${m.year}-${idx}`}
+                    className={`${styles.pivot} ${past ? styles.pivotPast : ''} ${
+                      highlight ? styles.pivotNow : ''
+                    }`}
+                  >
+                    <span className={styles.pivotDot} />
+                    <div className={styles.pivotHead}>
+                      <span className={styles.pivotYear}>
+                        {m.year}
+                        <small> · {m.age}세</small>
+                      </span>
+                      <span className={styles.pivotSys}>{sysOf(m.kind)}</span>
+                      {past && <span className={styles.pivotTag}>지난 시기</span>}
+                      {highlight && (
+                        <span className={styles.pivotTagNow}>
+                          {m.year === nowYear ? '올해' : '다가오는 시기'}
+                        </span>
+                      )}
+                    </div>
+                    <div className={styles.pivotTitle}>{titleRaw.trim()}</div>
+                    {meaning && <div className={styles.pivotMeaning}>{meaning}</div>}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* ============================================================
           milestone timeline
       ============================================================ */}
       <div className={styles.miles}>
@@ -450,54 +509,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 // Phase 3 보강 ①: Sect Row
 // ============================================================================
 
-function SectRow({ user }: { user: DestinyUserSummary }) {
-  const isNight = user.sect === 'night'
-  const sectKo = isNight ? '밤' : '낮'
-  const sectEn = isNight ? 'Night' : 'Day'
-  const sectLight = isNight ? 'Moon' : 'Sun'
-  // Lord of Asc — DestinyDignityEntry 에서 직접 매핑 못 하니 기본 라벨만.
-  // 백엔드에서 adapter 가 채워줄 자리 (없을 때 graceful fallback).
-  const ascSign = user.astro.asc
-  const lordOfAsc = ascSignRuler(user.astro.ascEn)
-
-  return (
-    <div className={styles.sectRow}>
-      <span>
-        <span className={styles.sectMark}>Sect</span>{' '}
-        {sectKo}({sectEn})
-      </span>
-      <span className={styles.sectSep} />
-      <span>Sect light = {sectLight}</span>
-      {lordOfAsc && (
-        <>
-          <span className={styles.sectSep} />
-          <span>
-            Lord of Asc = {lordOfAsc} ({ascSign})
-          </span>
-        </>
-      )}
-    </div>
-  )
-}
-
-/** ZodiacKo 영문 → traditional ruler. */
-function ascSignRuler(sign: string): string | null {
-  const m: Record<string, string> = {
-    Aries: 'Mars',
-    Taurus: 'Venus',
-    Gemini: 'Mercury',
-    Cancer: 'Moon',
-    Leo: 'Sun',
-    Virgo: 'Mercury',
-    Libra: 'Venus',
-    Scorpio: 'Mars',
-    Sagittarius: 'Jupiter',
-    Capricorn: 'Saturn',
-    Aquarius: 'Saturn',
-    Pisces: 'Jupiter',
-  }
-  return m[sign] ?? null
-}
+// (SectRow / ascSignRuler 제거됨 — 정적 헬레니즘 섹트 메타는 타이밍 흐름과
+//  무관, 리포트감이라 흐름 화면에서 뺀다.)
 
 // ============================================================================
 // Stage detail block (원본 youth-detail 섹션 + Phase 3: 모든 detail stage)
