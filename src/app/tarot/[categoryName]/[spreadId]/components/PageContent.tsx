@@ -65,11 +65,9 @@ export function PageContent(props: PageContentProps) {
     const errorTitle =
       drawError?.code === 'credit_exhausted'
         ? translate('tarot.reading.creditExhaustedTitle', '크레딧이 부족합니다')
-        : drawError?.code === 'guest_limit_reached'
-          ? translate('tarot.reading.guestLimitTitle', '무료 1회 리딩을 모두 사용했습니다')
-          : drawError?.code === 'auth_failed'
-            ? translate('tarot.reading.authFailedTitle', '인증이 필요합니다')
-            : translate('tarot.reading.invalidAccess', 'Invalid Access')
+        : drawError?.code === 'auth_failed'
+          ? translate('tarot.reading.authFailedTitle', '인증이 필요합니다')
+          : translate('tarot.reading.invalidAccess', 'Invalid Access')
 
     const errorDescription =
       drawError?.code === 'credit_exhausted'
@@ -77,41 +75,35 @@ export function PageContent(props: PageContentProps) {
             'tarot.reading.creditExhaustedDesc',
             '카드 리딩 크레딧이 부족합니다. 충전 후 다시 시도해 주세요.'
           )
-        : drawError?.code === 'guest_limit_reached'
+        : drawError?.code === 'auth_failed'
           ? translate(
-              'tarot.reading.guestLimitDesc',
-              '비로그인 무료 리딩 1회는 이미 사용했습니다. 로그인하면 다음 질문부터 이어서 볼 수 있습니다.'
+              'tarot.reading.authFailedDesc',
+              '로그인 또는 인증 상태를 확인한 후 다시 시도해 주세요.'
             )
-          : drawError?.code === 'auth_failed'
-            ? translate(
-                'tarot.reading.authFailedDesc',
-                '로그인 또는 인증 상태를 확인한 후 다시 시도해 주세요.'
-              )
-            : drawError?.message || undefined
+          : drawError?.message || undefined
 
     const primaryActionHref =
       drawError?.code === 'credit_exhausted'
         ? '/pricing'
-        : drawError?.code === 'guest_limit_reached' || drawError?.code === 'auth_failed'
+        : drawError?.code === 'auth_failed'
           ? props.signInUrl
           : undefined
 
     const primaryActionText =
       drawError?.code === 'credit_exhausted'
         ? translate('tarot.reading.buyCredits', '크레딧 충전')
-        : drawError?.code === 'guest_limit_reached' || drawError?.code === 'auth_failed'
+        : drawError?.code === 'auth_failed'
           ? translate('auth.signIn', '로그인')
           : undefined
 
     // 일시적(네트워크/서버) 드로우 실패에만 같은 화면 재시도 노출. 크레딧/
-    // 게스트/인증 에러는 재시도해도 또 실패하므로 각자의 액션(충전/로그인)만.
+    // 인증 에러는 재시도해도 또 실패하므로 각자의 액션(충전/로그인)만.
     // spreadInfo 자체가 없는(잘못된 접근) 경우도 재시도 대상 아님.
     const canRetryDraw =
       gameState === 'error' &&
       !!spreadInfo &&
       drawError != null &&
       drawError.code !== 'credit_exhausted' &&
-      drawError.code !== 'guest_limit_reached' &&
       drawError.code !== 'auth_failed'
 
     return (

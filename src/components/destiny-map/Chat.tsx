@@ -94,7 +94,6 @@ const Chat = memo(function Chat({
     retryCount,
     connectionStatus,
     usedFallback,
-    guestMode: _guestMode, // banner removed; flag still used by hook internals
     followUpQuestions,
     setFollowUpQuestions,
     handleSend: apiHandleSend,

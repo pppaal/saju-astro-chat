@@ -23,7 +23,6 @@ vi.mock('@/lib/credits/withCredits', () => ({
   checkAndConsumeCredits: (...a: unknown[]) => mockCheckAndConsumeCredits(...a),
   creditErrorResponse: () =>
     new Response(JSON.stringify({ error: 'insufficient' }), { status: 402 }),
-  applyCreditResultCookies: (res: Response) => res,
 }))
 
 vi.mock('@/lib/credits/creditRefund', () => ({ refundCredits: mockRefund }))
@@ -125,7 +124,7 @@ describe('interpret-stream — single-use draw nonce gating (Fix A)', () => {
     await POST(makeReq(BODY_3CARD, 'valid-nonce'))
     expect(mockConsume).toHaveBeenCalledWith('valid-nonce', 'user:user-123')
     expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(1)
-    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1, expect.anything())
+    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1)
   })
 
   it('does NOT net-double-charge a genuine replay (charges then refunds the SAME nonce)', async () => {
@@ -163,6 +162,6 @@ describe('interpret-stream — single-use draw nonce gating (Fix A)', () => {
     }
     mockSafeParse.mockReturnValue({ success: true, data: { ...big, drawNonce: 'n5' } })
     await POST(makeReq(big, 'n5'))
-    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 2, expect.anything())
+    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 2)
   })
 })

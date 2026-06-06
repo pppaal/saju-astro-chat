@@ -32,10 +32,10 @@ export const POST = withApiMiddleware(
 
     const { categoryId, spreadId } = parsed.data
 
-    // 크레딧/게스트 한도 사전 체크. 질문 화면에서 "리딩 시작"을 누르는 즉시
-    // 막기 위함 — 카드 선택까지 진행시킨 뒤 결과 화면에서 알리던 동작을 교정한다.
-    // 여기서는 소비하지 않는다(실제 차감은 /api/tarot draw 성공 시 쿠키로 적용).
-    const creditResult = await checkCreditsOnly('reading', 1, req)
+    // 크레딧 사전 체크. 질문 화면에서 "리딩 시작"을 누르는 즉시 막기 위함 —
+    // 카드 선택까지 진행시킨 뒤 결과 화면에서 알리던 동작을 교정한다.
+    // 여기서는 소비하지 않는다(실제 차감은 /api/tarot draw 성공 시).
+    const creditResult = await checkCreditsOnly('reading', 1)
     if (!creditResult.allowed) {
       return creditErrorResponse(creditResult)
     }

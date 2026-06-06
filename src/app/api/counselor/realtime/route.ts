@@ -32,36 +32,6 @@ import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPromp
 // 헤더로 보냄. 같은 키 재진입 시 차감만 스킵.
 const idemStore = createIdempotencyStore('counselor-realtime')
 
-// 비로그인 게스트 무료 체험 — 궁합상담사와 동일하게 2 턴.
-// 쿠키 기반 카운터 (HttpOnly), 30 일 유지. 한도 초과 시 401 로 로그인 유도.
-const GUEST_DESTINY_TURN_LIMIT = 2
-export const GUEST_DESTINY_TURN_COOKIE_NAME = 'guest_destiny_counselor_turns'
-const GUEST_DESTINY_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
-const GUEST_DESTINY_RATE_LIMIT = { limit: 12, windowSeconds: 60 } as const
-
-function readGuestDestinyTurns(req: NextRequest): number {
-  const raw = req.cookies.get(GUEST_DESTINY_TURN_COOKIE_NAME)?.value
-  if (!raw) return 0
-  const n = parseInt(raw, 10)
-  return Number.isFinite(n) && n > 0 ? n : 0
-}
-
-// refund-guest-turn endpoint 가 같은 형식으로 cookie set 하도록 export.
-export function buildGuestDestinyTurnCookieFromValue(next: number): string {
-  const parts = [
-    `${GUEST_DESTINY_TURN_COOKIE_NAME}=${next}`,
-    'Path=/',
-    `Max-Age=${GUEST_DESTINY_COOKIE_MAX_AGE}`,
-    'SameSite=Lax',
-    'HttpOnly',
-  ]
-  if (process.env.NODE_ENV === 'production') parts.push('Secure')
-  return parts.join('; ')
-}
-
-function buildGuestDestinyTurnCookie(next: number): string {
-  return buildGuestDestinyTurnCookieFromValue(next)
-}
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getUserDisplayName } from '@/lib/user/displayName'
@@ -101,14 +71,9 @@ interface RealtimeBody {
 
 // 끊긴 턴의 완성 답안을 잠깐 보관하는 캐시 키 — result 엔드포인트가 같은 키로 읽음.
 // userId 를 키에 포함해 ownership 검증 (다른 사용자가 turnId 알아도 조회 불가).
-// 게스트는 끊김 복구 기능 미지원 (turnId 보관 안 함).
 export const counselorTurnResultKey = (userId: string, turnId: string) =>
   `counselor:turn-result:${userId}:${turnId}`
 
-// 게스트 카운터 refund 자격 marker — handleFailure 시점에 저장, refund endpoint
-// 가 cookie -1 set 후 삭제. 클라가 임의로 cookie 깎지 못하도록 (게스트 무한채팅
-// 방지) abuse-proof. TTL 짧음 (60s) — refund 즉시 시도해야.
-export const guestRefundMarkerKey = (turnId: string) => `counselor:guest-refund:${turnId}`
 // 돌아와서 받아갈 시간을 충분히 (30분) — 크레딧 충전하러 갔다 오는 왕복도
 // 커버. 받아가면 그만이고 TTL 로 자동 소멸.
 const TURN_RESULT_TTL_SEC = 1800
@@ -179,36 +144,21 @@ export async function POST(req: NextRequest) {
   const csrfError = csrfGuard(req.headers)
   if (csrfError) return csrfError
 
-  // 1) Auth — 게스트 허용 (2 턴 무료 체험). userId 없으면 cookie 카운터로 추적.
+  // 1) Auth — 로그인 필수. 비로그인은 401 로 로그인 유도.
   const session = await getServerSession(authOptions)
   const userId = session?.user?.id
-  const isGuestMode = !userId
-
-  // 게스트 한도 검사 — 한도 초과면 401 + 안내.
-  let guestTurnsUsed = 0
-  if (isGuestMode) {
-    guestTurnsUsed = readGuestDestinyTurns(req)
-    if (guestTurnsUsed >= GUEST_DESTINY_TURN_LIMIT) {
-      return NextResponse.json(
-        {
-          error: 'guest_limit_reached',
-          message:
-            '운명 상담사 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.',
-        },
-        { status: 401, headers: { 'X-Guest-Limit-Reached': '1' } }
-      )
-    }
+  if (!userId) {
+    return NextResponse.json(
+      { error: 'not_authenticated', message: '로그인이 필요합니다.' },
+      { status: 401 }
+    )
   }
 
-  // 2) Rate limit — 로그인: 사용자 키, 게스트: IP 키 + 약한 한도.
-  const guestIp =
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown'
-  const rlKey = userId ? `counselor:realtime:${userId}` : `counselor:realtime:guest:${guestIp}`
+  // 2) Rate limit — 사용자 키 기준.
+  const rlKey = `counselor:realtime:${userId}`
   const rl = await rateLimit(rlKey, {
-    limit: isGuestMode ? GUEST_DESTINY_RATE_LIMIT.limit : RATE_LIMIT_PER_MIN,
-    windowSeconds: isGuestMode ? GUEST_DESTINY_RATE_LIMIT.windowSeconds : 60,
+    limit: RATE_LIMIT_PER_MIN,
+    windowSeconds: 60,
   })
   if (!rl.allowed) {
     return NextResponse.json(
@@ -266,15 +216,12 @@ export async function POST(req: NextRequest) {
 
   // 4) Pre-check credit availability. 매 메시지 1 credit. 차감은 아래
   // validation 이후 stream 직전에 실제 consume.
-  // 게스트는 크레딧 체크/차감 모두 스킵 — 위 guest 한도 체크가 게이트.
-  if (userId) {
-    const credit = await canUseCredits(userId, 'reading', 1)
-    if (!credit.allowed) {
-      return NextResponse.json(
-        { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
-        { status: 402 }
-      )
-    }
+  const credit = await canUseCredits(userId, 'reading', 1)
+  if (!credit.allowed) {
+    return NextResponse.json(
+      { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
+      { status: 402 }
+    )
   }
 
   // 5) Compute (or fetch cached) birth snapshot
@@ -438,9 +385,8 @@ export async function POST(req: NextRequest) {
   // 6) Consume credit BEFORE stream starts. canUseCredits 통과 후라 보통 성공;
   // race(다른 탭) 등으로 실패해도 block 보다 observability 우선.
   // 새로고침/탭 복제 등 idempotent replay 면 차감 스킵 (스트림은 정상 진행).
-  // 게스트는 크레딧 차감 X — guest cookie 카운터로 별도 추적 (응답 헤더에서 +1).
   let chargedThisTurn = false
-  if (userId) {
+  {
     const scopedIdemKey = idemStore.keyFor(req, `user:${userId}`)
     const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
     if (idempotentReplay) {
@@ -530,39 +476,24 @@ export async function POST(req: NextRequest) {
   // error or empty completion), refund the credit and drop the session marker
   // so the user isn't billed for an empty response or left inside a paid
   // window they never got to use. Continuing turns weren't charged → no-op.
-  // chargedThisTurn === true 는 userId 가 정의된 (로그인) 케이스에서만 발생 —
-  // 위 consume 블록이 `if (userId)` 가드 안에 있음. assertion safe.
   const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
 
-  const refundKey = turnId && userId ? `counselor-realtime:${userId}:${turnId}` : null
-  const onFailure =
-    chargedThisTurn && userId
-      ? async () => {
-          try {
-            await refundCreditsOnce(refundKey, {
-              userId,
-              creditType: 'reading',
-              amount: 1,
-              reason: 'counselor_stream_empty',
-              apiRoute: '/api/counselor/realtime',
-            })
-          } catch (err) {
-            logger.warn('[counselor/realtime] stream-failure refund failed', { err })
-          }
+  const refundKey = turnId ? `counselor-realtime:${userId}:${turnId}` : null
+  const onFailure = chargedThisTurn
+    ? async () => {
+        try {
+          await refundCreditsOnce(refundKey, {
+            userId,
+            creditType: 'reading',
+            amount: 1,
+            reason: 'counselor_stream_empty',
+            apiRoute: '/api/counselor/realtime',
+          })
+        } catch (err) {
+          logger.warn('[counselor/realtime] stream-failure refund failed', { err })
         }
-      : isGuestMode && turnId
-        ? async () => {
-            // 게스트 turn 실패 → refund-eligible marker 저장. 클라가 별도
-            // endpoint 호출해 cookie -1 받아갈 수 있게. SSE response 헤더는
-            // stream 시작 시 flush 되어 mid-stream 에서 cookie 재set 불가 →
-            // 클라가 fetch 로 별도 refund endpoint 호출하는 우회 경로.
-            try {
-              await cacheSet(guestRefundMarkerKey(turnId), '1', 60)
-            } catch (err) {
-              logger.warn('[counselor/realtime] guest-refund marker save failed', { err })
-            }
-          }
-        : undefined
+      }
+    : undefined
 
   return streamClaudeAsSSE({
     // req.signal 은 여전히 넘기지만, keepGeneratingOnDisconnect 가 true 라
@@ -572,9 +503,8 @@ export async function POST(req: NextRequest) {
     keepGeneratingOnDisconnect: true,
     // 생성이 끝나면(클라 연결 여부 무관) 완성 답안을 캐시에 저장. 끊겼다가
     // 돌아온 사용자가 /api/counselor/realtime/result?turnId=… 로 받아간다.
-    // 게스트(userId 없음) 는 끊김 복구 미지원 — turnId 가 있어도 캐시 안 함.
     onComplete:
-      turnId && userId
+      turnId
         ? async (full) => {
             try {
               await cacheSet(counselorTurnResultKey(userId, turnId), full, TURN_RESULT_TTL_SEC)
@@ -604,15 +534,6 @@ export async function POST(req: NextRequest) {
     additionalHeaders: {
       'X-RateLimit-Limit': rl.headers.get('X-RateLimit-Limit') ?? '',
       'X-RateLimit-Remaining': rl.headers.get('X-RateLimit-Remaining') ?? '',
-      'X-Guest-Mode': isGuestMode ? '1' : '0',
-      ...(isGuestMode
-        ? {
-            'Set-Cookie': buildGuestDestinyTurnCookie(guestTurnsUsed + 1),
-            'X-Guest-Turns-Remaining': String(
-              Math.max(0, GUEST_DESTINY_TURN_LIMIT - (guestTurnsUsed + 1))
-            ),
-          }
-        : {}),
     },
   })
 }

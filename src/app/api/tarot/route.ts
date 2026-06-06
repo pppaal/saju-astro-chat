@@ -10,11 +10,7 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import { Card, DrawnCard } from '@/lib/tarot/tarot.types'
 import { tarotDeck } from '@/lib/tarot/data'
-import {
-  applyCreditResultCookies,
-  checkCreditsOnly,
-  creditErrorResponse,
-} from '@/lib/credits/withCredits'
+import { checkCreditsOnly, creditErrorResponse } from '@/lib/credits/withCredits'
 import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
 import { storeDrawCards, type StoredDrawCard } from '@/lib/tarot/drawCardsCache'
 import { randomUUID } from 'crypto'
@@ -104,7 +100,7 @@ export const POST = withApiMiddleware(
       }
 
       const creditCost = tarotCreditCostFor(spread.cardCount)
-      const creditResult = await checkCreditsOnly('reading', creditCost, req)
+      const creditResult = await checkCreditsOnly('reading', creditCost)
       if (!creditResult.allowed) {
         recordApiRequest('tarot', 'generate', 'error')
         return creditErrorResponse(creditResult)
@@ -142,7 +138,7 @@ export const POST = withApiMiddleware(
         questionContext: questionContext || null,
         drawNonce,
       })
-      return applyCreditResultCookies(response, creditResult, req)
+      return response
     } catch (error) {
       recordApiRequest('tarot', 'generate', 'error', Date.now() - startTime)
       throw error

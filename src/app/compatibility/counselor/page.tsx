@@ -101,7 +101,7 @@ function CompatibilityCounselorContent() {
   // URL ?session= 제거 + 상태 리셋. resume 효과에 자동복원 가드(autoResumeAttemptedRef)
   // 를 달아 bare URL 이 돼도 직전 채팅을 다시 끌어오지 않으므로 strip 을 켤 수 있다.
   const startNewChat = useCounselorNewChat('/compatibility/counselor', 'compat')
-  const { showDepleted, showGuestLimit } = useCreditModal()
+  const { showDepleted } = useCreditModal()
   const requireLogin = useRequireLogin()
 
   const [persons, setPersons] = useState<PersonData[]>([])
@@ -703,12 +703,7 @@ function CompatibilityCounselorContent() {
 
         if (!response.ok) {
           if (response.status === 401) {
-            // 401 두 가지: (a) 진짜 로그인 필요, (b) 게스트 무료 2 회 한도
-            // 도달 (서버가 X-Guest-Limit-Reached: 1 헤더 동봉). 메시지가 달라
-            // 헤더로 분기.
-            if (response.headers.get('x-guest-limit-reached') === '1') {
-              throw new Error('guest_limit_reached')
-            }
+            // 비로그인 — apiFetch 가 전역 로그인 모달도 띄운다.
             throw new Error('login_required')
           }
           // 402 Payment Required — credit exhausted. 잡아서 전역 크레딧
@@ -879,14 +874,6 @@ function CompatibilityCounselorContent() {
               ? '로그인이 필요한 프리미엄 기능입니다.'
               : 'Login required for this premium feature.'
           )
-        } else if (errMsg === 'guest_limit_reached') {
-          // 게스트 무료 2 회 한도 — 로그인 유도 모달 + 인라인 안내(모달 닫아도 남게).
-          showGuestLimit()
-          setError(
-            isKo
-              ? '궁합 상담 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.'
-              : 'You have used both free guest turns. Sign in to claim your 5-credit signup bonus and continue.'
-          )
         } else if (errMsg === 'payment_required') {
           // 크레딧 소진 → 인라인 에러 대신 전역 크레딧 안내 모달을 띄운다
           // (운명 상담사·타로와 동일한 UX).
@@ -926,7 +913,6 @@ function CompatibilityCounselorContent() {
       chatSessionId,
       cvText,
       showDepleted,
-      showGuestLimit,
       requireLogin,
     ]
   )
