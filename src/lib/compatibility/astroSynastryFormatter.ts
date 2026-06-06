@@ -75,13 +75,16 @@ const PLANET_KO: Record<string, string> = {
   Vertex: '버텍스',
 }
 // 5 major + quincunx (150° "조정 필요" — synastry 핵심 신호) 까지 산출.
+// 기호(△□☌ 등)는 (a) 사용자 화면에 깨진 □ 박스로 새고 (b) LLM 이 기호→뜻을
+// 매번 디코드하다 오역(□를 trine 으로 등)하던 원인 → 데이터에 한국어 뜻을 직접
+// 넣는다. 모델은 그대로 자연어로 풀어 쓰기만 하면 됨.
 const ASP_SYM: Partial<Record<AspectType, string>> = {
-  conjunction: '☌',
-  opposition: '☍',
-  trine: '△',
-  square: '□',
-  sextile: '⚹',
-  quincunx: '⚻',
+  conjunction: '[결합]',
+  opposition: '[대립]',
+  trine: '[조화]',
+  square: '[긴장]',
+  sextile: '[협력]',
+  quincunx: '[미세조정]',
 }
 const IMPORTANT_TOP = 12 // cap the orb≤5 tier so it doesn't sprawl to 30+ lines
 const CRITICAL_TOP = 10 // keep CRITICAL tight; overflow(여전히 orb≤3)은 IMPORTANT로 강등
@@ -269,7 +272,7 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const ascLine = `ASC ${labelA} ${ascA} / ${labelB} ${ascB}`
 
   const out: string[] = ['== 시너스트리 (점성 cross) ==']
-  out.push(`[고정] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄: A행성 기호 B행성 오차°)`)
+  out.push(`[고정] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄: A행성 [관계어] B행성 오차° — [결합]끌어당김 [대립]팽팽 [조화]자연스러움 [긴장]마찰 [협력]보완 [미세조정]계속 맞춰가야)`)
   if (criticalShown.length) {
     out.push('[CRITICAL · 개인행성 cross orb≤3°]')
     out.push(criticalShown.map((c) => c.line).join('\n'))

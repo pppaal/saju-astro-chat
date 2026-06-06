@@ -39,12 +39,14 @@ const PLANET_KO: Record<string, string> = {
 }
 
 // aspect 심볼 (synastry formatter 와 동일).
+// 기호 대신 한국어 뜻 직접 노출 — 깨진 □ 박스 + LLM 디코드 오역 방지
+// (synastry formatter 와 동일 정책).
 const ASP_SYM: Record<string, string> = {
-  Conjunction: '☌',
-  Opposition: '☍',
-  Trine: '△',
-  Square: '□',
-  Sextile: '⚹',
+  Conjunction: '[결합]',
+  Opposition: '[대립]',
+  Trine: '[조화]',
+  Square: '[긴장]',
+  Sextile: '[협력]',
 }
 
 // ZodiacKo 타입은 영어 12 zodiac (Aries..Pisces). 한글 노출용 별도 매핑.
