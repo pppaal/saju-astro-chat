@@ -102,6 +102,8 @@
     "docs:stats": "node scripts/repo-stats.mjs",
     "docs:generate": "npx tsx scripts/generate-openapi.ts",
     "docs:check-links": "node scripts/check_docs_links.js",
+    "docs:sync": "tsx scripts/docs/generate.ts",
+    "docs:sync:check": "tsx scripts/docs/generate.ts --check",
     "prepare": "husky",
     "ops:slo:report": "node scripts/ops/slo-report.mjs",
     "ops:typecheck:metrics": "node scripts/ops/typecheck-metrics.mjs",
@@ -172,6 +174,18 @@
     ],
     "*.{json,md,css}": [
       "prettier --write"
+    ],
+    "src/config/enabledServices.ts": [
+      "npm run docs:sync",
+      "git add docs"
+    ],
+    "src/lib/config/calculationStandards.ts": [
+      "npm run docs:sync",
+      "git add docs"
+    ],
+    "src/lib/tarot/tarot-spreads-data.ts": [
+      "npm run docs:sync",
+      "git add docs"
     ]
   },
   "devDependencies": {
