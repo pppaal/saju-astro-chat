@@ -4,8 +4,10 @@
 > 각각 무엇을 받아야 하는지의 SSOT. consumer 가 자기 분석을 자기 책임으로 호출하는 패턴
 > (sajuFacts/astroFacts 정제 + consumer 가 직접 분석 함수 호출).
 >
+> **v5.3 (2026-06-06)** — §6.G 표현 정정: "캘린더 분석 흡수" → 분석 함수 SSOT
+> (`src/lib/saju/*` + `src/lib/astrology/foundation/*`) 직접 호출. 캘린더 거치지 않음.
 > **v5.2 (2026-06-06)** — 후속 결정 §6.C 궁합 분석 확장 → ❌ 안 함 (cross 안 됨)
-> + §6.G **통합 리포트 새 엔진** 추가 (캘린더 정적 분석 흡수 — 시간 흐름 제외).
+> + §6.G **통합 리포트 새 엔진** 추가 (정적 분석만 — 시간 흐름 제외).
 > **v5.1 (2026-06-06)** — raw 행 정밀화: 점성 raw 행 분리 (ASC/MC vs houses) +
 > sect 를 분석 행으로 이동 (Sun house derive). 운명 LLM houses 셀 정정 (부분 사용 — H번호만).
 > **v5 (2026-06-06)** — 3 Opus 병렬 운명/궁합/통합 시점 코드 실측 재검증 + PR #1230 (조후) /
@@ -250,22 +252,41 @@ PR #1230 으로 운명 LLM 도입 (rating ≥4 만). 궁합 LLM 은 미도입 (c
 - ⏭ Phase 3: 운흐름 page + preview
 - ⏭ Phase 4: `buildNatalContext` 통째 제거 (캘린더 정리의 부산물 — 마지막 caller 사라지면 자동 dead)
 
-### G. 통합 리포트 새 엔진 — 캘린더 정적 분석 흡수 (예정)
-**의도**: 통합 리포트가 캘린더 (운흐름) 가 받는 **풍부한 본명 분석** 중 *시간 흐름(동사) 제외* 한 *정적(명사)* 부분을 다 받아 차트 페이지를 깊게.
+### G. 통합 리포트 새 엔진 — 분석 함수 직접 호출 (정적 부분만)
 
-**가져올 캘린더 분석 (정적 명사만)**:
-- 사주: 격국 / 용신 / 12운성 본명 / 신살 self / 십신 분포 / 공망 / 본명 관계 / 통근 / 조후
-- 점성: dignity 5-tier / Arabic Lots (정적 위치) / Almuten Figuris / Chiron / Lilith / 본명 aspects (major+minor)
+**중요**: 분석 함수 자체는 **`src/lib/saju/*`** + **`src/lib/astrology/foundation/*`** SSOT 에 있음. 캘린더는 그 함수들을 호출하는 *consumer* (extractor 가 시간 흐름 활성 신호 만듦). 통합 리포트 새 엔진도 **같은 분석 함수들을 직접 호출** — 캘린더 거치지 않음.
 
-**빼는 것 (시간 흐름·동사)**:
+**의도**: `buildReportContext` 가 운명상담사 facts 패턴처럼 **자기가 필요한 분석을 자기 책임**으로 SSOT 함수들 직접 호출. 풍부한 정적(명사) 본명 차트.
+
+**호출할 분석 함수들**:
+- **사주** (`src/lib/saju/*`):
+  - `determineGeokguk` (격국)
+  - `determineYongsin` (용신)
+  - `getTwelveStagesForPillars` (12운성 본명)
+  - `getShinsalHits` / `annotateShinsal` (신살 self)
+  - `analyzeSibsinComprehensive` (십신 분포)
+  - `getGongmang` (공망 self)
+  - `analyzeRelations` (본명 합충형)
+  - `calculateTonggeun` (통근)
+  - `getJohuYongsin` (조후용신)
+- **점성** (`src/lib/astrology/foundation/*`):
+  - `findNatalAspects(includeMinor:true)` (본명 aspects)
+  - `dignityTiers` (dignity 5-tier per planet)
+  - `calculateArabicLots` (Arabic Lots 정적 위치)
+  - `calculateAlmutenFiguris` (Almuten)
+  - `calculateChiron` / `calculateLilith` (extraPoints)
+
+**호출 안 함 (시간 흐름·동사)**:
 - 대운/세운/월운/일진/시진 cells
-- Transit / Solar Return / Lunar Return / Secondary Progression
-- Zodiacal Releasing 활성 챕터
-- Profection 당해 활성 하우스
-- 형충회합 시간 cross / unseRelations
+- `calculateTransitChart` / `findTransitAspects` (Transit)
+- `calculateSolarReturn` / `calculateLunarReturn` (SR/LR)
+- `calculateSecondaryProgressions` (Progression)
+- `calculateZodiacalReleasing` 활성 챕터
+- `calculateProfection` 당해 활성 하우스
+- `analyzeHyeongchung` 시간 cross / unseRelations
 
 **상태**: 아키텍처 결정 — implementation 별도 작업.
-**현재 (PR #1231 buildReportContext)**: 통합 리포트가 hellenistic 5개 (Profection/Lots/ZR/Almuten/5-tier dignity) 계산 안 함 (`includeHellenistic:false`). G 시 이 옵션 다시 켜고 *정적* 부분만 UI 노출.
+**현재 (PR #1231 buildReportContext)**: hellenistic 5개 (Profection/Lots/ZR/Almuten/5-tier dignity) `includeHellenistic:false` 로 안 받음. G 시 일부 (정적 4개 — 5-tier dignity / Lots / Almuten / Chiron·Lilith) 다시 호출 + UI 노출. **Profection / ZR 활성 챕터**는 동사라 계속 제외.
 
 ## 7. 아키텍처 의도
 
@@ -298,7 +319,11 @@ PR #1230 으로 운명 LLM 도입 (rating ≥4 만). 궁합 LLM 은 미도입 (c
   - 운명 LLM houses 셀: ✅ → `부분(H번호만)` — 행성의 하우스 번호만 표시, cusp 자체는 미사용.
 - 2026-06-06 **v5.2** — 후속 결정 갱신:
   - §6.C 궁합 분석 확장 → ❌ 안 함 확정. **이유: cross 안 됨** (격국/용신/12운성/조후 다 self 룰, 의미 있는 cross 패턴 없음. 운명 LLM 에서 풍부 해석).
-  - §6.G **통합 리포트 새 엔진** 추가 — 캘린더의 *정적(명사) 분석만* 흡수 (격국/용신/12운성 본명/dignity 5-tier/Arabic Lots 정적/Almuten/Chiron/Lilith/aspects major+minor 등). 시간 흐름(동사 — 대운/세운/Transit/SR/LR/Progression/ZR L1/Profection) 제외.
+  - §6.G **통합 리포트 새 엔진** 추가 — *정적(명사) 분석만* 호출 (격국/용신/12운성 본명/dignity 5-tier/Arabic Lots 정적/Almuten/Chiron/Lilith/aspects major+minor 등). 시간 흐름(동사 — 대운/세운/Transit/SR/LR/Progression/ZR L1/Profection) 제외.
+- 2026-06-06 **v5.3** — §6.G 표현 정정:
+  - 옛 표현 "캘린더 분석 흡수" → 부정확. 분석 함수는 `src/lib/saju/*` + `src/lib/astrology/foundation/*` SSOT 에 있음.
+  - 캘린더 = consumer (그 함수들 호출). 통합 리포트 새 엔진도 **같은 SSOT 함수들 직접 호출**, 캘린더 거치지 않음.
+  - §6.G 에 호출할 함수 목록 명시.
 - TODO: E(slimAstroSelf 매칭) 결정 + V3 캘린더 엔진(§2.5 의 🔴 제거 / ◐ 분리) + §6.G 통합 리포트 새 엔진 → implementation
 
 ## 9. 참고
