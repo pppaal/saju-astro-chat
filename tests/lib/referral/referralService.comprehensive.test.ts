@@ -274,8 +274,8 @@ describe('Referral Service', () => {
         referralCode: 'CODE1234',
       } as never)
       mockedPrisma.user.findMany.mockResolvedValue([
-        { id: 'ref-1', name: 'User 1', createdAt: new Date(), readings: [{ id: 'r1' }] },
-        { id: 'ref-2', name: 'User 2', createdAt: new Date(), readings: [] },
+        { id: 'ref-1', name: 'User 1', createdAt: new Date(), tarotReadings: [{ id: 'r1' }], counselorChatSessions: [] },
+        { id: 'ref-2', name: 'User 2', createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
       ] as never)
       mockedPrisma.referralReward.findMany.mockResolvedValue([
         { id: 'rw-1', creditsAwarded: 3, status: 'completed', createdAt: new Date() },

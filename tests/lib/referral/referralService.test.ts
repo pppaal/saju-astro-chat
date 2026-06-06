@@ -357,10 +357,16 @@ describe('Referral credits calculation', () => {
 })
 
 describe('Referral stats calculation', () => {
-  it('should calculate completed referrals from readings', () => {
-    const referrals = [{ readings: [{ id: 'r1' }] }, { readings: [] }, { readings: [{ id: 'r2' }] }]
+  it('should calculate completed referrals from activity (tarot/counselor)', () => {
+    const referrals = [
+      { tarotReadings: [{ id: 'r1' }], counselorChatSessions: [] },
+      { tarotReadings: [], counselorChatSessions: [] },
+      { tarotReadings: [], counselorChatSessions: [{ id: 'c2' }] },
+    ]
 
-    const completed = referrals.filter((r) => r.readings.length > 0).length
+    const completed = referrals.filter(
+      (r) => r.tarotReadings.length > 0 || r.counselorChatSessions.length > 0
+    ).length
     expect(completed).toBe(2)
   })
 
@@ -378,14 +384,15 @@ describe('Referral user data mapping', () => {
       id: 'user-123',
       name: 'Test User',
       createdAt: new Date('2024-01-15'),
-      readings: [{ id: 'r1' }],
+      tarotReadings: [{ id: 'r1' }],
+      counselorChatSessions: [],
     }
 
     const entry = {
       id: user.id,
       name: user.name || 'Anonymous',
       joinedAt: user.createdAt,
-      hasAnalysis: user.readings.length > 0,
+      hasAnalysis: user.tarotReadings.length > 0 || user.counselorChatSessions.length > 0,
     }
 
     expect(entry.id).toBe('user-123')
@@ -398,7 +405,8 @@ describe('Referral user data mapping', () => {
       id: 'user-456',
       name: null,
       createdAt: new Date(),
-      readings: [],
+      tarotReadings: [],
+      counselorChatSessions: [],
     }
 
     const name = user.name || 'Anonymous'
@@ -702,8 +710,14 @@ describe('Referral Service with mocked Prisma', () => {
         referralCode: 'ABC12345',
       } as never)
       vi.mocked(prisma.user.findMany).mockResolvedValue([
-        { id: 'r1', name: 'User 1', createdAt: new Date(), readings: [{ id: 'rd1' }] },
-        { id: 'r2', name: null, createdAt: new Date(), readings: [] },
+        {
+          id: 'r1',
+          name: 'User 1',
+          createdAt: new Date(),
+          tarotReadings: [{ id: 'rd1' }],
+          counselorChatSessions: [],
+        },
+        { id: 'r2', name: null, createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
       ] as never)
       vi.mocked(prisma.referralReward.findMany).mockResolvedValue([
         {

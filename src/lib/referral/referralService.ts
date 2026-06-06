@@ -290,7 +290,11 @@ export async function getReferralStats(userId: string) {
         id: true,
         name: true,
         createdAt: true,
-        readings: { take: 1, select: { id: true } }, // 분석 완료 여부
+        // "분석 완료 여부" — 옛 Reading 모델 제거(TarotReading + CounselorChatSession
+        // 으로 대체, schema.prisma 참조) 반영. 타로 리딩 또는 상담 세션을 하나라도
+        // 했으면 활동(완료)으로 본다.
+        tarotReadings: { take: 1, select: { id: true } },
+        counselorChatSessions: { take: 1, select: { id: true } },
       },
       orderBy: { createdAt: 'desc' },
     }),
@@ -303,8 +307,10 @@ export async function getReferralStats(userId: string) {
   // 코드가 없으면 생성
   const referralCode = userSettings?.referralCode || (await getUserReferralCode(userId))
 
+  const hasAnalysis = (r: (typeof referrals)[number]) =>
+    r.tarotReadings.length > 0 || r.counselorChatSessions.length > 0
   const totalReferrals = referrals.length
-  const completedReferrals = referrals.filter((r) => r.readings.length > 0).length
+  const completedReferrals = referrals.filter(hasAnalysis).length
   const pendingReferrals = totalReferrals - completedReferrals
   const totalCreditsEarned = rewards
     .filter((r) => r.status === 'completed')
@@ -322,7 +328,7 @@ export async function getReferralStats(userId: string) {
       id: r.id,
       name: r.name || 'Anonymous',
       joinedAt: r.createdAt,
-      hasAnalysis: r.readings.length > 0,
+      hasAnalysis: hasAnalysis(r),
     })),
     rewards: rewards.map((r) => ({
       id: r.id,
