@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
+import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -136,6 +137,10 @@ function CompatibilityCounselorContent() {
   // 토큰마다 messagesEnd 따라가면 viewport 가 위로 밀려 "왜 다시 올라가냐"
   // 회귀.
   const suspendAutoScrollRef = useRef(false)
+  // 로그인/구매 왕복 후 복원했을 때 마지막 '미답변 user 질문'을 담아 두고,
+  // 인증 확인되는 대로 자동 재전송한다("직전 질문 이어서 답변").
+  const pendingResumeTextRef = useRef<string | null>(null)
+  const resumeSentRef = useRef(false)
   // 직전 user turn 의 idempotencyKey 를 보관. "다시 시도" 가 같은 키로 재요청
   // 하면 서버가 idempotent replay 로 인식해 *추가 credit 차감 없이* Claude
   // 호출만 다시 돌린다(라우트의 idemStore.isReplay 분기). 새 user 발화가
@@ -258,11 +263,23 @@ function CompatibilityCounselorContent() {
             setPerson2Saju(draft.person2Saju ?? null)
             setPerson1Astro(draft.person1Astro ?? null)
             setPerson2Astro(draft.person2Astro ?? null)
-            setMessages(
-              draft.messages.filter(
+            {
+              const restoredMsgs = draft.messages.filter(
                 (m): m is ChatMessage => !!m && (m.role === 'user' || m.role === 'assistant')
               )
-            )
+              // 마지막이 아직 답을 못 받은 user 질문이면 떼어내 자동 재전송 대상으로.
+              // (로그인/구매 왕복 후 "직전 질문 이어서 답변". 안 떼면 sendMessage 가
+              // user 메시지를 한 번 더 추가해 같은 질문이 두 번 뜬다.)
+              if (
+                restoredMsgs.length > 0 &&
+                restoredMsgs[restoredMsgs.length - 1]?.role === 'user'
+              ) {
+                const last = restoredMsgs.pop()
+                const t = last && typeof last.content === 'string' ? last.content.trim() : ''
+                if (t) pendingResumeTextRef.current = t
+              }
+              setMessages(restoredMsgs)
+            }
             if (draft.chatTitle) setChatTitle(draft.chatTitle)
             // 복원한 대화는 맨 아래(최신)부터 보여줘야 함 — 기본은 TOP 정렬이라
             // 사용자가 직접 스크롤해야 했던 회귀. destiny Chat.tsx 와 동일 패턴.
@@ -940,6 +957,23 @@ function CompatibilityCounselorContent() {
     setFollowUpQuestions([])
     void sendMessage(lastUserText, { isRetry: true })
   }, [isLoading, messages, sendMessage])
+
+  // 로그인 후 "직전 질문 이어서 답변" — 복원 때 떼어둔 미답변 질문을 인증이
+  // 확인되는 순간 한 번 자동 전송. 게스트(미인증)면 보류(다시 한도에 막히므로).
+  const { status: authStatus } = useSession()
+  useEffect(() => {
+    if (resumeSentRef.current) return
+    const text = pendingResumeTextRef.current
+    if (!text) return
+    if (authStatus !== 'authenticated') return
+    if (isLoading) return
+    resumeSentRef.current = true
+    pendingResumeTextRef.current = null
+    const id = window.setTimeout(() => {
+      void sendMessage(text)
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [authStatus, isLoading, sendMessage])
 
   // 끊긴 턴 복원 — 서버는 연결이 끊겨도 끝까지 생성해 turnId 로 캐시에 저장하므로
   // (claudeSSE keepGeneratingOnDisconnect → route 의 onComplete), 여기서 result
