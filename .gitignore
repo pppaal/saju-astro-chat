@@ -196,3 +196,6 @@ score-check.js
 .vercel
 .env*.local
 report-render.html
+
+# Obsidian — docs/ 를 vault 로 열면 생기는 로컬 설정 (개인용, 공유 안 함)
+.obsidian/
