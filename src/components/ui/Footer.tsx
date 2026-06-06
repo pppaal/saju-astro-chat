@@ -12,7 +12,6 @@ import styles from './Footer.module.css'
 // /auth, /admin, /blog still show the footer.
 const HIDE_FOOTER_PREFIXES = [
   '/destiny-counselor',
-  '/destiny-match',
   '/tarot',
   '/destinypal', // Phase D — canonical 5-tier fortune route (replaces /calendar)
   '/calendar', // Legacy alias → /destinypal (308 at edge); kept defensively

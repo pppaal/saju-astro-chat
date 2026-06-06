@@ -138,7 +138,7 @@ export function InAppBrowserNotice() {
       role="alert"
       aria-live="polite"
       // viewport 의 절대 상단에 박는다. sticky 는 부모가 overflow:hidden +
-      // 100dvh (운명상담사 / 궁합상담사 / destiny-match 등 풀스크린 페이지)
+      // 100dvh (운명상담사 / 궁합상담사 등 풀스크린 페이지)
       // 인 경우 stick 할 scrolling ancestor 가 없어 안 보이는 회귀가 있었다.
       // fixed + inset-x-0 으로 어느 페이지든 동일하게 노출.
       // z-index: header(z-10) 위, 동의 모달(z-200) 보다 낮게.

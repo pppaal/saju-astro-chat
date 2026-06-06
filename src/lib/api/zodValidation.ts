@@ -10,7 +10,6 @@
  * - divination.ts : I Ching, Dream, Numerology, Past Life, Life Prediction
  * - payment.ts    : Checkout, Credits, Stripe webhooks
  * - user.ts       : Auth, Profile, Notification, Feedback, Personality
- * - destiny-match.ts : Dating/matching schemas
  */
 
 export * from './zodValidation/index'
