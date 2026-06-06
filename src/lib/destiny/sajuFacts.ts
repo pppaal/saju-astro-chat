@@ -13,6 +13,7 @@ import { determineYongsin, type YongsinResult } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
 import { calculateStrengthScore } from '@/lib/saju/strengthScore'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
+import { getJohuYongsin, type JohuYongsinInfo } from '@/lib/saju/johuYongsin'
 
 export interface SajuFactsInput {
   birthDate: string // 'YYYY-MM-DD'
@@ -63,6 +64,12 @@ export interface SajuFacts {
     current: DaeunEntry | null
     list: DaeunEntry[]
   }
+  /**
+   * 조후용신 — 일간 + 월지 룩업으로 결정되는 *계절 균형* 관점의 보조 용신.
+   * 격국용신(yongsin) 과 다른 룰. 한겨울 출생 → 火 필요 같은 정통 명리.
+   * 매핑 미정의 사주 (일부 일간×월지 조합) 는 null.
+   */
+  johuYongsin: JohuYongsinInfo | null
   /**
    * 옛 raw saju 객체 (calculateSajuData 결과) — buildNatalContext / 캘린더
    * 엔진처럼 raw shape 자체가 필요한 caller 가 별도 calculateSajuData 호출을
@@ -221,6 +228,8 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
           : null,
       })),
     },
+    // 조후용신 — JOHU_YONGSIN_DB 정적 룩업. 비용 거의 0.
+    johuYongsin: getJohuYongsin(day, P.month.earthlyBranch.name),
     _raw: raw as unknown as CalculateSajuDataResult,
   }
 }
