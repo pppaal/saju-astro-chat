@@ -1,8 +1,16 @@
 'use client'
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react'
 import { useSession } from 'next-auth/react'
 import LoginRequiredModal from '@/components/auth/LoginRequiredModal'
+import { CREDIT_MODAL_EVENT } from '@/lib/api/ApiClient'
 
 interface LoginModalContextType {
   // 로그인 모달을 띄운다. callbackUrl 을 주면 로그인 후 그 경로로 복귀.
@@ -23,6 +31,19 @@ export function LoginModalProvider({ children }: { children: ReactNode }) {
 
   const hideLogin = useCallback(() => {
     setIsOpen(false)
+  }, [])
+
+  // 비로그인 상태로 gated API 를 호출하면 서버가 401 → apiFetch 가 쏘는 전역
+  // 이벤트(kind:'guest')를 받아 blur 로그인 모달을 띄운다. 화면마다 가드를 안
+  // 달아도 모든 401 이 여기로 모여 일관되게 로그인을 유도한다. (게스트 폐지, audit 2026-06)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const onSignal = (e: Event) => {
+      const kind = (e as CustomEvent<{ kind?: string }>).detail?.kind
+      if (kind === 'guest') setIsOpen(true)
+    }
+    window.addEventListener(CREDIT_MODAL_EVENT, onSignal)
+    return () => window.removeEventListener(CREDIT_MODAL_EVENT, onSignal)
   }, [])
 
   return (

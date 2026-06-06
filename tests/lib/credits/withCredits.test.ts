@@ -58,7 +58,7 @@ describe('withCredits helpers', () => {
   })
 
   describe('checkAndConsumeCredits', () => {
-    it('should allow anonymous interpretation when guest pass cookie exists', async () => {
+    it('should reject anonymous interpretation — login required (guests removed)', async () => {
       vi.mocked(getServerSession).mockResolvedValue(null)
 
       const result = await checkAndConsumeCredits('reading', 1, {
@@ -68,8 +68,8 @@ describe('withCredits helpers', () => {
         },
       })
 
-      expect(result.allowed).toBe(true)
-      expect(result.guestReadingAccess).toBe('interpret_granted')
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('not_authenticated')
       expect(canUseCredits).not.toHaveBeenCalled()
       expect(consumeCredits).not.toHaveBeenCalled()
     })
@@ -208,28 +208,27 @@ describe('withCredits helpers', () => {
   })
 
   describe('checkCreditsOnly', () => {
-    it('should return not_authenticated when no session', async () => {
+    it('should return not_authenticated when no session (guests removed)', async () => {
       vi.mocked(getServerSession).mockResolvedValue(null)
 
       const result = await checkCreditsOnly('reading', 1)
 
-      expect(result.allowed).toBe(true)
-      expect(result.guestReadingAccess).toBe('draw_granted')
+      expect(result.allowed).toBe(false)
+      expect(result.errorCode).toBe('not_authenticated')
     })
 
-    it('should reject anonymous draw when guest reading was already used', async () => {
+    it('should reject anonymous draw — login required (guests removed)', async () => {
       vi.mocked(getServerSession).mockResolvedValue(null)
 
+      // 게스트 쿠키가 있어도 더 이상 무료 리딩 없음 — 로그인 필수.
       const result = await checkCreditsOnly('reading', 1, {
         cookies: {
           get: (name: string) => (name === 'tarot_guest_reading_used' ? { value: '1' } : undefined),
         },
       })
 
-      // Policy: guests get 1 free reading (GUEST_TAROT_FREE_LIMIT=1); once the
-      // used-count reaches the limit, the next draw is rejected → login prompt.
       expect(result.allowed).toBe(false)
-      expect(result.errorCode).toBe('guest_limit_reached')
+      expect(result.errorCode).toBe('not_authenticated')
     })
 
     it('should bypass credits when BYPASS_CREDITS is true', async () => {

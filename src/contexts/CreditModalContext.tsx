@@ -65,12 +65,14 @@ export function CreditModalProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined') return
     const onSignal = (e: Event) => {
       const kind = (e as CustomEvent<{ kind?: CreditModalKind }>).detail?.kind
-      if (kind === 'guest') showGuestLimit()
-      else showDepleted()
+      // 'guest'(비로그인 401)은 LoginModalContext 가 blur 로그인 모달로 처리한다.
+      // 여기선 로그인 사용자의 크레딧 소진(402='depleted')만 담당. (게스트 폐지, audit 2026-06)
+      if (kind === 'guest') return
+      showDepleted()
     }
     window.addEventListener(CREDIT_MODAL_EVENT, onSignal)
     return () => window.removeEventListener(CREDIT_MODAL_EVENT, onSignal)
-  }, [showGuestLimit, showDepleted])
+  }, [showDepleted])
 
   return (
     <CreditModalContext.Provider

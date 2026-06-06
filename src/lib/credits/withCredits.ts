@@ -111,14 +111,14 @@ export async function checkAndConsumeCredits(
 ): Promise<CreditCheckResult> {
   const session = await getServerSession(authOptions)
 
+  // 게스트(비로그인) 무료 리딩 폐지 — 모든 gated 액션은 로그인 필수.
+  // (쿠키 우회 남용 + 기록 미저장 문제로 제거, audit 2026-06)
   if (!session?.user?.id) {
-    return type === 'reading'
-      ? allowGuestInterpret(request)
-      : {
-          allowed: false,
-          error: '로그인이 필요합니다',
-          errorCode: 'not_authenticated',
-        }
+    return {
+      allowed: false,
+      error: '로그인이 필요합니다',
+      errorCode: 'not_authenticated',
+    }
   }
 
   const userId = session.user.id
@@ -191,14 +191,13 @@ export async function checkCreditsOnly(
 ): Promise<CreditCheckResult> {
   const session = await getServerSession(authOptions)
 
+  // 게스트(비로그인) 무료 리딩 폐지 — 로그인 필수. (audit 2026-06)
   if (!session?.user?.id) {
-    return type === 'reading'
-      ? allowGuestDraw(request)
-      : {
-          allowed: false,
-          error: '로그인이 필요합니다',
-          errorCode: 'not_authenticated',
-        }
+    return {
+      allowed: false,
+      error: '로그인이 필요합니다',
+      errorCode: 'not_authenticated',
+    }
   }
 
   const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'

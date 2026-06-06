@@ -25,8 +25,10 @@ describe('apiFetch → central credit-modal signal', () => {
     window.removeEventListener(CREDIT_MODAL_EVENT, spy)
   })
 
-  it('dispatches a "guest" signal on 401 + X-Guest-Limit-Reached', async () => {
-    mockFetchOnce(401, { 'X-Guest-Limit-Reached': '1' })
+  // 게스트 폐지 후: 모든 401(비로그인)은 로그인 유도 신호('guest')를 쏜다.
+  // (이전엔 X-Guest-Limit-Reached 헤더가 있는 401 만 신호했음.)
+  it('dispatches a "guest" signal on any 401 (login required)', async () => {
+    mockFetchOnce(401)
     const spy = vi.fn()
     window.addEventListener(CREDIT_MODAL_EVENT, spy)
     await apiFetch('/api/anything', { method: 'POST' })
@@ -35,12 +37,9 @@ describe('apiFetch → central credit-modal signal', () => {
     window.removeEventListener(CREDIT_MODAL_EVENT, spy)
   })
 
-  it('does NOT dispatch on a plain 401 (no guest header) or a 200', async () => {
+  it('does NOT dispatch on a 200', async () => {
     const spy = vi.fn()
     window.addEventListener(CREDIT_MODAL_EVENT, spy)
-
-    mockFetchOnce(401) // e.g. an unauthenticated profile fetch — not a guest limit
-    await apiFetch('/api/me/profile')
 
     mockFetchOnce(200)
     await apiFetch('/api/ok')
