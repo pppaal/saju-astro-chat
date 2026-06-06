@@ -50,6 +50,10 @@ export interface ReportData {
     houses: Array<{ i: number; cusp: number; sign: string }>
     aspects: Array<{ a: string; b: string; type: string; orb: number; applying: boolean }>
     dignities: Array<{ planet: string; sign: string; tier: string; score: number }>
+    // 정통 점성 깊이 (Phase B) — Level 3 (접고 펼침) 용. 옛 SAMPLE_REPORT 호환
+    // 위해 optional. adapter 가 facts.hellenistic 에서 흘려줌.
+    lots?: Array<{ name: string; sign: string; deg: string; house: number }>
+    almuten?: { winner: string | null; winners: string[]; scores: Record<string, number> } | null
   }
 }
 
@@ -100,7 +104,9 @@ export const SIGN_ABBR: Record<string, string> = {
 }
 
 export const DIGNITY_TIER_LABEL: Record<string, string> = {
-  exaltation: '고양 +4', domicile: '본궁 +5', detriment: '손상 −5', fall: '쇠약', peregrine: '중립',
+  domicile: '본궁 +5', exaltation: '고양 +4',
+  triplicity: '삼분궁 +3', term: '바운드 +2', face: '안면 +1',
+  detriment: '손상 −5', fall: '추락 −4', peregrine: '중립',
 }
 
 /** chart.zip 샘플 — 컴포넌트 즉시 렌더/미리보기용. 실제는 adapter 로 교체. */

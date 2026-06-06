@@ -13,8 +13,23 @@ import {
   evalVoid,
   synthesize, dominantSibsinGroup, type CrossVerdict,
 } from '@/lib/destiny-map/natalCross'
-import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { getSouthNodeOppositeSign } from '@/lib/astrology/interpretations'
+
+// 5-tier (정통) → 단일 라벨. 우선순위는 score 절댓값과 일치.
+// domicile/exaltation/detriment/fall 4 종을 먼저 — 라벨 자체가 강한 의미.
+// 그 다음 triplicity/term/face — 약한 dignity. 모두 false 면 peregrine.
+const topTier = (t: {
+  domicile: boolean; exaltation: boolean; triplicity: boolean
+  term: boolean; face: boolean; detriment: boolean; fall: boolean
+}): string =>
+  t.domicile ? 'domicile'
+    : t.exaltation ? 'exaltation'
+    : t.detriment ? 'detriment'
+    : t.fall ? 'fall'
+    : t.triplicity ? 'triplicity'
+    : t.term ? 'term'
+    : t.face ? 'face'
+    : 'peregrine'
 
 // 오행 한글 → 영문 키
 const EL_KO_EN: Record<string, string> = { 목: 'wood', 화: 'fire', 토: 'earth', 금: 'metal', 수: 'water' }
@@ -120,20 +135,49 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
   const houses = (A.chart?.houses ?? A.houses ?? []).map((h: any, i: number) => ({
     i: h.index ?? h.i ?? i + 1, cusp: h.cusp ?? 0, sign: toAbbr(h.sign),
   }))
-  const aspects = (A.natalAspects ?? A.aspects ?? []).slice(0, 14).map((a: any) => ({
-    a: a.from?.name ?? a.a ?? '', b: a.to?.name ?? a.b ?? '',
-    type: a.type ?? 'conjunction', orb: a.orb ?? 0, applying: !!a.applying,
-  }))
-  // dignities — 차트 행성에서 직접 계산 (입궁/고양/손상/추락)
-  const dignities = planets
-    .map((p: any) => {
-      const full = SIGN_KO_FULL[(A.chart?.planets ?? A.planets ?? []).find((x: any) => x.name === p.name)?.sign] ?? ''
-      const tier = full ? dignityOf(p.name, full) : 'peregrine'
-      const score = tier === 'domicile' ? 5 : tier === 'exaltation' ? 4 : tier === 'detriment' ? -5 : tier === 'fall' ? -4 : 0
-      return { planet: p.name, sign: p.sign, tier, score }
-    })
+  // 본명 aspects — facts.hellenistic 가 major+minor 다 줌 (~30+ hits). 14 cap
+  // 풀어 24 로 (UI 가 슬라이더/접고 펼침으로 처리). orb 작은 순.
+  const aspects = (A.natalAspects ?? A.aspects ?? [])
+    .slice()
+    .sort((a: any, b: any) => (a.orb ?? 99) - (b.orb ?? 99))
+    .slice(0, 24)
+    .map((a: any) => ({
+      a: a.from?.name ?? a.a ?? '', b: a.to?.name ?? a.b ?? '',
+      type: a.type ?? 'conjunction', orb: a.orb ?? 0, applying: !!a.applying,
+    }))
+
+  // dignities — Phase B: facts.hellenistic.dignities (5-tier per planet) 를 그대로
+  // 흡수. 옛 dignityOf 재계산 (단순 4-tier) 제거. peregrine 제외, score 절댓값
+  // 기준 상위 8개 (정통 깊이 카드용 — 옛 6 보다 조금 넓힘).
+  const dignities = (A.dignities ?? [])
+    .map((d: any) => ({
+      planet: d.planet,
+      sign: toAbbr(d.sign),
+      tier: topTier(d.tiers ?? {}),
+      score: typeof d.score === 'number' ? d.score : 0,
+    }))
     .filter((d: any) => d.tier !== 'peregrine')
-    .slice(0, 6)
+    .sort((a: any, b: any) => Math.abs(b.score) - Math.abs(a.score))
+    .slice(0, 8)
+
+  // Arabic Lots — 정통 7 lots (Fortune/Spirit/Eros/Necessity/Courage/Victory/
+  // Nemesis). facts.hellenistic.lots 에서 받음.
+  const lots = (A.lots ?? []).map((l: any) => ({
+    name: l.name,
+    sign: toAbbr(l.sign),
+    deg: fmtDeg(l.longitude),
+    house: l.house ?? 0,
+  }))
+
+  // Almuten Figuris — 주재 행성 (정통 Bonatti/Ibn Ezra 식). facts 가 winner +
+  // winners + 행성별 누적 score 제공. UI Level 3 카드 용.
+  const almuten = A.almutenFiguris
+    ? {
+        winner: A.almutenFiguris.winner ?? null,
+        winners: A.almutenFiguris.winners ?? [],
+        scores: A.almutenFiguris.scores ?? {},
+      }
+    : null
 
   const asc = A.chart?.ascendant ?? A.ascendant ?? {}
   const mc = A.chart?.mc ?? A.mc ?? {}
@@ -166,6 +210,7 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
       ascendant: { lon: asc.longitude ?? asc.lon ?? 0, sign: SIGN_KO_FULL[asc.sign] ?? asc.sign ?? 'Virgo', deg: fmtDeg(asc.longitude ?? asc.lon) },
       mc: { lon: mc.longitude ?? mc.lon ?? 0, sign: SIGN_KO_FULL[mc.sign] ?? mc.sign ?? 'Gemini', deg: fmtDeg(mc.longitude ?? mc.lon) },
       planets, extraPoints, houses, aspects, dignities,
+      lots, almuten,
     },
   }
 }
@@ -187,16 +232,24 @@ export function buildCrossRows(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): { synthes
   const mcSign = (A.chart?.mc ?? A.mc)?.sign
   const details = adv.sibsin?.categoryCount
 
-  // 강조 행성 + 최고 dignity
+  // 강조 행성 + 최고 dignity — Phase B: facts.hellenistic.dignities (5-tier)
+  // 활용. 옛 dignityOf 재계산 제거. 각 행성 angularity (1/4/7/10 하우스) + 강한
+  // dignity (domicile/exaltation) → emphasized 집합. topDignity 는 첫 강한 hit.
   const ANGLES = new Set([1, 4, 7, 10])
   const emphasized = new Set<string>()
   let topDignity: { planet: string; status: string } | null = null
+  const dignityIdx: Record<string, { domicile: boolean; exaltation: boolean }> = {}
+  for (const d of (A.dignities ?? []) as Array<{ planet: string; tiers?: { domicile?: boolean; exaltation?: boolean } }>) {
+    dignityIdx[d.planet] = { domicile: !!d.tiers?.domicile, exaltation: !!d.tiers?.exaltation }
+  }
   for (const p of planets) {
-    if (!p?.name || !p?.sign) continue
-    const full = SIGN_KO_FULL[p.sign] ?? p.sign
-    const status = dignityOf(p.name, full)
+    if (!p?.name) continue
     if (typeof p.house === 'number' && ANGLES.has(p.house)) emphasized.add(p.name)
-    if (status === 'domicile' || status === 'exaltation') { emphasized.add(p.name); if (!topDignity) topDignity = { planet: p.name, status } }
+    const dg = dignityIdx[p.name]
+    if (dg?.domicile || dg?.exaltation) {
+      emphasized.add(p.name)
+      if (!topDignity) topDignity = { planet: p.name, status: dg.domicile ? 'domicile' : 'exaltation' }
+    }
   }
   const aspectsForKey = (A.natalAspects ?? A.aspects ?? []).map((a: any) => ({ from: { name: a.from?.name ?? a.a }, to: { name: a.to?.name ?? a.b }, type: a.type, orb: a.orb }))
   let harmonious = 0, hard = 0
