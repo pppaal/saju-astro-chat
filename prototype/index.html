@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>운명 캘린더 — 사주 × 점성 교차 흐름 (프로토타입)</title>
+<style>
+  :root{
+    --bg:#0e1014; --panel:#171a21; --panel2:#1f232c; --line:#2a2f3a;
+    --ink:#e9ecf1; --muted:#9aa3b2; --faint:#6b7382;
+    --good:#36c2a6; --bad:#ef6a86; --neu:#566173; --gold:#c9a24b; --accent:#8a7bf0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:'Apple SD Gothic Neo','Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:430px;margin:0 auto;min-height:100vh;background:linear-gradient(180deg,#0e1014,#0b0d11);
+    padding:0 0 40px}
+  header{padding:18px 18px 10px;position:sticky;top:0;z-index:5;
+    background:linear-gradient(180deg,#0e1014ee,#0e1014cc);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .birth{font-size:13px;color:var(--muted)}
+  .axes{font-size:11px;color:var(--faint);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+  .swatch{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+  .crumbs{display:flex;gap:6px;align-items:center;padding:10px 18px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+  .crumbs b{color:var(--ink)} .crumbs span.sep{color:var(--faint)}
+  .crumbs .c{cursor:pointer;padding:3px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+  .crumbs .c.active{background:var(--accent);color:#fff;border-color:transparent}
+  section{padding:6px 14px}
+  h2{font-size:13px;color:var(--muted);font-weight:600;margin:14px 6px 8px;letter-spacing:.02em}
+  /* 막대 행 (10년/월) */
+  .row{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:10px;cursor:pointer;transition:.12s}
+  .row:hover{background:var(--panel)}
+  .row .lab{width:64px;font-size:13px;color:var(--ink);flex:none}
+  .row .track{flex:1;height:26px;background:var(--panel2);border-radius:7px;position:relative;overflow:hidden}
+  .row .fill{height:100%;border-radius:7px;min-width:3px}
+  .row .meta{width:80px;text-align:right;font-size:11px;color:var(--muted);flex:none}
+  .row .peak{font-size:10px;color:var(--faint)}
+  /* 인생 단계 카드 */
+  .phase{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 4px}
+  .phase.now{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .phase .ph-top{display:flex;justify-content:space-between;align-items:baseline}
+  .phase .ph-label{font-size:16px;font-weight:700}
+  .phase .ph-age{font-size:11px;color:var(--faint)}
+  .cross{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .cross .col{background:var(--panel2);border-radius:10px;padding:9px 10px}
+  .cross .ctag{font-size:10px;letter-spacing:.04em;margin-bottom:4px}
+  .cross .saju .ctag{color:var(--gold)} .cross .astro .ctag{color:#7fb0ff}
+  .cross .line{font-size:12px;color:var(--ink);line-height:1.5}
+  .phase .body{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:10px}
+  /* 일 카드 */
+  .day{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px;margin:8px 4px;cursor:pointer}
+  .day.peak{border-color:var(--gold)}
+  .day .d-top{display:flex;align-items:center;gap:10px}
+  .day .date{font-size:14px;font-weight:700;flex:none;width:92px}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .day .pill{margin-left:auto;font-size:10px;color:var(--faint);border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+  .sigs{margin-top:9px;display:flex;flex-direction:column;gap:5px}
+  .sig{display:flex;align-items:center;gap:8px;font-size:11.5px}
+  .sig .src{font-size:9px;padding:1px 5px;border-radius:4px;flex:none}
+  .sig .src.saju{background:#3a2f12;color:var(--gold)} .sig .src.astro{background:#16294a;color:#7fb0ff}
+  .sig .nm{color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sig .pol{font-size:10px;font-weight:700;flex:none}
+  /* 시진 */
+  .sijin{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:4px}
+  .sj{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+  .sj .br{font-size:14px;font-weight:700} .sj .rg{font-size:10px;color:var(--faint)}
+  .sj .gz{font-size:12px;color:var(--muted);margin-top:3px}
+  .sj .pl{font-size:10px;color:var(--accent);margin-top:2px}
+  .sj .verdict{float:right;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
+  .empty{color:var(--faint);font-size:11px;padding:10px;text-align:center}
+  .legend2d{font-size:10px;color:var(--faint);padding:0 18px 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="birth" id="birth">…</div>
+    <div class="axes">
+      <span><span class="swatch" style="background:linear-gradient(90deg,var(--bad),var(--neu),var(--good))"></span>색 = 우호도(나쁨↔좋음)</span>
+      <span><span class="swatch" style="background:var(--muted);height:6px"></span>↕ 길이 = 현저도(큰 날)</span>
+    </div>
+  </header>
+  <div class="crumbs" id="crumbs"></div>
+  <div id="view"></div>
+</div>
+
+<script>
+const POL_KO = {'-3':'대흉','-2':'흉','-1':'주의','0':'중립','1':'순','2':'길','3':'대길'};
+// 우호도(0~100) → 색
+function favColor(f){
+  // 50 중립(회), <50 적, >50 청록
+  const t = Math.max(0,Math.min(100,f));
+  if(t>=50){const k=(t-50)/50; return mix([86,86,102],[54,194,166],k);}
+  const k=(50-t)/50; return mix([86,86,102],[239,106,134],k);
+}
+function mix(a,b,k){return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*k)).join(',')})`;}
+function polColor(p){return p>0?'var(--good)':p<0?'var(--bad)':'var(--neu)';}
+
+let DATA=null, stack=[];
+
+fetch('data.json').then(r=>r.json()).then(d=>{
+  DATA=d;
+  document.getElementById('birth').textContent = d.summary.birth +
+    `  ·  ${d.summary.dayMaster} ${d.summary.strength==='weak'?'신약':d.summary.strength==='strong'?'신강':'중화'} · 용신 ${d.summary.yongsin} · ☉${signKo(d.summary.sun)} ASC ${signKo(d.summary.asc)}`;
+  go(['life']);
+}).catch(e=>{document.getElementById('view').innerHTML='<div class="empty">data.json 로드 실패 — 덤프 스크립트를 먼저 실행하세요.<br>'+e+'</div>';});
+
+const SIGN={Aquarius:'물병',Pisces:'물고기',Aries:'양',Taurus:'황소',Gemini:'쌍둥이',Cancer:'게',Leo:'사자',Virgo:'처녀',Libra:'천칭',Scorpio:'전갈',Sagittarius:'사수',Capricorn:'염소'};
+function signKo(s){return SIGN[s]||s||'?';}
+
+function go(s){stack=s;render();}
+function push(level){go([...stack,level]);}
+function jumpTo(i){go(stack.slice(0,i+1));}
+
+function crumbs(){
+  const names={life:'인생',decade:'10년',year:DATA?.topYear+'년',month:'월',day:'시진'};
+  const el=document.getElementById('crumbs'); el.innerHTML='';
+  const path=['life','decade','year','month','day'];
+  const cur=stack[stack.length-1];
+  path.forEach((p,i)=>{
+    if(i>0){const sep=document.createElement('span');sep.className='sep';sep.textContent='›';el.appendChild(sep);}
+    const c=document.createElement('span');c.className='c'+(p===cur?' active':'');
+    c.textContent=p==='year'?(DATA?.topYear+'년'):p==='month'?monthKo(DATA?.topMonth):names[p];
+    const idx=path.indexOf(p);
+    if(idx<=path.indexOf(cur)) c.onclick=()=>go(path.slice(0,idx+1));
+    el.appendChild(c);
+  });
+}
+function monthKo(m){return m?(m.slice(5,7)*1)+'월':'월';}
+
+function render(){
+  crumbs();
+  const v=document.getElementById('view'); v.innerHTML='';
+  const cur=stack[stack.length-1];
+  if(cur==='life') v.appendChild(viewLife());
+  else if(cur==='decade') v.appendChild(viewDecade());
+  else if(cur==='year') v.appendChild(viewYear());
+  else if(cur==='month') v.appendChild(viewMonth());
+  else if(cur==='day') v.appendChild(viewDay());
+  window.scrollTo(0,0);
+}
+
+// L1 인생
+function viewLife(){
+  const s=document.createElement('section');
+  const intro=document.createElement('div'); intro.className='phase';
+  intro.innerHTML=`<div class="body" style="margin-top:0">${DATA.lifetime.intro}</div>`;
+  s.appendChild(intro);
+  DATA.lifetime.phases.forEach(ph=>{
+    const c=document.createElement('div'); c.className='phase'+(ph.current?' now':'');
+    c.innerHTML=`<div class="ph-top"><div class="ph-label">${ph.label}${ph.current?' <span style="font-size:10px;color:var(--accent)">◀ 지금</span>':''}</div><div class="ph-age">${ph.ageRange}</div></div>
+      <div class="cross">
+        <div class="col saju"><div class="ctag">사주 — 대운/십이운성</div><div class="line">${[ph.daeunLine,ph.twelveStageLine,ph.shinsalLine,ph.relationLine].filter(Boolean).join('<br>')||'—'}</div></div>
+        <div class="col astro"><div class="ctag">점성 — 외행성 마디</div><div class="line">${ph.milestoneLine||'—'}</div></div>
+      </div>
+      <div class="body">${ph.text}</div>`;
+    s.appendChild(c);
+  });
+  const tip=document.createElement('div');tip.className='legend2d';tip.textContent='↓ 아래로 — 이 인생을 10년 단위로 파보기';
+  const btn=document.createElement('div');btn.className='row';btn.style.justifyContent='center';
+  btn.innerHTML='<div class="lab" style="width:auto;color:var(--accent)">10년 흐름 보기 →</div>';btn.onclick=()=>push('decade');
+  s.appendChild(tip);s.appendChild(btn);
+  return s;
+}
+
+// 막대 행 빌더 (현저도=길이, 우호도=색)
+function barRow(label, salience, maxSal, fav, meta, onclick){
+  const r=document.createElement('div'); r.className='row'; if(onclick)r.onclick=onclick;
+  const w=Math.max(3,Math.round(salience/maxSal*100));
+  r.innerHTML=`<div class="lab">${label}</div>
+    <div class="track"><div class="fill" style="width:${w}%;background:${favColor(fav)}"></div></div>
+    <div class="meta">우호 ${fav}<div class="peak">${meta||''}</div></div>`;
+  return r;
+}
+
+// L2 10년
+function viewDecade(){
+  const s=document.createElement('section');
+  const h=document.createElement('h2');h.textContent='① 10년 — 어느 해가 큰가 (길이=현저도, 색=우호도)';s.appendChild(h);
+  const max=Math.max(...DATA.decade.map(y=>y.salience));
+  DATA.decade.forEach(y=>{
+    s.appendChild(barRow(y.year+'', y.salience, max, y.fav, '▲'+y.peakDay.slice(5), ()=> y.year===DATA.topYear?push('year'):flash(y.year)));
+  });
+  const note=document.createElement('div');note.className='legend2d';
+  note.innerHTML=`가장 큰 해 <b style="color:var(--ink)">${DATA.topYear}</b> 클릭 → 월별 파보기`;
+  s.appendChild(note);
+  return s;
+}
+function flash(y){alert(y+'년은 이 프로토타입에서 미리 펼치지 않았어요.\n가장 큰 해 '+DATA.topYear+'년을 눌러보세요. (실제 제품은 모든 해 드릴다운)');}
+
+// L3 월
+function viewYear(){
+  const s=document.createElement('section');
+  const h=document.createElement('h2');h.textContent=`② ${DATA.topYear}년 — 어느 달이 큰가`;s.appendChild(h);
+  const max=Math.max(...DATA.year.months.map(m=>m.salience));
+  DATA.year.months.forEach(m=>{
+    s.appendChild(barRow(monthKo(m.month), m.salience, max, m.fav, '▲'+m.peakDay.slice(8), ()=> m.month===DATA.topMonth?push('month'):flashM(m.month)));
+  });
+  const note=document.createElement('div');note.className='legend2d';
+  note.innerHTML=`가장 큰 달 <b style="color:var(--ink)">${monthKo(DATA.topMonth)}</b> 클릭 → 날짜별`;
+  s.appendChild(note);
+  return s;
+}
+function flashM(m){alert(monthKo(m)+'은 이 프로토타입에서 미리 펼치지 않았어요.\n가장 큰 달 '+monthKo(DATA.topMonth)+'을 눌러보세요.');}
+
+// L4 일
+function viewMonth(){
+  const s=document.createElement('section');
+  const h=document.createElement('h2');h.textContent=`③ ${monthKo(DATA.month.month)} — 날짜별 교차 (정점일 강조)`;s.appendChild(h);
+  // 현저도 높은 순 상위 + 정점일
+  const days=[...DATA.month.days].sort((a,b)=>b.salience-a.salience).slice(0,8)
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  days.forEach(d=>{
+    const c=document.createElement('div'); c.className='day'+(d.date===DATA.peakDay?' peak':'');
+    const sigHtml=d.signals.map(sg=>`<div class="sig"><span class="src ${sg.source}">${sg.source==='saju'?'사주':'점성'}</span><span class="nm">${sg.name}</span><span class="pol" style="color:${polColor(sg.polarity)}">${sg.polarity>0?'+':''}${sg.polarity}</span></div>`).join('');
+    c.innerHTML=`<div class="d-top"><span class="dot" style="background:${favColor(d.fav)}"></span>
+      <span class="date">${d.date.slice(5)}${d.date===DATA.peakDay?' ★':''}</span>
+      <span style="font-size:11px;color:var(--muted)">현저도 ${d.salience} · 우호 ${d.fav}</span>
+      ${d.patterns.length?`<span class="pill">${d.patterns[0]}</span>`:''}</div>
+      <div class="sigs">${sigHtml}</div>`;
+    if(d.date===DATA.peakDay) c.onclick=()=>push('day');
+    s.appendChild(c);
+  });
+  const note=document.createElement('div');note.className='legend2d';
+  note.innerHTML=`★ 정점일 <b style="color:var(--gold)">${DATA.peakDay.slice(5)}</b>(정확각 근접) 클릭 → 12시진`;
+  s.appendChild(note);
+  return s;
+}
+
+// L4 시진
+function viewDay(){
+  const s=document.createElement('section');
+  const h=document.createElement('h2');h.textContent=`④ ${DATA.peakDay} — 12시진 (시주 + 행성시)`;s.appendChild(h);
+  const grid=document.createElement('div');grid.className='sijin';
+  DATA.day.sijin.forEach(sj=>{
+    const v=sj.polarity>=2?'길':sj.polarity===1?'순':sj.polarity<=-2?'흉':sj.polarity===-1?'주의':'';
+    const vc=sj.polarity>0?'var(--good)':sj.polarity<0?'var(--bad)':'transparent';
+    const el=document.createElement('div');el.className='sj';
+    el.innerHTML=`${v?`<span class="verdict" style="background:${vc};color:#0e1014">${v}</span>`:''}
+      <div class="br">${sj.branch}시 <span class="rg">${sj.range}</span></div>
+      <div class="gz">${sj.ganji||'<span style="color:var(--faint)">중립</span>'}</div>
+      <div class="pl">${sj.planet||''}</div>`;
+    grid.appendChild(el);
+  });
+  s.appendChild(grid);
+  const note=document.createElement('div');note.className='legend2d';
+  note.innerHTML='용신 화·토 → 화(火) 천간 시간이 길, 금(金) 비겁 시간이 흉. 중립 시진은 엔진이 노이즈로 생략.';
+  s.appendChild(note);
+  return s;
+}
+</script>
+</body>
+</html>

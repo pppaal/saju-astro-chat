@@ -29,7 +29,7 @@ import { annualStemBranch, sajuMonthStemBranch } from './cycles'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { daysToDaeunAge } from '@/lib/saju/daeunAge'
-import { getOffsetMinutes } from './timezone'
+import { solarTimeCorrectionMinutes } from './timezone'
 // 십신 / 정기 매핑은 core 모듈이 single source.
 import { getBranchMainStem, getSibseong } from './core/sibsin'
 
@@ -349,8 +349,16 @@ export function calculateSajuData(
     // server, and the year/month pillar was computed against 1990
     // instead of 1989. Use the Intl-formatted values everywhere — they
     // already powered the day-pillar JDN below.
+    // ── 진경도(평균태양시) 보정 — longitude 있으면 출생 instant *자체*를 옮긴다.
+    //    예전엔 시주(時) lookup 에만 보정분을 더해, 자정·입춘·절기 경계에서 년/월/일은
+    //    보정 안 된 생(raw) 시각으로 계산되는 불일치가 있었다. 이제 네 기둥 모두 이
+    //    effectiveDateTime 한 기준에서 뽑는다 (시주 lookup 의 +correctionMin 과 동일 값).
+    //    longitude 없으면 보정 0 → effectiveDateTime == birthDateTime (옛 동작 보존).
+    const solarCorrectionMin = solarTimeCorrectionMinutes(birthDateTime, longitude, timezone)
+    const effectiveDateTime = new Date(birthDateTime.getTime() + solarCorrectionMin * 60_000)
+
     const fmtNum = (opt: Intl.DateTimeFormatOptions) =>
-      Number(new Intl.DateTimeFormat('en-US', { timeZone: timezone, ...opt }).format(birthLocal))
+      Number(new Intl.DateTimeFormat('en-US', { timeZone: timezone, ...opt }).format(effectiveDateTime))
     const Y = fmtNum({ year: 'numeric' })
     const M = fmtNum({ month: '2-digit' })
     const D = fmtNum({ day: '2-digit' })
@@ -364,7 +372,7 @@ export function calculateSajuData(
     if (!ipchunUTC) {
       throw new Error(`Cannot determine Saju year: solar term data missing for ${year}`)
     }
-    const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
+    const sajuYear = effectiveDateTime < ipchunUTC ? year - 1 : year
     const idx60Y = (sajuYear - 4 + 6000) % 60
     const yearPillar = { stem: STEMS[idx60Y % 10], branch: BRANCHES[idx60Y % 12] }
 
@@ -377,7 +385,7 @@ export function calculateSajuData(
     if (!termUTC_thisMonth) {
       throw new Error(`Cannot determine Saju month: solar term data missing for ${year}/${month}`)
     }
-    if (birthDateTime < termUTC_thisMonth) {
+    if (effectiveDateTime < termUTC_thisMonth) {
       if (sajuMonth === 1) {
         sajuMonth = 12
         sajuTermYear = year - 1
@@ -436,10 +444,8 @@ export function calculateSajuData(
     let totalMin: number
     let ranges: typeof LMT_HOUR_RANGES
     if (typeof longitude === 'number' && Number.isFinite(longitude)) {
-      const tzOffsetMin = getOffsetMinutes(new Date(birthUtcMs), timezone)
-      const standardMeridian = (tzOffsetMin / 60) * 15
-      const correctionMin = Math.round((longitude - standardMeridian) * 4)
-      totalMin = hour * 60 + minute + correctionMin
+      // 위에서 네 기둥 보정에 쓴 그 값(SSOT) 재사용 — 시·일 보정 분리 방지.
+      totalMin = hour * 60 + minute + solarCorrectionMin
       ranges = PLAIN_HOUR_RANGES
     } else {
       const useLmtRanges = applyKoreanLmtCorrection(birthUtcMs, timezone)
