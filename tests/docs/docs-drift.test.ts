@@ -20,7 +20,9 @@ const DOCS = path.join(ROOT, 'docs')
 const VAULT_DIRS = ['doctrine', 'services', 'architecture', 'reference']
 
 function vaultDocs(): string[] {
-  const out: string[] = [path.join(DOCS, 'HOME.md')]
+  // 구조화된 레이어 문서만 무결성 가드 대상. (docs/README.md 는 GitHub 허브 —
+  // 상대 링크 + frontmatter 없음 → 별도 규칙이라 제외)
+  const out: string[] = []
   for (const d of VAULT_DIRS) {
     const dir = path.join(DOCS, d)
     if (!fs.existsSync(dir)) continue
