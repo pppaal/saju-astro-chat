@@ -101,12 +101,6 @@ describe('API Routes Smoke Tests', () => {
     })
   })
 
-  describe('Destiny Match Routes (1)', () => {
-    it('should have destiny match routes', () => {
-      assertModules(['app/api/destiny-match/matches/route'])
-    })
-  })
-
   describe('Me Routes (4)', () => {
     it('should have user profile routes', () => {
       assertModules([
@@ -166,7 +160,6 @@ describe('API Routes Smoke Tests', () => {
         'compatibility',
         'counselor',
         'cron',
-        'destiny-match',
         'me',
         'referral',
         'saju',

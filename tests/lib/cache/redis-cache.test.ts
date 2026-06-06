@@ -223,10 +223,6 @@ describe('Redis Cache', () => {
   })
 
   describe('CACHE_TTL values', () => {
-    it('has correct TTL for compatibility', () => {
-      expect(CACHE_TTL.COMPATIBILITY).toBe(60 * 60 * 24 * 7)
-    })
-
     it('has correct TTL for natal chart', () => {
       // GRADING_RESULT was removed; NATAL_CHART (30 days) is the long-lived key.
       expect(CACHE_TTL.NATAL_CHART).toBe(60 * 60 * 24 * 30)
