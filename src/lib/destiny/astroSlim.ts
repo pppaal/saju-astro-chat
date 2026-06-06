@@ -17,8 +17,8 @@ const SIGN_KO: Record<string, string> = {
   Aries: '양', Taurus: '황소', Gemini: '쌍둥이', Cancer: '게', Leo: '사자', Virgo: '처녀',
   Libra: '천칭', Scorpio: '전갈', Sagittarius: '궁수', Capricorn: '염소', Aquarius: '물병', Pisces: '물고기',
 }
-// aspect → symbol (keyed lowercase; transits arrive capitalized, eclipses lowercase)
-const ASP_SYM: Record<string, string> = { conjunction: '☌', opposition: '☍', trine: '△', square: '□', sextile: '⚹' }
+// aspect → 한국어 뜻 (깨진 □ 박스 + LLM 디코드 오역 방지; 궁합과 동일 정책)
+const ASP_SYM: Record<string, string> = { conjunction: '[결합]', opposition: '[대립]', trine: '[조화]', square: '[긴장]', sextile: '[협력]' }
 
 const MAJOR = /(?<![A-Za-z])(?:Conjunction|Opposition|Trine|Square|Sextile)(?![a-z])/
 const ORB = /Orb:\s*(\d+)°(\d+)'/
