@@ -8,7 +8,7 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  * 활성 윈도우: ageStart~ageEnd (보통 2~4년).
  * polarity: 마일스톤은 본질적으로 변환 압력 → 약한 흉/중립으로 표시. 사용자 인식상 "쉽지 않은 시기".
  *
- * 데이터 출처: fusion/lifeReport/signals/astroLifecycle.ts (단일 진실 출처).
+ * 데이터 출처: calendar-engine/lifecycle/astroLifecycle.ts (단일 진실 출처).
  */
 
 const EVENT_POLARITY: Record<string, Polarity> = {

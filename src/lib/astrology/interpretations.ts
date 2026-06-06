@@ -10,12 +10,8 @@
 //   - Planet × House — 10 planets × 12 houses (120 entries, full grid)
 //   - Aspect type × planet pair — short read for the most informative aspects
 //
-// Note: a parallel narrative table exists in
-// `src/lib/fusion/lifeReport/pools/planetHousePool.ts` for the LifeReport
-// composer. This file keeps a separate, lightweight grid for non-LifeReport
-// surfaces (result page, LLM grounding). They are intentionally NOT shared
-// so each side can evolve its voice — this grid is two-language, the pool
-// is composer-flavored single-language per call.
+// A lightweight two-language grid for non-composer surfaces (result page,
+// LLM grounding).
 
 export type ZodiacName =
   | 'Aries'
