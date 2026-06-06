@@ -1,4 +1,4 @@
-// src/lib/fusion/lifeReport/signals/astroLifecycle.ts
+// src/lib/calendar-engine/lifecycle/astroLifecycle.ts
 // Single source of truth for outer-planet life-cycle timing.
 //
 // Pure age-window math for outer-planet returns and oppositions. No LLM.
@@ -6,9 +6,8 @@
 // user's birth year is enough to surface "Saturn return at age 29".
 //
 // Consumers:
-//   • fusion/lifeReport/sections/decisiveTiming.ts  — lifecycleEvents()
-//   • fusion/lifeReport/sections/lifeStages.ts      — eventsInAgeRange()
 //   • calendar-engine/extractors/astro-lifecycle.ts — buildLifecycleTiming()
+//   • calendar-engine/derivers/lifetimeFlow.ts / lifetimePivots.ts
 
 export type AstroLifecycleEventKind =
   | 'jupiter_return_1' // 12yr
