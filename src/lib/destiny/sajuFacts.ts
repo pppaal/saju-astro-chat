@@ -8,17 +8,25 @@
 // 본 모듈은 **포매팅 0**. locale 무관. text 0. JSON-able 객체만 반환.
 
 import { calculateSajuData } from '@/lib/saju/saju'
+import type { CalculateSajuDataResult } from '@/lib/saju/types'
 import { determineYongsin, type YongsinResult } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
 import { calculateStrengthScore } from '@/lib/saju/strengthScore'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 
 export interface SajuFactsInput {
-  birthDate: string // 'YYYY-MM-DD' (solar)
+  birthDate: string // 'YYYY-MM-DD'
   birthTime: string // 'HH:MM'
   gender: 'male' | 'female'
   timezone?: string
   longitude?: number
+  /**
+   * solar (default) | lunar. lunar 사용자는 음력 → 양력 변환 후 사주 계산.
+   * buildNatalContext 가 음력 입력도 받기 위해 같은 옵션 라우팅.
+   */
+  calendarType?: 'solar' | 'lunar'
+  /** 음력 윤달 여부 — calendarType === 'lunar' 일 때만 의미 있음. */
+  lunarLeap?: boolean
 }
 
 /** 사주 4기둥 raw 항목 (천간/지지/십신/지장간 평면). */
@@ -55,6 +63,15 @@ export interface SajuFacts {
     current: DaeunEntry | null
     list: DaeunEntry[]
   }
+  /**
+   * 옛 raw saju 객체 (calculateSajuData 결과) — buildNatalContext / 캘린더
+   * 엔진처럼 raw shape 자체가 필요한 caller 가 별도 calculateSajuData 호출을
+   * 피하게 노출. 평탄화된 facts 만으론 옛 인터페이스 호환이 빠지므로 같은
+   * 입력으로 재계산하는 비용/코드중복을 피하려고 escape hatch 로 둠.
+   * 신규 호출자는 정제된 dayMaster/pillars/fiveElements 등을 먼저 시도.
+   * (astroFacts._chart / ._natalRaw 와 같은 패턴.)
+   */
+  _raw: CalculateSajuDataResult
 }
 
 export interface DaeunEntry {
@@ -82,13 +99,14 @@ const BRANCH_ELEMENT: Record<string, string> = {
 export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
   const tz = input.timezone ?? 'Asia/Seoul'
   // longitude 진태양시 보정. 출생 시간대 + 경도로 본명·운기 모두 동일 기준.
+  // calendarType / lunarLeap 은 buildNatalContext (음력 입력) 호환용.
   const raw = calculateSajuData(
     input.birthDate,
     input.birthTime,
     input.gender,
-    'solar',
+    input.calendarType ?? 'solar',
     tz,
-    undefined,
+    input.lunarLeap,
     input.longitude,
   ) as unknown as RawSajuShape
 
@@ -203,6 +221,7 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
           : null,
       })),
     },
+    _raw: raw as unknown as CalculateSajuDataResult,
   }
 }
 
