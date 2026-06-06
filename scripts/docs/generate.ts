@@ -26,6 +26,38 @@ import { tarotDeck } from '@/lib/tarot/data'
 const ROOT = process.cwd()
 const DOCS_DIR = path.join(ROOT, 'docs')
 const API_DIR = path.join(ROOT, 'src', 'app', 'api')
+const TESTS_DIR = path.join(ROOT, 'tests')
+
+// 디렉토리 재귀 순회하며 조건 맞는 파일 수 세기
+function countFiles(dir: string, match: (name: string) => boolean): number {
+  if (!fs.existsSync(dir)) return 0
+  let n = 0
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.isDirectory()) n += countFiles(path.join(dir, e.name), match)
+    else if (match(e.name)) n++
+  }
+  return n
+}
+
+function countRoutes(): number {
+  return countFiles(API_DIR, (n) => n === 'route.ts')
+}
+
+// API_AUDIT_REPORT.md(audit:api 생성물)의 Summary bullet 들을 그대로 surface.
+function auditSummaryLines(): string[] {
+  const f = path.join(DOCS_DIR, 'API_AUDIT_REPORT.md')
+  if (!fs.existsSync(f)) return ['- (API_AUDIT_REPORT.md 없음 — `npm run audit:api` 실행)']
+  const lines = fs.readFileSync(f, 'utf8').split(/\r?\n/)
+  const start = lines.findIndex((l) => l.trim() === '## Summary')
+  if (start < 0) return ['- (Summary 섹션 못 찾음)']
+  const out: string[] = []
+  for (let i = start + 1; i < lines.length; i++) {
+    const l = lines[i]
+    if (l.startsWith('## ')) break
+    if (l.trim().startsWith('- ')) out.push(l.trim())
+  }
+  return out.length ? out : ['- (Summary 비어있음)']
+}
 
 const STAMP = '<!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->'
 
@@ -130,6 +162,40 @@ const GENERATORS: Record<string, () => string> = {
       `- **총 ${total}장** — Major ${major} · Minor ${minor}`,
       '',
       table(['Suit', '장수'], suitRows),
+    ].join('\n')
+  },
+
+  // 프로젝트 상태판 — 코드에서 끌어온 실지표 (Obsidian 한눈 현황)
+  'health-dashboard': () => {
+    const routes = countRoutes()
+    const services = ENABLED_SERVICES.length
+    const tests = countFiles(TESTS_DIR, (n) => /\.(test|spec)\.(ts|tsx)$/.test(n))
+    const deck = tarotDeck.length
+    const major = tarotDeck.filter((c) => c.arcana === 'major').length
+    const inventory = table(
+      ['지표', '값'],
+      [
+        ['활성 서비스', `${services}개 ([[services-index]])`],
+        ['API 라우트', `${routes}개 ([[api-routes]])`],
+        ['테스트 파일', `${tests}개`],
+        ['타로 덱', `${deck}장 (Major ${major}/Minor ${deck - major})`],
+        ['하우스 시스템', `\`${CALCULATION_STANDARDS.astrology.houseSystem}\``],
+        ['사주 기준 TZ', `\`${CALCULATION_STANDARDS.saju.baseTimezone}\``],
+      ]
+    )
+    return [
+      STAMP,
+      '',
+      '### 📦 인벤토리 (코드 기준)',
+      '',
+      inventory,
+      '',
+      '### 🔐 보안 ([[API_AUDIT_REPORT]] 기준)',
+      '',
+      ...auditSummaryLines(),
+      '',
+      '> 코드 품질 점수(테스트 통과율·버그·커버리지)는 이 표로 안 나옴 —',
+      '> 별도 에이전트 감사 필요. 여기는 "인벤토리 + 보안 신호" 현황판.',
     ].join('\n')
   },
 

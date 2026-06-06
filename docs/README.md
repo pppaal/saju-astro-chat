@@ -23,7 +23,7 @@ SSOT 기반 신규 구조. ⚙️ 표시는 코드에서 자동 생성(`npm run 
 
 **📑 레퍼런스 (Reference)**
 
-- [API 라우트 인벤토리](reference/api-routes.md) ⚙️
+- [프로젝트 상태판](reference/health-dashboard.md) ⚙️ · [API 라우트 인벤토리](reference/api-routes.md) ⚙️
 
 > 상세 감사/스펙 문서(AUDIT_SAJU, CALCULATION_SPEC, SOLAR_TIME_CONVENTION 등)는
 > 각 교리 문서가 링크합니다. 감사 대상별 전체 색인 + 유지보수 로그는 [DOCS_INDEX.md](DOCS_INDEX.md).
