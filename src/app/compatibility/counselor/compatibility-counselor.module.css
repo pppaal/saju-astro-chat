@@ -149,6 +149,15 @@
   position: relative;
 }
 
+/* 입력창 래퍼 — 운명 상담사(Chat.module.css)와 동일하게 max-width 860px
+   가운데 정렬. 없으면 입력창이 chatWrapper 전체 폭으로 가로로 길게 퍼진다
+   (궁합만 입력창이 넓던 원인). */
+.inputWrap {
+  width: 100%;
+  max-width: 860px;
+  margin-inline: auto;
+}
+
 /* 대화 우상단 ⋮ 메뉴 (Rename / Delete) — 페이지 헤더의 .headerActions
    안에 위치. credit badge 와 한 row 로 정렬되므로 absolute 가 아니라
    inline-flex. compat 페이지는 light 헤더라 색 톤도 light. */
