@@ -85,35 +85,6 @@ export const userBirthInfoUpdateSchema = z.object({
 
 export type UserBirthInfoUpdateValidated = z.infer<typeof userBirthInfoUpdateSchema>
 
-// ============ Feedback Schemas ============
-
-export const feedbackRequestSchema = z.object({
-  type: z.enum(['bug', 'feature', 'improvement', 'other']),
-  subject: z.string().min(1).max(200).trim(),
-  message: z.string().min(10).max(5000).trim(),
-  email: z.string().email().max(254).optional(),
-  page: z.string().max(500).optional(),
-  severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
-})
-
-export type FeedbackRequestValidated = z.infer<typeof feedbackRequestSchema>
-
-// SectionFeedback (사용자 섹션별 👍/👎 피드백) — DB 모델 + zod schema 같이
-// 2026-06-06 제거. 페이지/캡처 코드 0, row 0.
-
-export const feedbackGetQuerySchema = z.object({
-  service: z.string().max(50).optional(),
-})
-
-export const feedbackRecordsQuerySchema = z.object({
-  service: z.string().optional(),
-  helpful: z
-    .enum(['true', 'false'])
-    .transform((val) => val === 'true')
-    .optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
-})
-
 // ============ Chat History & Counselor Schemas ============
 
 export const chatHistorySaveRequestSchema = z.object({

@@ -8,9 +8,6 @@ import {
   userRegistrationRequestSchema,
   userProfileUpdateSchema,
   userBirthInfoUpdateSchema,
-  feedbackRequestSchema,
-  feedbackGetQuerySchema,
-  feedbackRecordsQuerySchema,
   chatHistorySaveRequestSchema,
   counselorSessionSaveRequestSchema,
   counselorSessionLoadQuerySchema,
@@ -164,48 +161,6 @@ describe('Profile Schema Tests', () => {
 
 // Persona Memory Schema Tests — birthChartMemorySchema / sajuProfileMemorySchema /
 // personaMemory* 스키마는 이 브랜치에 존재하지 않음 (feature 브랜치에서 추가 예정).
-
-describe('Feedback Schema Tests', () => {
-  describe('feedbackRequestSchema', () => {
-    it('should accept valid feedback', () => {
-      expect(feedbackRequestSchema.safeParse({
-        type: 'bug',
-        subject: 'Login issue',
-        message: 'I cannot login to my account. Please help resolve this issue.',
-      }).success).toBe(true)
-    })
-
-    it('should accept all types', () => {
-      const types = ['bug', 'feature', 'improvement', 'other']
-      types.forEach(type => {
-        expect(feedbackRequestSchema.safeParse({
-          type,
-          subject: 'Test',
-          message: 'Test message with enough length',
-        }).success).toBe(true)
-      })
-    })
-
-    it('should accept optional fields', () => {
-      expect(feedbackRequestSchema.safeParse({
-        type: 'feature',
-        subject: 'New feature',
-        message: 'Please add dark mode support',
-        email: 'user@example.com',
-        page: '/settings',
-        severity: 'medium',
-      }).success).toBe(true)
-    })
-
-    it('should reject short message', () => {
-      expect(feedbackRequestSchema.safeParse({
-        type: 'bug',
-        subject: 'Test',
-        message: 'short',
-      }).success).toBe(false)
-    })
-  })
-})
 
 describe('Chat History & Counselor Schema Tests', () => {
   describe('chatHistorySaveRequestSchema', () => {
