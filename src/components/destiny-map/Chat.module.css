@@ -575,40 +575,28 @@
 
 */
 
-/* ========== Enhanced Thinking Indicator ========== */
+/* ========== Thinking Indicator ==========
+   궁합 카운슬러와 시각 통일 — 박스/테두리/박스쉐도우/pulse 다 제거하고
+   점만 깜빡이는 깔끔한 인디케이터. 답변 시작 직전 잠깐만 보이는 블록이라
+   화려한 박스가 시선을 끌어당길 필요 없음. */
 .thinkingMessage {
-  padding: 14px 18px;
-  border-radius: 16px 16px 16px 4px;
-  background: linear-gradient(135deg, rgba(212, 181, 114, 0.15) 0%, rgba(212, 181, 114, 0.1) 100%);
-  border: 1px solid rgba(212, 181, 114, 0.3);
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  animation: thinkingPulse 2s ease-in-out infinite;
-  box-shadow: 0 4px 16px rgba(212, 181, 114, 0.2);
+  gap: 0.5rem;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
-@keyframes thinkingPulse {
-  0%,
-  100% {
-    box-shadow: 0 4px 16px rgba(212, 181, 114, 0.2);
-    border-color: rgba(212, 181, 114, 0.3);
-  }
-  50% {
-    box-shadow: 0 6px 24px rgba(212, 181, 114, 0.4);
-    border-color: rgba(212, 181, 114, 0.5);
-  }
-}
-
+/* 궁합 카운슬러 (.typing > span) 와 동일 사양 — 6px 작은 점 + 회색 톤 +
+   bounce 애니메이션. 글로우/큰 사이즈/박스쉐도우 제거. */
 .typingDot {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(212, 181, 114, 1) 0%, rgba(212, 181, 114, 0.9) 100%);
+  background: var(--ds-light-text-subtle, rgba(28, 25, 23, 0.4));
   animation: typingDot 1.2s ease-in-out infinite;
-  box-shadow:
-    0 0 12px rgba(212, 181, 114, 0.8),
-    0 0 24px rgba(212, 181, 114, 0.4);
 }
 
 .typingDot:nth-child(1) {
@@ -627,31 +615,19 @@
   0%,
   60%,
   100% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
     opacity: 0.6;
   }
   30% {
-    transform: translateY(-14px) scale(1.2);
+    transform: translateY(-4px);
     opacity: 1;
   }
 }
 
 .thinkingText {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 15px;
+  color: var(--ds-light-text-muted, rgba(28, 25, 23, 0.6));
+  font-size: 13px;
   font-weight: 500;
-  margin-left: 8px;
-  animation: textFade 1.5s ease-in-out infinite;
-}
-
-@keyframes textFade {
-  0%,
-  100% {
-    opacity: 0.8;
-  }
-  50% {
-    opacity: 1;
-  }
 }
 
 /* ========== Input Area ========== */
