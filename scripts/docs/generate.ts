@@ -21,6 +21,7 @@ import prettier from 'prettier'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { ENABLED_SERVICES, REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enabledServices'
 import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
+import { tarotDeck } from '@/lib/tarot/data'
 
 const ROOT = process.cwd()
 const DOCS_DIR = path.join(ROOT, 'docs')
@@ -106,6 +107,29 @@ const GENERATORS: Record<string, () => string> = {
       '**원천:** [`src/lib/tarot/tarot-spreads-data.ts`](../../src/lib/tarot/tarot-spreads-data.ts)',
       '',
       table(['스프레드', '카드 수', '비용'], rows),
+    ].join('\n')
+  },
+
+  // 타로 덱 구성 — tarotDeck 가 코드 SSOT
+  'tarot-deck': () => {
+    const total = tarotDeck.length
+    const bySuit = tarotDeck.reduce<Record<string, number>>((acc, c) => {
+      acc[c.suit] = (acc[c.suit] ?? 0) + 1
+      return acc
+    }, {})
+    const major = tarotDeck.filter((c) => c.arcana === 'major').length
+    const minor = total - major
+    const suitRows = Object.entries(bySuit)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([suit, n]) => [`\`${suit}\``, String(n)])
+    return [
+      STAMP,
+      '',
+      '**원천:** [`src/lib/tarot/data/`](../../src/lib/tarot/data/)',
+      '',
+      `- **총 ${total}장** — Major ${major} · Minor ${minor}`,
+      '',
+      table(['Suit', '장수'], suitRows),
     ].join('\n')
   },
 

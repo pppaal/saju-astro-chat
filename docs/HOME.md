@@ -17,13 +17,16 @@ status: living
 
 - [[saju|사주 교리]]
 - [[astrology|점성 교리]]
+- [[tarot-doctrine|타로 교리]]
 - [[calculation-standards|계산 표준]] ⚙️
 
 ## 🎴 서비스 (Services) — "유저가 받는 것"
 
 - [[services-index|서비스 인덱스]] ⚙️
 - [[destiny-counselor|운명 상담사]] — 사주+점성
-- 타로 · 궁합 · 캘린더 _(예정)_
+- [[tarot|타로 상담사]]
+- [[compatibility|궁합 상담사]]
+- 캘린더 _(예정)_
 
 ## 🏗️ 아키텍처 (Architecture)
 
