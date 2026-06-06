@@ -1,33 +1,19 @@
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { toChart } from '@/lib/astrology/foundation/astrologyService'
-import { calculateChiron, calculateLilith } from '@/lib/astrology/foundation/extraPoints'
-import { natalToJD, matchHouseForCusps, UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
 import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
 import { annotateShinsal, type ShinsalHit as ShinsalHitInternal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { performAnalyses } from '@/app/api/saju/services/analyses'
-import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
-import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
-import { calculateArabicLots, type ArabicLot } from '@/lib/astrology/foundation/arabicParts'
-import { dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
-import {
-  calculateAlmutenFiguris,
-  type AlmutenFigurisResult,
-} from '@/lib/astrology/foundation/almutenFiguris'
 import { JIJANGGAN } from '@/lib/saju/constants'
 import { logger } from '@/lib/logger'
 import type {
   NatalContext,
   NatalDayJijanggan,
-  NatalArabicLot,
-  ZodiacalReleasingResult,
-  DignityResult,
-  NatalDignityEntry,
 } from './types'
 import type { FiveElement, SajuPillarsInput, CalculateSajuDataResult } from '@/lib/saju/types'
-import type { AspectHit, NatalInput, Chart, ZodiacKo } from '@/lib/astrology/foundation/types'
+import type { NatalInput, Chart } from '@/lib/astrology/foundation/types'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 
 export interface BuildContextInput {
@@ -163,158 +149,50 @@ export async function buildNatalContext(
     branch: d.earthlyBranch,
   }))
 
-  // ─── 점성 차트 계산 (pre-computed 있으면 재사용) ───
-  // 2026-06-06: collectAstroFacts (운명 SSOT) 위임 — calculateNatalChart 직접
-  // 호출 대신 facts 의 _chart escape hatch 사용. 모든 raw natal chart 계산이
-  // 한 가공소(facts) 통과. 내부 LRU 캐시 적중으로 비용 동일.
-  let chart: Chart
-  if (preComputed.astroChart) {
-    // Chart인지 NatalChartData인지 판별 — Chart에는 .houses[].cusp 가 있고
-    // NatalChartData에는 .houses[].cusp + .formatted 가 있음. 안전하게 toChart 항상 통과.
-    const candidate = preComputed.astroChart as Chart & NatalChartData
-    chart =
-      'planets' in candidate && Array.isArray(candidate.planets) && 'sign' in candidate.planets[0]
-        ? (candidate as Chart)
-        : toChart(candidate as NatalChartData)
-  } else {
-    const facts = await collectAstroFacts({
+  // ─── 점성 차트 + Hellenistic (collectAstroFacts SSOT) ──────────────────
+  // 2026-06-06: 옛 코드는 calculateChiron/Lilith / findNatalAspects /
+  // calculateArabicLots / calculateZodiacalReleasing / dignityTiers /
+  // calculateAlmutenFiguris 를 여기서 직접 호출했다. 같은 코드가 facts 에도
+  // 필요해지면서 중복이 됐고, 본 단계에서 facts 가 includeHellenistic 옵션으로
+  // 통째 흡수. build.ts 는 facts 의 hellenistic 객체에서 받기만 한다.
+  //
+  // preComputed.astroChart 옵션은 calendar/route.ts 의 cascade 캐시 패턴
+  // (같은 요청 안 chart 재사용) 호환용 — 단 collectAstroFacts 가 LRU 캐시
+  // 적중으로 같은 chart 반환하므로 새 path 에선 무시. 같은 입력 → 같은 chart.
+  const astroFacts = await collectAstroFacts(
+    {
       birthDate: input.birthDate,
       birthTime: input.birthTime,
       latitude: input.latitude,
       longitude: input.longitude,
       timezone: input.timeZone,
-    })
-    if (!facts) {
-      throw new Error('buildNatalContext: collectAstroFacts returned null')
-    }
-    chart = facts._chart
+      includeHellenistic: true,
+    },
+  )
+  if (!astroFacts) {
+    throw new Error('buildNatalContext: collectAstroFacts returned null')
   }
-
-  // 섹트 결정 — Sun이 지평선 위(7~12궁 또는 1궁)에 있으면 day, 아니면 night
-  const sun = chart.planets.find((p) => p.name === 'Sun')
-  const sect: 'day' | 'night' = sun && sun.house >= 7 ? 'day' : 'night'
-
-  // 본명 카이런·릴리스 — 차트 planets(10행성+노드)엔 없는 천체. 트랜짓이 이 점들로
-  // 들어오는 신호(예: 토성 ☌ 본명 카이런)를 잡기 위해 별도 보관. 실패해도 무시.
-  let extraPoints: NatalContext['astro']['extraPoints']
-  try {
-    const utJd = natalToJD(natalInput)
-    const houseCusps = chart.houses.map((h) => h.cusp)
-    extraPoints = [calculateChiron(utJd, houseCusps), calculateLilith(utJd, houseCusps)]
-  } catch {
-    extraPoints = undefined
+  void toChart // preComputed.astroChart 옛 caller 호환 import — 새 path 에선 미사용
+  let chart: Chart = astroFacts._chart
+  if (preComputed.astroChart) {
+    const candidate = preComputed.astroChart as Chart & NatalChartData
+    chart =
+      'planets' in candidate && Array.isArray(candidate.planets) && 'sign' in candidate.planets[0]
+        ? (candidate as Chart)
+        : toChart(candidate as NatalChartData)
   }
-
-  // ─── 본명 aspects (major + minor) ──────────────────────────────────────
-  // findNatalAspects 의 default rules — natal orb +3°, maxResults=100, major
-  // only (rules.includeMinor 안 켜면). 한 명당 보통 30-50 hits.
-  // chart 가 깨져있어도 안전하게 빈 배열 반환하도록 try/catch.
-  let natalAspects: AspectHit[]
-  try {
-    natalAspects = findNatalAspects(chart, { includeMinor: true })
-  } catch (err) {
-    logger.warn('[natal-context] findNatalAspects failed, defaulting to []', {
-      err: err instanceof Error ? err.message : String(err),
-    })
-    natalAspects = []
+  if (!astroFacts.hellenistic) {
+    throw new Error('buildNatalContext: astroFacts.hellenistic missing (includeHellenistic ignored?)')
   }
-
-  // ─── 7 Arabic Lots (정통 Hellenistic 산술점) ───────────────────────────
-  // calculateArabicLots 는 sect-aware 공식으로 7대 lot (Fortune·Spirit·Eros·
-  // Necessity·Courage·Victory·Nemesis) 의 sign · degree · longitude 를 한 번에
-  // 산출. 차트 결손 (행성 missing) 시 한 lot 이라도 빠지면 전체 throw — 빈 배열.
-  let lots: ArabicLot[] = []
-  try {
-    lots = calculateArabicLots(chart, sect === 'day')
-  } catch (err) {
-    logger.warn('[natal-context] Arabic lots calc failed', {
-      err: err instanceof Error ? err.message : String(err),
-    })
-    lots = []
-  }
-
-  // ─── lot → house 매핑 (UI 표시용) ──────────────────────────────────────
-  // ArabicLot 원 타입은 sign + degreeInSign + longitude 만 갖고 house 는 없다.
-  // matchHouseForCusps SSOT (chart.planets house 룩업이 쓰는 동일 함수) 로
-  // lot 별 house 산출. cusp 결손 시 UNKNOWN_HOUSE(0) 반환.
-  const houseCuspsForLots = chart.houses.map((h) => h.cusp)
-  const lotsWithHouse: NatalArabicLot[] = lots.map((l) => ({
-    ...l,
-    house: matchHouseForCusps(l.longitude, houseCuspsForLots) ?? UNKNOWN_HOUSE,
-  }))
-
-  // ─── Zodiacal Releasing L1 (Spirit / Fortune) ──────────────────────────
-  // ZR 시작점은 Spirit / Fortune 두 lot 의 sign. 위에서 이미 산출한 lots 재사용 —
-  // 한 lot 이 빠지면 (chart missing planet 등) null 로 저장하고 계속 진행.
-  const zodiacalReleasing: ZodiacalReleasingResult = { spirit: null, fortune: null }
-  const spiritLot = lots.find((l) => l.name === 'Spirit')
-  const fortuneLot = lots.find((l) => l.name === 'Fortune')
-  if (spiritLot) {
-    try {
-      zodiacalReleasing.spirit = {
-        startSign: spiritLot.sign,
-        periods: calculateZodiacalReleasing(spiritLot.sign as ZodiacKo, 90),
-      }
-    } catch (err) {
-      logger.warn('[natal-context] ZR Spirit calc failed', {
-        err: err instanceof Error ? err.message : String(err),
-      })
-    }
-  }
-  if (fortuneLot) {
-    try {
-      zodiacalReleasing.fortune = {
-        startSign: fortuneLot.sign,
-        periods: calculateZodiacalReleasing(fortuneLot.sign as ZodiacKo, 90),
-      }
-    } catch (err) {
-      logger.warn('[natal-context] ZR Fortune calc failed', {
-        err: err instanceof Error ? err.message : String(err),
-      })
-    }
-  }
-
-  // ─── 본명 5-tier dignities (per planet) ─────────────────────────────────
-  // dignityTiers() 자체는 table look-up 이지만 chart.planets 전체에 매번 부르는
-  // 게 extractor 코드 양을 늘림. 캐시 = 본명 행성 list × tiers + score.
-  const dignities: DignityResult = []
-  for (const p of chart.planets) {
-    if (!p.sign) continue
-    try {
-      const tiers = dignityTiers(p.name, p.sign, p.degree, sect)
-      const score = dignityScore(tiers)
-      const entry: NatalDignityEntry = {
-        planet: p.name,
-        sign: p.sign,
-        degree: p.degree,
-        tiers,
-        score,
-      }
-      dignities.push(entry)
-    } catch (err) {
-      logger.warn('[natal-context] dignityTiers failed for planet', {
-        planet: p.name,
-        err: err instanceof Error ? err.message : String(err),
-      })
-    }
-  }
-
-  // ─── Almuten Figuris — 4-point (Sun/Moon/ASC/Fortune) ─────────────────
-  // Prenatal Lunation 빠진 modern Holden 식. fortuneLot 가 있을 때만 4점,
-  // 없으면 3점 (Sun/Moon/ASC) 으로 자동 강등 — calculateAlmutenFiguris 내부 분기.
-  let almutenFiguris: AlmutenFigurisResult | null = null
-  try {
-    almutenFiguris = calculateAlmutenFiguris({
-      chart,
-      sect,
-      fortune: fortuneLot ? { longitude: fortuneLot.longitude } : undefined,
-    })
-  } catch (err) {
-    logger.warn('[natal-context] Almuten Figuris calc failed', {
-      err: err instanceof Error ? err.message : String(err),
-    })
-    almutenFiguris = null
-  }
+  const {
+    sect,
+    extraPoints,
+    natalAspects,
+    lots: lotsWithHouse,
+    zodiacalReleasing,
+    dignities,
+    almutenFiguris,
+  } = astroFacts.hellenistic
 
   // ─── 본명 일주 지장간 3층 ─────────────────────────────────────────────
   // JIJANGGAN SSOT (constants.ts) 룩업. 子·卯·午·酉 같은 왕지는 정기만 보유.
