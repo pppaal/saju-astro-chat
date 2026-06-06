@@ -4,6 +4,8 @@
 > 각각 무엇을 받아야 하는지의 SSOT. consumer 가 자기 분석을 자기 책임으로 호출하는 패턴
 > (sajuFacts/astroFacts 정제 + consumer 가 직접 분석 함수 호출).
 >
+> **v5.2 (2026-06-06)** — 후속 결정 §6.C 궁합 분석 확장 → ❌ 안 함 (cross 안 됨)
+> + §6.G **통합 리포트 새 엔진** 추가 (캘린더 정적 분석 흡수 — 시간 흐름 제외).
 > **v5.1 (2026-06-06)** — raw 행 정밀화: 점성 raw 행 분리 (ASC/MC vs houses) +
 > sect 를 분석 행으로 이동 (Sun house derive). 운명 LLM houses 셀 정정 (부분 사용 — H번호만).
 > **v5 (2026-06-06)** — 3 Opus 병렬 운명/궁합/통합 시점 코드 실측 재검증 + PR #1230 (조후) /
@@ -227,11 +229,10 @@ PR #1231 (`buildReportContext` + `includeHellenistic:false`) 로 Profection/Lots
 ### B. ~~dignity 5-tier 비효율~~ → ✅ 해소
 PR #1231 후 adapter 는 단순 `dignityOf` 만 사용 (예전부터 그랬음), buildReportContext 가 5-tier 안 받음 → 일관됨.
 
-### C. 궁합 LLM 추가 분석 (Opus 추천 — 미결)
-**현재**: 합·충·형 표면 신호만. 격국/용신/12운성 등 핵심 사주 분석 미사용. **통근(rooted) 도 누락** (v5 정정).
-**옵션**:
-1. 격국/용신/12운성/조후 cross 룰 추가 → 결혼·인내·역할 해석 풍부
-2. 현 상태 유지 (cross 만으로 충분)
+### C. 궁합 LLM 추가 분석 → ❌ 안 함 (2026-06-06 결정)
+**결정**: 격국/용신/12운성/조후 cross 룰 추가하지 않음.
+**이유**: 모두 *한 사람 자체* 룰. 궁합은 **cross 가 본질**이라 self 룰 들고 와도 의미 있는 cross 패턴이 안 나옴 (예: A의 격국 ↔ B의 격국 = 비교 룰 자체 없음, A의 용신 ↔ B의 오행 풍부도 정도). 운명상담사 LLM 으로 가서 받는 게 맞음.
+**현재**: 합·충·형 표면 신호 + 신살 cross + synastry/composite 만 — *cross 가능한* 신호만 살림. 통근(rooted) 도 self 룰이라 의도된 누락.
 
 ### D. ~~조후용신 dead~~ → ✅ 해소 (운명만)
 PR #1230 으로 운명 LLM 도입 (rating ≥4 만). 궁합 LLM 은 미도입 (cross 본질 보존).
@@ -247,7 +248,24 @@ PR #1230 으로 운명 LLM 도입 (rating ≥4 만). 궁합 LLM 은 미도입 (c
 - ✅ Phase 1 (PR #1231): 통합 리포트 → `buildReportContext`
 - ⏭ Phase 2: 캘린더 convergence
 - ⏭ Phase 3: 운흐름 page + preview
-- ⏭ Phase 4: `buildNatalContext` 통째 제거
+- ⏭ Phase 4: `buildNatalContext` 통째 제거 (캘린더 정리의 부산물 — 마지막 caller 사라지면 자동 dead)
+
+### G. 통합 리포트 새 엔진 — 캘린더 정적 분석 흡수 (예정)
+**의도**: 통합 리포트가 캘린더 (운흐름) 가 받는 **풍부한 본명 분석** 중 *시간 흐름(동사) 제외* 한 *정적(명사)* 부분을 다 받아 차트 페이지를 깊게.
+
+**가져올 캘린더 분석 (정적 명사만)**:
+- 사주: 격국 / 용신 / 12운성 본명 / 신살 self / 십신 분포 / 공망 / 본명 관계 / 통근 / 조후
+- 점성: dignity 5-tier / Arabic Lots (정적 위치) / Almuten Figuris / Chiron / Lilith / 본명 aspects (major+minor)
+
+**빼는 것 (시간 흐름·동사)**:
+- 대운/세운/월운/일진/시진 cells
+- Transit / Solar Return / Lunar Return / Secondary Progression
+- Zodiacal Releasing 활성 챕터
+- Profection 당해 활성 하우스
+- 형충회합 시간 cross / unseRelations
+
+**상태**: 아키텍처 결정 — implementation 별도 작업.
+**현재 (PR #1231 buildReportContext)**: 통합 리포트가 hellenistic 5개 (Profection/Lots/ZR/Almuten/5-tier dignity) 계산 안 함 (`includeHellenistic:false`). G 시 이 옵션 다시 켜고 *정적* 부분만 UI 노출.
 
 ## 7. 아키텍처 의도
 
@@ -278,7 +296,10 @@ PR #1230 으로 운명 LLM 도입 (rating ≥4 만). 궁합 LLM 은 미도입 (c
   - 점성 raw 행 분리: "ASC/MC·sect·houses" → "ASC/MC" + "houses (12 cusp)" 2 행.
   - `sect` (Sun house → day/night) 를 점성 분석 섹션으로 이동 — derive 데이터라 raw 아님.
   - 운명 LLM houses 셀: ✅ → `부분(H번호만)` — 행성의 하우스 번호만 표시, cusp 자체는 미사용.
-- TODO: C(궁합 분석 확장) / E(slimAstroSelf 매칭) 결정 + V3 캘린더 엔진(§2.5 의 🔴 제거 / ◐ 분리) → implementation
+- 2026-06-06 **v5.2** — 후속 결정 갱신:
+  - §6.C 궁합 분석 확장 → ❌ 안 함 확정. **이유: cross 안 됨** (격국/용신/12운성/조후 다 self 룰, 의미 있는 cross 패턴 없음. 운명 LLM 에서 풍부 해석).
+  - §6.G **통합 리포트 새 엔진** 추가 — 캘린더의 *정적(명사) 분석만* 흡수 (격국/용신/12운성 본명/dignity 5-tier/Arabic Lots 정적/Almuten/Chiron/Lilith/aspects major+minor 등). 시간 흐름(동사 — 대운/세운/Transit/SR/LR/Progression/ZR L1/Profection) 제외.
+- TODO: E(slimAstroSelf 매칭) 결정 + V3 캘린더 엔진(§2.5 의 🔴 제거 / ◐ 분리) + §6.G 통합 리포트 새 엔진 → implementation
 
 ## 9. 참고
 
