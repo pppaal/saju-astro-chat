@@ -7,29 +7,11 @@ export * from './constants'
 // 원국 계산기
 export { calculateSajuData } from './saju'
 
-// 고급 분석 (신강/신약, 격국, 용신, 통근/득령, 조후용신)
-export {
-  analyzeStrength,
-  analyzeGeokguk,
-  analyzeYongsin,
-  analyzeAdvancedSaju,
-  analyzeRoot,
-  analyzeJohuYongsin,
-  analyzeExtendedSaju,
-  evaluateElementInfluence,
-  scoreUnseElement,
-  getSeasonFromMonthBranch,
-  type StrengthLevel,
-  type DaymasterStrengthAnalysis,
-  type GeokgukType,
-  type GeokgukAnalysis,
-  type YongsinAnalysis,
-  type AdvancedSajuAnalysis,
-  type RootAnalysis,
-  type JohuYongsinAnalysis,
-  type ExtendedAdvancedAnalysis,
-  type Season,
-} from './advancedAnalysis'
+// 신강/신약 + 통근/득령 — tonggeun.ts SSOT.
+// 옛 advancedAnalysis (994줄) 가 이걸 re-export + 격국/용신/조후 함수들도
+// 묶어 노출했는데 격국/용신/조후는 각자 자기 모듈(geokguk/yongsin)에서
+// 이미 export 함. advancedAnalysis 통째 삭제 후 barrel 정리 (2026-06).
+export { analyzeStrength } from './tonggeun'
 
 // 운세/캘린더
 export { getDaeunCycles, getAnnualCycles, getMonthlyCycles, getIljinCalendar } from './unse'
@@ -260,18 +242,8 @@ export {
   type CelebrityProfile,
 } from './patternMatcher'
 
-// ============================================================
-// 1000% 급 초고급 모듈들
-// ============================================================
-
-// 사주 고급 핵심 엔진 (공망 심화 + 종합 orchestrator)
-export {
-  analyzeGongmangDeep,
-  performUltraAdvancedAnalysis,
-  type GongmangDeepAnalysis,
-  type UltraAdvancedAnalysis,
-} from './advancedSajuCore'
-
+// 옛 advancedSajuCore (공망 심화 + 종합 orchestrator) — 미사용으로 삭제됨
+// (2026-06: production import 0, 좀비 테스트만 검증하던 상태).
 // 세대간/가족 분석 엔진 — 미사용으로 삭제됨 (2025 정리)
 
 // saju/cache 디렉터리 외부 사용 0 — 통째 제거됨 (2025 정리).
