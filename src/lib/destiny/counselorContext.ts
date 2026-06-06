@@ -587,6 +587,18 @@ export function buildSajuSection(
       `${L('용신', 'yongsin')}: ${ge(y.primaryYongsin)}${ytAbbr ? `(${ytAbbr})` : ''}${extras ? ` | ${extras}` : ''}`
     )
   }
+  // 조후용신 (계절 균형 보조 신호) — 격국용신 옆에 한 줄. 단 균형이 좋아
+  // 조후 결핍이 적은 사주(rating 1~3)는 노이즈가 되므로 rating 4 이상 (한
+  // 겨울/한여름 같은 강한 계절 결핍) 만 노출. 격국용신과 우선순위가 헷갈리지
+  // 않게 "(보조·계절)" 라벨로 명시.
+  const johu = facts.johuYongsin
+  if (johu && johu.rating >= 4) {
+    const ge2 = (e?: string) => (e ? (locale === 'en' ? (ELEM_EN[e] ?? e) : (ELEM[e] ?? e)) : '')
+    const climate = locale === 'en' ? johu.climate_en : johu.climate
+    out.push(
+      `${L('조후(보조·계절)', 'climate(aux)')}: ${ge2(johu.primaryYongsin)} (${climate}, ${johu.rating}/5)`
+    )
+  }
   if (geok) {
     const geokEn = `${SIBSIN_EN[geok.replace(/격$/, '')] ?? geok.replace(/격$/, '')} structure`
     out.push(`${L('격국', 'geokguk')}: ${locale === 'en' ? geokEn : geok}`)
