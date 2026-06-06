@@ -603,6 +603,20 @@ function CompatibilityCounselorContent() {
       // 궁합 상담은 유료 서비스 — 비로그인이면 전송 대신 로그인 모달.
       // (게스트 무료 체험 제거: 로그인해야만 사용 가능.)
       if (!requireLogin()) {
+        // 막힌 질문을 인물 스냅샷과 함께 draft 에 저장 → 로그인(풀 리로드) 후
+        // 복원 effect 가 persons 와 함께 살리고, 마지막 미답변 질문을 자동
+        // 재전송한다. 이게 없으면 질문이 messages 에 안 들어가 통째로 사라진다.
+        if (persons.length >= 2) {
+          savePendingChat('compat', {
+            persons,
+            person1Saju,
+            person2Saju,
+            person1Astro,
+            person2Astro,
+            messages: [...messages, { role: 'user', content: text }],
+            chatTitle,
+          })
+        }
         return
       }
 
