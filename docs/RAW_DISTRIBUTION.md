@@ -4,6 +4,12 @@
 > 각각 무엇을 받아야 하는지의 SSOT. consumer 가 자기 분석을 자기 책임으로 호출하는 패턴
 > (sajuFacts/astroFacts 정제 + consumer 가 직접 분석 함수 호출).
 >
+> **v5.4 (2026-06-07)** — 통합 리포트 새 엔진 implementation 반영:
+> Phase A (`buildReportContext` `includeHellenistic:true` 로 뒤집음) + Phase B
+> (adapter 가 5-tier dignity / Lots / Almuten 흡수) + Phase C (UI 친화 라벨).
+> 통합 리포트 4 셀 정정: dignity 5-tier / Lots / ZR / Almuten 모두 `-` → `✅`.
+> 회색 3개 명시: 공망 self / 조후용신 / 통근 — facts 가 만들지만 ctx 미사용
+> (결정 보류).
 > **v5.3 (2026-06-06)** — §6.G 표현 정정: "캘린더 분석 흡수" → 분석 함수 SSOT
 > (`src/lib/saju/*` + `src/lib/astrology/foundation/*`) 직접 호출. 캘린더 거치지 않음.
 > **v5.2 (2026-06-06)** — 후속 결정 §6.C 궁합 분석 확장 → ❌ 안 함 (cross 안 됨)
@@ -92,11 +98,11 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 | 12운성 (getTwelveStagesForPillars) | 분석 | 명사/동사 | ✅ | - | ✅ | ✅(시기) |
 | 신살 self (getShinsalHits) | 분석 | 명사 | ✅ | ✅(cross) | ✅ | ◐ |
 | 십신 분포 카운트 (즉석 sibsinOf / analyzeSibsinComprehensive) | 분석 | 명사 | ✅(즉석) | - | ✅(categoryCount) | - |
-| 공망 self (getGongmang) | 분석 | 명사 | ✅ | - | ✗null | ◐ |
+| 공망 self (getGongmang) | 분석 | 명사 | ✅ | - | ✗null(보류) | ◐ |
 | 공망 cross 양방향 (gongmangOf cross) | 분석 | 동사 | - | ✅ | - | - |
 | 본명 합충형 관계 (analyzeRelations) | 분석 | 명사 | ✅ | - | ✅ | -(시기 형충만 ✅) |
-| 조후용신 (getJohuYongsin) | 분석 | 명사/동사 | ✅(rating≥4) | - | - | ✅(extractor) |
-| 통근 (sajuFacts.rooted / calculateTonggeun) | 분석 | 명사/동사 | ✅(rooted) | -(field 미독취) | - | ✅(shift) |
+| 조후용신 (getJohuYongsin) | 분석 | 명사/동사 | ✅(rating≥4) | - | -(보류) | ✅(extractor) |
+| 통근 (sajuFacts.rooted / calculateTonggeun) | 분석 | 명사/동사 | ✅(rooted) | -(field 미독취) | -(보류) | ✅(shift) |
 | 득령 (calculateDeukryeong) | 분석 | 명사 | - | - | - | -(미확인) |
 | 형충회합 시간 cross (analyzeHyeongchung) | 분석 | 동사 | ✅ | - | - | ✅ |
 | 일진 캘린더 (getIljinCalendar — 별도 함수) | 분석 | 동사 | ✅ | - | - | ✅ |
@@ -112,14 +118,14 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 | houses (12 cusp) | raw | 명사 | 부분(H번호만) | ✅ | ✅ | ✅ |
 | **점성 분석** (raw 위에 추가) | | | | | | |
 | sect (Sun house → day/night) | 분석 | 명사 | ✅ | ✅ | ✅ | ✅ |
-| 본명 aspects (major) | 분석 | 명사 | ✅ | ✅ | ✅ | - |
+| 본명 aspects (major + minor) | 분석 | 명사 | ✅ | ✅ | ✅(major+minor Phase A) | - |
 | dignity (단순 per planet) | 분석 | 명사 | ✅ | - | ✅ | - |
-| dignity 5-tier (dignityTiers) | 분석 | 명사/동사 | - | - | -(PR #1231) | ✅(트랜짓) |
+| dignity 5-tier (dignityTiers) | 분석 | 명사/동사 | - | - | ✅(Phase A/B) | ✅(트랜짓) |
 | Chiron / Lilith (본명) | 분석 | 명사 | -(slim drop) | ✅(synastry) | ✅(extraPoints) | - |
 | Fortune / Vertex (본명) | 분석 | 명사 | - | ✅(synastry) | - | - |
-| 7 Arabic Lots (calculateArabicLots) | 분석 | 명사 | - | - | -(PR #1231) | ◐ |
-| Zodiacal Releasing (L1 활성챕터) | 분석 | 동사 | - | - | -(PR #1231) | ✅ |
-| Almuten Figuris | 분석 | 명사 | - | - | -(PR #1231) | -(미확인) |
+| 7 Arabic Lots (calculateArabicLots) | 분석 | 명사 | - | - | ✅(Phase A/B) | ◐ |
+| Zodiacal Releasing (L1 활성챕터) | 분석 | 동사 | - | - | ✅(Phase A/B, 정적 시작점만) | ✅ |
+| Almuten Figuris | 분석 | 명사 | - | - | ✅(Phase A/B) | -(미확인) |
 | Profection (당해 활성 하우스) | 분석 | 동사 | ✅ | - | ✗미계산 | ✅ |
 | Transit (행성 트랜짓) | 분석 | 동사 | ✅ | - | - | ✅ |
 | Eclipse (식) | 분석 | 동사 | ✅ | - | - | ✅ |
@@ -152,6 +158,31 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 - 7 Arabic Lots ⚠️ dead → `-(PR #1231)` — 동일.
 - Zodiacal Releasing ⚠️ dead → `-(PR #1231)` — 동일.
 - Almuten Figuris ⚠️ dead → `-(PR #1231)` — 동일.
+
+### v5.3 → v5.4 셀별 정정 노트 (2026-06-07)
+
+**통합 리포트 4 셀 — `-(PR #1231)` → `✅`**:
+Phase A (`buildReportContext` `includeHellenistic:true` 로 뒤집음, PR #1245) +
+Phase B (adapter 가 5-tier/Lots/Almuten 다 흡수, PR #1247) 로 다시 받음. UI
+노출은 Phase C (친화 라벨, PR #1256) + Phase D (정통 깊이 카드, 진행 중).
+- dignity 5-tier `-` → `✅(Phase A/B)`
+- 7 Arabic Lots `-` → `✅(Phase A/B)`
+- Zodiacal Releasing (정적 시작점) `-` → `✅(Phase A/B, 정적 시작점만)` — 활성
+  챕터 (시간 흐름) 는 여전히 안 받음 (캘린더 영역)
+- Almuten Figuris `-` → `✅(Phase A/B)`
+
+**점성 aspects 1 셀**:
+- 본명 aspects (major) → (major+minor) — Phase A 가 `findNatalAspects(includeMinor:true)`
+  결과 모두 받음
+
+**회색 3 셀 — 결정 보류 명시**:
+다음 3 항목은 facts 가 만들지만 ctx 가 안 받음. UI 카드 추가할지 결정 필요.
+- 공망 self: `✗null` → `✗null(보류)` — sajuFacts.gongmang 안 만듦. 공망 카드
+  보여줄지 결정 필요
+- 조후용신: `-` → `-(보류)` — sajuFacts.johuYongsin (PR #1230) 있지만 ctx
+  미사용. 통합 리포트 정통 깊이 카드에 포함할지 결정 필요
+- 통근 self: `-` → `-(보류)` — sajuFacts.dayMaster.rooted 있지만 ctx.saju
+  미전달. "일간이 지장간에 박혔는가" 정보 UI 보여줄지 결정 필요
 
 ### 2.5 흐름/리포트 분리 (V3 캘린더 엔진 핵심)
 
@@ -285,8 +316,20 @@ PR #1230 으로 운명 LLM 도입 (rating ≥4 만). 궁합 LLM 은 미도입 (c
 - `calculateProfection` 당해 활성 하우스
 - `analyzeHyeongchung` 시간 cross / unseRelations
 
-**상태**: 아키텍처 결정 — implementation 별도 작업.
-**현재 (PR #1231 buildReportContext)**: hellenistic 5개 (Profection/Lots/ZR/Almuten/5-tier dignity) `includeHellenistic:false` 로 안 받음. G 시 일부 (정적 4개 — 5-tier dignity / Lots / Almuten / Chiron·Lilith) 다시 호출 + UI 노출. **Profection / ZR 활성 챕터**는 동사라 계속 제외.
+**상태**: implementation 진행 중 (Phase A/B/C 머지, D 진행, E 대기).
+**현재 (Phase C — 2026-06-07)**:
+- ✅ Phase A (PR #1245): `buildReportContext` 가 `includeHellenistic:true` 로
+  뒤집음 + page 가 직접 호출하던 sect/extraPoints/natalAspects 제거 (facts 가
+  만들어 줌).
+- ✅ Phase B (PR #1247): adapter 가 5-tier dignity / Lots 7개 / Almuten /
+  major+minor aspects 모두 흡수. ReportData.astro 에 `lots?` `almuten?`
+  optional 필드 추가.
+- ✅ Phase C (PR #1256): UI 친화 라벨 ("고향 같은 자리" 등) + 정통 용어 툴팁
+  ("본궁 (Domicile) +5").
+- ⏭ Phase D: 정통 깊이 카드 (Lots / Almuten / dignity 5-tier 상세) 접고 펼침.
+- ⏭ Phase E: 운명상담사 prefill 연계 (각 섹션 옆 💬 CTA).
+**여전히 안 받음 (시간 흐름·동사 — 캘린더 영역)**: Profection 활성 하우스 /
+ZR 활성 챕터 / Transit / SR / LR / Progression / 형충 시간 cross.
 
 ## 7. 아키텍처 의도
 
@@ -324,7 +367,12 @@ PR #1230 으로 운명 LLM 도입 (rating ≥4 만). 궁합 LLM 은 미도입 (c
   - 옛 표현 "캘린더 분석 흡수" → 부정확. 분석 함수는 `src/lib/saju/*` + `src/lib/astrology/foundation/*` SSOT 에 있음.
   - 캘린더 = consumer (그 함수들 호출). 통합 리포트 새 엔진도 **같은 SSOT 함수들 직접 호출**, 캘린더 거치지 않음.
   - §6.G 에 호출할 함수 목록 명시.
-- TODO: E(slimAstroSelf 매칭) 결정 + V3 캘린더 엔진(§2.5 의 🔴 제거 / ◐ 분리) + §6.G 통합 리포트 새 엔진 → implementation
+- 2026-06-07 **v5.4** — 통합 리포트 새 엔진 implementation 반영:
+  - Phase A/B/C 머지 → 통합 리포트 4 셀 (dignity 5-tier / Lots / ZR 정적 시작점 / Almuten) `-(PR #1231)` → `✅`.
+  - 본명 aspects (major) → (major + minor) — `includeMinor:true` 결과 모두 받음.
+  - 회색 3 셀 (공망 self / 조후용신 / 통근 self) 명시: facts 가 만들지만 ctx 미사용. UI 카드 추가 여부 결정 보류.
+  - §6.G 의 "현재 (PR #1231)" → Phase A/B/C 진행 상태 반영. Phase D/E 대기.
+- TODO: E(slimAstroSelf 매칭) 결정 + V3 캘린더 엔진(§2.5 의 🔴 제거 / ◐ 분리) + §6.G Phase D/E (정통 깊이 카드 + 운명상담사 CTA prefill) + 회색 3 셀 결정
 
 ## 9. 참고
 
