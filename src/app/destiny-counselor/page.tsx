@@ -34,7 +34,7 @@ import {
 } from '@/app/(main)/birthInfoStorage'
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
 import { useCounselorNewChat } from '@/lib/counselor/useCounselorNewChat'
-import { loadPendingChat } from '@/lib/chat/pendingChat'
+import { loadPendingChat, savePendingChat } from '@/lib/chat/pendingChat'
 import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 
@@ -411,11 +411,21 @@ export default function CounselorPage() {
             // inputViewTransitionName 제거 — morph 비활성화. root 크로스페이드만
             // 으로 두 페이지를 잇는다(메인 ↔ 운명상담사 입력창 폭 차이로 인한
             // "툭 늘어나는" 인상 제거).
-            onSendBlocked={(_text) => {
+            onSendBlocked={(text) => {
               // 운명 상담은 유료 서비스 — 비로그인이면 전송 대신 로그인 모달.
               // (게스트 사용 제거: 로그인해야만 상담 가능.) 'loading' 중에는
               // 막지 않아 로그인 사용자의 자동 seed 전송이 끊기지 않게 한다.
               if (authStatus === 'unauthenticated') {
+                // 막힌 질문(메인에서 넘어온 "뭐먹을까" 등)을 draft 에 저장 → 로그인
+                // 후 Chat 복원 effect 가 마지막 미답변 user 질문으로 인식해 자동
+                // 재전송한다. 이게 없으면 q 는 URL 에서 지워지고 messages 에도
+                // 안 들어가 로그인 후 질문이 통째로 사라진다.
+                const q = (text ?? '').trim()
+                if (q) {
+                  savePendingChat('destiny', {
+                    messages: [{ role: 'user', content: q, id: `seed-${Date.now()}` }],
+                  })
+                }
                 showLogin()
                 return true
               }
