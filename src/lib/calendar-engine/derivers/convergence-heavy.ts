@@ -38,6 +38,17 @@ export function isHeavyAstro(s: HeavySignalInput): boolean {
   return false
 }
 
+// "늘 켜진 배경" 점성 — 느린 행성(목성~명왕·키론)의 transit 은 윈도우가 수개월~수년
+// 이라 *거의 모든* 큰 날에 똑같이 뜬다(예: "Jupiter 어포지션 Uranus"가 6월 전체에).
+// 큰 날을 *구별*하지 못하므로 칩 표시에선 숨긴다 — 무거움/수렴 판정엔 그대로 반영,
+// 표시만 정리. lifecycle/eclipse/angle-contact(토성회귀·일식·각 정확접촉)는 날짜
+// 특정 *사건*이라 transit 이 아니므로 그대로 노출된다.
+export function isSlowBackgroundAstro(s: HeavySignalInput): boolean {
+  if (s.source !== 'astro' || s.kind !== 'transit') return false
+  const p = leadToken(s.name)
+  return SLOW_PLANETS.has(p) || p === 'True' || p === 'North' // 달의 교점(~18개월)도 배경
+}
+
 export function isHeavySaju(s: HeavySignalInput): boolean {
   if (s.source !== 'saju') return false
   if (HEAVY_SAJU_KINDS.has(s.kind)) return true

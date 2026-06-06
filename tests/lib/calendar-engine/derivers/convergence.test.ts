@@ -64,11 +64,12 @@ describe('deriveConvergence — window + confidence (타이밍 표면화)', () =
     expect(keyDays.length).toBe(1)
     const d = keyDays[0]
     expect(d.bothSystems).toBe(true)
-    // 윈도우 = 가장 이른 시작(7/10) ~ 가장 늦은 끝(7/20)
+    // 윈도우 = 스케일 적합(≤45일) 신호들의 합집합 — 7/10 ~ 7/20.
+    // 두 신호 모두 월 스케일 이내라 둘 다 집계된다(느린 외행성만 제외 대상).
     expect(d.window?.start).toBe('2026-07-10T00:00:00.000Z')
     expect(d.window?.end).toBe('2026-07-20T00:00:00.000Z')
-    // peak = impact 동일하니 첫 신호(astro) 정점 7/15
-    expect(d.window?.peak).toBe('2026-07-15T00:00:00Z')
+    // peak = impact 동일하니 첫 신호(astro) 정점 7/15 (구간 안)
+    expect(d.window?.peak).toBe('2026-07-15T00:00:00.000Z')
   })
 
   it('사주·점성 방향이 같으면 confidence↑, 반대면 ↓', () => {
