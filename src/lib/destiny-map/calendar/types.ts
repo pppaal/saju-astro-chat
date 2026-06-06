@@ -208,23 +208,9 @@ export interface UserAstroProfile {
 // Fortune Result Types
 // ============================================================
 
-export interface DailyFortuneResult {
-  overall: number;
-  love: number;
-  career: number;
-  wealth: number;
-  health: number;
-  luckyColor: string;
-  luckyNumber: number;
-  grade: ImportanceGrade;
-  ganzhi: string;
-  alerts: { type: "warning" | "positive" | "info"; msg: string; icon?: string }[];
-  recommendations: string[];
-  warnings: string[];
-  crossVerified: boolean;
-  sajuFactors: string[];
-  astroFactors: string[];
-}
+// 옛 DailyFortuneResult (love/career/wealth/health 가짜 score 등급) — DB
+// 모델 (DailyFortune) + zod schema + interface 통째 정리 (2026-06-06).
+// 운명/궁합 LLM 에서 자연어 해석으로 대체.
 
 export interface MonthlyThemeResult {
   year: number;
