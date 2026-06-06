@@ -67,9 +67,10 @@ export async function generateMetadata({
         ],
       },
       canonicalUrl: baseUrl,
-      // 새 DestinyPal 헥사곤 로고 (1200×630). 동적 ImageResponse 카드 (옛
-      // /opengraph-image) 는 폐기.
-      ogImage: '/og-image.png',
+      // 새 DestinyPal 헥사곤 로고 (1200×630, RGB). 카톡/와츠앱이 옛 og:image
+      // URL 의 "이미지 없음" 결과를 며칠~몇 주 캐시하는 회귀를 우회하기 위해
+      // 파일명을 og-card-v2 로 변경 — 크롤러 입장에서 완전 새 URL = 새 fetch.
+      ogImage: '/og-card-v2.png',
     },
     locale
   )
