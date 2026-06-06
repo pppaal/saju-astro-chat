@@ -15,67 +15,42 @@ export const dynamic = 'force-dynamic'
 /**
  * GET /api/me/purchases
  *
- * Returns the user's purchase signals:
- *  - `subscription`: latest Subscription row (or null for free users) with
- *    just the fields the profile page needs — no Stripe IDs leaked.
- *  - `purchases`: recent BonusCreditPurchase rows (one-time credit packs,
- *    referral / promotion / gift grants). Capped to 30.
+ * Returns recent BonusCreditPurchase rows (one-time credit packs / referral /
+ * promotion / gift grants). Capped to 30.
  *
- * NB: there is no canonical payment/invoice table — Stripe is the source
- * of truth for full billing history. This endpoint surfaces what we do
- * persist locally so the user can see "what credits I have left and
- * how they got here".
+ * NB: 프리미엄 개념 폐기 (2026-06-06) — Subscription 모델 제거. 옛 응답의
+ * `subscription` 필드는 client UI 가 안 읽었음 (purchases 만 사용).
+ *
+ * Stripe 가 full billing history 의 source of truth. 본 엔드포인트는 우리가
+ * 로컬에 저장하는 것만 — "남은 크레딧 + 어떻게 받았나" 표시용.
  */
 export const GET = withApiMiddleware(
   async (_req: NextRequest, context: ApiContext) => {
     const userId = context.userId!
     try {
-      const [subscription, purchases] = await Promise.all([
-        prisma.subscription.findFirst({
-          where: { userId },
-          orderBy: { createdAt: 'desc' },
-          select: {
-            status: true,
-            plan: true,
-            billingCycle: true,
-            currentPeriodStart: true,
-            currentPeriodEnd: true,
-            cancelAtPeriodEnd: true,
-            canceledAt: true,
-            paymentMethod: true,
-            createdAt: true,
-          },
-        }),
-        prisma.bonusCreditPurchase.findMany({
-          where: { userId },
-          orderBy: { createdAt: 'desc' },
-          take: 30,
-          select: {
-            id: true,
-            createdAt: true,
-            amount: true,
-            remaining: true,
-            expiresAt: true,
-            expired: true,
-            source: true,
-          },
-        }),
-      ])
-
-      return apiSuccess({
-        subscription,
-        purchases,
+      const purchases = await prisma.bonusCreditPurchase.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        take: 30,
+        select: {
+          id: true,
+          createdAt: true,
+          amount: true,
+          remaining: true,
+          expiresAt: true,
+          expired: true,
+          source: true,
+        },
       })
+
+      return apiSuccess({ purchases })
     } catch (err) {
-      // 마이그레이션이 prod 에 아직 안 적용된 신규 컬럼(acknowledgedAt 등)
-      // 때문에 P2022 가 떨어지면 사용자한테 500 띄우기보단 빈 구매 내역으로
-      // graceful degrade — 페이지 진입은 막지 않는다.
       const code = (err as { code?: string } | null)?.code
       const msg = (err as { message?: string } | null)?.message ?? ''
       const isMissingColumn = code === 'P2022' || /column .* does not exist/i.test(msg)
       if (isMissingColumn) {
         logger.warn('[me/purchases GET] missing column — migration not applied', { msg })
-        return apiSuccess({ subscription: null, purchases: [] })
+        return apiSuccess({ purchases: [] })
       }
       logger.error('[me/purchases GET]', err)
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal Server Error')

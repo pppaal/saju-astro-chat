@@ -60,9 +60,7 @@ model User {
   sessions Session[]
 
   // 서비스 데이터 관계
-  readings              Reading[]
   interactions          UserInteraction[]
-  subscriptions         Subscription[]
   credits               UserCredits?
   counselorChatSessions CounselorChatSession[]
   referralRewards       ReferralReward[]
@@ -129,19 +127,9 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Reading {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  type      String
-  title     String?
-  content   String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt], name: "idx_reading_user_date")
-  @@index([userId, type], name: "idx_reading_user_type")
-}
+// 옛 Reading (일반 리딩 결과 archive) — production caller 0 (admin 통계
+// read-only 만), create 0. TarotReading + CounselorChatSession 으로 대체.
+// 2026-06-06 삭제.
 
 model UserInteraction {
   id        String   @id @default(cuid())
@@ -187,38 +175,9 @@ model SavedPerson {
   @@index([userId, relation])
 }
 
-// 구독/결제 기록 - Stripe와 동기화
-model Subscription {
-  id        String   @id @default(cuid())
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Stripe 정보
-  stripeCustomerId     String?
-  stripeSubscriptionId String? @unique
-  stripePriceId        String?
-
-  // 구독 상태
-  status       String // active, trialing, past_due, canceled, unpaid
-  plan         String // free, basic, premium
-  billingCycle String? // monthly, annual
-
-  // 기간
-  currentPeriodStart DateTime?
-  currentPeriodEnd   DateTime?
-  canceledAt         DateTime?
-  cancelAtPeriodEnd  Boolean   @default(false)
-
-  // 결제 방법
-  paymentMethod String? // card, kakao, etc.
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([stripeCustomerId])
-  @@index([status])
-}
+// 옛 Subscription (Stripe 동기화 구독) — 프리미엄 개념 폐기 (2026-06-06)
+// 와 함께 제거. BonusCreditPurchase + CreditTransaction 의 크레딧 시스템
+// 으로 통일. lib/auth/premium.ts 도 같이 삭제.
 
 // 옛 PremiumContentAccess (프리미엄 콘텐츠 열람 기록) — UserCredits +
 // CreditTransaction 도입으로 대체. caller 0, row 0 으로 2026-06-06 삭제.
@@ -452,23 +411,8 @@ model TarotReading {
 // 옛 PushSubscription (웹 푸시 알림 구독) — 등록 라우트 / 발송 코드 0.
 // caller 0, row 0 으로 2026-06-06 삭제.
 
-// 이메일 발송 로그
-model EmailLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  email     String
-  type      String // welcome, payment_receipt, subscription_confirm, etc.
-  subject   String
-  status    String   @default("sent") // sent, failed, bounced
-  errorMsg  String?
-  provider  String // resend, sendgrid, nodemailer
-  messageId String?
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([type])
-  @@index([createdAt])
-}
+// 옛 EmailLog (이메일 발송 로그) — caller = me/account cascade delete 한
+// 줄, create 0. 발송 코드 자체가 dead. 2026-06-06 제거.
 
 // PersonalityResult (Nova Persona) / ICPResult (대인관계 스타일) — 페이지
 // 제거 후 schema 만 orphan. 2026-06-06 통째 정리 (row 0).
@@ -508,33 +452,9 @@ model AdminAuditLog {
   @@index([targetType, targetId])
 }
 
-// 🔄 Credit Refund Log - 크레딧 자동 환불 로그
-model CreditRefundLog {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  // 사용자 정보
-  userId String
-
-  // 크레딧 정보
-  creditType String // reading, compatibility, followUp
-  amount     Int // 환불된 크레딧 수량
-
-  // 원인 정보
-  reason       String // api_error, timeout, ai_backend_failure, etc.
-  apiRoute     String? // 실패한 API 경로
-  errorMessage String? // 에러 메시지
-
-  // 원본 트랜잭션 ID (추적용)
-  transactionId String?
-
-  // 메타데이터 (JSON)
-  metadata Json?
-
-  @@index([userId, createdAt])
-  @@index([creditType, createdAt])
-  @@index([apiRoute, createdAt])
-}
+// 옛 CreditRefundLog — CreditTransaction 의 type='REFUND' row 가 SSOT 라
+// 별도 로그 중복. 외부 caller (getCreditRefundHistory /
+// getRefundStatsByRoute) 0. 2026-06-06 제거.
 
 // 🔗 Shared Result - 공유된 결과 저장
 model SharedResult {

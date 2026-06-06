@@ -61,7 +61,7 @@ export const GET = withApiMiddleware(
       // Stripe 결제 표식(stripePaymentId)이 있는 행만 '구매'로 본다.
       const paidWhere = { stripePaymentId: { not: null } }
 
-      const [windowPurchases, economy, consumeAgg, refunds] = await Promise.all([
+      const [windowPurchases, economy, consumeAgg] = await Promise.all([
         // 기간 내 실결제 구매 (일별·팩별·매출 추정용)
         prisma.bonusCreditPurchase.findMany({
           where: { ...paidWhere, createdAt: { gte: since } },
@@ -91,12 +91,8 @@ export const GET = withApiMiddleware(
           where: { type: 'CONSUME', createdAt: { gte: since } },
           _sum: { amount: true },
         }),
-        // 기간 내 환불 로그
-        prisma.creditRefundLog.aggregate({
-          where: { createdAt: { gte: since } },
-          _sum: { amount: true },
-          _count: { id: true },
-        }),
+        // CreditRefundLog 모델 제거 (2026-06-06) — CreditTransaction 의
+        // type='REFUND' row 가 SSOT. 기간 내 환불 통계 별도 항목 제거.
       ])
 
       const [paidAgg, freeAgg, outstandingAgg, expiredAgg] = economy
@@ -148,10 +144,8 @@ export const GET = withApiMiddleware(
           outstanding: outstandingAgg._sum.remaining ?? 0,
           expiredLost: expiredAgg._sum.remaining ?? 0,
         },
-        refunds: {
-          count: refunds._count.id ?? 0,
-          creditsRefunded: refunds._sum.amount ?? 0,
-        },
+        // refunds 통계 — CreditRefundLog 제거 (2026-06-06). 필요 시
+        // CreditTransaction.type='REFUND' aggregate 로 재구현.
       } as Record<string, unknown>)
     } catch (err) {
       logger.error('[admin/revenue] error', err)
