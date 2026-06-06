@@ -201,7 +201,6 @@
   "authRequired": {
     "title": "Sign in required",
     "myjourneyBody": "Sign in to view your saved readings and personal history.",
-    "destinyMatchBody": "Sign in to discover compatibility matches and start conversations.",
     "primaryCta": "Sign in",
     "secondaryCta": "Explore Destiny Map",
     "secondaryPricingCta": "Recharge Credits"

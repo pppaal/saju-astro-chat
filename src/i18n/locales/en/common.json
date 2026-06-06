@@ -27,7 +27,6 @@
     "subtitle": "AI unfolds your destiny map.",
     "visitors": "Visitors Today",
     "myJourney": "My Journey",
-    "destinyMatch": "Destiny Match",
     "community": "Community",
     "back": "Back",
     "name": "Name",
@@ -98,8 +97,7 @@
     "personality": "Personality",
     "icp": "Relationship Style",
     "icpPersonality": "ICP + Personality",
-    "pastLife": "Past Life",
-    "destinyMatch": "Destiny Match"
+    "pastLife": "Past Life"
   },
   "emoji": {
     "sparkles": "sparkles"

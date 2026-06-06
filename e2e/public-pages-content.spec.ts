@@ -12,7 +12,6 @@ const ROUTES = [
   '/destiny-map',
   '/astrology',
   '/dream',
-  '/destiny-match',
 ]
 const FORBIDDEN_PATTERNS = [
   /\bheroTitle\b/,

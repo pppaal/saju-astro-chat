@@ -61,10 +61,6 @@
     "pastLife": {
       "label": "Past Life",
       "desc": "Discover your past lives"
-    },
-    "destinyMatch": {
-      "label": "Destiny Match",
-      "desc": "Find your cosmic match"
     }
   }
 }

@@ -92,8 +92,6 @@ export default defineConfig({
         'src/app/blog/**',
         'src/app/community/**',
         'src/app/destiny-map/theme/**',
-        'src/app/destiny-match/convertProfile.ts',
-        'src/app/destiny-match/useDiscovery.ts',
         'src/app/destiny-matrix/viewer/**',
         'src/app/icp/**',
         'src/app/myjourney/**',
