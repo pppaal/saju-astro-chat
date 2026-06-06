@@ -81,12 +81,9 @@ export interface SibsinInteraction {
   impact: 'positive' | 'negative' | 'neutral'
 }
 
-export interface CareerAptitude {
-  field: string
-  score: number
-  sibsinBasis: SibsinType[]
-  description: string
-}
+// 옛 CareerAptitude (직업 적성 분야 + score) — "가짜 직업 적성 점수" 라
+// 2026-06-06 제거. 직업 추천은 운명상담사 LLM 으로 가서 정통 룰 (격국 ×
+// Almuten × 십신) 으로 답함. analyzeCareerAptitude 함수도 같이 삭제.
 
 export interface RelationshipPattern {
   type: '부모' | '배우자' | '자녀' | '형제' | '친구' | '상사'
@@ -103,7 +100,6 @@ export interface SibsinComprehensiveAnalysis {
   missingSibsin: SibsinType[]
   patterns: SibsinPattern[]
   interactions: SibsinInteraction[]
-  careerAptitudes: CareerAptitude[]
   relationships: RelationshipPattern[]
   personality: string[]
   strengths: string[]
@@ -403,93 +399,9 @@ export function analyzeSibsinInteractions(positions: SibsinPosition[]): SibsinIn
   return interactions
 }
 
-// ============================================================
-// 직업 적성 분석
-// ============================================================
-
-export function analyzeCareerAptitude(
-  count: SibsinCount,
-  categoryCount: SibsinCategoryCount
-): CareerAptitude[] {
-  const aptitudes: CareerAptitude[] = []
-
-  if (categoryCount.관성 >= 2) {
-    aptitudes.push({
-      field: '공직/관리직',
-      score: 70 + categoryCount.관성 * 10,
-      sibsinBasis: ['정관'],
-      description: '조직 내 승진과 관리',
-    })
-    aptitudes.push({
-      field: '법률/행정',
-      score: 65 + categoryCount.관성 * 8,
-      sibsinBasis: ['정관', '편관'],
-      description: '규율과 질서',
-    })
-  }
-
-  if (categoryCount.재성 >= 2) {
-    aptitudes.push({
-      field: '사업/경영',
-      score: 70 + categoryCount.재성 * 10,
-      sibsinBasis: ['편재'],
-      description: '재물 운용',
-    })
-    aptitudes.push({
-      field: '금융/투자',
-      score: 65 + categoryCount.재성 * 8,
-      sibsinBasis: ['편재'],
-      description: '자금 운용',
-    })
-  }
-
-  if (categoryCount.식상 >= 2) {
-    aptitudes.push({
-      field: '예술/창작',
-      score: 70 + categoryCount.식상 * 10,
-      sibsinBasis: ['식신', '상관'],
-      description: '창의적 표현',
-    })
-    aptitudes.push({
-      field: '요식/서비스업',
-      score: 60 + count.식신 * 15,
-      sibsinBasis: ['식신'],
-      description: '음식과 서비스',
-    })
-  }
-
-  if (categoryCount.인성 >= 2) {
-    aptitudes.push({
-      field: '교육/학술',
-      score: 70 + categoryCount.인성 * 10,
-      sibsinBasis: ['정인', '편인'],
-      description: '가르치고 연구',
-    })
-    aptitudes.push({
-      field: '의료/상담',
-      score: 65 + categoryCount.인성 * 8,
-      sibsinBasis: ['정인'],
-      description: '돌봄과 치유',
-    })
-  }
-
-  if (categoryCount.비겁 >= 2) {
-    aptitudes.push({
-      field: '스포츠/체육',
-      score: 60 + categoryCount.비겁 * 10,
-      sibsinBasis: ['비견', '겁재'],
-      description: '경쟁과 신체 활동',
-    })
-    aptitudes.push({
-      field: '프리랜서/자영업',
-      score: 65 + categoryCount.비겁 * 8,
-      sibsinBasis: ['비견'],
-      description: '독립적 업무',
-    })
-  }
-
-  return aptitudes.sort((a, b) => b.score - a.score)
-}
+// 옛 analyzeCareerAptitude (직업 적성 분야 + score 70~90 카운트) — "가짜
+// 직업 적성 점수" 라 2026-06-06 제거. 직업 추천은 운명상담사 LLM 으로
+// 가서 정통 룰 (격국 × Almuten × 십신) 으로 답함.
 
 // ============================================================
 // 인간관계 패턴 분석
@@ -635,7 +547,6 @@ export function analyzeSibsinComprehensive(pillars: SajuPillars): SibsinComprehe
 
   const patterns = analyzeSibsinPatterns(count, categoryCount)
   const interactions = analyzeSibsinInteractions(positions)
-  const careerAptitudes = analyzeCareerAptitude(count, categoryCount)
   const relationships = analyzeRelationshipPatterns(count, categoryCount)
   const personality = analyzePersonality(count, categoryCount)
 
@@ -713,7 +624,6 @@ export function analyzeSibsinComprehensive(pillars: SajuPillars): SibsinComprehe
     missingSibsin,
     patterns,
     interactions,
-    careerAptitudes,
     relationships,
     personality,
     strengths,

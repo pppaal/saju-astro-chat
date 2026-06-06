@@ -74,7 +74,6 @@ model User {
   personalityResult     PersonalityResult?
   icpResults            ICPResult[]
   compatibilityResults  CompatibilityResult[]
-  destinyMatrixReports  DestinyMatrixReport[]
   tarotReadings         TarotReading[]
   pushSubscriptions     PushSubscription[]
   blocksMade            UserBlock[]    @relation("BlocksMade")
@@ -775,42 +774,6 @@ model CompatibilityResult {
   @@index([userId, createdAt])
   @@index([person1UserId])
   @@index([person2UserId])
-}
-
-// Destiny Matrix AI 프리미엄 리포트
-model DestinyMatrixReport {
-  id        String   @id @default(cuid())
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 리포트 타입 및 분류
-  reportType String // "timing" 또는 "themed"
-  period     String? // 타이밍 리포트용: "daily", "monthly", "yearly", "comprehensive"
-  theme      String? // 테마 리포트용: "love", "career", "wealth", "health", "family"
-
-  // 리포트 전체 데이터 (JSON)
-  reportData Json // TimingAIPremiumReport 또는 ThemedAIPremiumReport 전체 객체
-
-  // 표시용 요약 정보
-  title        String // 리포트 제목 (예: "2024년 1월 종합 운세")
-  summary      String? // 짧은 요약
-  overallScore Int? // 종합 점수 (0-100)
-  grade        String? // S, A, B, C, D
-
-  // PDF 관련
-  pdfGenerated Boolean @default(false)
-  pdfUrl       String? // PDF가 저장된 경로 (향후 스토리지 사용시)
-
-  // 언어
-  locale String @default("ko")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-  @@index([reportType])
-  @@index([period])
-  @@index([theme])
 }
 
 // 🔒 Admin Audit Log - 관리자 작업 감사 로그
