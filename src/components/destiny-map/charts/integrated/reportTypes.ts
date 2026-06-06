@@ -109,6 +109,48 @@ export const DIGNITY_TIER_LABEL: Record<string, string> = {
   detriment: '손상 −5', fall: '추락 −4', peregrine: '중립',
 }
 
+/**
+ * Phase C — 정통 용어를 일상어로. UI Level 2 에서 dignity 카드의 1차 라벨.
+ * 정통 용어 (본궁/삼분궁/바운드 등) 는 툴팁 (DIGNITY_TIER_TOOLTIP) 으로 후순위
+ * 노출. 사용자가 한 번에 의미 잡고, 깊이 원하면 호버.
+ */
+export const DIGNITY_TIER_FRIENDLY: Record<string, string> = {
+  domicile: '고향 같은 자리',     // 가장 자기다움 — 행성이 본래 다스리는 별자리
+  exaltation: '환영받는 자리',    // 본궁은 아니지만 강력하게 발휘
+  triplicity: '기질이 맞는 자리',  // 같은 원소 가족 — 무리 없는 활동
+  term: '실력 발휘 자리',         // 작은 영역에서 자기 영역 — 도구 잘 다룸
+  face: '얼굴값 자리',            // 가장 약한 dignity — 살짝 존재감
+  detriment: '낯선 자리',         // 본궁의 반대편 — 어색함
+  fall: '기죽는 자리',            // 고양의 반대편 — 위축
+  peregrine: '중립',              // 어느 쪽도 아닌 평지
+}
+
+/**
+ * 호버 시 정통 용어 + 점수 풀로 보여줌. 깊이를 원하는 사용자용.
+ */
+export const DIGNITY_TIER_TOOLTIP: Record<string, string> = {
+  domicile:   '본궁 (Domicile) +5 — 행성이 본래 다스리는 별자리',
+  exaltation: '고양 (Exaltation) +4 — 가장 잘 발휘되는 위치',
+  triplicity: '삼분궁 (Triplicity) +3 — 같은 원소 그룹',
+  term:       '바운드 (Term) +2 — 별자리 내 작은 영역 지배',
+  face:       '안면 (Face) +1 — 별자리 내 10도 영역 지배',
+  detriment:  '손상 (Detriment) −5 — 본궁 반대편, 본성 발휘 어려움',
+  fall:       '추락 (Fall) −4 — 고양 반대편, 약화',
+  peregrine:  '중립 (Peregrine) — 위계 없음',
+}
+
+/**
+ * Aspect 종류도 같은 패턴 — 정통 용어 (삼각·육각·사각·대충·합) 가 친화적이지
+ * 않아 일상어 라벨. 툴팁으로 정통 용어 + 각도 노출.
+ */
+export const ASPECT_FRIENDLY: Record<string, { label: string; tooltip: string }> = {
+  conjunction: { label: '같이 있어요',   tooltip: '합 (Conjunction) 0° — 두 행성이 붙어서 함께 작동' },
+  sextile:     { label: '잘 도와줘요',   tooltip: '육각 (Sextile) 60° — 부드럽게 협력' },
+  square:      { label: '부딪혀요',      tooltip: '사각 (Square) 90° — 긴장·갈등' },
+  trine:       { label: '잘 흘러요',     tooltip: '삼각 (Trine) 120° — 자연스럽게 어울림' },
+  opposition:  { label: '맞서요',        tooltip: '대충 (Opposition) 180° — 정면 대립' },
+}
+
 /** chart.zip 샘플 — 컴포넌트 즉시 렌더/미리보기용. 실제는 adapter 로 교체. */
 export const SAMPLE_REPORT: ReportData = {
   input: {

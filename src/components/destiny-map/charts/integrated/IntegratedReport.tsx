@@ -8,7 +8,8 @@ import React from 'react'
 import s from './IntegratedReport.module.css'
 import {
   type ReportData,
-  ELEMENTS, STEM_INFO, BRANCH_INFO, ASPECT_META, SIGN_META, SIGN_ABBR, DIGNITY_TIER_LABEL,
+  ELEMENTS, STEM_INFO, BRANCH_INFO, ASPECT_META, SIGN_META, SIGN_ABBR,
+  DIGNITY_TIER_LABEL, DIGNITY_TIER_FRIENDLY, DIGNITY_TIER_TOOLTIP, ASPECT_FRIENDLY,
 } from './reportTypes'
 
 export interface CrossRow {
@@ -160,8 +161,14 @@ function AspectGrid({ astro }: { astro: ReportData['astro'] }) {
               if (!a) return <td key={col} />
               const meta = ASPECT_META[a.type]
               const cls = meta?.cls === 'hard' ? s.agHard : meta?.cls === 'soft' ? s.agSoft : s.agNeutral
+              const koRow = astro.planets.find((p) => p.name === row)?.ko ?? row
+              const koCol = astro.planets.find((p) => p.name === col)?.ko ?? col
+              const friendly = ASPECT_FRIENDLY[a.type]
+              const tooltip = friendly
+                ? `${koRow} ↔ ${koCol}: ${friendly.label}\n${friendly.tooltip} · orb ${a.orb.toFixed(1)}°`
+                : `${koRow} ↔ ${koCol}: ${meta?.ko ?? a.type} · orb ${a.orb.toFixed(1)}°`
               return (
-                <td key={col} className={`${s.agCell} ${cls}`}>
+                <td key={col} className={`${s.agCell} ${cls}`} title={tooltip}>
                   <span className={s.agGly}>{meta?.glyph}</span>
                   <span className={s.agOrb}>{a.orb.toFixed(1)}</span>
                 </td>
@@ -377,9 +384,15 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
           <div className={s.gridAsp}>
             <div>
               <div className={s.aspLegend}>
-                <span className={`${s.leg} ${s.legSoft}`}><b>△</b>삼각·육각</span>
-                <span className={`${s.leg} ${s.legHard}`}><b>□</b>사각·대충</span>
-                <span className={`${s.leg} ${s.legNeutral}`}><b>☌</b>합</span>
+                <span className={`${s.leg} ${s.legSoft}`} title={`${ASPECT_FRIENDLY.trine.tooltip} / ${ASPECT_FRIENDLY.sextile.tooltip}`}>
+                  <b>△</b>잘 흘러요·도와줘요
+                </span>
+                <span className={`${s.leg} ${s.legHard}`} title={`${ASPECT_FRIENDLY.square.tooltip} / ${ASPECT_FRIENDLY.opposition.tooltip}`}>
+                  <b>□</b>부딪혀요·맞서요
+                </span>
+                <span className={`${s.leg} ${s.legNeutral}`} title={ASPECT_FRIENDLY.conjunction.tooltip}>
+                  <b>☌</b>같이 있어요
+                </span>
               </div>
               <AspectGrid astro={A} />
             </div>
@@ -393,11 +406,13 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
               {A.dignities.map((d, i) => {
                 const p = A.planets.find((x) => x.name === d.planet)
                 const sg = SIGN_META[abbr(d.sign)]
+                const friendly = DIGNITY_TIER_FRIENDLY[d.tier] ?? DIGNITY_TIER_LABEL[d.tier]
+                const tooltip = DIGNITY_TIER_TOOLTIP[d.tier] ?? DIGNITY_TIER_LABEL[d.tier]
                 return (
-                  <div className={s.digRow} key={i}>
+                  <div className={s.digRow} key={i} title={tooltip}>
                     <span className={s.dg}>{p?.glyph}</span><span className={s.dn}>{p?.ko}</span>
                     <span className={elClass[sg?.el]} style={{ fontSize: 11.5 }}>{sg?.ko}자리</span>
-                    <span className={s.dsc}>{DIGNITY_TIER_LABEL[d.tier]}</span>
+                    <span className={s.dsc}>{friendly}</span>
                   </div>
                 )
               })}
