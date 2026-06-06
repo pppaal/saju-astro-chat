@@ -191,19 +191,8 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
         });
       }
 
-      // 3. 환불 로그 기록
-      await tx.creditRefundLog.create({
-        data: {
-          userId,
-          creditType,
-          amount,
-          reason,
-          apiRoute,
-          errorMessage: errorMessage?.substring(0, 500), // 최대 500자
-          transactionId,
-          metadata: metadata ? JSON.parse(JSON.stringify(metadata)) : {},
-        },
-      });
+      // CreditRefundLog 모델 제거 (2026-06-06) — CreditTransaction 이
+      // 모든 grant/consume/refund event 의 SSOT 라 별도 로그 중복.
     });
 
     logger.info('[CreditRefund] Success', {
@@ -222,79 +211,6 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
   }
 }
 
-/**
- * 사용자의 크레딧 환불 히스토리 조회
- */
-export async function getCreditRefundHistory(
-  userId: string,
-  options: {
-    creditType?: "reading" | "compatibility" | "followUp";
-    limit?: number;
-    offset?: number;
-  } = {}
-): Promise<unknown[]> {
-  const where: Record<string, unknown> = { userId };
-
-  if (options.creditType) {
-    where.creditType = options.creditType;
-  }
-
-  return prisma.creditRefundLog.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    take: options.limit || 50,
-    skip: options.offset || 0,
-  });
-}
-
-/**
- * 특정 API 경로의 환불 통계 조회 (관리자용)
- */
-export async function getRefundStatsByRoute(
-  apiRoute: string,
-  startDate?: Date,
-  endDate?: Date
-): Promise<{
-  totalRefunds: number;
-  totalAmount: number;
-  byType: Record<string, number>;
-}> {
-  const where: Record<string, unknown> = { apiRoute };
-
-  if (startDate || endDate) {
-    where.createdAt = {};
-    if (startDate) {
-      (where.createdAt as Record<string, unknown>).gte = startDate;
-    }
-    if (endDate) {
-      (where.createdAt as Record<string, unknown>).lte = endDate;
-    }
-  }
-
-  const refunds = await prisma.creditRefundLog.findMany({
-    where,
-    select: {
-      amount: true,
-      creditType: true,
-    },
-  });
-
-  const byType: Record<string, number> = {
-    reading: 0,
-    compatibility: 0,
-    followUp: 0,
-  };
-
-  let totalAmount = 0;
-
-  for (const refund of refunds) {
-    totalAmount += refund.amount;
-    byType[refund.creditType] = (byType[refund.creditType] || 0) + refund.amount;
-  }
-
-  return {
-    totalRefunds: refunds.length,
-    totalAmount,
-    byType,
-  };
-}
+// 옛 getCreditRefundHistory / getRefundStatsByRoute (CreditRefundLog 기반
+// 사용자 환불 history + admin route 통계) — 외부 caller 0, CreditTransaction
+// 이 SSOT 라 중복. 2026-06-06 통째 제거.

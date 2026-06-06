@@ -86,17 +86,7 @@ interface CreditsResponse {
   historyRetention: number
 }
 
-interface SubscriptionSummary {
-  status: string
-  plan: string
-  billingCycle: string | null
-  currentPeriodStart: string | null
-  currentPeriodEnd: string | null
-  cancelAtPeriodEnd: boolean
-  canceledAt: string | null
-  paymentMethod: string | null
-  createdAt: string
-}
+// 옛 SubscriptionSummary — 프리미엄 개념 폐기 (2026-06-06) 와 함께 제거.
 
 interface PurchaseRow {
   id: string
@@ -109,7 +99,6 @@ interface PurchaseRow {
 }
 
 interface PurchasesResponse {
-  subscription: SubscriptionSummary | null
   purchases: PurchaseRow[]
 }
 

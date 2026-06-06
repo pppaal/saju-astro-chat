@@ -62,11 +62,8 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
           credits,
           purchases,
           recentPurchases,
-          readings,
           tarot,
           counselor,
-          lastReading,
-          recentReadings,
           recentTarot,
           recentCounselor,
           recentTx,
@@ -88,21 +85,10 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
               stripePaymentId: true,
             },
           }),
-          prisma.reading.count({ where: { userId: id } }),
+          // Reading 모델 제거 (2026-06-06) — 타로 + 상담챗 counter 만.
           prisma.tarotReading.count({ where: { userId: id } }),
           prisma.counselorChatSession.count({ where: { userId: id } }),
-          prisma.reading.findFirst({
-            where: { userId: id },
-            orderBy: { createdAt: 'desc' },
-            select: { createdAt: true },
-          }),
-          // 타임라인용 최근 활동 (각 소스에서 조금씩 가져와 병합)
-          prisma.reading.findMany({
-            where: { userId: id },
-            orderBy: { createdAt: 'desc' },
-            take: 10,
-            select: { createdAt: true },
-          }),
+          // 타임라인용 최근 활동
           prisma.tarotReading.findMany({
             where: { userId: id },
             orderBy: { createdAt: 'desc' },
@@ -125,12 +111,6 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
 
         // 여러 소스를 하나의 시간순 타임라인으로 병합 (최근 25개)
         const timeline = [
-          ...recentReadings.map((r) => ({
-            type: 'reading',
-            label: '리딩',
-            detail: '',
-            at: r.createdAt.toISOString(),
-          })),
           ...recentTarot.map((t) => ({
             type: 'tarot',
             label: '타로',
@@ -183,11 +163,9 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
               }
             : null,
           activity: {
-            readings,
             tarot,
             counselor,
-            total: readings + tarot + counselor,
-            lastReadingAt: lastReading?.createdAt ? lastReading.createdAt.toISOString() : null,
+            total: tarot + counselor,
           },
           purchases: {
             paidCount: purchases,
