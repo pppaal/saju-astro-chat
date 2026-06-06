@@ -2,9 +2,12 @@
  * 통합 명식 리포트 페이지 — chart.zip 껍데기 + 우리 엔진/데이터.
  * 쿼리: ?date=YYYY-MM-DD&time=HH:mm&lat=&lng=&tz=&gender=male|female
  * 미지정 시 샘플 출생정보로 폴백.
+ *
+ * 2026-06-06 buildNatalContext (fat wrapper) 폐기 Phase 1: 통합 리포트만
+ * 자기 전용 buildReportContext 호출. 안 쓰는 hellenistic 5개
+ * (Profection/Lots/ZR/Almuten/5-tier dignity) 계산 안 함.
  */
-import { buildNatalContext } from '@/lib/calendar-engine/context/build'
-import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
+import { buildReportContext } from './buildReportContext'
 import { natalToReportData, buildCrossRows } from '@/components/destiny-map/charts/integrated/adapter'
 import { IntegratedReport } from '@/components/destiny-map/charts/integrated/IntegratedReport'
 
@@ -26,7 +29,7 @@ export default async function IntegratedReportPage({
   const timeZone = one(sp.tz) ?? 'Asia/Seoul'
   const gender = one(sp.gender) === 'female' ? 'female' : 'male'
 
-  const ctx = (await buildNatalContext({
+  const ctx = (await buildReportContext({
     birthDate,
     birthTime,
     gender,
@@ -35,8 +38,7 @@ export default async function IntegratedReportPage({
     timeZone,
   })) as unknown as Record<string, unknown>
 
-  const saju = ctx.saju as Record<string, unknown>
-  saju.twelveStages = getTwelveStagesForPillars(saju.pillars as never)
+  // 사용자 입력 메타 (이름·장소 등 raw 엔진이 안 알아채는 표시 전용 필드).
   ctx.input = {
     ...(ctx.input as object),
     name: one(sp.name) ?? '내담자',
