@@ -164,7 +164,6 @@ export {
   countSibsinByCategory,
   analyzeSibsinPatterns,
   analyzeSibsinInteractions,
-  analyzeCareerAptitude,
   analyzeRelationshipPatterns,
   analyzePersonality,
   analyzeSibsinComprehensive,
@@ -175,7 +174,6 @@ export {
   type SibsinCategoryCount,
   type SibsinPattern,
   type SibsinInteraction,
-  type CareerAptitude,
   type RelationshipPattern,
   type SibsinComprehensiveAnalysis,
 } from './sibsinAnalysis'
