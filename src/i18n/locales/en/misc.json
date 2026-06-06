@@ -123,16 +123,6 @@
     "reject": "No thanks",
     "accept": "OK"
   },
-  "numerologyDetail": {
-    "lifePath": "Life Path",
-    "expression": "Expression",
-    "soulUrge": "Soul Urge",
-    "personality": "Personality",
-    "personalYear": "Personal Year",
-    "personalMonth": "Personal Month",
-    "personalDay": "Personal Day",
-    "personalYearNumber": "Personal Year Number"
-  },
   "saju": {
     "stem": "Stem",
     "branch": "Branch"
@@ -141,66 +131,8 @@
     "good": "Good response",
     "needsImprovement": "Needs improvement"
   },
-  "services": {
-    "destinyMapDesc": "Visualize your life path",
-    "sajuDesc": "Korean Four Pillars reading",
-    "astrologyDesc": "Western astrological insights",
-    "tarotDesc": "Divine card reading",
-    "ichingDesc": "Ancient Chinese oracle",
-    "dreamDesc": "Dream interpretation",
-    "numerologyDesc": "Numbers reveal destiny",
-    "compatibilityDesc": "Relationship analysis",
-    "calendarDesc": "Fortune calendar",
-    "personalityDesc": "Personality insights",
-    "icpDesc": "Relationship style",
-    "pastLifeDesc": "Past life regression",
-    "aiReportsDesc": "AI-powered reports",
-    "lifePredictionDesc": "Life predictions",
-    "defaultDesc": "Discover your destiny"
-  },
-  "myjourney": {
-    "profile": {
-      "title": "Profile Information",
-      "edit": "Edit",
-      "cancel": "Cancel",
-      "save": "Save",
-      "saving": "Saving...",
-      "notSet": "Not set"
-    },
-    "circle": {
-      "title": "My Circle",
-      "subtitle": "Save birth info of people you care about for quick compatibility readings",
-      "addPerson": "Add Person",
-      "loading": "Loading...",
-      "name": "Name",
-      "nameRequired": "Name *",
-      "relationship": "Relationship *",
-      "birthDate": "Birth Date",
-      "birthTime": "Birth Time",
-      "timeUnknown": "I don't know the birth time",
-      "timeUnknownHint": "Noon (12:00) will be used for calculations",
-      "gender": "Gender",
-      "male": "Male",
-      "female": "Female",
-      "birthCity": "Birth City",
-      "cityPlaceholder": "Enter city name",
-      "note": "Note",
-      "notePlaceholder": "Any notes...",
-      "cancel": "Cancel",
-      "save": "Save",
-      "saving": "Saving...",
-      "emptyTitle": "No one in your circle yet",
-      "emptyButton": "Add your first person",
-      "confirmDelete": "Remove this person from your circle?",
-      "partner": "Partner",
-      "family": "Family",
-      "friend": "Friend",
-      "colleague": "Colleague"
-    }
-  },
   "authRequired": {
     "title": "Sign in required",
-    "myjourneyBody": "Sign in to view your saved readings and personal history.",
     "primaryCta": "Sign in",
     "secondaryCta": "Explore Destiny Map",
     "secondaryPricingCta": "Recharge Credits"
