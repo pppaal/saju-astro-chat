@@ -253,13 +253,14 @@ const BRANCH_MAINQI: Record<string, string> = {
   戌: '戊',
   亥: '壬',
 }
-// astro aspect symbols (v2 compact format)
+// astro aspect — 기호 대신 한국어 뜻 직접 노출 (깨진 □ 박스 + LLM 디코드
+// 오역 방지; 궁합 포매터와 동일 정책).
 const ASP_SYM: Record<string, string> = {
-  conjunction: '☌',
-  sextile: '⚹',
-  square: '□',
-  trine: '△',
-  opposition: '☍',
+  conjunction: '[결합]',
+  sextile: '[협력]',
+  square: '[긴장]',
+  trine: '[조화]',
+  opposition: '[대립]',
 }
 // 형(刑) 판정은 @/lib/saju/hyeong 의 isHyeong 단일 소스를 쓴다 — 본명 합충
 // 블록(아래 shown 필터)과 타이밍 교차 블록이 같은 보정 교리를 공유한다.
@@ -330,7 +331,7 @@ function buildInstructions(locale: Locale, dayMasterName?: string): string {
   }
   return [
     '## 데이터 범례',
-    '- 점성 기호: ☌결합 ⚹협력 □긴장 △조화 ☍대립 / R역행 / (t)현재트랜짓 / P태양·P달=2차진행 / [detriment]약 [domicile]강',
+    '- 점성 표기: 관계어는 [결합]/[협력]/[긴장]/[조화]/[대립] 그대로 / R역행 / (t)현재트랜짓 / P태양·P달=2차진행 / [detriment]약 [domicile]강',
     '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. [대운] 의 "31~40세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. 사주·점성 화면의 모든 나이(대운·프로펙션·현재)는 만 나이로 통일.',
     `- ★ 십성 anchor: [타이밍] 의 모든 (X/Y) 괄호 (대운의 \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운 끝 (X/Y), 일진 블록 각 줄 (X/Y)) 는 *본인 일간 ${dayMasterName ?? '?'} 기준 천간/지지 십성*.`,
   ].join('\n')
