@@ -19,7 +19,7 @@ import {
   KO_TO_SAJU_ELEMENT,
   SIGN_TO_ASTRO_ELEMENT,
   type SajuElement,
-} from '@/lib/fusion/bridges/element'
+} from '@/lib/saju/elementBridge'
 import {
   SAJU_ASTRO_MAPPINGS,
   type CrossMapping,

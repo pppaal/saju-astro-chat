@@ -3,7 +3,7 @@
  * natalCross(로직)와 CrossRefTable(표시)이 같은 표를 따로 갖던 중복을 제거한다.
  * 한쪽만 고쳐서 어긋나는 드리프트 방지.
  */
-import type { SajuElement } from '@/lib/fusion/bridges/element'
+import type { SajuElement } from '@/lib/saju/elementBridge'
 
 /** 별자리 영문 → 한국어 (단일 소스). */
 export const SIGN_EN_TO_KO: Record<string, string> = {

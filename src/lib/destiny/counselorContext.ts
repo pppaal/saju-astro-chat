@@ -7,6 +7,7 @@
  */
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
+import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
@@ -360,7 +361,6 @@ export async function buildDestinyContext(
   birth: DestinyBirth,
   now: Date,
   locale: Locale = 'ko',
-  current?: CurrentPeriod,
   displayTz?: string
 ): Promise<DestinyContextSplit> {
   const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
@@ -368,7 +368,7 @@ export async function buildDestinyContext(
   // 날짜가 하루 어긋나지 않는다. displayTz 가 없으면 출생 시간대로 폴백.
   const localNow = getNowInTimezone(displayTz || birth.timezone || 'Asia/Seoul')
   const year = localNow.year
-  const saju = buildSajuSection(birth, locale, current, year, localNow)
+  const saju = buildSajuSection(birth, locale, year, localNow)
 
   // birth identity header 는 [Meta] 와 중복이라 제거 (route.ts 에서 [Meta]
   // 가 birthDate/birthTime/gender/location/tz/flags 단일 source 로 출력).
@@ -506,7 +506,6 @@ export async function buildDestinyContext(
 export function buildSajuSection(
   birth: DestinyBirth,
   locale: Locale = 'ko',
-  current?: CurrentPeriod,
   year?: number,
   localNow?: { year: number; month: number; day: number }
 ): { natal: string; timing: string; iljinWindow: string; dayMasterName: string } {
@@ -524,6 +523,16 @@ export function buildSajuSection(
     timezone: tz,
     longitude: birth.longitude,
   })
+  // 현재 운(세운/월운/일진 + 본명 대비 충/합) — fusion 우회 없이 facts._raw 에서
+  // 직접 계산. _raw 는 longitude 진경도 보정이 적용된 결과라, 현재 운도 본명과
+  // 같은 평균태양시 기준이 된다. (예전엔 route 가 fusion saju adapter 로 만들어
+  // 주입했고, 그건 longitude 를 안 넘겨 KST LMT 로 떨어지던 불일치가 있었다.)
+  const current: CurrentUnse | null = localNow
+    ? computeCurrentUnse(
+        facts._raw,
+        new Date(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0)
+      )
+    : null
   // 옛 코드는 calculateSajuData 를 sajuFacts 안에서 한 번 + 여기서 daeWoon/
   // pillars 위한 raw 한 번 = 두 번 호출했음 (LRU cache hit 으로 무료지만 코드
   // 스멜). Phase C(2026-06-06): facts.pillars/dayMaster/fiveElements/daeun
