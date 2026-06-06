@@ -6,6 +6,7 @@
 import React, { memo } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import styles from './Chat.module.css'
 import { type TarotResultSummary } from './InlineTarotModal'
 import { CHAT_I18N } from './chat-i18n'
@@ -122,15 +123,26 @@ const Chat = memo(function Chat({
   // (initialSessionId)이 아닌 맨몸 진입이면 localStorage 드래프트에서 직전 대화를
   // 되살린다(게스트는 서버 저장이 안 되므로 이게 유일한 단서). 마운트 1회.
   const draftHandledRef = React.useRef(false)
+  // 로그인/구매 왕복 후 복원했을 때, 마지막이 '미답변 user 질문'이면 여기 담아
+  // 두고 인증 확인되는 대로 자동 재전송한다("직전 질문 이어서 답변").
+  const pendingResumeTextRef = React.useRef<string | null>(null)
   React.useEffect(() => {
     if (draftHandledRef.current) return
     draftHandledRef.current = true
     if (initialSessionId) return // 서버 세션 resume 중 — 드래프트보다 우선
     const draft = loadPendingChat<{ messages: typeof messages }>('destiny')
-    const restored = draft?.messages?.filter(
+    const restored = (draft?.messages ?? []).filter(
       (m) => !!m && (m.role === 'user' || m.role === 'assistant')
     )
-    if (restored && restored.length > 0) {
+    // 마지막 메시지가 아직 답을 못 받은 user 질문이면 떼어내 자동 재전송 대상으로
+    // 만든다. 안 떼면 handleSend 가 user 메시지를 한 번 더 추가해 화면에 같은
+    // 질문이 두 번 뜬다.
+    if (restored.length > 0 && restored[restored.length - 1]?.role === 'user') {
+      const last = restored.pop()
+      const text = last && typeof last.content === 'string' ? last.content.trim() : ''
+      if (text) pendingResumeTextRef.current = text
+    }
+    if (restored.length > 0) {
       setMessages((prev) => [...prev.filter((m) => m.role === 'system'), ...restored])
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -189,6 +201,25 @@ const Chat = memo(function Chat({
   React.useEffect(() => {
     handleSendRef.current = handleSend
   }, [handleSend])
+
+  // 로그인 후 "직전 질문 이어서 답변" — 복원 때 떼어둔 미답변 질문을, 인증이
+  // 확인되는 순간 한 번 자동 전송한다. 게스트(미인증)면 보류(전송해도 다시
+  // 한도에 막히므로). loading 중이면 끝난 뒤 다시 시도(상태 변화로 재평가).
+  const { status: authStatus } = useSession()
+  const resumeSentRef = React.useRef(false)
+  React.useEffect(() => {
+    if (resumeSentRef.current) return
+    const text = pendingResumeTextRef.current
+    if (!text) return
+    if (authStatus !== 'authenticated') return
+    if (loading) return
+    resumeSentRef.current = true
+    pendingResumeTextRef.current = null
+    const id = window.setTimeout(() => {
+      void handleSendRef.current?.(text)
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [authStatus, loading])
 
   const handleFollowUp = React.useCallback(
     (question: string) => {
