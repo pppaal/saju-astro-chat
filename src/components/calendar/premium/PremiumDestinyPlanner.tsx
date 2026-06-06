@@ -10,7 +10,7 @@
  *   - monthlyInterpretation.sections[] (룰별 해석 카드 — month tier 에서 "jargon"
  *     이라며 3카드로 치환됐던 그 원문)
  *   - themeBreakdown 전체 5테마 (기존엔 top 1~2 만 chip)
- *   - lifetimePivots / scoreBreakdown 축 / 24h fusion / convergence 큰 날
+ *   - lifetimePivots / scoreBreakdown 축 / 24h dayCross / convergence 큰 날
  *
  * 데이터가 없으면 해당 블록은 통째로 스킵 — fake fallback 노출 X.
  */
@@ -142,17 +142,17 @@ export default function PremiumDestinyPlanner({
     [data, selDateStr]
   )
 
-  // ── day fusion (24h 정밀 + 축 + advice) ──
+  // ── day dayCross (24h 정밀 + 축 + advice) ──
   const selJsDate = useMemo(() => new Date(year, selMonth, selDay), [year, selMonth, selDay])
   const { detail: dateDetail } = useDateDetail({
     selectedDay: selJsDate,
     birthInfo: birthInfo ?? { birthDate: '', birthTime: '', birthPlace: '', gender: 'Male' },
-    // 일 탭일 때만 fetch — 다른 탭에선 fusion 미사용이라 불필요한 호출 차단.
+    // 일 탭일 때만 fetch — 다른 탭에선 dayCross 미사용이라 불필요한 호출 차단.
     enabled: viewMode === 'day',
     // 앱 언어 명시 — 미전달 시 신살·점성이 브라우저 언어로 떨어져 앱과 어긋남.
     locale: locale === 'en' ? 'en' : 'ko',
   })
-  const fusion = dateDetail?.fusion
+  const dayCross = dateDetail?.dayCross
   // 신살은 연간 응답엔 없고 date-detail(일별)에서만 계산됨 — 일 탭에서 그 날 발동분.
   const shinsal = dateDetail?.shinsalActive ?? []
 
@@ -279,7 +279,7 @@ export default function PremiumDestinyPlanner({
                   day={selDay}
                   weekday={t.weekdayFull[selJsDate.getDay()]}
                   importantDate={selDate}
-                  fusion={fusion}
+                  dayCross={dayCross}
                   shinsal={shinsal}
                   astroHighlights={dateDetail?.astroHighlights}
                   dayTone={dateDetail?.dayTone}
@@ -1049,7 +1049,7 @@ function DayView({
   day,
   weekday,
   importantDate,
-  fusion,
+  dayCross,
   shinsal,
   astroHighlights,
   dayTone,
@@ -1063,7 +1063,7 @@ function DayView({
   day: number
   weekday: string
   importantDate: ImportantDate | null
-  fusion: NonNullable<ReturnType<typeof useDateDetail>['detail']>['fusion'] | undefined
+  dayCross: NonNullable<ReturnType<typeof useDateDetail>['detail']>['dayCross'] | undefined
   shinsal: NonNullable<NonNullable<ReturnType<typeof useDateDetail>['detail']>['shinsalActive']>
   astroHighlights?: { text: string; good: boolean }[]
   dayTone?: string
@@ -1076,19 +1076,19 @@ function DayView({
   const t = getCalLabels(locale)
   const month = parseInt(dateStr.slice(5, 7), 10)
 
-  const rawScore = importantDate?.displayScore ?? importantDate?.score ?? fusion?.overallScore ?? null
+  const rawScore = importantDate?.displayScore ?? importantDate?.score ?? dayCross?.overallScore ?? null
   const dayScore = typeof rawScore === 'number' ? Math.round(rawScore) : null
 
-  // 사주 / 점성 축 — engine scoreBreakdown 우선, 없으면 fusion 축 점수
-  const sajuAxis = importantDate?.scoreBreakdown?.sajuAxis ?? fusion?.sajuAxisScore
-  const astroAxis = importantDate?.scoreBreakdown?.astroAxis ?? fusion?.astroAxisScore
+  // 사주 / 점성 축 — engine scoreBreakdown 우선, 없으면 dayCross 축 점수
+  const sajuAxis = importantDate?.scoreBreakdown?.sajuAxis ?? dayCross?.sajuAxisScore
+  const astroAxis = importantDate?.scoreBreakdown?.astroAxis ?? dayCross?.astroAxisScore
 
-  // 24h 시리즈 (fusion 우선)
-  const hourSeries = fusion?.hourly?.slots ?? null
-  const bestHour = fusion?.hourly?.bestHours?.[0] ?? todayHourly?.best?.[0]
+  // 24h 시리즈 (dayCross 우선)
+  const hourSeries = dayCross?.hourly?.slots ?? null
+  const bestHour = dayCross?.hourly?.bestHours?.[0] ?? todayHourly?.best?.[0]
 
   // summary/recommendations/warnings 는 route(helpers)가 번역 텍스트로 채운다.
-  // fusion.advice/topInsights 는 raw 내부 신호(↑[세운]丙午…)라 노출하지 않는다.
+  // dayCross.advice/topInsights 는 raw 내부 신호(↑[세운]丙午…)라 노출하지 않는다.
   const oneLine = importantDate?.summary ?? null
 
   const recommendations = importantDate?.recommendations ?? []

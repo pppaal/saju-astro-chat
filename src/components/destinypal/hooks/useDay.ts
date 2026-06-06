@@ -1,9 +1,9 @@
 /**
  * @file useDay.ts
- * Hook: Day tier (일 — 일진 + 그날 점성 + 시간별 fusion).
+ * Hook: Day tier (일 — 일진 + 그날 점성 + 시간별 dayCross).
  *
  * Wraps /api/calendar/date-detail — the heaviest per-request engine
- * call (fusion: 18 themes × 24 slots + hourly best/worst + planetary
+ * call (dayCross: 18 themes × 24 slots + hourly best/worst + planetary
  * hours + shinsal hits). That's why this hook lives separate from
  * useMonth: the date-detail payload is shaped for a single day, and
  * the calendar-engine month payload only has the "lite" daily summary.

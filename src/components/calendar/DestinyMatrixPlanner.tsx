@@ -189,7 +189,7 @@ export default function DestinyMatrixPlanner({
     return data.allDates.find((d) => d.date === selectedDateStr) ?? null
   }, [data, selectedDateStr])
 
-  // ── fusion 엔진 (date-detail) — 선택 날짜 1번만 호출 ──
+  // ── dayCross 엔진 (date-detail) — 선택 날짜 1번만 호출 ──
   const selectedDayDate = useMemo(
     () => new Date(viewYear, viewMonth, currentDay),
     [viewYear, viewMonth, currentDay]
@@ -198,7 +198,7 @@ export default function DestinyMatrixPlanner({
     selectedDay: selectedDayDate,
     birthInfo: birthInfo ?? { birthDate: '', birthTime: '', birthPlace: '', gender: 'Male' },
   })
-  const fusion = dateDetail?.fusion
+  const dayCross = dateDetail?.dayCross
 
   // dailyIndices (총점·연애·재물·건강 3-bar 백킹) 는 day tier ThemeRadar 도입으로
   // 사용처 사라져 제거. 점수는 sticky today hero 가, 도메인 분포는 ThemeRadar 가 표시.
@@ -208,10 +208,10 @@ export default function DestinyMatrixPlanner({
   // 보낸다 (`todayHourlyTimeSlots`). 다른 날짜는 자체 hourlyTimeSlots
   // 필드가 차 있을 때만 노출 — 그 외엔 placeholder로 정직하게 비운다.
   const dailyHourlySlots = useMemo(() => {
-    // fusion 우선 — 24슬롯 정밀 분석
-    if (fusion?.hourly) {
+    // dayCross 우선 — 24슬롯 정밀 분석
+    if (dayCross?.hourly) {
       return {
-        best: fusion.hourly.bestHours.slice(0, 4).map((s) => ({
+        best: dayCross.hourly.bestHours.slice(0, 4).map((s) => ({
           hour: s.hour,
           score: s.score,
           reason: [
@@ -222,7 +222,7 @@ export default function DestinyMatrixPlanner({
             .filter(Boolean)
             .join(' · '),
         })),
-        worst: fusion.hourly.worstHours.slice(0, 2).map((s) => ({
+        worst: dayCross.hourly.worstHours.slice(0, 2).map((s) => ({
           hour: s.hour,
           score: s.score,
           reason: [s.hourPillar ? `시주 ${s.hourPillar}` : '', s.planetaryHour ?? '']
@@ -237,7 +237,7 @@ export default function DestinyMatrixPlanner({
       return data.todayHourlyTimeSlots
     }
     return null
-  }, [fusion, today, selectedDateStr, data])
+  }, [dayCross, today, selectedDateStr, data])
 
   // Day tier ThemeRadar — 5 도메인. year/month 와 같은 축 순서로 통일해
   // 미니멀 모드: day radar / day highlights / dailyDos / dailyDonts memo 제거.
@@ -253,9 +253,9 @@ export default function DestinyMatrixPlanner({
     ) {
       return data.calendarDailyView.oneLineSummary
     }
-    // fusion 사람말 신호 (legacy 없을 때만 fallback — 이미 다른 곳에 narrative 있으면 중복 피함)
-    if (fusion && !selectedImportantDate?.summary) {
-      const { agreement, confidence, overallScore } = fusion
+    // dayCross 사람말 신호 (legacy 없을 때만 fallback — 이미 다른 곳에 narrative 있으면 중복 피함)
+    if (dayCross && !selectedImportantDate?.summary) {
+      const { agreement, confidence, overallScore } = dayCross
       if (agreement < 55)
         return confidence > 40 ? '사주와 점성이 갈리는 날 — 분별 필요' : '신호가 흐릿한 날'
       if (overallScore >= 70 && confidence >= 45) return '아주 좋은 날 — 사주·점성 모두 우호'
@@ -265,7 +265,7 @@ export default function DestinyMatrixPlanner({
       return '평이한 흐름'
     }
     return selectedImportantDate?.summary ?? null
-  }, [fusion, data, selectedDateStr, selectedImportantDate])
+  }, [dayCross, data, selectedDateStr, selectedImportantDate])
 
   // --- Astro identity badge for the header ---------------------------
   // 풀 차트가 들어오면 ASC, 없으면 태양 별자리. ko 시 한글 별자리명, en 시 영어 원문.
@@ -521,9 +521,9 @@ export default function DestinyMatrixPlanner({
                           ? (data.calendarDailyView.frontDomainLabel ?? null)
                           : null
                       }
-                      advice={fusion?.advice}
+                      advice={dayCross?.advice}
                       hourlySlots={dailyHourlySlots}
-                      hourlySeries={fusion?.hourly?.slots ?? null}
+                      hourlySeries={dayCross?.hourly?.slots ?? null}
                       locale={locale}
                     />
                   )

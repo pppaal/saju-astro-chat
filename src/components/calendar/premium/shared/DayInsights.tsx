@@ -6,7 +6,7 @@
  *   1. DayVerdict   — score + scoreBreakdown(사주·점성 축 + 합의) + 중심 영역 + oneLine
  *   2. DayDomains   — themeScores 5 bar + matchedPatterns chip
  *   3. DayWhy       — dailyGanjiNarrative + evidence.cross.sajuDetails/astroDetails + shinsalActive
- *   4. DayHourly    — DailyHourlyChart wrap + best/worst hour + fusion.advice.do/avoid
+ *   4. DayHourly    — DailyHourlyChart wrap + best/worst hour + dayCross.advice.do/avoid
  *
  * 각 카드는 엔진 데이터 없으면 자체 스킵 — UI 노이즈 0.
  * 모든 텍스트는 엔진이 plain text 로 직접 생성한 것 그대로 (jargon transform X).
@@ -25,7 +25,7 @@ import DomainBar from './DomainBar'
 import SplitAxisBar from './SplitAxisBar'
 
 type ThemeKey = 'love' | 'money' | 'career' | 'health' | 'growth'
-type FusionAdvice = { do?: string[]; avoid?: string[] }
+type DayAdvice = { do?: string[]; avoid?: string[] }
 type HourlySlot = { hour: number; score?: number; reason?: string }
 type HourlySlots = { best: HourlySlot[]; worst: HourlySlot[] } | null
 
@@ -39,11 +39,11 @@ interface Props {
   oneLine?: string | null
   /** 중심 영역 라벨 (calendarDailyView.frontDomainLabel 류) */
   frontDomain?: string | null
-  /** fusion.advice (24h 카드 추진/보류 리스트) */
-  advice?: FusionAdvice
+  /** dayCross.advice (24h 카드 추진/보류 리스트) */
+  advice?: DayAdvice
   /** dailyHourlySlots (24h 카드 베스트/주의 시간) */
   hourlySlots?: HourlySlots
-  /** fusion.hourly.slots — 24h 차트 (engineSignals 대체) */
+  /** dayCross.hourly.slots — 24h 차트 (engineSignals 대체) */
   hourlySeries?: Array<{ hour: number; score: number }> | null
   locale?: CalLocale
 }
@@ -438,7 +438,7 @@ function DayHourlyCard({
 }: {
   importantDate?: ImportantDate | null
   dateStr: string
-  advice?: FusionAdvice
+  advice?: DayAdvice
   hourlySlots?: HourlySlots
   hourlySeries?: Array<{ hour: number; score: number }> | null
   locale?: CalLocale
