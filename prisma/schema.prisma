@@ -61,18 +61,13 @@ model User {
 
   // 서비스 데이터 관계
   readings              Reading[]
-  dailyFortunes         DailyFortune[]
   interactions          UserInteraction[]
-  preferences           UserPreferences?
-  consultationHistory   ConsultationHistory[]
   subscriptions         Subscription[]
   premiumContentAccess  PremiumContentAccess[]
   credits               UserCredits?
   counselorChatSessions CounselorChatSession[]
   referralRewards       ReferralReward[]
   savedCalendarDates    SavedCalendarDate[]
-  personalityResult     PersonalityResult?
-  icpResults            ICPResult[]
   compatibilityResults  CompatibilityResult[]
   tarotReadings         TarotReading[]
   pushSubscriptions     PushSubscription[]
@@ -157,24 +152,6 @@ model Reading {
   @@index([userId, type], name: "idx_reading_user_type")
 }
 
-model DailyFortune {
-  id           String   @id @default(cuid())
-  userId       String
-  date         String
-  loveScore    Int
-  careerScore  Int
-  wealthScore  Int
-  healthScore  Int
-  overallScore Int
-  luckyColor   String?
-  luckyNumber  Int?
-  createdAt    DateTime @default(now())
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, date])
-  @@index([userId, date])
-}
-
 model UserInteraction {
   id        String   @id @default(cuid())
   userId    String
@@ -187,61 +164,6 @@ model UserInteraction {
 
   @@index([userId, createdAt])
   @@index([userId, service])
-}
-
-model UserPreferences {
-  id                   String   @id @default(cuid())
-  userId               String   @unique
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  preferredLanguage    String   @default("en")
-  preferredThemes      Json?
-  preferredServices    Json?
-  readingLength        String   @default("medium")
-  tonePreference       String   @default("casual")
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// 상담 기록 저장 - 프리미엄 사용자만 열람 가능
-model ConsultationHistory {
-  id           String   @id @default(cuid())
-  userId       String
-  createdAt    DateTime @default(now())
-  summary      String // 상담 요약 (1-2줄)
-  fullReport   String   @db.Text // 전체 리포트 내용
-  jungQuotes   Json? // 사용된 Jung 인용문들
-  signals      Json? // 점성술/사주 시그널
-  userQuestion String? // 사용자 질문 (있을 경우)
-  locale       String   @default("ko")
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-}
-
-// 섹션별 피드백 - AI 품질 개선용
-model SectionFeedback {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  // 익명 식별자 (생년월일 해시)
-  userHash String?
-
-  // 피드백 대상
-  service   String // destiny-map, dream, tarot, etc.
-  sectionId String // personality, relationships, career, etc.
-
-  // 피드백 데이터
-  helpful Boolean // true = 👍, false = 👎
-
-  // 컨텍스트 (분석용)
-  dayMaster String? // 甲木, 乙木, etc.
-  sunSign   String? // Aries, Taurus, etc.
-  locale    String  @default("ko")
-
-  @@index([service])
-  @@index([sectionId, helpful])
-  @@index([dayMaster])
-  @@index([createdAt])
 }
 
 // Decision Tracker (Tier 2B) — 사용자 결정 + 후속 검증
@@ -662,81 +584,9 @@ model EmailLog {
   @@index([createdAt])
 }
 
-// 성격 테스트 결과 (Nova Persona)
-model PersonalityResult {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 타입 코드 및 페르소나 정보
-  typeCode     String // RVLA, GSHA, etc. (4글자)
-  personaName  String // 페르소나 이름
-  avatarGender String @default("M") // M, F
-
-  // 4가지 축 스코어 (0-100)
-  energyScore    Int // Radiant(100) <-> Grounded(0)
-  cognitionScore Int // Visionary(100) <-> Structured(0)
-  decisionScore  Int // Logic(100) <-> Empathic(0)
-  rhythmScore    Int // Flow(100) <-> Anchor(0)
-
-  // 일관성 점수
-  consistencyScore Int? // 0-100
-
-  // 분석 결과 (JSON)
-  analysisData Json // summary, keyMotivations, strengths, challenges, etc.
-
-  // 답변 데이터 (백업용)
-  answers Json? // 전체 답변 데이터
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([typeCode])
-  @@index([createdAt])
-}
-
-// ICP 대인관계 스타일 결과
-model ICPResult {
-  id        String   @id @default(cuid())
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  testVersion String @default("icp_v2")
-  resultId    String?
-  confidence  Int?
-  axes        Json?
-  completionSeconds Int?
-  missingAnswerCount Int @default(0)
-
-  // 주 스타일과 부 스타일
-  primaryStyle   String // BC, PA, NO, LM, JK, HI, FG, DE
-  secondaryStyle String? // 부차 스타일 (있을 경우)
-
-  // 축 점수 (0-100)
-  dominanceScore   Int // 지배성 축 점수
-  affiliationScore Int // 친화성 축 점수
-
-  // 8개 옥탄트 점수 (JSON)
-  octantScores Json // { BC: 0.8, PA: 0.6, ... }
-
-  // 분석 결과 (JSON)
-  analysisData Json // description, strengths, challenges, relationships, etc.
-
-  // 답변 데이터 (백업용)
-  answers Json? // 전체 답변 데이터
-
-  // 언어
-  locale String @default("en")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-  @@index([primaryStyle])
-}
-
-// 전생 리딩 결과
-// PastLifeResult 모델은 2026-05-27 migration 으로 drop. 페이지 UI 가 이전에
-// 사라졌고 schema 만 orphan 으로 남아 사용자 결정으로 정리.
+// PersonalityResult (Nova Persona) / ICPResult (대인관계 스타일) — 페이지
+// 제거 후 schema 만 orphan. 2026-06-06 통째 정리 (row 0).
+// PastLifeResult 도 2026-05-27 migration 으로 drop.
 
 // 성격 궁합 분석 결과
 model CompatibilityResult {

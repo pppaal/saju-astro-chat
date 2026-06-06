@@ -98,23 +98,8 @@ export const feedbackRequestSchema = z.object({
 
 export type FeedbackRequestValidated = z.infer<typeof feedbackRequestSchema>
 
-export const sectionFeedbackRequestSchema = z.object({
-  service: z.string().min(1).max(64).trim(),
-  sectionId: z.string().min(1).max(80).trim(),
-  helpful: z.boolean(),
-  dayMaster: z.string().max(32).trim().optional(),
-  sunSign: z.string().max(32).trim().optional(),
-  locale: localeSchema.optional(),
-  userHash: z.string().max(128).trim().optional(),
-  recordId: z.string().max(120).trim().optional(),
-  rating: z.number().int().min(1).max(5).optional(),
-  feedbackText: z.string().max(600).trim().optional(),
-  userQuestion: z.string().max(600).trim().optional(),
-  consultationSummary: z.string().max(600).trim().optional(),
-  contextUsed: z.string().max(600).trim().optional(),
-})
-
-export type SectionFeedbackRequestValidated = z.infer<typeof sectionFeedbackRequestSchema>
+// SectionFeedback (사용자 섹션별 👍/👎 피드백) — DB 모델 + zod schema 같이
+// 2026-06-06 제거. 페이지/캡처 코드 0, row 0.
 
 export const feedbackGetQuerySchema = z.object({
   service: z.string().max(50).optional(),
@@ -527,14 +512,8 @@ export const fortuneSaveSchema = z.object({
 
 export type FortuneSaveValidated = z.infer<typeof fortuneSaveSchema>
 
-export const dailyFortuneSchema = z.object({
-  birthDate: dateSchema,
-  birthTime: timeSchema.optional(),
-  sendEmail: z.boolean().optional().default(false),
-  userTimezone: timezoneSchema.optional(),
-})
-
-export type DailyFortuneValidated = z.infer<typeof dailyFortuneSchema>
+// DailyFortune (옛 일일 운세 score 모델) — DB 모델 + zod schema 같이
+// 2026-06-06 제거. 페이지 코드 0, row 0.
 
 const fortuneGetQuerySchema = z.object({
   date: dateSchema,
