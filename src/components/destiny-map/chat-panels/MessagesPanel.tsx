@@ -116,23 +116,29 @@ export const MessagesPanel = React.memo(function MessagesPanel({
         )
       })}
 
-      {loading && (
-        <div className={`${styles.messageRow} ${styles.assistantRow}`}>
-          <div className={`${styles.counselorAvatar} ${styles.counselorThinking}`} />
-          <div className={styles.messageBubble}>
-            <div className={styles.thinkingMessage}>
-              <div className={styles.typingDots}>
-                <span className={styles.typingDot} />
-                <span className={styles.typingDot} />
-                <span className={styles.typingDot} />
+      {/* "당신을 살펴보고 있어요" — 답변이 시작되기 직전(=마지막 메시지가 user
+          또는 메시지 없음) 까지만 표시. assistant 가 토큰 흘리기 시작하면 그
+          버블 자체가 "글자 채워지는" 표시이므로 thinking 블록은 중복.
+          궁합 카운슬러(compatibility/counselor/page.tsx) 와 같은 게이트. */}
+      {loading &&
+        (visibleMessages.length === 0 ||
+          visibleMessages[visibleMessages.length - 1].role === 'user') && (
+          <div className={`${styles.messageRow} ${styles.assistantRow}`}>
+            <div className={`${styles.counselorAvatar} ${styles.counselorThinking}`} />
+            <div className={styles.messageBubble}>
+              <div className={styles.thinkingMessage}>
+                <div className={styles.typingDots}>
+                  <span className={styles.typingDot} />
+                  <span className={styles.typingDot} />
+                  <span className={styles.typingDot} />
+                </div>
+                <span className={styles.thinkingText}>
+                  {retryCount > 0 ? `${tr.thinking} (Retry ${retryCount}/3)` : tr.thinking}
+                </span>
               </div>
-              <span className={styles.thinkingText}>
-                {retryCount > 0 ? `${tr.thinking} (Retry ${retryCount}/3)` : tr.thinking}
-              </span>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Follow-up Questions \u2014 \uACF5\uC6A9 FollowUpChips \uCEF4\uD3EC\uB10C\uD2B8. */}
       {!loading && visibleMessages.length > 0 && (
