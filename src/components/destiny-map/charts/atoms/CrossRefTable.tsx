@@ -34,7 +34,7 @@ import {
 } from '@/lib/destiny-map/natalCross'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { SIGN_EN_TO_KO, PLANET_LABEL, ELEMENT_LABEL } from '@/lib/destiny-map/chartLabels'
-import { SIGN_TO_ASTRO_ELEMENT } from '@/lib/fusion/bridges/element'
+import { SIGN_TO_ASTRO_ELEMENT } from '@/lib/saju/elementBridge'
 
 /**
  * 차트 모달 Level 2 — 사주 ↔ 점성 교차 표.

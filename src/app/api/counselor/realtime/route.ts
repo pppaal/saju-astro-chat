@@ -11,7 +11,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
 import { buildDestinyContext } from '@/lib/destiny/counselorContext'
 import { getNowInTimezone } from '@/lib/datetime'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
@@ -277,20 +276,10 @@ export async function POST(req: NextRequest) {
         normalizeGender(body.gender) === 'female' ? 'female' : 'male'
       const latitude = body.latitude ?? 37.5665
       const longitude = body.longitude ?? 126.978
-      // 점성 데이터는 buildDestinyContext (astroFacts 위임) 가 직접 계산.
-      // 옛 코드는 buildAstroNormalizerInput 도 같이 await 했지만 결과를
-      // `_astro` 로 받고 안 썼음 (dead computation — Swiss Ephemeris ×
-      // natal/SR/LR + progression 비용 매 요청 헛돔). saju 쪽
-      // currentSeun/Wolun/Iljin/unseRelations 는 여전히 fusion saju
-      // adapter 가 만든다 (sync).
-      const saju = buildSajuNormalizerInput({
-        birthDate,
-        birthTime,
-        gender,
-        timezone: tz,
-        queryDate,
-        longitude,
-      })
+      // 사주·점성·현재 운(세운/월운/일진) 전부 buildDestinyContext 가 정제 경로
+      // (sajuFacts/astroFacts SSOT)에서 직접 계산한다. 예전엔 fusion saju adapter
+      // (buildSajuNormalizerInput)로 현재 운을 따로 만들어 주입했는데, 그게 longitude
+      // 진경도 보정을 안 받아 KST LMT 로 떨어지던 불일치 + fusion 결합을 제거했다.
       const birthTimeUnknown = hourUnknown
       const birthCityUnknown = cityUnknown
       // Compact table form — replaces the older pretty-JSON snapshot
@@ -328,17 +317,6 @@ export async function POST(req: NextRequest) {
       let stableCtxBody = ''
       let dailyCtxBody = ''
       try {
-        const sn = saju as unknown as {
-          currentSeun?: { heavenlyStem?: string; earthlyBranch?: string } | null
-          currentWolun?: { heavenlyStem?: string; earthlyBranch?: string } | null
-          currentIljin?: { heavenlyStem?: string; earthlyBranch?: string } | null
-          unseRelations?: Array<{
-            source: string
-            relation: { kind: string; detail?: string; pillars?: string[] }
-          }>
-        }
-        const un = (u?: { heavenlyStem?: string; earthlyBranch?: string } | null) =>
-          u ? { stem: u.heavenlyStem ?? '', branch: u.earthlyBranch ?? '' } : null
         const split = await buildDestinyContext(
           {
             birthDate,
@@ -352,12 +330,6 @@ export async function POST(req: NextRequest) {
           },
           queryDate,
           lang,
-          {
-            seun: un(sn.currentSeun),
-            wolun: un(sn.currentWolun),
-            iljin: un(sn.currentIljin),
-            relations: sn.unseRelations,
-          },
           userTz
         )
         stableCtxBody = split.stable
