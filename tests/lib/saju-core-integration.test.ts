@@ -212,13 +212,13 @@ describe('Saju Core Integration', () => {
         'lib/saju/tonggeun',
         'lib/saju/healthCareer',
         'lib/saju/patternMatcher',
-        'lib/saju/advancedSajuCore',
       ]
       // saju/cache — 미사용으로 통째 삭제됨 (2025 정리)
       // visualizationData / fortuneSimulator / aiPromptGenerator — 미사용으로 삭제됨
       // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
+      // advancedSajuCore / advancedAnalysis — 미사용으로 통째 삭제됨 (2026-06)
 
-      expect(modules.length).toBe(12)
+      expect(modules.length).toBe(11)
       modules.forEach((modulePath) => {
         readModule(modulePath)
       })
@@ -247,14 +247,6 @@ describe('Saju Core Integration', () => {
 
   // Visualization Data — 미사용으로 삭제됨 (2025 정리)
 
-  describe('Advanced Analysis', () => {
-    // comprehensiveReport / fortuneSimulator — 미사용으로 삭제됨 (DEAD 정리)
-
-    it('should expose advanced saju core', () => {
-      assertNamedExports('lib/saju/advancedSajuCore', [
-        'analyzeJonggeok',
-        'performUltraAdvancedAnalysis',
-      ])
-    })
-  })
+  // Advanced Analysis — comprehensiveReport / fortuneSimulator / advancedSajuCore
+  // 다 미사용으로 삭제됨 (2025/2026 정리). 좀비 검증 제거.
 })
