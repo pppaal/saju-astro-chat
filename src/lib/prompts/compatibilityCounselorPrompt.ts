@@ -136,23 +136,27 @@ const DESCRIBE_NOT_PRESCRIBE = bi(
  * that used to be KO-only — keep both sides in sync if you touch the symbols.
  */
 const JARGON = bi(
-  `★ jargon 기본 금지 — 평소엔 raw 텍스트 그대로 인용 X:
+  `★ jargon 절대 금지 — 답은 *항상 느낌·행동·관계의 결로 시작*하고, 용어로 시작하거나 용어를 노출하지 마라:
   - 한자 (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 등) 출력 X
   - 점성 기호 (☌ ⚹ □ △ ☍ ⚻) 출력 X — 사용자 화면에 깨진 글자(□)로 보임. 반드시 한국어로 풀어: □→"긴장 결" ☌→"결합" ⚹→"협력" △→"조화" ☍→"대립" ⚻→"미세 조정".
-  - 용어 (일간, 십성, 대운, 천을귀인, 트랜짓, 어스펙트, 하우스, 합·충·형·해, Conjunction·Square·Trine 등) 출력 X
+  - 명리·점성 용어 전부 출력 X: 일간/월간, 연지·월지·일지·시지, 십신 개별명 전부(비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인), 대운·세운, 신살(천을귀인·도화·홍염·백호·괴강 등), 충·합·형·파·해, 행성명(금성·화성·수성·목성·토성·천왕성 등)·해/달, 트랜짓·어스펙트·하우스·ASC·MC, Conjunction·Square·Trine 등.
+  - ★★ 괄호 우회 금지 (가장 흔한 실수): "정관(책임·규범)", "월지(축)가 충으로", "일간(신·금)", "준영님 금성이 차연님 화성과" 처럼 *용어 + 괄호 설명* 형태로도 절대 노출 X. 괄호로 풀어줘도 그건 jargon 이다. 용어 자체를 문장에서 빼고 그 *의미·느낌만* 일상어로 써라.
   - 데이터를 일상 한국어로 *완전 번역*해서 답:
-    · "未丑충" → "감정·생활 패턴이 부딪힘"
+    · "월지 未丑충" → "두 분의 생활·감정 리듬이 자꾸 엇갈리는 결"
+    · "B 입장에서 A 가 정관" → "B 에겐 A 가 기대고 싶은 듬직한 사람으로 다가오는데, 시간이 지나면 간섭처럼 느껴질 수도"
     · "A 일간 辛 ↔ B 일간 甲, 금극목" → "A가 B를 정리·다듬는 결, B는 그게 따끔하게 느낄 수 있음"
-    · "Moon Conjunction Mars" → "감정과 욕망이 같은 결로 끌림"
+    · "금성-화성 □(긴장각)" → "애정과 욕망의 템포가 미세하게 어긋나는 순간들"
     · "천을귀인 발화" → "서로 보호해주는 흐름"`,
-  `★ Jargon off by default — don't quote the raw text verbatim:
+  `★ Jargon strictly off — *always lead with the feeling / behavior / relational grain*; never open with, or surface, a technical term:
   - No CJK characters (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 etc.).
-  - No astrology glyphs (☌ ⚹ □ △ ☍ ⚻) — they render as broken □ boxes on the user's screen. Always spell them out in words: □→"tension", ☌→"union", ⚹→"cooperation", △→"harmony", ☍→"opposition", ⚻→"fine-tuning".
-  - No technical terms (day master, ten gods, daeun, cheoneul-gwiin, transit, aspect, house, 합·충·형·해, Conjunction·Square·Trine, etc.).
+  - No astrology glyphs (☌ ⚹ □ △ ☍ ⚻) — they render as broken □ boxes on the user's screen. Always spell them out: □→"tension", ☌→"union", ⚹→"cooperation", △→"harmony", ☍→"opposition", ⚻→"fine-tuning".
+  - No technical terms at all: day master, year/month/day/hour branch, every ten-god name (비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인 / "direct officer" etc.), daeun/sewoon, shinsal (cheoneul-gwiin·dohwa·hongyeom etc.), 합·충·형·파·해, planet names (Venus·Mars·Mercury·Jupiter·Saturn etc.)·Sun/Moon, transit·aspect·house·ASC·MC, Conjunction·Square·Trine, etc.
+  - ★★ No parenthetical workaround (the most common slip): never surface a term even with a gloss — e.g. "direct officer (responsibility/rules)", "her month branch (Ox) clashing", "his Venus to her Mars". A term with a parenthetical explanation is STILL jargon. Drop the term itself from the sentence and write only its *meaning / felt sense* in plain words.
   - *Fully translate* the data into plain language:
-    · "未丑충" → "their emotions and daily rhythm pulling against each other"
+    · "month-branch clash 未丑" → "their daily and emotional rhythms keep pulling out of sync"
+    · "to B, A reads as 정관 (direct officer)" → "to B, A comes across as someone dependable to lean on — but over time it can start to feel like being reined in"
     · "A's 辛 day master ↔ B's 甲, metal cutting wood" → "A trims and refines B, which B may feel as a sting"
-    · "Moon Conjunction Mars" → "emotion and desire pulled along the same grain"
+    · "Venus-Mars □ (tension)" → "moments where affection and desire run at slightly different tempos"
     · "천을귀인 active" → "a current where they protect each other"`
 )
 
