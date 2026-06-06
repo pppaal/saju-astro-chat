@@ -1490,8 +1490,11 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
 
           {/* Input — 운명 상담사와 동일한 ChatInputArea 공용 컴포넌트.
               📎 파일 / 🃏 타로 / ✨ 궁합차트 + ✕ + ▶ 전송. 모든 화면 크기에서
-              세 도구 모두 노출 (사이드바 푸터에 같은 진입점 없음). */}
-          <ChatInputArea
+              세 도구 모두 노출 (사이드바 푸터에 같은 진입점 없음).
+              운명 상담사처럼 max-width 860px 로 가운데 정렬 — 안 그러면 입력창이
+              chatWrapper 전체 폭으로 가로로 길게 퍼진다(궁합만 넓던 회귀). */}
+          <div className={styles.inputWrap}>
+            <ChatInputArea
             input={input}
             loading={isLoading}
             cvName={cvName}
@@ -1538,8 +1541,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
             }}
             focusToken={focusToken}
             theme="light"
-          />
-          {fileNotice && <div className={styles.fileNotice}>{fileNotice}</div>}
+            />
+            {fileNotice && <div className={styles.fileNotice}>{fileNotice}</div>}
+          </div>
         </div>
       </div>
 
