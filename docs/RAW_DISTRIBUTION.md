@@ -4,7 +4,8 @@
 > 각각 무엇을 받아야 하는지의 SSOT. consumer 가 자기 분석을 자기 책임으로 호출하는 패턴
 > (sajuFacts/astroFacts 정제 + consumer 가 직접 분석 함수 호출).
 >
-> **v2 (2026-06-06)** — Opus 코드 실측 감사 반영 (v1 의 ~15 셀 오류 수정).
+> **v3 (2026-06-06)** — 엔진 실제 output type 과 대조 후 정정.
+> 일진 / fusion adapter 결과는 raw 가 아니라 derived 로 재분류.
 
 ## 마커 범례
 
@@ -31,7 +32,7 @@ daeWoon (대운):
 └── list[DaeunData]
 
 unse (운기 시간 흐름):
-├── daeun  — 대운 ganji list
+├── daeun  — 대운 ganji list (daeWoon.list 별칭)
 ├── annual — 세운 list
 └── monthly — 월운 list
 ```
@@ -39,6 +40,11 @@ unse (운기 시간 흐름):
 **raw 안에 이미 들어있음** (별도 분석 불필요):
 - 십신 sibsin (각 기둥의 천간/지지에 다 박힘)
 - 대운/세운/월운 timing
+
+**raw 에 없음** (별도 함수 호출 필요):
+- 일진 (iljin) — `getIljinCalendar(year, month, dayMaster)` 호출
+- currentSeun / currentWolun / currentIljin / unseRelations — fusion saju adapter (`buildSajuNormalizerInput`) 가 만듦
+- → 모두 "**사주 분석 (derived)**" 카테고리로 분류
 
 ### 점성 raw (`calculateNatalChart` 출력 → `toChart` Chart)
 
@@ -50,7 +56,7 @@ houses[12]  — cusp, formatted (sign 포함)
 meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 ```
 
-## 2. raw → consumer 분배 표 (v2 — 실측 반영)
+## 2. raw → consumer 분배 표 (v3 — 실측 반영)
 
 | 항목 | 종류 | 운명 LLM | 궁합 LLM | 통합 리포트 | 캘린더 (운흐름) |
 |---|---|---|---|---|---|
@@ -60,9 +66,8 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 | fiveElements (오행 카운트) | raw | ✅ | ✅ | ✅ | ✅ |
 | 대운 list | raw | ✅ | - | ✅ | ✅ |
 | 대운 current | raw | ✅ | ✅ | ✅ | ✅ |
-| 세운 list (연) | raw | ✅ | - | - | ✅ |
-| 월운 list | raw | ✅ | - | - | ✅ |
-| 일진 list | raw | ✅ | - | - | ✅ |
+| 세운 list (연) | raw (unse.annual) | ✅ | - | - | ✅ |
+| 월운 list | raw (unse.monthly) | ✅ | - | - | ✅ |
 | **사주 분석** (raw 위에 추가) | | | | | |
 | 격국 (determineGeokguk) | 분석 | ✅ | - | ✅ | ✅ |
 | 용신 (determineYongsin) | 분석 | ✅ | - | ✅ | ✅ |
@@ -75,6 +80,10 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 | 통근 (sajuFacts.rooted / calculateTonggeun) | 분석 | ✅ | - | - | ✅ |
 | 득령 (calculateDeukryeong) | 분석 | - | - | - | ✅ |
 | 형충회합 시간 cross (analyzeHyeongchung) | 분석 | ✅ | - | - | ✅ |
+| 일진 캘린더 (getIljinCalendar — 별도 함수) | 분석 | ✅ | - | - | ✅ |
+| 현재 세운 (currentSeun — fusion adapter) | 분석 | ✅ | - | - | - |
+| 현재 월운 (currentWolun — fusion adapter) | 분석 | ✅ | - | - | - |
+| 현재 일진 (currentIljin — fusion adapter) | 분석 | ✅ | - | - | - |
 | **사주 cross 분석 (궁합 전용)** | | | | | |
 | 십성 cross 양방향 (sibsinOf cross) | 분석 | - | ✅ | - | - |
 | 지장간 cross (일지 본기 합/충) | 분석 | - | ✅ | - | - |
@@ -106,7 +115,43 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 | Synastry aspects (cross) | 분석 | - | ✅ | - | - |
 | Composite Chart aspects | 분석 | - | ✅ | - | - |
 
-## 3. 핵심 변경 (v1 → v2)
+## 3. 엔진 실제 output 과 raw 행 대조 (v3)
+
+### `calculateSajuData` 실제 출력 (`src/lib/saju/types.ts:113-153`)
+
+```
+{
+  yearPillar / monthPillar / dayPillar / timePillar  (legacy spread)
+  pillars: { year, month, day, time }                (nested)
+  daeWoon: { startAge, isForward, current, list }
+  unse: { daeun, annual, monthly }
+  fiveElements: { wood, fire, earth, metal, water }
+  dayMaster: StemBranchInfo
+}
+```
+
+→ 표의 사주 raw 행과 일치.
+
+### `calculateNatalChart` 실제 출력 (`src/lib/astrology/foundation/astrologyService.ts:36`)
+
+```
+{
+  planets[]: PlanetData
+  ascendant: PlanetData
+  mc: PlanetData
+  houses[12]: { cusp, formatted }
+  meta?: { jdUT, isoUTC, timeZone, lat, lon, houseSystem }
+}
+```
+
+→ 표의 점성 raw 행과 일치.
+
+### v2 → v3 raw 행 정정
+
+- **일진 list (v2 raw)** → **사주 분석 행으로 이동**: `calculateSajuData` 가 안 만듦. `getIljinCalendar(year, month, dayMaster)` 별도 함수 호출.
+- **currentSeun / currentWolun / currentIljin / unseRelations** → 표에 분석 행으로 명시: fusion saju adapter (`buildSajuNormalizerInput`) 가 만드는 derived. raw 도 아니고 일반 분석도 아닌 fusion 계층.
+
+## 5. 핵심 변경 (v1 → v2)
 
 ### 운명 LLM 추가 (v1 누락):
 - 통근, Fixed Stars, Chiron/Lilith, Secondary Progression, Lunar Return, 형충회합 시간 cross
@@ -129,7 +174,7 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 ### 조후용신 행:
 - 사용처 0 으로 확인 — 모든 consumer "-". `getJohuYongsin` 코드는 있지만 production caller 없음.
 
-## 4. 발견된 비효율 / 후속 결정
+## 6. 발견된 비효율 / 후속 결정
 
 ### A. 통합 리포트 dead data
 **현재**: `buildNatalContext(includeHellenistic:true)` 가 Profection/Lots/ZR/Almuten/5-tier dignity 다 계산해서 넘김. 화면 표시 0.
@@ -155,7 +200,7 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
 1. 운명 LLM 또는 궁합 LLM 에 도입
 2. 코드 dead 처리 (제거)
 
-## 5. 아키텍처 의도
+## 7. 아키텍처 의도
 
 - raw 정제 = `sajuFacts` (collectSajuFacts) + `astroFacts` (collectAstroFacts)
 - 모든 consumer 가 같은 facts wrapper 통과 → 동일 source
@@ -165,13 +210,14 @@ meta        — jdUT, isoUTC, timeZone, lat, lon, houseSystem
   - 캘린더 → calendar route / derivers 가 직접 호출 (현재 buildNatalContext 의존)
 - `buildNatalContext` 처럼 *모든 분석 한꺼번에* 만드는 fat wrapper 패턴은 폐기 대상
 
-## 6. 검증 상태
+## 8. 검증 상태
 
 - 2026-06-06 v1 작성 (분배 의도 명세)
 - 2026-06-06 v2 Opus 코드 실측 감사 반영 — v1 의 ~15 셀 오류 수정
+- 2026-06-06 v3 엔진 실제 output type 과 대조 — 일진 / fusion derived 를 raw → 분석 행으로 재분류
 - TODO: A/B/C/D 결정 → implementation 작업
 
-## 7. 참고
+## 9. 참고
 
 - 옛 `buildNatalContext` (src/lib/calendar-engine/context/build.ts) = 통합 리포트 + 캘린더 + 운흐름 의 공통 fat wrapper. 이 표 적용 후 폐기 또는 thin pass-through 로.
 - 운명/궁합 LLM 영역은 facts → consumer 패턴 이미 완료 (PR #1208, #1209, #1210, #1211, #1213, #1216).
