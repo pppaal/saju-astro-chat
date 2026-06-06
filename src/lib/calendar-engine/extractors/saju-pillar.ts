@@ -156,24 +156,48 @@ const sajuPillarExtractor: SignalExtractor = {
       )
     }
 
-    // ─── 3) 월운 (monthly) ───
-    const monthCursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
+    // ─── 3) 월운 (monthly) — *절기월* 기준 ───
+    // 옛 버그: 달력 월(1일~말일)로 묶고 1일의 간지를 한 달 통째 적용 → 절입(節)을
+    // 무시해 4월 전체가 卯월(辛卯)로 잘못 잡혔다(청명 4/4 이후는 辰월 壬辰이 맞음).
+    // getMonthPillarForDate 는 날짜→절기월 간지를 정확히 주므로, 같은 간지인 연속
+    // 구간을 한 절기월 윈도우로 묶어 emit. 윈도우는 실제 절입~절입 경계까지 잡도록
+    // range 밖으로도 탐색(절기월 ~30일이라 루프 유한).
+    const DAY_MS = 86_400_000
+    const sameMp = (
+      a: { stem: string; branch: string },
+      b: { stem: string; branch: string }
+    ): boolean => a.stem === b.stem && a.branch === b.branch
+    let monthCursor = new Date(start)
     while (monthCursor <= end) {
       const mp = getMonthPillarForDate(monthCursor)
+      // 이 절기월 윈도우의 실제 시작(절입) — cursor 에서 뒤로 같은 간지 끝까지
+      let winStart = new Date(monthCursor)
+      for (;;) {
+        const prev = new Date(winStart.getTime() - DAY_MS)
+        if (!sameMp(getMonthPillarForDate(prev), mp)) break
+        winStart = prev
+      }
+      // 실제 끝(다음 절입 직전) — 앞으로 같은 간지 끝까지
+      let winEnd = new Date(monthCursor)
+      for (;;) {
+        const next = new Date(winEnd.getTime() + DAY_MS)
+        if (!sameMp(getMonthPillarForDate(next), mp)) break
+        winEnd = next
+      }
       const stemInfo = STEMS.find((s) => s.name === mp.stem)
       if (stemInfo) {
         const sibsin = getSibsin(dayMaster, stemInfo)
         if (sibsin) {
-          const mStart = new Date(monthCursor).toISOString()
-          const mEnd = new Date(
-            Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth() + 1, 0, 23, 59, 59)
-          ).toISOString()
+          const dayUTC = (d: Date, h = 0, mi = 0, s = 0) =>
+            new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), h, mi, s))
+          const mStart = dayUTC(winStart).toISOString()
+          const mEnd = dayUTC(winEnd, 23, 59, 59).toISOString()
           const mPeak = new Date(
-            Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
+            winStart.getTime() + (winEnd.getTime() - winStart.getTime()) / 2
           ).toISOString()
           signals.push(
             buildSignal({
-              idSuffix: `wolun.${monthCursor.getUTCFullYear()}-${monthCursor.getUTCMonth() + 1}.${mp.stem}${mp.branch}`,
+              idSuffix: `wolun.${mp.stem}${mp.branch}.${mStart.slice(0, 10)}`,
               layer: 'monthly',
               ganji: `${mp.stem}${mp.branch}`,
               sibsin,
@@ -186,7 +210,7 @@ const sajuPillarExtractor: SignalExtractor = {
           )
         }
       }
-      monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1)
+      monthCursor = new Date(winEnd.getTime() + DAY_MS)
     }
 
     // ─── 4) 일주 (daily) ───
