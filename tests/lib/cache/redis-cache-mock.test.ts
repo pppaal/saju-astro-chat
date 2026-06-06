@@ -48,10 +48,9 @@ describe('Redis Cache Utilities (Mocked)', () => {
     it('should export all cache TTL values', async () => {
       const { CACHE_TTL } = await import('@/lib/cache/redis-cache')
 
-      // CACHE_TTL was trimmed to only the keys actually used.
+      // CACHE_TTL was trimmed to only the keys actually used (COMPATIBILITY 제거 — 미사용).
       expect(CACHE_TTL.TAROT_READING).toBe(60 * 60 * 24) // 1 day
       expect(CACHE_TTL.CALENDAR_DATA).toBe(60 * 60 * 24) // 1 day
-      expect(CACHE_TTL.COMPATIBILITY).toBe(60 * 60 * 24 * 7) // 7 days
       expect(CACHE_TTL.NATAL_CHART).toBe(60 * 60 * 24 * 30) // 30 days
     })
   })

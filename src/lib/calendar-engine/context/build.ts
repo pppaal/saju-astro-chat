@@ -1,5 +1,6 @@
-import { calculateSajuData } from '@/lib/saju/saju'
-import { calculateNatalChart, toChart } from '@/lib/astrology/foundation/astrologyService'
+import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
+import { collectAstroFacts } from '@/lib/destiny/astroFacts'
+import { toChart } from '@/lib/astrology/foundation/astrologyService'
 import { calculateChiron, calculateLilith } from '@/lib/astrology/foundation/extraPoints'
 import { natalToJD, matchHouseForCusps, UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
 import { determineYongsin } from '@/lib/saju/yongsin'
@@ -76,21 +77,21 @@ export async function buildNatalContext(
   }
 
   // ─── 사주 계산 (pre-computed 있으면 재사용) ───
-  // calculateSajuData는 내부 LRU 캐시 있어 호출 자체 비용 낮음.
-  // 그래도 같은 요청에서 두 번 호출 방지.
+  // 2026-06-06: collectSajuFacts (운명 SSOT) 위임 — calculateSajuData 직접
+  // 호출 대신 facts 의 _raw escape hatch 사용. 모든 raw saju 계산이 한
+  // 가공소(facts) 통과. 내부 LRU 캐시 적중으로 비용 동일.
   const saju =
     preComputed.saju ??
-    calculateSajuData(
-      input.birthDate,
-      input.birthTime,
-      input.gender,
-      input.calendarType ?? 'solar',
-      input.timeZone,
-      input.lunarLeap,
-      // 진태양시(진경도) 보정 — 출생지 경도가 있으면 운세 차트와 동일하게 적용.
-      // 없으면 undefined → 한국 LMT 기존 동작 유지.
-      input.longitude
-    )
+    collectSajuFacts({
+      birthDate: input.birthDate,
+      birthTime: input.birthTime,
+      gender: input.gender,
+      timezone: input.timeZone,
+      // 진태양시(진경도) 보정 — 출생지 경도 있으면 운세 차트와 동일.
+      longitude: input.longitude,
+      calendarType: input.calendarType,
+      lunarLeap: input.lunarLeap,
+    })._raw
   const pillars = saju.pillars
 
   // 용신·강약
@@ -163,7 +164,9 @@ export async function buildNatalContext(
   }))
 
   // ─── 점성 차트 계산 (pre-computed 있으면 재사용) ───
-  // ★ Swiss Ephemeris 호출 회피 — 가장 비싼 단계.
+  // 2026-06-06: collectAstroFacts (운명 SSOT) 위임 — calculateNatalChart 직접
+  // 호출 대신 facts 의 _chart escape hatch 사용. 모든 raw natal chart 계산이
+  // 한 가공소(facts) 통과. 내부 LRU 캐시 적중으로 비용 동일.
   let chart: Chart
   if (preComputed.astroChart) {
     // Chart인지 NatalChartData인지 판별 — Chart에는 .houses[].cusp 가 있고
@@ -174,8 +177,17 @@ export async function buildNatalContext(
         ? (candidate as Chart)
         : toChart(candidate as NatalChartData)
   } else {
-    const natalChartData = await calculateNatalChart(natalInput)
-    chart = toChart(natalChartData)
+    const facts = await collectAstroFacts({
+      birthDate: input.birthDate,
+      birthTime: input.birthTime,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timeZone,
+    })
+    if (!facts) {
+      throw new Error('buildNatalContext: collectAstroFacts returned null')
+    }
+    chart = facts._chart
   }
 
   // 섹트 결정 — Sun이 지평선 위(7~12궁 또는 1궁)에 있으면 day, 아니면 night

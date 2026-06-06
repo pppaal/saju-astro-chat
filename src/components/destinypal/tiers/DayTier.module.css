@@ -910,3 +910,56 @@
   .hourCell { min-height: 50px; padding: 6px 2px 7px; }
   .hourCell .hourBranch { font-size: 13px; }
 }
+
+/* ── "이렇게 읽은 이유" (날것 트랜짓 덤프 대체) — 만세력 스킨 유지 ── */
+.whyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.whyList li {
+  font-family: var(--dp-serif-ko);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dp-ink-dim);
+  padding-left: 2px;
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+}
+.whyArrow {
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.whyPos .whyArrow { color: var(--dp-pos); }
+.whyNeg .whyArrow { color: var(--dp-neg); }
+.whyMuted {
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  color: var(--dp-ink-mute);
+  line-height: 1.5;
+  margin: 2px 0 0;
+}
+.evidence {
+  margin-top: 14px;
+  border-top: 1px solid var(--dp-line-soft);
+  padding-top: 10px;
+}
+.evidenceSummary {
+  cursor: pointer;
+  font-family: var(--dp-sans);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--dp-ink-mute);
+  list-style: none;
+  user-select: none;
+  padding: 2px 0;
+}
+.evidenceSummary::-webkit-details-marker { display: none; }
+.evidenceSummary::before { content: '▸ '; color: var(--dp-ink-faint); }
+.evidence[open] .evidenceSummary::before { content: '▾ '; }
+.evidence .transitRow { margin-top: 8px; }

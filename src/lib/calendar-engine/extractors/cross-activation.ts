@@ -38,6 +38,7 @@ import type {
 import {
   SAJU_ASTRO_MAPPINGS,
   lookupCrossMapping,
+  crossLayerAllowed,
   type CrossMapping,
 } from '../data/saju-astro-mapping'
 
@@ -211,6 +212,9 @@ export function extractCrossActivations(signals: readonly ActiveSignal[]): Activ
         const window = intersectWindow(sajuSig.active, astroSig.active)
         if (!window) continue
         const crossSig = buildCrossSignal(sajuSig, astroSig, mapping, window)
+        // 층별 교차 밴드 — 합성 신호의 layer 가 그 행성 밴드 밖이면 버린다.
+        // (외행성은 대운에서만, 빠른 행성은 일/월에서만 — 스케일 불일치 교차 차단.)
+        if (!crossLayerAllowed(mapping.astro, crossSig.layer)) continue
         const dayKey = `${mapping.saju}|${mapping.astro}|${isoDay(window.start)}`
         const strength = Math.abs(crossSig.weight * crossSig.polarity)
         const existing = bestByDay.get(dayKey)

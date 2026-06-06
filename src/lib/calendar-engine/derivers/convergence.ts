@@ -4,6 +4,7 @@ import {
   cleanSignalName as cleanName,
   isHeavyAstro,
   isHeavySaju,
+  isSlowBackgroundAstro,
   MIN_IMPACT,
 } from './convergence-heavy'
 
@@ -28,6 +29,89 @@ function exactnessFactor(cellDate: string, s: ActiveSignal): number {
   if (!peak) return 1
   const days = Math.abs(new Date(cellDate).getTime() - new Date(peak).getTime()) / 86_400_000
   return Math.max(0.3, 1 - days / PEAK_WINDOW_DAYS)
+}
+
+/**
+ * 큰 날의 활성 구간 — 구성 무거운 신호들의 active window 를 합쳐 하나의 구간으로.
+ * start = 가장 이른 시작, end = 가장 늦은 끝, peak = impact 최대 신호의 정점.
+ */
+function aggregateWindow(
+  sigs: ActiveSignal[],
+  cellIso: string
+): { start: string; peak: string; end: string } | undefined {
+  // 합집합 — 단, *스케일 적합* 신호만. 느린 외행성(윈도우 수개월~수년)이 섞이면
+  // 합집합이 "큰 날" 윈도우를 1년으로 늘려 무의미해진다. 그래서 윈도우 폭이 월
+  // 스케일(≤45일) 이하인 신호만 집계 → daily만 있으면 점(범위 숨김), monthly
+  // 신호가 있으면 진짜 "빌드업→정점→소멸" 몇 주 구간이 잡힌다.
+  const MAX_SPAN_MS = 45 * 86_400_000
+  let startMs = Number.POSITIVE_INFINITY
+  let endMs = Number.NEGATIVE_INFINITY
+  let peakIso: string | undefined
+  let peakImp = -1
+  for (const s of sigs) {
+    const st = s.active?.start ? Date.parse(s.active.start) : NaN
+    const en = s.active?.end ? Date.parse(s.active.end) : NaN
+    if (Number.isNaN(st) || Number.isNaN(en)) continue
+    if (en - st > MAX_SPAN_MS) continue // 느린(년/십년) 신호는 윈도우 집계 제외
+    startMs = Math.min(startMs, st)
+    endMs = Math.max(endMs, en)
+    const imp = Math.abs(s.polarity) * s.weight
+    if (imp > peakImp && s.active?.peak) {
+      peakImp = imp
+      peakIso = s.active.peak
+    }
+  }
+  const cellMs = Date.parse(cellIso)
+  // 스케일 적합 신호가 하나도 없으면(전부 느림) 셀 날짜 점으로 폴백.
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+    if (Number.isNaN(cellMs)) return undefined
+    startMs = cellMs
+    endMs = cellMs
+  }
+  // 정점 — 가장 강한 신호의 peak 이 구간 안이면 그걸, 아니면 셀 날짜(구간 안일
+  // 때), 둘 다 아니면 중점.
+  const peakMs = peakIso ? Date.parse(peakIso) : NaN
+  const peakResolved =
+    !Number.isNaN(peakMs) && peakMs >= startMs && peakMs <= endMs
+      ? peakMs
+      : !Number.isNaN(cellMs) && cellMs >= startMs && cellMs <= endMs
+        ? cellMs
+        : (startMs + endMs) / 2
+  // 정점 기준 ±21일로 클램프 — 여러 월 스케일 신호의 합집합이 2~3개월로 벌어지면
+  // "큰 날"의 빌드업→소멸로는 너무 넓다. 몇 주 구간으로 정직하게 묶는다.
+  const PAD_MS = 21 * 86_400_000
+  startMs = Math.max(startMs, peakResolved - PAD_MS)
+  endMs = Math.min(endMs, peakResolved + PAD_MS)
+  return {
+    start: new Date(startMs).toISOString(),
+    peak: new Date(peakResolved).toISOString(),
+    end: new Date(endMs).toISOString(),
+  }
+}
+
+/**
+ * 큰 날 신뢰도 0~100. crossAgreement 와 같은 결: 무거운 신호 질량(|polarity|≥2
+ * 개수) + 둘 다 존재 보너스 + 사주↔점성 *방향 일치*(같은 방향 +8 / 반대 −8).
+ */
+function convergenceConfidence(
+  sigs: ActiveSignal[],
+  bothSystems: boolean,
+  astroPolNet: number,
+  sajuPolNet: number
+): number {
+  // *깊이* = 양쪽이 동시에 무거운 정도 = min(사주 무거움, 점성 무거움).
+  // 한쪽(느린 외행성)만 잔뜩 무거워도 신뢰가 오르면 안 된다 — 그건 "수렴"이
+  // 아니라 늘 켜진 배경. 그래서 합이 아니라 *약한 쪽*(binding constraint)을 본다.
+  const heavy = sigs.filter((s) => Math.abs(s.polarity) >= 2)
+  const sajuHeavy = heavy.filter((s) => s.source === 'saju').length
+  const astroHeavy = heavy.filter((s) => s.source === 'astro').length
+  const depth = Math.min(sajuHeavy, astroHeavy, 4)
+  let c = 40 + depth * 9
+  if (bothSystems && astroPolNet !== 0 && sajuPolNet !== 0) {
+    const same = Math.sign(astroPolNet) === Math.sign(sajuPolNet)
+    c += same ? 12 : -12
+  }
+  return Math.max(0, Math.min(100, Math.round(c)))
 }
 
 const THEME_LABEL: Record<'ko' | 'en', Record<AstroThemeKey, string>> = {
@@ -114,6 +198,18 @@ export interface ConvergenceDay {
   saju: string[] // 그날 무거운 사주 이벤트
   bothSystems: boolean // 점성·사주 둘 다 무거운 게 있었나 (진짜 수렴)
   meaning?: string // 영역(theme) + 톤(polarity) 한 줄 의미
+  /**
+   * 그 큰 날의 *활성 구간* — 구성 무거운 신호들의 active window 집계.
+   * start=가장 이른 시작, end=가장 늦은 끝, peak=가장 강한 신호의 정점.
+   * "7/15 좋음"(점)이 아니라 "7/10~20 빌드업→정점→소멸"(구간)을 위해.
+   * 윈도우 정보 있는 무거운 신호가 없으면 undefined.
+   */
+  window?: { start: string; peak: string; end: string }
+  /**
+   * 그 큰 날의 신뢰도 0~100 — 무거운 신호 질량 + 사주↔점성 *방향 일치*.
+   * 둘 다 무겁고 같은 방향이면 ↑, 반대 방향이면 ↓ (수렴이지만 갈등).
+   */
+  confidence?: number
 }
 
 export interface Convergence {
@@ -135,18 +231,28 @@ export function deriveConvergence(
     const themeAcc: Partial<Record<AstroThemeKey, number>> = {}
     let netPol = 0
     let sumImp = 0
+    // 윈도우 집계·confidence 용: 그날 무거운 신호와 source 별 방향(polarity×imp) 합.
+    const heavySignals: ActiveSignal[] = []
+    let astroPolNet = 0
+    let sajuPolNet = 0
     for (const s of c.signals) {
       const imp = Math.abs(s.polarity) * s.weight
       if (imp < MIN_IMPACT) continue
       const heavyAstro = isHeavyAstro(s)
       const heavySaju = !heavyAstro && isHeavySaju(s)
       if (!heavyAstro && !heavySaju) continue
+      heavySignals.push(s)
       if (heavyAstro) {
         astroHeavy += imp * exactnessFactor(c.datetime, s)
+        astroPolNet += s.polarity * imp
+        // 늘 켜진 최외곽 배경(천왕·해왕·명왕)은 칩에서 숨긴다 — 무거움 합산엔
+        // 반영하되 표시는 그날 *구별되는* 점성 신호(달·수성·금성·화성·각 접촉)만.
         const n = cleanName(s)
-        if (n && astro.length < 3 && !astro.includes(n)) astro.push(n)
+        if (n && astro.length < 3 && !astro.includes(n) && !isSlowBackgroundAstro(s))
+          astro.push(n)
       } else {
         sajuHeavy += imp
+        sajuPolNet += s.polarity * imp
         const n = cleanName(s)
         if (n && saju.length < 3 && !saju.includes(n)) saju.push(n)
       }
@@ -165,6 +271,8 @@ export function deriveConvergence(
       saju,
       bothSystems,
       meaning: composeMeaning(themeAcc, netPol, sumImp, lang, c.datetime.slice(0, 10)),
+      window: aggregateWindow(heavySignals, c.datetime),
+      confidence: convergenceConfidence(heavySignals, bothSystems, astroPolNet, sajuPolNet),
     })
   }
   scored.sort((a, b) => b.score - a.score)

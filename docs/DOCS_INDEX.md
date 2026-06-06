@@ -23,7 +23,7 @@ Last audited: 2026-05-17 (Asia/Hong_Kong)
 | `docs/DESTINY_MATRIX.md`                    | Current destiny core architecture, adapters, QA status            | Product/backend engineers       | 2026-04-01   |
 | `docs/RAG_AND_GRAPHRAG.md`                  | GraphRAG role, evidence model, tracing, and diagnostics           | AI/backend engineers            | 2026-04-01   |
 | `docs/CALCULATION_SPEC.md`                  | Current calculation pipeline for core/report/calendar/counselor   | Backend/AI engineers            | 2026-04-01   |
-| `docs/CALENDAR_LANGUAGE_GUIDE.md`           | Canonical calendar user-facing terminology and copy rules         | Product, frontend, AI engineers | 2026-04-01   |
+| `docs/운흐름.md`                            | 운흐름(사주×점성 타이밍 캘린더) 단일 출처 — 데이터·5층·해석·라벨·v2 통합     | Product/backend/AI engineers    | 2026-06-06   |
 | `docs/DESTINY_LOGGING.md`                   | Runtime event schema and UserInteraction-based logging plan       | Backend/product engineers       | 2026-04-01   |
 | `docs/TESTING_AND_GUARDRAILS.md`            | Required checks, destiny QA scripts, release gates                | All engineers                   | 2026-04-01   |
 | `docs/PDF_REPORTING.md`                     | Report generation flow                                            | Backend/reporting engineers     | 2026-04-01   |
@@ -85,6 +85,7 @@ Last audited: 2026-05-17 (Asia/Hong_Kong)
 - 2026-05-06 maintenance: `CROSS_RULES_SPEC.md` regenerated (205 rules + 10 meta); `npx knip` triage in `DEAD_CODE_TRIAGE.md`; 3 dead files removed from `src/lib/fortune/cross-rules/`; **Python `backend_ai` substrate fully retired** — folder, CI workflows, package.json scripts, tests, docker-compose service, and env vars all removed; `AUDIT_TAROT_GRAPHRAG.md`, `AUDIT_REPO_MAP.md`, `audit_tarot_quality.md` archived.
 - 2026-05-18 maintenance: lint dead-code cleanup (PR #271) — deleted `destinyAnalyzer.ts`, `healthAnalyzerAdvanced.ts`, cascade-deleted ~30 unused exports across analyzers/utils/types/skeletons.
 - 2026-06-05 docs cleanup (phase 1): a source restructure (`src/lib/destiny-matrix` → `src/lib/destiny`/`fusion`/`calendar-engine`) plus feature removals (ICP, dream, `fortune/cross-rules`) left many docs pointing at dead paths. Archived 12 fully-stale docs to `docs/archive/`: `icp_test_spec.md`, `icp_test_audit.md`, `icp_test_copy_v2.md`, `CROSS_RULES_SPEC.md`, `CROSS_RULES_ROADMAP.md`, `MATRIX_DATA_CROSS_MAP.md`(+`.json`), `AUDIT_FUSION.md`, `UNICORN_SCORECARD.md`, `DEAD_CODE_TRIAGE.md`, `I18N_AUDIT.md`, `CALENDAR_GRADE_STRUCTURE_FOR_GPT.md`. Remaining stale docs (README/OVERVIEW/ROADMAP path drift, pricing 3-way mismatch vs `src/lib/config/pricing.ts` = 10/40/100/240/500, TAROT_OVERVIEW couple surface) are flagged for phase 2 (update) — NOT yet fixed.
+- 2026-06-06 캘린더 문서 통일: 흩어진 캘린더 문서 4개(`CALENDAR_LANGUAGE_GUIDE`, `calendar-display-design`, `calendar-v2-migration-gap`, `CALENDAR_GRADE_STRUCTURE_FOR_GPT`)를 단일 출처 **`docs/운흐름.md`** 로 통일하고 원본은 archive 이동. 제품/개념명을 destinypal → **운흐름** 으로 정리(코드 경로는 아직 `destinypal/`). 핵심 방향: 의미 매핑 확장이 아니라 **타이밍 수렴**.
 
 ## Archive Guidance
 

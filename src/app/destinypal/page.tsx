@@ -24,6 +24,7 @@ import BirthRequiredFallback from './birth-required'
 
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
+import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 
@@ -382,6 +383,16 @@ export default async function DestinypalPage() {
     label: `${TARGET_YEAR}년 ${TARGET_MONTH}월`,
     cells: monthCells,
   })
+  // 이달의 큰 날 — convergence keyDays(윈도우+신뢰도). preview/page 와 동일 wiring.
+  const monthKeyDays = deriveConvergence(monthCells, 5, 'ko').keyDays.map((k) => ({
+    date: k.date.slice(5),
+    meaning: k.meaning,
+    astro: k.astro,
+    saju: k.saju,
+    bothSystems: k.bothSystems,
+    window: k.window,
+    confidence: k.confidence,
+  }))
   const month: DestinyMonth = {
     label: monthAdapter.label,
     ym: monthAdapter.ym,
@@ -392,6 +403,7 @@ export default async function DestinypalPage() {
     avoidDays: monthAdapter.avoidDays,
     themes: monthAdapter.themes,
     narrative: monthAdapter.narrative,
+    keyDays: monthKeyDays,
     converge: monthAdapter.converge
       ? {
           date: monthAdapter.converge.date,

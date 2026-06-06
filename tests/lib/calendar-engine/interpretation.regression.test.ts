@@ -1371,10 +1371,13 @@ describe('calendar-engine regression', () => {
     })
 
     it('인생 흐름 단계마다 순탄/고비 톤이 붙고, 신강·신약에 따라 갈린다', async () => {
-      const { deriveLifetimeFlow } = await import(
+      const { deriveLifetimeFlow, TONE_VARIANTS_KO } = await import(
         '@/lib/calendar-engine/derivers/lifetimeFlow'
       )
-      const TONES = ['잘 풀리는 편이에요', '고비를 넘으며 단단해지는', '차분히 자기 몫을 다지는']
+      // 톤 문장은 단조로움 방지로 카테고리(good/hard/mid)마다 변종 3개를 회전한다
+      // (2026-06). 단계가 index-0 이 아닌 변종을 받을 수 있으므로 *전체 변종*을
+      // 후보로 둔다 — 각 단계는 여전히 정확히 하나의 톤 문장을 가져야 한다.
+      const TONES = Object.values(TONE_VARIANTS_KO).flat()
       const saju = calculateSajuData(
         SEOUL_MALE_1995.birthDate, SEOUL_MALE_1995.birthTime, SEOUL_MALE_1995.gender,
         'solar', SEOUL_MALE_1995.timeZone
