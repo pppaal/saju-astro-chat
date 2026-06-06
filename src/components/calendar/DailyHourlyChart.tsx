@@ -17,16 +17,16 @@ import type { ImportantDate } from './types'
 import ChartTooltip from './premium/shared/ChartTooltip'
 import { getCalLabels, type CalLocale } from './premium/labels'
 
-/** fusion.hourly.slots 의 sub-shape — useDateDetail 이 제공. */
+/** dayCross.hourly.slots 의 sub-shape — useDateDetail 이 제공. */
 export interface HourlySlot {
   hour: number
   score: number
 }
 
 interface Props {
-  /** fusion.hourly.slots — 24h × {hour, score}. 우선 사용. */
+  /** dayCross.hourly.slots — 24h × {hour, score}. 우선 사용. */
   slots?: HourlySlot[] | null
-  /** importantDate.engineSignals (hourly) — fusion 도착 전 폴백. */
+  /** importantDate.engineSignals (hourly) — dayCross 도착 전 폴백. */
   importantDate?: ImportantDate | null
   /** 표시 중인 날짜(YYYY-MM-DD). 오늘이면 현재 시각에 세로 가이드 표시. */
   dateStr?: string
@@ -34,12 +34,12 @@ interface Props {
 }
 
 /**
- * 24시간 시간대 흐름 그래프 — fusion.hourly.slots 직접 사용.
+ * 24시간 시간대 흐름 그래프 — dayCross.hourly.slots 직접 사용.
  *
  * 이전엔 importantDate.engineSignals 의 layer=hourly 만 필터해서 polarity ×
  * weight 평균 → 50 + avg*16 으로 계산했음. 그 결과로 365 일자에 engineSignals
  * (전 layer, ~5MB) 가 다 따라붙어 payload 거대화 →
- * fusion.hourly.slots 가 이미 같은 24h × score 0-100 제공 → 그대로 매핑.
+ * dayCross.hourly.slots 가 이미 같은 24h × score 0-100 제공 → 그대로 매핑.
  *
  * 표시(다른 차트들과 톤 통일): 단일 amber gradient area, 50 기준선 + "지금"
  * reference line.
@@ -57,7 +57,7 @@ export default function DailyHourlyChart({ slots, importantDate, dateStr, locale
   })()
 
   const data: HourPoint[] = useMemo(() => {
-    // 1) fusion.hourly.slots 우선 — useDateDetail 이 제공.
+    // 1) dayCross.hourly.slots 우선 — useDateDetail 이 제공.
     if (slots && slots.length > 0) {
       return slots.map((s) => ({
         hour: `${String(s.hour).padStart(2, '0')}${hourSuffix}`,
@@ -65,7 +65,7 @@ export default function DailyHourlyChart({ slots, importantDate, dateStr, locale
         score: Math.round(s.score),
       }))
     }
-    // 2) 폴백 — importantDate.engineSignals[layer=hourly] 시간별 평균 (fusion
+    // 2) 폴백 — importantDate.engineSignals[layer=hourly] 시간별 평균 (dayCross
     //    도착 전 즉시 렌더). 서버가 hourly 만 부착해 페이로드 작음.
     if (!importantDate?.engineSignals) return []
     const hourlySignals = importantDate.engineSignals.filter((s) => s.layer === 'hourly')

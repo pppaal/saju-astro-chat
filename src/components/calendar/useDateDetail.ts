@@ -55,8 +55,8 @@ export type DateDetailResponse = {
     monthStem: string
     monthBranch: string
   }
-  /** fusion 엔진 출력 — 18테마·24슬롯·사주축/점성축 (route 에서 채움) */
-  fusion?: {
+  /** dayCross 엔진 출력 — 18테마·24슬롯·사주축/점성축 (route 에서 채움) */
+  dayCross?: {
     overallScore: number
     sajuAxisScore: number
     astroAxisScore: number
@@ -153,7 +153,7 @@ export function useDateDetail(input: {
     if (lowerGender === 'male' || lowerGender === 'female') {
       params.set('gender', lowerGender)
     }
-    // 메인 캘린더와 같은 본명 좌표를 쓰도록 출생지 전달 — fusion 점수를 grid와 동기화.
+    // 메인 캘린더와 같은 본명 좌표를 쓰도록 출생지 전달 — dayCross 점수를 grid와 동기화.
     if (birthInfo.birthPlace) params.set('birthPlace', birthInfo.birthPlace)
     // 사용자 timezone 우선 — 해외 거주자가 birthPlace='Seoul' 이라도 현재 timezone
     // 이 다르면 hour pillar 경계 + "지금" reference line 이 어긋남 (4차 audit).

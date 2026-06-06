@@ -5,7 +5,7 @@
  * Query: birthDate, birthTime?, gender?, date (YYYY-MM-DD), timezone?
  *
  * v2 엔진(buildNatalContext + buildCalendar)에서 하루 24h cells를 만들고,
- * dateDetail adapter로 클라이언트가 기대하는 형태(fusion, transit, natalContext,
+ * dateDetail adapter로 클라이언트가 기대하는 형태(dayCross, transit, natalContext,
  * sajuExtras, shinsalActive, gongmangStatus, …)로 변환해 반환.
  *
  * 옛 timing/·destiny-map analyzers·fusion adapter 체인 의존 없음.
@@ -61,7 +61,7 @@ export const GET = withApiMiddleware(
 
     const { birthDate, birthTime, gender, birthPlace, date, timezone } = validation.data
 
-    // 메인 캘린더와 동일한 본명 좌표를 써야 클릭 상세(fusion) 점수가 grid·월 점수와
+    // 메인 캘린더와 동일한 본명 좌표를 써야 클릭 상세(dayCross) 점수가 grid·월 점수와
     // 같은 v2 엔진 위에서 일치한다. 출생지 미전달/미상이면 서울 폴백.
     const coords = (birthPlace && LOCATION_COORDS[birthPlace]) || LOCATION_COORDS['Seoul']
 

@@ -31,7 +31,7 @@ const KO_TO_ZH_BRANCH: Record<string, string> = Object.fromEntries(
 
 export interface V2DateDetailResponse {
   date: string
-  fusion: {
+  dayCross: {
     overallScore: number
     domainScores: Record<string, number>
     domainCross: Array<{
@@ -139,7 +139,7 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
 
   return {
     date,
-    fusion: buildFusion(dayCell, hourlyCells),
+    dayCross: buildDayCross(dayCell, hourlyCells),
     transit: buildTransit(dayCell),
     natalContext: {
       yongsin: { primary: natal.saju.yongsin.primary },
@@ -258,13 +258,13 @@ function buildAstroHighlights(
 }
 
 // ──────────────────────────────────────────────────────────────────────
-// fusion — overall + domain × saju/astro 축 분리 + hourly + advice
+// dayCross — overall + domain × saju/astro 축 분리 + hourly + advice
 // ──────────────────────────────────────────────────────────────────────
 
-function buildFusion(
+function buildDayCross(
   dayCell: CalendarCell,
   hourlyCells: CalendarCell[]
-): V2DateDetailResponse['fusion'] {
+): V2DateDetailResponse['dayCross'] {
   const overallScore = Math.round(dayCell.derivedScore)
   const domainScores: Record<string, number> = {}
   for (const [theme, score] of Object.entries(dayCell.themeScores)) {
@@ -272,7 +272,7 @@ function buildFusion(
   }
 
   // domainCross — 각 테마별 saju 축 vs astro 축 신호 강도 + 텍스트 요약
-  const domainCross: V2DateDetailResponse['fusion']['domainCross'] = []
+  const domainCross: V2DateDetailResponse['dayCross']['domainCross'] = []
   const themesInPlay = Object.keys(dayCell.themeScores)
   for (const theme of themesInPlay) {
     const sajuSigs = dayCell.signals.filter(

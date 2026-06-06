@@ -213,9 +213,9 @@ export const CacheKeys = {
 
   calendar: (year: number, month: number, userId: string) => `cal:v1:${year}:${month}:${userId}`,
 
-  /** fusion bundle (sajuLayers + astroLayers + 18테마 cross) — birth + targetDate 기반 */
-  fusionDateDetail: (birthDate: string, birthTime: string, date: string) =>
-    `fusion:dd:v1:${birthDate}:${birthTime}:${date}`,
+  /** dayCross bundle (sajuLayers + astroLayers + 18테마 cross) — birth + targetDate 기반 */
+  dayCrossDateDetail: (birthDate: string, birthTime: string, date: string) =>
+    `dayCross:dd:v1:${birthDate}:${birthTime}:${date}`,
 
   calendarAINarrative: (userId: string, date: string, payloadKey: string) =>
     `cal-ai:v1:${userId}:${date}:${safeBase64Encode(payloadKey).slice(0, 32)}`,
