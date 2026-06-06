@@ -388,11 +388,31 @@ function TarotReadingPage() {
   // 타로는 유료 서비스 — 리딩 시작 전에 로그인 가드. 비로그인이면 카드 뽑기로
   // 진입하지 않고 로그인 모달을 띄운다. (로그인 사용자만 handleStartReading 진행.)
   const gatedStartReading = useCallback(() => {
-    if (!requireLogin(callbackUrl)) {
+    // 비로그인이면 로그인 후 자동으로 리딩을 "이어서" 시작하도록 callbackUrl 에
+    // autostart=1 마커를 붙여 복귀시킨다. 질문은 이미 ?question= 으로 URL 에
+    // 있어 로그인 왕복에도 보존됨 → 복귀 시 같은 질문으로 자동 시작.
+    const resumeCb = `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}autostart=1`
+    if (!requireLogin(resumeCb)) {
       return
     }
     void gameHook.handleStartReading()
   }, [requireLogin, callbackUrl, gameHook.handleStartReading]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 로그인 후 복귀 — callbackUrl 의 autostart=1 마커가 있고 인증됐으면 직전에
+  // 누른 리딩을 자동 시작한다("물어본 게 이어지게"). 1회만, 그리고 마커는
+  // 즉시 URL 에서 제거해 새로고침/재방문 시 중복 시작을 막는다.
+  const autostartDoneRef = useRef(false)
+  useEffect(() => {
+    if (autostartDoneRef.current) return
+    if (searchParams?.get('autostart') !== '1') return
+    if (status !== 'authenticated') return
+    autostartDoneRef.current = true
+    const sp = new URLSearchParams(search)
+    sp.delete('autostart')
+    const q = sp.toString()
+    router.replace(q ? `${basePath}?${q}` : basePath)
+    void gameHook.handleStartReading()
+  }, [searchParams, status, search, basePath, router, gameHook.handleStartReading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Session loading state — 단, 이미 뽑은 리딩이 화면에 있으면 절대 전체를
   // 로더로 갈아엎지 않는다. 세션 리페치 등으로 status 가 잠깐 'loading' 으로
