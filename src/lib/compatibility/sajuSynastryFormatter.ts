@@ -272,15 +272,15 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // 1. 일간 cross — 항상 CRITICAL
   if (elA && elB) {
     if (elA === elB) {
-      critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — 같은 오행 (비견)`)
+      critical.push(`${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — 같은 오행 (비견)`)
     } else if (EL_CONTROLS[elA] === elB) {
       const a = nmA || 'A', b = nmB || 'B'
-      critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
+      critical.push(`${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
     } else if (EL_CONTROLS[elB] === elA) {
       const a = nmA || 'A', b = nmB || 'B'
-      critical.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
+      critical.push(`${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
     } else {
-      important.push(`${labelA} 일간 ${aDay.stem}(${elA}) ↔ ${labelB} 일간 ${bDay.stem}(${elB}) — 상생 (서로 보완)`)
+      important.push(`${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — 상생 (서로 보완)`)
     }
   }
 
@@ -711,7 +711,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // ── 조립: 우선순위 티어 ── (헤더 짧게, 빈자료 블록 생략, 빈 라인 제거)
   const out: string[] = ['== 시너스트리 (사주 cross) ==']
   if (elA && elB) {
-    out.push(`[고정] ${labelA} 일간 ${aDay.stem}(${elA}) · ${labelB} 일간 ${bDay.stem}(${elB}) — 오행·방향 절대 뒤집지 말 것`)
+    out.push(`[고정] ${labelA} 일간 ${aDay.stem}${elA} · ${labelB} 일간 ${bDay.stem}${elB} — 오행·방향 절대 뒤집지 말 것`)
   }
   if (critical.length) {
     out.push('[CRITICAL · 일간 극/천간합/일지 충형]')
