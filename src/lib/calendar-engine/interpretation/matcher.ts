@@ -201,6 +201,26 @@ export function buildInterpretation(args: {
     }
   }
 
+  // ── 톤 섹션 모순 방지 ──
+  // 올해/이번달/대운 판정 섹션(seun/wolun/daeun)은 cap 이 2여도 "우호적"과
+  // "부담"이 둘 다 fire 하면 한 섹션 안에서 자기모순이 난다(관살혼잡처럼 좋은
+  // 신호·나쁜 신호가 공존하는 사주). 그래서 그 섹션 후보들의 우호(polarity≥1) vs
+  // 주의(≤-1) *강도* 를 비교해 **지배적인 한 톤만** 허용한다. 중립(0)은 보강용으로
+  // 통과(귀인·신살 등 둘째 줄). 한쪽만 있으면 필터 없음(정상). 동률이면 보수적으로
+  // 주의 우선. (도메인 섹션은 별도 MIXED_LEAD 로직이 이미 처리 — 여긴 비-도메인.)
+  const TONE_SECTIONS = new Set(['seun', 'wolun', 'daeun'])
+  const toneAllowSign = new Map<string, 1 | -1>()
+  for (const section of TONE_SECTIONS) {
+    let posStr = 0
+    let negStr = 0
+    for (const m of matched) {
+      if (m.rule.section !== section) continue
+      if (m.polarity >= 1) posStr = Math.max(posStr, m.strength)
+      else if (m.polarity <= -1) negStr = Math.max(negStr, m.strength)
+    }
+    if (posStr > 0 && negStr > 0) toneAllowSign.set(section, negStr >= posStr ? -1 : 1)
+  }
+
   for (const m of matched) {
     if (usedRuleIds.has(m.rule.id)) continue
     const domain = SECTION_TO_DOMAIN[m.rule.section]
@@ -219,6 +239,12 @@ export function buildInterpretation(args: {
       const cap = SECTION_CAP[m.rule.section] ?? 1
       const cur = sectionCount.get(m.rule.section) ?? 0
       if (cur >= cap) continue
+      // 톤 섹션: 지배 톤과 반대 부호면 제외 (모순 방지). 중립은 통과.
+      const allowSign = toneAllowSign.get(m.rule.section)
+      if (allowSign != null) {
+        const sign = m.polarity >= 1 ? 1 : m.polarity <= -1 ? -1 : 0
+        if (sign !== 0 && sign !== allowSign) continue
+      }
       picked.push(m)
       sectionCount.set(m.rule.section, cur + 1)
       usedRuleIds.add(m.rule.id)
