@@ -123,7 +123,7 @@ export function FollowupChat({
 }: FollowupChatProps) {
   const isKo = language === 'ko'
   const pal = theme === 'light' ? LIGHT_PALETTE : DARK_PALETTE
-  const { showDepleted, showGuestLimit } = useCreditModal()
+  const { showDepleted } = useCreditModal()
   const requireLogin = useRequireLogin()
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<Turn[]>([])
@@ -278,10 +278,9 @@ export function FollowupChat({
           if (mountedRef.current) showDepleted()
           throw new Error('insufficient_credits')
         }
-        // 401 → 게스트 한도 도달 또는 미인증. 로그인 유도 모달 + 메시지로 안내.
+        // 401 → 미인증. apiFetch 가 전역 로그인 모달을 띄운다.
         if (response.status === 401) {
-          if (mountedRef.current) showGuestLimit()
-          throw new Error('guest_or_login_required')
+          throw new Error('login_required')
         }
         const errBody = await response.json().catch(() => ({}))
         throw new Error(errBody.error || 'request_failed')
@@ -324,10 +323,10 @@ export function FollowupChat({
           ? isKo
             ? '크레딧이 부족해요. 충전 후 다시 시도해 주세요.'
             : 'Out of credits. Please top up and try again.'
-          : errMsg === 'guest_or_login_required'
+          : errMsg === 'login_required'
             ? isKo
-              ? '무료 체험 한도에 도달했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.'
-              : 'Free trial limit reached. Sign in to claim your 5-credit signup bonus and continue.'
+              ? '로그인이 필요해요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.'
+              : 'Login required. Sign in to claim your 5-credit signup bonus and continue.'
             : isKo
               ? '연결이 끊어졌어요. 잠시 후 다시 시도해 주세요.'
               : 'Connection failed. Please try again in a moment.'

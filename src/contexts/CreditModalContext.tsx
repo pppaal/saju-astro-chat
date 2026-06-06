@@ -7,8 +7,6 @@ import { CREDIT_MODAL_EVENT, type CreditModalKind } from '@/lib/api/ApiClient'
 interface CreditModalContextType {
   showDepleted: () => void
   showLowCredits: (remaining: number) => void
-  // 비로그인 사용자가 무료 체험 한도에 도달했을 때 — 구매 대신 로그인 유도.
-  showGuestLimit: () => void
   checkAndShowModal: (remaining: number, threshold?: number) => boolean
 }
 
@@ -16,17 +14,11 @@ const CreditModalContext = createContext<CreditModalContextType | null>(null)
 
 export function CreditModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [modalType, setModalType] = useState<'depleted' | 'low' | 'guest'>('depleted')
+  const [modalType, setModalType] = useState<'depleted' | 'low'>('depleted')
   const [remainingCredits, setRemainingCredits] = useState(0)
 
   const showDepleted = useCallback(() => {
     setModalType('depleted')
-    setRemainingCredits(0)
-    setIsOpen(true)
-  }, [])
-
-  const showGuestLimit = useCallback(() => {
-    setModalType('guest')
     setRemainingCredits(0)
     setIsOpen(true)
   }, [])
@@ -65,16 +57,18 @@ export function CreditModalProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined') return
     const onSignal = (e: Event) => {
       const kind = (e as CustomEvent<{ kind?: CreditModalKind }>).detail?.kind
-      if (kind === 'guest') showGuestLimit()
-      else showDepleted()
+      // 'guest'(비로그인 401)은 LoginModalContext 가 blur 로그인 모달로 처리한다.
+      // 여기선 로그인 사용자의 크레딧 소진(402='depleted')만 담당. (게스트 폐지, audit 2026-06)
+      if (kind === 'guest') return
+      showDepleted()
     }
     window.addEventListener(CREDIT_MODAL_EVENT, onSignal)
     return () => window.removeEventListener(CREDIT_MODAL_EVENT, onSignal)
-  }, [showGuestLimit, showDepleted])
+  }, [showDepleted])
 
   return (
     <CreditModalContext.Provider
-      value={{ showDepleted, showLowCredits, showGuestLimit, checkAndShowModal }}
+      value={{ showDepleted, showLowCredits, checkAndShowModal }}
     >
       {children}
       <CreditDepletedModal

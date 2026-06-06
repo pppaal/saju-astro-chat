@@ -3,7 +3,6 @@ import {
   calculateStrengthScore,
   calculateGeokgukScore,
   calculateYongsinFitScore,
-  calculateComprehensiveScore,
   type ScoreItem,
   type ElementScore,
   type StrengthScore,
@@ -269,87 +268,4 @@ describe('strengthScore', () => {
     })
   })
 
-  describe('calculateComprehensiveScore', () => {
-    it('returns comprehensive score with all components', () => {
-      const pillars = createMockPillars(['甲', '子'], ['丙', '寅'], ['戊', '午'], ['庚', '申'])
-
-      const score = calculateComprehensiveScore(pillars)
-
-      expect(score.overall).toBeGreaterThanOrEqual(0)
-      expect(score.overall).toBeLessThanOrEqual(100)
-      expect(['S', 'A', 'B', 'C', 'D', 'F']).toContain(score.grade)
-      expect(score.elements).toHaveLength(5)
-      expect(score.strength).toBeDefined()
-      expect(score.geokguk).toBeDefined()
-      expect(score.yongsin).toBeDefined()
-      expect(score.summary).toBeDefined()
-      expect(score.strengths).toBeInstanceOf(Array)
-      expect(score.weaknesses).toBeInstanceOf(Array)
-      expect(score.recommendations).toBeInstanceOf(Array)
-    })
-
-    it('uses provided options for calculation', () => {
-      const pillars = createMockPillars(['甲', '子'], ['丙', '寅'], ['戊', '午'], ['庚', '申'])
-
-      const score = calculateComprehensiveScore(pillars, {
-        geokgukType: '정관격',
-        yongsin: '화',
-      })
-
-      expect(score.geokguk.type).toBe('정관격')
-      expect(score.yongsin.yongsin).toBe('화')
-    })
-
-    it('includes unse harmony when unseInfo is provided', () => {
-      const pillars = createMockPillars(['甲', '子'], ['丙', '寅'], ['戊', '午'], ['庚', '申'])
-
-      const score = calculateComprehensiveScore(pillars, {
-        unseInfo: {
-          period: '2024년 대운',
-          stem: '甲',
-          branch: '辰',
-        },
-      })
-
-      expect(score.unse).toBeDefined()
-      expect(score.unse?.period).toBe('2024년 대운')
-    })
-
-    it('assigns correct grade based on overall score', () => {
-      const pillars = createMockPillars(['甲', '子'], ['丙', '寅'], ['戊', '午'], ['庚', '申'])
-
-      const score = calculateComprehensiveScore(pillars)
-
-      // Verify grade is assigned based on overall score
-      if (score.overall >= 90) expect(score.grade).toBe('S')
-      else if (score.overall >= 80) expect(score.grade).toBe('A')
-      else if (score.overall >= 70) expect(score.grade).toBe('B')
-      else if (score.overall >= 60) expect(score.grade).toBe('C')
-      else if (score.overall >= 50) expect(score.grade).toBe('D')
-      else expect(score.grade).toBe('F')
-    })
-
-    it('generates summary with overall score and grade', () => {
-      const pillars = createMockPillars(['甲', '子'], ['丙', '寅'], ['戊', '午'], ['庚', '申'])
-
-      const score = calculateComprehensiveScore(pillars)
-
-      expect(score.summary).toContain(String(score.overall))
-      expect(score.summary).toContain(score.grade)
-    })
-
-    it('identifies strengths for balanced element distribution', () => {
-      const pillars = createMockPillars(
-        ['甲', '子'], // 목, 수
-        ['丙', '寅'], // 화, 목
-        ['戊', '午'], // 토, 화
-        ['庚', '申'] // 금, 금
-      )
-
-      const score = calculateComprehensiveScore(pillars)
-
-      // Should have some analysis
-      expect(score.strengths.length + score.weaknesses.length).toBeGreaterThan(0)
-    })
-  })
 })

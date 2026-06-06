@@ -67,9 +67,10 @@ describe('Tarot Card Schemas', () => {
     })
 
     it('should reject too long interpretation', () => {
+      // interpretation max 가 12000 으로 넓혀짐(LLM 긴 해석 허용) — 초과분으로 검사.
       expect(tarotCardInsightSchema.safeParse({
         ...validInsight,
-        interpretation: 'a'.repeat(5001),
+        interpretation: 'a'.repeat(12001),
       }).success).toBe(false)
     })
   })

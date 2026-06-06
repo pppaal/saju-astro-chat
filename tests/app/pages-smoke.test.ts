@@ -52,9 +52,10 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Calendar Pages (1)', () => {
-    it('should have calendar page', () => {
-      assertPages(['app/calendar/page'])
+  describe('Destinypal (운흐름) Pages (1)', () => {
+    it('should have destinypal page', () => {
+      // /calendar 페이지는 destinypal(운흐름)로 이동됨.
+      assertPages(['app/destinypal/page'])
     })
   })
 
@@ -73,12 +74,6 @@ describe('Pages Smoke Tests', () => {
   describe('Destiny Counselor Page', () => {
     it('should have destiny counselor page', () => {
       assertPages(['app/destiny-counselor/page'])
-    })
-  })
-
-  describe('Destiny Match Pages (1)', () => {
-    it('should have destiny match pages', () => {
-      assertPages(['app/destiny-match/page'])
     })
   })
 
@@ -131,11 +126,10 @@ describe('Pages Smoke Tests', () => {
         'admin',
         'auth',
         'blog',
-        'calendar',
+        'destinypal',
         'compatibility',
         'contact',
         'destiny-counselor',
-        'destiny-match',
         'faq',
         'policy',
         'pricing',
@@ -144,7 +138,7 @@ describe('Pages Smoke Tests', () => {
         'tarot',
       ]
 
-      expect(categories.length).toBe(15)
+      expect(categories.length).toBe(14)
     })
   })
 })

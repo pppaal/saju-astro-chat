@@ -214,9 +214,10 @@ describe('Astrology Schema Tests', () => {
     })
 
     it('should accept all calculation types', () => {
+      // 'rectification' 은 죽은 코드라 제거됨(라우트·호출부 0) — enum 에서 빠짐.
       const types = [
         'asteroids', 'draconic', 'eclipses', 'electional', 'fixed-stars',
-        'harmonics', 'lunar-return', 'midpoints', 'progressions', 'rectification',
+        'harmonics', 'lunar-return', 'midpoints', 'progressions',
       ]
       types.forEach(type => {
         expect(advancedAstrologyRequestSchema.safeParse({ ...validRequest, calculationType: type }).success).toBe(true)

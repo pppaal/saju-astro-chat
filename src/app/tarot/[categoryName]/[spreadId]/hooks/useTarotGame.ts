@@ -388,10 +388,10 @@ export function useTarotGame(): UseTarotGameReturn {
 
   const handleStartReading = useCallback(async () => {
     setDrawError(null)
-    // 크레딧/게스트 한도 사전 체크 + RAG prefetch 겸용. 한도 초과면 apiFetch 가
-    // 전역 크레딧/로그인 모달을 띄우므로(402 또는 401+X-Guest-Limit-Reached),
-    // 여기서는 단계 전환을 막아 질문 화면에 그대로 머무른다. 즉 카드 선택까지
-    // 진행시킨 뒤 결과에서 알리던 동작을 "시작 즉시 차단"으로 교정.
+    // 크레딧 사전 체크 + RAG prefetch 겸용. 한도 초과/비로그인이면 apiFetch 가
+    // 전역 크레딧(402)/로그인(401) 모달을 띄우므로, 여기서는 단계 전환을 막아
+    // 질문 화면에 그대로 머무른다. 즉 카드 선택까지 진행시킨 뒤 결과에서
+    // 알리던 동작을 "시작 즉시 차단"으로 교정.
     let allowed = true
     try {
       const res = await apiFetch('/api/tarot/prefetch', {

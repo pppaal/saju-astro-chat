@@ -86,10 +86,9 @@ export const GET = withApiMiddleware(
       const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000)
 
       // 핵심 활동 테이블에서 윈도 내 활동한 distinct userId 집합을 구한다.
-      // (리딩 / 타로 / 상담챗 — 제품의 주요 행동) 모두 userId+createdAt 보유.
+      // Reading 모델 제거 (2026-06-06) — 타로 + 상담챗 만으로 활성 판정.
       async function activeUserIds(since: Date): Promise<Set<string>> {
-        const [r, t, c] = await Promise.all([
-          prisma.reading.groupBy({ by: ['userId'], where: { createdAt: { gte: since } } }),
+        const [t, c] = await Promise.all([
           prisma.tarotReading.groupBy({ by: ['userId'], where: { createdAt: { gte: since } } }),
           prisma.counselorChatSession.groupBy({
             by: ['userId'],
@@ -97,7 +96,7 @@ export const GET = withApiMiddleware(
           }),
         ])
         const ids = new Set<string>()
-        for (const row of [...r, ...t, ...c]) if (row.userId) ids.add(row.userId)
+        for (const row of [...t, ...c]) if (row.userId) ids.add(row.userId)
         return ids
       }
 
@@ -109,9 +108,8 @@ export const GET = withApiMiddleware(
         activeUserIds(new Date(0)), // [3] 한 번이라도 활동한 사용자(=활성화)
         activeUserIds(dayAgo), // [4] DAU
         activeUserIds(weekAgo), // [5] WAU
-        prisma.reading.count({ where: { createdAt: { gte: weekAgo } } }), // [6] 최근 7일 리딩 수
-        prisma.tarotReading.count({ where: { createdAt: { gte: weekAgo } } }), // [7]
-        prisma.counselorChatSession.count({ where: { createdAt: { gte: weekAgo } } }), // [8]
+        prisma.tarotReading.count({ where: { createdAt: { gte: weekAgo } } }), // [6]
+        prisma.counselorChatSession.count({ where: { createdAt: { gte: weekAgo } } }), // [7]
       ])
 
       const val = <T>(i: number, fallback: T): T =>
@@ -123,7 +121,7 @@ export const GET = withApiMiddleware(
       const activatedUsers = val<Set<string>>(3, new Set()).size
       const dau = val<Set<string>>(4, new Set()).size
       const wau = val<Set<string>>(5, new Set()).size
-      const weeklyActions = val(6, 0) + val(7, 0) + val(8, 0)
+      const weeklyActions = val<number>(6, 0) + val<number>(7, 0)
 
       const failedCount = results.filter((r) => r.status === 'rejected').length
       if (failedCount > 0) {

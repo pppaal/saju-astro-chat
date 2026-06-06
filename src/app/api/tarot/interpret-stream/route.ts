@@ -29,11 +29,7 @@ import { isDangerousQuestion, buildCrisisPayload } from '@/lib/tarot/safety'
 import { tarotCreditCostFor, tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
 import { loadDrawCards } from '@/lib/tarot/drawCardsCache'
-import {
-  applyCreditResultCookies,
-  checkAndConsumeCredits,
-  creditErrorResponse,
-} from '@/lib/credits/withCredits'
+import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits'
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { getUserDisplayName } from '@/lib/user/displayName'
 import { cacheSet } from '@/lib/cache/redis-cache'
@@ -63,10 +59,7 @@ const TURN_RESULT_TTL_SEC = 1800
 // 라우트와 동일해야 scopedKey 가 일치한다.
 const drawNonceStore = createDrawNonceStore('tarot-draw')
 
-// 차감 후 Claude 호출이 실패해 사용자가 가치를 못 받은 경우 호출.
-// 로그인 사용자는 refundCredits, 게스트는 호출자가 응답 cookie 증가를
-// 스킵 (creditResult.guestReadingAccess 를 undefined 로 비워서 전달) 하면
-// counter 가 원상 복귀 — 무료 횟수 한 번 날아가는 손해 안 봄.
+// 차감 후 Claude 호출이 실패해 사용자가 가치를 못 받은 경우 호출 — refundCredits.
 async function refundOnFailure(
   creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null,
   reason: string,
@@ -92,28 +85,6 @@ async function refundOnFailure(
       userId: creditResult.userId,
     })
   }
-}
-
-// 실패 시 응답에 guest counter 증가 cookie 가 안 붙도록 creditResult 의
-// guestReadingAccess 를 비운 사본 반환. authed 사용자는 영향 없음.
-function clearGuestAccessOnFailure(
-  creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null
-): Awaited<ReturnType<typeof checkAndConsumeCredits>> | null {
-  if (!creditResult) return creditResult
-  return { ...creditResult, guestReadingAccess: undefined }
-}
-
-function withCreditCookies(
-  response: Response,
-  creditResult: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null
-): Response {
-  if (!creditResult?.guestReadingAccess) return response
-  const nextResponse = new NextResponse(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
-  })
-  return applyCreditResultCookies(nextResponse, creditResult)
 }
 
 function streamJsonPayload(
@@ -311,7 +282,7 @@ export async function POST(req: NextRequest) {
 
     // 1) credit 먼저 — nonce 는 peek 만 (consume 안 함).
     // peek 가 없으면 보수적으로: credit 확인 후 consume.
-    creditResult = await checkAndConsumeCredits('reading', creditCost, req)
+    creditResult = await checkAndConsumeCredits('reading', creditCost)
     if (!creditResult.allowed) {
       // nonce 아직 burn 안 됨. 사용자가 충전 후 재시도 가능.
       return creditErrorResponse(creditResult)
@@ -435,10 +406,7 @@ export async function POST(req: NextRequest) {
         refundKey
       )
       const fallback = buildFallbackPayload(rawCards, language)
-      return withCreditCookies(
-        streamJsonPayload(fallback, { 'X-Fallback': '1' }),
-        clearGuestAccessOnFailure(creditResult)
-      )
+      return streamJsonPayload(fallback, { 'X-Fallback': '1' })
     }
 
     // 카드당 ~500 tokens + overall/advice 여유 1200. 7장에서 ~4700 tokens
@@ -493,10 +461,7 @@ export async function POST(req: NextRequest) {
         refundKey
       )
       const fallback = buildFallbackPayload(rawCards, language)
-      return withCreditCookies(
-        streamJsonPayload(fallback, { 'X-Fallback': '1' }),
-        clearGuestAccessOnFailure(creditResult)
-      )
+      return streamJsonPayload(fallback, { 'X-Fallback': '1' })
     }
 
     // Claude SDK stream → SSE 형식으로 forward. 각 token delta 가 도착하는
@@ -683,19 +648,16 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    return withCreditCookies(
-      new NextResponse(sseStream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache, no-transform',
-          Connection: 'keep-alive',
-          'X-Accel-Buffering': 'no',
-          'X-Provider': 'claude',
-          'X-Tarot-Strategy': 'streaming',
-        },
-      }),
-      creditResult
-    )
+    return new NextResponse(sseStream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no',
+        'X-Provider': 'claude',
+        'X-Tarot-Strategy': 'streaming',
+      },
+    })
   } catch (err) {
     // Charge-without-delivery guard: refund a consumed credit if we threw
     // before the stream started. The inner fallback paths refund-and-return,
@@ -708,13 +670,10 @@ export async function POST(req: NextRequest) {
       refundKey
     )
     logger.error('Tarot stream error:', { error: err })
-    return withCreditCookies(
-      createErrorResponse({
-        code: ErrorCodes.INTERNAL_ERROR,
-        route: 'tarot/interpret-stream',
-        originalError: err instanceof Error ? err : new Error(String(err)),
-      }),
-      clearGuestAccessOnFailure(creditResult)
-    )
+    return createErrorResponse({
+      code: ErrorCodes.INTERNAL_ERROR,
+      route: 'tarot/interpret-stream',
+      originalError: err instanceof Error ? err : new Error(String(err)),
+    })
   }
 }

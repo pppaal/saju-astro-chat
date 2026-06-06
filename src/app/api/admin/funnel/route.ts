@@ -53,8 +53,9 @@ export const GET = withApiMiddleware(
       let paid = 0
       if (ids.length > 0) {
         const inIds = { userId: { in: ids } }
-        const [readingUsers, tarotUsers, counselorUsers, buyerUsers] = await Promise.all([
-          prisma.reading.findMany({ where: inIds, distinct: ['userId'], select: { userId: true } }),
+        // Reading 모델 제거 (2026-06-06) — 옛 일반 리딩 archive.
+        // 첫 활성 판정은 tarotReading + counselorChatSession 만으로.
+        const [tarotUsers, counselorUsers, buyerUsers] = await Promise.all([
           prisma.tarotReading.findMany({ where: inIds, distinct: ['userId'], select: { userId: true } }),
           prisma.counselorChatSession.findMany({
             where: inIds,
@@ -70,7 +71,7 @@ export const GET = withApiMiddleware(
           }),
         ])
         const activeSet = new Set<string>()
-        for (const r of [...readingUsers, ...tarotUsers, ...counselorUsers]) activeSet.add(r.userId)
+        for (const r of [...tarotUsers, ...counselorUsers]) activeSet.add(r.userId)
         activated = activeSet.size
         paid = new Set(buyerUsers.map((b) => b.userId)).size
       }

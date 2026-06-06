@@ -30,7 +30,7 @@ function TarotReadingPage() {
   const searchParams = useSearchParams()
   const { status } = useSession()
   const { translate, language } = useI18n()
-  const { showDepleted, showGuestLimit } = useCreditModal()
+  const { showDepleted } = useCreditModal()
   const requireLogin = useRequireLogin()
   const [creditNotice, setCreditNotice] = useState<string | null>(null)
 
@@ -168,19 +168,18 @@ function TarotReadingPage() {
         if (cancelled) return
         setInterpretation(snapshot)
       },
-      // 크레딧 / 게스트 한도 — 전역 모달 + 인라인 메시지로 사용자에게 명확히 알림.
+      // 크레딧 소진 → 전역 모달. 비로그인(401)은 apiFetch 가 전역 로그인 모달을
+      // 띄우고, 인라인 안내도 남긴다(모달 닫아도 보이게).
       onCreditError: (kind) => {
         if (cancelled) return
         if (kind === 'insufficient_credits') {
           showDepleted()
         } else {
-          // 비로그인 무료 체험 한도 — 로그인 유도 모달 + 인라인 안내(모달 닫아도 남게).
-          showGuestLimit()
           const isKo = (language || 'ko') === 'ko'
           setCreditNotice(
             isKo
-              ? '무료 체험 한도에 도달했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.'
-              : 'Free trial limit reached. Sign in to claim your 5-credit signup bonus and continue.'
+              ? '로그인이 필요해요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.'
+              : 'Login required. Sign in to claim your 5-credit signup bonus and continue.'
           )
         }
       },
@@ -236,7 +235,6 @@ function TarotReadingPage() {
     cacheKeyFor,
     language,
     showDepleted,
-    showGuestLimit,
   ])
 
   // 끊긴 해석 복원 — 해석이 실패/끊김으로 끝난 상태에서 사용자가 다른 앱에서

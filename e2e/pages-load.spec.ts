@@ -180,25 +180,6 @@ test.describe('Compatibility Pages', () => {
   })
 })
 
-test.describe('Destiny Match Pages', () => {
-  test('should load destiny-match page with content', async ({ page }) => {
-    await page.goto('/destiny-match', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should load destiny-match setup page', async ({ page }) => {
-    await page.goto('/destiny-match/setup', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load destiny-match matches page', async ({ page }) => {
-    await page.goto('/destiny-match/matches', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-})
 
 test.describe('User Account Pages', () => {
   test('should load profile page', async ({ page }) => {

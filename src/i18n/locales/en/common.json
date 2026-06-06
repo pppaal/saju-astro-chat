@@ -26,9 +26,6 @@
     "title": "destinypal",
     "subtitle": "AI unfolds your destiny map.",
     "visitors": "Visitors Today",
-    "myJourney": "My Journey",
-    "destinyMatch": "Destiny Match",
-    "community": "Community",
     "back": "Back",
     "name": "Name",
     "namePh": "Enter your name",
@@ -84,22 +81,9 @@
   },
   "menu": {
     "destinyMap": "Destiny Counselor",
-    "aiReports": "AI Premium Reports",
-    "report": "Report",
-    "lifePrediction": "Life Prediction",
-    "saju": "Saju",
-    "astrology": "Astrology",
-    "iching": "I Ching",
     "tarot": "Tarot Counselor",
-    "dream": "Dream",
     "calendar": "Fortune Calendar",
-    "numerology": "Numerology",
-    "compatibility": "Compatibility Counselor",
-    "personality": "Personality",
-    "icp": "Relationship Style",
-    "icpPersonality": "ICP + Personality",
-    "pastLife": "Past Life",
-    "destinyMatch": "Destiny Match"
+    "compatibility": "Compatibility Counselor"
   },
   "emoji": {
     "sparkles": "sparkles"

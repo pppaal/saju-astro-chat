@@ -38,7 +38,7 @@ export interface FetchInterpretationOptions {
   // 있게 호출. hook 내부에선 fallback 로컬 카피로 그래도 답을 보여주지만,
   // 사용자가 *왜* 진짜 LLM 응답이 안 왔는지 알게 하려면 페이지 단의
   // showDepleted() 같은 전역 모달 트리거가 필요.
-  onCreditError?: (kind: 'insufficient_credits' | 'guest_or_login_required') => void
+  onCreditError?: (kind: 'insufficient_credits' | 'login_required') => void
   // 재시도 시 이전 interpret-stream 요청을 끊기 위한 외부 abort 신호. 없으면
   // 내부 타임아웃 컨트롤러만 사용. 페이지가 재시도 직전 prior 요청을 abort 해
   // 두 스트림이 동시에 도는 레이스를 막는다.
@@ -501,12 +501,12 @@ export function useTarotInterpretation({
           STREAM_INTERPRET_TIMEOUT_MS
         )
 
-        // 크레딧 / 게스트 한도 — 페이지에 알림 트리거. 그 뒤엔 기존대로
+        // 크레딧 소진 / 비로그인 — 페이지에 알림 트리거. 그 뒤엔 기존대로
         // local fallback 으로 떨어져 사용자가 적어도 무언가는 보게 함.
         if (response.status === 402) {
           options?.onCreditError?.('insufficient_credits')
         } else if (response.status === 401) {
-          options?.onCreditError?.('guest_or_login_required')
+          options?.onCreditError?.('login_required')
         }
 
         if (response.ok) {

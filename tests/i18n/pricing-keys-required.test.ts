@@ -10,12 +10,10 @@ const REQUIRED_PUBLIC_KEYS = [
   'pricing.creditPacksDesc',
   'pricing.faqs.a4',
   'menu.destinyMap',
-  'menu.report',
   'ui.titleAstrology',
   'ui.subtitleAstrology',
   'services.destinyMap.desc',
   'services.tarot.desc',
-  'services.report.desc',
 ]
 
 function loadLocale(locale: 'en' | 'ko'): JsonObject {

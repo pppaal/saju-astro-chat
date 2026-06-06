@@ -17,7 +17,6 @@ vi.mock('next-auth/react', () => ({
 vi.mock('@/contexts/CreditModalContext', () => ({
   useCreditModal: () => ({
     showDepleted: vi.fn(),
-    showGuestLimit: vi.fn(),
     showLowCredits: vi.fn(),
     checkAndShowModal: vi.fn(() => false),
   }),
