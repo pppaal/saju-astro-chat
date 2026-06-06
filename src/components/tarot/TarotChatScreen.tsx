@@ -8,10 +8,12 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Sparkles, Layers, X, MoonStar, ChevronRight, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
+import { savePendingChat, loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
 import {
   DECK_STYLES,
   DECK_STYLE_INFO,
@@ -52,8 +54,11 @@ function TarotGoldHalo() {
 
 export default function TarotChatScreen() {
   const router = useRouter()
+  const { status: authStatus } = useSession()
   const { locale } = useI18n()
   const isKo = locale === 'ko'
+  // 로그인 후 복귀 시 직전에 물어본 리딩을 자동으로 이어가기 위한 1회 가드.
+  const tarotResumeDoneRef = useRef(false)
 
   const [question, setQuestion] = useState('')
   const [selectedDeck, setSelectedDeck] = useState<DeckStyle>(DEFAULT_DECK)
@@ -125,6 +130,18 @@ export default function TarotChatScreen() {
         }),
       })
       if (!res.ok) {
+        // 401 = 비로그인 → apiFetch 가 전역 로그인 모달을 띄운다. 이때 질문/덱/
+        // 스프레드를 저장해 두면, 로그인(풀 리로드) 후 아래 restore effect 가
+        // 같은 리딩을 autostart 로 자동 이어간다. 안 그러면 question 은 state 라
+        // 리로드 때 날아가 사용자가 처음부터 다시 골라야 한다.
+        if (res.status === 401) {
+          savePendingChat('tarot', {
+            question: question.trim(),
+            deck: selectedDeck,
+            categoryId: selectedSpread.categoryId,
+            spreadId: selectedSpread.spread.id,
+          })
+        }
         setIsChecking(false)
         return
       }
@@ -137,6 +154,27 @@ export default function TarotChatScreen() {
     router.push(path)
     // isChecking 은 라우트 전환 후 페이지 언마운트되며 자연 해제.
   }
+
+  // 로그인 후 복귀 — 401 로 막히기 직전 저장해둔 질문/덱/스프레드가 있으면,
+  // 인증이 확인되는 즉시 리딩 페이지로 자동 이동(autostart=1)해 "물어본 게
+  // 바로 이어지게" 한다. 1회만 실행하고 draft 는 즉시 정리.
+  useEffect(() => {
+    if (tarotResumeDoneRef.current) return
+    if (authStatus !== 'authenticated') return
+    const draft = loadPendingChat<{
+      question: string
+      deck: string
+      categoryId: string
+      spreadId: string
+    }>('tarot')
+    if (!draft?.question || !draft.categoryId || !draft.spreadId) return
+    tarotResumeDoneRef.current = true
+    clearPendingChat('tarot')
+    const q = encodeURIComponent(draft.question.trim())
+    router.push(
+      `/tarot/${draft.categoryId}/${draft.spreadId}?question=${q}&deck=${draft.deck || DEFAULT_DECK}&autostart=1`
+    )
+  }, [authStatus, router])
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter → submit. Shift+Enter → newline. IME 한글 조합 중 skip.

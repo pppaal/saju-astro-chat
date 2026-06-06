@@ -8,7 +8,7 @@
  * 견딘다. 대신 무한 보존을 막으려고 TTL 을 두고, 복원에 쓰인 뒤엔 명시적으로 지운다.
  */
 
-export type PendingChatKind = 'compat' | 'destiny'
+export type PendingChatKind = 'compat' | 'destiny' | 'tarot'
 
 interface PendingEnvelope<T> {
   savedAt: number
