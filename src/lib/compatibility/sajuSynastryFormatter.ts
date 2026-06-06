@@ -224,6 +224,44 @@ const HANJA_KO: Record<string, string> = {
 }
 const koreanize = (s: string) => s.replace(/[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥合化]/g, (c) => HANJA_KO[c] ?? c)
 
+// 부가설명 제거 — 순수 구조 데이터만 남긴다(출력 후처리; 계산·로직 불변).
+// 섹션 헤더([CRITICAL...])는 보존, 본문 라인에서만:
+//   - 괄호(...) 전부 (중첩 안전) — 글로싱·뉘앙스 설명
+//   - "· 통제 방향 ..." 절, "※..." 주석
+//   - "활성/→ 길성 보호" 류 수식
+//   - 알려진 서술형 꼬리말(자석 끌림·국 형성 설명 등)
+const stripParens = (s: string): string => {
+  let prev = ''
+  while (prev !== s) {
+    prev = s
+    s = s.replace(/\s*\([^()]*\)/g, '')
+  }
+  return s
+}
+function stripAux(text: string): string {
+  return text
+    .split('\n')
+    .map((ln) => {
+      if (/^\[(CRITICAL|IMPORTANT|참고)/.test(ln)) return ln // 섹션 헤더 보존
+      let s = ln
+      s = s.replace(/\s*※.*$/, '')
+      s = s.replace(/\s*·\s*통제 방향.*$/, '')
+      s = stripParens(s)
+      s = s.replace(/\s*활성(?=\s*→|\s|$)/g, '').replace(/\s*→\s*길성 보호/g, '')
+      // 알려진 서술형 꼬리말
+      s = s
+        .replace(/\s*—\s*자석 끌림·매력 자극.*$/, '')
+        .replace(/\s*—\s*두 사람 지지가[^—]*$/, '')
+        .replace(/\s*—\s*3지 중 2지[^—]*$/, '')
+        .replace(/\s+적중 영역은[^—]*$/, '')
+        .replace(/\s*→\s*[가-힣]+ 강\s*\/\s*[가-힣]+ 약\s*$/, '')
+      s = s.replace(/\s*—\s*$/, '') // 설명 제거 후 남은 꼬리 대시
+      s = s.replace(/\s{2,}/g, ' ').replace(/\s+$/, '')
+      return s
+    })
+    .join('\n')
+}
+
 export interface SajuPillarInput {
   stem: string
   branch: string
@@ -737,5 +775,5 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     out.push('[참고]')
     out.push(...chamgo)
   }
-  return koreanize(out.join('\n'))
+  return koreanize(stripAux(out.join('\n')))
 }
