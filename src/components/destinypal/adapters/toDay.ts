@@ -34,6 +34,7 @@ import {
 } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { getGongmang } from '@/lib/saju/shinsal'
+import { humanizeReason } from './humanizeReason'
 
 // 천간(한자) → 5원소 룩업. destinypal Day 의 jijanggan layer element 산출.
 const STEM_TO_ELEMENT: Record<string, '목' | '화' | '토' | '금' | '수'> = {
@@ -391,8 +392,8 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     crossSignals: [],
     allSignals: signals,
     narrative: [],
-    topReasons: cell.topReasons ?? [],
-    cautions: cell.cautions ?? [],
+    topReasons: (cell.topReasons ?? []).map(humanizeReason),
+    cautions: (cell.cautions ?? []).map(humanizeReason),
   }
 }
 

@@ -599,12 +599,12 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
             <ul className={styles.whyList}>
               {(day.topReasons ?? []).map((r, i) => (
                 <li className={styles.whyPos} key={`wp-${i}`}>
-                  <span className={styles.whyArrow}>↑</span> {r}
+                  <span className={styles.whyArrow}>↑</span> {r.replace(/^[↑↓·]\s*/, '')}
                 </li>
               ))}
               {(day.cautions ?? []).map((c, i) => (
                 <li className={styles.whyNeg} key={`wn-${i}`}>
-                  <span className={styles.whyArrow}>↓</span> {c}
+                  <span className={styles.whyArrow}>↓</span> {c.replace(/^[↑↓·]\s*/, '')}
                 </li>
               ))}
             </ul>
