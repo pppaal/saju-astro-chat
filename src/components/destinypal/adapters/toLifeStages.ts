@@ -141,22 +141,24 @@ export function toLifeStages(
     }
     const parsed = parseAgeRange(phase.ageRange)
     const tone = deriveTone(phase)
-    const detail: DestinypalLifeStageDetail | null = phase.current
-      ? {
-          daeunText: phase.daeunLine,
-          body: [
-            phase.text,
-            ...(phase.relationLine ? [phase.relationLine] : []),
-            ...(phase.twelveStageLine ? [phase.twelveStageLine] : []),
-          ],
-          outer: phase.milestoneLine
-            ? [{ label: phase.milestoneLine, date: '', body: phase.milestoneLine }]
-            : [],
-          shinsal: phase.shinsalLine
-            ? { title: '신살 활성', body: phase.shinsalLine }
-            : undefined,
-        }
-      : null
+    // 4단계 *전부* detail 을 채운다 — 데이터(daeunLine/relationLine/외행성/신살/
+    // 12운성)는 deriveLifetimeFlow 가 모든 단계에 대해 이미 만들어 넘긴다. 예전엔
+    // phase.current 단계만 펼치고 나머지를 버려, 프리미엄의 "인생 전체 흐름"(4단계
+    // 풀 서사)이 사라졌었다(사용자 지적). 현재 단계는 now 플래그로만 강조.
+    const detail: DestinypalLifeStageDetail | null = {
+      daeunText: phase.daeunLine,
+      body: [
+        phase.text,
+        ...(phase.relationLine ? [phase.relationLine] : []),
+        ...(phase.twelveStageLine ? [phase.twelveStageLine] : []),
+      ],
+      outer: phase.milestoneLine
+        ? [{ label: phase.milestoneLine, date: '', body: phase.milestoneLine }]
+        : [],
+      shinsal: phase.shinsalLine
+        ? { title: '신살 활성', body: phase.shinsalLine }
+        : undefined,
+    }
     return {
       id: band.id,
       name: band.ko,

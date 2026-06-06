@@ -1,4 +1,5 @@
 import { STEMS, BRANCHES, TIME_STEM_LOOKUP } from '@/lib/saju/constants'
+import { getOffsetMinutes } from '@/lib/saju/timezone'
 import { computeDayStem } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
@@ -41,6 +42,12 @@ const sajuHourExtractor: SignalExtractor = {
     if (!dayMaster) return []
     const yongsin = natal.saju.yongsin
 
+    // 진태양시(眞太陽時) 보정용 출생지 경도·타임존. 본명 시주(build.ts/saju.ts)와
+    // *동일 공식*으로 forecast 시진 경계도 시계↔태양 차를 반영한다(전세계 일관).
+    const loc = natal.astro?.location
+    const longitude = typeof loc?.longitude === 'number' ? loc.longitude : undefined
+    const timeZone = loc?.timeZone
+
     const signals: ActiveSignal[] = []
     const start = new Date(range.start)
     const end = new Date(range.end)
@@ -49,6 +56,15 @@ const sajuHourExtractor: SignalExtractor = {
       const date = new Date(t)
       const dayStemName = computeDayStem(date)
       if (!dayStemName) continue
+
+      // 그 날의 진태양시 보정분(분). 보정 = (경도 − 표준자오선)×4, 표준자오선은
+      // 타임존 UTC offset×15 (DST 반영 위해 날짜별 산출). 시계시각 = 진태양시 − 보정.
+      // 경도/타임존 미상이면 0 → 시계 시각 그대로(옛 동작 보존).
+      let correctionMin = 0
+      if (typeof longitude === 'number' && timeZone) {
+        const standardMeridian = (getOffsetMinutes(date, timeZone) / 60) * 15
+        correctionMin = Math.round((longitude - standardMeridian) * 4)
+      }
 
       const firstHourStemName = TIME_STEM_LOOKUP[dayStemName]
       if (!firstHourStemName) continue
@@ -70,18 +86,21 @@ const sajuHourExtractor: SignalExtractor = {
         const polarity = polarityFromYongsin(stem.element as FiveElement, yongsin)
         if (polarity === 0) continue   // 중립 — 노이즈 방지
 
-        // 시진 시간 윈도우 (KST 기준 단순화 — UTC로 변환은 생략)
-        // 자시는 wrap: 23~24 또는 0~1
+        // 시진 시간 윈도우 — *진태양시* 경계를 보정분만큼 시계 시각으로 환산.
+        //   시계분 = 진태양시분 − correctionMin   (본명 saju.ts: 진태양=시계+보정)
+        // 자시는 23:00~다음날 01:00(=1500분) wrap. baseMs 는 dayIso 의 UTC 자정.
+        // startHour/endHour 는 명목 라벨(5~7시 등) — evidence 표시용으로 유지.
+        const baseMs = date.getTime()
+        const minToIso = (solarMin: number) =>
+          new Date(baseMs + (solarMin - correctionMin) * 60_000).toISOString()
         const startHour = branchIdx === 0 ? 23 : (branchIdx * 2 - 1)
         const endHour = branchIdx === 0 ? 1 : (branchIdx * 2 + 1)
-        const startIso = branchIdx === 0
-          ? `${dayIso}T23:00:00.000Z`
-          : `${dayIso}T${String(startHour).padStart(2, '0')}:00:00.000Z`
-        const endIso = branchIdx === 0
-          ? `${nextDayIso(date)}T01:00:00.000Z`
-          : `${dayIso}T${String(endHour).padStart(2, '0')}:00:00.000Z`
-        const peakHour = branchIdx === 0 ? 0 : branchIdx * 2
-        const peakIso = `${dayIso}T${String(peakHour).padStart(2, '0')}:00:00.000Z`
+        const solarStartMin = branchIdx === 0 ? 23 * 60 : (branchIdx * 2 - 1) * 60
+        const solarEndMin = branchIdx === 0 ? 25 * 60 : (branchIdx * 2 + 1) * 60
+        const solarPeakMin = branchIdx === 0 ? 24 * 60 : branchIdx * 2 * 60
+        const startIso = minToIso(solarStartMin)
+        const endIso = minToIso(solarEndMin)
+        const peakIso = minToIso(solarPeakMin)
 
         // 12 시진 narrative DB에서 baseline + polarity 매칭 텍스트 가져오기.
         // polarity 부호에 따라 baseline/positive/caution 분기.
@@ -132,10 +151,6 @@ const sajuHourExtractor: SignalExtractor = {
 
     return signals
   },
-}
-
-function nextDayIso(d: Date): string {
-  return new Date(d.getTime() + 86_400_000).toISOString().slice(0, 10)
 }
 
 interface StemInfo { name: string; element: FiveElement; yin_yang: YinYang }
