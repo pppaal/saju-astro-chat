@@ -14,11 +14,11 @@ export interface ApiFetchOptions extends Omit<RequestInit, 'headers'> {
 }
 
 /**
- * 크레딧 관련 응답을 단일 지점에서 감지해 전역 이벤트로 알린다. 크레딧을
+ * 크레딧/인증 관련 응답을 단일 지점에서 감지해 전역 이벤트로 알린다. 크레딧을
  * 쓰는 모든 호출이 apiFetch 를 거치면, 어떤 화면이든 동일하게 모달이 뜬다.
- * (플로우마다 showDepleted/showGuestLimit 를 따로 부르던 불일치 제거.)
- *  - 402            → 크레딧 소진(로그인 사용자) → 구매 유도
- *  - 401 + X-Guest-Limit-Reached → 비로그인 무료 체험 한도 → 로그인 유도
+ * (플로우마다 모달을 따로 부르던 불일치 제거.)
+ *  - 402 → 크레딧 소진(로그인 사용자) → 구매 유도 (CreditModalContext)
+ *  - 401 → 비로그인 → blur 로그인 모달 (LoginModalContext)
  * body 는 건드리지 않으므로 SSE 스트리밍 응답에도 안전하다.
  */
 export const CREDIT_MODAL_EVENT = 'dp:credit-modal'

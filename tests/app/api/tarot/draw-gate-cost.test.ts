@@ -16,7 +16,6 @@ vi.mock('@/lib/credits/withCredits', () => ({
   checkCreditsOnly: (...a: unknown[]) => mockCheckCreditsOnly(...a),
   creditErrorResponse: () =>
     new Response(JSON.stringify({ error: 'insufficient' }), { status: 402 }),
-  applyCreditResultCookies: (res: Response) => res,
 }))
 
 // draw-nonce store — issue 는 no-op mock.
@@ -55,22 +54,22 @@ describe('draw route — per-spread credit gate (Fix C)', () => {
 
   it('gates a 1-card spread with cost 1', async () => {
     await POST(makeReq({ categoryId: 'general-insight', spreadId: 'quick-reading' }))
-    expect(mockCheckCreditsOnly).toHaveBeenCalledWith('reading', 1, expect.anything())
+    expect(mockCheckCreditsOnly).toHaveBeenCalledWith('reading', 1)
   })
 
   it('gates a 3-card spread with cost 1', async () => {
     await POST(makeReq({ categoryId: 'general-insight', spreadId: 'past-present-future' }))
-    expect(mockCheckCreditsOnly).toHaveBeenCalledWith('reading', 1, expect.anything())
+    expect(mockCheckCreditsOnly).toHaveBeenCalledWith('reading', 1)
   })
 
   it('gates a 5-card spread with cost 2 (matches interpret-stream charge)', async () => {
     await POST(makeReq({ categoryId: 'general-insight', spreadId: 'general-cross' }))
-    expect(mockCheckCreditsOnly).toHaveBeenCalledWith('reading', 2, expect.anything())
+    expect(mockCheckCreditsOnly).toHaveBeenCalledWith('reading', 2)
   })
 
   it('gates a 7-card spread with cost 2', async () => {
     await POST(makeReq({ categoryId: 'general-insight', spreadId: 'celtic-cross' }))
-    expect(mockCheckCreditsOnly).toHaveBeenCalledWith('reading', 2, expect.anything())
+    expect(mockCheckCreditsOnly).toHaveBeenCalledWith('reading', 2)
   })
 
   it('returns a server-issued drawNonce in the response', async () => {

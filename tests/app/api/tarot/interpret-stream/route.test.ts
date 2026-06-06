@@ -27,17 +27,9 @@ const mockCreditErrorResponse = vi.fn((result: { error?: string; errorCode?: str
     headers: { 'Content-Type': 'application/json' },
   })
 )
-const mockApplyCreditResultCookies = vi.fn((response: Response, result?: { guestReadingAccess?: string }) => {
-  if (result?.guestReadingAccess) {
-    response.headers.set('x-credit-cookies', result.guestReadingAccess)
-  }
-  return response
-})
-
 vi.mock('@/lib/credits/withCredits', () => ({
   checkAndConsumeCredits: (...args: unknown[]) => mockCheckAndConsumeCredits(...args),
   creditErrorResponse: (...args: unknown[]) => mockCreditErrorResponse(...args),
-  applyCreditResultCookies: (...args: unknown[]) => mockApplyCreditResultCookies(...args),
 }))
 
 // Mock streaming utilities
@@ -353,12 +345,12 @@ describe('POST /api/tarot/interpret-stream', () => {
   })
 
   describe('Credit Handling', () => {
-    it('should check and consume credits with the incoming request', async () => {
+    it('should check and consume credits', async () => {
       const req = makePostRequest(VALID_REQUEST_BODY)
 
       await POST(req)
 
-      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1, req)
+      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1)
     })
 
     it('should charge 2 credits for a large spread (>= 8 cards)', async () => {
@@ -375,34 +367,21 @@ describe('POST /api/tarot/interpret-stream', () => {
 
       await POST(req)
 
-      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 2, req)
+      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 2)
     })
 
-    it('should return credit error response when guest/session access is denied', async () => {
+    it('should return credit error response when not authenticated', async () => {
       mockCheckAndConsumeCredits.mockResolvedValue({
         allowed: false,
-        error: '무료 체험 리딩은 이미 사용했습니다. 로그인 후 계속 이용하세요.',
-        errorCode: 'guest_limit_reached',
+        error: '로그인이 필요합니다',
+        errorCode: 'not_authenticated',
       })
 
       const response = await POST(makePostRequest(VALID_REQUEST_BODY))
       const data = await response.json()
 
       expect(response.status).toBe(401)
-      expect(data.code).toBe('guest_limit_reached')
-    })
-
-    it('should apply guest cookies to successful stream responses', async () => {
-      mockCheckAndConsumeCredits.mockResolvedValue({
-        allowed: true,
-        remaining: 0,
-        guestReadingAccess: 'interpret_granted',
-      })
-
-      const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-
-      expect(response.headers.get('x-credit-cookies')).toBe('interpret_granted')
-      expect(mockApplyCreditResultCookies).toHaveBeenCalled()
+      expect(data.code).toBe('not_authenticated')
     })
   })
 

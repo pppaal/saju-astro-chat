@@ -23,7 +23,6 @@ vi.mock('@/lib/logger', () => ({
 const mockCheckAndConsumeCredits = vi.fn()
 vi.mock('@/lib/credits/withCredits', () => ({
   checkAndConsumeCredits: (...a: unknown[]) => mockCheckAndConsumeCredits(...a),
-  applyCreditResultCookies: (res: Response) => res,
   creditErrorResponse: () => new Response(JSON.stringify({ error: 'insufficient' }), { status: 402 }),
 }))
 vi.mock('@/lib/credits/creditRefund', () => ({ refundCredits: vi.fn().mockResolvedValue(true) }))
@@ -117,6 +116,6 @@ describe('followup — free-replay hardening (Fix B)', () => {
       )
     )
     expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(2)
-    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1, expect.anything())
+    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1)
   })
 })

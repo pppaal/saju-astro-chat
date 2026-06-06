@@ -175,7 +175,7 @@ vi.mock('@/lib/api/validator', () => ({
 
 // Credit pre-flight mock — prefetch now gates on checkCreditsOnly up front so
 // the user is blocked on the question screen. Default: allowed. Tests flip
-// creditState to exercise the blocked (402 / guest-limit) paths.
+// creditState to exercise the blocked (402 / 401 not-authenticated) paths.
 const creditState = vi.hoisted(() => ({
   allowed: true,
   errorCode: undefined as string | undefined,
@@ -189,18 +189,12 @@ vi.mock('@/lib/credits/withCredits', () => {
       error: creditState.error,
       errorCode: creditState.errorCode,
     })),
-    creditErrorResponse: vi.fn((result: { error?: string; errorCode?: string }) => {
-      const isAuthish =
-        result.errorCode === 'guest_limit_reached' || result.errorCode === 'not_authenticated'
-      const res = NextResponse.json(
+    creditErrorResponse: vi.fn((result: { error?: string; errorCode?: string }) =>
+      NextResponse.json(
         { error: result.error, code: result.errorCode },
-        { status: isAuthish ? 401 : 402 }
+        { status: result.errorCode === 'not_authenticated' ? 401 : 402 }
       )
-      if (result.errorCode === 'guest_limit_reached') {
-        res.headers.set('X-Guest-Limit-Reached', '1')
-      }
-      return res
-    }),
+    ),
   }
 })
 
@@ -732,7 +726,7 @@ describe('Tarot Prefetch API - Concurrency', () => {
 })
 
 // ===================================================================
-// POST /api/tarot/prefetch - Credit / guest-limit pre-flight
+// POST /api/tarot/prefetch - Credit / auth pre-flight
 // ===================================================================
 describe('Tarot Prefetch API - Credit pre-flight', () => {
   beforeEach(() => {
@@ -740,15 +734,14 @@ describe('Tarot Prefetch API - Credit pre-flight', () => {
     mockApiClientPost.mockResolvedValue({ ok: true, data: { status: 'ok' } })
   })
 
-  it('blocks with 401 + X-Guest-Limit-Reached when the guest free limit is reached', async () => {
+  it('blocks with 401 when the user is not authenticated (guests removed)', async () => {
     creditState.allowed = false
-    creditState.errorCode = 'guest_limit_reached'
-    creditState.error = '무료 체험 리딩은 이미 사용했습니다.'
+    creditState.errorCode = 'not_authenticated'
+    creditState.error = '로그인이 필요합니다'
 
     const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
     expect(response.status).toBe(401)
-    expect(response.headers.get('X-Guest-Limit-Reached')).toBe('1')
     // Must not kick off the background RAG prefetch when blocked.
     expect(mockApiClientPost).not.toHaveBeenCalled()
   })

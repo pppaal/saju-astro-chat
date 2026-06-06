@@ -7,8 +7,6 @@ import { CREDIT_MODAL_EVENT, type CreditModalKind } from '@/lib/api/ApiClient'
 interface CreditModalContextType {
   showDepleted: () => void
   showLowCredits: (remaining: number) => void
-  // 비로그인 사용자가 무료 체험 한도에 도달했을 때 — 구매 대신 로그인 유도.
-  showGuestLimit: () => void
   checkAndShowModal: (remaining: number, threshold?: number) => boolean
 }
 
@@ -16,17 +14,11 @@ const CreditModalContext = createContext<CreditModalContextType | null>(null)
 
 export function CreditModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [modalType, setModalType] = useState<'depleted' | 'low' | 'guest'>('depleted')
+  const [modalType, setModalType] = useState<'depleted' | 'low'>('depleted')
   const [remainingCredits, setRemainingCredits] = useState(0)
 
   const showDepleted = useCallback(() => {
     setModalType('depleted')
-    setRemainingCredits(0)
-    setIsOpen(true)
-  }, [])
-
-  const showGuestLimit = useCallback(() => {
-    setModalType('guest')
     setRemainingCredits(0)
     setIsOpen(true)
   }, [])
@@ -76,7 +68,7 @@ export function CreditModalProvider({ children }: { children: ReactNode }) {
 
   return (
     <CreditModalContext.Provider
-      value={{ showDepleted, showLowCredits, showGuestLimit, checkAndShowModal }}
+      value={{ showDepleted, showLowCredits, checkAndShowModal }}
     >
       {children}
       <CreditDepletedModal

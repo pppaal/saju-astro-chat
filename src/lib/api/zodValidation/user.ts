@@ -14,7 +14,7 @@ import {
 } from './common'
 import { isAllowedPhotoHost } from '../photoHostAllowlist'
 
-// Avatar / profile-image URL. Same allowlist as destiny-match photos —
+// Avatar / profile-image URL. Uses the shared photo-host allowlist —
 // `user.image` is rendered in nav/profile widgets via next/image, so a
 // `javascript:` or attacker-host URL persisted here has the same XSS /
 // hotlink / SSRF surface.

@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  initializeApiContext,
-  createAuthenticatedGuard,
-  type MiddlewareOptions,
-} from '@/lib/api/middleware'
+import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { extractLocale } from '@/lib/api/middleware'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { isSelfHarm, crisisMessage } from '@/lib/safety/crisis'
 import { logger } from '@/lib/logger'
@@ -59,31 +52,6 @@ import { getUserDisplayName } from '@/lib/user/displayName'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 90
-
-// Guest free trial — 2 turns of compatibility counselor before login wall
-const GUEST_COMPAT_TURN_LIMIT = 2
-const GUEST_COMPAT_TURN_COOKIE = 'guest_compat_counselor_turns'
-const GUEST_COMPAT_COOKIE_MAX_AGE = 60 * 60 * 24 * 30
-const GUEST_COMPAT_RATE_LIMIT = { limit: 12, windowSeconds: 60 } as const
-
-function readGuestCompatTurns(req: NextRequest): number {
-  const raw = req.cookies.get(GUEST_COMPAT_TURN_COOKIE)?.value
-  if (!raw) return 0
-  const n = parseInt(raw, 10)
-  return Number.isFinite(n) && n > 0 ? n : 0
-}
-
-function buildGuestCompatTurnCookie(next: number): string {
-  const parts = [
-    `${GUEST_COMPAT_TURN_COOKIE}=${next}`,
-    'Path=/',
-    `Max-Age=${GUEST_COMPAT_COOKIE_MAX_AGE}`,
-    'SameSite=Lax',
-    'HttpOnly',
-  ]
-  if (process.env.NODE_ENV === 'production') parts.push('Secure')
-  return parts.join('; ')
-}
 
 import {
   clampMessages,
@@ -135,9 +103,7 @@ export async function POST(req: NextRequest) {
   let chargedUserId: string | null = null
   let refundKey: string | null = null
   try {
-    // Apply middleware: prefer authenticated guard (with credits) but fall
-    // back to guest guard so first-time visitors can sample 2 turns before
-    // the login wall — same pattern as destiny-map/chat-stream.
+    // Apply middleware: authenticated guard — 로그인 필수. 비로그인은 401.
     // requireCredits 는 false — 새로고침 idempotent replay 일 때 차감을
     // 스킵해야 하는데 middleware 가 먼저 차감하면 늦음. 핸들러 안에서
     // idempotency 체크 후 consumeCredits 명시 호출.
@@ -148,51 +114,9 @@ export async function POST(req: NextRequest) {
       requireCredits: false,
     })
 
-    const guestGuardOptions: MiddlewareOptions = {
-      route: 'compatibility-counselor-guest',
-      rateLimit: {
-        limit: GUEST_COMPAT_RATE_LIMIT.limit,
-        windowSeconds: GUEST_COMPAT_RATE_LIMIT.windowSeconds,
-      },
-    }
-
-    let prefersAuthedGuard = false
-    try {
-      const session = await getServerSession(authOptions)
-      prefersAuthedGuard = Boolean(session?.user)
-    } catch {
-      prefersAuthedGuard = false
-    }
-
-    let initialized = await initializeApiContext(
-      req,
-      prefersAuthedGuard ? authedGuardOptions : guestGuardOptions
-    )
-    if (prefersAuthedGuard && initialized.error && initialized.error.status === 401) {
-      initialized = await initializeApiContext(req, guestGuardOptions)
-    }
-
-    const { context, error } = initialized
+    const { context, error } = await initializeApiContext(req, authedGuardOptions)
     if (error) {
       return error
-    }
-
-    const isGuestMode = !context.userId
-
-    // Guest free-trial gate
-    let guestTurnsUsed = 0
-    if (isGuestMode) {
-      guestTurnsUsed = readGuestCompatTurns(req)
-      if (guestTurnsUsed >= GUEST_COMPAT_TURN_LIMIT) {
-        return createErrorResponse({
-          code: ErrorCodes.UNAUTHORIZED,
-          message:
-            '궁합 상담 무료 체험 2회를 모두 사용했어요. 로그인하면 가입 보너스 5 크레딧으로 계속 이용할 수 있어요.',
-          locale: extractLocale(req),
-          route: 'compatibility/counselor',
-          headers: { 'X-Guest-Limit-Reached': '1' },
-        })
-      }
     }
 
     const rawBody = await req.json()
@@ -272,11 +196,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 크레딧 차감 — 인증 사용자만. 새로고침/탭 복제 idempotent replay 시
-    // 차감 스킵. 게스트는 위 GUEST_COMPAT_TURN_LIMIT cookie counter 로 별도
-    // 처리. middleware 의 requireCredits 가 false 라서 여기서 명시 처리.
+    // 크레딧 차감 — 새로고침/탭 복제 idempotent replay 시 차감 스킵.
+    // middleware 의 requireCredits 가 false 라서 여기서 명시 처리.
     // chargedUserId 는 함수 스코프에 hoist 됨 (외부 catch 환불용).
-    if (!isGuestMode && context.userId) {
+    if (context.userId) {
       const scopedIdemKey = idemStore.keyFor(req, `user:${context.userId}`)
       const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
       if (idempotentReplay) {
@@ -693,24 +616,12 @@ export async function POST(req: NextRequest) {
         label: 'compatibility-counselor',
         // Mid-stream failures (empty completion / backend error) surface
         // inside the SSE body, not as a thrown error, so the catch below
-        // never sees them. Refund the consumed credit here too. Guests
-        // aren't credit-charged → chargedUserId === null → no-op.
+        // never sees them. Refund the consumed credit here too.
         onFailure: chargedUserId
           ? async () => {
               await refundChargedCredit('compatibility-counselor stream delivered no content')
             }
           : undefined,
-        additionalHeaders: {
-          'X-Guest-Mode': isGuestMode ? '1' : '0',
-          ...(isGuestMode
-            ? {
-                'Set-Cookie': buildGuestCompatTurnCookie(guestTurnsUsed + 1),
-                'X-Guest-Turns-Remaining': String(
-                  Math.max(0, GUEST_COMPAT_TURN_LIMIT - (guestTurnsUsed + 1))
-                ),
-              }
-            : {}),
-        },
       })
     } catch (claudeErr) {
       logger.error('[Compatibility Counselor] Claude error:', {

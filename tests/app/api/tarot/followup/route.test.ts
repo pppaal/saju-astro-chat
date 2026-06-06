@@ -30,14 +30,12 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 const mockCheckAndConsumeCredits = vi.fn()
-const mockApplyCreditResultCookies = vi.fn((res: any) => res)
 const mockCreditErrorResponse = vi.fn(
   () => new Response(JSON.stringify({ error: 'insufficient' }), { status: 402 })
 )
 
 vi.mock('@/lib/credits/withCredits', () => ({
   checkAndConsumeCredits: (...args: any[]) => mockCheckAndConsumeCredits(...args),
-  applyCreditResultCookies: (...args: any[]) => mockApplyCreditResultCookies(...args),
   creditErrorResponse: (...args: any[]) => mockCreditErrorResponse(...args),
 }))
 
