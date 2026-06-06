@@ -35,7 +35,8 @@ describe('POST /api/tarot', () => {
     vi.clearAllMocks()
   })
 
-  it('allows one anonymous tarot draw and issues guest cookies', async () => {
+  // 게스트(비로그인) 무료 리딩 폐지 — 익명 draw 는 로그인 필수(401). (audit 2026-06)
+  it('blocks anonymous tarot draw — login required (guests removed)', async () => {
     const req = new NextRequest('http://localhost/api/tarot', {
       method: 'POST',
       body: JSON.stringify({
@@ -47,13 +48,11 @@ describe('POST /api/tarot', () => {
     const response = await POST(req)
     const data = await response.json()
 
-    expect(response.status).toBe(200)
-    expect(data.drawnCards).toHaveLength(1)
-    expect(response.headers.get('set-cookie') || '').toContain('tarot_guest_reading_used=1')
-    expect(response.headers.get('set-cookie') || '').toContain('tarot_guest_interpret_pass=1')
+    expect(response.status).toBe(401)
+    expect(data.code).toBe('not_authenticated')
   })
 
-  it('blocks anonymous draw once the guest free-reading limit has been used up', async () => {
+  it('blocks anonymous draw even with legacy guest cookies present', async () => {
     const req = new NextRequest('http://localhost/api/tarot', {
       method: 'POST',
       body: JSON.stringify({
@@ -61,10 +60,10 @@ describe('POST /api/tarot', () => {
         spreadId: 'quick-reading',
       }),
     })
-    // Guest free limit is 2; a cookie count of 2 means all free draws are spent.
+    // 옛 게스트 쿠키가 남아 있어도 더 이상 무료 리딩을 주지 않는다.
     Object.defineProperty(req, 'cookies', {
       value: {
-        get: (name: string) => (name === 'tarot_guest_reading_used' ? { value: '2' } : undefined),
+        get: (name: string) => (name === 'tarot_guest_reading_used' ? { value: '0' } : undefined),
       },
     })
 
@@ -72,6 +71,6 @@ describe('POST /api/tarot', () => {
     const data = await response.json()
 
     expect(response.status).toBe(401)
-    expect(data.code).toBe('guest_limit_reached')
+    expect(data.code).toBe('not_authenticated')
   })
 })

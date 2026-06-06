@@ -28,7 +28,9 @@ function notifyCreditLimit(res: Response): void {
   if (typeof window === 'undefined') return
   let kind: CreditModalKind | null = null
   if (res.status === 402) kind = 'depleted'
-  else if (res.status === 401 && res.headers.get('x-guest-limit-reached') === '1') kind = 'guest'
+  // 401 = 비로그인. 게스트 폐지 후 모든 gated 액션은 로그인 필수 → blur 로그인
+  // 모달로 유도(LoginModalContext 가 'guest' 이벤트를 수신). (audit 2026-06)
+  else if (res.status === 401) kind = 'guest'
   if (!kind) return
   try {
     window.dispatchEvent(new CustomEvent(CREDIT_MODAL_EVENT, { detail: { kind } }))
