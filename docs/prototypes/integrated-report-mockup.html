@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>통합 리포트 mockup — 사용자 친화 + 정통 깊이</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(ellipse at top left, rgba(120, 50, 220, 0.15), transparent 50%),
+        radial-gradient(ellipse at bottom right, rgba(255, 100, 150, 0.12), transparent 50%),
+        #0a0a18;
+      color: #e8e8f0;
+      min-height: 100vh;
+    }
+    .glass {
+      background: rgba(20, 20, 40, 0.4);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-light { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06); }
+    .label-aux { color: rgba(220, 220, 240, 0.5); font-weight: 300; }
+    .chip { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+    .chip-good { background: rgba(120, 200, 120, 0.18); color: rgb(180, 240, 180); }
+    .chip-bad { background: rgba(255, 120, 120, 0.18); color: rgb(255, 180, 180); }
+    .chip-mid { background: rgba(180, 180, 255, 0.18); color: rgb(220, 220, 255); }
+    .tooltip {
+      position: relative;
+      cursor: help;
+      border-bottom: 1px dotted rgba(180, 180, 230, 0.5);
+    }
+    .tooltip:hover::after, .tooltip:focus::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 110%; left: 50%; transform: translateX(-50%);
+      background: rgba(35, 35, 55, 0.95);
+      color: #e8e8f0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 400;
+      min-width: 220px;
+      max-width: 320px;
+      white-space: normal;
+      z-index: 50;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #c4a4ff 0%, #ff9ec4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .planet-table th, .planet-table td { padding: 6px 8px; font-size: 12px; }
+    .planet-table th { color: rgba(220, 220, 240, 0.5); font-weight: 400; }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 999px;
+      background: rgba(180, 140, 255, 0.12);
+      color: rgb(220, 200, 255);
+      font-size: 11px;
+      border: 1px solid rgba(180, 140, 255, 0.2);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: rgba(180, 140, 255, 0.22); }
+    .level-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(120, 80, 200, 0.2);
+      color: rgb(200, 180, 240);
+      font-weight: 500;
+    }
+    .pillar-card {
+      background: rgba(40, 30, 60, 0.4);
+      border: 1px solid rgba(160, 130, 220, 0.18);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .pillar-stem {
+      font-size: 28px;
+      font-weight: 700;
+      color: rgb(220, 200, 255);
+      line-height: 1.2;
+    }
+    .pillar-branch {
+      font-size: 22px;
+      font-weight: 600;
+      color: rgb(255, 200, 220);
+      margin-top: -4px;
+    }
+    .advanced details summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      background: rgba(60, 40, 100, 0.3);
+      border-radius: 12px;
+      font-weight: 500;
+      color: rgb(220, 200, 255);
+    }
+    .advanced details summary::-webkit-details-marker { display: none; }
+    .advanced details[open] summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+    .advanced details summary::before {
+      content: "▶"; display: inline-block; transition: transform 0.2s;
+      font-size: 10px; color: rgba(220, 200, 255, 0.7);
+    }
+    .advanced details[open] summary::before { transform: rotate(90deg); }
+  </style>
+</head>
+<body class="px-4 py-6 md:px-10 md:py-10">
+
+<div class="max-w-6xl mx-auto">
+
+  <!-- ────────── Header ────────── -->
+  <header class="mb-8">
+    <div class="flex items-center gap-3 mb-2">
+      <span class="text-2xl">🪐</span>
+      <h1 class="text-2xl md:text-3xl font-bold gradient-text">통합 명식 리포트</h1>
+    </div>
+    <div class="glass-light rounded-2xl px-5 py-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+      <div><span class="label-aux">이름 ·</span> <b>이지윤</b></div>
+      <div><span class="label-aux">출생 ·</span> 1995년 2월 9일 06:40 (KST)</div>
+      <div><span class="label-aux">출생지 ·</span> 대한민국 서울 (37.57°N, 126.98°E)</div>
+      <div><span class="label-aux">성별 ·</span> 여성</div>
+    </div>
+  </header>
+
+
+  <!-- ────────── Level 1: 12 교차 카드 ────────── -->
+  <section class="mb-10">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="level-tag">L1 · 한눈에</span>
+      <h2 class="text-lg font-semibold">당신을 12가지로 풀면</h2>
+      <span class="label-aux text-xs">사주 × 점성 자동 합성</span>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <!-- 12 카드 — sample -->
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">정체성</div>
+        <div class="text-sm leading-relaxed">차분히 다듬는 흐름. <span class="chip chip-mid">乙 × ♓ 처녀</span></div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">욕망</div>
+        <div class="text-sm leading-relaxed">표현하고 인정받고 싶음. <span class="chip chip-good">火 × ♌</span></div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">사회 역할</div>
+        <div class="text-sm leading-relaxed">균형 잡힌 조직인. <span class="chip chip-mid">정관 × ♎</span></div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">길흉</div>
+        <div class="text-sm leading-relaxed">천을귀인, 단 도화 주의. <span class="chip chip-good">+</span></div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">관계</div>
+        <div class="text-sm leading-relaxed">합 5, 충 2 — 부드러우나 갈등 잠재. <span class="chip chip-mid">중</span></div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">강점</div>
+        <div class="text-sm leading-relaxed">관대 단계 + 금성 격상. <span class="chip chip-good">+</span></div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">기질</div>
+        <div class="text-sm leading-relaxed">수목 풍부, 토 부족. <span class="chip chip-mid">차분</span></div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">에너지</div>
+        <div class="text-sm leading-relaxed">인성 우세, 활동 행성 강조. <span class="chip chip-mid">사색·표현</span></div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">드러나는 나</div>
+        <div class="text-sm leading-relaxed">乙 × ♈ — 부드럽지만 시작은 빠름.</div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">추진력</div>
+        <div class="text-sm leading-relaxed">신약 + 화성 부각 — 후반 가속. <span class="chip chip-mid">중하</span></div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">핵심 성향</div>
+        <div class="text-sm leading-relaxed">조화·소통 중심 (식상 + 트라인).</div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+      <div class="glass rounded-2xl p-4 hover:bg-white/10 transition cursor-pointer">
+        <div class="text-xs label-aux mb-1">공망 / 카르마</div>
+        <div class="text-sm leading-relaxed">辰巳 공망 + 남교점 ♈ — 과거 행동의 자취.</div>
+        <button class="cta-btn mt-3">💬 자세히 묻기</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ────────── Level 2: 사주 차트 ────────── -->
+  <section class="mb-10">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="level-tag">L2 · 차트</span>
+      <h2 class="text-lg font-semibold">🟦 사주 차트</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <!-- 4기둥 표 -->
+      <div class="glass rounded-2xl p-5 md:col-span-2">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold text-sm">4 기둥 <span class="label-aux ml-1">사주팔자</span></div>
+          <button class="cta-btn">💬 자세히 묻기</button>
+        </div>
+        <div class="grid grid-cols-4 gap-3">
+          <!-- 時/日/月/年 -->
+          <div class="pillar-card">
+            <div class="text-xs label-aux mb-2">시주 · 時</div>
+            <div class="pillar-stem">己</div>
+            <div class="pillar-branch">卯</div>
+            <div class="text-xs mt-2">편재 · 비견</div>
+            <div class="text-[10px] label-aux mt-1">관대</div>
+            <div class="text-[10px] label-aux">乙 (정기)</div>
+          </div>
+          <div class="pillar-card" style="border-color: rgba(255, 200, 100, 0.4); background: rgba(60, 50, 30, 0.4);">
+            <div class="text-xs label-aux mb-2">일주 · 日 (당신)</div>
+            <div class="pillar-stem" style="color: rgb(255, 220, 180);">乙</div>
+            <div class="pillar-branch">亥</div>
+            <div class="text-xs mt-2">— · 정인</div>
+            <div class="text-[10px] label-aux mt-1">사</div>
+            <div class="text-[10px] label-aux">壬·甲</div>
+          </div>
+          <div class="pillar-card">
+            <div class="text-xs label-aux mb-2">월주 · 月</div>
+            <div class="pillar-stem">戊</div>
+            <div class="pillar-branch">寅</div>
+            <div class="text-xs mt-2">정재 · 겁재</div>
+            <div class="text-[10px] label-aux mt-1">제왕</div>
+            <div class="text-[10px] label-aux">甲·丙·戊</div>
+          </div>
+          <div class="pillar-card">
+            <div class="text-xs label-aux mb-2">년주 · 年</div>
+            <div class="pillar-stem">乙</div>
+            <div class="pillar-branch">亥</div>
+            <div class="text-xs mt-2">비견 · 정인</div>
+            <div class="text-[10px] label-aux mt-1">사</div>
+            <div class="text-[10px] label-aux">壬·甲</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 핵심 분석 -->
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold text-sm">핵심 분석</div>
+          <button class="cta-btn">💬 자세히 묻기</button>
+        </div>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <span class="tooltip" data-tip="사주의 본질 짜임새 — 정관격 / 식신격 / 편재격 등 정통 명리 룰로 분류">사주 구조 <span class="label-aux">(격국)</span></span>
+            <span class="font-semibold">정관격</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="tooltip" data-tip="사주 균형을 위해 필요한 오행 — 일간을 돕거나 격국을 살리는 핵심 기운">필요한 기운 <span class="label-aux">(용신)</span></span>
+            <span class="font-semibold">火 <span class="label-aux text-xs">+ 喜 木</span></span>
+          </div>
+          <div class="flex justify-between">
+            <span class="tooltip" data-tip="신강 = 일간이 강함, 신약 = 일간이 약함 (오행 균형 + 통근 종합)">일간 강도</span>
+            <span><span class="chip chip-mid">신약</span></span>
+          </div>
+          <div class="flex justify-between">
+            <span class="tooltip" data-tip="일간이 4기둥의 지지에 뿌리가 박혀있는지 — 박혀있으면 유근">일간 뿌리 <span class="label-aux">(통근)</span></span>
+            <span><span class="chip chip-good">유근</span></span>
+          </div>
+          <div class="flex justify-between">
+            <span class="tooltip" data-tip="한겨울/한여름 출생 시 → 보충 필요한 기운 (계절 균형)">계절 균형 <span class="label-aux">(조후)</span></span>
+            <span class="font-semibold">火 <span class="label-aux text-xs">(한, 4/5)</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 오행 + 십신 분포 -->
+      <div class="glass rounded-2xl p-5">
+        <div class="font-semibold text-sm mb-3">에너지 분포</div>
+        <div class="text-xs label-aux mb-1">오행 (사주 8글자)</div>
+        <div class="flex gap-1 text-xs mb-3">
+          <div class="flex-1 bg-green-700/50 rounded p-1 text-center">목 3</div>
+          <div class="flex-1 bg-red-700/50 rounded p-1 text-center">화 0</div>
+          <div class="flex-1 bg-amber-800/50 rounded p-1 text-center">토 1</div>
+          <div class="flex-1 bg-zinc-500/50 rounded p-1 text-center">금 0</div>
+          <div class="flex-1 bg-blue-700/50 rounded p-1 text-center">수 4</div>
+        </div>
+        <div class="text-xs label-aux mb-1 mt-3">십신 <span class="tooltip" data-tip="식상·재성·관성·인성·비겁 — 사주 안의 5가지 사회·내면 동력 분포">(분포)</span></div>
+        <div class="flex gap-1 text-xs">
+          <div class="flex-1 bg-pink-700/40 rounded p-1 text-center">식상 1</div>
+          <div class="flex-1 bg-yellow-700/40 rounded p-1 text-center">재성 2</div>
+          <div class="flex-1 bg-purple-700/40 rounded p-1 text-center">관성 0</div>
+          <div class="flex-1 bg-cyan-700/40 rounded p-1 text-center">인성 3</div>
+          <div class="flex-1 bg-emerald-700/40 rounded p-1 text-center">비겁 2</div>
+        </div>
+      </div>
+
+      <!-- 신살 / 공망 / 관계 -->
+      <div class="glass rounded-2xl p-5">
+        <div class="font-semibold text-sm mb-3">사주 마커 <span class="label-aux text-xs">(신살 · 공망)</span></div>
+        <div class="flex flex-wrap gap-2 text-xs">
+          <span class="chip chip-good tooltip" data-tip="천을귀인 — 인생의 큰 어려움에서 귀인의 도움을 받음">천을귀인</span>
+          <span class="chip chip-bad tooltip" data-tip="도화 — 인기·이성·예술 매력이 강함 (양날의 검)">도화</span>
+          <span class="chip chip-mid tooltip" data-tip="역마 — 변화·이동·여행이 잦은 운">역마</span>
+          <span class="chip chip-bad tooltip" data-tip="공망 — 일주 기준 비어있는 2지지 (해당 영역 결핍)">공망 辰巳</span>
+        </div>
+        <div class="text-xs label-aux mt-4">합·충·형 관계</div>
+        <div class="flex flex-wrap gap-2 mt-1 text-xs">
+          <span class="chip chip-good">合 寅亥</span>
+          <span class="chip chip-good">合 卯亥</span>
+          <span class="chip chip-bad">沖 卯酉</span>
+        </div>
+      </div>
+
+      <!-- 대운 -->
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold text-sm">대운 흐름 <span class="label-aux">(10년 단위)</span></div>
+          <button class="cta-btn">💬 자세히 묻기</button>
+        </div>
+        <div class="grid grid-cols-4 md:grid-cols-8 gap-2 text-xs text-center">
+          <div class="p-2 rounded glass-light"><div class="font-bold">己卯</div><div class="label-aux text-[10px]">3~12</div></div>
+          <div class="p-2 rounded glass-light"><div class="font-bold">庚辰</div><div class="label-aux text-[10px]">13~22</div></div>
+          <div class="p-2 rounded glass-light"><div class="font-bold">辛巳</div><div class="label-aux text-[10px]">23~32</div></div>
+          <div class="p-2 rounded" style="background: rgba(180, 140, 255, 0.25); border: 1px solid rgba(180, 140, 255, 0.5);">
+            <div class="font-bold">壬午</div>
+            <div class="text-[10px]" style="color: rgb(220, 200, 255);">33~42 (현재)</div>
+          </div>
+          <div class="p-2 rounded glass-light"><div class="font-bold">癸未</div><div class="label-aux text-[10px]">43~52</div></div>
+          <div class="p-2 rounded glass-light"><div class="font-bold">甲申</div><div class="label-aux text-[10px]">53~62</div></div>
+          <div class="p-2 rounded glass-light"><div class="font-bold">乙酉</div><div class="label-aux text-[10px]">63~72</div></div>
+          <div class="p-2 rounded glass-light"><div class="font-bold">丙戌</div><div class="label-aux text-[10px]">73~82</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ────────── Level 2: 점성 차트 ────────── -->
+  <section class="mb-10">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="level-tag">L2 · 차트</span>
+      <h2 class="text-lg font-semibold">🟪 점성 차트</h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <!-- 핵심 -->
+      <div class="glass rounded-2xl p-5">
+        <div class="font-semibold text-sm mb-3">하늘의 좌표</div>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="tooltip" data-tip="출생 시각에 동쪽 지평선에서 떠오르던 별자리 — 첫인상 / 외향">떠오르는 별자리 <span class="label-aux">(ASC)</span></span>
+            <span class="font-semibold">♈ 양자리</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="tooltip" data-tip="출생 시각의 정점 별자리 — 사회적 자아 / 직업 방향">하늘 정점 <span class="label-aux">(MC)</span></span>
+            <span class="font-semibold">♑ 염소자리</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="tooltip" data-tip="태양이 지평선 위면 낮 출생, 아래면 밤 출생 — 정통 점성의 기본 분기">낮 / 밤</span>
+            <span class="chip chip-good">낮 (Day)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 행성표 -->
+      <div class="glass rounded-2xl p-5 md:col-span-2">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold text-sm">10 행성 + 보조점</div>
+          <button class="cta-btn">💬 자세히 묻기</button>
+        </div>
+        <table class="planet-table w-full">
+          <thead>
+            <tr class="border-b border-white/10">
+              <th class="text-left">행성</th><th>별자리</th><th>하우스</th><th>강도</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm">
+            <tr><td>☉ 태양</td><td>♒ 물병</td><td>H 11</td><td><span class="chip chip-mid">평이</span></td></tr>
+            <tr><td>☽ 달</td><td>♓ 물고기</td><td>H 12</td><td><span class="chip chip-mid">평이</span></td></tr>
+            <tr><td>☿ 수성</td><td>♑ 염소</td><td>H 10</td><td><span class="chip chip-mid">평이</span></td></tr>
+            <tr><td>♀ 금성</td><td>♓ 물고기</td><td>H 12</td><td><span class="chip chip-good">격상</span></td></tr>
+            <tr><td>♂ 화성</td><td>♐ 사수</td><td>H 9</td><td><span class="chip chip-mid">평이</span></td></tr>
+            <tr><td>♃ 목성</td><td>♐ 사수</td><td>H 9</td><td><span class="chip chip-good">자기집</span></td></tr>
+            <tr><td>♄ 토성</td><td>♓ 물고기</td><td>H 12</td><td><span class="chip chip-bad">손상</span></td></tr>
+            <tr><td>♅ 천왕성</td><td>♑ 염소</td><td>H 10</td><td><span class="chip chip-mid">평이</span></td></tr>
+            <tr><td>♆ 해왕성</td><td>♑ 염소</td><td>H 10</td><td><span class="chip chip-mid">평이</span></td></tr>
+            <tr><td>♇ 명왕성</td><td>♐ 사수</td><td>H 9</td><td><span class="chip chip-mid">평이</span></td></tr>
+            <tr class="border-t border-white/10"><td><span class="tooltip" data-tip="카이런 — 깊은 상처와 치유의 주제">⚷ 카이런</span></td><td>♍ 처녀</td><td>H 6</td><td>—</td></tr>
+            <tr><td><span class="tooltip" data-tip="릴리스 — 억압된 욕망 / 금기 / 그림자 자아의 주제">🌑 릴리스</span></td><td>♓ 물고기</td><td>H 12</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 주요 각 -->
+      <div class="glass rounded-2xl p-5 md:col-span-3">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold text-sm">주요 각도 <span class="label-aux">(본명 aspects)</span></div>
+          <button class="cta-btn">💬 자세히 묻기</button>
+        </div>
+        <div class="grid md:grid-cols-2 gap-2 text-sm">
+          <div class="flex items-center gap-2 p-2 glass-light rounded"><span class="chip chip-good">△</span> 태양 (♒) 트라인 화성 (♐) <span class="label-aux text-xs ml-auto">orb 1.2°</span></div>
+          <div class="flex items-center gap-2 p-2 glass-light rounded"><span class="chip chip-good">⚹</span> 금성 (♓) 섹스타일 명왕성 (♐) <span class="label-aux text-xs ml-auto">orb 0.4°</span></div>
+          <div class="flex items-center gap-2 p-2 glass-light rounded"><span class="chip chip-bad">□</span> 달 (♓) 스퀘어 목성 (♐) <span class="label-aux text-xs ml-auto">orb 2.1°</span></div>
+          <div class="flex items-center gap-2 p-2 glass-light rounded"><span class="chip chip-bad">☍</span> 토성 (♓) 어포지션 ASC (♈) <span class="label-aux text-xs ml-auto">orb 3.4°</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ────────── Level 3: 정통 점성 깊이 (접고 펼침) ────────── -->
+  <section class="mb-10 advanced">
+    <details>
+      <summary>
+        <span class="level-tag">L3 · 정통 깊이</span>
+        <span>정통 점성 깊이 보기</span>
+        <span class="label-aux text-xs ml-auto">Almuten · Arabic Lots · Dignity 5단계 · 보조 각도</span>
+      </summary>
+
+      <div class="glass rounded-b-2xl border-t-0 p-5 grid md:grid-cols-2 gap-5">
+
+        <!-- Almuten Figuris -->
+        <div class="glass-light rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="text-sm font-semibold">
+              <span class="tooltip" data-tip="당신 차트에서 가장 영향력 있는 행성 — Sun/Moon/ASC/Fortune 4점에 dignity 점수 합산">주재 행성 <span class="label-aux">(Almuten Figuris)</span></span>
+            </h3>
+            <button class="cta-btn ml-auto">💬 의미 묻기</button>
+          </div>
+          <div class="text-center my-3">
+            <div class="text-3xl">♀</div>
+            <div class="font-semibold">금성 (Venus)</div>
+            <div class="label-aux text-xs">8점 — 차트 전체의 핵심 동인</div>
+          </div>
+          <div class="text-xs label-aux">분해</div>
+          <div class="text-xs space-y-1 mt-1">
+            <div>☉ 태양 ♒ → 금성 3점 (triplicity)</div>
+            <div>☽ 달 ♓ → 금성 2점 (term + face)</div>
+            <div>ASC ♈ → 금성 1점 (exaltation)</div>
+            <div>⊕ Fortune ♓ → 금성 2점 (domicile)</div>
+          </div>
+        </div>
+
+        <!-- Arabic Lots -->
+        <div class="glass-light rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="text-sm font-semibold">
+              <span class="tooltip" data-tip="정통 점성의 7가지 산술 지점 — 차트 점들 사이 수학 공식으로 만들어지는 의미 좌표">7가지 운명의 점 <span class="label-aux">(Arabic Lots)</span></span>
+            </h3>
+            <button class="cta-btn ml-auto">💬 자세히 묻기</button>
+          </div>
+          <div class="grid grid-cols-1 gap-1 text-xs">
+            <div class="flex justify-between"><span><b>포르투나</b> · 행운점</span><span>♓ H12</span></div>
+            <div class="flex justify-between"><span><b>스피릿</b> · 정신점</span><span>♎ H7</span></div>
+            <div class="flex justify-between"><span><b>에로스</b> · 욕망점</span><span>♋ H4</span></div>
+            <div class="flex justify-between"><span><b>네케시티</b> · 운명점</span><span>♑ H10</span></div>
+            <div class="flex justify-between"><span><b>쿠라지</b> · 용기점</span><span>♉ H2</span></div>
+            <div class="flex justify-between"><span><b>빅토리</b> · 승리점</span><span>♐ H9</span></div>
+            <div class="flex justify-between"><span><b>네메시스</b> · 그림자점</span><span>♈ H1</span></div>
+          </div>
+        </div>
+
+        <!-- Dignity 5단계 -->
+        <div class="glass-light rounded-xl p-4 md:col-span-2">
+          <div class="flex items-center gap-2 mb-3">
+            <h3 class="text-sm font-semibold">
+              <span class="tooltip" data-tip="행성이 자기 자리에서 얼마나 강한지 5단계 정밀 점수 — domicile / exaltation / triplicity / term / face">행성 강도 5단계 <span class="label-aux">(Dignity Tiers)</span></span>
+            </h3>
+            <button class="cta-btn ml-auto">💬 자세히 묻기</button>
+          </div>
+          <table class="planet-table w-full">
+            <thead>
+              <tr class="border-b border-white/10 text-[10px]">
+                <th class="text-left">행성</th>
+                <th class="tooltip" data-tip="자기집 — 가장 강한 자리">자기집</th>
+                <th class="tooltip" data-tip="격상 — 두번째로 강한 자리">격상</th>
+                <th class="tooltip" data-tip="트리플리시티 — 3원소 그룹의 주인 (낮/밤 분기)">트리플</th>
+                <th class="tooltip" data-tip="텀 — 별자리 안 작은 구역의 주인">텀</th>
+                <th class="tooltip" data-tip="페이스 — 별자리 10도 구역의 주인">페이스</th>
+                <th>점수</th>
+              </tr>
+            </thead>
+            <tbody class="text-xs">
+              <tr><td>☉ 태양</td><td>—</td><td>—</td><td>—</td><td>♄</td><td>♂</td><td>0</td></tr>
+              <tr><td>☽ 달</td><td>—</td><td>—</td><td>—</td><td>—</td><td>♃</td><td>0</td></tr>
+              <tr><td>☿ 수성</td><td>—</td><td>—</td><td>—</td><td>♄</td><td>♃</td><td>0</td></tr>
+              <tr><td>♀ 금성</td><td>—</td><td>♀</td><td>♀</td><td>♄</td><td>♀</td><td><span class="chip chip-good">+7</span></td></tr>
+              <tr><td>♂ 화성</td><td>—</td><td>—</td><td>—</td><td>♃</td><td>♂</td><td>+1</td></tr>
+              <tr><td>♃ 목성</td><td>♃</td><td>—</td><td>♃</td><td>♃</td><td>♂</td><td><span class="chip chip-good">+9</span></td></tr>
+              <tr><td>♄ 토성</td><td>—</td><td>—</td><td>—</td><td>♀</td><td>♂</td><td><span class="chip chip-bad">-5</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 보조 각 -->
+        <div class="glass-light rounded-xl p-4 md:col-span-2">
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="text-sm font-semibold">
+              <span class="tooltip" data-tip="30°/45°/72°/144° 등 미세 각도 — 차트의 더 세밀한 신호">보조 각도 <span class="label-aux">(Minor Aspects)</span></span>
+            </h3>
+            <span class="label-aux text-xs ml-auto">총 18 hits</span>
+          </div>
+          <div class="grid md:grid-cols-2 gap-1 text-xs">
+            <div class="p-1.5 rounded glass-light">⚺ 태양 세미섹스타일 카이런 (orb 1.0°)</div>
+            <div class="p-1.5 rounded glass-light">⚻ 달 퀸커닉스 명왕성 (orb 1.8°)</div>
+            <div class="p-1.5 rounded glass-light">∠ 수성 세미스퀘어 토성 (orb 0.6°)</div>
+            <div class="p-1.5 rounded glass-light">⚺ 금성 세미섹스타일 화성 (orb 2.1°)</div>
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+
+  <!-- ────────── 운명상담사 CTA 영역 ────────── -->
+  <section class="mb-10">
+    <div class="glass rounded-2xl p-6 md:p-8" style="background: linear-gradient(135deg, rgba(180,140,255,0.08), rgba(255,140,200,0.06));">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl">💬</span>
+        <div>
+          <h2 class="text-lg font-semibold gradient-text">이 차트로 운명상담사에게 물어보기</h2>
+          <p class="label-aux text-xs">차트는 데이터 · 해석은 AI 운명상담사가</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+        <button class="text-left p-3 glass-light rounded-xl hover:bg-white/10 transition">
+          <span class="text-lg mr-2">💼</span>직업 추천
+          <div class="label-aux text-xs mt-1">격국 + Almuten 기반</div>
+        </button>
+        <button class="text-left p-3 glass-light rounded-xl hover:bg-white/10 transition">
+          <span class="text-lg mr-2">💕</span>결혼 / 인연
+          <div class="label-aux text-xs mt-1">관성·인성·12운성 기반</div>
+        </button>
+        <button class="text-left p-3 glass-light rounded-xl hover:bg-white/10 transition">
+          <span class="text-lg mr-2">🏥</span>건강 흐름
+          <div class="label-aux text-xs mt-1">오행 균형 + 신살</div>
+        </button>
+        <button class="text-left p-3 glass-light rounded-xl hover:bg-white/10 transition">
+          <span class="text-lg mr-2">💰</span>재물 운
+          <div class="label-aux text-xs mt-1">재성 + 2번 하우스</div>
+        </button>
+        <button class="text-left p-3 glass-light rounded-xl hover:bg-white/10 transition">
+          <span class="text-lg mr-2">📚</span>학업 / 적성
+          <div class="label-aux text-xs mt-1">인성 + 수성 위치</div>
+        </button>
+        <button class="text-left p-3 glass-light rounded-xl hover:bg-white/10 transition">
+          <span class="text-lg mr-2">🤝</span>인간관계
+          <div class="label-aux text-xs mt-1">합·충·형 + 본명 aspect</div>
+        </button>
+      </div>
+
+      <div class="mt-4 text-center">
+        <a class="inline-block px-5 py-2 rounded-full font-semibold text-sm" style="background: linear-gradient(135deg, #c4a4ff, #ff9ec4); color: #1a1a2e;">
+          ✨ 운명상담사 페이지로 →
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ────────── footer 안내 ────────── -->
+  <footer class="mt-12 text-center label-aux text-xs">
+    <p>이 차트는 raw 데이터 + 정통 점성/사주 분석 결과입니다.</p>
+    <p class="mt-1">테마별 해석 (직업·결혼·건강 등) 은 운명상담사 AI 가 정통 룰로 답변합니다.</p>
+    <p class="mt-3">📊 v1 mockup · 2026-06-06</p>
+  </footer>
+
+</div>
+
+</body>
+</html>
