@@ -18,7 +18,6 @@
 
 import { describe, expect, it } from 'vitest'
 import {
-  buildChunkUserPrompt,
   buildFallbackPayload,
   buildInterpretStreamPrompts,
   renderCardList,
@@ -374,95 +373,6 @@ describe('buildInterpretStreamPrompts — blank question opening', () => {
     })
     expect(blank.userPrompt).toContain('open overall with the overall flow naturally')
     expect(blank.userPrompt).not.toContain("must reference the user's question directly")
-  })
-})
-
-describe('buildChunkUserPrompt — large spread chunks', () => {
-  const cards: PromptCardInput[] = Array.from({ length: 10 }, (_, i) => ({
-    name: `Card ${i + 1}`,
-    nameKo: `${i + 1}번 카드`,
-    isReversed: i % 3 === 0,
-  }))
-
-  it('chunk A (includeMeta=true) asks for overall + advice + first-half cards', () => {
-    const text = buildChunkUserPrompt({
-      language: 'ko',
-      spreadTitle: SAMPLE_SPREAD,
-      cards,
-      userQuestion: SAMPLE_QUESTION_KO,
-      startIdx: 0,
-      endIdx: 5,
-      includeMeta: true,
-    })
-    expect(text).toContain('overall + advice')
-    expect(text).toContain('(전체 10장 중 1~5번 카드만 해석)')
-    expect(text).toContain('cards 배열 길이 정확히 5 개')
-  })
-
-  it('chunk B (includeMeta=false) explicitly suppresses overall/advice', () => {
-    const text = buildChunkUserPrompt({
-      language: 'ko',
-      spreadTitle: SAMPLE_SPREAD,
-      cards,
-      userQuestion: SAMPLE_QUESTION_KO,
-      startIdx: 5,
-      endIdx: 10,
-      includeMeta: false,
-    })
-    expect(text).toContain('overall/advice 는 출력하지 마세요')
-    expect(text).toContain('(전체 10장 중 6~10번 카드만 해석)')
-    expect(text).toContain('cards 배열 길이 정확히 5 개')
-  })
-
-  it('the English variant mirrors the Korean wording switch', () => {
-    const a = buildChunkUserPrompt({
-      language: 'en',
-      spreadTitle: SAMPLE_SPREAD,
-      cards,
-      userQuestion: SAMPLE_QUESTION_EN,
-      startIdx: 0,
-      endIdx: 5,
-      includeMeta: true,
-    })
-    expect(a).toContain('write overall + advice')
-    expect(a).toContain('cards 1-5 of 10')
-
-    const b = buildChunkUserPrompt({
-      language: 'en',
-      spreadTitle: SAMPLE_SPREAD,
-      cards,
-      userQuestion: SAMPLE_QUESTION_EN,
-      startIdx: 5,
-      endIdx: 10,
-      includeMeta: false,
-    })
-    expect(b).toContain('Do NOT include overall/advice')
-    expect(b).toContain('cards 6-10 of 10')
-  })
-
-  it('includes the full card list in both chunks (context anchor)', () => {
-    const a = buildChunkUserPrompt({
-      language: 'ko',
-      spreadTitle: SAMPLE_SPREAD,
-      cards,
-      userQuestion: SAMPLE_QUESTION_KO,
-      startIdx: 0,
-      endIdx: 5,
-      includeMeta: true,
-    })
-    const b = buildChunkUserPrompt({
-      language: 'ko',
-      spreadTitle: SAMPLE_SPREAD,
-      cards,
-      userQuestion: SAMPLE_QUESTION_KO,
-      startIdx: 5,
-      endIdx: 10,
-      includeMeta: false,
-    })
-    for (const card of cards) {
-      expect(a).toContain(card.nameKo!)
-      expect(b).toContain(card.nameKo!)
-    }
   })
 })
 

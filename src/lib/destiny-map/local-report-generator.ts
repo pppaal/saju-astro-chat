@@ -618,7 +618,7 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
   const role = domKey !== selfKey ? sibsinRole(selfKey, domKey) : null
 
   // ── advancedAnalysis (격국·용신·신강약·십성) 안전 추출 ───────────────────
-  const advanced = (s?.advancedAnalysis as
+  const advanced = (s?.analyses as
     | {
         geokguk?: { primary?: string }
         yongsin?: { primaryYongsin?: string; daymasterStrength?: string }

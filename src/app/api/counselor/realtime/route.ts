@@ -12,7 +12,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
 import { buildSajuNormalizerInput } from '@/lib/fusion/adapters/saju'
-import { buildAstroNormalizerInput } from '@/lib/fusion/adapters/astro'
 import { buildDestinyContext } from '@/lib/destiny/counselorContext'
 import { getNowInTimezone } from '@/lib/datetime'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
@@ -331,32 +330,20 @@ export async function POST(req: NextRequest) {
         normalizeGender(body.gender) === 'female' ? 'female' : 'male'
       const latitude = body.latitude ?? 37.5665
       const longitude = body.longitude ?? 126.978
-      const sajuPromise = Promise.resolve(
-        buildSajuNormalizerInput({
-          birthDate,
-          birthTime,
-          gender,
-          timezone: tz,
-          queryDate,
-          longitude,
-        })
-      )
-      const [y, m, d] = birthDate.split('-').map(Number)
-      const [hh, mm] = birthTime.split(':').map(Number)
-      const astroPromise = buildAstroNormalizerInput({
-        year: y,
-        month: m,
-        date: d,
-        hour: hh,
-        minute: mm,
-        latitude,
-        longitude,
-        timeZone: tz,
+      // 점성 데이터는 buildDestinyContext (astroFacts 위임) 가 직접 계산.
+      // 옛 코드는 buildAstroNormalizerInput 도 같이 await 했지만 결과를
+      // `_astro` 로 받고 안 썼음 (dead computation — Swiss Ephemeris ×
+      // natal/SR/LR + progression 비용 매 요청 헛돔). saju 쪽
+      // currentSeun/Wolun/Iljin/unseRelations 는 여전히 fusion saju
+      // adapter 가 만든다 (sync).
+      const saju = buildSajuNormalizerInput({
+        birthDate,
+        birthTime,
+        gender,
+        timezone: tz,
         queryDate,
-        includeSolarReturn: true,
-        includeLunarReturn: true,
+        longitude,
       })
-      const [saju, _astro] = await Promise.all([sajuPromise, astroPromise])
       const birthTimeUnknown = hourUnknown
       const birthCityUnknown = cityUnknown
       // Compact table form — replaces the older pretty-JSON snapshot

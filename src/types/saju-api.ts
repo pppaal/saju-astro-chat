@@ -246,7 +246,7 @@ export interface SajuApiResponse {
   aiModelUsed: string
 
   // Premium content
-  advancedAnalysis: AdvancedSajuAnalysis | null
+  analyses: AdvancedSajuAnalysis | null
 }
 
 // ============ Internal Types ============

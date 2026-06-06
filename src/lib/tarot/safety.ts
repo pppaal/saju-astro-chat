@@ -5,9 +5,8 @@
 
 // Detection now lives in the shared crisis module (single source, reused by the
 // counselors). Re-exported here so existing tarot imports keep working.
-import { SELF_HARM_KEYWORDS, isSelfHarm } from '@/lib/safety/crisis'
+import { isSelfHarm } from '@/lib/safety/crisis'
 
-export const DANGEROUS_KEYWORDS = SELF_HARM_KEYWORDS
 export const isDangerousQuestion = isSelfHarm
 
 export interface CrisisPayloadInput {

@@ -4,7 +4,7 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  * 본명 격국 성패(成敗) 추출기.
  *
  * `advancedAnalysis.geokguk.statusResult` 에 정격·비격 사주의 성격/파격/반성반파
- * 판정이 담겨 있다 (build.ts → performAdvancedAnalysis → determineGeokgukAdvanced).
+ * 판정이 담겨 있다 (build.ts → performAnalyses → determineGeokgukAdvanced).
  * 이를 매일 frame 신호로 띄움 — 본명 평생 활성이지만 score 에 매일 기여.
  *
  * saju-pattern 과의 차이:
@@ -35,7 +35,7 @@ const sajuGeokgukExtractor: SignalExtractor = {
     const { natal, range } = ctx
     const signals: ActiveSignal[] = []
 
-    const advanced = natal.saju.advancedAnalysis?.geokguk
+    const advanced = natal.saju.analyses?.geokguk
     if (!advanced || !advanced.primary || advanced.primary === '미정') {
       return signals
     }

@@ -8,7 +8,6 @@
  * - tarot.ts     : Tarot card and reading schemas
  * - payment.ts   : Checkout, Credits, Stripe webhooks
  * - user.ts      : Auth, Profile, Notification, Feedback, Personality
- * - destiny-match.ts: Dating/matching schemas
  *
  * Error Handling Utilities (from common.ts):
  * - formatZodErrors()              : Convert ZodError to ValidationErrorDetail[]
@@ -22,4 +21,3 @@ export * from './saju'
 export * from './tarot'
 export * from './payment'
 export * from './user'
-export * from './destiny-match'

@@ -72,7 +72,6 @@ export const ENABLED_SERVICES: readonly EnabledService[] = ALL_SERVICES.filter((
 // 에서 이 prefix 리스트를 사용한다.
 export const REMOVED_PUBLIC_SERVICE_PREFIXES: readonly string[] = [
   '/report',
-  '/destiny-match',
   '/personality',
   '/icp',
   '/astrology',

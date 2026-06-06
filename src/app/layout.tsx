@@ -171,7 +171,7 @@ export const metadata: Metadata = {
       "AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.",
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-card-v2.png',
         width: 1200,
         height: 630,
         alt: 'DestinyPal — AI Saju, Astrology, Tarot & Fortune Calendar',
@@ -183,7 +183,7 @@ export const metadata: Metadata = {
     title: 'DestinyPal — AI Saju, Astrology, Tarot & Fortune Calendar',
     description:
       "AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar.",
-    images: ['/og-image.png'],
+    images: ['/og-card-v2.png'],
     creator: '@destinypal',
     site: '@destinypal',
   },

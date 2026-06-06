@@ -54,7 +54,7 @@ interface SajuLike {
   dayMaster?: { name?: string; element?: string }
   // 오행 분포 — 한/영 키 혼용 가능 (목/wood 등). 기질 교차에 사용.
   fiveElements?: Record<string, number>
-  advancedAnalysis?: {
+  analyses?: {
     geokguk?: { primary?: string }
     // 신강약 — '강'/'중'/'약' 또는 strong/medium/weak.
     yongsin?: { primaryYongsin?: string; daymasterStrength?: string }
@@ -305,7 +305,7 @@ function buildRows(
 
   // 2. 필요/욕망: 용신 ↔ 달
   {
-    const yongsin = saju.advancedAnalysis?.yongsin?.primaryYongsin
+    const yongsin = saju.analyses?.yongsin?.primaryYongsin
     const moon = findPlanet(astro, 'Moon')
     if (yongsin && moon?.sign) {
       const moonWest = SIGN_TO_WESTERN_ELEMENT[moon.sign]
@@ -328,7 +328,7 @@ function buildRows(
 
   // 3. 사회 역할: 격국 ↔ MC. 격국이 '미정' 등 매핑 불가면 설명을 못 다니 행 생략.
   {
-    const geokguk = saju.advancedAnalysis?.geokguk?.primary
+    const geokguk = saju.analyses?.geokguk?.primary
     const mc = getMc(astro)
     const verdict = geokguk && mc?.sign ? evalSocialRole(geokguk, mc.sign) : null
     if (geokguk && mc?.sign && verdict) {
@@ -451,7 +451,7 @@ function buildRows(
 
   // 8. 에너지 방향: 십신 우세 그룹(전체) ↔ 강조된 행성
   {
-    const details = saju.advancedAnalysis?.sibsin?.categoryCount
+    const details = saju.analyses?.sibsin?.categoryCount
     const verdict = evalEnergyDirection(details, emphasized)
     if (verdict) {
       verdicts.push(verdict)
@@ -492,7 +492,7 @@ function buildRows(
 
   // 10. 추진력: 신강약 ↔ 자기주장 행성(태양·화성) 강조
   {
-    const strength = saju.advancedAnalysis?.yongsin?.daymasterStrength
+    const strength = saju.analyses?.yongsin?.daymasterStrength
     const selfEmphasized = emphasized.has('Sun') || emphasized.has('Mars')
     const verdict = evalDrive(strength, selfEmphasized)
     if (verdict) {
@@ -514,14 +514,14 @@ function buildRows(
   // 11. 핵심 각: 가장 강한 행성 각의 의미 ↔ 사주 우세 십신
   {
     const aspects = Array.isArray(astro.aspects) ? (astro.aspects as Parameters<typeof evalKeyAspect>[0]) : undefined
-    const group = dominantSibsinGroup(saju.advancedAnalysis?.sibsin?.categoryCount)
+    const group = dominantSibsinGroup(saju.analyses?.sibsin?.categoryCount)
     const verdict = evalKeyAspect(aspects, group)
     if (verdict) {
       verdicts.push(verdict)
       rows.push({
         category: lang === 'ko' ? '핵심 성향' : 'Signature',
         leftLabel: lang === 'ko' ? '사주 우세' : 'Saju lead',
-        leftValue: dominantGroupLabel(saju.advancedAnalysis?.sibsin?.categoryCount, lang) ?? (lang === 'ko' ? '—' : '—'),
+        leftValue: dominantGroupLabel(saju.analyses?.sibsin?.categoryCount, lang) ?? (lang === 'ko' ? '—' : '—'),
         rightLabel: lang === 'ko' ? '가장 센 각' : 'Tightest aspect',
         rightValue: lang === 'ko' ? '아래 설명' : 'see below',
         tone: verdict.tone,

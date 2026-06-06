@@ -10,8 +10,7 @@ export type { ThemeBarsProps, ThemeBarItem } from './ThemeBars'
 export { Polarity } from './Polarity'
 export type { PolarityProps } from './Polarity'
 
-export { ScoreOrb } from './ScoreOrb'
-export type { ScoreOrbProps } from './ScoreOrb'
+// 옛 ScoreOrb — 사용자 종합 점수/등급 위젯, 가짜 점수 source 라 2026-06-06 폐기.
 
 export { ScoreDial } from './ScoreDial'
 export type { ScoreDialProps } from './ScoreDial'

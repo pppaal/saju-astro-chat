@@ -163,8 +163,6 @@ export default async function DestinypalPage() {
     birthKo: userBase.birthKo,
     place: userBase.place,
     sex: (userBase.sex === '남' || userBase.sex === '여' ? userBase.sex : '남'),
-    score: userBase.score,
-    grade: userBase.grade,
     ilgan: {
       hanja: userBase.ilgan.hanja,
       kr: userBase.ilgan.kr,
@@ -431,7 +429,7 @@ export default async function DestinypalPage() {
     cell: dayCell,
     natal,
   })
-  const advanced = natal.saju.advancedAnalysis
+  const advanced = natal.saju.analyses
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
   const day: DestinyDay = {

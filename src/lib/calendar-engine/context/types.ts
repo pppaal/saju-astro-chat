@@ -13,7 +13,7 @@ import type { DignityTiers } from '@/lib/astrology/foundation/dignities'
 import type { ArabicLot } from '@/lib/astrology/foundation/arabicParts'
 import type { AlmutenFigurisResult } from '@/lib/astrology/foundation/almutenFiguris'
 import type { SajuPillars, FiveElement, ShinsalHit, RelationHit, DayMaster } from '@/lib/saju/types'
-import type { AdvancedAnalysisResult } from '@/app/api/saju/services/advancedAnalysis'
+import type { AnalysesResult } from '@/app/api/saju/services/analyses'
 
 /**
  * Per-lot Zodiacal Releasing cache shape — L1 periods are pre-computed up to
@@ -133,10 +133,10 @@ export interface NatalSajuContext {
    * 격국·용신·통근·득령·조후·십신 종합·건강·직업·점수·해석 등 12 영역 분석.
    * /api/saju 의 응답 advancedAnalysis 와 동일 shape — 차트 PersonaCard/InsightStrip
    * 가 이 필드에서 격국/신강약/십성카운트 추출.
-   * performAdvancedAnalysis() 는 pure compute (Swiss Ephemeris 호출 없음) 라
+   * performAnalyses() 는 pure compute (Swiss Ephemeris 호출 없음) 라
    * 캐시된 결과 그대로 클라이언트에 반환해도 안전.
    */
-  advancedAnalysis: AdvancedAnalysisResult
+  analyses: AnalysesResult
   /**
    * 본명 일주(日柱) 지지의 지장간 3층 — destinypal Persona 카드의 "일주 3층"
    * 표시가 매번 JIJANGGAN[branch] 룩업을 다시 하지 않도록 컨텍스트에 캐시.

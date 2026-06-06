@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
-import { calculateSajuData } from '@/lib/saju/saju'
 import { normalizeGender } from '@/lib/utils/gender'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
@@ -206,7 +205,7 @@ export function useCounselorData(sp: SearchParams) {
     // shape 에 의존하므로 캐시 miss 시 반드시 /api/saju 응답을 받아야 함.
     // 캐시 hit 이어도 cached.saju 가 advancedAnalysis 누락된 옛 shape 일 수 있어,
     // dayMaster + advancedAnalysis 둘 다 있는 경우만 재사용.
-    const cachedRich = saju && saju.dayMaster && (saju as Record<string, unknown>).advancedAnalysis
+    const cachedRich = saju && saju.dayMaster && (saju as Record<string, unknown>).analyses
 
     // Set initial chartData (may be updated later by async fetches)
     applyChart({
@@ -240,24 +239,14 @@ export function useCounselorData(sp: SearchParams) {
             signal: controller.signal,
           })
           if (!res.ok) {
-            // /api/saju 실패 시 fallback — calculateSajuData 직접 호출 (옛 동작).
-            // PersonaCard 등은 빈 fallback 으로 떨어지지만 SajuChart 자체는 표시.
-            try {
-              const computed = calculateSajuData(
-                birthDate,
-                birthTime,
-                normalizedGender,
-                'solar',
-                resolvedTimeZone
-              )
-              applyChart((prev) => ({
-                saju: computed as unknown as Record<string, unknown>,
-                astro: prev?.astro,
-                advancedAstro: prev?.advancedAstro,
-              }))
-            } catch (e) {
-              logger.warn('[CounselorPage] fallback saju compute failed', e)
-            }
+            // /api/saju 실패 시 옛 코드는 client 에서 calculateSajuData 를
+            // 직접 호출했음. PersonaCard / InsightStrip 등 풍부한 UI 가
+            // 어차피 빈 fallback 으로 떨어져 사용자 체감 효과 0, 반면
+            // Swiss Ephemeris + 사주 알고리즘 코드가 client bundle 에
+            // 매번 들어가 모든 사용자가 무거운 다운로드 → 첫 로딩 느려짐.
+            // 제거 후엔 /api/saju 실패 시 그냥 빈 상태 (옛 fallback 과
+            // 사실상 동일한 UX).
+            logger.warn('[CounselorPage] /api/saju failed', { status: res.status })
             return
           }
           const json = (await res.json()) as { data?: Record<string, unknown> }

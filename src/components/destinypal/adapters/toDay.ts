@@ -356,7 +356,7 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   }))
 
   // 본명 격국 status (Phase 3)
-  const advanced = natal.saju.advancedAnalysis
+  const advanced = natal.saju.analyses
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukStatus = geokgukStatusLine(
     advanced?.geokguk?.primary && advanced.geokguk.primary !== '미정' ? advanced.geokguk.primary : undefined,

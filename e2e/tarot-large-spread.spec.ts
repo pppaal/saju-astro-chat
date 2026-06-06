@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { tarotThemes } from '../src/lib/tarot/tarot-spreads-data'
 
 type SpreadConfig = {
   categoryId: string
@@ -7,30 +8,25 @@ type SpreadConfig = {
   positions: string[]
 }
 
-const CELTIC_CROSS: SpreadConfig = {
-  categoryId: 'general-insight',
-  spreadId: 'celtic-cross',
-  cardCount: 10,
-  positions: [
-    'The Present',
-    'The Challenge',
-    'The Past',
-    'The Future',
-    'Above (Conscious)',
-    'Below (Subconscious)',
-    'Advice',
-    'External Influences',
-    'Hopes and Fears',
-    'The Outcome',
-  ],
+// 스프레드 설정을 정식 데이터(tarotThemes = SSOT)에서 도출 — 카드 장수가 실제
+// 앱과 어긋나지 않도록. (이전엔 celtic-cross 를 10장으로, 존재하지도 않는
+// daily-reading/weekly-forecast 를 하드코딩해 실제 데이터와 드리프트했음.
+// 실제 celtic-cross 는 7장이고 weekly-forecast 스프레드는 없음.)
+// 실제 positions 는 빈 배열(LLM 이 질문 맥락에 맞춰 자리명 부여)이라 모킹용으로
+// cardCount 만큼 placeholder 자리명을 생성한다.
+function spreadConfigFromData(categoryId: string, spreadId: string): SpreadConfig {
+  const theme = tarotThemes.find((t) => t.id === categoryId)
+  const spread = theme?.spreads.find((s) => s.id === spreadId)
+  if (!spread) {
+    throw new Error(`Spread not found in tarotThemes (SSOT): ${categoryId}/${spreadId}`)
+  }
+  const positions = Array.from({ length: spread.cardCount }, (_, i) => `Position ${i + 1}`)
+  return { categoryId, spreadId, cardCount: spread.cardCount, positions }
 }
 
-const WEEKLY_FORECAST: SpreadConfig = {
-  categoryId: 'daily-reading',
-  spreadId: 'weekly-forecast',
-  cardCount: 7,
-  positions: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-}
+// 실제 데이터의 두 큰 스프레드(5장·7장) — general-insight 테마의 general-cross/celtic-cross.
+const CELTIC_CROSS = spreadConfigFromData('general-insight', 'celtic-cross') // 7장
+const GENERAL_CROSS = spreadConfigFromData('general-insight', 'general-cross') // 5장
 
 function buildMockDrawnCards(cardCount: number) {
   return Array.from({ length: cardCount }, (_, index) => ({
@@ -191,7 +187,7 @@ test.describe('Tarot Large Spread E2E', () => {
     })
   })
 
-  test('celtic-cross 10 cards returns interpretations with personalization enabled', async ({
+  test('celtic-cross (7 cards) returns interpretations with personalization enabled', async ({
     page,
   }) => {
     const interpretBodies: Array<Record<string, unknown>> = []
@@ -204,20 +200,20 @@ test.describe('Tarot Large Spread E2E', () => {
 
     const body = interpretBodies.at(-1) || {}
     expect(Array.isArray(body.cards)).toBe(true)
-    expect((body.cards as unknown[]).length).toBe(10)
+    expect((body.cards as unknown[]).length).toBe(CELTIC_CROSS.cardCount)
     expect(body.includeSaju).toBe(true)
     expect(body.includeAstrology).toBe(true)
     expect(typeof body.sajuContext).toBe('string')
     expect(body).toHaveProperty('birthdate')
   })
 
-  test('weekly-forecast 7 cards respects toggles when personalization is disabled', async ({
+  test('general-cross (5 cards) respects toggles when personalization is disabled', async ({
     page,
   }) => {
     const interpretBodies: Array<Record<string, unknown>> = []
-    await setupMocks(page, WEEKLY_FORECAST, interpretBodies)
+    await setupMocks(page, GENERAL_CROSS, interpretBodies)
 
-    await page.goto('/tarot/daily-reading/weekly-forecast?question=e2e-test', {
+    await page.goto(`/tarot/${GENERAL_CROSS.categoryId}/${GENERAL_CROSS.spreadId}?question=e2e-test`, {
       waitUntil: 'domcontentloaded',
     })
 
@@ -232,16 +228,16 @@ test.describe('Tarot Large Spread E2E', () => {
     await expect(astrologyToggle).not.toBeChecked()
 
     await page.getByTestId('tarot-start-reading').click()
-    for (let i = 0; i < WEEKLY_FORECAST.cardCount; i++) {
+    for (let i = 0; i < GENERAL_CROSS.cardCount; i++) {
       await page.getByTestId(`tarot-card-${i}`).click({ force: true })
     }
 
-    await expect(page.getByText('Mock overall for weekly-forecast')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText('Mock overall for general-cross')).toBeVisible({ timeout: 15000 })
     expect(interpretBodies.length).toBeGreaterThan(0)
 
     const body = interpretBodies.at(-1) || {}
     expect(Array.isArray(body.cards)).toBe(true)
-    expect((body.cards as unknown[]).length).toBe(7)
+    expect((body.cards as unknown[]).length).toBe(GENERAL_CROSS.cardCount)
     expect(body.includeSaju).toBe(false)
     expect(body.includeAstrology).toBe(false)
     expect(body).not.toHaveProperty('birthdate')

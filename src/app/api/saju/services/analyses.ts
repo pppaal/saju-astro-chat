@@ -1,4 +1,4 @@
-// src/app/api/saju/services/advancedAnalysis.ts
+// src/app/api/saju/services/analyses.ts
 // 고급 분석 실행 함수들
 
 import { logger } from '@/lib/logger'
@@ -12,13 +12,7 @@ import {
 } from '@/lib/saju/yongsin'
 import { analyzeHyeongchung } from '@/lib/saju/hyeongchung'
 import { calculateTonggeun, calculateDeukryeong } from '@/lib/saju/tonggeun'
-import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { analyzeSibsinComprehensive } from '@/lib/saju/sibsinAnalysis'
-import { analyzeHealth, analyzeCareer } from '@/lib/saju/healthCareer'
-import { calculateComprehensiveScore } from '@/lib/saju/strengthScore'
-import { getTwelveStageInterpretation } from '@/lib/saju/interpretations'
-import type { SajuPillars } from '@/lib/saju/types'
-import { isTwelveStageType } from './utilities'
 
 export interface SimplePillars {
   year: { stem: string; branch: string }
@@ -35,7 +29,7 @@ export interface PillarsWithHour {
   hour: { stem: string; branch: string }
 }
 
-export interface AdvancedAnalysisResult {
+export interface AnalysesResult {
   geokguk: (ReturnType<typeof determineGeokgukAdvanced> & { description: string }) | null
   yongsin:
     | (ReturnType<typeof determineYongsin> & {
@@ -48,41 +42,27 @@ export interface AdvancedAnalysisResult {
   hyeongchung: ReturnType<typeof analyzeHyeongchung> | null
   tonggeun: ReturnType<typeof calculateTonggeun> | null
   deukryeong: ReturnType<typeof calculateDeukryeong> | null
-  johuYongsin: ReturnType<typeof getJohuYongsin> | null
   sibsin: ReturnType<typeof analyzeSibsinComprehensive> | null
-  health: ReturnType<typeof analyzeHealth> | null
-  career: ReturnType<typeof analyzeCareer> | null
-  score: ReturnType<typeof calculateComprehensiveScore> | null
-  interpretations: {
-    twelveStages: Record<string, ReturnType<typeof getTwelveStageInterpretation>>
-  }
+  // 옛 johuYongsin/interpretations — 해석/텍스트라 raw 응답에서 제거(2026-06-06).
+  // 운흐름/소비자가 raw 받아 getJohuYongsin/getTwelveStageInterpretation 직접 호출.
 }
 
 /**
  * 고급 분석 실행
  */
-export function performAdvancedAnalysis(
+export function performAnalyses(
   simplePillars: SimplePillars,
   pillarsWithHour: PillarsWithHour,
-  sajuPillars: SajuPillars,
   dayMasterStem: string,
   monthBranch: string,
-  twelveStages: Record<string, string>,
-  // fiveElements 는 더 이상 쓰지 않지만(오행 해석 제거) 호출부 시그니처 유지를 위해 보존.
-  _fiveElements: Record<string, number>
-): AdvancedAnalysisResult {
-  const result: AdvancedAnalysisResult = {
+): AnalysesResult {
+  const result: AnalysesResult = {
     geokguk: null,
     yongsin: null,
     hyeongchung: null,
     tonggeun: null,
     deukryeong: null,
-    johuYongsin: null,
     sibsin: null,
-    health: null,
-    career: null,
-    score: null,
-    interpretations: { twelveStages: {} },
   }
 
   // 1. 격국 분석 — determineGeokgukAdvanced 는 (a) 잡기격 보완 판정 (b) 정격·비격에
@@ -138,16 +118,7 @@ export function performAdvancedAnalysis(
     }
   }
 
-  // 5. 조후용신 (궁통보감)
-  try {
-    result.johuYongsin = getJohuYongsin(dayMasterStem, monthBranch)
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] JohuYongsin analysis failed:', e)
-    }
-  }
-
-  // 6. 십신 종합 분석
+  // 5. 십신 종합 분석
   try {
     result.sibsin = analyzeSibsinComprehensive(pillarsWithHour)
   } catch (e) {
@@ -156,46 +127,11 @@ export function performAdvancedAnalysis(
     }
   }
 
-  // 7. 건강 분석
-  try {
-    result.health = analyzeHealth(pillarsWithHour)
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] Health analysis failed:', e)
-    }
-  }
-
-  // 8. 직업 적성 분석
-  try {
-    result.career = analyzeCareer(pillarsWithHour)
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] Career analysis failed:', e)
-    }
-  }
-
-  // 9. 종합 점수
-  try {
-    result.score = calculateComprehensiveScore(sajuPillars)
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] Comprehensive score failed:', e)
-    }
-  }
-
-  // 11. 해석 데이터 수집
-  try {
-    // 12운성 해석
-    for (const [pillar, stage] of Object.entries(twelveStages)) {
-      if (stage && typeof stage === 'string' && isTwelveStageType(stage)) {
-        result.interpretations.twelveStages[pillar] = getTwelveStageInterpretation(stage)
-      }
-    }
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') {
-      logger.warn('[Saju API] Interpretations failed:', e)
-    }
-  }
+  // 옛 johuYongsin / interpretations.twelveStages / health / career / score —
+  // 모두 해석/텍스트 라 raw 응답에서 제거(2026-06-06). 소비자가 직접 호출:
+  //   getJohuYongsin(dayMasterStem, monthBranch)
+  //   getTwelveStageInterpretation(stage)
+  //   analyze...
 
   return result
 }

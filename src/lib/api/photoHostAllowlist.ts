@@ -1,7 +1,7 @@
 /**
  * Photo URL host allowlist.
  *
- * Why: client-submitted photo URLs (MatchProfile.photos, User.image, …) used
+ * Why: client-submitted photo URLs (User.image 등) used
  * to be validated as `z.string().max(500)` only — which accepts
  * `javascript:alert(1)`, `data:text/html,<script>...</script>`,
  * `http://169.254.169.254/...` (AWS metadata SSRF), and arbitrary attacker

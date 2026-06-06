@@ -56,7 +56,6 @@ export async function disconnectRedis(): Promise<void> {
 export const CACHE_TTL = {
   TAROT_READING: 60 * 60 * 24, // 1 day (oracle)
   CALENDAR_DATA: 60 * 60 * 24, // 1 day (counselor realtime daily context, calendar route)
-  COMPATIBILITY: 60 * 60 * 24 * 7, // 7 days (destiny-match discover)
   NATAL_CHART: 60 * 60 * 24 * 30, // 30 days (counselor stable context, ephe-cache)
 } as const
 
