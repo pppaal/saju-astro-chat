@@ -587,12 +587,13 @@ export function deriveLifetimeFlow(
   const astroId = astroIdParts.join(isEn ? ', ' : '·')
 
   // ── 격국 (advancedAnalysis.geokguk) ──
+  // 옛 description fallback 제거 (2026-06-06): GEOKGUK_SHORT_KO 가 28 격국 +
+  // 미정 완전 커버라 fallback 실도달 0 + 1줄 description 함수 자체가 dead.
   const geokgukPrimary = natal.saju.analyses?.geokguk?.primary as string | undefined
-  const geokgukDescription = natal.saju.analyses?.geokguk?.description as string | undefined
   let geokgukIntroKo = ''
   let geokgukIntroEn = ''
   if (geokgukPrimary && geokgukPrimary !== '미정') {
-    const shortKo = GEOKGUK_SHORT_KO[geokgukPrimary] ?? geokgukDescription ?? ''
+    const shortKo = GEOKGUK_SHORT_KO[geokgukPrimary] ?? ''
     const en = GEOKGUK_EN[geokgukPrimary]
     if (shortKo) {
       // 조사 처리 — 격국명은 항상 '격' 으로 끝나 받침 있음. "정인격으로" 식.
