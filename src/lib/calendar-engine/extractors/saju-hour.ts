@@ -1,5 +1,5 @@
 import { STEMS, BRANCHES, TIME_STEM_LOOKUP } from '@/lib/saju/constants'
-import { getOffsetMinutes } from '@/lib/saju/timezone'
+import { solarTimeCorrectionMinutes } from '@/lib/saju/timezone'
 import { computeDayStem } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
@@ -57,14 +57,9 @@ const sajuHourExtractor: SignalExtractor = {
       const dayStemName = computeDayStem(date)
       if (!dayStemName) continue
 
-      // 그 날의 진태양시 보정분(분). 보정 = (경도 − 표준자오선)×4, 표준자오선은
-      // 타임존 UTC offset×15 (DST 반영 위해 날짜별 산출). 시계시각 = 진태양시 − 보정.
+      // 그 날의 평균태양시 보정분 — 본명 사주(saju.ts)와 *같은 SSOT 함수*를 쓴다.
       // 경도/타임존 미상이면 0 → 시계 시각 그대로(옛 동작 보존).
-      let correctionMin = 0
-      if (typeof longitude === 'number' && timeZone) {
-        const standardMeridian = (getOffsetMinutes(date, timeZone) / 60) * 15
-        correctionMin = Math.round((longitude - standardMeridian) * 4)
-      }
+      const correctionMin = timeZone ? solarTimeCorrectionMinutes(date, longitude, timeZone) : 0
 
       const firstHourStemName = TIME_STEM_LOOKUP[dayStemName]
       if (!firstHourStemName) continue

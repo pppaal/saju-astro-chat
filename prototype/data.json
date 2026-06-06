@@ -1,0 +1,1500 @@
+{
+  "summary": {
+    "birth": "1995-02-09 06:40 서울 남자",
+    "pillars": {
+      "year": "乙亥",
+      "month": "戊寅",
+      "day": "辛未",
+      "time": "辛卯"
+    },
+    "dayMaster": "辛",
+    "strength": "weak",
+    "yongsin": "화·토",
+    "sun": "Aquarius",
+    "moon": "Gemini",
+    "asc": "Aquarius",
+    "mc": "Scorpio"
+  },
+  "lifetime": {
+    "intro": "사주로는 辛 일간으로 기운이 약한 편이라, 용신 화·토가 받쳐줄 때 빛나는 결이에요. 격국은 정인격으로 배움·지원이 든든한 결. 본명에 재성이 43%로 가장 두드러져 — 행동 동력·물질 감각이 본 결. 일간 통근이 뿌리 없이 월령을 잃어 강약은 약한 결로 읽혀요. 사주 8자 중 목 기운이 가장 많아 성장·확장 동력이 큰 결이에요. 조후로 보면 토 기운이 필요한 결이라 초봄 신금은 무기토 생조 필요. 병화로 따뜻하게. 점성으로는 태양 물병자리·상승 물병자리·MC 전갈자리의 기질을 타고났고요. 이 둘이 평생 흐름의 무대를 만들고, 그 위에서 아래 시기들이 펼쳐져요.",
+    "phases": [
+      {
+        "label": "초년기",
+        "ageRange": "0~19세 · 1995~2014",
+        "text": "편관(관성) 흐름 — 규율과 통제 속에서 자라요. 엄한 환경이나 또렷한 규칙을 일찍 겪는 편이에요. 흐름이 순해서 노력한 만큼 잘 풀리는 편이에요.",
+        "daeunLine": "丁丑(정축) 대운 1996-2006 → 丙子(병자) 대운 2006-2016",
+        "milestoneLine": "첫 목성 회귀 2007년 1월",
+        "relationLine": "본명 일지 未(미) × 대운 丑(축) → 未丑충 (변동 압력)",
+        "twelveStageLine": "대운 丑(축)이 일간 辛 기준 양 — 보살핌을 받으며 자라는 시기",
+        "current": false
+      },
+      {
+        "label": "청년기",
+        "ageRange": "20~39세 · 2015~2034",
+        "text": "편재(재성) 흐름 — 현실 성취와 돈·연애의 무대가 열려요. 실속을 다져요. 큰 굴곡 없이 차분히 자기 몫을 다지는 흐름이에요.",
+        "daeunLine": "丙子(병자) 대운 2006-2016 → 乙亥(을해) 대운 2016-2026 → 甲戌(갑술) 대운 2026-2036",
+        "milestoneLine": "두 번째 목성 회귀 2018년 12월, 첫 토성 회귀 2024년 3월, 세 번째 목성 회귀 2030년 12월",
+        "relationLine": "본명 월지 寅(인) × 대운 亥(해) → 寅亥육합 (환경이 손발 맞춤)",
+        "shinsalLine": "지살 활성 (대운 亥(해) ↔ 본명 연지 亥(해)) — 자기 시작·이동의 신호",
+        "twelveStageLine": "대운 亥(해)이 일간 辛 기준 목욕 — 정화와 성장의 시기",
+        "current": true
+      },
+      {
+        "label": "중년기",
+        "ageRange": "40~59세 · 2035~2054",
+        "text": "식신(식상) 흐름 — 쌓인 경험이 표현·창작·후배로 흘러나와요. 드라마틱한 사건보다 누적이 의미 있는 결이에요.",
+        "daeunLine": "甲戌(갑술) 대운 2026-2036 → 癸酉(계유) 대운 2036-2046 → 壬申(임신) 대운 2046-2056",
+        "milestoneLine": "해왕성 사각 2035년 6월, 천왕성 대립 2038년 9월, 명왕성 사각 2043년 3월 외 3",
+        "relationLine": "본명 시지 卯(묘) × 대운 酉(유) → 卯酉충 (변동 압력)",
+        "twelveStageLine": "대운 酉(유)이 일간 辛 기준 임관",
+        "current": false
+      },
+      {
+        "label": "장년기",
+        "ageRange": "60~84세 · 2055~2079",
+        "text": "겁재(비겁) 흐름 — 사람들과 어울리며 진짜 내 자리를 즐겨요. 쉽지 않은 고비를 넘으며 단단해지는 시기예요.",
+        "daeunLine": "壬申(임신) 대운 2046-2056 → 辛未(신미) 대운 2056-2066 → 庚午(경오) 대운 2066-2076 →…",
+        "milestoneLine": "천왕성 회귀 2079년 1월",
+        "relationLine": "본명 일지 未(미) × 대운 午(오) → 未午육합 (환경이 손발 맞춤)",
+        "twelveStageLine": "대운 午(오)이 일간 辛 기준 병 — 기운이 쇠약해짐",
+        "current": false
+      }
+    ]
+  },
+  "decade": [
+    {
+      "year": 2026,
+      "salience": 10867,
+      "fav": 27,
+      "peakDay": "2026-02-24",
+      "peakSal": 37.7
+    },
+    {
+      "year": 2027,
+      "salience": 21622,
+      "fav": 26,
+      "peakDay": "2027-08-03",
+      "peakSal": 79.7
+    },
+    {
+      "year": 2028,
+      "salience": 22576,
+      "fav": 31,
+      "peakDay": "2028-07-08",
+      "peakSal": 71.3
+    },
+    {
+      "year": 2029,
+      "salience": 23949,
+      "fav": 30,
+      "peakDay": "2029-06-20",
+      "peakSal": 73.8
+    },
+    {
+      "year": 2030,
+      "salience": 24740,
+      "fav": 24,
+      "peakDay": "2030-05-18",
+      "peakSal": 80.6
+    },
+    {
+      "year": 2031,
+      "salience": 24340,
+      "fav": 25,
+      "peakDay": "2031-05-07",
+      "peakSal": 75.1
+    },
+    {
+      "year": 2032,
+      "salience": 23825,
+      "fav": 32,
+      "peakDay": "2032-10-20",
+      "peakSal": 71.7
+    },
+    {
+      "year": 2033,
+      "salience": 21372,
+      "fav": 25,
+      "peakDay": "2033-05-01",
+      "peakSal": 64.8
+    },
+    {
+      "year": 2034,
+      "salience": 21146,
+      "fav": 27,
+      "peakDay": "2034-07-19",
+      "peakSal": 63.6
+    },
+    {
+      "year": 2035,
+      "salience": 22687,
+      "fav": 25,
+      "peakDay": "2035-08-30",
+      "peakSal": 69.1
+    }
+  ],
+  "topYear": 2030,
+  "year": {
+    "year": 2030,
+    "months": [
+      {
+        "month": "2030-01",
+        "salience": 2011,
+        "fav": 28,
+        "peakDay": "2030-01-29"
+      },
+      {
+        "month": "2030-02",
+        "salience": 1964,
+        "fav": 25,
+        "peakDay": "2030-02-01"
+      },
+      {
+        "month": "2030-03",
+        "salience": 2157,
+        "fav": 27,
+        "peakDay": "2030-03-01"
+      },
+      {
+        "month": "2030-04",
+        "salience": 2232,
+        "fav": 23,
+        "peakDay": "2030-04-13"
+      },
+      {
+        "month": "2030-05",
+        "salience": 2415,
+        "fav": 21,
+        "peakDay": "2030-05-18"
+      },
+      {
+        "month": "2030-06",
+        "salience": 2120,
+        "fav": 22,
+        "peakDay": "2030-06-01"
+      },
+      {
+        "month": "2030-07",
+        "salience": 2053,
+        "fav": 22,
+        "peakDay": "2030-07-01"
+      },
+      {
+        "month": "2030-08",
+        "salience": 1969,
+        "fav": 22,
+        "peakDay": "2030-08-09"
+      },
+      {
+        "month": "2030-09",
+        "salience": 1825,
+        "fav": 24,
+        "peakDay": "2030-09-01"
+      },
+      {
+        "month": "2030-10",
+        "salience": 1845,
+        "fav": 23,
+        "peakDay": "2030-10-01"
+      },
+      {
+        "month": "2030-11",
+        "salience": 2086,
+        "fav": 25,
+        "peakDay": "2030-11-15"
+      },
+      {
+        "month": "2030-12",
+        "salience": 2062,
+        "fav": 25,
+        "peakDay": "2030-12-01"
+      }
+    ]
+  },
+  "topMonth": "2030-05",
+  "month": {
+    "month": "2030-05",
+    "days": [
+      {
+        "date": "2030-05-01",
+        "salience": 75.7,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-02",
+        "salience": 75.7,
+        "fav": 21,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-03",
+        "salience": 75.7,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-04",
+        "salience": 75.7,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-05",
+        "salience": 75.7,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-06",
+        "salience": 75.7,
+        "fav": 31,
+        "patterns": [
+          "흉살 집중일"
+        ],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-07",
+        "salience": 75.7,
+        "fav": 21,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-08",
+        "salience": 75.7,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-09",
+        "salience": 75.7,
+        "fav": 19,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-10",
+        "salience": 75.7,
+        "fav": 26,
+        "patterns": [
+          "흉살 집중일"
+        ],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-11",
+        "salience": 75.7,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-12",
+        "salience": 75.7,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-13",
+        "salience": 75.7,
+        "fav": 29,
+        "patterns": [
+          "흉살 집중일"
+        ],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-14",
+        "salience": 75.7,
+        "fav": 19,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-15",
+        "salience": 75.7,
+        "fav": 19,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-16",
+        "salience": 75.7,
+        "fav": 19,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-17",
+        "salience": 75.7,
+        "fav": 19,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          },
+          {
+            "name": "운명 ZR 챕터 — Capricorn (Saturn, 27년)",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 10.6
+          }
+        ]
+      },
+      {
+        "date": "2030-05-18",
+        "salience": 80.6,
+        "fav": 29,
+        "patterns": [
+          "흉살 집중일"
+        ],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-19",
+        "salience": 80.6,
+        "fav": 19,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-20",
+        "salience": 80.6,
+        "fav": 30,
+        "patterns": [
+          "흉살 집중일"
+        ],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-21",
+        "salience": 80.6,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-22",
+        "salience": 80.6,
+        "fav": 18,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-23",
+        "salience": 80.6,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-24",
+        "salience": 80.6,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-25",
+        "salience": 80.6,
+        "fav": 18,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-26",
+        "salience": 80.6,
+        "fav": 19,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-27",
+        "salience": 80.6,
+        "fav": 18,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-28",
+        "salience": 80.6,
+        "fav": 18,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-29",
+        "salience": 80.6,
+        "fav": 19,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-30",
+        "salience": 80.6,
+        "fav": 31,
+        "patterns": [
+          "흉살 집중일"
+        ],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      },
+      {
+        "date": "2030-05-31",
+        "salience": 80.6,
+        "fav": 20,
+        "patterns": [],
+        "signals": [
+          {
+            "name": "Saturn 어포지션 본명 Pluto",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 16.7
+          },
+          {
+            "name": "Saturn 스퀘어 본명 Mars",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.9
+          },
+          {
+            "name": "2030-06-01 금환일식 → 본명 Jupiter",
+            "source": "astro",
+            "polarity": -3,
+            "importance": 15.1
+          },
+          {
+            "name": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+            "source": "astro",
+            "polarity": 2,
+            "importance": 11.2
+          },
+          {
+            "name": "Saturn 어포지션 본명 MC",
+            "source": "astro",
+            "polarity": -2,
+            "importance": 11.2
+          }
+        ]
+      }
+    ]
+  },
+  "peakDay": "2030-05-02",
+  "day": {
+    "date": "2030-05-02",
+    "sijin": [
+      {
+        "branch": "자",
+        "range": "23-01",
+        "ganji": "庚子 (겁재)",
+        "polarity": -2,
+        "planet": "태양시"
+      },
+      {
+        "branch": "축",
+        "range": "01-03",
+        "ganji": "辛丑 (비견)",
+        "polarity": -2,
+        "planet": "달시"
+      },
+      {
+        "branch": "인",
+        "range": "03-05",
+        "ganji": "辛丑 (비견)",
+        "polarity": -2,
+        "planet": "토성시"
+      },
+      {
+        "branch": "묘",
+        "range": "05-07",
+        "ganji": "",
+        "polarity": 0,
+        "planet": "태양시"
+      },
+      {
+        "branch": "진",
+        "range": "07-09",
+        "ganji": "",
+        "polarity": 0,
+        "planet": "화성시"
+      },
+      {
+        "branch": "사",
+        "range": "09-11",
+        "ganji": "",
+        "polarity": 0,
+        "planet": "태양시"
+      },
+      {
+        "branch": "오",
+        "range": "11-13",
+        "ganji": "丙午 (정관)",
+        "polarity": 2,
+        "planet": "달시"
+      },
+      {
+        "branch": "미",
+        "range": "13-15",
+        "ganji": "丙午 (정관)",
+        "polarity": 2,
+        "planet": "토성시"
+      },
+      {
+        "branch": "신",
+        "range": "15-17",
+        "ganji": "丁未 (편관)",
+        "polarity": 2,
+        "planet": "화성시"
+      },
+      {
+        "branch": "유",
+        "range": "17-19",
+        "ganji": "戊申 (정인)",
+        "polarity": 1,
+        "planet": "태양시"
+      },
+      {
+        "branch": "술",
+        "range": "19-21",
+        "ganji": "己酉 (편인)",
+        "polarity": 1,
+        "planet": "달시"
+      },
+      {
+        "branch": "해",
+        "range": "21-23",
+        "ganji": "庚戌 (겁재)",
+        "polarity": -2,
+        "planet": "토성시"
+      }
+    ]
+  }
+}

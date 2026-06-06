@@ -130,6 +130,31 @@ export function getOffsetMinutes(instantUTC: Date, timeZone: string): number {
   return Math.round(diffMs / 60000)
 }
 
+/**
+ * 평균태양시(진경도) 보정분 — 시계 시각을 출생지(또는 위치) 해 기준으로 옮기는 분(分).
+ *
+ *   보정분 = round((경도 − 표준자오선) × 4)
+ *   표준자오선 = 그 instant 의 타임존 UTC offset(분) / 60 × 15   (KST=135°, 베이징=120°, EST=−75° …)
+ *   평균태양시 = 시계 시각 + 보정분
+ *
+ * 이것이 사주 시각 보정의 **단일 진실원천(SSOT)** 이다. 본명 네 기둥(saju.ts)·
+ * 달력 시진(saju-hour.ts)이 *전부* 이 함수만 호출한다 — 복붙 금지.
+ *
+ * - longitude 미상/비유한 → 0 (보정 없음, 옛 동작 보존).
+ * - 균시차(equation of time, ±16분)는 적용하지 않는다(평균태양시). 천안/부산 같은
+ *   경도 차이를 잡는 게 목적이고, 균시차는 별개 정밀도 옵션. docs/SOLAR_TIME_CONVENTION.md.
+ * - DST 반영 위해 instant 별로 offset 을 구한다(getOffsetMinutes 가 그 시점 offset 산출).
+ */
+export function solarTimeCorrectionMinutes(
+  instantUTC: Date,
+  longitude: number | undefined | null,
+  timeZone: string
+): number {
+  if (typeof longitude !== 'number' || !Number.isFinite(longitude)) return 0
+  const standardMeridian = (getOffsetMinutes(instantUTC, timeZone) / 60) * 15
+  return Math.round((longitude - standardMeridian) * 4)
+}
+
 export function formatOffset(offsetMin: number): string {
   const sign = offsetMin >= 0 ? '+' : '-'
   const h = Math.floor(Math.abs(offsetMin) / 60)
