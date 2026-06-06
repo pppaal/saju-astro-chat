@@ -9,7 +9,6 @@ const PAGES_WITHOUT_BACK_BUTTON = [
   '/', // Home page - no back button needed
   '/tarot', // Tarot pages - have their own navigation
   '/compatibility', // Uses ServicePageLayout with built-in back button
-  '/destiny-match', // Has custom back button
   '/about', // Has custom back button in page
   '/contact', // Has custom back button in page
   '/faq', // Has custom back button in page
