@@ -9,6 +9,9 @@ status: auto-generated
 `src/app/api/**/route.ts` 파일시스템에서 자동 수집. 라우트가 추가/삭제되면
 `npm run docs:sync` 로 갱신됩니다 (CI 가 어긋남을 차단).
 
+> 여기는 **인벤토리**(무엇이 있나). 보안 감사(인증·검증·public mutation)는
+> [[API_AUDIT_REPORT]] 참조 — `npm run audit:api` 로 생성.
+
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 

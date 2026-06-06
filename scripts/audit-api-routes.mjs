@@ -174,7 +174,17 @@ const methodsCount = stats.reduce((acc, s) => {
 }, {})
 
 const lines = []
+// Obsidian vault frontmatter — 재생성돼도 유지되도록 생성기에 박음.
+lines.push('---')
+lines.push('title: API Audit Report')
+lines.push('tags: [reference, api, security, auto]')
+lines.push('status: auto-generated')
+lines.push('---')
+lines.push('')
 lines.push(`# API Audit Report`)
+lines.push('')
+lines.push('> ⚙️ 자동 생성 (`npm run audit:api`). 라우트 **인벤토리**는 [[api-routes]],')
+lines.push('> 여기는 **보안 감사**(미들웨어·인증·검증·public mutation) 관점.')
 lines.push('')
 lines.push(`## Summary`)
 lines.push('')
