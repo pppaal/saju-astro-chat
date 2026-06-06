@@ -273,14 +273,16 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (elA && elB) {
     {
       const a = nmA || 'A', b = nmB || 'B'
+      // 오행만 짧게 (A 금 ↔ B 목) + 한 줄 결/방향. 한자·"금극목" 같은 표기는 빼고
+      // 오행 한 글자만 남긴다.
       if (elA === elB) {
-        critical.push(`${a}·${b} 타고난 기질이 같은 결 — 쉽게 통하지만 비슷해서 부딪히면 둘 다 잘 안 굽힘`)
+        critical.push(`${a} ${elA} ↔ ${b} ${elB} — 같은 기운 (통하지만 비슷해 부딪힐 수도)`)
       } else if (EL_CONTROLS[elA] === elB) {
-        critical.push(`${a}이(가) ${b}을(를) 정리·다듬는 흐름 — ${b}은(는) 처음엔 이끌어준다 느끼다 시간이 지나면 따끔·제약처럼 느낄 수 있음 (방향 고정: ${a}→${b}, 반대로 쓰지 말 것)`)
+        critical.push(`${a} ${elA} ↔ ${b} ${elB} — ${a}가 ${b}를 정리·다듬는 결 (방향: ${a}→${b})`)
       } else if (EL_CONTROLS[elB] === elA) {
-        critical.push(`${b}이(가) ${a}을(를) 정리·다듬는 흐름 — ${a}은(는) 처음엔 이끌어준다 느끼다 시간이 지나면 따끔·제약처럼 느낄 수 있음 (방향 고정: ${b}→${a}, 반대로 쓰지 말 것)`)
+        critical.push(`${a} ${elA} ↔ ${b} ${elB} — ${b}가 ${a}를 정리·다듬는 결 (방향: ${b}→${a})`)
       } else {
-        important.push(`${a}·${b} 서로 북돋우는 흐름 — 한쪽이 다른 쪽 기운을 키워줌 (보완)`)
+        important.push(`${a} ${elA} ↔ ${b} ${elB} — 서로 기운 북돋움 (보완)`)
       }
     }
   }
@@ -714,9 +716,9 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (elA && elB) {
     const a = nmA || 'A', b = nmB || 'B'
     let dir = ''
-    if (EL_CONTROLS[elA] === elB) dir = ` — ${a}이(가) ${b}을(를) 정리·다듬는 쪽`
-    else if (EL_CONTROLS[elB] === elA) dir = ` — ${b}이(가) ${a}을(를) 정리·다듬는 쪽`
-    out.push(`[고정] ${a} ↔ ${b} 관계 방향 닻${dir} (방향 반대로 쓰지 말 것)`)
+    if (EL_CONTROLS[elA] === elB) dir = ` — 방향 ${a}→${b}`
+    else if (EL_CONTROLS[elB] === elA) dir = ` — 방향 ${b}→${a}`
+    out.push(`[고정] ${a} ${elA} · ${b} ${elB}${dir} (뒤집지 말 것)`)
   }
   if (critical.length) {
     out.push('[CRITICAL · 일간 극/천간합/일지 충형]')
