@@ -12,10 +12,22 @@
 
 import { calculateNatalChart, toChart, type NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
-import { dignityOf } from '@/lib/astrology/foundation/dignities'
+import { dignityOf, dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
 import { calculateProfection } from '@/lib/astrology/foundation/profections'
+import { calculateChiron, calculateLilith } from '@/lib/astrology/foundation/extraPoints'
+import { natalToJD, matchHouseForCusps, UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
+import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
+import { calculateArabicLots, type ArabicLot } from '@/lib/astrology/foundation/arabicParts'
+import { calculateAlmutenFiguris, type AlmutenFigurisResult } from '@/lib/astrology/foundation/almutenFiguris'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import type { Chart } from '@/lib/astrology/foundation/types'
+import { logger } from '@/lib/logger'
+import type { Chart, AspectHit, ZodiacKo } from '@/lib/astrology/foundation/types'
+import type {
+  NatalArabicLot,
+  ZodiacalReleasingResult,
+  DignityResult,
+  NatalDignityEntry,
+} from '@/lib/calendar-engine/context/types'
 
 export interface AstroFactsInput {
   birthDate: string // 'YYYY-MM-DD'
@@ -27,6 +39,13 @@ export interface AstroFactsInput {
   birthTimeUnknown?: boolean
   /** 출생지 미상 — ASC/MC/하우스 무효 처리. */
   birthCityUnknown?: boolean
+  /**
+   * Hellenistic 본명 기법 (Chiron·Lilith / Arabic Lots / Zodiacal Releasing /
+   * dignity 5-tier / Almuten Figuris / minor aspect) 도 같이 계산. 옛
+   * buildNatalContext 가 만들던 풍부 데이터셋 — 통합 리포트 / 캘린더 /
+   * 운흐름이 사용. 운명상담사·궁합은 안 씀 (default false 로 비용 0).
+   */
+  includeHellenistic?: boolean
 }
 
 export interface PlanetFact {
@@ -85,6 +104,29 @@ export interface AstroFacts {
    * 옛 인터페이스가 그대로 받음. _chart 와 같은 escape hatch.
    */
   _natalRaw: NatalChartData
+  /**
+   * Hellenistic 본명 기법 (input.includeHellenistic === true 일 때만 채움).
+   * buildNatalContext.astro 의 hellenistic 부분과 1:1 호환 shape — 옛
+   * 가공소가 직접 계산하던 코드를 facts 로 흡수. 운명상담사·궁합은 안 씀.
+   */
+  hellenistic?: AstroHellenisticFacts
+}
+
+export interface AstroHellenisticFacts {
+  /** Sun 의 하우스 기반 day/night 분기 (sect-aware 계산 입력). */
+  sect: 'day' | 'night'
+  /** Chiron + Lilith — 차트 planets 에 없는 천체 (트랜짓 입력용). */
+  extraPoints?: ReturnType<typeof calculateChiron>[]
+  /** 본명 aspects (major + minor, orb 3°). */
+  natalAspects: AspectHit[]
+  /** 7 Arabic Lots (sect-aware) + house 매핑. */
+  lots: NatalArabicLot[]
+  /** Zodiacal Releasing L1 — Spirit / Fortune 시작점. */
+  zodiacalReleasing: ZodiacalReleasingResult
+  /** 본명 5-tier dignities (per planet). */
+  dignities: DignityResult
+  /** Almuten Figuris (Sun/Moon/ASC[/Fortune]). */
+  almutenFiguris: AlmutenFigurisResult | null
 }
 
 const MAJOR_TYPES = new Set(['conjunction', 'sextile', 'square', 'trine', 'opposition'])
@@ -194,6 +236,11 @@ export async function collectAstroFacts(
     profection = null
   }
 
+  // ─── Hellenistic (option 켜야 계산, default 비용 0) ──────────────────────
+  const hellenistic = input.includeHellenistic
+    ? buildHellenistic(chart, natal, { Y, M, D, h, mi, lat: input.latitude, lon: input.longitude, tz: input.timezone })
+    : undefined
+
   return {
     natal: {
       planets,
@@ -205,5 +252,147 @@ export async function collectAstroFacts(
     profection,
     _chart: chart,
     _natalRaw: natal,
+    ...(hellenistic ? { hellenistic } : {}),
+  }
+}
+
+interface HellenisticInput {
+  Y: number; M: number; D: number; h: number; mi: number
+  lat: number; lon: number; tz: string
+}
+
+function buildHellenistic(
+  chart: Chart,
+  natal: NatalChartData,
+  meta: HellenisticInput,
+): AstroHellenisticFacts {
+  // 섹트 결정 — Sun 이 7~12궁 (지평선 위) 이면 day, 아니면 night.
+  const sun = chart.planets.find((p) => p.name === 'Sun')
+  const sect: 'day' | 'night' = sun && sun.house >= 7 ? 'day' : 'night'
+
+  // Chiron + Lilith — 차트 planets 에 없는 천체. 실패해도 무시.
+  let extraPoints: ReturnType<typeof calculateChiron>[] | undefined
+  try {
+    const utJd = natalToJD({
+      year: meta.Y,
+      month: meta.M,
+      date: meta.D,
+      hour: meta.h,
+      minute: meta.mi,
+      latitude: meta.lat,
+      longitude: meta.lon,
+      timeZone: meta.tz,
+    })
+    const houseCusps = chart.houses.map((h) => h.cusp)
+    extraPoints = [calculateChiron(utJd, houseCusps), calculateLilith(utJd, houseCusps)]
+  } catch {
+    extraPoints = undefined
+  }
+
+  // 본명 aspects (major + minor, orb 3°). chart 깨져있어도 안전하게 빈 배열.
+  let natalAspects: AspectHit[]
+  try {
+    natalAspects = findNatalAspects(chart, { includeMinor: true })
+  } catch (err) {
+    logger.warn('[astroFacts] findNatalAspects failed, defaulting to []', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+    natalAspects = []
+  }
+
+  // 7 Arabic Lots (sect-aware) — Fortune / Spirit / Eros / Necessity /
+  // Courage / Victory / Nemesis. 한 lot 이라도 결손 → throw → 빈 배열.
+  let lots: ArabicLot[] = []
+  try {
+    lots = calculateArabicLots(chart, sect === 'day')
+  } catch (err) {
+    logger.warn('[astroFacts] Arabic lots calc failed', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+    lots = []
+  }
+
+  // lot → house 매핑 (UI 표시용)
+  const houseCuspsForLots = chart.houses.map((h) => h.cusp)
+  const lotsWithHouse: NatalArabicLot[] = lots.map((l) => ({
+    ...l,
+    house: matchHouseForCusps(l.longitude, houseCuspsForLots) ?? UNKNOWN_HOUSE,
+  }))
+
+  // Zodiacal Releasing L1 — Spirit / Fortune 시작점.
+  const zodiacalReleasing: ZodiacalReleasingResult = { spirit: null, fortune: null }
+  const spiritLot = lots.find((l) => l.name === 'Spirit')
+  const fortuneLot = lots.find((l) => l.name === 'Fortune')
+  if (spiritLot) {
+    try {
+      zodiacalReleasing.spirit = {
+        startSign: spiritLot.sign,
+        periods: calculateZodiacalReleasing(spiritLot.sign as ZodiacKo, 90),
+      }
+    } catch (err) {
+      logger.warn('[astroFacts] ZR Spirit calc failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+  if (fortuneLot) {
+    try {
+      zodiacalReleasing.fortune = {
+        startSign: fortuneLot.sign,
+        periods: calculateZodiacalReleasing(fortuneLot.sign as ZodiacKo, 90),
+      }
+    } catch (err) {
+      logger.warn('[astroFacts] ZR Fortune calc failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  // 본명 5-tier dignities (per planet)
+  const dignities: DignityResult = []
+  for (const p of chart.planets) {
+    if (!p.sign) continue
+    try {
+      const tiers = dignityTiers(p.name, p.sign, p.degree, sect)
+      const score = dignityScore(tiers)
+      const entry: NatalDignityEntry = {
+        planet: p.name,
+        sign: p.sign,
+        degree: p.degree,
+        tiers,
+        score,
+      }
+      dignities.push(entry)
+    } catch (err) {
+      logger.warn('[astroFacts] dignityTiers failed for planet', {
+        planet: p.name,
+        err: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  // Almuten Figuris — 4-point (Sun/Moon/ASC/Fortune). fortune 없으면 3-point.
+  let almutenFiguris: AlmutenFigurisResult | null = null
+  try {
+    almutenFiguris = calculateAlmutenFiguris({
+      chart,
+      sect,
+      fortune: fortuneLot ? { longitude: fortuneLot.longitude } : undefined,
+    })
+  } catch (err) {
+    logger.warn('[astroFacts] Almuten Figuris calc failed', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+    almutenFiguris = null
+  }
+
+  return {
+    sect,
+    extraPoints,
+    natalAspects,
+    lots: lotsWithHouse,
+    zodiacalReleasing,
+    dignities,
+    almutenFiguris,
   }
 }
