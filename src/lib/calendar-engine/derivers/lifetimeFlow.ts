@@ -150,7 +150,7 @@ const BAND_CAT_EN: Record<string, Record<Cat, string>> = {
 // 단계 순서대로 회전하면서 직전 단계 톤과 같으면 다음 인덱스 사용 — "큰 굴곡
 // 없이 차분히 자기 몫을 다지는 흐름" 이 청년기·중년기에 똑같이 박히던 회귀
 // (사용자 지적 2026-06) 를 해결.
-const TONE_VARIANTS_KO: Record<'good' | 'hard' | 'mid', readonly string[]> = {
+export const TONE_VARIANTS_KO: Record<'good' | 'hard' | 'mid', readonly string[]> = {
   good: [
     '흐름이 순해서 노력한 만큼 잘 풀리는 편이에요.',
     '기운이 등 뒤에서 받쳐줘 결정이 매끄럽게 이어져요.',
