@@ -8,6 +8,38 @@ import type { CardInsight } from '../../types'
 import { getCardImagePath } from '@/lib/tarot/tarot.types'
 import { renderWithLastSentenceHighlight } from './highlight'
 
+// 카드 이미지(1~2MB animated webp)는 AI 해석 스트리밍 중에 *절대* 다시
+// reconcile 되면 안 된다. token 마다 부모(ResultsStage→DetailedCardsSection
+// →DetailedCardItem) 가 매번 re-render 되는데, 이미지가 같이 reconcile 되면
+// animated webp decoding/GPU upload 가 매 frame 일어나 초반 1-2초 렉. React
+// .memo 로 cardId+deckStyle+isReversed 가 같으면 skip → token 흘러도 이미지
+// 부분은 한 번만 그려짐.
+const CardImage = React.memo(function CardImage({
+  cardId,
+  deckStyle,
+  altName,
+  isReversed,
+}: {
+  cardId: number
+  deckStyle: DeckStyle
+  altName: string
+  isReversed: boolean
+}) {
+  return (
+    <Image
+      src={getCardImagePath(cardId, deckStyle)}
+      alt={altName}
+      width={180}
+      height={315}
+      className={`rounded-xl shadow-lg ${isReversed ? 'rotate-180' : ''}`}
+      unoptimized
+      onError={(event) => {
+        event.currentTarget.style.opacity = '0.3'
+      }}
+    />
+  )
+})
+
 interface DetailedCardItemProps {
   drawnCard: DrawnCard
   index: number
@@ -95,17 +127,11 @@ export function DetailedCardItem({
 
       <div className="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-5">
         <div className="relative mx-auto md:mx-0">
-          <Image
-            src={getCardImagePath(drawnCard.card.id, selectedDeckStyle)}
-            alt={drawnCard.card.name}
-            width={180}
-            height={315}
-            className={`rounded-xl shadow-lg ${drawnCard.isReversed ? 'rotate-180' : ''}`}
-            // 애니메이션 webp 카드가 next/image 최적화로 버벅이지 않게 원본 서빙.
-            unoptimized
-            onError={(event) => {
-              event.currentTarget.style.opacity = '0.3'
-            }}
+          <CardImage
+            cardId={drawnCard.card.id}
+            deckStyle={selectedDeckStyle}
+            altName={drawnCard.card.name}
+            isReversed={drawnCard.isReversed}
           />
           {drawnCard.isReversed && (
             <div className="absolute top-2 right-2 rotate-180 px-2 py-0.5 bg-rose-500/20 border border-rose-500/40 text-rose-200 text-[10px] rounded">
