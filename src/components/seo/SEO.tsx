@@ -427,6 +427,49 @@ export const SERVICE_FAQS = {
         'Yes. The same Saju and astrology comparison applies to any relationship — romantic, friendship, family, or work partnerships.',
     },
   ],
+  pricing: [
+    {
+      question: 'Is there a subscription or auto-renewal?',
+      answer:
+        'No. DestinyPal uses one-time credit packs — you pay only for what you use, with no subscription and no automatic renewal.',
+    },
+    {
+      question: 'What can I use credits for?',
+      answer:
+        'Credits work across all features — AI Saju, Tarot readings, Compatibility analysis, and the Fortune Calendar.',
+    },
+    {
+      question: 'Can I try DestinyPal for free?',
+      answer:
+        'Yes. New users receive sign-up bonus credits, and a free guest tarot reading lets you try a reading before purchasing anything.',
+    },
+    {
+      question: 'Can I get a refund?',
+      answer:
+        'Unused credits may be eligible for a refund under our refund policy. See the Refund Policy page for details.',
+    },
+  ],
+  about: [
+    {
+      question: 'What is DestinyPal?',
+      answer:
+        'DestinyPal is an AI self-understanding platform that combines Eastern Saju (Four Pillars), Western astrology, and tarot to give personalized, reflective readings in Korean and English.',
+    },
+    {
+      question: 'Does DestinyPal predict the future?',
+      answer:
+        'No. Readings are framed as possibilities and tendencies for reflection and decision-making — not fixed predictions of fate.',
+    },
+    {
+      question: 'What languages does DestinyPal support?',
+      answer: 'DestinyPal is fully available in Korean and English.',
+    },
+    {
+      question: 'Is my birth data kept private?',
+      answer:
+        'Your birth and reading data are handled according to our Privacy Policy. See the Privacy Policy page for details.',
+    },
+  ],
 }
 
 // Generate service schema for specific pages
