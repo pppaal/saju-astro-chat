@@ -72,7 +72,8 @@ const astroLifecycleExtractor: SignalExtractor = {
         source: 'astro',
         kind: 'lifecycle',
         name: entry.label,
-        korean: entry.label,
+        // 마일스톤 의미문(meaning) 우선 — 없으면 라벨 폴백.
+        korean: entry.meaning ?? entry.label,
         themes: [],
         polarity: EVENT_POLARITY[entry.event] ?? 0,
         layer: 'decadal',

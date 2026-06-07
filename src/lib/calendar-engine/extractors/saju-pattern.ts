@@ -79,7 +79,12 @@ const sajuPatternExtractor: SignalExtractor = {
         source: 'saju' as const,
         kind: 'saju-pattern' as const,
         name: top.patternName,
-        korean: getGeokgukRich(top.patternName, 'ko')?.tagline ?? top.patternName,
+        // 격국 tagline 우선, 없으면 패턴 자체 해석문(interpretation/description) 폴백.
+        korean:
+          getGeokgukRich(top.patternName, 'ko')?.tagline ??
+          top.interpretation ??
+          top.description ??
+          top.patternName,
         themes: themesForPattern(top.category, top.keywords),
         polarity: polarityForPattern(top.rarity, top.matchScore),
         layer: 'decadal' as const, // 평생 배경 → decadal에 매핑 (가장 긴 레이어)

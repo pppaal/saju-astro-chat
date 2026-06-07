@@ -97,12 +97,14 @@ const BRANCH_BANGHAP_GROUPS: Array<{ branches: string[]; season: string; element
 // 주의: 전통 파는 자유/축진/인해/묘오/진미/사신 — 위의 user 작업서 표기는
 // "자유·축술·인해·묘오·진미·사신"이지만, 정통 명리학에 일관되게 자유/축진/인해/묘오/진미/사신을 사용.
 // (축술은 형刑의 일종이며 별도 처리됨 — BRANCH_HYUNG에서 이미 잡힘)
+// 정통 六破: 子酉·卯午·辰丑·戌未·寅亥·巳申. (이전 辰未는 오기 — 辰은 丑과
+// 파를 이루고, 未는 戌과 파를 이룬다.)
 const BRANCH_PA: Array<[string, string]> = [
   ['子', '酉'],
   ['丑', '辰'],
   ['寅', '亥'],
   ['卯', '午'],
-  ['辰', '未'],
+  ['戌', '未'],
   ['巳', '申'],
 ]
 
@@ -372,6 +374,23 @@ interface MakeSignalArgs {
   detail: Record<string, unknown>
 }
 
+// 삼형(三刑) 페어 → 트리오 키. 지지형 사전 키는 trio(寅巳申·丑戌未)라
+// 일진-본명 2원소 페어로는 매치 안 됨 — 페어를 소속 트리오로 환원.
+const HYUNG_TRIO_KEY: Record<string, string> = {
+  寅巳: '寅巳申',
+  巳寅: '寅巳申',
+  巳申: '寅巳申',
+  申巳: '寅巳申',
+  寅申: '寅巳申',
+  申寅: '寅巳申',
+  丑戌: '丑戌未',
+  戌丑: '丑戌未',
+  戌未: '丑戌未',
+  未戌: '丑戌未',
+  丑未: '丑戌未',
+  未丑: '丑戌未',
+}
+
 // 추출기 kindLabel → chart-dictionary 의 RelationCategory 매핑.
 const REL_CATEGORY: Record<string, RelationCategory> = {
   천간합: '천간합',
@@ -391,9 +410,20 @@ const REL_CATEGORY: Record<string, RelationCategory> = {
  * 사전 키는 정규 순서(子午·寅申…)라 두 순서 모두 시도. 삼형(寅巳申) 트리오 키는
  * 2원소 일진-본명 페어와 안 맞을 수 있어 매칭 실패 시 undefined(라벨 폴백).
  */
-function relationMeaning(kindLabel: string, a?: string, b?: string): string | undefined {
+function relationMeaning(
+  kindLabel: string,
+  a?: string,
+  b?: string,
+  groupKey?: string
+): string | undefined {
   const cat = REL_CATEGORY[kindLabel]
-  if (!cat || !a || !b) return undefined
+  if (!cat) return undefined
+  // 삼합·방합은 사전 키가 trio(亥卯未) — 페어가 아닌 그룹 키로 직접 조회.
+  if (groupKey) {
+    const entry = getRelationMeaning(cat, groupKey, 'ko')
+    if (entry) return entry.meaning
+  }
+  if (!a || !b) return undefined
   for (const key of [`${a}${b}`, `${b}${a}`]) {
     const entry = getRelationMeaning(cat, key, 'ko')
     if (entry) return entry.meaning
@@ -404,7 +434,14 @@ function relationMeaning(kindLabel: string, a?: string, b?: string): string | un
 function makeSignal(args: MakeSignalArgs): ActiveSignal {
   const a = (args.detail.targetBranch ?? args.detail.targetStem) as string | undefined
   const b = (args.detail.natalBranch ?? args.detail.natalStem) as string | undefined
-  const korean = relationMeaning(args.kindLabel, a, b)
+  // 삼합/방합 그룹 트리오 키 (있으면 사전 trio 조회에 사용).
+  const samhap = args.detail.samhapGroup as string[] | undefined
+  const banghap = args.detail.banghapGroup as string[] | undefined
+  const groupKey =
+    samhap?.join('') ??
+    banghap?.join('') ??
+    (args.kindLabel === '지지형' && a && b ? HYUNG_TRIO_KEY[`${a}${b}`] : undefined)
+  const korean = relationMeaning(args.kindLabel, a, b, groupKey)
   return {
     id: `saju.hyeongchung.${args.kindLabel}.${args.dayIso}.${args.detail.natalPillar}.${args.detail.targetBranch ?? args.detail.targetStem}`,
     source: 'saju',

@@ -2,7 +2,14 @@ import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getSolarTermKST } from '@/lib/saju/constants'
 import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { computeDayBranch } from './saju-shinsal'
-import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity, SignalLayer } from '../types'
+import { iga } from '@/lib/i18n/koParticle'
+import type {
+  ActiveSignal,
+  ExtractorContext,
+  SignalExtractor,
+  Polarity,
+  SignalLayer,
+} from '../types'
 
 /**
  * 12운성 (十二運星) 매트릭스 추출기.
@@ -37,20 +44,20 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity, SignalL
  *  - 중성(中性): 양·태·목욕·쇠·병                → 0 ~ ±1
  */
 const STAGE_POLARITY: Record<string, Polarity> = {
-  장생:  2,    // 새로운 시작·생기 — 강왕 최강
-  목욕: -1,    // 변화·불안정
-  관대:  1,    // 성장·자립
-  임관:  2,    // 성숙·실력 발휘  (= 건록)
-  건록:  2,
-  왕지:  2,    // 절정             (= 제왕)
-  제왕:  2,
-  쇠:    0,    // 안정에서 하강
-  병:   -1,    // 약화
-  사:   -2,    // 끝맺음
-  묘:   -1,    // 수렴·매장
-  절:   -2,    // 단절 — 사절 최강
-  태:    1,    // 새로 잉태
-  양:    1,    // 자라남
+  장생: 2, // 새로운 시작·생기 — 강왕 최강
+  목욕: -1, // 변화·불안정
+  관대: 1, // 성장·자립
+  임관: 2, // 성숙·실력 발휘  (= 건록)
+  건록: 2,
+  왕지: 2, // 절정             (= 제왕)
+  제왕: 2,
+  쇠: 0, // 안정에서 하강
+  병: -1, // 약화
+  사: -2, // 끝맺음
+  묘: -1, // 수렴·매장
+  절: -2, // 단절 — 사절 최강
+  태: 1, // 새로 잉태
+  양: 1, // 자라남
 }
 
 const STAGE_LABEL: Record<string, string> = {
@@ -61,13 +68,56 @@ const STAGE_LABEL: Record<string, string> = {
   건록: '건록 — 실력 발휘',
   왕지: '왕지 — 절정',
   제왕: '제왕 — 절정',
-  쇠:   '쇠 — 안정 하강',
-  병:   '병 — 기운 약화',
-  사:   '사 — 끝맺음',
-  묘:   '묘 — 수렴',
-  절:   '절 — 단절',
-  태:   '태 — 잉태',
-  양:   '양 — 자라남',
+  쇠: '쇠 — 안정 하강',
+  병: '병 — 기운 약화',
+  사: '사 — 끝맺음',
+  묘: '묘 — 수렴',
+  절: '절 — 단절',
+  태: '태 — 잉태',
+  양: '양 — 자라남',
+}
+
+/**
+ * 12운성 단계별 흐름(flow) 한 줄 — 명사 라벨(STAGE_LABEL)과 달리 "지금 무엇이
+ * 흐르는가" 를 풀어 쓴다. 단계 에너지를 그대로 묘사하므로 층 무관 사용 가능.
+ */
+const STAGE_FLOW: Record<string, string> = {
+  장생: '새로 시작하는 생기가 도는',
+  목욕: '흔들리며 시행착오로 다듬어지는',
+  관대: '자립하며 한 단계 올라서는',
+  임관: '실력이 무르익어 제대로 발휘되는',
+  건록: '실력이 무르익어 제대로 발휘되는',
+  왕지: '기운이 절정에 오르는',
+  제왕: '기운이 절정에 오르는',
+  쇠: '정점을 지나 천천히 가라앉는',
+  병: '기운이 약해져 쉬어가야 하는',
+  사: '한 매듭이 끝나고 마무리되는',
+  묘: '안으로 거두어 갈무리하는',
+  절: '인연이 끊기고 새 판을 기다리는',
+  태: '새로운 씨앗이 잉태되는',
+  양: '조용히 자라나며 힘을 모으는',
+}
+
+/** 일진 단일 12운성 → 흐름 한 줄. 미지 단계면 "". */
+function stageFlowLine(stage: string): string {
+  const f = STAGE_FLOW[stage]
+  return f ? `${f} 흐름이에요` : ''
+}
+
+/**
+ * 본명-시기 12운성 페어 → 전이(transition) 흐름 한 줄.
+ * pairPolarity 와 같은 doctrine 분류(회복/쇠퇴/절정유지/정체)를 자연어로.
+ */
+function matrixFlowLine(natalStage: string, cyclicalStage: string, natalLabel: string): string {
+  const n = STAGE_POLARITY[natalStage] ?? 0
+  const c = STAGE_POLARITY[cyclicalStage] ?? 0
+  const josa = iga(natalLabel)
+  if (n <= -1 && c >= 2) return `${natalLabel}에 눌려 있던 기운이 다시 살아나는 회복의 흐름이에요`
+  if (n >= 2 && c <= -1) return `${natalLabel}의 절정을 지나 힘을 거두어야 하는 흐름이에요`
+  if (n >= 2 && c >= 2) return `${natalLabel}의 강한 기운이 계속 이어지는 흐름이에요`
+  if (n <= -1 && c <= -1) return `${natalLabel}${josa} 눌려 정체되기 쉬운 흐름이에요`
+  const f = STAGE_FLOW[cyclicalStage]
+  return f ? `${natalLabel}${josa} ${f} 시기로 흐르고 있어요` : ''
 }
 
 type NatalPosition = 'year' | 'month' | 'day' | 'time'
@@ -77,17 +127,17 @@ type NatalPosition = 'year' | 'month' | 'day' | 'time'
  * 정통 통변: "일지는 배우자궁·자기궁", "월지는 격국·환경의 뿌리".
  */
 const NATAL_POSITION_WEIGHT: Record<NatalPosition, number> = {
-  day:   0.55,
+  day: 0.55,
   month: 0.45,
-  year:  0.35,
-  time:  0.35,
+  year: 0.35,
+  time: 0.35,
 }
 
 const NATAL_POSITION_LABEL: Record<NatalPosition, string> = {
-  year:  '본명 년지',
+  year: '본명 년지',
   month: '본명 월지',
-  day:   '본명 일지',
-  time:  '본명 시지',
+  day: '본명 일지',
+  time: '본명 시지',
 }
 
 /**
@@ -121,7 +171,7 @@ function pairPolarity(natalStage: string, cyclicalStage: string): Polarity {
 
 const sajuTwelveStageExtractor: SignalExtractor = {
   source: 'saju',
-  kind: 'pillar-sibsin',   // 별도 SignalKind 안 만들고 pillar-sibsin에 묶음
+  kind: 'pillar-sibsin', // 별도 SignalKind 안 만들고 pillar-sibsin에 묶음
   extract(ctx: ExtractorContext): ActiveSignal[] {
     const { natal, range } = ctx
     const dayStemName = natal.saju.pillars.day.heavenlyStem.name
@@ -150,7 +200,7 @@ const sajuTwelveStageExtractor: SignalExtractor = {
       const stage = getTwelveStage(dayStemName, targetBranch)
       if (!stage) continue
       const polarity = STAGE_POLARITY[stage] ?? 0
-      if (polarity === 0) continue   // 쇠는 중립 → 신호로 안 띄움
+      if (polarity === 0) continue // 쇠는 중립 → 신호로 안 띄움
 
       const dayIso = date.toISOString().slice(0, 10)
       signals.push({
@@ -158,16 +208,16 @@ const sajuTwelveStageExtractor: SignalExtractor = {
         source: 'saju',
         kind: 'pillar-sibsin',
         name: STAGE_LABEL[stage] ?? `12운성 ${stage}`,
-        korean: STAGE_LABEL[stage],
-        themes: ['growth'],   // 기본; tagger가 보강 가능
+        korean: stageFlowLine(stage) || STAGE_LABEL[stage],
+        themes: ['growth'], // 기본; tagger가 보강 가능
         polarity,
         layer: 'daily',
         active: {
           start: `${dayIso}T00:00:00.000Z`,
-          peak:  `${dayIso}T12:00:00.000Z`,
-          end:   `${dayIso}T23:59:59.999Z`,
+          peak: `${dayIso}T12:00:00.000Z`,
+          end: `${dayIso}T23:59:59.999Z`,
         },
-        weight: 0.45,   // 일진 12운성은 부드러운 신호
+        weight: 0.45, // 일진 12운성은 부드러운 신호
         evidence: {
           module: 'saju-twelve-stage',
           detail: {
@@ -244,7 +294,9 @@ const sajuTwelveStageExtractor: SignalExtractor = {
         monthCursor.getUTCFullYear(),
         monthCursor.getUTCMonth() + 1,
         0,
-        23, 59, 59
+        23,
+        59,
+        59
       )
       const mPeak = new Date(
         Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
@@ -308,14 +360,14 @@ function emitMatrixSignals(
   signals: ActiveSignal[],
   dayStemName: string,
   natalScope: Array<{ position: NatalPosition; branch: string; stage: string }>,
-  info: StageEmitInfo,
+  info: StageEmitInfo
 ): void {
   const cyclicalStage = getTwelveStage(dayStemName, info.cyclicalBranch)
   if (!cyclicalStage) return
 
   for (const np of natalScope) {
     const polarity = pairPolarity(np.stage, cyclicalStage)
-    if (polarity === 0) continue   // 평탄 페어는 무시
+    if (polarity === 0) continue // 평탄 페어는 무시
 
     // 매트릭스 weight = 본명 position 가중 × 시기 레이어 가중 × 페어 강도.
     // 페어 강도: |polarity| / 2 (0.5 ~ 1.0 범위).
@@ -331,7 +383,7 @@ function emitMatrixSignals(
       source: 'saju',
       kind: 'pillar-sibsin',
       name: displayName,
-      korean: displayName,
+      korean: matrixFlowLine(np.stage, cyclicalStage, natalLabel) || displayName,
       themes: ['growth'],
       polarity,
       layer: info.layer,

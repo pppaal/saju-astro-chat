@@ -23,6 +23,7 @@
  */
 
 import { ILJU_ARCHETYPES } from '@/lib/saju/iljuDictionary'
+import { iga } from '@/lib/i18n/koParticle'
 
 export type GanjiTransitLayer = 'daily' | 'monthly' | 'yearly' | 'decadal'
 export type Lang = 'ko' | 'en'
@@ -148,4 +149,41 @@ export function dailyIljinSibsinLine(sibsin: string | undefined, lang: Lang = 'k
   const entry = DAY_SIBSIN_LINE[sibsin]
   if (!entry) return ''
   return entry[lang]
+}
+
+/**
+ * 십신이 운(運)으로 들어오는 기간의 에너지 — 흐름(flow) voice 한 줄.
+ *
+ * pillar-sibsin 신호(대운·세운·월운·일진)의 `korean` 표시에 사용. DAY_SIBSIN_LINE
+ * 과 같은 의미축을 층(layer) 라벨로 감싸 일진 외 월·해·대운까지 커버한다 —
+ * 캘린더 voice("그 사람이 어떤 사람" 아니라 "지금 무엇이 흐르는가").
+ *
+ * `korean` 필드는 KO 전용(EN 은 name + signalI18n 치환)이라 KO 한 줄만 반환.
+ */
+const SIBSIN_FLOW_PHRASE: Record<string, string> = {
+  비견: '내 힘과 동료·경쟁의 기운',
+  겁재: '경쟁심과 추진력',
+  식신: '표현과 아이디어의 기운',
+  상관: '재치와 자기 색을 드러내는 기운',
+  정재: '실속과 안정의 감각',
+  편재: '재물 감각과 기회 포착',
+  정관: '책임과 자리가 또렷해지는 기운',
+  편관: '압박과 추진력',
+  정인: '배움과 도움이 들어오는 기운',
+  편인: '직관과 깊은 사유',
+}
+
+const SIBSIN_FLOW_TAIL: Record<GanjiTransitLayer, string> = {
+  daily: '흐르는 하루예요',
+  monthly: '흐르는 한 달이에요',
+  yearly: '흐르는 한 해예요',
+  decadal: '길게 흐르는 대운이에요',
+}
+
+export function sibsinFlowLine(sibsin: string | undefined, layer: GanjiTransitLayer): string {
+  if (!sibsin) return ''
+  const phrase = SIBSIN_FLOW_PHRASE[sibsin]
+  const tail = SIBSIN_FLOW_TAIL[layer]
+  if (!phrase || !tail) return ''
+  return `${phrase}${iga(phrase)} ${tail}`
 }

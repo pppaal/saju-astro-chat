@@ -11,6 +11,7 @@ import type {
 } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
+import { sibsinFlowLine, type GanjiTransitLayer } from '../data/ganjiTransitNarrative'
 
 /**
  * 사주 4시간축 — 대운/세운/월운/일주의 십신 활성 추출기.
@@ -61,7 +62,9 @@ const sajuPillarExtractor: SignalExtractor = {
       if (stemSibsin && new Date(endPoint) >= start && new Date(baseStart) <= end) {
         const stemStartIso = new Date(baseStart).toISOString()
         const stemEndIso = new Date(midPoint - 1).toISOString()
-        const stemPeakIso = new Date(Date.UTC(d.startYear + 2, bMonth, Math.max(1, bDate))).toISOString()
+        const stemPeakIso = new Date(
+          Date.UTC(d.startYear + 2, bMonth, Math.max(1, bDate))
+        ).toISOString()
         if (new Date(stemEndIso) >= start && new Date(stemStartIso) <= end) {
           signals.push(
             buildSignal({
@@ -90,12 +93,16 @@ const sajuPillarExtractor: SignalExtractor = {
       const jeonggiStem = branchJijanggan?.['정기']
       const jeonggiStemInfo = jeonggiStem ? STEMS.find((s) => s.name === jeonggiStem) : null
       const branchSibsin = jeonggiStemInfo ? getSibsin(dayMaster, jeonggiStemInfo) : null
-      const branchElement = (branchInfo?.element ?? jeonggiStemInfo?.element ?? stemInfo.element) as FiveElement
+      const branchElement = (branchInfo?.element ??
+        jeonggiStemInfo?.element ??
+        stemInfo.element) as FiveElement
 
       if (branchSibsin && new Date(endPoint) >= start && new Date(midPoint) <= end) {
         const branchStartIso = new Date(midPoint).toISOString()
         const branchEndIso = new Date(endPoint).toISOString()
-        const branchPeakIso = new Date(Date.UTC(d.startYear + 7, bMonth, Math.max(1, bDate))).toISOString()
+        const branchPeakIso = new Date(
+          Date.UTC(d.startYear + 7, bMonth, Math.max(1, bDate))
+        ).toISOString()
         if (new Date(branchEndIso) >= start && new Date(branchStartIso) <= end) {
           signals.push(
             buildSignal({
@@ -263,11 +270,14 @@ interface BuildSignalArgs {
 
 function buildSignal(args: BuildSignalArgs): ActiveSignal {
   const polarity = polarityFromYongsin(args.element, args.yongsin)
+  // 운으로 들어오는 십신의 흐름 한 줄 — 캘린더 voice. (없으면 name 폴백)
+  const korean = sibsinFlowLine(args.sibsin, args.layer as GanjiTransitLayer)
   return {
     id: `saju.pillar-sibsin.${args.idSuffix}`,
     source: 'saju',
     kind: 'pillar-sibsin',
     name: `${args.ganji} (${args.sibsin})`,
+    ...(korean ? { korean } : {}),
     themes: [], // tagger가 SIBSIN_THEME_MAP + ELEMENT_THEME_MAP으로 채움
     polarity,
     layer: args.layer,
@@ -316,6 +326,5 @@ function pillarToStemInfo(stemName: string): StemInfo | null {
   if (!found) return null
   return found as StemInfo
 }
-
 
 export default sajuPillarExtractor

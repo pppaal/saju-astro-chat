@@ -1,4 +1,5 @@
 import { computeDayBranch } from './saju-shinsal'
+import { getRelationMeaning, type RelationCategory } from '@/lib/chart-dictionary'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { PillarKind } from '@/lib/saju/types'
 
@@ -243,6 +244,54 @@ interface MakeSignalArgs {
   detail: Record<string, unknown>
 }
 
+// relation → chart-dictionary RelationCategory. 충/육합/형/자형/삼합 정통 해석 연결.
+const RELATION_CATEGORY: Record<MakeSignalArgs['relation'], RelationCategory> = {
+  chung: '지지충',
+  yukhap: '지지육합',
+  samhap: '지지삼합',
+  hyung: '지지형',
+  'hyung-self': '지지형',
+}
+
+/**
+ * 관계 신호에 relations-pairs 정통 해석문을 붙인다. 삼합은 trio 키(亥卯未),
+ * 그 외는 페어 키(양 순서 시도), 자형은 동일 지지 페어(亥亥). 실패 시 undefined.
+ */
+// 삼형(三刑) 페어 → 트리오 키. 지지형 사전 키는 trio(寅巳申·丑戌未)라 페어 환원.
+const HYUNG_TRIO_KEY: Record<string, string> = {
+  寅巳: '寅巳申',
+  巳寅: '寅巳申',
+  巳申: '寅巳申',
+  申巳: '寅巳申',
+  寅申: '寅巳申',
+  申寅: '寅巳申',
+  丑戌: '丑戌未',
+  戌丑: '丑戌未',
+  戌未: '丑戌未',
+  未戌: '丑戌未',
+  丑未: '丑戌未',
+  未丑: '丑戌未',
+}
+
+function relationDictMeaning(args: MakeSignalArgs): string | undefined {
+  const cat = RELATION_CATEGORY[args.relation]
+  const samhap = args.detail.samhapGroup as string[] | undefined
+  if (samhap) return getRelationMeaning(cat, samhap.join(''), 'ko')?.meaning
+  const a = args.detail.targetBranch as string | undefined
+  const b = (args.detail.natalBranch ?? args.detail.targetBranch) as string | undefined
+  if (!a || !b) return undefined
+  for (const key of [`${a}${b}`, `${b}${a}`]) {
+    const entry = getRelationMeaning(cat, key, 'ko')
+    if (entry) return entry.meaning
+  }
+  // 상호형 삼형 페어는 트리오 키로 재시도 (丑-未 → 丑戌未).
+  if (args.relation === 'hyung') {
+    const trio = HYUNG_TRIO_KEY[`${a}${b}`]
+    if (trio) return getRelationMeaning(cat, trio, 'ko')?.meaning
+  }
+  return undefined
+}
+
 function makeSignal(args: MakeSignalArgs): ActiveSignal {
   // id 는 day + relation + natalPillar + branches 로 고유.
   const idTail =
@@ -254,7 +303,8 @@ function makeSignal(args: MakeSignalArgs): ActiveSignal {
     source: 'saju',
     kind: 'hyeongchung',
     name: args.name,
-    korean: args.korean,
+    // 정통 해석문 우선 — 없으면 라벨(args.korean) 폴백.
+    korean: relationDictMeaning(args) ?? args.korean,
     themes: [],
     polarity: args.polarity,
     layer: 'daily',

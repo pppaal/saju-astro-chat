@@ -2,6 +2,7 @@ import { STEMS, BRANCHES, JIJANGGAN, getSolarTermKST } from '@/lib/saju/constant
 import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
+import { iga, eulReul, waGwa } from '@/lib/i18n/koParticle'
 import type {
   ActiveSignal,
   ExtractorContext,
@@ -106,6 +107,34 @@ interface StemInfoLite {
   name: string
   element: FiveElement
   yin_yang: YinYang
+}
+
+// ── 지장간 신호 흐름(flow) 한 줄 ── 기술적 name(통근/암합/충)을 사용자 voice 로.
+function tonggeunFlowLine(branchName: string, layerLabel: string, positive: boolean): string {
+  const j = iga(layerLabel)
+  return positive
+    ? `${branchName}의 지장간 ${layerLabel}${j} 본명 일간의 뿌리를 단단히 받쳐주는 흐름이에요`
+    : `${branchName}의 지장간 ${layerLabel}${j} 이미 강한 기운에 더해져 과해지기 쉬운 흐름이에요`
+}
+
+function amhapFlowLine(
+  branchName: string,
+  posKo: string,
+  transform: FiveElement,
+  polarity: Polarity
+): string {
+  if (polarity > 0)
+    return `${branchName}의 숨은 지장간이 본명 ${posKo}${waGwa(posKo)} 몰래 어울려(암합) ${transform} 기운을 도움으로 끌어오는 흐름이에요`
+  if (polarity < 0)
+    return `${branchName}의 숨은 지장간이 본명 ${posKo}${eulReul(posKo)} 묶어(암합) ${transform} 기운이 발목을 잡는 흐름이에요`
+  return `${branchName}의 숨은 지장간이 본명 ${posKo}${waGwa(posKo)} 약하게 얽히는(암합) 흐름이에요`
+}
+
+function chungFlowLine(branchName: string, layerLabel: string, strong: boolean): string {
+  const j = iga(layerLabel)
+  return strong
+    ? `${branchName}의 지장간 ${layerLabel}${j} 본명 일지와 정면으로 부딪쳐(충) 뿌리가 크게 흔들리는 흐름이에요`
+    : `${branchName}의 지장간 ${layerLabel}${j} 본명 일지와 부딪쳐(충) 뿌리가 흔들리는 흐름이에요`
 }
 
 const sajuJijangganExtractor: SignalExtractor = {
@@ -310,6 +339,7 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
         source: 'saju',
         kind: 'jijanggan',
         name: `${args.branchName} 지장간 ${layerLabel}(${stemName}) 통근`,
+        korean: tonggeunFlowLine(args.branchName, layerLabel, polarity > 0),
         themes: [],
         polarity,
         layer: args.layer,
@@ -368,6 +398,12 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
             source: 'saju',
             kind: 'jijanggan',
             name: `${args.branchName} 지장간 ${layerLabel}(${stemName}) ↔ 본명 ${POS_KO[ns.pos] ?? ns.pos}(${ns.name}) 암합`,
+            korean: amhapFlowLine(
+              args.branchName,
+              POS_KO[ns.pos] ?? ns.pos,
+              combineDef.transform,
+              polarity
+            ),
             themes: [],
             polarity,
             layer: args.layer,
@@ -410,6 +446,7 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
           source: 'saju',
           kind: 'jijanggan',
           name: `${args.branchName} 지장간 ${layerLabel}(${stemName}) ↔ 본명 일지 ${JIJANGGAN_LABEL[natalLayer] ?? natalLayer}(${natalStem}) 충`,
+          korean: chungFlowLine(args.branchName, layerLabel, ladder.tier === 'jeonggi-jeonggi'),
           themes: [],
           polarity: ladder.polarity,
           layer: args.layer,
