@@ -143,6 +143,7 @@
     "dotenv": "^17.2.4",
     "firebase": "^12.9.0",
     "framer-motion": "^12.33.0",
+    "html-to-image": "^1.11.13",
     "korean-lunar-calendar": "^0.3.6",
     "lru-cache": "^11.2.5",
     "lucide-react": "^0.563.0",

@@ -1,0 +1,317 @@
+'use client'
+
+/**
+ * ShareTarotButton — 타로 결과를 SNS(인스타/카톡)용 1:1 이미지로 만들어
+ * 공유/저장한다. 클릭 → 화면 밖 TarotShareCard 를 잠깐 마운트 → html-to-image
+ * 로 PNG 캡처 → 미리보기 모달에서 [공유하기](Web Share API) / [이미지 저장].
+ *
+ * 서버/스토리지 없이 클라이언트에서 끝나므로 게스트도 사용 가능.
+ */
+
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import * as htmlToImage from 'html-to-image'
+import { Share2, Download, Loader2, X } from 'lucide-react'
+import { tarotLogger } from '@/lib/logger'
+import type { ReadingResponse, InterpretationResult } from '@/app/tarot/[categoryName]/[spreadId]/types'
+import { TarotShareCard, SHARE_CARD_SIZE, type ShareCardData } from './TarotShareCard'
+
+interface ShareTarotButtonProps {
+  readingResult: ReadingResponse
+  interpretation: InterpretationResult | null
+  userTopic: string
+  language: string
+}
+
+// overall_message 의 첫 문장(또는 affirmation)을 한 줄 메시지로 뽑는다.
+function pickKeyMessage(interpretation: InterpretationResult | null, max = 80): string {
+  const overall = (interpretation?.overall_message || '').trim()
+  const source = overall || (interpretation?.affirmation || '').trim()
+  if (!source) return ''
+  // 한국어/영문 문장 끝(. ! ? 。 ！ ？) 기준 첫 문장.
+  const match = source.match(/^[\s\S]*?[.!?。！？](\s|$)/)
+  let sentence = (match ? match[0] : source).trim()
+  if (sentence.length > max) sentence = `${sentence.slice(0, max - 1).trim()}…`
+  return sentence
+}
+
+function truncate(text: string, max: number): string {
+  const t = (text || '').trim()
+  return t.length > max ? `${t.slice(0, max - 1).trim()}…` : t
+}
+
+function buildShareData(
+  readingResult: ReadingResponse,
+  interpretation: InterpretationResult | null,
+  userTopic: string,
+  isKo: boolean
+): ShareCardData {
+  // line-clamp 이 캡처에서 안 먹는 경우를 대비해 JS 로도 길이 제한.
+  const question = truncate(
+    (userTopic || '').trim() ||
+      (isKo
+        ? readingResult.spread.titleKo || readingResult.spread.title
+        : readingResult.spread.title),
+    90
+  )
+  return {
+    question,
+    spreadTitle: isKo
+      ? readingResult.spread.titleKo || readingResult.spread.title
+      : readingResult.spread.title,
+    cards: readingResult.drawnCards.map((dc) => ({
+      image: dc.card.image,
+      name: isKo ? dc.card.nameKo || dc.card.name : dc.card.name,
+      isReversed: dc.isReversed,
+    })),
+    keyMessage: pickKeyMessage(interpretation),
+    isKo,
+  }
+}
+
+// 캡처 전 카드/로고 이미지를 미리 디코드해 빈 칸 캡처를 방지.
+async function preloadImages(srcs: string[]): Promise<void> {
+  await Promise.all(
+    srcs.map(
+      (src) =>
+        new Promise<void>((resolve) => {
+          const img = new Image()
+          img.onload = () => resolve()
+          img.onerror = () => resolve()
+          img.src = src
+        })
+    )
+  )
+}
+
+export function ShareTarotButton({
+  readingResult,
+  interpretation,
+  userTopic,
+  language,
+}: ShareTarotButtonProps) {
+  const isKo = language === 'ko'
+  const cardRef = useRef<HTMLDivElement>(null)
+  // 'idle' | 'rendering'(캡처 중) | 'preview'(모달)
+  const [phase, setPhase] = useState<'idle' | 'rendering' | 'preview'>('idle')
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [blob, setBlob] = useState<Blob | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const shareData = buildShareData(readingResult, interpretation, userTopic, isKo)
+
+  // object URL 누수 방지.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
+
+  const capture = useCallback(async () => {
+    const node = cardRef.current
+    if (!node) return
+    try {
+      await preloadImages([...shareData.cards.map((c) => c.image), '/logo/logo.png'])
+      // 폰트/레이아웃 안정화를 위해 한 프레임 양보.
+      await new Promise((r) => requestAnimationFrame(() => r(null)))
+      const out = await htmlToImage.toBlob(node, {
+        width: SHARE_CARD_SIZE,
+        height: SHARE_CARD_SIZE,
+        pixelRatio: 1,
+        cacheBust: true,
+        backgroundColor: '#070a1a',
+      })
+      if (!out) throw new Error('toBlob returned null')
+      const url = URL.createObjectURL(out)
+      setBlob(out)
+      setPreviewUrl(url)
+      setPhase('preview')
+    } catch (err) {
+      tarotLogger.error('[ShareTarot] capture failed', err instanceof Error ? err : undefined)
+      setError(isKo ? '이미지를 만들지 못했어요. 다시 시도해 주세요.' : 'Could not create the image. Please try again.')
+      setPhase('idle')
+    }
+  }, [shareData.cards, isKo])
+
+  // 'rendering' 단계에서 카드가 DOM 에 마운트된 뒤 캡처.
+  useEffect(() => {
+    if (phase !== 'rendering') return
+    let cancelled = false
+    void (async () => {
+      // 마운트 직후 한 틱 대기.
+      await new Promise((r) => setTimeout(r, 30))
+      if (!cancelled) await capture()
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [phase, capture])
+
+  const onClickShare = () => {
+    setError(null)
+    setPhase('rendering')
+  }
+
+  const closeModal = () => {
+    setPhase('idle')
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl(null)
+    setBlob(null)
+  }
+
+  const filename = `destinypal-tarot-${Date.now()}.png`
+
+  const handleNativeShare = async () => {
+    if (!blob) return
+    const file = new File([blob], filename, { type: 'image/png' })
+    const data: ShareData = {
+      files: [file],
+      title: isKo ? 'DestinyPal 타로 결과' : 'My DestinyPal Tarot Reading',
+      text: shareData.question,
+    }
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share(data)
+        return
+      }
+    } catch (err) {
+      // 사용자가 공유 시트를 닫은 경우(AbortError)는 조용히 무시.
+      const name = (err as Error & { name?: string })?.name
+      if (name === 'AbortError') return
+      tarotLogger.error('[ShareTarot] native share failed', err instanceof Error ? err : undefined)
+    }
+    // 공유 미지원/실패 → 저장으로 폴백.
+    handleDownload()
+  }
+
+  const handleDownload = () => {
+    if (!previewUrl) return
+    const a = document.createElement('a')
+    a.href = previewUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+
+  const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+
+  return (
+    <>
+      <div className="flex flex-col items-center gap-2">
+        <button
+          type="button"
+          onClick={onClickShare}
+          disabled={phase === 'rendering'}
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          style={{
+            background: 'rgba(212,181,114,0.14)',
+            border: '1px solid rgba(212,181,114,0.4)',
+            color: '#e8cc8a',
+          }}
+        >
+          {phase === 'rendering' ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Share2 className="w-4 h-4" />
+          )}
+          {phase === 'rendering'
+            ? isKo
+              ? '이미지 만드는 중…'
+              : 'Creating image…'
+            : isKo
+              ? '결과 이미지로 공유'
+              : 'Share as image'}
+        </button>
+        {error && <span className="text-[11px] text-rose-300/80 text-center max-w-xs">{error}</span>}
+      </div>
+
+      {/* 캡처용 화면 밖 카드 — rendering/preview 동안만 마운트. */}
+      {phase !== 'idle' && (
+        <div
+          aria-hidden
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: -99999,
+            width: SHARE_CARD_SIZE,
+            height: SHARE_CARD_SIZE,
+            pointerEvents: 'none',
+            opacity: 0,
+            zIndex: -1,
+          }}
+        >
+          <TarotShareCard ref={cardRef} data={shareData} />
+        </div>
+      )}
+
+      {/* 미리보기 모달 */}
+      {phase === 'preview' && previewUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ background: 'rgba(7, 9, 26, 0.88)', backdropFilter: 'blur(6px)' }}
+          onClick={closeModal}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-sm rounded-2xl border p-5"
+            style={{
+              background: 'rgba(17, 24, 39, 0.95)',
+              borderColor: 'rgba(212,181,114,0.35)',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={closeModal}
+              aria-label={isKo ? '닫기' : 'Close'}
+              className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-slate-700 transition-colors"
+              style={{ background: 'rgba(30,41,59,0.9)', color: '#e2e8f0' }}
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewUrl}
+              alt={isKo ? '공유 이미지 미리보기' : 'Share image preview'}
+              className="w-full rounded-xl mb-4"
+              style={{ aspectRatio: '1 / 1', objectFit: 'cover' }}
+            />
+
+            <div className="flex gap-2">
+              {canNativeShare && (
+                <button
+                  type="button"
+                  onClick={() => void handleNativeShare()}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                  style={{ background: '#e8cc8a', color: '#1a1305' }}
+                >
+                  <Share2 className="w-4 h-4" />
+                  {isKo ? '공유하기' : 'Share'}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                style={{
+                  background: canNativeShare ? 'rgba(212,181,114,0.14)' : '#e8cc8a',
+                  border: '1px solid rgba(212,181,114,0.4)',
+                  color: canNativeShare ? '#e8cc8a' : '#1a1305',
+                }}
+              >
+                <Download className="w-4 h-4" />
+                {isKo ? '이미지 저장' : 'Save image'}
+              </button>
+            </div>
+            <p className="mt-3 text-[11px] text-center" style={{ color: '#9aa3b8' }}>
+              {isKo
+                ? '저장한 이미지를 인스타그램 스토리·피드나 카카오톡에 올려보세요.'
+                : 'Post the saved image to Instagram or share it on any app.'}
+            </p>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}

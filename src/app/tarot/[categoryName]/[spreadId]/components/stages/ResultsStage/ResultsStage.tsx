@@ -53,6 +53,7 @@ import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../
 import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { FollowupChat } from './FollowupChat'
+import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
 import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
 
 export interface ResultsStageProps {
@@ -310,6 +311,17 @@ export function ResultsStage(props: ResultsStageProps) {
 
         {/* ⑤ 조언과 예측 */}
         {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
+
+        {/* ⑥ SNS 공유 — 결과를 1:1 이미지로 만들어 인스타/카톡에 공유·저장.
+            AI 응답이 도착한 후에만 노출(질문+카드+한줄 메시지 카드). */}
+        {!aiPending && insight?.overall_message && (
+          <ShareTarotButton
+            readingResult={readingResult}
+            interpretation={interpretation}
+            userTopic={userTopic}
+            language={language}
+          />
+        )}
 
         {/* ⑦ Follow-up 채팅 — AI 응답이 도착한 후에만 노출 */}
         {!aiPending && insight?.overall_message && (
