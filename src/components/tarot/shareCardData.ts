@@ -26,10 +26,13 @@ function truncate(text: string, max: number): string {
   return t.length > max ? `${t.slice(0, max - 1).trim()}…` : t
 }
 
-// 해석 본문의 첫 문장(또는 폴백)을 한 줄 메시지로.
-export function pickKeyMessage(source: string | undefined | null, max = 80): string {
-  const s = (source || '').trim()
+// 해석 본문의 첫 문장(또는 폴백)을 한 줄 메시지로. 공유 이미지에 실명이
+// 박히지 않게 앞머리 'OOO님,' 호명을 떼고, 너무 길지 않게 자른다.
+export function pickKeyMessage(source: string | undefined | null, max = 58): string {
+  let s = (source || '').trim()
   if (!s) return ''
+  // 앞머리 호명 제거: "이준영님, " / "이준영 님께서" 등 → 실명 노출 방지.
+  s = s.replace(/^[가-힣A-Za-z·\s]{1,12}님(께서|은|이|,|，|!|\s)+/, '').trim()
   const match = s.match(/^[\s\S]*?[.!?。！？](\s|$)/)
   let sentence = (match ? match[0] : s).trim()
   if (sentence.length > max) sentence = `${sentence.slice(0, max - 1).trim()}…`
