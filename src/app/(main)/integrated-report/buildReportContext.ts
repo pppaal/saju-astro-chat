@@ -24,15 +24,12 @@
 // NatalContext shape 호환 — adapter (natalToReportData / buildCrossRows) 가
 // 같은 shape 받음.
 
-import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
-import { collectAstroFacts } from '@/lib/destiny/astroFacts'
+import { collectSajuFacts } from '@/lib/facts/sajuFacts'
+import { collectAstroFacts } from '@/lib/facts/astroFacts'
 import { performAnalyses } from '@/app/api/saju/services/analyses'
 import { annotateShinsal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { JIJANGGAN } from '@/lib/saju/constants'
-import type {
-  NatalContext,
-  NatalDayJijanggan,
-} from '@/lib/calendar-engine/context/types'
+import type { NatalContext, NatalDayJijanggan } from '@/lib/calendar-engine/context/types'
 import type { FiveElement, SajuPillarsInput } from '@/lib/saju/types'
 
 export interface ReportContextInput {
@@ -90,7 +87,7 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
     simplePillarsWithHour,
     pillarsWithHour,
     pillars.day.heavenlyStem.name,
-    pillars.month.earthlyBranch.name,
+    pillars.month.earthlyBranch.name
   )
   const shinsalAnnot = annotateShinsal(pillars)
   const twelveStages = getTwelveStagesForPillars(pillars)
@@ -129,7 +126,9 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
   // 가 facts.hellenistic 안에 들어있음. page 가 직접 호출할 필요 없음.
   const hellenistic = astroFacts.hellenistic
   if (!hellenistic) {
-    throw new Error('buildReportContext: astroFacts.hellenistic 없음 (includeHellenistic 옵션 확인)')
+    throw new Error(
+      'buildReportContext: astroFacts.hellenistic 없음 (includeHellenistic 옵션 확인)'
+    )
   }
 
   // ─── ctx 구성 (NatalContext shape 호환) ──────────────────────────────
@@ -151,7 +150,7 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
         primary: sajuFacts.yongsin?.primaryYongsin as FiveElement,
         secondary: sajuFacts.yongsin?.secondaryYongsin as FiveElement | undefined,
         avoid: [sajuFacts.yongsin?.kibsin, sajuFacts.yongsin?.gusin].filter(
-          Boolean,
+          Boolean
         ) as FiveElement[],
       },
       geokguk: sajuFacts.geokguk ?? undefined,

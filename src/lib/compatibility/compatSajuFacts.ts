@@ -11,7 +11,7 @@
 //
 // 본 모듈은 **포매팅 0**. locale 무관. text 0. JSON-able 객체만 반환.
 
-import { collectSajuFacts, type SajuFacts, type SajuPillarFact } from '@/lib/destiny/sajuFacts'
+import { collectSajuFacts, type SajuFacts, type SajuPillarFact } from '@/lib/facts/sajuFacts'
 import { getShinsalHits, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { logger } from '@/lib/logger'
 
@@ -51,7 +51,7 @@ export interface CompatSajuFacts {
  */
 export function collectCompatSajuFacts(
   seedA: CompatPersonSeed,
-  seedB: CompatPersonSeed,
+  seedB: CompatPersonSeed
 ): CompatSajuFacts {
   return {
     a: collectOne(seedA),
@@ -72,7 +72,7 @@ function collectOne(seed: CompatPersonSeed): PersonCompatSajuFacts {
     (k) => ({
       stem: base.pillars[k].stem,
       branch: base.pillars[k].branch,
-    }),
+    })
   )
 
   const cur = base.daeun.current

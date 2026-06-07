@@ -8,7 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // 무거운 천체력/사주 빌드는 mock — 캐시 로직만 검증.
-vi.mock('@/lib/destiny/counselorContext', () => ({
+vi.mock('@/lib/facts/counselorContext', () => ({
   buildDestinyContext: vi.fn(),
 }))
 // Redis 는 mock 하되 CACHE_TTL 상수는 실제값 유지(TTL 회귀 방지).
@@ -33,8 +33,8 @@ import {
   ensureCounselorContext,
   birthFingerprint,
   type CounselorBirthInput,
-} from '@/lib/destiny/counselorContextCache'
-import { buildDestinyContext } from '@/lib/destiny/counselorContext'
+} from '@/lib/facts/counselorContextCache'
+import { buildDestinyContext } from '@/lib/facts/counselorContext'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 

@@ -15,10 +15,7 @@ import { authOptions } from '@/lib/auth/authOptions'
 import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
-import {
-  ensureCounselorContext,
-  type CounselorBirthInput,
-} from '@/lib/destiny/counselorContextCache'
+import { ensureCounselorContext, type CounselorBirthInput } from '@/lib/facts/counselorContextCache'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'

@@ -1,6 +1,6 @@
 // tests/lib/destiny/sajuFacts.test.ts
 import { describe, it, expect } from 'vitest'
-import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
+import { collectSajuFacts } from '@/lib/facts/sajuFacts'
 
 // 본 테스트의 기준 출생 = destinypal preview 가 쓰는 1995-02-09 06:40 KST 남자.
 // 이 사주의 일주(乙亥), 일간(乙=음목) 은 calculateSajuData 의 결정성 골든
@@ -41,8 +41,11 @@ describe('collectSajuFacts — 순수 facts 계산', () => {
   it('fiveElements 합산이 사주 천간 4 + 지지 4 + 지장간 = 양수', () => {
     const f = collectSajuFacts(BIRTH)
     const sum =
-      f.fiveElements.wood + f.fiveElements.fire +
-      f.fiveElements.earth + f.fiveElements.metal + f.fiveElements.water
+      f.fiveElements.wood +
+      f.fiveElements.fire +
+      f.fiveElements.earth +
+      f.fiveElements.metal +
+      f.fiveElements.water
     expect(sum).toBeGreaterThan(0)
   })
 
@@ -98,6 +101,8 @@ describe('collectSajuFacts — 순수 facts 계산', () => {
   it('다른 출생 → 다른 결과', () => {
     const a = collectSajuFacts(BIRTH)
     const b = collectSajuFacts({ ...BIRTH, birthDate: '1980-01-01' })
-    expect(a.pillars.year.stem !== b.pillars.year.stem || a.pillars.year.branch !== b.pillars.year.branch).toBe(true)
+    expect(
+      a.pillars.year.stem !== b.pillars.year.stem || a.pillars.year.branch !== b.pillars.year.branch
+    ).toBe(true)
   })
 })

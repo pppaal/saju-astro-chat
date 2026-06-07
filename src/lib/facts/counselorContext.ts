@@ -6,12 +6,12 @@
  * Increment ①: SAJU section.
  */
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
+import { collectSajuFacts } from '@/lib/facts/sajuFacts'
 import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
-import { collectAstroFacts } from '@/lib/destiny/astroFacts'
+import { collectAstroFacts } from '@/lib/facts/astroFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
-import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
-import { slimAstroSelf } from '@/lib/destiny/astroSlim'
+import { formatAstroSelf } from '@/lib/facts/astroSelfFormatter'
+import { slimAstroSelf } from '@/lib/facts/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
 import { isHyeong } from '@/lib/saju/hyeong'
 import { getNowInTimezone } from '@/lib/datetime'
@@ -217,7 +217,12 @@ const pkA = (n: string, l: Locale) => (l === 'ko' ? (PLANET_KO_A[n] ?? n) : n)
 
 // facts.pillars 의 평탄 형태(stem/branch + element) → toSajuPillarsLike 의 raw
 // 형식으로 변환. SajuFacts SSOT 라 element 도 facts 가 제공.
-function factPillarToShinsalInput(p: { stem: string; stemElement: string; branch: string; branchElement: string }) {
+function factPillarToShinsalInput(p: {
+  stem: string
+  stemElement: string
+  branch: string
+  branchElement: string
+}) {
   return {
     heavenlyStem: { name: p.stem, element: p.stemElement as never },
     earthlyBranch: { name: p.branch, element: p.branchElement as never },
@@ -401,7 +406,7 @@ export async function buildDestinyContext(
         birthTimeUnknown: birth.birthTimeUnknown,
         birthCityUnknown: birth.birthCityUnknown,
       },
-      now,
+      now
     )
     if (!aFacts) throw new Error('astro facts unavailable')
 
@@ -419,7 +424,10 @@ export async function buildDestinyContext(
       posLines.push(`  ${pl(p.name)} ${sgn(p.sign)}${houseTag}${p.retrograde ? ' R' : ''}${dgTag}`)
     }
     if (!placeUnreliable) {
-      posLines.push(`  ASC ${sgn(aFacts.natal.ascendant.sign)}`, `  MC ${sgn(aFacts.natal.mc.sign)}`)
+      posLines.push(
+        `  ASC ${sgn(aFacts.natal.ascendant.sign)}`,
+        `  MC ${sgn(aFacts.natal.mc.sign)}`
+      )
     }
 
     const fmtAsp = (a: { from: string; to: string; type: string; orb: number }) =>
@@ -461,7 +469,7 @@ export async function buildDestinyContext(
       const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
       profLine = L(
         `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
-        `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`,
+        `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
       )
     }
 
@@ -478,7 +486,10 @@ export async function buildDestinyContext(
   } catch (err) {
     // 점성 실패 시 silent fallback 이면 운영에서 사용자가 "사주만" 답변을
     // 받아도 아무도 모름. 최소한 warn 으로 남겨 모니터링 가능하게.
-    console.warn('[buildDestinyContext] astro section build failed:', err instanceof Error ? err.message : err)
+    console.warn(
+      '[buildDestinyContext] astro section build failed:',
+      err instanceof Error ? err.message : err
+    )
   }
 
   // === STABLE (cached prefix) ===
@@ -569,9 +580,8 @@ export function buildSajuSection(
   const yinyang = dm.yinYang === '음' ? L('음', 'yin') : L('양', 'yang')
   const strLab = locale === 'en' ? (STRENGTH_EN[strengthLabel] ?? strengthLabel) : strengthLabel
   // 통근 — facts.dayMaster.rooted 가 이미 계산 (sajuFacts.ts SSOT).
-  const rootLab = locale === 'en'
-    ? dm.rooted ? 'rooted' : 'rootless'
-    : dm.rooted ? '유근' : '무근'
+  const rootLab =
+    locale === 'en' ? (dm.rooted ? 'rooted' : 'rootless') : dm.rooted ? '유근' : '무근'
   out.push(`${L('일간', 'day_master')}: ${dm.name}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`)
   const fe = facts.fiveElements
   out.push(
