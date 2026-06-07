@@ -38,6 +38,8 @@ interface ProfileEditModalProps {
     birthTime?: string | null
     gender?: string | null
     birthCity?: string | null
+    latitude?: number | null
+    longitude?: number | null
     tzId?: string | null
   }
   locale: 'ko' | 'en'
@@ -77,6 +79,10 @@ export function ProfileEditModal({
     longitude?: number
     timezone?: string
   }>({
+    // 기존 저장된 좌표를 시드 — 사용자가 도시를 다시 안 골라도 좌표가
+    // 유지되어 저장 시 null 로 덮어쓰지 않는다 (도시 재선택 요구 방지).
+    latitude: initial.latitude ?? undefined,
+    longitude: initial.longitude ?? undefined,
     timezone: initial.tzId ?? undefined,
   })
   const [saving, setSaving] = useState(false)
@@ -116,6 +122,10 @@ export function ProfileEditModal({
         birthTime: timeUnknown ? null : birthTime || null,
         gender,
         birthCity: birthCity || null,
+        // 좌표도 함께 저장 — 안 그러면 도시 이름만 남아 불러오기 시 "도시
+        // 다시 선택" 이 떠서 메인페이지에서 도시 미설정으로 보였다.
+        latitude: cityData.latitude ?? null,
+        longitude: cityData.longitude ?? null,
         tzId: cityData.timezone || initial.tzId || null,
       }
       const trimmed = name.trim()
