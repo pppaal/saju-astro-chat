@@ -18,10 +18,13 @@
  * 산출물은 YearlyImportantDate(= ImportantDate) 형태로, 기존처럼 formatDateForResponse
  * 에 그대로 흘려보낸다.
  */
-import type { ImportanceGrade } from '@/lib/destiny-map/calendar/types'
+import type { ImportanceGrade } from '@/lib/calendar/types'
 import type { DomainKey } from './types'
 import type { CalendarCell, ActiveSignal } from '@/lib/calendar-engine/types'
-import { cellToYearlyDate, type CalendarLang } from '@/lib/calendar-engine/adapters/cellsToYearlyDates'
+import {
+  cellToYearlyDate,
+  type CalendarLang,
+} from '@/lib/calendar-engine/adapters/cellsToYearlyDates'
 import { patternsToCategories } from '@/lib/calendar-engine/derivers/categories'
 import {
   pickDaeunForDate,
@@ -220,14 +223,9 @@ function buildLongCycle(
         sibsinBranch: iljinBranch ? getSibsinKo(dayMaster, iljinBranch) : undefined,
       },
     },
-    cycleInteractions: buildCycleInteractions(
-      dayMaster,
-      dayBranch || '',
-      daeun,
-      sewoon,
-      wolwoon,
-      { ganji: v2Ganzhi }
-    ),
+    cycleInteractions: buildCycleInteractions(dayMaster, dayBranch || '', daeun, sewoon, wolwoon, {
+      ganji: v2Ganzhi,
+    }),
   }
 }
 

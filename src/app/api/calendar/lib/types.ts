@@ -3,7 +3,7 @@
  * Extracted from route.ts for modularity
  */
 
-import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/destinyCalendar'
+import type { EventCategory, ImportanceGrade } from '@/lib/calendar/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
 // monthlyInterpretation 모양의 단일 정의(SSOT) — 엔진이 정본, API/UI 가 재사용.
 import type { Interpretation as CalendarInterpretation } from '@/lib/calendar-engine/interpretation/types'

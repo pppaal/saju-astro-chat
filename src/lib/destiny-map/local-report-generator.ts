@@ -18,8 +18,8 @@ import {
   getSibsinCategoryMeaning,
   type SibsinCategory,
 } from '@/lib/chart-dictionary'
-import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from './calendar/constants'
-import { normalizeElement } from './calendar/utils'
+import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from '@/lib/calendar/constants'
+import { normalizeElement } from '@/lib/calendar/utils'
 
 // ============================================================
 // Translation Maps
@@ -471,7 +471,11 @@ const KO_TO_EN_ELEMENT: Record<string, string> = {
 /** 오행 부족 시 처방 — 색·방향·활동(비전공자 친화 단어). personaCompute 와 동일 어휘. */
 const ELEMENT_REMEDY: Record<
   string,
-  { color: { ko: string; en: string }; direction: { ko: string; en: string }; activity: { ko: string; en: string } }
+  {
+    color: { ko: string; en: string }
+    direction: { ko: string; en: string }
+    activity: { ko: string; en: string }
+  }
 > = {
   목: {
     color: { ko: '초록', en: 'green' },
@@ -509,10 +513,7 @@ function strengthLabel(raw: string | undefined, isKo: boolean): string {
 }
 
 /** 십성 카테고리 → 영문/한 줄 한국어 키워드. dictionary 메타가 없을 때 fallback. */
-const SIBSIN_CATEGORY_HINT: Record<
-  SibsinCategory,
-  { ko: string; en: string }
-> = {
+const SIBSIN_CATEGORY_HINT: Record<SibsinCategory, { ko: string; en: string }> = {
   비겁: {
     ko: '자기·독립·경쟁',
     en: 'self, independence, competition',
@@ -618,18 +619,17 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
   const role = domKey !== selfKey ? sibsinRole(selfKey, domKey) : null
 
   // ── advancedAnalysis (격국·용신·신강약·십성) 안전 추출 ───────────────────
-  const advanced = (s?.analyses as
-    | {
-        geokguk?: { primary?: string }
-        yongsin?: { primaryYongsin?: string; daymasterStrength?: string }
-        sibsin?: { categoryCount?: Record<string, number> }
-      }
-    | undefined) ?? undefined
+  const advanced =
+    (s?.analyses as
+      | {
+          geokguk?: { primary?: string }
+          yongsin?: { primaryYongsin?: string; daymasterStrength?: string }
+          sibsin?: { categoryCount?: Record<string, number> }
+        }
+      | undefined) ?? undefined
   const geokgukName = advanced?.geokguk?.primary
   const geokgukRich =
-    geokgukName && geokgukName !== '미정'
-      ? getGeokgukRich(geokgukName, isKo ? 'ko' : 'en')
-      : null
+    geokgukName && geokgukName !== '미정' ? getGeokgukRich(geokgukName, isKo ? 'ko' : 'en') : null
   const geokgukTagline = geokgukRich?.tagline ?? ''
   const strength = advanced?.yongsin?.daymasterStrength
   const strengthShort = strengthLabel(strength, isKo)
@@ -698,14 +698,11 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
     // s2 — 격국 + 신강약
     let s2 = ''
     if (geokgukName && geokgukName !== '미정') {
-      const both = strengthShort
-        ? `${geokgukName}·${strengthShort}`
-        : geokgukName
+      const both = strengthShort ? `${geokgukName}·${strengthShort}` : geokgukName
       // 받침 분기: 종성 있으면 "이라", 없으면 "라". '강/약/화' 등 마지막 글자 기준.
       const lastCh = both.charAt(both.length - 1)
       const code = lastCh.charCodeAt(0)
-      const hasJongseong =
-        code >= 0xac00 && code <= 0xd7a3 ? (code - 0xac00) % 28 !== 0 : true
+      const hasJongseong = code >= 0xac00 && code <= 0xd7a3 ? (code - 0xac00) % 28 !== 0 : true
       const ira = hasJongseong ? '이라' : '라'
       const tail = geokgukTagline ? `${ira} ${geokgukTagline}이에요` : `${ira}고 볼 수 있어요`
       s2 = `사주는 ${both}${tail}.`
@@ -731,8 +728,7 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
     if (remedy && remedyElName) {
       // remedyElName 은 항상 '목/화/토/금/수' 중 하나 → 마지막 종성 유무로 이/가 결정
       const cd = remedyElName.charCodeAt(remedyElName.length - 1)
-      const hasJong =
-        cd >= 0xac00 && cd <= 0xd7a3 ? (cd - 0xac00) % 28 !== 0 : false
+      const hasJong = cd >= 0xac00 && cd <= 0xd7a3 ? (cd - 0xac00) % 28 !== 0 : false
       const subj = hasJong ? '이' : '가'
       s5 = `다만 ${remedyElName}(${remedy.color.ko}·${remedy.direction.ko})${subj} 부족해서 ${remedy.activity.ko}이 균형을 잡아줘요.`
     }
@@ -782,9 +778,7 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
   }
 
   // s4 — surrounding element
-  const s4 = role
-    ? `Strong ${domName} energy runs around you — ${ROLE_MEANING[role].en}.`
-    : ''
+  const s4 = role ? `Strong ${domName} energy runs around you — ${ROLE_MEANING[role].en}.` : ''
 
   // s5 — remedy
   let s5 = ''

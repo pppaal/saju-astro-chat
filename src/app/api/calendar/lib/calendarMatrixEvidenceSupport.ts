@@ -1,15 +1,8 @@
-import type {
-  EventCategory,
-  ImportanceGrade,
-  ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar'
+import type { EventCategory, ImportanceGrade, ImportantDate } from '@/lib/calendar/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
 import type { DomainKey, MonthlyOverlapPoint } from '@/lib/calendar-engine/matrix/types'
 import type { MatrixCalendarContext } from './calendarMatrixTextSupport'
-import {
-  GRADE_THRESHOLDS,
-  EVIDENCE_CONFIDENCE_THRESHOLDS,
-} from '@/lib/destiny-map/calendar/scoring-config'
+import { GRADE_THRESHOLDS, EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/calendar/scoring-config'
 import { getFactorTranslation } from './translations'
 import {
   describeCrossAgreement,
@@ -270,12 +263,8 @@ type ScoreBreakdownLite = {
  * yearlyDates.ts 에서 결과 객체에 attach 한다 (api/calendar/lib/types.ts
  * 의 ImportantDate 가 그 augmented shape). 안전하게 cast 로 접근.
  */
-function resolveCrossSystemTone(
-  date: ImportantDate,
-  fallbackAligned: boolean
-): CrossSystemTone {
-  const breakdown = (date as ImportantDate & { scoreBreakdown?: ScoreBreakdownLite })
-    .scoreBreakdown
+function resolveCrossSystemTone(date: ImportantDate, fallbackAligned: boolean): CrossSystemTone {
+  const breakdown = (date as ImportantDate & { scoreBreakdown?: ScoreBreakdownLite }).scoreBreakdown
   if (!breakdown) {
     return fallbackAligned ? 'bothSystems' : 'mixed'
   }
@@ -306,8 +295,7 @@ export function buildCrossEvidenceBundle(
   // date.categories 의 첫 카테고리(가장 강한 그루핑)를 9 도메인 KO 라벨로 정규화.
   // ImportantDate 가 매핑 가능한 categories 를 갖지 않으면 focusDomain 은 undefined
   // 로 남고, describeCrossEvidenceBridge 는 기존 추상 흐름 문구로 fall back.
-  const focusDomain =
-    focusDomainFromCategory(date.categories?.[0]) ?? undefined
+  const focusDomain = focusDomainFromCategory(date.categories?.[0]) ?? undefined
   const astroDetails = aspectList.map((detail, index) =>
     formatAstroEvidenceLine(detail, index, lang)
   )
@@ -316,8 +304,7 @@ export function buildCrossEvidenceBundle(
   // preferNegative 는 두 축이 같이 막힌 (bothBlocked/opposed) 자리에서만 true.
   // bothSystems 자리에서는 사주 키도 우호 우선으로 골라 saju/bridge 톤이 어긋나지
   // 않게 한다.
-  const systemPrefersNegative =
-    crossSystemTone === 'bothBlocked' || crossSystemTone === 'opposed'
+  const systemPrefersNegative = crossSystemTone === 'bothBlocked' || crossSystemTone === 'opposed'
   const pickSajuKey = (aspectIsNegative: boolean): string | undefined => {
     const keys = date.sajuFactorKeys || []
     const candidates = keys.filter((key) => !usedSajuKey.has(key))

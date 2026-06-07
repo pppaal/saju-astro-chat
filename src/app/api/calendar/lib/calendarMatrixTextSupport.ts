@@ -1,6 +1,10 @@
-import type { DomainKey, DomainScore, MonthlyOverlapPoint } from '@/lib/calendar-engine/matrix/types'
+import type {
+  DomainKey,
+  DomainScore,
+  MonthlyOverlapPoint,
+} from '@/lib/calendar-engine/matrix/types'
 import type { TimingCalibrationSummary } from '@/lib/calendar-engine/matrix/types'
-import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
+import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/calendar/scoring-config'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 
 type MatrixSignal = {
@@ -99,7 +103,10 @@ export function sanitizeMatrixNarrativeLine(value: string | undefined): string {
     .replace(/통합 레이어:\s*/gi, '')
     .replace(/타이밍 레이어:\s*/gi, '')
     .replace(/전체 패턴을 실행 가능한 전략으로 압축합니다\./gi, '')
-    .replace(/대운·세운·월운·일진 활성도를 해석합니다\./gi, '큰 흐름과 당장의 변수를 함께 읽습니다.')
+    .replace(
+      /대운·세운·월운·일진 활성도를 해석합니다\./gi,
+      '큰 흐름과 당장의 변수를 함께 읽습니다.'
+    )
     .replace(
       /핵심 조건 신호는 해당 구간의 실행 조건을 조정하라는 의미를 가집니다\./gi,
       '들어갈 때 필요한 조건을 먼저 맞추라는 뜻입니다.'

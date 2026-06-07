@@ -18,4 +18,4 @@ export type {
   UserSajuProfile,
   UserAstroProfile,
   CalendarMonth,
-} from './calendar/types'
+} from './types'

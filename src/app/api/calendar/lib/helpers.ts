@@ -3,11 +3,7 @@
  * Extracted from route.ts for modularity
  */
 
-import type {
-  EventCategory,
-  ImportanceGrade,
-  ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar'
+import type { EventCategory, ImportanceGrade, ImportantDate } from '@/lib/calendar/destinyCalendar'
 import type { TranslationData } from '@/types/calendar-api'
 import type { PillarData } from '@/lib/saju/types'
 import type { SajuPillarAccessor, FormattedDate, LocationCoord } from './types'
@@ -25,7 +21,7 @@ import {
   resolveRecommendationTranslation,
   resolveWarningTranslation,
 } from './calendarRecommendationSupport'
-import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
+import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/calendar/scoring-config'
 import { normalizeUserFacingGuidance } from '@/lib/calendar-engine/matrix/guidanceLanguage'
 import { normalizeMojibakePayload } from '@/lib/text/mojibake'
 export { generateBestTimes, generateSummary } from './calendarSummarySupport'
@@ -636,7 +632,9 @@ export function formatDateForResponse(
       date as { longCycleContext?: import('./yearlyDates').YearlyImportantDate['longCycleContext'] }
     ).longCycleContext,
     cycleInteractions: (
-      date as { cycleInteractions?: import('./yearlyDates').YearlyImportantDate['cycleInteractions'] }
+      date as {
+        cycleInteractions?: import('./yearlyDates').YearlyImportantDate['cycleInteractions']
+      }
     ).cycleInteractions,
     recommendations: recommendationsForResponse.map((text) =>
       normalizeUserFacingGuidance(sanitizeCalendarCopy(text, lang), lang)

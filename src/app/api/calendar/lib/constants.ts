@@ -2,7 +2,7 @@
  * Calendar message constants
  */
 
-import type { EventCategory } from '@/lib/destiny-map/destinyCalendar'
+import type { EventCategory } from '@/lib/calendar/destinyCalendar'
 
 type CategoryMessages = Record<EventCategory | 'general', string>
 
@@ -37,7 +37,8 @@ export const KO_MESSAGES = {
     general: '🌿 좋은 날이에요. 흐름은 무난하지만 속도보다 정리가 더 중요합니다.',
   } as CategoryMessages,
 
-  GRADE_2_LOW: '🌿 좋은 날이지만 흐름이 무겁어요. 큰 확대보다 체크리스트 기반으로 정리하는 편이 좋습니다.',
+  GRADE_2_LOW:
+    '🌿 좋은 날이지만 흐름이 무겁어요. 큰 확대보다 체크리스트 기반으로 정리하는 편이 좋습니다.',
 
   GRADE_3: {
     career: '⚠ 조심하는 날이에요. 결정은 분할하고 전달 내용은 한 번 더 확인하세요.',

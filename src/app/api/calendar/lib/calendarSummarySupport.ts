@@ -1,11 +1,10 @@
-import type {
-  EventCategory,
-  ImportanceGrade,
-  ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar'
+import type { EventCategory, ImportanceGrade, ImportantDate } from '@/lib/calendar/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
 import { KO_MESSAGES, EN_MESSAGES } from './constants'
-import { DISPLAY_SCORE_LABEL_THRESHOLDS, EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
+import {
+  DISPLAY_SCORE_LABEL_THRESHOLDS,
+  EVIDENCE_CONFIDENCE_THRESHOLDS,
+} from '@/lib/calendar/scoring-config'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 import { dedupeTexts } from './textDedupe'
 import {
@@ -33,10 +32,7 @@ function pickBySeed<T>(seed: string, items: T[]): T {
   return items[seedNumber(seed) % items.length]
 }
 
-function resolveGradeMessage(
-  group: MessageGroup | undefined,
-  category: EventCategory
-): string {
+function resolveGradeMessage(group: MessageGroup | undefined, category: EventCategory): string {
   if (typeof group === 'string') return group
   if (!group) return ''
   return group[category] || group.general || ''
@@ -67,11 +63,15 @@ function getBadDayReason(
   }
 
   if (saju.includes('shinsal_gongmang')) {
-    return lang === 'ko' ? '공망(空亡)! 계획이 무산되기 쉬운 날입니다.' : 'Void Day! Plans may fall through.'
+    return lang === 'ko'
+      ? '공망(空亡)! 계획이 무산되기 쉬운 날입니다.'
+      : 'Void Day! Plans may fall through.'
   }
 
   if (saju.includes('shinsal_backho')) {
-    return lang === 'ko' ? '백호살! 사고, 수술에 특히 주의하세요.' : 'White Tiger! Be careful of accidents.'
+    return lang === 'ko'
+      ? '백호살! 사고, 수술에 특히 주의하세요.'
+      : 'White Tiger! Be careful of accidents.'
   }
 
   if (saju.includes('shinsal_guimungwan')) {
@@ -247,7 +247,10 @@ function buildCategoryToneTail(
       'Clear selection matters more than raw pace today.',
     ],
   }
-  const base = pickBySeed(seed, lang === 'ko' ? ko[category] || ko.general : en[category] || en.general)
+  const base = pickBySeed(
+    seed,
+    lang === 'ko' ? ko[category] || ko.general : en[category] || en.general
+  )
   if (grade >= 3) {
     return lang === 'ko'
       ? `${base} 큰 결정은 하루 미뤄도 괜찮습니다.`
