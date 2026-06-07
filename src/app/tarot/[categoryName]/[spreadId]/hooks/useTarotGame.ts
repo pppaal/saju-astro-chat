@@ -52,6 +52,10 @@ interface UseTarotGameReturn {
   userTopic: string
   questionAnalysis: TarotQuestionAnalysisSnapshot | null
   personalizationOptions: TarotPersonalizationOptions
+  /** "이 리딩 다시 열기" 복원 시 채워짐 — 저장된 followup 대화 turn. */
+  initialFollowupTurns: Array<{ role: 'user' | 'assistant'; content: string }> | null
+  /** 복원하는 리딩이 이미 보충 카드를 뽑았는지 — 클래리파이어 버튼 초기 잠금. */
+  initialClarifierUsed: boolean
 
   // Setters
   setGameState: (state: GameState) => void
@@ -143,6 +147,14 @@ export function useTarotGame(): UseTarotGameReturn {
   const selectionOrderRef = useRef<Map<number, number>>(new Map())
   const [readingResult, setReadingResult] = useState<ReadingResponse | null>(null)
   const [interpretation, setInterpretation] = useState<InterpretationResult | null>(null)
+  // "이 리딩 다시 열기" 복원 시 함께 복원할 followup 채팅 turn / 보충 카드 사용
+  // 여부. FollowupChat 이 채팅창을 시드하고, 이미 보충 카드를 뽑은 리딩이면
+  // 클래리파이어 버튼을 처음부터 잠가 한 리딩당 한 장 정책을 유지한다.
+  const [restoredFollowupTurns, setRestoredFollowupTurns] = useState<Array<{
+    role: 'user' | 'assistant'
+    content: string
+  }> | null>(null)
+  const [restoredClarifierUsed, setRestoredClarifierUsed] = useState(false)
   const [drawError, setDrawError] = useState<TarotDrawError | null>(null)
   const [revealedCards, setRevealedCards] = useState<number[]>([])
   const [isSpreading, setIsSpreading] = useState(false)
@@ -304,6 +316,8 @@ export function useTarotGame(): UseTarotGameReturn {
     setReadingResult(restoredResult)
     setInterpretation(restoredInterpretation)
     setQuestionAnalysis(restoredReading.questionAnalysis || null)
+    setRestoredFollowupTurns(restoredReading.followupTurns ?? null)
+    setRestoredClarifierUsed(!!restoredReading.clarifierCard)
     setRevealedCards(restoredResult.drawnCards.map((_, index) => index))
     setDrawError(null)
     setIsSpreading(false)
@@ -656,6 +670,8 @@ export function useTarotGame(): UseTarotGameReturn {
     userTopic,
     questionAnalysis,
     personalizationOptions,
+    initialFollowupTurns: restoredFollowupTurns,
+    initialClarifierUsed: restoredClarifierUsed,
     setGameState,
     setInterpretation,
     handlePersonalizationChange,

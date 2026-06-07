@@ -18,6 +18,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
+import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 
 import {
   deleteReading,
@@ -951,7 +952,7 @@ export default function TarotHistoryClient() {
                   {selectedReading.followupTurns.map((turn, idx) => (
                     <div
                       key={`${selectedReading.id}-turn-${idx}`}
-                      className="text-sm leading-relaxed whitespace-pre-wrap pl-3 border-l-2"
+                      className="text-sm leading-relaxed pl-3 border-l-2"
                       style={{
                         borderColor:
                           turn.role === 'user'
@@ -969,7 +970,12 @@ export default function TarotHistoryClient() {
                       >
                         {turn.role === 'user' ? (isKo ? '나' : 'You') : 'AI'}
                       </div>
-                      {turn.content}
+                      {/* 클래리파이어("한 장 더 뽑기") turn 은 본문에 markdown
+                          이미지(`![..](..)`)를 담는다. 이전엔 평문으로 찍어
+                          카드 그림 대신 `![태양](/images/...)` 가 그대로 보였음.
+                          결과 화면 채팅과 같은 ChatBubbleContent 로 렌더해 카드
+                          그림 + 굵게 등을 동일하게 표시. */}
+                      <ChatBubbleContent role={turn.role} content={turn.content} theme="dark" />
                     </div>
                   ))}
                 </div>

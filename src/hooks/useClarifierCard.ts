@@ -71,6 +71,12 @@ export interface UseClarifierCardOptions {
   suspendDurationMs?: number
   /** 추가 비활성 조건 (예: 로딩 중, persons.length < 2). 잠금 안 됐어도 모달 못 열게. */
   disabled?: boolean
+  /**
+   * 초기 잠금 상태 — 이미 보충 카드를 한 장 뽑은 리딩을 "다시 열기" 로 복원할
+   * 때 true. 한 리딩당 한 장 정책이 복원 후에도 유지되도록 used 를 처음부터
+   * 잠근다(복원 시 새 카드를 또 뽑을 수 있던 회귀 차단).
+   */
+  initiallyUsed?: boolean
 }
 
 export interface ClarifierButtonProps {
@@ -108,10 +114,11 @@ export function useClarifierCard(options: UseClarifierCardOptions): UseClarifier
     suspendAutoScrollRef,
     suspendDurationMs = 25_000,
     disabled = false,
+    initiallyUsed = false,
   } = options
 
   const [showModal, setShowModal] = useState(false)
-  const [used, setUsed] = useState(false)
+  const [used, setUsed] = useState(initiallyUsed)
 
   const messages = MESSAGES[lang] ?? MESSAGES.en
 

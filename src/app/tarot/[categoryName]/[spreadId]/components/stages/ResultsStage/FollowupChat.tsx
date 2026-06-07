@@ -29,6 +29,16 @@ interface FollowupChatProps {
    * 안 보이던 것을 흰색 계열로.
    */
   theme?: 'dark' | 'light'
+  /**
+   * "이 리딩 다시 열기" 복원 시 채워짐 — 저장돼 있던 followup 대화 turn 들.
+   * 채팅창을 그대로 복원해 사용자가 직전 대화를 다시 본다.
+   */
+  initialFollowupTurns?: Array<{ role: 'user' | 'assistant'; content: string }> | null
+  /**
+   * 복원하는 리딩이 이미 보충 카드를 한 장 뽑았으면 true — 클래리파이어 버튼을
+   * 처음부터 잠가 한 리딩당 한 장 정책을 유지한다(복원 후 또 뽑던 버그 차단).
+   */
+  initialClarifierUsed?: boolean
 }
 
 type Turn = { role: 'user' | 'assistant'; content: string; pending?: boolean }
@@ -120,13 +130,20 @@ export function FollowupChat({
   language,
   readingId,
   theme = 'dark',
+  initialFollowupTurns,
+  initialClarifierUsed = false,
 }: FollowupChatProps) {
   const isKo = language === 'ko'
   const pal = theme === 'light' ? LIGHT_PALETTE : DARK_PALETTE
   const { showDepleted } = useCreditModal()
   const requireLogin = useRequireLogin()
   const [input, setInput] = useState('')
-  const [history, setHistory] = useState<Turn[]>([])
+  // 복원 진입이면 저장돼 있던 turn 으로 채팅창 시드 — 그 외엔 빈 채팅.
+  const [history, setHistory] = useState<Turn[]>(() =>
+    initialFollowupTurns && initialFollowupTurns.length > 0
+      ? initialFollowupTurns.map((t) => ({ role: t.role, content: t.content }))
+      : []
+  )
   const [submitting, setSubmitting] = useState(false)
   const [clarifierNotice, setClarifierNotice] = useState<string | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -423,6 +440,8 @@ export function FollowupChat({
     // 새 카드 결과가 보인다. 자동 스크롤을 끄면 답변이 박스 아래로 가려져
     // "진행이 안 됨" 으로 보이는 회귀가 난다.
     disabled: submitting,
+    // 복원한 리딩이 이미 보충 카드를 뽑았으면 버튼을 처음부터 잠근다.
+    initiallyUsed: initialClarifierUsed,
   })
 
   return (
