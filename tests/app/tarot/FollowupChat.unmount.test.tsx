@@ -63,6 +63,21 @@ vi.mock('@/components/chat/ChatBubbleContent', () => ({
   default: ({ content }: { content: string }) => <div data-testid="bubble">{content}</div>,
 }))
 
+// FollowupChat reads the restoreKey via useSearchParams and (login) gating —
+// stub both so the component renders without router / login providers.
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(''),
+}))
+
+vi.mock('@/contexts/LoginModalContext', () => ({
+  useRequireLogin: () => () => true,
+}))
+
+// Restore-payload persistence is a side effect irrelevant to unmount safety.
+vi.mock('@/lib/tarot/tarot-storage', () => ({
+  updateRestorePayloadFollowup: vi.fn(),
+}))
+
 import { FollowupChat } from '@/app/tarot/[categoryName]/[spreadId]/components/stages/ResultsStage/FollowupChat'
 
 const readingResult = {

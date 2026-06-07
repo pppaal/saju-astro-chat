@@ -53,6 +53,8 @@ import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../
 import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { FollowupChat } from './FollowupChat'
+import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
+import { buildShareDataFromReading } from '@/components/tarot/shareCardData'
 import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
 
 export interface ResultsStageProps {
@@ -81,6 +83,10 @@ export interface ResultsStageProps {
   handleReset: () => void
   interpretationFailed?: boolean
   handleRetryInterpretation?: () => void
+  /** "이 리딩 다시 열기" 복원 시 채워짐 — 저장된 followup 대화 turn. */
+  initialFollowupTurns?: Array<{ role: 'user' | 'assistant'; content: string }> | null
+  /** 복원하는 리딩이 이미 보충 카드를 뽑았는지 — 클래리파이어 버튼 초기 잠금. */
+  initialClarifierUsed?: boolean
 }
 
 export function ResultsStage(props: ResultsStageProps) {
@@ -307,6 +313,20 @@ export function ResultsStage(props: ResultsStageProps) {
         {/* ⑤ 조언과 예측 */}
         {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
 
+        {/* ⑥ SNS 공유 — 결과를 1:1 이미지로 만들어 인스타/카톡에 공유·저장.
+            AI 응답이 도착한 후에만 노출(질문+카드+한줄 메시지 카드). */}
+        {!aiPending && insight?.overall_message && (
+          <ShareTarotButton
+            data={buildShareDataFromReading(
+              readingResult,
+              interpretation,
+              userTopic,
+              language === 'ko'
+            )}
+            language={language}
+          />
+        )}
+
         {/* ⑦ Follow-up 채팅 — AI 응답이 도착한 후에만 노출 */}
         {!aiPending && insight?.overall_message && (
           <FollowupChat
@@ -315,6 +335,8 @@ export function ResultsStage(props: ResultsStageProps) {
             userTopic={userTopic}
             language={language}
             readingId={props.readingId ?? null}
+            initialFollowupTurns={props.initialFollowupTurns}
+            initialClarifierUsed={props.initialClarifierUsed}
           />
         )}
 

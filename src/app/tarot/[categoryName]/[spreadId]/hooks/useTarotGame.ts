@@ -52,6 +52,10 @@ interface UseTarotGameReturn {
   userTopic: string
   questionAnalysis: TarotQuestionAnalysisSnapshot | null
   personalizationOptions: TarotPersonalizationOptions
+  /** "이 리딩 다시 열기" 복원 시 채워짐 — 저장된 followup 대화 turn. */
+  initialFollowupTurns: Array<{ role: 'user' | 'assistant'; content: string }> | null
+  /** 복원하는 리딩이 이미 보충 카드를 뽑았는지 — 클래리파이어 버튼 초기 잠금. */
+  initialClarifierUsed: boolean
 
   // Setters
   setGameState: (state: GameState) => void
@@ -87,6 +91,10 @@ function buildRestoredReadingResult(
     spread,
     drawnCards,
     questionContext: reading.questionAnalysis || null,
+    // 라이브 새로고침 복원이면 원본 draw nonce 를 그대로 실어, 재해석 호출이
+    // 서버에서 'replay' 로 환불되게 한다(새로고침 중복 과금 차단). 히스토리
+    // 복원엔 nonce 가 없지만 해석이 채워져 재호출 자체가 없어 무관.
+    drawNonce: reading.drawNonce,
   }
 }
 
@@ -143,6 +151,14 @@ export function useTarotGame(): UseTarotGameReturn {
   const selectionOrderRef = useRef<Map<number, number>>(new Map())
   const [readingResult, setReadingResult] = useState<ReadingResponse | null>(null)
   const [interpretation, setInterpretation] = useState<InterpretationResult | null>(null)
+  // "이 리딩 다시 열기" 복원 시 함께 복원할 followup 채팅 turn / 보충 카드 사용
+  // 여부. FollowupChat 이 채팅창을 시드하고, 이미 보충 카드를 뽑은 리딩이면
+  // 클래리파이어 버튼을 처음부터 잠가 한 리딩당 한 장 정책을 유지한다.
+  const [restoredFollowupTurns, setRestoredFollowupTurns] = useState<Array<{
+    role: 'user' | 'assistant'
+    content: string
+  }> | null>(null)
+  const [restoredClarifierUsed, setRestoredClarifierUsed] = useState(false)
   const [drawError, setDrawError] = useState<TarotDrawError | null>(null)
   const [revealedCards, setRevealedCards] = useState<number[]>([])
   const [isSpreading, setIsSpreading] = useState(false)
@@ -304,6 +320,14 @@ export function useTarotGame(): UseTarotGameReturn {
     setReadingResult(restoredResult)
     setInterpretation(restoredInterpretation)
     setQuestionAnalysis(restoredReading.questionAnalysis || null)
+    setRestoredFollowupTurns(restoredReading.followupTurns ?? null)
+    // 보충 카드 사용 판정: 전용 컬럼(clarifierCard) 우선, 없으면 followup
+    // turn 의 보충카드 마커(🃏 — buildClarifierUserMessage 가 항상 prefix)로도
+    // 인정. 자동저장 경합으로 clarifierCard 컬럼만 비는 케이스에도 잠금 유지.
+    const turnsHaveClarifier =
+      Array.isArray(restoredReading.followupTurns) &&
+      restoredReading.followupTurns.some((t) => t.role === 'user' && t.content.includes('🃏'))
+    setRestoredClarifierUsed(!!restoredReading.clarifierCard || turnsHaveClarifier)
     setRevealedCards(restoredResult.drawnCards.map((_, index) => index))
     setDrawError(null)
     setIsSpreading(false)
@@ -339,6 +363,12 @@ export function useTarotGame(): UseTarotGameReturn {
         }
       : { overall_message: '', guidance: '', card_insights: [] }
 
+    // FollowupChat 이 같은 슬롯에 써둔 대화/보충카드는 본문 재저장 시에도
+    // 보존한다 — 안 그러면 이 effect 가 다시 돌 때 followupTurns 가 날아가
+    // 새로고침 후 대화가 사라지는 회귀(클로버).
+    const existingPayload = restorePersistKeyRef.current
+      ? loadReadingRestorePayload(restorePersistKeyRef.current)
+      : null
     const reading: SavedTarotReading = {
       ...formatReadingForSave(
         userTopic,
@@ -352,6 +382,10 @@ export function useTarotGame(): UseTarotGameReturn {
       ),
       id: `restore_${Date.now().toString(36)}`,
       timestamp: Date.now(),
+      // 새로고침 시 재해석이 'replay' 환불을 받도록 원본 nonce 동봉.
+      drawNonce: readingResult.drawNonce,
+      followupTurns: existingPayload?.followupTurns ?? undefined,
+      clarifierCard: existingPayload?.clarifierCard ?? undefined,
     }
     const key = storeReadingRestorePayload(reading, restorePersistKeyRef.current || undefined)
     if (!key) return
@@ -656,6 +690,8 @@ export function useTarotGame(): UseTarotGameReturn {
     userTopic,
     questionAnalysis,
     personalizationOptions,
+    initialFollowupTurns: restoredFollowupTurns,
+    initialClarifierUsed: restoredClarifierUsed,
     setGameState,
     setInterpretation,
     handlePersonalizationChange,
