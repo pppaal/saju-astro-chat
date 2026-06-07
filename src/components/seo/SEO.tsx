@@ -410,16 +410,44 @@ export const SERVICE_FAQS = {
       answer: 'Astrology is best used as a reflective tool for guidance and self-understanding.',
     },
   ],
+  compatibility: [
+    {
+      question: 'How does AI compatibility analysis work?',
+      answer:
+        'We combine Eastern Saju (Four Pillars) and Western astrology synastry for two people, comparing birth charts to read relationship strengths, friction points, and timing for love, partnership, or friendship.',
+    },
+    {
+      question: 'What information do I need for a compatibility reading?',
+      answer:
+        "You provide each person's birth date, and ideally exact birth time and place, for the most accurate synastry and Saju comparison.",
+    },
+    {
+      question: 'Can it be used for friendships or work, not just romance?',
+      answer:
+        'Yes. The same Saju and astrology comparison applies to any relationship — romantic, friendship, family, or work partnerships.',
+    },
+  ],
 }
 
 // Generate service schema for specific pages
-export function generateServiceSchema(serviceType: 'destiny-map' | 'tarot' | 'saju' | 'astrology') {
+export function generateServiceSchema(
+  serviceType: 'destiny-map' | 'tarot' | 'saju' | 'astrology' | 'compatibility',
+  // 실제 라우트가 serviceType 키와 다른 경우(예: destiny-map → /destiny-counselor)
+  // 정확한 경로를 넘긴다. 없으면 `/${serviceType}` 폴백.
+  urlPath?: string
+) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
   const services = {
     'destiny-map': {
       name: 'Destiny Map - Saju & Astrology Fusion',
       description:
         'Comprehensive life guidance combining Eastern Four Pillars and Western Astrology for personalized insights.',
+      category: 'Spiritual Consultation',
+    },
+    compatibility: {
+      name: 'Compatibility Analysis - Saju & Astrology Synastry',
+      description:
+        'AI relationship compatibility combining Eastern Saju (Four Pillars) and Western astrology synastry for love, partnership, and friendship.',
       category: 'Spiritual Consultation',
     },
     tarot: {
@@ -445,6 +473,6 @@ export function generateServiceSchema(serviceType: 'destiny-map' | 'tarot' | 'sa
   return generateJsonLd({
     type: 'Service',
     service: services[serviceType],
-    url: `${baseUrl}/${serviceType}`,
+    url: `${baseUrl}${urlPath ?? `/${serviceType}`}`,
   })
 }
