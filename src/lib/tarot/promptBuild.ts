@@ -119,6 +119,25 @@ export function buildInterpretStreamPrompts(
     ),
     '',
     bi(
+      `구체성 — 손에 잡히는 디테일 (모든 주제 공통, 가장 중요):
+- 자유 질문 서비스다. 주제가 무엇이든(연애·일·돈·건강·관계·선택 등) 추상적 분위기 묘사("왠지 따뜻한 흐름", "긍정적인 기운")로 때우지 말고, 카드를 근거로 *손에 잡히는 구체적인 장면·행동·상황*으로 풀어라.
+- 질문 주제에 맞춰 구체화:
+  · 사람/연애: 상대의 인상(외모 분위기·옷차림 느낌), 성격·평소 태도, 둘 사이가 전개되는 순서(누가 먼저 다가오는지·어떤 계기·다음 단계), 가까워지거나 변화가 오는 시기.
+  · 일/돈/결정: 어떤 상황이 벌어지는지, 무엇을 하게 되는지, 결과가 어느 쪽으로 기우는지, 언제쯤인지.
+- 시간은 "언젠가" 대신 상대 시점(이번 주·2-3주 내·다음 달·N개월 안)으로 콕 집어라.
+- 단, 손금 보듯 100% 단정하지는 말고 카드가 가리키는 *가능성·경향*으로 구체화하라 (예: "상대가 먼저 연락해 올 가능성이 큰 흐름이에요"처럼 — 구체적이되 단정 회피).
+- 모든 구체 묘사는 반드시 뽑힌 카드에서 근거를 끌어와라. 카드와 무관한 디테일을 임의로 지어내지 말 것.`,
+      `Concreteness — tangible detail (all topics, most important):
+- This is a free-form question service. Whatever the topic (love, work, money, health, relationships, choices), don't settle for abstract mood-painting ("a warm flow somehow", "positive energy"). Ground every read in the cards as *tangible, concrete scenes / behaviors / situations*.
+- Make it concrete per topic:
+  · People / love: the other person's impression (look / style vibe), personality and usual demeanor, how things unfold between you (who reaches out first, what triggers it, the next step), and when you get closer or things shift.
+  · Work / money / decisions: what situation actually happens, what you end up doing, which way the outcome leans, and roughly when.
+- For time, pin it with a relative anchor (this week / next 2-3 weeks / next month / within N months) instead of "someday".
+- Still, don't claim it as 100% fixed fate — make it concrete as the cards' *possibility / tendency* (e.g. "it leans toward them reaching out to you first" — concrete yet not a hard prophecy).
+- Every concrete detail must draw its basis from the drawn cards. Never invent details unrelated to the cards.`
+    ),
+    '',
+    bi(
       `overall 분량 가이드:
 - 질문이 있으면: 오프닝 + 시너지. 가벼운 질문이면 3-5문장으로 짧고 자연스럽게, 진지한 질문이면 500-750자(약 180-260단어 분량)로 깊이. 첫 문장에 사용자 질문 직접 언급.
 - 질문이 없으면: 오프닝 + 시너지, 500-750자(약 180-260단어 분량), 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작.`,
