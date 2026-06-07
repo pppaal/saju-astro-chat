@@ -58,17 +58,20 @@ export const ASTRO_THEME_MAP: Record<
  * 문제(시뮬: 4테마 std 4.8) 해소. tagger 가 이 가중을 signal.themeWeights 로
  * 부여, themeScore·themeBreakdown 이 곱해 씀. 멤버십(themes)은 불변.
  */
+// 정통 행성 지배(rulership) 기준 — 5테마 제약 내에서 본령에 가깝게.
+// (2026-06: 어색한 매핑 정통화 — Uranus=돈/Pluto=건강만/Moon=연애만/Mars 직업누락/
+//  Jupiter 확장이 본령인데 직업-primary 였던 것 교정.)
 export const PLANET_THEME_WEIGHT: Record<string, Partial<Record<AstroThemeKey, number>>> = {
-  Venus: { love: 1.0, money: 0.6, growth: 0.4 },
-  Mars: { love: 0.7, health: 0.7 },
-  Moon: { love: 1.0 },
-  Jupiter: { career: 1.0, growth: 0.6, money: 0.5 }, // 확장 = 일 본령, 성장·재물 보조
-  Saturn: { career: 1.0, health: 0.6, money: 0.5, growth: 0.4 },
-  Uranus: { money: 1.0 },
-  Sun: { career: 1.0, growth: 0.6 },
-  Mercury: { career: 1.0, growth: 0.5 },
-  Pluto: { health: 1.0 },
-  Neptune: { growth: 1.0 },
+  Sun: { career: 1.0, growth: 0.6, health: 0.4 }, // 생명력·권위·자아
+  Moon: { love: 0.6, health: 0.5, growth: 0.4 }, // 감정·집·몸·내면 (연애만 X)
+  Mercury: { growth: 1.0, career: 0.5, money: 0.4 }, // 지성·소통·상업·학습
+  Venus: { love: 1.0, money: 0.6 }, // 사랑·미·가치·돈
+  Mars: { career: 0.7, health: 0.7, love: 0.4 }, // 추진·야망·갈등·사고 (직업 추가)
+  Jupiter: { growth: 1.0, money: 0.6, career: 0.5 }, // 확장·행운·지혜 = 성장 본령
+  Saturn: { career: 1.0, health: 0.6, money: 0.4 }, // 구조·책임·뼈
+  Uranus: { growth: 0.8, career: 0.5 }, // 변화·혁신·돌발 (돈 X)
+  Neptune: { growth: 0.6, health: 0.5 }, // 영성·환상·중독
+  Pluto: { growth: 0.7, career: 0.6, health: 0.4 }, // 변형·권력·심층 (건강만 X)
   NorthNode: { growth: 1.0 },
   SouthNode: { growth: 1.0 },
 }
@@ -90,8 +93,8 @@ export const SIBSIN_THEME_MAP: Record<SibsinKind, AstroThemeKey[]> = {
   정재: ['money', 'love'], // 안정 수입 + 배우자(전통)
   편관: ['career', 'health'], // 책임·압박
   정관: ['career'], // 자리·평판
-  편인: ['career', 'growth'], // 학문·영성
-  정인: ['career'], // 학습·어머니 (love 빼기 — 어머니는 love보다 career 영역에 더 가까운 받침)
+  편인: ['growth', 'career'], // 학문·영성·편업 (학문=성장 본령)
+  정인: ['growth', 'health'], // 학습·문서·어머니(돌봄) — 학문=성장 본령, 돌봄=건강 받침
 }
 
 /**
