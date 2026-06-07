@@ -91,6 +91,10 @@ function buildRestoredReadingResult(
     spread,
     drawnCards,
     questionContext: reading.questionAnalysis || null,
+    // 라이브 새로고침 복원이면 원본 draw nonce 를 그대로 실어, 재해석 호출이
+    // 서버에서 'replay' 로 환불되게 한다(새로고침 중복 과금 차단). 히스토리
+    // 복원엔 nonce 가 없지만 해석이 채워져 재호출 자체가 없어 무관.
+    drawNonce: reading.drawNonce,
   }
 }
 
@@ -317,7 +321,13 @@ export function useTarotGame(): UseTarotGameReturn {
     setInterpretation(restoredInterpretation)
     setQuestionAnalysis(restoredReading.questionAnalysis || null)
     setRestoredFollowupTurns(restoredReading.followupTurns ?? null)
-    setRestoredClarifierUsed(!!restoredReading.clarifierCard)
+    // 보충 카드 사용 판정: 전용 컬럼(clarifierCard) 우선, 없으면 followup
+    // turn 의 보충카드 마커(🃏 — buildClarifierUserMessage 가 항상 prefix)로도
+    // 인정. 자동저장 경합으로 clarifierCard 컬럼만 비는 케이스에도 잠금 유지.
+    const turnsHaveClarifier =
+      Array.isArray(restoredReading.followupTurns) &&
+      restoredReading.followupTurns.some((t) => t.role === 'user' && t.content.includes('🃏'))
+    setRestoredClarifierUsed(!!restoredReading.clarifierCard || turnsHaveClarifier)
     setRevealedCards(restoredResult.drawnCards.map((_, index) => index))
     setDrawError(null)
     setIsSpreading(false)
@@ -366,6 +376,8 @@ export function useTarotGame(): UseTarotGameReturn {
       ),
       id: `restore_${Date.now().toString(36)}`,
       timestamp: Date.now(),
+      // 새로고침 시 재해석이 'replay' 환불을 받도록 원본 nonce 동봉.
+      drawNonce: readingResult.drawNonce,
     }
     const key = storeReadingRestorePayload(reading, restorePersistKeyRef.current || undefined)
     if (!key) return

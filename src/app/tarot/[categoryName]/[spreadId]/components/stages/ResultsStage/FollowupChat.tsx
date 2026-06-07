@@ -43,6 +43,16 @@ interface FollowupChatProps {
 
 type Turn = { role: 'user' | 'assistant'; content: string; pending?: boolean }
 
+// 32-bit FNV-1a — 결정적 멱등키 생성용(보안 아님, 충돌만 충분히 낮으면 됨).
+function fnv1a(str: string): string {
+  let h = 0x811c9dc5
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return (h >>> 0).toString(36)
+}
+
 // 테마별 색 팔레트 — dark 는 기존 CSS 변수 그대로(단독 페이지 무변화),
 // light 는 인라인 모달의 흰 배경에 맞춘 라이트 톤.
 interface FollowupPalette {
@@ -156,6 +166,14 @@ export function FollowupChat({
   // request and the PATCH save fire-and-forget don't keep running for a
   // torn-down component.
   const followupAbortRef = useRef<AbortController | null>(null)
+  // 자동저장(readingId)이 아직 안 끝났을 때 뽑힌 보충 카드를 잠시 보관 →
+  // readingId 가 도착하면 flush 해 clarifierCard 컬럼을 채운다(자동저장 경합으로
+  // 보충카드가 기록에 안 남던 회귀 방지).
+  const pendingClarifierRef = useRef<{
+    name: string
+    nameKo?: string
+    isReversed: boolean
+  } | null>(null)
 
   useEffect(() => {
     mountedRef.current = true
@@ -230,6 +248,15 @@ export function FollowupChat({
     [readingId]
   )
 
+  // 자동저장이 늦게 끝나 readingId 가 보충 카드 추첨 이후에 도착한 경우,
+  // 보관해 둔 보충 카드를 그때 PATCH 로 기록에 반영한다(경합 보정).
+  useEffect(() => {
+    if (readingId && pendingClarifierRef.current) {
+      void patchSavedReading({ clarifierCard: pendingClarifierRef.current })
+      pendingClarifierRef.current = null
+    }
+  }, [readingId, patchSavedReading])
+
   // 본 submit 로직 — 텍스트를 받아 followup 엔드포인트로 보낸다.
   // 키보드/버튼 submit 과 클래리파이어 카드 버튼 둘 다 이 함수를 쓴다.
   const sendQuestionText = async (q: string) => {
@@ -242,12 +269,18 @@ export function FollowupChat({
     // Add placeholder assistant turn we'll fill in
     setHistory((prev) => [...prev, { role: 'assistant', content: '', pending: true }])
 
-    // 새로고침/탭 복제 등 같은 질문 재진입 시 서버가 중복 차감 안 하도록
-    // 매 user 질문마다 UUID 생성해 x-idempotency-key 헤더로 전달.
-    const idempotencyKey =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `t${Date.now()}-${Math.random().toString(36).slice(2)}`
+    // 멱등키: 직전엔 매 전송 랜덤 UUID 라, 답이 오기 전 페이지를 떠났다가
+    // (서버는 req.signal 에 안 묶여 끝까지 생성+1차감+답캐시) 같은 질문을 다시
+    // 보내면 새 UUID → 새 차감(중복 과금)이었다. (카드 조합 + 현재 턴 위치 +
+    // 질문) 기반 결정적 키로 바꿔, 같은 지점에서 같은 질문 재전송은 서버가
+    // 'replay' 로 인식해 캐시 답을 무과금 반환한다(이탈/새로고침/더블클릭 커버).
+    // 턴 위치(history.length)를 넣어, 멀티턴 도중 같은 문구를 의도적으로 다시
+    // 물으면(앞 답이 누적된 새 맥락) 키가 달라 새로 생성·정상 차감되게 한다
+    // (질문만 넣으면 옛 캐시 답이 반환되는 회귀 방지).
+    const cardSig = readingResult.drawnCards
+      .map((dc) => `${dc.card.name}${dc.isReversed ? 'R' : 'U'}`)
+      .join('|')
+    const idempotencyKey = `tf-${fnv1a(`${cardSig}#${history.length}#${q.trim()}`)}`
 
     // Cancel any previous in-flight followup before starting a new one,
     // and register the new controller so unmount can abort it.
@@ -426,13 +459,13 @@ export function FollowupChat({
     // 클래리파이어 카드는 별도 컬럼 (TarotReading.clarifierCard) 에도 저장 —
     // followup 채팅 turn 안의 이미지 markdown 보다 구조화된 쿼리/통계용 데이터로.
     onCardPicked: (card) => {
-      void patchSavedReading({
-        clarifierCard: {
-          name: card.name,
-          nameKo: card.nameKo,
-          isReversed: card.isReversed,
-        },
-      })
+      const lite = { name: card.name, nameKo: card.nameKo, isReversed: card.isReversed }
+      // readingId 가 아직이면(자동저장 진행 중) 보관해 뒀다가 도착 시 flush.
+      if (readingId) {
+        void patchSavedReading({ clarifierCard: lite })
+      } else {
+        pendingClarifierRef.current = lite
+      }
     },
     onLockedNotice: setClarifierNotice,
     // suspendAutoScrollRef 는 일부러 주지 않는다 — 여기 대화창은 자체 overflow
