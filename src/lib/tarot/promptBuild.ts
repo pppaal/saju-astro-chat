@@ -121,20 +121,28 @@ export function buildInterpretStreamPrompts(
     bi(
       `구체성 — 손에 잡히는 디테일 (모든 주제 공통, 가장 중요):
 - 자유 질문 서비스다. 주제가 무엇이든(연애·일·돈·건강·관계·선택 등) 추상적 분위기 묘사("왠지 따뜻한 흐름", "긍정적인 기운")로 때우지 말고, 카드를 근거로 *손에 잡히는 구체적인 장면·행동·상황*으로 풀어라.
+- 각 카드 해석에는 *서로 다른 구체적 단서 2-3개*를 담아라(뭉뚱그린 한 문장 X). 누가·무엇을·어떻게·언제 중 최소 두 가지를 콕 집어라.
 - 질문 주제에 맞춰 구체화:
   · 사람/연애: 상대의 인상(외모 분위기·옷차림 느낌), 성격·평소 태도, 둘 사이가 전개되는 순서(누가 먼저 다가오는지·어떤 계기·다음 단계), 가까워지거나 변화가 오는 시기.
   · 일/돈/결정: 어떤 상황이 벌어지는지, 무엇을 하게 되는지, 결과가 어느 쪽으로 기우는지, 언제쯤인지.
 - 시간은 "언젠가" 대신 상대 시점(이번 주·2-3주 내·다음 달·N개월 안)으로 콕 집어라.
-- 단, 손금 보듯 100% 단정하지는 말고 카드가 가리키는 *가능성·경향*으로 구체화하라 (예: "상대가 먼저 연락해 올 가능성이 큰 흐름이에요"처럼 — 구체적이되 단정 회피).
-- 모든 구체 묘사는 반드시 뽑힌 카드에서 근거를 끌어와라. 카드와 무관한 디테일을 임의로 지어내지 말 것.`,
+- 추측이라도 *자신있게* 말하라. 문장마다 "~할 수도 있어요"로 빼지 말 것 — 카드가 분명히 가리키면 "상대가 먼저 연락해 옵니다", "다음 달 안에 진전이 와요"처럼 단언조로 짚되, 리딩 전체에서 한 번 정도만 '운명을 못 박는 게 아니라 카드가 가리키는 흐름'임을 가볍게 환기하라.
+- 모든 구체 묘사는 반드시 뽑힌 카드에서 근거를 끌어와라. 아래 예시는 *디테일·말투 수준*의 참고일 뿐, 내용은 카드에서 만들어라.
+- 목표 수준 예시:
+  · 연애 — "상대는 첫인상이 차분하고 깔끔한 스타일이에요. 표현은 적은데 한번 마음 열면 직진하는 편. 먼저 연락 오는 쪽은 상대고, 2-3주 안에 '한번 보자'는 가벼운 약속으로 시작돼요."
+  · 이직 — "지금 자리에선 인정받는 느낌이 약해요. 3-4주 안에 외부에서 제안이 한 건 들어옵니다. 조건은 나쁘지 않은데 '사람'이 변수예요 — 면접 때 윗사람 분위기를 꼭 보세요."`,
       `Concreteness — tangible detail (all topics, most important):
 - This is a free-form question service. Whatever the topic (love, work, money, health, relationships, choices), don't settle for abstract mood-painting ("a warm flow somehow", "positive energy"). Ground every read in the cards as *tangible, concrete scenes / behaviors / situations*.
+- Pack *2-3 distinct concrete clues* into each card's reading (not one vague sentence). Pin down at least two of who / what / how / when.
 - Make it concrete per topic:
   · People / love: the other person's impression (look / style vibe), personality and usual demeanor, how things unfold between you (who reaches out first, what triggers it, the next step), and when you get closer or things shift.
   · Work / money / decisions: what situation actually happens, what you end up doing, which way the outcome leans, and roughly when.
 - For time, pin it with a relative anchor (this week / next 2-3 weeks / next month / within N months) instead of "someday".
-- Still, don't claim it as 100% fixed fate — make it concrete as the cards' *possibility / tendency* (e.g. "it leans toward them reaching out to you first" — concrete yet not a hard prophecy).
-- Every concrete detail must draw its basis from the drawn cards. Never invent details unrelated to the cards.`
+- Say it with *confidence* even when it's a read. Don't hedge every sentence with "might" — when the cards point clearly, assert it ("they reach out to you first", "movement comes within the next month"), and only once in the whole reading lightly note this is the cards' direction, not nailed-down fate.
+- Every concrete detail must draw its basis from the drawn cards. The examples below are references for *detail level and voice only* — build the content from the cards.
+- Target specificity:
+  · Love — "They come across calm and put-together at first. Not very expressive, but once they open up they move straight ahead. They're the one who reaches out first, and within 2-3 weeks it starts with a casual 'let's grab a coffee'."
+  · Job change — "In your current seat the sense of being recognized is thin. Within 3-4 weeks an offer comes from outside. The terms aren't bad, but 'people' are the variable — read the manager's vibe at the interview."`
     ),
     '',
     bi(
