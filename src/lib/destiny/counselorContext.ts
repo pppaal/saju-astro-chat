@@ -80,6 +80,14 @@ const SIGN_KO_A: Record<string, string> = {
   Pisces: '물고기자리',
 }
 const MAJOR_TYPES = new Set(['conjunction', 'opposition', 'trine', 'square', 'sextile'])
+// essential dignity — ko 라벨. EN locale 은 raw enum(domicile/detriment) 유지.
+// 의미는 레전드의 [domicile]강 [detriment]약 와 동일, exaltation/fall 은 점성 표준.
+const DIGNITY_KO: Record<string, string> = {
+  domicile: '강함',
+  exaltation: '매우강함',
+  detriment: '약함',
+  fall: '쇠약',
+}
 // English saju term maps (EN locale renders the saju side in English too).
 const SIBSIN_EN: Record<string, string> = {
   비견: 'Peer',
@@ -409,17 +417,33 @@ export async function buildDestinyContext(
     // formatAstroSelf 가 옛 chart 인스턴스를 요구해서 _chart 로 그대로 넘긴다.
     const chart = aFacts._chart
     const sgn = (s: string) => (locale === 'ko' ? (SIGN_KO_A[s] ?? s).replace(/자리$/, '') : s)
-    const pl = (n: string) => (n === 'Ascendant' ? 'ASC' : n === 'MC' ? 'MC' : pkA(n, locale))
+    const pl = (n: string) =>
+      n === 'Ascendant'
+        ? locale === 'ko'
+          ? '상승점'
+          : 'ASC'
+        : n === 'MC'
+          ? locale === 'ko'
+            ? '중천점'
+            : 'MC'
+          : pkA(n, locale)
 
     const placeUnreliable = aFacts.natal.placeUnreliable
     const posLines: string[] = []
     for (const p of aFacts.natal.planets) {
-      const dgTag = p.dignity !== 'peregrine' ? ` [${p.dignity}]` : ''
+      // ko 면 dignity 도 한국어로 (모델이 영어 enum 을 못 보게). EN 은 raw 유지.
+      const dgTag =
+        p.dignity !== 'peregrine'
+          ? ` [${locale === 'ko' ? (DIGNITY_KO[p.dignity] ?? p.dignity) : p.dignity}]`
+          : ''
       const houseTag = placeUnreliable ? '' : ` H${p.house}`
       posLines.push(`  ${pl(p.name)} ${sgn(p.sign)}${houseTag}${p.retrograde ? ' R' : ''}${dgTag}`)
     }
     if (!placeUnreliable) {
-      posLines.push(`  ASC ${sgn(aFacts.natal.ascendant.sign)}`, `  MC ${sgn(aFacts.natal.mc.sign)}`)
+      posLines.push(
+        `  ${pl('Ascendant')} ${sgn(aFacts.natal.ascendant.sign)}`,
+        `  ${pl('MC')} ${sgn(aFacts.natal.mc.sign)}`
+      )
     }
 
     const fmtAsp = (a: { from: string; to: string; type: string; orb: number }) =>

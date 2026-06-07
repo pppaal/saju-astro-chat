@@ -34,8 +34,8 @@ const PLANET_KO: Record<string, string> = {
   Mercury: '수성',
   Venus: '금성',
   Mars: '화성',
-  Ascendant: 'ASC',
-  MC: 'MC',
+  Ascendant: '상승점',
+  MC: '중천점',
 }
 
 // aspect 심볼 (synastry formatter 와 동일).

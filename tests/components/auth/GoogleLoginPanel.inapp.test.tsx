@@ -1,10 +1,12 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup, act } from '@testing-library/react'
+import { render, screen, cleanup, act, fireEvent } from '@testing-library/react'
 
 vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
 }))
+
+import { signIn } from 'next-auth/react'
 
 // Link mock keeps the test focused on the warning markup, not next/link routing.
 vi.mock('next/link', () => ({
@@ -102,6 +104,59 @@ describe('GoogleLoginPanel — in-app browser warning', () => {
       expect(screen.getByTestId('inapp-browser-warning')).toHaveTextContent(
         'Google sign-in is blocked'
       )
+    })
+  })
+})
+
+// Mutable window.location stand-in so we can observe redirect assignments
+// without jsdom throwing on real navigation.
+function withLocation(href: string, origin: string, fn: (loc: { href: string }) => void) {
+  const original = Object.getOwnPropertyDescriptor(window, 'location')
+  const loc = { href, origin }
+  Object.defineProperty(window, 'location', { value: loc, configurable: true, writable: true })
+  try {
+    fn(loc)
+  } finally {
+    if (original) Object.defineProperty(window, 'location', original)
+  }
+}
+
+describe('GoogleLoginPanel — in-app sign-in redirect', () => {
+  beforeEach(() => {
+    cleanup()
+    i18nState.locale = 'ko'
+    vi.mocked(signIn).mockClear()
+  })
+  afterEach(() => cleanup())
+
+  it('redirects to the KakaoTalk external-browser scheme instead of calling signIn', () => {
+    withUserAgent(KAKAOTALK_UA, () => {
+      withLocation('https://app.example.com/?ref=ABC', 'https://app.example.com', (loc) => {
+        act(() => {
+          render(<GoogleLoginPanel locale="ko" callbackUrl="/dashboard" />)
+        })
+        // 약관 동의 후 Google 버튼 탭 → 인앱이면 외부 브라우저로 점프해야 함.
+        fireEvent.click(screen.getByRole('checkbox'))
+        fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+
+        expect(loc.href).toContain('kakaotalk://web/openExternal')
+        expect(loc.href).toContain(encodeURIComponent('https://app.example.com/auth/signin'))
+        expect(signIn).not.toHaveBeenCalled()
+      })
+    })
+  })
+
+  it('calls signIn normally in a regular mobile browser', () => {
+    withUserAgent(PLAIN_CHROME_UA, () => {
+      withLocation('https://app.example.com/', 'https://app.example.com', () => {
+        act(() => {
+          render(<GoogleLoginPanel locale="ko" callbackUrl="/dashboard" />)
+        })
+        fireEvent.click(screen.getByRole('checkbox'))
+        fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+
+        expect(signIn).toHaveBeenCalledWith('google', { callbackUrl: '/dashboard' })
+      })
     })
   })
 })
