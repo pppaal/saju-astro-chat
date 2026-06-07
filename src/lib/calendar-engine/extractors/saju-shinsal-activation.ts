@@ -15,25 +15,25 @@ const SHINSAL_GRADE_LOCAL: Record<string, ShinsalGrade> = {
   태극귀인: 'classical-noble',
 
   // rok-ma: 록·마·문창류
-  건록:     'rok-ma',
-  역마:     'rok-ma',
-  역마살:   'rok-ma',
-  금여성:   'rok-ma',
-  문창:     'rok-ma',
-  문곡:     'rok-ma',
+  건록: 'rok-ma',
+  역마: 'rok-ma',
+  역마살: 'rok-ma',
+  금여성: 'rok-ma',
+  문창: 'rok-ma',
+  문곡: 'rok-ma',
   학당귀인: 'rok-ma',
-  암록:     'rok-ma',
+  암록: 'rok-ma',
   천주귀인: 'rok-ma',
-  천의성:   'rok-ma',
-  천문성:   'rok-ma',
-  제왕:     'rok-ma',
+  천의성: 'rok-ma',
+  천문성: 'rok-ma',
+  제왕: 'rok-ma',
 
   // dohwa-hwagae: 도화·화개·홍염
-  도화:     'dohwa-hwagae',
-  년살:     'dohwa-hwagae',
-  홍염살:   'dohwa-hwagae',
-  화개:     'dohwa-hwagae',
-  화개살:   'dohwa-hwagae',
+  도화: 'dohwa-hwagae',
+  년살: 'dohwa-hwagae',
+  홍염살: 'dohwa-hwagae',
+  화개: 'dohwa-hwagae',
+  화개살: 'dohwa-hwagae',
 }
 
 function gradeOf(name: string): ShinsalGrade {
@@ -114,55 +114,6 @@ const SHINSAL_POLARITY: Record<string, Polarity> = {
   삼재: -2,
 }
 
-// 영문 라벨. 셀에 노출되는 `name` 필드용.
-const SHINSAL_EN_LABEL: Record<string, string> = {
-  천을귀인: 'Cheoneul Nobleman',
-  태극귀인: 'Taegeuk Nobleman',
-  천덕귀인: 'Cheondeok Nobleman',
-  월덕귀인: 'Woldeok Nobleman',
-  천주귀인: 'Cheonju Nobleman',
-  암록: 'Amrok (Hidden Stipend)',
-  금여성: 'Geumyeo (Golden Carriage)',
-  천의성: 'Cheoneui (Heavenly Healer)',
-  천문성: 'Cheonmun (Heavenly Gate)',
-  문창: 'Muchang (Literary Brilliance)',
-  문곡: 'Mungok',
-  학당귀인: 'Hakdang Nobleman',
-  건록: 'Geonrok',
-  제왕: 'Jewang',
-  도화: 'Dohwa (Peach Blossom)',
-  홍염살: 'Hongyeom',
-  역마: 'Yeokma (Travel Horse)',
-  역마살: 'Yeokma (Travel Horse)',
-  지살: 'Jisal',
-  년살: 'Nyeonsal',
-  반안: 'Banan',
-  반안살: 'Banan',
-  장성: 'Jangseong (Commander)',
-  장성살: 'Jangseong (Commander)',
-  화개: 'Hwagae (Artistic Canopy)',
-  화개살: 'Hwagae (Artistic Canopy)',
-  육해: 'Yukhae',
-  육해살: 'Yukhae',
-  망신: 'Mangsin',
-  망신살: 'Mangsin',
-  겁살: 'Geopsal',
-  재살: 'Jaesal',
-  천살: 'Cheonsal',
-  월살: 'Wolsal',
-  백호: 'Baekho (White Tiger)',
-  양인: 'Yangin',
-  공망: 'Gongmang (Void)',
-  괴강: 'Goegang',
-  현침: 'Hyeonchim',
-  고신: 'Gosin',
-  과숙: 'Gwasuk',
-  귀문관: 'Gwimun Gate',
-  원진: 'Wonjin',
-  천라지망: 'Cheonra-Jimang',
-  삼재: 'Samjae',
-}
-
 const sajuShinsalActivationExtractor: SignalExtractor = {
   source: 'saju',
   kind: 'shinsal',
@@ -204,14 +155,13 @@ const sajuShinsalActivationExtractor: SignalExtractor = {
 
       for (const [kind, pillarSet] of hitsForBranch) {
         const polarity = (SHINSAL_POLARITY[kind] ?? 0) as Polarity
-        const enLabel = SHINSAL_EN_LABEL[kind] ?? kind
         const pillars = Array.from(pillarSet).sort()
         const grade = gradeOf(kind)
         signals.push({
           id: `saju.shinsal-activation.${kind}.${dayIso}`,
           source: 'saju',
           kind: 'shinsal',
-          name: `${enLabel} active`,
+          name: `${kind} 활성`,
           korean: `오늘 ${kind} 활성`,
           themes: [],
           polarity,
@@ -249,15 +199,15 @@ const sajuShinsalActivationExtractor: SignalExtractor = {
  */
 const GRADE_ACTIVATION_BASE: Record<ShinsalGrade, number> = {
   'classical-noble': 0.65, // 정통 4길성 본명 활성 — 최상 보조
-  'rok-ma':          0.55,
-  'dohwa-hwagae':    0.50,
-  'common':          0.40,
+  'rok-ma': 0.55,
+  'dohwa-hwagae': 0.5,
+  common: 0.4,
 }
 
 function weightFor(polarity: Polarity, grade: ShinsalGrade): number {
   const base = GRADE_ACTIVATION_BASE[grade]
   const intensity = Math.abs(polarity) / 3
-  const polarityBonus = grade === 'classical-noble' ? intensity * 0.10 : intensity * 0.05
+  const polarityBonus = grade === 'classical-noble' ? intensity * 0.1 : intensity * 0.05
   return Math.min(base + polarityBonus, 0.75)
 }
 
