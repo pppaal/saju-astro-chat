@@ -171,7 +171,6 @@ const nextConfig = {
     optimizePackageImports: [
       'framer-motion',
       'chart.js',
-      'recharts',
       '@vercel/speed-insights',
       'react-markdown',
       'remark-gfm',
