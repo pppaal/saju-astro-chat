@@ -45,22 +45,25 @@ export const GET = withApiMiddleware(
       // 코호트: 기간 내 가입한 실회원
       const cohort = await prisma.user.findMany({
         where: { AND: [realUserWhere, { createdAt: { gte: since } }] },
-        select: { id: true },
+        select: { id: true, createdAt: true },
       })
       const ids = cohort.map((u) => u.id)
+      const signupAt = new Map(cohort.map((u) => [u.id, u.createdAt]))
 
       let activated = 0
       let paid = 0
+      let returned = 0
       if (ids.length > 0) {
         const inIds = { userId: { in: ids } }
         // Reading 모델 제거 (2026-06-06) — 옛 일반 리딩 archive.
-        // 첫 활성 판정은 tarotReading + counselorChatSession 만으로.
-        const [tarotUsers, counselorUsers, buyerUsers] = await Promise.all([
-          prisma.tarotReading.findMany({ where: inIds, distinct: ['userId'], select: { userId: true } }),
+        // 활성 판정은 tarotReading + counselorChatSession 만으로.
+        // 재방문(리텐션): 가입 후 24h 이상 지나 다시 활동한 코호트 사용자.
+        // → 활동 timestamp 가 필요하므로 distinct 대신 (userId, createdAt) 로 조회.
+        const [tarotRows, counselorRows, buyerUsers] = await Promise.all([
+          prisma.tarotReading.findMany({ where: inIds, select: { userId: true, createdAt: true } }),
           prisma.counselorChatSession.findMany({
             where: inIds,
-            distinct: ['userId'],
-            select: { userId: true },
+            select: { userId: true, createdAt: true },
           }),
           prisma.bonusCreditPurchase.findMany({
             // 실결제 표식(stripePaymentId)이 있는 행만 — source='purchase' 는
@@ -70,9 +73,18 @@ export const GET = withApiMiddleware(
             select: { userId: true },
           }),
         ])
+        const RETURN_THRESHOLD_MS = 24 * 60 * 60 * 1000
         const activeSet = new Set<string>()
-        for (const r of [...tarotUsers, ...counselorUsers]) activeSet.add(r.userId)
+        const returnedSet = new Set<string>()
+        for (const r of [...tarotRows, ...counselorRows]) {
+          activeSet.add(r.userId)
+          const signed = signupAt.get(r.userId)
+          if (signed && r.createdAt.getTime() - signed.getTime() >= RETURN_THRESHOLD_MS) {
+            returnedSet.add(r.userId)
+          }
+        }
         activated = activeSet.size
+        returned = returnedSet.size
         paid = new Set(buyerUsers.map((b) => b.userId)).size
       }
 
@@ -98,6 +110,9 @@ export const GET = withApiMiddleware(
             fromStart: pct(paid, signups),
           },
         ],
+        // 재방문은 결제의 하위 단계가 아니라 코호트 전체 기준 리텐션 지표라
+        // steps 와 분리해 별도로 반환한다(>100% 혼동 방지).
+        retention: { returned, rate: pct(returned, signups) },
       } as Record<string, unknown>)
     } catch (err) {
       logger.error('[admin/funnel] error', err)
