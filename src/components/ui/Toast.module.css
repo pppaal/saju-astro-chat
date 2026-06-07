@@ -111,7 +111,7 @@
 }
 
 .toastClose:focus {
-  outline: 2px solid #d4b572;
+  outline: 2px solid var(--ds-gold-on-dark);
   outline-offset: 2px;
 }
 

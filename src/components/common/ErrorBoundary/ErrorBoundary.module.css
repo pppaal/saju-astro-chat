@@ -15,7 +15,7 @@
 
 .message {
   margin: 0 0 1.5rem;
-  color: #b91c1c;
+  color: var(--ds-error-strong);
   line-height: 1.5;
 }
 
@@ -28,7 +28,7 @@
 
 .detailsSummary {
   cursor: pointer;
-  color: #b91c1c;
+  color: var(--ds-error-strong);
   font-size: 0.875rem;
 }
 

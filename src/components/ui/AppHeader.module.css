@@ -96,7 +96,7 @@
 /* ===== Theme: dark (운명 카운슬러 — 어두운 cosmic 헤더) ===== */
 .themeDark {
   --hdr-text: rgba(245, 243, 255, 0.92);
-  --hdr-text-muted: #d4b572;
+  --hdr-text-muted: var(--ds-gold-on-dark);
   background: rgba(15, 10, 30, 0.8);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -104,15 +104,15 @@
 
 /* ===== Theme: light (궁합 카운슬러 / 홈 premium-white) ===== */
 .themeLight {
-  --hdr-text: var(--ds-light-text, #1c1917);
-  --hdr-text-muted: var(--ds-light-text-muted, #57534e);
+  --hdr-text: var(--ds-light-text, var(--ds-light-text));
+  --hdr-text-muted: var(--ds-light-text-muted, var(--ds-light-text-muted));
   --hdr-hover-bg: var(--ds-light-bg-soft, rgba(212, 181, 114, 0.1));
   --hdr-border-bottom: 1px solid var(--ds-light-border, rgba(28, 25, 23, 0.08));
   background: #ffffff;
   color: var(--hdr-text);
 }
 .themeLight.layoutHome {
-  /* 홈 premium-white 일 때는 페이지 전체 배경이 #fafaf9 와 어울리도록 투명. */
+  /* 홈 premium-white 일 때는 페이지 전체 배경이 var(--ds-light-bg) 와 어울리도록 투명. */
   background: transparent;
 }
 

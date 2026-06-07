@@ -51,7 +51,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a07a3c;
+  color: var(--ds-gold);
   font-size: 24px;
 }
 
@@ -63,14 +63,14 @@
   font-family: var(--font-cinzel), Georgia, serif;
   font-size: 19px;
   font-weight: 600;
-  color: #1c1917;
+  color: var(--ds-light-text);
   letter-spacing: -0.005em;
   margin: 0 0 8px;
 }
 
 .description {
   font-size: 13.5px;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   line-height: 1.6;
   margin: 0 0 20px;
 }
@@ -94,7 +94,7 @@
 
 .creditIcon {
   font-size: 20px;
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 .creditInfo {
@@ -106,7 +106,7 @@
 
 .creditLabel {
   font-size: 11px;
-  color: #78716c;
+  color: var(--ds-ring-neutral);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -114,14 +114,14 @@
 .creditValue {
   font-size: 22px;
   font-weight: 700;
-  color: #1c1917;
+  color: var(--ds-light-text);
   display: flex;
   align-items: baseline;
   gap: 4px;
 }
 
 .creditValue.empty {
-  color: #b91c1c;
+  color: var(--ds-error-strong);
 }
 
 .creditValue.low {
@@ -131,7 +131,7 @@
 .creditUnit {
   font-size: 12.5px;
   font-weight: 500;
-  color: #78716c;
+  color: var(--ds-ring-neutral);
 }
 
 /* Buttons — primary gold, secondary ghost. */
@@ -151,8 +151,8 @@
   font-size: 14.5px;
   font-weight: 600;
   color: #ffffff;
-  background: #1c1917;
-  border: 1px solid #1c1917;
+  background: var(--ds-light-text);
+  border: 1px solid var(--ds-light-text);
   border-radius: 12px;
   cursor: pointer;
   transition:
@@ -170,7 +170,7 @@
 
 .buttonIcon {
   font-size: 14px;
-  color: #d4b572;
+  color: var(--ds-gold-on-dark);
 }
 
 .laterButton {
@@ -178,9 +178,9 @@
   padding: 11px 20px;
   font-size: 13.5px;
   font-weight: 500;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   background: transparent;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 12px;
   cursor: pointer;
   transition:
@@ -189,8 +189,8 @@
 }
 
 .laterButton:hover {
-  background: #fafaf9;
-  border-color: #d6d3d1;
+  background: var(--ds-light-bg);
+  border-color: var(--ds-light-border-strong);
 }
 
 /* Close (×) — 우상단 */
@@ -206,7 +206,7 @@
   background: transparent;
   border: 0;
   border-radius: 8px;
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
   font-size: 18px;
   cursor: pointer;
   transition:
@@ -217,7 +217,7 @@
 
 .closeButton:hover {
   background: #f5f4f1;
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 /* Limit display (compatibility/followUp ver. — 미사용 잔존이지만 호환 유지) */
@@ -253,7 +253,7 @@
 
 .limitLabel {
   font-size: 11px;
-  color: #78716c;
+  color: var(--ds-ring-neutral);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -261,24 +261,24 @@
 .limitValue {
   font-size: 18px;
   font-weight: 700;
-  color: #b91c1c;
+  color: var(--ds-error-strong);
 }
 
 .planInfo {
   font-size: 12px;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   margin: 6px 0 0;
   text-align: center;
 }
 
 .planInfo strong {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .explainer {
   display: flex;
   gap: 10px;
-  background: #fafaf9;
+  background: var(--ds-light-bg);
   border: 1px solid #ece4d4;
   border-radius: 12px;
   padding: 12px 14px;
@@ -294,19 +294,19 @@
 .explainerContent strong {
   display: block;
   font-size: 12.5px;
-  color: #1c1917;
+  color: var(--ds-light-text);
   margin-bottom: 4px;
 }
 
 .explainerContent p {
   font-size: 12px;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   line-height: 1.5;
   margin: 0 0 2px;
 }
 
 .noteText {
-  color: #78716c !important;
+  color: var(--ds-ring-neutral) !important;
   font-style: italic;
 }
 

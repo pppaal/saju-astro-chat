@@ -21,8 +21,8 @@
 }
 
 .modal {
-  background: #fafaf9;
-  border: 1px solid #e7e5e4;
+  background: var(--ds-light-bg);
+  border: 1px solid var(--ds-light-border);
   border-radius: 24px;
   width: 100%;
   max-width: 900px;
@@ -68,7 +68,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid #e7e5e4;
+  border-bottom: 1px solid var(--ds-light-border);
   background: #ffffff;
   border-radius: 24px 24px 0 0;
 }
@@ -76,7 +76,7 @@
 .title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1c1917;
+  color: var(--ds-light-text);
   margin: 0;
 }
 
@@ -84,7 +84,7 @@
   /* 헤더 close — 다른 헤더 아이콘 버튼들과 통일 (36×36 원형, border X). */
   background: transparent;
   border: 0;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -97,9 +97,9 @@
 }
 
 .closeButton:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
+  color: var(--ds-light-text);
 }
 
 /* ========== Step Indicator ========== */
@@ -115,12 +115,12 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #e7e5e4;
+  background: var(--ds-light-border);
   transition: all 0.3s;
 }
 
 .stepDot.active {
-  background: #a07a3c;
+  background: var(--ds-gold);
   transform: scale(1.2);
 }
 
@@ -140,7 +140,7 @@
 .stepTitle {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1c1917;
+  color: var(--ds-light-text);
   margin: 0 0 20px;
   text-align: center;
 }
@@ -150,9 +150,9 @@
   width: 100%;
   padding: 16px;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 12px;
-  color: #1c1917;
+  color: var(--ds-light-text);
   font-size: 1rem;
   resize: none;
   font-family: inherit;
@@ -161,17 +161,17 @@
 
 .concernInput:focus {
   outline: none;
-  border-color: #a07a3c;
+  border-color: var(--ds-gold);
   box-shadow: 0 0 0 3px rgba(212, 181, 114, 0.15);
 }
 
 .concernInput::placeholder {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .hint {
   font-size: 0.85rem;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   text-align: center;
   margin: 12px 0 20px;
 }
@@ -191,8 +191,8 @@
 .primaryButton {
   width: 100%;
   padding: 14px 24px;
-  background: #a07a3c;
-  border: 1px solid #a07a3c;
+  background: var(--ds-gold);
+  border: 1px solid var(--ds-gold);
   border-radius: 12px;
   color: #ffffff;
   font-size: 1rem;
@@ -221,7 +221,7 @@
   width: 100%;
   padding: 14px 24px;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 12px;
   color: #44403c;
   font-size: 1rem;
@@ -231,9 +231,9 @@
 }
 
 .secondaryButton:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
+  color: var(--ds-light-text);
 }
 
 /* ========== Spread Selection ========== */
@@ -245,7 +245,7 @@
 
 .spreadCard {
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 16px;
   padding: 16px 20px;
   text-align: left;
@@ -256,7 +256,7 @@
 
 .spreadCard:hover {
   background: #f6ecd6;
-  border-color: #a07a3c;
+  border-color: var(--ds-gold);
   transform: translateX(4px);
   box-shadow: 0 4px 12px rgba(212, 181, 114, 0.1);
 }
@@ -264,7 +264,7 @@
 .spreadCardCount {
   display: inline-block;
   padding: 4px 10px;
-  background: #a07a3c;
+  background: var(--ds-gold);
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -275,21 +275,21 @@
 .spreadCard .spreadTitle {
   font-size: 1rem;
   font-weight: 600;
-  color: #1c1917;
+  color: var(--ds-light-text);
   margin: 0 0 6px;
   text-align: left;
 }
 
 .spreadDesc {
   font-size: 0.85rem;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   margin: 0 0 8px;
   line-height: 1.4;
 }
 
 .spreadTip {
   font-size: 0.8rem;
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 /* AI 선택 이유 텍스트 */
@@ -325,7 +325,7 @@
   width: 100%;
   height: 100%;
   background: #ffffff;
-  border: 1px solid #d6d3d1;
+  border: 1px solid var(--ds-light-border-strong);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
@@ -342,8 +342,8 @@
 
 .drawButton {
   padding: 16px 40px;
-  background: #a07a3c;
-  border: 1px solid #a07a3c;
+  background: var(--ds-gold);
+  border: 1px solid var(--ds-gold);
   border-radius: 30px;
   color: #ffffff;
   font-size: 1.1rem;
@@ -400,7 +400,7 @@
   width: 140px;
   height: 210px;
   background: #ffffff;
-  border: 1px solid #d6d3d1;
+  border: 1px solid var(--ds-light-border-strong);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -462,7 +462,7 @@
 
 .interpretingText {
   font-size: 1rem;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   text-align: center;
 }
 
@@ -470,7 +470,7 @@
   max-width: 100%;
   padding: 16px;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 12px;
   font-size: 0.9rem;
   color: #44403c;
@@ -503,8 +503,8 @@
 /* 현재 고민 표시 */
 .concernDisplay {
   background: #ffffff;
-  border: 1px solid #e7e5e4;
-  border-left: 3px solid #a07a3c;
+  border: 1px solid var(--ds-light-border);
+  border-left: 3px solid var(--ds-gold);
   border-radius: 12px;
   padding: 12px 16px;
   margin-bottom: 20px;
@@ -516,13 +516,13 @@
 
 .concernLabel {
   font-size: 0.8rem;
-  color: #a07a3c;
+  color: var(--ds-gold);
   font-weight: 600;
 }
 
 .concernText {
   font-size: 1rem;
-  color: #1c1917;
+  color: var(--ds-light-text);
   line-height: 1.6;
   flex: 1;
 }
@@ -539,9 +539,9 @@
 .drawAgainButton {
   padding: 12px 24px;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 30px;
-  color: #a07a3c;
+  color: var(--ds-gold);
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
@@ -554,7 +554,7 @@
 
 .drawAgainButton:hover {
   background: #f6ecd6;
-  border-color: #a07a3c;
+  border-color: var(--ds-gold);
   transform: scale(1.02);
 }
 
@@ -562,7 +562,7 @@
 .saveButton {
   padding: 12px 24px;
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 30px;
   color: #059669;
   font-size: 0.95rem;
@@ -599,13 +599,13 @@
   align-items: center;
   padding: 8px 14px;
   font-size: 0.85rem;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   background: transparent;
 }
 
 .resultSection {
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 16px;
   padding: 18px 22px;
   margin-bottom: 18px;
@@ -615,7 +615,7 @@
 .resultSectionTitle {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #a07a3c;
+  color: var(--ds-gold);
   margin: 0 0 14px;
 }
 
@@ -676,7 +676,7 @@
   padding: 8px 18px;
   border-radius: 999px;
   border: 0;
-  background: #a07a3c;
+  background: var(--ds-gold);
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
@@ -689,7 +689,7 @@
 
 .resultText {
   font-size: 1rem;
-  color: #1c1917;
+  color: var(--ds-light-text);
   line-height: 1.8;
   letter-spacing: 0.01em;
   margin: 0;
@@ -708,7 +708,7 @@
 
 .cardReadingItem {
   background: #ffffff;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   border-radius: 16px;
   padding: 16px 18px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -731,7 +731,7 @@
   border-radius: 50%;
   background: rgba(160, 122, 60, 0.12);
   border: 1px solid rgba(160, 122, 60, 0.3);
-  color: #a07a3c;
+  color: var(--ds-gold);
   font-size: 0.95rem;
   font-weight: 700;
 }
@@ -749,13 +749,13 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 .cardReadingName {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1c1917;
+  color: var(--ds-light-text);
   margin: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -765,7 +765,7 @@
   margin-left: 6px;
   font-size: 0.85rem;
   font-weight: 400;
-  color: #78716c;
+  color: var(--ds-ring-neutral);
 }
 
 /* 모바일: 이미지가 가로로 안 삐져나오게 세로 스택. 데스크탑은 이미지+텍스트 2열. */
@@ -826,7 +826,7 @@
 .cardReadingKeywordTag {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #a07a3c;
+  color: var(--ds-gold);
   background: rgba(160, 122, 60, 0.1);
   border: 1px solid rgba(160, 122, 60, 0.25);
   border-radius: 999px;
@@ -850,13 +850,13 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 .cardReadingAiText {
   font-size: 1rem;
   line-height: 1.78;
-  color: #1c1917;
+  color: var(--ds-light-text);
   margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -865,7 +865,7 @@
 
 .cardReadingPending {
   font-size: 0.9rem;
-  color: #a07a3c;
+  color: var(--ds-gold);
   font-style: italic;
   margin: 0;
 }
@@ -901,7 +901,7 @@
 
 .affirmationText {
   font-size: 1rem;
-  color: #1c1917;
+  color: var(--ds-light-text);
   font-style: italic;
   line-height: 1.72;
   margin: 0;

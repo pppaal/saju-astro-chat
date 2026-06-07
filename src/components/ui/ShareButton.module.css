@@ -80,7 +80,7 @@
 .bonus {
   padding: 0.25rem 0.625rem;
   border-radius: 999px;
-  background: linear-gradient(135deg, #d4b572, #818cf8);
+  background: linear-gradient(135deg, var(--ds-gold-on-dark), #818cf8);
   font-size: 0.75rem;
 }
 
@@ -188,7 +188,7 @@
 
 .loginHint a {
   font-size: 0.75rem;
-  color: #d4b572;
+  color: var(--ds-gold-on-dark);
   text-decoration: none;
 }
 

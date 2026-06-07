@@ -3,21 +3,27 @@
   min-height: 100dvh;
   /* cosmic backdrop 은 CosmicBackdrop 컴포넌트가 깔아주므로 여기선 베이스
      색만 — 모든 다크 페이지(메인/타로/블로그)가 같은 톤 위에 떠 있도록. */
-  background-color: #07091a;
+  background-color: var(--ds-dark-bg);
   color: var(--text-color, #e8ecf5);
   overflow-x: hidden;
   padding-bottom: 96px;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
 .stars {
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.5), transparent),
-    radial-gradient(2px 2px at 80% 20%, rgba(255,255,255,0.4), transparent),
-    radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.35), transparent),
-    radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.3), transparent);
+    radial-gradient(2px 2px at 20% 30%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(2px 2px at 80% 20%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 70% 60%, rgba(255, 255, 255, 0.3), transparent);
   opacity: 0.6;
   pointer-events: none;
   z-index: 0;
@@ -40,10 +46,10 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -51,8 +57,8 @@
 }
 
 .backButton:hover {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
   color: #fff;
 }
 
@@ -110,13 +116,13 @@
   line-height: 1.3;
   letter-spacing: -0.02em;
   margin: 0 0 20px;
-  color: #f5f7fb;
+  color: var(--ds-dark-text);
 }
 
 .excerpt {
   max-width: 600px;
   margin: 0 auto 24px;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255, 255, 255, 0.75);
   line-height: 1.7;
   font-size: 18px;
 }
@@ -125,7 +131,7 @@
   display: flex;
   gap: 24px;
   justify-content: center;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 14px;
 }
 
@@ -143,7 +149,7 @@
 
 .markdown {
   line-height: 1.8;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 17px;
 }
 
@@ -152,7 +158,7 @@
   /* 마크다운 h1 — 본문 가독성 우선. 옛 800 + 파스텔 블루 gradient 폐기. */
   font-weight: 600;
   margin: 48px 0 24px;
-  color: #f5f7fb;
+  color: var(--ds-dark-text);
 }
 
 .markdown h2 {
@@ -161,7 +167,7 @@
   margin: 40px 0 20px;
   color: #ffffff;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .markdown h3 {
@@ -182,21 +188,23 @@
 
 .markdown em {
   font-style: italic;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* 본문 링크 — design tokens 골드 + underline-offset. 옛: 스타일 미정의로
    user-agent 의 파란색 + 진한 밑줄이 다크 코스믹 배경에 신호등처럼 튀었음. */
 .markdown a {
-  color: #d4b572;
+  color: var(--ds-gold-on-dark);
   text-decoration: underline;
   text-decoration-color: rgba(212, 181, 114, 0.4);
   text-underline-offset: 3px;
-  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
 }
 
 .markdown a:hover {
-  color: #e8cc8a;
+  color: var(--ds-gold-on-dark-soft);
   text-decoration-color: rgba(232, 204, 138, 0.7);
 }
 
@@ -213,7 +221,7 @@
 }
 
 .markdown li::before {
-  content: "•";
+  content: '•';
   position: absolute;
   left: 0;
   color: #88b3f7;
@@ -224,13 +232,13 @@
   width: 100%;
   border-collapse: collapse;
   margin: 24px 0;
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 12px;
   overflow: hidden;
 }
 
 .markdown tr {
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .markdown tr:last-child {
@@ -252,9 +260,9 @@
 .cta {
   margin: 64px 0;
   padding: 40px;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   text-align: center;
   animation: fadeInUp 0.8s ease-out 0.4s both;
@@ -268,7 +276,7 @@
 }
 
 .ctaText {
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 16px;
   margin: 0 0 24px;
 }
@@ -280,7 +288,7 @@
   padding: 14px 32px;
   /* Brand 골드 그라데이션 — 다른 다크 페이지 (about, pricing) 의 primary
      CTA 와 정렬. 옛 퍼플 #667eea→#764ba2 폐기. */
-  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
+  background: linear-gradient(135deg, var(--ds-gold-soft) 0%, var(--ds-gold) 100%);
   border-radius: 999px;
   color: #ffffff;
   font-weight: 500;
@@ -320,16 +328,16 @@
   flex-direction: column;
   align-items: center;
   padding: 28px 20px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   text-decoration: none;
   transition: all 0.3s ease;
 }
 
 .relatedCard:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-4px);
 }
 
@@ -358,7 +366,7 @@
 
 .relatedMeta {
   font-size: 13px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Not Found */
@@ -375,7 +383,7 @@
 }
 
 .notFound p {
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 16px;
   margin: 0 0 32px;
 }
@@ -384,7 +392,7 @@
   display: inline-flex;
   padding: 12px 28px;
   /* 골드 그라데이션 — 다른 블로그 CTA 와 정렬. */
-  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
+  background: linear-gradient(135deg, var(--ds-gold-soft) 0%, var(--ds-gold) 100%);
   border-radius: 999px;
   color: #ffffff;
   font-weight: 500;

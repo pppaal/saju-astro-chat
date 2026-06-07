@@ -40,7 +40,7 @@
   font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0.18em;
-  color: #a07a3c;
+  color: var(--ds-gold);
   margin: 0 0 14px;
   display: inline-flex;
   align-items: center;
@@ -106,7 +106,7 @@
   height: 48px;
   border-radius: 50%;
   background: rgba(212, 181, 114, 0.12);
-  color: #a07a3c;
+  color: var(--ds-gold);
   margin: 0 auto 16px;
   position: relative;
 }
@@ -140,8 +140,8 @@
 }
 
 .emailLink:hover {
-  border-color: #a07a3c;
-  color: #a07a3c;
+  border-color: var(--ds-gold);
+  color: var(--ds-gold);
 }
 
 .emailHint {
@@ -181,7 +181,7 @@
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #a07a3c;
+  color: var(--ds-gold);
   margin: 0;
 }
 
@@ -275,7 +275,7 @@
   height: 32px;
   border-radius: 50%;
   background: rgba(212, 181, 114, 0.1);
-  color: #a07a3c;
+  color: var(--ds-gold);
   font-family: var(--mono);
   font-size: 0.78rem;
   font-weight: 500;
@@ -346,7 +346,7 @@
 }
 
 .policyLinkArrow {
-  color: #a07a3c;
+  color: var(--ds-gold);
   font-size: 0.95rem;
   flex-shrink: 0;
 }
