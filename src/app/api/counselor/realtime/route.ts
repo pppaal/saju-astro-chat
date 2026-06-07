@@ -11,13 +11,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/authOptions'
-import { buildDestinyContext } from '@/lib/destiny/counselorContext'
-import { getNowInTimezone } from '@/lib/datetime'
+import { ensureCounselorContext } from '@/lib/destiny/counselorContextCache'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { logger } from '@/lib/logger'
-import { normalizeGender } from '@/lib/utils/gender'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { isSelfHarm, crisisMessage } from '@/lib/safety/crisis'
 import { csrfGuard } from '@/lib/security/csrf'
@@ -32,7 +30,7 @@ import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPromp
 const idemStore = createIdempotencyStore('counselor-realtime')
 
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
-import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { cacheSet } from '@/lib/cache/redis-cache'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
 export const dynamic = 'force-dynamic'
@@ -106,17 +104,6 @@ const RATE_LIMIT_PER_MIN = 12
 // The prompt itself now lives in @/lib/prompts/destinyCounselorPrompt as
 // co-located ko/en pairs — edit Korean there and the English sits right
 // beside it, so the two languages can't silently drift apart.
-
-function birthFingerprint(b: RealtimeBody): string {
-  return [
-    b.birthDate ?? '',
-    b.birthTime ?? '00:00',
-    b.gender ?? 'male',
-    b.timezone ?? 'Asia/Seoul',
-    b.latitude ?? '',
-    b.longitude ?? '',
-  ].join('|')
-}
 
 // birthDate (YYYY-MM-DD) 기준 만 나이를 직접 계산 — saju 빌더를 거치지
 // 않고도 가능. cache 밖에서 매 턴 휘발성 userPrompt prefix 로 주입하기
@@ -223,135 +210,19 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 5) Compute (or fetch cached) birth snapshot
-  const hourUnknown = !!body.birthTimeUnknown || !body.birthTime
-  // City unknown when explicit flag set, or when coords/timezone all missing.
-  const cityUnknown =
-    !!body.birthCityUnknown ||
-    (body.latitude === undefined && body.longitude === undefined && !body.timezone)
-  // v8: [Meta] 에 raw birthDate/birthTime/location/timezone 추가. v7
-  // entry 는 그 정보 없이 저장돼서 LLM 이 한자→날짜 역산 → "내 생년
-  // 월일?" 같은 직접 질문에 틀린 답.
-  // "오늘"/일진은 기기 시간대 기준 → 캐시도 그 로컬 날짜로 회전해야 새벽에 안 어긋남.
-  // v9: 일진 7일 블록 추가로 컨텍스트 shape 변경(이전 캐시 무효화).
-  // v10: 호출자 이름(userName)을 cached context 에서 제거 → Anthropic
-  // prompt cache prefix 가 차트 데이터만으로 고정. 이전 v9 엔트리에는
-  // 이름이 박혀 있어 캐시 미스 증가 원인이었음.
-  // v11: 만 나이도 cached context 에서 제거 → 생일 통과 시 prefix 무효화
-  // 방지. 이름 + 나이 둘 다 휘발성 userPrompt prefix 로 옮겨감.
-  // v12: destiny context 를 stable(natal — 평생) + daily(타이밍/일진/
-  // 트랜짓 — 매일) 두 블록으로 split. stable 만 cachedUserContext 로
-  // 보내 Anthropic prompt cache 가 사용자 평생 hit. daily 는 휘발성
-  // userPrompt prefix 로. Redis 캐시 키도 두 개로 분리 — stable 은
-  // localDate 미포함 / 30 일 TTL, daily 는 localDate 포함 / 1 일 TTL.
-  const userTz = body.userTimezone || body.timezone || 'Asia/Seoul'
-  const localNow = getNowInTimezone(userTz)
-  const localDateKey = `${localNow.year}-${localNow.month}-${localNow.day}`
-  const stableCtxKey = `counselor:ctx:stable:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
-  const dailyCtxKey = `counselor:ctx:daily:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
-  let stableContext: string | null = await cacheGet<string>(stableCtxKey)
-  let dailyContext: string | null = await cacheGet<string>(dailyCtxKey)
-  if (!stableContext || !dailyContext) {
-    try {
-      // Raw saju + astro only. Previously this route ran the full
-      // fortune cross-rules pipeline via runFortuneWithRaw and threw
-      // away the resulting `report` — the cross-signal renderer's
-      // ▶/■/domain-name markers were bleeding into the model's response
-      // template, so the LLM does its own picking now. Calling the two
-      // normalizer builders directly skips the wasted cross-rules pass.
-      // queryDate 를 유저 TZ 로컬 날짜의 정오로 구성 — pickCurrentIljin
-      // 은 queryDate.getDate() (서버 로컬) 로 일진을 픽하는데, 서버가 UTC
-      // 이고 유저가 KST 면 KST 00:00~09:00 사이에 "오늘" 이 1일 어긋나
-      // ## 타이밍 의 일진(辛丑) ≠ ## 일진 8일 의 오늘(壬寅) 처럼 모순이
-      // 생김. 유저 TZ 의 year/month/day 로 정오 Date 를 만들면 서버
-      // 로컬 getDate() 가 유저 날짜를 그대로 반환해 둘이 일치 (정오는
-      // 어떤 TZ 변환에도 같은 날 유지).
-      const queryDate = new Date(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0)
-      const tz = body.timezone ?? 'Asia/Seoul'
-      const birthDate = body.birthDate
-      const birthTime = body.birthTime ?? '00:00'
-      // 'F' / 'Female' 다 처리 — 기존 `=== 'female'` 정확 매칭은 'F' 한 글자
-      // 나 'Female' 대문자는 'male' 로 떨어져 여자 사용자 대운 방향 거꾸로.
-      const gender: 'male' | 'female' =
-        normalizeGender(body.gender) === 'female' ? 'female' : 'male'
-      const latitude = body.latitude ?? 37.5665
-      const longitude = body.longitude ?? 126.978
-      // 사주·점성·현재 운(세운/월운/일진) 전부 buildDestinyContext 가 정제 경로
-      // (sajuFacts/astroFacts SSOT)에서 직접 계산한다. 예전엔 fusion saju adapter
-      // (buildSajuNormalizerInput)로 현재 운을 따로 만들어 주입했는데, 그게 longitude
-      // 진경도 보정을 안 받아 KST LMT 로 떨어지던 불일치 + fusion 결합을 제거했다.
-      const birthTimeUnknown = hourUnknown
-      const birthCityUnknown = cityUnknown
-      // Compact table form — replaces the older pretty-JSON snapshot
-      // (PR #204 had made it compact-JSON, this PR makes it a real
-      // pipe-table same shape compat counselor uses). Same data,
-      // ~5× fewer chars.
-      // [Birth Snapshot] 헤더는 <birth_data> 태그가 이미 같은 의미 전달.
-      // 16 chars 잉여라 제거.
-      const parts: string[] = []
-      // Metadata block always present so the system prompt's
-      // birthTimeUnknown / birthCityUnknown rules can match on a
-      // concrete value (true OR false). Raw birthDate / birthTime /
-      // location / timezone included so the LLM can answer "내 생년월일
-      // 뭐야?" directly instead of trying to reverse-derive the date
-      // from saju 한자 pillars + astro planet signs (low accuracy).
-      const locTag = birthCityUnknown
-        ? '미상'
-        : `${body.latitude?.toFixed(4) ?? '?'},${body.longitude?.toFixed(4) ?? '?'}`
-      const timeTag = birthTimeUnknown ? '미상' : (body.birthTime ?? '미상')
-      // gender 도 [Meta] 에 포함 — buildDestinyContext 의 stableHeader 가
-      // birthDate/time/loc/gender 를 또 한 번 출력해 중복이었음. 단일
-      // source 로 통합 (stableHeader 는 PR 에서 제거).
-      const genderTag = body.gender === 'female' ? 'F' : 'M'
-      parts.push(
-        `[Meta] birthDate: ${body.birthDate} | birthTime: ${timeTag} | gender: ${genderTag} | location: ${locTag} | timezone: ${body.timezone ?? 'Asia/Seoul'} | birthTimeUnknown: ${birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${birthCityUnknown ? 'true' : 'false'}`
-      )
-      if (birthTimeUnknown) parts.push('# 시간 미상 — 시주/일진/ASC/MC/하우스 인용 금지.')
-      if (birthCityUnknown) parts.push('# 출생지 미상 — 위치 의존 결론 금지.')
-      // (이전엔 여기서 만 나이를 parts 에 push 했음 → cached context
-      //  안에 들어가서 생일 지날 때마다 prefix 무효화. 이제 cache 밖
-      //  userPrompt prefix 로 옮김 — 아래 callerLine 인근 참조.)
-      // ── Destiny counselor layer: SAJU (from raw) + ASTRO/CURRENT
-      //    (raw→refined) + reading rules. Replaces the old formatSajuSelf /
-      //    formatAstroSelf + slim chain here; compat counselor keeps those.
-      let stableCtxBody = ''
-      let dailyCtxBody = ''
-      try {
-        const split = await buildDestinyContext(
-          {
-            birthDate,
-            birthTime,
-            gender,
-            timezone: tz,
-            latitude,
-            longitude,
-            birthTimeUnknown: hourUnknown,
-            birthCityUnknown: cityUnknown,
-          },
-          queryDate,
-          lang,
-          userTz
-        )
-        stableCtxBody = split.stable
-        dailyCtxBody = split.daily
-      } catch (err) {
-        logger.warn('[counselor/realtime] destiny context build failed', {
-          err: err instanceof Error ? err.message : String(err),
-        })
-      }
-
-      // STABLE: [Birth Snapshot] meta + 본명 사주/점성 + 규칙. <birth_data>
-      // 태그로 감싸 LLM 이 system-injected background 로 인식.
-      stableContext = `<birth_data>\n${parts.join('\n')}${stableCtxBody ? `\n\n${stableCtxBody}` : ''}\n</birth_data>`
-      // DAILY: 타이밍 + 일진 윈도우 + today 앵커. cached prefix 밖.
-      dailyContext = dailyCtxBody
-
-      await cacheSet(stableCtxKey, stableContext, CACHE_TTL.NATAL_CHART) // 30d
-      await cacheSet(dailyCtxKey, dailyContext, CACHE_TTL.CALENDAR_DATA) // 1d
-    } catch (err) {
-      logger.error('[counselor/realtime] context compute failed', { err })
-      return NextResponse.json({ error: 'cross_failed' }, { status: 500 })
-    }
+  // 5) 본명(stable·30d) + 일진/타이밍(daily·1d) 컨텍스트 — 공유 캐시 함수
+  //    (ensureCounselorContext). 진입 시 /api/counselor/warm 이 동일 키로 미리
+  //    워밍하므로, "그날 첫 답변"의 무거운 천체력 빌드를 critical path 에서
+  //    제거(캐시 hit)해 첫 응답을 빠르게 한다.
+  let stableContext: string
+  let dailyContext: string
+  try {
+    const ctx = await ensureCounselorContext(body, userId, lang)
+    stableContext = ctx.stableContext
+    dailyContext = ctx.dailyContext
+  } catch (err) {
+    logger.error('[counselor/realtime] context compute failed', { err })
+    return NextResponse.json({ error: 'cross_failed' }, { status: 500 })
   }
 
   // 6) Consume credit BEFORE stream starts. canUseCredits 통과 후라 보통 성공;

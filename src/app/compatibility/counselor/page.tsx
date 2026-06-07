@@ -942,6 +942,7 @@ function CompatibilityCounselorContent() {
       locale,
       isKo,
       chatSessionId,
+      chatTitle,
       cvText,
       showDepleted,
       requireLogin,
