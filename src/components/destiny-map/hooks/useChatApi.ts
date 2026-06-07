@@ -111,6 +111,80 @@ export function useChatApi({
     onSaveMessageRef.current = onSaveMessage
   }, [onSaveMessage])
 
+  // 진입 시 컨텍스트 캐시 워밍 — 첫 답변 속도 개선.
+  // realtime 답변 경로는 saju+천체력으로 무거운 컨텍스트를 빌드한다(daily 캐시는
+  // 1일이라 "그날 첫 답변"마다 critical path 에서 재빌드 → 느림). 진입하자마자
+  // 같은 입력으로 /api/counselor/warm 을 fire-and-forget 호출해 답변 도착 전에
+  // 캐시를 채워둔다. 워밍 body 는 아래 handleSend 의 payload 와 *동일 필드*로
+  // 구성해야 캐시 키(birthFingerprint)가 일치해 실제 답변이 hit 한다.
+  // 비로그인이면 warm 라우트가 401 로 조용히 무시 → 무해.
+  const warmedFingerprintRef = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    if (!profile?.birthDate) return
+    const normalizedGender =
+      typeof profile.gender === 'string'
+        ? profile.gender.toLowerCase() === 'female'
+          ? 'female'
+          : profile.gender.toLowerCase() === 'male'
+            ? 'male'
+            : undefined
+        : undefined
+    const normalizedLatitude =
+      typeof profile.latitude === 'number' && Number.isFinite(profile.latitude)
+        ? profile.latitude
+        : undefined
+    const normalizedLongitude =
+      typeof profile.longitude === 'number' && Number.isFinite(profile.longitude)
+        ? profile.longitude
+        : undefined
+    const userTimezone =
+      typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined
+    // 같은 입력이면 한 번만 워밍 (locale 토글·리렌더로 중복 호출 방지).
+    const fp = [
+      profile.birthDate,
+      profile.birthTime ?? '',
+      normalizedGender ?? '',
+      normalizedLatitude ?? '',
+      normalizedLongitude ?? '',
+      userTimezone ?? '',
+      lang,
+    ].join('|')
+    if (warmedFingerprintRef.current === fp) return
+    warmedFingerprintRef.current = fp
+
+    const controller = new AbortController()
+    void apiFetch('/api/counselor/warm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        birthDate: profile.birthDate,
+        birthTime: profile.birthTime,
+        birthTimeUnknown: profile.birthTimeUnknown,
+        latitude: normalizedLatitude,
+        longitude: normalizedLongitude,
+        gender: normalizedGender,
+        city: profile.city,
+        userTimezone,
+        lang,
+      }),
+      signal: controller.signal,
+      // 401(비로그인) 시 전역 로그인 모달을 띄우지 않게 — 워밍은 조용한 부수작업.
+      suppressAuthModal: true,
+    }).catch(() => {
+      // 워밍 실패는 무해 — 답변 경로가 다시 빌드한다.
+    })
+    return () => controller.abort()
+  }, [
+    profile?.birthDate,
+    profile?.birthTime,
+    profile?.birthTimeUnknown,
+    profile?.gender,
+    profile?.latitude,
+    profile?.longitude,
+    profile?.city,
+    lang,
+  ])
+
   // 끊긴 턴 복원 — 서버는 연결이 끊겨도 끝까지 생성해 turnId 로 캐시에 저장한다
   // (claudeSSE keepGeneratingOnDisconnect). 스트림이 불완전하게 끝났거나
   // 사용자가 다른 앱에서 돌아오면(visibilitychange) 이 정보로 result 를

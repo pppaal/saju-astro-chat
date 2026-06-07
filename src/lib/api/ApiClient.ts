@@ -11,6 +11,12 @@ import { logger } from '@/lib/logger'
 
 export interface ApiFetchOptions extends Omit<RequestInit, 'headers'> {
   headers?: Record<string, string>
+  /**
+   * 401/402 를 받아도 전역 크레딧/로그인 모달을 띄우지 않는다. 사용자가 명시적으로
+   * 시작하지 않은 조용한 부수작업(예: 진입 시 컨텍스트 워밍)에서 쓴다 —
+   * 비로그인 게스트에게 진입하자마자 로그인 모달이 뜨는 걸 막는다.
+   */
+  suppressAuthModal?: boolean
 }
 
 /**
@@ -44,6 +50,7 @@ function notifyCreditLimit(res: Response): void {
  * Authentication is handled server-side via session cookies - no client tokens needed.
  */
 export async function apiFetch(url: string, options?: ApiFetchOptions): Promise<Response> {
+  const { suppressAuthModal, ...fetchOptions } = options ?? {}
   const headers: Record<string, string> = {
     ...options?.headers,
   }
@@ -59,12 +66,12 @@ export async function apiFetch(url: string, options?: ApiFetchOptions): Promise<
   // No need to send tokens from client-side - this prevents token exposure
 
   const response = await fetch(url, {
-    ...options,
+    ...fetchOptions,
     headers,
     credentials: 'include', // Ensure cookies are sent with requests
   })
   // 크레딧/게스트 한도 응답이면 전역 모달 신호. body 는 안 읽으므로 스트림 안전.
-  notifyCreditLimit(response)
+  if (!suppressAuthModal) notifyCreditLimit(response)
   return response
 }
 
