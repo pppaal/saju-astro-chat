@@ -16,6 +16,15 @@ const LOT_KO: Record<string, { label: string; domain: string }> = {
   Victory: { label: '승리의 로트', domain: '성취·희망·확장' },
   Nemesis: { label: '네메시스의 로트', domain: '시련·숨은 약점' },
 }
+const LOT_EN: Record<string, { label: string; domain: string }> = {
+  Fortune: { label: 'Lot of Fortune', domain: 'body, wealth, luck' },
+  Spirit: { label: 'Lot of Spirit', domain: 'will, career, purpose' },
+  Eros: { label: 'Lot of Eros', domain: 'love, desire, attraction' },
+  Necessity: { label: 'Lot of Necessity', domain: 'constraint, duty, knots' },
+  Courage: { label: 'Lot of Courage', domain: 'boldness, challenge' },
+  Victory: { label: 'Lot of Victory', domain: 'achievement, hope, expansion' },
+  Nemesis: { label: 'Lot of Nemesis', domain: 'trials, hidden weak spots' },
+}
 
 /**
  * Arabic Parts (아라빅 파츠) 활성 추출기.
@@ -82,6 +91,7 @@ const astroArabicPartExtractor: SignalExtractor = {
             kind: 'arabic-part',
             name: `${planet.name} ☌ Lot of ${lot.name}`,
             korean: `${pointKo(planet.name)} 트랜짓이 ${LOT_KO[lot.name]?.label ?? `${lot.name} 로트`}에 닿는 시기 — ${LOT_KO[lot.name]?.domain ?? lot.name} 영역이 자극돼요`,
+            english: `${planet.name} transit touches the ${LOT_EN[lot.name]?.label ?? `Lot of ${lot.name}`} — stirring its domain of ${LOT_EN[lot.name]?.domain ?? lot.name}`,
             themes: [], // tagger가 행성으로 채움
             polarity,
             layer: 'daily',

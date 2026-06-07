@@ -271,13 +271,15 @@ interface BuildSignalArgs {
 function buildSignal(args: BuildSignalArgs): ActiveSignal {
   const polarity = polarityFromYongsin(args.element, args.yongsin)
   // 운으로 들어오는 십신의 흐름 한 줄 — 캘린더 voice. (없으면 name 폴백)
-  const korean = sibsinFlowLine(args.sibsin, args.layer as GanjiTransitLayer)
+  const korean = sibsinFlowLine(args.sibsin, args.layer as GanjiTransitLayer, 'ko')
+  const english = sibsinFlowLine(args.sibsin, args.layer as GanjiTransitLayer, 'en')
   return {
     id: `saju.pillar-sibsin.${args.idSuffix}`,
     source: 'saju',
     kind: 'pillar-sibsin',
     name: `${args.ganji} (${args.sibsin})`,
     ...(korean ? { korean } : {}),
+    ...(english ? { english } : {}),
     themes: [], // tagger가 SIBSIN_THEME_MAP + ELEMENT_THEME_MAP으로 채움
     polarity,
     layer: args.layer,

@@ -14,6 +14,7 @@ import { scoreToGrade, type CalendarGrade } from '../derivers/grade'
 import { themeScoresToCategories, type ThemeCategory } from '../derivers/categories'
 import { deriveCrossAgreement, type AxisAgreement } from '../derivers/crossAgreement'
 import { computeDayStem, computeDayBranch } from '../extractors/saju-shinsal'
+import { signalDisplayLabel } from '../derivers/summary'
 
 export type CalendarLang = 'ko' | 'en'
 
@@ -74,9 +75,9 @@ export interface CellsToYearlyDatesOptions {
   lang?: CalendarLang
 }
 
-/** 신호 → 사용자 표시 라벨 (ko: korean 우선, en: 영문 name) */
-function signalLabel(s: ActiveSignal | V2EngineSignal, lang: CalendarLang): string {
-  return lang === 'ko' ? (s.korean ?? s.name) : s.name
+/** 신호 → 사용자 표시 라벨 (ko: korean 우선; en: english 우선, 없으면 name 용어 치환) */
+function signalLabel(s: ActiveSignal, lang: CalendarLang): string {
+  return signalDisplayLabel(s, lang)
 }
 
 /** 점수 밴드 폴백 제목 — 패턴 headline 이 없을 때. */
@@ -92,15 +93,16 @@ function scoreBandTitle(grade: CalendarGrade, lang: CalendarLang): string {
   return (lang === 'ko' ? ko : en)[grade] ?? (lang === 'ko' ? '평범한 하루' : 'An ordinary day')
 }
 
-function mapPattern(p: CalendarCell['matchedPatterns'][number]): V2DatePattern {
+function mapPattern(p: CalendarCell['matchedPatterns'][number], lang: CalendarLang): V2DatePattern {
+  const en = lang === 'en'
   return {
     id: p.id,
-    name: p.name,
+    name: (en ? p.nameEn : undefined) ?? p.name,
     themes: p.themes,
     strength: p.strength,
-    description: p.description,
-    headline: p.headline,
-    action: p.action,
+    description: (en ? p.descriptionEn : undefined) ?? p.description,
+    headline: (en ? p.headlineEn : undefined) ?? p.headline,
+    action: (en ? p.actionEn : undefined) ?? p.action,
   }
 }
 
@@ -135,23 +137,35 @@ export function cellToYearlyDate(cell: CalendarCell, lang: CalendarLang = 'ko'):
       .slice(0, 5)
       .map((s) => signalLabel(s, lang))
 
-  const patterns = cell.matchedPatterns.map(mapPattern)
+  const patterns = cell.matchedPatterns.map((p) => mapPattern(p, lang))
+
+  // 언어별 사유 배열 — EN 은 build 때 채운 topReasonsEn/cautionsEn 사용(없으면 KO 폴백).
+  const topReasons = lang === 'en' ? (cell.topReasonsEn ?? cell.topReasons) : cell.topReasons
+  const cautions = lang === 'en' ? (cell.cautionsEn ?? cell.cautions) : cell.cautions
 
   // 제목·설명 — 패턴 headline/action 우선, 없으면 점수밴드 + topReasons
+  const en = lang === 'en'
+  const pHeadline = (p: CalendarCell['matchedPatterns'][number]) =>
+    (en ? p.headlineEn : undefined) ?? p.headline
+  const pAction = (p: CalendarCell['matchedPatterns'][number]) =>
+    (en ? p.actionEn : undefined) ?? p.action
+  const pDescription = (p: CalendarCell['matchedPatterns'][number]) =>
+    (en ? p.descriptionEn : undefined) ?? p.description
+
   const topPattern = [...cell.matchedPatterns].sort((a, b) => b.strength - a.strength)[0]
-  const title = topPattern?.headline?.trim() || scoreBandTitle(grade, lang)
+  const title = (topPattern ? pHeadline(topPattern)?.trim() : '') || scoreBandTitle(grade, lang)
   const description =
-    topPattern?.action?.trim() ||
-    topPattern?.description?.trim() ||
-    cell.topReasons.slice(0, 2).join(lang === 'ko' ? ' · ' : '; ') ||
+    (topPattern ? pAction(topPattern)?.trim() : '') ||
+    (topPattern ? pDescription(topPattern)?.trim() : '') ||
+    topReasons.slice(0, 2).join(lang === 'ko' ? ' · ' : '; ') ||
     scoreBandTitle(grade, lang)
 
   // 추천 = 패턴 액션들 + 우호 사유; 주의 = cautions
   const recommendations = [
-    ...cell.matchedPatterns.map((p) => p.action).filter((a): a is string => !!a && a.length > 0),
-    ...cell.topReasons,
+    ...cell.matchedPatterns.map((p) => pAction(p)).filter((a): a is string => !!a && a.length > 0),
+    ...topReasons,
   ].slice(0, 5)
-  const warnings = cell.cautions.slice(0, 5)
+  const warnings = cautions.slice(0, 5)
 
   // ganji
   const probe = new Date(`${date}T12:00:00.000Z`)

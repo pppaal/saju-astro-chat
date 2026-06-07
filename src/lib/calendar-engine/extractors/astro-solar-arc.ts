@@ -94,6 +94,14 @@ const astroSolarArcExtractor: SignalExtractor = {
                 `솔라아크 ${pointKo(hit.arcPlanet)}`
               ) ||
               `솔라아크 ${pointKo(hit.arcPlanet)} ${hit.aspect} 본명 ${pointKo(hit.natalPlanet)}`,
+            english:
+              aspectFlowLine(
+                hit.arcPlanet,
+                hit.natalPlanet,
+                hit.aspect,
+                'en',
+                `Solar Arc ${hit.arcPlanet}`
+              ) || `Solar Arc ${hit.arcPlanet} ${hit.aspect} natal ${hit.natalPlanet}`,
             themes: [],
             polarity,
             layer: 'decadal',

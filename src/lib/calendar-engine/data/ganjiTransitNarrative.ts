@@ -160,30 +160,38 @@ export function dailyIljinSibsinLine(sibsin: string | undefined, lang: Lang = 'k
  *
  * `korean` 필드는 KO 전용(EN 은 name + signalI18n 치환)이라 KO 한 줄만 반환.
  */
-const SIBSIN_FLOW_PHRASE: Record<string, string> = {
-  비견: '내 힘과 동료·경쟁의 기운',
-  겁재: '경쟁심과 추진력',
-  식신: '표현과 아이디어의 기운',
-  상관: '재치와 자기 색을 드러내는 기운',
-  정재: '실속과 안정의 감각',
-  편재: '재물 감각과 기회 포착',
-  정관: '책임과 자리가 또렷해지는 기운',
-  편관: '압박과 추진력',
-  정인: '배움과 도움이 들어오는 기운',
-  편인: '직관과 깊은 사유',
+const SIBSIN_FLOW_PHRASE: Record<string, { ko: string; en: string }> = {
+  비견: { ko: '내 힘과 동료·경쟁의 기운', en: 'your own strength and the pull of peers' },
+  겁재: { ko: '경쟁심과 추진력', en: 'drive and a competitive edge' },
+  식신: { ko: '표현과 아이디어의 기운', en: 'expression and flowing ideas' },
+  상관: { ko: '재치와 자기 색을 드러내는 기운', en: 'wit and the urge to show your colour' },
+  정재: { ko: '실속과 안정의 감각', en: 'a sense for substance and stability' },
+  편재: { ko: '재물 감각과 기회 포착', en: 'a sharp eye for money and opportunity' },
+  정관: {
+    ko: '책임과 자리가 또렷해지는 기운',
+    en: 'responsibility and standing coming into focus',
+  },
+  편관: { ko: '압박과 추진력', en: 'pressure and drive together' },
+  정인: { ko: '배움과 도움이 들어오는 기운', en: 'learning and support coming in' },
+  편인: { ko: '직관과 깊은 사유', en: 'intuition and deep thought' },
 }
 
-const SIBSIN_FLOW_TAIL: Record<GanjiTransitLayer, string> = {
-  daily: '흐르는 하루예요',
-  monthly: '흐르는 한 달이에요',
-  yearly: '흐르는 한 해예요',
-  decadal: '길게 흐르는 대운이에요',
+const SIBSIN_FLOW_TAIL: Record<GanjiTransitLayer, { ko: string; en: string }> = {
+  daily: { ko: '흐르는 하루예요', en: 'runs through the day' },
+  monthly: { ko: '흐르는 한 달이에요', en: 'runs through the month' },
+  yearly: { ko: '흐르는 한 해예요', en: 'colours the year' },
+  decadal: { ko: '길게 흐르는 대운이에요', en: 'runs long through this decade' },
 }
 
-export function sibsinFlowLine(sibsin: string | undefined, layer: GanjiTransitLayer): string {
+export function sibsinFlowLine(
+  sibsin: string | undefined,
+  layer: GanjiTransitLayer,
+  lang: Lang = 'ko'
+): string {
   if (!sibsin) return ''
   const phrase = SIBSIN_FLOW_PHRASE[sibsin]
   const tail = SIBSIN_FLOW_TAIL[layer]
   if (!phrase || !tail) return ''
-  return `${phrase}${iga(phrase)} ${tail}`
+  if (lang === 'en') return `${phrase.en} ${tail.en}`
+  return `${phrase.ko}${iga(phrase.ko)} ${tail.ko}`
 }

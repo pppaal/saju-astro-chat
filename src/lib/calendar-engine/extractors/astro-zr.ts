@@ -24,12 +24,28 @@ import type { ActiveSignal, ExtractorContext, Polarity, SignalExtractor } from '
  */
 
 const RULER_POLARITY: Record<string, -1 | 0 | 1> = {
-  Jupiter: 1, Venus: 1, Sun: 0, Moon: 0, Mercury: 0, Mars: -1, Saturn: -1,
+  Jupiter: 1,
+  Venus: 1,
+  Sun: 0,
+  Moon: 0,
+  Mercury: 0,
+  Mars: -1,
+  Saturn: -1,
 }
 
 const ZODIAC_ORDER: ZodiacKo[] = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
 ]
 
 function offsetBetweenSigns(from: ZodiacKo, to: ZodiacKo): number {
@@ -93,6 +109,7 @@ function emitL1Signals(args: {
       kind: 'zodiacal-releasing',
       name: `ZR ${lot} L1: ${period.sign} (${period.ruler}, ${period.durationYears}년)`,
       korean: `${lot === 'Spirit' ? '영혼' : '운명'} ZR 챕터 — ${period.sign} (${period.ruler}, ${period.durationYears}년)`,
+      english: `${lot} ZR chapter — ${period.sign} (${period.ruler}, ${period.durationYears} years)`,
       themes: [],
       polarity,
       layer: layerL1,
@@ -127,6 +144,7 @@ function emitL1Signals(args: {
         kind: 'zodiacal-releasing',
         name: `ZR ${lot} Peak: ${period.sign}`,
         korean: `${lot === 'Spirit' ? '영혼' : '운명'} ZR Peak — ${period.sign}`,
+        english: `${lot} ZR Peak — ${period.sign}: a high-visibility, career-defining stretch`,
         themes: [],
         polarity: clampPolarity(polarity + 1),
         layer: layerL1,
@@ -157,6 +175,7 @@ function emitL1Signals(args: {
         kind: 'zodiacal-releasing',
         name: `ZR ${lot} Loosing-of-the-Bond: ${period.sign}`,
         korean: `${lot === 'Spirit' ? '영혼' : '운명'} ZR 결 풀림 — ${period.sign}`,
+        english: `${lot} ZR Loosing-of-the-Bond — ${period.sign}: a major turning point and release`,
         themes: [],
         // 큰 폴라리티 (전환). ruler 길흉 위에 절댓값 1 더 — 부정/긍정 어느 쪽이든 진폭이 큼.
         polarity: clampPolarity(polarity === 0 ? -2 : polarity + Math.sign(polarity)),
@@ -202,7 +221,7 @@ function emitSubSignals(args: {
     const win = makeWindow(birthYear, sub.startYear, sub.endYear)
     if (!withinRange(win, range.start, range.end)) continue
 
-    const polarity = clampPolarity((RULER_POLARITY[sub.ruler] ?? 0))
+    const polarity = clampPolarity(RULER_POLARITY[sub.ruler] ?? 0)
     const weight = level === 2 ? 0.6 : 0.4
     signals.push({
       id: `astro.zr.${baseKey}.l${level}.${parent.sign}.${sub.index}.${sub.sign}`,
@@ -210,6 +229,7 @@ function emitSubSignals(args: {
       kind: 'zodiacal-releasing',
       name: `ZR ${lot} L${level}: ${sub.sign} (${sub.ruler})`,
       korean: `${lot === 'Spirit' ? '영혼' : '운명'} ZR L${level} — ${sub.sign} (${sub.ruler})`,
+      english: `${lot} ZR L${level} sub-period — ${sub.sign} (${sub.ruler})`,
       themes: [],
       polarity,
       layer,
@@ -241,6 +261,7 @@ function emitSubSignals(args: {
         kind: 'zodiacal-releasing',
         name: `ZR ${lot} L${level} Peak: ${sub.sign}`,
         korean: `${lot === 'Spirit' ? '영혼' : '운명'} ZR L${level} Peak — ${sub.sign}`,
+        english: `${lot} ZR L${level} Peak — ${sub.sign}: a high point within the sub-period`,
         themes: [],
         polarity: clampPolarity(polarity + 1),
         layer,
@@ -270,6 +291,7 @@ function emitSubSignals(args: {
         kind: 'zodiacal-releasing',
         name: `ZR ${lot} L${level} Loosing-of-the-Bond: ${sub.sign}`,
         korean: `${lot === 'Spirit' ? '영혼' : '운명'} ZR L${level} 결 풀림 — ${sub.sign}`,
+        english: `${lot} ZR L${level} Loosing-of-the-Bond — ${sub.sign}: a turning point within the sub-period`,
         themes: [],
         polarity: clampPolarity(polarity === 0 ? -2 : polarity + Math.sign(polarity)),
         layer,
@@ -323,22 +345,38 @@ const astroZRExtractor: SignalExtractor = {
       all.push(...l1signals)
 
       // L2/L3: range 와 겹치는 L1 만 펼쳐 비용 절약.
-      const rangeStartAge = (new Date(range.start).getTime() - Date.UTC(birthYear, 0, 1)) / (365.25 * 86400 * 1000)
-      const rangeEndAge = (new Date(range.end).getTime() - Date.UTC(birthYear, 0, 1)) / (365.25 * 86400 * 1000)
+      const rangeStartAge =
+        (new Date(range.start).getTime() - Date.UTC(birthYear, 0, 1)) / (365.25 * 86400 * 1000)
+      const rangeEndAge =
+        (new Date(range.end).getTime() - Date.UTC(birthYear, 0, 1)) / (365.25 * 86400 * 1000)
 
       for (const parentL1 of periods) {
         if (parentL1.endYear < rangeStartAge || parentL1.startYear > rangeEndAge) continue
         const l2List = calculateZRSubPeriods(parentL1)
-        all.push(...emitSubSignals({
-          lot: lot.lotName, level: 2, parent: parentL1, subPeriods: l2List, birthYear, range,
-        }))
+        all.push(
+          ...emitSubSignals({
+            lot: lot.lotName,
+            level: 2,
+            parent: parentL1,
+            subPeriods: l2List,
+            birthYear,
+            range,
+          })
+        )
 
         for (const parentL2 of l2List) {
           if (parentL2.endYear < rangeStartAge || parentL2.startYear > rangeEndAge) continue
           const l3List = calculateZRSubPeriodsL3(parentL2)
-          all.push(...emitSubSignals({
-            lot: lot.lotName, level: 3, parent: parentL2, subPeriods: l3List, birthYear, range,
-          }))
+          all.push(
+            ...emitSubSignals({
+              lot: lot.lotName,
+              level: 3,
+              parent: parentL2,
+              subPeriods: l3List,
+              birthYear,
+              range,
+            })
+          )
         }
       }
     }

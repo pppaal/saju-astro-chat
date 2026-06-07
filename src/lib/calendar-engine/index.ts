@@ -231,8 +231,10 @@ function groupIntoCells(
     cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(scoreSignals)
     cell.derivedScore = deriveScore(scoreSignals, cell.matchedPatterns)
     cell.themeScores = deriveThemeScores(cell.signals)
-    cell.topReasons = deriveTopReasons(cell.signals)
-    cell.cautions = deriveCautions(cell.signals)
+    cell.topReasons = deriveTopReasons(cell.signals, 5, 'ko')
+    cell.cautions = deriveCautions(cell.signals, 5, 'ko')
+    cell.topReasonsEn = deriveTopReasons(cell.signals, 5, 'en')
+    cell.cautionsEn = deriveCautions(cell.signals, 5, 'en')
   }
 
   // 현저도(salience) — derivedScore(우호도)와 직교하는 "큰 날" 축. base-rate 는
@@ -268,8 +270,7 @@ function* iterateRange(range: CalendarRange): Generator<string> {
   // 아니라 00~23시 전부로 펼쳐진다(시진·행성시 신호가 시각별 셀에 들어가도록).
   // 시각이 명시된 end(길이>10, 예: '…T23:00:00.000Z')는 그대로 존중하므로
   // 프로덕션(date-detail 라우트)·day granularity 동작은 바뀌지 않는다.
-  const end =
-    range.end.length <= 10 ? toUtcMs(range.end) + 86_400_000 - 1 : toUtcMs(range.end)
+  const end = range.end.length <= 10 ? toUtcMs(range.end) + 86_400_000 - 1 : toUtcMs(range.end)
   const step = range.granularity === 'hour' ? 3600_000 : 86_400_000
   for (let t = start; t <= end; t += step) {
     yield new Date(t).toISOString()
@@ -313,18 +314,14 @@ function stripEvidence(signal: ActiveSignal): ActiveSignal {
  * 기존 단일 옵션 형태 `{ includeEvidence: true }` 의 해시는 안정적으로 고정된다.
  */
 export function makeOptionsKey(options: CalendarBuildOptions = {}): string {
-  const sortStrings = (xs?: readonly string[]) =>
-    xs ? [...xs].sort() : undefined
+  const sortStrings = (xs?: readonly string[]) => (xs ? [...xs].sort() : undefined)
   // 정준 형태 — 키 알파벳 순, 미지정(undefined) 필드는 생략해 안정성 확보.
   const canonical: Record<string, unknown> = {}
   if (options.enabledExtractors !== undefined)
     canonical.enabledExtractors = sortStrings(options.enabledExtractors)
-  if (options.enablePatterns !== undefined)
-    canonical.enablePatterns = options.enablePatterns
-  if (options.focusThemes !== undefined)
-    canonical.focusThemes = sortStrings(options.focusThemes)
-  if (options.includeEvidence !== undefined)
-    canonical.includeEvidence = options.includeEvidence
+  if (options.enablePatterns !== undefined) canonical.enablePatterns = options.enablePatterns
+  if (options.focusThemes !== undefined) canonical.focusThemes = sortStrings(options.focusThemes)
+  if (options.includeEvidence !== undefined) canonical.includeEvidence = options.includeEvidence
   const keys = Object.keys(canonical).sort()
   const json = JSON.stringify(canonical, keys)
   return createHash('sha1').update(json).digest('hex').slice(0, 16)

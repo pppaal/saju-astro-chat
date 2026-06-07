@@ -136,6 +136,9 @@ const astroProgressionExtractor: SignalExtractor = {
             korean:
               aspectFlowLine('Moon', target.name, classified.aspect, 'ko', '진행달') ||
               `진행달 ${classified.aspect} 본명 ${target.name}`,
+            english:
+              aspectFlowLine('Moon', target.name, classified.aspect, 'en', 'Progressed Moon') ||
+              `Prog Moon ${classified.aspect} natal ${target.name}`,
             themes: [],
             polarity,
             layer: 'monthly',
@@ -168,6 +171,9 @@ const astroProgressionExtractor: SignalExtractor = {
             korean:
               aspectFlowLine(progName, hit.target, hit.aspect, 'ko', `진행 ${pointKo(progName)}`) ||
               `진행 ${pointKo(progName)} ${hit.aspect} 본명 ${pointKo(hit.target)}`,
+            english:
+              aspectFlowLine(progName, hit.target, hit.aspect, 'en', `progressed ${progName}`) ||
+              `Prog ${progName} ${hit.aspect} natal ${hit.target}`,
             themes: [],
             polarity,
             layer,

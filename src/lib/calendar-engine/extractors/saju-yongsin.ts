@@ -163,6 +163,18 @@ const PERIOD_LABEL: Record<BuildArgs['layer'], string> = {
   yearly: '한 해예요',
   monthly: '한 달이에요',
 }
+const PERIOD_LABEL_EN: Record<BuildArgs['layer'], string> = {
+  decadal: 'decade',
+  yearly: 'year',
+  monthly: 'month',
+}
+const ELEMENT_EN: Record<FiveElement, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
 
 function verdictFlowLine(
   verdict: BuildArgs['verdict'],
@@ -176,6 +188,19 @@ function verdictFlowLine(
   return `나를 흔드는 ${element} 기운이 들어와 조심해야 할 ${period}`
 }
 
+function verdictFlowLineEn(
+  verdict: BuildArgs['verdict'],
+  element: FiveElement,
+  layer: BuildArgs['layer']
+): string {
+  const el = ELEMENT_EN[element]
+  const period = PERIOD_LABEL_EN[layer]
+  if (verdict === 'primary')
+    return `the ${el} energy you most need flows in — a ${period} when your path opens up`
+  if (verdict === 'secondary') return `supportive ${el} energy is added — a smoother ${period}`
+  return `unsettling ${el} energy flows in — a ${period} to stay careful`
+}
+
 function buildSignal(a: BuildArgs): ActiveSignal {
   return {
     id: `saju.yongsin.${a.idSuffix}`,
@@ -183,6 +208,7 @@ function buildSignal(a: BuildArgs): ActiveSignal {
     kind: 'pillar-sibsin',
     name: a.name,
     korean: verdictFlowLine(a.verdict, a.element, a.layer),
+    english: verdictFlowLineEn(a.verdict, a.element, a.layer),
     themes: [],
     polarity: a.polarity,
     layer: a.layer,

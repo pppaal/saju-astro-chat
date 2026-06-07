@@ -139,7 +139,7 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
 
   return {
     date,
-    dayCross: buildDayCross(dayCell, hourlyCells),
+    dayCross: buildDayCross(dayCell, hourlyCells, lang),
     transit: buildTransit(dayCell),
     natalContext: {
       yongsin: { primary: natal.saju.yongsin.primary },
@@ -161,9 +161,7 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
 // signalsRaw — 그날 활성 신호 전체 dump (Day tier 가 cat/source/polarity/weight 다 표시)
 // ──────────────────────────────────────────────────────────────────────
 
-function buildSignalsRaw(
-  dayCell: CalendarCell
-): V2DateDetailResponse['signalsRaw'] {
+function buildSignalsRaw(dayCell: CalendarCell): V2DateDetailResponse['signalsRaw'] {
   const out: V2DateDetailResponse['signalsRaw'] = []
   for (const s of dayCell.signals) {
     out.push({
@@ -195,7 +193,13 @@ function buildDayTone(
     const sib = s.evidence?.sibsin as string | undefined
     if (s.layer === 'daily' && sib && SIBSIN_CAT[sib]) {
       const element = s.evidence?.element as string | undefined
-      return deriveCycleTone('day', natal.saju?.strength, SIBSIN_CAT[sib], element, natal.saju?.yongsin)
+      return deriveCycleTone(
+        'day',
+        natal.saju?.strength,
+        SIBSIN_CAT[sib],
+        element,
+        natal.saju?.yongsin
+      )
     }
   }
   return undefined
@@ -247,7 +251,7 @@ function buildAstroHighlights(
   const out: V2DateDetailResponse['astroHighlights'] = []
   const seen = new Set<string>()
   for (const s of astro) {
-    const raw = (lang === 'ko' ? (s.korean ?? s.name) : s.name) || ''
+    const raw = (lang === 'ko' ? (s.korean ?? s.name) : (s.english ?? s.name)) || ''
     const text = lang === 'ko' ? koAstroName(raw) : raw
     if (!text || seen.has(text)) continue
     seen.add(text)
@@ -263,7 +267,8 @@ function buildAstroHighlights(
 
 function buildDayCross(
   dayCell: CalendarCell,
-  hourlyCells: CalendarCell[]
+  hourlyCells: CalendarCell[],
+  lang: 'ko' | 'en' = 'ko'
 ): V2DateDetailResponse['dayCross'] {
   const overallScore = Math.round(dayCell.derivedScore)
   const domainScores: Record<string, number> = {}
@@ -285,8 +290,11 @@ function buildDayCross(
       theme: mapThemeToLegacy(theme),
       sajuScore: scoreFromSignals(sajuSigs),
       astroScore: scoreFromSignals(astroSigs),
-      sajuSummary: summarizeSignals(sajuSigs) || '사주 신호 없음',
-      astroSummary: summarizeSignals(astroSigs) || '점성 신호 없음',
+      sajuSummary:
+        summarizeSignals(sajuSigs, lang) || (lang === 'ko' ? '사주 신호 없음' : 'No saju signal'),
+      astroSummary:
+        summarizeSignals(astroSigs, lang) ||
+        (lang === 'ko' ? '점성 신호 없음' : 'No astrology signal'),
     })
   }
 
@@ -322,8 +330,12 @@ function buildDayCross(
   // 옛 구현은 matchedPatterns.action 을 그대로 복사했는데,
   // DayDomains chip 의 action 과 같은 문장이 2번 나와 중복.
   // 시그널 단위 요약(topReasons / cautions)을 써서 출처를 분리한다.
-  const doList = dayCell.topReasons.slice(0, 3)
-  const avoidList = dayCell.cautions.slice(0, 3)
+  const doList = (
+    lang === 'en' ? (dayCell.topReasonsEn ?? dayCell.topReasons) : dayCell.topReasons
+  ).slice(0, 3)
+  const avoidList = (
+    lang === 'en' ? (dayCell.cautionsEn ?? dayCell.cautions) : dayCell.cautions
+  ).slice(0, 3)
 
   // confidence / agreement
   // confidence = 활성 신호 개수 기반 (많을수록 신뢰도 높음)
@@ -351,12 +363,12 @@ function scoreFromSignals(sigs: ActiveSignal[]): number {
   return Math.max(0, Math.min(100, Math.round(50 + sum * 8)))
 }
 
-function summarizeSignals(sigs: ActiveSignal[]): string {
+function summarizeSignals(sigs: ActiveSignal[], lang: 'ko' | 'en' = 'ko'): string {
   if (sigs.length === 0) return ''
   const top = [...sigs].sort(
     (a, b) => Math.abs(b.polarity) * b.weight - Math.abs(a.polarity) * a.weight
   )[0]
-  return top.korean || top.name
+  return lang === 'ko' ? top.korean || top.name : top.english || top.name
 }
 
 function topThemeOfCell(cell: CalendarCell): string | null {

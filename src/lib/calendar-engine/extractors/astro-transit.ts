@@ -137,6 +137,9 @@ const astroTransitExtractor: SignalExtractor = {
           korean:
             aspectFlowLine(sample.transitPlanet, sample.natalPoint, sample.aspectType, 'ko') ||
             `${sample.transitPlanet} ${aspectKorean(sample.aspectType)} 본명 ${sample.natalPoint}`,
+          english:
+            aspectFlowLine(sample.transitPlanet, sample.natalPoint, sample.aspectType, 'en') ||
+            `${sample.transitPlanet} ${aspectSymbol(sample.aspectType)} natal ${sample.natalPoint}`,
           themes: [],
           polarity,
           layer,

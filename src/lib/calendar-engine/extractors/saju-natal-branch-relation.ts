@@ -273,21 +273,21 @@ const HYUNG_TRIO_KEY: Record<string, string> = {
   未丑: '丑戌未',
 }
 
-function relationDictMeaning(args: MakeSignalArgs): string | undefined {
+function relationDictMeaning(args: MakeSignalArgs, lang: 'ko' | 'en' = 'ko'): string | undefined {
   const cat = RELATION_CATEGORY[args.relation]
   const samhap = args.detail.samhapGroup as string[] | undefined
-  if (samhap) return getRelationMeaning(cat, samhap.join(''), 'ko')?.meaning
+  if (samhap) return getRelationMeaning(cat, samhap.join(''), lang)?.meaning
   const a = args.detail.targetBranch as string | undefined
   const b = (args.detail.natalBranch ?? args.detail.targetBranch) as string | undefined
   if (!a || !b) return undefined
   for (const key of [`${a}${b}`, `${b}${a}`]) {
-    const entry = getRelationMeaning(cat, key, 'ko')
+    const entry = getRelationMeaning(cat, key, lang)
     if (entry) return entry.meaning
   }
   // 상호형 삼형 페어는 트리오 키로 재시도 (丑-未 → 丑戌未).
   if (args.relation === 'hyung') {
     const trio = HYUNG_TRIO_KEY[`${a}${b}`]
-    if (trio) return getRelationMeaning(cat, trio, 'ko')?.meaning
+    if (trio) return getRelationMeaning(cat, trio, lang)?.meaning
   }
   return undefined
 }
@@ -304,7 +304,8 @@ function makeSignal(args: MakeSignalArgs): ActiveSignal {
     kind: 'hyeongchung',
     name: args.name,
     // 정통 해석문 우선 — 없으면 라벨(args.korean) 폴백.
-    korean: relationDictMeaning(args) ?? args.korean,
+    korean: relationDictMeaning(args, 'ko') ?? args.korean,
+    ...(relationDictMeaning(args, 'en') ? { english: relationDictMeaning(args, 'en')! } : {}),
     themes: [],
     polarity: args.polarity,
     layer: 'daily',

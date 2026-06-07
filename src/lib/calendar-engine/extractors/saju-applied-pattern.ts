@@ -217,6 +217,20 @@ const APPLIED_FLOW: Record<string, string> = {
   'hyo-sik-tal': '편인이 식신을 눌러 표현·결실이 막히는 흐름 — 추진보다 정비가 나아요',
 }
 
+const APPLIED_FLOW_EN: Record<string, string> = {
+  'sanggwan-gyeon-gwan':
+    'flair collides with rules and rank — words and actions clash with those above',
+  'siksin-jesal': 'expression tames pressure — a good flow to break through a crisis with skill',
+  'gwan-in-sangsaeng':
+    'responsibility feeds learning and credentials — position and skill grow together',
+  'jae-saeng-gwan': 'wealth props up your standing — work and money lift each other',
+  'in-saeng-bigeop':
+    'learning and backing become your and your peers’ strength — good for building a base',
+  'bigeop-talchae': 'rivals and peers shake your wealth — friction over money and partnerships',
+  'gwan-sal-honjap': 'officer and killer mix into messy pressure — duty loses its thread',
+  'hyo-sik-tal': 'indirect resource smothers expression — repair over push',
+}
+
 const APPLIED_PATTERNS: AppliedPattern[] = [
   // ── 1. 상관견관 ──
   {
@@ -432,6 +446,7 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
           kind: 'applied-pattern' as SignalKind,
           name: `${pat.name} (${pat.korean})`,
           korean: `${pat.korean} — ${APPLIED_FLOW[pat.id] ?? ''}`.replace(/ — $/, ''),
+          english: APPLIED_FLOW_EN[pat.id] ?? pat.id,
           themes: pat.themes,
           polarity,
           layer: 'daily',

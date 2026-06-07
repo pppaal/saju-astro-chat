@@ -1,4 +1,5 @@
 import { computeDayBranch } from './saju-shinsal'
+import { getShinsalInterpretation } from '@/lib/saju/interpretations'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { ShinsalHit } from '@/lib/saju/types'
 import type { ShinsalGrade } from './saju-shinsal'
@@ -163,6 +164,7 @@ const sajuShinsalActivationExtractor: SignalExtractor = {
           kind: 'shinsal',
           name: `${kind} 활성`,
           korean: `오늘 ${kind} 활성`,
+          english: `${getShinsalInterpretation(kind)?.name_en ?? getShinsalInterpretation(kind.replace(/살$/, ''))?.name_en ?? kind} active today`,
           themes: [],
           polarity,
           layer: 'daily',

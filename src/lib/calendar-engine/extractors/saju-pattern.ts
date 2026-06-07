@@ -15,6 +15,23 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  * 있으면 별도 신호로 emit — 명리상 主格 라벨을 카드/내러티브에 노출.
  */
 
+// 격국명이 geokguk-rich 에 없는 구조 패턴(상호작용·음양격)의 EN 라벨.
+const PATTERN_NAME_EN: Record<string, string> = {
+  pure_element: 'Single-element dominance structure',
+  balanced_elements: 'Balanced five-element structure',
+  all_stems_different: 'All-independent-stems structure',
+  double_yukhap: 'Double six-harmony structure',
+  samhap_formation: 'Three-harmony (samhap) structure',
+  double_chung: 'Double-clash structure',
+  gwansal_heavy: 'Mixed officer-killer structure',
+  siksang_prominent: 'Prominent output structure',
+  insung_strong: 'Strong resource structure',
+  jaesung_strong: 'Strong wealth structure',
+  day_time_harmony: 'Day-hour harmony structure',
+  yang_dominant: 'All-yang structure',
+  yin_dominant: 'All-yin structure',
+}
+
 const sajuPatternExtractor: SignalExtractor = {
   source: 'saju',
   kind: 'saju-pattern',
@@ -48,6 +65,7 @@ const sajuPatternExtractor: SignalExtractor = {
         name: geokguk,
         // 격국 정통 한 줄(tagline) 을 chart-dictionary 에서 — 없으면 이름 폴백.
         korean: getGeokgukRich(geokguk, 'ko')?.tagline ?? geokguk,
+        english: getGeokgukRich(geokguk, 'en')?.tagline ?? geokguk,
         themes: themesForGeokguk(geokguk),
         polarity: 1, // 격국 자체는 본질 라벨 — 약한 + 톤만 부여
         layer: 'decadal',
@@ -84,6 +102,10 @@ const sajuPatternExtractor: SignalExtractor = {
           getGeokgukRich(top.patternName, 'ko')?.tagline ??
           top.interpretation ??
           top.description ??
+          top.patternName,
+        english:
+          getGeokgukRich(top.patternName, 'en')?.tagline ??
+          PATTERN_NAME_EN[top.patternId] ??
           top.patternName,
         themes: themesForPattern(top.category, top.keywords),
         polarity: polarityForPattern(top.rarity, top.matchScore),

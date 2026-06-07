@@ -7,7 +7,13 @@ import {
   dignityScore,
 } from '@/lib/astrology/foundation/dignities'
 import type { Chart, PlanetBase } from '@/lib/astrology/foundation/types'
-import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity, SignalLayer } from '../types'
+import type {
+  ActiveSignal,
+  ExtractorContext,
+  SignalExtractor,
+  Polarity,
+  SignalLayer,
+} from '../types'
 import { getCachedTransitChart } from '../ephe-cache'
 
 /**
@@ -28,18 +34,32 @@ import { getCachedTransitChart } from '../ephe-cache'
  */
 
 const DIGNITY_POLARITY: Record<string, Polarity> = {
-  domicile:   2,
+  domicile: 2,
   exaltation: 3,
   detriment: -2,
-  fall:      -3,
-  peregrine:  0,   // 무권 — skip
+  fall: -3,
+  peregrine: 0, // 무권 — skip
 }
 
 const DIGNITY_LABEL: Record<string, string> = {
-  domicile:   '도미사일 (자기 자리)',
+  domicile: '도미사일 (자기 자리)',
   exaltation: '엑잘테이션 (고양)',
-  detriment:  '디트리먼트 (반대 자리)',
-  fall:       '폴 (추락)',
+  detriment: '디트리먼트 (반대 자리)',
+  fall: '폴 (추락)',
+}
+
+const DIGNITY_LABEL_EN: Record<string, string> = {
+  domicile: 'Domicile (home sign)',
+  exaltation: 'Exaltation',
+  detriment: 'Detriment',
+  fall: 'Fall',
+}
+
+const DIGNITY_FLOW_EN: Record<string, string> = {
+  domicile: 'operates at full natural strength',
+  exaltation: 'is honoured and elevated — at its best',
+  detriment: 'works against its nature — strained',
+  fall: 'is weakened and out of place',
 }
 
 const SLOW = new Set(['Saturn', 'Uranus', 'Neptune', 'Pluto'])
@@ -48,16 +68,27 @@ const MEDIUM = new Set(['Jupiter', 'Mars'])
 // Hellenistic 정통: 외행성 + non-traditional points 는 essential dignity 보유 X.
 // 이 추출기는 traditional 7행성에 한해서만 dignity 신호를 emit.
 const TRADITIONAL_PLANETS = new Set([
-  'Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn',
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
 ])
 const DIGNITY_BLOCKED = new Set([
-  'Uranus', 'Neptune', 'Pluto',
-  'True Node', 'Mean Node', 'Chiron', 'Lilith',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+  'True Node',
+  'Mean Node',
+  'Chiron',
+  'Lilith',
 ])
 
 const astroDignityExtractor: SignalExtractor = {
   source: 'astro',
-  kind: 'transit',   // 별도 SignalKind 없이 transit 카테고리에 묶음
+  kind: 'transit', // 별도 SignalKind 없이 transit 카테고리에 묶음
   async extract(ctx: ExtractorContext): Promise<ActiveSignal[]> {
     const { natal, range, cache } = ctx
     const start = new Date(range.start)
@@ -138,10 +169,18 @@ const astroDignityExtractor: SignalExtractor = {
       const segments: Hit[][] = []
       let current: Hit[] = []
       for (const h of group) {
-        if (current.length === 0) { current.push(h); continue }
-        const gap = (new Date(h.iso).getTime() - new Date(current[current.length - 1].iso).getTime()) / 86_400_000
+        if (current.length === 0) {
+          current.push(h)
+          continue
+        }
+        const gap =
+          (new Date(h.iso).getTime() - new Date(current[current.length - 1].iso).getTime()) /
+          86_400_000
         if (gap <= 1.5) current.push(h)
-        else { segments.push(current); current = [h] }
+        else {
+          segments.push(current)
+          current = [h]
+        }
       }
       if (current.length) segments.push(current)
 
@@ -159,6 +198,7 @@ const astroDignityExtractor: SignalExtractor = {
           kind: 'transit',
           name: `${sample.planet} ${DIGNITY_LABEL[sample.dignity]} in ${sample.sign}`,
           korean: `${sample.planet} ${DIGNITY_LABEL[sample.dignity]} (${sample.sign})`,
+          english: `${sample.planet} in ${DIGNITY_LABEL_EN[sample.dignity] ?? sample.dignity} (${sample.sign}) — ${DIGNITY_FLOW_EN[sample.dignity] ?? ''}`,
           themes: [],
           polarity,
           layer: planetLayer(sample.planet),
@@ -193,10 +233,18 @@ const astroDignityExtractor: SignalExtractor = {
         const segments: Hit[][] = []
         let current: Hit[] = []
         for (const h of group) {
-          if (current.length === 0) { current.push(h); continue }
-          const gap = (new Date(h.iso).getTime() - new Date(current[current.length - 1].iso).getTime()) / 86_400_000
+          if (current.length === 0) {
+            current.push(h)
+            continue
+          }
+          const gap =
+            (new Date(h.iso).getTime() - new Date(current[current.length - 1].iso).getTime()) /
+            86_400_000
           if (gap <= 1.5) current.push(h)
-          else { segments.push(current); current = [h] }
+          else {
+            segments.push(current)
+            current = [h]
+          }
         }
         if (current.length) segments.push(current)
 
@@ -207,9 +255,14 @@ const astroDignityExtractor: SignalExtractor = {
           const peakIso = seg[Math.floor(seg.length / 2)].iso
           const polarity: Polarity = 1 // minor positive — +1 step (실 값은 weight 로 조절)
           const weight = tier === 'triplicity' ? 0.5 : tier === 'term' ? 0.3 : 0.2
-          const label = tier === 'triplicity' ? '트리플리시티 (Triplicity)'
-            : tier === 'term' ? '텀 (Term/Bound)'
-            : '페이스 (Face/Decan)'
+          const label =
+            tier === 'triplicity'
+              ? '트리플리시티 (Triplicity)'
+              : tier === 'term'
+                ? '텀 (Term/Bound)'
+                : '페이스 (Face/Decan)'
+          const labelEn =
+            tier === 'triplicity' ? 'Triplicity' : tier === 'term' ? 'Term/Bound' : 'Face/Decan'
 
           signals.push({
             id: `astro.dignity.${key}.${startIso.slice(0, 10)}`,
@@ -217,6 +270,7 @@ const astroDignityExtractor: SignalExtractor = {
             kind: 'transit',
             name: `${sample.planet} ${label} in ${sample.sign}`,
             korean: `${sample.planet} ${label} (${sample.sign})`,
+            english: `${sample.planet} in minor dignity ${labelEn} (${sample.sign}) — a mild supportive placement`,
             themes: [],
             polarity,
             layer: planetLayer(sample.planet),
@@ -254,11 +308,7 @@ const astroDignityExtractor: SignalExtractor = {
       const score = dignityScore(tiers)
       // polarity 매핑: 점수 부호 → ±1/±2 step
       const polarity: Polarity =
-        score >= 1.5 ? 2
-        : score >= 0.5 ? 1
-        : score <= -1.5 ? -2
-        : score <= -0.5 ? -1
-        : 0
+        score >= 1.5 ? 2 : score >= 0.5 ? 1 : score <= -1.5 ? -2 : score <= -0.5 ? -1 : 0
       if (polarity === 0) continue
 
       signals.push({

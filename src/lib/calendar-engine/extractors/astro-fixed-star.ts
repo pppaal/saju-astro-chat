@@ -69,6 +69,7 @@ const astroFixedStarExtractor: SignalExtractor = {
           korean: conj.star.interpretation
             ? `${conj.description} — ${conj.star.interpretation}`
             : conj.description,
+          english: `${conj.planet} conjunct the fixed star ${conj.star.name} — its symbolism flares briefly (orb ${conj.orb.toFixed(2)}°)`,
           themes: [],
           polarity,
           layer: 'daily',

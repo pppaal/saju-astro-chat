@@ -113,6 +113,7 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
           kind: 'planetary-hour',
           name: `${planet} hour`,
           korean: `${PLANET_KO[planet]} — ${pointPrinciple(planet, 'ko') || PLANET_KO[planet]} 기운이 강조되는 시간대`,
+          english: `${planet} hour — a window emphasising ${pointPrinciple(planet, 'en') || planet}`,
           themes: [],
           polarity,
           layer: 'hourly',

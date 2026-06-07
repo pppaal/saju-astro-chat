@@ -81,43 +81,59 @@ const STAGE_LABEL: Record<string, string> = {
  * 12운성 단계별 흐름(flow) 한 줄 — 명사 라벨(STAGE_LABEL)과 달리 "지금 무엇이
  * 흐르는가" 를 풀어 쓴다. 단계 에너지를 그대로 묘사하므로 층 무관 사용 가능.
  */
-const STAGE_FLOW: Record<string, string> = {
-  장생: '새로 시작하는 생기가 도는',
-  목욕: '흔들리며 시행착오로 다듬어지는',
-  관대: '자립하며 한 단계 올라서는',
-  임관: '실력이 무르익어 제대로 발휘되는',
-  건록: '실력이 무르익어 제대로 발휘되는',
-  왕지: '기운이 절정에 오르는',
-  제왕: '기운이 절정에 오르는',
-  쇠: '정점을 지나 천천히 가라앉는',
-  병: '기운이 약해져 쉬어가야 하는',
-  사: '한 매듭이 끝나고 마무리되는',
-  묘: '안으로 거두어 갈무리하는',
-  절: '인연이 끊기고 새 판을 기다리는',
-  태: '새로운 씨앗이 잉태되는',
-  양: '조용히 자라나며 힘을 모으는',
+const STAGE_FLOW: Record<string, { ko: string; en: string }> = {
+  장생: { ko: '새로 시작하는 생기가 도는', en: 'fresh starting vitality stirs' },
+  목욕: { ko: '흔들리며 시행착오로 다듬어지는', en: 'wobbling, refined through trial and error' },
+  관대: { ko: '자립하며 한 단계 올라서는', en: 'standing on your own and stepping up' },
+  임관: { ko: '실력이 무르익어 제대로 발휘되는', en: 'skill ripens and comes into full play' },
+  건록: { ko: '실력이 무르익어 제대로 발휘되는', en: 'skill ripens and comes into full play' },
+  왕지: { ko: '기운이 절정에 오르는', en: 'energy rises to its peak' },
+  제왕: { ko: '기운이 절정에 오르는', en: 'energy rises to its peak' },
+  쇠: { ko: '정점을 지나 천천히 가라앉는', en: 'past the peak, slowly settling' },
+  병: { ko: '기운이 약해져 쉬어가야 하는', en: 'energy weakens — time to rest' },
+  사: { ko: '한 매듭이 끝나고 마무리되는', en: 'a chapter ends and wraps up' },
+  묘: { ko: '안으로 거두어 갈무리하는', en: 'drawing inward and storing away' },
+  절: { ko: '인연이 끊기고 새 판을 기다리는', en: 'ties are cut, awaiting a new board' },
+  태: { ko: '새로운 씨앗이 잉태되는', en: 'a new seed is conceived' },
+  양: { ko: '조용히 자라나며 힘을 모으는', en: 'quietly growing and gathering strength' },
 }
 
 /** 일진 단일 12운성 → 흐름 한 줄. 미지 단계면 "". */
-function stageFlowLine(stage: string): string {
+function stageFlowLine(stage: string, lang: 'ko' | 'en' = 'ko'): string {
   const f = STAGE_FLOW[stage]
-  return f ? `${f} 흐름이에요` : ''
+  if (!f) return ''
+  return lang === 'en' ? `a day when ${f.en}` : `${f.ko} 흐름이에요`
 }
 
 /**
  * 본명-시기 12운성 페어 → 전이(transition) 흐름 한 줄.
  * pairPolarity 와 같은 doctrine 분류(회복/쇠퇴/절정유지/정체)를 자연어로.
  */
-function matrixFlowLine(natalStage: string, cyclicalStage: string, natalLabel: string): string {
+function matrixFlowLine(
+  natalStage: string,
+  cyclicalStage: string,
+  natalLabel: string,
+  lang: 'ko' | 'en' = 'ko',
+  natalLabelEn?: string
+): string {
   const n = STAGE_POLARITY[natalStage] ?? 0
   const c = STAGE_POLARITY[cyclicalStage] ?? 0
+  if (lang === 'en') {
+    const nl = natalLabelEn ?? natalLabel
+    if (n <= -1 && c >= 2) return `energy long suppressed at your ${nl} revives — a recovery flow`
+    if (n >= 2 && c <= -1) return `past the peak at your ${nl} — time to draw strength back in`
+    if (n >= 2 && c >= 2) return `the strong energy at your ${nl} keeps carrying on`
+    if (n <= -1 && c <= -1) return `your ${nl} stays pressed down — easy to stall`
+    const f = STAGE_FLOW[cyclicalStage]
+    return f ? `your ${nl} flows into a phase where ${f.en}` : ''
+  }
   const josa = iga(natalLabel)
   if (n <= -1 && c >= 2) return `${natalLabel}에 눌려 있던 기운이 다시 살아나는 회복의 흐름이에요`
   if (n >= 2 && c <= -1) return `${natalLabel}의 절정을 지나 힘을 거두어야 하는 흐름이에요`
   if (n >= 2 && c >= 2) return `${natalLabel}의 강한 기운이 계속 이어지는 흐름이에요`
   if (n <= -1 && c <= -1) return `${natalLabel}${josa} 눌려 정체되기 쉬운 흐름이에요`
   const f = STAGE_FLOW[cyclicalStage]
-  return f ? `${natalLabel}${josa} ${f} 시기로 흐르고 있어요` : ''
+  return f ? `${natalLabel}${josa} ${f.ko} 시기로 흐르고 있어요` : ''
 }
 
 type NatalPosition = 'year' | 'month' | 'day' | 'time'
@@ -138,6 +154,13 @@ const NATAL_POSITION_LABEL: Record<NatalPosition, string> = {
   month: '본명 월지',
   day: '본명 일지',
   time: '본명 시지',
+}
+
+const NATAL_POSITION_LABEL_EN: Record<NatalPosition, string> = {
+  year: 'natal year branch',
+  month: 'natal month branch',
+  day: 'natal day branch',
+  time: 'natal hour branch',
 }
 
 /**
@@ -208,7 +231,8 @@ const sajuTwelveStageExtractor: SignalExtractor = {
         source: 'saju',
         kind: 'pillar-sibsin',
         name: STAGE_LABEL[stage] ?? `12운성 ${stage}`,
-        korean: stageFlowLine(stage) || STAGE_LABEL[stage],
+        korean: stageFlowLine(stage, 'ko') || STAGE_LABEL[stage],
+        english: stageFlowLine(stage, 'en') || `12-stage ${stage}`,
         themes: ['growth'], // 기본; tagger가 보강 가능
         polarity,
         layer: 'daily',
@@ -377,13 +401,17 @@ function emitMatrixSignals(
     const weight = Math.min(matrixWeight, 0.55)
 
     const natalLabel = NATAL_POSITION_LABEL[np.position]
+    const natalLabelEn = NATAL_POSITION_LABEL_EN[np.position]
     const displayName = `${natalLabel} ${np.stage} → ${info.cyclicalLabel} ${cyclicalStage}`
     signals.push({
       id: `saju.twelve-stage.matrix.${info.idPrefix}.${np.position}`,
       source: 'saju',
       kind: 'pillar-sibsin',
       name: displayName,
-      korean: matrixFlowLine(np.stage, cyclicalStage, natalLabel) || displayName,
+      korean: matrixFlowLine(np.stage, cyclicalStage, natalLabel, 'ko') || displayName,
+      english:
+        matrixFlowLine(np.stage, cyclicalStage, natalLabel, 'en', natalLabelEn) ||
+        `${natalLabelEn} ${np.stage} → ${cyclicalStage}`,
       themes: ['growth'],
       polarity,
       layer: info.layer,

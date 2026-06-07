@@ -40,6 +40,16 @@ const PHASE_MEANING: Record<string, string> = {
   last_quarter: '내려놓고 돌아보는 분기점 — 비우고 마무리할 때예요',
   waning_crescent: '쉬며 다음을 준비하는 때 — 휴식·성찰에 좋아요',
 }
+const PHASE_MEANING_EN: Record<string, string> = {
+  new_moon: 'planting the seed of a new cycle — good for setting intentions and starting',
+  waxing_crescent: 'sprouts begin to build — good for small pushes',
+  first_quarter: 'a decision-and-action turning point — push through even against friction',
+  waxing_gibbous: 'ripening and swelling — good for refining and growing',
+  full_moon: 'clearly revealed at the peak — results and emotions crest',
+  waning_gibbous: 'harvesting and sharing — good for tidying and giving back',
+  last_quarter: 'a let-go-and-reflect turning point — empty out and wrap up',
+  waning_crescent: 'resting and preparing what comes next — good for rest and reflection',
+}
 
 const PHASE_POLARITY: Record<string, -1 | 0 | 1> = {
   newMoon: 1, // 시작에 좋음
@@ -96,6 +106,7 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
             kind: 'moon-phase',
             name: `달 위상: ${getMoonPhaseName(lastPhase as never)}`,
             korean: `${getMoonPhaseName(lastPhase as never)} — ${PHASE_MEANING[lastPhase as string] ?? '달 주기의 한 국면이에요'}`,
+            english: `Moon phase — ${PHASE_MEANING_EN[lastPhase as string] ?? 'a stage of the lunar cycle'}`,
             themes: [],
             polarity: PHASE_POLARITY[lastPhase] ?? 0,
             layer: 'monthly', // 한 위상이 약 3~4일이지만 "월" 사이클의 일부
@@ -126,6 +137,7 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
           kind: 'void-of-course',
           name: `Moon VoC (${voc.moonSign})`,
           korean: `달이 다음 자리로 넘어가기 전 빈 구간(보이드) — 새 일을 벌이기보다 마무리·휴식에 좋아요 (${voc.moonSign}, ${hoursRemaining}시간)`,
+          english: `Moon void-of-course before changing sign — better for wrapping up and resting than starting new ventures (${voc.moonSign}, ${hoursRemaining}h)`,
           themes: [],
           polarity: -1 as Polarity,
           layer: 'daily',

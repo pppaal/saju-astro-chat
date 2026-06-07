@@ -38,8 +38,7 @@ export type AstroSignalKind =
   | 'draconic' // 드라코닉 차트 (영혼 결) 트랜짓 컨택
   | 'harmonic' // 하모닉 차트 (특정 결 패턴 — 4/5/7/9) 트랜짓 컨택
 
-export type CrossSignalKind =
-  | 'cross-activation' // 사주-점성 동시 활성 페어 (A등급 매핑 사전 기반 의미 신호)
+export type CrossSignalKind = 'cross-activation' // 사주-점성 동시 활성 페어 (A등급 매핑 사전 기반 의미 신호)
 
 export type SignalKind = SajuSignalKind | AstroSignalKind | CrossSignalKind
 
@@ -68,7 +67,8 @@ export interface ActiveSignal {
   source: SignalSource
   kind: SignalKind
   name: string // 표시명 — '도화살' / 'Saturn □ Sun'
-  korean?: string // 점성 영문 신호의 한글 표시
+  korean?: string // KO 표시 해석문 (흐름 한 줄)
+  english?: string // EN 표시 해석문. 없으면 translateSignalLabel(name) 폴백.
   themes: AstroThemeKey[] // 영향 테마 (tagger가 부여) — 멤버십(룰/카드용)
   // 테마별 기여 가중 (tagger가 부여). primary 1.0 / secondary 0.5 …
   // themeScore·themeBreakdown 만 사용 — 한 신호가 모든 테마에 동일 기여하던
@@ -116,8 +116,10 @@ export interface CalendarCell {
   salience: number
   themeScores: Partial<Record<AstroThemeKey, number>> // 테마별 강도 0~100
   matchedPatterns: SignalPattern[] // 신호 조합 → 명명 패턴
-  topReasons: string[] // 상위 3~5개 우호 사유 텍스트
-  cautions: string[] // 상위 3~5개 주의 사유 텍스트 (topReasons mirror)
+  topReasons: string[] // 상위 3~5개 우호 사유 텍스트 (KO)
+  cautions: string[] // 상위 3~5개 주의 사유 텍스트 (KO, topReasons mirror)
+  topReasonsEn?: string[] // 우호 사유 (EN)
+  cautionsEn?: string[] // 주의 사유 (EN)
 }
 
 export interface SignalPattern {
@@ -131,6 +133,11 @@ export interface SignalPattern {
   action?: string
   /** 패턴 발동 강조 — UI에서 "오늘 발동!" 형식으로 노출 */
   headline?: string
+  // EN 표기 (없으면 KO 폴백)
+  nameEn?: string
+  descriptionEn?: string
+  actionEn?: string
+  headlineEn?: string
   /**
    * 패턴 부가 메타 — 다층 정렬 패턴이 *몇 개 층이 같은 방향인지* 카운트.
    * "5층 정렬 발동(yes/no)"이 아니라 "사주 4/5, 점성 3/4" 처럼 정밀 노출용.

@@ -4,6 +4,14 @@ import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
 
+const ELEMENT_EN_JOHU: Record<string, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+
 /**
  * 조후용신 (調候用神) 추출기 — 명리 정통성.
  *
@@ -42,13 +50,15 @@ const sajuJohuYongsinExtractor: SignalExtractor = {
         // polarity — rating 1~5 따라 +1 ~ +3
         // (조후가 급할수록 그 용신 활성이 더 큰 의미)
         const polarity: Polarity =
-          info.rating >= 4 ? 3 :
-          info.rating >= 3 ? 2 :
-          info.rating >= 2 ? 1 : 0
+          info.rating >= 4 ? 3 : info.rating >= 3 ? 2 : info.rating >= 2 ? 1 : 0
         if (polarity > 0) {
           const monthStart = new Date(cursor).toISOString()
-          const monthEnd = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0, 23, 59, 59)).toISOString()
-          const monthPeak = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15)).toISOString()
+          const monthEnd = new Date(
+            Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0, 23, 59, 59)
+          ).toISOString()
+          const monthPeak = new Date(
+            Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15)
+          ).toISOString()
 
           signals.push({
             id: `saju.johu-yongsin.${cursor.getUTCFullYear()}-${cursor.getUTCMonth() + 1}.${info.primaryYongsin}`,
@@ -56,6 +66,7 @@ const sajuJohuYongsinExtractor: SignalExtractor = {
             kind: 'pillar-sibsin',
             name: `조후용신 ${info.primaryYongsin} 활성`,
             korean: `${monthPillar.branch}月 조후 — ${info.primaryYongsin}이(가) ${info.climate} 균형에 필요`,
+            english: `${monthPillar.branch}-month climate balance — ${ELEMENT_EN_JOHU[info.primaryYongsin] ?? info.primaryYongsin} is needed to temper the season`,
             themes: [],
             polarity,
             layer: 'monthly',

@@ -8,14 +8,27 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  * 일진 신살 → 흐름(flow) 한 줄. interpretations.json 의 effect(없으면 meaning)를
  * 재사용. 이름이 '역마살'/'화개살' 처럼 '살' 접미사 변형이면 떼고/붙여 재탐색.
  */
-function shinsalFlowLine(name: string): string {
-  const info =
+function shinsalInfoFor(name: string) {
+  return (
     getShinsalInterpretation(name) ??
     getShinsalInterpretation(name.replace(/살$/, '')) ??
     getShinsalInterpretation(`${name}살`)
+  )
+}
+
+function shinsalFlowLine(name: string): string {
+  const info = shinsalInfoFor(name)
   if (!info) return ''
   const body = info.effect || info.meaning
   return body ? `오늘 ${name} — ${body}` : ''
+}
+
+function shinsalFlowLineEn(name: string): string {
+  const info = shinsalInfoFor(name)
+  if (!info) return ''
+  const label = info.name_en || name
+  const body = info.effect_en || info.meaning_en
+  return body ? `${label} active today — ${body}` : ''
 }
 
 /**
@@ -194,6 +207,7 @@ const sajuShinsalExtractor: SignalExtractor = {
           kind: 'shinsal',
           name: hit.kind,
           ...(shinsalFlowLine(hit.kind) ? { korean: shinsalFlowLine(hit.kind) } : {}),
+          ...(shinsalFlowLineEn(hit.kind) ? { english: shinsalFlowLineEn(hit.kind) } : {}),
           themes: [], // tagger가 SHINSAL_THEME_MAP으로 채움
           polarity,
           layer: 'daily',

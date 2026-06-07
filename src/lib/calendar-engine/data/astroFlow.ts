@@ -91,6 +91,21 @@ export function pointKo(name: string): string {
   return POINT_KO[name] ?? name
 }
 
+// EN 표기 — 대부분 원문(영문) 그대로, 표기 정규화만.
+const POINT_EN: Record<string, string> = {
+  ASC: 'Ascendant',
+  DSC: 'Descendant',
+  Midheaven: 'MC',
+  'True Node': 'North Node',
+  'Mean Node': 'North Node',
+  NorthNode: 'North Node',
+  SouthNode: 'South Node',
+}
+
+export function pointEn(name: string): string {
+  return POINT_EN[name] ?? name
+}
+
 /** planet-core 의 한 줄 원리 — 없으면 "". (행성/앵글의 본질 키워드) */
 export function pointPrinciple(name: string, lang: Lang = 'ko'): string {
   const key = PLANET_CORE_KEY[name] ?? name
@@ -111,10 +126,12 @@ export function aspectFlowLine(
   const verb = ASPECT_VERB[aspectType]
   const asp = getAspectMeaning(ASPECT_KEY[aspectType] ?? '', lang)
   if (!verb || !asp) return ''
-  const mp = movingLabel ?? pointKo(movingPoint)
-  const np = pointKo(natalPoint)
   if (lang === 'en') {
+    const mp = movingLabel ?? pointEn(movingPoint)
+    const np = pointEn(natalPoint)
     return `${mp} ${verb.en} natal ${np} — ${asp.meaning}`
   }
+  const mp = movingLabel ?? pointKo(movingPoint)
+  const np = pointKo(natalPoint)
   return `${mp}${iga(mp)} 본명 ${np}${waGwa(np)} ${verb.ko} 흐름 — ${asp.meaning}`
 }

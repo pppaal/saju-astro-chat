@@ -414,18 +414,19 @@ function relationMeaning(
   kindLabel: string,
   a?: string,
   b?: string,
-  groupKey?: string
+  groupKey?: string,
+  lang: 'ko' | 'en' = 'ko'
 ): string | undefined {
   const cat = REL_CATEGORY[kindLabel]
   if (!cat) return undefined
   // 삼합·방합은 사전 키가 trio(亥卯未) — 페어가 아닌 그룹 키로 직접 조회.
   if (groupKey) {
-    const entry = getRelationMeaning(cat, groupKey, 'ko')
+    const entry = getRelationMeaning(cat, groupKey, lang)
     if (entry) return entry.meaning
   }
   if (!a || !b) return undefined
   for (const key of [`${a}${b}`, `${b}${a}`]) {
-    const entry = getRelationMeaning(cat, key, 'ko')
+    const entry = getRelationMeaning(cat, key, lang)
     if (entry) return entry.meaning
   }
   return undefined
@@ -441,13 +442,15 @@ function makeSignal(args: MakeSignalArgs): ActiveSignal {
     samhap?.join('') ??
     banghap?.join('') ??
     (args.kindLabel === '지지형' && a && b ? HYUNG_TRIO_KEY[`${a}${b}`] : undefined)
-  const korean = relationMeaning(args.kindLabel, a, b, groupKey)
+  const korean = relationMeaning(args.kindLabel, a, b, groupKey, 'ko')
+  const english = relationMeaning(args.kindLabel, a, b, groupKey, 'en')
   return {
     id: `saju.hyeongchung.${args.kindLabel}.${args.dayIso}.${args.detail.natalPillar}.${args.detail.targetBranch ?? args.detail.targetStem}`,
     source: 'saju',
     kind: 'hyeongchung',
     name: args.name,
     ...(korean ? { korean } : {}),
+    ...(english ? { english } : {}),
     themes: [], // tagger가 polarity 기반으로 폴백
     polarity: args.polarity,
     layer: 'daily',

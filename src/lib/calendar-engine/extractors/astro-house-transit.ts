@@ -201,6 +201,7 @@ const astroHouseTransitExtractor: SignalExtractor = {
         kind: 'house-transit',
         name: `${seg.planet} in ${seg.house}H`,
         korean: lineKo,
+        english: lineEn,
         themes: [HOUSE_THEME[seg.house]].filter(Boolean) as AstroThemeKey[],
         polarity: 0, // 컨텍스트 (영역 활성) — 길흉 아님, 점수 미반영
         layer,
@@ -231,6 +232,7 @@ const astroHouseTransitExtractor: SignalExtractor = {
         kind: 'angle-contact',
         name: `${seg.planet} ☌ ${seg.angle}`,
         korean: lineKo,
+        english: lineEn,
         themes: (seg.angle === 'MC' ? ['career'] : ['growth']) as AstroThemeKey[],
         polarity: 0,
         layer: 'yearly',

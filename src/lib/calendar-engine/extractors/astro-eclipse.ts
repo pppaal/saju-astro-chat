@@ -58,6 +58,7 @@ const astroEclipseExtractor: SignalExtractor = {
         kind: 'eclipse',
         name: `${impact.eclipse.type === 'solar' ? '일식' : '월식'} ${impact.aspectType} ${impact.affectedPoint}`,
         korean: `${impact.eclipse.description} — 본명 ${pointKo(impact.affectedPoint)} 영역의 판이 ${impact.eclipse.type === 'solar' ? '새로 짜이는' : '매듭지어지는'} 강한 전환점이에요 (영향 ~6개월)`,
+        english: `${impact.eclipse.type === 'solar' ? 'Solar' : 'Lunar'} eclipse on natal ${impact.affectedPoint} — a strong turning point that ${impact.eclipse.type === 'solar' ? 'reshapes' : 'brings closure to'} that area (effect ~6 months)`,
         themes: [],
         polarity,
         layer: 'monthly', // 영향 2주~한 달

@@ -42,6 +42,10 @@ const astroProfectionExtractor: SignalExtractor = {
           const dom = getHouseRich(r.activatedHouse as HouseNumber, 'ko')?.domain
           return dom ? `(${dom})` : ''
         })()}이 활성 — 한 해의 초점이 이 영역에 놓이고, 그 주인별 ${pointKo(r.lordOfYear)}의 움직임이 핵심이에요`,
+        english: `This year activates the ${r.activatedHouse}th house${(() => {
+          const dom = getHouseRich(r.activatedHouse as HouseNumber, 'en')?.domain
+          return dom ? ` (${dom})` : ''
+        })()} — the year's focus rests on this area, and its ruler ${r.lordOfYear} is the key mover`,
         themes: [], // tagger가 houses + planets로 채움
         polarity: 0,
         layer: 'yearly',
