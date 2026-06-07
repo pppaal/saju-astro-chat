@@ -28,7 +28,6 @@ vi.mock('@/lib/db/prisma', () => ({
     user: { findUnique: vi.fn() },
     userCredits: { findUnique: vi.fn() },
     bonusCreditPurchase: { count: vi.fn(), findMany: vi.fn() },
-    reading: { count: vi.fn(), findFirst: vi.fn(), findMany: vi.fn() },
     tarotReading: { count: vi.fn(), findMany: vi.fn() },
     counselorChatSession: { count: vi.fn(), findMany: vi.fn() },
     creditTransaction: { findMany: vi.fn() },
@@ -82,16 +81,9 @@ function setupHappyPath() {
       stripePaymentId: 'pi_1',
     },
   ] as any)
-  vi.mocked(prisma.reading.count).mockResolvedValue(12)
   vi.mocked(prisma.tarotReading.count).mockResolvedValue(5)
   vi.mocked(prisma.counselorChatSession.count).mockResolvedValue(2)
-  vi.mocked(prisma.reading.findFirst).mockResolvedValue({
-    createdAt: new Date('2026-06-01T10:00:00Z'),
-  } as any)
   // 타임라인용 최근 활동
-  vi.mocked(prisma.reading.findMany).mockResolvedValue([
-    { createdAt: new Date('2026-06-01T10:00:00Z') },
-  ] as any)
   vi.mocked(prisma.tarotReading.findMany).mockResolvedValue([
     { createdAt: new Date('2026-05-20T10:00:00Z') },
   ] as any)
@@ -150,8 +142,7 @@ describe('GET /api/admin/users/[id]', () => {
       bonusCredits: 120,
       totalBonusReceived: 200,
     })
-    expect(data.activity).toMatchObject({ readings: 12, tarot: 5, counselor: 2, total: 19 })
-    expect(typeof data.activity.lastReadingAt).toBe('string')
+    expect(data.activity).toMatchObject({ tarot: 5, counselor: 2, total: 7 })
     expect(data.purchases.paidCount).toBe(3)
     expect(data.purchases.recent[0]).toMatchObject({ amount: 100, remaining: 80, source: 'purchase' })
   })
@@ -159,9 +150,8 @@ describe('GET /api/admin/users/[id]', () => {
   it('returns a merged timeline sorted by time desc', async () => {
     setupHappyPath()
     const data = (await (await call('u1')).json()).data
-    // reading/tarot/counselor/purchase/credit 가 모두 섞여 들어온다
+    // tarot/counselor/purchase/credit 가 모두 섞여 들어온다 (Reading 모델 제거됨)
     const types = data.timeline.map((e: { type: string }) => e.type)
-    expect(types).toContain('reading')
     expect(types).toContain('tarot')
     expect(types).toContain('counselor')
     expect(types).toContain('purchase')

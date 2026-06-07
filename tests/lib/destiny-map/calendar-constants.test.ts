@@ -24,8 +24,6 @@ import {
   SIPSIN_RELATIONS,
   ELEMENT_RELATIONS,
   ZODIAC_TO_ELEMENT,
-  AREA_CONFIG,
-  type FortuneArea,
 } from "@/lib/destiny-map/calendar/constants";
 
 describe("STEMS", () => {
@@ -386,38 +384,5 @@ describe("ZODIAC_TO_ELEMENT", () => {
     expect(ZODIAC_TO_ELEMENT.Cancer).toBe("water");
     expect(ZODIAC_TO_ELEMENT.Scorpio).toBe("water");
     expect(ZODIAC_TO_ELEMENT.Pisces).toBe("water");
-  });
-});
-
-describe("AREA_CONFIG", () => {
-  const areas: FortuneArea[] = ["career", "wealth", "love", "health", "study", "travel"];
-
-  areas.forEach((area) => {
-    it(`has config for ${area}`, () => {
-      expect(AREA_CONFIG).toHaveProperty(area);
-    });
-  });
-
-  it("each area has required properties", () => {
-    Object.values(AREA_CONFIG).forEach((config) => {
-      expect(config).toHaveProperty("relatedElements");
-      expect(config).toHaveProperty("boostSibsin");
-      expect(config).toHaveProperty("penaltySibsin");
-      expect(Array.isArray(config.relatedElements)).toBe(true);
-      expect(Array.isArray(config.boostSibsin)).toBe(true);
-      expect(Array.isArray(config.penaltySibsin)).toBe(true);
-    });
-  });
-
-  it("career boosts 정관", () => {
-    expect(AREA_CONFIG.career.boostSibsin).toContain("정관");
-  });
-
-  it("wealth boosts 정재", () => {
-    expect(AREA_CONFIG.wealth.boostSibsin).toContain("정재");
-  });
-
-  it("love boosts 식신", () => {
-    expect(AREA_CONFIG.love.boostSibsin).toContain("식신");
   });
 });

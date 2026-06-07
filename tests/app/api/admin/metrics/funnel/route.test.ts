@@ -69,10 +69,6 @@ vi.mock('@/lib/db/prisma', () => ({
       findUnique: vi.fn(),
       count: vi.fn(),
     },
-    reading: {
-      count: vi.fn(),
-      groupBy: vi.fn(),
-    },
     tarotReading: {
       count: vi.fn(),
       groupBy: vi.fn(),
@@ -149,7 +145,6 @@ function setupHappyPath(overrides?: {
   activatedUsers?: number
   dau?: number
   wau?: number
-  weeklyReadings?: number
   weeklyTarot?: number
   weeklyCounsel?: number
 }) {
@@ -160,7 +155,6 @@ function setupHappyPath(overrides?: {
     activatedUsers = 600,
     dau = 80,
     wau = 200,
-    weeklyReadings = 300,
     weeklyTarot = 100,
     weeklyCounsel = 50,
   } = overrides ?? {}
@@ -188,18 +182,17 @@ function setupHappyPath(overrides?: {
   //   gte === epoch(0)          → all-time activated users
   //   gte within last ~2 days   → DAU window
   //   otherwise (7d ago)        → WAU window
-  // All distinct ids are returned via reading.groupBy; the other two return []
-  // so the route's Set union equals exactly the intended count.
-  vi.mocked(prisma.reading.groupBy).mockImplementation(async (args: any) => {
+  // Reading 모델 제거(2026-06-06) — 활성 판정은 tarotReading + counselorChatSession.
+  // 모든 distinct id 를 tarotReading.groupBy 로 돌려주고 counselor 쪽은 [] 라
+  // 라우트의 Set 합집합이 정확히 의도한 수가 되게 한다.
+  vi.mocked(prisma.tarotReading.groupBy).mockImplementation(async (args: any) => {
     const gte = new Date(args.where.createdAt.gte).getTime()
     if (gte === 0) return makeUsers(activatedUsers) as any
     if (gte > Date.now() - 2 * DAY_MS) return makeUsers(dau) as any
     return makeUsers(wau) as any
   })
-  vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([] as any)
   vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
 
-  vi.mocked(prisma.reading.count).mockResolvedValue(weeklyReadings)
   vi.mocked(prisma.tarotReading.count).mockResolvedValue(weeklyTarot)
   vi.mocked(prisma.counselorChatSession.count).mockResolvedValue(weeklyCounsel)
 }
@@ -424,10 +417,10 @@ describe('GET /api/admin/metrics/funnel', () => {
     })
 
     it('should compute readingsPerUser from weekly actions / WAU', async () => {
-      setupHappyPath({ wau: 100, weeklyReadings: 300, weeklyTarot: 100, weeklyCounsel: 100 })
+      setupHappyPath({ wau: 100, weeklyTarot: 100, weeklyCounsel: 100 })
       const data = (await (await GET(createRequest())).json()).data.data
-      // (300 + 100 + 100) / 100 = 5
-      expect(data.engagement.readingsPerUser).toBeCloseTo(5, 5)
+      // (100 tarot + 100 counsel) / 100 wau = 2
+      expect(data.engagement.readingsPerUser).toBeCloseTo(2, 5)
     })
 
     it('should compute a positive registration trend vs previous period', async () => {
@@ -517,7 +510,7 @@ describe('GET /api/admin/metrics/funnel', () => {
 
     it('should fall back to 0 activations/DAU/WAU when groupBy throws', async () => {
       setupHappyPath()
-      vi.mocked(prisma.reading.groupBy).mockRejectedValue(new Error('groupBy failed'))
+      vi.mocked(prisma.tarotReading.groupBy).mockRejectedValue(new Error('groupBy failed'))
 
       const response = await GET(createRequest())
       const data = (await response.json()).data.data
@@ -565,8 +558,8 @@ describe('GET /api/admin/metrics/funnel', () => {
       await GET(createRequest())
 
       expect(prisma.user.count).toHaveBeenCalled()
-      expect(prisma.reading.groupBy).toHaveBeenCalled()
-      expect(prisma.reading.count).toHaveBeenCalled()
+      expect(prisma.tarotReading.groupBy).toHaveBeenCalled()
+      expect(prisma.tarotReading.count).toHaveBeenCalled()
     })
   })
 })
