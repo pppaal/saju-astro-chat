@@ -912,29 +912,54 @@ export default function TarotHistoryClient() {
               </section>
             )}
 
-            {/* 보충 카드 (클래리파이어) — gold 통일 (옛 purple 제거). */}
-            {selectedReading.clarifierCard && (
-              <section
-                className="mb-5 rounded-xl border p-4"
-                style={{
-                  background: 'var(--ds-dark-surface)',
-                  borderColor: 'var(--ds-dark-border)',
-                }}
-              >
-                <h4
-                  className="text-xs uppercase tracking-wider font-medium mb-2"
-                  style={{ color: 'var(--ds-gold-on-dark)' }}
-                >
-                  {isKo ? '보충 카드' : 'Clarifier Card'}
-                </h4>
-                <div className="text-sm font-medium text-slate-100">
-                  {isKo
-                    ? selectedReading.clarifierCard.nameKo || selectedReading.clarifierCard.name
-                    : selectedReading.clarifierCard.name}
-                  {selectedReading.clarifierCard.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
-                </div>
-              </section>
-            )}
+            {/* 보충 카드 (클래리파이어) — gold 통일. 카드 그림도 함께 표시
+                (이름만 있고 사진이 안 보이던 피드백 반영 — 저장엔 이미지 경로가
+                없어 이름으로 역추적). */}
+            {selectedReading.clarifierCard &&
+              (() => {
+                const clCard = selectedReading.clarifierCard!
+                const clFull = findCardBySavedName(clCard, 0)
+                return (
+                  <section
+                    className="mb-5 rounded-xl border p-4"
+                    style={{
+                      background: 'var(--ds-dark-surface)',
+                      borderColor: 'var(--ds-dark-border)',
+                    }}
+                  >
+                    <h4
+                      className="text-xs uppercase tracking-wider font-medium mb-2"
+                      style={{ color: 'var(--ds-gold-on-dark)' }}
+                    >
+                      {isKo ? '보충 카드' : 'Clarifier Card'}
+                    </h4>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`relative w-12 h-20 shrink-0 rounded overflow-hidden ${
+                          clCard.isReversed ? 'rotate-180' : ''
+                        }`}
+                        style={{ boxShadow: '0 0 0 1px var(--ds-dark-border)' }}
+                      >
+                        <Image
+                          src={clFull.image}
+                          alt={clFull.name}
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div
+                        className={`text-sm font-medium ${
+                          clCard.isReversed ? 'text-rose-200' : 'text-slate-100'
+                        }`}
+                      >
+                        {isKo ? clCard.nameKo || clCard.name : clCard.name}
+                        {clCard.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
+                      </div>
+                    </div>
+                  </section>
+                )
+              })()}
 
             {/* followup 채팅 — gold 통일 (옛 cyan/violet 제거). */}
             {selectedReading.followupTurns && selectedReading.followupTurns.length > 0 && (
