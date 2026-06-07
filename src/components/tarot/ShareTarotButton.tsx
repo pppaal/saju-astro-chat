@@ -12,60 +12,12 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X } from 'lucide-react'
 import { tarotLogger } from '@/lib/logger'
-import type { ReadingResponse, InterpretationResult } from '@/app/tarot/[categoryName]/[spreadId]/types'
 import { TarotShareCard, SHARE_CARD_SIZE, type ShareCardData } from './TarotShareCard'
 
 interface ShareTarotButtonProps {
-  readingResult: ReadingResponse
-  interpretation: InterpretationResult | null
-  userTopic: string
+  /** 공유 카드에 그릴 데이터 — buildShareDataFrom* 로 미리 만든다. */
+  data: ShareCardData
   language: string
-}
-
-// overall_message 의 첫 문장(또는 affirmation)을 한 줄 메시지로 뽑는다.
-function pickKeyMessage(interpretation: InterpretationResult | null, max = 80): string {
-  const overall = (interpretation?.overall_message || '').trim()
-  const source = overall || (interpretation?.affirmation || '').trim()
-  if (!source) return ''
-  // 한국어/영문 문장 끝(. ! ? 。 ！ ？) 기준 첫 문장.
-  const match = source.match(/^[\s\S]*?[.!?。！？](\s|$)/)
-  let sentence = (match ? match[0] : source).trim()
-  if (sentence.length > max) sentence = `${sentence.slice(0, max - 1).trim()}…`
-  return sentence
-}
-
-function truncate(text: string, max: number): string {
-  const t = (text || '').trim()
-  return t.length > max ? `${t.slice(0, max - 1).trim()}…` : t
-}
-
-function buildShareData(
-  readingResult: ReadingResponse,
-  interpretation: InterpretationResult | null,
-  userTopic: string,
-  isKo: boolean
-): ShareCardData {
-  // line-clamp 이 캡처에서 안 먹는 경우를 대비해 JS 로도 길이 제한.
-  const question = truncate(
-    (userTopic || '').trim() ||
-      (isKo
-        ? readingResult.spread.titleKo || readingResult.spread.title
-        : readingResult.spread.title),
-    90
-  )
-  return {
-    question,
-    spreadTitle: isKo
-      ? readingResult.spread.titleKo || readingResult.spread.title
-      : readingResult.spread.title,
-    cards: readingResult.drawnCards.map((dc) => ({
-      image: dc.card.image,
-      name: isKo ? dc.card.nameKo || dc.card.name : dc.card.name,
-      isReversed: dc.isReversed,
-    })),
-    keyMessage: pickKeyMessage(interpretation),
-    isKo,
-  }
 }
 
 // 캡처 전 카드/로고 이미지를 미리 디코드해 빈 칸 캡처를 방지.
@@ -83,12 +35,7 @@ async function preloadImages(srcs: string[]): Promise<void> {
   )
 }
 
-export function ShareTarotButton({
-  readingResult,
-  interpretation,
-  userTopic,
-  language,
-}: ShareTarotButtonProps) {
+export function ShareTarotButton({ data: shareData, language }: ShareTarotButtonProps) {
   const isKo = language === 'ko'
   const cardRef = useRef<HTMLDivElement>(null)
   // 'idle' | 'rendering'(캡처 중) | 'preview'(모달)
@@ -96,8 +43,6 @@ export function ShareTarotButton({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
-
-  const shareData = buildShareData(readingResult, interpretation, userTopic, isKo)
 
   // object URL 누수 방지.
   useEffect(() => {

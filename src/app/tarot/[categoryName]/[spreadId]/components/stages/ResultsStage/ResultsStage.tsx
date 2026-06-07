@@ -54,6 +54,7 @@ import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { FollowupChat } from './FollowupChat'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
+import { buildShareDataFromReading } from '@/components/tarot/shareCardData'
 import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
 
 export interface ResultsStageProps {
@@ -316,9 +317,12 @@ export function ResultsStage(props: ResultsStageProps) {
             AI 응답이 도착한 후에만 노출(질문+카드+한줄 메시지 카드). */}
         {!aiPending && insight?.overall_message && (
           <ShareTarotButton
-            readingResult={readingResult}
-            interpretation={interpretation}
-            userTopic={userTopic}
+            data={buildShareDataFromReading(
+              readingResult,
+              interpretation,
+              userTopic,
+              language === 'ko'
+            )}
             language={language}
           />
         )}

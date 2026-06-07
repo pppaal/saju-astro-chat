@@ -19,6 +19,8 @@ import { apiFetch } from '@/lib/api'
 import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
+import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
+import { buildShareDataFromSavedReading } from '@/components/tarot/shareCardData'
 
 import {
   deleteReading,
@@ -362,8 +364,9 @@ export default function TarotHistoryClient() {
       {/* 글로벌 헤더 (☰ / EN) 와 안 겹치게 상단 여백 충분히.
           About/FAQ/Pricing 과 같은 max-w + padding 으로 통일. */}
       <div className="max-w-2xl mx-auto px-4 pt-20 pb-16 relative z-10">
-        {/* 페이지 헤더 */}
-        <header className="flex items-center gap-3 mb-8">
+        {/* 페이지 헤더 — 제목은 좌/우 버튼 폭과 무관하게 페이지 정중앙에 고정
+            (absolute center). 좌측 돌아가기 / 우측 통계 토글. */}
+        <header className="relative flex items-center mb-8 min-h-[40px]">
           <button
             type="button"
             onClick={() => router.push('/tarot')}
@@ -378,7 +381,7 @@ export default function TarotHistoryClient() {
             <span>{isKo ? '돌아가기' : 'Back'}</span>
           </button>
           <h1
-            className="flex-1 text-xl md:text-2xl font-semibold"
+            className="absolute left-1/2 -translate-x-1/2 text-xl md:text-2xl font-semibold whitespace-nowrap pointer-events-none"
             style={{
               color: 'var(--ds-dark-text)',
               fontFamily: 'var(--font-cinzel), Georgia, serif',
@@ -392,7 +395,7 @@ export default function TarotHistoryClient() {
             onClick={() => setShowStats((prev) => !prev)}
             aria-expanded={showStats}
             aria-label={isKo ? '통계 보기 전환' : 'Toggle statistics'}
-            className="p-2 rounded-xl border transition-colors"
+            className="ml-auto p-2 rounded-xl border transition-colors"
             style={{
               background: showStats ? 'rgba(212, 181, 114, 0.15)' : 'var(--ds-dark-surface)',
               borderColor: showStats ? 'var(--ds-gold-line)' : 'var(--ds-dark-border)',
@@ -981,6 +984,14 @@ export default function TarotHistoryClient() {
                 </div>
               </section>
             )}
+
+            {/* SNS 공유 — 과거 기록도 1:1 이미지로 공유/저장. */}
+            <div className="mb-3">
+              <ShareTarotButton
+                data={buildShareDataFromSavedReading(selectedReading, isKo)}
+                language={language}
+              />
+            </div>
 
             {/* 액션 — gold 솔리드 (보라 그라데이션 박멸) */}
             <button
