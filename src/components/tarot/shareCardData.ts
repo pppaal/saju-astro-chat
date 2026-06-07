@@ -33,8 +33,19 @@ export function pickKeyMessage(source: string | undefined | null, max = 58): str
   if (!s) return ''
   // 앞머리 호명 제거: "이준영님, " / "이준영 님께서" 등 → 실명 노출 방지.
   s = s.replace(/^[가-힣A-Za-z·\s]{1,12}님(께서|은|이|,|，|!|\s)+/, '').trim()
+  // 영어 호명 제거: 해석 프롬프트가 영어는 'Hi {이름},' 형식으로 호명한다.
+  // 'Hi'·'Hey'·'Hello'·'Dear' 로 시작하는 인사+이름만 떼므로 'Today,' 같은
+  // 정상 문장 첫머리는 오삭제하지 않는다(영미권 공유 시 실명 노출 방지).
+  s = s
+    .replace(
+      /^(?:hi|hey|hello|dear)\b[\s,]+[A-Za-z][A-Za-z'’.-]*(?:\s+[A-Za-z][A-Za-z'’.-]*){0,2}\s*[,!:.—-]+\s*/i,
+      ''
+    )
+    .trim()
   const match = s.match(/^[\s\S]*?[.!?。！？](\s|$)/)
   let sentence = (match ? match[0] : s).trim()
+  // 호명을 떼고 남은 영어 문장의 첫 글자를 대문자로 ("a new..." → "A new...").
+  if (/^[a-z]/.test(sentence)) sentence = sentence[0].toUpperCase() + sentence.slice(1)
   if (sentence.length > max) sentence = `${sentence.slice(0, max - 1).trim()}…`
   return sentence
 }

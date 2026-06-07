@@ -58,4 +58,30 @@ describe('pickKeyMessage — 공유 이미지 한 줄 메시지', () => {
     const out = pickKeyMessage('홍길동님, ')
     expect(out).not.toContain('홍길동')
   })
+
+  // --- 영어 호명(영미권 타겟): 'Hi {Name},' 형식 실명 제거 ---
+
+  it('영어 "Hi NAME," 호명을 제거하고 첫 글자를 대문자로 보정한다', () => {
+    const out = pickKeyMessage('Hi Jun, a new chapter is opening for you.')
+    expect(out).toBe('A new chapter is opening for you.')
+    expect(out).not.toContain('Jun')
+  })
+
+  it('"Hello First Last," 처럼 이름이 두 단어여도 제거한다', () => {
+    const out = pickKeyMessage('Hello Sarah Kim, your path is clear.')
+    expect(out).toBe('Your path is clear.')
+    expect(out).not.toContain('Sarah')
+    expect(out).not.toContain('Kim')
+  })
+
+  it('"Hey NAME!" 처럼 느낌표 호명도 제거', () => {
+    const out = pickKeyMessage('Hey Mike! Trust the timing here.')
+    expect(out).not.toContain('Mike')
+    expect(out.startsWith('Trust')).toBe(true)
+  })
+
+  it('정상 문장 첫머리("Today,", "Finally,")는 오삭제하지 않는다', () => {
+    expect(pickKeyMessage('Today, momentum returns. Next.')).toBe('Today, momentum returns.')
+    expect(pickKeyMessage('Finally, clarity arrives.')).toBe('Finally, clarity arrives.')
+  })
 })
