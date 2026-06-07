@@ -1,7 +1,13 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { generateJsonLd, generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
+import {
+  generateJsonLd,
+  generateLocalizedMetadata,
+  generateServiceSchema,
+  getServerLocale,
+  SERVICE_FAQS,
+} from '@/components/seo/SEO'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -52,11 +58,14 @@ export default function CompatibilityLayout({ children }: { children: ReactNode 
       'Discover your relationship compatibility with AI-powered analysis combining Eastern Saju and Western astrology.',
     url: `${baseUrl}/compatibility`,
   })
-  // Note: compatibility service schema not yet defined in SEO.tsx
+  const serviceJsonLd = generateServiceSchema('compatibility')
+  const faqJsonLd = generateJsonLd({ type: 'FAQPage', faqs: SERVICE_FAQS.compatibility })
 
   return (
     <>
       <JsonLd data={pageJsonLd} />
+      <JsonLd data={serviceJsonLd} />
+      <JsonLd data={faqJsonLd} />
       {children}
     </>
   )
