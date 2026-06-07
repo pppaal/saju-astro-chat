@@ -18,7 +18,6 @@ import { refundCredits } from '@/lib/credits/creditRefund'
 const {
   mockFindUnique,
   mockUpdate,
-  mockCreate,
   mockBonusFindMany,
   mockBonusUpdateMany,
   mockExecuteRaw,
@@ -26,7 +25,6 @@ const {
 } = vi.hoisted(() => ({
   mockFindUnique: vi.fn(),
   mockUpdate: vi.fn(),
-  mockCreate: vi.fn(),
   mockBonusFindMany: vi.fn(),
   mockBonusUpdateMany: vi.fn(),
   mockExecuteRaw: vi.fn(),
@@ -38,7 +36,6 @@ const {
 const mockTx = {
   userCredits: { findUnique: mockFindUnique, update: mockUpdate },
   bonusCreditPurchase: { findMany: mockBonusFindMany, updateMany: mockBonusUpdateMany },
-  creditRefundLog: { create: mockCreate },
   creditTransaction: { create: mockCreditTxnCreate },
   $executeRaw: mockExecuteRaw,
 }
@@ -46,7 +43,6 @@ const mockTx = {
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     $transaction: vi.fn((fn: (tx: typeof mockTx) => Promise<void>) => fn(mockTx)),
-    creditRefundLog: { findMany: vi.fn() },
   },
 }))
 
@@ -61,7 +57,6 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
     mockBonusUpdateMany.mockResolvedValue({ count: 1 })
     mockUpdate.mockResolvedValue({})
     mockExecuteRaw.mockResolvedValue(1)
-    mockCreate.mockResolvedValue({})
   })
 
   it('restores bonus pool when purchase has spare capacity (remaining = amount - 1)', async () => {
@@ -176,7 +171,9 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
     expect(mockExecuteRaw).toHaveBeenCalled()
   })
 
-  it('writes the refund log row even when fully restored to bonus pool', async () => {
+  it('writes the REFUND audit row (pool=BONUS) when fully restored to bonus pool', async () => {
+    // CreditRefundLog 제거(2026-06-06) — 감사는 CreditTransaction(type=REFUND).
+    // 보너스 풀 복원 시 pool=BONUS, sourceRef=purchase.id.
     mockBonusFindMany.mockResolvedValue([
       { id: 'p1', amount: 5, remaining: 4 },
     ])
@@ -189,13 +186,14 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
       apiRoute: '/api/tarot/chat',
     })
 
-    expect(mockCreate).toHaveBeenCalledWith({
+    expect(mockCreditTxnCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         userId: 'user_1',
-        creditType: 'reading',
+        type: 'REFUND',
+        pool: 'BONUS',
         amount: 1,
         reason: 'ai_backend_timeout',
-        apiRoute: '/api/tarot/chat',
+        sourceRef: 'p1',
       }),
     })
   })

@@ -8,7 +8,6 @@ import {
   countSibsinByCategory,
   analyzeSibsinPatterns,
   analyzeSibsinInteractions,
-  analyzeCareerAptitude,
   analyzeRelationshipPatterns,
   analyzePersonality,
   analyzeSibsinComprehensive,
@@ -362,116 +361,6 @@ describe('sibsinAnalysis', () => {
     })
   })
 
-  describe('analyzeCareerAptitude', () => {
-    it('should recommend careers based on 관성', () => {
-      const count: SibsinCount = {
-        비견: 0,
-        겁재: 0,
-        식신: 0,
-        상관: 0,
-        편재: 0,
-        정재: 0,
-        편관: 1,
-        정관: 2,
-        편인: 0,
-        정인: 0,
-      }
-      const categoryCount: SibsinCategoryCount = {
-        비겁: 0,
-        식상: 0,
-        재성: 0,
-        관성: 3,
-        인성: 0,
-      }
-
-      const aptitudes = analyzeCareerAptitude(count, categoryCount)
-
-      expect(aptitudes.some((a) => a.field === '공직/관리직')).toBe(true)
-      expect(aptitudes.some((a) => a.field === '법률/행정')).toBe(true)
-    })
-
-    it('should recommend careers based on 재성', () => {
-      const count: SibsinCount = {
-        비견: 0,
-        겁재: 0,
-        식신: 0,
-        상관: 0,
-        편재: 2,
-        정재: 1,
-        편관: 0,
-        정관: 0,
-        편인: 0,
-        정인: 0,
-      }
-      const categoryCount: SibsinCategoryCount = {
-        비겁: 0,
-        식상: 0,
-        재성: 3,
-        관성: 0,
-        인성: 0,
-      }
-
-      const aptitudes = analyzeCareerAptitude(count, categoryCount)
-
-      expect(aptitudes.some((a) => a.field === '사업/경영')).toBe(true)
-      expect(aptitudes.some((a) => a.field === '금융/투자')).toBe(true)
-    })
-
-    it('should recommend careers based on 식상', () => {
-      const count: SibsinCount = {
-        비견: 0,
-        겁재: 0,
-        식신: 2,
-        상관: 1,
-        편재: 0,
-        정재: 0,
-        편관: 0,
-        정관: 0,
-        편인: 0,
-        정인: 0,
-      }
-      const categoryCount: SibsinCategoryCount = {
-        비겁: 0,
-        식상: 3,
-        재성: 0,
-        관성: 0,
-        인성: 0,
-      }
-
-      const aptitudes = analyzeCareerAptitude(count, categoryCount)
-
-      expect(aptitudes.some((a) => a.field === '예술/창작')).toBe(true)
-    })
-
-    it('should sort aptitudes by score descending', () => {
-      const count: SibsinCount = {
-        비견: 1,
-        겁재: 1,
-        식신: 2,
-        상관: 1,
-        편재: 1,
-        정재: 1,
-        편관: 1,
-        정관: 1,
-        편인: 1,
-        정인: 1,
-      }
-      const categoryCount: SibsinCategoryCount = {
-        비겁: 2,
-        식상: 3,
-        재성: 2,
-        관성: 2,
-        인성: 2,
-      }
-
-      const aptitudes = analyzeCareerAptitude(count, categoryCount)
-
-      for (let i = 0; i < aptitudes.length - 1; i++) {
-        expect(aptitudes[i].score).toBeGreaterThanOrEqual(aptitudes[i + 1].score)
-      }
-    })
-  })
-
   describe('analyzeRelationshipPatterns', () => {
     it('should analyze parent relationship based on 인성', () => {
       const count: SibsinCount = {
@@ -705,7 +594,6 @@ describe('sibsinAnalysis', () => {
       expect(result.missingSibsin).toBeDefined()
       expect(result.patterns).toBeDefined()
       expect(result.interactions).toBeDefined()
-      expect(result.careerAptitudes).toBeDefined()
       expect(result.relationships).toBeDefined()
       expect(result.personality).toBeDefined()
       expect(result.strengths).toBeDefined()
