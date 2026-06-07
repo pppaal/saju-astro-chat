@@ -25,7 +25,6 @@ import { useChatAutoSave } from '@/hooks/useChatAutoSave'
 
 const InlineTarotModal = dynamic(() => import('./InlineTarotModal'), { ssr: false })
 const CrisisModal = dynamic(() => import('./modals/CrisisModal'), { ssr: false })
-const ChartModal = dynamic(() => import('./charts/ChartModal'), { ssr: false })
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
   ssr: false,
 })
@@ -77,7 +76,6 @@ const Chat = memo(function Chat({
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
   const [showTarotModal, setShowTarotModal] = React.useState(false)
-  const [showChartModal, setShowChartModal] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
   const messagesEndRef = React.useRef<HTMLDivElement | null>(null)
@@ -679,14 +677,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
       />
 
       <ClarifierCardModal {...clarifier.modalProps} />
-
-      <ChartModal
-        open={showChartModal}
-        onClose={() => setShowChartModal(false)}
-        saju={saju}
-        astro={astro}
-        lang={effectiveLang}
-      />
     </div>
   )
 })

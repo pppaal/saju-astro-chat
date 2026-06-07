@@ -341,18 +341,16 @@ export function useCounselorData(sp: SearchParams) {
       hasMidpoints: advancedAstro ? 'midpoints' in advancedAstro : false,
     })
 
-    // Determine whether the cached advancedAstro covers everything we need
-    // for the saju⊗astro cross-reference. The previous `hasAllFields = true`
-    // hard-code disabled this fetch entirely, so users without a fully
-    // primed cache reached the counselor with astro = null and the model
-    // could only answer from saju — which is exactly the "사주만 보고
-    // 점성은 못 본다" symptom we were seeing.
-    const hasAllFields = Boolean(
-      advancedAstro &&
-      'fixedStars' in advancedAstro &&
-      'eclipses' in advancedAstro &&
-      'midpoints' in advancedAstro
-    )
+    // 고급 점성(asteroids/draconic/harmonics/solar·lunar return/progressions/
+    // fixedStars/eclipses/midpoints) fetch 비활성 — 진입 속도 개선.
+    // 운명 상담 모델 컨텍스트는 서버(realtime route → buildDestinyContext)가
+    // 생년월일에서 사주·점성을 직접 생성하므로 클라가 advancedAstro 를 받아올
+    // 필요가 없다 (채팅 미사용 + ChartModal 도 렌더 안 함). 진입 즉시 천체력
+    // 무거운 API 9개를 동시에 쏘던 헛수고를 제거해 첫 답변 LLM 요청과의
+    // CPU/네트워크 경쟁을 없앤다.
+    // (옛 주석의 "끄면 astro=null → 점성 못 봄"은 서버가 astro 를 자체 생성하기
+    //  전 구조 기준 — 현재는 해당 없음. realtime route 가 body.astro 를 안 씀.)
+    const hasAllFields = true
 
     if (!hasAllFields) {
       logger.warn('[CounselorPage] Fetching advanced astrology data...', {
