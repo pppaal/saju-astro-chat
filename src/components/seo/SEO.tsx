@@ -332,11 +332,9 @@ export function generateJsonLd(data: {
           price: '0',
           priceCurrency: 'USD',
         },
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: '4.8',
-          ratingCount: '1250',
-        },
+        // aggregateRating 제거: 페이지에 실제로 노출되는 후기 없이 별점만 박으면
+        // 구글 구조화 데이터 정책 위반(가짜 평점)이라 리치결과 거부·수동 패널티
+        // 위험. 실제 사용자 후기가 쌓이고 화면에 노출되면 그때 실측값으로 복원.
       }
 
     case 'HowTo':
