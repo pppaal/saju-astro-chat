@@ -9,7 +9,9 @@ function readUtf8(relativePath: string): string {
 
 describe('content consistency guardrails', () => {
   it('uses one support email source of truth', () => {
-    expect(SUPPORT_EMAIL).toBe('support@destinypal.com')
+    // 실제 운영 지원 수신함은 rheeco88@gmail.com (1인 운영). NEXT_PUBLIC_SUPPORT_EMAIL
+    // env 로 prod 에서 덮어쓸 수 있다. 정책 페이지에 gmail 노출 금지 가드는 별도(아래).
+    expect(SUPPORT_EMAIL).toBe('rheeco88@gmail.com')
   })
 
   it('keeps pricing FAQ/refund phrasing aligned in English copy', () => {
