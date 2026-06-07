@@ -8,46 +8,108 @@
 import type { ReportData, ReportPillar } from './reportTypes'
 import { SIGN_ABBR } from './reportTypes'
 import {
-  evalIdentity, evalNeeds, evalSocialRole, evalFortune, evalRelations, evalStrength,
-  evalTemperament, evalEnergyDirection, evalPersona, evalDrive, evalKeyAspect,
+  evalIdentity,
+  evalNeeds,
+  evalSocialRole,
+  evalFortune,
+  evalRelations,
+  evalStrength,
+  evalTemperament,
+  evalEnergyDirection,
+  evalPersona,
+  evalDrive,
+  evalKeyAspect,
   evalVoid,
-  synthesize, dominantSibsinGroup, type CrossVerdict,
-} from '@/lib/destiny-map/natalCross'
+  synthesize,
+  dominantSibsinGroup,
+  type CrossVerdict,
+} from '@/lib/report/natalCross'
 import { getSouthNodeOppositeSign } from '@/lib/astrology/interpretations'
 
 // 5-tier (정통) → 단일 라벨. 우선순위는 score 절댓값과 일치.
 // domicile/exaltation/detriment/fall 4 종을 먼저 — 라벨 자체가 강한 의미.
 // 그 다음 triplicity/term/face — 약한 dignity. 모두 false 면 peregrine.
 const topTier = (t: {
-  domicile: boolean; exaltation: boolean; triplicity: boolean
-  term: boolean; face: boolean; detriment: boolean; fall: boolean
+  domicile: boolean
+  exaltation: boolean
+  triplicity: boolean
+  term: boolean
+  face: boolean
+  detriment: boolean
+  fall: boolean
 }): string =>
-  t.domicile ? 'domicile'
-    : t.exaltation ? 'exaltation'
-    : t.detriment ? 'detriment'
-    : t.fall ? 'fall'
-    : t.triplicity ? 'triplicity'
-    : t.term ? 'term'
-    : t.face ? 'face'
-    : 'peregrine'
+  t.domicile
+    ? 'domicile'
+    : t.exaltation
+      ? 'exaltation'
+      : t.detriment
+        ? 'detriment'
+        : t.fall
+          ? 'fall'
+          : t.triplicity
+            ? 'triplicity'
+            : t.term
+              ? 'term'
+              : t.face
+                ? 'face'
+                : 'peregrine'
 
 // 오행 한글 → 영문 키
-const EL_KO_EN: Record<string, string> = { 목: 'wood', 화: 'fire', 토: 'earth', 금: 'metal', 수: 'water' }
-const elEn = (x: string | undefined) => (x ? EL_KO_EN[x] ?? x.toLowerCase() : 'wood')
+const EL_KO_EN: Record<string, string> = {
+  목: 'wood',
+  화: 'fire',
+  토: 'earth',
+  금: 'metal',
+  수: 'water',
+}
+const elEn = (x: string | undefined) => (x ? (EL_KO_EN[x] ?? x.toLowerCase()) : 'wood')
 
 const PLANET_GLYPH: Record<string, string> = {
-  Sun: '☉', Moon: '☾', Mercury: '☿', Venus: '♀', Mars: '♂', Jupiter: '♃',
-  Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇', 'North Node': '☊', Node: '☊', Chiron: '⚷', Lilith: '⚸',
+  Sun: '☉',
+  Moon: '☾',
+  Mercury: '☿',
+  Venus: '♀',
+  Mars: '♂',
+  Jupiter: '♃',
+  Saturn: '♄',
+  Uranus: '♅',
+  Neptune: '♆',
+  Pluto: '♇',
+  'North Node': '☊',
+  Node: '☊',
+  Chiron: '⚷',
+  Lilith: '⚸',
 }
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성', Jupiter: '목성',
-  Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성', Pluto: '명왕성', 'North Node': '북교점', Node: '북교점',
-  Chiron: '카이런', Lilith: '릴리스',
+  Sun: '태양',
+  Moon: '달',
+  Mercury: '수성',
+  Venus: '금성',
+  Mars: '화성',
+  Jupiter: '목성',
+  Saturn: '토성',
+  Uranus: '천왕성',
+  Neptune: '해왕성',
+  Pluto: '명왕성',
+  'North Node': '북교점',
+  Node: '북교점',
+  Chiron: '카이런',
+  Lilith: '릴리스',
 }
 // 점성 sign 한국어 → 영문 풀네임 (NatalContext 는 ZodiacKo 사용)
 const SIGN_KO_FULL: Record<string, string> = {
-  양자리: 'Aries', 황소자리: 'Taurus', 쌍둥이자리: 'Gemini', 게자리: 'Cancer', 사자자리: 'Leo', 처녀자리: 'Virgo',
-  천칭자리: 'Libra', 전갈자리: 'Scorpio', 사수자리: 'Sagittarius', 염소자리: 'Capricorn', 물병자리: 'Aquarius', 물고기자리: 'Pisces',
+  양자리: 'Aries',
+  황소자리: 'Taurus',
+  쌍둥이자리: 'Gemini',
+  게자리: 'Cancer',
+  사자자리: 'Leo',
+  처녀자리: 'Virgo',
+  천칭자리: 'Libra',
+  전갈자리: 'Scorpio',
+  사수자리: 'Sagittarius',
+  염소자리: 'Capricorn',
+  물병자리: 'Aquarius',
+  물고기자리: 'Pisces',
 }
 const toAbbr = (sign: string | undefined): string => {
   if (!sign) return 'Ari'
@@ -63,12 +125,35 @@ const fmtDeg = (lon: number | undefined): string => {
 }
 // 신살 길흉 polarity (대표 — 없으면 0)
 const SHINSAL_POLARITY: Record<string, number> = {
-  천을귀인: 3, 문창귀인: 2, 태극귀인: 2, 천덕귀인: 2, 월덕귀인: 2, 학당귀인: 2, 건록: 2, 천을: 3,
-  도화: 1, 도화살: 1, 역마: 1, 역마살: 1, 홍염살: 0, 화개: 0,
-  양인: -1, 양인살: -2, 백호: -2, 괴강: -1, 공망: -1, 원진: -1, 귀문: -1, 현침: -1,
+  천을귀인: 3,
+  문창귀인: 2,
+  태극귀인: 2,
+  천덕귀인: 2,
+  월덕귀인: 2,
+  학당귀인: 2,
+  건록: 2,
+  천을: 3,
+  도화: 1,
+  도화살: 1,
+  역마: 1,
+  역마살: 1,
+  홍염살: 0,
+  화개: 0,
+  양인: -1,
+  양인살: -2,
+  백호: -2,
+  괴강: -1,
+  공망: -1,
+  원진: -1,
+  귀문: -1,
+  현침: -1,
 }
 
-interface AnyCtx { input?: any; saju?: any; astro?: any }
+interface AnyCtx {
+  input?: any
+  saju?: any
+  astro?: any
+}
 
 /** NatalContext → ReportData (chart.zip 뷰모델). */
 export function natalToReportData(ctx: AnyCtx): ReportData {
@@ -80,15 +165,23 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
   const date = `${String(inp.year).padStart(4, '0')}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}`
   const time = `${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
 
-  const mapPillar = (p: any, stages: Record<string, string>, key: string, isDay = false): ReportPillar => {
+  const mapPillar = (
+    p: any,
+    stages: Record<string, string>,
+    key: string,
+    isDay = false
+  ): ReportPillar => {
     const jj = p?.jijanggan ?? {}
     const slots = [jj.chogi, jj.junggi, jj.jeonggi].filter(Boolean)
     return {
       stem: p?.heavenlyStem?.name ?? '',
       branch: p?.earthlyBranch?.name ?? '',
-      sibsinStem: isDay ? '日干' : p?.heavenlyStem?.sibsin ?? '',
+      sibsinStem: isDay ? '日干' : (p?.heavenlyStem?.sibsin ?? ''),
       sibsinBranch: p?.earthlyBranch?.sibsin ?? '',
-      jijanggan: slots.map((sl: any) => ({ g: sl.name ?? sl.stem ?? sl.g ?? '', d: sl.days ?? sl.weight ?? sl.d ?? 0 })),
+      jijanggan: slots.map((sl: any) => ({
+        g: sl.name ?? sl.stem ?? sl.g ?? '',
+        d: sl.days ?? sl.weight ?? sl.d ?? 0,
+      })),
       twelveStage: stages?.[key] ?? '',
       isDay,
     }
@@ -99,19 +192,30 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
   // 신살
   const natalShinsal = (S.natalShinsal ?? []).slice(0, 8).map((h: any) => {
     const kind = h.kind ?? h.name ?? ''
-    const pillar = Array.isArray(h.pillars) ? PILLAR_KO[h.pillars[0]] ?? '' : ''
-    return { name: kind, ko: kind, pillar, sub: h.sub, polarity: h.polarity ?? SHINSAL_POLARITY[kind] ?? 0 }
+    const pillar = Array.isArray(h.pillars) ? (PILLAR_KO[h.pillars[0]] ?? '') : ''
+    return {
+      name: kind,
+      ko: kind,
+      pillar,
+      sub: h.sub,
+      polarity: h.polarity ?? SHINSAL_POLARITY[kind] ?? 0,
+    }
   })
   // 관계
   const natalRelations = (S.natalRelations ?? []).slice(0, 6).map((r: any) => {
     const kind = String(r.kind ?? r.type ?? '')
-    const tone: 'pos' | 'neg' | 'neutral' = kind.includes('합') ? 'pos' : kind.includes('충') || kind.includes('형') || kind.includes('파') || kind.includes('해') ? 'neg' : 'neutral'
+    const tone: 'pos' | 'neg' | 'neutral' = kind.includes('합')
+      ? 'pos'
+      : kind.includes('충') || kind.includes('형') || kind.includes('파') || kind.includes('해')
+        ? 'neg'
+        : 'neutral'
     return { type: kind, detail: r.detail ?? r.basis ?? '', tone }
   })
   // 대운 (현재 여부는 NatalContext 에 없으면 false — 호출측에서 보강 가능)
   const daeun = (S.daeun ?? []).slice(0, 8).map((d: any) => ({
     age: d.startAge ?? d.age ?? 0,
-    stem: d.stem ?? '', branch: d.branch ?? '',
+    stem: d.stem ?? '',
+    branch: d.branch ?? '',
     sibsin: d.sibsin ?? '',
     current: !!d.current,
   }))
@@ -129,11 +233,18 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
     speed: p.speed ?? 0,
   }))
   const extraPoints = (A.extraPoints ?? []).map((p: any) => ({
-    name: p.name, ko: PLANET_KO[p.name] ?? p.name, glyph: PLANET_GLYPH[p.name] ?? '✦',
-    lon: p.longitude ?? p.lon ?? 0, sign: toAbbr(p.sign), deg: fmtDeg(p.longitude ?? p.lon), house: p.house ?? 0,
+    name: p.name,
+    ko: PLANET_KO[p.name] ?? p.name,
+    glyph: PLANET_GLYPH[p.name] ?? '✦',
+    lon: p.longitude ?? p.lon ?? 0,
+    sign: toAbbr(p.sign),
+    deg: fmtDeg(p.longitude ?? p.lon),
+    house: p.house ?? 0,
   }))
   const houses = (A.chart?.houses ?? A.houses ?? []).map((h: any, i: number) => ({
-    i: h.index ?? h.i ?? i + 1, cusp: h.cusp ?? 0, sign: toAbbr(h.sign),
+    i: h.index ?? h.i ?? i + 1,
+    cusp: h.cusp ?? 0,
+    sign: toAbbr(h.sign),
   }))
   // 본명 aspects — facts.hellenistic 가 major+minor 다 줌 (~30+ hits). 14 cap
   // 풀어 24 로 (UI 가 슬라이더/접고 펼침으로 처리). orb 작은 순.
@@ -142,8 +253,11 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
     .sort((a: any, b: any) => (a.orb ?? 99) - (b.orb ?? 99))
     .slice(0, 24)
     .map((a: any) => ({
-      a: a.from?.name ?? a.a ?? '', b: a.to?.name ?? a.b ?? '',
-      type: a.type ?? 'conjunction', orb: a.orb ?? 0, applying: !!a.applying,
+      a: a.from?.name ?? a.a ?? '',
+      b: a.to?.name ?? a.b ?? '',
+      type: a.type ?? 'conjunction',
+      orb: a.orb ?? 0,
+      applying: !!a.applying,
     }))
 
   // dignities — Phase B: facts.hellenistic.dignities (5-tier per planet) 를 그대로
@@ -184,16 +298,24 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
 
   return {
     input: {
-      name: inp.name ?? '내담자', gender: inp.gender ?? 'male', calendar: '양력', date, time,
-      place: inp.place ?? '', lat: inp.latitude ?? 0, lng: inp.longitude ?? 0,
-      timeZone: inp.timeZone ?? '', isoUTC: inp.isoUTC ?? '',
+      name: inp.name ?? '내담자',
+      gender: inp.gender ?? 'male',
+      calendar: '양력',
+      date,
+      time,
+      place: inp.place ?? '',
+      lat: inp.latitude ?? 0,
+      lng: inp.longitude ?? 0,
+      timeZone: inp.timeZone ?? '',
+      isoUTC: inp.isoUTC ?? '',
     },
     saju: {
       dayMaster: S.dayMaster?.name ?? '',
       strength: S.strength ?? 'medium',
       geokguk: adv.geokguk?.primary ?? S.geokguk ?? '미정',
       yongsin: {
-        primary: elEn(S.yongsin?.primary), secondary: S.yongsin?.secondary ? elEn(S.yongsin.secondary) : undefined,
+        primary: elEn(S.yongsin?.primary),
+        secondary: S.yongsin?.secondary ? elEn(S.yongsin.secondary) : undefined,
         avoid: (S.yongsin?.avoid ?? []).map(elEn),
       },
       pillars: {
@@ -203,7 +325,9 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
         year: mapPillar(pillars.year, stages, 'year'),
       },
       fiveElements: S.fiveElements ?? { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 },
-      natalShinsal, natalRelations, daeun,
+      natalShinsal,
+      natalRelations,
+      daeun,
       // 회색 3 셀 해소 (RAW_DISTRIBUTION v5.4 — buildReportContext 가 흘려줌).
       rooted: typeof S.rooted === 'boolean' ? S.rooted : undefined,
       gongmang: Array.isArray(S.gongmang) ? S.gongmang : undefined,
@@ -212,20 +336,47 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
         : null,
     },
     astro: {
-      sect: A.sect ?? 'day', houseSystem: A.houseSystem ?? 'Placidus',
-      ascendant: { lon: asc.longitude ?? asc.lon ?? 0, sign: SIGN_KO_FULL[asc.sign] ?? asc.sign ?? 'Virgo', deg: fmtDeg(asc.longitude ?? asc.lon) },
-      mc: { lon: mc.longitude ?? mc.lon ?? 0, sign: SIGN_KO_FULL[mc.sign] ?? mc.sign ?? 'Gemini', deg: fmtDeg(mc.longitude ?? mc.lon) },
-      planets, extraPoints, houses, aspects, dignities,
-      lots, almuten,
+      sect: A.sect ?? 'day',
+      houseSystem: A.houseSystem ?? 'Placidus',
+      ascendant: {
+        lon: asc.longitude ?? asc.lon ?? 0,
+        sign: SIGN_KO_FULL[asc.sign] ?? asc.sign ?? 'Virgo',
+        deg: fmtDeg(asc.longitude ?? asc.lon),
+      },
+      mc: {
+        lon: mc.longitude ?? mc.lon ?? 0,
+        sign: SIGN_KO_FULL[mc.sign] ?? mc.sign ?? 'Gemini',
+        deg: fmtDeg(mc.longitude ?? mc.lon),
+      },
+      planets,
+      extraPoints,
+      houses,
+      aspects,
+      dignities,
+      lots,
+      almuten,
     },
   }
 }
 
-const PILLAR_KO: Record<string, string> = { year: '年', month: '月', day: '日', time: '時', hour: '時' }
+const PILLAR_KO: Record<string, string> = {
+  year: '年',
+  month: '月',
+  day: '日',
+  time: '時',
+  hour: '時',
+}
 
 // ── 섹션 5: natalCross 교차 → 카드 rows ──────────────────────────────────
-export interface CrossRowOut { category: string; tone: CrossVerdict['tone']; reason: string }
-export function buildCrossRows(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): { synthesis?: string; rows: CrossRowOut[] } {
+export interface CrossRowOut {
+  category: string
+  tone: CrossVerdict['tone']
+  reason: string
+}
+export function buildCrossRows(
+  ctx: AnyCtx,
+  lang: 'ko' | 'en' = 'ko'
+): { synthesis?: string; rows: CrossRowOut[] } {
   const S = ctx.saju ?? {}
   const A = ctx.astro ?? {}
   const adv = S.analyses ?? {}
@@ -245,7 +396,10 @@ export function buildCrossRows(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): { synthes
   const emphasized = new Set<string>()
   let topDignity: { planet: string; status: string } | null = null
   const dignityIdx: Record<string, { domicile: boolean; exaltation: boolean }> = {}
-  for (const d of (A.dignities ?? []) as Array<{ planet: string; tiers?: { domicile?: boolean; exaltation?: boolean } }>) {
+  for (const d of (A.dignities ?? []) as Array<{
+    planet: string
+    tiers?: { domicile?: boolean; exaltation?: boolean }
+  }>) {
     dignityIdx[d.planet] = { domicile: !!d.tiers?.domicile, exaltation: !!d.tiers?.exaltation }
   }
   for (const p of planets) {
@@ -254,11 +408,18 @@ export function buildCrossRows(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): { synthes
     const dg = dignityIdx[p.name]
     if (dg?.domicile || dg?.exaltation) {
       emphasized.add(p.name)
-      if (!topDignity) topDignity = { planet: p.name, status: dg.domicile ? 'domicile' : 'exaltation' }
+      if (!topDignity)
+        topDignity = { planet: p.name, status: dg.domicile ? 'domicile' : 'exaltation' }
     }
   }
-  const aspectsForKey = (A.natalAspects ?? A.aspects ?? []).map((a: any) => ({ from: { name: a.from?.name ?? a.a }, to: { name: a.to?.name ?? a.b }, type: a.type, orb: a.orb }))
-  let harmonious = 0, hard = 0
+  const aspectsForKey = (A.natalAspects ?? A.aspects ?? []).map((a: any) => ({
+    from: { name: a.from?.name ?? a.a },
+    to: { name: a.to?.name ?? a.b },
+    type: a.type,
+    orb: a.orb,
+  }))
+  let harmonious = 0,
+    hard = 0
   for (const a of A.natalAspects ?? A.aspects ?? []) {
     const t = String(a.type ?? '').toLowerCase()
     if (t === 'trine' || t === 'sextile') harmonious++
@@ -267,7 +428,9 @@ export function buildCrossRows(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): { synthes
   const rels = S.natalRelations ?? []
   const hap = rels.filter((r: any) => String(r.kind ?? r.type).includes('합')).length
   const chung = rels.filter((r: any) => String(r.kind ?? r.type).includes('충')).length
-  const dayShinsal = (S.natalShinsal ?? []).filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day')).map((h: any) => String(h.kind ?? h.name))
+  const dayShinsal = (S.natalShinsal ?? [])
+    .filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day'))
+    .map((h: any) => String(h.kind ?? h.name))
   const stage = S.twelveStages?.day
   const strength = adv.yongsin?.daymasterStrength ?? S.strength
 
@@ -276,13 +439,18 @@ export function buildCrossRows(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): { synthes
   // 반환해 자동 행 생략.
   const gongmangBranches = adv.gongmang?.gongmangBranches ?? S.gongmang ?? []
   const northNode = planets.find((p: any) => p.name === 'North Node' || p.name === 'Node')
-  const northSignFull = northNode?.sign ? (SIGN_KO_FULL[northNode.sign] ?? northNode.sign) : undefined
+  const northSignFull = northNode?.sign
+    ? (SIGN_KO_FULL[northNode.sign] ?? northNode.sign)
+    : undefined
   const southNodeSign = northSignFull ? getSouthNodeOppositeSign(northSignFull as never) : undefined
 
   const items: Array<[string, CrossVerdict | null]> = [
     ['정체성', evalIdentity(dmEl, sunSign)],
     ['욕망', evalNeeds(S.yongsin?.primary, moonSign)],
-    ['사회역할', adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null],
+    [
+      '사회역할',
+      adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null,
+    ],
     ['길흉', evalFortune(dayShinsal)],
     ['관계', evalRelations(hap, chung, harmonious, hard)],
     ['강점', evalStrength(stage, topDignity)],

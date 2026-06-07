@@ -23,7 +23,7 @@ export const SIGN_EN_TO_KO: Record<string, string> = {
 
 /** 별자리 한국어 → 영문 (위 표의 역). */
 export const SIGN_KO_TO_EN: Record<string, string> = Object.fromEntries(
-  Object.entries(SIGN_EN_TO_KO).map(([en, ko]) => [ko, en]),
+  Object.entries(SIGN_EN_TO_KO).map(([en, ko]) => [ko, en])
 )
 
 /** 행성 영문 → {한국어, 영문}. */

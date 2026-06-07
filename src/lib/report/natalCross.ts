@@ -111,25 +111,29 @@ export function sajuKeyMapping(key: string | undefined): CrossMapping | undefine
 /** 정체성: 일간 오행 ↔ 태양 별자리. */
 export function evalIdentity(
   dayMasterEl: string | undefined,
-  sunSign: string | undefined,
+  sunSign: string | undefined
 ): CrossVerdict | null {
   const a = normSajuElement(dayMasterEl)
   const b = signToSajuElement(sunSign)
   if (!a || !b) return null
   return elementVerdict(a, b, {
-    sameKo: '속마음과 겉으로 보이는 모습이 같은 방향이에요 — "생긴 대로, 나답게" 살 때 가장 편한 사람.',
+    sameKo:
+      '속마음과 겉으로 보이는 모습이 같은 방향이에요 — "생긴 대로, 나답게" 살 때 가장 편한 사람.',
     sameEn: 'Your inner and outer selves point the same way — you feel best just being yourself.',
-    genKo: '타고난 본바탕과 드러나는 자아는 결이 다르지만 서로 잘 받쳐줘요 — 안과 밖이 균형 잡힌 타입.',
+    genKo:
+      '타고난 본바탕과 드러나는 자아는 결이 다르지만 서로 잘 받쳐줘요 — 안과 밖이 균형 잡힌 타입.',
     genEn: 'Your inner nature and outer self differ but support each other — well balanced.',
-    ctrlKo: '타고난 본바탕과 드러나는 자아가 다른 방향이라, 가끔 "내가 진짜 원하는 게 뭐지?" 싶을 수 있어요.',
-    ctrlEn: 'Inner nature and outer self pull different ways — you may question what you really want.',
+    ctrlKo:
+      '타고난 본바탕과 드러나는 자아가 다른 방향이라, 가끔 "내가 진짜 원하는 게 뭐지?" 싶을 수 있어요.',
+    ctrlEn:
+      'Inner nature and outer self pull different ways — you may question what you really want.',
   })
 }
 
 /** 필요·욕망: 용신 오행 ↔ 달 별자리. */
 export function evalNeeds(
   yongsinEl: string | undefined,
-  moonSign: string | undefined,
+  moonSign: string | undefined
 ): CrossVerdict | null {
   const need = normSajuElement(yongsinEl)
   const moon = signToSajuElement(moonSign)
@@ -170,7 +174,7 @@ export function evalNeeds(
 /** 사회 역할: 격국 ↔ MC. 격국 대표 십신을 행성으로 환원해 MC 위신으로 판정. */
 export function evalSocialRole(
   geokguk: string | undefined,
-  mcSign: string | undefined,
+  mcSign: string | undefined
 ): CrossVerdict | null {
   if (!geokguk || !mcSign) return null
   const sibsin = geokguk.replace(/격$/, '')
@@ -238,7 +242,7 @@ export function evalRelations(
   hap: number,
   chung: number,
   harmonious: number,
-  hard: number,
+  hard: number
 ): CrossVerdict | null {
   if (hap + chung + harmonious + hard === 0) return null
   const sajuHarmony = hap - chung
@@ -274,7 +278,7 @@ const WEAK_STAGES = new Set(['병', '사', '묘', '절'])
 
 export function evalStrength(
   twelveStage: string | undefined,
-  topDignity: { planet: string; status: string } | null,
+  topDignity: { planet: string; status: string } | null
 ): CrossVerdict | null {
   if (!twelveStage && !topDignity) return null
   const sajuStrong = twelveStage ? STRONG_STAGES.has(twelveStage) : false
@@ -325,7 +329,7 @@ export function evalStrength(
 
 /** 오행 카운트(한/영 키 혼용)에서 가장 강한 원소. */
 export function dominantSajuElement(
-  counts: Record<string, number> | undefined,
+  counts: Record<string, number> | undefined
 ): SajuElement | undefined {
   if (!counts) return undefined
   const agg: Record<SajuElement, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
@@ -366,7 +370,7 @@ export function dominantAstroElement(signs: string[] | undefined): SajuElement |
 /** 기질: 사주 오행 분포 ↔ 점성 원소 분포 — 차트 전체의 우세 기운을 교차. */
 export function evalTemperament(
   sajuCounts: Record<string, number> | undefined,
-  astroSigns: string[] | undefined,
+  astroSigns: string[] | undefined
 ): CrossVerdict | null {
   const a = dominantSajuElement(sajuCounts)
   const b = dominantAstroElement(astroSigns)
@@ -376,7 +380,8 @@ export function evalTemperament(
     sameEn: 'Both systems agree on your strongest trait — one clear, defined color.',
     genKo: '사주가 보는 성향과 별자리가 보는 성향이 서로 잘 맞물려서 받쳐줘요.',
     genEn: 'Your two strongest traits interlock and support each other.',
-    ctrlKo: '사주가 보는 주된 성향과 별자리가 보는 성향이 서로 당겨요 — 안에 다른 두 기운이 같이 있는 셈.',
+    ctrlKo:
+      '사주가 보는 주된 성향과 별자리가 보는 성향이 서로 당겨요 — 안에 다른 두 기운이 같이 있는 셈.',
     ctrlEn: 'Your two main traits pull against each other — two different energies side by side.',
   })
 }
@@ -401,7 +406,7 @@ const SIBSIN_GROUPS = ['비겁', '식상', '재성', '관성', '인성']
 
 /** 십신 그룹 카운트에서 가장 강한 그룹. */
 export function dominantSibsinGroup(
-  details: Record<string, number> | undefined,
+  details: Record<string, number> | undefined
 ): string | undefined {
   if (!details) return undefined
   let best: string | undefined
@@ -419,7 +424,7 @@ export function dominantSibsinGroup(
 /** 에너지 방향: 십신 우세 그룹 ↔ 그 그룹의 대표 행성이 차트에서 강조됐는가. */
 export function evalEnergyDirection(
   details: Record<string, number> | undefined,
-  emphasizedPlanets: Set<string>,
+  emphasizedPlanets: Set<string>
 ): CrossVerdict | null {
   const group = dominantSibsinGroup(details)
   if (!group) return null
@@ -446,25 +451,27 @@ export function evalEnergyDirection(
 /** 드러나는 나: 일간(본질) ↔ ASC(첫인상·외적 자아). */
 export function evalPersona(
   dayMasterEl: string | undefined,
-  ascSign: string | undefined,
+  ascSign: string | undefined
 ): CrossVerdict | null {
   const a = normSajuElement(dayMasterEl)
   const b = signToSajuElement(ascSign)
   if (!a || !b) return null
   return elementVerdict(a, b, {
-    sameKo: '속 모습과 남에게 비치는 첫인상이 같아요 — "보이는 그대로인 사람"이라 신뢰 주기 쉬워요.',
+    sameKo:
+      '속 모습과 남에게 비치는 첫인상이 같아요 — "보이는 그대로인 사람"이라 신뢰 주기 쉬워요.',
     sameEn: 'Your inner self and first impression match — what people see is what they get.',
     genKo: '속 모습과 첫인상이 결은 다르지만 서로 잘 받쳐줘요.',
     genEn: 'Your inner self and first impression differ but back each other up.',
     ctrlKo: '속마음과 겉으로 비치는 첫인상이 달라서, 처음엔 오해받다 알고 보면 반전 있는 타입.',
-    ctrlEn: 'Inner self and first impression differ — easily misread at first, a pleasant surprise later.',
+    ctrlEn:
+      'Inner self and first impression differ — easily misread at first, a pleasant surprise later.',
   })
 }
 
 /** 추진력: 신강약(사주) ↔ 자기주장 행성(태양·화성) 강조 여부. */
 export function evalDrive(
   strengthLevel: string | undefined,
-  selfEmphasized: boolean,
+  selfEmphasized: boolean
 ): CrossVerdict | null {
   if (!strengthLevel) return null
   const s = strengthLevel.toLowerCase()
@@ -515,21 +522,81 @@ export function evalDrive(
 const PERSONAL_PLANETS = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn'])
 const MAJOR_ASPECTS = new Set(['conjunction', 'sextile', 'square', 'trine', 'opposition'])
 const ASPECT_PAIR_THEME: Record<string, { ko: string; en: string; group: string }> = {
-  'Jupiter|Sun': { ko: '타고난 낙천과 자신감 — 기회를 크게 보고 사람을 끌어요.', en: 'Born optimism and confidence — you think big and draw people in.', group: '인성' },
-  'Mars|Sun': { ko: '에너지가 넘치고 앞장서는 행동파예요.', en: 'High energy, first to act — a doer.', group: '비겁' },
-  'Saturn|Sun': { ko: '일찍 철든 책임감형 — 인정은 늦게 와도 단단하게 쌓여요.', en: 'Mature and responsible early — recognition comes slow but solid.', group: '관성' },
-  'Moon|Venus': { ko: '정 많고 사람을 끄는 다정한 매력형이에요.', en: 'Warm and magnetic — people feel at ease with you.', group: '재성' },
-  'Moon|Saturn': { ko: '감정을 안으로 삭이는 진중하고 어른스러운 타입이에요.', en: 'You hold feelings in — steady and grown-up.', group: '인성' },
-  'Mars|Moon': { ko: '감정이 솔직하고 열정적 — 가끔 욱하지만 뒤끝은 없어요.', en: 'Honest, passionate feelings — quick to flare, quick to let go.', group: '비겁' },
-  'Mercury|Saturn': { ko: '말과 생각이 신중하고 논리적인 편이에요.', en: 'Careful, logical in thought and speech.', group: '관성' },
-  'Mars|Venus': { ko: '관계·연애에 적극적이고 매력을 잘 드러내요.', en: 'Forward in love and quick to show your charm.', group: '재성' },
-  'Saturn|Venus': { ko: '관계에 신중하고 진지 — 한번 정하면 오래가요.', en: 'Careful and serious in love — once you commit, it lasts.', group: '관성' },
-  'Mars|Saturn': { ko: '참을성 있게 끝까지 밀어붙이는 인내형이에요.', en: 'Patient, you push through to the end.', group: '관성' },
-  'Moon|Sun': { ko: '속과 겉이 한 방향 — 자기 자신과 잘 합의된 사람.', en: 'Inner and outer in sync — at peace with yourself.', group: '비겁' },
-  'Jupiter|Mercury': { ko: '배우고 가르치는 데 강하고 시야가 넓어요.', en: 'Strong at learning and teaching, with a wide view.', group: '인성' },
-  'Jupiter|Moon': { ko: '정서가 넉넉하고 낙천적이라 사람들이 편하게 느껴요.', en: 'Generous, easygoing feelings — others relax around you.', group: '인성' },
-  'Mercury|Venus': { ko: '말·글·미적 감각이 좋은 표현형이에요.', en: 'A natural communicator with good taste.', group: '식상' },
-  'Mercury|Sun': { ko: '생각이 또렷하고 자기 표현이 분명한 편이에요.', en: 'Clear-minded and articulate about who you are.', group: '식상' },
+  'Jupiter|Sun': {
+    ko: '타고난 낙천과 자신감 — 기회를 크게 보고 사람을 끌어요.',
+    en: 'Born optimism and confidence — you think big and draw people in.',
+    group: '인성',
+  },
+  'Mars|Sun': {
+    ko: '에너지가 넘치고 앞장서는 행동파예요.',
+    en: 'High energy, first to act — a doer.',
+    group: '비겁',
+  },
+  'Saturn|Sun': {
+    ko: '일찍 철든 책임감형 — 인정은 늦게 와도 단단하게 쌓여요.',
+    en: 'Mature and responsible early — recognition comes slow but solid.',
+    group: '관성',
+  },
+  'Moon|Venus': {
+    ko: '정 많고 사람을 끄는 다정한 매력형이에요.',
+    en: 'Warm and magnetic — people feel at ease with you.',
+    group: '재성',
+  },
+  'Moon|Saturn': {
+    ko: '감정을 안으로 삭이는 진중하고 어른스러운 타입이에요.',
+    en: 'You hold feelings in — steady and grown-up.',
+    group: '인성',
+  },
+  'Mars|Moon': {
+    ko: '감정이 솔직하고 열정적 — 가끔 욱하지만 뒤끝은 없어요.',
+    en: 'Honest, passionate feelings — quick to flare, quick to let go.',
+    group: '비겁',
+  },
+  'Mercury|Saturn': {
+    ko: '말과 생각이 신중하고 논리적인 편이에요.',
+    en: 'Careful, logical in thought and speech.',
+    group: '관성',
+  },
+  'Mars|Venus': {
+    ko: '관계·연애에 적극적이고 매력을 잘 드러내요.',
+    en: 'Forward in love and quick to show your charm.',
+    group: '재성',
+  },
+  'Saturn|Venus': {
+    ko: '관계에 신중하고 진지 — 한번 정하면 오래가요.',
+    en: 'Careful and serious in love — once you commit, it lasts.',
+    group: '관성',
+  },
+  'Mars|Saturn': {
+    ko: '참을성 있게 끝까지 밀어붙이는 인내형이에요.',
+    en: 'Patient, you push through to the end.',
+    group: '관성',
+  },
+  'Moon|Sun': {
+    ko: '속과 겉이 한 방향 — 자기 자신과 잘 합의된 사람.',
+    en: 'Inner and outer in sync — at peace with yourself.',
+    group: '비겁',
+  },
+  'Jupiter|Mercury': {
+    ko: '배우고 가르치는 데 강하고 시야가 넓어요.',
+    en: 'Strong at learning and teaching, with a wide view.',
+    group: '인성',
+  },
+  'Jupiter|Moon': {
+    ko: '정서가 넉넉하고 낙천적이라 사람들이 편하게 느껴요.',
+    en: 'Generous, easygoing feelings — others relax around you.',
+    group: '인성',
+  },
+  'Mercury|Venus': {
+    ko: '말·글·미적 감각이 좋은 표현형이에요.',
+    en: 'A natural communicator with good taste.',
+    group: '식상',
+  },
+  'Mercury|Sun': {
+    ko: '생각이 또렷하고 자기 표현이 분명한 편이에요.',
+    en: 'Clear-minded and articulate about who you are.',
+    group: '식상',
+  },
 }
 interface AspectLike {
   from?: { name?: string }
@@ -541,7 +608,7 @@ interface AspectLike {
 /** 핵심 각: 가장 강한(orb 작은) 주요 행성 각 1개의 의미 ↔ 사주 우세 십신. */
 export function evalKeyAspect(
   aspects: AspectLike[] | undefined,
-  sajuDominantGroup: string | undefined,
+  sajuDominantGroup: string | undefined
 ): CrossVerdict | null {
   if (!aspects || aspects.length === 0) return null
   let best: { key: string; pairKo: string; orb: number } | null = null
@@ -582,14 +649,23 @@ export function evalKeyAspect(
  * 戌=土, 亥=水) — 인라인 상수로 두어 외부 의존 없음.
  */
 const BRANCH_TO_ELEMENT: Record<string, SajuElement> = {
-  '子': 'water', '丑': 'earth', '寅': 'wood', '卯': 'wood', '辰': 'earth',
-  '巳': 'fire', '午': 'fire', '未': 'earth', '申': 'metal', '酉': 'metal',
-  '戌': 'earth', '亥': 'water',
+  子: 'water',
+  丑: 'earth',
+  寅: 'wood',
+  卯: 'wood',
+  辰: 'earth',
+  巳: 'fire',
+  午: 'fire',
+  未: 'earth',
+  申: 'metal',
+  酉: 'metal',
+  戌: 'earth',
+  亥: 'water',
 }
 
 export function evalVoid(
   gongmangBranches: string[] | undefined,
-  southNodeSign: string | undefined,
+  southNodeSign: string | undefined
 ): CrossVerdict | null {
   if (!gongmangBranches?.length || !southNodeSign) return null
 
@@ -599,10 +675,14 @@ export function evalVoid(
   const astroEl = SIGN_TO_ASTRO_ELEMENT[enSign]
   // 4원소(air) → 사주(wood/metal) 대응 시 둘 중 하나라도 일치하면 매치로 본다.
   const sajuFromAstro: SajuElement[] | undefined =
-    astroEl === 'fire' ? ['fire']
-      : astroEl === 'earth' ? ['earth']
-        : astroEl === 'water' ? ['water']
-          : astroEl === 'air' ? ['wood', 'metal']
+    astroEl === 'fire'
+      ? ['fire']
+      : astroEl === 'earth'
+        ? ['earth']
+        : astroEl === 'water'
+          ? ['water']
+          : astroEl === 'air'
+            ? ['wood', 'metal']
             : undefined
   const matches = !!branchEl && !!sajuFromAstro && sajuFromAstro.includes(branchEl)
 
@@ -629,7 +709,7 @@ export function evalVoid(
 /** 도메인 판정들을 모아 전체 정체성 한 문장 생성. */
 export function synthesize(
   verdicts: CrossVerdict[],
-  sharedElement?: SajuElement,
+  sharedElement?: SajuElement
 ): NatalSynthesis | null {
   if (verdicts.length === 0) return null
   let resonant = 0
@@ -685,7 +765,7 @@ function elementVerdict(
     genEn: string
     ctrlKo: string
     ctrlEn: string
-  },
+  }
 ): CrossVerdict {
   const rel = elementRelation(a, b)
   switch (rel) {
