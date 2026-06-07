@@ -1,4 +1,5 @@
 import { matchAllPatterns } from '@/lib/saju/patternMatcher'
+import { getGeokgukRich } from '@/lib/chart-dictionary'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 
 /**
@@ -45,7 +46,8 @@ const sajuPatternExtractor: SignalExtractor = {
         source: 'saju',
         kind: 'saju-pattern',
         name: geokguk,
-        korean: geokguk,
+        // 격국 정통 한 줄(tagline) 을 chart-dictionary 에서 — 없으면 이름 폴백.
+        korean: getGeokgukRich(geokguk, 'ko')?.tagline ?? geokguk,
         themes: themesForGeokguk(geokguk),
         polarity: 1, // 격국 자체는 본질 라벨 — 약한 + 톤만 부여
         layer: 'decadal',
@@ -77,7 +79,7 @@ const sajuPatternExtractor: SignalExtractor = {
         source: 'saju' as const,
         kind: 'saju-pattern' as const,
         name: top.patternName,
-        korean: top.patternName,
+        korean: getGeokgukRich(top.patternName, 'ko')?.tagline ?? top.patternName,
         themes: themesForPattern(top.category, top.keywords),
         polarity: polarityForPattern(top.rarity, top.matchScore),
         layer: 'decadal' as const, // 평생 배경 → decadal에 매핑 (가장 긴 레이어)
