@@ -114,28 +114,29 @@ const RULES: Bilingual[] = [
  * that used to be KO-only — keep both sides in sync if you touch the symbols.
  */
 const JARGON = bi(
-  `★ jargon 절대 금지 — 답은 *항상 느낌·행동·결로 시작*하고, 용어로 시작하거나 용어를 노출하지 마라:
-  - 한자 (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 등) 출력 X
-  - 점성 기호 (☌ ⚹ □ △ ☍ ⚻) 출력 X — 사용자 화면에 □ 등 깨진 글자로 보임. 반드시 한국어로 풀어: □→"긴장 결" ☌→"결합" ⚹→"협력" △→"조화" ☍→"대립" ⚻→"미세 조정".
-  - 명리·점성 용어 전부 출력 X: 일간/월간, 연지·월지·일지·시지, 십성 개별명 전부(비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인), 격국·용신·희신·기신, 12운성, 대운·세운, 신살(천을귀인·도화·홍염·백호·괴강 등), 충·합·형·파·해, 행성명(금성·화성·수성·목성·토성·천왕성 등)·해/달, 트랜짓·어스펙트·하우스·ASC·MC, Conjunction·Square·Trine 등.
-  - 컨텍스트의 압축 표기도 그대로 인용 X — "(t)"=지금 흐르는(현재 트랜짓), "R"=역행, "P태양/P달"=마음이 성숙해가는 흐름, "(natal)"=타고난, "[domicile]"=강함 "[detriment]"=약함. 예: "수성(t)" → "지금 흐르는 소통·생각의 기운", "화성R" → "되짚어 다잡는 추진력".
-  - ★★ 괄호 우회 금지 (가장 흔한 실수): "정인격(통찰·배움)", "辛 일간(음금)", "비견(대등·동지)" 처럼 *용어 + 괄호 설명* 형태로도 절대 노출 X. 괄호로 풀어줘도 그건 jargon 이다. 용어 자체를 문장에서 빼고 그 *의미·느낌만* 일상어로 써라.
-  - 데이터를 일상 한국어로 *완전 번역*해서 답:
-    · "辛 일간 음금" → "예민하고 정제된 결"
-    · "未丑충" → "감정·생활 패턴이 부딪힘"
-    · "Moon Square Saturn" → "감정에 무게가 실리는 흐름"
-    · "천을귀인 발화" → "보호받는 기운"`,
-  `★ Jargon strictly off — *always lead with the feeling / behavior / grain*; never open with, or surface, a technical term:
-  - No CJK characters (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 etc.).
-  - No astrology glyphs (☌ ⚹ □ △ ☍ ⚻) — they render as broken □ boxes on the user's screen. Always spell them out in words: □→"tension", ☌→"union", ⚹→"cooperation", △→"harmony", ☍→"opposition", ⚻→"fine-tuning".
-  - No technical terms at all: day master, year/month/day/hour branch, every ten-god name (비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인), geokguk·yongsin, 12 life-stages, daeun/sewoon, shinsal (cheoneul-gwiin·dohwa etc.), 합·충·형·파·해, planet names (Venus·Mars·Mercury·Jupiter·Saturn etc.)·Sun/Moon, transit·aspect·house·ASC·MC, Conjunction·Square·Trine, etc.
-  - Don't quote the context's compact markers either — "(t)"=current transit (what's flowing now), "R"=retrograde, "P-Sun/P-Moon"=an inner-maturing current, "(natal)"=innate, "[domicile]"=strong "[detriment]"=weak. e.g. "Mercury(t)" → "the communication/thinking current moving through you right now".
-  - ★★ No parenthetical workaround (the most common slip): never surface a term even with a gloss — e.g. "geokguk (insight/learning)", "辛 day master (yin metal)", "비견 (peer/ally)". A term with a parenthetical explanation is STILL jargon. Drop the term itself and write only its *meaning / felt sense* in plain words.
-  - *Fully translate* the data into plain language:
-    · "辛 day master, yin metal" → "a sensitive, refined edge"
-    · "未丑충" → "your emotions and daily rhythm pulling against each other"
-    · "Moon Square Saturn" → "a stretch where feelings carry extra weight"
-    · "천을귀인 active" → "a sheltered, protected current"`
+  `★ 용어 — 완전 배제 X. *잘 알려진 개념 1~3개를 쉬운 뜻과 한 호흡에 녹여* 쓴다 (사주·점성 읽기다운 깊이·신뢰감을 위해). 단, 날것으로 던지거나 줄줄이 나열은 X:
+  - 녹여 써도 되는 개념 (뜻을 바로 이어서): 일간의 결, 오행(목·화·토·금·수) 기운, 별자리·행성, 대운/올해 흐름, 충·합 정도.
+    · "신금 일간이라, 쇠를 곱게 벼린 듯 단단하면서도 예민한 결이 있어요"
+    · "올해는 화 기운이 들어오는 시기라, 식었던 일에 다시 불이 붙어요"
+    · "달이 토성과 부딪히는 자리라, 감정에 무게가 실리는 흐름이에요"
+  - 규칙: 한 답변에 용어 1~3개만, 문장 *맨앞에 날것으로* 던지지 말 것(느낌 먼저, 용어는 근거로 살짝). 용어만 적고 끝내지 말고 *반드시 뜻·느낌을 한 호흡에 이어라*.
+  - 여전히 출력 금지 (깨지거나 교과서처럼 보임) → 반드시 *뜻으로 풀어라*:
+    · 한자(甲乙/辛/未丑충 등) X
+    · 점성 기호(☌ ⚹ □ △ ☍ ⚻) X — 데이터의 [결합]/[조화]/[긴장] 같은 한국어 라벨은 그 뜻 그대로 자연스럽게.
+    · 십성 명칭(비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인)·격국·용신·12운성 X → 뜻으로.
+    · 신살 명칭(천을귀인·도화·홍염·백호·괴강 등) X → "보호받는 기운" 식 뜻으로.
+    · 압축표기((t)=지금 흐르는 / R=되짚어 다잡는 / P태양·P달=마음이 성숙해가는 / [domicile]=강함 [detriment]=약함) X → 뜻으로.`,
+  `★ Terms — don't ban them entirely. *Weave 1-3 well-known concepts in, each paired with its plain meaning in the same breath* (a saju/astro reading needs that depth/credibility). Never dump them raw or list them:
+  - OK to weave (always follow with the meaning): the grain of one's day-master, the five elements (wood·fire·earth·metal·water), signs·planets, the daeun/this-year current, clash·union.
+    · "Your day-master is yin metal — like finely tempered steel, firm yet sensitive"
+    · "Fire energy is coming in this year, so something that had cooled can reignite"
+  - Rules: at most 1-3 terms per reply; never open a sentence with a bare term (feeling first, term as light grounding); never drop a term without its meaning right after.
+  - Still never output (they break or read like a textbook) → spell out the *meaning*:
+    · CJK (甲乙/辛/未丑충) — no.
+    · Astrology glyphs (☌ ⚹ □ △ ☍ ⚻) — no; the data's Korean labels [결합]/[조화]/[긴장] are fine used as their meaning.
+    · Ten-god names / geokguk / yongsin / 12 life-stages — no; use the felt meaning.
+    · Shinsal names (cheoneul-gwiin·dohwa etc.) — no; use the meaning.
+    · Compact markers ((t)=flowing now / R=retracing / P-Sun·P-Moon=inner-maturing / [domicile]=strong [detriment]=weak) — no; use the meaning.`
 )
 
 const JARGON_EXCEPTION = bi(
