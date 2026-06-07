@@ -120,11 +120,7 @@ const BRANCH_CHUNG: Array<[string, string]> = [
   ['巳', '亥'],
 ]
 
-function countPairMatches(
-  setA: string[],
-  setB: string[],
-  pairs: Array<[string, string]>
-): number {
+function countPairMatches(setA: string[], setB: string[], pairs: Array<[string, string]>): number {
   let n = 0
   for (const [x, y] of pairs) {
     const ab = setA.includes(x) && setB.includes(y)
@@ -169,7 +165,10 @@ function normalizeFiveElements(
   return out
 }
 
-function elementsComplementScore(a: SajuLike | undefined, b: SajuLike | undefined): number | undefined {
+function elementsComplementScore(
+  a: SajuLike | undefined,
+  b: SajuLike | undefined
+): number | undefined {
   const ea = normalizeFiveElements(a?.fiveElements)
   const eb = normalizeFiveElements(b?.fiveElements)
   if (!ea || !eb) return undefined

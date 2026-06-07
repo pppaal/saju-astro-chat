@@ -77,9 +77,7 @@ const readingOf = (name?: string, lang: 'ko' | 'en' = 'ko') => {
 // 옛 동작(긴 image 그대로)에서 모바일 셀 폭 부족으로 글자 단위 줄바꿈 발생 → animal 로 교체.
 const imageOf = (name?: string, lang: 'ko' | 'en' = 'ko'): string => {
   if (!name) return ''
-  const entry = getHanjaRich(name, lang) as
-    | { image?: string; animal?: string }
-    | null
+  const entry = getHanjaRich(name, lang) as { image?: string; animal?: string } | null
   if (!entry) return ''
   if (entry.animal) return entry.animal
   const raw = entry.image

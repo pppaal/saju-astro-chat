@@ -289,26 +289,14 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
               <tspan x={lp.x} dy="-0.42em">
                 {phrase}
               </tspan>
-              <tspan
-                x={lp.x}
-                dy="1.12em"
-                fontSize="10"
-                fontWeight="500"
-                fill="#d4b572"
-              >
+              <tspan x={lp.x} dy="1.12em" fontSize="10" fontWeight="500" fill="#d4b572">
                 {el}
               </tspan>
             </text>
           )
         })}
         {/* "중심에서 멀수록 강함" 미세 라벨 — 시각 단서. */}
-        <text
-          x={CX}
-          y={H - 8}
-          fill="rgba(245,247,251,0.4)"
-          fontSize="9"
-          textAnchor="middle"
-        >
+        <text x={CX} y={H - 8} fill="rgba(245,247,251,0.4)" fontSize="9" textAnchor="middle">
           {isKo ? '중심 ← 약함 · 멀수록 강함 →' : 'center = weak · further out = stronger'}
         </text>
       </svg>

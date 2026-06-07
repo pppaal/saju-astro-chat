@@ -24,8 +24,18 @@ interface CompatLinesProps {
 
 type PillarKey = 'time' | 'day' | 'month' | 'year'
 const PILLAR_ORDER: PillarKey[] = ['time', 'day', 'month', 'year']
-const PILLAR_LABEL_KO: Record<PillarKey, string> = { time: '時', day: '日', month: '月', year: '年' }
-const PILLAR_LABEL_EN: Record<PillarKey, string> = { time: 'Hr', day: 'Dy', month: 'Mo', year: 'Yr' }
+const PILLAR_LABEL_KO: Record<PillarKey, string> = {
+  time: '時',
+  day: '日',
+  month: '月',
+  year: '年',
+}
+const PILLAR_LABEL_EN: Record<PillarKey, string> = {
+  time: 'Hr',
+  day: 'Dy',
+  month: 'Mo',
+  year: 'Yr',
+}
 
 interface Pillars {
   time: { stem?: string; branch?: string }
@@ -35,14 +45,49 @@ interface Pillars {
 }
 
 // ── 관계 사전 ────────────────────────────────────────────────────────────────
-const STEM_HAP: Array<[string, string]> = [['甲','己'],['乙','庚'],['丙','辛'],['丁','壬'],['戊','癸']]
-const STEM_CHUNG: Array<[string, string]> = [['甲','庚'],['乙','辛'],['丙','壬'],['丁','癸']]
-const BRANCH_YUKHAP: Array<[string, string]> = [['子','丑'],['寅','亥'],['卯','戌'],['辰','酉'],['巳','申'],['午','未']]
-const BRANCH_CHUNG: Array<[string, string]> = [['子','午'],['丑','未'],['寅','申'],['卯','酉'],['辰','戌'],['巳','亥']]
-const BRANCH_WONJIN: Array<[string, string]> = [['子','未'],['丑','午'],['寅','酉'],['卯','申'],['辰','亥'],['巳','戌']]
+const STEM_HAP: Array<[string, string]> = [
+  ['甲', '己'],
+  ['乙', '庚'],
+  ['丙', '辛'],
+  ['丁', '壬'],
+  ['戊', '癸'],
+]
+const STEM_CHUNG: Array<[string, string]> = [
+  ['甲', '庚'],
+  ['乙', '辛'],
+  ['丙', '壬'],
+  ['丁', '癸'],
+]
+const BRANCH_YUKHAP: Array<[string, string]> = [
+  ['子', '丑'],
+  ['寅', '亥'],
+  ['卯', '戌'],
+  ['辰', '酉'],
+  ['巳', '申'],
+  ['午', '未'],
+]
+const BRANCH_CHUNG: Array<[string, string]> = [
+  ['子', '午'],
+  ['丑', '未'],
+  ['寅', '申'],
+  ['卯', '酉'],
+  ['辰', '戌'],
+  ['巳', '亥'],
+]
+const BRANCH_WONJIN: Array<[string, string]> = [
+  ['子', '未'],
+  ['丑', '午'],
+  ['寅', '酉'],
+  ['卯', '申'],
+  ['辰', '亥'],
+  ['巳', '戌'],
+]
 // 삼합 4 국 — 두 지지가 같은 국 안에 있으면 partial 삼합.
 const BRANCH_SAMHAP_GROUPS: string[][] = [
-  ['申','子','辰'],['亥','卯','未'],['寅','午','戌'],['巳','酉','丑'],
+  ['申', '子', '辰'],
+  ['亥', '卯', '未'],
+  ['寅', '午', '戌'],
+  ['巳', '酉', '丑'],
 ]
 
 function isPair(pairs: Array<[string, string]>, a: string, b: string): boolean {
@@ -76,7 +121,7 @@ type LineKind = 'stemHap' | 'stemChung' | 'branchYukhap' | 'branchSamhap' | 'bra
 interface RelLine {
   kind: LineKind
   fromIdx: number // 0..3 — A 의 PILLAR_ORDER index (時→0)
-  toIdx: number   // 0..3 — B 의 PILLAR_ORDER index
+  toIdx: number // 0..3 — B 의 PILLAR_ORDER index
   fromChar: string
   toChar: string
   category: RelationCategory
@@ -84,13 +129,16 @@ interface RelLine {
   priority: number // 작을수록 먼저 표시
 }
 
-const LINE_STYLE: Record<LineKind, { stroke: string; width: number; dash?: string; label: string }> = {
-  stemHap:      { stroke: 'var(--ds-gold-on-dark)', width: 2,   label: '천간합' },
-  stemChung:    { stroke: '#f87171',                width: 1.5, dash: '4 3', label: '천간충' },
-  branchYukhap: { stroke: '#34d399',                width: 1.5, label: '지지육합' },
-  branchSamhap: { stroke: '#a78bfa',                width: 1.5, label: '지지삼합' },
-  branchChung:  { stroke: '#f87171',                width: 1.2, dash: '4 3', label: '지지충' },
-  wonjin:       { stroke: '#fbbf24',                width: 1,   dash: '2 2', label: '원진' },
+const LINE_STYLE: Record<
+  LineKind,
+  { stroke: string; width: number; dash?: string; label: string }
+> = {
+  stemHap: { stroke: 'var(--ds-gold-on-dark)', width: 2, label: '천간합' },
+  stemChung: { stroke: '#f87171', width: 1.5, dash: '4 3', label: '천간충' },
+  branchYukhap: { stroke: '#34d399', width: 1.5, label: '지지육합' },
+  branchSamhap: { stroke: '#a78bfa', width: 1.5, label: '지지삼합' },
+  branchChung: { stroke: '#f87171', width: 1.2, dash: '4 3', label: '지지충' },
+  wonjin: { stroke: '#fbbf24', width: 1, dash: '2 2', label: '원진' },
 }
 
 const LINE_STYLE_EN: Record<LineKind, string> = {
@@ -116,38 +164,74 @@ function computeLines(a: Pillars, b: Pillars): RelLine[] {
       if (aStem && bStem) {
         if (isPair(STEM_HAP, aStem, bStem)) {
           out.push({
-            kind: 'stemHap', fromIdx: ai, toIdx: bi, fromChar: aStem, toChar: bStem,
-            category: '천간합', pairKey: pickKey('천간합', aStem, bStem), priority: basePri + 1,
+            kind: 'stemHap',
+            fromIdx: ai,
+            toIdx: bi,
+            fromChar: aStem,
+            toChar: bStem,
+            category: '천간합',
+            pairKey: pickKey('천간합', aStem, bStem),
+            priority: basePri + 1,
           })
         } else if (isPair(STEM_CHUNG, aStem, bStem)) {
           out.push({
-            kind: 'stemChung', fromIdx: ai, toIdx: bi, fromChar: aStem, toChar: bStem,
-            category: '천간충', pairKey: pickKey('천간충', aStem, bStem), priority: basePri + 3,
+            kind: 'stemChung',
+            fromIdx: ai,
+            toIdx: bi,
+            fromChar: aStem,
+            toChar: bStem,
+            category: '천간충',
+            pairKey: pickKey('천간충', aStem, bStem),
+            priority: basePri + 3,
           })
         }
       }
       if (aBr && bBr) {
         if (isPair(BRANCH_YUKHAP, aBr, bBr)) {
           out.push({
-            kind: 'branchYukhap', fromIdx: ai, toIdx: bi, fromChar: aBr, toChar: bBr,
-            category: '지지육합', pairKey: pickKey('지지육합', aBr, bBr), priority: basePri + 2,
+            kind: 'branchYukhap',
+            fromIdx: ai,
+            toIdx: bi,
+            fromChar: aBr,
+            toChar: bBr,
+            category: '지지육합',
+            pairKey: pickKey('지지육합', aBr, bBr),
+            priority: basePri + 2,
           })
         } else if (isPair(BRANCH_CHUNG, aBr, bBr)) {
           out.push({
-            kind: 'branchChung', fromIdx: ai, toIdx: bi, fromChar: aBr, toChar: bBr,
-            category: '지지충', pairKey: pickKey('지지충', aBr, bBr), priority: basePri + 4,
+            kind: 'branchChung',
+            fromIdx: ai,
+            toIdx: bi,
+            fromChar: aBr,
+            toChar: bBr,
+            category: '지지충',
+            pairKey: pickKey('지지충', aBr, bBr),
+            priority: basePri + 4,
           })
         } else if (isPair(BRANCH_WONJIN, aBr, bBr)) {
           out.push({
-            kind: 'wonjin', fromIdx: ai, toIdx: bi, fromChar: aBr, toChar: bBr,
-            category: '원진', pairKey: pickKey('원진', aBr, bBr), priority: basePri + 6,
+            kind: 'wonjin',
+            fromIdx: ai,
+            toIdx: bi,
+            fromChar: aBr,
+            toChar: bBr,
+            category: '원진',
+            pairKey: pickKey('원진', aBr, bBr),
+            priority: basePri + 6,
           })
         } else if (inSameSamhap(aBr, bBr)) {
           // 삼합은 단일 글자 쌍 키가 사전에 없을 수 있어 pairKey 는 그룹 표기.
           const group = BRANCH_SAMHAP_GROUPS.find((g) => g.includes(aBr) && g.includes(bBr))!
           out.push({
-            kind: 'branchSamhap', fromIdx: ai, toIdx: bi, fromChar: aBr, toChar: bBr,
-            category: '지지삼합', pairKey: group.join(''), priority: basePri + 5,
+            kind: 'branchSamhap',
+            fromIdx: ai,
+            toIdx: bi,
+            fromChar: aBr,
+            toChar: bBr,
+            category: '지지삼합',
+            pairKey: group.join(''),
+            priority: basePri + 5,
           })
         }
       }
@@ -177,8 +261,14 @@ function lookupRelation(rel: RelLine, lang: 'ko' | 'en'): string | null {
 /** A/B side 와 pillar key 를 합쳐 ref 사전 key 로 사용 — 예: 'A-time', 'B-day'. */
 type AnchorKey = `${'A' | 'B'}-${PillarKey}`
 
-interface ContainerSize { width: number; height: number }
-interface Point { x: number; y: number }
+interface ContainerSize {
+  width: number
+  height: number
+}
+interface Point {
+  x: number
+  y: number
+}
 
 export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLinesProps) {
   const a = React.useMemo(() => pillarsOf(sajuA), [sajuA])
@@ -190,22 +280,34 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
   // 컨테이너 (좌표 원점) 와 8 개 pillar 박스의 DOM 참조.
   const containerRef = React.useRef<HTMLDivElement | null>(null)
   const pillarRefs = React.useRef<Record<AnchorKey, HTMLDivElement | null>>({
-    'A-time': null, 'A-day': null, 'A-month': null, 'A-year': null,
-    'B-time': null, 'B-day': null, 'B-month': null, 'B-year': null,
+    'A-time': null,
+    'A-day': null,
+    'A-month': null,
+    'A-year': null,
+    'B-time': null,
+    'B-day': null,
+    'B-month': null,
+    'B-year': null,
   })
   const setPillarRef = React.useCallback(
     (key: AnchorKey) => (el: HTMLDivElement | null) => {
       pillarRefs.current[key] = el
     },
-    [],
+    []
   )
 
   // ── 실측 좌표 계산 ────────────────────────────────────────────────────────
   // A column 의 anchor = 박스 우측 중앙, B column 의 anchor = 박스 좌측 중앙.
   // 라인 endpoint 가 박스 경계에 정확히 붙어 자연스러운 연결을 만든다.
   const [anchors, setAnchors] = React.useState<Record<AnchorKey, Point | null>>({
-    'A-time': null, 'A-day': null, 'A-month': null, 'A-year': null,
-    'B-time': null, 'B-day': null, 'B-month': null, 'B-year': null,
+    'A-time': null,
+    'A-day': null,
+    'A-month': null,
+    'A-year': null,
+    'B-time': null,
+    'B-day': null,
+    'B-month': null,
+    'B-year': null,
   })
   const [containerSize, setContainerSize] = React.useState<ContainerSize>({ width: 0, height: 0 })
 
@@ -214,8 +316,14 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
     if (!container) return
     const cRect = container.getBoundingClientRect()
     const next: Record<AnchorKey, Point | null> = {
-      'A-time': null, 'A-day': null, 'A-month': null, 'A-year': null,
-      'B-time': null, 'B-day': null, 'B-month': null, 'B-year': null,
+      'A-time': null,
+      'A-day': null,
+      'A-month': null,
+      'A-year': null,
+      'B-time': null,
+      'B-day': null,
+      'B-month': null,
+      'B-year': null,
     }
     for (const key of Object.keys(pillarRefs.current) as AnchorKey[]) {
       const el = pillarRefs.current[key]
@@ -268,7 +376,9 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
         }}
       >
         <div className="flex flex-col items-center leading-tight">
-          <span className="text-[9px] opacity-60">{side} {label}</span>
+          <span className="text-[9px] opacity-60">
+            {side} {label}
+          </span>
           <span className="text-sm font-semibold" style={{ color: 'var(--ds-gold-on-dark)' }}>
             {(p.stem ?? '·') + (p.branch ?? '·')}
           </span>
@@ -373,7 +483,8 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
                 onClick={() => setHoverIdx((cur) => (cur === i ? null : i))}
                 aria-label={`${ln.fromChar}${ln.toChar} ${label}`}
               >
-                {ln.fromChar}{ln.toChar}
+                {ln.fromChar}
+                {ln.toChar}
                 {hoverIdx === i && (
                   <span
                     className="pointer-events-none absolute left-1/2 top-full z-50 mt-1 w-max max-w-[220px] -translate-x-1/2
@@ -387,7 +498,8 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
                     role="tooltip"
                   >
                     <span style={{ color: 'var(--ds-gold-on-dark)', fontWeight: 600 }}>
-                      {ln.fromChar}{ln.toChar} {label}
+                      {ln.fromChar}
+                      {ln.toChar} {label}
                     </span>
                     {meaning && <div className="mt-0.5">{meaning}</div>}
                   </span>
@@ -422,7 +534,9 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
 
       {lines.length === 0 && (
         <p className="mt-3 text-center text-[10px] opacity-50">
-          {lang === 'ko' ? '직접적 합·충 관계가 발견되지 않았습니다.' : 'No direct combine/clash relations detected.'}
+          {lang === 'ko'
+            ? '직접적 합·충 관계가 발견되지 않았습니다.'
+            : 'No direct combine/clash relations detected.'}
         </p>
       )}
     </div>

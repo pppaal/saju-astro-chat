@@ -12,15 +12,24 @@
  * 단위 의미여서 chart-dictionary 의 카테고리 단위 데이터로 대체 불가 → atoms 유지.
  */
 
-import {
-  getHanjaRich,
-  getGeokgukRich,
-  getSajuStrengthMeaning,
-} from '@/lib/chart-dictionary'
+import { getHanjaRich, getGeokgukRich, getSajuStrengthMeaning } from '@/lib/chart-dictionary'
 
 // ── 한자 풀(stem / branch 순서) ───────────────────────────────────────────────
 const STEM_CHARS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const
-const BRANCH_CHARS = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'] as const
+const BRANCH_CHARS = [
+  '子',
+  '丑',
+  '寅',
+  '卯',
+  '辰',
+  '巳',
+  '午',
+  '未',
+  '申',
+  '酉',
+  '戌',
+  '亥',
+] as const
 
 // hanja-rich 의 image 필드는 "큰 나무·동량목(棟梁木) — 곧게 위로 자라는 거목" 형태.
 // 기존 atoms 시그니처는 짧은 자연 image("큰 나무") 만 노출 → 첫 ·/— 앞만 추출.
@@ -57,10 +66,7 @@ export const EARTHLY_BRANCHES: Record<
   string,
   { ko: string; animal: string; element: string; meaning: string }
 > = (() => {
-  const map: Record<
-    string,
-    { ko: string; animal: string; element: string; meaning: string }
-  > = {}
+  const map: Record<string, { ko: string; animal: string; element: string; meaning: string }> = {}
   for (const c of BRANCH_CHARS) {
     const entry = getHanjaRich(c, 'ko')
     if (!entry || !('animal' in entry)) continue
@@ -115,20 +121,60 @@ export const SIBSIN_COLOR: Record<
   { bg: string; text: string; ring: string; label: string }
 > = {
   bigeop: { bg: 'bg-sky-500/15', text: 'text-sky-200', ring: 'ring-sky-500/30', label: '비겁' },
-  sikSang: { bg: 'bg-emerald-500/15', text: 'text-emerald-200', ring: 'ring-emerald-500/30', label: '식상' },
-  jaeSeong: { bg: 'bg-amber-500/15', text: 'text-amber-200', ring: 'ring-amber-500/30', label: '재성' },
-  gwanSeong: { bg: 'bg-rose-500/15', text: 'text-rose-200', ring: 'ring-rose-500/30', label: '관성' },
-  inSeong: { bg: 'bg-purple-500/15', text: 'text-purple-200', ring: 'ring-purple-500/30', label: '인성' },
+  sikSang: {
+    bg: 'bg-emerald-500/15',
+    text: 'text-emerald-200',
+    ring: 'ring-emerald-500/30',
+    label: '식상',
+  },
+  jaeSeong: {
+    bg: 'bg-amber-500/15',
+    text: 'text-amber-200',
+    ring: 'ring-amber-500/30',
+    label: '재성',
+  },
+  gwanSeong: {
+    bg: 'bg-rose-500/15',
+    text: 'text-rose-200',
+    ring: 'ring-rose-500/30',
+    label: '관성',
+  },
+  inSeong: {
+    bg: 'bg-purple-500/15',
+    text: 'text-purple-200',
+    ring: 'ring-purple-500/30',
+    label: '인성',
+  },
 }
 
 // 격국 — chart-dictionary 의 25 격국 tagline (정격 8 + 외격 17).
 // 키 누락 안전을 위해 hardcoded fallback 보관 (기존 atoms 에 있던 13 격국).
 const GEOKGUK_NAMES = [
-  '정관격', '편관격', '정재격', '편재격', '정인격', '편인격',
-  '식신격', '상관격', '건록격', '양인격',
-  '종왕격', '종강격', '종아격', '종재격', '종살격',
-  '갑기화토격', '을경화금격', '병신화수격', '정임화목격', '무계화화격',
-  '곡직격', '염상격', '가색격', '종혁격', '윤하격',
+  '정관격',
+  '편관격',
+  '정재격',
+  '편재격',
+  '정인격',
+  '편인격',
+  '식신격',
+  '상관격',
+  '건록격',
+  '양인격',
+  '종왕격',
+  '종강격',
+  '종아격',
+  '종재격',
+  '종살격',
+  '갑기화토격',
+  '을경화금격',
+  '병신화수격',
+  '정임화목격',
+  '무계화화격',
+  '곡직격',
+  '염상격',
+  '가색격',
+  '종혁격',
+  '윤하격',
 ] as const
 
 const GEOKGUK_FALLBACK: Record<string, string> = {
@@ -200,7 +246,9 @@ export const ELEMENT_REMEDY: Record<
 // 헬퍼: 한자 → image
 export function imageOf(stemOrBranch: string | undefined): string | undefined {
   if (!stemOrBranch) return undefined
-  return HEAVENLY_STEMS[stemOrBranch]?.image ?? EARTHLY_BRANCHES[stemOrBranch]?.meaning?.split('·')[0]
+  return (
+    HEAVENLY_STEMS[stemOrBranch]?.image ?? EARTHLY_BRANCHES[stemOrBranch]?.meaning?.split('·')[0]
+  )
 }
 
 // 헬퍼: 한자 → 1줄 의미 (long-press tooltip 용)

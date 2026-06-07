@@ -8,8 +8,8 @@
  * (Profection/Lots/ZR/Almuten/5-tier dignity) 계산 안 함.
  */
 import { buildReportContext } from './buildReportContext'
-import { natalToReportData, buildCrossRows } from '@/components/destiny-map/charts/integrated/adapter'
-import { IntegratedReport } from '@/components/destiny-map/charts/integrated/IntegratedReport'
+import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
+import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 
 export const dynamic = 'force-dynamic'
 

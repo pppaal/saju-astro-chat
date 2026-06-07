@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { AXES, deriveCounts, type Counts } from '@/components/destiny-map/charts/ElementRadar'
+import { AXES, deriveCounts, type Counts } from '@/components/report/ElementRadar'
 
 /**
  * 궁합용 오행 비교 레이더. 한 오각형 위에 두 사람의 오행 균형을
