@@ -248,6 +248,20 @@ jobs:
           TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
 
       - name: SSR placeholder regression gate
+        env:
+          # `next start` runs in production mode, so server components that call
+          # getServerSession(authOptions) hit ensureEncryptionKey() which THROWS
+          # without TOKEN_ENCRYPTION_KEY. /calendar 308-redirects to /destinypal
+          # (a server component that awaits getServerSession), so the smoke test
+          # 500'd here until these runtime vars were provided — mirror the build
+          # / env-check steps. (No DB needed: unauthenticated getServerSession
+          # returns null and the page bails before any prisma query.)
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-placeholder-32-characters-long-secret' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'http://localhost:3000' }}
+          NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' }}
+          NEXT_PUBLIC_API_TOKEN: ${{ secrets.NEXT_PUBLIC_API_TOKEN || 'ci-placeholder' }}
+          PUBLIC_API_TOKEN: ${{ secrets.PUBLIC_API_TOKEN || 'ci-placeholder' }}
         run: |
           nohup npm run start -- -p 3000 > .next-start.log 2>&1 &
           SERVER_PID=$!
