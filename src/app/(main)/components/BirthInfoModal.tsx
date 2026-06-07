@@ -41,6 +41,11 @@ interface LoadOption {
   timeUnknown: boolean
   gender: 'male' | 'female' | ''
   city: string
+  // 출생지 좌표/타임존 — 있으면 불러오기 시 같이 복원해 "도시 다시 선택"
+  // 요구 없이 바로 유효해진다. 없으면(구버전 데이터) null → 도시 재선택 안내.
+  latitude?: number | null
+  longitude?: number | null
+  timeZone?: string | null
 }
 
 export default function BirthInfoModal({
@@ -124,6 +129,9 @@ export default function BirthInfoModal({
           timeUnknown: localSeed.birthTimeUnknown === true || localSeed.birthTime === '00:00',
           gender: localSeed.gender || '',
           city: localSeed.city || '',
+          latitude: localSeed.latitude ?? null,
+          longitude: localSeed.longitude ?? null,
+          timeZone: localSeed.timeZone ?? null,
         },
       ])
     }
@@ -147,6 +155,9 @@ export default function BirthInfoModal({
               ...timeToState(u.birthTime),
               gender: normGender(u.gender),
               city: u.birthCity || '',
+              latitude: u.latitude ?? null,
+              longitude: u.longitude ?? null,
+              timeZone: u.tzId ?? null,
             })
           }
         }
@@ -165,6 +176,9 @@ export default function BirthInfoModal({
             timeUnknown: local.birthTimeUnknown === true || local.birthTime === '00:00',
             gender: local.gender || '',
             city: local.city || '',
+            latitude: local.latitude ?? null,
+            longitude: local.longitude ?? null,
+            timeZone: local.timeZone ?? null,
           })
         }
       }
@@ -187,6 +201,9 @@ export default function BirthInfoModal({
                 ...timeToState(p.birthTime),
                 gender: normGender(p.gender),
                 city: p.birthCity || '',
+                latitude: p.latitude ?? null,
+                longitude: p.longitude ?? null,
+                timeZone: p.tzId ?? p.timezone ?? null,
               })
             }
           }
@@ -227,13 +244,12 @@ export default function BirthInfoModal({
     setTimeUnknown(o.timeUnknown)
     setGender(o.gender)
     setCity(o.city)
-    // Saved options (DB profile / circle) currently only carry the city
-    // string, not coords. Reset so the user re-picks from the dropdown to
-    // restore the lat/lon/tz — otherwise we'd keep whatever the previous
-    // form session had and silently apply it to a different person.
-    setLatitude(null)
-    setLongitude(null)
-    setTimeZone(null)
+    // 저장된 좌표/타임존이 있으면 복원 → 도시가 바로 "설정됨"으로 인정되어
+    // "도시 목록에서 선택" 안내가 안 뜬다. 좌표가 없는(구버전) 옵션이면 null 로
+    // 두어 사용자가 dropdown 에서 다시 골라 좌표를 채우도록 유도한다.
+    setLatitude(o.latitude ?? null)
+    setLongitude(o.longitude ?? null)
+    setTimeZone(o.timeZone ?? null)
     setLoadOpen(false)
   }
 
