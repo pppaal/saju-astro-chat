@@ -106,7 +106,6 @@ describe('API Routes Smoke Tests', () => {
       assertModules([
         'app/api/me/circle/route',
         'app/api/me/credits/route',
-        'app/api/me/premium/route',
         'app/api/me/profile/route',
       ])
     })

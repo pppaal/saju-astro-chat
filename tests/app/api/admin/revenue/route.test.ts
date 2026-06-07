@@ -27,7 +27,6 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     bonusCreditPurchase: { findMany: vi.fn(), aggregate: vi.fn() },
     creditTransaction: { aggregate: vi.fn() },
-    creditRefundLog: { aggregate: vi.fn() },
   },
 }))
 vi.mock('@/lib/auth/admin', () => ({ isAdminUser: vi.fn() }))
@@ -62,10 +61,6 @@ function setupAdmin() {
     .mockResolvedValueOnce({ _sum: { remaining: 400 } } as any) // outstanding
     .mockResolvedValueOnce({ _sum: { remaining: 50 } } as any) // expiredLost
   vi.mocked(prisma.creditTransaction.aggregate).mockResolvedValue({ _sum: { amount: -620 } } as any)
-  vi.mocked(prisma.creditRefundLog.aggregate).mockResolvedValue({
-    _sum: { amount: 5 },
-    _count: { id: 2 },
-  } as any)
 }
 
 describe('GET /api/admin/revenue', () => {
@@ -100,7 +95,7 @@ describe('GET /api/admin/revenue', () => {
     expect(data.revenue.daily).toHaveLength(30)
   })
 
-  it('reports credit economy and refunds, consumed as absolute value', async () => {
+  it('reports credit economy, consumed as absolute value', async () => {
     setupAdmin()
     const data = (await (await GET(req())).json()).data
     expect(data.credits).toEqual({
@@ -110,7 +105,8 @@ describe('GET /api/admin/revenue', () => {
       outstanding: 400,
       expiredLost: 50,
     })
-    expect(data.refunds).toEqual({ count: 2, creditsRefunded: 5 })
+    // refunds 통계는 CreditRefundLog 제거(2026-06-06)로 응답에서 빠짐.
+    expect(data.refunds).toBeUndefined()
   })
 
   it('returns 500 on db error', async () => {

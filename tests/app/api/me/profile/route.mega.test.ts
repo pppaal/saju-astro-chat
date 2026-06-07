@@ -246,6 +246,8 @@ describe('/api/me/profile', () => {
               birthTime: true,
               gender: true,
               birthCity: true,
+              latitude: true,
+              longitude: true,
               tzId: true,
             },
           },

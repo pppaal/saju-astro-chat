@@ -333,12 +333,10 @@ describe('useCounselorData — profile-fallback merge precedence', () => {
 // --- Request cancellation (AbortController on chart-load effect) -------------
 
 describe('useCounselorData — chart-load request cancellation', () => {
-  const CHART_FETCH_URLS = [
-    '/api/saju',
-    '/api/astrology',
-    '/api/astrology/advanced/asteroids',
-    '/api/astrology/advanced/midpoints',
-  ]
+  // 고급 점성 9종 fetch 는 진입 속도 개선으로 비활성화됨(#1280, hasAllFields=true).
+  // 서버(realtime route)가 사주·점성을 자체 생성하므로 클라가 advanced 를 받을
+  // 필요가 없다 → 차트 로드 fetch 는 /api/saju + /api/astrology 두 개만.
+  const CHART_FETCH_URLS = ['/api/saju', '/api/astrology']
 
   it('passes an AbortSignal to every chart-load fetch', async () => {
     const fetchMock = global.fetch as ReturnType<typeof vi.fn>
@@ -347,9 +345,7 @@ describe('useCounselorData — chart-load request cancellation', () => {
     )
 
     await waitFor(() => {
-      expect(
-        fetchMock.mock.calls.some((c) => String(c[0]).startsWith('/api/astrology/advanced/'))
-      ).toBe(true)
+      expect(fetchMock.mock.calls.some((c) => c[0] === '/api/saju')).toBe(true)
     })
 
     for (const url of CHART_FETCH_URLS) {

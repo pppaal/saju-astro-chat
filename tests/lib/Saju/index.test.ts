@@ -74,29 +74,22 @@ describe('Saju/index exports', () => {
     })
 
     it('should analyze strength for given pillars', () => {
-      // Use calculateSajuData to get proper pillar structure
+      // analyzeStrength 는 SajuPillarsInput({year,month,day,time}: {stem,branch})
+      // 단일 인자로 받는다(일간은 day.stem 으로 내부 추론). calculateSajuData
+      // 결과의 heavenlyStem/earthlyBranch.name 을 stem/branch 로 매핑.
       const sajuData = calculateSajuData('1990-05-15', '14:30', 'male', 'solar', 'Asia/Seoul')
-      const dayMaster = sajuData.pillars.day.heavenlyStem
+      const toSimple = (p: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }) => ({
+        stem: p.heavenlyStem.name,
+        branch: p.earthlyBranch.name,
+      })
       const pillars = {
-        yearPillar: {
-          heavenlyStem: sajuData.pillars.year.heavenlyStem,
-          earthlyBranch: sajuData.pillars.year.earthlyBranch,
-        },
-        monthPillar: {
-          heavenlyStem: sajuData.pillars.month.heavenlyStem,
-          earthlyBranch: sajuData.pillars.month.earthlyBranch,
-        },
-        dayPillar: {
-          heavenlyStem: sajuData.pillars.day.heavenlyStem,
-          earthlyBranch: sajuData.pillars.day.earthlyBranch,
-        },
-        timePillar: {
-          heavenlyStem: sajuData.pillars.time.heavenlyStem,
-          earthlyBranch: sajuData.pillars.time.earthlyBranch,
-        },
+        year: toSimple(sajuData.pillars.year),
+        month: toSimple(sajuData.pillars.month),
+        day: toSimple(sajuData.pillars.day),
+        time: toSimple(sajuData.pillars.time),
       }
 
-      const result = analyzeStrength(dayMaster, pillars)
+      const result = analyzeStrength(pillars)
 
       expect(result).toBeDefined()
       expect(typeof result.score).toBe('number')
