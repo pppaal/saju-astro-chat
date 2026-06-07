@@ -2,10 +2,12 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { useSearchParams } from 'next/navigation'
 import { MessageCircle, Send, Loader2, Sparkles } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
+import { updateRestorePayloadFollowup } from '@/lib/tarot/tarot-storage'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
 import { useCreditModal } from '@/contexts/CreditModalContext'
@@ -147,6 +149,10 @@ export function FollowupChat({
   const pal = theme === 'light' ? LIGHT_PALETTE : DARK_PALETTE
   const { showDepleted } = useCreditModal()
   const requireLogin = useRequireLogin()
+  // 라이브 세션 복원 슬롯 키 — useTarotGame 이 첫 드로우 때 URL 에 심는다.
+  // 이 키로 followup 대화를 같은 슬롯에 갱신해 새로고침 후에도 대화가 복원된다.
+  const searchParams = useSearchParams()
+  const restoreKey = searchParams?.get('restoreKey') || null
   const [input, setInput] = useState('')
   // 복원 진입이면 저장돼 있던 turn 으로 채팅창 시드 — 그 외엔 빈 채팅.
   const [history, setHistory] = useState<Turn[]>(() =>
@@ -256,6 +262,18 @@ export function FollowupChat({
       pendingClarifierRef.current = null
     }
   }, [readingId, patchSavedReading])
+
+  // 대화가 바뀔 때마다 라이브 복원 슬롯(sessionStorage)에 followup turn 을
+  // 반영 → 새로고침해도 결과 화면 대화창이 그대로 복원된다(서버 readingId 가
+  // 없는 게스트/저장 전 상태에서도 동작). pending placeholder 는 제외.
+  useEffect(() => {
+    if (!restoreKey) return
+    const turns = history
+      .filter((t) => !t.pending && t.content.trim().length > 0)
+      .map((t) => ({ role: t.role, content: t.content }))
+    if (turns.length === 0) return
+    updateRestorePayloadFollowup(restoreKey, { followupTurns: turns })
+  }, [history, restoreKey])
 
   // 본 submit 로직 — 텍스트를 받아 followup 엔드포인트로 보낸다.
   // 키보드/버튼 submit 과 클래리파이어 카드 버튼 둘 다 이 함수를 쓴다.
@@ -466,6 +484,8 @@ export function FollowupChat({
       } else {
         pendingClarifierRef.current = lite
       }
+      // 라이브 복원 슬롯에도 반영 → 새로고침 후에도 보충카드 잠금 유지.
+      updateRestorePayloadFollowup(restoreKey, { clarifierCard: lite })
     },
     onLockedNotice: setClarifierNotice,
     // suspendAutoScrollRef 는 일부러 주지 않는다 — 여기 대화창은 자체 overflow

@@ -363,6 +363,12 @@ export function useTarotGame(): UseTarotGameReturn {
         }
       : { overall_message: '', guidance: '', card_insights: [] }
 
+    // FollowupChat 이 같은 슬롯에 써둔 대화/보충카드는 본문 재저장 시에도
+    // 보존한다 — 안 그러면 이 effect 가 다시 돌 때 followupTurns 가 날아가
+    // 새로고침 후 대화가 사라지는 회귀(클로버).
+    const existingPayload = restorePersistKeyRef.current
+      ? loadReadingRestorePayload(restorePersistKeyRef.current)
+      : null
     const reading: SavedTarotReading = {
       ...formatReadingForSave(
         userTopic,
@@ -378,6 +384,8 @@ export function useTarotGame(): UseTarotGameReturn {
       timestamp: Date.now(),
       // 새로고침 시 재해석이 'replay' 환불을 받도록 원본 nonce 동봉.
       drawNonce: readingResult.drawNonce,
+      followupTurns: existingPayload?.followupTurns ?? undefined,
+      clarifierCard: existingPayload?.clarifierCard ?? undefined,
     }
     const key = storeReadingRestorePayload(reading, restorePersistKeyRef.current || undefined)
     if (!key) return
