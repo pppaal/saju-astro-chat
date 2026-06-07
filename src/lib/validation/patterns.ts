@@ -34,7 +34,10 @@ export const LIMITS = {
   // Content
   THEME: 40,
   PROMPT: 2000,
-  MESSAGE: 2000,
+  // 상담사 채팅 메시지 1건 최대 길이. 미리 써둔 긴 프롬프트 붙여넣기 지원.
+  // 운명·궁합 라우트는 withApiMiddleware 를 우회(req.json 직접)해서 64KB body
+  // 가드를 안 타므로 이 값을 올려도 body 한도 충돌 없음.
+  MESSAGE: 8000,
   NOTE: 240,
   QUESTION: 600,
 
