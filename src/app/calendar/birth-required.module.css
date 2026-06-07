@@ -7,10 +7,10 @@
   background: #ece2cd;
   background-image:
     radial-gradient(60% 80% at 30% 20%, rgba(255, 251, 242, 0.45) 0%, rgba(255, 251, 242, 0) 60%),
-    radial-gradient(50% 70% at 75% 80%, rgba(176, 58, 34, 0.10) 0%, rgba(176, 58, 34, 0) 60%);
+    radial-gradient(50% 70% at 75% 80%, rgba(176, 58, 34, 0.1) 0%, rgba(176, 58, 34, 0) 60%);
   color: #2a2318;
   min-height: 100vh;
-  font-family: "Gowun Dodum", "Noto Sans KR", system-ui, sans-serif;
+  font-family: 'Gowun Dodum', 'Noto Sans KR', system-ui, sans-serif;
   display: grid;
   place-items: center;
   padding: 32px 16px;
@@ -23,12 +23,14 @@
   padding: 36px 32px;
   max-width: 480px;
   width: 100%;
-  box-shadow: 0 1px 0 rgba(58, 46, 28, 0.06), 0 10px 30px rgba(58, 46, 28, 0.08);
+  box-shadow:
+    0 1px 0 rgba(58, 46, 28, 0.06),
+    0 10px 30px rgba(58, 46, 28, 0.08);
 }
 
 .seal {
   display: inline-block;
-  font-family: "Gowun Batang", "Noto Serif KR", serif;
+  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
   font-size: 14px;
   letter-spacing: 0.24em;
   color: #b03a22;
@@ -39,7 +41,7 @@
 }
 
 .title {
-  font-family: "Gowun Batang", "Noto Serif KR", serif;
+  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
   font-size: 24px;
   font-weight: 600;
   margin: 0 0 12px;
@@ -86,7 +88,9 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   text-decoration: none;
-  transition: background 0.15s ease, transform 0.05s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.05s ease;
   font-family: inherit;
 }
 
@@ -111,7 +115,9 @@
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
   font-family: inherit;
 }
 

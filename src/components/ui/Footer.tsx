@@ -13,8 +13,8 @@ import styles from './Footer.module.css'
 const HIDE_FOOTER_PREFIXES = [
   '/destiny-counselor',
   '/tarot',
-  '/destinypal', // Phase D — canonical 5-tier fortune route (replaces /calendar)
-  '/calendar', // Legacy alias → /destinypal (308 at edge); kept defensively
+  '/calendar', // canonical 캘린더(운흐름) route
+  '/destinypal', // legacy alias → /calendar (308 at edge)
   '/compatibility',
   '/report',
   '/astrology/counselor',
