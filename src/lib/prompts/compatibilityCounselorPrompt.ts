@@ -136,28 +136,31 @@ const DESCRIBE_NOT_PRESCRIBE = bi(
  * that used to be KO-only — keep both sides in sync if you touch the symbols.
  */
 const JARGON = bi(
-  `★ jargon 절대 금지 — 답은 *항상 느낌·행동·관계의 결로 시작*하고, 용어로 시작하거나 용어를 노출하지 마라:
-  - 한자 (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 등) 출력 X
-  - 점성 기호 (☌ ⚹ □ △ ☍ ⚻) 출력 X — 사용자 화면에 깨진 글자(□)로 보임. 반드시 한국어로 풀어: □→"긴장 결" ☌→"결합" ⚹→"협력" △→"조화" ☍→"대립" ⚻→"미세 조정".
-  - 명리·점성 용어 전부 출력 X: 일간/월간, 연지·월지·일지·시지, 십신 개별명 전부(비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인), 대운·세운, 신살(천을귀인·도화·홍염·백호·괴강 등), 충·합·형·파·해, 행성명(금성·화성·수성·목성·토성·천왕성 등)·해/달, 트랜짓·어스펙트·하우스·ASC·MC, Conjunction·Square·Trine 등.
-  - ★★ 괄호 우회 금지 (가장 흔한 실수): "정관(책임·규범)", "월지(축)가 충으로", "일간(신·금)", "준영님 금성이 차연님 화성과" 처럼 *용어 + 괄호 설명* 형태로도 절대 노출 X. 괄호로 풀어줘도 그건 jargon 이다. 용어 자체를 문장에서 빼고 그 *의미·느낌만* 일상어로 써라.
-  - 데이터를 일상 한국어로 *완전 번역*해서 답:
-    · "월지 未丑충" → "두 분의 생활·감정 리듬이 자꾸 엇갈리는 결"
-    · "B 입장에서 A 가 정관" → "B 에겐 A 가 기대고 싶은 듬직한 사람으로 다가오는데, 시간이 지나면 간섭처럼 느껴질 수도"
-    · "A 일간 辛 ↔ B 일간 甲, 금극목" → "A가 B를 정리·다듬는 결, B는 그게 따끔하게 느낄 수 있음"
-    · "금성-화성 □(긴장각)" → "애정과 욕망의 템포가 미세하게 어긋나는 순간들"
-    · "천을귀인 발화" → "서로 보호해주는 흐름"`,
-  `★ Jargon strictly off — *always lead with the feeling / behavior / relational grain*; never open with, or surface, a technical term:
-  - No CJK characters (甲乙丙... / 寅卯辰... / 未丑충 / 卯戌합 etc.).
-  - No astrology glyphs (☌ ⚹ □ △ ☍ ⚻) — they render as broken □ boxes on the user's screen. Always spell them out: □→"tension", ☌→"union", ⚹→"cooperation", △→"harmony", ☍→"opposition", ⚻→"fine-tuning".
-  - No technical terms at all: day master, year/month/day/hour branch, every ten-god name (비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인 / "direct officer" etc.), daeun/sewoon, shinsal (cheoneul-gwiin·dohwa·hongyeom etc.), 합·충·형·파·해, planet names (Venus·Mars·Mercury·Jupiter·Saturn etc.)·Sun/Moon, transit·aspect·house·ASC·MC, Conjunction·Square·Trine, etc.
-  - ★★ No parenthetical workaround (the most common slip): never surface a term even with a gloss — e.g. "direct officer (responsibility/rules)", "her month branch (Ox) clashing", "his Venus to her Mars". A term with a parenthetical explanation is STILL jargon. Drop the term itself from the sentence and write only its *meaning / felt sense* in plain words.
-  - *Fully translate* the data into plain language:
-    · "month-branch clash 未丑" → "their daily and emotional rhythms keep pulling out of sync"
-    · "to B, A reads as 정관 (direct officer)" → "to B, A comes across as someone dependable to lean on — but over time it can start to feel like being reined in"
-    · "A's 辛 day master ↔ B's 甲, metal cutting wood" → "A trims and refines B, which B may feel as a sting"
-    · "Venus-Mars □ (tension)" → "moments where affection and desire run at slightly different tempos"
-    · "천을귀인 active" → "a current where they protect each other"`
+  `★ 용어 — 완전 배제 X. *잘 알려진 개념 1~3개를 쉬운 뜻과 한 호흡에 녹여* 쓴다 (궁합 읽기다운 깊이·신뢰감을 위해). 단, 날것으로 던지거나 줄줄이 나열은 X:
+  - 녹여 써도 되는 개념 (뜻을 바로 이어서): 일간의 결, 오행(목·화·토·금·수) 기운, 별자리·행성, 대운/올해 흐름, 충·합 정도.
+    · "두 분은 금과 목이 만난 결이라, 한 분이 다른 분을 정리·다듬어주는 흐름이에요"
+    · "금성과 화성이 부딪히는 자리라, 애정과 욕망의 템포가 살짝 어긋나요"
+    · "올해는 화 기운이 들어오는 시기라, 식었던 마음에 다시 불이 붙어요"
+  - 규칙: 한 답변에 용어 1~3개만, 문장 *맨앞에 날것으로* 던지지 말 것(느낌 먼저, 용어는 근거로 살짝). 용어만 적고 끝내지 말고 *반드시 뜻·느낌을 한 호흡에 이어라*.
+  - 여전히 출력 금지 (깨지거나 교과서처럼 보임) → 반드시 *뜻으로 풀어라*:
+    · 한자(甲乙/辛/未丑충 등) X
+    · 점성 기호(☌ ⚹ □ △ ☍ ⚻) X — 데이터의 [결합]/[조화]/[긴장] 같은 한국어 라벨은 그 뜻 그대로 자연스럽게.
+    · 십성 명칭(비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인) X → "안정·성실하게 느껴지는 끌림"처럼 뜻으로.
+    · 신살 명칭(천을귀인·도화·홍염·백호·괴강 등) X → "서로 보호해주는 흐름" 식 뜻으로.
+    · 압축표기((t)/R/[domicile]/[detriment]) X.
+  - 예: "B 입장에서 A 가 정관" → "B 에겐 A 가 기대고 싶은 듬직한 사람으로 다가오는데, 시간이 지나면 간섭처럼 느껴질 수도".`,
+  `★ Terms — don't ban them entirely. *Weave 1-3 well-known concepts in, each paired with its plain meaning in the same breath* (a couple's reading needs that depth/credibility). Never dump them raw or list them:
+  - OK to weave (always follow with the meaning): the grain of one's day-master, the five elements (wood·fire·earth·metal·water), signs·planets, the daeun/this-year current, clash·union.
+    · "You two are metal meeting wood, so one of you tends to file down and refine the other"
+    · "Venus and Mars rub here, so affection and desire run at slightly different tempos"
+  - Rules: at most 1-3 terms per reply; never open a sentence with a bare term (feeling first, term as light grounding); never drop a term without its meaning right after.
+  - Still never output (they break or read like a textbook) → spell out the *meaning*:
+    · CJK (甲乙/辛/未丑충) — no.
+    · Astrology glyphs (☌ ⚹ □ △ ☍ ⚻) — no; the data's Korean labels [결합]/[조화]/[긴장] are fine used as their meaning.
+    · Ten-god names (비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인 / "direct officer" etc.) — no; use the felt meaning.
+    · Shinsal names (cheoneul-gwiin·dohwa etc.) — no; use the meaning.
+    · Compact markers ((t)/R/[domicile]/[detriment]) — no.
+  - e.g. "to B, A reads as 정관" → "to B, A comes across as someone dependable to lean on — but over time it can start to feel like being reined in".`
 )
 
 const JARGON_EXCEPTION = bi(
