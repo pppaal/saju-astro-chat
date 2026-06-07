@@ -269,7 +269,7 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   }
   const ascA = signKo(chartA.ascendant?.sign)
   const ascB = signKo(chartB.ascendant?.sign)
-  const ascLine = `ASC ${labelA} ${ascA} / ${labelB} ${ascB}`
+  const ascLine = `상승점 ${labelA} ${ascA} / ${labelB} ${ascB}`
 
   const out: string[] = ['== 시너스트리 (점성 cross) ==']
   out.push(`[고정] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄: A행성 [관계어] B행성 오차° — [결합]끌어당김 [대립]팽팽 [조화]자연스러움 [긴장]마찰 [협력]보완 [미세조정]계속 맞춰가야)`)
