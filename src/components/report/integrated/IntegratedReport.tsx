@@ -8,6 +8,7 @@ import React from 'react'
 import s from './IntegratedReport.module.css'
 import {
   type ReportData,
+  type BiLabel,
   ELEMENTS,
   STEM_INFO,
   BRANCH_INFO,
@@ -19,6 +20,22 @@ import {
   DIGNITY_TIER_TOOLTIP,
   ASPECT_FRIENDLY,
 } from './reportTypes'
+import {
+  getGeokgukRich,
+  getSibsinCategory,
+  getIljuArchetype,
+  getRelationMeaning,
+  SIBSIN_NAME_TO_CATEGORY,
+  type RelationCategory,
+  type SibsinState,
+} from '@/lib/chart-dictionary'
+import {
+  getSibsinInterpretation,
+  getTwelveStageInterpretation,
+  getShinsalInterpretation,
+} from '@/lib/saju/interpretations'
+
+export type Lang = 'ko' | 'en'
 
 export interface CrossRow {
   category: string
@@ -31,6 +48,125 @@ export interface IntegratedReportProps {
   data: ReportData
   /** natalCross 교차 결과 — 섹션 5(통합 테마)에 렌더. 없으면 섹션 생략. */
   cross?: { synthesis?: string; rows: CrossRow[] }
+  /** 표시 언어. EN 일 때 한글 0 렌더. */
+  lang?: Lang
+}
+
+// ── i18n ───────────────────────────────────────────────────────────────
+const UI: Record<string, BiLabel> = {
+  eyebrow: { ko: '四柱 × 占星 · Integrated Reading', en: '四柱 × 占星 · Integrated Reading' },
+  titlePre: { ko: '통합', en: 'Integrated' },
+  titleAccent: { ko: '명식', en: 'Chart' },
+  titlePost: { ko: '리포트', en: 'Report' },
+  subtitle: {
+    ko: '사주 명식과 출생 천궁도를 하나의 평면에서 교차 분석',
+    en: 'Four Pillars and natal chart cross-read on a single plane',
+  },
+  male: { ko: '남', en: 'M' },
+  female: { ko: '여', en: 'F' },
+  metaBirth: { ko: '출생', en: 'Birth' },
+  metaPlace: { ko: '장소', en: 'Place' },
+  metaCoord: { ko: '좌표', en: 'Coords' },
+  metaTz: { ko: '표준시', en: 'Time zone' },
+  metaHouse: { ko: '하우스', en: 'Houses' },
+  day: { ko: '주간', en: 'diurnal' },
+  night: { ko: '야간', en: 'nocturnal' },
+  pHour: { ko: '시', en: 'Hr' },
+  pDay: { ko: '일', en: 'Day' },
+  pMonth: { ko: '월', en: 'Mo' },
+  pYear: { ko: '년', en: 'Yr' },
+  dayBranchLabel: { ko: '日干', en: 'Day Master' },
+  shinsalCap: { ko: '신살 · 神煞', en: 'Spirits · 神煞' },
+  relCap: { ko: '본명 합충형파', en: 'Natal Interactions' },
+  daeunCap: { ko: '대운 · 大運', en: 'Luck Cycles · 大運' },
+  iljuCap: { ko: '일주 원형 · 日柱', en: 'Day-Pillar Archetype · 日柱' },
+  sec02Title: { ko: '오행과 용신', en: 'Elements & Balance' },
+  sec02Han: { ko: '五行·用神', en: '五行·用神' },
+  elemDist: { ko: '오행 분포', en: 'Element Spread' },
+  strongWeak: { ko: '신강 · 신약', en: 'Strong · Weak' },
+  dayMasterLab: { ko: '일간', en: 'Day Master' },
+  strong: { ko: '신강', en: 'Strong' },
+  weak: { ko: '신약', en: 'Weak' },
+  balanced: { ko: '중화', en: 'Balanced' },
+  rootedYes: { ko: '뿌리 ✓', en: 'Rooted ✓' },
+  rootedNo: { ko: '뿌리 ✗', en: 'Rooted ✗' },
+  rootedYesTip: {
+    ko: '통근 — 일간의 오행이 지지 지장간에 박혀있음. 일간 강도 보강.',
+    en: 'Rooted — the Day Master element is lodged in the hidden stems, reinforcing its strength.',
+  },
+  rootedNoTip: {
+    ko: '무근 — 일간 오행이 지지에 박혀있지 않음. 강도 약화 요인.',
+    en: 'Unrooted — the Day Master element is not lodged in the branches, weakening its strength.',
+  },
+  gongmangLab: { ko: '공망', en: 'Void' },
+  gongmangTip: {
+    ko: '공망 — 일주 60갑자 그룹에서 비어있는 지지 2개. 해당 지지의 작용이 약함.',
+    en: 'Void branches — the two empty branches of the day-pillar sexagenary group; their influence is muted.',
+  },
+  johuLab: { ko: '조후', en: 'Climate' },
+  johuTip: {
+    ko: '조후용신 — 계절 균형 관점의 보조 용신. 긴급도',
+    en: 'Climatic useful god — a secondary balancer from the seasonal-climate view. Urgency',
+  },
+  yongLab: { ko: '용신', en: 'Useful' },
+  giLab: { ko: '기신', en: 'Adverse' },
+  yongTitle: { ko: '용신 · 희신 · 기신', en: 'Useful · Helpful · Adverse' },
+  geokgukCap: { ko: '격국 풀이 · 格局', en: 'Structure · 格局' },
+  geokPersonality: { ko: '성향', en: 'Personality' },
+  geokStrength: { ko: '강점', en: 'Strengths' },
+  geokWeakness: { ko: '약점', en: 'Watch-outs' },
+  geokAdvice: { ko: '조언', en: 'Advice' },
+  sibsinCap: { ko: '주도 십성 · 十星', en: 'Dominant Ten God · 十星' },
+  sec03Title: { ko: '출생 천궁도', en: 'Natal Chart' },
+  sec03Han: { ko: '本命 天宮圖', en: '本命 天宮圖' },
+  planetsCap: { ko: '행성 위치 · Planets', en: 'Planet Positions · Planets' },
+  sectLab: { ko: 'Sect', en: 'Sect' },
+  houseLab: { ko: 'House', en: 'House' },
+  sectDay: { ko: '주간 (晝)', en: 'Diurnal (晝)' },
+  sectNight: { ko: '야간 (夜)', en: 'Nocturnal (夜)' },
+  signSuffix: { ko: '자리', en: '' },
+  sec04Title: { ko: '어스펙트', en: 'Aspects' },
+  sec04Han: { ko: '行星 角度', en: '行星 角度' },
+  legSoft: { ko: '잘 흘러요·도와줘요', en: 'Flows · helps' },
+  legHard: { ko: '부딪혀요·맞서요', en: 'Clashes · opposes' },
+  legNeutral: { ko: '같이 있어요', en: 'Together' },
+  dignityCap: { ko: '위계 · Dignities', en: 'Dignities' },
+  noDignity: {
+    ko: '뚜렷한 위계 없음 — 행성이 모두 중립(peregrine) 자리예요.',
+    en: 'No notable dignity — every planet sits in a neutral (peregrine) position.',
+  },
+  sec05Title: { ko: '통합 교차', en: 'Cross-System' },
+  sec05Han: { ko: '交叉 統合', en: '交叉 統合' },
+  synthLabel: { ko: '🧬 종합 정체성', en: '🧬 Synthesis' },
+  sajuSide: { ko: '사주', en: 'Saju' },
+  astroSide: { ko: '점성', en: 'Astro' },
+  footBrain: { ko: '껍데기 chart.zip · 두뇌 natalCross', en: 'shell chart.zip · engine natalCross' },
+  orb: { ko: 'orb', en: 'orb' },
+}
+
+// 관계 kind → 이중언어 라벨. EN 한글 누수 차단.
+const RELATION_TYPE_LABEL: Record<string, BiLabel> = {
+  천간합: { ko: '천간합', en: 'Stem Combine' },
+  천간충: { ko: '천간충', en: 'Stem Clash' },
+  지지육합: { ko: '지지육합', en: 'Six Harmony' },
+  지지삼합: { ko: '지지삼합', en: 'Triple Harmony' },
+  지지방합: { ko: '지지방합', en: 'Directional Harmony' },
+  지지충: { ko: '지지충', en: 'Branch Clash' },
+  지지형: { ko: '지지형', en: 'Punishment' },
+  지지파: { ko: '지지파', en: 'Destruction' },
+  지지해: { ko: '지지해', en: 'Harm' },
+  원진: { ko: '원진', en: 'Resentment' },
+  공망: { ko: '공망', en: 'Void' },
+}
+const relationTypeLabel = (kind: string, lang: Lang): string =>
+  RELATION_TYPE_LABEL[kind]?.[lang] ?? kind
+
+// 교차 tone → 친화 라벨 (이중언어).
+const TONE_LABEL: Record<CrossRow['tone'], BiLabel> = {
+  resonant: { ko: '잘 맞아요', en: 'In sync' },
+  complement: { ko: '서로 채워줘요', en: 'Complementary' },
+  tension: { ko: '부딪혀요', en: 'In tension' },
+  neutral: { ko: '따로따로', en: 'Separate' },
 }
 
 // ── helpers ────────────────────────────────────────────────────────────
@@ -50,12 +186,34 @@ function polar(cx: number, cy: number, r: number, deg: number) {
   return [cx + r * Math.cos(rad), cy - r * Math.sin(rad)]
 }
 
-// 교차 tone → 테마카드 색·라벨
-const TONE: Record<CrossRow['tone'], { color: string; label: string }> = {
-  resonant: { color: 'var(--el-wood)', label: '잘 맞아요' },
-  complement: { color: 'var(--gold)', label: '서로 채워줘요' },
-  tension: { color: 'var(--el-fire)', label: '부딪혀요' },
-  neutral: { color: 'var(--ink-3)', label: '따로따로' },
+// 교차 tone → 테마카드 색.
+const TONE_COLOR: Record<CrossRow['tone'], string> = {
+  resonant: 'var(--el-wood)',
+  complement: 'var(--gold)',
+  tension: 'var(--el-fire)',
+  neutral: 'var(--ink-3)',
+}
+
+// EN 표시용 라벨 헬퍼 — 사주 용어는 ko 한글, en 은 사전 룩업으로 영문화.
+// 십성(정인…) → name_en, 12운성(쇠…) → name_en, 오행 → ELEMENTS ko/영문 키.
+const sibsinLabel = (name: string, lang: Lang): string => {
+  if (lang === 'ko') return name
+  if (!name || name === '日干') return name === '日干' ? 'Day Master' : name
+  return getSibsinInterpretation(name as never)?.name_en ?? name
+}
+const stageLabel = (stage: string, lang: Lang): string => {
+  if (lang === 'ko' || !stage) return stage
+  return getTwelveStageInterpretation(stage as never)?.name_en ?? stage
+}
+const elementLabel = (key: string, lang: Lang): string => {
+  const e = ELEMENTS[key]
+  if (!e) return key
+  return lang === 'en' ? key.charAt(0).toUpperCase() + key.slice(1) : e.ko
+}
+const signLabel = (abbrKey: string, lang: Lang): string => {
+  const m = SIGN_META[abbrKey]
+  if (!m) return abbrKey
+  return lang === 'en' ? abbrKey : m.ko
 }
 
 // ── 펜타곤(오행) ────────────────────────────────────────────────────────
@@ -231,7 +389,7 @@ function Wheel({ astro }: { astro: ReportData['astro'] }) {
 }
 
 // ── 어스펙트 그리드 ─────────────────────────────────────────────────────
-function AspectGrid({ astro }: { astro: ReportData['astro'] }) {
+function AspectGrid({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
   const order = [
     'Sun',
     'Moon',
@@ -266,12 +424,14 @@ function AspectGrid({ astro }: { astro: ReportData['astro'] }) {
               const meta = ASPECT_META[a.type]
               const cls =
                 meta?.cls === 'hard' ? s.agHard : meta?.cls === 'soft' ? s.agSoft : s.agNeutral
-              const koRow = astro.planets.find((p) => p.name === row)?.ko ?? row
-              const koCol = astro.planets.find((p) => p.name === col)?.ko ?? col
+              const nameRow =
+                lang === 'en' ? row : (astro.planets.find((p) => p.name === row)?.ko ?? row)
+              const nameCol =
+                lang === 'en' ? col : (astro.planets.find((p) => p.name === col)?.ko ?? col)
               const friendly = ASPECT_FRIENDLY[a.type]
               const tooltip = friendly
-                ? `${koRow} ↔ ${koCol}: ${friendly.label}\n${friendly.tooltip} · orb ${a.orb.toFixed(1)}°`
-                : `${koRow} ↔ ${koCol}: ${meta?.ko ?? a.type} · orb ${a.orb.toFixed(1)}°`
+                ? `${nameRow} ↔ ${nameCol}: ${friendly.label[lang]}\n${friendly.tooltip[lang]} · ${UI.orb[lang]} ${a.orb.toFixed(1)}°`
+                : `${nameRow} ↔ ${nameCol}: ${lang === 'en' ? a.type : (meta?.ko ?? a.type)} · ${UI.orb[lang]} ${a.orb.toFixed(1)}°`
               return (
                 <td key={col} className={`${s.agCell} ${cls}`} title={tooltip}>
                   <span className={s.agGly}>{meta?.glyph}</span>
@@ -287,18 +447,34 @@ function AspectGrid({ astro }: { astro: ReportData['astro'] }) {
 }
 
 // ── 메인 ────────────────────────────────────────────────────────────────
-export function IntegratedReport({ data, cross }: IntegratedReportProps) {
+export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportProps) {
   const { input, saju: S, astro: A } = data
+  const t = (k: keyof typeof UI): string => UI[k][lang]
   const pillarsArr: Array<
-    ['시' | '일' | '월' | '년', ReportData['saju']['pillars'][keyof ReportData['saju']['pillars']]]
+    [BiLabel, ReportData['saju']['pillars'][keyof ReportData['saju']['pillars']]]
   > = [
-    ['시', S.pillars.hour],
-    ['일', S.pillars.day],
-    ['월', S.pillars.month],
-    ['년', S.pillars.year],
+    [UI.pHour, S.pillars.hour],
+    [UI.pDay, S.pillars.day],
+    [UI.pMonth, S.pillars.month],
+    [UI.pYear, S.pillars.year],
   ]
   const feMax = Math.max(1, ...Object.values(S.fiveElements))
   const strengthPct = S.strength === 'strong' ? 76 : S.strength === 'weak' ? 28 : 52
+  const strengthState: SibsinState =
+    S.strength === 'strong' ? 'dominant' : S.strength === 'weak' ? 'missing' : 'balanced'
+
+  // §02 격국 풀이 — geokguk-rich 사전. '미정' 이거나 매칭 없으면 자동 생략.
+  const geok =
+    S.geokguk && S.geokguk !== '미정' ? getGeokgukRich(S.geokguk, lang) : null
+  // §02 주도 십성 — 일지 십성 카테고리(정/편 통합) → 우세 상태 의미.
+  const domSibsinName = S.pillars.day.sibsinBranch || S.pillars.month.sibsinBranch || ''
+  const domCategory = SIBSIN_NAME_TO_CATEGORY[domSibsinName]
+  const sibsinBlock = domCategory
+    ? getSibsinCategory(domCategory, strengthState, lang)
+    : null
+  // §01 일주 원형 — 일간+일지 간지 → ilju-60 사전.
+  const dayGanji = `${S.pillars.day.stem}${S.pillars.day.branch}`
+  const ilju = getIljuArchetype(dayGanji, lang)
 
   return (
     <div className={s.report}>
@@ -306,15 +482,15 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
         {/* 헤더 */}
         <header className={s.reportHead}>
           <div className={s.rhLeft}>
-            <div className={s.eyebrow}>四柱 × 占星 · Integrated Reading</div>
+            <div className={s.eyebrow}>{t('eyebrow')}</div>
             <h1>
-              통합 <span className={s.accent}>명식</span> 리포트
+              {t('titlePre')} <span className={s.accent}>{t('titleAccent')}</span> {t('titlePost')}
             </h1>
-            <div className={s.sub}>사주 명식과 출생 천궁도를 하나의 평면에서 교차 분석</div>
+            <div className={s.sub}>{t('subtitle')}</div>
           </div>
           <div className={s.rhRight}>
             <div>
-              {input.name} · <b>{input.gender === 'male' ? '남' : '여'}</b>
+              {input.name} · <b>{input.gender === 'male' ? t('male') : t('female')}</b>
             </div>
             <div>
               {input.calendar} <b>{input.date}</b>
@@ -326,11 +502,11 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
         {/* 메타 */}
         <div className={s.metaGrid}>
           {[
-            ['출생', `${input.calendar} ${input.date.replace(/-/g, '.')} · ${input.time}`],
-            ['장소', input.place],
-            ['좌표', `${input.lat}°N · ${input.lng}°E`],
-            ['표준시', input.timeZone],
-            ['하우스', `${A.houseSystem} · ${A.sect === 'day' ? '주간' : '야간'}`],
+            [t('metaBirth'), `${input.calendar} ${input.date.replace(/-/g, '.')} · ${input.time}`],
+            [t('metaPlace'), input.place],
+            [t('metaCoord'), `${input.lat}°N · ${input.lng}°E`],
+            [t('metaTz'), input.timeZone],
+            [t('metaHouse'), `${A.houseSystem} · ${A.sect === 'day' ? t('day') : t('night')}`],
             ['UTC', input.isoUTC],
           ].map(([k, v]) => (
             <div className={s.metaCell} key={k}>
@@ -345,22 +521,25 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
           <div className={s.secHead}>
             <span className={s.secNum}>01</span>
             <span className={s.secTitle}>
-              사주 명식<span className={s.han}>四柱命式</span>
+              {lang === 'en' ? 'Four Pillars' : '사주 명식'}
+              <span className={s.han}>四柱命式</span>
             </span>
             <span className={s.secEn}>Four Pillars</span>
           </div>
           <div className={s.pillars}>
             {pillarsArr.map(([head, p]) => (
-              <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head}>
-                <div className={s.pillarHead}>{head}</div>
-                <div className={`${s.sib} ${s.sibTop}`}>{p.sibsinStem}</div>
+              <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head.ko}>
+                <div className={s.pillarHead}>{head[lang]}</div>
+                <div className={`${s.sib} ${s.sibTop}`}>
+                  {p.isDay ? t('dayBranchLabel') : sibsinLabel(p.sibsinStem, lang)}
+                </div>
                 <div className={s.gz}>
                   <div className={`${s.gzHan} ${elClass[stemEl(p.stem)]}`}>{p.stem}</div>
                 </div>
                 <div className={`${s.gz} ${s.branch}`}>
                   <div className={`${s.gzHan} ${elClass[branchEl(p.branch)]}`}>{p.branch}</div>
                 </div>
-                <div className={s.sib}>{p.sibsinBranch}</div>
+                <div className={s.sib}>{sibsinLabel(p.sibsinBranch, lang)}</div>
                 <div className={s.jjg}>
                   {p.jijanggan.map((j, i) => (
                     <div className={s.jjgI} key={i}>
@@ -369,45 +548,89 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
                     </div>
                   ))}
                 </div>
-                <div className={s.stage}>{p.twelveStage}</div>
+                <div className={s.stage}>{stageLabel(p.twelveStage, lang)}</div>
               </div>
             ))}
           </div>
           <div className={s.row2}>
             <div>
-              <div className={s.subcap}>신살 · 神煞</div>
+              <div className={s.subcap}>{t('shinsalCap')}</div>
               <div className={s.chips}>
-                {S.natalShinsal.map((sh, i) => (
-                  <span
-                    className={`${s.chip} ${sh.polarity > 0 ? s.pos : sh.polarity < 0 ? s.neg : s.neu}`}
-                    key={i}
-                  >
-                    <b>{sh.ko}</b>
-                    <i>
-                      {sh.pillar}
-                      {sh.sub ? `·${sh.sub}` : ''}
-                    </i>
-                  </span>
-                ))}
+                {S.natalShinsal.map((sh, i) => {
+                  const interp = getShinsalInterpretation(sh.ko)
+                  const label = lang === 'en' ? (interp?.name_en ?? sh.ko) : sh.ko
+                  const tip =
+                    lang === 'en'
+                      ? interp
+                        ? `${interp.meaning_en} ${interp.effect_en}`
+                        : undefined
+                      : interp
+                        ? `${interp.meaning} ${interp.effect}`
+                        : undefined
+                  return (
+                    <span
+                      className={`${s.chip} ${sh.polarity > 0 ? s.pos : sh.polarity < 0 ? s.neg : s.neu}`}
+                      key={i}
+                      title={tip}
+                    >
+                      <b>{label}</b>
+                      <i>
+                        {sh.pillar}
+                        {sh.sub ? `·${sh.sub}` : ''}
+                      </i>
+                    </span>
+                  )
+                })}
               </div>
             </div>
             <div>
-              <div className={s.subcap}>본명 합충형파</div>
+              <div className={s.subcap}>{t('relCap')}</div>
               <div className={s.relations}>
-                {S.natalRelations.map((r, i) => (
-                  <div
-                    className={`${s.rel} ${r.tone === 'pos' ? s.relPos : r.tone === 'neg' ? s.relNeg : ''}`}
-                    key={i}
-                  >
-                    <b>{r.type}</b>
-                    {r.detail}
-                  </div>
-                ))}
+                {S.natalRelations.map((r, i) => {
+                  // 합충형파 의미 — relations-pairs 사전(category + 한자 pair). 없으면 detail 폴백.
+                  const rel =
+                    r.category && r.pair
+                      ? getRelationMeaning(r.category as RelationCategory, r.pair, lang)
+                      : null
+                  const tip = rel?.meaning ?? undefined
+                  // EN 일 때 detail(한글 섞임)을 한자 pair 로 대체해 한글 누수 차단.
+                  const body = lang === 'en' ? (r.pair || r.detail) : r.detail
+                  return (
+                    <div
+                      className={`${s.rel} ${r.tone === 'pos' ? s.relPos : r.tone === 'neg' ? s.relNeg : ''}`}
+                      key={i}
+                      title={tip}
+                    >
+                      <b>{relationTypeLabel(r.type, lang)}</b>
+                      {body}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
+          {/* 일주 원형 카드 — ilju-60 사전. 매칭 없으면 자동 생략. */}
+          {ilju && (
+            <>
+              <div className={s.subcap} style={{ marginTop: 24 }}>
+                {t('iljuCap')}
+              </div>
+              <div className={`${s.card} ${s.cardPad}`}>
+                <div className={s.gaugeHead}>
+                  <span className={s.mono}>{dayGanji}</span>
+                  <b>{ilju.character}</b>
+                </div>
+                <div className={s.themeReason} style={{ marginTop: 6 }}>
+                  <b>{t('geokStrength')}</b> {ilju.strength}
+                </div>
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokWeakness')}</b> {ilju.weakness}
+                </div>
+              </div>
+            </>
+          )}
           <div className={s.subcap} style={{ marginTop: 24 }}>
-            대운 · 大運
+            {t('daeunCap')}
           </div>
           <div className={s.daeun}>
             {S.daeun.map((d) => (
@@ -417,7 +640,7 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
                   <b className={elClass[stemEl(d.stem)]}>{d.stem}</b>
                   <b className={elClass[branchEl(d.branch)]}>{d.branch}</b>
                 </div>
-                <div className={s.duSib}>{d.sibsin}</div>
+                <div className={s.duSib}>{sibsinLabel(d.sibsin, lang)}</div>
               </div>
             ))}
           </div>
@@ -428,60 +651,60 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
           <div className={s.secHead}>
             <span className={s.secNum}>02</span>
             <span className={s.secTitle}>
-              오행과 용신<span className={s.han}>五行·用神</span>
+              {t('sec02Title')}
+              <span className={s.han}>{UI.sec02Han.ko}</span>
             </span>
             <span className={s.secEn}>Elements & Balance</span>
           </div>
           <div className={s.gridElem}>
             <div className={`${s.card} ${s.cardPad}`}>
-              <div className={s.subcap}>오행 분포</div>
+              <div className={s.subcap}>{t('elemDist')}</div>
               <Pentagon fe={S.fiveElements} />
             </div>
             <div className={`${s.card} ${s.cardPad} ${s.elemSide}`}>
               <div>
-                <div className={s.subcap}>신강 · 신약</div>
+                <div className={s.subcap}>{t('strongWeak')}</div>
                 <div className={s.gaugeHead}>
                   <span>
-                    일간 {S.dayMaster} · {S.geokguk}
+                    {t('dayMasterLab')} {S.dayMaster}
+                    {lang === 'ko' ? ` · ${S.geokguk}` : geok ? ` · ${geok.tagline}` : ''}
                   </span>
                   <b>
-                    {S.strength === 'strong' ? '신강' : S.strength === 'weak' ? '신약' : '중화'}
+                    {S.strength === 'strong'
+                      ? t('strong')
+                      : S.strength === 'weak'
+                        ? t('weak')
+                        : t('balanced')}
                   </b>
                 </div>
                 <div className={s.gauge}>
                   <div className={s.gaugeFill} style={{ width: `${strengthPct}%` }} />
                 </div>
                 <div className={s.gaugeScale}>
-                  <i>신약</i>
-                  <i>중화</i>
-                  <i>신강</i>
+                  <i>{t('weak')}</i>
+                  <i>{t('balanced')}</i>
+                  <i>{t('strong')}</i>
                 </div>
                 {/* 회색 3 셀 (RAW_DISTRIBUTION v5.4): 통근 / 공망 / 조후 — 정통
                     사주 보조 정보. 한 줄 노출 + title 툴팁. 없으면 자동 생략. */}
                 {(S.rooted !== undefined || (S.gongmang && S.gongmang.length) || S.johuYongsin) && (
                   <div className={s.gaugeScale} style={{ marginTop: 6, gap: 8, flexWrap: 'wrap' }}>
                     {S.rooted !== undefined && (
-                      <i
-                        title={
-                          S.rooted
-                            ? '통근 — 일간의 오행이 지지 지장간에 박혀있음. 일간 강도 보강.'
-                            : '무근 — 일간 오행이 지지에 박혀있지 않음. 강도 약화 요인.'
-                        }
-                      >
-                        {S.rooted ? '뿌리 ✓' : '뿌리 ✗'}
+                      <i title={S.rooted ? t('rootedYesTip') : t('rootedNoTip')}>
+                        {S.rooted ? t('rootedYes') : t('rootedNo')}
                       </i>
                     )}
                     {S.gongmang && S.gongmang.length > 0 && (
-                      <i title="공망 — 일주 60갑자 그룹에서 비어있는 지지 2개. 해당 지지의 작용이 약함.">
-                        공망 {S.gongmang.join(' · ')}
+                      <i title={t('gongmangTip')}>
+                        {t('gongmangLab')} {S.gongmang.join(' · ')}
                       </i>
                     )}
                     {S.johuYongsin && (
                       <i
                         className={elClass[S.johuYongsin.primary]}
-                        title={`조후용신 — 계절 균형 관점의 보조 용신. 긴급도 ${S.johuYongsin.rating}/5.`}
+                        title={`${t('johuTip')} ${S.johuYongsin.rating}/5.`}
                       >
-                        조후 {ELEMENTS[S.johuYongsin.primary]?.han ?? S.johuYongsin.primary}
+                        {t('johuLab')} {ELEMENTS[S.johuYongsin.primary]?.han ?? S.johuYongsin.primary}
                         {S.johuYongsin.rating >= 4 && ' ⚡'}
                       </i>
                     )}
@@ -489,33 +712,33 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
                 )}
               </div>
               <div>
-                <div className={s.subcap}>용신 · 희신 · 기신</div>
+                <div className={s.subcap}>{t('yongTitle')}</div>
                 <div className={s.yongRow}>
-                  <span className={s.yongLab}>용신</span>
+                  <span className={s.yongLab}>{t('yongLab')}</span>
                   <span className={`${s.yong} ${s.yongPri} ${elClass[S.yongsin.primary]}`}>
                     {ELEMENTS[S.yongsin.primary]?.han}
-                    <i>{ELEMENTS[S.yongsin.primary]?.ko}</i>
+                    <i>{elementLabel(S.yongsin.primary, lang)}</i>
                   </span>
                   {S.yongsin.secondary && (
                     <span className={`${s.yong} ${s.yongSec} ${elClass[S.yongsin.secondary]}`}>
                       {ELEMENTS[S.yongsin.secondary]?.han}
-                      <i>{ELEMENTS[S.yongsin.secondary]?.ko}</i>
+                      <i>{elementLabel(S.yongsin.secondary, lang)}</i>
                     </span>
                   )}
                 </div>
                 <div className={s.yongRow}>
-                  <span className={s.yongLab}>기신</span>
+                  <span className={s.yongLab}>{t('giLab')}</span>
                   {S.yongsin.avoid.map((a) => (
                     <span className={`${s.yong} ${s.yongAvo} ${elClass[a]}`} key={a}>
                       {ELEMENTS[a]?.han}
-                      <i>{ELEMENTS[a]?.ko}</i>
+                      <i>{elementLabel(a, lang)}</i>
                     </span>
                   ))}
                 </div>
                 <div className={s.gaugeScale} style={{ marginTop: 8 }}>
                   {(['wood', 'fire', 'earth', 'metal', 'water'] as const).map((k) => (
                     <i key={k} className={elClass[k]}>
-                      {ELEMENTS[k].ko} {S.fiveElements[k]}
+                      {elementLabel(k, lang)} {S.fiveElements[k]}
                     </i>
                   ))}
                   <i style={{ color: 'var(--ink-4)' }}>/ max {feMax}</i>
@@ -523,6 +746,50 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
               </div>
             </div>
           </div>
+          {/* 격국 풀이 — geokguk-rich 사전. '미정'/매칭 없으면 자동 생략. */}
+          {geok && (
+            <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
+              <div className={s.subcap}>{t('geokgukCap')}</div>
+              <div className={s.gaugeHead}>
+                {lang === 'ko' && <span className={s.mono}>{S.geokguk}</span>}
+                <b>{geok.tagline}</b>
+              </div>
+              <div className={s.themeReason} style={{ marginTop: 6 }}>
+                <b>{t('geokPersonality')}</b> {geok.personality}
+              </div>
+              {geok.strength.length > 0 && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokStrength')}</b> {geok.strength.join(', ')}
+                </div>
+              )}
+              {geok.weakness.length > 0 && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokWeakness')}</b> {geok.weakness.join(', ')}
+                </div>
+              )}
+              <div className={s.themeReason} style={{ marginTop: 4 }}>
+                <b>{t('geokAdvice')}</b> {geok.advice}
+              </div>
+            </div>
+          )}
+          {/* 주도 십성 — sibsin-category 사전. 매칭 없으면 자동 생략. */}
+          {sibsinBlock && (
+            <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
+              <div className={s.subcap}>{t('sibsinCap')}</div>
+              <div className={s.gaugeHead}>
+                <span>{sibsinLabel(domSibsinName, lang)}</span>
+                <b>{sibsinBlock.title}</b>
+              </div>
+              <div className={s.themeReason} style={{ marginTop: 6 }}>
+                {sibsinBlock.meaning}
+              </div>
+              {sibsinBlock.advice && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokAdvice')}</b> {sibsinBlock.advice}
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* 03 천궁도 */}
@@ -530,7 +797,8 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
           <div className={s.secHead}>
             <span className={s.secNum}>03</span>
             <span className={s.secTitle}>
-              출생 천궁도<span className={s.han}>本命 天宮圖</span>
+              {lang === 'en' ? 'Natal Chart' : '출생 천궁도'}
+              <span className={s.han}>本命 天宮圖</span>
             </span>
             <span className={s.secEn}>Natal Chart</span>
           </div>
@@ -540,7 +808,7 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
             </div>
             <div>
               <div className={`${s.card} ${s.cardPad}`}>
-                <div className={s.subcap}>행성 위치 · Planets</div>
+                <div className={s.subcap}>{t('planetsCap')}</div>
                 <table className={s.planetTable}>
                   <tbody>
                     {[
@@ -550,11 +818,11 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
                       <tr key={p.name}>
                         <td className={s.plG}>{p.glyph}</td>
                         <td className={s.plN}>
-                          {p.ko}
-                          <i>{p.name}</i>
+                          {lang === 'en' ? p.name : p.ko}
+                          {lang === 'en' ? null : <i>{p.name}</i>}
                         </td>
                         <td className={`${s.plS} ${elClass[SIGN_META[abbr(p.sign)]?.el]}`}>
-                          {SIGN_META[abbr(p.sign)]?.glyph} {SIGN_META[abbr(p.sign)]?.ko}
+                          {SIGN_META[abbr(p.sign)]?.glyph} {signLabel(abbr(p.sign), lang)}
                         </td>
                         <td className={s.plD}>{p.deg}</td>
                         <td className={s.plH}>{p.house}H</td>
@@ -580,11 +848,11 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
                   )
                 })}
                 <div className={s.axisItem}>
-                  <span>Sect</span>
-                  <b>{A.sect === 'day' ? '주간 (晝)' : '야간 (夜)'}</b>
+                  <span>{t('sectLab')}</span>
+                  <b>{A.sect === 'day' ? t('sectDay') : t('sectNight')}</b>
                 </div>
                 <div className={s.axisItem}>
-                  <span>House</span>
+                  <span>{t('houseLab')}</span>
                   <b>{A.houseSystem}</b>
                 </div>
               </div>
@@ -612,7 +880,8 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
           <div className={s.secHead}>
             <span className={s.secNum}>04</span>
             <span className={s.secTitle}>
-              어스펙트<span className={s.han}>行星 角度</span>
+              {lang === 'en' ? 'Aspects' : '어스펙트'}
+              <span className={s.han}>行星 角度</span>
             </span>
             <span className={s.secEn}>Aspects</span>
           </div>
@@ -621,43 +890,46 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
               <div className={s.aspLegend}>
                 <span
                   className={`${s.leg} ${s.legSoft}`}
-                  title={`${ASPECT_FRIENDLY.trine.tooltip} / ${ASPECT_FRIENDLY.sextile.tooltip}`}
+                  title={`${ASPECT_FRIENDLY.trine.tooltip[lang]} / ${ASPECT_FRIENDLY.sextile.tooltip[lang]}`}
                 >
-                  <b>△</b>잘 흘러요·도와줘요
+                  <b>△</b>
+                  {t('legSoft')}
                 </span>
                 <span
                   className={`${s.leg} ${s.legHard}`}
-                  title={`${ASPECT_FRIENDLY.square.tooltip} / ${ASPECT_FRIENDLY.opposition.tooltip}`}
+                  title={`${ASPECT_FRIENDLY.square.tooltip[lang]} / ${ASPECT_FRIENDLY.opposition.tooltip[lang]}`}
                 >
-                  <b>□</b>부딪혀요·맞서요
+                  <b>□</b>
+                  {t('legHard')}
                 </span>
                 <span
                   className={`${s.leg} ${s.legNeutral}`}
-                  title={ASPECT_FRIENDLY.conjunction.tooltip}
+                  title={ASPECT_FRIENDLY.conjunction.tooltip[lang]}
                 >
-                  <b>☌</b>같이 있어요
+                  <b>☌</b>
+                  {t('legNeutral')}
                 </span>
               </div>
-              <AspectGrid astro={A} />
+              <AspectGrid astro={A} lang={lang} />
             </div>
             <div className={`${s.card} ${s.cardPad} ${s.digList}`}>
-              <div className={s.subcap}>위계 · Dignities</div>
+              <div className={s.subcap}>{t('dignityCap')}</div>
               {A.dignities.length === 0 && (
                 <div className={s.digRow} style={{ color: 'var(--ink-3)' }}>
-                  뚜렷한 위계 없음 — 행성이 모두 중립(peregrine) 자리예요.
+                  {t('noDignity')}
                 </div>
               )}
               {A.dignities.map((d, i) => {
                 const p = A.planets.find((x) => x.name === d.planet)
-                const sg = SIGN_META[abbr(d.sign)]
-                const friendly = DIGNITY_TIER_FRIENDLY[d.tier] ?? DIGNITY_TIER_LABEL[d.tier]
-                const tooltip = DIGNITY_TIER_TOOLTIP[d.tier] ?? DIGNITY_TIER_LABEL[d.tier]
+                const friendly = (DIGNITY_TIER_FRIENDLY[d.tier] ?? DIGNITY_TIER_LABEL[d.tier])[lang]
+                const tooltip = (DIGNITY_TIER_TOOLTIP[d.tier] ?? DIGNITY_TIER_LABEL[d.tier])[lang]
                 return (
                   <div className={s.digRow} key={i} title={tooltip}>
                     <span className={s.dg}>{p?.glyph}</span>
-                    <span className={s.dn}>{p?.ko}</span>
-                    <span className={elClass[sg?.el]} style={{ fontSize: 11.5 }}>
-                      {sg?.ko}자리
+                    <span className={s.dn}>{lang === 'en' ? p?.name : p?.ko}</span>
+                    <span className={elClass[SIGN_META[abbr(d.sign)]?.el]} style={{ fontSize: 11.5 }}>
+                      {signLabel(abbr(d.sign), lang)}
+                      {t('signSuffix')}
                     </span>
                     <span className={s.dsc}>{friendly}</span>
                   </div>
@@ -673,48 +945,50 @@ export function IntegratedReport({ data, cross }: IntegratedReportProps) {
             <div className={s.secHead}>
               <span className={s.secNum}>05</span>
               <span className={s.secTitle}>
-                통합 교차<span className={s.han}>交叉 統合</span>
+                {lang === 'en' ? 'Cross-System' : '통합 교차'}
+                <span className={s.han}>交叉 統合</span>
               </span>
               <span className={s.secEn}>Cross-System</span>
             </div>
             {cross.synthesis && (
               <div className={s.synthBanner}>
-                <div className={s.synthK}>🧬 종합 정체성</div>
+                <div className={s.synthK}>{t('synthLabel')}</div>
                 <div className={s.synthV}>{cross.synthesis}</div>
               </div>
             )}
             <div className={s.themes}>
-              {cross.rows.map((r, i) => {
-                const t = TONE[r.tone]
-                return (
-                  <div className={s.theme} key={i} style={{ ['--tc' as string]: t.color }}>
-                    <div className={s.themeHead}>
-                      <span className={s.themeName}>{r.category}</span>
-                      <span className={s.themeBadge}>{t.label}</span>
-                    </div>
-                    {(r.left || r.right) && (
-                      <div className={s.themeCross}>
-                        <div className={s.themeSide}>
-                          <div className={s.themeSideK}>사주</div>
-                          <div className={s.themeSideV}>{r.left}</div>
-                        </div>
-                        <div className={s.themeSide}>
-                          <div className={s.themeSideK}>점성</div>
-                          <div className={s.themeSideV}>{r.right}</div>
-                        </div>
-                      </div>
-                    )}
-                    <div className={s.themeReason}>{r.reason}</div>
+              {cross.rows.map((r, i) => (
+                <div
+                  className={s.theme}
+                  key={i}
+                  style={{ ['--tc' as string]: TONE_COLOR[r.tone] }}
+                >
+                  <div className={s.themeHead}>
+                    <span className={s.themeName}>{r.category}</span>
+                    <span className={s.themeBadge}>{TONE_LABEL[r.tone][lang]}</span>
                   </div>
-                )
-              })}
+                  {(r.left || r.right) && (
+                    <div className={s.themeCross}>
+                      <div className={s.themeSide}>
+                        <div className={s.themeSideK}>{t('sajuSide')}</div>
+                        <div className={s.themeSideV}>{r.left}</div>
+                      </div>
+                      <div className={s.themeSide}>
+                        <div className={s.themeSideK}>{t('astroSide')}</div>
+                        <div className={s.themeSideV}>{r.right}</div>
+                      </div>
+                    </div>
+                  )}
+                  <div className={s.themeReason}>{r.reason}</div>
+                </div>
+              ))}
             </div>
           </section>
         )}
 
         <div className={s.foot}>
           <span>四柱命理 × Tropical Natal · {A.houseSystem} House System</span>
-          <span className={s.mono}>껍데기 chart.zip · 두뇌 natalCross</span>
+          <span className={s.mono}>{t('footBrain')}</span>
         </div>
       </div>
     </div>

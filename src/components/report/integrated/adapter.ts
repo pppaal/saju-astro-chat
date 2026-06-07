@@ -7,6 +7,7 @@
  */
 import type { ReportData, ReportPillar } from './reportTypes'
 import { SIGN_ABBR } from './reportTypes'
+import type { RelationCategory } from '@/lib/chart-dictionary'
 import {
   evalIdentity,
   evalNeeds,
@@ -155,8 +156,27 @@ interface AnyCtx {
   astro?: any
 }
 
+// 관계 detail 문자열에서 천간·지지 한자만 추출. 예: "亥-寅 육합" → "亥寅",
+// "亥·卯·未 삼합(목)" → "亥卯未". 카테고리 한글어(육합/삼합/충…)는 한자가
+// 아니므로 자동 제외됨.
+const HANZI_BRANCH_STEM = new Set([
+  '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸',
+  '子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥',
+])
+const extractPair = (detail: string | undefined): string => {
+  if (!detail) return ''
+  let out = ''
+  for (const ch of detail) if (HANZI_BRANCH_STEM.has(ch)) out += ch
+  return out
+}
+// natalCross / RelationHit 의 kind 는 RelationCategory 와 동일 문자열.
+const RELATION_CATEGORIES = new Set<string>([
+  '천간합', '천간충', '지지육합', '지지삼합', '지지방합',
+  '지지충', '지지형', '지지파', '지지해', '원진',
+])
+
 /** NatalContext → ReportData (chart.zip 뷰모델). */
-export function natalToReportData(ctx: AnyCtx): ReportData {
+export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): ReportData {
   const S = ctx.saju ?? {}
   const A = ctx.astro ?? {}
   const inp = ctx.input ?? {}
@@ -201,7 +221,7 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
       polarity: h.polarity ?? SHINSAL_POLARITY[kind] ?? 0,
     }
   })
-  // 관계
+  // 관계 — type(kind 약칭), 한자 pair, 카테고리(getRelationMeaning 룩업용).
   const natalRelations = (S.natalRelations ?? []).slice(0, 6).map((r: any) => {
     const kind = String(r.kind ?? r.type ?? '')
     const tone: 'pos' | 'neg' | 'neutral' = kind.includes('합')
@@ -209,7 +229,9 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
       : kind.includes('충') || kind.includes('형') || kind.includes('파') || kind.includes('해')
         ? 'neg'
         : 'neutral'
-    return { type: kind, detail: r.detail ?? r.basis ?? '', tone }
+    const detail = r.detail ?? r.basis ?? ''
+    const category = RELATION_CATEGORIES.has(kind) ? (kind as RelationCategory) : undefined
+    return { type: kind, detail, tone, category, pair: extractPair(detail) }
   })
   // 대운 (현재 여부는 NatalContext 에 없으면 false — 호출측에서 보강 가능)
   const daeun = (S.daeun ?? []).slice(0, 8).map((d: any) => ({
@@ -298,9 +320,9 @@ export function natalToReportData(ctx: AnyCtx): ReportData {
 
   return {
     input: {
-      name: inp.name ?? '내담자',
+      name: inp.name ?? (lang === 'en' ? 'Client' : '내담자'),
       gender: inp.gender ?? 'male',
-      calendar: '양력',
+      calendar: lang === 'en' ? 'Gregorian' : '양력',
       date,
       time,
       place: inp.place ?? '',
@@ -444,27 +466,42 @@ export function buildCrossRows(
     : undefined
   const southNodeSign = northSignFull ? getSouthNodeOppositeSign(northSignFull as never) : undefined
 
-  const items: Array<[string, CrossVerdict | null]> = [
-    ['정체성', evalIdentity(dmEl, sunSign)],
-    ['욕망', evalNeeds(S.yongsin?.primary, moonSign)],
+  // 교차 항목 카테고리 라벨 — 이중언어. key 로 행을 묶고 lang 으로 표시 텍스트 선택.
+  const CAT: Record<string, { ko: string; en: string }> = {
+    identity: { ko: '정체성', en: 'Identity' },
+    needs: { ko: '욕망', en: 'Needs' },
+    socialRole: { ko: '사회역할', en: 'Social Role' },
+    fortune: { ko: '길흉', en: 'Fortune' },
+    relations: { ko: '관계', en: 'Relationships' },
+    strength: { ko: '강점', en: 'Strength' },
+    temperament: { ko: '기질', en: 'Temperament' },
+    energy: { ko: '에너지', en: 'Energy' },
+    persona: { ko: '드러나는 나', en: 'Outer Persona' },
+    drive: { ko: '추진력', en: 'Drive' },
+    keyTrait: { ko: '핵심 성향', en: 'Core Trait' },
+    karma: { ko: '공망/카르마', en: 'Void / Karma' },
+  }
+  const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
+    ['identity', evalIdentity(dmEl, sunSign)],
+    ['needs', evalNeeds(S.yongsin?.primary, moonSign)],
     [
-      '사회역할',
+      'socialRole',
       adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null,
     ],
-    ['길흉', evalFortune(dayShinsal)],
-    ['관계', evalRelations(hap, chung, harmonious, hard)],
-    ['강점', evalStrength(stage, topDignity)],
-    ['기질', evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean))],
-    ['에너지', evalEnergyDirection(details, emphasized)],
-    ['드러나는 나', evalPersona(dmEl, ascSign)],
-    ['추진력', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
-    ['핵심 성향', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
-    ['공망/카르마', evalVoid(gongmangBranches, southNodeSign)],
+    ['fortune', evalFortune(dayShinsal)],
+    ['relations', evalRelations(hap, chung, harmonious, hard)],
+    ['strength', evalStrength(stage, topDignity)],
+    ['temperament', evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean))],
+    ['energy', evalEnergyDirection(details, emphasized)],
+    ['persona', evalPersona(dmEl, ascSign)],
+    ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
+    ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
+    ['karma', evalVoid(gongmangBranches, southNodeSign)],
   ]
   const verdicts = items.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
   const synth = synthesize(verdicts)
   const rows = items
-    .filter((it): it is [string, CrossVerdict] => !!it[1])
-    .map(([category, v]) => ({ category, tone: v.tone, reason: v.reason[lang] }))
+    .filter((it): it is [keyof typeof CAT, CrossVerdict] => !!it[1])
+    .map(([key, v]) => ({ category: CAT[key][lang], tone: v.tone, reason: v.reason[lang] }))
   return { synthesis: synth?.text[lang], rows }
 }

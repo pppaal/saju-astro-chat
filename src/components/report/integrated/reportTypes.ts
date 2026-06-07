@@ -40,7 +40,14 @@ export interface ReportData {
       sub?: string
       polarity: number
     }>
-    natalRelations: Array<{ type: string; detail: string; tone: 'pos' | 'neg' | 'neutral' }>
+    natalRelations: Array<{
+      type: string
+      detail: string
+      tone: 'pos' | 'neg' | 'neutral'
+      // getRelationMeaning 룩업용 — category(kind) + 한자 전용 pair. 옛 SAMPLE 호환 위해 optional.
+      category?: string
+      pair?: string
+    }>
     daeun: Array<{ age: number; stem: string; branch: string; sibsin: string; current: boolean }>
     // 회색 3 셀 해소 (RAW_DISTRIBUTION v5.4) — 정통 사주 보조 정보.
     // 옛 SAMPLE_REPORT 호환 위해 optional.
@@ -159,15 +166,21 @@ export const SIGN_ABBR: Record<string, string> = {
   Pisces: 'Pis',
 }
 
-export const DIGNITY_TIER_LABEL: Record<string, string> = {
-  domicile: '본궁 +5',
-  exaltation: '고양 +4',
-  triplicity: '삼분궁 +3',
-  term: '바운드 +2',
-  face: '안면 +1',
-  detriment: '손상 −5',
-  fall: '추락 −4',
-  peregrine: '중립',
+// 이중언어 라벨 한 묶음 — UI 가 lang 으로 골라 씀.
+export interface BiLabel {
+  ko: string
+  en: string
+}
+
+export const DIGNITY_TIER_LABEL: Record<string, BiLabel> = {
+  domicile: { ko: '본궁 +5', en: 'Domicile +5' },
+  exaltation: { ko: '고양 +4', en: 'Exaltation +4' },
+  triplicity: { ko: '삼분궁 +3', en: 'Triplicity +3' },
+  term: { ko: '바운드 +2', en: 'Term +2' },
+  face: { ko: '안면 +1', en: 'Face +1' },
+  detriment: { ko: '손상 −5', en: 'Detriment −5' },
+  fall: { ko: '추락 −4', en: 'Fall −4' },
+  peregrine: { ko: '중립', en: 'Peregrine' },
 }
 
 /**
@@ -175,44 +188,95 @@ export const DIGNITY_TIER_LABEL: Record<string, string> = {
  * 정통 용어 (본궁/삼분궁/바운드 등) 는 툴팁 (DIGNITY_TIER_TOOLTIP) 으로 후순위
  * 노출. 사용자가 한 번에 의미 잡고, 깊이 원하면 호버.
  */
-export const DIGNITY_TIER_FRIENDLY: Record<string, string> = {
-  domicile: '고향 같은 자리', // 가장 자기다움 — 행성이 본래 다스리는 별자리
-  exaltation: '환영받는 자리', // 본궁은 아니지만 강력하게 발휘
-  triplicity: '기질이 맞는 자리', // 같은 원소 가족 — 무리 없는 활동
-  term: '실력 발휘 자리', // 작은 영역에서 자기 영역 — 도구 잘 다룸
-  face: '얼굴값 자리', // 가장 약한 dignity — 살짝 존재감
-  detriment: '낯선 자리', // 본궁의 반대편 — 어색함
-  fall: '기죽는 자리', // 고양의 반대편 — 위축
-  peregrine: '중립', // 어느 쪽도 아닌 평지
+export const DIGNITY_TIER_FRIENDLY: Record<string, BiLabel> = {
+  domicile: { ko: '고향 같은 자리', en: 'Home turf' }, // 가장 자기다움 — 행성이 본래 다스리는 별자리
+  exaltation: { ko: '환영받는 자리', en: 'Honored guest' }, // 본궁은 아니지만 강력하게 발휘
+  triplicity: { ko: '기질이 맞는 자리', en: 'Kindred ground' }, // 같은 원소 가족 — 무리 없는 활동
+  term: { ko: '실력 발휘 자리', en: 'Skilled corner' }, // 작은 영역에서 자기 영역 — 도구 잘 다룸
+  face: { ko: '얼굴값 자리', en: 'Faint footing' }, // 가장 약한 dignity — 살짝 존재감
+  detriment: { ko: '낯선 자리', en: 'Foreign turf' }, // 본궁의 반대편 — 어색함
+  fall: { ko: '기죽는 자리', en: 'Low ground' }, // 고양의 반대편 — 위축
+  peregrine: { ko: '중립', en: 'Neutral' }, // 어느 쪽도 아닌 평지
 }
 
 /**
  * 호버 시 정통 용어 + 점수 풀로 보여줌. 깊이를 원하는 사용자용.
  */
-export const DIGNITY_TIER_TOOLTIP: Record<string, string> = {
-  domicile: '본궁 (Domicile) +5 — 행성이 본래 다스리는 별자리',
-  exaltation: '고양 (Exaltation) +4 — 가장 잘 발휘되는 위치',
-  triplicity: '삼분궁 (Triplicity) +3 — 같은 원소 그룹',
-  term: '바운드 (Term) +2 — 별자리 내 작은 영역 지배',
-  face: '안면 (Face) +1 — 별자리 내 10도 영역 지배',
-  detriment: '손상 (Detriment) −5 — 본궁 반대편, 본성 발휘 어려움',
-  fall: '추락 (Fall) −4 — 고양 반대편, 약화',
-  peregrine: '중립 (Peregrine) — 위계 없음',
+export const DIGNITY_TIER_TOOLTIP: Record<string, BiLabel> = {
+  domicile: {
+    ko: '본궁 (Domicile) +5 — 행성이 본래 다스리는 별자리',
+    en: 'Domicile +5 — the sign the planet naturally rules',
+  },
+  exaltation: {
+    ko: '고양 (Exaltation) +4 — 가장 잘 발휘되는 위치',
+    en: 'Exaltation +4 — where the planet expresses at its best',
+  },
+  triplicity: {
+    ko: '삼분궁 (Triplicity) +3 — 같은 원소 그룹',
+    en: 'Triplicity +3 — same elemental family',
+  },
+  term: {
+    ko: '바운드 (Term) +2 — 별자리 내 작은 영역 지배',
+    en: 'Term +2 — rulership of a small zone within the sign',
+  },
+  face: {
+    ko: '안면 (Face) +1 — 별자리 내 10도 영역 지배',
+    en: 'Face +1 — rulership of a 10° decan within the sign',
+  },
+  detriment: {
+    ko: '손상 (Detriment) −5 — 본궁 반대편, 본성 발휘 어려움',
+    en: 'Detriment −5 — opposite the domicile, expression is strained',
+  },
+  fall: {
+    ko: '추락 (Fall) −4 — 고양 반대편, 약화',
+    en: 'Fall −4 — opposite the exaltation, weakened',
+  },
+  peregrine: {
+    ko: '중립 (Peregrine) — 위계 없음',
+    en: 'Peregrine — no essential dignity',
+  },
 }
 
 /**
  * Aspect 종류도 같은 패턴 — 정통 용어 (삼각·육각·사각·대충·합) 가 친화적이지
  * 않아 일상어 라벨. 툴팁으로 정통 용어 + 각도 노출.
  */
-export const ASPECT_FRIENDLY: Record<string, { label: string; tooltip: string }> = {
+export const ASPECT_FRIENDLY: Record<string, { label: BiLabel; tooltip: BiLabel }> = {
   conjunction: {
-    label: '같이 있어요',
-    tooltip: '합 (Conjunction) 0° — 두 행성이 붙어서 함께 작동',
+    label: { ko: '같이 있어요', en: 'Working together' },
+    tooltip: {
+      ko: '합 (Conjunction) 0° — 두 행성이 붙어서 함께 작동',
+      en: 'Conjunction 0° — two planets fused and acting as one',
+    },
   },
-  sextile: { label: '잘 도와줘요', tooltip: '육각 (Sextile) 60° — 부드럽게 협력' },
-  square: { label: '부딪혀요', tooltip: '사각 (Square) 90° — 긴장·갈등' },
-  trine: { label: '잘 흘러요', tooltip: '삼각 (Trine) 120° — 자연스럽게 어울림' },
-  opposition: { label: '맞서요', tooltip: '대충 (Opposition) 180° — 정면 대립' },
+  sextile: {
+    label: { ko: '잘 도와줘요', en: 'Lends a hand' },
+    tooltip: {
+      ko: '육각 (Sextile) 60° — 부드럽게 협력',
+      en: 'Sextile 60° — gentle cooperation',
+    },
+  },
+  square: {
+    label: { ko: '부딪혀요', en: 'Clashes' },
+    tooltip: {
+      ko: '사각 (Square) 90° — 긴장·갈등',
+      en: 'Square 90° — tension and friction',
+    },
+  },
+  trine: {
+    label: { ko: '잘 흘러요', en: 'Flows easily' },
+    tooltip: {
+      ko: '삼각 (Trine) 120° — 자연스럽게 어울림',
+      en: 'Trine 120° — natural harmony',
+    },
+  },
+  opposition: {
+    label: { ko: '맞서요', en: 'Faces off' },
+    tooltip: {
+      ko: '대충 (Opposition) 180° — 정면 대립',
+      en: 'Opposition 180° — head-on polarity',
+    },
+  },
 }
 
 /** chart.zip 샘플 — 컴포넌트 즉시 렌더/미리보기용. 실제는 adapter 로 교체. */
