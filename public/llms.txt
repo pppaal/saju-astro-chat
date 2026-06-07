@@ -1,0 +1,23 @@
+# DestinyPal
+
+> DestinyPal is an AI-powered fortune and self-discovery service offering tarot readings, Korean Saju (Four Pillars), Western astrology, compatibility analysis, and a personalized destiny counselor — available in Korean and English.
+
+DestinyPal blends traditional divination (tarot, saju, astrology) with large language models to deliver conversational, personalized readings. Free-form questions are answered with concrete, card- and chart-grounded interpretations rather than generic horoscopes. Readings can be saved, revisited, and shared as images.
+
+## Core services
+- [Tarot reading](https://destinypal.com/tarot): AI tarot for free-form questions (love, career, money, decisions) with per-card and overall interpretation, follow-up questions, and clarifier cards.
+- [Destiny counselor](https://destinypal.com/destiny-counselor): An AI counselor chat grounded in Korean Saju (Four Pillars of Destiny) and astrology.
+- [Compatibility](https://destinypal.com/compatibility): Relationship compatibility between two people via saju and astrology.
+- [Calendar](https://destinypal.com/calendar): A personal timing guide highlighting meaningful dates.
+
+## Information
+- [About](https://destinypal.com/about)
+- [FAQ](https://destinypal.com/faq)
+- [Pricing](https://destinypal.com/pricing)
+- [Blog](https://destinypal.com/blog): Guides and articles on tarot, saju, and astrology.
+- [Contact](https://destinypal.com/contact)
+
+## Policies
+- [Terms of Service](https://destinypal.com/policy/terms)
+- [Privacy Policy](https://destinypal.com/policy/privacy)
+- [Refund Policy](https://destinypal.com/policy/refund)
