@@ -26,8 +26,9 @@ describe('collectSajuFacts — 순수 facts 계산', () => {
 
   it('dayMaster — name + element + yinYang 셋 다 채워짐', () => {
     const f = collectSajuFacts(BIRTH)
-    expect(f.dayMaster.name).toBe('乙')
-    expect(f.dayMaster.element).toBe('목')
+    // 1995-02-09 06:40 KST = 辛未일 (일간 辛, 금/음) — 골든 감사로 검증된 만세력.
+    expect(f.dayMaster.name).toBe('辛')
+    expect(f.dayMaster.element).toBe('금')
     expect(f.dayMaster.yinYang).toBe('음')
   })
 
