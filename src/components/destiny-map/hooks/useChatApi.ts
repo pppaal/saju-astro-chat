@@ -87,7 +87,7 @@ export function useChatApi({
   const [usedFallback, setUsedFallback] = React.useState(false)
   const [followUpQuestions, setFollowUpQuestions] = React.useState<string[]>([])
   const [showCrisisModal, setShowCrisisModal] = React.useState(false)
-  const MAX_CHAT_MESSAGE_CHARS = 2000
+  const MAX_CHAT_MESSAGE_CHARS = 8000
 
   // Stream updates are buffered so the UI does not re-layout on every token.
   const pendingContentRef = React.useRef<string | null>(null)
