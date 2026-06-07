@@ -18,6 +18,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
+import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 
 import {
   deleteReading,
@@ -951,7 +952,7 @@ export default function TarotHistoryClient() {
                   {selectedReading.followupTurns.map((turn, idx) => (
                     <div
                       key={`${selectedReading.id}-turn-${idx}`}
-                      className="text-sm leading-relaxed whitespace-pre-wrap pl-3 border-l-2"
+                      className="text-sm leading-relaxed pl-3 border-l-2"
                       style={{
                         borderColor:
                           turn.role === 'user'
@@ -969,7 +970,13 @@ export default function TarotHistoryClient() {
                       >
                         {turn.role === 'user' ? (isKo ? '나' : 'You') : 'AI'}
                       </div>
-                      {turn.content}
+                      {/* 사용자 메시지에 들어 있는 클래리파이어 카드 markdown
+                          (`![태양](/images/tarot/19-sun.webp)`) 가 raw 텍스트로
+                          노출되던 회귀 — FollowupChat 안의 말풍선과 같은
+                          ChatBubbleContent 로 통일해 이미지 + 마크다운 둘 다
+                          렌더. (whitespace-pre-wrap 제거: ChatBubbleContent
+                          내부 markdown 이 줄바꿈 처리.) */}
+                      <ChatBubbleContent role={turn.role} content={turn.content} theme="dark" />
                     </div>
                   ))}
                 </div>

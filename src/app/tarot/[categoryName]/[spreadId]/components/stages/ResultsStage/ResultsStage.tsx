@@ -81,6 +81,10 @@ export interface ResultsStageProps {
   handleReset: () => void
   interpretationFailed?: boolean
   handleRetryInterpretation?: () => void
+  /** "이 리딩 다시 열기"로 복원된 followup 채팅 + 클래리파이어 사용 여부.
+   *  FollowupChat 의 history state / clarifier lock 초기값으로 흘려보낸다. */
+  restoredFollowupTurns?: Array<{ role: 'user' | 'assistant'; content: string }> | null
+  restoredClarifierUsed?: boolean
 }
 
 export function ResultsStage(props: ResultsStageProps) {
@@ -191,8 +195,7 @@ export function ResultsStage(props: ResultsStageProps) {
                       ? '기록에 저장'
                       : 'Save to history'}
                 </button>
-                {(saveMessage.startsWith('저장 실패') ||
-                  saveMessage.startsWith('Save failed')) && (
+                {(saveMessage.startsWith('저장 실패') || saveMessage.startsWith('Save failed')) && (
                   <span className="text-[11px] text-rose-300/80 text-center max-w-xs">
                     {saveMessage}
                   </span>
@@ -315,6 +318,8 @@ export function ResultsStage(props: ResultsStageProps) {
             userTopic={userTopic}
             language={language}
             readingId={props.readingId ?? null}
+            initialHistory={props.restoredFollowupTurns ?? null}
+            initialClarifierUsed={props.restoredClarifierUsed ?? false}
           />
         )}
 

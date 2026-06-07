@@ -67,6 +67,10 @@ interface UseTarotGameReturn {
   handleRetryDraw: () => void
   isCardRevealed: (index: number) => boolean
   canRevealCard: (index: number) => boolean
+
+  // 히스토리 복원 — "이 리딩 다시 열기" 시 채워짐. 새 리딩 흐름엔 null/false.
+  restoredFollowupTurns: Array<{ role: 'user' | 'assistant'; content: string }> | null
+  restoredClarifierUsed: boolean
 }
 
 // 카드 매칭 로직은 lib/tarot/findCardByName.ts 로 분리 — 히스토리 모달
@@ -142,6 +146,13 @@ export function useTarotGame(): UseTarotGameReturn {
   const [selectionOrderMap, setSelectionOrderMap] = useState<Map<number, number>>(new Map())
   const selectionOrderRef = useRef<Map<number, number>>(new Map())
   const [readingResult, setReadingResult] = useState<ReadingResponse | null>(null)
+  // 히스토리에서 복원된 리딩의 follow-up 채팅 + 클래리파이어 사용 여부. 복원이
+  // 아닐 땐 null/false 로 유지 → FollowupChat 은 빈 상태로 시작.
+  const [restoredFollowupTurns, setRestoredFollowupTurns] = useState<Array<{
+    role: 'user' | 'assistant'
+    content: string
+  }> | null>(null)
+  const [restoredClarifierUsed, setRestoredClarifierUsed] = useState(false)
   const [interpretation, setInterpretation] = useState<InterpretationResult | null>(null)
   const [drawError, setDrawError] = useState<TarotDrawError | null>(null)
   const [revealedCards, setRevealedCards] = useState<number[]>([])
@@ -307,6 +318,14 @@ export function useTarotGame(): UseTarotGameReturn {
     setRevealedCards(restoredResult.drawnCards.map((_, index) => index))
     setDrawError(null)
     setIsSpreading(false)
+    // followup 채팅 + 클래리파이어 복원 — ResultsStage → FollowupChat 으로 흘러가
+    // "이 리딩 다시 열기" 시 그동안의 대화·뽑은 카드가 화면에 그대로 노출.
+    setRestoredFollowupTurns(
+      restoredReading.followupTurns
+        ? restoredReading.followupTurns.map((t) => ({ role: t.role, content: t.content }))
+        : null
+    )
+    setRestoredClarifierUsed(Boolean(restoredReading.clarifierCard))
     setGameState('results')
   }, [spreadInfo, restoreKeyFromUrl, categoryName])
 
@@ -667,5 +686,7 @@ export function useTarotGame(): UseTarotGameReturn {
     handleRetryDraw,
     isCardRevealed,
     canRevealCard,
+    restoredFollowupTurns,
+    restoredClarifierUsed,
   }
 }

@@ -48,6 +48,9 @@ export interface PageContentProps {
   handleRetryInterpretation?: () => void
   language: string
   translate: (key: string, fallback: string) => string
+  /** "이 리딩 다시 열기" 복원 데이터 — useTarotGame 가 채워 ResultsStage 까지 흘림. */
+  restoredFollowupTurns?: Array<{ role: 'user' | 'assistant'; content: string }> | null
+  restoredClarifierUsed?: boolean
 }
 
 export function PageContent(props: PageContentProps) {
@@ -180,6 +183,8 @@ export function PageContent(props: PageContentProps) {
         handleReset={props.handleReset}
         interpretationFailed={props.interpretationFailed}
         handleRetryInterpretation={props.handleRetryInterpretation}
+        restoredFollowupTurns={props.restoredFollowupTurns ?? null}
+        restoredClarifierUsed={props.restoredClarifierUsed ?? false}
       />
     )
   }

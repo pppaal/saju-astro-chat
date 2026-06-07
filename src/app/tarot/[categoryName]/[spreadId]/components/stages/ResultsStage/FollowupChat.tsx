@@ -29,6 +29,16 @@ interface FollowupChatProps {
    * 안 보이던 것을 흰색 계열로.
    */
   theme?: 'dark' | 'light'
+  /**
+   * 히스토리에서 "이 리딩 다시 열기" 로 복원된 경우 저장된 follow-up turn 목록.
+   * 있으면 history state 초기값으로 채워 화면에 곧장 노출.
+   */
+  initialHistory?: Turn[] | null
+  /**
+   * 복원된 리딩이 이미 클래리파이어 카드를 한 장 뽑았는지. true 면 useClarifierCard
+   * 가 lock 상태로 시작 → 두 번째 카드 못 뽑게, 잠금 라벨 노출.
+   */
+  initialClarifierUsed?: boolean
 }
 
 type Turn = { role: 'user' | 'assistant'; content: string; pending?: boolean }
@@ -120,13 +130,17 @@ export function FollowupChat({
   language,
   readingId,
   theme = 'dark',
+  initialHistory = null,
+  initialClarifierUsed = false,
 }: FollowupChatProps) {
   const isKo = language === 'ko'
   const pal = theme === 'light' ? LIGHT_PALETTE : DARK_PALETTE
   const { showDepleted } = useCreditModal()
   const requireLogin = useRequireLogin()
   const [input, setInput] = useState('')
-  const [history, setHistory] = useState<Turn[]>([])
+  // 히스토리에서 복원된 리딩이면 저장된 follow-up turn 으로 시작 — 빈 채팅창이
+  // 아니라 그동안의 대화 흐름이 그대로 노출. 처음 진입이면 빈 배열.
+  const [history, setHistory] = useState<Turn[]>(() => initialHistory ?? [])
   const [submitting, setSubmitting] = useState(false)
   const [clarifierNotice, setClarifierNotice] = useState<string | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -394,6 +408,7 @@ export function FollowupChat({
   // 스크롤하지 않는다(페이지가 위로 튀던 회귀 방지).
   const clarifier = useClarifierCard({
     lang: isKo ? 'ko' : 'en',
+    initialUsed: initialClarifierUsed,
     onSendUserText: (text) => {
       setClarifierNotice(null)
       // 비로그인 사용자는 followup API 가 401 → 우리 로그인 모달 (Saju · Astrology
@@ -437,10 +452,7 @@ export function FollowupChat({
     >
       <div className="flex items-center gap-2">
         <MessageCircle className="w-4 h-4" style={{ color: pal.accent }} />
-        <h2
-          className="text-sm font-medium tracking-wider uppercase"
-          style={{ color: pal.accent }}
-        >
+        <h2 className="text-sm font-medium tracking-wider uppercase" style={{ color: pal.accent }}>
           {isKo ? '이 리딩에 대해 더 묻기' : 'Ask about this reading'}
         </h2>
       </div>
