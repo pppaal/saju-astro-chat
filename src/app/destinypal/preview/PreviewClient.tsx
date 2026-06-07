@@ -7,12 +7,12 @@
    에서 만들어야 한다 (RSC 가 함수 prop 직렬화 불가).
    ============================================================ */
 
-import { DestinypalShell } from '@/components/destinypal/shell'
-import { LifetimeTier } from '@/components/destinypal/tiers/LifetimeTier'
-import { DecadeTier } from '@/components/destinypal/tiers/DecadeTier'
-import { YearTier } from '@/components/destinypal/tiers/YearTier'
-import { MonthTier } from '@/components/destinypal/tiers/MonthTier'
-import { DayTier } from '@/components/destinypal/tiers/DayTier'
+import { DestinypalShell } from '@/components/calendar/shell'
+import { LifetimeTier } from '@/components/calendar/tiers/LifetimeTier'
+import { DecadeTier } from '@/components/calendar/tiers/DecadeTier'
+import { YearTier } from '@/components/calendar/tiers/YearTier'
+import { MonthTier } from '@/components/calendar/tiers/MonthTier'
+import { DayTier } from '@/components/calendar/tiers/DayTier'
 
 import type {
   DestinyUserSummary,
@@ -21,7 +21,7 @@ import type {
   DestinyYear,
   DestinyMonth,
   DestinyDay,
-} from '@/types/destinypal'
+} from '@/types/calendar'
 
 export interface PreviewClientProps {
   topbar: {
@@ -59,9 +59,7 @@ export default function PreviewClient({
   return (
     <DestinypalShell
       topbar={topbar}
-      renderLife={({ onDive }) => (
-        <LifetimeTier user={user} lifetime={lifetime} onDive={onDive} />
-      )}
+      renderLife={({ onDive }) => <LifetimeTier user={user} lifetime={lifetime} onDive={onDive} />}
       renderDecade={({ onRise, onDive }) => (
         <DecadeTier user={user} decade={decade} onRise={onRise} onDive={onDive} />
       )}

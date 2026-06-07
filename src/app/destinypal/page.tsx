@@ -35,7 +35,7 @@ import {
   toYear,
   toMonth,
   toDay,
-} from '@/components/destinypal/adapters'
+} from '@/components/calendar/adapters'
 
 import type {
   DestinyUserSummary,
@@ -43,7 +43,7 @@ import type {
   DestinyMonth,
   DestinyDay,
   DestinyYear,
-} from '@/types/destinypal'
+} from '@/types/calendar'
 
 // 서버 컴포넌트 — Swiss Ephemeris 비용 서버에서 한 번에 치름.
 // 세션 기반이므로 force-dynamic 필수 (정적 캐시 금지).
@@ -128,7 +128,7 @@ export default async function DestinypalPage() {
       end: `${TARGET_YEAR}-12-31T23:59:59.999Z`,
       granularity: 'day',
     },
-    { includeEvidence: true },
+    { includeEvidence: true }
   )
 
   // ─── 6) lifetimeFlow / lifetimePivots derivers ─────────────────────────
@@ -138,11 +138,8 @@ export default async function DestinypalPage() {
   // ─── 7) yearly / month / day 슬라이스 ─────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
-  const dayCell =
-    cells.find((c) => c.datetime.slice(0, 10) === targetDayIso) ?? cells[0]
-  const yearlySignals = cells
-    .flatMap((c) => c.signals)
-    .filter((s) => s.layer === 'yearly')
+  const dayCell = cells.find((c) => c.datetime.slice(0, 10) === targetDayIso) ?? cells[0]
+  const yearlySignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'yearly')
 
   // ─── 8) adapter 호출 (5 tier prop 자동 어셈블 — preview 와 동일) ──────
   const birthDisplay = formatBirthLine(profile.birthDate!, profile.birthTime!)
@@ -162,7 +159,7 @@ export default async function DestinypalPage() {
     birth: userBase.birth,
     birthKo: userBase.birthKo,
     place: userBase.place,
-    sex: (userBase.sex === '남' || userBase.sex === '여' ? userBase.sex : '남'),
+    sex: userBase.sex === '남' || userBase.sex === '여' ? userBase.sex : '남',
     ilgan: {
       hanja: userBase.ilgan.hanja,
       kr: userBase.ilgan.kr,
@@ -181,7 +178,7 @@ export default async function DestinypalPage() {
       hanja: userBase.huisin.hanja,
       kr: userBase.huisin.kr,
       en: userBase.huisin.en,
-      primary: (natal.saju.yongsin.secondary ?? natal.saju.yongsin.primary),
+      primary: natal.saju.yongsin.secondary ?? natal.saju.yongsin.primary,
       avoid: natal.saju.yongsin.avoid,
     },
     gyeokguk: userBase.gyeokguk,
@@ -216,9 +213,7 @@ export default async function DestinypalPage() {
 
   // toDecade — 현재 대운 + 10년 분리 + cross-activation decadal.
   const currentAge = TARGET_YEAR - BIRTH_YEAR
-  const decadalSignals = cells
-    .flatMap((c) => c.signals)
-    .filter((s) => s.layer === 'decadal')
+  const decadalSignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'decadal')
   const decadeAdapter = toDecade(natal, {
     currentAge,
     currentYear: TARGET_YEAR,
@@ -227,14 +222,30 @@ export default async function DestinypalPage() {
   })
   type FE = DestinyDecade['pillar']['cheongan']['element']
   const STEM_EL_FALLBACK: Record<string, FE> = {
-    甲: '목', 乙: '목', 丙: '화', 丁: '화',
-    戊: '토', 己: '토', 庚: '금', 辛: '금',
-    壬: '수', 癸: '수',
+    甲: '목',
+    乙: '목',
+    丙: '화',
+    丁: '화',
+    戊: '토',
+    己: '토',
+    庚: '금',
+    辛: '금',
+    壬: '수',
+    癸: '수',
   }
   const BRANCH_EL_FALLBACK: Record<string, FE> = {
-    子: '수', 丑: '토', 寅: '목', 卯: '목',
-    辰: '토', 巳: '화', 午: '화', 未: '토',
-    申: '금', 酉: '금', 戌: '토', 亥: '수',
+    子: '수',
+    丑: '토',
+    寅: '목',
+    卯: '목',
+    辰: '토',
+    巳: '화',
+    午: '화',
+    未: '토',
+    申: '금',
+    酉: '금',
+    戌: '토',
+    亥: '수',
   }
   function pickElement(hanja: string, fallback: Record<string, FE>): FE {
     return fallback[hanja] ?? '목'
@@ -349,7 +360,7 @@ export default async function DestinypalPage() {
     cells,
   })
   const ageThisYear = TARGET_YEAR - BIRTH_YEAR
-  const fallbackHouse = ((ageThisYear % 12) + 12) % 12 + 1
+  const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1
   const wheelSlot = yearAdapter.profectionWheel.find((w) => w.house === fallbackHouse)
   const year: DestinyYear = {
     year: yearAdapter.year,

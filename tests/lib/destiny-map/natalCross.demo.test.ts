@@ -15,7 +15,7 @@ import {
   evalPersona,
   synthesize,
   type CrossVerdict,
-} from '@/lib/destiny-map/natalCross'
+} from '@/lib/report/natalCross'
 
 describe('운세 차트 교차표 — 데모 출력', () => {
   it('샘플 한 명의 9영역 교차 + 종합', () => {
@@ -75,7 +75,7 @@ describe('운세 차트 교차표 — 데모 출력', () => {
       out.push(`           └ ${r.v.reason[lang]}`)
     }
     out.push('  ' + '─'.repeat(60))
-    console.log(out.join('\n'))
+    console.info(out.join('\n'))
 
     expect(verdicts.length).toBe(9)
     expect(synth).not.toBeNull()

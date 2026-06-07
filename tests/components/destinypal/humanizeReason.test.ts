@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { humanizeReason } from '@/components/destinypal/adapters/humanizeReason'
+import { humanizeReason } from '@/components/calendar/adapters/humanizeReason'
 
 describe('humanizeReason — 표시 평어화', () => {
   it('영어 트랜짓을 한국어 관계 평어로 재구성', () => {

@@ -26,7 +26,7 @@ import {
   toYear,
   toMonth,
   toDay,
-} from '@/components/destinypal/adapters'
+} from '@/components/calendar/adapters'
 
 import type {
   DestinyUserSummary,
@@ -34,7 +34,7 @@ import type {
   DestinyMonth,
   DestinyDay,
   DestinyYear,
-} from '@/types/destinypal'
+} from '@/types/calendar'
 
 // Server component: 빌드 비용(Swiss Ephemeris) 을 서버에서 한 번만 치름.
 export const dynamic = 'force-dynamic'
@@ -66,7 +66,7 @@ export default async function DestinypalPreview() {
       end: '2026-12-31T23:59:59.999Z',
       granularity: 'day',
     },
-    { includeEvidence: true },
+    { includeEvidence: true }
   )
 
   // ─── 3) lifetimeFlow / lifetimePivots derivers (lifeStages·milestones 원료) ──
@@ -76,12 +76,9 @@ export default async function DestinypalPreview() {
   // ─── 4) yearly / month / day cell 슬라이스 ─────────────────────────────
   const monthPrefix = `2026-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
-  const dayCell =
-    cells.find((c) => c.datetime.slice(0, 10) === TARGET_DAY_ISO) ?? cells[0]
+  const dayCell = cells.find((c) => c.datetime.slice(0, 10) === TARGET_DAY_ISO) ?? cells[0]
   // yearly signals — cell.signals 중 layer='yearly' 인 것만 풀.
-  const yearlySignals = cells
-    .flatMap((c) => c.signals)
-    .filter((s) => s.layer === 'yearly')
+  const yearlySignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'yearly')
 
   // ─── 4.5) iljin (일진) / woolun (월운) 60갑자 계산 ───────────────────
   // 각각 dayPillar / datePillars 표준 헬퍼 (KASI 절기 룩업) 한 줄 사용.
@@ -90,14 +87,14 @@ export default async function DestinypalPreview() {
   const dayIdx = computeDayPillarIndices(
     focusDate.getFullYear(),
     focusDate.getMonth() + 1,
-    focusDate.getDate(),
+    focusDate.getDate()
   )
   const iljinStem = STEM_NAMES[dayIdx.stemIndex]
   const iljinBranch = BRANCH_NAMES[dayIdx.branchIndex]
 
   // 월운 — TARGET_MONTH 의 절기-기반 월주.
   const woolunRef = getMonthPillarForDate(
-    new Date(`2026-${String(TARGET_MONTH).padStart(2, '0')}-15T00:00:00`),
+    new Date(`2026-${String(TARGET_MONTH).padStart(2, '0')}-15T00:00:00`)
   )
   const woolunStem = woolunRef.stem
   const woolunBranch = woolunRef.branch
@@ -120,7 +117,7 @@ export default async function DestinypalPreview() {
     birth: userBase.birth,
     birthKo: userBase.birthKo,
     place: userBase.place,
-    sex: (userBase.sex === '남' || userBase.sex === '여' ? userBase.sex : '남'),
+    sex: userBase.sex === '남' || userBase.sex === '여' ? userBase.sex : '남',
     ilgan: {
       hanja: userBase.ilgan.hanja,
       kr: userBase.ilgan.kr,
@@ -139,7 +136,7 @@ export default async function DestinypalPreview() {
       hanja: userBase.huisin.hanja,
       kr: userBase.huisin.kr,
       en: userBase.huisin.en,
-      primary: (natal.saju.yongsin.secondary ?? natal.saju.yongsin.primary),
+      primary: natal.saju.yongsin.secondary ?? natal.saju.yongsin.primary,
       avoid: natal.saju.yongsin.avoid,
     },
     gyeokguk: userBase.gyeokguk,
@@ -175,9 +172,7 @@ export default async function DestinypalPreview() {
 
   // toDecade — 현재 대운 + 10년 분리 + cross-activation decadal.
   const currentAge = TARGET_YEAR - BIRTH_YEAR
-  const decadalSignals = cells
-    .flatMap((c) => c.signals)
-    .filter((s) => s.layer === 'decadal')
+  const decadalSignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'decadal')
   const decadeAdapter = toDecade(natal, {
     currentAge,
     currentYear: TARGET_YEAR,
@@ -190,14 +185,30 @@ export default async function DestinypalPreview() {
   // pillar 도 DestinyDecadePillar(element 포함) 로 평탄화.
   type FE = DestinyDecade['pillar']['cheongan']['element']
   const STEM_EL_FALLBACK: Record<string, FE> = {
-    甲: '목', 乙: '목', 丙: '화', 丁: '화',
-    戊: '토', 己: '토', 庚: '금', 辛: '금',
-    壬: '수', 癸: '수',
+    甲: '목',
+    乙: '목',
+    丙: '화',
+    丁: '화',
+    戊: '토',
+    己: '토',
+    庚: '금',
+    辛: '금',
+    壬: '수',
+    癸: '수',
   }
   const BRANCH_EL_FALLBACK: Record<string, FE> = {
-    子: '수', 丑: '토', 寅: '목', 卯: '목',
-    辰: '토', 巳: '화', 午: '화', 未: '토',
-    申: '금', 酉: '금', 戌: '토', 亥: '수',
+    子: '수',
+    丑: '토',
+    寅: '목',
+    卯: '목',
+    辰: '토',
+    巳: '화',
+    午: '화',
+    未: '토',
+    申: '금',
+    酉: '금',
+    戌: '토',
+    亥: '수',
   }
   function pickElement(hanja: string, fallback: Record<string, FE>): FE {
     return fallback[hanja] ?? '목'
@@ -317,7 +328,7 @@ export default async function DestinypalPreview() {
   // DestinyYear 는 profection 이 *필수* — yearlySignals 에 profection signal 이 없으면
   // 만나이 % 12 + 1 fallback 으로 활성 하우스만 채우고 wheel 룩업.
   const ageThisYear = TARGET_YEAR - BIRTH_YEAR
-  const fallbackHouse = ((ageThisYear % 12) + 12) % 12 + 1
+  const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1
   const wheelSlot = yearAdapter.profectionWheel.find((w) => w.house === fallbackHouse)
   const year: DestinyYear = {
     year: yearAdapter.year,
@@ -487,8 +498,12 @@ export default async function DestinypalPreview() {
     return { ...base, source: 'saju' as const }
   }) as DSig[]
   const dayTransits = allDaySignals.filter((s) => s.kind === 'transit') as DestinyDay['transits']
-  const daySajuSignals = allDaySignals.filter((s) => s.kind !== 'transit' && s.kind !== 'cross-activation') as DestinyDay['signals']
-  const dayCrossSignals = allDaySignals.filter((s) => s.kind === 'cross-activation') as DestinyDay['crossSignals']
+  const daySajuSignals = allDaySignals.filter(
+    (s) => s.kind !== 'transit' && s.kind !== 'cross-activation'
+  ) as DestinyDay['signals']
+  const dayCrossSignals = allDaySignals.filter(
+    (s) => s.kind === 'cross-activation'
+  ) as DestinyDay['crossSignals']
 
   // applied-pattern / cross-activation 풀 — DestinyDay shape 에 맞춰 채움.
   const dayAppliedPatterns: DestinyDay['appliedPatterns'] = dayCell.signals
@@ -503,14 +518,11 @@ export default async function DestinypalPreview() {
       polarity: s.polarity,
       weight: s.weight,
       themes: s.themes,
-      activeAxes:
-        Array.isArray(s.evidence?.detail?.activeAxes)
-          ? (s.evidence!.detail!.activeAxes as string[])
-          : [],
+      activeAxes: Array.isArray(s.evidence?.detail?.activeAxes)
+        ? (s.evidence!.detail!.activeAxes as string[])
+        : [],
       rule:
-        typeof s.evidence?.detail?.rule === 'string'
-          ? (s.evidence!.detail!.rule as string)
-          : '',
+        typeof s.evidence?.detail?.rule === 'string' ? (s.evidence!.detail!.rule as string) : '',
     }))
   const dayCrossActivations: DestinyDay['crossActivations'] = dayCell.signals
     .filter((s) => s.kind === 'cross-activation')

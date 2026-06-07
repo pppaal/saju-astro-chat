@@ -18,7 +18,7 @@ import {
   dominantAstroElement,
   dominantSibsinGroup,
   synthesize,
-} from '@/lib/destiny-map/natalCross'
+} from '@/lib/report/natalCross'
 
 describe('natalCross — 원소 기초', () => {
   it('signToSajuElement: 4원소 → 5원소 (air≈목)', () => {
@@ -135,7 +135,12 @@ describe('natalCross — 핵심 각 (가장 센 행성 각)', () => {
     expect(evalKeyAspect(aspects, '재성')?.tone).toBe('complement')
   })
   it('매핑된 각 없으면 null', () => {
-    expect(evalKeyAspect([{ from: { name: 'Pluto' }, to: { name: 'Neptune' }, type: 'trine', orb: 1 }], '관성')).toBeNull()
+    expect(
+      evalKeyAspect(
+        [{ from: { name: 'Pluto' }, to: { name: 'Neptune' }, type: 'trine', orb: 1 }],
+        '관성'
+      )
+    ).toBeNull()
     expect(evalKeyAspect([], '관성')).toBeNull()
   })
 })

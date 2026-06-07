@@ -3,7 +3,7 @@ import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDate
 import { applyMatrixPreformatRegrade, formatDateForResponse } from '@/app/api/calendar/lib/helpers'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
-import type { UserSajuProfile, UserAstroProfile } from '@/lib/destiny-map/calendar/types'
+import type { UserSajuProfile, UserAstroProfile } from '@/lib/calendar/types'
 
 const sajuProfile: UserSajuProfile = {
   dayMaster: '甲',

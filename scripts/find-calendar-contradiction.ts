@@ -9,7 +9,7 @@
 import { calculateSajuData } from '../src/lib/saju/saju'
 import { STEM_TO_ELEMENT_EN as STEM_TO_ELEMENT } from '../src/lib/saju/constants'
 import { calculateNatalChart } from '../src/lib/astrology/foundation/astrologyService'
-import { calculateYearlyImportantDates } from '../src/lib/destiny-map/destinyCalendar'
+import { calculateYearlyImportantDates } from '../src/lib/calendar/destinyCalendar'
 
 type ScannedDate = {
   date: string

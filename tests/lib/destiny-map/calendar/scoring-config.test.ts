@@ -18,7 +18,7 @@ import {
   normalizeToCategory,
   sumAndNormalize,
   calculateAdjustedScore,
-} from '@/lib/destiny-map/calendar/scoring-config'
+} from '@/lib/calendar/scoring-config'
 
 describe('scoring-config', () => {
   describe('CATEGORY_MAX_SCORES', () => {

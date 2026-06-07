@@ -21,15 +21,27 @@ import {
   dominantSibsinGroup,
   synthesize,
   type CrossVerdict,
-} from '@/lib/destiny-map/natalCross'
+} from '@/lib/report/natalCross'
 
 const SIGN_KO_EN: Record<string, string> = {
-  양자리: 'Aries', 황소자리: 'Taurus', 쌍둥이자리: 'Gemini', 게자리: 'Cancer',
-  사자자리: 'Leo', 처녀자리: 'Virgo', 천칭자리: 'Libra', 전갈자리: 'Scorpio',
-  사수자리: 'Sagittarius', 염소자리: 'Capricorn', 물병자리: 'Aquarius', 물고기자리: 'Pisces',
+  양자리: 'Aries',
+  황소자리: 'Taurus',
+  쌍둥이자리: 'Gemini',
+  게자리: 'Cancer',
+  사자자리: 'Leo',
+  처녀자리: 'Virgo',
+  천칭자리: 'Libra',
+  전갈자리: 'Scorpio',
+  사수자리: 'Sagittarius',
+  염소자리: 'Capricorn',
+  물병자리: 'Aquarius',
+  물고기자리: 'Pisces',
 }
 const TONE: Record<string, string> = {
-  resonant: '잘 맞아요 ✓', complement: '서로 채워줘요', tension: '부딪혀요 ⚡', neutral: '따로따로',
+  resonant: '잘 맞아요 ✓',
+  complement: '서로 채워줘요',
+  tension: '부딪혀요 ⚡',
+  neutral: '따로따로',
 }
 
 describe('운세 차트 — 실제 엔진 통합', () => {
@@ -109,14 +121,14 @@ describe('운세 차트 — 실제 엔진 통합', () => {
         v: evalDrive(
           (adv as { yongsin?: { daymasterStrength?: string } })?.yongsin?.daymasterStrength ??
             saju.strength,
-          emphasized.has('Sun') || emphasized.has('Mars'),
+          emphasized.has('Sun') || emphasized.has('Mars')
         ),
       },
       {
         cat: '핵심성향 ',
         v: evalKeyAspect(
           astro.natalAspects as Parameters<typeof evalKeyAspect>[0],
-          dominantSibsinGroup(details),
+          dominantSibsinGroup(details)
         ),
       },
     ]
@@ -124,7 +136,9 @@ describe('운세 차트 — 실제 엔진 통합', () => {
     const synth = synthesize(verdicts)
 
     const out: string[] = ['', '┌─ 🧬 실제 차트 (1992-03-15 09:20 여성·서울) ─┐']
-    out.push(`  일간 ${saju.dayMaster.name}(${dmEl}) · 태양 ${sunSign} · 달 ${moonSign} · ASC ${ascSign} · 격국 ${geokguk ?? '없음'}`)
+    out.push(
+      `  일간 ${saju.dayMaster.name}(${dmEl}) · 태양 ${sunSign} · 달 ${moonSign} · ASC ${ascSign} · 격국 ${geokguk ?? '없음'}`
+    )
     if (synth) out.push(`  [종합] ${synth.text[lang]}`)
     out.push('  ' + '─'.repeat(58))
     for (const r of rows) {
@@ -136,7 +150,7 @@ describe('운세 차트 — 실제 엔진 통합', () => {
       out.push(`           └ ${r.v.reason[lang]}`)
     }
     out.push('  ' + '─'.repeat(58))
-    console.log(out.join('\n'))
+    console.info(out.join('\n'))
 
     expect(verdicts.length).toBeGreaterThanOrEqual(5)
   }, 30000)
