@@ -5,6 +5,7 @@
 
 import { useState, useCallback } from 'react'
 import { logger } from '@/lib/logger'
+import { emitSessionDeleted } from '@/lib/counselor/sessionEvents'
 import type { ChatMessage } from '@/lib/api/validator'
 import type { SessionItem } from '@/hooks/useChatSession.unified'
 
@@ -64,6 +65,8 @@ export function useSessionHistory(options: UseSessionHistoryOptions) {
       if (res.ok) {
         setSessionHistory((prev) => prev.filter((s) => s.id !== sid))
         setDeleteConfirmId(null)
+        // 사이드바(CounselorSidebar) 등 다른 목록도 같은 세션을 빼도록 알림.
+        emitSessionDeleted(sid)
       }
     } catch (e) {
       logger.warn('[useChatSession] Failed to delete session:', e)

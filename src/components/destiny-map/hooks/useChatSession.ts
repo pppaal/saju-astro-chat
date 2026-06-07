@@ -5,6 +5,7 @@
 
 import React from 'react'
 import { logger } from '@/lib/logger'
+import { emitSessionDeleted } from '@/lib/counselor/sessionEvents'
 import { CHAT_TIMINGS } from '../chat-constants'
 import type { Message } from '../chat-constants'
 import type { SessionItem } from '../modals/HistoryModal'
@@ -197,6 +198,8 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
       if (res.ok) {
         setSessionHistory((prev) => prev.filter((s) => s.id !== sessionId))
         setDeleteConfirmId(null)
+        // 사이드바(CounselorSidebar) 등 다른 목록도 같은 세션을 빼도록 알림.
+        emitSessionDeleted(sessionId)
       }
     } catch (e) {
       logger.warn('[Chat] Failed to delete session:', e)
