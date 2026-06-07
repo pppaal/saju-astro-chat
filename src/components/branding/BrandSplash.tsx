@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import HexDPLogo from './HexDPLogo'
 
 interface BrandSplashProps {
@@ -24,7 +25,9 @@ interface BrandSplashProps {
  * glide bar underneath. Renders fixed-position so it covers the
  * viewport regardless of parent layout.
  */
-export default function BrandSplash({
+// 스트리밍 중 부모(타로 페이지)가 부분 해석 업데이트로 자주 리렌더돼도, props 가
+// 같으면 이 로딩 화면은 다시 그리지 않는다 — 로딩 애니메이션 렉 방지.
+function BrandSplash({
   message,
   submessage,
   size = 120,
@@ -154,3 +157,5 @@ export default function BrandSplash({
     </main>
   )
 }
+
+export default memo(BrandSplash)

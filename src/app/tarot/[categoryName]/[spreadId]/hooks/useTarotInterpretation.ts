@@ -629,8 +629,19 @@ export function useTarotInterpretation({
               fallback: true,
               interpretation_source: 'stream_sse_fallback',
             }
+            // 스트리밍 진행 업데이트 스로틀 — 매 SSE 청크마다 부분 JSON 파싱
+            // (extractPartial*)+setInterpretation 리렌더가 돌면 메인 스레드가
+            // 막혀 로딩 애니메이션(BrandSplash 등)이 렉 걸린다. ~120ms 간격으로만
+            // 파싱·반영하면 타이핑 효과는 유지(초당 ~8회)하면서 부하를 크게 줄인다.
+            // 최종 완성본은 아래 parseStreamedInterpretation 이 전체 텍스트로 다시
+            // 만들므로 중간 스로틀로 내용이 누락되지 않는다.
+            let lastProgressAt = 0
+            const PROGRESS_THROTTLE_MS = 120
             const jsonText = await consumeSSEStream(response, (accumulated) => {
               if (!options?.onProgress) return
+              const now = Date.now()
+              if (now - lastProgressAt < PROGRESS_THROTTLE_MS) return
+              lastProgressAt = now
               const partialOverall = extractPartialOverall(accumulated) || ''
               const partialCards = extractPartialCardTexts(accumulated)
               // 카드별 해석을 baseSnapshot.card_insights 위에 덮어쓴다 — 아직 안 온 카드는 빈 문자열 유지.
