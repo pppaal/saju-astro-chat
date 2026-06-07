@@ -22,8 +22,6 @@ import {
   SIPSIN_RELATIONS,
   ELEMENT_RELATIONS,
   ZODIAC_TO_ELEMENT,
-  AREA_CONFIG,
-  type FortuneArea,
 } from '@/lib/destiny-map/calendar/constants';
 
 describe('destiny-map/calendar/constants', () => {
@@ -517,62 +515,6 @@ describe('destiny-map/calendar/constants', () => {
       expect(elementCounts.earth).toBe(3);
       expect(elementCounts.air).toBe(3);
       expect(elementCounts.water).toBe(3);
-    });
-  });
-
-  describe('AREA_CONFIG', () => {
-    it('should have 6 fortune areas', () => {
-      expect(Object.keys(AREA_CONFIG)).toHaveLength(6);
-    });
-
-    it('should have career config', () => {
-      expect(AREA_CONFIG.career).toBeDefined();
-    });
-
-    it('should have wealth config', () => {
-      expect(AREA_CONFIG.wealth).toBeDefined();
-    });
-
-    it('should have love config', () => {
-      expect(AREA_CONFIG.love).toBeDefined();
-    });
-
-    it('should have health config', () => {
-      expect(AREA_CONFIG.health).toBeDefined();
-    });
-
-    it('should have study config', () => {
-      expect(AREA_CONFIG.study).toBeDefined();
-    });
-
-    it('should have travel config', () => {
-      expect(AREA_CONFIG.travel).toBeDefined();
-    });
-
-    it('should have complete structure for each area', () => {
-      Object.values(AREA_CONFIG).forEach(config => {
-        expect(config).toHaveProperty('relatedElements');
-        expect(config).toHaveProperty('boostSibsin');
-        expect(config).toHaveProperty('penaltySibsin');
-      });
-    });
-
-    it('should have arrays in config', () => {
-      Object.values(AREA_CONFIG).forEach(config => {
-        expect(Array.isArray(config.relatedElements)).toBe(true);
-        expect(Array.isArray(config.boostSibsin)).toBe(true);
-        expect(Array.isArray(config.penaltySibsin)).toBe(true);
-      });
-    });
-
-    it('should have valid elements in career config', () => {
-      expect(AREA_CONFIG.career.relatedElements).toContain('metal');
-      expect(AREA_CONFIG.career.relatedElements).toContain('earth');
-    });
-
-    it('should have valid sipsin in wealth config', () => {
-      expect(AREA_CONFIG.wealth.boostSibsin).toContain('정재');
-      expect(AREA_CONFIG.wealth.boostSibsin).toContain('편재');
     });
   });
 });

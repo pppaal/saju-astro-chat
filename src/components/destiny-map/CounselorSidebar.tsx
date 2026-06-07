@@ -6,6 +6,7 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { logger } from '@/lib/logger'
 import { apiFetch } from '@/lib/api'
+import { emitSessionDeleted, onSessionDeleted } from '@/lib/counselor/sessionEvents'
 import { clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 import styles from './CounselorSidebar.module.css'
 import HexDPLogo from '@/components/branding/HexDPLogo'
@@ -129,6 +130,10 @@ export default function CounselorSidebar({
   // native confirm 이 막혀 삭제 자체가 안 되던 회귀 + 페이지 헤더의 ⋮ 메뉴와
   // 동일한 PromptModal UX 로 통일.
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  // 삭제된 세션 id 모음 — 서버에서 지워졌지만 stale 한 `sessions` / 낙관적
+  // activeSessionId 재주입으로 행이 되살아나는 걸 막는 tombstone. 사이드바
+  // 자체 삭제 + 채팅(useChatSession) 삭제 이벤트 둘 다 여기로 모인다.
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set())
   const swipeStartXRef = useRef<number | null>(null)
   const swipeRowIdRef = useRef<string | null>(null)
 
@@ -185,24 +190,41 @@ export default function CounselorSidebar({
     if (open) loadSessions()
   }, [open, loadSessions])
 
+  // 다른 곳(채팅 ⋮ 메뉴 / history rail)에서 세션을 지우면 알림을 받아 즉시
+  // 목록에서 제거 + 재주입 차단. destiny·compat 공용 — 한 번 구독으로 둘 다 반영.
+  useEffect(() => {
+    return onSessionDeleted((id) => {
+      setDeletedIds((prev) => {
+        if (prev.has(id)) return prev
+        const next = new Set(prev)
+        next.add(id)
+        return next
+      })
+      setSessions((prev) => prev.filter((s) => s.id !== id))
+    })
+  }, [])
+
   // 활성 세션을 목록에 낙관적으로 합친다 — 새 채팅/첫 메시지가 서버 저장보다
   // 먼저 사이드바 맨 위에 뜨게. 이미 있으면 제목만 갱신, 없으면 맨 위에 추가.
+  // 단, 삭제된(tombstone) 세션은 base 목록에서 빼고 activeSessionId 재주입도
+  // 막는다 — 안 그러면 보던 세션을 지워도 activeSessionId 로 행이 되살아난다.
   const displaySessions = useMemo<SessionItem[]>(() => {
-    if (!activeSessionId) return sessions
-    const idx = sessions.findIndex((s) => s.id === activeSessionId)
+    const base = deletedIds.size ? sessions.filter((s) => !deletedIds.has(s.id)) : sessions
+    if (!activeSessionId || deletedIds.has(activeSessionId)) return base
+    const idx = base.findIndex((s) => s.id === activeSessionId)
     if (idx >= 0) {
-      if (activeSessionTitle && sessions[idx].title !== activeSessionTitle) {
-        const copy = [...sessions]
+      if (activeSessionTitle && base[idx].title !== activeSessionTitle) {
+        const copy = [...base]
         copy[idx] = { ...copy[idx], title: activeSessionTitle }
         return copy
       }
-      return sessions
+      return base
     }
     return [
       { id: activeSessionId, title: activeSessionTitle ?? null, updatedAt: new Date().toISOString() },
-      ...sessions,
+      ...base,
     ]
-  }, [sessions, activeSessionId, activeSessionTitle])
+  }, [sessions, deletedIds, activeSessionId, activeSessionTitle])
 
   // History grouping — Today / Previous 7 Days / Older. Only used when
   // enableGrouping is on (compat counselor page). The flat list path
@@ -244,8 +266,15 @@ export default function CounselorSidebar({
         })
         status = res.status
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        setDeletedIds((prev) => {
+          const next = new Set(prev)
+          next.add(id)
+          return next
+        })
         setSessions((prev) => prev.filter((s) => s.id !== id))
         setSwipedId(null)
+        // 다른 목록(채팅 history rail 등)도 같은 세션을 빼도록 알림.
+        emitSessionDeleted(id)
       } catch (e) {
         // No optimistic row removal yet — the list is only mutated after
         // the request succeeds. So nothing to roll back here; we just hand

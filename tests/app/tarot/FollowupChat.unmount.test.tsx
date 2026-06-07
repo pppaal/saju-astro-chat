@@ -41,6 +41,13 @@ vi.mock('@/contexts/CreditModalContext', () => ({
   }),
 }))
 
+// 로그인 모달 컨텍스트 — Provider 없이 렌더하므로 hook 들을 stub.
+vi.mock('@/contexts/LoginModalContext', () => ({
+  useLoginModal: () => ({ showLogin: vi.fn(), hideLogin: vi.fn() }),
+  useRequireLogin: () => () => true,
+  LoginModalProvider: ({ children }: { children: React.ReactNode }) => children,
+}))
+
 // useClarifierCard is heavy and not relevant to the unmount path under
 // test — stub a tiny shape that matches what FollowupChat consumes.
 vi.mock('@/hooks/useClarifierCard', () => ({

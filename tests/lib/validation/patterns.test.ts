@@ -82,7 +82,7 @@ describe("Regex Patterns", () => {
 describe("LIMITS", () => {
   it("has expected values", () => {
     expect(LIMITS.NAME).toBe(80);
-    expect(LIMITS.MESSAGE).toBe(2000);
+    expect(LIMITS.MESSAGE).toBe(8000);
     expect(LIMITS.MAX_MESSAGES).toBe(20);
     expect(LIMITS.LATITUDE.min).toBe(-90);
     expect(LIMITS.LATITUDE.max).toBe(90);

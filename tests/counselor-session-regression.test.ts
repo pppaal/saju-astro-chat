@@ -23,7 +23,13 @@ const SRC = (p: string) => join(process.cwd(), 'src', p)
 const read = (p: string) => readFileSync(SRC(p), 'utf-8')
 
 describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () => {
-  const route = read('app/api/counselor/realtime/route.ts')
+  // 시스템 프롬프트는 buildDestinyCounselorPrompt(프롬프트 모듈), [Meta] 컨텍스트는
+  // counselorContextCache 로 추출됨(route 에서 분리). 룰이 *어느 파일이든* 살아
+  // 있으면 통과하도록 세 소스의 합집합을 grep 대상으로 둔다.
+  const route =
+    read('app/api/counselor/realtime/route.ts') +
+    read('lib/prompts/destinyCounselorPrompt.ts') +
+    read('lib/destiny/counselorContextCache.ts')
 
   it('system prompt 에 "다정한 멘토" 톤 한 줄 (#293)', () => {
     expect(route).toMatch(/다정.*공감.*따뜻한 멘토/)
@@ -85,7 +91,11 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
 })
 
 describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () => {
-  const route = read('app/api/compatibility/counselor/route.ts')
+  // 시스템 프롬프트는 buildCompatibilityCounselorPrompt(프롬프트 모듈)로 분리됨.
+  // route + 프롬프트 모듈 합집합을 grep 대상으로 둔다.
+  const route =
+    read('app/api/compatibility/counselor/route.ts') +
+    read('lib/prompts/compatibilityCounselorPrompt.ts')
 
   it('system prompt 에 "다정한 멘토" 톤 한 줄 (#306)', () => {
     expect(route).toMatch(/다정.*공감.*따뜻한 멘토/)
@@ -132,15 +142,9 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
 describe('궁합 timingBlock — 사주 시기 (세운/월운/일진) (#319)', () => {
   const support = read('app/api/compatibility/counselor/routeSupport.ts')
 
-  // 개인 타임라인(세운/월운/일진) 텍스트 prompt emit 은 synastry-only 설계로
-  // 제거됨 — renderSide 의 saju timing block / KO·EN 라벨 / dateStr emit 은
-  // 더 이상 존재하지 않는다. 단, current cycle 계산값은 synastry 용으로 유지.
-
-  it('saeunCurrent / wolunCurrent / ilunCurrent 모두 계산', () => {
-    expect(support).toContain('saeunCurrent')
-    expect(support).toContain('wolunCurrent')
-    expect(support).toContain('ilunCurrent')
-  })
+  // 개인 타임라인(세운/월운/일진) prompt emit 은 synastry-only 설계로 제거됨.
+  // current cycle 계산값(saeunCurrent/wolunCurrent/ilunCurrent)도 이후 통째
+  // 제거되어 routeSupport 에 더 이상 존재하지 않는다 → 해당 검증 삭제.
 
   it('옛 stale 코멘트 ("already in the cached saju table") 제거', () => {
     // sajuTableFormatter 는 Phase D (2026-06-06) 에 dead 로 제거됐지만,

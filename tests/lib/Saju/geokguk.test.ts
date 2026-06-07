@@ -5,7 +5,6 @@
 
 import {
   determineGeokguk,
-  getGeokgukDescription,
   evaluateGeokgukStatus,
   evaluateHwagiGeokguk,
   determineGeokgukAdvanced,
@@ -68,68 +67,6 @@ describe('Geokguk Module', () => {
 
       expect(result.description).toBeTruthy()
       expect(typeof result.description).toBe('string')
-    })
-  })
-
-  describe('getGeokgukDescription', () => {
-    const geokgukTypes: GeokgukType[] = [
-      '식신격',
-      '상관격',
-      '편재격',
-      '정재격',
-      '편관격',
-      '정관격',
-      '편인격',
-      '정인격',
-      '종왕격',
-      '종강격',
-      '종아격',
-      '종재격',
-      '종살격',
-      '건록격',
-      '양인격',
-      '월겁격',
-      '잡기격',
-      '갑기화토격',
-      '을경화금격',
-      '병신화수격',
-      '정임화목격',
-      '무계화화격',
-      '곡직격',
-      '염상격',
-      '가색격',
-      '종혁격',
-      '윤하격',
-      '미정',
-    ]
-
-    it('returns description for all geokguk types', () => {
-      for (const type of geokgukTypes) {
-        const desc = getGeokgukDescription(type)
-        expect(desc).toBeTruthy()
-        expect(typeof desc).toBe('string')
-      }
-    })
-
-    it('returns non-empty string for 식신격', () => {
-      const desc = getGeokgukDescription('식신격')
-      expect(desc.length).toBeGreaterThan(0)
-    })
-
-    it('returns non-empty string for 종격 types', () => {
-      expect(getGeokgukDescription('종왕격').length).toBeGreaterThan(0)
-      expect(getGeokgukDescription('종강격').length).toBeGreaterThan(0)
-      expect(getGeokgukDescription('종아격').length).toBeGreaterThan(0)
-    })
-
-    it('returns non-empty string for 화기격국 types', () => {
-      expect(getGeokgukDescription('갑기화토격').length).toBeGreaterThan(0)
-      expect(getGeokgukDescription('을경화금격').length).toBeGreaterThan(0)
-    })
-
-    it('returns fallback for 미정', () => {
-      const desc = getGeokgukDescription('미정')
-      expect(desc).toBeTruthy()
     })
   })
 

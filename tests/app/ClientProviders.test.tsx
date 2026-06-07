@@ -32,6 +32,16 @@ vi.mock('@/contexts/CreditModalContext', () => ({
   useCreditModal: vi.fn(),
 }))
 
+// LoginModalProvider 도 ClientProviders 가 감싼다 — 내부에서 useI18n 등을
+// 호출하므로(mock 된 useI18n 이 undefined 반환 시 crash) inert wrapper 로 stub.
+vi.mock('@/contexts/LoginModalContext', () => ({
+  LoginModalProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="login-modal-provider">{children}</div>
+  ),
+  useLoginModal: vi.fn(() => ({ showLogin: vi.fn(), hideLogin: vi.fn() })),
+  useRequireLogin: vi.fn(() => () => true),
+}))
+
 // Side-effect / global UI components rendered by ClientProviders. They run their
 // own hooks (useI18n, effects, etc.) that are out of scope for provider-nesting
 // tests, so stub them to inert nodes. (Added when the in-app browser notice +

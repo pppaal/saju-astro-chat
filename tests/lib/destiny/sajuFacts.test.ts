@@ -3,8 +3,9 @@ import { describe, it, expect } from 'vitest'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 
 // 본 테스트의 기준 출생 = destinypal preview 가 쓰는 1995-02-09 06:40 KST 남자.
-// 이 사주의 일주(乙亥), 일간(乙=음목) 은 calculateSajuData 의 결정성 골든
-// 테스트로 잠겨있어 회귀 alarm 신뢰 가능.
+// 1995 = 乙亥'년'(음년), 일주는 辛未 → 일간(日干)=辛(음금). calculateSajuData
+// 결정성 골든(saju-astro-doctrine-regressions)으로 잠겨있어 회귀 alarm 신뢰 가능.
+// (옛 주석은 연주 乙亥 를 일주로 착각해 일간을 乙 로 적었던 오류 — 수정함.)
 const BIRTH = {
   birthDate: '1995-02-09',
   birthTime: '06:40',
@@ -26,15 +27,14 @@ describe('collectSajuFacts — 순수 facts 계산', () => {
 
   it('dayMaster — name + element + yinYang 셋 다 채워짐', () => {
     const f = collectSajuFacts(BIRTH)
-    expect(f.dayMaster.name).toBe('乙')
-    expect(f.dayMaster.element).toBe('목')
+    expect(f.dayMaster.name).toBe('辛')
+    expect(f.dayMaster.element).toBe('금')
     expect(f.dayMaster.yinYang).toBe('음')
   })
 
   it('dayMaster.rooted — 지장간에 일간 오행이 있으면 true', () => {
     const f = collectSajuFacts(BIRTH)
-    // 乙은 木. 寅·卯·辰 지지 + 그 지장간 어디든 木 있으면 rooted.
-    // 1995-02-09 사주는 寅월 출생이라 rooted 일 가능성 매우 높음.
+    // 辛은 金. 지지/지장간 어디든 金 있으면 rooted.
     expect(typeof f.dayMaster.rooted).toBe('boolean')
   })
 

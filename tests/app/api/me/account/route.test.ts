@@ -98,10 +98,8 @@ vi.mock('@/lib/logger', () => ({
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: { findUnique: vi.fn(), delete: vi.fn() },
-    emailLog: { deleteMany: vi.fn() },
     sharedResult: { deleteMany: vi.fn() },
     bonusCreditPurchase: { deleteMany: vi.fn() },
-    creditRefundLog: { deleteMany: vi.fn() },
     securityAuditLog: { deleteMany: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -211,10 +209,10 @@ describe('Account API – DELETE /api/me/account', () => {
   })
 
   describe('Deletion behavior', () => {
-    it('deletes EmailLog, SharedResult and the user in one transaction', async () => {
+    it('deletes SharedResult and the user in one transaction', async () => {
       const res = await DELETE(makeRequest({ confirm: 'me@example.com' }))
       expect(res.status).toBe(200)
-      expect(prisma.emailLog.deleteMany).toHaveBeenCalledWith({ where: { userId: USER_ID } })
+      // EmailLog 모델 제거(2026-06-06) — 이제 SharedResult + user.delete(cascade) 만.
       expect(prisma.sharedResult.deleteMany).toHaveBeenCalledWith({ where: { userId: USER_ID } })
       expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: USER_ID } })
       expect(prisma.$transaction).toHaveBeenCalledTimes(1)
@@ -223,7 +221,6 @@ describe('Account API – DELETE /api/me/account', () => {
     it('preserves accounting/security logs (does not delete them)', async () => {
       await DELETE(makeRequest({ confirm: 'me@example.com' }))
       expect(prisma.bonusCreditPurchase.deleteMany).not.toHaveBeenCalled()
-      expect(prisma.creditRefundLog.deleteMany).not.toHaveBeenCalled()
       expect(prisma.securityAuditLog.deleteMany).not.toHaveBeenCalled()
     })
 
