@@ -1174,17 +1174,17 @@ describe('calendar-engine regression', () => {
         ...over,
       }) as ActiveSignal
 
-    it('tagger weights a signal by theme 본령 (목성=일 본령 > 재물/성장 보조)', () => {
+    it('tagger weights a signal by theme 본령 (목성=확장/성장 본령 > 재물/직업 보조)', () => {
       const { themes, weights } = tagSignalWithThemes(
         mkSignal({ evidence: { module: 'test', planets: ['Jupiter'] } })
       )
-      // 멤버십은 보존 (일/재물/성장 모두 포함)
-      expect(themes).toEqual(expect.arrayContaining(['career', 'money', 'growth']))
-      // 본령(career)이 보조(money/growth)보다 큰 가중 — 한 신호가 모든 테마에
+      // 멤버십은 보존 (성장/재물/직업 모두 포함) — 정통: 목성=확장(성장) 본령.
+      expect(themes).toEqual(expect.arrayContaining(['growth', 'money', 'career']))
+      // 본령(growth)이 보조(money/career)보다 큰 가중 — 한 신호가 모든 테마에
       // 동일 기여하던 동률 수렴 방지.
-      expect(weights.career).toBe(1)
-      expect(weights.career!).toBeGreaterThan(weights.money!)
-      expect(weights.career!).toBeGreaterThan(weights.growth!)
+      expect(weights.growth).toBe(1)
+      expect(weights.growth!).toBeGreaterThan(weights.money!)
+      expect(weights.growth!).toBeGreaterThan(weights.career!)
     })
 
     it('순서 있는 사주 매핑은 첫 테마가 primary(1.0), 이후 보조(<1)', () => {
