@@ -53,6 +53,8 @@ interface MeProfile {
   birthTime?: string | null
   gender?: string | null
   birthCity?: string | null
+  latitude?: number | null
+  longitude?: number | null
   tzId?: string | null
 }
 
@@ -1264,6 +1266,8 @@ export default function ProfilePage() {
             birthTime: profile?.birthTime ?? null,
             gender: profile?.gender ?? null,
             birthCity: profile?.birthCity ?? null,
+            latitude: profile?.latitude ?? null,
+            longitude: profile?.longitude ?? null,
             tzId: profile?.tzId ?? null,
           }}
           locale={locale}
