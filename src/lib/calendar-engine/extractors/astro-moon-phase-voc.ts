@@ -29,6 +29,18 @@ import { getCachedTransitChart } from '../ephe-cache'
  *  - VoC: 다음 sign 진입까지 (수시간)
  */
 
+// 달 위상별 흐름 한 줄 (getMoonPhase snake_case 키와 일치).
+const PHASE_MEANING: Record<string, string> = {
+  new_moon: '새 주기의 씨앗을 심는 때 — 의도를 세우고 시작하기 좋아요',
+  waxing_crescent: '싹이 돋아 쌓이기 시작하는 흐름 — 작게 추진해 보기 좋아요',
+  first_quarter: '결정과 행동의 분기점 — 부딪쳐도 밀어붙일 때예요',
+  waxing_gibbous: '무르익으며 차오르는 흐름 — 다듬고 키우기 좋아요',
+  full_moon: '정점에서 또렷이 드러나는 때 — 결실·감정이 절정에 올라요',
+  waning_gibbous: '거두고 나누는 흐름 — 정리·공유에 좋아요',
+  last_quarter: '내려놓고 돌아보는 분기점 — 비우고 마무리할 때예요',
+  waning_crescent: '쉬며 다음을 준비하는 때 — 휴식·성찰에 좋아요',
+}
+
 const PHASE_POLARITY: Record<string, -1 | 0 | 1> = {
   newMoon: 1, // 시작에 좋음
   waxingCrescent: 1,
@@ -83,7 +95,7 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
             source: 'astro',
             kind: 'moon-phase',
             name: `달 위상: ${getMoonPhaseName(lastPhase as never)}`,
-            korean: `달 위상 ${getMoonPhaseName(lastPhase as never)}`,
+            korean: `${getMoonPhaseName(lastPhase as never)} — ${PHASE_MEANING[lastPhase as string] ?? '달 주기의 한 국면이에요'}`,
             themes: [],
             polarity: PHASE_POLARITY[lastPhase] ?? 0,
             layer: 'monthly', // 한 위상이 약 3~4일이지만 "월" 사이클의 일부
@@ -113,7 +125,7 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
           source: 'astro',
           kind: 'void-of-course',
           name: `Moon VoC (${voc.moonSign})`,
-          korean: `달 공전 — ${voc.moonSign}에서 ${hoursRemaining}시간 남음`,
+          korean: `달이 다음 자리로 넘어가기 전 빈 구간(보이드) — 새 일을 벌이기보다 마무리·휴식에 좋아요 (${voc.moonSign}, ${hoursRemaining}시간)`,
           themes: [],
           polarity: -1 as Polarity,
           layer: 'daily',

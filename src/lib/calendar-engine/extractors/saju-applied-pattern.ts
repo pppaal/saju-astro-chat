@@ -205,6 +205,18 @@ interface AppliedPattern {
  *  - 식신제살 +2 / 관인상생 +2 / 재생관 +2 / 인생비겁 +2
  *  - 비겁탈재 −2 / 관살혼잡 −1 / 효식탈 −2
  */
+// 응용 패턴 id → 흐름(flow) 한 줄. 이름(상관견관…)만으론 안 와닿아 의미를 풀어씀.
+const APPLIED_FLOW: Record<string, string> = {
+  'sanggwan-gyeon-gwan': '튀는 끼가 규율·자리와 부딪치는 흐름 — 말·행동이 윗선과 충돌하기 쉬워요',
+  'siksin-jesal': '표현력으로 압박을 다스리는 흐름 — 위기를 솜씨로 돌파하기 좋아요',
+  'gwan-in-sangsaeng': '책임이 배움·문서로 이어지는 흐름 — 자리와 실력이 함께 자라요',
+  'jae-saeng-gwan': '재물이 자리를 밀어주는 흐름 — 일과 돈이 서로를 키워요',
+  'in-saeng-bigeop': '배움·후원이 나와 동료의 힘이 되는 흐름 — 기반을 다지기 좋아요',
+  'bigeop-talchae': '경쟁·동료가 재물을 흔드는 흐름 — 돈·동업에 마찰이 생기기 쉬워요',
+  'gwan-sal-honjap': '관과 살이 뒤섞여 압박이 어지러운 흐름 — 책임이 갈피를 잃기 쉬워요',
+  'hyo-sik-tal': '편인이 식신을 눌러 표현·결실이 막히는 흐름 — 추진보다 정비가 나아요',
+}
+
 const APPLIED_PATTERNS: AppliedPattern[] = [
   // ── 1. 상관견관 ──
   {
@@ -252,7 +264,7 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     korean: '관인상생',
     name: '官印相生',
     polarity: 2,
-    weight: 0.60,
+    weight: 0.6,
     themes: ['career', 'growth'],
     evaluate(_count, _strength, active, snap) {
       if (!active.has('정관') || !active.has('정인')) return null
@@ -269,7 +281,7 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     korean: '재생관',
     name: '財生官',
     polarity: 2,
-    weight: 0.60,
+    weight: 0.6,
     themes: ['money', 'career'],
     evaluate(_count, _strength, active, snap) {
       if (!active.has('정재') || !active.has('정관')) return null
@@ -376,16 +388,16 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
     // 패턴(상관견관/식신제살/비겁탈재) 은 매칭되지 않고 시기-only 4종만 작동.
     const sibsinCount = natal.saju.analyses?.sibsin?.count
     const count: Record<SibsinKind, number> = {
-      '비견': sibsinCount?.['비견'] ?? 0,
-      '겁재': sibsinCount?.['겁재'] ?? 0,
-      '식신': sibsinCount?.['식신'] ?? 0,
-      '상관': sibsinCount?.['상관'] ?? 0,
-      '편재': sibsinCount?.['편재'] ?? 0,
-      '정재': sibsinCount?.['정재'] ?? 0,
-      '편관': sibsinCount?.['편관'] ?? 0,
-      '정관': sibsinCount?.['정관'] ?? 0,
-      '편인': sibsinCount?.['편인'] ?? 0,
-      '정인': sibsinCount?.['정인'] ?? 0,
+      비견: sibsinCount?.['비견'] ?? 0,
+      겁재: sibsinCount?.['겁재'] ?? 0,
+      식신: sibsinCount?.['식신'] ?? 0,
+      상관: sibsinCount?.['상관'] ?? 0,
+      편재: sibsinCount?.['편재'] ?? 0,
+      정재: sibsinCount?.['정재'] ?? 0,
+      편관: sibsinCount?.['편관'] ?? 0,
+      정관: sibsinCount?.['정관'] ?? 0,
+      편인: sibsinCount?.['편인'] ?? 0,
+      정인: sibsinCount?.['정인'] ?? 0,
     }
     const strength = natal.saju.strength
 
@@ -403,14 +415,7 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
 
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const date = new Date(t)
-      const snap = activeSibsinForDay(
-        date,
-        dayMaster,
-        natal.saju.daeun,
-        bMonth,
-        bDate,
-        snapCache,
-      )
+      const snap = activeSibsinForDay(date, dayMaster, natal.saju.daeun, bMonth, bDate, snapCache)
       const active = snapshotSet(snap)
       const dayIso = date.toISOString().slice(0, 10)
 
@@ -419,15 +424,14 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
         if (!detail) continue
 
         // 상관견관 polarity 격상: 본명 정관 2+ → −3
-        const polarity: Polarity =
-          (detail.polarityAdjusted as Polarity | undefined) ?? pat.polarity
+        const polarity: Polarity = (detail.polarityAdjusted as Polarity | undefined) ?? pat.polarity
 
         signals.push({
           id: `saju.applied-pattern.${pat.id}.${dayIso}`,
           source: 'saju',
           kind: 'applied-pattern' as SignalKind,
           name: `${pat.name} (${pat.korean})`,
-          korean: pat.korean,
+          korean: `${pat.korean} — ${APPLIED_FLOW[pat.id] ?? ''}`.replace(/ — $/, ''),
           themes: pat.themes,
           polarity,
           layer: 'daily',

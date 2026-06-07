@@ -1,8 +1,6 @@
-import {
-  findEclipseImpact,
-  getEclipsesBetween,
-} from '@/lib/astrology/foundation/eclipses'
+import { findEclipseImpact, getEclipsesBetween } from '@/lib/astrology/foundation/eclipses'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
+import { pointKo } from '../data/astroFlow'
 
 /**
  * 일식·월식 (Eclipses) 추출기.
@@ -51,7 +49,7 @@ const astroEclipseExtractor: SignalExtractor = {
         impact.eclipse.type,
         impact.aspectType,
         impact.affectedPoint,
-        impact.orb,
+        impact.orb
       )
 
       signals.push({
@@ -59,12 +57,12 @@ const astroEclipseExtractor: SignalExtractor = {
         source: 'astro',
         kind: 'eclipse',
         name: `${impact.eclipse.type === 'solar' ? '일식' : '월식'} ${impact.aspectType} ${impact.affectedPoint}`,
-        korean: `${impact.eclipse.description} → 본명 ${impact.affectedPoint}`,
+        korean: `${impact.eclipse.description} — 본명 ${pointKo(impact.affectedPoint)} 영역의 판이 ${impact.eclipse.type === 'solar' ? '새로 짜이는' : '매듭지어지는'} 강한 전환점이에요 (영향 ~6개월)`,
         themes: [],
         polarity,
-        layer: 'monthly',   // 영향 2주~한 달
+        layer: 'monthly', // 영향 2주~한 달
         active: { start: startIso, peak: peakDate.toISOString(), end: endIso },
-        weight: 0.85,       // 이클립스는 강력
+        weight: 0.85, // 이클립스는 강력
         evidence: {
           module: 'astro-eclipse',
           aspectType: impact.aspectType,
@@ -99,14 +97,13 @@ function computeEclipsePolarity(
   eclipseType: 'solar' | 'lunar',
   aspectType: 'conjunction' | 'opposition' | 'square',
   affectedPoint: string,
-  orbDegrees: number,
+  orbDegrees: number
 ): Polarity {
   // Base by eclipse type.
   let p: number = eclipseType === 'solar' ? -2 : -1
 
   // 본명 행성과의 합·충: 한 단계 증폭.
-  const directPlanetHit =
-    aspectType === 'conjunction' || aspectType === 'opposition'
+  const directPlanetHit = aspectType === 'conjunction' || aspectType === 'opposition'
   if (directPlanetHit && isImportantNatalPoint(affectedPoint)) {
     p -= 1
   } else if (aspectType === 'square') {

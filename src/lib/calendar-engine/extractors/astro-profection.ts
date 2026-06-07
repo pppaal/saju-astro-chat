@@ -1,5 +1,7 @@
 import { calculateProfectionTimeline } from '@/lib/astrology/foundation/profections'
 import type { ActiveSignal, ExtractorContext, SignalExtractor } from '../types'
+import { getHouseRich, type HouseNumber } from '@/lib/chart-dictionary'
+import { pointKo } from '../data/astroFlow'
 
 /**
  * 연주술 (Profections) 추출기.
@@ -36,8 +38,11 @@ const astroProfectionExtractor: SignalExtractor = {
         source: 'astro',
         kind: 'profection',
         name: `${r.activatedHouse}궁 활성 — ${r.lordOfYear}`,
-        korean: `${r.activatedHouse}궁 (${r.activatedSign}) Lord: ${r.lordOfYear}`,
-        themes: [],   // tagger가 houses + planets로 채움
+        korean: `올해는 ${r.activatedHouse}궁${(() => {
+          const dom = getHouseRich(r.activatedHouse as HouseNumber, 'ko')?.domain
+          return dom ? `(${dom})` : ''
+        })()}이 활성 — 한 해의 초점이 이 영역에 놓이고, 그 주인별 ${pointKo(r.lordOfYear)}의 움직임이 핵심이에요`,
+        themes: [], // tagger가 houses + planets로 채움
         polarity: 0,
         layer: 'yearly',
         active: { start: yearStartIso, peak: peakIso, end: yearEndIso },
@@ -57,9 +62,11 @@ const astroProfectionExtractor: SignalExtractor = {
 
 function isoFromBirthAge(
   birth: { year: number; month: number; date: number; hour: number; minute: number },
-  age: number,
+  age: number
 ): string {
-  const d = new Date(Date.UTC(birth.year + age, birth.month - 1, birth.date, birth.hour, birth.minute))
+  const d = new Date(
+    Date.UTC(birth.year + age, birth.month - 1, birth.date, birth.hour, birth.minute)
+  )
   return d.toISOString()
 }
 

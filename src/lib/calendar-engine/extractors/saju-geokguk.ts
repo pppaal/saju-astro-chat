@@ -1,4 +1,12 @@
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
+import { getGeokgukRich } from '@/lib/chart-dictionary'
+
+// 격국 성패 상태 → 흐름 한 줄.
+const STATUS_FLOW: Record<string, string> = {
+  성격: '격이 제대로 갖춰져 본연의 힘을 발휘하는 구조예요',
+  파격: '격이 깨져 본연의 힘이 새거나 어긋나는 구조예요',
+  반성반파: '격이 반쯤 갖춰져 조건에 따라 살았다 죽었다 하는 구조예요',
+}
 
 /**
  * 본명 격국 성패(成敗) 추출기.
@@ -40,17 +48,21 @@ const sajuGeokgukExtractor: SignalExtractor = {
       return signals
     }
 
-    const statusResult = (advanced as { statusResult?: {
-      status: '성격' | '파격' | '반성반파'
-      factors: { positive: string[]; negative: string[] }
-      description: string
-    } }).statusResult
+    const statusResult = (
+      advanced as {
+        statusResult?: {
+          status: '성격' | '파격' | '반성반파'
+          factors: { positive: string[]; negative: string[] }
+          description: string
+        }
+      }
+    ).statusResult
     if (!statusResult) return signals
 
     const geokguk = advanced.primary as string
     const status = statusResult.status
     const polarity: Polarity = status === '성격' ? 1 : status === '파격' ? -1 : 0
-    const weight = status === '반성반파' ? 0.20 : 0.25
+    const weight = status === '반성반파' ? 0.2 : 0.25
     const themes = themesForGeokguk(geokguk)
 
     // reason — positive·negative 요인을 사람이 읽을 수 있게 한 줄로.
@@ -62,6 +74,13 @@ const sajuGeokgukExtractor: SignalExtractor = {
       reasonParts.push(`파격요소(${statusResult.factors.negative.join(', ')})`)
     }
     const reason = reasonParts.length > 0 ? reasonParts.join(' · ') : statusResult.description
+
+    // 격국 본질 tagline + 성패 의미를 한 줄로.
+    const tagline = getGeokgukRich(geokguk, 'ko')?.tagline
+    const statusFlow = STATUS_FLOW[status] ?? statusResult.description
+    const korean = tagline
+      ? `${geokguk}·${status} — ${statusFlow} (${tagline})`
+      : `${geokguk}·${status} — ${statusFlow}`
 
     // 매일 frame — range 의 모든 day cell 에 1 signal 씩 emit.
     // layer 'daily' + 24h active window 로 1 day cell 에 정확히 1번 들어감.
@@ -75,7 +94,7 @@ const sajuGeokgukExtractor: SignalExtractor = {
         source: 'saju',
         kind: 'geokguk-status',
         name: `${geokguk} (${status})`,
-        korean: `${geokguk} ${status}`,
+        korean,
         themes,
         polarity,
         layer: 'daily',

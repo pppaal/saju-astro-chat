@@ -14,18 +14,18 @@ import { getCachedTransitChart } from '../ephe-cache'
 
 // 자주 등장하는 항성의 길흉 분류 (전통)
 const STAR_POLARITY: Record<string, -2 | 0 | 2> = {
-  Regulus:    2,    // Royal — 명예
-  Spica:      2,    // 보호·재능
-  Aldebaran:  2,    // Royal — 성공
-  Antares:    2,    // Royal — 강한 의지
-  Fomalhaut:  2,    // Royal — 영성
-  Sirius:     2,    // 성공·번영
-  Vega:       2,    // 예술·매력
-  Algol:     -2,    // 위험·격동
-  Alcyone:   -2,    // 슬픔·울음
-  Arcturus:   2,    // 보호·번영
-  Procyon:    0,    // 변화 (양면)
-  Betelgeuse: 0,    // 명예·역경 혼재
+  Regulus: 2, // Royal — 명예
+  Spica: 2, // 보호·재능
+  Aldebaran: 2, // Royal — 성공
+  Antares: 2, // Royal — 강한 의지
+  Fomalhaut: 2, // Royal — 영성
+  Sirius: 2, // 성공·번영
+  Vega: 2, // 예술·매력
+  Algol: -2, // 위험·격동
+  Alcyone: -2, // 슬픔·울음
+  Arcturus: 2, // 보호·번영
+  Procyon: 0, // 변화 (양면)
+  Betelgeuse: 0, // 명예·역경 혼재
 }
 
 const ORB_DEG = 1.0
@@ -66,7 +66,9 @@ const astroFixedStarExtractor: SignalExtractor = {
           source: 'astro',
           kind: 'fixed-star',
           name: `${conj.planet} ☌ ${conj.star.name_ko ?? conj.star.name}`,
-          korean: conj.description,
+          korean: conj.star.interpretation
+            ? `${conj.description} — ${conj.star.interpretation}`
+            : conj.description,
           themes: [],
           polarity,
           layer: 'daily',

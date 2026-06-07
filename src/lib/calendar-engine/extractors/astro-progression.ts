@@ -3,6 +3,7 @@ import { shortestAngle } from '@/lib/astrology/foundation/utils'
 import type { AspectType, Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { inferAspectPolarity } from '../themes/tagger'
+import { aspectFlowLine, pointKo } from '../data/astroFlow'
 
 /**
  * 2차 진행법 (Secondary Progressions) 추출기.
@@ -32,26 +33,26 @@ const MOON_ORB_DEG = 1.5
 
 // 진행 행성별 orb 와 weight (느린 행성일수록 정확한 컨택을 요구)
 const PROG_INNER_PLANETS: Record<string, { orb: number; weight: number }> = {
-  Sun:     { orb: 0.5, weight: 0.80 },
+  Sun: { orb: 0.5, weight: 0.8 },
   Mercury: { orb: 1.0, weight: 0.65 },
-  Venus:   { orb: 1.0, weight: 0.65 },
-  Mars:    { orb: 1.0, weight: 0.55 },
+  Venus: { orb: 1.0, weight: 0.65 },
+  Mars: { orb: 1.0, weight: 0.55 },
 }
 
 type MajorAspect = 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition'
 
 // 진행 달 전용: 메이저 5종 + 마이너 5종 후보. 가장 가까운 후보로 분류.
 const MOON_ASPECT_CANDIDATES: ReadonlyArray<{ aspect: AspectType; exact: number }> = [
-  { aspect: 'conjunction',    exact: 0 },
-  { aspect: 'semisextile',    exact: 30 },
-  { aspect: 'sextile',        exact: 60 },
-  { aspect: 'quintile',       exact: 72 },
-  { aspect: 'square',         exact: 90 },
-  { aspect: 'trine',          exact: 120 },
+  { aspect: 'conjunction', exact: 0 },
+  { aspect: 'semisextile', exact: 30 },
+  { aspect: 'sextile', exact: 60 },
+  { aspect: 'quintile', exact: 72 },
+  { aspect: 'square', exact: 90 },
+  { aspect: 'trine', exact: 120 },
   { aspect: 'sesquiquadrate', exact: 135 },
-  { aspect: 'biquintile',     exact: 144 },
-  { aspect: 'quincunx',       exact: 150 },
-  { aspect: 'opposition',     exact: 180 },
+  { aspect: 'biquintile', exact: 144 },
+  { aspect: 'quincunx', exact: 150 },
+  { aspect: 'opposition', exact: 180 },
 ]
 
 const MINOR_ASPECT_SET = new Set<AspectType>([
@@ -87,7 +88,8 @@ const astroProgressionExtractor: SignalExtractor = {
     while (cursor <= end) {
       const targetIso = cursor.toISOString()
       const cacheKey = `progression:${targetIso}:${natal.input.year}-${natal.input.month}-${natal.input.date}`
-      let progressed = cache.get<Awaited<ReturnType<typeof calculateSecondaryProgressions>>>(cacheKey)
+      let progressed =
+        cache.get<Awaited<ReturnType<typeof calculateSecondaryProgressions>>>(cacheKey)
       if (!progressed) {
         try {
           progressed = await calculateSecondaryProgressions({
@@ -102,10 +104,14 @@ const astroProgressionExtractor: SignalExtractor = {
         }
       }
 
-      const monthEnd = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0, 23, 59, 59))
+      const monthEnd = new Date(
+        Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0, 23, 59, 59)
+      )
       const startIso = cursor.toISOString()
       const endIso = monthEnd.toISOString()
-      const peakIso = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15)).toISOString()
+      const peakIso = new Date(
+        Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15)
+      ).toISOString()
       const monthKey = cursor.toISOString().slice(0, 7)
 
       // 1) 진행 달 → 본명 어스펙트 (메이저 5종 + 마이너 5종)
@@ -120,14 +126,16 @@ const astroProgressionExtractor: SignalExtractor = {
           if (!classified) continue
           const isMinor = MINOR_ASPECT_SET.has(classified.aspect)
           const polarity: Polarity = isMinor
-            ? MINOR_POLARITY_OVERRIDE[classified.aspect] ?? 0
+            ? (MINOR_POLARITY_OVERRIDE[classified.aspect] ?? 0)
             : inferAspectPolarity(classified.aspect, 'Moon', target.name)
           signals.push({
             id: `astro.progressed-moon.${monthKey}.${classified.aspect}.${target.name}`,
             source: 'astro',
             kind: 'progressed-moon',
             name: `Prog Moon ${classified.aspect} ${target.name}`,
-            korean: `진행달 ${classified.aspect} 본명 ${target.name}`,
+            korean:
+              aspectFlowLine('Moon', target.name, classified.aspect, 'ko', '진행달') ||
+              `진행달 ${classified.aspect} 본명 ${target.name}`,
             themes: [],
             polarity,
             layer: 'monthly',
@@ -157,7 +165,9 @@ const astroProgressionExtractor: SignalExtractor = {
             source: 'astro',
             kind: 'progression',
             name: `Prog ${progName} ${hit.aspect} ${hit.target}`,
-            korean: `진행 ${progName} ${hit.aspect} 본명 ${hit.target}`,
+            korean:
+              aspectFlowLine(progName, hit.target, hit.aspect, 'ko', `진행 ${pointKo(progName)}`) ||
+              `진행 ${pointKo(progName)} ${hit.aspect} 본명 ${pointKo(hit.target)}`,
             themes: [],
             polarity,
             layer,
@@ -205,7 +215,7 @@ function findProgressedPlanetAspects(
 
   const out: Array<{ target: string; aspect: MajorAspect; orb: number }> = []
   for (const point of natalPoints) {
-    const diff = ((progPlanet.longitude - point.longitude) % 360 + 360) % 360
+    const diff = (((progPlanet.longitude - point.longitude) % 360) + 360) % 360
     const angle = Math.min(diff, 360 - diff)
     const classified = classifyAngle(angle, orbDeg)
     if (classified) {
@@ -268,16 +278,13 @@ function classifyMoonAngle(
 /**
  * 0~180° 각도를 메이저 aspect 종류로 분류. orb 는 정확한 각도와의 차이.
  */
-function classifyAngle(
-  angle: number,
-  orbDeg: number
-): { aspect: MajorAspect; orb: number } | null {
+function classifyAngle(angle: number, orbDeg: number): { aspect: MajorAspect; orb: number } | null {
   const candidates: Array<{ aspect: MajorAspect; exact: number }> = [
     { aspect: 'conjunction', exact: 0 },
-    { aspect: 'sextile',     exact: 60 },
-    { aspect: 'square',      exact: 90 },
-    { aspect: 'trine',       exact: 120 },
-    { aspect: 'opposition',  exact: 180 },
+    { aspect: 'sextile', exact: 60 },
+    { aspect: 'square', exact: 90 },
+    { aspect: 'trine', exact: 120 },
+    { aspect: 'opposition', exact: 180 },
   ]
   for (const c of candidates) {
     const orb = Math.abs(angle - c.exact)

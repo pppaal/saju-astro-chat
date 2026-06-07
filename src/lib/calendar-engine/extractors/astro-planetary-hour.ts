@@ -1,4 +1,5 @@
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
+import { pointPrinciple } from '../data/astroFlow'
 
 /**
  * 점성 행성시(Planetary Hours) 추출기 — 24시간 변별력(사주 시주의 점성 짝).
@@ -111,7 +112,7 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
           source: 'astro',
           kind: 'planetary-hour',
           name: `${planet} hour`,
-          korean: PLANET_KO[planet],
+          korean: `${PLANET_KO[planet]} — ${pointPrinciple(planet, 'ko') || PLANET_KO[planet]} 기운이 강조되는 시간대`,
           themes: [],
           polarity,
           layer: 'hourly',
