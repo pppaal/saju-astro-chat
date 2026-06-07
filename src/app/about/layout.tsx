@@ -1,7 +1,12 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { generateJsonLd, generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
+import {
+  generateJsonLd,
+  generateLocalizedMetadata,
+  getServerLocale,
+  SERVICE_FAQS,
+} from '@/components/seo/SEO'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -53,10 +58,12 @@ export default function AboutLayout({ children }: { children: ReactNode }) {
       'Evidence-based AI self-understanding platform combining Eastern Saju, Western astrology, and tarot. For reflection — not predictions of fate.',
     url: `${baseUrl}/about`,
   })
+  const faqJsonLd = generateJsonLd({ type: 'FAQPage', faqs: SERVICE_FAQS.about })
 
   return (
     <>
       <JsonLd data={pageJsonLd} />
+      <JsonLd data={faqJsonLd} />
       {children}
     </>
   )
