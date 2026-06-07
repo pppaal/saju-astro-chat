@@ -9,10 +9,8 @@
 // — added Phase 3 enrichments (sect row / gyeokguk·root status chips /
 //   outer-row 7 kinds / all-stages detail cards / NatalLotsRow /
 //   ZR L1 carousel).
-// Light-tone (ink-on-hanji) palette. atoms not yet shipped → inline stubs
-// (Ganji / ScoreOrb / ElementBars / LayerTag) gated by local primitives,
-// to be replaced by `import { ... } from '@/components/destinypal/atoms'`
-// once Agent A finishes.
+// Light-tone (ink-on-hanji) palette. Uses inline primitives
+// (Ganji / ScoreOrb / ElementBars / LayerTag) gated by local stubs.
 
 import type { CSSProperties, ReactNode } from 'react'
 
@@ -47,31 +45,17 @@ export interface LifetimeTierProps {
 // Inline atom stubs (Agent A 가 atoms barrel 을 deliver 하면 import 한 줄로 교체)
 // ============================================================================
 
-function Ganji({
-  data,
-  size = 30,
-  en = true,
-}: {
-  data: GanjiData
-  size?: number
-  en?: boolean
-}) {
+function Ganji({ data, size = 30, en = true }: { data: GanjiData; size?: number; en?: boolean }) {
   return (
     <span className={styles.ganji}>
       <span className={styles.hanja} style={{ fontSize: size }}>
         {data.hanja}
       </span>
-      <span
-        className={styles.kr}
-        style={{ fontSize: Math.max(10, size * 0.32) }}
-      >
+      <span className={styles.kr} style={{ fontSize: Math.max(10, size * 0.32) }}>
         {data.kr}
       </span>
       {en && (
-        <span
-          className={styles.en}
-          style={{ fontSize: Math.max(9, size * 0.28) }}
-        >
+        <span className={styles.en} style={{ fontSize: Math.max(9, size * 0.28) }}>
           {data.en}
         </span>
       )}
@@ -96,22 +80,20 @@ function ElementBars({ elements }: { elements: ElementCounts }) {
   const max = Math.max(...values, 1)
   return (
     <div className={styles.elementRow}>
-      {(Object.entries(elements) as Array<[keyof ElementCounts, number]>).map(
-        ([k, v]) => (
-          <div
-            className={styles.elBar}
-            key={k}
-            style={{
-              height: 16 + (v / max) * 30,
-              background: `linear-gradient(180deg, ${EL_META[k].c}, rgba(255,251,242,0.04))`,
-              boxShadow: `0 0 12px -2px ${EL_META[k].c}`,
-            }}
-          >
-            <span style={{ color: EL_META[k].c }}>{k}</span>
-            <small>{v}</small>
-          </div>
-        ),
-      )}
+      {(Object.entries(elements) as Array<[keyof ElementCounts, number]>).map(([k, v]) => (
+        <div
+          className={styles.elBar}
+          key={k}
+          style={{
+            height: 16 + (v / max) * 30,
+            background: `linear-gradient(180deg, ${EL_META[k].c}, rgba(255,251,242,0.04))`,
+            boxShadow: `0 0 12px -2px ${EL_META[k].c}`,
+          }}
+        >
+          <span style={{ color: EL_META[k].c }}>{k}</span>
+          <small>{v}</small>
+        </div>
+      ))}
     </div>
   )
 }
@@ -187,8 +169,7 @@ function zodiacKo(signEn: string): string {
 // ============================================================================
 
 export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
-  const { lifeStages, daewoon, milestones, zrSpiritChapters, zrFortuneChapters } =
-    lifetime
+  const { lifeStages, daewoon, milestones, zrSpiritChapters, zrFortuneChapters } = lifetime
 
   // constellation node positions across the width (원본과 동일)
   const nodeX = [12, 38, 62, 88] // %
@@ -203,13 +184,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       </div>
     )
   }
-  const nowStage =
-    lifeStages.find((s) => s.now) ?? lifeStages[1] ?? lifeStages[0]
+  const nowStage = lifeStages.find((s) => s.now) ?? lifeStages[1] ?? lifeStages[0]
 
   // C2: dominant 오행 계산 (하드코딩 "목 최다" 제거)
   const EL_HANJA: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
   const elementsEntries = Object.entries(user.elements || {}).sort(
-    (a, b) => Number(b[1]) - Number(a[1]),
+    (a, b) => Number(b[1]) - Number(a[1])
   )
   const dominantEl = elementsEntries[0]?.[0]
   const elementsLabelText = dominantEl
@@ -263,9 +243,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
               {/* ── Phase 3 보강 ②: 격국 chip → gyeokgukStatus ── */}
               <span className={styles.chip}>
                 <span className={styles.k}>격국</span>
-                <span className={styles.v}>
-                  {user.gyeokgukStatus ?? user.gyeokguk}
-                </span>
+                <span className={styles.v}>{user.gyeokgukStatus ?? user.gyeokguk}</span>
               </span>
 
               <span className={styles.chip}>
@@ -281,16 +259,13 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
               <span className={styles.chip}>
                 <span className={styles.k}>{hasRootStatus ? '통근' : '주십신'}</span>
                 <span className={styles.v}>
-                  {user.rootStatus ??
-                    `${user.dominantSibsin.name} ${user.dominantSibsin.pct}%`}
+                  {user.rootStatus ?? `${user.dominantSibsin.name} ${user.dominantSibsin.pct}%`}
                 </span>
               </span>
             </div>
 
             <div className={styles.elementsWrap}>
-              <div className={`${styles.tiny} ${styles.elementsLabel}`}>
-                {elementsLabelText}
-              </div>
+              <div className={`${styles.tiny} ${styles.elementsLabel}`}>{elementsLabelText}</div>
               <ElementBars elements={user.elements} />
             </div>
           </div>
@@ -331,11 +306,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                   stroke={s.now ? 'var(--ember-2)' : 'var(--ink-faint)'}
                   strokeWidth={s.now ? 1 : 0.6}
                   vectorEffect="non-scaling-stroke"
-                  style={
-                    s.now
-                      ? { filter: 'drop-shadow(0 0 5px var(--ember-glow))' }
-                      : undefined
-                  }
+                  style={s.now ? { filter: 'drop-shadow(0 0 5px var(--ember-glow))' } : undefined}
                 />
                 {s.now && (
                   <circle
@@ -367,9 +338,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 {s.ageFrom}–{s.ageTo}세 · {s.yearFrom}–{s.yearTo}
               </div>
               <div className={styles.tone}>{s.tone}</div>
-              {s.now && (
-                <div className={styles.diveHint}>탭하면 올해로 줌인 ↘</div>
-              )}
+              {s.now && <div className={styles.diveHint}>탭하면 올해로 줌인 ↘</div>}
             </div>
           ))}
         </div>
@@ -393,18 +362,13 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       {/* ============================================================
           Phase 3 보강 ⑥: Natal Lots row
       ============================================================ */}
-      {user.lots && user.lots.length > 0 && (
-        <NatalLotsRow lots={user.lots} />
-      )}
+      {user.lots && user.lots.length > 0 && <NatalLotsRow lots={user.lots} />}
 
       {/* ============================================================
           Phase 3 보강 ⑦: ZR L1 carousel (Spirit / Fortune)
       ============================================================ */}
       {(zrSpiritChapters?.length > 0 || zrFortuneChapters?.length > 0) && (
-        <ZRCarousel
-          spirit={zrSpiritChapters ?? []}
-          fortune={zrFortuneChapters ?? []}
-        />
+        <ZRCarousel spirit={zrSpiritChapters ?? []} fortune={zrFortuneChapters ?? []} />
       )}
 
       {/* ============================================================
@@ -477,10 +441,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </div>
         <div className={styles.mileTrack}>
           {milestones.map((m, i) => (
-            <div
-              key={`${m.year}-${i}`}
-              className={`${styles.mile} ${m.now ? styles.now : ''}`}
-            >
+            <div key={`${m.year}-${i}`} className={`${styles.mile} ${m.now ? styles.now : ''}`}>
               <span className={styles.node} />
               <span className={styles.yr}>
                 {m.year}
@@ -497,8 +458,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 
       <div className={styles.diveWrap}>
         <button className={styles.dive} onClick={onDive} type="button">
-          올해 {lifetime.currentYear}으로 줌인{' '}
-          <span className={styles.arrow}>↓</span>
+          올해 {lifetime.currentYear}으로 줌인 <span className={styles.arrow}>↓</span>
         </button>
       </div>
     </div>
@@ -529,9 +489,7 @@ function StageDetailBlock({
   if (!detail) return null
 
   // 이 stage 범위에 걸치는 대운만 추림 (전부 그리면 과부하)
-  const stageDaewoon = daewoon.filter(
-    (dw) => dw.end > stage.yearFrom && dw.start <= stage.yearTo,
-  )
+  const stageDaewoon = daewoon.filter((dw) => dw.end > stage.yearFrom && dw.start <= stage.yearTo)
 
   const headerNote = isCurrent
     ? '지금의 결'
@@ -559,13 +517,9 @@ function StageDetailBlock({
                 <div className={styles.daewoonRange}>
                   {dw.start}–{dw.end}
                 </div>
-                {dw.sibsin !== '—' && (
-                  <div className={styles.daewoonSibsin}>{dw.sibsin}</div>
-                )}
+                {dw.sibsin !== '—' && <div className={styles.daewoonSibsin}>{dw.sibsin}</div>}
               </div>
-              {i < stageDaewoon.length - 1 && (
-                <span className={styles.daewoonArrow}>→</span>
-              )}
+              {i < stageDaewoon.length - 1 && <span className={styles.daewoonArrow}>→</span>}
             </div>
           ))}
         </div>
@@ -582,12 +536,8 @@ function StageDetailBlock({
           <DetailCard
             heading={
               <>
-                <span
-                  className={`${styles.glyphMini} ${styles.glyphEmber}`}
-                >
-                  ⚡
-                </span>{' '}
-                합충 · HAPCHUNG
+                <span className={`${styles.glyphMini} ${styles.glyphEmber}`}>⚡</span> 합충 ·
+                HAPCHUNG
               </>
             }
             chip={detail.hapchung}
@@ -597,12 +547,8 @@ function StageDetailBlock({
           <DetailCard
             heading={
               <>
-                <span
-                  className={`${styles.glyphMini} ${styles.glyphViolet}`}
-                >
-                  ✦
-                </span>{' '}
-                신살 · SHINSAL
+                <span className={`${styles.glyphMini} ${styles.glyphViolet}`}>✦</span> 신살 ·
+                SHINSAL
               </>
             }
             chip={detail.shinsal}
@@ -612,10 +558,7 @@ function StageDetailBlock({
           <DetailCard
             heading={
               <>
-                <span className={`${styles.glyphMini} ${styles.glyphDim}`}>
-                  ◯
-                </span>{' '}
-                12운성 · UNSEONG
+                <span className={`${styles.glyphMini} ${styles.glyphDim}`}>◯</span> 12운성 · UNSEONG
               </>
             }
             chip={detail.unseong}
@@ -636,10 +579,7 @@ function StageDetailBlock({
               const cls = OUTER_CLASS[kind] ?? styles.jupiter
               const glyph = OUTER_GLYPH[kind] ?? '★'
               return (
-                <div
-                  key={`${o.label}-${i}`}
-                  className={`${styles.outerChip} ${cls}`}
-                >
+                <div key={`${o.label}-${i}`} className={`${styles.outerChip} ${cls}`}>
                   <span className={styles.ic}>{glyph}</span>
                   <div className={styles.ot}>
                     <div className={styles.l}>{o.label}</div>
@@ -697,9 +637,7 @@ function NatalLotsRow({ lots }: { lots: DestinyArabicLot[] }) {
             <div key={lot.name} className={styles.lotChip}>
               <span className={styles.ic}>{mark}</span>
               <div className={styles.meta}>
-                <span className={styles.nm}>
-                  {lot.korean ?? lot.name}
-                </span>
+                <span className={styles.nm}>{lot.korean ?? lot.name}</span>
                 <span className={styles.pos}>
                   {sign} {Math.floor(lot.degree)}° · {lot.house}H
                 </span>
@@ -767,9 +705,7 @@ function ZRLane({
       <div className={styles.zrTrack}>
         {chapters.map((c, i) => {
           const sign = zodiacKo(c.sign)
-          const cellStyle: CSSProperties | undefined = c.now
-            ? undefined
-            : undefined
+          const cellStyle: CSSProperties | undefined = c.now ? undefined : undefined
           return (
             <div
               key={`${kindLabel}-${c.calendarStartYear}-${i}`}
