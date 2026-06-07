@@ -146,17 +146,19 @@
 .progressFill {
   height: 100%;
   border-radius: 2px;
-  transition: width 0.3s ease, background 0.3s ease;
+  transition:
+    width 0.3s ease,
+    background 0.3s ease;
 }
 
 /* Color states */
 .good .creditIcon,
 .good .creditText strong {
-  color: #7cf29c;
+  color: var(--accent-2);
 }
 
 .good .progressFill {
-  background: linear-gradient(90deg, #7cf29c 0%, #4ade80 100%);
+  background: linear-gradient(90deg, var(--accent-2) 0%, #4ade80 100%);
 }
 
 .warning .creditIcon,
@@ -184,7 +186,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(248, 113, 113, 0);
   }
   50% {
@@ -276,7 +279,8 @@
     font-size: 13px;
   }
 
-  .divider, .total {
+  .divider,
+  .total {
     font-size: 10px;
   }
 
