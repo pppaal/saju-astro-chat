@@ -127,14 +127,14 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
           <div
             style={{
               fontFamily: "'Cinzel', Georgia, serif",
-              fontSize: question.length > 60 ? 42 : 52,
-              lineHeight: 1.25,
+              fontSize: question.length > 40 ? 40 : 50,
+              lineHeight: 1.3,
               fontWeight: 600,
               color: TEXT,
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
+              // html-to-image 캡처에서 -webkit-line-clamp 가 안 먹어 한 줄로
+              // 잘리던 문제 → 일반 줄바꿈 사용. 한국어는 단어 중간 분리 방지.
+              wordBreak: 'keep-all',
+              whiteSpace: 'pre-wrap',
             }}
           >
             {question}
@@ -204,10 +204,9 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
                 fontSize: 30,
                 lineHeight: 1.5,
                 color: GOLD,
-                display: '-webkit-box',
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
+                // 캡처에서 line-clamp 가 안 먹어 한 줄로 잘리던 문제 → 일반 줄바꿈.
+                wordBreak: 'keep-all',
+                whiteSpace: 'pre-wrap',
               }}
             >
               “{keyMessage}”
