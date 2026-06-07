@@ -80,9 +80,7 @@ describe('Saju Core Integration', () => {
       assertNamedExports('lib/saju/tonggeun', ['calculateTonggeun', 'analyzeStrength'])
     })
 
-    it('should expose health and career analysis', () => {
-      assertNamedExports('lib/saju/healthCareer', ['analyzeHealthCareer'])
-    })
+    // healthCareer (analyzeHealthCareer) 모듈 제거됨 — 해당 export 검증 삭제.
 
     it('should expose pattern matcher', () => {
       assertNamedExports('lib/saju/patternMatcher', ['matchAllPatterns', 'analyzePatterns'])
@@ -210,7 +208,6 @@ describe('Saju Core Integration', () => {
         'lib/saju/compatibility',
         'lib/saju/geokguk',
         'lib/saju/tonggeun',
-        'lib/saju/healthCareer',
         'lib/saju/patternMatcher',
       ]
       // saju/cache — 미사용으로 통째 삭제됨 (2025 정리)
@@ -218,7 +215,7 @@ describe('Saju Core Integration', () => {
       // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
       // advancedSajuCore / advancedAnalysis — 미사용으로 통째 삭제됨 (2026-06)
 
-      expect(modules.length).toBe(11)
+      expect(modules.length).toBe(10)
       modules.forEach((modulePath) => {
         readModule(modulePath)
       })

@@ -30,5 +30,4 @@ export { mockStripe, mockStripeFreeTier, mockStripePremium } from './stripe'
 // Database mocks
 export { mockPrisma, mockPrismaWithData } from './database'
 
-// Saju library mocks
-export { mockSajuLibraries, mockSajuCore } from './saju'
+// Saju library mocks (./saju) 제거 — 사용처 0 + 모듈 파일 없음(배럴 resolve 실패 원인).

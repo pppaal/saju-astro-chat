@@ -58,7 +58,7 @@ describe('Astrology Integration', () => {
     assertNamedExports('lib/astrology/foundation/fixedStars', ['findFixedStarConjunctions']);
     assertNamedExports('lib/astrology/foundation/draconic', ['calculateDraconicChart']);
     assertNamedExports('lib/astrology/foundation/electional', ['findBestDates']);
-    assertNamedExports('lib/astrology/foundation/rectification', ['generateRectificationGuide']);
+    // rectification (generateRectificationGuide) 모듈 제거됨 — export 검증 삭제.
   });
 
   it('should expose utility exports', () => {
