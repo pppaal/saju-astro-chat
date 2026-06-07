@@ -424,9 +424,7 @@ export const GET = withApiMiddleware(
     const focusMonthIdx = focusMonthMatch
       ? Number(focusMonthMatch[2]) - 1
       : nowInTimezone(timezone).getUTCMonth()
-    const prescoreMonths = monthOnly
-      ? [focusMonthIdx]
-      : Array.from({ length: 12 }, (_, i) => i)
+    const prescoreMonths = monthOnly ? [focusMonthIdx] : Array.from({ length: 12 }, (_, i) => i)
 
     const prescoreCells: import('@/lib/calendar-engine/types').CalendarCell[] = []
     try {
@@ -609,13 +607,16 @@ export const GET = withApiMiddleware(
       // 두 사람도 토성 회귀가 다른 연도에 떨어지는 진짜 개인화. swisseph
       // 짧은 윈도우 검색이라 ms 단위로 끝나지만 실패해도 buildInterpretation
       // 은 자동 폴백되므로 try/catch 로 안전하게 감싼다.
-      let astroMilestoneOverrides: Awaited<
-        ReturnType<typeof import('@/lib/astrology/foundation/planetReturns').calculateOuterPlanetMilestones>
-      > | undefined
+      let astroMilestoneOverrides:
+        | Awaited<
+            ReturnType<
+              typeof import('@/lib/astrology/foundation/planetReturns').calculateOuterPlanetMilestones
+            >
+          >
+        | undefined
       try {
-        const { calculateOuterPlanetMilestones } = await import(
-          '@/lib/astrology/foundation/planetReturns'
-        )
+        const { calculateOuterPlanetMilestones } =
+          await import('@/lib/astrology/foundation/planetReturns')
         const birthHourLocal = Number.parseInt((birthTimeParam || '00:00').split(':')[0] || '0', 10)
         const birthMinuteLocal = Number.parseInt(
           (birthTimeParam || '00:00').split(':')[1] || '0',
@@ -703,9 +704,8 @@ export const GET = withApiMiddleware(
         import('@/lib/calendar-engine/adapters/cellsToYearlyDates').V2CalendarDate
       >()
       try {
-        const { cellsToYearlyDates } = await import(
-          '@/lib/calendar-engine/adapters/cellsToYearlyDates'
-        )
+        const { cellsToYearlyDates } =
+          await import('@/lib/calendar-engine/adapters/cellsToYearlyDates')
         const v2Lang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
         const v2Dates = cellsToYearlyDates(allCells, { lang: v2Lang })
         for (const v of v2Dates) v2ByDate.set(v.date.slice(0, 10), v)
@@ -730,20 +730,17 @@ export const GET = withApiMiddleware(
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
         if (cell.matchedPatterns.length > 0) {
-          const { PATTERN_I18N_EN } = await import('@/lib/calendar-engine/derivers/patternsI18n')
+          // 패턴 EN 은 derivePatterns 가 cell.matchedPatterns 에 이미 채움(SSOT: patternsI18n).
           const useEn = locale === 'en'
-          d.matchedPatterns = cell.matchedPatterns.map((p) => {
-            const en = useEn ? PATTERN_I18N_EN[p.id] : undefined
-            return {
-              id: p.id,
-              name: en?.name ?? p.name,
-              themes: p.themes,
-              strength: p.strength,
-              description: p.description,
-              headline: en?.headline ?? p.headline,
-              action: en?.action ?? p.action,
-            }
-          })
+          d.matchedPatterns = cell.matchedPatterns.map((p) => ({
+            id: p.id,
+            name: (useEn ? p.nameEn : undefined) ?? p.name,
+            themes: p.themes,
+            strength: p.strength,
+            description: (useEn ? p.descriptionEn : undefined) ?? p.description,
+            headline: (useEn ? p.headlineEn : undefined) ?? p.headline,
+            action: (useEn ? p.actionEn : undefined) ?? p.action,
+          }))
         }
         // engineSignals — hourly layer 만, 그것도 *선택 월* 셀에만 부착.
         // 나머지 layer (decadal/yearly/monthly/daily/instant) 는 UI 사용처 없어

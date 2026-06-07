@@ -1,5 +1,6 @@
 import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ActiveSignal, SignalLayer, SignalPattern } from '../types'
+import { PATTERN_I18N_EN } from './patternsI18n'
 
 /**
  * 신호 조합 → 명명된 패턴 검출.
@@ -581,157 +582,12 @@ const RULES: PatternRule[] = [
   },
 ]
 
-// 패턴 룰 EN 표기 — id 로 매칭. KO 룰 정의를 건드리지 않고 EN 만 별도 관리.
-interface PatternI18nEn {
-  name: string
-  headline: string
-  description: string
-  action: string
-}
-const PATTERN_EN: Record<string, PatternI18nEn> = {
-  'wealth-golden-week': {
-    name: 'Wealth Golden Window',
-    headline: 'Finance — a day favourable for big money decisions',
-    description: "today's Wealth star + a benefic transit peak land together",
-    action:
-      'Favourable for a big financial decision. Pick one investment, contract, or cleanup you have put off and close it today, and spend 30 minutes tidying one account.',
-  },
-  'romance-trigger': {
-    name: 'Peach-Blossom / Romance Trigger',
-    headline: 'Relationships — a day new connections come close',
-    description: "today's Dohwa/Hongyeom + a Venus transit peak",
-    action:
-      'Favourable for relationships. Show up to one gathering or introduction today, or send the first message to someone you have in mind. New ties may appear in unfamiliar places.',
-  },
-  'shadow-cluster': {
-    name: 'Malefic Cluster Day',
-    headline: 'Health & routine — caution mode, hold big decisions',
-    description: 'four or more strong malefic signals fire today',
-    action:
-      'Hold off on big decisions, contracts, moves, job changes, and new starts until the next favourable day. Keep one daily routine (meals, sleep, safe driving) solid, and avoid risky travel, overdrinking, and overspending.',
-  },
-  'five-layer-resonance': {
-    name: 'Five-Layer Alignment (Saju × Astrology)',
-    headline: "Life & career — the year's strongest push signal",
-    description: 'all 5 saju layers + 4 astro layers point the same way',
-    action:
-      'Saju and astrology give the same answer — take your single biggest pending decision (job change, launch, marriage, move, large investment) and close it this week, through to the first step of execution.',
-  },
-  'saju-five-layer': {
-    name: 'Saju Five-Layer Alignment',
-    headline: 'Career & life — a month the saju time-axes all point one way',
-    description: 'all 5 saju time-axes run the same direction',
-    action:
-      'Strong drive for a big career/life decision. Pick one pending decision (job change, business, contract, an exam attempt) and carry it through the first application or meeting this month.',
-  },
-  'astro-five-layer': {
-    name: 'Astrology Four-Layer Alignment',
-    headline: 'Career & opportunity — a month the environment gives one answer',
-    description: 'all 4 astro time-axes run the same direction (chapter, year, month, day)',
-    action:
-      'A time when the outer environment points one way. Pick one outward action you have delayed (an application, pitch, exposure, promotion, relocation) and carry it through to actually sending it this month.',
-  },
-  'noble-fortune': {
-    name: 'Noble Benefactor Arrives',
-    headline: 'Relationships & network — a day help comes easily',
-    description: 'Cheoneul-gwiin day + a benefic trine',
-    action:
-      'Favourable for relationships and network. Make one request, ask for one piece of advice, or hold one important meeting today, and send the first message to someone you have drifted from.',
-  },
-  'life-chapter-shift': {
-    name: 'Life Chapter Shift',
-    headline: 'Life direction — a turning point where the chapter changes',
-    description: 'outer-planet transit peak + lifecycle/ZR background',
-    action:
-      'A time to redesign your direction. Spend 30 minutes today rewriting your 1/3/5-year goals, and put on paper one thing to wind down and one thing to begin. Let small tasks wait.',
-  },
-  'gwan-in-flow': {
-    name: 'Officer-Resource Flow (Gwan-In Sangsaeng)',
-    headline: 'Work & promotion — approval and credential lines open up',
-    description: 'Officer + Resource run together (recognition from above + backing support)',
-    action:
-      'Favourable for work and promotion. Submit one formal proposal, promotion application, or credential registration to a senior or institution through the proper channel this week.',
-  },
-  'siksang-wealth': {
-    name: 'Output-Generates-Wealth (Siksang-Saengjae)',
-    headline: 'Creativity & income — what you make turns into money',
-    description: 'Output (expression/production) + Wealth run together',
-    action:
-      'Favourable for creativity and income. Take one piece of content, course, prototype, or service you have made and move it onto a real sales page, sales message, or invoice to open your first revenue line this week.',
-  },
-  'wealth-to-status': {
-    name: 'Wealth-Builds-Status (Jae-Saeng-Gwan)',
-    headline: 'Work & reputation — results convert into title and trust',
-    description: 'Wealth + Officer run together (results become title and reputation)',
-    action:
-      'Favourable for work and reputation. Put recent revenue/results into a one-page summary to show seniors, clients, or the market, and start one negotiation for a title, renewal, or rate increase this week.',
-  },
-  'wealth-rivalry': {
-    name: 'Rivals-Contest-Wealth (Gungeop-Jaengjae)',
-    headline: 'Finance — money leaks easily through competition this period',
-    description: 'Peer/rival + Wealth run together and tilt unfavourably for this chart',
-    action:
-      'Caution for finances. Hold off new partnerships, money lending, joint investment, and new installment plans this month; for ongoing ones, pin your share and clawback terms in writing. Push one big expense to next month.',
-  },
-  'output-vs-authority': {
-    name: 'Output-Meets-Officer (Sanggwan-Gyeon-Gwan)',
-    headline: 'Work & relationships — easy to clash with seniors and rules',
-    description:
-      'Hurting Officer (free expression) + Direct Officer (rules/authority) run toward conflict',
-    action:
-      'Caution for work and relationships. Hold emotional outbursts at bosses/clients/officials, exposé or gossip posts, and impulsive breaches this week; let any email or approval sit 12 hours before sending.',
-  },
-  'siksin-controls-pressure': {
-    name: 'Output-Controls-Killer (Siksin-Jesal)',
-    headline: 'Work & skill — a time to crush pressure with competence',
-    description:
-      'Eating God (steady production) + Seven Killer (pressure/competition) run toward control',
-    action:
-      'Favourable for work and skill. Take your most daunting pending task, exam, or assignment and break through it head-on this week, keeping a 30-minute daily work routine at the same time every day.',
-  },
-  'expression-with-restraint': {
-    name: 'Output-Wears-Resource (Sanggwan-Pae-In)',
-    headline: 'Creativity & learning — lift ideas to finished quality through study',
-    description: 'Hurting Officer (free talent) + Resource (restraint/learning) run toward balance',
-    action:
-      'Favourable for creativity and learning. Pick one piece you are working on (writing, plan, talk, artwork) and refine it a level by adding research and references this week, taking it from draft to finished.',
-  },
-  'authority-mixed': {
-    name: 'Mixed Officer-Killer (Gwansal-Honjap)',
-    headline: 'Work & organisation — many lines and standards collide, scattering focus',
-    description: 'Direct + Indirect Officer rise together, blurring decisions and reporting lines',
-    action:
-      'Caution for work and organisation. Explicitly pick one reporting line this week and shelve the rest; politely decline or defer one side-request to next month.',
-  },
-  'wealth-erodes-resource': {
-    name: 'Greed-Erodes-Resource (Tamjae-Goein)',
-    headline: 'Finance & reputation — short-term gain can chip at trust and learning',
-    description: 'Wealth + Resource run in opposition (Wealth breaks Resource)',
-    action:
-      'Caution for finance and reputation. Decline one short-term income, freelance, or side-gig offer this week that would eat into your reputation, credentials, main work, or studies, and keep your study/credential schedule intact.',
-  },
-  'energy-into-output': {
-    name: 'Pouring-Forth-Brilliance (Tosu)',
-    headline: 'Creativity & activity — pour surplus vitality into output',
-    description: 'Peer (self-energy) + Output (expression/production) run toward release',
-    action:
-      'Favourable for creativity and activity. Carry out one collaboration, talk, livestream, performance, workout, or contest yourself this week, and finish one shelved draft and publish it.',
-  },
-  'support-reinforcement': {
-    name: 'Resource-and-Peer Support (In-Bi-Bangjo)',
-    headline: 'Health & relationships — recover strength with help around you',
-    description: 'Resource (backing) + Peer (allies/self) reinforce a weak day master',
-    action:
-      'Favourable for health and relationships. Ask colleagues, family, or a professional to share one task you have been carrying alone this week, and keep one daily 30-minute rest/exercise/sleep routine.',
-  },
-}
-
 export function derivePatterns(signals: ActiveSignal[]): SignalPattern[] {
   const matched: SignalPattern[] = []
   for (const rule of RULES) {
     const result = rule.match(signals)
     if (!result.matched) continue
-    const en = PATTERN_EN[rule.id]
+    const en = PATTERN_I18N_EN[rule.id]
     matched.push({
       id: rule.id,
       name: rule.name,
