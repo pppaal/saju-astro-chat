@@ -5,7 +5,11 @@ import type { ActiveSignal } from '@/lib/calendar-engine/types'
 
 // 층별 교차 밴드 — 외행성은 대운(decadal)에서만, 빠른 행성은 일/월에서만 교차.
 
-const W = { start: '2030-01-01T00:00:00Z', peak: '2030-06-01T00:00:00Z', end: '2030-12-31T00:00:00Z' }
+const W = {
+  start: '2030-01-01T00:00:00Z',
+  peak: '2030-06-01T00:00:00Z',
+  end: '2030-12-31T00:00:00Z',
+}
 
 function sajuSig(p: {
   sibsin?: string
@@ -60,7 +64,7 @@ describe('extractCrossActivations — 밴드 게이팅', () => {
     ])
     expect(out.length).toBe(1)
     expect(out[0].layer).toBe('decadal')
-    expect(out[0].name).toBe('편관 × Pluto')
+    expect(out[0].name).toBe('편관 × 명왕성')
   })
 
   it('양인 × 화성: 대운 층(합성 decadal)이면 밴드 밖 → 차단', () => {

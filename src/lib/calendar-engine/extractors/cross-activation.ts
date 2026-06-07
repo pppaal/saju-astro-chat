@@ -29,18 +29,27 @@
  * `cross.{saju}-x-{astro}.{YYYY-MM-DD}` — 같은 날 같은 페어는 한 번만.
  */
 
-import type {
-  ActiveSignal,
-  ActiveWindow,
-  Polarity,
-  SignalEvidence,
-} from '../types'
+import type { ActiveSignal, ActiveWindow, Polarity, SignalEvidence } from '../types'
 import {
   SAJU_ASTRO_MAPPINGS,
   lookupCrossMapping,
   crossLayerAllowed,
   type CrossMapping,
 } from '../data/saju-astro-mapping'
+
+// 교차 신호 name 한글화 — 행성 영문 키 → 한글(사용자 노출 라벨 일관).
+const PLANET_KO: Record<string, string> = {
+  Sun: '태양',
+  Moon: '달',
+  Mercury: '수성',
+  Venus: '금성',
+  Mars: '화성',
+  Jupiter: '목성',
+  Saturn: '토성',
+  Uranus: '천왕성',
+  Neptune: '해왕성',
+  Pluto: '명왕성',
+}
 
 /**
  * Saju 신호에서 매칭 키 (십신명 또는 신살명) 를 추출.
@@ -113,7 +122,7 @@ function intersectWindow(a: ActiveWindow, b: ActiveWindow): ActiveWindow | null 
 function combinePolarity(
   sajuPolarity: number,
   astroPolarity: number,
-  mappingPolarity: Polarity,
+  mappingPolarity: Polarity
 ): Polarity {
   if (sajuPolarity === 0 || astroPolarity === 0) return mappingPolarity
   const sameDir = Math.sign(sajuPolarity) === Math.sign(astroPolarity)
@@ -129,14 +138,14 @@ function buildCrossSignal(
   sajuSig: ActiveSignal,
   astroSig: ActiveSignal,
   mapping: CrossMapping,
-  window: ActiveWindow,
+  window: ActiveWindow
 ): ActiveSignal {
   const polarity = combinePolarity(sajuSig.polarity, astroSig.polarity, mapping.polarity)
   const baseWeight = (sajuSig.weight ?? 0) * (astroSig.weight ?? 0) * 0.6
   // cross 신호는 부수적 — 단일 신호 weight 최대값(1.0) 이하로 cap.
   const weight = Math.max(0, Math.min(1, baseWeight))
   const day = isoDay(window.start)
-  const name = `${mapping.saju} × ${mapping.astro}`
+  const name = `${mapping.saju} × ${PLANET_KO[mapping.astro] ?? mapping.astro}`
   const evidence: SignalEvidence = {
     module: 'cross-activation',
     sibsin: sajuSig.evidence?.sibsin,
@@ -160,10 +169,14 @@ function buildCrossSignal(
     korean: mapping.meaning.ko,
     themes: [],
     polarity,
-    layer: sajuSig.layer === 'decadal' || astroSig.layer === 'decadal' ? 'decadal'
-      : sajuSig.layer === 'yearly' || astroSig.layer === 'yearly' ? 'yearly'
-      : sajuSig.layer === 'monthly' || astroSig.layer === 'monthly' ? 'monthly'
-      : 'daily',
+    layer:
+      sajuSig.layer === 'decadal' || astroSig.layer === 'decadal'
+        ? 'decadal'
+        : sajuSig.layer === 'yearly' || astroSig.layer === 'yearly'
+          ? 'yearly'
+          : sajuSig.layer === 'monthly' || astroSig.layer === 'monthly'
+            ? 'monthly'
+            : 'daily',
     active: window,
     weight,
     evidence,

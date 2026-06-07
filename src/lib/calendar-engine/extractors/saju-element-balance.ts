@@ -45,7 +45,7 @@ const ELEMENT_EN_LABEL: Record<ElementKey, string> = {
   water: 'Water',
 }
 
-const WEAK_THRESHOLD = 1   // count ≤ 1 → 부족
+const WEAK_THRESHOLD = 1 // count ≤ 1 → 부족
 const STRONG_THRESHOLD = 3 // count ≥ 3 → 과잉
 
 const sajuElementBalanceExtractor: SignalExtractor = {
@@ -109,7 +109,7 @@ const sajuElementBalanceExtractor: SignalExtractor = {
             id: `saju.element-balance.replenish.${dayEl}.${dayIso}`,
             source: 'saju',
             kind: 'pillar-sibsin',
-            name: `Weak ${elEn} replenished today`,
+            name: `약한 ${elKo} 보강`,
             korean: `오늘 부족한 ${elKo}(${elEn}) 오행이 보충돼요`,
             themes: [],
             polarity: 1,
@@ -138,7 +138,7 @@ const sajuElementBalanceExtractor: SignalExtractor = {
             id: `saju.element-balance.excess.${dayEl}.${dayIso}`,
             source: 'saju',
             kind: 'pillar-sibsin',
-            name: `Excess ${elEn} amplified today`,
+            name: `과한 ${elKo} 증폭`,
             korean: `오늘 과잉인 ${elKo}(${elEn}) 오행이 더 강해져요`,
             themes: [],
             polarity: -1,
