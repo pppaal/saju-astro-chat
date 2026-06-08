@@ -53,10 +53,9 @@ const emptyDict = { default: {} }
 const enCommonMod = { default: EN_COMMON }
 const koCommonMod = { default: KO_COMMON }
 
-// Each locale loads: common, landing, chat, services, tarot, calendar,
+// Each locale loads: common, chat, services, tarot, calendar,
 // compatibility, destinymap, features, misc. Only common carries our keys.
 vi.mock('@/i18n/locales/en/common.json', () => enCommonMod)
-vi.mock('@/i18n/locales/en/landing.json', () => emptyDict)
 vi.mock('@/i18n/locales/en/chat.json', () => emptyDict)
 vi.mock('@/i18n/locales/en/services.json', () => emptyDict)
 vi.mock('@/i18n/locales/en/tarot.json', () => emptyDict)
@@ -67,7 +66,6 @@ vi.mock('@/i18n/locales/en/features.json', () => emptyDict)
 vi.mock('@/i18n/locales/en/misc.json', () => emptyDict)
 
 vi.mock('@/i18n/locales/ko/common.json', () => koCommonMod)
-vi.mock('@/i18n/locales/ko/landing.json', () => emptyDict)
 vi.mock('@/i18n/locales/ko/chat.json', () => emptyDict)
 vi.mock('@/i18n/locales/ko/services.json', () => emptyDict)
 vi.mock('@/i18n/locales/ko/tarot.json', () => emptyDict)

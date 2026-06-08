@@ -3,7 +3,6 @@
  */
 
 import common from './ko/common.json'
-import landing from './ko/landing.json'
 import chat from './ko/chat.json'
 import services from './ko/services.json'
 import tarot from './ko/tarot.json'
@@ -15,7 +14,6 @@ import misc from './ko/misc.json'
 
 const koTranslations = {
   ...common,
-  ...landing,
   ...chat,
   ...services,
   ...tarot,
