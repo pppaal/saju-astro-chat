@@ -316,6 +316,23 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         ) : null}
       </p>
 
+      {/* 공유용 정체성 카드 (③) — 기존 데이터(일간·격국·인생유형·점성) 압축. */}
+      {lifetime.lifePattern && (
+        <div className={styles.idCard}>
+          <div className={styles.idCardRow}>
+            <span className={styles.idCardHan}>{user.ilgan.hanja}</span>
+            <div className={styles.idCardMeta}>
+              <div className={styles.idCardType}>{lifetime.lifePattern.ko}</div>
+              <div className={styles.idCardSub}>
+                {user.ilgan.kr} 일간 · {user.gyeokguk}
+                {user.astro?.sun ? ` · ☉${user.astro.sun}` : ''}
+              </div>
+            </div>
+          </div>
+          <p className={styles.idCardLine}>{lifetime.lifePattern.line}</p>
+        </div>
+      )}
+
       <div className={styles.introGrid}>
         <div>
           <p className={styles.lead}>{user.intro}</p>

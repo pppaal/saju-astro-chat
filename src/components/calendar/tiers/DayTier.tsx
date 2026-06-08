@@ -559,7 +559,7 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
           {/* 합치기: 날것 트랜짓 덤프 → "이렇게 읽은 이유"(사람 말). 엔진이 만든
               topReasons/cautions 를 우선 노출하고, 원자료(점성 트랜짓)는 접어둔다.
               (premium DayWhyCard 패턴 + destinypal 만세력 스킨) */}
-          <div className={styles.eyebrow}>이렇게 읽은 이유</div>
+          <div className={styles.eyebrow}>왜 이런 하루? · 근거</div>
           {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
             <p className={styles.whyMuted}>오늘은 두드러진 신호 없이 무난한 흐름이에요.</p>
           ) : (

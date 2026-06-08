@@ -599,7 +599,13 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
           )
           return (
             <div className={styles.bigDays}>
-              <div className={styles.eyebrow}>이달의 큰 날 · 사주×점성 수렴</div>
+              <div className={styles.eyebrow}>
+                이달의 큰 날 · 사주×점성 수렴
+                {(() => {
+                  const both = month.keyDays!.filter((k) => k.bothSystems).length
+                  return both > 0 ? ` · 동·서 합치 ${both}일` : ''
+                })()}
+              </div>
               {astroBackdrop.length > 0 && (
                 <div className={styles.bigDayBackdrop}>
                   이달 점성 배경 · {astroBackdrop.join(' · ')}
