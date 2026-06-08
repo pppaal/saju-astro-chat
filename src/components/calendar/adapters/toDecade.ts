@@ -22,6 +22,7 @@ import { getStemElement, getBranchElement } from '@/lib/saju/stemBranchUtils'
 import { CHUNG, YUKHAP } from '@/lib/saju/constants'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getTwelveStageInterpretation } from '@/lib/saju/interpretations'
+import { twelveStagePlain } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { toGanji, type Ganji, geokgukStatusLine, computeSewoonGanji } from './shared'
 
 export interface DestinypalDecadePillar {
@@ -204,19 +205,19 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
     if (CHUNG[db] === nb) {
       hits.push({
         title: `${nb}${db}충`,
-        body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}충 — 이 영역에 변동·이동 압력이 실리는 결이에요.`,
+        body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}충 — 이 영역에 변동·이동 압력이 실려요.`,
       })
     } else if (YUKHAP[db] === nb) {
       hits.push({
         title: `${nb}${db}육합`,
-        body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}육합 — 환경이 손발을 맞춰주는 결이에요.`,
+        body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}육합 — 환경이 손발을 맞춰줘요.`,
       })
     }
   }
   if (hits.length === 0) {
     return {
       title: '—',
-      body: `본명 지지와 대운 ${db}(${ko(db)}) 사이 뚜렷한 충·합은 없어요 — 무난히 흐르는 결.`,
+      body: `본명 지지와 대운 ${db}(${ko(db)}) 사이 뚜렷한 충·합은 없어요 — 무난히 흘러가요.`,
     }
   }
   // 가장 가까운(일/시지) 관계를 title 로, 나머지는 본문에 이어 붙임.
@@ -231,13 +232,16 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
  */
 function buildDecadeUnseong(dm: string, decadeBranch: string): DestinypalDecadeRelation {
   const stage = getTwelveStage(dm, decadeBranch)
-  const interp = getTwelveStageInterpretation(stage as never)
   const ko = BRANCH_HAN_TO_KO[decadeBranch] ?? decadeBranch
+  // 쉬운말 우선: "막 자리를 잡아가는 기세" — 못 찾으면 해석사전 meaning 폴백.
+  const plain = twelveStagePlain(stage)
+  const interp = getTwelveStageInterpretation(stage as never)
+  const desc = plain || interp?.meaning || ''
   return {
     title: stage,
-    body: interp?.meaning
-      ? `대운 지지 ${decadeBranch}(${ko})는 일간 기준 12운성 ${stage} — ${interp.meaning}`
-      : `대운 지지 ${decadeBranch}(${ko})는 일간 기준 12운성 ${stage}예요.`,
+    body: desc
+      ? `대운 자리(${decadeBranch}·${ko})는 ${stage} — ${desc}`
+      : `대운 자리(${decadeBranch}·${ko})는 ${stage}예요.`,
   }
 }
 
