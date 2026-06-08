@@ -3,7 +3,6 @@
  */
 
 import common from './en/common.json'
-import landing from './en/landing.json'
 import chat from './en/chat.json'
 import services from './en/services.json'
 import tarot from './en/tarot.json'
@@ -15,7 +14,6 @@ import misc from './en/misc.json'
 
 const enTranslations = {
   ...common,
-  ...landing,
   ...chat,
   ...services,
   ...tarot,

@@ -14,7 +14,6 @@ import path from 'node:path'
 const LOCALES = ['ko', 'en'] as const
 const NAMESPACES = [
   'common',
-  'landing',
   'chat',
   'services',
   'tarot',

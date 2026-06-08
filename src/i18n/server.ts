@@ -2,11 +2,9 @@ import 'server-only'
 
 import { cookies, headers } from 'next/headers'
 import commonEn from './locales/en/common.json'
-import landingEn from './locales/en/landing.json'
 import miscEn from './locales/en/misc.json'
 import destinymapEn from './locales/en/destinymap.json'
 import commonKo from './locales/ko/common.json'
-import landingKo from './locales/ko/landing.json'
 import miscKo from './locales/ko/misc.json'
 import destinymapKo from './locales/ko/destinymap.json'
 import {
@@ -41,12 +39,12 @@ const deepMerge = (target: I18nMessages, source: I18nMessages): I18nMessages => 
 }
 
 const EN_MESSAGES = deepMerge(
-  deepMerge(deepMerge({}, commonEn as I18nMessages), landingEn as I18nMessages),
+  deepMerge({}, commonEn as I18nMessages),
   deepMerge(miscEn as I18nMessages, destinymapEn as I18nMessages)
 )
 
 const KO_MESSAGES = deepMerge(
-  deepMerge(deepMerge({}, commonKo as I18nMessages), landingKo as I18nMessages),
+  deepMerge({}, commonKo as I18nMessages),
   deepMerge(miscKo as I18nMessages, destinymapKo as I18nMessages)
 )
 
