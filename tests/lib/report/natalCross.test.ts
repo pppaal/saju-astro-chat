@@ -18,6 +18,7 @@ import {
   dominantAstroElement,
   dominantSibsinGroup,
   synthesize,
+  sajuKeyMapping,
 } from '@/lib/report/natalCross'
 
 describe('natalCross — 원소 기초', () => {
@@ -57,10 +58,18 @@ describe('natalCross — 단일 포인트 교차', () => {
     expect(evalSocialRole('정관격', 'Cancer')?.tone).toBe('tension')
     expect(evalSocialRole('잡격', 'Capricorn')).toBeNull()
   })
-  it('길흉: 도화 동조, 양인 긴장', () => {
-    expect(evalFortune(['도화'])?.tone).toBe('resonant')
-    expect(evalFortune(['양인'])?.tone).toBe('tension')
-    expect(evalFortune(['천을귀인'])).toBeNull()
+  it('길흉: 신살 대응 행성이 차트에서 강조됐을 때만 진짜 교차(길→동조, 흉→긴장)', () => {
+    // 진짜 교차: 신살의 대응 행성이 *실제 차트에서 강조*돼야 강한 톤.
+    const dohwaPlanet = sajuKeyMapping('도화')!.astro
+    const yanginPlanet = sajuKeyMapping('양인')!.astro
+    // 길신(도화) + 행성 강조 → 동조 / 강조 없으면 보완으로 약화
+    expect(evalFortune(['도화'], new Set([dohwaPlanet]))?.tone).toBe('resonant')
+    expect(evalFortune(['도화'], new Set())?.tone).toBe('complement')
+    // 흉신(양인) + 행성 강조 → 긴장 / 강조 없으면 보완
+    expect(evalFortune(['양인'], new Set([yanginPlanet]))?.tone).toBe('tension')
+    expect(evalFortune(['양인'], new Set())?.tone).toBe('complement')
+    // 매핑 없는 신살은 null
+    expect(evalFortune(['천을귀인'], new Set())).toBeNull()
   })
   it('관계: 양쪽 조화/긴장/엇갈림', () => {
     expect(evalRelations(3, 0, 4, 1)?.tone).toBe('resonant')

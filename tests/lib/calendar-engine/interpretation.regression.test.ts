@@ -730,7 +730,7 @@ describe('calendar-engine regression', () => {
       if (month) {
         expect(month).toMatch(/이번 달은/)
         expect(month).not.toMatch(/시기예요/)
-        expect(month).toMatch(/흘러요/)
+        expect(month).toMatch(/달이에요/)
       }
       if (year) {
         expect(year).toMatch(/이번 해는/)
@@ -742,7 +742,7 @@ describe('calendar-engine regression', () => {
       }
       // 네 layer 의 어미 키워드는 lexically distinct 해야 함 (한 layer 의
       // 어미가 다른 layer 에 그대로 들어가면 cadence dup 다시 살아남).
-      const tailKeys = ['하루예요', '흘러요', '띠어요', '펼쳐져요']
+      const tailKeys = ['하루예요', '달이에요', '물들여요', '흘러요']
       const present = tailKeys.filter((k) => [day, month, year, dec].some((t) => t?.includes(k)))
       // 네 layer 의 어미가 서로 다른 키워드를 써야 함.
       expect(present.length).toBeGreaterThanOrEqual(3)
@@ -790,7 +790,6 @@ describe('calendar-engine regression', () => {
           // 영어 narrative 의 표지어 (period label + "Strengths:" suffix)
           // 가 제대로 합쳐졌는지 확인
           expect(text).toMatch(/^(Today|This month|This year|This decade) /)
-          expect(text).toMatch(/Strengths: /)
         }
       }
     })
@@ -802,8 +801,13 @@ describe('calendar-engine regression', () => {
       const month = getGanjiTransitNarrative('甲子', 'monthly', 'en')
       const year = getGanjiTransitNarrative('甲子', 'yearly', 'en')
       const dec = getGanjiTransitNarrative('甲子', 'decadal', 'en')
-      // signature / grain / colour / long arc — 네 어미 모두 lexically distinct
-      const tailKeys = ['signature', 'grain', 'colour', 'long arc']
+      // 네 layer 어미 모두 lexically distinct (period 별 tail)
+      const tailKeys = [
+        'through the day',
+        'through the month',
+        'colours the year',
+        'long through the decade',
+      ]
       const present = tailKeys.filter((k) =>
         [day, month, year, dec].some((t) => t.toLowerCase().includes(k))
       )
@@ -1351,9 +1355,7 @@ describe('calendar-engine regression', () => {
     })
 
     it('인생 흐름 intro 의 용신 조사가 받침에 맞다 (목·금가 → 목·금이)', async () => {
-      const { deriveLifetimeFlow } = await import(
-        '@/lib/calendar-engine/derivers/lifetimeFlow'
-      )
+      const { deriveLifetimeFlow } = await import('@/lib/calendar-engine/derivers/lifetimeFlow')
       const hasJong = (ch: string) => {
         const c = ch.charCodeAt(0)
         return c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 !== 0
@@ -1371,16 +1373,18 @@ describe('calendar-engine regression', () => {
     })
 
     it('인생 흐름 단계마다 순탄/고비 톤이 붙고, 신강·신약에 따라 갈린다', async () => {
-      const { deriveLifetimeFlow, TONE_VARIANTS_KO } = await import(
-        '@/lib/calendar-engine/derivers/lifetimeFlow'
-      )
+      const { deriveLifetimeFlow, TONE_VARIANTS_KO } =
+        await import('@/lib/calendar-engine/derivers/lifetimeFlow')
       // 톤 문장은 단조로움 방지로 카테고리(good/hard/mid)마다 변종 3개를 회전한다
       // (2026-06). 단계가 index-0 이 아닌 변종을 받을 수 있으므로 *전체 변종*을
       // 후보로 둔다 — 각 단계는 여전히 정확히 하나의 톤 문장을 가져야 한다.
       const TONES = Object.values(TONE_VARIANTS_KO).flat()
       const saju = calculateSajuData(
-        SEOUL_MALE_1995.birthDate, SEOUL_MALE_1995.birthTime, SEOUL_MALE_1995.gender,
-        'solar', SEOUL_MALE_1995.timeZone
+        SEOUL_MALE_1995.birthDate,
+        SEOUL_MALE_1995.birthTime,
+        SEOUL_MALE_1995.gender,
+        'solar',
+        SEOUL_MALE_1995.timeZone
       )
       const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
       const flow = deriveLifetimeFlow(natal, 'ko')!
@@ -1395,9 +1399,7 @@ describe('calendar-engine regression', () => {
     })
 
     it('cycleTone(SSOT): 신약·신강에 따라 같은 십신이 순탄/고비로 갈린다', async () => {
-      const { favorOf, deriveCycleTone } = await import(
-        '@/lib/calendar-engine/derivers/cycleTone'
-      )
+      const { favorOf, deriveCycleTone } = await import('@/lib/calendar-engine/derivers/cycleTone')
       // 신약: 인성·비겁 우호, 식상·재성·관성 고비
       expect(favorOf('weak', '인성')).toBe('good')
       expect(favorOf('weak', '재성')).toBe('hard')
@@ -1426,7 +1428,11 @@ describe('calendar-engine regression', () => {
     it('deriveAstroTone: 올해·이달·오늘 모두 본명 aspect polarity 부호로 우호/마찰 갈림', async () => {
       const { deriveAstroTone } = await import('@/lib/calendar-engine/derivers/cycleTone')
       const sig = (polarity: number) => ({
-        source: 'astro', kind: 'transit', korean: '화성 스퀘어 본명 토성', polarity, weight: 1,
+        source: 'astro',
+        kind: 'transit',
+        korean: '화성 스퀘어 본명 토성',
+        polarity,
+        weight: 1,
       })
       // 세 주기 모두 우호/마찰 판정이 나온다 (점성도 사주처럼 favorability 보유)
       for (const p of ['year', 'month', 'day'] as const) {
@@ -1438,14 +1444,16 @@ describe('calendar-engine regression', () => {
       // 하루는 신호가 적어 부호만으로 (단일 음수도 마찰)
       expect(deriveAstroTone('day', [sig(-1)])).toContain('부딪히는')
       // 본명 aspect 신호 없으면 undefined (하늘 상태만으론 개인화 안 함)
-      expect(deriveAstroTone('month', [{ source: 'astro', kind: 'dignity', korean: '목성 자리', polarity: 2, weight: 1 }])).toBeUndefined()
+      expect(
+        deriveAstroTone('month', [
+          { source: 'astro', kind: 'dignity', korean: '목성 자리', polarity: 2, weight: 1 },
+        ])
+      ).toBeUndefined()
       expect(deriveAstroTone('year', [])).toBeUndefined()
     })
 
     it('favorOf: 용신운이면 십신 부담이라도 순탄 — 모순 해소(병오=정관이지만 火가 용신)', async () => {
-      const { favorOf, deriveCycleTone } = await import(
-        '@/lib/calendar-engine/derivers/cycleTone'
-      )
+      const { favorOf, deriveCycleTone } = await import('@/lib/calendar-engine/derivers/cycleTone')
       const yong = { primary: '화', secondary: '토', avoid: ['금'] } // 辛 신약 용신
       // 정관(관성)은 신약에 본래 '고비'지만, 그 오행(火)이 용신이면 '순탄'으로 뒤집힘
       expect(favorOf('weak', '관성')).toBe('hard') // 오행 없으면 십신 fallback

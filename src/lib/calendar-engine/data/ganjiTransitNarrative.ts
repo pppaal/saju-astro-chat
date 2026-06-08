@@ -53,44 +53,40 @@ export function getGanjiTransitNarrative(
   if (!archetype) return ''
   const period = PERIOD_LABEL[layer][lang]
 
+  // character 는 이제 ilju-60.json 의 *완성 문장* (예: "양털 위 보석 — 우아하고
+  // 까다로운 감식안. 당신은 …"). 그 첫 마디(첫 문장/대시 앞)만 뽑아 그 시기의
+  // 결로 제시한다 — 옛 "의 기운으로 펼쳐져요" 래핑은 완성 문장과 안 맞아 폐기.
+  const firstClause = (s: string): string =>
+    s
+      .split(/[.。!?]/)[0]
+      .split(/\s+[—–-]\s+/)[0]
+      .trim()
+
   if (lang === 'ko') {
-    // character 는 두 형태가 섞여 있음:
-    //  (a) 명사 끝 — "창의적 리더형, 지혜와 결단"
-    //  (b) 관형형(형용사) 끝 — "재치 있고 두뇌가 빠른 차분한 물 같은"
-    // TAIL 이 "기운"(명사)으로 시작하게 통일하고, character 가 명사로 끝나면
-    // "의 기운", 관형형으로 끝나면 (의 없이) " 기운" 으로 이어 자연스럽게 함.
-    // ("부드러운의 기운" 댕글링 / "결의 결" 이중 결 둘 다 회피.)
-    const characterTrim = archetype.character.replace(/[.,。、]\s*$/u, '').trim()
-    const attributive = /(같은|운|은|는|ㄴ|한|던|린|난|른|큰|긴)$/.test(characterTrim)
-    const link = attributive ? '' : '의'
-    const strengths = archetype.strengths.join('·')
+    const flavor = firstClause(archetype.character)
+    const strength = archetype.strengths[0] ?? ''
     const TAIL: Record<GanjiTransitLayer, string> = {
-      daily: '기운이 흐르는 하루예요',
-      monthly: '기운이 함께 흘러요',
-      yearly: '기운을 띠어요',
-      decadal: '기운으로 길게 펼쳐져요',
+      daily: '결이 함께 흐르는 하루예요',
+      monthly: '결이 함께 흐르는 달이에요',
+      yearly: '결이 한 해를 물들여요',
+      decadal: '결이 대운 내내 길게 흘러요',
     }
-    return `${period} ${characterTrim}${link} ${TAIL[layer]}. 강점: ${strengths}.`
+    const head = `${period} ‘${flavor}’ ${TAIL[layer]}.`
+    return strength ? `${head} ${strength}` : head
   }
 
-  // ILJU_ARCHETYPES 는 character_en / strengths_en 영어 필드를 이미 보유
-  // 했으나, 이전엔 한국어 필드(character / strengths) 가 그대로 박혀
-  // "this month carries the signature of 창의적 리더형, 지혜와 결단" 같이
-  // 한·영 혼합으로 leak 됐음. _en 필드를 사용해 정상 영문 narrative 생성.
-  // archetype.character_en 이 "The broad..." 처럼 article 로 시작하거나
-  // 첫 글자가 대문자면 wrapper 의 "the grain of The broad..." 처럼 대소문자
-  // 충돌 + double article. 첫 article 떼고 첫 글자 lowercase.
-  let characterEn = archetype.character_en.replace(/[.!?]\s*$/u, '')
-  characterEn = characterEn.replace(/^(The|A|An)\s+/, '')
-  characterEn = characterEn.charAt(0).toLowerCase() + characterEn.slice(1)
-  const strengthsEn = archetype.strengths_en.join(', ')
+  let flavorEn = firstClause(archetype.character_en)
+  flavorEn = flavorEn.replace(/^(The|A|An)\s+/, '')
+  flavorEn = flavorEn.charAt(0).toLowerCase() + flavorEn.slice(1)
+  const strengthEn = archetype.strengths_en[0] ?? ''
   const TAIL_EN: Record<GanjiTransitLayer, string> = {
-    daily: 'carries the signature of',
-    monthly: 'moves with the grain of',
-    yearly: 'wears the colour of',
-    decadal: 'unfolds along the long arc of',
+    daily: 'runs through the day',
+    monthly: 'runs through the month',
+    yearly: 'colours the year',
+    decadal: 'runs long through the decade',
   }
-  return `${period} ${TAIL_EN[layer]} ${characterEn}. Strengths: ${strengthsEn}.`
+  const headEn = `${period} a ${flavorEn} grain ${TAIL_EN[layer]}.`
+  return strengthEn ? `${headEn} ${strengthEn}` : headEn
 }
 
 // 일진(그 날 60갑자)의 천간이 본명 일간과 만나 만드는 십신 관계를 자연어

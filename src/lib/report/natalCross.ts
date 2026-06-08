@@ -222,7 +222,7 @@ export function evalSocialRole(
  */
 export function evalFortune(
   shinsal: string[] | undefined,
-  emphasizedPlanets: Set<string>
+  emphasizedPlanets: Set<string> = new Set()
 ): CrossVerdict | null {
   if (!shinsal || shinsal.length === 0) return null
   let mapping: CrossMapping | undefined
