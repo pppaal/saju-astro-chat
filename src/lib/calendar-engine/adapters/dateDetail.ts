@@ -33,39 +33,27 @@ export interface V2DateDetailResponse {
   date: string
   dayCross: {
     overallScore: number
-    domainScores: Record<string, number>
-    domainCross: Array<{
-      theme: string
-      sajuScore: number
-      astroScore: number
-      sajuSummary: string
-      astroSummary: string
-    }>
     hourly: {
       bestHours: Array<{
         hour: number
         score: number
-        topDomain: string | null
         hourPillar?: string
         planetaryHour?: string
       }>
       worstHours: Array<{
         hour: number
         score: number
-        topDomain: string | null
         hourPillar?: string
         planetaryHour?: string
       }>
       /**
        * 시진 24h 전체 breakdown — Day tier 가 24 시진 라인업을 그리려 best/worst top-N 만으로는
-       * 부족하다. 0~23시 각 시점의 score / topTheme / hourPillar 를 한 줄씩 노출.
+       * 부족하다. 0~23시 각 시점의 score / hourPillar 를 한 줄씩 노출.
        * (별도 시진 emit 명시 — destinypal Day 페이지 spec.)
        */
       all24: Array<{
         hour: number
         score: number
-        topDomain: string | null
-        themeScores: Partial<Record<string, number>>
       }>
     }
     advice: { do: string[]; avoid: string[] }
@@ -106,7 +94,7 @@ export interface V2DateDetailResponse {
   /**
    * 그날 활성 신호 전체 (cat/source/polarity/weight 포함) — Day tier 가 사주·점성·
    * cross 페어 모두 표시하려 raw 신호 dump 가 필요. allSignals = 사주 + 점성 + cross.
-   * 각 요소: { id, source, cat(=kind), name, korean?, themes, polarity, layer, weight,
+   * 각 요소: { id, source, cat(=kind), name, korean?, polarity, layer, weight,
    * active }. evidence 는 includeEvidence true 일 때만 포함.
    */
   signalsRaw: Array<{
@@ -116,7 +104,6 @@ export interface V2DateDetailResponse {
     kind: string
     name: string
     korean?: string
-    themes: string[]
     polarity: number
     layer: string
     weight: number
@@ -171,7 +158,6 @@ function buildSignalsRaw(dayCell: CalendarCell): V2DateDetailResponse['signalsRa
       kind: s.kind,
       name: s.name,
       korean: s.korean,
-      themes: [...s.themes],
       polarity: s.polarity,
       layer: s.layer,
       weight: s.weight,
@@ -271,39 +257,12 @@ function buildDayCross(
   lang: 'ko' | 'en' = 'ko'
 ): V2DateDetailResponse['dayCross'] {
   const overallScore = Math.round(dayCell.derivedScore)
-  const domainScores: Record<string, number> = {}
-  for (const [theme, score] of Object.entries(dayCell.themeScores)) {
-    if (typeof score === 'number') domainScores[mapThemeToLegacy(theme)] = Math.round(score)
-  }
-
-  // domainCross — 각 테마별 saju 축 vs astro 축 신호 강도 + 텍스트 요약
-  const domainCross: V2DateDetailResponse['dayCross']['domainCross'] = []
-  const themesInPlay = Object.keys(dayCell.themeScores)
-  for (const theme of themesInPlay) {
-    const sajuSigs = dayCell.signals.filter(
-      (s) => s.source === 'saju' && s.themes.includes(theme as never)
-    )
-    const astroSigs = dayCell.signals.filter(
-      (s) => s.source === 'astro' && s.themes.includes(theme as never)
-    )
-    domainCross.push({
-      theme: mapThemeToLegacy(theme),
-      sajuScore: scoreFromSignals(sajuSigs),
-      astroScore: scoreFromSignals(astroSigs),
-      sajuSummary:
-        summarizeSignals(sajuSigs, lang) || (lang === 'ko' ? '사주 신호 없음' : 'No saju signal'),
-      astroSummary:
-        summarizeSignals(astroSigs, lang) ||
-        (lang === 'ko' ? '점성 신호 없음' : 'No astrology signal'),
-    })
-  }
 
   // hourly — 24h cells에서 best/worst 추출
   const bestHours = hourlyCells
     .map((c) => ({
       hour: new Date(c.datetime).getUTCHours(),
       score: Math.round(c.derivedScore),
-      topDomain: topThemeOfCell(c),
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 4)
@@ -311,18 +270,15 @@ function buildDayCross(
     .map((c) => ({
       hour: new Date(c.datetime).getUTCHours(),
       score: Math.round(c.derivedScore),
-      topDomain: topThemeOfCell(c),
     }))
     .sort((a, b) => a.score - b.score)
     .slice(0, 2)
   // all24 — 0..23 시진 전체 라인업 (destinypal Day tier 시진 카드). 같은 hourlyCells
-  // 에서 hour 순으로 정렬 + themeScores 통째로.
+  // 에서 hour 순으로 정렬.
   const all24 = hourlyCells
     .map((c) => ({
       hour: new Date(c.datetime).getUTCHours(),
       score: Math.round(c.derivedScore),
-      topDomain: topThemeOfCell(c),
-      themeScores: { ...c.themeScores } as Partial<Record<string, number>>,
     }))
     .sort((a, b) => a.hour - b.hour)
 
@@ -348,34 +304,11 @@ function buildDayCross(
 
   return {
     overallScore,
-    domainScores,
-    domainCross,
     hourly: { bestHours, worstHours, all24 },
     advice: { do: doList.slice(0, 3), avoid: avoidList.slice(0, 3) },
     confidence,
     agreement,
   }
-}
-
-function scoreFromSignals(sigs: ActiveSignal[]): number {
-  if (sigs.length === 0) return 50
-  const sum = sigs.reduce((acc, s) => acc + s.polarity * s.weight, 0)
-  return Math.max(0, Math.min(100, Math.round(50 + sum * 8)))
-}
-
-function summarizeSignals(sigs: ActiveSignal[], lang: 'ko' | 'en' = 'ko'): string {
-  if (sigs.length === 0) return ''
-  const top = [...sigs].sort(
-    (a, b) => Math.abs(b.polarity) * b.weight - Math.abs(a.polarity) * a.weight
-  )[0]
-  return lang === 'ko' ? top.korean || top.name : top.english || top.name
-}
-
-function topThemeOfCell(cell: CalendarCell): string | null {
-  const entries = Object.entries(cell.themeScores)
-  if (entries.length === 0) return null
-  entries.sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))
-  return mapThemeToLegacy(entries[0][0])
 }
 
 function avgPolarity(sigs: ActiveSignal[]): number {
@@ -606,33 +539,4 @@ function buildGongmangStatus(
     isAffected: todayBranchHit,
     areas: todayBranchHit ? koGongmang : [],
   }
-}
-
-// ──────────────────────────────────────────────────────────────────────
-// theme 키 정규화 — v2 internal key ↔ 옛 응답 형식
-// ──────────────────────────────────────────────────────────────────────
-
-const THEME_LEGACY_MAP: Record<string, string> = {
-  money: '재물',
-  wealth: '재물',
-  love: '연애',
-  romance: '연애',
-  career: '직업',
-  work: '직업',
-  health: '건강',
-  study: '학업',
-  fame: '명예',
-  travel: '이동',
-  family: '가족',
-  spirituality: '영성',
-  legal: '법무',
-  creativity: '창작',
-  children: '자녀',
-  social: '인맥',
-  karma: '카르마',
-  reputation: '평판',
-}
-
-function mapThemeToLegacy(theme: string): string {
-  return THEME_LEGACY_MAP[theme] ?? theme
 }

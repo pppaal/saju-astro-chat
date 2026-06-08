@@ -2,16 +2,14 @@
  * cellsToYearlyDates — v2 CalendarCell[] → 날짜별 캘린더 DTO (마이그레이션 단계 1c).
  *
  * 구 calculateYearlyImportantDates(destiny-map "v3" 경로)를 대체하는 v2-native
- * 어댑터. 점수·등급·카테고리·교차검증·축분해·패턴·신호·일진·서사를 셀에서 조립.
- * destiny-map 의존 0 — grade/category/crossAgreement deriver(모두 엔진 소유) 사용.
+ * 어댑터. 점수·등급·교차검증·축분해·패턴·신호·일진·서사를 셀에서 조립.
+ * destiny-map 의존 0 — grade/crossAgreement deriver(모두 엔진 소유) 사용.
  *
  * ※ 단계 1 은 순수 추가(additive). 라우트는 아직 이 어댑터를 쓰지 않는다. 단위
  *   테스트 + 단계 0 골든으로 점수·등급 동등성을 검증한 뒤 단계 2 에서 배선한다.
  */
 import type { ActiveSignal, CalendarCell } from '../types'
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import { scoreToGrade, type CalendarGrade } from '../derivers/grade'
-import { themeScoresToCategories, type ThemeCategory } from '../derivers/categories'
 import { deriveCrossAgreement, type AxisAgreement } from '../derivers/crossAgreement'
 import { computeDayStem, computeDayBranch } from '../extractors/saju-shinsal'
 import { signalDisplayLabel } from '../derivers/summary'
@@ -21,7 +19,6 @@ export type CalendarLang = 'ko' | 'en'
 export interface V2DatePattern {
   id: string
   name: string
-  themes: AstroThemeKey[]
   strength: number
   description?: string
   headline?: string
@@ -34,7 +31,6 @@ export interface V2EngineSignal {
   kind: string
   name: string
   korean?: string
-  themes: AstroThemeKey[]
   polarity: number
   layer: ActiveSignal['layer']
   weight: number
@@ -46,8 +42,6 @@ export interface V2CalendarDate {
   score: number
   displayScore: number
   grade: CalendarGrade
-  categories: ThemeCategory[]
-  themeScores: Partial<Record<AstroThemeKey, number>>
   matchedPatterns: V2DatePattern[]
   engineSignals: V2EngineSignal[]
   // 교차검증
@@ -98,7 +92,6 @@ function mapPattern(p: CalendarCell['matchedPatterns'][number], lang: CalendarLa
   return {
     id: p.id,
     name: (en ? p.nameEn : undefined) ?? p.name,
-    themes: p.themes,
     strength: p.strength,
     description: (en ? p.descriptionEn : undefined) ?? p.description,
     headline: (en ? p.headlineEn : undefined) ?? p.headline,
@@ -115,7 +108,6 @@ function mapHourlySignals(signals: ActiveSignal[]): V2EngineSignal[] {
       kind: s.kind,
       name: s.name,
       korean: s.korean,
-      themes: s.themes,
       polarity: s.polarity,
       layer: s.layer,
       weight: s.weight,
@@ -179,8 +171,6 @@ export function cellToYearlyDate(cell: CalendarCell, lang: CalendarLang = 'ko'):
     score,
     displayScore: score,
     grade,
-    categories: themeScoresToCategories(cell.themeScores),
-    themeScores: cell.themeScores,
     matchedPatterns: patterns,
     engineSignals: mapHourlySignals(cell.signals),
     crossVerified: cross.crossVerified,
