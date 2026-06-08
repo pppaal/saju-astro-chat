@@ -272,8 +272,7 @@
   text-align: center;
 }
 
-.guestTrialBanner,
-.guestResultsBanner {
+.guestTrialBanner {
   width: 100%;
   display: flex;
   align-items: center;
@@ -286,16 +285,14 @@
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }
 
-.guestTrialText,
-.guestResultsText {
+.guestTrialText {
   margin: 0;
   color: rgba(255, 248, 220, 0.95);
   font-size: 0.95rem;
   line-height: 1.5;
 }
 
-.guestTrialLink,
-.guestResultsLink {
+.guestTrialLink {
   flex-shrink: 0;
   text-decoration: none;
   color: #fff7d6;
@@ -308,8 +305,7 @@
   transition: all 0.2s ease;
 }
 
-.guestTrialLink:hover,
-.guestResultsLink:hover {
+.guestTrialLink:hover {
   background: rgba(255, 225, 138, 0.2);
   border-color: rgba(255, 225, 138, 0.7);
   transform: translateY(-1px);
