@@ -134,7 +134,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
       {/* ============================================================
           header — eyebrow / display / oneline
       ============================================================ */}
-      <div className={styles.eyebrow}>
+      <div className={styles.eyebrow} title="대운 — 10년 단위로 바뀌는 인생의 큰 흐름">
         10년 · DECADE · 대운 {decade.start}-{decade.end}
         {decade.ageFrom != null && decade.ageTo != null && (
           <span className={styles.ageRange}>

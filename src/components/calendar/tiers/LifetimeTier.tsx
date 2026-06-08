@@ -781,7 +781,12 @@ function ZRCarousel({
   return (
     <div className={styles.zrWrap}>
       <div className={styles.sectionHead}>
-        <h2 className={styles.sectionTitle}>ZR L1 챕터 · Zodiacal Releasing</h2>
+        <h2
+          className={styles.sectionTitle}
+          title="인생을 장(章)으로 나누는 점성 흐름 — 시기마다 무엇이 무대에 오르는지"
+        >
+          ZR L1 챕터 · Zodiacal Releasing
+        </h2>
         <span className={styles.tiny}>Spirit 진로 · Fortune 체질</span>
       </div>
       <div className={styles.zrLanes}>

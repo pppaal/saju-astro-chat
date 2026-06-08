@@ -482,7 +482,12 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       {/* ── 보강 #3 — ZR 카드 (Spirit / Fortune) ── */}
       <section className={styles.block}>
         <div className={styles.secHead}>
-          <h2 className={styles.secTitle}>황도분기 · Zodiacal Releasing</h2>
+          <h2
+            className={styles.secTitle}
+            title="인생을 장(章)으로 나누는 점성 흐름 — 시기마다 무엇이 무대에 오르는지"
+          >
+            황도분기 · Zodiacal Releasing
+          </h2>
           <span className={styles.secTag}>L1 / L2 — 챕터 진행</span>
         </div>
         <div className={styles.zrCard}>
