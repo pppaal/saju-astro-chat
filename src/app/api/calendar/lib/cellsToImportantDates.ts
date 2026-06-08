@@ -26,6 +26,10 @@ import {
   type CalendarLang,
 } from '@/lib/calendar-engine/adapters/cellsToYearlyDates'
 import {
+  derivePersonalScale,
+  type PersonalScale,
+} from '@/lib/calendar-engine/derivers/personalScale'
+import {
   pickDaeunForDate,
   sewoonForYear,
   wolwoonFromPillar,
@@ -215,10 +219,11 @@ function buildLongCycle(
 /** 한 셀 → ImportantDate. */
 export function cellToImportantDate(
   cell: CalendarCell,
-  options: CellsToImportantDatesOptions = {}
+  options: CellsToImportantDatesOptions = {},
+  scale?: PersonalScale
 ): YearlyImportantDate {
   const lang: CalendarLang = options.locale ?? 'ko'
-  const v2 = cellToYearlyDate(cell, lang)
+  const v2 = cellToYearlyDate(cell, lang, scale)
   const grade = v2.grade as ImportanceGrade
   const score = v2.score
   const domain = DEFAULT_DOMAIN
@@ -288,8 +293,10 @@ export function cellsToImportantDates(
   cells: CalendarCell[],
   options: CellsToImportantDatesOptions = {}
 ): YearlyImportantDate[] {
+  // 그 사람 1년 분포로 점수·등급 상대화 (cellsToYearlyDates 와 동일 모델).
+  const scale = derivePersonalScale(cells)
   return cells
     .filter((c) => c.datetime)
-    .map((c) => cellToImportantDate(c, options))
+    .map((c) => cellToImportantDate(c, options, scale))
     .sort((a, b) => a.date.localeCompare(b.date))
 }
