@@ -102,6 +102,7 @@ const SHINSAL_EN: Record<string, string> = {
 const GLUE_EN: Record<string, string> = {
   '그 외 다수 신호': 'other signals',
   활성: 'active',
+  시진: 'hour pillar',
 }
 
 const ALL_TERMS: Record<string, string> = {
