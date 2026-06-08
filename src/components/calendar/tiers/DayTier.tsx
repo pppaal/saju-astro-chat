@@ -31,6 +31,7 @@ import type {
   DestinySignal,
   Polarity,
 } from '@/types/calendar'
+import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './DayTier.module.css'
 
 // ============================================================================
@@ -538,7 +539,12 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
           <div className="meta">
             <div className="kr">{day.iljin.kr}</div>
             <div className="en">{day.iljin.en}</div>
-            <div className="ss">일진 · 일간 기준 {String(day.iljinSibsin)}</div>
+            <div className="ss">
+              일진 · 일간 기준 {String(day.iljinSibsin)}
+              {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
+                ? ` (${sibsinArea(String(day.iljinSibsin))})`
+                : ''}
+            </div>
           </div>
         </div>
         <div className={styles.dayScore}>

@@ -26,6 +26,7 @@ import type { DestinyDecade, DestinyUserSummary } from '@/types/calendar'
 
 import { Ganji } from '../atoms/Ganji'
 import { LayerTag } from '../atoms/LayerTag'
+import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './DecadeTier.module.css'
 
 // ----------------------------------------------------------------
@@ -206,7 +207,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         {/* ── 우: 대운 십신 readout + KV ── */}
         <div className={styles.readoutPanel}>
           <LayerTag kind="saju" />
-          <div className={styles.bigTitle}>{decade.sibsin}의 10년</div>
+          <div className={styles.bigTitle}>
+            {decade.sibsin} · {sibsinArea(decade.sibsin)}의 10년
+          </div>
           <p className={styles.themeLine}>
             {decade.theme}
             <span className={styles.muted}> · {decade.themeEn}</span>

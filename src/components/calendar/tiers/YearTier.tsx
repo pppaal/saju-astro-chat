@@ -21,6 +21,7 @@ import type {
 } from '@/types/calendar'
 import { Ganji } from '../atoms/Ganji'
 import { LayerTag } from '../atoms/LayerTag'
+import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './YearTier.module.css'
 
 // ----------------------------------------------------------------
@@ -468,6 +469,9 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
             <div>
               <div className={styles.ganjiMeta}>
                 세운 {year.year} · {year.sewoonSibsin}
+                {sibsinArea(year.sewoonSibsin) !== year.sewoonSibsin
+                  ? ` (${sibsinArea(year.sewoonSibsin)})`
+                  : ''}
               </div>
               <p className={styles.sajuNote}>{year.sajuNote}</p>
             </div>
