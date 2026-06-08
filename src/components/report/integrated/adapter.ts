@@ -21,11 +21,13 @@ import {
   evalDrive,
   evalKeyAspect,
   evalVoid,
+  evalNorthNode,
   synthesize,
   dominantSibsinGroup,
   type CrossVerdict,
 } from '@/lib/report/natalCross'
 import { getSouthNodeOppositeSign } from '@/lib/astrology/interpretations'
+import { getGongmang } from '@/lib/saju/pillarLookup'
 
 // 5-tier (정통) → 단일 라벨. 우선순위는 score 절댓값과 일치.
 // domicile/exaltation/detriment/fall 4 종을 먼저 — 라벨 자체가 강한 의미.
@@ -160,8 +162,28 @@ interface AnyCtx {
 // "亥·卯·未 삼합(목)" → "亥卯未". 카테고리 한글어(육합/삼합/충…)는 한자가
 // 아니므로 자동 제외됨.
 const HANZI_BRANCH_STEM = new Set([
-  '甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸',
-  '子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥',
+  '甲',
+  '乙',
+  '丙',
+  '丁',
+  '戊',
+  '己',
+  '庚',
+  '辛',
+  '壬',
+  '癸',
+  '子',
+  '丑',
+  '寅',
+  '卯',
+  '辰',
+  '巳',
+  '午',
+  '未',
+  '申',
+  '酉',
+  '戌',
+  '亥',
 ])
 const extractPair = (detail: string | undefined): string => {
   if (!detail) return ''
@@ -171,8 +193,16 @@ const extractPair = (detail: string | undefined): string => {
 }
 // natalCross / RelationHit 의 kind 는 RelationCategory 와 동일 문자열.
 const RELATION_CATEGORIES = new Set<string>([
-  '천간합', '천간충', '지지육합', '지지삼합', '지지방합',
-  '지지충', '지지형', '지지파', '지지해', '원진',
+  '천간합',
+  '천간충',
+  '지지육합',
+  '지지삼합',
+  '지지방합',
+  '지지충',
+  '지지형',
+  '지지파',
+  '지지해',
+  '원진',
 ])
 
 /** NatalContext → ReportData (chart.zip 뷰모델). */
@@ -459,12 +489,22 @@ export function buildCrossRows(
   // 공망 × South Node 교차용 데이터 — 공망 지지(advanced 우선, 없으면 top-level)
   // + North Node sign 으로부터 South Node sign 유도. 둘 다 비면 evalVoid 가 null
   // 반환해 자동 행 생략.
-  const gongmangBranches = adv.gongmang?.gongmangBranches ?? S.gongmang ?? []
-  const northNode = planets.find((p: any) => p.name === 'North Node' || p.name === 'Node')
-  const northSignFull = northNode?.sign
-    ? (SIGN_KO_FULL[northNode.sign] ?? northNode.sign)
+  // 공망 지지: advanced/top-level 우선, 없으면 일주 간지로 정본 계산(getGongmang).
+  const dayPillarGanji = `${S.pillars?.day?.heavenlyStem?.name ?? ''}${S.pillars?.day?.earthlyBranch?.name ?? ''}`
+  const gongmangBranches =
+    adv.gongmang?.gongmangBranches ??
+    S.gongmang ??
+    (dayPillarGanji.length === 2 ? (getGongmang(dayPillarGanji) ?? []) : [])
+  // 차트의 북교점 행성명은 'True Node'(기본)·'Mean Node'·'North Node'·'Node' 등
+  // 구현마다 다름. /node/ 로 매칭하되 'South Node' 는 제외(북교점만).
+  const northNode = planets.find(
+    (p: any) => /node/i.test(p.name ?? '') && !/south/i.test(p.name ?? '')
+  )
+  // 사우스노드 = 북교점 정반대 사인. getSouthNodeOppositeSign 은 *영어 사인*을
+  // 받으므로 한글 풀네임(SIGN_KO_FULL)이 아니라 원본 영어 sign 을 넘긴다.
+  const southNodeSign = northNode?.sign
+    ? getSouthNodeOppositeSign(northNode.sign as never)
     : undefined
-  const southNodeSign = northSignFull ? getSouthNodeOppositeSign(northSignFull as never) : undefined
 
   // 교차 항목 카테고리 라벨 — 이중언어. key 로 행을 묶고 lang 으로 표시 텍스트 선택.
   const CAT: Record<string, { ko: string; en: string }> = {
@@ -480,6 +520,7 @@ export function buildCrossRows(
     drive: { ko: '추진력', en: 'Drive' },
     keyTrait: { ko: '핵심 성향', en: 'Core Trait' },
     karma: { ko: '공망/카르마', en: 'Void / Karma' },
+    growth: { ko: '성장 방향', en: 'Growth Direction' },
   }
   const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
     ['identity', evalIdentity(dmEl, sunSign)],
@@ -488,15 +529,19 @@ export function buildCrossRows(
       'socialRole',
       adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null,
     ],
-    ['fortune', evalFortune(dayShinsal)],
+    ['fortune', evalFortune(dayShinsal, emphasized)],
     ['relations', evalRelations(hap, chung, harmonious, hard)],
     ['strength', evalStrength(stage, topDignity)],
-    ['temperament', evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean))],
+    [
+      'temperament',
+      evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean)),
+    ],
     ['energy', evalEnergyDirection(details, emphasized)],
     ['persona', evalPersona(dmEl, ascSign)],
     ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
     ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
     ['karma', evalVoid(gongmangBranches, southNodeSign)],
+    ['growth', evalNorthNode(S.fiveElements, northNode?.sign)],
   ]
   const verdicts = items.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
   const synth = synthesize(verdicts)

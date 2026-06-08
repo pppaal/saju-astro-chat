@@ -213,8 +213,17 @@ export function evalSocialRole(
   }
 }
 
-/** 길흉: 일주 신살 ↔ 대응 행성. A급 매핑 polarity 로 길(동조)·흉(주의) 판정. */
-export function evalFortune(shinsal: string[] | undefined): CrossVerdict | null {
+/**
+ * 길흉: 일주 신살 ↔ *그 신살에 대응하는 행성이 내 차트에서 실제로 강조됐는가*.
+ * (예전엔 신살만 보고 매핑 polarity 만 썼음 — 진짜 교차가 아니었다.)
+ * 신살의 대응 행성(mapping.astro)이 emphasizedPlanets 에 있으면 동·서양이 같은
+ * 기운을 동시에 키운 셈 → 길신은 강한 복(resonant), 흉신은 그 압력이 증폭
+ * (tension). 대응 행성이 차트에서 약하면 한쪽만 작동(complement) 으로 약화.
+ */
+export function evalFortune(
+  shinsal: string[] | undefined,
+  emphasizedPlanets: Set<string>
+): CrossVerdict | null {
   if (!shinsal || shinsal.length === 0) return null
   let mapping: CrossMapping | undefined
   for (const s of shinsal) {
@@ -225,21 +234,42 @@ export function evalFortune(shinsal: string[] | undefined): CrossVerdict | null 
     }
   }
   if (!mapping) return null
-  if (mapping.polarity < 0)
-    return {
-      tone: 'tension',
-      reason: {
-        ko: '추진력·승부욕을 세게 타고났어요. 큰 무기지만, 욱하거나 과속하지 않게만 조심하면 좋아요.',
-        en: 'You’re born with strong drive — a real asset, just watch the temper and the gas pedal.',
-      },
-    }
-  return {
-    tone: 'resonant',
-    reason: {
-      ko: '사람을 끌거나 복이 되는 좋은 기운을 타고났어요 — 동·서양 풀이가 똑같이 강점으로 봐요.',
-      en: 'You carry a natural charm/luck that both systems read as a clear strength.',
-    },
+  const planetEmphasized = emphasizedPlanets.has(mapping.astro)
+  const tk = planetTheme(mapping.astro, 'ko')
+  const te = planetTheme(mapping.astro, 'en')
+  const benefic = mapping.polarity >= 0
+  if (benefic) {
+    return planetEmphasized
+      ? {
+          tone: 'resonant',
+          reason: {
+            ko: `복이 되는 좋은 기운을 타고났는데, 별자리에서도 ${tk} 쪽이 힘 있어 — 동·서양이 똑같이 강점으로 봐요.`,
+            en: `You carry a natural blessing, and your chart's ${te} side is strong too — both systems read it as a clear strength.`,
+          },
+        }
+      : {
+          tone: 'complement',
+          reason: {
+            ko: `사주엔 복이 되는 좋은 기운이 있어요 — 별자리 ${tk} 쪽은 잔잔해서, 의식적으로 살리면 더 빛나요.`,
+            en: `Saju carries a fortunate streak; your chart's ${te} side is quieter — lean into it on purpose to make it shine.`,
+          },
+        }
   }
+  return planetEmphasized
+    ? {
+        tone: 'tension',
+        reason: {
+          ko: `추진력·승부욕을 세게 타고났는데 별자리에서도 ${tk} 쪽이 도드라져 — 힘이 두 배라 욱하거나 과속하지 않게 조심.`,
+          en: `You're born with strong drive, and your chart's ${te} side is pronounced too — double the force, so watch the temper and the gas pedal.`,
+        },
+      }
+    : {
+        tone: 'complement',
+        reason: {
+          ko: `추진력·승부욕을 세게 타고났어요 — 다만 별자리 ${tk} 쪽은 약해서, 그 거친 기운이 차트에선 한결 눌려요.`,
+          en: `You carry strong drive, but your chart's ${te} side is weak — that rough edge is tempered in your chart.`,
+        },
+      }
 }
 
 /** 관계: 사주 합/충 ↔ 점성 조화각/긴장각의 우세 방향. */
@@ -700,6 +730,67 @@ export function evalVoid(
     reason: {
       ko: `공망(${branches})과 사우스노드(${southNodeSign})가 서로 다른 영역의 비어있음을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있음. 한 번에 하나씩 다루는 게 안전해요.`,
       en: `Gongmang (${branches}) and South Node (${southNodeSign}) point to different empty domains — karmic work is spread across two threads. Better to address one at a time.`,
+    },
+  }
+}
+
+/** 오행 카운트에서 가장 부족한(결핍) 원소 — 이번 생에 키워야 할 결. */
+export function weakestSajuElement(
+  counts: Record<string, number> | undefined
+): SajuElement | undefined {
+  if (!counts) return undefined
+  const agg: Record<SajuElement, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
+  for (const [k, v] of Object.entries(counts)) {
+    const el = normSajuElement(k)
+    if (el && typeof v === 'number') agg[el] += v
+  }
+  let best: SajuElement | undefined
+  let min = Infinity
+  for (const el of SAJU_ELS) {
+    if (agg[el] < min) {
+      min = agg[el]
+      best = el
+    }
+  }
+  return best
+}
+
+/**
+ * 성장 방향: 노스노드(이번 생 키워야 할 방향) ↔ 사주에서 가장 부족한 오행
+ * (결핍 = 채워야 할 것). 둘 다 "이번 생에 새로 키워가는 것"을 가리키는 표상이라,
+ * 같은 오행을 가리키면 동·서양이 한 성장 방향을 또렷이 짚는 셈. evalVoid(공망 ×
+ * 사우스노드 = 비움·과거)의 양(陽)짝.
+ */
+export function evalNorthNode(
+  sajuCounts: Record<string, number> | undefined,
+  northNodeSign: string | undefined
+): CrossVerdict | null {
+  const weak = weakestSajuElement(sajuCounts)
+  const nn = signToSajuElement(northNodeSign)
+  if (!weak || !nn || !northNodeSign) return null
+  const tw = ELEMENT_TRAIT[weak]
+  const tn = ELEMENT_TRAIT[nn]
+  if (nn === weak)
+    return {
+      tone: 'resonant',
+      reason: {
+        ko: `이번 생 키워야 할 방향을 동·서양이 둘 다 ${tw.ko} 쪽으로 짚어요 — 그걸 채우는 게 이번 생 과제로 또렷해요.`,
+        en: `Both systems point your growth the same way — toward the ${tw.en} — making it a clear life task.`,
+      },
+    }
+  if (GENERATES[weak] === nn || GENERATES[nn] === weak)
+    return {
+      tone: 'complement',
+      reason: {
+        ko: `사주가 채우라는 ${tw.ko} 결과 별자리(노스노드)가 가리키는 ${tn.ko} 방향이 서로 이어져요 — 한쪽을 키우면 다른 쪽도 따라 자라요.`,
+        en: `The ${tw.en} your Saju asks you to fill and the ${tn.en} your North Node points to feed each other — grow one and the other follows.`,
+      },
+    }
+  return {
+    tone: 'complement',
+    reason: {
+      ko: `사주는 ${tw.ko} 기운을 채우라 하고, 별자리(노스노드)는 ${tn.ko} 방향을 가리켜요 — 성장 축이 둘이라 번갈아 키우면 좋아요.`,
+      en: `Saju asks you to build ${tw.en} energy while your North Node points to ${tn.en} — two growth axes to develop in turn.`,
     },
   }
 }
