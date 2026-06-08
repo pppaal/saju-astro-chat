@@ -33,7 +33,7 @@ import {
   ymdFromIso,
 } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
-import { getGongmang } from '@/lib/saju/shinsal'
+import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
 
 // 천간(한자) → 5원소 룩업. destinypal Day 의 jijanggan layer element 산출.
@@ -161,6 +161,16 @@ export interface DestinypalDay {
   topReasons: string[]
   /** 상위 주의 사유 — CalendarCell.cautions 그대로. */
   cautions: string[]
+  /** 본명 4기둥(천간) × 일진 지지 12운성 — getTwelveStage 정통 계산(기둥별 실제값). */
+  twelveStageMatrix: TwelveStageCell[]
+}
+
+/** 본명 한 기둥의 천간이 일진 지지에 대해 갖는 12운성. */
+export interface TwelveStageCell {
+  pillar: string // 年 月 日 時
+  stem: string // 본명 기둥 천간 (한자)
+  branch: string // 일진 지지 (한자)
+  stage: string // 12운성 (장생/목욕/…)
 }
 
 // signal.kind → cat 라벨
@@ -362,6 +372,29 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   // ── 공망 — 본명 일주에서 산출 + cell.signals 의 gongmang signal 활성 분 합쳐 정리 ──
   const gongmang = buildGongmang(natal, gongmangActiveFromSignal)
 
+  // 본명 4기둥(천간) × 일진 지지 → 기둥별 실제 12운성. (placeholder 아님 — getTwelveStage 정통)
+  const iljinBranchHan = opts.iljinBranch ?? (iljin.hanja ? iljin.hanja[1] : '') ?? ''
+  const pillarsForStage = natal.saju?.pillars as unknown as
+    | Record<string, { heavenlyStem?: { name?: string } }>
+    | undefined
+  const PILLAR_LABELS: Array<[string, string]> = [
+    ['year', '年'],
+    ['month', '月'],
+    ['day', '日'],
+    ['time', '時'],
+  ]
+  const twelveStageMatrix: TwelveStageCell[] = iljinBranchHan
+    ? PILLAR_LABELS.map(([key, label]) => {
+        const stem = pillarsForStage?.[key]?.heavenlyStem?.name ?? ''
+        return {
+          pillar: label,
+          stem,
+          branch: iljinBranchHan,
+          stage: stem ? getTwelveStage(stem, iljinBranchHan) : '—',
+        }
+      })
+    : []
+
   return {
     date: dateIso,
     dateKo,
@@ -384,6 +417,7 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     narrative: [],
     topReasons: (cell.topReasons ?? []).map(humanizeReason),
     cautions: (cell.cautions ?? []).map(humanizeReason),
+    twelveStageMatrix,
   }
 }
 

@@ -360,38 +360,15 @@ function JijangganChips({ jijanggan }: { jijanggan: DestinyDay['jijanggan'] | un
 
 // ============================================================================
 // Phase 3 — TwelveStageMatrix
-//   본명 4기둥 (年月日時) × 일진 지지 → 12운성 mini 4×1.
-//
-// 입력 데이터가 day prop 에 직접 없어 — 본명 컨텍스트 없이 일진 지지 1개에 대한
-// "4기둥별 12운성" 을 계산해야 함. day.iljin 의 지지 + 시뮬레이션 4기둥은
-// 데이터가 없으므로 placeholder: day.iljin.hanja[1] 만 보여주는 1×4 표시
-// (실제 컨텍스트는 useNatalContext 와 합쳐서 채우는 것은 상위 페이지의 책임).
+//   본명 4기둥 (年月日時) 천간 × 일진 지지 → 기둥별 12운성 4×1.
+//   값은 day.twelveStageMatrix (toDay 어댑터가 getTwelveStage 로 정통 계산).
+//   기둥마다 실제로 다른 운성이 나온다 (placeholder 제거됨).
 // ============================================================================
 
-const STAGES_12 = [
-  '長生',
-  '沐浴',
-  '冠帶',
-  '臨官',
-  '帝旺',
-  '衰',
-  '病',
-  '死',
-  '墓',
-  '絕',
-  '胎',
-  '養',
-] as const
-
-const PILLARS_KO = ['年', '月', '日', '時'] as const
-
 function TwelveStageMatrix({ day }: { day: DestinyDay }) {
-  const ilbranch = day.iljin.hanja?.[1] ?? ''
-  if (!ilbranch) return null
-  // 표시용: 4기둥 모두 일진 지지의 단일 stage (placeholder — 실제 값은 본명 4지지
-  // 와 각각의 12운성 매핑이 필요. UI 골자는 디자인 의도대로 4 슬롯을 보장).
-  const idx = BRANCHES_12.indexOf(ilbranch as (typeof BRANCHES_12)[number])
-  const stage = idx >= 0 ? STAGES_12[idx] : '—'
+  const cells = day.twelveStageMatrix ?? []
+  if (cells.length === 0) return null
+  const ilbranch = cells[0]?.branch ?? ''
   return (
     <div className={styles.blockSm}>
       <div className={styles.secHead}>
@@ -399,11 +376,11 @@ function TwelveStageMatrix({ day }: { day: DestinyDay }) {
         <span className={styles.tiny}>twelve stages · 일진 지지 [{ilbranch}] 기준</span>
       </div>
       <div className={styles.tsMatrix}>
-        {PILLARS_KO.map((p) => (
-          <div className={styles.tsCell} key={p}>
-            <span className={styles.tsPillar}>{p}</span>
-            <span className={styles.tsStage}>{stage}</span>
-            <span className={styles.tsBranch}>{ilbranch}</span>
+        {cells.map((c) => (
+          <div className={styles.tsCell} key={c.pillar}>
+            <span className={styles.tsPillar}>{c.pillar}</span>
+            <span className={styles.tsStage}>{c.stage}</span>
+            <span className={styles.tsBranch}>{c.stem}</span>
           </div>
         ))}
       </div>

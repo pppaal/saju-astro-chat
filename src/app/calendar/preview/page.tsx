@@ -572,6 +572,7 @@ export default async function DestinypalPreview() {
     narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
     cautions: dayAdapter.cautions,
+    twelveStageMatrix: dayAdapter.twelveStageMatrix,
   }
 
   // ilgan 한자 (Topbar) — adapter user.ilgan.hanja 그대로.

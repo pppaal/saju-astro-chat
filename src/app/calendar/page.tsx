@@ -473,6 +473,7 @@ export default async function DestinypalPage() {
     narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
     cautions: dayAdapter.cautions,
+    twelveStageMatrix: dayAdapter.twelveStageMatrix,
   }
 
   const ilganHanja = user.ilgan.hanja || '辛'

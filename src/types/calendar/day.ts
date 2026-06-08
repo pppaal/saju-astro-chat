@@ -184,6 +184,8 @@ export interface DestinyDay extends DestinyIljinHeader {
   appliedPatterns: DestinyAppliedPattern[]
   /** Cross activation (응용 격국과 별개 — 사주·점성 페어). */
   crossActivations: DestinyCrossActivation[]
+  /** 본명 4기둥(천간) × 일진 지지 12운성 (기둥별 실제값). */
+  twelveStageMatrix: Array<{ pillar: string; stem: string; branch: string; stage: string }>
 
   // ── 부속 (기존 destinypal data.js) ──
   /** 활성 신살 한글 이름들 — ['천을귀인','도화','역마']. */
