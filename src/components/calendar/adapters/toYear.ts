@@ -288,15 +288,27 @@ function buildMonthlyScores(opts: ToYearOptions): DestinypalYear['monthlyScores'
   if (!opts.cells || opts.cells.length === 0) return []
   const yPrefix = String(opts.year)
   const fallback = opts.monthlyFallbackScore ?? 50
-  return Array.from({ length: 12 }, (_, i) => {
+  // 연간 스파인은 "어느 달에 큰 일이 몰리나" = 월별 최대 salience(현저도=희소×중요).
+  // derivedScore 평균(우호도)은 차트별 중심 쏠림으로 변별이 약해 salience 로 대체.
+  const peaks = Array.from({ length: 12 }, (_, i) => {
     const ym = `${yPrefix}-${String(i + 1).padStart(2, '0')}`
     const monthCells = opts.cells!.filter((c) => c.datetime.slice(0, 7) === ym)
-    if (monthCells.length === 0) {
-      return { month: i + 1, score: fallback }
-    }
-    const sum = monthCells.reduce((a, b) => a + b.derivedScore, 0)
-    return { month: i + 1, score: Math.round(sum / monthCells.length) }
+    const peak = monthCells.length ? Math.max(...monthCells.map((c) => c.salience ?? 0)) : null
+    // 그 달 최고 우호 날짜(여전히 유용 — bestDay 칩).
+    const best = monthCells.length
+      ? monthCells.reduce((a, b) => (b.derivedScore > a.derivedScore ? b : a))
+      : null
+    return { month: i + 1, peak, bestDay: best?.datetime.slice(0, 10) }
   })
+  const valid = peaks.map((p) => p.peak).filter((n): n is number => n != null)
+  const lo = valid.length ? Math.min(...valid) : 0
+  const hi = valid.length ? Math.max(...valid) : 1
+  const norm = (v: number) => (hi > lo ? Math.round(((v - lo) / (hi - lo)) * 100) : 50)
+  return peaks.map((p) => ({
+    month: p.month,
+    score: p.peak == null ? fallback : norm(p.peak),
+    bestDay: p.bestDay,
+  }))
 }
 
 /**

@@ -27,6 +27,7 @@ import { buildCalendar } from '@/lib/calendar-engine'
 import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
+import { derivePersonalScale } from '@/lib/calendar-engine/derivers/personalScale'
 
 import {
   toUser,
@@ -140,6 +141,9 @@ export default async function DestinypalPage() {
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
   const dayCell = cells.find((c) => c.datetime.slice(0, 10) === targetDayIso) ?? cells[0]
   const yearlySignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'yearly')
+
+  // 개인 상대 스케일 — 일/시 good/bad, 월 임계값을 "이 사람 1년 분포" 기준으로.
+  const personalScale = derivePersonalScale(cells)
 
   // ─── 8) adapter 호출 (5 tier prop 자동 어셈블 — preview 와 동일) ──────
   const birthDisplay = formatBirthLine(profile.birthDate!, profile.birthTime!)
@@ -366,6 +370,7 @@ export default async function DestinypalPage() {
     ym: monthPrefix,
     label: `${TARGET_YEAR}년 ${TARGET_MONTH}월`,
     cells: monthCells,
+    thresholds: personalScale.monthThresholds,
   })
   // 이달의 큰 날 — convergence keyDays(윈도우+신뢰도). preview/page 와 동일 wiring.
   const monthKeyDays = deriveConvergence(monthCells, 5, 'ko').keyDays.map((k) => ({
@@ -411,6 +416,7 @@ export default async function DestinypalPage() {
   const dayAdapter = toDay({
     cell: dayCell,
     natal,
+    favorScore: personalScale.favor(dayCell.derivedScore),
   })
   const advanced = natal.saju.analyses
   const statusResult = advanced?.geokguk?.statusResult
