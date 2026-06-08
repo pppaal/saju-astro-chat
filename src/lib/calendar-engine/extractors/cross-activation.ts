@@ -36,20 +36,8 @@ import {
   crossLayerAllowed,
   type CrossMapping,
 } from '../data/saju-astro-mapping'
-
-// 교차 신호 name 한글화 — 행성 영문 키 → 한글(사용자 노출 라벨 일관).
-const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
-}
+// 교차 신호 name 한글화 — 행성 영문 키 → 한글(정본 data/planetNames 재사용).
+import { PLANET_KO } from '../data/planetNames'
 
 /**
  * Saju 신호에서 매칭 키 (십신명 또는 신살명) 를 추출.

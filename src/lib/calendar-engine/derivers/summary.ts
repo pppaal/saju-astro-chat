@@ -1,5 +1,6 @@
 import type { ActiveSignal, SignalLayer } from '../types'
 import { translateSignalLabel } from './signalI18n'
+import { LAYER_WEIGHT } from './constants'
 
 /**
  * 한 셀의 활성 신호 다발에서 상위 N개 사유 텍스트 추출.
@@ -7,15 +8,6 @@ import { translateSignalLabel } from './signalI18n'
  */
 
 type Lang = 'ko' | 'en'
-
-const LAYER_WEIGHT: Record<SignalLayer, number> = {
-  decadal: 1.0,
-  yearly: 0.85,
-  monthly: 0.7,
-  daily: 0.55,
-  hourly: 0.4,
-  instant: 0.5,
-}
 
 // 일별 사유(추천·주의)는 "그날/그달 고유" 신호만 — 일진·월운 + 그날 일/월
 // 점성 트랜짓. 1년 내내 켜진 대운·세운(점성: 외행성=yearly) 배경은 매일 같은

@@ -1,4 +1,5 @@
 import type { SignalLayer, SignalPattern } from '../types'
+import { LAYER_WEIGHT } from './constants'
 
 /**
  * ActiveSignal[] → 종합 점수 (0~100).
@@ -9,15 +10,6 @@ import type { SignalLayer, SignalPattern } from '../types'
  *
  * 공명 보너스: 다수 레이어가 동방향이면 가산.
  */
-
-const LAYER_WEIGHT: Record<SignalLayer, number> = {
-  decadal: 1.0,
-  yearly: 0.85,
-  monthly: 0.7,
-  daily: 0.55,
-  hourly: 0.4,
-  instant: 0.5,
-}
 
 /**
  * 점수 계산에 실제로 쓰이는 최소 필드만 요구 — full ActiveSignal 뿐 아니라

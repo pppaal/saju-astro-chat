@@ -247,18 +247,9 @@ export const SIPSIN_RELATIONS: Record<string, Record<string, string>> = {
 }
 
 // ============================================================
-// 오행 관계
+// 오행 관계 — 정본(saju/constants) 재export. 복사본 두지 않음(정본과 갈라질 수 없음).
 // ============================================================
-export const ELEMENT_RELATIONS: Record<
-  string,
-  { generates: string; controls: string; generatedBy: string; controlledBy: string }
-> = {
-  wood: { generates: 'fire', controls: 'earth', generatedBy: 'water', controlledBy: 'metal' },
-  fire: { generates: 'earth', controls: 'metal', generatedBy: 'wood', controlledBy: 'water' },
-  earth: { generates: 'metal', controls: 'water', generatedBy: 'fire', controlledBy: 'wood' },
-  metal: { generates: 'water', controls: 'wood', generatedBy: 'earth', controlledBy: 'fire' },
-  water: { generates: 'wood', controls: 'fire', generatedBy: 'metal', controlledBy: 'earth' },
-}
+export { ELEMENT_RELATIONS_EN as ELEMENT_RELATIONS } from '@/lib/saju/constants'
 
 // ============================================================
 // 황도 12궁 오행

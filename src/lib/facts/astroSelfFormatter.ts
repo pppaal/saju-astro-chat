@@ -24,21 +24,8 @@ import type { NatalInput } from '@/lib/astrology/foundation/types'
 const DAY_RULER = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'] as const
 // 0=일요일
 import type { AspectType, Chart, ExtraPoint, PlanetBase } from '@/lib/astrology/foundation/types'
-
-const SIGN_KO_TO_EN: Record<string, string> = {
-  양자리: 'Aries',
-  황소자리: 'Taurus',
-  쌍둥이자리: 'Gemini',
-  게자리: 'Cancer',
-  사자자리: 'Leo',
-  처녀자리: 'Virgo',
-  천칭자리: 'Libra',
-  전갈자리: 'Scorpio',
-  사수자리: 'Sagittarius',
-  염소자리: 'Capricorn',
-  물병자리: 'Aquarius',
-  물고기자리: 'Pisces',
-}
+// 별자리 한국어→영문 — 정본(astrology/signLabels) 재사용. 로컬 복사본 제거.
+import { SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
 
 const SIGNS_KO = [
   '양자리',

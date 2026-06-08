@@ -5,26 +5,8 @@
  */
 import type { SajuElement } from '@/lib/saju/elementBridge'
 
-/** 별자리 영문 → 한국어 (단일 소스). */
-export const SIGN_EN_TO_KO: Record<string, string> = {
-  Aries: '양자리',
-  Taurus: '황소자리',
-  Gemini: '쌍둥이자리',
-  Cancer: '게자리',
-  Leo: '사자자리',
-  Virgo: '처녀자리',
-  Libra: '천칭자리',
-  Scorpio: '전갈자리',
-  Sagittarius: '사수자리',
-  Capricorn: '염소자리',
-  Aquarius: '물병자리',
-  Pisces: '물고기자리',
-}
-
-/** 별자리 한국어 → 영문 (위 표의 역). */
-export const SIGN_KO_TO_EN: Record<string, string> = Object.fromEntries(
-  Object.entries(SIGN_EN_TO_KO).map(([en, ko]) => [ko, en])
-)
+// 별자리 EN↔KO — 정본(astrology/signLabels) 재export. 복사본 두지 않음(드리프트 차단).
+export { SIGN_KO as SIGN_EN_TO_KO, SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
 
 /** 행성 영문 → {한국어, 영문}. */
 export const PLANET_LABEL: Record<string, { ko: string; en: string }> = {

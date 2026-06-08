@@ -1,6 +1,7 @@
 import { getCachedTransitChart } from '../ephe-cache'
 import type { Chart, House } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, SignalLayer } from '../types'
+import { PLANET_KO } from '../data/planetNames'
 
 /**
  * 하우스 오버레이 + ASC/MC 컨택 추출기.
@@ -27,14 +28,7 @@ const TRACK_LAYER: Record<string, SignalLayer> = {
 }
 const SLOW = new Set(['Saturn', 'Uranus', 'Neptune', 'Pluto'])
 
-const PLANET_KO: Record<string, string> = {
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
-}
+// PLANET_KO 는 정본(data/planetNames) 재사용 — 위 import. 로컬 복사본 제거.
 const PLANET_EN: Record<string, string> = {
   Mars: 'Mars',
   Jupiter: 'Jupiter',
