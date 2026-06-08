@@ -34,7 +34,6 @@ import type {
   TaggedNarrative,
 } from '@/types/calendar'
 import { Ganji } from '../atoms/Ganji'
-import { ThemeBars } from '../atoms/ThemeBars'
 import styles from './MonthTier.module.css'
 
 // ============================================================================
@@ -445,7 +444,6 @@ function lunarReturnDow(month: DestinyMonth): string | null {
 export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
   const firstDow = firstDowOfMonth(month.ym)
   const calendar = month.calendar ?? []
-  const themes = month.themes ?? []
   const narrative = month.narrative ?? []
   const focusDay = month.focusDay
   const pattern = extractPatternChips(month)
@@ -639,13 +637,6 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
       {/* ===== theme scores + key events 50:50 row ===== */}
       <div className={styles.split} style={{ marginTop: 30 }}>
         <div className={[styles.panel, styles.panelSaju].join(' ')}>
-          <div
-            className={[styles.eyebrow, styles.eyebrowEmber].join(' ')}
-            style={{ marginBottom: 16 }}
-          >
-            테마 점수
-          </div>
-          <ThemeBars items={themes} warm />
           {/* 보강 #3 — 응용패턴 daily count chip strip */}
           {pattern.length > 0 && (
             <div className={styles.patternStrip}>

@@ -166,35 +166,6 @@ function PolChip({ v }: { v: Polarity | number }) {
 }
 
 // ============================================================================
-// ThemeBars (util.jsx 포팅, warm 톤).
-// ============================================================================
-
-function ThemeBars({
-  items,
-  warm = false,
-}: {
-  items: Array<{ key: string; ko: string; v: number }>
-  warm?: boolean
-}) {
-  return (
-    <div className={styles.themebars}>
-      {items.map((t) => (
-        <div className={styles.tbRow} key={t.key}>
-          <span className={styles.tbLbl}>{t.ko}</span>
-          <span className={styles.tbTrack}>
-            <span
-              className={`${styles.tbFill} ${warm ? styles.tbFillWarm : styles.tbFillCool}`}
-              style={{ width: `${Math.max(0, Math.min(100, t.v))}%` }}
-            />
-          </span>
-          <span className={styles.tbVal}>{t.v}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ============================================================================
 // ScoreDial (util.jsx 포팅).
 // ============================================================================
 
@@ -530,7 +501,6 @@ function HourBreakdown({ hours24 }: { hours24: HourSlot[] | undefined }) {
               <span className={styles.hourBranch}>{s.branch}</span>
               <span className={styles.hourLabel}>{hourLabelKo(s.hour)}</span>
               <span className={styles.hourScore}>{s.score}</span>
-              {s.topDomain && <span className={styles.hourDomain}>{s.topDomain}</span>}
             </div>
           )
         })}
@@ -599,12 +569,8 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
         </div>
       </div>
 
-      {/* theme bars + transits 50:50 (day.jsx 원본) */}
-      <div className={styles.split}>
-        <div className={`${styles.panel} ${styles.saju}`}>
-          <div className={`${styles.eyebrow} ${styles.eyebrowEmber}`}>오늘 테마 점수</div>
-          <ThemeBars items={day.themes} warm />
-        </div>
+      {/* 이렇게 읽은 이유 (흐름·교차 신호) — 풀폭 */}
+      <div>
         <div className={`${styles.panel} ${styles.astro}`}>
           {/* 합치기: 날것 트랜짓 덤프 → "이렇게 읽은 이유"(사람 말). 엔진이 만든
               topReasons/cautions 를 우선 노출하고, 원자료(점성 트랜짓)는 접어둔다.
