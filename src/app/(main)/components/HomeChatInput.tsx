@@ -35,9 +35,9 @@ const TYPEWRITER_PROMPTS_EN = [
   'Ask anything',
   'When should I change jobs?',
   'I feel stuck lately',
-  'When will I marry?',
+  'When will I get married?',
   'Are we a good match?',
-  'When will money flow?',
+  'When will money come in?',
 ]
 
 export default function HomeChatInput({
