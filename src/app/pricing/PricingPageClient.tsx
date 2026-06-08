@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useCallback, useState, useEffect } from 'react'
-import { useSession, signIn } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
+import { useRequireLogin } from '@/contexts/LoginModalContext'
 import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
 import { useToast } from '@/components/ui/Toast'
@@ -112,6 +113,9 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   // 재발급시킨다 (이메일을 token.email 에 반영 → 후속 /api/checkout 의
   // session.user.email 가드 통과).
   const { data: session, status: authStatus, update: updateSession } = useSession()
+  // 비로그인 결제 시도 → 바로 구글로 튕기지 않고 로그인 유도 모달(LoginRequiredModal)
+  // 을 띄운다. 앱 다른 유료 액션(타로·상담사)과 동일한 UX.
+  const requireLogin = useRequireLogin()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [loadingCredit, setLoadingCredit] = useState<string | null>(null)
   // 전자상거래법 §17 ②항 5호 — 디지털 콘텐츠 청약철회 제한은 사용자가
@@ -199,8 +203,9 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   // 2) email 있으면 → RefundConsentModal 로 진행.
   function handleBuyCredit(packId: CreditPackType) {
     if (authStatus !== 'authenticated') {
-      // 로그인 후 이 페이지로 돌아와 다시 구매를 누를 수 있게 현재 URL 보존.
-      void signIn('google', { callbackUrl: window.location.href })
+      // 로그인 유도 모달을 띄운다(바로 구글로 튕기지 않음). 로그인 후 이 페이지로
+      // 복귀하도록 현재 URL 을 callbackUrl 로 넘긴다.
+      requireLogin(typeof window !== 'undefined' ? window.location.href : undefined)
       return
     }
     const currentEmail = session?.user?.email?.trim()
