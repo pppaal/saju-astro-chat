@@ -14,7 +14,7 @@
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
-import { toGanji, type Ganji, SIGN_KO, PLANET_KO } from './shared'
+import { toGanji, type Ganji, SIGN_KO, PLANET_KO, computeSewoonGanji } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { AstroPlanetName } from '@/lib/astrology/interpretations'
@@ -173,22 +173,6 @@ export interface ToYearOptions {
   cells?: CalendarCell[]
   /** 미지정 시 평균 score 계산 — fallback 빈 슬롯 점수. */
   monthlyFallbackScore?: number
-}
-
-/**
- * 세운 ganji 계산 — birth dayMaster 와 birth year ganji 베이스 + 연도 차이.
- * 정확한 세운(立春 경계)는 데이터 측에서 따로 들어와야 함; 여기선 보정 없는 60갑자 shift.
- *
- * birthYearStem/Branch 가 없으면 fallback: target year 의 60갑자(1984=甲子 기준)로 계산.
- */
-function computeSewoonGanji(year: number): { stem: string; branch: string } {
-  // 1984년 = 甲子 (인덱스 0). (year - 1984) 만큼 shift.
-  const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
-  const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
-  const offset = year - 1984
-  const sIdx = ((offset % 10) + 10) % 10
-  const bIdx = ((offset % 12) + 12) % 12
-  return { stem: STEMS[sIdx], branch: BRANCHES[bIdx] }
 }
 
 export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear {

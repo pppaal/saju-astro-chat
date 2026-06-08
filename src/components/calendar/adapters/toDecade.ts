@@ -19,7 +19,10 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ActiveSignal } from '@/lib/calendar-engine/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { getStemElement, getBranchElement } from '@/lib/saju/stemBranchUtils'
-import { toGanji, type Ganji, geokgukStatusLine } from './shared'
+import { CHUNG, YUKHAP } from '@/lib/saju/constants'
+import { getTwelveStage } from '@/lib/saju/shinsal'
+import { getTwelveStageInterpretation } from '@/lib/saju/interpretations'
+import { toGanji, type Ganji, geokgukStatusLine, computeSewoonGanji } from './shared'
 
 export interface DestinypalDecadePillar {
   cheongan: { hanja: string; sibsin: string; el: string; note?: string }
@@ -177,23 +180,63 @@ const BRANCH_KO_TO_HAN: Record<string, string> = Object.fromEntries(
 )
 
 // ── 60갑자 ↔ index helpers ──────────────────────────────────────────────
-const STEMS_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
-const BRANCHES_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+const BRANCH_POS_KO: Record<string, string> = { year: '연', month: '월', day: '일', time: '시' }
 
-function stemIdx(s: string): number {
-  const han = STEM_KO_TO_HAN[s] ?? s
-  return Math.max(0, STEMS_ORDER.indexOf(han))
-}
-function branchIdx(b: string): number {
-  const han = BRANCH_KO_TO_HAN[b] ?? b
-  return Math.max(0, BRANCHES_ORDER.indexOf(han))
+/**
+ * 대운 지지 × 본명 4지지 충·합 — 이미 있는 충/합 정본표(CHUNG/YUKHAP)를 그대로
+ * 룩업. 새 계산 없음. 일/시지 우선으로 가장 가까운 관계 하나를 한 줄로.
+ * 충·합이 없으면 "뚜렷한 충·합 없음" 중립 라인(플레이스홀더 대신).
+ */
+function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): DestinypalDecadeRelation {
+  const pillars = (natal.saju?.pillars ?? {}) as unknown as Record<
+    string,
+    { earthlyBranch?: { name?: string } }
+  >
+  const ko = (b: string) => BRANCH_HAN_TO_KO[b] ?? b
+  const db = decadeBranch
+  const hits: DestinypalDecadeRelation[] = []
+  for (const key of ['day', 'time', 'month', 'year']) {
+    const nb = pillars[key]?.earthlyBranch?.name
+    if (!nb) continue
+    const pos = BRANCH_POS_KO[key] ?? key
+    if (CHUNG[db] === nb) {
+      hits.push({
+        title: `${nb}${db}충`,
+        body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}충 — 이 영역에 변동·이동 압력이 실리는 결이에요.`,
+      })
+    } else if (YUKHAP[db] === nb) {
+      hits.push({
+        title: `${nb}${db}육합`,
+        body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}육합 — 환경이 손발을 맞춰주는 결이에요.`,
+      })
+    }
+  }
+  if (hits.length === 0) {
+    return {
+      title: '—',
+      body: `본명 지지와 대운 ${db}(${ko(db)}) 사이 뚜렷한 충·합은 없어요 — 무난히 흐르는 결.`,
+    }
+  }
+  // 가장 가까운(일/시지) 관계를 title 로, 나머지는 본문에 이어 붙임.
+  return {
+    title: hits[0].title,
+    body: hits.map((h) => h.body).join(' '),
+  }
 }
 
-/** 60갑자 N년 이동 → { stem, branch } (한자). 입력은 한글 또는 한자. */
-function shiftGanji(stem: string, branch: string, years: number): { stem: string; branch: string } {
-  const s = (stemIdx(stem) + years) % 10
-  const b = (branchIdx(branch) + years) % 12
-  return { stem: STEMS_ORDER[(s + 10) % 10], branch: BRANCHES_ORDER[(b + 12) % 12] }
+/**
+ * 대운 지지의 일간 기준 12운성 — 이미 있는 getTwelveStage + 해석사전 룩업. 새 계산 없음.
+ */
+function buildDecadeUnseong(dm: string, decadeBranch: string): DestinypalDecadeRelation {
+  const stage = getTwelveStage(dm, decadeBranch)
+  const interp = getTwelveStageInterpretation(stage as never)
+  const ko = BRANCH_HAN_TO_KO[decadeBranch] ?? decadeBranch
+  return {
+    title: stage,
+    body: interp?.meaning
+      ? `대운 지지 ${decadeBranch}(${ko})는 일간 기준 12운성 ${stage} — ${interp.meaning}`
+      : `대운 지지 ${decadeBranch}(${ko})는 일간 기준 12운성 ${stage}예요.`,
+  }
 }
 
 export interface ToDecadeOptions {
@@ -252,28 +295,27 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     headline: `${current.stem}${current.branch} 대운 — ${sibsinStem} 흐름의 10년.`,
   }
 
-  // years[10]
+  // years[10] — 각 해의 *세운*(연도 고유 60갑자). 대운 간지를 굴리면 안 됨
+  // (세운은 대운과 무관) → computeSewoonGanji 로 연도별 진짜 세운을 쓴다.
   const yearsArr: DestinypalDecadeYear[] = []
   for (let i = 0; i < 10; i++) {
     const y = current.startYear + i
-    const shifted = shiftGanji(current.stem, current.branch, i)
+    const sr = computeSewoonGanji(y)
     yearsArr.push({
       year: y,
-      gz: toGanji(shifted.stem, shifted.branch),
+      gz: toGanji(sr.stem, sr.branch),
       score: opts.yearScores?.[i] ?? 50,
       now: y === currentYear,
     })
   }
 
-  // sewoonNow
+  // sewoonNow — focusYear 의 진짜 세운 (YearTier 와 동일 계산, 단일 소스).
   let sewoonNow: DestinypalDecade['sewoonNow']
   const focusYear = opts.focusYear ?? currentYear
   const yearItem = yearsArr.find((y) => y.year === focusYear)
   if (yearItem) {
-    const offset = focusYear - current.startYear
-    const shifted = shiftGanji(current.stem, current.branch, offset)
-    const ss = safeSibsin(dm, shifted.stem)
-    sewoonNow = { gz: yearItem.gz, sibsin: ss }
+    const sr = computeSewoonGanji(focusYear)
+    sewoonNow = { gz: yearItem.gz, sibsin: safeSibsin(dm, sr.stem) }
   }
 
   // cross-activation 풀에서 decadal layer 만
@@ -334,8 +376,8 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     sewoonNow,
     years: yearsArr,
     body: opts.body ?? [theme.headline],
-    hapchung: opts.hapchung,
-    unseong: opts.unseong,
+    hapchung: opts.hapchung ?? buildDecadeHapchung(natal, current.branch),
+    unseong: opts.unseong ?? buildDecadeUnseong(dm, current.branch),
     astro: opts.astroMarks ?? [],
     narrative: opts.narrative ?? [],
     focusYear,
