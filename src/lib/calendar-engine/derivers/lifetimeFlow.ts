@@ -1002,11 +1002,31 @@ export function deriveLifetimeFlow(
     const primary =
       bandDaeuns.find((x) => x.startAge <= mid && x.startAge + 10 > mid) ?? bandDaeuns[0]
     if (!primary) continue
-    const sibsinName = getSibsinKo(dm, primary.stem) // 정관/편관/정재/편재/식신/상관/비견/겁재/정인/편인
+    // 초년(0~)은 대운 시작 전 — 근묘화실에서 초년은 년주(부모·뿌리)가 주관한다.
+    // 대운 십신으로 읽으면 어긋난다(재다신약인데 초년이 좋게 뜨는 등). 그래서
+    // 초년 본문·톤은 *년주 천간* 으로 본다. (대운 부가사실은 아래 그대로 표시 —
+    // 첫 대운이 초년 후반에 시작하므로.)
+    const isChildhood = lo === 0
+    const lensStem = isChildhood
+      ? (natal.saju.pillars?.year?.heavenlyStem?.name ?? primary.stem)
+      : primary.stem
+    const sibsinName = getSibsinKo(dm, lensStem) // 정관/편관/정재/편재/식신/상관/비견/겁재/정인/편인
     const cat = SIBSIN_CAT[sibsinName] as Cat | undefined
     const body = cat ? BAND_CAT[label]?.[cat] : undefined
     if (!cat || !body) continue
-    const fav = favorOf(natal.saju.strength, cat, getStemElement(primary.stem), natal.saju.yongsin)
+    const fav = favorOf(natal.saju.strength, cat, getStemElement(lensStem), natal.saju.yongsin)
+    // 초년 톤은 억부(신강약)로 — 신약은 비겁·인성이 받침(good), 재성·관성·식상은
+    // 부담(hard). 재다신약의 초년 재성 부담이 'mid' 로 뭉개지던 것 교정.
+    const toneFav =
+      isChildhood && natal.saju.strength === 'weak'
+        ? cat === '비겁' || cat === '인성'
+          ? 'good'
+          : 'hard'
+        : isChildhood && natal.saju.strength === 'strong'
+          ? cat === '식상' || cat === '재성' || cat === '관성'
+            ? 'good'
+            : 'hard'
+          : fav
 
     // 사실 1: 이 단계에 걸친 대운 모두 (간지 + 한글 음/로마자 + 정확 연도 범위).
     const MAX_DAEUNS = 3
@@ -1158,10 +1178,15 @@ export function deriveLifetimeFlow(
       // stage 계산 실패 시 silently skip
     }
 
-    // 본문 — 십신(정확명) + cat + body + 톤.
+    // 본문 — 십신(정확명) + cat + body + 톤. 초년은 "년주(부모·뿌리) 기준" 명시.
+    const childPrefix = isChildhood
+      ? isEn
+        ? 'From the year pillar (parents·roots) — '
+        : '초년은 년주(부모·뿌리) 기준 — '
+      : ''
     const text = isEn
-      ? `${sibsinName} (${CAT_EN[cat]}) flow — ${body}. ${nextToneText(fav)}`
-      : `${sibsinName}(${cat}) 흐름 — ${body}. ${nextToneText(fav)}`
+      ? `${childPrefix}${sibsinName} (${CAT_EN[cat]}) flow — ${body}. ${nextToneText(toneFav)}`
+      : `${childPrefix}${sibsinName}(${cat}) 흐름 — ${body}. ${nextToneText(toneFav)}`
 
     const ageRange = isEn
       ? `age ${lo}-${hi} · ${birthYear + lo}-${birthYear + hi}`
