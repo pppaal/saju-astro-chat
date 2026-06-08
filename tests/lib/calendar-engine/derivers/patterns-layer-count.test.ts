@@ -4,15 +4,22 @@ import type { ActiveSignal } from '@/lib/calendar-engine/types'
 
 // 다층 정렬 카운트(스텝2) — 5층 정렬 패턴이 *몇 개 층이 같은 방향인지* meta 로 노출.
 
-const W = { start: '2030-01-01T00:00:00Z', peak: '2030-01-02T00:00:00Z', end: '2030-01-03T00:00:00Z' }
+const W = {
+  start: '2030-01-01T00:00:00Z',
+  peak: '2030-01-02T00:00:00Z',
+  end: '2030-01-03T00:00:00Z',
+}
 
-function sig(source: ActiveSignal['source'], layer: ActiveSignal['layer'], polarity: number): ActiveSignal {
+function sig(
+  source: ActiveSignal['source'],
+  layer: ActiveSignal['layer'],
+  polarity: number
+): ActiveSignal {
   return {
     id: `${source}.${layer}.x`,
     source,
     kind: 'pillar-sibsin',
     name: 'x',
-    themes: ['career'],
     polarity: polarity as ActiveSignal['polarity'],
     layer,
     active: W,

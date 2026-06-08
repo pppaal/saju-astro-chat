@@ -80,7 +80,6 @@ const astroLifecycleExtractor: SignalExtractor = {
         korean: entry.meaning ?? entry.label,
         english:
           enByEvent.get(entry.event)?.meaning ?? enByEvent.get(entry.event)?.label ?? entry.event,
-        themes: [],
         polarity: EVENT_POLARITY[entry.event] ?? 0,
         layer: 'decadal',
         active: {

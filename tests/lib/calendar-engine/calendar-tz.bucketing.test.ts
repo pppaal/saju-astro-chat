@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { __bucketingInternals } from '@/lib/calendar-engine'
-import type {
-  ActiveSignal,
-  CalendarRange,
-  CalendarBuildOptions,
-} from '@/lib/calendar-engine/types'
+import type { ActiveSignal, CalendarRange, CalendarBuildOptions } from '@/lib/calendar-engine/types'
 
 /**
  * STEP-4 timezone day-bucketing regression guard.
@@ -42,7 +38,6 @@ function transitLikeSignal(id: string, start: string, peak: string, end: string)
     source: 'astro',
     kind: 'transit',
     name: 'Saturn □ Sun',
-    themes: [],
     polarity: -2,
     layer: 'yearly',
     active: { start, peak, end },
@@ -175,11 +170,7 @@ describe('calendar-tz: hour granularity expands a date-only single-day range', (
     const range: CalendarRange = { start: DAY, end: DAY, granularity: 'hour' }
     const cells = groupIntoCells([sijin], range, OPTS)
     const hit = cells.filter((c) => c.signals.some((s) => s.id === 'sijin')).map((c) => c.datetime)
-    expect(hit).toEqual([
-      `${DAY}T01:00:00.000Z`,
-      `${DAY}T02:00:00.000Z`,
-      `${DAY}T03:00:00.000Z`,
-    ])
+    expect(hit).toEqual([`${DAY}T01:00:00.000Z`, `${DAY}T02:00:00.000Z`, `${DAY}T03:00:00.000Z`])
   })
 
   it('explicit datetime end (production style) is unchanged — still 24 cells', () => {

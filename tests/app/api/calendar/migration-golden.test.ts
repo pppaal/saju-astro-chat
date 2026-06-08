@@ -83,25 +83,20 @@ const PROFILES: Profile[] = [
 function extractBackbone(payload: any) {
   const allDates: any[] = Array.isArray(payload.allDates) ? payload.allDates : []
 
-  // 날짜별 점수/등급 백본 (정렬된 키)
-  const dates: Record<string, [number, number, number, number, string]> = {}
+  // 날짜별 점수/등급 백본 (정렬된 키).
+  // 5버킷 테마 축 제거로 categories(구 튜플 5번째)는 더 이상 캡처하지 않는다 —
+  // grade/displayScore/score/displayGrade(점수 백본)는 deriveScore 기반이라 불변.
+  const dates: Record<string, [number, number, number, number]> = {}
   for (const d of allDates) {
     const k = String(d.date).slice(0, 10)
-    dates[k] = [
-      d.grade ?? -1,
-      d.displayScore ?? -1,
-      d.score ?? -1,
-      d.displayGrade ?? -1,
-      (Array.isArray(d.categories) ? [...d.categories].sort() : []).join(','),
-    ]
+    dates[k] = [d.grade ?? -1, d.displayScore ?? -1, d.score ?? -1, d.displayGrade ?? -1]
   }
 
   // augment 커버리지 — 몇 개 날짜에 v2 필드가 붙었나 (회귀 시 0으로 떨어짐)
   const coverage = {
-    themeScores: allDates.filter((d) => d.themeScores && Object.keys(d.themeScores).length > 0)
-      .length,
-    engineSignals: allDates.filter((d) => Array.isArray(d.engineSignals) && d.engineSignals.length > 0)
-      .length,
+    engineSignals: allDates.filter(
+      (d) => Array.isArray(d.engineSignals) && d.engineSignals.length > 0
+    ).length,
     matchedPatterns: allDates.filter(
       (d) => Array.isArray(d.matchedPatterns) && d.matchedPatterns.length > 0
     ).length,
@@ -113,8 +108,6 @@ function extractBackbone(payload: any) {
   const monthly = mi
     ? {
         hasNarrative: typeof mi.narrative === 'string' && mi.narrative.length > 0,
-        themeScoreKeys: mi.themeScores ? Object.keys(mi.themeScores).sort() : [],
-        themeBreakdownKeys: mi.themeBreakdown ? Object.keys(mi.themeBreakdown).sort() : [],
         convergenceKeyDays: Array.isArray(mi.convergence?.keyDays)
           ? mi.convergence.keyDays.length
           : 0,
@@ -178,28 +171,24 @@ describe('calendar migration baseline golden (단계 0)', () => {
     else process.env.PUBLIC_API_TOKEN = originalToken
   })
 
-  it(
-    'matches committed backbone snapshot for all profiles',
-    async () => {
-      const actual: Record<string, unknown> = {}
-      for (const p of PROFILES) {
-        actual[p.key] = await fetchBackbone(p)
-      }
+  it('matches committed backbone snapshot for all profiles', async () => {
+    const actual: Record<string, unknown> = {}
+    for (const p of PROFILES) {
+      actual[p.key] = await fetchBackbone(p)
+    }
 
-      if (UPDATE || !existsSync(GOLDEN_PATH)) {
-        mkdirSync(dirname(GOLDEN_PATH), { recursive: true })
-        writeFileSync(GOLDEN_PATH, stableStringify(actual) + '\n', 'utf8')
-        // 최초 생성/갱신 시엔 통과 — 다음 런부터 비교.
-        expect(existsSync(GOLDEN_PATH)).toBe(true)
-        return
-      }
+    if (UPDATE || !existsSync(GOLDEN_PATH)) {
+      mkdirSync(dirname(GOLDEN_PATH), { recursive: true })
+      writeFileSync(GOLDEN_PATH, stableStringify(actual) + '\n', 'utf8')
+      // 최초 생성/갱신 시엔 통과 — 다음 런부터 비교.
+      expect(existsSync(GOLDEN_PATH)).toBe(true)
+      return
+    }
 
-      const expected = JSON.parse(readFileSync(GOLDEN_PATH, 'utf8'))
-      // 프로필별로 비교해 diff 가독성 확보.
-      for (const p of PROFILES) {
-        expect(actual[p.key], `backbone drift for ${p.key}`).toEqual(expected[p.key])
-      }
-    },
-    120000
-  )
+    const expected = JSON.parse(readFileSync(GOLDEN_PATH, 'utf8'))
+    // 프로필별로 비교해 diff 가독성 확보.
+    for (const p of PROFILES) {
+      expect(actual[p.key], `backbone drift for ${p.key}`).toEqual(expected[p.key])
+    }
+  }, 120000)
 })

@@ -102,7 +102,6 @@ const astroSolarArcExtractor: SignalExtractor = {
                 'en',
                 `Solar Arc ${hit.arcPlanet}`
               ) || `Solar Arc ${hit.arcPlanet} ${hit.aspect} natal ${hit.natalPlanet}`,
-            themes: [],
             polarity,
             layer: 'decadal',
             active: {

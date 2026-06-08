@@ -14,14 +14,12 @@ function sig(p: {
   polarity: number
   weight: number
   active: { start: string; peak: string; end: string }
-  themes?: ActiveSignal['themes']
 }): ActiveSignal {
   return {
     id: `${p.source}.${String(p.kind)}.x`,
     source: p.source,
     kind: p.kind,
     name: 'test',
-    themes: p.themes ?? ['career'],
     polarity: p.polarity as ActiveSignal['polarity'],
     layer: 'daily',
     active: p.active,
@@ -35,7 +33,7 @@ function cell(datetime: string, signals: ActiveSignal[]): CalendarCell {
     datetime,
     signals,
     derivedScore: 50,
-    themeScores: {},
+    salience: 0,
     matchedPatterns: [],
     topReasons: [],
     cautions: [],
@@ -59,7 +57,11 @@ describe('deriveConvergence — window + confidence (타이밍 표면화)', () =
       weight: 0.6,
       active: win('2026-07-12T00:00:00Z', '2026-07-14T00:00:00Z', '2026-07-18T00:00:00Z'),
     })
-    const { keyDays } = deriveConvergence([cell('2026-07-15T00:00:00Z', [astroHeavy, sajuHeavy])], 5, 'ko')
+    const { keyDays } = deriveConvergence(
+      [cell('2026-07-15T00:00:00Z', [astroHeavy, sajuHeavy])],
+      5,
+      'ko'
+    )
 
     expect(keyDays.length).toBe(1)
     const d = keyDays[0]

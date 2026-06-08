@@ -1,10 +1,8 @@
 import type { ActiveSignal, CalendarCell, SignalPattern } from '../types'
 import type { NatalContext } from '../context/types'
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { Interpretation, InterpretationRule, RuleConditions, TemplateVars } from './types'
 import { RULES } from './rules'
 import { getGanjiTransitNarrative } from '../data/ganjiTransitNarrative'
-import { deriveThemeBreakdown } from '../derivers/themeBreakdown'
 import { deriveKeyEvents } from '../derivers/keyEvents'
 import { deriveConvergence } from '../derivers/convergence'
 import { deriveLifetimePivots } from '../derivers/lifetimePivots'
@@ -144,7 +142,6 @@ export function buildInterpretation(args: {
   //  여러 개 매칭 시 다 추가되어 narrative 풍부도 ↑)
   const sectionCount = new Map<string, number>()
   const usedRuleIds = new Set<string>()
-  const domainPicks = new Map<string, typeof matched>()
   const picked: typeof matched = []
 
   // 시간 cycle 섹션 cap. 대운/세운은 2줄(둘째가 다른 테마 — 귀인 등 — 으로 깊이↑).
@@ -207,7 +204,7 @@ export function buildInterpretation(args: {
   // 신호·나쁜 신호가 공존하는 사주). 그래서 그 섹션 후보들의 우호(polarity≥1) vs
   // 주의(≤-1) *강도* 를 비교해 **지배적인 한 톤만** 허용한다. 중립(0)은 보강용으로
   // 통과(귀인·신살 등 둘째 줄). 한쪽만 있으면 필터 없음(정상). 동률이면 보수적으로
-  // 주의 우선. (도메인 섹션은 별도 MIXED_LEAD 로직이 이미 처리 — 여긴 비-도메인.)
+  // 주의 우선.
   const TONE_SECTIONS = new Set(['seun', 'wolun', 'daeun'])
   const toneAllowSign = new Map<string, 1 | -1>()
   for (const section of TONE_SECTIONS) {
@@ -223,106 +220,24 @@ export function buildInterpretation(args: {
 
   for (const m of matched) {
     if (usedRuleIds.has(m.rule.id)) continue
-    const domain = SECTION_TO_DOMAIN[m.rule.section]
-    if (domain && DOMAIN_TITLES[domain]) {
-      // 도메인은 후보를 다 모으고 (cap 없이) 나중에 신호 강도 기준으로
-      // 추려냄 — 고정 우선순위만으로 자르면 항상 같은 룰만 표출되던 문제
-      // 해소. 사주마다 신호가 강한 룰이 달라 조합이 풍부해짐.
-      const list = domainPicks.get(domain) ?? []
-      list.push(m)
-      domainPicks.set(domain, list)
-      usedRuleIds.add(m.rule.id)
-    } else {
-      // 회전 섹션이면 이번 달 회전 대상(앵커 + 회전 픽)만 통과.
-      const allow = rotatedAllow.get(m.rule.section)
-      if (allow && !allow.has(m.rule.id)) continue
-      const cap = SECTION_CAP[m.rule.section] ?? 1
-      const cur = sectionCount.get(m.rule.section) ?? 0
-      if (cur >= cap) continue
-      // 톤 섹션: 지배 톤과 반대 부호면 제외 (모순 방지). 중립은 통과.
-      const allowSign = toneAllowSign.get(m.rule.section)
-      if (allowSign != null) {
-        const sign = m.polarity >= 1 ? 1 : m.polarity <= -1 ? -1 : 0
-        if (sign !== 0 && sign !== allowSign) continue
-      }
-      picked.push(m)
-      sectionCount.set(m.rule.section, cur + 1)
-      usedRuleIds.add(m.rule.id)
+    // 회전 섹션이면 이번 달 회전 대상(앵커 + 회전 픽)만 통과.
+    const allow = rotatedAllow.get(m.rule.section)
+    if (allow && !allow.has(m.rule.id)) continue
+    const cap = SECTION_CAP[m.rule.section] ?? 1
+    const cur = sectionCount.get(m.rule.section) ?? 0
+    if (cur >= cap) continue
+    // 톤 섹션: 지배 톤과 반대 부호면 제외 (모순 방지). 중립은 통과.
+    const allowSign = toneAllowSign.get(m.rule.section)
+    if (allowSign != null) {
+      const sign = m.polarity >= 1 ? 1 : m.polarity <= -1 ? -1 : 0
+      if (sign !== 0 && sign !== allowSign) continue
     }
+    picked.push(m)
+    sectionCount.set(m.rule.section, cur + 1)
+    usedRuleIds.add(m.rule.id)
   }
 
-  // 도메인 묶음을 단일 가상 entry로 합쳐 picked에 추가
-  // — 도메인별 cells에서 top/bottom dates 추출 → narrative 끝에 추가
-  for (const domain of DOMAIN_ORDER) {
-    const allCandidates = domainPicks.get(domain)
-    if (!allCandidates || allCandidates.length === 0) continue
-    // 후보가 MAX 보다 많으면 (그 사주 신호 강도 우선 + priority 보조) 로
-    // 추려냄. 신호가 강한 룰이 먼저 표출 → 사주마다 조합이 확연히 달라짐.
-    // 고정 priority 가 1차였을 땐 항상 같은 룰만 떴음 (변별 약함). 강도를
-    // 1차로 올려 chart-driven 변별 확보. 우호/주의 한쪽 쏠림은 긍정 1개·
-    // 주의 1개 보장으로 방지.
-    const list = (() => {
-      if (allCandidates.length <= MAX_RULES_PER_DOMAIN) return allCandidates
-      const ranked = [...allCandidates].sort((a, b) => {
-        if (b.strength !== a.strength) return b.strength - a.strength
-        return b.rule.priority - a.rule.priority
-      })
-      const pos = ranked.filter((m) => m.polarity >= 1)
-      const neg = ranked.filter((m) => m.polarity <= -1)
-      const picks: typeof ranked = []
-      // 균형 확보: 긍정 1 + 주의 1 먼저 (있으면), 나머지는 ranked 순서로 채움
-      if (pos[0]) picks.push(pos[0])
-      if (neg[0]) picks.push(neg[0])
-      for (const m of ranked) {
-        if (picks.length >= MAX_RULES_PER_DOMAIN) break
-        if (!picks.includes(m)) picks.push(m)
-      }
-      // narrative 순서 안정화 — 원래 ranked(priority/strength) 순서 유지
-      return ranked.filter((m) => picks.includes(m))
-    })()
-    const themes = DOMAIN_THEMES[domain] ?? []
-    const topDates = pickDomainExtremeDates(cells, themes, 3, 'high')
-    const lowDates = pickDomainExtremeDates(cells, themes, 2, 'low')
-    // 도메인 안에서 우호(polarity > 0)와 주의(polarity < 0) 둘 다 있으면
-    // 통합 헤더 한 줄 prepend — 사용자가 "그래서 좋다는 거야 나쁘다는
-    // 거야?" 헷갈리는 케이스 정리. polarity ≥ 1 → 우호, ≤ -1 → 주의.
-    const hasPositive = list.some((m) => m.polarity >= 1)
-    const hasCaution = list.some((m) => m.polarity <= -1)
-    // 우호 먼저, 주의 나중 순서로 sort (priority desc 내에서)
-    const sortedList = [...list].sort((a, b) => {
-      const pa = a.polarity >= 1 ? 0 : a.polarity <= -1 ? 1 : 0.5
-      const pb = b.polarity >= 1 ? 0 : b.polarity <= -1 ? 1 : 0.5
-      return pa - pb
-    })
-    const templates = sortedList.map((m) => fillTemplate(pickRuleTemplate(m.rule, lang), m.vars))
-    if (hasPositive && hasCaution) {
-      // 도메인마다 다른 "모순" 리드 — 4개 섹션이 같은 문장으로 시작하면
-      // 사용자가 스킵함. 각 영역의 우호↔주의 긴장을 한 줄로 압축.
-      const lead = MIXED_LEAD[domain]?.[lang] ?? MIXED_LEAD._default[lang]
-      templates.unshift(lead)
-    }
-    const mergedText = mergeDomainTemplates(templates, topDates, lowDates, domain, lang)
-    const merged: (typeof matched)[number] = {
-      rule: {
-        ...list[0].rule,
-        id: `domain.${domain}`,
-        section: `domain-${domain}`,
-        priority: list[0].rule.priority,
-        // 병합된 텍스트는 이미 lang 에 맞춰 합성됨 → template 한 쪽에만 박고
-        // templateEn 은 명시적으로 비워 둠. 그렇지 않으면 list[0].rule 의
-        // 원본 templateEn 이 spread 로 살아남아 pickRuleTemplate('en') 가
-        // 병합된 텍스트 대신 첫 룰의 원본 EN 만 반환 (Phase 2 EN 머지 버그).
-        template: mergedText,
-        templateEn: undefined,
-      },
-      vars: list[0].vars,
-      polarity: list[0].polarity,
-      strength: list[0].strength,
-    }
-    picked.push(merged)
-  }
-
-  // section별 정렬 (UI 순서) — context → trigger → 5 domain
+  // section별 정렬 (UI 순서) — context → trigger
   const SECTION_ORDER = [
     'today',
     'daeun',
@@ -334,11 +249,6 @@ export function buildInterpretation(args: {
     'pattern',
     'shinsal',
     'timing',
-    'domain-money',
-    'domain-work',
-    'domain-relations',
-    'domain-body',
-    'domain-expression',
   ]
   picked.sort((a, b) => {
     const ai = SECTION_ORDER.indexOf(a.rule.section)
@@ -451,40 +361,6 @@ export function buildInterpretation(args: {
 
   const narrative = sections.map((s) => `**[${s.title}]**\n${s.text}`).join('\n\n')
 
-  // 테마 점수 — 신호 기반(셀별 themeScores)의 월 평균.
-  //
-  // Why-card(themeBreakdown)와 *같은* polarity×weight×layerWeight 모델이라
-  // 숫자와 근거 카드의 방향이 항상 일치한다. 또 cell[0](1일) 한 칸이 아니라
-  // 그 달 전체를 평균해 day-1 편향도 없앤다.
-  //
-  // (이전 모델 'cell[0] 신호평균 + 표출 룰 의도 ×30' 은, 표출된 룰이 신호
-  //  전체와 반대 방향일 때 점수(예: 건강 60)와 근거카드(예: −47)가 모순되는
-  //  문제가 있었음 → opt1: 신호 기반으로 통일.)
-  const THEME_SCORE_KEYS = ['love', 'money', 'career', 'health', 'growth'] as const
-  const themeScores: NonNullable<Interpretation['themeScores']> = {}
-  for (const key of THEME_SCORE_KEYS) {
-    let sum = 0
-    let n = 0
-    for (const c of cells) {
-      const v = c.themeScores?.[key]
-      if (typeof v === 'number') {
-        sum += v
-        n += 1
-      }
-    }
-    if (n > 0) themeScores[key] = Math.round(sum / n)
-  }
-
-  // 테마 순위 — 바 동률 시 UI 가 상대 표시("가장 활발 > … > 약한 축")에 쓰도록.
-  const themeRanking = (THEME_SCORE_KEYS as readonly (keyof typeof themeScores)[])
-    .filter((k) => typeof themeScores[k] === 'number')
-    .map((k) => ({ theme: k, score: themeScores[k] as number }))
-    .sort((a, b) => b.score - a.score)
-    .map((o, i) => ({ ...o, rank: i + 1 }))
-
-  // Why-card — 테마별 점수 인과 추적 (그 점수에 기여한 신호 top N).
-  const themeBreakdown = deriveThemeBreakdown(allSignals)
-
   // 키 이벤트 3 — 월간일 때만 (일별 셀에서 베스트/강한구간/피할날 추출).
   const keyEvents = scope === 'monthly' ? deriveKeyEvents(cells) : undefined
   // 수렴 큰 날 — 무거운 이벤트가 점성·사주 겹치는 날 (keyEvents 와 별개, additive).
@@ -492,13 +368,9 @@ export function buildInterpretation(args: {
   // 인생 분기점 — 점성 라이프사이클 × 대운 전환 (natal 스케일, 월과 무관하나
   // monthly 카드에 함께 노출). 순수 산술이라 매월 재계산해도 저렴.
   const lifetimePivots =
-    scope === 'monthly'
-      ? deriveLifetimePivots(natal, lang, astroMilestoneOverrides)
-      : undefined
+    scope === 'monthly' ? deriveLifetimePivots(natal, lang, astroMilestoneOverrides) : undefined
   const lifetimeFlow =
-    scope === 'monthly'
-      ? deriveLifetimeFlow(natal, lang, astroMilestoneOverrides)
-      : undefined
+    scope === 'monthly' ? deriveLifetimeFlow(natal, lang, astroMilestoneOverrides) : undefined
   // 올해 점성 한 줄 (연간 프로펙션 + 순탄/고비) — seun(사주)에 점성 짝을 맞춰 교차.
   // 프로펙션(영역) 뒤에 본명 aspect 우호/시험(deriveAstroTone)을 이어 붙여 favorability 까지.
   const yearAstro = (() => {
@@ -511,16 +383,13 @@ export function buildInterpretation(args: {
     return fav ? `${base} ${fav}` : base
   })()
 
-  // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전월 themeScore 를 같은
-  // 모델로 얻기 위해 재귀 호출(단, prevCells 미전달 → 무한재귀 없음).
+  // 지난달 대비 — 월간 + prevCells 가 주어졌을 때만. 전체 흐름 점수(avg derivedScore)
+  // delta 만 비교(테마 5버킷 축 제거).
   let monthComparison
   if (scope === 'monthly' && prevCells && prevCells.length > 0) {
-    const prev = buildInterpretation({ natal, cells: prevCells, scope: 'monthly', lang })
     monthComparison = deriveMonthComparison({
       currCells: cells,
       prevCells,
-      currScores: themeScores,
-      prevScores: prev.themeScores,
     })
   }
 
@@ -529,9 +398,6 @@ export function buildInterpretation(args: {
     matchedRuleIds: picked.map((m) => m.rule.id),
     allMatchedRuleIds: debug ? matched.map((m) => m.rule.id) : undefined,
     sections,
-    themeScores,
-    themeRanking,
-    themeBreakdown,
     keyEvents,
     convergence,
     lifetimePivots,
@@ -1068,17 +934,30 @@ function lastCharHasJong(s: string): { jong: boolean; rieul: boolean } {
 }
 type JosaType = 'obj' | 'subj' | 'top' | 'and' | 'dir'
 const JOSA_VAR: Record<string, JosaType> = {
-  을: 'obj', 를: 'obj', 이: 'subj', 가: 'subj', 은: 'top', 는: 'top',
-  과: 'and', 와: 'and', 으로: 'dir', 로: 'dir',
+  을: 'obj',
+  를: 'obj',
+  이: 'subj',
+  가: 'subj',
+  은: 'top',
+  는: 'top',
+  과: 'and',
+  와: 'and',
+  으로: 'dir',
+  로: 'dir',
 }
 function josaFor(type: JosaType, word: string): string {
   const { jong, rieul } = lastCharHasJong(word)
   switch (type) {
-    case 'obj': return jong ? '을' : '를'
-    case 'subj': return jong ? '이' : '가'
-    case 'top': return jong ? '은' : '는'
-    case 'and': return jong ? '과' : '와'
-    case 'dir': return !jong || rieul ? '로' : '으로'
+    case 'obj':
+      return jong ? '을' : '를'
+    case 'subj':
+      return jong ? '이' : '가'
+    case 'top':
+      return jong ? '은' : '는'
+    case 'and':
+      return jong ? '과' : '와'
+    case 'dir':
+      return !jong || rieul ? '로' : '으로'
   }
 }
 // 명사 치환 — 뒤따르는 가변 조사를 새 명사 받침에 맞게 다시 붙여 비문 방지.
@@ -1101,15 +980,26 @@ const AGE_ENTRIES: Record<Exclude<AgeBand, 'adult'>, Array<[string, string]>> = 
     ['자격증·시험·전문성 강화', '공부·시험·실력 다지기'],
     ['수입 확보·자산 정리·계약', '용돈 관리·정리·약속'],
     ['큰 투자보다 현금흐름 안정', '욕심내기보다 차근차근 모으기'],
-    ['현금흐름', '용돈'], ['취업', '진로'], ['이직', '진로 변화'], ['창업', '새 도전'],
-    ['승진', '인정받기'], ['연봉', '성과'], ['면접', '시험·발표'], ['포트폴리오', '작품'],
+    ['현금흐름', '용돈'],
+    ['취업', '진로'],
+    ['이직', '진로 변화'],
+    ['창업', '새 도전'],
+    ['승진', '인정받기'],
+    ['연봉', '성과'],
+    ['면접', '시험·발표'],
+    ['포트폴리오', '작품'],
   ],
   senior: [
     ['계약·결혼·이직·창업', '새로운 결정'],
     ['이직·창업', '새 역할·새 시작'],
     ['SNS·블로그·포트폴리오', '취미·기록·작품'],
-    ['취업', '새 활동'], ['이직', '새 역할'], ['창업', '새 시작'],
-    ['승진', '인정'], ['연봉', '보람'], ['면접', '만남'], ['포트폴리오', '기록'],
+    ['취업', '새 활동'],
+    ['이직', '새 역할'],
+    ['창업', '새 시작'],
+    ['승진', '인정'],
+    ['연봉', '보람'],
+    ['면접', '만남'],
+    ['포트폴리오', '기록'],
   ],
 }
 function koAgeAdjust(text: string, band: AgeBand): string {
@@ -1146,12 +1036,6 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     shinsal: '행운 별',
     timing: '타이밍 팁',
     flow: '하우스 흐름',
-    // 5 도메인 통합 헤더 (5테마 1:1)
-    'domain-money': '돈·자산',
-    'domain-work': '일·커리어',
-    'domain-relations': '관계',
-    'domain-body': '몸·내면',
-    'domain-growth': '자기·성장',
   }
   const en: Record<string, string> = {
     today: 'Today',
@@ -1164,254 +1048,7 @@ function sectionTitle(section: string, lang: InterpretationLang = 'ko'): string 
     shinsal: 'Lucky Stars',
     timing: 'Timing Tips',
     flow: 'House Transits',
-    'domain-money': 'Money',
-    'domain-work': 'Work & Career',
-    'domain-relations': 'Relationships',
-    'domain-body': 'Body & Inner Life',
-    'domain-growth': 'Self & Growth',
   }
   const map = lang === 'en' ? en : ko
   return map[section] ?? section
-}
-
-// ────────────────────────────────────────────────────────────────────
-// 도메인 통합 — 5테마(love/money/career/health/growth)를 5도메인으로
-// 1:1 매핑. 캘린더 엔진의 AstroThemeKey 통합(18→5) 결과 정합.
-// 같은 도메인 안에서 매칭된 룰들은 한 단락에 자연스럽게 합침.
-// ────────────────────────────────────────────────────────────────────
-const SECTION_TO_DOMAIN: Record<string, string> = {
-  'theme-love': 'relations',
-  'theme-money': 'money',
-  'theme-career': 'work',
-  'theme-health': 'body',
-  'theme-growth': 'growth',
-}
-
-const DOMAIN_TITLES: Record<string, string> = {
-  money: '돈·자산',
-  work: '일·커리어',
-  relations: '관계',
-  body: '몸·내면',
-  growth: '자기·성장',
-}
-
-const DOMAIN_ORDER = ['money', 'work', 'relations', 'body', 'growth']
-
-// 도메인별 "모순" 리드 — 우호 신호와 주의 신호가 같이 떴을 때, 그 영역의
-// 긴장을 한 줄로. 4개 섹션이 같은 문장으로 시작하던 단조로움 해소.
-const MIXED_LEAD: Record<string, { ko: string; en: string }> = {
-  money: {
-    ko: '돈은 들어오는데, 새는 구멍도 같이 있어요:',
-    en: 'Money is coming in — but so are the leaks:',
-  },
-  work: {
-    ko: '자리는 커지는데, 어깨도 같이 무거워지는 달이에요:',
-    en: 'The role grows — and so does the weight on your shoulders:',
-  },
-  relations: {
-    ko: '먼저 다가가도 좋은 시기예요. 단, 가족 쪽은 결이 달라요:',
-    en: 'A good time to reach out first — family, though, runs on a different grain:',
-  },
-  body: {
-    ko: '회복은 되는데, 정작 회복할 시간이 빠듯해요:',
-    en: 'Recovery is favoured — but the time to actually rest runs short:',
-  },
-  growth: {
-    ko: '배우고 나아가긴 좋은데, 한 번에 다 잡으려다 흩어지기 쉬워요:',
-    en: 'Good for learning and moving forward — just easy to scatter by grabbing it all at once:',
-  },
-  _default: {
-    ko: '좋은 흐름과 조심할 흐름이 같이 들어와요:',
-    en: 'A mixed current — supportive notes run alongside cautious ones:',
-  },
-}
-
-// 도메인 안에 룰이 너무 많이 쌓이면 narrative 가 길어짐. 4개가 균형점 —
-// 긍정 1~2 + 주의 1 + 컨텍스트 1 정도로 풍부하되 안 늘어짐. (v2 에서 도메인
-// 룰 풀을 8→11 로 늘렸으므로 슬롯도 3→4 로 확대해 변별이 실제 표출되게.)
-// fingerprint dedup 이 의미 중복은 따로 잘라내므로 4개여도 같은 말 반복 X.
-const MAX_RULES_PER_DOMAIN = 4
-
-/**
- * 도메인 안에서 의미 중복을 잡는 fingerprint group.
- * 같은 group 의 키워드가 후보·이전 본문 양쪽에 있으면 후보는 skip.
- * lifeReport 의 love.ts moonSignDedup 패턴을 룰 도메인용으로 일반화.
- *
- * 예) body 도메인에서 "회복·치유에 우호적..." 룰이 이미 들어왔는데
- *     "건강·검진에 좋은 시기..." 룰을 또 붙이면 같은 결을 두 번 말함.
- *     → 두 줄 다 ['회복', '치유', '검진'] group 을 건드리므로 후보 skip.
- */
-// Fingerprint group 은 *구절* 단위 — 단일 단어("정리", "검진") 만으로 묶지
-// 않음. positive 의미("자산 정리") 와 negative 의미("구조 재정비") 가 한
-// 단어를 공유해도 다른 group 에 속하게 분리. 의미가 진짜 같은 두 룰만
-// dedup 되고, 보완적 룰 (e.g. "회복 우호" + "과로 주의") 은 둘 다 살림.
-//
-// 각 group 안에 한국어 + 영어 구절을 함께 — KO/EN 본문 양쪽에서 dedup
-// 동작 보장. dedup 조건은 "host 와 candidate 가 같은 group 내 *어느* 구절이든
-// 둘 다 포함" 이라 KO 룰 두 개끼리는 KO 키워드로, EN 두 개끼리는 EN 키워드로
-// 매치. KO ↔ EN 교차 매치는 발생 안 함 (애초에 같은 lang 안에서만 호출됨).
-const DOMAIN_THEME_GROUPS: Record<string, string[][]> = {
-  body: [
-    ['회복과 치유', '회복·치유에 우호적', 'recovery and healing', 'favourable to recovery'],
-    ['무리·과로 주의', '과로 주의', 'overwork', 'pushing too hard'],
-    ['수면', '잠', 'sleep'],
-    ['스트레스 누적', '긴장 누적', 'stress', 'tension build-up'],
-  ],
-  money: [
-    ['확장 기회', '큰 흐름의 확장', '확장 기회 강함', 'expansion chances', 'expansion opportunity'],
-    ['진행 지연', '구조 재정비', 'delays', 'restructure', 'reshuffle'],
-    ['투자·자산 정리', '큰 베팅', 'tidying up existing assets', 'big bets'],
-    ['안정적 수입', '꾸준한 수입', 'steady income', 'stable income'],
-  ],
-  work: [
-    ['승진·자리', '공식 자리', 'promotions', 'official positions', 'representative roles'],
-    ['공식 절차·서류 지연', '계약 지연', 'paperwork may stall', 'contract delays'],
-    ['학업·연구', '자격증·전문 분야', 'study, research', 'certifications', 'specialty fields'],
-    ['창의·표현 발의', '발표·발의', 'proposals', 'presentations'],
-  ],
-  relations: [
-    [
-      '인연·만남',
-      '관계 진전이 자연스러운',
-      'connection, meetings',
-      'relationship progress flow naturally',
-    ],
-    ['진척 더딘', '기존 관계 다지기', 'progress is slow', 'deepening the ones you already have'],
-    ['가족·관계 긴장', '부드러운 소통이 필요', 'subtle tension', 'softer communication'],
-  ],
-  growth: [
-    [
-      '창의·표현',
-      '작품·콘텐츠',
-      'creativity and expression',
-      'work, content',
-      'expression, creation',
-    ],
-    ['이동·이직·이사', '여행 환경 변화', 'travel, job switches', 'environment changes'],
-    ['학습·배움 우호적', '배우고 깊이 파고드는', 'favourable for learning', 'going deep'],
-    [
-      '예술·고독의 별',
-      '하늘 지혜의 별',
-      '명상',
-      'art-and-solitude',
-      'heaven-wisdom star',
-      'meditation, religion',
-    ],
-  ],
-}
-
-function fingerprintMatches(text: string, group: string[]): boolean {
-  return group.some((kw) => text.includes(kw))
-}
-
-/**
- * 도메인 안 여러 룰 텍스트를 자연스럽게 한 단락으로.
- * - 첫 줄 = 메인 헤드라인
- * - 뒤따르는 룰은 줄바꿈만으로 이어붙임 (여기에/한편/추가로 연결사 제거 —
- *   고정 순환이 list-archive 느낌을 만들었음, lifeReport 의
- *   appendToPara 처럼 줄 자체가 분리자가 되게)
- * - 후보가 host 와 같은 fingerprint group 을 건드리면 skip
- * - 마지막 줄 = 그 도메인이 가장 강한 날짜 top 3 (있을 때만)
- * 룰 텍스트의 이모지 + 굵은 헤더는 제거하고 본문만 사용해 같은 톤 유지.
- */
-function mergeDomainTemplates(
-  texts: string[],
-  topDates: string[] = [],
-  lowDates: string[] = [],
-  domain: string = '',
-  lang: InterpretationLang = 'ko'
-): string {
-  if (texts.length === 0) return ''
-  const cleaned = texts.map((t) => t.trim()).filter(Boolean)
-  let body: string
-  if (cleaned.length === 1) {
-    body = cleaned[0]
-  } else {
-    const [head, ...rest] = cleaned
-    const accumulated = [head]
-    const groups = DOMAIN_THEME_GROUPS[domain] ?? []
-    for (const candidate of rest) {
-      const stripped = candidate.replace(
-        /^[🌟💰💼❤️⚡📚✈️🎖⚖️🏢🧘🤝]+\s*\*\*[^*]+\*\*\s*[—-]\s*/u,
-        ''
-      )
-      // Patch 3 — fingerprint dedup
-      const hostSoFar = accumulated.join('\n')
-      const duplicates = groups.some(
-        (group) => fingerprintMatches(hostSoFar, group) && fingerprintMatches(stripped, group)
-      )
-      if (duplicates) continue
-      accumulated.push(stripped)
-    }
-    body = accumulated.join('\n')
-  }
-  if (topDates.length > 0) {
-    body +=
-      lang === 'en'
-        ? `\n✨ Strong days: ${topDates.join(' · ')}`
-        : `\n✨ 특히 강한 날: ${topDates.join(' · ')}`
-  }
-  if (lowDates.length > 0) {
-    body +=
-      lang === 'en'
-        ? `\n⚠️ Take care: ${lowDates.join(' · ')}`
-        : `\n⚠️ 주의 날: ${lowDates.join(' · ')}`
-  }
-  return body
-}
-
-/**
- * 한 도메인 안 themeKeys를 합쳐서 cell당 (max+avg)/2 점수를 매기고
- * direction='high'면 상위, 'low'면 하위 N개 날짜 (MM-DD) 반환.
- * 임계값 미달은 빈 배열 반환 (모두 평이하면 비표시 — 정직 유지).
- */
-function pickDomainExtremeDates(
-  cells: CalendarCell[],
-  themeKeys: AstroThemeKey[],
-  topN: number,
-  direction: 'high' | 'low'
-): string[] {
-  if (themeKeys.length === 0) return []
-  const scored = cells
-    .map((c) => {
-      let sum = 0
-      let max = 0
-      let min = 100
-      let cnt = 0
-      for (const tk of themeKeys) {
-        const v = c.themeScores[tk]
-        if (typeof v === 'number') {
-          sum += v
-          if (v > max) max = v
-          if (v < min) min = v
-          cnt += 1
-        }
-      }
-      // high면 (max + avg)/2, low면 (min + avg)/2
-      const avg = cnt > 0 ? sum / cnt : 50
-      const score = direction === 'high' ? (max + avg) / 2 : (min + avg) / 2
-      return { date: c.datetime.slice(5, 10), score, hasScore: cnt > 0 }
-    })
-    .filter((x) => x.hasScore)
-
-  if (scored.length === 0) return []
-  const sorted = scored.sort((a, b) =>
-    direction === 'high' ? b.score - a.score : a.score - b.score
-  )
-  const top = sorted.slice(0, topN)
-  // 가장 극단값도 평이(high < 52 또는 low > 48)면 표시 안 함
-  if (direction === 'high' && top[0].score < 52) return []
-  if (direction === 'low' && top[0].score > 48) return []
-  return top.map((x) => x.date)
-}
-
-const DOMAIN_THEMES: Record<string, AstroThemeKey[]> = {
-  money: ['money'],
-  work: ['career'],
-  relations: ['love'],
-  body: ['health'],
-  // key must match DOMAIN_ORDER / SECTION_TO_DOMAIN ('growth'); was 'expression'
-  // which left DOMAIN_THEMES['growth'] undefined → 자기·성장 도메인의 강한날/
-  // 주의날 라인이 조용히 누락되던 버그.
-  growth: ['growth'],
 }

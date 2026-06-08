@@ -209,7 +209,6 @@ function buildSignal(a: BuildArgs): ActiveSignal {
     name: a.name,
     korean: verdictFlowLine(a.verdict, a.element, a.layer),
     english: verdictFlowLineEn(a.verdict, a.element, a.layer),
-    themes: [],
     polarity: a.polarity,
     layer: a.layer,
     active: { start: a.startIso, peak: a.peakIso, end: a.endIso },

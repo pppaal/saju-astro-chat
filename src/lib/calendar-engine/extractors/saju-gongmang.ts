@@ -213,7 +213,6 @@ function makeGongmangSignal(args: MakeArgs): ActiveSignal {
     name: `공망 활성 — 시기 지지 ${args.cyclicalBranch} 가 본명 공망 (${args.natalGongmang.join('·')})`,
     korean: `${args.cyclicalLabel} 의 ${args.cyclicalBranch} 가 본명 일주(${args.natalDayStem}${args.natalDayBranch}) 공망지 ${args.natalGongmang.join('·')} 에 닿음 — 허(虛)·이탈·결여 신호`,
     english: `the period branch ${args.cyclicalBranch} lands on your natal Void (空亡 ${args.natalGongmang.join('·')}) — a signal of emptiness, drift, and lack`,
-    themes: [],
     polarity: GONGMANG_POLARITY,
     layer: args.layer,
     active: { start: args.startIso, peak: args.peakIso, end: args.endIso },

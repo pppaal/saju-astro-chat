@@ -1,6 +1,5 @@
 import { getCachedTransitChart } from '../ephe-cache'
 import type { Chart, House } from '@/lib/astrology/foundation/types'
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, SignalLayer } from '../types'
 
 /**
@@ -72,20 +71,6 @@ const HOUSE_AREA_EN: Record<number, string> = {
   10: 'career, public standing, reputation',
   11: 'friends, networks, goals',
   12: 'inner work, rest, closure',
-}
-const HOUSE_THEME: Record<number, AstroThemeKey> = {
-  1: 'growth',
-  2: 'money',
-  3: 'growth',
-  4: 'health',
-  5: 'love',
-  6: 'health',
-  7: 'love',
-  8: 'growth',
-  9: 'growth',
-  10: 'career',
-  11: 'career',
-  12: 'health',
 }
 
 function inArc(x: number, start: number, end: number): boolean {
@@ -202,7 +187,6 @@ const astroHouseTransitExtractor: SignalExtractor = {
         name: `${seg.planet} in ${seg.house}H`,
         korean: lineKo,
         english: lineEn,
-        themes: [HOUSE_THEME[seg.house]].filter(Boolean) as AstroThemeKey[],
         polarity: 0, // 컨텍스트 (영역 활성) — 길흉 아님, 점수 미반영
         layer,
         active: {
@@ -233,7 +217,6 @@ const astroHouseTransitExtractor: SignalExtractor = {
         name: `${seg.planet} ☌ ${seg.angle}`,
         korean: lineKo,
         english: lineEn,
-        themes: (seg.angle === 'MC' ? ['career'] : ['growth']) as AstroThemeKey[],
         polarity: 0,
         layer: 'yearly',
         active: {

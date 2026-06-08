@@ -2,7 +2,7 @@ import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progr
 import { shortestAngle } from '@/lib/astrology/foundation/utils'
 import type { AspectType, Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
-import { inferAspectPolarity } from '../themes/tagger'
+import { inferAspectPolarity } from '../aspect-polarity'
 import { aspectFlowLine, pointKo } from '../data/astroFlow'
 
 /**
@@ -139,7 +139,6 @@ const astroProgressionExtractor: SignalExtractor = {
             english:
               aspectFlowLine('Moon', target.name, classified.aspect, 'en', 'Progressed Moon') ||
               `Prog Moon ${classified.aspect} natal ${target.name}`,
-            themes: [],
             polarity,
             layer: 'monthly',
             active: { start: startIso, peak: peakIso, end: endIso },
@@ -174,7 +173,6 @@ const astroProgressionExtractor: SignalExtractor = {
             english:
               aspectFlowLine(progName, hit.target, hit.aspect, 'en', `progressed ${progName}`) ||
               `Prog ${progName} ${hit.aspect} natal ${hit.target}`,
-            themes: [],
             polarity,
             layer,
             active: { start: startIso, peak: peakIso, end: endIso },

@@ -44,8 +44,6 @@ const STATUS_LABEL_EN: Record<string, string> = {
  *  - 반성반파: polarity 0, weight 0.20 — 중립 표지만
  */
 
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
-
 const sajuGeokgukExtractor: SignalExtractor = {
   source: 'saju',
   kind: 'geokguk-status',
@@ -73,7 +71,6 @@ const sajuGeokgukExtractor: SignalExtractor = {
     const status = statusResult.status
     const polarity: Polarity = status === '성격' ? 1 : status === '파격' ? -1 : 0
     const weight = status === '반성반파' ? 0.2 : 0.25
-    const themes = themesForGeokguk(geokguk)
 
     // reason — positive·negative 요인을 사람이 읽을 수 있게 한 줄로.
     const reasonParts: string[] = []
@@ -113,7 +110,6 @@ const sajuGeokgukExtractor: SignalExtractor = {
         name: `${geokguk} (${status})`,
         korean,
         english,
-        themes,
         polarity,
         layer: 'daily',
         active: {
@@ -141,22 +137,6 @@ const sajuGeokgukExtractor: SignalExtractor = {
 
     return signals
   },
-}
-
-/**
- * 격국명 → 테마. saju-pattern.ts 의 themesForGeokguk 와 동일 정책으로 일관성 유지.
- */
-function themesForGeokguk(geokguk: string): AstroThemeKey[] {
-  const themes = new Set<AstroThemeKey>()
-  if (/정관|편관|종살|건록|양인/.test(geokguk)) themes.add('career')
-  if (/정재|편재|종재|가색/.test(geokguk)) themes.add('money')
-  if (/정인|편인|종강|곡직/.test(geokguk)) themes.add('growth')
-  if (/식신|상관|종아|염상/.test(geokguk)) themes.add('growth')
-  if (/종왕|월겁|잡기/.test(geokguk)) themes.add('growth')
-  if (/종혁|윤하/.test(geokguk)) themes.add('growth')
-  if (/화토격|화금격|화수격|화목격|화화격/.test(geokguk)) themes.add('growth')
-  if (themes.size === 0) themes.add('growth')
-  return Array.from(themes)
 }
 
 export default sajuGeokgukExtractor

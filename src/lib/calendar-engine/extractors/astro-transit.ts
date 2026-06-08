@@ -7,7 +7,7 @@ import type {
   Polarity,
   SignalLayer,
 } from '../types'
-import { inferAspectPolarity } from '../themes/tagger'
+import { inferAspectPolarity } from '../aspect-polarity'
 import { getCachedTransitChart } from '../ephe-cache'
 import { aspectFlowLine } from '../data/astroFlow'
 
@@ -140,7 +140,6 @@ const astroTransitExtractor: SignalExtractor = {
           english:
             aspectFlowLine(sample.transitPlanet, sample.natalPoint, sample.aspectType, 'en') ||
             `${sample.transitPlanet} ${aspectSymbol(sample.aspectType)} natal ${sample.natalPoint}`,
-          themes: [],
           polarity,
           layer,
           active: { start: startIso, peak: tightest.iso, end: endIso },

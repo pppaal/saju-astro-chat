@@ -280,7 +280,6 @@ function buildSignal(args: BuildSignalArgs): ActiveSignal {
     name: `${args.ganji} (${args.sibsin})`,
     ...(korean ? { korean } : {}),
     ...(english ? { english } : {}),
-    themes: [], // tagger가 SIBSIN_THEME_MAP + ELEMENT_THEME_MAP으로 채움
     polarity,
     layer: args.layer,
     active: args.active,

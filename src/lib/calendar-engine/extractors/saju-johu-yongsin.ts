@@ -67,7 +67,6 @@ const sajuJohuYongsinExtractor: SignalExtractor = {
             name: `조후용신 ${info.primaryYongsin} 활성`,
             korean: `${monthPillar.branch}月 조후 — ${info.primaryYongsin}이(가) ${info.climate} 균형에 필요`,
             english: `${monthPillar.branch}-month climate balance — ${ELEMENT_EN_JOHU[info.primaryYongsin] ?? info.primaryYongsin} is needed to temper the season`,
-            themes: [],
             polarity,
             layer: 'monthly',
             active: { start: monthStart, peak: monthPeak, end: monthEnd },

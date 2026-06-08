@@ -128,7 +128,6 @@ const sajuHourExtractor: SignalExtractor = {
           name: `${stem.name}${branch.name} (${sibsin}) 시진`,
           // 12 시진 narrative — 그 시진의 흐름 한 줄(이미 계산된 headline 재사용).
           ...(headline ? { korean: headline } : {}),
-          themes: [],
           polarity,
           layer: 'hourly',
           active: { start: startIso, peak: peakIso, end: endIso },

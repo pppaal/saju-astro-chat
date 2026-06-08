@@ -19,7 +19,6 @@ function sig(partial: Partial<ActiveSignal>): ActiveSignal {
     kind: (partial.kind ?? 'hyeongchung') as ActiveSignal['kind'],
     name: partial.name ?? 'signal',
     korean: partial.korean,
-    themes: partial.themes ?? ['career'],
     polarity: (partial.polarity ?? 1) as ActiveSignal['polarity'],
     layer: (partial.layer ?? 'daily') as ActiveSignal['layer'],
     weight: partial.weight ?? 0.5,
@@ -30,7 +29,7 @@ function makeCell(over: Partial<CalendarCell> = {}): CalendarCell {
   return {
     datetime: over.datetime ?? '2026-03-15T12:00:00.000Z',
     derivedScore: over.derivedScore ?? 55,
-    themeScores: over.themeScores ?? { career: 70, love: 20 },
+    salience: over.salience ?? 0,
     signals: over.signals ?? [sig({ source: 'saju', polarity: 2 })],
     matchedPatterns: over.matchedPatterns ?? [],
     topReasons: over.topReasons ?? ['좋은 흐름'],
@@ -58,28 +57,12 @@ describe('cellsToImportantDates (v2-native bridge, 단계 4)', () => {
     expect(cellToImportantDate(makeCell({ derivedScore: 99 })).confidence).toBe(99)
   })
 
-  it('derives categories from themeScores via v2 deriver (5-theme scheme)', () => {
-    // v2 카테고리는 5테마(love/money/career/health/growth) — 구 EventCategory
-    // (wealth/general/travel) 폐기. UI 도메인 필터와 정합.
-    const love = cellToImportantDate(makeCell({ themeScores: { love: 80, career: 10 } }))
-    expect(love.categories).toContain('love')
-    expect(love.categories).not.toContain('general')
-    const money = cellToImportantDate(makeCell({ themeScores: { money: 90 } }))
-    expect(money.categories).toContain('money') // wealth→money 통일
-  })
-
-  it('drives categories from the day’s matchedPatterns themes (daily variety)', () => {
-    // 패턴이 그날 발동 → 카테고리가 themeScores(정적) 대신 패턴 themes 로 결정돼
-    // 일별로 달라진다. themeScores 는 career 우세지만 패턴이 money 면 money 가 뜬다.
-    const d = cellToImportantDate(
-      makeCell({
-        themeScores: { career: 90, money: 5 },
-        matchedPatterns: [
-          { id: 'p1', name: '재물', themes: ['money'], matchedSignalIds: [], strength: 80 },
-        ] as never,
-      })
-    )
-    expect(d.categories).toContain('money')
+  it('no longer emits 5-bucket theme categories (axis removed)', () => {
+    // 5버킷 테마(love/money/career/health/growth) 점수·표시 축 폐기 →
+    // categories 는 항상 빈 배열. 점수·등급·추천/주의 텍스트는 그대로 렌더.
+    const d = cellToImportantDate(makeCell())
+    expect(d.categories).toEqual([])
+    expect(d.recommendationKeys.length).toBeGreaterThan(0)
   })
 
   it('maps v2 saju 충/형 signals → chung/xing factor tokens (gate context)', () => {

@@ -24,7 +24,6 @@ function sig(o: {
     source: o.source,
     kind: o.kind,
     name: o.name,
-    themes: [],
     polarity: o.polarity,
     layer: o.layer,
     active: {

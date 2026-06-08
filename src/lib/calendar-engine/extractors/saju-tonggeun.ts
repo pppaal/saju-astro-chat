@@ -56,7 +56,6 @@ const sajuTonggeunExtractor: SignalExtractor = {
         name: `대운 통근 ${label}`,
         korean: `${d.startYear}년 대운 ${d.stem}${d.branch} → ${label}`,
         english: `${d.startYear} decade ${d.stem}${d.branch} → ${labelForEn(relation, strength)}`,
-        themes: [],
         polarity,
         layer: 'decadal',
         active: { start: startIso, peak: peakIso, end: endIso },

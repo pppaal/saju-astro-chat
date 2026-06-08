@@ -107,7 +107,6 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
             name: `달 위상: ${getMoonPhaseName(lastPhase as never)}`,
             korean: `${getMoonPhaseName(lastPhase as never)} — ${PHASE_MEANING[lastPhase as string] ?? '달 주기의 한 국면이에요'}`,
             english: `Moon phase — ${PHASE_MEANING_EN[lastPhase as string] ?? 'a stage of the lunar cycle'}`,
-            themes: [],
             polarity: PHASE_POLARITY[lastPhase] ?? 0,
             layer: 'monthly', // 한 위상이 약 3~4일이지만 "월" 사이클의 일부
             active: {
@@ -138,7 +137,6 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
           name: `Moon VoC (${voc.moonSign})`,
           korean: `달이 다음 자리로 넘어가기 전 빈 구간(보이드) — 새 일을 벌이기보다 마무리·휴식에 좋아요 (${voc.moonSign}, ${hoursRemaining}시간)`,
           english: `Moon void-of-course before changing sign — better for wrapping up and resting than starting new ventures (${voc.moonSign}, ${hoursRemaining}h)`,
-          themes: [],
           polarity: -1 as Polarity,
           layer: 'daily',
           active: {

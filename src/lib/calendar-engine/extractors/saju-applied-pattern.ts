@@ -10,7 +10,6 @@ import type {
   SignalKind,
 } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 
 /**
  * 정통 자평명리 응용 격국 동적 매칭 — saju-applied-pattern.
@@ -183,7 +182,6 @@ interface AppliedPattern {
   name: string // 한자 라벨
   polarity: Polarity
   weight: number
-  themes: AstroThemeKey[]
   /**
    * 본명 + 시기 조건을 모두 만족하면 evidence detail 객체 반환, 아니면 null.
    * detail 에는 트리거된 axis/카운트 등을 담아 디버깅·내러티브에 사용.
@@ -239,7 +237,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '傷官見官',
     polarity: -2,
     weight: 0.65,
-    themes: ['career'],
     evaluate(count, _strength, active, snap) {
       const natalJeonggwan = count['정관'] ?? 0
       if (natalJeonggwan < 1) return null
@@ -260,7 +257,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '食神制殺',
     polarity: 2,
     weight: 0.65,
-    themes: ['career', 'growth'],
     evaluate(count, _strength, active, snap) {
       const natalChilsal = count['편관'] ?? 0
       if (natalChilsal < 1) return null
@@ -279,7 +275,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '官印相生',
     polarity: 2,
     weight: 0.6,
-    themes: ['career', 'growth'],
     evaluate(_count, _strength, active, snap) {
       if (!active.has('정관') || !active.has('정인')) return null
       return {
@@ -296,7 +291,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '財生官',
     polarity: 2,
     weight: 0.6,
-    themes: ['money', 'career'],
     evaluate(_count, _strength, active, snap) {
       if (!active.has('정재') || !active.has('정관')) return null
       return {
@@ -313,7 +307,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '印生比劫',
     polarity: 2,
     weight: 0.65,
-    themes: ['growth'],
     evaluate(_count, strength, active, snap) {
       if (strength !== 'weak') return null
       if (!active.has('정인')) return null
@@ -335,7 +328,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '比劫奪財',
     polarity: -2,
     weight: 0.55,
-    themes: ['money'],
     evaluate(count, _strength, active, snap) {
       const jaeCount = (count['정재'] ?? 0) + (count['편재'] ?? 0)
       // 재성 약 = 0~1개
@@ -357,7 +349,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '官殺混雜',
     polarity: -1,
     weight: 0.55,
-    themes: ['career'],
     evaluate(_count, _strength, active, snap) {
       if (!active.has('정관') || !active.has('편관')) return null
       return {
@@ -374,7 +365,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '梟食奪',
     polarity: -2,
     weight: 0.55,
-    themes: ['growth', 'health'],
     evaluate(_count, _strength, active, snap) {
       if (!active.has('편인') || !active.has('식신')) return null
       return {
@@ -447,7 +437,6 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
           name: `${pat.name} (${pat.korean})`,
           korean: `${pat.korean} — ${APPLIED_FLOW[pat.id] ?? ''}`.replace(/ — $/, ''),
           english: APPLIED_FLOW_EN[pat.id] ?? pat.id,
-          themes: pat.themes,
           polarity,
           layer: 'daily',
           active: {

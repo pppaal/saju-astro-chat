@@ -19,7 +19,6 @@ function sig(
     source,
     kind: 'pillar-sibsin' as ActiveSignal['kind'],
     name: 'x',
-    themes: [],
     polarity: polarity as ActiveSignal['polarity'],
     layer,
     active: { start: '', peak: '', end: '' },
@@ -60,7 +59,10 @@ describe('deriveCrossAgreement (v2-native)', () => {
   })
 
   it('confidence stays within 0..100 and grows with heavy signals', () => {
-    const light = deriveCrossAgreement({ signals: [sig('saju', 1), sig('astro', 1)], derivedScore: 55 })
+    const light = deriveCrossAgreement({
+      signals: [sig('saju', 1), sig('astro', 1)],
+      derivedScore: 55,
+    })
     const heavy = deriveCrossAgreement({
       signals: [sig('saju', 3), sig('saju', 3), sig('astro', 3), sig('astro', 3)],
       derivedScore: 85,
@@ -71,7 +73,10 @@ describe('deriveCrossAgreement (v2-native)', () => {
   })
 
   it('raw axes equal display axes (no override shift in v2)', () => {
-    const r = deriveCrossAgreement({ signals: [sig('saju', 2), sig('astro', -1)], derivedScore: 60 })
+    const r = deriveCrossAgreement({
+      signals: [sig('saju', 2), sig('astro', -1)],
+      derivedScore: 60,
+    })
     expect(r.sajuAxisRaw).toBe(r.sajuAxis)
     expect(r.astroAxisRaw).toBe(r.astroAxis)
   })
@@ -84,16 +89,35 @@ describe('deriveCrossAgreement (v2-native)', () => {
 
     const saju = calculateSajuData('1990-05-15', '10:30', 'male', 'solar', 'Asia/Seoul')
     const astroChart = await calculateNatalChart({
-      year: 1990, month: 5, date: 15, hour: 10, minute: 30,
-      latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul',
+      year: 1990,
+      month: 5,
+      date: 15,
+      hour: 10,
+      minute: 30,
+      latitude: 37.5665,
+      longitude: 126.978,
+      timeZone: 'Asia/Seoul',
     })
     const { context } = await getOrBuildNatalContext(
-      { birthDate: '1990-05-15', birthTime: '10:30', gender: 'male', latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' },
+      {
+        birthDate: '1990-05-15',
+        birthTime: '10:30',
+        gender: 'male',
+        latitude: 37.5665,
+        longitude: 126.978,
+        timeZone: 'Asia/Seoul',
+      },
       { saju, astroChart: astroChart as never }
     )
-    const cells = await buildCalendar(context, {
-      start: '2026-05-01T00:00:00.000Z', end: '2026-05-31T23:59:59.000Z', granularity: 'day',
-    }, { includeEvidence: true })
+    const cells = await buildCalendar(
+      context,
+      {
+        start: '2026-05-01T00:00:00.000Z',
+        end: '2026-05-31T23:59:59.000Z',
+        granularity: 'day',
+      },
+      { includeEvidence: true }
+    )
 
     expect(cells.length).toBe(31)
     let verifiedCount = 0

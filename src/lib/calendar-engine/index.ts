@@ -8,7 +8,6 @@ import type {
 } from './types'
 import type { NatalContext } from './context/types'
 import { createCache } from './cache'
-import { tagSignalWithThemes } from './themes/tagger'
 
 // 등록된 extractor — 새 추출기 추가 시 여기 import + getRegisteredExtractors에 push
 import sajuShinsalExtractor from './extractors/saju-shinsal'
@@ -52,7 +51,6 @@ import astroSoulPatternExtractor from './extractors/astro-soul-pattern'
 
 // derivers
 import { deriveScore } from './derivers/score'
-import { deriveThemeScores } from './derivers/themeScores'
 import { deriveTopReasons, deriveCautions } from './derivers/summary'
 import { derivePatterns } from './derivers/patterns'
 import { computeBaseRates, cellSurprise } from './derivers/surprise'
@@ -62,8 +60,7 @@ import { computeBaseRates, cellSurprise } from './derivers/surprise'
  *
  * 1. NatalContext + range를 받아
  * 2. 등록된 extractor를 모두 실행해 ActiveSignal[]을 모으고
- * 3. tagger로 테마 라벨 보강
- * 4. CalendarCell[]로 그룹핑 + derivers로 점수·패턴·요약 계산
+ * 3. CalendarCell[]로 그룹핑 + derivers로 점수·패턴·요약 계산
  *
  * 점수는 부산물 — 신호 다발 자체가 데이터의 본질.
  */
@@ -93,14 +90,7 @@ export async function buildCalendar(
   //     conditions.signalKinds: ['cross-activation'] 으로 매칭).
   allSignals.push(...extractCrossActivations(allSignals))
 
-  // 3) 테마 라벨 + 기여 가중 보강
-  for (const signal of allSignals) {
-    const tagged = tagSignalWithThemes(signal)
-    signal.themes = tagged.themes
-    signal.themeWeights = tagged.weights
-  }
-
-  // 4) 시점별 그룹핑 + derivers
+  // 3) 시점별 그룹핑 + derivers
   return groupIntoCells(allSignals, range, options)
 }
 
@@ -197,7 +187,6 @@ function groupIntoCells(
       signals: [],
       derivedScore: 50,
       salience: 0,
-      themeScores: {},
       matchedPatterns: [],
       topReasons: [],
       cautions: [],
@@ -215,7 +204,7 @@ function groupIntoCells(
     }
   }
 
-  // derivers — 점수·테마점수·패턴·요약 계산 (점수는 부산물)
+  // derivers — 점수·패턴·요약 계산 (점수는 부산물)
   // 패턴을 먼저 검출하고, 점수 계산에 패턴 보너스 반영.
   //
   // score/pattern 입력에서 *정적 본명*(명사) 신호를 제외한다. 그날 가변 신호가
@@ -230,7 +219,6 @@ function groupIntoCells(
     const scoreSignals = cell.signals.filter((s) => !STATIC_NATAL_KINDS.has(s.kind))
     cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(scoreSignals)
     cell.derivedScore = deriveScore(scoreSignals, cell.matchedPatterns)
-    cell.themeScores = deriveThemeScores(cell.signals)
     cell.topReasons = deriveTopReasons(cell.signals, 5, 'ko')
     cell.cautions = deriveCautions(cell.signals, 5, 'ko')
     cell.topReasonsEn = deriveTopReasons(cell.signals, 5, 'en')
@@ -301,7 +289,7 @@ function stripEvidence(signal: ActiveSignal): ActiveSignal {
  *
  * `getOrBuildMonth` / 인-프로세스 memCache 는 본래 (birthKey, monthKey) 만으로
  * 키를 잡았는데, 실제 빌드된 cells 는 `includeEvidence`(evidence 포함 여부) ·
- * `enablePatterns`(패턴 매칭 on/off) · `enabledExtractors` · `focusThemes` 옵션에
+ * `enablePatterns`(패턴 매칭 on/off) · `enabledExtractors` 옵션에
  * 따라 달라진다 (index.ts groupIntoCells 참고). 지금은 모든 caller 가
  * `{ includeEvidence: true }` 한 가지만 넘겨서 충돌이 잠복해 있을 뿐이다.
  * 다른 옵션을 넘기는 미래 caller 가 잘못된 캐시 cell 을 받지 않도록 옵션을
@@ -309,8 +297,8 @@ function stripEvidence(signal: ActiveSignal): ActiveSignal {
  *
  * 키만 짧고 안정적이면 되므로:
  *  - 결정론을 위해 객체 키를 정렬해 정준(canonical) JSON 으로 만든다.
- *  - cells 결과에 실제로 영향을 주는 옵션만 포함한다 (현재 인터페이스의 4개 전부).
- *  - 배열 옵션(enabledExtractors/focusThemes)도 정렬해 순서 무관 동일 키.
+ *  - cells 결과에 실제로 영향을 주는 옵션만 포함한다.
+ *  - 배열 옵션(enabledExtractors)도 정렬해 순서 무관 동일 키.
  * 기존 단일 옵션 형태 `{ includeEvidence: true }` 의 해시는 안정적으로 고정된다.
  */
 export function makeOptionsKey(options: CalendarBuildOptions = {}): string {
@@ -320,7 +308,6 @@ export function makeOptionsKey(options: CalendarBuildOptions = {}): string {
   if (options.enabledExtractors !== undefined)
     canonical.enabledExtractors = sortStrings(options.enabledExtractors)
   if (options.enablePatterns !== undefined) canonical.enablePatterns = options.enablePatterns
-  if (options.focusThemes !== undefined) canonical.focusThemes = sortStrings(options.focusThemes)
   if (options.includeEvidence !== undefined) canonical.includeEvidence = options.includeEvidence
   const keys = Object.keys(canonical).sort()
   const json = JSON.stringify(canonical, keys)

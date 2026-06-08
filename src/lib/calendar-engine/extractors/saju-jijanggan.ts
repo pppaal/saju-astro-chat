@@ -384,7 +384,6 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
         name: `${args.branchName} 지장간 ${layerLabel}(${stemName}) 통근`,
         korean: tonggeunFlowLine(args.branchName, layerLabel, polarity > 0),
         english: tonggeunFlowLineEn(args.branchName, LAYER_LABEL_EN[layer] ?? layer, polarity > 0),
-        themes: [],
         polarity,
         layer: args.layer,
         active: args.active,
@@ -454,7 +453,6 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
               combineDef.transform,
               polarity
             ),
-            themes: [],
             polarity,
             layer: args.layer,
             active: args.active,
@@ -502,7 +500,6 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
             LAYER_LABEL_EN[layer] ?? layer,
             ladder.tier === 'jeonggi-jeonggi'
           ),
-          themes: [],
           polarity: ladder.polarity,
           layer: args.layer,
           active: args.active,

@@ -110,37 +110,6 @@ export interface Interpretation {
     text: string
   }>
   /**
-   * 도메인별 점수 — narrative와 동기화된 0-100 값.
-   *
-   * cell.themeScores는 신호 polarity 평균(+공명 보너스)이라 narrative
-   * 톤(룰 매칭 기반)과 어긋날 수 있음. 이 필드는 도메인별 실제 매칭된
-   * 룰들의 polarity 평균으로 계산 — narrative와 1:1 정합.
-   *
-   * 사용 우선순위: 이 필드 > cell.themeScores (UI 표시용).
-   */
-  themeScores?: Partial<Record<'love' | 'money' | 'career' | 'health' | 'growth', number>>
-  /**
-   * 테마 순위 — themeScores 를 점수 내림차순 정렬. 5개 바가 비슷할 때
-   * (비-health 4테마 std ~5점) 절대값 대신 "이번 달 가장 활발: 성장 > 일,
-   * 약한 축: 건강" 식 상대 표시를 UI 가 안전하게 그릴 수 있게 함.
-   */
-  themeRanking?: Array<{
-    theme: 'love' | 'money' | 'career' | 'health' | 'growth'
-    score: number
-    rank: number
-  }>
-  /**
-   * 테마별 점수 "인과 추적" (Why-card). 그 점수에 기여한 신호 top N 을
-   * +/- 기여도와 함께 노출 — "재물 68 ← 정재 월지 +12 / 천을귀인 +8 /
-   * 겁재 분탈 −7" 식. 점수만 던지지 않고 *근거* 를 보여줘 신뢰도 ↑.
-   */
-  themeBreakdown?: Partial<
-    Record<
-      'love' | 'money' | 'career' | 'health' | 'growth',
-      Array<{ label: string; delta: number; dir: 'up' | 'down' }>
-    >
-  >
-  /**
    * "이번 달 키 이벤트" — 본문 날짜 정보를 카드로 추출 (베스트 날 / 강한 구간
    * / 피할 날). cells.derivedScore 에서 결정적으로 뽑음. monthly scope 에서만.
    */

@@ -1,7 +1,7 @@
 import { calculateArabicLots } from '@/lib/astrology/foundation/arabicParts'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
-import { inferAspectPolarity } from '../themes/tagger'
+import { inferAspectPolarity } from '../aspect-polarity'
 import { getCachedTransitChart } from '../ephe-cache'
 import { shortestAngle } from '@/lib/astrology/foundation/utils'
 import { pointKo } from '../data/astroFlow'
@@ -92,7 +92,6 @@ const astroArabicPartExtractor: SignalExtractor = {
             name: `${planet.name} ☌ Lot of ${lot.name}`,
             korean: `${pointKo(planet.name)} 트랜짓이 ${LOT_KO[lot.name]?.label ?? `${lot.name} 로트`}에 닿는 시기 — ${LOT_KO[lot.name]?.domain ?? lot.name} 영역이 자극돼요`,
             english: `${planet.name} transit touches the ${LOT_EN[lot.name]?.label ?? `Lot of ${lot.name}`} — stirring its domain of ${LOT_EN[lot.name]?.domain ?? lot.name}`,
-            themes: [], // tagger가 행성으로 채움
             polarity,
             layer: 'daily',
             active: {

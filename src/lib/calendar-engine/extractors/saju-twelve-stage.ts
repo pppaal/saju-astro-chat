@@ -233,7 +233,6 @@ const sajuTwelveStageExtractor: SignalExtractor = {
         name: STAGE_LABEL[stage] ?? `12운성 ${stage}`,
         korean: stageFlowLine(stage, 'ko') || STAGE_LABEL[stage],
         english: stageFlowLine(stage, 'en') || `12-stage ${stage}`,
-        themes: ['growth'], // 기본; tagger가 보강 가능
         polarity,
         layer: 'daily',
         active: {
@@ -412,7 +411,6 @@ function emitMatrixSignals(
       english:
         matrixFlowLine(np.stage, cyclicalStage, natalLabel, 'en', natalLabelEn) ||
         `${natalLabelEn} ${np.stage} → ${cyclicalStage}`,
-      themes: ['growth'],
       polarity,
       layer: info.layer,
       active: info.active,

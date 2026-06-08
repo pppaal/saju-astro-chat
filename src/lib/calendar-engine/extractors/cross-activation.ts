@@ -168,7 +168,6 @@ function buildCrossSignal(
     name,
     korean: mapping.meaning.ko,
     english: `${mapping.saju} × ${mapping.astro} — ${mapping.meaning.en}`,
-    themes: [],
     polarity,
     layer:
       sajuSig.layer === 'decadal' || astroSig.layer === 'decadal'

@@ -6,7 +6,6 @@ import { buildInterpretation } from '@/lib/calendar-engine/interpretation/matche
 import { deriveKeyEvents } from '@/lib/calendar-engine/derivers/keyEvents'
 import { deriveMonthComparison } from '@/lib/calendar-engine/derivers/monthComparison'
 import { RULES } from '@/lib/calendar-engine/interpretation/rules'
-import { tagSignalWithThemes } from '@/lib/calendar-engine/themes/tagger'
 import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 
 /**
@@ -68,16 +67,19 @@ describe('calendar-engine regression', () => {
       expect(dmA).not.toBe(dmB)
     })
 
-    it('two profiles can produce different derivedScore for the same day', async () => {
+    it('two profiles can produce different signal fingerprints for the same day', async () => {
       const a = await buildForDate(SEOUL_MALE_1995, '2026-05-15')
       const b = await buildForDate(TOKYO_MALE_2001, '2026-05-15')
-      // Not asserting strict inequality — different sajus can land on
-      // the same score by coincidence — but the themeScores breakdown
-      // should differ.
-      const tsA = a.interp.themeScores ?? {}
-      const tsB = b.interp.themeScores ?? {}
-      const sigA = `${tsA.love}-${tsA.money}-${tsA.career}-${tsA.health}-${tsA.growth}`
-      const sigB = `${tsB.love}-${tsB.money}-${tsB.career}-${tsB.health}-${tsB.growth}`
+      // Not asserting strict score inequality — different sajus can land on
+      // the same score by coincidence — but the active signal set differs.
+      const sigA = (a.cells[0]?.signals ?? [])
+        .map((s) => s.id)
+        .sort()
+        .join('|')
+      const sigB = (b.cells[0]?.signals ?? [])
+        .map((s) => s.id)
+        .sort()
+        .join('|')
       expect(sigA).not.toBe(sigB)
     })
   })
@@ -467,42 +469,20 @@ describe('calendar-engine regression', () => {
       expect(deriveMonthComparison({ currCells: month(50), prevCells: few })).toBeUndefined()
     })
 
-    it('computes overall avg delta and per-theme deltas (|delta|>=3, top 3)', () => {
+    it('computes overall avg delta (전체 흐름 점수 변화)', () => {
       const cmp = deriveMonthComparison({
         currCells: month(60), // avg 64.5
         prevCells: month(50), // avg 54.5
-        currScores: { money: 70, career: 55, love: 50, health: 48, growth: 60 },
-        prevScores: { money: 56, career: 60, love: 49, health: 40, growth: 30 },
       })
       expect(cmp).toBeDefined()
       expect(cmp!.overallDelta).toBe(10) // 64.5 - 54.5
-      // deltas: money +14, growth +30, health +8, career -5, love +1(<3 dropped)
-      // top 3 by |delta|: growth +30, money +14, health +8
-      expect(cmp!.themes.map((t) => t.theme)).toEqual(['growth', 'money', 'health'])
-      expect(cmp!.themes.find((t) => t.theme === 'career')).toBeUndefined() // -5 is in top? no, only 3
-      const growth = cmp!.themes.find((t) => t.theme === 'growth')!
-      expect(growth.delta).toBe(30)
-      expect(growth.dir).toBe('up')
     })
 
-    it('marks down direction for negative deltas', () => {
+    it('returns undefined when overall delta is zero (no change)', () => {
       const cmp = deriveMonthComparison({
         currCells: month(50),
         prevCells: month(50),
-        currScores: { money: 40 },
-        prevScores: { money: 70 },
       })
-      expect(cmp!.themes[0]).toEqual({ theme: 'money', delta: -30, dir: 'down' })
-    })
-
-    it('drops theme when only one month has a score for it', () => {
-      const cmp = deriveMonthComparison({
-        currCells: month(50),
-        prevCells: month(50),
-        currScores: { money: 80 },
-        prevScores: {},
-      })
-      // no comparable theme + zero overall delta → undefined
       expect(cmp).toBeUndefined()
     })
 
@@ -535,11 +515,18 @@ describe('calendar-engine regression', () => {
       )
       const withPrev = buildInterpretation({ natal, cells: may, scope: 'monthly', prevCells: apr })
       const withoutPrev = buildInterpretation({ natal, cells: may, scope: 'monthly' })
+      // prevCells 없으면 항상 미계산.
       expect(withoutPrev.monthComparison).toBeUndefined()
-      expect(withPrev.monthComparison).toBeDefined()
-      // overallDelta must equal rounded(avg(may) - avg(apr))
+      // 5버킷 테마 제거 후 monthComparison 은 전체 흐름 delta 만 — delta 0 이면
+      // (변화 없음) undefined. delta 가 있으면 정확히 rounded(avg(may)-avg(apr)).
       const avg = (cs: typeof may) => cs.reduce((a, c) => a + c.derivedScore, 0) / cs.length
-      expect(withPrev.monthComparison!.overallDelta).toBe(Math.round(avg(may) - avg(apr)))
+      const expectedDelta = Math.round(avg(may) - avg(apr))
+      if (expectedDelta === 0) {
+        expect(withPrev.monthComparison).toBeUndefined()
+      } else {
+        expect(withPrev.monthComparison).toBeDefined()
+        expect(withPrev.monthComparison!.overallDelta).toBe(expectedDelta)
+      }
     })
   })
 
@@ -568,125 +555,6 @@ describe('calendar-engine regression', () => {
       expect(daeunHeaderCount).toBe(1)
       // 월운: 주차별 흐름 라인
       expect(wolun?.text).toMatch(/주차별 흐름:/)
-    })
-  })
-
-  describe('score / themeScores synchronisation', () => {
-    it('monthly buildInterpretation produces themeScores for all 5 themes', async () => {
-      const { interp } = await buildForDate(SEOUL_MALE_1995, '2026-05-15')
-      const ts = interp.themeScores ?? {}
-      // All 5 themes should be populated (Partial<Record> but expect at
-      // least 3 of them set since the user has rules firing on multiple
-      // domains).
-      const themesPopulated = (['love', 'money', 'career', 'health', 'growth'] as const).filter(
-        (k) => typeof ts[k] === 'number'
-      )
-      expect(themesPopulated.length).toBeGreaterThanOrEqual(3)
-    })
-
-    it('theme score direction agrees with its Why-card (no score↔근거 contradiction)', async () => {
-      // opt1 회귀: 점수와 themeBreakdown 이 같은 신호 기반 모델을 써야 함.
-      // 예전엔 1987년생 건강이 점수 60인데 근거카드 −47 로 모순됐음.
-      const profiles = [SEOUL_MALE_1995, { ...SEOUL_MALE_1995, birthDate: '1987-05-10' }]
-      for (const p of profiles) {
-        const saju = calculateSajuData(p.birthDate, p.birthTime, p.gender, 'solar', p.timeZone)
-        const natal = await buildNatalContext(p, { saju })
-        for (const mo of [4, 8]) {
-          const cells = await buildCalendar(
-            natal,
-            {
-              start: new Date(Date.UTC(2026, mo - 1, 1)).toISOString(),
-              end: new Date(Date.UTC(2026, mo, 0, 23, 59, 59)).toISOString(),
-              granularity: 'day',
-            },
-            { includeEvidence: true }
-          )
-          const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
-          const ts = interp.themeScores ?? {}
-          const tb = interp.themeBreakdown ?? {}
-          for (const k of Object.keys(tb) as Array<keyof typeof tb>) {
-            const score = ts[k]
-            const items = tb[k] ?? []
-            if (typeof score !== 'number' || items.length === 0) continue
-            const net = items.reduce(
-              (a, c) => a + (c.dir === 'up' ? c.delta : -Math.abs(c.delta)),
-              0
-            )
-            const scoreSign = score >= 55 ? 1 : score <= 45 ? -1 : 0
-            const netSign = net > 3 ? 1 : net < -3 ? -1 : 0
-            // 둘 다 뚜렷한 방향일 때 서로 반대면 안 됨.
-            if (scoreSign !== 0 && netSign !== 0) {
-              expect(
-                scoreSign,
-                `${p.birthDate} ${mo}월 ${k}: score ${score} vs Why-card net ${net} 모순`
-              ).toBe(netSign)
-            }
-          }
-        }
-      }
-    })
-
-    it('themeBreakdown (Why-card) exposes contributors with sane magnitude + no raw hanja', async () => {
-      const saju = calculateSajuData(
-        SEOUL_MALE_1995.birthDate,
-        SEOUL_MALE_1995.birthTime,
-        SEOUL_MALE_1995.gender,
-        'solar',
-        SEOUL_MALE_1995.timeZone
-      )
-      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
-      const cells = await buildCalendar(
-        natal,
-        {
-          start: '2026-05-01T00:00:00.000Z',
-          end: '2026-05-31T23:59:59.000Z',
-          granularity: 'day',
-        },
-        { includeEvidence: true }
-      )
-      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
-      const bd = interp.themeBreakdown ?? {}
-      const themes = (['love', 'money', 'career', 'health', 'growth'] as const).filter(
-        (k) => (bd[k]?.length ?? 0) > 0
-      )
-      // 적어도 한 테마는 인과 추적이 나와야 함
-      expect(themes.length).toBeGreaterThanOrEqual(1)
-      for (const k of themes) {
-        for (const c of bd[k]!) {
-          // delta 는 합리적 크기 (월 합산 폭주 방지 — 평균 기반)
-          expect(Math.abs(c.delta)).toBeLessThanOrEqual(60)
-          expect(Math.abs(c.delta)).toBeGreaterThan(0)
-          expect(c.dir === 'up' || c.dir === 'down').toBe(true)
-          // 라벨에 raw 한자 갑자(丙午 등)가 남으면 안 됨
-          expect(c.label, `hanja ganji leak: ${c.label}`).not.toMatch(
-            /[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]/
-          )
-        }
-      }
-    })
-
-    it('every cell has a cell.themeScores object (UI 그래프 contract)', async () => {
-      const saju = calculateSajuData(
-        SEOUL_MALE_1995.birthDate,
-        SEOUL_MALE_1995.birthTime,
-        SEOUL_MALE_1995.gender,
-        'solar',
-        SEOUL_MALE_1995.timeZone
-      )
-      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
-      const cells = await buildCalendar(
-        natal,
-        {
-          start: '2026-05-01T00:00:00.000Z',
-          end: '2026-05-07T23:59:59.000Z',
-          granularity: 'day',
-        },
-        { includeEvidence: true }
-      )
-      for (const c of cells) {
-        expect(c.themeScores).toBeDefined()
-        expect(typeof c.themeScores).toBe('object')
-      }
     })
   })
 
@@ -822,39 +690,6 @@ describe('calendar-engine regression', () => {
       expect(getGanjiTransitNarrative('XYZ', 'yearly', 'ko')).toBe('')
     })
 
-    it('domain narratives do not use 여기에/한편/추가로 connector cycle (Patch 2)', async () => {
-      const saju = calculateSajuData(
-        SEOUL_MALE_1995.birthDate,
-        SEOUL_MALE_1995.birthTime,
-        SEOUL_MALE_1995.gender,
-        'solar',
-        SEOUL_MALE_1995.timeZone
-      )
-      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
-      const cells = await buildCalendar(
-        natal,
-        {
-          start: '2026-05-01T00:00:00.000Z',
-          end: '2026-05-31T23:59:59.000Z',
-          granularity: 'day',
-        },
-        { includeEvidence: true }
-      )
-      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
-      // 도메인 단락 5개 모두 점검 — connector 사이클 ("여기에/한편/추가로/
-      // 또한/단,") 으로 시작하는 줄이 없어야 함. lifeReport 패턴 (줄바꿈 자체가
-      // 분리자) 으로 자연스럽게 합쳐졌는지 확인.
-      const domainSections = interp.sections.filter((s) => s.section.startsWith('domain-'))
-      expect(domainSections.length).toBeGreaterThanOrEqual(3)
-      const connectorRe = /^(여기에|한편|추가로|또한|단,)\s/m
-      for (const s of domainSections) {
-        const lines = s.text.split('\n')
-        for (const line of lines) {
-          expect(line, `connector leak in [${s.section}]: ${line}`).not.toMatch(connectorRe)
-        }
-      }
-    })
-
     it('shinsal cheoneul section names specific MM-DD dates (Phase 3)', async () => {
       const saju = calculateSajuData(
         SEOUL_MALE_1995.birthDate,
@@ -882,32 +717,6 @@ describe('calendar-engine regression', () => {
       expect(shinsal.text).toMatch(/\d{2}-\d{2}/)
       // {shinsalDates} placeholder 가 fillTemplate 안 되고 그대로 leak 되면 안 됨
       expect(shinsal.text).not.toMatch(/\{shinsalDates\}/)
-    })
-
-    it('domain body section dedups overlapping wellness rules (Patch 3)', async () => {
-      const saju = calculateSajuData(
-        SEOUL_MALE_1995.birthDate,
-        SEOUL_MALE_1995.birthTime,
-        SEOUL_MALE_1995.gender,
-        'solar',
-        SEOUL_MALE_1995.timeZone
-      )
-      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
-      const cells = await buildCalendar(
-        natal,
-        {
-          start: '2026-05-01T00:00:00.000Z',
-          end: '2026-05-31T23:59:59.000Z',
-          granularity: 'day',
-        },
-        { includeEvidence: true }
-      )
-      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
-      const body = interp.sections.find((s) => s.section === 'domain-body')
-      if (!body) return // No body section means nothing to dedup, test trivially passes
-      // "회복·치유에 우호적" 핵심 문구는 한 단락 안에 한 번만 등장해야 함.
-      const occurrences = (body.text.match(/회복·치유에 우호적/g) ?? []).length
-      expect(occurrences).toBeLessThanOrEqual(1)
     })
 
     it('consecutive days produce distinct daily ganji text (no 5월/6월 dup)', async () => {
@@ -1060,38 +869,6 @@ describe('calendar-engine regression', () => {
     })
   })
 
-  describe('domain date-line coverage (growth key fix)', () => {
-    it('자기·성장(domain-growth) section emits 강한 날 date lines like other domains', async () => {
-      const saju = calculateSajuData(
-        SEOUL_MALE_1995.birthDate,
-        SEOUL_MALE_1995.birthTime,
-        SEOUL_MALE_1995.gender,
-        'solar',
-        SEOUL_MALE_1995.timeZone
-      )
-      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
-      let checked = 0
-      for (const mo of [3, 5, 7]) {
-        const cells = await buildCalendar(
-          natal,
-          {
-            start: new Date(Date.UTC(2026, mo - 1, 1)).toISOString(),
-            end: new Date(Date.UTC(2026, mo, 0, 23, 59, 59)).toISOString(),
-            granularity: 'day',
-          },
-          { includeEvidence: true }
-        )
-        const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
-        const growth = interp.sections.find((s) => s.section === 'domain-growth')
-        if (!growth) continue
-        checked += 1
-        // 버그(키 'expression') 일 땐 themes=[] → 날짜 라인이 전혀 안 붙음.
-        expect(growth.text).toMatch(/특히 강한 날|주의 날/)
-      }
-      expect(checked).toBeGreaterThan(0)
-    })
-  })
-
   describe('Void-of-Course Moon timing rule', () => {
     // 주의: 테스트 환경은 swisseph 를 목킹(고정 위치)해 달이 안 움직임 → VoC 가
     // 실제로 발생하지 않음. 그래서 ephemeris 경유 대신 합성 VoC 신호를 직접
@@ -1101,7 +878,7 @@ describe('calendar-engine regression', () => {
       return {
         datetime: `${dayIso}T00:00:00.000Z`,
         derivedScore: 50,
-        themeScores: {},
+        salience: 0,
         matchedPatterns: [],
         topReasons: [],
         cautions: [],
@@ -1112,7 +889,6 @@ describe('calendar-engine regression', () => {
             kind: 'void-of-course',
             name: `Moon VoC (Aries)`,
             korean: `달 공전 — Aries`,
-            themes: [],
             polarity: -1,
             layer: 'daily',
             active: {
@@ -1159,74 +935,6 @@ describe('calendar-engine regression', () => {
       const interpEn = buildInterpretation({ natal, cells, scope: 'monthly', lang: 'en' })
       const timingEn = interpEn.sections.find((s) => s.section === 'timing')
       expect(timingEn!.text.toLowerCase()).toContain('void of course')
-    })
-  })
-
-  describe('theme weighting + ranking (영역바 변별)', () => {
-    const mkSignal = (over: Partial<ActiveSignal>): ActiveSignal =>
-      ({
-        id: 't',
-        source: 'astro',
-        kind: 'transit',
-        name: 'test',
-        themes: [],
-        polarity: 2,
-        layer: 'yearly',
-        active: { start: '2026-01-01', end: '2026-12-31' },
-        weight: 1,
-        evidence: { module: 'test' },
-        ...over,
-      }) as ActiveSignal
-
-    it('tagger weights a signal by theme 본령 (목성=일 본령 > 재물/성장 보조)', () => {
-      const { themes, weights } = tagSignalWithThemes(
-        mkSignal({ evidence: { module: 'test', planets: ['Jupiter'] } })
-      )
-      // 멤버십은 보존 (일/재물/성장 모두 포함)
-      expect(themes).toEqual(expect.arrayContaining(['career', 'money', 'growth']))
-      // 본령(career)이 보조(money/growth)보다 큰 가중 — 한 신호가 모든 테마에
-      // 동일 기여하던 동률 수렴 방지.
-      expect(weights.career).toBe(1)
-      expect(weights.career!).toBeGreaterThan(weights.money!)
-      expect(weights.career!).toBeGreaterThan(weights.growth!)
-    })
-
-    it('순서 있는 사주 매핑은 첫 테마가 primary(1.0), 이후 보조(<1)', () => {
-      // 정재 → ['money','love'] : money primary
-      const { weights } = tagSignalWithThemes(
-        mkSignal({ source: 'saju', evidence: { module: 'test', sibsin: '정재' } })
-      )
-      expect(weights.money).toBe(1)
-      expect(weights.love!).toBeLessThan(weights.money!)
-    })
-
-    it('themeRanking 은 점수 내림차순 정렬로 노출 (UI 상대표시용)', async () => {
-      const saju = calculateSajuData(
-        SEOUL_MALE_1995.birthDate,
-        SEOUL_MALE_1995.birthTime,
-        SEOUL_MALE_1995.gender,
-        'solar',
-        SEOUL_MALE_1995.timeZone
-      )
-      const natal = await buildNatalContext(SEOUL_MALE_1995, { saju })
-      const cells = await buildCalendar(
-        natal,
-        {
-          start: '2026-05-01T00:00:00.000Z',
-          end: '2026-05-31T23:59:59.000Z',
-          granularity: 'day',
-        },
-        { includeEvidence: true }
-      )
-      const interp = buildInterpretation({ natal, cells, scope: 'monthly' })
-      const ranking = interp.themeRanking ?? []
-      expect(ranking.length).toBeGreaterThanOrEqual(5)
-      for (let i = 1; i < ranking.length; i++) {
-        expect(ranking[i - 1].score).toBeGreaterThanOrEqual(ranking[i].score)
-        expect(ranking[i].rank).toBe(i + 1)
-      }
-      // 점수와 정합
-      for (const r of ranking) expect(interp.themeScores?.[r.theme]).toBe(r.score)
     })
   })
 

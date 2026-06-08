@@ -451,7 +451,6 @@ function makeSignal(args: MakeSignalArgs): ActiveSignal {
     name: args.name,
     ...(korean ? { korean } : {}),
     ...(english ? { english } : {}),
-    themes: [], // tagger가 polarity 기반으로 폴백
     polarity: args.polarity,
     layer: 'daily',
     active: { start: args.startIso, peak: args.peakIso, end: args.endIso },

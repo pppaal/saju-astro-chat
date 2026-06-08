@@ -280,6 +280,5 @@ export const ZODIAC_TO_ELEMENT: Record<string, string> = {
 
 // FortuneArea + AREA_CONFIG (6축: career/wealth/love/health/study/travel)
 // 통째 제거 (2026-06-06): caller 0 — 옛 destiny-map 영역 점수 시스템 잔재.
-// 점수축 SSOT 는 src/lib/astrology/themes/types.ts 의 AstroThemeKey
-// (5축: love/money/career/health/growth) — 캘린더 + destinypal 카드 모두
-// 그쪽 import 함. 6축 의문 사라짐.
+// 5버킷 테마(love/money/career/health/growth) 점수·표시 축도 이후 폐기됨
+// (2026-06-08): 캘린더는 흐름(derivedScore)+교차 중심. 영역별 점수 축 없음.

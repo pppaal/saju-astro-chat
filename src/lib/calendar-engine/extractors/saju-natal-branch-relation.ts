@@ -306,7 +306,6 @@ function makeSignal(args: MakeSignalArgs): ActiveSignal {
     // 정통 해석문 우선 — 없으면 라벨(args.korean) 폴백.
     korean: relationDictMeaning(args, 'ko') ?? args.korean,
     ...(relationDictMeaning(args, 'en') ? { english: relationDictMeaning(args, 'en')! } : {}),
-    themes: [],
     polarity: args.polarity,
     layer: 'daily',
     active: { start: args.startIso, peak: args.peakIso, end: args.endIso },

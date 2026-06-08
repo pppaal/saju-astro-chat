@@ -40,7 +40,6 @@ const astroReturnExtractor: SignalExtractor = {
           name: `Solar Return ${year}`,
           korean: `${year}년 솔라리턴 — 올해 전체의 기본 톤을 여는 생일 차트예요 (ASC ${sr.ascendant.sign})`,
           english: `${year} Solar Return — the birthday chart that sets the whole year's baseline tone (ASC ${sr.ascendant.sign})`,
-          themes: [],
           polarity: 0,
           layer: 'yearly',
           active: {
@@ -81,7 +80,6 @@ const astroReturnExtractor: SignalExtractor = {
           name: `Lunar Return ${year}-${month}`,
           korean: `${year}년 ${month}월 루나리턴 — 이달의 감정·리듬이 새로 시작되는 28일 주기점이에요`,
           english: `${year}-${month} Lunar Return — the 28-day reset point where this month's emotional rhythm begins anew`,
-          themes: [],
           polarity: 0,
           layer: 'monthly',
           active: {

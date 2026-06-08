@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { scoreToGrade } from '@/lib/calendar-engine/derivers/grade'
-import { themeScoresToCategories } from '@/lib/calendar-engine/derivers/categories'
 
 describe('scoreToGrade (v2 deriver)', () => {
   it('matches the calibrated thresholds (74/64/46/33)', () => {
@@ -37,44 +36,5 @@ describe('scoreToGrade (v2 deriver)', () => {
       }
     }
     expect(total).toBeGreaterThan(1000) // 3 프로필 × 365
-  })
-})
-
-describe('themeScoresToCategories (v2 deriver)', () => {
-  it('always includes the single strongest theme', () => {
-    expect(themeScoresToCategories({ love: 80, money: 20, career: 10 })).toEqual(['love'])
-  })
-
-  it('includes near-tied leaders within the gap, above the floor', () => {
-    // career 72 / money 68 (gap 4, both ≥50) → 둘 다
-    expect(themeScoresToCategories({ career: 72, money: 68, love: 30 })).toEqual(['career', 'money'])
-  })
-
-  it('drops weak themes even if within gap when below floor', () => {
-    // career 48 top, money 45 — gap 3 이지만 둘 다 floor(50) 미만 → top 만
-    expect(themeScoresToCategories({ career: 48, money: 45 })).toEqual(['career'])
-  })
-
-  it('caps at MAX_CATEGORIES and returns a subset of the 5 themes', () => {
-    const cats = themeScoresToCategories({
-      career: 90,
-      money: 88,
-      love: 85,
-      health: 84,
-      growth: 83,
-    })
-    expect(cats.length).toBeLessThanOrEqual(3)
-    for (const c of cats) expect(['love', 'money', 'career', 'health', 'growth']).toContain(c)
-  })
-
-  it('is deterministic and stable on ties', () => {
-    const a = themeScoresToCategories({ career: 60, money: 60, love: 60 })
-    const b = themeScoresToCategories({ love: 60, money: 60, career: 60 })
-    expect(a).toEqual(b) // 입력 순서 무관
-  })
-
-  it('returns empty for all-zero themes', () => {
-    expect(themeScoresToCategories({})).toEqual([])
-    expect(themeScoresToCategories({ love: 0, money: 0 })).toEqual([])
   })
 })

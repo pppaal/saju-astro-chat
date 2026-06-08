@@ -208,7 +208,6 @@ const sajuShinsalExtractor: SignalExtractor = {
           name: hit.kind,
           ...(shinsalFlowLine(hit.kind) ? { korean: shinsalFlowLine(hit.kind) } : {}),
           ...(shinsalFlowLineEn(hit.kind) ? { english: shinsalFlowLineEn(hit.kind) } : {}),
-          themes: [], // tagger가 SHINSAL_THEME_MAP으로 채움
           polarity,
           layer: 'daily',
           active: { start: startIso, peak: peakIso, end: endIso },
