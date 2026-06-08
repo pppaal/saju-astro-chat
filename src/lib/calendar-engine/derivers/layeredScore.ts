@@ -43,8 +43,8 @@ export interface LayeredScores {
 
 const DAY_LAYERS: ReadonlySet<SignalLayer> = new Set(['daily', 'hourly', 'instant'])
 
-/** 지배 top-k 신호의 부호 실은 희소×중요 합. */
-function signedSurprise(signals: ActiveSignal[], rates: BaseRateTable, topK = 8): number {
+/** 지배 top-k 신호의 부호 실은 희소×중요 합. (도메인 deriver 등 재사용) */
+export function signedSurprise(signals: ActiveSignal[], rates: BaseRateTable, topK = 8): number {
   const scored = signals
     .map((s) => ({ imp: signalImportance(s, rates), pol: s.polarity }))
     .filter((x) => x.imp > 0)
@@ -54,7 +54,7 @@ function signedSurprise(signals: ActiveSignal[], rates: BaseRateTable, topK = 8)
 }
 
 /** signed 배열 → (v) => 0~100 점수. 평균 중심 + 표준편차 스케일(분포 강제 아님). */
-function linearMapper(values: number[]): (v: number) => number {
+export function linearMapper(values: number[]): (v: number) => number {
   const n = values.length
   if (n === 0) return () => 50
   const mean = values.reduce((a, b) => a + b, 0) / n

@@ -21,6 +21,7 @@ import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/ap
 import { normalizeGender } from '@/lib/utils/gender'
 import { nowInTimezone } from '@/lib/utils/timezone'
 import { cellsToImportantDates } from './lib/cellsToImportantDates'
+import { deriveDomainScores } from '@/lib/calendar-engine/derivers/domainScore'
 
 import {
   getPillarStemName,
@@ -854,8 +855,33 @@ export const GET = withApiMiddleware(
           : presentationView.daySummary.summary,
     })
 
+    // 도메인(재물·애정·직업·학업·건강)별 베스트 날 + 이유 — 영역 신호 필터 + 같은
+    // signed-surprise. 테마 태깅 없이 사전 지식(DOMAIN_BUCKETS)으로 영역 판정.
+    const domainHighlights = (() => {
+      try {
+        const domGender: 'male' | 'female' =
+          normalizeGender(gender) === 'female' ? 'female' : 'male'
+        const dom = deriveDomainScores(prescoreCells, domGender)
+        const cellByDate = new Map(prescoreCells.map((c) => [c.datetime.slice(0, 10), c]))
+        const useEn = locale === 'en'
+        return Object.values(dom).map((d) => ({
+          key: d.key,
+          label: d.ko,
+          best: d.best.map((b) => {
+            const cell = cellByDate.get(b.date)
+            const reasons =
+              (useEn ? cell?.topReasonsEn : cell?.topReasons) ?? cell?.topReasons ?? []
+            return { date: b.date, score: b.score, grade: b.grade, reasons: reasons.slice(0, 2) }
+          }),
+        }))
+      } catch {
+        return undefined
+      }
+    })()
+
     const responsePayload = normalizeMojibakePayload({
       success: true,
+      domains: domainHighlights,
       predictionId,
       type: 'yearly',
       year,
