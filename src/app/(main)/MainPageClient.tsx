@@ -309,7 +309,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           <p className={styles.homeSubline}>
             {locale === 'ko'
               ? '생년월일을 입력하고, 궁금한 점을 자유롭게 물어보세요'
-              : 'Enter your birth info, then ask anything'}
+              : 'Enter your birth details, then ask anything'}
           </p>
         </section>
 
@@ -333,7 +333,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           ) : (
             <button type="button" className={styles.homeBirthCta} onClick={handleOpenBirth}>
               <span aria-hidden="true">📅</span>
-              {locale === 'ko' ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth date'}
+              {locale === 'ko' ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth details'}
             </button>
           )}
         </div>

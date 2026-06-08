@@ -42,7 +42,7 @@ const creditPacks: CreditPackDisplay[] = (
 
 const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8']
 const PRICING_FALLBACKS: Record<string, string> = {
-  heroTitle: 'Pricing for Your Destiny',
+  heroTitle: 'Simple, Pay-As-You-Go Pricing',
   heroSub: 'Pay only for what you use. No subscription, no auto-renewal.',
   paymentError: 'Payment service temporarily unavailable',
 }
