@@ -27,6 +27,12 @@ import {
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { SIGN_KO_TO_EN, PLANET_LABEL, ELEMENT_LABEL } from './chartLabels'
 import { iga, eulReul, eunNeun, waGwa } from '@/lib/i18n/koParticle'
+import { getPlanetCore } from '@/lib/chart-dictionary'
+
+/** 행성의 쉬운 말 결(원리) — 예: 토성 '한계·책임·구조'. 없으면 행성명 폴백. */
+function planetTheme(planet: string, lang: Lang): string {
+  return getPlanetCore(planet, lang)?.principle ?? PLANET_LABEL[planet]?.[lang] ?? planet
+}
 
 export type CrossTone = 'resonant' | 'complement' | 'tension' | 'neutral'
 export type Lang = 'ko' | 'en'
@@ -180,27 +186,29 @@ export function evalSocialRole(
   if (!planet) return null
   const en = toEnSign(mcSign)
   const dig = en ? dignityOf(planet, en) : 'peregrine'
+  const tk = planetTheme(planet, 'ko')
+  const te = planetTheme(planet, 'en')
   if (dig === 'domicile' || dig === 'exaltation')
     return {
       tone: 'resonant',
       reason: {
-        ko: '타고난 성향이 직업·사회적 위치에서도 그대로 강점으로 드러나요 — 일에서 신뢰받기 좋은 사람.',
-        en: 'Your natural bent shows up as a strength in work and status — easy to be trusted on the job.',
+        ko: `타고난 ${tk} 성향이 직업·사회 자리에서 그대로 강점으로 드러나요 — 일에서 신뢰받기 좋아요.`,
+        en: `Your natural ${te} bent shows up as a strength in work and status — easy to be trusted.`,
       },
     }
   if (dig === 'detriment' || dig === 'fall')
     return {
       tone: 'tension',
       reason: {
-        ko: '타고난 성향과 사회가 기대하는 역할이 살짝 어긋나서, 직업에서 "이게 맞나" 고민이 생길 수 있어요.',
-        en: 'Your nature and the role society expects don’t quite match — work can raise doubts.',
+        ko: `타고난 ${tk} 성향과 사회가 기대하는 역할이 살짝 어긋나, 직업에서 "이게 맞나" 고민이 생길 수 있어요.`,
+        en: `Your ${te} nature and the role society expects don’t quite match — work can raise doubts.`,
       },
     }
   return {
     tone: 'complement',
     reason: {
-      ko: '타고난 성향을 사회생활이 다른 방식으로 넓혀줘요 — 일하면서 새로운 면이 열리는 타입.',
-      en: 'Work and status stretch your nature in a new direction — fresh sides open up on the job.',
+      ko: `타고난 ${tk} 성향을 사회생활이 다른 방식으로 넓혀줘요 — 일하며 새 면이 열리는 타입.`,
+      en: `Work stretches your ${te} nature in a new direction — fresh sides open up on the job.`,
     },
   }
 }
@@ -281,20 +289,22 @@ export function evalStrength(
   const sajuStrong = twelveStage ? STRONG_STAGES.has(twelveStage) : false
   const sajuWeak = twelveStage ? WEAK_STAGES.has(twelveStage) : false
   const astroStrong = !!topDignity
+  const stk = topDignity ? planetTheme(topDignity.planet, 'ko') : ''
+  const ste = topDignity ? planetTheme(topDignity.planet, 'en') : ''
   if (sajuStrong && astroStrong)
     return {
       tone: 'resonant',
       reason: {
-        ko: '타고난 힘이 가장 셀 자리에 있고 별자리 쪽 강점도 겹쳐요 — 자기 분야에서 두각 내기 좋은 사람.',
-        en: 'Your power sits at its strongest and your chart’s strength stacks on top — built to stand out.',
+        ko: `타고난 힘이 가장 셀 자리에 있고, 별자리에선 ${stk} 쪽이 특히 강해요 — 그 분야에서 두각 내기 좋은 사람.`,
+        en: `Your power sits at its strongest, and in your chart the ${ste} side is especially strong — built to stand out there.`,
       },
     }
   if (astroStrong)
     return {
       tone: 'complement',
       reason: {
-        ko: '별자리 쪽에 뚜렷한 강점이 하나 있어요 — 그 분야에서 힘을 발휘하기 좋아요.',
-        en: 'There’s one clear strength in your chart — a place you can really deliver.',
+        ko: `별자리에서 ${stk} 쪽이 가장 힘 있는 자리예요 — 그 분야에서 힘을 발휘하기 좋아요.`,
+        en: `In your chart the ${ste} side is your strongest placement — a place you can really deliver.`,
       },
     }
   if (sajuStrong)
