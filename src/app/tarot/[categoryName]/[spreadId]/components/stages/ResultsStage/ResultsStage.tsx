@@ -69,7 +69,6 @@ export interface ResultsStageProps {
   userTopic: string
   questionAnalysis: TarotQuestionAnalysisSnapshot | null
   isGuestUser: boolean
-  signInUrl: string
   handleCardReveal: (index: number) => void
   canRevealCard: (index: number) => boolean
   isCardRevealed: (index: number) => boolean
@@ -102,7 +101,6 @@ export function ResultsStage(props: ResultsStageProps) {
     userTopic,
     questionAnalysis,
     isGuestUser,
-    signInUrl,
     handleCardReveal,
     canRevealCard,
     isCardRevealed,
@@ -149,22 +147,6 @@ export function ResultsStage(props: ResultsStageProps) {
           translate={translate}
           questionAnalysis={questionAnalysis}
         />
-
-        {isGuestUser && (
-          <section className="rounded-2xl bg-amber-500/5 border border-amber-500/20 p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-            <p className="text-sm text-amber-200/90">
-              {isKo
-                ? '이번 무료 1회 리딩은 완료되었습니다. 추가 질문과 다음 리딩은 로그인 후 이어서 볼 수 있습니다.'
-                : 'Your free guest reading is complete. Sign in to continue with more questions and another reading.'}
-            </p>
-            <Link
-              href={signInUrl}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-100 text-sm font-medium transition-colors whitespace-nowrap"
-            >
-              {isKo ? '로그인하고 계속 보기' : 'Sign In To Continue'}
-            </Link>
-          </section>
-        )}
 
         {/* 저장 상태 — 자동 저장이 (모바일 일시 오류 등으로) 실패해도 사용자가
             직접 만회할 수 있게 상태 + 수동 저장 버튼 노출. 로그인 사용자 +

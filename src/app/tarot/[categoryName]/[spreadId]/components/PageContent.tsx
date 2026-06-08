@@ -172,7 +172,6 @@ export function PageContent(props: PageContentProps) {
         userTopic={props.userTopic}
         questionAnalysis={props.questionAnalysis}
         isGuestUser={props.isGuestUser}
-        signInUrl={props.signInUrl}
         handleCardReveal={props.handleCardReveal}
         canRevealCard={props.canRevealCard}
         isCardRevealed={props.isCardRevealed}

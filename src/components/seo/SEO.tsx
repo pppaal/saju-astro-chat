@@ -439,7 +439,7 @@ export const SERVICE_FAQS = {
     {
       question: 'Can I try DestinyPal for free?',
       answer:
-        'Yes. New users receive sign-up bonus credits, and a free guest tarot reading lets you try a reading before purchasing anything.',
+        'Yes. Sign in to receive sign-up bonus credits, so you can try a reading before purchasing anything.',
     },
     {
       question: 'Can I get a refund?',
