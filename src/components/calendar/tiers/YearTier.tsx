@@ -97,8 +97,7 @@ function formatDignity(d: DestinyDignityEntry): {
   const score = d.score ?? 0
   const tone: 'pos' | 'neg' | 'neu' = score > 0 ? 'pos' : score < 0 ? 'neg' : 'neu'
   const flagText = flags.length > 0 ? flags.join(' · ') : 'peregrine'
-  const scoreText = score === 0 ? '0' : score > 0 ? `+${score}` : `${score}`
-  return { text: `${flagText} · ${scoreText}`, tone }
+  return { text: flagText, tone }
 }
 
 /** 본명 dignities 에서 행성 검색 (룰러 영문명). */

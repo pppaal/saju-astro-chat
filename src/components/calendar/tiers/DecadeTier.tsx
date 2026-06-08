@@ -381,7 +381,6 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                   className={`${styles.yearCell} ${y.now ? styles.yearCellNow : ''}`}
                 >
                   <div className={styles.yearBar} style={{ height: `${barH}px` }} />
-                  <div className={styles.yearScore}>{y.score}</div>
                   <div className={styles.yearGanji}>
                     <span className={styles.yearHan}>{y.gz.hanja}</span>
                   </div>

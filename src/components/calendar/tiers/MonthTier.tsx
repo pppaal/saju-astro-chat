@@ -516,7 +516,6 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
           const cellStyle: CSSProperties = { background: g.bg }
           const titleParts = [c.ds]
           if (renderedMark) titleParts.push(renderedMark)
-          if (typeof c.score === 'number') titleParts.push(`score ${c.score}`)
           if (isVoc) titleParts.push('void-of-course')
           const title = titleParts.join(' · ')
 
@@ -670,7 +669,6 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
                   BEST
                 </span>
                 <span className={styles.eventDate}>{month.bestDay.date}</span>
-                <span className={styles.eventScore}>score {month.bestDay.score}</span>
               </div>
             )}
             {month.avoidDays.length > 0 && (
@@ -744,7 +742,6 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
             <div className={[styles.eyebrow, styles.eyebrowEmber].join(' ')}>
               수렴 일 · 두 시스템이 함께 강한 날
             </div>
-            <span className={styles.tiny}>score {month.converge.score}</span>
           </div>
           <div className={styles.convergeDateRow}>
             <span className={styles.convergeDate}>

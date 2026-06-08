@@ -192,7 +192,7 @@ function ScoreDial({ score, label = '오늘' }: { score: number; label?: string 
         />
       </svg>
       <div className={styles.sdNum}>
-        <b>{score}</b>
+        <b>{score >= 60 ? '순풍' : score >= 35 ? '평이' : '역풍'}</b>
         <span>{label}</span>
       </div>
     </div>
@@ -476,7 +476,9 @@ function HourBreakdown({ hours24 }: { hours24: HourSlot[] | undefined }) {
               <span className={styles.hourGlow} />
               <span className={styles.hourBranch}>{s.branch}</span>
               <span className={styles.hourLabel}>{hourLabelKo(s.hour)}</span>
-              <span className={styles.hourScore}>{s.score}</span>
+              <span className={styles.hourScore}>
+                {s.score >= 60 ? '▲' : s.score <= 35 ? '▽' : '·'}
+              </span>
             </div>
           )
         })}
