@@ -273,6 +273,27 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       </div>
 
       {/* ============================================================
+          인생 유형 — 신강약 기준 대운 흐름 (대기만성/초년발복/…)
+      ============================================================ */}
+      {lifetime.lifePattern && (
+        <div className={styles.block}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>인생 유형 · {lifetime.lifePattern.ko}</h2>
+            <span className={styles.tiny}>신강약 기준 대운 흐름</span>
+          </div>
+          <p className={styles.lead}>{lifetime.lifePattern.line}</p>
+          <div className={styles.daewoonRow}>
+            {lifetime.lifePattern.daeun.map((d, i) => (
+              <span className={styles.daewoonCell} key={`${d.startAge}-${i}`}>
+                <span className={styles.tiny}>{d.startAge}</span>
+                <span aria-hidden>{d.favor > 0 ? '↑' : d.favor < 0 ? '↓' : '·'}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================
           constellation of life stages
       ============================================================ */}
       <div className={styles.block}>

@@ -157,4 +157,16 @@ export interface DestinyLifetime {
   zrSpiritChapters: DestinyZRChapter[]
   /** ZR L1 Fortune 챕터 시퀀스 — 몸·물질·체질. */
   zrFortuneChapters: DestinyZRChapter[]
+  /** 인생 유형(신강약 기준 대운 흐름) — 대기만성/초년발복/… 한 줄 + 대운 방향. */
+  lifePattern?: DestinyLifePattern
+}
+
+export interface DestinyLifePattern {
+  key: string
+  /** 한국어 유형명 — 대기만성형/초년발복형/… */
+  ko: string
+  /** 한 줄 서사. */
+  line: string
+  /** 대운별 우호 방향 (−2~+2). */
+  daeun: Array<{ startAge: number; gz: string; favor: number }>
 }

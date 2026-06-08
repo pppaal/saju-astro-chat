@@ -30,6 +30,7 @@ import type {
   DestinyLifeStageDetail,
 } from '@/types/calendar'
 
+import { deriveLifePattern } from '@/lib/calendar-engine/derivers/lifePattern'
 import { toDaewoon } from './toDaewoon'
 import { toLifeStages } from './toLifeStages'
 import { toMilestones } from './toMilestones'
@@ -181,6 +182,17 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
       )
     : []
 
+  // 인생 유형 — 신강약 기준 대운 흐름(대기만성/초년발복/…).
+  const lp = deriveLifePattern(natal.saju as never)
+  const lifePattern = lp
+    ? {
+        key: lp.key,
+        ko: lp.ko,
+        line: lp.line,
+        daeun: lp.daeun.map((d) => ({ startAge: d.startAge, gz: d.gz, favor: d.favor })),
+      }
+    : undefined
+
   return {
     birthYear: opts.birthYear,
     currentYear: opts.currentYear,
@@ -189,5 +201,6 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     milestones,
     zrSpiritChapters,
     zrFortuneChapters,
+    lifePattern,
   }
 }
