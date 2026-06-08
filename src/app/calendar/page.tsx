@@ -250,6 +250,10 @@ export default async function DestinypalPage() {
   function pickElement(hanja: string, fallback: Record<string, FE>): FE {
     return fallback[hanja] ?? '목'
   }
+  // 유효한 사주면 대운은 항상 계산된다. null 이면 입력/계산이 깨진 것 — fail-loud.
+  if (!decadeAdapter) {
+    throw new Error('대운 계산 실패: 유효한 사주인데 대운 리스트가 비었습니다 (불변식 위반).')
+  }
   const decade: DestinyDecade & {
     crossActivations?: Array<{
       signalId: string
@@ -260,95 +264,68 @@ export default async function DestinypalPage() {
       meaning?: string
     }>
     geokgukStatus?: string
-  } = decadeAdapter
-    ? {
-        gz: decadeAdapter.gz,
-        start: decadeAdapter.start,
-        end: decadeAdapter.end,
-        ageFrom: decadeAdapter.ageFrom,
-        ageTo: decadeAdapter.ageTo,
-        sibsin: decadeAdapter.sibsin,
-        theme: decadeAdapter.theme,
-        themeEn: decadeAdapter.themeEn,
-        headline: decadeAdapter.headline,
-        pillar: {
-          cheongan: {
-            hanja: decadeAdapter.pillar.cheongan.hanja,
-            sibsin: decadeAdapter.pillar.cheongan.sibsin,
-            el: decadeAdapter.pillar.cheongan.el,
-            element: pickElement(decadeAdapter.pillar.cheongan.hanja, STEM_EL_FALLBACK),
-            note: decadeAdapter.pillar.cheongan.note ?? '',
-          },
-          jiji: {
-            hanja: decadeAdapter.pillar.jiji.hanja,
-            sibsin: decadeAdapter.pillar.jiji.sibsin,
-            el: decadeAdapter.pillar.jiji.el,
-            element: pickElement(decadeAdapter.pillar.jiji.hanja, BRANCH_EL_FALLBACK),
-            note: decadeAdapter.pillar.jiji.note ?? '',
-          },
+  } = {
+    gz: decadeAdapter.gz,
+    start: decadeAdapter.start,
+    end: decadeAdapter.end,
+    ageFrom: decadeAdapter.ageFrom,
+    ageTo: decadeAdapter.ageTo,
+    sibsin: decadeAdapter.sibsin,
+    theme: decadeAdapter.theme,
+    themeEn: decadeAdapter.themeEn,
+    headline: decadeAdapter.headline,
+    pillar: {
+      cheongan: {
+        hanja: decadeAdapter.pillar.cheongan.hanja,
+        sibsin: decadeAdapter.pillar.cheongan.sibsin,
+        el: decadeAdapter.pillar.cheongan.el,
+        element: pickElement(decadeAdapter.pillar.cheongan.hanja, STEM_EL_FALLBACK),
+        note: decadeAdapter.pillar.cheongan.note ?? '',
+      },
+      jiji: {
+        hanja: decadeAdapter.pillar.jiji.hanja,
+        sibsin: decadeAdapter.pillar.jiji.sibsin,
+        el: decadeAdapter.pillar.jiji.el,
+        element: pickElement(decadeAdapter.pillar.jiji.hanja, BRANCH_EL_FALLBACK),
+        note: decadeAdapter.pillar.jiji.note ?? '',
+      },
+    },
+    sewoonNow: decadeAdapter.sewoonNow
+      ? {
+          gz: decadeAdapter.sewoonNow.gz,
+          sibsin: decadeAdapter.sewoonNow.sibsin,
+          year: TARGET_YEAR,
+        }
+      : {
+          gz: decadeAdapter.gz,
+          sibsin: decadeAdapter.sibsin,
+          year: TARGET_YEAR,
         },
-        sewoonNow: decadeAdapter.sewoonNow
-          ? {
-              gz: decadeAdapter.sewoonNow.gz,
-              sibsin: decadeAdapter.sewoonNow.sibsin,
-              year: TARGET_YEAR,
-            }
-          : {
-              gz: decadeAdapter.gz,
-              sibsin: decadeAdapter.sibsin,
-              year: TARGET_YEAR,
-            },
-        years: decadeAdapter.years,
-        body: decadeAdapter.body,
-        hapchung: {
-          title: decadeAdapter.hapchung.title,
-          romaji: decadeAdapter.hapchung.romaji,
-          body: decadeAdapter.hapchung.body,
-        },
-        unseong: {
-          title: decadeAdapter.unseong.title,
-          romaji: decadeAdapter.unseong.romaji,
-          body: decadeAdapter.unseong.body,
-        },
-        astro: decadeAdapter.astro.map((a) => ({
-          label: a.label,
-          date: a.date,
-          body: a.body,
-          kind: a.kind ?? '',
-        })),
-        narrative: decadeAdapter.narrative,
-        focusYear: decadeAdapter.focusYear,
-        zrSpiritChapters: [],
-        zrFortuneChapters: [],
-        crossActivations: decadeAdapter.crossActivations,
-        geokgukStatus: decadeAdapter.geokgukStatus,
-      }
-    : {
-        gz: { hanja: '—', kr: '—', en: '—' },
-        start: TARGET_YEAR,
-        end: TARGET_YEAR + 10,
-        ageFrom: currentAge,
-        ageTo: currentAge + 10,
-        sibsin: '—',
-        theme: '대운 정보 준비 중',
-        themeEn: 'Decade pending',
-        headline: '대운 정보가 아직 준비되지 않았습니다.',
-        pillar: {
-          cheongan: { hanja: '—', sibsin: '—', el: '—', element: '목', note: '' },
-          jiji: { hanja: '—', sibsin: '—', el: '—', element: '목', note: '' },
-        },
-        sewoonNow: { gz: { hanja: '—', kr: '—', en: '—' }, sibsin: '—', year: TARGET_YEAR },
-        years: [],
-        body: [],
-        hapchung: { title: '—', body: '' },
-        unseong: { title: '—', body: '' },
-        astro: [],
-        narrative: [],
-        focusYear: TARGET_YEAR,
-        zrSpiritChapters: [],
-        zrFortuneChapters: [],
-        crossActivations: [],
-      }
+    years: decadeAdapter.years,
+    body: decadeAdapter.body,
+    hapchung: {
+      title: decadeAdapter.hapchung.title,
+      romaji: decadeAdapter.hapchung.romaji,
+      body: decadeAdapter.hapchung.body,
+    },
+    unseong: {
+      title: decadeAdapter.unseong.title,
+      romaji: decadeAdapter.unseong.romaji,
+      body: decadeAdapter.unseong.body,
+    },
+    astro: decadeAdapter.astro.map((a) => ({
+      label: a.label,
+      date: a.date,
+      body: a.body,
+      kind: a.kind ?? '',
+    })),
+    narrative: decadeAdapter.narrative,
+    focusYear: decadeAdapter.focusYear,
+    zrSpiritChapters: [],
+    zrFortuneChapters: [],
+    crossActivations: decadeAdapter.crossActivations,
+    geokgukStatus: decadeAdapter.geokgukStatus,
+  }
 
   const yearAdapter = toYear(natal, {
     year: TARGET_YEAR,
