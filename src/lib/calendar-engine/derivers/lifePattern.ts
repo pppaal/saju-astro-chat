@@ -79,20 +79,20 @@ interface SajuLike {
 const PATTERN_KO: Record<LifePatternKey, { ko: string; line: string }> = {
   'late-bloomer': {
     ko: '대기만성형',
-    line: '젊을 때 힘이 부치다가 중년 이후 내 편이 붙어 늦게 단단해지는 결이에요.',
+    line: '젊을 때는 좀 고생해도, 마흔 넘어가면서 자리 잡고 늦게 잘 풀리는 편이에요.',
   },
   'early-peak': {
     ko: '초년발복형',
-    line: '일찍 기운이 트여 앞서 나가고, 후반엔 지킴·정리가 중요해지는 결이에요.',
+    line: '젊을 때 빨리 자리 잡는 편이고, 나이 들수록 무리하기보다 지키는 게 나아요.',
   },
   'midlife-peak': {
     ko: '중년절정형',
-    line: '중년에 무대가 가장 크게 열리는 결 — 그 시기에 승부를 거는 타입이에요.',
+    line: '마흔~쉰 무렵에 가장 크게 풀려요. 그때 승부를 보면 좋아요.',
   },
-  'steady-rise': { ko: '점진상승형', line: '나이 들수록 차근차근 올라가는 결이에요.' },
-  smooth: { ko: '순탄형', line: '큰 굴곡 없이 고르게 흐르는 결이에요.' },
-  hard: { ko: '인고형', line: '전반적으로 버티며 다지는 결 — 환경보다 내공으로 가는 타입이에요.' },
-  undulating: { ko: '굴곡형', line: '오르내림이 번갈아 오는 결 — 시기를 골라 움직이면 좋아요.' },
+  'steady-rise': { ko: '점진상승형', line: '나이 들수록 조금씩 좋아지는 편이에요.' },
+  smooth: { ko: '순탄형', line: '큰 굴곡 없이 무난하게 흘러가는 편이에요.' },
+  hard: { ko: '인고형', line: '전반적으로 쉽지 않아서, 버티면서 단단해지는 편이에요.' },
+  undulating: { ko: '굴곡형', line: '좋을 때와 힘들 때가 번갈아 와요. 타이밍을 잘 보면 좋아요.' },
 }
 
 export function deriveLifePattern(saju: SajuLike): LifePattern | null {
