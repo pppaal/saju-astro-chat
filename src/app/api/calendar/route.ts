@@ -472,11 +472,9 @@ export const GET = withApiMiddleware(
       },
     })
 
-    // 카테고리 필터링
-    let filteredDates = localDates
-    if (category) {
-      filteredDates = localDates.filter((d) => d.categories.includes(category))
-    }
+    // 카테고리(5버킷 테마) 축 제거 — d.categories 폐기로 날짜 필터는 미적용.
+    // category 파라미터는 아래 presentation focusDomain / 예측 스냅샷 theme 로만 쓰인다.
+    const filteredDates = localDates
     // matrix context 제거로 regrade 함수는 noop (즉시 return date) → 호출 자체 제거.
     const matrixRegradedDates = [...filteredDates].sort((a, b) => {
       if (a.grade !== b.grade) return a.grade - b.grade
@@ -669,16 +667,6 @@ export const GET = withApiMiddleware(
         }
         ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
         monthlyInterp = interp
-        // ★ themeScores 동기화 — interp.themeScores(룰 의도 기반)를
-        //   cells에 overwrite. UI 그래프(love/wealth/health 바)가
-        //   cell.themeScores 읽으므로, narrative와 점수가 같은 모델로
-        //   계산됨. cell의 신호 기반 themeScores와 narrative 톤 사이
-        //   mismatch 해소.
-        if (interp.themeScores) {
-          for (const cell of ceCells) {
-            cell.themeScores = { ...cell.themeScores, ...interp.themeScores }
-          }
-        }
       } catch (err) {
         logger.warn?.('[interpretation] skipped:', err instanceof Error ? err.message : String(err))
       }
@@ -735,7 +723,6 @@ export const GET = withApiMiddleware(
           d.matchedPatterns = cell.matchedPatterns.map((p) => ({
             id: p.id,
             name: (useEn ? p.nameEn : undefined) ?? p.name,
-            themes: p.themes,
             strength: p.strength,
             description: (useEn ? p.descriptionEn : undefined) ?? p.description,
             headline: (useEn ? p.headlineEn : undefined) ?? p.headline,
@@ -756,17 +743,12 @@ export const GET = withApiMiddleware(
               kind: s.kind,
               name: s.name,
               korean: s.korean,
-              themes: s.themes,
               polarity: s.polarity,
               layer: s.layer,
               weight: s.weight,
             }))
           }
         }
-        if (Object.keys(cell.themeScores).length > 0) {
-          d.themeScores = cell.themeScores
-        }
-
         // [단계 2b] 패턴 기반 v2 서사·신뢰지표로 덮어쓰기 — 점수와 같은 셀 출처로 정합.
         const v2 = v2ByDate.get(d.date.slice(0, 10))
         if (v2) {
@@ -906,18 +888,10 @@ export const GET = withApiMiddleware(
       },
       allDates: formattedDates,
       // 그 달 narrative — top-level 1개로 dedupe (이전 365 copies 회귀 fix).
-      // EN locale 이면 themeBreakdown 라벨 + convergence keyDays 의 신호명 영문 swap.
+      // EN locale 이면 convergence keyDays 의 신호명 영문 swap.
       monthlyInterpretation: (() => {
         if (!monthlyInterp || locale !== 'en') return monthlyInterp
         const next = { ...monthlyInterp }
-        if (next.themeBreakdown) {
-          next.themeBreakdown = Object.fromEntries(
-            Object.entries(next.themeBreakdown).map(([theme, items]) => [
-              theme,
-              items?.map((it) => ({ ...it, label: translateSignalLabel(it.label, 'en') })),
-            ])
-          ) as typeof next.themeBreakdown
-        }
         if (next.convergence?.keyDays) {
           next.convergence = {
             ...next.convergence,

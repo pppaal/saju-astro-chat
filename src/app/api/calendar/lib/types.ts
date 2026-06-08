@@ -73,7 +73,6 @@ export interface FormattedDate {
   matchedPatterns?: Array<{
     id: string
     name: string
-    themes: string[]
     strength: number
     description?: string
     headline?: string
@@ -85,12 +84,10 @@ export interface FormattedDate {
     kind: string
     name: string
     korean?: string
-    themes: string[]
     polarity: number
     layer: 'decadal' | 'yearly' | 'monthly' | 'daily' | 'hourly' | 'instant'
     weight: number
   }>
-  themeScores?: Partial<Record<string, number>>
   /** 그 달 narrative 해석 (룰 DB 기반, LLM 0번) — 엔진 Interpretation 단일 정의 재사용 */
   monthlyInterpretation?: CalendarInterpretation
   /**
