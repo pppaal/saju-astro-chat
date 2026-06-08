@@ -89,12 +89,13 @@ const sajuGeokgukExtractor: SignalExtractor = {
       ? `${geokguk}·${status} — ${statusFlow} (${tagline})`
       : `${geokguk}·${status} — ${statusFlow}`
 
-    // EN — geokguk rich tagline(en) + 성패 의미.
+    // EN — geokguk rich tagline(en) + 성패 의미. (격국명은 한글이라 EN 문구는 tagline 으로
+    // 시작 — EN 응답 한글 누수 차단.)
     const taglineEn = getGeokgukRich(geokguk, 'en')?.tagline
     const statusFlowEn = STATUS_FLOW_EN[status] ?? ''
     const english = taglineEn
-      ? `${geokguk} (${STATUS_LABEL_EN[status] ?? status}) — ${statusFlowEn} (${taglineEn})`
-      : `${geokguk} (${STATUS_LABEL_EN[status] ?? status}) — ${statusFlowEn}`
+      ? `${taglineEn} (${STATUS_LABEL_EN[status] ?? status}) — ${statusFlowEn}`
+      : `Structure (${STATUS_LABEL_EN[status] ?? status}) — ${statusFlowEn}`
 
     // 매일 frame — range 의 모든 day cell 에 1 signal 씩 emit.
     // layer 'daily' + 24h active window 로 1 day cell 에 정확히 1번 들어감.

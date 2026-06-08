@@ -99,19 +99,25 @@ function mapPattern(p: CalendarCell['matchedPatterns'][number], lang: CalendarLa
   }
 }
 
-function mapHourlySignals(signals: ActiveSignal[]): V2EngineSignal[] {
-  return signals
-    .filter((s) => s.layer === 'hourly')
-    .map((s) => ({
-      id: s.id,
-      source: s.source,
-      kind: s.kind,
-      name: s.name,
-      korean: s.korean,
-      polarity: s.polarity,
-      layer: s.layer,
-      weight: s.weight,
-    }))
+/**
+ * 단일 신호 → V2EngineSignal (언어별). EN 일 때 name/korean 모두 영문 — 한글 누수 차단.
+ * (route.ts 가 hourly engineSignals 를 직접 부착할 때도 재사용.)
+ */
+export function mapEngineSignal(s: ActiveSignal, lang: CalendarLang): V2EngineSignal {
+  return {
+    id: s.id,
+    source: s.source,
+    kind: s.kind,
+    name: signalDisplayLabel(s, lang),
+    korean: lang === 'en' ? (s.english ?? signalDisplayLabel(s, 'en')) : (s.korean ?? s.name),
+    polarity: s.polarity,
+    layer: s.layer,
+    weight: s.weight,
+  }
+}
+
+function mapHourlySignals(signals: ActiveSignal[], lang: CalendarLang): V2EngineSignal[] {
+  return signals.filter((s) => s.layer === 'hourly').map((s) => mapEngineSignal(s, lang))
 }
 
 /** 한 셀 → 날짜 DTO. */
@@ -172,7 +178,7 @@ export function cellToYearlyDate(cell: CalendarCell, lang: CalendarLang = 'ko'):
     displayScore: score,
     grade,
     matchedPatterns: patterns,
-    engineSignals: mapHourlySignals(cell.signals),
+    engineSignals: mapHourlySignals(cell.signals, lang),
     crossVerified: cross.crossVerified,
     confidence: cross.confidence,
     crossAgreementPercent: cross.crossAgreementPercent,

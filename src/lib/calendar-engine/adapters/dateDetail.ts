@@ -10,6 +10,18 @@ import type { CalendarCell, ActiveSignal } from '../types'
 import type { NatalContext } from '../context/types'
 import { getGongmang } from '@/lib/saju/pillarLookup'
 import { SIBSIN_CAT, deriveCycleTone, deriveAstroTone } from '../derivers/cycleTone'
+import { signalDisplayLabel } from '../derivers/summary'
+
+// 오행 KO → EN (EN 응답에서 용신 한 글자 누수 차단).
+const EL_KO_EN: Record<string, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+const elementLabel = (x: string | undefined, lang: 'ko' | 'en'): string =>
+  !x ? '' : lang === 'en' ? (EL_KO_EN[x] ?? x) : x
 
 const ZH_TO_KO_BRANCH: Record<string, string> = {
   子: '자',
@@ -129,7 +141,7 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
     dayCross: buildDayCross(dayCell, hourlyCells, lang),
     transit: buildTransit(dayCell),
     natalContext: {
-      yongsin: { primary: natal.saju.yongsin.primary },
+      yongsin: { primary: elementLabel(natal.saju.yongsin.primary, lang) },
       strength: natal.saju.strength,
     },
     currentDaeun: buildCurrentDaeun(natal, date, birthYear),
@@ -140,7 +152,7 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
     astroHighlights: buildAstroHighlights(dayCell, lang),
     dayTone: buildDayTone(natal, dayCell, lang),
     dayAstroTone: lang === 'ko' ? deriveAstroTone('day', dayCell.signals) : undefined,
-    signalsRaw: buildSignalsRaw(dayCell),
+    signalsRaw: buildSignalsRaw(dayCell, lang),
   }
 }
 
@@ -148,7 +160,10 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
 // signalsRaw — 그날 활성 신호 전체 dump (Day tier 가 cat/source/polarity/weight 다 표시)
 // ──────────────────────────────────────────────────────────────────────
 
-function buildSignalsRaw(dayCell: CalendarCell): V2DateDetailResponse['signalsRaw'] {
+function buildSignalsRaw(
+  dayCell: CalendarCell,
+  lang: 'ko' | 'en'
+): V2DateDetailResponse['signalsRaw'] {
   const out: V2DateDetailResponse['signalsRaw'] = []
   for (const s of dayCell.signals) {
     out.push({
@@ -156,8 +171,9 @@ function buildSignalsRaw(dayCell: CalendarCell): V2DateDetailResponse['signalsRa
       source: s.source,
       cat: s.kind, // destinypal Day tier 호환 alias
       kind: s.kind,
-      name: s.name,
-      korean: s.korean,
+      // 표시 라벨 — KO: korean/name, EN: english 우선 + 용어 치환(한글 누수 차단).
+      name: signalDisplayLabel(s, lang),
+      korean: lang === 'en' ? (s.english ?? signalDisplayLabel(s, 'en')) : (s.korean ?? s.name),
       polarity: s.polarity,
       layer: s.layer,
       weight: s.weight,
@@ -499,8 +515,14 @@ function buildShinsalActive(
   const result: V2DateDetailResponse['shinsalActive'] = []
   for (const s of dayCell.signals) {
     if (s.source !== 'saju' || s.kind !== 'shinsal') continue
-    const d = s.evidence.detail as Record<string, unknown>
-    const koName = (d.shinsalName as string) || s.name || ''
+    const ev = s.evidence as unknown as Record<string, unknown>
+    const d = (ev.detail as Record<string, unknown>) ?? {}
+    // shinsalName 은 추출기에 따라 evidence.shinsalName 또는 evidence.detail.shinsalName 에 있음.
+    // 둘 다 없으면 s.name 에서 ' 활성' 접미사를 떼어 순수 신살명을 복원(EN 사전 매칭용).
+    const koName =
+      (ev.shinsalName as string) ||
+      (d.shinsalName as string) ||
+      (s.name || '').replace(/\s*활성\s*$/, '').trim()
     if (!koName) continue
     const koType = (d.type as string) || '길신'
     result.push({

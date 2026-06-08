@@ -714,6 +714,8 @@ export const GET = withApiMiddleware(
       // 0.2~0.5s 내 진짜 시간대 데이터를 채운다.
       const hourlyKeepPrefix = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`
 
+      const { mapEngineSignal } = await import('@/lib/calendar-engine/adapters/cellsToYearlyDates')
+
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
@@ -737,16 +739,9 @@ export const GET = withApiMiddleware(
         if (cell.signals.length > 0 && d.date.slice(0, 10).startsWith(hourlyKeepPrefix)) {
           const hourlySigs = cell.signals.filter((s) => s.layer === 'hourly')
           if (hourlySigs.length > 0) {
-            d.engineSignals = hourlySigs.map((s) => ({
-              id: s.id,
-              source: s.source,
-              kind: s.kind,
-              name: s.name,
-              korean: s.korean,
-              polarity: s.polarity,
-              layer: s.layer,
-              weight: s.weight,
-            }))
+            // EN/KO 동기화 — mapEngineSignal 이 name/korean 을 locale 에 맞게 영문화(한글 누수 차단).
+            const sigLang = locale === 'en' ? 'en' : 'ko'
+            d.engineSignals = hourlySigs.map((s) => mapEngineSignal(s, sigLang))
           }
         }
         // [단계 2b] 패턴 기반 v2 서사·신뢰지표로 덮어쓰기 — 점수와 같은 셀 출처로 정합.
