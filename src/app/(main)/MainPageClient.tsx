@@ -304,7 +304,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
             <HexDPLogo size={72} />
           </div>
           <h1 id="home-headline" className={styles.homeHeadline}>
-            {locale === 'ko' ? 'AI가 풀어내는 당신의 운명' : 'Your Destiny, Powered by AI'}
+            {locale === 'ko'
+              ? 'AI가 풀어내는 당신의 운명'
+              : 'Your Tarot, Astrology & Korean Saju, Powered by AI'}
           </h1>
           <p className={styles.homeSubline}>
             {locale === 'ko'
