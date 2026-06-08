@@ -25,9 +25,16 @@ import {
   getSibsinCategory,
   getIljuArchetype,
   getRelationMeaning,
+  getPlanetCore,
+  getHouseRich,
+  getAspectMeaning,
+  getAstroDignity,
+  getHanjaRich,
   SIBSIN_NAME_TO_CATEGORY,
   type RelationCategory,
   type SibsinState,
+  type HouseNumber,
+  type DignityStatus,
 } from '@/lib/chart-dictionary'
 import {
   getSibsinInterpretation,
@@ -140,7 +147,10 @@ const UI: Record<string, BiLabel> = {
   synthLabel: { ko: '🧬 종합 정체성', en: '🧬 Synthesis' },
   sajuSide: { ko: '사주', en: 'Saju' },
   astroSide: { ko: '점성', en: 'Astro' },
-  footBrain: { ko: '껍데기 chart.zip · 두뇌 natalCross', en: 'shell chart.zip · engine natalCross' },
+  footBrain: {
+    ko: '껍데기 chart.zip · 두뇌 natalCross',
+    en: 'shell chart.zip · engine natalCross',
+  },
   orb: { ko: 'orb', en: 'orb' },
 }
 
@@ -205,6 +215,63 @@ const stageLabel = (stage: string, lang: Lang): string => {
   if (lang === 'ko' || !stage) return stage
   return getTwelveStageInterpretation(stage as never)?.name_en ?? stage
 }
+
+// ── 차트 인자 hover 해석 (양언어) — 글자/도수만 뜨던 차트 요소에 의미 툴팁 ──
+const NODE_CORE_KEY: Record<string, string> = {
+  'True Node': 'NorthNode',
+  'Mean Node': 'NorthNode',
+  'North Node': 'NorthNode',
+}
+function planetHover(name: string, lang: Lang): string {
+  const c = getPlanetCore(NODE_CORE_KEY[name] ?? name, lang)
+  if (!c) return ''
+  return c.keywords?.length ? `${c.principle} · ${c.keywords.slice(0, 4).join(', ')}` : c.principle
+}
+function houseHover(n: number, lang: Lang): string {
+  const h = getHouseRich(n as HouseNumber, lang)
+  return h ? `${h.name} · ${h.domain}` : ''
+}
+const ASPECT_DICT_KEY: Record<string, string> = {
+  conjunction: 'Conjunction',
+  sextile: 'Sextile',
+  square: 'Square',
+  trine: 'Trine',
+  opposition: 'Opposition',
+  quincunx: 'Quincunx',
+  semisextile: 'Semi-sextile',
+  'semi-sextile': 'Semi-sextile',
+  semisquare: 'Semi-square',
+  sesquiquadrate: 'Sesquiquadrate',
+  quintile: 'Quintile',
+  biquintile: 'Bi-quintile',
+}
+function aspectHover(type: string, lang: Lang): string {
+  const a = getAspectMeaning(ASPECT_DICT_KEY[String(type).toLowerCase()] ?? '', lang)
+  return a ? `${a.label} — ${a.meaning}` : ''
+}
+function hanjaHover(ch: string, lang: Lang): string {
+  const h = getHanjaRich(ch, lang) as { name?: string; element?: string; nature?: string } | null
+  if (!h) return ''
+  return h.nature ? `${h.name} · ${h.element} · ${h.nature}` : (h.name ?? '')
+}
+const DIGNITY_STATUS_KEY: Record<string, DignityStatus> = {
+  domicile: 'Domicile',
+  exaltation: 'Exaltation',
+  detriment: 'Detriment',
+  fall: 'Fall',
+  peregrine: 'Peregrine',
+}
+function dignityHover(planet: string, tier: string, lang: Lang): string {
+  const st = DIGNITY_STATUS_KEY[String(tier).toLowerCase()]
+  if (!st) return ''
+  return getAstroDignity(NODE_CORE_KEY[planet] ?? planet, st, lang)?.text ?? ''
+}
+function stageHover(stage: string, lang: Lang): string {
+  const SYN: Record<string, string> = { 임관: '건록', 왕지: '제왕', 양생: '장생' }
+  const it = getTwelveStageInterpretation((SYN[stage] ?? stage) as never)
+  if (!it) return ''
+  return lang === 'en' ? (it.meaning_en ?? '') : (it.meaning ?? '')
+}
 const elementLabel = (key: string, lang: Lang): string => {
   const e = ELEMENTS[key]
   if (!e) return key
@@ -256,7 +323,7 @@ function Pentagon({ fe }: { fe: ReportData['saju']['fiveElements'] }) {
 }
 
 // ── 천궁도 휠 ───────────────────────────────────────────────────────────
-function Wheel({ astro }: { astro: ReportData['astro'] }) {
+function Wheel({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
   const SZ = 360,
     cx = SZ / 2,
     cy = SZ / 2
@@ -356,7 +423,9 @@ function Wheel({ astro }: { astro: ReportData['astro'] }) {
             stroke={stroke}
             strokeWidth={1}
             opacity={0.55}
-          />
+          >
+            <title>{aspectHover(a.type, lang)}</title>
+          </line>
         )
       })}
       {/* 행성 */}
@@ -364,6 +433,7 @@ function Wheel({ astro }: { astro: ReportData['astro'] }) {
         const [px, py] = polar(cx, cy, rPlanet, screen(p.lon))
         return (
           <g key={p.name}>
+            <title>{planetHover(p.name, lang)}</title>
             <circle
               cx={px}
               cy={py}
@@ -464,14 +534,11 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     S.strength === 'strong' ? 'dominant' : S.strength === 'weak' ? 'missing' : 'balanced'
 
   // §02 격국 풀이 — geokguk-rich 사전. '미정' 이거나 매칭 없으면 자동 생략.
-  const geok =
-    S.geokguk && S.geokguk !== '미정' ? getGeokgukRich(S.geokguk, lang) : null
+  const geok = S.geokguk && S.geokguk !== '미정' ? getGeokgukRich(S.geokguk, lang) : null
   // §02 주도 십성 — 일지 십성 카테고리(정/편 통합) → 우세 상태 의미.
   const domSibsinName = S.pillars.day.sibsinBranch || S.pillars.month.sibsinBranch || ''
   const domCategory = SIBSIN_NAME_TO_CATEGORY[domSibsinName]
-  const sibsinBlock = domCategory
-    ? getSibsinCategory(domCategory, strengthState, lang)
-    : null
+  const sibsinBlock = domCategory ? getSibsinCategory(domCategory, strengthState, lang) : null
   // §01 일주 원형 — 일간+일지 간지 → ilju-60 사전.
   const dayGanji = `${S.pillars.day.stem}${S.pillars.day.branch}`
   const ilju = getIljuArchetype(dayGanji, lang)
@@ -534,21 +601,35 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   {p.isDay ? t('dayBranchLabel') : sibsinLabel(p.sibsinStem, lang)}
                 </div>
                 <div className={s.gz}>
-                  <div className={`${s.gzHan} ${elClass[stemEl(p.stem)]}`}>{p.stem}</div>
+                  <div
+                    className={`${s.gzHan} ${elClass[stemEl(p.stem)]}`}
+                    title={hanjaHover(p.stem, lang)}
+                  >
+                    {p.stem}
+                  </div>
                 </div>
                 <div className={`${s.gz} ${s.branch}`}>
-                  <div className={`${s.gzHan} ${elClass[branchEl(p.branch)]}`}>{p.branch}</div>
+                  <div
+                    className={`${s.gzHan} ${elClass[branchEl(p.branch)]}`}
+                    title={hanjaHover(p.branch, lang)}
+                  >
+                    {p.branch}
+                  </div>
                 </div>
                 <div className={s.sib}>{sibsinLabel(p.sibsinBranch, lang)}</div>
                 <div className={s.jjg}>
                   {p.jijanggan.map((j, i) => (
                     <div className={s.jjgI} key={i}>
-                      <b className={elClass[stemEl(j.g)]}>{j.g}</b>
+                      <b className={elClass[stemEl(j.g)]} title={hanjaHover(j.g, lang)}>
+                        {j.g}
+                      </b>
                       <i>{j.d}</i>
                     </div>
                   ))}
                 </div>
-                <div className={s.stage}>{stageLabel(p.twelveStage, lang)}</div>
+                <div className={s.stage} title={stageHover(p.twelveStage, lang)}>
+                  {stageLabel(p.twelveStage, lang)}
+                </div>
               </div>
             ))}
           </div>
@@ -594,7 +675,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       : null
                   const tip = rel?.meaning ?? undefined
                   // EN 일 때 detail(한글 섞임)을 한자 pair 로 대체해 한글 누수 차단.
-                  const body = lang === 'en' ? (r.pair || r.detail) : r.detail
+                  const body = lang === 'en' ? r.pair || r.detail : r.detail
                   return (
                     <div
                       className={`${s.rel} ${r.tone === 'pos' ? s.relPos : r.tone === 'neg' ? s.relNeg : ''}`}
@@ -704,7 +785,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         className={elClass[S.johuYongsin.primary]}
                         title={`${t('johuTip')} ${S.johuYongsin.rating}/5.`}
                       >
-                        {t('johuLab')} {ELEMENTS[S.johuYongsin.primary]?.han ?? S.johuYongsin.primary}
+                        {t('johuLab')}{' '}
+                        {ELEMENTS[S.johuYongsin.primary]?.han ?? S.johuYongsin.primary}
                         {S.johuYongsin.rating >= 4 && ' ⚡'}
                       </i>
                     )}
@@ -804,7 +886,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           </div>
           <div className={s.gridChart}>
             <div className={`${s.card} ${s.wheelCard}`}>
-              <Wheel astro={A} />
+              <Wheel astro={A} lang={lang} />
             </div>
             <div>
               <div className={`${s.card} ${s.cardPad}`}>
@@ -815,7 +897,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       ...A.planets,
                       ...A.extraPoints.map((e) => ({ ...e, retro: false, speed: 0 })),
                     ].map((p) => (
-                      <tr key={p.name}>
+                      <tr
+                        key={p.name}
+                        title={[planetHover(p.name, lang), p.house ? houseHover(p.house, lang) : '']
+                          .filter(Boolean)
+                          .join(' · ')}
+                      >
                         <td className={s.plG}>{p.glyph}</td>
                         <td className={s.plN}>
                           {lang === 'en' ? p.name : p.ko}
@@ -858,7 +945,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
               <div className={s.daeun} style={{ gridTemplateColumns: 'repeat(6,1fr)' }}>
                 {A.houses.slice(0, 6).map((h) => (
-                  <div className={s.du} key={h.i}>
+                  <div className={s.du} key={h.i} title={houseHover(h.i, lang)}>
                     <div className={s.duAge}>{h.i}H</div>
                     <div
                       className={`${s.gzHan ?? ''}`}
@@ -924,10 +1011,19 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 const friendly = (DIGNITY_TIER_FRIENDLY[d.tier] ?? DIGNITY_TIER_LABEL[d.tier])[lang]
                 const tooltip = (DIGNITY_TIER_TOOLTIP[d.tier] ?? DIGNITY_TIER_LABEL[d.tier])[lang]
                 return (
-                  <div className={s.digRow} key={i} title={tooltip}>
+                  <div
+                    className={s.digRow}
+                    key={i}
+                    title={[tooltip, dignityHover(d.planet, d.tier, lang)]
+                      .filter(Boolean)
+                      .join(' — ')}
+                  >
                     <span className={s.dg}>{p?.glyph}</span>
                     <span className={s.dn}>{lang === 'en' ? p?.name : p?.ko}</span>
-                    <span className={elClass[SIGN_META[abbr(d.sign)]?.el]} style={{ fontSize: 11.5 }}>
+                    <span
+                      className={elClass[SIGN_META[abbr(d.sign)]?.el]}
+                      style={{ fontSize: 11.5 }}
+                    >
                       {signLabel(abbr(d.sign), lang)}
                       {t('signSuffix')}
                     </span>
@@ -958,11 +1054,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             )}
             <div className={s.themes}>
               {cross.rows.map((r, i) => (
-                <div
-                  className={s.theme}
-                  key={i}
-                  style={{ ['--tc' as string]: TONE_COLOR[r.tone] }}
-                >
+                <div className={s.theme} key={i} style={{ ['--tc' as string]: TONE_COLOR[r.tone] }}>
                   <div className={s.themeHead}>
                     <span className={s.themeName}>{r.category}</span>
                     <span className={s.themeBadge}>{TONE_LABEL[r.tone][lang]}</span>
