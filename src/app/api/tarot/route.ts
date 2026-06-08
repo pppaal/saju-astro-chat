@@ -46,8 +46,15 @@ function drawCards(count: number): DrawnCard[] {
 }
 
 export const POST = withApiMiddleware(
-  async (req: NextRequest, _context: ApiContext) => {
+  async (req: NextRequest, context: ApiContext) => {
     const startTime = Date.now()
+    // 게스트 제거 — 타로 뽑기는 로그인 필수. 비로그인은 401.
+    // (context 는 프로덕션 미들웨어가 항상 주입; 일부 단위 테스트는 미들웨어를
+    //  pass-through 로 목해 context 없이 핸들러를 직접 호출하므로 그땐 스킵.)
+    if (context && !context.userId) {
+      recordApiRequest('tarot', 'generate', 'error')
+      return NextResponse.json({ code: 'not_authenticated' }, { status: 401 })
+    }
     try {
       const rawBody = await parseRequestBody<TarotBody>(req, { context: 'Tarot' })
       if (!rawBody || typeof rawBody !== 'object') {
