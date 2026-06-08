@@ -300,20 +300,16 @@ export default async function DestinypalPage() {
             },
         years: decadeAdapter.years,
         body: decadeAdapter.body,
-        hapchung: decadeAdapter.hapchung
-          ? {
-              title: decadeAdapter.hapchung.title,
-              romaji: decadeAdapter.hapchung.romaji,
-              body: decadeAdapter.hapchung.body,
-            }
-          : { title: '—', body: '본명 × 대운 합·충 분석 준비 중.' },
-        unseong: decadeAdapter.unseong
-          ? {
-              title: decadeAdapter.unseong.title,
-              romaji: decadeAdapter.unseong.romaji,
-              body: decadeAdapter.unseong.body,
-            }
-          : { title: '—', body: '12운성 분석 준비 중.' },
+        hapchung: {
+          title: decadeAdapter.hapchung.title,
+          romaji: decadeAdapter.hapchung.romaji,
+          body: decadeAdapter.hapchung.body,
+        },
+        unseong: {
+          title: decadeAdapter.unseong.title,
+          romaji: decadeAdapter.unseong.romaji,
+          body: decadeAdapter.unseong.body,
+        },
         astro: decadeAdapter.astro.map((a) => ({
           label: a.label,
           date: a.date,

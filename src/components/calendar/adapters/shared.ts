@@ -9,6 +9,7 @@
  */
 
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 
 // ── 천간 / 지지 한자↔한글↔영문 ──────────────────────────────────────────────
 export const STEM_HAN_TO_KO: Record<string, string> = {
@@ -164,18 +165,10 @@ export const SIGN_KO: Record<ZodiacKo, string> = {
   Pisces: '물고기자리',
 }
 
-// 행성 한글 표기 ─ "Sun → 태양" 식. 데이터 레이어 표시.
+// 행성 한글 표기 ─ "Sun → 태양" 식. 정본(calendar-engine/data/planetNames)을
+// 그대로 쓰되, 어댑터 표시에 필요한 축(상승점·MC)만 더한다. 복사본 두지 않음.
 export const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
+  ...PLANET_KO_BASE,
   Ascendant: '상승점',
   MC: 'MC',
 }

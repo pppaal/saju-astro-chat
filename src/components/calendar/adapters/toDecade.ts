@@ -79,8 +79,10 @@ export interface DestinypalDecade {
   sewoonNow?: { gz: Ganji; sibsin: string }
   years: DestinypalDecadeYear[]
   body: string[]
-  hapchung?: DestinypalDecadeRelation
-  unseong?: DestinypalDecadeRelation
+  /** 본명 × 대운 지지 충·합 — 어댑터가 항상 채움(충·합 없으면 중립 라인). */
+  hapchung: DestinypalDecadeRelation
+  /** 대운 지지 12운성 — 어댑터가 항상 채움. */
+  unseong: DestinypalDecadeRelation
   astro: DestinypalDecadeAstroMark[]
   narrative: DestinypalDecadeNarrative[]
   focusYear: number
