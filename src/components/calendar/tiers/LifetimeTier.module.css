@@ -1145,3 +1145,60 @@
     gap: 8px;
   }
 }
+
+/* ── 인생 타임라인 (대운 × 점성 ZR 평행) ─────────────────────────── */
+.tlWrap {
+  margin-top: 10px;
+}
+.tlRowLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin: 6px 0 2px;
+  letter-spacing: 0.5px;
+}
+.tlTrack {
+  height: 40px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+}
+.tlSeg {
+  top: 3px;
+  bottom: 3px;
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px 3px;
+  box-sizing: border-box;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.tlHead {
+  font-family: var(--serif-ko);
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1;
+}
+.tlSub {
+  font-size: 9px;
+  color: var(--ink-dim);
+  line-height: 1;
+}
+.tlNow {
+  width: 2px;
+  background: var(--accent);
+  z-index: 3;
+}
+.tlAxis {
+  position: relative;
+  height: 16px;
+  margin-top: 4px;
+  font-size: 9px;
+  color: var(--ink-faint);
+}

@@ -165,6 +165,99 @@ function zodiacKo(signEn: string): string {
 }
 
 // ============================================================================
+// LifeTimeline — 사주 대운 × 점성 ZR 을 한 나이축에 평행으로 (②)
+// ============================================================================
+function LifeTimeline({ lifetime }: { lifetime: DestinyLifetime }) {
+  const by = lifetime.birthYear
+  const dw = lifetime.daewoon ?? []
+  const spirit = lifetime.zrSpiritChapters ?? []
+  if (dw.length === 0 && spirit.length === 0) return null
+  const ages = [
+    ...dw.map((d) => d.endAge ?? d.startAge + 10),
+    ...spirit.map((c) => c.calendarEndYear - by),
+  ]
+  const span = Math.max(85, ...ages)
+  const pct = (a: number) => Math.max(0, Math.min(100, (a / span) * 100))
+  const nowAge = lifetime.currentYear - by
+
+  const seg = (
+    left: number,
+    width: number,
+    now: boolean,
+    head: string,
+    sub?: string,
+    key?: string
+  ): ReactNode => (
+    <div
+      key={key}
+      className={styles.tlSeg}
+      style={{
+        position: 'absolute',
+        left: `${left}%`,
+        width: `${width}%`,
+        ...(now ? { outline: '2px solid var(--dp-pos, #2dbd7f)', zIndex: 2 } : {}),
+      }}
+      title={`${head}${sub ? ' · ' + sub : ''}`}
+    >
+      <span className={styles.tlHead}>{head}</span>
+      {sub ? <span className={styles.tlSub}>{sub}</span> : null}
+    </div>
+  )
+
+  return (
+    <div className={styles.block}>
+      <div className={styles.sectionHead}>
+        <h2 className={styles.sectionTitle}>인생 타임라인 · 대운 × 점성</h2>
+        <span className={styles.tiny}>사주 10년운과 점성 ZR 챕터를 같은 나이축에 나란히</span>
+      </div>
+      <div className={styles.tlWrap} style={{ position: 'relative' }}>
+        {/* 사주 대운 */}
+        <div className={styles.tlRowLabel}>사주 대운</div>
+        <div className={styles.tlTrack} style={{ position: 'relative' }}>
+          {dw.map((d, i) =>
+            seg(
+              pct(d.startAge),
+              pct((d.endAge ?? d.startAge + 10) - d.startAge),
+              !!d.now,
+              d.gz.hanja,
+              d.sibsin !== '—' ? d.sibsin : undefined,
+              `dw-${d.startAge}-${i}`
+            )
+          )}
+        </div>
+        {/* 점성 ZR (Spirit = 진로·정체) */}
+        <div className={styles.tlRowLabel}>점성 ZR</div>
+        <div className={styles.tlTrack} style={{ position: 'relative' }}>
+          {spirit.map((c, i) =>
+            seg(
+              pct(c.calendarStartYear - by),
+              pct(c.calendarEndYear - c.calendarStartYear || 1),
+              !!c.now,
+              zodiacKo(c.sign),
+              undefined,
+              `zr-${c.calendarStartYear}-${i}`
+            )
+          )}
+        </div>
+        {/* 지금 마커 */}
+        <div
+          className={styles.tlNow}
+          style={{ position: 'absolute', left: `${pct(nowAge)}%`, top: 0, bottom: 0 }}
+          aria-hidden
+        />
+      </div>
+      <div className={styles.tlAxis}>
+        {[0, Math.round(span / 3), Math.round((span * 2) / 3), span].map((a) => (
+          <span key={a} style={{ position: 'absolute', left: `${pct(a)}%` }}>
+            {a}세
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
 // LifetimeTier
 // ============================================================================
 
@@ -292,6 +385,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           </div>
         </div>
       )}
+
+      {/* 대운 × 점성(ZR) 평행 타임라인 (②) */}
+      <LifeTimeline lifetime={lifetime} />
 
       {/* ============================================================
           constellation of life stages
