@@ -7,7 +7,7 @@
 
    props:
      day:     DestinyDay  (adapter toDay() output)
-     hours24: 24개 HourSlot (옵션) — 시진별 score / topDomain
+     hours24: 24개 HourSlot (옵션) — 시진별 score
      voc:     Void-of-Course 띠 (옵션, astro/void-of-course 신호)
      onRise:  zoom-out callback (→ 이번 달로)
 
@@ -42,7 +42,6 @@ export interface HourSlot {
   hour: number
   branch: string
   score: number
-  topDomain?: string
 }
 
 export interface DayVoc {
@@ -469,7 +468,7 @@ function ArabicLotRow({ signals }: { signals: DestinySignal[] }) {
 }
 
 // ============================================================================
-// HourBreakdown — 24시 (子~亥) score grid + topDomain.
+// HourBreakdown — 24시 (子~亥) score grid.
 // 입력 hours24 가 비어있으면 BRANCHES_12 12 슬롯만 표시 (score 0).
 // ============================================================================
 

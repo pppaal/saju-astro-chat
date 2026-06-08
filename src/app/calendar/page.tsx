@@ -412,7 +412,6 @@ export default async function DestinypalPage() {
     goodDays: monthAdapter.goodDays,
     bestDay: monthAdapter.bestDay ?? { date: '', score: 0 },
     avoidDays: monthAdapter.avoidDays,
-    themes: monthAdapter.themes,
     narrative: monthAdapter.narrative,
     keyDays: monthKeyDays,
     converge: monthAdapter.converge
@@ -451,7 +450,6 @@ export default async function DestinypalPage() {
     score: dayAdapter.score,
     oneLine: dayAdapter.oneLine,
     totalSignals: dayAdapter.totalSignals,
-    themes: dayAdapter.themes,
     signals: [],
     transits: [],
     crossSignals: [],

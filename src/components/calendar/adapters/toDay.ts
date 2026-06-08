@@ -50,19 +50,12 @@ const STEM_TO_ELEMENT: Record<string, '목' | '화' | '토' | '금' | '수'> = {
   癸: '수',
 }
 
-export interface DestinypalDayThemeBar {
-  key: 'love' | 'money' | 'career' | 'health' | 'growth'
-  ko: string
-  v: number
-}
-
 export interface DestinypalDaySignal {
   cat: string // 'saju/shinsal' | 'saju/pillar-sibsin' | 'astro/transit' | …
   label: string
   romaji?: string
   polarity: number // -3..+3 (캡 적용)
   kind?: string // raw signal kind (디버그/필터용)
-  themes?: string[]
 }
 
 export interface DestinypalDayTransit {
@@ -136,7 +129,6 @@ export interface DestinypalDay {
   iljin: Ganji
   iljinSibsin: string // 일간 vs 일진 천간 십신
   score: number
-  themes: DestinypalDayThemeBar[]
   totalSignals: number
   oneLine: string
   signals: DestinypalDaySignal[]
@@ -169,14 +161,6 @@ export interface DestinypalDay {
   topReasons: string[]
   /** 상위 주의 사유 — CalendarCell.cautions 그대로. */
   cautions: string[]
-}
-
-const THEME_KO: Record<DestinypalDayThemeBar['key'], string> = {
-  love: '재성·연애',
-  money: '재물',
-  career: '관성·일',
-  health: '건강',
-  growth: '성장',
 }
 
 // signal.kind → cat 라벨
@@ -357,19 +341,8 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
       romaji: undefined,
       polarity,
       kind: s.kind,
-      themes: s.themes,
     })
   }
-
-  // themes 5축
-  const ts = cell.themeScores ?? {}
-  const themes: DestinypalDayThemeBar[] = (
-    Object.keys(THEME_KO) as DestinypalDayThemeBar['key'][]
-  ).map((k) => ({
-    key: k,
-    ko: THEME_KO[k],
-    v: Math.round((ts as Record<string, number | undefined>)[k] ?? 50),
-  }))
 
   // 본명 격국 status (Phase 3)
   const advanced = natal.saju.analyses
@@ -395,7 +368,6 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     iljin,
     iljinSibsin,
     score: Math.round(cell.derivedScore),
-    themes,
     totalSignals: cell.signals.length,
     oneLine: opts.oneLine ?? deriveOneLine(cell),
     signals,

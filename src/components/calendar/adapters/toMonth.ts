@@ -20,12 +20,6 @@
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 import { toGanji, type Ganji, pad2 } from './shared'
 
-export interface DestinypalMonthThemeBar {
-  key: 'love' | 'money' | 'career' | 'health' | 'growth'
-  ko: string
-  v: number // 0..100
-}
-
 export interface DestinypalMonthNarrativeItem {
   tag: string
   body: string
@@ -56,18 +50,9 @@ export interface DestinypalMonth {
   goodDays: string[]
   bestDay?: { date: string; score: number } // date "06-04"
   avoidDays: string[]
-  themes: DestinypalMonthThemeBar[]
   narrative: DestinypalMonthNarrativeItem[]
   converge?: DestinypalMonthConvergence
   focusDay: number // 1..30
-}
-
-const THEME_KO: Record<DestinypalMonthThemeBar['key'], string> = {
-  love: '재성·연애',
-  money: '재물',
-  career: '관성·일',
-  health: '건강',
-  growth: '성장',
 }
 
 export interface ToMonthOptions {
@@ -96,8 +81,6 @@ export interface ToMonthOptions {
  * scoring:
  *   - cell.derivedScore 가 0..100 — 그대로 intensity (÷100) + mark 결정에 사용.
  *   - caution: 30 미만 / avoid: 20 미만 / good: 70 이상 / best: month 최고점 1일.
- *
- * themes: cell.themeScores 5축 평균 — month 단위 합산.
  */
 export function toMonth(opts: ToMonthOptions): {
   month: DestinypalMonth
@@ -120,15 +103,6 @@ export function toMonth(opts: ToMonthOptions): {
   const cautionDays: string[] = []
   const goodDays: string[] = []
   const avoidDays: string[] = []
-
-  // accum themes
-  const themeAccum: Record<DestinypalMonthThemeBar['key'], { sum: number; n: number }> = {
-    love: { sum: 0, n: 0 },
-    money: { sum: 0, n: 0 },
-    career: { sum: 0, n: 0 },
-    health: { sum: 0, n: 0 },
-    growth: { sum: 0, n: 0 },
-  }
 
   for (const cell of opts.cells) {
     const dPart = cell.datetime.slice(8, 10) // "DD"
@@ -153,16 +127,6 @@ export function toMonth(opts: ToMonthOptions): {
       bestScore = score
       bestDay = d
       bestDs = ds
-    }
-
-    // theme accumulator
-    const ts = cell.themeScores ?? {}
-    for (const k of Object.keys(themeAccum) as DestinypalMonthThemeBar['key'][]) {
-      const v = (ts as Record<string, number | undefined>)[k]
-      if (typeof v === 'number') {
-        themeAccum[k].sum += v
-        themeAccum[k].n += 1
-      }
     }
 
     calendar.push({
@@ -199,15 +163,6 @@ export function toMonth(opts: ToMonthOptions): {
     }
   }
 
-  // themes 평균 → 0..100
-  const themes: DestinypalMonthThemeBar[] = (
-    Object.keys(themeAccum) as DestinypalMonthThemeBar['key'][]
-  ).map((k) => ({
-    key: k,
-    ko: THEME_KO[k],
-    v: themeAccum[k].n > 0 ? Math.round(themeAccum[k].sum / themeAccum[k].n) : 50,
-  }))
-
   // label fallback
   const label = opts.label ?? `${opts.ym.slice(0, 4)}년 ${parseInt(opts.ym.slice(5, 7), 10)}월`
 
@@ -223,7 +178,6 @@ export function toMonth(opts: ToMonthOptions): {
       goodDays,
       bestDay: bestDay > 0 ? { date: bestDs, score: Math.round(bestScore) } : undefined,
       avoidDays,
-      themes,
       narrative: opts.narrative ?? [],
       converge: opts.converge,
       focusDay,

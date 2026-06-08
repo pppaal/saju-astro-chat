@@ -55,7 +55,6 @@ export type {
 export { toMonth } from './toMonth'
 export type {
   DestinypalMonth,
-  DestinypalMonthThemeBar,
   DestinypalMonthNarrativeItem,
   DestinypalMonthConvergence,
   DestinypalCalendarDay,
@@ -65,7 +64,6 @@ export type {
 export { toDay } from './toDay'
 export type {
   DestinypalDay,
-  DestinypalDayThemeBar,
   DestinypalDaySignal,
   DestinypalDayTransit,
   DestinypalDayAppliedPattern,

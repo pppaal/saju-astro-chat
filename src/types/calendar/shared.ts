@@ -6,7 +6,6 @@
 //
 // 백엔드 → adapter → 이 shape 으로 정규화되며, UI 컴포넌트는 이 모듈만 import.
 
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
 import type { SignalKind, SignalLayer, Polarity } from '@/lib/calendar-engine/types'
@@ -105,8 +104,6 @@ export interface SignalBase {
   kind: SignalKind
   /** 백엔드 SignalLayer — decadal/yearly/monthly/daily/hourly/instant. */
   layer: SignalLayer
-  /** 영향 테마 (5축). */
-  themes: AstroThemeKey[]
   /** 부속 설명 / why-this-fires 문구. */
   note?: string
 }

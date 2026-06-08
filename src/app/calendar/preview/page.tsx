@@ -357,7 +357,7 @@ export default async function DestinypalPreview() {
     monthlyScores: yearAdapter.monthlyScores,
   }
 
-  // toMonth — 30일 캘린더 + themes + bestDay 자동 + 월운(woolun) GZ.
+  // toMonth — 30일 캘린더 + bestDay 자동 + 월운(woolun) GZ.
   // narrative — lifetimeFlow.intro 한 줄 + 그 달 cell.topReasons 상위 5개 chip.
   const monthNarrative: Array<{ tag: string; body: string }> = []
   if (lifetimeFlow?.intro) {
@@ -398,7 +398,6 @@ export default async function DestinypalPreview() {
     goodDays: monthAdapter.goodDays,
     bestDay: monthAdapter.bestDay ?? { date: '', score: 0 },
     avoidDays: monthAdapter.avoidDays,
-    themes: monthAdapter.themes,
     narrative: monthAdapter.narrative,
     keyDays: monthKeyDays,
     converge: monthAdapter.converge
@@ -483,7 +482,6 @@ export default async function DestinypalPreview() {
       weight: s.weight,
       kind: s.kind,
       layer: s.layer,
-      themes: s.themes,
     }
     if (s.source === 'astro') {
       const planets = s.evidence?.planets ?? []
@@ -517,7 +515,6 @@ export default async function DestinypalPreview() {
           : s.name,
       polarity: s.polarity,
       weight: s.weight,
-      themes: s.themes,
       activeAxes: Array.isArray(s.evidence?.detail?.activeAxes)
         ? (s.evidence!.detail!.activeAxes as string[])
         : [],
@@ -542,7 +539,6 @@ export default async function DestinypalPreview() {
           : '',
       polarity: s.polarity,
       weight: s.weight,
-      themes: s.themes,
     }))
 
   const day: DestinyDay = {
@@ -553,7 +549,6 @@ export default async function DestinypalPreview() {
     score: dayAdapter.score,
     oneLine: dayAdapter.oneLine,
     totalSignals: dayAdapter.totalSignals,
-    themes: dayAdapter.themes,
     signals: daySajuSignals,
     transits: dayTransits,
     crossSignals: dayCrossSignals,

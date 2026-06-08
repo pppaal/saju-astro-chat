@@ -8,7 +8,6 @@
 // 백엔드 CalendarCell (한 datetime 의 signals[] + derivedScore + matched
 // patterns) 가 그대로 매핑.
 
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type {
   Ganji,
   TaggedNarrative,
@@ -21,18 +20,6 @@ import type {
   Polarity,
 } from './shared'
 import type { GeokgukStatus, GeokgukStatusResult } from '@/lib/saju/geokguk'
-
-// ============================================================================
-// 5축 테마 점수 (data.js day.themes 와 동형 — month 의 그것과 같은 모양).
-// ============================================================================
-
-export interface DestinyDayTheme {
-  key: AstroThemeKey
-  /** 한국어 라벨 — '재성·연애'. */
-  ko: string
-  /** 0..100. */
-  v: number
-}
 
 // ============================================================================
 // 지장간 (Jijanggan) — 본명 일주(=일지) 의 정기·중기·여기 분해.
@@ -124,8 +111,6 @@ export interface DestinyAppliedPattern {
   polarity: Polarity
   /** 0..1 가중치. */
   weight: number
-  /** 영향 테마. */
-  themes: AstroThemeKey[]
   /** 활성 시점 — 대운/세운/월운/일진. */
   activeAxes: string[]
   /** 패턴 발동 룰 — '본명 정관 + 시기 상관 → 정관 피상.' */
@@ -150,8 +135,6 @@ export interface DestinyCrossActivation {
   polarity: Polarity
   /** 합성 weight. */
   weight: number
-  /** 영향 테마. */
-  themes: AstroThemeKey[]
 }
 
 // ============================================================================
@@ -180,9 +163,6 @@ export interface DestinyIljinHeader {
 // ============================================================================
 
 export interface DestinyDay extends DestinyIljinHeader {
-  /** 5축 테마 점수. */
-  themes: DestinyDayTheme[]
-
   // ── 신호 묶음 (백엔드 ActiveSignal[] 의 5-tier projection) ──
   /** data.js day.signals[] — 사주측 신호. */
   signals: SajuSignal[]

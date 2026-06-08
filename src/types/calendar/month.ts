@@ -6,7 +6,6 @@
 // 5-tier 의 네 번째 layer — 30일 캘린더 강도 그라프 + 5축 테마 점수 +
 // narrative 8칩 + Converge(특정일 사주·점성 동시 임팩트) 통합.
 
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { Ganji, TaggedNarrative, SibsinKind } from './shared'
 
 // ============================================================================
@@ -67,19 +66,6 @@ export interface DestinyMonthZRProgress {
   start?: string
   /** 'YYYY-MM' 종료. */
   end?: string
-}
-
-// ============================================================================
-// Month theme bar — data.js monthThemes[] 와 동형.
-// ============================================================================
-
-export interface DestinyMonthTheme {
-  /** 5축 키. */
-  key: AstroThemeKey
-  /** 한국어 라벨 — '재성·연애'. */
-  ko: string
-  /** 0..100. */
-  v: number
 }
 
 // ============================================================================
@@ -184,8 +170,6 @@ export interface DestinyMonth {
   }
   /** 피하기 'MM-DD' 리스트. */
   avoidDays: string[]
-  /** 5축 테마 점수. */
-  themes: DestinyMonthTheme[]
   /** narrative 8칩. */
   narrative: TaggedNarrative[]
   /** Converge 일. */
