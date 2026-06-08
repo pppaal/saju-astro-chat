@@ -18,6 +18,7 @@
  */
 
 import type { CalendarCell } from '@/lib/calendar-engine/types'
+import type { CalendarGrade } from '@/lib/calendar-engine/derivers/grade'
 import { toGanji, type Ganji, pad2 } from './shared'
 
 export interface DestinypalMonthNarrativeItem {
@@ -73,6 +74,12 @@ export interface ToMonthOptions {
   focusDay?: number
   /** caution/avoid/good 임계값 (선택). */
   thresholds?: { caution?: number; avoid?: number; good?: number; best?: number }
+  /**
+   * 날짜별 점수·등급 — 일진+시진 층 신호로 산출(deriveLayeredScores.daily).
+   * 주어지면 마크(good/caution/avoid)는 등급으로, intensity·bestDay 는 그 점수로.
+   * key: YYYY-MM-DD.
+   */
+  dayScores?: Map<string, { score: number; grade: CalendarGrade }>
 }
 
 /**
@@ -109,11 +116,25 @@ export function toMonth(opts: ToMonthOptions): {
     const d = parseInt(dPart, 10)
     if (!Number.isFinite(d) || d <= 0) continue
     const ds = `${ymPrefix}-${pad2(d)}`
-    const score = cell.derivedScore
+    // 점수: 층별 일점수(dayScores) 우선 — 없으면 절대 derivedScore.
+    const layered = opts.dayScores?.get(cell.datetime.slice(0, 10))
+    const score = layered ? layered.score : cell.derivedScore
     const intensity = Math.max(0, Math.min(1, score / 100))
 
     let mark: DestinypalCalendarDay['mark'] = null
-    if (score < th.avoid) {
+    if (layered) {
+      // 등급 기준 (일진 층): 0최고/1좋음=good, 3조심=caution, 4지킴=avoid.
+      if (layered.grade === 4) {
+        mark = 'avoid'
+        avoidDays.push(ds)
+      } else if (layered.grade === 3) {
+        mark = 'caution'
+        cautionDays.push(ds)
+      } else if (layered.grade <= 1) {
+        mark = 'good'
+        goodDays.push(ds)
+      }
+    } else if (score < th.avoid) {
       mark = 'avoid'
       avoidDays.push(ds)
     } else if (score < th.caution) {
@@ -138,8 +159,8 @@ export function toMonth(opts: ToMonthOptions): {
     })
   }
 
-  // best mark
-  if (bestDay > 0 && bestScore >= th.best) {
+  // best mark — 층별 일점수면 그 달 최고날을 항상 best 로(절대 th.best 게이트 생략).
+  if (bestDay > 0 && (opts.dayScores ? true : bestScore >= th.best)) {
     const c = calendar.find((c) => c.d === bestDay)
     if (c) c.mark = 'best'
   }

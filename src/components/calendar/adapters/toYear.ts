@@ -173,6 +173,11 @@ export interface ToYearOptions {
   cells?: CalendarCell[]
   /** 미지정 시 평균 score 계산 — fallback 빈 슬롯 점수. */
   monthlyFallbackScore?: number
+  /**
+   * 월별 점수 — 월운(monthly) 층 신호로 산출(deriveLayeredScores.monthly).
+   * 주어지면 12 스파인을 이 값으로 (각 달을 그 달 고유 에너지로 판단). key: 1~12.
+   */
+  monthlyLayer?: Map<number, { score: number }>
 }
 
 export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear {
@@ -285,6 +290,22 @@ function buildProfectionWheel(
  * derivedScore 를 12 슬롯 배열로 환원. cells 가 없으면 빈 배열.
  */
 function buildMonthlyScores(opts: ToYearOptions): DestinypalYear['monthlyScores'] {
+  // 월운 층 점수 우선 — 각 달을 그 달 고유(월운) 신호로 판단.
+  if (opts.monthlyLayer) {
+    const best = (m: number) => {
+      const yPrefix = String(opts.year)
+      const ym = `${yPrefix}-${String(m).padStart(2, '0')}`
+      const mc = (opts.cells ?? []).filter((c) => c.datetime.slice(0, 7) === ym)
+      return mc.length
+        ? mc.reduce((a, b) => (b.derivedScore > a.derivedScore ? b : a)).datetime.slice(0, 10)
+        : undefined
+    }
+    return Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      score: opts.monthlyLayer!.get(i + 1)?.score ?? opts.monthlyFallbackScore ?? 50,
+      bestDay: best(i + 1),
+    }))
+  }
   if (!opts.cells || opts.cells.length === 0) return []
   const yPrefix = String(opts.year)
   const fallback = opts.monthlyFallbackScore ?? 50

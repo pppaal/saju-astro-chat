@@ -15,7 +15,7 @@ import { buildCalendar } from '@/lib/calendar-engine'
 import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
-import { derivePersonalScale } from '@/lib/calendar-engine/derivers/personalScale'
+import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
@@ -81,8 +81,8 @@ export default async function DestinypalPreview() {
   // yearly signals — cell.signals 중 layer='yearly' 인 것만 풀.
   const yearlySignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'yearly')
 
-  // 개인 상대 스케일 — 일/시 good/bad, 월 임계값을 "이 사람 1년 분포" 기준으로.
-  const personalScale = derivePersonalScale(cells)
+  // 층별 점수 — 일/시는 일진, 월은 월운, 년은 세운, 10년은 대운 신호로만.
+  const layered = deriveLayeredScores(cells)
 
   // ─── 4.5) iljin (일진) / woolun (월운) 60갑자 계산 ───────────────────
   // 각각 dayPillar / datePillars 표준 헬퍼 (KASI 절기 룩업) 한 줄 사용.
@@ -300,6 +300,7 @@ export default async function DestinypalPreview() {
     year: TARGET_YEAR,
     yearlySignals,
     cells, // monthlyScores 자동 빌드용
+    monthlyLayer: layered.monthly,
   })
   // DestinyYear 는 profection 이 *필수* — yearlySignals 에 profection signal 이 없으면
   // 만나이 % 12 + 1 fallback 으로 활성 하우스만 채우고 wheel 룩업.
@@ -353,7 +354,7 @@ export default async function DestinypalPreview() {
     woolunStem,
     woolunBranch,
     narrative: monthNarrative,
-    thresholds: personalScale.monthThresholds,
+    dayScores: layered.daily,
   })
   // 이달의 큰 날 — convergence keyDays(윈도우+신뢰도). 페이지에서 직접 호출해
   // 월 카드에 실어준다(이전엔 deriveConvergence 가 아예 안 불려 큰 날이 비었음).
@@ -405,7 +406,7 @@ export default async function DestinypalPreview() {
     natal,
     iljinStem,
     iljinBranch,
-    favorScore: personalScale.favor(dayCell.derivedScore),
+    favorScore: layered.daily.get(dayCell.datetime.slice(0, 10))?.score,
   })
   // DestinyDay 는 geokgukStatus 가 *객체* shape (name / status / factors / description) —
   // 본명 advancedAnalysis 에서 그대로 재구성.

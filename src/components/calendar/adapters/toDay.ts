@@ -248,8 +248,8 @@ export interface ToDayOptions {
   /** 신살 polarity cap 적용 여부 — 기본 true (정통화 보완). */
   applyShinsalCap?: boolean
   /**
-   * 그 사람 1년 분포 기준 상대 우호도(0~100, derivePersonalScale.favor). 주어지면
-   * day.score 를 절대 derivedScore 대신 이 상대값으로 — "나에게 좋은/나쁜 날".
+   * 그날 일진+시진 층 점수(0~100, deriveLayeredScores.daily). 주어지면 day.score 를
+   * 절대 derivedScore 대신 이 층별 값으로 — "그날 그사람에게 좋은/나쁜".
    */
   favorScore?: number
 }

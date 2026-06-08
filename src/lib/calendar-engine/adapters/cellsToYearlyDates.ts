@@ -13,7 +13,7 @@ import { scoreToGrade, type CalendarGrade } from '../derivers/grade'
 import { deriveCrossAgreement, type AxisAgreement } from '../derivers/crossAgreement'
 import { computeDayStem, computeDayBranch } from '../extractors/saju-shinsal'
 import { signalDisplayLabel } from '../derivers/summary'
-import { derivePersonalScale, type PersonalScale } from '../derivers/personalScale'
+import { deriveLayeredScores } from '../derivers/layeredScore'
 
 export type CalendarLang = 'ko' | 'en'
 
@@ -125,13 +125,13 @@ function mapHourlySignals(signals: ActiveSignal[], lang: CalendarLang): V2Engine
 export function cellToYearlyDate(
   cell: CalendarCell,
   lang: CalendarLang = 'ko',
-  scale?: PersonalScale
+  dayOverride?: { score: number; grade: CalendarGrade }
 ): V2CalendarDate {
   const date = cell.datetime.slice(0, 10)
-  // 점수·등급은 "그 사람 1년 분포" 상대값(scale 주어지면). 절대 derivedScore 는
-  // 차트별 중심 쏠림으로 등급이 한쪽에 몰리므로 상대화가 기본.
-  const score = scale ? scale.favor(cell.derivedScore) : cell.derivedScore
-  const grade = scale ? scale.grade(cell.derivedScore) : scoreToGrade(cell.derivedScore)
+  // 날짜 점수·등급은 "그날 자기 층(일진+시진) 신호" signed-surprise (dayOverride).
+  // 주어지지 않으면 절대 derivedScore 폴백.
+  const score = dayOverride ? dayOverride.score : cell.derivedScore
+  const grade = dayOverride ? dayOverride.grade : scoreToGrade(cell.derivedScore)
   const cross = deriveCrossAgreement(cell)
 
   // 근거 — source 별 무게 큰 신호 라벨 (상위 5)
@@ -212,10 +212,10 @@ export function cellsToYearlyDates(
   options: CellsToYearlyDatesOptions = {}
 ): V2CalendarDate[] {
   const lang = options.lang ?? 'ko'
-  // 그 사람 1년 분포로 점수·등급 상대화 (전체 cells 모집단 1회 측정).
-  const scale = derivePersonalScale(cells)
+  // 날짜 점수·등급은 일진+시진 층 신호로만 (deriveLayeredScores.daily).
+  const layered = deriveLayeredScores(cells)
   return cells
     .filter((c) => c.datetime)
-    .map((c) => cellToYearlyDate(c, lang, scale))
+    .map((c) => cellToYearlyDate(c, lang, layered.daily.get(c.datetime.slice(0, 10))))
     .sort((a, b) => a.date.localeCompare(b.date))
 }

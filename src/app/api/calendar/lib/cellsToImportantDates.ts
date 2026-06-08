@@ -25,10 +25,8 @@ import {
   cellToYearlyDate,
   type CalendarLang,
 } from '@/lib/calendar-engine/adapters/cellsToYearlyDates'
-import {
-  derivePersonalScale,
-  type PersonalScale,
-} from '@/lib/calendar-engine/derivers/personalScale'
+import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
+import type { CalendarGrade } from '@/lib/calendar-engine/derivers/grade'
 import {
   pickDaeunForDate,
   sewoonForYear,
@@ -220,10 +218,10 @@ function buildLongCycle(
 export function cellToImportantDate(
   cell: CalendarCell,
   options: CellsToImportantDatesOptions = {},
-  scale?: PersonalScale
+  dayOverride?: { score: number; grade: CalendarGrade }
 ): YearlyImportantDate {
   const lang: CalendarLang = options.locale ?? 'ko'
-  const v2 = cellToYearlyDate(cell, lang, scale)
+  const v2 = cellToYearlyDate(cell, lang, dayOverride)
   const grade = v2.grade as ImportanceGrade
   const score = v2.score
   const domain = DEFAULT_DOMAIN
@@ -293,10 +291,10 @@ export function cellsToImportantDates(
   cells: CalendarCell[],
   options: CellsToImportantDatesOptions = {}
 ): YearlyImportantDate[] {
-  // 그 사람 1년 분포로 점수·등급 상대화 (cellsToYearlyDates 와 동일 모델).
-  const scale = derivePersonalScale(cells)
+  // 날짜 점수·등급은 일진+시진 층 신호로만 (cellsToYearlyDates 와 동일 모델).
+  const layered = deriveLayeredScores(cells)
   return cells
     .filter((c) => c.datetime)
-    .map((c) => cellToImportantDate(c, options, scale))
+    .map((c) => cellToImportantDate(c, options, layered.daily.get(c.datetime.slice(0, 10))))
     .sort((a, b) => a.date.localeCompare(b.date))
 }
