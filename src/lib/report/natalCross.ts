@@ -26,6 +26,7 @@ import {
 } from '@/lib/calendar-engine/data/saju-astro-mapping'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { SIGN_KO_TO_EN, PLANET_LABEL, ELEMENT_LABEL } from './chartLabels'
+import { iga, eulReul, eunNeun, waGwa } from '@/lib/i18n/koParticle'
 
 export type CrossTone = 'resonant' | 'complement' | 'tension' | 'neutral'
 export type Lang = 'ko' | 'en'
@@ -117,16 +118,10 @@ export function evalIdentity(
   const b = signToSajuElement(sunSign)
   if (!a || !b) return null
   return elementVerdict(a, b, {
-    sameKo:
-      '속마음과 겉으로 보이는 모습이 같은 방향이에요 — "생긴 대로, 나답게" 살 때 가장 편한 사람.',
-    sameEn: 'Your inner and outer selves point the same way — you feel best just being yourself.',
-    genKo:
-      '타고난 본바탕과 드러나는 자아는 결이 다르지만 서로 잘 받쳐줘요 — 안과 밖이 균형 잡힌 타입.',
-    genEn: 'Your inner nature and outer self differ but support each other — well balanced.',
-    ctrlKo:
-      '타고난 본바탕과 드러나는 자아가 다른 방향이라, 가끔 "내가 진짜 원하는 게 뭐지?" 싶을 수 있어요.',
-    ctrlEn:
-      'Inner nature and outer self pull different ways — you may question what you really want.',
+    aKo: '타고난 속마음',
+    aEn: 'inner nature',
+    bKo: '드러나는 자아',
+    bEn: 'outer self',
   })
 }
 
@@ -138,35 +133,37 @@ export function evalNeeds(
   const need = normSajuElement(yongsinEl)
   const moon = signToSajuElement(moonSign)
   if (!need || !moon) return null
+  const tNeed = ELEMENT_TRAIT[need]
+  const tCrave = ELEMENT_TRAIT[moon]
   if (moon === need)
     return {
       tone: 'resonant',
       reason: {
-        ko: '마음이 진짜 필요로 하는 것과 평소 끌리는 것이 딱 맞아요 — 자기를 잘 챙기는 편.',
-        en: 'What you truly need and what you’re drawn to line up — you take good care of yourself.',
+        ko: `진짜 필요한 ${tNeed.ko} 기운과 평소 끌리는 게 딱 맞아요 — 자기를 잘 챙기는 편.`,
+        en: `What you truly need (${tNeed.en} energy) matches what you’re drawn to — you tend yourself well.`,
       },
     }
   if (GENERATES[moon] === need)
     return {
       tone: 'complement',
       reason: {
-        ko: '평소 마음이 끌리는 쪽이, 정작 필요한 걸 자연스럽게 채워줘요.',
-        en: 'What you’re naturally drawn to ends up supplying what you need.',
+        ko: `평소 ${tCrave.ko} 쪽에 끌리는데, 그게 정작 필요한 ${tNeed.ko} 기운을 자연스럽게 채워줘요.`,
+        en: `You’re drawn to the ${tCrave.en}, and it naturally supplies the ${tNeed.en} energy you need.`,
       },
     }
   if (CONTROLS[moon] === need)
     return {
       tone: 'tension',
       reason: {
-        ko: '평소 끌리는 것과 정작 필요한 게 어긋나서, 원하는 것만 좇다 중요한 걸 놓칠 수 있어요.',
-        en: 'What you crave and what you need pull apart — chasing wants can crowd out needs.',
+        ko: `평소 ${tCrave.ko} 쪽에 끌리는데 정작 필요한 건 ${tNeed.ko} 기운이라 어긋나요 — 원하는 것만 좇다 중요한 걸 놓칠 수 있어요.`,
+        en: `You crave the ${tCrave.en} but actually need the ${tNeed.en} — chasing wants can crowd out needs.`,
       },
     }
   return {
     tone: 'neutral',
     reason: {
-      ko: '마음의 필요와 평소 끌림이 따로 노는 편 — 의식적으로 챙겨주면 좋아요.',
-      en: 'Your needs and your pulls run on separate tracks — worth tending on purpose.',
+      ko: `필요한 ${tNeed.ko} 기운과 평소 끌리는 ${tCrave.ko} 쪽이 따로 노는 편 — 의식적으로 챙기면 좋아요.`,
+      en: `Your needed ${tNeed.en} energy and your ${tCrave.en} pulls run on separate tracks — worth tending on purpose.`,
     },
   }
 }
@@ -376,13 +373,10 @@ export function evalTemperament(
   const b = dominantAstroElement(astroSigns)
   if (!a || !b) return null
   return elementVerdict(a, b, {
-    sameKo: '사주로 봐도 별자리로 봐도 같은 성향이 제일 강해요 — 한 가지 색이 또렷한 사람.',
-    sameEn: 'Both systems agree on your strongest trait — one clear, defined color.',
-    genKo: '사주가 보는 성향과 별자리가 보는 성향이 서로 잘 맞물려서 받쳐줘요.',
-    genEn: 'Your two strongest traits interlock and support each other.',
-    ctrlKo:
-      '사주가 보는 주된 성향과 별자리가 보는 성향이 서로 당겨요 — 안에 다른 두 기운이 같이 있는 셈.',
-    ctrlEn: 'Your two main traits pull against each other — two different energies side by side.',
+    aKo: '사주가 본 성향',
+    aEn: 'your Saju-read trait',
+    bKo: '별자리가 본 성향',
+    bEn: 'your astrology-read trait',
   })
 }
 
@@ -457,14 +451,10 @@ export function evalPersona(
   const b = signToSajuElement(ascSign)
   if (!a || !b) return null
   return elementVerdict(a, b, {
-    sameKo:
-      '속 모습과 남에게 비치는 첫인상이 같아요 — "보이는 그대로인 사람"이라 신뢰 주기 쉬워요.',
-    sameEn: 'Your inner self and first impression match — what people see is what they get.',
-    genKo: '속 모습과 첫인상이 결은 다르지만 서로 잘 받쳐줘요.',
-    genEn: 'Your inner self and first impression differ but back each other up.',
-    ctrlKo: '속마음과 겉으로 비치는 첫인상이 달라서, 처음엔 오해받다 알고 보면 반전 있는 타입.',
-    ctrlEn:
-      'Inner self and first impression differ — easily misread at first, a pleasant surprise later.',
+    aKo: '속 모습',
+    aEn: 'inner self',
+    bKo: '남에게 비치는 첫인상',
+    bEn: 'first impression',
   })
 }
 
@@ -755,34 +745,73 @@ export function synthesize(
 }
 
 // ── 내부 헬퍼 ──────────────────────────────────────────────────────────────
-function elementVerdict(
-  a: SajuElement,
-  b: SajuElement,
-  msg: {
-    sameKo: string
-    sameEn: string
-    genKo: string
-    genEn: string
-    ctrlKo: string
-    ctrlEn: string
-  }
-): CrossVerdict {
+
+// 오행별 "쉬운 말" 결 — 전문용어 없이 그 기운의 성향을 한 마디로.
+const ELEMENT_TRAIT: Record<SajuElement, { ko: string; en: string }> = {
+  wood: { ko: '뻗어나가 키우는', en: 'growing and expansive' },
+  fire: { ko: '드러내고 타오르는', en: 'expressive and fiery' },
+  earth: { ko: '안정되고 믿음직한', en: 'steady and grounded' },
+  metal: { ko: '예리하고 결단하는', en: 'sharp and decisive' },
+  water: { ko: '깊고 유연한', en: 'deep and adaptable' },
+}
+
+/** 두 축의 도메인 라벨(쉬운 말). 예: 정체성 → '본바탕' / '드러나는 자아'. */
+interface DomainCtx {
+  aKo: string
+  aEn: string
+  bKo: string
+  bEn: string
+}
+
+/**
+ * 오행 교차 판정 — 두 축의 *실제 오행*을 쉬운 말 결로 풀어 그 사람 고유의
+ * 문장을 만든다. (예전엔 관계별 고정 문장 3개라 누구나 같은 결과였음.)
+ * 생(生) 관계는 방향(누가 누구를 키우나)까지 구분.
+ */
+function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerdict {
+  const ta = ELEMENT_TRAIT[a]
+  const tb = ELEMENT_TRAIT[b]
   const rel = elementRelation(a, b)
   switch (rel) {
     case 'same':
-      return { tone: 'resonant', reason: { ko: msg.sameKo, en: msg.sameEn } }
+      return {
+        tone: 'resonant',
+        reason: {
+          ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요.`,
+          en: `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction.`,
+        },
+      }
     case 'aGenB':
+      return {
+        tone: 'complement',
+        reason: {
+          ko: `${ta.ko} ${d.aKo}${iga(d.aKo)} ${tb.ko} ${d.bKo}${eulReul(d.bKo)} 자연스럽게 키워줘요 — 안에서 밖으로 잘 이어지는 타입.`,
+          en: `Your ${ta.en} ${d.aEn} naturally feeds your ${tb.en} ${d.bEn} — inner flows outward.`,
+        },
+      }
     case 'bGenA':
-      return { tone: 'complement', reason: { ko: msg.genKo, en: msg.genEn } }
+      return {
+        tone: 'complement',
+        reason: {
+          ko: `${tb.ko} ${d.bKo}${iga(d.bKo)} ${ta.ko} ${d.aKo}${eulReul(d.aKo)} 받쳐줘요 — 밖이 안을 채워주는 타입.`,
+          en: `Your ${tb.en} ${d.bEn} feeds your ${ta.en} ${d.aEn} — outer replenishes inner.`,
+        },
+      }
     case 'aCtrlB':
     case 'bCtrlA':
-      return { tone: 'tension', reason: { ko: msg.ctrlKo, en: msg.ctrlEn } }
+      return {
+        tone: 'tension',
+        reason: {
+          ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요.`,
+          en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person.`,
+        },
+      }
     default:
       return {
         tone: 'neutral',
         reason: {
-          ko: '두 성향이 직접 부딪히거나 돕는 관계는 아니에요 — 따로 도는 별개의 결.',
-          en: 'The two traits neither clash nor help directly — independent strands.',
+          ko: `${ta.ko} ${d.aKo}${waGwa(d.aKo)} ${tb.ko} ${d.bKo}${iga(d.bKo)} 직접 엮이진 않고 따로 작동해요.`,
+          en: `Your ${ta.en} ${d.aEn} and ${tb.en} ${d.bEn} run independently.`,
         },
       }
   }
