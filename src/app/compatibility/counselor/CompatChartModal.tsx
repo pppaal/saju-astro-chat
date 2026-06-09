@@ -181,6 +181,52 @@ export function CompatChartModal({
         .slice(0, 4)
     : []
 
+  // 밴드 분해 바를 SSOT(엔진 시너스트리 + 사주 facts)에서 도출 — ScoreBreakdown
+  // 의 자체 휴리스틱(플랫 6° orb·합/충만) 대신. 사주 충에는 형/해/파도 포함되고
+  // (facts.pillarRelations.tone), 시너 조화/긴장은 차트에 표시된 어스펙트와 동일.
+  type BandScores = {
+    eastern_hap?: number
+    eastern_chung?: number
+    elements_match?: number
+    synastry_harmonic?: number
+    synastry_tension?: number
+  }
+  const ssotBand: BandScores | undefined = (() => {
+    const out: BandScores = {}
+    if (sajuFacts) {
+      let bond = 0
+      let clash = 0
+      for (const r of sajuFacts.pillarRelations) {
+        if (r.tone === 'bond') bond++
+        else if (r.tone === 'clash') clash++
+      }
+      out.eastern_hap = Math.min(100, bond * 20)
+      out.eastern_chung = Math.max(0, 100 - clash * 15)
+      if (sajuFacts.elementBalance) {
+        const { a, b } = sajuFacts.elementBalance
+        let comp = 0
+        for (const e of ['목', '화', '토', '금', '수']) {
+          const av = a[e] ?? 0
+          const bv = b[e] ?? 0
+          if (av <= 1 && bv >= 2) comp += 20
+          if (bv <= 1 && av >= 2) comp += 20
+        }
+        out.elements_match = Math.min(100, comp)
+      }
+    }
+    if (synView && synView.aspects.length > 0) {
+      let harm = 0
+      let tens = 0
+      for (const asp of synView.aspects) {
+        if (asp.tone === 'harmony') harm++
+        else if (asp.tone === 'tension') tens++
+      }
+      out.synastry_harmonic = Math.min(100, harm * 20)
+      out.synastry_tension = Math.max(0, 100 - tens * 20)
+    }
+    return Object.keys(out).length > 0 ? out : undefined
+  })()
+
   const toneColor = (tone: SynastryTone): string =>
     tone === 'harmony'
       ? 'var(--ds-gold-on-dark, #d4af6a)'
@@ -244,6 +290,7 @@ export function CompatChartModal({
               정밀 회피) 밴드 라벨 + 근거 바만. */}
           <div className="chart-rise-in" style={{ ['--i' as string]: 0 } as React.CSSProperties}>
             <ScoreBreakdown
+              breakdown={ssotBand}
               sajuA={sajuA}
               sajuB={sajuB}
               astroA={astroA}
@@ -256,8 +303,8 @@ export function CompatChartModal({
               style={{ color: 'var(--ds-dark-text-muted)' }}
             >
               {isKo
-                ? '조화·긴장 막대는 두 사람 사주 합·충과 별자리 각도에서 자동 계산돼요. 깊은 풀이는 상담사에게 물어보세요.'
-                : 'The harmony/tension bars are computed from your Saju unions/clashes and planetary angles. Ask the counselor for the deep read.'}
+                ? '조화·긴장 막대는 상담사와 같은 엔진(사주 합/충/형·별자리 시너스트리)에서 계산돼요. 깊은 풀이는 상담사에게 물어보세요.'
+                : 'The harmony/tension bars come from the same engine the counselor uses (Saju unions/clashes, synastry aspects). Ask the counselor for the deep read.'}
             </p>
           </div>
 
