@@ -24,9 +24,10 @@ export async function getServerLocale(): Promise<'ko' | 'en'> {
   try {
     const h = await headers()
     const raw = h.get('x-locale')
-    return raw === 'ko' ? 'ko' : 'en'
+    // 한국어 우선 서비스 — 명시적 영어 신호(x-locale=en)일 때만 영어, 그 외엔 한국어.
+    return raw === 'en' ? 'en' : 'ko'
   } catch {
-    return 'en'
+    return 'ko'
   }
 }
 
