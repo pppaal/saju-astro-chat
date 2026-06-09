@@ -29,9 +29,12 @@ import { SIGN_KO_TO_EN, PLANET_LABEL, ELEMENT_LABEL } from './chartLabels'
 import { iga, eulReul, eunNeun, waGwa } from '@/lib/i18n/koParticle'
 import { getPlanetCore } from '@/lib/chart-dictionary'
 
-/** 행성의 쉬운 말 결(원리) — 예: 토성 '한계·책임·구조'. 없으면 행성명 폴백. */
+/** 행성의 쉬운 말 결(원리) — 예: 토성 '한계·책임·구조'. 없으면 행성명 폴백.
+ * EN: principle 이 'Expansion · Faith · Luck' 같은 대문자 명사나열이라 문장 중간에
+ * 박으면 비문 → 소문자 + 쉼표로 풀어 'expansion, faith, luck' 형태로. */
 function planetTheme(planet: string, lang: Lang): string {
-  return getPlanetCore(planet, lang)?.principle ?? PLANET_LABEL[planet]?.[lang] ?? planet
+  const p = getPlanetCore(planet, lang)?.principle ?? PLANET_LABEL[planet]?.[lang] ?? planet
+  return lang === 'en' ? p.toLowerCase().replace(/\s*·\s*/g, ', ') : p
 }
 
 export type CrossTone = 'resonant' | 'complement' | 'tension' | 'neutral'
@@ -904,7 +907,7 @@ export function synthesize(
     tone,
     text: {
       ko: `잘 맞는 게 ${resonant}개, 서로 채워주는 게 ${complement}개, 부딪히는 게 ${tension}개 — ${labelKo} 사람이에요.${axisKo}${elabKo}`,
-      en: `${resonant} match · ${complement} fill-in · ${tension} clash — a ${labelEn} identity.${axisEn}${elabEn}`,
+      en: `${resonant} aligned · ${complement} complementary · ${tension} in tension — a ${labelEn} identity.${axisEn}${elabEn}`,
     },
   }
 }
