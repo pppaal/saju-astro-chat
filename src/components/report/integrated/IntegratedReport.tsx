@@ -42,7 +42,7 @@ import {
   getShinsalInterpretation,
   getElementInterpretation,
 } from '@/lib/saju/interpretations'
-import { SIBSIN_SHORT } from '../atoms/interpretations'
+import { SIBSIN_SHORT, ELEMENT_REMEDY } from '../atoms/interpretations'
 
 export type Lang = 'ko' | 'en'
 
@@ -589,6 +589,30 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               <span className={s.metaV}>{v}</span>
             </div>
           ))}
+        </div>
+
+        {/* ── 한눈에 (결론 먼저) — 별명 + 종합 교차 + 가장 필요한 기운 ── */}
+        <div className={s.hero}>
+          {ilju?.character && (
+            <div className={s.heroTag}>{ilju.character.split('.')[0].trim()}</div>
+          )}
+          {cross?.synthesis && <p className={s.heroSummary}>{cross.synthesis}</p>}
+          {(() => {
+            const yk = ELEMENTS[S.yongsin.primary]?.ko
+            const rem = yk ? ELEMENT_REMEDY[yk] : undefined
+            if (!rem) return null
+            return (
+              <div className={s.heroRemedy}>
+                <b className={elClass[S.yongsin.primary]}>
+                  {lang === 'en' ? 'What you need most' : '가장 필요한 기운'}:{' '}
+                  {ELEMENTS[S.yongsin.primary]?.han} {elementLabel(S.yongsin.primary, lang)}
+                </b>
+                <span>
+                  🎨 {rem.color} · 🧭 {rem.direction} · ✨ {rem.activity}
+                </span>
+              </div>
+            )
+          })()}
         </div>
 
         {/* 01 사주 명식 */}
