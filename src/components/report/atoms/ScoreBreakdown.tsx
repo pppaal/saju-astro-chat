@@ -334,6 +334,8 @@ interface RowConfig {
   emoji: string
   labelKo: string
   labelEn: string
+  /** 바 색 — 조화 계열(골드) vs 긴장 계열(로즈레드). */
+  tone: 'harmony' | 'tension'
   /** 0-100 점수에서 빈 바일 때 표시할 보조 텍스트 */
   emptyKo: string
   emptyEn: string
@@ -345,6 +347,7 @@ const ROWS: RowConfig[] = [
     emoji: '💕',
     labelKo: '사주 합',
     labelEn: 'Saju Union',
+    tone: 'harmony',
     emptyKo: '합 없음',
     emptyEn: 'no union',
   },
@@ -353,6 +356,7 @@ const ROWS: RowConfig[] = [
     emoji: '⚠️',
     labelKo: '사주 충',
     labelEn: 'Saju Clash',
+    tone: 'tension',
     emptyKo: '충돌 강함',
     emptyEn: 'high clash',
   },
@@ -361,6 +365,7 @@ const ROWS: RowConfig[] = [
     emoji: '🌿',
     labelKo: '오행 보완',
     labelEn: 'Element Match',
+    tone: 'harmony',
     emptyKo: '보완 적음',
     emptyEn: 'low complement',
   },
@@ -369,6 +374,7 @@ const ROWS: RowConfig[] = [
     emoji: '♀♂',
     labelKo: '시너 조화',
     labelEn: 'Synastry Harmony',
+    tone: 'harmony',
     emptyKo: '조화 적음',
     emptyEn: 'low harmony',
   },
@@ -377,13 +383,20 @@ const ROWS: RowConfig[] = [
     emoji: '♂♄',
     labelKo: '시너 긴장',
     labelEn: 'Synastry Tension',
+    tone: 'tension',
     emptyKo: '긴장 강함',
     emptyEn: 'high tension',
   },
 ]
 
-function ScoreBar({ value }: { value: number }) {
+function ScoreBar({ value, tone = 'harmony' }: { value: number; tone?: 'harmony' | 'tension' }) {
   const clamped = Math.max(0, Math.min(100, value))
+  // 긴장 계열(시너 긴장·사주 충)은 로즈레드, 조화 계열은 골드 — 한눈에 좋은
+  // 신호 vs 마찰 신호를 색으로 구분(차트 전체 tension red #f9a8a8 와 통일).
+  const fill =
+    tone === 'tension'
+      ? 'linear-gradient(90deg, #f9a8a8 0%, rgba(249,168,168,0.5) 100%)'
+      : 'linear-gradient(90deg, var(--ds-gold-on-dark, #d4af6a) 0%, var(--ds-gold-on-dark-soft, #c9a76a) 100%)'
   return (
     <div
       className="relative h-2 flex-1 overflow-hidden rounded-full"
@@ -395,11 +408,7 @@ function ScoreBar({ value }: { value: number }) {
     >
       <div
         className="h-full rounded-full transition-all"
-        style={{
-          width: `${clamped}%`,
-          background:
-            'linear-gradient(90deg, var(--ds-gold-on-dark, #d4af6a) 0%, rgba(168,131,240,0.85) 100%)',
-        }}
+        style={{ width: `${clamped}%`, background: fill }}
       />
     </div>
   )
@@ -466,11 +475,13 @@ export function ScoreBreakdown({
         {variant === 'band' ? (
           // 밴드 모드 — 큰 숫자 대신 verdict 라벨을 크게. 근거는 아래 분해 바.
           <div
-            className="px-2 text-center font-semibold leading-snug"
+            className="px-2 text-center font-semibold"
             style={{
-              fontSize: 18,
+              fontSize: 24,
+              lineHeight: 1.25,
               fontFamily: 'var(--font-cinzel), Georgia, serif',
               color: 'var(--ds-gold-on-dark, #d4af6a)',
+              textShadow: '0 1px 12px rgba(212,175,106,0.25)',
             }}
           >
             {verdict}
@@ -524,7 +535,7 @@ export function ScoreBreakdown({
                 <span aria-hidden="true">{row.emoji}</span>
                 <span>{lang === 'en' ? row.labelEn : row.labelKo}</span>
               </span>
-              <ScoreBar value={score} />
+              <ScoreBar value={score} tone={row.tone} />
               <span
                 className="w-14 shrink-0 text-right tabular-nums"
                 style={{

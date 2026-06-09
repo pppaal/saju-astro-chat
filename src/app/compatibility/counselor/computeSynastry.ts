@@ -35,13 +35,14 @@ const PLANET_KO: Record<string, string> = {
 const HARMONY = new Set(['conjunction', 'trine', 'sextile'])
 const TENSION = new Set(['square', 'opposition', 'quincunx'])
 
+// 느낌(평이한 말)을 앞세우고 전문용어는 작게. (잡지처럼 읽히게 — 상담사 voice)
 const ASPECT_LABEL: Record<string, { ko: string; en: string }> = {
-  conjunction: { ko: '합', en: 'conjunction' },
-  trine: { ko: '삼각(조화)', en: 'trine' },
-  sextile: { ko: '육각(협력)', en: 'sextile' },
-  square: { ko: '사각(긴장)', en: 'square' },
-  opposition: { ko: '대립', en: 'opposition' },
-  quincunx: { ko: '150도(미세조정)', en: 'quincunx' },
+  conjunction: { ko: '밀착', en: 'tight blend' },
+  trine: { ko: '조화', en: 'harmony' },
+  sextile: { ko: '협력', en: 'support' },
+  square: { ko: '긴장', en: 'tension' },
+  opposition: { ko: '맞섬', en: 'face-off' },
+  quincunx: { ko: '미세한 어긋남', en: 'subtle misfit' },
 }
 
 const HOUSE_MEANING_KO: Record<number, string> = {
@@ -88,6 +89,8 @@ export interface SynAspectView {
   label: string
   tone: SynastryTone
   orb: number
+  /** orb 에서 도출한 강도 표현 (숫자 대신 사용자용) */
+  strength: string
 }
 
 export interface SynOverlayView {
@@ -167,6 +170,18 @@ export function computeSynastryView(
       label: (isKo ? ASPECT_LABEL[asp.type]?.ko : ASPECT_LABEL[asp.type]?.en) ?? asp.type,
       tone: toneOf(asp.type),
       orb: Math.round(asp.orb * 10) / 10,
+      // orb 좁을수록 강함 — 숫자(0.5°)는 일반 사용자에게 의미 없어 강도 표현으로.
+      strength: isKo
+        ? asp.orb <= 1.5
+          ? '강하게'
+          : asp.orb <= 3
+            ? '또렷이'
+            : '은은히'
+        : asp.orb <= 1.5
+          ? 'strong'
+          : asp.orb <= 3
+            ? 'clear'
+            : 'faint',
     }))
 
   const mapOverlay = (o: { planet: string; inHouse: number }): SynOverlayView => ({
