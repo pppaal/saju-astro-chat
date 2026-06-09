@@ -193,8 +193,9 @@ export function CompatChartModal({
         </div>
 
         <div className="space-y-6">
-          {/* Level 0 — ScoreBreakdown: 총합 점수 + 5 카테고리 분해.
-              사주 합/충 + 오행 보완 + 시너스트리 자동 계산. */}
+          {/* Level 0 — 히어로: verdict 밴드 + 분해 바(사주 합/충·오행 보완·
+              시너 조화/긴장). 산식이 휴리스틱이라 "N/100" 숫자는 안 박고(가짜
+              정밀 회피) 밴드 라벨 + 근거 바만. */}
           <div className="chart-rise-in" style={{ ['--i' as string]: 0 } as React.CSSProperties}>
             <ScoreBreakdown
               sajuA={sajuA}
@@ -202,7 +203,16 @@ export function CompatChartModal({
               astroA={astroA}
               astroB={astroB}
               lang={lang}
+              variant="band"
             />
+            <p
+              className="mt-2 px-1 text-center text-[11px] leading-relaxed"
+              style={{ color: 'var(--ds-dark-text-muted)' }}
+            >
+              {isKo
+                ? '조화·긴장 막대는 두 사람 사주 합·충과 별자리 각도에서 자동 계산돼요. 깊은 풀이는 상담사에게 물어보세요.'
+                : 'The harmony/tension bars are computed from your Saju unions/clashes and planetary angles. Ask the counselor for the deep read.'}
+            </p>
           </div>
 
           {/* 한 줄 해석 — 두 사람 나란히 */}
@@ -233,6 +243,14 @@ export function CompatChartModal({
             <SectionTitle>
               {isKo ? '동양 — 사주팔자 · 오행 비교' : 'Eastern — Saju & Five Elements'}
             </SectionTitle>
+            <p
+              className="px-2 text-xs leading-relaxed"
+              style={{ color: 'var(--ds-dark-text-muted)' }}
+            >
+              {isKo
+                ? '두 사람의 여덟 글자가 만났을 때 합·충이 어디서 일어나는지, 한쪽에 부족한 오행을 상대가 채워주는지를 봐요. 겹친 레이더에서 한 사람이 낮은 축을 다른 사람이 높게 채우면 상호보완이에요.'
+                : "Where the two charts' eight characters meet — which pillars pull together (union) or push apart (clash), and whether one's missing element is what the other has in abundance. On the overlaid radar, a low axis filled by the partner means complementarity."}
+            </p>
 
             <div className="space-y-1.5">
               <div
@@ -294,6 +312,14 @@ export function CompatChartModal({
             <SectionTitle>
               {isKo ? '서양 — 시너스트리 (네이탈 겹침)' : 'Synastry — Natal Overlay'}
             </SectionTitle>
+            <p
+              className="px-2 text-xs leading-relaxed"
+              style={{ color: 'var(--ds-dark-text-muted)' }}
+            >
+              {isKo
+                ? '한 황도 위에 두 사람의 행성을 겹쳐, 누구의 행성이 상대의 어느 영역(하우스)에 떨어지는지 봐요. 금성·달이 조화 각(120·60도)이면 끌림·정서적 합, 화성·토성이 긴장 각(90·180도)이면 속도·가치관 마찰로 읽혀요.'
+                : "Both charts on one zodiac — whose planet lands in which of the other's life areas (houses). Venus/Moon at harmonious angles (120°/60°) read as attraction and emotional ease; Mars/Saturn at hard angles (90°/180°) as friction in pace or values."}
+            </p>
             <CompatNatalOverlay
               astroA={astroA as never}
               astroB={astroB as never}

@@ -35,6 +35,13 @@ export interface ScoreBreakdownProps {
   astroB?: unknown
   lang?: 'ko' | 'en'
   className?: string
+  /**
+   * 'score' (기본) — 큰 "N / 100" 숫자 + verdict + 분해 바.
+   * 'band' — 점수 산식이 보정된 휴리스틱이라 정밀 숫자를 헤드라인으로 박지
+   *   않는다. 큰 숫자 대신 verdict 밴드 라벨을 크게 + 분해 바로 근거를 그대로
+   *   노출(조화/긴장 포함). 차트 리포트 히어로용.
+   */
+  variant?: 'score' | 'band'
 }
 
 // ─── 사주 raw 추출 ────────────────────────────────────────────────────
@@ -407,6 +414,7 @@ export function ScoreBreakdown({
   astroB,
   lang = 'ko',
   className,
+  variant = 'score',
 }: ScoreBreakdownProps) {
   const computed: BreakdownScores =
     breakdown ??
@@ -455,29 +463,45 @@ export function ScoreBreakdown({
         >
           {lang === 'en' ? headerEn : headerKo}
         </div>
-        <div
-          className="font-bold leading-none"
-          style={{
-            fontSize: 32,
-            fontWeight: 700,
-            color: 'var(--ds-gold-on-dark, #d4af6a)',
-          }}
-        >
-          {totalScore}
-          <span
-            className="text-base font-normal"
-            style={{ color: 'var(--ds-dark-text-muted, rgba(255,255,255,0.55))' }}
+        {variant === 'band' ? (
+          // 밴드 모드 — 큰 숫자 대신 verdict 라벨을 크게. 근거는 아래 분해 바.
+          <div
+            className="px-2 text-center font-semibold leading-snug"
+            style={{
+              fontSize: 18,
+              fontFamily: 'var(--font-cinzel), Georgia, serif',
+              color: 'var(--ds-gold-on-dark, #d4af6a)',
+            }}
           >
-            {' '}
-            / 100
-          </span>
-        </div>
-        <div
-          className="text-center text-xs"
-          style={{ color: 'var(--ds-dark-text, rgba(255,255,255,0.85))' }}
-        >
-          {verdict}
-        </div>
+            {verdict}
+          </div>
+        ) : (
+          <>
+            <div
+              className="font-bold leading-none"
+              style={{
+                fontSize: 32,
+                fontWeight: 700,
+                color: 'var(--ds-gold-on-dark, #d4af6a)',
+              }}
+            >
+              {totalScore}
+              <span
+                className="text-base font-normal"
+                style={{ color: 'var(--ds-dark-text-muted, rgba(255,255,255,0.55))' }}
+              >
+                {' '}
+                / 100
+              </span>
+            </div>
+            <div
+              className="text-center text-xs"
+              style={{ color: 'var(--ds-dark-text, rgba(255,255,255,0.85))' }}
+            >
+              {verdict}
+            </div>
+          </>
+        )}
       </div>
 
       {/* 구분선 */}
