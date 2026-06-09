@@ -507,6 +507,10 @@ export function evalPersona(
     aEn: 'inner self',
     bKo: '남에게 비치는 첫인상',
     bEn: 'first impression',
+    tailKo:
+      '첫인상과 진짜 속이 다른 만큼, 처음엔 가볍게 다가가되 시간을 두고 진짜 결을 보여주면 신뢰가 더 깊어져요.',
+    tailEn:
+      'Since your first impression differs from your true self, let people in gradually — the deeper grain earns lasting trust.',
   })
 }
 
@@ -936,6 +940,9 @@ interface DomainCtx {
   aEn: string
   bKo: string
   bEn: string
+  /** 긴장(극) 케이스 조언 문구 override — 도메인별로 달라 중복 방지. */
+  tailKo?: string
+  tailEn?: string
 }
 
 /**
@@ -980,8 +987,8 @@ function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerd
         return {
           tone: 'tension',
           reason: {
-            ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요. 부딪힐 땐 한쪽을 누르기보다 상황에 따라 번갈아 쓰는 리듬을 만들면 오히려 강점이 돼요.`,
-            en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person. When they clash, alternate between them by context instead of suppressing one — that turns friction into range.`,
+            ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요. ${d.tailKo ?? '부딪힐 땐 한쪽을 누르기보다 상황에 따라 번갈아 쓰는 리듬을 만들면 오히려 강점이 돼요.'}`,
+            en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person. ${d.tailEn ?? 'When they clash, alternate between them by context instead of suppressing one — that turns friction into range.'}`,
           },
         }
       default:
