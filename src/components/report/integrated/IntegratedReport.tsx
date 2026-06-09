@@ -42,6 +42,7 @@ import {
   getShinsalInterpretation,
   getElementInterpretation,
 } from '@/lib/saju/interpretations'
+import { SIBSIN_SHORT } from '../atoms/interpretations'
 
 export type Lang = 'ko' | 'en'
 
@@ -210,6 +211,11 @@ const sibsinLabel = (name: string, lang: Lang): string => {
   if (lang === 'ko') return name
   if (!name || name === '日干') return name === '日干' ? 'Day Master' : name
   return getSibsinInterpretation(name as never)?.name_en ?? name
+}
+// 십신 → 평이 한줄 글로스 (SIBSIN_SHORT 재사용). 명식 '쉬운 풀이' 행에 사용.
+const sibsinShort = (name: string, lang: Lang): string => {
+  if (!name || name === '日干') return ''
+  return lang === 'ko' ? (SIBSIN_SHORT[name] ?? name) : sibsinLabel(name, 'en')
 }
 const stageLabel = (stage: string, lang: Lang): string => {
   if (lang === 'ko' || !stage) return stage
@@ -638,6 +644,29 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
               </div>
             ))}
+          </div>
+          {/* 쉬운 풀이 (Level 1) — 한자/십신을 평이한 한 줄로. 위 그리드는 전문(Level 2). */}
+          <div className={s.plainPillars}>
+            {pillarsArr.map(([head, p]) => {
+              const stemG = p.isDay
+                ? lang === 'en'
+                  ? 'You (Day Master)'
+                  : '나 자신'
+                : sibsinShort(p.sibsinStem, lang)
+              const branchG = sibsinShort(p.sibsinBranch, lang)
+              return (
+                <div className={s.plainRow} key={head.ko}>
+                  <span className={s.plainHead}>{head[lang]}</span>
+                  <b className={s.plainGz}>
+                    <span className={elClass[stemEl(p.stem)]}>{p.stem}</span>
+                    <span className={elClass[branchEl(p.branch)]}>{p.branch}</span>
+                  </b>
+                  <span className={s.plainMeaning}>
+                    {[stemG, branchG].filter(Boolean).join(' · ')}
+                  </span>
+                </div>
+              )
+            })}
           </div>
           <div className={s.row2}>
             <div>
