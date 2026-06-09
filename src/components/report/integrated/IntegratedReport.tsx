@@ -1337,7 +1337,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     <span className={s.themeName}>{r.category}</span>
                     <span className={s.themeBadge}>{TONE_LABEL[r.tone][lang]}</span>
                   </div>
-                  {(r.left || r.right) && (
+                  {r.left && r.right && (
                     <div className={s.themeCross}>
                       <div className={s.themeSide}>
                         <div className={s.themeSideK}>{t('sajuSide')}</div>
