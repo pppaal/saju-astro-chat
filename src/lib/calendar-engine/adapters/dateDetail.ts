@@ -216,7 +216,7 @@ const ASTRO_TERM_KO: Array<[RegExp, string]> = [
   [/\bTrue Node\b/g, '북교점'],
   [/\bAscendant\b/g, '상승점'],
   [/\bDescendant\b/g, '하강점'],
-  [/\bMC\b/g, '천정'],
+  [/\bMC\b/g, '중천점'],
   [/\bIC\b/g, '천저'],
   [/\bSun\b/g, '태양'],
   [/\bMoon\b/g, '달'],

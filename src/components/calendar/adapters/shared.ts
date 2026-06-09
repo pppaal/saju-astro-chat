@@ -166,12 +166,8 @@ export const SIGN_KO: Record<ZodiacKo, string> = {
 }
 
 // 행성 한글 표기 ─ "Sun → 태양" 식. 정본(calendar-engine/data/planetNames)을
-// 그대로 쓰되, 어댑터 표시에 필요한 축(상승점·MC)만 더한다. 복사본 두지 않음.
-export const PLANET_KO: Record<string, string> = {
-  ...PLANET_KO_BASE,
-  Ascendant: '상승점',
-  MC: 'MC',
-}
+// 그대로 재노출. 앵글(상승점·중천점)도 정본에 포함되어 복사본·override 없음.
+export const PLANET_KO: Record<string, string> = { ...PLANET_KO_BASE }
 
 // ── 본명/대운/세운 정통화: F등급 라벨 → status 풀이 ────────────────────────
 /** 격국 status 한 줄 압축. */
