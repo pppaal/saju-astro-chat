@@ -57,11 +57,11 @@ const PLANET_LABEL: Record<string, string> = {
 // the destiny layer's compact style). Drops the verbose "in Sign … (Orb: …)".
 const PLANET_KO: Record<string, string> = {
   ...PLANET_KO_BASE,
-  'True Node': '노드',
-  'South Node': '남노드',
+  'True Node': '북교점',
+  'South Node': '남교점',
   Ascendant: '상승점',
   MC: '중천점',
-  Chiron: '키론',
+  Chiron: '카이런',
   Lilith: '릴리스',
   PartOfFortune: '포춘',
   Vertex: '버텍스',

@@ -10,10 +10,10 @@
 // 십신 (10 Gods) — 사주 신호의 핵심
 const SIBSIN_EN: Record<string, string> = {
   정관: 'Direct Officer',
-  편관: 'Seven Killer',
+  편관: 'Seven Killings',
   정인: 'Direct Resource',
   편인: 'Indirect Resource',
-  식신: 'Food God',
+  식신: 'Eating God',
   상관: 'Hurting Officer',
   정재: 'Direct Wealth',
   편재: 'Indirect Wealth',

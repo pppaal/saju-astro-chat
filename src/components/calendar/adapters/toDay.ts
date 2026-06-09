@@ -210,13 +210,13 @@ const KIND_TO_CAT: Record<string, string> = {
 
 // 한국어 어스펙트 (transit signal 의 evidence.aspectType → 한글 라벨).
 const ASPECT_KO: Record<string, string> = {
-  conjunction: '합',
-  sextile: '섹스타일',
-  square: '사각',
-  trine: '삼각',
-  opposition: '대립',
-  semisextile: '반섹스타일',
-  quincunx: '퀸컹스',
+  conjunction: '겹침',
+  sextile: '기회각',
+  square: '긴장각',
+  trine: '조화각',
+  opposition: '대립각',
+  semisextile: '미세각',
+  quincunx: '어긋남각',
   quintile: '퀸타일',
   biquintile: '바이퀸타일',
   sesquiquadrate: '세스큐쿼드레이트',

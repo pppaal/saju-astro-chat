@@ -37,7 +37,7 @@ const SIGN_KO: Record<string, string> = {
   Virgo: '처녀자리',
   Libra: '천칭자리',
   Scorpio: '전갈자리',
-  Sagittarius: '궁수자리',
+  Sagittarius: '사수자리',
   Capricorn: '염소자리',
   Aquarius: '물병자리',
   Pisces: '물고기자리',

@@ -145,7 +145,7 @@ export const SIGN_META: Record<string, { glyph: string; ko: string; el: string }
   Vir: { glyph: '♍', ko: '처녀', el: 'earth' },
   Lib: { glyph: '♎', ko: '천칭', el: 'wood' },
   Sco: { glyph: '♏', ko: '전갈', el: 'water' },
-  Sag: { glyph: '♐', ko: '궁수', el: 'fire' },
+  Sag: { glyph: '♐', ko: '사수', el: 'fire' },
   Cap: { glyph: '♑', ko: '염소', el: 'earth' },
   Aqu: { glyph: '♒', ko: '물병', el: 'wood' },
   Pis: { glyph: '♓', ko: '물고기', el: 'water' },
