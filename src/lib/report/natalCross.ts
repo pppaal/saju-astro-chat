@@ -882,11 +882,29 @@ export function synthesize(
   const axisKo = sharedElement ? ` 가장 두드러진 기운은 ${EL_KO[sharedElement]}이에요.` : ''
   const axisEn = sharedElement ? ` The strongest thread is ${EL_EN[sharedElement]}.` : ''
 
+  // 톤별 해석 한 단락 — 전체 패턴이 삶에서 어떻게 작동하는지.
+  const elabKo =
+    tone === 'resonant'
+      ? ' 동양(사주)과 서양(별자리)이 대체로 같은 방향을 가리켜, 자기 색이 또렷하고 추진력이 강점이에요. 다만 한쪽으로 쏠리기 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.'
+      : tone === 'complement'
+        ? ' 두 시스템이 서로 다른 얘기를 하지만, 그게 오히려 빈자리를 메워줘요. 겉과 속, 타고난 결과 드러나는 모습이 달라 상황마다 여러 모습을 꺼내 쓰는 폭넓은 사람이에요.'
+        : tone === 'tension'
+          ? ' 사주와 별자리가 서로 당기는 자리가 많아, 안에서 두 결의 갈등을 느낄 때가 있어요. 하지만 그 긴장이 깊이와 성장의 동력이 됩니다 — 한쪽을 누르기보다 둘을 번갈아 쓰는 리듬을 만들면 강점이 돼요.'
+          : ' 어느 한쪽으로 크게 쏠리지 않아 균형 감각이 좋아요. 상황에 따라 다른 면을 자연스럽게 꺼내 쓰는 유연함이 있어요.'
+  const elabEn =
+    tone === 'resonant'
+      ? ' East (Saju) and West (astrology) mostly point the same way, so your sense of self is clear and your drive is a strength. Just watch for one-sidedness — touch the opposite grain now and then.'
+      : tone === 'complement'
+        ? ' The two systems say different things, yet they fill each other’s gaps. Inner and outer differ, giving you a wide range to draw on by situation.'
+        : tone === 'tension'
+          ? ' Saju and astrology pull against each other in several places, so you may feel inner friction — but that tension fuels depth and growth. Alternate between the two rather than suppressing one.'
+          : ' No strong lean either way gives you good balance, and you can switch between different sides as the situation calls.'
+
   return {
     tone,
     text: {
-      ko: `잘 맞는 게 ${resonant}개, 서로 채워주는 게 ${complement}개, 부딪히는 게 ${tension}개 — ${labelKo} 사람이에요.${axisKo}`,
-      en: `${resonant} match · ${complement} fill-in · ${tension} clash — a ${labelEn} identity.${axisEn}`,
+      ko: `잘 맞는 게 ${resonant}개, 서로 채워주는 게 ${complement}개, 부딪히는 게 ${tension}개 — ${labelKo} 사람이에요.${axisKo}${elabKo}`,
+      en: `${resonant} match · ${complement} fill-in · ${tension} clash — a ${labelEn} identity.${axisEn}${elabEn}`,
     },
   }
 }
