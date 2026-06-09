@@ -13,6 +13,7 @@ import {
 } from '@/lib/api/middleware'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { STEM_TO_ELEMENT_EN } from '@/lib/saju/constants'
+import { parseHourMinute } from '@/lib/saju/timeParse'
 import koTranslations from '@/i18n/locales/ko'
 import enTranslations from '@/i18n/locales/en'
 import type { TranslationData } from '@/types/calendar-api'
@@ -311,8 +312,9 @@ export const GET = withApiMiddleware(
       birthDay: birthDate.getDate(),
     }
     try {
-      const birthHour = Number.parseInt((birthTimeParam || '00:00').split(':')[0] || '0', 10)
-      const birthMinute = Number.parseInt((birthTimeParam || '00:00').split(':')[1] || '0', 10)
+      // AM/PM 표기('01:30 PM')를 정확히 24h 정규화 — 사주 계산과 동일 헬퍼.
+      // 직접 split(':') 하면 PM 이 12h 빠진 채로 자연차트/마일스톤이 계산됐다.
+      const { h: birthHour, m: birthMinute } = parseHourMinute(birthTimeParam || '00:00')
       const [
         { calculateNatalChart, toChart },
         { calculateTransitChart, findMajorTransits, findTransitAspects },
@@ -616,11 +618,8 @@ export const GET = withApiMiddleware(
         const { calculateOuterPlanetMilestones } = await import(
           '@/lib/astrology/foundation/planetReturns'
         )
-        const birthHourLocal = Number.parseInt((birthTimeParam || '00:00').split(':')[0] || '0', 10)
-        const birthMinuteLocal = Number.parseInt(
-          (birthTimeParam || '00:00').split(':')[1] || '0',
-          10
-        )
+        // AM/PM 정규화 — 자연차트와 동일하게 parseHourMinute 사용(12h 오류 방지).
+        const { h: birthHourLocal, m: birthMinuteLocal } = parseHourMinute(birthTimeParam || '00:00')
         astroMilestoneOverrides = calculateOuterPlanetMilestones({
           year: birthDate.getFullYear(),
           month: birthDate.getMonth() + 1,

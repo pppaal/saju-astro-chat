@@ -3,6 +3,7 @@
 import { toDate } from 'date-fns-tz'
 import Calendar from 'korean-lunar-calendar'
 import { logger } from '@/lib/logger'
+import { parseHourMinute } from './timeParse'
 import {
   FiveElement,
   YinYang,
@@ -190,44 +191,6 @@ const PLAIN_HOUR_RANGES: ReadonlyArray<HourRange> = [
   { idx: 10, start: 19 * 60, end: 21 * 60 },
   { idx: 11, start: 21 * 60, end: 23 * 60 },
 ]
-
-/* ========== 안전 시간 파서 ========== */
-function parseHourMinute(t: string): { h: number; m: number } {
-  const s = String(t ?? '')
-    .trim()
-    .toUpperCase()
-  const isPM = /\bPM$/.test(s)
-  const isAM = /\bAM$/.test(s)
-  const core = s.replace(/\s?(AM|PM)$/i, '')
-  const [hh = '0', mm = '0'] = core.split(':')
-  let h = Number(hh)
-  let m = Number(mm?.replace(/\D/g, '') ?? '0')
-  if (isPM && h < 12) {
-    h += 12
-  }
-  if (isAM && h === 12) {
-    h = 0
-  }
-  if (!Number.isFinite(h)) {
-    h = 0
-  }
-  if (!Number.isFinite(m)) {
-    m = 0
-  }
-  if (h < 0) {
-    h = 0
-  }
-  if (h > 23) {
-    h = 23
-  }
-  if (m < 0) {
-    m = 0
-  }
-  if (m > 59) {
-    m = 59
-  }
-  return { h, m }
-}
 
 /* ========== 메모이제이션 캐시 ========== */
 const sajuCache = new Map<string, { result: CalculateSajuDataResult; timestamp: number }>()

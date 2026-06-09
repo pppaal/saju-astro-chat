@@ -273,7 +273,7 @@ const LUNAR_MANSIONS: Omit<LunarMansion, 'index'>[] = [
 export function getLunarMansion(date: Date): LunarMansion {
   // UTC 기준으로 일수 계산 (서버 타임존 영향 제거)
   const baseUtc = Date.UTC(1900, 0, 1)
-  const dateUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+  const dateUtc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
   const diffDays = Math.floor((dateUtc - baseUtc) / (1000 * 60 * 60 * 24))
   const index = ((diffDays + 2) % 28) + 1 // 1-28
 

@@ -1329,8 +1329,8 @@ export const GRADE_REASON_TRANSLATIONS: Record<string, { ko: string; en: string 
 
   // 추가 세부 이유
   hai: {
-    ko: "🔪 해(害): 배신이나 오해의 기운이 있습니다",
-    en: "🔪 Harm (Hai): Energy of betrayal or misunderstanding present"
+    ko: "해(害): 사소한 말이 오해를 부를 수 있어요",
+    en: "Harm (Hai): a careless word can spark misunderstanding"
   },
   gongmang: {
     ko: "🕳️ 공망(空亡): 노력이 헛되기 쉬운 날입니다",
