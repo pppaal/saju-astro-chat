@@ -469,9 +469,23 @@ export function CompatChartModal({
               </DataCard>
             )}
 
-            <div>
-              <SubLabel>{isKo ? '사주팔자 — 나란히 보기' : 'Four pillars — side by side'}</SubLabel>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* 솔로 상세(각자 원국)는 관계 신호보다 아래 + 기본 접힘 — 위계상
+                "둘 사이"가 먼저, 각자 차트는 펼쳐 보는 근거 자료. */}
+            <details className="group">
+              <summary
+                className="flex cursor-pointer list-none items-center gap-2 py-1 text-[12px] font-semibold [&::-webkit-details-marker]:hidden"
+                style={{ color: 'var(--ds-gold-on-dark-soft)' }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="transition-transform group-open:rotate-90"
+                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                >
+                  ▸
+                </span>
+                {isKo ? '각자의 사주팔자 원국 펼쳐 보기' : 'Show each chart (four pillars)'}
+              </summary>
+              <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <span
                     className="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
@@ -491,7 +505,7 @@ export function CompatChartModal({
                   <SajuChart saju={sajuB as never} lang={lang} theme="dark" />
                 </div>
               </div>
-            </div>
+            </details>
 
             <div>
               <SubLabel>
