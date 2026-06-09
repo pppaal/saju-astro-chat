@@ -591,7 +591,10 @@ function CompatibilityCounselorContent() {
   })
 
   const sendMessage = useCallback(
-    async (textOverride?: string, options?: { isRetry?: boolean }) => {
+    async (
+      textOverride?: string,
+      options?: { isRetry?: boolean; historyOverride?: ChatMessage[] }
+    ) => {
       const text = (textOverride ?? input).trim()
       if (!text || isLoading) {
         return
@@ -633,7 +636,11 @@ function CompatibilityCounselorContent() {
         // 8 via `clampMessages`, but uploading the full history every
         // turn wastes the user's mobile data + adds round-trip latency
         // for long conversations.
-        const recentHistory = [...messages, userMessage].slice(-10)
+        // "다시 시도"는 잘린 답+직전 user 를 막 pop 한 직후 호출되므로 closure
+        // 의 messages 가 아직 옛 값(잘린 쌍 포함)이다. 호출자가 정리한 히스토리를
+        // historyOverride 로 넘기면 그걸 정본으로 써 중복 user/잘린 답이 안 섞인다.
+        const baseHistory = options?.historyOverride ?? messages
+        const recentHistory = [...baseHistory, userMessage].slice(-10)
         // 새로고침/탭 복제 등 같은 turn 재진입 시 서버가 중복 차감 안 하도록
         // 매 user 메시지 마다 UUID 생성. "다시 시도" 일 때는 직전 turn 의
         // 키를 그대로 재사용 — 서버가 idempotent replay 로 인식해 credit
@@ -965,9 +972,12 @@ function CompatibilityCounselorContent() {
     if (messages[len - 1].role !== 'assistant') return
     if (messages[len - 2].role !== 'user') return
     const lastUserText = messages[len - 2].content
+    // 잘린 assistant + 그 직전 user 를 떼어낸 히스토리를 명시적으로 넘긴다.
+    // setMessages 는 비동기라 sendMessage closure 의 messages 는 아직 옛 값이라서.
+    const trimmedHistory = messages.slice(0, -2)
     setMessages((prev) => prev.slice(0, -2))
     setFollowUpQuestions([])
-    void sendMessage(lastUserText, { isRetry: true })
+    void sendMessage(lastUserText, { isRetry: true, historyOverride: trimmedHistory })
   }, [isLoading, messages, sendMessage])
 
   // 로그인 후 "직전 질문 이어서 답변" — 복원 때 떼어둔 미답변 질문을 인증이
