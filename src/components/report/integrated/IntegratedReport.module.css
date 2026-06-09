@@ -953,6 +953,14 @@
   .metaCell:nth-child(2n) {
     border-right: 0;
   }
+  /* 천궁도 — gridChart 는 980px 에서 세로 적층됨. 좁은 폰에서 행성표 6열이
+     안 잘리게 폰트·패딩 축소. (원형 wheel 은 viewBox 라 자동 스케일.) */
+  .planetTable {
+    font-size: 11px;
+  }
+  .planetTable td {
+    padding: 6px 4px;
+  }
 }
 
 /* 일간 한 줄 풀이 (hover→가시화) · 용신 이유 — Stage 2 이해도 보강 */

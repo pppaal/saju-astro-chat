@@ -123,6 +123,8 @@ const UI: Record<string, BiLabel> = {
   geokPersonality: { ko: '성향', en: 'Personality' },
   geokStrength: { ko: '강점', en: 'Strengths' },
   geokWeakness: { ko: '약점', en: 'Watch-outs' },
+  geokCareer: { ko: '직업', en: 'Careers' },
+  geokLove: { ko: '연애', en: 'Love' },
   geokAdvice: { ko: '조언', en: 'Advice' },
   sibsinCap: { ko: '주도 십성 · 十星', en: 'Dominant Ten God · 十星' },
   sec03Title: { ko: '출생 천궁도', en: 'Natal Chart' },
@@ -891,6 +893,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {geok.weakness.length > 0 && (
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
                   <b>{t('geokWeakness')}</b> {geok.weakness.join(', ')}
+                </div>
+              )}
+              {geok.career && geok.career.length > 0 && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokCareer')}</b> {geok.career.join(', ')}
+                </div>
+              )}
+              {geok.love && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokLove')}</b> {geok.love}
                 </div>
               )}
               <div className={s.themeReason} style={{ marginTop: 4 }}>
