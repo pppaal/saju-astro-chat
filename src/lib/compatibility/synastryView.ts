@@ -1,12 +1,10 @@
-'use client'
-
 /**
  * 궁합 차트용 시너스트리 — 상담사가 쓰는 것과 *같은 엔진*(calculateSynastry)을
- * 클라에서 직접 호출해 구조화 결과를 차트에 그린다. ScoreBreakdown 의 자체
+ * 서버(compatReport)에서 호출해 구조화 결과만 차트로 내려준다. ScoreBreakdown 의 자체
  * 휴리스틱(플랫 6° orb·전 행성쌍 동일가중)과 달리 엔진은 어스펙트별 orb +
  * orb-가중 score 를 쓰므로 "차트 숫자 = 상담사가 추론한 그 값" 이 보장된다.
  *
- * 서버/포매터는 손대지 않는다 — natal(이미 클라가 들고 있는 /api/astrology
+ * 엔진/포매터는 손대지 않는다 — natal(/api/astrology
  * chartData)을 calculateSynastry 가 보는 최소 Chart 형태로 매핑만 한다.
  * (toChart 는 swisseph 파일에 있어 클라 import 불가라 여기서 가볍게 reshape.)
  */

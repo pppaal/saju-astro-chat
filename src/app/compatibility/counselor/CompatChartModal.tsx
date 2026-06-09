@@ -9,11 +9,9 @@ import { CompatLines } from '@/components/report/atoms/CompatLines'
 import { generateChartSummary } from '@/lib/report/local-report-generator'
 import { CompatNatalOverlay } from './CompatNatalOverlay'
 import { CompatRadarOverlay } from './CompatRadarOverlay'
-import { computeSynastryView, type SynastryTone } from './computeSynastry'
-import {
-  computeSajuSynastryFacts,
-  type SajuPillarInput,
-} from '@/lib/compatibility/sajuSynastryFormatter'
+import type { SynastryTone } from '@/lib/compatibility/synastryView'
+import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
+import type { CompatReport } from '@/lib/compatibility/compatReport'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /**
@@ -204,6 +202,40 @@ export function CompatChartModal({
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  // 계산은 서버(/api/compatibility/report)에서 — 시너스트리·사주 cross·점수
+  // 로직을 클라 번들에서 빼 엣지(IP)를 보호한다. 차트는 결과만 받아 그린다.
+  const [report, setReport] = React.useState<CompatReport | null>(null)
+  React.useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    setReport(null)
+    const body = {
+      astroA: unwrapAstro(person1Astro) ?? null,
+      astroB: unwrapAstro(person2Astro) ?? null,
+      pillarsA: sajuToPillars(unwrapSaju(person1Saju)),
+      pillarsB: sajuToPillars(unwrapSaju(person2Saju)),
+      lang,
+    }
+    fetch('/api/compatibility/report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+      },
+      body: JSON.stringify(body),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { data?: CompatReport } | null) => {
+        if (!cancelled) setReport(d?.data ?? null)
+      })
+      .catch(() => {
+        if (!cancelled) setReport(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, lang])
+
   if (!open) return null
 
   const sajuA = unwrapSaju(person1Saju)
@@ -212,66 +244,11 @@ export function CompatChartModal({
   const astroB = unwrapAstro(person2Astro)
   const labelA = nameA || 'A'
   const labelB = nameB || 'B'
-  // 상담사와 같은 엔진(calculateSynastry) 결과 — 어스펙트·하우스 오버레이.
-  const synView = computeSynastryView(astroA, astroB, lang)
-
-  // 상담사와 같은 사주 cross 계산(computeSajuSynastryFacts) — 일간·배우자성·기둥관계.
-  const pillarsA = sajuToPillars(sajuA)
-  const pillarsB = sajuToPillars(sajuB)
-  const sajuFacts = pillarsA && pillarsB ? computeSajuSynastryFacts({ pillarsA, pillarsB }) : null
-  // 배우자성 — 일주(배우자궁)에 잡힌 것 우선 노출 (가장 강한 신호).
-  const spouseTop = sajuFacts
-    ? [...sajuFacts.spouseStars]
-        .sort((a, b) => Number(b.isDayPillar) - Number(a.isDayPillar))
-        .slice(0, 4)
-    : []
-
-  // 밴드 분해 바를 SSOT(엔진 시너스트리 + 사주 facts)에서 도출 — ScoreBreakdown
-  // 의 자체 휴리스틱(플랫 6° orb·합/충만) 대신. 사주 충에는 형/해/파도 포함되고
-  // (facts.pillarRelations.tone), 시너 조화/긴장은 차트에 표시된 어스펙트와 동일.
-  type BandScores = {
-    eastern_hap?: number
-    eastern_chung?: number
-    elements_match?: number
-    synastry_harmonic?: number
-    synastry_tension?: number
-  }
-  const ssotBand: BandScores | undefined = (() => {
-    const out: BandScores = {}
-    if (sajuFacts) {
-      let bond = 0
-      let clash = 0
-      for (const r of sajuFacts.pillarRelations) {
-        if (r.tone === 'bond') bond++
-        else if (r.tone === 'clash') clash++
-      }
-      out.eastern_hap = Math.min(100, bond * 20)
-      out.eastern_chung = Math.max(0, 100 - clash * 15)
-      if (sajuFacts.elementBalance) {
-        const { a, b } = sajuFacts.elementBalance
-        let comp = 0
-        for (const e of ['목', '화', '토', '금', '수']) {
-          const av = a[e] ?? 0
-          const bv = b[e] ?? 0
-          if (av <= 1 && bv >= 2) comp += 20
-          if (bv <= 1 && av >= 2) comp += 20
-        }
-        out.elements_match = Math.min(100, comp)
-      }
-    }
-    if (synView && synView.aspects.length > 0) {
-      let harm = 0
-      let tens = 0
-      for (const asp of synView.aspects) {
-        if (asp.tone === 'harmony') harm++
-        else if (asp.tone === 'tension') tens++
-      }
-      out.synastry_harmonic = Math.min(100, harm * 20)
-      out.synastry_tension = Math.max(0, 100 - tens * 20)
-    }
-    return Object.keys(out).length > 0 ? out : undefined
-  })()
-
+  // 서버 리포트에서 — 시너스트리 뷰·일간·배우자성·밴드 (계산은 서버).
+  const synView = report?.synView ?? null
+  const dayMaster = report?.dayMaster ?? null
+  const spouseTop = report?.spouseStars ?? []
+  const ssotBand = report?.band
   // 답 먼저 — 가장 결정적인 신호 한 줄. 일주 배우자성(가장 강한 정통 신호)이
   // 있으면 그걸, 없으면 가장 강한 시너스트리 어스펙트를 평이한 말로.
   const headlineReason: string | null = (() => {
@@ -358,16 +335,7 @@ export function CompatChartModal({
               시너 조화/긴장). 산식이 휴리스틱이라 "N/100" 숫자는 안 박고(가짜
               정밀 회피) 밴드 라벨 + 근거 바만. */}
           <div className="chart-rise-in" style={{ ['--i' as string]: 0 } as React.CSSProperties}>
-            <ScoreBreakdown
-              breakdown={ssotBand}
-              sajuA={sajuA}
-              sajuB={sajuB}
-              astroA={astroA}
-              astroB={astroB}
-              lang={lang}
-              variant="band"
-              theme="light"
-            />
+            <ScoreBreakdown breakdown={ssotBand} lang={lang} variant="band" theme="light" />
             {/* 답 먼저 — 가장 결정적인 신호 한 줄 (밴드 바로 밑) */}
             {headlineReason && (
               <p
@@ -426,16 +394,15 @@ export function CompatChartModal({
 
             {/* 사주 궁합 핵심 — 상담사와 같은 computeSajuSynastryFacts 결과.
                 일간 관계 + 배우자성(가장 강한 정통 신호). */}
-            {sajuFacts?.dayMaster && (
+            {dayMaster && (
               <DataCard>
                 <SubLabel>{isKo ? '두 사람의 본질(일간)' : 'Your core natures'}</SubLabel>
                 <p
                   className="px-1 text-[13px] leading-relaxed"
                   style={{ color: 'var(--ds-light-text)' }}
                 >
-                  {labelA} <b>{sajuFacts.dayMaster.aStem}</b>({sajuFacts.dayMaster.aEl}) ↔ {labelB}{' '}
-                  <b>{sajuFacts.dayMaster.bStem}</b>({sajuFacts.dayMaster.bEl}) —{' '}
-                  {sajuFacts.dayMaster.relationLabel}
+                  {labelA} <b>{dayMaster.aStem}</b>({dayMaster.aEl}) ↔ {labelB}{' '}
+                  <b>{dayMaster.bStem}</b>({dayMaster.bEl}) — {dayMaster.relationLabel}
                 </p>
                 {spouseTop.length > 0 && (
                   <ul className="mt-2 space-y-1.5">
