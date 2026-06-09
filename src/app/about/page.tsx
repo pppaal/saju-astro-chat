@@ -1578,6 +1578,67 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* ENGINE — 실제 계산 방식으로 특화성 입증 (코드 근거: saju/timezone.ts
+            진태양시, constants.ts KASI 절기, astrology swisseph, saju-astro-mapping
+            교차매핑, counselorContextCache 구조화 컨텍스트). */}
+        <section className={s.section} id="engine">
+          <div className={s.wrap}>
+            <div className={s.secHead}>
+              <span className={`${s.kicker} ${s.solo}`} data-reveal>
+                {isKo ? '✦ 엔진 · 어떻게 계산하는가' : '✦ The Engine · How It Computes'}
+              </span>
+              <h2 className={s.secHeadTitle} data-reveal data-d="1">
+                {isKo ? (
+                  <>
+                    정확히 계산하고, <em>정직하게 잇습니다.</em>
+                  </>
+                ) : (
+                  <>
+                    Computed exactly, <em>joined honestly.</em>
+                  </>
+                )}
+              </h2>
+            </div>
+            <div className={s.steps}>
+              {[
+                {
+                  g: '☯',
+                  t: isKo ? '사주 · 네 기둥' : 'Saju · Four Pillars',
+                  d: isKo
+                    ? '태어난 경도로 진태양시를 보정하고, 한국천문연구원(KASI) 기준 분 단위 절기로 달의 경계를 가릅니다. 오행·십신·대운은 표를 베끼지 않고 출생 순간에서 직접 계산합니다.'
+                    : 'We correct to true solar time from your birth longitude and split the months on minute-accurate solar terms (KASI-verified). Five elements, ten gods and luck cycles are computed from your exact birth moment — never looked up from a table.',
+                },
+                {
+                  g: '☉',
+                  t: isKo ? '점성 · 출생 천궁도' : 'Astrology · Natal Chart',
+                  d: isKo
+                    ? 'Swiss Ephemeris로 태어난 순간과 좌표의 10개 천체, 12 하우스(Placidus), 역행과 어스펙트를 실제 천문 계산으로 그립니다 — 근사값이 아닙니다.'
+                    : 'With Swiss Ephemeris we draw ten bodies, twelve houses (Placidus), retrogrades and aspects at your exact moment and coordinates — real astronomy, not approximation.',
+                },
+                {
+                  g: '✦',
+                  t: isKo ? '융합 · 두 전통의 교차' : 'Fusion · Where Two Agree',
+                  d: isKo
+                    ? '사주의 십신과 점성의 행성을 학파에서 검증된 대응(예: 정관 × 토성 — 책임·구조)으로 잇고, 두 전통이 동시에 가리킬 때만 하나의 신호로 모읍니다. 한쪽만 울릴 땐 과장하지 않습니다.'
+                    : "We link Saju's ten gods to astrology's planets through doctrine-validated pairings (e.g. 정관 × Saturn — duty and structure), folding them into a single signal only when both light up at once. When only one speaks, we don't overstate it.",
+                },
+              ].map((part) => (
+                <div key={part.t} className={s.step} data-reveal data-d="2">
+                  <div className={`${s.stepN} ${s.holoText}`}>{part.g}</div>
+                  <h3 className={s.stepT}>{part.t}</h3>
+                  <p className={s.stepD}>{part.d}</p>
+                </div>
+              ))}
+            </div>
+            <div className={s.editorialMeta} data-reveal data-d="3">
+              <span>Swiss Ephemeris</span>
+              <span>{isKo ? 'KASI 분단위 절기' : 'KASI solar terms'}</span>
+              <span>{isKo ? '진태양시 보정' : 'True solar time'}</span>
+              <span>Claude Sonnet 4.5</span>
+            </div>
+          </div>
+        </section>
+
         {/* TAROT */}
         <section className={s.section} id="tarot">
           <div className={s.wrap}>
@@ -1797,6 +1858,7 @@ export default function AboutPage() {
                 <div className={s.footerCol}>
                   <h4>{isKo ? '소개' : 'Company'}</h4>
                   <a href="#about">{isKo ? '시작 이야기' : 'The Premise'}</a>
+                  <a href="#engine">{isKo ? '엔진' : 'The Engine'}</a>
                   <a href="#how">{isKo ? '이용 방법' : 'How it works'}</a>
                   <a href="#join">{isKo ? '시작하기' : 'Begin'}</a>
                 </div>
