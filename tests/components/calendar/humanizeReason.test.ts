@@ -31,7 +31,7 @@ describe('humanizeReason — 표시 평어화', () => {
 
   it('ZR 챕터의 별자리·행성만 한국어화', () => {
     expect(humanizeReason('↑ [대운] 운명 ZR 챕터 — Sagittarius (Jupiter, 12년)')).toBe(
-      '↑ 10년 흐름 · 운명 ZR 챕터 — 궁수자리 (목성, 12년)'
+      '↑ 10년 흐름 · 운명 ZR 챕터 — 사수자리 (목성, 12년)'
     )
   })
 

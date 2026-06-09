@@ -29,7 +29,7 @@ export const SIGN_KO = [
   '처녀',
   '천칭',
   '전갈',
-  '궁수',
+  '사수',
   '염소',
   '물병',
   '물고기',
@@ -43,9 +43,9 @@ export const PLANET_KO: Record<string, string> = {
   Uranus: '천왕',
   Neptune: '해왕',
   Pluto: '명왕',
-  Node: '노드',
-  'True Node': '노드',
-  'North Node': '북노드',
+  Node: '북교점',
+  'True Node': '북교점',
+  'North Node': '북교점',
 }
 
 export const PLANET_GLYPHS: Record<string, string> = {

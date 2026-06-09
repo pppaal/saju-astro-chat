@@ -46,58 +46,148 @@ const SIGN_INFO: Record<SignName, { kr: string; el: string; date: string; g: str
   Virgo: { kr: '처녀자리', el: 'EARTH', date: '08.23–09.22', g: '♍' },
   Libra: { kr: '천칭자리', el: 'AIR', date: '09.23–10.23', g: '♎' },
   Scorpio: { kr: '전갈자리', el: 'WATER', date: '10.24–11.22', g: '♏' },
-  Sagittarius: { kr: '궁수자리', el: 'FIRE', date: '11.23–12.21', g: '♐' },
+  Sagittarius: { kr: '사수자리', el: 'FIRE', date: '11.23–12.21', g: '♐' },
   Capricorn: { kr: '염소자리', el: 'EARTH', date: '12.22–01.19', g: '♑' },
   Aquarius: { kr: '물병자리', el: 'AIR', date: '01.20–02.18', g: '♒' },
   Pisces: { kr: '물고기자리', el: 'WATER', date: '02.19–03.20', g: '♓' },
 }
 
 const SIGN_CONSTELLATIONS: Record<SignName, { pts: [number, number][]; hue: string }> = {
-  Aries: { pts: [[0.3, 0.6], [0.42, 0.5], [0.55, 0.46], [0.7, 0.4]], hue: '#ff8fd0' },
+  Aries: {
+    pts: [
+      [0.3, 0.6],
+      [0.42, 0.5],
+      [0.55, 0.46],
+      [0.7, 0.4],
+    ],
+    hue: '#ff8fd0',
+  },
   Taurus: {
-    pts: [[0.28, 0.55], [0.4, 0.5], [0.52, 0.42], [0.5, 0.3], [0.62, 0.5], [0.74, 0.4]],
+    pts: [
+      [0.28, 0.55],
+      [0.4, 0.5],
+      [0.52, 0.42],
+      [0.5, 0.3],
+      [0.62, 0.5],
+      [0.74, 0.4],
+    ],
     hue: '#ffd89b',
   },
   Gemini: {
     pts: [
-      [0.34, 0.28], [0.36, 0.5], [0.4, 0.7], [0.6, 0.28], [0.62, 0.5], [0.66, 0.7],
-      [0.34, 0.28], [0.6, 0.28],
+      [0.34, 0.28],
+      [0.36, 0.5],
+      [0.4, 0.7],
+      [0.6, 0.28],
+      [0.62, 0.5],
+      [0.66, 0.7],
+      [0.34, 0.28],
+      [0.6, 0.28],
     ],
     hue: '#7cf5ff',
   },
   Cancer: {
-    pts: [[0.3, 0.4], [0.45, 0.5], [0.55, 0.46], [0.68, 0.58], [0.55, 0.46], [0.6, 0.34]],
+    pts: [
+      [0.3, 0.4],
+      [0.45, 0.5],
+      [0.55, 0.46],
+      [0.68, 0.58],
+      [0.55, 0.46],
+      [0.6, 0.34],
+    ],
     hue: '#a78bfa',
   },
   Leo: {
-    pts: [[0.26, 0.62], [0.34, 0.48], [0.46, 0.42], [0.58, 0.36], [0.66, 0.46], [0.62, 0.6], [0.74, 0.66]],
+    pts: [
+      [0.26, 0.62],
+      [0.34, 0.48],
+      [0.46, 0.42],
+      [0.58, 0.36],
+      [0.66, 0.46],
+      [0.62, 0.6],
+      [0.74, 0.66],
+    ],
     hue: '#ffd89b',
   },
   Virgo: {
-    pts: [[0.24, 0.46], [0.36, 0.4], [0.48, 0.5], [0.56, 0.4], [0.64, 0.52], [0.72, 0.42], [0.5, 0.66]],
+    pts: [
+      [0.24, 0.46],
+      [0.36, 0.4],
+      [0.48, 0.5],
+      [0.56, 0.4],
+      [0.64, 0.52],
+      [0.72, 0.42],
+      [0.5, 0.66],
+    ],
     hue: '#7cf5ff',
   },
-  Libra: { pts: [[0.3, 0.58], [0.42, 0.42], [0.58, 0.42], [0.7, 0.58], [0.42, 0.42], [0.58, 0.42]], hue: '#a78bfa' },
+  Libra: {
+    pts: [
+      [0.3, 0.58],
+      [0.42, 0.42],
+      [0.58, 0.42],
+      [0.7, 0.58],
+      [0.42, 0.42],
+      [0.58, 0.42],
+    ],
+    hue: '#a78bfa',
+  },
   Scorpio: {
-    pts: [[0.24, 0.36], [0.34, 0.44], [0.44, 0.46], [0.54, 0.5], [0.62, 0.58], [0.7, 0.66], [0.78, 0.6]],
+    pts: [
+      [0.24, 0.36],
+      [0.34, 0.44],
+      [0.44, 0.46],
+      [0.54, 0.5],
+      [0.62, 0.58],
+      [0.7, 0.66],
+      [0.78, 0.6],
+    ],
     hue: '#ff8fd0',
   },
   Sagittarius: {
-    pts: [[0.28, 0.66], [0.4, 0.54], [0.52, 0.46], [0.66, 0.4], [0.6, 0.3], [0.66, 0.4], [0.7, 0.54]],
+    pts: [
+      [0.28, 0.66],
+      [0.4, 0.54],
+      [0.52, 0.46],
+      [0.66, 0.4],
+      [0.6, 0.3],
+      [0.66, 0.4],
+      [0.7, 0.54],
+    ],
     hue: '#7cf5ff',
   },
   Capricorn: {
-    pts: [[0.26, 0.44], [0.38, 0.38], [0.52, 0.46], [0.64, 0.58], [0.74, 0.5], [0.5, 0.64]],
+    pts: [
+      [0.26, 0.44],
+      [0.38, 0.38],
+      [0.52, 0.46],
+      [0.64, 0.58],
+      [0.74, 0.5],
+      [0.5, 0.64],
+    ],
     hue: '#ffd89b',
   },
   Aquarius: {
-    pts: [[0.26, 0.42], [0.36, 0.5], [0.46, 0.42], [0.56, 0.5], [0.66, 0.42], [0.76, 0.5]],
+    pts: [
+      [0.26, 0.42],
+      [0.36, 0.5],
+      [0.46, 0.42],
+      [0.56, 0.5],
+      [0.66, 0.42],
+      [0.76, 0.5],
+    ],
     hue: '#7cf5ff',
   },
   Pisces: {
     pts: [
-      [0.26, 0.4], [0.38, 0.5], [0.3, 0.62], [0.62, 0.4], [0.74, 0.5], [0.66, 0.62],
-      [0.38, 0.5], [0.62, 0.4],
+      [0.26, 0.4],
+      [0.38, 0.5],
+      [0.3, 0.62],
+      [0.62, 0.4],
+      [0.74, 0.5],
+      [0.66, 0.62],
+      [0.38, 0.5],
+      [0.62, 0.4],
     ],
     hue: '#a78bfa',
   },
@@ -114,106 +204,199 @@ type TarotCard = {
   revEn: string
 }
 const DECK: TarotCard[] = [
-  { n: '0', name: 'The Fool', kr: '광대', sym: '✦',
+  {
+    n: '0',
+    name: 'The Fool',
+    kr: '광대',
+    sym: '✦',
     up: '새로운 시작과 자유로운 모험. 두려움 없이 첫발을 내딛을 때.',
     rev: '성급함과 무모함. 한 박자 늦추라는 신호.',
     upEn: 'New beginnings and fearless adventure. Take the first step without fear.',
-    revEn: 'Recklessness and haste. A signal to slow down.' },
-  { n: 'I', name: 'The Magician', kr: '마법사', sym: '⚚',
+    revEn: 'Recklessness and haste. A signal to slow down.',
+  },
+  {
+    n: 'I',
+    name: 'The Magician',
+    kr: '마법사',
+    sym: '⚚',
     up: '의지와 창조의 힘. 가진 재능을 현실로 끌어낼 시기.',
     rev: '재능의 낭비, 흩어진 집중. 방향을 다시 잡으세요.',
     upEn: 'Willpower and creation. A time to bring your talents into the real world.',
-    revEn: 'Wasted potential, scattered focus. Recalibrate your direction.' },
-  { n: 'II', name: 'The High Priestess', kr: '여사제', sym: '☽',
+    revEn: 'Wasted potential, scattered focus. Recalibrate your direction.',
+  },
+  {
+    n: 'II',
+    name: 'The High Priestess',
+    kr: '여사제',
+    sym: '☽',
     up: '직관과 비밀. 말보다 내면의 목소리를 따를 것.',
     rev: '무시한 직감, 감춰진 진실이 수면 위로.',
     upEn: 'Intuition and secrets. Follow the inner voice over outer words.',
-    revEn: 'Ignored intuition; hidden truths rising to the surface.' },
-  { n: 'III', name: 'The Empress', kr: '여제', sym: '♀',
+    revEn: 'Ignored intuition; hidden truths rising to the surface.',
+  },
+  {
+    n: 'III',
+    name: 'The Empress',
+    kr: '여제',
+    sym: '♀',
     up: '풍요와 결실. 가꾸어 온 것이 무르익습니다.',
     rev: '과보호와 정체. 잠시 손을 놓아도 괜찮아요.',
     upEn: 'Abundance and harvest. What you have tended is ripening.',
-    revEn: 'Overprotection, stagnation. It is okay to let go a little.' },
-  { n: 'VII', name: 'The Chariot', kr: '전차', sym: '❖',
+    revEn: 'Overprotection, stagnation. It is okay to let go a little.',
+  },
+  {
+    n: 'VII',
+    name: 'The Chariot',
+    kr: '전차',
+    sym: '❖',
     up: '의지의 승리. 흔들림 없이 앞으로 나아갈 때.',
     rev: '통제 잃은 질주. 속도보다 방향을 보세요.',
     upEn: 'Victory of will. Move forward without wavering.',
-    revEn: 'Runaway momentum. Watch direction, not speed.' },
-  { n: 'VIII', name: 'Strength', kr: '힘', sym: '∞',
+    revEn: 'Runaway momentum. Watch direction, not speed.',
+  },
+  {
+    n: 'VIII',
+    name: 'Strength',
+    kr: '힘',
+    sym: '∞',
     up: '부드러운 용기. 힘이 아닌 인내가 길을 엽니다.',
     rev: '자기 의심. 안의 사자를 다시 길들일 때.',
     upEn: 'Gentle courage. Patience, not force, opens the way.',
-    revEn: 'Self-doubt. Time to tame the inner lion again.' },
-  { n: 'IX', name: 'The Hermit', kr: '은둔자', sym: '✸',
+    revEn: 'Self-doubt. Time to tame the inner lion again.',
+  },
+  {
+    n: 'IX',
+    name: 'The Hermit',
+    kr: '은둔자',
+    sym: '✸',
     up: '성찰의 시간. 홀로 든 등불이 길을 비춥니다.',
     rev: '고립과 회피. 이제 문을 열어도 좋습니다.',
     upEn: 'A time for reflection. The lone lantern lights the way.',
-    revEn: 'Isolation and avoidance. It is alright to open the door now.' },
-  { n: 'X', name: 'Wheel of Fortune', kr: '운명의 수레바퀴', sym: '⊕',
+    revEn: 'Isolation and avoidance. It is alright to open the door now.',
+  },
+  {
+    n: 'X',
+    name: 'Wheel of Fortune',
+    kr: '운명의 수레바퀴',
+    sym: '⊕',
     up: '전환점. 흐름이 당신 쪽으로 돌아섭니다.',
     rev: '저항하는 변화. 놓아줄 것을 놓아주세요.',
     upEn: 'Turning point. The flow is turning toward you.',
-    revEn: 'Resisted change. Release what is asking to be released.' },
-  { n: 'XI', name: 'Justice', kr: '정의', sym: '⚖',
+    revEn: 'Resisted change. Release what is asking to be released.',
+  },
+  {
+    n: 'XI',
+    name: 'Justice',
+    kr: '정의',
+    sym: '⚖',
     up: '균형과 인과. 뿌린 대로 정직하게 돌아옵니다.',
     rev: '미뤄진 결정, 불공정. 진실을 마주할 때.',
     upEn: 'Balance and consequence. What you sow returns honestly.',
-    revEn: 'A postponed decision, an unfairness. Time to face the truth.' },
-  { n: 'XVII', name: 'The Star', kr: '별', sym: '★',
+    revEn: 'A postponed decision, an unfairness. Time to face the truth.',
+  },
+  {
+    n: 'XVII',
+    name: 'The Star',
+    kr: '별',
+    sym: '★',
     up: '희망과 회복. 긴 노력 끝의 조용한 갱신.',
     rev: '흐려진 믿음. 다시 밤하늘을 올려다보세요.',
     upEn: 'Hope and renewal. Quiet restoration after a long effort.',
-    revEn: 'Faded faith. Look up at the night sky again.' },
-  { n: 'XVIII', name: 'The Moon', kr: '달', sym: '☾',
+    revEn: 'Faded faith. Look up at the night sky again.',
+  },
+  {
+    n: 'XVIII',
+    name: 'The Moon',
+    kr: '달',
+    sym: '☾',
     up: '직관과 환상의 경계. 모든 것이 보이진 않는 밤.',
     rev: '걷히는 안개. 두려움의 실체가 드러납니다.',
     upEn: 'The edge between intuition and illusion. Not everything is visible tonight.',
-    revEn: 'Mist clearing. Fear shows its actual shape.' },
-  { n: 'XIX', name: 'The Sun', kr: '태양', sym: '☉',
+    revEn: 'Mist clearing. Fear shows its actual shape.',
+  },
+  {
+    n: 'XIX',
+    name: 'The Sun',
+    kr: '태양',
+    sym: '☉',
     up: '기쁨과 성취. 빛이 모든 것을 따뜻이 비춥니다.',
     rev: '잠시 가린 빛. 작은 기쁨부터 되찾으세요.',
     upEn: 'Joy and fulfillment. Light warmly touches everything.',
-    revEn: 'Light briefly veiled. Reclaim the small joys first.' },
-  { n: 'XX', name: 'Judgement', kr: '심판', sym: '❂',
+    revEn: 'Light briefly veiled. Reclaim the small joys first.',
+  },
+  {
+    n: 'XX',
+    name: 'Judgement',
+    kr: '심판',
+    sym: '❂',
     up: '각성과 부름. 지난 장을 덮고 다시 태어날 때.',
     rev: '자기 비판. 과거를 용서하면 길이 열립니다.',
     upEn: 'Awakening and calling. Close the last chapter and be reborn.',
-    revEn: 'Self-criticism. Forgive the past, and the way opens.' },
-  { n: 'XXI', name: 'The World', kr: '세계', sym: '⊙',
+    revEn: 'Self-criticism. Forgive the past, and the way opens.',
+  },
+  {
+    n: 'XXI',
+    name: 'The World',
+    kr: '세계',
+    sym: '⊙',
     up: '완성과 통합. 한 여정이 온전히 닫힙니다.',
     rev: '미완의 매듭. 마지막 한 걸음이 남았어요.',
     upEn: 'Completion and integration. One journey closes whole.',
-    revEn: 'An unfinished knot. One last step remains.' },
+    revEn: 'An unfinished knot. One last step remains.',
+  },
 ]
 
 const COMPAT_COPY = {
-  mirror: { lo: 74,
-    verdict: ['Mirror', 'souls'], verdictKo: ['닮은', '영혼'],
+  mirror: {
+    lo: 74,
+    verdict: ['Mirror', 'souls'],
+    verdictKo: ['닮은', '영혼'],
     t: '같은 별 아래 태어난 두 사람. 서로를 거울처럼 알아보지만, 닮은 만큼 같은 약점도 나눕니다. 이해는 쉽고, 균형은 노력이 필요해요.',
-    tEn: 'Two souls born under the same star. You recognize each other instantly — but you share the same weaknesses, too. Understanding comes easy; balance asks for effort.' },
-  kin: { lo: 86,
-    verdict: ['Kindred', 'flame'], verdictKo: ['하나의', '불꽃'],
+    tEn: 'Two souls born under the same star. You recognize each other instantly — but you share the same weaknesses, too. Understanding comes easy; balance asks for effort.',
+  },
+  kin: {
+    lo: 86,
+    verdict: ['Kindred', 'flame'],
+    verdictKo: ['하나의', '불꽃'],
     t: '같은 원소의 깊은 공명. 말하지 않아도 통하는 흐름이 있습니다. 편안함에 안주하지 말고, 함께 새로운 불씨를 지펴 보세요.',
-    tEn: 'A deep resonance of the same element. There is a current you both feel without speaking. Do not settle for comfort — kindle a new spark together.' },
-  spark: { lo: 82,
-    verdict: ['Bright', 'spark'], verdictKo: ['빛나는', '불씨'],
+    tEn: 'A deep resonance of the same element. There is a current you both feel without speaking. Do not settle for comfort — kindle a new spark together.',
+  },
+  spark: {
+    lo: 82,
+    verdict: ['Bright', 'spark'],
+    verdictKo: ['빛나는', '불씨'],
     t: '서로를 키우는 조합. 한쪽의 불꽃을 다른 쪽의 바람이 더 멀리 실어 나릅니다. 다름이 곧 매력이 되는 관계예요.',
-    tEn: 'A pairing that grows each other. One side\'s flame is carried further by the other\'s wind. Difference itself becomes the charm.' },
-  steady: { lo: 68,
-    verdict: ['Slow', 'harmony'], verdictKo: ['느린', '조화'],
+    tEn: "A pairing that grows each other. One side's flame is carried further by the other's wind. Difference itself becomes the charm.",
+  },
+  steady: {
+    lo: 68,
+    verdict: ['Slow', 'harmony'],
+    verdictKo: ['느린', '조화'],
     t: '리듬이 다른 두 사람. 처음엔 어긋나도, 시간을 들이면 단단한 토대를 쌓습니다. 인내가 가장 큰 자산이 됩니다.',
-    tEn: 'Two different rhythms. Off-beat at first, but given time you build something solid. Patience becomes the greatest asset.' },
-  tension: { lo: 54,
-    verdict: ['Restless', 'pull'], verdictKo: ['뜨거운', '끌림'],
+    tEn: 'Two different rhythms. Off-beat at first, but given time you build something solid. Patience becomes the greatest asset.',
+  },
+  tension: {
+    lo: 54,
+    verdict: ['Restless', 'pull'],
+    verdictKo: ['뜨거운', '끌림'],
     t: '끌림과 충돌이 함께 오는 관계. 긴장이 곧 생기이기도 하지만, 서로의 속도를 존중할 때만 오래갑니다.',
-    tEn: 'A bond where attraction and collision arrive together. Tension can be aliveness — but it lasts only when you respect each other\'s pace.' },
+    tEn: "A bond where attraction and collision arrive together. Tension can be aliveness — but it lasts only when you respect each other's pace.",
+  },
 } as const
 
 const SIGN_ELEMENT: Record<SignName, 'fire' | 'earth' | 'air' | 'water'> = {
-  Aries: 'fire', Leo: 'fire', Sagittarius: 'fire',
-  Taurus: 'earth', Virgo: 'earth', Capricorn: 'earth',
-  Gemini: 'air', Libra: 'air', Aquarius: 'air',
-  Cancer: 'water', Scorpio: 'water', Pisces: 'water',
+  Aries: 'fire',
+  Leo: 'fire',
+  Sagittarius: 'fire',
+  Taurus: 'earth',
+  Virgo: 'earth',
+  Capricorn: 'earth',
+  Gemini: 'air',
+  Libra: 'air',
+  Aquarius: 'air',
+  Cancer: 'water',
+  Scorpio: 'water',
+  Pisces: 'water',
 }
 
 const COMPATIBLE_PAIR = { fire: 'air', air: 'fire', earth: 'water', water: 'earth' } as const
@@ -250,10 +433,22 @@ function SkyCanvas() {
     if (!ctx) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    type Star = { x: number; y: number; z: number; r: number; tw: number; tws: number; hue: 'holo' | 'white'; vx: number; vy: number }
+    type Star = {
+      x: number
+      y: number
+      z: number
+      r: number
+      tw: number
+      tws: number
+      hue: 'holo' | 'white'
+      vx: number
+      vy: number
+    }
     type Shoot = { x: number; y: number; vx: number; vy: number; life: number; len: number }
 
-    let W = 0, H = 0, DPR = 1
+    let W = 0,
+      H = 0,
+      DPR = 1
     let stars: Star[] = []
     const shooting: Shoot[] = []
     const mouse = { x: -9999, y: -9999, active: false }
@@ -297,7 +492,8 @@ function SkyCanvas() {
         const startY = Math.random() * H * 0.5
         const ang = Math.PI * (0.18 + Math.random() * 0.12)
         shooting.push({
-          x: startX, y: startY,
+          x: startX,
+          y: startY,
           vx: Math.cos(ang) * 9 * DPR,
           vy: Math.sin(ang) * 9 * DPR,
           life: 1,
@@ -413,7 +609,9 @@ function SkyCanvas() {
       mouse.y = e.clientY * DPR
       mouse.active = true
     }
-    function onLeave() { mouse.active = false }
+    function onLeave() {
+      mouse.active = false
+    }
 
     window.addEventListener('resize', resize, { passive: true })
     window.addEventListener('pointermove', onMove, { passive: true })
@@ -453,7 +651,9 @@ function DestinyMap({ sign }: { sign: SignName }) {
     if (!ctx) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    let W = 0, H = 0, DPR = 1
+    let W = 0,
+      H = 0,
+      DPR = 1
     let bg: { x: number; y: number; r: number; tw: number; s: number }[] = []
     let progress = 0
     let rot = 0
@@ -612,15 +812,24 @@ function TarotSpread() {
   }
 
   const allFlipped = flipped.every(Boolean) && hand !== null
-  const summary = allFlipped && hand
-    ? isKo
-      ? `지난 자리의 ${hand[0].card.kr}, 지금 자리의 ${hand[1].card.kr}, 그리고 다가오는 자리의 ${hand[2].card.kr}. 세 장이 가리키는 방향은 하나입니다 — 지금 내딛는 한 걸음을 믿어도 좋다는 것.`
-      : `${hand[0].card.name} in the past, ${hand[1].card.name} now, and ${hand[2].card.name} drawing near. The three point in one direction — trust the step you are taking right now.`
-    : ''
+  const summary =
+    allFlipped && hand
+      ? isKo
+        ? `지난 자리의 ${hand[0].card.kr}, 지금 자리의 ${hand[1].card.kr}, 그리고 다가오는 자리의 ${hand[2].card.kr}. 세 장이 가리키는 방향은 하나입니다 — 지금 내딛는 한 걸음을 믿어도 좋다는 것.`
+        : `${hand[0].card.name} in the past, ${hand[1].card.name} now, and ${hand[2].card.name} drawing near. The three point in one direction — trust the step you are taking right now.`
+      : ''
 
   const positions = isKo
-    ? [{ main: '과거', sub: 'Past' }, { main: '현재', sub: 'Present' }, { main: '미래', sub: 'Future' }]
-    : [{ main: 'Past', sub: '' }, { main: 'Present', sub: '' }, { main: 'Future', sub: '' }]
+    ? [
+        { main: '과거', sub: 'Past' },
+        { main: '현재', sub: 'Present' },
+        { main: '미래', sub: 'Future' },
+      ]
+    : [
+        { main: 'Past', sub: '' },
+        { main: 'Present', sub: '' },
+        { main: 'Future', sub: '' },
+      ]
 
   return (
     <>
@@ -638,20 +847,28 @@ function TarotSpread() {
                 type="button"
                 className={`${s.tcard} ${isFlipped ? s.flipped : ''} ${draw?.rev ? s.reversed : ''}`}
                 onClick={() => flip(i)}
-                aria-label={isKo ? `${positions[i].main} 카드 펼치기` : `Reveal the ${positions[i].main.toLowerCase()} card`}
+                aria-label={
+                  isKo
+                    ? `${positions[i].main} 카드 펼치기`
+                    : `Reveal the ${positions[i].main.toLowerCase()} card`
+                }
               >
                 <div className={s.tcardInner}>
                   <div className={`${s.tcardFace} ${s.tcardBack}`}>
                     <div className={s.tcardBackIn}>
                       <span className={`${s.tcardEmblem} ${s.holoText}`}>✦</span>
-                      <span className={s.tcardHint}>{isKo ? '탭하여 펼치기' : 'Tap to reveal'}</span>
+                      <span className={s.tcardHint}>
+                        {isKo ? '탭하여 펼치기' : 'Tap to reveal'}
+                      </span>
                     </div>
                   </div>
                   <div className={`${s.tcardFace} ${s.tcardFront}`}>
                     <div className={s.tcardFrontIn}>
                       {draw && (
                         <>
-                          <div className={s.tcardNum}>{draw.card.n} · {isKo ? '아르카나' : 'ARCANA'}</div>
+                          <div className={s.tcardNum}>
+                            {draw.card.n} · {isKo ? '아르카나' : 'ARCANA'}
+                          </div>
                           <div className={`${s.tcardSym} ${s.holoText}`}>{draw.card.sym}</div>
                           <div className={s.tcardName}>
                             {isKo ? draw.card.kr : draw.card.name}
@@ -659,10 +876,22 @@ function TarotSpread() {
                           </div>
                           <div className={s.tcardMeaning}>
                             {isKo
-                              ? (draw.rev ? draw.card.rev : draw.card.up)
-                              : (draw.rev ? draw.card.revEn : draw.card.upEn)}
+                              ? draw.rev
+                                ? draw.card.rev
+                                : draw.card.up
+                              : draw.rev
+                                ? draw.card.revEn
+                                : draw.card.upEn}
                           </div>
-                          <div className={s.tcardOri}>{draw.rev ? (isKo ? '역방향' : 'Reversed') : (isKo ? '정방향' : 'Upright')}</div>
+                          <div className={s.tcardOri}>
+                            {draw.rev
+                              ? isKo
+                                ? '역방향'
+                                : 'Reversed'
+                              : isKo
+                                ? '정방향'
+                                : 'Upright'}
+                          </div>
                         </>
                       )}
                     </div>
@@ -750,13 +979,15 @@ function CompatibilityPanel() {
           >
             {SIGN_ORDER.map((sn) => (
               <option key={sn} value={sn}>
-                {SIGN_INFO[sn].g}  {isKo ? SIGN_INFO[sn].kr : sn}
+                {SIGN_INFO[sn].g} {isKo ? SIGN_INFO[sn].kr : sn}
               </option>
             ))}
           </select>
         </div>
         <div className={s.compatSwap}>
-          <button type="button" onClick={swap}>⇅ {isKo ? '바꾸기' : 'Swap'}</button>
+          <button type="button" onClick={swap}>
+            ⇅ {isKo ? '바꾸기' : 'Swap'}
+          </button>
         </div>
         <div className={s.compatField}>
           <label>{isKo ? '상대' : 'Them'}</label>
@@ -768,7 +999,7 @@ function CompatibilityPanel() {
           >
             {SIGN_ORDER.map((sn) => (
               <option key={sn} value={sn}>
-                {SIGN_INFO[sn].g}  {isKo ? SIGN_INFO[sn].kr : sn}
+                {SIGN_INFO[sn].g} {isKo ? SIGN_INFO[sn].kr : sn}
               </option>
             ))}
           </select>
@@ -801,7 +1032,8 @@ function CompatibilityPanel() {
         </div>
         <div className={s.compatRead}>
           <div className={s.compatPair}>
-            {isKo ? SIGN_INFO[a].kr : a} {SIGN_INFO[a].g}  ×  {isKo ? SIGN_INFO[b].kr : b} {SIGN_INFO[b].g}
+            {isKo ? SIGN_INFO[a].kr : a} {SIGN_INFO[a].g} × {isKo ? SIGN_INFO[b].kr : b}{' '}
+            {SIGN_INFO[b].g}
           </div>
           <div className={s.compatVerdict}>
             {isKo ? result.meta.verdictKo[0] : result.meta.verdict[0]}{' '}
@@ -872,7 +1104,9 @@ function useLiveReadout(): string {
       const d = new Date()
       const lat = (37.5665 + Math.sin(Date.now() / 4000) * 0.4).toFixed(4)
       const lon = (126.978 + Math.cos(Date.now() / 4000) * 0.4).toFixed(4)
-      setText(`LAT ${lat}° · LON ${lon}° · ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} KST`)
+      setText(
+        `LAT ${lat}° · LON ${lon}° · ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} KST`
+      )
     }
     tick()
     const id = window.setInterval(tick, 250)
@@ -886,13 +1120,7 @@ function useLiveReadout(): string {
 // Sign chips (with auto-cycle until user interacts)
 // ============================================================
 
-function SignChips({
-  active,
-  onChange,
-}: {
-  active: SignName
-  onChange: (n: SignName) => void
-}) {
+function SignChips({ active, onChange }: { active: SignName; onChange: (n: SignName) => void }) {
   const { locale } = useI18n()
   const isKo = locale === 'ko'
   const userTouchedRef = useRef(false)
@@ -959,8 +1187,23 @@ export default function AboutPage() {
           <div className={s.heroRing} aria-hidden>
             <svg viewBox="0 0 800 800">
               <g className={s.ringSpin}>
-                <circle cx="400" cy="400" r="392" fill="none" stroke="rgba(199,197,216,0.18)" strokeWidth="1" />
-                <circle cx="400" cy="400" r="330" fill="none" stroke="rgba(199,197,216,0.10)" strokeWidth="1" strokeDasharray="2 8" />
+                <circle
+                  cx="400"
+                  cy="400"
+                  r="392"
+                  fill="none"
+                  stroke="rgba(199,197,216,0.18)"
+                  strokeWidth="1"
+                />
+                <circle
+                  cx="400"
+                  cy="400"
+                  r="330"
+                  fill="none"
+                  stroke="rgba(199,197,216,0.10)"
+                  strokeWidth="1"
+                  strokeDasharray="2 8"
+                />
                 <g stroke="rgba(199,197,216,0.30)" strokeWidth="1">
                   <line x1="400" y1="8" x2="400" y2="46" />
                   <line x1="400" y1="754" x2="400" y2="792" />
@@ -969,11 +1212,32 @@ export default function AboutPage() {
                 </g>
               </g>
               <g className={s.ringSpinRev}>
-                <circle cx="400" cy="400" r="262" fill="none" stroke="rgba(167,139,250,0.22)" strokeWidth="1" />
-                <text x="400" y="160" textAnchor="middle" fontFamily="var(--font-lora), Georgia, serif" fontSize="34" fill="rgba(230,197,128,0.55)">
+                <circle
+                  cx="400"
+                  cy="400"
+                  r="262"
+                  fill="none"
+                  stroke="rgba(167,139,250,0.22)"
+                  strokeWidth="1"
+                />
+                <text
+                  x="400"
+                  y="160"
+                  textAnchor="middle"
+                  fontFamily="var(--font-lora), Georgia, serif"
+                  fontSize="34"
+                  fill="rgba(230,197,128,0.55)"
+                >
                   ♈ ♉ ♊ ♋ ♌ ♍
                 </text>
-                <text x="400" y="660" textAnchor="middle" fontFamily="var(--font-lora), Georgia, serif" fontSize="34" fill="rgba(230,197,128,0.55)">
+                <text
+                  x="400"
+                  y="660"
+                  textAnchor="middle"
+                  fontFamily="var(--font-lora), Georgia, serif"
+                  fontSize="34"
+                  fill="rgba(230,197,128,0.55)"
+                >
                   ♎ ♏ ♐ ♑ ♒ ♓
                 </text>
               </g>
@@ -1000,7 +1264,9 @@ export default function AboutPage() {
             <div className={s.heroSubwrap} data-reveal data-d="2">
               <div>
                 {isKo ? (
-                  <p className={s.heroSubKr}>사주와 별자리를 AI가 한 화면에서 함께 읽어 드립니다.</p>
+                  <p className={s.heroSubKr}>
+                    사주와 별자리를 AI가 한 화면에서 함께 읽어 드립니다.
+                  </p>
                 ) : (
                   <p className={s.heroSubKr} style={{ fontFamily: 'inherit' }}>
                     Saju and the stars, read together on one screen by AI.
@@ -1026,12 +1292,11 @@ export default function AboutPage() {
           <div className={s.marqueeTrack}>
             {[0, 1].map((k) => (
               <span key={k} className={s.marqueeItem}>
-                <span className={s.mqZodi}>♈</span>{' '}
-                {isKo ? '사주' : 'Saju'} <span className={s.mqStar}>✦</span>{' '}
-                {isKo ? '서양 점성술' : 'Western Astrology'} <span className={s.mqStar}>✦</span>{' '}
-                {isKo ? '타로' : 'Tarot'} <span className={s.mqStar}>✦</span>{' '}
-                {isKo ? '오늘의 운세' : 'Daily Fortune'} <span className={s.mqStar}>✦</span>{' '}
-                <span className={s.mqZodi}>♓</span>{' '}
+                <span className={s.mqZodi}>♈</span> {isKo ? '사주' : 'Saju'}{' '}
+                <span className={s.mqStar}>✦</span> {isKo ? '서양 점성술' : 'Western Astrology'}{' '}
+                <span className={s.mqStar}>✦</span> {isKo ? '타로' : 'Tarot'}{' '}
+                <span className={s.mqStar}>✦</span> {isKo ? '오늘의 운세' : 'Daily Fortune'}{' '}
+                <span className={s.mqStar}>✦</span> <span className={s.mqZodi}>♓</span>{' '}
                 {isKo ? '궁합' : 'Compatibility'} <span className={s.mqStar}>✦</span>
               </span>
             ))}
@@ -1042,26 +1307,52 @@ export default function AboutPage() {
         <section className={`${s.section} ${s.sectionCream}`} id="about">
           <div className={`${s.wrap} ${s.editorial}`}>
             <div data-reveal>
-              <span className={s.kicker}>{isKo ? '№ 01 — 시작하는 이야기' : '№ 01 — The Premise'}</span>
+              <span className={s.kicker}>
+                {isKo ? '№ 01 — 시작하는 이야기' : '№ 01 — The Premise'}
+              </span>
             </div>
             {isKo ? (
               <p className={s.editorialLead} data-reveal data-d="1">
-                별과 운명을 읽는 일은 오래된 <em>지혜</em>입니다. DestinyPal은 그 지혜를 AI로 다시 펼쳐 보입니다 — 조용히, <em>당신 한 사람을 위해.</em>
+                별과 운명을 읽는 일은 오래된 <em>지혜</em>입니다. DestinyPal은 그 지혜를 AI로 다시
+                펼쳐 보입니다 — 조용히, <em>당신 한 사람을 위해.</em>
               </p>
             ) : (
               <p className={s.editorialLead} data-reveal data-d="1">
-                Reading the stars is an <em>ancient wisdom.</em> DestinyPal lets a machine learn it again — softly, and <em>just for you.</em>
+                Reading the stars is an <em>ancient wisdom.</em> DestinyPal lets a machine learn it
+                again — softly, and <em>just for you.</em>
               </p>
             )}
             {isKo ? (
               <div className={`${s.editorialCols} ${s.dropcap}`} data-reveal data-d="2">
-                <p>오랜 시간 사람들은 별과 사주의 네 기둥, 그리고 한 장의 카드에서 자신의 길을 읽어 왔습니다. 그 마음은 사라지지 않았습니다. 다만 누군가와 마주 앉아 가만히 풀이를 듣는 시간이 멀어졌을 뿐입니다. DestinyPal은 그 빈자리를 채웁니다. 사주, 서양 점성술, 타로를 하나의 모델로 엮어, 당신이 태어난 바로 그 시각에 맞춰 함께 읽어 드립니다.</p>
-                <p>돌아오는 리딩은 모두에게 똑같이 찍혀 나오는 운세가 아닙니다. 당신의 시각, 당신이 서 있는 자리, 오늘 밤 천천히 지나가는 행성까지 함께 본 당신만의 차트입니다 — 모르는 것은 모른다고 솔직하게 말씀드립니다. 입 밖으로 꺼내기 어려운 질문 옆에 조용히 함께 있어 드립니다.</p>
+                <p>
+                  오랜 시간 사람들은 별과 사주의 네 기둥, 그리고 한 장의 카드에서 자신의 길을 읽어
+                  왔습니다. 그 마음은 사라지지 않았습니다. 다만 누군가와 마주 앉아 가만히 풀이를
+                  듣는 시간이 멀어졌을 뿐입니다. DestinyPal은 그 빈자리를 채웁니다. 사주, 서양
+                  점성술, 타로를 하나의 모델로 엮어, 당신이 태어난 바로 그 시각에 맞춰 함께 읽어
+                  드립니다.
+                </p>
+                <p>
+                  돌아오는 리딩은 모두에게 똑같이 찍혀 나오는 운세가 아닙니다. 당신의 시각, 당신이
+                  서 있는 자리, 오늘 밤 천천히 지나가는 행성까지 함께 본 당신만의 차트입니다 —
+                  모르는 것은 모른다고 솔직하게 말씀드립니다. 입 밖으로 꺼내기 어려운 질문 옆에
+                  조용히 함께 있어 드립니다.
+                </p>
               </div>
             ) : (
               <div className={`${s.editorialCols} ${s.dropcap}`} data-reveal data-d="2">
-                <p>For thousands of years, people have read their path in the stars, in the four pillars of birth, and in a single card laid down. That instinct never went away. What faded was the quiet time to sit with a true reader. DestinyPal fills that empty seat. It weaves classical Saju, Western astrology, and tarot into one model, then reads them together against the exact moment you arrived.</p>
-                <p>What comes back is not a horoscope stamped out for the millions. It is a chart that knows your hour, the ground you stand on, and the slow planet passing overhead tonight — honest about what it cannot see. A quiet companion for the questions you would rather not say out loud.</p>
+                <p>
+                  For thousands of years, people have read their path in the stars, in the four
+                  pillars of birth, and in a single card laid down. That instinct never went away.
+                  What faded was the quiet time to sit with a true reader. DestinyPal fills that
+                  empty seat. It weaves classical Saju, Western astrology, and tarot into one model,
+                  then reads them together against the exact moment you arrived.
+                </p>
+                <p>
+                  What comes back is not a horoscope stamped out for the millions. It is a chart
+                  that knows your hour, the ground you stand on, and the slow planet passing
+                  overhead tonight — honest about what it cannot see. A quiet companion for the
+                  questions you would rather not say out loud.
+                </p>
               </div>
             )}
             <div className={s.editorialMeta} data-reveal data-d="3">
@@ -1082,9 +1373,13 @@ export default function AboutPage() {
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
-                  <>별자리를 골라 보세요. <em>지도가 스스로 그려집니다.</em></>
+                  <>
+                    별자리를 골라 보세요. <em>지도가 스스로 그려집니다.</em>
+                  </>
                 ) : (
-                  <>Choose a sign. <em>Watch your map draw itself.</em></>
+                  <>
+                    Choose a sign. <em>Watch your map draw itself.</em>
+                  </>
                 )}
               </h2>
             </div>
@@ -1100,7 +1395,9 @@ export default function AboutPage() {
                     <span className={s.mapReadout}>{readout}</span>
                   </div>
                   <div className={s.mapCorner} style={{ alignItems: 'flex-end' }}>
-                    <span className={s.mapTag}>{signInfo.el} · {signInfo.date}</span>
+                    <span className={s.mapTag}>
+                      {signInfo.el} · {signInfo.date}
+                    </span>
                     <span className={s.mapName}>{isKo ? signInfo.kr : sign}</span>
                   </div>
                 </div>
@@ -1119,9 +1416,13 @@ export default function AboutPage() {
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
-                  <><em>당신</em>과 하늘 사이의 세 걸음.</>
+                  <>
+                    <em>당신</em>과 하늘 사이의 세 걸음.
+                  </>
                 ) : (
-                  <>Three steps between <em>you</em> and the sky.</>
+                  <>
+                    Three steps between <em>you</em> and the sky.
+                  </>
                 )}
               </h2>
             </div>
@@ -1168,9 +1469,13 @@ export default function AboutPage() {
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
-                  <>하나의 모델, 여러 <em>옛 언어들.</em></>
+                  <>
+                    하나의 모델, 여러 <em>옛 언어들.</em>
+                  </>
                 ) : (
-                  <>One model, many <em>old languages.</em></>
+                  <>
+                    One model, many <em>old languages.</em>
+                  </>
                 )}
               </h2>
             </div>
@@ -1179,7 +1484,9 @@ export default function AboutPage() {
                 <div className={s.featHead}>
                   <div>
                     <div className={s.featT}>{isKo ? '사주명리' : 'Four Pillars'}</div>
-                    <div className={s.featKr}>{isKo ? '네 기둥의 운명' : 'the four columns of fate'}</div>
+                    <div className={s.featKr}>
+                      {isKo ? '네 기둥의 운명' : 'the four columns of fate'}
+                    </div>
                   </div>
                   <span className={s.featIdx}>01 / 05</span>
                 </div>
@@ -1196,7 +1503,9 @@ export default function AboutPage() {
                 </div>
                 <div>
                   <div className={s.featT}>{isKo ? '출생 천궁도' : 'Natal Chart'}</div>
-                  <div className={s.featKr}>{isKo ? '태어난 순간의 하늘' : 'the sky at your birth'}</div>
+                  <div className={s.featKr}>
+                    {isKo ? '태어난 순간의 하늘' : 'the sky at your birth'}
+                  </div>
                   <p className={s.featD}>
                     {isKo
                       ? '12 하우스, 10개 행성, 태어난 자리 위의 정확한 하늘.'
@@ -1211,11 +1520,13 @@ export default function AboutPage() {
                 </div>
                 <div>
                   <div className={s.featT}>{isKo ? '오늘의 운세' : 'Daily Fortune'}</div>
-                  <div className={s.featKr}>{isKo ? '매일 아침의 하늘' : 'the morning sky, daily'}</div>
+                  <div className={s.featKr}>
+                    {isKo ? '매일 아침의 하늘' : 'the morning sky, daily'}
+                  </div>
                   <p className={s.featD}>
                     {isKo
                       ? '오늘 밤 하늘의 흐름에 맞춘, 매일 아침의 짧은 리딩.'
-                      : 'A short reading tuned to tonight\'s transits, every morning.'}
+                      : "A short reading tuned to tonight's transits, every morning."}
                   </p>
                 </div>
               </article>
@@ -1226,7 +1537,9 @@ export default function AboutPage() {
                 </div>
                 <div>
                   <div className={s.featT}>{isKo ? '궁합' : 'Compatibility'}</div>
-                  <div className={s.featKr}>{isKo ? '두 별이 만날 때' : 'where two stars meet'}</div>
+                  <div className={s.featKr}>
+                    {isKo ? '두 별이 만날 때' : 'where two stars meet'}
+                  </div>
                   <p className={s.featD}>
                     {isKo
                       ? '두 사람의 차트를 나란히 펴서 조화로운 자리, 불꽃이 튀는 자리, 인내가 필요한 자리를 함께 살핍니다.'
@@ -1262,9 +1575,13 @@ export default function AboutPage() {
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
-                  <>질문 하나, <em>세 장의 카드.</em></>
+                  <>
+                    질문 하나, <em>세 장의 카드.</em>
+                  </>
                 ) : (
-                  <>Ask a question. <em>Pull your spread.</em></>
+                  <>
+                    Ask a question. <em>Pull your spread.</em>
+                  </>
                 )}
               </h2>
             </div>
@@ -1272,7 +1589,7 @@ export default function AboutPage() {
               <p>
                 {isKo
                   ? '78장의 아르카나를, DestinyPal이 당신의 차트에서 이미 알고 있는 모든 것 위에서 읽어 드립니다. 카드를 한 장씩 눌러 보세요 — 지난 자리, 지금의 자리, 다가오는 자리.'
-                  : 'Seventy-eight arcana, read against everything DestinyPal already knows about your chart. Tap each card to turn it — what\'s behind you, what holds now, what is drawing near.'}
+                  : "Seventy-eight arcana, read against everything DestinyPal already knows about your chart. Tap each card to turn it — what's behind you, what holds now, what is drawing near."}
               </p>
               <span className={`${s.kicker} ${s.solo}`}>
                 {isKo ? '타로 · 78장의 아르카나' : 'Tarot · 78 Arcana'}
@@ -1291,9 +1608,13 @@ export default function AboutPage() {
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
-                  <>두 차트를 <em>나란히 펴봅니다.</em></>
+                  <>
+                    두 차트를 <em>나란히 펴봅니다.</em>
+                  </>
                 ) : (
-                  <>Lay two charts <em>side by side.</em></>
+                  <>
+                    Lay two charts <em>side by side.</em>
+                  </>
                 )}
               </h2>
             </div>
@@ -1326,19 +1647,35 @@ export default function AboutPage() {
                       : 'A week with Mars crossing your house of ambition. A good current to begin the one thing you have been postponing — but do not let desire outrun your pace. On Thursday, an unexpected offer arrives. Do not answer immediately; give it a day.'}
                   </p>
                   <div className={s.readingScore}>
-                    <div><b className={s.holoText}>88</b><span>{isKo ? '운' : 'Fortune'}</span></div>
-                    <div><b className={s.holoText}>72</b><span>{isKo ? '사랑' : 'Love'}</span></div>
-                    <div><b className={s.holoText}>91</b><span>{isKo ? '일' : 'Career'}</span></div>
-                    <div><b className={s.holoText}>SE</b><span>{isKo ? '방향' : 'Lucky dir.'}</span></div>
+                    <div>
+                      <b className={s.holoText}>88</b>
+                      <span>{isKo ? '운' : 'Fortune'}</span>
+                    </div>
+                    <div>
+                      <b className={s.holoText}>72</b>
+                      <span>{isKo ? '사랑' : 'Love'}</span>
+                    </div>
+                    <div>
+                      <b className={s.holoText}>91</b>
+                      <span>{isKo ? '일' : 'Career'}</span>
+                    </div>
+                    <div>
+                      <b className={s.holoText}>SE</b>
+                      <span>{isKo ? '방향' : 'Lucky dir.'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
               <div className={s.readingTxt} data-reveal data-d="1">
                 <h3>
                   {isKo ? (
-                    <>운세가 아닙니다. <em>기억하는 리딩입니다.</em></>
+                    <>
+                      운세가 아닙니다. <em>기억하는 리딩입니다.</em>
+                    </>
                   ) : (
-                    <>Not a horoscope. <em>A reading that remembers.</em></>
+                    <>
+                      Not a horoscope. <em>A reading that remembers.</em>
+                    </>
                   )}
                 </h3>
                 <p>
@@ -1382,9 +1719,15 @@ export default function AboutPage() {
           <div className={s.wrap}>
             <blockquote data-reveal>
               {isKo ? (
-                <><em>오랫동안 나를 알아온 사람</em>처럼 읽어 주었어요 — 그리고 보지 못하는 부분은 솔직히 모른다고 했어요.</>
+                <>
+                  <em>오랫동안 나를 알아온 사람</em>처럼 읽어 주었어요 — 그리고 보지 못하는 부분은
+                  솔직히 모른다고 했어요.
+                </>
               ) : (
-                <>It read me like someone who had <em>known me for years</em> — and admitted the parts it couldn&apos;t see.</>
+                <>
+                  It read me like someone who had <em>known me for years</em> — and admitted the
+                  parts it couldn&apos;t see.
+                </>
               )}
             </blockquote>
             <cite data-reveal data-d="1">
@@ -1398,15 +1741,26 @@ export default function AboutPage() {
           <div className={s.wrap}>
             <h2 className={`${s.ctaTitle} ${isKo ? s.nowrap : ''}`} data-reveal>
               {isKo ? (
-                <><span className={s.chrome}>당신의 운명을</span> <em className={s.holoText}>펼치세요</em></>
+                <>
+                  <span className={s.chrome}>당신의 운명을</span>{' '}
+                  <em className={s.holoText}>펼치세요</em>
+                </>
               ) : (
-                <><span className={s.chrome}>unfold your</span> <em className={s.holoText}>destiny</em></>
+                <>
+                  <span className={s.chrome}>unfold your</span>{' '}
+                  <em className={s.holoText}>destiny</em>
+                </>
               )}
             </h2>
             <p className={s.ctaSub} data-reveal data-d="1">
               {isKo ? '첫 리딩은 무료입니다.' : 'Your first reading is free.'}
             </p>
-            <div className={s.heroCtaRow} data-reveal data-d="2" style={{ justifyContent: 'center' }}>
+            <div
+              className={s.heroCtaRow}
+              data-reveal
+              data-d="2"
+              style={{ justifyContent: 'center' }}
+            >
               <a href="/destiny-counselor" className={`${s.btn} ${s.btnSolid}`}>
                 {isKo ? '지금 시작하기' : 'Start now'}
               </a>
