@@ -751,31 +751,33 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <div>
               <div className={s.subcap}>{t('shinsalCap')}</div>
               <div className={s.chips}>
-                {S.natalShinsal.map((sh, i) => {
-                  const interp = getShinsalInterpretation(sh.ko)
-                  const label = lang === 'en' ? (interp?.name_en ?? sh.ko) : sh.ko
-                  const tip =
-                    lang === 'en'
-                      ? interp
-                        ? `${interp.meaning_en} ${interp.effect_en}`
-                        : undefined
-                      : interp
-                        ? `${interp.meaning} ${interp.effect}`
-                        : undefined
-                  return (
-                    <span
-                      className={`${s.chip} ${sh.polarity > 0 ? s.pos : sh.polarity < 0 ? s.neg : s.neu}`}
-                      key={i}
-                      title={tip}
-                    >
-                      <b>{label}</b>
-                      <i>
-                        {sh.pillar}
-                        {sh.sub ? `·${sh.sub}` : ''}
-                      </i>
-                    </span>
-                  )
-                })}
+                {[...S.natalShinsal]
+                  .sort((a, b) => (b.polarity ?? 0) - (a.polarity ?? 0))
+                  .map((sh, i) => {
+                    const interp = getShinsalInterpretation(sh.ko)
+                    const label = lang === 'en' ? (interp?.name_en ?? sh.ko) : sh.ko
+                    const tip =
+                      lang === 'en'
+                        ? interp
+                          ? `${interp.meaning_en} ${interp.effect_en}`
+                          : undefined
+                        : interp
+                          ? `${interp.meaning} ${interp.effect}`
+                          : undefined
+                    return (
+                      <span
+                        className={`${s.chip} ${sh.polarity > 0 ? s.pos : sh.polarity < 0 ? s.neg : s.neu}`}
+                        key={i}
+                        title={tip}
+                      >
+                        <b>{label}</b>
+                        <i>
+                          {sh.pillar}
+                          {sh.sub ? `·${sh.sub}` : ''}
+                        </i>
+                      </span>
+                    )
+                  })}
               </div>
             </div>
             <div>
@@ -1342,6 +1344,52 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
               ))}
             </div>
+            {/* 💡 실천 — 진단을 처방으로 (Opus: 그래서 어떻게). */}
+            {(() => {
+              const reson = cross.rows.filter((r) => r.tone === 'resonant').map((r) => r.category)
+              const tens = cross.rows.filter((r) => r.tone === 'tension').map((r) => r.category)
+              const yk = ELEMENTS[S.yongsin.primary]?.ko
+              const act = yk ? ELEMENT_REMEDY[yk]?.activity : undefined
+              return (
+                <div className={s.crossAdvice}>
+                  <div className={s.crossAdviceHead}>
+                    {lang === 'en' ? '💡 How to live with it' : '💡 이렇게 살면 좋아요'}
+                  </div>
+                  <ul className={s.crossAdviceList}>
+                    {reson.length > 0 && (
+                      <li>
+                        <b>{lang === 'en' ? 'Trust' : '확신'}</b>{' '}
+                        {lang === 'en'
+                          ? 'East and West both point to '
+                          : '동·서양이 똑같이 가리키는 '}
+                        <b>{reson.join(' · ')}</b>
+                        {lang === 'en'
+                          ? ' — that’s your core. Lean in.'
+                          : '은(는) 당신의 핵심이에요. 의심 말고 밀어붙이세요.'}
+                      </li>
+                    )}
+                    {tens.length > 0 && (
+                      <li>
+                        <b>{lang === 'en' ? 'Balance' : '다루는 법'}</b>{' '}
+                        {lang === 'en' ? 'Where they clash (' : '부딪히는 '}
+                        <b>{tens.join(' · ')}</b>
+                        {lang === 'en'
+                          ? ') — alternate between the two instead of suppressing one.'
+                          : '은(는) 한쪽을 누르기보다 상황 따라 번갈아 쓰면 오히려 강점이 돼요.'}
+                      </li>
+                    )}
+                    {act && (
+                      <li>
+                        <b>{lang === 'en' ? 'Recharge' : '보충'}</b>{' '}
+                        {lang === 'en'
+                          ? `Top up your scarce ${elementLabel(S.yongsin.primary, lang)} through ${act}.`
+                          : `부족한 ${ELEMENTS[S.yongsin.primary]?.han}(${elementLabel(S.yongsin.primary, lang)}) 기운을 ${act}(으)로 채우면 균형이 좋아져요.`}
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )
+            })()}
           </section>
         )}
 
