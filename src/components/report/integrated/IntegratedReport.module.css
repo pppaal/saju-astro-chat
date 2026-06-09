@@ -928,3 +928,24 @@
     border-right: 0;
   }
 }
+
+/* 일간 한 줄 풀이 (hover→가시화) · 용신 이유 — Stage 2 이해도 보강 */
+.dmIntro {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.dmIntro b {
+  font-family: var(--serif);
+  font-weight: 600;
+}
+.yongWhy {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.yongWhy b {
+  font-weight: 600;
+}
