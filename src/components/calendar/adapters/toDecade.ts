@@ -18,6 +18,7 @@
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ActiveSignal } from '@/lib/calendar-engine/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
+import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getStemElement, getBranchElement } from '@/lib/saju/stemBranchUtils'
 import { CHUNG, YUKHAP } from '@/lib/saju/constants'
 import { getTwelveStage } from '@/lib/saju/shinsal'
@@ -149,37 +150,12 @@ const SIBSIN_THEME_KO: Record<string, { theme: string; themeEn: string; headline
   },
 }
 
-const STEM_HAN_TO_KO: Record<string, string> = {
-  甲: '갑',
-  乙: '을',
-  丙: '병',
-  丁: '정',
-  戊: '무',
-  己: '기',
-  庚: '경',
-  辛: '신',
-  壬: '임',
-  癸: '계',
-}
-const BRANCH_HAN_TO_KO: Record<string, string> = {
-  子: '자',
-  丑: '축',
-  寅: '인',
-  卯: '묘',
-  辰: '진',
-  巳: '사',
-  午: '오',
-  未: '미',
-  申: '신',
-  酉: '유',
-  戌: '술',
-  亥: '해',
-}
+// 천간/지지 한자→한글 음 — 정본(saju/ganjiKo) 재사용. KO→HAN 역맵은 파생.
 const STEM_KO_TO_HAN: Record<string, string> = Object.fromEntries(
-  Object.entries(STEM_HAN_TO_KO).map(([h, k]) => [k, h])
+  Object.entries(STEM_KO).map(([h, k]) => [k, h])
 )
 const BRANCH_KO_TO_HAN: Record<string, string> = Object.fromEntries(
-  Object.entries(BRANCH_HAN_TO_KO).map(([h, k]) => [k, h])
+  Object.entries(BRANCH_KO).map(([h, k]) => [k, h])
 )
 
 // ── 60갑자 ↔ index helpers ──────────────────────────────────────────────
@@ -195,7 +171,7 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
     string,
     { earthlyBranch?: { name?: string } }
   >
-  const ko = (b: string) => BRANCH_HAN_TO_KO[b] ?? b
+  const ko = (b: string) => BRANCH_KO[b] ?? b
   const db = decadeBranch
   const hits: DestinypalDecadeRelation[] = []
   for (const key of ['day', 'time', 'month', 'year']) {
@@ -232,7 +208,7 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
  */
 function buildDecadeUnseong(dm: string, decadeBranch: string): DestinypalDecadeRelation {
   const stage = getTwelveStage(dm, decadeBranch)
-  const ko = BRANCH_HAN_TO_KO[decadeBranch] ?? decadeBranch
+  const ko = BRANCH_KO[decadeBranch] ?? decadeBranch
   // 쉬운말 우선: "막 자리를 잡아가는 기세" — 못 찾으면 해석사전 meaning 폴백.
   const plain = twelveStagePlain(stage)
   const interp = getTwelveStageInterpretation(stage as never)

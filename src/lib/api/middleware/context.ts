@@ -28,12 +28,6 @@ export function extractLocale(req: Request): string {
   if (urlLocale === 'ko' || acceptLang.includes('ko')) {
     return 'ko'
   }
-  if (urlLocale === 'ja' || acceptLang.includes('ja')) {
-    return 'ja'
-  }
-  if (urlLocale === 'zh' || acceptLang.includes('zh')) {
-    return 'zh'
-  }
   return 'en'
 }
 

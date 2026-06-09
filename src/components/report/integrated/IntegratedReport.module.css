@@ -390,9 +390,9 @@
   border-left-color: var(--el-fire);
 }
 
-.daeun {
+.houses {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 0;
   border: 1px solid var(--line);
   border-radius: 5px;
@@ -412,34 +412,12 @@
 .du:last-child {
   border-right: 0;
 }
-.duNow {
-  background: rgba(169, 131, 59, 0.08);
-}
-.duNow .duAge {
-  color: var(--gold);
-}
 .duAge {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--ink-3);
   font-weight: 500;
 }
-.duGz {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.05;
-}
-.duGz b {
-  font-family: var(--serif);
-  font-size: 19px;
-  font-weight: 500;
-}
-.duSib {
-  font-size: 10.5px;
-  color: var(--ink-2);
-  font-weight: 500;
-}
-
 /* 02 오행 */
 .gridElem {
   display: grid;
@@ -929,6 +907,122 @@
   .metaCell:nth-child(3n) {
     border-right: 0;
   }
+}
+
+/* 모바일 가로 잘림 방지 — 좁은 화면에서 고정 다열 그리드 축소 */
+@media (max-width: 600px) {
+  .houses {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  /* 사주 4기둥 — 좁은 폰에서 오른쪽 기둥이 잘리던 문제: 그리드 아이템이
+     콘텐츠(46px 한자)보다 못 줄어 overflow:hidden 에 잘림. min-width:0 +
+     한자/십신/지장간 크기 축소로 4기둥이 360px 폭에도 다 들어오게. */
+  .pillar {
+    padding: 12px 3px 12px;
+    gap: 5px;
+    min-width: 0;
+  }
+  .gzHan {
+    font-size: 30px;
+  }
+  .pillarHead {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+  .sib {
+    font-size: 10px;
+    padding: 2px 6px;
+    letter-spacing: 0;
+  }
+  .jjg {
+    gap: 3px;
+  }
+  .jjgI b {
+    font-size: 12px;
+  }
+  .stage {
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+  .metaGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .metaCell:nth-child(3n) {
+    border-right: 1px solid var(--line-2);
+  }
+  .metaCell:nth-child(2n) {
+    border-right: 0;
+  }
+  /* 천궁도 — gridChart 는 980px 에서 세로 적층됨. 좁은 폰에서 행성표 6열이
+     안 잘리게 폰트·패딩 축소. (원형 wheel 은 viewBox 라 자동 스케일.) */
+  .planetTable {
+    font-size: 11px;
+  }
+  .planetTable td {
+    padding: 6px 4px;
+  }
+}
+
+/* 일간 한 줄 풀이 (hover→가시화) · 용신 이유 — Stage 2 이해도 보강 */
+.dmIntro {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.dmIntro b {
+  font-family: var(--serif);
+  font-weight: 600;
+}
+.yongWhy {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.yongWhy b {
+  font-weight: 600;
+}
+
+/* 명식 '쉬운 풀이' (Level 1) — 전문 그리드 아래 평이한 줄. 모바일 세로 안전. */
+.plainPillars {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--card);
+  padding: 10px 14px;
+}
+.plainRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 13px;
+}
+.plainRow:last-child {
+  border-bottom: 0;
+}
+.plainHead {
+  flex: 0 0 auto;
+  min-width: 30px;
+  color: var(--ink-3);
+  font-weight: 600;
+  font-size: 12px;
+}
+.plainGz {
+  flex: 0 0 auto;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.plainMeaning {
+  color: var(--ink-2);
+  line-height: 1.4;
 }
 
 /* 핵심 3행성 카드 (태양·달·상승) — planet-core 본문 가시화 */

@@ -40,7 +40,9 @@ import {
   getSibsinInterpretation,
   getTwelveStageInterpretation,
   getShinsalInterpretation,
+  getElementInterpretation,
 } from '@/lib/saju/interpretations'
+import { SIBSIN_SHORT } from '../atoms/interpretations'
 
 export type Lang = 'ko' | 'en'
 
@@ -85,7 +87,6 @@ const UI: Record<string, BiLabel> = {
   dayBranchLabel: { ko: '日干', en: 'Day Master' },
   shinsalCap: { ko: '신살 · 神煞', en: 'Spirits · 神煞' },
   relCap: { ko: '본명 합충형파', en: 'Natal Interactions' },
-  daeunCap: { ko: '대운 · 大運', en: 'Luck Cycles · 大運' },
   iljuCap: { ko: '일주 원형 · 日柱', en: 'Day-Pillar Archetype · 日柱' },
   sec02Title: { ko: '오행과 용신', en: 'Elements & Balance' },
   sec02Han: { ko: '五行·用神', en: '五行·用神' },
@@ -122,6 +123,8 @@ const UI: Record<string, BiLabel> = {
   geokPersonality: { ko: '성향', en: 'Personality' },
   geokStrength: { ko: '강점', en: 'Strengths' },
   geokWeakness: { ko: '약점', en: 'Watch-outs' },
+  geokCareer: { ko: '직업', en: 'Careers' },
+  geokLove: { ko: '연애', en: 'Love' },
   geokAdvice: { ko: '조언', en: 'Advice' },
   sibsinCap: { ko: '주도 십성 · 十星', en: 'Dominant Ten God · 十星' },
   sec03Title: { ko: '출생 천궁도', en: 'Natal Chart' },
@@ -210,6 +213,11 @@ const sibsinLabel = (name: string, lang: Lang): string => {
   if (lang === 'ko') return name
   if (!name || name === '日干') return name === '日干' ? 'Day Master' : name
   return getSibsinInterpretation(name as never)?.name_en ?? name
+}
+// 십신 → 평이 한줄 글로스 (SIBSIN_SHORT 재사용). 명식 '쉬운 풀이' 행에 사용.
+const sibsinShort = (name: string, lang: Lang): string => {
+  if (!name || name === '日干') return ''
+  return lang === 'ko' ? (SIBSIN_SHORT[name] ?? name) : sibsinLabel(name, 'en')
 }
 const stageLabel = (stage: string, lang: Lang): string => {
   if (lang === 'ko' || !stage) return stage
@@ -593,6 +601,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Four Pillars</span>
           </div>
+          {/* 일간(나) 한 줄 풀이 — hover 로만 뜨던 의미를 모바일에서도 보이게 노출. */}
+          <p className={s.dmIntro}>
+            {lang === 'en' ? 'Day Master' : '일간(나)'}{' '}
+            <b className={elClass[stemEl(S.dayMaster)]}>{S.dayMaster}</b> —{' '}
+            {hanjaHover(S.dayMaster, lang)}
+          </p>
           <div className={s.pillars}>
             {pillarsArr.map(([head, p]) => (
               <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head.ko}>
@@ -632,6 +646,29 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
               </div>
             ))}
+          </div>
+          {/* 쉬운 풀이 (Level 1) — 한자/십신을 평이한 한 줄로. 위 그리드는 전문(Level 2). */}
+          <div className={s.plainPillars}>
+            {pillarsArr.map(([head, p]) => {
+              const stemG = p.isDay
+                ? lang === 'en'
+                  ? 'You (Day Master)'
+                  : '나 자신'
+                : sibsinShort(p.sibsinStem, lang)
+              const branchG = sibsinShort(p.sibsinBranch, lang)
+              return (
+                <div className={s.plainRow} key={head.ko}>
+                  <span className={s.plainHead}>{head[lang]}</span>
+                  <b className={s.plainGz}>
+                    <span className={elClass[stemEl(p.stem)]}>{p.stem}</span>
+                    <span className={elClass[branchEl(p.branch)]}>{p.branch}</span>
+                  </b>
+                  <span className={s.plainMeaning}>
+                    {[stemG, branchG].filter(Boolean).join(' · ')}
+                  </span>
+                </div>
+              )
+            })}
           </div>
           <div className={s.row2}>
             <div>
@@ -710,21 +747,6 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </>
           )}
-          <div className={s.subcap} style={{ marginTop: 24 }}>
-            {t('daeunCap')}
-          </div>
-          <div className={s.daeun}>
-            {S.daeun.map((d) => (
-              <div className={`${s.du} ${d.current ? s.duNow : ''}`} key={d.age}>
-                <div className={s.duAge}>{d.age}</div>
-                <div className={s.duGz}>
-                  <b className={elClass[stemEl(d.stem)]}>{d.stem}</b>
-                  <b className={elClass[branchEl(d.branch)]}>{d.branch}</b>
-                </div>
-                <div className={s.duSib}>{sibsinLabel(d.sibsin, lang)}</div>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* 02 오행과 용신 */}
@@ -825,6 +847,30 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   ))}
                   <i style={{ color: 'var(--ink-4)' }}>/ max {feMax}</i>
                 </div>
+                {/* 용신 '왜 필요한가' — fiveElements 사전에서 성질+부족시 증상 연결. */}
+                {(() => {
+                  const yk = ELEMENTS[S.yongsin.primary]?.ko
+                  const yi = yk
+                    ? (getElementInterpretation(yk as never) as {
+                        nature?: string
+                        nature_en?: string
+                        deficiency?: string
+                        deficiency_en?: string
+                      } | null)
+                    : null
+                  if (!yi) return null
+                  const nature = lang === 'en' ? yi.nature_en : yi.nature
+                  const lack = lang === 'en' ? yi.deficiency_en : yi.deficiency
+                  return (
+                    <div className={s.yongWhy}>
+                      <b className={elClass[S.yongsin.primary]}>
+                        {ELEMENTS[S.yongsin.primary]?.han} {elementLabel(S.yongsin.primary, lang)}
+                      </b>{' '}
+                      — {nature}
+                      {lack ? ` · ${lang === 'en' ? 'lacking: ' : '부족하면 '}${lack}` : ''}
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           </div>
@@ -847,6 +893,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {geok.weakness.length > 0 && (
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
                   <b>{t('geokWeakness')}</b> {geok.weakness.join(', ')}
+                </div>
+              )}
+              {geok.career && geok.career.length > 0 && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokCareer')}</b> {geok.career.join(', ')}
+                </div>
+              )}
+              {geok.love && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokLove')}</b> {geok.love}
                 </div>
               )}
               <div className={s.themeReason} style={{ marginTop: 4 }}>
@@ -943,7 +999,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   <b>{A.houseSystem}</b>
                 </div>
               </div>
-              <div className={s.daeun} style={{ gridTemplateColumns: 'repeat(6,1fr)' }}>
+              <div className={s.houses}>
                 {A.houses.slice(0, 6).map((h) => (
                   <div className={s.du} key={h.i} title={houseHover(h.i, lang)}>
                     <div className={s.duAge}>{h.i}H</div>

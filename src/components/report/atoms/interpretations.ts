@@ -12,7 +12,7 @@
  * 단위 의미여서 chart-dictionary 의 카테고리 단위 데이터로 대체 불가 → atoms 유지.
  */
 
-import { getHanjaRich, getGeokgukRich, getSajuStrengthMeaning } from '@/lib/chart-dictionary'
+import { getHanjaRich } from '@/lib/chart-dictionary'
 
 // ── 한자 풀(stem / branch 순서) ───────────────────────────────────────────────
 const STEM_CHARS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const
@@ -146,88 +146,6 @@ export const SIBSIN_COLOR: Record<
     label: '인성',
   },
 }
-
-// 격국 — chart-dictionary 의 25 격국 tagline (정격 8 + 외격 17).
-// 키 누락 안전을 위해 hardcoded fallback 보관 (기존 atoms 에 있던 13 격국).
-const GEOKGUK_NAMES = [
-  '정관격',
-  '편관격',
-  '정재격',
-  '편재격',
-  '정인격',
-  '편인격',
-  '식신격',
-  '상관격',
-  '건록격',
-  '양인격',
-  '종왕격',
-  '종강격',
-  '종아격',
-  '종재격',
-  '종살격',
-  '갑기화토격',
-  '을경화금격',
-  '병신화수격',
-  '정임화목격',
-  '무계화화격',
-  '곡직격',
-  '염상격',
-  '가색격',
-  '종혁격',
-  '윤하격',
-] as const
-
-const GEOKGUK_FALLBACK: Record<string, string> = {
-  정인격: '학문·보호·전통 — 학자 / 분석가 형',
-  편인격: '특이한 지식·직관 — 연구·종교·예술가 형',
-  정관격: '명예·정통 권위 — 공직·관리자 형',
-  편관격: '큰 권력·도전 — 군인·경영자·CEO 형',
-  정재격: '안정적 재물·실용 — 사업·관리 형',
-  편재격: '활동적 재물·기회 — 영업·투자·중개 형',
-  식신격: '표현·즐거움·창의 — 예술·교육·요리 형',
-  상관격: '재능·반항·개성 — 예능·디자인·자유직 형',
-  비견격: '독립·자기 사업 — 자영업·동업 형',
-  겁재격: '경쟁·욕망 — 강한 추진력 형',
-  종강격: '신강 극대 — 강한 결단·외골수 형',
-  종재격: '재성에 종속 — 큰 재물의 길',
-  종관격: '관성에 종속 — 권력·명예의 길',
-}
-
-export const GEOKGUK: Record<string, string> = (() => {
-  const map: Record<string, string> = { ...GEOKGUK_FALLBACK }
-  for (const name of GEOKGUK_NAMES) {
-    const entry = getGeokgukRich(name, 'ko')
-    if (entry?.tagline) map[name] = entry.tagline
-  }
-  return map
-})()
-
-// 신강·신약 + 용신 한 줄 — chart-dictionary 의 통근 카테고리에서 추출.
-// sajuStrength 의 strong/weak/balanced 는 { label, explain } shape.
-const STRENGTH_FALLBACK: Record<'strong' | 'medium' | 'weak', string> = {
-  strong: '의지·추진력 강함. 인성/비겁 너무 많으면 고집',
-  medium: '균형 좋음. 외부 환경 따라 변화',
-  weak: '주변 도움 / 운에 따라 잘 풀림. 무리한 추진 X',
-}
-
-function extractExplain(value: unknown): string | undefined {
-  if (value && typeof value === 'object' && 'explain' in value) {
-    const explain = (value as { explain?: unknown }).explain
-    if (typeof explain === 'string') return explain
-  }
-  return undefined
-}
-
-export const STRENGTH_MEANING: Record<'strong' | 'medium' | 'weak', string> = (() => {
-  const strong = extractExplain(getSajuStrengthMeaning('통근', 'strong', 'ko'))
-  const weak = extractExplain(getSajuStrengthMeaning('통근', 'weak', 'ko'))
-  const medium = extractExplain(getSajuStrengthMeaning('통근', 'balanced', 'ko'))
-  return {
-    strong: strong ?? STRENGTH_FALLBACK.strong,
-    medium: medium ?? STRENGTH_FALLBACK.medium,
-    weak: weak ?? STRENGTH_FALLBACK.weak,
-  }
-})()
 
 // 오행 부족 시 처방 (Fire / Wood 같은 가벼운 색·방향 권장).
 // chart-dictionary 의 용신 by_element 는 단일 문장 — atoms 의 분해된 {color, direction, activity}

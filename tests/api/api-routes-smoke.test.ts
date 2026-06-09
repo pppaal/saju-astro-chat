@@ -60,12 +60,6 @@ describe('API Routes Smoke Tests', () => {
     })
   })
 
-  describe('Calendar Routes', () => {
-    it('should have calendar routes', () => {
-      assertModules(['app/api/calendar/route'])
-    })
-  })
-
   describe('Checkout Routes (1)', () => {
     it('should have checkout route', () => {
       assertModules(['app/api/checkout/route'])
@@ -153,7 +147,6 @@ describe('API Routes Smoke Tests', () => {
         'admin',
         'astrology',
         'auth',
-        'calendar',
         'checkout',
         'cities',
         'compatibility',

@@ -3,6 +3,7 @@ import { BRANCHES, STEMS, JIJANGGAN, CHEONEUL_GWIIN_MAP } from './constants'
 import type { FiveElement, YinYang, PillarKind, TwelveStage } from './types'
 import { RESENTMENT_PAIRS, toBidiRecord } from './relationTables'
 import { getGongmang as getGongmangByPillar } from './pillarLookup'
+import { STEM_KO } from './ganjiKo'
 
 export type { PillarKind, TwelveStage }
 
@@ -282,10 +283,18 @@ const SHINSAL_KEYS_ORDER: (keyof TwelveMap)[] = [
 ]
 
 const SHINSAL_GROUP_LEADERS: Record<string, string> = {
-  寅: '亥', 午: '亥', 戌: '亥', // 寅午戌 group → 劫殺 starts at 亥
-  申: '巳', 子: '巳', 辰: '巳', // 申子辰 group → 巳
-  巳: '寅', 酉: '寅', 丑: '寅', // 巳酉丑 group → 寅
-  亥: '申', 卯: '申', 未: '申', // 亥卯未 group → 申
+  寅: '亥',
+  午: '亥',
+  戌: '亥', // 寅午戌 group → 劫殺 starts at 亥
+  申: '巳',
+  子: '巳',
+  辰: '巳', // 申子辰 group → 巳
+  巳: '寅',
+  酉: '寅',
+  丑: '寅', // 巳酉丑 group → 寅
+  亥: '申',
+  卯: '申',
+  未: '申', // 亥卯未 group → 申
 }
 
 function buildTwelveShinsalTable(): Record<string, TwelveMap> {
@@ -808,7 +817,7 @@ export function getShinsalHitsForDailyTarget(
   // 확장 파라미터 — 기존 호출자는 그대로 동작하도록 optional.
   // 본명 월지와 일진 천간이 있어야 추가 12개 신살을 계산할 수 있음.
   natalMonthBranch?: string,
-  targetStem?: string,
+  targetStem?: string
 ): Array<{ kind: ShinsalHit['kind']; basis: string }> {
   const hits: Array<{ kind: ShinsalHit['kind']; basis: string }> = []
 
@@ -1412,24 +1421,12 @@ export function getLuckySingleByPillar(p: SajuPillarsLike): {
 // 정본 JIJANGGAN(constants, 한자)에서 한글 독음으로 파생 — 로컬 복제 금지.
 // (과거 손으로 적다가 午='기정'(丙 누락)·亥='무임'(甲 누락) 으로 드리프트했던 버그를
 //  SSOT 파생으로 제거. 이제 午=병기정, 亥=무갑임.)
-const STEM_HAN_TO_KO: Record<string, string> = {
-  甲: '갑',
-  乙: '을',
-  丙: '병',
-  丁: '정',
-  戊: '무',
-  己: '기',
-  庚: '경',
-  辛: '신',
-  壬: '임',
-  癸: '계',
-}
 export const JIJANGGAN_TEXT_BY_BRANCH: Record<string, string> = Object.fromEntries(
   Object.entries(JIJANGGAN).map(([branch, j]) => [
     branch,
     [j['여기'], j['중기'], j['정기']]
       .filter((s): s is string => Boolean(s))
-      .map((s) => STEM_HAN_TO_KO[s])
+      .map((s) => STEM_KO[s])
       .join(''),
   ])
 )

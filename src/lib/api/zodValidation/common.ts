@@ -89,22 +89,8 @@ const normalizeGender = (value: unknown) => {
 
 export const genderSchema = z.preprocess(normalizeGender, z.enum(genderValues))
 
-// Supported locales - union of all locales used across the app
-export const localeValues = [
-  'ko',
-  'en',
-  'ja',
-  'zh',
-  'es',
-  'fr',
-  'de',
-  'pt',
-  'ru',
-  'ar',
-  'vi',
-  'th',
-  'id',
-] as const
+// Supported locales — 앱은 en/ko 만 서빙(SUPPORTED_LOCALES). 그 외 locale 은 폐기.
+export const localeValues = ['ko', 'en'] as const
 export type Locale = (typeof localeValues)[number]
 
 export const localeSchema = z.enum(localeValues)
