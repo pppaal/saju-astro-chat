@@ -351,36 +351,36 @@ const COMPAT_COPY = {
     lo: 74,
     verdict: ['Mirror', 'souls'],
     verdictKo: ['닮은', '영혼'],
-    t: '같은 별 아래 태어난 두 사람. 서로를 거울처럼 알아보지만, 닮은 만큼 같은 약점도 나눕니다. 이해는 쉽고, 균형은 노력이 필요해요.',
-    tEn: 'Two souls born under the same star. You recognize each other instantly — but you share the same weaknesses, too. Understanding comes easy; balance asks for effort.',
+    t: '같은 별 아래 태어난 두 사람입니다. 서로를 금방 알아봅니다. 다만 닮은 만큼 같은 약점도 함께 갖고 있습니다. 이해는 쉽지만 균형은 노력이 필요합니다.',
+    tEn: 'Two souls born under the same star. You recognize each other right away. You also share the same weak spots. Understanding comes easily, but balance takes work.',
   },
   kin: {
     lo: 86,
     verdict: ['Kindred', 'flame'],
     verdictKo: ['하나의', '불꽃'],
-    t: '같은 원소의 깊은 공명. 말하지 않아도 통하는 흐름이 있습니다. 편안함에 안주하지 말고, 함께 새로운 불씨를 지펴 보세요.',
-    tEn: 'A deep resonance of the same element. There is a current you both feel without speaking. Do not settle for comfort — kindle a new spark together.',
+    t: '같은 원소라 깊이 통합니다. 말하지 않아도 알 때가 많아요. 편함에 안주하지 말고, 함께 새 불을 일으켜 보세요.',
+    tEn: "A deep resonance of the same element. You feel it without saying a word. Don't settle into comfort. Kindle something new together.",
   },
   spark: {
     lo: 82,
     verdict: ['Bright', 'spark'],
     verdictKo: ['빛나는', '불씨'],
-    t: '서로를 키우는 조합. 한쪽의 불꽃을 다른 쪽의 바람이 더 멀리 실어 나릅니다. 다름이 곧 매력이 되는 관계예요.',
-    tEn: "A pairing that grows each other. One side's flame is carried further by the other's wind. Difference itself becomes the charm.",
+    t: '서로를 키우는 조합입니다. 한쪽의 불을 다른 쪽의 바람이 더 멀리 실어 줍니다. 다른 점이 곧 매력이 됩니다.',
+    tEn: "A pairing that grows each other. One side's flame travels further on the other's wind. The difference is the attraction.",
   },
   steady: {
     lo: 68,
     verdict: ['Slow', 'harmony'],
     verdictKo: ['느린', '조화'],
-    t: '리듬이 다른 두 사람. 처음엔 어긋나도, 시간을 들이면 단단한 토대를 쌓습니다. 인내가 가장 큰 자산이 됩니다.',
-    tEn: 'Two different rhythms. Off-beat at first, but given time you build something solid. Patience becomes the greatest asset.',
+    t: '리듬이 다른 두 사람입니다. 처음엔 잘 맞지 않아도, 시간을 들이면 단단해집니다. 견뎌낸 시간이 가장 큰 힘이 됩니다.',
+    tEn: 'Two different rhythms. Off-beat at first, but time builds something solid. In the end, patience is your strongest suit.',
   },
   tension: {
     lo: 54,
     verdict: ['Restless', 'pull'],
     verdictKo: ['뜨거운', '끌림'],
-    t: '끌림과 충돌이 함께 오는 관계. 긴장이 곧 생기이기도 하지만, 서로의 속도를 존중할 때만 오래갑니다.',
-    tEn: "A bond where attraction and collision arrive together. Tension can be aliveness — but it lasts only when you respect each other's pace.",
+    t: '끌림과 충돌이 같이 옵니다. 긴장이 곧 생기이기도 하지만, 서로의 속도를 존중할 때라야 오래갑니다.',
+    tEn: "A bond where attraction and collision arrive together. Tension can be aliveness, but it lasts only when you respect each other's pace.",
   },
 } as const
 
@@ -815,8 +815,8 @@ function TarotSpread() {
   const summary =
     allFlipped && hand
       ? isKo
-        ? `지난 자리의 ${hand[0].card.kr}, 지금 자리의 ${hand[1].card.kr}, 그리고 다가오는 자리의 ${hand[2].card.kr}. 세 장이 가리키는 방향은 하나입니다 — 지금 내딛는 한 걸음을 믿어도 좋다는 것.`
-        : `${hand[0].card.name} in the past, ${hand[1].card.name} now, and ${hand[2].card.name} drawing near. The three point in one direction — trust the step you are taking right now.`
+        ? `지난 자리의 ${hand[0].card.kr}, 지금 자리의 ${hand[1].card.kr}, 그리고 다가오는 자리의 ${hand[2].card.kr}. 세 장이 한 방향을 가리킵니다. 지금 내딛는 한 걸음을 믿어도 좋다는 뜻이에요.`
+        : `${hand[0].card.name} in the past, ${hand[1].card.name} now, and ${hand[2].card.name} drawing near. All three point one way. Trust the step you are taking right now.`
       : ''
 
   const positions = isKo
@@ -1326,12 +1326,12 @@ export default function AboutPage() {
             {isKo ? (
               <p className={s.editorialLead} data-reveal data-d="1">
                 별과 운명을 읽는 일은 오래된 <em>지혜</em>입니다. DestinyPal은 그 지혜를 AI로 다시
-                펼쳐 보입니다 — 조용히, <em>당신 한 사람을 위해.</em>
+                펼쳐 보입니다. 조용히, <em>당신 한 사람을 위해.</em>
               </p>
             ) : (
               <p className={s.editorialLead} data-reveal data-d="1">
                 Reading the stars is an <em>ancient wisdom.</em> DestinyPal lets a machine learn it
-                again — softly, and <em>just for you.</em>
+                again. Quietly, <em>just for you.</em>
               </p>
             )}
             {isKo ? (
@@ -1345,9 +1345,9 @@ export default function AboutPage() {
                 </p>
                 <p>
                   돌아오는 리딩은 모두에게 똑같이 찍혀 나오는 운세가 아닙니다. 당신의 시각, 당신이
-                  서 있는 자리, 오늘 밤 천천히 지나가는 행성까지 함께 본 당신만의 차트입니다 —
-                  모르는 것은 모른다고 솔직하게 말씀드립니다. 입 밖으로 꺼내기 어려운 질문 옆에
-                  조용히 함께 있어 드립니다.
+                  서 있는 자리, 오늘 밤 천천히 지나가는 행성까지 함께 본 당신만의 차트입니다. 알 수
+                  없는 것은 정직하게 말씀드립니다. 입 밖으로 꺼내기 어려운 질문 옆에 조용히 함께
+                  있어 드립니다.
                 </p>
               </div>
             ) : (
@@ -1355,15 +1355,15 @@ export default function AboutPage() {
                 <p>
                   For thousands of years, people have read their path in the stars, in the four
                   pillars of birth, and in a single card laid down. That instinct never went away.
-                  What faded was the quiet time to sit with a true reader. DestinyPal fills that
-                  empty seat. It weaves classical Saju, Western astrology, and tarot into one model,
-                  then reads them together against the exact moment you arrived.
+                  But the quiet time to sit with a true reader faded. DestinyPal fills that empty
+                  seat. It weaves classical Saju, Western astrology, and tarot into one model, then
+                  reads them together against the exact moment you arrived.
                 </p>
                 <p>
                   What comes back is not a horoscope stamped out for the millions. It is a chart
-                  that knows your hour, the ground you stand on, and the slow planet passing
-                  overhead tonight — honest about what it cannot see. A quiet companion for the
-                  questions you would rather not say out loud.
+                  that knows your hour, where you stand, and the slow planet passing overhead
+                  tonight. It won&apos;t pretend to see what isn&apos;t there. A quiet companion for
+                  the questions you don&apos;t want to ask aloud.
                 </p>
               </div>
             )}
@@ -1444,22 +1444,22 @@ export default function AboutPage() {
                   n: '01',
                   t: isKo ? '도착의 순간을 기록합니다' : 'Mark your arrival',
                   d: isKo
-                    ? '생년월일, 가능하다면 태어난 시각, 그리고 도시. 진짜 차트와 단순한 추측을 가르는 것은 분 단위의 시각과 자오선입니다.'
-                    : 'Birth date, the hour if you have it, and the city. The minute and the meridian are what separate a real chart from a guess.',
+                    ? '생년월일, 가능하다면 태어난 시각, 그리고 도시. 정확함은 바로 그 디테일에서 갈립니다.'
+                    : 'Birth date, the hour if you have it, and the city. The accuracy is in those small details.',
                 },
                 {
                   n: '02',
                   t: isKo ? '모델이 읽어냅니다' : 'The model reads',
                   d: isKo
                     ? '사주의 네 기둥, 출생 천궁도, 현재의 트랜짓을 한 자리에 두고, 세 전통이 동의하는 지점과 충돌하는 지점을 함께 살핍니다.'
-                    : 'DestinyPal aligns your four pillars, natal houses and current transits, cross-checking the three traditions for where they agree — and where they argue.',
+                    : 'DestinyPal aligns your four pillars, natal houses and current transits. We check where the three traditions agree, and where they pull apart.',
                 },
                 {
                   n: '03',
                   t: isKo ? '당신의 차트가 펼쳐집니다' : 'Your chart unfolds',
                   d: isKo
-                    ? '사랑, 일, 다가올 한 해 — 대화하듯 묻고, 하늘이 움직일 때마다 새로 받아 볼 수 있는 살아 있는 리딩입니다.'
-                    : 'A living reading you can ask questions of — about love, work, the year ahead — returning whenever the sky shifts.',
+                    ? '사랑, 일, 다가올 한 해. 대화하듯 묻고, 하늘이 움직일 때마다 새로 받아 보는 살아 있는 리딩입니다.'
+                    : 'A living reading you can ask questions of. Love, work, the year ahead. It refreshes whenever the sky shifts.',
                 },
               ].map((step, i) => (
                 <div key={step.n} className={s.step} data-reveal data-d={String(i + 1)}>
@@ -1505,7 +1505,7 @@ export default function AboutPage() {
                 <p className={s.featD}>
                   {isKo
                     ? '태어난 연·월·일·시 네 기둥이 그리는 우주의 기상도. DestinyPal은 오행의 균형과 한 해 한 해의 흐름을 읽어, 모든 리딩의 뼈대를 세웁니다.'
-                    : 'The hour, day, month and year of your birth as four columns of cosmic weather. DestinyPal reads the balance of your five elements and where the years run hot or cold — the backbone of every reading.'}
+                    : 'The hour, day, month and year of your birth as four columns of cosmic weather. DestinyPal reads the balance of your five elements and where the years run hot or cold. It is the backbone of every reading.'}
                 </p>
               </article>
               <article className={`${s.feat} ${s.featSm}`} data-reveal data-d="1">
@@ -1569,8 +1569,8 @@ export default function AboutPage() {
                   <div className={s.featKr}>{isKo ? '78장의 아르카나' : '78 arcana'}</div>
                   <p className={s.featD}>
                     {isKo
-                      ? '질문 하나에 카드 한 장씩 펼치고, 모델은 당신의 차트가 이미 알려준 모든 맥락 위에서 78 아르카나를 읽어 냅니다 — 카드 혼자서는 닿지 못하는 깊이로.'
-                      : 'Ask a question, pull a spread, and let the model read the 78 arcana against everything it already knows about your chart — context the cards alone can never carry.'}
+                      ? '질문 하나에 카드 한 장씩 펼치고, 모델은 당신의 차트가 이미 알려준 모든 맥락 위에서 78 아르카나를 읽어 냅니다. 카드 혼자서는 건네지 못하는 깊이입니다.'
+                      : 'Ask a question, pull a spread, and let the model read the 78 arcana against everything it already knows about your chart. That is context the cards alone can never carry.'}
                   </p>
                 </div>
               </article>
@@ -1604,22 +1604,22 @@ export default function AboutPage() {
                   g: '☯',
                   t: isKo ? '천문학적 정밀도' : 'Astronomical precision',
                   d: isKo
-                    ? '태어난 시각과 장소를 그대로 반영합니다. 흔히 지나치는 시간의 경계까지 바로잡아, 고전 명리 그대로의 정확한 차트를 세웁니다.'
-                    : 'We honor the exact time and place of your birth — correcting the subtle boundaries most apps overlook, so your chart stands precisely as the classical tradition intends.',
+                    ? '태어난 시각과 장소를 그대로 반영합니다. 흔히 놓치는 시간의 경계까지 바로잡아, 고전 명리 그대로의 차트를 세웁니다.'
+                    : 'We honor the exact time and place of your birth, down to the boundaries most apps skip over. Your chart stands the way the classical tradition intended.',
                 },
                 {
                   g: '☉',
-                  t: isKo ? '근사치가 아닌, 실제 하늘' : 'The real sky, not a guess',
+                  t: isKo ? '실제 하늘 그대로' : 'The real sky',
                   d: isKo
-                    ? '태어난 순간 그 자리의 하늘을 실제 그대로 계산해 천궁도를 그립니다. 평균값이나 어림이 아니라, 그 시각의 진짜 하늘입니다.'
-                    : 'Your natal chart is drawn from the real sky at your exact moment and place — never an average or an approximation, but the heavens as they actually stood.',
+                    ? '태어난 순간, 그 자리의 하늘을 그대로 계산해 천궁도를 그립니다. 평균이나 어림이 아니라 그 시각의 진짜 하늘입니다.'
+                    : 'Your natal chart is drawn from the real sky at your exact moment and place. Not an average or a guess, but the heavens as they actually stood.',
                 },
                 {
                   g: '✦',
-                  t: isKo ? '따로가 아닌, 하나의 흐름' : 'One flow, not two readings',
+                  t: isKo ? '하나의 흐름으로' : 'One flow',
                   d: isKo
-                    ? '동양과 서양을 따로 읽어 나란히 두지 않습니다. 두 전통이 같은 곳을 가리킬 때를 가려 하나로 잇고, 한쪽만 말할 땐 과장하지 않습니다.'
-                    : "We don't read East and West separately and lay them side by side. We find where both traditions point the same way, weave them into one — and never overstate what only one of them claims.",
+                    ? '동양과 서양을 따로 읽지 않습니다. 두 전통이 같은 곳을 가리킬 때 하나로 엮습니다. 한쪽만 말할 땐 굳이 부풀리지 않아요.'
+                    : "We don't read East and West separately. We find where both traditions point the same way and weave them into one. When only one of them speaks, we leave it there.",
                 },
               ].map((part) => (
                 <div key={part.t} className={s.step} data-reveal data-d="2">
@@ -1660,8 +1660,8 @@ export default function AboutPage() {
             <div className={s.tarotLead} data-reveal data-d="1">
               <p>
                 {isKo
-                  ? '78장의 아르카나를, DestinyPal이 당신의 차트에서 이미 알고 있는 모든 것 위에서 읽어 드립니다. 카드를 한 장씩 눌러 보세요 — 지난 자리, 지금의 자리, 다가오는 자리.'
-                  : "Seventy-eight arcana, read against everything DestinyPal already knows about your chart. Tap each card to turn it — what's behind you, what holds now, what is drawing near."}
+                  ? '78장의 아르카나를, DestinyPal이 당신의 차트에서 이미 알고 있는 모든 것 위에서 읽어 드립니다. 카드를 한 장씩 눌러 보세요. 지난 자리, 지금의 자리, 다가오는 자리.'
+                  : "Seventy-eight arcana, read against everything DestinyPal already knows about your chart. Tap each card to turn it. Past, present, and what's coming."}
               </p>
               <span className={`${s.kicker} ${s.solo}`}>
                 {isKo ? '타로 · 78장의 아르카나' : 'Tarot · 78 Arcana'}
@@ -1715,8 +1715,8 @@ export default function AboutPage() {
                   </div>
                   <p className={s.readingBody}>
                     {isKo
-                      ? '화성이 당신의 야망의 집을 지나는 한 주. 오래 미뤄둔 한 가지를 시작하기 좋은 흐름이지만, 욕심이 속도를 앞지르지 않게 하세요. 목요일, 뜻밖의 제안이 닿습니다 — 바로 답하지 말고 하루를 두세요.'
-                      : 'A week with Mars crossing your house of ambition. A good current to begin the one thing you have been postponing — but do not let desire outrun your pace. On Thursday, an unexpected offer arrives. Do not answer immediately; give it a day.'}
+                      ? '화성이 당신의 야망의 집을 지나는 한 주. 오래 미뤄둔 한 가지를 시작하기 좋은 흐름이지만, 욕심이 속도를 앞지르지 않게 하세요. 목요일, 뜻밖의 제안이 닿습니다. 바로 답하지 말고 하루를 두고 보세요.'
+                      : 'A week with Mars crossing your house of ambition. A good time to begin the one thing you keep putting off, but do not let desire outrun your pace. On Thursday, an unexpected offer arrives. Sit with it a day before you answer.'}
                   </p>
                   <div className={s.readingScore}>
                     <div>
@@ -1742,7 +1742,7 @@ export default function AboutPage() {
                 <h3>
                   {isKo ? (
                     <>
-                      운세가 아닙니다. <em>기억하는 리딩입니다.</em>
+                      운세가 아닙니다. <em>당신을 기억하는 리딩입니다.</em>
                     </>
                   ) : (
                     <>
@@ -1752,16 +1752,16 @@ export default function AboutPage() {
                 </h3>
                 <p>
                   {isKo
-                    ? '모든 DestinyPal 페이지는 단 하나의 차트 — 당신의 차트 — 를 위해 생성되며, 지난번에 배운 것을 이어 갑니다. 각 문장이 어느 전통에서 왔는지 밝히고, 하늘이 잠잠한 날에는 솔직하게 그렇다고 말합니다.'
-                    : 'Every DestinyPal page is generated for one chart — yours — and carries forward what it learned last time. It cites which tradition each line came from, and it will tell you plainly when the sky is quiet.'}
+                    ? '모든 DestinyPal 페이지는 단 하나의 차트, 당신의 차트를 위해 만들어집니다. 지난번에 나눈 이야기를 이어 갑니다. 각 문장이 어느 전통에서 왔는지 밝힙니다. 특별한 흐름이 없는 날엔 억지로 만들지 않아요.'
+                    : 'Every DestinyPal page is generated for one chart: yours. It carries forward what you talked about last time. Each line cites its tradition, and on a quiet day it simply says so.'}
                 </p>
                 <div className={s.readingList}>
                   <div className={s.readingLi}>
                     <b>{isKo ? '사주' : 'SAJU'}</b>
                     <span>
                       {isKo
-                        ? '일간이 불 기운에 강함 — 신중함보다 시도가 보답받는 한 주.'
-                        : 'Day Master strong in Fire — a week that rewards initiative over caution.'}
+                        ? '일간이 불 기운에 강함. 신중함보다 시도가 보답받는 한 주.'
+                        : 'Day Master strong in Fire. A week that rewards initiative over caution.'}
                     </span>
                   </div>
                   <div className={s.readingLi}>
@@ -1776,8 +1776,8 @@ export default function AboutPage() {
                     <b>{isKo ? '타로' : 'TAROT'}</b>
                     <span>
                       {isKo
-                        ? '별, 정방향 — 긴 노력 끝에 찾아오는 조용한 회복.'
-                        : 'The Star, upright — quiet renewal after a long stretch of effort.'}
+                        ? '별, 정방향. 긴 노력 끝에 찾아오는 조용한 회복.'
+                        : 'The Star, upright. Quiet renewal after a long stretch of effort.'}
                     </span>
                   </div>
                 </div>
@@ -1792,13 +1792,13 @@ export default function AboutPage() {
             <blockquote data-reveal>
               {isKo ? (
                 <>
-                  <em>오랫동안 나를 알아온 사람</em>처럼 읽어 주었어요 — 그리고 보지 못하는 부분은
-                  솔직히 모른다고 했어요.
+                  <em>오랫동안 나를 알아온 사람</em>처럼 읽어 주었어요. 그리고 잘 모르는 부분은
+                  모른다고 말했어요.
                 </>
               ) : (
                 <>
-                  It read me like someone who had <em>known me for years</em> — and admitted the
-                  parts it couldn&apos;t see.
+                  It read me like someone who had <em>known me for years.</em> When it wasn&apos;t
+                  sure, it told me so.
                 </>
               )}
             </blockquote>
