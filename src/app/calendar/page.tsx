@@ -116,10 +116,13 @@ export default async function DestinypalPage() {
   }
   const BIRTH_YEAR = Number(profile.birthDate!.split('-')[0])
 
-  // 현재 연·월·일 — 서버 시각 기준. preview 의 TARGET_YEAR/MONTH/DAY 고정값 대체.
+  // 현재 연·월·일 — 전부 UTC 기준으로 통일. 엔진 셀 버킷팅이 UTC 이고
+  // targetDayIso 도 toISOString(UTC)이라, TARGET_YEAR/MONTH 만 서버 로컬이면
+  // 비-UTC 서버의 월·연 경계에서 month grid 와 focus 일이 어긋난다. 셋 다 UTC.
   const now = new Date()
-  const TARGET_YEAR = now.getFullYear()
-  const TARGET_MONTH = now.getMonth() + 1
+  const TARGET_YEAR = now.getUTCFullYear()
+  const TARGET_MONTH = now.getUTCMonth() + 1
+  const TARGET_DAY = now.getUTCDate()
   const targetDayIso = now.toISOString().slice(0, 10)
 
   // ─── 4) NatalContext (사주 + 점성 본명) ───────────────────────────────
@@ -376,6 +379,8 @@ export default async function DestinypalPage() {
     label: `${TARGET_YEAR}년 ${TARGET_MONTH}월`,
     cells: monthCells,
     dayScores: layered.daily,
+    // 현재월을 보여주므로 펼침 기준일은 '오늘'. 안 주면 최고점수일로 펼쳐졌다.
+    focusDay: TARGET_DAY,
   })
   // 이달의 큰 날 — convergence keyDays(윈도우+신뢰도). preview/page 와 동일 wiring.
   const monthKeyDays = deriveConvergence(monthCells, 5, 'ko').keyDays.map((k) => ({
