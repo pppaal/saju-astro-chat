@@ -1073,3 +1073,38 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* 교차 그림 — 톤 분포 막대 (잘맞음/채워줌/부딪힘) */
+.crossTally {
+  margin-bottom: 18px;
+}
+.crossBar {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+.crossSeg {
+  min-width: 6px;
+  transition: flex-grow 0.3s;
+}
+.crossLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.crossLeg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.crossLeg i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}

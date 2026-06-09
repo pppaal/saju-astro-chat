@@ -1169,6 +1169,39 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 <div className={s.synthV}>{cross.synthesis}</div>
               </div>
             )}
+            {/* 교차 그림 — 톤 분포(잘맞음/채워줌/부딪힘) 한눈에. */}
+            {(() => {
+              const counts = { resonant: 0, complement: 0, tension: 0, neutral: 0 }
+              cross.rows.forEach((r) => {
+                counts[r.tone]++
+              })
+              const segs = (['resonant', 'complement', 'tension', 'neutral'] as const).filter(
+                (k) => counts[k] > 0
+              )
+              if (!segs.length) return null
+              return (
+                <div className={s.crossTally}>
+                  <div className={s.crossBar}>
+                    {segs.map((k) => (
+                      <div
+                        key={k}
+                        className={s.crossSeg}
+                        style={{ flexGrow: counts[k], background: TONE_COLOR[k] }}
+                        title={`${TONE_LABEL[k][lang]} ${counts[k]}`}
+                      />
+                    ))}
+                  </div>
+                  <div className={s.crossLegend}>
+                    {segs.map((k) => (
+                      <span className={s.crossLeg} key={k}>
+                        <i style={{ background: TONE_COLOR[k] }} />
+                        {TONE_LABEL[k][lang]} {counts[k]}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
             <div className={s.themes}>
               {cross.rows.map((r, i) => (
                 <div className={s.theme} key={i} style={{ ['--tc' as string]: TONE_COLOR[r.tone] }}>

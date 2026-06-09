@@ -406,6 +406,8 @@ export interface CrossRowOut {
   category: string
   tone: CrossVerdict['tone']
   reason: string
+  left?: string
+  right?: string
 }
 export function buildCrossRows(
   ctx: AnyCtx,
@@ -531,6 +533,12 @@ export function buildCrossRows(
   const synth = synthesize(verdicts)
   const rows = items
     .filter((it): it is [keyof typeof CAT, CrossVerdict] => !!it[1])
-    .map(([key, v]) => ({ category: CAT[key][lang], tone: v.tone, reason: v.reason[lang] }))
+    .map(([key, v]) => ({
+      category: CAT[key][lang],
+      tone: v.tone,
+      reason: v.reason[lang],
+      left: v.left?.[lang],
+      right: v.right?.[lang],
+    }))
   return { synthesis: synth?.text[lang], rows }
 }
