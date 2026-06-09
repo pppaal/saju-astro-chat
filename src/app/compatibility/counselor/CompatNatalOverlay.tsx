@@ -75,9 +75,9 @@ export function CompatNatalOverlay({
       <div
         className="rounded-xl p-6 text-center text-sm"
         style={{
-          background: 'var(--ds-dark-surface)',
-          border: '1px solid var(--ds-dark-border)',
-          color: 'var(--ds-dark-text-muted)',
+          background: 'transparent',
+          border: '1px solid var(--ds-light-border)',
+          color: 'var(--ds-light-text-muted)',
         }}
       >
         {isKo ? '점성 데이터 없음' : 'No astro data'}
@@ -118,7 +118,7 @@ export function CompatNatalOverlay({
       </div>
       <div
         className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px]"
-        style={{ color: 'var(--ds-dark-text-muted)' }}
+        style={{ color: 'var(--ds-light-text-muted)' }}
       >
         {list.map((p) => {
           const lon = ((p.longitude % 360) + 360) % 360
@@ -144,7 +144,7 @@ export function CompatNatalOverlay({
     <div
       className="rounded-xl p-3"
       style={{
-        background: 'var(--ds-dark-surface)',
+        background: 'transparent',
         border: '1px solid var(--ds-gold-line)',
       }}
     >
@@ -159,7 +159,7 @@ export function CompatNatalOverlay({
             cy={CY}
             r={ringOuter}
             fill="none"
-            stroke="rgba(212,181,114,0.42)"
+            stroke="rgba(80,68,40,0.32)"
             strokeWidth="1.5"
           />
           <circle
@@ -167,7 +167,7 @@ export function CompatNatalOverlay({
             cy={CY}
             r={ringInner}
             fill="none"
-            stroke="rgba(212,181,114,0.22)"
+            stroke="rgba(80,68,40,0.18)"
             strokeWidth="1"
           />
 
@@ -186,7 +186,7 @@ export function CompatNatalOverlay({
                   y1={bp1.y}
                   x2={bp2.x}
                   y2={bp2.y}
-                  stroke="rgba(212,181,114,0.22)"
+                  stroke="rgba(80,68,40,0.18)"
                   strokeWidth="1"
                 />
                 <text
@@ -219,7 +219,7 @@ export function CompatNatalOverlay({
             y1={CY}
             x2={pt(ringOuter, 180).x}
             y2={pt(ringOuter, 180).y}
-            stroke="rgba(212,181,114,0.7)"
+            stroke="rgba(80,68,40,0.5)"
             strokeWidth="1.5"
           />
           <text

@@ -42,6 +42,8 @@ export interface ScoreBreakdownProps {
    *   노출(조화/긴장 포함). 차트 리포트 히어로용.
    */
   variant?: 'score' | 'band'
+  /** 'dark'(기본) navy glass 모달 / 'light' 종이·흰 카드 위. */
+  theme?: 'dark' | 'light'
 }
 
 // ─── 사주 raw 추출 ────────────────────────────────────────────────────
@@ -389,18 +391,31 @@ const ROWS: RowConfig[] = [
   },
 ]
 
-function ScoreBar({ value, tone = 'harmony' }: { value: number; tone?: 'harmony' | 'tension' }) {
+function ScoreBar({
+  value,
+  tone = 'harmony',
+  theme = 'dark',
+}: {
+  value: number
+  tone?: 'harmony' | 'tension'
+  theme?: 'dark' | 'light'
+}) {
   const clamped = Math.max(0, Math.min(100, value))
+  const isLight = theme === 'light'
   // 긴장 계열(시너 긴장·사주 충)은 로즈레드, 조화 계열은 골드 — 한눈에 좋은
-  // 신호 vs 마찰 신호를 색으로 구분(차트 전체 tension red #f9a8a8 와 통일).
+  // 신호 vs 마찰 신호를 색으로 구분. 라이트는 종이 위에서 대비 나도록 진한 톤.
   const fill =
     tone === 'tension'
-      ? 'linear-gradient(90deg, #f9a8a8 0%, rgba(249,168,168,0.5) 100%)'
-      : 'linear-gradient(90deg, var(--ds-gold-on-dark, #d4af6a) 0%, var(--ds-gold-on-dark-soft, #c9a76a) 100%)'
+      ? isLight
+        ? 'linear-gradient(90deg, #c0564a 0%, rgba(192,86,74,0.5) 100%)'
+        : 'linear-gradient(90deg, #f9a8a8 0%, rgba(249,168,168,0.5) 100%)'
+      : isLight
+        ? 'linear-gradient(90deg, var(--ds-gold, #a07a3c) 0%, var(--ds-gold-soft, #c19b56) 100%)'
+        : 'linear-gradient(90deg, var(--ds-gold-on-dark, #d4af6a) 0%, var(--ds-gold-on-dark-soft, #c9a76a) 100%)'
   return (
     <div
       className="relative h-2 flex-1 overflow-hidden rounded-full"
-      style={{ background: 'rgba(255,255,255,0.08)' }}
+      style={{ background: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)' }}
       role="progressbar"
       aria-valuenow={Math.round(clamped)}
       aria-valuemin={0}
@@ -424,7 +439,26 @@ export function ScoreBreakdown({
   lang = 'ko',
   className,
   variant = 'score',
+  theme = 'dark',
 }: ScoreBreakdownProps) {
+  const isLight = theme === 'light'
+  const pal = isLight
+    ? {
+        cardBg: 'var(--ds-gold-soft-bg, rgba(160,122,60,0.08))',
+        border: 'var(--ds-light-border, #e7e5e4)',
+        gold: 'var(--ds-gold, #a07a3c)',
+        text: 'var(--ds-light-text, #1c1917)',
+        muted: 'var(--ds-light-text-muted, #57534e)',
+        glow: 'rgba(160,122,60,0.18)',
+      }
+    : {
+        cardBg: 'linear-gradient(135deg, rgba(212,175,106,0.10) 0%, rgba(168,131,240,0.10) 100%)',
+        border: 'var(--ds-dark-border, rgba(255,255,255,0.10))',
+        gold: 'var(--ds-gold-on-dark, #d4af6a)',
+        text: 'var(--ds-dark-text, rgba(255,255,255,0.85))',
+        muted: 'var(--ds-dark-text-muted, rgba(255,255,255,0.55))',
+        glow: 'rgba(212,175,106,0.25)',
+      }
   const computed: BreakdownScores =
     breakdown ??
     deriveBreakdown(
@@ -458,17 +492,13 @@ export function ScoreBreakdown({
   return (
     <div
       className={`rounded-xl p-4 ${className ?? ''}`}
-      style={{
-        background:
-          'linear-gradient(135deg, rgba(212,175,106,0.10) 0%, rgba(168,131,240,0.10) 100%)',
-        border: '1px solid var(--ds-dark-border, rgba(255,255,255,0.10))',
-      }}
+      style={{ background: pal.cardBg, border: `1px solid ${pal.border}` }}
     >
       {/* 총점 헤더 */}
       <div className="flex flex-col items-center gap-1 pb-3">
         <div
           className="text-[11px] font-medium uppercase tracking-wider"
-          style={{ color: 'var(--ds-gold-on-dark, #d4af6a)' }}
+          style={{ color: pal.gold }}
         >
           {lang === 'en' ? headerEn : headerKo}
         </div>
@@ -480,8 +510,8 @@ export function ScoreBreakdown({
               fontSize: 24,
               lineHeight: 1.25,
               fontFamily: 'var(--font-cinzel), Georgia, serif',
-              color: 'var(--ds-gold-on-dark, #d4af6a)',
-              textShadow: '0 1px 12px rgba(212,175,106,0.25)',
+              color: pal.gold,
+              textShadow: `0 1px 12px ${pal.glow}`,
             }}
           >
             {verdict}
@@ -490,25 +520,15 @@ export function ScoreBreakdown({
           <>
             <div
               className="font-bold leading-none"
-              style={{
-                fontSize: 32,
-                fontWeight: 700,
-                color: 'var(--ds-gold-on-dark, #d4af6a)',
-              }}
+              style={{ fontSize: 32, fontWeight: 700, color: pal.gold }}
             >
               {totalScore}
-              <span
-                className="text-base font-normal"
-                style={{ color: 'var(--ds-dark-text-muted, rgba(255,255,255,0.55))' }}
-              >
+              <span className="text-base font-normal" style={{ color: pal.muted }}>
                 {' '}
                 / 100
               </span>
             </div>
-            <div
-              className="text-center text-xs"
-              style={{ color: 'var(--ds-dark-text, rgba(255,255,255,0.85))' }}
-            >
+            <div className="text-center text-xs" style={{ color: pal.text }}>
               {verdict}
             </div>
           </>
@@ -516,10 +536,7 @@ export function ScoreBreakdown({
       </div>
 
       {/* 구분선 */}
-      <div
-        className="my-2 h-px"
-        style={{ background: 'var(--ds-dark-border, rgba(255,255,255,0.10))' }}
-      />
+      <div className="my-2 h-px" style={{ background: pal.border }} />
 
       {/* 카테고리 바 */}
       <ul className="space-y-2">
@@ -528,21 +545,14 @@ export function ScoreBreakdown({
           const isEmpty = score <= 5
           return (
             <li key={row.key} className="flex items-center gap-3 text-xs">
-              <span
-                className="flex w-24 shrink-0 items-center gap-1.5"
-                style={{ color: 'var(--ds-dark-text, rgba(255,255,255,0.85))' }}
-              >
+              <span className="flex w-24 shrink-0 items-center gap-1.5" style={{ color: pal.text }}>
                 <span aria-hidden="true">{row.emoji}</span>
                 <span>{lang === 'en' ? row.labelEn : row.labelKo}</span>
               </span>
-              <ScoreBar value={score} tone={row.tone} />
+              <ScoreBar value={score} tone={row.tone} theme={theme} />
               <span
                 className="w-14 shrink-0 text-right tabular-nums"
-                style={{
-                  color: isEmpty
-                    ? 'var(--ds-dark-text-muted, rgba(255,255,255,0.5))'
-                    : 'var(--ds-gold-on-dark-soft, #c9a76a)',
-                }}
+                style={{ color: isEmpty ? pal.muted : pal.gold }}
               >
                 {isEmpty ? (lang === 'en' ? row.emptyEn : row.emptyKo) : Math.round(score)}
               </span>

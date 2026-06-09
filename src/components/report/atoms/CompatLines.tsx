@@ -133,7 +133,7 @@ const LINE_STYLE: Record<
   LineKind,
   { stroke: string; width: number; dash?: string; label: string }
 > = {
-  stemHap: { stroke: 'var(--ds-gold-on-dark)', width: 2, label: '천간합' },
+  stemHap: { stroke: 'var(--ds-gold)', width: 2, label: '천간합' },
   stemChung: { stroke: '#f87171', width: 1.5, dash: '4 3', label: '천간충' },
   branchYukhap: { stroke: '#34d399', width: 1.5, label: '지지육합' },
   branchSamhap: { stroke: '#a78bfa', width: 1.5, label: '지지삼합' },
@@ -379,7 +379,7 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
           <span className="text-[9px] opacity-60">
             {side} {label}
           </span>
-          <span className="text-sm font-semibold" style={{ color: 'var(--ds-gold-on-dark)' }}>
+          <span className="text-sm font-semibold" style={{ color: 'var(--ds-gold)' }}>
             {(p.stem ?? '·') + (p.branch ?? '·')}
           </span>
         </div>
@@ -491,13 +491,13 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
                       rounded-md px-2 py-1.5 text-[10px] font-normal leading-snug"
                     style={{
                       background: 'rgba(20, 16, 32, 0.96)',
-                      color: 'rgba(245, 247, 251, 0.92)',
+                      color: 'var(--ds-light-text)',
                       border: '1px solid rgba(212, 181, 114, 0.4)',
                       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
                     }}
                     role="tooltip"
                   >
-                    <span style={{ color: 'var(--ds-gold-on-dark)', fontWeight: 600 }}>
+                    <span style={{ color: 'var(--ds-gold)', fontWeight: 600 }}>
                       {ln.fromChar}
                       {ln.toChar} {label}
                     </span>

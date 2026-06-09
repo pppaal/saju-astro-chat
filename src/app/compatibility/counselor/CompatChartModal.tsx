@@ -94,14 +94,14 @@ function QuickRead({
   // A/B 구분은 유지 — rose/sky 칩 dark 변형 (-500/15 bg + -200 text).
   const chipStyle =
     accent === 'rose'
-      ? { background: 'rgba(244, 63, 94, 0.15)', color: '#fecdd3' }
-      : { background: 'rgba(56, 189, 248, 0.15)', color: '#bae6fd' }
+      ? { background: 'rgba(225,29,72,0.10)', color: '#be123c' }
+      : { background: 'rgba(2,132,199,0.10)', color: '#0369a1' }
   return (
     <div
       className="rounded-2xl p-3"
       style={{
-        background: 'var(--ds-dark-surface)',
-        border: '1px solid var(--ds-dark-border)',
+        background: 'var(--ds-light-surface)',
+        border: '1px solid var(--ds-light-border)',
       }}
     >
       <span
@@ -112,9 +112,9 @@ function QuickRead({
       </span>
       <ChartReading
         text={line}
-        theme="dark"
+        theme="light"
         className="text-sm leading-relaxed"
-        style={{ color: 'var(--ds-dark-text)' }}
+        style={{ color: 'var(--ds-light-text)' }}
       />
     </div>
   )
@@ -126,8 +126,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     <h3
       className="border-l-2 px-2 text-[15px] font-semibold"
       style={{
-        borderColor: 'var(--ds-gold-on-dark)',
-        color: 'var(--ds-dark-text)',
+        borderColor: 'var(--ds-gold)',
+        color: 'var(--ds-light-text)',
         fontFamily: 'var(--font-cinzel), Georgia, serif',
         letterSpacing: '0.01em',
       }}
@@ -142,19 +142,16 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 function SubLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="mb-2 flex items-center gap-2">
-      <span
-        className="h-3 w-0.5 shrink-0 rounded-full"
-        style={{ background: 'var(--ds-gold-on-dark)' }}
-      />
+      <span className="h-3 w-0.5 shrink-0 rounded-full" style={{ background: 'var(--ds-gold)' }} />
       <span
         className="text-[11px] font-bold"
-        style={{ color: 'var(--ds-gold-on-dark-soft)', letterSpacing: '0.04em' }}
+        style={{ color: 'var(--ds-gold-soft)', letterSpacing: '0.04em' }}
       >
         {children}
       </span>
       <span
         className="ml-1 h-px flex-1"
-        style={{ background: 'linear-gradient(90deg, var(--ds-gold-line), transparent)' }}
+        style={{ background: 'linear-gradient(90deg, var(--ds-gold-soft), transparent)' }}
       />
     </div>
   )
@@ -165,7 +162,10 @@ function DataCard({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="rounded-xl p-3"
-      style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid var(--ds-dark-border)' }}
+      style={{
+        background: 'var(--ds-light-bg-soft, #f5f5f4)',
+        border: '1px solid var(--ds-light-border)',
+      }}
     >
       {children}
     </div>
@@ -286,10 +286,10 @@ export function CompatChartModal({
 
   const toneColor = (tone: SynastryTone): string =>
     tone === 'harmony'
-      ? 'var(--ds-gold-on-dark, #d4af6a)'
+      ? 'var(--ds-gold)'
       : tone === 'tension'
-        ? '#f9a8a8'
-        : 'var(--ds-dark-text-muted)'
+        ? '#c0564a'
+        : 'var(--ds-light-text-muted)'
 
   return (
     <div
@@ -301,11 +301,14 @@ export function CompatChartModal({
       <div
         className="chart-pop-in relative w-full max-w-2xl overflow-y-auto rounded-2xl p-6"
         style={{
-          background: 'rgba(17, 24, 39, 0.92)',
-          border: '1px solid var(--ds-gold-line)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+          // 종이 셸 — 운세차트(IntegratedReport)와 같은 paper 톤 + 미세 dot 텍스처.
+          // 궁합 상담사가 라이트(흰색)라 차트도 라이트/종이로 맞춘다.
+          background: '#f4f1ea',
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, rgba(120, 110, 90, 0.05) 1px, transparent 0)',
+          backgroundSize: '22px 22px',
+          border: '1px solid var(--ds-gold-soft)',
+          boxShadow: '0 24px 60px rgba(40, 30, 10, 0.22)',
           maxHeight: '96dvh',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -318,7 +321,7 @@ export function CompatChartModal({
           onClick={onClose}
           aria-label={isKo ? '닫기' : 'Close'}
           className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-white/10"
-          style={{ color: 'var(--ds-dark-text-muted)' }}
+          style={{ color: 'var(--ds-light-text-muted)' }}
         >
           <X size={18} />
         </button>
@@ -327,14 +330,14 @@ export function CompatChartModal({
           <h2
             className="text-xl font-semibold"
             style={{
-              color: 'var(--ds-dark-text)',
+              color: 'var(--ds-light-text)',
               fontFamily: 'var(--font-cinzel), Georgia, serif',
               letterSpacing: '-0.01em',
             }}
           >
             {isKo ? '궁합 차트' : 'Couple Chart'}
           </h2>
-          <p className="text-xs" style={{ color: 'var(--ds-gold-on-dark)' }}>
+          <p className="text-xs" style={{ color: 'var(--ds-gold)' }}>
             {isKo
               ? '두 사람의 사주와 네이탈을 하나로 겹쳐 비교'
               : 'Both charts overlaid for a side-by-side read'}
@@ -354,19 +357,20 @@ export function CompatChartModal({
               astroB={astroB}
               lang={lang}
               variant="band"
+              theme="light"
             />
             {/* 답 먼저 — 가장 결정적인 신호 한 줄 (밴드 바로 밑) */}
             {headlineReason && (
               <p
                 className="mt-2.5 px-1 text-center text-[13px] font-medium leading-relaxed"
-                style={{ color: 'var(--ds-dark-text)' }}
+                style={{ color: 'var(--ds-light-text)' }}
               >
                 {headlineReason}
               </p>
             )}
             <p
               className="mt-1.5 px-1 text-center text-[11px] leading-relaxed"
-              style={{ color: 'var(--ds-dark-text-muted)' }}
+              style={{ color: 'var(--ds-light-text-muted)' }}
             >
               {isKo
                 ? '이 막대는 두 사람의 사주와 별자리에서 끌어당기는 기운과 부딪히는 기운을 함께 본 거예요. 더 깊은 이야기는 상담사에게.'
@@ -394,8 +398,8 @@ export function CompatChartModal({
             style={
               {
                 ['--i' as string]: 1,
-                background: 'var(--ds-dark-surface)',
-                border: '1px solid var(--ds-dark-border)',
+                background: 'var(--ds-light-surface)',
+                border: '1px solid var(--ds-light-border)',
               } as React.CSSProperties
             }
           >
@@ -404,7 +408,7 @@ export function CompatChartModal({
             </SectionTitle>
             <p
               className="px-2 text-[13px] leading-relaxed"
-              style={{ color: 'var(--ds-dark-text)' }}
+              style={{ color: 'var(--ds-light-text)' }}
             >
               {isKo
                 ? '두 사람의 여덟 글자가 만났을 때, 어디서 끌어당기고(합) 어디서 부딪히는지(충·형), 한쪽에 부족한 기운을 상대가 채워주는지를 봐요.'
@@ -418,7 +422,7 @@ export function CompatChartModal({
                 <SubLabel>{isKo ? '두 사람의 본질 (일간)' : 'Your core natures'}</SubLabel>
                 <p
                   className="px-1 text-[13px] leading-relaxed"
-                  style={{ color: 'var(--ds-dark-text)' }}
+                  style={{ color: 'var(--ds-light-text)' }}
                 >
                   {labelA} <b>{sajuFacts.dayMaster.aStem}</b>({sajuFacts.dayMaster.aEl}) ↔ {labelB}{' '}
                   <b>{sajuFacts.dayMaster.bStem}</b>({sajuFacts.dayMaster.bEl}) —{' '}
@@ -434,14 +438,14 @@ export function CompatChartModal({
                         <li
                           key={`spouse-${s.from}-${s.pillar}-${s.source}-${s.char}`}
                           className="flex items-center gap-2 rounded-lg px-2.5 py-1.5"
-                          style={{ background: 'rgba(255,255,255,0.03)' }}
+                          style={{ background: 'rgba(0,0,0,0.03)' }}
                         >
                           {s.isDayPillar && (
                             <span
                               className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold"
                               style={{
                                 background: 'rgba(212,175,106,0.15)',
-                                color: 'var(--ds-gold-on-dark)',
+                                color: 'var(--ds-gold)',
                               }}
                             >
                               {isKo ? '배우자 자리' : 'spouse seat'}
@@ -449,14 +453,14 @@ export function CompatChartModal({
                           )}
                           <span
                             className="text-[12.5px] leading-snug"
-                            style={{ color: 'var(--ds-dark-text)' }}
+                            style={{ color: 'var(--ds-light-text)' }}
                           >
                             {isKo
                               ? `${who}에게 ${other}는 ‘${feeling}’의 짝${s.isDayPillar ? ' — 바로 그 자리에 떠요' : '으로 비쳐요'}`
                               : `To ${who}, ${other} reads as a “${feeling}” partner${s.isDayPillar ? ' — right in the spouse seat' : ''}`}
                             <span
                               className="ml-1 text-[11px]"
-                              style={{ color: 'var(--ds-dark-text-muted)' }}
+                              style={{ color: 'var(--ds-light-text-muted)' }}
                             >
                               ({s.sibsin})
                             </span>
@@ -474,12 +478,12 @@ export function CompatChartModal({
             <details className="group">
               <summary
                 className="flex cursor-pointer list-none items-center gap-2 py-1 text-[12px] font-semibold [&::-webkit-details-marker]:hidden"
-                style={{ color: 'var(--ds-gold-on-dark-soft)' }}
+                style={{ color: 'var(--ds-gold-soft)' }}
               >
                 <span
                   aria-hidden="true"
                   className="transition-transform group-open:rotate-90"
-                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                  style={{ color: 'var(--ds-gold)' }}
                 >
                   ▸
                 </span>
@@ -489,20 +493,20 @@ export function CompatChartModal({
                 <div className="space-y-1.5">
                   <span
                     className="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
-                    style={{ background: 'rgba(244, 63, 94, 0.15)', color: '#fecdd3' }}
+                    style={{ background: 'rgba(225,29,72,0.10)', color: '#be123c' }}
                   >
                     {labelA}
                   </span>
-                  <SajuChart saju={sajuA as never} lang={lang} theme="dark" />
+                  <SajuChart saju={sajuA as never} lang={lang} theme="light" />
                 </div>
                 <div className="space-y-1.5">
                   <span
                     className="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
-                    style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#bae6fd' }}
+                    style={{ background: 'rgba(2,132,199,0.10)', color: '#0369a1' }}
                   >
                     {labelB}
                   </span>
-                  <SajuChart saju={sajuB as never} lang={lang} theme="dark" />
+                  <SajuChart saju={sajuB as never} lang={lang} theme="light" />
                 </div>
               </div>
             </details>
@@ -527,8 +531,8 @@ export function CompatChartModal({
             style={
               {
                 ['--i' as string]: 2,
-                background: 'var(--ds-dark-surface)',
-                border: '1px solid var(--ds-dark-border)',
+                background: 'var(--ds-light-surface)',
+                border: '1px solid var(--ds-light-border)',
               } as React.CSSProperties
             }
           >
@@ -537,7 +541,7 @@ export function CompatChartModal({
             </SectionTitle>
             <p
               className="px-2 text-[13px] leading-relaxed"
-              style={{ color: 'var(--ds-dark-text)' }}
+              style={{ color: 'var(--ds-light-text)' }}
             >
               {isKo
                 ? '두 사람의 별을 한 자리에 겹쳐, 어디서 끌리고 어디서 부딪히는지, 또 누가 상대의 어느 삶의 영역에 들어오는지 봐요.'
@@ -564,26 +568,26 @@ export function CompatChartModal({
                       key={`asp-${asp.a}-${asp.b}-${asp.orb}`}
                       className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[12.5px]"
                       style={{
-                        background: 'rgba(255,255,255,0.025)',
+                        background: 'var(--ds-light-bg-soft, #f5f5f4)',
                         borderLeft: `2px solid ${toneColor(asp.tone)}`,
                       }}
                     >
-                      <span className="flex-1" style={{ color: 'var(--ds-dark-text)' }}>
-                        <b style={{ color: '#fecdd3' }}>
+                      <span className="flex-1" style={{ color: 'var(--ds-light-text)' }}>
+                        <b style={{ color: '#be123c' }}>
                           {labelA} {asp.a}
                         </b>
                         <span className="mx-1.5" style={{ color: toneColor(asp.tone) }}>
                           {asp.label}
                         </span>
-                        <b style={{ color: '#bae6fd' }}>
+                        <b style={{ color: '#0369a1' }}>
                           {labelB} {asp.b}
                         </b>
                       </span>
                       <span
                         className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px]"
                         style={{
-                          background: 'rgba(255,255,255,0.06)',
-                          color: 'var(--ds-dark-text-muted)',
+                          background: 'rgba(0,0,0,0.05)',
+                          color: 'var(--ds-light-text-muted)',
                         }}
                         title={`${asp.orb}°`}
                       >
@@ -603,8 +607,8 @@ export function CompatChartModal({
                 </SubLabel>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {[
-                    { rows: synView.overlaysAtoB, from: labelA, to: labelB, accent: '#fecdd3' },
-                    { rows: synView.overlaysBtoA, from: labelB, to: labelA, accent: '#bae6fd' },
+                    { rows: synView.overlaysAtoB, from: labelA, to: labelB, accent: '#be123c' },
+                    { rows: synView.overlaysBtoA, from: labelB, to: labelA, accent: '#0369a1' },
                   ]
                     .filter((col) => col.rows.length > 0)
                     .map((col) => (
@@ -621,13 +625,13 @@ export function CompatChartModal({
                               key={`${col.from}-${o.planet}-${o.house}`}
                               className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px]"
                               style={{
-                                background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid var(--ds-dark-border)',
-                                color: 'var(--ds-dark-text)',
+                                background: 'rgba(0,0,0,0.04)',
+                                border: '1px solid var(--ds-light-border)',
+                                color: 'var(--ds-light-text)',
                               }}
                             >
                               <b>{o.planet}</b>
-                              <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>
+                              <span style={{ color: 'var(--ds-gold-soft)' }}>
                                 {o.meaning || `${o.house}H`}
                               </span>
                             </span>
