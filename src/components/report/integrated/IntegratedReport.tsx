@@ -219,9 +219,16 @@ const sibsinShort = (name: string, lang: Lang): string => {
   if (!name || name === '日干') return ''
   return lang === 'ko' ? (SIBSIN_SHORT[name] ?? name) : sibsinLabel(name, 'en')
 }
+// 십이운성 동의어 정규화: 임관=건록, 왕지=제왕, 양생=장생.
+// interpretations.json 은 건록/제왕/장생만 키로 가지므로, 엔진이 동의어 이름을
+// 내보내면 EN name_en 조회가 실패해 한글이 그대로 누출된다(임관 등). 라벨·툴팁
+// 양쪽에서 같은 표를 써 canonical 이름으로 정규화한다.
+const STAGE_SYN: Record<string, string> = { 임관: '건록', 왕지: '제왕', 양생: '장생' }
 const stageLabel = (stage: string, lang: Lang): string => {
-  if (lang === 'ko' || !stage) return stage
-  return getTwelveStageInterpretation(stage as never)?.name_en ?? stage
+  if (!stage) return stage
+  const norm = STAGE_SYN[stage] ?? stage
+  if (lang === 'ko') return norm
+  return getTwelveStageInterpretation(norm as never)?.name_en ?? norm
 }
 
 // ── 차트 인자 hover 해석 (양언어) — 글자/도수만 뜨던 차트 요소에 의미 툴팁 ──
@@ -275,8 +282,7 @@ function dignityHover(planet: string, tier: string, lang: Lang): string {
   return getAstroDignity(NODE_CORE_KEY[planet] ?? planet, st, lang)?.text ?? ''
 }
 function stageHover(stage: string, lang: Lang): string {
-  const SYN: Record<string, string> = { 임관: '건록', 왕지: '제왕', 양생: '장생' }
-  const it = getTwelveStageInterpretation((SYN[stage] ?? stage) as never)
+  const it = getTwelveStageInterpretation((STAGE_SYN[stage] ?? stage) as never)
   if (!it) return ''
   return lang === 'en' ? (it.meaning_en ?? '') : (it.meaning ?? '')
 }
