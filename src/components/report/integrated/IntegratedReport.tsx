@@ -598,6 +598,31 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           )}
           {cross?.synthesis && <p className={s.heroSummary}>{cross.synthesis}</p>}
           {(() => {
+            // 여러 카드(일간·격국)에 흩어진 강점/약점을 한곳에 종합 (Opus: TOP 묶기).
+            const dmx = getHanjaRich(S.dayMaster, lang) as {
+              strength?: string[]
+              weakness?: string[]
+            } | null
+            const uniq = (a: string[]) => Array.from(new Set(a.filter(Boolean))).slice(0, 4)
+            const str = uniq([...(dmx?.strength ?? []), ...((geok?.strength as string[]) ?? [])])
+            const weak = uniq([...(dmx?.weakness ?? []), ...((geok?.weakness as string[]) ?? [])])
+            if (!str.length && !weak.length) return null
+            return (
+              <div className={s.heroSW}>
+                {str.length > 0 && (
+                  <div>
+                    <b>{lang === 'en' ? 'Strengths' : '강점'}</b> {str.join(' · ')}
+                  </div>
+                )}
+                {weak.length > 0 && (
+                  <div>
+                    <b>{lang === 'en' ? 'Watch for' : '주의'}</b> {weak.join(' · ')}
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+          {(() => {
             const yk = ELEMENTS[S.yongsin.primary]?.ko
             const rem = yk ? ELEMENT_REMEDY[yk] : undefined
             if (!rem) return null

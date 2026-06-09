@@ -1200,3 +1200,19 @@
 .heroRemedy span {
   color: var(--ink-2);
 }
+
+/* 히어로 — 강점/약점 종합 */
+.heroSW {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.heroSW b {
+  color: var(--gold);
+  font-weight: 600;
+  margin-right: 6px;
+}
