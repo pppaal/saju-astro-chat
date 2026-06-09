@@ -11,6 +11,7 @@ import {
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { performAnalyses } from '@/app/api/saju/services/analyses'
 import { JIJANGGAN } from '@/lib/saju/constants'
+import { parseHourMinute } from '@/lib/saju/timeParse'
 import { logger } from '@/lib/logger'
 import type { NatalContext, NatalDayJijanggan } from './types'
 import type { FiveElement, SajuPillarsInput, CalculateSajuDataResult } from '@/lib/saju/types'
@@ -50,14 +51,16 @@ export async function buildNatalContext(
   preComputed: PreComputedNatal = {}
 ): Promise<NatalContext> {
   const [yearStr, monthStr, dayStr] = input.birthDate.split('-')
-  const [hourStr, minuteStr] = input.birthTime.split(':')
+  // AM/PM('11:30 PM') 정확히 24h 정규화 — 직접 split(':') 하면 PM 12h 누락 + 분
+  // NaN(Number('30 PM'))으로 시주·하우스가 깨졌다. 사주와 동일 파서 사용.
+  const { h: birthHour, m: birthMinute } = parseHourMinute(input.birthTime)
 
   const natalInput: NatalInput = {
     year: Number(yearStr),
     month: Number(monthStr),
     date: Number(dayStr),
-    hour: Number(hourStr),
-    minute: Number(minuteStr),
+    hour: birthHour,
+    minute: birthMinute,
     latitude: input.latitude,
     longitude: input.longitude,
     timeZone: input.timeZone,

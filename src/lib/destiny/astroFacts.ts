@@ -10,7 +10,11 @@
 // transit / solar return / progression 은 formatAstroSelf 가 별도로 책임지므로
 // 본 facts 는 본명(natal) + profection 만 다룬다.
 
-import { calculateNatalChart, toChart, type NatalChartData } from '@/lib/astrology/foundation/astrologyService'
+import {
+  calculateNatalChart,
+  toChart,
+  type NatalChartData,
+} from '@/lib/astrology/foundation/astrologyService'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { dignityOf, dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
 import { calculateProfection } from '@/lib/astrology/foundation/profections'
@@ -18,7 +22,11 @@ import { calculateChiron, calculateLilith } from '@/lib/astrology/foundation/ext
 import { natalToJD, matchHouseForCusps, UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
 import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
 import { calculateArabicLots, type ArabicLot } from '@/lib/astrology/foundation/arabicParts'
-import { calculateAlmutenFiguris, type AlmutenFigurisResult } from '@/lib/astrology/foundation/almutenFiguris'
+import { parseHourMinute } from '@/lib/saju/timeParse'
+import {
+  calculateAlmutenFiguris,
+  type AlmutenFigurisResult,
+} from '@/lib/astrology/foundation/almutenFiguris'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { logger } from '@/lib/logger'
 import type { Chart, AspectHit, ZodiacKo } from '@/lib/astrology/foundation/types'
@@ -146,10 +154,12 @@ const ANG_DEGREES: Array<{ deg: number; t: string }> = [
  */
 export async function collectAstroFacts(
   input: AstroFactsInput,
-  now: Date = new Date(),
+  now: Date = new Date()
 ): Promise<AstroFacts | null> {
   const [Y, M, D] = input.birthDate.split('-').map(Number)
-  const [h, mi] = (input.birthTime || '00:00').split(':').map(Number)
+  // AM/PM('11:30 PM') 정확히 24h 정규화 — 직접 split(':') 하면 PM 이 12h 빠지고
+  // 분이 NaN 이 돼 자연차트(ASC/MC/하우스)가 어긋났다. 사주와 동일 파서 사용.
+  const { h, m: mi } = parseHourMinute(input.birthTime || '00:00')
 
   let natal: Awaited<ReturnType<typeof calculateNatalChart>>
   try {
@@ -228,9 +238,7 @@ export async function collectAstroFacts(
       activatedHouse: prof.activatedHouse,
       activatedSign: prof.activatedSign,
       lordOfYear: prof.lordOfYear,
-      lordPlacement: lordPlanet?.sign
-        ? { sign: lordPlanet.sign, house: lordPlanet.house }
-        : null,
+      lordPlacement: lordPlanet?.sign ? { sign: lordPlanet.sign, house: lordPlanet.house } : null,
     }
   } catch {
     profection = null
@@ -238,7 +246,16 @@ export async function collectAstroFacts(
 
   // ─── Hellenistic (option 켜야 계산, default 비용 0) ──────────────────────
   const hellenistic = input.includeHellenistic
-    ? buildHellenistic(chart, natal, { Y, M, D, h, mi, lat: input.latitude, lon: input.longitude, tz: input.timezone })
+    ? buildHellenistic(chart, natal, {
+        Y,
+        M,
+        D,
+        h,
+        mi,
+        lat: input.latitude,
+        lon: input.longitude,
+        tz: input.timezone,
+      })
     : undefined
 
   return {
@@ -257,14 +274,20 @@ export async function collectAstroFacts(
 }
 
 interface HellenisticInput {
-  Y: number; M: number; D: number; h: number; mi: number
-  lat: number; lon: number; tz: string
+  Y: number
+  M: number
+  D: number
+  h: number
+  mi: number
+  lat: number
+  lon: number
+  tz: string
 }
 
 function buildHellenistic(
   chart: Chart,
   natal: NatalChartData,
-  meta: HellenisticInput,
+  meta: HellenisticInput
 ): AstroHellenisticFacts {
   // 섹트 결정 — Sun 이 7~12궁 (지평선 위) 이면 day, 아니면 night.
   const sun = chart.planets.find((p) => p.name === 'Sun')
