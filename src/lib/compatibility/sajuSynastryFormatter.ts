@@ -994,9 +994,9 @@ export interface SajuCompatFacts {
 const SPOUSE_STARS = new Set(['정재', '편재', '정관', '편관'])
 const SPOUSE_ROLE: Record<string, string> = {
   정재: '처성(안정·가정)',
-  편재: '처성(활달·유동)',
+  편재: '처성(활달·자유)',
   정관: '부성(책임·안정)',
-  편관: '부성(긴장·격정)',
+  편관: '부성(열정·자극)',
 }
 
 export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFacts {
@@ -1018,10 +1018,10 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
         relationLabel = `같은 오행 (${elA}) — 비화`
       } else if (EL_CONTROLS[elA] === elB) {
         relation = 'aControlsB'
-        relationLabel = `${elA}극${elB} — 다듬어주는 흐름`
+        relationLabel = `${elA}극${elB}, 다듬어주는 흐름`
       } else if (EL_CONTROLS[elB] === elA) {
         relation = 'bControlsA'
-        relationLabel = `${elB}극${elA} — 다듬어주는 흐름`
+        relationLabel = `${elB}극${elA}, 다듬어주는 흐름`
       } else {
         relation = 'generate'
         relationLabel = '상생 — 서로 보완'

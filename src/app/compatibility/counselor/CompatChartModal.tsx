@@ -281,7 +281,7 @@ export function CompatChartModal({
       const who = sp.from === 'A' ? labelA : labelB
       const other = sp.from === 'A' ? labelB : labelA
       return isKo
-        ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝으로 와요 — 그것도 배우자 자리에 바로 떠요.`
+        ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝으로 와요. 게다가 바로 배우자 자리에 떠 있고요.`
         : `To ${who}, ${other} reads as a "${feeling}" partner — landing right in the spouse seat.`
     }
     const a0 = synView?.aspects[0]
@@ -382,7 +382,7 @@ export function CompatChartModal({
               style={{ color: 'var(--ds-light-text-muted)' }}
             >
               {isKo
-                ? '이 막대는 두 사람의 사주와 별자리에서 끌어당기는 기운과 부딪히는 기운을 함께 본 거예요. 더 깊은 이야기는 상담사에게.'
+                ? '이 막대는 두 사람의 사주와 별자리에서 끌어당기는 기운과 부딪히는 기운을 함께 본 거예요. 더 깊은 이야기는 상담사가 풀어드려요.'
                 : 'These bars weigh what pulls you together and what rubs — across both your Saju and stars. For the deeper read, ask the counselor.'}
             </p>
           </div>
@@ -413,14 +413,14 @@ export function CompatChartModal({
             }
           >
             <SectionTitle>
-              {isKo ? '동양 — 사주팔자 · 오행 비교' : 'Eastern — Saju & Five Elements'}
+              {isKo ? '동양 — 사주·오행 겹쳐 보기' : 'Eastern — Saju & Five Elements'}
             </SectionTitle>
             <p
               className="px-2 text-[13px] leading-relaxed"
               style={{ color: 'var(--ds-light-text)' }}
             >
               {isKo
-                ? '두 사람의 여덟 글자가 만났을 때, 어디서 끌어당기고(합) 어디서 부딪히는지(충·형), 한쪽에 부족한 기운을 상대가 채워주는지를 봐요.'
+                ? '두 사람의 여덟 글자가 만났을 때, 어디서 끌어당기고(합), 어디서 부딪히고(충·형), 한쪽에 부족한 기운을 상대가 채워주는지를 봐요.'
                 : "Where your eight characters meet — where they pull together, where they clash, and whether one's missing energy is what the other brings."}
             </p>
 
@@ -428,7 +428,7 @@ export function CompatChartModal({
                 일간 관계 + 배우자성(가장 강한 정통 신호). */}
             {sajuFacts?.dayMaster && (
               <DataCard>
-                <SubLabel>{isKo ? '두 사람의 본질 (일간)' : 'Your core natures'}</SubLabel>
+                <SubLabel>{isKo ? '두 사람의 본질(일간)' : 'Your core natures'}</SubLabel>
                 <p
                   className="px-1 text-[13px] leading-relaxed"
                   style={{ color: 'var(--ds-light-text)' }}
@@ -465,7 +465,7 @@ export function CompatChartModal({
                             style={{ color: 'var(--ds-light-text)' }}
                           >
                             {isKo
-                              ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝${s.isDayPillar ? ' — 바로 그 자리에 떠요' : '으로 비쳐요'}`
+                              ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝${s.isDayPillar ? '이고, 바로 배우자 자리에 떠요' : '으로 다가와요'}`
                               : `To ${who}, ${other} reads as a “${feeling}” partner${s.isDayPillar ? ' — right in the spouse seat' : ''}`}
                             <span
                               className="ml-1 text-[11px]"
@@ -496,7 +496,7 @@ export function CompatChartModal({
                 >
                   ▸
                 </span>
-                {isKo ? '각자의 사주팔자 원국 펼쳐 보기' : 'Show each chart (four pillars)'}
+                {isKo ? '각자의 사주 원국 펼쳐 보기' : 'Show each chart (four pillars)'}
               </summary>
               <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
@@ -522,7 +522,7 @@ export function CompatChartModal({
 
             <div>
               <SubLabel>
-                {isKo ? '오행 — 서로 채워주나' : 'Five elements — who fills whom'}
+                {isKo ? '오행 — 서로 채워주는 결' : 'Five elements — who fills whom'}
               </SubLabel>
               <CompatRadarOverlay
                 sajuA={sajuA}
@@ -546,7 +546,7 @@ export function CompatChartModal({
             }
           >
             <SectionTitle>
-              {isKo ? '서양 별자리 — 두 사람 겹쳐 보기' : 'Western — your charts overlaid'}
+              {isKo ? '서양 — 별자리 겹쳐 보기' : 'Western — your charts overlaid'}
             </SectionTitle>
             <p
               className="px-2 text-[13px] leading-relaxed"

@@ -323,10 +323,10 @@ function verdictText(total: number, lang: 'ko' | 'en'): string {
     return 'Very different rhythms — approach with care'
   }
   if (total >= 90) return '매우 깊은 인연 — 자연스러운 합'
-  if (total >= 75) return '서로 다른 결이 보완 — 깊은 합 + 약간 자극'
+  if (total >= 75) return '다른 결이 서로 보완 — 깊되 살짝 자극도'
   if (total >= 60) return '보통 — 노력하면 좋아짐'
-  if (total >= 45) return '도전적 — 충돌 영역 의식 필요'
-  return '결이 매우 다름 — 신중한 접근'
+  if (total >= 45) return '쉽지 않음 — 부딪히는 지점 조심'
+  return '결이 많이 달라 — 천천히 다가가기'
 }
 
 // ─── 표시 ────────────────────────────────────────────────────────────

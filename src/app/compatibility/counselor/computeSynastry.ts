@@ -37,12 +37,12 @@ const TENSION = new Set(['square', 'opposition', 'quincunx'])
 
 // 느낌(평이한 말)을 앞세우고 전문용어는 작게. (잡지처럼 읽히게 — 상담사 voice)
 const ASPECT_LABEL: Record<string, { ko: string; en: string }> = {
-  conjunction: { ko: '밀착', en: 'tight blend' },
+  conjunction: { ko: '겹침', en: 'tight blend' },
   trine: { ko: '조화', en: 'harmony' },
-  sextile: { ko: '협력', en: 'support' },
+  sextile: { ko: '받쳐줌', en: 'support' },
   square: { ko: '긴장', en: 'tension' },
-  opposition: { ko: '맞섬', en: 'face-off' },
-  quincunx: { ko: '미세한 어긋남', en: 'subtle misfit' },
+  opposition: { ko: '팽팽함', en: 'face-off' },
+  quincunx: { ko: '엇박', en: 'subtle misfit' },
 }
 
 const HOUSE_MEANING_KO: Record<number, string> = {
