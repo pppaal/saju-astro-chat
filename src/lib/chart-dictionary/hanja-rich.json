@@ -352,7 +352,7 @@
         "image": "이른 아침의 새순과 토끼 — 부드럽게 뻗는 봄의 정기",
         "nature": "온화하고 섬세하며 예술적 감수성이 풍부한 면",
         "as_daybranch": "일지가 卯이면 온화하고 사교적이며 외모가 단정함. 인기가 많고 예술 감각이 뛰어남",
-        "hidden_stems": "乙(본기) — 순수한 음목 하나만 있어 흐름이 맑고 단순함"
+        "hidden_stems": "甲(여기) · 乙(본기) — 여기 甲에 이어 본기 음목 乙이 자리잡아 봄의 정기가 맑게 흐름"
       },
       "en": {
         "name": "Myo (Mǎo)",
@@ -364,7 +364,7 @@
         "image": "Early morning sprouts and rabbit — softly extending spring essence",
         "nature": "Gentle and delicate with rich artistic sensitivity",
         "as_daybranch": "With Myo as day branch: gentle, sociable, neat appearance. Popular with strong artistic sense",
-        "hidden_stems": "Eul (main) — only pure Yin Wood, clear and simple essence"
+        "hidden_stems": "Gap (residual) · Eul (main) — residual Yang Wood giving way to Yin Wood as main qi, spring essence flowing clear"
       }
     },
     "辰": {
@@ -508,7 +508,7 @@
         "image": "해질 무렵 닭과 익은 곡식 — 정련되고 깔끔한 음금",
         "nature": "깔끔하고 원칙적이며 미적 감각이 뛰어난 면",
         "as_daybranch": "일지가 酉이면 외모가 단정하고 자존심이 높음. 분석적이고 전문 분야에 어울림",
-        "hidden_stems": "辛(본기) — 순수한 음금 하나만 있어 흐름이 정련되고 예리함"
+        "hidden_stems": "庚(여기) · 辛(본기) — 여기 庚에 이어 본기 음금 辛이 자리잡아 가을의 정기가 예리하게 정련됨"
       },
       "en": {
         "name": "Yu (Yǒu)",
@@ -520,7 +520,7 @@
         "image": "Rooster and ripe grain at sunset — refined and clean Yin Metal",
         "nature": "Neat, principled, strong aesthetic sense",
         "as_daybranch": "With Yu as day branch: neat appearance, high pride. Analytical, suited for specialized fields",
-        "hidden_stems": "Xin (main) — only pure Yin Metal, refined and sharp essence"
+        "hidden_stems": "Gyeong (residual) · Xin (main) — residual Yang Metal giving way to Yin Metal as main qi, autumn essence refined and sharp"
       }
     },
     "戌": {
