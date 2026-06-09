@@ -53,7 +53,6 @@ import {
 import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { useRequireLogin } from '@/contexts/LoginModalContext'
-import { ToolHint, useToolHint } from '@/components/chat/ToolHint'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
 
 // (타이프라이터 placeholder 제거 — 사용자 요청으로 운명·궁합 입력창은 움직이는
@@ -170,8 +169,6 @@ function CompatibilityCounselorContent() {
     lang: locale,
     setNotice: setFileNotice,
   })
-  // 입력창 도구 안내 — 첫 답변 후 ~ 3 user 턴까지만 1회. 도구 사용 시 자동 dismiss.
-  const { dismissed: toolHintDismissed, dismiss: dismissToolHint } = useToolHint('compat')
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chartFetchRef = useRef(false)
@@ -594,7 +591,10 @@ function CompatibilityCounselorContent() {
   })
 
   const sendMessage = useCallback(
-    async (textOverride?: string, options?: { isRetry?: boolean }) => {
+    async (
+      textOverride?: string,
+      options?: { isRetry?: boolean; historyOverride?: ChatMessage[] }
+    ) => {
       const text = (textOverride ?? input).trim()
       if (!text || isLoading) {
         return
@@ -636,7 +636,11 @@ function CompatibilityCounselorContent() {
         // 8 via `clampMessages`, but uploading the full history every
         // turn wastes the user's mobile data + adds round-trip latency
         // for long conversations.
-        const recentHistory = [...messages, userMessage].slice(-10)
+        // "다시 시도"는 잘린 답+직전 user 를 막 pop 한 직후 호출되므로 closure
+        // 의 messages 가 아직 옛 값(잘린 쌍 포함)이다. 호출자가 정리한 히스토리를
+        // historyOverride 로 넘기면 그걸 정본으로 써 중복 user/잘린 답이 안 섞인다.
+        const baseHistory = options?.historyOverride ?? messages
+        const recentHistory = [...baseHistory, userMessage].slice(-10)
         // 새로고침/탭 복제 등 같은 turn 재진입 시 서버가 중복 차감 안 하도록
         // 매 user 메시지 마다 UUID 생성. "다시 시도" 일 때는 직전 turn 의
         // 키를 그대로 재사용 — 서버가 idempotent replay 로 인식해 credit
@@ -968,9 +972,12 @@ function CompatibilityCounselorContent() {
     if (messages[len - 1].role !== 'assistant') return
     if (messages[len - 2].role !== 'user') return
     const lastUserText = messages[len - 2].content
+    // 잘린 assistant + 그 직전 user 를 떼어낸 히스토리를 명시적으로 넘긴다.
+    // setMessages 는 비동기라 sendMessage closure 의 messages 는 아직 옛 값이라서.
+    const trimmedHistory = messages.slice(0, -2)
     setMessages((prev) => prev.slice(0, -2))
     setFollowUpQuestions([])
-    void sendMessage(lastUserText, { isRetry: true })
+    void sendMessage(lastUserText, { isRetry: true, historyOverride: trimmedHistory })
   }, [isLoading, messages, sendMessage])
 
   // 로그인 후 "직전 질문 이어서 답변" — 복원 때 떼어둔 미답변 질문을 인증이
@@ -1162,6 +1169,16 @@ function CompatibilityCounselorContent() {
         relation: p.relation,
       })
       pushRecentPair([toRecent(personsData[0]), toRecent(personsData[1])])
+      // 새 커플 = 새 대화. 이전 커플의 메시지/세션/제목/차트를 비우지 않으면
+      // 새 커플 채팅이 옛 대화에 이어붙고 옛 세션 ID 로 저장되는 정합성 버그.
+      // (직접 진입·새 채팅 경로는 이미 빈 상태라 무해.)
+      setMessages([])
+      setChatSessionId(undefined)
+      setChatTitle(null)
+      setPerson1Saju(null)
+      setPerson2Saju(null)
+      setPerson1Astro(null)
+      setPerson2Astro(null)
       // URL 동기화 — 새로고침해도 같은 페어 유지.
       router.replace(
         `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(personsData))}`
@@ -1271,18 +1288,27 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           }
           rightSlot={
             <>
-              {chatSessionId && (
-                <div ref={chatActions.chatMenuRef} className={styles.chatMenuArea}>
-                  <AppHeaderIconButton
-                    onClick={chatActions.toggleChatMenu}
-                    label={isKo ? '대화 메뉴' : 'Chat menu'}
-                    aria-expanded={chatActions.chatMenuOpen}
-                    aria-haspopup="menu"
-                  >
-                    <span aria-hidden="true">{'⋮'}</span>
-                  </AppHeaderIconButton>
-                  {chatActions.chatMenuOpen && (
-                    <div role="menu" className={styles.chatMenuDropdown}>
+              {/* 세션이 생기기 전(첫 진입)에도 ⋮ 자리를 차지하도록 항상 렌더하고,
+                  세션 없으면 visibility:hidden 으로 숨긴다. 이전엔 chatSessionId
+                  생길 때 ⋮ 가 pop-in 하며 옆의 CreditBadge 를 왼쪽으로 밀어
+                  상단 우측이 "움직이던" layout shift 가 있었음. */}
+              <div
+                ref={chatActions.chatMenuRef}
+                className={styles.chatMenuArea}
+                aria-hidden={!chatSessionId}
+                style={chatSessionId ? undefined : { visibility: 'hidden' }}
+              >
+                <AppHeaderIconButton
+                  onClick={chatActions.toggleChatMenu}
+                  label={isKo ? '대화 메뉴' : 'Chat menu'}
+                  aria-expanded={chatActions.chatMenuOpen}
+                  aria-haspopup="menu"
+                  tabIndex={chatSessionId ? undefined : -1}
+                >
+                  <span aria-hidden="true">{'⋮'}</span>
+                </AppHeaderIconButton>
+                {chatSessionId && chatActions.chatMenuOpen && (
+                  <div role="menu" className={styles.chatMenuDropdown}>
                       <button
                         type="button"
                         role="menuitem"
@@ -1304,7 +1330,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                     </div>
                   )}
                 </div>
-              )}
               <CreditBadge variant="compact" />
             </>
           }
@@ -1333,11 +1358,22 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 timeZone: p.timeZone,
                 relation: p.relation,
               }))
+              // 새 페어 = 새 대화. 이전 대화/세션/제목/차트를 비워야 옛 커플
+              // 세션에 새 커플 메시지가 섞이지 않는다. (initializeData 가
+              // ?persons= 만 보고는 대화를 초기화하지 않기 때문에 여기서 처리.)
+              setMessages([])
+              setChatSessionId(undefined)
+              setChatTitle(null)
+              setPerson1Saju(null)
+              setPerson2Saju(null)
+              setPerson1Astro(null)
+              setPerson2Astro(null)
+              chartFetchRef.current = false
               router.replace(
                 `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(payload))}`
               )
             }}
-            onPickOther={() => router.push('/compatibility')}
+            onPickOther={() => setShowPicker(true)}
           />
         )}
 
@@ -1471,20 +1507,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 </div>
               )}
 
-            {/* 도구 안내 — 첫 답변(turn 1) 에만 1회 노출. turn 2+ 자동 X.
-                "다시 안 보기" 또는 도구 사용 시 영구 dismiss (localStorage).
-                이전엔 turn 1~3 까지 매번 노출이라 이미 아는 사용자한테
-                반복 노출 짜증 — 1회로 축소. */}
-            {(() => {
-              const userTurns = messages.filter((m) => m.role === 'user').length
-              const hasAssistantAnswer = messages.some((m) => m.role === 'assistant')
-              if (toolHintDismissed || isLoading || !hasAssistantAnswer || userTurns !== 1) {
-                return null
-              }
-              return (
-                <ToolHint lang={isKo ? 'ko' : 'en'} variant="compat" onDismiss={dismissToolHint} />
-              )
-            })()}
+            {/* 도구 안내(ToolHint) 알림 제거 — 운명상담사처럼 입력창 좌하단 ⋮
+                메뉴(ChatInputArea 내장)의 작은 힌트 버블이 같은 역할을 한다. */}
 
             <div ref={messagesEndRef} />
           </div>
@@ -1515,16 +1539,13 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
             onKeyDown={handleKeyDown}
             onSend={() => sendMessage()}
             onFileUpload={(e) => {
-              dismissToolHint()
               void handleFileUpload(e)
             }}
             onClearFile={clearFile}
             onOpenTarot={() => {
-              dismissToolHint()
               setShowTarotModal(true)
             }}
             onOpenChart={() => {
-              dismissToolHint()
               setShowChartModal(true)
             }}
             tarotDisabled={persons.length < 2}
@@ -1620,7 +1641,8 @@ export default function CompatibilityCounselorPage() {
 /**
  * 헤더 sticky 바 — 클릭하면 최근 본 페어 popover 가 열려서 다른 관계로
  * 즉시 전환할 수 있다. 현재 페어는 popover 에서 제외 (이미 보고 있음).
- * "다른 사람으로 보기" 항목으로 입력 페이지(/compatibility) 이동.
+ * "다른 사람으로 보기" 항목은 인라인 인물 피커(CompatPersonPickerModal)를
+ * 열어 채팅을 떠나지 않고 새 커플로 전환한다.
  */
 function ProfileStickyBar({
   persons,
