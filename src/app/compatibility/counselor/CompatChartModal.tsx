@@ -324,14 +324,20 @@ export function CompatChartModal({
                 </p>
                 {spouseTop.length > 0 && (
                   <ul className="space-y-0.5 px-1 text-xs" style={{ color: 'var(--ds-dark-text)' }}>
-                    {spouseTop.map((s, i) => (
-                      <li key={i}>
+                    {spouseTop.map((s) => (
+                      <li key={`spouse-${s.from}-${s.pillar}-${s.source}-${s.char}`}>
                         <span style={{ color: 'var(--ds-gold-on-dark)' }}>
                           {isKo ? '배우자성' : 'Spouse star'}
                         </span>{' '}
-                        — {s.from === 'A' ? labelA : labelB} 기준 {s.from === 'A' ? labelB : labelA}{' '}
-                        {s.pillar}
-                        {s.isDayPillar ? (isKo ? '주(배우자궁)' : ' (spouse palace)') : '주'}{' '}
+                        — {s.from === 'A' ? labelA : labelB} {isKo ? '기준' : 'sees'}{' '}
+                        {s.from === 'A' ? labelB : labelA} {s.pillar}
+                        {s.isDayPillar
+                          ? isKo
+                            ? '주(배우자궁)'
+                            : ' (spouse palace)'
+                          : isKo
+                            ? '주'
+                            : ''}{' '}
                         {s.char} = <b>{s.sibsin}</b>{' '}
                         <span style={{ color: 'var(--ds-dark-text-muted)' }}>{s.role}</span>
                       </li>
@@ -428,9 +434,9 @@ export function CompatChartModal({
                   {isKo ? '핵심 시너스트리 (개인행성 cross)' : 'Key synastry (personal planets)'}
                 </div>
                 <ul className="space-y-1">
-                  {synView.aspects.map((asp, i) => (
+                  {synView.aspects.map((asp) => (
                     <li
-                      key={i}
+                      key={`asp-${asp.a}-${asp.b}-${asp.orb}`}
                       className="flex items-center gap-2 text-xs"
                       style={{ color: 'var(--ds-dark-text)' }}
                     >
@@ -470,13 +476,13 @@ export function CompatChartModal({
                   {isKo ? '하우스 오버레이 (누가 어느 영역에)' : 'House overlays'}
                 </div>
                 <ul className="space-y-0.5 text-xs" style={{ color: 'var(--ds-dark-text-muted)' }}>
-                  {synView.overlaysAtoB.map((o, i) => (
-                    <li key={`ab${i}`}>
+                  {synView.overlaysAtoB.map((o) => (
+                    <li key={`ab-${o.planet}-${o.house}`}>
                       {labelA} {o.planet} → {labelB} {o.house}H{o.meaning ? ` (${o.meaning})` : ''}
                     </li>
                   ))}
-                  {synView.overlaysBtoA.map((o, i) => (
-                    <li key={`ba${i}`}>
+                  {synView.overlaysBtoA.map((o) => (
+                    <li key={`ba-${o.planet}-${o.house}`}>
                       {labelB} {o.planet} → {labelA} {o.house}H{o.meaning ? ` (${o.meaning})` : ''}
                     </li>
                   ))}
