@@ -601,12 +601,40 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Four Pillars</span>
           </div>
-          {/* 일간(나) 한 줄 풀이 — hover 로만 뜨던 의미를 모바일에서도 보이게 노출. */}
-          <p className={s.dmIntro}>
-            {lang === 'en' ? 'Day Master' : '일간(나)'}{' '}
-            <b className={elClass[stemEl(S.dayMaster)]}>{S.dayMaster}</b> —{' '}
-            {hanjaHover(S.dayMaster, lang)}
-          </p>
+          {/* 일간(나) 카드 — hanja-rich 의 일간성격·강점·약점·직업을 hover→본문으로. */}
+          {(() => {
+            const dm = getHanjaRich(S.dayMaster, lang) as {
+              nature?: string
+              as_daymaster?: string
+              strength?: string[]
+              weakness?: string[]
+              career?: string[]
+            } | null
+            return (
+              <div className={s.dmCard}>
+                <div className={s.dmHead}>
+                  <b className={elClass[stemEl(S.dayMaster)]}>{S.dayMaster}</b>
+                  <span>{lang === 'en' ? 'Day Master · You' : '일간 · 나'}</span>
+                </div>
+                <div className={s.dmBody}>{dm?.as_daymaster ?? dm?.nature ?? ''}</div>
+                {dm?.strength?.length ? (
+                  <div className={s.dmRow}>
+                    <b>{lang === 'en' ? 'Strengths' : '강점'}</b> {dm.strength.join(', ')}
+                  </div>
+                ) : null}
+                {dm?.weakness?.length ? (
+                  <div className={s.dmRow}>
+                    <b>{lang === 'en' ? 'Watch-outs' : '약점'}</b> {dm.weakness.join(', ')}
+                  </div>
+                ) : null}
+                {dm?.career?.length ? (
+                  <div className={s.dmRow}>
+                    <b>{lang === 'en' ? 'Careers' : '직업'}</b> {dm.career.join(', ')}
+                  </div>
+                ) : null}
+              </div>
+            )
+          })()}
           <div className={s.pillars}>
             {pillarsArr.map(([head, p]) => (
               <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head.ko}>
@@ -1071,6 +1099,17 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       </i>
                     </div>
                     <div className={s.bigPrin}>{cd.core.principle}</div>
+                    {cd.house
+                      ? (() => {
+                          const h = getHouseRich(cd.house as HouseNumber, lang)
+                          return h ? (
+                            <div className={s.bigHouse}>
+                              {cd.house}
+                              {lang === 'en' ? 'H' : '하우스'} · {h.domain}
+                            </div>
+                          ) : null
+                        })()
+                      : null}
                     <div className={s.bigMean}>{cd.core.meaning}</div>
                   </div>
                 )
