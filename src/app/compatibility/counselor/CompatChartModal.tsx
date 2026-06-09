@@ -10,6 +10,10 @@ import { generateChartSummary } from '@/lib/report/local-report-generator'
 import { CompatNatalOverlay } from './CompatNatalOverlay'
 import { CompatRadarOverlay } from './CompatRadarOverlay'
 import { computeSynastryView, type SynastryTone } from './computeSynastry'
+import {
+  computeSajuSynastryFacts,
+  type SajuPillarInput,
+} from '@/lib/compatibility/sajuSynastryFormatter'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /**
@@ -49,6 +53,27 @@ function unwrapAstro(raw: unknown): Record<string, unknown> | undefined {
   return (
     (data.chartData as Record<string, unknown>) ?? (r.chartData as Record<string, unknown>) ?? data
   )
+}
+
+// unwrap된 saju → computeSajuSynastryFacts 가 받는 {stem,branch}[] (년·월·일·시).
+// 일주(index 2)는 필수 — 없으면 facts 계산을 건너뛴다.
+function sajuToPillars(saju: Record<string, unknown> | undefined): SajuPillarInput[] | null {
+  if (!saju) return null
+  const pillars = (saju.pillars as Record<string, unknown> | undefined) ?? undefined
+  const cell = (p: unknown): SajuPillarInput => {
+    const o = (p ?? {}) as Record<string, unknown>
+    const hs = (o.heavenlyStem ?? {}) as Record<string, unknown>
+    const eb = (o.earthlyBranch ?? {}) as Record<string, unknown>
+    return { stem: String(hs.name ?? ''), branch: String(eb.name ?? '') }
+  }
+  const out = [
+    cell(saju.yearPillar ?? pillars?.year),
+    cell(saju.monthPillar ?? pillars?.month),
+    cell(saju.dayPillar ?? pillars?.day),
+    cell(saju.timePillar ?? saju.hourPillar ?? pillars?.time),
+  ]
+  if (!out[2].stem || !out[2].branch) return null
+  return out
 }
 
 function QuickRead({
@@ -144,6 +169,17 @@ export function CompatChartModal({
   const labelB = nameB || 'B'
   // 상담사와 같은 엔진(calculateSynastry) 결과 — 어스펙트·하우스 오버레이.
   const synView = computeSynastryView(astroA, astroB, lang)
+
+  // 상담사와 같은 사주 cross 계산(computeSajuSynastryFacts) — 일간·배우자성·기둥관계.
+  const pillarsA = sajuToPillars(sajuA)
+  const pillarsB = sajuToPillars(sajuB)
+  const sajuFacts = pillarsA && pillarsB ? computeSajuSynastryFacts({ pillarsA, pillarsB }) : null
+  // 배우자성 — 일주(배우자궁)에 잡힌 것 우선 노출 (가장 강한 신호).
+  const spouseTop = sajuFacts
+    ? [...sajuFacts.spouseStars]
+        .sort((a, b) => Number(b.isDayPillar) - Number(a.isDayPillar))
+        .slice(0, 4)
+    : []
 
   const toneColor = (tone: SynastryTone): string =>
     tone === 'harmony'
@@ -261,6 +297,49 @@ export function CompatChartModal({
                 ? '두 사람의 여덟 글자가 만났을 때 합·충이 어디서 일어나는지, 한쪽에 부족한 오행을 상대가 채워주는지를 봐요. 겹친 레이더에서 한 사람이 낮은 축을 다른 사람이 높게 채우면 상호보완이에요.'
                 : "Where the two charts' eight characters meet — which pillars pull together (union) or push apart (clash), and whether one's missing element is what the other has in abundance. On the overlaid radar, a low axis filled by the partner means complementarity."}
             </p>
+
+            {/* 사주 궁합 핵심 — 상담사와 같은 computeSajuSynastryFacts 결과.
+                일간 관계 + 배우자성(가장 강한 정통 신호). */}
+            {sajuFacts?.dayMaster && (
+              <div className="space-y-1.5">
+                <div
+                  className="px-1 text-[11px] font-medium uppercase tracking-wider"
+                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                >
+                  {isKo ? '일간 관계 (두 사람의 축)' : 'Day-master relation'}
+                </div>
+                <p
+                  className="px-1 text-xs leading-relaxed"
+                  style={{ color: 'var(--ds-dark-text)' }}
+                >
+                  {labelA} <b>{sajuFacts.dayMaster.aStem}</b>({sajuFacts.dayMaster.aEl}) ↔ {labelB}{' '}
+                  <b>{sajuFacts.dayMaster.bStem}</b>({sajuFacts.dayMaster.bEl}) —{' '}
+                  {sajuFacts.dayMaster.relationLabel}
+                  {sajuFacts.dayMaster.bToA && (
+                    <span style={{ color: 'var(--ds-dark-text-muted)' }}>
+                      {' '}
+                      · {labelB}는 {labelA}의 {sajuFacts.dayMaster.bToA}
+                    </span>
+                  )}
+                </p>
+                {spouseTop.length > 0 && (
+                  <ul className="space-y-0.5 px-1 text-xs" style={{ color: 'var(--ds-dark-text)' }}>
+                    {spouseTop.map((s, i) => (
+                      <li key={i}>
+                        <span style={{ color: 'var(--ds-gold-on-dark)' }}>
+                          {isKo ? '배우자성' : 'Spouse star'}
+                        </span>{' '}
+                        — {s.from === 'A' ? labelA : labelB} 기준 {s.from === 'A' ? labelB : labelA}{' '}
+                        {s.pillar}
+                        {s.isDayPillar ? (isKo ? '주(배우자궁)' : ' (spouse palace)') : '주'}{' '}
+                        {s.char} = <b>{s.sibsin}</b>{' '}
+                        <span style={{ color: 'var(--ds-dark-text-muted)' }}>{s.role}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <div
