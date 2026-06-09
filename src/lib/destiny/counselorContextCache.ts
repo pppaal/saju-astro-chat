@@ -55,12 +55,8 @@ export async function ensureCounselorContext(
   const stableCtxKey = `counselor:ctx:stable:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
   const dailyCtxKey = `counselor:ctx:daily:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
 
-  // 두 키를 병렬로 조회 — 첫 답변 critical path 의 Redis 왕복을 직렬 2회에서
-  // 1회 분량으로 단축.
-  const [cachedStable, cachedDaily] = await Promise.all([
-    cacheGet<string>(stableCtxKey),
-    cacheGet<string>(dailyCtxKey),
-  ])
+  const cachedStable = await cacheGet<string>(stableCtxKey)
+  const cachedDaily = await cacheGet<string>(dailyCtxKey)
   if (cachedStable && cachedDaily) {
     return { stableContext: cachedStable, dailyContext: cachedDaily }
   }
@@ -116,10 +112,7 @@ export async function ensureCounselorContext(
   const stableContext = `<birth_data>\n${parts.join('\n')}${stableCtxBody ? `\n\n${stableCtxBody}` : ''}\n</birth_data>`
   const dailyContext = dailyCtxBody
 
-  // 두 키 쓰기도 병렬 — 워밍 경로의 Redis 왕복 단축.
-  await Promise.all([
-    cacheSet(stableCtxKey, stableContext, CACHE_TTL.NATAL_CHART), // 30d
-    cacheSet(dailyCtxKey, dailyContext, CACHE_TTL.CALENDAR_DATA), // 1d
-  ])
+  await cacheSet(stableCtxKey, stableContext, CACHE_TTL.NATAL_CHART) // 30d
+  await cacheSet(dailyCtxKey, dailyContext, CACHE_TTL.CALENDAR_DATA) // 1d
   return { stableContext, dailyContext }
 }

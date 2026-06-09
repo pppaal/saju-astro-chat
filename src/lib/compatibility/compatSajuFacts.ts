@@ -11,7 +11,7 @@
 //
 // 본 모듈은 **포매팅 0**. locale 무관. text 0. JSON-able 객체만 반환.
 
-import { collectSajuFacts, type SajuFacts, type SajuPillarFact } from '@/lib/facts/sajuFacts'
+import { collectSajuFacts, type SajuFacts, type SajuPillarFact } from '@/lib/destiny/sajuFacts'
 import { getShinsalHits, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { logger } from '@/lib/logger'
 

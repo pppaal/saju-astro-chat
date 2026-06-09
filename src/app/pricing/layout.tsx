@@ -1,7 +1,12 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { generateJsonLd, generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
+import {
+  generateJsonLd,
+  generateLocalizedMetadata,
+  getServerLocale,
+  SERVICE_FAQS,
+} from '@/components/seo/SEO'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -52,10 +57,12 @@ export default function PricingLayout({ children }: { children: ReactNode }) {
       'One-time credit packs for AI Saju, Tarot, Compatibility, and Fortune Calendar — no subscription, no auto-renewal.',
     url: `${baseUrl}/pricing`,
   })
+  const faqJsonLd = generateJsonLd({ type: 'FAQPage', faqs: SERVICE_FAQS.pricing })
 
   return (
     <>
       <JsonLd data={pageJsonLd} />
+      <JsonLd data={faqJsonLd} />
       {children}
     </>
   )

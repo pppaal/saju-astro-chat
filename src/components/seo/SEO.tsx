@@ -332,11 +332,9 @@ export function generateJsonLd(data: {
           price: '0',
           priceCurrency: 'USD',
         },
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: '4.8',
-          ratingCount: '1250',
-        },
+        // aggregateRating 제거: 페이지에 실제로 노출되는 후기 없이 별점만 박으면
+        // 구글 구조화 데이터 정책 위반(가짜 평점)이라 리치결과 거부·수동 패널티
+        // 위험. 실제 사용자 후기가 쌓이고 화면에 노출되면 그때 실측값으로 복원.
       }
 
     case 'HowTo':
@@ -410,16 +408,87 @@ export const SERVICE_FAQS = {
       answer: 'Astrology is best used as a reflective tool for guidance and self-understanding.',
     },
   ],
+  compatibility: [
+    {
+      question: 'How does AI compatibility analysis work?',
+      answer:
+        'We combine Eastern Saju (Four Pillars) and Western astrology synastry for two people, comparing birth charts to read relationship strengths, friction points, and timing for love, partnership, or friendship.',
+    },
+    {
+      question: 'What information do I need for a compatibility reading?',
+      answer:
+        "You provide each person's birth date, and ideally exact birth time and place, for the most accurate synastry and Saju comparison.",
+    },
+    {
+      question: 'Can it be used for friendships or work, not just romance?',
+      answer:
+        'Yes. The same Saju and astrology comparison applies to any relationship — romantic, friendship, family, or work partnerships.',
+    },
+  ],
+  pricing: [
+    {
+      question: 'Is there a subscription or auto-renewal?',
+      answer:
+        'No. DestinyPal uses one-time credit packs — you pay only for what you use, with no subscription and no automatic renewal.',
+    },
+    {
+      question: 'What can I use credits for?',
+      answer:
+        'Credits work across all features — AI Saju, Tarot readings, Compatibility analysis, and the Fortune Calendar.',
+    },
+    {
+      question: 'Can I try DestinyPal for free?',
+      answer:
+        'Yes. Sign in to receive sign-up bonus credits, so you can try a reading before purchasing anything.',
+    },
+    {
+      question: 'Can I get a refund?',
+      answer:
+        'Unused credits may be eligible for a refund under our refund policy. See the Refund Policy page for details.',
+    },
+  ],
+  about: [
+    {
+      question: 'What is DestinyPal?',
+      answer:
+        'DestinyPal is an AI self-understanding platform that combines Eastern Saju (Four Pillars), Western astrology, and tarot to give personalized, reflective readings in Korean and English.',
+    },
+    {
+      question: 'Does DestinyPal predict the future?',
+      answer:
+        'No. Readings are framed as possibilities and tendencies for reflection and decision-making — not fixed predictions of fate.',
+    },
+    {
+      question: 'What languages does DestinyPal support?',
+      answer: 'DestinyPal is fully available in Korean and English.',
+    },
+    {
+      question: 'Is my birth data kept private?',
+      answer:
+        'Your birth and reading data are handled according to our Privacy Policy. See the Privacy Policy page for details.',
+    },
+  ],
 }
 
 // Generate service schema for specific pages
-export function generateServiceSchema(serviceType: 'destiny-map' | 'tarot' | 'saju' | 'astrology') {
+export function generateServiceSchema(
+  serviceType: 'destiny-map' | 'tarot' | 'saju' | 'astrology' | 'compatibility',
+  // 실제 라우트가 serviceType 키와 다른 경우(예: destiny-map → /destiny-counselor)
+  // 정확한 경로를 넘긴다. 없으면 `/${serviceType}` 폴백.
+  urlPath?: string
+) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
   const services = {
     'destiny-map': {
       name: 'Destiny Map - Saju & Astrology Fusion',
       description:
         'Comprehensive life guidance combining Eastern Four Pillars and Western Astrology for personalized insights.',
+      category: 'Spiritual Consultation',
+    },
+    compatibility: {
+      name: 'Compatibility Analysis - Saju & Astrology Synastry',
+      description:
+        'AI relationship compatibility combining Eastern Saju (Four Pillars) and Western astrology synastry for love, partnership, and friendship.',
       category: 'Spiritual Consultation',
     },
     tarot: {
@@ -445,6 +514,6 @@ export function generateServiceSchema(serviceType: 'destiny-map' | 'tarot' | 'sa
   return generateJsonLd({
     type: 'Service',
     service: services[serviceType],
-    url: `${baseUrl}/${serviceType}`,
+    url: `${baseUrl}${urlPath ?? `/${serviceType}`}`,
   })
 }

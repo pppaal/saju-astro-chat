@@ -83,6 +83,90 @@ function genTurnId(): string {
   return `t-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
+// 스트리밍 도중 새로고침해도 "같은 해석"이 다시 뜨도록, 진행 중 turnId 를
+// readingSignature 기준으로 sessionStorage 에 보관한다. 새 페이지(새로고침)에서
+// fetchInterpretation 이 이 turnId 로 서버 캐시(완성본)를 먼저 폴링해, 있으면
+// 재생성(=다른 글) 없이 동일 해석을 복원한다. 완료/만료 시 정리.
+const RECOVER_TURN_PREFIX = 'tarot:recoverTurn:'
+const RECOVER_TURN_WINDOW_MS = 10 * 60 * 1000
+
+function storeRecoverTurn(sig: string | undefined, turnId: string): void {
+  if (typeof window === 'undefined' || !sig) return
+  try {
+    window.sessionStorage.setItem(
+      `${RECOVER_TURN_PREFIX}${sig}`,
+      JSON.stringify({ turnId, ts: Date.now() })
+    )
+  } catch {
+    /* quota 등 무시 */
+  }
+}
+
+function readRecoverTurn(sig: string | undefined): string | null {
+  if (typeof window === 'undefined' || !sig) return null
+  try {
+    const raw = window.sessionStorage.getItem(`${RECOVER_TURN_PREFIX}${sig}`)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { turnId?: string; ts?: number }
+    if (!parsed.turnId || !parsed.ts) return null
+    // 오래된 turnId 는 무시(같은 카드 재드로우 등으로 인한 stale 복원 방지).
+    if (Date.now() - parsed.ts > RECOVER_TURN_WINDOW_MS) {
+      clearRecoverTurn(sig)
+      return null
+    }
+    return parsed.turnId
+  } catch {
+    return null
+  }
+}
+
+function clearRecoverTurn(sig: string | undefined): void {
+  if (typeof window === 'undefined' || !sig) return
+  try {
+    window.sessionStorage.removeItem(`${RECOVER_TURN_PREFIX}${sig}`)
+  } catch {
+    /* 무시 */
+  }
+}
+
+// result 엔드포인트를 짧게 폴링해 서버가 캐시한 완성 리딩을 복원한다(과금 없음 —
+// GET). ready 면 같은 parseStreamedInterpretation 경로로 변환해 반환, 아직이거나
+// 게스트(401)면 null → 호출자는 정상 스트림으로 폴백한다.
+async function pollTurnResult(
+  turnId: string,
+  result: ReadingResponse,
+  isKorean: boolean,
+  maxAttempts: number
+): Promise<InterpretationResult | null> {
+  for (let i = 0; i < maxAttempts; i++) {
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return null
+    try {
+      const res = await apiFetch(
+        `/api/tarot/interpret-stream/result?turnId=${encodeURIComponent(turnId)}`,
+        { method: 'GET' }
+      )
+      if (res.ok) {
+        const data = (await res.json()) as { ready?: boolean; content?: string }
+        if (data.ready && typeof data.content === 'string' && data.content.length > 0) {
+          const recovered = parseStreamedInterpretation(
+            data.content,
+            result.drawnCards,
+            result.spread.positions,
+            isKorean
+          )
+          if (recovered.overall_message.trim().length > 0) return recovered
+        }
+      } else if (res.status === 401) {
+        return null // 게스트는 서버가 캐시 안 함 → 복구 불가.
+      }
+    } catch {
+      /* 네트워크 흔들림 — 다음 시도 */
+    }
+    await new Promise((r) => setTimeout(r, 1500))
+  }
+  return null
+}
+
 class RequestTimeoutError extends Error {
   constructor(timeoutMs: number) {
     super(`Request timed out after ${timeoutMs}ms`)
@@ -460,7 +544,27 @@ export function useTarotInterpretation({
 
       // 이 해석 요청의 고유 id — 끊겨도 서버가 끝까지 생성해 이 키로 캐시에
       // 저장하고, 돌아온 사용자가 recoverLastInterpretation 으로 복원한다.
-      const turnId = genTurnId()
+      // readingSignature(=idempotencyKey) 기준으로 진행 중 turnId 를 보관해 둔
+      // 게 있으면(스트리밍 도중 새로고침) 그 turnId 를 재사용해, 먼저 서버
+      // 캐시(완성본)를 폴링한다 → 있으면 재생성(다른 글) 없이 동일 해석 복원.
+      const sig = options?.idempotencyKey
+      const storedTurnId = readRecoverTurn(sig)
+      const turnId = storedTurnId || genTurnId()
+      // 진행 중 turnId 보관(완료/만료 시 정리) — 새로고침 복원 진입점.
+      storeRecoverTurn(sig, turnId)
+      recoverableRef.current = { turnId, result, isKorean }
+
+      // 새로고침 복원이면 우선 캐시된 완성 리딩을 짧게 폴링(과금 없음).
+      // 준비됐으면 동일 해석을 그대로 반환하고 스트림/차감을 건너뛴다.
+      if (storedTurnId) {
+        const recovered = await pollTurnResult(storedTurnId, result, isKorean, 5)
+        if (recovered) {
+          clearRecoverTurn(sig)
+          recoverableRef.current = null
+          return recovered
+        }
+        // 아직 준비 안 됨(또는 게스트) → 같은 turnId 로 정상 스트림 폴백.
+      }
 
       // questionMeta / questionContext 메타라벨은 system prompt 의 0단계 가 동일 정보를
       // LLM 이 직접 추출하므로 중복. 보내지 않는다 (50-100 tokens / call 절감).
@@ -477,9 +581,7 @@ export function useTarotInterpretation({
         // 끊김 복구용 turnId — 서버가 끝까지 생성한 완성 리딩을 이 키로 캐시.
         turnId,
       }
-      // 이 요청이 실패/끊김으로 끝날 경우를 대비해 복원 컨텍스트 미리 등록.
-      // 정상 완료(유효 JSON) 시 아래에서 해제.
-      recoverableRef.current = { turnId, result, isKorean }
+      // (recoverableRef 는 위 turnId 확정 직후 이미 등록 — 정상 완료 시 아래에서 해제.)
 
       // 1) 스트리밍 엔드포인트 우선 — 깨끗한 LLM 출력 (post-processor 템플릿 없음)
       const interpretHeaders: Record<string, string> = {
@@ -527,8 +629,19 @@ export function useTarotInterpretation({
               fallback: true,
               interpretation_source: 'stream_sse_fallback',
             }
+            // 스트리밍 진행 업데이트 스로틀 — 매 SSE 청크마다 부분 JSON 파싱
+            // (extractPartial*)+setInterpretation 리렌더가 돌면 메인 스레드가
+            // 막혀 로딩 애니메이션(BrandSplash 등)이 렉 걸린다. ~120ms 간격으로만
+            // 파싱·반영하면 타이핑 효과는 유지(초당 ~8회)하면서 부하를 크게 줄인다.
+            // 최종 완성본은 아래 parseStreamedInterpretation 이 전체 텍스트로 다시
+            // 만들므로 중간 스로틀로 내용이 누락되지 않는다.
+            let lastProgressAt = 0
+            const PROGRESS_THROTTLE_MS = 120
             const jsonText = await consumeSSEStream(response, (accumulated) => {
               if (!options?.onProgress) return
+              const now = Date.now()
+              if (now - lastProgressAt < PROGRESS_THROTTLE_MS) return
+              lastProgressAt = now
               const partialOverall = extractPartialOverall(accumulated) || ''
               const partialCards = extractPartialCardTexts(accumulated)
               // 카드별 해석을 baseSnapshot.card_insights 위에 덮어쓴다 — 아직 안 온 카드는 빈 문자열 유지.
@@ -556,6 +669,7 @@ export function useTarotInterpretation({
             //  visibilitychange 시 recoverLastInterpretation 으로 복원.)
             if (streamed.overall_message.trim().length > 0) {
               recoverableRef.current = null
+              clearRecoverTurn(sig)
             }
             return streamed
           }
@@ -565,6 +679,7 @@ export function useTarotInterpretation({
           if (data.overall || data.overall_message) {
             // non-stream JSON 정상 응답 — 복원 컨텍스트 해제.
             recoverableRef.current = null
+            clearRecoverTurn(sig)
             const sourceInsights = Array.isArray(data.card_insights)
               ? (data.card_insights as Record<string, unknown>[])
               : Array.isArray(data.cards)

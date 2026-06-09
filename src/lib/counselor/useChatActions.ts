@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { logger } from '@/lib/logger'
+import { emitSessionDeleted } from '@/lib/counselor/sessionEvents'
 
 /**
  * 운명 / 궁합 상담사 헤더 `⋮` 메뉴(이름 변경 / 삭제) 공용 hook.
@@ -159,6 +160,8 @@ export function useChatActions({
     }
     // 서버 삭제 확정 후에만 cleanup 호출 — 실패 시엔 그대로 두어 데이터
     // 유실로 보이지 않게.
+    // 사이드바(CounselorSidebar) 도 같은 세션을 목록에서 빼도록 알림.
+    emitSessionDeleted(id)
     onDeleted?.()
     // suppress unused — `lang` 은 이 hook 의 props 시그니처에 의도적으로 포함
     // (모달 라벨은 ChatActionModals 가 담당). future-proof.

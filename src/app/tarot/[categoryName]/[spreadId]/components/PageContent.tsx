@@ -48,6 +48,10 @@ export interface PageContentProps {
   handleRetryInterpretation?: () => void
   language: string
   translate: (key: string, fallback: string) => string
+  /** "이 리딩 다시 열기" 복원 시 채워짐 — 저장된 followup 대화 turn. */
+  initialFollowupTurns?: Array<{ role: 'user' | 'assistant'; content: string }> | null
+  /** 복원하는 리딩이 이미 보충 카드를 뽑았는지 — 클래리파이어 버튼 초기 잠금. */
+  initialClarifierUsed?: boolean
 }
 
 export function PageContent(props: PageContentProps) {
@@ -168,7 +172,6 @@ export function PageContent(props: PageContentProps) {
         userTopic={props.userTopic}
         questionAnalysis={props.questionAnalysis}
         isGuestUser={props.isGuestUser}
-        signInUrl={props.signInUrl}
         handleCardReveal={props.handleCardReveal}
         canRevealCard={props.canRevealCard}
         isCardRevealed={props.isCardRevealed}
@@ -180,6 +183,8 @@ export function PageContent(props: PageContentProps) {
         handleReset={props.handleReset}
         interpretationFailed={props.interpretationFailed}
         handleRetryInterpretation={props.handleRetryInterpretation}
+        initialFollowupTurns={props.initialFollowupTurns}
+        initialClarifierUsed={props.initialClarifierUsed}
       />
     )
   }

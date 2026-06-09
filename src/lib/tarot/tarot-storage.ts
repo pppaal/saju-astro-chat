@@ -35,6 +35,13 @@ export interface SavedTarotReading {
   spreadId: string
   deckStyle?: string
   /**
+   * 서버 발급 draw nonce — 라이브 세션의 새로고침 복원 전용. 해석 스트리밍
+   * 도중 새로고침하면 복원된 리딩이 재해석을 호출하는데, 이 nonce 를 함께
+   * 실어 보내야 서버가 'replay' 로 인식해 재차감을 환불한다(중복 과금 차단).
+   * 히스토리에 저장되는 완성 리딩에는 불필요(해석이 채워져 재호출 자체가 없음).
+   */
+  drawNonce?: string
+  /**
    * 보충 카드 (클래리파이어) — 결과 후 "한 장 더 뽑기" 한 카드.
    * 자동 저장 (FollowupChat 의 PATCH) 으로 채워짐. 한 리딩당 한 장 한정.
    */
@@ -203,6 +210,34 @@ export function loadReadingRestorePayload(key?: string | null): SavedTarotReadin
   } catch (e) {
     logger.error('Failed to load reading restore payload:', e)
     return null
+  }
+}
+
+/**
+ * 복원 페이로드에 followup 대화 / 보충 카드만 병합 갱신한다. FollowupChat 이
+ * 결과 화면에서 대화를 주고받을 때마다 호출 → 새로고침해도 대화창이 복원되도록
+ * (직전엔 followupTurns 가 sessionStorage 에 안 실려 새로고침하면 대화가 사라졌음).
+ * 기존 리딩 본문(카드/해석)은 그대로 두고 두 필드만 덮어쓴다.
+ */
+export function updateRestorePayloadFollowup(
+  key: string | null | undefined,
+  patch: {
+    followupTurns?: Array<{ role: 'user' | 'assistant'; content: string }>
+    clarifierCard?: { name: string; nameKo?: string; isReversed: boolean }
+  }
+): void {
+  if (typeof window === 'undefined' || !key) {
+    return
+  }
+  try {
+    const existing = loadReadingRestorePayload(key)
+    if (!existing) return
+    const merged: SavedTarotReading = { ...existing }
+    if (patch.followupTurns) merged.followupTurns = patch.followupTurns
+    if (patch.clarifierCard) merged.clarifierCard = patch.clarifierCard
+    storeReadingRestorePayload(merged, key)
+  } catch (e) {
+    logger.error('Failed to update restore payload followup:', e)
   }
 }
 

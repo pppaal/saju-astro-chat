@@ -41,11 +41,11 @@ vi.mock('@/contexts/CreditModalContext', () => ({
   }),
 }))
 
-// FollowupChat gates submit with useRequireLogin(); stub to "always logged in"
-// so the unmount/abort path under test runs without a LoginModalProvider.
+// 로그인 모달 컨텍스트 — Provider 없이 렌더하므로 hook 들을 stub.
 vi.mock('@/contexts/LoginModalContext', () => ({
-  useRequireLogin: () => () => true,
   useLoginModal: () => ({ showLogin: vi.fn(), hideLogin: vi.fn() }),
+  useRequireLogin: () => () => true,
+  LoginModalProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
 // useClarifierCard is heavy and not relevant to the unmount path under
@@ -68,6 +68,21 @@ vi.mock('@/hooks/useChatAutoScroll', () => ({
 // ChatBubbleContent rendering details don't matter here.
 vi.mock('@/components/chat/ChatBubbleContent', () => ({
   default: ({ content }: { content: string }) => <div data-testid="bubble">{content}</div>,
+}))
+
+// FollowupChat reads the restoreKey via useSearchParams and (login) gating —
+// stub both so the component renders without router / login providers.
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(''),
+}))
+
+vi.mock('@/contexts/LoginModalContext', () => ({
+  useRequireLogin: () => () => true,
+}))
+
+// Restore-payload persistence is a side effect irrelevant to unmount safety.
+vi.mock('@/lib/tarot/tarot-storage', () => ({
+  updateRestorePayloadFollowup: vi.fn(),
 }))
 
 import { FollowupChat } from '@/app/tarot/[categoryName]/[spreadId]/components/stages/ResultsStage/FollowupChat'

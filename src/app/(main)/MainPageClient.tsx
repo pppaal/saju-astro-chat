@@ -304,12 +304,14 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
             <HexDPLogo size={72} />
           </div>
           <h1 id="home-headline" className={styles.homeHeadline}>
-            {locale === 'ko' ? 'AI가 풀어내는 당신의 운명' : 'Your Destiny, Powered by AI'}
+            {locale === 'ko'
+              ? 'AI가 풀어내는 당신의 운명'
+              : 'Your Tarot, Astrology & Korean Saju, Powered by AI'}
           </h1>
           <p className={styles.homeSubline}>
             {locale === 'ko'
               ? '생년월일을 입력하고, 궁금한 점을 자유롭게 물어보세요'
-              : 'Enter your birth info, then ask anything'}
+              : 'Enter your birth details, then ask anything'}
           </p>
         </section>
 
@@ -333,7 +335,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           ) : (
             <button type="button" className={styles.homeBirthCta} onClick={handleOpenBirth}>
               <span aria-hidden="true">📅</span>
-              {locale === 'ko' ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth date'}
+              {locale === 'ko' ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth details'}
             </button>
           )}
         </div>

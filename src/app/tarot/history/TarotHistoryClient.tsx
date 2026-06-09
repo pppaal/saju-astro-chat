@@ -18,6 +18,9 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
+import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
+import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
+import { buildShareDataFromSavedReading } from '@/components/tarot/shareCardData'
 
 import {
   deleteReading,
@@ -361,8 +364,9 @@ export default function TarotHistoryClient() {
       {/* 글로벌 헤더 (☰ / EN) 와 안 겹치게 상단 여백 충분히.
           About/FAQ/Pricing 과 같은 max-w + padding 으로 통일. */}
       <div className="max-w-2xl mx-auto px-4 pt-20 pb-16 relative z-10">
-        {/* 페이지 헤더 */}
-        <header className="flex items-center gap-3 mb-8">
+        {/* 페이지 헤더 — 제목은 좌/우 버튼 폭과 무관하게 페이지 정중앙에 고정
+            (absolute center). 좌측 돌아가기 / 우측 통계 토글. */}
+        <header className="relative flex items-center mb-8 min-h-[40px]">
           <button
             type="button"
             onClick={() => router.push('/tarot')}
@@ -377,7 +381,7 @@ export default function TarotHistoryClient() {
             <span>{isKo ? '돌아가기' : 'Back'}</span>
           </button>
           <h1
-            className="flex-1 text-xl md:text-2xl font-semibold"
+            className="absolute left-1/2 -translate-x-1/2 text-xl md:text-2xl font-semibold whitespace-nowrap pointer-events-none"
             style={{
               color: 'var(--ds-dark-text)',
               fontFamily: 'var(--font-cinzel), Georgia, serif',
@@ -391,7 +395,7 @@ export default function TarotHistoryClient() {
             onClick={() => setShowStats((prev) => !prev)}
             aria-expanded={showStats}
             aria-label={isKo ? '통계 보기 전환' : 'Toggle statistics'}
-            className="p-2 rounded-xl border transition-colors"
+            className="ml-auto p-2 rounded-xl border transition-colors"
             style={{
               background: showStats ? 'rgba(212, 181, 114, 0.15)' : 'var(--ds-dark-surface)',
               borderColor: showStats ? 'var(--ds-gold-line)' : 'var(--ds-dark-border)',
@@ -908,29 +912,54 @@ export default function TarotHistoryClient() {
               </section>
             )}
 
-            {/* 보충 카드 (클래리파이어) — gold 통일 (옛 purple 제거). */}
-            {selectedReading.clarifierCard && (
-              <section
-                className="mb-5 rounded-xl border p-4"
-                style={{
-                  background: 'var(--ds-dark-surface)',
-                  borderColor: 'var(--ds-dark-border)',
-                }}
-              >
-                <h4
-                  className="text-xs uppercase tracking-wider font-medium mb-2"
-                  style={{ color: 'var(--ds-gold-on-dark)' }}
-                >
-                  {isKo ? '보충 카드' : 'Clarifier Card'}
-                </h4>
-                <div className="text-sm font-medium text-slate-100">
-                  {isKo
-                    ? selectedReading.clarifierCard.nameKo || selectedReading.clarifierCard.name
-                    : selectedReading.clarifierCard.name}
-                  {selectedReading.clarifierCard.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
-                </div>
-              </section>
-            )}
+            {/* 보충 카드 (클래리파이어) — gold 통일. 카드 그림도 함께 표시
+                (이름만 있고 사진이 안 보이던 피드백 반영 — 저장엔 이미지 경로가
+                없어 이름으로 역추적). */}
+            {selectedReading.clarifierCard &&
+              (() => {
+                const clCard = selectedReading.clarifierCard!
+                const clFull = findCardBySavedName(clCard, 0)
+                return (
+                  <section
+                    className="mb-5 rounded-xl border p-4"
+                    style={{
+                      background: 'var(--ds-dark-surface)',
+                      borderColor: 'var(--ds-dark-border)',
+                    }}
+                  >
+                    <h4
+                      className="text-xs uppercase tracking-wider font-medium mb-2"
+                      style={{ color: 'var(--ds-gold-on-dark)' }}
+                    >
+                      {isKo ? '보충 카드' : 'Clarifier Card'}
+                    </h4>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`relative w-12 h-20 shrink-0 rounded overflow-hidden ${
+                          clCard.isReversed ? 'rotate-180' : ''
+                        }`}
+                        style={{ boxShadow: '0 0 0 1px var(--ds-dark-border)' }}
+                      >
+                        <Image
+                          src={clFull.image}
+                          alt={clFull.name}
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div
+                        className={`text-sm font-medium ${
+                          clCard.isReversed ? 'text-rose-200' : 'text-slate-100'
+                        }`}
+                      >
+                        {isKo ? clCard.nameKo || clCard.name : clCard.name}
+                        {clCard.isReversed && (isKo ? ' (역방향)' : ' (Reversed)')}
+                      </div>
+                    </div>
+                  </section>
+                )
+              })()}
 
             {/* followup 채팅 — gold 통일 (옛 cyan/violet 제거). */}
             {selectedReading.followupTurns && selectedReading.followupTurns.length > 0 && (
@@ -951,7 +980,7 @@ export default function TarotHistoryClient() {
                   {selectedReading.followupTurns.map((turn, idx) => (
                     <div
                       key={`${selectedReading.id}-turn-${idx}`}
-                      className="text-sm leading-relaxed whitespace-pre-wrap pl-3 border-l-2"
+                      className="text-sm leading-relaxed pl-3 border-l-2"
                       style={{
                         borderColor:
                           turn.role === 'user'
@@ -969,12 +998,25 @@ export default function TarotHistoryClient() {
                       >
                         {turn.role === 'user' ? (isKo ? '나' : 'You') : 'AI'}
                       </div>
-                      {turn.content}
+                      {/* 클래리파이어("한 장 더 뽑기") turn 은 본문에 markdown
+                          이미지(`![..](..)`)를 담는다. 이전엔 평문으로 찍어
+                          카드 그림 대신 `![태양](/images/...)` 가 그대로 보였음.
+                          결과 화면 채팅과 같은 ChatBubbleContent 로 렌더해 카드
+                          그림 + 굵게 등을 동일하게 표시. */}
+                      <ChatBubbleContent role={turn.role} content={turn.content} theme="dark" />
                     </div>
                   ))}
                 </div>
               </section>
             )}
+
+            {/* SNS 공유 — 과거 기록도 1:1 이미지로 공유/저장. */}
+            <div className="mb-3">
+              <ShareTarotButton
+                data={buildShareDataFromSavedReading(selectedReading, isKo)}
+                language={language}
+              />
+            </div>
 
             {/* 액션 — gold 솔리드 (보라 그라데이션 박멸) */}
             <button

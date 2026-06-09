@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useCallback, useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
+import { useRequireLogin } from '@/contexts/LoginModalContext'
 import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
 import { useToast } from '@/components/ui/Toast'
@@ -42,7 +43,7 @@ const creditPacks: CreditPackDisplay[] = (
 
 const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8']
 const PRICING_FALLBACKS: Record<string, string> = {
-  heroTitle: 'Pricing for Your Destiny',
+  heroTitle: 'Simple, Pay-As-You-Go Pricing',
   heroSub: 'Pay only for what you use. No subscription, no auto-renewal.',
   paymentError: 'Payment service temporarily unavailable',
 }
@@ -111,7 +112,10 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   // 띄운다. update() 는 PATCH /api/me/email 성공 후 호출해 jwt 토큰을
   // 재발급시킨다 (이메일을 token.email 에 반영 → 후속 /api/checkout 의
   // session.user.email 가드 통과).
-  const { data: session, update: updateSession } = useSession()
+  const { data: session, status: authStatus, update: updateSession } = useSession()
+  // 비로그인 결제 시도 → 바로 구글로 튕기지 않고 로그인 유도 모달(LoginRequiredModal)
+  // 을 띄운다. 앱 다른 유료 액션(타로·상담사)과 동일한 UX.
+  const requireLogin = useRequireLogin()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [loadingCredit, setLoadingCredit] = useState<string | null>(null)
   // 전자상거래법 §17 ②항 5호 — 디지털 콘텐츠 청약철회 제한은 사용자가
@@ -190,10 +194,20 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   const formatUsd = (value: number) => `$${value.toFixed(2)}`
 
   // 결제 시도 진입점 — 사용자가 카드의 [구매] 누름.
-  // 1) session.user.email 없으면 → EmailCollectionModal 먼저 띄움
-  // 2) email 있으면 → RefundConsentModal 로 바로 진행
-  // 진짜 결제 흐름은 둘 다 통과한 뒤 runCheckout 에서.
+  // 0) 비로그인(게스트) → 구글 로그인 먼저. 결제·크레딧은 계정에 묶이므로
+  //    로그인이 필수다. 구글 로그인은 이메일을 항상 주므로, 로그인 후엔
+  //    이메일 모달 없이 바로 결제로 이어진다. (이전엔 게스트에게 이메일
+  //    모달을 띄웠지만, 이메일 저장/결제 모두 로그인 가드라 막다른 길이었다.)
+  // 1) 로그인했지만 session.user.email 이 비어 있으면(희귀: provider scope
+  //    누락) → EmailCollectionModal 로 이메일 보충.
+  // 2) email 있으면 → RefundConsentModal 로 진행.
   function handleBuyCredit(packId: CreditPackType) {
+    if (authStatus !== 'authenticated') {
+      // 로그인 유도 모달을 띄운다(바로 구글로 튕기지 않음). 로그인 후 이 페이지로
+      // 복귀하도록 현재 URL 을 callbackUrl 로 넘긴다.
+      requireLogin(typeof window !== 'undefined' ? window.location.href : undefined)
+      return
+    }
     const currentEmail = session?.user?.email?.trim()
     if (!currentEmail) {
       setEmailPendingPack(packId)

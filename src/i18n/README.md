@@ -21,7 +21,6 @@ src/i18n/locales/
 src/i18n/locales/
 ├── ko/
 │   ├── common.json         (app, ui, error, menu, emoji)
-│   ├── landing.json        (landing, about, contact, faq, footer)
 │   ├── chat.json           (unified chat translations)
 │   ├── services.json
 │   ├── tarot.json
@@ -69,7 +68,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 function MyComponent() {
   const { t } = useI18n()
 
-  return <h1>{t('landing.heroTitle')}</h1>
+  return <h1>{t('common.appName')}</h1>
 }
 ```
 
@@ -124,7 +123,6 @@ Example:
 Files are organized by **domain/feature**:
 
 - **common.json**: App-wide UI elements (buttons, errors, navigation)
-- **landing.json**: Marketing and about pages
 - **chat.json**: All chat/conversation interfaces
 - **{service}.json**: Service-specific content (tarot, calendar, etc.)
 - **features.json**: Feature modules (community, profile, etc.)

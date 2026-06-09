@@ -1,6 +1,6 @@
 // tests/lib/destiny/astroFacts.test.ts
 import { describe, it, expect } from 'vitest'
-import { collectAstroFacts } from '@/lib/facts/astroFacts'
+import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 
 const BIRTH = {
   birthDate: '1995-02-09',
@@ -74,7 +74,7 @@ describe('collectAstroFacts — 점성 순수 facts', () => {
     const f = await collectAstroFacts({ ...BIRTH, birthTimeUnknown: true })
     const allAspects = [...f!.aspects.strong, ...f!.aspects.mid]
     const angleAspects = allAspects.filter(
-      (a) => a.to === 'Ascendant' || a.to === 'MC' || a.from === 'Ascendant' || a.from === 'MC'
+      (a) => a.to === 'Ascendant' || a.to === 'MC' || a.from === 'Ascendant' || a.from === 'MC',
     )
     expect(angleAspects.length).toBe(0)
   })

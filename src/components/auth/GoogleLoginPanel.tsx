@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { isInAppBrowser } from '@/lib/auth/detectInAppBrowser'
+import { openInExternalBrowser } from '@/lib/auth/openExternalBrowser'
 import { isStandalonePWA } from '@/lib/auth/detectPWA'
 import { useI18n } from '@/i18n/I18nProvider'
 import { copyToClipboard } from '@/lib/utils/clipboard'
@@ -71,14 +72,34 @@ export default function GoogleLoginPanel({
   // PWA standalone 모드 — OAuth callback 이 외부 브라우저로 빠지면 PWA 안
   // 으로 못 돌아옴. 사용자에게 미리 안내 + URL 복사 옵션 제공.
   const [pwa, setPwa] = useState(false)
+  // iOS 인스타·페북 등 자동 점프 불가 케이스에서 "링크 복사됨" 피드백.
+  const [copied, setCopied] = useState(false)
   useEffect(() => {
     setInApp(isInAppBrowser())
     setPwa(isStandalonePWA())
   }, [])
 
+  // 인앱 브라우저면 외부 브라우저로 점프시킨다. 카톡/안드로이드는 자동
+  // 리다이렉트('redirected'), iOS 인스타/페북은 자동 불가라 링크 복사 +
+  // 토스트로 안내('manual').
+  const handleOpenExternal = () => {
+    const result = openInExternalBrowser(callbackUrl)
+    if (result === 'redirected') return
+    void copyCurrentUrl()
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1800)
+  }
+
   const handleSignIn = () => {
     if (!agreed) {
       setShowWarn(true)
+      return
+    }
+    // 인앱 브라우저에서 구글 OAuth 는 막히므로(disallowed_useragent), 바로
+    // signIn 을 호출하면 구글 에러 페이지에서 막다른 길에 빠진다. 그 대신
+    // 외부 브라우저로 점프시켜 다른 사이트처럼 매끄럽게 로그인되게 한다.
+    if (inApp) {
+      handleOpenExternal()
       return
     }
     void signIn('google', { callbackUrl })
@@ -142,9 +163,14 @@ export default function GoogleLoginPanel({
               'Open this page in Chrome or Safari (via the top-right menu → "Open in browser") to continue.'
             )}
           </p>
-          <button type="button" onClick={copyCurrentUrl} className={warnBtnClass}>
-            {t('common.copyLink', 'Copy link')}
+          <button type="button" onClick={handleOpenExternal} className={warnBtnClass}>
+            {t('auth.openInBrowser', 'Open in browser')}
           </button>
+          {copied && (
+            <span className="ml-2 text-[11px] font-medium opacity-85">
+              {t('common.copied', 'Copied')}
+            </span>
+          )}
         </div>
       )}
 

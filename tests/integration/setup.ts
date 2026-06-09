@@ -71,42 +71,24 @@ export function generateTestUser(overrides: Record<string, unknown> = {}) {
 }
 
 // Cleanup utilities
+//
+// NOTE: only deletes from models that currently exist in the Prisma schema.
+// Several legacy models (Subscription, UserPreferences, Reading, DailyFortune,
+// Match*, PremiumContentAccess, …) were dropped in the dead-model cleanup; the
+// referencing deletes were removed here so cleanup no longer throws on an
+// undefined client model (which would abort mid-cleanup and leak FK rows into
+// the next test).
 export async function cleanupTestUser(userId: string) {
   try {
     // Delete in correct order to respect foreign key constraints
-    await testPrisma.matchMessage.deleteMany({ where: { senderId: userId } });
-    await testPrisma.pushSubscription.deleteMany({ where: { userId } });
     await testPrisma.tarotReading.deleteMany({ where: { userId } });
-    await testPrisma.personalityResult.deleteMany({ where: { userId } });
-    await testPrisma.savedCalendarDate.deleteMany({ where: { userId } });
     await testPrisma.referralReward.deleteMany({ where: { userId } });
     await testPrisma.bonusCreditPurchase.deleteMany({ where: { userId } });
     await testPrisma.counselorChatSession.deleteMany({ where: { userId } });
-    await testPrisma.premiumContentAccess.deleteMany({ where: { userId } });
     await testPrisma.userCredits.deleteMany({ where: { userId } });
-    await testPrisma.subscription.deleteMany({ where: { userId } });
-    await testPrisma.consultationHistory.deleteMany({ where: { userId } });
-    await testPrisma.personaMemory.deleteMany({ where: { userId } });
-    await testPrisma.userPreferences.deleteMany({ where: { userId } });
     await testPrisma.userInteraction.deleteMany({ where: { userId } });
-    await testPrisma.dailyFortune.deleteMany({ where: { userId } });
-    await testPrisma.reading.deleteMany({ where: { userId } });
     await testPrisma.session.deleteMany({ where: { userId } });
     await testPrisma.account.deleteMany({ where: { userId } });
-
-    // Handle MatchProfile and related tables
-    const matchProfile = await testPrisma.matchProfile.findUnique({
-      where: { userId },
-    });
-    if (matchProfile) {
-      await testPrisma.matchSwipe.deleteMany({
-        where: { OR: [{ swiperId: matchProfile.id }, { targetId: matchProfile.id }] },
-      });
-      await testPrisma.matchConnection.deleteMany({
-        where: { OR: [{ user1Id: matchProfile.id }, { user2Id: matchProfile.id }] },
-      });
-      await testPrisma.matchProfile.delete({ where: { userId } });
-    }
 
     // Finally delete user
     await testPrisma.user.delete({ where: { id: userId } });
@@ -161,29 +143,6 @@ export async function createTestUserInDb(
   });
   trackTestUser(user.id);
   return user;
-}
-
-export async function createTestSubscription(
-  userId: string,
-  plan: string = "starter",
-  status: string = "active"
-) {
-  const now = new Date();
-  const periodEnd = new Date(now);
-  periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-  return testPrisma.subscription.create({
-    data: {
-      userId,
-      status,
-      plan,
-      billingCycle: "monthly",
-      currentPeriodStart: now,
-      currentPeriodEnd: periodEnd,
-      stripeCustomerId: `cus_test_${Date.now()}`,
-      stripeSubscriptionId: `sub_test_${Date.now()}`,
-    },
-  });
 }
 
 export async function createTestUserCredits(

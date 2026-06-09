@@ -23,7 +23,6 @@ async function loadLocaleDict(locale: Locale): Promise<DictValue> {
   // 도 빼야 Turbopack 빌드 통과. 추후 페이지 부활 시 JSON 도 다시 추가.
   const modules = await Promise.all([
     import(`./locales/${locale}/common.json`),
-    import(`./locales/${locale}/landing.json`),
     import(`./locales/${locale}/chat.json`),
     import(`./locales/${locale}/services.json`),
     import(`./locales/${locale}/tarot.json`),

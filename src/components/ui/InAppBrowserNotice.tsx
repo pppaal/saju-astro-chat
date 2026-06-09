@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
+import { openInExternalBrowser as openExternal } from '@/lib/auth/openExternalBrowser'
 
 // 카카오톡·페이스북·인스타그램 등 in-app webview 에서 Google OAuth 가
 // "Error 403: disallowed_useragent" 로 차단된다 (Google "Use secure
@@ -67,26 +68,14 @@ export function InAppBrowserNotice() {
   }, [])
 
   const openInExternalBrowser = () => {
-    const currentUrl = window.location.href
-    if (platform === 'android') {
-      // Chrome 강제 launch — 사용자에게 Chrome 설치돼 있으면 외부 Chrome 으로
-      // 점프. 미설치 시 S.browser_fallback_url 가 일반 브라우저 chooser /
-      // Play Store 로 안전하게 fallback (없으면 페이지 freeze 위험).
-      // intent URL spec: https://developer.chrome.com/docs/multidevice/android/intents
-      const fallback = encodeURIComponent(currentUrl)
-      const intentUrl =
-        `intent://${currentUrl.replace(/^https?:\/\//, '')}` +
-        `#Intent;scheme=https;package=com.android.chrome` +
-        `;S.browser_fallback_url=${fallback};end`
-      window.location.href = intentUrl
-      return
-    }
-    // iOS: 자동 launch 불가능 — 사용자에게 수동 안내. 클립보드에 URL 복사 +
-    // 짧은 토스트로 "복사됐어요" 피드백 (사용자가 복사된 줄 몰라 다시 누르는
-    // 케이스 방지).
+    // 공용 헬퍼로 위임: KakaoTalk 전용 스킴(kakaotalk://web/openExternal) →
+    // Android Chrome intent → iOS 폴백 순으로 처리. iOS 인스타/페북 등
+    // 자동 점프 불가('manual')일 때만 클립보드 복사 + 토스트로 안내.
+    const result = openExternal()
+    if (result === 'redirected') return
     void (async () => {
       try {
-        await navigator.clipboard?.writeText(currentUrl)
+        await navigator.clipboard?.writeText(window.location.href)
         setCopiedToast(true)
         window.setTimeout(() => setCopiedToast(false), 1800)
       } catch {

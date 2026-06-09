@@ -301,7 +301,7 @@ export const ChatInputArea = React.memo(function ChatInputArea({
           rows={1}
           className={styles.textarea}
           disabled={loading}
-          maxLength={2000}
+          maxLength={8000}
         />
         <div className={styles.inputBoxActions}>
           <div className={styles.inputBoxActionsLeft}>

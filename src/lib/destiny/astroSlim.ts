@@ -6,54 +6,31 @@
  * drops / reformats — never alters a computed number.
  */
 
-import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
-
 export type SlimLocale = 'ko' | 'en'
 
 const PLANET_KO: Record<string, string> = {
-  ...PLANET_KO_BASE,
-  Node: '노드',
-  Ascendant: 'ASC',
-  Asc: 'ASC',
-  MC: 'MC',
+  Sun: '태양', Moon: '달', Mercury: '수성', Venus: '금성', Mars: '화성',
+  Jupiter: '목성', Saturn: '토성', Uranus: '천왕성', Neptune: '해왕성',
+  Pluto: '명왕성', Node: '노드', Ascendant: 'ASC', Asc: 'ASC', MC: 'MC',
 }
 const SIGN_KO: Record<string, string> = {
-  Aries: '양',
-  Taurus: '황소',
-  Gemini: '쌍둥이',
-  Cancer: '게',
-  Leo: '사자',
-  Virgo: '처녀',
-  Libra: '천칭',
-  Scorpio: '전갈',
-  Sagittarius: '궁수',
-  Capricorn: '염소',
-  Aquarius: '물병',
-  Pisces: '물고기',
+  Aries: '양', Taurus: '황소', Gemini: '쌍둥이', Cancer: '게', Leo: '사자', Virgo: '처녀',
+  Libra: '천칭', Scorpio: '전갈', Sagittarius: '궁수', Capricorn: '염소', Aquarius: '물병', Pisces: '물고기',
 }
 // aspect → 한국어 뜻 (깨진 □ 박스 + LLM 디코드 오역 방지; 궁합과 동일 정책)
-const ASP_SYM: Record<string, string> = {
-  conjunction: '[결합]',
-  opposition: '[대립]',
-  trine: '[조화]',
-  square: '[긴장]',
-  sextile: '[협력]',
-}
+const ASP_SYM: Record<string, string> = { conjunction: '[결합]', opposition: '[대립]', trine: '[조화]', square: '[긴장]', sextile: '[협력]' }
 
 const MAJOR = /(?<![A-Za-z])(?:Conjunction|Opposition|Trine|Square|Sextile)(?![a-z])/
 const ORB = /Orb:\s*(\d+)°(\d+)'/
-const TRN =
-  /^([A-Za-z]+) \(transit\) in [A-Za-z]+ (Conjunction|Opposition|Trine|Square|Sextile) natal ([A-Za-z]+) in /
+const TRN = /^([A-Za-z]+) \(transit\) in [A-Za-z]+ (Conjunction|Opposition|Trine|Square|Sextile) natal ([A-Za-z]+) in /
 const POS = /^([A-Za-z]+) in ([A-Za-z]+) (\d+)°(?:\d+')?(?:, House (\d+))?( R)?$/
-const ECL =
-  /^(일식|월식)\s+(\d{4})-(\d{2})-(\d{2})\s+([A-Za-z]+)\s+(\d+)°\s+(\w+)\s+([A-Za-z]+)\s+\(House\s*(\d+),\s*orb\s*([\d.]+)/
+const ECL = /^(일식|월식)\s+(\d{4})-(\d{2})-(\d{2})\s+([A-Za-z]+)\s+(\d+)°\s+(\w+)\s+([A-Za-z]+)\s+\(House\s*(\d+),\s*orb\s*([\d.]+)/
 
 const TRANSIT_LIMIT = 3.0
 const TRANSIT_TOP = 10
 
-const pko = (p: string, l: SlimLocale) =>
-  l === 'ko' ? (PLANET_KO[p] ?? p) : p === 'Ascendant' ? 'ASC' : p
-const sko = (s: string, l: SlimLocale) => (l === 'ko' ? (SIGN_KO[s] ?? s) : s)
+const pko = (p: string, l: SlimLocale) => (l === 'ko' ? PLANET_KO[p] ?? p : p === 'Ascendant' ? 'ASC' : p)
+const sko = (s: string, l: SlimLocale) => (l === 'ko' ? SIGN_KO[s] ?? s : s)
 const sym = (a: string) => ASP_SYM[a.toLowerCase()] ?? a
 
 function orbDeg(line: string): number | null {
@@ -73,17 +50,11 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
   let i = 0
   while (i < lines.length) {
     const line = lines[i]
-    if (!isHeader(line)) {
-      i++
-      continue
-    }
+    if (!isHeader(line)) { i++; continue }
     const header = line
     let j = i + 1
     const body: string[] = []
-    while (j < lines.length && !isHeader(lines[j])) {
-      body.push(lines[j])
-      j++
-    }
+    while (j < lines.length && !isHeader(lines[j])) { body.push(lines[j]); j++ }
     const name = header.replace(/^\[|\]$/g, '')
 
     // ── Current transits ──────────────────────────────────────────────
@@ -91,37 +62,19 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       const kept = body
         .filter((b) => b.trim() && MAJOR.test(b))
         .map((b) => ({ o: orbDeg(b), m: TRN.exec(b), b }))
-        .filter(
-          (x): x is { o: number; m: RegExpExecArray; b: string } =>
-            x.o !== null && x.o <= TRANSIT_LIMIT && !!x.m
-        )
+        .filter((x): x is { o: number; m: RegExpExecArray; b: string } => x.o !== null && x.o <= TRANSIT_LIMIT && !!x.m)
         .sort((a, b) => a.o - b.o)
         .slice(0, TRANSIT_TOP)
         .map(({ m, b }) => `  ${pko(m[1], l)}(t) ${sym(m[2])} ${pko(m[3], l)} ${orbStr(b)}`)
       if (kept.length) out.push(l === 'ko' ? '강한 트랜짓:' : 'strong transits:', ...kept)
-      i = j
-      continue
+      i = j; continue
     }
 
     // ── Eclipses (this year), one line per aspect, grouped by event ────
     if (name.includes('Upcoming Eclipses')) {
-      const rows = body
-        .map((b) => ECL.exec(b))
-        .filter((m): m is RegExpExecArray => !!m && m[2] === String(year))
+      const rows = body.map((b) => ECL.exec(b)).filter((m): m is RegExpExecArray => !!m && m[2] === String(year))
       if (rows.length) {
-        const groups = new Map<
-          string,
-          Array<{
-            md: string
-            kind: string
-            sign: string
-            tgt: string
-            asp: string
-            house: string
-            n: number
-            orb: string
-          }>
-        >()
+        const groups = new Map<string, Array<{ md: string; kind: string; sign: string; tgt: string; asp: string; house: string; n: number; orb: string }>>()
         for (const m of rows) {
           const [, kind, , mm, dd, sign, , asp, tgt, house, orb] = m
           const key = `${kind}|${mm}-${dd}|${sign}`
@@ -148,8 +101,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
           })
         }
       }
-      i = j
-      continue
+      i = j; continue
     }
 
     // ── Solar Return → one line ───────────────────────────────────────
@@ -161,21 +113,10 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       const sm = sun && POS.exec(sun.replace(/(\d+)°\d+'/, '$1°'))
       if (sm && sm[4]) parts.push(`${pko('Sun', l)} H${sm[4]}`)
       const byHouse: Record<string, string[]> = {}
-      for (const b of body) {
-        const pm = b.match(/^([A-Za-z]+) in [A-Za-z]+ \d+°(?:\d+')?, House (\d+)/)
-        if (pm) (byHouse[pm[2]] ||= []).push(pm[1])
-      }
-      let topH = '',
-        topN = 0
-      for (const [hh, ps] of Object.entries(byHouse))
-        if (ps.length > topN) {
-          topN = ps.length
-          topH = hh
-        }
-      if (topN >= 3)
-        parts.push(
-          `${l === 'ko' ? '스텔리움' : 'stellium'} H${topH} (${byHouse[topH].map((p) => pko(p, l)).join('·')})`
-        )
+      for (const b of body) { const pm = b.match(/^([A-Za-z]+) in [A-Za-z]+ \d+°(?:\d+')?, House (\d+)/); if (pm) (byHouse[pm[2]] ||= []).push(pm[1]) }
+      let topH = '', topN = 0
+      for (const [hh, ps] of Object.entries(byHouse)) if (ps.length > topN) { topN = ps.length; topH = hh }
+      if (topN >= 3) parts.push(`${l === 'ko' ? '스텔리움' : 'stellium'} H${topH} (${byHouse[topH].map((p) => pko(p, l)).join('·')})`)
       const sat = body.find((b) => b.startsWith('Saturn '))
       const stm = sat && POS.exec(sat.replace(/(\d+)°\d+'/, '$1°'))
       if (stm && stm[4]) parts.push(`${pko('Saturn', l)} H${stm[4]}`)
@@ -187,8 +128,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
         out.push(
           `${l === 'ko' ? `${year} 솔라리턴 (SR, H#=SR차트 하우스)` : `${year} solar return (SR, H#=SR-chart house)`}: ${parts.join(', ')}`
         )
-      i = j
-      continue
+      i = j; continue
     }
 
     // ── Secondary Progression → one line ──────────────────────────────
@@ -196,24 +136,15 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
       const parts: string[] = []
       for (const b of body) {
         const m = b.match(/^Progressed (Sun|Moon):\s*([A-Za-z]+)\s*(\d+)/)
-        if (m)
-          parts.push(
-            `${l === 'ko' ? (m[1] === 'Sun' ? 'P태양' : 'P달') : `P-${m[1]}`} ${sko(m[2], l)} ${m[3]}°`
-          )
+        if (m) parts.push(`${l === 'ko' ? (m[1] === 'Sun' ? 'P태양' : 'P달') : `P-${m[1]}`} ${sko(m[2], l)} ${m[3]}°`)
       }
       if (parts.length) out.push(`${l === 'ko' ? '2차진행' : 'progression'}: ${parts.join(' / ')}`)
-      i = j
-      continue
+      i = j; continue
     }
 
     // everything else (positions, natal aspects, fixed stars, profection…) dropped
     i = j
   }
 
-  return (
-    out
-      .join('\n')
-      .replace(/\n{3,}/g, '\n\n')
-      .replace(/\s+$/, '') + '\n'
-  )
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').replace(/\s+$/, '') + '\n'
 }

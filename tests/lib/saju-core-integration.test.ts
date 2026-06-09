@@ -80,6 +80,8 @@ describe('Saju Core Integration', () => {
       assertNamedExports('lib/saju/tonggeun', ['calculateTonggeun', 'analyzeStrength'])
     })
 
+    // healthCareer (analyzeHealthCareer) 모듈 제거됨 — 해당 export 검증 삭제.
+
     it('should expose pattern matcher', () => {
       assertNamedExports('lib/saju/patternMatcher', ['matchAllPatterns', 'analyzePatterns'])
     })
@@ -212,7 +214,6 @@ describe('Saju Core Integration', () => {
       // visualizationData / fortuneSimulator / aiPromptGenerator — 미사용으로 삭제됨
       // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
       // advancedSajuCore / advancedAnalysis — 미사용으로 통째 삭제됨 (2026-06)
-      // healthCareer — 미사용으로 삭제됨
 
       expect(modules.length).toBe(10)
       modules.forEach((modulePath) => {

@@ -105,7 +105,7 @@ describe('GET /api/admin/revenue', () => {
       outstanding: 400,
       expiredLost: 50,
     })
-    // refunds 통계 제거 (CreditRefundLog 모델 삭제, 2026-06-06)
+    // refunds 통계는 CreditRefundLog 제거(2026-06-06)로 응답에서 빠짐.
     expect(data.refunds).toBeUndefined()
   })
 

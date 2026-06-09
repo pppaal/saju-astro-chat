@@ -28,7 +28,6 @@ vi.mock('@/lib/db/prisma', () => ({
     user: { findUnique: vi.fn() },
     userCredits: { findUnique: vi.fn() },
     bonusCreditPurchase: { count: vi.fn(), findMany: vi.fn() },
-    reading: { count: vi.fn(), findFirst: vi.fn(), findMany: vi.fn() },
     tarotReading: { count: vi.fn(), findMany: vi.fn() },
     counselorChatSession: { count: vi.fn(), findMany: vi.fn() },
     creditTransaction: { findMany: vi.fn() },

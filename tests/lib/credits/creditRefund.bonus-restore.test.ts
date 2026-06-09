@@ -18,7 +18,6 @@ import { refundCredits } from '@/lib/credits/creditRefund'
 const {
   mockFindUnique,
   mockUpdate,
-  mockCreate,
   mockBonusFindMany,
   mockBonusUpdateMany,
   mockExecuteRaw,
@@ -26,7 +25,6 @@ const {
 } = vi.hoisted(() => ({
   mockFindUnique: vi.fn(),
   mockUpdate: vi.fn(),
-  mockCreate: vi.fn(),
   mockBonusFindMany: vi.fn(),
   mockBonusUpdateMany: vi.fn(),
   mockExecuteRaw: vi.fn(),
@@ -38,7 +36,6 @@ const {
 const mockTx = {
   userCredits: { findUnique: mockFindUnique, update: mockUpdate },
   bonusCreditPurchase: { findMany: mockBonusFindMany, updateMany: mockBonusUpdateMany },
-  creditRefundLog: { create: mockCreate },
   creditTransaction: { create: mockCreditTxnCreate },
   $executeRaw: mockExecuteRaw,
 }
@@ -46,7 +43,6 @@ const mockTx = {
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     $transaction: vi.fn((fn: (tx: typeof mockTx) => Promise<void>) => fn(mockTx)),
-    creditRefundLog: { findMany: vi.fn() },
   },
 }))
 
@@ -61,14 +57,15 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
     mockBonusUpdateMany.mockResolvedValue({ count: 1 })
     mockUpdate.mockResolvedValue({})
     mockExecuteRaw.mockResolvedValue(1)
-    mockCreate.mockResolvedValue({})
   })
 
   it('restores bonus pool when purchase has spare capacity (remaining = amount - 1)', async () => {
     // 핵심 시나리오: amount=10, remaining=9 (1 사용된 상태).
     // reading 1 단위 환불 → BonusCreditPurchase.remaining 이 10 으로 복원,
     // UserCredits.bonusCredits 도 1 증가. usedCredits 는 변경 없음.
-    mockBonusFindMany.mockResolvedValue([{ id: 'purchase_1', amount: 10, remaining: 9 }])
+    mockBonusFindMany.mockResolvedValue([
+      { id: 'purchase_1', amount: 10, remaining: 9 },
+    ])
 
     await refundCredits({
       userId: 'user_1',
@@ -117,7 +114,9 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
 
   it('falls through to usedCredits decrement when no bonus purchase has spare capacity', async () => {
     // 모든 purchase 가 remaining == amount (사용된 적 없음) → capacity 0 → skip.
-    mockBonusFindMany.mockResolvedValue([{ id: 'purchase_full', amount: 5, remaining: 5 }])
+    mockBonusFindMany.mockResolvedValue([
+      { id: 'purchase_full', amount: 5, remaining: 5 },
+    ])
 
     await refundCredits({
       userId: 'user_1',
@@ -172,8 +171,12 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
     expect(mockExecuteRaw).toHaveBeenCalled()
   })
 
-  it('writes the refund audit row (CreditTransaction) even when fully restored to bonus pool', async () => {
-    mockBonusFindMany.mockResolvedValue([{ id: 'p1', amount: 5, remaining: 4 }])
+  it('writes the REFUND audit row (pool=BONUS) when fully restored to bonus pool', async () => {
+    // CreditRefundLog 제거(2026-06-06) — 감사는 CreditTransaction(type=REFUND).
+    // 보너스 풀 복원 시 pool=BONUS, sourceRef=purchase.id.
+    mockBonusFindMany.mockResolvedValue([
+      { id: 'p1', amount: 5, remaining: 4 },
+    ])
 
     await refundCredits({
       userId: 'user_1',
@@ -183,8 +186,6 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
       apiRoute: '/api/tarot/chat',
     })
 
-    // CreditRefundLog 제거(2026-06-06) 후 환불 기록은 CreditTransaction(REFUND/BONUS)
-    // 한 줄로 같은 tx 안에서 emit — 보너스 풀로 전액 복원돼도 기록은 남는다.
     expect(mockCreditTxnCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         userId: 'user_1',

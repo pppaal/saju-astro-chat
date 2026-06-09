@@ -104,7 +104,7 @@ describe('Validation Limits', () => {
   it('should have content limits', async () => {
     const { LIMITS } = await import('@/lib/validation');
 
-    expect(LIMITS.MESSAGE).toBe(2000);
+    expect(LIMITS.MESSAGE).toBe(8000);
     expect(LIMITS.PROMPT).toBe(2000);
     expect(LIMITS.QUESTION).toBe(600);
   });

@@ -6,14 +6,13 @@
  * Increment ①: SAJU section.
  */
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { collectSajuFacts } from '@/lib/facts/sajuFacts'
+import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
-import { collectAstroFacts } from '@/lib/facts/astroFacts'
+import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
-import { formatAstroSelf } from '@/lib/facts/astroSelfFormatter'
-import { slimAstroSelf } from '@/lib/facts/astroSlim'
+import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
+import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
-import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 import { isHyeong } from '@/lib/saju/hyeong'
 import { getNowInTimezone } from '@/lib/datetime'
 import type { DayMaster } from '@/lib/saju/types'
@@ -50,7 +49,16 @@ const HOUSE_THEME_EN: Record<number, string> = {
 export type Locale = 'ko' | 'en'
 
 const PLANET_KO_A: Record<string, string> = {
-  ...PLANET_KO_BASE,
+  Sun: '태양',
+  Moon: '달',
+  Mercury: '수성',
+  Venus: '금성',
+  Mars: '화성',
+  Jupiter: '목성',
+  Saturn: '토성',
+  Uranus: '천왕성',
+  Neptune: '해왕성',
+  Pluto: '명왕성',
   Node: '노드',
   'True Node': '노드',
   'North Node': '노드',
@@ -72,6 +80,14 @@ const SIGN_KO_A: Record<string, string> = {
   Pisces: '물고기자리',
 }
 const MAJOR_TYPES = new Set(['conjunction', 'opposition', 'trine', 'square', 'sextile'])
+// essential dignity — ko 라벨. EN locale 은 raw enum(domicile/detriment) 유지.
+// 의미는 레전드의 [domicile]강 [detriment]약 와 동일, exaltation/fall 은 점성 표준.
+const DIGNITY_KO: Record<string, string> = {
+  domicile: '강함',
+  exaltation: '매우강함',
+  detriment: '약함',
+  fall: '쇠약',
+}
 // English saju term maps (EN locale renders the saju side in English too).
 const SIBSIN_EN: Record<string, string> = {
   비견: 'Peer',
@@ -209,12 +225,7 @@ const pkA = (n: string, l: Locale) => (l === 'ko' ? (PLANET_KO_A[n] ?? n) : n)
 
 // facts.pillars 의 평탄 형태(stem/branch + element) → toSajuPillarsLike 의 raw
 // 형식으로 변환. SajuFacts SSOT 라 element 도 facts 가 제공.
-function factPillarToShinsalInput(p: {
-  stem: string
-  stemElement: string
-  branch: string
-  branchElement: string
-}) {
+function factPillarToShinsalInput(p: { stem: string; stemElement: string; branch: string; branchElement: string }) {
   return {
     heavenlyStem: { name: p.stem, element: p.stemElement as never },
     earthlyBranch: { name: p.branch, element: p.branchElement as never },
@@ -398,7 +409,7 @@ export async function buildDestinyContext(
         birthTimeUnknown: birth.birthTimeUnknown,
         birthCityUnknown: birth.birthCityUnknown,
       },
-      now
+      now,
     )
     if (!aFacts) throw new Error('astro facts unavailable')
 
@@ -406,19 +417,32 @@ export async function buildDestinyContext(
     // formatAstroSelf 가 옛 chart 인스턴스를 요구해서 _chart 로 그대로 넘긴다.
     const chart = aFacts._chart
     const sgn = (s: string) => (locale === 'ko' ? (SIGN_KO_A[s] ?? s).replace(/자리$/, '') : s)
-    const pl = (n: string) => (n === 'Ascendant' ? 'ASC' : n === 'MC' ? 'MC' : pkA(n, locale))
+    const pl = (n: string) =>
+      n === 'Ascendant'
+        ? locale === 'ko'
+          ? '상승점'
+          : 'ASC'
+        : n === 'MC'
+          ? locale === 'ko'
+            ? '중천점'
+            : 'MC'
+          : pkA(n, locale)
 
     const placeUnreliable = aFacts.natal.placeUnreliable
     const posLines: string[] = []
     for (const p of aFacts.natal.planets) {
-      const dgTag = p.dignity !== 'peregrine' ? ` [${p.dignity}]` : ''
+      // ko 면 dignity 도 한국어로 (모델이 영어 enum 을 못 보게). EN 은 raw 유지.
+      const dgTag =
+        p.dignity !== 'peregrine'
+          ? ` [${locale === 'ko' ? (DIGNITY_KO[p.dignity] ?? p.dignity) : p.dignity}]`
+          : ''
       const houseTag = placeUnreliable ? '' : ` H${p.house}`
       posLines.push(`  ${pl(p.name)} ${sgn(p.sign)}${houseTag}${p.retrograde ? ' R' : ''}${dgTag}`)
     }
     if (!placeUnreliable) {
       posLines.push(
-        `  ASC ${sgn(aFacts.natal.ascendant.sign)}`,
-        `  MC ${sgn(aFacts.natal.mc.sign)}`
+        `  ${pl('Ascendant')} ${sgn(aFacts.natal.ascendant.sign)}`,
+        `  ${pl('MC')} ${sgn(aFacts.natal.mc.sign)}`
       )
     }
 
@@ -461,7 +485,7 @@ export async function buildDestinyContext(
       const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
       profLine = L(
         `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
-        `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
+        `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`,
       )
     }
 
@@ -478,10 +502,7 @@ export async function buildDestinyContext(
   } catch (err) {
     // 점성 실패 시 silent fallback 이면 운영에서 사용자가 "사주만" 답변을
     // 받아도 아무도 모름. 최소한 warn 으로 남겨 모니터링 가능하게.
-    console.warn(
-      '[buildDestinyContext] astro section build failed:',
-      err instanceof Error ? err.message : err
-    )
+    console.warn('[buildDestinyContext] astro section build failed:', err instanceof Error ? err.message : err)
   }
 
   // === STABLE (cached prefix) ===
@@ -572,8 +593,9 @@ export function buildSajuSection(
   const yinyang = dm.yinYang === '음' ? L('음', 'yin') : L('양', 'yang')
   const strLab = locale === 'en' ? (STRENGTH_EN[strengthLabel] ?? strengthLabel) : strengthLabel
   // 통근 — facts.dayMaster.rooted 가 이미 계산 (sajuFacts.ts SSOT).
-  const rootLab =
-    locale === 'en' ? (dm.rooted ? 'rooted' : 'rootless') : dm.rooted ? '유근' : '무근'
+  const rootLab = locale === 'en'
+    ? dm.rooted ? 'rooted' : 'rootless'
+    : dm.rooted ? '유근' : '무근'
   out.push(`${L('일간', 'day_master')}: ${dm.name}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`)
   const fe = facts.fiveElements
   out.push(

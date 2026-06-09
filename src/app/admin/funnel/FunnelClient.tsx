@@ -12,6 +12,7 @@ interface Step {
 interface FunnelData {
   rangeDays: number
   steps: Step[]
+  retention?: { returned: number; rate: number }
 }
 
 function num(n: number): string {
@@ -51,7 +52,7 @@ export default function FunnelClient() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-stone-900">전환 퍼널</h1>
           <p className="mt-1 text-sm text-stone-500">
-            최근 {days}일 가입자 코호트 · 가입 → 첫 리딩 → 첫 결제
+            최근 {days}일 가입자 코호트 · 가입 → 첫 리딩 → 첫 결제 · 재방문
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -110,6 +111,25 @@ export default function FunnelClient() {
               </div>
             )
           })}
+          {data.retention && top > 0 && (
+            <div className="mt-4 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-5 shadow-sm">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm font-medium text-indigo-900">재방문 (리텐션)</span>
+                <span className="font-mono text-xl font-semibold tabular-nums text-indigo-900">
+                  {num(data.retention.returned)}명
+                </span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-indigo-100">
+                <div
+                  className="h-full rounded-full bg-indigo-500"
+                  style={{ width: `${Math.max(data.retention.rate, 3)}%` }}
+                />
+              </div>
+              <p className="mt-2 text-[12px] text-indigo-500">
+                가입 후 하루 이상 지나 다시 활동한 사용자 · 재방문율 {data.retention.rate}% (가입 대비)
+              </p>
+            </div>
+          )}
           {top === 0 && (
             <p className="text-center text-sm text-stone-400">해당 기간 가입자가 없습니다.</p>
           )}

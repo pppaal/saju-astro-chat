@@ -270,7 +270,7 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   }
   const ascA = signKo(chartA.ascendant?.sign)
   const ascB = signKo(chartB.ascendant?.sign)
-  const ascLine = `ASC ${labelA} ${ascA} / ${labelB} ${ascB}`
+  const ascLine = `상승점 ${labelA} ${ascA} / ${labelB} ${ascB}`
 
   const out: string[] = ['== 시너스트리 (점성 cross) ==']
   out.push(

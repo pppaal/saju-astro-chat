@@ -70,5 +70,29 @@
     "icon": "💕",
     "date": "2025-01-05",
     "readTime": 12
+  },
+  {
+    "slug": "is-ai-tarot-accurate",
+    "title": "Is AI Tarot Accurate? How AI Tarot Readings Actually Work",
+    "titleKo": "AI 타로 정확할까? AI 타로의 원리와 활용법",
+    "excerpt": "AI tarot isn't a prediction machine — it's a structured way to reflect on your question. Here's how AI tarot readings actually work and how to get the most out of one.",
+    "excerptKo": "AI 타로는 미래를 맞히는 기계가 아니라 질문을 구조적으로 들여다보는 도구예요. AI 타로가 실제로 어떻게 작동하는지, 그리고 잘 활용하는 법을 알려드립니다.",
+    "category": "Tarot",
+    "categoryKo": "타로",
+    "icon": "🔮",
+    "date": "2026-06-07",
+    "readTime": 6
+  },
+  {
+    "slug": "free-saju-reading-guide",
+    "title": "How to Read Your Saju for Free Online: A Step-by-Step Guide",
+    "titleKo": "사주 무료로 보는 법: 사주팔자 읽는 순서 가이드",
+    "excerpt": "What you need, how the four pillars work, and a simple step-by-step way to read your Saju online — plus how AI makes it easier.",
+    "excerptKo": "무엇이 필요한지, 사주 네 기둥이 어떻게 작동하는지, 온라인에서 사주를 읽는 간단한 순서 — 그리고 AI로 더 쉽게 보는 법까지.",
+    "category": "Saju",
+    "categoryKo": "사주",
+    "icon": "🧭",
+    "date": "2026-06-07",
+    "readTime": 6
   }
 ]

@@ -1,5 +1,5 @@
-import { collectSajuFacts } from '@/lib/facts/sajuFacts'
-import { collectAstroFacts } from '@/lib/facts/astroFacts'
+import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
+import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { toChart } from '@/lib/astrology/foundation/astrologyService'
 import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'

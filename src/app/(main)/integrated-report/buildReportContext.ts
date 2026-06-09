@@ -24,8 +24,8 @@
 // NatalContext shape 호환 — adapter (natalToReportData / buildCrossRows) 가
 // 같은 shape 받음.
 
-import { collectSajuFacts } from '@/lib/facts/sajuFacts'
-import { collectAstroFacts } from '@/lib/facts/astroFacts'
+import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
+import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { performAnalyses } from '@/app/api/saju/services/analyses'
 import { annotateShinsal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { JIJANGGAN } from '@/lib/saju/constants'

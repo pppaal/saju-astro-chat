@@ -1,6 +1,13 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
+import { JsonLd } from '@/components/seo/JsonLd'
+import {
+  generateJsonLd,
+  generateLocalizedMetadata,
+  generateServiceSchema,
+  getServerLocale,
+  SERVICE_FAQS,
+} from '@/components/seo/SEO'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -35,5 +42,23 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function DestinyMapCounselorLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>
+  const pageJsonLd = generateJsonLd({
+    type: 'WebPage',
+    name: 'Destiny Counselor',
+    description:
+      'A 1:1 AI counselor chat that reads your Saju (Four Pillars) and natal astrology together, with practical action guidance.',
+    url: `${baseUrl}/destiny-counselor`,
+  })
+  // destiny-map 서비스 키지만 실제 경로는 /destiny-counselor — urlPath 로 보정.
+  const serviceJsonLd = generateServiceSchema('destiny-map', '/destiny-counselor')
+  const faqJsonLd = generateJsonLd({ type: 'FAQPage', faqs: SERVICE_FAQS.destinyMap })
+
+  return (
+    <>
+      <JsonLd data={pageJsonLd} />
+      <JsonLd data={serviceJsonLd} />
+      <JsonLd data={faqJsonLd} />
+      {children}
+    </>
+  )
 }

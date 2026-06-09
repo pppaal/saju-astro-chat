@@ -58,9 +58,13 @@ export const POST = withApiMiddleware(
 
     return NextResponse.json({ status: 'prefetching' })
   },
-  createTarotGuard({
-    route: 'tarot-prefetch',
-    limit: 30,
-    windowSeconds: 60,
-  })
+  {
+    ...createTarotGuard({
+      route: 'tarot-prefetch',
+      limit: 30,
+      windowSeconds: 60,
+    }),
+    // 게스트 제거 — 로그인 필수. 비로그인은 401.
+    requireAuth: true,
+  }
 )

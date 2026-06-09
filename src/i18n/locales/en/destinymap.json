@@ -44,8 +44,7 @@
       "loginRequiredDesc": "Sign in to access personalized consultations and load your previous conversation history.",
       "loginCta": "Sign in to start",
       "loginCtaShort": "Sign in",
-      "loginHint": "No account? You can sign up during the login process.",
-      "guestBanner": "Sign in to save your chat history."
+      "loginHint": "No account? You can sign up during the login process."
     },
     "visualizer": {
       "dominantElement": "Dominant element",

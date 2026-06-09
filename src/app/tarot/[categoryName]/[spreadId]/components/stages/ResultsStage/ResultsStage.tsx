@@ -53,6 +53,8 @@ import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../
 import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { FollowupChat } from './FollowupChat'
+import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
+import { buildShareDataFromReading } from '@/components/tarot/shareCardData'
 import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
 
 export interface ResultsStageProps {
@@ -67,7 +69,6 @@ export interface ResultsStageProps {
   userTopic: string
   questionAnalysis: TarotQuestionAnalysisSnapshot | null
   isGuestUser: boolean
-  signInUrl: string
   handleCardReveal: (index: number) => void
   canRevealCard: (index: number) => boolean
   isCardRevealed: (index: number) => boolean
@@ -81,6 +82,10 @@ export interface ResultsStageProps {
   handleReset: () => void
   interpretationFailed?: boolean
   handleRetryInterpretation?: () => void
+  /** "이 리딩 다시 열기" 복원 시 채워짐 — 저장된 followup 대화 turn. */
+  initialFollowupTurns?: Array<{ role: 'user' | 'assistant'; content: string }> | null
+  /** 복원하는 리딩이 이미 보충 카드를 뽑았는지 — 클래리파이어 버튼 초기 잠금. */
+  initialClarifierUsed?: boolean
 }
 
 export function ResultsStage(props: ResultsStageProps) {
@@ -96,7 +101,6 @@ export function ResultsStage(props: ResultsStageProps) {
     userTopic,
     questionAnalysis,
     isGuestUser,
-    signInUrl,
     handleCardReveal,
     canRevealCard,
     isCardRevealed,
@@ -143,22 +147,6 @@ export function ResultsStage(props: ResultsStageProps) {
           translate={translate}
           questionAnalysis={questionAnalysis}
         />
-
-        {isGuestUser && (
-          <section className="rounded-2xl bg-amber-500/5 border border-amber-500/20 p-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-            <p className="text-sm text-amber-200/90">
-              {isKo
-                ? '이번 무료 1회 리딩은 완료되었습니다. 추가 질문과 다음 리딩은 로그인 후 이어서 볼 수 있습니다.'
-                : 'Your free guest reading is complete. Sign in to continue with more questions and another reading.'}
-            </p>
-            <Link
-              href={signInUrl}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-100 text-sm font-medium transition-colors whitespace-nowrap"
-            >
-              {isKo ? '로그인하고 계속 보기' : 'Sign In To Continue'}
-            </Link>
-          </section>
-        )}
 
         {/* 저장 상태 — 자동 저장이 (모바일 일시 오류 등으로) 실패해도 사용자가
             직접 만회할 수 있게 상태 + 수동 저장 버튼 노출. 로그인 사용자 +
@@ -307,6 +295,20 @@ export function ResultsStage(props: ResultsStageProps) {
         {/* ⑤ 조언과 예측 */}
         {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
 
+        {/* ⑥ SNS 공유 — 결과를 1:1 이미지로 만들어 인스타/카톡에 공유·저장.
+            AI 응답이 도착한 후에만 노출(질문+카드+한줄 메시지 카드). */}
+        {!aiPending && insight?.overall_message && (
+          <ShareTarotButton
+            data={buildShareDataFromReading(
+              readingResult,
+              interpretation,
+              userTopic,
+              language === 'ko'
+            )}
+            language={language}
+          />
+        )}
+
         {/* ⑦ Follow-up 채팅 — AI 응답이 도착한 후에만 노출 */}
         {!aiPending && insight?.overall_message && (
           <FollowupChat
@@ -315,6 +317,8 @@ export function ResultsStage(props: ResultsStageProps) {
             userTopic={userTopic}
             language={language}
             readingId={props.readingId ?? null}
+            initialFollowupTurns={props.initialFollowupTurns}
+            initialClarifierUsed={props.initialClarifierUsed}
           />
         )}
 

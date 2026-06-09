@@ -1,4 +1,4 @@
-// src/lib/facts/sajuFacts.ts
+// src/lib/destiny/sajuFacts.ts
 //
 // "재료 준비실" — 사주 raw 데이터를 한 번에 모으는 순수 계산 layer.
 // counselorContext.ts 의 buildSajuSection 이 raw 호출 + 텍스트 포매팅을 한
@@ -97,30 +97,12 @@ export interface DaeunEntry {
 }
 
 const STEM_ELEMENT: Record<string, string> = {
-  甲: '목',
-  乙: '목',
-  丙: '화',
-  丁: '화',
-  戊: '토',
-  己: '토',
-  庚: '금',
-  辛: '금',
-  壬: '수',
-  癸: '수',
+  '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토', '己': '토',
+  '庚': '금', '辛': '금', '壬': '수', '癸': '수',
 }
 const BRANCH_ELEMENT: Record<string, string> = {
-  子: '수',
-  丑: '토',
-  寅: '목',
-  卯: '목',
-  辰: '토',
-  巳: '화',
-  午: '화',
-  未: '토',
-  申: '금',
-  酉: '금',
-  戌: '토',
-  亥: '수',
+  '子': '수', '丑': '토', '寅': '목', '卯': '목', '辰': '토', '巳': '화',
+  '午': '화', '未': '토', '申': '금', '酉': '금', '戌': '토', '亥': '수',
 }
 
 /**
@@ -139,7 +121,7 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
     input.calendarType ?? 'solar',
     tz,
     input.lunarLeap,
-    input.longitude
+    input.longitude,
   ) as unknown as RawSajuShape
 
   const P = raw.pillars
@@ -200,7 +182,7 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
     ? (['year', 'month', 'day', 'time'] as const).some((k) => {
         const jg = P[k].jijanggan
         return [jg?.chogi?.name, jg?.junggi?.name, jg?.jeonggi?.name].some(
-          (s) => !!s && STEM_ELEMENT[s] === dayEl
+          (s) => !!s && STEM_ELEMENT[s] === dayEl,
         )
       })
     : false
@@ -248,7 +230,9 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
         age: d.age ?? 0,
         heavenlyStem: d.heavenlyStem ?? '',
         earthlyBranch: d.earthlyBranch ?? '',
-        sibsin: d.sibsin ? { cheon: d.sibsin.cheon ?? null, ji: d.sibsin.ji ?? null } : null,
+        sibsin: d.sibsin
+          ? { cheon: d.sibsin.cheon ?? null, ji: d.sibsin.ji ?? null }
+          : null,
       })),
     },
     // 조후용신 — JOHU_YONGSIN_DB 정적 룩업. 비용 거의 0.
