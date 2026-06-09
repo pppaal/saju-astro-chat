@@ -995,8 +995,15 @@
 }
 
 .ctaTitle.nowrap {
-  white-space: nowrap;
   max-width: none;
+}
+
+/* nowrap 은 충분히 넓은 화면에서만 적용 — 좁은 폰(~420px 미만)에서 한국어 CTA
+   "당신의 운명을 펼치세요" 가 한 줄 강제로 가로 넘치던 문제 방지. */
+@media (min-width: 420px) {
+  .ctaTitle.nowrap {
+    white-space: nowrap;
+  }
 }
 
 .ctaTitle em { font-style: italic; }

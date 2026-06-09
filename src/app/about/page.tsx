@@ -1174,6 +1174,18 @@ export default function AboutPage() {
   const readout = useLiveReadout()
   useScrollReveal(s.in)
 
+  // 샘플 리딩 카드 날짜 — 하드코딩하면 시간이 지날수록 "오래된 목업"으로 보임.
+  // 마운트 후 오늘 날짜로 채워 항상 최신처럼. (초기값은 SSR/CSR 동일해 hydration 안전)
+  const [sampleDate, setSampleDate] = useState({ ko: '오늘 · KST', en: 'TODAY · KST' })
+  useEffect(() => {
+    const d = new Date()
+    const y = d.getFullYear()
+    const mo = String(d.getMonth() + 1).padStart(2, '0')
+    const da = String(d.getDate()).padStart(2, '0')
+    const mon = d.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+    setSampleDate({ ko: `${y}.${mo}.${da} · KST`, en: `${da} ${mon} ${y} · KST` })
+  }, [])
+
   const signInfo = SIGN_INFO[sign]
 
   return (
@@ -1635,7 +1647,7 @@ export default function AboutPage() {
                 <div className={s.readingInner}>
                   <div className={s.readingTop}>
                     <span>{isKo ? 'DestinyPal · 일일 리딩' : 'DestinyPal · Daily'}</span>
-                    <span>{isKo ? '2026.06.04 · KST' : '04 JUN 2026 · KST'}</span>
+                    <span>{isKo ? sampleDate.ko : sampleDate.en}</span>
                   </div>
                   <div className={s.readingSign}>
                     <span className={s.holoText}>♌</span>
@@ -1731,7 +1743,9 @@ export default function AboutPage() {
               )}
             </blockquote>
             <cite data-reveal data-d="1">
-              {isKo ? '— 서울의 한 초기 사용자 · ★★★★★' : '— Early user, Seoul · ★★★★★'}
+              {isKo
+                ? '— 예시 후기 · 서울의 초기 사용자 · ★★★★★'
+                : '— Illustrative · Early user, Seoul · ★★★★★'}
             </cite>
           </div>
         </section>
@@ -1789,7 +1803,6 @@ export default function AboutPage() {
                 <div className={s.footerCol}>
                   <h4>{isKo ? '문의' : 'Contact'}</h4>
                   <a href="mailto:rheeco88@gmail.com">rheeco88@gmail.com</a>
-                  <a href="#">@DestinyPal</a>
                 </div>
               </div>
             </div>
