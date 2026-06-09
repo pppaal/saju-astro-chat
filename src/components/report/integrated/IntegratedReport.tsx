@@ -772,6 +772,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
                   <b>{t('geokWeakness')}</b> {ilju.weakness}
                 </div>
+                {ilju.career && (
+                  <div className={s.themeReason} style={{ marginTop: 4 }}>
+                    <b>{t('geokCareer')}</b> {ilju.career}
+                  </div>
+                )}
+                {ilju.love && (
+                  <div className={s.themeReason} style={{ marginTop: 4 }}>
+                    <b>{t('geokLove')}</b> {ilju.love}
+                  </div>
+                )}
               </div>
             </>
           )}
