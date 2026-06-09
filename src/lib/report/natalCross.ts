@@ -541,7 +541,7 @@ export function evalDrive(
           tone: 'tension',
           reason: {
             ko: '타고나길 받쳐주고 조율하는 쪽인데 별자리는 앞에 나서라 부추겨요 — 속도와 무대가 엇갈릴 수 있어요.',
-            en: 'You’re built to support, but your chart pushes you forward — pace and stage can clash.',
+            en: 'You’re built to support, but your chart pushes you forward — pace and visibility can clash.',
           },
         }
       : {
@@ -653,7 +653,7 @@ export function evalKeyAspect(
   sajuDominantGroup: string | undefined
 ): CrossVerdict | null {
   if (!aspects || aspects.length === 0) return null
-  let best: { key: string; pairKo: string; orb: number } | null = null
+  let best: { key: string; pairKo: string; pairEn: string; orb: number } | null = null
   for (const a of aspects) {
     const p1 = a.from?.name
     const p2 = a.to?.name
@@ -665,7 +665,8 @@ export function evalKeyAspect(
     const orb = typeof a.orb === 'number' ? Math.abs(a.orb) : 99
     if (!best || orb < best.orb) {
       const pairKo = `${PLANET_LABEL[p1]?.ko ?? p1}·${PLANET_LABEL[p2]?.ko ?? p2}`
-      best = { key, pairKo, orb }
+      const pairEn = `${PLANET_LABEL[p1]?.en ?? p1}–${PLANET_LABEL[p2]?.en ?? p2}`
+      best = { key, pairKo, pairEn, orb }
     }
   }
   if (!best) return null
@@ -675,7 +676,7 @@ export function evalKeyAspect(
     tone: matches ? 'resonant' : 'complement',
     reason: {
       ko: `${best.pairKo} 각이 두드러져요 — ${theme.ko}${matches ? ' 사주에서도 같은 결이라 이 면이 특히 도드라져요.' : ''}`,
-      en: `A standout aspect — ${theme.en.charAt(0).toLowerCase()}${theme.en.slice(1)}${matches ? '. Saju echoes it, so this stands out.' : ''}`,
+      en: `A standout ${best.pairEn} aspect — ${theme.en.charAt(0).toLowerCase()}${theme.en.slice(1)}${matches ? '. Saju echoes it, so this stands out.' : ''}`,
     },
   }
 }
@@ -829,7 +830,7 @@ export function evalYinYang(
           tone: 'resonant',
           reason: {
             ko: '타고난 기질이 음(수용·내향)인데 밤에 태어나 무대도 안을 향해요 — 깊이 사고하고 받아들이는 결이 일관돼요. 가끔 먼저 드러내는 연습이 도움이 돼요.',
-            en: 'Your nature is yin (receptive, inward) and you were born by night, so your stage faces inward too — consistent depth and receptivity. Practicing showing up first helps now and then.',
+            en: 'Your nature is yin (receptive, inward) and you were born by night, so your stage faces inward too — consistent depth and receptivity. Practicing speaking up first helps now and then.',
           },
         }
   }
@@ -904,7 +905,7 @@ export function synthesize(
     tone === 'resonant'
       ? ' East (Saju) and West (astrology) mostly point the same way, so your sense of self is clear and your drive is a strength. Just watch for one-sidedness — touch the opposite grain now and then.'
       : tone === 'complement'
-        ? ' The two systems say different things, yet they fill each other’s gaps. Inner and outer differ, giving you a wide range to draw on by situation.'
+        ? ' The two systems say different things, yet they fill each other’s gaps. Inner and outer differ, giving you a wide range to draw on depending on the situation.'
         : tone === 'tension'
           ? ' Saju and astrology pull against each other in several places, so you may feel inner friction — but that tension fuels depth and growth. Alternate between the two rather than suppressing one.'
           : ' No strong lean either way gives you good balance, and you can switch between different sides as the situation calls.'
