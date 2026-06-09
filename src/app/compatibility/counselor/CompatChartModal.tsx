@@ -9,6 +9,7 @@ import { CompatLines } from '@/components/report/atoms/CompatLines'
 import { generateChartSummary } from '@/lib/report/local-report-generator'
 import { CompatNatalOverlay } from './CompatNatalOverlay'
 import { CompatRadarOverlay } from './CompatRadarOverlay'
+import { computeSynastryView, type SynastryTone } from './computeSynastry'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /**
@@ -141,6 +142,15 @@ export function CompatChartModal({
   const astroB = unwrapAstro(person2Astro)
   const labelA = nameA || 'A'
   const labelB = nameB || 'B'
+  // 상담사와 같은 엔진(calculateSynastry) 결과 — 어스펙트·하우스 오버레이.
+  const synView = computeSynastryView(astroA, astroB, lang)
+
+  const toneColor = (tone: SynastryTone): string =>
+    tone === 'harmony'
+      ? 'var(--ds-gold-on-dark, #d4af6a)'
+      : tone === 'tension'
+        ? '#f9a8a8'
+        : 'var(--ds-dark-text-muted)'
 
   return (
     <div
@@ -327,6 +337,73 @@ export function CompatChartModal({
               nameB={labelB}
               lang={lang}
             />
+
+            {/* 핵심 시너스트리 — 상담사와 동일한 calculateSynastry 결과(어스펙트별
+                orb·가중). 차트 숫자 = 상담사가 추론한 그 값. */}
+            {synView && synView.aspects.length > 0 && (
+              <div className="space-y-1.5">
+                <div
+                  className="px-1 text-[11px] font-medium uppercase tracking-wider"
+                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                >
+                  {isKo ? '핵심 시너스트리 (개인행성 cross)' : 'Key synastry (personal planets)'}
+                </div>
+                <ul className="space-y-1">
+                  {synView.aspects.map((asp, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-2 text-xs"
+                      style={{ color: 'var(--ds-dark-text)' }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{ background: toneColor(asp.tone) }}
+                      />
+                      <span className="flex-1">
+                        <b>
+                          {labelA} {asp.a}
+                        </b>{' '}
+                        <span style={{ color: toneColor(asp.tone) }}>{asp.label}</span>{' '}
+                        <b>
+                          {labelB} {asp.b}
+                        </b>
+                      </span>
+                      <span
+                        className="shrink-0 tabular-nums"
+                        style={{ color: 'var(--ds-dark-text-muted)' }}
+                      >
+                        {asp.orb}°
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 하우스 오버레이 — "A의 금성이 B의 7H(결혼)" 식 정통 신호 */}
+            {synView && (synView.overlaysAtoB.length > 0 || synView.overlaysBtoA.length > 0) && (
+              <div className="space-y-1">
+                <div
+                  className="px-1 text-[11px] font-medium uppercase tracking-wider"
+                  style={{ color: 'var(--ds-gold-on-dark)' }}
+                >
+                  {isKo ? '하우스 오버레이 (누가 어느 영역에)' : 'House overlays'}
+                </div>
+                <ul className="space-y-0.5 text-xs" style={{ color: 'var(--ds-dark-text-muted)' }}>
+                  {synView.overlaysAtoB.map((o, i) => (
+                    <li key={`ab${i}`}>
+                      {labelA} {o.planet} → {labelB} {o.house}H{o.meaning ? ` (${o.meaning})` : ''}
+                    </li>
+                  ))}
+                  {synView.overlaysBtoA.map((o, i) => (
+                    <li key={`ba${i}`}>
+                      {labelB} {o.planet} → {labelA} {o.house}H{o.meaning ? ` (${o.meaning})` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </section>
         </div>
       </div>
