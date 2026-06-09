@@ -1216,3 +1216,36 @@
   font-weight: 600;
   margin-right: 6px;
 }
+
+/* 교차 — 실천 처방 블록 */
+.crossAdvice {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--gold-line, var(--line));
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(169, 131, 59, 0.04);
+}
+.crossAdviceHead {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.crossAdviceList {
+  margin: 0;
+  padding-left: 2px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.crossAdviceList li {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.crossAdviceList b {
+  color: var(--gold);
+  font-weight: 600;
+}
