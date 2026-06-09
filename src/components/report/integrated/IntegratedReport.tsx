@@ -960,6 +960,67 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </div>
           </div>
+          {/* 핵심 3행성 — planet-core DB 의 원리·의미를 hover→본문으로 (태양·달·상승). */}
+          <div className={s.bigThree}>
+            {(() => {
+              const find = (n: string) => A.planets.find((p) => p.name === n)
+              const sun = find('Sun')
+              const moon = find('Moon')
+              const asc = A.ascendant
+              const cards = [
+                sun && {
+                  glyph: '☉',
+                  label: lang === 'en' ? 'Sun' : '태양',
+                  core: getPlanetCore('Sun', lang),
+                  sign: sun.sign,
+                  deg: sun.deg,
+                  house: sun.house,
+                },
+                moon && {
+                  glyph: '☾',
+                  label: lang === 'en' ? 'Moon' : '달',
+                  core: getPlanetCore('Moon', lang),
+                  sign: moon.sign,
+                  deg: moon.deg,
+                  house: moon.house,
+                },
+                asc && {
+                  glyph: 'Asc',
+                  label: lang === 'en' ? 'Rising' : '상승',
+                  core: getPlanetCore('Ascendant', lang),
+                  sign: asc.sign,
+                  deg: asc.deg,
+                  house: 0,
+                },
+              ].filter(Boolean) as Array<{
+                glyph: string
+                label: string
+                core: ReturnType<typeof getPlanetCore>
+                sign: string
+                deg: string
+                house: number
+              }>
+              return cards.map((cd) => {
+                if (!cd.core) return null
+                const sk = SIGN_META[abbr(cd.sign)]
+                return (
+                  <div className={s.bigCard} key={cd.label}>
+                    <div className={s.bigHead}>
+                      <b className={elClass[sk?.el ?? '']}>
+                        {cd.glyph} {cd.label}
+                      </b>
+                      <i>
+                        {signLabel(abbr(cd.sign), lang)} {cd.deg}
+                        {cd.house ? ` · ${cd.house}H` : ''}
+                      </i>
+                    </div>
+                    <div className={s.bigPrin}>{cd.core.principle}</div>
+                    <div className={s.bigMean}>{cd.core.meaning}</div>
+                  </div>
+                )
+              })
+            })()}
+          </div>
         </section>
 
         {/* 04 어스펙트 */}
