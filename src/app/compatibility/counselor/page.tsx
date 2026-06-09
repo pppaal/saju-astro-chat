@@ -1281,7 +1281,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           title={
             <>
               {!chatTitle && (
-                <span className={styles.headerHeart} aria-hidden="true">{'❤️'}</span>
+                <span className={styles.headerHeart} aria-hidden="true">
+                  {'❤️'}
+                </span>
               )}
               {chatTitle?.trim() || (isKo ? '궁합 상담사' : 'Compatibility Counselor')}
             </>
@@ -1309,27 +1311,31 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 </AppHeaderIconButton>
                 {chatSessionId && chatActions.chatMenuOpen && (
                   <div role="menu" className={styles.chatMenuDropdown}>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className={styles.chatMenuItem}
-                        onClick={chatActions.openRenameModal}
-                      >
-                        <span>{isKo ? '이름 변경' : 'Rename'}</span>
-                        <span aria-hidden="true" className={styles.chatMenuIcon}>{'✎'}</span>
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
-                        onClick={chatActions.openDeleteModal}
-                      >
-                        <span>{isKo ? '삭제' : 'Delete'}</span>
-                        <span aria-hidden="true" className={styles.chatMenuIcon}>{'🗑'}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={styles.chatMenuItem}
+                      onClick={chatActions.openRenameModal}
+                    >
+                      <span>{isKo ? '이름 변경' : 'Rename'}</span>
+                      <span aria-hidden="true" className={styles.chatMenuIcon}>
+                        {'✎'}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className={`${styles.chatMenuItem} ${styles.chatMenuItemDanger}`}
+                      onClick={chatActions.openDeleteModal}
+                    >
+                      <span>{isKo ? '삭제' : 'Delete'}</span>
+                      <span aria-hidden="true" className={styles.chatMenuIcon}>
+                        {'🗑'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
               <CreditBadge variant="compact" />
             </>
           }
@@ -1520,49 +1526,53 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               chatWrapper 전체 폭으로 가로로 길게 퍼진다(궁합만 넓던 회귀). */}
           <div className={styles.inputWrap}>
             <ChatInputArea
-            input={input}
-            loading={isLoading}
-            cvName={cvName}
-            parsingPdf={parsingPdf}
-            usedFallback={false}
-            labels={{
-              placeholder: isKo ? '질문을 입력하세요…' : 'Type a question…',
-              send: isKo ? '전송' : 'Send',
-              uploadCv: isKo
-                ? '관계 메모·대화 등 파일 첨부 (txt/md/csv/pdf)'
-                : 'Attach a file (txt/md/csv/pdf)',
-              parsingPdf: isKo ? 'PDF 읽는 중…' : 'Parsing…',
-            }}
-            lang={locale}
-            placeholderPrompts={[]}
-            onInputChange={setInput}
-            onKeyDown={handleKeyDown}
-            onSend={() => sendMessage()}
-            onFileUpload={(e) => {
-              void handleFileUpload(e)
-            }}
-            onClearFile={clearFile}
-            onOpenTarot={() => {
-              setShowTarotModal(true)
-            }}
-            onOpenChart={() => {
-              setShowChartModal(true)
-            }}
-            tarotDisabled={persons.length < 2}
-            chartDisabled={persons.length < 2 || (!person1Saju && !person1Astro)}
-            tarot={{
-              ariaLabel: isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot',
-              title: isKo
-                ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
-                : 'See your next question in tarot — pick a spread and draw',
-            }}
-            chart={{
-              label: isKo ? '궁합차트' : 'Chart',
-              ariaLabel: isKo ? '궁합 차트' : 'Couple chart',
-              title: isKo ? '궁합 차트 보기' : 'View couple chart',
-            }}
-            focusToken={focusToken}
-            theme="light"
+              input={input}
+              loading={isLoading}
+              cvName={cvName}
+              parsingPdf={parsingPdf}
+              usedFallback={false}
+              labels={{
+                placeholder: isKo ? '질문을 입력하세요…' : 'Type a question…',
+                send: isKo ? '전송' : 'Send',
+                uploadCv: isKo
+                  ? '관계 메모·대화 등 파일 첨부 (txt/md/csv/pdf)'
+                  : 'Attach a file (txt/md/csv/pdf)',
+                parsingPdf: isKo ? 'PDF 읽는 중…' : 'Parsing…',
+              }}
+              lang={locale}
+              placeholderPrompts={[]}
+              onInputChange={setInput}
+              onKeyDown={handleKeyDown}
+              onSend={() => sendMessage()}
+              onFileUpload={(e) => {
+                void handleFileUpload(e)
+              }}
+              onClearFile={clearFile}
+              onOpenTarot={() => {
+                setShowTarotModal(true)
+              }}
+              onOpenChart={() => {
+                setShowChartModal(true)
+              }}
+              tarotDisabled={persons.length < 2}
+              chartDisabled={
+                persons.length < 2 ||
+                (!person1Saju && !person1Astro) ||
+                (!person2Saju && !person2Astro)
+              }
+              tarot={{
+                ariaLabel: isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot',
+                title: isKo
+                  ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
+                  : 'See your next question in tarot — pick a spread and draw',
+              }}
+              chart={{
+                label: isKo ? '궁합차트' : 'Chart',
+                ariaLabel: isKo ? '궁합 차트' : 'Couple chart',
+                title: isKo ? '궁합 차트 보기' : 'View couple chart',
+              }}
+              focusToken={focusToken}
+              theme="light"
             />
             {fileNotice && <div className={styles.fileNotice}>{fileNotice}</div>}
           </div>
