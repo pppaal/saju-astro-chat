@@ -174,7 +174,6 @@ vi.mock('@/lib/astrology/foundation/aspects', () => ({
   ]),
 }))
 
-
 vi.mock('@/lib/cache/redis-cache', () => ({
   cacheOrCalculate: vi.fn((key, fn) => fn()),
   CacheKeys: {
@@ -210,7 +209,7 @@ vi.mock('@/lib/calendar-engine/cell-cache', () => ({
       cells: specs.map((s) => ({
         datetime: `${yy}-03-${String(s.day).padStart(2, '0')}T12:00:00.000Z`,
         derivedScore: s.score,
-        themeScores: { [s.theme]: 80 },
+        salience: 0,
         signals: [],
         matchedPatterns: [],
         topReasons: ['mock reason'],
@@ -727,29 +726,27 @@ describe('Calendar API Route - /api/calendar', () => {
   })
 
   describe('Category Filtering', () => {
-    it('should filter dates by career category', async () => {
+    // 5버킷 테마 축 제거 — category 파라미터는 더 이상 날짜를 필터링하지 않고
+    // (categories 폐기) presentation focusDomain / 예측 스냅샷 theme 로만 쓰인다.
+    // 라우트는 200 으로 응답하고 전체 날짜를 그대로 반환한다.
+    it('accepts a career category param without filtering out dates', async () => {
       const request = createRequest({ birthDate: '1990-01-15', category: 'career' })
 
       const response = await GET(request)
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      // allDates should only include career category dates
-      data.allDates.forEach((date: any) => {
-        expect(date.categories).toContain('career')
-      })
+      expect(data.allDates.length).toBe(6)
     })
 
-    it('should filter dates by wealth category', async () => {
+    it('accepts a wealth category param without filtering out dates', async () => {
       const request = createRequest({ birthDate: '1990-01-15', category: 'wealth' })
 
       const response = await GET(request)
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      data.allDates.forEach((date: any) => {
-        expect(date.categories).toContain('wealth')
-      })
+      expect(data.allDates.length).toBe(6)
     })
 
     it('should filter dates by love category', async () => {
@@ -838,14 +835,22 @@ describe('Calendar API Route - /api/calendar', () => {
       }
     })
 
-    it('should surface at least one grade 0 date after matrix regrading', async () => {
+    // NOTE: 점수 모델이 "층별 signed-surprise(일진 신호로 일 등급)" 로 바뀐 뒤로는,
+    // 이 스위트의 saju 모킹(매일 동일한 고정 pillars)이 일진 신호를 평탄하게 만들어
+    // 모든 날이 동등 → 정직하게는 "최고날"이 없다(동등한 날들 중 best 를 뽑을 수 없음).
+    // grade-0 이 실제 신호 다양성에서 발화하는지는 score-headline-alignment(R2, 실
+    // astro 변동)이 검증. 여기선 등급 파이프라인이 유효 등급(0~4)을 산출하는지만 가드.
+    it('produces valid grades 0..4 across the full year', async () => {
       const request = createRequest({ birthDate: '1990-01-15' })
 
       const response = await GET(request)
       const data = await response.json()
 
-      const grade0 = data.allDates.filter((d: { grade: number }) => d.grade === 0)
-      expect(grade0.length).toBeGreaterThanOrEqual(1)
+      const grades = data.allDates
+        .map((d: { grade?: number }) => d.grade)
+        .filter((g: unknown): g is number => typeof g === 'number')
+      expect(grades.length).toBeGreaterThan(0)
+      expect(grades.every((g: number) => g >= 0 && g <= 4)).toBe(true)
     })
 
     it('should count grade 4 dates from final display grades', async () => {

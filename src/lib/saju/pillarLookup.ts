@@ -33,7 +33,6 @@ export {
   BRANCH_ORDER,
   SIXTY_PILLARS,
   NAEUM_DATA,
-  ILJU_DATA,
 } from './pillar-lookup'
 
 // Import for internal use
@@ -44,10 +43,9 @@ import {
   BRANCH_ORDER,
   SIXTY_PILLARS,
   NAEUM_DATA,
-  ILJU_DATA,
 } from './pillar-lookup'
 
-import type { SixtyPillarInfo, IljuInfo } from './pillar-lookup/types'
+import type { SixtyPillarInfo } from './pillar-lookup/types'
 
 // ============ 메인 함수들 ============
 
@@ -181,13 +179,6 @@ export function getNaeumElement(pillar: string): FiveElement | null {
 }
 
 /**
- * 일주론 상세 정보 조회
- */
-export function getIljuInfo(pillar: string): IljuInfo | null {
-  return ILJU_DATA[pillar] || null
-}
-
-/**
  * 다음 갑자 계산
  */
 export function getNextPillar(pillar: string): string | null {
@@ -279,24 +270,6 @@ export function getStemsByElement(element: FiveElement): string[] {
  */
 export function getBranchesByElement(element: FiveElement): string[] {
   return BRANCHES.filter((b) => b.element === element).map((b) => b.name)
-}
-
-/**
- * 일주 요약 정보 (간략화)
- */
-export function getIljuSummary(pillar: string): string | null {
-  const info = ILJU_DATA[pillar]
-  if (!info) {
-    // 데이터가 없으면 기본 설명 생성
-    const pillarInfo = getPillarInfo(pillar)
-    if (!pillarInfo) {
-      return null
-    }
-
-    return `${pillarInfo.koreanName}일주: ${pillarInfo.stemElement}일간이 ${pillarInfo.branchElement}지지 위에 있는 형상.`
-  }
-
-  return `${pillar}일주: ${info.personality.substring(0, 50)}...`
 }
 
 /**

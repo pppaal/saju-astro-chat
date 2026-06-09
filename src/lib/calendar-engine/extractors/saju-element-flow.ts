@@ -3,6 +3,22 @@ import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
 
+const ELEMENT_EN: Record<string, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+// 일진 오행 → 본명 일간 관계의 EN 동사구 (kind 기준).
+const RELATION_EN: Record<string, string> = {
+  same: 'reinforces (peer/rival)',
+  'give-birth': 'nourishes (resource)',
+  'receive-birth': 'draws on (output)',
+  control: 'controls (wealth)',
+  'be-controlled': 'is controlled by (officer)',
+}
+
 /**
  * 일진 오행 vs 본명 4기둥 오행 직접 상생/상극 추출기.
  *
@@ -50,7 +66,7 @@ const sajuElementFlowExtractor: SignalExtractor = {
           kind: 'pillar-sibsin',
           name: `일진 ${dayStem.element} ${stemRelation.label}`,
           korean: `오늘 ${dayStem.element}(${dayStemName})이(가) 본명 일간 ${dayMasterElement}을(를) ${stemRelation.label}`,
-          themes: [],
+          english: `today's ${ELEMENT_EN[dayStem.element] ?? dayStem.element} ${RELATION_EN[stemRelation.kind] ?? ''} your day master ${ELEMENT_EN[dayMasterElement] ?? dayMasterElement}`,
           polarity: stemRelation.polarity,
           layer: 'daily',
           active: { start: startIso, peak: peakIso, end: endIso },
@@ -79,7 +95,7 @@ const sajuElementFlowExtractor: SignalExtractor = {
           kind: 'pillar-sibsin',
           name: `일진지 ${dayBranch.element} ${branchRelation.label}`,
           korean: `오늘 ${dayBranch.element}(${dayBranchName})이(가) 본명 일간을 ${branchRelation.label}`,
-          themes: [],
+          english: `today's branch ${ELEMENT_EN[dayBranch.element] ?? dayBranch.element} ${RELATION_EN[branchRelation.kind] ?? ''} your day master`,
           polarity: branchRelation.polarity,
           layer: 'daily',
           active: { start: startIso, peak: peakIso, end: endIso },

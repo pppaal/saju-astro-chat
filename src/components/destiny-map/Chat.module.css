@@ -161,7 +161,7 @@
 
 .historyRailItemActionDanger {
   border-color: rgba(248, 113, 113, 0.4);
-  color: #fca5a5;
+  color: var(--ds-error-on-dark);
 }
 
 .historyRailItemActionDanger:hover {
@@ -207,7 +207,7 @@
 .historyRailConfirmYes {
   background: rgba(248, 113, 113, 0.2);
   border: 1px solid rgba(248, 113, 113, 0.4);
-  color: #fca5a5;
+  color: var(--ds-error-on-dark);
 }
 
 .historyRailConfirmNo {
@@ -274,35 +274,35 @@
 /* 라이트 테마 (운명상담사 페이지) 대응 */
 .lightTheme .chatMenuButton {
   background: #ffffff;
-  border-color: #e7e5e4;
+  border-color: var(--ds-light-border);
   color: #44403c;
 }
 
 .lightTheme .chatMenuButton:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
 }
 
 .lightTheme .chatMenuDropdown {
   background: #ffffff;
-  border-color: #e7e5e4;
+  border-color: var(--ds-light-border);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .lightTheme .chatMenuItem {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightTheme .chatMenuItem:hover {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 .lightTheme .chatMenuItemDanger {
-  color: #dc2626;
+  color: var(--ds-error);
 }
 
 .lightTheme .chatMenuItemDanger:hover {
-  background: #fef2f2;
+  background: var(--ds-error-bg);
 }
 
 /* ========== Notice Bar ========== */
@@ -804,7 +804,7 @@
   height: 32px;
   padding: 0;
   border-radius: 10px;
-  background: linear-gradient(135deg, #d4b572 0%, #d4b572 100%);
+  background: linear-gradient(135deg, var(--ds-gold-on-dark) 0%, var(--ds-gold-on-dark) 100%);
   border: none;
   color: #fff;
   font-size: 16px;
@@ -885,7 +885,7 @@
 .sendButton {
   min-width: 120px;
   padding: 0 24px;
-  background: linear-gradient(135deg, #d4b572 0%, #d4b572 100%);
+  background: linear-gradient(135deg, var(--ds-gold-on-dark) 0%, var(--ds-gold-on-dark) 100%);
   border: none;
   border-radius: 14px;
   color: white;
@@ -958,7 +958,7 @@
   width: 14px;
   height: 14px;
   border: 2px solid rgba(212, 181, 114, 0.3);
-  border-top-color: #d4b572;
+  border-top-color: var(--ds-gold-on-dark);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-right: 6px;
@@ -1689,7 +1689,7 @@
 .newChatBtn {
   width: 100%;
   padding: 12px 20px;
-  background: linear-gradient(135deg, #d4b572 0%, #d4b572 100%);
+  background: linear-gradient(135deg, var(--ds-gold-on-dark) 0%, var(--ds-gold-on-dark) 100%);
   border: none;
   border-radius: 12px;
   color: white;
@@ -2192,30 +2192,30 @@
  * crisis modal / tarot modal stay on their own (modal) backgrounds.
  * ===================================================================== */
 .lightTheme {
-  background: #fafaf9;
-  color: #1c1917;
+  background: var(--ds-light-bg);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .historyRail {
   background: #ffffff;
-  border-color: #e7e5e4;
+  border-color: var(--ds-light-border);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
 .lightTheme .historyRailTitle {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightTheme .historyRailEyebrow {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .lightTheme .historyRailAction {
-  background: #1c1917;
-  border: 1px solid #1c1917;
-  color: #fafaf9;
+  background: var(--ds-light-text);
+  border: 1px solid var(--ds-light-text);
+  color: var(--ds-light-bg);
 }
 
 .lightTheme .historyRailAction:hover {
@@ -2223,13 +2223,13 @@
 }
 
 .lightTheme .historyRailActionPrimary {
-  background: #1c1917;
-  border-color: #1c1917;
-  color: #fafaf9;
+  background: var(--ds-light-text);
+  border-color: var(--ds-light-text);
+  color: var(--ds-light-bg);
 }
 
 .lightTheme .historyRailGroupLabel {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .lightTheme .historyRailItem {
@@ -2239,24 +2239,24 @@
 }
 
 .lightTheme .historyRailItem:hover {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
   border-color: transparent;
   box-shadow: none;
   transform: none;
 }
 
 .lightTheme .historyRailItemActive {
-  background: #f5f5f4;
-  border-color: #e7e5e4;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border);
 }
 
 .lightTheme .historyRailItemSummary {
-  color: #1c1917;
+  color: var(--ds-light-text);
   font-weight: 500;
 }
 
 .lightTheme .historyRailItemMeta {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .lightTheme .historyRailItemDate {
@@ -2265,28 +2265,28 @@
 
 .lightTheme .historyRailItemAction {
   background: #ffffff;
-  border-color: #e7e5e4;
-  color: #78716c;
+  border-color: var(--ds-light-border);
+  color: var(--ds-ring-neutral);
 }
 
 .lightTheme .historyRailItemAction:hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .historyRailItemActionDanger {
   border-color: #fecaca;
-  color: #dc2626;
+  color: var(--ds-error);
 }
 
 .lightTheme .historyRailItemActionDanger:hover {
-  background: #fef2f2;
+  background: var(--ds-error-bg);
 }
 
 .lightTheme .historyRailRenameInput {
   background: #ffffff;
-  border-color: #e7e5e4;
-  color: #1c1917;
+  border-color: var(--ds-light-border);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .historyRailConfirmText {
@@ -2294,16 +2294,16 @@
 }
 
 .lightTheme .historyRailConfirmNo {
-  border-color: #e7e5e4;
-  color: #57534e;
+  border-color: var(--ds-light-border);
+  color: var(--ds-light-text-muted);
 }
 
 .lightTheme .historyRailEmpty {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .lightTheme .historyRailFooter {
-  border-top-color: #e7e5e4;
+  border-top-color: var(--ds-light-border);
 }
 
 .lightTheme .historyRailFooterBtn {
@@ -2311,8 +2311,8 @@
 }
 
 .lightTheme .historyRailFooterBtn:hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .chatMain {
@@ -2347,7 +2347,7 @@
 
 .lightTheme .counselorSectionCard {
   background: #ffffff;
-  border-color: #e7e5e4;
+  border-color: var(--ds-light-border);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
@@ -2358,13 +2358,13 @@
 }
 
 .lightTheme .counselorSectionTitle {
-  background: #f5f5f4;
-  border-color: #e7e5e4;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border);
   color: #44403c;
 }
 
 .lightTheme .inputArea {
-  background: linear-gradient(to top, #fafaf9 60%, rgba(250, 250, 249, 0));
+  background: linear-gradient(to top, var(--ds-light-bg) 60%, rgba(250, 250, 249, 0));
 }
 
 .lightTheme .inputBox {
@@ -2379,26 +2379,26 @@
 }
 
 .lightTheme .inputBox .textarea {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightTheme .inputBox .textarea::placeholder {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .lightTheme .attachButton {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
   background: transparent;
 }
 
 .lightTheme .attachButton:hover {
-  color: #57534e;
-  background: #f5f5f4;
+  color: var(--ds-light-text-muted);
+  background: var(--ds-light-bg-soft);
 }
 
 .lightTheme .inputBoxActions .sendButton {
-  background: #1c1917;
-  color: #fafaf9;
+  background: var(--ds-light-text);
+  color: var(--ds-light-bg);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
@@ -2407,14 +2407,14 @@
 }
 
 .lightTheme .inputBoxActions .sendButton:disabled {
-  background: #f5f5f4;
-  color: #a8a29e;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text-subtle);
   box-shadow: none;
 }
 
 .lightTheme .thinkingMessage {
-  background: #f5f5f4;
-  border-color: #e7e5e4;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border);
   box-shadow: none;
 }
 
@@ -2424,13 +2424,13 @@
 
 .lightTheme .followUpChip {
   background: #ffffff;
-  border-color: #e7e5e4;
+  border-color: var(--ds-light-border);
   color: #44403c;
 }
 
 .lightTheme .followUpChip:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
 }
 
 /* =====================================================================
@@ -2443,15 +2443,15 @@
 }
 
 .lightTheme .thinkingText {
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .lightTheme .followUpLabel {
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .lightTheme .typingDot {
-  background: #a8a29e;
+  background: var(--ds-light-text-subtle);
 }
 
 .lightTheme .noticeBar {
@@ -2513,14 +2513,14 @@
 
 .lightTheme .clarifierActionBtn {
   background: #ffffff;
-  border-color: #e7e5e4;
+  border-color: var(--ds-light-border);
   color: #44403c;
 }
 
 .lightTheme .clarifierActionBtn:hover {
-  background: #f5f5f4;
-  border-color: #d6d3d1;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  border-color: var(--ds-light-border-strong);
+  color: var(--ds-light-text);
 }
 
 /* 잘린 답변 옆 "다시 시도" 칩 — 본문 톤 안 가리게 옅은 경고 색. dark 베이스,

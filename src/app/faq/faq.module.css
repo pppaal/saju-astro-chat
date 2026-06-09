@@ -12,8 +12,7 @@
      container itself (not a z-index:-1 layer) so it covers the app's dark
      shell. Mirrors /contact + /policy. */
   background:
-    radial-gradient(900px 600px at 50% -5%, rgba(193, 155, 86, 0.06), transparent 60%),
-    #fafaf7;
+    radial-gradient(900px 600px at 50% -5%, rgba(193, 155, 86, 0.06), transparent 60%), #fafaf7;
   font-feature-settings: 'ss01', 'ss02', 'cv11';
 }
 
@@ -47,7 +46,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #a07a3c;
+  color: var(--ds-gold);
   margin: 0 0 12px;
 }
 
@@ -88,7 +87,7 @@
 }
 
 .searchBox:focus-within {
-  border-color: #c19b56;
+  border-color: var(--ds-gold-soft);
   box-shadow: 0 0 0 3px rgba(193, 155, 86, 0.18);
 }
 
@@ -169,7 +168,7 @@
 }
 
 .categoryButton.active {
-  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
+  background: linear-gradient(135deg, var(--ds-gold-soft) 0%, var(--ds-gold) 100%);
   border-color: transparent;
   color: #ffffff;
 }
@@ -178,7 +177,7 @@
   padding: 7px 12px;
   background: transparent;
   border: none;
-  color: #a07a3c;
+  color: var(--ds-gold);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -228,7 +227,7 @@
 }
 
 .accordionHeader:hover .accordionQuestion {
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 .accordionToggle {
@@ -240,7 +239,7 @@
   height: 26px;
   font-size: 18px;
   font-weight: 400;
-  color: #a07a3c;
+  color: var(--ds-gold);
   transition: transform 200ms ease;
 }
 
@@ -313,7 +312,7 @@
   margin: 0 auto 16px;
   border-radius: 50%;
   background: rgba(193, 155, 86, 0.12);
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 .contactTitle {
@@ -335,7 +334,7 @@
   align-items: center;
   justify-content: center;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
+  background: linear-gradient(135deg, var(--ds-gold-soft) 0%, var(--ds-gold) 100%);
   border-radius: 999px;
   color: #ffffff;
   font-weight: 600;

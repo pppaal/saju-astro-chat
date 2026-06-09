@@ -41,7 +41,7 @@ const sajuTonggeunExtractor: SignalExtractor = {
       const relation = elementRelation(dayElement, daeunElement)
       const polarity = polarityForShift(relation, strength)
       const label = labelFor(relation, strength)
-      if (polarity === 0 && relation === 'same') continue   // 비견은 큰 신호 아님 — skip
+      if (polarity === 0 && relation === 'same') continue // 비견은 큰 신호 아님 — skip
 
       const startIso = new Date(Date.UTC(d.startYear, 0, 1)).toISOString()
       const endIso = new Date(Date.UTC(d.startYear + 10, 0, 0, 23, 59, 59)).toISOString()
@@ -55,7 +55,7 @@ const sajuTonggeunExtractor: SignalExtractor = {
         kind: 'tonggeun-shift',
         name: `대운 통근 ${label}`,
         korean: `${d.startYear}년 대운 ${d.stem}${d.branch} → ${label}`,
-        themes: [],
+        english: `${d.startYear} decade ${d.stem}${d.branch} → ${labelForEn(relation, strength)}`,
         polarity,
         layer: 'decadal',
         active: { start: startIso, peak: peakIso, end: endIso },
@@ -83,29 +83,47 @@ type Relation = 'same' | 'birth-receiving' | 'birth-giving' | 'controlling' | 'c
 
 function elementRelation(self: FiveElement, other: FiveElement): Relation {
   if (self === other) return 'same'
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[self] === other) return 'birth-receiving'   // 印星
-  if (FIVE_ELEMENT_RELATIONS.생하는관계[self] === other) return 'birth-giving'      // 食傷
-  if (FIVE_ELEMENT_RELATIONS.극하는관계[self] === other) return 'controlling'       // 財星
-  if (FIVE_ELEMENT_RELATIONS.극받는관계[self] === other) return 'controlled-by'     // 官星
+  if (FIVE_ELEMENT_RELATIONS.생받는관계[self] === other) return 'birth-receiving' // 印星
+  if (FIVE_ELEMENT_RELATIONS.생하는관계[self] === other) return 'birth-giving' // 食傷
+  if (FIVE_ELEMENT_RELATIONS.극하는관계[self] === other) return 'controlling' // 財星
+  if (FIVE_ELEMENT_RELATIONS.극받는관계[self] === other) return 'controlled-by' // 官星
   return 'same'
 }
 
 function polarityForShift(relation: Relation, strength: 'strong' | 'medium' | 'weak'): Polarity {
-  if (relation === 'birth-receiving') return strength === 'weak' ? 3 : 1   // 신약자에 인성 = 회복
-  if (relation === 'same')            return strength === 'weak' ? 2 : -1  // 신강자에 비겁 = 과강
-  if (relation === 'birth-giving')    return strength === 'strong' ? 2 : -1
-  if (relation === 'controlling')     return strength === 'strong' ? 2 : -2
-  if (relation === 'controlled-by')   return strength === 'strong' ? 1 : -3
+  if (relation === 'birth-receiving') return strength === 'weak' ? 3 : 1 // 신약자에 인성 = 회복
+  if (relation === 'same') return strength === 'weak' ? 2 : -1 // 신강자에 비겁 = 과강
+  if (relation === 'birth-giving') return strength === 'strong' ? 2 : -1
+  if (relation === 'controlling') return strength === 'strong' ? 2 : -2
+  if (relation === 'controlled-by') return strength === 'strong' ? 1 : -3
   return 0
 }
 
 function labelFor(relation: Relation, strength: 'strong' | 'medium' | 'weak'): string {
-  if (relation === 'birth-receiving') return strength === 'weak' ? '인성 보강 (회복기)' : '인성 활성'
-  if (relation === 'same')            return strength === 'weak' ? '비겁 보강 (자조)' : '비겁 과강 (경쟁)'
-  if (relation === 'birth-giving')    return strength === 'strong' ? '식상 발휘 (창조기)' : '식상 누설 (피로)'
-  if (relation === 'controlling')     return strength === 'strong' ? '재성 활성 (재물기)' : '재성 분탈 (소모)'
-  if (relation === 'controlled-by')   return strength === 'strong' ? '관성 활용 (책임기)' : '관성 압박 (시련)'
+  if (relation === 'birth-receiving')
+    return strength === 'weak' ? '인성 보강 (회복기)' : '인성 활성'
+  if (relation === 'same') return strength === 'weak' ? '비겁 보강 (자조)' : '비겁 과강 (경쟁)'
+  if (relation === 'birth-giving')
+    return strength === 'strong' ? '식상 발휘 (창조기)' : '식상 누설 (피로)'
+  if (relation === 'controlling')
+    return strength === 'strong' ? '재성 활성 (재물기)' : '재성 분탈 (소모)'
+  if (relation === 'controlled-by')
+    return strength === 'strong' ? '관성 활용 (책임기)' : '관성 압박 (시련)'
   return '균형'
+}
+
+function labelForEn(relation: Relation, strength: 'strong' | 'medium' | 'weak'): string {
+  if (relation === 'birth-receiving')
+    return strength === 'weak' ? 'Resource boost (recovery)' : 'Resource active'
+  if (relation === 'same')
+    return strength === 'weak' ? 'Peer support (self-reliance)' : 'Peer overload (rivalry)'
+  if (relation === 'birth-giving')
+    return strength === 'strong' ? 'Output expressed (creative)' : 'Output leak (fatigue)'
+  if (relation === 'controlling')
+    return strength === 'strong' ? 'Wealth active (gain)' : 'Wealth drained (loss)'
+  if (relation === 'controlled-by')
+    return strength === 'strong' ? 'Officer harnessed (duty)' : 'Officer pressure (trial)'
+  return 'balance'
 }
 
 export default sajuTonggeunExtractor

@@ -223,7 +223,7 @@
   padding: 6px 10px;
   border-radius: 10px;
   background: rgba(212, 181, 114, 0.96);
-  color: #1c1917;
+  color: var(--ds-light-text);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
@@ -295,7 +295,9 @@
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .toolMenuItem:hover:not(:disabled) {
@@ -382,7 +384,7 @@
   height: 18px;
   padding: 0;
   border-radius: 6px;
-  background: linear-gradient(135deg, #d4b572 0%, #d4b572 100%);
+  background: linear-gradient(135deg, var(--ds-gold-on-dark) 0%, var(--ds-gold-on-dark) 100%);
   border: none;
   color: #fff;
   font-size: 14px;
@@ -483,10 +485,10 @@
    어울리는 단색으로(사용자 요청: "그라데이션 없애고 배경이랑 어울리게").
    이전엔 흰색→투명 페이드 밴드가 warm 배경 위에 떠 보였다. */
 .inputArea[data-theme='light'] {
-  /* 사이트 표준 light 배경(--ds-light-bg: #fafaf9) 과 정확히 일치 — 홈(흰
-     모드) / 궁합 상담사 모두 페이지 배경이 #fafaf9 라, sticky 입력 영역이
+  /* 사이트 표준 light 배경(--ds-light-bg: var(--ds-light-bg)) 과 정확히 일치 — 홈(흰
+     모드) / 궁합 상담사 모두 페이지 배경이 var(--ds-light-bg) 라, sticky 입력 영역이
      배경 위에 다른 색 밴드로 떠 보이지 않게 한다. */
-  background: #fafaf9;
+  background: var(--ds-light-bg);
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -525,7 +527,7 @@
 
 .inputArea[data-theme='light'] .clearButton:hover {
   background: rgba(244, 63, 94, 0.12);
-  color: #b91c1c;
+  color: var(--ds-error-strong);
 }
 
 .inputArea[data-theme='light'] .fileName {

@@ -1,5 +1,5 @@
 import type { TranslationData } from '@/types/calendar-api'
-import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/destiny-map/calendar/scoring-config'
+import { EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/calendar/scoring-config'
 
 export const IRREVERSIBLE_RECOMMENDATION_KEYS = new Set([
   'majorDecision',

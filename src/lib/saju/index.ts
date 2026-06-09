@@ -46,11 +46,7 @@ export * from './timezone'
 // Note: STEM_LABELS, BRANCH_LABELS are exported from './constants'
 
 // 격국 판정 모듈
-export {
-  determineGeokguk,
-  type GeokgukResult,
-  type GeokgukType as GeokgukTypeNew,
-} from './geokguk'
+export { determineGeokguk, type GeokgukResult, type GeokgukType as GeokgukTypeNew } from './geokguk'
 
 // 용신 선정 모듈
 export {
@@ -74,8 +70,6 @@ export {
   getPillarInfo,
   getPillarByIndex,
   getPillarByKoreanName,
-  getIljuInfo,
-  getIljuSummary,
   getNaeum,
   getNaeumElement,
   getNextPillar,

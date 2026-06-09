@@ -8,7 +8,7 @@
  */
 
 import { buildSajuNormalizerInput } from '../src/lib/fusion/adapters/saju'
-import { buildDestinyContext } from '../src/lib/destiny/counselorContext'
+import { buildDestinyContext } from '../src/lib/facts/counselorContext'
 import { getNowInTimezone } from '../src/lib/datetime'
 
 const SEOUL = { latitude: 37.5665, longitude: 126.978, timezone: 'Asia/Seoul' }

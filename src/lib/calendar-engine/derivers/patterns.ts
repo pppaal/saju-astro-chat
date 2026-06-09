@@ -1,5 +1,5 @@
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ActiveSignal, SignalLayer, SignalPattern } from '../types'
+import { PATTERN_I18N_EN } from './patternsI18n'
 
 /**
  * 신호 조합 → 명명된 패턴 검출.
@@ -14,7 +14,12 @@ import type { ActiveSignal, SignalLayer, SignalPattern } from '../types'
 interface PatternRule {
   id: string
   name: string
-  themes: AstroThemeKey[]
+  /**
+   * 작성자용 영역 키워드 메타 (love/money/career/health/growth) — 5버킷 테마
+   * 점수/표시 축은 폐기됐고 SignalPattern 으로 더 이상 emit 하지 않는다.
+   * 룰 정의 가독성을 위해 라벨만 남겨둔 author note (런타임 영향 0).
+   */
+  themes: string[]
   match: (signals: ActiveSignal[]) => {
     matched: boolean
     strength: number
@@ -586,15 +591,19 @@ export function derivePatterns(signals: ActiveSignal[]): SignalPattern[] {
   for (const rule of RULES) {
     const result = rule.match(signals)
     if (!result.matched) continue
+    const en = PATTERN_I18N_EN[rule.id]
     matched.push({
       id: rule.id,
       name: rule.name,
-      themes: rule.themes,
       matchedSignalIds: result.matchedIds,
       strength: result.strength,
       description: rule.description,
       headline: rule.headline,
       action: rule.action,
+      nameEn: en?.name,
+      descriptionEn: en?.description,
+      headlineEn: en?.headline,
+      actionEn: en?.action,
       meta: result.meta,
     })
   }

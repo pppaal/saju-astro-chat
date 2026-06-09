@@ -322,13 +322,16 @@ const Chat = memo(function Chat({
     if (typeof p?.latitude === 'number') params.set('lat', String(p.latitude))
     if (typeof p?.longitude === 'number') params.set('lng', String(p.longitude))
     const g = (p?.gender ?? '').toString().toLowerCase()
-    params.set('gender', g === 'female' || g === 'f' || g === '여' || g === '여성' ? 'female' : 'male')
+    params.set(
+      'gender',
+      g === 'female' || g === 'f' || g === '여' || g === '여성' ? 'female' : 'male'
+    )
     const qs = params.toString()
     router.push(qs ? `/integrated-report?${qs}` : '/integrated-report')
   }, [profile, router])
   // 흐름표 — 시간 흐름은 캘린더 책임이라 destinypal 5-tier 뷰로 직접 진입.
   const goToFlow = React.useCallback(() => {
-    router.push('/destinypal')
+    router.push('/calendar')
   }, [router])
 
   // 🃏 클래리파이어 카드 — 공통 hook (compat/followup 동일). 정책 단일 출처.
@@ -384,9 +387,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
 
   // ---- Rename / delete a past chat (desktop rail) ----
   const sessionLabel = (s: { title?: string; summary?: string }) =>
-    s.title?.trim() ||
-    s.summary?.slice(0, 60) ||
-    t('chat.rail.savedLabel', 'Saved conversation')
+    s.title?.trim() || s.summary?.slice(0, 60) || t('chat.rail.savedLabel', 'Saved conversation')
 
   const startRename = (s: { id: string; title?: string; summary?: string }) => {
     setRenamingId(s.id)

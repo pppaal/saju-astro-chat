@@ -28,17 +28,18 @@ const astroReturnExtractor: SignalExtractor = {
       try {
         const sr = await calculateSolarReturn({ natal: natal.input, year })
         const exactDate = new Date(sr.exactReturnTime)
-        const nextYearExact = year + 1 <= endYear + 1
-          ? new Date(Date.UTC(year + 1, exactDate.getUTCMonth(), exactDate.getUTCDate()))
-          : new Date(exactDate.getTime() + 365 * 86_400_000)
+        const nextYearExact =
+          year + 1 <= endYear + 1
+            ? new Date(Date.UTC(year + 1, exactDate.getUTCMonth(), exactDate.getUTCDate()))
+            : new Date(exactDate.getTime() + 365 * 86_400_000)
 
         signals.push({
           id: `astro.solar-return.${year}`,
           source: 'astro',
           kind: 'solar-return',
           name: `Solar Return ${year}`,
-          korean: `${year}년 Solar Return — ASC ${sr.ascendant.sign}`,
-          themes: [],
+          korean: `${year}년 솔라리턴 — 올해 전체의 기본 톤을 여는 생일 차트예요 (ASC ${sr.ascendant.sign})`,
+          english: `${year} Solar Return — the birthday chart that sets the whole year's baseline tone (ASC ${sr.ascendant.sign})`,
           polarity: 0,
           layer: 'yearly',
           active: {
@@ -77,8 +78,8 @@ const astroReturnExtractor: SignalExtractor = {
           source: 'astro',
           kind: 'lunar-return',
           name: `Lunar Return ${year}-${month}`,
-          korean: `${year}-${month} Lunar Return`,
-          themes: [],
+          korean: `${year}년 ${month}월 루나리턴 — 이달의 감정·리듬이 새로 시작되는 28일 주기점이에요`,
+          english: `${year}-${month} Lunar Return — the 28-day reset point where this month's emotional rhythm begins anew`,
           polarity: 0,
           layer: 'monthly',
           active: {

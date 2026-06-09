@@ -3,15 +3,16 @@ import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { toChart } from '@/lib/astrology/foundation/astrologyService'
 import { determineYongsin } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
-import { annotateShinsal, type ShinsalHit as ShinsalHitInternal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
+import {
+  annotateShinsal,
+  type ShinsalHit as ShinsalHitInternal,
+  getTwelveStagesForPillars,
+} from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { performAnalyses } from '@/app/api/saju/services/analyses'
 import { JIJANGGAN } from '@/lib/saju/constants'
 import { logger } from '@/lib/logger'
-import type {
-  NatalContext,
-  NatalDayJijanggan,
-} from './types'
+import type { NatalContext, NatalDayJijanggan } from './types'
 import type { FiveElement, SajuPillarsInput, CalculateSajuDataResult } from '@/lib/saju/types'
 import type { NatalInput, Chart } from '@/lib/astrology/foundation/types'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
@@ -124,13 +125,14 @@ export async function buildNatalContext(
     ...simplePillarsForAdvanced,
     hour: pillarsInput.time,
   }
-  const fiveElementsRaw = (saju as unknown as { fiveElements: NatalContext['saju']['fiveElements'] })
-    .fiveElements
+  const fiveElementsRaw = (
+    saju as unknown as { fiveElements: NatalContext['saju']['fiveElements'] }
+  ).fiveElements
   const analyses = performAnalyses(
     simplePillarsWithHour,
     pillarsWithHourForAdvanced,
     dayMasterStem,
-    monthBranch,
+    monthBranch
   )
 
   // 대운 리스트 (CalculateSajuDataResult.daeWoon에서)
@@ -159,16 +161,14 @@ export async function buildNatalContext(
   // preComputed.astroChart 옵션은 calendar/route.ts 의 cascade 캐시 패턴
   // (같은 요청 안 chart 재사용) 호환용 — 단 collectAstroFacts 가 LRU 캐시
   // 적중으로 같은 chart 반환하므로 새 path 에선 무시. 같은 입력 → 같은 chart.
-  const astroFacts = await collectAstroFacts(
-    {
-      birthDate: input.birthDate,
-      birthTime: input.birthTime,
-      latitude: input.latitude,
-      longitude: input.longitude,
-      timezone: input.timeZone,
-      includeHellenistic: true,
-    },
-  )
+  const astroFacts = await collectAstroFacts({
+    birthDate: input.birthDate,
+    birthTime: input.birthTime,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    timezone: input.timeZone,
+    includeHellenistic: true,
+  })
   if (!astroFacts) {
     throw new Error('buildNatalContext: collectAstroFacts returned null')
   }
@@ -182,7 +182,9 @@ export async function buildNatalContext(
         : toChart(candidate as NatalChartData)
   }
   if (!astroFacts.hellenistic) {
-    throw new Error('buildNatalContext: astroFacts.hellenistic missing (includeHellenistic ignored?)')
+    throw new Error(
+      'buildNatalContext: astroFacts.hellenistic missing (includeHellenistic ignored?)'
+    )
   }
   const {
     sect,

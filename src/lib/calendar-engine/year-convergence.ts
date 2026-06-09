@@ -21,8 +21,6 @@ export interface YearMonthSummary {
   month: number
   /** 그 달 v2 derivedScore 평균 (월 뷰와 동일 엔진) */
   score: number
-  /** 영역별 월 평균 themeScore (점수 내림차순) */
-  themes: Array<{ theme: 'love' | 'money' | 'career' | 'health' | 'growth'; score: number }>
   tone: 'up' | 'down' | 'flat'
 }
 
@@ -34,33 +32,24 @@ export interface YearInsights {
 const insightsCache = new Map<string, YearInsights>()
 
 function aggregateMonthly(cells: CalendarCell[]): YearMonthSummary[] {
-  type Acc = { scores: number[]; theme: Record<string, number[]> }
-  const byMonth: Acc[] = Array.from({ length: 12 }, () => ({ scores: [], theme: {} }))
+  type Acc = { scores: number[] }
+  const byMonth: Acc[] = Array.from({ length: 12 }, () => ({ scores: [] }))
 
   for (const c of cells) {
     const m = new Date(c.datetime).getUTCMonth()
     const acc = byMonth[m]
     if (!acc) continue
     acc.scores.push(c.derivedScore)
-    for (const [k, v] of Object.entries(c.themeScores)) {
-      if (typeof v === 'number') (acc.theme[k] ??= []).push(v)
-    }
   }
 
   return byMonth.map((acc, i) => {
     const score = acc.scores.length
       ? Math.round(acc.scores.reduce((a, x) => a + x, 0) / acc.scores.length)
       : 50
-    const themes = (Object.entries(acc.theme) as Array<[string, number[]]>)
-      .map(([k, arr]) => ({
-        theme: k as YearMonthSummary['themes'][number]['theme'],
-        score: Math.round(arr.reduce((a, x) => a + x, 0) / arr.length),
-      }))
-      .sort((a, b) => b.score - a.score)
-    // 57/43 — scoreGrade.ts ABSOLUTE cutoff 와 정렬. 이전 58 은 점수 57(="좋은
+    // 57/43 — 등급 cutoff(derivers/grade.ts)와 정렬. 이전 58 은 점수 57(="좋은
     // 날") 인 달이 tone='flat' 으로 어긋남.
     const tone: YearMonthSummary['tone'] = score >= 57 ? 'up' : score <= 43 ? 'down' : 'flat'
-    return { month: i + 1, score, themes, tone }
+    return { month: i + 1, score, tone }
   })
 }
 

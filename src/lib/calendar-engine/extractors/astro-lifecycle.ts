@@ -53,6 +53,10 @@ const astroLifecycleExtractor: SignalExtractor = {
     const signals: ActiveSignal[] = []
     // range 안의 각 연도에 대해 lifecycle 검사 — 단순히 endYear 기준으로 한번만 호출
     const output = buildLifecycleTiming(birthYear, endYear)
+    // EN meaning 매핑 — 동일 TABLE 순서라 event 키로 짝지음.
+    const enByEvent = new Map(
+      buildLifecycleTiming(birthYear, endYear, false).events.map((e) => [e.event, e])
+    )
 
     for (const entry of output.events) {
       // 이벤트 윈도우가 range와 겹치는지
@@ -72,8 +76,10 @@ const astroLifecycleExtractor: SignalExtractor = {
         source: 'astro',
         kind: 'lifecycle',
         name: entry.label,
-        korean: entry.label,
-        themes: [],
+        // 마일스톤 의미문(meaning) 우선 — 없으면 라벨 폴백.
+        korean: entry.meaning ?? entry.label,
+        english:
+          enByEvent.get(entry.event)?.meaning ?? enByEvent.get(entry.event)?.label ?? entry.event,
         polarity: EVENT_POLARITY[entry.event] ?? 0,
         layer: 'decadal',
         active: {

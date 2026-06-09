@@ -12,16 +12,10 @@ import type { NatalContext } from '../context/types'
 import type { ZodiacKo, House, PlanetBase } from '@/lib/astrology/foundation/types'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { SIGN_RULERS_BY_SIGN } from '@/lib/astrology/foundation/dignities'
+import { PLANET_KO } from '../data/planetNames'
 
 type Lang = 'ko' | 'en'
-type RulerPlanet =
-  | 'Mars'
-  | 'Venus'
-  | 'Mercury'
-  | 'Moon'
-  | 'Sun'
-  | 'Jupiter'
-  | 'Saturn'
+type RulerPlanet = 'Mars' | 'Venus' | 'Mercury' | 'Moon' | 'Sun' | 'Jupiter' | 'Saturn'
 
 const HOUSE_THEME_KO: Record<number, string> = {
   1: '자기·몸·새 출발',
@@ -72,15 +66,7 @@ const SIGN_EN: Record<ZodiacKo, string> = {
 /** Hellenistic traditional sign rulers (no modern outers). dignities.ts(SSOT) 파생. */
 const SIGN_RULERS = SIGN_RULERS_BY_SIGN as Record<ZodiacKo, RulerPlanet>
 
-const PLANET_KO: Record<RulerPlanet, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-}
+// PLANET_KO 는 정본(data/planetNames) 재사용 — 위 import. 로컬 복사본 제거.
 
 function signLabel(sign: ZodiacKo, lang: Lang): string {
   return lang === 'ko' ? (SIGN_KO[sign] ?? sign) : (SIGN_EN[sign] ?? sign)
@@ -111,7 +97,7 @@ export interface YearAstroProfection {
  */
 export function computeProfection(
   natal: NatalContext,
-  year: number,
+  year: number
 ): YearAstroProfection | undefined {
   const birthYear = natal.input?.year
   if (!birthYear) return undefined
@@ -153,7 +139,7 @@ export function deriveYearAstro(
   natal: NatalContext,
   year: number,
   lang: Lang = 'ko',
-  solarReturnSummary?: SolarReturnSummary,
+  solarReturnSummary?: SolarReturnSummary
 ): string | undefined {
   const prof = computeProfection(natal, year)
   if (!prof) return undefined
@@ -188,10 +174,7 @@ export function deriveYearAstro(
   return sr ? `${line} ${sr}` : line
 }
 
-function formatSolarReturn(
-  s: SolarReturnSummary | undefined,
-  lang: Lang,
-): string | undefined {
+function formatSolarReturn(s: SolarReturnSummary | undefined, lang: Lang): string | undefined {
   if (!s) return undefined
   const hasAsc = !!s.ascSign
   const hasSun = typeof s.sunHouse === 'number' && s.sunHouse >= 1 && s.sunHouse <= 12

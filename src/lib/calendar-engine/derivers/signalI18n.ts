@@ -97,11 +97,20 @@ const SHINSAL_EN: Record<string, string> = {
   길성: 'lucky star',
 }
 
+// 글루/잔차 라벨 — 사주·점성 용어가 아닌 합성 문구. 전체 구절 단위로 치환
+// (SORTED_TERMS 가 길이 desc 라 긴 구절이 먼저 매칭).
+const GLUE_EN: Record<string, string> = {
+  '그 외 다수 신호': 'other signals',
+  활성: 'active',
+  시진: 'hour pillar',
+}
+
 const ALL_TERMS: Record<string, string> = {
   ...SIBSIN_EN,
   ...SAJU_REL_EN,
   ...ASTRO_EN,
   ...SHINSAL_EN,
+  ...GLUE_EN,
 }
 
 // 긴 단어 먼저 매칭하도록 정렬 — "지지합" 이 "지지" 앞에 와야 함

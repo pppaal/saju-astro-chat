@@ -10,7 +10,7 @@
  * 이 파일에는 응답 파이프라인이 공유하는 날짜 DTO 타입만 남긴다 —
  * formatDateForResponse(helpers.ts) 입력 + cellsToImportantDates 출력 형태.
  */
-import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/calendar/types'
+import type { EventCategory, ImportanceGrade } from '@/lib/calendar/types'
 
 export interface YearlyImportantDate {
   date: string

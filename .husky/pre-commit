@@ -64,4 +64,31 @@ if [ -n "$STAGED_FILES" ]; then
   echo "OK: No console statements found"
 fi
 
+echo "Checking for raw design-token hex in CSS modules..."
+STAGED_CSS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.module\.css$' || true)
+
+if [ -n "$STAGED_CSS" ]; then
+  # Brand/semantic colors that have a canonical --ds-* token in globals.css.
+  # Raw hex for these drifts the design system — use var(--ds-*) instead.
+  # (var(--token, #hex) fallbacks are allowed: lines containing "var(--ds" are skipped.)
+  DS_HEX='#(a07a3c|c19b56|d4b572|e8cc8a|dc2626|b91c1c|fef2f2|fca5a5|78716c|fafaf9|f5f5f4|fcfbfa|e7e5e4|d6d3d1|1c1917|57534e|a8a29e|07091a|f5f7fb)\b'
+  HEX_FOUND=0
+  for FILE in $STAGED_CSS; do
+    MATCHES=$(grep -niE "$DS_HEX" "$FILE" | grep -vi 'var(--ds' || true)
+    if [ -n "$MATCHES" ]; then
+      echo "ERROR: raw design-token hex in $FILE — use var(--ds-*):"
+      echo "$MATCHES"
+      HEX_FOUND=1
+    fi
+  done
+
+  if [ "$HEX_FOUND" -eq 1 ]; then
+    echo ""
+    echo "These colors map to --ds-* tokens in src/app/globals.css."
+    echo "Replace the raw hex with the token, or use var(--token, #hex) for a fallback."
+    exit 1
+  fi
+  echo "OK: No raw design-token hex in CSS modules"
+fi
+
 echo "OK: Pre-commit checks passed"

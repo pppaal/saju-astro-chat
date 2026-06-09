@@ -5,6 +5,7 @@ import {
 } from '@/lib/astrology/foundation/progressions'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, Polarity, SignalExtractor } from '../types'
+import { aspectFlowLine, pointKo } from '../data/astroFlow'
 
 /**
  * Solar Arc Directions 추출기.
@@ -69,15 +70,11 @@ const astroSolarArcExtractor: SignalExtractor = {
         const hits = findSolarArcAspects(natalChart, arcChart, ORB_DEG)
 
         // 활성 윈도우: 그 달 전체 — Solar Arc 는 느린 변화라 한 달 내내 활성.
-        const monthStart = new Date(
-          Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 1)
-        )
+        const monthStart = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 1))
         const monthEnd = new Date(
           Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0, 23, 59, 59)
         )
-        const peak = new Date(
-          Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15)
-        )
+        const peak = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15))
 
         for (const hit of hits) {
           const polarity = ASPECT_POLARITY[hit.aspect]
@@ -88,8 +85,23 @@ const astroSolarArcExtractor: SignalExtractor = {
             source: 'astro',
             kind: 'solar-arc',
             name: `Solar Arc ${hit.arcPlanet} ${hit.aspect} natal ${hit.natalPlanet}`,
-            korean: `Solar Arc ${hit.arcPlanet} ${hit.aspect} 본명 ${hit.natalPlanet}`,
-            themes: [],
+            korean:
+              aspectFlowLine(
+                hit.arcPlanet,
+                hit.natalPlanet,
+                hit.aspect,
+                'ko',
+                `솔라아크 ${pointKo(hit.arcPlanet)}`
+              ) ||
+              `솔라아크 ${pointKo(hit.arcPlanet)} ${hit.aspect} 본명 ${pointKo(hit.natalPlanet)}`,
+            english:
+              aspectFlowLine(
+                hit.arcPlanet,
+                hit.natalPlanet,
+                hit.aspect,
+                'en',
+                `Solar Arc ${hit.arcPlanet}`
+              ) || `Solar Arc ${hit.arcPlanet} ${hit.aspect} natal ${hit.natalPlanet}`,
             polarity,
             layer: 'decadal',
             active: {
@@ -125,10 +137,7 @@ const astroSolarArcExtractor: SignalExtractor = {
  * 본명 input + 임의 시점 → years 단위 나이 (소수점 유지).
  * timezone 무관하게 일자 차로 근사 (Solar Arc 는 일 단위가 의미 없을 만큼 느림).
  */
-function computeAgeInYears(
-  natal: { year: number; month: number; date: number },
-  at: Date
-): number {
+function computeAgeInYears(natal: { year: number; month: number; date: number }, at: Date): number {
   const natalUTC = Date.UTC(natal.year, natal.month - 1, natal.date)
   const days = (at.getTime() - natalUTC) / 86_400_000
   return days / 365.2425

@@ -8,7 +8,7 @@
 .page {
   min-height: 100dvh;
   background: transparent; /* ServicePageLayout provides the light surface */
-  color: #1c1917;
+  color: var(--ds-light-text);
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -28,7 +28,7 @@
   background: #ffffff;
   padding: 1.25rem;
   border-radius: 22px;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   position: relative;
   z-index: 1;
   box-shadow:
@@ -87,7 +87,7 @@
 }
 
 .submitButton {
-  background: #1c1917;
+  background: var(--ds-light-text);
   color: #ffffff;
   font-weight: 700;
   font-size: 1.05rem;

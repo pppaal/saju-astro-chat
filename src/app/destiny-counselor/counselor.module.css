@@ -9,7 +9,7 @@
   height: 100dvh;
   max-height: 100vh;
   max-height: 100dvh;
-  background: #07091a;
+  background: var(--ds-dark-bg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -96,7 +96,7 @@
   /* 브랜드 골드 그라데이션 — design tokens 표준 (about, blog cta, 라이트
      missingProfileCard primary 와 정렬). 옛 sky/teal #38bdf8→#2dd4bf 폐기 —
      design tokens "보라/네온 X" 정책. */
-  background: linear-gradient(135deg, #c19b56, #a07a3c);
+  background: linear-gradient(135deg, var(--ds-gold-soft), var(--ds-gold));
   color: #ffffff;
 }
 
@@ -112,7 +112,7 @@
 }
 
 .primaryAction:hover {
-  background: linear-gradient(135deg, #d4b572, #c19b56);
+  background: linear-gradient(135deg, var(--ds-gold-on-dark), var(--ds-gold-soft));
 }
 
 .secondaryAction:hover {
@@ -216,7 +216,7 @@
 }
 
 .chatMenuItemDanger {
-  color: #fca5a5;
+  color: var(--ds-error-on-dark);
 }
 
 .chatMenuItemDanger:hover {
@@ -246,7 +246,7 @@
   padding: 0;
   background: transparent;
   border: 0;
-  color: #d4b572;
+  color: var(--ds-gold-on-dark);
   cursor: pointer;
   border-radius: 50%;
   transition: background 0.2s;
@@ -339,7 +339,7 @@
 
 .profileStickyDot {
   font-size: 0.5rem;
-  color: var(--ds-gold-on-dark, #d4b572);
+  color: var(--ds-gold-on-dark, var(--ds-gold-on-dark));
   line-height: 1;
 }
 
@@ -587,11 +587,11 @@
 }
 
 .lightTheme .chatMenuItemDanger {
-  color: #dc2626;
+  color: var(--ds-error);
 }
 
 .lightTheme .chatMenuItemDanger:hover {
-  background: #fef2f2;
+  background: var(--ds-error-bg);
 }
 
 .lightTheme .backIcon {
@@ -622,9 +622,9 @@
 }
 
 .lightTheme .primaryAction {
-  /* 골드 액션 — 라이트 페이지 표준 (compat counselor 의 #1c1917 ink 와
+  /* 골드 액션 — 라이트 페이지 표준 (compat counselor 의 var(--ds-light-text) ink 와
      같은 위상). 옛 sky/teal gradient 는 다크 surface 전용 톤이라 폐기. */
-  background: linear-gradient(135deg, #c19b56, #a07a3c);
+  background: linear-gradient(135deg, var(--ds-gold-soft), var(--ds-gold));
   color: #ffffff;
   border: 1px solid transparent;
 }

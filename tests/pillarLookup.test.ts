@@ -15,7 +15,6 @@ import {
   getPillarByKoreanName,
   getNaeum,
   getNaeumElement,
-  getIljuInfo,
   getNextPillar,
   getPreviousPillar,
   getPillarDistance,
@@ -24,7 +23,6 @@ import {
   getAllPillars,
   getStemsByElement,
   getBranchesByElement,
-  getIljuSummary,
   getGongmang,
   STEM_KOREAN,
   BRANCH_KOREAN,
@@ -194,29 +192,6 @@ describe('getNaeum / getNaeumElement', () => {
   })
 })
 
-describe('getIljuInfo', () => {
-  it('returns info for valid pillar', () => {
-    const info = getIljuInfo('甲子')
-
-    expect(info).not.toBeNull()
-    expect(info?.pillar).toBe('甲子')
-    expect(info?.personality).toBeTruthy()
-    expect(info?.career).toBeTruthy()
-    expect(info?.love).toBeTruthy()
-    expect(info?.wealth).toBeTruthy()
-    expect(info?.health).toBeTruthy()
-  })
-
-  it('returns null for invalid pillar', () => {
-    expect(getIljuInfo('XX')).toBeNull()
-  })
-
-  it('includes famous people for some pillars', () => {
-    const info = getIljuInfo('甲子')
-    expect(info?.famousPeople).toBeTruthy()
-  })
-})
-
 describe('getNextPillar / getPreviousPillar', () => {
   it('returns next pillar correctly', () => {
     expect(getNextPillar('甲子')).toBe('乙丑')
@@ -323,18 +298,6 @@ describe('getStemsByElement / getBranchesByElement', () => {
     expect(getStemsByElement('토').length).toBeGreaterThan(0)
     expect(getStemsByElement('금').length).toBeGreaterThan(0)
     expect(getStemsByElement('수').length).toBeGreaterThan(0)
-  })
-})
-
-describe('getIljuSummary', () => {
-  it('returns summary for valid pillar with data', () => {
-    const summary = getIljuSummary('甲子')
-    expect(summary).toBeTruthy()
-    expect(summary).toContain('甲子')
-  })
-
-  it('returns null for invalid pillar', () => {
-    expect(getIljuSummary('XX')).toBeNull()
   })
 })
 

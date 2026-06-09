@@ -10,6 +10,18 @@ import type { CalendarCell, ActiveSignal } from '../types'
 import type { NatalContext } from '../context/types'
 import { getGongmang } from '@/lib/saju/pillarLookup'
 import { SIBSIN_CAT, deriveCycleTone, deriveAstroTone } from '../derivers/cycleTone'
+import { signalDisplayLabel } from '../derivers/summary'
+
+// 오행 KO → EN (EN 응답에서 용신 한 글자 누수 차단).
+const EL_KO_EN: Record<string, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+const elementLabel = (x: string | undefined, lang: 'ko' | 'en'): string =>
+  !x ? '' : lang === 'en' ? (EL_KO_EN[x] ?? x) : x
 
 const ZH_TO_KO_BRANCH: Record<string, string> = {
   子: '자',
@@ -33,39 +45,27 @@ export interface V2DateDetailResponse {
   date: string
   dayCross: {
     overallScore: number
-    domainScores: Record<string, number>
-    domainCross: Array<{
-      theme: string
-      sajuScore: number
-      astroScore: number
-      sajuSummary: string
-      astroSummary: string
-    }>
     hourly: {
       bestHours: Array<{
         hour: number
         score: number
-        topDomain: string | null
         hourPillar?: string
         planetaryHour?: string
       }>
       worstHours: Array<{
         hour: number
         score: number
-        topDomain: string | null
         hourPillar?: string
         planetaryHour?: string
       }>
       /**
        * 시진 24h 전체 breakdown — Day tier 가 24 시진 라인업을 그리려 best/worst top-N 만으로는
-       * 부족하다. 0~23시 각 시점의 score / topTheme / hourPillar 를 한 줄씩 노출.
+       * 부족하다. 0~23시 각 시점의 score / hourPillar 를 한 줄씩 노출.
        * (별도 시진 emit 명시 — destinypal Day 페이지 spec.)
        */
       all24: Array<{
         hour: number
         score: number
-        topDomain: string | null
-        themeScores: Partial<Record<string, number>>
       }>
     }
     advice: { do: string[]; avoid: string[] }
@@ -106,7 +106,7 @@ export interface V2DateDetailResponse {
   /**
    * 그날 활성 신호 전체 (cat/source/polarity/weight 포함) — Day tier 가 사주·점성·
    * cross 페어 모두 표시하려 raw 신호 dump 가 필요. allSignals = 사주 + 점성 + cross.
-   * 각 요소: { id, source, cat(=kind), name, korean?, themes, polarity, layer, weight,
+   * 각 요소: { id, source, cat(=kind), name, korean?, polarity, layer, weight,
    * active }. evidence 는 includeEvidence true 일 때만 포함.
    */
   signalsRaw: Array<{
@@ -116,7 +116,6 @@ export interface V2DateDetailResponse {
     kind: string
     name: string
     korean?: string
-    themes: string[]
     polarity: number
     layer: string
     weight: number
@@ -139,10 +138,10 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
 
   return {
     date,
-    dayCross: buildDayCross(dayCell, hourlyCells),
+    dayCross: buildDayCross(dayCell, hourlyCells, lang),
     transit: buildTransit(dayCell),
     natalContext: {
-      yongsin: { primary: natal.saju.yongsin.primary },
+      yongsin: { primary: elementLabel(natal.saju.yongsin.primary, lang) },
       strength: natal.saju.strength,
     },
     currentDaeun: buildCurrentDaeun(natal, date, birthYear),
@@ -153,7 +152,7 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
     astroHighlights: buildAstroHighlights(dayCell, lang),
     dayTone: buildDayTone(natal, dayCell, lang),
     dayAstroTone: lang === 'ko' ? deriveAstroTone('day', dayCell.signals) : undefined,
-    signalsRaw: buildSignalsRaw(dayCell),
+    signalsRaw: buildSignalsRaw(dayCell, lang),
   }
 }
 
@@ -162,7 +161,8 @@ export function buildDateDetailResponse(input: BuildDateDetailInput): V2DateDeta
 // ──────────────────────────────────────────────────────────────────────
 
 function buildSignalsRaw(
-  dayCell: CalendarCell
+  dayCell: CalendarCell,
+  lang: 'ko' | 'en'
 ): V2DateDetailResponse['signalsRaw'] {
   const out: V2DateDetailResponse['signalsRaw'] = []
   for (const s of dayCell.signals) {
@@ -171,9 +171,9 @@ function buildSignalsRaw(
       source: s.source,
       cat: s.kind, // destinypal Day tier 호환 alias
       kind: s.kind,
-      name: s.name,
-      korean: s.korean,
-      themes: [...s.themes],
+      // 표시 라벨 — KO: korean/name, EN: english 우선 + 용어 치환(한글 누수 차단).
+      name: signalDisplayLabel(s, lang),
+      korean: lang === 'en' ? (s.english ?? signalDisplayLabel(s, 'en')) : (s.korean ?? s.name),
       polarity: s.polarity,
       layer: s.layer,
       weight: s.weight,
@@ -195,7 +195,13 @@ function buildDayTone(
     const sib = s.evidence?.sibsin as string | undefined
     if (s.layer === 'daily' && sib && SIBSIN_CAT[sib]) {
       const element = s.evidence?.element as string | undefined
-      return deriveCycleTone('day', natal.saju?.strength, SIBSIN_CAT[sib], element, natal.saju?.yongsin)
+      return deriveCycleTone(
+        'day',
+        natal.saju?.strength,
+        SIBSIN_CAT[sib],
+        element,
+        natal.saju?.yongsin
+      )
     }
   }
   return undefined
@@ -247,7 +253,7 @@ function buildAstroHighlights(
   const out: V2DateDetailResponse['astroHighlights'] = []
   const seen = new Set<string>()
   for (const s of astro) {
-    const raw = (lang === 'ko' ? (s.korean ?? s.name) : s.name) || ''
+    const raw = (lang === 'ko' ? (s.korean ?? s.name) : (s.english ?? s.name)) || ''
     const text = lang === 'ko' ? koAstroName(raw) : raw
     if (!text || seen.has(text)) continue
     seen.add(text)
@@ -263,39 +269,16 @@ function buildAstroHighlights(
 
 function buildDayCross(
   dayCell: CalendarCell,
-  hourlyCells: CalendarCell[]
+  hourlyCells: CalendarCell[],
+  lang: 'ko' | 'en' = 'ko'
 ): V2DateDetailResponse['dayCross'] {
   const overallScore = Math.round(dayCell.derivedScore)
-  const domainScores: Record<string, number> = {}
-  for (const [theme, score] of Object.entries(dayCell.themeScores)) {
-    if (typeof score === 'number') domainScores[mapThemeToLegacy(theme)] = Math.round(score)
-  }
-
-  // domainCross — 각 테마별 saju 축 vs astro 축 신호 강도 + 텍스트 요약
-  const domainCross: V2DateDetailResponse['dayCross']['domainCross'] = []
-  const themesInPlay = Object.keys(dayCell.themeScores)
-  for (const theme of themesInPlay) {
-    const sajuSigs = dayCell.signals.filter(
-      (s) => s.source === 'saju' && s.themes.includes(theme as never)
-    )
-    const astroSigs = dayCell.signals.filter(
-      (s) => s.source === 'astro' && s.themes.includes(theme as never)
-    )
-    domainCross.push({
-      theme: mapThemeToLegacy(theme),
-      sajuScore: scoreFromSignals(sajuSigs),
-      astroScore: scoreFromSignals(astroSigs),
-      sajuSummary: summarizeSignals(sajuSigs) || '사주 신호 없음',
-      astroSummary: summarizeSignals(astroSigs) || '점성 신호 없음',
-    })
-  }
 
   // hourly — 24h cells에서 best/worst 추출
   const bestHours = hourlyCells
     .map((c) => ({
       hour: new Date(c.datetime).getUTCHours(),
       score: Math.round(c.derivedScore),
-      topDomain: topThemeOfCell(c),
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 4)
@@ -303,18 +286,15 @@ function buildDayCross(
     .map((c) => ({
       hour: new Date(c.datetime).getUTCHours(),
       score: Math.round(c.derivedScore),
-      topDomain: topThemeOfCell(c),
     }))
     .sort((a, b) => a.score - b.score)
     .slice(0, 2)
   // all24 — 0..23 시진 전체 라인업 (destinypal Day tier 시진 카드). 같은 hourlyCells
-  // 에서 hour 순으로 정렬 + themeScores 통째로.
+  // 에서 hour 순으로 정렬.
   const all24 = hourlyCells
     .map((c) => ({
       hour: new Date(c.datetime).getUTCHours(),
       score: Math.round(c.derivedScore),
-      topDomain: topThemeOfCell(c),
-      themeScores: { ...c.themeScores } as Partial<Record<string, number>>,
     }))
     .sort((a, b) => a.hour - b.hour)
 
@@ -322,8 +302,12 @@ function buildDayCross(
   // 옛 구현은 matchedPatterns.action 을 그대로 복사했는데,
   // DayDomains chip 의 action 과 같은 문장이 2번 나와 중복.
   // 시그널 단위 요약(topReasons / cautions)을 써서 출처를 분리한다.
-  const doList = dayCell.topReasons.slice(0, 3)
-  const avoidList = dayCell.cautions.slice(0, 3)
+  const doList = (
+    lang === 'en' ? (dayCell.topReasonsEn ?? dayCell.topReasons) : dayCell.topReasons
+  ).slice(0, 3)
+  const avoidList = (
+    lang === 'en' ? (dayCell.cautionsEn ?? dayCell.cautions) : dayCell.cautions
+  ).slice(0, 3)
 
   // confidence / agreement
   // confidence = 활성 신호 개수 기반 (많을수록 신뢰도 높음)
@@ -336,34 +320,11 @@ function buildDayCross(
 
   return {
     overallScore,
-    domainScores,
-    domainCross,
     hourly: { bestHours, worstHours, all24 },
     advice: { do: doList.slice(0, 3), avoid: avoidList.slice(0, 3) },
     confidence,
     agreement,
   }
-}
-
-function scoreFromSignals(sigs: ActiveSignal[]): number {
-  if (sigs.length === 0) return 50
-  const sum = sigs.reduce((acc, s) => acc + s.polarity * s.weight, 0)
-  return Math.max(0, Math.min(100, Math.round(50 + sum * 8)))
-}
-
-function summarizeSignals(sigs: ActiveSignal[]): string {
-  if (sigs.length === 0) return ''
-  const top = [...sigs].sort(
-    (a, b) => Math.abs(b.polarity) * b.weight - Math.abs(a.polarity) * a.weight
-  )[0]
-  return top.korean || top.name
-}
-
-function topThemeOfCell(cell: CalendarCell): string | null {
-  const entries = Object.entries(cell.themeScores)
-  if (entries.length === 0) return null
-  entries.sort(([, a], [, b]) => (b ?? 0) - (a ?? 0))
-  return mapThemeToLegacy(entries[0][0])
 }
 
 function avgPolarity(sigs: ActiveSignal[]): number {
@@ -554,8 +515,14 @@ function buildShinsalActive(
   const result: V2DateDetailResponse['shinsalActive'] = []
   for (const s of dayCell.signals) {
     if (s.source !== 'saju' || s.kind !== 'shinsal') continue
-    const d = s.evidence.detail as Record<string, unknown>
-    const koName = (d.shinsalName as string) || s.name || ''
+    const ev = s.evidence as unknown as Record<string, unknown>
+    const d = (ev.detail as Record<string, unknown>) ?? {}
+    // shinsalName 은 추출기에 따라 evidence.shinsalName 또는 evidence.detail.shinsalName 에 있음.
+    // 둘 다 없으면 s.name 에서 ' 활성' 접미사를 떼어 순수 신살명을 복원(EN 사전 매칭용).
+    const koName =
+      (ev.shinsalName as string) ||
+      (d.shinsalName as string) ||
+      (s.name || '').replace(/\s*활성\s*$/, '').trim()
     if (!koName) continue
     const koType = (d.type as string) || '길신'
     result.push({
@@ -594,33 +561,4 @@ function buildGongmangStatus(
     isAffected: todayBranchHit,
     areas: todayBranchHit ? koGongmang : [],
   }
-}
-
-// ──────────────────────────────────────────────────────────────────────
-// theme 키 정규화 — v2 internal key ↔ 옛 응답 형식
-// ──────────────────────────────────────────────────────────────────────
-
-const THEME_LEGACY_MAP: Record<string, string> = {
-  money: '재물',
-  wealth: '재물',
-  love: '연애',
-  romance: '연애',
-  career: '직업',
-  work: '직업',
-  health: '건강',
-  study: '학업',
-  fame: '명예',
-  travel: '이동',
-  family: '가족',
-  spirituality: '영성',
-  legal: '법무',
-  creativity: '창작',
-  children: '자녀',
-  social: '인맥',
-  karma: '카르마',
-  reputation: '평판',
-}
-
-function mapThemeToLegacy(theme: string): string {
-  return THEME_LEGACY_MAP[theme] ?? theme
 }

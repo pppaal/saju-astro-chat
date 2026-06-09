@@ -24,7 +24,18 @@ import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { getTwelveStageInterpretation, type TwelveStageType } from '@/lib/saju/interpretations'
 
 const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
-  '장생', '목욕', '관대', '건록', '제왕', '쇠', '병', '사', '묘', '절', '태', '양',
+  '장생',
+  '목욕',
+  '관대',
+  '건록',
+  '제왕',
+  '쇠',
+  '병',
+  '사',
+  '묘',
+  '절',
+  '태',
+  '양',
 ])
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
@@ -83,7 +94,7 @@ const BAND_CAT_KO: Record<string, Record<Cat, string>> = {
   },
   청년기: {
     관성: '진로·직장·책임이 본격화돼요. 자기 자리를 만들어가요',
-    재성: '현실 성취와 돈·연애의 무대가 열려요. 실속을 다져요',
+    재성: '현실 성취와 돈·연애의 기회가 열려요. 실속을 다져요',
     식상: '재능과 표현으로 세상에 나가요. 자기 목소리를 내요',
     비겁: '독립과 경쟁 속에서 홀로서기를 해요. 내 길을 찾아요',
     인성: '더 깊이 배우고 전문성을 쌓아요. 내공을 다져요',
@@ -160,17 +171,17 @@ export const TONE_VARIANTS_KO: Record<'good' | 'hard' | 'mid', readonly string[]
   good: [
     '흐름이 순해서 노력한 만큼 잘 풀리는 편이에요.',
     '기운이 등 뒤에서 받쳐줘 결정이 매끄럽게 이어져요.',
-    '용신과 결이 맞아 시도한 일이 좀처럼 헛돌지 않아요.',
+    '용신과 잘 맞아 시도한 일이 좀처럼 헛돌지 않아요.',
   ],
   hard: [
     '쉽지 않은 고비를 넘으며 단단해지는 시기예요.',
-    '저항이 잦아 한 걸음마다 무게를 실어야 하는 결이에요.',
+    '저항이 잦아 한 걸음마다 무게를 실어야 하는 편이에요.',
     '기신과 부딪히며 깎여나가는 만큼 코어가 굵어져요.',
   ],
   mid: [
     '큰 굴곡 없이 차분히 자기 몫을 다지는 흐름이에요.',
-    '드라마틱한 사건보다 누적이 의미 있는 결이에요.',
-    '평지에서 페이스를 유지하는 게 본 결의 핵심이에요.',
+    '드라마틱한 사건보다 누적이 의미 있는 편이에요.',
+    '평지에서 페이스를 유지하는 게 핵심이에요.',
   ],
 }
 const TONE_VARIANTS_EN: Record<'good' | 'hard' | 'mid', readonly string[]> = {
@@ -225,22 +236,58 @@ const SIGN_EN: Record<string, string> = {
 // 천간/지지 한자 → 한글 음. 일반 사용자가 한자를 못 읽어 "丁丑 대운" 이 막막
 // 하다는 피드백(2026-06). 모든 간지 표기 시 옆에 한글 음을 병기한다.
 const STEM_KO: Record<string, string> = {
-  甲: '갑', 乙: '을', 丙: '병', 丁: '정', 戊: '무',
-  己: '기', 庚: '경', 辛: '신', 壬: '임', 癸: '계',
+  甲: '갑',
+  乙: '을',
+  丙: '병',
+  丁: '정',
+  戊: '무',
+  己: '기',
+  庚: '경',
+  辛: '신',
+  壬: '임',
+  癸: '계',
 }
 const BRANCH_KO: Record<string, string> = {
-  子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사',
-  午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
+  子: '자',
+  丑: '축',
+  寅: '인',
+  卯: '묘',
+  辰: '진',
+  巳: '사',
+  午: '오',
+  未: '미',
+  申: '신',
+  酉: '유',
+  戌: '술',
+  亥: '해',
 }
 // Romanizations (pinyin-ish) for EN output — English readers can't read
 // 한글 음 either, so we romanize the Korean reading instead.
 const STEM_ROM: Record<string, string> = {
-  甲: 'gap', 乙: 'eul', 丙: 'byeong', 丁: 'jeong', 戊: 'mu',
-  己: 'gi', 庚: 'gyeong', 辛: 'sin', 壬: 'im', 癸: 'gye',
+  甲: 'gap',
+  乙: 'eul',
+  丙: 'byeong',
+  丁: 'jeong',
+  戊: 'mu',
+  己: 'gi',
+  庚: 'gyeong',
+  辛: 'sin',
+  壬: 'im',
+  癸: 'gye',
 }
 const BRANCH_ROM: Record<string, string> = {
-  子: 'ja', 丑: 'chuk', 寅: 'in', 卯: 'myo', 辰: 'jin', 巳: 'sa',
-  午: 'o', 未: 'mi', 申: 'sin', 酉: 'yu', 戌: 'sul', 亥: 'hae',
+  子: 'ja',
+  丑: 'chuk',
+  寅: 'in',
+  卯: 'myo',
+  辰: 'jin',
+  巳: 'sa',
+  午: 'o',
+  未: 'mi',
+  申: 'sin',
+  酉: 'yu',
+  戌: 'sul',
+  亥: 'hae',
 }
 function ganjiKo(stem: string, branch: string): string {
   const s = STEM_KO[stem] ?? ''
@@ -298,12 +345,32 @@ const BANDS: Array<[number, number, string]> = [
 // 풀세트를 보여준다).
 // ─────────────────────────────────────────────────────────────
 const BRANCH_CHUNG: Record<string, string> = {
-  子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅',
-  卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳',
+  子: '午',
+  午: '子',
+  丑: '未',
+  未: '丑',
+  寅: '申',
+  申: '寅',
+  卯: '酉',
+  酉: '卯',
+  辰: '戌',
+  戌: '辰',
+  巳: '亥',
+  亥: '巳',
 }
 const BRANCH_YUKHAP: Record<string, string> = {
-  子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯',
-  辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午',
+  子: '丑',
+  丑: '子',
+  寅: '亥',
+  亥: '寅',
+  卯: '戌',
+  戌: '卯',
+  辰: '酉',
+  酉: '辰',
+  巳: '申',
+  申: '巳',
+  午: '未',
+  未: '午',
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -382,16 +449,28 @@ const SHINSAL_SHORT_EN: Record<string, { name: string; short: string }> = {
 
 // 본명 4지지 위치명 → 한국어/영문 표기 (단계 카드 줄에 쓰는 짧은 라벨).
 const PILLAR_POS_KO: Record<string, string> = {
-  year: '연지', month: '월지', day: '일지', time: '시지',
+  year: '연지',
+  month: '월지',
+  day: '일지',
+  time: '시지',
 }
 const PILLAR_POS_EN: Record<string, string> = {
-  year: 'year branch', month: 'month branch', day: 'day branch', time: 'hour branch',
+  year: 'year branch',
+  month: 'month branch',
+  day: 'day branch',
+  time: 'hour branch',
 }
 const PILLAR_STEM_POS_KO: Record<string, string> = {
-  year: '연간', month: '월간', day: '일간', time: '시간',
+  year: '연간',
+  month: '월간',
+  day: '일간',
+  time: '시간',
 }
 const PILLAR_STEM_POS_EN: Record<string, string> = {
-  year: 'year stem', month: 'month stem', day: 'day stem', time: 'hour stem',
+  year: 'year stem',
+  month: 'month stem',
+  day: 'day stem',
+  time: 'hour stem',
 }
 
 // 받침 인식 조사
@@ -414,7 +493,20 @@ function shortDateKo(iso: string): string {
 function shortDateEn(iso: string): string {
   const y = iso.slice(0, 4)
   const m = parseInt(iso.slice(5, 7), 10)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ]
   const mon = months[Math.max(0, Math.min(11, m - 1))]
   return `${mon} ${y}`
 }
@@ -430,14 +522,35 @@ const GEOKGUK_EN: Record<string, { name: string; short: string }> = {
   편재격: { name: 'Indirect-wealth (Pyeonjae) pattern', short: 'enterprising, dynamic with money' },
   정재격: { name: 'Direct-wealth (Jeongjae) pattern', short: 'steady, faithful accumulation' },
   편관격: { name: 'Indirect-officer (Pyeongwan) pattern', short: 'decisive, willing to push hard' },
-  정관격: { name: 'Direct-officer (Jeonggwan) pattern', short: 'orderly, principled responsibility' },
-  편인격: { name: 'Indirect-resource (Pyeonin) pattern', short: 'unconventional thinker, lone-wolf learner' },
-  정인격: { name: 'Direct-resource (Jeongin) pattern', short: 'studious, dignified, well-supported' },
+  정관격: {
+    name: 'Direct-officer (Jeonggwan) pattern',
+    short: 'orderly, principled responsibility',
+  },
+  편인격: {
+    name: 'Indirect-resource (Pyeonin) pattern',
+    short: 'unconventional thinker, lone-wolf learner',
+  },
+  정인격: {
+    name: 'Direct-resource (Jeongin) pattern',
+    short: 'studious, dignified, well-supported',
+  },
   종왕격: { name: 'Following-prosperity (Jongwang) pattern', short: 'rides one dominant force' },
-  종강격: { name: 'Following-strength (Jonggang) pattern', short: 'leans on support that overwhelms the chart' },
-  종아격: { name: 'Following-output (Jong‑a) pattern', short: 'goes all-in on expression and output' },
-  종재격: { name: 'Following-wealth (Jongjae) pattern', short: 'follows the dominant wealth force' },
-  종살격: { name: 'Following-officer (Jongsal) pattern', short: 'follows overpowering authority/pressure' },
+  종강격: {
+    name: 'Following-strength (Jonggang) pattern',
+    short: 'leans on support that overwhelms the chart',
+  },
+  종아격: {
+    name: 'Following-output (Jong‑a) pattern',
+    short: 'goes all-in on expression and output',
+  },
+  종재격: {
+    name: 'Following-wealth (Jongjae) pattern',
+    short: 'follows the dominant wealth force',
+  },
+  종살격: {
+    name: 'Following-officer (Jongsal) pattern',
+    short: 'follows overpowering authority/pressure',
+  },
   건록격: { name: 'Established-rank (Geollok) pattern', short: 'born standing on your own feet' },
   양인격: { name: 'Yang-blade (Yangin) pattern', short: 'sharp, intense, high-stakes drive' },
   월겁격: { name: 'Month-rob (Wolgeop) pattern', short: 'strong peers, competition shapes you' },
@@ -445,11 +558,20 @@ const GEOKGUK_EN: Record<string, { name: string; short: string }> = {
   곡직격: { name: 'Curving-straight (Gokjik) pattern', short: 'all-Wood — growth and uprightness' },
   염상격: { name: 'Blazing-up (Yeomsang) pattern', short: 'all-Fire — bright, radiant force' },
   가색격: { name: 'Sowing-reaping (Gasaek) pattern', short: 'all-Earth — fertile, gathering' },
-  종혁격: { name: 'Following-reform (Jonghyeok) pattern', short: 'all-Metal — sharp, refining force' },
+  종혁격: {
+    name: 'Following-reform (Jonghyeok) pattern',
+    short: 'all-Metal — sharp, refining force',
+  },
   윤하격: { name: 'Flowing-down (Yunha) pattern', short: 'all-Water — fluid, deep, adaptive' },
   갑기화토격: { name: 'Gap-gi Earth transformation pattern', short: 'two stems fuse into Earth' },
-  을경화금격: { name: 'Eul-gyeong Metal transformation pattern', short: 'two stems fuse into Metal' },
-  병신화수격: { name: 'Byeong-sin Water transformation pattern', short: 'two stems fuse into Water' },
+  을경화금격: {
+    name: 'Eul-gyeong Metal transformation pattern',
+    short: 'two stems fuse into Metal',
+  },
+  병신화수격: {
+    name: 'Byeong-sin Water transformation pattern',
+    short: 'two stems fuse into Water',
+  },
   정임화목격: { name: 'Jeong-im Wood transformation pattern', short: 'two stems fuse into Wood' },
   무계화화격: { name: 'Mu-gye Fire transformation pattern', short: 'two stems fuse into Fire' },
   미정: { name: 'Undetermined pattern', short: 'no clean pattern lock' },
@@ -457,34 +579,34 @@ const GEOKGUK_EN: Record<string, { name: string; short: string }> = {
 // 한국어 1줄 함축 — geokguk.ts 의 description 은 본문에 가까운 한 문장이라
 // intro 한 줄에 박기엔 살짝 길다. 짧은 핵심만 적는다.
 const GEOKGUK_SHORT_KO: Record<string, string> = {
-  식신격: '창의가 곧 재물로 이어지는 결',
-  상관격: '자유롭고 재능 중심의 결',
-  편재격: '활동적이고 사업 수완이 큰 결',
-  정재격: '안정적·꾸준한 축적의 결',
-  편관격: '결단력 있고 밀어붙이는 결',
-  정관격: '원칙·책임 중심의 결',
-  편인격: '독자적 사고·1인 학습형의 결',
-  정인격: '배움·지원이 든든한 결',
-  종왕격: '하나의 강한 기운에 올라타는 결',
-  종강격: '지원이 압도하는 결',
-  종아격: '표현·창작 전부에 던지는 결',
-  종재격: '재물 흐름에 동승하는 결',
-  종살격: '강한 압력·권위에 적응하는 결',
-  건록격: '홀로서기로 출발하는 결',
-  양인격: '날카롭고 강도 높은 추진력의 결',
-  월겁격: '경쟁이 사람을 키우는 결',
-  잡기격: '다중 트랙 발달의 결',
-  곡직격: '목 일색 — 성장·곧음의 결',
-  염상격: '화 일색 — 환하고 빛나는 결',
-  가색격: '토 일색 — 너른 토양의 결',
-  종혁격: '금 일색 — 날카로운 정련의 결',
-  윤하격: '수 일색 — 유연하고 깊은 결',
-  갑기화토격: '두 천간이 토로 화하는 결',
-  을경화금격: '두 천간이 금으로 화하는 결',
-  병신화수격: '두 천간이 수로 화하는 결',
-  정임화목격: '두 천간이 목으로 화하는 결',
-  무계화화격: '두 천간이 화로 화하는 결',
-  미정: '뚜렷한 격이 잡히지 않는 결',
+  식신격: '창의가 곧 재물로 이어지는 스타일',
+  상관격: '자유롭고 재능 중심 스타일',
+  편재격: '활동적이고 사업 수완이 큰 스타일',
+  정재격: '안정적·꾸준한 축적 스타일',
+  편관격: '결단력 있고 밀어붙이는 스타일',
+  정관격: '원칙·책임 중심 스타일',
+  편인격: '독자적 사고·1인 학습형 스타일',
+  정인격: '배움·지원이 든든한 스타일',
+  종왕격: '하나의 강한 기운에 올라타는 스타일',
+  종강격: '지원이 압도하는 스타일',
+  종아격: '표현·창작 전부에 던지는 스타일',
+  종재격: '재물 흐름에 동승하는 스타일',
+  종살격: '강한 압력·권위에 적응하는 스타일',
+  건록격: '홀로서기로 출발하는 스타일',
+  양인격: '날카롭고 강도 높은 추진력 스타일',
+  월겁격: '경쟁이 사람을 키우는 스타일',
+  잡기격: '다중 트랙 발달 스타일',
+  곡직격: '목 일색 — 성장·곧음 스타일',
+  염상격: '화 일색 — 환하고 빛나는 스타일',
+  가색격: '토 일색 — 너른 토양 스타일',
+  종혁격: '금 일색 — 날카로운 정련 스타일',
+  윤하격: '수 일색 — 유연하고 깊은 스타일',
+  갑기화토격: '두 천간이 토로 화하는 스타일',
+  을경화금격: '두 천간이 금으로 화하는 스타일',
+  병신화수격: '두 천간이 수로 화하는 스타일',
+  정임화목격: '두 천간이 목으로 화하는 스타일',
+  무계화화격: '두 천간이 화로 화하는 스타일',
+  미정: '뚜렷한 격이 잡히지 않는 스타일',
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -493,17 +615,25 @@ const GEOKGUK_SHORT_KO: Record<string, string> = {
 // ─────────────────────────────────────────────────────────────
 type Elem = 'wood' | 'fire' | 'earth' | 'metal' | 'water'
 const ELEMENT_KO: Record<Elem, string> = {
-  wood: '목', fire: '화', earth: '토', metal: '금', water: '수',
+  wood: '목',
+  fire: '화',
+  earth: '토',
+  metal: '금',
+  water: '수',
 }
 const ELEMENT_EN: Record<Elem, string> = {
-  wood: 'Wood', fire: 'Fire', earth: 'Earth', metal: 'Metal', water: 'Water',
+  wood: 'Wood',
+  fire: 'Fire',
+  earth: 'Earth',
+  metal: 'Metal',
+  water: 'Water',
 }
 const ELEMENT_IMPLICATION_KO: Record<Elem, string> = {
-  wood: '성장·확장 동력이 큰 결이에요',
-  fire: '드러내고 표현하는 추진력이 큰 결이에요',
-  earth: '안정·뿌리·매개 역할에 강한 결이에요',
-  metal: '분별·다듬기·결단의 결이 강해요',
-  water: '유연한 사고와 깊이 있는 흐름이 본 결이에요',
+  wood: '성장·확장 동력이 큰 편이에요',
+  fire: '드러내고 표현하는 추진력이 큰 편이에요',
+  earth: '안정·뿌리·매개 역할에 강한 편이에요',
+  metal: '분별·다듬기·맺고 끊는 게 분명해요',
+  water: '유연한 사고와 깊이 있는 흐름이 본 편이에요',
 }
 const ELEMENT_IMPLICATION_EN: Record<Elem, string> = {
   wood: 'your engine runs on growth and expansion',
@@ -514,11 +644,11 @@ const ELEMENT_IMPLICATION_EN: Record<Elem, string> = {
 }
 // FiveElement (Korean 한글: 목/화/토/금/수) → Elem key (wood/fire/...)
 const ELEMENT_KO_TO_KEY: Record<string, Elem> = {
-  '목': 'wood',
-  '화': 'fire',
-  '토': 'earth',
-  '금': 'metal',
-  '수': 'water',
+  목: 'wood',
+  화: 'fire',
+  토: 'earth',
+  금: 'metal',
+  수: 'water',
 }
 
 export function deriveLifetimeFlow(
@@ -563,11 +693,10 @@ export function deriveLifetimeFlow(
   const yongKo = [yongPrimary, yongSecondary].filter(Boolean).join('·')
   const yongEnList = [yongPrimary, yongSecondary]
     .filter(Boolean)
-    .map((e) => (e ? ELEMENT_EN[ELEMENT_KO_TO_KEY[e]] ?? e : ''))
+    .map((e) => (e ? (ELEMENT_EN[ELEMENT_KO_TO_KEY[e]] ?? e) : ''))
     .filter(Boolean)
-  const yongEn = yongEnList.length === 2
-    ? `${yongEnList[0]} or ${yongEnList[1]}`
-    : yongEnList[0] ?? ''
+  const yongEn =
+    yongEnList.length === 2 ? `${yongEnList[0]} or ${yongEnList[1]}` : (yongEnList[0] ?? '')
 
   // ── astro identity (Sun / Asc / MC) ──
   const planets = (natal.astro?.chart?.planets ?? []) as Array<{ name?: string; sign?: string }>
@@ -652,11 +781,11 @@ export function deriveLifetimeFlow(
       if (domCount > 0) {
         const pct = Math.round((domCount / sum) * 100)
         const CAT_IMPLICATION_KO: Record<string, string> = {
-          비겁: '주체성·독립심·동료 경쟁이 본 결',
-          식상: '표현·창작·말솜씨가 본 결',
-          재성: '행동 동력·물질 감각이 본 결',
-          관성: '책임·규율·사회적 자리가 본 결',
-          인성: '배움·지원·내공 다지기가 본 결',
+          비겁: '주체성·독립심·동료 경쟁이 본 스타일',
+          식상: '표현·창작·말솜씨가 본 스타일',
+          재성: '행동 동력·물질 감각이 본 스타일',
+          관성: '책임·규율·사회적 자리가 본 스타일',
+          인성: '배움·지원·내공 다지기가 본 스타일',
         }
         const CAT_EN_NAME: Record<string, string> = {
           비겁: 'Peer (Bigyeop)',
@@ -688,27 +817,47 @@ export function deriveLifetimeFlow(
     let tgEn = ''
     if (tg) {
       const ts = tg.totalStrength
-      if (ts >= 100) { tgKo = '단단하게 박혀'; tgEn = 'deeply rooted' }
-      else if (ts >= 50) { tgKo = '뚜렷이 박혀'; tgEn = 'well rooted' }
-      else if (ts > 0) { tgKo = '얇게 박혀'; tgEn = 'shallowly rooted' }
-      else { tgKo = '뿌리 없이'; tgEn = 'rootless' }
+      if (ts >= 100) {
+        tgKo = '단단하게 박혀'
+        tgEn = 'deeply rooted'
+      } else if (ts >= 50) {
+        tgKo = '뚜렷이 박혀'
+        tgEn = 'well rooted'
+      } else if (ts > 0) {
+        tgKo = '얇게 박혀'
+        tgEn = 'shallowly rooted'
+      } else {
+        tgKo = '뿌리 없이'
+        tgEn = 'rootless'
+      }
     }
     let drKo = ''
     let drEn = ''
     if (dr) {
-      if (dr.status === '득령') { drKo = '월령을 얻어'; drEn = 'with the month-branch in your favor' }
-      else if (dr.status === '실령') { drKo = '월령을 잃어'; drEn = 'with the month-branch against you' }
-      else { drKo = '월령은 무난해'; drEn = 'with the month-branch neutral' }
+      if (dr.status === '득령') {
+        drKo = '월령을 얻어'
+        drEn = 'with the month-branch in your favor'
+      } else if (dr.status === '실령') {
+        drKo = '월령을 잃어'
+        drEn = 'with the month-branch against you'
+      } else {
+        drKo = '월령은 무난해'
+        drEn = 'with the month-branch neutral'
+      }
     }
     const strSummaryKo =
       natal.saju.strength === 'weak' ? '약한' : natal.saju.strength === 'strong' ? '강한' : '중화의'
     const strSummaryEn =
-      natal.saju.strength === 'weak' ? 'on the weaker side' : natal.saju.strength === 'strong' ? 'on the stronger side' : 'balanced'
+      natal.saju.strength === 'weak'
+        ? 'on the weaker side'
+        : natal.saju.strength === 'strong'
+          ? 'on the stronger side'
+          : 'balanced'
     if (tgKo || drKo) {
       const parts: string[] = []
       if (tgKo) parts.push(`일간 통근이 ${tgKo}`)
       if (drKo) parts.push(drKo)
-      rootIntroKo = `${parts.join(' ')} 강약은 ${strSummaryKo} 결로 읽혀요.`
+      rootIntroKo = `${parts.join(' ')} 강약은 ${strSummaryKo} 편이에요.`
     }
     if (tgEn || drEn) {
       const partsEn: string[] = []
@@ -731,7 +880,7 @@ export function deriveLifetimeFlow(
       const ekbu = natal.saju.yongsin?.primary
       if (johuElem && johuElem !== ekbu) {
         const johuEnElem = ELEMENT_EN[ELEMENT_KO_TO_KEY[johuElem]] ?? johuElem
-        johuIntroKo = `조후로 보면 ${johuElem} 기운이 필요한 결이라 ${jy.reasoning}`
+        johuIntroKo = `조후로 보면 ${johuElem}이 받쳐주면 좋아서 ${jy.reasoning}`
         johuIntroEn = `Seasonally you need ${johuEnElem} — ${jy.reasoning_en}`
       }
     }
@@ -762,12 +911,14 @@ export function deriveLifetimeFlow(
       parts.push(`On the astrology side, you were born with ${astroId}.`)
       parts.push('These two set the stage, and the phases below unfold on it.')
     } else {
-      parts.push('The phases below are the crossing of Saju daeun and astrological life milestones.')
+      parts.push(
+        'The phases below are the crossing of Saju daeun and astrological life milestones.'
+      )
     }
     intro = parts.join(' ')
   } else {
     const head = yongKo
-      ? `사주로는 ${dm} 일간으로 ${strengthKo}, 용신 ${yongKo}${gaI(yongKo)} 받쳐줄 때 빛나는 결이에요.`
+      ? `사주로는 ${dm} 일간으로 ${strengthKo}, 용신 ${yongKo}${gaI(yongKo)} 받쳐줄 때 잘 풀려요.`
       : `사주로는 ${dm} 일간으로 ${strengthKo}.`
     const parts: string[] = []
     if (scoreIntroKo) parts.push(scoreIntroKo)
@@ -780,7 +931,7 @@ export function deriveLifetimeFlow(
     if (lifeIntroKo) parts.push(lifeIntroKo)
     if (astroId) {
       parts.push(`점성으로는 ${astroId}의 기질을 타고났고요.`)
-      parts.push('이 둘이 평생 흐름의 무대를 만들고, 그 위에서 아래 시기들이 펼쳐져요.')
+      parts.push('이 둘이 평생 흐름의 바탕을 만들고, 그 위에서 시기별로 펼쳐져요.')
     } else {
       parts.push('사주 대운과 점성 인생 마디를 교차해 본 큰 흐름이에요.')
     }
@@ -806,7 +957,9 @@ export function deriveLifetimeFlow(
     const dateStr = o.exactDateISO
       ? shortDate(o.exactDateISO)
       : o.startYear != null
-        ? isEn ? `${o.startYear}` : `${o.startYear}년`
+        ? isEn
+          ? `${o.startYear}`
+          : `${o.startYear}년`
         : ''
     if (!dateStr) continue
     milestoneFacts.push({ kind: o.kind, age: o.age, dateStr })
@@ -849,11 +1002,31 @@ export function deriveLifetimeFlow(
     const primary =
       bandDaeuns.find((x) => x.startAge <= mid && x.startAge + 10 > mid) ?? bandDaeuns[0]
     if (!primary) continue
-    const sibsinName = getSibsinKo(dm, primary.stem) // 정관/편관/정재/편재/식신/상관/비견/겁재/정인/편인
+    // 초년(0~)은 대운 시작 전 — 근묘화실에서 초년은 년주(부모·뿌리)가 주관한다.
+    // 대운 십신으로 읽으면 어긋난다(재다신약인데 초년이 좋게 뜨는 등). 그래서
+    // 초년 본문·톤은 *년주 천간* 으로 본다. (대운 부가사실은 아래 그대로 표시 —
+    // 첫 대운이 초년 후반에 시작하므로.)
+    const isChildhood = lo === 0
+    const lensStem = isChildhood
+      ? (natal.saju.pillars?.year?.heavenlyStem?.name ?? primary.stem)
+      : primary.stem
+    const sibsinName = getSibsinKo(dm, lensStem) // 정관/편관/정재/편재/식신/상관/비견/겁재/정인/편인
     const cat = SIBSIN_CAT[sibsinName] as Cat | undefined
     const body = cat ? BAND_CAT[label]?.[cat] : undefined
     if (!cat || !body) continue
-    const fav = favorOf(natal.saju.strength, cat, getStemElement(primary.stem), natal.saju.yongsin)
+    const fav = favorOf(natal.saju.strength, cat, getStemElement(lensStem), natal.saju.yongsin)
+    // 초년 톤은 억부(신강약)로 — 신약은 비겁·인성이 받침(good), 재성·관성·식상은
+    // 부담(hard). 재다신약의 초년 재성 부담이 'mid' 로 뭉개지던 것 교정.
+    const toneFav =
+      isChildhood && natal.saju.strength === 'weak'
+        ? cat === '비겁' || cat === '인성'
+          ? 'good'
+          : 'hard'
+        : isChildhood && natal.saju.strength === 'strong'
+          ? cat === '식상' || cat === '재성' || cat === '관성'
+            ? 'good'
+            : 'hard'
+          : fav
 
     // 사실 1: 이 단계에 걸친 대운 모두 (간지 + 한글 음/로마자 + 정확 연도 범위).
     const MAX_DAEUNS = 3
@@ -862,7 +1035,9 @@ export function deriveLifetimeFlow(
     const daeunLabel = isEn ? 'daeun' : '대운'
     const daeunLine =
       daeunsToShow
-        .map((x) => `${ganjiFmt(x.stem, x.branch)} ${daeunLabel} ${x.startYear}-${x.startYear + 10}`)
+        .map(
+          (x) => `${ganjiFmt(x.stem, x.branch)} ${daeunLabel} ${x.startYear}-${x.startYear + 10}`
+        )
         .join(' → ') + (daeunMore > 0 ? ' →…' : '')
 
     // 사실 2: 이 단계(age lo~hi)에 떨어지는 외행성 마디.
@@ -873,9 +1048,7 @@ export function deriveLifetimeFlow(
     const TOP_N = 3
     const top = phaseMilestones.slice(0, TOP_N)
     const moreCount = phaseMilestones.length - top.length
-    const milestoneStr = top
-      .map((m) => `${MILESTONE_SHORT[m.kind]} ${m.dateStr}`)
-      .join(', ')
+    const milestoneStr = top.map((m) => `${MILESTONE_SHORT[m.kind]} ${m.dateStr}`).join(', ')
     const milestoneLine = top.length
       ? `${milestoneStr}${moreCount > 0 ? (isEn ? ` (+${moreCount} more)` : ` 외 ${moreCount}`) : ''}`
       : undefined
@@ -930,8 +1103,7 @@ export function deriveLifetimeFlow(
         if (!tgt) continue
         const isBranch = tgt in BRANCH_KO
         const isStem = tgt in STEM_KO
-        const matches =
-          (isBranch && tgt === daeunBranch) || (isStem && tgt === daeunStem)
+        const matches = (isBranch && tgt === daeunBranch) || (isStem && tgt === daeunStem)
         if (!matches) continue
         // anchor 가 어느 기둥인지 — pillars[0] (대표 위치) 사용. 위치 라벨이
         // 없는 경우엔 그냥 "본명" 만 쓴다.
@@ -941,8 +1113,8 @@ export function deriveLifetimeFlow(
           const meta = SHINSAL_SHORT_EN[kind] ?? { name: kind, short: `${kind} activated` }
           const posLabel = pillarKey
             ? isBranch
-              ? PILLAR_POS_EN[pillarKey] ?? ''
-              : PILLAR_STEM_POS_EN[pillarKey] ?? ''
+              ? (PILLAR_POS_EN[pillarKey] ?? '')
+              : (PILLAR_STEM_POS_EN[pillarKey] ?? '')
             : ''
           const anchorRom = isBranch
             ? `${tgt} (${BRANCH_ROM[tgt] ?? ''})`
@@ -956,8 +1128,8 @@ export function deriveLifetimeFlow(
           const short = SHINSAL_SHORT_KO[kind] ?? `${kind} 발현`
           const posLabel = pillarKey
             ? isBranch
-              ? PILLAR_POS_KO[pillarKey] ?? ''
-              : PILLAR_STEM_POS_KO[pillarKey] ?? ''
+              ? (PILLAR_POS_KO[pillarKey] ?? '')
+              : (PILLAR_STEM_POS_KO[pillarKey] ?? '')
             : ''
           const anchorKo = isBranch
             ? `${tgt}(${BRANCH_KO[tgt] ?? ''})`
@@ -1006,10 +1178,15 @@ export function deriveLifetimeFlow(
       // stage 계산 실패 시 silently skip
     }
 
-    // 본문 — 십신(정확명) + cat + body + 톤.
+    // 본문 — 십신(정확명) + cat + body + 톤. 초년은 "년주(부모·뿌리) 기준" 명시.
+    const childPrefix = isChildhood
+      ? isEn
+        ? 'From the year pillar (parents·roots) — '
+        : '초년은 년주(부모·뿌리) 기준 — '
+      : ''
     const text = isEn
-      ? `${sibsinName} (${CAT_EN[cat]}) flow — ${body}. ${nextToneText(fav)}`
-      : `${sibsinName}(${cat}) 흐름 — ${body}. ${nextToneText(fav)}`
+      ? `${childPrefix}${sibsinName} (${CAT_EN[cat]}) flow — ${body}. ${nextToneText(toneFav)}`
+      : `${childPrefix}${sibsinName}(${cat}) 흐름 — ${body}. ${nextToneText(toneFav)}`
 
     const ageRange = isEn
       ? `age ${lo}-${hi} · ${birthYear + lo}-${birthYear + hi}`
@@ -1030,4 +1207,3 @@ export function deriveLifetimeFlow(
   if (phases.length === 0) return undefined
   return { intro, phases }
 }
-

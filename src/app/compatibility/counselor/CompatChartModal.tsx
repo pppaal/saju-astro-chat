@@ -2,11 +2,11 @@
 
 import React from 'react'
 import { X } from 'lucide-react'
-import { SajuChart } from '@/components/destiny-map/charts/SajuChart'
-import { ChartReading } from '@/components/destiny-map/charts/ChartReading'
-import { ScoreBreakdown } from '@/components/destiny-map/charts/atoms/ScoreBreakdown'
-import { CompatLines } from '@/components/destiny-map/charts/atoms/CompatLines'
-import { generateChartSummary } from '@/lib/destiny-map/local-report-generator'
+import { SajuChart } from '@/components/report/SajuChart'
+import { ChartReading } from '@/components/report/ChartReading'
+import { ScoreBreakdown } from '@/components/report/atoms/ScoreBreakdown'
+import { CompatLines } from '@/components/report/atoms/CompatLines'
+import { generateChartSummary } from '@/lib/report/local-report-generator'
 import { CompatNatalOverlay } from './CompatNatalOverlay'
 import { CompatRadarOverlay } from './CompatRadarOverlay'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -195,10 +195,7 @@ export function CompatChartModal({
         <div className="space-y-6">
           {/* Level 0 — ScoreBreakdown: 총합 점수 + 5 카테고리 분해.
               사주 합/충 + 오행 보완 + 시너스트리 자동 계산. */}
-          <div
-            className="chart-rise-in"
-            style={{ ['--i' as string]: 0 } as React.CSSProperties}
-          >
+          <div className="chart-rise-in" style={{ ['--i' as string]: 0 } as React.CSSProperties}>
             <ScoreBreakdown
               sajuA={sajuA}
               sajuB={sajuB}
@@ -218,10 +215,7 @@ export function CompatChartModal({
           </div>
 
           {/* CompatLines — 두 사람 사주 8글자 사이 합/충 라인 시각화 */}
-          <div
-            className="chart-rise-in"
-            style={{ ['--i' as string]: 2 } as React.CSSProperties}
-          >
+          <div className="chart-rise-in" style={{ ['--i' as string]: 2 } as React.CSSProperties}>
             <CompatLines sajuA={sajuA} sajuB={sajuB} lang={lang} />
           </div>
 

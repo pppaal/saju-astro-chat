@@ -83,17 +83,17 @@
 
 .notice {
   border: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--ds-error-bg);
+  color: var(--ds-error-strong);
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 0.85rem;
 }
 
 .hint {
-  border: 1px solid #e7e5e4;
-  background: #fcfbfa;
-  color: #57534e;
+  border: 1px solid var(--ds-light-border);
+  background: var(--ds-light-row);
+  color: var(--ds-light-text-muted);
   padding: 10px 14px;
   border-radius: 10px;
   font-size: 0.82rem;

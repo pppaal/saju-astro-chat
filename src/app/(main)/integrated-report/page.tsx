@@ -8,8 +8,9 @@
  * (Profection/Lots/ZR/Almuten/5-tier dignity) 계산 안 함.
  */
 import { buildReportContext } from './buildReportContext'
-import { natalToReportData, buildCrossRows } from '@/components/destiny-map/charts/integrated/adapter'
-import { IntegratedReport } from '@/components/destiny-map/charts/integrated/IntegratedReport'
+import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
+import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
+import { getServerLocale } from '@/components/seo/SEO'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,6 +23,10 @@ export default async function IntegratedReportPage({
   searchParams: Promise<SP>
 }) {
   const sp = await searchParams
+  // 로케일 — 서버 기본(getServerLocale) + ?lang / ?locale 쿼리 오버라이드.
+  const langOverride = one(sp.lang) ?? one(sp.locale)
+  const lang: 'ko' | 'en' =
+    langOverride === 'en' ? 'en' : langOverride === 'ko' ? 'ko' : await getServerLocale()
   const birthDate = one(sp.date) ?? '1992-03-15'
   const birthTime = one(sp.time) ?? '09:20'
   const latitude = Number(one(sp.lat) ?? 37.5665)
@@ -41,15 +46,15 @@ export default async function IntegratedReportPage({
   // 사용자 입력 메타 (이름·장소 등 raw 엔진이 안 알아채는 표시 전용 필드).
   ctx.input = {
     ...(ctx.input as object),
-    name: one(sp.name) ?? '내담자',
+    name: one(sp.name) ?? (lang === 'en' ? 'Client' : '내담자'),
     gender,
-    place: one(sp.place) ?? '대한민국 서울',
+    place: one(sp.place) ?? (lang === 'en' ? 'Seoul, Republic of Korea' : '대한민국 서울'),
     timeZone,
     isoUTC: '',
   }
 
-  const data = natalToReportData(ctx)
-  const cross = buildCrossRows(ctx)
+  const data = natalToReportData(ctx, lang)
+  const cross = buildCrossRows(ctx, lang)
 
-  return <IntegratedReport data={data} cross={cross} />
+  return <IntegratedReport data={data} cross={cross} lang={lang} />
 }

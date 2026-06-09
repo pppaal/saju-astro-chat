@@ -3,7 +3,7 @@
  * Extracted from route.ts for modularity
  */
 
-import type { EventCategory, ImportanceGrade } from '@/lib/destiny-map/destinyCalendar'
+import type { EventCategory, ImportanceGrade } from '@/lib/calendar/destinyCalendar'
 import type { CalendarEvidence } from '@/types/calendar-api'
 // monthlyInterpretation 모양의 단일 정의(SSOT) — 엔진이 정본, API/UI 가 재사용.
 import type { Interpretation as CalendarInterpretation } from '@/lib/calendar-engine/interpretation/types'
@@ -73,7 +73,6 @@ export interface FormattedDate {
   matchedPatterns?: Array<{
     id: string
     name: string
-    themes: string[]
     strength: number
     description?: string
     headline?: string
@@ -85,12 +84,10 @@ export interface FormattedDate {
     kind: string
     name: string
     korean?: string
-    themes: string[]
     polarity: number
     layer: 'decadal' | 'yearly' | 'monthly' | 'daily' | 'hourly' | 'instant'
     weight: number
   }>
-  themeScores?: Partial<Record<string, number>>
   /** 그 달 narrative 해석 (룰 DB 기반, LLM 0번) — 엔진 Interpretation 단일 정의 재사용 */
   monthlyInterpretation?: CalendarInterpretation
   /**

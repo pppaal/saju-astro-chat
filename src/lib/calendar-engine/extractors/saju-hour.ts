@@ -19,18 +19,18 @@ import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
  */
 
 const HOUR_BRANCH_RANGES: Array<{ idx: number; start: number; end: number }> = [
-  { idx: 0,  start: 23 * 60,    end: 24 * 60 + 60 },   // 자시 23~01 (wraps)
-  { idx: 1,  start: 1 * 60,     end: 3 * 60 },          // 축시
-  { idx: 2,  start: 3 * 60,     end: 5 * 60 },          // 인시
-  { idx: 3,  start: 5 * 60,     end: 7 * 60 },          // 묘시
-  { idx: 4,  start: 7 * 60,     end: 9 * 60 },          // 진시
-  { idx: 5,  start: 9 * 60,     end: 11 * 60 },         // 사시
-  { idx: 6,  start: 11 * 60,    end: 13 * 60 },         // 오시
-  { idx: 7,  start: 13 * 60,    end: 15 * 60 },         // 미시
-  { idx: 8,  start: 15 * 60,    end: 17 * 60 },         // 신시
-  { idx: 9,  start: 17 * 60,    end: 19 * 60 },         // 유시
-  { idx: 10, start: 19 * 60,    end: 21 * 60 },         // 술시
-  { idx: 11, start: 21 * 60,    end: 23 * 60 },         // 해시
+  { idx: 0, start: 23 * 60, end: 24 * 60 + 60 }, // 자시 23~01 (wraps)
+  { idx: 1, start: 1 * 60, end: 3 * 60 }, // 축시
+  { idx: 2, start: 3 * 60, end: 5 * 60 }, // 인시
+  { idx: 3, start: 5 * 60, end: 7 * 60 }, // 묘시
+  { idx: 4, start: 7 * 60, end: 9 * 60 }, // 진시
+  { idx: 5, start: 9 * 60, end: 11 * 60 }, // 사시
+  { idx: 6, start: 11 * 60, end: 13 * 60 }, // 오시
+  { idx: 7, start: 13 * 60, end: 15 * 60 }, // 미시
+  { idx: 8, start: 15 * 60, end: 17 * 60 }, // 신시
+  { idx: 9, start: 17 * 60, end: 19 * 60 }, // 유시
+  { idx: 10, start: 19 * 60, end: 21 * 60 }, // 술시
+  { idx: 11, start: 21 * 60, end: 23 * 60 }, // 해시
 ]
 
 const sajuHourExtractor: SignalExtractor = {
@@ -79,7 +79,7 @@ const sajuHourExtractor: SignalExtractor = {
         if (!sibsin) continue
 
         const polarity = polarityFromYongsin(stem.element as FiveElement, yongsin)
-        if (polarity === 0) continue   // 중립 — 노이즈 방지
+        if (polarity === 0) continue // 중립 — 노이즈 방지
 
         // 시진 시간 윈도우 — *진태양시* 경계를 보정분만큼 시계 시각으로 환산.
         //   시계분 = 진태양시분 − correctionMin   (본명 saju.ts: 진태양=시계+보정)
@@ -88,8 +88,8 @@ const sajuHourExtractor: SignalExtractor = {
         const baseMs = date.getTime()
         const minToIso = (solarMin: number) =>
           new Date(baseMs + (solarMin - correctionMin) * 60_000).toISOString()
-        const startHour = branchIdx === 0 ? 23 : (branchIdx * 2 - 1)
-        const endHour = branchIdx === 0 ? 1 : (branchIdx * 2 + 1)
+        const startHour = branchIdx === 0 ? 23 : branchIdx * 2 - 1
+        const endHour = branchIdx === 0 ? 1 : branchIdx * 2 + 1
         const solarStartMin = branchIdx === 0 ? 23 * 60 : (branchIdx * 2 - 1) * 60
         const solarEndMin = branchIdx === 0 ? 25 * 60 : (branchIdx * 2 + 1) * 60
         const solarPeakMin = branchIdx === 0 ? 24 * 60 : branchIdx * 2 * 60
@@ -102,15 +102,23 @@ const sajuHourExtractor: SignalExtractor = {
         // BRANCHES.name은 한자(子, 丑, 寅...)인데 HOUR_BRANCH_NARRATIVE
         // 키는 한글(자, 축, 인...)이라 직접 매칭 안 됨 — 한자→한글 변환.
         const HANJA_TO_HANGUL: Record<string, string> = {
-          '子': '자', '丑': '축', '寅': '인', '卯': '묘',
-          '辰': '진', '巳': '사', '午': '오', '未': '미',
-          '申': '신', '酉': '유', '戌': '술', '亥': '해',
+          子: '자',
+          丑: '축',
+          寅: '인',
+          卯: '묘',
+          辰: '진',
+          巳: '사',
+          午: '오',
+          未: '미',
+          申: '신',
+          酉: '유',
+          戌: '술',
+          亥: '해',
         }
-        const branchKo = (HANJA_TO_HANGUL[branch.name] ?? branch.name) as keyof typeof HOUR_BRANCH_NARRATIVE
+        const branchKo = (HANJA_TO_HANGUL[branch.name] ??
+          branch.name) as keyof typeof HOUR_BRANCH_NARRATIVE
         const branchNarrative = HOUR_BRANCH_NARRATIVE[branchKo]
-        const headline = branchNarrative
-          ? pickHourNarrative(branchKo, polarity, 'ko')
-          : undefined
+        const headline = branchNarrative ? pickHourNarrative(branchKo, polarity, 'ko') : undefined
         const windowLabel = branchNarrative?.windowKo
 
         signals.push({
@@ -118,11 +126,12 @@ const sajuHourExtractor: SignalExtractor = {
           source: 'saju',
           kind: 'pillar-sibsin',
           name: `${stem.name}${branch.name} (${sibsin}) 시진`,
-          themes: [],
+          // 12 시진 narrative — 그 시진의 흐름 한 줄(이미 계산된 headline 재사용).
+          ...(headline ? { korean: headline } : {}),
           polarity,
           layer: 'hourly',
           active: { start: startIso, peak: peakIso, end: endIso },
-          weight: 0.4,    // 시진은 짧고 미세 영향
+          weight: 0.4, // 시진은 짧고 미세 영향
           evidence: {
             module: 'saju-hour',
             sibsin,
@@ -148,17 +157,20 @@ const sajuHourExtractor: SignalExtractor = {
   },
 }
 
-interface StemInfo { name: string; element: FiveElement; yin_yang: YinYang }
+interface StemInfo {
+  name: string
+  element: FiveElement
+  yin_yang: YinYang
+}
 
 function pillarToStemInfo(stemName: string): StemInfo | null {
   const found = STEMS.find((s) => s.name === stemName)
   return found ? (found as StemInfo) : null
 }
 
-
 function polarityFromYongsin(
   element: FiveElement,
-  yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] },
+  yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
 ): Polarity {
   if (element === yongsin.primary) return 2
   if (element === yongsin.secondary) return 1

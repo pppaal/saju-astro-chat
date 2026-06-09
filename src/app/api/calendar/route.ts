@@ -21,6 +21,7 @@ import { calendarMainQuerySchema, createValidationErrorResponse } from '@/lib/ap
 import { normalizeGender } from '@/lib/utils/gender'
 import { nowInTimezone } from '@/lib/utils/timezone'
 import { cellsToImportantDates } from './lib/cellsToImportantDates'
+import { deriveDomainScores } from '@/lib/calendar-engine/derivers/domainScore'
 
 import {
   getPillarStemName,
@@ -424,9 +425,7 @@ export const GET = withApiMiddleware(
     const focusMonthIdx = focusMonthMatch
       ? Number(focusMonthMatch[2]) - 1
       : nowInTimezone(timezone).getUTCMonth()
-    const prescoreMonths = monthOnly
-      ? [focusMonthIdx]
-      : Array.from({ length: 12 }, (_, i) => i)
+    const prescoreMonths = monthOnly ? [focusMonthIdx] : Array.from({ length: 12 }, (_, i) => i)
 
     const prescoreCells: import('@/lib/calendar-engine/types').CalendarCell[] = []
     try {
@@ -474,11 +473,9 @@ export const GET = withApiMiddleware(
       },
     })
 
-    // 카테고리 필터링
-    let filteredDates = localDates
-    if (category) {
-      filteredDates = localDates.filter((d) => d.categories.includes(category))
-    }
+    // 카테고리(5버킷 테마) 축 제거 — d.categories 폐기로 날짜 필터는 미적용.
+    // category 파라미터는 아래 presentation focusDomain / 예측 스냅샷 theme 로만 쓰인다.
+    const filteredDates = localDates
     // matrix context 제거로 regrade 함수는 noop (즉시 return date) → 호출 자체 제거.
     const matrixRegradedDates = [...filteredDates].sort((a, b) => {
       if (a.grade !== b.grade) return a.grade - b.grade
@@ -609,13 +606,16 @@ export const GET = withApiMiddleware(
       // 두 사람도 토성 회귀가 다른 연도에 떨어지는 진짜 개인화. swisseph
       // 짧은 윈도우 검색이라 ms 단위로 끝나지만 실패해도 buildInterpretation
       // 은 자동 폴백되므로 try/catch 로 안전하게 감싼다.
-      let astroMilestoneOverrides: Awaited<
-        ReturnType<typeof import('@/lib/astrology/foundation/planetReturns').calculateOuterPlanetMilestones>
-      > | undefined
+      let astroMilestoneOverrides:
+        | Awaited<
+            ReturnType<
+              typeof import('@/lib/astrology/foundation/planetReturns').calculateOuterPlanetMilestones
+            >
+          >
+        | undefined
       try {
-        const { calculateOuterPlanetMilestones } = await import(
-          '@/lib/astrology/foundation/planetReturns'
-        )
+        const { calculateOuterPlanetMilestones } =
+          await import('@/lib/astrology/foundation/planetReturns')
         const birthHourLocal = Number.parseInt((birthTimeParam || '00:00').split(':')[0] || '0', 10)
         const birthMinuteLocal = Number.parseInt(
           (birthTimeParam || '00:00').split(':')[1] || '0',
@@ -668,16 +668,6 @@ export const GET = withApiMiddleware(
         }
         ;(formattedDates as unknown as { __interpretation?: unknown }).__interpretation = undefined
         monthlyInterp = interp
-        // ★ themeScores 동기화 — interp.themeScores(룰 의도 기반)를
-        //   cells에 overwrite. UI 그래프(love/wealth/health 바)가
-        //   cell.themeScores 읽으므로, narrative와 점수가 같은 모델로
-        //   계산됨. cell의 신호 기반 themeScores와 narrative 톤 사이
-        //   mismatch 해소.
-        if (interp.themeScores) {
-          for (const cell of ceCells) {
-            cell.themeScores = { ...cell.themeScores, ...interp.themeScores }
-          }
-        }
       } catch (err) {
         logger.warn?.('[interpretation] skipped:', err instanceof Error ? err.message : String(err))
       }
@@ -703,9 +693,8 @@ export const GET = withApiMiddleware(
         import('@/lib/calendar-engine/adapters/cellsToYearlyDates').V2CalendarDate
       >()
       try {
-        const { cellsToYearlyDates } = await import(
-          '@/lib/calendar-engine/adapters/cellsToYearlyDates'
-        )
+        const { cellsToYearlyDates } =
+          await import('@/lib/calendar-engine/adapters/cellsToYearlyDates')
         const v2Lang: 'ko' | 'en' = locale === 'en' ? 'en' : 'ko'
         const v2Dates = cellsToYearlyDates(allCells, { lang: v2Lang })
         for (const v of v2Dates) v2ByDate.set(v.date.slice(0, 10), v)
@@ -726,24 +715,22 @@ export const GET = withApiMiddleware(
       // 0.2~0.5s 내 진짜 시간대 데이터를 채운다.
       const hourlyKeepPrefix = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`
 
+      const { mapEngineSignal } = await import('@/lib/calendar-engine/adapters/cellsToYearlyDates')
+
       for (const d of formattedDates) {
         const cell = cellByDate.get(d.date.slice(0, 10))
         if (!cell) continue
         if (cell.matchedPatterns.length > 0) {
-          const { PATTERN_I18N_EN } = await import('@/lib/calendar-engine/derivers/patternsI18n')
+          // 패턴 EN 은 derivePatterns 가 cell.matchedPatterns 에 이미 채움(SSOT: patternsI18n).
           const useEn = locale === 'en'
-          d.matchedPatterns = cell.matchedPatterns.map((p) => {
-            const en = useEn ? PATTERN_I18N_EN[p.id] : undefined
-            return {
-              id: p.id,
-              name: en?.name ?? p.name,
-              themes: p.themes,
-              strength: p.strength,
-              description: p.description,
-              headline: en?.headline ?? p.headline,
-              action: en?.action ?? p.action,
-            }
-          })
+          d.matchedPatterns = cell.matchedPatterns.map((p) => ({
+            id: p.id,
+            name: (useEn ? p.nameEn : undefined) ?? p.name,
+            strength: p.strength,
+            description: (useEn ? p.descriptionEn : undefined) ?? p.description,
+            headline: (useEn ? p.headlineEn : undefined) ?? p.headline,
+            action: (useEn ? p.actionEn : undefined) ?? p.action,
+          }))
         }
         // engineSignals — hourly layer 만, 그것도 *선택 월* 셀에만 부착.
         // 나머지 layer (decadal/yearly/monthly/daily/instant) 는 UI 사용처 없어
@@ -753,23 +740,11 @@ export const GET = withApiMiddleware(
         if (cell.signals.length > 0 && d.date.slice(0, 10).startsWith(hourlyKeepPrefix)) {
           const hourlySigs = cell.signals.filter((s) => s.layer === 'hourly')
           if (hourlySigs.length > 0) {
-            d.engineSignals = hourlySigs.map((s) => ({
-              id: s.id,
-              source: s.source,
-              kind: s.kind,
-              name: s.name,
-              korean: s.korean,
-              themes: s.themes,
-              polarity: s.polarity,
-              layer: s.layer,
-              weight: s.weight,
-            }))
+            // EN/KO 동기화 — mapEngineSignal 이 name/korean 을 locale 에 맞게 영문화(한글 누수 차단).
+            const sigLang = locale === 'en' ? 'en' : 'ko'
+            d.engineSignals = hourlySigs.map((s) => mapEngineSignal(s, sigLang))
           }
         }
-        if (Object.keys(cell.themeScores).length > 0) {
-          d.themeScores = cell.themeScores
-        }
-
         // [단계 2b] 패턴 기반 v2 서사·신뢰지표로 덮어쓰기 — 점수와 같은 셀 출처로 정합.
         const v2 = v2ByDate.get(d.date.slice(0, 10))
         if (v2) {
@@ -880,8 +855,33 @@ export const GET = withApiMiddleware(
           : presentationView.daySummary.summary,
     })
 
+    // 도메인(재물·애정·직업·학업·건강)별 베스트 날 + 이유 — 영역 신호 필터 + 같은
+    // signed-surprise. 테마 태깅 없이 사전 지식(DOMAIN_BUCKETS)으로 영역 판정.
+    const domainHighlights = (() => {
+      try {
+        const domGender: 'male' | 'female' =
+          normalizeGender(gender) === 'female' ? 'female' : 'male'
+        const dom = deriveDomainScores(prescoreCells, domGender)
+        const cellByDate = new Map(prescoreCells.map((c) => [c.datetime.slice(0, 10), c]))
+        const useEn = locale === 'en'
+        return Object.values(dom).map((d) => ({
+          key: d.key,
+          label: d.ko,
+          best: d.best.map((b) => {
+            const cell = cellByDate.get(b.date)
+            const reasons =
+              (useEn ? cell?.topReasonsEn : cell?.topReasons) ?? cell?.topReasons ?? []
+            return { date: b.date, score: b.score, grade: b.grade, reasons: reasons.slice(0, 2) }
+          }),
+        }))
+      } catch {
+        return undefined
+      }
+    })()
+
     const responsePayload = normalizeMojibakePayload({
       success: true,
+      domains: domainHighlights,
       predictionId,
       type: 'yearly',
       year,
@@ -909,18 +909,10 @@ export const GET = withApiMiddleware(
       },
       allDates: formattedDates,
       // 그 달 narrative — top-level 1개로 dedupe (이전 365 copies 회귀 fix).
-      // EN locale 이면 themeBreakdown 라벨 + convergence keyDays 의 신호명 영문 swap.
+      // EN locale 이면 convergence keyDays 의 신호명 영문 swap.
       monthlyInterpretation: (() => {
         if (!monthlyInterp || locale !== 'en') return monthlyInterp
         const next = { ...monthlyInterp }
-        if (next.themeBreakdown) {
-          next.themeBreakdown = Object.fromEntries(
-            Object.entries(next.themeBreakdown).map(([theme, items]) => [
-              theme,
-              items?.map((it) => ({ ...it, label: translateSignalLabel(it.label, 'en') })),
-            ])
-          ) as typeof next.themeBreakdown
-        }
         if (next.convergence?.keyDays) {
           next.convergence = {
             ...next.convergence,

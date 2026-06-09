@@ -286,7 +286,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
       minPolarity: 1,
     },
     template:
-      `표현·창작의 별이 켜져 있어요 — 표현·창작·아이디어 발산이 잘 들어오는 결이라 ` +
+      `표현·창작의 별이 켜져 있어요 — 표현·창작·아이디어 발산이 잘 들어오는 편이라 ` +
       `글·영상·기획 같은 결과물 만들기에 우호적이에요.`,
     templateEn:
       `Creative expression is active — expression, creation, and idea flow all land well. ` +
@@ -305,7 +305,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
     },
     template:
       `표현·창작의 별이 켜져 있어요 — 자녀·후배·새 작품과의 시간이 잘 흐르고, ` +
-      `돌봄·교육·전수에 우호적인 결이에요.`,
+      `돌봄·교육·전수에 우호적인 편이에요.`,
     templateEn:
       `Creative expression is active — time with children, juniors, and new work flows well. ` +
       `Favourable for caretaking, teaching, and passing things on.`,
@@ -346,7 +346,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
       sibsin: ['정재', '편재'],
     },
     template:
-      `이 10년은 재물의 별이 들어오는 결이라 결혼·연애·동거 같은 관계 사건이 ` +
+      `이 10년은 재물의 별이 들어오는 편이라 결혼·연애·동거 같은 관계 사건이 ` +
       `자연스럽게 자리잡혀요. 인연이 결과로 이어지기 좋은 큰 시기예요.`,
     templateEn:
       `This decade carries the wealth and resources current, so relationship events like marriage, ` +
@@ -381,7 +381,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
       sibsin: ['비견', '겁재'],
     },
     template:
-      `이 10년은 친구·동료·동업 인연이 자주 들어오는 결이에요. 깊은 ` +
+      `이 10년은 친구·동료·동업 인연이 자주 들어오는 편이에요. 깊은 ` +
       `연인보다 옆에서 같이 가는 사람이 인생을 바꾸는 시기예요.`,
     templateEn:
       `This decade is shaped by friends, peers, and partnership ties showing up often. The people walking ` +
@@ -437,7 +437,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
       sibsin: ['식신', '상관'],
     },
     template:
-      `이번 달은 표현·다정함이 자연스러워지는 결이에요. 마음을 전하거나 ` +
+      `이번 달은 표현·다정함이 자연스러워지는 편이에요. 마음을 전하거나 ` +
       `오해를 풀기 좋고, 자녀나 어린 사람과의 관계도 부드러워져요.`,
     templateEn:
       `This month, expressing yourself and being warm come naturally. Good for putting your feelings ` +
@@ -551,7 +551,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
     },
     template:
       `당신에게 매력·끌림의 별이 자리잡은 사주예요. 매력과 인연 끌림이 평생 강한 ` +
-      `결이라, 어디서든 사람이 잘 따르고 첫인상으로 기억되기 쉬워요.`,
+      `편이라, 어디서든 사람이 잘 따르고 첫인상으로 기억되기 쉬워요.`,
     templateEn:
       `Your chart has the charm-and-attraction star built in. Charm and the pull of connection run strong for life — ` +
       `people gravitate to you wherever you are, and your first impression sticks.`,
@@ -569,7 +569,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
     },
     template:
       `재물의 별을 충분히 다룰 수 있는 본인 기운이 강한 사주예요. 결혼과 가정을 안정적으로 ` +
-      `꾸리는 결이라 관계를 길게 가져가는 데 강점이 있어요.`,
+      `꾸리는 편이라 관계를 길게 가져가는 데 강점이 있어요.`,
     templateEn:
       `Your chart is strong enough to handle wealth and resources. You build marriage and home life ` +
       `steadily — your strength is in carrying relationships for the long haul.`,
@@ -589,7 +589,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
     },
     template:
       `재물의 별을 감당할 힘이 있는 사주예요. 큰 돈을 다루는 일이나 자기 ` +
-      `사업, 자산 운용에 강점이 있어 평생 풍요로운 결이에요.`,
+      `사업, 자산 운용에 강점이 있어 평생 풍요로운 편이에요.`,
     templateEn:
       `Your chart has the strength to carry wealth and resources. You have an edge in handling big money, ` +
       `running your own business, and managing assets — a chart that stays abundant for life.`,
@@ -606,7 +606,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
     },
     template:
       `당신에게 형제·동료·경쟁의 기운이 강한 사주예요. 혼자 모으기보다 함께 벌고 나누는 ` +
-      `결이라, 동업·공동투자·팀 단위 수익이 잘 맞아요.`,
+      `편이라, 동업·공동투자·팀 단위 수익이 잘 맞아요.`,
     templateEn:
       `Peers and rivals run strong in your chart. Rather than saving alone, you earn and share together — ` +
       `partnerships, joint investments, and team-based income suit you well.`,
@@ -624,7 +624,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
       signalSource: 'saju',
     },
     template:
-      `당신에게 불 기운이 강한 결이에요. 평소에 심혈관·염증·불면을 평생 ` +
+      `당신에게 불 기운이 강한 편이에요. 평소에 심혈관·염증·불면을 평생 ` +
       `유의해야 하고, 매운 음식과 과로를 자제하는 습관이 건강을 지켜줘요.`,
     templateEn:
       `Fire runs strong in your chart. Watch for cardiovascular issues, inflammation, and insomnia ` +
@@ -641,7 +641,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
       signalSource: 'saju',
     },
     template:
-      `당신에게 물 기운이 약하거나 차가운 결이에요. 평생 신장·요통·하체 ` +
+      `당신에게 물 기운이 약하거나 차가운 편이에요. 평생 신장·요통·하체 ` +
       `냉증·우울감에 유의해야 하고, 따뜻한 음식과 하체 보온이 ` +
       `체질에 큰 도움이 돼요.`,
     templateEn:
@@ -811,7 +811,7 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
     priority: 50,
     conditions: { yongsin: ['목'], signalSource: 'saju', maxPolarity: -1 },
     template:
-      `⚡ **건강** — 긴장·스트레스가 간·신경·눈에 먼저 쌓이는 결이에요. ` +
+      `⚡ **건강** — 긴장·스트레스가 간·신경·눈에 먼저 쌓이는 편이에요. ` +
       `가벼운 산책과 충분한 수면, 화 다스리기가 가장 잘 듣는 보강이에요.`,
     templateEn:
       `⚡ **Health** — tension and stress settle first in your liver, nerves, and eyes. ` +
@@ -890,5 +890,4 @@ export const RULES_ALIGNMENT: InterpretationRule[] = [
       `a new way of doing things works surprisingly well — give it a try.`,
     themes: ['growth'],
   },
-
 ]

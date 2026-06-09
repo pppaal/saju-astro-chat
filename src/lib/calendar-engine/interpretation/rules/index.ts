@@ -14,7 +14,6 @@ import { RULES_SEUN } from './seun'
 import { RULES_WOLUN } from './wolun'
 import { RULES_TODAY } from './today'
 import { RULES_SHINSAL } from './shinsal'
-import { RULES_THEMES } from './themes'
 import { RULES_ASTRO } from './astro'
 import { RULES_NATAL } from './natal'
 import { RULES_PATTERNS } from './patterns'
@@ -27,7 +26,6 @@ export const RULES: InterpretationRule[] = [
   ...RULES_WOLUN,
   ...RULES_TODAY,
   ...RULES_SHINSAL,
-  ...RULES_THEMES,
   ...RULES_ASTRO,
   ...RULES_NATAL,
   ...RULES_PATTERNS,

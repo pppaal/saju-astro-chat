@@ -3,11 +3,7 @@
  * Type definitions for the /api/calendar endpoint
  */
 
-import type {
-  EventCategory,
-  ImportanceGrade,
-  ImportantDate,
-} from '@/lib/destiny-map/destinyCalendar'
+import type { EventCategory, ImportanceGrade, ImportantDate } from '@/lib/calendar/destinyCalendar'
 
 // ============ Request Types ============
 
