@@ -12,12 +12,13 @@ describe('i18n Smoke Tests', () => {
 
   describe('Locale Files', () => {
     it('should have Korean locale', () => {
-      const filePath = resolve(localesDir, 'ko.ts')
+      // 번역 SSOT 는 ko/ 하위 JSON (server.ts / I18nProvider 가 직접 로드).
+      const filePath = resolve(localesDir, 'ko/common.json')
       expect(existsSync(filePath)).toBe(true)
     })
 
     it('should have English locale', () => {
-      const filePath = resolve(localesDir, 'en.ts')
+      const filePath = resolve(localesDir, 'en/common.json')
       expect(existsSync(filePath)).toBe(true)
     })
 
@@ -39,10 +40,10 @@ describe('i18n Smoke Tests', () => {
 
   describe('i18n Summary', () => {
     it('should have all currently supported locale files', () => {
-      const requiredLocales = ['ko.ts', 'en.ts']
+      const requiredLocales = ['ko', 'en']
 
       requiredLocales.forEach((locale) => {
-        const filePath = resolve(localesDir, locale)
+        const filePath = resolve(localesDir, locale, 'common.json')
         expect(existsSync(filePath)).toBe(true)
       })
 
