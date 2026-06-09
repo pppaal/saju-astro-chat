@@ -2,35 +2,35 @@
  * i18n constants for InlineTarotModal
  */
 
-export type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru';
+export type LangKey = 'en' | 'ko'
 
 export interface TarotI18n {
-  title: string;
-  concernTitle: string;
-  concernPlaceholder: string;
-  concernHint: string;
-  next: string;
-  autoSelect: string;
-  spreadTitle: string;
-  quickTip: string;
-  normalTip: string;
-  deepTip: string;
-  drawCards: string;
-  drawing: string;
-  interpreting: string;
-  overallMessage: string;
-  guidance: string;
-  affirmation: string;
-  cardInsights: string;
-  deeperReading: string;
-  continueChat: string;
-  close: string;
-  cards: string;
-  drawAgain: string;
-  yourConcern: string;
-  save: string;
-  saved: string;
-  analyzing: string;
+  title: string
+  concernTitle: string
+  concernPlaceholder: string
+  concernHint: string
+  next: string
+  autoSelect: string
+  spreadTitle: string
+  quickTip: string
+  normalTip: string
+  deepTip: string
+  drawCards: string
+  drawing: string
+  interpreting: string
+  overallMessage: string
+  guidance: string
+  affirmation: string
+  cardInsights: string
+  deeperReading: string
+  continueChat: string
+  close: string
+  cards: string
+  drawAgain: string
+  yourConcern: string
+  save: string
+  saved: string
+  analyzing: string
 }
 
 const TAROT_I18N: Record<string, TarotI18n> = {
@@ -90,8 +90,8 @@ const TAROT_I18N: Record<string, TarotI18n> = {
     saved: '✓ Saved',
     analyzing: 'Analyzing question...',
   },
-};
+}
 
 export function getTarotTranslations(lang: LangKey): TarotI18n {
-  return TAROT_I18N[lang] ?? TAROT_I18N.ko;
+  return TAROT_I18N[lang] ?? TAROT_I18N.ko
 }

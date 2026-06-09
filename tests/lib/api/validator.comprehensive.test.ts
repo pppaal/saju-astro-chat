@@ -130,7 +130,7 @@ describe('API Validator', () => {
 
   describe('LocaleSchema', () => {
     it('should validate supported locales', () => {
-      const supportedLocales = ['ko', 'en', 'ja', 'zh', 'vi', 'th', 'id', 'de', 'fr', 'es']
+      const supportedLocales = ['ko', 'en']
 
       for (const locale of supportedLocales) {
         expect(LocaleSchema.safeParse(locale).success).toBe(true)
@@ -138,7 +138,9 @@ describe('API Validator', () => {
     })
 
     it('should reject unsupported locales', () => {
-      // ru and pt are actually supported in localeValues
+      // App now serves only en/ko; all other locales are unsupported
+      expect(LocaleSchema.safeParse('ja').success).toBe(false)
+      expect(LocaleSchema.safeParse('zh').success).toBe(false)
       expect(LocaleSchema.safeParse('it').success).toBe(false) // Italian not supported
       expect(LocaleSchema.safeParse('pl').success).toBe(false) // Polish not supported
       expect(LocaleSchema.safeParse('KO').success).toBe(false) // Uppercase not supported
