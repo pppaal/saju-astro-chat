@@ -174,12 +174,12 @@ const RELATION_TYPE_LABEL: Record<string, BiLabel> = {
 const relationTypeLabel = (kind: string, lang: Lang): string =>
   RELATION_TYPE_LABEL[kind]?.[lang] ?? kind
 
-// 교차 tone → 친화 라벨 (이중언어).
+// 교차 tone → 라벨 (이중언어). "사주·점성 두 시스템이 같은/다른 얘길 하는가" 관점.
 const TONE_LABEL: Record<CrossRow['tone'], BiLabel> = {
-  resonant: { ko: '잘 맞아요', en: 'In sync' },
-  complement: { ko: '서로 채워줘요', en: 'Complementary' },
-  tension: { ko: '부딪혀요', en: 'In tension' },
-  neutral: { ko: '따로따로', en: 'Separate' },
+  resonant: { ko: '둘 다 같은 얘길 해요', en: 'Both say the same' },
+  complement: { ko: '다르지만 서로 도와요', en: 'Different but supportive' },
+  tension: { ko: '서로 반대로 말해요', en: 'They say the opposite' },
+  neutral: { ko: '서로 상관없어요', en: 'Unrelated' },
 }
 
 // ── helpers ────────────────────────────────────────────────────────────
