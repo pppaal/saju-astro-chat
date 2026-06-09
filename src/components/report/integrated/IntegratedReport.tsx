@@ -85,7 +85,6 @@ const UI: Record<string, BiLabel> = {
   dayBranchLabel: { ko: '日干', en: 'Day Master' },
   shinsalCap: { ko: '신살 · 神煞', en: 'Spirits · 神煞' },
   relCap: { ko: '본명 합충형파', en: 'Natal Interactions' },
-  daeunCap: { ko: '대운 · 大運', en: 'Luck Cycles · 大運' },
   iljuCap: { ko: '일주 원형 · 日柱', en: 'Day-Pillar Archetype · 日柱' },
   sec02Title: { ko: '오행과 용신', en: 'Elements & Balance' },
   sec02Han: { ko: '五行·用神', en: '五行·用神' },
@@ -710,21 +709,6 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </>
           )}
-          <div className={s.subcap} style={{ marginTop: 24 }}>
-            {t('daeunCap')}
-          </div>
-          <div className={s.daeun}>
-            {S.daeun.map((d) => (
-              <div className={`${s.du} ${d.current ? s.duNow : ''}`} key={d.age}>
-                <div className={s.duAge}>{d.age}</div>
-                <div className={s.duGz}>
-                  <b className={elClass[stemEl(d.stem)]}>{d.stem}</b>
-                  <b className={elClass[branchEl(d.branch)]}>{d.branch}</b>
-                </div>
-                <div className={s.duSib}>{sibsinLabel(d.sibsin, lang)}</div>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* 02 오행과 용신 */}
@@ -943,7 +927,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   <b>{A.houseSystem}</b>
                 </div>
               </div>
-              <div className={s.daeun} style={{ gridTemplateColumns: 'repeat(6,1fr)' }}>
+              <div className={s.houses}>
                 {A.houses.slice(0, 6).map((h) => (
                   <div className={s.du} key={h.i} title={houseHover(h.i, lang)}>
                     <div className={s.duAge}>{h.i}H</div>
