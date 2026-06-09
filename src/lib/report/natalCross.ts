@@ -34,7 +34,13 @@ import { getPlanetCore } from '@/lib/chart-dictionary'
  * 박으면 비문 → 소문자 + 쉼표로 풀어 'expansion, faith, luck' 형태로. */
 function planetTheme(planet: string, lang: Lang): string {
   const p = getPlanetCore(planet, lang)?.principle ?? PLANET_LABEL[planet]?.[lang] ?? planet
-  return lang === 'en' ? p.toLowerCase().replace(/\s*·\s*/g, ', ') : p
+  if (lang !== 'en') return p
+  const parts = p
+    .toLowerCase()
+    .split(/\s*·\s*/)
+    .filter(Boolean)
+  if (parts.length <= 1) return parts[0] ?? p
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
 }
 
 export type CrossTone = 'resonant' | 'complement' | 'tension' | 'neutral'
@@ -420,9 +426,9 @@ export function evalTemperament(
   if (!a || !b) return null
   return elementVerdict(a, b, {
     aKo: '사주가 본 성향',
-    aEn: 'your Saju-read trait',
+    aEn: 'Saju-read side',
     bKo: '별자리가 본 성향',
-    bEn: 'your astrology-read trait',
+    bEn: 'astrology-read side',
   })
 }
 
@@ -437,7 +443,7 @@ const SIBSIN_GROUP_PLANETS: Record<string, string[]> = {
 // 그룹별 "쉬운 말" 테마.
 const SIBSIN_GROUP_THEME: Record<string, { ko: string; en: string }> = {
   관성: { ko: '책임감·체계', en: 'duty and structure' },
-  재성: { ko: '실리·현실 감각', en: 'practicality and value' },
+  재성: { ko: '실리·현실 감각', en: 'practicality and realism' },
   인성: { ko: '배움·돌봄', en: 'learning and care' },
   식상: { ko: '표현·창의', en: 'expression and creativity' },
   비겁: { ko: '주체성·승부욕', en: 'independence and drive' },
@@ -669,7 +675,7 @@ export function evalKeyAspect(
     tone: matches ? 'resonant' : 'complement',
     reason: {
       ko: `${best.pairKo} 각이 두드러져요 — ${theme.ko}${matches ? ' 사주에서도 같은 결이라 이 면이 특히 도드라져요.' : ''}`,
-      en: `A standout aspect: ${theme.en}${matches ? ' Saju echoes it, so this stands out.' : ''}`,
+      en: `A standout aspect — ${theme.en.charAt(0).toLowerCase()}${theme.en.slice(1)}${matches ? '. Saju echoes it, so this stands out.' : ''}`,
     },
   }
 }
