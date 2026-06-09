@@ -795,6 +795,49 @@ export function evalNorthNode(
   }
 }
 
+/** 음양 리듬: 일간 음양(陽발산·외향 / 陰수용·내향) ↔ 출생 sect(주간=바깥 무대 / 야간=안 무대). */
+export function evalYinYang(
+  dayMasterYy: string | undefined,
+  sect: string | undefined
+): CrossVerdict | null {
+  const yy = dayMasterYy === '陽' ? 'yang' : dayMasterYy === '陰' ? 'yin' : undefined
+  const s = sect === 'day' ? 'day' : sect === 'night' ? 'night' : undefined
+  if (!yy || !s) return null
+  const match = (yy === 'yang' && s === 'day') || (yy === 'yin' && s === 'night')
+  if (match) {
+    return yy === 'yang'
+      ? {
+          tone: 'resonant',
+          reason: {
+            ko: '타고난 기질이 양(발산·외향)인데 낮에 태어나 무대도 바깥을 향해요 — 드러내고 추진하는 결이 한 방향으로 또렷해요. 쉴 줄 아는 리듬만 챙기면 돼요.',
+            en: 'Your nature is yang (outward, expressive) and you were born by day, so your stage faces outward too — a clear, consistent drive to show up and push. Just build in time to rest.',
+          },
+        }
+      : {
+          tone: 'resonant',
+          reason: {
+            ko: '타고난 기질이 음(수용·내향)인데 밤에 태어나 무대도 안을 향해요 — 깊이 사고하고 받아들이는 결이 일관돼요. 가끔 먼저 드러내는 연습이 도움이 돼요.',
+            en: 'Your nature is yin (receptive, inward) and you were born by night, so your stage faces inward too — consistent depth and receptivity. Practicing showing up first helps now and then.',
+          },
+        }
+  }
+  return yy === 'yang'
+    ? {
+        tone: 'complement',
+        reason: {
+          ko: '타고난 기질은 양(발산·외향)인데 밤에 태어나 무대는 안을 향해요 — 낮에 다 못 쓴 에너지를 밤의 깊이로 돌리는, 폭이 넓은 사람이에요.',
+          en: 'Your nature is yang (outward) yet you were born by night, turning toward inner depth — a wide range that channels daytime drive into nighttime depth.',
+        },
+      }
+    : {
+        tone: 'complement',
+        reason: {
+          ko: '타고난 기질은 음(수용·내향)인데 낮에 태어나 무대는 밖을 향해요 — 안의 깊이를 바깥으로 꺼내 보여주는, 폭이 넓은 사람이에요.',
+          en: 'Your nature is yin (receptive) yet you were born by day, with an outward stage — a wide range that brings inner depth out into the open.',
+        },
+      }
+}
+
 // ── 종합 ──────────────────────────────────────────────────────────────────
 
 /** 도메인 판정들을 모아 전체 정체성 한 문장 생성. */
@@ -878,24 +921,24 @@ function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerd
       return {
         tone: 'resonant',
         reason: {
-          ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요.`,
-          en: `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction.`,
+          ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. 힘이 모이는 만큼 한쪽으로 치우치기도 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.`,
+          en: `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. That focus is a strength, but it can tip into one-sidedness, so touch the opposite grain now and then.`,
         },
       }
     case 'aGenB':
       return {
         tone: 'complement',
         reason: {
-          ko: `${ta.ko} ${d.aKo}${iga(d.aKo)} ${tb.ko} ${d.bKo}${eulReul(d.bKo)} 자연스럽게 키워줘요 — 안에서 밖으로 잘 이어지는 타입.`,
-          en: `Your ${ta.en} ${d.aEn} naturally feeds your ${tb.en} ${d.bEn} — inner flows outward.`,
+          ko: `${ta.ko} ${d.aKo}${iga(d.aKo)} ${tb.ko} ${d.bKo}${eulReul(d.bKo)} 자연스럽게 키워줘요 — 안에서 밖으로 잘 이어지는 타입. 꾸준히 쌓을수록 결실이 점점 커지는 구조라, 조급해하지 않는 게 핵심이에요.`,
+          en: `Your ${ta.en} ${d.aEn} naturally feeds your ${tb.en} ${d.bEn} — inner flows outward. Steady effort compounds here, so patience is the key.`,
         },
       }
     case 'bGenA':
       return {
         tone: 'complement',
         reason: {
-          ko: `${tb.ko} ${d.bKo}${iga(d.bKo)} ${ta.ko} ${d.aKo}${eulReul(d.aKo)} 받쳐줘요 — 밖이 안을 채워주는 타입.`,
-          en: `Your ${tb.en} ${d.bEn} feeds your ${ta.en} ${d.aEn} — outer replenishes inner.`,
+          ko: `${tb.ko} ${d.bKo}${iga(d.bKo)} ${ta.ko} ${d.aKo}${eulReul(d.aKo)} 받쳐줘요 — 밖이 안을 채워주는 타입. 어떤 환경·사람을 곁에 두는지가 특히 중요해요.`,
+          en: `Your ${tb.en} ${d.bEn} feeds your ${ta.en} ${d.aEn} — outer replenishes inner. The environment and people you keep around you matter a lot.`,
         },
       }
     case 'aCtrlB':
@@ -903,16 +946,16 @@ function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerd
       return {
         tone: 'tension',
         reason: {
-          ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요.`,
-          en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person.`,
+          ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요. 부딪힐 땐 한쪽을 누르기보다 상황에 따라 번갈아 쓰는 리듬을 만들면 오히려 강점이 돼요.`,
+          en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person. When they clash, alternate between them by context instead of suppressing one — that turns friction into range.`,
         },
       }
     default:
       return {
         tone: 'neutral',
         reason: {
-          ko: `${ta.ko} ${d.aKo}${waGwa(d.aKo)} ${tb.ko} ${d.bKo}${iga(d.bKo)} 직접 엮이진 않고 따로 작동해요.`,
-          en: `Your ${ta.en} ${d.aEn} and ${tb.en} ${d.bEn} run independently.`,
+          ko: `${ta.ko} ${d.aKo}${waGwa(d.aKo)} ${tb.ko} ${d.bKo}${iga(d.bKo)} 직접 엮이진 않고 따로 작동해요. 서로 독립적이라 상황에 따라 다른 면을 꺼내 쓰는 유연함이 있어요.`,
+          en: `Your ${ta.en} ${d.aEn} and ${tb.en} ${d.bEn} run independently. Being separate, you can switch between them as the situation calls.`,
         },
       }
   }
