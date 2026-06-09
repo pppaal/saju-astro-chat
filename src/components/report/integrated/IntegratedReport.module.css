@@ -1024,3 +1024,52 @@
   color: var(--ink-2);
   line-height: 1.4;
 }
+
+/* 핵심 3행성 카드 (태양·달·상승) — planet-core 본문 가시화 */
+.bigThree {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+}
+.bigCard {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--card);
+  padding: 14px 16px;
+}
+.bigHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.bigHead b {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+}
+.bigHead i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  text-align: right;
+}
+.bigPrin {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 5px;
+}
+.bigMean {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+@media (max-width: 600px) {
+  .bigThree {
+    grid-template-columns: 1fr;
+  }
+}
