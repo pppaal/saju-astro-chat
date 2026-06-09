@@ -202,10 +202,6 @@ export const shinsalKindSchema = z.enum([
   '화개',
   '겁살',
   '육해',
-  '화해',
-  '괘살',
-  '길성',
-  '흉성',
 ])
 export type ShinsalKindValidated = z.infer<typeof shinsalKindSchema>
 

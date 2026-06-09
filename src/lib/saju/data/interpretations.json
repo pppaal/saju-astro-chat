@@ -987,32 +987,6 @@
       "advice": "큰 문제로 키우지 말고 작을 때 정리하세요.",
       "advice_en": "Handle it while it's small — don't let it grow."
     },
-    "화해": {
-      "name": "화해",
-      "name_en": "Calamity Star",
-      "hanja": "禍害",
-      "category": "흉신",
-      "category_en": "challenging star",
-      "meaning": "화와 해가 함께 오는 별.",
-      "meaning_en": "A star where misfortune and harm arrive together.",
-      "effect": "갈등, 다툼, 손실이 겹쳐 오는 스타일이에요.",
-      "effect_en": "Conflict, arguments, and loss can pile up at once.",
-      "advice": "한 번에 풀려 하지 말고 하나씩 처리하세요.",
-      "advice_en": "Don't try to solve it all at once — take it one piece at a time."
-    },
-    "괘살": {
-      "name": "괘살",
-      "name_en": "Hanging Star",
-      "hanja": "卦煞",
-      "category": "흉신",
-      "category_en": "challenging star",
-      "meaning": "걸려 넘어지듯 끌려가는 흐름의 별.",
-      "meaning_en": "A current where you get caught and dragged along.",
-      "effect": "예정에 없던 일에 얽히고 끌려가는 모습이에요.",
-      "effect_en": "Getting pulled into things that weren't on your plan.",
-      "advice": "거절할 자리에서는 분명히 거절하세요.",
-      "advice_en": "When it's time to say no, say it clearly."
-    },
     "반안": {
       "name": "반안",
       "name_en": "Saddle Star",
@@ -1025,32 +999,6 @@
       "effect_en": "Position lifts and recognition arrives.",
       "advice": "오를수록 처음의 자세를 잊지 마세요.",
       "advice_en": "The higher you rise, the more you keep the early stance."
-    },
-    "길성": {
-      "name": "길성",
-      "name_en": "Auspicious Star",
-      "hanja": "吉星",
-      "category": "길신",
-      "category_en": "auspicious star",
-      "meaning": "전반적으로 길한 기운을 더해주는 별.",
-      "meaning_en": "A general auspicious current adding good energy.",
-      "effect": "일의 흐름이 부드럽게 풀리고, 도움이 따라오는 스타일이에요.",
-      "effect_en": "Smoother flow in what you do, with help showing up alongside it.",
-      "advice": "받은 흐름에 안주하지 말고 한 걸음씩 쌓아가세요.",
-      "advice_en": "Don't coast on the good current — keep stacking one step at a time."
-    },
-    "흉성": {
-      "name": "흉성",
-      "name_en": "Inauspicious Star",
-      "hanja": "凶星",
-      "category": "흉신",
-      "category_en": "challenging star",
-      "meaning": "전반적으로 흉한 기운이 섞인 별.",
-      "meaning_en": "A general inauspicious current mixed in.",
-      "effect": "일이 어긋나고 마찰이 잦은 모습이에요.",
-      "effect_en": "Things go sideways and friction shows up more often.",
-      "advice": "예방과 대비에 시간을 더 들이세요.",
-      "advice_en": "Put more time into prevention and preparation."
     },
     "삼재": {
       "name": "삼재",
