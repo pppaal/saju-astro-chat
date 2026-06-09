@@ -12,6 +12,7 @@ import { natalToReportData, buildCrossRows } from '@/components/report/integrate
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
+import { fromZonedTime } from 'date-fns-tz'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,7 +62,15 @@ export default async function IntegratedReportPage({
     gender,
     place: one(sp.place) ?? (lang === 'en' ? 'Seoul, Republic of Korea' : '대한민국 서울'),
     timeZone,
-    isoUTC: '',
+    isoUTC: (() => {
+      try {
+        // 출생 현지시각(birthDate+birthTime, timeZone) → UTC 환산 표시.
+        const utc = fromZonedTime(`${birthDate}T${(birthTime || '00:00').slice(0, 5)}:00`, timeZone)
+        return `${utc.toISOString().slice(0, 16).replace('T', ' ')} UTC`
+      } catch {
+        return ''
+      }
+    })(),
   }
 
   const data = natalToReportData(ctx, lang)

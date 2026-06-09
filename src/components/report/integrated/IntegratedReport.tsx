@@ -1086,6 +1086,25 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   deg: asc.deg,
                   house: 0,
                 },
+                ...(
+                  [
+                    ['Mercury', '☿', '수성'],
+                    ['Venus', '♀', '금성'],
+                    ['Mars', '♂', '화성'],
+                  ] as const
+                ).map(([nm, gl, ko]) => {
+                  const p = find(nm)
+                  return p
+                    ? {
+                        glyph: gl,
+                        label: lang === 'en' ? nm : ko,
+                        core: getPlanetCore(nm, lang),
+                        sign: p.sign,
+                        deg: p.deg,
+                        house: p.house,
+                      }
+                    : null
+                }),
               ].filter(Boolean) as Array<{
                 glyph: string
                 label: string
