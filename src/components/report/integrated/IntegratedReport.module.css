@@ -390,9 +390,9 @@
   border-left-color: var(--el-fire);
 }
 
-.daeun {
+.houses {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 0;
   border: 1px solid var(--line);
   border-radius: 5px;
@@ -412,34 +412,12 @@
 .du:last-child {
   border-right: 0;
 }
-.duNow {
-  background: rgba(169, 131, 59, 0.08);
-}
-.duNow .duAge {
-  color: var(--gold);
-}
 .duAge {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--ink-3);
   font-weight: 500;
 }
-.duGz {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.05;
-}
-.duGz b {
-  font-family: var(--serif);
-  font-size: 19px;
-  font-weight: 500;
-}
-.duSib {
-  font-size: 10.5px;
-  color: var(--ink-2);
-  font-weight: 500;
-}
-
 /* 02 오행 */
 .gridElem {
   display: grid;
@@ -927,6 +905,26 @@
     grid-template-columns: repeat(3, 1fr);
   }
   .metaCell:nth-child(3n) {
+    border-right: 0;
+  }
+}
+
+/* 모바일 가로 잘림 방지 — 좁은 화면에서 고정 다열 그리드 축소 */
+@media (max-width: 600px) {
+  .houses {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .pillar {
+    padding: 12px 6px 12px;
+    gap: 6px;
+  }
+  .metaGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .metaCell:nth-child(3n) {
+    border-right: 1px solid var(--line-2);
+  }
+  .metaCell:nth-child(2n) {
     border-right: 0;
   }
 }
