@@ -647,7 +647,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   {ELEMENTS[S.yongsin.primary]?.han} {elementLabel(S.yongsin.primary, lang)}
                 </b>
                 <span>
-                  🎨 {rem.color} · 🧭 {rem.direction} · ✨ {rem.activity}
+                  🎨 {rem.color[lang]} · 🧭 {rem.direction[lang]} · ✨ {rem.activity[lang]}
                 </span>
               </div>
             )
