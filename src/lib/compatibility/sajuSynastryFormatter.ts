@@ -1018,10 +1018,10 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
         relationLabel = `같은 오행 (${elA}) — 비화`
       } else if (EL_CONTROLS[elA] === elB) {
         relation = 'aControlsB'
-        relationLabel = `${elA}극${elB} — A가 B를 다듬는 흐름`
+        relationLabel = `${elA}극${elB} — 다듬어주는 흐름`
       } else if (EL_CONTROLS[elB] === elA) {
         relation = 'bControlsA'
-        relationLabel = `${elB}극${elA} — B가 A를 다듬는 흐름`
+        relationLabel = `${elB}극${elA} — 다듬어주는 흐름`
       } else {
         relation = 'generate'
         relationLabel = '상생 — 서로 보완'

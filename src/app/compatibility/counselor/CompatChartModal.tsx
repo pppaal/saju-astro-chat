@@ -76,6 +76,15 @@ function sajuToPillars(saju: Record<string, unknown> | undefined): SajuPillarInp
   return out
 }
 
+// 한글 받침 유무로 주제 조사(은/는) 선택 — "준영는"(X) → "준영은"(O).
+// 비한글(영문 등)은 '는' 기본. (KO 문장에만 사용)
+function withNeun(name: string): string {
+  if (!name) return name
+  const c = name.charCodeAt(name.length - 1)
+  if (c >= 0xac00 && c <= 0xd7a3) return name + ((c - 0xac00) % 28 !== 0 ? '은' : '는')
+  return name + '는'
+}
+
 function QuickRead({
   name,
   accent,
@@ -272,7 +281,7 @@ export function CompatChartModal({
       const who = sp.from === 'A' ? labelA : labelB
       const other = sp.from === 'A' ? labelB : labelA
       return isKo
-        ? `${who}에게 ${other}는 ‘${feeling}’의 짝으로 와요 — 그것도 배우자 자리에 바로 떠요.`
+        ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝으로 와요 — 그것도 배우자 자리에 바로 떠요.`
         : `To ${who}, ${other} reads as a "${feeling}" partner — landing right in the spouse seat.`
     }
     const a0 = synView?.aspects[0]
@@ -456,7 +465,7 @@ export function CompatChartModal({
                             style={{ color: 'var(--ds-light-text)' }}
                           >
                             {isKo
-                              ? `${who}에게 ${other}는 ‘${feeling}’의 짝${s.isDayPillar ? ' — 바로 그 자리에 떠요' : '으로 비쳐요'}`
+                              ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝${s.isDayPillar ? ' — 바로 그 자리에 떠요' : '으로 비쳐요'}`
                               : `To ${who}, ${other} reads as a “${feeling}” partner${s.isDayPillar ? ' — right in the spouse seat' : ''}`}
                             <span
                               className="ml-1 text-[11px]"
