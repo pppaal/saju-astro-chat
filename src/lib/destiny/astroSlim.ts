@@ -141,7 +141,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
           arr.sort((a, b) => a.n - b.n)
           arr.forEach((it, idx) => {
             const kindL = l === 'ko' ? it.kind : it.kind === '일식' ? 'solar' : 'lunar'
-            const tgtRaw = it.tgt === 'Ascendant' ? 'ASC' : it.tgt === 'MC' ? 'MC' : pko(it.tgt, l)
+            const tgtRaw = pko(it.tgt, l)
             // 본명 행성/앵글에 일·월식이 떨어지는 형태 — `→ 본명 X` prefix 로
             // 누가 누구를 건드리는지 분명히 (이전 `→ 태양` 단독 표기는 LLM 이
             // "사자 → 태양" 식 sign-to-sign 으로 오인 가능).
@@ -163,7 +163,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
     if (name.includes('Solar Return')) {
       const parts: string[] = []
       const asc = body.find((b) => b.startsWith('Asc:'))?.match(/Asc:\s*([A-Za-z]+)/)
-      if (asc) parts.push(`ASC ${sko(asc[1], l)}`)
+      if (asc) parts.push(`${pko('Ascendant', l)} ${sko(asc[1], l)}`)
       const sun = body.find((b) => b.startsWith('Sun '))
       const sm = sun && POS.exec(sun.replace(/(\d+)°\d+'/, '$1°'))
       if (sm && sm[4]) parts.push(`${pko('Sun', l)} H${sm[4]}`)
