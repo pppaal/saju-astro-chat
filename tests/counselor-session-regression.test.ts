@@ -24,40 +24,45 @@ const read = (p: string) => readFileSync(SRC(p), 'utf-8')
 
 describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () => {
   const route = read('app/api/counselor/realtime/route.ts')
+  // 시스템 프롬프트는 @/lib/prompts/destinyCounselorPrompt 로, runtime [Meta]
+  // 라인 emit 은 @/lib/facts/counselorContextCache 로 분리됨 (route slim 리팩터).
+  // 가드도 각 SSOT 파일을 직접 읽는다.
+  const prompt = read('lib/prompts/destinyCounselorPrompt.ts')
+  const ctxCache = read('lib/facts/counselorContextCache.ts')
 
   it('system prompt 에 "다정한 멘토" 톤 한 줄 (#293)', () => {
-    expect(route).toMatch(/다정.*공감.*따뜻한 멘토/)
-    expect(route).toMatch(/warm.*empathetic mentor/i)
+    expect(prompt).toMatch(/다정.*공감.*따뜻한 멘토/)
+    expect(prompt).toMatch(/warm.*empathetic mentor/i)
   })
 
   it('system prompt 에 두 시스템 통합 디테일 (#293)', () => {
-    expect(route).toMatch(/하나의 비유\/스토리로 엮/)
-    expect(route).toMatch(/weave them into one metaphor\/story/i)
+    expect(prompt).toMatch(/하나의 비유\/스토리로 엮/)
+    expect(prompt).toMatch(/weave them into one metaphor\/story/i)
   })
 
   it('system prompt 에 [Meta] 룰 (#293)', () => {
-    expect(route).toMatch(/\[Meta\] 의 birthTimeUnknown=true.*인용 금지/)
-    expect(route).toMatch(/\[Meta\] has birthTimeUnknown=true/)
+    expect(prompt).toMatch(/\[Meta\] 의 birthTimeUnknown=true.*인용 금지/)
+    expect(prompt).toMatch(/\[Meta\] has birthTimeUnknown=true/)
   })
 
   it('system prompt 에 ||FOLLOWUP|| 마커 룰 (#306)', () => {
-    expect(route).toContain('||FOLLOWUP||')
-    expect(route).toMatch(/정확히 2개/)
-    expect(route).toMatch(/Exactly 2\b/)
+    expect(prompt).toContain('||FOLLOWUP||')
+    expect(prompt).toMatch(/정확히 2개/)
+    expect(prompt).toMatch(/Exactly 2\b/)
   })
 
   it('[Meta] 라인에 raw birthDate / birthTime / location / timezone (#306)', () => {
-    expect(route).toMatch(/\[Meta\] birthDate: \$\{body\.birthDate\}/)
-    expect(route).toMatch(/birthTime: \$\{timeTag\}/)
-    expect(route).toMatch(/location: \$\{locTag\}/)
-    expect(route).toMatch(/timezone: \$\{body\.timezone/)
+    expect(ctxCache).toMatch(/\[Meta\] birthDate: \$\{body\.birthDate\}/)
+    expect(ctxCache).toMatch(/birthTime: \$\{timeTag\}/)
+    expect(ctxCache).toMatch(/location: \$\{locTag\}/)
+    expect(ctxCache).toMatch(/timezone: \$\{body\.timezone/)
   })
 
   it('birthCityUnknown 시 위치 의존 결론 금지 — prompt rule (#298)', () => {
     // formatAstroSelf/skipAngles 체인은 slim 리팩터(#426)로 제거됨. 이제
     // birthCityUnknown 가드는 시스템 프롬프트 룰로 enforce.
-    expect(route).toMatch(/birthCityUnknown=true면 위치 의존 결론 금지/)
-    expect(route).toMatch(/birthCityUnknown=true: skip place-dependent claims/i)
+    expect(prompt).toMatch(/birthCityUnknown=true면 위치 의존 결론 금지/)
+    expect(prompt).toMatch(/birthCityUnknown=true: skip place-dependent claims/i)
   })
 
   it('priorTurns 가 frontend 메시지 그대로 (clamp 없음)', () => {
@@ -86,27 +91,29 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
 
 describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () => {
   const route = read('app/api/compatibility/counselor/route.ts')
+  // 궁합 시스템 프롬프트도 @/lib/prompts/compatibilityCounselorPrompt 로 분리됨.
+  const prompt = read('lib/prompts/compatibilityCounselorPrompt.ts')
 
   it('system prompt 에 "다정한 멘토" 톤 한 줄 (#306)', () => {
-    expect(route).toMatch(/다정.*공감.*따뜻한 멘토/)
-    expect(route).toMatch(/warm.*empathetic mentor/i)
+    expect(prompt).toMatch(/다정.*따뜻한 멘토/)
+    expect(prompt).toMatch(/warm.*empathetic mentor/i)
   })
 
   it('system prompt 에 두 시스템 통합 디테일 (#306)', () => {
-    expect(route).toMatch(/같은 방향을 가리킬 때.*하나의 비유\/스토리/)
-    expect(route).toMatch(/same way for one side.*one metaphor\/story/i)
+    expect(prompt).toMatch(/같은 방향을 가리킬 때.*하나의 비유\/스토리/)
+    expect(prompt).toMatch(/same way for one side.*one metaphor\/story/i)
   })
 
   it('system prompt 에 [Meta] 룰 (운명과 동일 패턴) (#306)', () => {
     // 필드명이 timeUnknown / cityUnknown 으로 단순화됨 (KO/EN 동일).
-    expect(route).toMatch(/\[Meta\] timeUnknown=true →.*시주/)
-    expect(route).toMatch(/\[Meta\] timeUnknown=true →.*hour pillar/i)
+    expect(prompt).toMatch(/\[Meta\] timeUnknown=true →.*시주/)
+    expect(prompt).toMatch(/\[Meta\] timeUnknown=true →.*hour pillar/i)
   })
 
   it('system prompt 에 ||FOLLOWUP|| 마커 룰 (#306)', () => {
-    expect(route).toContain('||FOLLOWUP||')
-    expect(route).toMatch(/정확히 2개/)
-    expect(route).toMatch(/Exactly 2\b/)
+    expect(prompt).toContain('||FOLLOWUP||')
+    expect(prompt).toMatch(/정확히 2개/)
+    expect(prompt).toMatch(/Exactly 2\b/)
   })
 
   it('[Meta] cachedUserContext 안에 A/B 각자 emit (#306)', () => {
@@ -132,15 +139,10 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
 describe('궁합 timingBlock — 사주 시기 (세운/월운/일진) (#319)', () => {
   const support = read('app/api/compatibility/counselor/routeSupport.ts')
 
-  // 개인 타임라인(세운/월운/일진) 텍스트 prompt emit 은 synastry-only 설계로
-  // 제거됨 — renderSide 의 saju timing block / KO·EN 라벨 / dateStr emit 은
-  // 더 이상 존재하지 않는다. 단, current cycle 계산값은 synastry 용으로 유지.
-
-  it('saeunCurrent / wolunCurrent / ilunCurrent 모두 계산', () => {
-    expect(support).toContain('saeunCurrent')
-    expect(support).toContain('wolunCurrent')
-    expect(support).toContain('ilunCurrent')
-  })
+  // 개인 타임라인(세운/월운/일진) 은 synastry-only 설계로 완전히 제거됨 —
+  // routeSupport 는 seed/clamp/age 헬퍼만 남았고 current-cycle 계산값
+  // (saeunCurrent/wolunCurrent/ilunCurrent) 도 더 이상 emit 하지 않는다.
+  // 옛 가정 코멘트가 다시 들어오는 회귀만 가드로 막는다.
 
   it('옛 stale 코멘트 ("already in the cached saju table") 제거', () => {
     // sajuTableFormatter 는 Phase D (2026-06-06) 에 dead 로 제거됐지만,
@@ -237,9 +239,7 @@ describe('궁합 follow-up UI (page.tsx) — chip render + sendMessage refactor 
 
   it('sendMessage 가 (textOverride?: string, options?) signature', () => {
     // 2nd param (options?: { isRetry?: boolean }) 가 retry 배선 위해 추가됨.
-    expect(page).toMatch(
-      /sendMessage = useCallback\(\s*async \(textOverride\?: string, options\?:/
-    )
+    expect(page).toMatch(/sendMessage = useCallback\(\s*async \(textOverride\?: string, options\?:/)
   })
 
   it('streamProcessor result 에서 followUps 받음', () => {

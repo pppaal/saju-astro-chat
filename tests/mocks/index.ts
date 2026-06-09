@@ -5,13 +5,12 @@
  *
  * @example
  * ```ts
- * import { mockNextAuth, mockStripe, mockSajuLibraries } from '@/tests/mocks'
+ * import { mockNextAuth, mockStripe } from '@/tests/mocks'
  *
  * describe('My API Route', () => {
  *   beforeEach(() => {
  *     mockNextAuth()
  *     mockStripe()
- *     mockSajuLibraries()
  *   })
  *
  *   it('should work', async () => {
@@ -29,6 +28,3 @@ export { mockStripe, mockStripeFreeTier, mockStripePremium } from './stripe'
 
 // Database mocks
 export { mockPrisma, mockPrismaWithData } from './database'
-
-// Saju library mocks
-export { mockSajuLibraries, mockSajuCore } from './saju'

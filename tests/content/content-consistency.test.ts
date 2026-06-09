@@ -9,7 +9,7 @@ function readUtf8(relativePath: string): string {
 
 describe('content consistency guardrails', () => {
   it('uses one support email source of truth', () => {
-    expect(SUPPORT_EMAIL).toBe('support@destinypal.com')
+    expect(SUPPORT_EMAIL).toBe('rheeco88@gmail.com')
   })
 
   it('keeps pricing FAQ/refund phrasing aligned in English copy', () => {

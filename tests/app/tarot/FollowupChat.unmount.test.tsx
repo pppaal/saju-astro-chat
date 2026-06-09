@@ -41,6 +41,13 @@ vi.mock('@/contexts/CreditModalContext', () => ({
   }),
 }))
 
+// FollowupChat gates submit with useRequireLogin(); stub to "always logged in"
+// so the unmount/abort path under test runs without a LoginModalProvider.
+vi.mock('@/contexts/LoginModalContext', () => ({
+  useRequireLogin: () => () => true,
+  useLoginModal: () => ({ showLogin: vi.fn(), hideLogin: vi.fn() }),
+}))
+
 // useClarifierCard is heavy and not relevant to the unmount path under
 // test — stub a tiny shape that matches what FollowupChat consumes.
 vi.mock('@/hooks/useClarifierCard', () => ({

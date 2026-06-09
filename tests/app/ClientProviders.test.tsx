@@ -15,7 +15,9 @@ vi.mock('@/i18n/I18nProvider', () => ({
   I18nProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="i18n-provider">{children}</div>
   ),
-  useI18n: vi.fn(),
+  // 기본 반환값 — 일부 provider(LoginModal 등)가 마운트 시 locale 을
+  // 구조분해하므로 undefined 면 크래시. 개별 테스트는 mockReturnValue 로 덮는다.
+  useI18n: vi.fn(() => ({ t: (k: string) => k, locale: 'ko', setLocale: vi.fn() })),
 }))
 
 vi.mock('@/components/ui/Toast', () => ({
@@ -30,6 +32,13 @@ vi.mock('@/contexts/CreditModalContext', () => ({
     <div data-testid="credit-modal-provider">{children}</div>
   ),
   useCreditModal: vi.fn(),
+}))
+
+vi.mock('@/contexts/LoginModalContext', () => ({
+  LoginModalProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="login-modal-provider">{children}</div>
+  ),
+  useLoginModal: vi.fn(),
 }))
 
 // Side-effect / global UI components rendered by ClientProviders. They run their

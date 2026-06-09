@@ -35,6 +35,13 @@ vi.mock('@/lib/logger', () => ({
   logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }))
 
+// Login gate is pulled in transitively; stub to "always logged in" so the hook
+// renders without a LoginModalProvider wrapper.
+vi.mock('@/contexts/LoginModalContext', () => ({
+  useRequireLogin: () => () => true,
+  useLoginModal: () => ({ showLogin: vi.fn(), hideLogin: vi.fn() }),
+}))
+
 // Chart cache: no cached data so the compute path is inert (birthDate/birthTime
 // effects are gated and just call fetch, which we stub to never resolve).
 vi.mock('@/lib/cache/chartDataCache', () => ({
@@ -65,9 +72,7 @@ beforeEach(() => {
   // Make every fetch() hang (never resolve) so the chart-loading effects don't
   // mutate state during these synchronous-derivation assertions. The profile
   // fallback effect is separately handled per-test via a pending promise.
-  ;(global.fetch as ReturnType<typeof vi.fn>).mockImplementation(
-    () => new Promise(() => {})
-  )
+  ;(global.fetch as ReturnType<typeof vi.fn>).mockImplementation(() => new Promise(() => {}))
 })
 
 // --- Param parsing ---------------------------------------------------------
@@ -108,9 +113,7 @@ describe('useCounselorData — URL param parsing', () => {
   })
 
   it('accepts `initialQuestion` as an alias for `q`', () => {
-    const { result } = renderHook(() =>
-      useCounselorData({ initialQuestion: 'deep-link question' })
-    )
+    const { result } = renderHook(() => useCounselorData({ initialQuestion: 'deep-link question' }))
     expect(result.current.parsedParams.initialQuestion).toBe('deep-link question')
   })
 
@@ -137,31 +140,23 @@ describe('useCounselorData — URL param parsing', () => {
 
   it('normalizes gender ("F" / "Female" → female; otherwise male)', () => {
     expect(
-      renderHook(() => useCounselorData({ gender: 'F' })).result.current.parsedParams
-        .gender
+      renderHook(() => useCounselorData({ gender: 'F' })).result.current.parsedParams.gender
     ).toBe('female')
     expect(
-      renderHook(() => useCounselorData({ gender: 'Female' })).result.current.parsedParams
-        .gender
+      renderHook(() => useCounselorData({ gender: 'Female' })).result.current.parsedParams.gender
     ).toBe('female')
     expect(
-      renderHook(() => useCounselorData({ gender: 'M' })).result.current.parsedParams
-        .gender
+      renderHook(() => useCounselorData({ gender: 'M' })).result.current.parsedParams.gender
     ).toBe('male')
     // Unrecognized / empty → falls through to 'male' (the hook's binary collapse).
     expect(
-      renderHook(() => useCounselorData({ gender: 'banana' })).result.current
-        .parsedParams.gender
+      renderHook(() => useCounselorData({ gender: 'banana' })).result.current.parsedParams.gender
     ).toBe('male')
-    expect(
-      renderHook(() => useCounselorData({})).result.current.parsedParams.gender
-    ).toBe('male')
+    expect(renderHook(() => useCounselorData({})).result.current.parsedParams.gender).toBe('male')
   })
 
   it('resolves coordinates: URL lat/lon win, else Seoul defaults', () => {
-    const withCoords = renderHook(() =>
-      useCounselorData({ lat: '48.85', lon: '2.35' })
-    )
+    const withCoords = renderHook(() => useCounselorData({ lat: '48.85', lon: '2.35' }))
     expect(withCoords.result.current.parsedParams.latitude).toBeCloseTo(48.85)
     expect(withCoords.result.current.parsedParams.longitude).toBeCloseTo(2.35)
 
@@ -342,9 +337,7 @@ describe('useCounselorData — chart-load request cancellation', () => {
 
   it('passes an AbortSignal to every chart-load fetch', async () => {
     const fetchMock = global.fetch as ReturnType<typeof vi.fn>
-    renderHook(() =>
-      useCounselorData({ birthDate: '1995-02-09', birthTime: '06:40' })
-    )
+    renderHook(() => useCounselorData({ birthDate: '1995-02-09', birthTime: '06:40' }))
 
     await waitFor(() => {
       expect(
@@ -384,16 +377,13 @@ describe('useCounselorData — chart-load request cancellation', () => {
 
   it('aborts and re-fires when a chart dep changes (e.g. timeZone toggle)', async () => {
     const fetchMock = global.fetch as ReturnType<typeof vi.fn>
-    const { rerender } = renderHook(
-      (props: Record<string, string>) => useCounselorData(props),
-      {
-        initialProps: {
-          birthDate: '1995-02-09',
-          birthTime: '06:40',
-          timeZone: 'Asia/Seoul',
-        },
-      }
-    )
+    const { rerender } = renderHook((props: Record<string, string>) => useCounselorData(props), {
+      initialProps: {
+        birthDate: '1995-02-09',
+        birthTime: '06:40',
+        timeZone: 'Asia/Seoul',
+      },
+    })
 
     await waitFor(() => {
       expect(fetchMock.mock.calls.some((c) => c[0] === '/api/saju')).toBe(true)
