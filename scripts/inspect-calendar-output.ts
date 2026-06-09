@@ -1,5 +1,5 @@
 import { calculateYearlyImportantDates } from '@/app/api/calendar/lib/yearlyDates'
-import type { UserSajuProfile, UserAstroProfile } from '@/lib/destiny-map/calendar/types'
+import type { UserSajuProfile, UserAstroProfile } from '@/lib/calendar/types'
 
 const sajuProfile: UserSajuProfile = {
   dayMaster: '甲',
@@ -75,20 +75,24 @@ for (const d of dates) byGrade[d.grade] = (byGrade[d.grade] || 0) + 1
 
 console.log('=== 2026년 캘린더 해석 출력 (엔진 베이스) ===\n')
 console.log(`총 일수: ${total}`)
-console.log(`등급 분포: 0(대길)=${byGrade[0]} 1(길)=${byGrade[1]} 2(보통)=${byGrade[2]} 3(흉)=${byGrade[3]} 4(대흉)=${byGrade[4]}\n`)
+console.log(
+  `등급 분포: 0(대길)=${byGrade[0]} 1(길)=${byGrade[1]} 2(보통)=${byGrade[2]} 3(흉)=${byGrade[3]} 4(대흉)=${byGrade[4]}\n`
+)
 
 const samples = [
-  { label: 'TOP 대길 (grade 0)', list: dates.filter(d => d.grade === 0).slice(0, 2) },
-  { label: '길 (grade 1)', list: dates.filter(d => d.grade === 1).slice(0, 2) },
-  { label: '보통 (grade 2)', list: dates.filter(d => d.grade === 2).slice(0, 1) },
-  { label: '흉 (grade 3)', list: dates.filter(d => d.grade === 3).slice(0, 2) },
-  { label: '대흉 (grade 4)', list: dates.filter(d => d.grade === 4).slice(0, 2) },
+  { label: 'TOP 대길 (grade 0)', list: dates.filter((d) => d.grade === 0).slice(0, 2) },
+  { label: '길 (grade 1)', list: dates.filter((d) => d.grade === 1).slice(0, 2) },
+  { label: '보통 (grade 2)', list: dates.filter((d) => d.grade === 2).slice(0, 1) },
+  { label: '흉 (grade 3)', list: dates.filter((d) => d.grade === 3).slice(0, 2) },
+  { label: '대흉 (grade 4)', list: dates.filter((d) => d.grade === 4).slice(0, 2) },
 ]
 
 for (const { label, list } of samples) {
   console.log(`\n────── ${label} ──────`)
   for (const d of list) {
-    console.log(`\n📅 ${d.date}  | grade=${d.grade} | score=${d.score} | confidence=${d.confidence}`)
+    console.log(
+      `\n📅 ${d.date}  | grade=${d.grade} | score=${d.score} | confidence=${d.confidence}`
+    )
     console.log(`   카테고리: ${d.categories.join(', ')}`)
     console.log(`   crossVerified: ${d.crossVerified} | crossAgreement=${d.crossAgreementPercent}%`)
     console.log(`   ▸ title: ${d.titleKey}`)

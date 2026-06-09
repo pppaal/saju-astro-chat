@@ -50,12 +50,12 @@
 }
 
 .list .listItem::marker {
-  color: #d4b572;
+  color: var(--ds-gold-on-dark);
   font-size: 1.1em;
 }
 
 .orderedList .listItem::marker {
-  color: #d4b572;
+  color: var(--ds-gold-on-dark);
   font-weight: 600;
 }
 
@@ -66,19 +66,19 @@
   border-radius: 4px;
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 0.9em;
-  color: #e8cc8a;
+  color: var(--ds-gold-on-dark-soft);
 }
 
 /* 링크 */
 .link {
-  color: #d4b572;
+  color: var(--ds-gold-on-dark);
   text-decoration: none;
   border-bottom: 1px solid rgba(212, 181, 114, 0.3);
   transition: all 0.2s ease;
 }
 
 .link:hover {
-  color: #e8cc8a;
+  color: var(--ds-gold-on-dark-soft);
   border-bottom-color: rgba(232, 204, 138, 0.6);
 }
 
@@ -112,52 +112,52 @@
 /* 라이트 표면 변형 — 상담사 페이지는 흰 배경이라 기본(다크용) 헤딩·인용·
    코드 색이 거의 안 보인다. theme="light" 일 때 짙은 잉크/보라로 교체. */
 .light .heading1 {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 /* 라이트 톤 — 옛 보라 #7c3aed/#6d28d9 폐기, 골드 + 잉크로 통일
    (compat/profile/destiny counselor 라이트와 정렬). */
 .light .heading2 {
-  color: #1c1917;
+  color: var(--ds-light-text);
   border-left-color: rgba(160, 122, 60, 0.65);
 }
 
 .light .heading3 {
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 .light .blockquote {
   color: #44403c;
-  border-left-color: #a07a3c;
+  border-left-color: var(--ds-gold);
   background: rgba(160, 122, 60, 0.06);
 }
 
 .light .code {
-  color: #a07a3c;
+  color: var(--ds-gold);
   background: rgba(160, 122, 60, 0.1);
 }
 
 .light .link {
-  color: #a07a3c;
+  color: var(--ds-gold);
   border-bottom-color: rgba(160, 122, 60, 0.35);
 }
 
-/* WCAG AA — gold #d4b572 on light cream (#fafaf9) is 2.05:1, fails 4.5:1.
-   Override list bullet markers to #a07a3c (passes AA) on light surfaces.
-   Dark variant keeps #d4b572. */
+/* WCAG AA — gold var(--ds-gold-on-dark) on light cream (var(--ds-light-bg)) is 2.05:1, fails 4.5:1.
+   Override list bullet markers to var(--ds-gold) (passes AA) on light surfaces.
+   Dark variant keeps var(--ds-gold-on-dark). */
 .light .list .listItem::marker {
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 .light .orderedList .listItem::marker {
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 /* 인용구 */
 .blockquote {
   margin: 0.5em 0;
   padding: 0.7em 1.1em;
-  border-left: 3px solid #d4b572;
+  border-left: 3px solid var(--ds-gold-on-dark);
   background: rgba(212, 181, 114, 0.08);
   border-radius: 0 10px 10px 0;
   color: rgba(255, 255, 255, 0.92);

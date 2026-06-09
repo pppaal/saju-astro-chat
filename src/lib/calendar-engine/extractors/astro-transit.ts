@@ -7,21 +7,16 @@ import type {
   Polarity,
   SignalLayer,
 } from '../types'
-import { inferAspectPolarity } from '../themes/tagger'
+import { inferAspectPolarity } from '../aspect-polarity'
 import { getCachedTransitChart } from '../ephe-cache'
+import { aspectFlowLine } from '../data/astroFlow'
 
 // Hellenistic 정통화 (Phase 2): minor aspect 5종 (semisextile/quincunx/
 // quintile/biquintile/sesquiquadrate) 은 비정통 (Kepler 이후 modern). 추출기에서
 // 차단 — TRANSIT_ASPECTS 에서 빼고, 혹시 모를 minor 누출에 대비해 MINOR_ASPECT_SET
 // 가드를 유지 (defense-in-depth). foundation aspects.ts 의 resolveAspectList
 // 도 minor 를 필터링하므로 이중 안전.
-const TRANSIT_ASPECTS: AspectType[] = [
-  'conjunction',
-  'sextile',
-  'square',
-  'trine',
-  'opposition',
-]
+const TRANSIT_ASPECTS: AspectType[] = ['conjunction', 'sextile', 'square', 'trine', 'opposition']
 const MINOR_ASPECT_SET = new Set<string>([
   'semisextile',
   'quincunx',
@@ -130,7 +125,7 @@ const astroTransitExtractor: SignalExtractor = {
         // 마이너 어스펙트는 task spec 의 fixed polarity 사용. 메이저는 행성
         // benefic/malefic 와 angle harmony 를 본 inferAspectPolarity.
         const polarity: Polarity = MINOR_ASPECT_SET.has(sample.aspectType)
-          ? MINOR_POLARITY_OVERRIDE[sample.aspectType] ?? 0
+          ? (MINOR_POLARITY_OVERRIDE[sample.aspectType] ?? 0)
           : inferAspectPolarity(sample.aspectType, sample.transitPlanet, sample.natalPoint)
         const layer: SignalLayer = transitLayer(sample.transitPlanet)
 
@@ -139,8 +134,12 @@ const astroTransitExtractor: SignalExtractor = {
           source: 'astro',
           kind: 'transit',
           name: `${sample.transitPlanet} ${aspectSymbol(sample.aspectType)} ${sample.natalPoint}`,
-          korean: `${sample.transitPlanet} ${aspectKorean(sample.aspectType)} 본명 ${sample.natalPoint}`,
-          themes: [],
+          korean:
+            aspectFlowLine(sample.transitPlanet, sample.natalPoint, sample.aspectType, 'ko') ||
+            `${sample.transitPlanet} ${aspectKorean(sample.aspectType)} 본명 ${sample.natalPoint}`,
+          english:
+            aspectFlowLine(sample.transitPlanet, sample.natalPoint, sample.aspectType, 'en') ||
+            `${sample.transitPlanet} ${aspectSymbol(sample.aspectType)} natal ${sample.natalPoint}`,
           polarity,
           layer,
           active: { start: startIso, peak: tightest.iso, end: endIso },

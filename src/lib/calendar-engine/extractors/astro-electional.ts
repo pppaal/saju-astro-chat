@@ -23,11 +23,11 @@ const KEY_EVENTS: ElectionalEventType[] = [
 ]
 
 const EVENT_LABELS: Record<string, string> = {
-  marriage:          '결혼',
-  business_start:    '사업 시작',
-  long_journey:      '장거리 여행',
-  surgery:           '수술',
-  buying_property:   '부동산 매입',
+  marriage: '결혼',
+  business_start: '사업 시작',
+  long_journey: '장거리 여행',
+  surgery: '수술',
+  buying_property: '부동산 매입',
   signing_contracts: '계약 체결',
 }
 
@@ -72,7 +72,6 @@ const astroElectionalExtractor: SignalExtractor = {
           kind: 'electional',
           name: `택일: ${EVENT_LABELS[event] ?? event} (${score}점)`,
           korean: `${EVENT_LABELS[event] ?? event} 택일 좋음 — ${score}점`,
-          themes: themesForEvent(event),
           polarity,
           layer: 'daily',
           active: {
@@ -97,18 +96,6 @@ const astroElectionalExtractor: SignalExtractor = {
 
     return signals
   },
-}
-
-function themesForEvent(event: ElectionalEventType): import('@/lib/astrology/themes/types').AstroThemeKey[] {
-  switch (event) {
-    case 'marriage':          return ['love']
-    case 'business_start':    return ['money']
-    case 'long_journey':      return ['growth']
-    case 'surgery':           return ['health']
-    case 'buying_property':   return ['money', 'love']
-    case 'signing_contracts': return ['career', 'money']
-    default:                  return []
-  }
 }
 
 export default astroElectionalExtractor

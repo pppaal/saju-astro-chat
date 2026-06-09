@@ -51,7 +51,7 @@ export interface CompatSajuFacts {
  */
 export function collectCompatSajuFacts(
   seedA: CompatPersonSeed,
-  seedB: CompatPersonSeed,
+  seedB: CompatPersonSeed
 ): CompatSajuFacts {
   return {
     a: collectOne(seedA),
@@ -72,7 +72,7 @@ function collectOne(seed: CompatPersonSeed): PersonCompatSajuFacts {
     (k) => ({
       stem: base.pillars[k].stem,
       branch: base.pillars[k].branch,
-    }),
+    })
   )
 
   const cur = base.daeun.current

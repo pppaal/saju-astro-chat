@@ -52,10 +52,10 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Destinypal (운흐름) Pages (1)', () => {
-    it('should have destinypal page', () => {
-      // /calendar 페이지는 destinypal(운흐름)로 이동됨.
-      assertPages(['app/destinypal/page'])
+  describe('Calendar (운흐름) Pages (1)', () => {
+    it('should have calendar page', () => {
+      // 캘린더(운흐름) canonical 라우트 = /calendar (옛 /destinypal 은 308 alias).
+      assertPages(['app/calendar/page'])
     })
   })
 

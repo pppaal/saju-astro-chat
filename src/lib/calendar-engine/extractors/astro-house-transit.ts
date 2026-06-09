@@ -1,7 +1,7 @@
 import { getCachedTransitChart } from '../ephe-cache'
 import type { Chart, House } from '@/lib/astrology/foundation/types'
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, SignalLayer } from '../types'
+import { PLANET_KO } from '../data/planetNames'
 
 /**
  * 하우스 오버레이 + ASC/MC 컨택 추출기.
@@ -28,14 +28,7 @@ const TRACK_LAYER: Record<string, SignalLayer> = {
 }
 const SLOW = new Set(['Saturn', 'Uranus', 'Neptune', 'Pluto'])
 
-const PLANET_KO: Record<string, string> = {
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
-}
+// PLANET_KO 는 정본(data/planetNames) 재사용 — 위 import. 로컬 복사본 제거.
 const PLANET_EN: Record<string, string> = {
   Mars: 'Mars',
   Jupiter: 'Jupiter',
@@ -72,20 +65,6 @@ const HOUSE_AREA_EN: Record<number, string> = {
   10: 'career, public standing, reputation',
   11: 'friends, networks, goals',
   12: 'inner work, rest, closure',
-}
-const HOUSE_THEME: Record<number, AstroThemeKey> = {
-  1: 'growth',
-  2: 'money',
-  3: 'growth',
-  4: 'health',
-  5: 'love',
-  6: 'health',
-  7: 'love',
-  8: 'growth',
-  9: 'growth',
-  10: 'career',
-  11: 'career',
-  12: 'health',
 }
 
 function inArc(x: number, start: number, end: number): boolean {
@@ -201,7 +180,7 @@ const astroHouseTransitExtractor: SignalExtractor = {
         kind: 'house-transit',
         name: `${seg.planet} in ${seg.house}H`,
         korean: lineKo,
-        themes: [HOUSE_THEME[seg.house]].filter(Boolean) as AstroThemeKey[],
+        english: lineEn,
         polarity: 0, // 컨텍스트 (영역 활성) — 길흉 아님, 점수 미반영
         layer,
         active: {
@@ -231,7 +210,7 @@ const astroHouseTransitExtractor: SignalExtractor = {
         kind: 'angle-contact',
         name: `${seg.planet} ☌ ${seg.angle}`,
         korean: lineKo,
-        themes: (seg.angle === 'MC' ? ['career'] : ['growth']) as AstroThemeKey[],
+        english: lineEn,
         polarity: 0,
         layer: 'yearly',
         active: {

@@ -161,13 +161,14 @@ describe('ZodValidation', () => {
     it('should accept supported locales', () => {
       expect(localeSchema.safeParse('ko').success).toBe(true)
       expect(localeSchema.safeParse('en').success).toBe(true)
-      expect(localeSchema.safeParse('ja').success).toBe(true)
-      expect(localeSchema.safeParse('zh').success).toBe(true)
     })
 
     it('should reject unsupported locales', () => {
       expect(localeSchema.safeParse('kr').success).toBe(false)
       expect(localeSchema.safeParse('us').success).toBe(false)
+      // ja/zh no longer supported (en/ko-only app)
+      expect(localeSchema.safeParse('ja').success).toBe(false)
+      expect(localeSchema.safeParse('zh').success).toBe(false)
     })
   })
 

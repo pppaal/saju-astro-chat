@@ -1,4 +1,22 @@
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
+import { getGeokgukRich } from '@/lib/chart-dictionary'
+
+// 격국 성패 상태 → 흐름 한 줄.
+const STATUS_FLOW: Record<string, string> = {
+  성격: '격이 제대로 갖춰져 본연의 힘을 발휘하는 구조예요',
+  파격: '격이 깨져 본연의 힘이 새거나 어긋나는 구조예요',
+  반성반파: '격이 반쯤 갖춰져 조건에 따라 살았다 죽었다 하는 구조예요',
+}
+const STATUS_FLOW_EN: Record<string, string> = {
+  성격: 'the structure is well-formed and works at full strength',
+  파격: 'the structure is broken — its native power leaks or misfires',
+  반성반파: 'the structure is half-formed — it lives or dies by the conditions',
+}
+const STATUS_LABEL_EN: Record<string, string> = {
+  성격: 'well-formed',
+  파격: 'broken',
+  반성반파: 'half-formed',
+}
 
 /**
  * 본명 격국 성패(成敗) 추출기.
@@ -26,8 +44,6 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  *  - 반성반파: polarity 0, weight 0.20 — 중립 표지만
  */
 
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
-
 const sajuGeokgukExtractor: SignalExtractor = {
   source: 'saju',
   kind: 'geokguk-status',
@@ -40,18 +56,21 @@ const sajuGeokgukExtractor: SignalExtractor = {
       return signals
     }
 
-    const statusResult = (advanced as { statusResult?: {
-      status: '성격' | '파격' | '반성반파'
-      factors: { positive: string[]; negative: string[] }
-      description: string
-    } }).statusResult
+    const statusResult = (
+      advanced as {
+        statusResult?: {
+          status: '성격' | '파격' | '반성반파'
+          factors: { positive: string[]; negative: string[] }
+          description: string
+        }
+      }
+    ).statusResult
     if (!statusResult) return signals
 
     const geokguk = advanced.primary as string
     const status = statusResult.status
     const polarity: Polarity = status === '성격' ? 1 : status === '파격' ? -1 : 0
-    const weight = status === '반성반파' ? 0.20 : 0.25
-    const themes = themesForGeokguk(geokguk)
+    const weight = status === '반성반파' ? 0.2 : 0.25
 
     // reason — positive·negative 요인을 사람이 읽을 수 있게 한 줄로.
     const reasonParts: string[] = []
@@ -62,6 +81,21 @@ const sajuGeokgukExtractor: SignalExtractor = {
       reasonParts.push(`파격요소(${statusResult.factors.negative.join(', ')})`)
     }
     const reason = reasonParts.length > 0 ? reasonParts.join(' · ') : statusResult.description
+
+    // 격국 본질 tagline + 성패 의미를 한 줄로.
+    const tagline = getGeokgukRich(geokguk, 'ko')?.tagline
+    const statusFlow = STATUS_FLOW[status] ?? statusResult.description
+    const korean = tagline
+      ? `${geokguk}·${status} — ${statusFlow} (${tagline})`
+      : `${geokguk}·${status} — ${statusFlow}`
+
+    // EN — geokguk rich tagline(en) + 성패 의미. (격국명은 한글이라 EN 문구는 tagline 으로
+    // 시작 — EN 응답 한글 누수 차단.)
+    const taglineEn = getGeokgukRich(geokguk, 'en')?.tagline
+    const statusFlowEn = STATUS_FLOW_EN[status] ?? ''
+    const english = taglineEn
+      ? `${taglineEn} (${STATUS_LABEL_EN[status] ?? status}) — ${statusFlowEn}`
+      : `Structure (${STATUS_LABEL_EN[status] ?? status}) — ${statusFlowEn}`
 
     // 매일 frame — range 의 모든 day cell 에 1 signal 씩 emit.
     // layer 'daily' + 24h active window 로 1 day cell 에 정확히 1번 들어감.
@@ -75,8 +109,8 @@ const sajuGeokgukExtractor: SignalExtractor = {
         source: 'saju',
         kind: 'geokguk-status',
         name: `${geokguk} (${status})`,
-        korean: `${geokguk} ${status}`,
-        themes,
+        korean,
+        english,
         polarity,
         layer: 'daily',
         active: {
@@ -104,22 +138,6 @@ const sajuGeokgukExtractor: SignalExtractor = {
 
     return signals
   },
-}
-
-/**
- * 격국명 → 테마. saju-pattern.ts 의 themesForGeokguk 와 동일 정책으로 일관성 유지.
- */
-function themesForGeokguk(geokguk: string): AstroThemeKey[] {
-  const themes = new Set<AstroThemeKey>()
-  if (/정관|편관|종살|건록|양인/.test(geokguk)) themes.add('career')
-  if (/정재|편재|종재|가색/.test(geokguk)) themes.add('money')
-  if (/정인|편인|종강|곡직/.test(geokguk)) themes.add('growth')
-  if (/식신|상관|종아|염상/.test(geokguk)) themes.add('growth')
-  if (/종왕|월겁|잡기/.test(geokguk)) themes.add('growth')
-  if (/종혁|윤하/.test(geokguk)) themes.add('growth')
-  if (/화토격|화금격|화수격|화목격|화화격/.test(geokguk)) themes.add('growth')
-  if (themes.size === 0) themes.add('growth')
-  return Array.from(themes)
 }
 
 export default sajuGeokgukExtractor

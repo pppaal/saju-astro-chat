@@ -15,4 +15,3 @@ export {
 } from './constants'
 
 // Re-export data
-export { ILJU_DATA } from './ilju-data'

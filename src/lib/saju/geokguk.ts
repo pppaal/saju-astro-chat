@@ -2,6 +2,7 @@
 // 격국(格局) 판정 모듈
 
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
+import { STEM_KO } from './ganjiKo'
 import type { FiveElement, SajuPillarsInput } from './types'
 import {
   getStemElement,
@@ -54,22 +55,9 @@ export interface GeokgukResult {
 // Re-export for backward compatibility
 export type { SajuPillarsInput }
 
-// 한글 → 한자 한자 → 한글 변환 (로컬 사용)
-const STEM_HAN_TO_KO: Record<string, string> = {
-  甲: '갑',
-  乙: '을',
-  丙: '병',
-  丁: '정',
-  戊: '무',
-  己: '기',
-  庚: '경',
-  辛: '신',
-  壬: '임',
-  癸: '계',
-}
-
+// 천간 한자→한글 음 — 정본(saju/ganjiKo) 재사용.
 function stemToKo(s: string): string {
-  return STEM_HAN_TO_KO[s] || s
+  return STEM_KO[s] || s
 }
 
 // 십성 계산

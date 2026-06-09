@@ -1,4 +1,5 @@
 import type { SignalLayer, SignalPattern } from '../types'
+import { LAYER_WEIGHT } from './constants'
 
 /**
  * ActiveSignal[] → 종합 점수 (0~100).
@@ -9,15 +10,6 @@ import type { SignalLayer, SignalPattern } from '../types'
  *
  * 공명 보너스: 다수 레이어가 동방향이면 가산.
  */
-
-const LAYER_WEIGHT: Record<SignalLayer, number> = {
-  decadal: 1.0,
-  yearly: 0.85,
-  monthly: 0.7,
-  daily: 0.55,
-  hourly: 0.4,
-  instant: 0.5,
-}
 
 /**
  * 점수 계산에 실제로 쓰이는 최소 필드만 요구 — full ActiveSignal 뿐 아니라
@@ -94,12 +86,12 @@ export function deriveScore(signals: SignalForScore[], patterns: SignalPattern[]
   if (negativeLayers.length >= 3) score -= 4
   if (negativeLayers.length >= 4) score -= 4
 
-  // 매칭 패턴 보너스 — strength에 비례, crisis 테마면 감점
-  const malefic = new Set(['crisis'])
+  // 매칭 패턴 보너스 — strength에 비례.
+  // (옛 'crisis' 테마 감점 분기는 18→5 테마 통합 때 'crisis' 키가 사라져
+  //  이미 죽은 코드였다 — 5버킷 축 제거와 함께 정리. 점수 영향 0.)
   for (const p of patterns) {
-    const isMalefic = p.themes.some((t) => malefic.has(t))
     const delta = (p.strength / 100) * 12 // strength 95 → 11.4
-    score += isMalefic ? -delta : delta
+    score += delta
   }
 
   // 상한·하한 soft compression — raw score 가 layer + pattern bonus 로

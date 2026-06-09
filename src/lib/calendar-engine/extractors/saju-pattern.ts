@@ -1,4 +1,5 @@
 import { matchAllPatterns } from '@/lib/saju/patternMatcher'
+import { getGeokgukRich } from '@/lib/chart-dictionary'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 
 /**
@@ -13,6 +14,23 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  * 추가로 natal.saju.geokguk (격국명, build.ts가 determineGeokguk으로 채움)이
  * 있으면 별도 신호로 emit — 명리상 主格 라벨을 카드/내러티브에 노출.
  */
+
+// 격국명이 geokguk-rich 에 없는 구조 패턴(상호작용·음양격)의 EN 라벨.
+const PATTERN_NAME_EN: Record<string, string> = {
+  pure_element: 'Single-element dominance structure',
+  balanced_elements: 'Balanced five-element structure',
+  all_stems_different: 'All-independent-stems structure',
+  double_yukhap: 'Double six-harmony structure',
+  samhap_formation: 'Three-harmony (samhap) structure',
+  double_chung: 'Double-clash structure',
+  gwansal_heavy: 'Mixed officer-killer structure',
+  siksang_prominent: 'Prominent output structure',
+  insung_strong: 'Strong resource structure',
+  jaesung_strong: 'Strong wealth structure',
+  day_time_harmony: 'Day-hour harmony structure',
+  yang_dominant: 'All-yang structure',
+  yin_dominant: 'All-yin structure',
+}
 
 const sajuPatternExtractor: SignalExtractor = {
   source: 'saju',
@@ -45,8 +63,9 @@ const sajuPatternExtractor: SignalExtractor = {
         source: 'saju',
         kind: 'saju-pattern',
         name: geokguk,
-        korean: geokguk,
-        themes: themesForGeokguk(geokguk),
+        // 격국 정통 한 줄(tagline) 을 chart-dictionary 에서 — 없으면 이름 폴백.
+        korean: getGeokgukRich(geokguk, 'ko')?.tagline ?? geokguk,
+        english: getGeokgukRich(geokguk, 'en')?.tagline ?? geokguk,
         polarity: 1, // 격국 자체는 본질 라벨 — 약한 + 톤만 부여
         layer: 'decadal',
         active: activeWindow,
@@ -77,8 +96,16 @@ const sajuPatternExtractor: SignalExtractor = {
         source: 'saju' as const,
         kind: 'saju-pattern' as const,
         name: top.patternName,
-        korean: top.patternName,
-        themes: themesForPattern(top.category, top.keywords),
+        // 격국 tagline 우선, 없으면 패턴 자체 해석문(interpretation/description) 폴백.
+        korean:
+          getGeokgukRich(top.patternName, 'ko')?.tagline ??
+          top.interpretation ??
+          top.description ??
+          top.patternName,
+        english:
+          getGeokgukRich(top.patternName, 'en')?.tagline ??
+          PATTERN_NAME_EN[top.patternId] ??
+          top.patternName,
         polarity: polarityForPattern(top.rarity, top.matchScore),
         layer: 'decadal' as const, // 평생 배경 → decadal에 매핑 (가장 긴 레이어)
         active: activeWindow,
@@ -109,39 +136,6 @@ function polarityForPattern(rarity: string, score: number): Polarity {
     | 2
     | 3
   return intensity
-}
-
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
-
-/**
- * 격국명 → 테마 매핑.
- * 정관/편관 → career, 정재/편재 → money, 정인/편인 → growth(학문),
- * 식신/상관 → growth(창의/표현), 종재/종살/종아 등 종격은 강한 쪽으로 흡수,
- * 곡직/염상/가색/종혁/윤하 등 특수격국은 오행 결대로 매핑.
- */
-function themesForGeokguk(geokguk: string): AstroThemeKey[] {
-  const themes = new Set<AstroThemeKey>()
-  if (/정관|편관|종살|건록|양인/.test(geokguk)) themes.add('career')
-  if (/정재|편재|종재|가색/.test(geokguk)) themes.add('money')
-  if (/정인|편인|종강|곡직/.test(geokguk)) themes.add('growth')
-  if (/식신|상관|종아|염상/.test(geokguk)) themes.add('growth')
-  if (/종왕|월겁|잡기/.test(geokguk)) themes.add('growth')
-  if (/종혁|윤하/.test(geokguk)) themes.add('growth')
-  if (/화토격|화금격|화수격|화목격|화화격/.test(geokguk)) themes.add('growth')
-  if (themes.size === 0) themes.add('growth')
-  return Array.from(themes)
-}
-
-function themesForPattern(category: string, keywords: string[]): AstroThemeKey[] {
-  const themes = new Set<AstroThemeKey>()
-  const text = (category + ' ' + keywords.join(' ')).toLowerCase()
-  if (/wealth|money|재물|재성/.test(text)) themes.add('money')
-  if (/love|romance|연애|도화|family|가족/.test(text)) themes.add('love')
-  if (/career|관성|직업|관운|study|학문|문창|reputation|명예|장성/.test(text)) themes.add('career')
-  if (/health|건강/.test(text)) themes.add('health')
-  if (/creative|창의|식상|spiritual|영성|화개/.test(text)) themes.add('growth')
-  if (themes.size === 0) themes.add('growth')
-  return Array.from(themes)
 }
 
 export default sajuPatternExtractor

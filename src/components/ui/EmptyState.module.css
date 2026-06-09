@@ -24,7 +24,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -111,7 +112,7 @@
   padding: 12px 32px;
   /* 골드 그라데이션 — 다른 다크 페이지 primary CTA (about, blog post)
      와 정렬. 옛 purple #667eea→#764ba2 폐기. */
-  background: linear-gradient(135deg, #c19b56 0%, #a07a3c 100%);
+  background: linear-gradient(135deg, var(--ds-gold-soft) 0%, var(--ds-gold) 100%);
   color: #ffffff;
   font-size: 16px;
   font-weight: 500;

@@ -15,7 +15,7 @@ import { useCreditModal } from '@/contexts/CreditModalContext'
 import { extractPartialOverall, extractPartialCardTexts } from '@/lib/tarot/partialJsonParse'
 import type { UseInlineTarotStateReturn } from './useInlineTarotState'
 
-type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
+type LangKey = 'en' | 'ko'
 
 // Bumped 35→70s in lockstep with the server's 60s Claude timeout (after
 // Haiku→Sonnet 4.5 promotion). 35s was firing before Sonnet could finish for

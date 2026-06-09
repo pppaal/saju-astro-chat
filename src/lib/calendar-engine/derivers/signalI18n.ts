@@ -6,19 +6,12 @@
  *
  * 우선순위: 가장 빈도 높은 십신 + 자주 나오는 관계 용어.
  */
+import { SIBSIN_EN as SIBSIN_EN_BASE } from '@/lib/saju/sibsinLabels'
 
-// 십신 (10 Gods) — 사주 신호의 핵심
+// 십신 (10 Gods) — 사주 신호의 핵심. 10개 핵심 십신은 SSOT(sibsinLabels) 에서,
+// 집계 star(관성/인성/재성/식상/비겁) 는 이 디라이버 고유 키라 spread 후 추가.
 const SIBSIN_EN: Record<string, string> = {
-  정관: 'Direct Officer',
-  편관: 'Seven Killer',
-  정인: 'Direct Resource',
-  편인: 'Indirect Resource',
-  식신: 'Food God',
-  상관: 'Hurting Officer',
-  정재: 'Direct Wealth',
-  편재: 'Indirect Wealth',
-  비견: 'Companion',
-  겁재: 'Rob Wealth',
+  ...SIBSIN_EN_BASE,
   관성: 'Officer star',
   인성: 'Resource star',
   재성: 'Wealth star',
@@ -97,11 +90,20 @@ const SHINSAL_EN: Record<string, string> = {
   길성: 'lucky star',
 }
 
+// 글루/잔차 라벨 — 사주·점성 용어가 아닌 합성 문구. 전체 구절 단위로 치환
+// (SORTED_TERMS 가 길이 desc 라 긴 구절이 먼저 매칭).
+const GLUE_EN: Record<string, string> = {
+  '그 외 다수 신호': 'other signals',
+  활성: 'active',
+  시진: 'hour pillar',
+}
+
 const ALL_TERMS: Record<string, string> = {
   ...SIBSIN_EN,
   ...SAJU_REL_EN,
   ...ASTRO_EN,
   ...SHINSAL_EN,
+  ...GLUE_EN,
 }
 
 // 긴 단어 먼저 매칭하도록 정렬 — "지지합" 이 "지지" 앞에 와야 함

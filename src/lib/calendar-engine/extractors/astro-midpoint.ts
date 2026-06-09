@@ -11,7 +11,6 @@ import type {
   Polarity,
   SignalLayer,
 } from '../types'
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import { getCachedTransitChart } from '../ephe-cache'
 
 /**
@@ -36,70 +35,6 @@ const ORB_DEG = 1.0
 const NATAL_MIDPOINTS_CACHE_KEY = 'astro-midpoint:natal-midpoints'
 
 /**
- * 미드포인트 쌍별 테마 매핑.
- * 사용자가 묻는 5축 (love/money/career/health/growth) 기준.
- * 키: "Planet1/Planet2" — calculateMidpoints 의 id 와 동일.
- */
-const MIDPOINT_THEMES: Record<string, AstroThemeKey[]> = {
-  // Sun/Moon — 정체성·자아 통합 결
-  'Sun/Moon': ['growth'],
-  // Venus/Mars — 끌림·열정·로맨틱
-  'Venus/Mars': ['love'],
-  // Sun/Venus — 사랑·매력의 결
-  'Sun/Venus': ['love'],
-  // Mercury/Venus — 사랑 표현·예술적 소통
-  'Mercury/Venus': ['love', 'career'],
-  // Sun/Mars — 의지력·리더십
-  'Sun/Mars': ['career', 'growth'],
-  // Moon/Venus — 감정적 사랑·돌봄
-  'Moon/Venus': ['love'],
-  // Moon/Mars — 감정적 행동·보호
-  'Moon/Mars': ['love', 'health'],
-  // Jupiter/Saturn — 시간 결 (구조화된 성공)
-  'Jupiter/Saturn': ['career', 'growth'],
-  // Sun/Jupiter — 행운·명성
-  'Sun/Jupiter': ['career', 'growth'],
-  // Mars/Jupiter — 행동적 성공·기업가
-  'Mars/Jupiter': ['career', 'money'],
-  // Mercury/Jupiter — 학문·출판
-  'Mercury/Jupiter': ['career', 'growth'],
-  // Venus/Jupiter — 풍요·재정 행운
-  'Venus/Jupiter': ['money', 'love'],
-  // Mars/Saturn — 결단력·인내·훈련
-  'Mars/Saturn': ['career'],
-  // Sun/Saturn — 성숙·책임·권위
-  'Sun/Saturn': ['career'],
-  // Moon/Saturn — 감정적 성숙
-  'Moon/Saturn': ['growth', 'health'],
-  // Venus/Saturn — 사랑의 시험·헌신
-  'Venus/Saturn': ['love'],
-  // Sun/Pluto — 권력·변형
-  'Sun/Pluto': ['growth', 'career'],
-  // Moon/Pluto — 감정적 변형
-  'Moon/Pluto': ['growth', 'health'],
-  // Venus/Pluto — 강렬한 사랑·집착
-  'Venus/Pluto': ['love'],
-  // Mars/Pluto — 권력 의지
-  'Mars/Pluto': ['career', 'growth'],
-  // Sun/Uranus — 각성·독립
-  'Sun/Uranus': ['growth', 'career'],
-  // Moon/Uranus — 감정적 독립
-  'Moon/Uranus': ['growth'],
-  // Venus/Uranus — 자유로운 사랑
-  'Venus/Uranus': ['love'],
-  // Mars/Uranus — 혁명적 행동
-  'Mars/Uranus': ['career', 'growth'],
-  // Sun/Neptune — 영성·예술
-  'Sun/Neptune': ['growth'],
-  // Moon/Neptune — 직관·공감
-  'Moon/Neptune': ['growth'],
-  // Venus/Neptune — 이상적 사랑·예술
-  'Venus/Neptune': ['love', 'growth'],
-  // Jupiter/Neptune — 확장된 영성
-  'Jupiter/Neptune': ['growth'],
-}
-
-/**
  * 미드포인트 쌍의 본질 polarity (트랜짓이 컨정션 닿을 때 기본).
  * 결단력/시험 결은 0 (양면), 풍요/사랑 결은 +1, 시험·억제 결은 -1.
  */
@@ -111,23 +46,23 @@ const MIDPOINT_BASE_POLARITY: Record<string, number> = {
   'Sun/Mars': 1,
   'Moon/Venus': 1,
   'Moon/Mars': 0,
-  'Jupiter/Saturn': 0,    // 시간 결 — 구조·시험 양면
+  'Jupiter/Saturn': 0, // 시간 결 — 구조·시험 양면
   'Sun/Jupiter': 2,
   'Mars/Jupiter': 1,
   'Mercury/Jupiter': 1,
-  'Venus/Jupiter': 2,     // 풍요의 점
-  'Mars/Saturn': -1,      // 좌절·인내 결
-  'Sun/Saturn': 0,        // 성숙 — 양면
-  'Moon/Saturn': -1,      // 감정 억제
-  'Venus/Saturn': -1,     // 사랑의 시험
-  'Sun/Pluto': 0,         // 변형 — 양면
+  'Venus/Jupiter': 2, // 풍요의 점
+  'Mars/Saturn': -1, // 좌절·인내 결
+  'Sun/Saturn': 0, // 성숙 — 양면
+  'Moon/Saturn': -1, // 감정 억제
+  'Venus/Saturn': -1, // 사랑의 시험
+  'Sun/Pluto': 0, // 변형 — 양면
   'Moon/Pluto': 0,
   'Venus/Pluto': 0,
   'Mars/Pluto': 0,
   'Sun/Uranus': 1,
   'Moon/Uranus': 0,
   'Venus/Uranus': 0,
-  'Mars/Uranus': -1,      // 갑작스러운 행동
+  'Mars/Uranus': -1, // 갑작스러운 행동
   'Sun/Neptune': 0,
   'Moon/Neptune': 0,
   'Venus/Neptune': 1,
@@ -210,7 +145,6 @@ const astroMidpointExtractor: SignalExtractor = {
       for (const hit of hits) {
         const pairId = hit.midpoint.id // "Sun/Moon"
         const polarity = midpointPolarity(pairId, hit.aspectType)
-        const themes = MIDPOINT_THEMES[pairId] ?? ['growth']
         const layer = transitLayer(hit.transitPlanet)
         const tightness = Math.max(0.4, 1 - hit.orb / ORB_DEG)
         const weight = Math.min(1, 0.5 * tightness + 0.15) // base 0.5, 좁은 orb 일수록 추가
@@ -224,7 +158,6 @@ const astroMidpointExtractor: SignalExtractor = {
           kind: 'midpoint',
           name: `${hit.transitPlanet} ${aspectSymbol(hit.aspectType)} ${pairId} midpoint`,
           korean: `${hit.transitPlanet} ${aspectKorean(hit.aspectType)} 본명 ${hit.midpoint.name_ko}`,
-          themes,
           polarity,
           layer,
           active: {

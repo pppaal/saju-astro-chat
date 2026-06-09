@@ -26,7 +26,7 @@
 
   padding: 1rem 1.25rem;
   background: rgba(7, 9, 26, 0.96);
-  color: var(--ds-dark-text, #f5f7fb);
+  color: var(--ds-dark-text, var(--ds-dark-text));
   border: 1px solid var(--ds-dark-border-strong, rgba(255, 255, 255, 0.14));
   border-radius: 12px;
   box-shadow:
@@ -37,8 +37,7 @@
   overflow: visible;
 
   font-family:
-    -apple-system, BlinkMacSystemFont, 'Inter', 'Pretendard', 'Segoe UI',
-    system-ui, sans-serif;
+    -apple-system, BlinkMacSystemFont, 'Inter', 'Pretendard', 'Segoe UI', system-ui, sans-serif;
   font-feature-settings: 'ss01', 'cv11';
   animation: consentSlideUp 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -70,7 +69,7 @@
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: -0.005em;
-  color: var(--ds-dark-text, #f5f7fb);
+  color: var(--ds-dark-text, var(--ds-dark-text));
   margin-bottom: 0.25rem;
 }
 
@@ -83,7 +82,7 @@
 }
 
 .policyLink {
-  color: var(--ds-gold-on-dark, #d4b572);
+  color: var(--ds-gold-on-dark, var(--ds-gold-on-dark));
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
@@ -94,11 +93,11 @@
 
 .policyLink:hover,
 .policyLink:focus-visible {
-  color: var(--ds-gold-on-dark-soft, #e8cc8a);
+  color: var(--ds-gold-on-dark-soft, var(--ds-gold-on-dark-soft));
 }
 
 .policyLink:focus-visible {
-  outline: 2px solid var(--ds-ring-gold-on-dark, #d4b572);
+  outline: 2px solid var(--ds-ring-gold-on-dark, var(--ds-gold-on-dark));
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -129,26 +128,26 @@
 }
 
 .actions button:focus-visible {
-  outline: 2px solid var(--ds-ring-gold-on-dark, #d4b572);
+  outline: 2px solid var(--ds-ring-gold-on-dark, var(--ds-gold-on-dark));
   outline-offset: 2px;
 }
 
 /* EU EDPB: reject and accept must be equally prominent. Same size,
    same weight, same shape. Color signals intent, not hierarchy. */
 .primary {
-  background: var(--ds-gold-on-dark, #d4b572);
+  background: var(--ds-gold-on-dark, var(--ds-gold-on-dark));
   color: #1a1408;
-  border-color: var(--ds-gold-on-dark, #d4b572);
+  border-color: var(--ds-gold-on-dark, var(--ds-gold-on-dark));
 }
 
 .primary:hover {
-  background: var(--ds-gold-on-dark-soft, #e8cc8a);
-  border-color: var(--ds-gold-on-dark-soft, #e8cc8a);
+  background: var(--ds-gold-on-dark-soft, var(--ds-gold-on-dark-soft));
+  border-color: var(--ds-gold-on-dark-soft, var(--ds-gold-on-dark-soft));
 }
 
 .secondary {
   background: transparent;
-  color: var(--ds-dark-text, #f5f7fb);
+  color: var(--ds-dark-text, var(--ds-dark-text));
   border-color: var(--ds-dark-border-strong, rgba(255, 255, 255, 0.18));
 }
 

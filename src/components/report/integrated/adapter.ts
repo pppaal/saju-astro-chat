@@ -1,0 +1,544 @@
+/* eslint-disable @typescript-eslint/no-explicit-any --
+ * 경계 어댑터: NatalContext 의 느슨하게 타입된 하위 shape(지장간·신살·관계 등)를
+ * 방어적으로 매핑한다. 정확한 내부 타입에 강결합하지 않으려 의도적으로 any 허용. */
+/**
+ * 실데이터 어댑터 — NatalContext(buildNatalContext 결과) → ReportData(chart.zip shape).
+ * 우리 shape 에 없는 일부 필드(지장간 가중치·신살 polarity·대운 십신)는 룩업/폴백.
+ */
+import type { ReportData, ReportPillar } from './reportTypes'
+import { SIGN_ABBR, STEM_INFO } from './reportTypes'
+import type { RelationCategory } from '@/lib/chart-dictionary'
+import {
+  evalIdentity,
+  evalNeeds,
+  evalSocialRole,
+  evalFortune,
+  evalRelations,
+  evalStrength,
+  evalTemperament,
+  evalEnergyDirection,
+  evalPersona,
+  evalDrive,
+  evalKeyAspect,
+  evalVoid,
+  evalNorthNode,
+  evalYinYang,
+  synthesize,
+  dominantSibsinGroup,
+  type CrossVerdict,
+} from '@/lib/report/natalCross'
+import { getSouthNodeOppositeSign } from '@/lib/astrology/interpretations'
+import { SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
+import { getGongmang } from '@/lib/saju/pillarLookup'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+
+// 5-tier (정통) → 단일 라벨. 우선순위는 score 절댓값과 일치.
+// domicile/exaltation/detriment/fall 4 종을 먼저 — 라벨 자체가 강한 의미.
+// 그 다음 triplicity/term/face — 약한 dignity. 모두 false 면 peregrine.
+const topTier = (t: {
+  domicile: boolean
+  exaltation: boolean
+  triplicity: boolean
+  term: boolean
+  face: boolean
+  detriment: boolean
+  fall: boolean
+}): string =>
+  t.domicile
+    ? 'domicile'
+    : t.exaltation
+      ? 'exaltation'
+      : t.detriment
+        ? 'detriment'
+        : t.fall
+          ? 'fall'
+          : t.triplicity
+            ? 'triplicity'
+            : t.term
+              ? 'term'
+              : t.face
+                ? 'face'
+                : 'peregrine'
+
+// 오행 한글 → 영문 키
+const EL_KO_EN: Record<string, string> = {
+  목: 'wood',
+  화: 'fire',
+  토: 'earth',
+  금: 'metal',
+  수: 'water',
+}
+const elEn = (x: string | undefined) => (x ? (EL_KO_EN[x] ?? x.toLowerCase()) : 'wood')
+
+const PLANET_GLYPH: Record<string, string> = {
+  Sun: '☉',
+  Moon: '☾',
+  Mercury: '☿',
+  Venus: '♀',
+  Mars: '♂',
+  Jupiter: '♃',
+  Saturn: '♄',
+  Uranus: '♅',
+  Neptune: '♆',
+  Pluto: '♇',
+  'North Node': '☊',
+  Node: '☊',
+  Chiron: '⚷',
+  Lilith: '⚸',
+}
+const PLANET_KO: Record<string, string> = {
+  ...PLANET_KO_BASE,
+  'North Node': '북교점',
+  Node: '북교점',
+  Chiron: '카이런',
+  Lilith: '릴리스',
+}
+// 점성 sign 한국어 → 영문 풀네임 (NatalContext 는 ZodiacKo 사용).
+// 정본(astrology/signLabels) 의 KO→EN 역맵 재사용.
+const SIGN_KO_FULL = SIGN_KO_TO_EN
+const toAbbr = (sign: string | undefined): string => {
+  if (!sign) return 'Ari'
+  const full = SIGN_KO_FULL[sign] ?? sign
+  return SIGN_ABBR[full] ?? (full.slice(0, 3) as string)
+}
+const fmtDeg = (lon: number | undefined): string => {
+  if (typeof lon !== 'number') return ''
+  const within = ((lon % 30) + 30) % 30
+  const d = Math.floor(within)
+  const m = Math.floor((within - d) * 60)
+  return `${String(d).padStart(2, '0')}°${String(m).padStart(2, '0')}′`
+}
+// 신살 길흉 polarity (대표 — 없으면 0)
+const SHINSAL_POLARITY: Record<string, number> = {
+  천을귀인: 3,
+  문창귀인: 2,
+  태극귀인: 2,
+  천덕귀인: 2,
+  월덕귀인: 2,
+  학당귀인: 2,
+  건록: 2,
+  천을: 3,
+  도화: 1,
+  도화살: 1,
+  역마: 1,
+  역마살: 1,
+  홍염살: 0,
+  화개: 0,
+  양인: -1,
+  양인살: -2,
+  백호: -2,
+  괴강: -1,
+  공망: -1,
+  원진: -1,
+  귀문: -1,
+  현침: -1,
+}
+
+interface AnyCtx {
+  input?: any
+  saju?: any
+  astro?: any
+}
+
+// 관계 detail 문자열에서 천간·지지 한자만 추출. 예: "亥-寅 육합" → "亥寅",
+// "亥·卯·未 삼합(목)" → "亥卯未". 카테고리 한글어(육합/삼합/충…)는 한자가
+// 아니므로 자동 제외됨.
+const HANZI_BRANCH_STEM = new Set([
+  '甲',
+  '乙',
+  '丙',
+  '丁',
+  '戊',
+  '己',
+  '庚',
+  '辛',
+  '壬',
+  '癸',
+  '子',
+  '丑',
+  '寅',
+  '卯',
+  '辰',
+  '巳',
+  '午',
+  '未',
+  '申',
+  '酉',
+  '戌',
+  '亥',
+])
+const extractPair = (detail: string | undefined): string => {
+  if (!detail) return ''
+  let out = ''
+  for (const ch of detail) if (HANZI_BRANCH_STEM.has(ch)) out += ch
+  return out
+}
+// natalCross / RelationHit 의 kind 는 RelationCategory 와 동일 문자열.
+const RELATION_CATEGORIES = new Set<string>([
+  '천간합',
+  '천간충',
+  '지지육합',
+  '지지삼합',
+  '지지방합',
+  '지지충',
+  '지지형',
+  '지지파',
+  '지지해',
+  '원진',
+])
+
+/** NatalContext → ReportData (chart.zip 뷰모델). */
+export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): ReportData {
+  const S = ctx.saju ?? {}
+  const A = ctx.astro ?? {}
+  const inp = ctx.input ?? {}
+  const adv = S.analyses ?? {}
+
+  const date = `${String(inp.year).padStart(4, '0')}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}`
+  const time = `${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
+
+  const mapPillar = (
+    p: any,
+    stages: Record<string, string>,
+    key: string,
+    isDay = false
+  ): ReportPillar => {
+    const jj = p?.jijanggan ?? {}
+    const slots = [jj.chogi, jj.junggi, jj.jeonggi].filter(Boolean)
+    return {
+      stem: p?.heavenlyStem?.name ?? '',
+      branch: p?.earthlyBranch?.name ?? '',
+      sibsinStem: isDay ? '日干' : (p?.heavenlyStem?.sibsin ?? ''),
+      sibsinBranch: p?.earthlyBranch?.sibsin ?? '',
+      jijanggan: slots.map((sl: any) => ({
+        g: sl.name ?? sl.stem ?? sl.g ?? '',
+        d: sl.days ?? sl.weight ?? sl.d ?? 0,
+      })),
+      twelveStage: stages?.[key] ?? '',
+      isDay,
+    }
+  }
+  const pillars = S.pillars ?? {}
+  const stages: Record<string, string> = (S.twelveStages as Record<string, string>) ?? {}
+
+  // 신살
+  const natalShinsal = (S.natalShinsal ?? []).slice(0, 8).map((h: any) => {
+    const kind = h.kind ?? h.name ?? ''
+    const pillar = Array.isArray(h.pillars) ? (PILLAR_KO[h.pillars[0]] ?? '') : ''
+    return {
+      name: kind,
+      ko: kind,
+      pillar,
+      sub: h.sub,
+      polarity: h.polarity ?? SHINSAL_POLARITY[kind] ?? 0,
+    }
+  })
+  // 관계 — type(kind 약칭), 한자 pair, 카테고리(getRelationMeaning 룩업용).
+  const natalRelations = (S.natalRelations ?? []).slice(0, 6).map((r: any) => {
+    const kind = String(r.kind ?? r.type ?? '')
+    const tone: 'pos' | 'neg' | 'neutral' = kind.includes('합')
+      ? 'pos'
+      : kind.includes('충') || kind.includes('형') || kind.includes('파') || kind.includes('해')
+        ? 'neg'
+        : 'neutral'
+    const detail = r.detail ?? r.basis ?? ''
+    const category = RELATION_CATEGORIES.has(kind) ? (kind as RelationCategory) : undefined
+    return { type: kind, detail, tone, category, pair: extractPair(detail) }
+  })
+  // 대운 (현재 여부는 NatalContext 에 없으면 false — 호출측에서 보강 가능)
+  const daeun = (S.daeun ?? []).slice(0, 8).map((d: any) => ({
+    age: d.startAge ?? d.age ?? 0,
+    stem: d.stem ?? '',
+    branch: d.branch ?? '',
+    sibsin: d.sibsin ?? '',
+    current: !!d.current,
+  }))
+
+  // 점성 행성
+  const planets = (A.chart?.planets ?? A.planets ?? []).map((p: any) => ({
+    name: p.name,
+    ko: PLANET_KO[p.name] ?? p.name,
+    glyph: PLANET_GLYPH[p.name] ?? '●',
+    lon: p.longitude ?? p.lon ?? 0,
+    sign: toAbbr(p.sign),
+    deg: fmtDeg(p.longitude ?? p.lon),
+    house: p.house ?? 0,
+    retro: typeof p.speed === 'number' ? p.speed < 0 : !!p.retrograde,
+    speed: p.speed ?? 0,
+  }))
+  const extraPoints = (A.extraPoints ?? []).map((p: any) => ({
+    name: p.name,
+    ko: PLANET_KO[p.name] ?? p.name,
+    glyph: PLANET_GLYPH[p.name] ?? '✦',
+    lon: p.longitude ?? p.lon ?? 0,
+    sign: toAbbr(p.sign),
+    deg: fmtDeg(p.longitude ?? p.lon),
+    house: p.house ?? 0,
+  }))
+  const houses = (A.chart?.houses ?? A.houses ?? []).map((h: any, i: number) => ({
+    i: h.index ?? h.i ?? i + 1,
+    cusp: h.cusp ?? 0,
+    sign: toAbbr(h.sign),
+  }))
+  // 본명 aspects — facts.hellenistic 가 major+minor 다 줌 (~30+ hits). 14 cap
+  // 풀어 24 로 (UI 가 슬라이더/접고 펼침으로 처리). orb 작은 순.
+  const aspects = (A.natalAspects ?? A.aspects ?? [])
+    .slice()
+    .sort((a: any, b: any) => (a.orb ?? 99) - (b.orb ?? 99))
+    .slice(0, 24)
+    .map((a: any) => ({
+      a: a.from?.name ?? a.a ?? '',
+      b: a.to?.name ?? a.b ?? '',
+      type: a.type ?? 'conjunction',
+      orb: a.orb ?? 0,
+      applying: !!a.applying,
+    }))
+
+  // dignities — Phase B: facts.hellenistic.dignities (5-tier per planet) 를 그대로
+  // 흡수. 옛 dignityOf 재계산 (단순 4-tier) 제거. peregrine 제외, score 절댓값
+  // 기준 상위 8개 (정통 깊이 카드용 — 옛 6 보다 조금 넓힘).
+  const dignities = (A.dignities ?? [])
+    .map((d: any) => ({
+      planet: d.planet,
+      sign: toAbbr(d.sign),
+      tier: topTier(d.tiers ?? {}),
+      score: typeof d.score === 'number' ? d.score : 0,
+    }))
+    .filter((d: any) => d.tier !== 'peregrine')
+    .sort((a: any, b: any) => Math.abs(b.score) - Math.abs(a.score))
+    .slice(0, 8)
+
+  // Arabic Lots — 정통 7 lots (Fortune/Spirit/Eros/Necessity/Courage/Victory/
+  // Nemesis). facts.hellenistic.lots 에서 받음.
+  const lots = (A.lots ?? []).map((l: any) => ({
+    name: l.name,
+    sign: toAbbr(l.sign),
+    deg: fmtDeg(l.longitude),
+    house: l.house ?? 0,
+  }))
+
+  // Almuten Figuris — 주재 행성 (정통 Bonatti/Ibn Ezra 식). facts 가 winner +
+  // winners + 행성별 누적 score 제공. UI Level 3 카드 용.
+  const almuten = A.almutenFiguris
+    ? {
+        winner: A.almutenFiguris.winner ?? null,
+        winners: A.almutenFiguris.winners ?? [],
+        scores: A.almutenFiguris.scores ?? {},
+      }
+    : null
+
+  const asc = A.chart?.ascendant ?? A.ascendant ?? {}
+  const mc = A.chart?.mc ?? A.mc ?? {}
+
+  return {
+    input: {
+      name: inp.name ?? (lang === 'en' ? 'Client' : '내담자'),
+      gender: inp.gender ?? 'male',
+      calendar: lang === 'en' ? 'Gregorian' : '양력',
+      date,
+      time,
+      place: inp.place ?? '',
+      lat: inp.latitude ?? 0,
+      lng: inp.longitude ?? 0,
+      timeZone: inp.timeZone ?? '',
+      isoUTC: inp.isoUTC ?? '',
+    },
+    saju: {
+      dayMaster: S.dayMaster?.name ?? '',
+      strength: S.strength ?? 'medium',
+      geokguk: adv.geokguk?.primary ?? S.geokguk ?? '미정',
+      yongsin: {
+        primary: elEn(S.yongsin?.primary),
+        secondary: S.yongsin?.secondary ? elEn(S.yongsin.secondary) : undefined,
+        avoid: (S.yongsin?.avoid ?? []).map(elEn),
+      },
+      pillars: {
+        hour: mapPillar(pillars.time, stages, 'time'),
+        day: mapPillar(pillars.day, stages, 'day', true),
+        month: mapPillar(pillars.month, stages, 'month'),
+        year: mapPillar(pillars.year, stages, 'year'),
+      },
+      fiveElements: S.fiveElements ?? { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 },
+      natalShinsal,
+      natalRelations,
+      daeun,
+      // 회색 3 셀 해소 (RAW_DISTRIBUTION v5.4 — buildReportContext 가 흘려줌).
+      rooted: typeof S.rooted === 'boolean' ? S.rooted : undefined,
+      gongmang: Array.isArray(S.gongmang) ? S.gongmang : undefined,
+      johuYongsin: S.johuYongsin
+        ? { primary: elEn(S.johuYongsin.primaryYongsin), rating: S.johuYongsin.rating ?? 0 }
+        : null,
+    },
+    astro: {
+      sect: A.sect ?? 'day',
+      houseSystem: A.houseSystem ?? 'Placidus',
+      ascendant: {
+        lon: asc.longitude ?? asc.lon ?? 0,
+        sign: SIGN_KO_FULL[asc.sign] ?? asc.sign ?? 'Virgo',
+        deg: fmtDeg(asc.longitude ?? asc.lon),
+      },
+      mc: {
+        lon: mc.longitude ?? mc.lon ?? 0,
+        sign: SIGN_KO_FULL[mc.sign] ?? mc.sign ?? 'Gemini',
+        deg: fmtDeg(mc.longitude ?? mc.lon),
+      },
+      planets,
+      extraPoints,
+      houses,
+      aspects,
+      dignities,
+      lots,
+      almuten,
+    },
+  }
+}
+
+const PILLAR_KO: Record<string, string> = {
+  year: '年',
+  month: '月',
+  day: '日',
+  time: '時',
+  hour: '時',
+}
+
+// ── 섹션 5: natalCross 교차 → 카드 rows ──────────────────────────────────
+export interface CrossRowOut {
+  category: string
+  tone: CrossVerdict['tone']
+  reason: string
+  left?: string
+  right?: string
+}
+export function buildCrossRows(
+  ctx: AnyCtx,
+  lang: 'ko' | 'en' = 'ko'
+): { synthesis?: string; rows: CrossRowOut[] } {
+  const S = ctx.saju ?? {}
+  const A = ctx.astro ?? {}
+  const adv = S.analyses ?? {}
+  const planets = A.chart?.planets ?? A.planets ?? []
+  const find = (n: string) => planets.find((p: any) => p.name === n)
+  const dmEl = S.dayMaster?.element
+  const sunSign = find('Sun')?.sign
+  const moonSign = find('Moon')?.sign
+  const ascSign = (A.chart?.ascendant ?? A.ascendant)?.sign
+  const mcSign = (A.chart?.mc ?? A.mc)?.sign
+  const details = adv.sibsin?.categoryCount
+
+  // 강조 행성 + 최고 dignity — Phase B: facts.hellenistic.dignities (5-tier)
+  // 활용. 옛 dignityOf 재계산 제거. 각 행성 angularity (1/4/7/10 하우스) + 강한
+  // dignity (domicile/exaltation) → emphasized 집합. topDignity 는 첫 강한 hit.
+  const ANGLES = new Set([1, 4, 7, 10])
+  const emphasized = new Set<string>()
+  let topDignity: { planet: string; status: string } | null = null
+  const dignityIdx: Record<string, { domicile: boolean; exaltation: boolean }> = {}
+  for (const d of (A.dignities ?? []) as Array<{
+    planet: string
+    tiers?: { domicile?: boolean; exaltation?: boolean }
+  }>) {
+    dignityIdx[d.planet] = { domicile: !!d.tiers?.domicile, exaltation: !!d.tiers?.exaltation }
+  }
+  for (const p of planets) {
+    if (!p?.name) continue
+    if (typeof p.house === 'number' && ANGLES.has(p.house)) emphasized.add(p.name)
+    const dg = dignityIdx[p.name]
+    if (dg?.domicile || dg?.exaltation) {
+      emphasized.add(p.name)
+      if (!topDignity)
+        topDignity = { planet: p.name, status: dg.domicile ? 'domicile' : 'exaltation' }
+    }
+  }
+  const aspectsForKey = (A.natalAspects ?? A.aspects ?? []).map((a: any) => ({
+    from: { name: a.from?.name ?? a.a },
+    to: { name: a.to?.name ?? a.b },
+    type: a.type,
+    orb: a.orb,
+  }))
+  let harmonious = 0,
+    hard = 0
+  for (const a of A.natalAspects ?? A.aspects ?? []) {
+    const t = String(a.type ?? '').toLowerCase()
+    if (t === 'trine' || t === 'sextile') harmonious++
+    else if (t === 'square' || t === 'opposition') hard++
+  }
+  const rels = S.natalRelations ?? []
+  const hap = rels.filter((r: any) => String(r.kind ?? r.type).includes('합')).length
+  const chung = rels.filter((r: any) => String(r.kind ?? r.type).includes('충')).length
+  const dayShinsal = (S.natalShinsal ?? [])
+    .filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day'))
+    .map((h: any) => String(h.kind ?? h.name))
+  const stage = S.twelveStages?.day
+  const strength = adv.yongsin?.daymasterStrength ?? S.strength
+
+  // 공망 × South Node 교차용 데이터 — 공망 지지(advanced 우선, 없으면 top-level)
+  // + North Node sign 으로부터 South Node sign 유도. 둘 다 비면 evalVoid 가 null
+  // 반환해 자동 행 생략.
+  // 공망 지지: advanced/top-level 우선, 없으면 일주 간지로 정본 계산(getGongmang).
+  const dayPillarGanji = `${S.pillars?.day?.heavenlyStem?.name ?? ''}${S.pillars?.day?.earthlyBranch?.name ?? ''}`
+  const gongmangBranches =
+    adv.gongmang?.gongmangBranches ??
+    S.gongmang ??
+    (dayPillarGanji.length === 2 ? (getGongmang(dayPillarGanji) ?? []) : [])
+  // 차트의 북교점 행성명은 'True Node'(기본)·'Mean Node'·'North Node'·'Node' 등
+  // 구현마다 다름. /node/ 로 매칭하되 'South Node' 는 제외(북교점만).
+  const northNode = planets.find(
+    (p: any) => /node/i.test(p.name ?? '') && !/south/i.test(p.name ?? '')
+  )
+  // 사우스노드 = 북교점 정반대 사인. getSouthNodeOppositeSign 은 *영어 사인*을
+  // 받으므로 한글 풀네임(SIGN_KO_FULL)이 아니라 원본 영어 sign 을 넘긴다.
+  const southNodeSign = northNode?.sign
+    ? getSouthNodeOppositeSign(northNode.sign as never)
+    : undefined
+
+  // 교차 항목 카테고리 라벨 — 이중언어. key 로 행을 묶고 lang 으로 표시 텍스트 선택.
+  const CAT: Record<string, { ko: string; en: string }> = {
+    identity: { ko: '정체성', en: 'Identity' },
+    needs: { ko: '욕망', en: 'Needs' },
+    socialRole: { ko: '사회역할', en: 'Social Role' },
+    fortune: { ko: '길흉', en: 'Fortune' },
+    relations: { ko: '관계', en: 'Relationships' },
+    strength: { ko: '강점', en: 'Strength' },
+    temperament: { ko: '기질', en: 'Temperament' },
+    energy: { ko: '에너지', en: 'Energy' },
+    persona: { ko: '드러나는 나', en: 'Outer Persona' },
+    drive: { ko: '추진력', en: 'Drive' },
+    keyTrait: { ko: '핵심 성향', en: 'Core Trait' },
+    karma: { ko: '공망/카르마', en: 'Void / Karma' },
+    growth: { ko: '성장 방향', en: 'Growth Direction' },
+    yinYang: { ko: '음양 리듬', en: 'Yin-Yang Rhythm' },
+  }
+  const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
+    ['identity', evalIdentity(dmEl, sunSign)],
+    ['needs', evalNeeds(S.yongsin?.primary, moonSign)],
+    [
+      'socialRole',
+      adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null,
+    ],
+    ['fortune', evalFortune(dayShinsal, emphasized)],
+    ['relations', evalRelations(hap, chung, harmonious, hard)],
+    ['strength', evalStrength(stage, topDignity)],
+    [
+      'temperament',
+      evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean)),
+    ],
+    ['energy', evalEnergyDirection(details, emphasized)],
+    ['persona', evalPersona(dmEl, ascSign)],
+    ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
+    ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
+    ['karma', evalVoid(gongmangBranches, southNodeSign)],
+    ['growth', evalNorthNode(S.fiveElements, northNode?.sign)],
+    ['yinYang', evalYinYang(STEM_INFO[S.dayMaster?.name ?? '']?.yy, A.sect)],
+  ]
+  const verdicts = items.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
+  const synth = synthesize(verdicts)
+  const rows = items
+    .filter((it): it is [keyof typeof CAT, CrossVerdict] => !!it[1])
+    .map(([key, v]) => ({
+      category: CAT[key][lang],
+      tone: v.tone,
+      reason: v.reason[lang],
+      left: v.left?.[lang],
+      right: v.right?.[lang],
+    }))
+  return { synthesis: synth?.text[lang], rows }
+}

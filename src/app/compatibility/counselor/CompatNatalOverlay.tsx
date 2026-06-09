@@ -8,7 +8,7 @@ import {
   PLANET_ORDER,
   NATAL_CHART_PAD as PAD,
   screenDeg,
-} from '@/components/destiny-map/charts/natalChartConstants'
+} from '@/components/report/natalChartConstants'
 
 /**
  * 궁합용 시너스트리 바이휠(bi-wheel). 한 황도 위에 두 사람의 행성을

@@ -198,66 +198,6 @@ export async function canUseCredits(
   }
 }
 
-// 보너스 크레딧 소비 (FIFO - 먼저 구매한 것부터 사용)
-// Optimized to use batch updates instead of N+1 queries
-async function consumeBonusCreditsFromPurchases(userId: string, amount: number): Promise<number> {
-  if (amount <= 0) {
-    return 0
-  }
-
-  const now = new Date()
-
-  // 유효한 보너스 구매 건 조회 (먼저 구매한 것부터, 만료 임박한 것부터)
-  // select 명시 — schema 의 신규 컬럼(acknowledgedAt 등) 이 prod DB 에
-  // 아직 안 적용된 경우 default select 가 모든 컬럼 SELECT 라 P2022 로
-  // 죽음. 사용에 필요한 필드만 골라서 마이그레이션 race 회피.
-  const validPurchases = await prisma.bonusCreditPurchase.findMany({
-    where: {
-      userId,
-      expired: false,
-      expiresAt: { gt: now },
-      remaining: { gt: 0 },
-    },
-    orderBy: [
-      { expiresAt: 'asc' }, // 만료 임박한 것 먼저
-      { createdAt: 'asc' }, // 먼저 구매한 것 먼저
-    ],
-    select: { id: true, remaining: true, expiresAt: true, createdAt: true, source: true },
-  })
-
-  let remainingToConsume = amount
-  let totalConsumed = 0
-
-  // Collect updates to batch process
-  const updates: Array<{ id: string; decrement: number }> = []
-
-  for (const purchase of validPurchases) {
-    if (remainingToConsume <= 0) {
-      break
-    }
-
-    const toConsume = Math.min(purchase.remaining, remainingToConsume)
-    updates.push({ id: purchase.id, decrement: toConsume })
-
-    totalConsumed += toConsume
-    remainingToConsume -= toConsume
-  }
-
-  // Sequential update using interactive transaction (prevents deadlocks from concurrent access)
-  if (updates.length > 0) {
-    await prisma.$transaction(async (tx) => {
-      for (const { id, decrement } of updates) {
-        await tx.bonusCreditPurchase.update({
-          where: { id },
-          data: { remaining: { decrement } },
-        })
-      }
-    })
-  }
-
-  return totalConsumed
-}
-
 /** Business logic error (insufficient credits, limits exceeded) — caught and returned as { success: false }. */
 class CreditBusinessError extends Error {
   constructor(message: string) {

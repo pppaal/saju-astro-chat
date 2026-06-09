@@ -1,9 +1,30 @@
 import { calculateArabicLots } from '@/lib/astrology/foundation/arabicParts'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
-import { inferAspectPolarity } from '../themes/tagger'
+import { inferAspectPolarity } from '../aspect-polarity'
 import { getCachedTransitChart } from '../ephe-cache'
 import { shortestAngle } from '@/lib/astrology/foundation/utils'
+import { pointKo } from '../data/astroFlow'
+
+// 7대 Lot KO 라벨 + 영역. 트랜짓이 닿으면 그 영역이 자극됨.
+const LOT_KO: Record<string, { label: string; domain: string }> = {
+  Fortune: { label: '행운의 로트', domain: '몸·재물·운' },
+  Spirit: { label: '정신의 로트', domain: '의지·커리어·목적' },
+  Eros: { label: '에로스의 로트', domain: '사랑·욕망·끌림' },
+  Necessity: { label: '필연의 로트', domain: '제약·의무·매듭' },
+  Courage: { label: '용기의 로트', domain: '담대함·도전' },
+  Victory: { label: '승리의 로트', domain: '성취·희망·확장' },
+  Nemesis: { label: '네메시스의 로트', domain: '시련·숨은 약점' },
+}
+const LOT_EN: Record<string, { label: string; domain: string }> = {
+  Fortune: { label: 'Lot of Fortune', domain: 'body, wealth, luck' },
+  Spirit: { label: 'Lot of Spirit', domain: 'will, career, purpose' },
+  Eros: { label: 'Lot of Eros', domain: 'love, desire, attraction' },
+  Necessity: { label: 'Lot of Necessity', domain: 'constraint, duty, knots' },
+  Courage: { label: 'Lot of Courage', domain: 'boldness, challenge' },
+  Victory: { label: 'Lot of Victory', domain: 'achievement, hope, expansion' },
+  Nemesis: { label: 'Lot of Nemesis', domain: 'trials, hidden weak spots' },
+}
 
 /**
  * Arabic Parts (아라빅 파츠) 활성 추출기.
@@ -16,13 +37,13 @@ import { shortestAngle } from '@/lib/astrology/foundation/utils'
  */
 
 const LOT_POLARITY_HINT: Record<string, -1 | 0 | 1> = {
-  Fortune:   1,
-  Spirit:    1,
-  Eros:      1,
-  Victory:   1,
-  Courage:   0,
+  Fortune: 1,
+  Spirit: 1,
+  Eros: 1,
+  Victory: 1,
+  Courage: 0,
   Necessity: -1,
-  Nemesis:   -1,
+  Nemesis: -1,
 }
 
 const ORB_DEG = 2.0
@@ -69,8 +90,8 @@ const astroArabicPartExtractor: SignalExtractor = {
             source: 'astro',
             kind: 'arabic-part',
             name: `${planet.name} ☌ Lot of ${lot.name}`,
-            korean: `${planet.name} 컨정션 ${lot.name}점`,
-            themes: [],   // tagger가 행성으로 채움
+            korean: `${pointKo(planet.name)} 트랜짓이 ${LOT_KO[lot.name]?.label ?? `${lot.name} 로트`}에 닿는 시기 — ${LOT_KO[lot.name]?.domain ?? lot.name} 영역이 자극돼요`,
+            english: `${planet.name} transit touches the ${LOT_EN[lot.name]?.label ?? `Lot of ${lot.name}`} — stirring its domain of ${LOT_EN[lot.name]?.domain ?? lot.name}`,
             polarity,
             layer: 'daily',
             active: {

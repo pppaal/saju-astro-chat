@@ -23,6 +23,11 @@ export const SIGN_KO: Record<string, string> = {
   Pisces: '물고기자리',
 }
 
+/** 별자리 한국어 → 영문 (위 SIGN_KO 의 역). 사인 라벨 정본 — 다른 모듈은 여기서 가져감. */
+export const SIGN_KO_TO_EN: Record<string, string> = Object.fromEntries(
+  Object.entries(SIGN_KO).map(([en, ko]) => [ko, en])
+)
+
 /**
  * Label a sign for display. Unknown signs pass through unchanged; an empty
  * sign falls back to "하늘"/"the sky" (matches the prior fusion behavior).

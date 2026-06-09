@@ -91,7 +91,12 @@ function setupHappyPath() {
     { createdAt: new Date('2026-05-25T10:00:00Z'), type: 'compat' },
   ] as any)
   vi.mocked(prisma.creditTransaction.findMany).mockResolvedValue([
-    { createdAt: new Date('2026-06-01T09:00:00Z'), amount: -1, reason: 'consume_reading', type: 'CONSUME' },
+    {
+      createdAt: new Date('2026-06-01T09:00:00Z'),
+      amount: -1,
+      reason: 'consume_reading',
+      type: 'CONSUME',
+    },
   ] as any)
 }
 
@@ -144,7 +149,11 @@ describe('GET /api/admin/users/[id]', () => {
     })
     expect(data.activity).toMatchObject({ tarot: 5, counselor: 2, total: 7 })
     expect(data.purchases.paidCount).toBe(3)
-    expect(data.purchases.recent[0]).toMatchObject({ amount: 100, remaining: 80, source: 'purchase' })
+    expect(data.purchases.recent[0]).toMatchObject({
+      amount: 100,
+      remaining: 80,
+      source: 'purchase',
+    })
   })
 
   it('returns a merged timeline sorted by time desc', async () => {
@@ -160,7 +169,9 @@ describe('GET /api/admin/users/[id]', () => {
     const ats = data.timeline.map((e: { at: string }) => e.at)
     expect([...ats]).toEqual([...ats].sort().reverse())
     // 궁합 상담 라벨 매핑 확인
-    expect(data.timeline.find((e: { type: string }) => e.type === 'counselor').label).toBe('궁합 상담')
+    expect(data.timeline.find((e: { type: string }) => e.type === 'counselor').label).toBe(
+      '궁합 상담'
+    )
   })
 
   it('handles a user with no credits row', async () => {

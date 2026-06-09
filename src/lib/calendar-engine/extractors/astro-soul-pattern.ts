@@ -3,7 +3,7 @@ import { calculateHarmonicChart, type HarmonicChart } from '@/lib/astrology/foun
 import { shortestAngle } from '@/lib/astrology/foundation/utils'
 import type { Chart, PlanetBase } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
-import { inferAspectPolarity } from '../themes/tagger'
+import { inferAspectPolarity } from '../aspect-polarity'
 import { getCachedTransitChart } from '../ephe-cache'
 
 /**
@@ -175,7 +175,6 @@ const astroSoulPatternExtractor: SignalExtractor = {
             kind: 'draconic',
             name: `${tp.name} ☌ Draconic ${dp.name}`,
             korean: `트랜짓 ${tp.name}가 영혼 결의 ${dp.name}에 닿음`,
-            themes: ['growth'],
             polarity,
             layer: 'monthly',
             active,
@@ -214,7 +213,6 @@ const astroSoulPatternExtractor: SignalExtractor = {
               kind: 'harmonic',
               name: `${tp.name} ☌ H${h} ${hp.name}`,
               korean: `트랜짓 ${tp.name}가 ${HARMONIC_LABEL[h]} 결(H${h})의 ${hp.name} 패턴에 닿음`,
-              themes: ['growth'],
               polarity,
               layer: 'monthly',
               active,

@@ -10,7 +10,7 @@
 // the raw stack tag to end users. Promoting it here keeps a single source
 // of truth; the original path re-exports for backward compatibility.
 
-export type CounselorErrorLang = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
+export type CounselorErrorLang = 'en' | 'ko'
 
 /**
  * Localize a chat/counselor error into user-friendly copy.

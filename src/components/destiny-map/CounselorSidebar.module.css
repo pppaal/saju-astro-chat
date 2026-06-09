@@ -56,7 +56,7 @@
   border-radius: 50%;
   border: 0;
   background: transparent;
-  color: #d4b572;
+  color: var(--ds-gold-on-dark);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -98,7 +98,7 @@
   font-size: 16px;
   text-decoration: none;
   border: 0;
-  color: #d4b572;
+  color: var(--ds-gold-on-dark);
   transition: background 0.15s ease;
 }
 
@@ -373,7 +373,7 @@
 
 .iconBtnDanger {
   border-color: rgba(248, 113, 113, 0.4);
-  color: #fca5a5;
+  color: var(--ds-error-on-dark);
 }
 
 .iconBtnDanger:hover {
@@ -437,7 +437,9 @@
   color: rgba(245, 243, 255, 0.78);
   font-size: 0.85rem;
   text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .navLink:hover {
@@ -564,52 +566,52 @@
  * ===================================================================== */
 .lightTheme {
   background: #ffffff;
-  border-right: 1px solid #e7e5e4;
+  border-right: 1px solid var(--ds-light-border);
   box-shadow: 1px 0 2px rgba(0, 0, 0, 0.04);
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightTheme .header {
-  border-bottom-color: #e7e5e4;
+  border-bottom-color: var(--ds-light-border);
 }
 
 .lightTheme .brand {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightTheme .closeBtn {
-  border-color: #e7e5e4;
-  color: #57534e;
+  border-color: var(--ds-light-border);
+  color: var(--ds-light-text-muted);
 }
 
 .lightTheme .closeBtn:hover {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 /* lightTheme 헤더의 Home 아이콘 버튼 — 회색 외곽선/회색 텍스트, hover 시 옅은 배경. */
 .lightTheme .headerHome {
-  border-color: #e7e5e4;
-  color: #57534e;
+  border-color: var(--ds-light-border);
+  color: var(--ds-light-text-muted);
 }
 
 .lightTheme .headerHome:hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .sectionLabel {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .lightTheme .actionBtn {
-  background: #1c1917;
-  color: #fafaf9;
+  background: var(--ds-light-text);
+  color: var(--ds-light-bg);
   border: 0;
 }
 
 .lightTheme .actionBtn:hover {
   background: #292524;
-  color: #fafaf9;
+  color: var(--ds-light-bg);
 }
 
 .lightTheme .actionBtn:nth-of-type(n + 2) {
@@ -619,20 +621,20 @@
 }
 
 .lightTheme .actionBtn:nth-of-type(n + 2):hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .divider {
-  background: #e7e5e4;
+  background: var(--ds-light-border);
 }
 
 .lightTheme .empty {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .lightTheme .sessionGroupLabel {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .lightTheme .sessionItem {
@@ -641,40 +643,40 @@
 }
 
 .lightTheme .sessionItem:hover {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 .lightTheme .sessionTitle {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightTheme .sessionSubtitle {
-  color: #78716c;
+  color: var(--ds-ring-neutral);
 }
 
 .lightTheme .sessionDate {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .lightTheme .iconBtn {
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   background: transparent;
   border: none;
 }
 
 .lightTheme .iconBtn:hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .iconBtnDanger {
-  color: #dc2626;
+  color: var(--ds-error);
   border-color: #fecaca;
 }
 
 .lightTheme .iconBtnDanger:hover {
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--ds-error-bg);
+  color: var(--ds-error-strong);
 }
 
 .lightTheme .footerSlotBtn {
@@ -682,21 +684,21 @@
 }
 
 .lightTheme .footerSlotBtn:hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .footer {
-  border-top-color: #e7e5e4;
+  border-top-color: var(--ds-light-border);
 }
 
 .lightTheme .navLink {
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .lightTheme .navLink:hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .authBtn {
@@ -706,8 +708,8 @@
 }
 
 .lightTheme .authBtn:hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }
 
 /* =====================================================================
@@ -721,21 +723,21 @@
 }
 
 .lightTheme .sessionItem:hover {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 .lightTheme .sessionItemSwiped {
-  background: #f5f5f4;
+  background: var(--ds-light-bg-soft);
 }
 
 .lightTheme .renameInput {
   background: #ffffff;
-  border-color: #e7e5e4;
-  color: #1c1917;
+  border-color: var(--ds-light-border);
+  color: var(--ds-light-text);
 }
 
 .lightTheme .renameInput:focus {
-  border-color: #a8a29e;
+  border-color: var(--ds-light-text-subtle);
 }
 
 /* New chat 만 강조. 검은 톤이었으나 브랜드 컬러(보라)로 교체 —
@@ -747,16 +749,16 @@
 }
 
 .lightTheme .actionBtn:first-of-type {
-  background: #a07a3c;
-  color: #fafaf9;
+  background: var(--ds-gold);
+  color: var(--ds-light-bg);
 }
 
 .lightTheme .actionBtn:first-of-type:hover {
-  background: #c19b56;
-  color: #fafaf9;
+  background: var(--ds-gold-soft);
+  color: var(--ds-light-bg);
 }
 
 .lightTheme .actionBtn:not(:first-of-type):hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }

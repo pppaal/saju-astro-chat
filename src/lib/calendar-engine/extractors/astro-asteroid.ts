@@ -14,7 +14,6 @@ import type {
   SignalLayer,
 } from '../types'
 import { getCachedTransitChart } from '../ephe-cache'
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 
 /**
  * 4대 소행성 (Ceres/Pallas/Juno/Vesta) 추출기.
@@ -37,13 +36,6 @@ import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 
 const ORB_DEG = 3.0
 const ASTEROID_NAMES: AsteroidName[] = ['Ceres', 'Pallas', 'Juno', 'Vesta']
-
-const ASTEROID_THEMES: Record<AsteroidName, AstroThemeKey[]> = {
-  Ceres: ['love', 'health'], // 양육·돌봄·음식 → 사랑·건강 결
-  Pallas: ['career', 'growth'], // 지혜·전략·창의 → 일·성장 결
-  Juno: ['love', 'career'], // 관계·약속·파트너십 → 사랑·일(계약) 결
-  Vesta: ['career', 'growth'], // 헌신·집중·일 → 일·성장 결
-}
 
 const ASTEROID_KOREAN: Record<AsteroidName, string> = {
   Ceres: '세레스',
@@ -152,11 +144,13 @@ const astroAsteroidExtractor: SignalExtractor = {
         const transitAsteroids = calculateAllAsteroids(transitJD, houseCusps)
         for (const aName of ASTEROID_NAMES) {
           const transitAst = transitAsteroids[aName]
-          const aspects: AspectHit[] = findAsteroidAspects(
-            transitAst,
-            natal.astro.chart.planets,
-            { conjunction: ORB_DEG, trine: ORB_DEG, square: ORB_DEG, opposition: ORB_DEG, sextile: ORB_DEG }
-          )
+          const aspects: AspectHit[] = findAsteroidAspects(transitAst, natal.astro.chart.planets, {
+            conjunction: ORB_DEG,
+            trine: ORB_DEG,
+            square: ORB_DEG,
+            opposition: ORB_DEG,
+            sextile: ORB_DEG,
+          })
           for (const a of aspects) {
             const key = `transit-asteroid-to-natal|${aName}|${a.to.name}|${a.type}`
             const arr = asteroidHitsByKey.get(key) ?? []
@@ -189,7 +183,6 @@ const astroAsteroidExtractor: SignalExtractor = {
           kind: 'asteroid',
           name: `${sample.transitPlanet} ${aspectSymbol(sample.aspectType)} ${sample.natalAsteroid}`,
           korean: `${sample.transitPlanet} ${aspectKorean(sample.aspectType)} 본명 ${ASTEROID_KOREAN[sample.natalAsteroid]}`,
-          themes: ASTEROID_THEMES[sample.natalAsteroid],
           polarity: polarityForAsteroid(sample.natalAsteroid, sample.aspectType),
           layer: 'monthly' as SignalLayer,
           active: {
@@ -229,7 +222,6 @@ const astroAsteroidExtractor: SignalExtractor = {
           kind: 'asteroid',
           name: `${sample.transitAsteroid} ${aspectSymbol(sample.aspectType)} ${sample.natalPlanet}`,
           korean: `${ASTEROID_KOREAN[sample.transitAsteroid]} ${aspectKorean(sample.aspectType)} 본명 ${sample.natalPlanet}`,
-          themes: ASTEROID_THEMES[sample.transitAsteroid],
           polarity: polarityForAsteroid(sample.transitAsteroid, sample.aspectType),
           layer: 'monthly' as SignalLayer,
           active: {

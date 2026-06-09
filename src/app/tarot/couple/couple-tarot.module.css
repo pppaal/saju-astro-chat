@@ -20,7 +20,7 @@
 }
 
 .backButton {
-  color: #63d2ff;
+  color: var(--accent);
   text-decoration: none;
   font-size: 1rem;
   padding: 0.5rem 1rem;
@@ -37,7 +37,7 @@
 .title {
   font-size: 1.8rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #ff6b9d 0%, #c44dff 50%, #63d2ff 100%);
+  background: linear-gradient(135deg, #ff6b9d 0%, #c44dff 50%, var(--accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -63,13 +63,15 @@
   width: 50px;
   height: 50px;
   border: 3px solid rgba(99, 210, 255, 0.3);
-  border-top-color: #63d2ff;
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Partner Selection */
@@ -83,7 +85,7 @@
 
 .sectionTitle {
   font-size: 1.2rem;
-  color: #63d2ff;
+  color: var(--accent);
   margin: 0 0 1rem 0;
   display: flex;
   align-items: center;
@@ -242,7 +244,7 @@
 
 .questionInput:focus {
   outline: none;
-  border-color: #7cf29c;
+  border-color: var(--accent-2);
   box-shadow: 0 0 20px rgba(124, 242, 156, 0.2);
 }
 
@@ -282,7 +284,7 @@
 }
 
 .creditInfo span {
-  color: #7cf29c;
+  color: var(--accent-2);
   font-weight: 600;
 }
 
@@ -347,7 +349,7 @@
 
 .historyBadge.paid {
   background: rgba(124, 242, 156, 0.2);
-  color: #7cf29c;
+  color: var(--accent-2);
 }
 
 .historyBadge.shared {

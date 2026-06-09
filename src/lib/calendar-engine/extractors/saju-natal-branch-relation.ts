@@ -1,4 +1,5 @@
 import { computeDayBranch } from './saju-shinsal'
+import { getRelationMeaning, type RelationCategory } from '@/lib/chart-dictionary'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { PillarKind } from '@/lib/saju/types'
 
@@ -20,12 +21,22 @@ import type { PillarKind } from '@/lib/saju/types'
 
 // ─── 지지충 (6쌍) ───
 const BRANCH_CHUNG: Array<[string, string]> = [
-  ['子', '午'], ['丑', '未'], ['寅', '申'], ['卯', '酉'], ['辰', '戌'], ['巳', '亥'],
+  ['子', '午'],
+  ['丑', '未'],
+  ['寅', '申'],
+  ['卯', '酉'],
+  ['辰', '戌'],
+  ['巳', '亥'],
 ]
 
 // ─── 지지 육합 (6쌍) ───
 const BRANCH_YUKHAP: Array<[string, string]> = [
-  ['子', '丑'], ['寅', '亥'], ['卯', '戌'], ['辰', '酉'], ['巳', '申'], ['午', '未'],
+  ['子', '丑'],
+  ['寅', '亥'],
+  ['卯', '戌'],
+  ['辰', '酉'],
+  ['巳', '申'],
+  ['午', '未'],
 ]
 
 // ─── 지지 삼합 (4그룹 + 합화 오행) ───
@@ -40,8 +51,12 @@ const BRANCH_SAMHAP_GROUPS: Array<{ branches: string[]; element: string }> = [
 // 상호형: 寅巳申 삼형, 丑戌未 삼형, 子卯 상형
 // 자형: 辰辰, 午午, 酉酉, 亥亥
 const BRANCH_HYUNG_MUTUAL: Array<[string, string]> = [
-  ['寅', '巳'], ['巳', '申'], ['申', '寅'],
-  ['丑', '戌'], ['戌', '未'], ['未', '丑'],
+  ['寅', '巳'],
+  ['巳', '申'],
+  ['申', '寅'],
+  ['丑', '戌'],
+  ['戌', '未'],
+  ['未', '丑'],
   ['子', '卯'],
 ]
 const BRANCH_HYUNG_SELF = new Set<string>(['辰', '午', '酉', '亥'])
@@ -53,10 +68,10 @@ const PILLAR_LABEL_KO: Record<PillarKind, string> = {
   time: '시주',
 }
 const PILLAR_LABEL_EN: Record<PillarKind, string> = {
-  year: 'year pillar',
-  month: 'month pillar',
-  day: 'day pillar',
-  time: 'hour pillar',
+  year: '년주',
+  month: '월주',
+  day: '일주',
+  time: '시주',
 }
 
 const sajuNatalBranchRelationExtractor: SignalExtractor = {
@@ -96,59 +111,81 @@ const sajuNatalBranchRelationExtractor: SignalExtractor = {
         // 충
         for (const [a, b] of BRANCH_CHUNG) {
           if ((targetBranch === a && nb.branch === b) || (targetBranch === b && nb.branch === a)) {
-            signals.push(makeSignal({
-              relation: 'chung',
-              dayIso, startIso, peakIso, endIso,
-              polarity: -2,
-              name: `${targetBranch}${nb.branch} clash (${PILLAR_LABEL_EN[nb.kind]})`,
-              korean: `${targetBranch}↔${nb.branch} 충 (${PILLAR_LABEL_KO[nb.kind]})`,
-              weight: 0.8,
-              detail: { targetBranch, natalBranch: nb.branch, natalPillar: nb.kind },
-            }))
+            signals.push(
+              makeSignal({
+                relation: 'chung',
+                dayIso,
+                startIso,
+                peakIso,
+                endIso,
+                polarity: -2,
+                name: `${targetBranch}↔${nb.branch} 충 (${PILLAR_LABEL_EN[nb.kind]})`,
+                korean: `${targetBranch}↔${nb.branch} 충 (${PILLAR_LABEL_KO[nb.kind]})`,
+                weight: 0.8,
+                detail: { targetBranch, natalBranch: nb.branch, natalPillar: nb.kind },
+              })
+            )
           }
         }
         // 육합
         for (const [a, b] of BRANCH_YUKHAP) {
           if ((targetBranch === a && nb.branch === b) || (targetBranch === b && nb.branch === a)) {
-            signals.push(makeSignal({
-              relation: 'yukhap',
-              dayIso, startIso, peakIso, endIso,
-              polarity: 1,
-              name: `${targetBranch}-${nb.branch} harmony (${PILLAR_LABEL_EN[nb.kind]})`,
-              korean: `${targetBranch}-${nb.branch} 육합 (${PILLAR_LABEL_KO[nb.kind]})`,
-              weight: 0.6,
-              detail: { targetBranch, natalBranch: nb.branch, natalPillar: nb.kind },
-            }))
+            signals.push(
+              makeSignal({
+                relation: 'yukhap',
+                dayIso,
+                startIso,
+                peakIso,
+                endIso,
+                polarity: 1,
+                name: `${targetBranch}-${nb.branch} 합 (${PILLAR_LABEL_EN[nb.kind]})`,
+                korean: `${targetBranch}-${nb.branch} 육합 (${PILLAR_LABEL_KO[nb.kind]})`,
+                weight: 0.6,
+                detail: { targetBranch, natalBranch: nb.branch, natalPillar: nb.kind },
+              })
+            )
           }
         }
         // 상호형
         for (const [a, b] of BRANCH_HYUNG_MUTUAL) {
           if ((targetBranch === a && nb.branch === b) || (targetBranch === b && nb.branch === a)) {
-            signals.push(makeSignal({
-              relation: 'hyung',
-              dayIso, startIso, peakIso, endIso,
-              polarity: -1,
-              name: `${targetBranch}-${nb.branch} punishment (${PILLAR_LABEL_EN[nb.kind]})`,
-              korean: `${targetBranch}-${nb.branch} 형 (${PILLAR_LABEL_KO[nb.kind]})`,
-              weight: 0.55,
-              detail: { targetBranch, natalBranch: nb.branch, natalPillar: nb.kind, hyung: 'mutual' },
-            }))
+            signals.push(
+              makeSignal({
+                relation: 'hyung',
+                dayIso,
+                startIso,
+                peakIso,
+                endIso,
+                polarity: -1,
+                name: `${targetBranch}-${nb.branch} 형 (${PILLAR_LABEL_EN[nb.kind]})`,
+                korean: `${targetBranch}-${nb.branch} 형 (${PILLAR_LABEL_KO[nb.kind]})`,
+                weight: 0.55,
+                detail: {
+                  targetBranch,
+                  natalBranch: nb.branch,
+                  natalPillar: nb.kind,
+                  hyung: 'mutual',
+                },
+              })
+            )
           }
         }
         // 자형 (target 과 본명 같은 자형 지지가 만나면)
-        if (
-          targetBranch === nb.branch &&
-          BRANCH_HYUNG_SELF.has(targetBranch)
-        ) {
-          signals.push(makeSignal({
-            relation: 'hyung-self',
-            dayIso, startIso, peakIso, endIso,
-            polarity: -1,
-            name: `${targetBranch}-${targetBranch} self-punishment (${PILLAR_LABEL_EN[nb.kind]})`,
-            korean: `${targetBranch}-${targetBranch} 자형 (${PILLAR_LABEL_KO[nb.kind]})`,
-            weight: 0.5,
-            detail: { targetBranch, natalBranch: nb.branch, natalPillar: nb.kind, hyung: 'self' },
-          }))
+        if (targetBranch === nb.branch && BRANCH_HYUNG_SELF.has(targetBranch)) {
+          signals.push(
+            makeSignal({
+              relation: 'hyung-self',
+              dayIso,
+              startIso,
+              peakIso,
+              endIso,
+              polarity: -1,
+              name: `${targetBranch}-${targetBranch} 자형 (${PILLAR_LABEL_EN[nb.kind]})`,
+              korean: `${targetBranch}-${targetBranch} 자형 (${PILLAR_LABEL_KO[nb.kind]})`,
+              weight: 0.5,
+              detail: { targetBranch, natalBranch: nb.branch, natalPillar: nb.kind, hyung: 'self' },
+            })
+          )
         }
       }
 
@@ -166,24 +203,28 @@ const sajuNatalBranchRelationExtractor: SignalExtractor = {
         // 강도: 3/3 (완전 삼합) > 2/3 (반합).
         const isFull = totalDistinct >= 3
         const pillarKinds = presentNatals.map((nb) => nb.kind)
-        signals.push(makeSignal({
-          relation: 'samhap',
-          dayIso, startIso, peakIso, endIso,
-          polarity: 1,
-          name: `${group.branches.join('')} ${isFull ? 'full' : 'half'} combo (${group.element})`,
-          korean: `${group.branches.join('')} ${isFull ? '삼합' : '반합'} → ${group.element}국 활성`,
-          weight: isFull ? 0.75 : 0.55,
-          detail: {
-            targetBranch,
-            samhapGroup: group.branches,
-            element: group.element,
-            natalContributors: Array.from(distinctNatalBranches),
-            natalPillars: pillarKinds,
-            full: isFull,
-          },
-        }))
+        signals.push(
+          makeSignal({
+            relation: 'samhap',
+            dayIso,
+            startIso,
+            peakIso,
+            endIso,
+            polarity: 1,
+            name: `${group.branches.join('')} ${isFull ? '삼합' : '반합'} (${group.element})`,
+            korean: `${group.branches.join('')} ${isFull ? '삼합' : '반합'} → ${group.element}국 활성`,
+            weight: isFull ? 0.75 : 0.55,
+            detail: {
+              targetBranch,
+              samhapGroup: group.branches,
+              element: group.element,
+              natalContributors: Array.from(distinctNatalBranches),
+              natalPillars: pillarKinds,
+              full: isFull,
+            },
+          })
+        )
       }
-
     }
 
     return signals
@@ -203,6 +244,54 @@ interface MakeSignalArgs {
   detail: Record<string, unknown>
 }
 
+// relation → chart-dictionary RelationCategory. 충/육합/형/자형/삼합 정통 해석 연결.
+const RELATION_CATEGORY: Record<MakeSignalArgs['relation'], RelationCategory> = {
+  chung: '지지충',
+  yukhap: '지지육합',
+  samhap: '지지삼합',
+  hyung: '지지형',
+  'hyung-self': '지지형',
+}
+
+/**
+ * 관계 신호에 relations-pairs 정통 해석문을 붙인다. 삼합은 trio 키(亥卯未),
+ * 그 외는 페어 키(양 순서 시도), 자형은 동일 지지 페어(亥亥). 실패 시 undefined.
+ */
+// 삼형(三刑) 페어 → 트리오 키. 지지형 사전 키는 trio(寅巳申·丑戌未)라 페어 환원.
+const HYUNG_TRIO_KEY: Record<string, string> = {
+  寅巳: '寅巳申',
+  巳寅: '寅巳申',
+  巳申: '寅巳申',
+  申巳: '寅巳申',
+  寅申: '寅巳申',
+  申寅: '寅巳申',
+  丑戌: '丑戌未',
+  戌丑: '丑戌未',
+  戌未: '丑戌未',
+  未戌: '丑戌未',
+  丑未: '丑戌未',
+  未丑: '丑戌未',
+}
+
+function relationDictMeaning(args: MakeSignalArgs, lang: 'ko' | 'en' = 'ko'): string | undefined {
+  const cat = RELATION_CATEGORY[args.relation]
+  const samhap = args.detail.samhapGroup as string[] | undefined
+  if (samhap) return getRelationMeaning(cat, samhap.join(''), lang)?.meaning
+  const a = args.detail.targetBranch as string | undefined
+  const b = (args.detail.natalBranch ?? args.detail.targetBranch) as string | undefined
+  if (!a || !b) return undefined
+  for (const key of [`${a}${b}`, `${b}${a}`]) {
+    const entry = getRelationMeaning(cat, key, lang)
+    if (entry) return entry.meaning
+  }
+  // 상호형 삼형 페어는 트리오 키로 재시도 (丑-未 → 丑戌未).
+  if (args.relation === 'hyung') {
+    const trio = HYUNG_TRIO_KEY[`${a}${b}`]
+    if (trio) return getRelationMeaning(cat, trio, lang)?.meaning
+  }
+  return undefined
+}
+
 function makeSignal(args: MakeSignalArgs): ActiveSignal {
   // id 는 day + relation + natalPillar + branches 로 고유.
   const idTail =
@@ -214,8 +303,9 @@ function makeSignal(args: MakeSignalArgs): ActiveSignal {
     source: 'saju',
     kind: 'hyeongchung',
     name: args.name,
-    korean: args.korean,
-    themes: [],
+    // 정통 해석문 우선 — 없으면 라벨(args.korean) 폴백.
+    korean: relationDictMeaning(args, 'ko') ?? args.korean,
+    ...(relationDictMeaning(args, 'en') ? { english: relationDictMeaning(args, 'en')! } : {}),
     polarity: args.polarity,
     layer: 'daily',
     active: { start: args.startIso, peak: args.peakIso, end: args.endIso },

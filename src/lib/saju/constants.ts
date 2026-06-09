@@ -113,6 +113,22 @@ export const FIVE_ELEMENT_RELATIONS: {
   극받는관계: { 토: '목', 수: '토', 화: '수', 금: '화', 목: '금' },
 }
 
+/**
+ * 오행 상생·상극 — 영문 키 버전 (정본). 캘린더(lib/calendar/constants)·리포트
+ * (lib/report/config/elements.config)가 각자 복제하던 동일 표를 여기로 통합.
+ * 위 한글 키 FIVE_ELEMENT_RELATIONS 와 같은 이론, 표현(영문 키 + 4-방향)만 다름.
+ */
+export const ELEMENT_RELATIONS_EN: Record<
+  string,
+  { generates: string; controls: string; generatedBy: string; controlledBy: string }
+> = {
+  wood: { generates: 'fire', controls: 'earth', generatedBy: 'water', controlledBy: 'metal' },
+  fire: { generates: 'earth', controls: 'metal', generatedBy: 'wood', controlledBy: 'water' },
+  earth: { generates: 'metal', controls: 'water', generatedBy: 'fire', controlledBy: 'wood' },
+  metal: { generates: 'water', controls: 'wood', generatedBy: 'earth', controlledBy: 'fire' },
+  water: { generates: 'wood', controls: 'fire', generatedBy: 'metal', controlledBy: 'earth' },
+}
+
 export const CHEONEUL_GWIIN_MAP: { [key: string]: string[] } = {
   甲: ['丑', '未'],
   戊: ['丑', '未'],

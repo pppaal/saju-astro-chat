@@ -216,7 +216,14 @@
       "rules": "(not a sign — chart angle, the cusp of the 1H)",
       "natal_strong": "When the ruling planet is well-placed: clear first impression, authentic self shines through naturally, smooth life launch",
       "natal_weak": "When the ruling planet is afflicted: struggle to express self, blurry first impression, gap between identity and outward image",
-      "keywords": ["persona", "first impression", "appearance", "approach", "starting point", "mask"]
+      "keywords": [
+        "persona",
+        "first impression",
+        "appearance",
+        "approach",
+        "starting point",
+        "mask"
+      ]
     }
   },
   "MC": {
@@ -236,7 +243,14 @@
       "rules": "(not a sign — chart angle, the cusp of the 10H)",
       "natal_strong": "When the ruling planet is well-placed: clear professional success, strong public reputation, vivid sense of calling",
       "natal_weak": "When the ruling planet is afflicted: long career drift, difficulty finding social standing, anxiety about reputation",
-      "keywords": ["calling", "career", "reputation", "public image", "social achievement", "summit"]
+      "keywords": [
+        "calling",
+        "career",
+        "reputation",
+        "public image",
+        "social achievement",
+        "summit"
+      ]
     }
   },
   "NorthNode": {
@@ -281,7 +295,7 @@
   },
   "Chiron": {
     "ko": {
-      "name": "키론 (⚷)",
+      "name": "카이런 (⚷)",
       "principle": "상처받은 치유자",
       "meaning": "당신의 가장 깊은 상처가 있는 곳, 그리고 바로 그 상처를 통해 다른 사람을 치유하게 되는 영역. (Demetra George)",
       "rules": "(소행성/켄타우로스, 전통 지배 별자리 없음)",

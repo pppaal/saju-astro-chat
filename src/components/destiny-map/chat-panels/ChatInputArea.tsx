@@ -25,55 +25,6 @@ const DEFAULT_TYPEWRITER_PROMPTS: Record<LangKey, readonly string[]> = {
     'Where is my career going?',
     "What's my biggest challenge now?",
   ],
-  ja: [
-    '今年の流れは？',
-    'この時期の意味は？',
-    '関係の方向性は？',
-    'キャリアはどこへ？',
-    '今の大きな課題は？',
-  ],
-  zh: [
-    '今年的运势如何？',
-    '这个时期意味着什么？',
-    '关系将走向何方？',
-    '事业将走向何方？',
-    '现在最大的课题是？',
-  ],
-  es: [
-    '¿Cómo es este año?',
-    '¿Qué significa esta etapa?',
-    '¿Hacia dónde va la relación?',
-    '¿Hacia dónde va mi carrera?',
-    '¿Cuál es mi mayor reto ahora?',
-  ],
-  fr: [
-    "Quel est le flux de l'année ?",
-    'Que signifie cette période ?',
-    'Où va la relation ?',
-    'Où va ma carrière ?',
-    'Quel est mon plus grand défi ?',
-  ],
-  de: [
-    'Wie ist der Fluss dieses Jahr?',
-    'Was bedeutet diese Phase?',
-    'Wohin geht die Beziehung?',
-    'Wohin geht meine Karriere?',
-    'Was ist meine größte Aufgabe?',
-  ],
-  pt: [
-    'Qual é o fluxo deste ano?',
-    'O que significa esta fase?',
-    'Para onde vai a relação?',
-    'Para onde vai minha carreira?',
-    'Qual é meu maior desafio?',
-  ],
-  ru: [
-    'Каков поток этого года?',
-    'Что значит этот период?',
-    'Куда идут наши отношения?',
-    'Куда идёт моя карьера?',
-    'Какая моя главная задача?',
-  ],
 }
 
 export interface ChatInputAreaLabels {
@@ -308,158 +259,162 @@ export const ChatInputArea = React.memo(function ChatInputArea({
             {/* 좌상단 ⋮ 도구 메뉴 — 파일/타로/차트를 한 버튼으로 접음. 도구가
                 하나도 없으면(메인 랜딩 입력창) 버튼 자체를 숨긴다. */}
             {(onFileUpload || onOpenTarot || onOpenChart || onOpenFlow) && (
-            <div className={styles.toolMenu} ref={toolsRef}>
-              <button
-                type="button"
-                className={styles.attachButton}
-                onClick={() => {
-                  dismissToolHint()
-                  setToolsOpen((o) => !o)
-                }}
-                aria-label={lang === 'ko' ? '도구' : 'Tools'}
-                aria-haspopup="menu"
-                aria-expanded={toolsOpen}
-                title={lang === 'ko' ? '도구' : 'Tools'}
-              >
-                <span aria-hidden="true">&#x22EE;</span>
-              </button>
-              {showToolHint && !toolsOpen && (
-                <div
-                  className={styles.toolHintBubble}
-                  role="status"
-                  aria-live="polite"
-                  onClick={dismissToolHint}
+              <div className={styles.toolMenu} ref={toolsRef}>
+                <button
+                  type="button"
+                  className={styles.attachButton}
+                  onClick={() => {
+                    dismissToolHint()
+                    setToolsOpen((o) => !o)
+                  }}
+                  aria-label={lang === 'ko' ? '도구' : 'Tools'}
+                  aria-haspopup="menu"
+                  aria-expanded={toolsOpen}
+                  title={lang === 'ko' ? '도구' : 'Tools'}
                 >
-                  <span className={styles.toolHintText}>
-                    {lang === 'ko' ? '클릭해서 써보세요' : 'Tap to try'}
-                  </span>
-                </div>
-              )}
-              <AnimatePresence>
-              {toolsOpen && (
-                <motion.div
-                  role="menu"
-                  className={styles.toolMenuPopover}
-                  initial={{ opacity: 0, scale: 0.96, y: 6 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.96, y: 6 }}
-                  transition={{ duration: 0.15, ease: 'easeOut' }}
-                  style={{ transformOrigin: 'bottom left' }}
-                >
-                  {onFileUpload && (
-                  <label
-                    role="menuitem"
-                    className={styles.toolMenuItem}
-                    aria-label={labels.uploadCv}
-                    title={labels.uploadCv}
+                  <span aria-hidden="true">&#x22EE;</span>
+                </button>
+                {showToolHint && !toolsOpen && (
+                  <div
+                    className={styles.toolHintBubble}
+                    role="status"
+                    aria-live="polite"
+                    onClick={dismissToolHint}
                   >
-                    <span aria-hidden="true" className={styles.toolMenuIcon}>
-                      &#x1F4CE;
+                    <span className={styles.toolHintText}>
+                      {lang === 'ko' ? '클릭해서 써보세요' : 'Tap to try'}
                     </span>
-                    <span className={styles.toolMenuText}>
-                      <span className={styles.toolMenuLabel}>
-                        {lang === 'ko' ? '파일' : 'File'}
-                      </span>
-                      <span className={styles.toolMenuDesc}>
-                        {lang === 'ko' ? '이력서·문서 첨부해 분석' : 'Attach a CV or document'}
-                      </span>
-                    </span>
-                    <input
-                      type="file"
-                      accept={fileAccept}
-                      className={styles.fileInput}
-                      onChange={(e) => {
-                        setToolsOpen(false)
-                        void onFileUpload(e)
-                      }}
-                    />
-                  </label>
-                  )}
-                  {onOpenTarot && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setToolsOpen(false)
-                        onOpenTarot()
-                      }}
-                      disabled={tarotDisabled || loading}
-                      className={styles.toolMenuItem}
-                      aria-label={tarotAria}
-                      title={tarotTitle}
+                  </div>
+                )}
+                <AnimatePresence>
+                  {toolsOpen && (
+                    <motion.div
+                      role="menu"
+                      className={styles.toolMenuPopover}
+                      initial={{ opacity: 0, scale: 0.96, y: 6 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.96, y: 6 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      style={{ transformOrigin: 'bottom left' }}
                     >
-                      <span aria-hidden="true" className={styles.toolMenuIcon}>
-                        &#x1F0CF;
-                      </span>
-                      <span className={styles.toolMenuText}>
-                        <span className={styles.toolMenuLabel}>{tarotLabel}</span>
-                        <span className={styles.toolMenuDesc}>
-                          {lang === 'ko'
-                            ? '다음 질문을 타로 카드로 보기'
-                            : 'See your next question as tarot'}
-                        </span>
-                      </span>
-                    </button>
+                      {onFileUpload && (
+                        <label
+                          role="menuitem"
+                          className={styles.toolMenuItem}
+                          aria-label={labels.uploadCv}
+                          title={labels.uploadCv}
+                        >
+                          <span aria-hidden="true" className={styles.toolMenuIcon}>
+                            &#x1F4CE;
+                          </span>
+                          <span className={styles.toolMenuText}>
+                            <span className={styles.toolMenuLabel}>
+                              {lang === 'ko' ? '파일' : 'File'}
+                            </span>
+                            <span className={styles.toolMenuDesc}>
+                              {lang === 'ko'
+                                ? '이력서·문서 첨부해 분석'
+                                : 'Attach a CV or document'}
+                            </span>
+                          </span>
+                          <input
+                            type="file"
+                            accept={fileAccept}
+                            className={styles.fileInput}
+                            onChange={(e) => {
+                              setToolsOpen(false)
+                              void onFileUpload(e)
+                            }}
+                          />
+                        </label>
+                      )}
+                      {onOpenTarot && (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setToolsOpen(false)
+                            onOpenTarot()
+                          }}
+                          disabled={tarotDisabled || loading}
+                          className={styles.toolMenuItem}
+                          aria-label={tarotAria}
+                          title={tarotTitle}
+                        >
+                          <span aria-hidden="true" className={styles.toolMenuIcon}>
+                            &#x1F0CF;
+                          </span>
+                          <span className={styles.toolMenuText}>
+                            <span className={styles.toolMenuLabel}>{tarotLabel}</span>
+                            <span className={styles.toolMenuDesc}>
+                              {lang === 'ko'
+                                ? '다음 질문을 타로 카드로 보기'
+                                : 'See your next question as tarot'}
+                            </span>
+                          </span>
+                        </button>
+                      )}
+                      {onOpenChart && (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setToolsOpen(false)
+                            onOpenChart()
+                          }}
+                          disabled={chartDisabled}
+                          className={styles.toolMenuItem}
+                          aria-label={chartAria}
+                          title={chartTitle}
+                        >
+                          {/* ☯ 음양 — 사주/동양 전통의 차트 정체성. */}
+                          <span aria-hidden="true" className={styles.toolMenuIcon}>
+                            &#x262F;
+                          </span>
+                          <span className={styles.toolMenuText}>
+                            <span className={styles.toolMenuLabel}>{chartLabel}</span>
+                            <span className={styles.toolMenuDesc}>
+                              {chart?.title ??
+                                (lang === 'ko'
+                                  ? '내 사주·운세 차트 보기'
+                                  : 'View your destiny chart')}
+                            </span>
+                          </span>
+                        </button>
+                      )}
+                      {onOpenFlow && (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setToolsOpen(false)
+                            onOpenFlow()
+                          }}
+                          disabled={flowDisabled}
+                          className={styles.toolMenuItem}
+                          aria-label={lang === 'ko' ? '운세 흐름표' : 'Fortune flow'}
+                          title={lang === 'ko' ? '운세 흐름표' : 'Fortune flow'}
+                        >
+                          {/* 📈 시간의 흐름 — 대운·연운·캘린더 진입. */}
+                          <span aria-hidden="true" className={styles.toolMenuIcon}>
+                            &#x1F4C8;
+                          </span>
+                          <span className={styles.toolMenuText}>
+                            <span className={styles.toolMenuLabel}>
+                              {lang === 'ko' ? '흐름표' : 'Flow'}
+                            </span>
+                            <span className={styles.toolMenuDesc}>
+                              {lang === 'ko'
+                                ? '대운·연운·달력으로 시간 흐름 보기'
+                                : 'View daeun, yearly cycles, and calendar'}
+                            </span>
+                          </span>
+                        </button>
+                      )}
+                    </motion.div>
                   )}
-                  {onOpenChart && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setToolsOpen(false)
-                        onOpenChart()
-                      }}
-                      disabled={chartDisabled}
-                      className={styles.toolMenuItem}
-                      aria-label={chartAria}
-                      title={chartTitle}
-                    >
-                      {/* ☯ 음양 — 사주/동양 전통의 차트 정체성. */}
-                      <span aria-hidden="true" className={styles.toolMenuIcon}>
-                        &#x262F;
-                      </span>
-                      <span className={styles.toolMenuText}>
-                        <span className={styles.toolMenuLabel}>{chartLabel}</span>
-                        <span className={styles.toolMenuDesc}>
-                          {chart?.title ??
-                            (lang === 'ko' ? '내 사주·운세 차트 보기' : 'View your destiny chart')}
-                        </span>
-                      </span>
-                    </button>
-                  )}
-                  {onOpenFlow && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setToolsOpen(false)
-                        onOpenFlow()
-                      }}
-                      disabled={flowDisabled}
-                      className={styles.toolMenuItem}
-                      aria-label={lang === 'ko' ? '운세 흐름표' : 'Fortune flow'}
-                      title={lang === 'ko' ? '운세 흐름표' : 'Fortune flow'}
-                    >
-                      {/* 📈 시간의 흐름 — 대운·연운·캘린더 진입. */}
-                      <span aria-hidden="true" className={styles.toolMenuIcon}>
-                        &#x1F4C8;
-                      </span>
-                      <span className={styles.toolMenuText}>
-                        <span className={styles.toolMenuLabel}>
-                          {lang === 'ko' ? '흐름표' : 'Flow'}
-                        </span>
-                        <span className={styles.toolMenuDesc}>
-                          {lang === 'ko'
-                            ? '대운·연운·달력으로 시간 흐름 보기'
-                            : 'View daeun, yearly cycles, and calendar'}
-                        </span>
-                      </span>
-                    </button>
-                  )}
-                </motion.div>
-              )}
-              </AnimatePresence>
-            </div>
+                </AnimatePresence>
+              </div>
             )}
             {parsingPdf && (
               <span className={styles.fileName}>
@@ -475,8 +430,12 @@ export const ChatInputArea = React.memo(function ChatInputArea({
                   <button
                     type="button"
                     onClick={onClearFile}
-                    aria-label={labels.removeAttachment ?? (lang === 'ko' ? '첨부 제거' : 'Remove attachment')}
-                    title={labels.removeAttachment ?? (lang === 'ko' ? '첨부 제거' : 'Remove attachment')}
+                    aria-label={
+                      labels.removeAttachment ?? (lang === 'ko' ? '첨부 제거' : 'Remove attachment')
+                    }
+                    title={
+                      labels.removeAttachment ?? (lang === 'ko' ? '첨부 제거' : 'Remove attachment')
+                    }
                     className={styles.fileNameClear || ''}
                     style={
                       styles.fileNameClear

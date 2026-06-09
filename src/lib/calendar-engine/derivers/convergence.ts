@@ -1,4 +1,3 @@
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 import type { ActiveSignal, CalendarCell } from '../types'
 import {
   cleanSignalName as cleanName,
@@ -114,81 +113,51 @@ function convergenceConfidence(
   return Math.max(0, Math.min(100, Math.round(c)))
 }
 
-const THEME_LABEL: Record<'ko' | 'en', Record<AstroThemeKey, string>> = {
-  ko: { love: '연애', money: '재물', career: '직업', health: '건강', growth: '성장' },
-  en: { love: 'love', money: 'money', career: 'career', health: 'health', growth: 'growth' },
-}
-
-// "2층 의미" 한 줄 — 그날 무거운 신호들의 theme(영역) + 순극성(톤)으로 구성.
-// 특정 점성 산문을 지어내지 않고 엔진이 이미 태깅한 값만 쓴다.
-// 톤 풀 — 사용자 피드백: 모든 큰 날 "X 영역이 기회가 열리는 날" 똑같이 나옴.
+// "2층 의미" 한 줄 — 그날 무거운 신호들의 순극성(톤)으로 구성.
+// 특정 점성 산문을 지어내지 않고 엔진이 이미 매긴 polarity 만 쓴다.
 // 같은 톤(positive/neutral/negative) 안에서도 4가지로 회전 (날짜 hash 기반).
+// (5버킷 테마 영역 축 제거 — 영역명 없이 톤만 표시.)
 const TONE_POOL_KO = {
-  positive: [
-    (areas: string) => `${areas} 영역에 기회가 열리는 날`,
-    (areas: string) => `${areas} 흐름이 모이는 시점`,
-    (areas: string) => `${areas} 결정이 무르익는 날`,
-    (areas: string) => `${areas} 신호가 강해지는 때`,
-  ],
+  positive: ['기회가 열리는 날', '흐름이 모이는 시점', '결정이 무르익는 날', '신호가 강해지는 때'],
   negative: [
-    (areas: string) => `${areas} 영역이 시험받는 날`,
-    (areas: string) => `${areas} 점검이 필요한 시점`,
-    (areas: string) => `${areas} 감정이 무거워질 수 있음`,
-    (areas: string) => `${areas} 신중함이 우선되는 때`,
+    '시험받는 날',
+    '점검이 필요한 시점',
+    '감정이 무거워질 수 있음',
+    '신중함이 우선되는 때',
   ],
   neutral: [
-    (areas: string) => `${areas} 영역이 크게 전환되는 날`,
-    (areas: string) => `${areas} 방향이 바뀌는 시점`,
-    (areas: string) => `${areas} 균형이 다시 잡히는 때`,
-    (areas: string) => `${areas} 큰 변화가 시작되는 날`,
+    '크게 전환되는 날',
+    '방향이 바뀌는 시점',
+    '균형이 다시 잡히는 때',
+    '큰 변화가 시작되는 날',
   ],
 }
 const TONE_POOL_EN = {
   positive: [
-    (areas: string) => `${areas} opens up`,
-    (areas: string) => `${areas} momentum builds`,
-    (areas: string) => `${areas} resolves clearly`,
-    (areas: string) => `${areas} signal strengthens`,
+    'a day that opens up',
+    'momentum builds',
+    'resolves clearly',
+    'the signal strengthens',
   ],
-  negative: [
-    (areas: string) => `${areas} is tested`,
-    (areas: string) => `${areas} needs review`,
-    (areas: string) => `${areas} feels heavier`,
-    (areas: string) => `${areas} asks for caution`,
-  ],
-  neutral: [
-    (areas: string) => `${areas} pivots`,
-    (areas: string) => `${areas} direction shifts`,
-    (areas: string) => `${areas} rebalances`,
-    (areas: string) => `${areas} starts a new chapter`,
-  ],
+  negative: ['a day that tests you', 'needs review', 'feels heavier', 'asks for caution'],
+  neutral: ['a pivot', 'direction shifts', 'rebalances', 'a new chapter begins'],
 }
 
 function composeMeaning(
-  themeAcc: Partial<Record<AstroThemeKey, number>>,
   netPol: number,
   sumImp: number,
   lang: 'ko' | 'en',
   dateStr?: string
 ): string | undefined {
-  const entries = (Object.entries(themeAcc) as Array<[AstroThemeKey, number]>).sort(
-    (a, b) => b[1] - a[1]
-  )
-  if (entries.length === 0) return undefined
-  const ratio = sumImp > 0 ? netPol / sumImp : 0
+  if (sumImp <= 0) return undefined
+  const ratio = netPol / sumImp
   const toneKey: 'positive' | 'negative' | 'neutral' =
     ratio > 0.15 ? 'positive' : ratio < -0.15 ? 'negative' : 'neutral'
-  // 날짜 hash 로 톤 템플릿 + "그날 두드러진 테마" 중 하나를 회전 선택. 항상 지배 테마
-  // top-2(예: 직업·성장)를 붙이면 큰 날 목록이 같은 테마로 도배돼, 그날 notable
-  // 테마(최댓값의 60% 이상) 중 날짜별로 하나만 골라 다양화(여전히 그날 실제 테마).
-  const maxV = entries[0][1]
-  const notable = entries.filter(([, v]) => v >= maxV * 0.6).map(([k]) => k)
+  // 날짜 hash 로 톤 템플릿을 회전 선택 — 큰 날 목록이 같은 문장으로 도배되지 않게.
   const dayNum = dateStr ? Math.abs(parseInt(dateStr.slice(-2), 10)) : 0
   const pool = lang === 'en' ? TONE_POOL_EN : TONE_POOL_KO
   const templates = pool[toneKey]
-  const tmpl = templates[dayNum % templates.length]
-  const area = THEME_LABEL[lang][notable[dayNum % notable.length]]
-  return tmpl(area)
+  return templates[dayNum % templates.length]
 }
 
 export interface ConvergenceDay {
@@ -197,7 +166,7 @@ export interface ConvergenceDay {
   astro: string[] // 그날 무거운 점성 이벤트
   saju: string[] // 그날 무거운 사주 이벤트
   bothSystems: boolean // 점성·사주 둘 다 무거운 게 있었나 (진짜 수렴)
-  meaning?: string // 영역(theme) + 톤(polarity) 한 줄 의미
+  meaning?: string // 톤(polarity) 한 줄 의미
   /**
    * 그 큰 날의 *활성 구간* — 구성 무거운 신호들의 active window 집계.
    * start=가장 이른 시작, end=가장 늦은 끝, peak=가장 강한 신호의 정점.
@@ -228,7 +197,6 @@ export function deriveConvergence(
     let sajuHeavy = 0
     const astro: string[] = []
     const saju: string[] = []
-    const themeAcc: Partial<Record<AstroThemeKey, number>> = {}
     let netPol = 0
     let sumImp = 0
     // 윈도우 집계·confidence 용: 그날 무거운 신호와 source 별 방향(polarity×imp) 합.
@@ -248,18 +216,16 @@ export function deriveConvergence(
         // 늘 켜진 최외곽 배경(천왕·해왕·명왕)은 칩에서 숨긴다 — 무거움 합산엔
         // 반영하되 표시는 그날 *구별되는* 점성 신호(달·수성·금성·화성·각 접촉)만.
         const n = cleanName(s)
-        if (n && astro.length < 3 && !astro.includes(n) && !isSlowBackgroundAstro(s))
-          astro.push(n)
+        if (n && astro.length < 3 && !astro.includes(n) && !isSlowBackgroundAstro(s)) astro.push(n)
       } else {
         sajuHeavy += imp
         sajuPolNet += s.polarity * imp
         const n = cleanName(s)
         if (n && saju.length < 3 && !saju.includes(n)) saju.push(n)
       }
-      // 의미 한 줄용 — 무거운 신호의 theme/polarity 누적
+      // 의미 한 줄용 — 무거운 신호의 polarity 누적 (톤 판정용)
       netPol += s.polarity * imp
       sumImp += imp
-      for (const t of s.themes) themeAcc[t] = (themeAcc[t] ?? 0) + imp * (s.themeWeights?.[t] ?? 1)
     }
     if (astroHeavy === 0 && sajuHeavy === 0) continue
     const bothSystems = astroHeavy > 0 && sajuHeavy > 0
@@ -270,7 +236,7 @@ export function deriveConvergence(
       astro,
       saju,
       bothSystems,
-      meaning: composeMeaning(themeAcc, netPol, sumImp, lang, c.datetime.slice(0, 10)),
+      meaning: composeMeaning(netPol, sumImp, lang, c.datetime.slice(0, 10)),
       window: aggregateWindow(heavySignals, c.datetime),
       confidence: convergenceConfidence(heavySignals, bothSystems, astroPolNet, sajuPolNet),
     })

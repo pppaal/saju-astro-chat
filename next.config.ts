@@ -171,7 +171,6 @@ const nextConfig = {
     optimizePackageImports: [
       'framer-motion',
       'chart.js',
-      'recharts',
       '@vercel/speed-insights',
       'react-markdown',
       'remark-gfm',
@@ -314,15 +313,17 @@ const nextConfig = {
         destination: '/blog',
         permanent: true,
       },
-      // Phase D 통합: 기존 /calendar(PremiumDestinyPlanner)는 새로운 5-tier
-      // destinypal 뷰(/destinypal)로 흡수됨. 북마크·외부 링크·내부
-      // router.push('/calendar') 가 끊기지 않도록 edge-level 308 (permanent)
-      // 으로 라우팅. next.config 의 redirects() 는 Next 라우터·SSR 보다
-      // 먼저 실행되므로, app/calendar/page.tsx 의 server-side redirect()
-      // 처럼 200 + meta-refresh fallback 으로 떨어지지 않고 깔끔한 3xx 가 난다.
+      // 제품 명칭 통일: 캘린더(운흐름) 라우트의 canonical 을 /calendar 로 확정.
+      // 옛 canonical /destinypal (5-tier 뷰)·외부 링크·북마크가 끊기지 않도록
+      // edge-level 308(permanent)로 /calendar 에 흡수. (이전엔 반대 방향이었음.)
       {
-        source: '/calendar',
-        destination: '/destinypal',
+        source: '/destinypal',
+        destination: '/calendar',
+        permanent: true,
+      },
+      {
+        source: '/destinypal/:path*',
+        destination: '/calendar/:path*',
         permanent: true,
       },
       // 옛 라우트 /destiny-map/* → 현재 /destiny-counselor 로 통합.

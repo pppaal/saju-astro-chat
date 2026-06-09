@@ -10,7 +10,6 @@ import type {
   SignalKind,
 } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
-import type { AstroThemeKey } from '@/lib/astrology/themes/types'
 
 /**
  * 정통 자평명리 응용 격국 동적 매칭 — saju-applied-pattern.
@@ -183,7 +182,6 @@ interface AppliedPattern {
   name: string // 한자 라벨
   polarity: Polarity
   weight: number
-  themes: AstroThemeKey[]
   /**
    * 본명 + 시기 조건을 모두 만족하면 evidence detail 객체 반환, 아니면 null.
    * detail 에는 트리거된 axis/카운트 등을 담아 디버깅·내러티브에 사용.
@@ -205,6 +203,32 @@ interface AppliedPattern {
  *  - 식신제살 +2 / 관인상생 +2 / 재생관 +2 / 인생비겁 +2
  *  - 비겁탈재 −2 / 관살혼잡 −1 / 효식탈 −2
  */
+// 응용 패턴 id → 흐름(flow) 한 줄. 이름(상관견관…)만으론 안 와닿아 의미를 풀어씀.
+const APPLIED_FLOW: Record<string, string> = {
+  'sanggwan-gyeon-gwan': '튀는 끼가 규율·자리와 부딪치는 흐름 — 말·행동이 윗선과 충돌하기 쉬워요',
+  'siksin-jesal': '표현력으로 압박을 다스리는 흐름 — 위기를 솜씨로 돌파하기 좋아요',
+  'gwan-in-sangsaeng': '책임이 배움·문서로 이어지는 흐름 — 자리와 실력이 함께 자라요',
+  'jae-saeng-gwan': '재물이 자리를 밀어주는 흐름 — 일과 돈이 서로를 키워요',
+  'in-saeng-bigeop': '배움·후원이 나와 동료의 힘이 되는 흐름 — 기반을 다지기 좋아요',
+  'bigeop-talchae': '경쟁·동료가 재물을 흔드는 흐름 — 돈·동업에 마찰이 생기기 쉬워요',
+  'gwan-sal-honjap': '관과 살이 뒤섞여 압박이 어지러운 흐름 — 책임이 갈피를 잃기 쉬워요',
+  'hyo-sik-tal': '편인이 식신을 눌러 표현·결실이 막히는 흐름 — 추진보다 정비가 나아요',
+}
+
+const APPLIED_FLOW_EN: Record<string, string> = {
+  'sanggwan-gyeon-gwan':
+    'flair collides with rules and rank — words and actions clash with those above',
+  'siksin-jesal': 'expression tames pressure — a good flow to break through a crisis with skill',
+  'gwan-in-sangsaeng':
+    'responsibility feeds learning and credentials — position and skill grow together',
+  'jae-saeng-gwan': 'wealth props up your standing — work and money lift each other',
+  'in-saeng-bigeop':
+    'learning and backing become your and your peers’ strength — good for building a base',
+  'bigeop-talchae': 'rivals and peers shake your wealth — friction over money and partnerships',
+  'gwan-sal-honjap': 'officer and killer mix into messy pressure — duty loses its thread',
+  'hyo-sik-tal': 'indirect resource smothers expression — repair over push',
+}
+
 const APPLIED_PATTERNS: AppliedPattern[] = [
   // ── 1. 상관견관 ──
   {
@@ -213,7 +237,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '傷官見官',
     polarity: -2,
     weight: 0.65,
-    themes: ['career'],
     evaluate(count, _strength, active, snap) {
       const natalJeonggwan = count['정관'] ?? 0
       if (natalJeonggwan < 1) return null
@@ -234,7 +257,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '食神制殺',
     polarity: 2,
     weight: 0.65,
-    themes: ['career', 'growth'],
     evaluate(count, _strength, active, snap) {
       const natalChilsal = count['편관'] ?? 0
       if (natalChilsal < 1) return null
@@ -252,8 +274,7 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     korean: '관인상생',
     name: '官印相生',
     polarity: 2,
-    weight: 0.60,
-    themes: ['career', 'growth'],
+    weight: 0.6,
     evaluate(_count, _strength, active, snap) {
       if (!active.has('정관') || !active.has('정인')) return null
       return {
@@ -269,8 +290,7 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     korean: '재생관',
     name: '財生官',
     polarity: 2,
-    weight: 0.60,
-    themes: ['money', 'career'],
+    weight: 0.6,
     evaluate(_count, _strength, active, snap) {
       if (!active.has('정재') || !active.has('정관')) return null
       return {
@@ -287,7 +307,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '印生比劫',
     polarity: 2,
     weight: 0.65,
-    themes: ['growth'],
     evaluate(_count, strength, active, snap) {
       if (strength !== 'weak') return null
       if (!active.has('정인')) return null
@@ -309,7 +328,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '比劫奪財',
     polarity: -2,
     weight: 0.55,
-    themes: ['money'],
     evaluate(count, _strength, active, snap) {
       const jaeCount = (count['정재'] ?? 0) + (count['편재'] ?? 0)
       // 재성 약 = 0~1개
@@ -331,7 +349,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '官殺混雜',
     polarity: -1,
     weight: 0.55,
-    themes: ['career'],
     evaluate(_count, _strength, active, snap) {
       if (!active.has('정관') || !active.has('편관')) return null
       return {
@@ -348,7 +365,6 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
     name: '梟食奪',
     polarity: -2,
     weight: 0.55,
-    themes: ['growth', 'health'],
     evaluate(_count, _strength, active, snap) {
       if (!active.has('편인') || !active.has('식신')) return null
       return {
@@ -376,16 +392,16 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
     // 패턴(상관견관/식신제살/비겁탈재) 은 매칭되지 않고 시기-only 4종만 작동.
     const sibsinCount = natal.saju.analyses?.sibsin?.count
     const count: Record<SibsinKind, number> = {
-      '비견': sibsinCount?.['비견'] ?? 0,
-      '겁재': sibsinCount?.['겁재'] ?? 0,
-      '식신': sibsinCount?.['식신'] ?? 0,
-      '상관': sibsinCount?.['상관'] ?? 0,
-      '편재': sibsinCount?.['편재'] ?? 0,
-      '정재': sibsinCount?.['정재'] ?? 0,
-      '편관': sibsinCount?.['편관'] ?? 0,
-      '정관': sibsinCount?.['정관'] ?? 0,
-      '편인': sibsinCount?.['편인'] ?? 0,
-      '정인': sibsinCount?.['정인'] ?? 0,
+      비견: sibsinCount?.['비견'] ?? 0,
+      겁재: sibsinCount?.['겁재'] ?? 0,
+      식신: sibsinCount?.['식신'] ?? 0,
+      상관: sibsinCount?.['상관'] ?? 0,
+      편재: sibsinCount?.['편재'] ?? 0,
+      정재: sibsinCount?.['정재'] ?? 0,
+      편관: sibsinCount?.['편관'] ?? 0,
+      정관: sibsinCount?.['정관'] ?? 0,
+      편인: sibsinCount?.['편인'] ?? 0,
+      정인: sibsinCount?.['정인'] ?? 0,
     }
     const strength = natal.saju.strength
 
@@ -403,14 +419,7 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
 
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const date = new Date(t)
-      const snap = activeSibsinForDay(
-        date,
-        dayMaster,
-        natal.saju.daeun,
-        bMonth,
-        bDate,
-        snapCache,
-      )
+      const snap = activeSibsinForDay(date, dayMaster, natal.saju.daeun, bMonth, bDate, snapCache)
       const active = snapshotSet(snap)
       const dayIso = date.toISOString().slice(0, 10)
 
@@ -419,16 +428,15 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
         if (!detail) continue
 
         // 상관견관 polarity 격상: 본명 정관 2+ → −3
-        const polarity: Polarity =
-          (detail.polarityAdjusted as Polarity | undefined) ?? pat.polarity
+        const polarity: Polarity = (detail.polarityAdjusted as Polarity | undefined) ?? pat.polarity
 
         signals.push({
           id: `saju.applied-pattern.${pat.id}.${dayIso}`,
           source: 'saju',
           kind: 'applied-pattern' as SignalKind,
           name: `${pat.name} (${pat.korean})`,
-          korean: pat.korean,
-          themes: pat.themes,
+          korean: `${pat.korean} — ${APPLIED_FLOW[pat.id] ?? ''}`.replace(/ — $/, ''),
+          english: APPLIED_FLOW_EN[pat.id] ?? pat.id,
           polarity,
           layer: 'daily',
           active: {

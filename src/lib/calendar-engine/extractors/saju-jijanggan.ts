@@ -2,6 +2,7 @@ import { STEMS, BRANCHES, JIJANGGAN, getSolarTermKST } from '@/lib/saju/constant
 import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
+import { iga, eulReul, waGwa } from '@/lib/i18n/koParticle'
 import type {
   ActiveSignal,
   ExtractorContext,
@@ -48,8 +49,8 @@ import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
  */
 
 const JIJANGGAN_LAYER_WEIGHT: Record<string, number> = {
-  정기: 0.70,
-  중기: 0.50,
+  정기: 0.7,
+  중기: 0.5,
   여기: 0.35,
 }
 
@@ -57,6 +58,14 @@ const JIJANGGAN_LABEL: Record<string, string> = {
   정기: '본기',
   중기: '중기',
   여기: '여기',
+}
+
+// 본명 기둥 위치 영문 키 → 한글(사용자 노출 라벨 일관).
+const POS_KO: Record<string, string> = {
+  year: '년주',
+  month: '월주',
+  day: '일주',
+  time: '시주',
 }
 
 // 천간합 페어 — 본명 천간과 시기 지장간이 만나면 암합(暗合) 활성.
@@ -84,14 +93,91 @@ const STEM_COMBINE: Record<string, { pair: string; transform: FiveElement }> = {
 // 않고 본명 일지·시기 지지의 지장간 3층 매트릭스만 돌리면 정통 지지충 본기
 // 페어가 모두 자동 검출된다.
 const STEM_CLASH: Set<string> = new Set([
-  '甲-庚', '庚-甲', '乙-辛', '辛-乙',
-  '丙-壬', '壬-丙', '丁-癸', '癸-丁',
+  '甲-庚',
+  '庚-甲',
+  '乙-辛',
+  '辛-乙',
+  '丙-壬',
+  '壬-丙',
+  '丁-癸',
+  '癸-丁',
 ])
 
 interface StemInfoLite {
   name: string
   element: FiveElement
   yin_yang: YinYang
+}
+
+// ── 지장간 신호 흐름(flow) 한 줄 ── 기술적 name(통근/암합/충)을 사용자 voice 로.
+const ELEMENT_EN: Record<FiveElement, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+// 지장간 층 EN — raw 키(정기/중기/여기) 기준.
+const LAYER_LABEL_EN: Record<string, string> = {
+  정기: 'primary qi',
+  중기: 'middle qi',
+  여기: 'residual qi',
+}
+const POS_EN: Record<string, string> = {
+  year: 'year pillar',
+  month: 'month pillar',
+  day: 'day pillar',
+  time: 'hour pillar',
+}
+
+function tonggeunFlowLine(branchName: string, layerLabel: string, positive: boolean): string {
+  const j = iga(layerLabel)
+  return positive
+    ? `${branchName}의 지장간 ${layerLabel}${j} 본명 일간의 뿌리를 단단히 받쳐주는 흐름이에요`
+    : `${branchName}의 지장간 ${layerLabel}${j} 이미 강한 기운에 더해져 과해지기 쉬운 흐름이에요`
+}
+function tonggeunFlowLineEn(branchName: string, layerEn: string, positive: boolean): string {
+  return positive
+    ? `the ${layerEn} hidden in ${branchName} firmly roots your day master — a strengthening flow`
+    : `the ${layerEn} hidden in ${branchName} piles onto an already-strong force — easy to overdo`
+}
+
+function amhapFlowLine(
+  branchName: string,
+  posKo: string,
+  transform: FiveElement,
+  polarity: Polarity
+): string {
+  if (polarity > 0)
+    return `${branchName}의 숨은 지장간이 본명 ${posKo}${waGwa(posKo)} 몰래 어울려(암합) ${transform} 기운을 도움으로 끌어오는 흐름이에요`
+  if (polarity < 0)
+    return `${branchName}의 숨은 지장간이 본명 ${posKo}${eulReul(posKo)} 묶어(암합) ${transform} 기운이 발목을 잡는 흐름이에요`
+  return `${branchName}의 숨은 지장간이 본명 ${posKo}${waGwa(posKo)} 약하게 얽히는(암합) 흐름이에요`
+}
+function amhapFlowLineEn(
+  branchName: string,
+  posEn: string,
+  transform: FiveElement,
+  polarity: Polarity
+): string {
+  const el = ELEMENT_EN[transform]
+  if (polarity > 0)
+    return `the hidden stem in ${branchName} secretly combines with your natal ${posEn} — drawing ${el} energy in as support`
+  if (polarity < 0)
+    return `the hidden stem in ${branchName} binds your natal ${posEn} — ${el} energy holds you back`
+  return `the hidden stem in ${branchName} lightly entangles your natal ${posEn} (hidden combine)`
+}
+
+function chungFlowLine(branchName: string, layerLabel: string, strong: boolean): string {
+  const j = iga(layerLabel)
+  return strong
+    ? `${branchName}의 지장간 ${layerLabel}${j} 본명 일지와 정면으로 부딪쳐(충) 뿌리가 크게 흔들리는 흐름이에요`
+    : `${branchName}의 지장간 ${layerLabel}${j} 본명 일지와 부딪쳐(충) 뿌리가 흔들리는 흐름이에요`
+}
+function chungFlowLineEn(branchName: string, layerEn: string, strong: boolean): string {
+  return strong
+    ? `the ${layerEn} in ${branchName} clashes head-on with your natal day branch — roots shaken hard`
+    : `the ${layerEn} in ${branchName} clashes with your natal day branch — roots wobble`
 }
 
 const sajuJijangganExtractor: SignalExtractor = {
@@ -222,7 +308,7 @@ const sajuJijangganExtractor: SignalExtractor = {
           natalDayBranchJijanggan,
           monthElement,
           active: { start: mStart, peak: mPeak, end: mEnd },
-          baseWeight: 0.70,
+          baseWeight: 0.7,
         })
       }
       monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1)
@@ -296,7 +382,8 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
         source: 'saju',
         kind: 'jijanggan',
         name: `${args.branchName} 지장간 ${layerLabel}(${stemName}) 통근`,
-        themes: [],
+        korean: tonggeunFlowLine(args.branchName, layerLabel, polarity > 0),
+        english: tonggeunFlowLineEn(args.branchName, LAYER_LABEL_EN[layer] ?? layer, polarity > 0),
         polarity,
         layer: args.layer,
         active: args.active,
@@ -340,21 +427,32 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
           let polarity: Polarity = basePolarity
           let weightMul = 0.9
           if (gate.status === 'full') {
-            weightMul = 0.9 * (gate.adjacencyBonus ? 1.10 : 1.0)
+            weightMul = 0.9 * (gate.adjacencyBonus ? 1.1 : 1.0)
           } else if (gate.status === 'partial') {
             // 극성 그대로 두되 강도만 절감.
-            weightMul = 0.9 * 0.70 * (gate.adjacencyBonus ? 1.10 : 1.0)
+            weightMul = 0.9 * 0.7 * (gate.adjacencyBonus ? 1.1 : 1.0)
           } else {
             // failed — 합반 같은 무력 상태. polarity 중립화 + 강도 대폭 절감.
             polarity = 0
-            weightMul = 0.9 * 0.30
+            weightMul = 0.9 * 0.3
           }
           out.push({
             id: `${args.idPrefix}.amhap.${layer}.${stemName}-${ns.name}`,
             source: 'saju',
             kind: 'jijanggan',
-            name: `${args.branchName} 지장간 ${layerLabel}(${stemName}) ↔ 본명 ${ns.pos} ${ns.name} 암합`,
-            themes: [],
+            name: `${args.branchName} 지장간 ${layerLabel}(${stemName}) ↔ 본명 ${POS_KO[ns.pos] ?? ns.pos}(${ns.name}) 암합`,
+            korean: amhapFlowLine(
+              args.branchName,
+              POS_KO[ns.pos] ?? ns.pos,
+              combineDef.transform,
+              polarity
+            ),
+            english: amhapFlowLineEn(
+              args.branchName,
+              POS_EN[ns.pos] ?? ns.pos,
+              combineDef.transform,
+              polarity
+            ),
             polarity,
             layer: args.layer,
             active: args.active,
@@ -396,7 +494,12 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
           source: 'saju',
           kind: 'jijanggan',
           name: `${args.branchName} 지장간 ${layerLabel}(${stemName}) ↔ 본명 일지 ${JIJANGGAN_LABEL[natalLayer] ?? natalLayer}(${natalStem}) 충`,
-          themes: [],
+          korean: chungFlowLine(args.branchName, layerLabel, ladder.tier === 'jeonggi-jeonggi'),
+          english: chungFlowLineEn(
+            args.branchName,
+            LAYER_LABEL_EN[layer] ?? layer,
+            ladder.tier === 'jeonggi-jeonggi'
+          ),
           polarity: ladder.polarity,
           layer: args.layer,
           active: args.active,
@@ -551,7 +654,8 @@ function isHwagiEstablished(
   }
 
   // 3) 인접도 — month/day 또는 day/time 페어면 보너스.
-  const adjacencyBonus = natalPairPos === 'month' || natalPairPos === 'day' || natalPairPos === 'time'
+  const adjacencyBonus =
+    natalPairPos === 'month' || natalPairPos === 'day' || natalPairPos === 'time'
   // 실제 인접 페어 검증: 시기 지장간은 시기 지지 안에 있어 본명 4기둥 천간과의
   // 인접 정의가 모호하지만, 본명 천간이 月·日·時 중 月-日, 日-時 인접 위치면
   // 본명 내 합 페어 응답성이 강함을 인정해 보너스 부여.
@@ -618,9 +722,16 @@ function chungLadder(
  * 본명 4기둥의 천간 4개 + 일주·시주 등 위치 정보를 수집.
  * 암합 페어 매칭에 사용 — 어느 위치의 천간이 시기 지장간과 합되는지 추적.
  */
-function collectNatalStems(
-  natal: { saju: { pillars: { year: { heavenlyStem?: { name: string } }; month: { heavenlyStem?: { name: string } }; day: { heavenlyStem?: { name: string } }; time: { heavenlyStem?: { name: string } } } } }
-): Array<{ pos: string; name: string; info: StemInfoLite }> {
+function collectNatalStems(natal: {
+  saju: {
+    pillars: {
+      year: { heavenlyStem?: { name: string } }
+      month: { heavenlyStem?: { name: string } }
+      day: { heavenlyStem?: { name: string } }
+      time: { heavenlyStem?: { name: string } }
+    }
+  }
+}): Array<{ pos: string; name: string; info: StemInfoLite }> {
   const out: Array<{ pos: string; name: string; info: StemInfoLite }> = []
   const positions: Array<{ pos: string; stem?: string }> = [
     { pos: 'year', stem: natal.saju.pillars.year.heavenlyStem?.name },

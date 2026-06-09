@@ -17,6 +17,7 @@
 import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 import type { AspectType, Chart, ExtraPoint, PlanetBase } from '@/lib/astrology/foundation/types'
 
 const ASPECT_TITLE: Record<AspectType, string> = {
@@ -55,21 +56,12 @@ const PLANET_LABEL: Record<string, string> = {
 // v2: KO planet names + aspect symbols (compat counselor is KO-facing, mirrors
 // the destiny layer's compact style). Drops the verbose "in Sign … (Orb: …)".
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
-  'True Node': '노드',
-  'South Node': '남노드',
-  Ascendant: '상승',
-  MC: '중천',
-  Chiron: '키론',
+  ...PLANET_KO_BASE,
+  'True Node': '북교점',
+  'South Node': '남교점',
+  Ascendant: '상승점',
+  MC: '중천점',
+  Chiron: '카이런',
   Lilith: '릴리스',
   PartOfFortune: '포춘',
   Vertex: '버텍스',
@@ -244,9 +236,18 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   // Mercury) 가 상대의 어느 하우스에 떨어지는지 + 그 하우스 의미까지 명시.
   // 외행성은 동세대 공통이라 생략.
   const HOUSE_MEANING_KO: Record<number, string> = {
-    1: '자아·인상', 2: '재물·가치', 3: '소통·일상', 4: '가정·뿌리',
-    5: '연애·즐거움', 6: '일·습관', 7: '동반자·결혼', 8: '깊은 결합·변환',
-    9: '신념·확장', 10: '커리어·지위', 11: '친구·미래', 12: '내면·비밀',
+    1: '자아·인상',
+    2: '재물·가치',
+    3: '소통·일상',
+    4: '가정·뿌리',
+    5: '연애·즐거움',
+    6: '일·습관',
+    7: '동반자·결혼',
+    8: '깊은 결합·변환',
+    9: '신념·확장',
+    10: '커리어·지위',
+    11: '친구·미래',
+    12: '내면·비밀',
   }
   const PERSONAL_FOR_OVERLAY = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars'])
   const overlayLinesAtoB: string[] = []
@@ -272,7 +273,9 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const ascLine = `상승점 ${labelA} ${ascA} / ${labelB} ${ascB}`
 
   const out: string[] = ['== 시너스트리 (점성 cross) ==']
-  out.push(`[고정] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄: A행성 [관계어] B행성 오차° — [결합]끌어당김 [대립]팽팽 [조화]자연스러움 [긴장]마찰 [협력]보완 [미세조정]계속 맞춰가야)`)
+  out.push(
+    `[고정] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄: A행성 [관계어] B행성 오차° — [결합]끌어당김 [대립]팽팽 [조화]자연스러움 [긴장]마찰 [협력]보완 [미세조정]계속 맞춰가야)`
+  )
   if (criticalShown.length) {
     out.push('[CRITICAL · 개인행성 cross orb≤3°]')
     out.push(criticalShown.map((c) => c.line).join('\n'))

@@ -14,8 +14,9 @@
  * 분포를 실측하고 분위수(p95≈74 / p80≈64 / p30≈46 / p5≈33) 격자 탐색으로
  * 목표 오차 최소화 → 실측 분포 5.8 / 15.3 / 50.1 / 23.7 / 5.2 로 수렴.
  *
- * ※ UI 3단계 사본 src/components/calendar/scoreGrade.ts(luckyMin/unluckyMax)
- *   와 경계를 동기화할 것: 좋은날=grade≤1=≥64, 조심할날=grade≥3=<46.
+ * ※ UI 3단계는 이 엔진 등급에서 파생(destinypal tiers 렌더):
+ *   좋은날=grade≤1=≥64, 조심할날=grade≥3=<46. (옛 사본
+ *   src/components/calendar/scoreGrade.ts 는 #1282 에서 제거됨.)
  * ※ 임계값 변경 시 migration-baseline golden 재생성 필요
  *   (UPDATE_CALENDAR_GOLDEN=1 npx vitest run …/migration-golden.test.ts).
  */

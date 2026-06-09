@@ -45,7 +45,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -94,7 +95,7 @@
 }
 
 .retryButton {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #ef4444 0%, var(--ds-error) 100%);
   border: none;
   color: #ffffff;
   box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);

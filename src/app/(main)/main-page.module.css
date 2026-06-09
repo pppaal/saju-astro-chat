@@ -20,7 +20,7 @@
      between dark/light states. The cosmic gradient lives on a separate
      .cosmicBackdrop layer that opacity-fades out when the user crosses
      into the premium-white state (see MainPageClient.tsx). */
-  background-color: #07091a;
+  background-color: var(--ds-dark-bg);
 }
 
 .cosmicBackdrop {
@@ -716,7 +716,6 @@
   flex: 0 0 auto;
 }
 
-
 .homeChatBar {
   /* 상담사(.chatMain)와 입력박스 폭을 픽셀 단위로 동일하게 맞춤 — 페이지
      이동 시 cross-fade 중 폭 차이가 보이지 않도록.
@@ -772,7 +771,7 @@
      compat · counselor chat 등)" 정책. 생년월일 입력도 개인 데이터라
      모든 폼 (compat PersonCard / ProfileEditModal / CircleAddModal) 와
      동일하게 흰색 카드 + 잉크 텍스트 통일. */
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   background: #ffffff;
   padding: 1.5rem;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
@@ -783,14 +782,14 @@
 
 .modalTitle {
   margin: 0;
-  color: #1c1917;
+  color: var(--ds-light-text);
   font-size: 1.2rem;
   font-weight: 700;
 }
 
 .modalSubtitle {
   margin: -0.5rem 0 0;
-  color: #78716c;
+  color: var(--ds-ring-neutral);
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -811,9 +810,9 @@
 .modalInput {
   padding: 0.7rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   background: #ffffff;
-  color: #1c1917;
+  color: var(--ds-light-text);
   /* 16px — iOS Safari 자동 줌-인(<16px) 방지 + 다른 모든 라이트 입력
      (ProfileEditModal / PersonCard) 와 정렬. */
   font-size: 16px;
@@ -824,11 +823,11 @@
 }
 
 .modalInput::placeholder {
-  color: #a8a29e;
+  color: var(--ds-light-text-subtle);
 }
 
 .modalInput:focus-visible {
-  border-color: #a8a29e;
+  border-color: var(--ds-light-text-subtle);
   box-shadow: 0 0 0 3px rgba(168, 162, 158, 0.18);
 }
 
@@ -848,9 +847,9 @@
   flex: 1;
   padding: 0.85rem;
   border-radius: 14px;
-  border: 1px solid #e7e5e4;
+  border: 1px solid var(--ds-light-border);
   background: transparent;
-  color: #57534e;
+  color: var(--ds-light-text-muted);
   font-size: 0.92rem;
   font-weight: 500;
   cursor: pointer;
@@ -860,8 +859,8 @@
 }
 
 .modalCancel:hover {
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--ds-light-bg-soft);
+  color: var(--ds-light-text);
 }
 
 .modalSave {
@@ -870,7 +869,7 @@
   border-radius: 14px;
   border: none;
   /* 골드 솔리드 — 브랜드 액션 (profile/compat save 와 동일 톤). */
-  background: linear-gradient(135deg, #d4b572, #d4b572);
+  background: linear-gradient(135deg, var(--ds-gold-on-dark), var(--ds-gold-on-dark));
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
@@ -890,7 +889,7 @@
   border-radius: 14px;
   border: 1px solid rgba(220, 38, 38, 0.35);
   background: transparent;
-  color: #dc2626;
+  color: var(--ds-error);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -913,7 +912,7 @@
   border-radius: 12px;
   border: 1px solid rgba(160, 122, 60, 0.3);
   background: rgba(160, 122, 60, 0.08);
-  color: #1c1917;
+  color: var(--ds-light-text);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -952,7 +951,7 @@
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: #1c1917;
+  color: var(--ds-light-text);
   cursor: pointer;
   font-size: 0.88rem;
 }
@@ -1158,7 +1157,7 @@
 }
 
 .lightMode .homeChatEyebrow {
-  color: #a07a3c;
+  color: var(--ds-gold);
 }
 
 /* Birth helper — chat bar 아래 "프로필과 다를 수 있음" 안내. 사용자가
@@ -1187,15 +1186,15 @@
 
 .lightMode .homeTopBarHamburger {
   background: transparent;
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightMode .homeTopBarHamburgerBar {
-  background: #1c1917;
+  background: var(--ds-light-text);
 }
 
 .lightMode .homeTopBarLogo {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightMode .homeTopBarLogin {
@@ -1208,11 +1207,11 @@
 }
 
 .lightMode .homeHeadline {
-  color: #1c1917;
+  color: var(--ds-light-text);
 }
 
 .lightMode .homeSubline {
-  color: #57534e;
+  color: var(--ds-light-text-muted);
 }
 
 .lightMode .homeOrnament {

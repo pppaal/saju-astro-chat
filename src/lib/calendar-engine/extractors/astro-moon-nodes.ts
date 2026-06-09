@@ -1,6 +1,6 @@
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
-import { inferAspectPolarity } from '../themes/tagger'
+import { inferAspectPolarity } from '../aspect-polarity'
 import { getCachedTransitChart } from '../ephe-cache'
 import { shortestAngle } from '@/lib/astrology/foundation/utils'
 
@@ -84,19 +84,21 @@ const astroMoonNodesExtractor: SignalExtractor = {
       const endIso = group[group.length - 1].iso
 
       const sample = group[0]
-      const polarity: Polarity = sample.nodeKind === 'north'
-        ? (inferAspectPolarity('conjunction', 'Jupiter', sample.natalPoint) >= 0 ? 2 : 1)
-        : -1
+      const polarity: Polarity =
+        sample.nodeKind === 'north'
+          ? inferAspectPolarity('conjunction', 'Jupiter', sample.natalPoint) >= 0
+            ? 2
+            : 1
+          : -1
 
       signals.push({
         id: `astro.moon-node.${key}.${startIso.slice(0, 10)}`,
         source: 'astro',
         kind: 'transit',
         name: `${sample.nodeKind === 'north' ? 'North Node' : 'South Node'} ☌ ${sample.natalPoint}`,
-        korean: `${sample.nodeKind === 'north' ? '북노드 (성장)' : '남노드 (과거)'} 컨정션 본명 ${sample.natalPoint}`,
-        themes: ['growth'],
+        korean: `${sample.nodeKind === 'north' ? '북교점 (성장)' : '남교점 (과거)'} 컨정션 본명 ${sample.natalPoint}`,
         polarity,
-        layer: 'yearly',   // 노드는 천천히 움직임
+        layer: 'yearly', // 노드는 천천히 움직임
         active: { start: startIso, peak: tightest.iso, end: endIso },
         weight: 0.8,
         evidence: {
@@ -112,6 +114,5 @@ const astroMoonNodesExtractor: SignalExtractor = {
     return signals
   },
 }
-
 
 export default astroMoonNodesExtractor

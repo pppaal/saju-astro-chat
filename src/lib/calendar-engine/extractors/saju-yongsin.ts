@@ -36,16 +36,21 @@ const sajuYongsinExtractor: SignalExtractor = {
       if (new Date(endIso) < rangeStart || new Date(startIso) > rangeEnd) continue
       const peakIso = new Date(Date.UTC(d.startYear + 5, 0, 1)).toISOString()
 
-      signals.push(buildSignal({
-        idSuffix: `daeun.${d.startYear}.${d.stem}.${verdict.kind}`,
-        name: `${verdict.label} — ${d.stem}${d.branch} 대운`,
-        polarity: verdict.polarity,
-        layer: 'decadal',
-        weight: 0.95,
-        startIso, peakIso, endIso,
-        element, verdict: verdict.kind,
-        yongsinPrimary: yongsin.primary,
-      }))
+      signals.push(
+        buildSignal({
+          idSuffix: `daeun.${d.startYear}.${d.stem}.${verdict.kind}`,
+          name: `${verdict.label} — ${d.stem}${d.branch} 대운`,
+          polarity: verdict.polarity,
+          layer: 'decadal',
+          weight: 0.95,
+          startIso,
+          peakIso,
+          endIso,
+          element,
+          verdict: verdict.kind,
+          yongsinPrimary: yongsin.primary,
+        })
+      )
     }
 
     // ─── 세운 ───
@@ -63,16 +68,21 @@ const sajuYongsinExtractor: SignalExtractor = {
       const yEnd = new Date(Date.UTC(year + 1, 1, 3, 23, 59, 59)).toISOString()
       const yPeak = new Date(Date.UTC(year, 6, 1)).toISOString()
 
-      signals.push(buildSignal({
-        idSuffix: `seun.${year}.${yp.stem}.${verdict.kind}`,
-        name: `${verdict.label} — ${yp.stem}${yp.branch} 세운`,
-        polarity: verdict.polarity,
-        layer: 'yearly',
-        weight: 0.8,
-        startIso: yStart, peakIso: yPeak, endIso: yEnd,
-        element, verdict: verdict.kind,
-        yongsinPrimary: yongsin.primary,
-      }))
+      signals.push(
+        buildSignal({
+          idSuffix: `seun.${year}.${yp.stem}.${verdict.kind}`,
+          name: `${verdict.label} — ${yp.stem}${yp.branch} 세운`,
+          polarity: verdict.polarity,
+          layer: 'yearly',
+          weight: 0.8,
+          startIso: yStart,
+          peakIso: yPeak,
+          endIso: yEnd,
+          element,
+          verdict: verdict.kind,
+          yongsinPrimary: yongsin.primary,
+        })
+      )
     }
 
     // ─── 월운 ───
@@ -85,19 +95,28 @@ const sajuYongsinExtractor: SignalExtractor = {
         const verdict = classify(element, yongsin)
         if (verdict) {
           const mStart = monthCursor.toISOString()
-          const mEnd = new Date(Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth() + 1, 0, 23, 59, 59)).toISOString()
-          const mPeak = new Date(Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)).toISOString()
+          const mEnd = new Date(
+            Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth() + 1, 0, 23, 59, 59)
+          ).toISOString()
+          const mPeak = new Date(
+            Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
+          ).toISOString()
 
-          signals.push(buildSignal({
-            idSuffix: `wolun.${monthCursor.getUTCFullYear()}-${monthCursor.getUTCMonth() + 1}.${mp.stem}.${verdict.kind}`,
-            name: `${verdict.label} — ${mp.stem}${mp.branch} 월운`,
-            polarity: verdict.polarity,
-            layer: 'monthly',
-            weight: 0.6,
-            startIso: mStart, peakIso: mPeak, endIso: mEnd,
-            element, verdict: verdict.kind,
-            yongsinPrimary: yongsin.primary,
-          }))
+          signals.push(
+            buildSignal({
+              idSuffix: `wolun.${monthCursor.getUTCFullYear()}-${monthCursor.getUTCMonth() + 1}.${mp.stem}.${verdict.kind}`,
+              name: `${verdict.label} — ${mp.stem}${mp.branch} 월운`,
+              polarity: verdict.polarity,
+              layer: 'monthly',
+              weight: 0.6,
+              startIso: mStart,
+              peakIso: mPeak,
+              endIso: mEnd,
+              element,
+              verdict: verdict.kind,
+              yongsinPrimary: yongsin.primary,
+            })
+          )
         }
       }
       monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1)
@@ -115,11 +134,12 @@ interface Verdict {
 
 function classify(
   element: FiveElement,
-  yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] },
+  yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
 ): Verdict | null {
-  if (element === yongsin.primary)   return { kind: 'primary',   label: '용신 활성',    polarity: 3 }
-  if (element === yongsin.secondary) return { kind: 'secondary', label: '희신 활성',    polarity: 2 }
-  if (yongsin.avoid.includes(element)) return { kind: 'avoid',   label: '기신/구신 활성', polarity: -2 }
+  if (element === yongsin.primary) return { kind: 'primary', label: '용신 활성', polarity: 3 }
+  if (element === yongsin.secondary) return { kind: 'secondary', label: '희신 활성', polarity: 2 }
+  if (yongsin.avoid.includes(element))
+    return { kind: 'avoid', label: '기신/구신 활성', polarity: -2 }
   return null
 }
 
@@ -137,14 +157,58 @@ interface BuildArgs {
   yongsinPrimary: FiveElement
 }
 
+// 용신/희신/기신이 운으로 들어올 때의 흐름(flow) 한 줄. 기간 라벨로 감싼다.
+const PERIOD_LABEL: Record<BuildArgs['layer'], string> = {
+  decadal: '대운이에요',
+  yearly: '한 해예요',
+  monthly: '한 달이에요',
+}
+const PERIOD_LABEL_EN: Record<BuildArgs['layer'], string> = {
+  decadal: 'decade',
+  yearly: 'year',
+  monthly: 'month',
+}
+const ELEMENT_EN: Record<FiveElement, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+
+function verdictFlowLine(
+  verdict: BuildArgs['verdict'],
+  element: FiveElement,
+  layer: BuildArgs['layer']
+): string {
+  const period = PERIOD_LABEL[layer]
+  if (verdict === 'primary')
+    return `내게 가장 필요한 ${element} 기운이 들어와 흐름이 트이는 ${period}`
+  if (verdict === 'secondary') return `나를 돕는 ${element} 기운이 더해져 한결 수월한 ${period}`
+  return `나를 흔드는 ${element} 기운이 들어와 조심해야 할 ${period}`
+}
+
+function verdictFlowLineEn(
+  verdict: BuildArgs['verdict'],
+  element: FiveElement,
+  layer: BuildArgs['layer']
+): string {
+  const el = ELEMENT_EN[element]
+  const period = PERIOD_LABEL_EN[layer]
+  if (verdict === 'primary')
+    return `the ${el} energy you most need flows in — a ${period} when your path opens up`
+  if (verdict === 'secondary') return `supportive ${el} energy is added — a smoother ${period}`
+  return `unsettling ${el} energy flows in — a ${period} to stay careful`
+}
+
 function buildSignal(a: BuildArgs): ActiveSignal {
   return {
     id: `saju.yongsin.${a.idSuffix}`,
     source: 'saju',
     kind: 'pillar-sibsin',
     name: a.name,
-    korean: a.name,
-    themes: [],
+    korean: verdictFlowLine(a.verdict, a.element, a.layer),
+    english: verdictFlowLineEn(a.verdict, a.element, a.layer),
     polarity: a.polarity,
     layer: a.layer,
     active: { start: a.startIso, peak: a.peakIso, end: a.endIso },
