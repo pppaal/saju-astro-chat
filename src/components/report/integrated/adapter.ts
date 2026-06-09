@@ -28,6 +28,7 @@ import {
 } from '@/lib/report/natalCross'
 import { getSouthNodeOppositeSign } from '@/lib/astrology/interpretations'
 import { getGongmang } from '@/lib/saju/pillarLookup'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 
 // 5-tier (정통) → 단일 라벨. 우선순위는 score 절댓값과 일치.
 // domicile/exaltation/detriment/fall 4 종을 먼저 — 라벨 자체가 강한 의미.
@@ -84,16 +85,7 @@ const PLANET_GLYPH: Record<string, string> = {
   Lilith: '⚸',
 }
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
+  ...PLANET_KO_BASE,
   'North Node': '북교점',
   Node: '북교점',
   Chiron: '카이런',

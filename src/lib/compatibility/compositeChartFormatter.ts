@@ -14,26 +14,15 @@
 
 import type { Chart, PlanetBase, ZodiacKo } from '@/lib/astrology/foundation/types'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 
 // 관계 해석에 핵심인 점들만 composite — 외행성(목성~명왕성·노드) 은
 // generational 라 두 사람만의 신호로 약함. 루미너리 + 개인 행성 + ASC/MC.
-const COMPOSITE_POINTS = new Set([
-  'Sun',
-  'Moon',
-  'Mercury',
-  'Venus',
-  'Mars',
-  'Ascendant',
-  'MC',
-])
+const COMPOSITE_POINTS = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Ascendant', 'MC'])
 
 // 한글 행성명 (synastry formatter 와 동일 톤).
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
+  ...PLANET_KO_BASE,
   Ascendant: 'ASC',
   MC: 'MC',
 }
@@ -51,13 +40,32 @@ const ASP_SYM: Record<string, string> = {
 
 // ZodiacKo 타입은 영어 12 zodiac (Aries..Pisces). 한글 노출용 별도 매핑.
 const ZODIAC_EN: ZodiacKo[] = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
 ]
 const ZODIAC_KO_LABEL: Record<ZodiacKo, string> = {
-  Aries: '양자리', Taurus: '황소', Gemini: '쌍둥이', Cancer: '게', Leo: '사자',
-  Virgo: '처녀', Libra: '천칭', Scorpio: '전갈', Sagittarius: '사수',
-  Capricorn: '염소', Aquarius: '물병', Pisces: '물고기',
+  Aries: '양자리',
+  Taurus: '황소',
+  Gemini: '쌍둥이',
+  Cancer: '게',
+  Leo: '사자',
+  Virgo: '처녀',
+  Libra: '천칭',
+  Scorpio: '전갈',
+  Sagittarius: '사수',
+  Capricorn: '염소',
+  Aquarius: '물병',
+  Pisces: '물고기',
 }
 
 interface CompositeInput {
@@ -78,7 +86,7 @@ function cyclicMidpoint(a: number, b: number): number {
   let diff = B - A
   if (diff > 180) diff -= 360
   else if (diff < -180) diff += 360
-  return ((A + diff / 2) % 360 + 360) % 360
+  return (((A + diff / 2) % 360) + 360) % 360
 }
 
 function signFromLongitude(lon: number): { sign: ZodiacKo; degree: number; minute: number } {
@@ -138,10 +146,26 @@ export function formatCompositeChart(input: CompositeInput): string {
     planets: compPlanets,
     ascendant:
       compPlanets.find((p) => p.name === 'Ascendant') ??
-      ({ name: 'Ascendant', longitude: 0, sign: 'Aries', degree: 0, minute: 0, formatted: '', house: 1 } satisfies PlanetBase),
+      ({
+        name: 'Ascendant',
+        longitude: 0,
+        sign: 'Aries',
+        degree: 0,
+        minute: 0,
+        formatted: '',
+        house: 1,
+      } satisfies PlanetBase),
     mc:
       compPlanets.find((p) => p.name === 'MC') ??
-      ({ name: 'MC', longitude: 0, sign: 'Aries', degree: 0, minute: 0, formatted: '', house: 10 } satisfies PlanetBase),
+      ({
+        name: 'MC',
+        longitude: 0,
+        sign: 'Aries',
+        degree: 0,
+        minute: 0,
+        formatted: '',
+        house: 10,
+      } satisfies PlanetBase),
     houses: [],
   }
 

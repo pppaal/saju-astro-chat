@@ -13,6 +13,7 @@ import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/
 import { formatAstroSelf } from '@/lib/facts/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/facts/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 import { isHyeong } from '@/lib/saju/hyeong'
 import { getNowInTimezone } from '@/lib/datetime'
 import type { DayMaster } from '@/lib/saju/types'
@@ -49,16 +50,7 @@ const HOUSE_THEME_EN: Record<number, string> = {
 export type Locale = 'ko' | 'en'
 
 const PLANET_KO_A: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
+  ...PLANET_KO_BASE,
   Node: '노드',
   'True Node': '노드',
   'North Node': '노드',

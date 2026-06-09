@@ -32,6 +32,7 @@ import type {
   Polarity,
 } from '@/types/calendar'
 import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 import styles from './DayTier.module.css'
 
 // ============================================================================
@@ -104,18 +105,6 @@ function catLabel(cat: string): string {
 }
 
 const OUTER_PLANETS = new Set(['Saturn', 'Uranus', 'Neptune', 'Pluto'])
-const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
-}
 
 const ASPECT_EN: Record<string, string> = {
   합: 'conjunction',

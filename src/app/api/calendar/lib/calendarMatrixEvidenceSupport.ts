@@ -4,6 +4,7 @@ import type { DomainKey, MonthlyOverlapPoint } from '@/lib/calendar-engine/matri
 import type { MatrixCalendarContext } from './calendarMatrixTextSupport'
 import { GRADE_THRESHOLDS, EVIDENCE_CONFIDENCE_THRESHOLDS } from '@/lib/calendar/scoring-config'
 import { getFactorTranslation } from './translations'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 import {
   describeCrossAgreement,
   describeCrossEvidenceBridge,
@@ -63,13 +64,7 @@ const ASPECT_WORD_EN: Record<AspectEvidenceLite['aspect'], string> = {
 }
 
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
+  ...PLANET_KO_BASE,
   'Natal Sun': '본명 태양',
 }
 

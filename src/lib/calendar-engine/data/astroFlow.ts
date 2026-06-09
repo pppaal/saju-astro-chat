@@ -11,19 +11,11 @@
 
 import { getAspectMeaning, getPlanetCore, type Lang } from '@/lib/chart-dictionary'
 import { iga, waGwa } from '@/lib/i18n/koParticle'
+import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 
 // 행성·앵글·감응점 KO 표기 (사용자 노출 라벨 일관).
 const POINT_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
+  ...PLANET_KO,
   Ascendant: '상승점',
   ASC: '상승점',
   Descendant: '하강점',
