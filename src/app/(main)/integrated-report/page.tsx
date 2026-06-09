@@ -11,6 +11,8 @@ import { buildReportContext } from './buildReportContext'
 import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 import { getServerLocale } from '@/components/seo/SEO'
+import { cookies } from 'next/headers'
+import { fromZonedTime } from 'date-fns-tz'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,10 +25,20 @@ export default async function IntegratedReportPage({
   searchParams: Promise<SP>
 }) {
   const sp = await searchParams
-  // 로케일 — 서버 기본(getServerLocale) + ?lang / ?locale 쿼리 오버라이드.
+  // 로케일 — 메인화면(I18nProvider/언어토글)이 쓰는 'locale' 쿠키를 그대로 따라감.
+  // ?lang/?locale 쿼리가 있으면 그게 우선, 없으면 쿠키, 그것도 없으면 헤더(getServerLocale).
   const langOverride = one(sp.lang) ?? one(sp.locale)
+  const cookieLocale = (await cookies()).get('locale')?.value
   const lang: 'ko' | 'en' =
-    langOverride === 'en' ? 'en' : langOverride === 'ko' ? 'ko' : await getServerLocale()
+    langOverride === 'en'
+      ? 'en'
+      : langOverride === 'ko'
+        ? 'ko'
+        : cookieLocale === 'ko'
+          ? 'ko'
+          : cookieLocale === 'en'
+            ? 'en'
+            : await getServerLocale()
   const birthDate = one(sp.date) ?? '1992-03-15'
   const birthTime = one(sp.time) ?? '09:20'
   const latitude = Number(one(sp.lat) ?? 37.5665)
@@ -50,7 +62,15 @@ export default async function IntegratedReportPage({
     gender,
     place: one(sp.place) ?? (lang === 'en' ? 'Seoul, Republic of Korea' : '대한민국 서울'),
     timeZone,
-    isoUTC: '',
+    isoUTC: (() => {
+      try {
+        // 출생 현지시각(birthDate+birthTime, timeZone) → UTC 환산 표시.
+        const utc = fromZonedTime(`${birthDate}T${(birthTime || '00:00').slice(0, 5)}:00`, timeZone)
+        return `${utc.toISOString().slice(0, 16).replace('T', ' ')} UTC`
+      } catch {
+        return ''
+      }
+    })(),
   }
 
   const data = natalToReportData(ctx, lang)
