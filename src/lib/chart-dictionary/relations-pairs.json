@@ -354,12 +354,12 @@
     },
     "丑戌未": {
       "ko": {
-        "type": "無禮之刑",
+        "type": "持勢之刑",
         "meaning": "소·개·양의 지세형(持勢刑) — 세력을 믿고 밀어붙이다 가까운 사이에 다툼이 생기는 형입니다.",
         "personality": "친밀할수록 말과 태도가 거칠어지기 쉬우니, 절제와 존중이 중요합니다."
       },
       "en": {
-        "type": "Discourtesy Punishment",
+        "type": "Power-Reliance Punishment",
         "meaning": "Ox, Dog, and Goat — the punishment of overreliance on power, where leaning on one's strength breeds conflict among those closest.",
         "personality": "The nearer the bond, the rougher words may turn — restraint and respect are vital."
       }
