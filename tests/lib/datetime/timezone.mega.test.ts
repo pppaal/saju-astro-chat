@@ -53,9 +53,11 @@ describe('timezone utilities', () => {
       expect(result.day).toBeLessThanOrEqual(31);
     });
 
-    it('should use Asia/Seoul as default timezone', () => {
+    it('should use UTC as default timezone', () => {
+      // getNowInTimezone() with no arg defaults to UTC (see partsFor: `timezone || 'UTC'`).
+      // Callers must pass an explicit IANA name for user-facing values.
       const withDefault = getNowInTimezone();
-      const withExplicit = getNowInTimezone('Asia/Seoul');
+      const withExplicit = getNowInTimezone('UTC');
       expect(withDefault).toEqual(withExplicit);
     });
 
@@ -70,10 +72,12 @@ describe('timezone utilities', () => {
       });
     });
 
-    it('should fallback to Asia/Seoul on invalid timezone', () => {
+    it('should fallback to UTC on invalid timezone', () => {
+      // Malformed IANA name falls back to plain UTC rather than throwing,
+      // so a bad profile value can't break the whole request.
       const result = getNowInTimezone('Invalid/Timezone');
-      const seoul = getNowInTimezone('Asia/Seoul');
-      expect(result).toEqual(seoul);
+      const utc = getNowInTimezone('UTC');
+      expect(result).toEqual(utc);
     });
 
     it('should handle UTC', () => {
