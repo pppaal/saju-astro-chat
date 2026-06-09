@@ -1108,3 +1108,53 @@
   border-radius: 3px;
   display: inline-block;
 }
+
+/* 일간(나) 카드 — hanja-rich 본문 가시화 */
+.dmCard {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--card);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.dmHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.dmHead b {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1;
+}
+.dmHead span {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.dmBody {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+}
+.dmRow {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin-top: 3px;
+}
+.dmRow b {
+  color: var(--gold);
+  font-weight: 600;
+  margin-right: 4px;
+}
+/* 핵심 행성 카드 — 하우스 도메인 한 줄 */
+.bigHouse {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-bottom: 5px;
+}
