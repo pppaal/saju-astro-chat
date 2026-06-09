@@ -6,7 +6,7 @@
  * 우리 shape 에 없는 일부 필드(지장간 가중치·신살 polarity·대운 십신)는 룩업/폴백.
  */
 import type { ReportData, ReportPillar } from './reportTypes'
-import { SIGN_ABBR } from './reportTypes'
+import { SIGN_ABBR, STEM_INFO } from './reportTypes'
 import type { RelationCategory } from '@/lib/chart-dictionary'
 import {
   evalIdentity,
@@ -22,6 +22,7 @@ import {
   evalKeyAspect,
   evalVoid,
   evalNorthNode,
+  evalYinYang,
   synthesize,
   dominantSibsinGroup,
   type CrossVerdict,
@@ -502,6 +503,7 @@ export function buildCrossRows(
     keyTrait: { ko: '핵심 성향', en: 'Core Trait' },
     karma: { ko: '공망/카르마', en: 'Void / Karma' },
     growth: { ko: '성장 방향', en: 'Growth Direction' },
+    yinYang: { ko: '음양 리듬', en: 'Yin-Yang Rhythm' },
   }
   const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
     ['identity', evalIdentity(dmEl, sunSign)],
@@ -523,6 +525,7 @@ export function buildCrossRows(
     ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
     ['karma', evalVoid(gongmangBranches, southNodeSign)],
     ['growth', evalNorthNode(S.fiveElements, northNode?.sign)],
+    ['yinYang', evalYinYang(STEM_INFO[S.dayMaster?.name ?? '']?.yy, A.sect)],
   ]
   const verdicts = items.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
   const synth = synthesize(verdicts)
