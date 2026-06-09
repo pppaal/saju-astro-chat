@@ -123,6 +123,10 @@ export function CompatPersonPickerModal({
               ...timeToState(u.birthTime),
               gender: normGender(u.gender),
               city: u.birthCity || '',
+              // 좌표도 같이 실어야 "내 정보" 불러오기 시 도시가 유효하게 들어온다.
+              // (빠지면 lat/lon=null → BirthInfoFields 가 "도시 다시 선택" 경고)
+              latitude: u.latitude ?? null,
+              longitude: u.longitude ?? null,
               timeZone: u.tzId || null,
             })
           }

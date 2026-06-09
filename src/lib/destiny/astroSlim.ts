@@ -197,7 +197,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
         const m = b.match(/^Progressed (Sun|Moon):\s*([A-Za-z]+)\s*(\d+)/)
         if (m)
           parts.push(
-            `${l === 'ko' ? (m[1] === 'Sun' ? 'P태양' : 'P달') : `P-${m[1]}`} ${sko(m[2], l)} ${m[3]}°`
+            `${l === 'ko' ? (m[1] === 'Sun' ? '진행 태양' : '진행 달') : `P-${m[1]}`} ${sko(m[2], l)} ${m[3]}°`
           )
       }
       if (parts.length) out.push(`${l === 'ko' ? '2차진행' : 'progression'}: ${parts.join(' / ')}`)
