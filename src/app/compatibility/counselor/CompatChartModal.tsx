@@ -613,11 +613,9 @@ export function CompatChartModal({
                               }}
                             >
                               <b>{o.planet}</b>
-                              {o.meaning && (
-                                <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>
-                                  {o.meaning}
-                                </span>
-                              )}
+                              <span style={{ color: 'var(--ds-gold-on-dark-soft)' }}>
+                                {o.meaning || `${o.house}H`}
+                              </span>
                             </span>
                           ))}
                         </div>
