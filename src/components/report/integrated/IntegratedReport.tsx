@@ -40,6 +40,7 @@ import {
   getSibsinInterpretation,
   getTwelveStageInterpretation,
   getShinsalInterpretation,
+  getElementInterpretation,
 } from '@/lib/saju/interpretations'
 
 export type Lang = 'ko' | 'en'
@@ -592,6 +593,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Four Pillars</span>
           </div>
+          {/* 일간(나) 한 줄 풀이 — hover 로만 뜨던 의미를 모바일에서도 보이게 노출. */}
+          <p className={s.dmIntro}>
+            {lang === 'en' ? 'Day Master' : '일간(나)'}{' '}
+            <b className={elClass[stemEl(S.dayMaster)]}>{S.dayMaster}</b> —{' '}
+            {hanjaHover(S.dayMaster, lang)}
+          </p>
           <div className={s.pillars}>
             {pillarsArr.map(([head, p]) => (
               <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head.ko}>
@@ -809,6 +816,30 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   ))}
                   <i style={{ color: 'var(--ink-4)' }}>/ max {feMax}</i>
                 </div>
+                {/* 용신 '왜 필요한가' — fiveElements 사전에서 성질+부족시 증상 연결. */}
+                {(() => {
+                  const yk = ELEMENTS[S.yongsin.primary]?.ko
+                  const yi = yk
+                    ? (getElementInterpretation(yk as never) as {
+                        nature?: string
+                        nature_en?: string
+                        deficiency?: string
+                        deficiency_en?: string
+                      } | null)
+                    : null
+                  if (!yi) return null
+                  const nature = lang === 'en' ? yi.nature_en : yi.nature
+                  const lack = lang === 'en' ? yi.deficiency_en : yi.deficiency
+                  return (
+                    <div className={s.yongWhy}>
+                      <b className={elClass[S.yongsin.primary]}>
+                        {ELEMENTS[S.yongsin.primary]?.han} {elementLabel(S.yongsin.primary, lang)}
+                      </b>{' '}
+                      — {nature}
+                      {lack ? ` · ${lang === 'en' ? 'lacking: ' : '부족하면 '}${lack}` : ''}
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           </div>
