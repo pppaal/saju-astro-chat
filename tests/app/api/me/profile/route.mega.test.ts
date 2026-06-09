@@ -246,6 +246,8 @@ describe('/api/me/profile', () => {
               birthTime: true,
               gender: true,
               birthCity: true,
+              latitude: true,
+              longitude: true,
               tzId: true,
             },
           },
@@ -532,7 +534,9 @@ describe('/api/me/profile', () => {
       // birthTime triggers hasBirthFields, and oldBirthDate = updatedUser.birthDate (since body.birthDate is undefined)
       // Real key format is `saju:v1:${birthDate}:...`, so the SCAN pattern must
       // include the `v1:` version segment — otherwise nothing matches.
-      expect(clearCacheByPattern).toHaveBeenCalledWith(expect.stringContaining('saju:v1:1990-01-15:'))
+      expect(clearCacheByPattern).toHaveBeenCalledWith(
+        expect.stringContaining('saju:v1:1990-01-15:')
+      )
     })
   })
 

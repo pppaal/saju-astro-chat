@@ -101,12 +101,11 @@ describe('API Routes Smoke Tests', () => {
     })
   })
 
-  describe('Me Routes (4)', () => {
+  describe('Me Routes (3)', () => {
     it('should have user profile routes', () => {
       assertModules([
         'app/api/me/circle/route',
         'app/api/me/credits/route',
-        'app/api/me/premium/route',
         'app/api/me/profile/route',
       ])
     })

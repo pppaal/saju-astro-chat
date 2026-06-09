@@ -80,10 +80,16 @@ describe('GET /api/admin/funnel', () => {
       { id: 'u3' },
       { id: 'u4' },
     ] as any)
-    // u1,u2 리딩 / u2 타로(중복) / u3 상담 → activated distinct = {u1,u2,u3}=3
-    vi.mocked(prisma.reading.findMany).mockResolvedValue([{ userId: 'u1' }, { userId: 'u2' }] as any)
-    vi.mocked(prisma.tarotReading.findMany).mockResolvedValue([{ userId: 'u2' }] as any)
-    vi.mocked(prisma.counselorChatSession.findMany).mockResolvedValue([{ userId: 'u3' }] as any)
+    // u1,u2 타로 / u2 상담(중복) / u3 상담 → activated distinct = {u1,u2,u3}=3
+    // Reading 모델 제거 (2026-06-06) — 활성 판정은 tarot + counselor 만으로.
+    vi.mocked(prisma.tarotReading.findMany).mockResolvedValue([
+      { userId: 'u1' },
+      { userId: 'u2' },
+    ] as any)
+    vi.mocked(prisma.counselorChatSession.findMany).mockResolvedValue([
+      { userId: 'u2' },
+      { userId: 'u3' },
+    ] as any)
     // u1 결제 → paid = 1
     vi.mocked(prisma.bonusCreditPurchase.findMany).mockResolvedValue([{ userId: 'u1' }] as any)
 
@@ -103,7 +109,8 @@ describe('GET /api/admin/funnel', () => {
     vi.mocked(prisma.user.findMany).mockResolvedValue([] as any)
     const data = (await (await GET(req())).json()).data
     expect(data.steps.map((s: { count: number }) => s.count)).toEqual([0, 0, 0])
-    expect(prisma.reading.findMany).not.toHaveBeenCalled()
+    expect(prisma.tarotReading.findMany).not.toHaveBeenCalled()
+    expect(prisma.counselorChatSession.findMany).not.toHaveBeenCalled()
   })
 
   it('returns 500 on db error', async () => {

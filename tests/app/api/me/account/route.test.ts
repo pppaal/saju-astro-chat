@@ -211,10 +211,9 @@ describe('Account API – DELETE /api/me/account', () => {
   })
 
   describe('Deletion behavior', () => {
-    it('deletes EmailLog, SharedResult and the user in one transaction', async () => {
+    it('deletes SharedResult and the user in one transaction', async () => {
       const res = await DELETE(makeRequest({ confirm: 'me@example.com' }))
       expect(res.status).toBe(200)
-      expect(prisma.emailLog.deleteMany).toHaveBeenCalledWith({ where: { userId: USER_ID } })
       expect(prisma.sharedResult.deleteMany).toHaveBeenCalledWith({ where: { userId: USER_ID } })
       expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: USER_ID } })
       expect(prisma.$transaction).toHaveBeenCalledTimes(1)

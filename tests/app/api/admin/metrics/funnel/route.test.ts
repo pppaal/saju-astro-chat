@@ -188,19 +188,21 @@ function setupHappyPath(overrides?: {
   //   gte === epoch(0)          → all-time activated users
   //   gte within last ~2 days   → DAU window
   //   otherwise (7d ago)        → WAU window
-  // All distinct ids are returned via reading.groupBy; the other two return []
-  // so the route's Set union equals exactly the intended count.
-  vi.mocked(prisma.reading.groupBy).mockImplementation(async (args: any) => {
+  // Reading 모델 제거 (2026-06-06) — 활성 판정은 tarotReading + counselorChatSession
+  // groupBy 만 사용. 모든 distinct id 를 tarotReading.groupBy 로 흘리고
+  // counselorChatSession.groupBy 는 [] 를 돌려줘 Set union 이 의도한 수와 정확히 일치.
+  vi.mocked(prisma.tarotReading.groupBy).mockImplementation(async (args: any) => {
     const gte = new Date(args.where.createdAt.gte).getTime()
     if (gte === 0) return makeUsers(activatedUsers) as any
     if (gte > Date.now() - 2 * DAY_MS) return makeUsers(dau) as any
     return makeUsers(wau) as any
   })
-  vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([] as any)
   vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
 
-  vi.mocked(prisma.reading.count).mockResolvedValue(weeklyReadings)
-  vi.mocked(prisma.tarotReading.count).mockResolvedValue(weeklyTarot)
+  // weeklyActions = tarotReading.count + counselorChatSession.count (route no
+  // longer counts the removed Reading model). Fold the intended reading volume
+  // into the tarot count so the readingsPerUser math is still exercised.
+  vi.mocked(prisma.tarotReading.count).mockResolvedValue(weeklyReadings + weeklyTarot)
   vi.mocked(prisma.counselorChatSession.count).mockResolvedValue(weeklyCounsel)
 }
 
@@ -517,7 +519,8 @@ describe('GET /api/admin/metrics/funnel', () => {
 
     it('should fall back to 0 activations/DAU/WAU when groupBy throws', async () => {
       setupHappyPath()
-      vi.mocked(prisma.reading.groupBy).mockRejectedValue(new Error('groupBy failed'))
+      vi.mocked(prisma.tarotReading.groupBy).mockRejectedValue(new Error('groupBy failed'))
+      vi.mocked(prisma.counselorChatSession.groupBy).mockRejectedValue(new Error('groupBy failed'))
 
       const response = await GET(createRequest())
       const data = (await response.json()).data.data
@@ -565,8 +568,10 @@ describe('GET /api/admin/metrics/funnel', () => {
       await GET(createRequest())
 
       expect(prisma.user.count).toHaveBeenCalled()
-      expect(prisma.reading.groupBy).toHaveBeenCalled()
-      expect(prisma.reading.count).toHaveBeenCalled()
+      expect(prisma.tarotReading.groupBy).toHaveBeenCalled()
+      expect(prisma.counselorChatSession.groupBy).toHaveBeenCalled()
+      expect(prisma.tarotReading.count).toHaveBeenCalled()
+      expect(prisma.counselorChatSession.count).toHaveBeenCalled()
     })
   })
 })

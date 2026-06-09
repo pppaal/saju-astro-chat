@@ -212,8 +212,9 @@ describe('Saju Core Integration', () => {
       // visualizationData / fortuneSimulator / aiPromptGenerator — 미사용으로 삭제됨
       // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
       // advancedSajuCore / advancedAnalysis — 미사용으로 통째 삭제됨 (2026-06)
+      // healthCareer — 미사용으로 삭제됨
 
-      expect(modules.length).toBe(11)
+      expect(modules.length).toBe(10)
       modules.forEach((modulePath) => {
         readModule(modulePath)
       })

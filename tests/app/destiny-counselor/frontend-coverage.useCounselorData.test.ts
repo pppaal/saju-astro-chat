@@ -328,21 +328,18 @@ describe('useCounselorData — profile-fallback merge precedence', () => {
 // --- Request cancellation (AbortController on chart-load effect) -------------
 
 describe('useCounselorData — chart-load request cancellation', () => {
-  const CHART_FETCH_URLS = [
-    '/api/saju',
-    '/api/astrology',
-    '/api/astrology/advanced/asteroids',
-    '/api/astrology/advanced/midpoints',
-  ]
+  // The hook currently fires only the base saju + base natal astrology fetches
+  // for the chart-load effect. The advanced astrology fetches (asteroids,
+  // draconic, midpoints, …) are intentionally disabled (`hasAllFields = true`)
+  // since the server now builds the destiny context itself, so they never fire.
+  const CHART_FETCH_URLS = ['/api/saju', '/api/astrology']
 
   it('passes an AbortSignal to every chart-load fetch', async () => {
     const fetchMock = global.fetch as ReturnType<typeof vi.fn>
     renderHook(() => useCounselorData({ birthDate: '1995-02-09', birthTime: '06:40' }))
 
     await waitFor(() => {
-      expect(
-        fetchMock.mock.calls.some((c) => String(c[0]).startsWith('/api/astrology/advanced/'))
-      ).toBe(true)
+      expect(fetchMock.mock.calls.some((c) => c[0] === '/api/astrology')).toBe(true)
     })
 
     for (const url of CHART_FETCH_URLS) {
