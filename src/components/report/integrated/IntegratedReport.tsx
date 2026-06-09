@@ -593,9 +593,23 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
 
         {/* ── 한눈에 (결론 먼저) — 별명 + 종합 교차 + 가장 필요한 기운 ── */}
         <div className={s.hero}>
-          {ilju?.character && (
-            <div className={s.heroTag}>{ilju.character.split('.')[0].trim()}</div>
-          )}
+          {/* 별명 — 사주(일간 속) × 점성(ASC 겉) 융합. 일주 카드 별명과 차별. */}
+          <div className={s.heroTag}>
+            {(() => {
+              const EL_KW: Record<string, string> = {
+                metal: '예리한',
+                wood: '뻗어나가는',
+                fire: '타오르는',
+                earth: '단단한',
+                water: '깊은',
+              }
+              if (lang === 'en') return ilju?.character?.split('.')[0].trim() ?? ''
+              const inner = EL_KW[stemEl(S.dayMaster)] ?? ''
+              const han = ELEMENTS[stemEl(S.dayMaster)]?.han ?? ''
+              const ascKo = A.ascendant ? signLabel(abbr(A.ascendant.sign), lang) : ''
+              return `${inner} 속(${S.dayMaster}${han}) · ${ascKo}의 겉`
+            })()}
+          </div>
           {cross?.synthesis && <p className={s.heroSummary}>{cross.synthesis}</p>}
           {(() => {
             // 여러 카드(일간·격국)에 흩어진 강점/약점을 한곳에 종합 (Opus: TOP 묶기).
@@ -1282,12 +1296,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </span>
               <span className={s.secEn}>Cross-System</span>
             </div>
-            {cross.synthesis && (
-              <div className={s.synthBanner}>
-                <div className={s.synthK}>{t('synthLabel')}</div>
-                <div className={s.synthV}>{cross.synthesis}</div>
-              </div>
-            )}
+            {/* 종합 문장은 상단 히어로로 이동(중복 제거). 여기선 톤 분포 막대만. */}
             {/* 교차 그림 — 톤 분포(잘맞음/채워줌/부딪힘) 한눈에. */}
             {(() => {
               const counts = { resonant: 0, complement: 0, tension: 0, neutral: 0 }
@@ -1348,8 +1357,6 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             {(() => {
               const reson = cross.rows.filter((r) => r.tone === 'resonant').map((r) => r.category)
               const tens = cross.rows.filter((r) => r.tone === 'tension').map((r) => r.category)
-              const yk = ELEMENTS[S.yongsin.primary]?.ko
-              const act = yk ? ELEMENT_REMEDY[yk]?.activity : undefined
               return (
                 <div className={s.crossAdvice}>
                   <div className={s.crossAdviceHead}>
@@ -1358,14 +1365,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   <ul className={s.crossAdviceList}>
                     {reson.length > 0 && (
                       <li>
-                        <b>{lang === 'en' ? 'Trust' : '확신'}</b>{' '}
-                        {lang === 'en'
-                          ? 'East and West both point to '
-                          : '동·서양이 똑같이 가리키는 '}
+                        <b>{lang === 'en' ? 'Core' : '정체성 코어'}</b>{' '}
+                        {lang === 'en' ? 'East and West agree on ' : '동·서양이 똑같이 가리키는 '}
                         <b>{reson.join(' · ')}</b>
                         {lang === 'en'
-                          ? ' — that’s your core. Lean in.'
-                          : '은(는) 당신의 핵심이에요. 의심 말고 밀어붙이세요.'}
+                          ? ' — two systems converging means this is your most unshakable core. Make it the center of your work and brand.'
+                          : '은(는) 두 점술이 독립적으로 합의한 지점 — 가장 흔들리지 않는 정체성 코어예요. 직업·브랜딩의 중심축으로 삼으세요.'}
                       </li>
                     )}
                     {tens.length > 0 && (
@@ -1376,14 +1381,6 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         {lang === 'en'
                           ? ') — alternate between the two instead of suppressing one.'
                           : '은(는) 한쪽을 누르기보다 상황 따라 번갈아 쓰면 오히려 강점이 돼요.'}
-                      </li>
-                    )}
-                    {act && (
-                      <li>
-                        <b>{lang === 'en' ? 'Recharge' : '보충'}</b>{' '}
-                        {lang === 'en'
-                          ? `Top up your scarce ${elementLabel(S.yongsin.primary, lang)} through ${act}.`
-                          : `부족한 ${ELEMENTS[S.yongsin.primary]?.han}(${elementLabel(S.yongsin.primary, lang)}) 기운을 ${act}(으)로 채우면 균형이 좋아져요.`}
                       </li>
                     )}
                   </ul>
