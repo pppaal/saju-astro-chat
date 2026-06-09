@@ -1159,6 +1159,16 @@ function CompatibilityCounselorContent() {
         relation: p.relation,
       })
       pushRecentPair([toRecent(personsData[0]), toRecent(personsData[1])])
+      // 새 커플 = 새 대화. 이전 커플의 메시지/세션/제목/차트를 비우지 않으면
+      // 새 커플 채팅이 옛 대화에 이어붙고 옛 세션 ID 로 저장되는 정합성 버그.
+      // (직접 진입·새 채팅 경로는 이미 빈 상태라 무해.)
+      setMessages([])
+      setChatSessionId(undefined)
+      setChatTitle(null)
+      setPerson1Saju(null)
+      setPerson2Saju(null)
+      setPerson1Astro(null)
+      setPerson2Astro(null)
       // URL 동기화 — 새로고침해도 같은 페어 유지.
       router.replace(
         `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(personsData))}`
@@ -1338,6 +1348,17 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 timeZone: p.timeZone,
                 relation: p.relation,
               }))
+              // 새 페어 = 새 대화. 이전 대화/세션/제목/차트를 비워야 옛 커플
+              // 세션에 새 커플 메시지가 섞이지 않는다. (initializeData 가
+              // ?persons= 만 보고는 대화를 초기화하지 않기 때문에 여기서 처리.)
+              setMessages([])
+              setChatSessionId(undefined)
+              setChatTitle(null)
+              setPerson1Saju(null)
+              setPerson2Saju(null)
+              setPerson1Astro(null)
+              setPerson2Astro(null)
+              chartFetchRef.current = false
               router.replace(
                 `/compatibility/counselor?persons=${encodeURIComponent(JSON.stringify(payload))}`
               )
