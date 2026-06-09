@@ -40,6 +40,9 @@ export type Lang = 'ko' | 'en'
 export interface CrossVerdict {
   tone: CrossTone
   reason: { ko: string; en: string }
+  /** 교차 그림용 — 사주(동양) 측 값 / 점성(서양) 측 값. */
+  left?: { ko: string; en: string }
+  right?: { ko: string; en: string }
 }
 
 export interface NatalSynthesis {
@@ -916,47 +919,52 @@ function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerd
   const ta = ELEMENT_TRAIT[a]
   const tb = ELEMENT_TRAIT[b]
   const rel = elementRelation(a, b)
-  switch (rel) {
-    case 'same':
-      return {
-        tone: 'resonant',
-        reason: {
-          ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. 힘이 모이는 만큼 한쪽으로 치우치기도 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.`,
-          en: `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. That focus is a strength, but it can tip into one-sidedness, so touch the opposite grain now and then.`,
-        },
-      }
-    case 'aGenB':
-      return {
-        tone: 'complement',
-        reason: {
-          ko: `${ta.ko} ${d.aKo}${iga(d.aKo)} ${tb.ko} ${d.bKo}${eulReul(d.bKo)} 자연스럽게 키워줘요 — 안에서 밖으로 잘 이어지는 타입. 꾸준히 쌓을수록 결실이 점점 커지는 구조라, 조급해하지 않는 게 핵심이에요.`,
-          en: `Your ${ta.en} ${d.aEn} naturally feeds your ${tb.en} ${d.bEn} — inner flows outward. Steady effort compounds here, so patience is the key.`,
-        },
-      }
-    case 'bGenA':
-      return {
-        tone: 'complement',
-        reason: {
-          ko: `${tb.ko} ${d.bKo}${iga(d.bKo)} ${ta.ko} ${d.aKo}${eulReul(d.aKo)} 받쳐줘요 — 밖이 안을 채워주는 타입. 어떤 환경·사람을 곁에 두는지가 특히 중요해요.`,
-          en: `Your ${tb.en} ${d.bEn} feeds your ${ta.en} ${d.aEn} — outer replenishes inner. The environment and people you keep around you matter a lot.`,
-        },
-      }
-    case 'aCtrlB':
-    case 'bCtrlA':
-      return {
-        tone: 'tension',
-        reason: {
-          ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요. 부딪힐 땐 한쪽을 누르기보다 상황에 따라 번갈아 쓰는 리듬을 만들면 오히려 강점이 돼요.`,
-          en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person. When they clash, alternate between them by context instead of suppressing one — that turns friction into range.`,
-        },
-      }
-    default:
-      return {
-        tone: 'neutral',
-        reason: {
-          ko: `${ta.ko} ${d.aKo}${waGwa(d.aKo)} ${tb.ko} ${d.bKo}${iga(d.bKo)} 직접 엮이진 않고 따로 작동해요. 서로 독립적이라 상황에 따라 다른 면을 꺼내 쓰는 유연함이 있어요.`,
-          en: `Your ${ta.en} ${d.aEn} and ${tb.en} ${d.bEn} run independently. Being separate, you can switch between them as the situation calls.`,
-        },
-      }
-  }
+  const left = { ko: `${EL_KO[a]} · ${ta.ko}`, en: `${EL_EN[a]} · ${ta.en}` }
+  const right = { ko: `${EL_KO[b]} · ${tb.ko}`, en: `${EL_EN[b]} · ${tb.en}` }
+  const base: CrossVerdict = (() => {
+    switch (rel) {
+      case 'same':
+        return {
+          tone: 'resonant',
+          reason: {
+            ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. 힘이 모이는 만큼 한쪽으로 치우치기도 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.`,
+            en: `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. That focus is a strength, but it can tip into one-sidedness, so touch the opposite grain now and then.`,
+          },
+        }
+      case 'aGenB':
+        return {
+          tone: 'complement',
+          reason: {
+            ko: `${ta.ko} ${d.aKo}${iga(d.aKo)} ${tb.ko} ${d.bKo}${eulReul(d.bKo)} 자연스럽게 키워줘요 — 안에서 밖으로 잘 이어지는 타입. 꾸준히 쌓을수록 결실이 점점 커지는 구조라, 조급해하지 않는 게 핵심이에요.`,
+            en: `Your ${ta.en} ${d.aEn} naturally feeds your ${tb.en} ${d.bEn} — inner flows outward. Steady effort compounds here, so patience is the key.`,
+          },
+        }
+      case 'bGenA':
+        return {
+          tone: 'complement',
+          reason: {
+            ko: `${tb.ko} ${d.bKo}${iga(d.bKo)} ${ta.ko} ${d.aKo}${eulReul(d.aKo)} 받쳐줘요 — 밖이 안을 채워주는 타입. 어떤 환경·사람을 곁에 두는지가 특히 중요해요.`,
+            en: `Your ${tb.en} ${d.bEn} feeds your ${ta.en} ${d.aEn} — outer replenishes inner. The environment and people you keep around you matter a lot.`,
+          },
+        }
+      case 'aCtrlB':
+      case 'bCtrlA':
+        return {
+          tone: 'tension',
+          reason: {
+            ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요. 부딪힐 땐 한쪽을 누르기보다 상황에 따라 번갈아 쓰는 리듬을 만들면 오히려 강점이 돼요.`,
+            en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person. When they clash, alternate between them by context instead of suppressing one — that turns friction into range.`,
+          },
+        }
+      default:
+        return {
+          tone: 'neutral',
+          reason: {
+            ko: `${ta.ko} ${d.aKo}${waGwa(d.aKo)} ${tb.ko} ${d.bKo}${iga(d.bKo)} 직접 엮이진 않고 따로 작동해요. 서로 독립적이라 상황에 따라 다른 면을 꺼내 쓰는 유연함이 있어요.`,
+            en: `Your ${ta.en} ${d.aEn} and ${tb.en} ${d.bEn} run independently. Being separate, you can switch between them as the situation calls.`,
+          },
+        }
+    }
+  })()
+  return { ...base, left, right }
 }
