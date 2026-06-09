@@ -91,7 +91,7 @@ function QuickRead({
 }) {
   const line = generateChartSummary(saju, astro, lang)
   if (!line) return null
-  // A/B 구분은 유지 — rose/sky 칩 dark 변형 (-500/15 bg + -200 text).
+  // A/B 구분 — rose/sky 라이트 칩 (10% tint bg + 700 ink text, 종이 위 대비).
   const chipStyle =
     accent === 'rose'
       ? { background: 'rgba(225,29,72,0.10)', color: '#be123c' }
@@ -145,13 +145,13 @@ function SubLabel({ children }: { children: React.ReactNode }) {
       <span className="h-3 w-0.5 shrink-0 rounded-full" style={{ background: 'var(--ds-gold)' }} />
       <span
         className="text-[11px] font-bold"
-        style={{ color: 'var(--ds-gold-soft)', letterSpacing: '0.04em' }}
+        style={{ color: 'var(--ds-gold)', letterSpacing: '0.04em' }}
       >
         {children}
       </span>
       <span
         className="ml-1 h-px flex-1"
-        style={{ background: 'linear-gradient(90deg, var(--ds-gold-soft), transparent)' }}
+        style={{ background: 'linear-gradient(90deg, var(--ds-gold), transparent)' }}
       />
     </div>
   )
@@ -307,7 +307,7 @@ export function CompatChartModal({
           backgroundImage:
             'radial-gradient(circle at 1px 1px, rgba(120, 110, 90, 0.05) 1px, transparent 0)',
           backgroundSize: '22px 22px',
-          border: '1px solid var(--ds-gold-soft)',
+          border: '1px solid var(--ds-gold)',
           boxShadow: '0 24px 60px rgba(40, 30, 10, 0.22)',
           maxHeight: '96dvh',
         }}
@@ -320,7 +320,7 @@ export function CompatChartModal({
           type="button"
           onClick={onClose}
           aria-label={isKo ? '닫기' : 'Close'}
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-white/10"
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-black/5"
           style={{ color: 'var(--ds-light-text-muted)' }}
         >
           <X size={18} />
@@ -478,7 +478,7 @@ export function CompatChartModal({
             <details className="group">
               <summary
                 className="flex cursor-pointer list-none items-center gap-2 py-1 text-[12px] font-semibold [&::-webkit-details-marker]:hidden"
-                style={{ color: 'var(--ds-gold-soft)' }}
+                style={{ color: 'var(--ds-gold)' }}
               >
                 <span
                   aria-hidden="true"
@@ -631,7 +631,7 @@ export function CompatChartModal({
                               }}
                             >
                               <b>{o.planet}</b>
-                              <span style={{ color: 'var(--ds-gold-soft)' }}>
+                              <span style={{ color: 'var(--ds-gold)' }}>
                                 {o.meaning || `${o.house}H`}
                               </span>
                             </span>

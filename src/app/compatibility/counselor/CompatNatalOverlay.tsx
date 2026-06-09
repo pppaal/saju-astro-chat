@@ -192,7 +192,7 @@ export function CompatNatalOverlay({
                 <text
                   x={gp.x}
                   y={gp.y}
-                  fill="#e8cc8a"
+                  fill="#a07a3c"
                   fontSize="13"
                   textAnchor="middle"
                   dominantBaseline="middle"
@@ -202,7 +202,7 @@ export function CompatNatalOverlay({
                 <text
                   x={hp.x}
                   y={hp.y}
-                  fill="rgba(245,247,251,0.4)"
+                  fill="rgba(80,68,40,0.55)"
                   fontSize="8"
                   textAnchor="middle"
                   dominantBaseline="middle"
@@ -225,7 +225,7 @@ export function CompatNatalOverlay({
           <text
             x={pt(ringOuter + 12, 180).x}
             y={pt(ringOuter + 12, 180).y}
-            fill="#d4b572"
+            fill="#a07a3c"
             fontSize="9"
             fontWeight="700"
             textAnchor="middle"
@@ -251,7 +251,7 @@ export function CompatNatalOverlay({
         <g className="chart-twinkle-in">
           {renderSet(pA, radiusA, rose)}
           {renderSet(pB, radiusB, sky)}
-          <circle cx={CX} cy={CY} r="2.5" fill="#d4b572" />
+          <circle cx={CX} cy={CY} r="2.5" fill="#a07a3c" />
         </g>
       </svg>
 

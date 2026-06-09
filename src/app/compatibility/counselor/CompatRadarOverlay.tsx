@@ -163,22 +163,22 @@ export function CompatRadarOverlay({
             <span className="font-bold" style={{ color: rose }}>
               {nameA}
             </span>
-            는 <span className="font-bold text-[#e8cc8a]">{domA.ko}</span>,{' '}
+            는 <span className="font-bold text-[#a07a3c]">{domA.ko}</span>,{' '}
             <span className="font-bold" style={{ color: sky }}>
               {nameB}
             </span>
-            는 <span className="font-bold text-[#e8cc8a]">{domB.ko}</span>이(가) 가장 두드러져요.
+            는 <span className="font-bold text-[#a07a3c]">{domB.ko}</span>이(가) 가장 두드러져요.
           </>
         ) : (
           <>
             <span className="font-bold" style={{ color: rose }}>
               {nameA}
             </span>{' '}
-            leans <span className="font-bold text-[#e8cc8a]">{domA.en}</span>,{' '}
+            leans <span className="font-bold text-[#a07a3c]">{domA.en}</span>,{' '}
             <span className="font-bold" style={{ color: sky }}>
               {nameB}
             </span>{' '}
-            leans <span className="font-bold text-[#e8cc8a]">{domB.en}</span>.
+            leans <span className="font-bold text-[#a07a3c]">{domB.en}</span>.
           </>
         )}
       </div>
