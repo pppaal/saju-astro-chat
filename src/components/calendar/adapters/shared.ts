@@ -10,20 +10,11 @@
 
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 
 // ── 천간 / 지지 한자↔한글↔영문 ──────────────────────────────────────────────
-export const STEM_HAN_TO_KO: Record<string, string> = {
-  甲: '갑',
-  乙: '을',
-  丙: '병',
-  丁: '정',
-  戊: '무',
-  己: '기',
-  庚: '경',
-  辛: '신',
-  壬: '임',
-  癸: '계',
-}
+// 한자→한글 음은 정본(saju/ganjiKo) 재export. 복사본 두지 않음(드리프트 차단).
+export { STEM_KO as STEM_HAN_TO_KO, BRANCH_KO as BRANCH_HAN_TO_KO } from '@/lib/saju/ganjiKo'
 export const STEM_HAN_TO_EN: Record<string, string> = {
   甲: 'gap',
   乙: 'eul',
@@ -35,20 +26,6 @@ export const STEM_HAN_TO_EN: Record<string, string> = {
   辛: 'sin',
   壬: 'im',
   癸: 'gye',
-}
-export const BRANCH_HAN_TO_KO: Record<string, string> = {
-  子: '자',
-  丑: '축',
-  寅: '인',
-  卯: '묘',
-  辰: '진',
-  巳: '사',
-  午: '오',
-  未: '미',
-  申: '신',
-  酉: '유',
-  戌: '술',
-  亥: '해',
 }
 export const BRANCH_HAN_TO_EN: Record<string, string> = {
   子: 'ja',
@@ -108,8 +85,8 @@ export interface Ganji {
 export function toGanji(stem: string, branch: string): Ganji {
   const stemHan = STEM_KO_TO_HAN[stem] ?? stem
   const branchHan = BRANCH_KO_TO_HAN[branch] ?? branch
-  const stemKo = STEM_HAN_TO_KO[stemHan] ?? stem
-  const branchKo = BRANCH_HAN_TO_KO[branchHan] ?? branch
+  const stemKo = STEM_KO[stemHan] ?? stem
+  const branchKo = BRANCH_KO[branchHan] ?? branch
   const stemEn = STEM_HAN_TO_EN[stemHan] ?? ''
   const branchEn = BRANCH_HAN_TO_EN[branchHan] ?? ''
   return {

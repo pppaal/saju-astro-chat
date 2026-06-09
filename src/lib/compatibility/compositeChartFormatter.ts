@@ -14,21 +14,14 @@
 
 import type { Chart, PlanetBase, ZodiacKo } from '@/lib/astrology/foundation/types'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
+import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 
 // 관계 해석에 핵심인 점들만 composite — 외행성(목성~명왕성·노드) 은
 // generational 라 두 사람만의 신호로 약함. 루미너리 + 개인 행성 + ASC/MC.
 const COMPOSITE_POINTS = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Ascendant', 'MC'])
 
-// 한글 행성명 (synastry formatter 와 동일 톤).
-const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Ascendant: '상승점',
-  MC: '중천점',
-}
+// 한글 행성명 — 캘린더 엔진 공용 정본(PLANET_KO) 재사용. composite 는 루미너리+
+// 개인 행성+ASC/MC 만 인덱싱하지만 superset 표를 그대로 써도 안전.
 
 // aspect 심볼 (synastry formatter 와 동일).
 // 기호 대신 한국어 뜻 직접 노출 — 깨진 □ 박스 + LLM 디코드 오역 방지

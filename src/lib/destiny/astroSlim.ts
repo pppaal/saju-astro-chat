@@ -6,23 +6,15 @@
  * drops / reformats — never alters a computed number.
  */
 
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+
 export type SlimLocale = 'ko' | 'en'
 
+// 10행성 + 앵글(ASC/Asc/MC) 은 캘린더 엔진 공용 정본(PLANET_KO) 재사용.
+// Node(북교점) 는 이 소비처 고유 키라 spread 후 추가.
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
+  ...PLANET_KO_BASE,
   Node: '북교점',
-  Ascendant: '상승점',
-  Asc: '상승점',
-  MC: '중천점',
 }
 const SIGN_KO: Record<string, string> = {
   Aries: '양',

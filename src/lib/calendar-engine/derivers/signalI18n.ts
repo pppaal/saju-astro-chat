@@ -6,19 +6,12 @@
  *
  * 우선순위: 가장 빈도 높은 십신 + 자주 나오는 관계 용어.
  */
+import { SIBSIN_EN as SIBSIN_EN_BASE } from '@/lib/saju/sibsinLabels'
 
-// 십신 (10 Gods) — 사주 신호의 핵심
+// 십신 (10 Gods) — 사주 신호의 핵심. 10개 핵심 십신은 SSOT(sibsinLabels) 에서,
+// 집계 star(관성/인성/재성/식상/비겁) 는 이 디라이버 고유 키라 spread 후 추가.
 const SIBSIN_EN: Record<string, string> = {
-  정관: 'Direct Officer',
-  편관: 'Seven Killings',
-  정인: 'Direct Resource',
-  편인: 'Indirect Resource',
-  식신: 'Eating God',
-  상관: 'Hurting Officer',
-  정재: 'Direct Wealth',
-  편재: 'Indirect Wealth',
-  비견: 'Companion',
-  겁재: 'Rob Wealth',
+  ...SIBSIN_EN_BASE,
   관성: 'Officer star',
   인성: 'Resource star',
   재성: 'Wealth star',
