@@ -914,9 +914,35 @@
   .houses {
     grid-template-columns: repeat(3, 1fr);
   }
+  /* 사주 4기둥 — 좁은 폰에서 오른쪽 기둥이 잘리던 문제: 그리드 아이템이
+     콘텐츠(46px 한자)보다 못 줄어 overflow:hidden 에 잘림. min-width:0 +
+     한자/십신/지장간 크기 축소로 4기둥이 360px 폭에도 다 들어오게. */
   .pillar {
-    padding: 12px 6px 12px;
-    gap: 6px;
+    padding: 12px 3px 12px;
+    gap: 5px;
+    min-width: 0;
+  }
+  .gzHan {
+    font-size: 30px;
+  }
+  .pillarHead {
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+  .sib {
+    font-size: 10px;
+    padding: 2px 6px;
+    letter-spacing: 0;
+  }
+  .jjg {
+    gap: 3px;
+  }
+  .jjgI b {
+    font-size: 12px;
+  }
+  .stage {
+    font-size: 10px;
+    letter-spacing: 0;
   }
   .metaGrid {
     grid-template-columns: repeat(2, 1fr);
