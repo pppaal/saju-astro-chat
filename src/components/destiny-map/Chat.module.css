@@ -2413,8 +2413,10 @@
 }
 
 .lightTheme .thinkingMessage {
-  background: var(--ds-light-bg-soft);
-  border-color: var(--ds-light-border);
+  /* 궁합 상담사와 동일하게 — 로딩 문구는 회색 칠(pill) 하이라이트 없이
+     투명 배경 + 회색 텍스트로 둔다. (이전엔 운명에서만 칠이 들어가 튀었음) */
+  background: transparent;
+  border-color: transparent;
   box-shadow: none;
 }
 

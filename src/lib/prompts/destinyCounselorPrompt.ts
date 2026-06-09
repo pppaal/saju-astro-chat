@@ -126,7 +126,7 @@ const JARGON = bi(
     · 데이터의 점성 관계 라벨([결합]/[협력]/[긴장]/[조화]/[대립])은 대괄호 없이 그 뜻 그대로 자연스럽게 풀어 쓴다.
     · 십성 명칭(비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인)·격국·용신·12운성 X → 뜻으로.
     · 신살 명칭(천을귀인·도화·홍염·백호·괴강 등) X → "보호받는 기운" 식 뜻으로.
-    · 압축표기((t)=지금 흐르는 / R=되짚어 다잡는 / P태양·P달=마음이 성숙해가는 / [domicile]=강함 [detriment]=약함) X → 뜻으로.`,
+    · 압축표기((t)=지금 흐르는 / R=되짚어 다잡는 / 진행 태양·진행 달=마음이 성숙해가는 / [domicile]=강함 [detriment]=약함) X → 뜻으로.`,
   `★ Terms — don't ban them entirely. *Weave 1-3 well-known concepts in, each paired with its plain meaning in the same breath* (a saju/astro reading needs that depth/credibility). Never dump them raw or list them:
   - OK to weave (always follow with the meaning): the grain of one's day-master, the five elements (wood·fire·earth·metal·water), signs·planets, the daeun/this-year current, clash·union.
     · "Your day-master is yin metal — like finely tempered steel, firm yet sensitive"
