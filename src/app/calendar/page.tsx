@@ -50,11 +50,15 @@ import type {
 // 세션 기반이므로 force-dynamic 필수 (정적 캐시 금지).
 export const dynamic = 'force-dynamic'
 
-// DB UserProfile.gender ('M' | 'F' | 'U' | null) → BuildContextInput.gender
-// ('male' | 'female') 매핑. 미상은 male 로 기본 (calendar-engine 이 둘 중
-// 하나를 요구 — 향후 unknown 지원 시 여기서 분기).
+// DB UserProfile.gender → BuildContextInput.gender ('male' | 'female') 매핑.
+// 현재 쓰기 경로(genderSchema)는 canonical 'female'/'male' 로 저장하고, 레거시
+// 행은 'F'/'M'/'U' 일 수 있으므로 둘 다(대소문자 무시) 처리한다. 미상/기타는
+// male 로 기본 (calendar-engine 이 둘 중 하나를 요구 — 향후 unknown 지원 시 분기).
+// ⚠ 직전엔 `g === 'F'` 만 검사해, canonical 'female' 로 저장된 모든 여성 유저가
+//   남성으로 계산되던 버그가 있었다(대운 방향·운세 전체 오류).
 function normalizeGender(g: string | null | undefined): 'male' | 'female' {
-  if (g === 'F') return 'female'
+  const v = (g ?? '').trim().toLowerCase()
+  if (v === 'female' || v === 'f') return 'female'
   return 'male'
 }
 
