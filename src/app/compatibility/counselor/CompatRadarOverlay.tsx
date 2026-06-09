@@ -48,9 +48,9 @@ export function CompatRadarOverlay({
       <div
         className="rounded-xl p-4 text-center text-sm"
         style={{
-          background: 'var(--ds-dark-surface)',
-          border: '1px solid var(--ds-dark-border)',
-          color: 'var(--ds-dark-text-muted)',
+          background: 'transparent',
+          border: '1px solid var(--ds-light-border)',
+          color: 'var(--ds-light-text-muted)',
         }}
       >
         {isKo ? '오행 정보가 아직 계산되지 않았습니다.' : 'Element data is not ready yet.'}
@@ -81,7 +81,7 @@ export function CompatRadarOverlay({
     <div
       className="rounded-xl p-3"
       style={{
-        background: 'var(--ds-dark-surface)',
+        background: 'transparent',
         border: '1px solid var(--ds-gold-line)',
       }}
     >
@@ -102,7 +102,7 @@ export function CompatRadarOverlay({
             key={f}
             points={ringPoly(f)}
             fill="none"
-            stroke="rgba(212,181,114,0.18)"
+            stroke="rgba(80,68,40,0.20)"
             strokeWidth="1"
           />
         ))}
@@ -115,7 +115,7 @@ export function CompatRadarOverlay({
               y1={CY}
               x2={p.x}
               y2={p.y}
-              stroke="rgba(212,181,114,0.18)"
+              stroke="rgba(80,68,40,0.20)"
               strokeWidth="1"
             />
           )
@@ -139,7 +139,7 @@ export function CompatRadarOverlay({
               key={x.key}
               x={lp.x}
               y={lp.y}
-              fill="#e5e7eb"
+              fill="#57534e"
               fontSize="11"
               fontWeight="600"
               textAnchor={anchor}
@@ -154,8 +154,8 @@ export function CompatRadarOverlay({
       <div
         className="mt-2 rounded-xl p-3 text-center text-sm leading-relaxed"
         style={{
-          background: 'var(--ds-dark-surface-strong)',
-          color: 'var(--ds-dark-text)',
+          background: 'var(--ds-light-surface)',
+          color: 'var(--ds-light-text)',
         }}
       >
         {isKo ? (
@@ -163,22 +163,22 @@ export function CompatRadarOverlay({
             <span className="font-bold" style={{ color: rose }}>
               {nameA}
             </span>
-            는 <span className="font-bold text-[#e8cc8a]">{domA.ko}</span>,{' '}
+            는 <span className="font-bold text-[#a07a3c]">{domA.ko}</span>,{' '}
             <span className="font-bold" style={{ color: sky }}>
               {nameB}
             </span>
-            는 <span className="font-bold text-[#e8cc8a]">{domB.ko}</span>이(가) 가장 두드러져요.
+            는 <span className="font-bold text-[#a07a3c]">{domB.ko}</span>이(가) 가장 두드러져요.
           </>
         ) : (
           <>
             <span className="font-bold" style={{ color: rose }}>
               {nameA}
             </span>{' '}
-            leans <span className="font-bold text-[#e8cc8a]">{domA.en}</span>,{' '}
+            leans <span className="font-bold text-[#a07a3c]">{domA.en}</span>,{' '}
             <span className="font-bold" style={{ color: sky }}>
               {nameB}
             </span>{' '}
-            leans <span className="font-bold text-[#e8cc8a]">{domB.en}</span>.
+            leans <span className="font-bold text-[#a07a3c]">{domB.en}</span>.
           </>
         )}
       </div>

@@ -35,6 +35,15 @@ export interface ScoreBreakdownProps {
   astroB?: unknown
   lang?: 'ko' | 'en'
   className?: string
+  /**
+   * 'score' (기본) — 큰 "N / 100" 숫자 + verdict + 분해 바.
+   * 'band' — 점수 산식이 보정된 휴리스틱이라 정밀 숫자를 헤드라인으로 박지
+   *   않는다. 큰 숫자 대신 verdict 밴드 라벨을 크게 + 분해 바로 근거를 그대로
+   *   노출(조화/긴장 포함). 차트 리포트 히어로용.
+   */
+  variant?: 'score' | 'band'
+  /** 'dark'(기본) navy glass 모달 / 'light' 종이·흰 카드 위. */
+  theme?: 'dark' | 'light'
 }
 
 // ─── 사주 raw 추출 ────────────────────────────────────────────────────
@@ -314,10 +323,10 @@ function verdictText(total: number, lang: 'ko' | 'en'): string {
     return 'Very different rhythms — approach with care'
   }
   if (total >= 90) return '매우 깊은 인연 — 자연스러운 합'
-  if (total >= 75) return '서로 다른 결이 보완 — 깊은 합 + 약간 자극'
+  if (total >= 75) return '다른 결이 서로 보완 — 깊되 살짝 자극도'
   if (total >= 60) return '보통 — 노력하면 좋아짐'
-  if (total >= 45) return '도전적 — 충돌 영역 의식 필요'
-  return '결이 매우 다름 — 신중한 접근'
+  if (total >= 45) return '쉽지 않음 — 부딪히는 지점 조심'
+  return '결이 많이 달라 — 천천히 다가가기'
 }
 
 // ─── 표시 ────────────────────────────────────────────────────────────
@@ -327,6 +336,8 @@ interface RowConfig {
   emoji: string
   labelKo: string
   labelEn: string
+  /** 바 색 — 조화 계열(골드) vs 긴장 계열(로즈레드). */
+  tone: 'harmony' | 'tension'
   /** 0-100 점수에서 빈 바일 때 표시할 보조 텍스트 */
   emptyKo: string
   emptyEn: string
@@ -338,6 +349,7 @@ const ROWS: RowConfig[] = [
     emoji: '💕',
     labelKo: '사주 합',
     labelEn: 'Saju Union',
+    tone: 'harmony',
     emptyKo: '합 없음',
     emptyEn: 'no union',
   },
@@ -346,6 +358,7 @@ const ROWS: RowConfig[] = [
     emoji: '⚠️',
     labelKo: '사주 충',
     labelEn: 'Saju Clash',
+    tone: 'tension',
     emptyKo: '충돌 강함',
     emptyEn: 'high clash',
   },
@@ -354,6 +367,7 @@ const ROWS: RowConfig[] = [
     emoji: '🌿',
     labelKo: '오행 보완',
     labelEn: 'Element Match',
+    tone: 'harmony',
     emptyKo: '보완 적음',
     emptyEn: 'low complement',
   },
@@ -362,6 +376,7 @@ const ROWS: RowConfig[] = [
     emoji: '♀♂',
     labelKo: '시너 조화',
     labelEn: 'Synastry Harmony',
+    tone: 'harmony',
     emptyKo: '조화 적음',
     emptyEn: 'low harmony',
   },
@@ -370,17 +385,37 @@ const ROWS: RowConfig[] = [
     emoji: '♂♄',
     labelKo: '시너 긴장',
     labelEn: 'Synastry Tension',
+    tone: 'tension',
     emptyKo: '긴장 강함',
     emptyEn: 'high tension',
   },
 ]
 
-function ScoreBar({ value }: { value: number }) {
+function ScoreBar({
+  value,
+  tone = 'harmony',
+  theme = 'dark',
+}: {
+  value: number
+  tone?: 'harmony' | 'tension'
+  theme?: 'dark' | 'light'
+}) {
   const clamped = Math.max(0, Math.min(100, value))
+  const isLight = theme === 'light'
+  // 긴장 계열(시너 긴장·사주 충)은 로즈레드, 조화 계열은 골드 — 한눈에 좋은
+  // 신호 vs 마찰 신호를 색으로 구분. 라이트는 종이 위에서 대비 나도록 진한 톤.
+  const fill =
+    tone === 'tension'
+      ? isLight
+        ? 'linear-gradient(90deg, #c0564a 0%, rgba(192,86,74,0.5) 100%)'
+        : 'linear-gradient(90deg, #f9a8a8 0%, rgba(249,168,168,0.5) 100%)'
+      : isLight
+        ? 'linear-gradient(90deg, var(--ds-gold, #a07a3c) 0%, var(--ds-gold-soft, #c19b56) 100%)'
+        : 'linear-gradient(90deg, var(--ds-gold-on-dark, #d4af6a) 0%, var(--ds-gold-on-dark-soft, #c9a76a) 100%)'
   return (
     <div
       className="relative h-2 flex-1 overflow-hidden rounded-full"
-      style={{ background: 'rgba(255,255,255,0.08)' }}
+      style={{ background: isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)' }}
       role="progressbar"
       aria-valuenow={Math.round(clamped)}
       aria-valuemin={0}
@@ -388,11 +423,7 @@ function ScoreBar({ value }: { value: number }) {
     >
       <div
         className="h-full rounded-full transition-all"
-        style={{
-          width: `${clamped}%`,
-          background:
-            'linear-gradient(90deg, var(--ds-gold-on-dark, #d4af6a) 0%, rgba(168,131,240,0.85) 100%)',
-        }}
+        style={{ width: `${clamped}%`, background: fill }}
       />
     </div>
   )
@@ -407,7 +438,27 @@ export function ScoreBreakdown({
   astroB,
   lang = 'ko',
   className,
+  variant = 'score',
+  theme = 'dark',
 }: ScoreBreakdownProps) {
+  const isLight = theme === 'light'
+  const pal = isLight
+    ? {
+        cardBg: 'var(--ds-gold-soft-bg, rgba(160,122,60,0.08))',
+        border: 'var(--ds-light-border, #e7e5e4)',
+        gold: 'var(--ds-gold, #a07a3c)',
+        text: 'var(--ds-light-text, #1c1917)',
+        muted: 'var(--ds-light-text-muted, #57534e)',
+        glow: 'rgba(160,122,60,0.18)',
+      }
+    : {
+        cardBg: 'linear-gradient(135deg, rgba(212,175,106,0.10) 0%, rgba(168,131,240,0.10) 100%)',
+        border: 'var(--ds-dark-border, rgba(255,255,255,0.10))',
+        gold: 'var(--ds-gold-on-dark, #d4af6a)',
+        text: 'var(--ds-dark-text, rgba(255,255,255,0.85))',
+        muted: 'var(--ds-dark-text-muted, rgba(255,255,255,0.55))',
+        glow: 'rgba(212,175,106,0.25)',
+      }
   const computed: BreakdownScores =
     breakdown ??
     deriveBreakdown(
@@ -441,50 +492,51 @@ export function ScoreBreakdown({
   return (
     <div
       className={`rounded-xl p-4 ${className ?? ''}`}
-      style={{
-        background:
-          'linear-gradient(135deg, rgba(212,175,106,0.10) 0%, rgba(168,131,240,0.10) 100%)',
-        border: '1px solid var(--ds-dark-border, rgba(255,255,255,0.10))',
-      }}
+      style={{ background: pal.cardBg, border: `1px solid ${pal.border}` }}
     >
       {/* 총점 헤더 */}
       <div className="flex flex-col items-center gap-1 pb-3">
         <div
           className="text-[11px] font-medium uppercase tracking-wider"
-          style={{ color: 'var(--ds-gold-on-dark, #d4af6a)' }}
+          style={{ color: pal.gold }}
         >
           {lang === 'en' ? headerEn : headerKo}
         </div>
-        <div
-          className="font-bold leading-none"
-          style={{
-            fontSize: 32,
-            fontWeight: 700,
-            color: 'var(--ds-gold-on-dark, #d4af6a)',
-          }}
-        >
-          {totalScore}
-          <span
-            className="text-base font-normal"
-            style={{ color: 'var(--ds-dark-text-muted, rgba(255,255,255,0.55))' }}
+        {variant === 'band' ? (
+          // 밴드 모드 — 큰 숫자 대신 verdict 라벨을 크게. 근거는 아래 분해 바.
+          <div
+            className="px-2 text-center font-semibold"
+            style={{
+              fontSize: 24,
+              lineHeight: 1.25,
+              fontFamily: 'var(--font-cinzel), Georgia, serif',
+              color: pal.gold,
+              textShadow: `0 1px 12px ${pal.glow}`,
+            }}
           >
-            {' '}
-            / 100
-          </span>
-        </div>
-        <div
-          className="text-center text-xs"
-          style={{ color: 'var(--ds-dark-text, rgba(255,255,255,0.85))' }}
-        >
-          {verdict}
-        </div>
+            {verdict}
+          </div>
+        ) : (
+          <>
+            <div
+              className="font-bold leading-none"
+              style={{ fontSize: 32, fontWeight: 700, color: pal.gold }}
+            >
+              {totalScore}
+              <span className="text-base font-normal" style={{ color: pal.muted }}>
+                {' '}
+                / 100
+              </span>
+            </div>
+            <div className="text-center text-xs" style={{ color: pal.text }}>
+              {verdict}
+            </div>
+          </>
+        )}
       </div>
 
       {/* 구분선 */}
-      <div
-        className="my-2 h-px"
-        style={{ background: 'var(--ds-dark-border, rgba(255,255,255,0.10))' }}
-      />
+      <div className="my-2 h-px" style={{ background: pal.border }} />
 
       {/* 카테고리 바 */}
       <ul className="space-y-2">
@@ -493,21 +545,14 @@ export function ScoreBreakdown({
           const isEmpty = score <= 5
           return (
             <li key={row.key} className="flex items-center gap-3 text-xs">
-              <span
-                className="flex w-24 shrink-0 items-center gap-1.5"
-                style={{ color: 'var(--ds-dark-text, rgba(255,255,255,0.85))' }}
-              >
+              <span className="flex w-24 shrink-0 items-center gap-1.5" style={{ color: pal.text }}>
                 <span aria-hidden="true">{row.emoji}</span>
                 <span>{lang === 'en' ? row.labelEn : row.labelKo}</span>
               </span>
-              <ScoreBar value={score} />
+              <ScoreBar value={score} tone={row.tone} theme={theme} />
               <span
                 className="w-14 shrink-0 text-right tabular-nums"
-                style={{
-                  color: isEmpty
-                    ? 'var(--ds-dark-text-muted, rgba(255,255,255,0.5))'
-                    : 'var(--ds-gold-on-dark-soft, #c9a76a)',
-                }}
+                style={{ color: isEmpty ? pal.muted : pal.gold }}
               >
                 {isEmpty ? (lang === 'en' ? row.emptyEn : row.emptyKo) : Math.round(score)}
               </span>
