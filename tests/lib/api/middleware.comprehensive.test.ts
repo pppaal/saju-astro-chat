@@ -51,11 +51,11 @@ describe('API Middleware', () => {
     })
 
     it('should extract locale from URL parameter', () => {
-      const req = new Request('http://localhost:3000?locale=ja')
+      const req = new Request('http://localhost:3000?locale=ko')
 
       const locale = extractLocale(req)
 
-      expect(locale).toBe('ja')
+      expect(locale).toBe('ko')
     })
 
     it('should use language priority order (ko > ja > zh)', () => {
@@ -78,24 +78,24 @@ describe('API Middleware', () => {
       expect(locale).toBe('en')
     })
 
-    it('should handle Japanese locale', () => {
+    it('should default non-Korean locales (ja) to English', () => {
       const req = new Request('http://localhost:3000', {
         headers: { 'accept-language': 'ja-JP' },
       })
 
       const locale = extractLocale(req)
 
-      expect(locale).toBe('ja')
+      expect(locale).toBe('en')
     })
 
-    it('should handle Chinese locale', () => {
+    it('should default non-Korean locales (zh) to English', () => {
       const req = new Request('http://localhost:3000', {
         headers: { 'accept-language': 'zh-CN' },
       })
 
       const locale = extractLocale(req)
 
-      expect(locale).toBe('zh')
+      expect(locale).toBe('en')
     })
   })
 

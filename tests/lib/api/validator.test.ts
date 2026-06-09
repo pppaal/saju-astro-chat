@@ -99,8 +99,8 @@ describe('API Validator', () => {
 
   describe('LocaleSchema', () => {
     it('should accept supported locales', () => {
-      // All locales from localeValues in common.ts
-      const locales = ['ko', 'en', 'ja', 'zh', 'es', 'fr', 'de', 'pt', 'ru', 'ar', 'vi', 'th', 'id']
+      // All locales from localeValues in common.ts (en/ko only)
+      const locales = ['ko', 'en']
       locales.forEach((locale) => {
         const result = LocaleSchema.safeParse(locale)
         expect(result.success).toBe(true)
@@ -108,8 +108,10 @@ describe('API Validator', () => {
     })
 
     it('should reject unsupported locale', () => {
-      const result = LocaleSchema.safeParse('xyz')
-      expect(result.success).toBe(false)
+      expect(LocaleSchema.safeParse('xyz').success).toBe(false)
+      // Other languages no longer supported (en/ko-only app)
+      expect(LocaleSchema.safeParse('ja').success).toBe(false)
+      expect(LocaleSchema.safeParse('zh').success).toBe(false)
     })
   })
 

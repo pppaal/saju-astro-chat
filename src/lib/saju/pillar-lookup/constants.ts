@@ -1,39 +1,8 @@
 // src/lib/Saju/pillar-lookup/constants.ts
 // Constant data for 60 pillars (60갑자) lookup
 
-/**
- * 천간 한자-한글 매핑
- */
-export const STEM_KOREAN: Record<string, string> = {
-  甲: '갑',
-  乙: '을',
-  丙: '병',
-  丁: '정',
-  戊: '무',
-  己: '기',
-  庚: '경',
-  辛: '신',
-  壬: '임',
-  癸: '계',
-}
-
-/**
- * 지지 한자-한글 매핑
- */
-export const BRANCH_KOREAN: Record<string, string> = {
-  子: '자',
-  丑: '축',
-  寅: '인',
-  卯: '묘',
-  辰: '진',
-  巳: '사',
-  午: '오',
-  未: '미',
-  申: '신',
-  酉: '유',
-  戌: '술',
-  亥: '해',
-}
+// 천간/지지 한자→한글 음 — 정본(saju/ganjiKo) 재export. 복사본 두지 않음(드리프트 차단).
+export { STEM_KO as STEM_KOREAN, BRANCH_KO as BRANCH_KOREAN } from '@/lib/saju/ganjiKo'
 
 /**
  * 천간 배열 (순서대로)

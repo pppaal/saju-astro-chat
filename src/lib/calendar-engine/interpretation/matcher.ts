@@ -11,6 +11,7 @@ import { deriveLifetimeFlow } from '../derivers/lifetimeFlow'
 import { deriveYearAstro, type SolarReturnSummary } from '../derivers/yearAstro'
 import { deriveMonthComparison } from '../derivers/monthComparison'
 import { SIBSIN_CAT, deriveCycleTone, deriveAstroTone } from '../derivers/cycleTone'
+import { STEM_KO as STEM_KR, BRANCH_KO as BRANCH_KR } from '@/lib/saju/ganjiKo'
 
 /**
  * 신호 다발 + 본명 컨텍스트 → 자연스러운 narrative.
@@ -627,32 +628,7 @@ function signalMatches(s: ActiveSignal, cond: RuleConditions): boolean {
 // 그대로 출력되면 일반 사용자에겐 읽히지 않으므로 룰 본문에 들어가는
 // {monthGanji}/{yearGanji}/{daeunGanji} 변수는 한글 음으로, 영어 변형
 // {*GanjiEn} 변수는 capitalized 로마자로 노출.
-const STEM_KR: Record<string, string> = {
-  甲: '갑',
-  乙: '을',
-  丙: '병',
-  丁: '정',
-  戊: '무',
-  己: '기',
-  庚: '경',
-  辛: '신',
-  壬: '임',
-  癸: '계',
-}
-const BRANCH_KR: Record<string, string> = {
-  子: '자',
-  丑: '축',
-  寅: '인',
-  卯: '묘',
-  辰: '진',
-  巳: '사',
-  午: '오',
-  未: '미',
-  申: '신',
-  酉: '유',
-  戌: '술',
-  亥: '해',
-}
+// 천간/지지 한자→한글 음은 정본(saju/ganjiKo) 재사용 (위 import STEM_KR/BRANCH_KR).
 const STEM_ROMAN: Record<string, string> = {
   甲: 'Gap',
   乙: 'Eul',
