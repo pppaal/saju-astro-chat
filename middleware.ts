@@ -113,7 +113,7 @@ function isBlockedServicePath(pathname: string): boolean {
 
 // ── Locale detection ──
 const SUPPORTED_LOCALES = new Set(['ko', 'en'])
-const DEFAULT_LOCALE = 'ko'
+const DEFAULT_LOCALE = 'en'
 const LOCALE_COOKIE = 'locale'
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
 
