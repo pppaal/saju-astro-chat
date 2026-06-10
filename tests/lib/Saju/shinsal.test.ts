@@ -19,20 +19,8 @@ describe('DEFAULT_ANNOTATE_OPTIONS', () => {
     expect(DEFAULT_ANNOTATE_OPTIONS.twelveStageBasis).toBe('day')
   })
 
-  it('has includeLucky set to false by default', () => {
-    expect(DEFAULT_ANNOTATE_OPTIONS.includeLucky).toBe(false)
-  })
-
-  it('has includeUnlucky set to false by default', () => {
-    expect(DEFAULT_ANNOTATE_OPTIONS.includeUnlucky).toBe(false)
-  })
-
   it('has includeTwelveAll set to true by default', () => {
     expect(DEFAULT_ANNOTATE_OPTIONS.includeTwelveAll).toBe(true)
-  })
-
-  it('has includeHwaHae set to false by default', () => {
-    expect(DEFAULT_ANNOTATE_OPTIONS.includeHwaHae).toBe(false)
   })
 
   it('has useMonthCompletion set to false by default', () => {
@@ -243,20 +231,11 @@ describe('AnnotateOptions interface', () => {
     expect(options.twelveStageBasis).toBe('day')
   })
 
-  it('can enable lucky shinsal', () => {
+  it('can enable lucky-detail shinsal', () => {
     const options: AnnotateOptions = {
-      includeLucky: true,
       includeLuckyDetails: true,
     }
-    expect(options.includeLucky).toBe(true)
     expect(options.includeLuckyDetails).toBe(true)
-  })
-
-  it('can enable unlucky shinsal', () => {
-    const options: AnnotateOptions = {
-      includeUnlucky: true,
-    }
-    expect(options.includeUnlucky).toBe(true)
   })
 
   it('can change ruleSet', () => {
