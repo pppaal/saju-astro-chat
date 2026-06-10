@@ -241,8 +241,10 @@ describe('궁합 follow-up UI (page.tsx) — chip render + sendMessage refactor 
 
   it('sendMessage 가 (textOverride?: string, options?) signature', () => {
     // 2nd param (options?: { isRetry?: boolean }) 가 retry 배선 위해 추가됨.
+    // historyOverride 추가로 파라미터가 길어져 Prettier 가 한 줄 → 여러 줄로
+    // 개행할 수 있으므로 파라미터 사이 공백/개행을 허용한다.
     expect(page).toMatch(
-      /sendMessage = useCallback\(\s*async \(textOverride\?: string, options\?:/
+      /sendMessage = useCallback\(\s*async \(\s*textOverride\?: string,\s*options\?:/
     )
   })
 
