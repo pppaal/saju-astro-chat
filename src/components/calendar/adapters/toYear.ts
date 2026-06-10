@@ -52,6 +52,20 @@ export interface DestinypalYearSewoon {
   score?: number
 }
 
+/**
+ * 한 tier 공용 "교차" 항목 — 사주 × 점성 동시 활성 페어 한 줄.
+ *  when   : 활성 구간 표시 ('3–7월' / '연중' / '지금' 등)
+ *  title  : 페어 이름 ('정재 × 금성')
+ *  detail : 근거 해석 한 줄 (mapping.meaning.ko)
+ *  tone   : 길/흉/중립 — UI 색.
+ */
+export interface DestinypalCrossItem {
+  when: string
+  title: string
+  detail?: string
+  tone: 'good' | 'caution' | 'neutral'
+}
+
 export interface DestinypalYear {
   year: number
   sewoon: DestinypalYearSewoon
@@ -73,6 +87,8 @@ export interface DestinypalYear {
   astroNote: string
   /** 12개월 점수 스파인 (선택 — cells 또는 monthlyScores 옵션이 들어오면). */
   monthlyScores?: Array<{ month: number; score: number; bestDay?: string }>
+  /** 올해 활성 사주 × 점성 교차 — 월 구간 해석 (cells 가 들어오면 자동 산출). */
+  crossings: DestinypalCrossItem[]
   /** 이번 해 활성 ZR Spirit 챕터. (natal.zodiacalReleasing.spirit 에서 자동 산출). */
   zrSpiritChapters: DestinyDecadeZRChapter[]
   /** 이번 해 활성 ZR Fortune 챕터. */
@@ -242,9 +258,77 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
         ? `Profection이 ${profection.house}하우스를 점등 — 룰러 ${profection.ruler}가 본명 ${profection.rulerNatal}.`
         : ''),
     monthlyScores,
+    crossings: buildYearCrossings(opts.cells ?? [], opts.year),
     zrSpiritChapters,
     zrFortuneChapters,
   }
+}
+
+/**
+ * 올해 cells 에서 사주 × 점성 교차(cross-activation) 신호를 모아 월 구간으로 압축.
+ * yearly/monthly 층(= 해·달 스케일) 교차만 — 일 교차는 월 tier 담당.
+ * 같은 페어가 여러 날 반복되므로 이름으로 dedup 하고 활성 창을 합쳐 가장 넓은
+ * 구간을 그 페어의 '언제'로 쓴다.
+ */
+function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCrossItem[] {
+  const yStart = Date.UTC(year, 0, 1)
+  const yEnd = Date.UTC(year, 11, 31, 23, 59, 59)
+  const agg = new Map<
+    string,
+    { name: string; korean?: string; polarity: number; start: number; end: number }
+  >()
+  for (const c of cells) {
+    for (const s of c.signals) {
+      if (s.kind !== 'cross-activation') continue
+      if (s.layer !== 'yearly' && s.layer !== 'monthly') continue
+      const st = Date.parse(s.active.start)
+      const en = Date.parse(s.active.end)
+      if (Number.isNaN(st) || Number.isNaN(en)) continue
+      const cur = agg.get(s.name)
+      if (!cur) {
+        agg.set(s.name, {
+          name: s.name,
+          korean: s.korean,
+          polarity: s.polarity,
+          start: st,
+          end: en,
+        })
+      } else {
+        if (st < cur.start) cur.start = st
+        if (en > cur.end) cur.end = en
+        if (Math.abs(s.polarity) > Math.abs(cur.polarity)) cur.polarity = s.polarity
+        if (!cur.korean && s.korean) cur.korean = s.korean
+      }
+    }
+  }
+
+  const monthOf = (ms: number) => new Date(Math.min(Math.max(ms, yStart), yEnd)).getUTCMonth() + 1
+  const whenLabel = (sMs: number, eMs: number) => {
+    const sM = monthOf(sMs)
+    const eM = monthOf(eMs)
+    if (eM - sM >= 10) return '연중'
+    if (sM === eM) return `${sM}월`
+    return `${sM}–${eM}월`
+  }
+
+  const enriched = [...agg.values()].map((v) => ({
+    when: whenLabel(v.start, v.end),
+    title: v.name,
+    detail: v.korean,
+    tone: (v.polarity > 0 ? 'good' : v.polarity < 0 ? 'caution' : 'neutral') as
+      | 'good'
+      | 'caution'
+      | 'neutral',
+    sortStart: Math.min(Math.max(v.start, yStart), yEnd),
+    abs: Math.abs(v.polarity),
+  }))
+
+  // 의미 강한 교차 우선 최대 12개 → 다시 시간순으로 정렬해 타임라인 느낌 유지.
+  const top = new Set([...enriched].sort((a, b) => b.abs - a.abs).slice(0, 12))
+  return enriched
+    .filter((e) => top.has(e))
+    .sort((a, b) => a.sortStart - b.sortStart || b.abs - a.abs)
+    .map(({ when, title, detail, tone }) => ({ when, title, detail, tone }))
 }
 
 /**

@@ -303,17 +303,29 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     sewoonNow = { gz: yearItem.gz, sibsin: safeSibsin(dm, sr.stem) }
   }
 
-  // cross-activation 풀에서 decadal layer 만
-  const crossActivations: DestinypalDecadeCrossActivation[] = (opts.decadalSignals ?? [])
-    .filter((s) => s.kind === 'cross-activation' && s.layer === 'decadal')
-    .map((s) => ({
+  // cross-activation 풀에서 decadal layer 만 — 같은 페어가 여러 날 중복되므로
+  // 이름으로 dedup, 의미는 신호의 korean(매핑 meaning.ko)에서 가져온다.
+  const crossSeen = new Map<string, DestinypalDecadeCrossActivation>()
+  for (const s of opts.decadalSignals ?? []) {
+    if (s.kind !== 'cross-activation' || s.layer !== 'decadal') continue
+    if (crossSeen.has(s.name)) {
+      // 가장 강한 polarity 를 대표로.
+      const cur = crossSeen.get(s.name)!
+      if (Math.abs(s.polarity) > Math.abs(cur.polarity)) cur.polarity = s.polarity
+      continue
+    }
+    crossSeen.set(s.name, {
       signalId: s.id,
       name: s.name,
-      sajuLine: extractEvidenceField(s, 'sajuName'),
-      astroLine: extractEvidenceField(s, 'astroName'),
+      sajuLine: extractEvidenceField(s, 'sajuKey'),
+      astroLine: extractEvidenceField(s, 'astroKey'),
       polarity: s.polarity,
-      meaning: extractEvidenceField(s, 'meaning'),
-    }))
+      meaning: s.korean ?? extractEvidenceField(s, 'meaning'),
+    })
+  }
+  const crossActivations: DestinypalDecadeCrossActivation[] = [...crossSeen.values()].sort(
+    (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
+  )
 
   // 격국 status (현 단계는 본명 status 재사용)
   const advanced = natal.saju.analyses

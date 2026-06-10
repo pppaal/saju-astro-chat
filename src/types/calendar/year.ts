@@ -102,4 +102,11 @@ export interface DestinyYear {
     score: number
     bestDay?: string // 'MM-DD'
   }>
+  /** 올해 활성 사주 × 점성 교차 — 월 구간 + 근거 해석. */
+  crossings?: Array<{
+    when: string // '3–7월' / '연중'
+    title: string // '정재 × 금성'
+    detail?: string // 근거 해석 한 줄
+    tone: 'good' | 'caution' | 'neutral'
+  }>
 }

@@ -388,6 +388,7 @@ export default async function DestinypalPage() {
     zrSpiritChapters: yearAdapter.zrSpiritChapters,
     zrFortuneChapters: yearAdapter.zrFortuneChapters,
     monthlyScores: yearAdapter.monthlyScores,
+    crossings: yearAdapter.crossings,
   }
 
   // 월 narrative — 타고난 결(lifetimeFlow.intro) + 그 달 상위 topReasons (preview 동일).
