@@ -219,9 +219,9 @@ export default defineConfig({
         'src/hooks/mobile/**',
         'src/utils/mobileHelpers.ts',
       ],
-      // Coverage thresholds — only enforced on full coverage runs
-      // Global: 85% overall coverage (raised from 80%)
-      // Critical paths (auth, payments, credits, security): 90%+
+      // Coverage thresholds — only enforced on full coverage runs.
+      // Values below are the enforced floors (ratchet upward as coverage
+      // grows; long-term target is 85% global, 90%+ on critical paths).
       ...(isCoverageRun
         ? {
             thresholds: {
