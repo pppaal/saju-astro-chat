@@ -174,6 +174,23 @@ const RELATION_TYPE_LABEL: Record<string, BiLabel> = {
 const relationTypeLabel = (kind: string, lang: Lang): string =>
   RELATION_TYPE_LABEL[kind]?.[lang] ?? kind
 
+// 별자리 12궁 → 쉬운 말 결(원소·양식의 성격 요약). 행성이 그 사인의 '옷'을 입는다.
+// SIGN_META 키(3자 약어)와 동일 키. 점성 해석을 위해 사인의 색을 한 마디로.
+const SIGN_TRAIT: Record<string, BiLabel> = {
+  Ari: { ko: '거침없이 부딪쳐 길을 내는', en: 'bold and pioneering' },
+  Tau: { ko: '느긋하고 끈기 있게 쌓는', en: 'steady and grounded' },
+  Gem: { ko: '호기심 많고 재빠르게 오가는', en: 'curious and quick-witted' },
+  Can: { ko: '정 많고 품어 보살피는', en: 'tender and protective' },
+  Leo: { ko: '당당하고 환하게 빛나는', en: 'proud and radiant' },
+  Vir: { ko: '꼼꼼하고 실속을 챙기는', en: 'precise and practical' },
+  Lib: { ko: '조화를 맞추고 어울리는', en: 'balanced and relational' },
+  Sco: { ko: '깊고 강렬하게 파고드는', en: 'deep and intense' },
+  Sag: { ko: '자유롭게 멀리 뻗는', en: 'free and far-reaching' },
+  Cap: { ko: '현실적으로 끝까지 성취하는', en: 'grounded and ambitious' },
+  Aqu: { ko: '독창적이고 틀을 깨는', en: 'original and unconventional' },
+  Pis: { ko: '섬세하고 상상력 넘치는', en: 'sensitive and imaginative' },
+}
+
 // 교차 tone → 라벨 (이중언어). "사주·점성 두 시스템이 같은/다른 얘길 하는가" 관점.
 const TONE_LABEL: Record<CrossRow['tone'], BiLabel> = {
   resonant: { ko: '둘 다 같은 얘길 해요', en: 'Both say the same' },
@@ -1199,17 +1216,29 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       </i>
                     </div>
                     <div className={s.bigPrin}>{cd.core.principle}</div>
-                    {cd.house
-                      ? (() => {
-                          const h = getHouseRich(cd.house as HouseNumber, lang)
-                          return h ? (
-                            <div className={s.bigHouse}>
-                              {cd.house}
-                              {lang === 'en' ? 'H' : '하우스'} · {h.domain}
-                            </div>
-                          ) : null
-                        })()
-                      : null}
+                    {(() => {
+                      // 점성 해석 — 행성(역할) × 별자리(색) × 하우스(무대)를 한 문장으로.
+                      const tr = SIGN_TRAIT[abbr(cd.sign)]
+                      const sgn = signLabel(abbr(cd.sign), lang)
+                      const h = cd.house ? getHouseRich(cd.house as HouseNumber, lang) : null
+                      const dom = h ? h.domain.split('·')[0].trim() : ''
+                      if (!tr) return null
+                      const ord = (n: number) => {
+                        const v = n % 100
+                        const suf =
+                          v >= 11 && v <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'
+                        return `${n}${suf}`
+                      }
+                      const read =
+                        lang === 'en'
+                          ? `In ${sgn}, your ${cd.label} comes through ${tr.en}` +
+                            (h
+                              ? `, and plays out mainly in the ${ord(cd.house)} house of ${dom}.`
+                              : '.')
+                          : `${sgn} 자리라 ${cd.label}이 ${tr.ko} 색으로 드러나` +
+                            (h ? `고, ${cd.house}하우스(${dom}) 무대에서 주로 펼쳐져요.` : '요.')
+                      return <div className={s.bigRead}>{read}</div>
+                    })()}
                     <div className={s.bigMean}>{cd.core.meaning}</div>
                   </div>
                 )
