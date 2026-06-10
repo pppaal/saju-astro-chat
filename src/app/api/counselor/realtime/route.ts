@@ -9,8 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { getServerSession } from '@/lib/auth/session'
 import { ensureCounselorContext } from '@/lib/destiny/counselorContextCache'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
@@ -131,7 +130,7 @@ export async function POST(req: NextRequest) {
   if (csrfError) return csrfError
 
   // 1) Auth — 로그인 필수. 비로그인은 401 로 로그인 유도.
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession()
   const userId = session?.user?.id
   if (!userId) {
     return NextResponse.json(
@@ -346,16 +345,15 @@ export async function POST(req: NextRequest) {
     keepGeneratingOnDisconnect: true,
     // 생성이 끝나면(클라 연결 여부 무관) 완성 답안을 캐시에 저장. 끊겼다가
     // 돌아온 사용자가 /api/counselor/realtime/result?turnId=… 로 받아간다.
-    onComplete:
-      turnId
-        ? async (full) => {
-            try {
-              await cacheSet(counselorTurnResultKey(userId, turnId), full, TURN_RESULT_TTL_SEC)
-            } catch {
-              /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
-            }
+    onComplete: turnId
+      ? async (full) => {
+          try {
+            await cacheSet(counselorTurnResultKey(userId, turnId), full, TURN_RESULT_TTL_SEC)
+          } catch {
+            /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
           }
-        : undefined,
+        }
+      : undefined,
     systemPrompt,
     userPrompt,
     cachedUserContext,

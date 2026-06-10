@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { requirePublicToken } from '@/lib/auth/publicToken'
@@ -288,7 +287,7 @@ export async function initializeApiContext(
   let isPremium = false
 
   try {
-    session = await getServerSession(authOptions)
+    session = await getServerSession()
     userId = session?.user?.id || null
     isPremium = !!(session?.user?.plan && session.user.plan !== 'free')
   } catch {

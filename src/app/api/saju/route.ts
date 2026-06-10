@@ -227,8 +227,6 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   })
 
   const rawShinsal = getShinsalHits(sajuPillars, {
-    includeLucky: true,
-    includeUnlucky: true,
     includeTwelveAll: true,
     useMonthCompletion: false,
     includeGeneralShinsal: true,
@@ -325,7 +323,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     simplePillars,
     pillarsWithHour,
     dayMasterStem,
-    sajuResult.monthPillar.earthlyBranch.name,
+    sajuResult.monthPillar.earthlyBranch.name
   )
 
   const analysisDate = `${userNow.year}-${String(userNow.month).padStart(2, '0')}-${String(userNow.day).padStart(2, '0')}`

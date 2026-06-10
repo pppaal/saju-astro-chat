@@ -27,6 +27,18 @@ vi.mock('next-auth/react', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
+// NextAuth v5 인스턴스(@/lib/auth/nextAuth)는 모듈 로드 시점에 NextAuth(config)
+// 를 실행하는데, next-auth ESM 이 vitest 에서 'next/server' 경로 해석에 실패하고
+// 단위 테스트에 실제 초기화가 필요하지도 않다. 전역 기본 mock 으로 차단한다 —
+// 세션 값을 제어하려는 테스트는 vi.mock('@/lib/auth/session', ...) 을 쓰면 되고
+// (대부분 이미 그렇게 함), 그 mock 이 이 기본값보다 우선한다.
+vi.mock('@/lib/auth/nextAuth', () => ({
+  auth: vi.fn(async () => null),
+  handlers: { GET: vi.fn(), POST: vi.fn() },
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+}))
+
 vi.mock('server-only', () => ({}))
 
 // Export mock session utilities for tests to configure

@@ -1,4 +1,4 @@
-import type { NextAuthOptions } from 'next-auth'
+import type { NextAuthConfig } from 'next-auth'
 import type { Adapter, AdapterAccount, AdapterUser } from 'next-auth/adapters'
 import GoogleProvider from 'next-auth/providers/google'
 import * as Sentry from '@sentry/nextjs'
@@ -35,7 +35,7 @@ function getCookieDomain() {
     return explicit
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL
+  const baseUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL
   if (!baseUrl) {
     return undefined
   }
@@ -239,7 +239,7 @@ function createFilteredPrismaAdapter(): Adapter {
   }
 }
 
-const providers: NextAuthOptions['providers'] = []
+const providers: NextAuthConfig['providers'] = []
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
@@ -255,10 +255,14 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   )
 }
 
-export const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthConfig = {
   adapter: createFilteredPrismaAdapter(),
   providers,
-  secret: process.env.NEXTAUTH_SECRET,
+  // v5 는 AUTH_SECRET 을 우선 읽지만, 기존 배포 env(NEXTAUTH_SECRET)와의
+  // 호환을 위해 명시적으로 둘 다 지원한다.
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  // Vercel/프록시 뒤에서 Host 헤더 신뢰 (v4 의 NEXTAUTH_URL 기반 동작 대체).
+  trustHost: true,
   pages: {
     signIn: '/auth/signin',
   },
@@ -354,7 +358,10 @@ export const authOptions: NextAuthOptions = {
         Sentry.captureMessage('auth.sign_in')
       })
     },
-    async signOut({ token }) {
+    // v5 의 signOut 이벤트 메시지는 세션 전략에 따라 { session } | { token }
+    // 유니언 — JWT 전략이므로 token 쪽만 사용한다.
+    async signOut(message) {
+      const token = 'token' in message ? message.token : null
       if (!token?.id) {
         return
       }

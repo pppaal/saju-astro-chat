@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { getServerSession } from '@/lib/auth/session'
 import { cacheGet } from '@/lib/cache/redis-cache'
 import { tarotTurnResultKey } from '../route'
 
@@ -19,7 +18,7 @@ export const runtime = 'nodejs'
  * counselor/realtime/result 와 동일 패턴.
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession()
   const userId = session?.user?.id
   if (!userId) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })

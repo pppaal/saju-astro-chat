@@ -15,8 +15,7 @@
        강제 매핑되므로 buildNatalContext 가 받아낼 수 있음.)
    ============================================================ */
 
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { getServerSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/db/prisma'
 
 import PreviewClient from './preview/PreviewClient'
@@ -74,7 +73,7 @@ function formatBirthLine(birthDate: string, birthTime: string): string {
 
 export default async function DestinypalPage() {
   // ─── 1) 세션 검사 ─────────────────────────────────────────────────────
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession()
   if (!session?.user?.id) {
     return <BirthRequiredFallback reason="login" />
   }

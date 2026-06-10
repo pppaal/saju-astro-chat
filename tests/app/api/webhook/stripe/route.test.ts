@@ -29,7 +29,7 @@ vi.mock('@/lib/api/middleware', () => ({
 }))
 
 // Mock next-auth (not used directly by the webhook, but may be pulled transitively)
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -594,7 +594,6 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const response = await POST(makeWebhookRequest())
       expect(response.status).toBe(500)
     })
-
   })
 
   // =========================================================================

@@ -16,7 +16,7 @@ vi.mock('@/lib/auth/authOptions', () => ({
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler, _options) => {
     return async (...args: any[]) => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       const { authOptions } = await import('@/lib/auth/authOptions')
       const { NextResponse } = await import('next/server')
 
@@ -67,7 +67,7 @@ vi.mock('@/lib/api/middleware', () => ({
 }))
 
 import { GET } from '@/app/api/me/route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 
 const mockGetServerSession = vi.mocked(getServerSession)
 

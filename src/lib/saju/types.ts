@@ -194,21 +194,7 @@ export type TwelveStage = TwelveStageStandard | '건록' | '제왕'
 
 // --- 신살 결과 타입 ---
 export interface ShinsalHit {
-  kind:
-    | '장성'
-    | '반안'
-    | '재살'
-    | '천살'
-    | '월살'
-    | '망신'
-    | '역마'
-    | '화개'
-    | '겁살'
-    | '육해'
-    | '화해'
-    | '괘살'
-    | '길성'
-    | '흉성'
+  kind: '장성' | '반안' | '재살' | '천살' | '월살' | '망신' | '역마' | '화개' | '겁살' | '육해'
   pillars: PillarKind[] // 해당 기둥(들)
   target?: string // 해당 지지/천간 이름
   detail?: string // 설명 노트

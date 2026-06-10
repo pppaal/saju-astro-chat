@@ -2,13 +2,13 @@
   "甲子": {
     "ko": {
       "character": "큰 나무 아래 시작하는 쥐형 — 어린 결단력. 당신은 무에서 유를 만들고 싶어하는 새싹 같은 사람이에요.",
-      "strength": "기초가 단단하고 새 시작에 강하며, 직관과 학습력이 빠른 편이에요.",
+      "strength": "자존심과 학습력이 단단하고 새 시작에 강하며, 직관이 빠른 편이에요.",
       "weakness": "초반 의욕이 끝까지 안 가는 면이 있고, 혼자 결정하다 외로워질 수 있어요.",
       "career": "교육·연구·기획 — 무에서 유 만드는 일이 잘 맞아요. 컨설팅, 스타트업 초기 멤버도 좋습니다.",
       "love": "헌신적이지만 천천히 마음 여는 면. 한 번 신뢰하면 깊게 가는 타입이에요."
     },
     "en": {
-      "character": "A young sprout under a great tree — quietly decisive. You are the kind of person who wants to build something from nothing.",
+      "character": "A young sprout under a great tree — a budding resolve. You are the kind of person who wants to build something from nothing.",
       "strength": "You have a strong foundation, a knack for fresh starts, and quick intuitive learning.",
       "weakness": "Your early enthusiasm can fade before the finish line, and deciding alone may leave you lonely.",
       "career": "Teaching, research, planning — work that creates something from scratch. Consulting and early-stage startups suit you.",
@@ -25,7 +25,7 @@
     },
     "en": {
       "character": "Grass on damp ground — soft on the outside, stubborn in survival. You look gentle but hold firm underneath.",
-      "strength": "Deep patience, a warm pull on people, and steadiness through hard times.",
+      "strength": "Deep patience, a warmth that draws people in, and steadiness through hard times.",
       "weakness": "You hide your inner thoughts, which can frustrate others, and slow decisions may cost you chances.",
       "career": "Agriculture, food, welfare, HR — work that handles people and living things suits you.",
       "love": "You devote yourself quietly. You may say little, but no one feels more deeply."
@@ -49,7 +49,7 @@
   },
   "丁卯": {
     "ko": {
-      "character": "촛불을 든 토끼 — 섬세하고 따뜻한 직관가. 당신은 분위기를 먼저 읽어내는 사람이에요.",
+      "character": "촛불을 든 토끼 — 섬세하고 따뜻한 직관형이에요. 당신은 분위기를 먼저 읽어내는 사람이에요.",
       "strength": "감수성과 미적 감각이 뛰어나고, 사람 마음을 잘 헤아려요.",
       "weakness": "쉽게 상처받고 혼자 곱씹는 경향이 있어 에너지가 잘 닳아요.",
       "career": "예술·디자인·상담·문학 — 섬세한 감각이 살아나는 분야가 맞아요.",
@@ -88,7 +88,7 @@
       "love": "다정하지만 재고 망설이는 편. 안전하다 느껴야 마음을 엽니다."
     },
     "en": {
-      "character": "A sunlit kitchen garden — soft, sharp, a natural caretaker. You quietly tend to everyone.",
+      "character": "A sunlit kitchen garden — gentle but shrewd, a natural caretaker. You quietly tend to everyone.",
       "strength": "Real-world sense and social ease — you smooth out the space between people.",
       "weakness": "You worry a lot and overthink, so decisions slip.",
       "career": "Teaching, healthcare, service, brokering — work that cares for and connects people.",
@@ -100,20 +100,20 @@
       "character": "한낮의 강철 — 빠르고 곧은 결단가. 당신은 한번 결정하면 뒤를 안 돌아보는 사람이에요.",
       "strength": "판단이 빠르고 의리가 있으며, 위기 상황에서 더 강해져요.",
       "weakness": "말이 칼처럼 박혀 의도와 다르게 상처를 주기도 해요.",
-      "career": "군경·스포츠·엔지니어·영업 — 속도와 결단이 필요한 일이 맞아요.",
+      "career": "군경·스포츠·엔지니어·공직 — 속도와 결단, 책임이 필요한 일이 맞아요.",
       "love": "직선적이고 책임감 강한 스타일. 표현이 거칠어도 마음은 진심이에요."
     },
     "en": {
       "character": "Steel at noon — fast, straight decisions. Once you choose, you don't look back.",
       "strength": "Quick judgment, loyalty, and you grow stronger when things go wrong.",
       "weakness": "Your words land like blades and can wound beyond your intent.",
-      "career": "Military, sports, engineering, sales — work that needs speed and decisive calls.",
+      "career": "Military, sports, engineering, public service — work that needs speed, decisiveness, and responsibility.",
       "love": "Direct and responsible. Your tone is rough but your heart is real."
     }
   },
   "辛未": {
     "ko": {
-      "character": "양털 위 보석 — 우아하고 까다로운 감식안. 당신은 아무것이나 받아들이지 않는 안목의 소유자예요.",
+      "character": "양털 위 보석 — 우아하고 까다로운 감식안. 당신은 아무거나 받아들이지 않는, 안목이 까다로운 사람이에요.",
       "strength": "심미안과 정확함이 뛰어나며, 본질을 빠르게 골라내요.",
       "weakness": "쉽게 만족하지 않고 비판이 앞서, 사람을 멀어지게 할 수 있어요.",
       "career": "디자인·법률·기획·전문직 — 정밀함과 안목이 가치가 되는 분야가 맞아요.",
@@ -161,17 +161,17 @@
   },
   "甲戌": {
     "ko": {
-      "character": "마른 땅 위 큰 나무 — 근면 성실한 실속형. 당신은 묵묵히 자기 자리를 지키는 사람이에요.",
+      "character": "마른 땅 위 큰 나무 — 재물 감각이 밝은 실속형. 당신은 자기 영역을 넓혀 가치를 키우는 사람이에요.",
       "strength": "책임감이 강하고 끈기 있으며, 약속을 지키는 신뢰가 자산이에요.",
-      "weakness": "걱정이 많고 보수적이라, 변화 앞에서 자주 망설여요.",
-      "career": "공직·관리·농림·교육 — 안정과 책임이 인정받는 분야가 잘 맞아요.",
+      "weakness": "소유욕이 강하고 일을 벌이는 편이라, 책임을 너무 끌어안다 지칠 수 있어요.",
+      "career": "사업·유통·금융·교육 — 재물 감각과 활동성이 자산이 되는 분야가 잘 맞아요.",
       "love": "한번 마음 주면 오래가는 의리파. 무뚝뚝해도 끝까지 챙겨줍니다."
     },
     "en": {
-      "character": "A great tree on dry ground — hardworking and grounded. You hold your post in silence.",
+      "character": "A great tree on dry ground — practical with a sharp sense for money. You widen your own ground and grow its value.",
       "strength": "Strong responsibility and grit; your kept promises are your real capital.",
-      "weakness": "You worry and lean conservative, so change makes you hesitate.",
-      "career": "Public service, management, agriculture, education — fields that reward stability.",
+      "weakness": "Strong appetite to own and to start things; taking on too much can wear you down.",
+      "career": "Business, distribution, finance, education — fields where a feel for money and momentum become your asset.",
       "love": "Once committed, you stay. Blunt on the surface, loyal to the end."
     }
   },
@@ -197,7 +197,7 @@
       "strength": "표현력과 사교성이 뛰어나고, 사람을 끌어들이는 매력이 있어요.",
       "weakness": "겉은 화려해도 속은 쉽게 흔들리고, 인정 욕구가 강해요.",
       "career": "방송·예술·마케팅·교육 — 빛과 표현이 무기인 분야가 잘 맞아요.",
-      "love": "다정하고 표현은 잘 하지만, 마음 한구석에 외로움이 자주 자리해요."
+      "love": "다정하고 표현은 잘 하지만, 마음 한구석엔 외로움이 자주 자리 잡고 있어요."
     },
     "en": {
       "character": "Sun mirrored on water — bright but acquainted with loneliness. You shine and you run deep.",
@@ -225,7 +225,7 @@
   },
   "戊寅": {
     "ko": {
-      "character": "산 위에 자란 큰 나무 — 묵직하면서도 진취적인 사람. 당신은 안정 위에 도전하는 사람이에요.",
+      "character": "산 위에 자란 큰 나무 — 묵직하면서도 진취적인 유형. 당신은 안정 위에서 도전하는 사람이에요.",
       "strength": "추진력과 책임감을 동시에 가지고 있어, 큰 일을 끌고 가는 힘이 있어요.",
       "weakness": "자기 방식이 강해 충돌이 잦고, 일을 너무 끌어안아 지쳐요.",
       "career": "건설·경영·교육·공직 — 책임을 맡고 끌고 가는 자리가 잘 맞아요.",
@@ -241,17 +241,17 @@
   },
   "己卯": {
     "ko": {
-      "character": "비탈밭 위의 새싹 — 영리하고 부지런한 살림꾼. 당신은 작은 일에서 큰 가치를 만드는 사람이에요.",
+      "character": "비탈밭 위의 새싹 — 영리하고 자존심 강한 노력가. 당신은 작은 일에서도 핵심을 짚어 자기 입지를 만드는 사람이에요.",
       "strength": "꼼꼼하고 실속이 있으며, 사람·돈을 다루는 감각이 좋아요.",
       "weakness": "걱정이 많고 자기 의심이 깊어, 머릿속이 자주 시끄러워요.",
-      "career": "회계·기획·교육·중소 사업 — 디테일과 손익이 중요한 일이 잘 맞아요.",
+      "career": "공직·전문직·교육·의료 — 예리함과 책임감이 인정받는 조직·분야가 잘 맞아요.",
       "love": "자상하지만 따지는 면도 있음. 마음과 머리가 자주 다툽니다."
     },
     "en": {
-      "character": "A sprout on a hillside field — smart, busy, and practical. You turn small things into real value.",
+      "character": "A sprout on a hillside field — smart and proud, a real grinder. You spot the core of small things and carve out your own standing.",
       "strength": "Careful, grounded, and a real feel for people and money.",
       "weakness": "Worry and self-doubt make your head noisy a lot of the time.",
-      "career": "Accounting, planning, teaching, small business — detail-and-ledger work suits you.",
+      "career": "Public service, specialist work, teaching, healthcare — organizations and fields that reward sharpness and responsibility.",
       "love": "Caring but also calculating. Your heart and your head argue often."
     }
   },
@@ -264,7 +264,7 @@
       "love": "겉은 무뚝뚝, 속은 다정한 보호자형. 표현 연습이 필요해요."
     },
     "en": {
-      "character": "A gold vein in the mountain — heavy talent, big vessel. You hold serious potential.",
+      "character": "A gold vein in the mountain — heavy talent, a person of large capacity. You hold serious potential.",
       "strength": "Leadership and decisiveness; crisis makes you firmer, not softer.",
       "weakness": "High standards turn into judgment of others — and into your own loneliness.",
       "career": "Law, finance, heavy industry, public service — roles with authority and weight.",
@@ -316,7 +316,7 @@
       "strength": "Real empathy, and a fine reading of what others are going through.",
       "weakness": "Mood swings happen, and you can't say no — so you end up losing.",
       "career": "Counseling, teaching, art, faith work — careers that handle the inner life of people.",
-      "love": "Warm and devoted. But you have to tend to your own heart first to last."
+      "love": "Warm and devoted. But you have to tend to your own heart first, or it won't last."
     }
   },
   "甲申": {
@@ -364,7 +364,7 @@
       "strength": "Warm expression and trustworthiness — people lean on you.",
       "weakness": "You shoulder too much alone, and the hunger for approval pushes you hard.",
       "career": "Teaching, management, welfare, PR — leading and caring roles suit you.",
-      "love": "A warm, responsible partner. You also need your own time, or you burn down."
+      "love": "A warm, responsible partner. You also need time for yourself, or you'll burn out."
     }
   },
   "丁亥": {
@@ -394,7 +394,7 @@
     "en": {
       "character": "A great mountain by the water — solid and clever. You hold weight and wit at once.",
       "strength": "Trust plus thinking power — you handle big things without panic.",
-      "weakness": "You don't show your inside, so loneliness can dig in.",
+      "weakness": "You keep things to yourself, so loneliness can settle in deep.",
       "career": "Finance, real estate, research, management — fields that reward trust and thought.",
       "love": "Heavy but affectionate. Few words, but always the same person."
     }
@@ -441,9 +441,9 @@
     },
     "en": {
       "character": "A young blade beside a jewel — delicate and selective. You pick out the essence fast.",
-      "strength": "Sharp sense and taste, with a knack for raising the class of any work.",
+      "strength": "Sharp sense and taste, with a knack for elevating the quality of any work.",
       "weakness": "You read as sensitive and prickly, so people hesitate to approach.",
-      "career": "Design, art, planning, specialist roles — fields where sensibility and class matter.",
+      "career": "Design, art, planning, specialist roles — fields where taste and refinement matter.",
       "love": "Sensitive, high standards. Once you choose, you look only at one person, and deeply."
     }
   },
@@ -467,16 +467,16 @@
     "ko": {
       "character": "여름날의 샘물 — 영리하고 활기찬 직관가. 당신은 흐름을 빨리 읽고 옮겨가는 사람이에요.",
       "strength": "지혜롭고 임기응변이 좋으며, 새로운 환경에서 빠르게 자리잡아요.",
-      "weakness": "관심이 자주 바뀌고, 한 우물을 깊이 파지 못할 수 있어요.",
-      "career": "IT·미디어·기획·세일즈 — 변화와 속도가 가치가 되는 분야가 좋아요.",
+      "weakness": "감정 기복이 있어 안정감을 스스로 챙겨야 하고, 인정 욕구가 조급함으로 번질 수 있어요.",
+      "career": "금융·회계·교육·법무 — 성실함과 안정이 자산이 되는 자리가 잘 맞아요.",
       "love": "재치 있고 자유로움. 답답함을 가장 견디기 힘들어해요."
     },
     "en": {
       "character": "A summer spring — clever, lively, intuitive. You read the flow fast and move.",
       "strength": "Wise, quick on your feet, and you settle into new ground in no time.",
-      "weakness": "Interests shift often, and you may not dig deep into any one well.",
-      "career": "Tech, media, planning, sales — fields where change and speed are the assets.",
-      "love": "Witty and free. Stifling situations are the hardest thing for you to bear."
+      "weakness": "Mood swings mean you must guard your own stability, and the wish for recognition can turn into impatience.",
+      "career": "Finance, accounting, teaching, legal — seats where sincerity and stability are the assets.",
+      "love": "Witty and free. Feeling boxed in is the hardest thing for you to bear."
     }
   },
   "甲午": {
@@ -492,7 +492,7 @@
       "strength": "Energy and expression run high, and people are drawn to you.",
       "weakness": "Big mood swings, and you spend energy so freely you burn out.",
       "career": "Performance, speaking, sales, teaching — seats where expression is the weapon.",
-      "love": "Hot and honest but variable. You pair best with someone grounded."
+      "love": "Hot and honest, though your moods can swing. You pair best with someone grounded."
     }
   },
   "乙未": {
@@ -529,18 +529,18 @@
   },
   "丁酉": {
     "ko": {
-      "character": "가을밤의 촛불 — 섬세하고 우아한 감식가. 당신은 흐름을 따져 고르는 사람이에요.",
+      "character": "가을밤의 촛불 — 환하고 다정한 매력가. 당신은 자리에 온기와 빛을 더하는 사람이에요.",
       "strength": "감각·미감이 뛰어나며, 정밀한 일을 깔끔하게 마무리해요.",
-      "weakness": "예민함이 자기 비판으로 향해, 자주 스스로를 괴롭혀요.",
+      "weakness": "정이 많아 베풀다 지치고, 인기와 인정에 마음이 흔들리기 쉬워요.",
       "career": "예술·디자인·문필·전문직 — 감각과 정밀함이 필요한 일이 좋아요.",
-      "love": "조용히 깊은 면. 흐름을 알아주는 사람과 만나야 행복합니다."
+      "love": "다정하고 인기가 많은 편. 마음을 솔직히 표현해 깊게 이어갑니다."
     },
     "en": {
-      "character": "A candle on an autumn night — fine and graceful taste. You pick by sensing the grain.",
+      "character": "A candle on an autumn night — bright and warm, full of charm. You add light and warmth to any room.",
       "strength": "Strong sense and aesthetic eye, with clean finishes on precise work.",
-      "weakness": "Sensitivity turns into self-critique — you put yourself through a lot.",
+      "weakness": "You give until you're drained, and popularity and praise can sway you.",
       "career": "Art, design, writing, specialist work — fields that need taste and precision.",
-      "love": "Quietly deep. You're happy with someone who reads your grain."
+      "love": "Warm and well-liked. You go deep by voicing your feelings openly."
     }
   },
   "戊戌": {
@@ -570,25 +570,25 @@
     "en": {
       "character": "A kitchen garden by the water — smart and warm caretaker. Your tending hand is gentle.",
       "strength": "Empathy plus real-world sense; you handle both people and money well.",
-      "weakness": "Worry and stray thoughts make decisions slow.",
+      "weakness": "Worry and a busy mind make you slow to decide.",
       "career": "Teaching, service, brokering, finance — care-for-people-and-resources roles fit you.",
       "love": "Affectionate and devoted. But to last, you have to voice your own heart first."
     }
   },
   "庚子": {
     "ko": {
-      "character": "맑은 물 속의 강철 — 머리 좋고 깔끔한 결단가. 당신은 차고 또렷한 판단의 사람이에요.",
+      "character": "맑은 물에 잠긴 강철 — 영민하고 표현이 빛나는 재능가. 당신은 겉은 또렷해도 속은 정이 많은 사람이에요.",
       "strength": "사고력과 결단력이 같이 있어, 일이 깔끔하게 끝나요.",
-      "weakness": "냉정하게 비쳐 거리감이 생기고, 정에 약하면서도 잘 안 보여줘요.",
+      "weakness": "비판이 앞서 날카롭게 비치고, 정이 많으면서도 그걸 잘 드러내지 못해요.",
       "career": "법·금융·IT·전문직 — 정밀과 결단의 분야가 잘 맞아요.",
       "love": "겉은 차고 속은 다정. 다가가는 신호를 조금만 더 보내주면 좋아요."
     },
     "en": {
-      "character": "Steel in clear water — clever and clean decisions. You judge cold and clear.",
+      "character": "Steel in clear water — sharp and brightly expressive. You look crisp outside but run warm and tender inside.",
       "strength": "Thinking and deciding together — your work finishes cleanly.",
-      "weakness": "You read as cool, so distance forms; you're soft on people but don't show it.",
+      "weakness": "Your critique runs ahead and reads sharp, and though you feel a lot, you don't show it well.",
       "career": "Law, finance, tech, specialist roles — precision-and-decision fields fit you.",
-      "love": "Cold outside, warm inside. Just send a little more 'come closer' signal."
+      "love": "Cold outside, warm inside. Letting people see you want them closer goes a long way."
     }
   },
   "辛丑": {
@@ -633,7 +633,7 @@
     },
     "en": {
       "character": "Young grass in spring rain — pure and quick-witted. You're soft but your taste is alive.",
-      "strength": "Strong intuition and learning, with fine reading of how people are.",
+      "strength": "Strong intuition and learning, with a fine read on the mood between people.",
       "weakness": "You shake easily and absorb outside moods; you need to re-center often.",
       "career": "Teaching, culture, design, counseling — fields valuing fineness and learning.",
       "love": "Affectionate and romantic. One sentence that gets you can move you deeply."
@@ -648,10 +648,10 @@
       "love": "안정적이고 보호적. 표현을 조금 더 하면 관계가 따뜻해져요."
     },
     "en": {
-      "character": "A great tree on broad fields — a large vessel. You can hold others under your branches.",
+      "character": "A great tree on broad fields — a large vessel. You have room enough to shelter others.",
       "strength": "Generous and discerning, you pull people in by being trustworthy.",
       "weakness": "Decisions come slow and you read as authoritarian, so closeness takes time.",
-      "career": "Teaching, management, public service, leadership — seats that pull people along.",
+      "career": "Teaching, management, public service, leadership — roles where you lead people forward.",
       "love": "Steady and protective. A little more expression makes things warmer."
     }
   },
@@ -666,8 +666,8 @@
     "en": {
       "character": "A flower under summer sun — clever and charming. You glow softly.",
       "strength": "Sense and expression are strong; people warm up to you naturally.",
-      "weakness": "Moods change and decisions waver, so consistency gets weak.",
-      "career": "Broadcasting, art, design, service — fields where sense and expression are weapons.",
+      "weakness": "Moods change and decisions waver, so it's hard to stay consistent.",
+      "career": "Broadcasting, art, design, service — fields where flair and expression are your strengths.",
       "love": "Romantic and charming. You build trust by keeping the promises you make."
     }
   },
@@ -680,10 +680,10 @@
       "love": "뜨겁고 직진형. 식는 것도 빠를 수 있어 균형이 필요해요."
     },
     "en": {
-      "character": "The midday sun — a fully blazing expressive type. You burn the brightest.",
+      "character": "The midday sun — blazing bright and expressive. You burn the brightest.",
       "strength": "Strong energy and drive; you pull the mood along.",
-      "weakness": "Feelings run hot and self-centered, which can wear others out.",
-      "career": "Broadcasting, speaking, sales, founding — onstage seats fit you.",
+      "weakness": "Feelings run hot and can turn self-centered, which can wear others out, which can wear others out.",
+      "career": "Broadcasting, speaking, sales, founding — roles in the spotlight suit you.",
       "love": "Hot and direct. You cool fast too, so balance is the work."
     }
   },
@@ -691,14 +691,14 @@
     "ko": {
       "character": "여름밤의 등불 — 따뜻하고 인내심 깊은 사람. 당신은 조용히 안을 비추는 사람이에요.",
       "strength": "공감 능력과 헌신이 깊고, 사람을 끝까지 챙겨요.",
-      "weakness": "혼자 짊어지다 지치고, 거절을 못해 손해를 봐요.",
+      "weakness": "평소엔 따뜻하지만 화기가 오르면 감정이 격해져 말이 거칠어지고, 거절을 못해 혼자 짊어지다 지쳐요.",
       "career": "복지·교육·상담·서비스 — 사람을 돌보는 일이 잘 맞아요.",
       "love": "다정하고 한결같음. 자기 자신을 먼저 챙기는 연습이 필요해요."
     },
     "en": {
-      "character": "A lamp on a summer night — warm and patient. You light up the inside quietly.",
+      "character": "A lamp on a summer night — warm and patient. You quietly light up the room from within.",
       "strength": "Empathy and devotion run deep; you care for people to the end.",
-      "weakness": "You carry too much alone and can't say no, so you take losses.",
+      "weakness": "Warm most of the time, but when the heat rises your feelings flare and words sharpen; you also can't refuse, so you carry too much and tire out.",
       "career": "Welfare, teaching, counseling, service — caring careers fit you.",
       "love": "Warm and constant. The practice is caring for yourself first."
     }
@@ -713,7 +713,7 @@
     },
     "en": {
       "character": "A great mountain holding metal — heavy and competent. You carry firmness and cleverness together.",
-      "strength": "Trust plus adaptability — you're strong when things break.",
+      "strength": "Trust plus adaptability — you're at your strongest in a crisis.",
       "weakness": "Strong opinions cause friction, and you don't show the inside.",
       "career": "Management, finance, engineering, public service — responsibility-plus-execution seats fit you.",
       "love": "Gruff outside, deep inside. Just a little more expression would help."
@@ -723,15 +723,15 @@
     "ko": {
       "character": "단단한 흙 속의 보석 — 영민하고 깐깐한 살림꾼. 당신은 작은 것에서 빛을 골라내는 사람이에요.",
       "strength": "정밀함과 안목이 있고, 일을 깔끔하게 마무리해요.",
-      "weakness": "기준이 높고 비판이 앞서, 자신과 남을 모두 피곤하게 만들 수 있어요.",
-      "career": "회계·기획·디자인·전문직 — 정밀과 안목이 가치인 일이 좋아요.",
+      "weakness": "기준이 높아 스스로를 깐깐하게 몰지만, 정작 베풀기 좋아해 손해를 보기도 해요.",
+      "career": "회계·기획·교육·연구·전문직 — 정밀함과 베푸는 지성이 가치인 일이 좋아요.",
       "love": "신중하고 깊음. 한 번 신뢰하면 오래 함께 갑니다."
     },
     "en": {
-      "character": "A jewel in firm earth — smart, exacting caretaker. You pick the shine out of small things.",
+      "character": "A jewel in firm earth — a sharp, exacting steward of details. You spot the brilliance in small things.",
       "strength": "Precise with a strong eye; your work finishes clean.",
-      "weakness": "High bar and quick critique — tiring for you and for others.",
-      "career": "Accounting, planning, design, specialist roles — precision-and-taste careers fit you.",
+      "weakness": "Your bar is high and you push yourself hard, yet you love to give, so you sometimes take losses.",
+      "career": "Accounting, planning, teaching, research, specialist work — fields valuing precision and a giving intellect.",
       "love": "Careful and deep. Once you trust, you stay a long time."
     }
   },
@@ -744,7 +744,7 @@
       "love": "의리파, 한 번 함께라면 끝까지. 표현 연습이 필요해요."
     },
     "en": {
-      "character": "Steel in a dry mountain — sturdy and deeply loyal. You take promises heavy.",
+      "character": "Steel in a dry mountain — sturdy and deeply loyal. You take promises seriously.",
       "strength": "Drive and responsibility; you guard the people around you.",
       "weakness": "Stubborn and direct, so clashes happen often.",
       "career": "Public service, military, management, engineering — responsibility-and-decision seats fit you.",
@@ -764,7 +764,7 @@
       "strength": "Sense and thought together, with fast adaptation to new information.",
       "weakness": "Hard to satisfy and quick to keep distance — closeness comes late.",
       "career": "Specialist, design, media, finance — fields where taste meets thought.",
-      "love": "Careful and elegant. You go deep with someone who can read your grain."
+      "love": "Careful and elegant. You go deep with someone who understands what makes you tick."
     }
   },
   "壬子": {
@@ -777,7 +777,7 @@
     },
     "en": {
       "character": "A vast river — deep and free thinker. You don't stop, you flow.",
-      "strength": "Deep wisdom and insight; you see wide and take in wide.",
+      "strength": "Deep wisdom and insight; you see broadly and take in just as much.",
       "weakness": "Feelings run deep; once you fall in it's hard to climb out, so you can over-immerse in one thing.",
       "career": "Planning, research, media, finance — work that handles large currents fits you.",
       "love": "Deep and rich affection. You do well with someone who gives you freedom plus stability."
@@ -794,7 +794,7 @@
     "en": {
       "character": "A spring in a frozen field — quiet and patient. You keep filling up inside.",
       "strength": "Steady and insightful; hardship doesn't shake you.",
-      "weakness": "You bury feelings inside and one day they break loose all at once.",
+      "weakness": "You bury feelings inside and until one day they all come pouring out.",
       "career": "Research, writing, teaching, faith work — careers that look deep fit you.",
       "love": "Quiet, deep devotion. You have to voice the heart to cut down misreads."
     }
@@ -817,16 +817,16 @@
   },
   "乙卯": {
     "ko": {
-      "character": "봄날의 어린 풀 — 부드럽고 영민한 성장가. 당신은 조용히 자라 어느새 위로 올라가는 사람이에요.",
+      "character": "봄날의 풀이지만 뿌리가 단단한 사람 — 부드러운 겉모습 속에 꺾이지 않는 의지가 있어요.",
       "strength": "유연하고 학습력이 빠르며, 사람과 환경을 잘 살펴요.",
-      "weakness": "예민하고 외부 영향을 잘 받아, 중심이 자주 흔들려요.",
+      "weakness": "겉은 유연해도 고집이 세고 혼자 가려 해, 주변과 보폭을 맞추기 어려울 때가 있어요.",
       "career": "교육·문화·디자인·기획 — 섬세함과 학습이 가치인 분야가 좋아요.",
       "love": "다정하고 낭만적. 안전한 분위기에서 마음을 활짝 엽니다."
     },
     "en": {
-      "character": "Young grass in spring — soft and quick-witted grower. You climb up before anyone notices.",
-      "strength": "Flexible and fast-learning, with attentive reading of people and place.",
-      "weakness": "Sensitive and easily moved by outside moods; your center wobbles.",
+      "character": "Spring grass with firm roots — a soft surface over a will that doesn't bend.",
+      "strength": "Flexible and fast-learning, with a sharp read on people and situations.",
+      "weakness": "Flexible on the outside but stubborn, you tend to go it alone, so matching others' pace can be hard.",
       "career": "Teaching, culture, design, planning — fields valuing sensibility and learning.",
       "love": "Affectionate and romantic. You open up fully in a safe atmosphere."
     }
@@ -858,7 +858,7 @@
     "en": {
       "character": "A candle in summer daylight — bright, lively, intuitive. You read the air fast.",
       "strength": "Quick sense and expression; you reach inside people.",
-      "weakness": "Feelings run hot, and once cool, you turn cold and walk.",
+      "weakness": "Feelings run hot, and once you cool, you turn cold and walk away.",
       "career": "Performance, speaking, teaching, sales — seats where expression and feeling are weapons.",
       "love": "Hot and honest. You keep it alive by building new things together."
     }
@@ -872,7 +872,7 @@
       "love": "보호자형, 든든하지만 표현이 무뚝뚝합니다."
     },
     "en": {
-      "character": "A great mountain at noon — sturdy and lively leader. Your presence alone gives backup.",
+      "character": "A great mountain at noon — sturdy and lively leader. Your presence alone is reassuring.",
       "strength": "Drive and trust together; people gather to you.",
       "weakness": "Strong opinions cause friction, and you read as heavy.",
       "career": "Management, politics, public service, teaching — responsibility-and-influence seats fit you.",
@@ -882,15 +882,15 @@
   "己未": {
     "ko": {
       "character": "여름 들판의 텃밭 — 부드럽고 정 많은 살림꾼. 당신은 사람을 끝까지 챙기는 사람이에요.",
-      "strength": "친화력과 책임감이 깊고, 분위기를 따뜻하게 만들어요.",
-      "weakness": "걱정이 많고 거절을 못해, 안에서 지치기 쉬워요.",
+      "strength": "주체성과 책임감이 강하고, 자기 사람은 끝까지 챙기며 분위기를 따뜻하게 만들어요.",
+      "weakness": "고집과 자존심이 세 부딪치기 쉽고, 거절을 못해 혼자 짊어지다 지쳐요.",
       "career": "교육·복지·서비스·문화 — 사람을 돌보고 잇는 일이 좋아요.",
       "love": "한결같고 정 많음. 자기 마음을 먼저 말하는 연습이 필요해요."
     },
     "en": {
       "character": "A kitchen garden on summer fields — soft and full of care. You tend to people to the end.",
-      "strength": "Warm sociability and deep responsibility; you make the air friendly.",
-      "weakness": "You worry and can't refuse, so you exhaust yourself inside.",
+      "strength": "Strong-willed and responsible; you protect your own to the end and keep the air warm.",
+      "weakness": "Stubborn and proud, you clash easily, and since you can't refuse you carry too much alone and tire out.",
       "career": "Teaching, welfare, service, culture — care-and-connect work fits you.",
       "love": "Constant and warm. The practice is voicing your heart first."
     }
@@ -920,8 +920,8 @@
       "love": "이상이 높고 신중함. 마음에 들면 한 사람만 깊이 봅니다."
     },
     "en": {
-      "character": "A polished jewel — graceful and exacting taste. You live by class.",
-      "strength": "Strong sense and precision; you raise the class of whatever you touch.",
+      "character": "A polished jewel — graceful and exacting taste. You live by refinement.",
+      "strength": "Strong sense and precision; you bring refinement to everything you touch.",
       "weakness": "High bar and picky — closeness comes late.",
       "career": "Specialist, design, law, art — fields where precision and class are the value.",
       "love": "High standards and careful. Once chosen, you look only at one person, deeply."
@@ -952,7 +952,7 @@
       "love": "정이 깊고 헌신적. 자기 자신을 잃지 않는 거리감을 함께 챙겨야 해요."
     },
     "en": {
-      "character": "A great sea — deep and vast intuition. You hold a large vessel that takes everything in.",
+      "character": "A great sea — deep and vast intuition. You're a vast vessel that takes everything in.",
       "strength": "Wisdom and empathy run deep; you take in people and information naturally.",
       "weakness": "Feelings and attachments sway you, so your own boundary loosens.",
       "career": "Research, writing, counseling, art, faith work — fields with both depth and breadth.",

@@ -79,10 +79,16 @@ vi.mock('@/lib/prompts/fortuneWithIcp', () => ({
 // exhaustion. Echoes the status so tests on those paths see the expected
 // code without us re-implementing the helper's body.
 vi.mock('@/lib/api/errorHandler', () => ({
-  createErrorResponse: vi.fn((opts: { code: string; message?: string; headers?: Record<string, string> }) => {
-    const status = opts.code === 'PAYMENT_REQUIRED' ? 402 : opts.code === 'UNAUTHORIZED' ? 401 : 400
-    return NextResponse.json({ error: opts.code, message: opts.message }, { status, headers: opts.headers })
-  }),
+  createErrorResponse: vi.fn(
+    (opts: { code: string; message?: string; headers?: Record<string, string> }) => {
+      const status =
+        opts.code === 'PAYMENT_REQUIRED' ? 402 : opts.code === 'UNAUTHORIZED' ? 401 : 400
+      return NextResponse.json(
+        { error: opts.code, message: opts.message },
+        { status, headers: opts.headers }
+      )
+    }
+  ),
   ErrorCodes: {
     BAD_REQUEST: 'BAD_REQUEST',
     UNAUTHORIZED: 'UNAUTHORIZED',
@@ -92,7 +98,7 @@ vi.mock('@/lib/api/errorHandler', () => ({
 }))
 
 // Mock next-auth
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 

@@ -16,7 +16,7 @@ import { NextRequest } from 'next/server'
 // Mocks - all mocks must be declared BEFORE the route import
 // ===========================================================================
 
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -98,7 +98,7 @@ vi.mock('@/lib/logger', () => ({
 // ===========================================================================
 
 import { GET } from '@/app/api/admin/metrics/funnel/route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 import { prisma } from '@/lib/db/prisma'
 import { isAdminUser } from '@/lib/auth/admin'

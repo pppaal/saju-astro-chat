@@ -36,7 +36,7 @@
       "health": "피부, 신장 계통 주의. 물과 관련된 사고 조심.",
       "health_en": "Take care of skin and kidney function. Be cautious around water-related accidents.",
       "advice": "유혹을 경계하고 자기 절제력을 기르세요.",
-      "advice_en": "Stay alert to temptation and build your self-discipline."
+      "advice_en": "Stay alert to temptation and work on your self-control."
     },
     "관대": {
       "name": "관대",
@@ -150,7 +150,7 @@
       "health": "큰 병환 주의. 정밀 검사와 예방 필수.",
       "health_en": "Watch for serious illness. Thorough check-ups and prevention are essential.",
       "advice": "끝이 있어야 새로운 시작이 있습니다. 집착을 버리세요.",
-      "advice_en": "Every new beginning needs an ending. Let go of what you cling to."
+      "advice_en": "There is no new beginning without an ending. Let go of what you cling to."
     },
     "묘": {
       "name": "묘",
@@ -339,7 +339,7 @@
       "element": "나를 극하는 오행, 같은 음양",
       "element_en": "Element that controls you, same yin-yang polarity",
       "meaning": "칠살 - 극복해야 할 힘, 권력",
-      "meaning_en": "A pressure-as-fuel pattern — a force to be met and overcome, channeling into authority.",
+      "meaning_en": "Pressure that becomes fuel — a force to be met and overcome, and turned into authority.",
       "positive": "결단력, 추진력, 권위, 리더십",
       "positive_en": "Decisiveness, drive, authority, leadership.",
       "negative": "위험, 소송, 사고, 건강 문제",
@@ -437,7 +437,7 @@
       "meaning": "달의 덕이 있는 귀인. 매월 복을 받음.",
       "meaning_en": "A benefactor under the moon's virtue — blessings arrive month by month.",
       "effect": "액운 해소, 문서운 상승, 시험 합격.",
-      "effect_en": "Misfortune is cleared, paperwork luck rises, exams go well.",
+      "effect_en": "Misfortune is cleared, luck with documents and contracts improves, and exams go well.",
       "advice": "꾸준한 노력이 결실을 맺습니다.",
       "advice_en": "Steady effort will bear fruit."
     },
@@ -603,10 +603,10 @@
       "hanja": "白虎煞",
       "category": "흉신",
       "category_en": "challenging star",
-      "meaning": "흰 호랑이의 살. 혈광과 사고.",
-      "meaning_en": "The white tiger — bloodshed and accidents.",
-      "effect": "교통사고, 수술, 유혈 사태 위험.",
-      "effect_en": "Risk of traffic accidents, surgery, and incidents involving blood.",
+      "meaning": "흰 호랑이의 기운. 강렬하고 폭발적인 에너지의 별.",
+      "meaning_en": "The white tiger's current — fierce, high-voltage energy.",
+      "effect": "강하게 부딪히는 기운이라 안전·건강에 한 번씩 주의를 두면 좋아요.",
+      "effect_en": "A forceful, high-impact energy — worth staying mindful about safety and health.",
       "advice": "위험한 활동을 삼가고 안전에 주의하세요.",
       "advice_en": "Avoid risky activities and put safety first."
     },
@@ -616,10 +616,10 @@
       "hanja": "魁罡煞",
       "category": "중립",
       "category_en": "neutral star",
-      "meaning": "괴이하고 강한 기운.",
-      "meaning_en": "An unusual, very strong current of energy.",
-      "effect": "강한 결단력과 카리스마. 고독할 수 있음.",
-      "effect_en": "Powerful decisiveness and charisma — sometimes with a streak of loneliness.",
+      "meaning": "별들의 우두머리 기운. 극강하고 결단력 있는 별.",
+      "meaning_en": "The chief of the stars — an extreme, fiercely decisive current of energy.",
+      "effect": "강한 결단력과 카리스마. 고독하거나 극단으로 치우칠 수 있어 조율이 필요해요.",
+      "effect_en": "Powerful decisiveness and charisma — sometimes with a streak of loneliness and a pull toward extremes that's worth keeping in check.",
       "advice": "강한 기운을 올바르게 사용하세요.",
       "advice_en": "Use your strong energy in the right direction."
     },
@@ -642,10 +642,10 @@
       "hanja": "太極貴人",
       "category": "길신",
       "category_en": "auspicious star",
-      "meaning": "근원과 영적 직관을 품은 귀인.",
-      "meaning_en": "A benefactor carrying deep intuition and a feel for first principles.",
-      "effect": "깊은 통찰과 학문적 재능. 종교나 철학에 끌리는 스타일이에요.",
-      "effect_en": "A clear inner sense and a knack for learning — drawn to spiritual or philosophical paths.",
+      "meaning": "처음과 끝을 두루 돕는 귀인. 큰 위기를 비껴가고 학문·명예의 복을 받아요.",
+      "meaning_en": "A benefactor that helps from start to finish — steering you clear of disaster and bringing fortune in learning and standing.",
+      "effect": "깊은 통찰과 학문적 재능이 있고, 고비마다 도움의 손길이 닿아요.",
+      "effect_en": "Deep insight and a gift for learning, with help arriving at the critical moments.",
       "advice": "직관을 믿고 본질을 탐구하는 흐름을 따라가 보세요.",
       "advice_en": "Trust your intuition and follow the pull toward what feels essential."
     },
@@ -703,7 +703,7 @@
     },
     "문곡": {
       "name": "문곡",
-      "name_en": "Literary Counterpart Star",
+      "name_en": "Literary Arts Star",
       "hanja": "文曲",
       "category": "길신",
       "category_en": "auspicious star",
@@ -734,7 +734,7 @@
       "category": "길신",
       "category_en": "auspicious star",
       "meaning": "하늘의 문이 열린 별. 통찰과 직관.",
-      "meaning_en": "The gate of heaven opened — insight and intuition.",
+      "meaning_en": "The gate of heaven swung open — insight and intuition.",
       "effect": "깊이 있는 통찰력과 보이지 않는 것을 읽는 감. 종교, 철학, 심리에 끌리는 느낌이에요.",
       "effect_en": "A sense for what's beneath the surface — pulled toward spirituality, philosophy, or the psychological.",
       "advice": "직관을 신뢰하되, 검증하는 습관도 함께 두세요.",
@@ -777,7 +777,7 @@
       "effect": "자수성가, 독립적인 자리, 안정된 직장 운이 따라오는 느낌이에요.",
       "effect_en": "Self-made footing, an independent role, stable working life.",
       "advice": "남에게 기대기보다 본인의 힘으로 키워가는 흐름이 잘 맞아요.",
-      "advice_en": "Builds best on your own steam — the lean-on-others mode doesn't suit you."
+      "advice_en": "Builds best on your own steam — leaning on others isn't your style."
     },
     "임관": {
       "name": "임관",
@@ -785,8 +785,8 @@
       "hanja": "臨官",
       "category": "길신",
       "category_en": "auspicious star",
-      "meaning": "자리에 오르는 흐름. 건록과 짝을 이루는 별.",
-      "meaning_en": "Stepping into a role — paired with the Established Stipend.",
+      "meaning": "관직에 임하는 흐름. 건록과 같은 단계의 다른 이름.",
+      "meaning_en": "Stepping into office — the orthodox name for the Established Stipend (建祿) stage.",
       "effect": "사회적으로 자리 잡고 능력을 인정받는 스타일이에요.",
       "effect_en": "Finding your place in the wider world and getting credit for what you can do.",
       "advice": "자리에 맞는 책임감을 챙기세요.",
@@ -816,7 +816,7 @@
       "effect": "실수, 구설, 명예 훼손, 재물 손실이 따라올 수 있는 모습이에요.",
       "effect_en": "Slip-ups, gossip, reputation hits, and material loss can show up.",
       "advice": "말과 행동을 조심하고, 욕심을 잠시 내려 두세요.",
-      "advice_en": "Watch what you say and do, and set the greed aside for a while."
+      "advice_en": "Watch what you say and do, and set your greed aside for a while."
     },
     "원진": {
       "name": "원진",
@@ -850,8 +850,8 @@
       "hanja": "魁罡",
       "category": "중립",
       "category_en": "neutral star",
-      "meaning": "괴이하고 강한 기운의 별.",
-      "meaning_en": "An unusual, fiercely strong current.",
+      "meaning": "별들의 우두머리 기운. 극강하고 결단력 있는 별.",
+      "meaning_en": "The chief of the stars — an extreme, fiercely decisive current.",
       "effect": "강한 결단력과 카리스마가 있지만, 고집과 극단으로 흐를 수도 있는 모습이에요.",
       "effect_en": "Powerful decisiveness and charisma — but can tip into stubbornness or extremes.",
       "advice": "강한 힘을 좋은 방향으로 쓰는 연습을 하세요.",
@@ -920,7 +920,7 @@
       "effect": "사고, 질병, 갑작스러운 손실이 올 수 있는 스타일이에요.",
       "effect_en": "Accidents, illness, and sudden losses can show up.",
       "advice": "안전과 건강 관리를 미리 챙기고 무리한 일은 피하세요.",
-      "advice_en": "Get ahead of safety and health, and skip the overreach."
+      "advice_en": "Stay ahead on safety and health, and don't take on too much."
     },
     "천살": {
       "name": "천살",
@@ -987,32 +987,6 @@
       "advice": "큰 문제로 키우지 말고 작을 때 정리하세요.",
       "advice_en": "Handle it while it's small — don't let it grow."
     },
-    "화해": {
-      "name": "화해",
-      "name_en": "Calamity Star",
-      "hanja": "禍害",
-      "category": "흉신",
-      "category_en": "challenging star",
-      "meaning": "화와 해가 함께 오는 별.",
-      "meaning_en": "A star where misfortune and harm arrive together.",
-      "effect": "갈등, 다툼, 손실이 겹쳐 오는 스타일이에요.",
-      "effect_en": "Conflict, arguments, and loss can pile up at once.",
-      "advice": "한 번에 풀려 하지 말고 하나씩 처리하세요.",
-      "advice_en": "Don't try to solve it all at once — take it one piece at a time."
-    },
-    "괘살": {
-      "name": "괘살",
-      "name_en": "Hanging Star",
-      "hanja": "卦煞",
-      "category": "흉신",
-      "category_en": "challenging star",
-      "meaning": "걸려 넘어지듯 끌려가는 흐름의 별.",
-      "meaning_en": "A current where you get caught and dragged along.",
-      "effect": "예정에 없던 일에 얽히고 끌려가는 모습이에요.",
-      "effect_en": "Getting pulled into things that weren't on your plan.",
-      "advice": "거절할 자리에서는 분명히 거절하세요.",
-      "advice_en": "When it's time to say no, say it clearly."
-    },
     "반안": {
       "name": "반안",
       "name_en": "Saddle Star",
@@ -1024,33 +998,7 @@
       "effect": "지위가 오르고 인정받는 느낌이에요.",
       "effect_en": "Position lifts and recognition arrives.",
       "advice": "오를수록 처음의 자세를 잊지 마세요.",
-      "advice_en": "The higher you rise, the more you keep the early stance."
-    },
-    "길성": {
-      "name": "길성",
-      "name_en": "Auspicious Star",
-      "hanja": "吉星",
-      "category": "길신",
-      "category_en": "auspicious star",
-      "meaning": "전반적으로 길한 기운을 더해주는 별.",
-      "meaning_en": "A general auspicious current adding good energy.",
-      "effect": "일의 흐름이 부드럽게 풀리고, 도움이 따라오는 스타일이에요.",
-      "effect_en": "Smoother flow in what you do, with help showing up alongside it.",
-      "advice": "받은 흐름에 안주하지 말고 한 걸음씩 쌓아가세요.",
-      "advice_en": "Don't coast on the good current — keep stacking one step at a time."
-    },
-    "흉성": {
-      "name": "흉성",
-      "name_en": "Inauspicious Star",
-      "hanja": "凶星",
-      "category": "흉신",
-      "category_en": "challenging star",
-      "meaning": "전반적으로 흉한 기운이 섞인 별.",
-      "meaning_en": "A general inauspicious current mixed in.",
-      "effect": "일이 어긋나고 마찰이 잦은 모습이에요.",
-      "effect_en": "Things go sideways and friction shows up more often.",
-      "advice": "예방과 대비에 시간을 더 들이세요.",
-      "advice_en": "Put more time into prevention and preparation."
+      "advice_en": "The higher you rise, the more you hold on to where you started."
     },
     "삼재": {
       "name": "삼재",
@@ -1059,7 +1007,7 @@
       "category": "흉신",
       "category_en": "challenging star",
       "meaning": "세 가지 재난이 따라오는 3년간의 시기.",
-      "meaning_en": "A three-year stretch where three kinds of trouble can ride along.",
+      "meaning_en": "A three-year stretch when three kinds of trouble can come at once.",
       "effect": "건강, 인간관계, 재물에 변동과 시련이 따라올 수 있는 느낌이에요.",
       "effect_en": "Shifts and trials in health, relationships, and money can show up.",
       "advice": "큰 결정과 무리한 시작은 피하고 안정을 우선에 두세요.",
@@ -1110,7 +1058,7 @@
       "personality": "신뢰감 있고 안정적. 중재 능력 좋음.",
       "personality_en": "Trustworthy and grounded. A good mediator.",
       "excess": "고집, 답답함, 융통성 부족",
-      "excess_en": "Stubbornness, stuffiness, lack of flexibility.",
+      "excess_en": "Stubbornness, a stifling rigidity, lack of flexibility.",
       "deficiency": "불안정, 의지력 부족, 산만함",
       "deficiency_en": "Instability, weak willpower, scatteredness.",
       "health": "비장, 위장, 피부, 근육 관련 주의",

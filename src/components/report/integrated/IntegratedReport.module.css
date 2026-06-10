@@ -1161,6 +1161,16 @@
   color: var(--ink-3);
   margin-bottom: 5px;
 }
+/* 점성 해석 한 줄 — 행성×별자리×하우스 합성. 일반 의미(bigMean)보다 한 톤 또렷하게. */
+.bigRead {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--line-2);
+  word-break: keep-all;
+}
 
 /* 한눈에 — 결론 먼저 (별명 + 종합 교차 + 필요한 기운) */
 .hero {

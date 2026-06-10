@@ -7,28 +7,34 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { POST } from '../src/app/api/tarot/route'
 import { NextRequest } from 'next/server'
 
-// Mock auth
-vi.mock('next-auth/next', () => ({
-  getServerSession: vi.fn(() => Promise.resolve({
-    user: { email: 'test@example.com', id: 'user123' }
-  }))
+// Mock auth — 서버 측 세션 조회는 전부 @/lib/auth/session 시임을 거친다
+// (NextAuth v5 auth() 래퍼). 다른 모듈을 목하면 세션이 null 로 떨어져
+// 라우트의 로그인 가드가 무조건 401 을 반환한다.
+vi.mock('@/lib/auth/session', () => ({
+  getServerSession: vi.fn(() =>
+    Promise.resolve({
+      user: { email: 'test@example.com', id: 'user123' },
+    })
+  ),
 }))
 
 // Mock prisma
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: {
-      findUnique: vi.fn(() => Promise.resolve({
-        id: 'user123',
-        email: 'test@example.com',
-        credits: 100,
-        planType: 'free'
-      }))
+      findUnique: vi.fn(() =>
+        Promise.resolve({
+          id: 'user123',
+          email: 'test@example.com',
+          credits: 100,
+          planType: 'free',
+        })
+      ),
     },
     tarotReading: {
-      create: vi.fn(() => Promise.resolve({ id: 'reading123' }))
-    }
-  }
+      create: vi.fn(() => Promise.resolve({ id: 'reading123' })),
+    },
+  },
 }))
 
 describe('Tarot API smoke tests', () => {
@@ -42,8 +48,8 @@ describe('Tarot API smoke tests', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         spread: 'one-card',
-        question: ''
-      })
+        question: '',
+      }),
     })
 
     const response = await POST(request)
@@ -62,8 +68,8 @@ describe('Tarot API smoke tests', () => {
       body: JSON.stringify({
         spread: 'one-card',
         question: 'What guidance do I need today?',
-        category: 'daily'
-      })
+        category: 'daily',
+      }),
     })
 
     // Should not throw

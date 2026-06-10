@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
-vi.mock('next-auth', () => ({ getServerSession: vi.fn() }))
+vi.mock('@/lib/auth/session', () => ({ getServerSession: vi.fn() }))
 vi.mock('@/lib/auth/authOptions', () => ({ authOptions: {} }))
 vi.mock('@/lib/rateLimit', () => ({
   rateLimit: vi.fn().mockResolvedValue({
@@ -37,7 +37,7 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 import { GET } from '@/app/api/admin/usage/route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/db/prisma'
 import { isAdminUser } from '@/lib/auth/admin'
 

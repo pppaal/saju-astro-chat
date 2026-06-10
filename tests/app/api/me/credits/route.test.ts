@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: any, _options: any) => {
     return async (req: any, ...args: any[]) => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       let session: any = null
       try {
         session = await (getServerSession as any)()
@@ -74,7 +74,7 @@ vi.mock('@/lib/api/middleware', () => ({
 }))
 
 // Mock next-auth
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -195,7 +195,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
 }))
 
 import { GET, POST } from '@/app/api/me/credits/route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { getCreditBalance, canUseCredits } from '@/lib/credits/creditService'
 
 describe('Credits API - GET', () => {

@@ -150,15 +150,36 @@ export const SIBSIN_COLOR: Record<
 // 오행 부족 시 처방 (Fire / Wood 같은 가벼운 색·방향 권장).
 // chart-dictionary 의 용신 by_element 는 단일 문장 — atoms 의 분해된 {color, direction, activity}
 // shape 와 불일치 → personaCompute 등 기존 consumer 가 깨지지 않게 hardcoded 유지.
+type Bilingual = { ko: string; en: string }
 export const ELEMENT_REMEDY: Record<
   string,
-  { color: string; direction: string; activity: string }
+  { color: Bilingual; direction: Bilingual; activity: Bilingual }
 > = {
-  목: { color: '초록·청록', direction: '동쪽', activity: '식물·산책·창작' },
-  화: { color: '빨강·주황', direction: '남쪽', activity: '운동·발표·논쟁' },
-  토: { color: '노랑·갈색', direction: '중앙', activity: '실용·신뢰·돌봄' },
-  금: { color: '흰색·은색', direction: '서쪽', activity: '정리·체계·단단함' },
-  수: { color: '검정·파랑', direction: '북쪽', activity: '학습·명상·여행' },
+  목: {
+    color: { ko: '초록·청록', en: 'green · teal' },
+    direction: { ko: '동쪽', en: 'East' },
+    activity: { ko: '식물·산책·창작', en: 'plants · walks · making things' },
+  },
+  화: {
+    color: { ko: '빨강·주황', en: 'red · orange' },
+    direction: { ko: '남쪽', en: 'South' },
+    activity: { ko: '운동·발표·논쟁', en: 'exercise · speaking up · debate' },
+  },
+  토: {
+    color: { ko: '노랑·갈색', en: 'yellow · brown' },
+    direction: { ko: '중앙', en: 'Center' },
+    activity: { ko: '실용·신뢰·돌봄', en: 'practicality · trust · caregiving' },
+  },
+  금: {
+    color: { ko: '흰색·은색', en: 'white · silver' },
+    direction: { ko: '서쪽', en: 'West' },
+    activity: { ko: '정리·체계·단단함', en: 'order · structure · firmness' },
+  },
+  수: {
+    color: { ko: '검정·파랑', en: 'black · blue' },
+    direction: { ko: '북쪽', en: 'North' },
+    activity: { ko: '학습·명상·여행', en: 'study · meditation · travel' },
+  },
 }
 
 // 헬퍼: 한자 → image
