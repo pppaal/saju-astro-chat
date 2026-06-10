@@ -280,6 +280,24 @@ export default async function DestinypalPage() {
   if (!decadeAdapter) {
     throw new Error('대운 계산 실패: 유효한 사주인데 대운 리스트가 비었습니다 (불변식 위반).')
   }
+
+  // 이 대운(10년) 안에 떨어지는 점성 마디 = 사주(대운) × 점성 교차의 '언제'.
+  const decadeAstroMarks = lifetime.milestones
+    .filter(
+      (m) =>
+        m.kind !== 'saju' &&
+        m.kind !== 'daewoon' &&
+        m.year >= decadeAdapter.start &&
+        m.year <= decadeAdapter.end
+    )
+    .sort((a, b) => a.year - b.year)
+    .map((m) => ({
+      label: m.label.includes('—') ? m.label.split('—')[0].trim() : m.label,
+      date: `${m.year}`,
+      body: m.label.includes('—') ? m.label.split('—').slice(1).join('—').trim() : '',
+      kind: m.kind,
+    }))
+
   const decade: DestinyDecade & {
     crossActivations?: Array<{
       signalId: string
@@ -339,7 +357,7 @@ export default async function DestinypalPage() {
       romaji: decadeAdapter.unseong.romaji,
       body: decadeAdapter.unseong.body,
     },
-    astro: decadeAdapter.astro.map((a) => ({
+    astro: decadeAstroMarks.map((a) => ({
       label: a.label,
       date: a.date,
       body: a.body,
