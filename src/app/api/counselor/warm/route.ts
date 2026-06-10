@@ -10,8 +10,7 @@
  * (답변 경로가 다시 빌드하면 됨) → 항상 200 으로 조용히 응답.
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { getServerSession } from '@/lib/auth/session'
 import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
@@ -28,7 +27,7 @@ export async function POST(req: NextRequest) {
   const csrfError = csrfGuard(req.headers)
   if (csrfError) return csrfError
 
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession()
   const userId = session?.user?.id
   if (!userId) return NextResponse.json({ ok: false }, { status: 401 })
 

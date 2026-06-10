@@ -19,7 +19,7 @@ import {
 } from '@/lib/api/middleware'
 
 // Mock dependencies
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -52,7 +52,7 @@ vi.mock('@/lib/credits', () => ({
   checkAndConsumeCredits: vi.fn(),
 }))
 
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { requirePublicToken } from '@/lib/auth/publicToken'

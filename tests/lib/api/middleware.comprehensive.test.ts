@@ -5,7 +5,7 @@
 
 import { vi } from 'vitest'
 import { NextRequest } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { requirePublicToken } from '@/lib/auth/publicToken'
@@ -16,7 +16,7 @@ import { logger } from '@/lib/logger'
 import { initializeApiContext, extractLocale, type MiddlewareOptions } from '@/lib/api/middleware'
 
 // Mock dependencies
-vi.mock('next-auth')
+vi.mock('@/lib/auth/session')
 vi.mock('@/lib/rateLimit')
 vi.mock('@/lib/request-ip')
 vi.mock('@/lib/auth/publicToken')

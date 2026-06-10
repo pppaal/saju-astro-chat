@@ -1,8 +1,7 @@
 import { Metadata } from 'next'
 import { ReactNode } from 'react'
 import { notFound, redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { getServerSession } from '@/lib/auth/session'
 import { isAdminUser } from '@/lib/auth/admin'
 import AdminNav from './AdminNav'
 
@@ -23,7 +22,7 @@ export const metadata: Metadata = {
 // 가드를 여기 한 곳에 모아 두면 새 어드민 페이지마다 가드를 다시 쓸 필요가
 // 없다. 기존 하위 page 들의 개별 가드는 남겨둬도 무해(중복 방어).
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession()
   if (!session?.user?.id) {
     redirect(`/auth/signin?callbackUrl=${encodeURIComponent('/admin')}`)
   }

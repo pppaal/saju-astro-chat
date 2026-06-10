@@ -5,15 +5,12 @@
 
 import { vi } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/db/prisma'
-import {
-  claimReferralReward,
-  getReferralStats,
-} from '@/lib/referral'
+import { claimReferralReward, getReferralStats } from '@/lib/referral'
 
 // Mock dependencies
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(() =>
     Promise.resolve({
       user: { name: 'Test User', email: 'test@example.com', id: 'test-user-id' },
@@ -112,7 +109,7 @@ vi.mock('@/lib/api/zodValidation', () => ({
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: any, _options: any) => {
     return async (req: any, ...args: any[]) => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       const { authOptions } = await import('@/lib/auth/authOptions')
 
       let session: any = null

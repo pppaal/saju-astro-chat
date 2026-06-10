@@ -14,7 +14,7 @@ import { NextRequest } from 'next/server'
 const mockGetServerSession = vi.fn()
 const mockCacheGet = vi.fn()
 
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: (...args: any[]) => mockGetServerSession(...args),
 }))
 vi.mock('@/lib/auth/authOptions', () => ({ authOptions: {} }))

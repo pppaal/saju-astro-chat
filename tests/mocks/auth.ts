@@ -21,7 +21,7 @@ const DEFAULT_SESSION = {
 }
 
 // Register the mock once at module level
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(() => Promise.resolve(sessionHolder.session)),
 }))
 

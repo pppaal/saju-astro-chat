@@ -3,8 +3,8 @@ import { NextRequest } from 'next/server'
 
 // Mock dependencies before importing the route
 
-// The middleware imports getServerSession from 'next-auth' (not 'next-auth/next')
-vi.mock('next-auth', () => ({
+// 서버 측 세션 조회는 @/lib/auth/session 시임(NextAuth v5 auth() 래퍼)을 거친다
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -133,7 +133,7 @@ describe('Admin Metrics API', () => {
 
   describe('GET /api/admin/metrics', () => {
     it('should return 401 when not authenticated', async () => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
       const { GET } = await import('@/app/api/admin/metrics/route')
@@ -144,7 +144,7 @@ describe('Admin Metrics API', () => {
     })
 
     it('should return 403 for non-admin users', async () => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'user-1', email: 'user@example.com' },
       })
@@ -164,7 +164,7 @@ describe('Admin Metrics API', () => {
         headers: new Map([['Retry-After', '60']]),
       })
 
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'admin-1', email: 'admin@example.com' },
       })
@@ -177,7 +177,7 @@ describe('Admin Metrics API', () => {
     })
 
     it('should return JSON dashboard data for admin users', async () => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'admin-1', email: 'admin@example.com' },
       })
@@ -202,7 +202,7 @@ describe('Admin Metrics API', () => {
     })
 
     it('should return Prometheus format when requested', async () => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'admin-1', email: 'admin@example.com' },
       })
@@ -222,7 +222,7 @@ describe('Admin Metrics API', () => {
     })
 
     it('should return OTLP format when requested', async () => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'admin-1', email: 'admin@example.com' },
       })
@@ -243,7 +243,7 @@ describe('Admin Metrics API', () => {
     })
 
     it('should handle case-insensitive admin email matching', async () => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'admin-1', email: 'ADMIN@EXAMPLE.COM' },
       })
@@ -270,7 +270,7 @@ describe('Admin Metrics API', () => {
     })
 
     it('should return 400 for invalid parameters', async () => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'admin-1', email: 'admin@example.com' },
       })
@@ -299,7 +299,7 @@ describe('Admin Metrics API', () => {
     })
 
     it('should include raw data when includeRaw=true', async () => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue({
         user: { id: 'admin-1', email: 'admin@example.com' },
       })

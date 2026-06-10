@@ -12,10 +12,10 @@ import { NextRequest, NextResponse } from 'next/server'
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: unknown) => {
     return async (req: unknown) => {
-      const { getServerSession } = await import('next-auth')
-      const session = (await (getServerSession as unknown as () => Promise<unknown>)()) as
-        | { user?: { id?: string } }
-        | null
+      const { getServerSession } = await import('@/lib/auth/session')
+      const session = (await (getServerSession as unknown as () => Promise<unknown>)()) as {
+        user?: { id?: string }
+      } | null
       if (!session?.user?.id) {
         return NextResponse.json(
           { success: false, error: { code: 'UNAUTHORIZED', message: 'not_authenticated' } },
@@ -55,7 +55,7 @@ vi.mock('@/lib/api/middleware', () => ({
   },
 }))
 
-vi.mock('next-auth', () => ({ getServerSession: vi.fn() }))
+vi.mock('@/lib/auth/session', () => ({ getServerSession: vi.fn() }))
 vi.mock('@/lib/auth/authOptions', () => ({ authOptions: {} }))
 vi.mock('@/lib/logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
@@ -74,7 +74,7 @@ describe('GET /api/me/credits/history', () => {
   })
 
   it('returns 401 when not authenticated', async () => {
-    const { getServerSession } = await import('next-auth')
+    const { getServerSession } = await import('@/lib/auth/session')
     ;(getServerSession as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(null)
 
     const { GET } = await import('@/app/api/me/credits/history/route')
@@ -84,7 +84,7 @@ describe('GET /api/me/credits/history', () => {
   })
 
   it('returns the last 50 transactions ordered DESC for the authenticated user', async () => {
-    const { getServerSession } = await import('next-auth')
+    const { getServerSession } = await import('@/lib/auth/session')
     ;(getServerSession as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       user: { id: 'user_h1' },
     })
@@ -120,7 +120,7 @@ describe('GET /api/me/credits/history', () => {
   })
 
   it('does not expose sourceRef or metadata in response', async () => {
-    const { getServerSession } = await import('next-auth')
+    const { getServerSession } = await import('@/lib/auth/session')
     ;(getServerSession as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       user: { id: 'user_h2' },
     })
@@ -151,7 +151,7 @@ describe('GET /api/me/credits/history', () => {
   })
 
   it('queries by authenticated userId and limits to 50, ordered DESC', async () => {
-    const { getServerSession } = await import('next-auth')
+    const { getServerSession } = await import('@/lib/auth/session')
     ;(getServerSession as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       user: { id: 'user_h3' },
     })
