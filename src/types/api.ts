@@ -7,7 +7,7 @@
 // Common Types
 // ============================================================
 
-export type Lang = 'ko' | 'en' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
+export type Lang = 'ko' | 'en'
 
 export type Gender = 'male' | 'female' | 'other' | 'prefer_not'
 
@@ -248,4 +248,3 @@ export interface TarotReading {
   question?: string
   interpretation?: string
 }
-

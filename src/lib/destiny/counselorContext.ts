@@ -16,6 +16,9 @@ import { getIljinCalendar } from '@/lib/saju/unse'
 import { isHyeong } from '@/lib/saju/hyeong'
 import { getNowInTimezone } from '@/lib/datetime'
 import type { DayMaster } from '@/lib/saju/types'
+import { SIBSIN_EN as SIBSIN_EN_BASE } from '@/lib/saju/sibsinLabels'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+import { SIGN_KO } from '@/lib/astrology/signLabels'
 
 const HOUSE_THEME_KO: Record<number, string> = {
   1: '자아·몸',
@@ -48,37 +51,17 @@ const HOUSE_THEME_EN: Record<number, string> = {
 
 export type Locale = 'ko' | 'en'
 
+// 10행성 + 앵글(ASC/MC) 은 캘린더 엔진 공용 정본(PLANET_KO) 재사용. 교점(Node/
+// True Node/North Node=북교점) 은 이 소비처 고유 키라 spread 후 추가.
 const PLANET_KO_A: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
-  Node: '노드',
-  'True Node': '노드',
-  'North Node': '노드',
-  Ascendant: '상승점',
-  MC: '중천점',
+  ...PLANET_KO_BASE,
+  Node: '북교점',
+  'True Node': '북교점',
+  'North Node': '북교점',
 }
-const SIGN_KO_A: Record<string, string> = {
-  Aries: '양자리',
-  Taurus: '황소자리',
-  Gemini: '쌍둥이자리',
-  Cancer: '게자리',
-  Leo: '사자자리',
-  Virgo: '처녀자리',
-  Libra: '천칭자리',
-  Scorpio: '전갈자리',
-  Sagittarius: '궁수자리',
-  Capricorn: '염소자리',
-  Aquarius: '물병자리',
-  Pisces: '물고기자리',
-}
+// 별자리 KO(long form) — 정본(astrology/signLabels) 재사용. 소비처가 '자리'
+// 접미사를 벗겨 짧게 쓰지만 정본 long form 을 인덱싱 후 가공.
+const SIGN_KO_A = SIGN_KO
 const MAJOR_TYPES = new Set(['conjunction', 'opposition', 'trine', 'square', 'sextile'])
 // essential dignity — ko 라벨. EN locale 은 raw enum(domicile/detriment) 유지.
 // 의미는 레전드의 [domicile]강 [detriment]약 와 동일, exaltation/fall 은 점성 표준.
@@ -89,17 +72,9 @@ const DIGNITY_KO: Record<string, string> = {
   fall: '쇠약',
 }
 // English saju term maps (EN locale renders the saju side in English too).
+// 10개 십신은 SSOT(sibsinLabels) 에서, 일간=Self 는 이 소비처 고유 키라 spread 후 추가.
 const SIBSIN_EN: Record<string, string> = {
-  비견: 'Peer',
-  겁재: 'Rival',
-  식신: 'Output',
-  상관: 'Hurting Officer',
-  편재: 'Indirect Wealth',
-  정재: 'Direct Wealth',
-  편관: 'Seven Killings',
-  정관: 'Direct Officer',
-  편인: 'Indirect Resource',
-  정인: 'Direct Resource',
+  ...SIBSIN_EN_BASE,
   일간: 'Self',
 }
 const ELEM_EN: Record<string, string> = {
@@ -225,7 +200,12 @@ const pkA = (n: string, l: Locale) => (l === 'ko' ? (PLANET_KO_A[n] ?? n) : n)
 
 // facts.pillars 의 평탄 형태(stem/branch + element) → toSajuPillarsLike 의 raw
 // 형식으로 변환. SajuFacts SSOT 라 element 도 facts 가 제공.
-function factPillarToShinsalInput(p: { stem: string; stemElement: string; branch: string; branchElement: string }) {
+function factPillarToShinsalInput(p: {
+  stem: string
+  stemElement: string
+  branch: string
+  branchElement: string
+}) {
   return {
     heavenlyStem: { name: p.stem, element: p.stemElement as never },
     earthlyBranch: { name: p.branch, element: p.branchElement as never },
@@ -339,7 +319,7 @@ function buildInstructions(locale: Locale, dayMasterName?: string): string {
   }
   return [
     '## 데이터 범례',
-    '- 점성 표기: 관계어는 [결합]/[협력]/[긴장]/[조화]/[대립] 그대로 / R역행 / (t)현재트랜짓 / P태양·P달=2차진행 / [detriment]약 [domicile]강',
+    '- 점성 표기: 관계어는 [결합]/[협력]/[긴장]/[조화]/[대립] 그대로 / R역행 / (t)현재트랜짓 / 진행 태양·진행 달=2차진행 / [detriment]약 [domicile]강',
     '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. [대운] 의 "31~40세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. 사주·점성 화면의 모든 나이(대운·프로펙션·현재)는 만 나이로 통일.',
     `- ★ 십성 anchor: [타이밍] 의 모든 (X/Y) 괄호 (대운의 \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운 끝 (X/Y), 일진 블록 각 줄 (X/Y)) 는 *본인 일간 ${dayMasterName ?? '?'} 기준 천간/지지 십성*.`,
   ].join('\n')
@@ -409,7 +389,7 @@ export async function buildDestinyContext(
         birthTimeUnknown: birth.birthTimeUnknown,
         birthCityUnknown: birth.birthCityUnknown,
       },
-      now,
+      now
     )
     if (!aFacts) throw new Error('astro facts unavailable')
 
@@ -485,7 +465,7 @@ export async function buildDestinyContext(
       const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
       profLine = L(
         `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
-        `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`,
+        `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
       )
     }
 
@@ -502,7 +482,10 @@ export async function buildDestinyContext(
   } catch (err) {
     // 점성 실패 시 silent fallback 이면 운영에서 사용자가 "사주만" 답변을
     // 받아도 아무도 모름. 최소한 warn 으로 남겨 모니터링 가능하게.
-    console.warn('[buildDestinyContext] astro section build failed:', err instanceof Error ? err.message : err)
+    console.warn(
+      '[buildDestinyContext] astro section build failed:',
+      err instanceof Error ? err.message : err
+    )
   }
 
   // === STABLE (cached prefix) ===
@@ -593,9 +576,8 @@ export function buildSajuSection(
   const yinyang = dm.yinYang === '음' ? L('음', 'yin') : L('양', 'yang')
   const strLab = locale === 'en' ? (STRENGTH_EN[strengthLabel] ?? strengthLabel) : strengthLabel
   // 통근 — facts.dayMaster.rooted 가 이미 계산 (sajuFacts.ts SSOT).
-  const rootLab = locale === 'en'
-    ? dm.rooted ? 'rooted' : 'rootless'
-    : dm.rooted ? '유근' : '무근'
+  const rootLab =
+    locale === 'en' ? (dm.rooted ? 'rooted' : 'rootless') : dm.rooted ? '유근' : '무근'
   out.push(`${L('일간', 'day_master')}: ${dm.name}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`)
   const fe = facts.fiveElements
   out.push(

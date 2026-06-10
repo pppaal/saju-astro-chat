@@ -40,7 +40,9 @@ import {
   getSibsinInterpretation,
   getTwelveStageInterpretation,
   getShinsalInterpretation,
+  getElementInterpretation,
 } from '@/lib/saju/interpretations'
+import { SIBSIN_SHORT, ELEMENT_REMEDY } from '../atoms/interpretations'
 
 export type Lang = 'ko' | 'en'
 
@@ -85,7 +87,6 @@ const UI: Record<string, BiLabel> = {
   dayBranchLabel: { ko: '日干', en: 'Day Master' },
   shinsalCap: { ko: '신살 · 神煞', en: 'Spirits · 神煞' },
   relCap: { ko: '본명 합충형파', en: 'Natal Interactions' },
-  daeunCap: { ko: '대운 · 大運', en: 'Luck Cycles · 大運' },
   iljuCap: { ko: '일주 원형 · 日柱', en: 'Day-Pillar Archetype · 日柱' },
   sec02Title: { ko: '오행과 용신', en: 'Elements & Balance' },
   sec02Han: { ko: '五行·用神', en: '五行·用神' },
@@ -122,6 +123,8 @@ const UI: Record<string, BiLabel> = {
   geokPersonality: { ko: '성향', en: 'Personality' },
   geokStrength: { ko: '강점', en: 'Strengths' },
   geokWeakness: { ko: '약점', en: 'Watch-outs' },
+  geokCareer: { ko: '직업', en: 'Careers' },
+  geokLove: { ko: '연애', en: 'Love' },
   geokAdvice: { ko: '조언', en: 'Advice' },
   sibsinCap: { ko: '주도 십성 · 十星', en: 'Dominant Ten God · 十星' },
   sec03Title: { ko: '출생 천궁도', en: 'Natal Chart' },
@@ -171,12 +174,12 @@ const RELATION_TYPE_LABEL: Record<string, BiLabel> = {
 const relationTypeLabel = (kind: string, lang: Lang): string =>
   RELATION_TYPE_LABEL[kind]?.[lang] ?? kind
 
-// 교차 tone → 친화 라벨 (이중언어).
+// 교차 tone → 라벨 (이중언어). "사주·점성 두 시스템이 같은/다른 얘길 하는가" 관점.
 const TONE_LABEL: Record<CrossRow['tone'], BiLabel> = {
-  resonant: { ko: '잘 맞아요', en: 'In sync' },
-  complement: { ko: '서로 채워줘요', en: 'Complementary' },
-  tension: { ko: '부딪혀요', en: 'In tension' },
-  neutral: { ko: '따로따로', en: 'Separate' },
+  resonant: { ko: '둘 다 같은 얘길 해요', en: 'Both say the same' },
+  complement: { ko: '다르지만 서로 도와요', en: 'Different but supportive' },
+  tension: { ko: '서로 반대로 말해요', en: 'They say the opposite' },
+  neutral: { ko: '서로 상관없어요', en: 'Unrelated' },
 }
 
 // ── helpers ────────────────────────────────────────────────────────────
@@ -210,6 +213,11 @@ const sibsinLabel = (name: string, lang: Lang): string => {
   if (lang === 'ko') return name
   if (!name || name === '日干') return name === '日干' ? 'Day Master' : name
   return getSibsinInterpretation(name as never)?.name_en ?? name
+}
+// 십신 → 평이 한줄 글로스 (SIBSIN_SHORT 재사용). 명식 '쉬운 풀이' 행에 사용.
+const sibsinShort = (name: string, lang: Lang): string => {
+  if (!name || name === '日干') return ''
+  return lang === 'ko' ? (SIBSIN_SHORT[name] ?? name) : sibsinLabel(name, 'en')
 }
 const stageLabel = (stage: string, lang: Lang): string => {
   if (lang === 'ko' || !stage) return stage
@@ -583,6 +591,69 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           ))}
         </div>
 
+        {/* ── 한눈에 (결론 먼저) — 별명 + 종합 교차 + 가장 필요한 기운 ── */}
+        <div className={s.hero}>
+          {/* 별명 — 사주(일간 속) × 점성(ASC 겉) 융합. 일주 카드 별명과 차별. */}
+          <div className={s.heroTag}>
+            {(() => {
+              const EL_KW: Record<string, string> = {
+                metal: '예리한',
+                wood: '뻗어나가는',
+                fire: '타오르는',
+                earth: '단단한',
+                water: '깊은',
+              }
+              if (lang === 'en') return ilju?.character?.split('.')[0].trim() ?? ''
+              const inner = EL_KW[stemEl(S.dayMaster)] ?? ''
+              const han = ELEMENTS[stemEl(S.dayMaster)]?.han ?? ''
+              const ascKo = A.ascendant ? signLabel(abbr(A.ascendant.sign), lang) : ''
+              return `${inner} 속(${S.dayMaster}${han}) · ${ascKo}의 겉`
+            })()}
+          </div>
+          {cross?.synthesis && <p className={s.heroSummary}>{cross.synthesis}</p>}
+          {(() => {
+            // 여러 카드(일간·격국)에 흩어진 강점/약점을 한곳에 종합 (Opus: TOP 묶기).
+            const dmx = getHanjaRich(S.dayMaster, lang) as {
+              strength?: string[]
+              weakness?: string[]
+            } | null
+            const uniq = (a: string[]) => Array.from(new Set(a.filter(Boolean))).slice(0, 4)
+            const str = uniq([...(dmx?.strength ?? []), ...((geok?.strength as string[]) ?? [])])
+            const weak = uniq([...(dmx?.weakness ?? []), ...((geok?.weakness as string[]) ?? [])])
+            if (!str.length && !weak.length) return null
+            return (
+              <div className={s.heroSW}>
+                {str.length > 0 && (
+                  <div>
+                    <b>{lang === 'en' ? 'Strengths' : '강점'}</b> {str.join(' · ')}
+                  </div>
+                )}
+                {weak.length > 0 && (
+                  <div>
+                    <b>{lang === 'en' ? 'Watch for' : '주의'}</b> {weak.join(' · ')}
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+          {(() => {
+            const yk = ELEMENTS[S.yongsin.primary]?.ko
+            const rem = yk ? ELEMENT_REMEDY[yk] : undefined
+            if (!rem) return null
+            return (
+              <div className={s.heroRemedy}>
+                <b className={elClass[S.yongsin.primary]}>
+                  {lang === 'en' ? 'What you need most' : '가장 필요한 기운'}:{' '}
+                  {ELEMENTS[S.yongsin.primary]?.han} {elementLabel(S.yongsin.primary, lang)}
+                </b>
+                <span>
+                  🎨 {rem.color} · 🧭 {rem.direction} · ✨ {rem.activity}
+                </span>
+              </div>
+            )
+          })()}
+        </div>
+
         {/* 01 사주 명식 */}
         <section className={s.section}>
           <div className={s.secHead}>
@@ -593,6 +664,40 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Four Pillars</span>
           </div>
+          {/* 일간(나) 카드 — hanja-rich 의 일간성격·강점·약점·직업을 hover→본문으로. */}
+          {(() => {
+            const dm = getHanjaRich(S.dayMaster, lang) as {
+              nature?: string
+              as_daymaster?: string
+              strength?: string[]
+              weakness?: string[]
+              career?: string[]
+            } | null
+            return (
+              <div className={s.dmCard}>
+                <div className={s.dmHead}>
+                  <b className={elClass[stemEl(S.dayMaster)]}>{S.dayMaster}</b>
+                  <span>{lang === 'en' ? 'Day Master · You' : '일간 · 나'}</span>
+                </div>
+                <div className={s.dmBody}>{dm?.as_daymaster ?? dm?.nature ?? ''}</div>
+                {dm?.strength?.length ? (
+                  <div className={s.dmRow}>
+                    <b>{lang === 'en' ? 'Strengths' : '강점'}</b> {dm.strength.join(', ')}
+                  </div>
+                ) : null}
+                {dm?.weakness?.length ? (
+                  <div className={s.dmRow}>
+                    <b>{lang === 'en' ? 'Watch-outs' : '약점'}</b> {dm.weakness.join(', ')}
+                  </div>
+                ) : null}
+                {dm?.career?.length ? (
+                  <div className={s.dmRow}>
+                    <b>{lang === 'en' ? 'Careers' : '직업'}</b> {dm.career.join(', ')}
+                  </div>
+                ) : null}
+              </div>
+            )
+          })()}
           <div className={s.pillars}>
             {pillarsArr.map(([head, p]) => (
               <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head.ko}>
@@ -633,35 +738,60 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             ))}
           </div>
+          {/* 쉬운 풀이 (Level 1) — 한자/십신을 평이한 한 줄로. 위 그리드는 전문(Level 2). */}
+          <div className={s.plainPillars}>
+            {pillarsArr.map(([head, p]) => {
+              const stemG = p.isDay
+                ? lang === 'en'
+                  ? 'You (Day Master)'
+                  : '나 자신'
+                : sibsinShort(p.sibsinStem, lang)
+              const branchG = sibsinShort(p.sibsinBranch, lang)
+              return (
+                <div className={s.plainRow} key={head.ko}>
+                  <span className={s.plainHead}>{head[lang]}</span>
+                  <b className={s.plainGz}>
+                    <span className={elClass[stemEl(p.stem)]}>{p.stem}</span>
+                    <span className={elClass[branchEl(p.branch)]}>{p.branch}</span>
+                  </b>
+                  <span className={s.plainMeaning}>
+                    {[stemG, branchG].filter(Boolean).join(' · ')}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
           <div className={s.row2}>
             <div>
               <div className={s.subcap}>{t('shinsalCap')}</div>
               <div className={s.chips}>
-                {S.natalShinsal.map((sh, i) => {
-                  const interp = getShinsalInterpretation(sh.ko)
-                  const label = lang === 'en' ? (interp?.name_en ?? sh.ko) : sh.ko
-                  const tip =
-                    lang === 'en'
-                      ? interp
-                        ? `${interp.meaning_en} ${interp.effect_en}`
-                        : undefined
-                      : interp
-                        ? `${interp.meaning} ${interp.effect}`
-                        : undefined
-                  return (
-                    <span
-                      className={`${s.chip} ${sh.polarity > 0 ? s.pos : sh.polarity < 0 ? s.neg : s.neu}`}
-                      key={i}
-                      title={tip}
-                    >
-                      <b>{label}</b>
-                      <i>
-                        {sh.pillar}
-                        {sh.sub ? `·${sh.sub}` : ''}
-                      </i>
-                    </span>
-                  )
-                })}
+                {[...S.natalShinsal]
+                  .sort((a, b) => (b.polarity ?? 0) - (a.polarity ?? 0))
+                  .map((sh, i) => {
+                    const interp = getShinsalInterpretation(sh.ko)
+                    const label = lang === 'en' ? (interp?.name_en ?? sh.ko) : sh.ko
+                    const tip =
+                      lang === 'en'
+                        ? interp
+                          ? `${interp.meaning_en} ${interp.effect_en}`
+                          : undefined
+                        : interp
+                          ? `${interp.meaning} ${interp.effect}`
+                          : undefined
+                    return (
+                      <span
+                        className={`${s.chip} ${sh.polarity > 0 ? s.pos : sh.polarity < 0 ? s.neg : s.neu}`}
+                        key={i}
+                        title={tip}
+                      >
+                        <b>{label}</b>
+                        <i>
+                          {sh.pillar}
+                          {sh.sub ? `·${sh.sub}` : ''}
+                        </i>
+                      </span>
+                    )
+                  })}
               </div>
             </div>
             <div>
@@ -707,24 +837,19 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
                   <b>{t('geokWeakness')}</b> {ilju.weakness}
                 </div>
+                {ilju.career && (
+                  <div className={s.themeReason} style={{ marginTop: 4 }}>
+                    <b>{t('geokCareer')}</b> {ilju.career}
+                  </div>
+                )}
+                {ilju.love && (
+                  <div className={s.themeReason} style={{ marginTop: 4 }}>
+                    <b>{t('geokLove')}</b> {ilju.love}
+                  </div>
+                )}
               </div>
             </>
           )}
-          <div className={s.subcap} style={{ marginTop: 24 }}>
-            {t('daeunCap')}
-          </div>
-          <div className={s.daeun}>
-            {S.daeun.map((d) => (
-              <div className={`${s.du} ${d.current ? s.duNow : ''}`} key={d.age}>
-                <div className={s.duAge}>{d.age}</div>
-                <div className={s.duGz}>
-                  <b className={elClass[stemEl(d.stem)]}>{d.stem}</b>
-                  <b className={elClass[branchEl(d.branch)]}>{d.branch}</b>
-                </div>
-                <div className={s.duSib}>{sibsinLabel(d.sibsin, lang)}</div>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* 02 오행과 용신 */}
@@ -825,6 +950,30 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   ))}
                   <i style={{ color: 'var(--ink-4)' }}>/ max {feMax}</i>
                 </div>
+                {/* 용신 '왜 필요한가' — fiveElements 사전에서 성질+부족시 증상 연결. */}
+                {(() => {
+                  const yk = ELEMENTS[S.yongsin.primary]?.ko
+                  const yi = yk
+                    ? (getElementInterpretation(yk as never) as {
+                        nature?: string
+                        nature_en?: string
+                        deficiency?: string
+                        deficiency_en?: string
+                      } | null)
+                    : null
+                  if (!yi) return null
+                  const nature = lang === 'en' ? yi.nature_en : yi.nature
+                  const lack = lang === 'en' ? yi.deficiency_en : yi.deficiency
+                  return (
+                    <div className={s.yongWhy}>
+                      <b className={elClass[S.yongsin.primary]}>
+                        {ELEMENTS[S.yongsin.primary]?.han} {elementLabel(S.yongsin.primary, lang)}
+                      </b>{' '}
+                      — {nature}
+                      {lack ? ` · ${lang === 'en' ? 'lacking: ' : '부족하면 '}${lack}` : ''}
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           </div>
@@ -847,6 +996,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {geok.weakness.length > 0 && (
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
                   <b>{t('geokWeakness')}</b> {geok.weakness.join(', ')}
+                </div>
+              )}
+              {geok.career && geok.career.length > 0 && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokCareer')}</b> {geok.career.join(', ')}
+                </div>
+              )}
+              {geok.love && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokLove')}</b> {geok.love}
                 </div>
               )}
               <div className={s.themeReason} style={{ marginTop: 4 }}>
@@ -943,7 +1102,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   <b>{A.houseSystem}</b>
                 </div>
               </div>
-              <div className={s.daeun} style={{ gridTemplateColumns: 'repeat(6,1fr)' }}>
+              <div className={s.houses}>
                 {A.houses.slice(0, 6).map((h) => (
                   <div className={s.du} key={h.i} title={houseHover(h.i, lang)}>
                     <div className={s.duAge}>{h.i}H</div>
@@ -959,6 +1118,97 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 ))}
               </div>
             </div>
+          </div>
+          {/* 핵심 3행성 — planet-core DB 의 원리·의미를 hover→본문으로 (태양·달·상승). */}
+          <div className={s.bigThree}>
+            {(() => {
+              const find = (n: string) => A.planets.find((p) => p.name === n)
+              const sun = find('Sun')
+              const moon = find('Moon')
+              const asc = A.ascendant
+              const cards = [
+                sun && {
+                  glyph: '☉',
+                  label: lang === 'en' ? 'Sun' : '태양',
+                  core: getPlanetCore('Sun', lang),
+                  sign: sun.sign,
+                  deg: sun.deg,
+                  house: sun.house,
+                },
+                moon && {
+                  glyph: '☾',
+                  label: lang === 'en' ? 'Moon' : '달',
+                  core: getPlanetCore('Moon', lang),
+                  sign: moon.sign,
+                  deg: moon.deg,
+                  house: moon.house,
+                },
+                asc && {
+                  glyph: 'Asc',
+                  label: lang === 'en' ? 'Rising' : '상승',
+                  core: getPlanetCore('Ascendant', lang),
+                  sign: asc.sign,
+                  deg: asc.deg,
+                  house: 0,
+                },
+                ...(
+                  [
+                    ['Mercury', '☿', '수성'],
+                    ['Venus', '♀', '금성'],
+                    ['Mars', '♂', '화성'],
+                  ] as const
+                ).map(([nm, gl, ko]) => {
+                  const p = find(nm)
+                  return p
+                    ? {
+                        glyph: gl,
+                        label: lang === 'en' ? nm : ko,
+                        core: getPlanetCore(nm, lang),
+                        sign: p.sign,
+                        deg: p.deg,
+                        house: p.house,
+                      }
+                    : null
+                }),
+              ].filter(Boolean) as Array<{
+                glyph: string
+                label: string
+                core: ReturnType<typeof getPlanetCore>
+                sign: string
+                deg: string
+                house: number
+              }>
+              return cards.map((cd) => {
+                if (!cd.core) return null
+                const sk = SIGN_META[abbr(cd.sign)]
+                return (
+                  <div className={s.bigCard} key={cd.label}>
+                    <div className={s.bigHead}>
+                      <b className={elClass[sk?.el ?? '']}>
+                        {cd.glyph} {cd.label}
+                      </b>
+                      <i>
+                        {signLabel(abbr(cd.sign), lang)} {cd.deg}
+                        {cd.house ? ` · ${cd.house}H` : ''}
+                      </i>
+                    </div>
+                    <div className={s.bigPrin}>{cd.core.principle}</div>
+                    {cd.house
+                      ? (() => {
+                          const h = getHouseRich(cd.house as HouseNumber, lang)
+                          return h ? (
+                            <div className={s.bigHouse}>
+                              {cd.house}
+                              {lang === 'en' ? 'H' : '하우스'} · {h.domain}
+                            </div>
+                          ) : null
+                        })()
+                      : null}
+                    <div className={s.bigMean}>{cd.core.meaning}</div>
+                  </div>
+                )
+              })
+            })()}
           </div>
         </section>
 
@@ -1046,12 +1296,40 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </span>
               <span className={s.secEn}>Cross-System</span>
             </div>
-            {cross.synthesis && (
-              <div className={s.synthBanner}>
-                <div className={s.synthK}>{t('synthLabel')}</div>
-                <div className={s.synthV}>{cross.synthesis}</div>
-              </div>
-            )}
+            {/* 종합 문장은 상단 히어로로 이동(중복 제거). 여기선 톤 분포 막대만. */}
+            {/* 교차 그림 — 톤 분포(잘맞음/채워줌/부딪힘) 한눈에. */}
+            {(() => {
+              const counts = { resonant: 0, complement: 0, tension: 0, neutral: 0 }
+              cross.rows.forEach((r) => {
+                counts[r.tone]++
+              })
+              const segs = (['resonant', 'complement', 'tension', 'neutral'] as const).filter(
+                (k) => counts[k] > 0
+              )
+              if (!segs.length) return null
+              return (
+                <div className={s.crossTally}>
+                  <div className={s.crossBar}>
+                    {segs.map((k) => (
+                      <div
+                        key={k}
+                        className={s.crossSeg}
+                        style={{ flexGrow: counts[k], background: TONE_COLOR[k] }}
+                        title={`${TONE_LABEL[k][lang]} ${counts[k]}`}
+                      />
+                    ))}
+                  </div>
+                  <div className={s.crossLegend}>
+                    {segs.map((k) => (
+                      <span className={s.crossLeg} key={k}>
+                        <i style={{ background: TONE_COLOR[k] }} />
+                        {TONE_LABEL[k][lang]} {counts[k]}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
             <div className={s.themes}>
               {cross.rows.map((r, i) => (
                 <div className={s.theme} key={i} style={{ ['--tc' as string]: TONE_COLOR[r.tone] }}>
@@ -1059,7 +1337,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     <span className={s.themeName}>{r.category}</span>
                     <span className={s.themeBadge}>{TONE_LABEL[r.tone][lang]}</span>
                   </div>
-                  {(r.left || r.right) && (
+                  {r.left && r.right && (
                     <div className={s.themeCross}>
                       <div className={s.themeSide}>
                         <div className={s.themeSideK}>{t('sajuSide')}</div>
@@ -1075,6 +1353,40 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
               ))}
             </div>
+            {/* 💡 실천 — 진단을 처방으로 (Opus: 그래서 어떻게). */}
+            {(() => {
+              const reson = cross.rows.filter((r) => r.tone === 'resonant').map((r) => r.category)
+              const tens = cross.rows.filter((r) => r.tone === 'tension').map((r) => r.category)
+              return (
+                <div className={s.crossAdvice}>
+                  <div className={s.crossAdviceHead}>
+                    {lang === 'en' ? '💡 How to live with it' : '💡 이렇게 살면 좋아요'}
+                  </div>
+                  <ul className={s.crossAdviceList}>
+                    {reson.length > 0 && (
+                      <li>
+                        <b>{lang === 'en' ? 'Core' : '정체성 코어'}</b>{' '}
+                        {lang === 'en' ? 'East and West agree on ' : '동·서양이 똑같이 가리키는 '}
+                        <b>{reson.join(' · ')}</b>
+                        {lang === 'en'
+                          ? ' — two systems converging means this is your most unshakable core. Make it the center of your work and brand.'
+                          : '은(는) 두 점술이 독립적으로 합의한 지점 — 가장 흔들리지 않는 정체성 코어예요. 직업·브랜딩의 중심축으로 삼으세요.'}
+                      </li>
+                    )}
+                    {tens.length > 0 && (
+                      <li>
+                        <b>{lang === 'en' ? 'Balance' : '다루는 법'}</b>{' '}
+                        {lang === 'en' ? 'Where they clash (' : '부딪히는 '}
+                        <b>{tens.join(' · ')}</b>
+                        {lang === 'en'
+                          ? ') — alternate between the two instead of suppressing one.'
+                          : '은(는) 한쪽을 누르기보다 상황 따라 번갈아 쓰면 오히려 강점이 돼요.'}
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )
+            })()}
           </section>
         )}
 

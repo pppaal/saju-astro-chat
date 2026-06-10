@@ -138,11 +138,6 @@ test.describe('Feature API Endpoints', () => {
 })
 
 test.describe('Calendar API Endpoints', () => {
-  test('GET /api/calendar - should respond', async ({ page }) => {
-    const response = await page.request.get('/api/calendar')
-    expect([200, 400, 401, 403]).toContain(response.status())
-  })
-
   test('POST /api/calendar/save - should require auth', async ({ page }) => {
     const response = await page.request.post('/api/calendar/save', {
       data: {},

@@ -149,7 +149,7 @@ describe('validator MEGA - TimezoneSchema', () => {
 describe('validator MEGA - LocaleSchema', () => {
   describe('Valid locales', () => {
     it('should accept supported locales', () => {
-      const validLocales = ['ko', 'en', 'ja', 'zh', 'vi', 'th', 'id', 'de', 'fr', 'es']
+      const validLocales = ['ko', 'en']
       validLocales.forEach((locale) => {
         expect(LocaleSchema.safeParse(locale).success).toBe(true)
       })
@@ -158,7 +158,9 @@ describe('validator MEGA - LocaleSchema', () => {
 
   describe('Invalid locales', () => {
     it('should reject unsupported locales', () => {
-      // ru, pt, ar are actually in the localeValues list
+      // App now serves only en/ko; all other locales are unsupported
+      expect(LocaleSchema.safeParse('ja').success).toBe(false) // Japanese not supported
+      expect(LocaleSchema.safeParse('zh').success).toBe(false) // Chinese not supported
       expect(LocaleSchema.safeParse('it').success).toBe(false) // Italian not supported
       expect(LocaleSchema.safeParse('pl').success).toBe(false) // Polish not supported
       expect(LocaleSchema.safeParse('nl').success).toBe(false) // Dutch not supported

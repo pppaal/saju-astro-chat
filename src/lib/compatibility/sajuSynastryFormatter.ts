@@ -18,67 +18,90 @@ import { HYEONG_PAIR_TRIO, BRANCH_HYEONG_PAIR, SELF_HYEONG, isHyeong } from '@/l
 // 공망·12신살은 saju SSOT(pillarLookup / shinsal)에 위임. 로컬 복제 금지.
 import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
 import { pickTwelveSingle } from '@/lib/saju/shinsal'
+import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 
 const STEM_HAP: Record<string, { other: string; element: string }> = {
-  '甲': { other: '己', element: '토' },
-  '己': { other: '甲', element: '토' },
-  '乙': { other: '庚', element: '금' },
-  '庚': { other: '乙', element: '금' },
-  '丙': { other: '辛', element: '수' },
-  '辛': { other: '丙', element: '수' },
-  '丁': { other: '壬', element: '목' },
-  '壬': { other: '丁', element: '목' },
-  '戊': { other: '癸', element: '화' },
-  '癸': { other: '戊', element: '화' },
+  甲: { other: '己', element: '토' },
+  己: { other: '甲', element: '토' },
+  乙: { other: '庚', element: '금' },
+  庚: { other: '乙', element: '금' },
+  丙: { other: '辛', element: '수' },
+  辛: { other: '丙', element: '수' },
+  丁: { other: '壬', element: '목' },
+  壬: { other: '丁', element: '목' },
+  戊: { other: '癸', element: '화' },
+  癸: { other: '戊', element: '화' },
 }
 
 const STEM_CHUNG: Record<string, string> = {
-  '甲': '庚', '庚': '甲',
-  '乙': '辛', '辛': '乙',
-  '丙': '壬', '壬': '丙',
-  '丁': '癸', '癸': '丁',
+  甲: '庚',
+  庚: '甲',
+  乙: '辛',
+  辛: '乙',
+  丙: '壬',
+  壬: '丙',
+  丁: '癸',
+  癸: '丁',
 }
 
 const BRANCH_HAP: Record<string, { other: string; element: string }> = {
-  '子': { other: '丑', element: '토' },
-  '丑': { other: '子', element: '토' },
-  '寅': { other: '亥', element: '목' },
-  '亥': { other: '寅', element: '목' },
-  '卯': { other: '戌', element: '화' },
-  '戌': { other: '卯', element: '화' },
-  '辰': { other: '酉', element: '금' },
-  '酉': { other: '辰', element: '금' },
-  '巳': { other: '申', element: '수' },
-  '申': { other: '巳', element: '수' },
-  '午': { other: '未', element: '화' },
-  '未': { other: '午', element: '화' },
+  子: { other: '丑', element: '토' },
+  丑: { other: '子', element: '토' },
+  寅: { other: '亥', element: '목' },
+  亥: { other: '寅', element: '목' },
+  卯: { other: '戌', element: '화' },
+  戌: { other: '卯', element: '화' },
+  辰: { other: '酉', element: '금' },
+  酉: { other: '辰', element: '금' },
+  巳: { other: '申', element: '수' },
+  申: { other: '巳', element: '수' },
+  午: { other: '未', element: '화' },
+  未: { other: '午', element: '화' },
 }
 
 const BRANCH_CHUNG: Record<string, string> = {
-  '子': '午', '午': '子',
-  '丑': '未', '未': '丑',
-  '寅': '申', '申': '寅',
-  '卯': '酉', '酉': '卯',
-  '辰': '戌', '戌': '辰',
-  '巳': '亥', '亥': '巳',
+  子: '午',
+  午: '子',
+  丑: '未',
+  未: '丑',
+  寅: '申',
+  申: '寅',
+  卯: '酉',
+  酉: '卯',
+  辰: '戌',
+  戌: '辰',
+  巳: '亥',
+  亥: '巳',
 }
 
 const BRANCH_HAE: Record<string, string> = {
-  '子': '未', '未': '子',
-  '丑': '午', '午': '丑',
-  '寅': '巳', '巳': '寅',
-  '卯': '辰', '辰': '卯',
-  '申': '亥', '亥': '申',
-  '酉': '戌', '戌': '酉',
+  子: '未',
+  未: '子',
+  丑: '午',
+  午: '丑',
+  寅: '巳',
+  巳: '寅',
+  卯: '辰',
+  辰: '卯',
+  申: '亥',
+  亥: '申',
+  酉: '戌',
+  戌: '酉',
 }
 
 const BRANCH_PA: Record<string, string> = {
-  '子': '酉', '酉': '子',
-  '丑': '辰', '辰': '丑',
-  '寅': '亥', '亥': '寅',
-  '卯': '午', '午': '卯',
-  '巳': '申', '申': '巳',
-  '戌': '未', '未': '戌',
+  子: '酉',
+  酉: '子',
+  丑: '辰',
+  辰: '丑',
+  寅: '亥',
+  亥: '寅',
+  卯: '午',
+  午: '卯',
+  巳: '申',
+  申: '巳',
+  戌: '未',
+  未: '戌',
 }
 
 // 형(刑) 교리는 @/lib/saju/hyeong 단일 소스(상단 import). destiny counselor 와
@@ -99,26 +122,52 @@ const BANG_HAP = [
 ]
 
 const STEM_EL: Record<string, string> = {
-  '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토',
-  '己': '토', '庚': '금', '辛': '금', '壬': '수', '癸': '수',
+  甲: '목',
+  乙: '목',
+  丙: '화',
+  丁: '화',
+  戊: '토',
+  己: '토',
+  庚: '금',
+  辛: '금',
+  壬: '수',
+  癸: '수',
 }
 
 // 천간 음양 — 십성(sibsin) cross 계산용. 같은 음양이면 비견/식신/편재/편관/편인,
 // 다른 음양이면 겁재/상관/정재/정관/정인.
 const STEM_YIN_YANG: Record<string, '양' | '음'> = {
-  '甲': '양', '丙': '양', '戊': '양', '庚': '양', '壬': '양',
-  '乙': '음', '丁': '음', '己': '음', '辛': '음', '癸': '음',
+  甲: '양',
+  丙: '양',
+  戊: '양',
+  庚: '양',
+  壬: '양',
+  乙: '음',
+  丁: '음',
+  己: '음',
+  辛: '음',
+  癸: '음',
 }
 
 // 지지 본기 천간 (지지를 천간 시각으로 보는 매핑) — 지지 십성 계산용.
 const BRANCH_MAIN_STEM: Record<string, string> = {
-  '子': '癸', '丑': '己', '寅': '甲', '卯': '乙', '辰': '戊', '巳': '丙',
-  '午': '丁', '未': '己', '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬',
+  子: '癸',
+  丑: '己',
+  寅: '甲',
+  卯: '乙',
+  辰: '戊',
+  巳: '丙',
+  午: '丁',
+  未: '己',
+  申: '庚',
+  酉: '辛',
+  戌: '戊',
+  亥: '壬',
 }
 
 // 오행 관계 — 상생/상극 방향. 목→화→토→금→수→목 (생). 木克土, 火克金, 土克水, 金克木, 水克火 (극).
-const EL_GEN: Record<string, string> = { '목': '화', '화': '토', '토': '금', '금': '수', '수': '목' }
-const EL_KE: Record<string, string> = { '목': '토', '화': '금', '토': '수', '금': '목', '수': '화' }
+const EL_GEN: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
+const EL_KE: Record<string, string> = { 목: '토', 화: '금', 토: '수', 금: '목', 수: '화' }
 
 /**
  * 일간(dayStem) 기준 대상(targetStem) 의 십성(sibsin) 반환. 정재/편재 → 배우자성
@@ -138,34 +187,61 @@ function sibseongFor(dayStem: string, targetStem: string): string {
 }
 
 const BRANCH_EL: Record<string, string> = {
-  '寅': '목', '卯': '목', '巳': '화', '午': '화', '辰': '토',
-  '戌': '토', '丑': '토', '未': '토', '申': '금', '酉': '금',
-  '子': '수', '亥': '수',
+  寅: '목',
+  卯: '목',
+  巳: '화',
+  午: '화',
+  辰: '토',
+  戌: '토',
+  丑: '토',
+  未: '토',
+  申: '금',
+  酉: '금',
+  子: '수',
+  亥: '수',
 }
 
 const EL_CONTROLS: Record<string, string> = {
-  '목': '토', '토': '수', '수': '화', '화': '금', '금': '목',
+  목: '토',
+  토: '수',
+  수: '화',
+  화: '금',
+  금: '목',
 }
 
 const EL_GENERATES: Record<string, string> = {
-  '목': '화', '화': '토', '토': '금', '금': '수', '수': '목',
+  목: '화',
+  화: '토',
+  토: '금',
+  금: '수',
+  수: '목',
 }
 
 // 십성 짧은 글로싱 — 관계의 질감을 LLM이 곧장 읽게.
 const SIBSIN_GLOSS: Record<string, string> = {
-  '비견': '대등·동지', '겁재': '경쟁·협력',
-  '식신': '표현·여유', '상관': '재능·자유분방',
-  '편재': '활동·욕망', '정재': '안정·성실',
-  '편관': '압박·도전', '정관': '책임·규범',
-  '편인': '보호·배움', '정인': '후원·안정',
+  비견: '대등·동지',
+  겁재: '경쟁·협력',
+  식신: '표현·여유',
+  상관: '재능·자유분방',
+  편재: '활동·욕망',
+  정재: '안정·성실',
+  편관: '압박·도전',
+  정관: '책임·규범',
+  편인: '보호·배움',
+  정인: '후원·안정',
 }
 
 const CHEONULGWIIN: Record<string, string[]> = {
-  '甲': ['丑', '未'], '戊': ['丑', '未'], '庚': ['丑', '未'],
-  '乙': ['子', '申'], '己': ['子', '申'],
-  '丙': ['亥', '酉'], '丁': ['亥', '酉'],
-  '辛': ['寅', '午'],
-  '壬': ['巳', '卯'], '癸': ['巳', '卯'],
+  甲: ['丑', '未'],
+  戊: ['丑', '未'],
+  庚: ['丑', '未'],
+  乙: ['子', '申'],
+  己: ['子', '申'],
+  丙: ['亥', '酉'],
+  丁: ['亥', '酉'],
+  辛: ['寅', '午'],
+  壬: ['巳', '卯'],
+  癸: ['巳', '卯'],
 }
 
 const BRANCH_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
@@ -188,7 +264,8 @@ function currentSeun(now: Date): { stem: string; branch: string; year: number } 
 // 일간克상대 편재/정재 · 상대克일간 편관/정관. 음양 같으면 편(식신 포함),
 // 다르면 정(겁재·상관 포함).
 function sibsinOf(dayStem: string, otherStem: string): string | null {
-  const dayEl = STEM_EL[dayStem], otherEl = STEM_EL[otherStem]
+  const dayEl = STEM_EL[dayStem],
+    otherEl = STEM_EL[otherStem]
   if (!dayEl || !otherEl) return null
   const dayPol = STEM_ORDER.indexOf(dayStem) % 2
   const otherPol = STEM_ORDER.indexOf(otherStem) % 2
@@ -217,12 +294,16 @@ const PILLAR_LABELS = ['년', '월', '일', '시'] as const
 // 한자 천간·지지(+合化)를 한글 발음으로 — 辛→신, 乙庚合化금→을경합화금.
 // 출력만 읽기 쉽게 바꾸는 후처리(계산·로직 불변). 일간의 (금)/(목) 오행
 // 글로싱은 그대로 남아 앵커 역할.
+// 천간·지지 한자→한글 음은 정본(saju/ganjiKo) 재사용. 合/化 는 이 포매터 고유 키라
+// spread 후 추가.
 const HANJA_KO: Record<string, string> = {
-  甲: '갑', 乙: '을', 丙: '병', 丁: '정', 戊: '무', 己: '기', 庚: '경', 辛: '신', 壬: '임', 癸: '계',
-  子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사', 午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해',
-  合: '합', 化: '화',
+  ...STEM_KO,
+  ...BRANCH_KO,
+  合: '합',
+  化: '화',
 }
-const koreanize = (s: string) => s.replace(/[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥合化]/g, (c) => HANJA_KO[c] ?? c)
+const koreanize = (s: string) =>
+  s.replace(/[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥合化]/g, (c) => HANJA_KO[c] ?? c)
 
 // 부가설명 제거 — 순수 구조 데이터만 남긴다(출력 후처리; 계산·로직 불변).
 // 섹션 헤더([CRITICAL...])는 보존, 본문 라인에서만:
@@ -310,15 +391,25 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // 1. 일간 cross — 항상 CRITICAL
   if (elA && elB) {
     if (elA === elB) {
-      critical.push(`${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — 같은 오행 (비견)`)
+      critical.push(
+        `${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — 같은 오행 (비견)`
+      )
     } else if (EL_CONTROLS[elA] === elB) {
-      const a = nmA || 'A', b = nmB || 'B'
-      critical.push(`${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
+      const a = nmA || 'A',
+        b = nmB || 'B'
+      critical.push(
+        `${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`
+      )
     } else if (EL_CONTROLS[elB] === elA) {
-      const a = nmA || 'A', b = nmB || 'B'
-      critical.push(`${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`)
+      const a = nmA || 'A',
+        b = nmB || 'B'
+      critical.push(
+        `${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`
+      )
     } else {
-      important.push(`${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — 상생 (서로 보완)`)
+      important.push(
+        `${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — 상생 (서로 보완)`
+      )
     }
   }
 
@@ -337,14 +428,19 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // 2. 천간합(끌림)=CRITICAL, 천간충=IMPORTANT
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
-      const aS = A[i].stem, bS = B[j].stem
+      const aS = A[i].stem,
+        bS = B[j].stem
       if (!aS || !bS) continue
       const hap = STEM_HAP[aS]
       if (hap && hap.other === bS) {
-        critical.push(`A ${PILLAR_LABELS[i]}천간 ${aS} + B ${PILLAR_LABELS[j]}천간 ${bS} — ${aS}${bS}合化${hap.element} (천간합 — 화학적 끌림)`)
+        critical.push(
+          `A ${PILLAR_LABELS[i]}천간 ${aS} + B ${PILLAR_LABELS[j]}천간 ${bS} — ${aS}${bS}合化${hap.element} (천간합 — 화학적 끌림)`
+        )
       }
       if (STEM_CHUNG[aS] === bS) {
-        important.push(`A ${PILLAR_LABELS[i]}천간 ${aS} ↔ B ${PILLAR_LABELS[j]}천간 ${bS} — 천간충 (대립)`)
+        important.push(
+          `A ${PILLAR_LABELS[i]}천간 ${aS} ↔ B ${PILLAR_LABELS[j]}천간 ${bS} — 천간충 (대립)`
+        )
       }
     }
   }
@@ -360,7 +456,8 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   }
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
-      const aBr = A[i].branch, bBr = B[j].branch
+      const aBr = A[i].branch,
+        bBr = B[j].branch
       if (!aBr || !bBr) continue
       if (BRANCH_HAP[aBr]?.other === bBr) addTag(i, j, aBr, bBr, '합')
       if (BRANCH_CHUNG[aBr] === bBr) addTag(i, j, aBr, bBr, '충')
@@ -393,7 +490,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // 다 갖고 있으면 본명 신호라 제외. 옛 코드는 각자 1지만 잡아 "2지" 라벨을
   // 붙여, 한 쪽이 3지 다 가진 경우(본명)나 cross로 3지 완성된 경우를 오분류.
   const sbComplete: string[] = [] // 3/3 교차 완성
-  const sbPartial: string[] = []  // 2/3 부분
+  const sbPartial: string[] = [] // 2/3 부분
   for (const trio of [...TRI_HAP, ...BANG_HAP]) {
     const setA = new Set(A.map((p) => p.branch).filter((b) => trio.branches.includes(b)))
     const setB = new Set(B.map((p) => p.branch).filter((b) => trio.branches.includes(b)))
@@ -405,10 +502,14 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     }
   }
   if (sbComplete.length > 0) {
-    important.push(`삼합/방합 교차 완성 ${sbComplete.length}건: ${sbComplete.join(' · ')} — 두 사람 지지가 3지 모두 채워 국(局) 형성 (강한 결속 잠재)`)
+    important.push(
+      `삼합/방합 교차 완성 ${sbComplete.length}건: ${sbComplete.join(' · ')} — 두 사람 지지가 3지 모두 채워 국(局) 형성 (강한 결속 잠재)`
+    )
   }
   if (sbPartial.length > 0) {
-    chamgo.push(`삼합/방합 부분 ${sbPartial.length}건: ${sbPartial.join(' · ')} — 3지 중 2지 교차 성립 (결속 잠재, 비중 낮음)`)
+    chamgo.push(
+      `삼합/방합 부분 ${sbPartial.length}건: ${sbPartial.join(' · ')} — 3지 중 2지 교차 성립 (결속 잠재, 비중 낮음)`
+    )
   }
 
   // 4. 천을귀인 → IMPORTANT
@@ -416,12 +517,16 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const bCheonul = CHEONULGWIIN[bDay.stem] ?? []
   for (let j = 0; j < 4; j++) {
     if (aCheonul.includes(B[j].branch)) {
-      important.push(`${labelA}'s 천을귀인(${aCheonul.join('·')}, 일간 ${aDay.stem}) → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch} 활성 → 길성 보호`)
+      important.push(
+        `${labelA}'s 천을귀인(${aCheonul.join('·')}, 일간 ${aDay.stem}) → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch} 활성 → 길성 보호`
+      )
     }
   }
   for (let i = 0; i < 4; i++) {
     if (bCheonul.includes(A[i].branch)) {
-      important.push(`${labelB}'s 천을귀인(${bCheonul.join('·')}, 일간 ${bDay.stem}) → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch} 활성 → 길성 보호`)
+      important.push(
+        `${labelB}'s 천을귀인(${bCheonul.join('·')}, 일간 ${bDay.stem}) → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch} 활성 → 길성 보호`
+      )
     }
   }
 
@@ -436,7 +541,8 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       const lbl = twelveShinsalLabel(aDay.branch, B[j].branch)
       if (lbl) items.push(`${PILLAR_LABELS[j]}지 ${B[j].branch}=${lbl}`)
     }
-    if (items.length) important.push(`12신살 ${labelA} 일지 ${aDay.branch} 기준 → ${labelB}: ${items.join(' · ')}`)
+    if (items.length)
+      important.push(`12신살 ${labelA} 일지 ${aDay.branch} 기준 → ${labelB}: ${items.join(' · ')}`)
   }
   if (bDay.branch) {
     const items: string[] = []
@@ -445,20 +551,25 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       const lbl = twelveShinsalLabel(bDay.branch, A[i].branch)
       if (lbl) items.push(`${PILLAR_LABELS[i]}지 ${A[i].branch}=${lbl}`)
     }
-    if (items.length) important.push(`12신살 ${labelB} 일지 ${bDay.branch} 기준 → ${labelA}: ${items.join(' · ')}`)
+    if (items.length)
+      important.push(`12신살 ${labelB} 일지 ${bDay.branch} 기준 → ${labelA}: ${items.join(' · ')}`)
   }
 
   // 6. 현재 대운 cross → IMPORTANT
   // 나이 표기는 `시작~끝세` 범위로 (cycle 10년). 단순 `32세` 면 LLM 이
   // "현재 32세" 로 오인 가능.
   if (input.currentDaeunA && input.currentDaeunB) {
-    const dA = input.currentDaeunA, dB = input.currentDaeunB
-    const ageRange = (age?: number) =>
-      typeof age === 'number' ? `${age}~${age + 9}세` : '?세'
-    important.push(`현재 대운: ${labelA} ${ageRange(dA.age)} ${dA.stem}${dA.branch} · ${labelB} ${ageRange(dB.age)} ${dB.stem}${dB.branch}`)
-    if (STEM_HAP[dA.stem]?.other === dB.stem) important.push(`대운 천간 ${dA.stem}${dB.stem}合化${STEM_HAP[dA.stem]!.element} (흐름 결속)`)
+    const dA = input.currentDaeunA,
+      dB = input.currentDaeunB
+    const ageRange = (age?: number) => (typeof age === 'number' ? `${age}~${age + 9}세` : '?세')
+    important.push(
+      `현재 대운: ${labelA} ${ageRange(dA.age)} ${dA.stem}${dA.branch} · ${labelB} ${ageRange(dB.age)} ${dB.stem}${dB.branch}`
+    )
+    if (STEM_HAP[dA.stem]?.other === dB.stem)
+      important.push(`대운 천간 ${dA.stem}${dB.stem}合化${STEM_HAP[dA.stem]!.element} (흐름 결속)`)
     if (STEM_CHUNG[dA.stem] === dB.stem) important.push(`대운 천간충 (시기 흐름 충돌)`)
-    if (BRANCH_HAP[dA.branch]?.other === dB.branch) important.push(`대운 지지 ${dA.branch}${dB.branch}합 (결속)`)
+    if (BRANCH_HAP[dA.branch]?.other === dB.branch)
+      important.push(`대운 지지 ${dA.branch}${dB.branch}합 (결속)`)
     if (BRANCH_CHUNG[dA.branch] === dB.branch) important.push(`대운 지지충 (큰 흐름 충돌)`)
     if (dA.branch === dB.branch) important.push(`대운 지지 ${dA.branch} 일치 (강한 시기 공명)`)
   }
@@ -467,26 +578,39 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // 건드리는지. "올해 우리 어때 / 언제" 질문의 시기 해상도. (월운·일진은 과잉)
   {
     const seun = currentSeun(input.now ?? new Date())
-    const ss = seun.stem, sb = seun.branch
+    const ss = seun.stem,
+      sb = seun.branch
     const seunLines: string[] = []
     const crossNatal = (lbl: string, day: SajuPillarInput) => {
-      if (STEM_HAP[ss]?.other === day.stem) seunLines.push(`세운천간 ${ss} + ${lbl} 일간 ${day.stem} — ${ss}${day.stem}合化${STEM_HAP[ss]!.element} (올해 끌림·기회)`)
-      if (STEM_CHUNG[ss] === day.stem) seunLines.push(`세운천간 ${ss} ↔ ${lbl} 일간 ${day.stem} — 충 (올해 압박·결정)`)
-      if (BRANCH_HAP[sb]?.other === day.branch) seunLines.push(`세운지지 ${sb} + ${lbl} 일지 ${day.branch} — 합 (올해 결속·안정)`)
-      if (BRANCH_CHUNG[sb] === day.branch) seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 충 (올해 이동·변동)`)
-      else if (isHyeong(sb, day.branch)) seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 형 (올해 갈등·구설)`)
+      if (STEM_HAP[ss]?.other === day.stem)
+        seunLines.push(
+          `세운천간 ${ss} + ${lbl} 일간 ${day.stem} — ${ss}${day.stem}合化${STEM_HAP[ss]!.element} (올해 끌림·기회)`
+        )
+      if (STEM_CHUNG[ss] === day.stem)
+        seunLines.push(`세운천간 ${ss} ↔ ${lbl} 일간 ${day.stem} — 충 (올해 압박·결정)`)
+      if (BRANCH_HAP[sb]?.other === day.branch)
+        seunLines.push(`세운지지 ${sb} + ${lbl} 일지 ${day.branch} — 합 (올해 결속·안정)`)
+      if (BRANCH_CHUNG[sb] === day.branch)
+        seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 충 (올해 이동·변동)`)
+      else if (isHyeong(sb, day.branch))
+        seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 형 (올해 갈등·구설)`)
     }
     crossNatal(labelA, aDay)
     crossNatal(labelB, bDay)
     const crossDaeun = (lbl: string, dae?: { stem: string; branch: string } | null) => {
       if (!dae) return
-      if (STEM_CHUNG[ss] === dae.stem) seunLines.push(`세운 ↔ ${lbl} 대운천간 ${dae.stem} — 충 (올해와 대운 흐름 충돌)`)
-      if (BRANCH_CHUNG[sb] === dae.branch) seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 충 (올해와 대운 흐름 충돌)`)
-      if (BRANCH_HAP[sb]?.other === dae.branch) seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 합 (올해 대운과 결속)`)
+      if (STEM_CHUNG[ss] === dae.stem)
+        seunLines.push(`세운 ↔ ${lbl} 대운천간 ${dae.stem} — 충 (올해와 대운 흐름 충돌)`)
+      if (BRANCH_CHUNG[sb] === dae.branch)
+        seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 충 (올해와 대운 흐름 충돌)`)
+      if (BRANCH_HAP[sb]?.other === dae.branch)
+        seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 합 (올해 대운과 결속)`)
     }
     crossDaeun(labelA, input.currentDaeunA)
     crossDaeun(labelB, input.currentDaeunB)
-    important.push(`올해 세운 ${seun.year}년 ${ss}${sb} cross${seunLines.length ? ':' : ' — 두 사람 본명·대운과 직접 합·충 없음 (올해 큰 변동 신호 약함)'}`)
+    important.push(
+      `올해 세운 ${seun.year}년 ${ss}${sb} cross${seunLines.length ? ':' : ' — 두 사람 본명·대운과 직접 합·충 없음 (올해 큰 변동 신호 약함)'}`
+    )
     for (const l of seunLines) important.push(`  ${l}`)
   }
 
@@ -521,12 +645,16 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const hits: string[] = []
     for (let j = 0; j < 4; j++) {
       if (B[j].branch && aGong.includes(B[j].branch)) {
-        hits.push(`${labelA}공망 → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch}${j === 2 ? '(일지·강)' : ''}`)
+        hits.push(
+          `${labelA}공망 → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch}${j === 2 ? '(일지·강)' : ''}`
+        )
       }
     }
     for (let i = 0; i < 4; i++) {
       if (A[i].branch && bGong.includes(A[i].branch)) {
-        hits.push(`${labelB}공망 → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch}${i === 2 ? '(일지·강)' : ''}`)
+        hits.push(
+          `${labelB}공망 → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch}${i === 2 ? '(일지·강)' : ''}`
+        )
       }
     }
     if (hits.length) {
@@ -534,7 +662,9 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
         `공망 cross (${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')}): ${hits.join(' · ')} — 적중 영역은 서로 공허·초연·집착 약함`
       )
     } else {
-      chamgo.push(`공망 cross: ${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')} — 서로 적중 없음 (공허 신호 약함)`)
+      chamgo.push(
+        `공망 cross: ${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')} — 서로 적중 없음 (공허 신호 약함)`
+      )
     }
   }
 
@@ -572,12 +702,16 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
         if (spouseStars.has(sBr)) {
           const where = PILLAR_LABELS[idx]
           const at = idx === 2 ? '일지(배우자궁)' : `${where}지`
-          hits.push(`${sBr}(${spouseRoleLabel[sBr]}) at ${otherLabel} ${at} ${p.branch}(본기 ${branchStem})`)
+          hits.push(
+            `${sBr}(${spouseRoleLabel[sBr]}) at ${otherLabel} ${at} ${p.branch}(본기 ${branchStem})`
+          )
         }
       }
     })
     if (hits.length) {
-      sibsinCrossLines.push(`${fromLabel} 일간(${fromDay.stem}) 기준 ${otherLabel} 차트의 배우자성: ${hits.join(' · ')}`)
+      sibsinCrossLines.push(
+        `${fromLabel} 일간(${fromDay.stem}) 기준 ${otherLabel} 차트의 배우자성: ${hits.join(' · ')}`
+      )
     }
   }
   if (aDay.stem && bDay.stem) {
@@ -592,14 +726,30 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   //   - 백호일주: 둘 다 백호 또는 한쪽 백호 + 상대 일지가 그 백호 일지와 충 → 격정.
   //   - 괴강일주: 둘 다 괴강이면 강력 충돌·자극.
   const DOHWA: Record<string, string> = {
-    申: '酉', 子: '酉', 辰: '酉',
-    寅: '卯', 午: '卯', 戌: '卯',
-    巳: '午', 酉: '午', 丑: '午',
-    亥: '子', 卯: '子', 未: '子',
+    申: '酉',
+    子: '酉',
+    辰: '酉',
+    寅: '卯',
+    午: '卯',
+    戌: '卯',
+    巳: '午',
+    酉: '午',
+    丑: '午',
+    亥: '子',
+    卯: '子',
+    未: '子',
   }
   const HONGYEOM: Record<string, string> = {
-    甲: '午', 乙: '申', 丙: '寅', 丁: '未', 戊: '辰',
-    己: '辰', 庚: '戌', 辛: '酉', 壬: '子', 癸: '申',
+    甲: '午',
+    乙: '申',
+    丙: '寅',
+    丁: '未',
+    戊: '辰',
+    己: '辰',
+    庚: '戌',
+    辛: '酉',
+    壬: '子',
+    癸: '申',
   }
   const BAEKHO = new Set(['甲辰', '乙未', '丙戌', '丁丑', '戊辰', '壬戌', '癸丑'])
   const GOEGANG = new Set(['庚辰', '庚戌', '壬辰', '壬戌', '戊戌'])
@@ -749,7 +899,9 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // ── 조립: 우선순위 티어 ── (헤더 짧게, 빈자료 블록 생략, 빈 라인 제거)
   const out: string[] = ['== 시너스트리 (사주 cross) ==']
   if (elA && elB) {
-    out.push(`[고정] ${labelA} 일간 ${aDay.stem}${elA} · ${labelB} 일간 ${bDay.stem}${elB} — 오행·방향 절대 뒤집지 말 것`)
+    out.push(
+      `[고정] ${labelA} 일간 ${aDay.stem}${elA} · ${labelB} 일간 ${bDay.stem}${elB} — 오행·방향 절대 뒤집지 말 것`
+    )
   }
   if (critical.length) {
     out.push('[CRITICAL · 일간 극/천간합/일지 충형]')
@@ -776,4 +928,256 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     out.push(...chamgo)
   }
   return koreanize(stripAux(out.join('\n')))
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// 구조화 추출 — 차트(시각)용. formatSajuSynastry(텍스트)와 *같은 모듈 헬퍼·
+// canon 표*를 재사용해 동일 계산을 구조화 객체로 반환한다. 텍스트 출력은
+// 손대지 않으므로 상담사 동작은 그대로이고, 차트는 같은 결과를 구조로 받아
+// "차트 = 상담사" 정합이 보장된다. (점성의 calculateSynastry 와 동일 SSOT 정책.)
+// ─────────────────────────────────────────────────────────────────────────
+
+export interface SajuCompatDayMaster {
+  aStem: string
+  aEl: string
+  bStem: string
+  bEl: string
+  /** A→B 오행 관계 */
+  relation: 'same' | 'aControlsB' | 'bControlsA' | 'generate'
+  relationLabel: string
+  /** B 가 A 에게 무슨 십성인가 */
+  bToA: string | null
+  /** A 가 B 에게 무슨 십성인가 */
+  aToB: string | null
+}
+
+export interface SajuCompatSpouseStar {
+  /** 누구 일간 기준인가 */
+  from: 'A' | 'B'
+  sibsin: string
+  role: string
+  pillar: '년' | '월' | '일' | '시'
+  isDayPillar: boolean
+  source: 'stem' | 'branch'
+  char: string
+}
+
+export interface SajuCompatPillarRel {
+  aPillar: '년' | '월' | '일' | '시'
+  bPillar: '년' | '월' | '일' | '시'
+  aChar: string
+  bChar: string
+  layer: 'stem' | 'branch'
+  tags: string[]
+  element?: string
+  tone: 'bond' | 'clash' | 'friction' | 'minor'
+  isDayInvolved: boolean
+}
+
+export interface SajuCompatElementBalance {
+  merged: Record<string, number>
+  a: Record<string, number>
+  b: Record<string, number>
+  range: number
+  balanced: boolean
+  strongest: string
+  weakest: string
+}
+
+export interface SajuCompatFacts {
+  dayMaster: SajuCompatDayMaster | null
+  spouseStars: SajuCompatSpouseStar[]
+  pillarRelations: SajuCompatPillarRel[]
+  elementBalance: SajuCompatElementBalance | null
+}
+
+const SPOUSE_STARS = new Set(['정재', '편재', '정관', '편관'])
+const SPOUSE_ROLE: Record<string, string> = {
+  정재: '처성(안정·가정)',
+  편재: '처성(활달·자유)',
+  정관: '부성(책임·안정)',
+  편관: '부성(열정·자극)',
+}
+
+export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFacts {
+  const A = input.pillarsA ?? []
+  const B = input.pillarsB ?? []
+  const aDay = A[2]
+  const bDay = B[2]
+
+  // 1. 일간 — formatSajuSynastry 의 일간 cross 와 동일 규칙.
+  let dayMaster: SajuCompatDayMaster | null = null
+  if (aDay?.stem && bDay?.stem) {
+    const elA = STEM_EL[aDay.stem]
+    const elB = STEM_EL[bDay.stem]
+    if (elA && elB) {
+      let relation: SajuCompatDayMaster['relation']
+      let relationLabel: string
+      if (elA === elB) {
+        relation = 'same'
+        relationLabel = `같은 오행 (${elA}) — 비화`
+      } else if (EL_CONTROLS[elA] === elB) {
+        relation = 'aControlsB'
+        relationLabel = `${elA}극${elB}, 다듬어주는 흐름`
+      } else if (EL_CONTROLS[elB] === elA) {
+        relation = 'bControlsA'
+        relationLabel = `${elB}극${elA}, 다듬어주는 흐름`
+      } else {
+        relation = 'generate'
+        relationLabel = '상생 — 서로 보완'
+      }
+      dayMaster = {
+        aStem: aDay.stem,
+        aEl: elA,
+        bStem: bDay.stem,
+        bEl: elB,
+        relation,
+        relationLabel,
+        bToA: sibsinOf(aDay.stem, bDay.stem),
+        aToB: sibsinOf(bDay.stem, aDay.stem),
+      }
+    }
+  }
+
+  // 2. 배우자성 — findSpouseSignals 와 동일 (stem + 지지 본기).
+  const spouseStars: SajuCompatSpouseStar[] = []
+  const collectSpouse = (from: 'A' | 'B', dayStem: string, other: SajuPillarInput[]) => {
+    other.forEach((p, idx) => {
+      if (p.stem) {
+        const s = sibseongFor(dayStem, p.stem)
+        if (SPOUSE_STARS.has(s)) {
+          spouseStars.push({
+            from,
+            sibsin: s,
+            role: SPOUSE_ROLE[s],
+            pillar: PILLAR_LABELS[idx],
+            isDayPillar: idx === 2,
+            source: 'stem',
+            char: p.stem,
+          })
+        }
+      }
+      const branchStem = BRANCH_MAIN_STEM[p.branch]
+      if (branchStem) {
+        const sBr = sibseongFor(dayStem, branchStem)
+        if (SPOUSE_STARS.has(sBr)) {
+          spouseStars.push({
+            from,
+            sibsin: sBr,
+            role: SPOUSE_ROLE[sBr],
+            pillar: PILLAR_LABELS[idx],
+            isDayPillar: idx === 2,
+            source: 'branch',
+            char: p.branch,
+          })
+        }
+      }
+    })
+  }
+  if (aDay?.stem && bDay?.stem) {
+    collectSpouse('A', aDay.stem, B)
+    collectSpouse('B', bDay.stem, A)
+  }
+
+  // 3. 기둥 관계 — 천간합/충 + 지지 합/충/형/자형/해/파 (동일 표·규칙).
+  const pillarRelations: SajuCompatPillarRel[] = []
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      const aS = A[i]?.stem
+      const bS = B[j]?.stem
+      if (aS && bS) {
+        const hap = STEM_HAP[aS]
+        if (hap && hap.other === bS) {
+          pillarRelations.push({
+            aPillar: PILLAR_LABELS[i],
+            bPillar: PILLAR_LABELS[j],
+            aChar: aS,
+            bChar: bS,
+            layer: 'stem',
+            tags: ['천간합'],
+            element: hap.element,
+            tone: 'bond',
+            isDayInvolved: i === 2 || j === 2,
+          })
+        }
+        if (STEM_CHUNG[aS] === bS) {
+          pillarRelations.push({
+            aPillar: PILLAR_LABELS[i],
+            bPillar: PILLAR_LABELS[j],
+            aChar: aS,
+            bChar: bS,
+            layer: 'stem',
+            tags: ['천간충'],
+            tone: 'clash',
+            isDayInvolved: i === 2 || j === 2,
+          })
+        }
+      }
+      const aBr = A[i]?.branch
+      const bBr = B[j]?.branch
+      if (!aBr || !bBr) continue
+      const tags: string[] = []
+      let element: string | undefined
+      if (BRANCH_HAP[aBr]?.other === bBr) {
+        tags.push('육합')
+        element = BRANCH_HAP[aBr]?.element
+      }
+      if (BRANCH_CHUNG[aBr] === bBr) tags.push('충')
+      if (BRANCH_HYEONG_PAIR[aBr] === bBr || HYEONG_PAIR_TRIO.has(aBr + bBr)) tags.push('형')
+      if (SELF_HYEONG.has(aBr) && aBr === bBr) tags.push('자형')
+      if (BRANCH_HAE[aBr] === bBr) tags.push('해')
+      if (BRANCH_PA[aBr] === bBr) tags.push('파')
+      if (tags.length === 0) continue
+      const hasClash = tags.some((t) => t === '충' || t === '형' || t === '자형')
+      const tone: SajuCompatPillarRel['tone'] = hasClash
+        ? 'clash'
+        : tags.includes('육합')
+          ? 'bond'
+          : tags.includes('해')
+            ? 'friction'
+            : 'minor'
+      pillarRelations.push({
+        aPillar: PILLAR_LABELS[i],
+        bPillar: PILLAR_LABELS[j],
+        aChar: aBr,
+        bChar: bBr,
+        layer: 'branch',
+        tags,
+        element,
+        tone,
+        isDayInvolved: i === 2 || j === 2,
+      })
+    }
+  }
+
+  // 4. 오행 균형 — 동일 집계 (천간 + 지지, 두 사람 합산).
+  let elementBalance: SajuCompatElementBalance | null = null
+  if (A.length && B.length) {
+    const els = ['목', '화', '토', '금', '수']
+    const countsA: Record<string, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
+    const countsB: Record<string, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
+    for (const p of A) {
+      if (STEM_EL[p.stem]) countsA[STEM_EL[p.stem]]++
+      if (BRANCH_EL[p.branch]) countsA[BRANCH_EL[p.branch]]++
+    }
+    for (const p of B) {
+      if (STEM_EL[p.stem]) countsB[STEM_EL[p.stem]]++
+      if (BRANCH_EL[p.branch]) countsB[BRANCH_EL[p.branch]]++
+    }
+    const merged: Record<string, number> = {}
+    for (const e of els) merged[e] = countsA[e] + countsB[e]
+    const sorted = [...els].sort((x, y) => merged[y] - merged[x])
+    const range = merged[sorted[0]] - merged[sorted[4]]
+    elementBalance = {
+      merged,
+      a: countsA,
+      b: countsB,
+      range,
+      balanced: range < 4,
+      strongest: sorted[0],
+      weakest: sorted[4],
+    }
+  }
+
+  return { dayMaster, spouseStars, pillarRelations, elementBalance }
 }

@@ -18,6 +18,8 @@
  */
 import type { NatalContext } from '../context/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
+import { SIGN_KO as SIGN_KO_SSOT } from '@/lib/astrology/signLabels'
+import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
@@ -202,20 +204,8 @@ const TONE_VARIANTS_EN: Record<'good' | 'hard' | 'mid', readonly string[]> = {
   ],
 }
 
-const SIGN_KO: Record<string, string> = {
-  Aries: '양자리',
-  Taurus: '황소자리',
-  Gemini: '쌍둥이자리',
-  Cancer: '게자리',
-  Leo: '사자자리',
-  Virgo: '처녀자리',
-  Libra: '천칭자리',
-  Scorpio: '전갈자리',
-  Sagittarius: '사수자리',
-  Capricorn: '염소자리',
-  Aquarius: '물병자리',
-  Pisces: '물고기자리',
-}
+// 별자리 EN→KO(long form) — 정본(astrology/signLabels) 재사용.
+const SIGN_KO = SIGN_KO_SSOT
 // EN sign names ARE identity (Aries → Aries) but a lookup keeps signature
 // parity with SIGN_KO so the rest of the code can swap by lang uniformly.
 const SIGN_EN: Record<string, string> = {
@@ -235,32 +225,7 @@ const SIGN_EN: Record<string, string> = {
 
 // 천간/지지 한자 → 한글 음. 일반 사용자가 한자를 못 읽어 "丁丑 대운" 이 막막
 // 하다는 피드백(2026-06). 모든 간지 표기 시 옆에 한글 음을 병기한다.
-const STEM_KO: Record<string, string> = {
-  甲: '갑',
-  乙: '을',
-  丙: '병',
-  丁: '정',
-  戊: '무',
-  己: '기',
-  庚: '경',
-  辛: '신',
-  壬: '임',
-  癸: '계',
-}
-const BRANCH_KO: Record<string, string> = {
-  子: '자',
-  丑: '축',
-  寅: '인',
-  卯: '묘',
-  辰: '진',
-  巳: '사',
-  午: '오',
-  未: '미',
-  申: '신',
-  酉: '유',
-  戌: '술',
-  亥: '해',
-}
+// 천간/지지 한자→한글 음은 정본(saju/ganjiKo) 의 STEM_KO/BRANCH_KO 직접 import.
 // Romanizations (pinyin-ish) for EN output — English readers can't read
 // 한글 음 either, so we romanize the Korean reading instead.
 const STEM_ROM: Record<string, string> = {

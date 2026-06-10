@@ -123,6 +123,10 @@ export function CompatPersonPickerModal({
               ...timeToState(u.birthTime),
               gender: normGender(u.gender),
               city: u.birthCity || '',
+              // 좌표도 같이 실어야 "내 정보" 불러오기 시 도시가 유효하게 들어온다.
+              // (빠지면 lat/lon=null → BirthInfoFields 가 "도시 다시 선택" 경고)
+              latitude: u.latitude ?? null,
+              longitude: u.longitude ?? null,
               timeZone: u.tzId || null,
             })
           }
@@ -251,7 +255,7 @@ export function CompatPersonPickerModal({
     const personsData: PickedPersonData[] = persons.slice(0, 2).map((p) => ({
       name: p.name,
       date: p.date,
-      // 시간 모름 시 12:00 정오 기준 (입력 페이지와 동일 fallback).
+      // 시간 모름 시 '00:00'(자정) 기준 — 앱 전체 컨벤션(types.ts/useCompatibilityForm).
       time: p.time || '00:00',
       city: p.cityQuery || '',
       latitude: p.lat ?? undefined,
@@ -267,13 +271,7 @@ export function CompatPersonPickerModal({
 
   return (
     <div className={styles.scrim}>
-      <div
-        ref={trapRef}
-        className={styles.modal}
-        role="dialog"
-        aria-modal="true"
-        tabIndex={-1}
-      >
+      <div ref={trapRef} className={styles.modal} role="dialog" aria-modal="true" tabIndex={-1}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>
             {title ?? compatT('compatibilityPage.analysisTitle', 'Compatibility Analysis')}

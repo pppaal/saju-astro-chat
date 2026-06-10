@@ -131,7 +131,7 @@ const TABLE: AstroLifecycleEvent[] = [
     kind: 'chiron_return',
     ageStart: 49,
     ageEnd: 51,
-    labelKo: '키론 회귀 — 치유의 회귀',
+    labelKo: '카이런 회귀 — 치유의 회귀',
     labelEn: 'Chiron return',
     meaningKo: '평생의 상처를 본격적으로 치유로 바꾸는 시기예요.',
     meaningEn: 'The lifelong wound now converts itself into healing capacity.',
@@ -270,7 +270,11 @@ export function buildLifecycleTiming(
     const age = useOverride ? override!.age! : evt.ageStart
     // ageRange 표기 — override 일 땐 단일 나이("29세") 평균 테이블일 땐
     // 옛 윈도우("28~31세") 그대로. 단일 표기가 transit 정밀도와 더 일치.
-    const ageRange = useOverride ? (isKo ? `${age}세` : `age ${age}`) : `${evt.ageStart}~${evt.ageEnd}세`
+    const ageRange = useOverride
+      ? isKo
+        ? `${age}세`
+        : `age ${age}`
+      : `${evt.ageStart}~${evt.ageEnd}세`
     // isPast/Current/Upcoming 도 override 의 단일 연도 기준으로 재계산.
     const endYearOfEvent = useOverride ? startYear : birthYear + evt.ageEnd
     return {

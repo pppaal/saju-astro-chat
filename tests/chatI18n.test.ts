@@ -8,7 +8,7 @@ import {
 } from '@/components/destiny-map/chat-i18n'
 
 describe('CHAT_I18N', () => {
-  const supportedLanguages: LangKey[] = ['en', 'ko', 'ja', 'zh', 'es', 'fr', 'de', 'pt', 'ru']
+  const supportedLanguages: LangKey[] = ['en', 'ko']
 
   it('supports all expected languages', () => {
     supportedLanguages.forEach((lang) => {
@@ -74,11 +74,6 @@ describe('CHAT_I18N', () => {
     expect(CHAT_I18N.ko.error).toContain('오류')
     expect(CHAT_I18N.ko.today).toBe('오늘')
     expect(CHAT_I18N.ko.yesterday).toBe('어제')
-  })
-
-  it('keeps the key Japanese strings readable', () => {
-    expect(CHAT_I18N.ja.placeholder).toContain('いつ')
-    expect(CHAT_I18N.ja.crisisHotlineNumber).toContain('0570')
   })
 
   it('keeps expected hotline numbers', () => {

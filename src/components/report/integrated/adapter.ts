@@ -6,7 +6,7 @@
  * 우리 shape 에 없는 일부 필드(지장간 가중치·신살 polarity·대운 십신)는 룩업/폴백.
  */
 import type { ReportData, ReportPillar } from './reportTypes'
-import { SIGN_ABBR } from './reportTypes'
+import { SIGN_ABBR, STEM_INFO } from './reportTypes'
 import type { RelationCategory } from '@/lib/chart-dictionary'
 import {
   evalIdentity,
@@ -26,11 +26,13 @@ import {
   evalWealth,
   evalVoid,
   evalNorthNode,
+  evalYinYang,
   synthesize,
   dominantSibsinGroup,
   type CrossVerdict,
 } from '@/lib/report/natalCross'
 import { getSouthNodeOppositeSign } from '@/lib/astrology/interpretations'
+import { SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
 import { getGongmang } from '@/lib/saju/pillarLookup'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 
@@ -95,21 +97,9 @@ const PLANET_KO: Record<string, string> = {
   Chiron: '카이런',
   Lilith: '릴리스',
 }
-// 점성 sign 한국어 → 영문 풀네임 (NatalContext 는 ZodiacKo 사용)
-const SIGN_KO_FULL: Record<string, string> = {
-  양자리: 'Aries',
-  황소자리: 'Taurus',
-  쌍둥이자리: 'Gemini',
-  게자리: 'Cancer',
-  사자자리: 'Leo',
-  처녀자리: 'Virgo',
-  천칭자리: 'Libra',
-  전갈자리: 'Scorpio',
-  사수자리: 'Sagittarius',
-  염소자리: 'Capricorn',
-  물병자리: 'Aquarius',
-  물고기자리: 'Pisces',
-}
+// 점성 sign 한국어 → 영문 풀네임 (NatalContext 는 ZodiacKo 사용).
+// 정본(astrology/signLabels) 의 KO→EN 역맵 재사용.
+const SIGN_KO_FULL = SIGN_KO_TO_EN
 const toAbbr = (sign: string | undefined): string => {
   if (!sign) return 'Ari'
   const full = SIGN_KO_FULL[sign] ?? sign
@@ -420,6 +410,8 @@ export interface CrossRowOut {
   category: string
   tone: CrossVerdict['tone']
   reason: string
+  left?: string
+  right?: string
 }
 export function buildCrossRows(
   ctx: AnyCtx,
@@ -532,6 +524,7 @@ export function buildCrossRows(
     wealth: { ko: '재물 그릇', en: 'Wealth Capacity' },
     karma: { ko: '공망/카르마', en: 'Void / Karma' },
     growth: { ko: '성장 방향', en: 'Growth Direction' },
+    yinYang: { ko: '음양 리듬', en: 'Yin-Yang Rhythm' },
   }
   const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
     ['identity', evalIdentity(dmEl, sunSign)],
@@ -564,11 +557,18 @@ export function buildCrossRows(
     ],
     ['karma', evalVoid(gongmangBranches, southNodeSign)],
     ['growth', evalNorthNode(S.fiveElements, northNode?.sign)],
+    ['yinYang', evalYinYang(STEM_INFO[S.dayMaster?.name ?? '']?.yy, A.sect)],
   ]
   const verdicts = items.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
   const synth = synthesize(verdicts)
   const rows = items
     .filter((it): it is [keyof typeof CAT, CrossVerdict] => !!it[1])
-    .map(([key, v]) => ({ category: CAT[key][lang], tone: v.tone, reason: v.reason[lang] }))
+    .map(([key, v]) => ({
+      category: CAT[key][lang],
+      tone: v.tone,
+      reason: v.reason[lang],
+      left: v.left?.[lang],
+      right: v.right?.[lang],
+    }))
   return { synthesis: synth?.text[lang], rows }
 }

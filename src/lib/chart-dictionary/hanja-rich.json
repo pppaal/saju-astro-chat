@@ -69,7 +69,14 @@
         "strength": ["Passion", "Leadership", "Expression", "Fairness"],
         "weakness": ["Impatience", "Mood swings", "Lack of endurance"],
         "as_daymaster": "With Byeong as day master: like the sun shining on all. Cheerful, outgoing, shines on stage",
-        "career": ["Broadcasting", "Entertainment", "Politics", "Marketing", "Public speaking", "Diplomacy"]
+        "career": [
+          "Broadcasting",
+          "Entertainment",
+          "Politics",
+          "Marketing",
+          "Public speaking",
+          "Diplomacy"
+        ]
       }
     },
     "丁": {
@@ -117,7 +124,14 @@
         "strength": ["Trustworthiness", "Tolerance", "Gravitas", "Responsibility"],
         "weakness": ["Stubbornness", "Slowness", "Inflexibility"],
         "as_daymaster": "With Mu as day master: dependable as a great mountain. The center on which others rely",
-        "career": ["Real estate", "Construction", "Civil service", "Banking", "Agriculture", "Brokerage"]
+        "career": [
+          "Real estate",
+          "Construction",
+          "Civil service",
+          "Banking",
+          "Agriculture",
+          "Brokerage"
+        ]
       }
     },
     "己": {
@@ -141,7 +155,14 @@
         "strength": ["Tolerance", "Diligence", "Meticulousness", "Care"],
         "weakness": ["Passivity", "Indecision", "Worry"],
         "as_daymaster": "With Gi as day master: like fertile soil that grows people and projects. Soft outside, firm inside, practical",
-        "career": ["Education", "Agriculture", "Accounting", "Food service", "Welfare", "Administration"]
+        "career": [
+          "Education",
+          "Agriculture",
+          "Accounting",
+          "Food service",
+          "Welfare",
+          "Administration"
+        ]
       }
     },
     "庚": {
@@ -181,14 +202,14 @@
         "career": ["의사", "디자이너", "보석상", "법조", "회계", "치과", "예술"]
       },
       "en": {
-        "name": "Sin (Xīn)",
+        "name": "Xin · Yin Metal",
         "yinYang": "Yin",
         "element": "Metal",
         "image": "Jewel, gold/silver craft, refined blade — refined Yin Metal",
-        "nature": "Sharp and clean with strong pride; refined and discerning",
+        "nature": "Sharp and clean with strong pride; refined and exacting",
         "strength": ["Refinement", "Sharpness", "Aesthetic sense", "Precision"],
         "weakness": ["Fussiness", "Sensitivity", "Critical nature"],
-        "as_daymaster": "With Sin as day master: pride that shines like a jewel. Values appearance and class, suited for arts/professional work",
+        "as_daymaster": "With Xin (Yin Metal) as day master: pride that shines like a jewel. Values appearance and class, suited for arts/professional work",
         "career": ["Medicine", "Design", "Jewelry", "Law", "Accounting", "Dentistry", "Arts"]
       }
     },
@@ -464,7 +485,7 @@
         "hidden_stems": "庚(본기) · 壬(중기) · 戊(여기) — 양금·양수·양토 — 강한 의지와 흐르는 지혜를 함께 품음"
       },
       "en": {
-        "name": "Sin (Shēn)",
+        "name": "Shen",
         "animal": "Monkey",
         "element": "Metal (Yang Metal)",
         "season": "Early autumn (lunar Jul)",
@@ -472,7 +493,7 @@
         "direction": "West-southwest",
         "image": "Monkey of early autumn afternoon — bright, active Yang Metal energy",
         "nature": "Witty, clever, strong at improvisation",
-        "as_daybranch": "With Sin as day branch: fast-thinking and versatile. Strong business/technical sense",
+        "as_daybranch": "With Shen as day branch: fast-thinking and versatile. Strong business/technical sense",
         "hidden_stems": "Gyeong (main) · Im (middle) · Mu (residual) — Yang Metal/Water/Earth, will and flowing wisdom together"
       }
     },

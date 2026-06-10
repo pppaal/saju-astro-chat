@@ -102,8 +102,11 @@ export function useCounselorData(sp: SearchParams) {
             gender: u.gender ?? prev.gender,
             birthCity: u.birthCity ?? prev.birthCity,
             tzId: u.tzId ?? prev.tzId,
-            latitude: prev.latitude,
-            longitude: prev.longitude,
+            // 서버 프로필 좌표를 우선 사용(없을 때만 localStorage 시드 보존).
+            // 이전엔 항상 prev 만 써서 저장된 출생지 좌표가 버려지고 기본
+            // 좌표(서울)로 폴백되던 회귀.
+            latitude: u.latitude ?? prev.latitude,
+            longitude: u.longitude ?? prev.longitude,
           }))
         }
       })
@@ -136,10 +139,10 @@ export function useCounselorData(sp: SearchParams) {
   // URL 좌표 > localStorage 폴백 좌표 > 서울 기본값.
   const resolvedLatitude = Number.isFinite(latitude)
     ? latitude
-    : profileFallback.latitude ?? DEFAULT_LATITUDE
+    : (profileFallback.latitude ?? DEFAULT_LATITUDE)
   const resolvedLongitude = Number.isFinite(longitude)
     ? longitude
-    : profileFallback.longitude ?? DEFAULT_LONGITUDE
+    : (profileFallback.longitude ?? DEFAULT_LONGITUDE)
 
   // Honor the birth-place timezone when the home modal forwarded one
   // (URL or server profile). Falling back to the browser's tz is wrong

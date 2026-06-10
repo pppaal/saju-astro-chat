@@ -1,4 +1,4 @@
-export type LangKey = 'en' | 'ko' | 'ja' | 'zh' | 'es' | 'fr' | 'de' | 'pt' | 'ru'
+export type LangKey = 'en' | 'ko'
 
 export type Copy = {
   placeholder: string
@@ -51,7 +51,8 @@ const BASE_EN: Copy = {
   tarotButton: 'Try Tarot Reading',
   tarotDesc: 'Combine astrology, saju, and tarot for deeper guidance.',
   crisisTitle: "We're Here For You",
-  crisisMessage: 'It sounds like you are going through a very difficult time. Support is available.',
+  crisisMessage:
+    'It sounds like you are going through a very difficult time. Support is available.',
   crisisHotline: 'Crisis Hotline',
   crisisHotlineNumber: '988 (US) / 116 123 (UK)',
   crisisClose: 'I understand',
@@ -88,7 +89,8 @@ export const CHAT_I18N: Record<LangKey, Copy> = {
     tarotButton: '타로 리딩 보기',
     tarotDesc: '점성술과 사주를 타로와 함께 읽어 지금 고민에 맞는 조언을 받아보세요.',
     crisisTitle: '지금 바로 도움을 받을 수 있어요',
-    crisisMessage: '지금 많이 힘드시죠. 혼자 버티지 않아도 됩니다. 전문 상담과 긴급 도움을 받을 수 있어요.',
+    crisisMessage:
+      '지금 많이 힘드시죠. 혼자 버티지 않아도 됩니다. 전문 상담과 긴급 도움을 받을 수 있어요.',
     crisisHotline: '위기 상담 전화',
     crisisHotlineNumber: '자살예방 1393 / 정신건강 1577-0199',
     crisisClose: '확인했어요',
@@ -105,51 +107,6 @@ export const CHAT_I18N: Record<LangKey, Copy> = {
     yesterday: '어제',
     daysAgo: '일 전',
     messages: '개 메시지',
-  },
-  ja: {
-    ...BASE_EN,
-    placeholder: 'いつ、なぜ、何を知りたいかを具体的に入力してください',
-    send: '送信',
-    thinking: '状況を丁寧に読み解いています...',
-    crisisHotlineNumber: 'いのちの電話 0570-783-556',
-    today: 'Today',
-    yesterday: 'Yesterday',
-  },
-  zh: {
-    ...BASE_EN,
-    placeholder: '请具体说明你想知道何时、为何、什么',
-    send: '发送',
-    thinking: '正在细致分析你的情况...',
-  },
-  es: {
-    ...BASE_EN,
-    placeholder: 'Pregunta con precisión (cuándo/por qué/qué)',
-    send: 'Enviar',
-    thinking: 'Analizando tu situación con calma...',
-  },
-  fr: {
-    ...BASE_EN,
-    placeholder: 'Pose une question précise (quand/pourquoi/quoi)',
-    send: 'Envoyer',
-    thinking: 'Analyse attentive de votre situation...',
-  },
-  de: {
-    ...BASE_EN,
-    placeholder: 'Frage präzise (wann/warum/was)',
-    send: 'Senden',
-    thinking: 'Deine Lage wird gerade sorgfältig analysiert...',
-  },
-  pt: {
-    ...BASE_EN,
-    placeholder: 'Pergunte com precisão (quando/por que/o que)',
-    send: 'Enviar',
-    thinking: 'Analisando sua situação com cuidado...',
-  },
-  ru: {
-    ...BASE_EN,
-    placeholder: 'Сформулируйте точно (когда/почему/что)',
-    send: 'Отправить',
-    thinking: 'Внимательно разбираю вашу ситуацию...',
   },
 }
 

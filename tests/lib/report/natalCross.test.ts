@@ -19,6 +19,7 @@ import {
   dominantSibsinGroup,
   synthesize,
   sajuKeyMapping,
+  evalYinYang,
 } from '@/lib/report/natalCross'
 
 describe('natalCross — 원소 기초', () => {
@@ -151,6 +152,21 @@ describe('natalCross — 핵심 각 (가장 센 행성 각)', () => {
       )
     ).toBeNull()
     expect(evalKeyAspect([], '관성')).toBeNull()
+  })
+})
+
+describe('natalCross — 음양 리듬 (sect ↔ 일간 음양)', () => {
+  it('일치(양+주 / 음+야) → 동조', () => {
+    expect(evalYinYang('陽', 'day')?.tone).toBe('resonant')
+    expect(evalYinYang('陰', 'night')?.tone).toBe('resonant')
+  })
+  it('불일치(양+야 / 음+주) → 보완', () => {
+    expect(evalYinYang('陽', 'night')?.tone).toBe('complement')
+    expect(evalYinYang('陰', 'day')?.tone).toBe('complement')
+  })
+  it('데이터 없으면 null', () => {
+    expect(evalYinYang(undefined, 'day')).toBeNull()
+    expect(evalYinYang('陽', undefined)).toBeNull()
   })
 })
 

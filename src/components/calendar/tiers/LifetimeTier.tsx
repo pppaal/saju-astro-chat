@@ -13,6 +13,7 @@
 // (Ganji / ScoreOrb / ElementBars / LayerTag) gated by local stubs.
 
 import type { CSSProperties, ReactNode } from 'react'
+import { SIGN_KO } from '@/lib/astrology/signLabels'
 
 import type {
   DestinyArabicLot,
@@ -25,6 +26,8 @@ import type {
 } from '@/types/calendar'
 
 import styles from './LifetimeTier.module.css'
+import { TierSummary } from '@/components/calendar/atoms/TierSummary'
+import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 
 // ============================================================================
 // Props
@@ -145,23 +148,9 @@ const LOT_MARK: Record<string, string> = {
   Nemesis: '罰',
 }
 
-/** ZR sign Korean (zodiac signs). */
+/** ZR sign Korean (zodiac signs). 정본(astrology/signLabels) 재사용. */
 function zodiacKo(signEn: string): string {
-  const m: Record<string, string> = {
-    Aries: '양자리',
-    Taurus: '황소자리',
-    Gemini: '쌍둥이자리',
-    Cancer: '게자리',
-    Leo: '사자자리',
-    Virgo: '처녀자리',
-    Libra: '천칭자리',
-    Scorpio: '전갈자리',
-    Sagittarius: '사수자리',
-    Capricorn: '염소자리',
-    Aquarius: '물병자리',
-    Pisces: '물고기자리',
-  }
-  return m[signEn] ?? signEn
+  return SIGN_KO[signEn] ?? signEn
 }
 
 // ============================================================================
@@ -299,6 +288,92 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   // C4: rootStatus 있을 때만 "통근" 라벨, 없으면 "주십신"
   const hasRootStatus = !!user.rootStatus
 
+  // ── 쉬운 요약(TierSummary) — 기존 필드만 재활용. 어려운 건 아래 <details> 로. ──
+  const lp = lifetime.lifePattern
+  // "편재 — 현실 성취의 무대" 처럼 십신 용어가 앞에 붙은 톤에서 평이한 뒷부분만.
+  const plain = (t: string): string =>
+    t && t.includes('—') ? t.split('—').slice(1).join('—').trim() : t
+  const EL_STRENGTH: Record<string, string> = {
+    목: '배우고 자라는 힘이 좋아요. 한번 뿌리내리면 꾸준히 뻗어 나가는 성장형이에요.',
+    화: '드러내고 표현하는 힘이 좋아요. 사람을 끌고 분위기를 밝히는 재능이 있어요.',
+    토: '진득하게 버티는 힘이 좋아요. 믿음직하고 사람을 품는 안정감이 있어요.',
+    금: '맺고 끊는 힘이 좋아요. 원칙이 분명하고 일을 야무지게 마무리해요.',
+    수: '생각하고 흐르는 힘이 좋아요. 유연하고 깊이 있게 상황을 읽어 내요.',
+  }
+  const EL_LACK: Record<string, string> = {
+    목: '새로 시작하고 뻗어 나가는 기운이 적게 타고났어요. 미루지 말고 일단 한 발 떼는 연습을 해보세요.',
+    화: '드러내고 표현하는 기운(불)이 적게 타고났어요. 잘해놓고 말 안 해서 손해 보지 않게, 성과는 꼭 입 밖으로 꺼내세요.',
+    토: '버티고 안정시키는 기운이 적게 타고났어요. 자주 바꾸기보다 한 자리에서 꾸준함을 쌓아 보세요.',
+    금: '맺고 끊는 기운이 적게 타고났어요. 우유부단하지 않게, 정할 땐 분명하게 정하는 연습을 해보세요.',
+    수: '쉬고 생각하는 기운이 적게 타고났어요. 쉼 없이 달리기보다 가끔 멈춰 정비하는 시간을 가지세요.',
+  }
+  const lackEl = (['목', '화', '토', '금', '수'] as const).find(
+    (e) => !((user.elements?.[e] ?? 0) > 0)
+  )
+  const summaryCards = [
+    dominantEl ? { icon: '💪', label: '강점', body: EL_STRENGTH[dominantEl] ?? '' } : null,
+    lackEl ? { icon: '⚠️', label: '조심할 것', body: EL_LACK[lackEl] ?? '' } : null,
+    nowStage
+      ? {
+          icon: '🌊',
+          label: '인생 리듬',
+          body: `지금은 ${nowStage.name}(${nowStage.ageFrom}–${nowStage.ageTo}세) — ${plain(nowStage.tone)}`,
+        }
+      : null,
+  ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
+  const summaryStages = lifeStages.map((s) => ({ label: s.name, tone: plain(s.tone), now: s.now }))
+  // 과거 5년 ~ 미래 10년 교차 타임라인 — 두 레인 띠(구간) + 점 이벤트.
+  //  · 사주 레인 = 대운(10년 구간)  · 점성 레인 = ZR Spirit(별자리 챕터 구간)
+  //  · 이벤트 = 점성 회귀(목성·토성…)·사주 매듭 등 점 사건
+  // "지금" 이 두 레인을 가로지르는 컬럼 = 현재 교차 구간(현 대운 × 현 ZR 챕터).
+  const SAJU_MS_KINDS = new Set(['daewoon', 'saju'])
+  const tlStart = lifetime.currentYear - 5
+  const tlEnd = lifetime.currentYear + 10
+  const dwStartY = (d: DestinyLifetime['daewoon'][number]) => lifetime.birthYear + d.startAge
+  const dwEndY = (d: DestinyLifetime['daewoon'][number]) =>
+    lifetime.birthYear + (d.endAge ?? d.startAge + 10)
+  const sajuBands = (lifetime.daewoon ?? [])
+    .filter((d) => dwEndY(d) > tlStart && dwStartY(d) < tlEnd)
+    .map((d) => ({
+      startYear: dwStartY(d),
+      endYear: dwEndY(d),
+      label: d.gz.hanja,
+      sub: d.sibsin !== '—' ? d.sibsin : undefined,
+      now: !!d.now,
+    }))
+  const astroBands = (lifetime.zrSpiritChapters ?? [])
+    .filter((c) => c.calendarEndYear > tlStart && c.calendarStartYear < tlEnd)
+    .map((c) => ({
+      startYear: c.calendarStartYear,
+      endYear: c.calendarEndYear,
+      label: zodiacKo(c.sign),
+      now: !!c.now,
+    }))
+  const summaryTimeline = {
+    startYear: tlStart,
+    endYear: tlEnd,
+    nowYear: lifetime.currentYear,
+    lanes: [
+      { label: '사주 대운', system: 'saju' as const, bands: sajuBands },
+      { label: '점성 흐름 (ZR)', system: 'astro' as const, bands: astroBands },
+    ],
+    events: lifetime.milestones
+      .filter((m) => m.year >= tlStart && m.year <= tlEnd && m.kind !== 'daewoon')
+      .map((m) => ({
+        year: m.year,
+        label: m.label,
+        system: SAJU_MS_KINDS.has(m.kind) ? ('saju' as const) : ('astro' as const),
+        isNow: !!m.now,
+      })),
+  }
+  const curveVals = lp?.daeun.map((d) => d.favor) ?? []
+  const curAge = lifetime.currentYear - lifetime.birthYear
+  const curveNowIdx = lp
+    ? lp.daeun.findIndex(
+        (d, i, arr) => curAge >= d.startAge && (!arr[i + 1] || curAge < arr[i + 1].startAge)
+      )
+    : -1
+
   return (
     <div className={styles.tier} data-screen-label="인생 84년">
       {/* ============================================================
@@ -316,279 +391,295 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         ) : null}
       </p>
 
-      {/* 공유용 정체성 카드 (③) — 기존 데이터(일간·격국·인생유형·점성) 압축. */}
-      {lifetime.lifePattern && (
-        <div className={styles.idCard}>
-          <div className={styles.idCardRow}>
-            <span className={styles.idCardHan}>{user.ilgan.hanja}</span>
-            <div className={styles.idCardMeta}>
-              <div className={styles.idCardType}>{lifetime.lifePattern.ko}</div>
-              <div className={styles.idCardSub}>
-                {user.ilgan.kr} 일간 · {user.gyeokguk}
-                {user.astro?.sun ? ` · ☉${user.astro.sun}` : ''}
+      {/* ── 쉬운 요약 (한눈에 "내 인생 어떤 흐름"). 용어/한자/숫자 없음. ── */}
+      <TierSummary
+        headline={lifetime.lifePattern?.ko ?? '내 인생 흐름'}
+        sub={lifetime.lifePattern?.line}
+        curve={curveVals}
+        curveNowIndex={curveNowIdx}
+        cards={summaryCards}
+        stages={summaryStages}
+        timeline={summaryTimeline}
+      />
+
+      {/* ── 전문가용 상세 — 사주 원국·대운·신살·12운성·점성 일체를 접어 둔다. ── */}
+      <details className={summaryStyles.details}>
+        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 사주 원국과 근거</summary>
+
+        {/* 공유용 정체성 카드 (③) — 기존 데이터(일간·격국·인생유형·점성) 압축. */}
+        {lifetime.lifePattern && (
+          <div className={styles.idCard}>
+            <div className={styles.idCardRow}>
+              <span className={styles.idCardHan}>{user.ilgan.hanja}</span>
+              <div className={styles.idCardMeta}>
+                <div className={styles.idCardType}>{lifetime.lifePattern.ko}</div>
+                <div className={styles.idCardSub}>
+                  {user.ilgan.kr} 일간 · {user.gyeokguk}
+                  {user.astro?.sun ? ` · ☉${user.astro.sun}` : ''}
+                </div>
+              </div>
+            </div>
+            <p className={styles.idCardLine}>{lifetime.lifePattern.line}</p>
+          </div>
+        )}
+
+        <div className={styles.introGrid}>
+          <div>
+            <p className={styles.lead}>{user.intro}</p>
+            <p className={`${styles.lead} ${styles.leadEn}`}>{user.introEn}</p>
+            {/* Sect/Lord-of-Asc 행 제거 — 정적 본명 메타(헬레니즘 섹트)는 타이밍
+              흐름과 무관, 리포트(본명 해설)감이라 흐름에서 뺀다. */}
+          </div>
+
+          <div className={`${styles.panel} ${styles.introPanel}`}>
+            <div className={styles.introPanelSide}>
+              <div className={styles.idChips}>
+                <span className={styles.chip}>
+                  <span className={styles.k}>일간</span>
+                  <span className={styles.han}>{user.ilgan.hanja}</span>
+                  <span className={styles.v}>{user.ilgan.kr}</span>
+                </span>
+
+                {/* ── Phase 3 보강 ②: 격국 chip → gyeokgukStatus ── */}
+                <span className={styles.chip}>
+                  <span className={styles.k}>격국</span>
+                  <span className={styles.v}>{user.gyeokgukStatus ?? user.gyeokguk}</span>
+                </span>
+
+                <span className={styles.chip}>
+                  <span className={styles.k}>용신</span>
+                  <span className={styles.han}>{user.yongsin.hanja}</span>
+                </span>
+                <span className={styles.chip}>
+                  <span className={styles.k}>강약</span>
+                  <span className={styles.v}>{user.gangyak}</span>
+                </span>
+
+                {/* ── Phase 3 보강 ③: 재성 chip → rootStatus (C4: 라벨 조건부) ── */}
+                <span className={styles.chip}>
+                  <span className={styles.k}>{hasRootStatus ? '통근' : '주십신'}</span>
+                  <span className={styles.v}>
+                    {user.rootStatus ?? `${user.dominantSibsin.name} ${user.dominantSibsin.pct}%`}
+                  </span>
+                </span>
+              </div>
+
+              <div className={styles.elementsWrap}>
+                <div className={`${styles.tiny} ${styles.elementsLabel}`}>{elementsLabelText}</div>
+                <ElementBars elements={user.elements} />
               </div>
             </div>
           </div>
-          <p className={styles.idCardLine}>{lifetime.lifePattern.line}</p>
-        </div>
-      )}
-
-      <div className={styles.introGrid}>
-        <div>
-          <p className={styles.lead}>{user.intro}</p>
-          <p className={`${styles.lead} ${styles.leadEn}`}>{user.introEn}</p>
-          {/* Sect/Lord-of-Asc 행 제거 — 정적 본명 메타(헬레니즘 섹트)는 타이밍
-              흐름과 무관, 리포트(본명 해설)감이라 흐름에서 뺀다. */}
         </div>
 
-        <div className={`${styles.panel} ${styles.introPanel}`}>
-          <div className={styles.introPanelSide}>
-            <div className={styles.idChips}>
-              <span className={styles.chip}>
-                <span className={styles.k}>일간</span>
-                <span className={styles.han}>{user.ilgan.hanja}</span>
-                <span className={styles.v}>{user.ilgan.kr}</span>
-              </span>
-
-              {/* ── Phase 3 보강 ②: 격국 chip → gyeokgukStatus ── */}
-              <span className={styles.chip}>
-                <span className={styles.k}>격국</span>
-                <span className={styles.v}>{user.gyeokgukStatus ?? user.gyeokguk}</span>
-              </span>
-
-              <span className={styles.chip}>
-                <span className={styles.k}>용신</span>
-                <span className={styles.han}>{user.yongsin.hanja}</span>
-              </span>
-              <span className={styles.chip}>
-                <span className={styles.k}>강약</span>
-                <span className={styles.v}>{user.gangyak}</span>
-              </span>
-
-              {/* ── Phase 3 보강 ③: 재성 chip → rootStatus (C4: 라벨 조건부) ── */}
-              <span className={styles.chip}>
-                <span className={styles.k}>{hasRootStatus ? '통근' : '주십신'}</span>
-                <span className={styles.v}>
-                  {user.rootStatus ?? `${user.dominantSibsin.name} ${user.dominantSibsin.pct}%`}
-                </span>
-              </span>
-            </div>
-
-            <div className={styles.elementsWrap}>
-              <div className={`${styles.tiny} ${styles.elementsLabel}`}>{elementsLabelText}</div>
-              <ElementBars elements={user.elements} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ============================================================
+        {/* ============================================================
           인생 유형 — 신강약 기준 대운 흐름 (대기만성/초년발복/…)
       ============================================================ */}
-      {lifetime.lifePattern && (
-        <div className={styles.block}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>인생 유형 · {lifetime.lifePattern.ko}</h2>
-            <span className={styles.tiny}>신강약 기준 대운 흐름</span>
+        {lifetime.lifePattern && (
+          <div className={styles.block}>
+            <div className={styles.sectionHead}>
+              <h2 className={styles.sectionTitle}>인생 유형 · {lifetime.lifePattern.ko}</h2>
+              <span className={styles.tiny}>신강약 기준 대운 흐름</span>
+            </div>
+            <p className={styles.lead}>{lifetime.lifePattern.line}</p>
+            <div className={styles.daewoonRow}>
+              {lifetime.lifePattern.daeun.map((d, i) => (
+                <span className={styles.daewoonCell} key={`${d.startAge}-${i}`}>
+                  <span className={styles.tiny}>{d.startAge}</span>
+                  <span aria-hidden>{d.favor > 0 ? '↑' : d.favor < 0 ? '↓' : '·'}</span>
+                </span>
+              ))}
+            </div>
           </div>
-          <p className={styles.lead}>{lifetime.lifePattern.line}</p>
-          <div className={styles.daewoonRow}>
-            {lifetime.lifePattern.daeun.map((d, i) => (
-              <span className={styles.daewoonCell} key={`${d.startAge}-${i}`}>
-                <span className={styles.tiny}>{d.startAge}</span>
-                <span aria-hidden>{d.favor > 0 ? '↑' : d.favor < 0 ? '↓' : '·'}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* 대운 × 점성(ZR) 평행 타임라인 (②) */}
-      <LifeTimeline lifetime={lifetime} />
+        {/* 대운 × 점성(ZR) 평행 타임라인 (②) */}
+        <LifeTimeline lifetime={lifetime} />
 
-      {/* ============================================================
+        {/* ============================================================
           constellation of life stages
       ============================================================ */}
-      <div className={styles.block}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>네 시기의 별자리</h2>
-          <span className={styles.tiny}>0 → 84세 · 대운 10년 주기</span>
-        </div>
+        <div className={styles.block}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>네 시기의 별자리</h2>
+            <span className={styles.tiny}>0 → 84세 · 대운 10년 주기</span>
+          </div>
 
-        <div className={styles.constellation}>
-          <svg
-            className={styles.constSvg}
-            viewBox="0 0 100 150"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            {/* connecting line */}
-            <polyline
-              points={nodeX.map((x, i) => `${x},${nodeY[i]}`).join(' ')}
-              fill="none"
-              stroke="rgba(52,64,111,0.45)"
-              strokeWidth="0.4"
-              vectorEffect="non-scaling-stroke"
-              strokeDasharray="2 1.5"
-            />
-            {lifeStages.map((s, i) => (
-              <g key={s.id}>
-                <circle
-                  cx={nodeX[i] ?? 50}
-                  cy={nodeY[i] ?? 50}
-                  r={s.now ? 3.2 : 2}
-                  fill={s.now ? 'var(--ember)' : 'var(--bg-3)'}
-                  stroke={s.now ? 'var(--ember-2)' : 'var(--ink-faint)'}
-                  strokeWidth={s.now ? 1 : 0.6}
-                  vectorEffect="non-scaling-stroke"
-                  style={s.now ? { filter: 'drop-shadow(0 0 5px var(--ember-glow))' } : undefined}
-                />
-                {s.now && (
+          <div className={styles.constellation}>
+            <svg
+              className={styles.constSvg}
+              viewBox="0 0 100 150"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              {/* connecting line */}
+              <polyline
+                points={nodeX.map((x, i) => `${x},${nodeY[i]}`).join(' ')}
+                fill="none"
+                stroke="rgba(52,64,111,0.45)"
+                strokeWidth="0.4"
+                vectorEffect="non-scaling-stroke"
+                strokeDasharray="2 1.5"
+              />
+              {lifeStages.map((s, i) => (
+                <g key={s.id}>
                   <circle
                     cx={nodeX[i] ?? 50}
                     cy={nodeY[i] ?? 50}
-                    r="5.5"
-                    fill="none"
-                    stroke="var(--ember)"
-                    strokeWidth="0.4"
-                    opacity="0.55"
+                    r={s.now ? 3.2 : 2}
+                    fill={s.now ? 'var(--ember)' : 'var(--bg-3)'}
+                    stroke={s.now ? 'var(--ember-2)' : 'var(--ink-faint)'}
+                    strokeWidth={s.now ? 1 : 0.6}
                     vectorEffect="non-scaling-stroke"
+                    style={s.now ? { filter: 'drop-shadow(0 0 5px var(--ember-glow))' } : undefined}
                   />
-                )}
-              </g>
-            ))}
-          </svg>
-        </div>
+                  {s.now && (
+                    <circle
+                      cx={nodeX[i] ?? 50}
+                      cy={nodeY[i] ?? 50}
+                      r="5.5"
+                      fill="none"
+                      stroke="var(--ember)"
+                      strokeWidth="0.4"
+                      opacity="0.55"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  )}
+                </g>
+              ))}
+            </svg>
+          </div>
 
-        <div className={styles.stageCards}>
-          {lifeStages.map((s) => (
-            <div
-              key={s.id}
-              className={`${styles.stageCard} ${s.now ? styles.now : ''}`}
-              onClick={s.now ? onDive : undefined}
-            >
-              {s.now && <span className={styles.nowtag}>지금 · NOW</span>}
-              <div className={styles.nm}>{s.name}</div>
-              <div className={styles.age}>
-                {s.ageFrom}–{s.ageTo}세 · {s.yearFrom}–{s.yearTo}
+          <div className={styles.stageCards}>
+            {lifeStages.map((s) => (
+              <div
+                key={s.id}
+                className={`${styles.stageCard} ${s.now ? styles.now : ''}`}
+                onClick={s.now ? onDive : undefined}
+              >
+                {s.now && <span className={styles.nowtag}>지금 · NOW</span>}
+                <div className={styles.nm}>{s.name}</div>
+                <div className={styles.age}>
+                  {s.ageFrom}–{s.ageTo}세 · {s.yearFrom}–{s.yearTo}
+                </div>
+                <div className={styles.tone}>{s.tone}</div>
+                {s.now && <div className={styles.diveHint}>탭하면 올해로 줌인 ↘</div>}
               </div>
-              <div className={styles.tone}>{s.tone}</div>
-              {s.now && <div className={styles.diveHint}>탭하면 올해로 줌인 ↘</div>}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* ============================================================
+        {/* ============================================================
           stage detail blocks
           (원본: 청년기 detail 만. Phase 3 보강 ④: detail 있는 모든 stage)
       ============================================================ */}
-      {lifeStages
-        .filter((s) => s.detail !== null)
-        .map((stage) => (
-          <StageDetailBlock
-            key={stage.id}
-            stage={stage}
-            daewoon={daewoon}
-            isCurrent={stage.id === nowStage?.id}
-          />
-        ))}
+        {lifeStages
+          .filter((s) => s.detail !== null)
+          .map((stage) => (
+            <StageDetailBlock
+              key={stage.id}
+              stage={stage}
+              daewoon={daewoon}
+              isCurrent={stage.id === nowStage?.id}
+            />
+          ))}
 
-      {/* ============================================================
+        {/* ============================================================
           Phase 3 보강 ⑥: Natal Lots row
       ============================================================ */}
-      {user.lots && user.lots.length > 0 && <NatalLotsRow lots={user.lots} />}
+        {user.lots && user.lots.length > 0 && <NatalLotsRow lots={user.lots} />}
 
-      {/* ============================================================
+        {/* ============================================================
           Phase 3 보강 ⑦: ZR L1 carousel (Spirit / Fortune)
       ============================================================ */}
-      {(zrSpiritChapters?.length > 0 || zrFortuneChapters?.length > 0) && (
-        <ZRCarousel spirit={zrSpiritChapters ?? []} fortune={zrFortuneChapters ?? []} />
-      )}
+        {(zrSpiritChapters?.length > 0 || zrFortuneChapters?.length > 0) && (
+          <ZRCarousel spirit={zrSpiritChapters ?? []} fortune={zrFortuneChapters ?? []} />
+        )}
 
-      {/* ============================================================
+        {/* ============================================================
           운명의 전환기 — 지난 5년 → 앞으로 10년 (세로 작대기 창)
           프리미엄 LifetimeView 의 windowed pivot 뷰 포팅. 기존 가로 "분기점
           타임라인"(전 생애)과 별개로, *근미래에 집중한* 세로 타임라인.
       ============================================================ */}
-      {(() => {
-        const nowYear = lifetime.currentYear
-        const win = milestones
-          .filter((m) => m.year >= nowYear - 5 && m.year <= nowYear + 10)
-          .sort((a, b) => a.year - b.year)
-        if (win.length === 0) return null
-        // 하이라이트 = 올해 또는 가장 가까운 다가오는 전환점. 없으면 마지막.
-        const hi = (() => {
-          const i = win.findIndex((m) => m.year >= nowYear)
-          return i === -1 ? win.length - 1 : i
-        })()
-        const sysOf = (k: string) => (k === 'saju' || k === 'daewoon' ? '사주' : '점성')
-        return (
-          <div className={styles.pivots}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>운명의 전환기</h2>
-              <span className={styles.tiny}>지난 5년 → 앞으로 10년</span>
-            </div>
-            <div className={styles.pivotList}>
-              {win.map((m, idx) => {
-                const past = m.year < nowYear
-                const highlight = idx === hi
-                const [titleRaw, ...rest] = m.label.split('—')
-                const meaning = rest.join('—').trim()
-                return (
-                  <div
-                    key={`pv-${m.year}-${idx}`}
-                    className={`${styles.pivot} ${past ? styles.pivotPast : ''} ${
-                      highlight ? styles.pivotNow : ''
-                    }`}
-                  >
-                    <span className={styles.pivotDot} />
-                    <div className={styles.pivotHead}>
-                      <span className={styles.pivotYear}>
-                        {m.year}
-                        <small> · {m.age}세</small>
-                      </span>
-                      <span className={styles.pivotSys}>{sysOf(m.kind)}</span>
-                      {past && <span className={styles.pivotTag}>지난 시기</span>}
-                      {highlight && (
-                        <span className={styles.pivotTagNow}>
-                          {m.year === nowYear ? '올해' : '다가오는 시기'}
+        {(() => {
+          const nowYear = lifetime.currentYear
+          const win = milestones
+            .filter((m) => m.year >= nowYear - 5 && m.year <= nowYear + 10)
+            .sort((a, b) => a.year - b.year)
+          if (win.length === 0) return null
+          // 하이라이트 = 올해 또는 가장 가까운 다가오는 전환점. 없으면 마지막.
+          const hi = (() => {
+            const i = win.findIndex((m) => m.year >= nowYear)
+            return i === -1 ? win.length - 1 : i
+          })()
+          const sysOf = (k: string) => (k === 'saju' || k === 'daewoon' ? '사주' : '점성')
+          return (
+            <div className={styles.pivots}>
+              <div className={styles.sectionHead}>
+                <h2 className={styles.sectionTitle}>운명의 전환기</h2>
+                <span className={styles.tiny}>지난 5년 → 앞으로 10년</span>
+              </div>
+              <div className={styles.pivotList}>
+                {win.map((m, idx) => {
+                  const past = m.year < nowYear
+                  const highlight = idx === hi
+                  const [titleRaw, ...rest] = m.label.split('—')
+                  const meaning = rest.join('—').trim()
+                  return (
+                    <div
+                      key={`pv-${m.year}-${idx}`}
+                      className={`${styles.pivot} ${past ? styles.pivotPast : ''} ${
+                        highlight ? styles.pivotNow : ''
+                      }`}
+                    >
+                      <span className={styles.pivotDot} />
+                      <div className={styles.pivotHead}>
+                        <span className={styles.pivotYear}>
+                          {m.year}
+                          <small> · {m.age}세</small>
                         </span>
-                      )}
+                        <span className={styles.pivotSys}>{sysOf(m.kind)}</span>
+                        {past && <span className={styles.pivotTag}>지난 시기</span>}
+                        {highlight && (
+                          <span className={styles.pivotTagNow}>
+                            {m.year === nowYear ? '올해' : '다가오는 시기'}
+                          </span>
+                        )}
+                      </div>
+                      <div className={styles.pivotTitle}>{titleRaw.trim()}</div>
+                      {meaning && <div className={styles.pivotMeaning}>{meaning}</div>}
                     </div>
-                    <div className={styles.pivotTitle}>{titleRaw.trim()}</div>
-                    {meaning && <div className={styles.pivotMeaning}>{meaning}</div>}
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        )
-      })()}
+          )
+        })()}
 
-      {/* ============================================================
+        {/* ============================================================
           milestone timeline
       ============================================================ */}
-      <div className={styles.miles}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>분기점 타임라인</h2>
-          <span className={styles.tiny}>사주 · 점성 수렴 마디</span>
+        <div className={styles.miles}>
+          <div className={styles.sectionHead}>
+            <h2 className={styles.sectionTitle}>분기점 타임라인</h2>
+            <span className={styles.tiny}>사주 · 점성 수렴 마디</span>
+          </div>
+          <div className={styles.mileTrack}>
+            {milestones.map((m, i) => (
+              <div key={`${m.year}-${i}`} className={`${styles.mile} ${m.now ? styles.now : ''}`}>
+                <span className={styles.node} />
+                <span className={styles.yr}>
+                  {m.year}
+                  <small>{m.age}세</small>
+                </span>
+                <span className={styles.lab}>
+                  {m.label}
+                  {m.now && <span className={styles.nowMark}>← 지금</span>}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className={styles.mileTrack}>
-          {milestones.map((m, i) => (
-            <div key={`${m.year}-${i}`} className={`${styles.mile} ${m.now ? styles.now : ''}`}>
-              <span className={styles.node} />
-              <span className={styles.yr}>
-                {m.year}
-                <small>{m.age}세</small>
-              </span>
-              <span className={styles.lab}>
-                {m.label}
-                {m.now && <span className={styles.nowMark}>← 지금</span>}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      </details>
 
       <div className={styles.diveWrap}>
         <button className={styles.dive} onClick={onDive} type="button">
