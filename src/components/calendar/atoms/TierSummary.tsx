@@ -32,6 +32,14 @@ export interface TierSummaryProps {
   stages?: SummaryStage[]
   /** 다음 전환점 1건. */
   nextPoint?: { when: string; label: string } | null
+  /** 과거~미래 교차 타임라인 (사주 대운 × 점성을 한 축에). */
+  timeline?: {
+    startYear: number
+    endYear: number
+    nowYear: number
+    nowLabel?: string
+    points: Array<{ year: number; label: string; system: 'saju' | 'astro'; isNow?: boolean }>
+  } | null
 }
 
 function Sparkline({ values, nowIndex }: { values: number[]; nowIndex?: number }) {
@@ -73,6 +81,58 @@ function Sparkline({ values, nowIndex }: { values: number[]; nowIndex?: number }
   )
 }
 
+function shortLabel(s: string): string {
+  // "첫 토성 회귀 — 진짜 어른됨의 통과의례" → "첫 토성 회귀" (대시 앞 핵심만, 길면 컷)
+  const head = s.includes('—') ? s.split('—')[0].trim() : s
+  return head.length > 22 ? head.slice(0, 21).trim() + '…' : head
+}
+
+function Timeline({ data }: { data: NonNullable<TierSummaryProps['timeline']> }) {
+  const { startYear, endYear, nowYear, nowLabel, points } = data
+  const span = endYear - startYear || 1
+  const pos = (y: number) => Math.max(0, Math.min(100, ((y - startYear) / span) * 100))
+  const sorted = [...points].sort((a, b) => a.year - b.year)
+  return (
+    <div className={styles.timeline}>
+      <div className={styles.tlHead}>
+        <span className={styles.tlTitle}>과거 · 미래 흐름</span>
+        <span className={styles.tlLegend}>
+          <i className={styles.tlSaju} /> 사주 <i className={styles.tlAstro} /> 점성
+        </span>
+      </div>
+      <div className={styles.tlAxis}>
+        <div className={styles.tlLine} />
+        <div className={styles.tlNow} style={{ left: `${pos(nowYear)}%` }}>
+          <span className={styles.tlNowTag}>{nowLabel ?? '지금'}</span>
+        </div>
+        {sorted.map((p, i) => (
+          <span
+            key={i}
+            className={`${styles.tlDot} ${p.system === 'saju' ? styles.tlDotSaju : styles.tlDotAstro} ${
+              p.year < nowYear ? styles.tlPast : ''
+            }`}
+            style={{ left: `${pos(p.year)}%` }}
+            title={`${p.year} · ${p.label}`}
+          />
+        ))}
+      </div>
+      <ul className={styles.tlList}>
+        {sorted.map((p, i) => (
+          <li key={i} className={`${styles.tlItem} ${p.year < nowYear ? styles.tlPast : ''}`}>
+            <span className={styles.tlYear}>{p.year}</span>
+            <span
+              className={`${styles.tlPip} ${p.system === 'saju' ? styles.tlDotSaju : styles.tlDotAstro}`}
+            />
+            <span className={styles.tlText}>
+              {p.isNow ? <b>{shortLabel(p.label)}</b> : shortLabel(p.label)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 export function TierSummary({
   headline,
   sub,
@@ -81,6 +141,7 @@ export function TierSummary({
   cards,
   stages,
   nextPoint,
+  timeline,
 }: TierSummaryProps) {
   return (
     <section className={styles.summary}>
@@ -124,6 +185,8 @@ export function TierSummary({
           <span className={styles.nextLabel}>{nextPoint.label}</span>
         </div>
       ) : null}
+
+      {timeline && timeline.points.length > 0 ? <Timeline data={timeline} /> : null}
     </section>
   )
 }
