@@ -389,7 +389,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     ],
     crossings,
     events: lifetime.milestones
-      .filter((m) => m.year >= tlStart && m.year <= tlEnd && m.kind !== 'daewoon')
+      .filter((m) => m.year >= tlStart && m.year <= tlEnd)
       .map((m) => ({
         year: m.year,
         label: m.label,
