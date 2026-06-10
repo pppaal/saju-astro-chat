@@ -27,6 +27,7 @@ import type {
 
 import styles from './LifetimeTier.module.css'
 import { TierSummary } from '@/components/calendar/atoms/TierSummary'
+import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 
 // ============================================================================
@@ -288,67 +289,10 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   // C4: rootStatus 있을 때만 "통근" 라벨, 없으면 "주십신"
   const hasRootStatus = !!user.rootStatus
 
-  // ── 쉬운 요약(TierSummary) — 기존 필드만 재활용. 어려운 건 아래 <details> 로. ──
-  const lp = lifetime.lifePattern
-  // "편재 — 현실 성취의 무대" 처럼 십신 용어가 앞에 붙은 톤에서 평이한 뒷부분만.
-  const plain = (t: string): string =>
-    t && t.includes('—') ? t.split('—').slice(1).join('—').trim() : t
-  const EL_STRENGTH: Record<string, string> = {
-    목: '배우고 자라는 힘이 좋아요. 한번 뿌리내리면 꾸준히 뻗어 나가는 성장형이에요.',
-    화: '드러내고 표현하는 힘이 좋아요. 사람을 끌고 분위기를 밝히는 재능이 있어요.',
-    토: '진득하게 버티는 힘이 좋아요. 믿음직하고 사람을 품는 안정감이 있어요.',
-    금: '맺고 끊는 힘이 좋아요. 원칙이 분명하고 일을 야무지게 마무리해요.',
-    수: '생각하고 흐르는 힘이 좋아요. 유연하고 깊이 있게 상황을 읽어 내요.',
-  }
-  const EL_LACK: Record<string, string> = {
-    목: '새로 시작하고 뻗어 나가는 기운이 적게 타고났어요. 미루지 말고 일단 한 발 떼는 연습을 해보세요.',
-    화: '드러내고 표현하는 기운(불)이 적게 타고났어요. 잘해놓고 말 안 해서 손해 보지 않게, 성과는 꼭 입 밖으로 꺼내세요.',
-    토: '버티고 안정시키는 기운이 적게 타고났어요. 자주 바꾸기보다 한 자리에서 꾸준함을 쌓아 보세요.',
-    금: '맺고 끊는 기운이 적게 타고났어요. 우유부단하지 않게, 정할 땐 분명하게 정하는 연습을 해보세요.',
-    수: '쉬고 생각하는 기운이 적게 타고났어요. 쉼 없이 달리기보다 가끔 멈춰 정비하는 시간을 가지세요.',
-  }
-  const lackEl = (['목', '화', '토', '금', '수'] as const).find(
-    (e) => !((user.elements?.[e] ?? 0) > 0)
-  )
-  const summaryCards = [
-    dominantEl ? { icon: '💪', label: '강점', body: EL_STRENGTH[dominantEl] ?? '' } : null,
-    lackEl ? { icon: '⚠️', label: '조심할 것', body: EL_LACK[lackEl] ?? '' } : null,
-    nowStage
-      ? {
-          icon: '🌊',
-          label: '인생 리듬',
-          body: `지금은 ${nowStage.name}(${nowStage.ageFrom}–${nowStage.ageTo}세) — ${plain(nowStage.tone)}`,
-        }
-      : null,
-  ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
-  const summaryStages = lifeStages.map((s) => ({ label: s.name, tone: plain(s.tone), now: s.now }))
-  // 과거 5년 ~ 미래 10년 교차 타임라인 — 두 레인 띠(구간) + 점 이벤트.
-  //  · 사주 레인 = 대운(10년 구간)  · 점성 레인 = ZR Spirit(별자리 챕터 구간)
-  //  · 이벤트 = 점성 회귀(목성·토성…)·사주 매듭 등 점 사건
-  // "지금" 이 두 레인을 가로지르는 컬럼 = 현재 교차 구간(현 대운 × 현 ZR 챕터).
-  const SAJU_MS_KINDS = new Set(['daewoon', 'saju'])
+  // 교차 창 — 지금 기준 과거 5년 ~ 미래 10년.
   const tlStart = lifetime.currentYear - 5
   const tlEnd = lifetime.currentYear + 10
   const dwStartY = (d: DestinyLifetime['daewoon'][number]) => lifetime.birthYear + d.startAge
-  const dwEndY = (d: DestinyLifetime['daewoon'][number]) =>
-    lifetime.birthYear + (d.endAge ?? d.startAge + 10)
-  const sajuBands = (lifetime.daewoon ?? [])
-    .filter((d) => dwEndY(d) > tlStart && dwStartY(d) < tlEnd)
-    .map((d) => ({
-      startYear: dwStartY(d),
-      endYear: dwEndY(d),
-      label: d.gz.hanja,
-      sub: d.sibsin !== '—' ? d.sibsin : undefined,
-      now: !!d.now,
-    }))
-  const astroBands = (lifetime.zrSpiritChapters ?? [])
-    .filter((c) => c.calendarEndYear > tlStart && c.calendarStartYear < tlEnd)
-    .map((c) => ({
-      startYear: c.calendarStartYear,
-      endYear: c.calendarEndYear,
-      label: zodiacKo(c.sign),
-      now: !!c.now,
-    }))
   // 교차 구간 — 사주 사건(대운 경계·사주 매듭)과 점성 사건(회귀·ZR 챕터 경계)이
   // ±2년 내로 가까운 시기. 인접하면 하나로 병합. = 두 시스템이 동시에 꿈틀하는 때.
   const NEAR = 2
@@ -379,31 +323,54 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     else crossings.push({ startYear: s, endYear: e })
   }
 
-  const summaryTimeline = {
-    startYear: tlStart,
-    endYear: tlEnd,
-    nowYear: lifetime.currentYear,
-    lanes: [
-      { label: '사주 대운', system: 'saju' as const, bands: sajuBands },
-      { label: '점성 흐름 (ZR)', system: 'astro' as const, bands: astroBands },
-    ],
-    crossings,
-    events: lifetime.milestones
-      .filter((m) => m.year >= tlStart && m.year <= tlEnd)
-      .map((m) => ({
-        year: m.year,
-        label: m.label,
-        system: SAJU_MS_KINDS.has(m.kind) ? ('saju' as const) : ('astro' as const),
-        isNow: !!m.now,
-      })),
+  // ── 교차 리스트 — "언제 · 무엇이 교차 · 근거" 한 줄씩. 캘린더의 본질. ──
+  const evHead = (label: string) => (label.includes('—') ? label.split('—')[0].trim() : label)
+  const evWhy = (label: string) =>
+    label.includes('—') ? label.split('—').slice(1).join('—').trim() : ''
+  const crossingItems: Array<{
+    sort: number
+    when: string
+    title: string
+    detail?: string
+    now?: boolean
+    past?: boolean
+  }> = []
+  for (const c of crossings) {
+    const near = (y: number) => y >= c.startYear - 1 && y <= c.endYear + 1
+    const sj = lifetime.milestones.filter(
+      (m) => (m.kind === 'daewoon' || m.kind === 'saju') && near(m.year)
+    )
+    const as = lifetime.milestones.filter(
+      (m) => m.kind !== 'daewoon' && m.kind !== 'saju' && near(m.year)
+    )
+    const all = [...sj, ...as]
+    if (all.length === 0) continue
+    crossingItems.push({
+      sort: c.startYear,
+      when: c.startYear === c.endYear ? `${c.startYear}` : `${c.startYear}–${c.endYear}`,
+      title: all
+        .map((m) => evHead(m.label))
+        .slice(0, 3)
+        .join(' × '),
+      detail: all.map((m) => evWhy(m.label)).find(Boolean),
+      past: c.endYear < lifetime.currentYear,
+    })
   }
-  const curveVals = lp?.daeun.map((d) => d.favor) ?? []
-  const curAge = lifetime.currentYear - lifetime.birthYear
-  const curveNowIdx = lp
-    ? lp.daeun.findIndex(
-        (d, i, arr) => curAge >= d.startAge && (!arr[i + 1] || curAge < arr[i + 1].startAge)
-      )
-    : -1
+  // "지금" — 현재 대운 × 현재 ZR 챕터 (둘 다 지나는 중인 구간)
+  const nowDw = (lifetime.daewoon ?? []).find((d) => d.now)
+  const nowCh = (lifetime.zrSpiritChapters ?? []).find((c) => c.now)
+  if (nowDw || nowCh) {
+    crossingItems.push({
+      sort: lifetime.currentYear + 0.1,
+      when: `${lifetime.currentYear}`,
+      title: [nowDw ? `${nowDw.gz.hanja} 대운` : '', nowCh ? `${zodiacKo(nowCh.sign)} 흐름` : '']
+        .filter(Boolean)
+        .join(' × '),
+      detail: '지금 지나는 사주×점성 구간 — 이 흐름 안에서 위아래 교차점이 펼쳐져요.',
+      now: true,
+    })
+  }
+  crossingItems.sort((a, b) => a.sort - b.sort)
 
   return (
     <div className={styles.tier} data-screen-label="인생 84년">
@@ -422,16 +389,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         ) : null}
       </p>
 
-      {/* ── 쉬운 요약 (한눈에 "내 인생 어떤 흐름"). 용어/한자/숫자 없음. ── */}
+      {/* ── 한 줄 요약 + 교차 리스트. 그게 전부. ── */}
       <TierSummary
         headline={lifetime.lifePattern?.ko ?? '내 인생 흐름'}
         sub={lifetime.lifePattern?.line}
-        curve={curveVals}
-        curveNowIndex={curveNowIdx}
-        cards={summaryCards}
-        stages={summaryStages}
-        timeline={summaryTimeline}
       />
+      <CrossingList heading="인생의 교차점 · 사주 × 점성" items={crossingItems} />
 
       {/* ── 전문가용 상세 — 사주 원국·대운·신살·12운성·점성 일체를 접어 둔다. ── */}
       <details className={summaryStyles.details}>
