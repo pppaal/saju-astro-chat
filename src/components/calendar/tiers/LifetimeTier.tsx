@@ -322,17 +322,43 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       : null,
   ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
   const summaryStages = lifeStages.map((s) => ({ label: s.name, tone: plain(s.tone), now: s.now }))
-  // 과거 5년 ~ 미래 10년 교차 타임라인 — 사주 대운(daewoon/saju) × 점성(목성·토성·
-  // 천왕성…)을 한 축에. milestones 가 이미 둘을 합쳐 둔 dot 시퀀스라 창만 자른다.
+  // 과거 5년 ~ 미래 10년 교차 타임라인 — 두 레인 띠(구간) + 점 이벤트.
+  //  · 사주 레인 = 대운(10년 구간)  · 점성 레인 = ZR Spirit(별자리 챕터 구간)
+  //  · 이벤트 = 점성 회귀(목성·토성…)·사주 매듭 등 점 사건
+  // "지금" 이 두 레인을 가로지르는 컬럼 = 현재 교차 구간(현 대운 × 현 ZR 챕터).
   const SAJU_MS_KINDS = new Set(['daewoon', 'saju'])
   const tlStart = lifetime.currentYear - 5
   const tlEnd = lifetime.currentYear + 10
+  const dwStartY = (d: DestinyLifetime['daewoon'][number]) => lifetime.birthYear + d.startAge
+  const dwEndY = (d: DestinyLifetime['daewoon'][number]) =>
+    lifetime.birthYear + (d.endAge ?? d.startAge + 10)
+  const sajuBands = (lifetime.daewoon ?? [])
+    .filter((d) => dwEndY(d) > tlStart && dwStartY(d) < tlEnd)
+    .map((d) => ({
+      startYear: dwStartY(d),
+      endYear: dwEndY(d),
+      label: d.gz.hanja,
+      sub: d.sibsin !== '—' ? d.sibsin : undefined,
+      now: !!d.now,
+    }))
+  const astroBands = (lifetime.zrSpiritChapters ?? [])
+    .filter((c) => c.calendarEndYear > tlStart && c.calendarStartYear < tlEnd)
+    .map((c) => ({
+      startYear: c.calendarStartYear,
+      endYear: c.calendarEndYear,
+      label: zodiacKo(c.sign),
+      now: !!c.now,
+    }))
   const summaryTimeline = {
     startYear: tlStart,
     endYear: tlEnd,
     nowYear: lifetime.currentYear,
-    points: lifetime.milestones
-      .filter((m) => m.year >= tlStart && m.year <= tlEnd)
+    lanes: [
+      { label: '사주 대운', system: 'saju' as const, bands: sajuBands },
+      { label: '점성 흐름 (ZR)', system: 'astro' as const, bands: astroBands },
+    ],
+    events: lifetime.milestones
+      .filter((m) => m.year >= tlStart && m.year <= tlEnd && m.kind !== 'daewoon')
       .map((m) => ({
         year: m.year,
         label: m.label,

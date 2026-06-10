@@ -289,3 +289,124 @@
 .tlText {
   line-height: 1.4;
 }
+
+/* ── 띠(구간) 교차 차트 ── */
+.tlChart {
+  position: relative;
+  padding-top: 18px;
+  margin: 0 4px;
+}
+.tlNowCol {
+  position: absolute;
+  top: 16px;
+  bottom: 0;
+  width: 0;
+  transform: translateX(-50%);
+  border-left: 2px dashed var(--dp-accent);
+  opacity: 0.45;
+  z-index: 1;
+}
+.tlNowLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 4;
+  pointer-events: none;
+}
+.tlNowLine .tlNowTag {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.tlEvents {
+  position: relative;
+  height: 12px;
+  margin-bottom: 5px;
+  z-index: 3;
+}
+.tlEvDot {
+  position: absolute;
+  top: 2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  border: 1.5px solid var(--dp-panel);
+}
+.tlLane {
+  margin-bottom: 9px;
+  position: relative;
+  z-index: 2;
+}
+.tlLaneLabel {
+  display: block;
+  font-family: var(--dp-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--dp-ink-dim);
+  margin-bottom: 4px;
+}
+.tlLaneTrack {
+  position: relative;
+  height: 34px;
+}
+.tlBand {
+  position: absolute;
+  top: 0;
+  height: 34px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  overflow: hidden;
+  border: 1px solid transparent;
+}
+.tlBandSaju {
+  background: color-mix(in srgb, var(--dp-ember) 15%, transparent);
+  border-color: color-mix(in srgb, var(--dp-ember) 34%, transparent);
+}
+.tlBandAstro {
+  background: color-mix(in srgb, var(--dp-violet) 15%, transparent);
+  border-color: color-mix(in srgb, var(--dp-violet) 34%, transparent);
+}
+.tlBandNow.tlBandSaju {
+  background: color-mix(in srgb, var(--dp-ember) 30%, transparent);
+  border-color: var(--dp-ember);
+  border-width: 2px;
+}
+.tlBandNow.tlBandAstro {
+  background: color-mix(in srgb, var(--dp-violet) 30%, transparent);
+  border-color: var(--dp-violet);
+  border-width: 2px;
+}
+.tlBandLabel {
+  font-family: var(--dp-serif-ko);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dp-ink);
+  white-space: nowrap;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.tlBandLabel em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--dp-ink-dim);
+}
+.tlTicks {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 4px 12px;
+  font-family: var(--dp-sans);
+  font-size: 10.5px;
+  color: var(--dp-ink-faint);
+}
+.tlTickNow {
+  color: var(--dp-accent);
+  font-weight: 700;
+}

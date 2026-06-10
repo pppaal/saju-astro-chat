@@ -32,13 +32,26 @@ export interface TierSummaryProps {
   stages?: SummaryStage[]
   /** 다음 전환점 1건. */
   nextPoint?: { when: string; label: string } | null
-  /** 과거~미래 교차 타임라인 (사주 대운 × 점성을 한 축에). */
+  /** 과거~미래 교차 타임라인 — 사주 대운 띠 × 점성 흐름 띠를 두 레인에. */
   timeline?: {
     startYear: number
     endYear: number
     nowYear: number
     nowLabel?: string
-    points: Array<{ year: number; label: string; system: 'saju' | 'astro'; isNow?: boolean }>
+    /** 레인별 구간(띠). 보통 [사주 대운, 점성 흐름]. */
+    lanes: Array<{
+      label: string
+      system: 'saju' | 'astro'
+      bands: Array<{
+        startYear: number
+        endYear: number
+        label: string
+        sub?: string
+        now?: boolean
+      }>
+    }>
+    /** 점 이벤트(회귀 등) — 레인 위에 마커로. */
+    events?: Array<{ year: number; label: string; system: 'saju' | 'astro'; isNow?: boolean }>
   } | null
 }
 
@@ -88,47 +101,94 @@ function shortLabel(s: string): string {
 }
 
 function Timeline({ data }: { data: NonNullable<TierSummaryProps['timeline']> }) {
-  const { startYear, endYear, nowYear, nowLabel, points } = data
+  const { startYear, endYear, nowYear, nowLabel, lanes, events = [] } = data
   const span = endYear - startYear || 1
   const pos = (y: number) => Math.max(0, Math.min(100, ((y - startYear) / span) * 100))
-  const sorted = [...points].sort((a, b) => a.year - b.year)
+  const nowPct = pos(nowYear)
+  const sortedEvents = [...events].sort((a, b) => a.year - b.year)
   return (
     <div className={styles.timeline}>
       <div className={styles.tlHead}>
-        <span className={styles.tlTitle}>과거 · 미래 흐름</span>
+        <span className={styles.tlTitle}>과거 5년 · 미래 10년 — 사주 × 점성 교차</span>
         <span className={styles.tlLegend}>
           <i className={styles.tlSaju} /> 사주 <i className={styles.tlAstro} /> 점성
         </span>
       </div>
-      <div className={styles.tlAxis}>
-        <div className={styles.tlLine} />
-        <div className={styles.tlNow} style={{ left: `${pos(nowYear)}%` }}>
+
+      <div className={styles.tlChart}>
+        {/* "지금" 이 가로지르는 교차 컬럼 + 선 */}
+        <div className={styles.tlNowCol} style={{ left: `${nowPct}%` }} />
+        <div className={styles.tlNowLine} style={{ left: `${nowPct}%` }}>
           <span className={styles.tlNowTag}>{nowLabel ?? '지금'}</span>
         </div>
-        {sorted.map((p, i) => (
-          <span
-            key={i}
-            className={`${styles.tlDot} ${p.system === 'saju' ? styles.tlDotSaju : styles.tlDotAstro} ${
-              p.year < nowYear ? styles.tlPast : ''
-            }`}
-            style={{ left: `${pos(p.year)}%` }}
-            title={`${p.year} · ${p.label}`}
-          />
+
+        {/* 점 이벤트(회귀) 마커 — 레인 위 */}
+        {sortedEvents.length > 0 ? (
+          <div className={styles.tlEvents}>
+            {sortedEvents.map((e, i) => (
+              <span
+                key={i}
+                className={`${styles.tlEvDot} ${
+                  e.system === 'saju' ? styles.tlDotSaju : styles.tlDotAstro
+                } ${e.year < nowYear ? styles.tlPast : ''}`}
+                style={{ left: `${pos(e.year)}%` }}
+                title={`${e.year} · ${e.label}`}
+              />
+            ))}
+          </div>
+        ) : null}
+
+        {/* 레인별 구간(띠) */}
+        {lanes.map((lane, li) => (
+          <div className={styles.tlLane} key={li}>
+            <span className={styles.tlLaneLabel}>{lane.label}</span>
+            <div className={styles.tlLaneTrack}>
+              {lane.bands.map((b, bi) => {
+                const l = pos(Math.max(b.startYear, startYear))
+                const w = pos(Math.min(b.endYear, endYear)) - l
+                if (w <= 0) return null
+                return (
+                  <div
+                    key={bi}
+                    className={`${styles.tlBand} ${
+                      lane.system === 'saju' ? styles.tlBandSaju : styles.tlBandAstro
+                    } ${b.now ? styles.tlBandNow : ''}`}
+                    style={{ left: `${l}%`, width: `${w}%` }}
+                    title={`${b.label}${b.sub ? ' · ' + b.sub : ''} (${b.startYear}–${b.endYear})`}
+                  >
+                    <span className={styles.tlBandLabel}>
+                      {b.label}
+                      {b.sub ? <em>{b.sub}</em> : null}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         ))}
       </div>
-      <ul className={styles.tlList}>
-        {sorted.map((p, i) => (
-          <li key={i} className={`${styles.tlItem} ${p.year < nowYear ? styles.tlPast : ''}`}>
-            <span className={styles.tlYear}>{p.year}</span>
-            <span
-              className={`${styles.tlPip} ${p.system === 'saju' ? styles.tlDotSaju : styles.tlDotAstro}`}
-            />
-            <span className={styles.tlText}>
-              {p.isNow ? <b>{shortLabel(p.label)}</b> : shortLabel(p.label)}
-            </span>
-          </li>
-        ))}
-      </ul>
+
+      <div className={styles.tlTicks}>
+        <span>{startYear}</span>
+        <span className={styles.tlTickNow}>{nowYear} 지금</span>
+        <span>{endYear}</span>
+      </div>
+
+      {sortedEvents.length > 0 ? (
+        <ul className={styles.tlList}>
+          {sortedEvents.map((e, i) => (
+            <li key={i} className={`${styles.tlItem} ${e.year < nowYear ? styles.tlPast : ''}`}>
+              <span className={styles.tlYear}>{e.year}</span>
+              <span
+                className={`${styles.tlPip} ${e.system === 'saju' ? styles.tlDotSaju : styles.tlDotAstro}`}
+              />
+              <span className={styles.tlText}>
+                {e.isNow ? <b>{shortLabel(e.label)}</b> : shortLabel(e.label)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   )
 }
@@ -186,7 +246,7 @@ export function TierSummary({
         </div>
       ) : null}
 
-      {timeline && timeline.points.length > 0 ? <Timeline data={timeline} /> : null}
+      {timeline && timeline.lanes.length > 0 ? <Timeline data={timeline} /> : null}
     </section>
   )
 }
