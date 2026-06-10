@@ -349,6 +349,36 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       label: zodiacKo(c.sign),
       now: !!c.now,
     }))
+  // 교차 구간 — 사주 사건(대운 경계·사주 매듭)과 점성 사건(회귀·ZR 챕터 경계)이
+  // ±2년 내로 가까운 시기. 인접하면 하나로 병합. = 두 시스템이 동시에 꿈틀하는 때.
+  const NEAR = 2
+  const inWin = (y: number) => y >= tlStart - NEAR && y <= tlEnd + NEAR
+  const sajuYears = [
+    ...(lifetime.daewoon ?? []).map(dwStartY),
+    ...lifetime.milestones.filter((m) => m.kind === 'saju').map((m) => m.year),
+  ].filter(inWin)
+  const astroYears = [
+    ...lifetime.milestones
+      .filter((m) => m.kind !== 'daewoon' && m.kind !== 'saju')
+      .map((m) => m.year),
+    ...(lifetime.zrSpiritChapters ?? []).map((c) => c.calendarStartYear),
+  ].filter(inWin)
+  const rawCross: Array<[number, number]> = []
+  for (const sy of sajuYears) {
+    for (const ay of astroYears) {
+      if (Math.abs(ay - sy) <= NEAR) rawCross.push([Math.min(sy, ay), Math.max(sy, ay)])
+    }
+  }
+  const crossings: Array<{ startYear: number; endYear: number }> = []
+  for (const [s, e] of rawCross
+    .map(([s, e]) => [Math.max(s, tlStart), Math.min(e, tlEnd)] as [number, number])
+    .filter(([s, e]) => e >= s)
+    .sort((a, b) => a[0] - b[0])) {
+    const last = crossings[crossings.length - 1]
+    if (last && s <= last.endYear + 1) last.endYear = Math.max(last.endYear, e)
+    else crossings.push({ startYear: s, endYear: e })
+  }
+
   const summaryTimeline = {
     startYear: tlStart,
     endYear: tlEnd,
@@ -357,6 +387,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       { label: '사주 대운', system: 'saju' as const, bands: sajuBands },
       { label: '점성 흐름 (ZR)', system: 'astro' as const, bands: astroBands },
     ],
+    crossings,
     events: lifetime.milestones
       .filter((m) => m.year >= tlStart && m.year <= tlEnd && m.kind !== 'daewoon')
       .map((m) => ({

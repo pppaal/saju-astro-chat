@@ -52,6 +52,8 @@ export interface TierSummaryProps {
     }>
     /** 점 이벤트(회귀 등) — 레인 위에 마커로. */
     events?: Array<{ year: number; label: string; system: 'saju' | 'astro'; isNow?: boolean }>
+    /** 사주·점성이 같은 시기에 겹치는 "교차 구간" — 세로 띠로 강조. */
+    crossings?: Array<{ startYear: number; endYear: number; label?: string }>
   } | null
 }
 
@@ -101,7 +103,7 @@ function shortLabel(s: string): string {
 }
 
 function Timeline({ data }: { data: NonNullable<TierSummaryProps['timeline']> }) {
-  const { startYear, endYear, nowYear, nowLabel, lanes, events = [] } = data
+  const { startYear, endYear, nowYear, nowLabel, lanes, events = [], crossings = [] } = data
   const span = endYear - startYear || 1
   const pos = (y: number) => Math.max(0, Math.min(100, ((y - startYear) / span) * 100))
   const nowPct = pos(nowYear)
@@ -116,6 +118,22 @@ function Timeline({ data }: { data: NonNullable<TierSummaryProps['timeline']> })
       </div>
 
       <div className={styles.tlChart}>
+        {/* 교차 구간 — 사주·점성이 같은 시기에 겹치는 구간을 세로 띠로 강조 */}
+        {crossings.map((c, i) => {
+          const l = pos(Math.max(c.startYear, startYear))
+          const w = Math.max(pos(Math.min(c.endYear, endYear)) - l, 1.8)
+          return (
+            <div
+              key={`x-${i}`}
+              className={styles.tlCross}
+              style={{ left: `${l}%`, width: `${w}%` }}
+              title={c.label ?? `${c.startYear}–${c.endYear} 교차`}
+            >
+              <span className={styles.tlCrossTag}>✦ 교차</span>
+            </div>
+          )
+        })}
+
         {/* "지금" 이 가로지르는 교차 컬럼 + 선 */}
         <div className={styles.tlNowCol} style={{ left: `${nowPct}%` }} />
         <div className={styles.tlNowLine} style={{ left: `${nowPct}%` }}>
