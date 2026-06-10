@@ -17,7 +17,13 @@
   --holo2: #a78bfa;
   --holo3: #ff8fd0;
   --holo4: #ffd89b;
-  --holo: linear-gradient(100deg, var(--holo1) 0%, var(--holo2) 34%, var(--holo3) 66%, var(--holo4) 100%);
+  --holo: linear-gradient(
+    100deg,
+    var(--holo1) 0%,
+    var(--holo2) 34%,
+    var(--holo3) 66%,
+    var(--holo4) 100%
+  );
 
   --text: #ece7f5;
   --textDim: rgba(236, 231, 245, 0.58);
@@ -103,12 +109,25 @@
 }
 
 @keyframes holoshift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .chrome {
-  background: linear-gradient(176deg, #fff 0%, #cfd2e6 24%, #6d7392 48%, #eef0fb 52%, #9aa0c0 70%, #3c4060 100%);
+  background: linear-gradient(
+    176deg,
+    #fff 0%,
+    #cfd2e6 24%,
+    #6d7392 48%,
+    #eef0fb 52%,
+    #9aa0c0 70%,
+    #3c4060 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -181,7 +200,9 @@
 }
 
 @media (max-width: 760px) {
-  .navLinks { display: none; }
+  .navLinks {
+    display: none;
+  }
 }
 
 /* ===== HERO ===== */
@@ -222,7 +243,11 @@
   transform-origin: 50% 50%;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .heroInner {
   position: relative;
@@ -248,7 +273,9 @@
 }
 
 @media (max-width: 620px) {
-  .heroCoords { display: none; }
+  .heroCoords {
+    display: none;
+  }
 }
 
 .heroTitle {
@@ -320,7 +347,11 @@
   color: var(--text);
   background: rgba(255, 255, 255, 0.02);
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.3s, color 0.3s, background 0.3s;
+  transition:
+    transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.3s,
+    color 0.3s,
+    background 0.3s;
   position: relative;
   overflow: hidden;
   white-space: nowrap;
@@ -386,8 +417,13 @@
 }
 
 @keyframes drop {
-  0% { top: -40%; }
-  60%, 100% { top: 120%; }
+  0% {
+    top: -40%;
+  }
+  60%,
+  100% {
+    top: 120%;
+  }
 }
 
 /* ===== MARQUEE ===== */
@@ -412,7 +448,11 @@
   animation-play-state: paused;
 }
 
-@keyframes slide { to { transform: translateX(-50%); } }
+@keyframes slide {
+  to {
+    transform: translateX(-50%);
+  }
+}
 
 .marqueeItem {
   font-family: var(--display);
@@ -448,8 +488,12 @@
   color: var(--ink);
 }
 
-.sectionCream .kicker { color: rgba(22, 17, 10, 0.5); }
-.sectionCream .kicker::before { background: rgba(22, 17, 10, 0.25); }
+.sectionCream .kicker {
+  color: rgba(22, 17, 10, 0.5);
+}
+.sectionCream .kicker::before {
+  background: rgba(22, 17, 10, 0.25);
+}
 
 .secHead {
   display: flex;
@@ -468,7 +512,9 @@
   text-wrap: balance;
 }
 
-.secHeadTitle em { font-style: italic; }
+.secHeadTitle em {
+  font-style: italic;
+}
 
 /* ===== EDITORIAL ===== */
 .editorial {
@@ -515,7 +561,9 @@
 }
 
 @media (max-width: 720px) {
-  .editorialCols { columns: 1; }
+  .editorialCols {
+    columns: 1;
+  }
 }
 
 .editorialMeta {
@@ -544,8 +592,7 @@
   border-radius: 4px;
   overflow: hidden;
   background:
-    radial-gradient(120% 90% at 50% 110%, rgba(167, 139, 250, 0.16), transparent 60%),
-    var(--void2);
+    radial-gradient(120% 90% at 50% 110%, rgba(167, 139, 250, 0.16), transparent 60%), var(--void2);
 }
 
 .mapCanvas {
@@ -638,7 +685,9 @@
   color: var(--cream);
 }
 
-.signChip.active .signG { color: var(--holo3); }
+.signChip.active .signG {
+  color: var(--holo3);
+}
 
 /* ===== HOW IT WORKS ===== */
 .steps {
@@ -648,7 +697,9 @@
 }
 
 @media (max-width: 820px) {
-  .steps { grid-template-columns: 1fr; }
+  .steps {
+    grid-template-columns: 1fr;
+  }
 }
 
 .step {
@@ -699,7 +750,9 @@
   padding: clamp(24px, 2.6vw, 38px);
   background: linear-gradient(180deg, var(--void2), var(--void));
   overflow: hidden;
-  transition: border-color 0.35s, transform 0.35s;
+  transition:
+    border-color 0.35s,
+    transform 0.35s;
   min-height: 260px;
   display: flex;
   flex-direction: column;
@@ -720,7 +773,9 @@
   transition: opacity 0.4s;
 }
 
-.feat:hover::before { opacity: 1; }
+.feat:hover::before {
+  opacity: 1;
+}
 
 .featGlyph {
   font-family: var(--display);
@@ -765,17 +820,35 @@
   word-break: keep-all;
 }
 
-.featLg { grid-column: span 6; }
-.featSm { grid-column: span 3; }
-.featMd { grid-column: span 4; }
-.featWide { grid-column: span 8; }
+.featLg {
+  grid-column: span 6;
+}
+.featSm {
+  grid-column: span 3;
+}
+.featMd {
+  grid-column: span 4;
+}
+.featWide {
+  grid-column: span 8;
+}
 
 @media (max-width: 900px) {
-  .featLg, .featSm, .featMd, .featWide { grid-column: span 6; }
+  .featLg,
+  .featSm,
+  .featMd,
+  .featWide {
+    grid-column: span 6;
+  }
 }
 
 @media (max-width: 600px) {
-  .featLg, .featSm, .featMd, .featWide { grid-column: span 12; }
+  .featLg,
+  .featSm,
+  .featMd,
+  .featWide {
+    grid-column: span 12;
+  }
 }
 
 /* ===== SAMPLE READING ===== */
@@ -787,7 +860,9 @@
 }
 
 @media (max-width: 880px) {
-  .reading { grid-template-columns: 1fr; }
+  .reading {
+    grid-template-columns: 1fr;
+  }
 }
 
 .readingCard {
@@ -819,8 +894,13 @@
 }
 
 @keyframes sheen {
-  0%, 100% { left: -30%; }
-  50% { left: 100%; }
+  0%,
+  100% {
+    left: -30%;
+  }
+  50% {
+    left: 100%;
+  }
 }
 
 .readingTop {
@@ -898,7 +978,9 @@
   letter-spacing: -0.01em;
 }
 
-.readingTxt h3 em { font-style: italic; }
+.readingTxt h3 em {
+  font-style: italic;
+}
 
 .readingTxt p {
   color: var(--textDim);
@@ -937,7 +1019,9 @@
 }
 
 /* ===== QUOTE band ===== */
-.quoteband { text-align: center; }
+.quoteband {
+  text-align: center;
+}
 
 .quoteband blockquote {
   font-family: var(--display);
@@ -950,7 +1034,9 @@
   text-wrap: balance;
 }
 
-.quoteband blockquote em { font-style: italic; }
+.quoteband blockquote em {
+  font-style: italic;
+}
 
 .quoteband cite {
   display: block;
@@ -995,11 +1081,20 @@
 }
 
 .ctaTitle.nowrap {
-  white-space: nowrap;
   max-width: none;
 }
 
-.ctaTitle em { font-style: italic; }
+/* nowrap 은 충분히 넓은 화면에서만 적용 — 좁은 폰(~420px 미만)에서 한국어 CTA
+   "당신의 운명을 펼치세요" 가 한 줄 강제로 가로 넘치던 문제 방지. */
+@media (min-width: 420px) {
+  .ctaTitle.nowrap {
+    white-space: nowrap;
+  }
+}
+
+.ctaTitle em {
+  font-style: italic;
+}
 
 .ctaSub {
   color: var(--textDim);
@@ -1035,7 +1130,9 @@
   letter-spacing: 0.08em;
 }
 
-.ctaInput:focus { border-color: var(--holo2); }
+.ctaInput:focus {
+  border-color: var(--holo2);
+}
 
 /* ===== FOOTER ===== */
 .footer {
@@ -1085,7 +1182,9 @@
   transition: color 0.2s;
 }
 
-.footerCol a:hover { color: var(--text); }
+.footerCol a:hover {
+  color: var(--text);
+}
 
 .footerBottom {
   display: flex;
@@ -1114,10 +1213,18 @@
   transform: none;
 }
 
-.reveal[data-d='1'] { transition-delay: 0.08s; }
-.reveal[data-d='2'] { transition-delay: 0.16s; }
-.reveal[data-d='3'] { transition-delay: 0.24s; }
-.reveal[data-d='4'] { transition-delay: 0.32s; }
+.reveal[data-d='1'] {
+  transition-delay: 0.08s;
+}
+.reveal[data-d='2'] {
+  transition-delay: 0.16s;
+}
+.reveal[data-d='3'] {
+  transition-delay: 0.24s;
+}
+.reveal[data-d='4'] {
+  transition-delay: 0.32s;
+}
 
 /* ===== TAROT ===== */
 .tarotLead {
@@ -1187,9 +1294,13 @@
   transition: transform 0.85s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.tcard.flipped .tcardInner { transform: rotateY(180deg); }
+.tcard.flipped .tcardInner {
+  transform: rotateY(180deg);
+}
 
-.tcard:not(.flipped):hover .tcardInner { transform: translateY(-6px) rotateY(0); }
+.tcard:not(.flipped):hover .tcardInner {
+  transform: translateY(-6px) rotateY(0);
+}
 
 .tcardFace {
   position: absolute;
@@ -1231,8 +1342,14 @@
   opacity: 0.7;
 }
 
-.tcardBackIn::before { top: 10px; left: 12px; }
-.tcardBackIn::after { bottom: 10px; right: 12px; }
+.tcardBackIn::before {
+  top: 10px;
+  left: 12px;
+}
+.tcardBackIn::after {
+  bottom: 10px;
+  right: 12px;
+}
 
 .tcardEmblem {
   font-family: var(--display);
@@ -1255,7 +1372,12 @@
 .tcardFront {
   transform: rotateY(180deg);
   padding: 2px;
-  background: linear-gradient(160deg, rgba(167, 139, 250, 0.6), rgba(124, 245, 255, 0.25), rgba(255, 143, 208, 0.4));
+  background: linear-gradient(
+    160deg,
+    rgba(167, 139, 250, 0.6),
+    rgba(124, 245, 255, 0.25),
+    rgba(255, 143, 208, 0.4)
+  );
 }
 
 .tcardFrontIn {
@@ -1323,7 +1445,9 @@
   color: var(--holo1);
 }
 
-.tcard.reversed .tcardSym { transform: rotate(180deg); }
+.tcard.reversed .tcardSym {
+  transform: rotate(180deg);
+}
 
 .tarotActions {
   display: flex;
@@ -1348,7 +1472,9 @@
   transition: opacity 0.6s;
 }
 
-.tarotSummary.show { opacity: 1; }
+.tarotSummary.show {
+  opacity: 1;
+}
 
 /* ===== COMPATIBILITY ===== */
 .compat {
@@ -1359,7 +1485,9 @@
 }
 
 @media (max-width: 860px) {
-  .compat { grid-template-columns: 1fr; }
+  .compat {
+    grid-template-columns: 1fr;
+  }
 }
 
 .compatPick {
@@ -1393,8 +1521,12 @@
   background-image:
     linear-gradient(45deg, transparent 50%, var(--textDim) 50%),
     linear-gradient(135deg, var(--textDim) 50%, transparent 50%);
-  background-position: calc(100% - 22px) center, calc(100% - 16px) center;
-  background-size: 6px 6px, 6px 6px;
+  background-position:
+    calc(100% - 22px) center,
+    calc(100% - 16px) center;
+  background-size:
+    6px 6px,
+    6px 6px;
   background-repeat: no-repeat;
   transition: border-color 0.25s;
 }
@@ -1519,7 +1651,9 @@
   margin-bottom: 12px;
 }
 
-.compatVerdict em { font-style: italic; }
+.compatVerdict em {
+  font-style: italic;
+}
 
 .compatText {
   font-family: var(--kr);
@@ -1531,7 +1665,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; }
-  .tcardInner { transition: none; }
-  .ringSpin, .ringSpinRev, .holoText, .marqueeTrack { animation: none !important; }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .tcardInner {
+    transition: none;
+  }
+  .ringSpin,
+  .ringSpinRev,
+  .holoText,
+  .marqueeTrack {
+    animation: none !important;
+  }
 }

@@ -9,6 +9,9 @@ import { CompatLines } from '@/components/report/atoms/CompatLines'
 import { generateChartSummary } from '@/lib/report/local-report-generator'
 import { CompatNatalOverlay } from './CompatNatalOverlay'
 import { CompatRadarOverlay } from './CompatRadarOverlay'
+import type { SynastryTone } from '@/lib/compatibility/synastryView'
+import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
+import type { CompatReport } from '@/lib/compatibility/compatReport'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /**
@@ -50,6 +53,36 @@ function unwrapAstro(raw: unknown): Record<string, unknown> | undefined {
   )
 }
 
+// unwrap된 saju → computeSajuSynastryFacts 가 받는 {stem,branch}[] (년·월·일·시).
+// 일주(index 2)는 필수 — 없으면 facts 계산을 건너뛴다.
+function sajuToPillars(saju: Record<string, unknown> | undefined): SajuPillarInput[] | null {
+  if (!saju) return null
+  const pillars = (saju.pillars as Record<string, unknown> | undefined) ?? undefined
+  const cell = (p: unknown): SajuPillarInput => {
+    const o = (p ?? {}) as Record<string, unknown>
+    const hs = (o.heavenlyStem ?? {}) as Record<string, unknown>
+    const eb = (o.earthlyBranch ?? {}) as Record<string, unknown>
+    return { stem: String(hs.name ?? ''), branch: String(eb.name ?? '') }
+  }
+  const out = [
+    cell(saju.yearPillar ?? pillars?.year),
+    cell(saju.monthPillar ?? pillars?.month),
+    cell(saju.dayPillar ?? pillars?.day),
+    cell(saju.timePillar ?? saju.hourPillar ?? pillars?.time),
+  ]
+  if (!out[2].stem || !out[2].branch) return null
+  return out
+}
+
+// 한글 받침 유무로 주제 조사(은/는) 선택 — "준영는"(X) → "준영은"(O).
+// 비한글(영문 등)은 '는' 기본. (KO 문장에만 사용)
+function withNeun(name: string): string {
+  if (!name) return name
+  const c = name.charCodeAt(name.length - 1)
+  if (c >= 0xac00 && c <= 0xd7a3) return name + ((c - 0xac00) % 28 !== 0 ? '은' : '는')
+  return name + '는'
+}
+
 function QuickRead({
   name,
   accent,
@@ -65,17 +98,17 @@ function QuickRead({
 }) {
   const line = generateChartSummary(saju, astro, lang)
   if (!line) return null
-  // A/B 구분은 유지 — rose/sky 칩 dark 변형 (-500/15 bg + -200 text).
+  // A/B 구분 — rose/sky 라이트 칩 (10% tint bg + 700 ink text, 종이 위 대비).
   const chipStyle =
     accent === 'rose'
-      ? { background: 'rgba(244, 63, 94, 0.15)', color: '#fecdd3' }
-      : { background: 'rgba(56, 189, 248, 0.15)', color: '#bae6fd' }
+      ? { background: 'rgba(225,29,72,0.10)', color: '#be123c' }
+      : { background: 'rgba(2,132,199,0.10)', color: '#0369a1' }
   return (
     <div
       className="rounded-2xl p-3"
       style={{
-        background: 'var(--ds-dark-surface)',
-        border: '1px solid var(--ds-dark-border)',
+        background: 'var(--ds-light-surface)',
+        border: '1px solid var(--ds-light-border)',
       }}
     >
       <span
@@ -86,27 +119,63 @@ function QuickRead({
       </span>
       <ChartReading
         text={line}
-        theme="dark"
+        theme="light"
         className="text-sm leading-relaxed"
-        style={{ color: 'var(--ds-dark-text)' }}
+        style={{ color: 'var(--ds-light-text)' }}
       />
     </div>
   )
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  // 옛 rose/sky 좌측 border 는 A/B 구분이 아니라 동양/서양 구분이었음 — 그건
-  // 헤딩 텍스트 자체가 이미 명시하므로 좌측 border 는 gold 단일로 통일.
+  // 운세차트 .secTitle 처럼 serif(Cinzel) — 섹션 헤드가 "구성된" 느낌.
   return (
     <h3
-      className="border-l-2 px-2 text-sm font-semibold"
+      className="border-l-2 px-2 text-[15px] font-semibold"
       style={{
-        borderColor: 'var(--ds-gold-on-dark)',
-        color: 'var(--ds-dark-text)',
+        borderColor: 'var(--ds-gold)',
+        color: 'var(--ds-light-text)',
+        fontFamily: 'var(--font-cinzel), Georgia, serif',
+        letterSpacing: '0.01em',
       }}
     >
       {children}
     </h3>
+  )
+}
+
+// 서브 블록 라벨 — 골드 tick + 페이드 hairline. 밋밋한 uppercase 텍스트가
+// "디버그 덤프"처럼 보이던 걸 운세차트 .subcap 처럼 designed marker 로.
+function SubLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      <span className="h-3 w-0.5 shrink-0 rounded-full" style={{ background: 'var(--ds-gold)' }} />
+      <span
+        className="text-[11px] font-bold"
+        style={{ color: 'var(--ds-gold)', letterSpacing: '0.04em' }}
+      >
+        {children}
+      </span>
+      <span
+        className="ml-1 h-px flex-1"
+        style={{ background: 'linear-gradient(90deg, var(--ds-gold), transparent)' }}
+      />
+    </div>
+  )
+}
+
+// 데이터 블록 카드 — 섹션 배경 위에 한 겹 더 얹어 layered 느낌 (운세차트 .card).
+function DataCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="rounded-xl p-3"
+      style={{
+        background: 'var(--ds-light-bg-soft, #f5f5f4)',
+        border: '1px solid var(--ds-light-border)',
+      }}
+    >
+      {children}
+    </div>
   )
 }
 
@@ -133,6 +202,45 @@ export function CompatChartModal({
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  // 계산은 서버(/api/compatibility/report)에서 — 시너스트리·사주 cross·점수
+  // 로직을 클라 번들에서 빼 엣지(IP)를 보호한다. 차트는 결과만 받아 그린다.
+  const [report, setReport] = React.useState<CompatReport | null>(null)
+  const [reportLoading, setReportLoading] = React.useState(false)
+  React.useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    setReport(null)
+    setReportLoading(true)
+    const body = {
+      astroA: unwrapAstro(person1Astro) ?? null,
+      astroB: unwrapAstro(person2Astro) ?? null,
+      pillarsA: sajuToPillars(unwrapSaju(person1Saju)),
+      pillarsB: sajuToPillars(unwrapSaju(person2Saju)),
+      lang,
+    }
+    fetch('/api/compatibility/report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Token': process.env.NEXT_PUBLIC_API_TOKEN || '',
+      },
+      body: JSON.stringify(body),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { data?: CompatReport } | null) => {
+        if (!cancelled) setReport(d?.data ?? null)
+      })
+      .catch(() => {
+        if (!cancelled) setReport(null)
+      })
+      .finally(() => {
+        if (!cancelled) setReportLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, lang])
+
   if (!open) return null
 
   const sajuA = unwrapSaju(person1Saju)
@@ -141,6 +249,38 @@ export function CompatChartModal({
   const astroB = unwrapAstro(person2Astro)
   const labelA = nameA || 'A'
   const labelB = nameB || 'B'
+  // 서버 리포트에서 — 시너스트리 뷰·일간·배우자성·밴드 (계산은 서버).
+  const synView = report?.synView ?? null
+  const dayMaster = report?.dayMaster ?? null
+  const spouseTop = report?.spouseStars ?? []
+  const ssotBand = report?.band
+  // 답 먼저 — 가장 결정적인 신호 한 줄. 일주 배우자성(가장 강한 정통 신호)이
+  // 있으면 그걸, 없으면 가장 강한 시너스트리 어스펙트를 평이한 말로.
+  const headlineReason: string | null = (() => {
+    const sp = spouseTop[0]
+    if (sp?.isDayPillar) {
+      const feeling = sp.role.match(/\(([^)]+)\)/)?.[1] ?? sp.role
+      const who = sp.from === 'A' ? labelA : labelB
+      const other = sp.from === 'A' ? labelB : labelA
+      return isKo
+        ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝으로 와요. 게다가 바로 배우자 자리에 떠 있고요.`
+        : `To ${who}, ${other} reads as a "${feeling}" partner — landing right in the spouse seat.`
+    }
+    const a0 = synView?.aspects[0]
+    if (a0) {
+      return isKo
+        ? `${labelA} ${a0.a}와 ${labelB} ${a0.b}가 ${a0.label}로 ${a0.strength} 이어져 있어요.`
+        : `${labelA}'s ${a0.a} and ${labelB}'s ${a0.b} connect in ${a0.label}, ${a0.strength}.`
+    }
+    return null
+  })()
+
+  const toneColor = (tone: SynastryTone): string =>
+    tone === 'harmony'
+      ? 'var(--ds-gold)'
+      : tone === 'tension'
+        ? '#c0564a'
+        : 'var(--ds-light-text-muted)'
 
   return (
     <div
@@ -152,11 +292,14 @@ export function CompatChartModal({
       <div
         className="chart-pop-in relative w-full max-w-2xl overflow-y-auto rounded-2xl p-6"
         style={{
-          background: 'rgba(17, 24, 39, 0.92)',
-          border: '1px solid var(--ds-gold-line)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+          // 종이 셸 — 운세차트(IntegratedReport)와 같은 paper 톤 + 미세 dot 텍스처.
+          // 궁합 상담사가 라이트(흰색)라 차트도 라이트/종이로 맞춘다.
+          background: '#f4f1ea',
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, rgba(120, 110, 90, 0.05) 1px, transparent 0)',
+          backgroundSize: '22px 22px',
+          border: '1px solid var(--ds-gold)',
+          boxShadow: '0 24px 60px rgba(40, 30, 10, 0.22)',
           maxHeight: '96dvh',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -168,8 +311,8 @@ export function CompatChartModal({
           type="button"
           onClick={onClose}
           aria-label={isKo ? '닫기' : 'Close'}
-          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-white/10"
-          style={{ color: 'var(--ds-dark-text-muted)' }}
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-black/5"
+          style={{ color: 'var(--ds-light-text-muted)' }}
         >
           <X size={18} />
         </button>
@@ -178,14 +321,14 @@ export function CompatChartModal({
           <h2
             className="text-xl font-semibold"
             style={{
-              color: 'var(--ds-dark-text)',
+              color: 'var(--ds-light-text)',
               fontFamily: 'var(--font-cinzel), Georgia, serif',
               letterSpacing: '-0.01em',
             }}
           >
             {isKo ? '궁합 차트' : 'Couple Chart'}
           </h2>
-          <p className="text-xs" style={{ color: 'var(--ds-gold-on-dark)' }}>
+          <p className="text-xs" style={{ color: 'var(--ds-gold)' }}>
             {isKo
               ? '두 사람의 사주와 네이탈을 하나로 겹쳐 비교'
               : 'Both charts overlaid for a side-by-side read'}
@@ -193,16 +336,48 @@ export function CompatChartModal({
         </div>
 
         <div className="space-y-6">
-          {/* Level 0 — ScoreBreakdown: 총합 점수 + 5 카테고리 분해.
-              사주 합/충 + 오행 보완 + 시너스트리 자동 계산. */}
+          {/* Level 0 — 히어로: verdict 밴드 + 분해 바(사주 합/충·오행 보완·
+              시너 조화/긴장). 산식이 휴리스틱이라 "N/100" 숫자는 안 박고(가짜
+              정밀 회피) 밴드 라벨 + 근거 바만. */}
           <div className="chart-rise-in" style={{ ['--i' as string]: 0 } as React.CSSProperties}>
-            <ScoreBreakdown
-              sajuA={sajuA}
-              sajuB={sajuB}
-              astroA={astroA}
-              astroB={astroB}
-              lang={lang}
-            />
+            {reportLoading && !report ? (
+              <div
+                className="flex items-center justify-center gap-2 rounded-xl py-6 text-[13px]"
+                style={{
+                  background: 'var(--ds-gold-soft-bg, rgba(160,122,60,0.08))',
+                  border: '1px solid var(--ds-light-border)',
+                  color: 'var(--ds-light-text-muted)',
+                }}
+                role="status"
+                aria-live="polite"
+              >
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                  style={{ color: 'var(--ds-gold)' }}
+                />
+                {isKo ? '두 사람의 궁합을 분석하고 있어요…' : 'Analyzing your compatibility…'}
+              </div>
+            ) : (
+              <ScoreBreakdown breakdown={ssotBand} lang={lang} variant="band" theme="light" />
+            )}
+            {/* 답 먼저 — 가장 결정적인 신호 한 줄 (밴드 바로 밑) */}
+            {headlineReason && (
+              <p
+                className="mt-2.5 px-1 text-center text-[13px] font-medium leading-relaxed"
+                style={{ color: 'var(--ds-light-text)' }}
+              >
+                {headlineReason}
+              </p>
+            )}
+            <p
+              className="mt-1.5 px-1 text-center text-[11px] leading-relaxed"
+              style={{ color: 'var(--ds-light-text-muted)' }}
+            >
+              {isKo
+                ? '이 막대는 두 사람의 사주와 별자리에서 끌어당기는 기운과 부딪히는 기운을 함께 본 거예요. 더 깊은 이야기는 상담사가 풀어드려요.'
+                : 'These bars weigh what pulls you together and what rubs — across both your Saju and stars. For the deeper read, ask the counselor.'}
+            </p>
           </div>
 
           {/* 한 줄 해석 — 두 사람 나란히 */}
@@ -216,7 +391,12 @@ export function CompatChartModal({
 
           {/* CompatLines — 두 사람 사주 8글자 사이 합/충 라인 시각화 */}
           <div className="chart-rise-in" style={{ ['--i' as string]: 2 } as React.CSSProperties}>
-            <CompatLines sajuA={sajuA} sajuB={sajuB} lang={lang} />
+            <CompatLines
+              sajuA={sajuA}
+              sajuB={sajuB}
+              relations={report?.pillarRelations ?? []}
+              lang={lang}
+            />
           </div>
 
           {/* 동양 — 오행 · 사주팔자 비교 (한 그룹으로 묶음) */}
@@ -225,51 +405,122 @@ export function CompatChartModal({
             style={
               {
                 ['--i' as string]: 1,
-                background: 'var(--ds-dark-surface)',
-                border: '1px solid var(--ds-dark-border)',
+                background: 'var(--ds-light-surface)',
+                border: '1px solid var(--ds-light-border)',
               } as React.CSSProperties
             }
           >
             <SectionTitle>
-              {isKo ? '동양 — 사주팔자 · 오행 비교' : 'Eastern — Saju & Five Elements'}
+              {isKo ? '동양 — 사주·오행 겹쳐 보기' : 'Eastern — Saju & Five Elements'}
             </SectionTitle>
+            <p
+              className="px-2 text-[13px] leading-relaxed"
+              style={{ color: 'var(--ds-light-text)' }}
+            >
+              {isKo
+                ? '두 사람의 여덟 글자가 만났을 때, 어디서 끌어당기고(합), 어디서 부딪히고(충·형), 한쪽에 부족한 기운을 상대가 채워주는지를 봐요.'
+                : "Where your eight characters meet — where they pull together, where they clash, and whether one's missing energy is what the other brings."}
+            </p>
 
-            <div className="space-y-1.5">
-              <div
-                className="px-1 text-[11px] font-medium uppercase tracking-wider"
-                style={{ color: 'var(--ds-gold-on-dark)' }}
+            {/* 사주 궁합 핵심 — 상담사와 같은 computeSajuSynastryFacts 결과.
+                일간 관계 + 배우자성(가장 강한 정통 신호). */}
+            {dayMaster && (
+              <DataCard>
+                <SubLabel>{isKo ? '두 사람의 본질(일간)' : 'Your core natures'}</SubLabel>
+                <p
+                  className="px-1 text-[13px] leading-relaxed"
+                  style={{ color: 'var(--ds-light-text)' }}
+                >
+                  {labelA} <b>{dayMaster.aStem}</b>({dayMaster.aEl}) ↔ {labelB}{' '}
+                  <b>{dayMaster.bStem}</b>({dayMaster.bEl}) — {dayMaster.relationLabel}
+                </p>
+                {spouseTop.length > 0 && (
+                  <ul className="mt-2 space-y-1.5">
+                    {spouseTop.map((s) => {
+                      const feeling = s.role.match(/\(([^)]+)\)/)?.[1] ?? s.role
+                      const who = s.from === 'A' ? labelA : labelB
+                      const other = s.from === 'A' ? labelB : labelA
+                      return (
+                        <li
+                          key={`spouse-${s.from}-${s.pillar}-${s.source}-${s.char}`}
+                          className="flex items-center gap-2 rounded-lg px-2.5 py-1.5"
+                          style={{ background: 'rgba(0,0,0,0.03)' }}
+                        >
+                          {s.isDayPillar && (
+                            <span
+                              className="shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold"
+                              style={{
+                                background: 'rgba(212,175,106,0.15)',
+                                color: 'var(--ds-gold)',
+                              }}
+                            >
+                              {isKo ? '배우자 자리' : 'spouse seat'}
+                            </span>
+                          )}
+                          <span
+                            className="text-[12.5px] leading-snug"
+                            style={{ color: 'var(--ds-light-text)' }}
+                          >
+                            {isKo
+                              ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝${s.isDayPillar ? '이고, 바로 배우자 자리에 떠요' : '으로 다가와요'}`
+                              : `To ${who}, ${other} reads as a “${feeling}” partner${s.isDayPillar ? ' — right in the spouse seat' : ''}`}
+                            <span
+                              className="ml-1 text-[11px]"
+                              style={{ color: 'var(--ds-light-text-muted)' }}
+                            >
+                              ({s.sibsin})
+                            </span>
+                          </span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </DataCard>
+            )}
+
+            {/* 솔로 상세(각자 원국)는 관계 신호보다 아래 + 기본 접힘 — 위계상
+                "둘 사이"가 먼저, 각자 차트는 펼쳐 보는 근거 자료. */}
+            <details className="group">
+              <summary
+                className="flex cursor-pointer list-none items-center gap-2 py-1 text-[12px] font-semibold [&::-webkit-details-marker]:hidden"
+                style={{ color: 'var(--ds-gold)' }}
               >
-                {isKo ? '사주팔자 비교' : 'Saju (4 Pillars) Comparison'}
-              </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <span
+                  aria-hidden="true"
+                  className="transition-transform group-open:rotate-90"
+                  style={{ color: 'var(--ds-gold)' }}
+                >
+                  ▸
+                </span>
+                {isKo ? '각자의 사주 원국 펼쳐 보기' : 'Show each chart (four pillars)'}
+              </summary>
+              <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <span
                     className="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
-                    style={{ background: 'rgba(244, 63, 94, 0.15)', color: '#fecdd3' }}
+                    style={{ background: 'rgba(225,29,72,0.10)', color: '#be123c' }}
                   >
                     {labelA}
                   </span>
-                  <SajuChart saju={sajuA as never} lang={lang} theme="dark" />
+                  <SajuChart saju={sajuA as never} lang={lang} theme="light" />
                 </div>
                 <div className="space-y-1.5">
                   <span
                     className="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
-                    style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#bae6fd' }}
+                    style={{ background: 'rgba(2,132,199,0.10)', color: '#0369a1' }}
                   >
                     {labelB}
                   </span>
-                  <SajuChart saju={sajuB as never} lang={lang} theme="dark" />
+                  <SajuChart saju={sajuB as never} lang={lang} theme="light" />
                 </div>
               </div>
-            </div>
+            </details>
 
-            <div className="space-y-1.5">
-              <div
-                className="px-1 text-[11px] font-medium uppercase tracking-wider"
-                style={{ color: 'var(--ds-gold-on-dark)' }}
-              >
-                {isKo ? '오행 비교' : 'Five-Element Comparison'}
-              </div>
+            <div>
+              <SubLabel>
+                {isKo ? '오행 — 서로 채워주는 결' : 'Five elements — who fills whom'}
+              </SubLabel>
               <CompatRadarOverlay
                 sajuA={sajuA}
                 sajuB={sajuB}
@@ -286,14 +537,22 @@ export function CompatChartModal({
             style={
               {
                 ['--i' as string]: 2,
-                background: 'var(--ds-dark-surface)',
-                border: '1px solid var(--ds-dark-border)',
+                background: 'var(--ds-light-surface)',
+                border: '1px solid var(--ds-light-border)',
               } as React.CSSProperties
             }
           >
             <SectionTitle>
-              {isKo ? '서양 — 시너스트리 (네이탈 겹침)' : 'Synastry — Natal Overlay'}
+              {isKo ? '서양 — 별자리 겹쳐 보기' : 'Western — your charts overlaid'}
             </SectionTitle>
+            <p
+              className="px-2 text-[13px] leading-relaxed"
+              style={{ color: 'var(--ds-light-text)' }}
+            >
+              {isKo
+                ? '두 사람의 별을 한 자리에 겹쳐, 어디서 끌리고 어디서 부딪히는지, 또 누가 상대의 어느 삶의 영역에 들어오는지 봐요.'
+                : "Both your charts on one wheel — where you're drawn together, where you rub, and whose planets enter the other's life areas."}
+            </p>
             <CompatNatalOverlay
               astroA={astroA as never}
               astroB={astroB as never}
@@ -301,6 +560,94 @@ export function CompatChartModal({
               nameB={labelB}
               lang={lang}
             />
+
+            {/* 핵심 시너스트리 — 상담사와 동일한 calculateSynastry 결과(어스펙트별
+                orb·가중). 차트 숫자 = 상담사가 추론한 그 값. */}
+            {synView && synView.aspects.length > 0 && (
+              <DataCard>
+                <SubLabel>
+                  {isKo ? '별자리 — 끌림과 마찰' : 'Your stars — pull & friction'}
+                </SubLabel>
+                <ul className="space-y-1.5">
+                  {synView.aspects.map((asp) => (
+                    <li
+                      key={`asp-${asp.a}-${asp.b}-${asp.orb}`}
+                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[12.5px]"
+                      style={{
+                        background: 'var(--ds-light-bg-soft, #f5f5f4)',
+                        borderLeft: `2px solid ${toneColor(asp.tone)}`,
+                      }}
+                    >
+                      <span className="flex-1" style={{ color: 'var(--ds-light-text)' }}>
+                        <b style={{ color: '#be123c' }}>
+                          {labelA} {asp.a}
+                        </b>
+                        <span className="mx-1.5" style={{ color: toneColor(asp.tone) }}>
+                          {asp.label}
+                        </span>
+                        <b style={{ color: '#0369a1' }}>
+                          {labelB} {asp.b}
+                        </b>
+                      </span>
+                      <span
+                        className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px]"
+                        style={{
+                          background: 'rgba(0,0,0,0.05)',
+                          color: 'var(--ds-light-text-muted)',
+                        }}
+                        title={`${asp.orb}°`}
+                      >
+                        {asp.strength}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </DataCard>
+            )}
+
+            {/* 하우스 오버레이 — "A의 금성이 B의 '동반자·결혼' 자리에" 정통 신호 */}
+            {synView && (synView.overlaysAtoB.length > 0 || synView.overlaysBtoA.length > 0) && (
+              <DataCard>
+                <SubLabel>
+                  {isKo ? '누가 상대의 어느 자리에' : 'Whose planet enters whose area'}
+                </SubLabel>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {[
+                    { rows: synView.overlaysAtoB, from: labelA, to: labelB, accent: '#be123c' },
+                    { rows: synView.overlaysBtoA, from: labelB, to: labelA, accent: '#0369a1' },
+                  ]
+                    .filter((col) => col.rows.length > 0)
+                    .map((col) => (
+                      <div key={col.from}>
+                        <div
+                          className="mb-1.5 text-[10px] font-semibold"
+                          style={{ color: col.accent }}
+                        >
+                          {col.from} → {col.to}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {col.rows.map((o) => (
+                            <span
+                              key={`${col.from}-${o.planet}-${o.house}`}
+                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px]"
+                              style={{
+                                background: 'rgba(0,0,0,0.04)',
+                                border: '1px solid var(--ds-light-border)',
+                                color: 'var(--ds-light-text)',
+                              }}
+                            >
+                              <b>{o.planet}</b>
+                              <span style={{ color: 'var(--ds-gold)' }}>
+                                {o.meaning || `${o.house}H`}
+                              </span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </DataCard>
+            )}
           </section>
         </div>
       </div>
