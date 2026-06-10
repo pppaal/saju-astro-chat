@@ -1,0 +1,412 @@
+.summary {
+  margin: 6px 0 26px;
+}
+
+.hero {
+  margin-bottom: 20px;
+}
+.headline {
+  font-family: var(--dp-serif);
+  font-size: 30px;
+  line-height: 1.32;
+  font-weight: 600;
+  color: var(--dp-ink);
+  margin: 0 0 10px;
+}
+.sub {
+  font-family: var(--dp-serif);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--dp-ink-mute);
+  margin: 0;
+  max-width: 660px;
+}
+.spark {
+  display: block;
+  margin-top: 14px;
+  opacity: 0.9;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.card {
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r);
+  padding: 14px 16px;
+  background: var(--dp-panel);
+}
+.cardLabel {
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--dp-ink);
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cardIcon {
+  font-size: 15px;
+}
+.cardBody {
+  font-family: var(--dp-serif);
+  font-size: 14.5px;
+  line-height: 1.62;
+  color: var(--dp-ink-mute);
+  margin: 0;
+}
+
+.stages {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.stage {
+  border: 1px solid var(--dp-line-soft);
+  border-radius: var(--dp-r);
+  padding: 10px 12px;
+}
+.stageNow {
+  border-color: var(--dp-now-ring);
+  background: var(--dp-panel);
+}
+.stageLabel {
+  font-family: var(--dp-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dp-ink);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.nowBadge {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--dp-accent);
+  color: var(--dp-bg);
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.stageTone {
+  font-family: var(--dp-serif);
+  font-size: 12.5px;
+  line-height: 1.42;
+  color: var(--dp-ink-dim);
+}
+
+.nextPoint {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-left: 3px solid var(--dp-accent);
+  background: var(--dp-panel);
+  border-radius: 0 var(--dp-r) var(--dp-r) 0;
+}
+.nextWhen {
+  font-family: var(--dp-sans);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--dp-ink);
+  white-space: nowrap;
+}
+.nextLabel {
+  font-family: var(--dp-serif);
+  font-size: 14px;
+  color: var(--dp-ink-mute);
+}
+
+/* ── 자세히 보기 (전문가용 상세를 접는 아코디언) — 모든 tier 공용 ── */
+.details {
+  margin-top: 10px;
+}
+.detailsSummary {
+  cursor: pointer;
+  font-family: var(--dp-sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--dp-ink-mute);
+  padding: 13px 0;
+  border-top: 1px solid var(--dp-line);
+  list-style: none;
+  user-select: none;
+}
+.detailsSummary::-webkit-details-marker {
+  display: none;
+}
+.detailsSummary::before {
+  content: '▸ ';
+  color: var(--dp-ink-dim);
+}
+.details[open] > .detailsSummary::before {
+  content: '▾ ';
+}
+
+@media (max-width: 760px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  .stages {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .headline {
+    font-size: 25px;
+  }
+}
+
+/* ── 과거·미래 교차 타임라인 (사주 대운 × 점성) ── */
+.timeline {
+  margin-top: 20px;
+  padding: 16px 16px 14px;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r);
+  background: var(--dp-panel);
+}
+.tlHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.tlTitle {
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dp-ink);
+}
+.tlLegend {
+  font-family: var(--dp-sans);
+  font-size: 11px;
+  color: var(--dp-ink-dim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tlLegend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+  margin: 0 1px 0 6px;
+}
+.tlSaju {
+  background: var(--dp-ember);
+}
+.tlAstro {
+  background: var(--dp-violet);
+}
+.tlAxis {
+  position: relative;
+  height: 30px;
+  margin: 0 6px 10px;
+}
+.tlLine {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--dp-line);
+}
+.tlDot {
+  position: absolute;
+  top: 9px;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  border: 2px solid var(--dp-panel);
+}
+.tlDotSaju {
+  background: var(--dp-ember);
+}
+.tlDotAstro {
+  background: var(--dp-violet);
+}
+.tlPast {
+  opacity: 0.42;
+}
+.tlNow {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--dp-accent);
+  transform: translateX(-50%);
+}
+.tlNowTag {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--dp-sans);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--dp-bg);
+  background: var(--dp-accent);
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.tlList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.tlItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--dp-serif);
+  font-size: 13.5px;
+  color: var(--dp-ink-mute);
+}
+.tlYear {
+  font-family: var(--dp-sans);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dp-ink);
+  width: 38px;
+  flex: none;
+}
+.tlPip {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex: none;
+}
+.tlText {
+  line-height: 1.4;
+}
+
+/* ── 띠(구간) 교차 차트 ── */
+.tlChart {
+  position: relative;
+  padding-top: 18px;
+  margin: 0 4px;
+}
+.tlNowCol {
+  position: absolute;
+  top: 16px;
+  bottom: 0;
+  width: 0;
+  transform: translateX(-50%);
+  border-left: 2px dashed var(--dp-accent);
+  opacity: 0.45;
+  z-index: 1;
+}
+.tlNowLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  z-index: 4;
+  pointer-events: none;
+}
+.tlNowLine .tlNowTag {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.tlEvents {
+  position: relative;
+  height: 12px;
+  margin-bottom: 5px;
+  z-index: 3;
+}
+.tlEvDot {
+  position: absolute;
+  top: 2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  border: 1.5px solid var(--dp-panel);
+}
+.tlLane {
+  margin-bottom: 9px;
+  position: relative;
+  z-index: 2;
+}
+.tlLaneLabel {
+  display: block;
+  font-family: var(--dp-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--dp-ink-dim);
+  margin-bottom: 4px;
+}
+.tlLaneTrack {
+  position: relative;
+  height: 34px;
+}
+.tlBand {
+  position: absolute;
+  top: 0;
+  height: 34px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  overflow: hidden;
+  border: 1px solid transparent;
+}
+.tlBandSaju {
+  background: color-mix(in srgb, var(--dp-ember) 15%, transparent);
+  border-color: color-mix(in srgb, var(--dp-ember) 34%, transparent);
+}
+.tlBandAstro {
+  background: color-mix(in srgb, var(--dp-violet) 15%, transparent);
+  border-color: color-mix(in srgb, var(--dp-violet) 34%, transparent);
+}
+.tlBandNow.tlBandSaju {
+  background: color-mix(in srgb, var(--dp-ember) 30%, transparent);
+  border-color: var(--dp-ember);
+  border-width: 2px;
+}
+.tlBandNow.tlBandAstro {
+  background: color-mix(in srgb, var(--dp-violet) 30%, transparent);
+  border-color: var(--dp-violet);
+  border-width: 2px;
+}
+.tlBandLabel {
+  font-family: var(--dp-serif-ko);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dp-ink);
+  white-space: nowrap;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.tlBandLabel em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--dp-ink-dim);
+}
+.tlTicks {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 4px 12px;
+  font-family: var(--dp-sans);
+  font-size: 10.5px;
+  color: var(--dp-ink-faint);
+}
+.tlTickNow {
+  color: var(--dp-accent);
+  font-weight: 700;
+}
