@@ -28,6 +28,9 @@ import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
+import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
+import { getMonthPillarForDate } from '@/lib/saju/datePillars'
+import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 
 import {
   toUser,
@@ -116,10 +119,13 @@ export default async function DestinypalPage() {
   }
   const BIRTH_YEAR = Number(profile.birthDate!.split('-')[0])
 
-  // 현재 연·월·일 — 서버 시각 기준. preview 의 TARGET_YEAR/MONTH/DAY 고정값 대체.
+  // 현재 연·월·일 — 전부 UTC 기준으로 통일. 엔진 셀 버킷팅이 UTC 이고
+  // targetDayIso 도 toISOString(UTC)이라, TARGET_YEAR/MONTH 만 서버 로컬이면
+  // 비-UTC 서버의 월·연 경계에서 month grid 와 focus 일이 어긋난다. 셋 다 UTC.
   const now = new Date()
-  const TARGET_YEAR = now.getFullYear()
-  const TARGET_MONTH = now.getMonth() + 1
+  const TARGET_YEAR = now.getUTCFullYear()
+  const TARGET_MONTH = now.getUTCMonth() + 1
+  const TARGET_DAY = now.getUTCDate()
   const targetDayIso = now.toISOString().slice(0, 10)
 
   // ─── 4) NatalContext (사주 + 점성 본명) ───────────────────────────────
@@ -148,6 +154,19 @@ export default async function DestinypalPage() {
 
   // 층별 점수 — 일/시는 일진, 월은 월운, 년은 세운, 10년은 대운 신호로만.
   const layered = deriveLayeredScores(cells)
+
+  // ─── 7.5) iljin(일진) / woolun(월운) 60갑자 — preview 와 동일 (KASI 절기 룩업) ──
+  // toDay/toMonth 에 stem/branch 를 넘겨야 adapter 가 한자/한글/로마자 + 십신을
+  // 채운다. 안 넘기면 일주·월운·12운성이 빈칸으로 나간다(직전 라이브 버그).
+  const [focusY, focusM, focusD] = targetDayIso.split('-').map(Number)
+  const dayIdx = computeDayPillarIndices(focusY, focusM, focusD)
+  const iljinStem = STEM_NAMES[dayIdx.stemIndex]
+  const iljinBranch = BRANCH_NAMES[dayIdx.branchIndex]
+  const woolunRef = getMonthPillarForDate(
+    new Date(`${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}-15T00:00:00`)
+  )
+  const woolunStem = woolunRef.stem
+  const woolunBranch = woolunRef.branch
 
   // ─── 8) adapter 호출 (5 tier prop 자동 어셈블 — preview 와 동일) ──────
   const birthDisplay = formatBirthLine(profile.birthDate!, profile.birthTime!)
@@ -371,11 +390,28 @@ export default async function DestinypalPage() {
     monthlyScores: yearAdapter.monthlyScores,
   }
 
+  // 월 narrative — 타고난 결(lifetimeFlow.intro) + 그 달 상위 topReasons (preview 동일).
+  const monthNarrative: Array<{ tag: string; body: string }> = []
+  if (lifetimeFlow?.intro) {
+    monthNarrative.push({ tag: '타고난 결', body: lifetimeFlow.intro })
+  }
+  const monthTopReasons = monthCells
+    .flatMap((c) => (c.topReasons ?? []).map((r) => ({ score: c.derivedScore, body: r })))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+  for (const r of monthTopReasons) {
+    monthNarrative.push({ tag: '이 달의 결', body: r.body })
+  }
   const { month: monthAdapter, calendar } = toMonth({
     ym: monthPrefix,
     label: `${TARGET_YEAR}년 ${TARGET_MONTH}월`,
     cells: monthCells,
+    woolunStem,
+    woolunBranch,
+    narrative: monthNarrative,
     dayScores: layered.daily,
+    // 현재월을 보여주므로 펼침 기준일은 '오늘'. 안 주면 최고점수일로 펼쳐졌다.
+    focusDay: TARGET_DAY,
   })
   // 이달의 큰 날 — convergence keyDays(윈도우+신뢰도). preview/page 와 동일 wiring.
   const monthKeyDays = deriveConvergence(monthCells, 5, 'ko').keyDays.map((k) => ({
@@ -421,11 +457,116 @@ export default async function DestinypalPage() {
   const dayAdapter = toDay({
     cell: dayCell,
     natal,
+    iljinStem,
+    iljinBranch,
     favorScore: layered.daily.get(dayCell.datetime.slice(0, 10))?.score,
   })
   const advanced = natal.saju.analyses
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
+  // ── 일진 cell.signals → DestinySignal[] 풀세트 projection (preview 동일) ──
+  // adapter 의 DestinypalDaySignal 은 id/weight/layer/source 를 버리는데 DayTier 의
+  // signal stream + FixedStarRow + ArabicLotRow 정렬·필터에 모두 필요. 직전 라이브는
+  // 이 투영을 빼고 signals:[] 를 박아 Day tier 가 통째로 비어 나갔다.
+  type DSig = DestinyDay['allSignals'][number]
+  const SIG_KIND_TO_CAT: Record<string, string> = {
+    shinsal: 'saju/shinsal',
+    hyeongchung: 'saju/hyeongchung',
+    'pillar-sibsin': 'saju/pillar-sibsin',
+    'tonggeun-shift': 'saju/tonggeun-shift',
+    'saju-pattern': 'saju/saju-pattern',
+    jijanggan: 'saju/jijanggan',
+    'geokguk-status': 'saju/geokguk-status',
+    gongmang: 'saju/gongmang',
+    'applied-pattern': 'saju/applied-pattern',
+    transit: 'astro/transit',
+    eclipse: 'astro/eclipse',
+    progression: 'astro/progression',
+    'progressed-moon': 'astro/progressed-moon',
+    'solar-return': 'astro/solar-return',
+    'lunar-return': 'astro/lunar-return',
+    profection: 'astro/profection',
+    'zodiacal-releasing': 'astro/zodiacal-releasing',
+    lifecycle: 'astro/lifecycle',
+    electional: 'astro/electional',
+    'moon-phase': 'astro/moon-phase',
+    'void-of-course': 'astro/void-of-course',
+    'fixed-star': 'astro/fixed-star',
+    'arabic-part': 'astro/arabic-part',
+    'house-transit': 'astro/house-transit',
+    'angle-contact': 'astro/angle-contact',
+    midpoint: 'astro/midpoint',
+    asteroid: 'astro/asteroid',
+    'solar-arc': 'astro/solar-arc',
+    draconic: 'astro/draconic',
+    harmonic: 'astro/harmonic',
+    'cross-activation': 'cross/activation',
+  }
+  const allDaySignals: DSig[] = dayCell.signals.map((s) => {
+    const base = {
+      id: s.id,
+      cat: SIG_KIND_TO_CAT[s.kind] ?? `${s.source}/${s.kind}`,
+      label: s.name,
+      polarity: s.polarity,
+      weight: s.weight,
+      kind: s.kind,
+      layer: s.layer,
+    }
+    if (s.source === 'astro') {
+      const planets = s.evidence?.planets ?? []
+      return {
+        ...base,
+        source: 'astro' as const,
+        body: planets[0],
+        aspect: s.evidence?.aspectType,
+        target: planets[1] ? `본명 ${planets[1]}` : undefined,
+      }
+    }
+    return { ...base, source: 'saju' as const }
+  }) as DSig[]
+  const dayTransits = allDaySignals.filter((s) => s.kind === 'transit') as DestinyDay['transits']
+  const daySajuSignals = allDaySignals.filter(
+    (s) => s.kind !== 'transit' && s.kind !== 'cross-activation'
+  ) as DestinyDay['signals']
+  const dayCrossSignals = allDaySignals.filter(
+    (s) => s.kind === 'cross-activation'
+  ) as DestinyDay['crossSignals']
+  const dayAppliedPatterns: DestinyDay['appliedPatterns'] = dayCell.signals
+    .filter((s) => s.kind === 'applied-pattern')
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      korean:
+        typeof s.evidence?.detail?.korean === 'string'
+          ? (s.evidence.detail.korean as string)
+          : s.name,
+      polarity: s.polarity,
+      weight: s.weight,
+      activeAxes: Array.isArray(s.evidence?.detail?.activeAxes)
+        ? (s.evidence!.detail!.activeAxes as string[])
+        : [],
+      rule:
+        typeof s.evidence?.detail?.rule === 'string' ? (s.evidence!.detail!.rule as string) : '',
+    }))
+  const dayCrossActivations: DestinyDay['crossActivations'] = dayCell.signals
+    .filter((s) => s.kind === 'cross-activation')
+    .map((s) => ({
+      id: s.id,
+      sajuSide:
+        typeof s.evidence?.detail?.sajuName === 'string'
+          ? (s.evidence.detail.sajuName as string)
+          : '',
+      astroSide:
+        typeof s.evidence?.detail?.astroName === 'string'
+          ? (s.evidence.detail.astroName as string)
+          : '',
+      meaning:
+        typeof s.evidence?.detail?.meaning === 'string'
+          ? (s.evidence.detail.meaning as string)
+          : '',
+      polarity: s.polarity,
+      weight: s.weight,
+    }))
   const day: DestinyDay = {
     date: dayAdapter.date,
     dateKo: dayAdapter.dateKo,
@@ -434,10 +575,10 @@ export default async function DestinypalPage() {
     score: dayAdapter.score,
     oneLine: dayAdapter.oneLine,
     totalSignals: dayAdapter.totalSignals,
-    signals: [],
-    transits: [],
-    crossSignals: [],
-    allSignals: [],
+    signals: daySajuSignals,
+    transits: dayTransits,
+    crossSignals: dayCrossSignals,
+    allSignals: allDaySignals,
     jijanggan: dayAdapter.jijanggan,
     geokgukStatus: {
       name: geokgukName,
@@ -451,8 +592,8 @@ export default async function DestinypalPage() {
       activeAxes: dayAdapter.gongmang.activeAxes,
       note: dayAdapter.gongmang.note,
     },
-    appliedPatterns: [],
-    crossActivations: [],
+    appliedPatterns: dayAppliedPatterns,
+    crossActivations: dayCrossActivations,
     shinsalActive: dayAdapter.shinsalActive,
     narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,

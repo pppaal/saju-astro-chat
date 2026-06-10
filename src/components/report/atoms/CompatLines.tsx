@@ -133,12 +133,12 @@ const LINE_STYLE: Record<
   LineKind,
   { stroke: string; width: number; dash?: string; label: string }
 > = {
-  stemHap: { stroke: 'var(--ds-gold-on-dark)', width: 2, label: '천간합' },
+  stemHap: { stroke: 'var(--ds-gold)', width: 2, label: '천간합' },
   stemChung: { stroke: '#f87171', width: 1.5, dash: '4 3', label: '천간충' },
-  branchYukhap: { stroke: '#34d399', width: 1.5, label: '지지육합' },
+  branchYukhap: { stroke: '#059669', width: 1.5, label: '지지육합' },
   branchSamhap: { stroke: '#a78bfa', width: 1.5, label: '지지삼합' },
   branchChung: { stroke: '#f87171', width: 1.2, dash: '4 3', label: '지지충' },
-  wonjin: { stroke: '#fbbf24', width: 1, dash: '2 2', label: '원진' },
+  wonjin: { stroke: '#d97706', width: 1, dash: '2 2', label: '원진' },
 }
 
 const LINE_STYLE_EN: Record<LineKind, string> = {
@@ -372,14 +372,14 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
         className="flex h-10 items-center justify-center rounded-md border text-center"
         style={{
           borderColor: 'rgba(212, 181, 114, 0.3)',
-          background: 'rgba(20, 16, 32, 0.55)',
+          background: 'var(--ds-light-bg-soft, #f5f5f4)',
         }}
       >
         <div className="flex flex-col items-center leading-tight">
           <span className="text-[9px] opacity-60">
             {side} {label}
           </span>
-          <span className="text-sm font-semibold" style={{ color: 'var(--ds-gold-on-dark)' }}>
+          <span className="text-sm font-semibold" style={{ color: 'var(--ds-gold)' }}>
             {(p.stem ?? '·') + (p.branch ?? '·')}
           </span>
         </div>
@@ -472,7 +472,7 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
                   left: `${geom.mid.x}px`,
                   top: `${geom.mid.y}px`,
                   transform: 'translate(-50%, -50%)',
-                  background: 'rgba(20, 16, 32, 0.85)',
+                  background: '#ffffff',
                   border: `1px solid ${LINE_STYLE[ln.kind].stroke}`,
                   color: LINE_STYLE[ln.kind].stroke,
                 }}
@@ -490,14 +490,14 @@ export function CompatLines({ sajuA, sajuB, lang = 'ko', className }: CompatLine
                     className="pointer-events-none absolute left-1/2 top-full z-50 mt-1 w-max max-w-[220px] -translate-x-1/2
                       rounded-md px-2 py-1.5 text-[10px] font-normal leading-snug"
                     style={{
-                      background: 'rgba(20, 16, 32, 0.96)',
-                      color: 'rgba(245, 247, 251, 0.92)',
+                      background: '#ffffff',
+                      color: 'var(--ds-light-text)',
                       border: '1px solid rgba(212, 181, 114, 0.4)',
                       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
                     }}
                     role="tooltip"
                   >
-                    <span style={{ color: 'var(--ds-gold-on-dark)', fontWeight: 600 }}>
+                    <span style={{ color: 'var(--ds-gold)', fontWeight: 600 }}>
                       {ln.fromChar}
                       {ln.toChar} {label}
                     </span>
