@@ -103,7 +103,7 @@ function shortLabel(s: string): string {
 }
 
 function Timeline({ data }: { data: NonNullable<TierSummaryProps['timeline']> }) {
-  const { startYear, endYear, nowYear, nowLabel, lanes, events = [], crossings = [] } = data
+  const { startYear, endYear, nowYear, nowLabel, events = [], crossings = [] } = data
   const span = endYear - startYear || 1
   const pos = (y: number) => Math.max(0, Math.min(100, ((y - startYear) / span) * 100))
   const nowPct = pos(nowYear)
@@ -117,73 +117,68 @@ function Timeline({ data }: { data: NonNullable<TierSummaryProps['timeline']> })
         </span>
       </div>
 
-      <div className={styles.tlChart}>
-        {/* 교차 구간 — 사주·점성이 같은 시기에 겹치는 구간을 세로 띠로 강조 */}
+      <div className={styles.tlOne}>
+        {/* 교차 구간 — 사주·점성이 같은 시기에 겹치는 구간 강조 */}
         {crossings.map((c, i) => {
           const l = pos(Math.max(c.startYear, startYear))
-          const w = Math.max(pos(Math.min(c.endYear, endYear)) - l, 1.8)
+          const w = Math.max(pos(Math.min(c.endYear, endYear)) - l, 2)
           return (
             <div
               key={`x-${i}`}
-              className={styles.tlCross}
+              className={styles.tlCross2}
               style={{ left: `${l}%`, width: `${w}%` }}
               title={c.label ?? `${c.startYear}–${c.endYear} 교차`}
             >
-              <span className={styles.tlCrossTag}>✦ 교차</span>
+              <span className={styles.tlCrossTag2}>✦ 교차</span>
             </div>
           )
         })}
 
-        {/* "지금" 이 가로지르는 교차 컬럼 + 선 */}
-        <div className={styles.tlNowCol} style={{ left: `${nowPct}%` }} />
-        <div className={styles.tlNowLine} style={{ left: `${nowPct}%` }}>
+        {/* 사주 — 선 위 (글자칩) */}
+        {sortedEvents
+          .filter((e) => e.system === 'saju')
+          .map((e, i) => (
+            <div
+              key={`s-${i}`}
+              className={`${styles.tlMarkTop} ${i % 2 ? styles.tlFar : ''} ${
+                e.year < nowYear ? styles.tlPast : ''
+              }`}
+              style={{ left: `${pos(e.year)}%` }}
+              title={`${e.year} · ${e.label}`}
+            >
+              <span className={`${styles.tlChip} ${styles.tlChipSaju}`}>
+                <b>{e.year}</b> {shortLabel(e.label)}
+              </span>
+              <span className={styles.tlStem} />
+              <span className={`${styles.tlNode} ${styles.tlDotSaju}`} />
+            </div>
+          ))}
+
+        {/* 중심선 + 지금 */}
+        <div className={styles.tlSpine} />
+        <div className={styles.tlNow2} style={{ left: `${nowPct}%` }}>
           <span className={styles.tlNowTag}>{nowLabel ?? '지금'}</span>
         </div>
 
-        {/* 점 이벤트(회귀) 마커 — 레인 위 */}
-        {sortedEvents.length > 0 ? (
-          <div className={styles.tlEvents}>
-            {sortedEvents.map((e, i) => (
-              <span
-                key={i}
-                className={`${styles.tlEvDot} ${
-                  e.system === 'saju' ? styles.tlDotSaju : styles.tlDotAstro
-                } ${e.year < nowYear ? styles.tlPast : ''}`}
-                style={{ left: `${pos(e.year)}%` }}
-                title={`${e.year} · ${e.label}`}
-              />
-            ))}
-          </div>
-        ) : null}
-
-        {/* 레인별 구간(띠) */}
-        {lanes.map((lane, li) => (
-          <div className={styles.tlLane} key={li}>
-            <span className={styles.tlLaneLabel}>{lane.label}</span>
-            <div className={styles.tlLaneTrack}>
-              {lane.bands.map((b, bi) => {
-                const l = pos(Math.max(b.startYear, startYear))
-                const w = pos(Math.min(b.endYear, endYear)) - l
-                if (w <= 0) return null
-                return (
-                  <div
-                    key={bi}
-                    className={`${styles.tlBand} ${
-                      lane.system === 'saju' ? styles.tlBandSaju : styles.tlBandAstro
-                    } ${b.now ? styles.tlBandNow : ''}`}
-                    style={{ left: `${l}%`, width: `${w}%` }}
-                    title={`${b.label}${b.sub ? ' · ' + b.sub : ''} (${b.startYear}–${b.endYear})`}
-                  >
-                    <span className={styles.tlBandLabel}>
-                      {b.label}
-                      {b.sub ? <em>{b.sub}</em> : null}
-                    </span>
-                  </div>
-                )
-              })}
+        {/* 점성 — 선 아래 (글자칩) */}
+        {sortedEvents
+          .filter((e) => e.system === 'astro')
+          .map((e, i) => (
+            <div
+              key={`a-${i}`}
+              className={`${styles.tlMarkBot} ${i % 2 ? styles.tlFar : ''} ${
+                e.year < nowYear ? styles.tlPast : ''
+              }`}
+              style={{ left: `${pos(e.year)}%` }}
+              title={`${e.year} · ${e.label}`}
+            >
+              <span className={`${styles.tlNode} ${styles.tlDotAstro}`} />
+              <span className={styles.tlStem} />
+              <span className={`${styles.tlChip} ${styles.tlChipAstro}`}>
+                <b>{e.year}</b> {shortLabel(e.label)}
+              </span>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       <div className={styles.tlTicks}>
@@ -191,22 +186,6 @@ function Timeline({ data }: { data: NonNullable<TierSummaryProps['timeline']> })
         <span className={styles.tlTickNow}>{nowYear} 지금</span>
         <span>{endYear}</span>
       </div>
-
-      {sortedEvents.length > 0 ? (
-        <ul className={styles.tlList}>
-          {sortedEvents.map((e, i) => (
-            <li key={i} className={`${styles.tlItem} ${e.year < nowYear ? styles.tlPast : ''}`}>
-              <span className={styles.tlYear}>{e.year}</span>
-              <span
-                className={`${styles.tlPip} ${e.system === 'saju' ? styles.tlDotSaju : styles.tlDotAstro}`}
-              />
-              <span className={styles.tlText}>
-                {e.isNow ? <b>{shortLabel(e.label)}</b> : shortLabel(e.label)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
     </div>
   )
 }
