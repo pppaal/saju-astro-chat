@@ -253,7 +253,16 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   // 보강 #7 — wheel pivotal 배지.
   const wheelPivotal = readWheelPivotal(year)
 
-  // ── 12달 흐름 리스트 — 월별 점수를 좋음/평이/주의로. ──
+  // ── 올해 사주 × 점성 교차 — 월 구간별 진짜 교차 (엔진 cross-activation). ──
+  const toneTag = (t: 'good' | 'caution' | 'neutral') =>
+    t === 'good' ? '길' : t === 'caution' ? '주의' : '중립'
+  const yearCrossItems = (year.crossings ?? []).map((c) => ({
+    when: c.when,
+    title: `${c.title} · ${toneTag(c.tone)}`,
+    detail: c.detail,
+  }))
+
+  // ── 12달 흐름 리스트 — 월별 점수를 좋음/평이/주의로 (overview, 상세 안). ──
   const yearBand = (s: number) => (s >= 60 ? '좋은 달' : s >= 40 ? '평이한 달' : '조심할 달')
   const yearItems = (year.monthlyScores ?? []).map((m) => ({
     when: `${m.month}월`,
@@ -271,11 +280,20 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       <h1 className={styles.display}>올해의 흐름</h1>
       <p className={styles.oneline}>{year.headline}</p>
 
-      <CrossingList heading={`올해 12달 흐름 · ${year.year}`} items={yearItems} />
+      {yearCrossItems.length > 0 ? (
+        <CrossingList heading={`올해의 사주 × 점성 교차 · ${year.year}`} items={yearCrossItems} />
+      ) : (
+        <CrossingList heading={`올해 12달 흐름 · ${year.year}`} items={yearItems} />
+      )}
 
       {/* ── 전문가용 상세 — 프로펙션·세운·ZR·패턴 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>자세히 보기 · 사주·점성 근거</summary>
+
+        {/* 월별 점수 overview — 교차를 메인에 띄웠으므로 상세로 내림. */}
+        {yearCrossItems.length > 0 && (
+          <CrossingList heading={`올해 12달 흐름 · ${year.year}`} items={yearItems} />
+        )}
 
         <div className={styles.yearWrap}>
           {/* ── house wheel ── */}

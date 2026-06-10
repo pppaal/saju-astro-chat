@@ -332,6 +332,7 @@ export default async function DestinypalPreview() {
     zrSpiritChapters: yearAdapter.zrSpiritChapters,
     zrFortuneChapters: yearAdapter.zrFortuneChapters,
     monthlyScores: yearAdapter.monthlyScores,
+    crossings: yearAdapter.crossings,
   }
 
   // toMonth — 30일 캘린더 + bestDay 자동 + 월운(woolun) GZ.

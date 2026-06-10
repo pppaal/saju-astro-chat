@@ -150,6 +150,15 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     past: y.year < (decade.focusYear ?? decade.start),
   }))
 
+  // ── 이 대운에 켜진 사주 × 점성 교차 — 길/주의/중립 톤으로. ──
+  // 대운(decadal) 교차는 10년 내내 천천히 작동해 '몇 년도'로 콕 집기 어렵다.
+  // 그래서 '언제'는 톤(valence)으로 두고, 무엇이 교차하고 왜인지를 보여준다.
+  const decadeCrossItems = crossActs.map((c) => ({
+    when: c.polarity > 0 ? '길' : c.polarity < 0 ? '주의' : '중립',
+    title: c.name,
+    detail: c.meaning,
+  }))
+
   return (
     <div className={styles.tier} data-screen-label={`10년 ${decade.start}-${decade.end}`}>
       <button className={styles.rise} onClick={onRise} type="button">
@@ -181,6 +190,12 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
       </div>
       <p className={styles.oneline}>{decade.headline}</p>
 
+      {/* 이 대운에 켜진 진짜 사주 × 점성 교차 (decadal cross-activation). */}
+      {decadeCrossItems.length > 0 && (
+        <CrossingList heading="이 대운에 켜진 사주 × 점성 교차" items={decadeCrossItems} />
+      )}
+
+      {/* 10년 세운 결 — '언제(어느 해)' 축. */}
       <CrossingList
         heading={`이 대운 10년 흐름 · ${decade.start}–${decade.end}`}
         items={decadeItems}
