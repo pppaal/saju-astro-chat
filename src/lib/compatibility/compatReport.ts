@@ -29,7 +29,7 @@ export interface CompatReport {
   dayMaster: SajuCompatDayMaster | null
   /** 일주(배우자궁) 우선 정렬, 상위 4개 */
   spouseStars: SajuCompatSpouseStar[]
-  /** 기둥 cross 관계 (CompatLines 시각화용 — 천간합/충·지지 육합/충/형/자형/해/파) */
+  /** 기둥 cross 관계 (관계 요약 시각화용 — 천간합/충·지지 육합/충/형/자형/해/파) */
   pillarRelations: SajuCompatPillarRel[]
   band?: CompatBandScores
 }
