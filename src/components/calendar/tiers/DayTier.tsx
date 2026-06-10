@@ -34,6 +34,8 @@ import type {
 import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 import styles from './DayTier.module.css'
+import { TierSummary } from '@/components/calendar/atoms/TierSummary'
+import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 
 // ============================================================================
 // HourSlot — 24시진 (子=0,1 / 丑=2,3 / ... / 亥=22,23 식의 시간 매핑).
@@ -503,6 +505,36 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   // signal stream 에서 fixed-star / arabic-part 는 별도 row 로 빼므로 stream 에서 제외.
   const streamSignals = sortedSignals.filter((s) => !isFixedStar(s) && !isArabicLot(s))
 
+  // ── 쉬운 요약 — 점수 구간으로 "오늘 어때" 한 줄 + 좋은것/조심 카드 ──
+  const dayBand = day.score >= 60 ? 'good' : day.score >= 35 ? 'mid' : 'low'
+  const dayHeadline =
+    dayBand === 'good'
+      ? '오늘은 순풍 — 흐름이 우호적인 날'
+      : dayBand === 'mid'
+        ? '오늘은 무난한 흐름이에요'
+        : '오늘은 조심하는 게 좋은 날'
+  const daySub =
+    dayBand === 'good'
+      ? '하고 싶던 일을 밀어붙이기 좋아요. 연락·제안·중요한 결정에 우호적인 날.'
+      : dayBand === 'mid'
+        ? '큰일을 새로 벌이기보다 정리·마무리에 좋은 날. 무리만 안 하면 무난해요.'
+        : '새 일을 벌이기보다 점검·휴식에 좋은 날. 중요한 결정은 가능하면 미루세요.'
+  const cleanReason = (s: string) => {
+    const c = s
+      .replace(/^[↑↓·\s]+/, '')
+      .replace(/^\[[^\]]*\]\s*/, '')
+      .replace(/^(이달|오늘)\s·\s/, '')
+      .split('—')[0] // "A — B(설명)" 이면 핵심 A 만
+      .trim()
+    return c.length > 48 ? c.slice(0, 47).trim() + '…' : c
+  }
+  const dayGood = (day.topReasons ?? []).map(cleanReason).filter(Boolean)[0]
+  const dayCaution = (day.cautions ?? []).map(cleanReason).filter(Boolean)[0]
+  const dayCards = [
+    dayGood ? { icon: '💚', label: '좋은 것', body: dayGood } : null,
+    dayCaution ? { icon: '⚠️', label: '조심할 것', body: dayCaution } : null,
+  ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
+
   return (
     <div className={styles.tierInner} data-screen-label={`1일 ${day.date}`}>
       <button className={styles.rise} onClick={onRise}>
@@ -514,160 +546,170 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
         {day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
       </div>
 
-      {/* head 보강 — 격국 status / 공망 / VOC */}
-      <div className={styles.headChips}>
-        <GeokgukStatusFrame status={day.geokgukStatus} />
-      </div>
-      <GongmangBanner gongmang={day.gongmang} />
-      <VocBanner voc={voc} />
+      {/* ── 쉬운 요약 (오늘 어때 한눈에). 일진·12운성·신호는 아래 자세히로. ── */}
+      <TierSummary headline={dayHeadline} sub={daySub} cards={dayCards} />
 
-      {/* head: 일진 + score + one line (day.jsx 원본) */}
-      <div className={styles.dayHead}>
-        <div className={styles.iljinBig}>
-          <span className="han">{day.iljin.hanja}</span>
-          <div className="meta">
-            <div className="kr">{day.iljin.kr}</div>
-            <div className="en">{day.iljin.en}</div>
-            <div className="ss">
-              일진 · 일간 기준 {String(day.iljinSibsin)}
-              {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
-                ? ` (${sibsinArea(String(day.iljinSibsin))})`
-                : ''}
+      {/* ── 전문가용 상세 — 일진·격국·공망·신호·12운성·시진 일체 접어 둠 ── */}
+      <details className={summaryStyles.details}>
+        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 일진과 근거</summary>
+
+        {/* head 보강 — 격국 status / 공망 / VOC */}
+        <div className={styles.headChips}>
+          <GeokgukStatusFrame status={day.geokgukStatus} />
+        </div>
+        <GongmangBanner gongmang={day.gongmang} />
+        <VocBanner voc={voc} />
+
+        {/* head: 일진 + score + one line (day.jsx 원본) */}
+        <div className={styles.dayHead}>
+          <div className={styles.iljinBig}>
+            <span className="han">{day.iljin.hanja}</span>
+            <div className="meta">
+              <div className="kr">{day.iljin.kr}</div>
+              <div className="en">{day.iljin.en}</div>
+              <div className="ss">
+                일진 · 일간 기준 {String(day.iljinSibsin)}
+                {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
+                  ? ` (${sibsinArea(String(day.iljinSibsin))})`
+                  : ''}
+              </div>
             </div>
           </div>
+          <div className={styles.dayScore}>
+            <ScoreDial score={day.score} label="종합" />
+            <p className={styles.oneline}>{day.oneLine}</p>
+          </div>
         </div>
-        <div className={styles.dayScore}>
-          <ScoreDial score={day.score} label="종합" />
-          <p className={styles.oneline}>{day.oneLine}</p>
-        </div>
-      </div>
 
-      {/* 이렇게 읽은 이유 (흐름·교차 신호) — 풀폭 */}
-      <div>
-        <div className={`${styles.panel} ${styles.astro}`}>
-          {/* 합치기: 날것 트랜짓 덤프 → "이렇게 읽은 이유"(사람 말). 엔진이 만든
+        {/* 이렇게 읽은 이유 (흐름·교차 신호) — 풀폭 */}
+        <div>
+          <div className={`${styles.panel} ${styles.astro}`}>
+            {/* 합치기: 날것 트랜짓 덤프 → "이렇게 읽은 이유"(사람 말). 엔진이 만든
               topReasons/cautions 를 우선 노출하고, 원자료(점성 트랜짓)는 접어둔다.
               (premium DayWhyCard 패턴 + destinypal 만세력 스킨) */}
-          <div className={styles.eyebrow}>왜 이런 하루? · 근거</div>
-          {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
-            <p className={styles.whyMuted}>오늘은 두드러진 신호 없이 무난한 흐름이에요.</p>
-          ) : (
-            <ul className={styles.whyList}>
-              {(day.topReasons ?? []).map((r, i) => (
-                <li className={styles.whyPos} key={`wp-${i}`}>
-                  <span className={styles.whyArrow}>↑</span> {r.replace(/^[↑↓·]\s*/, '')}
-                </li>
-              ))}
-              {(day.cautions ?? []).map((c, i) => (
-                <li className={styles.whyNeg} key={`wn-${i}`}>
-                  <span className={styles.whyArrow}>↓</span> {c.replace(/^[↑↓·]\s*/, '')}
-                </li>
-              ))}
-            </ul>
-          )}
+            <div className={styles.eyebrow}>왜 이런 하루? · 근거</div>
+            {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
+              <p className={styles.whyMuted}>오늘은 두드러진 신호 없이 무난한 흐름이에요.</p>
+            ) : (
+              <ul className={styles.whyList}>
+                {(day.topReasons ?? []).map((r, i) => (
+                  <li className={styles.whyPos} key={`wp-${i}`}>
+                    <span className={styles.whyArrow}>↑</span> {r.replace(/^[↑↓·]\s*/, '')}
+                  </li>
+                ))}
+                {(day.cautions ?? []).map((c, i) => (
+                  <li className={styles.whyNeg} key={`wn-${i}`}>
+                    <span className={styles.whyArrow}>↓</span> {c.replace(/^[↑↓·]\s*/, '')}
+                  </li>
+                ))}
+              </ul>
+            )}
 
-          {day.shinsalActive.length > 0 && (
-            <div className={styles.shinsalRow}>
-              {day.shinsalActive.map((s, i) => (
-                <span className={styles.ssPill} key={i}>
-                  {s}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* 근거 신호 (점성 트랜짓 원자료) — 기본 접힘. 원하는 사람만 펼침. */}
-          <details className={styles.evidence}>
-            <summary className={styles.evidenceSummary}>근거 신호 보기 · 점성 트랜짓</summary>
-            <div className={styles.transitRow}>
-              {innerTransits.map((t, i) => {
-                const body = (t as { body?: string }).body ?? ''
-                const aspect = (t as { aspect?: string }).aspect ?? ''
-                const target = (t as { target?: string }).target ?? ''
-                const glyph = (t as { glyph?: string }).glyph ?? '✦'
-                return (
-                  <div className={styles.transit} key={`it-${i}`}>
-                    <span className="g">{glyph}</span>
-                    <div className="tt">
-                      <div className="a">
-                        {body} {aspect} <span className="aTarget">→ {target}</span>
-                      </div>
-                      <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
-                    </div>
-                    <PolChip v={t.polarity} />
-                  </div>
-                )
-              })}
-              {outerTransits.map((t, i) => {
-                const body = (t as { body?: string }).body ?? ''
-                const aspect = (t as { aspect?: string }).aspect ?? ''
-                const target = (t as { target?: string }).target ?? ''
-                const glyph = (t as { glyph?: string }).glyph ?? '✦'
-                return (
-                  <div className={`${styles.transit} ${styles.outer}`} key={`ot-${i}`}>
-                    <span className="g">{glyph}</span>
-                    <div className="tt">
-                      <div className="a">
-                        {body}({PLANET_KO[body] ?? ''}) {aspect}{' '}
-                        <span className="aTarget">→ {target}</span>
-                      </div>
-                      <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
-                    </div>
-                    <PolChip v={t.polarity} />
-                  </div>
-                )
-              })}
-            </div>
-          </details>
-        </div>
-      </div>
-
-      {/* Phase 3 — Cross Activation */}
-      <CrossActivationCard items={day.crossActivations} />
-
-      {/* Phase 3 — Applied Pattern */}
-      <AppliedPatternBadge items={day.appliedPatterns} />
-
-      {/* Phase 3 — Jijanggan 3층 */}
-      <JijangganChips jijanggan={day.jijanggan} />
-
-      {/* Phase 3 — TwelveStageMatrix */}
-      <TwelveStageMatrix day={day} />
-
-      {/* Phase 3 — FixedStar / ArabicLot rows */}
-      <FixedStarRow signals={sortedSignals} />
-      <ArabicLotRow signals={sortedSignals} />
-
-      {/* signal stream (day.jsx 원본) */}
-      <div className={styles.block}>
-        <div className={styles.secHead}>
-          <h2 className={styles.secTitle}>오늘의 신호</h2>
-          <span className={styles.tiny}>
-            총 {day.totalSignals}개 중 핵심 발췌 · polarity −3 ~ +3
-          </span>
-        </div>
-        <div className={styles.signalStream}>
-          {streamSignals.map((s) => (
-            <div className={styles.sig} key={s.id}>
-              <span className={`${styles.cat ?? ''} cat ${catTone(s.cat)}`}>{catLabel(s.cat)}</span>
-              <div className="body">
-                <span className="lb">{s.label}</span>
-                {s.romaji && <span className="rm"> · {s.romaji}</span>}
+            {day.shinsalActive.length > 0 && (
+              <div className={styles.shinsalRow}>
+                {day.shinsalActive.map((s, i) => (
+                  <span className={styles.ssPill} key={i}>
+                    {s}
+                  </span>
+                ))}
               </div>
-              <PolChip v={s.polarity} />
-            </div>
-          ))}
-          {day.totalSignals > streamSignals.length && (
-            <div className={styles.sigMore}>
-              … 외 {day.totalSignals - streamSignals.length}개 (transit aspects · 시진별 십신 ·
-              외행성)
-            </div>
-          )}
-        </div>
-      </div>
+            )}
 
-      {/* HourBreakdown 24h — footer 위 */}
-      <HourBreakdown hours24={hours24} />
+            {/* 근거 신호 (점성 트랜짓 원자료) — 기본 접힘. 원하는 사람만 펼침. */}
+            <details className={styles.evidence}>
+              <summary className={styles.evidenceSummary}>근거 신호 보기 · 점성 트랜짓</summary>
+              <div className={styles.transitRow}>
+                {innerTransits.map((t, i) => {
+                  const body = (t as { body?: string }).body ?? ''
+                  const aspect = (t as { aspect?: string }).aspect ?? ''
+                  const target = (t as { target?: string }).target ?? ''
+                  const glyph = (t as { glyph?: string }).glyph ?? '✦'
+                  return (
+                    <div className={styles.transit} key={`it-${i}`}>
+                      <span className="g">{glyph}</span>
+                      <div className="tt">
+                        <div className="a">
+                          {body} {aspect} <span className="aTarget">→ {target}</span>
+                        </div>
+                        <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
+                      </div>
+                      <PolChip v={t.polarity} />
+                    </div>
+                  )
+                })}
+                {outerTransits.map((t, i) => {
+                  const body = (t as { body?: string }).body ?? ''
+                  const aspect = (t as { aspect?: string }).aspect ?? ''
+                  const target = (t as { target?: string }).target ?? ''
+                  const glyph = (t as { glyph?: string }).glyph ?? '✦'
+                  return (
+                    <div className={`${styles.transit} ${styles.outer}`} key={`ot-${i}`}>
+                      <span className="g">{glyph}</span>
+                      <div className="tt">
+                        <div className="a">
+                          {body}({PLANET_KO[body] ?? ''}) {aspect}{' '}
+                          <span className="aTarget">→ {target}</span>
+                        </div>
+                        <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
+                      </div>
+                      <PolChip v={t.polarity} />
+                    </div>
+                  )
+                })}
+              </div>
+            </details>
+          </div>
+        </div>
+
+        {/* Phase 3 — Cross Activation */}
+        <CrossActivationCard items={day.crossActivations} />
+
+        {/* Phase 3 — Applied Pattern */}
+        <AppliedPatternBadge items={day.appliedPatterns} />
+
+        {/* Phase 3 — Jijanggan 3층 */}
+        <JijangganChips jijanggan={day.jijanggan} />
+
+        {/* Phase 3 — TwelveStageMatrix */}
+        <TwelveStageMatrix day={day} />
+
+        {/* Phase 3 — FixedStar / ArabicLot rows */}
+        <FixedStarRow signals={sortedSignals} />
+        <ArabicLotRow signals={sortedSignals} />
+
+        {/* signal stream (day.jsx 원본) */}
+        <div className={styles.block}>
+          <div className={styles.secHead}>
+            <h2 className={styles.secTitle}>오늘의 신호</h2>
+            <span className={styles.tiny}>
+              총 {day.totalSignals}개 중 핵심 발췌 · polarity −3 ~ +3
+            </span>
+          </div>
+          <div className={styles.signalStream}>
+            {streamSignals.map((s) => (
+              <div className={styles.sig} key={s.id}>
+                <span className={`${styles.cat ?? ''} cat ${catTone(s.cat)}`}>
+                  {catLabel(s.cat)}
+                </span>
+                <div className="body">
+                  <span className="lb">{s.label}</span>
+                  {s.romaji && <span className="rm"> · {s.romaji}</span>}
+                </div>
+                <PolChip v={s.polarity} />
+              </div>
+            ))}
+            {day.totalSignals > streamSignals.length && (
+              <div className={styles.sigMore}>
+                … 외 {day.totalSignals - streamSignals.length}개 (transit aspects · 시진별 십신 ·
+                외행성)
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* HourBreakdown 24h — footer 위 */}
+        <HourBreakdown hours24={hours24} />
+      </details>
 
       <div className={styles.riseCenter}>
         <button className={`${styles.rise} ${styles.riseSmall}`} onClick={onRise}>
