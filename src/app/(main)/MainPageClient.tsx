@@ -337,7 +337,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           ) : (
             <button type="button" className={styles.homeBirthCta} onClick={handleOpenBirth}>
               <span aria-hidden="true">📅</span>
-              {locale === 'ko' ? '먼저 생년월일을 입력하세요' : 'Start by entering your birth details'}
+              {locale === 'ko'
+                ? '먼저 생년월일을 입력하세요'
+                : 'Start by entering your birth details'}
             </button>
           )}
         </div>

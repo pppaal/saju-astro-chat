@@ -33,10 +33,6 @@ export interface ShinsalHit {
     | '화개'
     | '겁살'
     | '육해'
-    | '화해'
-    | '괘살'
-    | '길성'
-    | '흉성'
     | '지살'
     | '년살'
     | '도화'
@@ -86,11 +82,8 @@ export interface ShinsalAnnot {
 
 export interface AnnotateOptions {
   twelveStageBasis?: 'day'
-  includeLucky?: boolean
-  includeUnlucky?: boolean
 
   includeTwelveAll?: boolean
-  includeHwaHae?: boolean
   useMonthCompletion?: boolean
 
   includeGeneralShinsal?: boolean
@@ -101,11 +94,8 @@ export interface AnnotateOptions {
 
 export const DEFAULT_ANNOTATE_OPTIONS: Required<AnnotateOptions> = {
   twelveStageBasis: 'day',
-  includeLucky: false,
-  includeUnlucky: false,
 
   includeTwelveAll: true,
-  includeHwaHae: false,
   useMonthCompletion: false,
 
   includeGeneralShinsal: true,
@@ -708,10 +698,6 @@ function isWoldeokGwiin(monthBranch: string, targetStem: string): boolean {
   return WOLDEOK_BY_MONTH_BRANCH[monthBranch] === targetStem
 }
 
-/* ===== 예시 길/흉성(유지) ===== */
-const LUCKY_BRANCHES = new Set<string>(['寅', '午', '戌'])
-const UNLUCKY_BRANCHES = new Set<string>(['辰', '戌'])
-
 /* ===== 12신살 단일 선택 우선순위 ===== */
 const TWELVE_PRIORITY: ShinsalHit['kind'][] = [
   '장성',
@@ -1146,22 +1132,6 @@ export function getShinsalHits(
       target: samjaeBranches.join(','),
       detail: `${yearBranch}띠 삼재 지지: ${samjaeBranches.join(',')}`,
     })
-  }
-
-  // 데모 길/흉성 옵션
-  if (options?.includeLucky) {
-    for (const [kind, br] of pairs) {
-      if (LUCKY_BRANCHES.has(br)) {
-        hits.push({ kind: '길성', pillars: [kind], target: br, detail: '예시 길성 세트' })
-      }
-    }
-  }
-  if (options?.includeUnlucky) {
-    for (const [kind, br] of pairs) {
-      if (UNLUCKY_BRANCHES.has(br)) {
-        hits.push({ kind: '흉성', pillars: [kind], target: br, detail: '예시 흉성 세트' })
-      }
-    }
   }
 
   return hits

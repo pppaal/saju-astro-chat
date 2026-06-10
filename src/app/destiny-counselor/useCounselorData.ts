@@ -139,10 +139,10 @@ export function useCounselorData(sp: SearchParams) {
   // URL 좌표 > localStorage 폴백 좌표 > 서울 기본값.
   const resolvedLatitude = Number.isFinite(latitude)
     ? latitude
-    : profileFallback.latitude ?? DEFAULT_LATITUDE
+    : (profileFallback.latitude ?? DEFAULT_LATITUDE)
   const resolvedLongitude = Number.isFinite(longitude)
     ? longitude
-    : profileFallback.longitude ?? DEFAULT_LONGITUDE
+    : (profileFallback.longitude ?? DEFAULT_LONGITUDE)
 
   // Honor the birth-place timezone when the home modal forwarded one
   // (URL or server profile). Falling back to the browser's tz is wrong

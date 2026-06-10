@@ -385,12 +385,8 @@ describe('ShinsalHit interface', () => {
       '화개',
       '겁살',
       '육해',
-      '화해',
-      '괘살',
-      '길성',
-      '흉성',
     ]
-    expect(kinds).toHaveLength(14)
+    expect(kinds).toHaveLength(10)
   })
 })
 
