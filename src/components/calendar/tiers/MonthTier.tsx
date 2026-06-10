@@ -35,6 +35,8 @@ import type {
 } from '@/types/calendar'
 import { Ganji } from '../atoms/Ganji'
 import styles from './MonthTier.module.css'
+import { CrossingList } from '@/components/calendar/atoms/CrossingList'
+import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 
 // ============================================================================
 // Props
@@ -455,6 +457,25 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
   const woolunCap = woolunCaption(month)
   const woolunSibTag = woolunSibsinTag(month)
 
+  // ── 교차 리스트 — '이달의 큰 날'(keyDays) = 사주×점성 수렴 날짜 ──
+  // 제목 = 그 날의 뜻(평이). 작은 글씨 = 무엇이 교차하나(사주×점성, 짧게).
+  const shortTag = (s: string) => {
+    const head = s.includes('—') ? s.split('—')[0].trim() : s
+    return head.length > 16 ? head.slice(0, 15).trim() + '…' : head
+  }
+  const monthCrossItems = (month.keyDays ?? []).map((k) => {
+    const sj = (k.saju ?? [])[0]
+    const as = (k.astro ?? [])[0]
+    const tags = [sj && shortTag(sj), as && shortTag(as)].filter(Boolean).join(' × ')
+    return {
+      when: k.date,
+      title: k.meaning || (k.bothSystems ? '사주 · 점성이 함께 강한 날' : '주요 신호'),
+      detail: tags || undefined,
+    }
+  })
+  const goodN = month.goodDays?.length ?? 0
+  const cautionN = month.cautionDays?.length ?? 0
+
   return (
     <div className={styles.tier} data-screen-label={`1달 ${month.ym}`}>
       <button className={styles.rise} onClick={onRise} type="button">
@@ -481,310 +502,324 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
         </div>
       </div>
 
-      {/* ===== calendar heatmap ===== */}
-      <div className={styles.calGrid}>
-        {DOWS.map((d) => (
-          <div className={styles.calDow} key={d}>
-            {d}
-          </div>
-        ))}
-        {Array.from({ length: firstDow }).map((_, i) => (
-          <div key={`pad-${i}`} />
-        ))}
-        {calendar.map((c) => {
-          const intensity = cellIntensity(c)
-          const g = cellGlow(intensity, c.mark)
-          const mark = c.mark as ExtendedMark | null
-          const isVoc = voc.has(c.ds)
-          const isLunar = lunarDs === c.ds
-          // mark resolution: 백엔드 mark 우선, 없으면 보강 mark 추론
-          const renderedMark: ExtendedMark | null = mark ?? (isLunar ? 'return' : null)
-          const cellCls = [
-            styles.cell,
-            c.focus && styles.cellFocus,
-            renderedMark === 'best' && styles.cellBest,
-            renderedMark === 'avoid' && styles.cellAvoid,
-            renderedMark === 'converge' && styles.cellConverge,
-            renderedMark === 'caution' && styles.cellCaution,
-            renderedMark === 'phase' && styles.cellPhase,
-            renderedMark === 'return' && styles.cellReturn,
-            renderedMark === 'lifecycle' && styles.cellLifecycle,
-          ]
-            .filter(Boolean)
-            .join(' ')
+      <p className={styles.tiny} style={{ margin: '2px 2px 0' }}>
+        좋은 날 {goodN}개 · 주의 {cautionN}개
+      </p>
+      <CrossingList heading="이달의 큰 날 · 사주 × 점성" items={monthCrossItems} />
 
-          const cellStyle: CSSProperties = { background: g.bg }
-          const titleParts = [c.ds]
-          if (renderedMark) titleParts.push(renderedMark)
-          if (isVoc) titleParts.push('void-of-course')
-          const title = titleParts.join(' · ')
+      {/* ── 전문가용 상세 — 달력 히트맵·테마·신호 전부 접어 둠 ── */}
+      <details className={summaryStyles.details}>
+        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 달력과 근거</summary>
 
-          return (
-            <div
-              key={c.d}
-              className={cellCls}
-              onClick={c.focus ? () => onDive(focusDay) : undefined}
-              title={title}
-              style={cellStyle}
-              role={c.focus ? 'button' : undefined}
-              tabIndex={c.focus ? 0 : undefined}
-              onKeyDown={
-                c.focus
-                  ? (e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        onDive(focusDay)
-                      }
-                    }
-                  : undefined
-              }
-            >
-              <div className={styles.cellGlow} style={{ background: g.glow }} />
-              <span className={styles.cellDnum}>{c.d}</span>
-              {c.focus && <span className={styles.cellFtag}>오늘</span>}
-              {renderedMark && renderedMark !== 'focus' && STAR_GLYPH[renderedMark] && (
-                <span className={styles.cellStar}>{STAR_GLYPH[renderedMark]}</span>
-              )}
-              {isVoc && <span className={styles.cellVocBand} />}
+        {/* ===== calendar heatmap ===== */}
+        <div className={styles.calGrid}>
+          {DOWS.map((d) => (
+            <div className={styles.calDow} key={d}>
+              {d}
             </div>
-          )
-        })}
-      </div>
+          ))}
+          {Array.from({ length: firstDow }).map((_, i) => (
+            <div key={`pad-${i}`} />
+          ))}
+          {calendar.map((c) => {
+            const intensity = cellIntensity(c)
+            const g = cellGlow(intensity, c.mark)
+            const mark = c.mark as ExtendedMark | null
+            const isVoc = voc.has(c.ds)
+            const isLunar = lunarDs === c.ds
+            // mark resolution: 백엔드 mark 우선, 없으면 보강 mark 추론
+            const renderedMark: ExtendedMark | null = mark ?? (isLunar ? 'return' : null)
+            const cellCls = [
+              styles.cell,
+              c.focus && styles.cellFocus,
+              renderedMark === 'best' && styles.cellBest,
+              renderedMark === 'avoid' && styles.cellAvoid,
+              renderedMark === 'converge' && styles.cellConverge,
+              renderedMark === 'caution' && styles.cellCaution,
+              renderedMark === 'phase' && styles.cellPhase,
+              renderedMark === 'return' && styles.cellReturn,
+              renderedMark === 'lifecycle' && styles.cellLifecycle,
+            ]
+              .filter(Boolean)
+              .join(' ')
 
-      {/* ===== legend ===== */}
-      <div className={styles.calLegend}>
-        <span className={styles.leg}>
-          <span className="sw" style={{ background: 'var(--accent)' }} />
-          신호 강함
-        </span>
-        <span className={styles.leg}>
-          <span className="sw" style={{ background: 'rgba(52,64,111,0.25)' }} />
-          약함
-        </span>
-        {month.bestDay && (
-          <span className={[styles.leg, styles.legPos].join(' ')}>✦ best {month.bestDay.date}</span>
-        )}
-        {month.avoidDays.length > 0 && (
-          <span className={[styles.leg, styles.legNeg].join(' ')}>
-            ✕ avoid {month.avoidDays.join(' · ')}
-          </span>
-        )}
-        {month.converge?.date && (
-          <span className={[styles.leg, styles.legEarth].join(' ')}>
-            ✶ 수렴 {month.converge.date.slice(5)}
-          </span>
-        )}
-        <span className={[styles.leg, styles.legAccent].join(' ')}>
-          ◎ 오늘 {month.ym.slice(5)}-{String(focusDay).padStart(2, '0')}
-        </span>
-        {lunarDs && (
-          <span className={[styles.leg, styles.legAccent].join(' ')}>○ Lunar Return {lunarDs}</span>
-        )}
-        {voc.size > 0 && (
-          <span className={[styles.leg, styles.legMute].join(' ')}>
-            ░ void-of-course · {voc.size}일
-          </span>
-        )}
-      </div>
+            const cellStyle: CSSProperties = { background: g.bg }
+            const titleParts = [c.ds]
+            if (renderedMark) titleParts.push(renderedMark)
+            if (isVoc) titleParts.push('void-of-course')
+            const title = titleParts.join(' · ')
 
-      {/* ===== 이달의 큰 날 (convergence keyDays) ===== */}
-      {month.keyDays &&
-        month.keyDays.length > 0 &&
-        (() => {
-          // 느린 점성 배경(토성회귀·식 등 lifecycle)은 큰 날마다 동일해 비차별적 —
-          // 한 줄 backdrop 으로 한 번만 보여주고, 날별 칩은 *날마다 변하는* 사주만.
-          const astroBackdrop = Array.from(new Set(month.keyDays!.flatMap((k) => k.astro))).slice(
-            0,
-            2
-          )
-          return (
-            <div className={styles.bigDays}>
-              <div className={styles.eyebrow}>
-                이달의 큰 날 · 사주×점성 수렴
-                {(() => {
-                  const both = month.keyDays!.filter((k) => k.bothSystems).length
-                  return both > 0 ? ` · 동·서 합치 ${both}일` : ''
-                })()}
-              </div>
-              {astroBackdrop.length > 0 && (
-                <div className={styles.bigDayBackdrop}>
-                  이달 점성 배경 · {astroBackdrop.join(' · ')}
-                </div>
-              )}
-              {month.keyDays!.map((k, i) => (
-                <div className={styles.bigDay} key={`kd-${i}`}>
-                  <div className={styles.bigDayHead}>
-                    <span className={styles.bigDayDate}>{k.date}</span>
-                    {k.window && k.window.start.slice(0, 10) !== k.window.end.slice(0, 10) && (
-                      <span className={styles.bigDayWindow}>
-                        {k.window.start.slice(5, 10)} ~ {k.window.end.slice(5, 10)} · 정점{' '}
-                        {k.window.peak.slice(5, 10)}
-                      </span>
-                    )}
-                    {k.bothSystems && <span className={styles.bigDayBoth}>사주×점성</span>}
-                  </div>
-                  {k.meaning && <div className={styles.bigDayMeaning}>{k.meaning}</div>}
-                  {k.saju.length > 0 && (
-                    <div className={styles.bigDayChips}>
-                      {k.saju.map((s, j) => (
-                        <span className={[styles.chip, styles.chipSaju].join(' ')} key={`s-${j}`}>
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )
-        })()}
-
-      {/* ===== theme scores + key events 50:50 row ===== */}
-      <div className={styles.split} style={{ marginTop: 30 }}>
-        <div className={[styles.panel, styles.panelSaju].join(' ')}>
-          {/* 보강 #3 — 응용패턴 daily count chip strip */}
-          {pattern.length > 0 && (
-            <div className={styles.patternStrip}>
-              {pattern.map((p) => (
-                <span className={styles.patternChip} key={`${p.label}-${p.count}`}>
-                  {p.label} <b>{p.count}일</b>
-                </span>
-              ))}
-            </div>
-          )}
-          {/* 보강 #5 — 조후 강조 박스 */}
-          {joho && (
-            <div className={styles.johoBox}>
-              <span className={styles.johoLabel}>조후 · {joho.branchLabel}</span>
-              <span className={styles.johoBody}>{joho.body}</span>
-            </div>
-          )}
-        </div>
-
-        <div
-          className={[styles.panel, styles.panelAstro].join(' ')}
-          style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
-        >
-          <div className={styles.eyebrow} style={{ marginBottom: 2 }}>
-            핵심 이벤트
-          </div>
-          <div className={styles.eventsCol}>
-            {month.bestDay && (
-              <div className={styles.eventRow}>
-                <span className={[styles.pol, styles.polP].join(' ')} style={{ fontSize: 11 }}>
-                  BEST
-                </span>
-                <span className={styles.eventDate}>{month.bestDay.date}</span>
-              </div>
-            )}
-            {month.avoidDays.length > 0 && (
-              <div className={styles.eventRow}>
-                <span className={[styles.pol, styles.polN].join(' ')} style={{ fontSize: 11 }}>
-                  AVOID
-                </span>
-                <span className={styles.eventDate}>{month.avoidDays.join(' · ')}</span>
-              </div>
-            )}
-            {month.cautionDays.length > 0 && (
-              <div className={styles.eventRow}>
-                <span className={[styles.pol, styles.polZ].join(' ')} style={{ fontSize: 11 }}>
-                  주의
-                </span>
-                <span className={styles.eventDateDim}>{month.cautionDays.join(' · ')}</span>
-              </div>
-            )}
-            {month.goodDays.length > 0 && (
-              <div className={styles.eventRow}>
-                <span className={[styles.pol, styles.polGood].join(' ')} style={{ fontSize: 11 }}>
-                  길일
-                </span>
-                <span className={styles.eventDateDim}>{month.goodDays.join(' · ')}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ===== ZR L2 progress bar (보강 #8) ===== */}
-      {zr && (
-        <div className={styles.zrProgress}>
-          <div className={styles.zrLabelRow}>
-            <span className={styles.zrLabel}>{zr.label}</span>
-            <span className={styles.zrChapter}>{zr.chapter}</span>
-          </div>
-          <div className={styles.zrTrack}>
-            <div className={styles.zrFill} style={{ width: `${zr.pct}%` }} />
-          </div>
-          <span className={styles.zrMeta}>
-            {zr.meta} · {zr.pct}%
-          </span>
-        </div>
-      )}
-
-      {/* ===== narrative grid ===== */}
-      <div className={styles.blockSm}>
-        <div className={styles.secHead}>
-          <h2 className={styles.secTitle}>이 달의 이야기</h2>
-          <span className={styles.tiny}>사주 + 점성 narrative</span>
-        </div>
-        <div className={styles.narr}>
-          {narrative.map((n, i) => {
-            const src = narrativeSource(n)
             return (
-              <div className={styles.narrCard} key={`${n.tag}-${i}`}>
-                <span className={styles.narrTag}>{n.tag}</span>
-                <div className={styles.narrBody}>{n.body}</div>
-                {src && <span className={styles.narrSource}>· source: {src}</span>}
+              <div
+                key={c.d}
+                className={cellCls}
+                onClick={c.focus ? () => onDive(focusDay) : undefined}
+                title={title}
+                style={cellStyle}
+                role={c.focus ? 'button' : undefined}
+                tabIndex={c.focus ? 0 : undefined}
+                onKeyDown={
+                  c.focus
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          onDive(focusDay)
+                        }
+                      }
+                    : undefined
+                }
+              >
+                <div className={styles.cellGlow} style={{ background: g.glow }} />
+                <span className={styles.cellDnum}>{c.d}</span>
+                {c.focus && <span className={styles.cellFtag}>오늘</span>}
+                {renderedMark && renderedMark !== 'focus' && STAR_GLYPH[renderedMark] && (
+                  <span className={styles.cellStar}>{STAR_GLYPH[renderedMark]}</span>
+                )}
+                {isVoc && <span className={styles.cellVocBand} />}
               </div>
             )
           })}
         </div>
-      </div>
 
-      {/* ===== converge day ===== */}
-      {month.converge && (
-        <div className={styles.converge}>
-          <div className={styles.convergeHead}>
-            <div className={[styles.eyebrow, styles.eyebrowEmber].join(' ')}>
-              수렴 일 · 두 시스템이 함께 강한 날
-            </div>
-          </div>
-          <div className={styles.convergeDateRow}>
-            <span className={styles.convergeDate}>
-              {month.converge.date.slice(5).replace('-', '·')}
+        {/* ===== legend ===== */}
+        <div className={styles.calLegend}>
+          <span className={styles.leg}>
+            <span className="sw" style={{ background: 'var(--accent)' }} />
+            신호 강함
+          </span>
+          <span className={styles.leg}>
+            <span className="sw" style={{ background: 'rgba(52,64,111,0.25)' }} />
+            약함
+          </span>
+          {month.bestDay && (
+            <span className={[styles.leg, styles.legPos].join(' ')}>
+              ✦ best {month.bestDay.date}
             </span>
-            <span className={styles.convergeMeaning}>{month.converge.meaning}</span>
-          </div>
-          {/* 보강 #6 — cross-activation 매핑 한 줄 */}
-          {crossMap && (
-            <div className={styles.convergeCrossMap}>
-              <b>↔</b> {crossMap}
-            </div>
           )}
-          <div className={styles.convSys}>
-            <div>
-              <span className={[styles.layerTag, styles.layerTagAstro].join(' ')}>
-                <span className="pip" /> 점성 · ASTRO
-              </span>
-              <ul>
-                {month.converge.astro.map((a, i) => (
-                  <li key={`a-${i}`}>{a}</li>
+          {month.avoidDays.length > 0 && (
+            <span className={[styles.leg, styles.legNeg].join(' ')}>
+              ✕ avoid {month.avoidDays.join(' · ')}
+            </span>
+          )}
+          {month.converge?.date && (
+            <span className={[styles.leg, styles.legEarth].join(' ')}>
+              ✶ 수렴 {month.converge.date.slice(5)}
+            </span>
+          )}
+          <span className={[styles.leg, styles.legAccent].join(' ')}>
+            ◎ 오늘 {month.ym.slice(5)}-{String(focusDay).padStart(2, '0')}
+          </span>
+          {lunarDs && (
+            <span className={[styles.leg, styles.legAccent].join(' ')}>
+              ○ Lunar Return {lunarDs}
+            </span>
+          )}
+          {voc.size > 0 && (
+            <span className={[styles.leg, styles.legMute].join(' ')}>
+              ░ void-of-course · {voc.size}일
+            </span>
+          )}
+        </div>
+
+        {/* ===== 이달의 큰 날 (convergence keyDays) ===== */}
+        {month.keyDays &&
+          month.keyDays.length > 0 &&
+          (() => {
+            // 느린 점성 배경(토성회귀·식 등 lifecycle)은 큰 날마다 동일해 비차별적 —
+            // 한 줄 backdrop 으로 한 번만 보여주고, 날별 칩은 *날마다 변하는* 사주만.
+            const astroBackdrop = Array.from(new Set(month.keyDays!.flatMap((k) => k.astro))).slice(
+              0,
+              2
+            )
+            return (
+              <div className={styles.bigDays}>
+                <div className={styles.eyebrow}>
+                  이달의 큰 날 · 사주×점성 수렴
+                  {(() => {
+                    const both = month.keyDays!.filter((k) => k.bothSystems).length
+                    return both > 0 ? ` · 동·서 합치 ${both}일` : ''
+                  })()}
+                </div>
+                {astroBackdrop.length > 0 && (
+                  <div className={styles.bigDayBackdrop}>
+                    이달 점성 배경 · {astroBackdrop.join(' · ')}
+                  </div>
+                )}
+                {month.keyDays!.map((k, i) => (
+                  <div className={styles.bigDay} key={`kd-${i}`}>
+                    <div className={styles.bigDayHead}>
+                      <span className={styles.bigDayDate}>{k.date}</span>
+                      {k.window && k.window.start.slice(0, 10) !== k.window.end.slice(0, 10) && (
+                        <span className={styles.bigDayWindow}>
+                          {k.window.start.slice(5, 10)} ~ {k.window.end.slice(5, 10)} · 정점{' '}
+                          {k.window.peak.slice(5, 10)}
+                        </span>
+                      )}
+                      {k.bothSystems && <span className={styles.bigDayBoth}>사주×점성</span>}
+                    </div>
+                    {k.meaning && <div className={styles.bigDayMeaning}>{k.meaning}</div>}
+                    {k.saju.length > 0 && (
+                      <div className={styles.bigDayChips}>
+                        {k.saju.map((s, j) => (
+                          <span className={[styles.chip, styles.chipSaju].join(' ')} key={`s-${j}`}>
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
+            )
+          })()}
+
+        {/* ===== theme scores + key events 50:50 row ===== */}
+        <div className={styles.split} style={{ marginTop: 30 }}>
+          <div className={[styles.panel, styles.panelSaju].join(' ')}>
+            {/* 보강 #3 — 응용패턴 daily count chip strip */}
+            {pattern.length > 0 && (
+              <div className={styles.patternStrip}>
+                {pattern.map((p) => (
+                  <span className={styles.patternChip} key={`${p.label}-${p.count}`}>
+                    {p.label} <b>{p.count}일</b>
+                  </span>
+                ))}
+              </div>
+            )}
+            {/* 보강 #5 — 조후 강조 박스 */}
+            {joho && (
+              <div className={styles.johoBox}>
+                <span className={styles.johoLabel}>조후 · {joho.branchLabel}</span>
+                <span className={styles.johoBody}>{joho.body}</span>
+              </div>
+            )}
+          </div>
+
+          <div
+            className={[styles.panel, styles.panelAstro].join(' ')}
+            style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+          >
+            <div className={styles.eyebrow} style={{ marginBottom: 2 }}>
+              핵심 이벤트
             </div>
-            <div>
-              <span className={[styles.layerTag, styles.layerTagSaju].join(' ')}>
-                <span className="pip" /> 사주 · SAJU
-              </span>
-              <ul>
-                {month.converge.saju.map((s, i) => (
-                  <li key={`s-${i}`}>{s}</li>
-                ))}
-              </ul>
+            <div className={styles.eventsCol}>
+              {month.bestDay && (
+                <div className={styles.eventRow}>
+                  <span className={[styles.pol, styles.polP].join(' ')} style={{ fontSize: 11 }}>
+                    BEST
+                  </span>
+                  <span className={styles.eventDate}>{month.bestDay.date}</span>
+                </div>
+              )}
+              {month.avoidDays.length > 0 && (
+                <div className={styles.eventRow}>
+                  <span className={[styles.pol, styles.polN].join(' ')} style={{ fontSize: 11 }}>
+                    AVOID
+                  </span>
+                  <span className={styles.eventDate}>{month.avoidDays.join(' · ')}</span>
+                </div>
+              )}
+              {month.cautionDays.length > 0 && (
+                <div className={styles.eventRow}>
+                  <span className={[styles.pol, styles.polZ].join(' ')} style={{ fontSize: 11 }}>
+                    주의
+                  </span>
+                  <span className={styles.eventDateDim}>{month.cautionDays.join(' · ')}</span>
+                </div>
+              )}
+              {month.goodDays.length > 0 && (
+                <div className={styles.eventRow}>
+                  <span className={[styles.pol, styles.polGood].join(' ')} style={{ fontSize: 11 }}>
+                    길일
+                  </span>
+                  <span className={styles.eventDateDim}>{month.goodDays.join(' · ')}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      )}
+
+        {/* ===== ZR L2 progress bar (보강 #8) ===== */}
+        {zr && (
+          <div className={styles.zrProgress}>
+            <div className={styles.zrLabelRow}>
+              <span className={styles.zrLabel}>{zr.label}</span>
+              <span className={styles.zrChapter}>{zr.chapter}</span>
+            </div>
+            <div className={styles.zrTrack}>
+              <div className={styles.zrFill} style={{ width: `${zr.pct}%` }} />
+            </div>
+            <span className={styles.zrMeta}>
+              {zr.meta} · {zr.pct}%
+            </span>
+          </div>
+        )}
+
+        {/* ===== narrative grid ===== */}
+        <div className={styles.blockSm}>
+          <div className={styles.secHead}>
+            <h2 className={styles.secTitle}>이 달의 이야기</h2>
+            <span className={styles.tiny}>사주 + 점성 narrative</span>
+          </div>
+          <div className={styles.narr}>
+            {narrative.map((n, i) => {
+              const src = narrativeSource(n)
+              return (
+                <div className={styles.narrCard} key={`${n.tag}-${i}`}>
+                  <span className={styles.narrTag}>{n.tag}</span>
+                  <div className={styles.narrBody}>{n.body}</div>
+                  {src && <span className={styles.narrSource}>· source: {src}</span>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* ===== converge day ===== */}
+        {month.converge && (
+          <div className={styles.converge}>
+            <div className={styles.convergeHead}>
+              <div className={[styles.eyebrow, styles.eyebrowEmber].join(' ')}>
+                수렴 일 · 두 시스템이 함께 강한 날
+              </div>
+            </div>
+            <div className={styles.convergeDateRow}>
+              <span className={styles.convergeDate}>
+                {month.converge.date.slice(5).replace('-', '·')}
+              </span>
+              <span className={styles.convergeMeaning}>{month.converge.meaning}</span>
+            </div>
+            {/* 보강 #6 — cross-activation 매핑 한 줄 */}
+            {crossMap && (
+              <div className={styles.convergeCrossMap}>
+                <b>↔</b> {crossMap}
+              </div>
+            )}
+            <div className={styles.convSys}>
+              <div>
+                <span className={[styles.layerTag, styles.layerTagAstro].join(' ')}>
+                  <span className="pip" /> 점성 · ASTRO
+                </span>
+                <ul>
+                  {month.converge.astro.map((a, i) => (
+                    <li key={`a-${i}`}>{a}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <span className={[styles.layerTag, styles.layerTagSaju].join(' ')}>
+                  <span className="pip" /> 사주 · SAJU
+                </span>
+                <ul>
+                  {month.converge.saju.map((s, i) => (
+                    <li key={`s-${i}`}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+      </details>
 
       {/* ===== dive ===== */}
       <div className={styles.diveWrap} style={{ marginTop: 40 }}>

@@ -23,6 +23,8 @@ import { Ganji } from '../atoms/Ganji'
 import { LayerTag } from '../atoms/LayerTag'
 import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './YearTier.module.css'
+import { CrossingList } from '@/components/calendar/atoms/CrossingList'
+import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 
 // ----------------------------------------------------------------
 // Props
@@ -251,6 +253,14 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   // 보강 #7 — wheel pivotal 배지.
   const wheelPivotal = readWheelPivotal(year)
 
+  // ── 12달 흐름 리스트 — 월별 점수를 좋음/평이/주의로. ──
+  const yearBand = (s: number) => (s >= 60 ? '좋은 달' : s >= 40 ? '평이한 달' : '조심할 달')
+  const yearItems = (year.monthlyScores ?? []).map((m) => ({
+    when: `${m.month}월`,
+    title: yearBand(m.score),
+    detail: m.bestDay ? `좋은 날 ${m.bestDay} · ${m.score}점` : `${m.score}점`,
+  }))
+
   return (
     <div className={styles.tierInner} data-screen-label={`1년 ${year.year}`}>
       <button className={styles.rise} onClick={onRise}>
@@ -261,381 +271,390 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       <h1 className={styles.display}>올해의 흐름</h1>
       <p className={styles.oneline}>{year.headline}</p>
 
-      <div className={styles.yearWrap}>
-        {/* ── house wheel ── */}
-        <div className={styles.wheelBox}>
-          {wheelPivotal && (
-            <div className={styles.pivotalBadge} aria-label={wheelPivotal.label}>
-              <span className="han">{wheelPivotal.han}</span>
-              {wheelPivotal.label}
-            </div>
-          )}
+      <CrossingList heading={`올해 12달 흐름 · ${year.year}`} items={yearItems} />
 
-          <svg className={styles.wheel} viewBox="0 0 360 360">
-            <defs>
-              <radialGradient id="wheelglow-year" cx="0.5" cy="0.5" r="0.5">
-                <stop offset="0" stopColor="rgba(91,141,239,0.12)" />
-                <stop offset="1" stopColor="transparent" />
-              </radialGradient>
-            </defs>
-            <circle cx={cx} cy={cy} r={R} fill="url(#wheelglow-year)" />
-            <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--dp-line)" strokeWidth={1} />
-            <circle
-              cx={cx}
-              cy={cy}
-              r={R - 44}
-              fill="none"
-              stroke="var(--dp-line-soft)"
-              strokeWidth={1}
-            />
+      {/* ── 전문가용 상세 — 프로펙션·세운·ZR·패턴 전부 접어 둠 ── */}
+      <details className={summaryStyles.details}>
+        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 사주·점성 근거</summary>
 
-            {houses.map((h) => {
-              const a0 = ((h - 1) / 12) * Math.PI * 2 - Math.PI / 2
-              const a1 = (h / 12) * Math.PI * 2 - Math.PI / 2
-              const mid = (a0 + a1) / 2
-              const active = h === p?.house
-              const lx = cx + Math.cos(mid) * (R - 22)
-              const ly = cy + Math.sin(mid) * (R - 22)
-              const sx = cx + Math.cos(a0) * R
-              const sy = cy + Math.sin(a0) * R
-              return (
-                <g key={h}>
-                  <line
-                    x1={cx}
-                    y1={cy}
-                    x2={sx}
-                    y2={sy}
-                    stroke="var(--dp-line-soft)"
-                    strokeWidth={0.7}
-                  />
-                  {active &&
-                    (() => {
-                      const steps = 18
-                      const pts: Array<[number, number]> = [[cx, cy]]
-                      for (let s = 0; s <= steps; s++) {
-                        const a = a0 + (a1 - a0) * (s / steps)
-                        pts.push([cx + Math.cos(a) * R, cy + Math.sin(a) * R])
+        <div className={styles.yearWrap}>
+          {/* ── house wheel ── */}
+          <div className={styles.wheelBox}>
+            {wheelPivotal && (
+              <div className={styles.pivotalBadge} aria-label={wheelPivotal.label}>
+                <span className="han">{wheelPivotal.han}</span>
+                {wheelPivotal.label}
+              </div>
+            )}
+
+            <svg className={styles.wheel} viewBox="0 0 360 360">
+              <defs>
+                <radialGradient id="wheelglow-year" cx="0.5" cy="0.5" r="0.5">
+                  <stop offset="0" stopColor="rgba(91,141,239,0.12)" />
+                  <stop offset="1" stopColor="transparent" />
+                </radialGradient>
+              </defs>
+              <circle cx={cx} cy={cy} r={R} fill="url(#wheelglow-year)" />
+              <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--dp-line)" strokeWidth={1} />
+              <circle
+                cx={cx}
+                cy={cy}
+                r={R - 44}
+                fill="none"
+                stroke="var(--dp-line-soft)"
+                strokeWidth={1}
+              />
+
+              {houses.map((h) => {
+                const a0 = ((h - 1) / 12) * Math.PI * 2 - Math.PI / 2
+                const a1 = (h / 12) * Math.PI * 2 - Math.PI / 2
+                const mid = (a0 + a1) / 2
+                const active = h === p?.house
+                const lx = cx + Math.cos(mid) * (R - 22)
+                const ly = cy + Math.sin(mid) * (R - 22)
+                const sx = cx + Math.cos(a0) * R
+                const sy = cy + Math.sin(a0) * R
+                return (
+                  <g key={h}>
+                    <line
+                      x1={cx}
+                      y1={cy}
+                      x2={sx}
+                      y2={sy}
+                      stroke="var(--dp-line-soft)"
+                      strokeWidth={0.7}
+                    />
+                    {active &&
+                      (() => {
+                        const steps = 18
+                        const pts: Array<[number, number]> = [[cx, cy]]
+                        for (let s = 0; s <= steps; s++) {
+                          const a = a0 + (a1 - a0) * (s / steps)
+                          pts.push([cx + Math.cos(a) * R, cy + Math.sin(a) * R])
+                        }
+                        return (
+                          <polygon
+                            points={pts.map((pt) => pt.join(',')).join(' ')}
+                            fill="rgba(176,58,34,0.18)"
+                            stroke="var(--dp-ember)"
+                            strokeWidth={1}
+                          />
+                        )
+                      })()}
+                    <text
+                      x={lx}
+                      y={ly}
+                      className={
+                        active ? `${styles.houseNum} ${styles.houseNumActive}` : styles.houseNum
                       }
-                      return (
-                        <polygon
-                          points={pts.map((pt) => pt.join(',')).join(' ')}
-                          fill="rgba(176,58,34,0.18)"
-                          stroke="var(--dp-ember)"
-                          strokeWidth={1}
-                        />
-                      )
-                    })()}
-                  <text
-                    x={lx}
-                    y={ly}
-                    className={
-                      active ? `${styles.houseNum} ${styles.houseNumActive}` : styles.houseNum
-                    }
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                  >
-                    {h}
-                  </text>
-                </g>
-              )
-            })}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                    >
+                      {h}
+                    </text>
+                  </g>
+                )
+              })}
 
-            {/* 보강 #1a — 본명 행성 도트 (안쪽 링). */}
-            {natalDots.map((d, i) => {
-              const ang = houseAngle(d.house)
-              // jitter — same-house planets 흩뿌림.
-              const sameHouseBefore = natalDots
-                .slice(0, i)
-                .filter((x) => x.house === d.house).length
-              const rOff = R - 60 - sameHouseBefore * 10
-              const x = cx + Math.cos(ang) * rOff
-              const y = cy + Math.sin(ang) * rOff
-              return (
-                <g key={`n-${d.planet}-${i}`}>
-                  <circle cx={x} cy={y} r={3.2} className={styles.natalDot} />
-                  <text x={x + 7} y={y + 3} className={styles.natalGlyph}>
-                    {d.glyph}
-                  </text>
-                </g>
-              )
-            })}
+              {/* 보강 #1a — 본명 행성 도트 (안쪽 링). */}
+              {natalDots.map((d, i) => {
+                const ang = houseAngle(d.house)
+                // jitter — same-house planets 흩뿌림.
+                const sameHouseBefore = natalDots
+                  .slice(0, i)
+                  .filter((x) => x.house === d.house).length
+                const rOff = R - 60 - sameHouseBefore * 10
+                const x = cx + Math.cos(ang) * rOff
+                const y = cy + Math.sin(ang) * rOff
+                return (
+                  <g key={`n-${d.planet}-${i}`}>
+                    <circle cx={x} cy={y} r={3.2} className={styles.natalDot} />
+                    <text x={x + 7} y={y + 3} className={styles.natalGlyph}>
+                      {d.glyph}
+                    </text>
+                  </g>
+                )
+              })}
 
-            {/* 보강 #1b — 외행성 트랜짓 도트 (바깥쪽 링). */}
-            {transitDots.map((d, i) => {
-              const ang = houseAngle(d.house)
-              const sameHouseBefore = transitDots
-                .slice(0, i)
-                .filter((x) => x.house === d.house).length
-              const rOff = R + 14 + sameHouseBefore * 12
-              const x = cx + Math.cos(ang) * rOff
-              const y = cy + Math.sin(ang) * rOff
-              return (
-                <g key={`t-${d.planet}-${i}`}>
-                  <circle cx={x} cy={y} r={3.6} className={styles.transitDot} />
-                  <text x={x + 7} y={y + 3} className={styles.transitGlyph}>
-                    {d.glyph}
-                  </text>
-                </g>
-              )
-            })}
+              {/* 보강 #1b — 외행성 트랜짓 도트 (바깥쪽 링). */}
+              {transitDots.map((d, i) => {
+                const ang = houseAngle(d.house)
+                const sameHouseBefore = transitDots
+                  .slice(0, i)
+                  .filter((x) => x.house === d.house).length
+                const rOff = R + 14 + sameHouseBefore * 12
+                const x = cx + Math.cos(ang) * rOff
+                const y = cy + Math.sin(ang) * rOff
+                return (
+                  <g key={`t-${d.planet}-${i}`}>
+                    <circle cx={x} cy={y} r={3.6} className={styles.transitDot} />
+                    <text x={x + 7} y={y + 3} className={styles.transitGlyph}>
+                      {d.glyph}
+                    </text>
+                  </g>
+                )
+              })}
 
-            {/* center label — house# (원본 그대로). */}
-            <text x={cx} y={cy - 6} textAnchor="middle" className={styles.wheelCenterTop}>
-              house
-            </text>
-            <text x={cx} y={cy + 18} textAnchor="middle" className={styles.wheelCenterHouse}>
-              {p?.house ?? ''}
-            </text>
-          </svg>
-        </div>
+              {/* center label — house# (원본 그대로). */}
+              <text x={cx} y={cy - 6} textAnchor="middle" className={styles.wheelCenterTop}>
+                house
+              </text>
+              <text x={cx} y={cy + 18} textAnchor="middle" className={styles.wheelCenterHouse}>
+                {p?.house ?? ''}
+              </text>
+            </svg>
+          </div>
 
-        {/* ── readout (astro + saju) ── */}
-        <div>
-          <LayerTag kind="astro" />
-          <div className={styles.yearReadout}>
-            <div className={styles.big}>{p ? `${p.house}번째 영역이 무대` : '활성 영역 미정'}</div>
-            {p && (
-              <p className={styles.lead} style={{ fontSize: 14 }}>
-                {p.theme} <span className={styles.muted}>· {p.themeEn}</span>
-              </p>
-            )}
-            {p && (
-              <dl className={styles.kv}>
-                <dt>profection</dt>
-                <dd>
-                  <b>{p.house}하우스</b> 활성
-                </dd>
-                <dt>cusp</dt>
-                <dd>
-                  {p.cusp} <span className={styles.muted}>{p.cuspEn}</span>
-                </dd>
-                <dt>ruler</dt>
-                <dd>
-                  <b>{p.ruler}</b> <span className={styles.muted}>{p.rulerEn}</span>
-                </dd>
-                <dt>ruler 본명</dt>
-                <dd>
-                  {p.rulerNatal}
-                  {p.rulerNatalEn && (
-                    <span className={styles.muted}>
-                      {' · '}
-                      {p.rulerNatalEn}
-                    </span>
-                  )}
-                </dd>
-              </dl>
-            )}
+          {/* ── readout (astro + saju) ── */}
+          <div>
+            <LayerTag kind="astro" />
+            <div className={styles.yearReadout}>
+              <div className={styles.big}>
+                {p ? `${p.house}번째 영역이 무대` : '활성 영역 미정'}
+              </div>
+              {p && (
+                <p className={styles.lead} style={{ fontSize: 14 }}>
+                  {p.theme} <span className={styles.muted}>· {p.themeEn}</span>
+                </p>
+              )}
+              {p && (
+                <dl className={styles.kv}>
+                  <dt>profection</dt>
+                  <dd>
+                    <b>{p.house}하우스</b> 활성
+                  </dd>
+                  <dt>cusp</dt>
+                  <dd>
+                    {p.cusp} <span className={styles.muted}>{p.cuspEn}</span>
+                  </dd>
+                  <dt>ruler</dt>
+                  <dd>
+                    <b>{p.ruler}</b> <span className={styles.muted}>{p.rulerEn}</span>
+                  </dd>
+                  <dt>ruler 본명</dt>
+                  <dd>
+                    {p.rulerNatal}
+                    {p.rulerNatalEn && (
+                      <span className={styles.muted}>
+                        {' · '}
+                        {p.rulerNatalEn}
+                      </span>
+                    )}
+                  </dd>
+                </dl>
+              )}
 
-            {/* 보강 #2 — sect + Lord-of-Year dignity. */}
-            <div
-              className={
-                sect === 'day'
-                  ? `${styles.sectLine} ${styles.sectLineDay}`
-                  : `${styles.sectLine} ${styles.sectLineNight}`
-              }
-            >
-              <span className="pip" />
-              <span className="han">{sect === 'day' ? '낮' : '밤'}</span>
-              Sect · {sect === 'day' ? 'Diurnal' : 'Nocturnal'} 출생
-            </div>
-            {lordReadout && p && (
-              <p className={styles.lordOfYear}>
-                <b>Lord of Year</b> {p.ruler} <span className={styles.muted}>({p.rulerEn})</span> —{' '}
-                <span className={styles[lordReadout.tone]}>{lordReadout.text}</span>
-              </p>
-            )}
-
-            {year.astroNote && (
-              <p
-                className={styles.lead}
-                style={{
-                  fontSize: 13,
-                  marginTop: 14,
-                  color: 'var(--dp-ink-mute)',
-                }}
+              {/* 보강 #2 — sect + Lord-of-Year dignity. */}
+              <div
+                className={
+                  sect === 'day'
+                    ? `${styles.sectLine} ${styles.sectLineDay}`
+                    : `${styles.sectLine} ${styles.sectLineNight}`
+                }
               >
-                {year.astroNote}
-              </p>
-            )}
-          </div>
-
-          <hr className={styles.hr} />
-
-          <LayerTag kind="saju" />
-          <div className={styles.sewoonRow}>
-            <div className={styles.ganjiBox}>
-              <Ganji data={year.sewoon?.gz ?? year.sewoonGz} size={42} />
-            </div>
-            <div>
-              <div className={styles.ganjiMeta}>
-                세운 {year.year} · {year.sewoonSibsin}
-                {sibsinArea(year.sewoonSibsin) !== year.sewoonSibsin
-                  ? ` (${sibsinArea(year.sewoonSibsin)})`
-                  : ''}
+                <span className="pip" />
+                <span className="han">{sect === 'day' ? '낮' : '밤'}</span>
+                Sect · {sect === 'day' ? 'Diurnal' : 'Nocturnal'} 출생
               </div>
-              <p className={styles.sajuNote}>{year.sajuNote}</p>
+              {lordReadout && p && (
+                <p className={styles.lordOfYear}>
+                  <b>Lord of Year</b> {p.ruler} <span className={styles.muted}>({p.rulerEn})</span>{' '}
+                  — <span className={styles[lordReadout.tone]}>{lordReadout.text}</span>
+                </p>
+              )}
+
+              {year.astroNote && (
+                <p
+                  className={styles.lead}
+                  style={{
+                    fontSize: 13,
+                    marginTop: 14,
+                    color: 'var(--dp-ink-mute)',
+                  }}
+                >
+                  {year.astroNote}
+                </p>
+              )}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ── 보강 #3 — ZR 카드 (Spirit / Fortune) ── */}
-      <section className={styles.block}>
-        <div className={styles.secHead}>
-          <h2
-            className={styles.secTitle}
-            title="인생을 장(章)으로 나누는 점성 흐름 — 시기마다 무엇이 무대에 오르는지"
-          >
-            황도분기 · Zodiacal Releasing
-          </h2>
-          <span className={styles.secTag}>L1 / L2 — 챕터 진행</span>
-        </div>
-        <div className={styles.zrCard}>
-          <div className={`${styles.zrPane} ${styles.zrPaneSpirit}`}>
-            <div className={styles.zrPaneHead}>Spirit · 영혼 · 진로</div>
-            {zrSpiritNow ? (
-              <>
-                <div>
-                  <span className={styles.zrLevel}>L1</span>
-                  <span className={styles.zrSign}>{zrSpiritNow.sign}</span>
-                  <span className={styles.zrSignEn}>{zrSpiritNow.ruler}</span>
-                </div>
-                <div className={styles.zrMeta}>
-                  <span>
-                    {zrSpiritNow.calendarStartYear}–{zrSpiritNow.calendarEndYear}
-                  </span>
-                  <span>{zrSpiritNow.durationYears}년</span>
-                  {zrPivotalTag(zrSpiritNow) && (
-                    <span className={styles.pivot}>{zrPivotalTag(zrSpiritNow)}</span>
-                  )}
-                </div>
-                {zrSpiritNow.subPeriods && zrSpiritNow.subPeriods.length > 0 && (
-                  <div className={styles.zrMeta}>
-                    <span className={styles.zrLevel}>L2</span>
-                    {zrSpiritNow.subPeriods.slice(0, 1).map((sub, i) => (
-                      <span key={i}>
-                        {sub.sign} · {sub.ruler} · {sub.durationMonths}개월
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className={styles.zrEmpty}>현재 활성 Spirit 챕터 없음</div>
-            )}
-          </div>
+            <hr className={styles.hr} />
 
-          <div className={`${styles.zrPane} ${styles.zrPaneFortune}`}>
-            <div className={styles.zrPaneHead}>Fortune · 몸 · 물질</div>
-            {zrFortuneNow ? (
-              <>
-                <div>
-                  <span className={styles.zrLevel}>L1</span>
-                  <span className={styles.zrSign}>{zrFortuneNow.sign}</span>
-                  <span className={styles.zrSignEn}>{zrFortuneNow.ruler}</span>
+            <LayerTag kind="saju" />
+            <div className={styles.sewoonRow}>
+              <div className={styles.ganjiBox}>
+                <Ganji data={year.sewoon?.gz ?? year.sewoonGz} size={42} />
+              </div>
+              <div>
+                <div className={styles.ganjiMeta}>
+                  세운 {year.year} · {year.sewoonSibsin}
+                  {sibsinArea(year.sewoonSibsin) !== year.sewoonSibsin
+                    ? ` (${sibsinArea(year.sewoonSibsin)})`
+                    : ''}
                 </div>
-                <div className={styles.zrMeta}>
-                  <span>
-                    {zrFortuneNow.calendarStartYear}–{zrFortuneNow.calendarEndYear}
-                  </span>
-                  <span>{zrFortuneNow.durationYears}년</span>
-                  {zrPivotalTag(zrFortuneNow) && (
-                    <span className={styles.pivot}>{zrPivotalTag(zrFortuneNow)}</span>
-                  )}
-                </div>
-                {zrFortuneNow.subPeriods && zrFortuneNow.subPeriods.length > 0 && (
-                  <div className={styles.zrMeta}>
-                    <span className={styles.zrLevel}>L2</span>
-                    {zrFortuneNow.subPeriods.slice(0, 1).map((sub, i) => (
-                      <span key={i}>
-                        {sub.sign} · {sub.ruler} · {sub.durationMonths}개월
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className={styles.zrEmpty}>현재 활성 Fortune 챕터 없음</div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 보강 #4 — SR (Solar Return) 카드 ── */}
-      {sr && (
-        <section className={styles.blockSm}>
-          <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>태양회귀 · Solar Return</h2>
-            <span className={styles.secTag}>본명 태양 정확 회귀</span>
-          </div>
-          <div className={styles.srCard}>
-            <div className={styles.srGlyph}>☉</div>
-            <div className={styles.srBody}>
-              <div className="head">SR · {year.year}</div>
-              <div className="lab">
-                {sr.ascSign && (
-                  <>
-                    상승 <b>{sr.ascSign}</b>
-                  </>
-                )}
-                {sr.mcSign && (
-                  <>
-                    {sr.ascSign ? ' · ' : ''}MC <b>{sr.mcSign}</b>
-                  </>
-                )}
+                <p className={styles.sajuNote}>{year.sajuNote}</p>
               </div>
             </div>
-            {sr.exactDate && <div className={styles.srDate}>{sr.exactDate}</div>}
           </div>
-        </section>
-      )}
+        </div>
 
-      {/* ── 보강 #5 — 응용 패턴 칩 row ── */}
-      {patterns.length > 0 && (
-        <section className={styles.blockSm}>
-          <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>올해의 응용 패턴</h2>
-            <span className={styles.secTag}>Applied Patterns</span>
-          </div>
-          <div className={styles.patternRow}>
-            {patterns.map((pt, i) => (
-              <span key={i} className={styles.patternChip}>
-                {pt.hanja && <span className="han">{pt.hanja}</span>}
-                <span>{pt.ko}</span>
-                {pt.romaji && <span className="k">{pt.romaji}</span>}
-              </span>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── 보강 #6 — Cross-activation 페어 ── */}
-      {crossPairs.length > 0 && (
+        {/* ── 보강 #3 — ZR 카드 (Spirit / Fortune) ── */}
         <section className={styles.block}>
           <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>사주 ↔ 점성 연결</h2>
-            <span className={styles.secTag}>Cross Activation</span>
+            <h2
+              className={styles.secTitle}
+              title="인생을 장(章)으로 나누는 점성 흐름 — 시기마다 무엇이 무대에 오르는지"
+            >
+              황도분기 · Zodiacal Releasing
+            </h2>
+            <span className={styles.secTag}>L1 / L2 — 챕터 진행</span>
           </div>
-          <div className={styles.crossList}>
-            {crossPairs.map((cp, i) => (
-              <div key={i}>
-                <div className={styles.crossRow}>
-                  <div className={`${styles.crossSide} ${styles.saju || ''}`}>
-                    <b>{cp.sajuLabel}</b>
-                    {cp.sajuRomaji && <span className="sub">{cp.sajuRomaji}</span>}
+          <div className={styles.zrCard}>
+            <div className={`${styles.zrPane} ${styles.zrPaneSpirit}`}>
+              <div className={styles.zrPaneHead}>Spirit · 영혼 · 진로</div>
+              {zrSpiritNow ? (
+                <>
+                  <div>
+                    <span className={styles.zrLevel}>L1</span>
+                    <span className={styles.zrSign}>{zrSpiritNow.sign}</span>
+                    <span className={styles.zrSignEn}>{zrSpiritNow.ruler}</span>
                   </div>
-                  <div className={styles.crossLink}>↔</div>
-                  <div className={`${styles.crossSide} ${styles.astro || ''}`}>
-                    <b>{cp.astroLabel}</b>
-                    {cp.astroRomaji && <span className="sub">{cp.astroRomaji}</span>}
+                  <div className={styles.zrMeta}>
+                    <span>
+                      {zrSpiritNow.calendarStartYear}–{zrSpiritNow.calendarEndYear}
+                    </span>
+                    <span>{zrSpiritNow.durationYears}년</span>
+                    {zrPivotalTag(zrSpiritNow) && (
+                      <span className={styles.pivot}>{zrPivotalTag(zrSpiritNow)}</span>
+                    )}
                   </div>
-                </div>
-                {cp.meaning && <p className={styles.crossMeaning}>{cp.meaning}</p>}
-              </div>
-            ))}
+                  {zrSpiritNow.subPeriods && zrSpiritNow.subPeriods.length > 0 && (
+                    <div className={styles.zrMeta}>
+                      <span className={styles.zrLevel}>L2</span>
+                      {zrSpiritNow.subPeriods.slice(0, 1).map((sub, i) => (
+                        <span key={i}>
+                          {sub.sign} · {sub.ruler} · {sub.durationMonths}개월
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className={styles.zrEmpty}>현재 활성 Spirit 챕터 없음</div>
+              )}
+            </div>
+
+            <div className={`${styles.zrPane} ${styles.zrPaneFortune}`}>
+              <div className={styles.zrPaneHead}>Fortune · 몸 · 물질</div>
+              {zrFortuneNow ? (
+                <>
+                  <div>
+                    <span className={styles.zrLevel}>L1</span>
+                    <span className={styles.zrSign}>{zrFortuneNow.sign}</span>
+                    <span className={styles.zrSignEn}>{zrFortuneNow.ruler}</span>
+                  </div>
+                  <div className={styles.zrMeta}>
+                    <span>
+                      {zrFortuneNow.calendarStartYear}–{zrFortuneNow.calendarEndYear}
+                    </span>
+                    <span>{zrFortuneNow.durationYears}년</span>
+                    {zrPivotalTag(zrFortuneNow) && (
+                      <span className={styles.pivot}>{zrPivotalTag(zrFortuneNow)}</span>
+                    )}
+                  </div>
+                  {zrFortuneNow.subPeriods && zrFortuneNow.subPeriods.length > 0 && (
+                    <div className={styles.zrMeta}>
+                      <span className={styles.zrLevel}>L2</span>
+                      {zrFortuneNow.subPeriods.slice(0, 1).map((sub, i) => (
+                        <span key={i}>
+                          {sub.sign} · {sub.ruler} · {sub.durationMonths}개월
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className={styles.zrEmpty}>현재 활성 Fortune 챕터 없음</div>
+              )}
+            </div>
           </div>
         </section>
-      )}
+
+        {/* ── 보강 #4 — SR (Solar Return) 카드 ── */}
+        {sr && (
+          <section className={styles.blockSm}>
+            <div className={styles.secHead}>
+              <h2 className={styles.secTitle}>태양회귀 · Solar Return</h2>
+              <span className={styles.secTag}>본명 태양 정확 회귀</span>
+            </div>
+            <div className={styles.srCard}>
+              <div className={styles.srGlyph}>☉</div>
+              <div className={styles.srBody}>
+                <div className="head">SR · {year.year}</div>
+                <div className="lab">
+                  {sr.ascSign && (
+                    <>
+                      상승 <b>{sr.ascSign}</b>
+                    </>
+                  )}
+                  {sr.mcSign && (
+                    <>
+                      {sr.ascSign ? ' · ' : ''}MC <b>{sr.mcSign}</b>
+                    </>
+                  )}
+                </div>
+              </div>
+              {sr.exactDate && <div className={styles.srDate}>{sr.exactDate}</div>}
+            </div>
+          </section>
+        )}
+
+        {/* ── 보강 #5 — 응용 패턴 칩 row ── */}
+        {patterns.length > 0 && (
+          <section className={styles.blockSm}>
+            <div className={styles.secHead}>
+              <h2 className={styles.secTitle}>올해의 응용 패턴</h2>
+              <span className={styles.secTag}>Applied Patterns</span>
+            </div>
+            <div className={styles.patternRow}>
+              {patterns.map((pt, i) => (
+                <span key={i} className={styles.patternChip}>
+                  {pt.hanja && <span className="han">{pt.hanja}</span>}
+                  <span>{pt.ko}</span>
+                  {pt.romaji && <span className="k">{pt.romaji}</span>}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── 보강 #6 — Cross-activation 페어 ── */}
+        {crossPairs.length > 0 && (
+          <section className={styles.block}>
+            <div className={styles.secHead}>
+              <h2 className={styles.secTitle}>사주 ↔ 점성 연결</h2>
+              <span className={styles.secTag}>Cross Activation</span>
+            </div>
+            <div className={styles.crossList}>
+              {crossPairs.map((cp, i) => (
+                <div key={i}>
+                  <div className={styles.crossRow}>
+                    <div className={`${styles.crossSide} ${styles.saju || ''}`}>
+                      <b>{cp.sajuLabel}</b>
+                      {cp.sajuRomaji && <span className="sub">{cp.sajuRomaji}</span>}
+                    </div>
+                    <div className={styles.crossLink}>↔</div>
+                    <div className={`${styles.crossSide} ${styles.astro || ''}`}>
+                      <b>{cp.astroLabel}</b>
+                      {cp.astroRomaji && <span className="sub">{cp.astroRomaji}</span>}
+                    </div>
+                  </div>
+                  {cp.meaning && <p className={styles.crossMeaning}>{cp.meaning}</p>}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </details>
 
       {/* ── dive 버튼 (원본 그대로) ── */}
       <div className={styles.diveWrap}>
