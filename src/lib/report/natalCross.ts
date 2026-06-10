@@ -127,20 +127,33 @@ export function sajuKeyMapping(key: string | undefined): CrossMapping | undefine
 
 // ── 도메인 평가기 (단일 포인트) ────────────────────────────────────────────
 
-/** 정체성: 일간 오행 ↔ 태양 별자리. */
+/** 정체성: 일간 오행 ↔ 태양 별자리(+ 상승점). 속(일간)·드러나는 자아(태양)·
+ *  첫인상(ASC)을 한 축으로 통합 — 정체성과 페르소나를 따로 두지 않는다. */
 export function evalIdentity(
   dayMasterEl: string | undefined,
-  sunSign: string | undefined
+  sunSign: string | undefined,
+  ascSign?: string | undefined
 ): CrossVerdict | null {
   const a = normSajuElement(dayMasterEl)
   const b = signToSajuElement(sunSign)
   if (!a || !b) return null
-  return elementVerdict(a, b, {
+  const base = elementVerdict(a, b, {
     aKo: '타고난 속마음',
     aEn: 'inner nature',
     bKo: '드러나는 자아',
     bEn: 'outer self',
   })
+  const c = signToSajuElement(ascSign)
+  if (!c) return base
+  const tc = ELEMENT_TRAIT[c]
+  const ascSame = c === b
+  const tailKo = ascSame
+    ? ` 남에게 비치는 첫인상도 ${tc.ko} 결이라, 속·자아·첫인상이 한 줄로 또렷하게 이어져요.`
+    : ` 게다가 첫인상은 ${tc.ko} 쪽이라 진짜 자아와 겉모습이 한 번 더 갈려요 — 알수록 처음 인상과 달라 보이는 사람이에요.`
+  const tailEn = ascSame
+    ? ` Your first impression reads ${tc.en} too, so inner self, core self, and the face you show line up cleanly.`
+    : ` And your first impression reads ${tc.en}, so who you are and how you appear split once more — people find you different the better they know you.`
+  return { ...base, reason: { ko: base.reason.ko + tailKo, en: base.reason.en + tailEn } }
 }
 
 /** 필요·욕망: 용신 오행 ↔ 달 별자리. */
@@ -991,6 +1004,40 @@ export function evalYinYang(
           en: 'Your nature is yin (receptive) yet you were born by day, with an outward stage — a wide range that brings inner depth out into the open.',
         },
       }
+}
+
+/** 소통·표현: 식상 비중(사주) ↔ 수성 강조·3/5하우스(점성). */
+export function evalExpression(
+  siksangCount: number,
+  mercuryStrong: boolean,
+  exprHouseCount: number
+): CrossVerdict | null {
+  const sajuExpr = siksangCount >= 2
+  const astroExpr = mercuryStrong || exprHouseCount > 0
+  if (!sajuExpr && !astroExpr) return null
+  if (sajuExpr && astroExpr)
+    return {
+      tone: 'resonant',
+      reason: {
+        ko: '사주의 식상(말·표현·창의)과 별자리의 소통·표현 자리가 둘 다 또렷해요 — 생각을 밖으로 꺼내 전하는 힘이 양쪽에서 받쳐줘요. 말과 글, 만드는 일로 자기를 드러낼 때 가장 빛나요.',
+        en: "Your chart's Output star (speech, expression, creativity) and its houses of communication are both strong — the power to voice and share ideas is backed on both sides. You shine brightest expressing yourself through words, writing, or making things.",
+      },
+    }
+  if (sajuExpr)
+    return {
+      tone: 'complement',
+      reason: {
+        ko: '사주엔 표현·창의(식상) 기운이 또렷한데 별자리는 말수가 적은 쪽이에요 — 안에 할 말이 많은데 겉으론 담백한 타입. 떠오른 걸 미루지 말고 그때그때 꺼내 두면 막힘이 풀려요.',
+        en: 'Your Saju carries a clear expressive-creative streak (Output star), while your chart is the quieter type — plenty to say inside, plain on the surface. Get thoughts out as they come rather than holding them in, and the blockage clears.',
+      },
+    }
+  return {
+    tone: 'complement',
+    reason: {
+      ko: '사주는 말수가 적은 편인데 별자리의 소통·표현 자리가 활발해요 — 배우고 나누고 연결하는 데 에너지가 많이 흘러요. 꾸준히 쓰고 말하는 습관이 그 재능을 실력으로 굳혀줘요.',
+      en: "Your Saju is the quieter type, but your chart's houses of communication run active — much of your energy flows into learning, sharing, and connecting. A steady habit of writing and talking turns that gift into real skill.",
+    },
+  }
 }
 
 // ── 종합 ──────────────────────────────────────────────────────────────────

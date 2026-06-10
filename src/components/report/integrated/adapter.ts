@@ -17,13 +17,13 @@ import {
   evalStrength,
   evalTemperament,
   evalEnergyDirection,
-  evalPersona,
   evalDrive,
   evalKeyAspect,
   evalRomance,
   evalMovement,
   evalSpirit,
   evalWealth,
+  evalExpression,
   evalVoid,
   evalNorthNode,
   evalYinYang,
@@ -504,6 +504,10 @@ export function buildCrossRows(
   }
   const inHouses = (...hs: number[]) => hs.reduce((a, h) => a + (houseCount[h] ?? 0), 0)
   const jaeseongCount = details?.['재성'] ?? 0
+  const siksangCount = details?.['식상'] ?? 0
+  // 길흉: 일주 신살을 먼저, 없으면 다른 기둥 신살로 폴백 — 대부분의 사주에서
+  // 행이 비지 않도록(이전엔 일주 신살에 매핑 가능한 게 없으면 통째로 누락).
+  const fortuneShinsal = [...dayShinsal, ...allShinsal.filter((s) => !dayShinsal.includes(s))]
 
   // 교차 항목 카테고리 라벨 — 이중언어. key 로 행을 묶고 lang 으로 표시 텍스트 선택.
   const CAT: Record<string, { ko: string; en: string }> = {
@@ -515,10 +519,10 @@ export function buildCrossRows(
     strength: { ko: '강점', en: 'Strength' },
     temperament: { ko: '기질', en: 'Temperament' },
     energy: { ko: '에너지', en: 'Energy' },
-    persona: { ko: '드러나는 나', en: 'Outer Persona' },
     drive: { ko: '추진력', en: 'Drive' },
     keyTrait: { ko: '핵심 성향', en: 'Core Trait' },
     romance: { ko: '연애·매력', en: 'Love & Magnetism' },
+    expression: { ko: '소통·표현', en: 'Voice & Expression' },
     movement: { ko: '이동·변화', en: 'Movement & Change' },
     spirit: { ko: '예술·영성', en: 'Art & Spirit' },
     wealth: { ko: '재물 그릇', en: 'Wealth Capacity' },
@@ -527,13 +531,13 @@ export function buildCrossRows(
     yinYang: { ko: '음양 리듬', en: 'Yin-Yang Rhythm' },
   }
   const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
-    ['identity', evalIdentity(dmEl, sunSign)],
+    ['identity', evalIdentity(dmEl, sunSign, ascSign)],
     ['needs', evalNeeds(S.yongsin?.primary, moonSign)],
     [
       'socialRole',
       adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null,
     ],
-    ['fortune', evalFortune(dayShinsal, emphasized)],
+    ['fortune', evalFortune(fortuneShinsal, emphasized)],
     ['relations', evalRelations(hap, chung, harmonious, hard)],
     ['strength', evalStrength(stage, topDignity)],
     [
@@ -541,10 +545,10 @@ export function buildCrossRows(
       evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean)),
     ],
     ['energy', evalEnergyDirection(details, emphasized)],
-    ['persona', evalPersona(dmEl, ascSign)],
     ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
     ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
     ['romance', evalRomance(hasShinsal('도화', '홍염'), emphasized.has('Venus'), inHouses(5, 7))],
+    ['expression', evalExpression(siksangCount, emphasized.has('Mercury'), inHouses(3, 5))],
     ['movement', evalMovement(hasShinsal('역마'), inHouses(3, 9), emphasized.has('Jupiter'))],
     ['spirit', evalSpirit(hasShinsal('화개'), inHouses(12), emphasized.has('Neptune'))],
     [
