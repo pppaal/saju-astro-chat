@@ -18,7 +18,7 @@ const mockSafeParse = vi.fn()
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: any, _options: any) => {
     return async (req: any) => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       let session: any = null
       try {
         session = await (getServerSession as any)()
@@ -60,7 +60,7 @@ vi.mock('@/lib/api/middleware', () => ({
 // ---------------------------------------------------------------------------
 // Mock next-auth
 // ---------------------------------------------------------------------------
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -118,7 +118,7 @@ vi.mock('@/lib/constants/http', () => ({
 // Imports AFTER mocks
 // ---------------------------------------------------------------------------
 import { GET } from '@/app/api/counselor/session/load/route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { getServerSession } from '@/lib/auth/session'
 import {
   consumeCredits,
   canUseCredits,
@@ -39,7 +38,7 @@ export async function checkAndConsumeCredits(
   type: CreditType = 'reading',
   amount: number = 1
 ): Promise<CreditCheckResult> {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession()
 
   // 게스트(비로그인) 무료 리딩 폐지 — 모든 gated 액션은 로그인 필수.
   // (쿠키 우회 남용 + 기록 미저장 문제로 제거, audit 2026-06)
@@ -118,7 +117,7 @@ export async function checkCreditsOnly(
   type: CreditType = 'reading',
   amount: number = 1
 ): Promise<CreditCheckResult> {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession()
 
   // 게스트(비로그인) 무료 리딩 폐지 — 로그인 필수. (audit 2026-06)
   if (!session?.user?.id) {

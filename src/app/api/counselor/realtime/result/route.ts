@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/authOptions'
+import { getServerSession } from '@/lib/auth/session'
 import { cacheGet } from '@/lib/cache/redis-cache'
 import { counselorTurnResultKey } from '../route'
 
@@ -18,7 +17,7 @@ export const runtime = 'nodejs'
  * 미지원 (realtime route 가 게스트 결과는 캐시에 저장 안 함).
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession()
   const userId = session?.user?.id
   if (!userId) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })

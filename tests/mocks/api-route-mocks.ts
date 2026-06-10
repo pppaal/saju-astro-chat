@@ -69,7 +69,9 @@ export const createMockHeaders = (headers: Record<string, string> = {}) => ({
 export const mockWithApiMiddleware = vi.fn((handler: any) => handler)
 export const mockCreateAuthenticatedGuard = vi.fn(() => ({}))
 export const mockApiSuccess = vi.fn((data: any) => ({ data }))
-export const mockApiError = vi.fn((code: string, message?: string) => ({ error: { code, message } }))
+export const mockApiError = vi.fn((code: string, message?: string) => ({
+  error: { code, message },
+}))
 
 export const mockErrorCodes = {
   BAD_REQUEST: 'BAD_REQUEST',
@@ -104,7 +106,11 @@ export const mockApiClient = {
   delete: vi.fn(),
 }
 
-export const mockBackendResponse = (data: unknown, ok = true, status = 200): MockBackendResponse => ({
+export const mockBackendResponse = (
+  data: unknown,
+  ok = true,
+  status = 200
+): MockBackendResponse => ({
   ok,
   status,
   data,
@@ -127,7 +133,7 @@ export function setupApiMocks() {
   }))
 
   // Auth
-  vi.mock('next-auth', () => ({
+  vi.mock('@/lib/auth/session', () => ({
     getServerSession: mockGetServerSession,
   }))
 

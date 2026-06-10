@@ -6,10 +6,10 @@
 
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 
 // Mock next-auth with getServerSession
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(() =>
     Promise.resolve({
       user: { name: 'Test User', email: 'test@example.com', id: 'user-123' },
@@ -78,14 +78,22 @@ vi.mock('@/lib/api/zodValidation', () => ({
       }
     }),
   },
-  createValidationErrorResponse: vi.fn((error: { issues?: { path: string[]; message: string }[] }, _options?: Record<string, unknown>) => {
-    const { NextResponse } = require('next/server')
-    const errorMessage = error.issues?.map((i: { path: string[]; message: string }) => i.path.join('.')).join(', ') || 'validation_error'
-    return NextResponse.json(
-      { success: false, error: { code: 'VALIDATION_ERROR', message: errorMessage } },
-      { status: 400 }
-    )
-  }),
+  createValidationErrorResponse: vi.fn(
+    (
+      error: { issues?: { path: string[]; message: string }[] },
+      _options?: Record<string, unknown>
+    ) => {
+      const { NextResponse } = require('next/server')
+      const errorMessage =
+        error.issues
+          ?.map((i: { path: string[]; message: string }) => i.path.join('.'))
+          .join(', ') || 'validation_error'
+      return NextResponse.json(
+        { success: false, error: { code: 'VALIDATION_ERROR', message: errorMessage } },
+        { status: 400 }
+      )
+    }
+  ),
 }))
 
 // Mock middleware with passthrough pattern
@@ -96,7 +104,7 @@ vi.mock('@/lib/api/middleware', () => ({
       _options: unknown
     ) => {
       return async (req: NextRequest, ...args: unknown[]) => {
-        const { getServerSession } = await import('next-auth')
+        const { getServerSession } = await import('@/lib/auth/session')
         const { authOptions } = await import('@/lib/auth/authOptions')
 
         let session: { user?: { id: string; name?: string; email?: string } } | null = null
@@ -174,11 +182,13 @@ vi.mock('@/lib/api/middleware', () => ({
     ...opts,
     requireAuth: true,
   })),
-  apiSuccess: vi.fn((data: unknown, options?: { status?: number; meta?: Record<string, unknown> }) => ({
-    data,
-    status: options?.status,
-    meta: options?.meta,
-  })),
+  apiSuccess: vi.fn(
+    (data: unknown, options?: { status?: number; meta?: Record<string, unknown> }) => ({
+      data,
+      status: options?.status,
+      meta: options?.meta,
+    })
+  ),
   apiError: vi.fn((code: string, message?: string, details?: unknown) => ({
     error: { code, message, details },
   })),
@@ -451,7 +461,9 @@ describe('/api/tarot/save/[id]', () => {
       })
 
       it('should only query for readings belonging to authenticated user', async () => {
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockTarotReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockTarotReading
+        )
 
         const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
         const routeContext = createRouteContext(mockReadingId)
@@ -487,7 +499,9 @@ describe('/api/tarot/save/[id]', () => {
 
     describe('Successful Retrieval', () => {
       it('should return full reading details', async () => {
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockTarotReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockTarotReading
+        )
 
         const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
         const routeContext = createRouteContext(mockReadingId)
@@ -506,7 +520,9 @@ describe('/api/tarot/save/[id]', () => {
       })
 
       it('should return all card data', async () => {
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockTarotReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockTarotReading
+        )
 
         const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
         const routeContext = createRouteContext(mockReadingId)
@@ -523,7 +539,9 @@ describe('/api/tarot/save/[id]', () => {
       })
 
       it('should return interpretation data', async () => {
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockTarotReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockTarotReading
+        )
 
         const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
         const routeContext = createRouteContext(mockReadingId)
@@ -541,7 +559,9 @@ describe('/api/tarot/save/[id]', () => {
       })
 
       it('should return metadata fields', async () => {
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockTarotReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockTarotReading
+        )
 
         const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
         const routeContext = createRouteContext(mockReadingId)
@@ -573,7 +593,9 @@ describe('/api/tarot/save/[id]', () => {
           createdAt: new Date('2024-06-01'),
         }
 
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(minimalReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          minimalReading
+        )
 
         const req = new Request('http://localhost:3000/api/tarot/save/minimal-id')
         const routeContext = createRouteContext('minimal-id')
@@ -594,7 +616,9 @@ describe('/api/tarot/save/[id]', () => {
           counselorSessionId: 'session-123',
         }
 
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(counselorReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          counselorReading
+        )
 
         const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
         const routeContext = createRouteContext(mockReadingId)
@@ -699,7 +723,9 @@ describe('/api/tarot/save/[id]', () => {
 
     describe('Response Format', () => {
       it('should return success: true in response body', async () => {
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockTarotReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockTarotReading
+        )
 
         const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
         const routeContext = createRouteContext(mockReadingId)
@@ -712,7 +738,9 @@ describe('/api/tarot/save/[id]', () => {
       })
 
       it('should serialize Date objects correctly', async () => {
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockTarotReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockTarotReading
+        )
 
         const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
         const routeContext = createRouteContext(mockReadingId)
@@ -727,7 +755,9 @@ describe('/api/tarot/save/[id]', () => {
       })
 
       it('should include reading nested under data key', async () => {
-        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(mockTarotReading)
+        ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+          mockTarotReading
+        )
 
         const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
         const routeContext = createRouteContext(mockReadingId)
@@ -853,7 +883,9 @@ describe('/api/tarot/save/[id]', () => {
         affirmation: null,
       }
 
-      ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(readingWithNulls)
+      ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+        readingWithNulls
+      )
 
       const req = new Request(`http://localhost:3000/api/tarot/save/${mockReadingId}`)
       const routeContext = createRouteContext(mockReadingId)

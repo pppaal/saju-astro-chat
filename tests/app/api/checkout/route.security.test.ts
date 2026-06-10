@@ -9,7 +9,7 @@ import { NextRequest } from 'next/server'
 // ---------- hoisted mocks ----------
 const mockStripeCreate = vi.fn()
 
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -86,7 +86,7 @@ vi.mock('@/lib/auth/publicToken', () => ({
 
 // ---------- imports ----------
 import { POST } from '@/app/api/checkout/route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 import { getCreditPackPriceId, allowedCreditPackIds } from '@/lib/payments/prices'
 

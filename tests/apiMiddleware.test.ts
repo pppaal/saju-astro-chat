@@ -37,7 +37,7 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn().mockResolvedValue(null),
 }))
 

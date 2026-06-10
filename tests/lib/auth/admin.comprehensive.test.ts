@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { isAdminEmail, isAdminUser, checkAdminRole, requireAdminSession } from '@/lib/auth/admin'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/db/prisma'
 
-vi.mock('next-auth')
+vi.mock('@/lib/auth/session')
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: {

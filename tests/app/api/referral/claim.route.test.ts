@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: any, _options: any) => {
     return async (req: any, ...args: any[]) => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       const { authOptions } = await import('@/lib/auth/authOptions')
 
       let session: any = null
@@ -110,7 +110,7 @@ vi.mock('@/lib/api/middleware', () => ({
   },
 }))
 
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -153,7 +153,7 @@ vi.mock('@/lib/request-ip', () => ({
 }))
 
 import { POST } from '@/app/api/referral/claim/route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { claimReferralReward } from '@/lib/referral'
 
 describe('/api/referral/claim', () => {

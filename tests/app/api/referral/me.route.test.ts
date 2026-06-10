@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: any, _options: any) => {
     return async (req: any, ...args: any[]) => {
-      const { getServerSession } = await import('next-auth')
+      const { getServerSession } = await import('@/lib/auth/session')
       const { authOptions } = await import('@/lib/auth/authOptions')
 
       let session: any = null
@@ -110,7 +110,7 @@ vi.mock('@/lib/api/middleware', () => ({
   },
 }))
 
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -157,7 +157,7 @@ vi.mock('@/lib/request-ip', () => ({
 }))
 
 import { GET } from '@/app/api/referral/me/route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { getReferralStats, getReferralUrl } from '@/lib/referral'
 
 describe('/api/referral/me', () => {
@@ -219,9 +219,7 @@ describe('/api/referral/me', () => {
           { id: 'ref1', name: 'User 1', joinedAt: new Date(), hasAnalysis: true },
           { id: 'ref2', name: 'User 2', joinedAt: new Date(), hasAnalysis: false },
         ],
-        rewards: [
-          { id: 'rwd1', credits: 5, status: 'completed', createdAt: new Date() },
-        ],
+        rewards: [{ id: 'rwd1', credits: 5, status: 'completed', createdAt: new Date() }],
       }
       vi.mocked(getReferralStats).mockResolvedValue(mockStats as any)
 

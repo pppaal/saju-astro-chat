@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { NextResponse } from 'next/server'
 
 // Mock dependencies
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -30,7 +30,7 @@ vi.mock('@/lib/logger', () => ({
   },
 }))
 
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import {
   canUseCredits,
   consumeCredits,
@@ -299,7 +299,6 @@ describe('withCredits helpers', () => {
 
       expect(result).toBeInstanceOf(NextResponse)
     })
-
   })
 
   describe('ensureUserCredits', () => {

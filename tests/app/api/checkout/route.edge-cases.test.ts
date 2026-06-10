@@ -14,7 +14,7 @@ const mockPrismaUserCredits = {
 }
 const mockPrismaTransaction = vi.fn()
 
-vi.mock('next-auth', () => ({
+vi.mock('@/lib/auth/session', () => ({
   getServerSession: vi.fn(),
 }))
 
@@ -95,7 +95,7 @@ vi.mock('stripe', () => {
 
 // ---------- imports (after mocks) ----------
 import { POST } from '@/app/api/checkout/route'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 
 describe('/api/checkout - Edge Cases (P1)', () => {
@@ -142,12 +142,14 @@ describe('/api/checkout - Edge Cases (P1)', () => {
 
   describe('Concurrent Request Handling', () => {
     it('should handle multiple simultaneous checkout requests for same user', async () => {
-      const requests = Array.from({ length: 5 }, () =>
-        new NextRequest('http://localhost:3000/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ creditPack: 'mini' }),
-        })
+      const requests = Array.from(
+        { length: 5 },
+        () =>
+          new NextRequest('http://localhost:3000/api/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ creditPack: 'mini' }),
+          })
       )
 
       const responses = await Promise.all(requests.map((req) => POST(req)))
@@ -371,9 +373,7 @@ describe('/api/checkout - Edge Cases (P1)', () => {
     it('should handle network timeout', async () => {
       mockStripeCheckoutCreate.mockImplementation(
         () =>
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Request timeout')), 100)
-          )
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Request timeout')), 100))
       )
 
       const req = new NextRequest('http://localhost:3000/api/checkout', {
