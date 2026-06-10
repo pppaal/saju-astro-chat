@@ -414,9 +414,9 @@ export function evalTemperament(
   if (!a || !b) return null
   return elementVerdict(a, b, {
     aKo: '사주가 본 성향',
-    aEn: 'your Saju-read trait',
+    aEn: 'Saju-read side',
     bKo: '별자리가 본 성향',
-    bEn: 'your astrology-read trait',
+    bEn: 'astrology-read side',
   })
 }
 
@@ -795,6 +795,144 @@ export function evalNorthNode(
   }
 }
 
+// ── 생활 영역 교차 (사주의 신살·십신 ↔ 점성의 하우스·행성) ──────────────────
+// 정체성 축들이 "성향"을 본다면, 아래 축들은 "삶의 테마"(연애·이동·영성·재물)를
+// 동·서양 신호로 동시에 비춘다. 양쪽 신호가 다 있으면 그 테마가 인생에서 크게
+// 작동(resonant), 한쪽만 있으면 한 방향으로 풀림(complement), 둘 다 없으면 행 생략.
+
+/** 연애·매력: 도화·홍염(사주) ↔ 금성 강조·5/7하우스(점성). */
+export function evalRomance(
+  hasDohwa: boolean,
+  venusStrong: boolean,
+  loveHouseCount: number
+): CrossVerdict | null {
+  const astroLove = venusStrong || loveHouseCount > 0
+  if (!hasDohwa && !astroLove) return null
+  if (hasDohwa && astroLove)
+    return {
+      tone: 'resonant',
+      reason: {
+        ko: '사주의 끄는 매력(도화·홍염)과 별자리의 사랑·관계 자리가 둘 다 켜져 있어요 — 사람을 끌고, 관계가 인생의 큰 테마가 되는 편이에요. 매력을 즐기되 한 사람에게 깊이 머무는 연습이 인연을 오래 가게 해요.',
+        en: "Both your chart's pull (Peach Blossom) and its houses of love and partnership are lit — you draw people in, and relationships become a central life theme. Enjoy the magnetism, but learning to stay deeply with one person is what makes love last.",
+      },
+    }
+  if (hasDohwa)
+    return {
+      tone: 'complement',
+      reason: {
+        ko: '타고난 끄는 매력(도화)은 또렷한데 별자리는 사랑을 차분히 다뤄요 — 화려하기보다 은근하게 사람을 끄는 타입이에요. 먼저 다가가는 한 걸음이 좋은 인연을 앞당겨요.',
+        en: 'Your natural magnetism (Peach Blossom) is clear, while your chart handles love more quietly — your appeal is understated rather than flashy. One step forward of your own brings the right connection sooner.',
+      },
+    }
+  return {
+    tone: 'complement',
+    reason: {
+      ko: '사주는 연애를 담담하게 보는데, 별자리의 사랑·관계 자리가 활발해요 — 관계 속에서 자기를 발견하는 타입이에요. 관계에 기대되 자기 중심도 함께 챙기면 좋아요.',
+      en: "Your Saju treats romance evenly, but your chart's houses of love run active — you find yourself through relationships. Lean in, but keep your own center alongside.",
+    },
+  }
+}
+
+/** 이동·변화: 역마(사주) ↔ 3/9하우스·목성(점성). */
+export function evalMovement(
+  hasYeokma: boolean,
+  moveHouseCount: number,
+  jupiterStrong: boolean
+): CrossVerdict | null {
+  const astroMove = moveHouseCount > 0 || jupiterStrong
+  if (!hasYeokma && !astroMove) return null
+  if (hasYeokma && astroMove)
+    return {
+      tone: 'resonant',
+      reason: {
+        ko: '사주의 역마(이동·변동)와 별자리의 이동·확장 자리가 함께 켜져 있어요 — 한자리에 오래 머물기보다 옮겨 다니며 크는 사람이에요. 변화를 불안이 아니라 자원으로 쓰면 길이 넓어져요.',
+        en: "Your chart's Traveling Horse (movement) and its houses of travel and expansion are both lit — you grow by moving rather than staying put. Treat change as a resource, not a worry, and the road widens.",
+      },
+    }
+  if (hasYeokma)
+    return {
+      tone: 'complement',
+      reason: {
+        ko: '사주엔 역마(이동) 기운이 있는데 별자리는 한곳에 뿌리내리는 쪽이에요 — 떠나고 싶은 마음과 머물고 싶은 마음이 같이 있어요. 베이스를 두고 거기서 뻗어 나가는 리듬이 잘 맞아요.',
+        en: 'Your Saju carries the Traveling Horse, while your chart prefers to root in one place — a pull to leave and a pull to stay, side by side. A home base you venture out from suits you best.',
+      },
+    }
+  return {
+    tone: 'complement',
+    reason: {
+      ko: '사주는 자리를 지키는 편인데 별자리의 이동·확장 자리가 활발해요 — 멀리 나가 보는 경험이 시야를 크게 넓혀줘요. 익숙한 곳을 벗어나는 시도를 가끔 의식적으로 해보면 좋아요.',
+      en: "Your Saju tends to hold its place, but your chart's houses of travel and expansion run active — going far stretches your view. Step out of the familiar on purpose now and then.",
+    },
+  }
+}
+
+/** 예술·영성: 화개(사주) ↔ 12하우스·해왕성(점성). */
+export function evalSpirit(
+  hasHwagae: boolean,
+  twelfthCount: number,
+  neptuneStrong: boolean
+): CrossVerdict | null {
+  const astroSpirit = twelfthCount > 0 || neptuneStrong
+  if (!hasHwagae && !astroSpirit) return null
+  if (hasHwagae && astroSpirit)
+    return {
+      tone: 'resonant',
+      reason: {
+        ko: '사주의 화개(예술·종교·고독)와 별자리의 내면·영성 자리가 둘 다 켜져 있어요 — 보이지 않는 것을 읽고 표현하는 깊이가 있는 사람이에요. 혼자만의 시간을 충분히 두면 그 감각이 작품과 통찰로 흘러나와요.',
+        en: "Your chart's Floral Canopy (art, faith, solitude) and its houses of the inner life are both lit — you read and express what others can't see. Give yourself enough solitude and that sense flows out as art and insight.",
+      },
+    }
+  if (hasHwagae)
+    return {
+      tone: 'complement',
+      reason: {
+        ko: '사주엔 화개(예술·영성) 기운이 또렷한데 별자리는 현실에 발 딛는 쪽이에요 — 깊은 감수성을 일상의 형태로 풀어내기 좋은 조합이에요. 떠오른 영감을 손에 잡히는 결과물로 옮기면 빛나요.',
+        en: 'Your Saju carries a clear artistic-spiritual streak (Floral Canopy), while your chart stays grounded in the real — a fine combination for turning deep sensitivity into concrete form. Move inspiration into something tangible and it shines.',
+      },
+    }
+  return {
+    tone: 'complement',
+    reason: {
+      ko: '사주는 담백하고 현실적인데 별자리의 내면·영성 자리가 활발해요 — 보이지 않는 흐름에 예민하게 반응하는 면이 있어요. 명상·기록처럼 안을 들여다보는 습관이 중심을 잡아줘요.',
+      en: "Your Saju is plain and practical, but your chart's houses of the inner life run active — you're quietly sensitive to unseen currents. Habits that look inward, like journaling or meditation, steady your center.",
+    },
+  }
+}
+
+/** 재물 그릇: 재성 비중(사주) ↔ 2/8하우스·길성(점성). */
+export function evalWealth(
+  jaeseongCount: number,
+  wealthHouseCount: number,
+  beneficStrong: boolean
+): CrossVerdict | null {
+  const sajuWealth = jaeseongCount >= 2
+  const astroWealth = wealthHouseCount > 0 || beneficStrong
+  if (!sajuWealth && !astroWealth) return null
+  if (sajuWealth && astroWealth)
+    return {
+      tone: 'resonant',
+      reason: {
+        ko: '사주의 재성(돈을 다루는 손)과 별자리의 자원·소유 자리가 둘 다 또렷해요 — 돈을 벌고 굴리는 감각이 양쪽에서 받쳐주는 편이에요. 한탕보다 흐름을 만들면 그 그릇이 꾸준히 커져요.',
+        en: "Your chart's Wealth star (a hand for money) and its houses of resources are both strong — a feel for earning and growing money is backed on both sides. Build a steady flow rather than chasing a jackpot, and the capacity keeps growing.",
+      },
+    }
+  if (sajuWealth)
+    return {
+      tone: 'complement',
+      reason: {
+        ko: '사주엔 재물을 다루는 손(재성)이 있는데 별자리는 돈보다 다른 가치를 가리켜요 — 버는 재주는 있되, 무엇을 위해 버는지를 정하면 힘이 또렷해져요. 목적이 생기면 수완이 따라와요.',
+        en: "Your Saju has a hand for money (Wealth star), while your chart points to values beyond money — the earning knack is there, and it sharpens once you decide what you're earning for. Purpose first, and the skill follows.",
+      },
+    }
+  return {
+    tone: 'complement',
+    reason: {
+      ko: '사주는 재물에 담담한데 별자리의 자원·소유 자리가 활발해요 — 가진 것을 잘 지키고 불리는 자리예요. 돈을 멀리하기보다 자기만의 기준으로 다루면 안정이 따라와요.',
+      en: "Your Saju is even about wealth, but your chart's houses of resources run active — a placement that keeps and grows what you hold. Rather than avoiding money, handle it on your own terms and stability follows.",
+    },
+  }
+}
+
 // ── 종합 ──────────────────────────────────────────────────────────────────
 
 /** 도메인 판정들을 모아 전체 정체성 한 문장 생성. */
@@ -878,24 +1016,24 @@ function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerd
       return {
         tone: 'resonant',
         reason: {
-          ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요.`,
-          en: `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction.`,
+          ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. 힘이 한곳으로 모이는 만큼 한쪽으로 치우치기도 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.`,
+          en: `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. Energy this focused can tip too far one way, so noticing the opposite side now and then keeps you balanced.`,
         },
       }
     case 'aGenB':
       return {
         tone: 'complement',
         reason: {
-          ko: `${ta.ko} ${d.aKo}${iga(d.aKo)} ${tb.ko} ${d.bKo}${eulReul(d.bKo)} 자연스럽게 키워줘요 — 안에서 밖으로 잘 이어지는 타입.`,
-          en: `Your ${ta.en} ${d.aEn} naturally feeds your ${tb.en} ${d.bEn} — inner flows outward.`,
+          ko: `${ta.ko} ${d.aKo}${iga(d.aKo)} ${tb.ko} ${d.bKo}${eulReul(d.bKo)} 자연스럽게 키워줘요 — 안에서 밖으로 잘 이어지는 타입. 억지로 바꾸려 들기보다 이 흐름을 믿고 한 방향으로 키워도 좋아요.`,
+          en: `Your ${ta.en} ${d.aEn} naturally feeds your ${tb.en} ${d.bEn} — inner flows outward. Trust this flow and build on it rather than forcing change.`,
         },
       }
     case 'bGenA':
       return {
         tone: 'complement',
         reason: {
-          ko: `${tb.ko} ${d.bKo}${iga(d.bKo)} ${ta.ko} ${d.aKo}${eulReul(d.aKo)} 받쳐줘요 — 밖이 안을 채워주는 타입.`,
-          en: `Your ${tb.en} ${d.bEn} feeds your ${ta.en} ${d.aEn} — outer replenishes inner.`,
+          ko: `${tb.ko} ${d.bKo}${iga(d.bKo)} ${ta.ko} ${d.aKo}${eulReul(d.aKo)} 받쳐줘요 — 밖이 안을 채워주는 타입. 곁에 두는 사람과 환경이 당신을 키우니, 그 자리를 잘 고르면 큰 힘이 돼요.`,
+          en: `Your ${tb.en} ${d.bEn} feeds your ${ta.en} ${d.aEn} — outer replenishes inner. The people and places you keep around you shape you, so choose them well.`,
         },
       }
     case 'aCtrlB':
@@ -903,16 +1041,16 @@ function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerd
       return {
         tone: 'tension',
         reason: {
-          ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요.`,
-          en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person.`,
+          ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요. 부딪힐 땐 한쪽을 누르기보다 상황에 따라 번갈아 쓰는 리듬을 만들면 오히려 강점이 돼요.`,
+          en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different sides pulling within one person. When they clash, alternate between them by situation instead of suppressing one — that turns friction into range.`,
         },
       }
     default:
       return {
         tone: 'neutral',
         reason: {
-          ko: `${ta.ko} ${d.aKo}${waGwa(d.aKo)} ${tb.ko} ${d.bKo}${iga(d.bKo)} 직접 엮이진 않고 따로 작동해요.`,
-          en: `Your ${ta.en} ${d.aEn} and ${tb.en} ${d.bEn} run independently.`,
+          ko: `${ta.ko} ${d.aKo}${waGwa(d.aKo)} ${tb.ko} ${d.bKo}${iga(d.bKo)} 직접 엮이진 않고 따로 작동해요. 서로 돕지도 방해하지도 않으니, 필요할 때 의식적으로 둘을 이어 쓰면 좋아요.`,
+          en: `Your ${ta.en} ${d.aEn} and ${tb.en} ${d.bEn} run independently — neither helps nor hinders the other, so connect them on purpose when you need to.`,
         },
       }
   }

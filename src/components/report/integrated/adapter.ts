@@ -20,6 +20,10 @@ import {
   evalPersona,
   evalDrive,
   evalKeyAspect,
+  evalRomance,
+  evalMovement,
+  evalSpirit,
+  evalWealth,
   evalVoid,
   evalNorthNode,
   synthesize,
@@ -498,6 +502,17 @@ export function buildCrossRows(
     ? getSouthNodeOppositeSign(northNode.sign as never)
     : undefined
 
+  // 생활영역 교차 입력 — 신살 존재 여부(전 기둥) + 하우스 점유 수 + 재성 비중.
+  const allShinsal: string[] = (S.natalShinsal ?? []).map((h: any) => String(h.kind ?? h.name))
+  const hasShinsal = (...names: string[]) =>
+    names.some((n) => allShinsal.some((s) => s.includes(n)))
+  const houseCount: Record<number, number> = {}
+  for (const p of planets) {
+    if (typeof p.house === 'number') houseCount[p.house] = (houseCount[p.house] ?? 0) + 1
+  }
+  const inHouses = (...hs: number[]) => hs.reduce((a, h) => a + (houseCount[h] ?? 0), 0)
+  const jaeseongCount = details?.['재성'] ?? 0
+
   // 교차 항목 카테고리 라벨 — 이중언어. key 로 행을 묶고 lang 으로 표시 텍스트 선택.
   const CAT: Record<string, { ko: string; en: string }> = {
     identity: { ko: '정체성', en: 'Identity' },
@@ -511,6 +526,10 @@ export function buildCrossRows(
     persona: { ko: '드러나는 나', en: 'Outer Persona' },
     drive: { ko: '추진력', en: 'Drive' },
     keyTrait: { ko: '핵심 성향', en: 'Core Trait' },
+    romance: { ko: '연애·매력', en: 'Love & Magnetism' },
+    movement: { ko: '이동·변화', en: 'Movement & Change' },
+    spirit: { ko: '예술·영성', en: 'Art & Spirit' },
+    wealth: { ko: '재물 그릇', en: 'Wealth Capacity' },
     karma: { ko: '공망/카르마', en: 'Void / Karma' },
     growth: { ko: '성장 방향', en: 'Growth Direction' },
   }
@@ -532,6 +551,17 @@ export function buildCrossRows(
     ['persona', evalPersona(dmEl, ascSign)],
     ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
     ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
+    ['romance', evalRomance(hasShinsal('도화', '홍염'), emphasized.has('Venus'), inHouses(5, 7))],
+    ['movement', evalMovement(hasShinsal('역마'), inHouses(3, 9), emphasized.has('Jupiter'))],
+    ['spirit', evalSpirit(hasShinsal('화개'), inHouses(12), emphasized.has('Neptune'))],
+    [
+      'wealth',
+      evalWealth(
+        jaeseongCount,
+        inHouses(2, 8),
+        emphasized.has('Venus') || emphasized.has('Jupiter')
+      ),
+    ],
     ['karma', evalVoid(gongmangBranches, southNodeSign)],
     ['growth', evalNorthNode(S.fiveElements, northNode?.sign)],
   ]
