@@ -51,19 +51,85 @@ function eventDefs(): EventDef[] {
   // swisseph 모듈에 SE_CHIRON 이 누락된 빌드가 있어 안전하게 fallback.
   const seChiron = (sw as unknown as { SE_CHIRON?: number }).SE_CHIRON ?? 15
   return [
-    { kind: 'jupiter_return_1', getPlanetId: () => sw.SE_JUPITER, offsetDeg: 0, approxAgeStart: 10, approxAgeEnd: 14 },
-    { kind: 'jupiter_return_2', getPlanetId: () => sw.SE_JUPITER, offsetDeg: 0, approxAgeStart: 22, approxAgeEnd: 26 },
-    { kind: 'jupiter_return_3', getPlanetId: () => sw.SE_JUPITER, offsetDeg: 0, approxAgeStart: 34, approxAgeEnd: 38 },
-    { kind: 'jupiter_return_5', getPlanetId: () => sw.SE_JUPITER, offsetDeg: 0, approxAgeStart: 58, approxAgeEnd: 62 },
-    { kind: 'saturn_return_1', getPlanetId: () => sw.SE_SATURN, offsetDeg: 0, approxAgeStart: 27, approxAgeEnd: 32 },
-    { kind: 'saturn_return_2', getPlanetId: () => sw.SE_SATURN, offsetDeg: 0, approxAgeStart: 56, approxAgeEnd: 61 },
+    {
+      kind: 'jupiter_return_1',
+      getPlanetId: () => sw.SE_JUPITER,
+      offsetDeg: 0,
+      approxAgeStart: 10,
+      approxAgeEnd: 14,
+    },
+    {
+      kind: 'jupiter_return_2',
+      getPlanetId: () => sw.SE_JUPITER,
+      offsetDeg: 0,
+      approxAgeStart: 22,
+      approxAgeEnd: 26,
+    },
+    {
+      kind: 'jupiter_return_3',
+      getPlanetId: () => sw.SE_JUPITER,
+      offsetDeg: 0,
+      approxAgeStart: 34,
+      approxAgeEnd: 38,
+    },
+    {
+      kind: 'jupiter_return_5',
+      getPlanetId: () => sw.SE_JUPITER,
+      offsetDeg: 0,
+      approxAgeStart: 58,
+      approxAgeEnd: 62,
+    },
+    {
+      kind: 'saturn_return_1',
+      getPlanetId: () => sw.SE_SATURN,
+      offsetDeg: 0,
+      approxAgeStart: 27,
+      approxAgeEnd: 32,
+    },
+    {
+      kind: 'saturn_return_2',
+      getPlanetId: () => sw.SE_SATURN,
+      offsetDeg: 0,
+      approxAgeStart: 56,
+      approxAgeEnd: 61,
+    },
     // 명왕성은 출생연도에 따라 자기 자리에서 90도 도달까지 36~46세까지 흐름이
     // 굉장히 변하므로(원지점/근지점 차이) 윈도우 크게.
-    { kind: 'pluto_square_pluto', getPlanetId: () => sw.SE_PLUTO, offsetDeg: 90, approxAgeStart: 35, approxAgeEnd: 50 },
-    { kind: 'uranus_opposition', getPlanetId: () => sw.SE_URANUS, offsetDeg: 180, approxAgeStart: 39, approxAgeEnd: 45 },
-    { kind: 'neptune_square', getPlanetId: () => sw.SE_NEPTUNE, offsetDeg: 90, approxAgeStart: 39, approxAgeEnd: 45 },
-    { kind: 'chiron_return', getPlanetId: () => seChiron, offsetDeg: 0, approxAgeStart: 48, approxAgeEnd: 53 },
-    { kind: 'uranus_return', getPlanetId: () => sw.SE_URANUS, offsetDeg: 0, approxAgeStart: 82, approxAgeEnd: 86 },
+    {
+      kind: 'pluto_square_pluto',
+      getPlanetId: () => sw.SE_PLUTO,
+      offsetDeg: 90,
+      approxAgeStart: 35,
+      approxAgeEnd: 50,
+    },
+    {
+      kind: 'uranus_opposition',
+      getPlanetId: () => sw.SE_URANUS,
+      offsetDeg: 180,
+      approxAgeStart: 39,
+      approxAgeEnd: 45,
+    },
+    {
+      kind: 'neptune_square',
+      getPlanetId: () => sw.SE_NEPTUNE,
+      offsetDeg: 90,
+      approxAgeStart: 39,
+      approxAgeEnd: 45,
+    },
+    {
+      kind: 'chiron_return',
+      getPlanetId: () => seChiron,
+      offsetDeg: 0,
+      approxAgeStart: 48,
+      approxAgeEnd: 53,
+    },
+    {
+      kind: 'uranus_return',
+      getPlanetId: () => sw.SE_URANUS,
+      offsetDeg: 0,
+      approxAgeStart: 82,
+      approxAgeEnd: 86,
+    },
   ]
 }
 
@@ -76,7 +142,7 @@ function planetLongitudeAtJD(planetId: number, jd: number): number | null {
   const flags = getSwissEphFlags()
   const res = sw.swe_calc_ut(jd, planetId, flags)
   if ('error' in res) return null
-  return extractSwissLongitude(res as unknown as Record<string, unknown>)
+  return extractSwissLongitude(res)
 }
 
 /**
