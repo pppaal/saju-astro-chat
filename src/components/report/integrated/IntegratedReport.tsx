@@ -1361,8 +1361,22 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </div>
             {/* 💡 실천 — 진단을 처방으로 (Opus: 그래서 어떻게). */}
             {(() => {
-              const reson = cross.rows.filter((r) => r.tone === 'resonant').map((r) => r.category)
-              const tens = cross.rows.filter((r) => r.tone === 'tension').map((r) => r.category)
+              // 카르마류(공망/카르마·성장 방향)는 '강점 코어'도 '충돌'도 아닌 평생 숙제
+              // 축이라 별도 줄로 뺀다 — 코어 버킷에 섞이면 "브랜딩 중심축으로" 같은
+              // 엉뚱한 처방이 붙는다.
+              const KARMA = new Set([
+                '공망/카르마',
+                '성장 방향',
+                'Void / Karma',
+                'Growth Direction',
+              ])
+              const reson = cross.rows
+                .filter((r) => r.tone === 'resonant' && !KARMA.has(r.category))
+                .map((r) => r.category)
+              const tens = cross.rows
+                .filter((r) => r.tone === 'tension' && !KARMA.has(r.category))
+                .map((r) => r.category)
+              const karma = cross.rows.filter((r) => KARMA.has(r.category)).map((r) => r.category)
               return (
                 <div className={s.crossAdvice}>
                   <div className={s.crossAdviceHead}>
@@ -1387,6 +1401,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         {lang === 'en'
                           ? ') — alternate between the two instead of suppressing one.'
                           : '은(는) 한쪽을 누르기보다 상황 따라 번갈아 쓰면 오히려 강점이 돼요.'}
+                      </li>
+                    )}
+                    {karma.length > 0 && (
+                      <li>
+                        <b>{lang === 'en' ? 'Lifelong work' : '평생 숙제'}</b>{' '}
+                        {lang === 'en' ? '' : '동·서양이 똑같이 "스스로 채워야 한다"고 짚는 '}
+                        <b>{karma.join(' · ')}</b>
+                        {lang === 'en'
+                          ? ' — both systems flag this as not-given, to be built by hand. Fill it in small, steady steps over the years.'
+                          : '은(는) 타고나는 게 아니라 직접 만들어가는 영역 — 조급해 말고 해마다 조금씩 채워가면 가장 단단한 자산이 돼요.'}
                       </li>
                     )}
                   </ul>
