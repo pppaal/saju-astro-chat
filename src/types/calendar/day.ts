@@ -196,4 +196,13 @@ export interface DestinyDay extends DestinyIljinHeader {
   topReasons?: string[]
   /** 상위 주의 사유 3..5 (백엔드 CalendarCell.cautions). */
   cautions?: string[]
+  /** 시간별 사주 × 점성 교차 — 시진(십신) × 그 시각 상승궁. */
+  hourCrossings?: Array<{
+    when: string // '5-7시 (묘시)'
+    sibsin: string
+    tone: 'good' | 'caution'
+    risingSignKo: string
+    ruler: string
+    narrative?: string
+  }>
 }

@@ -36,6 +36,7 @@ import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 import styles from './DayTier.module.css'
 import { TierSummary } from '@/components/calendar/atoms/TierSummary'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
+import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 
 // ============================================================================
 // HourSlot — 24시진 (子=0,1 / 丑=2,3 / ... / 亥=22,23 식의 시간 매핑).
@@ -535,6 +536,19 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
     dayCaution ? { icon: '⚠️', label: '조심할 것', body: dayCaution } : null,
   ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
 
+  // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
+  const hourCrossItems = (day.hourCrossings ?? []).map((h) => {
+    const branch = h.when.match(/\((.*?)\)/)?.[1] ?? ''
+    const timeShort = h.when.replace(/\s*\(.*\)/, '').trim()
+    const tone = h.tone === 'good' ? '길' : '주의'
+    const rising = h.risingSignKo ? ` × ${h.risingSignKo} 상승` : ''
+    return {
+      when: timeShort,
+      title: `${branch ? `${branch} · ` : ''}${h.sibsin} ${tone}${rising}`,
+      detail: [h.narrative, h.ruler ? `상승궁 룰러 ${h.ruler}` : ''].filter(Boolean).join(' · '),
+    }
+  })
+
   return (
     <div className={styles.tierInner} data-screen-label={`1일 ${day.date}`}>
       <button className={styles.rise} onClick={onRise}>
@@ -548,6 +562,11 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
 
       {/* ── 쉬운 요약 (오늘 어때 한눈에). 일진·12운성·신호는 아래 자세히로. ── */}
       <TierSummary headline={dayHeadline} sub={daySub} cards={dayCards} />
+
+      {/* ── 시간별 사주 × 점성 교차 — 켜지는 시진 × 그 시각 상승궁. ── */}
+      {hourCrossItems.length > 0 && (
+        <CrossingList heading="시간별 사주 × 점성 교차 · 오늘" items={hourCrossItems} />
+      )}
 
       {/* ── 전문가용 상세 — 일진·격국·공망·신호·12운성·시진 일체 접어 둠 ── */}
       <details className={summaryStyles.details}>
