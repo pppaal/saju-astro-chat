@@ -217,23 +217,23 @@ export function evalSocialRole(
     return {
       tone: 'resonant',
       reason: {
-        ko: `격국이 가리키는 타고난 ${tk} 성향이, 천정(MC·사회적 위치)에서도 힘 있는 자리에 놓여요 — 타고난 결이 직업·사회 자리에서 그대로 강점으로 드러나는 구조예요. 자기 성향을 억지로 바꿔 가며 일하지 않아도 돼서, 본래 모습 그대로 신뢰받고 자리를 잡기 좋아요. 이 강점을 살릴 무대를 일찍 고를수록 성취가 빨라져요.`,
-        en: `The natural ${te} bent your structure points to also sits in a strong spot at the Midheaven (MC, your public standing) — your innate grain shows up directly as a strength in work and status. You don't have to remake yourself to work, so you earn trust and footing as you are. The earlier you pick a stage that uses this, the faster the achievement comes.`,
+        ko: `타고난 ${tk} 성향이, 별자리가 보는 사회적 자리에서도 힘을 받아요 — 타고난 결이 직업·사회 자리에서 그대로 강점으로 드러나는 구조예요. 자기 성향을 억지로 바꿔 가며 일하지 않아도 돼서, 본래 모습 그대로 신뢰받고 자리를 잡기 좋아요. 이 강점을 살릴 무대를 일찍 고를수록 성취가 빨라져요.`,
+        en: `Your natural ${te} bent also sits in a strong spot in how you show up in the world — your innate grain shows up directly as a strength in work and status. You don't have to remake yourself to work, so you earn trust and footing as you are. The earlier you pick a stage that uses this, the faster the achievement comes.`,
       },
     }
   if (dig === 'detriment' || dig === 'fall')
     return {
       tone: 'tension',
       reason: {
-        ko: `격국이 가리키는 타고난 ${tk} 성향과, 천정(MC)이 보여주는 사회가 기대하는 역할이 살짝 어긋나요 — 직업에서 "이게 정말 내 길인가" 하는 고민이 한 번씩 생길 수 있어요. 남들 기준에 자기를 맞추다 지치기 쉬운 구조라, 사회적 정답보다 자기 성향이 살아나는 방식을 찾는 게 핵심이에요. 어긋남을 약점으로 보지 말고, 남과 다른 길을 내는 신호로 쓰면 오히려 독보적이 돼요.`,
-        en: `The natural ${te} bent your structure points to and the role society expects (shown at the MC) don't quite line up — work can periodically raise a "is this really my path?" doubt. It's easy to wear out bending yourself to others' standards, so the key is finding a way that keeps your own grain alive rather than the social "correct answer." Read the mismatch not as a flaw but as a signal to carve a different path, and it makes you one of a kind.`,
+        ko: `타고난 ${tk} 성향과, 별자리가 보여주는, 사회가 기대하는 역할이 살짝 어긋나요 — 직업에서 "이게 정말 내 길인가" 하는 고민이 한 번씩 생길 수 있어요. 남들 기준에 자기를 맞추다 지치기 쉬운 구조라, 사회적 정답보다 자기 성향이 살아나는 방식을 찾는 게 핵심이에요. 어긋남을 약점으로 보지 말고, 남과 다른 길을 내는 신호로 쓰면 오히려 독보적이 돼요.`,
+        en: `Your natural ${te} bent and the role the world expects of you don't quite line up — work can periodically raise a "is this really my path?" doubt. It's easy to wear out bending yourself to others' standards, so the key is finding a way that keeps your own grain alive rather than the social "correct answer." Read the mismatch not as a flaw but as a signal to carve a different path, and it makes you one of a kind.`,
       },
     }
   return {
     tone: 'complement',
     reason: {
-      ko: `격국이 가리키는 타고난 ${tk} 성향을, 사회생활(천정·MC)이 다른 방식으로 넓혀줘요 — 일하면서 자기도 몰랐던 새 면이 열리는 타입이에요. 한 가지 직업관에 갇히기보다, 일을 통해 성향이 확장되는 흐름이라 커리어 전환이나 부캐가 잘 어울려요. 지금 자리가 전부라 여기지 말고 새 역할에 한 번씩 자기를 던져 보면 길이 넓어져요.`,
-      en: `Work and public life (the MC) stretch the natural ${te} bent your structure points to in a different direction — a type who finds new sides on the job they didn't know they had. Rather than being boxed into one idea of a career, your nature expands through work, so career pivots and side personas suit you. Don't treat your current seat as the whole story — throw yourself into a new role now and then and the path widens.`,
+      ko: `타고난 ${tk} 성향을, 사회생활이 다른 방식으로 넓혀줘요 — 일하면서 자기도 몰랐던 새 면이 열리는 타입이에요. 한 가지 직업관에 갇히기보다, 일을 통해 성향이 확장되는 흐름이라 커리어 전환이나 부캐가 잘 어울려요. 지금 자리가 전부라 여기지 말고 새 역할에 한 번씩 자기를 던져 보면 길이 넓어져요.`,
+      en: `Work and public life stretch your natural ${te} bent in a different direction — a type who finds new sides on the job they didn't know they had. Rather than being boxed into one idea of a career, your nature expands through work, so career pivots and side personas suit you. Don't treat your current seat as the whole story — throw yourself into a new role now and then and the path widens.`,
     },
   }
 }
@@ -268,8 +268,8 @@ export function evalFortune(
       ? {
           tone: 'resonant',
           reason: {
-            ko: `사주의 길신(吉神)이 가리키는 ${tk} 기운이 별자리에서도 힘 있는 자리에 놓여요 — 동·서양이 똑같이 이 분야를 복이자 강점으로 봐요. 위기 때 의외의 도움이 들어오거나 결정적 순간에 운이 따라주는 자리라, 평소 사람과 인연을 잘 가꿔두면 그 복이 더 자주 발동해요. 타고난 복도 쓰지 않으면 잠들어 있으니, 이 강점을 적극적으로 무대에 올리세요.`,
-            en: `The ${te} energy your Saju's lucky star points to also sits in a strong spot in your chart — both systems read this field as a blessing and a strength. It's a place where unexpected help arrives in a pinch or luck shows up at the decisive moment, so tending people and ties keeps that fortune firing more often. Even inborn luck sleeps if unused, so put this strength on stage on purpose.`,
+            ko: `타고난 복이 향하는 ${tk} 기운이 별자리에서도 힘 있는 자리에 놓여요 — 동·서양이 똑같이 이 분야를 복이자 강점으로 봐요. 위기 때 의외의 도움이 들어오거나 결정적 순간에 운이 따라주는 자리라, 평소 사람과 인연을 잘 가꿔두면 그 복이 더 자주 발동해요. 타고난 복도 쓰지 않으면 잠들어 있으니, 이 강점을 적극적으로 무대에 올리세요.`,
+            en: `The ${te} energy your inborn luck favors also sits in a strong spot in your chart — both systems read this field as a blessing and a strength. It's a place where unexpected help arrives in a pinch or luck shows up at the decisive moment, so tending people and ties keeps that fortune firing more often. Even inborn luck sleeps if unused, so put this strength on stage on purpose.`,
           },
         }
       : {
@@ -284,8 +284,8 @@ export function evalFortune(
     ? {
         tone: 'tension',
         reason: {
-          ko: `사주의 강한 살(煞) 기운이 가리키는 ${tk} 쪽이 별자리에서도 도드라져요 — 추진력과 승부욕이 양쪽에서 증폭돼 힘이 두 배가 되는 자리예요. 잘 쓰면 누구도 못 따라오는 돌파력이 되지만, 욱하거나 과속하면 그 힘이 자기를 향하기 쉬워요. 센 기운일수록 '한 박자 쉬는' 안전장치를 미리 정해두면 강점만 남아요.`,
-          en: `The ${te} side your Saju's strong star points to is pronounced in your chart too — drive and competitiveness amplify on both sides, doubling the force. Used well it's breakthrough power no one can match, but flare up or overspeed and that force turns on you. The stronger the energy, the more a pre-set "pause one beat" safeguard leaves only the strength.`,
+          ko: `타고난 강한 추진력이 향하는 ${tk} 쪽이 별자리에서도 도드라져요 — 추진력과 승부욕이 양쪽에서 증폭돼 힘이 두 배가 되는 자리예요. 잘 쓰면 누구도 못 따라오는 돌파력이 되지만, 욱하거나 과속하면 그 힘이 자기를 향하기 쉬워요. 센 기운일수록 '한 박자 쉬는' 안전장치를 미리 정해두면 강점만 남아요.`,
+          en: `The ${te} side in your nature is pronounced in your chart too — drive and competitiveness amplify on both sides, doubling the force. Used well it's breakthrough power no one can match, but flare up or overspeed and that force turns on you. The stronger the energy, the more a pre-set "pause one beat" safeguard leaves only the strength.`,
         },
       }
     : {
@@ -374,8 +374,8 @@ export function evalStrength(
     return {
       tone: 'neutral',
       reason: {
-        ko: '지금은 힘을 비축하는 단계예요 — 십이운성으로 보면 정점이 아니라 충전기라, 무리하게 밀어붙이기보다 안으로 쌓아두는 게 맞아요. 이 시기에 배우고 다져둔 건 다음 상승기에 고스란히 터져 나와요. 조급함만 내려놓으면 오히려 깊어지는 때예요.',
-        en: "This is a power-storing phase — by the twelve stages you're in a recharge, not a peak, so it's better to build inward than to push hard. What you learn and firm up now pays out in full at the next rise. Set down the impatience and this becomes a season that deepens you instead.",
+        ko: '지금은 힘을 비축하는 단계예요 — 지금은 정점이 아니라 충전기라, 무리하게 밀어붙이기보다 안으로 쌓아두는 게 맞아요. 이 시기에 배우고 다져둔 건 다음 상승기에 고스란히 터져 나와요. 조급함만 내려놓으면 오히려 깊어지는 때예요.',
+        en: "This is a power-storing phase — you're in a recharge, not a peak, so it's better to build inward than to push hard. What you learn and firm up now pays out in full at the next rise. Set down the impatience and this becomes a season that deepens you instead.",
       },
     }
   return {
@@ -494,15 +494,15 @@ export function evalEnergyDirection(
     return {
       tone: 'resonant',
       reason: {
-        ko: `사주에서 가장 비중 큰 십신이 '${theme.ko}'인데, 그 대표 행성도 별자리에서 강조돼 있어요 — 동·서양이 똑같이 이 쪽으로 에너지가 모인다고 봐요. 한눈팔지 않고 ${theme.ko} 한 방향으로 밀어붙일 때 가장 효율이 나는 사람이라, 진로·시간 배분도 이 축에 맞추면 덜 흔들려요. 힘이 모인 만큼 다른 영역이 비기 쉬우니, 가끔 반대편도 의식해 채워두면 균형이 좋아져요.`,
-        en: `Your heaviest Ten-God is ${theme.en}, and its signature planet is emphasized in your chart too — both systems agree your energy gathers here. You run most efficiently pushing ${theme.en} in one undivided direction, so aligning your path and time to this axis keeps you steady. With force this concentrated, other areas can run thin, so consciously topping up the opposite side now and then keeps you balanced.`,
+        ko: `타고난 기질에서 가장 큰 비중이 '${theme.ko}'인데, 그 대표 행성도 별자리에서 강조돼 있어요 — 동·서양이 똑같이 이 쪽으로 에너지가 모인다고 봐요. 한눈팔지 않고 ${theme.ko} 한 방향으로 밀어붙일 때 가장 효율이 나는 사람이라, 진로·시간 배분도 이 축에 맞추면 덜 흔들려요. 힘이 모인 만큼 다른 영역이 비기 쉬우니, 가끔 반대편도 의식해 채워두면 균형이 좋아져요.`,
+        en: `What you value most is ${theme.en}, and its signature planet is emphasized in your chart too — both systems agree your energy gathers here. You run most efficiently pushing ${theme.en} in one undivided direction, so aligning your path and time to this axis keeps you steady. With force this concentrated, other areas can run thin, so consciously topping up the opposite side now and then keeps you balanced.`,
       },
     }
   return {
     tone: 'complement',
     reason: {
-      ko: `사주에서 '${theme.ko}' 쪽 십신이 강한데, 별자리는 그 힘을 다른 통로로 풀어줘요 — 같은 에너지를 여러 방식으로 쓰는, 응용 범위가 넓은 타입이에요. 한 우물만 파야 한다는 부담 없이, ${theme.ko} 힘을 여러 분야에 옮겨 쓰는 게 오히려 강점이 돼요. 본질(${theme.ko})은 같으니, 겉으로 하는 일이 달라져도 자기 결을 잃지 않아요.`,
-      en: `Your ${theme.en} Ten-God is strong, while your chart channels that force through other routes — a wide-range type who uses the same energy in many ways. Without the pressure to dig only one well, transferring your ${theme.en} power across fields is actually your strength. The essence (${theme.en}) stays the same, so even as the outward work changes, you never lose your own grain.`,
+      ko: `타고난 기질에서 '${theme.ko}' 쪽이 강한데, 별자리는 그 힘을 다른 통로로 풀어줘요 — 같은 에너지를 여러 방식으로 쓰는, 응용 범위가 넓은 타입이에요. 한 우물만 파야 한다는 부담 없이, ${theme.ko} 힘을 여러 분야에 옮겨 쓰는 게 오히려 강점이 돼요. 본질(${theme.ko})은 같으니, 겉으로 하는 일이 달라져도 자기 결을 잃지 않아요.`,
+      en: `Your ${theme.en} side is strong, while your chart channels that force through other routes — a wide-range type who uses the same energy in many ways. Without the pressure to dig only one well, transferring your ${theme.en} power across fields is actually your strength. The essence (${theme.en}) stays the same, so even as the outward work changes, you never lose your own grain.`,
     },
   }
 }
@@ -692,8 +692,8 @@ export function evalKeyAspect(
   return {
     tone: matches ? 'resonant' : 'complement',
     reason: {
-      ko: `별자리에서 가장 또렷한 행성 각이 ${best.pairKo}이에요 — ${theme.ko}${matches ? ' 사주의 우세 성향과도 같은 결이라, 이 면이 특히 도드라지고 평생 일관되게 나와요.' : ' 사주가 본 우세 성향과는 결이 달라, 상황에 따라 꺼내 쓰는 또 하나의 카드예요.'} 행성 각은 평생 잘 안 변하는 기본 성격이라, 억지로 바꾸기보다 이 결을 그대로 살릴 자리를 찾는 게 훨씬 편하고 빨라요.`,
-      en: `Your sharpest planetary aspect is ${best.pairEn} — ${theme.en.charAt(0).toLowerCase()}${theme.en.slice(1)}${matches ? '. Your dominant Saju trait runs the same grain, so this stands out and shows up consistently for life.' : '. It runs a different grain from your dominant Saju trait — another card to play as the situation calls.'} A planetary aspect is a lifelong baseline trait, so finding a place that uses it as-is is far easier than trying to remake it.`,
+      ko: `별자리가 보여주는 가장 또렷한 기질은 — ${theme.ko}${matches ? ' 사주의 우세 성향과도 같은 결이라, 이 면이 특히 도드라지고 평생 일관되게 나와요.' : ' 사주가 본 우세 성향과는 결이 달라, 상황에 따라 꺼내 쓰는 또 하나의 카드예요.'} 이런 기질은 평생 잘 안 변하는 기본 성격이라, 억지로 바꾸기보다 이 결을 그대로 살릴 자리를 찾는 게 훨씬 편하고 빨라요.`,
+      en: `The clearest trait your chart shows — ${theme.en.charAt(0).toLowerCase()}${theme.en.slice(1).replace(/\.$/, '')}${matches ? '. Your dominant Saju trait runs the same grain, so this stands out and shows up consistently for life.' : '. It runs a different grain from your dominant Saju trait — another card to play as the situation calls.'} This kind of trait is a lifelong baseline, so finding a place that uses it as-is is far easier than trying to remake it.`,
     },
   }
 }
@@ -752,16 +752,16 @@ export function evalVoid(
     return {
       tone: 'resonant',
       reason: {
-        ko: `공망(${branches})과 사우스노드(${southNodeSign})가 같은 ${EL_KO[branchEl]} 결을 가리켜요 — 동·서양 둘 다 같은 자리에서 "이번 생엔 ${EL_KO[branchEl]} 영역이 자동으로는 안 채워진다"고 입을 모아요. 타고난 복이 아니라 의식적으로 만들어가야 하는 평생 과제라, 여기서 쌓은 건 온전히 자기 힘으로 얻은 거예요. 부족하다 느끼는 그 자리를 피하지 말고 작게라도 꾸준히 채워가면, 약점이 가장 단단한 강점으로 바뀌어요.`,
-        en: `Gongmang (${branches}) and South Node (${southNodeSign}) both point to the ${EL_EN[branchEl]} domain — East and West agree this area "won't fill itself this life." It isn't an inborn gift but a lifelong task you build by hand, so whatever you earn here is fully your own. Don't avoid the spot that feels lacking; fill it in small, steady steps and the weak point becomes your most solid strength.`,
+        ko: `타고난 그릇에서 ${EL_KO[branchEl]} 기운이 비어 있는데, 별자리도 똑같이 그 자리를 짚어요 — 동·서양 둘 다 "이번 생엔 ${EL_KO[branchEl]} 영역이 자동으로는 안 채워진다"고 입을 모아요. 타고난 복이 아니라 의식적으로 만들어가야 하는 평생 과제라, 여기서 쌓은 건 온전히 자기 힘으로 얻은 거예요. 부족하다 느끼는 그 자리를 피하지 말고 작게라도 꾸준히 채워가면, 약점이 가장 단단한 강점으로 바뀌어요.`,
+        en: `There's an empty spot in your makeup around the ${EL_EN[branchEl]} theme, and the stars point to the very same place — East and West agree this area "won't fill itself this life." It isn't an inborn gift but a lifelong task you build by hand, so whatever you earn here is fully your own. Don't avoid the spot that feels lacking; fill it in small, steady steps and the weak point becomes your most solid strength.`,
       },
     }
   }
   return {
     tone: 'neutral',
     reason: {
-      ko: `공망(${branches})과 사우스노드(${southNodeSign})가 서로 다른 영역의 비어있음을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있음. 한 번에 하나씩 다루는 게 안전해요.`,
-      en: `Gongmang (${branches}) and South Node (${southNodeSign}) point to different empty domains — karmic work is spread across two threads. Better to address one at a time.`,
+      ko: `타고난 빈자리와 별자리가 짚는 빈자리가 서로 다른 영역을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있음. 한 번에 하나씩 다루는 게 안전해요.`,
+      en: `Your makeup and the stars each flag a different empty area — karmic work is spread across two threads. Better to address one at a time.`,
     },
   }
 }
@@ -806,23 +806,23 @@ export function evalNorthNode(
     return {
       tone: 'resonant',
       reason: {
-        ko: `이번 생 키워야 할 방향을 동·서양이 둘 다 ${tw.ko} 쪽으로 짚어요 — 사주의 가장 약한 오행과 별자리 노스노드가 같은 곳을 가리키는, 보기 드물게 또렷한 성장 신호예요. 처음엔 어색하고 불편한 영역이라 자꾸 피하게 되지만, 바로 그 불편함을 통과하는 게 이번 생의 핵심 성장이에요. 잘하는 것만 반복하지 말고 이 ${tw.ko} 쪽에 의식적으로 시간을 들이면, 인생이 한 단계 열려요.`,
-        en: `Both systems point your growth the same way — toward the ${tw.en} — your weakest Saju element and your North Node landing on the same spot, an unusually clear growth signal. It feels awkward and uncomfortable at first, so you keep avoiding it, but passing through exactly that discomfort is this life's core growth. Don't just repeat what you're good at — invest deliberate time in the ${tw.en} side and life opens to a new level.`,
+        ko: `이번 생 키워야 할 방향을 동·서양이 둘 다 ${tw.ko} 쪽으로 짚어요 — 타고난 가장 약한 결과 별자리가 보는 성장 방향이 같은 곳을 가리키는, 보기 드물게 또렷한 성장 신호예요. 처음엔 어색하고 불편한 영역이라 자꾸 피하게 되지만, 바로 그 불편함을 통과하는 게 이번 생의 핵심 성장이에요. 잘하는 것만 반복하지 말고 이 ${tw.ko} 쪽에 의식적으로 시간을 들이면, 인생이 한 단계 열려요.`,
+        en: `Both systems point your growth the same way — toward the ${tw.en} — your weakest Saju element and your growth direction landing on the same spot, an unusually clear growth signal. It feels awkward and uncomfortable at first, so you keep avoiding it, but passing through exactly that discomfort is this life's core growth. Don't just repeat what you're good at — invest deliberate time in the ${tw.en} side and life opens to a new level.`,
       },
     }
   if (GENERATES[weak] === nn || GENERATES[nn] === weak)
     return {
       tone: 'complement',
       reason: {
-        ko: `사주가 채우라는 ${tw.ko} 결과 별자리(노스노드)가 가리키는 ${tn.ko} 방향이 서로 이어져요 — 두 성장 축이 생(生)으로 맞물려, 한쪽을 키우면 다른 쪽도 따라 자라요. 둘을 따로 떼어 부담스럽게 볼 필요 없이, ${tn.ko} 쪽을 입구 삼아 들어가면 ${tw.ko} 쪽도 자연스럽게 채워져요. 성장이 선순환으로 굴러가는, 비교적 수월한 배치예요.`,
-        en: `The ${tw.en} energy your Saju asks you to fill and the ${tn.en} direction your North Node points to feed each other — the two growth axes mesh as a generating cycle, so grow one and the other follows. No need to face them as two separate burdens; enter through the ${tn.en} door and the ${tw.en} side fills in naturally. A relatively easy layout where growth runs as a virtuous loop.`,
+        ko: `사주가 채우라는 ${tw.ko} 결과 별자리가 가리키는 ${tn.ko} 방향이 서로 이어져요 — 두 성장 축이 생(生)으로 맞물려, 한쪽을 키우면 다른 쪽도 따라 자라요. 둘을 따로 떼어 부담스럽게 볼 필요 없이, ${tn.ko} 쪽을 입구 삼아 들어가면 ${tw.ko} 쪽도 자연스럽게 채워져요. 성장이 선순환으로 굴러가는, 비교적 수월한 배치예요.`,
+        en: `The ${tw.en} energy your Saju asks you to fill and the ${tn.en} direction your chart points to feed each other — the two growth axes mesh as a generating cycle, so grow one and the other follows. No need to face them as two separate burdens; enter through the ${tn.en} door and the ${tw.en} side fills in naturally. A relatively easy layout where growth runs as a virtuous loop.`,
       },
     }
   return {
     tone: 'complement',
     reason: {
-      ko: `사주는 ${tw.ko} 기운을 채우라 하고, 별자리(노스노드)는 ${tn.ko} 방향을 가리켜요 — 성장 축이 서로 다른 두 갈래라 한 번에 둘 다 잡으려면 벅찰 수 있어요. 시기를 나눠 번갈아 키우는 게 핵심 — 한동안 ${tw.ko}에 집중했다가, 또 한동안 ${tn.ko}에 집중하는 식이면 둘 다 놓치지 않아요. 욕심내 동시에 밀어붙이기보다 리듬을 두는 게 멀리 가는 길이에요.`,
-      en: `Saju asks you to build ${tw.en} energy while your North Node points to ${tn.en} — two separate growth directions, so chasing both at once can overwhelm. The key is to alternate by season: focus on ${tw.en} for a while, then on ${tn.en}, and you drop neither. Setting a rhythm rather than forcing both at once is how you go the distance.`,
+      ko: `사주는 ${tw.ko} 기운을 채우라 하고, 별자리는 ${tn.ko} 방향을 가리켜요 — 성장 축이 서로 다른 두 갈래라 한 번에 둘 다 잡으려면 벅찰 수 있어요. 시기를 나눠 번갈아 키우는 게 핵심 — 한동안 ${tw.ko} 쪽에 집중했다가, 또 한동안 ${tn.ko} 쪽에 집중하는 식이면 둘 다 놓치지 않아요. 욕심내 동시에 밀어붙이기보다 리듬을 두는 게 멀리 가는 길이에요.`,
+      en: `Saju asks you to build ${tw.en} energy while your chart’s growth direction points to ${tn.en} — two separate growth directions, so chasing both at once can overwhelm. The key is to alternate by season: focus on ${tw.en} for a while, then on ${tn.en}, and you drop neither. Setting a rhythm rather than forcing both at once is how you go the distance.`,
     },
   }
 }
@@ -844,8 +844,8 @@ export function evalRomance(
     return {
       tone: 'resonant',
       reason: {
-        ko: '사주의 끄는 매력(도화·홍염)과 별자리의 사랑·관계 자리가 둘 다 켜져 있어요 — 사람을 끌고, 관계가 인생의 큰 테마가 되는 편이에요. 매력을 즐기되 한 사람에게 깊이 머무는 연습이 인연을 오래 가게 해요.',
-        en: "Both your chart's pull (Peach Blossom) and its houses of love and partnership are lit — you draw people in, and relationships become a central life theme. Enjoy the magnetism, but learning to stay deeply with one person is what makes love last.",
+        ko: '사주의 끄는 매력과 별자리의 사랑·관계 자리가 둘 다 켜져 있어요 — 사람을 끌고, 관계가 인생의 큰 테마가 되는 편이에요. 매력을 즐기되 한 사람에게 깊이 머무는 연습이 인연을 오래 가게 해요.',
+        en: "Both your chart's pull and its houses of love and partnership are lit — you draw people in, and relationships become a central life theme. Enjoy the magnetism, but learning to stay deeply with one person is what makes love last.",
       },
     }
   if (hasDohwa)
@@ -853,7 +853,7 @@ export function evalRomance(
       tone: 'complement',
       reason: {
         ko: '타고난 끄는 매력(도화)은 또렷한데 별자리는 사랑을 차분히 다뤄요 — 화려하기보다 은근하게 사람을 끄는 타입이에요. 먼저 다가가는 한 걸음이 좋은 인연을 앞당겨요.',
-        en: 'Your natural magnetism (Peach Blossom) is clear, while your chart handles love more quietly — your appeal is understated rather than flashy. One step forward of your own brings the right connection sooner.',
+        en: 'Your natural magnetism is clear, while your chart handles love more quietly — your appeal is understated rather than flashy. One step forward of your own brings the right connection sooner.',
       },
     }
   return {
@@ -910,8 +910,8 @@ export function evalSpirit(
     return {
       tone: 'resonant',
       reason: {
-        ko: '사주의 화개(예술·종교·고독)와 별자리의 내면·영성 자리가 둘 다 켜져 있어요 — 보이지 않는 것을 읽고 표현하는 깊이가 있는 사람이에요. 혼자만의 시간을 충분히 두면 그 감각이 작품과 통찰로 흘러나와요.',
-        en: "Your chart's Floral Canopy (art, faith, solitude) and its houses of the inner life are both lit — you read and express what others can't see. Give yourself enough solitude and that sense flows out as art and insight.",
+        ko: '타고난 예술·고독의 기질과 별자리의 내면·영성 자리가 둘 다 켜져 있어요 — 보이지 않는 것을 읽고 표현하는 깊이가 있는 사람이에요. 혼자만의 시간을 충분히 두면 그 감각이 작품과 통찰로 흘러나와요.',
+        en: "Your art-and-solitude streak and its houses of the inner life are both lit — you read and express what others can't see. Give yourself enough solitude and that sense flows out as art and insight.",
       },
     }
   if (hasHwagae)
@@ -919,7 +919,7 @@ export function evalSpirit(
       tone: 'complement',
       reason: {
         ko: '사주엔 화개(예술·영성) 기운이 또렷한데 별자리는 현실에 발 딛는 쪽이에요 — 깊은 감수성을 일상의 형태로 풀어내기 좋은 조합이에요. 떠오른 영감을 손에 잡히는 결과물로 옮기면 빛나요.',
-        en: 'Your Saju carries a clear artistic-spiritual streak (Floral Canopy), while your chart stays grounded in the real — a fine combination for turning deep sensitivity into concrete form. Move inspiration into something tangible and it shines.',
+        en: 'Your Saju carries a clear artistic-spiritual streak, while your chart stays grounded in the real — a fine combination for turning deep sensitivity into concrete form. Move inspiration into something tangible and it shines.',
       },
     }
   return {
@@ -944,16 +944,16 @@ export function evalWealth(
     return {
       tone: 'resonant',
       reason: {
-        ko: '사주의 재성(돈을 다루는 손)과 별자리의 자원·소유 자리가 둘 다 또렷해요 — 돈을 벌고 굴리는 감각이 양쪽에서 받쳐주는 편이에요. 한탕보다 흐름을 만들면 그 그릇이 꾸준히 커져요.',
-        en: "Your chart's Wealth star (a hand for money) and its houses of resources are both strong — a feel for earning and growing money is backed on both sides. Build a steady flow rather than chasing a jackpot, and the capacity keeps growing.",
+        ko: '타고난 돈 다루는 감각과 별자리의 자원·소유 자리가 둘 다 또렷해요 — 돈을 벌고 굴리는 감각이 양쪽에서 받쳐주는 편이에요. 한탕보다 흐름을 만들면 그 그릇이 꾸준히 커져요.',
+        en: 'Your inborn sense for money and its houses of resources are both strong — a feel for earning and growing money is backed on both sides. Build a steady flow rather than chasing a jackpot, and the capacity keeps growing.',
       },
     }
   if (sajuWealth)
     return {
       tone: 'complement',
       reason: {
-        ko: '사주엔 재물을 다루는 손(재성)이 있는데 별자리는 돈보다 다른 가치를 가리켜요 — 버는 재주는 있되, 무엇을 위해 버는지를 정하면 힘이 또렷해져요. 목적이 생기면 수완이 따라와요.',
-        en: "Your Saju has a hand for money (Wealth star), while your chart points to values beyond money — the earning knack is there, and it sharpens once you decide what you're earning for. Purpose first, and the skill follows.",
+        ko: '타고난 돈 다루는 감각은 있는데 별자리는 돈보다 다른 가치를 가리켜요 — 버는 재주는 있되, 무엇을 위해 버는지를 정하면 힘이 또렷해져요. 목적이 생기면 수완이 따라와요.',
+        en: "Your Saju carries a hand for money, while your chart points to values beyond money — the earning knack is there, and it sharpens once you decide what you're earning for. Purpose first, and the skill follows.",
       },
     }
   return {
@@ -1021,16 +1021,16 @@ export function evalExpression(
     return {
       tone: 'resonant',
       reason: {
-        ko: '사주의 식상(말·표현·창의)과 별자리의 소통·표현 자리가 둘 다 또렷해요 — 생각을 밖으로 꺼내 전하는 힘이 양쪽에서 받쳐줘요. 말과 글, 만드는 일로 자기를 드러낼 때 가장 빛나요.',
-        en: "Your chart's Output star (speech, expression, creativity) and its houses of communication are both strong — the power to voice and share ideas is backed on both sides. You shine brightest expressing yourself through words, writing, or making things.",
+        ko: '타고난 표현·창의 기운과 별자리의 소통·표현 자리가 둘 다 또렷해요 — 생각을 밖으로 꺼내 전하는 힘이 양쪽에서 받쳐줘요. 말과 글, 만드는 일로 자기를 드러낼 때 가장 빛나요.',
+        en: 'Your inborn knack for speech and expression and its houses of communication are both strong — the power to voice and share ideas is backed on both sides. You shine brightest expressing yourself through words, writing, or making things.',
       },
     }
   if (sajuExpr)
     return {
       tone: 'complement',
       reason: {
-        ko: '사주엔 표현·창의(식상) 기운이 또렷한데 별자리는 말수가 적은 쪽이에요 — 안에 할 말이 많은데 겉으론 담백한 타입. 떠오른 걸 미루지 말고 그때그때 꺼내 두면 막힘이 풀려요.',
-        en: 'Your Saju carries a clear expressive-creative streak (Output star), while your chart is the quieter type — plenty to say inside, plain on the surface. Get thoughts out as they come rather than holding them in, and the blockage clears.',
+        ko: '사주엔 표현·창의 기운이 또렷한데 별자리는 말수가 적은 쪽이에요 — 안에 할 말이 많은데 겉으론 담백한 타입. 떠오른 걸 미루지 말고 그때그때 꺼내 두면 막힘이 풀려요.',
+        en: 'Your Saju carries a clear expressive-creative streak, while your chart is the quieter type — plenty to say inside, plain on the surface. Get thoughts out as they come rather than holding them in, and the blockage clears.',
       },
     }
   return {

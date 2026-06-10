@@ -151,8 +151,8 @@ const UI: Record<string, BiLabel> = {
   sajuSide: { ko: '사주', en: 'Saju' },
   astroSide: { ko: '점성', en: 'Astro' },
   footBrain: {
-    ko: '껍데기 chart.zip · 두뇌 natalCross',
-    en: 'shell chart.zip · engine natalCross',
+    ko: '동·서양 통합 분석 엔진',
+    en: 'East–West integrated analysis',
   },
   orb: { ko: 'orb', en: 'orb' },
 }
