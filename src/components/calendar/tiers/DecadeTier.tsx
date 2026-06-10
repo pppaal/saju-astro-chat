@@ -127,9 +127,31 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   // 격국 status — 본명 user.gyeokgukStatus 우선, 없으면 decade.geokgukStatus.
   const gyeokgukLine = decade.geokgukStatus ?? user.gyeokgukStatus ?? user.gyeokguk
 
-  // ── 10년 흐름 리스트 — 대운 안 연도별 세운 십신을 "그 해의 결"로. ──
-  // 점수는 단일 대운 톤만 있어 10년이 모두 같으므로(가짜) 쓰지 않고,
-  // 연도마다 진짜 달라지는 세운 십신(일간 기준)을 한 줄 결로 보여준다.
+  // ── 이 대운의 사주 × 점성 교차 '구간' — 메인. ──
+  // 사주 측은 이 대운(예: 甲戌)이라는 10년 프레임이 상수, 점성 측은 이 10년 안에
+  // 떨어지는 외행성 회귀·사각·ZR 전환(decade.astro). 그 두 개가 만나는 해가
+  // 곧 '교차되는 구간'. 가짜 세운 점수 나열 대신 이것만 메인에 보여준다.
+  const dgz = decade.gz.hanja
+  const cy = decade.focusYear ?? decade.start
+  const astroMarks = decade.astro ?? []
+  const decadeSpanItems = [
+    {
+      when: `${decade.start}`,
+      title: `${dgz} 대운 진입`,
+      detail: decade.headline,
+      now: cy <= decade.start,
+      past: false,
+    },
+    ...astroMarks.map((a) => ({
+      when: a.date,
+      title: `${dgz} 대운 × ${a.label}`,
+      detail: a.body || undefined,
+      now: a.date === `${cy}`,
+      past: Number(a.date) < cy,
+    })),
+  ]
+
+  // ── (상세) 10년 세운 결 — 연도별 세운 십신. 교차는 아니라 상세로 내림. ──
   const SIBSIN_YEAR_THEME: Record<string, string> = {
     비견: '주체·동료의 해',
     겁재: '경쟁·분탈의 해',
@@ -150,9 +172,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     past: y.year < (decade.focusYear ?? decade.start),
   }))
 
-  // ── 이 대운에 켜진 사주 × 점성 교차 — 길/주의/중립 톤으로. ──
-  // 대운(decadal) 교차는 10년 내내 천천히 작동해 '몇 년도'로 콕 집기 어렵다.
-  // 그래서 '언제'는 톤(valence)으로 두고, 무엇이 교차하고 왜인지를 보여준다.
+  // ── (상세) 이 대운에 켜진 사주 × 점성 교차 페어 — 톤(길/주의/중립). ──
   const decadeCrossItems = crossActs.map((c) => ({
     when: c.polarity > 0 ? '길' : c.polarity < 0 ? '주의' : '중립',
     title: c.name,
@@ -190,20 +210,29 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
       </div>
       <p className={styles.oneline}>{decade.headline}</p>
 
-      {/* 이 대운에 켜진 진짜 사주 × 점성 교차 (decadal cross-activation). */}
-      {decadeCrossItems.length > 0 && (
-        <CrossingList heading="이 대운에 켜진 사주 × 점성 교차" items={decadeCrossItems} />
-      )}
-
-      {/* 10년 세운 결 — '언제(어느 해)' 축. */}
+      {/* 메인 — 이 대운 안에서 사주(대운) × 점성(외행성 마디)이 교차되는 구간만. */}
       <CrossingList
-        heading={`이 대운 10년 흐름 · ${decade.start}–${decade.end}`}
-        items={decadeItems}
+        heading={`이 대운의 사주 × 점성 교차 · ${decade.start}–${decade.end}`}
+        items={decadeSpanItems}
       />
 
-      {/* ── 전문가용 상세 — 사주 기둥·십신·점성 마디 전부 접어 둠 ── */}
+      {/* ── 전문가용 상세 — 세운 흐름·교차 페어·사주 기둥 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>자세히 보기 · 사주·점성 근거</summary>
+
+        {/* 10년 세운 결 — 연도별 세운 십신 (교차는 아님). */}
+        <CrossingList
+          heading={`10년 세운 흐름 · ${decade.start}–${decade.end}`}
+          items={decadeItems}
+        />
+
+        {/* 이 대운에 켜진 사주 × 점성 교차 페어 (톤). */}
+        {decadeCrossItems.length > 0 && (
+          <CrossingList
+            heading="이 대운에 작동하는 사주 × 점성 교차 페어"
+            items={decadeCrossItems}
+          />
+        )}
 
         {/* ============================================================
           main grid — 좌(사주 SAJU pillar) / 우(십신 readout + KV)
