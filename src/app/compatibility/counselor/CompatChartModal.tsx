@@ -391,7 +391,12 @@ export function CompatChartModal({
 
           {/* CompatLines — 두 사람 사주 8글자 사이 합/충 라인 시각화 */}
           <div className="chart-rise-in" style={{ ['--i' as string]: 2 } as React.CSSProperties}>
-            <CompatLines sajuA={sajuA} sajuB={sajuB} lang={lang} />
+            <CompatLines
+              sajuA={sajuA}
+              sajuB={sajuB}
+              relations={report?.pillarRelations ?? []}
+              lang={lang}
+            />
           </div>
 
           {/* 동양 — 오행 · 사주팔자 비교 (한 그룹으로 묶음) */}
