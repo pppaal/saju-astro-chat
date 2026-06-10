@@ -1557,8 +1557,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
               tarotDisabled={persons.length < 2}
               chartDisabled={
                 persons.length < 2 ||
-                (!person1Saju && !person1Astro) ||
-                (!person2Saju && !person2Astro)
+                (!person1Saju && !person1Astro && !person2Saju && !person2Astro)
               }
               tarot={{
                 ariaLabel: isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot',
