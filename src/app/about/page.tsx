@@ -1272,10 +1272,18 @@ export default function AboutPage() {
                   <a href="#about">{isKo ? '우리 소개' : 'About us'}</a>
                   <a href="#engine">{isKo ? '우리의 강점' : 'Our Edge'}</a>
                   <a href="#how">{isKo ? '이용 방법' : 'How it works'}</a>
+                  <a href="/faq">{isKo ? '자주 묻는 질문' : 'FAQ'}</a>
                   <a href="#join">{isKo ? '시작하기' : 'Begin'}</a>
                 </div>
                 <div className={s.footerCol}>
+                  <h4>{isKo ? '약관·정책' : 'Legal'}</h4>
+                  <a href="/policy/privacy">{isKo ? '개인정보처리방침' : 'Privacy Policy'}</a>
+                  <a href="/policy/terms">{isKo ? '이용약관' : 'Terms of Service'}</a>
+                  <a href="/policy/refund">{isKo ? '환불 정책' : 'Refund Policy'}</a>
+                </div>
+                <div className={s.footerCol}>
                   <h4>{isKo ? '문의' : 'Contact'}</h4>
+                  <a href="/contact">{isKo ? '문의하기' : 'Contact us'}</a>
                   <a href="mailto:rheeco88@gmail.com">rheeco88@gmail.com</a>
                 </div>
               </div>
