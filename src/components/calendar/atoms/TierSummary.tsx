@@ -154,11 +154,13 @@ function Timeline({ data }: { data: NonNullable<TierSummaryProps['timeline']> })
             </div>
           ))}
 
-        {/* 중심선 + 지금 */}
+        {/* 중심선 + 지금(점선만 — 라벨은 아래 틱에). 2026 사주칩과 겹침 방지. */}
         <div className={styles.tlSpine} />
-        <div className={styles.tlNow2} style={{ left: `${nowPct}%` }}>
-          <span className={styles.tlNowTag}>{nowLabel ?? '지금'}</span>
-        </div>
+        <div
+          className={styles.tlNow2}
+          style={{ left: `${nowPct}%` }}
+          aria-label={nowLabel ?? '지금'}
+        />
 
         {/* 점성 — 선 아래 (글자칩) */}
         {sortedEvents
