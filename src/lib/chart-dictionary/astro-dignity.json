@@ -21,7 +21,7 @@
       "en": "Libra — in fall. The self gets eclipsed by the need for harmony and the other; personal expression bends to please."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 태양은 평범한 강도로 작동하며, 별자리·하우스의 일반 의미만 살아난다.",
+      "ko": "본질적 위계가 없음 — 중립. 태양은 평범한 강도로 작동하며, 별자리·하우스의 일반 의미만 살아난다.",
       "en": "No essential dignity — neutral. The Sun runs at baseline strength, expressing the plain meaning of its sign and house."
     }
   },
@@ -47,7 +47,7 @@
       "en": "Scorpio — in fall. Emotions run intense and obsessive; calm is rare, and feelings cut to extremes."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 달은 평범한 강도로 작동하며, 별자리·하우스의 일반 정서 색채만 드러난다.",
+      "ko": "본질적 위계가 없음 — 중립. 달은 평범한 강도로 작동하며, 별자리·하우스의 일반 정서 색채만 드러난다.",
       "en": "No essential dignity — neutral. The Moon operates at baseline, simply coloring emotion with its sign and house."
     }
   },
@@ -73,7 +73,7 @@
       "en": "Pisces — in fall. Thought blurs into imagination; pinning ideas into clear words feels difficult."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 사고·소통은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
+      "ko": "본질적 위계가 없음 — 중립. 사고·소통은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
       "en": "No essential dignity — neutral. Mind and communication run at baseline, following the sign and house context."
     }
   },
@@ -99,7 +99,7 @@
       "en": "Virgo — in fall. Love gets analyzed and critiqued; warmth dries up under the eye of scrutiny."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 사랑·미감은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
+      "ko": "본질적 위계가 없음 — 중립. 사랑·미감은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
       "en": "No essential dignity — neutral. Love and aesthetics run at baseline, simply taking on the sign and house flavor."
     }
   },
@@ -125,7 +125,7 @@
       "en": "Cancer — in fall. Anger and desire bend into moods and defensiveness; direct action turns into passive-aggression."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 행동력·욕망은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
+      "ko": "본질적 위계가 없음 — 중립. 행동력·욕망은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
       "en": "No essential dignity — neutral. Drive and desire run at baseline, simply taking the color of sign and house."
     }
   },
@@ -151,7 +151,7 @@
       "en": "Capricorn — in fall. Optimism gets crushed by limits and realism; faith and expansion feel like a burden."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 확장·믿음은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
+      "ko": "본질적 위계가 없음 — 중립. 확장·믿음은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
       "en": "No essential dignity — neutral. Expansion and faith run at baseline, simply colored by sign and house."
     }
   },
@@ -177,13 +177,13 @@
       "en": "Aries — in fall. Restraint and planning collapse under impulse; discipline and patience are hardest to hold."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 구조·책임은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
+      "ko": "본질적 위계가 없음 — 중립. 구조·책임은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
       "en": "No essential dignity — neutral. Structure and responsibility run at baseline, simply taking the sign and house tone."
     }
   },
   "Uranus": {
     "note": {
-      "ko": "외행성은 전통 dignity table (William Lilly 시대) 에 없음 — 현대 룰러십만 인정. Exaltation/Detriment/Fall 은 점성가별 견해 분분 (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries? 등) — 채택 안 함.",
+      "ko": "외행성은 전통 위계 표(William Lilly 시대)에 없음 — 현대 룰러십만 인정. Exaltation/Detriment/Fall 은 점성가별 견해 분분 (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries? 등) — 채택 안 함.",
       "en": "Outer planets aren't in the traditional dignity table (pre-1781). Only modern rulerships are listed; Exaltation/Detriment/Fall are debated (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries?) — not adopted here."
     },
     "Domicile": {
@@ -192,13 +192,13 @@
       "en": "Aquarius — modern rulership. Innovation, freedom, and collective vision flow most naturally; the urge to break old forms thrives."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 변혁·각성의 충동은 평범한 강도로 작동하며, 별자리·하우스 맥락에 따라 표현된다.",
+      "ko": "본질적 위계가 없음 — 중립. 변혁·각성의 충동은 평범한 강도로 작동하며, 별자리·하우스 맥락에 따라 표현된다.",
       "en": "No essential dignity — neutral. The drive to disrupt and awaken runs at baseline, taking shape from sign and house context."
     }
   },
   "Neptune": {
     "note": {
-      "ko": "외행성은 전통 dignity table (William Lilly 시대) 에 없음 — 현대 룰러십만 인정. Exaltation/Detriment/Fall 은 점성가별 견해 분분 (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries? 등) — 채택 안 함.",
+      "ko": "외행성은 전통 위계 표(William Lilly 시대)에 없음 — 현대 룰러십만 인정. Exaltation/Detriment/Fall 은 점성가별 견해 분분 (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries? 등) — 채택 안 함.",
       "en": "Outer planets aren't in the traditional dignity table (pre-1846). Only modern rulerships are listed; Exaltation/Detriment/Fall are debated (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries?) — not adopted here."
     },
     "Domicile": {
@@ -207,13 +207,13 @@
       "en": "Pisces — modern rulership. Inspiration, compassion, and dissolving boundaries flow most naturally; mysticism, art, and devotion deepen."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 꿈·이상·환영의 흐름은 평범한 강도로 작동하며, 별자리·하우스 맥락에 따라 색이 바뀐다.",
+      "ko": "본질적 위계가 없음 — 중립. 꿈·이상·환영의 흐름은 평범한 강도로 작동하며, 별자리·하우스 맥락에 따라 색이 바뀐다.",
       "en": "No essential dignity — neutral. Dreams, ideals, and illusion run at baseline, taking color from sign and house."
     }
   },
   "Pluto": {
     "note": {
-      "ko": "외행성은 전통 dignity table (William Lilly 시대) 에 없음 — 현대 룰러십만 인정. Exaltation/Detriment/Fall 은 점성가별 견해 분분 (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries? 등) — 채택 안 함.",
+      "ko": "외행성은 전통 위계 표(William Lilly 시대)에 없음 — 현대 룰러십만 인정. Exaltation/Detriment/Fall 은 점성가별 견해 분분 (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries? 등) — 채택 안 함.",
       "en": "Outer planets aren't in the traditional dignity table (pre-1930). Only modern rulerships are listed; Exaltation/Detriment/Fall are debated (Uranus exalt Scorpio? Neptune exalt Cancer? Pluto exalt Aries?) — not adopted here."
     },
     "Domicile": {
@@ -222,7 +222,7 @@
       "en": "Scorpio — modern rulership. The power of death, rebirth, and deep transformation operates most naturally; the drive to excavate truth peaks."
     },
     "Peregrine": {
-      "ko": "어느 dignity 도 없음 — 중립. 변용·권력·심층 욕망의 압력은 평범한 강도로 작동하며, 별자리·하우스 맥락에 따라 표현된다.",
+      "ko": "본질적 위계가 없음 — 중립. 변용·권력·심층 욕망의 압력은 평범한 강도로 작동하며, 별자리·하우스 맥락에 따라 표현된다.",
       "en": "No essential dignity — neutral. The pressure of transformation, power, and deep desire runs at baseline, shaped by sign and house."
     }
   }

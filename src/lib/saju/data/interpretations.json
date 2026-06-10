@@ -36,7 +36,7 @@
       "health": "피부, 신장 계통 주의. 물과 관련된 사고 조심.",
       "health_en": "Take care of skin and kidney function. Be cautious around water-related accidents.",
       "advice": "유혹을 경계하고 자기 절제력을 기르세요.",
-      "advice_en": "Stay alert to temptation and build your self-discipline."
+      "advice_en": "Stay alert to temptation and work on your self-control."
     },
     "관대": {
       "name": "관대",
@@ -150,7 +150,7 @@
       "health": "큰 병환 주의. 정밀 검사와 예방 필수.",
       "health_en": "Watch for serious illness. Thorough check-ups and prevention are essential.",
       "advice": "끝이 있어야 새로운 시작이 있습니다. 집착을 버리세요.",
-      "advice_en": "Every new beginning needs an ending. Let go of what you cling to."
+      "advice_en": "There is no new beginning without an ending. Let go of what you cling to."
     },
     "묘": {
       "name": "묘",
@@ -339,7 +339,7 @@
       "element": "나를 극하는 오행, 같은 음양",
       "element_en": "Element that controls you, same yin-yang polarity",
       "meaning": "칠살 - 극복해야 할 힘, 권력",
-      "meaning_en": "A pressure-as-fuel pattern — a force to be met and overcome, channeling into authority.",
+      "meaning_en": "Pressure that becomes fuel — a force to be met and overcome, and turned into authority.",
       "positive": "결단력, 추진력, 권위, 리더십",
       "positive_en": "Decisiveness, drive, authority, leadership.",
       "negative": "위험, 소송, 사고, 건강 문제",
@@ -437,7 +437,7 @@
       "meaning": "달의 덕이 있는 귀인. 매월 복을 받음.",
       "meaning_en": "A benefactor under the moon's virtue — blessings arrive month by month.",
       "effect": "액운 해소, 문서운 상승, 시험 합격.",
-      "effect_en": "Misfortune is cleared, paperwork luck rises, exams go well.",
+      "effect_en": "Misfortune is cleared, luck with documents and contracts improves, and exams go well.",
       "advice": "꾸준한 노력이 결실을 맺습니다.",
       "advice_en": "Steady effort will bear fruit."
     },
@@ -619,7 +619,7 @@
       "meaning": "별들의 우두머리 기운. 극강하고 결단력 있는 별.",
       "meaning_en": "The chief of the stars — an extreme, fiercely decisive current of energy.",
       "effect": "강한 결단력과 카리스마. 고독하거나 극단으로 치우칠 수 있어 조율이 필요해요.",
-      "effect_en": "Powerful decisiveness and charisma — sometimes with a streak of loneliness and a pull toward extremes worth tempering.",
+      "effect_en": "Powerful decisiveness and charisma — sometimes with a streak of loneliness and a pull toward extremes that's worth keeping in check.",
       "advice": "강한 기운을 올바르게 사용하세요.",
       "advice_en": "Use your strong energy in the right direction."
     },
@@ -703,7 +703,7 @@
     },
     "문곡": {
       "name": "문곡",
-      "name_en": "Literary Counterpart Star",
+      "name_en": "Literary Arts Star",
       "hanja": "文曲",
       "category": "길신",
       "category_en": "auspicious star",
@@ -734,7 +734,7 @@
       "category": "길신",
       "category_en": "auspicious star",
       "meaning": "하늘의 문이 열린 별. 통찰과 직관.",
-      "meaning_en": "The gate of heaven opened — insight and intuition.",
+      "meaning_en": "The gate of heaven swung open — insight and intuition.",
       "effect": "깊이 있는 통찰력과 보이지 않는 것을 읽는 감. 종교, 철학, 심리에 끌리는 느낌이에요.",
       "effect_en": "A sense for what's beneath the surface — pulled toward spirituality, philosophy, or the psychological.",
       "advice": "직관을 신뢰하되, 검증하는 습관도 함께 두세요.",
@@ -777,7 +777,7 @@
       "effect": "자수성가, 독립적인 자리, 안정된 직장 운이 따라오는 느낌이에요.",
       "effect_en": "Self-made footing, an independent role, stable working life.",
       "advice": "남에게 기대기보다 본인의 힘으로 키워가는 흐름이 잘 맞아요.",
-      "advice_en": "Builds best on your own steam — the lean-on-others mode doesn't suit you."
+      "advice_en": "Builds best on your own steam — leaning on others isn't your style."
     },
     "임관": {
       "name": "임관",
@@ -816,7 +816,7 @@
       "effect": "실수, 구설, 명예 훼손, 재물 손실이 따라올 수 있는 모습이에요.",
       "effect_en": "Slip-ups, gossip, reputation hits, and material loss can show up.",
       "advice": "말과 행동을 조심하고, 욕심을 잠시 내려 두세요.",
-      "advice_en": "Watch what you say and do, and set the greed aside for a while."
+      "advice_en": "Watch what you say and do, and set your greed aside for a while."
     },
     "원진": {
       "name": "원진",
@@ -920,7 +920,7 @@
       "effect": "사고, 질병, 갑작스러운 손실이 올 수 있는 스타일이에요.",
       "effect_en": "Accidents, illness, and sudden losses can show up.",
       "advice": "안전과 건강 관리를 미리 챙기고 무리한 일은 피하세요.",
-      "advice_en": "Get ahead of safety and health, and skip the overreach."
+      "advice_en": "Stay ahead on safety and health, and don't take on too much."
     },
     "천살": {
       "name": "천살",
@@ -998,7 +998,7 @@
       "effect": "지위가 오르고 인정받는 느낌이에요.",
       "effect_en": "Position lifts and recognition arrives.",
       "advice": "오를수록 처음의 자세를 잊지 마세요.",
-      "advice_en": "The higher you rise, the more you keep the early stance."
+      "advice_en": "The higher you rise, the more you hold on to where you started."
     },
     "삼재": {
       "name": "삼재",
@@ -1007,7 +1007,7 @@
       "category": "흉신",
       "category_en": "challenging star",
       "meaning": "세 가지 재난이 따라오는 3년간의 시기.",
-      "meaning_en": "A three-year stretch where three kinds of trouble can ride along.",
+      "meaning_en": "A three-year stretch when three kinds of trouble can come at once.",
       "effect": "건강, 인간관계, 재물에 변동과 시련이 따라올 수 있는 느낌이에요.",
       "effect_en": "Shifts and trials in health, relationships, and money can show up.",
       "advice": "큰 결정과 무리한 시작은 피하고 안정을 우선에 두세요.",
@@ -1058,7 +1058,7 @@
       "personality": "신뢰감 있고 안정적. 중재 능력 좋음.",
       "personality_en": "Trustworthy and grounded. A good mediator.",
       "excess": "고집, 답답함, 융통성 부족",
-      "excess_en": "Stubbornness, stuffiness, lack of flexibility.",
+      "excess_en": "Stubbornness, a stifling rigidity, lack of flexibility.",
       "deficiency": "불안정, 의지력 부족, 산만함",
       "deficiency_en": "Instability, weak willpower, scatteredness.",
       "health": "비장, 위장, 피부, 근육 관련 주의",
