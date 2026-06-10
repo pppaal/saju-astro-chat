@@ -151,8 +151,8 @@ const UI: Record<string, BiLabel> = {
   sajuSide: { ko: '사주', en: 'Saju' },
   astroSide: { ko: '점성', en: 'Astro' },
   footBrain: {
-    ko: '껍데기 chart.zip · 두뇌 natalCross',
-    en: 'shell chart.zip · engine natalCross',
+    ko: '동·서양 통합 분석 엔진',
+    en: 'East–West integrated analysis',
   },
   orb: { ko: 'orb', en: 'orb' },
 }
@@ -173,6 +173,23 @@ const RELATION_TYPE_LABEL: Record<string, BiLabel> = {
 }
 const relationTypeLabel = (kind: string, lang: Lang): string =>
   RELATION_TYPE_LABEL[kind]?.[lang] ?? kind
+
+// 별자리 12궁 → 쉬운 말 결(원소·양식의 성격 요약). 행성이 그 사인의 '옷'을 입는다.
+// SIGN_META 키(3자 약어)와 동일 키. 점성 해석을 위해 사인의 색을 한 마디로.
+const SIGN_TRAIT: Record<string, BiLabel> = {
+  Ari: { ko: '거침없이 부딪쳐 길을 내는', en: 'bold and pioneering' },
+  Tau: { ko: '느긋하고 끈기 있게 쌓는', en: 'steady and grounded' },
+  Gem: { ko: '호기심 많고 재빠르게 오가는', en: 'curious and quick-witted' },
+  Can: { ko: '정 많고 품어 보살피는', en: 'tender and protective' },
+  Leo: { ko: '당당하고 환하게 빛나는', en: 'proud and radiant' },
+  Vir: { ko: '꼼꼼하고 실속을 챙기는', en: 'precise and practical' },
+  Lib: { ko: '조화를 맞추고 어울리는', en: 'balanced and relational' },
+  Sco: { ko: '깊고 강렬하게 파고드는', en: 'deep and intense' },
+  Sag: { ko: '자유롭게 멀리 뻗는', en: 'free and far-reaching' },
+  Cap: { ko: '현실적으로 끝까지 성취하는', en: 'grounded and ambitious' },
+  Aqu: { ko: '독창적이고 틀을 깨는', en: 'original and unconventional' },
+  Pis: { ko: '섬세하고 상상력 넘치는', en: 'sensitive and imaginative' },
+}
 
 // 교차 tone → 라벨 (이중언어). "사주·점성 두 시스템이 같은/다른 얘길 하는가" 관점.
 const TONE_LABEL: Record<CrossRow['tone'], BiLabel> = {
@@ -1199,17 +1216,29 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       </i>
                     </div>
                     <div className={s.bigPrin}>{cd.core.principle}</div>
-                    {cd.house
-                      ? (() => {
-                          const h = getHouseRich(cd.house as HouseNumber, lang)
-                          return h ? (
-                            <div className={s.bigHouse}>
-                              {cd.house}
-                              {lang === 'en' ? 'H' : '하우스'} · {h.domain}
-                            </div>
-                          ) : null
-                        })()
-                      : null}
+                    {(() => {
+                      // 점성 해석 — 행성(역할) × 별자리(색) × 하우스(무대)를 한 문장으로.
+                      const tr = SIGN_TRAIT[abbr(cd.sign)]
+                      const sgn = signLabel(abbr(cd.sign), lang)
+                      const h = cd.house ? getHouseRich(cd.house as HouseNumber, lang) : null
+                      const dom = h ? h.domain.split('·')[0].trim() : ''
+                      if (!tr) return null
+                      const ord = (n: number) => {
+                        const v = n % 100
+                        const suf =
+                          v >= 11 && v <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'
+                        return `${n}${suf}`
+                      }
+                      const read =
+                        lang === 'en'
+                          ? `In ${sgn}, your ${cd.label} comes through ${tr.en}` +
+                            (h
+                              ? `, and plays out mainly in the ${ord(cd.house)} house of ${dom}.`
+                              : '.')
+                          : `${sgn} 자리라 ${cd.label}이 ${tr.ko} 색으로 드러나` +
+                            (h ? `고, ${cd.house}하우스(${dom}) 무대에서 주로 펼쳐져요.` : '요.')
+                      return <div className={s.bigRead}>{read}</div>
+                    })()}
                     <div className={s.bigMean}>{cd.core.meaning}</div>
                   </div>
                 )
@@ -1361,8 +1390,22 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </div>
             {/* 💡 실천 — 진단을 처방으로 (Opus: 그래서 어떻게). */}
             {(() => {
-              const reson = cross.rows.filter((r) => r.tone === 'resonant').map((r) => r.category)
-              const tens = cross.rows.filter((r) => r.tone === 'tension').map((r) => r.category)
+              // 카르마류(공망/카르마·성장 방향)는 '강점 코어'도 '충돌'도 아닌 평생 숙제
+              // 축이라 별도 줄로 뺀다 — 코어 버킷에 섞이면 "브랜딩 중심축으로" 같은
+              // 엉뚱한 처방이 붙는다.
+              const KARMA = new Set([
+                '공망/카르마',
+                '성장 방향',
+                'Void / Karma',
+                'Growth Direction',
+              ])
+              const reson = cross.rows
+                .filter((r) => r.tone === 'resonant' && !KARMA.has(r.category))
+                .map((r) => r.category)
+              const tens = cross.rows
+                .filter((r) => r.tone === 'tension' && !KARMA.has(r.category))
+                .map((r) => r.category)
+              const karma = cross.rows.filter((r) => KARMA.has(r.category)).map((r) => r.category)
               return (
                 <div className={s.crossAdvice}>
                   <div className={s.crossAdviceHead}>
@@ -1387,6 +1430,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         {lang === 'en'
                           ? ') — alternate between the two instead of suppressing one.'
                           : '은(는) 한쪽을 누르기보다 상황 따라 번갈아 쓰면 오히려 강점이 돼요.'}
+                      </li>
+                    )}
+                    {karma.length > 0 && (
+                      <li>
+                        <b>{lang === 'en' ? 'Lifelong work' : '평생 숙제'}</b>{' '}
+                        {lang === 'en' ? '' : '동·서양이 똑같이 "스스로 채워야 한다"고 짚는 '}
+                        <b>{karma.join(' · ')}</b>
+                        {lang === 'en'
+                          ? ' — both systems flag this as not-given, to be built by hand. Fill it in small, steady steps over the years.'
+                          : '은(는) 타고나는 게 아니라 직접 만들어가는 영역 — 조급해 말고 해마다 조금씩 채워가면 가장 단단한 자산이 돼요.'}
                       </li>
                     )}
                   </ul>
