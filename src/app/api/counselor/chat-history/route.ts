@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
-import { withApiMiddleware, createAuthenticatedGuard, extractLocale, type ApiContext } from '@/lib/api/middleware'
+import {
+  withApiMiddleware,
+  createAuthenticatedGuard,
+  extractLocale,
+  type ApiContext,
+} from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
@@ -52,6 +57,10 @@ export const GET = withApiMiddleware(
       },
       orderBy: { updatedAt: 'desc' },
       take: limit,
+      // messages(JSON, 세션당 수십~수백 KB)는 제외 — 이 GET 의 유일한 소비자
+      // (useCounselorData)는 id/summary/keyTopics/lastMessageAt 만 읽고, 전체
+      // 대화는 /api/counselor/session/load 가 따로 제공한다. 포함 시 사이드바
+      // 로드마다 수 MB 직렬화로 200~500ms 낭비.
       select: {
         id: true,
         summary: true,
@@ -59,7 +68,6 @@ export const GET = withApiMiddleware(
         messageCount: true,
         lastMessageAt: true,
         createdAt: true,
-        messages: true,
       },
     })
 
@@ -103,94 +111,91 @@ export const POST = withApiMiddleware(
     const { sessionId, locale, userMessage, assistantMessage, type, meta } = validation.data
     const sessionType = type ?? 'destiny'
 
-      const now = new Date()
-      const newMessages: ChatMessage[] = []
+    const now = new Date()
+    const newMessages: ChatMessage[] = []
 
-      if (userMessage) {
-        newMessages.push({
-          role: 'user',
-          content: userMessage,
-          timestamp: now.toISOString(),
+    if (userMessage) {
+      newMessages.push({
+        role: 'user',
+        content: userMessage,
+        timestamp: now.toISOString(),
+      })
+    }
+    if (assistantMessage) {
+      newMessages.push({
+        role: 'assistant',
+        content: assistantMessage,
+        timestamp: now.toISOString(),
+      })
+    }
+
+    if (sessionId) {
+      // 기존 세션 업데이트
+      const existingSession = await prisma.counselorChatSession.findFirst({
+        where: { id: sessionId, userId },
+      })
+
+      if (!existingSession) {
+        return createErrorResponse({
+          code: ErrorCodes.NOT_FOUND,
+          message: 'Session not found',
+          locale: extractLocale(req),
+          route: 'counselor/chat-history',
         })
       }
-      if (assistantMessage) {
-        newMessages.push({
-          role: 'assistant',
-          content: assistantMessage,
-          timestamp: now.toISOString(),
-        })
-      }
 
-      if (sessionId) {
-        // 기존 세션 업데이트
-        const existingSession = await prisma.counselorChatSession.findFirst({
-          where: { id: sessionId, userId },
-        })
+      const existingMessages = (existingSession.messages as ChatMessage[]) || []
+      const updatedMessages = [...existingMessages, ...newMessages]
 
-        if (!existingSession) {
-          return createErrorResponse({
-            code: ErrorCodes.NOT_FOUND,
-            message: 'Session not found',
-            locale: extractLocale(req),
-            route: 'counselor/chat-history',
-          })
-        }
+      // Backfill title from the first user turn for rows that
+      // predate the auto-titler. Sidebar otherwise shows "Untitled
+      // chat" forever — the title only changes on a manual rename.
+      const firstUserContent = updatedMessages.find((m) => m.role === 'user')?.content?.trim() || ''
+      const backfillTitle =
+        !existingSession.title && firstUserContent ? truncateChatTitle(firstUserContent) : undefined
 
-        const existingMessages = (existingSession.messages as ChatMessage[]) || []
-        const updatedMessages = [...existingMessages, ...newMessages]
+      const updated = await prisma.counselorChatSession.update({
+        where: { id: sessionId },
+        data: {
+          messages: updatedMessages,
+          messageCount: updatedMessages.length,
+          lastMessageAt: now,
+          ...(backfillTitle ? { title: backfillTitle } : {}),
+        },
+      })
 
-        // Backfill title from the first user turn for rows that
-        // predate the auto-titler. Sidebar otherwise shows "Untitled
-        // chat" forever — the title only changes on a manual rename.
-        const firstUserContent =
-          updatedMessages.find((m) => m.role === 'user')?.content?.trim() || ''
-        const backfillTitle =
-          !existingSession.title && firstUserContent
-            ? truncateChatTitle(firstUserContent)
-            : undefined
+      return NextResponse.json({
+        success: true,
+        session: updated,
+        action: 'updated',
+      })
+    } else {
+      // 새 세션 생성 — auto-derive a title from the first user turn
+      // so the sidebar shows the question, not "Untitled chat".
+      // User can still rename via the pencil action.
+      const autoTitle = userMessage ? truncateChatTitle(userMessage) : null
+      const created = await prisma.counselorChatSession.create({
+        data: {
+          userId,
+          locale,
+          type: sessionType,
+          ...(autoTitle ? { title: autoTitle } : {}),
+          // Prisma expects Prisma.InputJsonValue for Json columns; the
+          // zod parse output is Record<string, unknown> which is
+          // structurally compatible but typed loosely.
+          ...(meta ? { meta: meta as Prisma.InputJsonValue } : {}),
+          messages: newMessages,
+          messageCount: newMessages.length,
+          lastMessageAt: now,
+        },
+      })
 
-        const updated = await prisma.counselorChatSession.update({
-          where: { id: sessionId },
-          data: {
-            messages: updatedMessages,
-            messageCount: updatedMessages.length,
-            lastMessageAt: now,
-            ...(backfillTitle ? { title: backfillTitle } : {}),
-          },
-        });
-
-        return NextResponse.json({
-          success: true,
-          session: updated,
-          action: 'updated',
-        })
-      } else {
-        // 새 세션 생성 — auto-derive a title from the first user turn
-        // so the sidebar shows the question, not "Untitled chat".
-        // User can still rename via the pencil action.
-        const autoTitle = userMessage ? truncateChatTitle(userMessage) : null
-        const created = await prisma.counselorChatSession.create({
-          data: {
-            userId,
-            locale,
-            type: sessionType,
-            ...(autoTitle ? { title: autoTitle } : {}),
-            // Prisma expects Prisma.InputJsonValue for Json columns; the
-            // zod parse output is Record<string, unknown> which is
-            // structurally compatible but typed loosely.
-            ...(meta ? { meta: meta as Prisma.InputJsonValue } : {}),
-            messages: newMessages,
-            messageCount: newMessages.length,
-            lastMessageAt: now,
-          },
-        })
-
-        return NextResponse.json({
-          success: true,
-          session: created,
-          action: 'created',
-        })
-      }
+      return NextResponse.json({
+        success: true,
+        session: created,
+        action: 'created',
+      })
+    }
   },
   createAuthenticatedGuard({
     route: '/api/counselor/chat-history',
@@ -226,27 +231,27 @@ export const PATCH = withApiMiddleware(
 
     const { sessionId, summary, keyTopics } = validation.data
 
-      const existingSession = await prisma.counselorChatSession.findFirst({
-        where: { id: sessionId, userId },
-        select: { id: true },
+    const existingSession = await prisma.counselorChatSession.findFirst({
+      where: { id: sessionId, userId },
+      select: { id: true },
+    })
+
+    if (!existingSession) {
+      return createErrorResponse({
+        code: ErrorCodes.NOT_FOUND,
+        message: 'Session not found',
+        locale: extractLocale(req),
+        route: 'counselor/chat-history',
       })
+    }
 
-      if (!existingSession) {
-        return createErrorResponse({
-          code: ErrorCodes.NOT_FOUND,
-          message: 'Session not found',
-          locale: extractLocale(req),
-          route: 'counselor/chat-history',
-        })
-      }
-
-      const updated = await prisma.counselorChatSession.update({
-        where: { id: sessionId },
-        data: {
-          ...(summary && { summary }),
-          ...(keyTopics && { keyTopics }),
-        },
-      });
+    const updated = await prisma.counselorChatSession.update({
+      where: { id: sessionId },
+      data: {
+        ...(summary && { summary }),
+        ...(keyTopics && { keyTopics }),
+      },
+    })
 
     return NextResponse.json({
       success: true,

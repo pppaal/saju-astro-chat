@@ -146,9 +146,7 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should scope sessions to the authenticated user', async () => {
-      const req = new NextRequest(
-        'http://localhost:3000/api/counselor/chat-history?limit=5'
-      )
+      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?limit=5')
 
       await GET(req)
 
@@ -240,6 +238,8 @@ describe('/api/counselor/chat-history', () => {
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
+          // messages(JSON 대용량)는 2026-06 부터 select 에서 제외 — 사이드바
+          // 소비자는 메타만 읽고, 전체 대화는 /api/counselor/session/load 담당.
           select: {
             id: true,
             summary: true,
@@ -247,7 +247,6 @@ describe('/api/counselor/chat-history', () => {
             messageCount: true,
             lastMessageAt: true,
             createdAt: true,
-            messages: true,
           },
         })
       )
@@ -399,9 +398,7 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should combine user scoping with the limit', async () => {
-      const req = new NextRequest(
-        'http://localhost:3000/api/counselor/chat-history?limit=10'
-      )
+      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history?limit=10')
 
       await GET(req)
 

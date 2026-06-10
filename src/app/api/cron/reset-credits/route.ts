@@ -3,13 +3,18 @@ import { resetAllExpiredCredits, expireBonusCredits } from '@/lib/credits/credit
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { extractLocale } from '@/lib/api/middleware'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
+import { timingSafeCompare } from '@/lib/security/timingSafe'
 
 // Vercel Cron 또는 외부 cron 서비스용 엔드포인트
 // 매일 자정에 실행 권장
 
 export const dynamic = 'force-dynamic'
 
-// 보안: CRON_SECRET 환경변수로 인증
+// 보안: CRON_SECRET 환경변수로 인증.
+// 비교는 timing-safe — 단순 === 는 문자 단위 조기 반환으로 시크릿 prefix 를
+// 타이밍으로 추측할 여지를 준다.
 function validateCronSecret(request: Request): boolean {
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
@@ -19,11 +24,23 @@ function validateCronSecret(request: Request): boolean {
     return false
   }
 
-  return authHeader === `Bearer ${cronSecret}`
+  return timingSafeCompare(authHeader ?? '', `Bearer ${cronSecret}`)
 }
 
 export async function GET(request: Request) {
   try {
+    // 시크릿 brute-force 방지 — IP 당 분당 5회. 정상 cron 은 하루 1~2회라
+    // 영향 없음. (인증 전 단계라 withApiMiddleware 가드 미사용 라우트.)
+    const ip = getClientIp(request.headers)
+    const rl = await rateLimit(`cron:reset-credits:${ip}`, { limit: 5, windowSeconds: 60 })
+    if (!rl.allowed) {
+      return createErrorResponse({
+        code: ErrorCodes.RATE_LIMITED,
+        locale: extractLocale(request),
+        route: 'cron/reset-credits',
+      })
+    }
+
     if (!validateCronSecret(request)) {
       return createErrorResponse({
         code: ErrorCodes.UNAUTHORIZED,

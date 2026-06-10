@@ -55,8 +55,11 @@ export async function ensureCounselorContext(
   const stableCtxKey = `counselor:ctx:stable:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
   const dailyCtxKey = `counselor:ctx:daily:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
 
-  const cachedStable = await cacheGet<string>(stableCtxKey)
-  const cachedDaily = await cacheGet<string>(dailyCtxKey)
+  // 두 키는 독립 — Redis 왕복을 병렬로 (직렬 대비 ~5ms, 매 상담 메시지 hot path).
+  const [cachedStable, cachedDaily] = await Promise.all([
+    cacheGet<string>(stableCtxKey),
+    cacheGet<string>(dailyCtxKey),
+  ])
   if (cachedStable && cachedDaily) {
     return { stableContext: cachedStable, dailyContext: cachedDaily }
   }
@@ -112,7 +115,9 @@ export async function ensureCounselorContext(
   const stableContext = `<birth_data>\n${parts.join('\n')}${stableCtxBody ? `\n\n${stableCtxBody}` : ''}\n</birth_data>`
   const dailyContext = dailyCtxBody
 
-  await cacheSet(stableCtxKey, stableContext, CACHE_TTL.NATAL_CHART) // 30d
-  await cacheSet(dailyCtxKey, dailyContext, CACHE_TTL.CALENDAR_DATA) // 1d
+  await Promise.all([
+    cacheSet(stableCtxKey, stableContext, CACHE_TTL.NATAL_CHART), // 30d
+    cacheSet(dailyCtxKey, dailyContext, CACHE_TTL.CALENDAR_DATA), // 1d
+  ])
   return { stableContext, dailyContext }
 }

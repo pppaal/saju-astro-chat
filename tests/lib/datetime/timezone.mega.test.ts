@@ -53,11 +53,12 @@ describe('timezone utilities', () => {
       expect(result.day).toBeLessThanOrEqual(31)
     })
 
-    it('should use UTC as default timezone', () => {
-      // getNowInTimezone() with no arg defaults to UTC (see partsFor: `timezone || 'UTC'`).
-      // Callers must pass an explicit IANA name for user-facing values.
+    it('should use DEFAULT_TIMEZONE(Asia/Seoul) as default timezone', () => {
+      // 무인자 기본값은 모듈이 export 하는 DEFAULT_TIMEZONE 과 일치한다.
+      // (옛 'UTC' 기본은 timezone.test.ts 의 Seoul 계약과 모순이라 UTC·KST
+      // 날짜가 갈리는 매일 9시간 동안 둘 중 하나가 깨졌다 — Seoul 로 통일.)
       const withDefault = getNowInTimezone()
-      const withExplicit = getNowInTimezone('UTC')
+      const withExplicit = getNowInTimezone('Asia/Seoul')
       expect(withDefault).toEqual(withExplicit)
     })
 
@@ -72,12 +73,12 @@ describe('timezone utilities', () => {
       })
     })
 
-    it('should fallback to UTC on invalid timezone', () => {
-      // Malformed IANA name falls back to plain UTC rather than throwing,
+    it('should fallback to DEFAULT_TIMEZONE on invalid timezone', () => {
+      // Malformed IANA name falls back to Asia/Seoul rather than throwing,
       // so a bad profile value can't break the whole request.
       const result = getNowInTimezone('Invalid/Timezone')
-      const utc = getNowInTimezone('UTC')
-      expect(result).toEqual(utc)
+      const seoul = getNowInTimezone('Asia/Seoul')
+      expect(result).toEqual(seoul)
     })
 
     it('should handle UTC', () => {
@@ -281,9 +282,9 @@ describe('timezone utilities', () => {
       expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/)
     })
 
-    it('should use UTC as default (canonical getNow defaults to UTC)', () => {
+    it('should use DEFAULT_TIMEZONE as default', () => {
       const withDefault = getIsoInTimezone()
-      const withExplicit = getIsoInTimezone('UTC')
+      const withExplicit = getIsoInTimezone('Asia/Seoul')
       // Should be very close in time (within a second)
       expect(withDefault.slice(0, 16)).toBe(withExplicit.slice(0, 16))
     })
