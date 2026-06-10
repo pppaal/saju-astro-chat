@@ -28,6 +28,8 @@ import { Ganji } from '../atoms/Ganji'
 import { LayerTag } from '../atoms/LayerTag'
 import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './DecadeTier.module.css'
+import { CrossingList } from '@/components/calendar/atoms/CrossingList'
+import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 
 // ----------------------------------------------------------------
 // Props
@@ -125,6 +127,29 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   // 격국 status — 본명 user.gyeokgukStatus 우선, 없으면 decade.geokgukStatus.
   const gyeokgukLine = decade.geokgukStatus ?? user.gyeokgukStatus ?? user.gyeokguk
 
+  // ── 10년 흐름 리스트 — 대운 안 연도별 세운 십신을 "그 해의 결"로. ──
+  // 점수는 단일 대운 톤만 있어 10년이 모두 같으므로(가짜) 쓰지 않고,
+  // 연도마다 진짜 달라지는 세운 십신(일간 기준)을 한 줄 결로 보여준다.
+  const SIBSIN_YEAR_THEME: Record<string, string> = {
+    비견: '주체·동료의 해',
+    겁재: '경쟁·분탈의 해',
+    식신: '표현·창작의 해',
+    상관: '재능·자유의 해',
+    편재: '재물·기회의 해',
+    정재: '꾸준한 축적의 해',
+    편관: '도전·추진의 해',
+    정관: '책임·자리의 해',
+    편인: '독학·사유의 해',
+    정인: '배움·지원의 해',
+  }
+  const decadeItems = decade.years.map((y) => ({
+    when: `${y.year}`,
+    title: (y.sibsin && SIBSIN_YEAR_THEME[y.sibsin]) || '한 해의 흐름',
+    detail: `${y.gz.hanja}${y.gz.kr ? ` (${y.gz.kr})` : ''}${y.sibsin ? ` · 세운 ${y.sibsin}` : ''}`,
+    now: !!y.now,
+    past: y.year < (decade.focusYear ?? decade.start),
+  }))
+
   return (
     <div className={styles.tier} data-screen-label={`10년 ${decade.start}-${decade.end}`}>
       <button className={styles.rise} onClick={onRise} type="button">
@@ -156,284 +181,296 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
       </div>
       <p className={styles.oneline}>{decade.headline}</p>
 
-      {/* ============================================================
+      <CrossingList
+        heading={`이 대운 10년 흐름 · ${decade.start}–${decade.end}`}
+        items={decadeItems}
+      />
+
+      {/* ── 전문가용 상세 — 사주 기둥·십신·점성 마디 전부 접어 둠 ── */}
+      <details className={summaryStyles.details}>
+        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 사주·점성 근거</summary>
+
+        {/* ============================================================
           main grid — 좌(사주 SAJU pillar) / 우(십신 readout + KV)
       ============================================================ */}
-      <div className={styles.mainGrid}>
-        {/* ── 좌: 사주 panel ── */}
-        <div className={styles.sajuPanel}>
-          <LayerTag kind="saju" />
-          <div className={styles.ganjiBig}>
-            <Ganji data={decade.gz} size={62} />
+        <div className={styles.mainGrid}>
+          {/* ── 좌: 사주 panel ── */}
+          <div className={styles.sajuPanel}>
+            <LayerTag kind="saju" />
+            <div className={styles.ganjiBig}>
+              <Ganji data={decade.gz} size={62} />
+            </div>
+
+            <div className={styles.pillarSplit}>
+              {/* 천간 — 전반 5년 */}
+              <div className={styles.pillarCol}>
+                <div className={styles.pillarHead}>
+                  <span className={styles.pillarTag}>천간 · 전반 5년</span>
+                  <span className={styles.pillarYears}>
+                    {decade.start}–{decade.start + 4}
+                  </span>
+                </div>
+                <div className={styles.pillarHanja}>{decade.pillar.cheongan.hanja}</div>
+                <div className={styles.pillarSibsin}>{decade.pillar.cheongan.sibsin}</div>
+                <div className={styles.pillarEl}>{decade.pillar.cheongan.el}</div>
+                {decade.pillar.cheongan.note && (
+                  <p className={styles.pillarNote}>{decade.pillar.cheongan.note}</p>
+                )}
+              </div>
+
+              <div className={styles.pillarDivider} />
+
+              {/* 지지 — 후반 5년 */}
+              <div className={styles.pillarCol}>
+                <div className={styles.pillarHead}>
+                  <span className={styles.pillarTag}>지지 · 후반 5년</span>
+                  <span className={styles.pillarYears}>
+                    {decade.start + 5}–{decade.end - 1}
+                  </span>
+                </div>
+                <div className={styles.pillarHanja}>{decade.pillar.jiji.hanja}</div>
+                <div className={styles.pillarSibsin}>{decade.pillar.jiji.sibsin}</div>
+                <div className={styles.pillarEl}>{decade.pillar.jiji.el}</div>
+                {decade.pillar.jiji.note && (
+                  <p className={styles.pillarNote}>{decade.pillar.jiji.note}</p>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className={styles.pillarSplit}>
-            {/* 천간 — 전반 5년 */}
-            <div className={styles.pillarCol}>
-              <div className={styles.pillarHead}>
-                <span className={styles.pillarTag}>천간 · 전반 5년</span>
-                <span className={styles.pillarYears}>
-                  {decade.start}–{decade.start + 4}
-                </span>
-              </div>
-              <div className={styles.pillarHanja}>{decade.pillar.cheongan.hanja}</div>
-              <div className={styles.pillarSibsin}>{decade.pillar.cheongan.sibsin}</div>
-              <div className={styles.pillarEl}>{decade.pillar.cheongan.el}</div>
-              {decade.pillar.cheongan.note && (
-                <p className={styles.pillarNote}>{decade.pillar.cheongan.note}</p>
-              )}
+          {/* ── 우: 대운 십신 readout + KV ── */}
+          <div className={styles.readoutPanel}>
+            <LayerTag kind="saju" />
+            <div className={styles.bigTitle}>
+              {decade.sibsin} · {sibsinArea(decade.sibsin)}의 10년
             </div>
+            <p className={styles.themeLine}>
+              {decade.theme}
+              <span className={styles.muted}> · {decade.themeEn}</span>
+            </p>
 
-            <div className={styles.pillarDivider} />
-
-            {/* 지지 — 후반 5년 */}
-            <div className={styles.pillarCol}>
-              <div className={styles.pillarHead}>
-                <span className={styles.pillarTag}>지지 · 후반 5년</span>
-                <span className={styles.pillarYears}>
-                  {decade.start + 5}–{decade.end - 1}
+            <dl className={styles.kv}>
+              <dt>기간</dt>
+              <dd>
+                <b>
+                  {decade.start}–{decade.end}
+                </b>
+                <span className={styles.muted}>
+                  {' '}
+                  · {decade.ageFrom}–{decade.ageTo}세
                 </span>
-              </div>
-              <div className={styles.pillarHanja}>{decade.pillar.jiji.hanja}</div>
-              <div className={styles.pillarSibsin}>{decade.pillar.jiji.sibsin}</div>
-              <div className={styles.pillarEl}>{decade.pillar.jiji.el}</div>
-              {decade.pillar.jiji.note && (
-                <p className={styles.pillarNote}>{decade.pillar.jiji.note}</p>
+              </dd>
+              <dt>대운 십신</dt>
+              <dd>
+                <b>{decade.sibsin}</b>
+              </dd>
+              <dt>천간</dt>
+              <dd>
+                <span className={styles.han}>{decade.pillar.cheongan.hanja}</span>{' '}
+                {decade.pillar.cheongan.sibsin}{' '}
+                <span className={styles.muted}>· {decade.pillar.cheongan.el}</span>
+              </dd>
+              <dt>지지</dt>
+              <dd>
+                <span className={styles.han}>{decade.pillar.jiji.hanja}</span>{' '}
+                {decade.pillar.jiji.sibsin}{' '}
+                <span className={styles.muted}>· {decade.pillar.jiji.el}</span>
+              </dd>
+              {sewoonNow && (
+                <>
+                  <dt>세운 {focusYearLabel}</dt>
+                  <dd>
+                    <span className={styles.han}>{sewoonNow.gz.hanja}</span>{' '}
+                    <span className={styles.muted}>{sewoonNow.gz.kr}</span> ·{' '}
+                    <b>{sewoonNow.sibsin}</b>
+                  </dd>
+                </>
               )}
-            </div>
+            </dl>
           </div>
         </div>
 
-        {/* ── 우: 대운 십신 readout + KV ── */}
-        <div className={styles.readoutPanel}>
-          <LayerTag kind="saju" />
-          <div className={styles.bigTitle}>
-            {decade.sibsin} · {sibsinArea(decade.sibsin)}의 10년
-          </div>
-          <p className={styles.themeLine}>
-            {decade.theme}
-            <span className={styles.muted}> · {decade.themeEn}</span>
-          </p>
-
-          <dl className={styles.kv}>
-            <dt>기간</dt>
-            <dd>
-              <b>
-                {decade.start}–{decade.end}
-              </b>
-              <span className={styles.muted}>
-                {' '}
-                · {decade.ageFrom}–{decade.ageTo}세
-              </span>
-            </dd>
-            <dt>대운 십신</dt>
-            <dd>
-              <b>{decade.sibsin}</b>
-            </dd>
-            <dt>천간</dt>
-            <dd>
-              <span className={styles.han}>{decade.pillar.cheongan.hanja}</span>{' '}
-              {decade.pillar.cheongan.sibsin}{' '}
-              <span className={styles.muted}>· {decade.pillar.cheongan.el}</span>
-            </dd>
-            <dt>지지</dt>
-            <dd>
-              <span className={styles.han}>{decade.pillar.jiji.hanja}</span>{' '}
-              {decade.pillar.jiji.sibsin}{' '}
-              <span className={styles.muted}>· {decade.pillar.jiji.el}</span>
-            </dd>
-            {sewoonNow && (
-              <>
-                <dt>세운 {focusYearLabel}</dt>
-                <dd>
-                  <span className={styles.han}>{sewoonNow.gz.hanja}</span>{' '}
-                  <span className={styles.muted}>{sewoonNow.gz.kr}</span> ·{' '}
-                  <b>{sewoonNow.sibsin}</b>
-                </dd>
-              </>
-            )}
-          </dl>
-        </div>
-      </div>
-
-      {/* ============================================================
+        {/* ============================================================
           body paragraphs
       ============================================================ */}
-      {decade.body && decade.body.length > 0 && (
-        <div className={styles.bodyBlock}>
-          {decade.body.map((p, i) => (
-            <p key={i} className={styles.lead}>
-              {p}
-            </p>
-          ))}
-        </div>
-      )}
-
-      {/* ============================================================
-          이 대운의 결 — narrative 4개 (대운 결 / 용신 흐름 / 주의 / 정점)
-      ============================================================ */}
-      {decade.narrative && decade.narrative.length > 0 && (
-        <section className={styles.block}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>이 대운의 결</h2>
-            <span className={styles.tiny}>narrative · {decade.narrative.length}</span>
-          </div>
-          <div className={styles.narrativeGrid}>
-            {decade.narrative.map((n, i) => (
-              <div key={i} className={styles.narrativeCard}>
-                <div className={styles.narrativeTag}>{n.tag}</div>
-                <p className={styles.narrativeBody}>{n.body}</p>
-              </div>
+        {decade.body && decade.body.length > 0 && (
+          <div className={styles.bodyBlock}>
+            {decade.body.map((p, i) => (
+              <p key={i} className={styles.lead}>
+                {p}
+              </p>
             ))}
           </div>
-        </section>
-      )}
+        )}
 
-      {/* ============================================================
+        {/* ============================================================
+          이 대운의 결 — narrative 4개 (대운 결 / 용신 흐름 / 주의 / 정점)
+      ============================================================ */}
+        {decade.narrative && decade.narrative.length > 0 && (
+          <section className={styles.block}>
+            <div className={styles.sectionHead}>
+              <h2 className={styles.sectionTitle}>이 대운의 결</h2>
+              <span className={styles.tiny}>narrative · {decade.narrative.length}</span>
+            </div>
+            <div className={styles.narrativeGrid}>
+              {decade.narrative.map((n, i) => (
+                <div key={i} className={styles.narrativeCard}>
+                  <div className={styles.narrativeTag}>{n.tag}</div>
+                  <p className={styles.narrativeBody}>{n.body}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ============================================================
           합·충 (hapchung) + 12운성 (unseong) 카드 그리드
       ============================================================ */}
-      {(decade.hapchung || decade.unseong) && (
-        <section className={styles.block}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>본명 × 대운</h2>
-            <span className={styles.tiny}>합·충 · 12운성</span>
-          </div>
-          <LayerTag kind="saju" />
-          <div className={styles.relationGrid}>
-            {decade.hapchung && (
-              <div className={`${styles.dcard} ${styles.dcardEmber}`}>
-                <div className={styles.dcardHead}>
-                  <span className={`${styles.glyphMini} ${styles.glyphEmber}`}>⚡</span>
-                  합충 · HAPCHUNG
+        {(decade.hapchung || decade.unseong) && (
+          <section className={styles.block}>
+            <div className={styles.sectionHead}>
+              <h2 className={styles.sectionTitle}>본명 × 대운</h2>
+              <span className={styles.tiny}>합·충 · 12운성</span>
+            </div>
+            <LayerTag kind="saju" />
+            <div className={styles.relationGrid}>
+              {decade.hapchung && (
+                <div className={`${styles.dcard} ${styles.dcardEmber}`}>
+                  <div className={styles.dcardHead}>
+                    <span className={`${styles.glyphMini} ${styles.glyphEmber}`}>⚡</span>
+                    합충 · HAPCHUNG
+                  </div>
+                  <div className={styles.dcardTitle}>{decade.hapchung.title}</div>
+                  {decade.hapchung.romaji && (
+                    <div className={styles.dcardRomaji}>{decade.hapchung.romaji}</div>
+                  )}
+                  <p className={styles.dcardBody}>{decade.hapchung.body}</p>
                 </div>
-                <div className={styles.dcardTitle}>{decade.hapchung.title}</div>
-                {decade.hapchung.romaji && (
-                  <div className={styles.dcardRomaji}>{decade.hapchung.romaji}</div>
-                )}
-                <p className={styles.dcardBody}>{decade.hapchung.body}</p>
-              </div>
-            )}
-            {decade.unseong && (
-              <div className={`${styles.dcard} ${styles.dcardViolet}`}>
-                <div className={styles.dcardHead}>
-                  <span className={`${styles.glyphMini} ${styles.glyphViolet}`}>◯</span>
-                  12운성 · UNSEONG
+              )}
+              {decade.unseong && (
+                <div className={`${styles.dcard} ${styles.dcardViolet}`}>
+                  <div className={styles.dcardHead}>
+                    <span className={`${styles.glyphMini} ${styles.glyphViolet}`}>◯</span>
+                    12운성 · UNSEONG
+                  </div>
+                  <div className={styles.dcardTitle}>{decade.unseong.title}</div>
+                  {decade.unseong.romaji && (
+                    <div className={styles.dcardRomaji}>{decade.unseong.romaji}</div>
+                  )}
+                  <p className={styles.dcardBody}>{decade.unseong.body}</p>
                 </div>
-                <div className={styles.dcardTitle}>{decade.unseong.title}</div>
-                {decade.unseong.romaji && (
-                  <div className={styles.dcardRomaji}>{decade.unseong.romaji}</div>
-                )}
-                <p className={styles.dcardBody}>{decade.unseong.body}</p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Phase 3 보강 #2 — 12운성 매트릭스 (본명 4기둥 × 대운 지지) 1줄 chip row.
+            {/* Phase 3 보강 #2 — 12운성 매트릭스 (본명 4기둥 × 대운 지지) 1줄 chip row.
               data.js 에 명시 없는 신규 — 단순화: 본명 일간/시지/일지/월지 4개. */}
-          <UnseongMatrix ilganHanja={user.ilgan.hanja} decadeBranch={decade.pillar.jiji.hanja} />
-        </section>
-      )}
+            <UnseongMatrix ilganHanja={user.ilgan.hanja} decadeBranch={decade.pillar.jiji.hanja} />
+          </section>
+        )}
 
-      {/* ============================================================
+        {/* ============================================================
           외행성 마디 (astro outer-row)
       ============================================================ */}
-      {decade.astro && decade.astro.length > 0 && (
-        <section className={styles.block}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>외행성 마디</h2>
-            <span className={styles.tiny}>Outer-planet returns</span>
-          </div>
-          <LayerTag kind="astro" />
-          <div className={styles.outerRow}>
-            {decade.astro.map((o, i) => {
-              const kind = o.kind ?? 'jupiter'
-              const cls = OUTER_CLASS[kind] ?? styles.jupiter
-              const glyph = OUTER_GLYPH[kind] ?? '★'
-              return (
-                <div key={`${o.label}-${i}`} className={`${styles.outerChip} ${cls}`}>
-                  <span className={styles.ic}>{glyph}</span>
-                  <div className={styles.ot}>
-                    <div className={styles.l}>{o.label}</div>
-                    <div className={styles.d}>
-                      {o.date} · {o.body}
+        {decade.astro && decade.astro.length > 0 && (
+          <section className={styles.block}>
+            <div className={styles.sectionHead}>
+              <h2 className={styles.sectionTitle}>외행성 마디</h2>
+              <span className={styles.tiny}>Outer-planet returns</span>
+            </div>
+            <LayerTag kind="astro" />
+            <div className={styles.outerRow}>
+              {decade.astro.map((o, i) => {
+                const kind = o.kind ?? 'jupiter'
+                const cls = OUTER_CLASS[kind] ?? styles.jupiter
+                const glyph = OUTER_GLYPH[kind] ?? '★'
+                return (
+                  <div key={`${o.label}-${i}`} className={`${styles.outerChip} ${cls}`}>
+                    <span className={styles.ic}>{glyph}</span>
+                    <div className={styles.ot}>
+                      <div className={styles.l}>{o.label}</div>
+                      <div className={styles.d}>
+                        {o.date} · {o.body}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
+                )
+              })}
+            </div>
+          </section>
+        )}
 
-      {/* ============================================================
+        {/* ============================================================
           years[10] mini-graph — 10년 세운 score chip row
       ============================================================ */}
-      {decade.years && decade.years.length > 0 && (
-        <section className={styles.block}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>10년 흐름</h2>
-            <span className={styles.tiny}>연도별 score · {decade.years.length}년</span>
-          </div>
-          <div className={styles.yearTrack}>
-            {decade.years.map((y, i) => {
-              const norm = (y.score - minScore) / range
-              const barH = 14 + norm * 46
-              return (
-                <div
-                  key={`${y.year}-${i}`}
-                  className={`${styles.yearCell} ${y.now ? styles.yearCellNow : ''}`}
-                >
-                  <div className={styles.yearBar} style={{ height: `${barH}px` }} />
-                  <div className={styles.yearGanji}>
-                    <span className={styles.yearHan}>{y.gz.hanja}</span>
+        {decade.years && decade.years.length > 0 && (
+          <section className={styles.block}>
+            <div className={styles.sectionHead}>
+              <h2 className={styles.sectionTitle}>10년 흐름</h2>
+              <span className={styles.tiny}>연도별 score · {decade.years.length}년</span>
+            </div>
+            <div className={styles.yearTrack}>
+              {decade.years.map((y, i) => {
+                const norm = (y.score - minScore) / range
+                const barH = 14 + norm * 46
+                return (
+                  <div
+                    key={`${y.year}-${i}`}
+                    className={`${styles.yearCell} ${y.now ? styles.yearCellNow : ''}`}
+                  >
+                    <div className={styles.yearBar} style={{ height: `${barH}px` }} />
+                    <div className={styles.yearGanji}>
+                      <span className={styles.yearHan}>{y.gz.hanja}</span>
+                    </div>
+                    <div className={styles.yearLabel}>
+                      {y.year}
+                      {y.now && <span className={styles.yearNowMark}>지금</span>}
+                    </div>
                   </div>
-                  <div className={styles.yearLabel}>
-                    {y.year}
-                    {y.now && <span className={styles.yearNowMark}>지금</span>}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
+                )
+              })}
+            </div>
+          </section>
+        )}
 
-      {/* ============================================================
+        {/* ============================================================
           Phase 3 보강 #3 — cross-activation badge (decadal aggregate)
       ============================================================ */}
-      {crossActs.length > 0 && (
-        <section className={styles.block}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>사주 ↔ 점성 동시 활성</h2>
-            <span className={styles.tiny}>Cross-activation · 10년 누적 {crossActs.length}건</span>
-          </div>
-          <div className={styles.crossBadgeRow}>
-            {crossActs.slice(0, 6).map((c, i) => {
-              const tone =
-                c.polarity > 0
-                  ? styles.crossPos
-                  : c.polarity < 0
-                    ? styles.crossNeg
-                    : styles.crossNeu
-              return (
-                <div key={c.signalId || i} className={`${styles.crossBadge} ${tone}`}>
-                  <div className={styles.crossBadgeName}>{c.name}</div>
-                  {(c.sajuLine || c.astroLine) && (
-                    <div className={styles.crossBadgeLines}>
-                      {c.sajuLine && <span className={styles.crossBadgeSaju}>{c.sajuLine}</span>}
-                      {c.sajuLine && c.astroLine && (
-                        <span className={styles.crossBadgeArrow}>↔</span>
-                      )}
-                      {c.astroLine && <span className={styles.crossBadgeAstro}>{c.astroLine}</span>}
-                    </div>
-                  )}
-                  {c.meaning && <p className={styles.crossBadgeMeaning}>{c.meaning}</p>}
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
+        {crossActs.length > 0 && (
+          <section className={styles.block}>
+            <div className={styles.sectionHead}>
+              <h2 className={styles.sectionTitle}>사주 ↔ 점성 동시 활성</h2>
+              <span className={styles.tiny}>Cross-activation · 10년 누적 {crossActs.length}건</span>
+            </div>
+            <div className={styles.crossBadgeRow}>
+              {crossActs.slice(0, 6).map((c, i) => {
+                const tone =
+                  c.polarity > 0
+                    ? styles.crossPos
+                    : c.polarity < 0
+                      ? styles.crossNeg
+                      : styles.crossNeu
+                return (
+                  <div key={c.signalId || i} className={`${styles.crossBadge} ${tone}`}>
+                    <div className={styles.crossBadgeName}>{c.name}</div>
+                    {(c.sajuLine || c.astroLine) && (
+                      <div className={styles.crossBadgeLines}>
+                        {c.sajuLine && <span className={styles.crossBadgeSaju}>{c.sajuLine}</span>}
+                        {c.sajuLine && c.astroLine && (
+                          <span className={styles.crossBadgeArrow}>↔</span>
+                        )}
+                        {c.astroLine && (
+                          <span className={styles.crossBadgeAstro}>{c.astroLine}</span>
+                        )}
+                      </div>
+                    )}
+                    {c.meaning && <p className={styles.crossBadgeMeaning}>{c.meaning}</p>}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+      </details>
 
       {/* ============================================================
           dive 버튼 — Year tier

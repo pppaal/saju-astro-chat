@@ -37,6 +37,8 @@ export interface DestinyDecadeYearScore {
   score: number
   /** 현재 연도. */
   now?: boolean
+  /** 그 해 세운 천간의 일간 기준 십신 ('비견' 등). */
+  sibsin?: string
 }
 
 // ============================================================================
