@@ -205,10 +205,12 @@ export function CompatChartModal({
   // 계산은 서버(/api/compatibility/report)에서 — 시너스트리·사주 cross·점수
   // 로직을 클라 번들에서 빼 엣지(IP)를 보호한다. 차트는 결과만 받아 그린다.
   const [report, setReport] = React.useState<CompatReport | null>(null)
+  const [reportLoading, setReportLoading] = React.useState(false)
   React.useEffect(() => {
     if (!open) return
     let cancelled = false
     setReport(null)
+    setReportLoading(true)
     const body = {
       astroA: unwrapAstro(person1Astro) ?? null,
       astroB: unwrapAstro(person2Astro) ?? null,
@@ -230,6 +232,9 @@ export function CompatChartModal({
       })
       .catch(() => {
         if (!cancelled) setReport(null)
+      })
+      .finally(() => {
+        if (!cancelled) setReportLoading(false)
       })
     return () => {
       cancelled = true
@@ -335,7 +340,27 @@ export function CompatChartModal({
               시너 조화/긴장). 산식이 휴리스틱이라 "N/100" 숫자는 안 박고(가짜
               정밀 회피) 밴드 라벨 + 근거 바만. */}
           <div className="chart-rise-in" style={{ ['--i' as string]: 0 } as React.CSSProperties}>
-            <ScoreBreakdown breakdown={ssotBand} lang={lang} variant="band" theme="light" />
+            {reportLoading && !report ? (
+              <div
+                className="flex items-center justify-center gap-2 rounded-xl py-6 text-[13px]"
+                style={{
+                  background: 'var(--ds-gold-soft-bg, rgba(160,122,60,0.08))',
+                  border: '1px solid var(--ds-light-border)',
+                  color: 'var(--ds-light-text-muted)',
+                }}
+                role="status"
+                aria-live="polite"
+              >
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                  style={{ color: 'var(--ds-gold)' }}
+                />
+                {isKo ? '두 사람의 궁합을 분석하고 있어요…' : 'Analyzing your compatibility…'}
+              </div>
+            ) : (
+              <ScoreBreakdown breakdown={ssotBand} lang={lang} variant="band" theme="light" />
+            )}
             {/* 답 먼저 — 가장 결정적인 신호 한 줄 (밴드 바로 밑) */}
             {headlineReason && (
               <p
