@@ -162,3 +162,130 @@
     font-size: 25px;
   }
 }
+
+/* ── 과거·미래 교차 타임라인 (사주 대운 × 점성) ── */
+.timeline {
+  margin-top: 20px;
+  padding: 16px 16px 14px;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r);
+  background: var(--dp-panel);
+}
+.tlHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.tlTitle {
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dp-ink);
+}
+.tlLegend {
+  font-family: var(--dp-sans);
+  font-size: 11px;
+  color: var(--dp-ink-dim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tlLegend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  display: inline-block;
+  margin: 0 1px 0 6px;
+}
+.tlSaju {
+  background: var(--dp-ember);
+}
+.tlAstro {
+  background: var(--dp-violet);
+}
+.tlAxis {
+  position: relative;
+  height: 30px;
+  margin: 0 6px 10px;
+}
+.tlLine {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--dp-line);
+}
+.tlDot {
+  position: absolute;
+  top: 9px;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  border: 2px solid var(--dp-panel);
+}
+.tlDotSaju {
+  background: var(--dp-ember);
+}
+.tlDotAstro {
+  background: var(--dp-violet);
+}
+.tlPast {
+  opacity: 0.42;
+}
+.tlNow {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--dp-accent);
+  transform: translateX(-50%);
+}
+.tlNowTag {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--dp-sans);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--dp-bg);
+  background: var(--dp-accent);
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.tlList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.tlItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--dp-serif);
+  font-size: 13.5px;
+  color: var(--dp-ink-mute);
+}
+.tlYear {
+  font-family: var(--dp-sans);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dp-ink);
+  width: 38px;
+  flex: none;
+}
+.tlPip {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex: none;
+}
+.tlText {
+  line-height: 1.4;
+}

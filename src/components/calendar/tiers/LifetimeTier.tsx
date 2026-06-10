@@ -322,10 +322,24 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       : null,
   ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
   const summaryStages = lifeStages.map((s) => ({ label: s.name, tone: plain(s.tone), now: s.now }))
-  const nextMile = lifetime.milestones.find((m) => m.year >= lifetime.currentYear)
-  const summaryNext = nextMile
-    ? { when: `${nextMile.year}년 (${nextMile.age}세)`, label: nextMile.label }
-    : null
+  // 과거 5년 ~ 미래 10년 교차 타임라인 — 사주 대운(daewoon/saju) × 점성(목성·토성·
+  // 천왕성…)을 한 축에. milestones 가 이미 둘을 합쳐 둔 dot 시퀀스라 창만 자른다.
+  const SAJU_MS_KINDS = new Set(['daewoon', 'saju'])
+  const tlStart = lifetime.currentYear - 5
+  const tlEnd = lifetime.currentYear + 10
+  const summaryTimeline = {
+    startYear: tlStart,
+    endYear: tlEnd,
+    nowYear: lifetime.currentYear,
+    points: lifetime.milestones
+      .filter((m) => m.year >= tlStart && m.year <= tlEnd)
+      .map((m) => ({
+        year: m.year,
+        label: m.label,
+        system: SAJU_MS_KINDS.has(m.kind) ? ('saju' as const) : ('astro' as const),
+        isNow: !!m.now,
+      })),
+  }
   const curveVals = lp?.daeun.map((d) => d.favor) ?? []
   const curAge = lifetime.currentYear - lifetime.birthYear
   const curveNowIdx = lp
@@ -359,7 +373,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         curveNowIndex={curveNowIdx}
         cards={summaryCards}
         stages={summaryStages}
-        nextPoint={summaryNext}
+        timeline={summaryTimeline}
       />
 
       {/* ── 전문가용 상세 — 사주 원국·대운·신살·12운성·점성 일체를 접어 둔다. ── */}
