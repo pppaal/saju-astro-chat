@@ -42,7 +42,7 @@ import {
   getShinsalInterpretation,
   getElementInterpretation,
 } from '@/lib/saju/interpretations'
-import { SIBSIN_SHORT } from '../atoms/interpretations'
+import { SIBSIN_SHORT, ELEMENT_REMEDY } from '../atoms/interpretations'
 
 export type Lang = 'ko' | 'en'
 
@@ -591,6 +591,69 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           ))}
         </div>
 
+        {/* ── 한눈에 (결론 먼저) — 별명 + 종합 교차 + 가장 필요한 기운 ── */}
+        <div className={s.hero}>
+          {/* 별명 — 사주(일간 속) × 점성(ASC 겉) 융합. 일주 카드 별명과 차별. */}
+          <div className={s.heroTag}>
+            {(() => {
+              const EL_KW: Record<string, string> = {
+                metal: '예리한',
+                wood: '뻗어나가는',
+                fire: '타오르는',
+                earth: '단단한',
+                water: '깊은',
+              }
+              if (lang === 'en') return ilju?.character?.split('.')[0].trim() ?? ''
+              const inner = EL_KW[stemEl(S.dayMaster)] ?? ''
+              const han = ELEMENTS[stemEl(S.dayMaster)]?.han ?? ''
+              const ascKo = A.ascendant ? signLabel(abbr(A.ascendant.sign), lang) : ''
+              return `${inner} 속(${S.dayMaster}${han}) · ${ascKo}의 겉`
+            })()}
+          </div>
+          {cross?.synthesis && <p className={s.heroSummary}>{cross.synthesis}</p>}
+          {(() => {
+            // 여러 카드(일간·격국)에 흩어진 강점/약점을 한곳에 종합 (Opus: TOP 묶기).
+            const dmx = getHanjaRich(S.dayMaster, lang) as {
+              strength?: string[]
+              weakness?: string[]
+            } | null
+            const uniq = (a: string[]) => Array.from(new Set(a.filter(Boolean))).slice(0, 4)
+            const str = uniq([...(dmx?.strength ?? []), ...((geok?.strength as string[]) ?? [])])
+            const weak = uniq([...(dmx?.weakness ?? []), ...((geok?.weakness as string[]) ?? [])])
+            if (!str.length && !weak.length) return null
+            return (
+              <div className={s.heroSW}>
+                {str.length > 0 && (
+                  <div>
+                    <b>{lang === 'en' ? 'Strengths' : '강점'}</b> {str.join(' · ')}
+                  </div>
+                )}
+                {weak.length > 0 && (
+                  <div>
+                    <b>{lang === 'en' ? 'Watch for' : '주의'}</b> {weak.join(' · ')}
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+          {(() => {
+            const yk = ELEMENTS[S.yongsin.primary]?.ko
+            const rem = yk ? ELEMENT_REMEDY[yk] : undefined
+            if (!rem) return null
+            return (
+              <div className={s.heroRemedy}>
+                <b className={elClass[S.yongsin.primary]}>
+                  {lang === 'en' ? 'What you need most' : '가장 필요한 기운'}:{' '}
+                  {ELEMENTS[S.yongsin.primary]?.han} {elementLabel(S.yongsin.primary, lang)}
+                </b>
+                <span>
+                  🎨 {rem.color} · 🧭 {rem.direction} · ✨ {rem.activity}
+                </span>
+              </div>
+            )
+          })()}
+        </div>
+
         {/* 01 사주 명식 */}
         <section className={s.section}>
           <div className={s.secHead}>
@@ -702,31 +765,33 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <div>
               <div className={s.subcap}>{t('shinsalCap')}</div>
               <div className={s.chips}>
-                {S.natalShinsal.map((sh, i) => {
-                  const interp = getShinsalInterpretation(sh.ko)
-                  const label = lang === 'en' ? (interp?.name_en ?? sh.ko) : sh.ko
-                  const tip =
-                    lang === 'en'
-                      ? interp
-                        ? `${interp.meaning_en} ${interp.effect_en}`
-                        : undefined
-                      : interp
-                        ? `${interp.meaning} ${interp.effect}`
-                        : undefined
-                  return (
-                    <span
-                      className={`${s.chip} ${sh.polarity > 0 ? s.pos : sh.polarity < 0 ? s.neg : s.neu}`}
-                      key={i}
-                      title={tip}
-                    >
-                      <b>{label}</b>
-                      <i>
-                        {sh.pillar}
-                        {sh.sub ? `·${sh.sub}` : ''}
-                      </i>
-                    </span>
-                  )
-                })}
+                {[...S.natalShinsal]
+                  .sort((a, b) => (b.polarity ?? 0) - (a.polarity ?? 0))
+                  .map((sh, i) => {
+                    const interp = getShinsalInterpretation(sh.ko)
+                    const label = lang === 'en' ? (interp?.name_en ?? sh.ko) : sh.ko
+                    const tip =
+                      lang === 'en'
+                        ? interp
+                          ? `${interp.meaning_en} ${interp.effect_en}`
+                          : undefined
+                        : interp
+                          ? `${interp.meaning} ${interp.effect}`
+                          : undefined
+                    return (
+                      <span
+                        className={`${s.chip} ${sh.polarity > 0 ? s.pos : sh.polarity < 0 ? s.neg : s.neu}`}
+                        key={i}
+                        title={tip}
+                      >
+                        <b>{label}</b>
+                        <i>
+                          {sh.pillar}
+                          {sh.sub ? `·${sh.sub}` : ''}
+                        </i>
+                      </span>
+                    )
+                  })}
               </div>
             </div>
             <div>
@@ -1231,12 +1296,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </span>
               <span className={s.secEn}>Cross-System</span>
             </div>
-            {cross.synthesis && (
-              <div className={s.synthBanner}>
-                <div className={s.synthK}>{t('synthLabel')}</div>
-                <div className={s.synthV}>{cross.synthesis}</div>
-              </div>
-            )}
+            {/* 종합 문장은 상단 히어로로 이동(중복 제거). 여기선 톤 분포 막대만. */}
             {/* 교차 그림 — 톤 분포(잘맞음/채워줌/부딪힘) 한눈에. */}
             {(() => {
               const counts = { resonant: 0, complement: 0, tension: 0, neutral: 0 }
@@ -1277,7 +1337,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     <span className={s.themeName}>{r.category}</span>
                     <span className={s.themeBadge}>{TONE_LABEL[r.tone][lang]}</span>
                   </div>
-                  {(r.left || r.right) && (
+                  {r.left && r.right && (
                     <div className={s.themeCross}>
                       <div className={s.themeSide}>
                         <div className={s.themeSideK}>{t('sajuSide')}</div>
@@ -1293,6 +1353,40 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
               ))}
             </div>
+            {/* 💡 실천 — 진단을 처방으로 (Opus: 그래서 어떻게). */}
+            {(() => {
+              const reson = cross.rows.filter((r) => r.tone === 'resonant').map((r) => r.category)
+              const tens = cross.rows.filter((r) => r.tone === 'tension').map((r) => r.category)
+              return (
+                <div className={s.crossAdvice}>
+                  <div className={s.crossAdviceHead}>
+                    {lang === 'en' ? '💡 How to live with it' : '💡 이렇게 살면 좋아요'}
+                  </div>
+                  <ul className={s.crossAdviceList}>
+                    {reson.length > 0 && (
+                      <li>
+                        <b>{lang === 'en' ? 'Core' : '정체성 코어'}</b>{' '}
+                        {lang === 'en' ? 'East and West agree on ' : '동·서양이 똑같이 가리키는 '}
+                        <b>{reson.join(' · ')}</b>
+                        {lang === 'en'
+                          ? ' — two systems converging means this is your most unshakable core. Make it the center of your work and brand.'
+                          : '은(는) 두 점술이 독립적으로 합의한 지점 — 가장 흔들리지 않는 정체성 코어예요. 직업·브랜딩의 중심축으로 삼으세요.'}
+                      </li>
+                    )}
+                    {tens.length > 0 && (
+                      <li>
+                        <b>{lang === 'en' ? 'Balance' : '다루는 법'}</b>{' '}
+                        {lang === 'en' ? 'Where they clash (' : '부딪히는 '}
+                        <b>{tens.join(' · ')}</b>
+                        {lang === 'en'
+                          ? ') — alternate between the two instead of suppressing one.'
+                          : '은(는) 한쪽을 누르기보다 상황 따라 번갈아 쓰면 오히려 강점이 돼요.'}
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              )
+            })()}
           </section>
         )}
 

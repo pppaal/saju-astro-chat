@@ -29,9 +29,18 @@ import { SIGN_KO_TO_EN, PLANET_LABEL, ELEMENT_LABEL } from './chartLabels'
 import { iga, eulReul, eunNeun, waGwa } from '@/lib/i18n/koParticle'
 import { getPlanetCore } from '@/lib/chart-dictionary'
 
-/** 행성의 쉬운 말 결(원리) — 예: 토성 '한계·책임·구조'. 없으면 행성명 폴백. */
+/** 행성의 쉬운 말 결(원리) — 예: 토성 '한계·책임·구조'. 없으면 행성명 폴백.
+ * EN: principle 이 'Expansion · Faith · Luck' 같은 대문자 명사나열이라 문장 중간에
+ * 박으면 비문 → 소문자 + 쉼표로 풀어 'expansion, faith, luck' 형태로. */
 function planetTheme(planet: string, lang: Lang): string {
-  return getPlanetCore(planet, lang)?.principle ?? PLANET_LABEL[planet]?.[lang] ?? planet
+  const p = getPlanetCore(planet, lang)?.principle ?? PLANET_LABEL[planet]?.[lang] ?? planet
+  if (lang !== 'en') return p
+  const parts = p
+    .toLowerCase()
+    .split(/\s*·\s*/)
+    .filter(Boolean)
+  if (parts.length <= 1) return parts[0] ?? p
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
 }
 
 export type CrossTone = 'resonant' | 'complement' | 'tension' | 'neutral'
@@ -417,9 +426,9 @@ export function evalTemperament(
   if (!a || !b) return null
   return elementVerdict(a, b, {
     aKo: '사주가 본 성향',
-    aEn: 'your Saju-read trait',
+    aEn: 'Saju-read side',
     bKo: '별자리가 본 성향',
-    bEn: 'your astrology-read trait',
+    bEn: 'astrology-read side',
   })
 }
 
@@ -434,7 +443,7 @@ const SIBSIN_GROUP_PLANETS: Record<string, string[]> = {
 // 그룹별 "쉬운 말" 테마.
 const SIBSIN_GROUP_THEME: Record<string, { ko: string; en: string }> = {
   관성: { ko: '책임감·체계', en: 'duty and structure' },
-  재성: { ko: '실리·현실 감각', en: 'practicality and value' },
+  재성: { ko: '실리·현실 감각', en: 'practicality and realism' },
   인성: { ko: '배움·돌봄', en: 'learning and care' },
   식상: { ko: '표현·창의', en: 'expression and creativity' },
   비겁: { ko: '주체성·승부욕', en: 'independence and drive' },
@@ -498,6 +507,10 @@ export function evalPersona(
     aEn: 'inner self',
     bKo: '남에게 비치는 첫인상',
     bEn: 'first impression',
+    tailKo:
+      '첫인상과 진짜 속이 다른 만큼, 처음엔 가볍게 다가가되 시간을 두고 진짜 결을 보여주면 신뢰가 더 깊어져요.',
+    tailEn:
+      'Since your first impression differs from your true self, let people in gradually — the deeper grain earns lasting trust.',
   })
 }
 
@@ -532,7 +545,7 @@ export function evalDrive(
           tone: 'tension',
           reason: {
             ko: '타고나길 받쳐주고 조율하는 쪽인데 별자리는 앞에 나서라 부추겨요 — 속도와 무대가 엇갈릴 수 있어요.',
-            en: 'You’re built to support, but your chart pushes you forward — pace and stage can clash.',
+            en: 'You’re built to support, but your chart pushes you forward — pace and visibility can clash.',
           },
         }
       : {
@@ -644,7 +657,7 @@ export function evalKeyAspect(
   sajuDominantGroup: string | undefined
 ): CrossVerdict | null {
   if (!aspects || aspects.length === 0) return null
-  let best: { key: string; pairKo: string; orb: number } | null = null
+  let best: { key: string; pairKo: string; pairEn: string; orb: number } | null = null
   for (const a of aspects) {
     const p1 = a.from?.name
     const p2 = a.to?.name
@@ -656,7 +669,8 @@ export function evalKeyAspect(
     const orb = typeof a.orb === 'number' ? Math.abs(a.orb) : 99
     if (!best || orb < best.orb) {
       const pairKo = `${PLANET_LABEL[p1]?.ko ?? p1}·${PLANET_LABEL[p2]?.ko ?? p2}`
-      best = { key, pairKo, orb }
+      const pairEn = `${PLANET_LABEL[p1]?.en ?? p1}–${PLANET_LABEL[p2]?.en ?? p2}`
+      best = { key, pairKo, pairEn, orb }
     }
   }
   if (!best) return null
@@ -666,7 +680,7 @@ export function evalKeyAspect(
     tone: matches ? 'resonant' : 'complement',
     reason: {
       ko: `${best.pairKo} 각이 두드러져요 — ${theme.ko}${matches ? ' 사주에서도 같은 결이라 이 면이 특히 도드라져요.' : ''}`,
-      en: `A standout aspect: ${theme.en}${matches ? ' Saju echoes it, so this stands out.' : ''}`,
+      en: `A standout ${best.pairEn} aspect — ${theme.en.charAt(0).toLowerCase()}${theme.en.slice(1)}${matches ? '. Saju echoes it, so this stands out.' : ''}`,
     },
   }
 }
@@ -820,7 +834,7 @@ export function evalYinYang(
           tone: 'resonant',
           reason: {
             ko: '타고난 기질이 음(수용·내향)인데 밤에 태어나 무대도 안을 향해요 — 깊이 사고하고 받아들이는 결이 일관돼요. 가끔 먼저 드러내는 연습이 도움이 돼요.',
-            en: 'Your nature is yin (receptive, inward) and you were born by night, so your stage faces inward too — consistent depth and receptivity. Practicing showing up first helps now and then.',
+            en: 'Your nature is yin (receptive, inward) and you were born by night, so your stage faces inward too — consistent depth and receptivity. Practicing speaking up first helps now and then.',
           },
         }
   }
@@ -895,7 +909,7 @@ export function synthesize(
     tone === 'resonant'
       ? ' East (Saju) and West (astrology) mostly point the same way, so your sense of self is clear and your drive is a strength. Just watch for one-sidedness — touch the opposite grain now and then.'
       : tone === 'complement'
-        ? ' The two systems say different things, yet they fill each other’s gaps. Inner and outer differ, giving you a wide range to draw on by situation.'
+        ? ' The two systems say different things, yet they fill each other’s gaps. Inner and outer differ, giving you a wide range to draw on depending on the situation.'
         : tone === 'tension'
           ? ' Saju and astrology pull against each other in several places, so you may feel inner friction — but that tension fuels depth and growth. Alternate between the two rather than suppressing one.'
           : ' No strong lean either way gives you good balance, and you can switch between different sides as the situation calls.'
@@ -904,7 +918,7 @@ export function synthesize(
     tone,
     text: {
       ko: `잘 맞는 게 ${resonant}개, 서로 채워주는 게 ${complement}개, 부딪히는 게 ${tension}개 — ${labelKo} 사람이에요.${axisKo}${elabKo}`,
-      en: `${resonant} match · ${complement} fill-in · ${tension} clash — a ${labelEn} identity.${axisEn}${elabEn}`,
+      en: `${resonant} aligned · ${complement} complementary · ${tension} in tension — a ${labelEn} identity.${axisEn}${elabEn}`,
     },
   }
 }
@@ -926,6 +940,9 @@ interface DomainCtx {
   aEn: string
   bKo: string
   bEn: string
+  /** 긴장(극) 케이스 조언 문구 override — 도메인별로 달라 중복 방지. */
+  tailKo?: string
+  tailEn?: string
 }
 
 /**
@@ -970,8 +987,8 @@ function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerd
         return {
           tone: 'tension',
           reason: {
-            ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요. 부딪힐 땐 한쪽을 누르기보다 상황에 따라 번갈아 쓰는 리듬을 만들면 오히려 강점이 돼요.`,
-            en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person. When they clash, alternate between them by context instead of suppressing one — that turns friction into range.`,
+            ko: `${d.aKo}${eunNeun(d.aKo)} ${ta.ko} 쪽인데 ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 쪽이라 서로 당겨요 — 한 사람 안에 다른 두 결이 같이 있는 셈이에요. ${d.tailKo ?? '부딪힐 땐 한쪽을 누르기보다 상황에 따라 번갈아 쓰는 리듬을 만들면 오히려 강점이 돼요.'}`,
+            en: `Your ${d.aEn} is ${ta.en} while your ${d.bEn} is ${tb.en} — two different grains pulling within one person. ${d.tailEn ?? 'When they clash, alternate between them by context instead of suppressing one — that turns friction into range.'}`,
           },
         }
       default:

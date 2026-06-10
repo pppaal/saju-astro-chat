@@ -1161,3 +1161,91 @@
   color: var(--ink-3);
   margin-bottom: 5px;
 }
+
+/* 한눈에 — 결론 먼저 (별명 + 종합 교차 + 필요한 기운) */
+.hero {
+  margin: 0 0 44px;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(169, 131, 59, 0.05), rgba(169, 131, 59, 0.01));
+}
+.heroTag {
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.heroSummary {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0 0 12px;
+}
+.heroRemedy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-2);
+  font-size: 13px;
+}
+.heroRemedy b {
+  font-weight: 600;
+}
+.heroRemedy span {
+  color: var(--ink-2);
+}
+
+/* 히어로 — 강점/약점 종합 */
+.heroSW {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.heroSW b {
+  color: var(--gold);
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+/* 교차 — 실천 처방 블록 */
+.crossAdvice {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--gold-line, var(--line));
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(169, 131, 59, 0.04);
+}
+.crossAdviceHead {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.crossAdviceList {
+  margin: 0;
+  padding-left: 2px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.crossAdviceList li {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.crossAdviceList b {
+  color: var(--gold);
+  font-weight: 600;
+}

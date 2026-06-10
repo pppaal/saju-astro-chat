@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import s from './about.module.css'
 
@@ -191,232 +191,6 @@ const SIGN_CONSTELLATIONS: Record<SignName, { pts: [number, number][]; hue: stri
     ],
     hue: '#a78bfa',
   },
-}
-
-type TarotCard = {
-  n: string
-  name: string
-  kr: string
-  sym: string
-  up: string
-  rev: string
-  upEn: string
-  revEn: string
-}
-const DECK: TarotCard[] = [
-  {
-    n: '0',
-    name: 'The Fool',
-    kr: '광대',
-    sym: '✦',
-    up: '새로운 시작과 자유로운 모험. 두려움 없이 첫발을 내딛을 때.',
-    rev: '성급함과 무모함. 한 박자 늦추라는 신호.',
-    upEn: 'New beginnings and fearless adventure. Take the first step without fear.',
-    revEn: 'Recklessness and haste. A signal to slow down.',
-  },
-  {
-    n: 'I',
-    name: 'The Magician',
-    kr: '마법사',
-    sym: '⚚',
-    up: '의지와 창조의 힘. 가진 재능을 현실로 끌어낼 시기.',
-    rev: '재능의 낭비, 흩어진 집중. 방향을 다시 잡으세요.',
-    upEn: 'Willpower and creation. A time to bring your talents into the real world.',
-    revEn: 'Wasted potential, scattered focus. Recalibrate your direction.',
-  },
-  {
-    n: 'II',
-    name: 'The High Priestess',
-    kr: '여사제',
-    sym: '☽',
-    up: '직관과 비밀. 말보다 내면의 목소리를 따를 것.',
-    rev: '무시한 직감, 감춰진 진실이 수면 위로.',
-    upEn: 'Intuition and secrets. Follow the inner voice over outer words.',
-    revEn: 'Ignored intuition; hidden truths rising to the surface.',
-  },
-  {
-    n: 'III',
-    name: 'The Empress',
-    kr: '여제',
-    sym: '♀',
-    up: '풍요와 결실. 가꾸어 온 것이 무르익습니다.',
-    rev: '과보호와 정체. 잠시 손을 놓아도 괜찮아요.',
-    upEn: 'Abundance and harvest. What you have tended is ripening.',
-    revEn: 'Overprotection, stagnation. It is okay to let go a little.',
-  },
-  {
-    n: 'VII',
-    name: 'The Chariot',
-    kr: '전차',
-    sym: '❖',
-    up: '의지의 승리. 흔들림 없이 앞으로 나아갈 때.',
-    rev: '통제 잃은 질주. 속도보다 방향을 보세요.',
-    upEn: 'Victory of will. Move forward without wavering.',
-    revEn: 'Runaway momentum. Watch direction, not speed.',
-  },
-  {
-    n: 'VIII',
-    name: 'Strength',
-    kr: '힘',
-    sym: '∞',
-    up: '부드러운 용기. 힘이 아닌 인내가 길을 엽니다.',
-    rev: '자기 의심. 안의 사자를 다시 길들일 때.',
-    upEn: 'Gentle courage. Patience, not force, opens the way.',
-    revEn: 'Self-doubt. Time to tame the inner lion again.',
-  },
-  {
-    n: 'IX',
-    name: 'The Hermit',
-    kr: '은둔자',
-    sym: '✸',
-    up: '성찰의 시간. 홀로 든 등불이 길을 비춥니다.',
-    rev: '고립과 회피. 이제 문을 열어도 좋습니다.',
-    upEn: 'A time for reflection. The lone lantern lights the way.',
-    revEn: 'Isolation and avoidance. It is alright to open the door now.',
-  },
-  {
-    n: 'X',
-    name: 'Wheel of Fortune',
-    kr: '운명의 수레바퀴',
-    sym: '⊕',
-    up: '전환점. 흐름이 당신 쪽으로 돌아섭니다.',
-    rev: '저항하는 변화. 놓아줄 것을 놓아주세요.',
-    upEn: 'Turning point. The flow is turning toward you.',
-    revEn: 'Resisted change. Release what is asking to be released.',
-  },
-  {
-    n: 'XI',
-    name: 'Justice',
-    kr: '정의',
-    sym: '⚖',
-    up: '균형과 인과. 뿌린 대로 정직하게 돌아옵니다.',
-    rev: '미뤄진 결정, 불공정. 진실을 마주할 때.',
-    upEn: 'Balance and consequence. What you sow returns honestly.',
-    revEn: 'A postponed decision, an unfairness. Time to face the truth.',
-  },
-  {
-    n: 'XVII',
-    name: 'The Star',
-    kr: '별',
-    sym: '★',
-    up: '희망과 회복. 긴 노력 끝의 조용한 갱신.',
-    rev: '흐려진 믿음. 다시 밤하늘을 올려다보세요.',
-    upEn: 'Hope and renewal. Quiet restoration after a long effort.',
-    revEn: 'Faded faith. Look up at the night sky again.',
-  },
-  {
-    n: 'XVIII',
-    name: 'The Moon',
-    kr: '달',
-    sym: '☾',
-    up: '직관과 환상의 경계. 모든 것이 보이진 않는 밤.',
-    rev: '걷히는 안개. 두려움의 실체가 드러납니다.',
-    upEn: 'The edge between intuition and illusion. Not everything is visible tonight.',
-    revEn: 'Mist clearing. Fear shows its actual shape.',
-  },
-  {
-    n: 'XIX',
-    name: 'The Sun',
-    kr: '태양',
-    sym: '☉',
-    up: '기쁨과 성취. 빛이 모든 것을 따뜻이 비춥니다.',
-    rev: '잠시 가린 빛. 작은 기쁨부터 되찾으세요.',
-    upEn: 'Joy and fulfillment. Light warmly touches everything.',
-    revEn: 'Light briefly veiled. Reclaim the small joys first.',
-  },
-  {
-    n: 'XX',
-    name: 'Judgement',
-    kr: '심판',
-    sym: '❂',
-    up: '각성과 부름. 지난 장을 덮고 다시 태어날 때.',
-    rev: '자기 비판. 과거를 용서하면 길이 열립니다.',
-    upEn: 'Awakening and calling. Close the last chapter and be reborn.',
-    revEn: 'Self-criticism. Forgive the past, and the way opens.',
-  },
-  {
-    n: 'XXI',
-    name: 'The World',
-    kr: '세계',
-    sym: '⊙',
-    up: '완성과 통합. 한 여정이 온전히 닫힙니다.',
-    rev: '미완의 매듭. 마지막 한 걸음이 남았어요.',
-    upEn: 'Completion and integration. One journey closes whole.',
-    revEn: 'An unfinished knot. One last step remains.',
-  },
-]
-
-const COMPAT_COPY = {
-  mirror: {
-    lo: 74,
-    verdict: ['Mirror', 'souls'],
-    verdictKo: ['닮은', '영혼'],
-    t: '같은 별 아래 태어난 두 사람. 서로를 거울처럼 알아보지만, 닮은 만큼 같은 약점도 나눕니다. 이해는 쉽고, 균형은 노력이 필요해요.',
-    tEn: 'Two souls born under the same star. You recognize each other instantly — but you share the same weaknesses, too. Understanding comes easy; balance asks for effort.',
-  },
-  kin: {
-    lo: 86,
-    verdict: ['Kindred', 'flame'],
-    verdictKo: ['하나의', '불꽃'],
-    t: '같은 원소의 깊은 공명. 말하지 않아도 통하는 흐름이 있습니다. 편안함에 안주하지 말고, 함께 새로운 불씨를 지펴 보세요.',
-    tEn: 'A deep resonance of the same element. There is a current you both feel without speaking. Do not settle for comfort — kindle a new spark together.',
-  },
-  spark: {
-    lo: 82,
-    verdict: ['Bright', 'spark'],
-    verdictKo: ['빛나는', '불씨'],
-    t: '서로를 키우는 조합. 한쪽의 불꽃을 다른 쪽의 바람이 더 멀리 실어 나릅니다. 다름이 곧 매력이 되는 관계예요.',
-    tEn: "A pairing that grows each other. One side's flame is carried further by the other's wind. Difference itself becomes the charm.",
-  },
-  steady: {
-    lo: 68,
-    verdict: ['Slow', 'harmony'],
-    verdictKo: ['느린', '조화'],
-    t: '리듬이 다른 두 사람. 처음엔 어긋나도, 시간을 들이면 단단한 토대를 쌓습니다. 인내가 가장 큰 자산이 됩니다.',
-    tEn: 'Two different rhythms. Off-beat at first, but given time you build something solid. Patience becomes the greatest asset.',
-  },
-  tension: {
-    lo: 54,
-    verdict: ['Restless', 'pull'],
-    verdictKo: ['뜨거운', '끌림'],
-    t: '끌림과 충돌이 함께 오는 관계. 긴장이 곧 생기이기도 하지만, 서로의 속도를 존중할 때만 오래갑니다.',
-    tEn: "A bond where attraction and collision arrive together. Tension can be aliveness — but it lasts only when you respect each other's pace.",
-  },
-} as const
-
-const SIGN_ELEMENT: Record<SignName, 'fire' | 'earth' | 'air' | 'water'> = {
-  Aries: 'fire',
-  Leo: 'fire',
-  Sagittarius: 'fire',
-  Taurus: 'earth',
-  Virgo: 'earth',
-  Capricorn: 'earth',
-  Gemini: 'air',
-  Libra: 'air',
-  Aquarius: 'air',
-  Cancer: 'water',
-  Scorpio: 'water',
-  Pisces: 'water',
-}
-
-const COMPATIBLE_PAIR = { fire: 'air', air: 'fire', earth: 'water', water: 'earth' } as const
-const NEUTRAL_PAIR = { fire: 'earth', earth: 'fire', air: 'water', water: 'air' } as const
-
-function compatBucket(a: SignName, b: SignName): keyof typeof COMPAT_COPY {
-  if (a === b) return 'mirror'
-  const ea = SIGN_ELEMENT[a]
-  const eb = SIGN_ELEMENT[b]
-  if (ea === eb) return 'kin'
-  if (COMPATIBLE_PAIR[ea] === eb) return 'spark'
-  if (NEUTRAL_PAIR[ea] === eb) return 'steady'
-  return 'tension'
-}
-
-function compatHash(a: string, b: string): number {
-  const str = [a, b].sort().join('|')
-  let h = 0
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 1000
-  return h
 }
 
 // ============================================================
@@ -776,277 +550,6 @@ function DestinyMap({ sign }: { sign: SignName }) {
 }
 
 // ============================================================
-// Tarot Spread
-// ============================================================
-
-type Draw = { card: TarotCard; rev: boolean }
-
-function sampleHand(): Draw[] {
-  const idx: number[] = []
-  while (idx.length < 3) {
-    const r = Math.floor(Math.random() * DECK.length)
-    if (!idx.includes(r)) idx.push(r)
-  }
-  return idx.map((i) => ({ card: DECK[i], rev: Math.random() < 0.32 }))
-}
-
-function TarotSpread() {
-  const { locale } = useI18n()
-  const isKo = locale === 'ko'
-  const [hand, setHand] = useState<Draw[] | null>(null)
-  const [flipped, setFlipped] = useState([false, false, false])
-
-  // Initial deal — client only, avoids SSR randomness mismatch
-  useEffect(() => {
-    setHand(sampleHand())
-  }, [])
-
-  const deal = useCallback(() => {
-    setFlipped([false, false, false])
-    // Wait for the flip-back animation before swapping faces
-    setTimeout(() => setHand(sampleHand()), 420)
-  }, [])
-
-  const flip = (i: number) => {
-    setFlipped((p) => p.map((v, idx) => (idx === i ? !v : v)))
-  }
-
-  const allFlipped = flipped.every(Boolean) && hand !== null
-  const summary =
-    allFlipped && hand
-      ? isKo
-        ? `지난 자리의 ${hand[0].card.kr}, 지금 자리의 ${hand[1].card.kr}, 그리고 다가오는 자리의 ${hand[2].card.kr}. 세 장이 가리키는 방향은 하나입니다 — 지금 내딛는 한 걸음을 믿어도 좋다는 것.`
-        : `${hand[0].card.name} in the past, ${hand[1].card.name} now, and ${hand[2].card.name} drawing near. The three point in one direction — trust the step you are taking right now.`
-      : ''
-
-  const positions = isKo
-    ? [
-        { main: '과거', sub: 'Past' },
-        { main: '현재', sub: 'Present' },
-        { main: '미래', sub: 'Future' },
-      ]
-    : [
-        { main: 'Past', sub: '' },
-        { main: 'Present', sub: '' },
-        { main: 'Future', sub: '' },
-      ]
-
-  return (
-    <>
-      <div className={s.tarotSpread} data-reveal data-d="2">
-        {[0, 1, 2].map((i) => {
-          const draw = hand?.[i]
-          const isFlipped = flipped[i]
-          return (
-            <div key={i} className={s.tslot}>
-              <div className={s.tslotPos}>
-                <b>{positions[i].main}</b>
-                {positions[i].sub}
-              </div>
-              <button
-                type="button"
-                className={`${s.tcard} ${isFlipped ? s.flipped : ''} ${draw?.rev ? s.reversed : ''}`}
-                onClick={() => flip(i)}
-                aria-label={
-                  isKo
-                    ? `${positions[i].main} 카드 펼치기`
-                    : `Reveal the ${positions[i].main.toLowerCase()} card`
-                }
-              >
-                <div className={s.tcardInner}>
-                  <div className={`${s.tcardFace} ${s.tcardBack}`}>
-                    <div className={s.tcardBackIn}>
-                      <span className={`${s.tcardEmblem} ${s.holoText}`}>✦</span>
-                      <span className={s.tcardHint}>
-                        {isKo ? '탭하여 펼치기' : 'Tap to reveal'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className={`${s.tcardFace} ${s.tcardFront}`}>
-                    <div className={s.tcardFrontIn}>
-                      {draw && (
-                        <>
-                          <div className={s.tcardNum}>
-                            {draw.card.n} · {isKo ? '아르카나' : 'ARCANA'}
-                          </div>
-                          <div className={`${s.tcardSym} ${s.holoText}`}>{draw.card.sym}</div>
-                          <div className={s.tcardName}>
-                            {isKo ? draw.card.kr : draw.card.name}
-                            <small>{isKo ? draw.card.name : draw.card.kr}</small>
-                          </div>
-                          <div className={s.tcardMeaning}>
-                            {isKo
-                              ? draw.rev
-                                ? draw.card.rev
-                                : draw.card.up
-                              : draw.rev
-                                ? draw.card.revEn
-                                : draw.card.upEn}
-                          </div>
-                          <div className={s.tcardOri}>
-                            {draw.rev
-                              ? isKo
-                                ? '역방향'
-                                : 'Reversed'
-                              : isKo
-                                ? '정방향'
-                                : 'Upright'}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </button>
-            </div>
-          )
-        })}
-      </div>
-
-      <div className={s.tarotActions} data-reveal>
-        <button className={`${s.btn} ${s.btnHolo}`} type="button" onClick={deal}>
-          ↻ {isKo ? '다시 섞기' : 'Shuffle & re-pull'}
-        </button>
-      </div>
-      <p className={`${s.tarotSummary} ${allFlipped ? s.show : ''}`}>{summary}</p>
-    </>
-  )
-}
-
-// ============================================================
-// Compatibility
-// ============================================================
-
-function useAnimatedNumber(target: number, durationMs = 1000): number {
-  const [val, setVal] = useState(target)
-  const fromRef = useRef(target)
-  useEffect(() => {
-    const from = fromRef.current
-    let raf = 0
-    const t0 = performance.now()
-    const step = (now: number) => {
-      const p = Math.min(1, (now - t0) / durationMs)
-      const e = 1 - Math.pow(1 - p, 3)
-      const v = Math.round(from + (target - from) * e)
-      setVal(v)
-      if (p < 1) {
-        raf = requestAnimationFrame(step)
-      } else {
-        fromRef.current = target
-      }
-    }
-    raf = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf)
-  }, [target, durationMs])
-  return val
-}
-
-function CompatibilityPanel() {
-  const { locale } = useI18n()
-  const isKo = locale === 'ko'
-  const [a, setA] = useState<SignName>('Leo')
-  const [b, setB] = useState<SignName>('Libra')
-
-  const result = useMemo(() => {
-    const bucket = compatBucket(a, b)
-    const meta = COMPAT_COPY[bucket]
-    const variance = (compatHash(a, b) % 11) - 2
-    const score = Math.max(42, Math.min(99, meta.lo + variance))
-    return { meta, score }
-  }, [a, b])
-
-  const animatedScore = useAnimatedNumber(result.score)
-
-  const R = 70
-  const CIRC = 2 * Math.PI * R
-  const dashoffset = CIRC * (1 - result.score / 100)
-
-  const swap = () => {
-    setA(b)
-    setB(a)
-  }
-
-  return (
-    <div className={s.compat} data-reveal data-d="2">
-      <div className={s.compatPick}>
-        <div className={s.compatField}>
-          <label>{isKo ? '나' : 'You'}</label>
-          <select
-            className={s.compatSelect}
-            value={a}
-            onChange={(e) => setA(e.target.value as SignName)}
-            aria-label={isKo ? '내 별자리' : 'Your sign'}
-          >
-            {SIGN_ORDER.map((sn) => (
-              <option key={sn} value={sn}>
-                {SIGN_INFO[sn].g} {isKo ? SIGN_INFO[sn].kr : sn}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={s.compatSwap}>
-          <button type="button" onClick={swap}>
-            ⇅ {isKo ? '바꾸기' : 'Swap'}
-          </button>
-        </div>
-        <div className={s.compatField}>
-          <label>{isKo ? '상대' : 'Them'}</label>
-          <select
-            className={s.compatSelect}
-            value={b}
-            onChange={(e) => setB(e.target.value as SignName)}
-            aria-label={isKo ? '상대 별자리' : 'Their sign'}
-          >
-            {SIGN_ORDER.map((sn) => (
-              <option key={sn} value={sn}>
-                {SIGN_INFO[sn].g} {isKo ? SIGN_INFO[sn].kr : sn}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className={s.compatResult}>
-        <div className={s.compatMeter}>
-          <svg viewBox="0 0 160 160" aria-hidden>
-            <defs>
-              <linearGradient id="compatGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#7cf5ff" />
-                <stop offset="0.5" stopColor="#a78bfa" />
-                <stop offset="1" stopColor="#ff8fd0" />
-              </linearGradient>
-            </defs>
-            <circle className="track" cx="80" cy="80" r={R} />
-            <circle
-              className="bar"
-              cx="80"
-              cy="80"
-              r={R}
-              style={{ strokeDasharray: CIRC, strokeDashoffset: dashoffset }}
-            />
-          </svg>
-          <div className={s.compatScore}>
-            <b className={s.holoText}>{animatedScore}</b>
-            <span>{isKo ? '조화' : 'Harmony'}</span>
-          </div>
-        </div>
-        <div className={s.compatRead}>
-          <div className={s.compatPair}>
-            {isKo ? SIGN_INFO[a].kr : a} {SIGN_INFO[a].g} × {isKo ? SIGN_INFO[b].kr : b}{' '}
-            {SIGN_INFO[b].g}
-          </div>
-          <div className={s.compatVerdict}>
-            {isKo ? result.meta.verdictKo[0] : result.meta.verdict[0]}{' '}
-            <em>{isKo ? result.meta.verdictKo[1] : result.meta.verdict[1]}</em>
-          </div>
-          <div className={s.compatText}>{isKo ? result.meta.t : result.meta.tEn}</div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ============================================================
 // Scroll reveal hook
 // ============================================================
 
@@ -1173,6 +676,18 @@ export default function AboutPage() {
   const [sign, setSign] = useState<SignName>('Leo')
   const readout = useLiveReadout()
   useScrollReveal(s.in)
+
+  // 샘플 리딩 카드 날짜 — 하드코딩하면 시간이 지날수록 "오래된 목업"으로 보임.
+  // 마운트 후 오늘 날짜로 채워 항상 최신처럼. (초기값은 SSR/CSR 동일해 hydration 안전)
+  const [sampleDate, setSampleDate] = useState({ ko: '오늘 · KST', en: 'TODAY · KST' })
+  useEffect(() => {
+    const d = new Date()
+    const y = d.getFullYear()
+    const mo = String(d.getMonth() + 1).padStart(2, '0')
+    const da = String(d.getDate()).padStart(2, '0')
+    const mon = d.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+    setSampleDate({ ko: `${y}.${mo}.${da} · KST`, en: `${da} ${mon} ${y} · KST` })
+  }, [])
 
   const signInfo = SIGN_INFO[sign]
 
@@ -1308,58 +823,48 @@ export default function AboutPage() {
           <div className={`${s.wrap} ${s.editorial}`}>
             <div data-reveal>
               <span className={s.kicker}>
-                {isKo ? '№ 01 — 시작하는 이야기' : '№ 01 — The Premise'}
+                {isKo ? '№ 01 — 우리 소개' : '№ 01 — About DestinyPal'}
               </span>
             </div>
             {isKo ? (
               <p className={s.editorialLead} data-reveal data-d="1">
-                별과 운명을 읽는 일은 오래된 <em>지혜</em>입니다. DestinyPal은 그 지혜를 AI로 다시
-                펼쳐 보입니다 — 조용히, <em>당신 한 사람을 위해.</em>
+                흩어진 운세를, <em>한 곳에서 정확하게.</em>
               </p>
             ) : (
               <p className={s.editorialLead} data-reveal data-d="1">
-                Reading the stars is an <em>ancient wisdom.</em> DestinyPal lets a machine learn it
-                again — softly, and <em>just for you.</em>
+                Scattered fortunes, <em>read in one place.</em>
               </p>
             )}
             {isKo ? (
               <div className={`${s.editorialCols} ${s.dropcap}`} data-reveal data-d="2">
                 <p>
-                  오랜 시간 사람들은 별과 사주의 네 기둥, 그리고 한 장의 카드에서 자신의 길을 읽어
-                  왔습니다. 그 마음은 사라지지 않았습니다. 다만 누군가와 마주 앉아 가만히 풀이를
-                  듣는 시간이 멀어졌을 뿐입니다. DestinyPal은 그 빈자리를 채웁니다. 사주, 서양
-                  점성술, 타로를 하나의 모델로 엮어, 당신이 태어난 바로 그 시각에 맞춰 함께 읽어
-                  드립니다.
+                  DestinyPal은 사주와 서양 점성술, 타로를 하나의 모델로 묶어 읽는 AI 운세
+                  서비스입니다. 앱과 점집을 옮겨 다니지 않아도, 한 화면에서 세 전통을 함께 봅니다.
                 </p>
                 <p>
-                  돌아오는 리딩은 모두에게 똑같이 찍혀 나오는 운세가 아닙니다. 당신의 시각, 당신이
-                  서 있는 자리, 오늘 밤 천천히 지나가는 행성까지 함께 본 당신만의 차트입니다 —
-                  모르는 것은 모른다고 솔직하게 말씀드립니다. 입 밖으로 꺼내기 어려운 질문 옆에
-                  조용히 함께 있어 드립니다.
+                  우리는 운명을 대신 정해 드리지 않습니다. 정확한 계산 위에서 지금의 흐름을 풀어
+                  드리고, 더 나은 선택을 하도록 곁에서 돕습니다. 운세가 처음인 분도, 깊게 보는 분도
+                  함께 쓸 수 있습니다.
                 </p>
               </div>
             ) : (
               <div className={`${s.editorialCols} ${s.dropcap}`} data-reveal data-d="2">
                 <p>
-                  For thousands of years, people have read their path in the stars, in the four
-                  pillars of birth, and in a single card laid down. That instinct never went away.
-                  What faded was the quiet time to sit with a true reader. DestinyPal fills that
-                  empty seat. It weaves classical Saju, Western astrology, and tarot into one model,
-                  then reads them together against the exact moment you arrived.
+                  DestinyPal is an AI service that reads Saju, Western astrology, and tarot through
+                  a single model. Instead of hopping between apps and fortune-tellers, you see all
+                  three traditions on one screen.
                 </p>
                 <p>
-                  What comes back is not a horoscope stamped out for the millions. It is a chart
-                  that knows your hour, the ground you stand on, and the slow planet passing
-                  overhead tonight — honest about what it cannot see. A quiet companion for the
-                  questions you would rather not say out loud.
+                  We do not decide your fate for you. We read where things stand right now on top of
+                  precise calculation, and we stay beside you while you make the call. It works
+                  whether this is your first reading or your hundredth.
                 </p>
               </div>
             )}
             <div className={s.editorialMeta} data-reveal data-d="3">
-              <span>{isKo ? '사주 · 네 기둥' : 'Saju · Four Pillars'}</span>
-              <span>{isKo ? '천궁도 · 12 하우스' : 'Natal Chart · 12 Houses'}</span>
-              <span>{isKo ? '타로 · 78 아르카나' : 'Tarot · 78 Arcana'}</span>
-              <span>destinypal.com</span>
+              <span>{isKo ? '정직함' : 'Honest'}</span>
+              <span>{isKo ? '정밀함' : 'Precise'}</span>
+              <span>{isKo ? '사람의 언어로' : 'In plain language'}</span>
             </div>
           </div>
         </section>
@@ -1369,7 +874,7 @@ export default function AboutPage() {
           <div className={s.wrap}>
             <div className={s.secHead}>
               <span className={s.kicker} data-reveal>
-                {isKo ? '№ 02 — 당신의 별자리' : '№ 02 — Your Constellation'}
+                {isKo ? '✦ 직접 해보세요 · 별자리 지도' : '✦ Try it · Your constellation'}
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
@@ -1407,65 +912,12 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
-        <section className={s.section} id="how">
-          <div className={s.wrap}>
-            <div className={s.secHead}>
-              <span className={s.kicker} data-reveal>
-                {isKo ? '№ 03 — 의식' : '№ 03 — The Ritual'}
-              </span>
-              <h2 className={s.secHeadTitle} data-reveal data-d="1">
-                {isKo ? (
-                  <>
-                    <em>당신</em>과 하늘 사이의 세 걸음.
-                  </>
-                ) : (
-                  <>
-                    Three steps between <em>you</em> and the sky.
-                  </>
-                )}
-              </h2>
-            </div>
-            <div className={s.steps}>
-              {[
-                {
-                  n: '01',
-                  t: isKo ? '도착의 순간을 기록합니다' : 'Mark your arrival',
-                  d: isKo
-                    ? '생년월일, 가능하다면 태어난 시각, 그리고 도시. 진짜 차트와 단순한 추측을 가르는 것은 분 단위의 시각과 자오선입니다.'
-                    : 'Birth date, the hour if you have it, and the city. The minute and the meridian are what separate a real chart from a guess.',
-                },
-                {
-                  n: '02',
-                  t: isKo ? '모델이 읽어냅니다' : 'The model reads',
-                  d: isKo
-                    ? '사주의 네 기둥, 출생 천궁도, 현재의 트랜짓을 한 자리에 두고, 세 전통이 동의하는 지점과 충돌하는 지점을 함께 살핍니다.'
-                    : 'DestinyPal aligns your four pillars, natal houses and current transits, cross-checking the three traditions for where they agree — and where they argue.',
-                },
-                {
-                  n: '03',
-                  t: isKo ? '당신의 차트가 펼쳐집니다' : 'Your chart unfolds',
-                  d: isKo
-                    ? '사랑, 일, 다가올 한 해 — 대화하듯 묻고, 하늘이 움직일 때마다 새로 받아 볼 수 있는 살아 있는 리딩입니다.'
-                    : 'A living reading you can ask questions of — about love, work, the year ahead — returning whenever the sky shifts.',
-                },
-              ].map((step, i) => (
-                <div key={step.n} className={s.step} data-reveal data-d={String(i + 1)}>
-                  <div className={`${s.stepN} ${s.holoText}`}>{step.n}</div>
-                  <h3 className={s.stepT}>{step.t}</h3>
-                  <p className={s.stepD}>{step.d}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* FEATURES */}
         <section className={s.section} id="features">
           <div className={s.wrap}>
             <div className={s.secHead}>
               <span className={s.kicker} data-reveal>
-                {isKo ? '№ 04 — 당신을 읽는 다섯 가지 방법' : '№ 04 — Five Ways to Read You'}
+                {isKo ? '№ 02 — 우리가 하는 것' : '№ 02 — What We Do'}
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
@@ -1493,7 +945,7 @@ export default function AboutPage() {
                 <p className={s.featD}>
                   {isKo
                     ? '태어난 연·월·일·시 네 기둥이 그리는 우주의 기상도. DestinyPal은 오행의 균형과 한 해 한 해의 흐름을 읽어, 모든 리딩의 뼈대를 세웁니다.'
-                    : 'The hour, day, month and year of your birth as four columns of cosmic weather. DestinyPal reads the balance of your five elements and where the years run hot or cold — the backbone of every reading.'}
+                    : 'The hour, day, month and year of your birth as four columns of cosmic weather. DestinyPal reads the balance of your five elements and where the years run hot or cold. It is the backbone of every reading.'}
                 </p>
               </article>
               <article className={`${s.feat} ${s.featSm}`} data-reveal data-d="1">
@@ -1557,8 +1009,8 @@ export default function AboutPage() {
                   <div className={s.featKr}>{isKo ? '78장의 아르카나' : '78 arcana'}</div>
                   <p className={s.featD}>
                     {isKo
-                      ? '질문 하나에 카드 한 장씩 펼치고, 모델은 당신의 차트가 이미 알려준 모든 맥락 위에서 78 아르카나를 읽어 냅니다 — 카드 혼자서는 닿지 못하는 깊이로.'
-                      : 'Ask a question, pull a spread, and let the model read the 78 arcana against everything it already knows about your chart — context the cards alone can never carry.'}
+                      ? '질문 하나에 카드 한 장씩 펼치고, 모델은 당신의 차트가 이미 알려준 모든 맥락 위에서 78 아르카나를 읽어 냅니다. 카드 혼자서는 건네지 못하는 깊이입니다.'
+                      : 'Ask a question, pull a spread, and let the model read the 78 arcana against everything it already knows about your chart. That is context the cards alone can never carry.'}
                   </p>
                 </div>
               </article>
@@ -1566,59 +1018,116 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* TAROT */}
-        <section className={s.section} id="tarot">
+        {/* OUR EDGE — 내부 구현(라이브러리·모델·매핑)은 비공개로 두고, 강점만
+            프로페셔널하게. */}
+        <section className={s.section} id="engine">
           <div className={s.wrap}>
             <div className={s.secHead}>
               <span className={s.kicker} data-reveal>
-                {isKo ? '№ 05 — 타로 상담' : '№ 05 — Tarot, on call'}
+                {isKo ? '№ 03 — 우리의 강점' : '№ 03 — Our Edge'}
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
                   <>
-                    질문 하나, <em>세 장의 카드.</em>
+                    정확히 계산하고, <em>정직하게 잇습니다.</em>
                   </>
                 ) : (
                   <>
-                    Ask a question. <em>Pull your spread.</em>
+                    Computed exactly, <em>joined honestly.</em>
                   </>
                 )}
               </h2>
             </div>
-            <div className={s.tarotLead} data-reveal data-d="1">
-              <p>
-                {isKo
-                  ? '78장의 아르카나를, DestinyPal이 당신의 차트에서 이미 알고 있는 모든 것 위에서 읽어 드립니다. 카드를 한 장씩 눌러 보세요 — 지난 자리, 지금의 자리, 다가오는 자리.'
-                  : "Seventy-eight arcana, read against everything DestinyPal already knows about your chart. Tap each card to turn it — what's behind you, what holds now, what is drawing near."}
-              </p>
-              <span className={`${s.kicker} ${s.solo}`}>
-                {isKo ? '타로 · 78장의 아르카나' : 'Tarot · 78 Arcana'}
-              </span>
+            <div className={s.steps}>
+              {[
+                {
+                  g: '☯',
+                  t: isKo ? '천문학적 정밀도' : 'Astronomical precision',
+                  d: isKo
+                    ? '태어난 시각과 장소를 그대로 반영합니다. 흔히 놓치는 시간의 경계까지 바로잡아, 고전 명리 그대로의 차트를 세웁니다.'
+                    : 'We honor the exact time and place of your birth, down to the boundaries most apps skip over. Your chart stands the way the classical tradition intended.',
+                },
+                {
+                  g: '☉',
+                  t: isKo ? '실제 하늘 그대로' : 'The real sky',
+                  d: isKo
+                    ? '태어난 순간, 그 자리의 하늘을 그대로 계산해 천궁도를 그립니다. 평균이나 어림이 아니라 그 시각의 진짜 하늘입니다.'
+                    : 'Your natal chart is drawn from the real sky at your exact moment and place. Not an average or a guess, but the heavens as they actually stood.',
+                },
+                {
+                  g: '✦',
+                  t: isKo ? '하나의 흐름으로' : 'One flow',
+                  d: isKo
+                    ? '동양과 서양을 따로 읽지 않습니다. 두 전통이 같은 곳을 가리킬 때 하나로 엮습니다. 한쪽만 말할 땐 굳이 부풀리지 않아요.'
+                    : "We don't read East and West separately. We find where both traditions point the same way and weave them into one. When only one of them speaks, we leave it there.",
+                },
+              ].map((part) => (
+                <div key={part.t} className={s.step} data-reveal data-d="2">
+                  <div className={`${s.stepN} ${s.holoText}`}>{part.g}</div>
+                  <h3 className={s.stepT}>{part.t}</h3>
+                  <p className={s.stepD}>{part.d}</p>
+                </div>
+              ))}
             </div>
-            <TarotSpread />
+            <div className={s.editorialMeta} data-reveal data-d="3">
+              <span>{isKo ? '천문학적 정밀도' : 'Astronomical precision'}</span>
+              <span>{isKo ? '고전 명리 그대로' : 'True to tradition'}</span>
+              <span>{isKo ? '동·서양 교차 검증' : 'Cross-checked traditions'}</span>
+              <span>{isKo ? '사람의 언어로' : 'In plain language'}</span>
+            </div>
           </div>
         </section>
 
-        {/* COMPATIBILITY */}
-        <section className={s.section} id="compat">
+        {/* HOW IT WORKS */}
+        <section className={s.section} id="how">
           <div className={s.wrap}>
             <div className={s.secHead}>
               <span className={s.kicker} data-reveal>
-                {isKo ? '№ 06 — 궁합' : '№ 06 — Compatibility'}
+                {isKo ? '№ 04 — 이렇게 작동합니다' : '№ 04 — How It Works'}
               </span>
               <h2 className={s.secHeadTitle} data-reveal data-d="1">
                 {isKo ? (
                   <>
-                    두 차트를 <em>나란히 펴봅니다.</em>
+                    정보 한 줄에서, <em>차트 한 장으로.</em>
                   </>
                 ) : (
                   <>
-                    Lay two charts <em>side by side.</em>
+                    From a few details, <em>to one chart.</em>
                   </>
                 )}
               </h2>
             </div>
-            <CompatibilityPanel />
+            <div className={s.steps}>
+              {[
+                {
+                  n: '01',
+                  t: isKo ? '정보를 입력합니다' : 'You share a few details',
+                  d: isKo
+                    ? '생년월일, 가능하다면 태어난 시각, 그리고 도시. 정확함은 바로 그 디테일에서 갈립니다.'
+                    : 'Birth date, the hour if you have it, and the city. The accuracy is in those small details.',
+                },
+                {
+                  n: '02',
+                  t: isKo ? '모델이 읽어냅니다' : 'The model reads',
+                  d: isKo
+                    ? '사주의 네 기둥, 출생 천궁도, 현재의 트랜짓을 한 자리에 두고, 세 전통이 동의하는 지점과 충돌하는 지점을 함께 살핍니다.'
+                    : 'It aligns your four pillars, natal houses and current transits. We check where the three traditions agree, and where they pull apart.',
+                },
+                {
+                  n: '03',
+                  t: isKo ? '차트가 펼쳐집니다' : 'Your chart unfolds',
+                  d: isKo
+                    ? '사랑, 일, 다가올 한 해. 대화하듯 묻고, 하늘이 움직일 때마다 새로 받아 보는 살아 있는 리딩입니다.'
+                    : 'A living reading you can ask questions of. Love, work, the year ahead. It refreshes whenever the sky shifts.',
+                },
+              ].map((step, i) => (
+                <div key={step.n} className={s.step} data-reveal data-d={String(i + 1)}>
+                  <div className={`${s.stepN} ${s.holoText}`}>{step.n}</div>
+                  <h3 className={s.stepT}>{step.t}</h3>
+                  <p className={s.stepD}>{step.d}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -1627,7 +1136,7 @@ export default function AboutPage() {
           <div className={s.wrap}>
             <div className={s.secHead}>
               <span className={s.kicker} data-reveal>
-                {isKo ? '№ 07 — 지도의 한 페이지' : '№ 07 — A Page From the Map'}
+                {isKo ? '№ 05 — 결과물 예시' : '№ 05 — A Sample Reading'}
               </span>
             </div>
             <div className={s.reading}>
@@ -1635,7 +1144,7 @@ export default function AboutPage() {
                 <div className={s.readingInner}>
                   <div className={s.readingTop}>
                     <span>{isKo ? 'DestinyPal · 일일 리딩' : 'DestinyPal · Daily'}</span>
-                    <span>{isKo ? '2026.06.04 · KST' : '04 JUN 2026 · KST'}</span>
+                    <span>{isKo ? sampleDate.ko : sampleDate.en}</span>
                   </div>
                   <div className={s.readingSign}>
                     <span className={s.holoText}>♌</span>
@@ -1643,8 +1152,8 @@ export default function AboutPage() {
                   </div>
                   <p className={s.readingBody}>
                     {isKo
-                      ? '화성이 당신의 야망의 집을 지나는 한 주. 오래 미뤄둔 한 가지를 시작하기 좋은 흐름이지만, 욕심이 속도를 앞지르지 않게 하세요. 목요일, 뜻밖의 제안이 닿습니다 — 바로 답하지 말고 하루를 두세요.'
-                      : 'A week with Mars crossing your house of ambition. A good current to begin the one thing you have been postponing — but do not let desire outrun your pace. On Thursday, an unexpected offer arrives. Do not answer immediately; give it a day.'}
+                      ? '화성이 당신의 야망의 집을 지나는 한 주. 오래 미뤄둔 한 가지를 시작하기 좋은 흐름이지만, 욕심이 속도를 앞지르지 않게 하세요. 목요일, 뜻밖의 제안이 닿습니다. 바로 답하지 말고 하루를 두고 보세요.'
+                      : 'A week with Mars crossing your house of ambition. A good time to begin the one thing you keep putting off, but do not let desire outrun your pace. On Thursday, an unexpected offer arrives. Sit with it a day before you answer.'}
                   </p>
                   <div className={s.readingScore}>
                     <div>
@@ -1670,7 +1179,7 @@ export default function AboutPage() {
                 <h3>
                   {isKo ? (
                     <>
-                      운세가 아닙니다. <em>기억하는 리딩입니다.</em>
+                      운세가 아닙니다. <em>당신을 기억하는 리딩입니다.</em>
                     </>
                   ) : (
                     <>
@@ -1680,16 +1189,16 @@ export default function AboutPage() {
                 </h3>
                 <p>
                   {isKo
-                    ? '모든 DestinyPal 페이지는 단 하나의 차트 — 당신의 차트 — 를 위해 생성되며, 지난번에 배운 것을 이어 갑니다. 각 문장이 어느 전통에서 왔는지 밝히고, 하늘이 잠잠한 날에는 솔직하게 그렇다고 말합니다.'
-                    : 'Every DestinyPal page is generated for one chart — yours — and carries forward what it learned last time. It cites which tradition each line came from, and it will tell you plainly when the sky is quiet.'}
+                    ? '모든 DestinyPal 페이지는 단 하나의 차트, 당신의 차트를 위해 만들어집니다. 지난번에 나눈 이야기를 이어 갑니다. 각 문장이 어느 전통에서 왔는지 밝힙니다. 특별한 흐름이 없는 날엔 억지로 만들지 않아요.'
+                    : 'Every DestinyPal page is generated for one chart: yours. It carries forward what you talked about last time. Each line cites its tradition, and on a quiet day it simply says so.'}
                 </p>
                 <div className={s.readingList}>
                   <div className={s.readingLi}>
                     <b>{isKo ? '사주' : 'SAJU'}</b>
                     <span>
                       {isKo
-                        ? '일간이 불 기운에 강함 — 신중함보다 시도가 보답받는 한 주.'
-                        : 'Day Master strong in Fire — a week that rewards initiative over caution.'}
+                        ? '일간이 불 기운에 강함. 신중함보다 시도가 보답받는 한 주.'
+                        : 'Day Master strong in Fire. A week that rewards initiative over caution.'}
                     </span>
                   </div>
                   <div className={s.readingLi}>
@@ -1704,35 +1213,13 @@ export default function AboutPage() {
                     <b>{isKo ? '타로' : 'TAROT'}</b>
                     <span>
                       {isKo
-                        ? '별, 정방향 — 긴 노력 끝에 찾아오는 조용한 회복.'
-                        : 'The Star, upright — quiet renewal after a long stretch of effort.'}
+                        ? '별, 정방향. 긴 노력 끝에 찾아오는 조용한 회복.'
+                        : 'The Star, upright. Quiet renewal after a long stretch of effort.'}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* QUOTE */}
-        <section className={`${s.section} ${s.quoteband}`}>
-          <div className={s.wrap}>
-            <blockquote data-reveal>
-              {isKo ? (
-                <>
-                  <em>오랫동안 나를 알아온 사람</em>처럼 읽어 주었어요 — 그리고 보지 못하는 부분은
-                  솔직히 모른다고 했어요.
-                </>
-              ) : (
-                <>
-                  It read me like someone who had <em>known me for years</em> — and admitted the
-                  parts it couldn&apos;t see.
-                </>
-              )}
-            </blockquote>
-            <cite data-reveal data-d="1">
-              {isKo ? '— 서울의 한 초기 사용자 · ★★★★★' : '— Early user, Seoul · ★★★★★'}
-            </cite>
           </div>
         </section>
 
@@ -1782,14 +1269,22 @@ export default function AboutPage() {
                 </div>
                 <div className={s.footerCol}>
                   <h4>{isKo ? '소개' : 'Company'}</h4>
-                  <a href="#about">{isKo ? '시작 이야기' : 'The Premise'}</a>
+                  <a href="#about">{isKo ? '우리 소개' : 'About us'}</a>
+                  <a href="#engine">{isKo ? '우리의 강점' : 'Our Edge'}</a>
                   <a href="#how">{isKo ? '이용 방법' : 'How it works'}</a>
+                  <a href="/faq">{isKo ? '자주 묻는 질문' : 'FAQ'}</a>
                   <a href="#join">{isKo ? '시작하기' : 'Begin'}</a>
                 </div>
                 <div className={s.footerCol}>
+                  <h4>{isKo ? '약관·정책' : 'Legal'}</h4>
+                  <a href="/policy/privacy">{isKo ? '개인정보처리방침' : 'Privacy Policy'}</a>
+                  <a href="/policy/terms">{isKo ? '이용약관' : 'Terms of Service'}</a>
+                  <a href="/policy/refund">{isKo ? '환불 정책' : 'Refund Policy'}</a>
+                </div>
+                <div className={s.footerCol}>
                   <h4>{isKo ? '문의' : 'Contact'}</h4>
+                  <a href="/contact">{isKo ? '문의하기' : 'Contact us'}</a>
                   <a href="mailto:rheeco88@gmail.com">rheeco88@gmail.com</a>
-                  <a href="#">@DestinyPal</a>
                 </div>
               </div>
             </div>
