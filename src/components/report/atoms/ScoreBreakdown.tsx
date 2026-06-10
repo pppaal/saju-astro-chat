@@ -10,15 +10,15 @@ import React from 'react'
  */
 
 interface BreakdownScores {
-  /** 사주 합 (천간합·삼합·육합·방합) — 0~100 */
+  /** 사주 합 (천간합·육합) — 0~100, 높을수록 합 많음 */
   eastern_hap?: number
-  /** 사주 충 (감점 반전 — 높을수록 충 없음) — 0~100 */
+  /** 사주 충 (충·형·자형) — 0~100, 높을수록 마찰 많음 */
   eastern_chung?: number
   /** 오행 보완 — 0~100 */
   elements_match?: number
   /** 시너스트리 트라인/섹스타일 — 0~100 */
   synastry_harmonic?: number
-  /** 시너스트리 사각/대립 (감점 반전 — 높을수록 긴장 없음) — 0~100 */
+  /** 시너스트리 사각/대립 — 0~100, 높을수록 긴장 많음 */
   synastry_tension?: number
 }
 
@@ -42,18 +42,20 @@ export interface ScoreBreakdownProps {
 
 // ─── verdict ─────────────────────────────────────────────────────────
 
+// 점수는 중립(신호 없음)=50 기준선의 net 산식 — 분포가 50 중심이라 밴드도
+// 거기 맞춰 재조정. 50 근처면 '보통'(좋은 신호도 마찰도 비등).
 function verdictText(total: number, lang: 'ko' | 'en'): string {
   if (lang === 'en') {
-    if (total >= 90) return 'Profound bond — naturally aligned'
-    if (total >= 75) return 'Complementary differences — deep harmony with gentle spark'
-    if (total >= 60) return 'Moderate — grows with mutual effort'
-    if (total >= 45) return 'Challenging — mind the friction zones'
+    if (total >= 78) return 'Profound bond — naturally aligned'
+    if (total >= 62) return 'Complementary differences — deep harmony with gentle spark'
+    if (total >= 48) return 'Moderate — grows with mutual effort'
+    if (total >= 35) return 'Challenging — mind the friction zones'
     return 'Very different rhythms — approach with care'
   }
-  if (total >= 90) return '매우 깊은 인연 — 자연스러운 합'
-  if (total >= 75) return '다른 결이 서로 보완 — 깊되 살짝 자극도'
-  if (total >= 60) return '보통 — 노력하면 좋아짐'
-  if (total >= 45) return '쉽지 않음 — 부딪히는 지점 조심'
+  if (total >= 78) return '매우 깊은 인연 — 자연스러운 합'
+  if (total >= 62) return '다른 결이 서로 보완 — 깊되 살짝 자극도'
+  if (total >= 48) return '보통 — 노력하면 좋아짐'
+  if (total >= 35) return '쉽지 않음 — 부딪히는 지점 조심'
   return '결이 많이 달라 — 천천히 다가가기'
 }
 
@@ -87,8 +89,8 @@ const ROWS: RowConfig[] = [
     labelKo: '사주 충',
     labelEn: 'Saju Clash',
     tone: 'tension',
-    emptyKo: '충돌 강함',
-    emptyEn: 'high clash',
+    emptyKo: '충 없음',
+    emptyEn: 'no clash',
   },
   {
     key: 'elements_match',
@@ -114,8 +116,8 @@ const ROWS: RowConfig[] = [
     labelKo: '시너 긴장',
     labelEn: 'Synastry Tension',
     tone: 'tension',
-    emptyKo: '긴장 강함',
-    emptyEn: 'high tension',
+    emptyKo: '긴장 없음',
+    emptyEn: 'no tension',
   },
 ]
 

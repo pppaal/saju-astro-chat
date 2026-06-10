@@ -363,7 +363,13 @@ export function CompatChartModal({
                 {isKo ? '두 사람의 궁합을 분석하고 있어요…' : 'Analyzing your compatibility…'}
               </div>
             ) : (
-              <ScoreBreakdown breakdown={ssotBand} lang={lang} variant="band" theme="light" />
+              <ScoreBreakdown
+                total={report?.score}
+                breakdown={ssotBand}
+                lang={lang}
+                variant="band"
+                theme="light"
+              />
             )}
             {/* 답 먼저 — 가장 결정적인 신호 한 줄 (밴드 바로 밑) */}
             {headlineReason && (
