@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * 일회용 러너 — 한 사람의 인생 전체 흐름(점성 × 사주 교차)을 콘솔로 출력.
  * 실행: npx tsx scripts/run-lifetime.ts
@@ -33,42 +32,66 @@ async function main() {
 
   // ── 본명 한 줄 요약 (교차의 두 축) ──
   const p = natal.saju?.pillars
-  const ganji = (x: any) => (x ? `${x.heavenlyStem?.name ?? ''}${x.earthlyBranch?.name ?? ''}` : '?')
+  const ganji = (x: any) =>
+    x ? `${x.heavenlyStem?.name ?? ''}${x.earthlyBranch?.name ?? ''}` : '?'
   console.log('━'.repeat(64))
   console.log('  1995-02-09  06:40  서울  남자')
   console.log('━'.repeat(64))
-  console.log('[사주]  사주 네 기둥:',
-    `年 ${ganji(p?.year)}  月 ${ganji(p?.month)}  日 ${ganji(p?.day)}  時 ${ganji(p?.time)}`)
+  console.log(
+    '[사주]  사주 네 기둥:',
+    `年 ${ganji(p?.year)}  月 ${ganji(p?.month)}  日 ${ganji(p?.day)}  時 ${ganji(p?.time)}`
+  )
   const ys = (natal.saju as any)?.yongsin
-  console.log('        일간(나):', natal.saju?.dayMaster?.name,
-    '· 강약:', natal.saju?.strength,
-    '· 용신:', [ys?.primary, ys?.secondary].filter(Boolean).join('·') || '-')
+  console.log(
+    '        일간(나):',
+    natal.saju?.dayMaster?.name,
+    '· 강약:',
+    natal.saju?.strength,
+    '· 용신:',
+    [ys?.primary, ys?.secondary].filter(Boolean).join('·') || '-'
+  )
 
   const chart = natal.astro?.chart
   const planet = (name: string) => chart?.planets?.find((x) => x.name === name)
   const sun = planet('Sun')
   const moon = planet('Moon')
-  console.log('[점성]  태양:', sun?.sign ?? '?',
-    '· 달:', moon?.sign ?? '?',
-    '· 상승(ASC):', chart?.ascendant?.sign ?? '?',
-    '· MC:', chart?.mc?.sign ?? '?',
-    '· 섹트:', natal.astro?.sect === 'day' ? '낮(주)' : '밤(야)')
+  console.log(
+    '[점성]  태양:',
+    sun?.sign ?? '?',
+    '· 달:',
+    moon?.sign ?? '?',
+    '· 상승(ASC):',
+    chart?.ascendant?.sign ?? '?',
+    '· MC:',
+    chart?.mc?.sign ?? '?',
+    '· 섹트:',
+    natal.astro?.sect === 'day' ? '낮(주)' : '밤(야)'
+  )
 
   const KIND_KO: Record<string, string> = {
-    jupiter_return_1: '1차 목성회귀', jupiter_return_2: '2차 목성회귀',
-    jupiter_return_3: '3차 목성회귀', jupiter_return_5: '5차 목성회귀',
-    saturn_return_1: '1차 토성회귀(첫 정산)', saturn_return_2: '2차 토성회귀',
-    pluto_square_pluto: '명왕성 사각', uranus_opposition: '천왕성 대립(중년 전환)',
-    neptune_square: '해왕성 사각', chiron_return: '카이런 회귀(치유)',
+    jupiter_return_1: '1차 목성회귀',
+    jupiter_return_2: '2차 목성회귀',
+    jupiter_return_3: '3차 목성회귀',
+    jupiter_return_5: '5차 목성회귀',
+    saturn_return_1: '1차 토성회귀(첫 정산)',
+    saturn_return_2: '2차 토성회귀',
+    pluto_square_pluto: '명왕성 사각',
+    uranus_opposition: '천왕성 대립(중년 전환)',
+    neptune_square: '해왕성 사각',
+    chiron_return: '카이런 회귀(치유)',
     uranus_return: '천왕성 회귀',
   }
   const fmtDate = (iso: string | null) =>
     iso ? `${iso.slice(0, 4)}.${iso.slice(5, 7)}.${iso.slice(8, 10)}` : '(검색범위 밖)'
   console.log('[점성]  외행성 마디(정확 일시):')
   for (const m of milestones) {
-    console.log('        ·',
+    console.log(
+      '        ·',
       (KIND_KO[m.kind] ?? m.kind).padEnd(18),
-      '→', fmtDate(m.exactDateISO), `(만 ${m.age ?? '?'}세)`)
+      '→',
+      fmtDate(m.exactDateISO),
+      `(만 ${m.age ?? '?'}세)`
+    )
   }
 
   // ── 인생 흐름 (대운 단계별, 점성 마디 교차 주입) ──
