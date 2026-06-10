@@ -5,7 +5,6 @@ import { X } from 'lucide-react'
 import { SajuChart } from '@/components/report/SajuChart'
 import { ChartReading } from '@/components/report/ChartReading'
 import { ScoreBreakdown } from '@/components/report/atoms/ScoreBreakdown'
-import { CompatLines } from '@/components/report/atoms/CompatLines'
 import { generateChartSummary } from '@/lib/report/local-report-generator'
 import { CompatNatalOverlay } from './CompatNatalOverlay'
 import { CompatRadarOverlay } from './CompatRadarOverlay'
@@ -254,6 +253,11 @@ export function CompatChartModal({
   const dayMaster = report?.dayMaster ?? null
   const spouseTop = report?.spouseStars ?? []
   const ssotBand = report?.band
+  // 사주 관계 요약 — 거미줄 선(옛 CompatLines) 대신 읽히는 줄. 일주 관여 우선 상위 6.
+  const relRows = (report?.pillarRelations ?? [])
+    .slice()
+    .sort((a, b) => Number(b.isDayInvolved) - Number(a.isDayInvolved))
+    .slice(0, 6)
   // 답 먼저 — 가장 결정적인 신호 한 줄. 일주 배우자성(가장 강한 정통 신호)이
   // 있으면 그걸, 없으면 가장 강한 시너스트리 어스펙트를 평이한 말로.
   const headlineReason: string | null = (() => {
@@ -389,15 +393,78 @@ export function CompatChartModal({
             <QuickRead name={labelB} accent="sky" saju={sajuB} astro={astroB} lang={lang} />
           </div>
 
-          {/* CompatLines — 두 사람 사주 8글자 사이 합/충 라인 시각화 */}
-          <div className="chart-rise-in" style={{ ['--i' as string]: 2 } as React.CSSProperties}>
-            <CompatLines
-              sajuA={sajuA}
-              sajuB={sajuB}
-              relations={report?.pillarRelations ?? []}
-              lang={lang}
-            />
-          </div>
+          {/* 사주 관계 요약 — 두 사람 기둥 사이 합/충/형 등을 읽히는 줄로. */}
+          {relRows.length > 0 && (
+            <div className="chart-rise-in" style={{ ['--i' as string]: 2 } as React.CSSProperties}>
+              <DataCard>
+                <SubLabel>{isKo ? '사주 관계 — 어디서 끌리고 부딪히나' : 'Saju ties'}</SubLabel>
+                <ul className="space-y-1.5">
+                  {relRows.map((r, i) => {
+                    const meta =
+                      r.tone === 'bond'
+                        ? {
+                            emoji: '💛',
+                            color: 'var(--ds-gold)',
+                            gloss: isKo ? '끌어당기는 결' : 'pull',
+                          }
+                        : r.tone === 'clash'
+                          ? {
+                              emoji: '⚡',
+                              color: '#c0564a',
+                              gloss: isKo ? '부딪히는 결' : 'friction',
+                            }
+                          : r.tone === 'friction'
+                            ? {
+                                emoji: '〰️',
+                                color: '#d97706',
+                                gloss: isKo ? '미묘한 거리감' : 'subtle gap',
+                              }
+                            : {
+                                emoji: '·',
+                                color: 'var(--ds-light-text-muted)',
+                                gloss: isKo ? '사소한 파열' : 'small break',
+                              }
+                    const same = r.aPillar === r.bPillar
+                    return (
+                      <li
+                        key={`rel-${r.aPillar}-${r.bPillar}-${r.aChar}-${r.bChar}-${i}`}
+                        className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px]"
+                        style={{ background: 'rgba(0,0,0,0.025)', color: 'var(--ds-light-text)' }}
+                      >
+                        <span aria-hidden="true" className="shrink-0">
+                          {meta.emoji}
+                        </span>
+                        <span className="flex-1 leading-snug">
+                          {same ? (
+                            <>{isKo ? `둘의 ${r.aPillar}주` : `both ${r.aPillar}`}</>
+                          ) : (
+                            <>
+                              <b style={{ color: '#be123c' }}>
+                                {labelA} {r.aPillar}
+                              </b>{' '}
+                              ↔{' '}
+                              <b style={{ color: '#0369a1' }}>
+                                {labelB} {r.bPillar}
+                              </b>
+                            </>
+                          )}{' '}
+                          <span style={{ color: meta.color, fontWeight: 600 }}>
+                            {r.tags.join('·')}
+                          </span>
+                        </span>
+                        <span
+                          className="shrink-0 text-[11px]"
+                          style={{ color: 'var(--ds-light-text-muted)' }}
+                        >
+                          {meta.gloss}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </DataCard>
+            </div>
+          )}
 
           {/* 동양 — 오행 · 사주팔자 비교 (한 그룹으로 묶음) */}
           <section
