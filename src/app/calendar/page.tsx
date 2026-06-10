@@ -39,6 +39,7 @@ import {
   toMonth,
   toDay,
 } from '@/components/calendar/adapters'
+import { buildHourCrossings } from '@/components/calendar/adapters/toHourCrossings'
 
 import type {
   DestinyUserSummary,
@@ -617,6 +618,7 @@ export default async function DestinypalPage() {
     topReasons: dayAdapter.topReasons,
     cautions: dayAdapter.cautions,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
+    hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
   }
 
   const ilganHanja = user.ilgan.hanja || '辛'

@@ -28,6 +28,7 @@ import {
   toMonth,
   toDay,
 } from '@/components/calendar/adapters'
+import { buildHourCrossings } from '@/components/calendar/adapters/toHourCrossings'
 
 import type {
   DestinyUserSummary,
@@ -572,6 +573,7 @@ export default async function DestinypalPreview() {
     topReasons: dayAdapter.topReasons,
     cautions: dayAdapter.cautions,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
+    hourCrossings: buildHourCrossings(dayCell, TARGET_DAY_ISO, natal.astro.location),
   }
 
   // ilgan 한자 (Topbar) — adapter user.ilgan.hanja 그대로.
