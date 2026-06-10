@@ -813,7 +813,7 @@ export function evalNorthNode(
       tone: 'complement',
       reason: {
         ko: `사주가 채우라는 ${tw.ko} 결과 별자리(노스노드)가 가리키는 ${tn.ko} 방향이 서로 이어져요 — 한쪽을 키우면 다른 쪽도 따라 자라요.`,
-        en: `The ${tw.en} your Saju asks you to fill and the ${tn.en} your North Node points to feed each other — grow one and the other follows.`,
+        en: `The ${tw.en} energy your Saju asks you to fill and the ${tn.en} direction your North Node points to feed each other — grow one and the other follows.`,
       },
     }
   return {
