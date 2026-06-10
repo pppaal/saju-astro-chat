@@ -36,6 +36,8 @@ export interface DestinypalDecadeYear {
   gz: Ganji
   score: number
   now: boolean
+  /** 그 해 세운 천간의 일간 기준 십신 ('비견' 등). 연도별로 진짜 달라지는 결. */
+  sibsin?: string
 }
 
 export interface DestinypalDecadeNarrative {
@@ -288,6 +290,7 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
       gz: toGanji(sr.stem, sr.branch),
       score: opts.yearScores?.[i] ?? 50,
       now: y === currentYear,
+      sibsin: safeSibsin(dm, sr.stem),
     })
   }
 
