@@ -601,51 +601,84 @@ export function evalPersona(
 /** 추진력: 신강약(사주) ↔ 자기주장 행성(태양·화성) 강조 여부. */
 export function evalDrive(
   strengthLevel: string | undefined,
-  selfEmphasized: boolean
+  selfEmphasized: boolean,
+  drivePlanetCondition: 'strong' | 'weak' | 'neutral' = 'neutral'
 ): CrossVerdict | null {
   if (!strengthLevel) return null
   const s = strengthLevel.toLowerCase()
   const strong = /강|strong/.test(s) && !/약/.test(strengthLevel)
   const weak = /약|weak/.test(s)
-  if (strong)
-    return selfEmphasized
-      ? {
-          tone: 'resonant',
-          reason: {
-            ko: '타고나길 자기 주도로 밀어붙이는 힘이 강하고, 별자리도 앞에 나서는 기질(태양·화성 강조)을 받쳐줘요 — 동·서양이 똑같이 리더·행동파로 봐요. 결정하고 책임지는 자리에 설 때 가장 살아나니, 누군가 시키길 기다리기보다 먼저 판을 여는 역할이 잘 맞아요. 추진력이 센 만큼 주변 속도도 한 번씩 살펴주면 혼자 너무 앞서가지 않아요.',
-            en: "You're wired to drive things yourself, and your chart backs it (Sun/Mars emphasis) — both systems read leader/doer. You come alive in seats where you decide and own the outcome, so opening the game first suits you better than waiting to be told. With drive this strong, glancing back at everyone else's pace now and then keeps you from racing too far ahead alone.",
-          },
-        }
-      : {
-          tone: 'complement',
-          reason: {
-            ko: '타고난 추진력은 센데, 별자리는 그 힘을 부드럽게 다듬어줘요 — 세지만 거칠지 않은, 안에 강단이 있는 타입이에요. 평소엔 유연하다가 결정적 순간에 단단함이 나오는 구조라, 급할수록 오히려 차분하게 밀고 가면 신뢰를 얻어요. 속의 추진력을 너무 누르지만 않으면 좋은 균형이에요.',
-            en: "Strong inner drive, softened by your chart — forceful but not rough, with steel kept inside. You're flexible day to day and firm at the decisive moment, so pushing calmly when things get urgent earns trust. Just don't bottle the drive too tightly and it's a fine balance.",
-          },
-        }
-  if (weak)
-    return selfEmphasized
-      ? {
-          tone: 'tension',
-          reason: {
-            ko: '타고나길 받쳐주고 조율하는 쪽인데 별자리는 앞에 나서라 부추겨요(태양·화성 강조) — 속도와 무대가 엇갈릴 수 있어요. 안에선 신중하게 받쳐주고 싶은데 밖에선 리더를 기대받는, 그 사이의 긴장을 안고 사는 타입이에요. 둘 중 하나를 죽이기보다, 준비는 조용히 하되 결과만 앞에서 보여주는 식으로 번갈아 쓰면 둘 다 강점이 돼요.',
-            en: "You're built to support and harmonize, but your chart pushes you to the front (Sun/Mars emphasis) — pace and stage can pull apart. Inside you want to back others carefully, while outside you're expected to lead, and you carry that tension. Rather than killing one side, prep quietly but show the result up front — alternate them and both become strengths.",
-          },
-        }
-      : {
-          tone: 'resonant',
-          reason: {
-            ko: '타고나길 혼자 밀어붙이기보다 받쳐주고 조율하는 데 강한데, 별자리도 같은 결이에요 — 동·서양 둘 다 든든한 조력자형으로 봐요. 앞에 나서는 화려함보다 판을 굴러가게 만드는 힘이라, 좋은 2인자·기획자·조율자 자리에서 가장 빛나요. 굳이 리더처럼 보이려 애쓰지 않아도 당신 없으면 안 돌아가는 사람이 돼요.',
-            en: "You're built to support and harmonize rather than force, and your chart agrees — both systems read a dependable enabler. Your power is making the machine run, not standing in the spotlight, so you shine as a great number-two, planner, or coordinator. No need to perform like a leader — you become the person things can't run without.",
-          },
-        }
-  return {
-    tone: 'neutral',
-    reason: {
-      ko: '주도와 조율 사이에서 균형 잡힌 편이에요 — 사주도 별자리도 한쪽으로 몰지 않아, 상황에 따라 앞에 서기도 받쳐주기도 해요. 이 유연함이 강점이라, 팀에선 빈 역할을 메우는 사람이 되기 쉬워요. 다만 매번 남에게 맞추다 자기 페이스를 잃지 않게, 정말 원하는 게 뭔지는 스스로 한 번씩 확인해 두면 좋아요.',
-      en: "Balanced between leading and supporting — neither Saju nor chart tilts one way, so you step up or step back as the moment calls. That flexibility is a strength; on a team you tend to fill whatever role is missing. Just don't lose your own pace always adapting to others — check in with what you actually want now and then.",
-    },
+  const base: CrossVerdict = (() => {
+    if (strong)
+      return selfEmphasized
+        ? {
+            tone: 'resonant',
+            reason: {
+              ko: '타고나길 자기 주도로 밀어붙이는 힘이 강하고, 별자리도 앞에 나서는 기질(태양·화성 강조)을 받쳐줘요 — 동·서양이 똑같이 리더·행동파로 봐요. 결정하고 책임지는 자리에 설 때 가장 살아나니, 누군가 시키길 기다리기보다 먼저 판을 여는 역할이 잘 맞아요. 추진력이 센 만큼 주변 속도도 한 번씩 살펴주면 혼자 너무 앞서가지 않아요.',
+              en: "You're wired to drive things yourself, and your chart backs it (Sun/Mars emphasis) — both systems read leader/doer. You come alive in seats where you decide and own the outcome, so opening the game first suits you better than waiting to be told. With drive this strong, glancing back at everyone else's pace now and then keeps you from racing too far ahead alone.",
+            },
+          }
+        : {
+            tone: 'complement',
+            reason: {
+              ko: '타고난 추진력은 센데, 별자리는 그 힘을 부드럽게 다듬어줘요 — 세지만 거칠지 않은, 안에 강단이 있는 타입이에요. 평소엔 유연하다가 결정적 순간에 단단함이 나오는 구조라, 급할수록 오히려 차분하게 밀고 가면 신뢰를 얻어요. 속의 추진력을 너무 누르지만 않으면 좋은 균형이에요.',
+              en: "Strong inner drive, softened by your chart — forceful but not rough, with steel kept inside. You're flexible day to day and firm at the decisive moment, so pushing calmly when things get urgent earns trust. Just don't bottle the drive too tightly and it's a fine balance.",
+            },
+          }
+    if (weak)
+      return selfEmphasized
+        ? {
+            tone: 'tension',
+            reason: {
+              ko: '타고나길 받쳐주고 조율하는 쪽인데 별자리는 앞에 나서라 부추겨요(태양·화성 강조) — 속도와 무대가 엇갈릴 수 있어요. 안에선 신중하게 받쳐주고 싶은데 밖에선 리더를 기대받는, 그 사이의 긴장을 안고 사는 타입이에요. 둘 중 하나를 죽이기보다, 준비는 조용히 하되 결과만 앞에서 보여주는 식으로 번갈아 쓰면 둘 다 강점이 돼요.',
+              en: "You're built to support and harmonize, but your chart pushes you to the front (Sun/Mars emphasis) — pace and stage can pull apart. Inside you want to back others carefully, while outside you're expected to lead, and you carry that tension. Rather than killing one side, prep quietly but show the result up front — alternate them and both become strengths.",
+            },
+          }
+        : {
+            tone: 'resonant',
+            reason: {
+              ko: '타고나길 혼자 밀어붙이기보다 받쳐주고 조율하는 데 강한데, 별자리도 같은 결이에요 — 동·서양 둘 다 든든한 조력자형으로 봐요. 앞에 나서는 화려함보다 판을 굴러가게 만드는 힘이라, 좋은 2인자·기획자·조율자 자리에서 가장 빛나요. 굳이 리더처럼 보이려 애쓰지 않아도 당신 없으면 안 돌아가는 사람이 돼요.',
+              en: "You're built to support and harmonize rather than force, and your chart agrees — both systems read a dependable enabler. Your power is making the machine run, not standing in the spotlight, so you shine as a great number-two, planner, or coordinator. No need to perform like a leader — you become the person things can't run without.",
+            },
+          }
+    return {
+      tone: 'neutral',
+      reason: {
+        ko: '주도와 조율 사이에서 균형 잡힌 편이에요 — 사주도 별자리도 한쪽으로 몰지 않아, 상황에 따라 앞에 서기도 받쳐주기도 해요. 이 유연함이 강점이라, 팀에선 빈 역할을 메우는 사람이 되기 쉬워요. 다만 매번 남에게 맞추다 자기 페이스를 잃지 않게, 정말 원하는 게 뭔지는 스스로 한 번씩 확인해 두면 좋아요.',
+        en: "Balanced between leading and supporting — neither Saju nor chart tilts one way, so you step up or step back as the moment calls. That flexibility is a strength; on a team you tend to fill whatever role is missing. Just don't lose your own pace always adapting to others — check in with what you actually want now and then.",
+      },
+    }
+  })()
+
+  // dignity 강도 — 추진 행성(태양·화성)이 제 자리인지로 "거침없이/엇박" 뉘앙스.
+  // selfEmphasized(태양·화성 강조)일 때만 의미 있다.
+  if (selfEmphasized && drivePlanetCondition === 'strong') {
+    return {
+      ...base,
+      reason: {
+        ko:
+          base.reason.ko +
+          ' 게다가 그 추진의 핵심 행성이 제 자리(본궁·고양)에 있어, 의욕이 곧장 행동으로 거침없이 이어집니다.',
+        en:
+          base.reason.en +
+          ' On top of that, the key drive planet sits in its own dignity, so intent flows straight into action without friction.',
+      },
+    }
   }
+  if (selfEmphasized && drivePlanetCondition === 'weak') {
+    return {
+      ...base,
+      reason: {
+        ko:
+          base.reason.ko +
+          ' 다만 그 추진 행성이 약한 자리(손상·쇠약)라 의욕은 큰데 방향이 자주 엇나가니, 욱하기 전에 한 박자만 점검하면 힘이 제대로 실려요.',
+        en:
+          base.reason.en +
+          ' That said, the drive planet is debilitated, so the urge runs high but the aim wanders — pause one beat before reacting and the force lands where you want it.',
+      },
+    }
+  }
+  return base
 }
 
 // 행성 쌍 → 의미·테마(쉬운 말). 키는 알파벳순 "A|B".

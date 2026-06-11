@@ -460,6 +460,24 @@ export function buildCrossRows(
         topDignity = { planet: p.name, status: dg.domicile ? 'domicile' : 'exaltation' }
     }
   }
+  // 행성 컨디션(dignity 강도): 본궁·고양=strong / 손상·쇠약=weak / 그 외 neutral.
+  const planetCondition = (name: string): 'strong' | 'weak' | 'neutral' => {
+    const d = (A.dignities ?? []).find((x: any) => x.planet === name) as
+      | {
+          tiers?: { domicile?: boolean; exaltation?: boolean; detriment?: boolean; fall?: boolean }
+        }
+      | undefined
+    const t = d?.tiers ?? {}
+    if (t.domicile || t.exaltation) return 'strong'
+    if (t.detriment || t.fall) return 'weak'
+    return 'neutral'
+  }
+  // 추진 행성: 화성 우선(행동), 없으면 태양.
+  const driveCondition = emphasized.has('Mars')
+    ? planetCondition('Mars')
+    : emphasized.has('Sun')
+      ? planetCondition('Sun')
+      : 'neutral'
   const aspectsForKey = (A.natalAspects ?? A.aspects ?? []).map((a: any) => ({
     from: { name: a.from?.name ?? a.a },
     to: { name: a.to?.name ?? a.b },
@@ -574,7 +592,7 @@ export function buildCrossRows(
       evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean)),
     ],
     ['energy', evalEnergyDirection(details, emphasized)],
-    ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
+    ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'), driveCondition)],
     ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
     [
       'romance',

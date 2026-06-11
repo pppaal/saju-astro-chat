@@ -13,6 +13,7 @@ import {
   evalRelations,
   evalNeeds,
   evalStrength,
+  evalDrive,
   synthesize,
   type CrossVerdict,
 } from '@/lib/report/natalCross'
@@ -150,6 +151,25 @@ describe('미활용 데이터 활성화 (slice 1)', () => {
     expect(HANGUL.test(evalNeeds('화', 'Leo', '금')!.reason.en)).toBe(false)
     expect(HANGUL.test(evalStrength('제왕', null, false)!.reason.en)).toBe(false)
     expect(HANGUL.test(evalRomance(true, true, 1, 'male', 1, true, false)!.reason.en)).toBe(false)
+  })
+})
+
+describe('dignity 강도 활성화 (slice 2)', () => {
+  it('추진 행성 dignity로 추진력축 뉘앙스 분기', () => {
+    const strong = evalDrive('신강', true, 'strong')!
+    const weak = evalDrive('신강', true, 'weak')!
+    const neutral = evalDrive('신강', true, 'neutral')!
+    expect(strong.reason.ko).toContain('거침없이')
+    expect(weak.reason.ko).toContain('엇나가')
+    expect(neutral.reason.ko).not.toContain('거침없이')
+    expect(strong.reason.ko).not.toBe(weak.reason.ko)
+  })
+  it('selfEmphasized=false면 dignity 절 무시(태양·화성 안 강조)', () => {
+    expect(evalDrive('신강', false, 'strong')!.reason.ko).not.toContain('거침없이')
+  })
+  it('slice2 EN 한글 누출 없음', () => {
+    expect(HANGUL.test(evalDrive('신강', true, 'strong')!.reason.en)).toBe(false)
+    expect(HANGUL.test(evalDrive('신약', true, 'weak')!.reason.en)).toBe(false)
   })
 })
 
