@@ -39,6 +39,7 @@ import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
 
 const MONTH_EN = [
   'January',
@@ -506,23 +507,37 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
         return ''
     }
   }
+  // c.ds 와 keyDay.date 둘 다 'MM-DD' (예: '06-06') — 그대로 키로 쓴다.
   const markByDs = new Map<string, ExtendedMark | null>(
-    (month.calendar ?? []).map((c) => [c.ds.slice(5), c.mark as ExtendedMark | null])
+    (month.calendar ?? []).map((c) => [c.ds, c.mark as ExtendedMark | null])
   )
-  // 큰 날 리스트 — 일상어 의미가 곧 레이블. 그 날이 좋음/주의/피함 등급이면 그 판정을
-  // 앞에 붙이고(중립이면 안 붙임 — "Notable day" 도배 방지), raw 엔진 신호명은 안 쓴다.
+  // 큰 날 리스트 — 의미의 *톤*을 달력 셀 판정(색)과 같은 소스로 맞춘다.
+  // 예전엔 의미=수렴 톤, 색=일진 등급이라 "결실이 보이는 날(좋음)"인데 셀은 주의로
+  // 떠 모순. 이제 셀이 좋음/주의/피함이면 그 톤의 문구를 뽑아 색과 글이 항상 일치.
   const verdictPrefix = (m: ExtendedMark | null | undefined): string | null => {
     if (m === 'best' || m === 'good') return ko ? '좋은 날' : 'Good day'
     if (m === 'caution') return ko ? '주의할 날' : 'Caution'
     if (m === 'avoid') return ko ? '피할 날' : 'Avoid'
     return null
   }
+  const markToTone = (m: ExtendedMark | null | undefined): MeaningTone | null => {
+    if (m === 'best' || m === 'good') return 'positive'
+    if (m === 'caution' || m === 'avoid') return 'negative'
+    if (m === 'converge') return 'neutral'
+    return null
+  }
   const monthCrossItems = [...(month.keyDays ?? [])]
     .sort((a, b) => a.date.localeCompare(b.date))
     .map((k) => {
-      const meaning =
-        k.meaning || (k.bothSystems ? (ko ? '신호가 겹치는 날' : 'signals overlap') : '')
-      const vp = verdictPrefix(markByDs.get(k.date))
+      const mark = markByDs.get(k.date)
+      const tone = markToTone(mark)
+      const dayNum = parseInt(k.date.slice(-2), 10)
+      // 셀에 판정이 있으면 그 톤으로 문구를 뽑아 색과 일치(모순 제거). 무표시(중립)
+      // 날만 엔진 수렴 의미를 그대로 쓴다.
+      const meaning = tone
+        ? toneMeaningFor(tone, dayNum, ko ? 'ko' : 'en')
+        : k.meaning || (k.bothSystems ? (ko ? '신호가 겹치는 날' : 'signals overlap') : '')
+      const vp = verdictPrefix(mark)
       const title =
         vp && meaning ? `${vp} · ${meaning}` : meaning || vp || (ko ? '주목할 날' : 'Notable day')
       return {
