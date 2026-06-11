@@ -21,7 +21,9 @@ vi.mock('@/lib/telemetry', () => ({ captureServerError: vi.fn() }))
 vi.mock('@/lib/metrics', () => ({ recordCounter: vi.fn(), recordTiming: vi.fn() }))
 vi.mock('@/lib/auth/publicToken', () => ({ requirePublicToken: vi.fn(() => ({ valid: true })) }))
 vi.mock('@/lib/security/csrf', () => ({ csrfGuard: vi.fn(() => null) }))
-vi.mock('@/lib/db/prisma', () => ({ prisma: { $queryRaw: vi.fn() } }))
+vi.mock('@/lib/db/prisma', () => ({
+  prisma: { $queryRaw: vi.fn(), $executeRawUnsafe: vi.fn() },
+}))
 vi.mock('@/lib/auth/admin', () => ({ isAdminUser: vi.fn() }))
 vi.mock('@/lib/logger', () => ({
   logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
@@ -96,20 +98,37 @@ describe('GET /api/admin/visitors', () => {
     expect(data.devices).toHaveLength(2)
   })
 
-  it('returns notReady (not 500) when the PageView table is missing', async () => {
+  it('self-heals (creates table) and returns ready-empty when PageView is missing', async () => {
     vi.mocked(getServerSession).mockResolvedValue(adminSession as never)
     vi.mocked(isAdminUser).mockResolvedValue(true)
     const tableErr = Object.assign(new Error('relation "PageView" does not exist'), {
       code: '42P01',
     })
     vi.mocked(prisma.$queryRaw).mockRejectedValue(tableErr)
+    vi.mocked(prisma.$executeRawUnsafe).mockResolvedValue(0 as never)
 
     const res = await GET(req())
     expect(res.status).toBe(200)
     const data = (await res.json()).data
-    expect(data.notReady).toBe(true)
+    // 테이블 생성 성공 → notReady=false(정상 빈 상태), DDL 실행됨
+    expect(prisma.$executeRawUnsafe).toHaveBeenCalled()
+    expect(data.notReady).toBe(false)
     expect(data.daily).toEqual([])
     expect(data.summary.visits).toBe(0)
+  })
+
+  it('stays notReady when self-heal also fails', async () => {
+    vi.mocked(getServerSession).mockResolvedValue(adminSession as never)
+    vi.mocked(isAdminUser).mockResolvedValue(true)
+    const tableErr = Object.assign(new Error('relation "PageView" does not exist'), {
+      code: '42P01',
+    })
+    vi.mocked(prisma.$queryRaw).mockRejectedValue(tableErr)
+    vi.mocked(prisma.$executeRawUnsafe).mockRejectedValue(new Error('no DDL permission'))
+
+    const res = await GET(req())
+    expect(res.status).toBe(200)
+    expect((await res.json()).data.notReady).toBe(true)
   })
 
   it('handles empty data without dividing by zero', async () => {
