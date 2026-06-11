@@ -134,17 +134,19 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   const dgz = decade.gz.hanja
   const cy = decade.focusYear ?? decade.start
   const astroMarks = decade.astro ?? []
+  // 제목엔 변하는 쪽(점성 마디)만. 대운(甲戌)은 heading 에 이미 있어 매 줄 반복은
+  // 정보량 0 → 접두사 제거. 사주 측(대운)은 heading 이 담당.
   const decadeSpanItems = [
     {
+      // 시작 앵커 — headline 은 바로 위 oneline 에 이미 있어 중복 표기하지 않음.
       when: `${decade.start}`,
       title: `${dgz} 대운 진입`,
-      detail: decade.headline,
       now: cy <= decade.start,
       past: false,
     },
     ...astroMarks.map((a) => ({
       when: a.date,
-      title: `${dgz} 대운 × ${a.label}`,
+      title: a.label,
       detail: a.body || undefined,
       now: a.date === `${cy}`,
       past: Number(a.date) < cy,

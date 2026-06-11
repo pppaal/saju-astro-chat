@@ -537,17 +537,39 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
 
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
-  const hourCrossItems = (day.hourCrossings ?? []).map((h) => {
+  // 메인엔 가장 센 시진 3개만(사전 매칭된 진짜 교차 우선), 나머진 '자세히 보기'.
+  // matched(의미사전 매칭)일 때만 제목에 '× 상승'을 올려 교차로 표기, 아니면
+  // 상승궁은 detail 로 내려 같은 시각의 하늘 정보로만 — 교차 과장 금지.
+  const toHourItem = (h: NonNullable<DestinyDay['hourCrossings']>[number]) => {
     const branch = h.when.match(/\((.*?)\)/)?.[1] ?? ''
     const timeShort = h.when.replace(/\s*\(.*\)/, '').trim()
     const tone = h.tone === 'good' ? '길' : '주의'
-    const rising = h.risingSignKo ? ` × ${h.risingSignKo} 상승` : ''
-    return {
-      when: timeShort,
-      title: `${branch ? `${branch} · ` : ''}${h.sibsin} ${tone}${rising}`,
-      detail: [h.narrative, h.ruler ? `상승궁 룰러 ${h.ruler}` : ''].filter(Boolean).join(' · '),
-    }
-  })
+    const skyLine = h.risingSignKo
+      ? `이 시각 하늘: ${h.risingSignKo} 상승${h.ruler ? ` (룰러 ${h.ruler})` : ''}`
+      : ''
+    return h.matched
+      ? {
+          when: timeShort,
+          title: `${branch ? `${branch} · ` : ''}${h.sibsin} ${tone} × ${h.risingSignKo} 상승`,
+          detail: [h.crossMeaning, h.narrative].filter(Boolean).join(' · '),
+        }
+      : {
+          when: timeShort,
+          title: `${branch ? `${branch} · ` : ''}${h.sibsin} ${tone}`,
+          detail: [h.narrative, skyLine].filter(Boolean).join(' · '),
+        }
+  }
+  const hourAll = day.hourCrossings ?? []
+  const hourTop = [...hourAll]
+    .sort((a, b) => Number(b.matched) - Number(a.matched) || b.strength - a.strength)
+    .slice(0, 3)
+  const hourTopKeys = new Set(hourTop.map((h) => h.when))
+  const hourCrossItems = hourAll.filter((h) => hourTopKeys.has(h.when)).map(toHourItem)
+  const hourRestItems = hourAll.filter((h) => !hourTopKeys.has(h.when)).map(toHourItem)
+  // 실제 매칭된 교차가 하나도 없으면 heading 도 '×' 주장을 하지 않는다.
+  const hourHeading = hourTop.some((h) => h.matched)
+    ? '오늘 가장 센 시간 · 사주 × 점성 교차'
+    : '오늘 가장 센 시간'
 
   return (
     <div className={styles.tierInner} data-screen-label={`1일 ${day.date}`}>
@@ -563,14 +585,17 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
       {/* ── 쉬운 요약 (오늘 어때 한눈에). 일진·12운성·신호는 아래 자세히로. ── */}
       <TierSummary headline={dayHeadline} sub={daySub} cards={dayCards} />
 
-      {/* ── 시간별 사주 × 점성 교차 — 켜지는 시진 × 그 시각 상승궁. ── */}
-      {hourCrossItems.length > 0 && (
-        <CrossingList heading="시간별 사주 × 점성 교차 · 오늘" items={hourCrossItems} />
-      )}
+      {/* ── 시간별 사주 × 점성 교차 — 가장 센 시진 3개만 메인에. ── */}
+      {hourCrossItems.length > 0 && <CrossingList heading={hourHeading} items={hourCrossItems} />}
 
       {/* ── 전문가용 상세 — 일진·격국·공망·신호·12운성·시진 일체 접어 둠 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>자세히 보기 · 일진과 근거</summary>
+
+        {/* 나머지 시진 전체 — 메인엔 안 띄운 시간들. */}
+        {hourRestItems.length > 0 && (
+          <CrossingList heading="그 밖의 시간대" items={hourRestItems} />
+        )}
 
         {/* head 보강 — 격국 status / 공망 / VOC */}
         <div className={styles.headChips}>

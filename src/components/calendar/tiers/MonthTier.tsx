@@ -463,16 +463,26 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
     const head = s.includes('—') ? s.split('—')[0].trim() : s
     return head.length > 16 ? head.slice(0, 15).trim() + '…' : head
   }
-  const monthCrossItems = (month.keyDays ?? []).map((k) => {
-    const sj = (k.saju ?? [])[0]
-    const as = (k.astro ?? [])[0]
-    const tags = [sj && shortTag(sj), as && shortTag(as)].filter(Boolean).join(' × ')
-    return {
-      when: k.date,
-      title: k.meaning || (k.bothSystems ? '사주 · 점성이 함께 강한 날' : '주요 신호'),
-      detail: tags || undefined,
-    }
-  })
+  const seenTitle = new Map<string, number>()
+  const monthCrossItems = [...(month.keyDays ?? [])]
+    // 달력이니 날짜 오름차순 — keyDays 는 중요도순으로 와서 그대로 두면 뒤죽박죽.
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((k) => {
+      const sj = (k.saju ?? [])[0]
+      const as = (k.astro ?? [])[0]
+      const tags = [sj && shortTag(sj), as && shortTag(as)].filter(Boolean).join(' × ')
+      const base = k.meaning || (k.bothSystems ? '사주 · 점성이 함께 강한 날' : '주요 신호')
+      // 같은 뜻이 여러 날 반복되면 둘째부터 짧은 구분 태그를 붙여 차별화 —
+      // 뜻은 제목에 유지(잘린 태그 뭉치를 제목으로 올리지 않기).
+      const n = seenTitle.get(base) ?? 0
+      seenTitle.set(base, n + 1)
+      const oneTag = sj ? shortTag(sj) : as ? shortTag(as) : ''
+      return {
+        when: k.date,
+        title: n > 0 && oneTag ? `${base} — ${oneTag}` : base,
+        detail: tags || undefined,
+      }
+    })
   const goodN = month.goodDays?.length ?? 0
   const cautionN = month.cautionDays?.length ?? 0
 
