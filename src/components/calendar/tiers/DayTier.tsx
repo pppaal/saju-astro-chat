@@ -486,6 +486,54 @@ function HourBreakdown({ hours24 }: { hours24: HourSlot[] | undefined }) {
 // DayTier (main).
 // ============================================================================
 
+// ============================================================================
+// HourRhythm — 켜지는 시진의 길/주의 리듬 막대 (좋음=위·쪽빛 / 주의=아래·주황).
+// ============================================================================
+function HourRhythm({
+  hours,
+  ko,
+  label,
+}: {
+  hours: NonNullable<DestinyDay['hourCrossings']>
+  ko: boolean
+  label: string
+}) {
+  const rows = [...hours].sort((a, b) => {
+    const ah = parseInt((a.when.match(/\d+/) ?? ['0'])[0], 10)
+    const bh = parseInt((b.when.match(/\d+/) ?? ['0'])[0], 10)
+    return ah - bh
+  })
+  return (
+    <div className={styles.rhythmWrap}>
+      <div className={styles.rhythmLabel}>{label}</div>
+      <div className={styles.rhythmRow}>
+        {rows.map((h, i) => {
+          const up = h.tone === 'good'
+          const mag = Math.max(0.4, Math.min(1, h.strength / 2)) // 0.4~1
+          const label = ko ? h.when : h.whenEn
+          const time = label.replace(/\s*\(.*\)/, '').trim()
+          return (
+            <div className={styles.rhythmCol} key={i} title={label}>
+              <div className={styles.rhythmTrack}>
+                <span className={styles.rhythmMid} />
+                <span
+                  className={styles.rhythmBar}
+                  style={{
+                    height: `${mag * 50}%`,
+                    [up ? 'bottom' : 'top']: '50%',
+                    background: up ? '#4f5d96' : '#c0741f',
+                  }}
+                />
+              </div>
+              <span className={styles.rhythmTime}>{time}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
@@ -607,7 +655,7 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
       </button>
 
       <div className={styles.eyebrow}>
-        {ko ? '1일' : 'DAY'} · DAILY · {day.date}
+        {ko ? '1일' : '1 DAY'} · DAILY · {day.date}
         {ko && day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
       </div>
 
@@ -616,6 +664,10 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
 
       {/* ── 시간별 사주 × 점성 교차 — 가장 센 시진 3개만 메인에. ── */}
       {hourCrossItems.length > 0 && <CrossingList heading={hourHeading} items={hourCrossItems} />}
+
+      {hourAll.length > 0 && (
+        <HourRhythm hours={hourAll} ko={ko} label={ko ? '하루 시간 리듬' : 'The day’s rhythm'} />
+      )}
 
       {/* ── 전문가용 상세 — 일진·격국·공망·신호·12운성·시진 일체 접어 둠 ── */}
       <details className={summaryStyles.details}>
@@ -788,7 +840,7 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
 
       <div className={styles.riseCenter}>
         <button className={`${styles.rise} ${styles.riseSmall}`} onClick={onRise}>
-          ↑ {ko ? '다시 위로 — 줌아웃' : 'Back up — zoom out'}
+          ↑ {ko ? '다시 위로 — 줌아웃' : 'Zoom back out'}
         </button>
       </div>
     </div>

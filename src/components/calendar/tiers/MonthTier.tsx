@@ -544,7 +544,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
       detail: k.bothSystems
         ? ko
           ? '사주·점성이 함께 강한 날'
-          : 'Saju & astrology both strong'
+          : 'Saju & Astrology both strong'
         : undefined,
     }
   })
@@ -555,7 +555,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
     keyDayItems.push({
       when: month.bestDay.date,
       title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dn, ko ? 'ko' : 'en')}`,
-      detail: ko ? '이달 가장 좋은 날' : 'Best day of the month',
+      detail: ko ? '이달 점수가 가장 높은 날' : 'The month’s highest-scoring day',
     })
   }
   const monthCrossItems = keyDayItems.sort((a, b) => a.when.localeCompare(b.when))
@@ -572,7 +572,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
       <div className={styles.calHead}>
         <div>
           <div className={styles.eyebrow}>
-            {ko ? '1달' : 'MONTH'} · MONTHLY · {month.ym}
+            {ko ? '1달' : '1 MONTH'} · MONTHLY · {month.ym}
           </div>
           <h1 className={[styles.display, styles.calHeadTitle].join(' ')}>{flowTitle}</h1>
         </div>

@@ -231,10 +231,12 @@ export default defineConfig({
       ...(isCoverageRun
         ? {
             thresholds: {
-              lines: 61,
-              functions: 70,
-              branches: 65,
-              statements: 61,
+              // 2026-06-11 ratchet: 검증 갭 PR 에서 실측 62.5/79.1/88.0 으로
+              // 상승 → floor 를 62/77/85 로 당김 (각각 0.5~3pt 여유).
+              lines: 62,
+              functions: 85,
+              branches: 77,
+              statements: 62,
               'src/lib/auth/**': {
                 lines: 79,
                 functions: 66,

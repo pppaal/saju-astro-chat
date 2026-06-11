@@ -8,6 +8,7 @@
  * - tarot.ts     : Tarot card and reading schemas
  * - payment.ts   : Checkout, Credits, Stripe webhooks
  * - user.ts      : Auth, Profile, Notification, Feedback, Personality
+ * - admin.ts     : Admin stats/monitoring query params (days range)
  *
  * Error Handling Utilities (from common.ts):
  * - formatZodErrors()              : Convert ZodError to ValidationErrorDetail[]
@@ -21,3 +22,4 @@ export * from './saju'
 export * from './tarot'
 export * from './payment'
 export * from './user'
+export * from './admin'

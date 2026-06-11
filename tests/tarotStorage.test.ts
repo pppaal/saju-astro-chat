@@ -6,9 +6,18 @@
  */
 
 import { vi, beforeEach, afterEach } from 'vitest'
-import { formatReadingForSave } from '@/lib/tarot/tarot-storage'
+import {
+  formatReadingForSave,
+  getSavedReadings,
+  saveReading,
+  deleteReading,
+  storeReadingRestorePayload,
+  loadReadingRestorePayload,
+  updateRestorePayloadFollowup,
+  mapServerReadingToSavedReading,
+  type SavedTarotReading,
+} from '@/lib/tarot/tarot-storage'
 import type { Spread, DrawnCard } from '@/lib/tarot/tarot.types'
-
 
 describe('formatReadingForSave', () => {
   const mockSpread: Spread = {
@@ -275,5 +284,287 @@ describe('Storage Constants', () => {
   it('STORAGE_KEY is consistent', () => {
     const STORAGE_KEY = 'tarot_saved_readings'
     expect(STORAGE_KEY).toBe('tarot_saved_readings')
+  })
+})
+
+// ───────────────────────── localStorage 저장/삭제 ─────────────────────────
+
+function makeReadingInput(
+  overrides: Partial<Omit<SavedTarotReading, 'id' | 'timestamp'>> = {}
+): Omit<SavedTarotReading, 'id' | 'timestamp'> {
+  return {
+    question: '오늘의 운세는?',
+    spread: { title: 'One Card', titleKo: '원 카드', cardCount: 1 },
+    cards: [{ name: 'The Fool', nameKo: '바보', isReversed: false, position: '1번 카드' }],
+    interpretation: { overallMessage: 'msg', guidance: 'guide', cardInsights: [] },
+    categoryId: 'general',
+    spreadId: 'one-card',
+    ...overrides,
+  }
+}
+
+describe('getSavedReadings / saveReading / deleteReading', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('저장된 것이 없으면 빈 배열을 반환한다', () => {
+    expect(getSavedReadings()).toEqual([])
+  })
+
+  it('localStorage 가 깨진 JSON 이면 빈 배열로 복구한다 (throw 금지)', () => {
+    localStorage.setItem('tarot_saved_readings', '{not valid json')
+    expect(getSavedReadings()).toEqual([])
+  })
+
+  it('saveReading 은 id/timestamp 를 발급하고 storageOrigin 기본값은 local 이다', () => {
+    const before = Date.now()
+    const saved = saveReading(makeReadingInput())
+    const after = Date.now()
+
+    expect(saved.id).toMatch(/^tarot_\d+_[a-z0-9]+$/)
+    expect(saved.timestamp).toBeGreaterThanOrEqual(before)
+    expect(saved.timestamp).toBeLessThanOrEqual(after)
+    expect(saved.storageOrigin).toBe('local')
+  })
+
+  it('명시한 storageOrigin(server) 은 보존한다', () => {
+    const saved = saveReading(makeReadingInput({ storageOrigin: 'server' }))
+    expect(saved.storageOrigin).toBe('server')
+  })
+
+  it('새 리딩은 목록 맨 앞에 추가된다 (최신순)', () => {
+    saveReading(makeReadingInput({ question: '첫 번째' }))
+    saveReading(makeReadingInput({ question: '두 번째' }))
+
+    const readings = getSavedReadings()
+    expect(readings).toHaveLength(2)
+    expect(readings[0].question).toBe('두 번째')
+    expect(readings[1].question).toBe('첫 번째')
+  })
+
+  it('50개 초과 시 가장 오래된 리딩을 잘라낸다', () => {
+    for (let i = 0; i < 51; i++) {
+      saveReading(makeReadingInput({ question: `질문 ${i}` }))
+    }
+    const readings = getSavedReadings()
+    expect(readings).toHaveLength(50)
+    expect(readings[0].question).toBe('질문 50') // 최신 유지
+    expect(readings.some((r) => r.question === '질문 0')).toBe(false) // 최고(最古) 탈락
+  })
+
+  it('deleteReading 은 해당 id 만 지우고 true 를 반환한다', () => {
+    const first = saveReading(makeReadingInput({ question: 'keep' }))
+    const second = saveReading(makeReadingInput({ question: 'remove' }))
+
+    expect(deleteReading(second.id)).toBe(true)
+    const remaining = getSavedReadings()
+    expect(remaining).toHaveLength(1)
+    expect(remaining[0].id).toBe(first.id)
+  })
+
+  it('존재하지 않는 id 삭제는 false 를 반환하고 목록을 건드리지 않는다', () => {
+    saveReading(makeReadingInput())
+    expect(deleteReading('no-such-id')).toBe(false)
+    expect(getSavedReadings()).toHaveLength(1)
+  })
+})
+
+// ───────────────────── sessionStorage 복원 페이로드 ─────────────────────
+
+describe('reading restore payload (sessionStorage)', () => {
+  beforeEach(() => {
+    sessionStorage.clear()
+  })
+
+  function makeSaved(overrides: Partial<SavedTarotReading> = {}): SavedTarotReading {
+    return {
+      id: 'tarot_1_abc',
+      timestamp: 1700000000000,
+      ...makeReadingInput(),
+      ...overrides,
+    }
+  }
+
+  it('store → load 라운드트립으로 동일한 리딩이 복원된다', () => {
+    const reading = makeSaved()
+    const key = storeReadingRestorePayload(reading)
+    expect(key).toBeTruthy()
+    expect(loadReadingRestorePayload(key)).toEqual(reading)
+  })
+
+  it('existingKey 를 넘기면 같은 슬롯을 덮어쓴다 (키 재사용)', () => {
+    const key = storeReadingRestorePayload(makeSaved({ question: 'v1' }))
+    const sameKey = storeReadingRestorePayload(makeSaved({ question: 'v2' }), key!)
+    expect(sameKey).toBe(key)
+    expect(loadReadingRestorePayload(key)?.question).toBe('v2')
+  })
+
+  it('없는 키 / null / undefined 키는 null 을 반환한다', () => {
+    expect(loadReadingRestorePayload('missing-key')).toBeNull()
+    expect(loadReadingRestorePayload(null)).toBeNull()
+    expect(loadReadingRestorePayload(undefined)).toBeNull()
+  })
+
+  it('깨진 페이로드는 null 로 복구한다', () => {
+    sessionStorage.setItem('tarot_restore_reading:bad', '{broken')
+    expect(loadReadingRestorePayload('bad')).toBeNull()
+  })
+
+  it('updateRestorePayloadFollowup 은 followupTurns/clarifierCard 만 병합한다', () => {
+    const reading = makeSaved({ question: '원본 질문' })
+    const key = storeReadingRestorePayload(reading)!
+
+    updateRestorePayloadFollowup(key, {
+      followupTurns: [{ role: 'user', content: '더 알려줘' }],
+      clarifierCard: { name: 'The Star', nameKo: '별', isReversed: false },
+    })
+
+    const updated = loadReadingRestorePayload(key)!
+    expect(updated.question).toBe('원본 질문') // 본문 보존
+    expect(updated.cards).toEqual(reading.cards)
+    expect(updated.followupTurns).toEqual([{ role: 'user', content: '더 알려줘' }])
+    expect(updated.clarifierCard).toEqual({ name: 'The Star', nameKo: '별', isReversed: false })
+  })
+
+  it('updateRestorePayloadFollowup 은 patch 에 없는 필드를 덮어쓰지 않는다', () => {
+    const reading = makeSaved({
+      followupTurns: [{ role: 'assistant', content: '기존 답변' }],
+    })
+    const key = storeReadingRestorePayload(reading)!
+
+    updateRestorePayloadFollowup(key, {
+      clarifierCard: { name: 'The Sun', isReversed: true },
+    })
+
+    const updated = loadReadingRestorePayload(key)!
+    expect(updated.followupTurns).toEqual([{ role: 'assistant', content: '기존 답변' }])
+    expect(updated.clarifierCard).toEqual({ name: 'The Sun', isReversed: true })
+  })
+
+  it('존재하지 않는 키에 대한 followup 갱신은 조용히 무시된다', () => {
+    expect(() =>
+      updateRestorePayloadFollowup('ghost', {
+        followupTurns: [{ role: 'user', content: 'x' }],
+      })
+    ).not.toThrow()
+    expect(loadReadingRestorePayload('ghost')).toBeNull()
+  })
+})
+
+// ───────────────────── 서버 리딩 → SavedTarotReading 매핑 ─────────────────────
+
+describe('mapServerReadingToSavedReading', () => {
+  it('서버 row 의 모든 필드를 클라이언트 포맷으로 매핑한다', () => {
+    const mapped = mapServerReadingToSavedReading({
+      id: 'srv-1',
+      createdAt: '2026-01-02T03:04:05.000Z',
+      question: ' 연애운 봐줘 ',
+      theme: 'love',
+      spreadId: 'three-card',
+      spreadTitle: 'Three Card',
+      cards: [
+        { name: 'The Fool', isReversed: false, position: 'Past' },
+        { name: 'The Magician', isReversed: true, position: 'Present' },
+      ],
+      overallMessage: 'overall',
+      guidance: 'guide',
+      cardInsights: [{ position: 'Past', card_name: 'The Fool', interpretation: 'insight' }],
+      clarifierCard: { name: 'The Star', isReversed: false },
+      followupTurns: [{ role: 'user', content: 'q' }],
+    })
+
+    expect(mapped.id).toBe('srv-1')
+    expect(mapped.timestamp).toBe(new Date('2026-01-02T03:04:05.000Z').getTime())
+    expect(mapped.question).toBe('연애운 봐줘')
+    expect(mapped.storageOrigin).toBe('server')
+    expect(mapped.spread).toEqual({ title: 'Three Card', cardCount: 2 })
+    expect(mapped.cards).toEqual([
+      { name: 'The Fool', isReversed: false, position: 'Past' },
+      { name: 'The Magician', isReversed: true, position: 'Present' },
+    ])
+    expect(mapped.interpretation).toEqual({
+      overallMessage: 'overall',
+      guidance: 'guide',
+      cardInsights: [{ position: 'Past', cardName: 'The Fool', interpretation: 'insight' }],
+    })
+    expect(mapped.categoryId).toBe('love')
+    expect(mapped.spreadId).toBe('three-card')
+    expect(mapped.clarifierCard).toEqual({ name: 'The Star', isReversed: false })
+    expect(mapped.followupTurns).toEqual([{ role: 'user', content: 'q' }])
+  })
+
+  it('빈 질문은 spreadTitle 로, 그것도 없으면 "Tarot reading" 으로 폴백한다', () => {
+    const base = { id: 's', createdAt: '2026-01-01T00:00:00Z' }
+    expect(
+      mapServerReadingToSavedReading({ ...base, question: '  ', spreadTitle: 'Celtic Cross' })
+        .question
+    ).toBe('Celtic Cross')
+    expect(mapServerReadingToSavedReading({ ...base, question: null }).question).toBe(
+      'Tarot reading'
+    )
+  })
+
+  it('잘못된 createdAt 은 현재 시각으로 폴백한다', () => {
+    const before = Date.now()
+    const mapped = mapServerReadingToSavedReading({ id: 's', createdAt: 'not-a-date' })
+    expect(mapped.timestamp).toBeGreaterThanOrEqual(before)
+    expect(Number.isFinite(mapped.timestamp)).toBe(true)
+  })
+
+  it('Date 객체 createdAt 도 지원한다', () => {
+    const d = new Date('2025-12-25T00:00:00Z')
+    expect(mapServerReadingToSavedReading({ id: 's', createdAt: d }).timestamp).toBe(d.getTime())
+  })
+
+  it('누락 필드들은 안전한 기본값으로 채운다', () => {
+    const mapped = mapServerReadingToSavedReading({
+      id: 's',
+      createdAt: '2026-01-01T00:00:00Z',
+      cards: [{}],
+    })
+    expect(mapped.spread.title).toBe('Tarot Reading')
+    expect(mapped.cards).toEqual([{ name: 'Card 1', isReversed: false, position: 'Card 1' }])
+    expect(mapped.interpretation.overallMessage).toBe('')
+    expect(mapped.categoryId).toBe('general')
+    expect(mapped.spreadId).toBe('')
+    expect(mapped.clarifierCard).toBeNull()
+    expect(mapped.followupTurns).toBeNull()
+  })
+})
+
+// ───────────────────── formatReadingForSave 빈 질문 폴백 ─────────────────────
+
+describe('formatReadingForSave question fallback', () => {
+  it('빈 질문은 spread.titleKo 로 폴백한다', () => {
+    const spread: Spread = {
+      id: 'one',
+      title: 'One Card',
+      titleKo: '원 카드',
+      description: '',
+      descriptionKo: '',
+      cardCount: 0,
+      positions: [],
+      categories: [],
+    }
+    const result = formatReadingForSave('   ', spread, [], null, 'general', 'one')
+    expect(result.question).toBe('원 카드')
+  })
+
+  it('titleKo 도 없으면 title → "Tarot reading" 순서로 폴백한다', () => {
+    const spread = {
+      id: 'one',
+      title: 'One Card',
+      titleKo: '',
+      description: '',
+      descriptionKo: '',
+      cardCount: 0,
+      positions: [],
+      categories: [],
+    } as unknown as Spread
+    expect(formatReadingForSave('', spread, [], null, 'g', 'one').question).toBe('One Card')
+
+    const bare = { ...spread, title: '', titleKo: '' } as unknown as Spread
+    expect(formatReadingForSave('', bare, [], null, 'g', 'one').question).toBe('Tarot reading')
   })
 })

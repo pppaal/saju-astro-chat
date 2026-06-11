@@ -1114,3 +1114,55 @@
 .evidence .transitRow {
   margin-top: 8px;
 }
+
+/* ── HourRhythm — 시진 길/주의 리듬 ── */
+.rhythmWrap {
+  margin: 16px 0 4px;
+}
+.rhythmLabel {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.rhythmRow {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.rhythmCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.rhythmTrack {
+  position: relative;
+  width: 100%;
+  height: 52px;
+}
+.rhythmMid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--line);
+}
+.rhythmBar {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  max-width: 16px;
+  border-radius: 3px;
+}
+.rhythmTime {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}

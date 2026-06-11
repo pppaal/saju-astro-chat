@@ -5,15 +5,12 @@ import type {
   PlanetBase,
   ZodiacKo,
 } from '@/lib/astrology/foundation/types'
-import type {
-  ZRPeriod,
-  ZRStartLot,
-} from '@/lib/astrology/foundation/zodiacalReleasing'
+import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalReleasing'
 import type { DignityTiers } from '@/lib/astrology/foundation/dignities'
 import type { ArabicLot } from '@/lib/astrology/foundation/arabicParts'
 import type { AlmutenFigurisResult } from '@/lib/astrology/foundation/almutenFiguris'
 import type { SajuPillars, FiveElement, ShinsalHit, RelationHit, DayMaster } from '@/lib/saju/types'
-import type { AnalysesResult } from '@/app/api/saju/services/analyses'
+import type { AnalysesResult } from '@/lib/saju/analyses'
 
 /**
  * Per-lot Zodiacal Releasing cache shape — L1 periods are pre-computed up to
@@ -79,14 +76,7 @@ export interface NatalArabicLot extends ArabicLot {
 }
 
 // Re-export so consumers can import from one place.
-export type {
-  AspectHit,
-  ZRPeriod,
-  ZRStartLot,
-  DignityTiers,
-  ArabicLot,
-  AlmutenFigurisResult,
-}
+export type { AspectHit, ZRPeriod, ZRStartLot, DignityTiers, ArabicLot, AlmutenFigurisResult }
 
 /**
  * 본명 컨텍스트 — 사용자별로 1회 계산 후 캐시.

@@ -9,7 +9,7 @@ import {
   getTwelveStagesForPillars,
 } from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
-import { performAnalyses } from '@/app/api/saju/services/analyses'
+import { performAnalyses } from '@/lib/saju/analyses'
 import { JIJANGGAN } from '@/lib/saju/constants'
 import { parseHourMinute } from '@/lib/saju/timeParse'
 import { logger } from '@/lib/logger'

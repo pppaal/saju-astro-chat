@@ -85,6 +85,17 @@ describe('GET /api/admin/revenue', () => {
     expect((await GET(req())).status).toBe(403)
   })
 
+  // zod 검증 도입 후: 잘못된 days 는 silent clamp(→30) 대신 422 거부.
+  // setupAdmin() 은 mockResolvedValueOnce 큐를 쌓는데 422 는 DB 도달 전에
+  // 끊겨 큐가 다음 테스트로 새므로, 여기선 세션/어드민 mock 만 직접 세팅.
+  it.each(['999', '0', 'abc'])('rejects invalid days=%s with 422', async (days) => {
+    vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
+    vi.mocked(isAdminUser).mockResolvedValue(true)
+    const res = await GET(req(days))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error.code).toBe('VALIDATION_ERROR')
+  })
+
   it('maps credit packs to KRW and sums window/today revenue', async () => {
     setupAdmin()
     const data = (await (await GET(req('30'))).json()).data

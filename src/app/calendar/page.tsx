@@ -324,6 +324,7 @@ export default async function DestinypalPage() {
     theme: decadeAdapter.theme,
     themeEn: decadeAdapter.themeEn,
     headline: decadeAdapter.headline,
+    headlineEn: decadeAdapter.headlineEn,
     pillar: {
       cheongan: {
         hanja: decadeAdapter.pillar.cheongan.hanja,

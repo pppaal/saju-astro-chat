@@ -535,6 +535,45 @@ export type CompatibilityCounselorRequestValidated = z.infer<
   typeof compatibilityCounselorRequestSchema
 >
 
+// ============ Realtime (운명) Counselor Schemas ============
+
+// 핵심 매출 라우트(/api/counselor/realtime POST)라 "코어만 엄격 + passthrough"
+// 전략을 쓴다: 클라이언트가 saju/astro/predictionContext/userContext 등 부가
+// 컨텍스트 필드를 계속 실어 보내므로(useChatApi.ts), unknown 필드를 거부하면
+// 배포 시점이 어긋난 구버전 클라이언트가 통째로 깨진다. 잠그는 건
+// messages 배열 + birthDate 두 코어와 turnId/cvText 의 타입/길이뿐.
+const realtimeCounselorTurnSchema = z
+  .object({
+    // 라우트가 user/assistant 외 role('system' 위조 포함)을 직접 필터하므로
+    // enum 으로 막지 않는다 — 클라가 보낸 비표준 턴이 422 가 되면 안 됨.
+    role: z.string().max(50).optional(),
+    // 일부 복원/저장 경로에서 content 가 비거나 null 일 수 있어 라우트의
+    // `m.content ?? ''` 처리와 동일하게 관대히 받는다.
+    content: z.string().nullish(),
+  })
+  .passthrough()
+
+export const counselorRealtimeRequestSchema = z
+  .object({
+    messages: z.array(realtimeCounselorTurnSchema).min(1),
+    birthDate: z.string().min(1).max(64),
+    // 라우트는 80자로 자르지만 입력은 여유 있게 — 길이만 abuse 방지 캡.
+    turnId: z.string().max(200).optional(),
+    // 첨부 파일 텍스트 — 라우트가 12,000자로 자르므로 여기선 폭주만 차단.
+    cvText: z.string().max(200_000).optional(),
+  })
+  .passthrough()
+
+export type CounselorRealtimeRequestValidated = z.infer<typeof counselorRealtimeRequestSchema>
+
+// 워밍 라우트(/api/counselor/warm) — realtime 과 동일한 CounselorBirthInput
+// 을 받지만 LLM 호출·과금이 없어 잠그는 코어는 birthDate 타입뿐.
+export const counselorWarmRequestSchema = z
+  .object({
+    birthDate: z.string().min(1).max(64),
+  })
+  .passthrough()
+
 // ============ Utility Schemas ============
 
 export const latlonToTimezoneSchema = z.object({

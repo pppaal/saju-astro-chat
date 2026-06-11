@@ -109,6 +109,69 @@ const BRANCH_KO: Record<string, string> = {
 }
 
 // ----------------------------------------------------------------
+// SibsinStrip — 10년 세운 십신 흐름 띠. 십신 가족별 색.
+// 비겁=쪽빛 / 식상=청록 / 재성=금 / 관성=적 / 인성=보라.
+// ----------------------------------------------------------------
+// 십신 가족 — *카테고리* 색. 길흉 valence 색(좋음=쪽빛/주의=주황/피함=적/
+// 수렴=금)과 겹치지 않는 별도 팔레트로 충돌 방지 (특히 관성을 적색에서 뺌).
+const SIBSIN_FAMILY_COLOR: Record<string, string> = {
+  비견: '#6c8aa6', // 비겁 — 스틸 블루
+  겁재: '#6c8aa6',
+  식신: '#4a9d8e', // 식상 — 청록
+  상관: '#4a9d8e',
+  편재: '#7d9d4a', // 재성 — 올리브 그린 (금색 회피)
+  정재: '#7d9d4a',
+  편관: '#9d6a8a', // 관성 — 모브 (적색 회피)
+  정관: '#9d6a8a',
+  편인: '#7a6aa6', // 인성 — 보라
+  정인: '#7a6aa6',
+}
+function SibsinStrip({
+  years,
+  ko,
+  label,
+}: {
+  years: Array<{ year: number; sibsin?: string; now?: boolean; gz: { hanja: string } }>
+  ko: boolean
+  label: string
+}) {
+  return (
+    <div className={styles.stripWrap}>
+      <div className={styles.stripLabel}>{label}</div>
+      <div className={styles.strip}>
+        {years.map((y) => (
+          <div
+            className={`${styles.stripCell} ${y.now ? styles.stripCellNow : ''}`}
+            key={y.year}
+            title={`${y.year} · ${y.gz.hanja}${y.sibsin ? ` · ${y.sibsin}` : ''}`}
+            style={{ background: (y.sibsin && SIBSIN_FAMILY_COLOR[y.sibsin]) || '#9aa0b4' }}
+          >
+            <span className={styles.stripHan}>{y.gz.hanja[0]}</span>
+            <span className={styles.stripYr}>{`'${String(y.year).slice(2)}`}</span>
+          </div>
+        ))}
+      </div>
+      <div className={styles.stripLegend}>
+        {(
+          [
+            [ko ? '비겁' : 'Self', '#6c8aa6'],
+            [ko ? '식상' : 'Output', '#4a9d8e'],
+            [ko ? '재성' : 'Wealth', '#7d9d4a'],
+            [ko ? '관성' : 'Officer', '#9d6a8a'],
+            [ko ? '인성' : 'Resource', '#7a6aa6'],
+          ] as Array<[string, string]>
+        ).map(([t, c]) => (
+          <span className={styles.stripLegItem} key={t}>
+            <span className={styles.stripSw} style={{ background: c }} />
+            {t}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ----------------------------------------------------------------
 // Component
 // ----------------------------------------------------------------
 
@@ -144,7 +207,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     {
       // 시작 앵커 — headline 은 바로 위 oneline 에 이미 있어 중복 표기하지 않음.
       when: `${decade.start}`,
-      title: ko ? `${dgz} 대운 진입` : `Entering the ${dgz} luck cycle`,
+      title: ko ? `${dgz} 대운 진입` : `Entering the ${dgz} cycle`,
       now: cy <= decade.start,
       past: false,
     },
@@ -174,8 +237,8 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     when: `${y.year}`,
     title:
       (y.sibsin && SIBSIN_YEAR_THEME[y.sibsin]?.[ko ? 'ko' : 'en']) ||
-      (ko ? '한 해의 흐름' : 'a year'),
-    detail: `${y.gz.hanja}${y.gz.kr ? ` (${y.gz.kr})` : ''}${y.sibsin ? ` · ${ko ? '세운' : 'yr'} ${ko ? y.sibsin : (SIBSIN_EN[y.sibsin] ?? y.sibsin)}` : ''}`,
+      (ko ? '한 해의 흐름' : 'The year ahead'),
+    detail: `${y.gz.hanja}${y.gz.kr ? ` (${y.gz.kr})` : ''}${y.sibsin ? ` · ${ko ? '세운' : 'annual'} ${ko ? y.sibsin : (SIBSIN_EN[y.sibsin] ?? y.sibsin)}` : ''}`,
     now: !!y.now,
     past: y.year < (decade.focusYear ?? decade.start),
   }))
@@ -221,15 +284,18 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
           {ko ? '지금의 대운, ' : 'Current cycle, '}
           <span className={styles.han}>{decade.gz.hanja}</span>
         </h1>
-        {/* Phase 3 보강 #1 — 격국 성패 frame chip (헤더 옆). */}
-        {gyeokgukLine && (
+        {/* Phase 3 보강 #1 — 격국 성패 frame chip (헤더 옆). 격국 status 문구가
+            한국어 전용 전문용어라, 영문 모드에선 숨긴다(자세히 보기에서 다룸). */}
+        {ko && gyeokgukLine && (
           <span className={styles.frameChip}>
-            <span className={styles.frameChipLabel}>{ko ? '격국 frame' : 'Structure'}</span>
+            <span className={styles.frameChipLabel}>격국 frame</span>
             <span className={styles.frameChipValue}>{gyeokgukLine}</span>
           </span>
         )}
       </div>
-      <p className={styles.oneline}>{decade.headline}</p>
+      <p className={styles.oneline}>
+        {ko ? decade.headline : (decade.headlineEn ?? decade.headline)}
+      </p>
 
       {/* 메인 — 이 대운 안에서 사주(대운) × 점성(외행성 마디)이 교차되는 구간만. */}
       <CrossingList
@@ -241,10 +307,14 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         items={decadeSpanItems}
       />
 
+      {decade.years && decade.years.length > 0 && (
+        <SibsinStrip years={decade.years} ko={ko} label={ko ? '10년 세운 흐름' : '10-year flow'} />
+      )}
+
       {/* ── 전문가용 상세 — 세운 흐름·교차 페어·사주 기둥 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>
-          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & astrology'}
+          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & Astrology'}
         </summary>
 
         {/* 10년 세운 결 — 연도별 세운 십신 (교차는 아님). */}

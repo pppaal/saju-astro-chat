@@ -48,6 +48,15 @@ describe('/api/counselor/realtime/result GET', () => {
     expect(res.status).toBe(400)
   })
 
+  it('로그인 + 잘못된 turnId(200자 초과) → 422 (zod 검증)', async () => {
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user-A' } })
+    const { GET } = await importRoute()
+    const res = await GET(makeReq('x'.repeat(201)))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error).toBe('turnId_invalid')
+    expect(mockCacheGet).not.toHaveBeenCalled()
+  })
+
   it('로그인 + 자기 캐시 hit → ready=true + content 반환', async () => {
     mockGetServerSession.mockResolvedValue({ user: { id: 'user-A' } })
     mockCacheGet.mockResolvedValue('my saju result')
