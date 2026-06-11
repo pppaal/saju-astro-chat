@@ -1,59 +1,32 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
-import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import { useI18n } from '@/i18n/I18nProvider'
 import CreditBadge from '@/components/ui/CreditBadge'
 import CounselorLoadingScreen from '@/components/branding/CounselorLoading'
-import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
-import { useRecoverOnResume } from '@/hooks/useRecoverOnResume'
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock'
 import CounselorSidebar from '@/components/destiny-map/CounselorSidebar'
 import styles from './compatibility-counselor.module.css'
 import { logger } from '@/lib/logger'
-import { CompatChartModal } from './CompatChartModal'
-import { streamProcessor } from '@/lib/streaming'
 import { apiFetch } from '@/lib/api'
-import { ChatInputArea } from '@/components/destiny-map/chat-panels'
-import {
-  generateFollowUpQuestions,
-  isGenericFollowUp,
-} from '@/components/destiny-map/chat-followups'
-import { getErrorMessage as getCounselorErrorMessage } from '@/lib/counselor/errorMessage'
-// InlineTarotModal 은 dynamic 이 아니라 직접 import — 이전엔 dynamic ssr:false
-// 였는데 첫 클릭 시 chunk download 로 모달이 "지지직" 거리며 늦게 떴음.
-// 직접 import 로 즉시 열리게. (~50KB 초기 번들 증가는 수용 — UX 우선.)
-import InlineTarotModal, {
-  type TarotResultSummary,
-} from '@/components/destiny-map/InlineTarotModal'
-
-const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
-  ssr: false,
-})
+import { type TarotResultSummary } from '@/components/destiny-map/InlineTarotModal'
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
-import { pushRecentPair, getRecentPairs, type RecentPair } from '@/app/compatibility/lib'
+import { pushRecentPair } from '@/app/compatibility/lib'
 import { normalizeGender } from '@/lib/utils/gender'
-import { CompatPersonPickerModal, type PickedPersonData } from './CompatPersonPickerModal'
+import { type PickedPersonData } from './CompatPersonPickerModal'
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
-import ChatActionModals from '@/components/counselor/ChatActionModals'
 import { useChatActions } from '@/lib/counselor/useChatActions'
 import { useCounselorNewChat } from '@/lib/counselor/useCounselorNewChat'
-import { savePendingChat, loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
-import {
-  readPendingTurn as readPendingTurnRaw,
-  writePendingTurn as writePendingTurnRaw,
-  clearPendingTurn as clearPendingTurnRaw,
-  PENDING_TURN_TTL_MS,
-  type PendingTurn,
-} from '@/lib/chat/pendingTurn'
+import { loadPendingChat } from '@/lib/chat/pendingChat'
 import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
-import { useCreditModal } from '@/contexts/CreditModalContext'
-import { useRequireLogin } from '@/contexts/LoginModalContext'
-import { FollowUpChips } from '@/components/chat/FollowUpChips'
+import { useCompatCounselorChat } from './useCompatCounselorChat'
+import { CompatChatArea } from './CompatChatArea'
+import { CompatCounselorModals } from './CompatCounselorModals'
+import { ProfileStickyBar } from './ProfileStickyBar'
+import type { ChatMessage, PersonData } from './types'
 
 // (타이프라이터 placeholder 제거 — 사용자 요청으로 운명·궁합 입력창은 움직이는
 // 문구 없이 정적 placeholder 로 통일. 메인 홈 입력창만 순환 타이프라이터 유지.)
@@ -66,33 +39,6 @@ function CounselorLoading(_props: { lang?: 'ko' | 'en' }) {
   return <CounselorLoadingScreen />
 }
 
-type ChatMessage = {
-  role: 'user' | 'assistant'
-  content: string
-  /** Stream cut mid-response → bubble shows a "다시 시도" retry button. */
-  incomplete?: boolean
-}
-
-// 끊긴 턴 복원용 영속 정보는 공용 모듈(@/lib/chat/pendingTurn)을 'compat' 네임스페이스로
-// 바인딩해서 사용. 운명상담사는 같은 모듈을 'destiny' 로 바인딩 — read/write/clear 시그니처
-// 호환을 유지하려 namespace 인자를 미리 채운 얇은 래퍼만 둔다.
-const readPendingTurn = (): PendingTurn | null => readPendingTurnRaw('compat')
-const writePendingTurn = (t: PendingTurn): void => writePendingTurnRaw('compat', t)
-const clearPendingTurn = (): void => clearPendingTurnRaw('compat')
-
-type PersonData = {
-  name: string
-  date: string
-  time: string
-  city: string
-  latitude?: number
-  longitude?: number
-  timeZone?: string
-  relation?: string
-  /** 대운 순/역행이 음양남녀에 따라 갈리므로 빠지면 잘못 계산됨. */
-  gender?: 'M' | 'F' | 'Male' | 'Female'
-}
-
 function CompatibilityCounselorContent() {
   const { locale } = useI18n()
   const searchParams = useSearchParams()
@@ -101,28 +47,17 @@ function CompatibilityCounselorContent() {
   // URL ?session= 제거 + 상태 리셋. resume 효과에 자동복원 가드(autoResumeAttemptedRef)
   // 를 달아 bare URL 이 돼도 직전 채팅을 다시 끌어오지 않으므로 strip 을 켤 수 있다.
   const startNewChat = useCounselorNewChat('/compatibility/counselor', 'compat')
-  const { showDepleted } = useCreditModal()
-  const requireLogin = useRequireLogin()
 
   const [persons, setPersons] = useState<PersonData[]>([])
   const [person1Saju, setPerson1Saju] = useState<Record<string, unknown> | null>(null)
   const [person2Saju, setPerson2Saju] = useState<Record<string, unknown> | null>(null)
   const [person1Astro, setPerson1Astro] = useState<Record<string, unknown> | null>(null)
   const [person2Astro, setPerson2Astro] = useState<Record<string, unknown> | null>(null)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
   const [isInitializing, setIsInitializing] = useState(true)
-  // redirecting state — picker 모달 통합 후로 set 호출처는 없지만 loading
-  // 가드(if isInitializing || redirecting) 의 의미적 키워드는 유지.
-  const [redirecting] = useState(false)
   /** persons 가 비어 있을 때 picker 모달 노출 여부 — URL 에 ?persons= /
    *  ?session= 둘 다 없는 신규 진입 + 새 채팅 직후에 true. */
   const [showPicker, setShowPicker] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // LLM-generated follow-up chips. Filled from streamProcessor result.
-  // Cleared on every new send so stale suggestions never leak.
-  const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([])
   // Persistent chat session id (returned by /api/counselor/chat-history
   // after the first save). Subsequent saves attach to the same row.
   const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined)
@@ -136,33 +71,7 @@ function CompatibilityCounselorContent() {
   // 토큰마다 messagesEnd 따라가면 viewport 가 위로 밀려 "왜 다시 올라가냐"
   // 회귀.
   const suspendAutoScrollRef = useRef(false)
-  // 로그인/구매 왕복 후 복원했을 때 마지막 '미답변 user 질문'을 담아 두고,
-  // 인증 확인되는 대로 자동 재전송한다("직전 질문 이어서 답변").
-  const pendingResumeTextRef = useRef<string | null>(null)
-  const resumeSentRef = useRef(false)
-  // 직전 user turn 의 idempotencyKey 를 보관. "다시 시도" 가 같은 키로 재요청
-  // 하면 서버가 idempotent replay 로 인식해 *추가 credit 차감 없이* Claude
-  // 호출만 다시 돌린다(라우트의 idemStore.isReplay 분기). 새 user 발화가
-  // 들어오면 새 UUID 로 덮어씀.
-  const lastTurnIdemKeyRef = useRef<string | null>(null)
-  // 끊긴 턴 복원 — 서버는 연결이 끊겨도 끝까지 생성해 turnId 로 캐시에 저장한다
-  // (claudeSSE keepGeneratingOnDisconnect). 스트림이 불완전하게 끝났거나
-  // 사용자가 다른 앱에서 돌아오면(visibilitychange) 이 정보로 result 를
-  // 폴링해 완성 답으로 갈아끼운다. 마지막 assistant 메시지를 교체한다.
-  const recoverableTurnRef = useRef<{ turnId: string; userText: string } | null>(null)
-  const recoveringRef = useRef(false)
-  // 마운트 1회 복원 가드 — 크레딧 구매 등으로 페이지를 떠났다 돌아오면
-  // recoverableTurnRef(메모리)는 비지만 localStorage 의 pending turn 과 복원된
-  // 마지막 미완성 assistant 가 단서로 남는다. 마운트당 한 번만 시도.
-  const mountRecoverDoneRef = useRef(false)
-  // attemptRecover 는 sendMessage 보다 아래에 선언되므로(같은 컴포넌트 body),
-  // sendMessage 안에서 직접 부르면 use-before-declaration. ref 로 우회.
-  const attemptRecoverRef = useRef<(() => void) | null>(null)
-  // 채팅 우상단 ⋮ 메뉴 — Rename / Delete. 운명 상담사와 동일한 공용 hook
-  // (`useChatActions`) 으로 위임 — 이전엔 여기서 window.prompt/window.confirm 을
-  // 직접 띄웠는데, 인앱 웹뷰에서 native dialog 가 막혀 이름 변경/삭제가
-  // 안 되던 회귀를 해소(In‑app PromptModal 로 자동 마이그레이션).
-  // 파일 첨부 — 운명 상담사와 동일한 훅. 업로드 텍스트(cvText)는 sendMessage
+  // 파일 첨부 — 운명 상담사와 동일한 훅. 업로드 텍스트(cvText)는 전송
   // payload 로 전달돼 라우트가 현재 턴 프롬트에 주입한다.
   const [fileNotice, setFileNotice] = useState<string | null>(null)
   const { cvText, cvName, parsingPdf, handleFileUpload, clearFile } = useFileUpload({
@@ -172,31 +81,19 @@ function CompatibilityCounselorContent() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chartFetchRef = useRef(false)
-  // Track mount lifecycle so the post-await setStates inside sendMessage
+  // Track mount lifecycle so the post-await setStates inside the chat hook
   // and fetchPersonData below bail out cleanly when the user navigates
   // away mid-stream. PR #890 applied the same pattern to useChatApi.
   const mountedRef = useRef(true)
-  // The latest sendMessage's AbortController — sendMessage still creates
-  // its own per-call controller for header timeout / chunk-idle, but we
-  // stash a reference here so unmount can abort whatever's running.
-  const inFlightAbortRef = useRef<AbortController | null>(null)
-  // Same idea for the chart-data prefetch — 4 parallel /api/saju and
-  // /api/astrology fetches that otherwise keep running and fire 4
-  // setStates after the user navigates away.
+  // Chart-data prefetch abort — 4 parallel /api/saju and /api/astrology
+  // fetches that otherwise keep running and fire 4 setStates after the
+  // user navigates away. (스트림 쪽 abort 는 공용 훅이 자체 관리.)
   const chartFetchAbortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     mountedRef.current = true
     return () => {
       mountedRef.current = false
-      if (inFlightAbortRef.current) {
-        try {
-          inFlightAbortRef.current.abort()
-        } catch {
-          // already aborted — ignore
-        }
-        inFlightAbortRef.current = null
-      }
       if (chartFetchAbortRef.current) {
         try {
           chartFetchAbortRef.current.abort()
@@ -211,6 +108,35 @@ function CompatibilityCounselorContent() {
   /** ChatInputArea 의 focusToken — 갱신 시 textarea 다시 focus.
    *  refactor 전 inputRef.current?.focus() 자리를 대체. */
   const [focusToken, setFocusToken] = useState(0)
+
+  // 공용 상담 채팅 훅(운명 상담사와 동일 골격) — 메시지/입력/전송 스트림/
+  // idempotency 재사용/끊긴 턴 복원/다시 시도/드래프트 저장 오케스트레이션.
+  const {
+    messages,
+    setMessages,
+    input,
+    setInput,
+    loading: isLoading,
+    followUpQuestions,
+    sendMessage,
+    retryLastAnswer,
+    queueResumeText,
+  } = useCompatCounselorChat({
+    locale,
+    isKo,
+    persons,
+    person1Saju,
+    person2Saju,
+    person1Astro,
+    person2Astro,
+    chatSessionId,
+    setChatSessionId,
+    chatTitle,
+    cvText,
+    isInitializing,
+    mountedRef,
+    setError,
+  })
 
   // 자동 "최근 채팅 이어보기"는 최초 진입 1회만 허용 — '새 채팅'으로 URL 이
   // bare 가 돼도 직전 채팅을 다시 끌어오지 않도록 가드(운명 상담사와 동일 패턴).
@@ -265,15 +191,16 @@ function CompatibilityCounselorContent() {
                 (m): m is ChatMessage => !!m && (m.role === 'user' || m.role === 'assistant')
               )
               // 마지막이 아직 답을 못 받은 user 질문이면 떼어내 자동 재전송 대상으로.
-              // (로그인/구매 왕복 후 "직전 질문 이어서 답변". 안 떼면 sendMessage 가
-              // user 메시지를 한 번 더 추가해 같은 질문이 두 번 뜬다.)
+              // (로그인/구매 왕복 후 "직전 질문 이어서 답변" — 인증 확인 시 1회
+              // 재전송은 공용 훅이 처리. 안 떼면 sendMessage 가 user 메시지를 한 번
+              // 더 추가해 같은 질문이 두 번 뜬다.)
               if (
                 restoredMsgs.length > 0 &&
                 restoredMsgs[restoredMsgs.length - 1]?.role === 'user'
               ) {
                 const last = restoredMsgs.pop()
                 const t = last && typeof last.content === 'string' ? last.content.trim() : ''
-                if (t) pendingResumeTextRef.current = t
+                if (t) queueResumeText(t)
               }
               setMessages(restoredMsgs)
             }
@@ -390,40 +317,6 @@ function CompatibilityCounselorContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
-  // 게스트(서버 저장 전) 진행 채팅을 localStorage 드래프트로 보존 — 한도→로그인/
-  // 구매 왕복 후 마운트에서 복원하기 위함. 서버 세션이 생기면(chatSessionId) 서버가
-  // 정본이므로 드래프트를 지운다(로그인 사용자에겐 사실상 no-op). 스트리밍 중
-  // (isLoading)엔 저장하지 않고, 턴이 끝난 최종 상태만 기록.
-  useEffect(() => {
-    if (isInitializing || isLoading) return
-    if (chatSessionId) {
-      clearPendingChat('compat')
-      return
-    }
-    if (persons.length >= 2 && messages.length > 0) {
-      savePendingChat('compat', {
-        persons,
-        person1Saju,
-        person2Saju,
-        person1Astro,
-        person2Astro,
-        messages,
-        chatTitle,
-      })
-    }
-  }, [
-    isInitializing,
-    isLoading,
-    chatSessionId,
-    persons,
-    messages,
-    person1Saju,
-    person2Saju,
-    person1Astro,
-    person2Astro,
-    chatTitle,
-  ])
-
   const fetchPersonData = async (personList: PersonData[]) => {
     chartFetchRef.current = true
     // Abort any previous chart prefetch before kicking off a new one
@@ -537,12 +430,12 @@ function CompatibilityCounselorContent() {
   // 차트 저장 이전에 만들어진 세션이면 person*Saju/Astro 가 비어 차트 버튼이
   // 영구 비활성된다. persons 는 있는데 데이터가 없으면 여기서 지연 로드.
   useEffect(() => {
-    if (isInitializing || redirecting) return
+    if (isInitializing) return
     if (persons.length < 2) return
     if (person1Saju || person2Saju || person1Astro || person2Astro) return
     if (chartFetchRef.current) return
     fetchPersonData(persons)
-  }, [isInitializing, redirecting, persons, person1Saju, person2Saju, person1Astro, person2Astro])
+  }, [isInitializing, persons, person1Saju, person2Saju, person1Astro, person2Astro])
 
   // 자동 스크롤 — 공통 hook (destiny / followup 동일). externalRef 로 기존
   // messagesEndRef 그대로 사용.
@@ -589,546 +482,6 @@ function CompatibilityCounselorContent() {
       logger.warn('[CompatCounselor] action failed', { kind, status })
     }, []),
   })
-
-  const sendMessage = useCallback(
-    async (
-      textOverride?: string,
-      options?: { isRetry?: boolean; historyOverride?: ChatMessage[] }
-    ) => {
-      const text = (textOverride ?? input).trim()
-      if (!text || isLoading) {
-        return
-      }
-
-      // 궁합 상담은 유료 서비스 — 비로그인이면 전송 대신 로그인 모달.
-      // (게스트 무료 체험 제거: 로그인해야만 사용 가능.)
-      if (!requireLogin()) {
-        // 막힌 질문을 인물 스냅샷과 함께 draft 에 저장 → 로그인(풀 리로드) 후
-        // 복원 effect 가 persons 와 함께 살리고, 마지막 미답변 질문을 자동
-        // 재전송한다. 이게 없으면 질문이 messages 에 안 들어가 통째로 사라진다.
-        if (persons.length >= 2) {
-          savePendingChat('compat', {
-            persons,
-            person1Saju,
-            person2Saju,
-            person1Astro,
-            person2Astro,
-            messages: [...messages, { role: 'user', content: text }],
-            chatTitle,
-          })
-        }
-        return
-      }
-
-      // 새 전송 시작 → 마운트 복원 경로 무효화. 직전 미완성 턴의 영속 turnId 가
-      // 새 답변의 복원에 끼어들지 않게 하고, 이 턴의 turnId 는 아래에서 새로 쓴다.
-      mountRecoverDoneRef.current = true
-
-      const userMessage: ChatMessage = { role: 'user', content: text }
-      setMessages((prev) => [...prev, userMessage])
-      if (!textOverride) setInput('')
-      setFollowUpQuestions([])
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        // Send only the most recent turns. The server already clamps to
-        // 8 via `clampMessages`, but uploading the full history every
-        // turn wastes the user's mobile data + adds round-trip latency
-        // for long conversations.
-        // "다시 시도"는 잘린 답+직전 user 를 막 pop 한 직후 호출되므로 closure
-        // 의 messages 가 아직 옛 값(잘린 쌍 포함)이다. 호출자가 정리한 히스토리를
-        // historyOverride 로 넘기면 그걸 정본으로 써 중복 user/잘린 답이 안 섞인다.
-        const baseHistory = options?.historyOverride ?? messages
-        const recentHistory = [...baseHistory, userMessage].slice(-10)
-        // 새로고침/탭 복제 등 같은 turn 재진입 시 서버가 중복 차감 안 하도록
-        // 매 user 메시지 마다 UUID 생성. "다시 시도" 일 때는 직전 turn 의
-        // 키를 그대로 재사용 — 서버가 idempotent replay 로 인식해 credit
-        // 추가 차감 없이 Claude 만 다시 호출. (부분 응답 후 끊긴 케이스도
-        // 첫 호출에서 *이미* 차감됐기 때문에 재시도가 또 차감되면 중복.)
-        const reusedKey = options?.isRetry ? lastTurnIdemKeyRef.current : null
-        const idempotencyKey =
-          reusedKey ||
-          (typeof crypto !== 'undefined' && crypto.randomUUID
-            ? crypto.randomUUID()
-            : `t${Date.now()}-${Math.random().toString(36).slice(2)}`)
-        lastTurnIdemKeyRef.current = idempotencyKey
-        // 끊겨도(혹은 크레딧 구매로 페이지를 떠났다 돌아와도) 서버가 끝까지 생성해
-        // 이 turnId 로 캐시에 저장 → 마운트 복원 effect 가 잘린 답을 완성본으로
-        // 갈아끼운다. 전송 시점에 미리 남겨, 응답이 끊긴 뒤 remount 돼도 복원 단서가
-        // 살아 있게 한다(메모리 ref 만으로는 navigate-away 에 소실). 정상 완료 시
-        // 아래에서 clear. retry 도 같은 turnId 라 그대로 덮어써 무방.
-        writePendingTurn({ turnId: idempotencyKey, userText: text, ts: Date.now() })
-        // 운명 상담사의 useChatApi 패턴을 그대로 이식 — 헤더 도착까지의 절대
-        // 시간 cap 과 chunk 사이 idle cap 을 분리해서 관리한다. 헤더가 30s
-        // 안에 안 오면 abort, 헤더 받은 뒤엔 chunk idle 45s 기준으로 따로
-        // 관리(아래 streamProcessor 호출부에서 reset).
-        const HEADER_TIMEOUT_MS = 30_000
-        const CHUNK_IDLE_TIMEOUT_MS = 45_000
-        const MAX_RETRY_ATTEMPTS = 2
-        const RETRY_BASE_DELAY_MS = 1_000
-        // 5xx / 헤더 타임아웃은 운명 상담사처럼 자동 재시도(exponential backoff).
-        // 같은 idempotencyKey 를 다시 보내므로 credit 중복 차감은 없다 (서버
-        // idemStore.isReplay). retry 동안에도 controller / headerTimer 는
-        // attempt 마다 새로 만든다.
-        const requestBody = JSON.stringify({
-          persons,
-          person1Saju,
-          person2Saju,
-          person1Astro,
-          person2Astro,
-          lang: locale,
-          messages: recentHistory,
-          useRag: true,
-          // 끊김 복구용 턴 식별자 — idempotencyKey 와 동일 값. 서버는 연결이
-          // 끊겨도 끝까지 생성한 답을 이 키로 캐시하고, 사용자가 돌아오면
-          // /api/compatibility/counselor/result?turnId=… 로 복원한다.
-          turnId: idempotencyKey,
-          ...(cvText ? { cvText } : {}),
-        })
-        let response: Response | null = null
-        let controller = new AbortController()
-        let attempt = 0
-        while (true) {
-          controller = new AbortController()
-          // Register controller so the component-level unmount cleanup
-          // (above) can abort whatever attempt is currently in flight.
-          inFlightAbortRef.current = controller
-          const headerTimer = setTimeout(() => controller.abort(), HEADER_TIMEOUT_MS)
-          try {
-            response = await apiFetch('/api/compatibility/counselor', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-idempotency-key': idempotencyKey,
-              },
-              body: requestBody,
-              signal: controller.signal,
-            })
-            clearTimeout(headerTimer)
-            if (response.ok) break
-            // 401/402/4xx 같은 *유저 액션* 에러는 재시도해도 의미 없음 — 그대로
-            // 아래 not-ok 분기에서 throw. 5xx 만 재시도.
-            if (response.status >= 500 && attempt < MAX_RETRY_ATTEMPTS) {
-              attempt++
-              await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt))
-              continue
-            }
-            break
-          } catch (err) {
-            clearTimeout(headerTimer)
-            const name = (err as Error & { name?: string }).name
-            // 헤더 타임아웃(AbortError) / 네트워크 끊김은 자동 재시도.
-            if (
-              (name === 'AbortError' || name === 'TimeoutError') &&
-              attempt < MAX_RETRY_ATTEMPTS
-            ) {
-              attempt++
-              await new Promise((r) => setTimeout(r, RETRY_BASE_DELAY_MS * attempt))
-              continue
-            }
-            throw err
-          }
-        }
-        if (!response) {
-          // 위 while 안에서 response 가 설정되지 않은 채 빠져나오는 경로는
-          // 없지만 TypeScript narrowing 위해 가드.
-          throw new Error('No response received')
-        }
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            // 비로그인 — apiFetch 가 전역 로그인 모달도 띄운다.
-            throw new Error('login_required')
-          }
-          // 402 Payment Required — credit exhausted. 잡아서 전역 크레딧
-          // 안내 모달(showDepleted)로 처리한다(아래 catch 참고).
-          if (response.status === 402) {
-            throw new Error('payment_required')
-          }
-          // Pull the route's short errorTag so the chat bubble shows
-          // *why* the request failed instead of a generic "오류 발생".
-          // The route returns { error, errorTag } as JSON for non-2xx.
-          let detail = ''
-          try {
-            const body = (await response.clone().json()) as { errorTag?: string; error?: string }
-            detail = body.errorTag || body.error || ''
-          } catch {
-            /* response wasn't JSON — fall through to plain status */
-          }
-          throw new Error(
-            detail ? `Failed (${response.status}): ${detail}` : `Failed (${response.status})`
-          )
-        }
-
-        // 서버는 `data: {"content":"...","done":false}\n\n` 형식의 JSON SSE를
-        // 보낸다. 이전엔 `data:` 라인 뒤의 *JSON 문자열 전체*를 그대로
-        // 누적해서 화면에 `{"content":"안","done":false}{"content":"녕"...}`
-        // 식의 깨진 텍스트가 나왔다. 운명 상담사가 이미 쓰던 streamProcessor
-        // 로 통일 — `content` 필드만 추출해 누적한다.
-        if (!mountedRef.current) return
-        setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
-
-        // chunk idle timer — chunk 가 들어올 때마다 reset. 일정 시간 동안 한
-        // byte 도 안 오면 응답이 진짜 멈춘 것으로 보고 abort. controller.abort()
-        // 가 reader.read() 도 종료시켜 streamProcessor 가 truncated 로 마무리,
-        // 그러면 페이지가 "다시 시도" 버튼을 자동 노출. 서버 heartbeat 가
-        // 있어도 chunk 자체가 끊긴 케이스(클라 ↔ edge 사이 NAT drop 등) 는
-        // 여기로 잡힌다.
-        let idleTimer: ReturnType<typeof setTimeout> | null = null
-        const armIdleTimer = () => {
-          if (idleTimer) clearTimeout(idleTimer)
-          idleTimer = setTimeout(() => controller.abort(), CHUNK_IDLE_TIMEOUT_MS)
-        }
-        armIdleTimer()
-
-        let finalAssistantContent = ''
-        const result = await streamProcessor.process(response, {
-          onChunk: (_accumulated, cleaned) => {
-            armIdleTimer()
-            finalAssistantContent = cleaned
-            if (!mountedRef.current) return
-            setMessages((prev) => {
-              const updated = [...prev]
-              if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
-                updated[updated.length - 1] = {
-                  role: 'assistant',
-                  content: cleaned,
-                }
-              }
-              return updated
-            })
-          },
-          onError: (err) => {
-            logger.warn('[CompatCounselor] stream error', { error: err })
-          },
-        })
-        if (idleTimer) clearTimeout(idleTimer)
-        if (!mountedRef.current) return
-        // 스트림이 ||FOLLOWUP|| 마커 전에 끊겼다면(모바일 LTE drop / 서버 idle
-        // abort / Claude disconnect) 메시지를 "다시 시도" 버튼이 붙는 incomplete
-        // 상태로 마킹. 단, 서버가 X-Counselor-Fallback: 1 을 달아 보낸 응답
-        // (안전 차단 / 완결성 부족 / Claude 에러 시 generic 안내문) 은 *완결된*
-        // 메시지지만 마커가 없을 뿐이라 truncated 로 보면 안 됨 → 헤더로 분기.
-        const isServerFallback = response.headers.get('x-counselor-fallback') === '1'
-        const wasTruncated = !isServerFallback && (!result.success || result.truncated)
-        if (wasTruncated && finalAssistantContent) {
-          setMessages((prev) => {
-            const updated = [...prev]
-            const lastIdx = updated.length - 1
-            if (lastIdx >= 0 && updated[lastIdx].role === 'assistant') {
-              updated[lastIdx] = { ...updated[lastIdx], incomplete: true }
-            }
-            return updated
-          })
-          // 끊김/미완 — 서버는 keepGeneratingOnDisconnect 로 끝까지 생성해 turnId
-          // 캐시에 저장한다. 복원 대상에 등록하고 즉시(이미 돌아와 있으면) 폴링
-          // 시작 — 아니면 visibility 시 재개. 게스트는 turnId 캐시가 없어 result
-          // 가 항상 ready=false → 폴링이 자연히 만료되므로 별도 가드 불필요.
-          recoverableTurnRef.current = { turnId: idempotencyKey, userText: text }
-          // 새로고침/페이지 이탈 후에도 살릴 수 있게 turnId 를 localStorage 에 갱신.
-          writePendingTurn({ turnId: idempotencyKey, userText: text, ts: Date.now() })
-          attemptRecoverRef.current?.()
-        } else if (finalAssistantContent) {
-          // 정상 완료 — 더 이상 복원할 게 없으니 영속 단서 정리. (truncate/에러
-          // 가 아닌, 실제 완결 답이 도착한 경우만.)
-          recoverableTurnRef.current = null
-          clearPendingTurn()
-        }
-        // 운명 상담사와 동일 패턴 — LLM 의 generic followup ("더 알려줘",
-        // "tell me more" 등) 을 클라이언트에서 결정적으로 필터링 + 부족분만
-        // theme 기반 폴백으로 보충. 이전엔 LLM 2개 ≥ 면 그대로 / 미만이면
-        // 폴백 전체 교체 였는데, 그 경우 LLM generic 답이 그대로 노출되거나
-        // 답변 무관 폴백이 통째로 표시됐음.
-        const lang = locale === 'ko' ? 'ko' : 'en'
-        const goodAiFollowUps = result.followUps.filter((q) => !isGenericFollowUp(q, lang))
-        const needed = 2 - goodAiFollowUps.length
-        const merged =
-          needed > 0
-            ? [
-                ...goodAiFollowUps,
-                ...generateFollowUpQuestions(text, lang, 2, finalAssistantContent).filter(
-                  (q) => !goodAiFollowUps.includes(q)
-                ),
-              ].slice(0, 2)
-            : goodAiFollowUps.slice(0, 2)
-        setFollowUpQuestions(merged)
-
-        // Persist the exchange so it shows up in the past-chats sidebar
-        // next visit. Fire-and-forget; save failure must not block UX.
-        if (finalAssistantContent) {
-          const isFirstSave = !chatSessionId
-          const body: Record<string, unknown> = {
-            sessionId: chatSessionId,
-            locale: locale === 'ko' ? 'ko' : 'en',
-            userMessage: userMessage.content,
-            assistantMessage: finalAssistantContent,
-            type: 'compat',
-          }
-          // On the *first* save attach the couple snapshot so a future
-          // re-open can restore the chart without recomputing.
-          if (isFirstSave) {
-            body.meta = {
-              persons,
-              person1Saju,
-              person2Saju,
-              person1Astro,
-              person2Astro,
-            }
-          }
-          // apiFetch — 세션 쿠키를 항상 실어 모바일 인앱 브라우저에서도 저장이
-          // 성공하도록. 저장이 실패하면 이어 띄울 "최신 채팅"이 없어 매번 폼이
-          // 떴다(#1037 와 동일한 native-fetch 쿠키 누락 이슈).
-          apiFetch('/api/counselor/chat-history', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-          })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((data: { success?: boolean; session?: { id: string } } | null) => {
-              if (!mountedRef.current) return
-              if (data?.success && data.session?.id && !chatSessionId) {
-                setChatSessionId(data.session.id)
-              }
-            })
-            .catch((err) =>
-              logger.warn('[CompatCounselor] chat-history save failed', { error: err })
-            )
-        }
-      } catch (e) {
-        // Aborted via unmount — silent bail; nothing to setState into.
-        const errName = (e as Error & { name?: string })?.name
-        if (errName === 'AbortError' || !mountedRef.current) {
-          return
-        }
-        logger.error('Chat error:', { error: e })
-        const errMsg = (e as Error).message || ''
-        if (errMsg === 'login_required') {
-          setError(
-            isKo
-              ? '로그인이 필요한 프리미엄 기능입니다.'
-              : 'Login required for this premium feature.'
-          )
-        } else if (errMsg === 'payment_required') {
-          // 크레딧 소진 → 인라인 에러 대신 전역 크레딧 안내 모달을 띄운다
-          // (운명 상담사·타로와 동일한 UX).
-          showDepleted()
-        } else {
-          // Use the shared counselor localizer — same 429/5xx/timeout
-          // branches as 운명상담사. Previously this concatenated the raw
-          // `[Failed (500): RateLimitError: …]` tag into the user-visible
-          // bubble; that stack-shape string is now hidden behind a friendly
-          // "잠시 후 다시 시도해 주세요" message (still logged above for
-          // debugging).
-          const fallback = isKo
-            ? '오류가 발생했습니다. 다시 시도해 주세요.'
-            : 'An error occurred. Please try again.'
-          setError(getCounselorErrorMessage(e, isKo ? 'ko' : 'en', fallback))
-        }
-      } finally {
-        // Clear our in-flight slot if it still points at this call's
-        // controller (a later call may have already replaced it).
-        if (inFlightAbortRef.current && inFlightAbortRef.current.signal.aborted) {
-          inFlightAbortRef.current = null
-        }
-        if (mountedRef.current) setIsLoading(false)
-      }
-    },
-    [
-      input,
-      isLoading,
-      messages,
-      persons,
-      person1Saju,
-      person2Saju,
-      person1Astro,
-      person2Astro,
-      locale,
-      isKo,
-      chatSessionId,
-      chatTitle,
-      cvText,
-      showDepleted,
-      requireLogin,
-    ]
-  )
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
-  }
-
-  // "다시 시도" — 잘린 assistant 답변과 그 직전 user 메시지를 둘 다 pop 한 뒤
-  // 동일 user 텍스트로 재요청. isRetry: true 로 직전 turn 의 idempotencyKey 를
-  // 재사용해 서버 idempotent replay 분기로 credit 중복 차감을 막는다. 부분
-  // 응답 후 끊긴 케이스도 첫 호출에서 *이미* 차감됐기 때문에 같은 키 재사용
-  // 이 정상적인 보호 동선.
-  const retryLastAnswer = useCallback(() => {
-    if (isLoading) return
-    const len = messages.length
-    if (len < 2) return
-    if (messages[len - 1].role !== 'assistant') return
-    if (messages[len - 2].role !== 'user') return
-    const lastUserText = messages[len - 2].content
-    // 잘린 assistant + 그 직전 user 를 떼어낸 히스토리를 명시적으로 넘긴다.
-    // setMessages 는 비동기라 sendMessage closure 의 messages 는 아직 옛 값이라서.
-    const trimmedHistory = messages.slice(0, -2)
-    setMessages((prev) => prev.slice(0, -2))
-    setFollowUpQuestions([])
-    void sendMessage(lastUserText, { isRetry: true, historyOverride: trimmedHistory })
-  }, [isLoading, messages, sendMessage])
-
-  // 로그인 후 "직전 질문 이어서 답변" — 복원 때 떼어둔 미답변 질문을 인증이
-  // 확인되는 순간 한 번 자동 전송. 게스트(미인증)면 보류(다시 한도에 막히므로).
-  const { status: authStatus } = useSession()
-  useEffect(() => {
-    if (resumeSentRef.current) return
-    const text = pendingResumeTextRef.current
-    if (!text) return
-    if (authStatus !== 'authenticated') return
-    if (isLoading) return
-    resumeSentRef.current = true
-    pendingResumeTextRef.current = null
-    const id = window.setTimeout(() => {
-      void sendMessage(text)
-    }, 0)
-    return () => window.clearTimeout(id)
-  }, [authStatus, isLoading, sendMessage])
-
-  // 끊긴 턴 복원 — 서버는 연결이 끊겨도 끝까지 생성해 turnId 로 캐시에 저장하므로
-  // (claudeSSE keepGeneratingOnDisconnect → route 의 onComplete), 여기서 result
-  // 엔드포인트를 폴링해 완성 답으로 마지막 assistant 메시지를 갈아끼운다.
-  const attemptRecover = useCallback(async () => {
-    const info = recoverableTurnRef.current
-    if (!info || recoveringRef.current) return
-    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return
-    recoveringRef.current = true
-    try {
-      // 서버가 아직 생성 중이면 ready=false → 2초 간격 재시도 (보이는 동안만).
-      for (let i = 0; i < 30; i++) {
-        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') break
-        if (recoverableTurnRef.current?.turnId !== info.turnId) break // 새 턴이 덮어씀
-        try {
-          const res = await fetch(
-            `/api/compatibility/counselor/result?turnId=${encodeURIComponent(info.turnId)}`,
-            { credentials: 'include' }
-          )
-          if (res.ok) {
-            const data = (await res.json()) as { ready?: boolean; content?: string }
-            if (data.ready && typeof data.content === 'string' && data.content.length > 0) {
-              // 복원 답안에도 정상 스트림과 동일한 후처리 — ||FOLLOWUP|| 마커를
-              // 떼어내고(안 그러면 본문에 그대로 노출됨) 후속질문 칩으로 변환.
-              const { cleanContent, followUps } = streamProcessor.extractFollowUpQuestions(
-                data.content
-              )
-              if (!mountedRef.current) return
-              setMessages((prev) => {
-                const updated = [...prev]
-                // 마지막 assistant 메시지를 완성본으로 교체 + incomplete 해제.
-                for (let idx = updated.length - 1; idx >= 0; idx--) {
-                  if (updated[idx].role === 'assistant') {
-                    updated[idx] = { ...updated[idx], content: cleanContent, incomplete: false }
-                    break
-                  }
-                }
-                return updated
-              })
-              // 후속질문 칩 — 정상 경로와 동일하게 generic 필터 + 부족분 폴백.
-              const lang = locale === 'ko' ? 'ko' : 'en'
-              const goodAiFollowUps = followUps.filter((q) => !isGenericFollowUp(q, lang))
-              const needed = 2 - goodAiFollowUps.length
-              const merged =
-                needed > 0
-                  ? [
-                      ...goodAiFollowUps,
-                      ...generateFollowUpQuestions(info.userText, lang, 2, cleanContent).filter(
-                        (q) => !goodAiFollowUps.includes(q)
-                      ),
-                    ].slice(0, 2)
-                  : goodAiFollowUps.slice(0, 2)
-              setFollowUpQuestions(merged)
-              // 복원 답안도 정상 경로와 동일하게 past-chats 사이드바에 저장.
-              const body: Record<string, unknown> = {
-                sessionId: chatSessionId,
-                locale: lang,
-                userMessage: info.userText,
-                assistantMessage: cleanContent,
-                type: 'compat',
-              }
-              apiFetch('/api/counselor/chat-history', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
-              })
-                .then((r) => (r.ok ? r.json() : null))
-                .then((d: { success?: boolean; session?: { id: string } } | null) => {
-                  if (!mountedRef.current) return
-                  if (d?.success && d.session?.id && !chatSessionId) {
-                    setChatSessionId(d.session.id)
-                  }
-                })
-                .catch((err) =>
-                  logger.warn('[CompatCounselor] recover chat-history save failed', { error: err })
-                )
-              setError(null)
-              recoverableTurnRef.current = null
-              clearPendingTurn()
-              return
-            }
-          }
-        } catch {
-          /* 네트워크 흔들림 — 다음 루프에서 재시도 */
-        }
-        await new Promise((r) => setTimeout(r, 2000))
-      }
-    } finally {
-      recoveringRef.current = false
-    }
-  }, [locale, chatSessionId])
-
-  // sendMessage 가 선언 순서상 위에 있어 직접 못 부르므로 ref 로 노출.
-  useEffect(() => {
-    attemptRecoverRef.current = () => void attemptRecover()
-  }, [attemptRecover])
-
-  // 새로고침/페이지 이탈 후 복원 — 크레딧 구매로 페이지를 떠났다 돌아오면(remount)
-  // recoverableTurnRef(메모리)는 사라지지만, 잘린 답은 드래프트/서버 resume 으로
-  // 화면 맨 끝에 미완성(또는 빈) assistant 로 남는다. localStorage 의 turnId 가 아직
-  // 살아 있고(서버 캐시 TTL 내) 마지막 메시지가 그 미완성 답이면, 사용자가 아무것도
-  // 안 해도 result 캐시를 폴링해 완성본으로 갈아끼운다. 마운트당 1회, 새 전송이
-  // 시작되면 sendMessage 가 무효화. (destiny useChatApi.ts 의 마운트 복원 패턴 이식.)
-  useEffect(() => {
-    if (mountRecoverDoneRef.current) return
-    if (isLoading) return
-    const pending = readPendingTurn()
-    if (!pending) {
-      mountRecoverDoneRef.current = true
-      return
-    }
-    if (Date.now() - pending.ts > PENDING_TURN_TTL_MS) {
-      clearPendingTurn()
-      mountRecoverDoneRef.current = true
-      return
-    }
-    // 대화가 아직 복원되는 중일 수 있다(드래프트/서버 resume 은 비동기) — 메시지가
-    // 채워질 때까지 기다렸다가, 마지막이 미완성/빈 assistant 일 때만 복원한다.
-    const last = messages[messages.length - 1]
-    if (!last) return
-    const lastIsRecoverable = last.role === 'assistant' && (last.incomplete || !last.content)
-    if (!lastIsRecoverable) {
-      // 복원된 대화가 미완성으로 끝나지 않음 → 살릴 게 없음.
-      clearPendingTurn()
-      mountRecoverDoneRef.current = true
-      return
-    }
-    mountRecoverDoneRef.current = true
-    recoverableTurnRef.current = { turnId: pending.turnId, userText: pending.userText }
-    void attemptRecover()
-  }, [messages, isLoading, attemptRecover])
-
-  useRecoverOnResume(attemptRecover)
 
   // 🃏 클래리파이어 — 공통 hook (운명상담사 / followup 동일).
   const clarifier = useClarifierCard({
@@ -1187,7 +540,7 @@ function CompatibilityCounselorContent() {
       chartFetchRef.current = false
       await fetchPersonData(personsData)
     },
-    [router]
+    [router, setMessages]
   )
 
   // 🃏 다음 질문 타로로 보기 — 운명상담사와 동일한 InlineTarotModal 흐름. 사용자가
@@ -1226,10 +579,10 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
 
       setMessages((prev) => [...prev, { role: 'assistant', content: tarotMessage }])
     },
-    [isKo, persons]
+    [isKo, persons, setMessages]
   )
 
-  if (isInitializing || redirecting) {
+  if (isInitializing) {
     return <CounselorLoading lang={isKo ? 'ko' : 'en'} />
   }
 
@@ -1383,257 +736,59 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           />
         )}
 
-        {/* Chat */}
-        <div className={styles.chatWrapper}>
-          <div className={styles.messagesContainer}>
-            {/* 에러는 컨테이너 맨 위 — destiny noticeBar 와 같은 패턴.
-                메시지 뒤 인라인이면 사용자가 새 메시지로 가려 못 보던 회귀. */}
-            {error && <div className={styles.errorMessage}>{error}</div>}
-            {messages.length === 0 && (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>{'❤️'}</div>
-                <p className={styles.emptyText}>
-                  {isKo ? '두 사람에 대해서 물어보세요' : 'Ask about the two of you'}
-                </p>
-              </div>
-            )}
-
-            {messages.map((msg, idx) => {
-              const isUser = msg.role === 'user'
-              const isLastAssistant = !isUser && idx === messages.length - 1
-              const showTyping = isLastAssistant && isLoading && !msg.content
-              // 잘림 감지된 마지막 assistant 메시지에만 "다시 시도" 노출.
-              // 스트리밍 중엔 숨김 — 새 토큰이 들어오는 동안 깜빡이지 않도록.
-              const showRetry = isLastAssistant && !isLoading && msg.incomplete
-
-              return (
-                <div key={idx} className={`${styles.message} ${isUser ? styles.userMessage : ''}`}>
-                  <div className={styles.messageAvatar} aria-hidden="true">
-                    {isUser ? '\u{1F464}' : '❤️'}
-                  </div>
-                  <div className={styles.messageBubble}>
-                    <ChatBubbleContent
-                      role={msg.role}
-                      content={msg.content}
-                      pending={showTyping}
-                      pendingNode={
-                        <span className={styles.thinkingMessage}>
-                          <span className={styles.typing}>
-                            <span />
-                            <span />
-                            <span />
-                          </span>
-                          <span className={styles.thinkingText}>
-                            {isKo
-                              ? '두 분의 흐름을 깊이 읽고 있어요...'
-                              : 'Reading the flow between the two of you…'}
-                          </span>
-                        </span>
-                      }
-                      theme="light"
-                    />
-                    {showRetry && (
-                      <button
-                        type="button"
-                        className={styles.retryButton}
-                        onClick={retryLastAnswer}
-                        aria-label={isKo ? '다시 시도' : 'Retry'}
-                      >
-                        <span aria-hidden="true">{'↻'}</span>
-                        {isKo ? '답변이 끊겼어요 · 다시 시도' : 'Cut off · Retry'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-
-            {/* clarifier "카드 한 장 더 뽑기" — input 툴바가 아니라 타로
-                결과 메시지 직후 노출 (운명상담사 MessagesPanel 패턴과 동일).
-                마지막 메시지가 🃏 로 시작하는 타로 결과일 때만 보임. */}
-            {(() => {
-              const last = messages.length > 0 ? messages[messages.length - 1] : null
-              const lastIsTarot =
-                last?.role === 'assistant' && (last?.content || '').trimStart().startsWith('🃏')
-              if (!lastIsTarot || isLoading) return null
-              const cb = clarifier.buttonProps
-              if (cb.disabled) return null
-              return (
-                <div className={styles.postAnswerActions}>
-                  <button
-                    type="button"
-                    onClick={cb.onClick}
-                    className={styles.clarifierActionBtn}
-                    aria-label={clarifier.buttonLabel}
-                  >
-                    <span className={styles.clarifierActionIcon} aria-hidden="true">
-                      🃏
-                    </span>
-                    {clarifier.buttonLabel}
-                  </button>
-                </div>
-              )
-            })()}
-
-            {!isLoading && messages.length > 0 && (
-              <FollowUpChips
-                questions={followUpQuestions}
-                lang={isKo ? 'ko' : 'en'}
-                onPick={(q) => sendMessage(q)}
-                styles={styles as never}
-              />
-            )}
-
-            {/* 요청 단계 로딩 — assistant 버블은 응답 헤더가 도착해야 push 되는데
-                (setMessages 위쪽), setIsLoading(true) 는 전송 즉시 켜진다. 그
-                사이(요청 진행 중) 사용자는 자기 질문만 보고 아무 피드백이 없어
-                "멈췄나?" 회귀. 마지막이 user 이거나 비어 있을 때만 standalone
-                "생각 중" 블록을 띄운다 — assistant 버블이 채워지면 그 버블의
-                pendingNode 로 넘어가므로 이 블록은 자동으로 사라진다. */}
-            {isLoading &&
-              (messages.length === 0 || messages[messages.length - 1].role === 'user') && (
-                <div className={styles.message}>
-                  <div className={styles.messageAvatar} aria-hidden="true">
-                    {'❤️'}
-                  </div>
-                  <div className={styles.messageBubble}>
-                    <span className={styles.thinkingMessage}>
-                      <span className={styles.typing}>
-                        <span />
-                        <span />
-                        <span />
-                      </span>
-                      <span className={styles.thinkingText}>
-                        {isKo
-                          ? '당신의 궁합을 깊게 알아보고 있습니다'
-                          : 'Looking deeply into your compatibility…'}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              )}
-
-            {/* 도구 안내(ToolHint) 알림 제거 — 운명상담사처럼 입력창 좌하단 ⋮
-                메뉴(ChatInputArea 내장)의 작은 힌트 버블이 같은 역할을 한다. */}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input — 운명 상담사와 동일한 ChatInputArea 공용 컴포넌트.
-              📎 파일 / 🃏 타로 / ✨ 궁합차트 + ✕ + ▶ 전송. 모든 화면 크기에서
-              세 도구 모두 노출 (사이드바 푸터에 같은 진입점 없음).
-              운명 상담사처럼 max-width 860px 로 가운데 정렬 — 안 그러면 입력창이
-              chatWrapper 전체 폭으로 가로로 길게 퍼진다(궁합만 넓던 회귀). */}
-          <div className={styles.inputWrap}>
-            <ChatInputArea
-              input={input}
-              loading={isLoading}
-              cvName={cvName}
-              parsingPdf={parsingPdf}
-              usedFallback={false}
-              labels={{
-                placeholder: isKo ? '질문을 입력하세요…' : 'Type a question…',
-                send: isKo ? '전송' : 'Send',
-                uploadCv: isKo
-                  ? '관계 메모·대화 등 파일 첨부 (txt/md/csv/pdf)'
-                  : 'Attach a file (txt/md/csv/pdf)',
-                parsingPdf: isKo ? 'PDF 읽는 중…' : 'Parsing…',
-              }}
-              lang={locale}
-              placeholderPrompts={[]}
-              onInputChange={setInput}
-              onKeyDown={handleKeyDown}
-              onSend={() => sendMessage()}
-              onFileUpload={(e) => {
-                void handleFileUpload(e)
-              }}
-              onClearFile={clearFile}
-              onOpenTarot={() => {
-                setShowTarotModal(true)
-              }}
-              onOpenChart={() => {
-                setShowChartModal(true)
-              }}
-              tarotDisabled={persons.length < 2}
-              chartDisabled={
-                persons.length < 2 ||
-                (!person1Saju && !person1Astro && !person2Saju && !person2Astro)
-              }
-              tarot={{
-                ariaLabel: isKo ? '다음 질문 타로로 보기' : 'See your next question in tarot',
-                title: isKo
-                  ? '다음 질문을 타로로 보기 — 질문 적고 스프레드 골라 카드 뽑기'
-                  : 'See your next question in tarot — pick a spread and draw',
-              }}
-              chart={{
-                label: isKo ? '궁합차트' : 'Chart',
-                ariaLabel: isKo ? '궁합 차트' : 'Couple chart',
-                title: isKo ? '궁합 차트 보기' : 'View couple chart',
-              }}
-              focusToken={focusToken}
-              theme="light"
-            />
-            {fileNotice && <div className={styles.fileNotice}>{fileNotice}</div>}
-          </div>
-        </div>
+        {/* Chat — 메시지 목록 + 입력창 (분해된 채팅 영역 컴포넌트) */}
+        <CompatChatArea
+          isKo={isKo}
+          locale={locale}
+          messages={messages}
+          isLoading={isLoading}
+          error={error}
+          followUpQuestions={followUpQuestions}
+          input={input}
+          onInputChange={setInput}
+          sendMessage={sendMessage}
+          retryLastAnswer={retryLastAnswer}
+          clarifier={clarifier}
+          messagesEndRef={messagesEndRef}
+          cvName={cvName}
+          parsingPdf={parsingPdf}
+          onFileUpload={(e) => {
+            void handleFileUpload(e)
+          }}
+          onClearFile={clearFile}
+          fileNotice={fileNotice}
+          onOpenTarot={() => {
+            setShowTarotModal(true)
+          }}
+          onOpenChart={() => {
+            setShowChartModal(true)
+          }}
+          tarotDisabled={persons.length < 2}
+          chartDisabled={
+            persons.length < 2 || (!person1Saju && !person1Astro && !person2Saju && !person2Astro)
+          }
+          focusToken={focusToken}
+        />
       </div>
 
-      <InlineTarotModal
-        isOpen={showTarotModal}
-        onClose={() => setShowTarotModal(false)}
-        onComplete={handleTarotComplete}
-        lang={isKo ? 'ko' : 'en'}
-        profile={{
-          name: persons[0]?.name,
-          birthDate: persons[0]?.date,
-          birthTime: persons[0]?.time,
-          city: persons[0]?.city,
-          // 궁합 모달이라 단일 profile 만 받는 InlineTarotModal 시그니처 한계
-          // — 두 번째 사람 컨텍스트는 결과 카드가 채팅으로 들어간 후
-          // 본 채팅의 LLM 호출이 자동으로 커플 컨텍스트로 follow-up.
-        }}
-        initialConcern={
-          isKo
-            ? `${persons[0]?.name || '나'}와 ${persons[1]?.name || '상대'}, 우리 관계는 어떻게 흘러갈까?`
-            : `${persons[0]?.name || 'Me'} and ${persons[1]?.name || 'partner'} — where is our relationship heading?`
-        }
-        origin="compat"
-      />
-
-      <ClarifierCardModal {...clarifier.modalProps} />
-
-      {showPicker && (
-        <CompatPersonPickerModal
-          onSubmit={(picked) => void handlePickerSubmit(picked)}
-          subtitle={
-            isKo ? '두 사람의 정보로 채팅을 시작해요.' : 'Enter two profiles to start chatting.'
-          }
-        />
-      )}
-
-      <CompatChartModal
-        open={showChartModal}
-        onClose={() => setShowChartModal(false)}
+      <CompatCounselorModals
+        isKo={isKo}
+        locale={locale}
+        persons={persons}
+        showTarotModal={showTarotModal}
+        onCloseTarot={() => setShowTarotModal(false)}
+        onTarotComplete={handleTarotComplete}
+        clarifierModalProps={clarifier.modalProps}
+        showPicker={showPicker}
+        onPickerSubmit={(picked) => void handlePickerSubmit(picked)}
+        showChartModal={showChartModal}
+        onCloseChart={() => setShowChartModal(false)}
         person1Saju={person1Saju}
         person2Saju={person2Saju}
         person1Astro={person1Astro}
         person2Astro={person2Astro}
-        nameA={persons[0]?.name || ''}
-        nameB={persons[1]?.name || ''}
-        lang={isKo ? 'ko' : 'en'}
-      />
-
-      {/* ⋮ 메뉴 Rename / Delete 모달 — 공용 ChatActionModals. window.prompt/
-          window.confirm 에서 인앱 PromptModal 로 마이그레이션(인앱 웹뷰 호환). */}
-      <ChatActionModals
-        lang={locale}
-        currentTitle={chatTitle}
-        renameOpen={chatActions.renameModalOpen}
-        onCloseRename={chatActions.closeRenameModal}
-        onConfirmRename={chatActions.handleRenameConfirm}
-        deleteOpen={chatActions.deleteModalOpen}
-        onCloseDelete={chatActions.closeDeleteModal}
-        onConfirmDelete={chatActions.handleDeleteConfirm}
+        chatTitle={chatTitle}
+        chatActions={chatActions}
       />
     </main>
   )
@@ -1644,110 +799,5 @@ export default function CompatibilityCounselorPage() {
     <Suspense fallback={<CounselorLoading />}>
       <CompatibilityCounselorContent />
     </Suspense>
-  )
-}
-
-/**
- * 헤더 sticky 바 — 클릭하면 최근 본 페어 popover 가 열려서 다른 관계로
- * 즉시 전환할 수 있다. 현재 페어는 popover 에서 제외 (이미 보고 있음).
- * "다른 사람으로 보기" 항목은 인라인 인물 피커(CompatPersonPickerModal)를
- * 열어 채팅을 떠나지 않고 새 커플로 전환한다.
- */
-function ProfileStickyBar({
-  persons,
-  isKo,
-  onSwitchPair,
-  onPickOther,
-}: {
-  persons: PersonData[]
-  isKo: boolean
-  onSwitchPair: (pair: RecentPair) => void
-  onPickOther: () => void
-}) {
-  const [open, setOpen] = useState(false)
-  const [pairs, setPairs] = useState<RecentPair[]>([])
-  const wrapperRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    setPairs(getRecentPairs())
-    const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
-  // 현재 페어와 같은 항목은 popover 에서 제외 — 자기 자신으로 전환은 의미 X.
-  const currentKey = `${persons[0]?.name?.trim()}|${persons[0]?.date}|${persons[1]?.name?.trim()}|${persons[1]?.date}`
-  const otherPairs = pairs.filter(
-    (p) =>
-      `${p.persons[0].name.trim()}|${p.persons[0].date}|${p.persons[1].name.trim()}|${p.persons[1].date}` !==
-      currentKey
-  )
-
-  return (
-    <div ref={wrapperRef} className={styles.profileStickyBarWrap}>
-      <button
-        type="button"
-        className={styles.profileStickyBar}
-        onClick={() => setOpen((o) => !o)}
-        aria-label={isKo ? '대상 인물 — 다른 관계로 전환' : 'Subjects — switch relationship'}
-        aria-expanded={open}
-        aria-haspopup="menu"
-      >
-        <span className={styles.profileStickyName}>{persons[0].name}</span>
-        <span className={styles.profileStickyArrow} aria-hidden="true">
-          ↔
-        </span>
-        <span className={styles.profileStickyName}>{persons[1].name}</span>
-        <span className={styles.profileStickyChevron} aria-hidden="true">
-          ▾
-        </span>
-      </button>
-      {open && (
-        <div role="menu" className={styles.profileStickyDropdown}>
-          {otherPairs.length > 0 && (
-            <>
-              <div className={styles.profileStickyDropdownLabel}>
-                {isKo ? '최근 본 관계' : 'Recent relationships'}
-              </div>
-              {otherPairs.map((pair, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  role="menuitem"
-                  className={styles.profileStickyDropdownItem}
-                  onClick={() => {
-                    setOpen(false)
-                    onSwitchPair(pair)
-                  }}
-                >
-                  <span className={styles.profileStickyName}>{pair.persons[0].name}</span>
-                  <span className={styles.profileStickyArrow} aria-hidden="true">
-                    ↔
-                  </span>
-                  <span className={styles.profileStickyName}>{pair.persons[1].name}</span>
-                </button>
-              ))}
-              <div className={styles.profileStickyDropdownDivider} />
-            </>
-          )}
-          <button
-            type="button"
-            role="menuitem"
-            className={styles.profileStickyDropdownItem}
-            onClick={() => {
-              setOpen(false)
-              onPickOther()
-            }}
-          >
-            {isKo ? '+ 다른 사람으로 보기' : '+ Pick someone else'}
-          </button>
-        </div>
-      )}
-    </div>
   )
 }

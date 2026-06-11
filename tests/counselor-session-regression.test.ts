@@ -232,32 +232,50 @@ describe('PersonCard — BirthInfoModal 톤 + CircleAddModal 제거 (#317)', () 
   })
 })
 
-describe('궁합 follow-up UI (page.tsx) — chip render + sendMessage refactor (#306)', () => {
-  const page = read('app/compatibility/counselor/page.tsx')
+describe('궁합 follow-up UI — chip render + sendMessage refactor (#306, 공용 훅 이동 후)', () => {
+  // 궁합 상담사 채팅 오케스트레이션이 page.tsx 에서 공용 훅
+  // (lib/counselor/useCounselorChat) + compat 어댑터(useCompatCounselorChat)
+  // + 채팅 영역 컴포넌트(CompatChatArea)로 분해됨. 가드가 지키려는 *행동*
+  // (sendMessage 의 options.isRetry, followUp 칩의 sendMessage(q) 위임,
+  // result.followUps 소비, 새 send 시 칩 비움)은 새 위치에서 동일하게 단언.
+  const hook = read('lib/counselor/useCounselorChat.ts')
+  const compatAdapter = read('app/compatibility/counselor/useCompatCounselorChat.ts')
+  const chatArea = read('app/compatibility/counselor/CompatChatArea.tsx')
 
-  it('followUpQuestions state 추가', () => {
-    expect(page).toMatch(/setFollowUpQuestions/)
+  it('followUpQuestions state — 공용 훅이 소유', () => {
+    expect(hook).toMatch(/setFollowUpQuestions/)
   })
 
   it('sendMessage 가 (textOverride?: string, options?) signature', () => {
-    // 2nd param (options?: { isRetry?: boolean }) 가 retry 배선 위해 추가됨.
-    // historyOverride 추가로 파라미터가 길어져 Prettier 가 한 줄 → 여러 줄로
-    // 개행할 수 있으므로 파라미터 사이 공백/개행을 허용한다.
-    expect(page).toMatch(
-      /sendMessage = useCallback\(\s*async \(\s*textOverride\?: string,\s*options\?:/
+    // 2nd param (options?: { isRetry?, historyOverride? }) 가 retry 배선의
+    // 핵심. Prettier 개행을 허용한다.
+    expect(hook).toMatch(
+      /sendMessage = React\.useCallback\(\s*async \(\s*textOverride\?: string,\s*options\?:/
     )
+    expect(hook).toMatch(/isRetry\?: boolean/)
+    expect(hook).toMatch(/historyOverride\?: TMsg\[\]/)
   })
 
-  it('streamProcessor result 에서 followUps 받음', () => {
-    expect(page).toMatch(/result\.followUps/)
+  it('isRetry 시 직전 turn 의 idempotencyKey 재사용 (credit 중복 차감 방지)', () => {
+    expect(hook).toMatch(/options\?\.isRetry \? lastTurnIdemKeyRef\.current : null/)
   })
 
-  it('chip pick 시 sendMessage(q) 호출', () => {
-    // 칩 렌더가 FollowUpChips 컴포넌트로 추출됨 — onPick prop 으로 위임.
-    expect(page).toMatch(/onPick=\{\(q\) => sendMessage\(q\)\}/)
+  it('streamProcessor result 에서 followUps 받음 (compat 어댑터)', () => {
+    expect(compatAdapter).toMatch(/result\.followUps/)
+  })
+
+  it('chip pick 시 sendMessage(q) 호출 (분해된 채팅 영역)', () => {
+    // 칩 렌더는 FollowUpChips 컴포넌트 — onPick prop 으로 위임.
+    expect(chatArea).toMatch(/onPick=\{\(q\) => sendMessage\(q\)\}/)
   })
 
   it('새 send 시 followUpQuestions 비움 (stale 방지)', () => {
-    expect(page).toMatch(/setFollowUpQuestions\(\[\]\)/)
+    expect(hook).toMatch(/setFollowUpQuestions\(\[\]\)/)
+  })
+
+  it('끊긴 턴 복원 — pendingTurn TTL 가드 유지', () => {
+    // 마운트 복원은 localStorage pendingTurn 의 TTL(서버 result 캐시와 동기)
+    // 안에서만 시도해야 한다.
+    expect(hook).toMatch(/PENDING_TURN_TTL_MS/)
   })
 })

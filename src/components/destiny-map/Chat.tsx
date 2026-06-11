@@ -6,13 +6,12 @@
 import React, { memo } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 import styles from './Chat.module.css'
 import { type TarotResultSummary } from './InlineTarotModal'
 import { CHAT_I18N } from './chat-i18n'
 import { generateMessageId } from './chat-utils'
 import type { ChatProps } from './chat-types'
-import { savePendingChat, loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
+import { loadPendingChat } from '@/lib/chat/pendingChat'
 import { useChatSession } from './hooks/useChatSession'
 import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
@@ -98,6 +97,9 @@ const Chat = memo(function Chat({
     handleSend: apiHandleSend,
     showCrisisModal,
     setShowCrisisModal,
+    retryLastAnswer,
+    queueResumeText,
+    outerSendRef,
   } = useChatApi({
     sessionIdRef,
     messages,
@@ -115,15 +117,15 @@ const Chat = memo(function Chat({
     messagesEndRef,
     onSaveMessage,
     setNotice,
+    // 게스트 진행 드래프트 보존/정리는 공용 훅(useCounselorChat)으로 이동 —
+    // 서버 세션이 생기면(_chatSessionId) 서버가 정본이라 드래프트 제거.
+    chatSessionId: _chatSessionId,
   })
 
   // 게스트 진행 채팅 복원 — 한도→로그인/구매로 풀 리로드된 뒤, 서버 세션 resume
   // (initialSessionId)이 아닌 맨몸 진입이면 localStorage 드래프트에서 직전 대화를
   // 되살린다(게스트는 서버 저장이 안 되므로 이게 유일한 단서). 마운트 1회.
   const draftHandledRef = React.useRef(false)
-  // 로그인/구매 왕복 후 복원했을 때, 마지막이 '미답변 user 질문'이면 여기 담아
-  // 두고 인증 확인되는 대로 자동 재전송한다("직전 질문 이어서 답변").
-  const pendingResumeTextRef = React.useRef<string | null>(null)
   React.useEffect(() => {
     if (draftHandledRef.current) return
     draftHandledRef.current = true
@@ -133,33 +135,18 @@ const Chat = memo(function Chat({
       (m) => !!m && (m.role === 'user' || m.role === 'assistant')
     )
     // 마지막 메시지가 아직 답을 못 받은 user 질문이면 떼어내 자동 재전송 대상으로
-    // 만든다. 안 떼면 handleSend 가 user 메시지를 한 번 더 추가해 화면에 같은
-    // 질문이 두 번 뜬다.
+    // 만든다(인증 확인 시 1회 재전송은 공용 훅이 처리). 안 떼면 handleSend 가
+    // user 메시지를 한 번 더 추가해 화면에 같은 질문이 두 번 뜬다.
     if (restored.length > 0 && restored[restored.length - 1]?.role === 'user') {
       const last = restored.pop()
       const text = last && typeof last.content === 'string' ? last.content.trim() : ''
-      if (text) pendingResumeTextRef.current = text
+      if (text) queueResumeText(text)
     }
     if (restored.length > 0) {
       setMessages((prev) => [...prev.filter((m) => m.role === 'system'), ...restored])
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // 게스트(서버 미저장) 진행 채팅을 드래프트로 보존 — 한도→로그인/구매 왕복 후
-  // 복원용. 서버 세션이 생기면(_chatSessionId) 서버가 정본이므로 드래프트 제거.
-  // 스트리밍 중(loading)엔 저장하지 않고 턴이 끝난 최종 상태만 기록.
-  React.useEffect(() => {
-    if (loading) return
-    if (_chatSessionId) {
-      clearPendingChat('destiny')
-      return
-    }
-    const real = messages.filter((m) => m.role === 'user' || m.role === 'assistant')
-    if (real.length > 0) {
-      savePendingChat('destiny', { messages: real })
-    }
-  }, [loading, _chatSessionId, messages])
 
   const handleSend = React.useCallback(
     async (directText?: string, options?: { isRetry?: boolean }) => {
@@ -198,26 +185,12 @@ const Chat = memo(function Chat({
   >(null!)
   React.useEffect(() => {
     handleSendRef.current = handleSend
-  }, [handleSend])
-
-  // 로그인 후 "직전 질문 이어서 답변" — 복원 때 떼어둔 미답변 질문을, 인증이
-  // 확인되는 순간 한 번 자동 전송한다. 게스트(미인증)면 보류(전송해도 다시
-  // 한도에 막히므로). loading 중이면 끝난 뒤 다시 시도(상태 변화로 재평가).
-  const { status: authStatus } = useSession()
-  const resumeSentRef = React.useRef(false)
-  React.useEffect(() => {
-    if (resumeSentRef.current) return
-    const text = pendingResumeTextRef.current
-    if (!text) return
-    if (authStatus !== 'authenticated') return
-    if (loading) return
-    resumeSentRef.current = true
-    pendingResumeTextRef.current = null
-    const id = window.setTimeout(() => {
-      void handleSendRef.current?.(text)
-    }, 0)
-    return () => window.clearTimeout(id)
-  }, [authStatus, loading])
+    // 공용 훅(useCounselorChat)의 "다시 시도" / 로그인 후 자동 재전송이 이
+    // wrapper(가드 포함)를 거치도록 등록 — wrapper 가 두 번째 인자를
+    // useChatApi.handleSend 에 그대로 forward 하므로 retry flag 가 끝까지
+    // 전달된다.
+    outerSendRef.current = handleSend
+  }, [handleSend, outerSendRef])
 
   const handleFollowUp = React.useCallback(
     (question: string) => {
@@ -227,25 +200,6 @@ const Chat = memo(function Chat({
     },
     [setFollowUpQuestions]
   )
-
-  // "다시 시도" — 마지막 assistant 답변이 잘렸을 때만 노출. 잘린 답 + 직전 user
-  // 메시지를 함께 pop 한 뒤 isRetry: true 로 재요청. useChatApi 가 직전 turn 의
-  // idempotencyKey 를 재사용해 서버가 idempotent replay 분기를 타게 한다 — 부분
-  // 응답 후 끊긴 케이스에서 이미 차감된 credit 위에 또 차감되는 누수를 막는다.
-  const handleRetryLastAnswer = React.useCallback(() => {
-    if (loading) return
-    const len = messages.length
-    if (len < 2) return
-    if (messages[len - 1].role !== 'assistant') return
-    if (messages[len - 2].role !== 'user') return
-    const lastUserText = messages[len - 2].content
-    setMessages((prev) => prev.slice(0, -2))
-    setFollowUpQuestions([])
-    // handleSendRef.current 의 시그니처는 (directText?, options?) — Chat.tsx 의
-    // handleSend wrapper 가 이 두 번째 인자를 useChatApi.handleSend 에 그대로
-    // forward 하므로 retry flag 가 끝까지 전달된다.
-    void handleSendRef.current?.(lastUserText, { isRetry: true })
-  }, [loading, messages, setMessages, setFollowUpQuestions])
 
   React.useEffect(() => {
     setActiveSessionId(sessionIdRef.current)
@@ -627,7 +581,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               tr={tr}
               messagesEndRef={messagesEndRef}
               onFollowUp={handleFollowUp}
-              onRetryLastAnswer={handleRetryLastAnswer}
+              onRetryLastAnswer={retryLastAnswer}
               styles={styles}
               userName={profile?.name}
               onOpenClarifier={clarifier.buttonProps.onClick}
