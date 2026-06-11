@@ -117,30 +117,65 @@ function convergenceConfidence(
 // 특정 점성 산문을 지어내지 않고 엔진이 이미 매긴 polarity 만 쓴다.
 // 같은 톤(positive/neutral/negative) 안에서도 4가지로 회전 (날짜 hash 기반).
 // (5버킷 테마 영역 축 제거 — 영역명 없이 톤만 표시.)
+// 7개(소수) — 큰 날 간격이 흔히 짝수(12일 등)라 mod 4·6 이면 같은 문구가 도배됐다.
+// 길이를 7 로 두고 날짜로 회전하면 충돌이 크게 준다. 문구도 점지투 대신 일상어로.
 const TONE_POOL_KO = {
-  positive: ['기회가 열리는 날', '흐름이 모이는 시점', '결정이 무르익는 날', '신호가 강해지는 때'],
+  positive: [
+    '일이 풀리는 날',
+    '밀어붙이기 좋은 날',
+    '기회가 열리는 날',
+    '매듭을 짓기 좋은 날',
+    '운이 손을 들어주는 날',
+    '시작하기 좋은 날',
+    '결실이 보이는 날',
+  ],
   negative: [
-    '시험받는 날',
-    '점검이 필요한 시점',
-    '감정이 무거워질 수 있음',
-    '신중함이 우선되는 때',
+    '한 박자 늦추는 게 좋은 날',
+    '점검이 필요한 날',
+    '무리하지 않는 게 나은 날',
+    '감정이 무거워질 수 있는 날',
+    '결정을 미뤄도 좋은 날',
+    '부딪힘을 조심할 날',
+    '쉬어가도 되는 날',
   ],
   neutral: [
-    '크게 전환되는 날',
-    '방향이 바뀌는 시점',
-    '균형이 다시 잡히는 때',
+    '흐름이 바뀌는 날',
+    '방향을 다시 잡는 날',
     '큰 변화가 시작되는 날',
+    '균형이 다시 잡히는 날',
+    '한 장이 넘어가는 날',
+    '갈림길에 서는 날',
+    '판이 새로 짜이는 날',
   ],
 }
 const TONE_POOL_EN = {
   positive: [
-    'a day that opens up',
-    'momentum builds',
-    'resolves clearly',
-    'the signal strengthens',
+    'things fall into place',
+    'good day to push',
+    'an opening',
+    'good day to close a deal',
+    'luck leans your way',
+    'good day to start',
+    'results come into view',
   ],
-  negative: ['a day that tests you', 'needs review', 'feels heavier', 'asks for caution'],
-  neutral: ['a pivot', 'direction shifts', 'rebalances', 'a new chapter begins'],
+  negative: [
+    'better to slow down',
+    'a day for review',
+    'don’t overreach',
+    'feelings may weigh',
+    'fine to postpone the call',
+    'mind the friction',
+    'a day to rest',
+  ],
+  neutral: [
+    'the current shifts',
+    'reset your direction',
+    'a big change begins',
+    'things rebalance',
+    'a chapter turns',
+    'a fork in the road',
+    'the board is reset',
+  ],
 }
 
 function composeMeaning(

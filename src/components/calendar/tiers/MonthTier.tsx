@@ -488,29 +488,51 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
     : `${MONTH_EN[(ymM ?? 1) - 1] ?? ''} ${ymY ?? ''}`.trim()
 
   // ── 교차 리스트 — '이달의 큰 날'(keyDays) = 사주×점성 수렴 날짜 ──
-  // 제목 = 그 날의 뜻(평이). 작은 글씨 = 무엇이 교차하나(사주×점성, 짧게).
-  const shortTag = (s: string) => {
-    const head = s.includes('—') ? s.split('—')[0].trim() : s
-    return head.length > 16 ? head.slice(0, 15).trim() + '…' : head
+  // 제목 = 판정 레이블 + 그 날의 뜻(일상어). raw 엔진 신호명은 안 쓴다.
+  // 그 날의 판정(달력 mark) → 셀/리스트 공용 짧은 레이블 (달력 색과 같은 소스).
+  const cellVerdictLabel = (m: ExtendedMark | null | undefined): string => {
+    switch (m) {
+      case 'best':
+        return ko ? '최고' : 'Best'
+      case 'good':
+        return ko ? '좋음' : 'Good'
+      case 'caution':
+        return ko ? '주의' : 'Caution'
+      case 'avoid':
+        return ko ? '피함' : 'Avoid'
+      case 'converge':
+        return ko ? '전환' : 'Pivot'
+      default:
+        return ''
+    }
   }
-  const seenTitle = new Map<string, number>()
+  const markByDs = new Map<string, ExtendedMark | null>(
+    (month.calendar ?? []).map((c) => [c.ds.slice(5), c.mark as ExtendedMark | null])
+  )
+  // 큰 날 리스트 — 일상어 의미가 곧 레이블. 그 날이 좋음/주의/피함 등급이면 그 판정을
+  // 앞에 붙이고(중립이면 안 붙임 — "Notable day" 도배 방지), raw 엔진 신호명은 안 쓴다.
+  const verdictPrefix = (m: ExtendedMark | null | undefined): string | null => {
+    if (m === 'best' || m === 'good') return ko ? '좋은 날' : 'Good day'
+    if (m === 'caution') return ko ? '주의할 날' : 'Caution'
+    if (m === 'avoid') return ko ? '피할 날' : 'Avoid'
+    return null
+  }
   const monthCrossItems = [...(month.keyDays ?? [])]
-    // 달력이니 날짜 오름차순 — keyDays 는 중요도순으로 와서 그대로 두면 뒤죽박죽.
     .sort((a, b) => a.date.localeCompare(b.date))
     .map((k) => {
-      const sj = (k.saju ?? [])[0]
-      const as = (k.astro ?? [])[0]
-      const tags = [sj && shortTag(sj), as && shortTag(as)].filter(Boolean).join(' × ')
-      const base = k.meaning || (k.bothSystems ? '사주 · 점성이 함께 강한 날' : '주요 신호')
-      // 같은 뜻이 여러 날 반복되면 둘째부터 짧은 구분 태그를 붙여 차별화 —
-      // 뜻은 제목에 유지(잘린 태그 뭉치를 제목으로 올리지 않기).
-      const n = seenTitle.get(base) ?? 0
-      seenTitle.set(base, n + 1)
-      const oneTag = sj ? shortTag(sj) : as ? shortTag(as) : ''
+      const meaning =
+        k.meaning || (k.bothSystems ? (ko ? '신호가 겹치는 날' : 'signals overlap') : '')
+      const vp = verdictPrefix(markByDs.get(k.date))
+      const title =
+        vp && meaning ? `${vp} · ${meaning}` : meaning || vp || (ko ? '주목할 날' : 'Notable day')
       return {
         when: k.date,
-        title: n > 0 && oneTag ? `${base} — ${oneTag}` : base,
-        detail: tags || undefined,
+        title,
+        detail: k.bothSystems
+          ? ko
+            ? '사주·점성이 함께 강한 날'
+            : 'Saju & astrology both strong'
+          : undefined,
       }
     })
   const goodN = month.goodDays?.length ?? 0
@@ -576,6 +598,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
             styles.cell,
             c.focus && styles.cellFocus,
             renderedMark === 'best' && styles.cellBest,
+            renderedMark === 'good' && styles.cellGood,
             renderedMark === 'avoid' && styles.cellAvoid,
             renderedMark === 'converge' && styles.cellConverge,
             renderedMark === 'caution' && styles.cellCaution,
@@ -614,9 +637,12 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
             >
               <div className={styles.cellGlow} style={{ background: g.glow }} />
               <span className={styles.cellDnum}>{c.d}</span>
-              {c.focus && <span className={styles.cellFtag}>오늘</span>}
+              {c.focus && <span className={styles.cellFtag}>{ko ? '오늘' : 'Today'}</span>}
               {renderedMark && renderedMark !== 'focus' && STAR_GLYPH[renderedMark] && (
                 <span className={styles.cellStar}>{STAR_GLYPH[renderedMark]}</span>
+              )}
+              {cellVerdictLabel(renderedMark) && (
+                <span className={styles.cellVerdict}>{cellVerdictLabel(renderedMark)}</span>
               )}
               {isVoc && <span className={styles.cellVocBand} />}
             </div>

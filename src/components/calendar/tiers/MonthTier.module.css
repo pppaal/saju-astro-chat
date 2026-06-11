@@ -421,6 +421,33 @@
   color: var(--ember);
   z-index: 2;
 }
+.cellVerdict {
+  position: absolute;
+  left: 6px;
+  bottom: 5px;
+  font-family: var(--sans);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: var(--ink-dim);
+  z-index: 2;
+}
+.cellGood .cellVerdict {
+  color: #4f5d96;
+}
+.cellCaution .cellVerdict {
+  color: #c0741f;
+}
+.cellAvoid .cellVerdict {
+  color: #b03a22;
+}
+.cellBest .cellVerdict {
+  color: #4f5d96;
+}
+.cellConverge .cellVerdict {
+  color: #b3873a;
+}
 .cellVocBand {
   position: absolute;
   left: 0;
