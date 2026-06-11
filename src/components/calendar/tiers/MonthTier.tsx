@@ -876,7 +876,12 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
         </div>
 
         {/* ===== converge day ===== */}
-        {month.converge && (
+        {/* converge.date 가드 필수 — assembleTiers 는 converge 를 항상 채워
+            보내되(미산출 시 date:'' 빈 객체) 현재 월 어셈블 경로는 이 단일
+            converge 를 산출하지 않는다. `.date` 없이 truthy 만 보면 빈 객체가
+            늘 통과해 날짜·의미·신호가 전부 빈 "수렴 일" 카드가 노상 떴다.
+            진짜 수렴 목록은 위의 keyDays(이달의 큰 날)가 보여준다. */}
+        {month.converge?.date && (
           <div className={styles.converge}>
             <div className={styles.convergeHead}>
               <div className={[styles.eyebrow, styles.eyebrowEmber].join(' ')}>

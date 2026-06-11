@@ -423,10 +423,12 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     crossSignals: [],
     allSignals: signals,
     narrative: [],
-    topReasons: ((opts.lang === 'en' ? cell.topReasonsEn : cell.topReasons) ?? []).map(
-      humanizeReason
+    topReasons: ((opts.lang === 'en' ? cell.topReasonsEn : cell.topReasons) ?? []).map((r) =>
+      humanizeReason(r, opts.lang)
     ),
-    cautions: ((opts.lang === 'en' ? cell.cautionsEn : cell.cautions) ?? []).map(humanizeReason),
+    cautions: ((opts.lang === 'en' ? cell.cautionsEn : cell.cautions) ?? []).map((r) =>
+      humanizeReason(r, opts.lang)
+    ),
     twelveStageMatrix,
   }
 }
