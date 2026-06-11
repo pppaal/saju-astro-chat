@@ -39,6 +39,8 @@ export interface ReportContextInput {
   latitude: number
   longitude: number
   timeZone: string
+  /** 출생시각 미상 — astroFacts 가 ASC/MC 애스펙트·profection 군주를 신뢰불가로 처리. */
+  birthTimeUnknown?: boolean
 }
 
 export async function buildReportContext(input: ReportContextInput): Promise<NatalContext> {
@@ -56,6 +58,8 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
     latitude: input.latitude,
     longitude: input.longitude,
     timezone: input.timeZone,
+    // 출생시각 미상 → placeUnreliable: ASC/MC 애스펙트 skip, profection 군주 null.
+    birthTimeUnknown: input.birthTimeUnknown,
     // Phase A: 정통 점성 정적 분석 일체 받기 (Almuten/Lots/dignity 5-tier/
     // Chiron·Lilith/aspects major+minor/sect). facts 가 다 만들어 줘서
     // page 가 직접 호출할 필요 없음. 시간 흐름(Profection/Transit/SR/LR/

@@ -25,6 +25,8 @@ export interface ReportData {
     lng: number
     timeZone: string
     isoUTC: string
+    /** 출생시각 미상 — true면 ASC/MC/하우스 의존 해석이 근사치(배너 경고). */
+    birthTimeUnknown?: boolean
   }
   saju: {
     dayMaster: string

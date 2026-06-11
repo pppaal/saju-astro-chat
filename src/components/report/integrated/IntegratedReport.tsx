@@ -78,6 +78,11 @@ const UI: Record<string, BiLabel> = {
   metaCoord: { ko: '좌표', en: 'Coords' },
   metaTz: { ko: '표준시', en: 'Time zone' },
   metaHouse: { ko: '하우스', en: 'Houses' },
+  timeUnknownTitle: { ko: '출생시각 미상', en: 'Birth time unknown' },
+  timeUnknownBody: {
+    ko: '출생시각이 입력되지 않아 정오 기준으로 계산했습니다. 상승궁(ASC)·중천(MC)·하우스에 의존하는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 보세요. 사주와 행성 배치 해석은 영향이 적습니다.',
+    en: 'No birth time was provided, so the chart is computed for noon. Readings that depend on the Ascendant, Midheaven, or houses (social role, first impression, life-area emphasis) are approximate — treat them as indicative only. Saju and planet-placement readings are largely unaffected.',
+  },
   day: { ko: '주간', en: 'diurnal' },
   night: { ko: '야간', en: 'nocturnal' },
   pHour: { ko: '시', en: 'Hr' },
@@ -613,6 +618,14 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </div>
           ))}
         </div>
+
+        {/* 출생시각 미상 경고 — ASC/MC/하우스 의존 해석이 근사치임을 고지 */}
+        {input.birthTimeUnknown && (
+          <div className={s.timeUnknownNote} role="note">
+            <b>⚠ {t('timeUnknownTitle')}</b>
+            <span>{t('timeUnknownBody')}</span>
+          </div>
+        )}
 
         {/* ── 한눈에 (결론 먼저) — 별명 + 종합 교차 + 가장 필요한 기운 ── */}
         <div className={s.hero}>

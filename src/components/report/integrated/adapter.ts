@@ -199,7 +199,12 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
   const adv = S.analyses ?? {}
 
   const date = `${String(inp.year).padStart(4, '0')}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}`
-  const time = `${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
+  const birthTimeUnknown = !!inp.birthTimeUnknown
+  const time = birthTimeUnknown
+    ? lang === 'en'
+      ? 'unknown'
+      : '미상'
+    : `${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
 
   const mapPillar = (
     p: any,
@@ -346,6 +351,7 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
       lng: inp.longitude ?? 0,
       timeZone: inp.timeZone ?? '',
       isoUTC: inp.isoUTC ?? '',
+      birthTimeUnknown,
     },
     saju: {
       dayMaster: S.dayMaster?.name ?? '',
