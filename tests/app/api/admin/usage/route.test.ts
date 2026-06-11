@@ -110,22 +110,29 @@ describe('GET /api/admin/usage', () => {
     })
   })
 
-  describe('days parameter clamping', () => {
-    beforeEach(() => setupHappyPath())
-
+  describe('days parameter validation', () => {
     it('defaults to 30 days', async () => {
+      setupHappyPath()
       const data = (await (await GET(createRequest())).json()).data
       expect(data.rangeDays).toBe(30)
     })
 
     it('accepts a valid days value', async () => {
+      setupHappyPath()
       const data = (await (await GET(createRequest({ days: '7' }))).json()).data
       expect(data.rangeDays).toBe(7)
     })
 
-    it.each(['400', '0', '-5', 'abc'])('clamps invalid days=%s to 30', async (days) => {
-      const data = (await (await GET(createRequest({ days }))).json()).data
-      expect(data.rangeDays).toBe(30)
+    // zod 검증 도입 후: 잘못된 days 는 silent clamp(→30) 대신 422 거부.
+    // 오타가 기본값으로 흡수되면 운영자가 잘못된 기간을 보고 있는 걸 모른다.
+    // setupHappyPath() 의 $queryRaw Once 큐는 422 가 DB 도달 전에 끊겨
+    // 소비되지 않고 다음 테스트로 새므로, 세션/어드민 mock 만 직접 세팅.
+    it.each(['400', '0', '-5', 'abc'])('rejects invalid days=%s with 422', async (days) => {
+      vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
+      vi.mocked(isAdminUser).mockResolvedValue(true)
+      const res = await GET(createRequest({ days }))
+      expect(res.status).toBe(422)
+      expect((await res.json()).error.code).toBe('VALIDATION_ERROR')
     })
   })
 
