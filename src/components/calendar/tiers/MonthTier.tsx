@@ -555,7 +555,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
     keyDayItems.push({
       when: month.bestDay.date,
       title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dn, ko ? 'ko' : 'en')}`,
-      detail: ko ? '이달 가장 좋은 날' : 'Best day of the month',
+      detail: ko ? '이달 점수가 가장 높은 날' : 'The month’s highest-scoring day',
     })
   }
   const monthCrossItems = keyDayItems.sort((a, b) => a.when.localeCompare(b.when))

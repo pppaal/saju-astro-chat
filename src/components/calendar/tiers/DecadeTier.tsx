@@ -112,17 +112,19 @@ const BRANCH_KO: Record<string, string> = {
 // SibsinStrip — 10년 세운 십신 흐름 띠. 십신 가족별 색.
 // 비겁=쪽빛 / 식상=청록 / 재성=금 / 관성=적 / 인성=보라.
 // ----------------------------------------------------------------
+// 십신 가족 — *카테고리* 색. 길흉 valence 색(좋음=쪽빛/주의=주황/피함=적/
+// 수렴=금)과 겹치지 않는 별도 팔레트로 충돌 방지 (특히 관성을 적색에서 뺌).
 const SIBSIN_FAMILY_COLOR: Record<string, string> = {
-  비견: '#4f5d96',
-  겁재: '#4f5d96',
-  식신: '#3f8a78',
-  상관: '#3f8a78',
-  편재: '#b3873a',
-  정재: '#b3873a',
-  편관: '#b03a22',
-  정관: '#b03a22',
-  편인: '#7a5a9e',
-  정인: '#7a5a9e',
+  비견: '#6c8aa6', // 비겁 — 스틸 블루
+  겁재: '#6c8aa6',
+  식신: '#4a9d8e', // 식상 — 청록
+  상관: '#4a9d8e',
+  편재: '#7d9d4a', // 재성 — 올리브 그린 (금색 회피)
+  정재: '#7d9d4a',
+  편관: '#9d6a8a', // 관성 — 모브 (적색 회피)
+  정관: '#9d6a8a',
+  편인: '#7a6aa6', // 인성 — 보라
+  정인: '#7a6aa6',
 }
 function SibsinStrip({
   years,
@@ -152,11 +154,11 @@ function SibsinStrip({
       <div className={styles.stripLegend}>
         {(
           [
-            [ko ? '비겁' : 'Self', '#4f5d96'],
-            [ko ? '식상' : 'Output', '#3f8a78'],
-            [ko ? '재성' : 'Wealth', '#b3873a'],
-            [ko ? '관성' : 'Officer', '#b03a22'],
-            [ko ? '인성' : 'Resource', '#7a5a9e'],
+            [ko ? '비겁' : 'Self', '#6c8aa6'],
+            [ko ? '식상' : 'Output', '#4a9d8e'],
+            [ko ? '재성' : 'Wealth', '#7d9d4a'],
+            [ko ? '관성' : 'Officer', '#9d6a8a'],
+            [ko ? '인성' : 'Resource', '#7a6aa6'],
           ] as Array<[string, string]>
         ).map(([t, c]) => (
           <span className={styles.stripLegItem} key={t}>
@@ -282,10 +284,11 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
           {ko ? '지금의 대운, ' : 'Current cycle, '}
           <span className={styles.han}>{decade.gz.hanja}</span>
         </h1>
-        {/* Phase 3 보강 #1 — 격국 성패 frame chip (헤더 옆). */}
-        {gyeokgukLine && (
+        {/* Phase 3 보강 #1 — 격국 성패 frame chip (헤더 옆). 격국 status 문구가
+            한국어 전용 전문용어라, 영문 모드에선 숨긴다(자세히 보기에서 다룸). */}
+        {ko && gyeokgukLine && (
           <span className={styles.frameChip}>
-            <span className={styles.frameChipLabel}>{ko ? '격국 frame' : 'Structure'}</span>
+            <span className={styles.frameChipLabel}>격국 frame</span>
             <span className={styles.frameChipValue}>{gyeokgukLine}</span>
           </span>
         )}
