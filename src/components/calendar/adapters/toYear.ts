@@ -306,7 +306,7 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
           역마: 'Traveling Horse',
           역마살: 'Traveling Horse',
           양인: 'Yang Blade',
-          건록: 'Prosperity',
+          건록: 'Established Stipend',
         }
         const det = (s.evidence?.detail ?? {}) as { sajuKey?: string; astroKey?: string }
         const sajuEn = det.sajuKey

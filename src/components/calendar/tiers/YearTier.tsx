@@ -372,7 +372,13 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         {ko ? '1년' : '1 YEAR'} · YEARLY · {year.year}
       </div>
       <h1 className={styles.display}>{ko ? '올해의 흐름' : 'This year'}</h1>
-      <p className={styles.oneline}>{year.headline}</p>
+      <p className={styles.oneline}>
+        {ko
+          ? year.headline
+          : year.profection
+            ? `This year leans toward your house ${year.profection.house}${year.profection.themeEn ? ` — ${year.profection.themeEn.toLowerCase()}` : ''}.`
+            : `${year.year} — a year the flow gets re-drawn.`}
+      </p>
 
       {yearCrossItems.length > 0 ? (
         <CrossingList heading={crossHeading} items={yearCrossItems} />

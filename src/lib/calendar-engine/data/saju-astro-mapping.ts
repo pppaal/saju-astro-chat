@@ -206,7 +206,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mars',
     meaning: {
       ko: '겁재 × 화성 — 경쟁·분탈·충동 결이 두 배. 큰 돈·관계 결정은 한 박자 늦추기.',
-      en: 'Rob Wealth × Mars — competition, rivalry, and impulse run twice as hot. Slow big money and relationship calls by a beat.',
+      en: 'Rob Wealth × Mars — competition, rivalry, and impulse run twice as hot. Sleep on any big money or relationship call.',
     },
     polarity: -2,
     grade: 'A',
@@ -219,7 +219,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '도화살 × 금성 — 관계·매력·인기 결이 동시에 살아남. 사교·연애·미적 활동에 우호.',
-      en: 'Peach-Blossom × Venus — connection, charm, and popularity light up together. Favours socializing, romance, and aesthetic work.',
+      en: 'Peach Blossom × Venus — connection, charm, and popularity light up together. Favours socializing, romance, and aesthetic work.',
     },
     polarity: 2,
     grade: 'A',
@@ -230,7 +230,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '도화살 × 금성 — 관계·매력·인기 결이 동시에 살아남. 사교·연애·미적 활동에 우호.',
-      en: 'Peach-Blossom × Venus — connection, charm, and popularity light up together. Favours socializing, romance, and aesthetic work.',
+      en: 'Peach Blossom × Venus — connection, charm, and popularity light up together. Favours socializing, romance, and aesthetic work.',
     },
     polarity: 2,
     grade: 'A',
@@ -263,7 +263,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mars',
     meaning: {
       ko: '양인살 × 화성 — 직진·과열·돌발이 한 시기에 몰리는 결. 칼·차·운동에 평소보다 주의.',
-      en: 'Yang-Blade × Mars — headlong drive, overheating, and sudden moves all pile up. Take extra care with blades, vehicles, and intense exercise.',
+      en: 'Yang Blade × Mars — headlong drive, overheating, and sudden moves all pile up. Take extra care with blades, vehicles, and intense exercise.',
     },
     polarity: -2,
     grade: 'A',
