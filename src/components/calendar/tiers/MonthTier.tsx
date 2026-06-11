@@ -111,38 +111,38 @@ interface CellGlow {
 }
 
 function cellGlow(intensity: number, mark: string | null | undefined): CellGlow {
-  // 대비 강화 — 점수 중간대(46~63 → intensity 0.46~0.63)가 비슷한 약한 글로우로
-  // 뭉쳐 변별이 안 되던 문제. 0.5 기준 2.2배 stretch 해 좋은날↑/조심날↓ 또렷이.
-  // (메인 노출로 끌어올리며 색을 더 진하게 — 한눈에 좋은/주의 날이 읽히게.)
-  const c = Math.max(0, Math.min(1, 0.5 + (intensity - 0.5) * 2.2))
-  // avoid: 주사(주의) 톤
+  // 색조(hue)가 *해석*을 따라가게: 좋음/best=쪽빛, 주의=호박(주황), 지킴(avoid)=적,
+  // 수렴=금, 중립=옅은 회청. 밝기는 '중립(0.5)에서 얼마나 벗어났나'로 — 좋은 날은
+  // 점수↑일수록, 주의·지킴 날은 점수↓일수록 진하게. (예전엔 avoid만 빨갛고 나머진
+  // 전부 쪽빛이라 '주의' 날이 파랗게 보여 색과 해석이 어긋났다.)
+  const up = Math.max(0, Math.min(1, (intensity - 0.5) * 2.2)) // 좋은 쪽 강도
+  const down = Math.max(0, Math.min(1, (0.5 - intensity) * 2.2)) // 나쁜 쪽 강도
+  const glow = (r: number, g: number, b: number, a: number) =>
+    `radial-gradient(circle at 55% 42%, rgba(${r},${g},${b},${a}), transparent 66%)`
+
+  // 지킴(避) — 적. 점수 낮을수록 진하게(하한 보정으로 항상 또렷).
   if (mark === 'avoid') {
-    return {
-      bg: 'rgba(176,58,34,' + (0.12 + c * 0.26) + ')',
-      glow:
-        'radial-gradient(circle at 55% 42%, rgba(176,58,34,' +
-        (0.22 + c * 0.46) +
-        '), transparent 66%)',
-    }
+    const s = Math.max(0.35, down)
+    return { bg: `rgba(176,58,34,${0.14 + s * 0.26})`, glow: glow(176, 58, 34, 0.26 + s * 0.5) }
   }
-  // converge: 토(土) 골드 톤
+  // 주의(注) — 호박/주황. 좋음(쪽빛)과 또렷이 구분.
+  if (mark === 'caution') {
+    const s = Math.max(0.3, down)
+    return { bg: `rgba(198,116,40,${0.12 + s * 0.24})`, glow: glow(224, 148, 58, 0.22 + s * 0.5) }
+  }
+  // 수렴(土) — 금.
   if (mark === 'converge') {
-    return {
-      bg: 'rgba(179,135,58,' + (0.2 + c * 0.28) + ')',
-      glow:
-        'radial-gradient(circle at 55% 42%, rgba(217,168,74,' +
-        (0.28 + c * 0.68) +
-        '), transparent 68%)',
-    }
+    const s = Math.max(0.4, Math.abs(intensity - 0.5) * 2.2)
+    return { bg: `rgba(179,135,58,${0.2 + s * 0.28})`, glow: glow(217, 168, 74, 0.28 + s * 0.62) }
   }
-  // good/best: 쪽빛 인디고 톤. 글로우 더 진하게 + 가장자리(66%)에서 끊어 또렷하게.
-  return {
-    bg: 'rgba(52,64,111,' + c * 0.28 + ')',
-    glow:
-      'radial-gradient(circle at 55% 42%, rgba(79,93,150,' +
-      (0.12 + c * 0.72) +
-      '), transparent 66%)',
+  // 좋음/best — 쪽빛 인디고. 점수 높을수록 진하게.
+  if (mark === 'good' || mark === 'best') {
+    const s = Math.max(0.3, up)
+    return { bg: `rgba(52,64,111,${0.1 + s * 0.3})`, glow: glow(79, 93, 150, 0.2 + s * 0.6) }
   }
+  // 중립(grade 2 / 무표시) — 옅은 회청. 좋지도 나쁘지도 않게.
+  const s = Math.abs(intensity - 0.5) * 1.4
+  return { bg: `rgba(96,104,124,${0.05 + s * 0.1})`, glow: glow(120, 128, 150, 0.06 + s * 0.28) }
 }
 
 // ============================================================================
@@ -627,12 +627,16 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
       {/* ===== legend ===== */}
       <div className={styles.calLegend}>
         <span className={styles.leg}>
-          <span className="sw" style={{ background: 'var(--accent)' }} />
-          {ko ? '신호 강함' : 'Strong'}
+          <span className="sw" style={{ background: 'rgba(79,93,150,0.7)' }} />
+          {ko ? '좋음' : 'Good'}
         </span>
         <span className={styles.leg}>
-          <span className="sw" style={{ background: 'rgba(52,64,111,0.25)' }} />
-          {ko ? '약함' : 'Weak'}
+          <span className="sw" style={{ background: 'rgba(224,148,58,0.75)' }} />
+          {ko ? '주의' : 'Caution'}
+        </span>
+        <span className={styles.leg}>
+          <span className="sw" style={{ background: 'rgba(176,58,34,0.8)' }} />
+          {ko ? '지킴' : 'Avoid'}
         </span>
         {month.bestDay && (
           <span className={[styles.leg, styles.legPos].join(' ')}>✦ best {month.bestDay.date}</span>
