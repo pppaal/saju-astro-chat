@@ -45,8 +45,12 @@ jobs:
           fi
 
       - name: Check PR title
+        # 제목을 run 블록에 직접 보간하면 따옴표 포함 제목이 스크립트를
+        # 깨뜨리고(2026-06-11 #1403, exit 127), 악의적 제목($(...) 등)은
+        # 셸 인젝션이 된다. env 로 넘기면 셸이 값을 해석하지 않는다.
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
           if [[ ! "$PR_TITLE" =~ ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: ]]; then
             echo "::error::PR title must follow conventional commit format"
             echo "Examples: feat: add new feature, fix: resolve bug, docs: update readme"
