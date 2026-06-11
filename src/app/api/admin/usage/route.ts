@@ -22,6 +22,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
+import { adminDaysQuerySchema, formatZodErrors } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,29 +37,32 @@ export const GET = withApiMiddleware(
         return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
       }
 
+      // 잘못된 days 는 silent clamp 대신 422 — 오타를 기본값으로 흡수하면
+      // 운영자가 의도와 다른 기간을 보고 있는 걸 알아챌 수 없다.
       const { searchParams } = new URL(req.url)
-      const daysRaw = parseInt(searchParams.get('days') || '30', 10)
-      const days = Number.isFinite(daysRaw) && daysRaw > 0 && daysRaw <= 365 ? daysRaw : 30
+      const parsedQuery = adminDaysQuerySchema.safeParse(Object.fromEntries(searchParams))
+      if (!parsedQuery.success) {
+        return apiError(
+          ErrorCodes.VALIDATION_ERROR,
+          'days must be an integer between 1 and 365',
+          formatZodErrors(parsedQuery.error)
+        )
+      }
+      const { days } = parsedQuery.data
       const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
-      const [
-        counselorByType,
-        tarotTotal,
-        hourlyRows,
-        topTopics,
-        topTarotQuestions,
-        dailyRows,
-      ] = await Promise.all([
-        // 서비스별(상담 type) 세션 수
-        prisma.counselorChatSession.groupBy({
-          by: ['type'],
-          where: { createdAt: { gte: since } },
-          _count: { id: true },
-        }),
-        // 타로 총 건수
-        prisma.tarotReading.count({ where: { createdAt: { gte: since } } }),
-        // 시간대별(KST) 분포 — 상담 + 타로 합산
-        prisma.$queryRaw<Array<{ hour: number; source: string; count: bigint }>>`
+      const [counselorByType, tarotTotal, hourlyRows, topTopics, topTarotQuestions, dailyRows] =
+        await Promise.all([
+          // 서비스별(상담 type) 세션 수
+          prisma.counselorChatSession.groupBy({
+            by: ['type'],
+            where: { createdAt: { gte: since } },
+            _count: { id: true },
+          }),
+          // 타로 총 건수
+          prisma.tarotReading.count({ where: { createdAt: { gte: since } } }),
+          // 시간대별(KST) 분포 — 상담 + 타로 합산
+          prisma.$queryRaw<Array<{ hour: number; source: string; count: bigint }>>`
           SELECT EXTRACT(HOUR FROM "createdAt" AT TIME ZONE 'Asia/Seoul')::int AS hour,
                  'counselor' AS source, COUNT(*)::bigint AS count
           FROM "CounselorChatSession" WHERE "createdAt" >= ${since}
@@ -69,8 +73,8 @@ export const GET = withApiMiddleware(
           FROM "TarotReading" WHERE "createdAt" >= ${since}
           GROUP BY 1
         `,
-        // 인기 주제 — keyTopics(jsonb 배열) 펼쳐서 카운트
-        prisma.$queryRaw<Array<{ topic: string; count: bigint }>>`
+          // 인기 주제 — keyTopics(jsonb 배열) 펼쳐서 카운트
+          prisma.$queryRaw<Array<{ topic: string; count: bigint }>>`
           SELECT topic, COUNT(*)::bigint AS count
           FROM "CounselorChatSession",
                LATERAL jsonb_array_elements_text(
@@ -82,8 +86,8 @@ export const GET = withApiMiddleware(
           ORDER BY count DESC
           LIMIT 30
         `,
-        // 인기 타로 질문 — 동일 질문 묶어 카운트
-        prisma.$queryRaw<Array<{ question: string; count: bigint }>>`
+          // 인기 타로 질문 — 동일 질문 묶어 카운트
+          prisma.$queryRaw<Array<{ question: string; count: bigint }>>`
           SELECT trim("question") AS question, COUNT(*)::bigint AS count
           FROM "TarotReading"
           WHERE "createdAt" >= ${since}
@@ -92,8 +96,8 @@ export const GET = withApiMiddleware(
           ORDER BY count DESC
           LIMIT 30
         `,
-        // 일별 추이 — 상담 + 타로 합산 (KST 일자)
-        prisma.$queryRaw<Array<{ day: string; source: string; count: bigint }>>`
+          // 일별 추이 — 상담 + 타로 합산 (KST 일자)
+          prisma.$queryRaw<Array<{ day: string; source: string; count: bigint }>>`
           SELECT to_char("createdAt" AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day,
                  'counselor' AS source, COUNT(*)::bigint AS count
           FROM "CounselorChatSession" WHERE "createdAt" >= ${since}
@@ -104,10 +108,15 @@ export const GET = withApiMiddleware(
           FROM "TarotReading" WHERE "createdAt" >= ${since}
           GROUP BY 1
         `,
-      ])
+        ])
 
       // 시간대 0-23 정규화 (상담+타로 합산)
-      const hourly = Array.from({ length: 24 }, (_, h) => ({ hour: h, counselor: 0, tarot: 0, total: 0 }))
+      const hourly = Array.from({ length: 24 }, (_, h) => ({
+        hour: h,
+        counselor: 0,
+        tarot: 0,
+        total: 0,
+      }))
       for (const r of hourlyRows) {
         const h = Number(r.hour)
         if (h >= 0 && h < 24) {
@@ -119,7 +128,10 @@ export const GET = withApiMiddleware(
       }
 
       // 일별 합산
-      const dailyMap = new Map<string, { day: string; counselor: number; tarot: number; total: number }>()
+      const dailyMap = new Map<
+        string,
+        { day: string; counselor: number; tarot: number; total: number }
+      >()
       for (const r of dailyRows) {
         const cur = dailyMap.get(r.day) ?? { day: r.day, counselor: 0, tarot: 0, total: 0 }
         const n = Number(r.count)
@@ -151,7 +163,10 @@ export const GET = withApiMiddleware(
       const detail = err instanceof Error ? err.message : String(err)
       const code = (err as { code?: string } | null)?.code
       logger.error('[admin/usage] error', { code, err })
-      return apiError(ErrorCodes.INTERNAL_ERROR, `usage failed${code ? ` [${code}]` : ''}: ${detail}`)
+      return apiError(
+        ErrorCodes.INTERNAL_ERROR,
+        `usage failed${code ? ` [${code}]` : ''}: ${detail}`
+      )
     }
   },
   createAuthenticatedGuard({
