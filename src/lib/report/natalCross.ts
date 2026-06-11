@@ -1181,14 +1181,21 @@ function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerd
   const lb = d.bLabel ?? { ko: EL_KO[b], en: EL_EN[b] }
   const left = { ko: `${la.ko} · ${ta.ko}`, en: `${la.en} · ${ta.en}` }
   const right = { ko: `${lb.ko} · ${tb.ko}`, en: `${lb.en} · ${tb.en}` }
+  // 같은 오행이라도 트레잇 override(예: 공기→木) 가 걸리면 표시 결이 달라진다.
+  // 그 경우 "둘 다 ${ta}" 라고 하면 라벨(목 ↔ 공기)과 모순되므로 분기.
+  const sameTrait = ta.ko === tb.ko
   const base: CrossVerdict = (() => {
     switch (rel) {
       case 'same':
         return {
           tone: 'resonant',
           reason: {
-            ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. 힘이 모이는 만큼 한쪽으로 치우치기도 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.`,
-            en: `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. That focus is a strength, but it can tip into one-sidedness, so touch the opposite grain now and then.`,
+            ko: sameTrait
+              ? `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. 힘이 모이는 만큼 한쪽으로 치우치기도 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.`
+              : `${d.aKo}${eunNeun(d.aKo)} ${ta.ko}, ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 결이라 겉보기엔 달라도 뿌리는 같은 흐름이라 한 방향으로 통해요. 힘이 모이는 만큼 한쪽으로 치우치기도 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.`,
+            en: sameTrait
+              ? `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. That focus is a strength, but it can tip into one-sidedness, so touch the opposite grain now and then.`
+              : `Your ${d.aEn} is ${ta.en} and your ${d.bEn} is ${tb.en} — different on the surface, yet they share one root and pull in the same direction. That focus is a strength, but it can tip into one-sidedness, so touch the opposite grain now and then.`,
           },
         }
       case 'aGenB':
