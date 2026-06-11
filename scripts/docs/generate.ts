@@ -169,7 +169,12 @@ const GENERATORS: Record<string, () => string> = {
   'health-dashboard': () => {
     const routes = countRoutes()
     const services = ENABLED_SERVICES.length
-    const tests = countFiles(TESTS_DIR, (n) => /\.(test|spec)\.(ts|tsx)$/.test(n))
+    // 테스트 파일 수는 10단위 버킷으로 표기 — 정확한 개수를 박제하면
+    // 테스트 파일을 추가하는 모든 PR 이 drift 가드에 걸려 docs:sync
+    // 재커밋을 강제당한다(좋은 행동에 벌칙). 버킷은 10개 추가마다 한 번만
+    // 갱신되어 현황판 가치는 유지하면서 마찰을 1/10 로 줄인다.
+    const testsExact = countFiles(TESTS_DIR, (n) => /\.(test|spec)\.(ts|tsx)$/.test(n))
+    const tests = Math.floor(testsExact / 10) * 10
     const deck = tarotDeck.length
     const major = tarotDeck.filter((c) => c.arcana === 'major').length
     const inventory = table(
@@ -177,7 +182,7 @@ const GENERATORS: Record<string, () => string> = {
       [
         ['활성 서비스', `${services}개 ([[services-index]])`],
         ['API 라우트', `${routes}개 ([[api-routes]])`],
-        ['테스트 파일', `${tests}개`],
+        ['테스트 파일', `${tests}+개`],
         ['타로 덱', `${deck}장 (Major ${major}/Minor ${deck - major})`],
         ['하우스 시스템', `\`${CALCULATION_STANDARDS.astrology.houseSystem}\``],
         ['사주 기준 TZ', `\`${CALCULATION_STANDARDS.saju.baseTimezone}\``],
@@ -210,7 +215,9 @@ const GENERATORS: Record<string, () => string> = {
           const rel = path.relative(API_DIR, path.dirname(full)).split(path.sep).join('/')
           const src = fs.readFileSync(full, 'utf8')
           const methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
-            .filter((m) => new RegExp(`export\\s+(async\\s+)?(function|const)\\s+${m}\\b`).test(src))
+            .filter((m) =>
+              new RegExp(`export\\s+(async\\s+)?(function|const)\\s+${m}\\b`).test(src)
+            )
             .join(', ')
           routes.push({ route: `/api/${rel}`, methods: methods || '—' })
         }
