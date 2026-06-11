@@ -18,6 +18,7 @@ import {
   ensureCounselorContext,
   type CounselorBirthInput,
 } from '@/lib/destiny/counselorContextCache'
+import { counselorWarmRequestSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -43,6 +44,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 400 })
   }
   if (!body?.birthDate) return NextResponse.json({ ok: false }, { status: 400 })
+  // 코어(birthDate) 타입 위반만 422 — 누락은 위에서 기존대로 400.
+  // passthrough 스키마라 클라가 싣는 부가 필드는 그대로 통과.
+  const parsed = counselorWarmRequestSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, error: 'validation_failed' }, { status: 422 })
+  }
 
   const lang: 'ko' | 'en' = body.lang === 'en' ? 'en' : 'ko'
   try {

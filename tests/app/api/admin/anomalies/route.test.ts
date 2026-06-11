@@ -88,6 +88,14 @@ describe('GET /api/admin/anomalies', () => {
     expect((await GET(req())).status).toBe(403)
   })
 
+  // zod 검증 도입 후: 잘못된 days 는 silent clamp(→30) 대신 422 거부.
+  it.each(['999', '0', 'abc'])('rejects invalid days=%s with 422', async (days) => {
+    setupAdmin()
+    const res = await GET(req(days))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error.code).toBe('VALIDATION_ERROR')
+  })
+
   it('ranks top consumers by absolute consumption and attaches emails', async () => {
     setupAdmin()
     const data = (await (await GET(req('30'))).json()).data

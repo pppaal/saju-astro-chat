@@ -20,6 +20,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
+import { adminDaysQuerySchema, formatZodErrors } from '@/lib/api/zodValidation'
 import { CREDIT_PACKS, BASE_CREDIT_PRICE_KRW } from '@/lib/config/pricing'
 
 export const dynamic = 'force-dynamic'
@@ -50,8 +51,19 @@ export const GET = withApiMiddleware(
         return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
       }
 
-      const daysRaw = parseInt(new URL(req.url).searchParams.get('days') || '30', 10)
-      const days = Number.isFinite(daysRaw) && daysRaw > 0 && daysRaw <= 365 ? daysRaw : 30
+      // 잘못된 days 는 silent clamp 대신 422 — 오타를 기본값으로 흡수하면
+      // 운영자가 의도와 다른 기간을 보고 있는 걸 알아챌 수 없다.
+      const parsedQuery = adminDaysQuerySchema.safeParse(
+        Object.fromEntries(new URL(req.url).searchParams)
+      )
+      if (!parsedQuery.success) {
+        return apiError(
+          ErrorCodes.VALIDATION_ERROR,
+          'days must be an integer between 1 and 365',
+          formatZodErrors(parsedQuery.error)
+        )
+      }
+      const { days } = parsedQuery.data
       const now = new Date()
       const since = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
       const startOfToday = new Date(now)
@@ -61,7 +73,7 @@ export const GET = withApiMiddleware(
       // Stripe 결제 표식(stripePaymentId)이 있는 행만 '구매'로 본다.
       const paidWhere = { stripePaymentId: { not: null } }
 
-      const [windowPurchases, economy, consumeAgg] = await Promise.all([
+      const [windowPurchases, economy, consumeAgg, windowRefundTx] = await Promise.all([
         // 기간 내 실결제 구매 (일별·팩별·매출 추정용)
         prisma.bonusCreditPurchase.findMany({
           where: { ...paidWhere, createdAt: { gte: since } },
@@ -91,11 +103,32 @@ export const GET = withApiMiddleware(
           where: { type: 'CONSUME', createdAt: { gte: since } },
           _sum: { amount: true },
         }),
-        // CreditRefundLog 모델 제거 (2026-06-06) — CreditTransaction 의
-        // type='REFUND' row 가 SSOT. 기간 내 환불 통계 별도 항목 제거.
+        // 기간 내 크레딧팩 환불(실결제 환불). revokeBonusCreditPurchase 가
+        // type='REVOKE', reason='stripe_refund', sourceRef=stripePaymentId,
+        // amount=-회수크레딧 으로 기록한다 — 자연만료(expired=true)와 구분되는
+        // 유일하게 신뢰 가능한 환불 신호. (type='REFUND' 는 서비스 실패 시
+        // 크레딧을 되돌려주는 별개 개념이라 매출 환불 아님 → 제외.)
+        prisma.creditTransaction.findMany({
+          where: { type: 'REVOKE', reason: 'stripe_refund', createdAt: { gte: since } },
+          select: { sourceRef: true, amount: true },
+        }),
       ])
 
       const [paidAgg, freeAgg, outstandingAgg, expiredAgg] = economy
+
+      // 환불된 결제의 팩 정가(KRW)를 매출에서 차감해 순매출(net)을 낸다. 환불
+      // 트랜잭션의 sourceRef(=stripePaymentId)로 원구매를 찾아 정가 환산한다.
+      const refundedPaymentIds = Array.from(
+        new Set(windowRefundTx.map((t) => t.sourceRef).filter((x): x is string => Boolean(x)))
+      )
+      const refundedPurchases = refundedPaymentIds.length
+        ? await prisma.bonusCreditPurchase.findMany({
+            where: { stripePaymentId: { in: refundedPaymentIds } },
+            select: { amount: true },
+          })
+        : []
+      const refundedKrw = refundedPurchases.reduce((s, p) => s + creditsToKrw(p.amount), 0)
+      const creditsRefunded = windowRefundTx.reduce((s, t) => s + Math.abs(t.amount), 0)
 
       // 일별 매출 (빈 날도 0 으로 채움)
       const dailyMap = new Map<string, { krw: number; count: number }>()
@@ -125,7 +158,9 @@ export const GET = withApiMiddleware(
       return apiSuccess({
         rangeDays: days,
         revenue: {
-          windowKrw,
+          windowKrw, // 총매출(추정, 환불 전)
+          netKrw: windowKrw - refundedKrw, // 순매출 = 총매출 − 기간 내 환불액
+          refundedKrw, // 기간 내 환불 처리된 결제의 정가 합(추정)
           todayKrw,
           purchaseCount: windowPurchases.length,
           daily: Array.from(dailyMap.entries()).map(([date, v]) => ({
@@ -134,7 +169,12 @@ export const GET = withApiMiddleware(
             count: v.count,
           })),
           byPack: Array.from(packMap.entries())
-            .map(([credits, v]) => ({ pack: packLabel(credits), credits, count: v.count, krw: v.krw }))
+            .map(([credits, v]) => ({
+              pack: packLabel(credits),
+              credits,
+              count: v.count,
+              krw: v.krw,
+            }))
             .sort((a, b) => b.krw - a.krw),
         },
         credits: {
@@ -144,8 +184,13 @@ export const GET = withApiMiddleware(
           outstanding: outstandingAgg._sum.remaining ?? 0,
           expiredLost: expiredAgg._sum.remaining ?? 0,
         },
-        // refunds 통계 — CreditRefundLog 제거 (2026-06-06). 필요 시
-        // CreditTransaction.type='REFUND' aggregate 로 재구현.
+        // 기간 내 크레딧팩 환불(실결제 환불) — CreditTransaction(REVOKE/stripe_refund)
+        // 이 SSOT. count=환불 건수, krw=환불 정가 추정, creditsRefunded=회수 크레딧.
+        refunds: {
+          count: windowRefundTx.length,
+          krw: refundedKrw,
+          creditsRefunded,
+        },
       } as Record<string, unknown>)
     } catch (err) {
       logger.error('[admin/revenue] error', err)

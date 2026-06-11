@@ -91,7 +91,27 @@ describe('GET /api/admin/users', () => {
       { name: { contains: 'alice', mode: 'insensitive' } },
       { id: 'alice' },
     ])
-    expect(where.take).toBe(25)
+    // take: 26 — 25건 초과 여부(capped) 판별용으로 한 건 더 받는다.
+    expect(where.take).toBe(26)
+    expect(data.capped).toBe(false)
+  })
+
+  it('flags capped results and trims to 25 when more than 25 match', async () => {
+    setupAdmin()
+    // 26건 반환 → capped=true, 목록은 25건으로 자른다.
+    vi.mocked(prisma.user.findMany).mockResolvedValue(
+      Array.from({ length: 26 }, (_, i) => ({
+        id: `u${i}`,
+        email: `u${i}@example.com`,
+        name: `U${i}`,
+        role: 'user',
+        createdAt: new Date(),
+      })) as any
+    )
+    const data = (await (await GET(req('common'))).json()).data
+    expect(data.capped).toBe(true)
+    expect(data.count).toBe(25)
+    expect(data.users).toHaveLength(25)
   })
 
   it('returns empty list when no matches', async () => {

@@ -21,6 +21,7 @@ import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { createIdempotencyStore } from '@/lib/api/idempotency'
+import { counselorRealtimeRequestSchema } from '@/lib/api/zodValidation'
 import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPrompt'
 
 // 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
@@ -164,6 +165,27 @@ export async function POST(req: NextRequest) {
   }
   if (!body.birthDate) {
     return NextResponse.json({ error: 'birthDate_required' }, { status: 400 })
+  }
+  // 코어 필드 zod 검증 — 누락은 위에서 기존 에러 코드(messages_required/
+  // birthDate_required, 400)로 응답하고, 타입/형식 위반(messages 가 문자열
+  // 배열, birthDate 가 숫자 등)만 여기서 422 로 거른다. 스키마는
+  // .passthrough() 라 클라가 싣는 부가 컨텍스트(saju/astro/predictionContext
+  // 등 unknown 필드)는 그대로 통과 — 기존 클라이언트와 100% 호환.
+  const parsedBody = counselorRealtimeRequestSchema.safeParse(body)
+  if (!parsedBody.success) {
+    logger.warn('[counselor/realtime] validation failed', {
+      errors: parsedBody.error.issues,
+    })
+    return NextResponse.json(
+      {
+        error: 'validation_failed',
+        details: parsedBody.error.issues.map((e) => ({
+          path: e.path.join('.'),
+          message: e.message,
+        })),
+      },
+      { status: 422 }
+    )
   }
 
   const userMessage = body.messages[body.messages.length - 1]?.content ?? ''

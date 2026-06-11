@@ -11,50 +11,42 @@ status: auto-generated
 
 ## Summary
 
-- Total Next.js API routes: 71
-- Uses middleware/guards: 65 (91.5%)
-- Has validation signals: 45 (63.4%)
-- Rate limited (guard or option): 61 (85.9%)
-- Credit consumption configured: 7 (9.9%)
-- Requires auth: 40 (56.3%)
-- Requires token: 16 (22.5%)
-- skipCsrf enabled: 2 (2.8%)
+- Total Next.js API routes: 70
+- Uses middleware/guards: 63 (90.0%)
+- Has validation signals: 54 (77.1%)
+- Rate limited (guard or option): 62 (88.6%)
+- Credit consumption configured: 8 (11.4%)
+- Requires auth: 43 (61.4%)
+- Requires token: 16 (22.9%)
+- skipCsrf enabled: 2 (2.9%)
 
 ## Method Distribution
 
-- GET: 41
-- POST: 38
+- GET: 38
+- POST: 40
 - PUT: 0
 - PATCH: 5
 - DELETE: 5
 
-## Missing Middleware (6)
+## Missing Middleware (7)
 
 - src/app/api/auth/[...nextauth]/route.ts [GET,POST]
 - src/app/api/compatibility/counselor/result/route.ts [GET]
 - src/app/api/counselor/realtime/result/route.ts [GET]
-- src/app/api/tarot/couple-reading/route.ts [GET,POST,DELETE]
+- src/app/api/counselor/warm/route.ts [POST]
 - src/app/api/tarot/couple-reading/[readingId]/route.ts [GET]
+- src/app/api/tarot/couple-reading/route.ts [GET,POST,DELETE]
 - src/app/api/tarot/interpret-stream/result/route.ts [GET]
 
-## Missing Validation (11)
+## Missing Validation (1)
 
-- src/app/api/admin/anomalies/route.ts [GET]
-- src/app/api/admin/audit-log/route.ts [GET]
-- src/app/api/admin/funnel/route.ts [GET]
-- src/app/api/admin/revenue/route.ts [GET]
-- src/app/api/admin/usage/route.ts [GET]
-- src/app/api/admin/webhook-events/route.ts [GET]
-- src/app/api/compatibility/counselor/result/route.ts [GET]
-- src/app/api/counselor/realtime/result/route.ts [GET]
-- src/app/api/counselor/realtime/route.ts [POST]
-- src/app/api/tarot/interpret-stream/result/route.ts [GET]
 - src/app/api/webhook/stripe/route.ts [POST]
 
-## Public Mutations (No Auth/Token) (6)
+## Public Mutations (No Auth/Token) (7)
 
 - src/app/api/auth/[...nextauth]/route.ts [GET,POST]
 - src/app/api/counselor/realtime/route.ts [POST]
+- src/app/api/counselor/warm/route.ts [POST]
 - src/app/api/cron/reset-credits/route.ts [GET,POST]
 - src/app/api/csp-report/route.ts [POST,GET]
 - src/app/api/tarot/couple-reading/route.ts [GET,POST,DELETE]

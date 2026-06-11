@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { logger } from '@/lib/logger'
+import { useStaleChunkReload } from '@/hooks/useStaleChunkReload'
 
 // 어드민 전용 에러 바운더리. 루트 error.tsx 의 "문제가 발생했어요" 로
 // 뭉개지 말고, admin 페이지(특히 dashboard)에서 렌더 중 throw 된 실제
@@ -14,6 +15,7 @@ export default function AdminError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const reloadingStaleChunk = useStaleChunkReload(error)
   useEffect(() => {
     logger.error('[admin] page error', {
       message: error.message,
@@ -21,6 +23,11 @@ export default function AdminError({
       stack: error.stack,
     })
   }, [error])
+
+  // 배포로 사라진 청크 에러 — 자동 리로드 1회로 복구 중. 에러 UI 깜빡임 방지.
+  if (reloadingStaleChunk) {
+    return <div className="min-h-[100svh]" aria-hidden="true" />
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-5 py-12">
@@ -47,7 +54,9 @@ export default function AdminError({
 
         {error.stack && (
           <details className="mt-3">
-            <summary className="cursor-pointer text-[13px] text-rose-600">스택 트레이스 보기</summary>
+            <summary className="cursor-pointer text-[13px] text-rose-600">
+              스택 트레이스 보기
+            </summary>
             <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-stone-200 bg-stone-50 p-3 font-mono text-[11px] text-stone-600">
               {error.stack}
             </pre>

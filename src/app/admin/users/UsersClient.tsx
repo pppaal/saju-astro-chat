@@ -60,7 +60,9 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
       <div className="text-[12px] text-stone-500">{label}</div>
-      <div className="mt-1 font-mono text-lg font-semibold tabular-nums text-stone-900">{value}</div>
+      <div className="mt-1 font-mono text-lg font-semibold tabular-nums text-stone-900">
+        {value}
+      </div>
     </div>
   )
 }
@@ -68,6 +70,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 export default function UsersClient() {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<SearchUser[] | null>(null)
+  const [capped, setCapped] = useState(false)
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
 
@@ -96,7 +99,9 @@ export default function UsersClient() {
         setSearchError(err?.message || err?.code || `요청 실패 (HTTP ${res.status})`)
         return
       }
-      setResults(((json?.data || json) as { users: SearchUser[] }).users)
+      const payload = (json?.data || json) as { users: SearchUser[]; capped?: boolean }
+      setResults(payload.users)
+      setCapped(Boolean(payload.capped))
     } catch (err) {
       setSearchError(err instanceof Error ? err.message : '알 수 없는 오류')
     } finally {
@@ -129,7 +134,9 @@ export default function UsersClient() {
     <div>
       <div className="mb-6">
         <h1 className="text-xl font-semibold tracking-tight text-stone-900">유저 검색</h1>
-        <p className="mt-1 text-sm text-stone-500">이메일·이름·User ID 로 검색 후 클릭해 상세 보기</p>
+        <p className="mt-1 text-sm text-stone-500">
+          이메일·이름·User ID 로 검색 후 클릭해 상세 보기
+        </p>
       </div>
 
       <form
@@ -163,7 +170,8 @@ export default function UsersClient() {
       {results && (
         <section className="mb-8">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
-            검색 결과 ({results.length}명)
+            검색 결과 ({results.length}
+            {capped ? '+' : ''}명{capped ? ', 검색어를 더 구체적으로' : ''})
           </h2>
           {results.length === 0 ? (
             <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-400">
@@ -250,7 +258,9 @@ export default function UsersClient() {
               {/* 크레딧 */}
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-[12px] font-medium uppercase tracking-wide text-stone-400">크레딧</span>
+                  <span className="text-[12px] font-medium uppercase tracking-wide text-stone-400">
+                    크레딧
+                  </span>
                   <a
                     href={`/admin/credits?tab=grant&user=${encodeURIComponent(detail.user.email || detail.user.id)}`}
                     className="rounded-full border border-stone-300 bg-white px-3 py-1 text-[12px] font-medium text-stone-700 transition hover:bg-stone-100"
@@ -348,7 +358,9 @@ export default function UsersClient() {
                         <span className="shrink-0 rounded-full bg-stone-100 px-2 py-0.5 text-[12px] text-stone-600">
                           {e.label}
                         </span>
-                        <span className="flex-1 truncate text-[13px] text-stone-500">{e.detail}</span>
+                        <span className="flex-1 truncate text-[13px] text-stone-500">
+                          {e.detail}
+                        </span>
                         <span className="shrink-0 text-[13px] text-stone-400">
                           {new Date(e.at).toLocaleString('ko-KR')}
                         </span>

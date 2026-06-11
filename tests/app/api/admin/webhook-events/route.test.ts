@@ -101,12 +101,21 @@ describe('GET /api/admin/webhook-events', () => {
     expect(data.recentFailures[0]).toMatchObject({ eventId: 'evt_1', errorMsg: 'card_declined' })
   })
 
-  it('defaults to 7 days and clamps invalid values', async () => {
+  it('defaults to 7 days', async () => {
     setupAdmin()
     expect((await (await GET(req())).json()).data.rangeDays).toBe(7)
-    vi.clearAllMocks()
-    setupAdmin()
-    expect((await (await GET(req('999'))).json()).data.rangeDays).toBe(7)
+  })
+
+  // zod 검증 도입 후: 잘못된 days 는 silent clamp(→7) 대신 422 거부.
+  // 오타가 기본값으로 흡수되면 운영자가 잘못된 기간을 보고 있는 걸 모른다.
+  // setupAdmin() 은 mockResolvedValueOnce 큐를 쌓는데 422 는 DB 도달 전에
+  // 끊겨 큐가 다음 테스트로 새므로, 여기선 세션/어드민 mock 만 직접 세팅.
+  it.each(['999', '0', 'abc'])('rejects invalid days=%s with 422', async (days) => {
+    vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
+    vi.mocked(isAdminUser).mockResolvedValue(true)
+    const res = await GET(req(days))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error.code).toBe('VALIDATION_ERROR')
   })
 
   it('returns 100% success rate when there are no events', async () => {

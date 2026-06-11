@@ -169,11 +169,12 @@ function setupHappyPath(overrides?: {
     headers: new Headers(),
   })
 
-  // user.count: 1st no-where call = total; subsequent windowed calls in route
-  // order are [current window = newUsers] then [previous window = prevNewUsers].
+  // user.count: 모든 호출이 realUserWhere(OR accounts/passwordHash)를 쓴다.
+  // 누적(total) 은 where 에 AND 가 없고, 기간 윈도 호출은 where.AND[1].createdAt
+  // 를 가진다. order: [current window = newUsers] then [previous = prevNewUsers].
   let windowedCalls = 0
   vi.mocked(prisma.user.count).mockImplementation(async (args?: any) => {
-    if (!args || !args.where) return totalUsers
+    if (!args?.where?.AND) return totalUsers
     windowedCalls += 1
     return windowedCalls === 1 ? newUsers : prevNewUsers
   })

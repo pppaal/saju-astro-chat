@@ -120,6 +120,24 @@ describe('GET /api/admin/users-by', () => {
     expect(gb.where.stripePaymentId).toEqual({ not: null })
   })
 
+  it('orders paying users by most recent purchase, not signup date', async () => {
+    setupAdmin()
+    // u2 가입은 더 오래됐지만(2026-05-30) 결제는 더 최근(06-10). u1 결제는 06-01.
+    vi.mocked(prisma.bonusCreditPurchase.groupBy).mockResolvedValue([
+      { userId: 'u1', _max: { createdAt: new Date('2026-06-01T00:00:00Z') } },
+      { userId: 'u2', _max: { createdAt: new Date('2026-06-10T00:00:00Z') } },
+    ] as any)
+    const data = (await (await GET(req('paying'))).json()).data
+    // 최근 결제(u2)가 먼저 — 가입일 역순이었다면 u1 이 먼저였을 것.
+    expect(data.users.map((u: { id: string }) => u.id)).toEqual(['u2', 'u1'])
+    // groupBy 가 마지막 결제일을 가져오도록 _max 요청
+    const gb = vi.mocked(prisma.bonusCreditPurchase.groupBy).mock.calls[0][0] as any
+    expect(gb._max).toEqual({ createdAt: true })
+    // 목록을 결제일순으로 받으려고 findMany 에는 orderBy 를 넘기지 않는다(메모리 정렬)
+    const fm = vi.mocked(prisma.user.findMany).mock.calls.at(-1)?.[0] as any
+    expect(fm.orderBy).toBeUndefined()
+  })
+
   it('returns empty paying list without querying users when nobody paid', async () => {
     setupAdmin()
     vi.mocked(prisma.bonusCreditPurchase.groupBy).mockResolvedValue([] as any)

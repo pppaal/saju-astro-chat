@@ -26,7 +26,7 @@ vi.mock('@/lib/security/csrf', () => ({ csrfGuard: vi.fn(() => null) }))
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     bonusCreditPurchase: { findMany: vi.fn(), aggregate: vi.fn() },
-    creditTransaction: { aggregate: vi.fn() },
+    creditTransaction: { aggregate: vi.fn(), findMany: vi.fn() },
   },
 }))
 vi.mock('@/lib/auth/admin', () => ({ isAdminUser: vi.fn() }))
@@ -61,6 +61,8 @@ function setupAdmin() {
     .mockResolvedValueOnce({ _sum: { remaining: 400 } } as any) // outstanding
     .mockResolvedValueOnce({ _sum: { remaining: 50 } } as any) // expiredLost
   vi.mocked(prisma.creditTransaction.aggregate).mockResolvedValue({ _sum: { amount: -620 } } as any)
+  // 기본: 기간 내 환불 없음
+  vi.mocked(prisma.creditTransaction.findMany).mockResolvedValue([] as any)
 }
 
 describe('GET /api/admin/revenue', () => {
@@ -83,6 +85,17 @@ describe('GET /api/admin/revenue', () => {
     expect((await GET(req())).status).toBe(403)
   })
 
+  // zod 검증 도입 후: 잘못된 days 는 silent clamp(→30) 대신 422 거부.
+  // setupAdmin() 은 mockResolvedValueOnce 큐를 쌓는데 422 는 DB 도달 전에
+  // 끊겨 큐가 다음 테스트로 새므로, 여기선 세션/어드민 mock 만 직접 세팅.
+  it.each(['999', '0', 'abc'])('rejects invalid days=%s with 422', async (days) => {
+    vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
+    vi.mocked(isAdminUser).mockResolvedValue(true)
+    const res = await GET(req(days))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error.code).toBe('VALIDATION_ERROR')
+  })
+
   it('maps credit packs to KRW and sums window/today revenue', async () => {
     setupAdmin()
     const data = (await (await GET(req('30'))).json()).data
@@ -93,6 +106,29 @@ describe('GET /api/admin/revenue', () => {
     expect(data.revenue.byPack[0]).toMatchObject({ credits: 240, count: 1, krw: 19900 })
     // daily array has one entry per day
     expect(data.revenue.daily).toHaveLength(30)
+    // 환불 없음 → 순매출 = 총매출, 환불액 0
+    expect(data.revenue.netKrw).toBe(9900 + 19900)
+    expect(data.revenue.refundedKrw).toBe(0)
+  })
+
+  it('subtracts refunded purchases from net revenue', async () => {
+    setupAdmin()
+    // mega 팩(240크레딧=₩19,900) 1건이 기간 내 환불됨.
+    vi.mocked(prisma.creditTransaction.findMany).mockResolvedValue([
+      { sourceRef: 'pi_mega', amount: -240 },
+    ] as any)
+    // 환불된 결제(pi_mega)의 원구매 = mega 팩 240크레딧
+    vi.mocked(prisma.bonusCreditPurchase.findMany)
+      .mockResolvedValueOnce([
+        { amount: 100, createdAt: new Date() },
+        { amount: 240, createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
+      ] as any) // windowPurchases
+      .mockResolvedValueOnce([{ amount: 240 }] as any) // refundedPurchases 조회
+    const data = (await (await GET(req('30'))).json()).data
+    expect(data.revenue.windowKrw).toBe(9900 + 19900) // 총매출 불변
+    expect(data.revenue.refundedKrw).toBe(19900)
+    expect(data.revenue.netKrw).toBe(9900) // 순매출 = 29,800 − 19,900
+    expect(data.refunds).toEqual({ count: 1, krw: 19900, creditsRefunded: 240 })
   })
 
   it('reports credit economy, consumed as absolute value', async () => {
@@ -105,8 +141,8 @@ describe('GET /api/admin/revenue', () => {
       outstanding: 400,
       expiredLost: 50,
     })
-    // refunds 통계는 CreditRefundLog 제거(2026-06-06)로 응답에서 빠짐.
-    expect(data.refunds).toBeUndefined()
+    // refunds 통계는 CreditTransaction(REVOKE/stripe_refund) SSOT 로 재구현.
+    expect(data.refunds).toEqual({ count: 0, krw: 0, creditsRefunded: 0 })
   })
 
   it('returns 500 on db error', async () => {
