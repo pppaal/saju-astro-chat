@@ -12,6 +12,14 @@ vi.mock('@/lib/credits/creditService', () => ({
   expireBonusCredits: vi.fn(),
 }))
 
+// 라우트는 시크릿 검증 전에 IP rate limit(5/min)을 건다. 실제 인메모리
+// 리미터를 그대로 두면 같은 IP 키를 쓰는 이 파일의 테스트 23개가 5회 이후
+// 전부 429 가 되므로 기본 allow 로 목킹하고, 429 경로는 별도 테스트에서
+// allowed:false 로 검증한다.
+vi.mock('@/lib/rateLimit', () => ({
+  rateLimit: vi.fn().mockResolvedValue({ allowed: true }),
+}))
+
 vi.mock('@/lib/logger', () => ({
   logger: {
     info: vi.fn(),
@@ -23,6 +31,7 @@ vi.mock('@/lib/logger', () => ({
 
 import { GET, POST } from '@/app/api/cron/reset-credits/route'
 import { resetAllExpiredCredits, expireBonusCredits } from '@/lib/credits/creditService'
+import { rateLimit } from '@/lib/rateLimit'
 
 describe('/api/cron/reset-credits', () => {
   const originalEnv = process.env
@@ -34,6 +43,26 @@ describe('/api/cron/reset-credits', () => {
 
   afterEach(() => {
     process.env = originalEnv
+  })
+
+  describe('Rate limiting', () => {
+    it('IP 한도 초과 시 시크릿 검증 전에 429 를 반환한다', async () => {
+      process.env.CRON_SECRET = 'my-secret-key'
+      vi.mocked(rateLimit).mockResolvedValueOnce({
+        allowed: false,
+      } as Awaited<ReturnType<typeof rateLimit>>)
+
+      const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
+        method: 'GET',
+        headers: { authorization: 'Bearer my-secret-key' },
+      })
+
+      const response = await GET(req)
+      expect(response.status).toBe(429)
+      // 한도 초과면 올바른 시크릿이어도 크레딧 작업이 실행되지 않는다.
+      expect(expireBonusCredits).not.toHaveBeenCalled()
+      expect(resetAllExpiredCredits).not.toHaveBeenCalled()
+    })
   })
 
   describe('Authentication', () => {

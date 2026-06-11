@@ -28,7 +28,12 @@ export type TzNowComponents = {
 }
 
 function partsFor(timezone: string | undefined): TzNowComponents {
-  const tz = timezone || 'UTC'
+  // 기본값은 이 모듈이 export 하는 DEFAULT_TIMEZONE(Asia/Seoul)과 일치해야
+  // 한다. 'UTC' 기본이던 시절엔 UTC 날짜와 KST 날짜가 다른 매일 약 9시간
+  // 동안(KST 00:00~09:00) 무인자 호출·invalid fallback 이 어제 날짜를
+  // 돌려줘 테스트가 시간대에 따라 실패했다. 프로덕션의 무인자 호출처는
+  // 없음(전부 명시적 tz 전달) — 이 기본값은 안전망이다.
+  const tz = timezone || 'Asia/Seoul'
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: tz,
     year: 'numeric',
@@ -65,18 +70,19 @@ export function nowInTimezone(timezone: string): Date {
 }
 
 /**
- * Full component-shape of "now". `month` is **1-12**. Defaults to UTC
- * when no timezone is supplied. Internal/canonical shape — the public
- * `getNowInTimezone` below narrows to {year, month, day} to preserve the
- * historical datetime/ signature its callers depend on.
+ * Full component-shape of "now". `month` is **1-12**. Defaults to
+ * DEFAULT_TIMEZONE(Asia/Seoul) when no timezone is supplied. Internal/
+ * canonical shape — the public `getNowInTimezone` below narrows to
+ * {year, month, day} to preserve the historical datetime/ signature its
+ * callers depend on.
  */
 export function getNowComponentsInTimezone(timezone?: string): TzNowComponents {
   try {
     return partsFor(timezone)
   } catch {
-    // Invalid IANA name — fall back to plain UTC rather than throwing so a
-    // malformed profile doesn't break the entire request.
-    return partsFor('UTC')
+    // Invalid IANA name — fall back to DEFAULT_TIMEZONE rather than throwing
+    // so a malformed profile doesn't break the entire request.
+    return partsFor('Asia/Seoul')
   }
 }
 
@@ -99,8 +105,8 @@ export function currentMonthInTimezone(timezone: string): number {
  * have always consumed. Use getNowComponentsInTimezone() when you also
  * need hour/minute/second.
  *
- * Defaults to UTC when no timezone is supplied — pass an explicit IANA
- * name for user-facing values.
+ * Defaults to DEFAULT_TIMEZONE(Asia/Seoul) when no timezone is supplied —
+ * pass an explicit IANA name for user-facing values.
  */
 export function getNowInTimezone(tz?: string): {
   year: number
@@ -141,79 +147,79 @@ export function getIsoInTimezone(tz?: string): string {
 export function isValidTimezone(tz: string): boolean {
   // Reject empty or whitespace-only strings
   if (!tz || tz.trim() !== tz || tz.trim().length === 0) {
-    return false;
+    return false
   }
 
   // Reject common timezone abbreviations (3-4 letter codes), but allow UTC and GMT
   if (tz !== 'UTC' && tz !== 'GMT') {
-    const abbreviationPattern = /^[A-Z]{3,4}$/;
+    const abbreviationPattern = /^[A-Z]{3,4}$/
     if (abbreviationPattern.test(tz)) {
-      return false;
+      return false
     }
   }
 
   // Reject numeric offset formats like +09:00, UTC+9, etc.
   if (/[+\-]\d|UTC[+\-]/.test(tz)) {
-    return false;
+    return false
   }
 
   // Reject strings with only numbers
   if (/^\d+$/.test(tz)) {
-    return false;
+    return false
   }
 
   // Reject strings with special characters (except / and _)
   if (/[!?#@$%^&*()=[\]{}|\\;:'",<>]/.test(tz)) {
-    return false;
+    return false
   }
 
   // Check if it's a valid IANA timezone using Intl API
   try {
-    Intl.DateTimeFormat(undefined, { timeZone: tz });
+    Intl.DateTimeFormat(undefined, { timeZone: tz })
 
     // Additional check: Intl API is case-insensitive but IANA identifiers are case-sensitive
     // We need to ensure the exact case matches by checking common patterns
     // Valid IANA timezones typically start with uppercase (America/, Asia/, Europe/, etc.)
     // or are all uppercase (UTC, GMT)
     if (tz === 'UTC' || tz === 'GMT') {
-      return true;
+      return true
     }
 
     // For region/city format, check if it has proper casing
     if (tz.includes('/')) {
-      const parts = tz.split('/');
+      const parts = tz.split('/')
 
       // Special case: Etc/GMT and Etc/UTC are allowed with all uppercase
-      const isEtcTimezone = parts[0] === 'Etc' && (parts[1] === 'GMT' || parts[1] === 'UTC');
+      const isEtcTimezone = parts[0] === 'Etc' && (parts[1] === 'GMT' || parts[1] === 'UTC')
       if (isEtcTimezone) {
-        return true;
+        return true
       }
 
       // Check proper casing for standard timezones
       for (const part of parts) {
         if (part.length > 0) {
           // Each part should start with uppercase
-          const startsWithUppercase = part[0] === part[0].toUpperCase();
+          const startsWithUppercase = part[0] === part[0].toUpperCase()
           if (!startsWithUppercase) {
-            return false;
+            return false
           }
 
           // Reject all-uppercase parts (except for already-handled Etc/GMT cases)
-          const isAllUppercase = part === part.toUpperCase() && /^[A-Z]+$/.test(part);
+          const isAllUppercase = part === part.toUpperCase() && /^[A-Z]+$/.test(part)
           if (isAllUppercase) {
-            return false;
+            return false
           }
         }
       }
     }
 
-    return true;
+    return true
   } catch {
-    return false;
+    return false
   }
 }
 
 /**
  * Default timezone
  */
-export const DEFAULT_TIMEZONE = "Asia/Seoul";
+export const DEFAULT_TIMEZONE = 'Asia/Seoul'
