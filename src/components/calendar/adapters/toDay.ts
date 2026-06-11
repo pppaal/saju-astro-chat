@@ -252,6 +252,8 @@ export interface ToDayOptions {
    * 절대 derivedScore 대신 이 층별 값으로 — "그날 그사람에게 좋은/나쁜".
    */
   favorScore?: number
+  /** 로케일 — topReasons/cautions 를 ko/en 으로. 기본 'ko'. */
+  lang?: 'ko' | 'en'
 }
 
 /**
@@ -421,8 +423,10 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     crossSignals: [],
     allSignals: signals,
     narrative: [],
-    topReasons: (cell.topReasons ?? []).map(humanizeReason),
-    cautions: (cell.cautions ?? []).map(humanizeReason),
+    topReasons: ((opts.lang === 'en' ? cell.topReasonsEn : cell.topReasons) ?? []).map(
+      humanizeReason
+    ),
+    cautions: ((opts.lang === 'en' ? cell.cautionsEn : cell.cautions) ?? []).map(humanizeReason),
     twelveStageMatrix,
   }
 }

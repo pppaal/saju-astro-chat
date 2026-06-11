@@ -405,8 +405,17 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 
       {/* ── 한 줄 요약 + 교차 리스트. 그게 전부. ── */}
       <TierSummary
-        headline={lifetime.lifePattern?.ko ?? (ko ? '내 인생 흐름' : 'My life flow')}
-        sub={lifetime.lifePattern?.line}
+        headline={
+          (ko
+            ? lifetime.lifePattern?.ko
+            : (lifetime.lifePattern?.en ?? lifetime.lifePattern?.ko)) ??
+          (ko ? '내 인생 흐름' : 'My life flow')
+        }
+        sub={
+          ko
+            ? lifetime.lifePattern?.line
+            : (lifetime.lifePattern?.lineEn ?? lifetime.lifePattern?.line)
+        }
       />
       <CrossingList
         heading={ko ? '인생의 큰 마디 · 사주와 점성' : 'Life’s big turns · Saju & Astrology'}
