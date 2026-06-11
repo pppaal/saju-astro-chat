@@ -291,3 +291,31 @@ export const cspReportSchema = z.object({
 const metricsTokenSchema = z.object({
   'x-metrics-token': z.string().optional(),
 })
+
+// ============ Web Push Subscription Schemas ============
+// "매일 아침 오늘의 운세" 웹 푸시 구독 — POST /api/me/push-subscription.
+// endpoint 는 푸시 서비스가 발급한 https URL (구독의 자연키, upsert 기준).
+
+export const pushSubscriptionUpsertSchema = z.object({
+  endpoint: z
+    .string()
+    .max(1000)
+    .url()
+    .refine((url) => url.startsWith('https://'), {
+      message: 'Push endpoint must be https',
+    }),
+  keys: z.object({
+    p256dh: z.string().min(1).max(512),
+    auth: z.string().min(1).max(512),
+  }),
+  locale: z.enum(['ko', 'en']).default('ko'),
+})
+
+export type PushSubscriptionUpsertValidated = z.infer<typeof pushSubscriptionUpsertSchema>
+
+// DELETE /api/me/push-subscription — 본인 구독만 endpoint 로 삭제.
+export const pushSubscriptionDeleteSchema = z.object({
+  endpoint: z.string().min(1).max(1000),
+})
+
+export type PushSubscriptionDeleteValidated = z.infer<typeof pushSubscriptionDeleteSchema>
