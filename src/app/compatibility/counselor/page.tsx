@@ -54,9 +54,6 @@ function CompatibilityCounselorContent() {
   const [person1Astro, setPerson1Astro] = useState<Record<string, unknown> | null>(null)
   const [person2Astro, setPerson2Astro] = useState<Record<string, unknown> | null>(null)
   const [isInitializing, setIsInitializing] = useState(true)
-  // redirecting state — picker 모달 통합 후로 set 호출처는 없지만 loading
-  // 가드(if isInitializing || redirecting) 의 의미적 키워드는 유지.
-  const [redirecting] = useState(false)
   /** persons 가 비어 있을 때 picker 모달 노출 여부 — URL 에 ?persons= /
    *  ?session= 둘 다 없는 신규 진입 + 새 채팅 직후에 true. */
   const [showPicker, setShowPicker] = useState(false)
@@ -433,12 +430,12 @@ function CompatibilityCounselorContent() {
   // 차트 저장 이전에 만들어진 세션이면 person*Saju/Astro 가 비어 차트 버튼이
   // 영구 비활성된다. persons 는 있는데 데이터가 없으면 여기서 지연 로드.
   useEffect(() => {
-    if (isInitializing || redirecting) return
+    if (isInitializing) return
     if (persons.length < 2) return
     if (person1Saju || person2Saju || person1Astro || person2Astro) return
     if (chartFetchRef.current) return
     fetchPersonData(persons)
-  }, [isInitializing, redirecting, persons, person1Saju, person2Saju, person1Astro, person2Astro])
+  }, [isInitializing, persons, person1Saju, person2Saju, person1Astro, person2Astro])
 
   // 자동 스크롤 — 공통 hook (destiny / followup 동일). externalRef 로 기존
   // messagesEndRef 그대로 사용.
@@ -585,7 +582,7 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
     [isKo, persons, setMessages]
   )
 
-  if (isInitializing || redirecting) {
+  if (isInitializing) {
     return <CounselorLoading lang={isKo ? 'ko' : 'en'} />
   }
 
