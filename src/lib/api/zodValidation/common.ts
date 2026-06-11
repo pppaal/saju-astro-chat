@@ -157,6 +157,10 @@ export const readingIdParamSchema = z.object({
   readingId: z.string().min(1).max(100),
 })
 
+// 끊긴 스트림 복원(result 폴링) 라우트들의 turnId 쿼리 — 클라가 UUID 를
+// 보내는 게 정상이라 1~200자면 충분. 그 이상은 캐시 키 abuse 로 보고 거부.
+export const turnIdSchema = z.string().min(1, 'turnId is required').max(200, 'turnId is too long')
+
 // ============ Validation Helper Functions ============
 
 export async function validateRequestBody<T extends z.ZodTypeAny>(
