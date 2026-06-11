@@ -37,6 +37,23 @@ import { Ganji } from '../atoms/Ganji'
 import styles from './MonthTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
+import { useI18n } from '@/i18n/I18nProvider'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+
+const MONTH_EN = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const
 
 // ============================================================================
 // Props
@@ -150,13 +167,18 @@ const DOWS = ['일', '월', '화', '수', '목', '금', '토'] as const
 // 십신 정보가 부족하면 천간 십신만, 아예 없으면 "월운 · {label}월" fallback.
 // ============================================================================
 
-function woolunCaption(month: DestinyMonth): string {
+function woolunCaption(month: DestinyMonth, ko = true): string {
   const branchHanja = month.woolun?.hanja?.slice(1) ?? ''
   const branchKo = branchHanja || month.label.replace(/.*\s/, '')
-  if (month.woolunSibsin) {
-    return `월운 · ${branchKo}월 · ${month.woolunSibsin}`
+  const sib = month.woolunSibsin
+  if (ko) {
+    if (sib) return `월운 · ${branchKo}월 · ${sib}`
+    return branchKo ? `월운 · ${branchKo}월` : '월운'
   }
-  return branchKo ? `월운 · ${branchKo}월` : '월운'
+  // en — 월운 = monthly luck pillar; 십신은 영문 라벨로.
+  const sibEn = sib ? (SIBSIN_EN[sib] ?? sib) : ''
+  if (sibEn) return `Monthly pillar · ${branchHanja} · ${sibEn}`
+  return branchHanja ? `Monthly pillar · ${branchHanja}` : 'Monthly pillar'
 }
 
 function woolunSibsinTag(month: DestinyMonth): string | null {
@@ -445,6 +467,8 @@ function lunarReturnDow(month: DestinyMonth): string | null {
 // ============================================================================
 
 export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const firstDow = firstDowOfMonth(month.ym)
   const calendar = month.calendar ?? []
   const narrative = month.narrative ?? []
@@ -455,8 +479,13 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
   const crossMap = convergeCrossMap(month)
   const voc = vocSet(month)
   const lunarDs = lunarReturnDow(month)
-  const woolunCap = woolunCaption(month)
+  const woolunCap = woolunCaption(month, ko)
   const woolunSibTag = woolunSibsinTag(month)
+  // 1달 제목 — ko: "2026년 6월의 흐름" / en: "June 2026"
+  const [ymY, ymM] = month.ym.split('-').map(Number)
+  const flowTitle = ko
+    ? `${month.label}의 흐름`
+    : `${MONTH_EN[(ymM ?? 1) - 1] ?? ''} ${ymY ?? ''}`.trim()
 
   // ── 교차 리스트 — '이달의 큰 날'(keyDays) = 사주×점성 수렴 날짜 ──
   // 제목 = 그 날의 뜻(평이). 작은 글씨 = 무엇이 교차하나(사주×점성, 짧게).
@@ -490,18 +519,20 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
   return (
     <div className={styles.tier} data-screen-label={`1달 ${month.ym}`}>
       <button className={styles.rise} onClick={onRise} type="button">
-        ↑ 올해로 줌아웃
+        ↑ {ko ? '올해로 줌아웃' : 'Zoom out to year'}
       </button>
 
       {/* ===== cal head ===== */}
       <div className={styles.calHead}>
         <div>
-          <div className={styles.eyebrow}>1달 · MONTHLY · {month.ym}</div>
-          <h1 className={[styles.display, styles.calHeadTitle].join(' ')}>{month.label}의 흐름</h1>
+          <div className={styles.eyebrow}>
+            {ko ? '1달' : 'MONTH'} · MONTHLY · {month.ym}
+          </div>
+          <h1 className={[styles.display, styles.calHeadTitle].join(' ')}>{flowTitle}</h1>
         </div>
         <div className={styles.calHeadRight}>
           <span className={[styles.layerTag, styles.layerTagSaju].join(' ')}>
-            <span className="pip" /> 사주 · SAJU
+            <span className="pip" /> {ko ? '사주 · SAJU' : 'Saju · 四柱'}
           </span>
           <div style={{ textAlign: 'center' }}>
             <Ganji data={month.woolun} size={30} />
@@ -514,9 +545,14 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
       </div>
 
       <p className={styles.tiny} style={{ margin: '2px 2px 0' }}>
-        좋은 날 {goodN}개 · 주의 {cautionN}개
+        {ko
+          ? `좋은 날 ${goodN}개 · 주의 ${cautionN}개`
+          : `${goodN} good ${goodN === 1 ? 'day' : 'days'} · ${cautionN} to watch`}
       </p>
-      <CrossingList heading="이달의 큰 날 · 사주 × 점성" items={monthCrossItems} />
+      <CrossingList
+        heading={ko ? '이달의 큰 날 · 사주 × 점성' : 'Key days this month · Saju × Astrology'}
+        items={monthCrossItems}
+      />
 
       {/* ===== calendar heatmap — 메인. 한눈에 좋은 날/주의 날 색으로. ===== */}
       <div className={styles.calGrid}>
@@ -592,11 +628,11 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
       <div className={styles.calLegend}>
         <span className={styles.leg}>
           <span className="sw" style={{ background: 'var(--accent)' }} />
-          신호 강함
+          {ko ? '신호 강함' : 'Strong'}
         </span>
         <span className={styles.leg}>
           <span className="sw" style={{ background: 'rgba(52,64,111,0.25)' }} />
-          약함
+          {ko ? '약함' : 'Weak'}
         </span>
         {month.bestDay && (
           <span className={[styles.leg, styles.legPos].join(' ')}>✦ best {month.bestDay.date}</span>
@@ -608,25 +644,28 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
         )}
         {month.converge?.date && (
           <span className={[styles.leg, styles.legEarth].join(' ')}>
-            ✶ 수렴 {month.converge.date.slice(5)}
+            ✶ {ko ? '수렴' : 'converge'} {month.converge.date.slice(5)}
           </span>
         )}
         <span className={[styles.leg, styles.legAccent].join(' ')}>
-          ◎ 오늘 {month.ym.slice(5)}-{String(focusDay).padStart(2, '0')}
+          ◎ {ko ? '오늘' : 'today'} {month.ym.slice(5)}-{String(focusDay).padStart(2, '0')}
         </span>
         {lunarDs && (
           <span className={[styles.leg, styles.legAccent].join(' ')}>○ Lunar Return {lunarDs}</span>
         )}
         {voc.size > 0 && (
           <span className={[styles.leg, styles.legMute].join(' ')}>
-            ░ void-of-course · {voc.size}일
+            ░ void-of-course · {voc.size}
+            {ko ? '일' : ' days'}
           </span>
         )}
       </div>
 
       {/* ── 전문가용 상세 — 테마·신호·근거 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>
-        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 근거와 신호</summary>
+        <summary className={summaryStyles.detailsSummary}>
+          {ko ? '자세히 보기 · 근거와 신호' : 'Details · evidence & signals'}
+        </summary>
 
         {/* ===== 이달의 큰 날 (convergence keyDays) ===== */}
         {month.keyDays &&
@@ -831,7 +870,10 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
       {/* ===== dive ===== */}
       <div className={styles.diveWrap} style={{ marginTop: 40 }}>
         <button className={styles.dive} onClick={() => onDive(focusDay)} type="button">
-          오늘 {month.ym.slice(5)}월 {focusDay}일로 줌인 <span className={styles.diveArrow}>↓</span>
+          {ko
+            ? `오늘 ${month.ym.slice(5)}월 ${focusDay}일로 줌인`
+            : `Zoom in to ${MONTH_EN[(ymM ?? 1) - 1] ?? ''} ${focusDay}`}{' '}
+          <span className={styles.diveArrow}>↓</span>
         </button>
       </div>
     </div>
