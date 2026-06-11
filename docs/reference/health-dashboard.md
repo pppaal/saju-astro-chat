@@ -18,7 +18,7 @@ status: auto-generated
 | 지표          | 값                       |
 | ------------- | ------------------------ |
 | 활성 서비스   | 3개 ([[services-index]]) |
-| API 라우트    | 70개 ([[api-routes]])    |
+| API 라우트    | 71개 ([[api-routes]])    |
 | 테스트 파일   | 460+개                   |
 | 타로 덱       | 78장 (Major 22/Minor 56) |
 | 하우스 시스템 | `Placidus`               |

@@ -116,7 +116,7 @@ Production additionally needs Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRE
 - **Credits:** one‑time packs via Stripe Checkout — `mini` (10) · `standard` (40) · `plus` (100) · `mega` (240) · `ultimate` (500). Defined once in `src/lib/config/pricing.ts` (also used by the Stripe webhook).
 - **Paid surfaces:**
   - **Tarot** — `POST /api/tarot/interpret-stream` (spreads of 5+ cards cost 2 credits, smaller spreads 1)
-  - **Destiny counselor** — `POST /api/counselor/realtime`, billed **per session** (1 credit opens a session; turns within the window are free)
+  - **Destiny counselor** — `POST /api/counselor/realtime`, billed **per message** (1 credit per turn)
   - **Compatibility counselor** — `POST /api/compatibility/counselor`
 - **Refunds:** a counselor stream that fails or returns empty auto‑refunds the charged credit.
 

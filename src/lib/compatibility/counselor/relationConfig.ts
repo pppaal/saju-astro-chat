@@ -1,4 +1,4 @@
-import type { Relation } from '@/app/compatibility/lib/types'
+import type { Relation } from '@/lib/compatibility/relationTypes'
 
 /**
  * 궁합 폼에서 사용자가 고르는 관계 유형의 단일 소스.
