@@ -95,35 +95,36 @@ interface CellGlow {
 
 function cellGlow(intensity: number, mark: string | null | undefined): CellGlow {
   // 대비 강화 — 점수 중간대(46~63 → intensity 0.46~0.63)가 비슷한 약한 글로우로
-  // 뭉쳐 변별이 안 되던 문제. 0.5 기준 1.8배 stretch 해 좋은날↑/조심날↓ 또렷이.
-  const c = Math.max(0, Math.min(1, 0.5 + (intensity - 0.5) * 1.8))
+  // 뭉쳐 변별이 안 되던 문제. 0.5 기준 2.2배 stretch 해 좋은날↑/조심날↓ 또렷이.
+  // (메인 노출로 끌어올리며 색을 더 진하게 — 한눈에 좋은/주의 날이 읽히게.)
+  const c = Math.max(0, Math.min(1, 0.5 + (intensity - 0.5) * 2.2))
   // avoid: 주사(주의) 톤
   if (mark === 'avoid') {
     return {
-      bg: 'rgba(176,58,34,' + (0.06 + c * 0.16) + ')',
+      bg: 'rgba(176,58,34,' + (0.12 + c * 0.26) + ')',
       glow:
         'radial-gradient(circle at 55% 42%, rgba(176,58,34,' +
-        (0.12 + c * 0.32) +
-        '), transparent 64%)',
+        (0.22 + c * 0.46) +
+        '), transparent 66%)',
     }
   }
   // converge: 토(土) 골드 톤
   if (mark === 'converge') {
     return {
-      bg: 'rgba(179,135,58,' + (0.12 + c * 0.2) + ')',
+      bg: 'rgba(179,135,58,' + (0.2 + c * 0.28) + ')',
       glow:
         'radial-gradient(circle at 55% 42%, rgba(217,168,74,' +
-        (0.16 + c * 0.62) +
-        '), transparent 66%)',
+        (0.28 + c * 0.68) +
+        '), transparent 68%)',
     }
   }
-  // good/best: 쪽빛 인디고 톤. 글로우 더 진하게 + 가장자리(64%)에서 끊어 또렷하게.
+  // good/best: 쪽빛 인디고 톤. 글로우 더 진하게 + 가장자리(66%)에서 끊어 또렷하게.
   return {
-    bg: 'rgba(52,64,111,' + c * 0.16 + ')',
+    bg: 'rgba(52,64,111,' + c * 0.28 + ')',
     glow:
       'radial-gradient(circle at 55% 42%, rgba(79,93,150,' +
-      (0.05 + c * 0.6) +
-      '), transparent 64%)',
+      (0.12 + c * 0.72) +
+      '), transparent 66%)',
   }
 }
 
@@ -517,119 +518,115 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
       </p>
       <CrossingList heading="이달의 큰 날 · 사주 × 점성" items={monthCrossItems} />
 
-      {/* ── 전문가용 상세 — 달력 히트맵·테마·신호 전부 접어 둠 ── */}
-      <details className={summaryStyles.details}>
-        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 달력과 근거</summary>
+      {/* ===== calendar heatmap — 메인. 한눈에 좋은 날/주의 날 색으로. ===== */}
+      <div className={styles.calGrid}>
+        {DOWS.map((d) => (
+          <div className={styles.calDow} key={d}>
+            {d}
+          </div>
+        ))}
+        {Array.from({ length: firstDow }).map((_, i) => (
+          <div key={`pad-${i}`} />
+        ))}
+        {calendar.map((c) => {
+          const intensity = cellIntensity(c)
+          const g = cellGlow(intensity, c.mark)
+          const mark = c.mark as ExtendedMark | null
+          const isVoc = voc.has(c.ds)
+          const isLunar = lunarDs === c.ds
+          // mark resolution: 백엔드 mark 우선, 없으면 보강 mark 추론
+          const renderedMark: ExtendedMark | null = mark ?? (isLunar ? 'return' : null)
+          const cellCls = [
+            styles.cell,
+            c.focus && styles.cellFocus,
+            renderedMark === 'best' && styles.cellBest,
+            renderedMark === 'avoid' && styles.cellAvoid,
+            renderedMark === 'converge' && styles.cellConverge,
+            renderedMark === 'caution' && styles.cellCaution,
+            renderedMark === 'phase' && styles.cellPhase,
+            renderedMark === 'return' && styles.cellReturn,
+            renderedMark === 'lifecycle' && styles.cellLifecycle,
+          ]
+            .filter(Boolean)
+            .join(' ')
 
-        {/* ===== calendar heatmap ===== */}
-        <div className={styles.calGrid}>
-          {DOWS.map((d) => (
-            <div className={styles.calDow} key={d}>
-              {d}
-            </div>
-          ))}
-          {Array.from({ length: firstDow }).map((_, i) => (
-            <div key={`pad-${i}`} />
-          ))}
-          {calendar.map((c) => {
-            const intensity = cellIntensity(c)
-            const g = cellGlow(intensity, c.mark)
-            const mark = c.mark as ExtendedMark | null
-            const isVoc = voc.has(c.ds)
-            const isLunar = lunarDs === c.ds
-            // mark resolution: 백엔드 mark 우선, 없으면 보강 mark 추론
-            const renderedMark: ExtendedMark | null = mark ?? (isLunar ? 'return' : null)
-            const cellCls = [
-              styles.cell,
-              c.focus && styles.cellFocus,
-              renderedMark === 'best' && styles.cellBest,
-              renderedMark === 'avoid' && styles.cellAvoid,
-              renderedMark === 'converge' && styles.cellConverge,
-              renderedMark === 'caution' && styles.cellCaution,
-              renderedMark === 'phase' && styles.cellPhase,
-              renderedMark === 'return' && styles.cellReturn,
-              renderedMark === 'lifecycle' && styles.cellLifecycle,
-            ]
-              .filter(Boolean)
-              .join(' ')
+          const cellStyle: CSSProperties = { background: g.bg }
+          const titleParts = [c.ds]
+          if (renderedMark) titleParts.push(renderedMark)
+          if (isVoc) titleParts.push('void-of-course')
+          const title = titleParts.join(' · ')
 
-            const cellStyle: CSSProperties = { background: g.bg }
-            const titleParts = [c.ds]
-            if (renderedMark) titleParts.push(renderedMark)
-            if (isVoc) titleParts.push('void-of-course')
-            const title = titleParts.join(' · ')
-
-            return (
-              <div
-                key={c.d}
-                className={cellCls}
-                onClick={c.focus ? () => onDive(focusDay) : undefined}
-                title={title}
-                style={cellStyle}
-                role={c.focus ? 'button' : undefined}
-                tabIndex={c.focus ? 0 : undefined}
-                onKeyDown={
-                  c.focus
-                    ? (e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          onDive(focusDay)
-                        }
+          return (
+            <div
+              key={c.d}
+              className={cellCls}
+              onClick={c.focus ? () => onDive(focusDay) : undefined}
+              title={title}
+              style={cellStyle}
+              role={c.focus ? 'button' : undefined}
+              tabIndex={c.focus ? 0 : undefined}
+              onKeyDown={
+                c.focus
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onDive(focusDay)
                       }
-                    : undefined
-                }
-              >
-                <div className={styles.cellGlow} style={{ background: g.glow }} />
-                <span className={styles.cellDnum}>{c.d}</span>
-                {c.focus && <span className={styles.cellFtag}>오늘</span>}
-                {renderedMark && renderedMark !== 'focus' && STAR_GLYPH[renderedMark] && (
-                  <span className={styles.cellStar}>{STAR_GLYPH[renderedMark]}</span>
-                )}
-                {isVoc && <span className={styles.cellVocBand} />}
-              </div>
-            )
-          })}
-        </div>
+                    }
+                  : undefined
+              }
+            >
+              <div className={styles.cellGlow} style={{ background: g.glow }} />
+              <span className={styles.cellDnum}>{c.d}</span>
+              {c.focus && <span className={styles.cellFtag}>오늘</span>}
+              {renderedMark && renderedMark !== 'focus' && STAR_GLYPH[renderedMark] && (
+                <span className={styles.cellStar}>{STAR_GLYPH[renderedMark]}</span>
+              )}
+              {isVoc && <span className={styles.cellVocBand} />}
+            </div>
+          )
+        })}
+      </div>
 
-        {/* ===== legend ===== */}
-        <div className={styles.calLegend}>
-          <span className={styles.leg}>
-            <span className="sw" style={{ background: 'var(--accent)' }} />
-            신호 강함
+      {/* ===== legend ===== */}
+      <div className={styles.calLegend}>
+        <span className={styles.leg}>
+          <span className="sw" style={{ background: 'var(--accent)' }} />
+          신호 강함
+        </span>
+        <span className={styles.leg}>
+          <span className="sw" style={{ background: 'rgba(52,64,111,0.25)' }} />
+          약함
+        </span>
+        {month.bestDay && (
+          <span className={[styles.leg, styles.legPos].join(' ')}>✦ best {month.bestDay.date}</span>
+        )}
+        {month.avoidDays.length > 0 && (
+          <span className={[styles.leg, styles.legNeg].join(' ')}>
+            ✕ avoid {month.avoidDays.join(' · ')}
           </span>
-          <span className={styles.leg}>
-            <span className="sw" style={{ background: 'rgba(52,64,111,0.25)' }} />
-            약함
+        )}
+        {month.converge?.date && (
+          <span className={[styles.leg, styles.legEarth].join(' ')}>
+            ✶ 수렴 {month.converge.date.slice(5)}
           </span>
-          {month.bestDay && (
-            <span className={[styles.leg, styles.legPos].join(' ')}>
-              ✦ best {month.bestDay.date}
-            </span>
-          )}
-          {month.avoidDays.length > 0 && (
-            <span className={[styles.leg, styles.legNeg].join(' ')}>
-              ✕ avoid {month.avoidDays.join(' · ')}
-            </span>
-          )}
-          {month.converge?.date && (
-            <span className={[styles.leg, styles.legEarth].join(' ')}>
-              ✶ 수렴 {month.converge.date.slice(5)}
-            </span>
-          )}
-          <span className={[styles.leg, styles.legAccent].join(' ')}>
-            ◎ 오늘 {month.ym.slice(5)}-{String(focusDay).padStart(2, '0')}
+        )}
+        <span className={[styles.leg, styles.legAccent].join(' ')}>
+          ◎ 오늘 {month.ym.slice(5)}-{String(focusDay).padStart(2, '0')}
+        </span>
+        {lunarDs && (
+          <span className={[styles.leg, styles.legAccent].join(' ')}>○ Lunar Return {lunarDs}</span>
+        )}
+        {voc.size > 0 && (
+          <span className={[styles.leg, styles.legMute].join(' ')}>
+            ░ void-of-course · {voc.size}일
           </span>
-          {lunarDs && (
-            <span className={[styles.leg, styles.legAccent].join(' ')}>
-              ○ Lunar Return {lunarDs}
-            </span>
-          )}
-          {voc.size > 0 && (
-            <span className={[styles.leg, styles.legMute].join(' ')}>
-              ░ void-of-course · {voc.size}일
-            </span>
-          )}
-        </div>
+        )}
+      </div>
+
+      {/* ── 전문가용 상세 — 테마·신호·근거 전부 접어 둠 ── */}
+      <details className={summaryStyles.details}>
+        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 근거와 신호</summary>
 
         {/* ===== 이달의 큰 날 (convergence keyDays) ===== */}
         {month.keyDays &&
