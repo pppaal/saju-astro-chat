@@ -19,21 +19,21 @@ status: auto-generated
 | ------------- | ------------------------ |
 | 활성 서비스   | 3개 ([[services-index]]) |
 | API 라우트    | 70개 ([[api-routes]])    |
-| 테스트 파일   | 440+개                   |
+| 테스트 파일   | 460+개                   |
 | 타로 덱       | 78장 (Major 22/Minor 56) |
 | 하우스 시스템 | `Placidus`               |
 | 사주 기준 TZ  | `Asia/Seoul`             |
 
 ### 🔐 보안 ([[API_AUDIT_REPORT]] 기준)
 
-- Total Next.js API routes: 71
-- Uses middleware/guards: 65 (91.5%)
-- Has validation signals: 45 (63.4%)
-- Rate limited (guard or option): 61 (85.9%)
-- Credit consumption configured: 7 (9.9%)
-- Requires auth: 40 (56.3%)
-- Requires token: 16 (22.5%)
-- skipCsrf enabled: 2 (2.8%)
+- Total Next.js API routes: 70
+- Uses middleware/guards: 63 (90.0%)
+- Has validation signals: 54 (77.1%)
+- Rate limited (guard or option): 62 (88.6%)
+- Credit consumption configured: 8 (11.4%)
+- Requires auth: 43 (61.4%)
+- Requires token: 16 (22.9%)
+- skipCsrf enabled: 2 (2.9%)
 
 > 코드 품질 점수(테스트 통과율·버그·커버리지)는 이 표로 안 나옴 —
 > 별도 에이전트 감사 필요. 여기는 "인벤토리 + 보안 신호" 현황판.
