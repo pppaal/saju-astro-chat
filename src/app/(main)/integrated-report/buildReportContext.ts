@@ -178,6 +178,7 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
       rooted: sajuFacts.dayMaster.rooted,
       gongmang: sajuFacts.gongmang,
       johuYongsin: sajuFacts.johuYongsin,
+      gwansalHonjap: sajuFacts.gwansalHonjap,
     } as unknown as NatalContext['saju'],
     astro: {
       chart,

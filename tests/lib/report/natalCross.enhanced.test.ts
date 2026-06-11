@@ -191,6 +191,49 @@ describe('dignity 강도 활성화 (slice 2)', () => {
   })
 })
 
+describe('미활용 데이터 활성화 (slice 4)', () => {
+  it('almuten: 정체성축에 차트 주인 행성 한 줄', () => {
+    const withAlm = evalIdentity('금', 'Leo', 'Leo', 'Saturn')!
+    const without = evalIdentity('금', 'Leo', 'Leo', null)!
+    expect(withAlm.reason.ko).toContain('차트의 주인 행성')
+    expect(without.reason.ko).not.toContain('차트의 주인 행성')
+  })
+  it('sect: 강점축에 같은 섹트 길성(밤=금성/낮=목성)', () => {
+    expect(evalStrength('제왕', null, undefined, 'night')!.reason.ko).toContain('금성이 당신 편')
+    expect(evalStrength('제왕', null, undefined, 'day')!.reason.ko).toContain('목성이 당신 편')
+    expect(evalStrength('제왕', null, undefined)!.reason.ko).not.toContain('당신 편')
+  })
+  it('통근+sect 둘 다 붙는다(early-return 함정 없음)', () => {
+    const v = evalStrength('제왕', null, false, 'night')!
+    expect(v.reason.ko).toContain('통근하지 못해')
+    expect(v.reason.ko).toContain('금성이 당신 편')
+  })
+  it('조후: 욕망축에 계절 절실 기운(rating>=4)', () => {
+    const johu = { el: '수', climateKo: '한', climateEn: 'cold', rating: 5 }
+    const hot = evalNeeds('화', 'Leo', undefined, johu)!
+    expect(hot.reason.ko).toContain('추운 달에 태어나')
+    expect(hot.reason.ko).toContain('수')
+    // rating 낮으면 생략
+    expect(evalNeeds('화', 'Leo', undefined, { ...johu, rating: 2 })!.reason.ko).not.toContain(
+      '계절로 보면'
+    )
+  })
+  it('관살혼잡: 추진력축에 정관·편관 공존 한 줄', () => {
+    expect(evalDrive('신강', false, 'neutral', true)!.reason.ko).toContain('관살혼잡')
+    expect(evalDrive('신강', false, 'neutral', false)!.reason.ko).not.toContain('관살혼잡')
+  })
+  it('slice4 EN 한글 누출 없음', () => {
+    expect(HANGUL.test(evalIdentity('금', 'Leo', 'Leo', 'Saturn')!.reason.en)).toBe(false)
+    expect(HANGUL.test(evalStrength('제왕', null, false, 'night')!.reason.en)).toBe(false)
+    expect(
+      HANGUL.test(
+        evalNeeds('화', 'Leo', undefined, { el: '수', climateEn: 'cold', rating: 5 })!.reason.en
+      )
+    ).toBe(false)
+    expect(HANGUL.test(evalDrive('신강', false, 'neutral', true)!.reason.en)).toBe(false)
+  })
+})
+
 describe('불변식 — 결정성(같은 입력 → 같은 출력)', () => {
   it('evalIdentity 재호출 동일', () => {
     expect(JSON.stringify(evalIdentity('금', 'Aquarius', 'Leo'))).toBe(

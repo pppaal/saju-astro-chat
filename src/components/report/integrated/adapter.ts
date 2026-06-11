@@ -564,8 +564,19 @@ export function buildCrossRows(
     yinYang: { ko: '음양 리듬', en: 'Yin-Yang Rhythm' },
   }
   const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
-    ['identity', evalIdentity(dmEl, sunSign, ascSign)],
-    ['needs', evalNeeds(S.yongsin?.primary, moonSign, S.yongsin?.avoid?.[0] as string | undefined)],
+    [
+      'identity',
+      evalIdentity(dmEl, sunSign, ascSign, (A.almutenFiguris?.winner ?? null) as string | null),
+    ],
+    [
+      'needs',
+      evalNeeds(S.yongsin?.primary, moonSign, S.yongsin?.avoid?.[0] as string | undefined, {
+        el: S.johuYongsin?.primaryYongsin as string | undefined,
+        climateKo: S.johuYongsin?.climate as string | undefined,
+        climateEn: S.johuYongsin?.climate_en as string | undefined,
+        rating: (S.johuYongsin?.rating as number | undefined) ?? 0,
+      }),
+    ],
     [
       'socialRole',
       adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null,
@@ -585,14 +596,27 @@ export function buildCrossRows(
     ],
     [
       'strength',
-      evalStrength(stage, topDignity, typeof S.rooted === 'boolean' ? S.rooted : undefined),
+      evalStrength(
+        stage,
+        topDignity,
+        typeof S.rooted === 'boolean' ? S.rooted : undefined,
+        A.sect === 'night' || A.sect === 'day' ? A.sect : undefined
+      ),
     ],
     [
       'temperament',
       evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean)),
     ],
     ['energy', evalEnergyDirection(details, emphasized)],
-    ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'), driveCondition)],
+    [
+      'drive',
+      evalDrive(
+        strength,
+        emphasized.has('Sun') || emphasized.has('Mars'),
+        driveCondition,
+        !!S.gwansalHonjap
+      ),
+    ],
     ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
     [
       'romance',

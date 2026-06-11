@@ -144,7 +144,8 @@ export function sajuKeyMapping(key: string | undefined): CrossMapping | undefine
 export function evalIdentity(
   dayMasterEl: string | undefined,
   sunSign: string | undefined,
-  ascSign?: string | undefined
+  ascSign?: string | undefined,
+  almutenPlanet?: string | null
 ): CrossVerdict | null {
   const a = normSajuElement(dayMasterEl)
   const b = signToSajuElement(sunSign)
@@ -167,14 +168,25 @@ export function evalIdentity(
   const tailEn = ascSame
     ? ` Your first impression reads ${tc.en} too, so inner self, core self, and the face you show line up cleanly.`
     : ` And your first impression reads ${tc.en}, so who you are and how you appear split once more — people find you different the better they know you.`
-  return { ...base, reason: { ko: base.reason.ko + tailKo, en: base.reason.en + tailEn } }
+  // almuten figuris — 차트를 총괄하는 '주인 행성'. 정체성의 키로 한 줄 덧붙임.
+  let almutenKo = ''
+  let almutenEn = ''
+  if (almutenPlanet) {
+    almutenKo = ` 그리고 이 전부를 끌고 가는 차트의 주인 행성은 '${planetTheme(almutenPlanet, 'ko')}' 쪽 — 인생 전반의 키예요.`
+    almutenEn = ` And the planet that rules your whole chart leans ${planetTheme(almutenPlanet, 'en')} — the key to your life as a whole.`
+  }
+  return {
+    ...base,
+    reason: { ko: base.reason.ko + tailKo + almutenKo, en: base.reason.en + tailEn + almutenEn },
+  }
 }
 
 /** 필요·욕망: 용신 오행 ↔ 달 별자리. */
 export function evalNeeds(
   yongsinEl: string | undefined,
   moonSign: string | undefined,
-  avoidEl?: string
+  avoidEl?: string,
+  johu?: { el?: string; climateKo?: string; climateEn?: string; rating?: number }
 ): CrossVerdict | null {
   const need = normSajuElement(yongsinEl)
   const moon = signToSajuElement(moonSign)
@@ -215,14 +227,31 @@ export function evalNeeds(
     }
   })()
 
-  // 기신(避) — 채울 기운의 짝. 용신 primary 와 다르면 한 줄 덧붙임.
+  let sufKo = ''
+  let sufEn = ''
+  // 기신(避) — 채울 기운의 짝. 용신 primary 와 다르면 한 줄.
   const avoid = normSajuElement(avoidEl)
   if (avoid && avoid !== need) {
-    const ka = ` 채울 건 ${EL_KO[need]}, 피할 건 ${EL_KO[avoid]} — ${EL_KO[avoid]} 기운이 과해지면 오히려 흐름이 막혀요.`
-    const ea = ` Fill ${EL_EN[need]}, ease off ${EL_EN[avoid]} — too much ${EL_EN[avoid]} tends to clog the flow.`
-    return { ...base, reason: { ko: base.reason.ko + ka, en: base.reason.en + ea } }
+    sufKo += ` 채울 건 ${EL_KO[need]}, 피할 건 ${EL_KO[avoid]} — ${EL_KO[avoid]} 기운이 과해지면 오히려 흐름이 막혀요.`
+    sufEn += ` Fill ${EL_EN[need]}, ease off ${EL_EN[avoid]} — too much ${EL_EN[avoid]} tends to clog the flow.`
   }
-  return base
+  // 조후(調候) — 계절 기후상 급히 필요한 기운(rating 높을 때만).
+  const johuEl = normSajuElement(johu?.el)
+  if (johuEl && (johu?.rating ?? 0) >= 4) {
+    const CLIMATE_KO: Record<string, string> = {
+      한: '추운',
+      습: '습한',
+      조: '건조한',
+      열: '무더운',
+      온화: '온화한',
+    }
+    const climateKo = CLIMATE_KO[johu?.climateKo ?? ''] ?? ''
+    sufKo += ` 계절로 보면 ${climateKo} 달에 태어나 ${EL_KO[johuEl]} 기운이 특히 절실해요 — 그게 활기의 스위치예요.`
+    sufEn += ` By season, born in a ${johu?.climateEn ?? ''} month, you especially need ${EL_EN[johuEl]} — it's your switch for vitality.`
+  }
+  return sufKo
+    ? { ...base, reason: { ko: base.reason.ko + sufKo, en: base.reason.en + sufEn } }
+    : base
 }
 
 /** 사회 역할: 격국 ↔ MC. 격국 대표 십신을 행성으로 환원해 MC 위신으로 판정. */
@@ -378,7 +407,8 @@ const WEAK_STAGES = new Set(['병', '사', '묘', '절'])
 export function evalStrength(
   twelveStage: string | undefined,
   topDignity: { planet: string; status: string } | null,
-  rooted?: boolean
+  rooted?: boolean,
+  sect?: 'day' | 'night'
 ): CrossVerdict | null {
   if (!twelveStage && !topDignity && rooted === undefined) return null
   const sajuStrong = twelveStage ? STRONG_STAGES.has(twelveStage) : false
@@ -428,34 +458,35 @@ export function evalStrength(
     }
   })()
 
+  let sufKo = ''
+  let sufEn = ''
   // 통근(通根) — 일간이 지지에 뿌리내렸나. 심지의 단단함을 한 줄로.
   if (rooted === true) {
-    return {
-      ...base,
-      reason: {
-        ko:
-          base.reason.ko +
-          ' 게다가 일간이 통근(지지에 뿌리)해 심지가 단단하고, 흔들려도 자기 중심으로 돌아오는 복원력이 있어요.',
-        en:
-          base.reason.en +
-          ' On top of that, your day master is rooted, so your core is firm — even when shaken, you return to your own center.',
-      },
-    }
+    sufKo +=
+      ' 게다가 일간이 통근(지지에 뿌리)해 심지가 단단하고, 흔들려도 자기 중심으로 돌아오는 복원력이 있어요.'
+    sufEn +=
+      ' On top of that, your day master is rooted, so your core is firm — even when shaken, you return to your own center.'
+  } else if (rooted === false) {
+    sufKo +=
+      ' 다만 일간이 통근하지 못해 환경·사람에 영향을 잘 받는 편이라, 좋은 환경을 고르는 것 자체가 곧 자기관리예요.'
+    sufEn +=
+      ' That said, your day master is unrooted, so environment and people sway you easily — choosing a good environment is itself your self-care.'
   }
-  if (rooted === false) {
-    return {
-      ...base,
-      reason: {
-        ko:
-          base.reason.ko +
-          ' 다만 일간이 통근하지 못해 환경·사람에 영향을 잘 받는 편이라, 좋은 환경을 고르는 것 자체가 곧 자기관리예요.',
-        en:
-          base.reason.en +
-          ' That said, your day master is unrooted, so environment and people sway you easily — choosing a good environment is itself your self-care.',
-      },
-    }
+  // sect(주야) — 같은 섹트의 길성이 '타고난 아군'. 밤=금성, 낮=목성.
+  if (sect === 'night') {
+    sufKo +=
+      ' 또 밤에 태어나 금성이 당신 편(같은 섹트의 길성)이라, 사람·관계·아름다움이 어려울 때 의외의 힘이 돼요.'
+    sufEn +=
+      ' Born by night, Venus is your ally (in-sect benefic) — people, relationship, and beauty become unexpected help when things get hard.'
+  } else if (sect === 'day') {
+    sufKo +=
+      ' 또 낮에 태어나 목성이 당신 편(같은 섹트의 길성)이라, 확장·기회·행운이 결정적일 때 따라주는 편이에요.'
+    sufEn +=
+      ' Born by day, Jupiter is your ally (in-sect benefic) — expansion, opportunity, and luck tend to show up at the decisive moment.'
   }
-  return base
+  return sufKo
+    ? { ...base, reason: { ko: base.reason.ko + sufKo, en: base.reason.en + sufEn } }
+    : base
 }
 
 // ── 분포·전체급 교차 (차트의 모든 글자/행성을 집계) ────────────────────────
@@ -602,7 +633,8 @@ export function evalPersona(
 export function evalDrive(
   strengthLevel: string | undefined,
   selfEmphasized: boolean,
-  drivePlanetCondition: 'strong' | 'weak' | 'neutral' = 'neutral'
+  drivePlanetCondition: 'strong' | 'weak' | 'neutral' = 'neutral',
+  gwansalHonjap = false
 ): CrossVerdict | null {
   if (!strengthLevel) return null
   const s = strengthLevel.toLowerCase()
@@ -650,35 +682,31 @@ export function evalDrive(
     }
   })()
 
+  let sufKo = ''
+  let sufEn = ''
   // dignity 강도 — 추진 행성(태양·화성)이 제 자리인지로 "거침없이/엇박" 뉘앙스.
   // selfEmphasized(태양·화성 강조)일 때만 의미 있다.
   if (selfEmphasized && drivePlanetCondition === 'strong') {
-    return {
-      ...base,
-      reason: {
-        ko:
-          base.reason.ko +
-          ' 게다가 그 추진의 핵심 행성이 제 자리(본궁·고양)에 있어, 의욕이 곧장 행동으로 거침없이 이어집니다.',
-        en:
-          base.reason.en +
-          ' On top of that, the key drive planet sits in its own dignity, so intent flows straight into action without friction.',
-      },
-    }
+    sufKo +=
+      ' 게다가 그 추진의 핵심 행성이 제 자리(본궁·고양)에 있어, 의욕이 곧장 행동으로 거침없이 이어집니다.'
+    sufEn +=
+      ' On top of that, the key drive planet sits in its own dignity, so intent flows straight into action without friction.'
+  } else if (selfEmphasized && drivePlanetCondition === 'weak') {
+    sufKo +=
+      ' 다만 그 추진 행성이 약한 자리(손상·쇠약)라 의욕은 큰데 방향이 자주 엇나가니, 욱하기 전에 한 박자만 점검하면 힘이 제대로 실려요.'
+    sufEn +=
+      ' That said, the drive planet is debilitated, so the urge runs high but the aim wanders — pause one beat before reacting and the force lands where you want it.'
   }
-  if (selfEmphasized && drivePlanetCondition === 'weak') {
-    return {
-      ...base,
-      reason: {
-        ko:
-          base.reason.ko +
-          ' 다만 그 추진 행성이 약한 자리(손상·쇠약)라 의욕은 큰데 방향이 자주 엇나가니, 욱하기 전에 한 박자만 점검하면 힘이 제대로 실려요.',
-        en:
-          base.reason.en +
-          ' That said, the drive planet is debilitated, so the urge runs high but the aim wanders — pause one beat before reacting and the force lands where you want it.',
-      },
-    }
+  // 관살혼잡(官殺混雜) — 정관+편관 공존. 규범과 돌파가 한 사람 안에 섞임.
+  if (gwansalHonjap) {
+    sufKo +=
+      ' 또 사주에 정관·편관이 섞여(관살혼잡) — 규범을 지키려는 힘과 틀을 깨려는 힘이 한 사람 안에 공존해, 다재다능하지만 안에서 두 동력이 부딪히기도 해요. 역할을 나눠 번갈아 쓰면 약점이 강점이 됩니다.'
+    sufEn +=
+      ' Also, both Direct and Indirect Officer sit in your chart (mixed authority) — the urge to keep the rules and the urge to break them coexist, making you versatile yet inwardly torn at times. Split the roles and alternate them, and the friction becomes a strength.'
   }
-  return base
+  return sufKo
+    ? { ...base, reason: { ko: base.reason.ko + sufKo, en: base.reason.en + sufEn } }
+    : base
 }
 
 // 행성 쌍 → 의미·테마(쉬운 말). 키는 알파벳순 "A|B".
