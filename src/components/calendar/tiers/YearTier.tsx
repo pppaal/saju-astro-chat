@@ -25,6 +25,22 @@ import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './YearTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
+import { useI18n } from '@/i18n/I18nProvider'
+
+const MONTH_ABBR = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const
 
 // ----------------------------------------------------------------
 // Props
@@ -219,6 +235,8 @@ function readWheelPivotal(year: DestinyYear): {
 // ----------------------------------------------------------------
 
 export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const p = year.profection
 
   // 12-house wheel (원본 year.jsx 와 동일).
@@ -255,7 +273,17 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
 
   // ── 올해 사주 × 점성 교차 — 월 구간별 진짜 교차 (엔진 cross-activation). ──
   const toneTag = (t: 'good' | 'caution' | 'neutral') =>
-    t === 'good' ? '길' : t === 'caution' ? '주의' : '중립'
+    ko
+      ? t === 'good'
+        ? '길'
+        : t === 'caution'
+          ? '주의'
+          : '중립'
+      : t === 'good'
+        ? 'good'
+        : t === 'caution'
+          ? 'caution'
+          : 'neutral'
   const yearCrossItems = (year.crossings ?? []).map((c) => ({
     when: c.when,
     title: `${c.title} · ${toneTag(c.tone)}`,
@@ -263,37 +291,60 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   }))
 
   // ── 12달 흐름 리스트 — 월별 점수를 좋음/평이/주의로 (overview, 상세 안). ──
-  const yearBand = (s: number) => (s >= 60 ? '좋은 달' : s >= 40 ? '평이한 달' : '조심할 달')
+  const yearBand = (s: number) =>
+    s >= 60
+      ? ko
+        ? '좋은 달'
+        : 'Good month'
+      : s >= 40
+        ? ko
+          ? '평이한 달'
+          : 'Steady month'
+        : ko
+          ? '조심할 달'
+          : 'Caution month'
+  const crossHeading = ko
+    ? `올해의 사주 × 점성 교차 · ${year.year}`
+    : `Saju × Astrology · ${year.year}`
+  const flowHeading = ko ? `올해 12달 흐름 · ${year.year}` : `12-month flow · ${year.year}`
   const yearItems = (year.monthlyScores ?? []).map((m) => ({
-    when: `${m.month}월`,
+    when: ko ? `${m.month}월` : MONTH_ABBR[m.month - 1],
     title: yearBand(m.score),
-    detail: m.bestDay ? `좋은 날 ${m.bestDay} · ${m.score}점` : `${m.score}점`,
+    detail: m.bestDay
+      ? ko
+        ? `좋은 날 ${m.bestDay} · ${m.score}점`
+        : `best ${m.bestDay} · ${m.score}`
+      : ko
+        ? `${m.score}점`
+        : `${m.score}`,
   }))
 
   return (
     <div className={styles.tierInner} data-screen-label={`1년 ${year.year}`}>
       <button className={styles.rise} onClick={onRise}>
-        ↑ 인생으로 줌아웃
+        ↑ {ko ? '인생으로 줌아웃' : 'Zoom out to lifetime'}
       </button>
 
-      <div className={styles.eyebrow}>1년 · YEARLY · {year.year}</div>
-      <h1 className={styles.display}>올해의 흐름</h1>
+      <div className={styles.eyebrow}>
+        {ko ? '1년' : 'YEAR'} · YEARLY · {year.year}
+      </div>
+      <h1 className={styles.display}>{ko ? '올해의 흐름' : 'This year'}</h1>
       <p className={styles.oneline}>{year.headline}</p>
 
       {yearCrossItems.length > 0 ? (
-        <CrossingList heading={`올해의 사주 × 점성 교차 · ${year.year}`} items={yearCrossItems} />
+        <CrossingList heading={crossHeading} items={yearCrossItems} />
       ) : (
-        <CrossingList heading={`올해 12달 흐름 · ${year.year}`} items={yearItems} />
+        <CrossingList heading={flowHeading} items={yearItems} />
       )}
 
       {/* ── 전문가용 상세 — 프로펙션·세운·ZR·패턴 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>
-        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 사주·점성 근거</summary>
+        <summary className={summaryStyles.detailsSummary}>
+          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & astrology'}
+        </summary>
 
         {/* 월별 점수 overview — 교차를 메인에 띄웠으므로 상세로 내림. */}
-        {yearCrossItems.length > 0 && (
-          <CrossingList heading={`올해 12달 흐름 · ${year.year}`} items={yearItems} />
-        )}
+        {yearCrossItems.length > 0 && <CrossingList heading={flowHeading} items={yearItems} />}
 
         <div className={styles.yearWrap}>
           {/* ── house wheel ── */}
@@ -677,7 +728,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       {/* ── dive 버튼 (원본 그대로) ── */}
       <div className={styles.diveWrap}>
         <button className={styles.dive} onClick={onDive}>
-          이번 달로 줌인 <span className={styles.arrow}>↓</span>
+          {ko ? '이번 달로 줌인' : 'Zoom in to month'} <span className={styles.arrow}>↓</span>
         </button>
       </div>
     </div>

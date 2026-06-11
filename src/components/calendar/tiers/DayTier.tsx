@@ -36,6 +36,8 @@ import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 import styles from './DayTier.module.css'
 import { TierSummary } from '@/components/calendar/atoms/TierSummary'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
+import { useI18n } from '@/i18n/I18nProvider'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 
 // ============================================================================
@@ -485,6 +487,8 @@ function HourBreakdown({ hours24 }: { hours24: HourSlot[] | undefined }) {
 // ============================================================================
 
 export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   // ── transit 분리: 일반 (Sun~Mars) + 외행성 (Saturn/Uranus/Neptune/Pluto). ──
   const allTransitSignals = day.transits
   // 외행성 — day.transits 중 body 가 OUTER_PLANETS 에 들어가면 outer 로 분리.
@@ -510,16 +514,28 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   const dayBand = day.score >= 60 ? 'good' : day.score >= 35 ? 'mid' : 'low'
   const dayHeadline =
     dayBand === 'good'
-      ? '오늘은 순풍 — 흐름이 우호적인 날'
+      ? ko
+        ? '오늘은 순풍 — 흐름이 우호적인 날'
+        : 'Tailwind today — the flow favors you'
       : dayBand === 'mid'
-        ? '오늘은 무난한 흐름이에요'
-        : '오늘은 조심하는 게 좋은 날'
+        ? ko
+          ? '오늘은 무난한 흐름이에요'
+          : 'A steady, easygoing day'
+        : ko
+          ? '오늘은 조심하는 게 좋은 날'
+          : 'A day to tread carefully'
   const daySub =
     dayBand === 'good'
-      ? '하고 싶던 일을 밀어붙이기 좋아요. 연락·제안·중요한 결정에 우호적인 날.'
+      ? ko
+        ? '하고 싶던 일을 밀어붙이기 좋아요. 연락·제안·중요한 결정에 우호적인 날.'
+        : 'Good day to push what you want forward — outreach, proposals, big calls.'
       : dayBand === 'mid'
-        ? '큰일을 새로 벌이기보다 정리·마무리에 좋은 날. 무리만 안 하면 무난해요.'
-        : '새 일을 벌이기보다 점검·휴식에 좋은 날. 중요한 결정은 가능하면 미루세요.'
+        ? ko
+          ? '큰일을 새로 벌이기보다 정리·마무리에 좋은 날. 무리만 안 하면 무난해요.'
+          : 'Better for wrapping up than starting big. Fine as long as you don’t overreach.'
+        : ko
+          ? '새 일을 벌이기보다 점검·휴식에 좋은 날. 중요한 결정은 가능하면 미루세요.'
+          : 'Better for review and rest than new ventures. Postpone big decisions if you can.'
   const cleanReason = (s: string) => {
     const c = s
       .replace(/^[↑↓·\s]+/, '')
@@ -532,8 +548,8 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   const dayGood = (day.topReasons ?? []).map(cleanReason).filter(Boolean)[0]
   const dayCaution = (day.cautions ?? []).map(cleanReason).filter(Boolean)[0]
   const dayCards = [
-    dayGood ? { icon: '💚', label: '좋은 것', body: dayGood } : null,
-    dayCaution ? { icon: '⚠️', label: '조심할 것', body: dayCaution } : null,
+    dayGood ? { icon: '💚', label: ko ? '좋은 것' : 'Good', body: dayGood } : null,
+    dayCaution ? { icon: '⚠️', label: ko ? '조심할 것' : 'Watch', body: dayCaution } : null,
   ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
 
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
@@ -543,19 +559,23 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   const toHourItem = (h: NonNullable<DestinyDay['hourCrossings']>[number]) => {
     const branch = h.when.match(/\((.*?)\)/)?.[1] ?? ''
     const timeShort = h.when.replace(/\s*\(.*\)/, '').trim()
-    const tone = h.tone === 'good' ? '길' : '주의'
+    const tone = h.tone === 'good' ? (ko ? '길' : 'good') : ko ? '주의' : 'caution'
+    const sib = ko ? h.sibsin : (SIBSIN_EN[h.sibsin] ?? h.sibsin)
+    const rise = ko ? '상승' : 'rising'
     const skyLine = h.risingSignKo
-      ? `이 시각 하늘: ${h.risingSignKo} 상승${h.ruler ? ` (룰러 ${h.ruler})` : ''}`
+      ? ko
+        ? `이 시각 하늘: ${h.risingSignKo} 상승${h.ruler ? ` (룰러 ${h.ruler})` : ''}`
+        : `Sky now: ${h.risingSignKo} rising${h.ruler ? ` (ruler ${h.ruler})` : ''}`
       : ''
     return h.matched
       ? {
           when: timeShort,
-          title: `${branch ? `${branch} · ` : ''}${h.sibsin} ${tone} × ${h.risingSignKo} 상승`,
+          title: `${branch ? `${branch} · ` : ''}${sib} ${tone} × ${h.risingSignKo} ${rise}`,
           detail: [h.crossMeaning, h.narrative].filter(Boolean).join(' · '),
         }
       : {
           when: timeShort,
-          title: `${branch ? `${branch} · ` : ''}${h.sibsin} ${tone}`,
+          title: `${branch ? `${branch} · ` : ''}${sib} ${tone}`,
           detail: [h.narrative, skyLine].filter(Boolean).join(' · '),
         }
   }
@@ -568,18 +588,22 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   const hourRestItems = hourAll.filter((h) => !hourTopKeys.has(h.when)).map(toHourItem)
   // 실제 매칭된 교차가 하나도 없으면 heading 도 '×' 주장을 하지 않는다.
   const hourHeading = hourTop.some((h) => h.matched)
-    ? '오늘 가장 센 시간 · 사주 × 점성 교차'
-    : '오늘 가장 센 시간'
+    ? ko
+      ? '오늘 가장 센 시간 · 사주 × 점성 교차'
+      : 'Strongest hours · Saju × Astrology'
+    : ko
+      ? '오늘 가장 센 시간'
+      : 'Strongest hours'
 
   return (
     <div className={styles.tierInner} data-screen-label={`1일 ${day.date}`}>
       <button className={styles.rise} onClick={onRise}>
-        ↑ 이번 달로 줌아웃
+        ↑ {ko ? '이번 달로 줌아웃' : 'Zoom out to month'}
       </button>
 
       <div className={styles.eyebrow}>
-        1일 · DAILY · {day.date}
-        {day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
+        {ko ? '1일' : 'DAY'} · DAILY · {day.date}
+        {ko && day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
       </div>
 
       {/* ── 쉬운 요약 (오늘 어때 한눈에). 일진·12운성·신호는 아래 자세히로. ── */}
@@ -590,11 +614,13 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
 
       {/* ── 전문가용 상세 — 일진·격국·공망·신호·12운성·시진 일체 접어 둠 ── */}
       <details className={summaryStyles.details}>
-        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 일진과 근거</summary>
+        <summary className={summaryStyles.detailsSummary}>
+          {ko ? '자세히 보기 · 일진과 근거' : 'Details · day pillar & evidence'}
+        </summary>
 
         {/* 나머지 시진 전체 — 메인엔 안 띄운 시간들. */}
         {hourRestItems.length > 0 && (
-          <CrossingList heading="그 밖의 시간대" items={hourRestItems} />
+          <CrossingList heading={ko ? '그 밖의 시간대' : 'Other hours'} items={hourRestItems} />
         )}
 
         {/* head 보강 — 격국 status / 공망 / VOC */}
@@ -757,7 +783,7 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
 
       <div className={styles.riseCenter}>
         <button className={`${styles.rise} ${styles.riseSmall}`} onClick={onRise}>
-          ↑ 다시 위로 — 줌아웃
+          ↑ {ko ? '다시 위로 — 줌아웃' : 'Back up — zoom out'}
         </button>
       </div>
     </div>
