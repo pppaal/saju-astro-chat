@@ -463,14 +463,21 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
     const head = s.includes('—') ? s.split('—')[0].trim() : s
     return head.length > 16 ? head.slice(0, 15).trim() + '…' : head
   }
+  const seenTitle = new Map<string, number>()
   const monthCrossItems = (month.keyDays ?? []).map((k) => {
     const sj = (k.saju ?? [])[0]
     const as = (k.astro ?? [])[0]
     const tags = [sj && shortTag(sj), as && shortTag(as)].filter(Boolean).join(' × ')
+    const base = k.meaning || (k.bothSystems ? '사주 · 점성이 함께 강한 날' : '주요 신호')
+    // 같은 뜻이 여러 날 반복되면 둘째부터는 그 날의 실제 교차(사주×점성)를 제목으로
+    // 올려 중복을 없앤다 — 평이한 뜻은 detail 로 내려 보존.
+    const n = seenTitle.get(base) ?? 0
+    seenTitle.set(base, n + 1)
+    const dedup = n > 0 && tags
     return {
       when: k.date,
-      title: k.meaning || (k.bothSystems ? '사주 · 점성이 함께 강한 날' : '주요 신호'),
-      detail: tags || undefined,
+      title: dedup ? tags : base,
+      detail: dedup ? base : tags || undefined,
     }
   })
   const goodN = month.goodDays?.length ?? 0

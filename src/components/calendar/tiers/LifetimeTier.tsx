@@ -289,10 +289,13 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   // C4: rootStatus 있을 때만 "통근" 라벨, 없으면 "주십신"
   const hasRootStatus = !!user.rootStatus
 
-  // 교차 창 — 지금 기준 과거 5년 ~ 미래 10년.
-  const tlStart = lifetime.currentYear - 5
-  const tlEnd = lifetime.currentYear + 10
+  // 교차 창 — 인생 전체(출생 ~ 마지막 대운 끝). 지금±N 으로 좁히지 않아야
+  // '인생 전체 흐름' tier 가 실제로 84년 호를 보여주고 10년 tier 와 안 겹친다.
+  const dwList = lifetime.daewoon ?? []
+  const lastDw = dwList[dwList.length - 1]
   const dwStartY = (d: DestinyLifetime['daewoon'][number]) => lifetime.birthYear + d.startAge
+  const tlStart = lifetime.birthYear
+  const tlEnd = lastDw ? lifetime.birthYear + lastDw.startAge + 10 : lifetime.birthYear + 90
   // 교차 구간 — 사주 사건(대운 경계·사주 매듭)과 점성 사건(회귀·ZR 챕터 경계)이
   // ±2년 내로 가까운 시기. 인접하면 하나로 병합. = 두 시스템이 동시에 꿈틀하는 때.
   const NEAR = 2

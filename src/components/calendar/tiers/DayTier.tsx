@@ -537,7 +537,8 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
 
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
-  const hourCrossItems = (day.hourCrossings ?? []).map((h) => {
+  // 메인엔 가장 센 시진 3개만, 전체 시진표는 '자세히 보기' 로.
+  const toHourItem = (h: NonNullable<DestinyDay['hourCrossings']>[number]) => {
     const branch = h.when.match(/\((.*?)\)/)?.[1] ?? ''
     const timeShort = h.when.replace(/\s*\(.*\)/, '').trim()
     const tone = h.tone === 'good' ? '길' : '주의'
@@ -547,7 +548,12 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
       title: `${branch ? `${branch} · ` : ''}${h.sibsin} ${tone}${rising}`,
       detail: [h.narrative, h.ruler ? `상승궁 룰러 ${h.ruler}` : ''].filter(Boolean).join(' · '),
     }
-  })
+  }
+  const hourAll = day.hourCrossings ?? []
+  const hourTop = [...hourAll].sort((a, b) => b.strength - a.strength).slice(0, 3)
+  const hourTopKeys = new Set(hourTop.map((h) => h.when))
+  const hourCrossItems = hourAll.filter((h) => hourTopKeys.has(h.when)).map(toHourItem)
+  const hourRestItems = hourAll.filter((h) => !hourTopKeys.has(h.when)).map(toHourItem)
 
   return (
     <div className={styles.tierInner} data-screen-label={`1일 ${day.date}`}>
@@ -563,14 +569,19 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
       {/* ── 쉬운 요약 (오늘 어때 한눈에). 일진·12운성·신호는 아래 자세히로. ── */}
       <TierSummary headline={dayHeadline} sub={daySub} cards={dayCards} />
 
-      {/* ── 시간별 사주 × 점성 교차 — 켜지는 시진 × 그 시각 상승궁. ── */}
+      {/* ── 시간별 사주 × 점성 교차 — 가장 센 시진 3개만 메인에. ── */}
       {hourCrossItems.length > 0 && (
-        <CrossingList heading="시간별 사주 × 점성 교차 · 오늘" items={hourCrossItems} />
+        <CrossingList heading="오늘 가장 센 시간 · 사주 × 점성" items={hourCrossItems} />
       )}
 
       {/* ── 전문가용 상세 — 일진·격국·공망·신호·12운성·시진 일체 접어 둠 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>자세히 보기 · 일진과 근거</summary>
+
+        {/* 나머지 시진 전체 — 메인엔 안 띄운 시간들. */}
+        {hourRestItems.length > 0 && (
+          <CrossingList heading="그 밖의 시간대" items={hourRestItems} />
+        )}
 
         {/* head 보강 — 격국 status / 공망 / VOC */}
         <div className={styles.headChips}>

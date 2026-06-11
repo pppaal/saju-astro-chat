@@ -204,5 +204,6 @@ export interface DestinyDay extends DestinyIljinHeader {
     risingSignKo: string
     ruler: string
     narrative?: string
+    strength: number
   }>
 }
