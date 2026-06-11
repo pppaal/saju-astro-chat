@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 71개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 74개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
@@ -28,6 +28,7 @@ status: auto-generated
 | `/api/admin/metrics/funnel`             | GET                |
 | `/api/admin/overview`                   | GET                |
 | `/api/admin/purchases`                  | GET                |
+| `/api/admin/reconcile-purchase`         | POST               |
 | `/api/admin/refund-credit-pack`         | POST               |
 | `/api/admin/revenue`                    | GET                |
 | `/api/admin/usage`                      | GET                |
@@ -59,6 +60,7 @@ status: auto-generated
 | `/api/counselor/session/load`           | GET                |
 | `/api/counselor/session/save`           | POST               |
 | `/api/counselor/warm`                   | POST               |
+| `/api/cron/daily-fortune`               | GET, POST          |
 | `/api/cron/reset-credits`               | GET, POST          |
 | `/api/csp-report`                       | GET, POST          |
 | `/api/db-ping`                          | GET                |
@@ -72,6 +74,7 @@ status: auto-generated
 | `/api/me/legal-consent`                 | GET, POST          |
 | `/api/me/profile`                       | GET, PATCH         |
 | `/api/me/purchases`                     | GET                |
+| `/api/me/push-subscription`             | POST, DELETE       |
 | `/api/me/refund-credit-pack`            | POST               |
 | `/api/me/upload-photo`                  | POST               |
 | `/api/referral/claim`                   | POST               |
