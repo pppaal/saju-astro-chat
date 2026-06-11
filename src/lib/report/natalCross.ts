@@ -1303,6 +1303,21 @@ const ELEMENT_TRAIT: Record<SajuElement, { ko: string; en: string }> = {
   metal: { ko: '예리하고 결단하는', en: 'sharp and decisive' },
   water: { ko: '깊고 유연한', en: 'deep and adaptable' },
 }
+// 트레잇 동의어 — 같은 원소도 사람·축마다 다른 표현이 나오게(결정적 변주).
+// 같은 원소+같은 시드면 항상 같은 선택이라 한 축 안에서는 일관, 다른 사람은 갈림.
+const ELEMENT_TRAIT_ALT: Record<SajuElement, { ko: string; en: string }> = {
+  wood: { ko: '위로 자라나는', en: 'upward-reaching' },
+  fire: { ko: '환하게 피어나는', en: 'bright and radiant' },
+  earth: { ko: '묵직하게 받쳐주는', en: 'solid and supportive' },
+  metal: { ko: '깔끔하게 끊어내는', en: 'clean and incisive' },
+  water: { ko: '잔잔히 스며드는', en: 'fluid and permeating' },
+}
+function pickTrait(el: SajuElement, seed: string): { ko: string; en: string } {
+  let h = 0
+  const s = seed + el
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return h % 2 === 0 ? ELEMENT_TRAIT[el] : ELEMENT_TRAIT_ALT[el]
+}
 
 /** 두 축의 도메인 라벨(쉬운 말). 예: 정체성 → '본바탕' / '드러나는 자아'. */
 interface DomainCtx {
@@ -1411,8 +1426,11 @@ function pickCloser(kind: keyof typeof VERDICT_CLOSERS, seed: string): { ko: str
 }
 
 function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerdict {
-  const ta = d.aTrait ?? ELEMENT_TRAIT[a]
-  const tb = d.bTrait ?? ELEMENT_TRAIT[b]
+  const seed = `${d.aKo}|${d.bKo}|${a}|${b}`
+  // 트레잇은 동의어 풀에서 결정적으로 고른다(override 우선). 같은 원소+같은 시드면
+  // 동일 선택이라, a===b(같음 관계)면 ta/tb 가 자동으로 같아져 'same' 로직이 유지된다.
+  const ta = d.aTrait ?? pickTrait(a, seed)
+  const tb = d.bTrait ?? pickTrait(b, seed)
   const rel = elementRelation(a, b)
   const la = d.aLabel ?? { ko: EL_KO[a], en: EL_EN[a] }
   const lb = d.bLabel ?? { ko: EL_KO[b], en: EL_EN[b] }
@@ -1421,7 +1439,6 @@ function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerd
   // 같은 오행이라도 트레잇 override(예: 공기→木) 가 걸리면 표시 결이 달라진다.
   // 그 경우 "둘 다 ${ta}" 라고 하면 라벨(목 ↔ 공기)과 모순되므로 분기.
   const sameTrait = ta.ko === tb.ko
-  const seed = `${d.aKo}|${d.bKo}|${a}|${b}`
   const base: CrossVerdict = (() => {
     switch (rel) {
       case 'same': {

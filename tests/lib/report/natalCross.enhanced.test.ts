@@ -154,6 +154,24 @@ describe('미활용 데이터 활성화 (slice 1)', () => {
   })
 })
 
+describe('트레잇 동의어 변주 (slice 3)', () => {
+  const POOL = ['뻗어나가 키우는', '위로 자라나는'] // 木 의 두 표현
+  it('木 트레잇이 동의어 풀 안에서 나온다', () => {
+    // 목 일간 + 게자리(水) → a=wood, 라벨 "목 · <동의어>"
+    const v = evalIdentity('목', 'Cancer')!
+    expect(POOL.some((p) => v.left?.ko?.includes(p))).toBe(true)
+  })
+  it('same 관계(같은 원소)는 좌우 트레잇이 동일(일관성 보존)', () => {
+    // 화 일간 + 사자(火) → a===b=fire, same → 좌우 동의어 선택이 같아야 함
+    const v = evalIdentity('화', 'Leo')!
+    expect(v.tone).toBe('resonant')
+    expect(v.left?.ko).toBe(v.right?.ko)
+  })
+  it('변주는 결정적(같은 입력 재호출 동일)', () => {
+    expect(evalIdentity('목', 'Cancer')!.left?.ko).toBe(evalIdentity('목', 'Cancer')!.left?.ko)
+  })
+})
+
 describe('dignity 강도 활성화 (slice 2)', () => {
   it('추진 행성 dignity로 추진력축 뉘앙스 분기', () => {
     const strong = evalDrive('신강', true, 'strong')!
