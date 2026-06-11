@@ -45,18 +45,18 @@ export const TONE_POOL_KO: Record<MeaningTone, string[]> = {
 export const TONE_POOL_EN: Record<MeaningTone, string[]> = {
   positive: [
     'things fall into place',
-    'good day to push',
-    'an opening',
-    'good day to close a deal',
+    'a good day to push',
+    'a window opens',
+    'a good day to close a deal',
     'luck leans your way',
-    'good day to start',
+    'a good day to start',
     'results come into view',
   ],
   negative: [
     'better to slow down',
     'a day for review',
     'don’t overreach',
-    'feelings may weigh',
+    'feelings may run heavy',
     'fine to postpone the call',
     'mind the friction',
     'a day to rest',

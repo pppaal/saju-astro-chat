@@ -106,13 +106,13 @@ const SIBSIN_THEME_KO: Record<
 > = {
   비견: {
     theme: '주체·동료의 무대',
-    themeEn: 'Self · Peer',
+    themeEn: 'Self · Allies',
     headline: '비견 대운 — 같은 결의 사람들 속에서 내 자리를 짓는 10년.',
-    headlineEn: 'Self cycle — a decade to build your place among your own kind.',
+    headlineEn: 'Self cycle — a decade to carve out your place among your own people.',
   },
   겁재: {
     theme: '경쟁·분탈의 무대',
-    themeEn: 'Rivalry · Split',
+    themeEn: 'Rivalry · Shared Stakes',
     headline: '겁재 대운 — 경쟁과 협업이 동시에 치솟는 10년.',
     headlineEn: 'Rivalry cycle — a decade where competition and collaboration both surge.',
   },
@@ -120,7 +120,7 @@ const SIBSIN_THEME_KO: Record<
     theme: '표현·창작의 무대',
     themeEn: 'Creativity · Output',
     headline: '식신 대운 — 끼와 표현이 자기 결을 만드는 10년.',
-    headlineEn: 'Creativity cycle — a decade where your flair and expression shape your path.',
+    headlineEn: 'Creativity cycle — a decade where your flair and self-expression shape your path.',
   },
   상관: {
     theme: '자유·재능의 무대',
@@ -162,7 +162,7 @@ const SIBSIN_THEME_KO: Record<
     theme: '배움·지원의 무대',
     themeEn: 'Learning · Support',
     headline: '정인 대운 — 배움과 지원이 든든한 10년.',
-    headlineEn: 'Learning cycle — a decade well-supported by study and backing.',
+    headlineEn: 'Learning cycle — a decade with study and support firmly behind you.',
   },
 }
 

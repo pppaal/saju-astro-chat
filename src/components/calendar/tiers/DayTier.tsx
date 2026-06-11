@@ -607,7 +607,7 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
       </button>
 
       <div className={styles.eyebrow}>
-        {ko ? '1일' : 'DAY'} · DAILY · {day.date}
+        {ko ? '1일' : '1 DAY'} · DAILY · {day.date}
         {ko && day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
       </div>
 
@@ -788,7 +788,7 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
 
       <div className={styles.riseCenter}>
         <button className={`${styles.rise} ${styles.riseSmall}`} onClick={onRise}>
-          ↑ {ko ? '다시 위로 — 줌아웃' : 'Back up — zoom out'}
+          ↑ {ko ? '다시 위로 — 줌아웃' : 'Zoom back out'}
         </button>
       </div>
     </div>

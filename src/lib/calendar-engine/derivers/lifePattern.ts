@@ -86,7 +86,7 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
       ko: '대기만성형',
       en: 'Late bloomer',
       line: '젊을 때는 좀 고생해도, 마흔 넘어가면서 자리 잡고 늦게 잘 풀리는 편이에요.',
-      lineEn: 'A rougher start, but from your forties on things settle and open up late.',
+      lineEn: 'A rougher start, but from your forties on, things settle and finally open up.',
     },
     'early-peak': {
       ko: '초년발복형',
@@ -104,7 +104,7 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
       ko: '점진상승형',
       en: 'Steady rise',
       line: '나이 들수록 조금씩 좋아지는 편이에요.',
-      lineEn: 'Things tend to get a little better with each passing decade.',
+      lineEn: 'Things tend to get a little better with each decade.',
     },
     smooth: {
       ko: '순탄형',

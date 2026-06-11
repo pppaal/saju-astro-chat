@@ -302,7 +302,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           : 'Steady month'
         : ko
           ? '조심할 달'
-          : 'Caution month'
+          : 'Cautious month'
   const crossHeading = ko
     ? `올해의 사주 × 점성 교차 · ${year.year}`
     : `Saju × Astrology · ${year.year}`
@@ -313,7 +313,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
     detail: m.bestDay
       ? ko
         ? `좋은 날 ${m.bestDay} · ${m.score}점`
-        : `best ${m.bestDay} · ${m.score}`
+        : `Best day ${m.bestDay} · ${m.score}`
       : ko
         ? `${m.score}점`
         : `${m.score}`,
@@ -326,7 +326,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       </button>
 
       <div className={styles.eyebrow}>
-        {ko ? '1년' : 'YEAR'} · YEARLY · {year.year}
+        {ko ? '1년' : '1 YEAR'} · YEARLY · {year.year}
       </div>
       <h1 className={styles.display}>{ko ? '올해의 흐름' : 'This year'}</h1>
       <p className={styles.oneline}>{year.headline}</p>
@@ -340,7 +340,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       {/* ── 전문가용 상세 — 프로펙션·세운·ZR·패턴 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>
-          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & astrology'}
+          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & Astrology'}
         </summary>
 
         {/* 월별 점수 overview — 교차를 메인에 띄웠으므로 상세로 내림. */}
@@ -523,7 +523,8 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
               >
                 <span className="pip" />
                 <span className="han">{sect === 'day' ? '낮' : '밤'}</span>
-                Sect · {sect === 'day' ? 'Diurnal' : 'Nocturnal'} 출생
+                Sect · {sect === 'day' ? 'Diurnal' : 'Nocturnal'}
+                {ko ? ' 출생' : ' birth'}
               </div>
               {lordReadout && p && (
                 <p className={styles.lordOfYear}>
@@ -728,7 +729,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       {/* ── dive 버튼 (원본 그대로) ── */}
       <div className={styles.diveWrap}>
         <button className={styles.dive} onClick={onDive}>
-          {ko ? '이번 달로 줌인' : 'Zoom in to month'} <span className={styles.arrow}>↓</span>
+          {ko ? '이번 달로 줌인' : 'Zoom in to this month'} <span className={styles.arrow}>↓</span>
         </button>
       </div>
     </div>
