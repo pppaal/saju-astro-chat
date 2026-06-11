@@ -94,7 +94,7 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
     const longitude = res.longitude
     const info = formatLongitude(longitude)
     const houseNum = inferHouseOf(longitude, housesRes.house)
-    const speed = extractLongitudeSpeed(res as unknown as Record<string, unknown>)
+    const speed = extractLongitudeSpeed(res)
     const retrograde = typeof speed === 'number' ? speed < 0 : undefined
 
     const graphId =

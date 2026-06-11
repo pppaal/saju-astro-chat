@@ -31,10 +31,10 @@ export async function calculateTransitChart(
     if ('error' in res) {
       throw new Error(`swe_calc_ut(${name}): ${res.error}`)
     }
-    const longitude = extractSwissLongitude(res as unknown as Record<string, unknown>)
+    const longitude = extractSwissLongitude(res)
     const info = formatLongitude(longitude)
     const house = inferHouseOf(longitude, housesRes.house)
-    const speed = extractLongitudeSpeed(res as unknown as Record<string, unknown>)
+    const speed = extractLongitudeSpeed(res)
     const retrograde = typeof speed === 'number' ? speed < 0 : undefined
     return { name, longitude, ...info, house, speed, retrograde }
   })
