@@ -137,6 +137,9 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
 
   // ─── ctx 구성 (NatalContext shape 호환) ──────────────────────────────
   return {
+    // gender 는 NatalInput 표준 필드가 아니지만, 교차 해석의 배우자성(남=재성/
+    // 여=관성) 분기가 ctx.input.gender 를 읽으므로 여기서 직접 실어 보낸다
+    // (page 의 사후 주입에 의존하지 않게 — 다른 호출자도 성별 해석을 받도록).
     input: {
       year: Y,
       month: M,
@@ -146,7 +149,8 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
       latitude: input.latitude,
       longitude: input.longitude,
       timeZone: input.timeZone,
-    },
+      gender: input.gender,
+    } as NatalContext['input'],
     saju: {
       pillars,
       dayMaster: pillars.day.heavenlyStem,

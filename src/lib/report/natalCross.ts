@@ -850,33 +850,55 @@ export function evalNorthNode(
 export function evalRomance(
   hasDohwa: boolean,
   venusStrong: boolean,
-  loveHouseCount: number
+  loveHouseCount: number,
+  gender: 'male' | 'female' = 'male',
+  spouseStarCount = 0
 ): CrossVerdict | null {
   const astroLove = venusStrong || loveHouseCount > 0
-  if (!hasDohwa && !astroLove) return null
-  if (hasDohwa && astroLove)
-    return {
-      tone: 'resonant',
-      reason: {
-        ko: '사주의 끄는 매력과 별자리의 사랑·관계 자리가 둘 다 켜져 있어요 — 사람을 끌고, 관계가 인생의 큰 테마가 되는 편이에요. 매력을 즐기되 한 사람에게 깊이 머무는 연습이 인연을 오래 가게 해요.',
-        en: "Both your chart's pull and its houses of love and partnership are lit — you draw people in, and relationships become a central life theme. Enjoy the magnetism, but learning to stay deeply with one person is what makes love last.",
-      },
-    }
-  if (hasDohwa)
-    return {
-      tone: 'complement',
-      reason: {
-        ko: '타고난 끄는 매력(도화)은 또렷한데 별자리는 사랑을 차분히 다뤄요 — 화려하기보다 은근하게 사람을 끄는 타입이에요. 먼저 다가가는 한 걸음이 좋은 인연을 앞당겨요.',
-        en: 'Your natural magnetism is clear, while your chart handles love more quietly — your appeal is understated rather than flashy. One step forward of your own brings the right connection sooner.',
-      },
-    }
-  return {
-    tone: 'complement',
-    reason: {
-      ko: '사주는 연애를 담담하게 보는데, 별자리의 사랑·관계 자리가 활발해요 — 관계 속에서 자기를 발견하는 타입이에요. 관계에 기대되 자기 중심도 함께 챙기면 좋아요.',
-      en: "Your Saju treats romance evenly, but your chart's houses of love run active — you find yourself through relationships. Lean in, but keep your own center alongside.",
-    },
-  }
+  const spousePresent = spouseStarCount > 0
+  // 배우자성(남=재성/여=관성)이 원국에 있으면 도화·금성이 약해도 이 축은 띄운다
+  // — 성별로 갈리는 정통 육친 해석이라 거의 모든 차트에서 노출되게.
+  if (!hasDohwa && !astroLove && !spousePresent) return null
+
+  const base: { tone: CrossVerdict['tone']; ko: string; en: string } =
+    hasDohwa && astroLove
+      ? {
+          tone: 'resonant',
+          ko: '사주의 끄는 매력과 별자리의 사랑·관계 자리가 둘 다 켜져 있어요 — 사람을 끌고, 관계가 인생의 큰 테마가 되는 편이에요. 매력을 즐기되 한 사람에게 깊이 머무는 연습이 인연을 오래 가게 해요.',
+          en: "Both your chart's pull and its houses of love and partnership are lit — you draw people in, and relationships become a central life theme. Enjoy the magnetism, but learning to stay deeply with one person is what makes love last.",
+        }
+      : hasDohwa
+        ? {
+            tone: 'complement',
+            ko: '타고난 끄는 매력(도화)은 또렷한데 별자리는 사랑을 차분히 다뤄요 — 화려하기보다 은근하게 사람을 끄는 타입이에요. 먼저 다가가는 한 걸음이 좋은 인연을 앞당겨요.',
+            en: 'Your natural magnetism is clear, while your chart handles love more quietly — your appeal is understated rather than flashy. One step forward of your own brings the right connection sooner.',
+          }
+        : astroLove
+          ? {
+              tone: 'complement',
+              ko: '사주는 연애를 담담하게 보는데, 별자리의 사랑·관계 자리가 활발해요 — 관계 속에서 자기를 발견하는 타입이에요. 관계에 기대되 자기 중심도 함께 챙기면 좋아요.',
+              en: "Your Saju treats romance evenly, but your chart's houses of love run active — you find yourself through relationships. Lean in, but keep your own center alongside.",
+            }
+          : {
+              tone: 'neutral',
+              ko: '도화나 별자리의 사랑 자리가 크게 두드러지진 않아요 — 연애가 인생 1순위 테마라기보다, 인연이 올 때 진중하게 가꾸는 타입이에요.',
+              en: 'Neither a strong romance star nor lit houses of love stand out — partnership is less a top life theme than something you tend earnestly when it arrives.',
+            }
+
+  // ── 성별 배우자성(配偶星) — 남: 재성, 여: 관성 ──
+  const g = gender === 'female'
+  const starKo = g ? '관성' : '재성'
+  const starEn = g ? 'the Officer star' : 'the Wealth star'
+  const who = g ? '여자' : '남자'
+  const whoEn = g ? "a woman's" : "a man's"
+  const spouseKo = spousePresent
+    ? ` 명리에서 ${who} 사주의 배우자 자리는 ${starKo}인데, 원국에 또렷이 자리해 배우자 인연의 윤곽이 분명한 편이에요.`
+    : ` 명리에서 ${who} 사주의 배우자 자리는 ${starKo}인데, 원국에 뚜렷이 드러나지 않아 인연은 때를 기다리기보다 스스로 만들어가는 쪽이에요.`
+  const spouseEn = spousePresent
+    ? ` In Saju, ${whoEn} spouse indicator is ${starEn}, and it sits clearly in your chart — the outline of partnership is well-defined.`
+    : ` In Saju, ${whoEn} spouse indicator is ${starEn}, but it's faint in your chart — you shape partnership yourself rather than wait on timing.`
+
+  return { tone: base.tone, reason: { ko: base.ko + spouseKo, en: base.en + spouseEn } }
 }
 
 /** 이동·변화: 역마(사주) ↔ 3/9하우스·목성(점성). */

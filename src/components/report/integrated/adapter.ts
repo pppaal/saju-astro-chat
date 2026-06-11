@@ -434,6 +434,8 @@ export function buildCrossRows(
   const ascSign = (A.chart?.ascendant ?? A.ascendant)?.sign
   const mcSign = (A.chart?.mc ?? A.mc)?.sign
   const details = adv.sibsin?.categoryCount
+  const crossGender: 'male' | 'female' =
+    (ctx.input as { gender?: string } | undefined)?.gender === 'female' ? 'female' : 'male'
 
   // 강조 행성 + 최고 dignity — Phase B: facts.hellenistic.dignities (5-tier)
   // 활용. 옛 dignityOf 재계산 제거. 각 행성 angularity (1/4/7/10 하우스) + 강한
@@ -553,7 +555,17 @@ export function buildCrossRows(
     ['energy', evalEnergyDirection(details, emphasized)],
     ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
     ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
-    ['romance', evalRomance(hasShinsal('도화', '홍염'), emphasized.has('Venus'), inHouses(5, 7))],
+    [
+      'romance',
+      evalRomance(
+        hasShinsal('도화', '홍염'),
+        emphasized.has('Venus'),
+        inHouses(5, 7),
+        crossGender,
+        // 배우자성 — 남: 재성 / 여: 관성 (categoryCount 그룹).
+        ((crossGender === 'female' ? details?.관성 : details?.재성) as number | undefined) ?? 0
+      ),
+    ],
     ['expression', evalExpression(siksangCount, emphasized.has('Mercury'), inHouses(3, 5))],
     ['movement', evalMovement(hasShinsal('역마'), inHouses(3, 9), emphasized.has('Jupiter'))],
     ['spirit', evalSpirit(hasShinsal('화개'), inHouses(12), emphasized.has('Neptune'))],
