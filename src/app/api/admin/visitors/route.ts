@@ -26,6 +26,50 @@ export const dynamic = 'force-dynamic'
 
 const num = (v: unknown): number => (typeof v === 'bigint' ? Number(v) : Number(v ?? 0))
 
+// PageView 테이블 self-heal — 빌드타임 schema-verify 가 DB 접속 실패로
+// 테이블을 못 만든(phantom-apply) 경우, 라이브 앱 커넥션(=정상 동작 중인
+// pooler)으로 직접 생성한다. 전부 IF NOT EXISTS 라 멱등. 성공 시 true.
+const PAGEVIEW_DDL = [
+  `CREATE TABLE IF NOT EXISTS "PageView" (
+     "id" TEXT NOT NULL,
+     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     "visitorId" TEXT NOT NULL,
+     "path" TEXT NOT NULL,
+     "referrerHost" TEXT,
+     "isLoggedIn" BOOLEAN NOT NULL DEFAULT false,
+     "userId" TEXT,
+     "country" TEXT,
+     "device" TEXT,
+     CONSTRAINT "PageView_pkey" PRIMARY KEY ("id")
+   )`,
+  `CREATE INDEX IF NOT EXISTS "PageView_createdAt_idx" ON "PageView"("createdAt")`,
+  `CREATE INDEX IF NOT EXISTS "PageView_visitorId_createdAt_idx" ON "PageView"("visitorId", "createdAt")`,
+  `CREATE INDEX IF NOT EXISTS "PageView_isLoggedIn_createdAt_idx" ON "PageView"("isLoggedIn", "createdAt")`,
+  `CREATE INDEX IF NOT EXISTS "PageView_path_createdAt_idx" ON "PageView"("path", "createdAt")`,
+]
+
+async function ensurePageViewTable(): Promise<boolean> {
+  try {
+    for (const stmt of PAGEVIEW_DDL) {
+      await prisma.$executeRawUnsafe(stmt)
+    }
+    return true
+  } catch (err) {
+    logger.error('[admin/visitors] PageView self-heal failed', { err })
+    return false
+  }
+}
+
+const emptyResult = (days: number, notReady: boolean): Record<string, unknown> => ({
+  rangeDays: days,
+  notReady,
+  summary: { pageviews: 0, visits: 0, loggedInVisits: 0, anonymousVisits: 0, loginShare: 0 },
+  daily: [],
+  topPaths: [],
+  topReferrers: [],
+  devices: [],
+})
+
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     try {
@@ -90,22 +134,14 @@ export const GET = withApiMiddleware(
           code === '42P01' ||
           /relation .* does not exist|does not exist/i.test(msg)
         if (!tableMissing) throw err
-        logger.warn('[admin/visitors] PageView table not ready — returning empty dataset')
-        return apiSuccess({
-          rangeDays: days,
-          notReady: true,
-          summary: {
-            pageviews: 0,
-            visits: 0,
-            loggedInVisits: 0,
-            anonymousVisits: 0,
-            loginShare: 0,
-          },
-          daily: [],
-          topPaths: [],
-          topReferrers: [],
-          devices: [],
-        } as Record<string, unknown>)
+        // build-time schema-verify 가 못 만든 경우, 라이브 앱이 직접 생성 시도.
+        const healed = await ensurePageViewTable()
+        logger.warn(
+          `[admin/visitors] PageView table missing — self-heal ${healed ? 'created table' : 'failed'}`
+        )
+        // 생성 성공: 방금 만든 빈 테이블 → notReady=false 로 정상 빈 상태 표시.
+        // 실패: notReady=true 로 '준비 중' 안내 유지.
+        return apiSuccess(emptyResult(days, !healed))
       }
 
       const t = totalsRows[0] || {}
