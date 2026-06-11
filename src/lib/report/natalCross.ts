@@ -173,44 +173,56 @@ export function evalIdentity(
 /** 필요·욕망: 용신 오행 ↔ 달 별자리. */
 export function evalNeeds(
   yongsinEl: string | undefined,
-  moonSign: string | undefined
+  moonSign: string | undefined,
+  avoidEl?: string
 ): CrossVerdict | null {
   const need = normSajuElement(yongsinEl)
   const moon = signToSajuElement(moonSign)
   if (!need || !moon) return null
   const tNeed = ELEMENT_TRAIT[need]
   const tCrave = signTraitOverride(moonSign) ?? ELEMENT_TRAIT[moon]
-  if (moon === need)
+  const base: CrossVerdict = (() => {
+    if (moon === need)
+      return {
+        tone: 'resonant',
+        reason: {
+          ko: `사주가 채우라는 ${tNeed.ko} 기운과 달(평소 마음이 끌리는 곳)이 같은 쪽을 가리켜요 — 진짜 필요한 것과 좋아하는 게 딱 맞는 사람이에요. 몸과 마음이 원하는 게 곧 보약이라, 끌리는 대로 따라가도 크게 어긋나지 않아요. 다만 익숙한 것만 반복하지 않게 가끔 새 자극을 더해주면 그 강점이 더 오래가요.`,
+          en: `The ${tNeed.en} energy your Saju asks for and your Moon (where your heart leans) point the same way — what you truly need and what you like line up. What your body and mind crave is your tonic, so following the pull rarely leads you wrong. Just add a fresh stimulus now and then so it doesn't become mere repetition, and the strength lasts longer.`,
+        },
+      }
+    if (GENERATES[moon] === need)
+      return {
+        tone: 'complement',
+        reason: {
+          ko: `평소 ${tCrave.ko} 쪽에 끌리는데, 그게 정작 필요한 ${tNeed.ko} 기운을 자연스럽게 채워줘요 — 좋아하는 걸 하다 보면 필요한 게 저절로 채워지는 선순환이에요. 취향을 죄책감 없이 믿고 키워도 되는 구조라, 이 흐름을 일이나 취미로 연결하면 회복과 성장이 함께 와요. 무리해서 바꾸려 들 필요가 없어요.`,
+          en: `You're drawn to the ${tCrave.en}, and it quietly supplies the ${tNeed.en} energy you need — a virtuous loop where doing what you love refills what you need. You can trust and grow your taste without guilt; wire this flow into work or a hobby and recovery and growth arrive together. No need to force a change.`,
+        },
+      }
+    if (CONTROLS[moon] === need)
+      return {
+        tone: 'tension',
+        reason: {
+          ko: `평소 ${tCrave.ko} 쪽에 끌리는데 정작 필요한 건 ${tNeed.ko} 기운이라 어긋나요 — 원하는 것만 좇다 정작 중요한 걸 놓칠 수 있는 구조예요. 좋아하는 걸 다 끊으라는 게 아니라, 필요한 ${tNeed.ko} 쪽을 하루 일과에 의식적으로 조금씩 끼워 넣는 게 핵심이에요. 그 작은 보정만으로도 공허함이나 번아웃이 한결 줄어요.`,
+          en: `You crave the ${tCrave.en} but actually need the ${tNeed.en} — chasing only what you want can crowd out what matters. It's not about cutting out what you love, but deliberately slotting a little ${tNeed.en} into your daily routine. That small correction alone eases a lot of the emptiness or burnout.`,
+        },
+      }
     return {
-      tone: 'resonant',
+      tone: 'neutral',
       reason: {
-        ko: `사주가 채우라는 ${tNeed.ko} 기운과 달(평소 마음이 끌리는 곳)이 같은 쪽을 가리켜요 — 진짜 필요한 것과 좋아하는 게 딱 맞는 사람이에요. 몸과 마음이 원하는 게 곧 보약이라, 끌리는 대로 따라가도 크게 어긋나지 않아요. 다만 익숙한 것만 반복하지 않게 가끔 새 자극을 더해주면 그 강점이 더 오래가요.`,
-        en: `The ${tNeed.en} energy your Saju asks for and your Moon (where your heart leans) point the same way — what you truly need and what you like line up. What your body and mind crave is your tonic, so following the pull rarely leads you wrong. Just add a fresh stimulus now and then so it doesn't become mere repetition, and the strength lasts longer.`,
+        ko: `필요한 ${tNeed.ko} 기운과 평소 끌리는 ${tCrave.ko} 쪽이 따로 노는 편이에요 — 둘이 자동으로 연결되진 않아 의식하지 않으면 따로 굴러가요. 필요한 기운을 채우는 루틴을 따로 정해 두면 마음이 한결 안정돼요. 끌림과 필요를 같은 활동 안에서 만나게 해주는 게 이 축의 숙제예요.`,
+        en: `Your needed ${tNeed.en} energy and your ${tCrave.en} pulls run on separate tracks — they don't link by themselves, so without attention they drift apart. Set a dedicated routine to refill the needed energy and your mind settles noticeably. The task of this axis is to let pull and need meet inside the same activity.`,
       },
     }
-  if (GENERATES[moon] === need)
-    return {
-      tone: 'complement',
-      reason: {
-        ko: `평소 ${tCrave.ko} 쪽에 끌리는데, 그게 정작 필요한 ${tNeed.ko} 기운을 자연스럽게 채워줘요 — 좋아하는 걸 하다 보면 필요한 게 저절로 채워지는 선순환이에요. 취향을 죄책감 없이 믿고 키워도 되는 구조라, 이 흐름을 일이나 취미로 연결하면 회복과 성장이 함께 와요. 무리해서 바꾸려 들 필요가 없어요.`,
-        en: `You're drawn to the ${tCrave.en}, and it quietly supplies the ${tNeed.en} energy you need — a virtuous loop where doing what you love refills what you need. You can trust and grow your taste without guilt; wire this flow into work or a hobby and recovery and growth arrive together. No need to force a change.`,
-      },
-    }
-  if (CONTROLS[moon] === need)
-    return {
-      tone: 'tension',
-      reason: {
-        ko: `평소 ${tCrave.ko} 쪽에 끌리는데 정작 필요한 건 ${tNeed.ko} 기운이라 어긋나요 — 원하는 것만 좇다 정작 중요한 걸 놓칠 수 있는 구조예요. 좋아하는 걸 다 끊으라는 게 아니라, 필요한 ${tNeed.ko} 쪽을 하루 일과에 의식적으로 조금씩 끼워 넣는 게 핵심이에요. 그 작은 보정만으로도 공허함이나 번아웃이 한결 줄어요.`,
-        en: `You crave the ${tCrave.en} but actually need the ${tNeed.en} — chasing only what you want can crowd out what matters. It's not about cutting out what you love, but deliberately slotting a little ${tNeed.en} into your daily routine. That small correction alone eases a lot of the emptiness or burnout.`,
-      },
-    }
-  return {
-    tone: 'neutral',
-    reason: {
-      ko: `필요한 ${tNeed.ko} 기운과 평소 끌리는 ${tCrave.ko} 쪽이 따로 노는 편이에요 — 둘이 자동으로 연결되진 않아 의식하지 않으면 따로 굴러가요. 필요한 기운을 채우는 루틴을 따로 정해 두면 마음이 한결 안정돼요. 끌림과 필요를 같은 활동 안에서 만나게 해주는 게 이 축의 숙제예요.`,
-      en: `Your needed ${tNeed.en} energy and your ${tCrave.en} pulls run on separate tracks — they don't link by themselves, so without attention they drift apart. Set a dedicated routine to refill the needed energy and your mind settles noticeably. The task of this axis is to let pull and need meet inside the same activity.`,
-    },
+  })()
+
+  // 기신(避) — 채울 기운의 짝. 용신 primary 와 다르면 한 줄 덧붙임.
+  const avoid = normSajuElement(avoidEl)
+  if (avoid && avoid !== need) {
+    const ka = ` 채울 건 ${EL_KO[need]}, 피할 건 ${EL_KO[avoid]} — ${EL_KO[avoid]} 기운이 과해지면 오히려 흐름이 막혀요.`
+    const ea = ` Fill ${EL_EN[need]}, ease off ${EL_EN[avoid]} — too much ${EL_EN[avoid]} tends to clog the flow.`
+    return { ...base, reason: { ko: base.reason.ko + ka, en: base.reason.en + ea } }
   }
+  return base
 }
 
 /** 사회 역할: 격국 ↔ MC. 격국 대표 십신을 행성으로 환원해 MC 위신으로 판정. */
@@ -365,53 +377,85 @@ const WEAK_STAGES = new Set(['병', '사', '묘', '절'])
 
 export function evalStrength(
   twelveStage: string | undefined,
-  topDignity: { planet: string; status: string } | null
+  topDignity: { planet: string; status: string } | null,
+  rooted?: boolean
 ): CrossVerdict | null {
-  if (!twelveStage && !topDignity) return null
+  if (!twelveStage && !topDignity && rooted === undefined) return null
   const sajuStrong = twelveStage ? STRONG_STAGES.has(twelveStage) : false
   const sajuWeak = twelveStage ? WEAK_STAGES.has(twelveStage) : false
   const astroStrong = !!topDignity
   const stk = topDignity ? planetTheme(topDignity.planet, 'ko') : ''
   const ste = topDignity ? planetTheme(topDignity.planet, 'en') : ''
-  if (sajuStrong && astroStrong)
-    return {
-      tone: 'resonant',
-      reason: {
-        ko: `타고난 힘이 가장 셀 자리에 있고, 별자리에선 ${stk} 쪽이 특히 강해요 — 사주의 기세와 점성의 강한 자리가 같은 방향으로 모인 셈이에요. 한 분야를 깊게 파고들면 누구보다 또렷하게 두각을 내는 구조라, 이것저것 벌이기보다 ${stk} 쪽 한 우물에 힘을 모으는 게 유리해요. 가진 힘이 큰 만큼 자만이나 과속만 조심하면 멀리 갑니다.`,
-        en: `Your power sits at its strongest, and in your chart the ${ste} side is especially strong — Saju's momentum and the chart's strong placement gather in one direction. You stand out sharpest when you dig deep into one field, so it pays to pool your force into the ${ste} lane rather than spreading thin. With this much power, just guard against overconfidence and overspeed and you'll go far.`,
-      },
-    }
-  if (astroStrong)
-    return {
-      tone: 'complement',
-      reason: {
-        ko: `별자리에서 ${stk} 쪽이 가장 힘 있는 자리예요 — 사주가 또렷이 받쳐주진 않아도, 점성이 가리키는 이 분야는 분명한 강점이에요. 자신 없을 때도 ${stk} 영역에 서면 의외로 힘이 나니, 진로나 역할을 정할 때 이 자리를 기준점으로 삼으면 좋아요. 타고났다 믿고 꾸준히 쓰면 점점 더 단단해지는 강점이에요.`,
-        en: `In your chart the ${ste} side is your strongest placement — even if Saju doesn't loudly back it, the field your chart points to is a clear strength. You find unexpected power standing in the ${ste} arena even on low days, so use it as your anchor when choosing a path or role. Trust it as innate and keep using it, and it only grows sturdier.`,
-      },
-    }
-  if (sajuStrong)
-    return {
-      tone: 'complement',
-      reason: {
-        ko: '타고난 힘이 안정적으로 받쳐주는 자리예요 — 별자리가 특정 분야를 콕 집어주진 않지만, 사주의 기세가 어디서든 자기 자리를 잡게 해줘요. 화려한 한 방보다 버티고 쌓는 데 강하니, 시간이 걸려도 꾸준히 가는 길이 잘 맞아요. 흔들려도 결국 제자리를 찾는 힘이 있어요.',
-        en: "Your foundation is solid — your chart doesn't pinpoint one field, but Saju's momentum lets you claim your ground anywhere. You're strong at enduring and stacking rather than landing one flashy hit, so the slow, steady path suits you even when it takes time. However shaken, you have the power to find your footing again.",
-      },
-    }
-  if (sajuWeak)
+  const base: CrossVerdict = (() => {
+    if (sajuStrong && astroStrong)
+      return {
+        tone: 'resonant',
+        reason: {
+          ko: `타고난 힘이 가장 셀 자리에 있고, 별자리에선 ${stk} 쪽이 특히 강해요 — 사주의 기세와 점성의 강한 자리가 같은 방향으로 모인 셈이에요. 한 분야를 깊게 파고들면 누구보다 또렷하게 두각을 내는 구조라, 이것저것 벌이기보다 ${stk} 쪽 한 우물에 힘을 모으는 게 유리해요. 가진 힘이 큰 만큼 자만이나 과속만 조심하면 멀리 갑니다.`,
+          en: `Your power sits at its strongest, and in your chart the ${ste} side is especially strong — Saju's momentum and the chart's strong placement gather in one direction. You stand out sharpest when you dig deep into one field, so it pays to pool your force into the ${ste} lane rather than spreading thin. With this much power, just guard against overconfidence and overspeed and you'll go far.`,
+        },
+      }
+    if (astroStrong)
+      return {
+        tone: 'complement',
+        reason: {
+          ko: `별자리에서 ${stk} 쪽이 가장 힘 있는 자리예요 — 사주가 또렷이 받쳐주진 않아도, 점성이 가리키는 이 분야는 분명한 강점이에요. 자신 없을 때도 ${stk} 영역에 서면 의외로 힘이 나니, 진로나 역할을 정할 때 이 자리를 기준점으로 삼으면 좋아요. 타고났다 믿고 꾸준히 쓰면 점점 더 단단해지는 강점이에요.`,
+          en: `In your chart the ${ste} side is your strongest placement — even if Saju doesn't loudly back it, the field your chart points to is a clear strength. You find unexpected power standing in the ${ste} arena even on low days, so use it as your anchor when choosing a path or role. Trust it as innate and keep using it, and it only grows sturdier.`,
+        },
+      }
+    if (sajuStrong)
+      return {
+        tone: 'complement',
+        reason: {
+          ko: '타고난 힘이 안정적으로 받쳐주는 자리예요 — 별자리가 특정 분야를 콕 집어주진 않지만, 사주의 기세가 어디서든 자기 자리를 잡게 해줘요. 화려한 한 방보다 버티고 쌓는 데 강하니, 시간이 걸려도 꾸준히 가는 길이 잘 맞아요. 흔들려도 결국 제자리를 찾는 힘이 있어요.',
+          en: "Your foundation is solid — your chart doesn't pinpoint one field, but Saju's momentum lets you claim your ground anywhere. You're strong at enduring and stacking rather than landing one flashy hit, so the slow, steady path suits you even when it takes time. However shaken, you have the power to find your footing again.",
+        },
+      }
+    if (sajuWeak)
+      return {
+        tone: 'neutral',
+        reason: {
+          ko: '지금은 힘을 비축하는 단계예요 — 지금은 정점이 아니라 충전기라, 무리하게 밀어붙이기보다 안으로 쌓아두는 게 맞아요. 이 시기에 배우고 다져둔 건 다음 상승기에 고스란히 터져 나와요. 조급함만 내려놓으면 오히려 깊어지는 때예요.',
+          en: "This is a power-storing phase — you're in a recharge, not a peak, so it's better to build inward than to push hard. What you learn and firm up now pays out in full at the next rise. Set down the impatience and this becomes a season that deepens you instead.",
+        },
+      }
     return {
       tone: 'neutral',
       reason: {
-        ko: '지금은 힘을 비축하는 단계예요 — 지금은 정점이 아니라 충전기라, 무리하게 밀어붙이기보다 안으로 쌓아두는 게 맞아요. 이 시기에 배우고 다져둔 건 다음 상승기에 고스란히 터져 나와요. 조급함만 내려놓으면 오히려 깊어지는 때예요.',
-        en: "This is a power-storing phase — you're in a recharge, not a peak, so it's better to build inward than to push hard. What you learn and firm up now pays out in full at the next rise. Set down the impatience and this becomes a season that deepens you instead.",
+        ko: '특정 분야에 확 쏠리기보다 여러 면이 고르게 퍼진 균형형이에요 — 사주도 별자리도 한쪽으로 몰지 않아, 두루 잘하는 제너럴리스트에 가까워요. 한 우물만 파야 한다는 부담은 내려놔도 돼요. 여러 경험을 잇는 자리에서 오히려 가장 빛나는 타입이에요.',
+        en: 'No single spike — your strengths spread evenly, and neither Saju nor chart tilts one way, so you lean generalist, good across the board. You can drop the pressure to dig only one well. You actually shine most in roles that connect varied experiences.',
       },
     }
-  return {
-    tone: 'neutral',
-    reason: {
-      ko: '특정 분야에 확 쏠리기보다 여러 면이 고르게 퍼진 균형형이에요 — 사주도 별자리도 한쪽으로 몰지 않아, 두루 잘하는 제너럴리스트에 가까워요. 한 우물만 파야 한다는 부담은 내려놔도 돼요. 여러 경험을 잇는 자리에서 오히려 가장 빛나는 타입이에요.',
-      en: 'No single spike — your strengths spread evenly, and neither Saju nor chart tilts one way, so you lean generalist, good across the board. You can drop the pressure to dig only one well. You actually shine most in roles that connect varied experiences.',
-    },
+  })()
+
+  // 통근(通根) — 일간이 지지에 뿌리내렸나. 심지의 단단함을 한 줄로.
+  if (rooted === true) {
+    return {
+      ...base,
+      reason: {
+        ko:
+          base.reason.ko +
+          ' 게다가 일간이 통근(지지에 뿌리)해 심지가 단단하고, 흔들려도 자기 중심으로 돌아오는 복원력이 있어요.',
+        en:
+          base.reason.en +
+          ' On top of that, your day master is rooted, so your core is firm — even when shaken, you return to your own center.',
+      },
+    }
   }
+  if (rooted === false) {
+    return {
+      ...base,
+      reason: {
+        ko:
+          base.reason.ko +
+          ' 다만 일간이 통근하지 못해 환경·사람에 영향을 잘 받는 편이라, 좋은 환경을 고르는 것 자체가 곧 자기관리예요.',
+        en:
+          base.reason.en +
+          ' That said, your day master is unrooted, so environment and people sway you easily — choosing a good environment is itself your self-care.',
+      },
+    }
+  }
+  return base
 }
 
 // ── 분포·전체급 교차 (차트의 모든 글자/행성을 집계) ────────────────────────
@@ -865,7 +909,9 @@ export function evalRomance(
   venusStrong: boolean,
   loveHouseCount: number,
   gender: 'male' | 'female' = 'male',
-  spouseStarCount = 0
+  spouseStarCount = 0,
+  dayBranchClash = false,
+  dayBranchCombine = false
 ): CrossVerdict | null {
   const astroLove = venusStrong || loveHouseCount > 0
   const spousePresent = spouseStarCount > 0
@@ -911,7 +957,24 @@ export function evalRomance(
     ? ` In Saju, ${whoEn} spouse indicator is ${starEn}, and it sits clearly in your chart — the outline of partnership is well-defined.`
     : ` In Saju, ${whoEn} spouse indicator is ${starEn}, but it's faint in your chart — you shape partnership yourself rather than wait on timing.`
 
-  return { tone: base.tone, reason: { ko: base.ko + spouseKo, en: base.en + spouseEn } }
+  // 궁위(宮位) — 일지(日支)는 배우자궁. 충/합이 일지에 걸리면 인연의 결을 한 줄로.
+  let palaceKo = ''
+  let palaceEn = ''
+  if (dayBranchClash) {
+    palaceKo =
+      ' 특히 일지(배우자궁)에 충(沖)이 걸려 — 배우자 인연이 자극적이고 역동적이며 변화가 잦은 결이에요. 안정보다 생동을 주는 상대와 맞습니다.'
+    palaceEn =
+      ' Notably, a clash falls on your day branch (the spouse palace) — partnership runs dynamic, stimulating, and change-prone; someone who brings aliveness over calm suits you.'
+  } else if (dayBranchCombine) {
+    palaceKo =
+      ' 특히 일지(배우자궁)에 합(合)이 들어 — 배우자와 끌어당겨 가까이 묶이는 인연, 정으로 깊어지는 결이에요.'
+    palaceEn =
+      ' Notably, a combination sits on your day branch (the spouse palace) — partnership pulls close and binds, a bond that deepens through affection.'
+  }
+  return {
+    tone: base.tone,
+    reason: { ko: base.ko + spouseKo + palaceKo, en: base.en + spouseEn + palaceEn },
+  }
 }
 
 /** 이동·변화: 역마(사주) ↔ 3/9하우스·목성(점성). */

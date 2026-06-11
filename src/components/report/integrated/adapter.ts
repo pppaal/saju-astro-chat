@@ -476,6 +476,13 @@ export function buildCrossRows(
   const rels = S.natalRelations ?? []
   const hap = rels.filter((r: any) => String(r.kind ?? r.type).includes('합')).length
   const chung = rels.filter((r: any) => String(r.kind ?? r.type).includes('충')).length
+  // 궁위 — 일지(日支)=배우자궁. 충/합이 일지에 걸리는지(pillars 에 'day').
+  const dayBranchClash = rels.some(
+    (r: any) => String(r.kind ?? r.type).includes('충') && (r.pillars ?? []).includes('day')
+  )
+  const dayBranchCombine = rels.some(
+    (r: any) => String(r.kind ?? r.type).includes('합') && (r.pillars ?? []).includes('day')
+  )
   const dayShinsal = (S.natalShinsal ?? [])
     .filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day'))
     .map((h: any) => String(h.kind ?? h.name))
@@ -540,7 +547,7 @@ export function buildCrossRows(
   }
   const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
     ['identity', evalIdentity(dmEl, sunSign, ascSign)],
-    ['needs', evalNeeds(S.yongsin?.primary, moonSign)],
+    ['needs', evalNeeds(S.yongsin?.primary, moonSign, S.yongsin?.avoid?.[0] as string | undefined)],
     [
       'socialRole',
       adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null,
@@ -558,7 +565,10 @@ export function buildCrossRows(
         ((crossGender === 'female' ? details?.식상 : details?.관성) as number | undefined) ?? 0
       ),
     ],
-    ['strength', evalStrength(stage, topDignity)],
+    [
+      'strength',
+      evalStrength(stage, topDignity, typeof S.rooted === 'boolean' ? S.rooted : undefined),
+    ],
     [
       'temperament',
       evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean)),
@@ -574,7 +584,9 @@ export function buildCrossRows(
         inHouses(5, 7),
         crossGender,
         // 배우자성 — 남: 재성 / 여: 관성 (categoryCount 그룹).
-        ((crossGender === 'female' ? details?.관성 : details?.재성) as number | undefined) ?? 0
+        ((crossGender === 'female' ? details?.관성 : details?.재성) as number | undefined) ?? 0,
+        dayBranchClash,
+        dayBranchCombine
       ),
     ],
     ['expression', evalExpression(siksangCount, emphasized.has('Mercury'), inHouses(3, 5))],

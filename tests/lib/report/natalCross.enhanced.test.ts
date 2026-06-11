@@ -11,6 +11,8 @@ import {
   evalIdentity,
   evalRomance,
   evalRelations,
+  evalNeeds,
+  evalStrength,
   synthesize,
   type CrossVerdict,
 } from '@/lib/report/natalCross'
@@ -114,6 +116,40 @@ describe('교차 — 공기 별자리 라벨 교정(정체성축)', () => {
   it('공기 아닌 별자리는 정상 오행 라벨', () => {
     expect(evalIdentity('화', 'Leo')!.right?.ko).toContain('화') // 사자=화
     expect(evalIdentity('수', 'Cancer')!.right?.ko).toContain('수') // 게=수
+  })
+})
+
+describe('미활용 데이터 활성화 (slice 1)', () => {
+  it('기신: 욕망축에 "채울 건 X, 피할 건 Y" 덧붙음', () => {
+    const withAvoid = evalNeeds('화', 'Leo', '금')!
+    const without = evalNeeds('화', 'Leo')!
+    expect(withAvoid.reason.ko).toContain('피할 건')
+    expect(withAvoid.reason.ko).toContain('금')
+    expect(without.reason.ko).not.toContain('피할 건')
+    // 용신과 기신이 같으면 덧붙이지 않음
+    expect(evalNeeds('화', 'Leo', '화')!.reason.ko).not.toContain('피할 건')
+  })
+  it('통근: 강점축에 rooted 분기', () => {
+    const rooted = evalStrength('제왕', null, true)!
+    const unrooted = evalStrength('제왕', null, false)!
+    const unknown = evalStrength('제왕', null)!
+    expect(rooted.reason.ko).toContain('통근')
+    expect(unrooted.reason.ko).toContain('통근하지 못해')
+    expect(rooted.reason.ko).not.toBe(unrooted.reason.ko)
+    expect(unknown.reason.ko).not.toContain('통근')
+  })
+  it('궁위: 연애축에 일지 충/합 분기', () => {
+    const clash = evalRomance(true, true, 1, 'male', 1, true, false)!
+    const combine = evalRomance(true, true, 1, 'male', 1, false, true)!
+    const none = evalRomance(true, true, 1, 'male', 1, false, false)!
+    expect(clash.reason.ko).toContain('일지(배우자궁)에 충')
+    expect(combine.reason.ko).toContain('일지(배우자궁)에 합')
+    expect(none.reason.ko).not.toContain('일지(배우자궁)')
+  })
+  it('slice1 EN 한글 누출 없음', () => {
+    expect(HANGUL.test(evalNeeds('화', 'Leo', '금')!.reason.en)).toBe(false)
+    expect(HANGUL.test(evalStrength('제왕', null, false)!.reason.en)).toBe(false)
+    expect(HANGUL.test(evalRomance(true, true, 1, 'male', 1, true, false)!.reason.en)).toBe(false)
   })
 })
 
