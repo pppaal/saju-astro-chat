@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth/session'
 import { cacheGet } from '@/lib/cache/redis-cache'
+import { turnIdSchema } from '@/lib/api/zodValidation'
 import { compatTurnResultKey } from '../route'
 
 export const dynamic = 'force-dynamic'
@@ -22,10 +23,18 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   if (!userId) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
-  const turnId = req.nextUrl.searchParams.get('turnId')?.slice(0, 80) || ''
-  if (!turnId) {
+  // 누락은 기존대로 400(클라 복구 경로 호환), 형식 위반(과도한 길이 등)은
+  // zod 검증으로 422 — 캐시 키 abuse 용 임의 문자열을 명시적으로 거부.
+  const turnIdRaw = req.nextUrl.searchParams.get('turnId')
+  if (!turnIdRaw) {
     return NextResponse.json({ error: 'turnId_required' }, { status: 400 })
   }
+  const parsed = turnIdSchema.safeParse(turnIdRaw)
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'turnId_invalid' }, { status: 422 })
+  }
+  // 캐시 키는 기존과 동일하게 80자 캡 — POST 측 저장 키와 어긋나지 않게.
+  const turnId = parsed.data.slice(0, 80)
   const content = await cacheGet<string>(compatTurnResultKey(userId, turnId))
   if (typeof content === 'string' && content.length > 0) {
     return NextResponse.json({ ready: true, content })
