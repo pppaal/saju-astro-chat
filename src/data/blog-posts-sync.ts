@@ -8,6 +8,8 @@ import { readFileSync } from 'fs'
 import path from 'path'
 import blogMetadata from './blog/metadata/blog-metadata.json'
 import { generateCurrentYearFortuneBlogPost } from './yearly-fortune-generator'
+import { generateTarotCardPosts } from './seo-posts/tarotCardPosts'
+import { generateDayPillarPosts } from './seo-posts/dayPillarPosts'
 import { isBlockedBlogPost } from './blog/publicFilters'
 
 export interface BlogPost {
@@ -75,6 +77,10 @@ export const blogPosts: BlogPost[] = (() => {
     if (yearlyPost) {
       cachedPosts.unshift(yearlyPost)
     }
+
+    // Programmatic SEO 포스트(78 타로 카드 + 60 일주) — 데이터 SSOT 에서
+    // 결정론적으로 파생. 마크다운 글 뒤에 append 해 기존 글 순서를 보존한다.
+    cachedPosts.push(...generateTarotCardPosts(), ...generateDayPillarPosts())
 
     return cachedPosts
   } catch (error) {

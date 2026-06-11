@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 71개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 74개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
@@ -28,12 +28,14 @@ status: auto-generated
 | `/api/admin/metrics/funnel`             | GET                |
 | `/api/admin/overview`                   | GET                |
 | `/api/admin/purchases`                  | GET                |
+| `/api/admin/reconcile-purchase`         | POST               |
 | `/api/admin/refund-credit-pack`         | POST               |
 | `/api/admin/revenue`                    | GET                |
 | `/api/admin/usage`                      | GET                |
 | `/api/admin/users`                      | GET                |
 | `/api/admin/users-by`                   | GET                |
 | `/api/admin/users/[id]`                 | GET                |
+| `/api/admin/visitors`                   | GET                |
 | `/api/admin/webhook-events`             | GET                |
 | `/api/astrology`                        | POST               |
 | `/api/astrology/advanced/asteroids`     | POST               |
@@ -89,6 +91,7 @@ status: auto-generated
 | `/api/tarot/prefetch`                   | POST               |
 | `/api/tarot/save`                       | GET, POST          |
 | `/api/tarot/save/[id]`                  | GET, PATCH, DELETE |
+| `/api/track/visit`                      | POST               |
 | `/api/webhook/stripe`                   | POST               |
 
 <!-- /gen:api-routes -->
