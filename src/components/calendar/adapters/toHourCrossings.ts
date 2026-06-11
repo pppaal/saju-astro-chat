@@ -21,27 +21,72 @@ import { calcHouses } from '@/lib/astrology/foundation/houses'
 import { natalToJD } from '@/lib/astrology/foundation/shared'
 import { formatLongitude } from '@/lib/astrology/foundation/utils'
 import { lookupCrossMapping } from '@/lib/calendar-engine/data/saju-astro-mapping'
+import {
+  HOUR_BRANCH_NARRATIVE,
+  pickHourNarrative,
+} from '@/lib/calendar-engine/data/hourBranchNarrative'
 import { SIGN_KO, PLANET_KO } from './shared'
+
+// HOUR_BRANCH_NARRATIVE 키(한글 시지) — 원본 Branch 타입이 미노출이라 동형 재정의.
+type HangulBranch =
+  | '자'
+  | '축'
+  | '인'
+  | '묘'
+  | '진'
+  | '사'
+  | '오'
+  | '미'
+  | '신'
+  | '유'
+  | '술'
+  | '해'
+
+/** 한자 시지 → 한글 (HOUR_BRANCH_NARRATIVE 키). */
+const HANJA_TO_HANGUL: Record<string, HangulBranch> = {
+  子: '자',
+  丑: '축',
+  寅: '인',
+  卯: '묘',
+  辰: '진',
+  巳: '사',
+  午: '오',
+  未: '미',
+  申: '신',
+  酉: '유',
+  戌: '술',
+  亥: '해',
+}
 
 export interface HourCrossItem {
   /** 시진 시간 라벨 — '5-7시 (묘시)'. */
   when: string
+  /** 시진 시간 라벨(en) — '5-7am (Rabbit hour)'. */
+  whenEn: string
   /** 시주 천간의 일간 기준 십신. */
   sibsin: string
   /** 용신 부합(길) / 기피(주의). */
   tone: 'good' | 'caution'
   /** 그 시각 상승궁 한글 — '게자리'. */
   risingSignKo: string
+  /** 그 시각 상승궁 영문 — 'Cancer'. */
+  risingSignEn: string
   /** 상승궁 룰러 한글 — '달'. */
   ruler: string
-  /** 시진 흐름 한 줄(사주 narrative). */
+  /** 상승궁 룰러 영문 — 'Moon'. */
+  rulerEn: string
+  /** 시진 흐름 한 줄(사주 narrative, ko). */
   narrative?: string
+  /** 시진 흐름 한 줄(en). */
+  narrativeEn?: string
   /** |polarity| — 메인에 가장 센 시진만 추리는 용. */
   strength: number
   /** 십신 × 상승궁 룰러가 의미사전에 매칭되는 진짜 교차인지. */
   matched: boolean
   /** matched 일 때 사전 해석 한 줄 (mapping.meaning.ko). */
   crossMeaning?: string
+  /** matched 일 때 사전 해석 한 줄 (mapping.meaning.en). */
+  crossMeaningEn?: string
 }
 
 /** 전통(헬레니즘) sign ruler — 상승궁 룰러 룩업. */
@@ -63,6 +108,7 @@ const SIGN_RULER: Record<ZodiacKo, string> = {
 interface HourSignalDetail {
   startHour?: number
   windowLabel?: string
+  hourBranch?: string
 }
 
 /**
@@ -89,9 +135,16 @@ export function buildHourCrossings(
     const when = det.windowLabel ?? `${startHour}시`
     const sibsin = s.evidence?.sibsin ?? ''
 
+    // en 시진 라벨 + en narrative — 한자 시지 → 한글 키로 HOUR_BRANCH_NARRATIVE 룩업.
+    const branchHangul = det.hourBranch ? HANJA_TO_HANGUL[det.hourBranch] : undefined
+    const nar = branchHangul ? HOUR_BRANCH_NARRATIVE[branchHangul] : undefined
+    const whenEn = nar?.windowEn ?? when
+    const narrativeEn = branchHangul ? pickHourNarrative(branchHangul, s.polarity, 'en') : undefined
+
     // 시진 한가운데 시각(시계 기준) 의 상승궁. 2시간 창이라 start+1 이 대표.
     const repHour = (startHour + 1) % 24
     let risingSignKo = ''
+    let risingSignEn = ''
     let ruler = ''
     let rulerEn = ''
     try {
@@ -108,6 +161,7 @@ export function buildHourCrossings(
       const houses = calcHouses(jd, loc.latitude, loc.longitude)
       const sign = formatLongitude(houses.ascendant).sign as ZodiacKo
       risingSignKo = SIGN_KO[sign] ?? sign
+      risingSignEn = sign // formatLongitude.sign 은 영문('Cancer')
       rulerEn = SIGN_RULER[sign]
       ruler = PLANET_KO[rulerEn] ?? rulerEn
     } catch {
@@ -121,14 +175,19 @@ export function buildHourCrossings(
 
     rows.push({
       when,
+      whenEn,
       sibsin,
       tone: s.polarity > 0 ? 'good' : 'caution',
       risingSignKo,
+      risingSignEn,
       ruler,
+      rulerEn,
       narrative: s.korean,
+      narrativeEn,
       strength: Math.abs(s.polarity),
       matched,
       crossMeaning: matched ? mapping?.meaning.ko : undefined,
+      crossMeaningEn: matched ? mapping?.meaning.en : undefined,
       startHour,
     })
   }

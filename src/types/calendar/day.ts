@@ -199,15 +199,20 @@ export interface DestinyDay extends DestinyIljinHeader {
   /** 시간별 사주 × 점성 교차 — 시진(십신) × 그 시각 상승궁. */
   hourCrossings?: Array<{
     when: string // '5-7시 (묘시)'
+    whenEn: string // '5-7am (Rabbit hour)'
     sibsin: string
     tone: 'good' | 'caution'
     risingSignKo: string
+    risingSignEn: string
     ruler: string
+    rulerEn: string
     narrative?: string
+    narrativeEn?: string
     strength: number
     /** 십신 × 상승궁 룰러가 의미사전에 매칭되는 진짜 교차인지 (아니면 병치). */
     matched: boolean
     /** matched 일 때 사전 해석 한 줄. */
     crossMeaning?: string
+    crossMeaningEn?: string
   }>
 }

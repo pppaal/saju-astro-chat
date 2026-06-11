@@ -557,26 +557,31 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   // matched(의미사전 매칭)일 때만 제목에 '× 상승'을 올려 교차로 표기, 아니면
   // 상승궁은 detail 로 내려 같은 시각의 하늘 정보로만 — 교차 과장 금지.
   const toHourItem = (h: NonNullable<DestinyDay['hourCrossings']>[number]) => {
-    const branch = h.when.match(/\((.*?)\)/)?.[1] ?? ''
-    const timeShort = h.when.replace(/\s*\(.*\)/, '').trim()
+    const label = ko ? h.when : h.whenEn
+    const branch = label.match(/\((.*?)\)/)?.[1] ?? ''
+    const timeShort = label.replace(/\s*\(.*\)/, '').trim()
     const tone = h.tone === 'good' ? (ko ? '길' : 'good') : ko ? '주의' : 'caution'
     const sib = ko ? h.sibsin : (SIBSIN_EN[h.sibsin] ?? h.sibsin)
     const rise = ko ? '상승' : 'rising'
-    const skyLine = h.risingSignKo
+    const sign = ko ? h.risingSignKo : h.risingSignEn
+    const ruler = ko ? h.ruler : h.rulerEn
+    const narr = ko ? h.narrative : h.narrativeEn
+    const meaning = ko ? h.crossMeaning : h.crossMeaningEn
+    const skyLine = sign
       ? ko
-        ? `이 시각 하늘: ${h.risingSignKo} 상승${h.ruler ? ` (룰러 ${h.ruler})` : ''}`
-        : `Sky now: ${h.risingSignKo} rising${h.ruler ? ` (ruler ${h.ruler})` : ''}`
+        ? `이 시각 하늘: ${sign} 상승${ruler ? ` (룰러 ${ruler})` : ''}`
+        : `Sky now: ${sign} rising${ruler ? ` (ruler ${ruler})` : ''}`
       : ''
     return h.matched
       ? {
           when: timeShort,
-          title: `${branch ? `${branch} · ` : ''}${sib} ${tone} × ${h.risingSignKo} ${rise}`,
-          detail: [h.crossMeaning, h.narrative].filter(Boolean).join(' · '),
+          title: `${branch ? `${branch} · ` : ''}${sib} ${tone} × ${sign} ${rise}`,
+          detail: [meaning, narr].filter(Boolean).join(' · '),
         }
       : {
           when: timeShort,
           title: `${branch ? `${branch} · ` : ''}${sib} ${tone}`,
-          detail: [h.narrative, skyLine].filter(Boolean).join(' · '),
+          detail: [narr, skyLine].filter(Boolean).join(' · '),
         }
   }
   const hourAll = day.hourCrossings ?? []
