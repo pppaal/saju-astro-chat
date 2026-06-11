@@ -21,14 +21,35 @@ import type { Polarity, SignalLayer } from '../types'
 
 /** 사주 측의 매칭 키 — 십신 또는 신살명. */
 export type SajuMatchKey =
-  | '비견' | '겁재' | '식신' | '상관' | '편재' | '정재'
-  | '편관' | '정관' | '편인' | '정인'
-  | '도화' | '도화살' | '역마' | '역마살' | '건록' | '양인'
+  | '비견'
+  | '겁재'
+  | '식신'
+  | '상관'
+  | '편재'
+  | '정재'
+  | '편관'
+  | '정관'
+  | '편인'
+  | '정인'
+  | '도화'
+  | '도화살'
+  | '역마'
+  | '역마살'
+  | '건록'
+  | '양인'
 
 /** 점성 측의 매칭 키 — 단일 행성명. astro extractor 가 evidence.planets[0] 에 박는 명칭과 일치. */
 export type AstroMatchKey =
-  | 'Sun' | 'Moon' | 'Mercury' | 'Venus' | 'Mars'
-  | 'Jupiter' | 'Saturn' | 'Uranus' | 'Neptune' | 'Pluto'
+  | 'Sun'
+  | 'Moon'
+  | 'Mercury'
+  | 'Venus'
+  | 'Mars'
+  | 'Jupiter'
+  | 'Saturn'
+  | 'Uranus'
+  | 'Neptune'
+  | 'Pluto'
 
 export type CrossMappingGrade = 'A' | 'B' | 'C'
 
@@ -99,14 +120,14 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
   },
   {
     saju: '편재',
-    astro: 'Mercury',
+    astro: 'Jupiter',
     meaning: {
-      ko: '편재 × 수성 — 동산·상업·기회 포착이 빨라지는 시기. 단타·중개·정보거래 우위.',
-      en: 'Indirect Wealth × Mercury — speed and opportunity in moveable assets, trade, and info-flow.',
+      ko: '편재 × 목성 — 큰물의 기회·확장 재물 결이 한 방향으로. 신사업·투자 검토에 우호.',
+      en: 'Indirect Wealth × Jupiter — expansive, opportunity-driven wealth aligns. Favours ventures and investment reviews.',
     },
     polarity: 2,
     grade: 'A',
-    note: '편재(유통·동산) ↔ Mercury(commerce·exchange). 둘 다 빠른 회전축.',
+    note: '편재(큰 재물·기회·투기) ↔ Jupiter(expansion·fortune). 정재=Venus(안정 축적)와 축 분리. Mercury 과부하(식신·상관·역마와 중복 발화) 해소 목적의 재배선.',
   },
 
   // ─── 십신 × 행성 (식상 — 표현·창의) ───
@@ -114,23 +135,23 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     saju: '식신',
     astro: 'Mercury',
     meaning: {
-      ko: '식신 × 수성 — 표현·창의·소통이 결결이 풀리는 시기. 글·말·작품 산출에 최적.',
-      en: 'Eating God × Mercury — expression, creativity, and communication flow open. Best window for writing, talks, and creative output.',
+      ko: '식신 × 수성 — 만들어 내놓는 결. 초안·시제품·요리·콘텐츠처럼 손으로 빚는 산출에 최적.',
+      en: 'Eating God × Mercury — the maker current. Best for drafts, prototypes, cooking, and hands-on creative output.',
     },
     polarity: 2,
     grade: 'A',
-    note: '식신(표현·산출) ↔ Mercury(speech·craft). 둘 다 외향 표현축.',
+    note: '식신(생산·산출) ↔ Mercury(craft). 상관×수성(말·비판)과 결 분리: 식신=만들기, 상관=말하기.',
   },
   {
     saju: '상관',
     astro: 'Mercury',
     meaning: {
-      ko: '상관 × 수성 — 언변·재치는 살아나지만 비판·직설이 관계를 흔들 수 있는 결.',
-      en: 'Hurting Officer × Mercury — wit sharpens, yet bluntness can shake relationships. Edit before you speak.',
+      ko: '상관 × 수성 — 말이 서는 결. 협상·설득·발표엔 날개, 직설·비판은 한 번 다듬고 내보내기.',
+      en: 'Hurting Officer × Mercury — the speech current. Wings for negotiation and pitches; edit blunt criticism before sending.',
     },
     polarity: 1,
     grade: 'A',
-    note: '상관(예봉·비판) ↔ Mercury(speech). 표현 강화 + 트러블 양면.',
+    note: '상관(언변·예봉) ↔ Mercury(speech). 식신×수성(만들기)과 결 분리: 상관=말하기·설득.',
   },
 
   // ─── 십신 × 행성 (인성 — 수용·학습) ───
@@ -336,7 +357,7 @@ for (const m of SAJU_ASTRO_MAPPINGS) {
 
 export function lookupCrossMapping(
   sajuKey: string | undefined,
-  astroKey: string | undefined,
+  astroKey: string | undefined
 ): CrossMapping | undefined {
   if (!sajuKey || !astroKey) return undefined
   return MAPPING_INDEX.get(`${sajuKey}|${astroKey}`)
