@@ -105,8 +105,11 @@ export interface DestinyYear {
   /** 올해 활성 사주 × 점성 교차 — 월 구간 + 근거 해석. */
   crossings?: Array<{
     when: string // '3–7월' / '연중'
+    whenEn: string // 'Mar–Jul' / 'year-round'
     title: string // '정재 × 금성'
+    titleEn: string // 'Right Wealth × Venus'
     detail?: string // 근거 해석 한 줄
+    detailEn?: string
     tone: 'good' | 'caution' | 'neutral'
   }>
 }

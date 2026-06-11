@@ -285,9 +285,9 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           ? 'caution'
           : 'neutral'
   const yearCrossItems = (year.crossings ?? []).map((c) => ({
-    when: c.when,
-    title: `${c.title} · ${toneTag(c.tone)}`,
-    detail: c.detail,
+    when: ko ? c.when : c.whenEn,
+    title: `${ko ? c.title : c.titleEn} · ${toneTag(c.tone)}`,
+    detail: ko ? c.detail : (c.detailEn ?? c.detail),
   }))
 
   // ── 12달 흐름 리스트 — 월별 점수를 좋음/평이/주의로 (overview, 상세 안). ──

@@ -16,6 +16,7 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 import { toGanji, type Ganji, SIGN_KO, PLANET_KO, computeSewoonGanji } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { AstroPlanetName } from '@/lib/astrology/interpretations'
 import type { DestinyProfectionWheelSlice, DestinyDecadeZRChapter } from '@/types/calendar'
@@ -61,8 +62,11 @@ export interface DestinypalYearSewoon {
  */
 export interface DestinypalCrossItem {
   when: string
+  whenEn: string
   title: string
+  titleEn: string
   detail?: string
+  detailEn?: string
   tone: 'good' | 'caution' | 'neutral'
 }
 
@@ -275,7 +279,15 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
   const yEnd = Date.UTC(year, 11, 31, 23, 59, 59)
   const agg = new Map<
     string,
-    { name: string; korean?: string; polarity: number; start: number; end: number }
+    {
+      name: string
+      nameEn: string
+      korean?: string
+      english?: string
+      polarity: number
+      start: number
+      end: number
+    }
   >()
   for (const c of cells) {
     for (const s of c.signals) {
@@ -286,9 +298,26 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
       if (Number.isNaN(st) || Number.isNaN(en)) continue
       const cur = agg.get(s.name)
       if (!cur) {
+        // 영문 이름 — evidence 의 십신키(한글)·행성키(영문)로 'Right Officer × Saturn'.
+        // 신살(도화·역마·양인·건록)은 SIBSIN_EN 에 없어 별도 폴백.
+        const SHINSAL_EN: Record<string, string> = {
+          도화: 'Peach Blossom',
+          도화살: 'Peach Blossom',
+          역마: 'Travelling Horse',
+          역마살: 'Travelling Horse',
+          양인: 'Yang Blade',
+          건록: 'Prosperity',
+        }
+        const det = (s.evidence?.detail ?? {}) as { sajuKey?: string; astroKey?: string }
+        const sajuEn = det.sajuKey
+          ? (SIBSIN_EN[det.sajuKey] ?? SHINSAL_EN[det.sajuKey] ?? det.sajuKey)
+          : ''
+        const nameEn = sajuEn && det.astroKey ? `${sajuEn} × ${det.astroKey}` : s.name
         agg.set(s.name, {
           name: s.name,
+          nameEn,
           korean: s.korean,
+          english: s.english,
           polarity: s.polarity,
           start: st,
           end: en,
@@ -298,11 +327,13 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
         if (en > cur.end) cur.end = en
         if (Math.abs(s.polarity) > Math.abs(cur.polarity)) cur.polarity = s.polarity
         if (!cur.korean && s.korean) cur.korean = s.korean
+        if (!cur.english && s.english) cur.english = s.english
       }
     }
   }
 
   const monthOf = (ms: number) => new Date(Math.min(Math.max(ms, yStart), yEnd)).getUTCMonth() + 1
+  const MABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   const whenLabel = (sMs: number, eMs: number) => {
     const sM = monthOf(sMs)
     const eM = monthOf(eMs)
@@ -310,13 +341,23 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
     if (sM === eM) return `${sM}월`
     return `${sM}–${eM}월`
   }
+  const whenLabelEn = (sMs: number, eMs: number) => {
+    const sM = monthOf(sMs)
+    const eM = monthOf(eMs)
+    if (eM - sM >= 10) return 'year-round'
+    if (sM === eM) return MABBR[sM - 1]
+    return `${MABBR[sM - 1]}–${MABBR[eM - 1]}`
+  }
 
   const enriched = [...agg.values()].map((v) => {
     const when = whenLabel(v.start, v.end)
     return {
       when,
+      whenEn: whenLabelEn(v.start, v.end),
       title: v.name,
+      titleEn: v.nameEn,
       detail: v.korean,
+      detailEn: v.english,
       tone: (v.polarity > 0 ? 'good' : v.polarity < 0 ? 'caution' : 'neutral') as
         | 'good'
         | 'caution'
@@ -344,12 +385,17 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
       return true
     })
     .slice(0, 5)
-  return [...dated, ...yearLong].map(({ when, title, detail, tone }) => ({
-    when,
-    title,
-    detail,
-    tone,
-  }))
+  return [...dated, ...yearLong].map(
+    ({ when, whenEn, title, titleEn, detail, detailEn, tone }) => ({
+      when,
+      whenEn,
+      title,
+      titleEn,
+      detail,
+      detailEn,
+      tone,
+    })
+  )
 }
 
 /**
