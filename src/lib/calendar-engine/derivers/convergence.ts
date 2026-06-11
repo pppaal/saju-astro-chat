@@ -6,6 +6,7 @@ import {
   isSlowBackgroundAstro,
   MIN_IMPACT,
 } from './convergence-heavy'
+import { toneMeaningFor, type MeaningTone } from './toneMeaning'
 
 /**
  * 수렴(convergence) 디라이버 — "큰 날" 탐지.
@@ -115,69 +116,6 @@ function convergenceConfidence(
 
 // "2층 의미" 한 줄 — 그날 무거운 신호들의 순극성(톤)으로 구성.
 // 특정 점성 산문을 지어내지 않고 엔진이 이미 매긴 polarity 만 쓴다.
-// 같은 톤(positive/neutral/negative) 안에서도 4가지로 회전 (날짜 hash 기반).
-// (5버킷 테마 영역 축 제거 — 영역명 없이 톤만 표시.)
-// 7개(소수) — 큰 날 간격이 흔히 짝수(12일 등)라 mod 4·6 이면 같은 문구가 도배됐다.
-// 길이를 7 로 두고 날짜로 회전하면 충돌이 크게 준다. 문구도 점지투 대신 일상어로.
-const TONE_POOL_KO = {
-  positive: [
-    '일이 풀리는 날',
-    '밀어붙이기 좋은 날',
-    '기회가 열리는 날',
-    '매듭을 짓기 좋은 날',
-    '운이 손을 들어주는 날',
-    '시작하기 좋은 날',
-    '결실이 보이는 날',
-  ],
-  negative: [
-    '한 박자 늦추는 게 좋은 날',
-    '점검이 필요한 날',
-    '무리하지 않는 게 나은 날',
-    '감정이 무거워질 수 있는 날',
-    '결정을 미뤄도 좋은 날',
-    '부딪힘을 조심할 날',
-    '쉬어가도 되는 날',
-  ],
-  neutral: [
-    '흐름이 바뀌는 날',
-    '방향을 다시 잡는 날',
-    '큰 변화가 시작되는 날',
-    '균형이 다시 잡히는 날',
-    '한 장이 넘어가는 날',
-    '갈림길에 서는 날',
-    '판이 새로 짜이는 날',
-  ],
-}
-const TONE_POOL_EN = {
-  positive: [
-    'things fall into place',
-    'good day to push',
-    'an opening',
-    'good day to close a deal',
-    'luck leans your way',
-    'good day to start',
-    'results come into view',
-  ],
-  negative: [
-    'better to slow down',
-    'a day for review',
-    'don’t overreach',
-    'feelings may weigh',
-    'fine to postpone the call',
-    'mind the friction',
-    'a day to rest',
-  ],
-  neutral: [
-    'the current shifts',
-    'reset your direction',
-    'a big change begins',
-    'things rebalance',
-    'a chapter turns',
-    'a fork in the road',
-    'the board is reset',
-  ],
-}
-
 function composeMeaning(
   netPol: number,
   sumImp: number,
@@ -186,13 +124,10 @@ function composeMeaning(
 ): string | undefined {
   if (sumImp <= 0) return undefined
   const ratio = netPol / sumImp
-  const toneKey: 'positive' | 'negative' | 'neutral' =
-    ratio > 0.15 ? 'positive' : ratio < -0.15 ? 'negative' : 'neutral'
-  // 날짜 hash 로 톤 템플릿을 회전 선택 — 큰 날 목록이 같은 문장으로 도배되지 않게.
+  const toneKey: MeaningTone = ratio > 0.15 ? 'positive' : ratio < -0.15 ? 'negative' : 'neutral'
+  // 날짜로 톤 문구를 회전 선택 — 큰 날 목록이 같은 문장으로 도배되지 않게.
   const dayNum = dateStr ? Math.abs(parseInt(dateStr.slice(-2), 10)) : 0
-  const pool = lang === 'en' ? TONE_POOL_EN : TONE_POOL_KO
-  const templates = pool[toneKey]
-  return templates[dayNum % templates.length]
+  return toneMeaningFor(toneKey, dayNum, lang)
 }
 
 export interface ConvergenceDay {
