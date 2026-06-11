@@ -229,7 +229,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
           </span>
         )}
       </div>
-      <p className={styles.oneline}>{decade.headline}</p>
+      <p className={styles.oneline}>
+        {ko ? decade.headline : (decade.headlineEn ?? decade.headline)}
+      </p>
 
       {/* 메인 — 이 대운 안에서 사주(대운) × 점성(외행성 마디)이 교차되는 구간만. */}
       <CrossingList

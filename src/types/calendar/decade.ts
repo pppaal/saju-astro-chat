@@ -109,6 +109,8 @@ export interface DestinyDecade {
   themeEn: string
   /** 헤드라인 한 줄 (대운 도입 문구). */
   headline: string
+  /** 헤드라인(영문). */
+  headlineEn?: string
   /** 대운 천간·지지 pillar 분해. */
   pillar: {
     cheongan: DestinyDecadePillar
