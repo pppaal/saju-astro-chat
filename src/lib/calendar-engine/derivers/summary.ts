@@ -1,6 +1,24 @@
 import type { ActiveSignal, SignalLayer } from '../types'
 import { translateSignalLabel } from './signalI18n'
 import { LAYER_WEIGHT } from './constants'
+import { PLANET_KO } from '../data/planetNames'
+import { SIGN_KO } from '@/lib/astrology/signLabels'
+
+// EN 라벨에 박혀 있는 한글 행성·별자리 토큰(목성·게자리 등)을 영문으로 치환.
+// 일부 astro extractor 의 english 필드가 행성/별자리만 한글로 남겨 둔 것을 후처리.
+// 긴 토큰부터 치환해 부분겹침(천왕성 vs 왕성, 게자리 vs 자) 방지.
+const KO_TO_EN_TOKENS: Array<[string, string]> = [
+  ...Object.entries(PLANET_KO).map(([en, ko]) => [ko, en] as [string, string]),
+  ...Object.entries(SIGN_KO).map(([en, ko]) => [ko, en] as [string, string]),
+].sort((a, b) => b[0].length - a[0].length)
+
+function koTokensToEn(str: string): string {
+  let out = str
+  for (const [ko, en] of KO_TO_EN_TOKENS) {
+    if (out.includes(ko)) out = out.split(ko).join(en)
+  }
+  return out
+}
 
 /**
  * 한 셀의 활성 신호 다발에서 상위 N개 사유 텍스트 추출.
@@ -58,7 +76,7 @@ function dedupe(lines: string[]): string[] {
 /** 신호 → 표시 라벨. KO: korean 우선. EN: english 우선, 없으면 name 용어 치환. */
 export function signalDisplayLabel(s: ActiveSignal, lang: Lang): string {
   if (lang === 'ko') return s.korean ?? s.name
-  return s.english ?? translateSignalLabel(s.name, 'en')
+  return koTokensToEn(s.english ?? translateSignalLabel(s.name, 'en'))
 }
 
 function formatReason(s: ActiveSignal, lang: Lang): string {

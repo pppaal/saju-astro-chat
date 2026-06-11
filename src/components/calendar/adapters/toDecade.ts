@@ -79,6 +79,7 @@ export interface DestinypalDecade {
   theme: string // "현실 성취 · 재물의 무대"
   themeEn: string // "Wealth · Worldly Achievement"
   headline: string
+  headlineEn: string
   pillar: DestinypalDecadePillar
   sewoonNow?: { gz: Ganji; sibsin: string }
   years: DestinypalDecadeYear[]
@@ -99,56 +100,69 @@ export interface DestinypalDecade {
 }
 
 // ── 십신 → 테마 압축 ─────────────────────────────────────────────────────
-const SIBSIN_THEME_KO: Record<string, { theme: string; themeEn: string; headline: string }> = {
+const SIBSIN_THEME_KO: Record<
+  string,
+  { theme: string; themeEn: string; headline: string; headlineEn: string }
+> = {
   비견: {
     theme: '주체·동료의 무대',
     themeEn: 'Self · Peer',
     headline: '비견 대운 — 같은 결의 사람들 속에서 내 자리를 짓는 10년.',
+    headlineEn: 'Self cycle — a decade to build your place among your own kind.',
   },
   겁재: {
     theme: '경쟁·분탈의 무대',
     themeEn: 'Rivalry · Split',
     headline: '겁재 대운 — 경쟁과 협업이 동시에 치솟는 10년.',
+    headlineEn: 'Rivalry cycle — a decade where competition and collaboration both surge.',
   },
   식신: {
     theme: '표현·창작의 무대',
     themeEn: 'Creativity · Output',
     headline: '식신 대운 — 끼와 표현이 자기 결을 만드는 10년.',
+    headlineEn: 'Creativity cycle — a decade where your flair and expression shape your path.',
   },
   상관: {
     theme: '자유·재능의 무대',
     themeEn: 'Talent · Free Expression',
     headline: '상관 대운 — 재능이 자유롭게 뻗어가는 10년.',
+    headlineEn: 'Talent cycle — a decade where your gifts stretch out freely.',
   },
   편재: {
     theme: '현실 성취 · 재물의 무대',
     themeEn: 'Wealth · Worldly Achievement',
     headline: '편재 대운 — 손에 잡히는 결실의 10년.',
+    headlineEn: 'Wealth cycle — a decade of tangible results.',
   },
   정재: {
     theme: '꾸준한 축적의 무대',
     themeEn: 'Steady Accumulation',
     headline: '정재 대운 — 차근차근 자산이 쌓이는 10년.',
+    headlineEn: 'Steady-wealth cycle — a decade where assets build up bit by bit.',
   },
   편관: {
     theme: '추진·도전의 무대',
     themeEn: 'Drive · Challenge',
     headline: '편관 대운 — 강하게 밀어붙이는 10년.',
+    headlineEn: 'Drive cycle — a decade of pushing hard.',
   },
   정관: {
     theme: '책임·자리의 무대',
     themeEn: 'Duty · Position',
     headline: '정관 대운 — 사회적 자리를 다지는 10년.',
+    headlineEn: 'Duty cycle — a decade for cementing your standing.',
   },
   편인: {
     theme: '독자적 사유의 무대',
     themeEn: 'Independent Mind',
     headline: '편인 대운 — 독학과 깊은 사고가 빛나는 10년.',
+    headlineEn: 'Independent-mind cycle — a decade where self-study and deep thought shine.',
   },
   정인: {
     theme: '배움·지원의 무대',
     themeEn: 'Learning · Support',
     headline: '정인 대운 — 배움과 지원이 든든한 10년.',
+    headlineEn: 'Learning cycle — a decade well-supported by study and backing.',
   },
 }
 
@@ -277,6 +291,7 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     theme: `${sibsinStem} 흐름`,
     themeEn: sibsinStem,
     headline: `${current.stem}${current.branch} 대운 — ${sibsinStem} 흐름의 10년.`,
+    headlineEn: `${current.stem}${current.branch} luck cycle — a ${sibsinStem} decade.`,
   }
 
   // years[10] — 각 해의 *세운*(연도 고유 60갑자). 대운 간지를 굴리면 안 됨
@@ -369,6 +384,7 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     theme: theme.theme,
     themeEn: theme.themeEn,
     headline: theme.headline,
+    headlineEn: theme.headlineEn,
     pillar,
     sewoonNow,
     years: yearsArr,
