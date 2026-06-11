@@ -21,6 +21,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
+import { realUserWhere } from '@/lib/admin/realUser'
 import type { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
@@ -31,11 +32,6 @@ type Segment = (typeof SEGMENTS)[number]
 // 결제유저 목록 상한. 회원 세그먼트(take 100)보다 넉넉히 잡아 실결제 유저는
 // 거의 다 보이도록 한다. count 는 전체 distinct 수라 이 상한과 무관하다.
 const PAYING_LIST_CAP = 1000
-
-// 로그인 가능한 실제 회원만 (OAuth 연결 or 비밀번호). 출처불명 껍데기 제외.
-const realUserWhere: Prisma.UserWhereInput = {
-  OR: [{ accounts: { some: {} } }, { passwordHash: { not: null } }],
-}
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {

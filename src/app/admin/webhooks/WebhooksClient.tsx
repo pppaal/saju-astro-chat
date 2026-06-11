@@ -8,7 +8,13 @@ interface WebhookData {
   failed: number
   successRate: number
   byType: { type: string; total: number; failed: number }[]
-  recentFailures: { id: string; eventId: string; type: string; processedAt: string; errorMsg: string | null }[]
+  recentFailures: {
+    id: string
+    eventId: string
+    type: string
+    processedAt: string
+    errorMsg: string | null
+  }[]
 }
 
 function num(n: number): string {
@@ -46,7 +52,9 @@ export default function WebhooksClient() {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-stone-900">결제 · 웹훅 모니터</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-stone-900">
+            결제 · 웹훅 모니터
+          </h1>
           <p className="mt-1 text-sm text-stone-500">
             Stripe 웹훅 처리 결과 · 최근 {days}일 ·{' '}
             <a
@@ -84,7 +92,9 @@ export default function WebhooksClient() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>
+        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          {error}
+        </div>
       )}
 
       {loading && !data ? (
@@ -96,7 +106,9 @@ export default function WebhooksClient() {
           <div className="mb-8 grid grid-cols-3 gap-3">
             <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
               <div className="text-[13px] text-stone-500">처리 이벤트</div>
-              <div className="mt-2 font-mono text-2xl font-semibold tabular-nums">{num(data.total)}</div>
+              <div className="mt-2 font-mono text-2xl font-semibold tabular-nums">
+                {num(data.total)}
+              </div>
             </div>
             <div
               className={`rounded-2xl border p-5 shadow-sm ${
@@ -118,13 +130,17 @@ export default function WebhooksClient() {
               }`}
             >
               <div className="text-[13px] text-stone-500">성공률</div>
-              <div className="mt-2 font-mono text-2xl font-semibold tabular-nums">{data.successRate}%</div>
+              <div className="mt-2 font-mono text-2xl font-semibold tabular-nums">
+                {data.successRate}%
+              </div>
             </div>
           </div>
 
           {data.byType.length > 0 && (
             <section className="mb-8">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">이벤트 타입별</h2>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
+                이벤트 타입별
+              </h2>
               <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
                 <table className="w-full text-sm">
                   <thead>
@@ -138,7 +154,9 @@ export default function WebhooksClient() {
                     {data.byType.map((t) => (
                       <tr key={t.type} className="border-b border-stone-100 last:border-0">
                         <td className="px-4 py-2 font-mono text-[13px] text-stone-700">{t.type}</td>
-                        <td className="px-4 py-2 text-right font-mono tabular-nums text-stone-600">{num(t.total)}</td>
+                        <td className="px-4 py-2 text-right font-mono tabular-nums text-stone-600">
+                          {num(t.total)}
+                        </td>
                         <td
                           className={`px-4 py-2 text-right font-mono tabular-nums ${
                             t.failed > 0 ? 'font-semibold text-rose-600' : 'text-stone-400'
@@ -156,7 +174,11 @@ export default function WebhooksClient() {
 
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
-              최근 실패 ({num(data.recentFailures.length)})
+              최근 실패 ({num(data.failed)}
+              {data.failed > data.recentFailures.length
+                ? `, 최근 ${num(data.recentFailures.length)}건 표시`
+                : ''}
+              )
             </h2>
             {data.recentFailures.length === 0 ? (
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-10 text-center text-sm text-emerald-700">
@@ -181,7 +203,9 @@ export default function WebhooksClient() {
                         </td>
                         <td className="px-4 py-2 font-mono text-[13px] text-stone-700">{e.type}</td>
                         <td className="px-4 py-2 text-[13px] text-rose-600">{e.errorMsg || '—'}</td>
-                        <td className="px-4 py-2 font-mono text-[11px] text-stone-400">{e.eventId}</td>
+                        <td className="px-4 py-2 font-mono text-[11px] text-stone-400">
+                          {e.eventId}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

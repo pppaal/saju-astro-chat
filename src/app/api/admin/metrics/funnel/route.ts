@@ -16,6 +16,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
+import { realUserWhere } from '@/lib/admin/realUser'
 import { DashboardTimeRangeSchema, type DashboardTimeRange } from '@/lib/metrics/schema'
 
 function getDateRange(timeRange: DashboardTimeRange): { start: Date; end: Date } {
@@ -101,10 +102,18 @@ export const GET = withApiMiddleware(
       }
 
       // 전부 실측. 측정 불가능한 익명 '방문자' 지표는 제거했다.
+      // 회원 수는 realUserWhere(로그인 가능한 실회원)로 집계 — 맨 user.count() 면
+      // 출처불명 껍데기 ~41,500행까지 회원으로 세어 가입자수가 뻥튀기되고
+      // 활성화율(activated/total)이 그 부풀린 분모로 나뉘어 0% 근처로 망가진다.
+      // overview 의 users.total 과도 어긋나므로 동일 기준을 쓴다.
       const results = await Promise.allSettled([
-        prisma.user.count(), // [0] 누적 가입
-        prisma.user.count({ where: { createdAt: { gte: start, lte: end } } }), // [1] 기간 내 신규
-        prisma.user.count({ where: { createdAt: { gte: prevStart, lte: prevEnd } } }), // [2] 직전 기간 신규(추세)
+        prisma.user.count({ where: realUserWhere }), // [0] 누적 가입(실회원)
+        prisma.user.count({
+          where: { AND: [realUserWhere, { createdAt: { gte: start, lte: end } }] },
+        }), // [1] 기간 내 신규
+        prisma.user.count({
+          where: { AND: [realUserWhere, { createdAt: { gte: prevStart, lte: prevEnd } }] },
+        }), // [2] 직전 기간 신규(추세)
         activeUserIds(new Date(0)), // [3] 한 번이라도 활동한 사용자(=활성화)
         activeUserIds(dayAgo), // [4] DAU
         activeUserIds(weekAgo), // [5] WAU
@@ -113,7 +122,9 @@ export const GET = withApiMiddleware(
       ])
 
       const val = <T>(i: number, fallback: T): T =>
-        results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<T>).value : fallback
+        results[i].status === 'fulfilled'
+          ? (results[i] as PromiseFulfilledResult<T>).value
+          : fallback
 
       const totalUsers = val(0, 0)
       const newUsers = val(1, 0)

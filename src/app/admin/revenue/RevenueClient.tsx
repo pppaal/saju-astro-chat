@@ -6,6 +6,8 @@ interface RevenueData {
   rangeDays: number
   revenue: {
     windowKrw: number
+    netKrw: number
+    refundedKrw: number
     todayKrw: number
     purchaseCount: number
     daily: { date: string; krw: number; count: number }[]
@@ -18,7 +20,7 @@ interface RevenueData {
     outstanding: number
     expiredLost: number
   }
-  refunds: { count: number; creditsRefunded: number }
+  refunds: { count: number; krw: number; creditsRefunded: number }
 }
 
 function krw(n: number): string {
@@ -37,7 +39,9 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
     const s = v === null || v === undefined ? '' : String(v)
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
   }
-  const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join('\n')
+  const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join(
+    '\n'
+  )
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -58,7 +62,17 @@ function CsvButton({ onClick }: { onClick: () => void }) {
   )
 }
 
-function Stat({ label, value, hint, accent }: { label: string; value: string; hint?: string; accent?: boolean }) {
+function Stat({
+  label,
+  value,
+  hint,
+  accent,
+}: {
+  label: string
+  value: string
+  hint?: string
+  accent?: boolean
+}) {
   return (
     <div
       className={
@@ -67,7 +81,9 @@ function Stat({ label, value, hint, accent }: { label: string; value: string; hi
           : 'rounded-2xl border border-stone-200 bg-white p-5 shadow-sm'
       }
     >
-      <div className={accent ? 'text-[13px] text-stone-300' : 'text-[13px] text-stone-500'}>{label}</div>
+      <div className={accent ? 'text-[13px] text-stone-300' : 'text-[13px] text-stone-500'}>
+        {label}
+      </div>
       <div className="mt-2 font-mono text-2xl font-semibold tabular-nums">{value}</div>
       {hint && <div className="mt-1 text-[12px] text-stone-400">{hint}</div>}
     </div>
@@ -143,7 +159,9 @@ export default function RevenueClient() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>
+        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          {error}
+        </div>
       )}
 
       {loading && !data ? (
@@ -156,20 +174,32 @@ export default function RevenueClient() {
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
               매출 (추정, 최근 {days}일)
             </h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat label={`${days}일 매출`} value={krw(data.revenue.windowKrw)} accent />
+              <Stat
+                label="순매출 (환불 차감)"
+                value={krw(data.revenue.netKrw)}
+                hint={
+                  data.revenue.refundedKrw > 0
+                    ? `환불 −${krw(data.revenue.refundedKrw)}`
+                    : undefined
+                }
+              />
               <Stat label="오늘 매출" value={krw(data.revenue.todayKrw)} />
               <Stat label="구매 건수" value={num(data.revenue.purchaseCount)} />
             </div>
             <p className="mt-2 text-[12px] text-stone-400">
-              결제 금액 컬럼이 없어 크레딧팩 정가(pricing.ts)로 환산한 추정치입니다.
+              결제 금액 컬럼이 없어 크레딧팩 정가(pricing.ts)로 환산한 추정치입니다. 순매출은 기간
+              내 환불(크레딧팩 실결제 환불) 정가를 차감한 값입니다.
             </p>
           </section>
 
           {data.revenue.daily.some((d) => d.krw > 0) && (
             <section className="mb-8">
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">일별 매출</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+                  일별 매출
+                </h2>
                 <CsvButton onClick={() => downloadCsv('revenue-daily.csv', data.revenue.daily)} />
               </div>
               <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
@@ -179,7 +209,9 @@ export default function RevenueClient() {
                       key={d.date}
                       title={`${d.date}: ${krw(d.krw)} (${d.count}건)`}
                       className="flex-1 rounded-t bg-stone-800"
-                      style={{ height: `${Math.max((d.krw / maxDaily) * 100, d.krw > 0 ? 4 : 0)}%` }}
+                      style={{
+                        height: `${Math.max((d.krw / maxDaily) * 100, d.krw > 0 ? 4 : 0)}%`,
+                      }}
                     />
                   ))}
                 </div>
@@ -194,8 +226,12 @@ export default function RevenueClient() {
           {data.revenue.byPack.length > 0 && (
             <section className="mb-8">
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">팩별 판매</h2>
-                <CsvButton onClick={() => downloadCsv('revenue-by-pack.csv', data.revenue.byPack)} />
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+                  팩별 판매
+                </h2>
+                <CsvButton
+                  onClick={() => downloadCsv('revenue-by-pack.csv', data.revenue.byPack)}
+                />
               </div>
               <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
                 <table className="w-full text-sm">
@@ -210,8 +246,12 @@ export default function RevenueClient() {
                     {data.revenue.byPack.map((p) => (
                       <tr key={p.pack} className="border-b border-stone-100 last:border-0">
                         <td className="px-4 py-2 text-stone-700">{p.pack}</td>
-                        <td className="px-4 py-2 text-right font-mono tabular-nums text-stone-600">{num(p.count)}</td>
-                        <td className="px-4 py-2 text-right font-mono tabular-nums text-stone-900">{krw(p.krw)}</td>
+                        <td className="px-4 py-2 text-right font-mono tabular-nums text-stone-600">
+                          {num(p.count)}
+                        </td>
+                        <td className="px-4 py-2 text-right font-mono tabular-nums text-stone-900">
+                          {krw(p.krw)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -228,12 +268,17 @@ export default function RevenueClient() {
               <Stat label="발행 (유료)" value={num(data.credits.issuedPaid)} hint="구매 크레딧" />
               <Stat label="발행 (무료)" value={num(data.credits.issuedFree)} hint="보너스·기프트" />
               <Stat label="소비" value={num(data.credits.consumed)} hint={`최근 ${days}일`} />
-              <Stat label="미사용 잔여" value={num(data.credits.outstanding)} hint="만료 전 · 부채" />
+              <Stat
+                label="미사용 잔여"
+                value={num(data.credits.outstanding)}
+                hint="만료 전 · 부채"
+              />
               <Stat label="만료 소멸" value={num(data.credits.expiredLost)} hint="미사용 만료" />
             </div>
-            {(data.refunds.count > 0 || data.refunds.creditsRefunded > 0) && (
+            {data.refunds && (data.refunds.count > 0 || data.refunds.creditsRefunded > 0) && (
               <p className="mt-2 text-[12px] text-stone-400">
-                최근 {days}일 환불: {num(data.refunds.count)}건 · {num(data.refunds.creditsRefunded)} 크레딧
+                최근 {days}일 환불: {num(data.refunds.count)}건 · {krw(data.refunds.krw)} ·{' '}
+                {num(data.refunds.creditsRefunded)} 크레딧 회수
               </p>
             )}
           </section>
