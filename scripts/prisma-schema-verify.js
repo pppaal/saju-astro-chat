@@ -219,6 +219,32 @@ const REQUIRED_TABLES = [
         ON "CreditTransaction" ("type", "createdAt");
     `,
   },
+  {
+    // 익명 방문 로그. phantom-apply 로 prod 누락 시 '방문자' 탭이 500.
+    table: 'PageView',
+    migration: '20260611000000_add_pageview',
+    createSql: `
+      CREATE TABLE IF NOT EXISTS "PageView" (
+        "id" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "visitorId" TEXT NOT NULL,
+        "path" TEXT NOT NULL,
+        "referrerHost" TEXT,
+        "isLoggedIn" BOOLEAN NOT NULL DEFAULT false,
+        "userId" TEXT,
+        "country" TEXT,
+        "device" TEXT,
+        CONSTRAINT "PageView_pkey" PRIMARY KEY ("id")
+      );
+      CREATE INDEX IF NOT EXISTS "PageView_createdAt_idx" ON "PageView"("createdAt");
+      CREATE INDEX IF NOT EXISTS "PageView_visitorId_createdAt_idx"
+        ON "PageView"("visitorId", "createdAt");
+      CREATE INDEX IF NOT EXISTS "PageView_isLoggedIn_createdAt_idx"
+        ON "PageView"("isLoggedIn", "createdAt");
+      CREATE INDEX IF NOT EXISTS "PageView_path_createdAt_idx"
+        ON "PageView"("path", "createdAt");
+    `,
+  },
 ]
 
 // 각 항목: { table, columns: [{ name, ddl, postSql? }] } — DDL 은 ALTER TABLE
