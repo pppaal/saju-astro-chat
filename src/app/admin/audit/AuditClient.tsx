@@ -31,7 +31,8 @@ function summarizeMeta(meta: unknown): string {
   const m = meta as Record<string, unknown>
   const parts: string[] = []
   if (typeof m.amount === 'number') parts.push(`${m.amount > 0 ? '+' : ''}${m.amount}`)
-  if (typeof m.refundAmount === 'number') parts.push(`환불 ${m.refundAmount.toLocaleString('ko-KR')}원`)
+  if (typeof m.refundAmount === 'number')
+    parts.push(`환불 ${m.refundAmount.toLocaleString('ko-KR')}원`)
   if (typeof m.source === 'string') parts.push(String(m.source))
   if (typeof m.targetEmail === 'string') parts.push(String(m.targetEmail))
   if (typeof m.note === 'string' && m.note) parts.push(`"${m.note}"`)
@@ -99,7 +100,9 @@ export default function AuditClient() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>
+        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          {error}
+        </div>
       )}
 
       {loading && !data ? (
@@ -110,14 +113,17 @@ export default function AuditClient() {
         <>
           {data.actionBreakdown.length > 0 && (
             <section className="mb-8">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">액션별 건수</h2>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
+                액션별 건수
+              </h2>
               <div className="flex flex-wrap gap-2">
                 {data.actionBreakdown.map((a) => (
                   <span
                     key={a.action}
                     className="rounded-full border border-stone-200 bg-white px-3 py-1 text-sm text-stone-600"
                   >
-                    {a.action} <span className="font-mono tabular-nums text-stone-900">{fmt(a.count)}</span>
+                    {a.action}{' '}
+                    <span className="font-mono tabular-nums text-stone-900">{fmt(a.count)}</span>
                   </span>
                 ))}
               </div>
@@ -125,7 +131,12 @@ export default function AuditClient() {
           )}
 
           <section>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">최근 기록</h2>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
+              최근 기록
+              {data.totalLogs > data.recentLogs.length
+                ? ` (총 ${fmt(data.totalLogs)}건 중 최근 ${fmt(data.recentLogs.length)}건 표시)`
+                : ''}
+            </h2>
             {data.recentLogs.length === 0 ? (
               <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-400">
                 기록 없음
@@ -148,9 +159,13 @@ export default function AuditClient() {
                         <td className="px-4 py-2 text-[13px] text-stone-500">
                           {new Date(l.createdAt).toLocaleString('ko-KR')}
                         </td>
-                        <td className="px-4 py-2 font-mono text-[13px] text-stone-700">{l.adminEmail}</td>
+                        <td className="px-4 py-2 font-mono text-[13px] text-stone-700">
+                          {l.adminEmail}
+                        </td>
                         <td className="px-4 py-2 text-stone-700">{l.action}</td>
-                        <td className="px-4 py-2 text-[13px] text-stone-500">{summarizeMeta(l.metadata)}</td>
+                        <td className="px-4 py-2 text-[13px] text-stone-500">
+                          {summarizeMeta(l.metadata)}
+                        </td>
                         <td className="px-4 py-2 text-center">
                           {l.success ? (
                             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[12px] font-medium text-emerald-700">

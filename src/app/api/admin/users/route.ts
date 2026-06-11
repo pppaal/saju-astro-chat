@@ -48,16 +48,23 @@ export const GET = withApiMiddleware(
         ],
       }
 
-      const users = await prisma.user.findMany({
+      // take: 26 으로 한 건 더 받아 "25건 초과" 여부(capped)를 판별한다. 이전엔
+      // take: 25 + count=users.length 라 200명이 매칭돼도 "25명"으로 표시돼
+      // 어드민이 전부 본 줄 착각했다. 초과 시 UI 가 "검색어를 좁히라"고 안내한다.
+      const PAGE = 25
+      const rows = await prisma.user.findMany({
         where,
         orderBy: { createdAt: 'desc' },
-        take: 25,
+        take: PAGE + 1,
         select: { id: true, email: true, name: true, role: true, createdAt: true },
       })
+      const capped = rows.length > PAGE
+      const users = capped ? rows.slice(0, PAGE) : rows
 
       return apiSuccess({
         query: q,
         count: users.length,
+        capped,
         users: users.map((u) => ({
           id: u.id,
           email: u.email,
