@@ -305,11 +305,7 @@ export function matchHouseForCusps(longitude: number, cusps: number[]): number |
  * the UNKNOWN_HOUSE sentinel when no cusp matches. Centralizes the previously
  * divergent silent fallbacks (12 in houses.ts, 1 here).
  */
-export function resolveHouseOrWarn(
-  longitude: number,
-  cusps: number[],
-  context: string
-): number {
+export function resolveHouseOrWarn(longitude: number, cusps: number[], context: string): number {
   const match = matchHouseForCusps(longitude, cusps)
   if (match !== null) {
     return match
@@ -366,23 +362,33 @@ export function createPlanetData(
 /**
  * Normalize Swiss Ephemeris speed field across bindings.
  * Some bindings expose `longitudeSpeed` instead of `speed`.
+ *
+ * 파라미터가 unknown 인 이유: swisseph C 바인딩의 결과 타입은 빌드/버전에
+ * 따라 필드 구성이 달라 정적 타입으로 고정할 수 없다. 예전엔 호출부 24곳이
+ * 각자 `as unknown as Record<string, unknown>` 로 캐스팅했는데, 검증 없는
+ * 캐스트가 흩어지는 대신 이 두 헬퍼가 유일한 경계가 되어 런타임으로
+ * 좁힌다. 호출부는 swe_calc_ut 결과를 그대로 넘기면 된다.
  */
-export function extractLongitudeSpeed(result: Record<string, unknown>): number | undefined {
-  const longitudeSpeed = result.longitudeSpeed
+export function extractLongitudeSpeed(result: unknown): number | undefined {
+  if (typeof result !== 'object' || result === null) return undefined
+  const r = result as Record<string, unknown>
+  const longitudeSpeed = r.longitudeSpeed
   if (typeof longitudeSpeed === 'number' && Number.isFinite(longitudeSpeed)) {
     return longitudeSpeed
   }
-  const speed = result.speed
+  const speed = r.speed
   if (typeof speed === 'number' && Number.isFinite(speed)) {
     return speed
   }
   return undefined
 }
 
-export function extractSwissLongitude(result: Record<string, unknown>): number {
-  const longitude = result.longitude
-  if (typeof longitude === 'number' && Number.isFinite(longitude)) {
-    return longitude
+export function extractSwissLongitude(result: unknown): number {
+  if (typeof result === 'object' && result !== null) {
+    const longitude = (result as Record<string, unknown>).longitude
+    if (typeof longitude === 'number' && Number.isFinite(longitude)) {
+      return longitude
+    }
   }
   throw new Error('Unexpected coordinate system: longitude is not available')
 }

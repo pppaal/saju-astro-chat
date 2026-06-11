@@ -94,10 +94,10 @@ export async function calculateSecondaryProgressions(
       throw new Error(`Progression calc error for ${name}: ${res.error}`)
     }
 
-    const longitude = extractSwissLongitude(res as unknown as Record<string, unknown>)
+    const longitude = extractSwissLongitude(res)
     const info = formatLongitude(longitude)
     const house = inferHouseOf(longitude, housesRes.house)
-    const speed = extractLongitudeSpeed(res as unknown as Record<string, unknown>)
+    const speed = extractLongitudeSpeed(res)
     const retrograde = typeof speed === 'number' ? speed < 0 : undefined
 
     return { name, longitude, ...info, house, speed, retrograde }
@@ -213,8 +213,7 @@ export async function calculateSolarArcDirections(
 
   // Solar Arc = 진행된 태양 - 출생 태양
   const solarArc = normalize360(
-    extractSwissLongitude(progressedSunRes as unknown as Record<string, unknown>) -
-      extractSwissLongitude(natalSunRes as unknown as Record<string, unknown>)
+    extractSwissLongitude(progressedSunRes) - extractSwissLongitude(natalSunRes)
   )
 
   // 출생 하우스 (출생지 기준)
@@ -233,12 +232,10 @@ export async function calculateSolarArcDirections(
     }
 
     // Solar Arc Direction: 출생 위치 + Solar Arc
-    const directedLon = normalize360(
-      extractSwissLongitude(natalRes as unknown as Record<string, unknown>) + solarArc
-    )
+    const directedLon = normalize360(extractSwissLongitude(natalRes) + solarArc)
     const info = formatLongitude(directedLon)
     const house = inferHouseOf(directedLon, housesRes.house)
-    const speed = extractLongitudeSpeed(natalRes as unknown as Record<string, unknown>)
+    const speed = extractLongitudeSpeed(natalRes)
     const retrograde = typeof speed === 'number' ? speed < 0 : undefined
 
     return { name, longitude: directedLon, ...info, house, speed, retrograde }

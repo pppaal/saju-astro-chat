@@ -443,10 +443,10 @@ export function calculateAsteroid(
     throw new Error(`Swiss Ephemeris Error for ${asteroidName}: ${result.error}`)
   }
 
-  const longitude = extractSwissLongitude(result as unknown as Record<string, unknown>)
+  const longitude = extractSwissLongitude(result)
   const info = formatLongitude(longitude)
   const house = inferHouseOf(longitude, cusps)
-  const speed = extractLongitudeSpeed(result as unknown as Record<string, unknown>)
+  const speed = extractLongitudeSpeed(result)
   const retrograde = typeof speed === 'number' ? speed < 0 : undefined
 
   return {

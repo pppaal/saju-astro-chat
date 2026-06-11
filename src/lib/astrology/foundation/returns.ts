@@ -43,7 +43,7 @@ function findSunAtLongitude(
       throw new Error(`Sun calc error: ${sunRes.error}`)
     }
 
-    const sunLon = extractSwissLongitude(sunRes as unknown as Record<string, unknown>)
+    const sunLon = extractSwissLongitude(sunRes)
     const diff = normalize360(sunLon - targetLon)
 
     // 차이가 180도 이상이면 반대 방향
@@ -88,7 +88,7 @@ function findMoonAtLongitude(
     if ('error' in res) {
       throw new Error(`Moon calc error: ${res.error}`)
     }
-    const moonLon = extractSwissLongitude(res as unknown as Record<string, unknown>)
+    const moonLon = extractSwissLongitude(res)
     const diff = normalize360(moonLon - targetLon)
     return diff > 180 ? diff - 360 : diff
   }
@@ -146,7 +146,7 @@ export async function calculateSolarReturn(input: SolarReturnInput): Promise<Ret
   if ('error' in natalSunRes) {
     throw new Error(`Natal Sun error: ${natalSunRes.error}`)
   }
-  const natalSunLon = extractSwissLongitude(natalSunRes as unknown as Record<string, unknown>)
+  const natalSunLon = extractSwissLongitude(natalSunRes)
 
   // 2. 해당 연도의 생일 근처에서 태양이 동일 위치에 오는 시간 찾기
   // 생일 5일 전부터 5일 후까지 검색
@@ -200,10 +200,10 @@ export async function calculateSolarReturn(input: SolarReturnInput): Promise<Ret
       throw new Error(`Solar Return calc error for ${name}: ${res.error}`)
     }
 
-    const longitude = extractSwissLongitude(res as unknown as Record<string, unknown>)
+    const longitude = extractSwissLongitude(res)
     const info = formatLongitude(longitude)
     const house = inferHouseOf(longitude, housesRes.house)
-    const speed = extractLongitudeSpeed(res as unknown as Record<string, unknown>)
+    const speed = extractLongitudeSpeed(res)
     const retrograde = typeof speed === 'number' ? speed < 0 : undefined
 
     return { name, longitude, ...info, house, speed, retrograde }
@@ -246,7 +246,7 @@ export async function calculateLunarReturn(input: LunarReturnInput): Promise<Ret
   if ('error' in natalMoonRes) {
     throw new Error(`Natal Moon error: ${natalMoonRes.error}`)
   }
-  const natalMoonLon = extractSwissLongitude(natalMoonRes as unknown as Record<string, unknown>)
+  const natalMoonLon = extractSwissLongitude(natalMoonRes)
 
   // 2. 해당 월의 시작부터 끝까지 검색 (달은 약 27.3일 주기)
   const startJD = natalToJD({
@@ -279,10 +279,10 @@ export async function calculateLunarReturn(input: LunarReturnInput): Promise<Ret
       throw new Error(`Lunar Return calc error for ${name}: ${res.error}`)
     }
 
-    const longitude = extractSwissLongitude(res as unknown as Record<string, unknown>)
+    const longitude = extractSwissLongitude(res)
     const info = formatLongitude(longitude)
     const house = inferHouseOf(longitude, housesRes.house)
-    const speed = extractLongitudeSpeed(res as unknown as Record<string, unknown>)
+    const speed = extractLongitudeSpeed(res)
     const retrograde = typeof speed === 'number' ? speed < 0 : undefined
 
     return { name, longitude, ...info, house, speed, retrograde }
