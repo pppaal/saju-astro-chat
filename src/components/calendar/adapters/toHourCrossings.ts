@@ -33,6 +33,8 @@ export interface HourCrossItem {
   ruler: string
   /** 시진 흐름 한 줄(사주 narrative). */
   narrative?: string
+  /** |polarity| — 메인에 가장 센 시진만 추리는 용. */
+  strength: number
 }
 
 /** 전통(헬레니즘) sign ruler — 상승궁 룰러 룩업. */
@@ -110,6 +112,7 @@ export function buildHourCrossings(
       risingSignKo,
       ruler,
       narrative: s.korean,
+      strength: Math.abs(s.polarity),
       startHour,
     })
   }
