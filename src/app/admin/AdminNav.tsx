@@ -18,6 +18,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/admin/users', label: '유저 검색' },
       { href: '/admin/credits', label: '크레딧 관리' },
+      { href: '/admin/reconcile', label: '결제 점검·복구' },
     ],
   },
   {
@@ -101,7 +102,13 @@ export default function AdminNav() {
                     className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
                     fill="none"
                   >
-                    <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M2.5 4.5L6 8l3.5-3.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </button>
                 {isOpen && (
