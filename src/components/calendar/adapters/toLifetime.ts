@@ -188,7 +188,9 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     ? {
         key: lp.key,
         ko: lp.ko,
+        en: lp.en,
         line: lp.line,
+        lineEn: lp.lineEn,
         daeun: lp.daeun.map((d) => ({ startAge: d.startAge, gz: d.gz, favor: d.favor })),
       }
     : undefined

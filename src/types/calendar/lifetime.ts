@@ -165,8 +165,12 @@ export interface DestinyLifePattern {
   key: string
   /** 한국어 유형명 — 대기만성형/초년발복형/… */
   ko: string
-  /** 한 줄 서사. */
+  /** 영문 유형명. */
+  en?: string
+  /** 한 줄 서사(ko). */
   line: string
+  /** 한 줄 서사(en). */
+  lineEn?: string
   /** 대운별 우호 방향 (−2~+2). */
   daeun: Array<{ startAge: number; gz: string; favor: number }>
 }

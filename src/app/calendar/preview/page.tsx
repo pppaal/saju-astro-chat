@@ -8,6 +8,7 @@
    destinypal tier props 까지 100% 책임.
    ============================================================ */
 
+import { headers } from 'next/headers'
 import PreviewClient from './PreviewClient'
 
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
@@ -57,6 +58,10 @@ const TARGET_MONTH = 6 // 6월 — preview default focus month
 const TARGET_DAY_ISO = '2026-06-15' // preview default focus day
 
 export default async function DestinypalPreview() {
+  // 서버 로케일 — 미들웨어가 심은 x-locale 헤더(쿠키/Accept-Language 기반).
+  const hdrs = await headers()
+  const lang: 'ko' | 'en' = hdrs.get('x-locale') === 'ko' ? 'ko' : 'en'
+
   // ─── 1) NatalContext (사주 + 점성 본명) ────────────────────────────────
   const natal = await buildNatalContext(BIRTH)
 
@@ -72,8 +77,8 @@ export default async function DestinypalPreview() {
   )
 
   // ─── 3) lifetimeFlow / lifetimePivots derivers (lifeStages·milestones 원료) ──
-  const lifetimeFlow = deriveLifetimeFlow(natal)
-  const lifetimePivots = deriveLifetimePivots(natal)
+  const lifetimeFlow = deriveLifetimeFlow(natal, lang)
+  const lifetimePivots = deriveLifetimePivots(natal, lang)
 
   // ─── 4) yearly / month / day cell 슬라이스 ─────────────────────────────
   const monthPrefix = `2026-${String(TARGET_MONTH).padStart(2, '0')}`
@@ -359,10 +364,18 @@ export default async function DestinypalPreview() {
   // narrative — lifetimeFlow.intro 한 줄 + 그 달 cell.topReasons 상위 5개 chip.
   const monthNarrative: Array<{ tag: string; body: string }> = []
   if (lifetimeFlow?.intro) {
-    monthNarrative.push({ tag: '타고난 결', body: lifetimeFlow.intro })
+    monthNarrative.push({
+      tag: lang === 'ko' ? '타고난 결' : 'Innate grain',
+      body: lifetimeFlow.intro,
+    })
   }
   const monthTopReasons = monthCells
-    .flatMap((c) => (c.topReasons ?? []).map((r) => ({ score: c.derivedScore, body: r })))
+    .flatMap((c) =>
+      ((lang === 'en' ? c.topReasonsEn : c.topReasons) ?? []).map((r) => ({
+        score: c.derivedScore,
+        body: r,
+      }))
+    )
     .sort((a, b) => b.score - a.score)
     .slice(0, 4)
   for (const r of monthTopReasons) {
@@ -379,7 +392,7 @@ export default async function DestinypalPreview() {
   })
   // 이달의 큰 날 — convergence keyDays(윈도우+신뢰도). 페이지에서 직접 호출해
   // 월 카드에 실어준다(이전엔 deriveConvergence 가 아예 안 불려 큰 날이 비었음).
-  const monthKeyDays = deriveConvergence(monthCells, 5, 'ko').keyDays.map((k) => ({
+  const monthKeyDays = deriveConvergence(monthCells, 5, lang).keyDays.map((k) => ({
     date: k.date.slice(5), // MM-DD
     meaning: k.meaning,
     astro: k.astro,
@@ -428,6 +441,7 @@ export default async function DestinypalPreview() {
     iljinStem,
     iljinBranch,
     favorScore: layered.daily.get(dayCell.datetime.slice(0, 10))?.score,
+    lang,
   })
   // DestinyDay 는 geokgukStatus 가 *객체* shape (name / status / factors / description) —
   // 본명 advancedAnalysis 에서 그대로 재구성.

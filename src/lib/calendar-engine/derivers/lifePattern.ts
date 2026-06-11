@@ -33,8 +33,12 @@ export interface DaeunFavor {
 export interface LifePattern {
   key: LifePatternKey
   ko: string
-  /** 한 줄 서사. */
+  /** 유형명(영문). */
+  en: string
+  /** 한 줄 서사(ko). */
   line: string
+  /** 한 줄 서사(en). */
+  lineEn: string
   /** 대운별 방향 시퀀스. */
   daeun: DaeunFavor[]
 }
@@ -76,24 +80,51 @@ interface SajuLike {
   daeun?: Array<{ stem: string; branch: string; startAge: number }>
 }
 
-const PATTERN_KO: Record<LifePatternKey, { ko: string; line: string }> = {
-  'late-bloomer': {
-    ko: '대기만성형',
-    line: '젊을 때는 좀 고생해도, 마흔 넘어가면서 자리 잡고 늦게 잘 풀리는 편이에요.',
-  },
-  'early-peak': {
-    ko: '초년발복형',
-    line: '젊을 때 빨리 자리 잡는 편이고, 나이 들수록 무리하기보다 지키는 게 나아요.',
-  },
-  'midlife-peak': {
-    ko: '중년절정형',
-    line: '마흔~쉰 무렵에 가장 크게 풀려요. 그때 승부를 보면 좋아요.',
-  },
-  'steady-rise': { ko: '점진상승형', line: '나이 들수록 조금씩 좋아지는 편이에요.' },
-  smooth: { ko: '순탄형', line: '큰 굴곡 없이 무난하게 흘러가는 편이에요.' },
-  hard: { ko: '인고형', line: '전반적으로 쉽지 않아서, 버티면서 단단해지는 편이에요.' },
-  undulating: { ko: '굴곡형', line: '좋을 때와 힘들 때가 번갈아 와요. 타이밍을 잘 보면 좋아요.' },
-}
+const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string; lineEn: string }> =
+  {
+    'late-bloomer': {
+      ko: '대기만성형',
+      en: 'Late bloomer',
+      line: '젊을 때는 좀 고생해도, 마흔 넘어가면서 자리 잡고 늦게 잘 풀리는 편이에요.',
+      lineEn: 'A rougher start, but from your forties on things settle and open up late.',
+    },
+    'early-peak': {
+      ko: '초년발복형',
+      en: 'Early peak',
+      line: '젊을 때 빨리 자리 잡는 편이고, 나이 들수록 무리하기보다 지키는 게 나아요.',
+      lineEn: 'You find your footing early; later in life, holding steady beats overreaching.',
+    },
+    'midlife-peak': {
+      ko: '중년절정형',
+      en: 'Midlife peak',
+      line: '마흔~쉰 무렵에 가장 크게 풀려요. 그때 승부를 보면 좋아요.',
+      lineEn: 'Things open widest in your forties to fifties — a good window to make your move.',
+    },
+    'steady-rise': {
+      ko: '점진상승형',
+      en: 'Steady rise',
+      line: '나이 들수록 조금씩 좋아지는 편이에요.',
+      lineEn: 'Things tend to get a little better with each passing decade.',
+    },
+    smooth: {
+      ko: '순탄형',
+      en: 'Smooth path',
+      line: '큰 굴곡 없이 무난하게 흘러가는 편이에요.',
+      lineEn: 'Your life tends to flow without big swings.',
+    },
+    hard: {
+      ko: '인고형',
+      en: 'The long haul',
+      line: '전반적으로 쉽지 않아서, 버티면서 단단해지는 편이에요.',
+      lineEn: 'Not an easy road overall — you grow tougher by enduring.',
+    },
+    undulating: {
+      ko: '굴곡형',
+      en: 'Ups and downs',
+      line: '좋을 때와 힘들 때가 번갈아 와요. 타이밍을 잘 보면 좋아요.',
+      lineEn: 'Good spells and hard spells alternate — read the timing well.',
+    },
+  }
 
 export function deriveLifePattern(saju: SajuLike): LifePattern | null {
   const dm = saju.dayMaster?.name
