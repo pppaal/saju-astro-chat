@@ -537,20 +537,26 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
   ].filter((c): c is { icon: string; label: string; body: string } => c !== null)
 
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
-  // 메인엔 가장 센 시진 3개만, 전체 시진표는 '자세히 보기' 로.
+  // 메인엔 가장 센 시진 3개만(사전 매칭된 진짜 교차 우선), 나머진 '자세히 보기'.
+  // matched(의미사전 매칭)면 '×' + 사전 해석, 아니면 '·' 병치 — 교차 과장 금지.
   const toHourItem = (h: NonNullable<DestinyDay['hourCrossings']>[number]) => {
     const branch = h.when.match(/\((.*?)\)/)?.[1] ?? ''
     const timeShort = h.when.replace(/\s*\(.*\)/, '').trim()
     const tone = h.tone === 'good' ? '길' : '주의'
-    const rising = h.risingSignKo ? ` × ${h.risingSignKo} 상승` : ''
+    const joiner = h.matched ? ' × ' : ' · '
+    const rising = h.risingSignKo ? `${joiner}${h.risingSignKo} 상승` : ''
     return {
       when: timeShort,
       title: `${branch ? `${branch} · ` : ''}${h.sibsin} ${tone}${rising}`,
-      detail: [h.narrative, h.ruler ? `상승궁 룰러 ${h.ruler}` : ''].filter(Boolean).join(' · '),
+      detail: h.matched
+        ? [h.crossMeaning, h.narrative].filter(Boolean).join(' · ')
+        : [h.narrative, h.ruler ? `상승궁 룰러 ${h.ruler}` : ''].filter(Boolean).join(' · '),
     }
   }
   const hourAll = day.hourCrossings ?? []
-  const hourTop = [...hourAll].sort((a, b) => b.strength - a.strength).slice(0, 3)
+  const hourTop = [...hourAll]
+    .sort((a, b) => Number(b.matched) - Number(a.matched) || b.strength - a.strength)
+    .slice(0, 3)
   const hourTopKeys = new Set(hourTop.map((h) => h.when))
   const hourCrossItems = hourAll.filter((h) => hourTopKeys.has(h.when)).map(toHourItem)
   const hourRestItems = hourAll.filter((h) => !hourTopKeys.has(h.when)).map(toHourItem)

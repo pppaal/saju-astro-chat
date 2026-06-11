@@ -205,5 +205,9 @@ export interface DestinyDay extends DestinyIljinHeader {
     ruler: string
     narrative?: string
     strength: number
+    /** 십신 × 상승궁 룰러가 의미사전에 매칭되는 진짜 교차인지 (아니면 병치). */
+    matched: boolean
+    /** matched 일 때 사전 해석 한 줄. */
+    crossMeaning?: string
   }>
 }

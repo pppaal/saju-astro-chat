@@ -8,9 +8,11 @@
  *   상승궁은 ~2시간에 한 별자리씩 바뀌어 12 시진과 결이 맞는다. 그 시진 한가운데
  *   시각의 상승궁을 swe_houses(행성 ephemeris 없이) 로 싸게 구해 교차 파트너로.
  *
- * 즉 한 줄 = "이 시각엔 [십신] 기운이 켜지고, 하늘엔 [상승궁]이 떠요."
- * 엔진 cross-activation(현재 hourly 미지원) 대신, 이미 있는 시진 신호 + 값싼
- * 상승점 계산을 어댑터에서 직접 합성한다.
+ * '교차'의 정직성: 시진 십신 × 상승궁 룰러가 *의미 매핑 사전*(saju-astro-mapping)
+ * 에 있고, 방향(길흉)이 시진 폴라리티와 모순되지 않을 때만 진짜 교차
+ * (matched=true, crossMeaning 에 사전 해석). 그 밖엔 같은 시각의 두 사실 병치 —
+ * UI 는 '×' 대신 '·' 로 구분해 과장하지 않는다. (엔진 cross-activation 이
+ * hourly 를 지원하지 않아 어댑터에서 같은 사전으로 게이팅.)
  */
 
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -18,6 +20,7 @@ import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import { calcHouses } from '@/lib/astrology/foundation/houses'
 import { natalToJD } from '@/lib/astrology/foundation/shared'
 import { formatLongitude } from '@/lib/astrology/foundation/utils'
+import { lookupCrossMapping } from '@/lib/calendar-engine/data/saju-astro-mapping'
 import { SIGN_KO, PLANET_KO } from './shared'
 
 export interface HourCrossItem {
@@ -35,6 +38,10 @@ export interface HourCrossItem {
   narrative?: string
   /** |polarity| — 메인에 가장 센 시진만 추리는 용. */
   strength: number
+  /** 십신 × 상승궁 룰러가 의미사전에 매칭되는 진짜 교차인지. */
+  matched: boolean
+  /** matched 일 때 사전 해석 한 줄 (mapping.meaning.ko). */
+  crossMeaning?: string
 }
 
 /** 전통(헬레니즘) sign ruler — 상승궁 룰러 룩업. */
@@ -86,6 +93,7 @@ export function buildHourCrossings(
     const repHour = (startHour + 1) % 24
     let risingSignKo = ''
     let ruler = ''
+    let rulerEn = ''
     try {
       const jd = natalToJD({
         year,
@@ -100,10 +108,16 @@ export function buildHourCrossings(
       const houses = calcHouses(jd, loc.latitude, loc.longitude)
       const sign = formatLongitude(houses.ascendant).sign as ZodiacKo
       risingSignKo = SIGN_KO[sign] ?? sign
-      ruler = PLANET_KO[SIGN_RULER[sign]] ?? SIGN_RULER[sign]
+      rulerEn = SIGN_RULER[sign]
+      ruler = PLANET_KO[rulerEn] ?? rulerEn
     } catch {
       // 상승점 계산 실패(고위도·ephemeris) 시 사주만으로 한 줄은 유지.
     }
+
+    // 의미사전 게이팅 — 십신 × 룰러 매핑이 있고, 매핑 길흉 방향이 시진 폴라리티와
+    // 모순(한쪽 길·한쪽 흉)이 아니면 진짜 교차. 엔진 combinePolarity 와 같은 원칙.
+    const mapping = lookupCrossMapping(sibsin, rulerEn)
+    const matched = !!mapping && (mapping.polarity === 0 || mapping.polarity > 0 === s.polarity > 0)
 
     rows.push({
       when,
@@ -113,6 +127,8 @@ export function buildHourCrossings(
       ruler,
       narrative: s.korean,
       strength: Math.abs(s.polarity),
+      matched,
+      crossMeaning: matched ? mapping?.meaning.ko : undefined,
       startHour,
     })
   }
