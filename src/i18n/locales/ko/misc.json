@@ -137,6 +137,15 @@
     "secondaryCta": "운명 지도 보기",
     "secondaryPricingCta": "크레딧 충전"
   },
+  "push": {
+    "dailyFortuneAriaLabel": "매일 아침 오늘의 운세 알림",
+    "dailyFortuneTitle": "매일 아침 오늘의 운세 알림 받기",
+    "dailyFortuneDescription": "하루 한 번, 아침에 오늘의 운세 한 줄을 보내드려요.",
+    "dailyFortuneEnabled": "오늘의 운세 알림이 켜져 있어요.",
+    "enableButton": "알림 켜기",
+    "disableButton": "알림 해제",
+    "permissionDenied": "브라우저 알림 권한이 차단되어 있어요. 사이트 설정에서 허용해 주세요."
+  },
   "pwa": {
     "installAriaLabel": "앱으로 설치하기",
     "installTitle": "앱으로 빠르게 — 홈 화면에 추가",
