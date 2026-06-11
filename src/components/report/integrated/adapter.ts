@@ -593,7 +593,11 @@ export function buildCrossRows(
     ['yinYang', evalYinYang(STEM_INFO[S.dayMaster?.name ?? '']?.yy, A.sect)],
   ]
   const verdicts = items.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
-  const synth = synthesize(verdicts)
+  const synth = synthesize(
+    verdicts,
+    undefined,
+    S.fiveElements as Record<string, number> | undefined
+  )
   const rows = items
     .filter((it): it is [keyof typeof CAT, CrossVerdict] => !!it[1])
     .map(([key, v]) => ({

@@ -1096,7 +1096,8 @@ export function evalExpression(
 /** 도메인 판정들을 모아 전체 정체성 한 문장 생성. */
 export function synthesize(
   verdicts: CrossVerdict[],
-  sharedElement?: SajuElement
+  sharedElement?: SajuElement,
+  elementCounts?: Record<string, number>
 ): NatalSynthesis | null {
   if (verdicts.length === 0) return null
   let resonant = 0
@@ -1166,11 +1167,32 @@ export function synthesize(
           ? ' Saju and astrology pull against each other in several places, so you may feel inner friction — but that tension fuels depth and growth. Alternate between the two rather than suppressing one.'
           : ' No strong lean either way gives you good balance, and you can switch between different sides as the situation calls.'
 
+  // 오행 정확 분포 한 줄 — 같은 톤·유형이어도 사람마다 기운의 두께·빈자리가
+  // 달라 종합이 개인화된다(범주가 아닌 실제 개수 기반).
+  let distKo = ''
+  let distEn = ''
+  if (elementCounts) {
+    const els: SajuElement[] = ['wood', 'fire', 'earth', 'metal', 'water']
+    const pairs = els.map((e) => [e, elementCounts[e] ?? 0] as const)
+    const dom = pairs.reduce((a, b) => (b[1] > a[1] ? b : a))
+    const lacking = pairs.filter(([, n]) => n === 0).map(([e]) => e)
+    distKo =
+      ` 오행으로 보면 ${EL_KO[dom[0]]} 기운이 ${dom[1]}개로 가장 두텁고` +
+      (lacking.length
+        ? `, ${lacking.map((e) => EL_KO[e]).join('·')} 기운은 비어 있어요 — 그 결은 타고나기보다 의식적으로 채워가는 평생 과제예요.`
+        : `, 다섯 기운이 비교적 고르게 퍼져 균형감이 좋은 편이에요.`)
+    distEn =
+      ` By element, ${EL_EN[dom[0]]} is thickest at ${dom[1]}` +
+      (lacking.length
+        ? `, while ${lacking.map((e) => EL_EN[e]).join(' and ')} ${lacking.length > 1 ? 'are' : 'is'} empty — a grain you build deliberately rather than inherit, a lifelong task.`
+        : `, with all five fairly evenly spread — a well-balanced makeup.`)
+  }
+
   return {
     tone,
     text: {
-      ko: `잘 맞는 게 ${resonant}개, 서로 채워주는 게 ${complement}개, 부딪히는 게 ${tension}개 — ${labelKo} 사람이에요.${axisKo}${elabKo}`,
-      en: `${resonant} aligned · ${complement} complementary · ${tension} in tension — a ${labelEn} identity.${axisEn}${elabEn}`,
+      ko: `잘 맞는 게 ${resonant}개, 서로 채워주는 게 ${complement}개, 부딪히는 게 ${tension}개 — ${labelKo} 사람이에요.${axisKo}${elabKo}${distKo}`,
+      en: `${resonant} aligned · ${complement} complementary · ${tension} in tension — a ${labelEn} identity.${axisEn}${elabEn}${distEn}`,
     },
   }
 }
