@@ -533,6 +533,28 @@ model SecurityAuditLog {
   @@index([action, createdAt])
 }
 
+// 📊 익명 방문 로그 — 비로그인 방문자까지 포함한 트래픽 집계용.
+// visitorId 는 "일별 회전 해시" (sha256(날짜+ip+ua+salt))라 원본 IP/UA 를
+// 저장하지 않고 같은 날 같은 방문자를 묶을 수만 있다(다음날이면 다른 해시).
+// 따라서 개인 식별 불가 + 쿠키 불필요 → 동의 배너와 무관한 1st-party 익명
+// 분석. 어드민 '방문자' 탭에서 일별 순방문자/페이지뷰/로그인 전환을 본다.
+model PageView {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  visitorId    String // 일별 회전 익명 해시 (원본 PII 아님)
+  path         String // pathname only (쿼리스트링 제거)
+  referrerHost String? // referrer hostname only (외부 유입 출처)
+  isLoggedIn   Boolean  @default(false)
+  userId       String? // 로그인 상태일 때만 기록 (FK 없음 — 경량 로그)
+  country      String? // x-vercel-ip-country 헤더 (있으면)
+  device       String? // 거친 분류: mobile/tablet/desktop/bot
+
+  @@index([createdAt])
+  @@index([visitorId, createdAt])
+  @@index([isLoggedIn, createdAt])
+  @@index([path, createdAt])
+}
+
 /// calendar-engine v2 — 1 사용자 1 월치 빌드 결과 캐시.
 /// 본명 입력 + 월 키로 unique. 같은 입력이면 cell 데이터 재계산 없이 반환.
 /// 영구 캐시 (본명 변동 없으면 결과도 결정적).
