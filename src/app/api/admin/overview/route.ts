@@ -56,6 +56,7 @@ export const GET = withApiMiddleware(
         bonusOutstanding,
         purchaseCount,
         purchasesToday,
+        purchases7d,
         purchases30d,
         payingUsers,
         recentSignups,
@@ -107,6 +108,9 @@ export const GET = withApiMiddleware(
         prisma.bonusCreditPurchase.count({ where: { stripePaymentId: { not: null } } }),
         prisma.bonusCreditPurchase.count({
           where: { stripePaymentId: { not: null }, createdAt: { gte: startOfToday } },
+        }),
+        prisma.bonusCreditPurchase.count({
+          where: { stripePaymentId: { not: null }, createdAt: { gte: last7d } },
         }),
         prisma.bonusCreditPurchase.count({
           where: { stripePaymentId: { not: null }, createdAt: { gte: last30d } },
@@ -162,6 +166,7 @@ export const GET = withApiMiddleware(
         purchases: {
           total: purchaseCount,
           today: purchasesToday,
+          last7d: purchases7d,
           last30d: purchases30d,
         },
         recentSignups: recentSignups.map((u) => ({

@@ -15,7 +15,7 @@ interface Overview {
   }
   readings: { total: number; today: number }
   credits: { outstanding: number }
-  purchases: { total: number; today: number; last30d: number }
+  purchases: { total: number; today: number; last7d: number; last30d: number }
   recentSignups: { id: string; email: string | null; name: string | null; createdAt: string }[]
   signupsDaily: { date: string; count: number }[]
 }
@@ -28,7 +28,9 @@ function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
     const s = v === null || v === undefined ? '' : String(v)
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
   }
-  const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join('\n')
+  const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join(
+    '\n'
+  )
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -46,6 +48,26 @@ interface UserRow {
   createdAt?: string
   readings?: number
   lastActiveAt?: string | null
+}
+
+// 결제 카드 드릴다운: 개별 결제 건(구매자 + 금액 + 일시). 같은 사람이 여러 번
+// 결제하면 여러 행.
+interface PurchaseRow {
+  id: string
+  userId: string
+  email: string | null
+  name: string | null
+  amount: number
+  stripePaymentId: string | null
+  createdAt: string
+}
+
+// 결제 카드 라벨 → /api/admin/purchases 의 window 파라미터.
+const PURCHASE_WINDOW: Record<string, { window: string; title: string }> = {
+  'purchases-all': { window: 'all', title: '전체 결제 내역' },
+  'purchases-today': { window: 'today', title: '오늘 결제 내역' },
+  'purchases-7d': { window: '7d', title: '최근 7일 결제 내역' },
+  'purchases-30d': { window: '30d', title: '최근 30일 결제 내역' },
 }
 
 const SEGMENT_TITLE: Record<string, string> = {
@@ -90,9 +112,12 @@ function Stat({
       <div className="mt-2 font-mono text-2xl font-semibold tabular-nums">{value}</div>
       <div className="mt-1 text-[12px] text-stone-400">
         {hint}
-        {onClick && <span className={hint ? 'ml-1 text-stone-500' : 'text-stone-500'}>
-          {hint ? '· ' : ''}{expanded ? '닫기' : '누구?'}
-        </span>}
+        {onClick && (
+          <span className={hint ? 'ml-1 text-stone-500' : 'text-stone-500'}>
+            {hint ? '· ' : ''}
+            {expanded ? '닫기' : '누구?'}
+          </span>
+        )}
       </div>
     </>
   )
@@ -164,7 +189,9 @@ function UserListPanel({
           불러오는 중…
         </div>
       ) : error ? (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          {error}
+        </div>
       ) : users && users.length > 0 ? (
         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
           <table className="w-full text-sm">
@@ -172,14 +199,18 @@ function UserListPanel({
               <tr className="border-b border-stone-200 text-left text-[12px] uppercase text-stone-400">
                 <th className="px-4 py-2 font-medium">이메일</th>
                 <th className="px-4 py-2 font-medium">이름</th>
-                <th className="px-4 py-2 text-right font-medium">{isActive ? '오늘 활동' : '가입일'}</th>
+                <th className="px-4 py-2 text-right font-medium">
+                  {isActive ? '오늘 활동' : '가입일'}
+                </th>
                 {isActive && <th className="px-4 py-2 text-right font-medium">마지막 활동</th>}
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
                 <tr key={u.id} className="border-b border-stone-100 last:border-0">
-                  <td className="px-4 py-2 font-mono text-[13px] text-stone-700">{u.email || '—'}</td>
+                  <td className="px-4 py-2 font-mono text-[13px] text-stone-700">
+                    {u.email || '—'}
+                  </td>
                   <td className="px-4 py-2 text-stone-600">{u.name || '—'}</td>
                   {isActive ? (
                     <>
@@ -214,6 +245,99 @@ function UserListPanel({
   )
 }
 
+// 결제 내역 패널. 구매자(이메일 or ID) + 금액(크레딧) + 일시. 결제유저 패널이
+// 중복 제거된 '사람'을 보여주는 반면 여기는 결제 '건' 단위.
+function PurchaseListPanel({
+  segKey,
+  count,
+  purchases,
+  loading,
+  error,
+}: {
+  segKey: string
+  count: number | null
+  purchases: PurchaseRow[] | null
+  loading: boolean
+  error: string | null
+}) {
+  const meta = PURCHASE_WINDOW[segKey]
+  const capped = count !== null && purchases !== null && count > purchases.length
+  return (
+    <section className="mb-8">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+          {meta?.title || '결제 내역'}
+          {count !== null &&
+            ` (${fmt(count)}건${capped ? `, 최근 ${purchases!.length}건 표시` : ''})`}
+        </h2>
+        {purchases && purchases.length > 0 && (
+          <button
+            onClick={() =>
+              downloadCsv(
+                `${segKey}.csv`,
+                purchases.map((p) => ({
+                  id: p.id,
+                  userId: p.userId,
+                  email: p.email ?? '',
+                  name: p.name ?? '',
+                  amount: p.amount,
+                  stripePaymentId: p.stripePaymentId ?? '',
+                  createdAt: p.createdAt,
+                }))
+              )
+            }
+            className="rounded-full border border-stone-300 bg-white px-3 py-1 text-[12px] font-medium text-stone-600 transition hover:bg-stone-100"
+          >
+            CSV 내보내기
+          </button>
+        )}
+      </div>
+      {loading ? (
+        <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-500">
+          불러오는 중…
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          {error}
+        </div>
+      ) : purchases && purchases.length > 0 ? (
+        <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-stone-200 text-left text-[12px] uppercase text-stone-400">
+                <th className="px-4 py-2 font-medium">구매자</th>
+                <th className="px-4 py-2 font-medium">User ID</th>
+                <th className="px-4 py-2 text-right font-medium">크레딧</th>
+                <th className="px-4 py-2 text-right font-medium">결제일시</th>
+              </tr>
+            </thead>
+            <tbody>
+              {purchases.map((p) => (
+                <tr key={p.id} className="border-b border-stone-100 last:border-0">
+                  <td className="px-4 py-2 font-mono text-[13px] text-stone-700">
+                    {p.email || p.name || '—'}
+                  </td>
+                  <td className="px-4 py-2 font-mono text-[11px] text-stone-400">{p.userId}</td>
+                  <td className="px-4 py-2 text-right font-mono tabular-nums text-stone-700">
+                    +{fmt(p.amount)}
+                  </td>
+                  <td className="px-4 py-2 text-right text-[13px] text-stone-500">
+                    {new Date(p.createdAt).toLocaleString('ko-KR')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-400">
+          결제 내역이 없습니다.
+        </div>
+      )}
+    </section>
+  )
+}
+
 export default function AdminOverviewClient() {
   const [data, setData] = useState<Overview | null>(null)
   const [loading, setLoading] = useState(true)
@@ -224,6 +348,14 @@ export default function AdminOverviewClient() {
   const [cache, setCache] = useState<Record<string, { count: number; users: UserRow[] }>>({})
   const [segLoading, setSegLoading] = useState(false)
   const [segError, setSegError] = useState<string | null>(null)
+
+  // 결제 카드 드릴다운(결제 '건' 목록). 회원 세그먼트와 독립적으로 펼친다.
+  const [openPurchase, setOpenPurchase] = useState<string | null>(null)
+  const [purchaseCache, setPurchaseCache] = useState<
+    Record<string, { count: number; purchases: PurchaseRow[] }>
+  >({})
+  const [purchaseLoading, setPurchaseLoading] = useState(false)
+  const [purchaseError, setPurchaseError] = useState<string | null>(null)
 
   const loadSegment = useCallback(
     async (seg: string) => {
@@ -237,9 +369,7 @@ export default function AdminOverviewClient() {
       setSegLoading(true)
       try {
         const url =
-          seg === 'active-today'
-            ? '/api/admin/active-users'
-            : `/api/admin/users-by?segment=${seg}`
+          seg === 'active-today' ? '/api/admin/active-users' : `/api/admin/users-by?segment=${seg}`
         const res = await fetch(url, { cache: 'no-store' })
         const json = await res.json()
         if (!res.ok) {
@@ -256,6 +386,39 @@ export default function AdminOverviewClient() {
       }
     },
     [openSegment, cache]
+  )
+
+  const loadPurchases = useCallback(
+    async (segKey: string) => {
+      if (openPurchase === segKey) {
+        setOpenPurchase(null)
+        return
+      }
+      setOpenPurchase(segKey)
+      setPurchaseError(null)
+      if (purchaseCache[segKey]) return // 이미 로드함
+      setPurchaseLoading(true)
+      try {
+        const w = PURCHASE_WINDOW[segKey]?.window ?? 'all'
+        const res = await fetch(`/api/admin/purchases?window=${w}`, { cache: 'no-store' })
+        const json = await res.json()
+        if (!res.ok) {
+          const err = (json?.error || json) as { message?: string; code?: string }
+          setPurchaseError(err?.message || err?.code || `요청 실패 (HTTP ${res.status})`)
+          return
+        }
+        const payload = (json?.data || json) as { count: number; purchases: PurchaseRow[] }
+        setPurchaseCache((prev) => ({
+          ...prev,
+          [segKey]: { count: payload.count, purchases: payload.purchases },
+        }))
+      } catch (err) {
+        setPurchaseError(err instanceof Error ? err.message : '알 수 없는 오류')
+      } finally {
+        setPurchaseLoading(false)
+      }
+    },
+    [openPurchase, purchaseCache]
   )
 
   const load = useCallback(async () => {
@@ -385,7 +548,9 @@ export default function AdminOverviewClient() {
                         key={d.date}
                         title={`${d.date}: ${d.count}명`}
                         className="flex-1 rounded-t bg-stone-800"
-                        style={{ height: `${Math.max((d.count / max) * 100, d.count > 0 ? 4 : 0)}%` }}
+                        style={{
+                          height: `${Math.max((d.count / max) * 100, d.count > 0 ? 4 : 0)}%`,
+                        }}
                       />
                     )
                   })}
@@ -419,9 +584,30 @@ export default function AdminOverviewClient() {
               onClick={() => loadSegment('paying')}
               expanded={openSegment === 'paying'}
             />
-            <Stat label="총 구매 건수" value={fmt(data.purchases.total)} />
-            <Stat label="오늘 구매" value={fmt(data.purchases.today)} />
-            <Stat label="최근 30일 구매" value={fmt(data.purchases.last30d)} />
+            <Stat
+              label="총 구매 건수"
+              value={fmt(data.purchases.total)}
+              onClick={() => loadPurchases('purchases-all')}
+              expanded={openPurchase === 'purchases-all'}
+            />
+            <Stat
+              label="오늘 구매"
+              value={fmt(data.purchases.today)}
+              onClick={() => loadPurchases('purchases-today')}
+              expanded={openPurchase === 'purchases-today'}
+            />
+            <Stat
+              label="최근 7일 구매"
+              value={fmt(data.purchases.last7d)}
+              onClick={() => loadPurchases('purchases-7d')}
+              expanded={openPurchase === 'purchases-7d'}
+            />
+            <Stat
+              label="최근 30일 구매"
+              value={fmt(data.purchases.last30d)}
+              onClick={() => loadPurchases('purchases-30d')}
+              expanded={openPurchase === 'purchases-30d'}
+            />
             <Stat
               label="미사용 구매 크레딧"
               value={fmt(data.credits.outstanding)}
@@ -429,6 +615,15 @@ export default function AdminOverviewClient() {
             />
           </Section>
           {renderPanel(['paying'])}
+          {openPurchase && (
+            <PurchaseListPanel
+              segKey={openPurchase}
+              count={purchaseCache[openPurchase]?.count ?? null}
+              purchases={purchaseCache[openPurchase]?.purchases ?? null}
+              loading={purchaseLoading}
+              error={purchaseError}
+            />
+          )}
 
           <section className="mt-4">
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
