@@ -722,3 +722,47 @@
     padding: 4px 8px 4px 6px;
   }
 }
+
+/* ── MonthBars — 12달 점수 막대 ── */
+.monthBarsWrap {
+  margin: 18px 0 4px;
+}
+.monthBarsLabel {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.monthBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 76px;
+}
+.monthBarCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+.monthBarTrack {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 3px;
+  background: rgba(120, 128, 150, 0.07);
+}
+.monthBarFill {
+  width: 100%;
+  border-radius: 3px 3px 2px 2px;
+  min-height: 4px;
+}
+.monthBarLbl {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--ink-dim);
+}

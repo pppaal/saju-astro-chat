@@ -231,6 +231,49 @@ function readWheelPivotal(year: DestinyYear): {
 }
 
 // ----------------------------------------------------------------
+// MonthBars — 12달 점수 막대그래프 (좋음=쪽빛 / 평이=회청 / 주의=주황).
+// ----------------------------------------------------------------
+function barColor(score: number): string {
+  if (score >= 60) return '#4f5d96' // 좋음 — 쪽빛
+  if (score >= 40) return '#9aa0b4' // 평이 — 회청
+  return '#c0741f' // 주의 — 주황
+}
+function MonthBars({
+  scores,
+  ko,
+  label,
+}: {
+  scores: Array<{ month: number; score: number; bestDay?: string }>
+  ko: boolean
+  label: string
+}) {
+  const byMonth = new Map(scores.map((s) => [s.month, s.score]))
+  return (
+    <div className={styles.monthBarsWrap}>
+      <div className={styles.monthBarsLabel}>{label}</div>
+      <div className={styles.monthBars}>
+        {Array.from({ length: 12 }, (_, i) => {
+          const m = i + 1
+          const score = byMonth.get(m) ?? 0
+          const h = Math.max(6, Math.min(100, score)) // % 높이
+          return (
+            <div className={styles.monthBarCol} key={m} title={`${m}${ko ? '월' : ''} · ${score}`}>
+              <div className={styles.monthBarTrack}>
+                <div
+                  className={styles.monthBarFill}
+                  style={{ height: `${h}%`, background: barColor(score) }}
+                />
+              </div>
+              <span className={styles.monthBarLbl}>{ko ? m : MONTH_ABBR[i][0]}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ----------------------------------------------------------------
 // Component
 // ----------------------------------------------------------------
 
@@ -335,6 +378,14 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         <CrossingList heading={crossHeading} items={yearCrossItems} />
       ) : (
         <CrossingList heading={flowHeading} items={yearItems} />
+      )}
+
+      {(year.monthlyScores?.length ?? 0) > 0 && (
+        <MonthBars
+          scores={year.monthlyScores ?? []}
+          ko={ko}
+          label={ko ? '12달 흐름' : '12-month flow'}
+        />
       )}
 
       {/* ── 전문가용 상세 — 프로펙션·세운·ZR·패턴 전부 접어 둠 ── */}
