@@ -24,6 +24,7 @@
     "audit:unused": "knip --include files,exports,dependencies",
     "audit:personality-questions": "tsx scripts/audit-personality-questions.ts",
     "audit:assessment": "tsx scripts/audit-assessment-content.ts",
+    "reconcile:stripe": "tsx scripts/reconcile-stripe-purchases.ts",
     "review:assessment": "node scripts/review-assessment-examples.mjs",
     "eval:strategy:batch": "tsx scripts/evaluate-strategy-batch.ts --samples 100 --out reports/strategy_batch_eval_latest.json",
     "eval:deterministic:batch": "tsx scripts/evaluate-deterministic-report-batch.ts --samples 240 --out reports/quality/deterministic_batch_eval_latest.json",
