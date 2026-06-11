@@ -526,30 +526,39 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
     if (m === 'converge') return 'neutral'
     return null
   }
-  const monthCrossItems = [...(month.keyDays ?? [])]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .map((k) => {
-      const mark = markByDs.get(k.date)
-      const tone = markToTone(mark)
-      const dayNum = parseInt(k.date.slice(-2), 10)
-      // 셀에 판정이 있으면 그 톤으로 문구를 뽑아 색과 일치(모순 제거). 무표시(중립)
-      // 날만 엔진 수렴 의미를 그대로 쓴다.
-      const meaning = tone
-        ? toneMeaningFor(tone, dayNum, ko ? 'ko' : 'en')
-        : k.meaning || (k.bothSystems ? (ko ? '신호가 겹치는 날' : 'signals overlap') : '')
-      const vp = verdictPrefix(mark)
-      const title =
-        vp && meaning ? `${vp} · ${meaning}` : meaning || vp || (ko ? '주목할 날' : 'Notable day')
-      return {
-        when: k.date,
-        title,
-        detail: k.bothSystems
-          ? ko
-            ? '사주·점성이 함께 강한 날'
-            : 'Saju & astrology both strong'
-          : undefined,
-      }
+  const keyDayItems = [...(month.keyDays ?? [])].map((k) => {
+    const mark = markByDs.get(k.date)
+    const tone = markToTone(mark)
+    const dayNum = parseInt(k.date.slice(-2), 10)
+    // 셀에 판정이 있으면 그 톤으로 문구를 뽑아 색과 일치(모순 제거). 무표시(중립)
+    // 날만 엔진 수렴 의미를 그대로 쓴다.
+    const meaning = tone
+      ? toneMeaningFor(tone, dayNum, ko ? 'ko' : 'en')
+      : k.meaning || (k.bothSystems ? (ko ? '신호가 겹치는 날' : 'signals overlap') : '')
+    const vp = verdictPrefix(mark)
+    const title =
+      vp && meaning ? `${vp} · ${meaning}` : meaning || vp || (ko ? '주목할 날' : 'Notable day')
+    return {
+      when: k.date,
+      title,
+      detail: k.bothSystems
+        ? ko
+          ? '사주·점성이 함께 강한 날'
+          : 'Saju & astrology both strong'
+        : undefined,
+    }
+  })
+  // best(✦) 날은 수렴(keyDays)과 다른 기준이라 빠질 수 있다 — 달력이 최고날로
+  // 강조하는데 큰 날 목록에 없으면 이상하니, 없으면 채워 넣는다.
+  if (month.bestDay?.date && !keyDayItems.some((i) => i.when === month.bestDay!.date)) {
+    const dn = parseInt(month.bestDay.date.slice(-2), 10)
+    keyDayItems.push({
+      when: month.bestDay.date,
+      title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dn, ko ? 'ko' : 'en')}`,
+      detail: ko ? '이달 가장 좋은 날' : 'Best day of the month',
     })
+  }
+  const monthCrossItems = keyDayItems.sort((a, b) => a.when.localeCompare(b.when))
   const goodN = month.goodDays?.length ?? 0
   const cautionN = month.cautionDays?.length ?? 0
 
