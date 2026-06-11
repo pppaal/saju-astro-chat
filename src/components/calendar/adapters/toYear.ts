@@ -303,8 +303,8 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
         const SHINSAL_EN: Record<string, string> = {
           도화: 'Peach Blossom',
           도화살: 'Peach Blossom',
-          역마: 'Travelling Horse',
-          역마살: 'Travelling Horse',
+          역마: 'Traveling Horse',
+          역마살: 'Traveling Horse',
           양인: 'Yang Blade',
           건록: 'Prosperity',
         }

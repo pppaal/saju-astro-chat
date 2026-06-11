@@ -380,7 +380,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         .join(' × '),
       detail: ko
         ? '지금 지나는 사주×점성 구간 — 이 흐름 안에서 위아래 교차점이 펼쳐져요.'
-        : 'The Saju × Astrology window you’re in now — crossings unfold within it.',
+        : 'The Saju × Astrology window you’re in now — its crossings unfold from here.',
       now: true,
     })
   }
@@ -418,7 +418,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         }
       />
       <CrossingList
-        heading={ko ? '인생의 큰 마디 · 사주와 점성' : 'Life’s big turns · Saju & Astrology'}
+        heading={ko ? '인생의 큰 마디 · 사주와 점성' : 'Life’s major turns · Saju & Astrology'}
         items={crossingItems}
       />
 

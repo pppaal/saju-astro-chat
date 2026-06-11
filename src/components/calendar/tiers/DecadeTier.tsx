@@ -144,7 +144,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     {
       // 시작 앵커 — headline 은 바로 위 oneline 에 이미 있어 중복 표기하지 않음.
       when: `${decade.start}`,
-      title: ko ? `${dgz} 대운 진입` : `Entering the ${dgz} luck cycle`,
+      title: ko ? `${dgz} 대운 진입` : `Entering the ${dgz} cycle`,
       now: cy <= decade.start,
       past: false,
     },
@@ -174,8 +174,8 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     when: `${y.year}`,
     title:
       (y.sibsin && SIBSIN_YEAR_THEME[y.sibsin]?.[ko ? 'ko' : 'en']) ||
-      (ko ? '한 해의 흐름' : 'a year'),
-    detail: `${y.gz.hanja}${y.gz.kr ? ` (${y.gz.kr})` : ''}${y.sibsin ? ` · ${ko ? '세운' : 'yr'} ${ko ? y.sibsin : (SIBSIN_EN[y.sibsin] ?? y.sibsin)}` : ''}`,
+      (ko ? '한 해의 흐름' : 'The year ahead'),
+    detail: `${y.gz.hanja}${y.gz.kr ? ` (${y.gz.kr})` : ''}${y.sibsin ? ` · ${ko ? '세운' : 'annual'} ${ko ? y.sibsin : (SIBSIN_EN[y.sibsin] ?? y.sibsin)}` : ''}`,
     now: !!y.now,
     past: y.year < (decade.focusYear ?? decade.start),
   }))
@@ -246,7 +246,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
       {/* ── 전문가용 상세 — 세운 흐름·교차 페어·사주 기둥 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>
-          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & astrology'}
+          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & Astrology'}
         </summary>
 
         {/* 10년 세운 결 — 연도별 세운 십신 (교차는 아님). */}
