@@ -316,34 +316,47 @@ export function evalRelations(
   hap: number,
   chung: number,
   harmonious: number,
-  hard: number
+  hard: number,
+  gender: 'male' | 'female' = 'male',
+  childStarCount = 0
 ): CrossVerdict | null {
   if (hap + chung + harmonious + hard === 0) return null
   const sajuHarmony = hap - chung
   const astroHarmony = harmonious - hard
-  if (sajuHarmony > 0 && astroHarmony > 0)
-    return {
-      tone: 'resonant',
-      reason: {
-        ko: '사람들과 잘 어울리고 관계가 매끄럽게 풀리는 편 — 사주의 합(合)과 별자리의 부드러운 각이 둘 다 그렇게 봐요. 사람을 끌어모으고 곁에 두는 게 타고난 자산이라, 인맥과 협업이 인생의 큰 동력이 돼요. 다만 다들 좋게 봐주는 만큼 싫은 소리를 미루다 속앓이하기 쉬우니, 할 말은 부드럽게라도 그때그때 해두는 게 관계를 더 오래 가게 해요.',
-        en: "You get along easily and relationships flow — your Saju's unions and your chart's soft aspects both agree. Drawing people in and keeping them close is a natural asset, so connections and collaboration become a major engine in your life. Just don't let being well-liked make you swallow hard truths — saying the awkward thing gently and on time is what keeps the bond lasting.",
-      },
-    }
-  if (sajuHarmony < 0 && astroHarmony < 0)
-    return {
-      tone: 'tension',
-      reason: {
-        ko: '관계에서 부딪힘이 좀 있는 편인데 — 사주의 충(沖)과 별자리의 단단한 각이 둘 다 그렇게 짚어요. 사람과 쉽게 매끄럽진 않아도 그 마찰을 거치며 진짜 내 사람을 가려내고 더 단단해지는 타입이에요. 모두와 잘 지내려 애쓰기보다, 부딪혀도 끝까지 남는 소수에게 마음을 모으면 관계가 훨씬 편해져요.',
-        en: "Relationships bring some friction — your Saju's clashes and your chart's hard aspects both point that way. You don't connect smoothly with everyone, but you grow tougher through the friction and sift out who's truly yours. Rather than straining to please everyone, pour your heart into the few who stay after the clash, and relationships get far easier.",
-      },
-    }
-  return {
-    tone: 'complement',
-    reason: {
-      ko: '어떤 관계는 매끄럽고 어떤 관계는 부딪혀요 — 사주와 별자리가 다른 결을 짚어, 상황 따라 두 모습이 다 나오는 균형형이에요. 잘 맞는 사람과는 깊게, 부딪히는 사람과는 거리를 두는 식으로 자연스럽게 나눠 쓰면 돼요. 모든 관계를 똑같이 잘하려 애쓰지 않는 게 오히려 에너지를 아끼는 길이에요.',
-      en: 'Some ties flow, some clash — Saju and chart read different grains, so you show both sides depending on the situation, a balanced type. Go deep with the people who fit and keep distance from the ones who grate — you sort it naturally. Not trying to ace every relationship equally is actually how you save your energy.',
-    },
-  }
+  const base: { tone: CrossVerdict['tone']; ko: string; en: string } =
+    sajuHarmony > 0 && astroHarmony > 0
+      ? {
+          tone: 'resonant',
+          ko: '사람들과 잘 어울리고 관계가 매끄럽게 풀리는 편 — 사주의 합(合)과 별자리의 부드러운 각이 둘 다 그렇게 봐요. 사람을 끌어모으고 곁에 두는 게 타고난 자산이라, 인맥과 협업이 인생의 큰 동력이 돼요. 다만 다들 좋게 봐주는 만큼 싫은 소리를 미루다 속앓이하기 쉬우니, 할 말은 부드럽게라도 그때그때 해두는 게 관계를 더 오래 가게 해요.',
+          en: "You get along easily and relationships flow — your Saju's unions and your chart's soft aspects both agree. Drawing people in and keeping them close is a natural asset, so connections and collaboration become a major engine in your life. Just don't let being well-liked make you swallow hard truths — saying the awkward thing gently and on time is what keeps the bond lasting.",
+        }
+      : sajuHarmony < 0 && astroHarmony < 0
+        ? {
+            tone: 'tension',
+            ko: '관계에서 부딪힘이 좀 있는 편인데 — 사주의 충(沖)과 별자리의 단단한 각이 둘 다 그렇게 짚어요. 사람과 쉽게 매끄럽진 않아도 그 마찰을 거치며 진짜 내 사람을 가려내고 더 단단해지는 타입이에요. 모두와 잘 지내려 애쓰기보다, 부딪혀도 끝까지 남는 소수에게 마음을 모으면 관계가 훨씬 편해져요.',
+            en: "Relationships bring some friction — your Saju's clashes and your chart's hard aspects both point that way. You don't connect smoothly with everyone, but you grow tougher through the friction and sift out who's truly yours. Rather than straining to please everyone, pour your heart into the few who stay after the clash, and relationships get far easier.",
+          }
+        : {
+            tone: 'complement',
+            ko: '어떤 관계는 매끄럽고 어떤 관계는 부딪혀요 — 사주와 별자리가 다른 결을 짚어, 상황 따라 두 모습이 다 나오는 균형형이에요. 잘 맞는 사람과는 깊게, 부딪히는 사람과는 거리를 두는 식으로 자연스럽게 나눠 쓰면 돼요. 모든 관계를 똑같이 잘하려 애쓰지 않는 게 오히려 에너지를 아끼는 길이에요.',
+            en: 'Some ties flow, some clash — Saju and chart read different grains, so you show both sides depending on the situation, a balanced type. Go deep with the people who fit and keep distance from the ones who grate — you sort it naturally. Not trying to ace every relationship equally is actually how you save your energy.',
+          }
+
+  // ── 성별 자식성(子息星) — 남: 관성, 여: 식상 ──
+  const g = gender === 'female'
+  const starKo = g ? '식상' : '관성'
+  const starEn = g ? 'the Output star' : 'the Officer star'
+  const who = g ? '여자' : '남자'
+  const whoEn = g ? "a woman's" : "a man's"
+  const present = childStarCount > 0
+  const childKo = present
+    ? ` 또 ${who} 사주에서 자식 자리는 ${starKo}인데 원국에 자리해, 자녀·후대와의 인연이나 무언가를 길러내는 결이 또렷한 편이에요.`
+    : ` 또 ${who} 사주에서 자식 자리는 ${starKo}인데 뚜렷하진 않아, 자녀든 일이든 '길러내는' 인연은 양보다 깊이로 가꿔가는 쪽이에요.`
+  const childEn = present
+    ? ` Also, ${whoEn} child indicator is ${starEn}, and it sits in your chart — a clear thread for raising the next generation, or nurturing something into being.`
+    : ` Also, ${whoEn} child indicator is ${starEn}, and it's faint — the "raising" bond, whether children or work, grows by depth rather than volume.`
+
+  return { tone: base.tone, reason: { ko: base.ko + childKo, en: base.en + childEn } }
 }
 
 /** 강점: 12운성(일주) ↔ 차트에서 가장 위신 높은 행성. */

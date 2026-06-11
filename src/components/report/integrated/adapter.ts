@@ -546,7 +546,18 @@ export function buildCrossRows(
       adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null,
     ],
     ['fortune', evalFortune(fortuneShinsal, emphasized)],
-    ['relations', evalRelations(hap, chung, harmonious, hard)],
+    [
+      'relations',
+      evalRelations(
+        hap,
+        chung,
+        harmonious,
+        hard,
+        crossGender,
+        // 자식성 — 남: 관성 / 여: 식상 (categoryCount 그룹).
+        ((crossGender === 'female' ? details?.식상 : details?.관성) as number | undefined) ?? 0
+      ),
+    ],
     ['strength', evalStrength(stage, topDignity)],
     [
       'temperament',
