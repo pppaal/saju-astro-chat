@@ -1243,3 +1243,31 @@
   line-height: 1.6;
   color: var(--ink);
 }
+
+/* ── LifeCurve — 인생 운세 기복 곡선 ── */
+.lifeCurveWrap {
+  margin: 18px 0 4px;
+}
+.lifeCurveLabel {
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dp-ink);
+  margin-bottom: 8px;
+}
+.lifeCurveSvg {
+  width: 100%;
+  height: 84px;
+  display: block;
+}
+.lifeCurveTick {
+  font-family: var(--dp-sans);
+  font-size: 8px;
+  fill: var(--dp-ink-mute);
+}
+.lifeCurveNow {
+  font-family: var(--dp-sans);
+  font-size: 8px;
+  font-weight: 700;
+  fill: var(--dp-accent);
+}

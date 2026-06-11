@@ -978,3 +978,67 @@
     font-size: 13px;
   }
 }
+
+/* ── SibsinStrip — 10년 세운 십신 흐름 띠 ── */
+.stripWrap {
+  margin: 18px 0 4px;
+}
+.stripLabel {
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dp-ink);
+  margin-bottom: 10px;
+}
+.strip {
+  display: flex;
+  gap: 4px;
+}
+.stripCell {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  color: #fff;
+  opacity: 0.82;
+}
+.stripCellNow {
+  opacity: 1;
+  outline: 2px solid var(--dp-accent);
+  outline-offset: 1px;
+}
+.stripHan {
+  font-family: var(--dp-serif-ko);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+.stripYr {
+  font-family: var(--dp-mono);
+  font-size: 8px;
+  opacity: 0.9;
+}
+.stripLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+.stripLegItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--dp-sans);
+  font-size: 10px;
+  color: var(--dp-ink-mute);
+}
+.stripSw {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}

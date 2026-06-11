@@ -109,6 +109,67 @@ const BRANCH_KO: Record<string, string> = {
 }
 
 // ----------------------------------------------------------------
+// SibsinStrip — 10년 세운 십신 흐름 띠. 십신 가족별 색.
+// 비겁=쪽빛 / 식상=청록 / 재성=금 / 관성=적 / 인성=보라.
+// ----------------------------------------------------------------
+const SIBSIN_FAMILY_COLOR: Record<string, string> = {
+  비견: '#4f5d96',
+  겁재: '#4f5d96',
+  식신: '#3f8a78',
+  상관: '#3f8a78',
+  편재: '#b3873a',
+  정재: '#b3873a',
+  편관: '#b03a22',
+  정관: '#b03a22',
+  편인: '#7a5a9e',
+  정인: '#7a5a9e',
+}
+function SibsinStrip({
+  years,
+  ko,
+  label,
+}: {
+  years: Array<{ year: number; sibsin?: string; now?: boolean; gz: { hanja: string } }>
+  ko: boolean
+  label: string
+}) {
+  return (
+    <div className={styles.stripWrap}>
+      <div className={styles.stripLabel}>{label}</div>
+      <div className={styles.strip}>
+        {years.map((y) => (
+          <div
+            className={`${styles.stripCell} ${y.now ? styles.stripCellNow : ''}`}
+            key={y.year}
+            title={`${y.year} · ${y.gz.hanja}${y.sibsin ? ` · ${y.sibsin}` : ''}`}
+            style={{ background: (y.sibsin && SIBSIN_FAMILY_COLOR[y.sibsin]) || '#9aa0b4' }}
+          >
+            <span className={styles.stripHan}>{y.gz.hanja[0]}</span>
+            <span className={styles.stripYr}>{`'${String(y.year).slice(2)}`}</span>
+          </div>
+        ))}
+      </div>
+      <div className={styles.stripLegend}>
+        {(
+          [
+            [ko ? '비겁' : 'Self', '#4f5d96'],
+            [ko ? '식상' : 'Output', '#3f8a78'],
+            [ko ? '재성' : 'Wealth', '#b3873a'],
+            [ko ? '관성' : 'Officer', '#b03a22'],
+            [ko ? '인성' : 'Resource', '#7a5a9e'],
+          ] as Array<[string, string]>
+        ).map(([t, c]) => (
+          <span className={styles.stripLegItem} key={t}>
+            <span className={styles.stripSw} style={{ background: c }} />
+            {t}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ----------------------------------------------------------------
 // Component
 // ----------------------------------------------------------------
 
@@ -242,6 +303,10 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         }
         items={decadeSpanItems}
       />
+
+      {decade.years && decade.years.length > 0 && (
+        <SibsinStrip years={decade.years} ko={ko} label={ko ? '10년 세운 흐름' : '10-year flow'} />
+      )}
 
       {/* ── 전문가용 상세 — 세운 흐름·교차 페어·사주 기둥 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>

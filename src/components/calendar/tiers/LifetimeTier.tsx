@@ -103,6 +103,110 @@ function ElementBars({ elements }: { elements: ElementCounts }) {
   )
 }
 
+// ============================================================================
+// LifeCurve — 인생 운세 기복 곡선 (대운별 favor −2~+2 를 0→84세 축에).
+// 히트맵 색 언어: 좋음=쪽빛, 주의=주황·적, 중립=옅게. 지금 나이 마커.
+// ============================================================================
+function LifeCurve({
+  daeun,
+  nowAge,
+  ko,
+}: {
+  daeun: Array<{ startAge: number; favor: number }>
+  nowAge: number
+  ko: boolean
+}) {
+  if (!daeun || daeun.length < 2) return null
+  const W = 320
+  const H = 84
+  const padX = 10
+  const padTop = 10
+  const padBot = 18
+  const ageMax = Math.max(84, daeun[daeun.length - 1].startAge + 10)
+  const x = (age: number) => padX + (age / ageMax) * (W - padX * 2)
+  // favor −2..+2 → y (위가 좋음). 대운은 10년 폭의 중간점에 찍는다.
+  const y = (favor: number) => {
+    const t = (favor + 2) / 4 // 0..1
+    return padTop + (1 - t) * (H - padTop - padBot)
+  }
+  const pts = daeun.map((d) => ({ px: x(d.startAge + 5), py: y(d.favor), favor: d.favor }))
+  // 부드러운 선 (Catmull-Rom → 베지어 근사)
+  const linePath = pts
+    .map((p, i) => {
+      if (i === 0) return `M ${p.px.toFixed(1)} ${p.py.toFixed(1)}`
+      const prev = pts[i - 1]
+      const cx = (prev.px + p.px) / 2
+      return `C ${cx.toFixed(1)} ${prev.py.toFixed(1)} ${cx.toFixed(1)} ${p.py.toFixed(1)} ${p.px.toFixed(1)} ${p.py.toFixed(1)}`
+    })
+    .join(' ')
+  const areaPath = `${linePath} L ${pts[pts.length - 1].px.toFixed(1)} ${H - padBot} L ${pts[0].px.toFixed(1)} ${H - padBot} Z`
+  const midY = y(0)
+  const nowX = x(Math.min(nowAge, ageMax))
+  const ticks = [0, 20, 40, 60, 80].filter((t) => t <= ageMax)
+  return (
+    <div className={styles.lifeCurveWrap}>
+      <div className={styles.lifeCurveLabel}>
+        {ko ? '인생 곡선 · 운세 기복' : 'Life curve · the arc of fortune'}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className={styles.lifeCurveSvg} preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="lcFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(79,93,150,0.30)" />
+            <stop offset="100%" stopColor="rgba(79,93,150,0.02)" />
+          </linearGradient>
+        </defs>
+        {/* 중립선 */}
+        <line
+          x1={padX}
+          y1={midY}
+          x2={W - padX}
+          y2={midY}
+          stroke="var(--line)"
+          strokeWidth={1}
+          strokeDasharray="2 3"
+        />
+        <path d={areaPath} fill="url(#lcFill)" />
+        <path
+          d={linePath}
+          fill="none"
+          stroke="rgba(79,93,150,0.9)"
+          strokeWidth={2}
+          strokeLinejoin="round"
+        />
+        {/* 대운 점 — 좋음/주의 색 */}
+        {pts.map((p, i) => (
+          <circle
+            key={i}
+            cx={p.px}
+            cy={p.py}
+            r={2.6}
+            fill={p.favor > 0 ? '#4f5d96' : p.favor < 0 ? '#c0741f' : '#9aa0b4'}
+          />
+        ))}
+        {/* 지금 */}
+        <line
+          x1={nowX}
+          y1={padTop - 2}
+          x2={nowX}
+          y2={H - padBot}
+          stroke="var(--dp-accent)"
+          strokeWidth={1.4}
+        />
+        <circle cx={nowX} cy={padTop - 2} r={2.4} fill="var(--dp-accent)" />
+        {/* 나이 눈금 */}
+        {ticks.map((t) => (
+          <text key={t} x={x(t)} y={H - 5} className={styles.lifeCurveTick} textAnchor="middle">
+            {t}
+          </text>
+        ))}
+        <text x={nowX} y={H - 5} className={styles.lifeCurveNow} textAnchor="middle">
+          {ko ? '지금' : 'now'}
+        </text>
+      </svg>
+    </div>
+  )
+}
+
 function LayerTag({ kind }: { kind: 'saju' | 'astro' }) {
   const isSaju = kind === 'saju'
   return (
@@ -417,6 +521,13 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             : (lifetime.lifePattern?.lineEn ?? lifetime.lifePattern?.line)
         }
       />
+      {lifetime.lifePattern?.daeun && lifetime.lifePattern.daeun.length >= 2 && (
+        <LifeCurve
+          daeun={lifetime.lifePattern.daeun}
+          nowAge={lifetime.currentYear - lifetime.birthYear}
+          ko={ko}
+        />
+      )}
       <CrossingList
         heading={ko ? '인생의 큰 마디 · 사주와 점성' : 'Life’s major turns · Saju & Astrology'}
         items={crossingItems}
