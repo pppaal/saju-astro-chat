@@ -724,8 +724,7 @@ export function deriveLifetimeFlow(
   const advanced = natal.saju.analyses
 
   // 옛 (1) 종합 점수 — calculateComprehensiveScore + S~F 등급은 2026-06-06 폐기.
-  const scoreIntroKo = ''
-  const scoreIntroEn = ''
+  // (빈 scoreIntroKo/En 死변수도 2026-06 제거 — parts 에 항상 falsy 라 무의미했다.)
 
   // (2) 십성 비중 — sibsin.categoryCount 의 dominant 카테고리 (% 환산)
   let sibsinIntroKo = ''
@@ -864,7 +863,6 @@ export function deriveLifetimeFlow(
       ? `On the Saju side, ${dm} day master, ${strengthEn}; you shine when ${yongEn} elements back you up.`
       : `On the Saju side, ${dm} day master, ${strengthEn}.`
     const parts: string[] = []
-    if (scoreIntroEn) parts.push(scoreIntroEn)
     parts.push(head)
     if (geokgukIntroEn) parts.push(geokgukIntroEn)
     if (sibsinIntroEn) parts.push(sibsinIntroEn)
@@ -886,7 +884,6 @@ export function deriveLifetimeFlow(
       ? `사주로는 ${dm} 일간으로 ${strengthKo}, 용신 ${yongKo}${gaI(yongKo)} 받쳐줄 때 잘 풀려요.`
       : `사주로는 ${dm} 일간으로 ${strengthKo}.`
     const parts: string[] = []
-    if (scoreIntroKo) parts.push(scoreIntroKo)
     parts.push(head)
     if (geokgukIntroKo) parts.push(geokgukIntroKo)
     if (sibsinIntroKo) parts.push(sibsinIntroKo)

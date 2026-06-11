@@ -115,7 +115,13 @@ function getRegisteredExtractors(): SignalExtractor[] {
     sajuJohuYongsinExtractor,
     // ── 본명 fact-layer 활성화 (natalShinsal / natalRelations / fiveElements) ──
     sajuShinsalActivationExtractor,
-    sajuNatalBranchRelationExtractor,
+    // sajuNatalBranchRelationExtractor — 등록 해제(2026-06). saju-hyeongchung 의
+    // strict subset 이었다: 일진 지지 vs 본명 4지지의 충/육합/삼합/형을 *더 약한*
+    // polarity·weight 로 재발화(충 -2 vs hyeongchung -3 등)해 같은 사실을 두 번
+    // 점수에 얹고(이중계산) 라인도 중복시켰다. hyeongchung 이 같은 4관계를 자형
+    // (辰辰/午午/酉酉/亥亥)까지 포함해 본명 4지지 전체에 대해 이미 잡으므로 커버리지
+    // 손실 0. 코드/파일은 보존(향후 분화 대비) — 등록만 끔.
+    // sajuNatalBranchRelationExtractor,
     sajuElementBalanceExtractor,
     sajuJijangganExtractor,
     sajuGeokgukExtractor,
@@ -204,14 +210,24 @@ function groupIntoCells(
     }
   }
 
+  // 신살 이중발화 dedup — saju-shinsal(룰 재평가)과 saju-shinsal-activation
+  // (본명 신살 활성)이 같은 신살을 같은 날 각자 emit 했다. 이름이 'X' vs 'X 활성'
+  // 으로 달라 summary dedup(문자열 일치)을 빠져나가 점수 이중계산 + 라인 중복이
+  // 났다. 같은 (kind 'shinsal', 기저 신살명)은 1개만 — impact(|polarity|×weight)
+  // 큰 쪽을 첫 등장 위치에 남긴다. 한쪽 lens 만 잡은 신살은 그대로 보존.
+  for (const cell of cells.values()) {
+    cell.signals = dedupeShinsalSignals(cell.signals)
+  }
+
   // derivers — 점수·패턴·요약 계산 (점수는 부산물)
   // 패턴을 먼저 검출하고, 점수 계산에 패턴 보너스 반영.
   //
-  // score/pattern 입력에서 *정적 본명*(명사) 신호를 제외한다. 그날 가변 신호가
-  // 아니라 본명 자체 표지라 매일 같은 impact를 깔아 점수를 오염시킨다(강한 사주
-  // 사용자만 매일 좋음으로 inflate — "다 좋네 ㅋ" 편향). narrative(cell.signals
-  // 그대로)에는 유지 — 카드에서 본명 격국 확인. 흐름/리포트 분리는
-  // docs/운흐름.md §0.5.8 / RAW_DISTRIBUTION.md §2.5(🔴) 참조.
+  // score/pattern *및 사유 칩*(topReasons/cautions) 입력에서 *정적 본명*(명사)
+  // 신호를 제외한다. 그날 가변 신호가 아니라 본명 자체 표지라 매일 같은 줄·impact
+  // 를 깔아 점수를 오염시키고(강한 사주만 매일 좋음 inflate) 칩 목록도 매일 같은
+  // 줄로 도배한다(예: 'geokguk-status' 가 daily·±1 로 매일 같은 칩). 본명 표지는
+  // 일 tier 의 전체 signal stream(cell.signals 그대로)에 남아 카드에서 확인 가능.
+  // 흐름/리포트 분리는 docs/운흐름.md §0.5.8 / RAW_DISTRIBUTION.md §2.5(🔴) 참조.
   //  - 'saju-pattern'   : 본명 격국명·일주 archetype (decadal 배경)
   //  - 'geokguk-status' : 본명 격국 성패(±1, daily emit) — v4 추가
   const STATIC_NATAL_KINDS = new Set(['saju-pattern', 'geokguk-status'])
@@ -219,10 +235,10 @@ function groupIntoCells(
     const scoreSignals = cell.signals.filter((s) => !STATIC_NATAL_KINDS.has(s.kind))
     cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(scoreSignals)
     cell.derivedScore = deriveScore(scoreSignals, cell.matchedPatterns)
-    cell.topReasons = deriveTopReasons(cell.signals, 5, 'ko')
-    cell.cautions = deriveCautions(cell.signals, 5, 'ko')
-    cell.topReasonsEn = deriveTopReasons(cell.signals, 5, 'en')
-    cell.cautionsEn = deriveCautions(cell.signals, 5, 'en')
+    cell.topReasons = deriveTopReasons(scoreSignals, 5, 'ko')
+    cell.cautions = deriveCautions(scoreSignals, 5, 'ko')
+    cell.topReasonsEn = deriveTopReasons(scoreSignals, 5, 'en')
+    cell.cautionsEn = deriveCautions(scoreSignals, 5, 'en')
   }
 
   // 현저도(salience) — derivedScore(우호도)와 직교하는 "큰 날" 축. base-rate 는
@@ -282,6 +298,49 @@ function* cellsBetween(
 
 function stripEvidence(signal: ActiveSignal): ActiveSignal {
   return { ...signal, evidence: { module: signal.evidence.module, detail: {} } }
+}
+
+/**
+ * 한 셀 안 신살(kind 'shinsal') 이중발화 제거. saju-shinsal 과
+ * saju-shinsal-activation 이 같은 신살을 'X' / 'X 활성' 두 이름으로 emit 해
+ * 점수·라인이 중복됐다. 기저 신살명(접미사 '활성' 제거)으로 묶어 impact 큰 쪽만
+ * 첫 등장 위치에 남긴다. shinsal 이 아닌 신호는 순서·내용 그대로 통과.
+ */
+function dedupeShinsalSignals(signals: ActiveSignal[]): ActiveSignal[] {
+  const impact = (s: ActiveSignal) => Math.abs(s.polarity) * s.weight
+  const keyOf = (s: ActiveSignal): string | null =>
+    s.kind === 'shinsal' ? `shinsal:${s.name.replace(/\s*활성\s*$/, '').trim()}` : null
+
+  // 1차 — 키별 최강 신호 선택(동점이면 weight, 그래도 동점이면 id 로 결정론).
+  const best = new Map<string, ActiveSignal>()
+  for (const s of signals) {
+    const k = keyOf(s)
+    if (!k) continue
+    const cur = best.get(k)
+    if (
+      !cur ||
+      impact(s) > impact(cur) ||
+      (impact(s) === impact(cur) &&
+        (s.weight > cur.weight || (s.weight === cur.weight && s.id < cur.id)))
+    ) {
+      best.set(k, s)
+    }
+  }
+
+  // 2차 — 원래 순서 보존, 각 키 첫 등장에서 최강 신호를 emit, 이후 동일 키는 skip.
+  const emitted = new Set<string>()
+  const out: ActiveSignal[] = []
+  for (const s of signals) {
+    const k = keyOf(s)
+    if (!k) {
+      out.push(s)
+      continue
+    }
+    if (emitted.has(k)) continue
+    emitted.add(k)
+    out.push(best.get(k)!)
+  }
+  return out
 }
 
 /**
