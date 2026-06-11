@@ -329,10 +329,20 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
 
   // '연중'(1년 내내) 교차가 다수면 화면이 안 읽힌다 → 특정 시기(월 구간) 교차를
   // 먼저 시간순으로, 연중 배경은 의미 강한 것 위주로 최대 5개만(중립 제외).
+  // 같은 행성이 여러 십신과 겹쳐 도배되지 않게 행성당 최대 2줄 (예: ×목성 3연속 방지).
   const dated = enriched.filter((e) => !e.yearLong).sort((a, b) => a.sortStart - b.sortStart)
+  const planetOf = (t: string) => t.split('×')[1]?.trim() ?? t
+  const perPlanet = new Map<string, number>()
   const yearLong = enriched
     .filter((e) => e.yearLong && e.abs > 0)
     .sort((a, b) => b.abs - a.abs)
+    .filter((e) => {
+      const p = planetOf(e.title)
+      const n = perPlanet.get(p) ?? 0
+      if (n >= 2) return false
+      perPlanet.set(p, n + 1)
+      return true
+    })
     .slice(0, 5)
   return [...dated, ...yearLong].map(({ when, title, detail, tone }) => ({
     when,

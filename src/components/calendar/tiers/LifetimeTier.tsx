@@ -348,13 +348,16 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     )
     const all = [...sj, ...as]
     if (all.length === 0) continue
+    // '×' 는 사주·점성 *양쪽* 마디가 실제로 있을 때만 — 한쪽뿐이면 '·' 병기
+    // (단일 시스템 마디를 교차로 과장하지 않기, Day tier 와 같은 원칙).
+    const bothSystems = sj.length > 0 && as.length > 0
     crossingItems.push({
       sort: c.startYear,
       when: c.startYear === c.endYear ? `${c.startYear}` : `${c.startYear}–${c.endYear}`,
       title: all
         .map((m) => evHead(m.label))
         .slice(0, 3)
-        .join(' × '),
+        .join(bothSystems ? ' × ' : ' · '),
       detail: all.map((m) => evWhy(m.label)).find(Boolean),
       past: c.endYear < lifetime.currentYear,
     })
@@ -397,7 +400,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         headline={lifetime.lifePattern?.ko ?? '내 인생 흐름'}
         sub={lifetime.lifePattern?.line}
       />
-      <CrossingList heading="인생의 교차점 · 사주 × 점성" items={crossingItems} />
+      <CrossingList heading="인생의 큰 마디 · 사주와 점성" items={crossingItems} />
 
       {/* ── 전문가용 상세 — 사주 원국·대운·신살·12운성·점성 일체를 접어 둔다. ── */}
       <details className={summaryStyles.details}>
