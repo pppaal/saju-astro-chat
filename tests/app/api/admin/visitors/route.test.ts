@@ -96,6 +96,22 @@ describe('GET /api/admin/visitors', () => {
     expect(data.devices).toHaveLength(2)
   })
 
+  it('returns notReady (not 500) when the PageView table is missing', async () => {
+    vi.mocked(getServerSession).mockResolvedValue(adminSession as never)
+    vi.mocked(isAdminUser).mockResolvedValue(true)
+    const tableErr = Object.assign(new Error('relation "PageView" does not exist'), {
+      code: '42P01',
+    })
+    vi.mocked(prisma.$queryRaw).mockRejectedValue(tableErr)
+
+    const res = await GET(req())
+    expect(res.status).toBe(200)
+    const data = (await res.json()).data
+    expect(data.notReady).toBe(true)
+    expect(data.daily).toEqual([])
+    expect(data.summary.visits).toBe(0)
+  })
+
   it('handles empty data without dividing by zero', async () => {
     vi.mocked(getServerSession).mockResolvedValue(adminSession as never)
     vi.mocked(isAdminUser).mockResolvedValue(true)

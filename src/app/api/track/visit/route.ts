@@ -85,21 +85,29 @@ export const POST = withApiMiddleware(
         }
       })()
 
-      await prisma.pageView.create({
-        data: {
-          visitorId,
-          path,
-          referrerHost: referrerHost(body.referrer, selfHost),
-          isLoggedIn: Boolean(context.userId),
-          userId: context.userId ?? null,
-          country: country ? country.slice(0, 8) : null,
-          device,
-        },
-      })
+      // 트래킹은 best-effort. DB 쓰기 실패(예: 배포 직후 PageView 테이블 부재)
+      // 해도 사용자 페이지에 영향 주면 안 되므로 삼키고 200 으로 응답한다.
+      try {
+        await prisma.pageView.create({
+          data: {
+            visitorId,
+            path,
+            referrerHost: referrerHost(body.referrer, selfHost),
+            isLoggedIn: Boolean(context.userId),
+            userId: context.userId ?? null,
+            country: country ? country.slice(0, 8) : null,
+            device,
+          },
+        })
+      } catch (dbErr) {
+        logger.warn('[track/visit] db write skipped', {
+          code: (dbErr as { code?: string })?.code,
+        })
+        return apiSuccess({ skipped: true } as Record<string, unknown>)
+      }
 
       return apiSuccess({ ok: true } as Record<string, unknown>)
     } catch (err) {
-      // 트래킹은 best-effort — 실패해도 사용자 경험에 영향 주지 않게 200 으로 흘린다.
       logger.warn('[track/visit] failed', { err })
       return apiError(ErrorCodes.INTERNAL_ERROR, 'track_failed')
     }

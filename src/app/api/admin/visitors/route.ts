@@ -41,15 +41,21 @@ export const GET = withApiMiddleware(
       const days = Number.isFinite(daysRaw) && daysRaw > 0 && daysRaw <= 365 ? daysRaw : 30
       const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
-      const [totalsRows, dailyRows, pathRows, referrerRows, deviceRows] = await Promise.all([
-        prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+      let totalsRows: Array<Record<string, unknown>>
+      let dailyRows: Array<Record<string, unknown>>
+      let pathRows: Array<Record<string, unknown>>
+      let referrerRows: Array<Record<string, unknown>>
+      let deviceRows: Array<Record<string, unknown>>
+      try {
+        ;[totalsRows, dailyRows, pathRows, referrerRows, deviceRows] = await Promise.all([
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             COUNT(*) AS pageviews,
             COUNT(DISTINCT "visitorId") AS visits,
             COUNT(DISTINCT "visitorId") FILTER (WHERE "isLoggedIn") AS logged_in_visits
           FROM "PageView" WHERE "createdAt" >= ${since}
         `),
-        prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             to_char(date_trunc('day', "createdAt"), 'YYYY-MM-DD') AS day,
             COUNT(*) AS pageviews,
@@ -58,22 +64,49 @@ export const GET = withApiMiddleware(
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY 1
         `),
-        prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT "path", COUNT(*) AS pageviews, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY "path" ORDER BY pageviews DESC LIMIT 15
         `),
-        prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT "referrerHost" AS host, COUNT(*) AS pageviews, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since} AND "referrerHost" IS NOT NULL
           GROUP BY "referrerHost" ORDER BY visits DESC LIMIT 10
         `),
-        prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT COALESCE("device", 'unknown') AS device, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY visits DESC
         `),
-      ])
+        ])
+      } catch (err) {
+        // 배포 직후 / phantom-apply 로 PageView 테이블이 아직 없을 수 있다.
+        // 그땐 ISE 대신 빈 데이터(notReady)로 응답해 탭이 안전하게 뜨게 한다.
+        const code = (err as { code?: string })?.code
+        const msg = err instanceof Error ? err.message : String(err)
+        const tableMissing =
+          code === 'P2021' ||
+          code === '42P01' ||
+          /relation .* does not exist|does not exist/i.test(msg)
+        if (!tableMissing) throw err
+        logger.warn('[admin/visitors] PageView table not ready — returning empty dataset')
+        return apiSuccess({
+          rangeDays: days,
+          notReady: true,
+          summary: {
+            pageviews: 0,
+            visits: 0,
+            loggedInVisits: 0,
+            anonymousVisits: 0,
+            loginShare: 0,
+          },
+          daily: [],
+          topPaths: [],
+          topReferrers: [],
+          devices: [],
+        } as Record<string, unknown>)
+      }
 
       const t = totalsRows[0] || {}
       const visits = num(t.visits)

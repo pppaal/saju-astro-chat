@@ -17,6 +17,7 @@ interface NameRow {
 }
 interface VisitorsData {
   rangeDays: number
+  notReady?: boolean
   summary: {
     pageviews: number
     visits: number
@@ -103,6 +104,11 @@ export default function VisitorsClient() {
       {loading && !data ? (
         <div className="rounded-2xl border border-stone-200 bg-white p-10 text-center text-sm text-stone-500">
           불러오는 중…
+        </div>
+      ) : data?.notReady ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center text-sm text-amber-800">
+          방문자 집계 테이블이 아직 준비 중입니다. 배포(마이그레이션)가 끝나면 자동으로 표시됩니다.
+          잠시 후 새로고침해 주세요.
         </div>
       ) : data ? (
         <div className="space-y-6">
