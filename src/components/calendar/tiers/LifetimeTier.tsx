@@ -28,6 +28,7 @@ import type {
 import styles from './LifetimeTier.module.css'
 import { TierSummary } from '@/components/calendar/atoms/TierSummary'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
+import { useI18n } from '@/i18n/I18nProvider'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 
 // ============================================================================
@@ -252,6 +253,8 @@ function LifeTimeline({ lifetime }: { lifetime: DestinyLifetime }) {
 // ============================================================================
 
 export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const { lifeStages, daewoon, milestones, zrSpiritChapters, zrFortuneChapters } = lifetime
 
   // constellation node positions across the width (원본과 동일)
@@ -369,10 +372,15 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     crossingItems.push({
       sort: lifetime.currentYear + 0.1,
       when: `${lifetime.currentYear}`,
-      title: [nowDw ? `${nowDw.gz.hanja} 대운` : '', nowCh ? `${zodiacKo(nowCh.sign)} 흐름` : '']
+      title: [
+        nowDw ? (ko ? `${nowDw.gz.hanja} 대운` : `${nowDw.gz.hanja} cycle`) : '',
+        nowCh ? (ko ? `${zodiacKo(nowCh.sign)} 흐름` : `${nowCh.sign} chapter`) : '',
+      ]
         .filter(Boolean)
         .join(' × '),
-      detail: '지금 지나는 사주×점성 구간 — 이 흐름 안에서 위아래 교차점이 펼쳐져요.',
+      detail: ko
+        ? '지금 지나는 사주×점성 구간 — 이 흐름 안에서 위아래 교차점이 펼쳐져요.'
+        : 'The Saju × Astrology window you’re in now — crossings unfold within it.',
       now: true,
     })
   }
@@ -383,8 +391,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       {/* ============================================================
           intro
       ============================================================ */}
-      <div className={styles.eyebrow}>인생 · LIFETIME · 84년</div>
-      <h1 className={styles.display}>내 인생 전체 흐름</h1>
+      <div className={styles.eyebrow}>{ko ? '인생 · LIFETIME · 84년' : 'LIFETIME · 84 years'}</div>
+      <h1 className={styles.display}>{ko ? '내 인생 전체 흐름' : 'My whole life'}</h1>
       <p className={`${styles.tiny} ${styles.headerMeta}`}>
         {user.birthKo} · {user.place} · {user.sex}
         {astroSegs.length > 0 ? (
@@ -397,14 +405,19 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 
       {/* ── 한 줄 요약 + 교차 리스트. 그게 전부. ── */}
       <TierSummary
-        headline={lifetime.lifePattern?.ko ?? '내 인생 흐름'}
+        headline={lifetime.lifePattern?.ko ?? (ko ? '내 인생 흐름' : 'My life flow')}
         sub={lifetime.lifePattern?.line}
       />
-      <CrossingList heading="인생의 큰 마디 · 사주와 점성" items={crossingItems} />
+      <CrossingList
+        heading={ko ? '인생의 큰 마디 · 사주와 점성' : 'Life’s big turns · Saju & Astrology'}
+        items={crossingItems}
+      />
 
       {/* ── 전문가용 상세 — 사주 원국·대운·신살·12운성·점성 일체를 접어 둔다. ── */}
       <details className={summaryStyles.details}>
-        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 사주 원국과 근거</summary>
+        <summary className={summaryStyles.detailsSummary}>
+          {ko ? '자세히 보기 · 사주 원국과 근거' : 'Details · natal chart & evidence'}
+        </summary>
 
         {/* 공유용 정체성 카드 (③) — 기존 데이터(일간·격국·인생유형·점성) 압축. */}
         {lifetime.lifePattern && (
@@ -683,7 +696,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 
       <div className={styles.diveWrap}>
         <button className={styles.dive} onClick={onDive} type="button">
-          올해 {lifetime.currentYear}으로 줌인 <span className={styles.arrow}>↓</span>
+          {ko ? `올해 ${lifetime.currentYear}으로 줌인` : `Zoom in to ${lifetime.currentYear}`}{' '}
+          <span className={styles.arrow}>↓</span>
         </button>
       </div>
     </div>
