@@ -14,6 +14,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { generateJsonLd } from '@/components/seo/SEO'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 import { MicrosoftClarity } from '@/components/analytics/MicrosoftClarity'
+import { VisitorBeacon } from '@/components/analytics/VisitorBeacon'
 import AuthProvider from '@/components/AuthProvider'
 import ScrollRestoration from '@/components/ui/ScrollRestoration'
 import GlobalHeader from '@/components/ui/GlobalHeader'
@@ -103,7 +104,7 @@ export const metadata: Metadata = {
     template: '%s | DestinyPal',
   },
   description:
-    "AI reads your Saju (Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.",
+    'AI reads your Saju (Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
   keywords: [
     // Core brand
     'DestinyPal',
@@ -168,7 +169,7 @@ export const metadata: Metadata = {
     siteName: 'DestinyPal',
     title: 'DestinyPal — AI Saju, Astrology, Tarot & Fortune Calendar',
     description:
-      "AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.",
+      'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
     images: [
       {
         url: '/og-card-v2.png',
@@ -182,7 +183,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'DestinyPal — AI Saju, Astrology, Tarot & Fortune Calendar',
     description:
-      "AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar.",
+      'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar.',
     images: ['/og-card-v2.png'],
     creator: '@destinypal',
     site: '@destinypal',
@@ -275,6 +276,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <ErrorBoundaryProvider>
             <AuthProvider>
               <WebVitalsReporter />
+              <Suspense fallback={null}>
+                <VisitorBeacon />
+              </Suspense>
               <ScrollRestoration />
               <ClientProviders initialLocale={serverLocale}>
                 <StarrySky />
