@@ -60,6 +60,7 @@ function setupHappyPath(overrides?: {
   bonusOutstanding?: number
   purchaseCount?: number
   purchasesToday?: number
+  purchases7d?: number
   purchases30d?: number
   payingUsers?: number
 }) {
@@ -74,6 +75,7 @@ function setupHappyPath(overrides?: {
     bonusOutstanding: 1234,
     purchaseCount: 80,
     purchasesToday: 2,
+    purchases7d: 10,
     purchases30d: 25,
     payingUsers: 40,
     ...overrides,
@@ -108,11 +110,11 @@ function setupHappyPath(overrides?: {
     _sum: { remaining: o.bonusOutstanding },
   } as any)
 
-  // bonusCreditPurchase.count order: total purchase, today, 30d
+  // bonusCreditPurchase.count order: total purchase, today, 7d, 30d
   let bcpCalls = 0
   vi.mocked(prisma.bonusCreditPurchase.count).mockImplementation(async () => {
     bcpCalls += 1
-    return [o.purchaseCount, o.purchasesToday, o.purchases30d][bcpCalls - 1] ?? 0
+    return [o.purchaseCount, o.purchasesToday, o.purchases7d, o.purchases30d][bcpCalls - 1] ?? 0
   })
 
   vi.mocked(prisma.bonusCreditPurchase.groupBy).mockResolvedValue(
@@ -189,6 +191,7 @@ describe('GET /api/admin/overview', () => {
       const data = (await (await GET(createRequest())).json()).data
       expect(data.purchases.total).toBe(80)
       expect(data.purchases.today).toBe(2)
+      expect(data.purchases.last7d).toBe(10)
       expect(data.purchases.last30d).toBe(25)
       // source 기본값이 'purchase' 라 신뢰 불가 → stripePaymentId 로 실결제 판별
       const purchaseWhere = vi.mocked(prisma.bonusCreditPurchase.count).mock.calls[0][0] as any
@@ -218,6 +221,7 @@ describe('GET /api/admin/overview', () => {
         bonusOutstanding: 0,
         purchaseCount: 0,
         purchasesToday: 0,
+        purchases7d: 0,
         purchases30d: 0,
         payingUsers: 0,
       })
