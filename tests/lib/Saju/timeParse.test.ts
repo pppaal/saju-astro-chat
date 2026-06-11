@@ -47,10 +47,12 @@ describe('parseHourMinute', () => {
       expect(parseHourMinute('12:00 am')).toEqual({ h: 0, m: 0 })
     })
 
-    it('공백 없이 붙은 PM 은 적용되지 않고 suffix 만 제거된다 (현재 계약)', () => {
-      // '45PM' 에는 \b 단어 경계가 없어 /\bPM$/ 미매치 → 12시간 가산 없이
-      // suffix 만 strip. 현행 동작을 그대로 잠근다 (입력은 'HH:MM AM|PM' 형식).
-      expect(parseHourMinute('1:45PM')).toEqual({ h: 1, m: 45 })
+    it('공백 없이 붙은 PM 도 12시간 가산이 적용된다 (버그 수정)', () => {
+      // 과거엔 /\bPM$/ 가 '45PM' 의 경계 부재로 미매치 → strip 만 되어
+      // 01:45 로 오파싱(시주 12시간 어긋남)됐다. 접미사 매치로 교정.
+      expect(parseHourMinute('1:45PM')).toEqual({ h: 13, m: 45 })
+      expect(parseHourMinute('12AM')).toEqual({ h: 0, m: 0 })
+      expect(parseHourMinute('12:30am')).toEqual({ h: 0, m: 30 })
     })
   })
 

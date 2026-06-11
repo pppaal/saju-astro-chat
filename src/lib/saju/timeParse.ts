@@ -9,8 +9,12 @@ export function parseHourMinute(t: string): { h: number; m: number } {
   const s = String(t ?? '')
     .trim()
     .toUpperCase()
-  const isPM = /\bPM$/.test(s)
-  const isAM = /\bAM$/.test(s)
+  // 경계 없는 매치 — '1:45PM' 처럼 숫자에 PM 이 바로 붙으면 \bPM$ 은 단어
+  // 경계가 없어 실패하는데, 아래 strip 은 PM 을 떼어버려 12시간 정보만
+  // 소실됐다(01:45 로 오파싱 → 시주 12시간 어긋남). 입력은 시간 문자열로
+  // 한정되므로 단순 접미사 매치가 정확하다.
+  const isPM = /PM$/.test(s)
+  const isAM = /AM$/.test(s)
   const core = s.replace(/\s?(AM|PM)$/i, '')
   const [hh = '0', mm = '0'] = core.split(':')
   let h = Number(hh)

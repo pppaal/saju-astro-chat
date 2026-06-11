@@ -16,18 +16,9 @@ export type SavedPerson = {
   tzId?: string | null
 }
 
-export type Relation =
-  | 'lover'
-  | 'crush'
-  | 'spouse'
-  | 'engaged'
-  | 'ex'
-  | 'family'
-  | 'sibling'
-  | 'friend'
-  | 'colleague'
-  | 'business'
-  | 'other'
+// Relation 실체는 src/lib/compatibility/relationTypes.ts 로 이동(2026-06-11)
+// — lib→app 역참조 교정. 기존 import 경로 호환용 re-export.
+export type { Relation } from '@/lib/compatibility/relationTypes'
 
 export type CityItem = {
   name: string
