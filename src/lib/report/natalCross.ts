@@ -103,6 +103,18 @@ export function signToSajuElement(sign: string | undefined): SajuElement | undef
   return a === 'air' ? 'wood' : a
 }
 
+// 공기(air) 별자리는 생극 계산상 木으로 대응하지만, 묘사를 木의 결("뻗어나가
+// 키우는")로 쓰면 물병·쌍둥이·천칭이 "확장·성장형"으로 잘못 읽힌다. 공기 별자리에서
+// 온 트레잇은 공기 본연의 결로 표기 — 생극 매핑(木)은 그대로 두고 문구만 교정.
+const AIR_TRAIT = { ko: '퍼뜨리고 연결하는', en: 'circulating and connecting' }
+function signTraitOverride(sign: string | undefined): { ko: string; en: string } | undefined {
+  return sign && SIGN_TO_ASTRO_ELEMENT[sign] === 'air' ? AIR_TRAIT : undefined
+}
+// 공기 별자리는 원소명도 '木' 대신 '공기'로 표기 — 木(사주)과 헷갈리지 않도록.
+function signElementLabel(sign: string | undefined): { ko: string; en: string } | undefined {
+  return sign && SIGN_TO_ASTRO_ELEMENT[sign] === 'air' ? { ko: '공기', en: 'Air' } : undefined
+}
+
 export type ElementRelation = 'same' | 'aGenB' | 'bGenA' | 'aCtrlB' | 'bCtrlA' | 'none'
 
 export function elementRelation(a: SajuElement, b: SajuElement): ElementRelation {
@@ -142,10 +154,12 @@ export function evalIdentity(
     aEn: 'inner nature',
     bKo: '드러나는 자아',
     bEn: 'outer self',
+    bTrait: signTraitOverride(sunSign),
+    bLabel: signElementLabel(sunSign),
   })
   const c = signToSajuElement(ascSign)
   if (!c) return base
-  const tc = ELEMENT_TRAIT[c]
+  const tc = signTraitOverride(ascSign) ?? ELEMENT_TRAIT[c]
   const ascSame = c === b
   const tailKo = ascSame
     ? ` 남에게 비치는 첫인상도 ${tc.ko} 결이라, 속·자아·첫인상이 한 줄로 또렷하게 이어져요.`
@@ -165,7 +179,7 @@ export function evalNeeds(
   const moon = signToSajuElement(moonSign)
   if (!need || !moon) return null
   const tNeed = ELEMENT_TRAIT[need]
-  const tCrave = ELEMENT_TRAIT[moon]
+  const tCrave = signTraitOverride(moonSign) ?? ELEMENT_TRAIT[moon]
   if (moon === need)
     return {
       tone: 'resonant',
@@ -218,7 +232,7 @@ export function evalSocialRole(
       tone: 'resonant',
       reason: {
         ko: `타고난 ${tk} 성향이, 별자리가 보는 사회적 자리에서도 힘을 받아요 — 타고난 결이 직업·사회 자리에서 그대로 강점으로 드러나는 구조예요. 자기 성향을 억지로 바꿔 가며 일하지 않아도 돼서, 본래 모습 그대로 신뢰받고 자리를 잡기 좋아요. 이 강점을 살릴 무대를 일찍 고를수록 성취가 빨라져요.`,
-        en: `Your natural ${te} bent also sits in a strong spot in how you show up in the world — your innate grain shows up directly as a strength in work and status. You don't have to remake yourself to work, so you earn trust and footing as you are. The earlier you pick a stage that uses this, the faster the achievement comes.`,
+        en: `Your natural bent for ${te} also sits in a strong spot in how you show up in the world — your innate grain shows up directly as a strength in work and status. You don't have to remake yourself to work, so you earn trust and footing as you are. The earlier you pick a stage that uses this, the faster the achievement comes.`,
       },
     }
   if (dig === 'detriment' || dig === 'fall')
@@ -226,14 +240,14 @@ export function evalSocialRole(
       tone: 'tension',
       reason: {
         ko: `타고난 ${tk} 성향과, 별자리가 보여주는, 사회가 기대하는 역할이 살짝 어긋나요 — 직업에서 "이게 정말 내 길인가" 하는 고민이 한 번씩 생길 수 있어요. 남들 기준에 자기를 맞추다 지치기 쉬운 구조라, 사회적 정답보다 자기 성향이 살아나는 방식을 찾는 게 핵심이에요. 어긋남을 약점으로 보지 말고, 남과 다른 길을 내는 신호로 쓰면 오히려 독보적이 돼요.`,
-        en: `Your natural ${te} bent and the role the world expects of you don't quite line up — work can periodically raise a "is this really my path?" doubt. It's easy to wear out bending yourself to others' standards, so the key is finding a way that keeps your own grain alive rather than the social "correct answer." Read the mismatch not as a flaw but as a signal to carve a different path, and it makes you one of a kind.`,
+        en: `Your natural bent for ${te} and the role the world expects of you don't quite line up — work can periodically raise a "is this really my path?" doubt. It's easy to wear out bending yourself to others' standards, so the key is finding a way that keeps your own grain alive rather than the social "correct answer." Read the mismatch not as a flaw but as a signal to carve a different path, and it makes you one of a kind.`,
       },
     }
   return {
     tone: 'complement',
     reason: {
       ko: `타고난 ${tk} 성향을, 사회생활이 다른 방식으로 넓혀줘요 — 일하면서 자기도 몰랐던 새 면이 열리는 타입이에요. 한 가지 직업관에 갇히기보다, 일을 통해 성향이 확장되는 흐름이라 커리어 전환이나 부캐가 잘 어울려요. 지금 자리가 전부라 여기지 말고 새 역할에 한 번씩 자기를 던져 보면 길이 넓어져요.`,
-      en: `Work and public life stretch your natural ${te} bent in a different direction — a type who finds new sides on the job they didn't know they had. Rather than being boxed into one idea of a career, your nature expands through work, so career pivots and side personas suit you. Don't treat your current seat as the whole story — throw yourself into a new role now and then and the path widens.`,
+      en: `Work and public life stretch your natural bent for ${te} in a fresh direction — a type who finds new sides on the job they didn't know they had. Rather than being boxed into one idea of a career, your nature expands through work, so career pivots and side personas suit you. Don't treat your current seat as the whole story — throw yourself into a new role now and then and the path widens.`,
     },
   }
 }
@@ -752,8 +766,8 @@ export function evalVoid(
     return {
       tone: 'resonant',
       reason: {
-        ko: `타고난 그릇에서 ${EL_KO[branchEl]} 기운이 비어 있는데, 별자리도 똑같이 그 자리를 짚어요 — 동·서양 둘 다 "이번 생엔 ${EL_KO[branchEl]} 영역이 자동으로는 안 채워진다"고 입을 모아요. 타고난 복이 아니라 의식적으로 만들어가야 하는 평생 과제라, 여기서 쌓은 건 온전히 자기 힘으로 얻은 거예요. 부족하다 느끼는 그 자리를 피하지 말고 작게라도 꾸준히 채워가면, 약점이 가장 단단한 강점으로 바뀌어요.`,
-        en: `There's an empty spot in your makeup around the ${EL_EN[branchEl]} theme, and the stars point to the very same place — East and West agree this area "won't fill itself this life." It isn't an inborn gift but a lifelong task you build by hand, so whatever you earn here is fully your own. Don't avoid the spot that feels lacking; fill it in small, steady steps and the weak point becomes your most solid strength.`,
+        ko: `사주의 공망(空亡)이 ${EL_KO[branchEl]} 자리에 걸려 있는데 — 가졌어도 비어 도는 자리라 오행 개수와는 별개예요 — 별자리(사우스노드)도 똑같이 그 지점을 짚어요. 동·서양 둘 다 "이번 생엔 ${EL_KO[branchEl]} 영역이 자동으로는 안 채워진다"고 입을 모아요. 타고난 복이 아니라 의식적으로 만들어가야 하는 평생 과제라, 여기서 쌓은 건 온전히 자기 힘으로 얻은 거예요. 부족하다 느끼는 그 자리를 피하지 말고 작게라도 꾸준히 채워가면, 약점이 가장 단단한 강점으로 바뀌어요.`,
+        en: `Your chart's void (空亡) falls on the ${EL_EN[branchEl]} position — a seat that stays hollow even when occupied, separate from the raw element count — and the stars (South Node) point to the very same place. East and West agree this area "won't fill itself this life." It isn't an inborn gift but a lifelong task you build by hand, so whatever you earn here is fully your own. Don't avoid the spot that feels lacking; fill it in small, steady steps and the weak point becomes your most solid strength.`,
       },
     }
   }
@@ -801,7 +815,7 @@ export function evalNorthNode(
   const nn = signToSajuElement(northNodeSign)
   if (!weak || !nn || !northNodeSign) return null
   const tw = ELEMENT_TRAIT[weak]
-  const tn = ELEMENT_TRAIT[nn]
+  const tn = signTraitOverride(northNodeSign) ?? ELEMENT_TRAIT[nn]
   if (nn === weak)
     return {
       tone: 'resonant',
@@ -1063,9 +1077,19 @@ export function synthesize(
   else if (complement >= tension && complement > 0) tone = 'complement'
   else if (tension > 0) tone = 'tension'
 
+  // resonant 가 우세로 잡혀도 complement 와 비등하면 "강하게 수렴"은 과장이다
+  // (보완=서로 다름이라 수렴이 아님). 명확한 다수일 때만 strong-converge 라벨.
+  const total = resonant + complement + tension
+  const resonantClear =
+    tone === 'resonant' &&
+    resonant > complement &&
+    resonant - complement >= Math.max(2, Math.round(total * 0.15))
+
   const labelKo =
     tone === 'resonant'
-      ? '사주와 별자리가 한 방향으로 강하게 모이는'
+      ? resonantClear
+        ? '사주와 별자리가 한 방향으로 강하게 모이는'
+        : '사주와 별자리가 대체로 같은 방향이면서 폭도 넓은'
       : tone === 'complement'
         ? '사주와 별자리가 서로 부족을 채워주는'
         : tone === 'tension'
@@ -1073,7 +1097,9 @@ export function synthesize(
           : '뚜렷한 쏠림 없이 고른'
   const labelEn =
     tone === 'resonant'
-      ? 'strongly converging'
+      ? resonantClear
+        ? 'strongly converging'
+        : 'many-sided yet aligned'
       : tone === 'complement'
         ? 'mutually complementary'
         : tone === 'tension'
@@ -1086,7 +1112,9 @@ export function synthesize(
   // 톤별 해석 한 단락 — 전체 패턴이 삶에서 어떻게 작동하는지.
   const elabKo =
     tone === 'resonant'
-      ? ' 동양(사주)과 서양(별자리)이 대체로 같은 방향을 가리켜, 자기 색이 또렷하고 추진력이 강점이에요. 다만 한쪽으로 쏠리기 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.'
+      ? resonantClear
+        ? ' 동양(사주)과 서양(별자리)이 대체로 같은 방향을 가리켜, 자기 색이 또렷하고 추진력이 강점이에요. 다만 한쪽으로 쏠리기 쉬우니, 가끔 반대 결도 의식하면 균형이 좋아져요.'
+        : ' 한 방향으로 통하는 축이 많으면서도, 서로 보완하는 축도 그만큼 있어요 — 자기 색은 또렷하되 상황 따라 여러 모습을 꺼내 쓰는 폭이 함께 있는 사람이에요.'
       : tone === 'complement'
         ? ' 두 시스템이 서로 다른 얘기를 하지만, 그게 오히려 빈자리를 메워줘요. 겉과 속, 타고난 결과 드러나는 모습이 달라 상황마다 여러 모습을 꺼내 쓰는 폭넓은 사람이에요.'
         : tone === 'tension'
@@ -1094,7 +1122,9 @@ export function synthesize(
           : ' 어느 한쪽으로 크게 쏠리지 않아 균형 감각이 좋아요. 상황에 따라 다른 면을 자연스럽게 꺼내 쓰는 유연함이 있어요.'
   const elabEn =
     tone === 'resonant'
-      ? ' East (Saju) and West (astrology) mostly point the same way, so your sense of self is clear and your drive is a strength. Just watch for one-sidedness — touch the opposite grain now and then.'
+      ? resonantClear
+        ? ' East (Saju) and West (astrology) mostly point the same way, so your sense of self is clear and your drive is a strength. Just watch for one-sidedness — touch the opposite grain now and then.'
+        : ' Many axes line up in one direction, yet just as many complement each other — your sense of self is clear, but you also carry the range to show different sides as the situation calls.'
       : tone === 'complement'
         ? ' The two systems say different things, yet they fill each other’s gaps. Inner and outer differ, giving you a wide range to draw on depending on the situation.'
         : tone === 'tension'
@@ -1130,6 +1160,12 @@ interface DomainCtx {
   /** 긴장(극) 케이스 조언 문구 override — 도메인별로 달라 중복 방지. */
   tailKo?: string
   tailEn?: string
+  /** 트레잇 묘사 override — 공기 별자리 유래 등 element-trait 가 부정확할 때. */
+  aTrait?: { ko: string; en: string }
+  bTrait?: { ko: string; en: string }
+  /** 원소명 라벨 override — 공기 별자리는 '木' 대신 '공기'로 표기. */
+  aLabel?: { ko: string; en: string }
+  bLabel?: { ko: string; en: string }
 }
 
 /**
@@ -1138,11 +1174,13 @@ interface DomainCtx {
  * 생(生) 관계는 방향(누가 누구를 키우나)까지 구분.
  */
 function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerdict {
-  const ta = ELEMENT_TRAIT[a]
-  const tb = ELEMENT_TRAIT[b]
+  const ta = d.aTrait ?? ELEMENT_TRAIT[a]
+  const tb = d.bTrait ?? ELEMENT_TRAIT[b]
   const rel = elementRelation(a, b)
-  const left = { ko: `${EL_KO[a]} · ${ta.ko}`, en: `${EL_EN[a]} · ${ta.en}` }
-  const right = { ko: `${EL_KO[b]} · ${tb.ko}`, en: `${EL_EN[b]} · ${tb.en}` }
+  const la = d.aLabel ?? { ko: EL_KO[a], en: EL_EN[a] }
+  const lb = d.bLabel ?? { ko: EL_KO[b], en: EL_EN[b] }
+  const left = { ko: `${la.ko} · ${ta.ko}`, en: `${la.en} · ${ta.en}` }
+  const right = { ko: `${lb.ko} · ${tb.ko}`, en: `${lb.en} · ${tb.en}` }
   const base: CrossVerdict = (() => {
     switch (rel) {
       case 'same':
