@@ -5,6 +5,7 @@
 // 왼쪽 세로 레일 + 점으로 시간 순서를, 오른쪽에 내용을.
 
 import styles from './CrossingList.module.css'
+import { useI18n } from '@/i18n/I18nProvider'
 
 export interface CrossingItem {
   /** 언제 — 연/월/일 등 스케일에 맞는 시점. */
@@ -20,7 +21,9 @@ export interface CrossingItem {
 }
 
 export function CrossingList({ heading, items }: { heading?: string; items: CrossingItem[] }) {
+  const { locale } = useI18n()
   if (!items || items.length === 0) return null
+  const nowLabel = locale === 'ko' ? '지금' : 'now'
   return (
     <div className={styles.wrap}>
       {heading ? <div className={styles.heading}>{heading}</div> : null}
@@ -32,7 +35,7 @@ export function CrossingList({ heading, items }: { heading?: string; items: Cros
           >
             <span className={styles.when}>
               {it.when}
-              {it.now ? <em>지금</em> : null}
+              {it.now ? <em>{nowLabel}</em> : null}
             </span>
             <span className={styles.dot} aria-hidden="true" />
             <div className={styles.body}>

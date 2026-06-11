@@ -30,6 +30,8 @@ import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './DecadeTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
+import { useI18n } from '@/i18n/I18nProvider'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 
 // ----------------------------------------------------------------
 // Props
@@ -111,6 +113,8 @@ const BRANCH_KO: Record<string, string> = {
 // ----------------------------------------------------------------
 
 export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   // years[10] mini graph — max/min 으로 scale.
   const scores = decade.years.map((y) => y.score)
   const maxScore = Math.max(...scores, 1)
@@ -140,7 +144,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     {
       // 시작 앵커 — headline 은 바로 위 oneline 에 이미 있어 중복 표기하지 않음.
       when: `${decade.start}`,
-      title: `${dgz} 대운 진입`,
+      title: ko ? `${dgz} 대운 진입` : `Entering the ${dgz} luck cycle`,
       now: cy <= decade.start,
       past: false,
     },
@@ -154,29 +158,42 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   ]
 
   // ── (상세) 10년 세운 결 — 연도별 세운 십신. 교차는 아니라 상세로 내림. ──
-  const SIBSIN_YEAR_THEME: Record<string, string> = {
-    비견: '주체·동료의 해',
-    겁재: '경쟁·분탈의 해',
-    식신: '표현·창작의 해',
-    상관: '재능·자유의 해',
-    편재: '재물·기회의 해',
-    정재: '꾸준한 축적의 해',
-    편관: '도전·추진의 해',
-    정관: '책임·자리의 해',
-    편인: '독학·사유의 해',
-    정인: '배움·지원의 해',
+  const SIBSIN_YEAR_THEME: Record<string, { ko: string; en: string }> = {
+    비견: { ko: '주체·동료의 해', en: 'Self & peers' },
+    겁재: { ko: '경쟁·분탈의 해', en: 'Rivalry & loss' },
+    식신: { ko: '표현·창작의 해', en: 'Expression & making' },
+    상관: { ko: '재능·자유의 해', en: 'Talent & freedom' },
+    편재: { ko: '재물·기회의 해', en: 'Wealth & opportunity' },
+    정재: { ko: '꾸준한 축적의 해', en: 'Steady building' },
+    편관: { ko: '도전·추진의 해', en: 'Challenge & drive' },
+    정관: { ko: '책임·자리의 해', en: 'Duty & position' },
+    편인: { ko: '독학·사유의 해', en: 'Study & reflection' },
+    정인: { ko: '배움·지원의 해', en: 'Learning & support' },
   }
   const decadeItems = decade.years.map((y) => ({
     when: `${y.year}`,
-    title: (y.sibsin && SIBSIN_YEAR_THEME[y.sibsin]) || '한 해의 흐름',
-    detail: `${y.gz.hanja}${y.gz.kr ? ` (${y.gz.kr})` : ''}${y.sibsin ? ` · 세운 ${y.sibsin}` : ''}`,
+    title:
+      (y.sibsin && SIBSIN_YEAR_THEME[y.sibsin]?.[ko ? 'ko' : 'en']) ||
+      (ko ? '한 해의 흐름' : 'a year'),
+    detail: `${y.gz.hanja}${y.gz.kr ? ` (${y.gz.kr})` : ''}${y.sibsin ? ` · ${ko ? '세운' : 'yr'} ${ko ? y.sibsin : (SIBSIN_EN[y.sibsin] ?? y.sibsin)}` : ''}`,
     now: !!y.now,
     past: y.year < (decade.focusYear ?? decade.start),
   }))
 
   // ── (상세) 이 대운에 켜진 사주 × 점성 교차 페어 — 톤(길/주의/중립). ──
   const decadeCrossItems = crossActs.map((c) => ({
-    when: c.polarity > 0 ? '길' : c.polarity < 0 ? '주의' : '중립',
+    when:
+      c.polarity > 0
+        ? ko
+          ? '길'
+          : 'good'
+        : c.polarity < 0
+          ? ko
+            ? '주의'
+            : 'caution'
+          : ko
+            ? '중립'
+            : 'neutral',
     title: c.name,
     detail: c.meaning,
   }))
@@ -184,28 +201,30 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   return (
     <div className={styles.tier} data-screen-label={`10년 ${decade.start}-${decade.end}`}>
       <button className={styles.rise} onClick={onRise} type="button">
-        ↑ 인생으로 줌아웃
+        ↑ {ko ? '인생으로 줌아웃' : 'Zoom out to lifetime'}
       </button>
 
       {/* ============================================================
           header — eyebrow / display / oneline
       ============================================================ */}
       <div className={styles.eyebrow} title="대운 — 10년 단위로 바뀌는 인생의 큰 흐름">
-        10년 · DECADE · 대운 {decade.start}-{decade.end}
+        {ko ? '10년 · DECADE · 대운' : '10 YEARS · DECADE'} {decade.start}-{decade.end}
         {decade.ageFrom != null && decade.ageTo != null && (
           <span className={styles.ageRange}>
-            · {decade.ageFrom}–{decade.ageTo}세
+            · {decade.ageFrom}–{decade.ageTo}
+            {ko ? '세' : ' yrs'}
           </span>
         )}
       </div>
       <div className={styles.headerRow}>
         <h1 className={styles.display}>
-          지금의 대운, <span className={styles.han}>{decade.gz.hanja}</span>
+          {ko ? '지금의 대운, ' : 'Current cycle, '}
+          <span className={styles.han}>{decade.gz.hanja}</span>
         </h1>
         {/* Phase 3 보강 #1 — 격국 성패 frame chip (헤더 옆). */}
         {gyeokgukLine && (
           <span className={styles.frameChip}>
-            <span className={styles.frameChipLabel}>격국 frame</span>
+            <span className={styles.frameChipLabel}>{ko ? '격국 frame' : 'Structure'}</span>
             <span className={styles.frameChipValue}>{gyeokgukLine}</span>
           </span>
         )}
@@ -214,24 +233,36 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
 
       {/* 메인 — 이 대운 안에서 사주(대운) × 점성(외행성 마디)이 교차되는 구간만. */}
       <CrossingList
-        heading={`이 대운의 사주 × 점성 교차 · ${decade.start}–${decade.end}`}
+        heading={
+          ko
+            ? `이 대운의 사주 × 점성 교차 · ${decade.start}–${decade.end}`
+            : `Saju × Astrology in this cycle · ${decade.start}–${decade.end}`
+        }
         items={decadeSpanItems}
       />
 
       {/* ── 전문가용 상세 — 세운 흐름·교차 페어·사주 기둥 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>
-        <summary className={summaryStyles.detailsSummary}>자세히 보기 · 사주·점성 근거</summary>
+        <summary className={summaryStyles.detailsSummary}>
+          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & astrology'}
+        </summary>
 
         {/* 10년 세운 결 — 연도별 세운 십신 (교차는 아님). */}
         <CrossingList
-          heading={`10년 세운 흐름 · ${decade.start}–${decade.end}`}
+          heading={
+            ko
+              ? `10년 세운 흐름 · ${decade.start}–${decade.end}`
+              : `Year-by-year · ${decade.start}–${decade.end}`
+          }
           items={decadeItems}
         />
 
         {/* 이 대운에 켜진 사주 × 점성 교차 페어 (톤). */}
         {decadeCrossItems.length > 0 && (
           <CrossingList
-            heading="이 대운에 작동하는 사주 × 점성 교차 페어"
+            heading={
+              ko ? '이 대운에 작동하는 사주 × 점성 교차 페어' : 'Active Saju × Astrology pairs'
+            }
             items={decadeCrossItems}
           />
         )}
@@ -523,7 +554,8 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
       ============================================================ */}
       <div className={styles.diveWrap}>
         <button className={styles.dive} onClick={onDive} type="button">
-          {focusYearLabel}년으로 줌인 <span className={styles.arrow}>↓</span>
+          {ko ? `${focusYearLabel}년으로 줌인` : `Zoom in to ${focusYearLabel}`}{' '}
+          <span className={styles.arrow}>↓</span>
         </button>
       </div>
     </div>
