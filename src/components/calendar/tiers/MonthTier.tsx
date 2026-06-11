@@ -161,6 +161,7 @@ function firstDowOfMonth(ym: string): number {
 }
 
 const DOWS = ['일', '월', '화', '수', '목', '금', '토'] as const
+const DOWS_EN = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const
 
 // ============================================================================
 // 보강 #7 — 월운 sibsin 라벨 생성
@@ -200,108 +201,193 @@ function woolunSibsinTag(month: DestinyMonth): string | null {
 
 interface JohoHint {
   branchLabel: string
+  branchLabelEn: string
   body: ReactNode
+  bodyEn: ReactNode
 }
 
 const JOHO_MAP: Record<string, JohoHint> = {
   // 봄
   寅: {
     branchLabel: '寅월 (초봄)',
+    branchLabelEn: '寅 month (early spring)',
     body: (
       <>
         한기가 채 가시지 않은 결 — <b>화(火)</b> 와 <b>토(土)</b> 의 온기가 절실해요.
       </>
     ),
+    bodyEn: (
+      <>
+        A grain where the chill has not yet lifted — the warmth of <b>Fire (火)</b> and{' '}
+        <b>Earth (土)</b> is sorely needed.
+      </>
+    ),
   },
   卯: {
     branchLabel: '卯월 (중춘)',
+    branchLabelEn: '卯 month (mid-spring)',
     body: (
       <>
         목 기운이 가장 무성한 시기 — <b>금(金)</b> 의 절제가 균형을 잡아줘요.
       </>
     ),
+    bodyEn: (
+      <>
+        The season when Wood energy is most lush — the restraint of <b>Metal (金)</b> brings
+        balance.
+      </>
+    ),
   },
   辰: {
     branchLabel: '辰월 (늦봄)',
+    branchLabelEn: '辰 month (late spring)',
     body: (
       <>
         토 기운이 자라며 목이 잠기는 결 — <b>수(水)</b> 와 <b>화(火)</b> 의 흐름을 챙겨야 해요.
+      </>
+    ),
+    bodyEn: (
+      <>
+        A grain where Earth energy grows and Wood is submerged — tend to the flow of{' '}
+        <b>Water (水)</b> and <b>Fire (火)</b>.
       </>
     ),
   },
   // 여름
   巳: {
     branchLabel: '巳월 (초여름)',
+    branchLabelEn: '巳 month (early summer)',
     body: (
       <>
         화 기운이 본격적으로 살아나는 결 — <b>수(水)</b> 가 절실해요. 따뜻한 물·하체 보온으로
         균형을.
       </>
     ),
+    bodyEn: (
+      <>
+        A grain where Fire energy truly comes alive — <b>Water (水)</b> is sorely needed. Find
+        balance with warm water and keeping the lower body warm.
+      </>
+    ),
   },
   午: {
     branchLabel: '午월 (한여름)',
+    branchLabelEn: '午 month (midsummer)',
     body: (
       <>
         화 기운이 정점을 찍는 결 — <b>수(水)</b> 와 <b>금(金)</b> 의 견제가 살길이에요.
       </>
     ),
+    bodyEn: (
+      <>
+        A grain where Fire energy reaches its peak — the check of <b>Water (水)</b> and{' '}
+        <b>Metal (金)</b> is the way through.
+      </>
+    ),
   },
   未: {
     branchLabel: '未월 (늦여름)',
+    branchLabelEn: '未 month (late summer)',
     body: (
       <>
         건조한 토 기운이 강한 결 — <b>수(水)</b> 와 <b>목(木)</b> 의 윤기가 균형을 잡아줘요.
+      </>
+    ),
+    bodyEn: (
+      <>
+        A grain where dry Earth energy is strong — the moisture of <b>Water (水)</b> and{' '}
+        <b>Wood (木)</b> brings balance.
       </>
     ),
   },
   // 가을
   申: {
     branchLabel: '申월 (초가을)',
+    branchLabelEn: '申 month (early autumn)',
     body: (
       <>
         금 기운이 본격적으로 켜지는 결 — <b>화(火)</b> 의 다스림이 필요해요.
       </>
     ),
+    bodyEn: (
+      <>
+        A grain where Metal energy truly switches on — the governing of <b>Fire (火)</b> is needed.
+      </>
+    ),
   },
   酉: {
     branchLabel: '酉월 (중추)',
+    branchLabelEn: '酉 month (mid-autumn)',
     body: (
       <>
         금 기운이 가장 날카로운 결 — <b>화(火)</b> 와 <b>목(木)</b> 의 부드러움이 결을 살려요.
       </>
     ),
+    bodyEn: (
+      <>
+        A grain where Metal energy is at its sharpest — the softness of <b>Fire (火)</b> and{' '}
+        <b>Wood (木)</b> brings the grain to life.
+      </>
+    ),
   },
   戌: {
     branchLabel: '戌월 (늦가을)',
+    branchLabelEn: '戌 month (late autumn)',
     body: (
       <>
         건조한 토 기운이 강한 결 — <b>수(水)</b> 의 윤기가 절실해요.
+      </>
+    ),
+    bodyEn: (
+      <>
+        A grain where dry Earth energy is strong — the moisture of <b>Water (水)</b> is sorely
+        needed.
       </>
     ),
   },
   // 겨울
   亥: {
     branchLabel: '亥월 (초겨울)',
+    branchLabelEn: '亥 month (early winter)',
     body: (
       <>
         수 기운이 본격적으로 켜지는 결 — <b>화(火)</b> 의 온기가 절실해요.
       </>
     ),
+    bodyEn: (
+      <>
+        A grain where Water energy truly switches on — the warmth of <b>Fire (火)</b> is sorely
+        needed.
+      </>
+    ),
   },
   子: {
     branchLabel: '子월 (한겨울)',
+    branchLabelEn: '子 month (midwinter)',
     body: (
       <>
         수 기운이 정점을 찍는 결 — <b>화(火)</b> 와 <b>토(土)</b> 가 결을 데워야 해요.
       </>
     ),
+    bodyEn: (
+      <>
+        A grain where Water energy reaches its peak — <b>Fire (火)</b> and <b>Earth (土)</b> must
+        warm the grain.
+      </>
+    ),
   },
   丑: {
     branchLabel: '丑월 (늦겨울)',
+    branchLabelEn: '丑 month (late winter)',
     body: (
       <>
         차고 습한 토 기운이 강한 결 — <b>화(火)</b> 와 <b>목(木)</b> 의 봄 기운이 살길이에요.
+      </>
+    ),
+    bodyEn: (
+      <>
+        A grain where cold, damp Earth energy is strong — the spring energy of <b>Fire (火)</b> and{' '}
+        <b>Wood (木)</b> is the way through.
       </>
     ),
   },
@@ -400,7 +486,7 @@ interface ZrProgress {
   meta: string
 }
 
-function pickZrProgress(month: DestinyMonth): ZrProgress | null {
+function pickZrProgress(month: DestinyMonth, ko = true): ZrProgress | null {
   // narrative 에서 ZR 관련 카드를 찾기
   const zrCard = (month.narrative ?? []).find(
     (n) => /ZR|Zodiacal|챕터|chapter/i.test(n.body) || /주요\s*흐름/.test(n.tag)
@@ -410,20 +496,21 @@ function pickZrProgress(month: DestinyMonth): ZrProgress | null {
   const dd = month.focusDay ?? 1
   const totalDays = (month.calendar ?? []).length || 30
   const pct = Math.round((dd / totalDays) * 100)
+  const meta = ko ? `${dd} / ${totalDays} 일` : `${dd} / ${totalDays} days`
 
   if (zrCard) {
     return {
-      label: 'ZR · L2 진행',
+      label: ko ? 'ZR · L2 진행' : 'ZR · L2 progress',
       chapter: zrCard.body.split(/[.。]/)[0].trim() || zrCard.tag,
       pct,
-      meta: `${dd} / ${totalDays} 일`,
+      meta,
     }
   }
   return {
-    label: '절기 진행',
-    chapter: `${month.label} 내 흐름`,
+    label: ko ? '절기 진행' : 'Solar-term progress',
+    chapter: ko ? `${month.label} 내 흐름` : `flow within ${month.label}`,
     pct,
-    meta: `${dd} / ${totalDays} 일`,
+    meta,
   }
 }
 
@@ -432,7 +519,7 @@ function pickZrProgress(month: DestinyMonth): ZrProgress | null {
 // astro/saju 첫 글자만 추출해 "정관 ↔ Saturn (책임·구조)" 형식 cross-map 한 줄.
 // ============================================================================
 
-function convergeCrossMap(month: DestinyMonth): string | null {
+function convergeCrossMap(month: DestinyMonth, ko = true): string | null {
   const conv = month.converge
   if (!conv || !conv.bothSystems) return null
   const sajuHead = conv.saju?.[0]
@@ -441,7 +528,9 @@ function convergeCrossMap(month: DestinyMonth): string | null {
   // 짧게 다듬기
   const sajuShort = sajuHead.split(/\s|—|–|·/)[0] || sajuHead
   const astroShort = astroHead.split(/\s|—|–|·/)[0] || astroHead
-  return `${sajuShort} ↔ ${astroShort} — A등급 cross-activation`
+  return ko
+    ? `${sajuShort} ↔ ${astroShort} — A등급 cross-activation`
+    : `${sajuShort} ↔ ${astroShort} — grade-A cross-activation`
 }
 
 // ============================================================================
@@ -476,8 +565,8 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
   const focusDay = month.focusDay
   const pattern = extractPatternChips(month)
   const joho = pickJohoHint(month)
-  const zr = pickZrProgress(month)
-  const crossMap = convergeCrossMap(month)
+  const zr = pickZrProgress(month, ko)
+  const crossMap = convergeCrossMap(month, ko)
   const voc = vocSet(month)
   const lunarDs = lunarReturnDow(month)
   const woolunCap = woolunCaption(month, ko)
@@ -602,8 +691,8 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
 
       {/* ===== calendar heatmap — 메인. 한눈에 좋은 날/주의 날 색으로. ===== */}
       <div className={styles.calGrid}>
-        {DOWS.map((d) => (
-          <div className={styles.calDow} key={d}>
+        {(ko ? DOWS : DOWS_EN).map((d, i) => (
+          <div className={styles.calDow} key={`dow-${i}`}>
             {d}
           </div>
         ))}
@@ -734,15 +823,19 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
             return (
               <div className={styles.bigDays}>
                 <div className={styles.eyebrow}>
-                  이달의 큰 날 · 사주×점성 수렴
+                  {ko
+                    ? '이달의 큰 날 · 사주×점성 수렴'
+                    : 'Key days this month · Saju × Astrology convergence'}
                   {(() => {
                     const both = month.keyDays!.filter((k) => k.bothSystems).length
-                    return both > 0 ? ` · 동·서 합치 ${both}일` : ''
+                    if (both <= 0) return ''
+                    return ko ? ` · 동·서 합치 ${both}일` : ` · ${both} days both systems`
                   })()}
                 </div>
                 {astroBackdrop.length > 0 && (
                   <div className={styles.bigDayBackdrop}>
-                    이달 점성 배경 · {astroBackdrop.join(' · ')}
+                    {ko ? '이달 점성 배경 · ' : "This month's astro backdrop · "}
+                    {astroBackdrop.join(' · ')}
                   </div>
                 )}
                 {month.keyDays!.map((k, i) => (
@@ -751,11 +844,16 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
                       <span className={styles.bigDayDate}>{k.date}</span>
                       {k.window && k.window.start.slice(0, 10) !== k.window.end.slice(0, 10) && (
                         <span className={styles.bigDayWindow}>
-                          {k.window.start.slice(5, 10)} ~ {k.window.end.slice(5, 10)} · 정점{' '}
+                          {k.window.start.slice(5, 10)} ~ {k.window.end.slice(5, 10)}
+                          {ko ? ' · 정점 ' : ' · peak '}
                           {k.window.peak.slice(5, 10)}
                         </span>
                       )}
-                      {k.bothSystems && <span className={styles.bigDayBoth}>사주×점성</span>}
+                      {k.bothSystems && (
+                        <span className={styles.bigDayBoth}>
+                          {ko ? '사주×점성' : 'Saju × Astro'}
+                        </span>
+                      )}
                     </div>
                     {k.meaning && <div className={styles.bigDayMeaning}>{k.meaning}</div>}
                     {k.saju.length > 0 && (
@@ -781,7 +879,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
               <div className={styles.patternStrip}>
                 {pattern.map((p) => (
                   <span className={styles.patternChip} key={`${p.label}-${p.count}`}>
-                    {p.label} <b>{p.count}일</b>
+                    {p.label} <b>{ko ? `${p.count}일` : `${p.count}d`}</b>
                   </span>
                 ))}
               </div>
@@ -789,8 +887,10 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
             {/* 보강 #5 — 조후 강조 박스 */}
             {joho && (
               <div className={styles.johoBox}>
-                <span className={styles.johoLabel}>조후 · {joho.branchLabel}</span>
-                <span className={styles.johoBody}>{joho.body}</span>
+                <span className={styles.johoLabel}>
+                  {ko ? `조후 · ${joho.branchLabel}` : `Johu · ${joho.branchLabelEn}`}
+                </span>
+                <span className={styles.johoBody}>{ko ? joho.body : joho.bodyEn}</span>
               </div>
             )}
           </div>
@@ -800,7 +900,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
             style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
           >
             <div className={styles.eyebrow} style={{ marginBottom: 2 }}>
-              핵심 이벤트
+              {ko ? '핵심 이벤트' : 'Key events'}
             </div>
             <div className={styles.eventsCol}>
               {month.bestDay && (
@@ -822,7 +922,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
               {month.cautionDays.length > 0 && (
                 <div className={styles.eventRow}>
                   <span className={[styles.pol, styles.polZ].join(' ')} style={{ fontSize: 11 }}>
-                    주의
+                    {ko ? '주의' : 'Caution'}
                   </span>
                   <span className={styles.eventDateDim}>{month.cautionDays.join(' · ')}</span>
                 </div>
@@ -830,7 +930,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
               {month.goodDays.length > 0 && (
                 <div className={styles.eventRow}>
                   <span className={[styles.pol, styles.polGood].join(' ')} style={{ fontSize: 11 }}>
-                    길일
+                    {ko ? '길일' : 'Good day'}
                   </span>
                   <span className={styles.eventDateDim}>{month.goodDays.join(' · ')}</span>
                 </div>
@@ -858,8 +958,10 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
         {/* ===== narrative grid ===== */}
         <div className={styles.blockSm}>
           <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>이 달의 이야기</h2>
-            <span className={styles.tiny}>사주 + 점성 narrative</span>
+            <h2 className={styles.secTitle}>{ko ? '이 달의 이야기' : "This month's story"}</h2>
+            <span className={styles.tiny}>
+              {ko ? '사주 + 점성 narrative' : 'Saju + Astrology narrative'}
+            </span>
           </div>
           <div className={styles.narr}>
             {narrative.map((n, i) => {
@@ -885,7 +987,9 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
           <div className={styles.converge}>
             <div className={styles.convergeHead}>
               <div className={[styles.eyebrow, styles.eyebrowEmber].join(' ')}>
-                수렴 일 · 두 시스템이 함께 강한 날
+                {ko
+                  ? '수렴 일 · 두 시스템이 함께 강한 날'
+                  : 'Convergence day · both systems strong'}
               </div>
             </div>
             <div className={styles.convergeDateRow}>
@@ -903,7 +1007,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
             <div className={styles.convSys}>
               <div>
                 <span className={[styles.layerTag, styles.layerTagAstro].join(' ')}>
-                  <span className="pip" /> 점성 · ASTRO
+                  <span className="pip" /> {ko ? '점성 · ASTRO' : 'Astrology · ASTRO'}
                 </span>
                 <ul>
                   {month.converge.astro.map((a, i) => (
@@ -913,7 +1017,7 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
               </div>
               <div>
                 <span className={[styles.layerTag, styles.layerTagSaju].join(' ')}>
-                  <span className="pip" /> 사주 · SAJU
+                  <span className="pip" /> {ko ? '사주 · SAJU' : 'Saju · 四柱'}
                 </span>
                 <ul>
                   {month.converge.saju.map((s, i) => (
