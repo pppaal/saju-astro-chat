@@ -17,8 +17,7 @@
 ![Claude](https://img.shields.io/badge/AI-Claude-D97757?logo=anthropic&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)
 
-[Live demo](#) &nbsp;·&nbsp; [Documentation](docs/README.md) &nbsp;·&nbsp; [Architecture](docs/DESTINY_MATRIX.md)
-<!-- TODO: replace the Live demo "#" above with your deployed URL -->
+[**Live demo → destinypal.com**](https://destinypal.com) &nbsp;·&nbsp; [Documentation](docs/README.md) &nbsp;·&nbsp; [Architecture](docs/DESTINY_MATRIX.md)
 
 </div>
 
@@ -36,16 +35,11 @@ That split is the whole point:
 
 ## Screenshots
 
-<!--
-Add product screenshots to docs/assets/ and reference them here, e.g.:
 <p align="center">
-  <img src="docs/assets/tarot.png"     width="32%" alt="Tarot reading" />
-  <img src="docs/assets/counselor.png" width="32%" alt="Destiny counselor" />
-  <img src="docs/assets/calendar.png"  width="32%" alt="Fortune calendar" />
+  <img src="docs/assets/home.jpg"  width="32%" alt="Home — AI destiny chat over a constellation sky" />
+  <img src="docs/assets/tarot.jpg" width="32%" alt="Tarot — deck & spread picker with streamed readings" />
+  <img src="docs/assets/about.jpg" width="32%" alt="About — Saju, astrology and tarot on one screen" />
 </p>
--->
-
-> _Screenshots coming soon — drop images into `docs/assets/` and uncomment the block above._
 
 ## Features
 
@@ -57,15 +51,15 @@ Add product screenshots to docs/assets/ and reference them here, e.g.:
 
 ## Tech stack
 
-| Layer | Choice |
-|------|--------|
-| Framework | Next.js 16 (App Router) · React 19 · TypeScript |
-| AI | Claude via `@anthropic-ai/sdk`, streamed over SSE |
-| Auth | NextAuth — Google OAuth only (JWT sessions) |
-| Payments | Stripe one‑time **credit packs** (no subscriptions) |
-| Data | Prisma (42 models) |
-| Cache / rate limit | Upstash Redis + in‑memory fallback |
-| Tests | Vitest |
+| Layer              | Choice                                                       |
+| ------------------ | ------------------------------------------------------------ |
+| Framework          | Next.js 16 (App Router) · React 19 · TypeScript              |
+| AI                 | Claude via `@anthropic-ai/sdk`, streamed over SSE            |
+| Auth               | Auth.js v5 (NextAuth) — Google OAuth only (JWT sessions)     |
+| Payments           | Stripe one‑time **credit packs** (no subscriptions)          |
+| Data               | Prisma 7 (22 models)                                         |
+| Cache / rate limit | Upstash Redis + in‑memory fallback                           |
+| Tests              | Vitest (≈16,000 unit tests) · Playwright E2E · k6 load tests |
 
 ## Architecture
 
@@ -128,28 +122,33 @@ Production additionally needs Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRE
 
 ## Repository snapshot
 
-Measured with `npm run docs:stats` on 2026-05-21:
+Measured with `npm run docs:stats` on 2026-06-11:
 
-| Metric | Count |
-|--------|------:|
-| API routes | 81 |
-| App pages | 51 |
-| Component files | 112 |
-| Prisma models | 42 |
-| Test files | 648 |
-| Markdown docs | 144 |
+| Metric          | Count |
+| --------------- | ----: |
+| API routes      |    70 |
+| App pages       |    39 |
+| Component files |   123 |
+| Prisma models   |    22 |
+| Test files      |   511 |
+| Markdown docs   |   161 |
 
-API route audit (`npm run audit:api`, 2026-05-21): **78 / 81** use middleware guards (96.3%), **73** are rate‑limited (90.1%), **60** have validation signals (74.1%).
+API route audit (`npm run audit:api`, 2026-06-11): **63 / 70** use middleware guards (90.0%), **62** are rate‑limited (88.6%), **43** have validation signals (61.4%). Full per‑route table: [`docs/API_AUDIT_REPORT.md`](docs/API_AUDIT_REPORT.md).
 
-## Quality checks
+## Quality engineering
+
+The deterministic-engine claim is enforced, not aspirational:
+
+- **≈16,000 unit tests** across 440+ files run on every PR — including **determinism goldens** that lock the Saju/astrology verdicts (same birth data ⇒ byte-identical judgment).
+- **27 CI checks per PR**: unit + integration + Playwright E2E (desktop/mobile), coverage gates with per-domain floors (auth/credits/payments/security), OWASP ZAP baseline, SAST, secret scan, dependency audit, Lighthouse accessibility, k6 performance smoke.
+- **Money paths are locked**: Stripe webhook idempotency & replay-attack tests, refund eligibility matrix, stream-failure auto-refund, race-condition suites for credit consumption.
+- **Docs drift gate**: generated reference docs (routes, costs, calculation standards) fail CI when they diverge from code.
 
 ```bash
-npm run typecheck   # tsc --noEmit
+npm run typecheck   # tsc --noEmit (strict)
 npm run lint        # eslint
-npm test            # vitest run
+npm test            # vitest run (~2.5 min for the full suite)
 ```
-
-CI runs on every PR via GitHub Actions (`ci.yml`, `pr-checks.yml`, `security.yml`).
 
 ## Documentation
 
