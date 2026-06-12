@@ -105,6 +105,7 @@
     "docs:check-links": "node scripts/check_docs_links.js",
     "docs:sync": "tsx scripts/docs/generate.ts",
     "docs:sync:check": "tsx scripts/docs/generate.ts --check",
+    "blog:index": "tsx scripts/blog/generate-index.ts",
     "prepare": "husky",
     "ops:slo:report": "node scripts/ops/slo-report.mjs",
     "ops:typecheck:metrics": "node scripts/ops/typecheck-metrics.mjs",
