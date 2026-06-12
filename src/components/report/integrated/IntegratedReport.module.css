@@ -98,6 +98,25 @@
 .accent {
   color: var(--gold);
 }
+.timeUnknownNote {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 40px;
+  padding: 13px 16px;
+  border: 1px solid var(--gold);
+  border-left-width: 3px;
+  border-radius: 3px;
+  background: var(--card);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.timeUnknownNote b {
+  color: var(--gold);
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
 .sub {
   margin-top: 9px;
   color: var(--ink-2);

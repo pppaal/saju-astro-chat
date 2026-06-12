@@ -163,7 +163,10 @@ function PolChip({ v }: { v: Polarity | number }) {
 // ScoreDial (util.jsx 포팅).
 // ============================================================================
 
-function ScoreDial({ score, label = '오늘' }: { score: number; label?: string }) {
+function ScoreDial({ score, label }: { score: number; label?: string }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
+  const dialLabel = label ?? (ko ? '오늘' : 'Today')
   const r = 40
   const c = 2 * Math.PI * r
   const frac = Math.max(0, Math.min(1, score / 100))
@@ -187,8 +190,20 @@ function ScoreDial({ score, label = '오늘' }: { score: number; label?: string 
         />
       </svg>
       <div className={styles.sdNum}>
-        <b>{score >= 60 ? '순풍' : score >= 35 ? '평이' : '역풍'}</b>
-        <span>{label}</span>
+        <b>
+          {score >= 60
+            ? ko
+              ? '순풍'
+              : 'Tailwind'
+            : score >= 35
+              ? ko
+                ? '평이'
+                : 'Steady'
+              : ko
+                ? '역풍'
+                : 'Headwind'}
+        </b>
+        <span>{dialLabel}</span>
       </div>
     </div>
   )
@@ -220,17 +235,22 @@ function GeokgukStatusFrame({ status }: { status: DestinyDay['geokgukStatus'] | 
 // ============================================================================
 
 function GongmangBanner({ gongmang }: { gongmang: DestinyDay['gongmang'] | undefined }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   if (!gongmang || gongmang.activeBranches.length === 0) return null
   return (
     <div className={styles.gongmangBanner}>
-      <span className="gmHead">공망 · 空亡</span>
+      <span className="gmHead">{ko ? '공망 · 空亡' : 'Void · 空亡'}</span>
       {gongmang.activeBranches.map((b, i) => (
         <span className="gmBranch" key={i}>
           {b}
         </span>
       ))}
       <span className="gmNote">
-        {gongmang.note ?? `본명 일주 공망 [${gongmang.natalBranches.join(' · ')}] 활성`}
+        {gongmang.note ??
+          (ko
+            ? `본명 일주 공망 [${gongmang.natalBranches.join(' · ')}] 활성`
+            : `Natal day-pillar void [${gongmang.natalBranches.join(' · ')}] active`)}
       </span>
     </div>
   )
@@ -241,16 +261,22 @@ function GongmangBanner({ gongmang }: { gongmang: DestinyDay['gongmang'] | undef
 // ============================================================================
 
 function VocBanner({ voc }: { voc: DayVoc | undefined }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   if (!voc?.active) return null
   return (
     <div className={styles.vocBanner}>
-      <span className="vocLabel">Moon VOC · 무경로</span>
+      <span className="vocLabel">{ko ? 'Moon VOC · 무경로' : 'Moon VOC · no path'}</span>
       {(voc.from || voc.to) && (
         <span className="vocTime">
           {voc.from ?? '—'} → {voc.to ?? '—'}
         </span>
       )}
-      <span>새 일은 보류, 정리·결산에 적합.</span>
+      <span>
+        {ko
+          ? '새 일은 보류, 정리·결산에 적합.'
+          : 'Hold new starts — good for wrapping up & settling.'}
+      </span>
     </div>
   )
 }
@@ -261,12 +287,18 @@ function VocBanner({ voc }: { voc: DayVoc | undefined }) {
 // ============================================================================
 
 function CrossActivationCard({ items }: { items: DestinyCrossActivation[] }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   if (!items.length) return null
   return (
     <div className={styles.blockSm}>
       <div className={styles.secHead}>
-        <h2 className={styles.secTitle}>사주·점성 동시 활성</h2>
-        <span className={styles.tiny}>cross-activation · {items.length} 페어</span>
+        <h2 className={styles.secTitle}>
+          {ko ? '사주·점성 동시 활성' : 'Saju × Astrology co-activation'}
+        </h2>
+        <span className={styles.tiny}>
+          cross-activation · {items.length} {ko ? '페어' : 'pairs'}
+        </span>
       </div>
       <div className={styles.crossGrid}>
         {items.map((c) => (
@@ -294,12 +326,16 @@ function CrossActivationCard({ items }: { items: DestinyCrossActivation[] }) {
 // ============================================================================
 
 function AppliedPatternBadge({ items }: { items: DestinyAppliedPattern[] }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   if (!items.length) return null
   return (
     <div className={styles.blockSm}>
       <div className={styles.secHead}>
-        <h2 className={styles.secTitle}>응용 격국</h2>
-        <span className={styles.tiny}>applied pattern · {items.length}종 발동</span>
+        <h2 className={styles.secTitle}>{ko ? '응용 격국' : 'Applied structures'}</h2>
+        <span className={styles.tiny}>
+          applied pattern · {ko ? `${items.length}종 발동` : `${items.length} active`}
+        </span>
       </div>
       <div className={styles.appliedRow}>
         {items.map((p) => {
@@ -326,6 +362,8 @@ function AppliedPatternBadge({ items }: { items: DestinyAppliedPattern[] }) {
 // ============================================================================
 
 function JijangganChips({ jijanggan }: { jijanggan: DestinyDay['jijanggan'] | undefined }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   if (!jijanggan) return null
   const layers: Array<{ key: string; layer: DestinyJijangganLayer; main: boolean }> = []
   layers.push({ key: 'jeonggi', layer: jijanggan.jeonggi, main: true })
@@ -334,8 +372,14 @@ function JijangganChips({ jijanggan }: { jijanggan: DestinyDay['jijanggan'] | un
   return (
     <div className={styles.blockSm}>
       <div className={styles.secHead}>
-        <h2 className={styles.secTitle}>본명 일주 지장간</h2>
-        <span className={styles.tiny}>jijanggan · 3층 (정기 · 중기 · 여기)</span>
+        <h2 className={styles.secTitle}>
+          {ko ? '본명 일주 지장간' : 'Natal day-pillar hidden stems'}
+        </h2>
+        <span className={styles.tiny}>
+          {ko
+            ? 'jijanggan · 3층 (정기 · 중기 · 여기)'
+            : 'jijanggan · 3 layers (primary · mid · residual)'}
+        </span>
       </div>
       <div className={styles.jijangganRow}>
         {layers.map(({ key, layer, main }) => (
@@ -361,14 +405,22 @@ function JijangganChips({ jijanggan }: { jijanggan: DestinyDay['jijanggan'] | un
 // ============================================================================
 
 function TwelveStageMatrix({ day }: { day: DestinyDay }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const cells = day.twelveStageMatrix ?? []
   if (cells.length === 0) return null
   const ilbranch = cells[0]?.branch ?? ''
   return (
     <div className={styles.blockSm}>
       <div className={styles.secHead}>
-        <h2 className={styles.secTitle}>본명 4기둥 × 일진 12운성</h2>
-        <span className={styles.tiny}>twelve stages · 일진 지지 [{ilbranch}] 기준</span>
+        <h2 className={styles.secTitle}>
+          {ko ? '본명 4기둥 × 일진 12운성' : 'Natal four pillars × daily twelve stages'}
+        </h2>
+        <span className={styles.tiny}>
+          {ko
+            ? `twelve stages · 일진 지지 [${ilbranch}] 기준`
+            : `twelve stages · vs daily branch [${ilbranch}]`}
+        </span>
       </div>
       <div className={styles.tsMatrix}>
         {cells.map((c) => (
@@ -396,13 +448,18 @@ function isArabicLot(s: DestinySignal): boolean {
 }
 
 function FixedStarRow({ signals }: { signals: DestinySignal[] }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const stars = signals.filter(isFixedStar)
   if (!stars.length) return null
   return (
     <div className={styles.blockSm}>
       <div className={styles.secHead}>
-        <h2 className={styles.secTitle}>붙박이별 활성</h2>
-        <span className={styles.tiny}>fixed-star · {stars.length}개</span>
+        <h2 className={styles.secTitle}>{ko ? '붙박이별 활성' : 'Fixed stars active'}</h2>
+        <span className={styles.tiny}>
+          fixed-star · {stars.length}
+          {ko ? '개' : ''}
+        </span>
       </div>
       <div className={styles.starRow}>
         {stars.map((s) => (
@@ -418,13 +475,18 @@ function FixedStarRow({ signals }: { signals: DestinySignal[] }) {
 }
 
 function ArabicLotRow({ signals }: { signals: DestinySignal[] }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const lots = signals.filter(isArabicLot)
   if (!lots.length) return null
   return (
     <div className={styles.blockSm}>
       <div className={styles.secHead}>
-        <h2 className={styles.secTitle}>아라비아 부분 (Lot)</h2>
-        <span className={styles.tiny}>arabic-part · {lots.length}개</span>
+        <h2 className={styles.secTitle}>{ko ? '아라비아 부분 (Lot)' : 'Arabic Parts (Lots)'}</h2>
+        <span className={styles.tiny}>
+          arabic-part · {lots.length}
+          {ko ? '개' : ''}
+        </span>
       </div>
       <div className={styles.starRow}>
         {lots.map((s) => (
@@ -445,6 +507,8 @@ function ArabicLotRow({ signals }: { signals: DestinySignal[] }) {
 // ============================================================================
 
 function HourBreakdown({ hours24 }: { hours24: HourSlot[] | undefined }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   // 24슬롯 채우기 (없으면 빈 slot).
   const slots: HourSlot[] = Array.from({ length: 24 }, (_, h) => {
     const found = hours24?.find((s) => s.hour === h)
@@ -459,7 +523,9 @@ function HourBreakdown({ hours24 }: { hours24: HourSlot[] | undefined }) {
   return (
     <div className={styles.block}>
       <div className={styles.secHead}>
-        <h2 className={styles.secTitle}>시진별 24시 흐름</h2>
+        <h2 className={styles.secTitle}>
+          {ko ? '시진별 24시 흐름' : '24-hour rhythm by hour-pillar'}
+        </h2>
         <span className={styles.tiny}>hour breakdown · 子(23h) → 亥(21h) · score 0..100</span>
       </div>
       <div className={styles.hourGrid}>
@@ -695,7 +761,7 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
               <div className="kr">{day.iljin.kr}</div>
               <div className="en">{day.iljin.en}</div>
               <div className="ss">
-                일진 · 일간 기준 {String(day.iljinSibsin)}
+                {ko ? '일진 · 일간 기준' : 'daily pillar · vs day master'} {String(day.iljinSibsin)}
                 {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
                   ? ` (${sibsinArea(String(day.iljinSibsin))})`
                   : ''}
@@ -703,7 +769,7 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
             </div>
           </div>
           <div className={styles.dayScore}>
-            <ScoreDial score={day.score} label="종합" />
+            <ScoreDial score={day.score} label={ko ? '종합' : 'Overall'} />
             <p className={styles.oneline}>{day.oneLine}</p>
           </div>
         </div>
@@ -714,9 +780,15 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
             {/* 합치기: 날것 트랜짓 덤프 → "이렇게 읽은 이유"(사람 말). 엔진이 만든
               topReasons/cautions 를 우선 노출하고, 원자료(점성 트랜짓)는 접어둔다.
               (premium DayWhyCard 패턴 + destinypal 만세력 스킨) */}
-            <div className={styles.eyebrow}>왜 이런 하루? · 근거</div>
+            <div className={styles.eyebrow}>
+              {ko ? '왜 이런 하루? · 근거' : 'Why this day? · evidence'}
+            </div>
             {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
-              <p className={styles.whyMuted}>오늘은 두드러진 신호 없이 무난한 흐름이에요.</p>
+              <p className={styles.whyMuted}>
+                {ko
+                  ? '오늘은 두드러진 신호 없이 무난한 흐름이에요.'
+                  : 'A steady day with no standout signals.'}
+              </p>
             ) : (
               <ul className={styles.whyList}>
                 {(day.topReasons ?? []).map((r, i) => (
@@ -744,7 +816,9 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
 
             {/* 근거 신호 (점성 트랜짓 원자료) — 기본 접힘. 원하는 사람만 펼침. */}
             <details className={styles.evidence}>
-              <summary className={styles.evidenceSummary}>근거 신호 보기 · 점성 트랜짓</summary>
+              <summary className={styles.evidenceSummary}>
+                {ko ? '근거 신호 보기 · 점성 트랜짓' : 'View evidence signals · astro transits'}
+              </summary>
               <div className={styles.transitRow}>
                 {innerTransits.map((t, i) => {
                   const body = (t as { body?: string }).body ?? ''
@@ -807,9 +881,11 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
         {/* signal stream (day.jsx 원본) */}
         <div className={styles.block}>
           <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>오늘의 신호</h2>
+            <h2 className={styles.secTitle}>{ko ? '오늘의 신호' : "Today's signals"}</h2>
             <span className={styles.tiny}>
-              총 {day.totalSignals}개 중 핵심 발췌 · polarity −3 ~ +3
+              {ko
+                ? `총 ${day.totalSignals}개 중 핵심 발췌 · polarity −3 ~ +3`
+                : `Top picks of ${day.totalSignals} · polarity −3 to +3`}
             </span>
           </div>
           <div className={styles.signalStream}>
@@ -827,8 +903,9 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
             ))}
             {day.totalSignals > streamSignals.length && (
               <div className={styles.sigMore}>
-                … 외 {day.totalSignals - streamSignals.length}개 (transit aspects · 시진별 십신 ·
-                외행성)
+                {ko
+                  ? `… 외 ${day.totalSignals - streamSignals.length}개 (transit aspects · 시진별 십신 · 외행성)`
+                  : `… +${day.totalSignals - streamSignals.length} more (transit aspects · hourly ten gods · outer planets)`}
               </div>
             )}
           </div>

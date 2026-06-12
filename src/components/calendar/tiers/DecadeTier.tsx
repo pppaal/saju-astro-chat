@@ -270,7 +270,12 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
       {/* ============================================================
           header — eyebrow / display / oneline
       ============================================================ */}
-      <div className={styles.eyebrow} title="대운 — 10년 단위로 바뀌는 인생의 큰 흐름">
+      <div
+        className={styles.eyebrow}
+        title={
+          ko ? '대운 — 10년 단위로 바뀌는 인생의 큰 흐름' : "Decade — life's big 10-year currents"
+        }
+      >
         {ko ? '10년 · DECADE · 대운' : '10 YEARS · DECADE'} {decade.start}-{decade.end}
         {decade.ageFrom != null && decade.ageTo != null && (
           <span className={styles.ageRange}>
@@ -352,7 +357,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               {/* 천간 — 전반 5년 */}
               <div className={styles.pillarCol}>
                 <div className={styles.pillarHead}>
-                  <span className={styles.pillarTag}>천간 · 전반 5년</span>
+                  <span className={styles.pillarTag}>
+                    {ko ? '천간 · 전반 5년' : 'stems · first 5 yrs'}
+                  </span>
                   <span className={styles.pillarYears}>
                     {decade.start}–{decade.start + 4}
                   </span>
@@ -370,7 +377,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               {/* 지지 — 후반 5년 */}
               <div className={styles.pillarCol}>
                 <div className={styles.pillarHead}>
-                  <span className={styles.pillarTag}>지지 · 후반 5년</span>
+                  <span className={styles.pillarTag}>
+                    {ko ? '지지 · 후반 5년' : 'branches · last 5 yrs'}
+                  </span>
                   <span className={styles.pillarYears}>
                     {decade.start + 5}–{decade.end - 1}
                   </span>
@@ -389,7 +398,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
           <div className={styles.readoutPanel}>
             <LayerTag kind="saju" />
             <div className={styles.bigTitle}>
-              {decade.sibsin} · {sibsinArea(decade.sibsin)}의 10년
+              {ko
+                ? `${decade.sibsin} · ${sibsinArea(decade.sibsin)}의 10년`
+                : `${decade.sibsin} · ${sibsinArea(decade.sibsin)} decade`}
             </div>
             <p className={styles.themeLine}>
               {decade.theme}
@@ -397,27 +408,29 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
             </p>
 
             <dl className={styles.kv}>
-              <dt>기간</dt>
+              <dt>{ko ? '기간' : 'Period'}</dt>
               <dd>
                 <b>
                   {decade.start}–{decade.end}
                 </b>
                 <span className={styles.muted}>
                   {' '}
-                  · {decade.ageFrom}–{decade.ageTo}세
+                  {ko
+                    ? `· ${decade.ageFrom}–${decade.ageTo}세`
+                    : `· ages ${decade.ageFrom}–${decade.ageTo}`}
                 </span>
               </dd>
-              <dt>대운 십신</dt>
+              <dt>{ko ? '대운 십신' : 'Decade ten-god'}</dt>
               <dd>
                 <b>{decade.sibsin}</b>
               </dd>
-              <dt>천간</dt>
+              <dt>{ko ? '천간' : 'Stem'}</dt>
               <dd>
                 <span className={styles.han}>{decade.pillar.cheongan.hanja}</span>{' '}
                 {decade.pillar.cheongan.sibsin}{' '}
                 <span className={styles.muted}>· {decade.pillar.cheongan.el}</span>
               </dd>
-              <dt>지지</dt>
+              <dt>{ko ? '지지' : 'Branch'}</dt>
               <dd>
                 <span className={styles.han}>{decade.pillar.jiji.hanja}</span>{' '}
                 {decade.pillar.jiji.sibsin}{' '}
@@ -425,7 +438,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               </dd>
               {sewoonNow && (
                 <>
-                  <dt>세운 {focusYearLabel}</dt>
+                  <dt>{ko ? `세운 ${focusYearLabel}` : `Annual ${focusYearLabel}`}</dt>
                   <dd>
                     <span className={styles.han}>{sewoonNow.gz.hanja}</span>{' '}
                     <span className={styles.muted}>{sewoonNow.gz.kr}</span> ·{' '}
@@ -456,7 +469,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         {decade.narrative && decade.narrative.length > 0 && (
           <section className={styles.block}>
             <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>이 대운의 결</h2>
+              <h2 className={styles.sectionTitle}>
+                {ko ? '이 대운의 결' : 'The grain of this cycle'}
+              </h2>
               <span className={styles.tiny}>narrative · {decade.narrative.length}</span>
             </div>
             <div className={styles.narrativeGrid}>
@@ -476,8 +491,10 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         {(decade.hapchung || decade.unseong) && (
           <section className={styles.block}>
             <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>본명 × 대운</h2>
-              <span className={styles.tiny}>합·충 · 12운성</span>
+              <h2 className={styles.sectionTitle}>{ko ? '본명 × 대운' : 'Natal × Decade'}</h2>
+              <span className={styles.tiny}>
+                {ko ? '합·충 · 12운성' : 'harmony & clash · twelve stages'}
+              </span>
             </div>
             <LayerTag kind="saju" />
             <div className={styles.relationGrid}>
@@ -485,7 +502,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                 <div className={`${styles.dcard} ${styles.dcardEmber}`}>
                   <div className={styles.dcardHead}>
                     <span className={`${styles.glyphMini} ${styles.glyphEmber}`}>⚡</span>
-                    합충 · HAPCHUNG
+                    {ko ? '합충 · HAPCHUNG' : 'Harmony & clash · HAPCHUNG'}
                   </div>
                   <div className={styles.dcardTitle}>{decade.hapchung.title}</div>
                   {decade.hapchung.romaji && (
@@ -498,7 +515,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                 <div className={`${styles.dcard} ${styles.dcardViolet}`}>
                   <div className={styles.dcardHead}>
                     <span className={`${styles.glyphMini} ${styles.glyphViolet}`}>◯</span>
-                    12운성 · UNSEONG
+                    {ko ? '12운성 · UNSEONG' : 'Twelve stages · UNSEONG'}
                   </div>
                   <div className={styles.dcardTitle}>{decade.unseong.title}</div>
                   {decade.unseong.romaji && (
@@ -521,7 +538,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         {decade.astro && decade.astro.length > 0 && (
           <section className={styles.block}>
             <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>외행성 마디</h2>
+              <h2 className={styles.sectionTitle}>{ko ? '외행성 마디' : 'Outer-planet returns'}</h2>
               <span className={styles.tiny}>Outer-planet returns</span>
             </div>
             <LayerTag kind="astro" />
@@ -552,8 +569,12 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         {decade.years && decade.years.length > 0 && (
           <section className={styles.block}>
             <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>10년 흐름</h2>
-              <span className={styles.tiny}>연도별 score · {decade.years.length}년</span>
+              <h2 className={styles.sectionTitle}>{ko ? '10년 흐름' : '10-year flow'}</h2>
+              <span className={styles.tiny}>
+                {ko
+                  ? `연도별 score · ${decade.years.length}년`
+                  : `yearly score · ${decade.years.length} yrs`}
+              </span>
             </div>
             <div className={styles.yearTrack}>
               {decade.years.map((y, i) => {
@@ -570,7 +591,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                     </div>
                     <div className={styles.yearLabel}>
                       {y.year}
-                      {y.now && <span className={styles.yearNowMark}>지금</span>}
+                      {y.now && <span className={styles.yearNowMark}>{ko ? '지금' : 'now'}</span>}
                     </div>
                   </div>
                 )
@@ -585,8 +606,14 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         {crossActs.length > 0 && (
           <section className={styles.block}>
             <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>사주 ↔ 점성 동시 활성</h2>
-              <span className={styles.tiny}>Cross-activation · 10년 누적 {crossActs.length}건</span>
+              <h2 className={styles.sectionTitle}>
+                {ko ? '사주 ↔ 점성 동시 활성' : 'Saju ↔ Astrology co-activation'}
+              </h2>
+              <span className={styles.tiny}>
+                {ko
+                  ? `Cross-activation · 10년 누적 ${crossActs.length}건`
+                  : `Cross-activation · ${crossActs.length} over 10 yrs`}
+              </span>
             </div>
             <div className={styles.crossBadgeRow}>
               {crossActs.slice(0, 6).map((c, i) => {
@@ -641,21 +668,25 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
 // 표현 (관대/태/장생 등 일반 명칭은 derive 함수가 제공할 때 enrich).
 
 function UnseongMatrix({ ilganHanja, decadeBranch }: { ilganHanja: string; decadeBranch: string }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const branchKo = BRANCH_KO[decadeBranch] ?? decadeBranch
   return (
     <div className={styles.unseongMatrix}>
       <div className={styles.unseongMatrixLabel}>
-        12운성 매트릭스 · 본명 일간({ilganHanja}) × 대운 지지({decadeBranch})
+        {ko
+          ? `12운성 매트릭스 · 본명 일간(${ilganHanja}) × 대운 지지(${decadeBranch})`
+          : `Twelve-stage matrix · natal day master (${ilganHanja}) × decade branch (${decadeBranch})`}
       </div>
       <div className={styles.unseongMatrixChips}>
         <span className={styles.unseongMatrixChip}>
           <span className={styles.unseongMatrixHan}>{ilganHanja}</span>
-          일간
+          {ko ? '일간' : 'Day master'}
         </span>
         <span className={styles.unseongMatrixCross}>×</span>
         <span className={styles.unseongMatrixChip}>
           <span className={styles.unseongMatrixHan}>{decadeBranch}</span>
-          대운 지지 · {branchKo}
+          {ko ? `대운 지지 · ${branchKo}` : `Decade branch · ${branchKo}`}
         </span>
       </div>
     </div>

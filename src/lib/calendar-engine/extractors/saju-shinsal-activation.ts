@@ -1,4 +1,4 @@
-import { computeDayBranch } from './saju-shinsal'
+import { computeDayBranch, SHINSAL_POLARITY } from './saju-shinsal'
 import { getShinsalInterpretation } from '@/lib/saju/interpretations'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { ShinsalHit } from '@/lib/saju/types'
@@ -59,61 +59,9 @@ function gradeOf(name: string): ShinsalGrade {
  * 활성 윈도우: 해당 일진 1일.
  */
 
-// 신살별 polarity. saju-shinsal.ts 의 분류와 일관되게 유지.
-const SHINSAL_POLARITY: Record<string, Polarity> = {
-  // ─── 길신 (귀인·문창류) ───
-  천을귀인: 2,
-  태극귀인: 2,
-  천덕귀인: 2,
-  월덕귀인: 2,
-  천주귀인: 2,
-  암록: 2,
-  금여성: 2,
-  천의성: 2,
-  천문성: 2,
-  문창: 2,
-  문곡: 2,
-  학당귀인: 2,
-  건록: 2,
-  제왕: 1,
-
-  // ─── 중립·사회 활성 ───
-  도화: 0,
-  홍염살: 0,
-
-  // ─── 변동·이동 ───
-  역마: -1,
-  역마살: -1,
-  지살: 0,
-  년살: 0,
-  반안: 1,
-  반안살: 1,
-  장성: 2,
-  장성살: 2,
-  화개: 1,
-  화개살: 1,
-  육해: -1,
-  육해살: -1,
-
-  // ─── 흉신 ───
-  망신: -2,
-  망신살: -2,
-  겁살: -2,
-  재살: -2,
-  천살: -2,
-  월살: -1,
-  백호: -2,
-  양인: -2,
-  공망: -2,
-  괴강: -1,
-  현침: -1,
-  고신: -1,
-  과숙: -1,
-  귀문관: -1,
-  원진: -2,
-  천라지망: -2,
-  삼재: -2,
-}
+// 신살별 polarity 는 saju-shinsal.ts 의 canonical SHINSAL_POLARITY 를 재사용한다.
+// (직전엔 이 파일이 자체 테이블을 들고 있어 천을귀인 2 vs 3, 도화 0 vs 1,
+//  역마 -1 vs 0, 공망 -2 vs -1 처럼 같은 신살이 추출기마다 다른 점수로 나왔다.)
 
 const sajuShinsalActivationExtractor: SignalExtractor = {
   source: 'saju',

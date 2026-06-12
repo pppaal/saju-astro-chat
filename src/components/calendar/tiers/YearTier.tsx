@@ -167,11 +167,11 @@ function houseAngle(house: number): number {
 }
 
 /** ZR chapter pivotal 표기 (LoB / Peak). */
-function zrPivotalTag(c: DestinyDecadeZRChapter): string | null {
+function zrPivotalTag(c: DestinyDecadeZRChapter, ko: boolean): string | null {
   // ZRPeriod 는 level/index/sign/ruler 만 가짐. Pivotal 정보는 sub-period level 에 있음.
   const sub = c.subPeriods?.find((s) => s.isLoosingOfTheBond || s.isPeak)
-  if (sub?.isLoosingOfTheBond) return 'LoB · 풀린 매듭'
-  if (sub?.isPeak) return 'Peak · 정점'
+  if (sub?.isLoosingOfTheBond) return ko ? 'LoB · 풀린 매듭' : 'LoB · loosed bond'
+  if (sub?.isPeak) return ko ? 'Peak · 정점' : 'Peak'
   return null
 }
 
@@ -536,7 +536,13 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
             <LayerTag kind="astro" />
             <div className={styles.yearReadout}>
               <div className={styles.big}>
-                {p ? `${p.house}번째 영역이 무대` : '활성 영역 미정'}
+                {p
+                  ? ko
+                    ? `${p.house}번째 영역이 무대`
+                    : `${p.house}th house on stage`
+                  : ko
+                    ? '활성 영역 미정'
+                    : 'house TBD'}
               </div>
               {p && (
                 <p className={styles.lead} style={{ fontSize: 14 }}>
@@ -547,7 +553,11 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 <dl className={styles.kv}>
                   <dt>profection</dt>
                   <dd>
-                    <b>{p.house}하우스</b> 활성
+                    <b>
+                      {p.house}
+                      {ko ? '하우스' : 'House'}
+                    </b>{' '}
+                    {ko ? '활성' : 'active'}
                   </dd>
                   <dt>cusp</dt>
                   <dd>
@@ -557,7 +567,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                   <dd>
                     <b>{p.ruler}</b> <span className={styles.muted}>{p.rulerEn}</span>
                   </dd>
-                  <dt>ruler 본명</dt>
+                  <dt>{ko ? 'ruler 본명' : 'ruler (natal)'}</dt>
                   <dd>
                     {p.rulerNatal}
                     {p.rulerNatalEn && (
@@ -579,7 +589,9 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 }
               >
                 <span className="pip" />
-                <span className="han">{sect === 'day' ? '낮' : '밤'}</span>
+                <span className="han">
+                  {ko ? (sect === 'day' ? '낮' : '밤') : sect === 'day' ? 'Day' : 'Night'}
+                </span>
                 Sect · {sect === 'day' ? 'Diurnal' : 'Nocturnal'}
                 {ko ? ' 출생' : ' birth'}
               </div>
@@ -613,7 +625,8 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
               </div>
               <div>
                 <div className={styles.ganjiMeta}>
-                  세운 {year.year} · {year.sewoonSibsin}
+                  {ko ? '세운 ' : 'Annual '}
+                  {year.year} · {year.sewoonSibsin}
                   {sibsinArea(year.sewoonSibsin) !== year.sewoonSibsin
                     ? ` (${sibsinArea(year.sewoonSibsin)})`
                     : ''}
@@ -629,15 +642,23 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           <div className={styles.secHead}>
             <h2
               className={styles.secTitle}
-              title="인생을 장(章)으로 나누는 점성 흐름 — 시기마다 무엇이 무대에 오르는지"
+              title={
+                ko
+                  ? '인생을 장(章)으로 나누는 점성 흐름 — 시기마다 무엇이 무대에 오르는지'
+                  : 'An astrological flow that divides life into chapters — what takes the stage in each period'
+              }
             >
-              황도분기 · Zodiacal Releasing
+              {ko ? '황도분기 · Zodiacal Releasing' : 'Zodiacal Releasing'}
             </h2>
-            <span className={styles.secTag}>L1 / L2 — 챕터 진행</span>
+            <span className={styles.secTag}>
+              {ko ? 'L1 / L2 — 챕터 진행' : 'L1 / L2 — chapter progress'}
+            </span>
           </div>
           <div className={styles.zrCard}>
             <div className={`${styles.zrPane} ${styles.zrPaneSpirit}`}>
-              <div className={styles.zrPaneHead}>Spirit · 영혼 · 진로</div>
+              <div className={styles.zrPaneHead}>
+                {ko ? 'Spirit · 영혼 · 진로' : 'Spirit · soul · path'}
+              </div>
               {zrSpiritNow ? (
                 <>
                   <div>
@@ -649,9 +670,12 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                     <span>
                       {zrSpiritNow.calendarStartYear}–{zrSpiritNow.calendarEndYear}
                     </span>
-                    <span>{zrSpiritNow.durationYears}년</span>
-                    {zrPivotalTag(zrSpiritNow) && (
-                      <span className={styles.pivot}>{zrPivotalTag(zrSpiritNow)}</span>
+                    <span>
+                      {zrSpiritNow.durationYears}
+                      {ko ? '년' : 'y'}
+                    </span>
+                    {zrPivotalTag(zrSpiritNow, ko) && (
+                      <span className={styles.pivot}>{zrPivotalTag(zrSpiritNow, ko)}</span>
                     )}
                   </div>
                   {zrSpiritNow.subPeriods && zrSpiritNow.subPeriods.length > 0 && (
@@ -659,19 +683,24 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                       <span className={styles.zrLevel}>L2</span>
                       {zrSpiritNow.subPeriods.slice(0, 1).map((sub, i) => (
                         <span key={i}>
-                          {sub.sign} · {sub.ruler} · {sub.durationMonths}개월
+                          {sub.sign} · {sub.ruler} · {sub.durationMonths}
+                          {ko ? '개월' : 'mo'}
                         </span>
                       ))}
                     </div>
                   )}
                 </>
               ) : (
-                <div className={styles.zrEmpty}>현재 활성 Spirit 챕터 없음</div>
+                <div className={styles.zrEmpty}>
+                  {ko ? '현재 활성 Spirit 챕터 없음' : 'No active Spirit chapter'}
+                </div>
               )}
             </div>
 
             <div className={`${styles.zrPane} ${styles.zrPaneFortune}`}>
-              <div className={styles.zrPaneHead}>Fortune · 몸 · 물질</div>
+              <div className={styles.zrPaneHead}>
+                {ko ? 'Fortune · 몸 · 물질' : 'Fortune · body · matter'}
+              </div>
               {zrFortuneNow ? (
                 <>
                   <div>
@@ -683,9 +712,12 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                     <span>
                       {zrFortuneNow.calendarStartYear}–{zrFortuneNow.calendarEndYear}
                     </span>
-                    <span>{zrFortuneNow.durationYears}년</span>
-                    {zrPivotalTag(zrFortuneNow) && (
-                      <span className={styles.pivot}>{zrPivotalTag(zrFortuneNow)}</span>
+                    <span>
+                      {zrFortuneNow.durationYears}
+                      {ko ? '년' : 'y'}
+                    </span>
+                    {zrPivotalTag(zrFortuneNow, ko) && (
+                      <span className={styles.pivot}>{zrPivotalTag(zrFortuneNow, ko)}</span>
                     )}
                   </div>
                   {zrFortuneNow.subPeriods && zrFortuneNow.subPeriods.length > 0 && (
@@ -693,14 +725,17 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                       <span className={styles.zrLevel}>L2</span>
                       {zrFortuneNow.subPeriods.slice(0, 1).map((sub, i) => (
                         <span key={i}>
-                          {sub.sign} · {sub.ruler} · {sub.durationMonths}개월
+                          {sub.sign} · {sub.ruler} · {sub.durationMonths}
+                          {ko ? '개월' : 'mo'}
                         </span>
                       ))}
                     </div>
                   )}
                 </>
               ) : (
-                <div className={styles.zrEmpty}>현재 활성 Fortune 챕터 없음</div>
+                <div className={styles.zrEmpty}>
+                  {ko ? '현재 활성 Fortune 챕터 없음' : 'No active Fortune chapter'}
+                </div>
               )}
             </div>
           </div>
@@ -710,8 +745,10 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         {sr && (
           <section className={styles.blockSm}>
             <div className={styles.secHead}>
-              <h2 className={styles.secTitle}>태양회귀 · Solar Return</h2>
-              <span className={styles.secTag}>본명 태양 정확 회귀</span>
+              <h2 className={styles.secTitle}>{ko ? '태양회귀 · Solar Return' : 'Solar Return'}</h2>
+              <span className={styles.secTag}>
+                {ko ? '본명 태양 정확 회귀' : 'exact natal Sun return'}
+              </span>
             </div>
             <div className={styles.srCard}>
               <div className={styles.srGlyph}>☉</div>
@@ -720,7 +757,8 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 <div className="lab">
                   {sr.ascSign && (
                     <>
-                      상승 <b>{sr.ascSign}</b>
+                      {ko ? '상승 ' : 'Asc '}
+                      <b>{sr.ascSign}</b>
                     </>
                   )}
                   {sr.mcSign && (
@@ -739,7 +777,9 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         {patterns.length > 0 && (
           <section className={styles.blockSm}>
             <div className={styles.secHead}>
-              <h2 className={styles.secTitle}>올해의 응용 패턴</h2>
+              <h2 className={styles.secTitle}>
+                {ko ? '올해의 응용 패턴' : "This year's applied patterns"}
+              </h2>
               <span className={styles.secTag}>Applied Patterns</span>
             </div>
             <div className={styles.patternRow}>
@@ -758,7 +798,9 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         {crossPairs.length > 0 && (
           <section className={styles.block}>
             <div className={styles.secHead}>
-              <h2 className={styles.secTitle}>사주 ↔ 점성 연결</h2>
+              <h2 className={styles.secTitle}>
+                {ko ? '사주 ↔ 점성 연결' : 'Saju ↔ Astrology links'}
+              </h2>
               <span className={styles.secTag}>Cross Activation</span>
             </div>
             <div className={styles.crossList}>

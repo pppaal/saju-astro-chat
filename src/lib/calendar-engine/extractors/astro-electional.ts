@@ -31,6 +31,18 @@ const EVENT_LABELS: Record<string, string> = {
   signing_contracts: '계약 체결',
 }
 
+// EN 라벨 — 이벤트 enum 의 영문명. english 필드가 없으면 표시 레이어가
+// translateSignalLabel(name) 로 폴백하는데 '택일'·이벤트명·'점' 이 사전에 없어
+// EN 유저에게 "택일: 결혼 (95점)" 그대로 한글이 노출됐다(직전 버그).
+const EVENT_LABELS_EN: Record<string, string> = {
+  marriage: 'marriage',
+  business_start: 'starting a business',
+  long_journey: 'a long journey',
+  surgery: 'surgery',
+  buying_property: 'buying property',
+  signing_contracts: 'signing contracts',
+}
+
 const SCORE_THRESHOLD = 70
 
 const astroElectionalExtractor: SignalExtractor = {
@@ -72,6 +84,7 @@ const astroElectionalExtractor: SignalExtractor = {
           kind: 'electional',
           name: `택일: ${EVENT_LABELS[event] ?? event} (${score}점)`,
           korean: `${EVENT_LABELS[event] ?? event} 택일 좋음 — ${score}점`,
+          english: `Electional: good day for ${EVENT_LABELS_EN[event] ?? event} (score ${score})`,
           polarity,
           layer: 'daily',
           active: {

@@ -39,6 +39,8 @@ export interface ReportContextInput {
   latitude: number
   longitude: number
   timeZone: string
+  /** 출생시각 미상 — astroFacts 가 ASC/MC 애스펙트·profection 군주를 신뢰불가로 처리. */
+  birthTimeUnknown?: boolean
 }
 
 export async function buildReportContext(input: ReportContextInput): Promise<NatalContext> {
@@ -56,6 +58,8 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
     latitude: input.latitude,
     longitude: input.longitude,
     timezone: input.timeZone,
+    // 출생시각 미상 → placeUnreliable: ASC/MC 애스펙트 skip, profection 군주 null.
+    birthTimeUnknown: input.birthTimeUnknown,
     // Phase A: 정통 점성 정적 분석 일체 받기 (Almuten/Lots/dignity 5-tier/
     // Chiron·Lilith/aspects major+minor/sect). facts 가 다 만들어 줘서
     // page 가 직접 호출할 필요 없음. 시간 흐름(Profection/Transit/SR/LR/
@@ -133,6 +137,9 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
 
   // ─── ctx 구성 (NatalContext shape 호환) ──────────────────────────────
   return {
+    // gender 는 NatalInput 표준 필드가 아니지만, 교차 해석의 배우자성(남=재성/
+    // 여=관성) 분기가 ctx.input.gender 를 읽으므로 여기서 직접 실어 보낸다
+    // (page 의 사후 주입에 의존하지 않게 — 다른 호출자도 성별 해석을 받도록).
     input: {
       year: Y,
       month: M,
@@ -142,7 +149,8 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
       latitude: input.latitude,
       longitude: input.longitude,
       timeZone: input.timeZone,
-    },
+      gender: input.gender,
+    } as NatalContext['input'],
     saju: {
       pillars,
       dayMaster: pillars.day.heavenlyStem,
@@ -170,6 +178,7 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
       rooted: sajuFacts.dayMaster.rooted,
       gongmang: sajuFacts.gongmang,
       johuYongsin: sajuFacts.johuYongsin,
+      gwansalHonjap: sajuFacts.gwansalHonjap,
     } as unknown as NatalContext['saju'],
     astro: {
       chart,
