@@ -26,7 +26,11 @@ import { prisma } from '@/lib/db/prisma'
 import PreviewClient from './preview/PreviewClient'
 import BirthRequiredFallback from './birth-required'
 
-import { getOrBuildNatalContext, getOrBuildYearCells } from '@/lib/calendar-engine/persistence'
+import {
+  getOrBuildNatalContext,
+  getOrBuildYearCells,
+  getFocusDayCell,
+} from '@/lib/calendar-engine/persistence'
 import { assembleTiers } from './assembleTiers'
 
 // 서버 컴포넌트 — Swiss Ephemeris 비용 서버에서 한 번에 치름.
@@ -114,7 +118,9 @@ export default async function DestinypalPage() {
 
   // ─── 4) NatalContext + 올해 cells (DB 캐시 우선) ──────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)
-  const cells = await getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: true })
+  // 연 cells 는 evidence 없이(경량 캐시) — 점수·라벨만. evidence 가 필요한 그 하루는 따로.
+  const cells = await getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
+  const focusDayCell = await getFocusDayCell(natal, targetDayIso)
 
   // ─── 5) 5 tier 어셈블 (preview 와 공유) ───────────────────────────────
   const birthDisplay = formatBirthLine(profile.birthDate!, profile.birthTime!)
@@ -133,6 +139,7 @@ export default async function DestinypalPage() {
     birthDisplay,
     whoBirthLine: birthDisplay,
     place,
+    focusDayCell,
   })
 
   return (

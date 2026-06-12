@@ -132,3 +132,30 @@ export async function getOrBuildYearCells(
 
   return cells
 }
+
+/**
+ * 포커스된 하루만 evidence 포함으로 빌드.
+ *
+ * 연 캐시(getOrBuildYearCells)는 evidence 를 빼고 저장한다 — 365일 × 셀당 수백
+ * 신호 × 원시 evidence 는 수 MB 블롭이라 캐시 읽기/쓰기·직렬화가 느려지는데,
+ * 정작 evidence 를 쓰는 건 *포커스된 그 하루*(근거카드·교차·시진)뿐이다. 그래서
+ * 그 하루만 1일 범위로 evidence 포함 빌드한다(1/365 비용, 캐시 불필요).
+ * 점수는 연 layered map(연 정규화)에서 오므로 이 1일 빌드의 점수는 쓰지 않는다.
+ */
+export async function getFocusDayCell(
+  natal: NatalContext,
+  dateIso: string
+): Promise<CalendarCell | null> {
+  const range: CalendarRange = {
+    start: `${dateIso}T00:00:00.000Z`,
+    end: `${dateIso}T23:59:59.999Z`,
+    granularity: 'day',
+  }
+  try {
+    const cells = await buildCalendar(natal, range, { includeEvidence: true })
+    return cells.find((c) => c.datetime.slice(0, 10) === dateIso) ?? cells[0] ?? null
+  } catch (err) {
+    logger.warn('[calendar] focus-day build failed — evidence card may be sparse', err)
+    return null
+  }
+}

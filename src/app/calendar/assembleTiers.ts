@@ -59,6 +59,12 @@ export interface AssembleTiersInput {
   /** topbar.whoBirthLine 로 들어갈 표시 문자열(보통 birthDisplay 와 동일). */
   whoBirthLine: string
   place: string
+  /**
+   * 포커스된 하루의 evidence 포함 셀(getFocusDayCell). 연 cells 는 evidence 를
+   * 빼고 캐시하므로(블롭 경량화), day tier 의 근거카드·교차·시진은 이 셀에서 읽는다.
+   * 없으면 연 cells 의 해당 일 셀로 폴백(evidence 없음 — 근거 일부 비어 보일 수 있음).
+   */
+  focusDayCell?: CalendarCell | null
 }
 
 export interface AssembledTiers {
@@ -174,6 +180,7 @@ export function assembleTiers(args: AssembleTiersInput): AssembledTiers {
     birthDisplay,
     whoBirthLine,
     place,
+    focusDayCell,
   } = args
 
   // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
@@ -183,7 +190,10 @@ export function assembleTiers(args: AssembleTiersInput): AssembledTiers {
   // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
-  const dayCell = cells.find((c) => c.datetime.slice(0, 10) === targetDayIso) ?? cells[0]
+  // 연 cells 는 evidence 없이 캐시되므로, evidence 가 필요한 day tier 는
+  // focusDayCell(1일 evidence 빌드)을 우선 사용. 없으면 연 cells 의 해당 일로 폴백.
+  const yearDayCell = cells.find((c) => c.datetime.slice(0, 10) === targetDayIso) ?? cells[0]
+  const dayCell = focusDayCell ?? yearDayCell
   const yearlySignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'yearly')
 
   // 층별 점수 — 일/시는 일진, 월은 월운, 년은 세운, 10년은 대운 신호로만.

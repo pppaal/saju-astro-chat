@@ -14,7 +14,11 @@
 import { headers } from 'next/headers'
 import PreviewClient from './PreviewClient'
 
-import { getOrBuildNatalContext, getOrBuildYearCells } from '@/lib/calendar-engine/persistence'
+import {
+  getOrBuildNatalContext,
+  getOrBuildYearCells,
+  getFocusDayCell,
+} from '@/lib/calendar-engine/persistence'
 import { assembleTiers } from '../assembleTiers'
 
 // Server component: 빌드 비용(Swiss Ephemeris) 을 서버에서 한 번만 치름.
@@ -42,7 +46,8 @@ export default async function DestinypalPreview() {
 
   // ─── NatalContext + 그 해 cells (DB 캐시 우선) ────────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)
-  const cells = await getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: true })
+  const cells = await getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
+  const focusDayCell = await getFocusDayCell(natal, TARGET_DAY_ISO)
 
   // ─── 5 tier 어셈블 (정식 라우트와 공유) ───────────────────────────────
   const TARGET_DAY = Number(TARGET_DAY_ISO.split('-')[2])
@@ -59,6 +64,7 @@ export default async function DestinypalPreview() {
     birthDisplay: '1995-02-09 06:40',
     whoBirthLine: '1995.2.9 06:40',
     place: '서울',
+    focusDayCell,
   })
 
   return (
