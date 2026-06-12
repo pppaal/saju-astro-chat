@@ -21,6 +21,7 @@ import { prisma } from '@/lib/db/prisma'
 
 import PreviewClient from './preview/PreviewClient'
 import BirthRequiredFallback from './birth-required'
+import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
 
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
@@ -639,18 +640,22 @@ export default async function DestinypalPage() {
   const ilganHanja = user.ilgan.hanja || '辛'
 
   return (
-    <PreviewClient
-      topbar={{
-        whoBirthLine: birthDisplay,
-        place,
-        ilganHanja,
-      }}
-      user={user}
-      lifetime={lifetime}
-      decade={decade}
-      year={year}
-      month={month}
-      day={day}
-    />
+    <>
+      <PreviewClient
+        topbar={{
+          whoBirthLine: birthDisplay,
+          place,
+          ilganHanja,
+        }}
+        user={user}
+        lifetime={lifetime}
+        decade={decade}
+        year={year}
+        month={month}
+        day={day}
+      />
+      {/* 매일 아침 오늘의 운세 푸시 옵트인 — VAPID 미설정/미지원이면 스스로 숨음 */}
+      <DailyFortunePushBanner locale={lang} />
+    </>
   )
 }

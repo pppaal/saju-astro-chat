@@ -69,8 +69,30 @@ model User {
   // 크레딧 변동 감사 로그 — 모든 grant/consume/refund/expire/revoke
   // 이벤트를 single source of truth 로 보존 (sum-invariant 가드 포함).
   creditTransactions    CreditTransaction[]
+  // 웹 푸시 구독 (매일 아침 오늘의 운세 알림)
+  pushSubscriptions     PushSubscription[]
 
   @@index([referrerId])
+}
+
+// 웹 푸시 구독 — "매일 아침 오늘의 운세 한 줄" 알림용 (Web Push / VAPID).
+// 브라우저 PushSubscription(endpoint + p256dh/auth 키)을 유저별로 보관한다.
+// 옛 PushSubscription(2026-06-06 삭제, row 0)과 별개의 새 wiring —
+// 등록: POST /api/me/push-subscription, 발송: GET /api/cron/daily-fortune.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique // 푸시 서비스가 발급한 구독 URL (구독의 자연키)
+  p256dh    String // 클라이언트 공개키 (payload 암호화용)
+  auth      String // 인증 시크릿
+  locale    String   @default("ko") // 알림 본문 언어 (ko | en)
+  createdAt DateTime @default(now())
+  lastSentAt DateTime? // 마지막 발송 성공 시각
+  failCount Int      @default(0) // 연속 발송 실패 횟수 — 5회 이상이면 정리
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // 사용자 프로필 정보 - 생년월일, 사진 등 개인 정보
