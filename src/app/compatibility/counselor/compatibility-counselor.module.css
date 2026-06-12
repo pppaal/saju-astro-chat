@@ -167,6 +167,15 @@
   align-items: center;
 }
 
+/* 운명 상담사 .creditBadgeWrap 와 동일 — 배지 로딩 스켈레톤(min-width
+   80px)→실값 전환·크레딧 변동 때 폭이 바뀌며 옆 ⋮ 가 좌우로 밀리던
+   layout shift 를 래퍼로 격리하고, 모바일에선 배지를 숨긴다(운명과 동일). */
+.creditBadgeWrap {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .chatMenuButton {
   /* 헤더 도형 통일 — 30×30 원형(운명 상담사와 동일), border + bg 모두
      없음, hover 때만 살짝 bg 들어옴. */
@@ -258,6 +267,13 @@
   flex-direction: column;
   gap: 0.85rem;
   scroll-behavior: smooth;
+  /* 운명 상담사 .chatMain 과 동일한 860px 중앙 컬럼 — 입력창(.inputWrap)만
+     860px 이고 메시지 영역은 무제한이라 와이드 화면에서 본문이 화면 끝까지
+     퍼지던 회귀(2026-06-12 실사용 리포트). */
+  width: 100%;
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
   /* 오른쪽 스크롤바 숨김 — 운명 상담사와 동일. 스크롤 기능은 유지하되
      바가 차지하던 폭을 글자에 돌려줘 가로로 더 넓게 읽히게. */
   scrollbar-width: none;
@@ -527,6 +543,12 @@
 @media (max-width: 640px) {
   .header {
     padding: 0.375rem 0.125rem;
+  }
+
+  /* 운명 상담사와 동일 — 폰에선 크레딧 배지 숨김. 배지 폭 변동(스켈레톤→
+     실값, 크레딧 차감)마다 ⋮ 가 움직이던 모바일 리포트의 직접 원인. */
+  .creditBadgeWrap {
+    display: none;
   }
 
   /* 운명상담사 chatWrapper 모바일 padding 과 동일 (0.75rem 0.75rem 0.5rem
