@@ -93,142 +93,102 @@ const PLANET_ROLE: Record<string, { ko: string; en: string }> = {
   'True Node': { ko: '운명·과제', en: 'fate and lesson' },
 }
 
-// 핵심 행성쌍의 "관계 의미" — 어떤 삶의 축을 건드리는지(톤-중립, 끌림/마찰
-// 색깔은 라벨·강도가 전달). 키는 영문명 정렬 'A|B'. 없으면 PLANET_ROLE 조합 폴백.
+// 핵심 행성쌍이 "어떤 삶의 축을 건드리는지" — 톤-중립 명사구(끌림/마찰 방향은
+// aspectMeaning 의 톤 접미사가 붙임). 그래야 라벨(조화/긴장)과 의미가 안 어긋난다.
+// 키는 영문명 정렬 'A|B'. 없으면 PLANET_ROLE 조합 폴백.
 const PAIR_MEANING: Record<string, { ko: string; en: string }> = {
   'Moon|Sun': {
-    ko: '자아와 감정이 맞물리는 궁합의 핵심 축 — 함께 있으면 서로를 자연스럽게 채워요',
-    en: 'the core axis of self meeting feeling — you naturally complete each other',
+    ko: '자아와 감정이 맞물리는 궁합의 핵심 축',
+    en: 'the core axis where self meets feeling',
   },
-  'Moon|Venus': {
-    ko: '정서와 애정이 부드럽게 통해 — 편안하고 다정한 끌림',
-    en: 'feelings and affection flow gently — a warm, easy draw',
-  },
-  'Mars|Venus': {
-    ko: '끌림·케미의 핵심 축 — 로맨스와 열정의 불꽃',
-    en: 'the heart of chemistry — the spark of romance and passion',
-  },
-  'Mars|Moon': {
-    ko: '감정과 욕망이 직결 — 뜨겁게 통하지만 욱하기도',
-    en: 'feeling wired straight to desire — hot, but quick to flare',
-  },
-  'Sun|Venus': {
-    ko: '자아와 애정이 통해 — 서로 좋아하고 인정하는 결',
-    en: 'self and affection align — you like and validate each other',
-  },
+  'Moon|Venus': { ko: '정서와 애정이 맞닿는 자리', en: 'where feelings and affection meet' },
+  'Mars|Venus': { ko: '끌림과 케미의 핵심 축', en: 'the heart of attraction and chemistry' },
+  'Mars|Moon': { ko: '감정과 욕망이 직결되는 자리', en: 'where feeling wires straight to desire' },
+  'Sun|Venus': { ko: '자아와 애정이 만나는 자리', en: 'where self meets affection' },
   'Mercury|Mercury': {
-    ko: '대화·사고방식의 결 — 말이 통하는지를 가르는 축',
-    en: 'the wavelength of talk and thinking — whether you click in conversation',
+    ko: '대화·사고방식이 맞물리는 축',
+    en: 'the wavelength of talk and thinking',
   },
-  'Moon|Moon': {
-    ko: '정서 리듬이 닮았는지 — 집·일상의 편안함',
-    en: 'whether your emotional rhythms match — comfort of home and daily life',
-  },
+  'Moon|Moon': { ko: '정서 리듬이 닮았는지 보는 자리', en: 'whether your emotional rhythms match' },
   'Moon|Saturn': {
-    ko: '감정과 책임이 만나 — 안정감과 거리감이 함께 오는 양날',
-    en: 'feeling meets duty — a double edge of security and distance',
+    ko: '감정과 책임·거리감이 만나는 자리',
+    en: 'where feeling meets duty and distance',
   },
-  'Saturn|Venus': {
-    ko: '애정과 헌신 — 진지하고 오래가나 의무감은 경계',
-    en: 'affection and commitment — lasting and serious, but watch for obligation',
-  },
-  'Mars|Saturn': {
-    ko: '추진과 통제 — 함께 일하면 단단, 부딪히면 답답',
-    en: 'drive meets restraint — solid when aligned, stifling when not',
-  },
+  'Saturn|Venus': { ko: '애정과 헌신·약속이 만나는 자리', en: 'where affection meets commitment' },
+  'Mars|Saturn': { ko: '추진과 통제가 맞부딪는 축', en: 'where drive meets restraint' },
   'Moon|Pluto': {
-    ko: '감정 가장 깊은 곳을 건드리는 강렬한 이끌림 — 무의식적',
-    en: 'a pull that reaches your deepest feelings — unconscious and intense',
+    ko: '감정 가장 깊은 곳을 건드리는 자리',
+    en: 'the place that touches your deepest feelings',
   },
   'Pluto|Venus': {
-    ko: '사랑이 집착·변환으로 — 강렬하고 운명적인 결',
-    en: 'love turned to obsession and transformation — intense, fated',
+    ko: '사랑이 집착·변환과 닿는 자리',
+    en: 'where love meets obsession and transformation',
   },
-  'Mars|Pluto': {
-    ko: '욕망과 힘이 증폭 — 강렬하나 주도권 다툼은 주의',
-    en: 'desire and power amplified — intense, but mind the power struggle',
-  },
+  'Mars|Pluto': { ko: '욕망과 힘이 증폭되는 축', en: 'where desire and power amplify' },
   'Saturn|Sun': {
-    ko: '자아와 권위 — 든든한 버팀목과 억압이 함께 오는 양날',
-    en: 'self meets authority — a pillar and a weight at once',
+    ko: '자아와 권위·무게가 만나는 자리',
+    en: 'where self meets authority and weight',
   },
   'Pluto|Sun': {
-    ko: '정체성을 뒤흔드는 강한 영향 — 변형적인 관계',
-    en: 'a force that reshapes who you are — transformative',
+    ko: '정체성을 뒤흔드는 변형의 자리',
+    en: 'the transformative axis that reshapes identity',
   },
   'Uranus|Venus': {
-    ko: '설레고 자유로운 끌림 — 짜릿하나 변덕도',
-    en: 'an exciting, free-spirited draw — thrilling but flighty',
+    ko: '설렘·자유로운 끌림의 자리',
+    en: 'the spot of an exciting, free-spirited draw',
   },
-  'Moon|Uranus': {
-    ko: '정서적 자극 — 신선하나 불안정',
-    en: 'an emotional jolt — fresh but unsteady',
-  },
+  'Moon|Uranus': { ko: '정서적 자극의 자리', en: 'the spot of an emotional jolt' },
   'Neptune|Venus': {
-    ko: '이상적이고 낭만적인 사랑 — 환상은 경계',
-    en: 'idealized, romantic love — beware the illusion',
+    ko: '이상·낭만이 어리는 사랑의 자리',
+    en: 'where love meets dream and idealization',
   },
-  'Mars|Sun': {
-    ko: '자아와 추진력 — 활력 넘치나 경쟁도',
-    en: 'self and drive — energizing, but competitive',
-  },
-  'Jupiter|Sun': {
-    ko: '서로를 넓혀주고 북돋아 — 관대하고 성장적',
-    en: 'you expand and uplift each other — generous and growthful',
-  },
-  'Jupiter|Moon': {
-    ko: '정서적으로 넉넉하게 품어줘 — 따뜻하고 안심되는 결',
-    en: 'emotionally generous and reassuring',
-  },
+  'Mars|Sun': { ko: '자아와 추진력이 만나는 자리', en: 'where self meets drive' },
+  'Jupiter|Sun': { ko: '서로를 넓혀주는 자리', en: 'where you expand each other' },
+  'Jupiter|Moon': { ko: '정서적으로 품어주는 자리', en: 'where one buoys the other emotionally' },
   'Ascendant|Sun': {
-    ko: '첫인상과 자아가 통해 — 처음부터 자연스러운 사이',
-    en: 'first impression and self align — natural from the start',
+    ko: '첫인상과 자아가 만나는 자리',
+    en: 'where first impression meets the self',
   },
-  'Ascendant|Moon': {
-    ko: '겉모습과 정서가 맞아 — 곁에 있으면 편안',
-    en: 'persona and feeling match — easy to be around',
-  },
+  'Ascendant|Moon': { ko: '겉모습과 정서가 만나는 자리', en: 'where persona meets feeling' },
   'Ascendant|Venus': {
-    ko: '첫눈에 끌리는 매력 — 호감이 빠르게',
-    en: 'attraction at first sight — quick rapport',
+    ko: '첫인상과 매력이 만나는 자리',
+    en: 'where first impression meets charm',
   },
   'Venus|Venus': {
-    ko: '취향과 애정 방식이 닮았는지 — 미감·가치의 결',
-    en: 'whether your tastes and ways of loving match — shared aesthetics and values',
+    ko: '취향·애정 방식이 닮았는지 보는 축',
+    en: 'whether your tastes and ways of loving match',
   },
-  'Sun|Sun': {
-    ko: '두 자아가 같은 결인지 — 근본 기질의 궁합',
-    en: 'whether your two selves run the same grain — core temperament fit',
-  },
-  'Mars|Mars': {
-    ko: '추진·욕망의 결 — 함께 밀어붙이는 호흡',
-    en: 'the grain of drive and desire — how you push forward together',
-  },
+  'Sun|Sun': { ko: '두 자아의 기본 결을 보는 축', en: 'the baseline grain of two selves' },
+  'Mars|Mars': { ko: '추진·욕망의 호흡을 보는 축', en: 'the rhythm of drive and desire' },
+}
+
+// 톤 방향 접미사 — 축(중립) 뒤에 붙여 라벨(조화/긴장)과 항상 일치.
+function toneTail(tone: SynastryTone, isKo: boolean): string {
+  if (isKo)
+    return tone === 'harmony'
+      ? ' — 여기선 자연스럽게 통해요'
+      : tone === 'tension'
+        ? ' — 여기선 부딪혀 조율이 필요해요'
+        : ' — 미묘하게 엮이는 결이에요'
+  return tone === 'harmony'
+    ? ' — here you flow together'
+    : tone === 'tension'
+      ? ' — here it rubs and asks for tuning'
+      : ' — a subtle interplay'
 }
 
 function aspectMeaning(aEn: string, bEn: string, tone: SynastryTone, isKo: boolean): string {
   const core = PAIR_MEANING[[aEn, bEn].sort().join('|')]
-  if (core) return isKo ? core.ko : core.en
-  // 폴백 — 두 행성의 역할 + 톤 색.
-  const ra = PLANET_ROLE[aEn]?.[isKo ? 'ko' : 'en'] ?? aEn
-  const rb = PLANET_ROLE[bEn]?.[isKo ? 'ko' : 'en'] ?? bEn
-  if (isKo) {
-    // 조사 안전 — '축이'(받침 고정)로 받아 ra/rb 받침과 무관하게.
-    const t =
-      tone === 'harmony'
-        ? '매끄럽게 통해요'
-        : tone === 'tension'
-          ? '부딪혀 긴장을 만들어요 — 조율이 곧 성장'
-          : '미묘하게 엮여요'
-    return `${ra} — ${rb} 축이 ${t}`
-  }
-  const t =
-    tone === 'harmony'
-      ? 'flow together smoothly'
-      : tone === 'tension'
-        ? 'rub against each other — tuning is where you grow'
-        : 'interweave subtly'
-  return `where ${ra} meets ${rb} — they ${t}`
+  const axis = core
+    ? isKo
+      ? core.ko
+      : core.en
+    : (() => {
+        const ra = PLANET_ROLE[aEn]?.[isKo ? 'ko' : 'en'] ?? aEn
+        const rb = PLANET_ROLE[bEn]?.[isKo ? 'ko' : 'en'] ?? bEn
+        return isKo ? `${ra} — ${rb} 축` : `where ${ra} meets ${rb}`
+      })()
+  return axis + toneTail(tone, isKo)
 }
 
 export type SynastryTone = 'harmony' | 'tension' | 'neutral'

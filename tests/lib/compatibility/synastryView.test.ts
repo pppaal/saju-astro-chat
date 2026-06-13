@@ -47,13 +47,24 @@ describe('synastryView — 행성쌍 의미', () => {
     )
     expect(marsVenus?.meaning).toContain('케미')
   })
-  it('fallback 은 조사 안전(축이) — "X와 Y가" 깨짐 없음', () => {
+  it('fallback 은 축 명사구 + 톤 접미사로 조사 안전', () => {
     // 수성-목성 같은 비-수록 쌍 → fallback. (목성은 개인행성 아님 → 수성이 껴야 통과)
     const a2 = chart([['Mercury', 0]])
     const b2 = chart([['Jupiter', 0]])
     const v = computeSynastryView(a2, b2, 'ko')
     const m = v?.aspects[0]?.meaning ?? ''
-    if (m) expect(m).toMatch(/축이/)
+    if (m) {
+      expect(m).toMatch(/축/)
+      // 톤 방향 접미사가 항상 붙어 라벨과 일치
+      expect(m).toMatch(/통해요|조율이 필요해요|엮이는 결/)
+    }
+  })
+  it('의미가 톤 라벨과 어긋나지 않는다(조화=통해 / 긴장=조율)', () => {
+    const v = computeSynastryView(A, B, 'ko')!
+    for (const a of v.aspects) {
+      if (a.tone === 'harmony') expect(a.meaning).toContain('통해요')
+      if (a.tone === 'tension') expect(a.meaning).toContain('조율이 필요해요')
+    }
   })
   it('EN 모드 의미에 한글 누출 없음', () => {
     const v = computeSynastryView(A, B, 'en')!

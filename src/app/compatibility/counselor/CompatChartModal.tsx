@@ -133,6 +133,27 @@ function topOverlay<T extends { house: number }>(rows: T[]): T | null {
   return rows[0] ?? null
 }
 
+// 사주 관계 유형별 의미 — "끌어당기는 결/부딪히는 결" 2종 반복 대신 합/충/형…마다 다른 한 줄.
+const REL_MEANING: Record<string, { ko: string; en: string }> = {
+  천간합: { ko: '천간이 손잡아 뜻·명분이 통하는 결', en: 'stems clasp — aims and ideals align' },
+  천간충: { ko: '천간이 정면으로 부딪혀 자극하는 결', en: 'stems collide head-on — stimulating' },
+  육합: { ko: '속궁합이 부드럽게 맞물리는 결', en: 'inner fit clicks gently' },
+  삼합: { ko: '같은 목표로 뭉치는 결', en: 'rallying toward a shared goal' },
+  방합: { ko: '계절처럼 한 방향으로 모이는 결', en: 'gathering one way like a season' },
+  충: { ko: '삶의 기반이 흔들리는 충돌', en: 'a clash that shakes your footing' },
+  형: { ko: '가까울수록 거슬리는 형', en: 'the closer you get, the more it grates' },
+  자형: { ko: '스스로 안고 가는 내적 마찰', en: 'an inner friction you carry yourself' },
+  해: { ko: '은근히 갉아먹는 결', en: 'a quiet wearing-away' },
+  파: { ko: '깨고 흩어놓는 결', en: 'a breaking, scattering edge' },
+}
+// 여러 태그면 가장 결정적인 것 우선(충돌 > 결속 > 기타).
+const REL_PRIORITY = ['충', '형', '자형', '천간충', '천간합', '육합', '삼합', '방합', '파', '해']
+function relGloss(tags: string[], isKo: boolean): string {
+  const key = REL_PRIORITY.find((t) => tags.includes(t)) ?? tags[0]
+  const m = key ? REL_MEANING[key] : undefined
+  return m ? (isKo ? m.ko : m.en) : isKo ? '두 기둥이 엮이는 결' : 'a tie between the pillars'
+}
+
 function QuickRead({
   name,
   accent,
@@ -497,35 +518,38 @@ export function CompatChartModal({
                     return (
                       <li
                         key={`rel-${r.aPillar}-${r.bPillar}-${r.aChar}-${r.bChar}-${i}`}
-                        className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px]"
+                        className="flex flex-col gap-1 rounded-lg px-2.5 py-1.5 text-[12.5px]"
                         style={{ background: 'rgba(0,0,0,0.025)', color: 'var(--ds-light-text)' }}
                       >
-                        <span aria-hidden="true" className="shrink-0">
-                          {meta.emoji}
-                        </span>
-                        <span className="flex-1 leading-snug">
-                          {same ? (
-                            <>{isKo ? `둘의 ${r.aPillar}주` : `both ${r.aPillar}`}</>
-                          ) : (
-                            <>
-                              <b style={{ color: '#be123c' }}>
-                                {labelA} {r.aPillar}
-                              </b>{' '}
-                              ↔{' '}
-                              <b style={{ color: '#0369a1' }}>
-                                {labelB} {r.bPillar}
-                              </b>
-                            </>
-                          )}{' '}
-                          <span style={{ color: meta.color, fontWeight: 600 }}>
-                            {r.tags.join('·')}
+                        <div className="flex items-center gap-2">
+                          <span aria-hidden="true" className="shrink-0">
+                            {meta.emoji}
                           </span>
-                        </span>
+                          <span className="flex-1 leading-snug">
+                            {same ? (
+                              <>{isKo ? `둘의 ${r.aPillar}주` : `both ${r.aPillar}`}</>
+                            ) : (
+                              <>
+                                <b style={{ color: '#be123c' }}>
+                                  {labelA} {r.aPillar}
+                                </b>{' '}
+                                ↔{' '}
+                                <b style={{ color: '#0369a1' }}>
+                                  {labelB} {r.bPillar}
+                                </b>
+                              </>
+                            )}{' '}
+                            <span style={{ color: meta.color, fontWeight: 600 }}>
+                              {r.tags.join('·')}
+                            </span>
+                          </span>
+                        </div>
+                        {/* 관계 유형별 의미 — "끌어당기는/부딪히는 결" 2종 반복 제거 */}
                         <span
-                          className="shrink-0 text-[11px]"
+                          className="pl-6 text-[11.5px] leading-snug"
                           style={{ color: 'var(--ds-light-text-muted)' }}
                         >
-                          {meta.gloss}
+                          {relGloss(r.tags, isKo)}
                         </span>
                       </li>
                     )
