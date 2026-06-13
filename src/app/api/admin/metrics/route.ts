@@ -33,7 +33,7 @@ export const GET = withApiMiddleware(
         return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
       }
 
-      const adminCheck = await isAdminUser(context.userId)
+      const adminCheck = await isAdminUser(context.userId, context.session?.user?.email)
       if (!adminCheck) {
         logger.warn('[Metrics] Unauthorized access attempt', {
           email: userEmail,

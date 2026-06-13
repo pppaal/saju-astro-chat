@@ -277,7 +277,7 @@ describe('GET /api/admin/metrics/funnel', () => {
       const response = await GET(createRequest())
 
       expect(response.status).toBe(200)
-      expect(isAdminUser).toHaveBeenCalledWith('admin-user-123')
+      expect(isAdminUser).toHaveBeenCalledWith('admin-user-123', expect.anything())
     })
   })
 
