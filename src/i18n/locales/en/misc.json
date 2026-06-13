@@ -137,6 +137,15 @@
     "secondaryCta": "Explore Destiny Map",
     "secondaryPricingCta": "Recharge Credits"
   },
+  "push": {
+    "dailyFortuneAriaLabel": "Daily fortune notifications",
+    "dailyFortuneTitle": "Get your daily fortune every morning",
+    "dailyFortuneDescription": "One line of fortune for your day, delivered each morning.",
+    "dailyFortuneEnabled": "Daily fortune notifications are on.",
+    "enableButton": "Turn on",
+    "disableButton": "Turn off",
+    "permissionDenied": "Notifications are blocked. Allow them in your browser settings."
+  },
   "pwa": {
     "installAriaLabel": "Install as app",
     "installTitle": "Quick access — install as app",

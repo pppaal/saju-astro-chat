@@ -208,10 +208,13 @@ function LifeCurve({
 }
 
 function LayerTag({ kind }: { kind: 'saju' | 'astro' }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const isSaju = kind === 'saju'
   return (
     <span className={`${styles.layerTag} ${isSaju ? styles.saju : styles.astro}`}>
-      <span className={styles.pip} /> {isSaju ? '사주 · SAJU' : '점성 · ASTRO'}
+      <span className={styles.pip} />{' '}
+      {isSaju ? (ko ? '사주 · SAJU' : 'Saju · 四柱') : ko ? '점성 · ASTRO' : 'Astrology'}
     </span>
   )
 }
@@ -263,6 +266,8 @@ function zodiacKo(signEn: string): string {
 // LifeTimeline — 사주 대운 × 점성 ZR 을 한 나이축에 평행으로 (②)
 // ============================================================================
 function LifeTimeline({ lifetime }: { lifetime: DestinyLifetime }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const by = lifetime.birthYear
   const dw = lifetime.daewoon ?? []
   const spirit = lifetime.zrSpiritChapters ?? []
@@ -302,12 +307,18 @@ function LifeTimeline({ lifetime }: { lifetime: DestinyLifetime }) {
   return (
     <div className={styles.block}>
       <div className={styles.sectionHead}>
-        <h2 className={styles.sectionTitle}>인생 타임라인 · 대운 × 점성</h2>
-        <span className={styles.tiny}>사주 10년운과 점성 ZR 챕터를 같은 나이축에 나란히</span>
+        <h2 className={styles.sectionTitle}>
+          {ko ? '인생 타임라인 · 대운 × 점성' : 'Life timeline · Decades × Astrology'}
+        </h2>
+        <span className={styles.tiny}>
+          {ko
+            ? '사주 10년운과 점성 ZR 챕터를 같은 나이축에 나란히'
+            : 'Saju decade luck and astro ZR chapters side by side on one age axis'}
+        </span>
       </div>
       <div className={styles.tlWrap} style={{ position: 'relative' }}>
         {/* 사주 대운 */}
-        <div className={styles.tlRowLabel}>사주 대운</div>
+        <div className={styles.tlRowLabel}>{ko ? '사주 대운' : 'Saju decades'}</div>
         <div className={styles.tlTrack} style={{ position: 'relative' }}>
           {dw.map((d, i) =>
             seg(
@@ -321,7 +332,7 @@ function LifeTimeline({ lifetime }: { lifetime: DestinyLifetime }) {
           )}
         </div>
         {/* 점성 ZR (Spirit = 진로·정체) */}
-        <div className={styles.tlRowLabel}>점성 ZR</div>
+        <div className={styles.tlRowLabel}>{ko ? '점성 ZR' : 'Astro ZR'}</div>
         <div className={styles.tlTrack} style={{ position: 'relative' }}>
           {spirit.map((c, i) =>
             seg(
@@ -344,7 +355,8 @@ function LifeTimeline({ lifetime }: { lifetime: DestinyLifetime }) {
       <div className={styles.tlAxis}>
         {[0, Math.round(span / 3), Math.round((span * 2) / 3), span].map((a) => (
           <span key={a} style={{ position: 'absolute', left: `${pct(a)}%` }}>
-            {a}세
+            {`${a}`}
+            {ko ? '세' : ' yr'}
           </span>
         ))}
       </div>
@@ -370,7 +382,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   if (!lifeStages?.length) {
     return (
       <div className={styles.tier} data-screen-label="인생 84년">
-        <p style={{ padding: 40, opacity: 0.6 }}>본명 정보를 불러오는 중...</p>
+        <p style={{ padding: 40, opacity: 0.6 }}>
+          {ko ? '본명 정보를 불러오는 중...' : 'Loading natal data...'}
+        </p>
       </div>
     )
   }
@@ -383,8 +397,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   )
   const dominantEl = elementsEntries[0]?.[0]
   const elementsLabelText = dominantEl
-    ? `사주 8자 오행 분포 — ${dominantEl}(${EL_HANJA[dominantEl] ?? dominantEl}) 최다`
-    : '사주 8자 오행 분포'
+    ? ko
+      ? `사주 8자 오행 분포 — ${dominantEl}(${EL_HANJA[dominantEl] ?? dominantEl}) 최다`
+      : `Eight-character element spread — ${dominantEl}(${EL_HANJA[dominantEl] ?? dominantEl}) dominant`
+    : ko
+      ? '사주 8자 오행 분포'
+      : 'Eight-character element spread'
 
   // C1: astro 메타 한 줄 — 누락 세그먼트 hide
   const astroSegs = [
@@ -547,7 +565,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
               <div className={styles.idCardMeta}>
                 <div className={styles.idCardType}>{lifetime.lifePattern.ko}</div>
                 <div className={styles.idCardSub}>
-                  {user.ilgan.kr} 일간 · {user.gyeokguk}
+                  {ko
+                    ? `${user.ilgan.kr} 일간 · ${user.gyeokguk}`
+                    : `${user.ilgan.kr} day master · ${user.gyeokguk}`}
                   {user.astro?.sun ? ` · ☉${user.astro.sun}` : ''}
                 </div>
               </div>
@@ -568,29 +588,31 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             <div className={styles.introPanelSide}>
               <div className={styles.idChips}>
                 <span className={styles.chip}>
-                  <span className={styles.k}>일간</span>
+                  <span className={styles.k}>{ko ? '일간' : 'Day master'}</span>
                   <span className={styles.han}>{user.ilgan.hanja}</span>
                   <span className={styles.v}>{user.ilgan.kr}</span>
                 </span>
 
                 {/* ── Phase 3 보강 ②: 격국 chip → gyeokgukStatus ── */}
                 <span className={styles.chip}>
-                  <span className={styles.k}>격국</span>
+                  <span className={styles.k}>{ko ? '격국' : 'Structure'}</span>
                   <span className={styles.v}>{user.gyeokgukStatus ?? user.gyeokguk}</span>
                 </span>
 
                 <span className={styles.chip}>
-                  <span className={styles.k}>용신</span>
+                  <span className={styles.k}>{ko ? '용신' : 'Yongsin'}</span>
                   <span className={styles.han}>{user.yongsin.hanja}</span>
                 </span>
                 <span className={styles.chip}>
-                  <span className={styles.k}>강약</span>
+                  <span className={styles.k}>{ko ? '강약' : 'Strength'}</span>
                   <span className={styles.v}>{user.gangyak}</span>
                 </span>
 
                 {/* ── Phase 3 보강 ③: 재성 chip → rootStatus (C4: 라벨 조건부) ── */}
                 <span className={styles.chip}>
-                  <span className={styles.k}>{hasRootStatus ? '통근' : '주십신'}</span>
+                  <span className={styles.k}>
+                    {hasRootStatus ? (ko ? '통근' : 'Rooted') : ko ? '주십신' : 'Main god'}
+                  </span>
                   <span className={styles.v}>
                     {user.rootStatus ?? `${user.dominantSibsin.name} ${user.dominantSibsin.pct}%`}
                   </span>
@@ -611,8 +633,14 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         {lifetime.lifePattern && (
           <div className={styles.block}>
             <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>인생 유형 · {lifetime.lifePattern.ko}</h2>
-              <span className={styles.tiny}>신강약 기준 대운 흐름</span>
+              <h2 className={styles.sectionTitle}>
+                {ko
+                  ? `인생 유형 · ${lifetime.lifePattern.ko}`
+                  : `Life type · ${lifetime.lifePattern.en ?? lifetime.lifePattern.ko}`}
+              </h2>
+              <span className={styles.tiny}>
+                {ko ? '신강약 기준 대운 흐름' : 'Decade flow by day-master strength'}
+              </span>
             </div>
             <p className={styles.lead}>{lifetime.lifePattern.line}</p>
             <div className={styles.daewoonRow}>
@@ -634,8 +662,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       ============================================================ */}
         <div className={styles.block}>
           <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>네 시기의 별자리</h2>
-            <span className={styles.tiny}>0 → 84세 · 대운 10년 주기</span>
+            <h2 className={styles.sectionTitle}>
+              {ko ? '네 시기의 별자리' : 'The stars of four eras'}
+            </h2>
+            <span className={styles.tiny}>
+              {ko ? '0 → 84세 · 대운 10년 주기' : '0 → 84 yrs · 10-year decades'}
+            </span>
           </div>
 
           <div className={styles.constellation}>
@@ -689,13 +721,19 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 className={`${styles.stageCard} ${s.now ? styles.now : ''}`}
                 onClick={s.now ? onDive : undefined}
               >
-                {s.now && <span className={styles.nowtag}>지금 · NOW</span>}
+                {s.now && <span className={styles.nowtag}>{ko ? '지금 · NOW' : 'now · NOW'}</span>}
                 <div className={styles.nm}>{s.name}</div>
                 <div className={styles.age}>
-                  {s.ageFrom}–{s.ageTo}세 · {s.yearFrom}–{s.yearTo}
+                  {ko
+                    ? `${s.ageFrom}–${s.ageTo}세 · ${s.yearFrom}–${s.yearTo}`
+                    : `${s.ageFrom}–${s.ageTo} yrs · ${s.yearFrom}–${s.yearTo}`}
                 </div>
                 <div className={styles.tone}>{s.tone}</div>
-                {s.now && <div className={styles.diveHint}>탭하면 올해로 줌인 ↘</div>}
+                {s.now && (
+                  <div className={styles.diveHint}>
+                    {ko ? '탭하면 올해로 줌인 ↘' : 'Tap to zoom into this year ↘'}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -744,12 +782,15 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             const i = win.findIndex((m) => m.year >= nowYear)
             return i === -1 ? win.length - 1 : i
           })()
-          const sysOf = (k: string) => (k === 'saju' || k === 'daewoon' ? '사주' : '점성')
+          const sysOf = (k: string) =>
+            k === 'saju' || k === 'daewoon' ? (ko ? '사주' : 'Saju') : ko ? '점성' : 'Astrology'
           return (
             <div className={styles.pivots}>
               <div className={styles.sectionHead}>
-                <h2 className={styles.sectionTitle}>운명의 전환기</h2>
-                <span className={styles.tiny}>지난 5년 → 앞으로 10년</span>
+                <h2 className={styles.sectionTitle}>{ko ? '운명의 전환기' : 'Turning points'}</h2>
+                <span className={styles.tiny}>
+                  {ko ? '지난 5년 → 앞으로 10년' : 'Past 5 yrs → next 10 yrs'}
+                </span>
               </div>
               <div className={styles.pivotList}>
                 {win.map((m, idx) => {
@@ -768,13 +809,25 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                       <div className={styles.pivotHead}>
                         <span className={styles.pivotYear}>
                           {m.year}
-                          <small> · {m.age}세</small>
+                          <small>
+                            {' '}
+                            · {m.age}
+                            {ko ? '세' : ' yrs'}
+                          </small>
                         </span>
                         <span className={styles.pivotSys}>{sysOf(m.kind)}</span>
-                        {past && <span className={styles.pivotTag}>지난 시기</span>}
+                        {past && (
+                          <span className={styles.pivotTag}>{ko ? '지난 시기' : 'past'}</span>
+                        )}
                         {highlight && (
                           <span className={styles.pivotTagNow}>
-                            {m.year === nowYear ? '올해' : '다가오는 시기'}
+                            {m.year === nowYear
+                              ? ko
+                                ? '올해'
+                                : 'this year'
+                              : ko
+                                ? '다가오는 시기'
+                                : 'upcoming'}
                           </span>
                         )}
                       </div>
@@ -793,8 +846,10 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       ============================================================ */}
         <div className={styles.miles}>
           <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>분기점 타임라인</h2>
-            <span className={styles.tiny}>사주 · 점성 수렴 마디</span>
+            <h2 className={styles.sectionTitle}>{ko ? '분기점 타임라인' : 'Pivot timeline'}</h2>
+            <span className={styles.tiny}>
+              {ko ? '사주 · 점성 수렴 마디' : 'Saju · Astrology convergence points'}
+            </span>
           </div>
           <div className={styles.mileTrack}>
             {milestones.map((m, i) => (
@@ -802,11 +857,14 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 <span className={styles.node} />
                 <span className={styles.yr}>
                   {m.year}
-                  <small>{m.age}세</small>
+                  <small>
+                    {m.age}
+                    {ko ? '세' : ' yrs'}
+                  </small>
                 </span>
                 <span className={styles.lab}>
                   {m.label}
-                  {m.now && <span className={styles.nowMark}>← 지금</span>}
+                  {m.now && <span className={styles.nowMark}>{ko ? '← 지금' : '← now'}</span>}
                 </span>
               </div>
             ))}
@@ -844,6 +902,8 @@ function StageDetailBlock({
   daewoon: DestinyLifetime['daewoon']
   isCurrent: boolean
 }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   const detail = stage.detail
   if (!detail) return null
 
@@ -851,8 +911,12 @@ function StageDetailBlock({
   const stageDaewoon = daewoon.filter((dw) => dw.end > stage.yearFrom && dw.start <= stage.yearTo)
 
   const headerNote = isCurrent
-    ? '지금의 결'
-    : `${stage.ageFrom}–${stage.ageTo}세 · ${stage.yearFrom}–${stage.yearTo}`
+    ? ko
+      ? '지금의 결'
+      : 'The grain of now'
+    : ko
+      ? `${stage.ageFrom}–${stage.ageTo}세 · ${stage.yearFrom}–${stage.yearTo}`
+      : `${stage.ageFrom}–${stage.ageTo} yrs · ${stage.yearFrom}–${stage.yearTo}`
 
   return (
     <div className={styles.stageDetail}>
@@ -861,7 +925,8 @@ function StageDetailBlock({
           {stage.name} — {headerNote}
         </h2>
         <span className={styles.tiny}>
-          {stage.ageFrom}–{stage.ageTo}세 · {stage.yearFrom}–{stage.yearTo}
+          {stage.ageFrom}–{stage.ageTo}
+          {ko ? '세' : ' yrs'} · {stage.yearFrom}–{stage.yearTo}
         </span>
       </div>
 
@@ -895,8 +960,8 @@ function StageDetailBlock({
           <DetailCard
             heading={
               <>
-                <span className={`${styles.glyphMini} ${styles.glyphEmber}`}>⚡</span> 합충 ·
-                HAPCHUNG
+                <span className={`${styles.glyphMini} ${styles.glyphEmber}`}>⚡</span>{' '}
+                {ko ? '합충' : 'Harmony & clash'} · HAPCHUNG
               </>
             }
             chip={detail.hapchung}
@@ -906,8 +971,8 @@ function StageDetailBlock({
           <DetailCard
             heading={
               <>
-                <span className={`${styles.glyphMini} ${styles.glyphViolet}`}>✦</span> 신살 ·
-                SHINSAL
+                <span className={`${styles.glyphMini} ${styles.glyphViolet}`}>✦</span>{' '}
+                {ko ? '신살' : 'Shinsal'} · SHINSAL
               </>
             }
             chip={detail.shinsal}
@@ -917,7 +982,8 @@ function StageDetailBlock({
           <DetailCard
             heading={
               <>
-                <span className={`${styles.glyphMini} ${styles.glyphDim}`}>◯</span> 12운성 · UNSEONG
+                <span className={`${styles.glyphMini} ${styles.glyphDim}`}>◯</span>{' '}
+                {ko ? '12운성' : 'Twelve stages'} · UNSEONG
               </>
             }
             chip={detail.unseong}
@@ -930,7 +996,7 @@ function StageDetailBlock({
         <div className={styles.outerWrap}>
           <LayerTag kind="astro" />
           <span className={`${styles.tiny} ${styles.outerLabel}`}>
-            외행성 마디 · Outer-planet returns
+            {ko ? '외행성 마디 · Outer-planet returns' : 'Outer-planet returns'}
           </span>
           <div className={styles.outerRow}>
             {detail.outer.map((o, i) => {
@@ -978,10 +1044,14 @@ function DetailCard({
 // ============================================================================
 
 function NatalLotsRow({ lots }: { lots: DestinyArabicLot[] }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   return (
     <div className={`${styles.block} ${styles.lotsWrap}`}>
       <div className={styles.sectionHead}>
-        <h2 className={styles.sectionTitle}>본명 7대 점(點) · Arabic Lots</h2>
+        <h2 className={styles.sectionTitle}>
+          {ko ? '본명 7대 점(點) · Arabic Lots' : 'Seven natal Lots · Arabic Lots'}
+        </h2>
         <span className={styles.tiny}>Hellenistic · sect-aware</span>
       </div>
       <LayerTag kind="astro" />
@@ -1020,26 +1090,34 @@ function ZRCarousel({
   spirit: DestinyZRChapter[]
   fortune: DestinyZRChapter[]
 }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   return (
     <div className={styles.zrWrap}>
       <div className={styles.sectionHead}>
         <h2
           className={styles.sectionTitle}
-          title="인생을 장(章)으로 나누는 점성 흐름 — 시기마다 무엇이 무대에 오르는지"
+          title={
+            ko
+              ? '인생을 장(章)으로 나누는 점성 흐름 — 시기마다 무엇이 무대에 오르는지'
+              : 'Astrology that divides life into chapters — what comes on stage in each era'
+          }
         >
-          ZR L1 챕터 · Zodiacal Releasing
+          {ko ? 'ZR L1 챕터 · Zodiacal Releasing' : 'ZR L1 chapters · Zodiacal Releasing'}
         </h2>
-        <span className={styles.tiny}>Spirit 진로 · Fortune 체질</span>
+        <span className={styles.tiny}>
+          {ko ? 'Spirit 진로 · Fortune 체질' : 'Spirit path · Fortune body'}
+        </span>
       </div>
       <div className={styles.zrLanes}>
         <ZRLane
-          title="Spirit Lot — 진로·외적 사건"
+          title={ko ? 'Spirit Lot — 진로·외적 사건' : 'Spirit Lot — path & outer events'}
           kindLabel="SPIRIT"
           kindClass={styles.spirit}
           chapters={spirit}
         />
         <ZRLane
-          title="Fortune Lot — 몸·물질·체질"
+          title={ko ? 'Fortune Lot — 몸·물질·체질' : 'Fortune Lot — body, matter & constitution'}
           kindLabel="FORTUNE"
           kindClass={styles.fortune}
           chapters={fortune}

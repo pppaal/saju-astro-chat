@@ -199,7 +199,12 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
   const adv = S.analyses ?? {}
 
   const date = `${String(inp.year).padStart(4, '0')}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}`
-  const time = `${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
+  const birthTimeUnknown = !!inp.birthTimeUnknown
+  const time = birthTimeUnknown
+    ? lang === 'en'
+      ? 'unknown'
+      : '미상'
+    : `${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
 
   const mapPillar = (
     p: any,
@@ -346,6 +351,7 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
       lng: inp.longitude ?? 0,
       timeZone: inp.timeZone ?? '',
       isoUTC: inp.isoUTC ?? '',
+      birthTimeUnknown,
     },
     saju: {
       dayMaster: S.dayMaster?.name ?? '',
@@ -428,6 +434,8 @@ export function buildCrossRows(
   const ascSign = (A.chart?.ascendant ?? A.ascendant)?.sign
   const mcSign = (A.chart?.mc ?? A.mc)?.sign
   const details = adv.sibsin?.categoryCount
+  const crossGender: 'male' | 'female' =
+    (ctx.input as { gender?: string } | undefined)?.gender === 'female' ? 'female' : 'male'
 
   // 강조 행성 + 최고 dignity — Phase B: facts.hellenistic.dignities (5-tier)
   // 활용. 옛 dignityOf 재계산 제거. 각 행성 angularity (1/4/7/10 하우스) + 강한
@@ -452,6 +460,24 @@ export function buildCrossRows(
         topDignity = { planet: p.name, status: dg.domicile ? 'domicile' : 'exaltation' }
     }
   }
+  // 행성 컨디션(dignity 강도): 본궁·고양=strong / 손상·쇠약=weak / 그 외 neutral.
+  const planetCondition = (name: string): 'strong' | 'weak' | 'neutral' => {
+    const d = (A.dignities ?? []).find((x: any) => x.planet === name) as
+      | {
+          tiers?: { domicile?: boolean; exaltation?: boolean; detriment?: boolean; fall?: boolean }
+        }
+      | undefined
+    const t = d?.tiers ?? {}
+    if (t.domicile || t.exaltation) return 'strong'
+    if (t.detriment || t.fall) return 'weak'
+    return 'neutral'
+  }
+  // 추진 행성: 화성 우선(행동), 없으면 태양.
+  const driveCondition = emphasized.has('Mars')
+    ? planetCondition('Mars')
+    : emphasized.has('Sun')
+      ? planetCondition('Sun')
+      : 'neutral'
   const aspectsForKey = (A.natalAspects ?? A.aspects ?? []).map((a: any) => ({
     from: { name: a.from?.name ?? a.a },
     to: { name: a.to?.name ?? a.b },
@@ -468,6 +494,13 @@ export function buildCrossRows(
   const rels = S.natalRelations ?? []
   const hap = rels.filter((r: any) => String(r.kind ?? r.type).includes('합')).length
   const chung = rels.filter((r: any) => String(r.kind ?? r.type).includes('충')).length
+  // 궁위 — 일지(日支)=배우자궁. 충/합이 일지에 걸리는지(pillars 에 'day').
+  const dayBranchClash = rels.some(
+    (r: any) => String(r.kind ?? r.type).includes('충') && (r.pillars ?? []).includes('day')
+  )
+  const dayBranchCombine = rels.some(
+    (r: any) => String(r.kind ?? r.type).includes('합') && (r.pillars ?? []).includes('day')
+  )
   const dayShinsal = (S.natalShinsal ?? [])
     .filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day'))
     .map((h: any) => String(h.kind ?? h.name))
@@ -531,23 +564,73 @@ export function buildCrossRows(
     yinYang: { ko: '음양 리듬', en: 'Yin-Yang Rhythm' },
   }
   const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
-    ['identity', evalIdentity(dmEl, sunSign, ascSign)],
-    ['needs', evalNeeds(S.yongsin?.primary, moonSign)],
+    [
+      'identity',
+      evalIdentity(dmEl, sunSign, ascSign, (A.almutenFiguris?.winner ?? null) as string | null),
+    ],
+    [
+      'needs',
+      evalNeeds(S.yongsin?.primary, moonSign, S.yongsin?.avoid?.[0] as string | undefined, {
+        el: S.johuYongsin?.primaryYongsin as string | undefined,
+        climateKo: S.johuYongsin?.climate as string | undefined,
+        climateEn: S.johuYongsin?.climate_en as string | undefined,
+        rating: (S.johuYongsin?.rating as number | undefined) ?? 0,
+      }),
+    ],
     [
       'socialRole',
       adv.geokguk?.primary && mcSign ? evalSocialRole(adv.geokguk.primary, mcSign) : null,
     ],
     ['fortune', evalFortune(fortuneShinsal, emphasized)],
-    ['relations', evalRelations(hap, chung, harmonious, hard)],
-    ['strength', evalStrength(stage, topDignity)],
+    [
+      'relations',
+      evalRelations(
+        hap,
+        chung,
+        harmonious,
+        hard,
+        crossGender,
+        // 자식성 — 남: 관성 / 여: 식상 (categoryCount 그룹).
+        ((crossGender === 'female' ? details?.식상 : details?.관성) as number | undefined) ?? 0
+      ),
+    ],
+    [
+      'strength',
+      evalStrength(
+        stage,
+        topDignity,
+        typeof S.rooted === 'boolean' ? S.rooted : undefined,
+        A.sect === 'night' || A.sect === 'day' ? A.sect : undefined
+      ),
+    ],
     [
       'temperament',
       evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean)),
     ],
     ['energy', evalEnergyDirection(details, emphasized)],
-    ['drive', evalDrive(strength, emphasized.has('Sun') || emphasized.has('Mars'))],
+    [
+      'drive',
+      evalDrive(
+        strength,
+        emphasized.has('Sun') || emphasized.has('Mars'),
+        driveCondition,
+        !!S.gwansalHonjap
+      ),
+    ],
     ['keyTrait', evalKeyAspect(aspectsForKey, dominantSibsinGroup(details))],
-    ['romance', evalRomance(hasShinsal('도화', '홍염'), emphasized.has('Venus'), inHouses(5, 7))],
+    [
+      'romance',
+      evalRomance(
+        hasShinsal('도화', '홍염'),
+        emphasized.has('Venus'),
+        inHouses(5, 7),
+        crossGender,
+        // 배우자성 — 남: 재성 / 여: 관성 (categoryCount 그룹).
+        ((crossGender === 'female' ? details?.관성 : details?.재성) as number | undefined) ?? 0,
+        dayBranchClash,
+        dayBranchCombine
+      ),
+    ],
     ['expression', evalExpression(siksangCount, emphasized.has('Mercury'), inHouses(3, 5))],
     ['movement', evalMovement(hasShinsal('역마'), inHouses(3, 9), emphasized.has('Jupiter'))],
     ['spirit', evalSpirit(hasShinsal('화개'), inHouses(12), emphasized.has('Neptune'))],
@@ -564,7 +647,11 @@ export function buildCrossRows(
     ['yinYang', evalYinYang(STEM_INFO[S.dayMaster?.name ?? '']?.yy, A.sect)],
   ]
   const verdicts = items.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
-  const synth = synthesize(verdicts)
+  const synth = synthesize(
+    verdicts,
+    undefined,
+    S.fiveElements as Record<string, number> | undefined
+  )
   const rows = items
     .filter((it): it is [keyof typeof CAT, CrossVerdict] => !!it[1])
     .map(([key, v]) => ({

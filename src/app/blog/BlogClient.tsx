@@ -16,10 +16,15 @@ import styles from './blog.module.css'
 
 const fallbackBlogPosts = (blogMetadata as BlogPost[]).filter((post) => !isBlockedBlogPost(post))
 
+// 한 번에 보여줄 카드 수 — programmatic SEO 포스트(타로 78 + 일주 60)로 글이
+// 140+ 개라 전부 렌더하면 목록이 거대해진다. 24개씩 "더 보기"로 노출.
+const PAGE_SIZE = 24
+
 export default function BlogClient() {
   const { locale } = useI18n()
   const isKo = locale === 'ko'
   const [activeCategory, setActiveCategory] = useState('all')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(fallbackBlogPosts)
 
   useEffect(() => {
@@ -54,6 +59,8 @@ export default function BlogClient() {
 
   const featuredPost = postsForRender.find((post) => post.featured)
   const regularPosts = postsForRender.filter((post) => !post.featured)
+  const visiblePosts = regularPosts.slice(0, visibleCount)
+  const remainingCount = regularPosts.length - visiblePosts.length
   const guideLabel = isKo ? '상시 가이드' : 'Evergreen Guide'
 
   return (
@@ -85,7 +92,11 @@ export default function BlogClient() {
             <button
               key={cat.id}
               className={`${styles.categoryBtn} ${activeCategory === cat.id ? styles.active : ''}`}
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => {
+                setActiveCategory(cat.id)
+                // 카테고리 전환 시 페이지네이션 초기화
+                setVisibleCount(PAGE_SIZE)
+              }}
               aria-label={isKo ? `${cat.nameKo} 카테고리 필터` : `Filter by ${cat.name}`}
               aria-pressed={activeCategory === cat.id}
             >
@@ -113,8 +124,7 @@ export default function BlogClient() {
               </div>
               <div className={styles.cardContent}>
                 <span className={styles.featuredBadge}>
-                  <StarGlyph />{' '}
-                  {isKo ? '추천' : 'Featured'}
+                  <StarGlyph /> {isKo ? '추천' : 'Featured'}
                 </span>
                 <span className={styles.cardCategory}>
                   {isKo ? featuredPost.categoryKo : featuredPost.category}
@@ -128,8 +138,7 @@ export default function BlogClient() {
                 <div className={styles.cardMeta}>
                   <span className={styles.cardGuide}>{guideLabel}</span>
                   <span className={styles.cardReadTime}>
-                    <ClockGlyph />{' '}
-                    {featuredPost.readTime} {isKo ? '분' : 'min read'}
+                    <ClockGlyph /> {featuredPost.readTime} {isKo ? '분' : 'min read'}
                   </span>
                 </div>
               </div>
@@ -137,7 +146,7 @@ export default function BlogClient() {
           )}
 
           {/* Regular Posts */}
-          {regularPosts.map((post) => (
+          {visiblePosts.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`} className={styles.blogCard}>
               <div className={styles.cardImage}>
                 <div
@@ -157,14 +166,26 @@ export default function BlogClient() {
                 <div className={styles.cardMeta}>
                   <span className={styles.cardGuide}>{guideLabel}</span>
                   <span className={styles.cardReadTime}>
-                    <ClockGlyph />{' '}
-                    {post.readTime} {isKo ? '분' : 'min read'}
+                    <ClockGlyph /> {post.readTime} {isKo ? '분' : 'min read'}
                   </span>
                 </div>
               </div>
             </Link>
           ))}
         </div>
+
+        {/* Load More */}
+        {remainingCount > 0 && (
+          <div className={styles.loadMoreWrap}>
+            <button
+              type="button"
+              className={styles.loadMoreBtn}
+              onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+            >
+              {isKo ? `더 보기 (${remainingCount}개 남음)` : `Load more (${remainingCount} left)`}
+            </button>
+          </div>
+        )}
 
         {postsForRender.length === 0 && (
           <EmptyState

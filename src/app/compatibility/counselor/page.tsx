@@ -689,7 +689,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                   </div>
                 )}
               </div>
-              <CreditBadge variant="compact" />
+              <div className={styles.creditBadgeWrap}>
+                <CreditBadge variant="compact" />
+              </div>
             </>
           }
         />

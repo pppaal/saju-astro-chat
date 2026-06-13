@@ -55,7 +55,9 @@ function shinsalFlowLineEn(name: string): string {
 
 // 신살 polarity 테이블. 키는 extractor가 실제 emit하는 hit.kind 이름.
 // '괘살'/'길성'/'흉성'/'화해' 같은 막연한 분류명은 명리적 근거가 없어 제거.
-const SHINSAL_POLARITY: Record<string, Polarity> = {
+// canonical 신살 polarity 테이블. saju-shinsal-activation 도 이 테이블을 재사용해
+// 같은 신살이 두 추출기에서 다른 polarity 로 나오던 불일치를 없앤다(단일 출처).
+export const SHINSAL_POLARITY: Record<string, Polarity> = {
   // ─── 12신살 (일지 기준 12개) ───
   장성: 2,
   장성살: 2,

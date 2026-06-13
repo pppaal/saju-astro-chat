@@ -120,11 +120,19 @@ function humanizeLabel(label: string): string {
 /**
  * `↑ [세운] Uranus 어포지션 본명 Pluto` → `↑ 올해 · 천왕성 ↔ 타고난 명왕성 · 대립각`.
  * 형식이 안 맞으면 라벨만 평어화해서 반환(견고).
+ *
+ * ⚠ lang 분기 필수 — humanizeLabel 은 영어 행성/별자리명을 *한국어로 치환*한다
+ * (Uranus→천왕성). EN 사유(topReasonsEn)에 그대로 먹이면 영어 콘텐츠가 한글로
+ * 오염된다(직전 버그: EN 일진 사유가 "↑ year · 천왕성 ↔ ... 명왕성"). EN 은
+ * 이미 영문이므로 한글화 없이 `[layer]` 괄호만 풀어 톤·시간대·라벨로 재배치한다.
  */
-export function humanizeReason(raw: string): string {
+export function humanizeReason(raw: string, lang: 'ko' | 'en' = 'ko'): string {
   const m = raw.match(/^(\S+)\s*\[([^\]]+)\]\s*(.*)$/)
-  if (!m) return humanizeLabel(raw)
+  if (!m) return lang === 'en' ? raw : humanizeLabel(raw)
   const [, tone, layer, label] = m
+  if (lang === 'en') {
+    return label ? `${tone} ${layer} · ${label}` : `${tone} ${layer}`
+  }
   const lp = LAYER_PLAIN[layer] ?? layer
   const body = humanizeLabel(label)
   return body ? `${tone} ${lp} · ${body}` : `${tone} ${lp}`

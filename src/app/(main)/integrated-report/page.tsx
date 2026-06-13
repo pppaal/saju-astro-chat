@@ -40,7 +40,11 @@ export default async function IntegratedReportPage({
             ? 'en'
             : await getServerLocale()
   const birthDate = one(sp.date) ?? '1992-03-15'
-  const birthTime = one(sp.time) ?? '09:20'
+  // 출생시각 미상 — ?time= 없으면 정오(12:00)로 차트 계산(달 오차 최소화)하되,
+  // birthTimeUnknown 플래그를 세워 ASC/MC/하우스 의존 해석을 신뢰불가로 처리·경고.
+  const rawTime = one(sp.time)
+  const birthTimeUnknown = !rawTime
+  const birthTime = rawTime ?? '12:00'
   const latitude = Number(one(sp.lat) ?? 37.5665)
   const longitude = Number(one(sp.lng) ?? 126.978)
   const timeZone = one(sp.tz) ?? 'Asia/Seoul'
@@ -53,11 +57,13 @@ export default async function IntegratedReportPage({
     latitude,
     longitude,
     timeZone,
+    birthTimeUnknown,
   })) as unknown as Record<string, unknown>
 
   // 사용자 입력 메타 (이름·장소 등 raw 엔진이 안 알아채는 표시 전용 필드).
   ctx.input = {
     ...(ctx.input as object),
+    birthTimeUnknown,
     name: one(sp.name) ?? (lang === 'en' ? 'Client' : '내담자'),
     gender,
     place: one(sp.place) ?? (lang === 'en' ? 'Seoul, Republic of Korea' : '대한민국 서울'),
