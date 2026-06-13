@@ -63,6 +63,7 @@ async function ensurePageViewTable(): Promise<boolean> {
 const emptyResult = (days: number, notReady: boolean): Record<string, unknown> => ({
   rangeDays: days,
   notReady,
+  today: { visits: 0, pageviews: 0, loggedInVisits: 0, anonymousVisits: 0, yesterdayVisits: 0 },
   summary: { pageviews: 0, visits: 0, loggedInVisits: 0, anonymousVisits: 0, loginShare: 0 },
   daily: [],
   topPaths: [],
@@ -85,21 +86,31 @@ export const GET = withApiMiddleware(
       const days = Number.isFinite(daysRaw) && daysRaw > 0 && daysRaw <= 365 ? daysRaw : 30
       const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
+      // 'today/yesterday' 는 운영자 기준 KST(UTC+9) 자정부터. (해시는 UTC 자정에
+      // 회전하므로 KST 경계 = 09:00 UTC 에서 동일인이 두 방문으로 셀 수 있으나
+      // 미미해 무시.)
+      const KST = 9 * 60 * 60 * 1000
+      const kstNow = Date.now() + KST
+      const todayStart = new Date(Math.floor(kstNow / 86400000) * 86400000 - KST)
+      const yesterdayStart = new Date(todayStart.getTime() - 86400000)
+
       let totalsRows: Array<Record<string, unknown>>
       let dailyRows: Array<Record<string, unknown>>
       let pathRows: Array<Record<string, unknown>>
       let referrerRows: Array<Record<string, unknown>>
       let deviceRows: Array<Record<string, unknown>>
+      let todayRows: Array<Record<string, unknown>>
       try {
-        ;[totalsRows, dailyRows, pathRows, referrerRows, deviceRows] = await Promise.all([
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+        ;[totalsRows, dailyRows, pathRows, referrerRows, deviceRows, todayRows] = await Promise.all(
+          [
+            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             COUNT(*) AS pageviews,
             COUNT(DISTINCT "visitorId") AS visits,
             COUNT(DISTINCT "visitorId") FILTER (WHERE "isLoggedIn") AS logged_in_visits
           FROM "PageView" WHERE "createdAt" >= ${since}
         `),
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             to_char(date_trunc('day', "createdAt"), 'YYYY-MM-DD') AS day,
             COUNT(*) AS pageviews,
@@ -108,22 +119,31 @@ export const GET = withApiMiddleware(
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY 1
         `),
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT "path", COUNT(*) AS pageviews, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY "path" ORDER BY pageviews DESC LIMIT 15
         `),
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT "referrerHost" AS host, COUNT(*) AS pageviews, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since} AND "referrerHost" IS NOT NULL
           GROUP BY "referrerHost" ORDER BY visits DESC LIMIT 10
         `),
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT COALESCE("device", 'unknown') AS device, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY visits DESC
         `),
-        ])
+            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          SELECT
+            COUNT(DISTINCT "visitorId") FILTER (WHERE "createdAt" >= ${todayStart}) AS today_visits,
+            COUNT(*) FILTER (WHERE "createdAt" >= ${todayStart}) AS today_pageviews,
+            COUNT(DISTINCT "visitorId") FILTER (WHERE "createdAt" >= ${todayStart} AND "isLoggedIn") AS today_logged_in,
+            COUNT(DISTINCT "visitorId") FILTER (WHERE "createdAt" >= ${yesterdayStart} AND "createdAt" < ${todayStart}) AS yesterday_visits
+          FROM "PageView" WHERE "createdAt" >= ${yesterdayStart}
+        `),
+          ]
+        )
       } catch (err) {
         // 배포 직후 / phantom-apply 로 PageView 테이블이 아직 없을 수 있다.
         // 그땐 ISE 대신 빈 데이터(notReady)로 응답해 탭이 안전하게 뜨게 한다.
@@ -149,8 +169,19 @@ export const GET = withApiMiddleware(
       const loggedInVisits = num(t.logged_in_visits)
       const pct = (n: number, base: number) => (base > 0 ? Math.round((n / base) * 1000) / 10 : 0)
 
+      const tr = todayRows[0] || {}
+      const todayVisits = num(tr.today_visits)
+      const todayLoggedIn = num(tr.today_logged_in)
+
       return apiSuccess({
         rangeDays: days,
+        today: {
+          visits: todayVisits,
+          pageviews: num(tr.today_pageviews),
+          loggedInVisits: todayLoggedIn,
+          anonymousVisits: Math.max(0, todayVisits - todayLoggedIn),
+          yesterdayVisits: num(tr.yesterday_visits),
+        },
         summary: {
           pageviews: num(t.pageviews),
           visits, // 일 기준 순방문(visit-days)

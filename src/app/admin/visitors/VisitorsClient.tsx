@@ -18,6 +18,13 @@ interface NameRow {
 interface VisitorsData {
   rangeDays: number
   notReady?: boolean
+  today?: {
+    visits: number
+    pageviews: number
+    loggedInVisits: number
+    anonymousVisits: number
+    yesterdayVisits: number
+  }
   summary: {
     pageviews: number
     visits: number
@@ -112,6 +119,59 @@ export default function VisitorsClient() {
         </div>
       ) : data ? (
         <div className="space-y-6">
+          {/* 오늘 방문자 (KST 기준) */}
+          {data.today && (
+            <div className="rounded-2xl border border-stone-900 bg-stone-900 p-5 text-white shadow-sm">
+              <div className="flex items-end justify-between">
+                <div>
+                  <div className="text-[12px] font-medium text-stone-300">오늘 방문자 (KST)</div>
+                  <div className="mt-1 font-mono text-4xl font-bold tabular-nums">
+                    {num(data.today.visits)}
+                  </div>
+                </div>
+                <div className="text-right text-[12px] text-stone-300">
+                  <div>
+                    페이지뷰{' '}
+                    <span className="font-mono text-white">{num(data.today.pageviews)}</span>
+                  </div>
+                  <div className="mt-0.5">
+                    비로그인{' '}
+                    <span className="font-mono text-amber-300">
+                      {num(data.today.anonymousVisits)}
+                    </span>{' '}
+                    · 로그인{' '}
+                    <span className="font-mono text-emerald-300">
+                      {num(data.today.loggedInVisits)}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 text-stone-400">
+                    어제 {num(data.today.yesterdayVisits)}
+                    {data.today.yesterdayVisits > 0 && (
+                      <span
+                        className={
+                          data.today.visits >= data.today.yesterdayVisits
+                            ? ' text-emerald-300'
+                            : ' text-rose-300'
+                        }
+                      >
+                        {' '}
+                        ({data.today.visits >= data.today.yesterdayVisits ? '▲' : '▼'}
+                        {Math.abs(
+                          Math.round(
+                            ((data.today.visits - data.today.yesterdayVisits) /
+                              data.today.yesterdayVisits) *
+                              100
+                          )
+                        )}
+                        %)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 요약 카드 */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Card
