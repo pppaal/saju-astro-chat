@@ -64,6 +64,10 @@ const emptyResult = (days: number, notReady: boolean): Record<string, unknown> =
   rangeDays: days,
   notReady,
   today: { visits: 0, pageviews: 0, loggedInVisits: 0, anonymousVisits: 0, yesterdayVisits: 0 },
+  realtime: { active: 0, pageviews: 0 },
+  conversion: { visits: 0, signups: 0, rate: 0 },
+  hourly: Array.from({ length: 24 }, (_, h) => ({ hour: h, visits: 0, pageviews: 0 })),
+  countries: [],
   summary: { pageviews: 0, visits: 0, loggedInVisits: 0, anonymousVisits: 0, loginShare: 0 },
   daily: [],
   topPaths: [],
@@ -93,6 +97,7 @@ export const GET = withApiMiddleware(
       const kstNow = Date.now() + KST
       const todayStart = new Date(Math.floor(kstNow / 86400000) * 86400000 - KST)
       const yesterdayStart = new Date(todayStart.getTime() - 86400000)
+      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000)
 
       let totalsRows: Array<Record<string, unknown>>
       let dailyRows: Array<Record<string, unknown>>
@@ -100,17 +105,29 @@ export const GET = withApiMiddleware(
       let referrerRows: Array<Record<string, unknown>>
       let deviceRows: Array<Record<string, unknown>>
       let todayRows: Array<Record<string, unknown>>
+      let hourlyRows: Array<Record<string, unknown>>
+      let countryRows: Array<Record<string, unknown>>
+      let activeRows: Array<Record<string, unknown>>
       try {
-        ;[totalsRows, dailyRows, pathRows, referrerRows, deviceRows, todayRows] = await Promise.all(
-          [
-            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+        ;[
+          totalsRows,
+          dailyRows,
+          pathRows,
+          referrerRows,
+          deviceRows,
+          todayRows,
+          hourlyRows,
+          countryRows,
+          activeRows,
+        ] = await Promise.all([
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             COUNT(*) AS pageviews,
             COUNT(DISTINCT "visitorId") AS visits,
             COUNT(DISTINCT "visitorId") FILTER (WHERE "isLoggedIn") AS logged_in_visits
           FROM "PageView" WHERE "createdAt" >= ${since}
         `),
-            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             to_char(date_trunc('day', "createdAt"), 'YYYY-MM-DD') AS day,
             COUNT(*) AS pageviews,
@@ -119,22 +136,22 @@ export const GET = withApiMiddleware(
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY 1
         `),
-            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT "path", COUNT(*) AS pageviews, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY "path" ORDER BY pageviews DESC LIMIT 15
         `),
-            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT "referrerHost" AS host, COUNT(*) AS pageviews, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since} AND "referrerHost" IS NOT NULL
           GROUP BY "referrerHost" ORDER BY visits DESC LIMIT 10
         `),
-            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT COALESCE("device", 'unknown') AS device, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY visits DESC
         `),
-            prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             COUNT(DISTINCT "visitorId") FILTER (WHERE "createdAt" >= ${todayStart}) AS today_visits,
             COUNT(*) FILTER (WHERE "createdAt" >= ${todayStart}) AS today_pageviews,
@@ -142,8 +159,28 @@ export const GET = withApiMiddleware(
             COUNT(DISTINCT "visitorId") FILTER (WHERE "createdAt" >= ${yesterdayStart} AND "createdAt" < ${todayStart}) AS yesterday_visits
           FROM "PageView" WHERE "createdAt" >= ${yesterdayStart}
         `),
-          ]
-        )
+          // 시간대별(KST 0~23시) 분포
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          SELECT
+            EXTRACT(HOUR FROM ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul'))::int AS hour,
+            COUNT(*) AS pageviews,
+            COUNT(DISTINCT "visitorId") AS visits
+          FROM "PageView" WHERE "createdAt" >= ${since}
+          GROUP BY 1 ORDER BY 1
+        `),
+          // 국가/지역별
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          SELECT COALESCE(NULLIF("country", ''), '??') AS country,
+            COUNT(DISTINCT "visitorId") AS visits, COUNT(*) AS pageviews
+          FROM "PageView" WHERE "createdAt" >= ${since}
+          GROUP BY 1 ORDER BY visits DESC LIMIT 12
+        `),
+          // 실시간(최근 30분) 활성 방문자
+          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          SELECT COUNT(DISTINCT "visitorId") AS active, COUNT(*) AS pageviews
+          FROM "PageView" WHERE "createdAt" >= ${thirtyMinAgo}
+        `),
+        ])
       } catch (err) {
         // 배포 직후 / phantom-apply 로 PageView 테이블이 아직 없을 수 있다.
         // 그땐 ISE 대신 빈 데이터(notReady)로 응답해 탭이 안전하게 뜨게 한다.
@@ -173,6 +210,24 @@ export const GET = withApiMiddleware(
       const todayVisits = num(tr.today_visits)
       const todayLoggedIn = num(tr.today_logged_in)
 
+      // 방문→가입 전환: 같은 기간 신규 가입(실회원) 수 / 순방문(visit-days).
+      // 정밀 코호트는 아니지만 방향 지표로 충분.
+      const realUserWhere: Prisma.UserWhereInput = {
+        OR: [{ accounts: { some: {} } }, { passwordHash: { not: null } }],
+      }
+      const signups = await prisma.user.count({
+        where: { AND: [realUserWhere, { createdAt: { gte: since } }] },
+      })
+
+      // 시간대 0~23 채우기(빈 시간은 0).
+      const hourMap = new Map(hourlyRows.map((r) => [num(r.hour), r]))
+      const hourly = Array.from({ length: 24 }, (_, h) => {
+        const r = hourMap.get(h)
+        return { hour: h, visits: r ? num(r.visits) : 0, pageviews: r ? num(r.pageviews) : 0 }
+      })
+
+      const active = activeRows[0] || {}
+
       return apiSuccess({
         rangeDays: days,
         today: {
@@ -182,6 +237,14 @@ export const GET = withApiMiddleware(
           anonymousVisits: Math.max(0, todayVisits - todayLoggedIn),
           yesterdayVisits: num(tr.yesterday_visits),
         },
+        realtime: { active: num(active.active), pageviews: num(active.pageviews) },
+        conversion: { visits, signups, rate: pct(signups, visits) },
+        hourly,
+        countries: countryRows.map((r) => ({
+          country: String(r.country),
+          visits: num(r.visits),
+          pageviews: num(r.pageviews),
+        })),
         summary: {
           pageviews: num(t.pageviews),
           visits, // 일 기준 순방문(visit-days)
