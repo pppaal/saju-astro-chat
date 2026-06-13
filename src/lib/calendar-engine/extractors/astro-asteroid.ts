@@ -251,7 +251,7 @@ const astroAsteroidExtractor: SignalExtractor = {
   },
 }
 
-function splitConsecutive<T extends { iso: string }>(hits: T[]): T[][] {
+export function splitConsecutive<T extends { iso: string }>(hits: T[]): T[][] {
   const segments: T[][] = []
   let current: T[] = []
   for (const h of hits) {
@@ -277,7 +277,7 @@ function splitConsecutive<T extends { iso: string }>(hits: T[]): T[][] {
  *   Ceres conjunction +1, Pallas trine +1, Juno conjunction +1, Vesta trine +1.
  * harmonic(섹스타일·트라인)은 +1, hard(스퀘어·어포지션)는 -1, 컨정션은 소행성 본질에 따라.
  */
-function polarityForAsteroid(asteroid: AsteroidName, aspectType: string): Polarity {
+export function polarityForAsteroid(asteroid: AsteroidName, aspectType: string): Polarity {
   const harmonic = aspectType === 'trine' || aspectType === 'sextile'
   const hard = aspectType === 'square' || aspectType === 'opposition'
   const conj = aspectType === 'conjunction'
@@ -297,7 +297,7 @@ function polarityForAsteroid(asteroid: AsteroidName, aspectType: string): Polari
   return 0
 }
 
-function weightForAsteroid(aspectType: string, orb: number): number {
+export function weightForAsteroid(aspectType: string, orb: number): number {
   const aspectBase: Record<string, number> = {
     conjunction: 0.7,
     opposition: 0.6,
@@ -310,7 +310,7 @@ function weightForAsteroid(aspectType: string, orb: number): number {
   return Math.min(1, base * tightness)
 }
 
-function aspectSymbol(a: string): string {
+export function aspectSymbol(a: string): string {
   return (
     (
       {
@@ -324,7 +324,7 @@ function aspectSymbol(a: string): string {
   )
 }
 
-function aspectKorean(a: string): string {
+export function aspectKorean(a: string): string {
   return (
     (
       {
