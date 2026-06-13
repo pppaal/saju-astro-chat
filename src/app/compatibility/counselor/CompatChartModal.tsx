@@ -416,6 +416,24 @@ export function CompatChartModal({
             ) : (
               <ScoreBreakdown breakdown={ssotBand} lang={lang} variant="band" theme="light" />
             )}
+            {/* 동·서 교차 종합 — 사주와 별자리가 한 방향인지 먼저(목록보다 위) */}
+            {report?.crossVerdict && (
+              <p
+                className="mt-2.5 px-1 text-center text-[14px] font-semibold leading-relaxed"
+                style={{
+                  color:
+                    report.crossVerdict.tone === 'aligned'
+                      ? 'var(--ds-gold)'
+                      : report.crossVerdict.tone === 'tension'
+                        ? '#be123c'
+                        : report.crossVerdict.tone === 'mixed'
+                          ? '#b45309'
+                          : 'var(--ds-light-text)',
+                }}
+              >
+                {report.crossVerdict.text}
+              </p>
+            )}
             {/* 답 먼저 — 가장 결정적인 신호 한 줄 (밴드 바로 밑) */}
             {headlineReason && (
               <p
