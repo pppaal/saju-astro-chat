@@ -22,7 +22,7 @@ vi.mock('@/lib/metrics', () => ({ recordCounter: vi.fn(), recordTiming: vi.fn() 
 vi.mock('@/lib/auth/publicToken', () => ({ requirePublicToken: vi.fn(() => ({ valid: true })) }))
 vi.mock('@/lib/security/csrf', () => ({ csrfGuard: vi.fn(() => null) }))
 vi.mock('@/lib/db/prisma', () => ({
-  prisma: { $queryRaw: vi.fn(), $executeRawUnsafe: vi.fn() },
+  prisma: { $queryRaw: vi.fn(), $executeRawUnsafe: vi.fn(), user: { count: vi.fn() } },
 }))
 vi.mock('@/lib/auth/admin', () => ({ isAdminUser: vi.fn() }))
 vi.mock('@/lib/logger', () => ({
@@ -84,6 +84,19 @@ describe('GET /api/admin/visitors', () => {
       .mockResolvedValueOnce([
         { today_visits: 8n, today_pageviews: 19n, today_logged_in: 3n, yesterday_visits: 6n },
       ])
+      // hourly
+      .mockResolvedValueOnce([
+        { hour: 9, pageviews: 12n, visits: 7n },
+        { hour: 21, pageviews: 30n, visits: 18n },
+      ])
+      // countries
+      .mockResolvedValueOnce([
+        { country: 'KR', visits: 30n, pageviews: 80n },
+        { country: 'US', visits: 8n, pageviews: 15n },
+      ])
+      // realtime active
+      .mockResolvedValueOnce([{ active: 4n, pageviews: 9n }])
+    vi.mocked(prisma.user.count).mockResolvedValue(10)
 
     const res = await GET(req(30))
     expect(res.status).toBe(200)
@@ -95,6 +108,13 @@ describe('GET /api/admin/visitors', () => {
       anonymousVisits: 5,
       yesterdayVisits: 6,
     })
+    expect(data.realtime).toMatchObject({ active: 4, pageviews: 9 })
+    // 전환: signups 10 / visits 40 = 25%
+    expect(data.conversion).toMatchObject({ visits: 40, signups: 10, rate: 25 })
+    expect(data.hourly).toHaveLength(24)
+    expect(data.hourly[9]).toMatchObject({ hour: 9, visits: 7 })
+    expect(data.hourly[0]).toMatchObject({ hour: 0, visits: 0 })
+    expect(data.countries[0]).toMatchObject({ country: 'KR', visits: 30 })
     expect(data.summary).toMatchObject({
       pageviews: 100,
       visits: 40,
@@ -154,11 +174,17 @@ describe('GET /api/admin/visitors', () => {
       .mockResolvedValueOnce([
         { today_visits: 0n, today_pageviews: 0n, today_logged_in: 0n, yesterday_visits: 0n },
       ])
+      .mockResolvedValueOnce([]) // hourly
+      .mockResolvedValueOnce([]) // countries
+      .mockResolvedValueOnce([{ active: 0n, pageviews: 0n }]) // realtime
+    vi.mocked(prisma.user.count).mockResolvedValue(0)
 
     const data = (await (await GET(req())).json()).data
     expect(data.summary.loginShare).toBe(0)
     expect(data.summary.anonymousVisits).toBe(0)
     expect(data.today.visits).toBe(0)
+    expect(data.conversion.rate).toBe(0)
+    expect(data.hourly).toHaveLength(24)
     expect(data.daily).toEqual([])
   })
 })

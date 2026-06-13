@@ -25,6 +25,10 @@ interface VisitorsData {
     anonymousVisits: number
     yesterdayVisits: number
   }
+  realtime?: { active: number; pageviews: number }
+  conversion?: { visits: number; signups: number; rate: number }
+  hourly?: { hour: number; visits: number; pageviews: number }[]
+  countries?: { country: string; visits: number; pageviews: number }[]
   summary: {
     pageviews: number
     visits: number
@@ -40,6 +44,12 @@ interface VisitorsData {
 
 function num(n: number): string {
   return n.toLocaleString('ko-KR')
+}
+
+// 2글자 국가코드 → 국기 이모지 (지역 표시 문자). 알 수 없으면 🌐.
+function countryFlag(code: string): string {
+  if (!/^[A-Za-z]{2}$/.test(code)) return '🌐'
+  return String.fromCodePoint(...[...code.toUpperCase()].map((ch) => 127397 + ch.charCodeAt(0)))
 }
 
 export default function VisitorsClient() {
@@ -172,6 +182,39 @@ export default function VisitorsClient() {
             </div>
           )}
 
+          {/* 실시간 + 전환 */}
+          <div className="grid grid-cols-2 gap-3">
+            {data.realtime && (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+                <div className="flex items-center gap-1.5 text-[12px] font-medium text-emerald-700">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  실시간 활성 (최근 30분)
+                </div>
+                <div className="mt-1 font-mono text-2xl font-semibold tabular-nums text-emerald-900">
+                  {num(data.realtime.active)}
+                  <span className="ml-1 text-[12px] font-normal text-emerald-600">명</span>
+                </div>
+                <div className="text-[11px] text-emerald-600">
+                  PV {num(data.realtime.pageviews)}
+                </div>
+              </div>
+            )}
+            {data.conversion && (
+              <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
+                <div className="text-[12px] font-medium text-indigo-700">방문 → 가입 전환</div>
+                <div className="mt-1 font-mono text-2xl font-semibold tabular-nums text-indigo-900">
+                  {data.conversion.rate}%
+                </div>
+                <div className="text-[11px] text-indigo-600">
+                  가입 {num(data.conversion.signups)} / 방문 {num(data.conversion.visits)} (기간 내)
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* 요약 카드 */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Card
@@ -239,6 +282,70 @@ export default function VisitorsClient() {
               </span>
             </div>
           </section>
+
+          {/* 시간대별 분포 (KST) */}
+          {data.hourly && (
+            <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+              <h2 className="mb-4 text-sm font-semibold text-stone-700">시간대별 방문 (KST)</h2>
+              {(() => {
+                const maxHour = Math.max(1, ...data.hourly.map((x) => x.visits))
+                return (
+                  <div className="flex items-end gap-0.5">
+                    {data.hourly.map((x) => (
+                      <div key={x.hour} className="flex flex-1 flex-col items-center gap-1">
+                        <div
+                          className="w-full rounded-t bg-sky-400"
+                          style={{ height: `${Math.max((x.visits / maxHour) * 90, 1)}px` }}
+                          title={`${x.hour}시 · 순방문 ${x.visits} · PV ${x.pageviews}`}
+                        />
+                        {x.hour % 3 === 0 && (
+                          <span className="text-[9px] text-stone-400">{x.hour}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+              <p className="mt-2 text-[11px] text-stone-400">막대=시(時), 높이=순방문</p>
+            </section>
+          )}
+
+          {/* 국가/지역별 */}
+          {data.countries && (
+            <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+              <h2 className="mb-3 text-sm font-semibold text-stone-700">국가/지역별</h2>
+              {data.countries.length === 0 ? (
+                <p className="py-4 text-center text-sm text-stone-400">데이터 없음</p>
+              ) : (
+                <ul className="space-y-2">
+                  {data.countries.map((c) => {
+                    const max = Math.max(1, ...data.countries!.map((x) => x.visits))
+                    return (
+                      <li key={c.country} className="text-sm">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="font-mono text-stone-700">
+                            {countryFlag(c.country)} {c.country === '??' ? '미상' : c.country}
+                          </span>
+                          <span className="font-mono tabular-nums text-stone-500">
+                            {num(c.visits)}
+                            <span className="ml-1 text-[11px] text-stone-400">
+                              · PV {num(c.pageviews)}
+                            </span>
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-stone-100">
+                          <div
+                            className="h-full rounded-full bg-stone-700"
+                            style={{ width: `${Math.max((c.visits / max) * 100, 2)}%` }}
+                          />
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </section>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-2">
             <ListCard title="인기 경로" rows={data.topPaths} keyField="path" empty="데이터 없음" />
