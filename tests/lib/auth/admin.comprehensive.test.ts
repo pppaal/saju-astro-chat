@@ -358,9 +358,24 @@ describe('admin.ts', () => {
       expect(result).toEqual(mockSession)
     })
 
-    it('should handle database error gracefully', async () => {
+    it('keeps an allowlisted admin even when the DB role lookup fails (resilient)', async () => {
+      // 이메일 allowlist 가 먼저라, DB 가 흔들려도(타임아웃 등) allowlist
+      // 어드민은 막히지 않는다 — 간헐 403 버그 수정.
       const mockSession = {
         user: { id: 'user-123', email: 'admin@example.com' },
+        expires: '2024-12-31',
+      }
+
+      vi.mocked(getServerSession).mockResolvedValue(mockSession as any)
+      vi.mocked(prisma.user.findUnique).mockRejectedValue(new Error('DB error'))
+
+      const result = await requireAdminSession()
+      expect(result).toEqual(mockSession)
+    })
+
+    it('denies a non-allowlisted user when the DB lookup keeps failing', async () => {
+      const mockSession = {
+        user: { id: 'user-123', email: 'nobody@example.com' },
         expires: '2024-12-31',
       }
 

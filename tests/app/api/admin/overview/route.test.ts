@@ -156,7 +156,7 @@ describe('GET /api/admin/overview', () => {
       setupHappyPath()
       const res = await GET(createRequest())
       expect(res.status).toBe(200)
-      expect(isAdminUser).toHaveBeenCalledWith('admin-1')
+      expect(isAdminUser).toHaveBeenCalledWith('admin-1', expect.anything())
     })
   })
 

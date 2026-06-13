@@ -39,7 +39,7 @@ export const GET = withApiMiddleware(
       if (!context.userId || !context.session?.user?.email) {
         return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
       }
-      if (!(await isAdminUser(context.userId))) {
+      if (!(await isAdminUser(context.userId, context.session?.user?.email))) {
         logger.warn('[admin/users-by] unauthorized', { userId: context.userId })
         return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
       }

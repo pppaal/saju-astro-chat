@@ -56,7 +56,7 @@ export const GET = withApiMiddleware(
         return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
       }
 
-      const isAdmin = await isAdminUser(context.userId)
+      const isAdmin = await isAdminUser(context.userId, context.session?.user?.email)
       if (!isAdmin) {
         logger.warn('[Funnel] Unauthorized access attempt', {
           email: context.session.user.email,

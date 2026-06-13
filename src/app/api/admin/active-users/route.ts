@@ -30,7 +30,7 @@ export const GET = withApiMiddleware(
       if (!context.userId || !context.session?.user?.email) {
         return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
       }
-      if (!(await isAdminUser(context.userId))) {
+      if (!(await isAdminUser(context.userId, context.session?.user?.email))) {
         logger.warn('[admin/active-users] unauthorized', { userId: context.userId })
         return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
       }
@@ -42,7 +42,12 @@ export const GET = withApiMiddleware(
       // overview 의 activeToday 와 동일 기준: 오늘 타로·상담 중 하나라도 한
       // distinct 유저. 두 소스의 활동 횟수와 마지막 활동시각을 유저별로 합친다.
       const [tarotG, counselorG] = await Promise.all([
-        prisma.tarotReading.groupBy({ by: ['userId'], where, _count: { id: true }, _max: { createdAt: true } }),
+        prisma.tarotReading.groupBy({
+          by: ['userId'],
+          where,
+          _count: { id: true },
+          _max: { createdAt: true },
+        }),
         prisma.counselorChatSession.groupBy({
           by: ['userId'],
           where,

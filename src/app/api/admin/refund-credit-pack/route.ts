@@ -44,7 +44,7 @@ export const POST = withApiMiddleware(
     if (!context.userId) {
       return apiError(ErrorCodes.UNAUTHORIZED, 'unauthorized')
     }
-    const isAdmin = await isAdminUser(context.userId)
+    const isAdmin = await isAdminUser(context.userId, context.session?.user?.email)
     if (!isAdmin) {
       return apiError(ErrorCodes.FORBIDDEN, 'forbidden')
     }

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
         if (!context.userId || !context.session?.user?.email) {
           return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
         }
-        if (!(await isAdminUser(context.userId))) {
+        if (!(await isAdminUser(context.userId, context.session?.user?.email))) {
           logger.warn('[admin/users/:id] unauthorized', { userId: context.userId })
           return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
         }
