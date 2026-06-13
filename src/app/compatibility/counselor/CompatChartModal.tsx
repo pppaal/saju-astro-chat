@@ -82,6 +82,57 @@ function withNeun(name: string): string {
   return name + '는'
 }
 
+// 배우자성(십신)별 "어떻게 다가오는지" 동사 — 본질 4줄이 같은 어미로 반복되던 걸
+// 십신마다 다르게. 없으면 기본 표현 폴백.
+const SPOUSE_VERB: Record<string, { ko: string; en: string }> = {
+  정관: { ko: '듬직하게 자리 잡아요', en: 'settles in as a steady presence' },
+  편관: { ko: '강하게 끌어당겨요', en: 'pulls you in hard' },
+  정재: { ko: '안정감으로 스며들어요', en: 'seeps in with a settling calm' },
+  편재: { ko: '활달하게 다가와요', en: 'comes lively and open' },
+  정인: { ko: '포근하게 감싸줘요', en: 'wraps around you warmly' },
+  편인: { ko: '묘하게 끌려요', en: 'draws you in a curious way' },
+  식신: { ko: '편안하게 어울려요', en: 'fits easy and comfortable' },
+  상관: { ko: '톡톡 튀게 자극해요', en: 'sparks and stimulates' },
+  비견: { ko: '동지처럼 나란히 서요', en: 'stands beside you like an ally' },
+  겁재: { ko: '경쟁하듯 부딪혀요', en: 'meets you with a competitive edge' },
+}
+
+// 하우스 오버레이 — 칩만 잔뜩 던지지 말고 관계에서 가장 의미 큰 1개를 문장으로 승격.
+const OVERLAY_NOTE: Record<number, { ko: string; en: string }> = {
+  7: {
+    ko: '동반자·결혼 자리에 — 관계를 진지하게 끌고 가는 인력',
+    en: 'the partner & marriage seat — pulling toward commitment',
+  },
+  8: {
+    ko: '깊은 결합·변환 자리에 — 강렬하게 얽히는 끌림',
+    en: 'the depth & merge seat — an intense, entangling pull',
+  },
+  5: {
+    ko: '연애·즐거움 자리에 — 설렘과 로맨스가 살아나는 곳',
+    en: 'the romance & play seat — where the spark comes alive',
+  },
+  1: {
+    ko: '자아·인상 자리에 — 첫인상부터 강하게 각인',
+    en: 'the self & image seat — a strong first imprint',
+  },
+  4: {
+    ko: '가정·뿌리 자리에 — 함께 안식처를 만드는 결',
+    en: 'the home & roots seat — building a refuge together',
+  },
+  10: {
+    ko: '커리어·지위 자리에 — 사회적으로 끌어주는 결',
+    en: 'the career & status seat — a socially elevating pull',
+  },
+}
+const OVERLAY_PRIORITY = [7, 8, 5, 1, 4, 10]
+function topOverlay<T extends { house: number }>(rows: T[]): T | null {
+  for (const h of OVERLAY_PRIORITY) {
+    const hit = rows.find((r) => r.house === h)
+    if (hit) return hit
+  }
+  return rows[0] ?? null
+}
+
 function QuickRead({
   name,
   accent,
@@ -529,8 +580,8 @@ export function CompatChartModal({
                             style={{ color: 'var(--ds-light-text)' }}
                           >
                             {isKo
-                              ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝${s.isDayPillar ? '이고, 바로 배우자 자리에 떠요' : '으로 다가와요'}`
-                              : `To ${who}, ${other} reads as a “${feeling}” partner${s.isDayPillar ? ' — right in the spouse seat' : ''}`}
+                              ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝 — ${SPOUSE_VERB[s.sibsin]?.ko ?? '으로 다가와요'}`
+                              : `To ${who}, ${other} ${SPOUSE_VERB[s.sibsin]?.en ?? 'reads as a partner'} — a “${feeling}” match`}
                             <span
                               className="ml-1 text-[11px]"
                               style={{ color: 'var(--ds-light-text-muted)' }}
@@ -639,32 +690,41 @@ export function CompatChartModal({
                   {synView.aspects.map((asp) => (
                     <li
                       key={`asp-${asp.a}-${asp.b}-${asp.orb}`}
-                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[12.5px]"
+                      className="flex flex-col gap-1 rounded-lg px-2.5 py-1.5 text-[12.5px]"
                       style={{
                         background: 'var(--ds-light-bg-soft, #f5f5f4)',
                         borderLeft: `2px solid ${toneColor(asp.tone)}`,
                       }}
                     >
-                      <span className="flex-1" style={{ color: 'var(--ds-light-text)' }}>
-                        <b style={{ color: '#be123c' }}>
-                          {labelA} {asp.a}
-                        </b>
-                        <span className="mx-1.5" style={{ color: toneColor(asp.tone) }}>
-                          {asp.label}
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex-1" style={{ color: 'var(--ds-light-text)' }}>
+                          <b style={{ color: '#be123c' }}>
+                            {labelA} {asp.a}
+                          </b>
+                          <span className="mx-1.5" style={{ color: toneColor(asp.tone) }}>
+                            {asp.label}
+                          </span>
+                          <b style={{ color: '#0369a1' }}>
+                            {labelB} {asp.b}
+                          </b>
                         </span>
-                        <b style={{ color: '#0369a1' }}>
-                          {labelB} {asp.b}
-                        </b>
-                      </span>
+                        <span
+                          className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px]"
+                          style={{
+                            background: 'rgba(0,0,0,0.05)',
+                            color: 'var(--ds-light-text-muted)',
+                          }}
+                          title={`${asp.orb}°`}
+                        >
+                          {asp.strength}
+                        </span>
+                      </div>
+                      {/* raw 데이터에 해석 한 줄 — "받쳐줌/긴장"이 어떤 영역을 뜻하는지 */}
                       <span
-                        className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px]"
-                        style={{
-                          background: 'rgba(0,0,0,0.05)',
-                          color: 'var(--ds-light-text-muted)',
-                        }}
-                        title={`${asp.orb}°`}
+                        className="text-[11.5px] leading-snug"
+                        style={{ color: 'var(--ds-light-text-muted)' }}
                       >
-                        {asp.strength}
+                        {asp.meaning}
                       </span>
                     </li>
                   ))}
@@ -692,8 +752,25 @@ export function CompatChartModal({
                         >
                           {col.from} → {col.to}
                         </div>
+                        {/* 핵심 1개를 문장으로 — 칩 더미보다 "무슨 뜻"을 먼저 */}
+                        {(() => {
+                          const top = topOverlay(col.rows)
+                          const note = top ? OVERLAY_NOTE[top.house] : null
+                          if (!top || !note) return null
+                          return (
+                            <p
+                              className="mb-1.5 text-[11.5px] leading-snug"
+                              style={{ color: 'var(--ds-light-text)' }}
+                            >
+                              <b style={{ color: col.accent }}>{top.planet}</b>
+                              {isKo
+                                ? `이 ${col.to}의 ${note.ko}`
+                                : ` lands in ${col.to}'s ${note.en}`}
+                            </p>
+                          )
+                        })()}
                         <div className="flex flex-wrap gap-1.5">
-                          {col.rows.map((o) => (
+                          {col.rows.slice(0, 4).map((o) => (
                             <span
                               key={`${col.from}-${o.planet}-${o.house}`}
                               className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px]"
