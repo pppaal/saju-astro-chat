@@ -42,6 +42,14 @@ interface VisitorsData {
   devices: { device: string; visits: number }[]
 }
 
+const RANGES: { label: string; value: number | 'all' }[] = [
+  { label: '1일', value: 1 },
+  { label: '7일', value: 7 },
+  { label: '30일', value: 30 },
+  { label: '90일', value: 90 },
+  { label: '전체', value: 'all' },
+]
+
 function num(n: number): string {
   return n.toLocaleString('ko-KR')
 }
@@ -54,7 +62,7 @@ function countryFlag(code: string): string {
 
 export default function VisitorsClient() {
   const [data, setData] = useState<VisitorsData | null>(null)
-  const [days, setDays] = useState(30)
+  const [days, setDays] = useState<number | 'all'>(30)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -85,20 +93,21 @@ export default function VisitorsClient() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-stone-900">방문자</h1>
           <p className="mt-1 text-sm text-stone-500">
-            최근 {days}일 · 비로그인 포함 트래픽 · 일(日) 기준 순방문
+            {days === 'all' ? '전체 기간' : `최근 ${days}일`} · 비로그인 포함 트래픽 · 일(日) 기준
+            순방문
           </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex gap-1 rounded-full border border-stone-200 bg-white p-1">
-            {[7, 30, 90].map((d) => (
+            {RANGES.map((r) => (
               <button
-                key={d}
-                onClick={() => setDays(d)}
+                key={r.label}
+                onClick={() => setDays(r.value)}
                 className={`rounded-full px-3 py-1 text-sm font-medium transition ${
-                  days === d ? 'bg-stone-900 text-white' : 'text-stone-500 hover:bg-stone-100'
+                  days === r.value ? 'bg-stone-900 text-white' : 'text-stone-500 hover:bg-stone-100'
                 }`}
               >
-                {d}일
+                {r.label}
               </button>
             ))}
           </div>

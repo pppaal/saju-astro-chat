@@ -60,7 +60,7 @@ async function ensurePageViewTable(): Promise<boolean> {
   }
 }
 
-const emptyResult = (days: number, notReady: boolean): Record<string, unknown> => ({
+const emptyResult = (days: number | 'all', notReady: boolean): Record<string, unknown> => ({
   rangeDays: days,
   notReady,
   today: { visits: 0, pageviews: 0, loggedInVisits: 0, anonymousVisits: 0, yesterdayVisits: 0 },
@@ -86,9 +86,15 @@ export const GET = withApiMiddleware(
         return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
       }
 
-      const daysRaw = parseInt(new URL(req.url).searchParams.get('days') || '30', 10)
-      const days = Number.isFinite(daysRaw) && daysRaw > 0 && daysRaw <= 365 ? daysRaw : 30
-      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+      // days=all → 전체 기간. 그 외엔 1~365 숫자(기본 30).
+      const param = new URL(req.url).searchParams.get('days') || '30'
+      const allTime = param === 'all'
+      const daysNum = (() => {
+        const n = parseInt(param, 10)
+        return Number.isFinite(n) && n > 0 && n <= 365 ? n : 30
+      })()
+      const rangeDays: number | 'all' = allTime ? 'all' : daysNum
+      const since = allTime ? new Date(0) : new Date(Date.now() - daysNum * 24 * 60 * 60 * 1000)
 
       // 'today/yesterday' 는 운영자 기준 KST(UTC+9) 자정부터. (해시는 UTC 자정에
       // 회전하므로 KST 경계 = 09:00 UTC 에서 동일인이 두 방문으로 셀 수 있으나
@@ -198,7 +204,7 @@ export const GET = withApiMiddleware(
         )
         // 생성 성공: 방금 만든 빈 테이블 → notReady=false 로 정상 빈 상태 표시.
         // 실패: notReady=true 로 '준비 중' 안내 유지.
-        return apiSuccess(emptyResult(days, !healed))
+        return apiSuccess(emptyResult(rangeDays, !healed))
       }
 
       const t = totalsRows[0] || {}
@@ -229,7 +235,7 @@ export const GET = withApiMiddleware(
       const active = activeRows[0] || {}
 
       return apiSuccess({
-        rangeDays: days,
+        rangeDays,
         today: {
           visits: todayVisits,
           pageviews: num(tr.today_pageviews),

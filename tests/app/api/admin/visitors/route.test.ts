@@ -36,7 +36,7 @@ import { isAdminUser } from '@/lib/auth/admin'
 
 const adminSession = { user: { id: 'admin-1', email: 'admin@example.com' }, expires: '2099-12-31' }
 
-function req(days = 30): NextRequest {
+function req(days: number | string = 30): NextRequest {
   return new NextRequest(`http://localhost:3000/api/admin/visitors?days=${days}`, { method: 'GET' })
 }
 
@@ -160,6 +160,29 @@ describe('GET /api/admin/visitors', () => {
     const res = await GET(req())
     expect(res.status).toBe(200)
     expect((await res.json()).data.notReady).toBe(true)
+  })
+
+  it('supports days=all (전체 기간) → rangeDays "all"', async () => {
+    vi.mocked(getServerSession).mockResolvedValue(adminSession as never)
+    vi.mocked(isAdminUser).mockResolvedValue(true)
+    vi.mocked(prisma.$queryRaw)
+      .mockResolvedValueOnce([{ pageviews: 5n, visits: 3n, logged_in_visits: 1n }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { today_visits: 1n, today_pageviews: 2n, today_logged_in: 0n, yesterday_visits: 0n },
+      ])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ active: 0n, pageviews: 0n }])
+    vi.mocked(prisma.user.count).mockResolvedValue(2)
+
+    const data = (await (await GET(req('all'))).json()).data
+    expect(data.rangeDays).toBe('all')
+    expect(data.summary.visits).toBe(3)
+    expect(data.conversion).toMatchObject({ visits: 3, signups: 2 })
   })
 
   it('handles empty data without dividing by zero', async () => {
