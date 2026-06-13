@@ -8,6 +8,7 @@ import {
   evaluateGeokgukStatus,
   evaluateHwagiGeokguk,
   determineGeokgukAdvanced,
+  getStrengthScore,
   type GeokgukType,
   type SajuPillarsInput,
 } from '@/lib/saju/geokguk'
@@ -163,6 +164,60 @@ describe('Geokguk Module', () => {
         expect(result).toBeTruthy()
         expect(result.primary).toBeTruthy()
       }
+    })
+  })
+
+  describe('determineGeokgukAdvanced — month-branch sweep', () => {
+    // Sweep every month branch (incl. 진술축미 잡기 months) so the advanced
+    // path exercises both the 성패(statusResult) branch and the 잡기격 branch.
+    const monthBranches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+
+    for (const mb of monthBranches) {
+      it(`returns a coherent result for month branch ${mb}`, () => {
+        const pillars = createPillars('甲', '子', '戊', mb, '丙', '寅', '丁', '卯')
+        const result = determineGeokgukAdvanced(pillars)
+
+        expect(result.primary).toBeTruthy()
+        const validCategories = ['정격', '종격', '비격', '화기격국', '특수격국', '미정']
+        expect(validCategories).toContain(result.category)
+        expect(['high', 'medium', 'low']).toContain(result.confidence)
+      })
+    }
+
+    it('attaches statusResult for 정격/비격 outcomes', () => {
+      // At least one chart in the sweep should land on 정격 or 비격 and carry
+      // a 성패 evaluation; verify the shape when present.
+      const pillars = createPillars('甲', '子', '辛', '酉', '甲', '寅', '丙', '午')
+      const result = determineGeokgukAdvanced(pillars)
+      if (result.category === '정격' || result.category === '비격') {
+        expect(result.statusResult).toBeDefined()
+        expect(['성격', '파격', '반성반파']).toContain(result.statusResult?.status)
+      } else {
+        expect(result).toHaveProperty('primary')
+      }
+    })
+  })
+
+  describe('getStrengthScore', () => {
+    it('returns a number within the 0–100 band', () => {
+      const pillars = createPillars('甲', '寅', '甲', '寅', '甲', '寅', '甲', '寅')
+      const score = getStrengthScore(pillars)
+      expect(typeof score).toBe('number')
+      expect(score).toBeGreaterThanOrEqual(0)
+      expect(score).toBeLessThanOrEqual(100)
+    })
+
+    it('is deterministic for the same input', () => {
+      const pillars = createPillars('甲', '子', '乙', '丑', '丙', '寅', '丁', '卯')
+      expect(getStrengthScore(pillars)).toBe(getStrengthScore(pillars))
+    })
+
+    it('scores a self-reinforcing chart higher than a drained one', () => {
+      // day master 甲(목): a chart full of 목/수 (비겁·인성) should be stronger
+      // than one surrounded by 금(관성) which controls 목.
+      const strong = createPillars('甲', '寅', '甲', '寅', '甲', '寅', '甲', '寅')
+      const weak = createPillars('庚', '申', '庚', '申', '甲', '申', '庚', '申')
+      expect(getStrengthScore(strong)).toBeGreaterThan(getStrengthScore(weak))
     })
   })
 
