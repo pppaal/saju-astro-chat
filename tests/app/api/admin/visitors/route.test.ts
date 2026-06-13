@@ -80,10 +80,21 @@ describe('GET /api/admin/visitors', () => {
         { device: 'mobile', visits: 28n },
         { device: 'desktop', visits: 12n },
       ])
+      // today
+      .mockResolvedValueOnce([
+        { today_visits: 8n, today_pageviews: 19n, today_logged_in: 3n, yesterday_visits: 6n },
+      ])
 
     const res = await GET(req(30))
     expect(res.status).toBe(200)
     const data = (await res.json()).data
+    expect(data.today).toMatchObject({
+      visits: 8,
+      pageviews: 19,
+      loggedInVisits: 3,
+      anonymousVisits: 5,
+      yesterdayVisits: 6,
+    })
     expect(data.summary).toMatchObject({
       pageviews: 100,
       visits: 40,
@@ -140,10 +151,14 @@ describe('GET /api/admin/visitors', () => {
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { today_visits: 0n, today_pageviews: 0n, today_logged_in: 0n, yesterday_visits: 0n },
+      ])
 
     const data = (await (await GET(req())).json()).data
     expect(data.summary.loginShare).toBe(0)
     expect(data.summary.anonymousVisits).toBe(0)
+    expect(data.today.visits).toBe(0)
     expect(data.daily).toEqual([])
   })
 })
