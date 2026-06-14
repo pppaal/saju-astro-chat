@@ -170,6 +170,21 @@ function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
   return out
 }
 
+// cross-activation 페어 파서 — 연 셀(경량 캐시)은 evidence.detail 을 비우므로
+// detail.sajuKey/astroKey 가 없을 수 있다. 신호 name("편관 × 화성")은 항상 살아남아
+// 거기서 십신·행성을 뽑는다. (예전엔 detail 만 읽어 월교차 "() ↔" / 일교차 빈 ↔ 버그.)
+const PLANET_EN_FROM_KO: Record<string, string> = Object.fromEntries(
+  Object.entries(PLANET_KO).map(([en, ko]) => [ko, en])
+)
+function parseCrossName(name: string | undefined): { sajuKo: string; astroKo: string } {
+  const parts = (name ?? '').split('×').map((x) => x.trim())
+  return { sajuKo: parts[0] ?? '', astroKo: parts[1] ?? '' }
+}
+// 매핑 의미문은 "편관 × 화성 — …" 로 시작 — 카드가 페어를 따로 보여주므로 머리 제거.
+function stripCrossPair(t: string): string {
+  return t.replace(/^[^—]*×[^—]*—\s*/, '')
+}
+
 export async function assembleTiers(args: AssembleTiersInput): Promise<AssembledTiers> {
   const {
     natal,
@@ -497,23 +512,19 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   for (const c of monthCells) {
     for (const s of c.signals) {
       if (s.kind !== 'cross-activation' || s.layer !== 'monthly') continue
-      const detail = (s.evidence?.detail ?? {}) as { sajuKey?: string; astroKey?: string }
-      const sajuKo = detail.sajuKey ?? ''
-      const astroEn = detail.astroKey ?? ''
-      const pairKey = `${sajuKo}|${astroEn}`
+      // name("편관 × 화성")에서 파싱 — 연 셀은 evidence.detail 이 비어 있다.
+      const { sajuKo, astroKo } = parseCrossName(s.name)
+      if (!sajuKo || !astroKo) continue
+      const pairKey = `${sajuKo}|${astroKo}`
       const prev = monthCrossByPair.get(pairKey)
       if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
-      // 매핑 의미문은 "편관 × 화성 — …" 처럼 페어명으로 시작한다. 카드가 이미
-      // 글로스된 페어를 따로 보여주므로, 의미문 앞의 "<…> × <…> — " 머리를 떼
-      // 중복(과 raw 술어 'Seven Killings' 노출)을 없앤다.
-      const stripPair = (t: string) => t.replace(/^[^—]*×[^—]*—\s*/, '')
       monthCrossByPair.set(pairKey, {
         saju: sajuKo,
         sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
-        astro: PLANET_KO[astroEn] ?? astroEn,
-        astroEn,
-        meaning: stripPair(s.korean ?? ''),
-        meaningEn: stripPair(s.english ?? ''),
+        astro: astroKo,
+        astroEn: PLANET_EN_FROM_KO[astroKo] ?? astroKo,
+        meaning: stripCrossPair(s.korean ?? ''),
+        meaningEn: stripCrossPair(s.english ?? ''),
         polarity: s.polarity,
       })
     }
@@ -583,25 +594,30 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       rule:
         typeof s.evidence?.detail?.rule === 'string' ? (s.evidence!.detail!.rule as string) : '',
     }))
-  const dayCrossActivations: DestinyDay['crossActivations'] = dayCell.signals
-    .filter((s) => s.kind === 'cross-activation')
-    .map((s) => ({
+  // name("편관 × 화성")에서 파싱 — detail.sajuName/astroName 은 존재하지 않는 필드라
+  // 양쪽이 늘 빈 ↔ 로 떴다. name 파싱 + korean/english 로 교정. 같은 페어가 여러
+  // 층(daily/monthly…)에서 잡혀 중복되므로 페어 기준 1개(가장 센 것)만 남긴다.
+  const dayCrossByPair = new Map<string, DestinyDay['crossActivations'][number]>()
+  for (const s of dayCell.signals) {
+    if (s.kind !== 'cross-activation') continue
+    const { sajuKo, astroKo } = parseCrossName(s.name)
+    if (!sajuKo || !astroKo) continue
+    const key = `${sajuKo}|${astroKo}`
+    const prev = dayCrossByPair.get(key)
+    if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
+    const ko = lang === 'ko'
+    dayCrossByPair.set(key, {
       id: s.id,
-      sajuSide:
-        typeof s.evidence?.detail?.sajuName === 'string'
-          ? (s.evidence.detail.sajuName as string)
-          : '',
-      astroSide:
-        typeof s.evidence?.detail?.astroName === 'string'
-          ? (s.evidence.detail.astroName as string)
-          : '',
-      meaning:
-        typeof s.evidence?.detail?.meaning === 'string'
-          ? (s.evidence.detail.meaning as string)
-          : '',
+      sajuSide: ko ? sajuKo : (SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en')),
+      astroSide: ko ? astroKo : (PLANET_EN_FROM_KO[astroKo] ?? astroKo),
+      meaning: stripCrossPair((ko ? s.korean : s.english) ?? ''),
       polarity: s.polarity,
       weight: s.weight,
-    }))
+    })
+  }
+  const dayCrossActivations: DestinyDay['crossActivations'] = [...dayCrossByPair.values()].sort(
+    (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
+  )
   const day: DestinyDay = {
     date: dayAdapter.date,
     dateKo: dayAdapter.dateKo,

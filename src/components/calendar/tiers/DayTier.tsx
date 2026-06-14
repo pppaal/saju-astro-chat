@@ -1041,8 +1041,9 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
           </div>
         </div>
 
-        {/* HourBreakdown 24h — footer 위 */}
-        <HourBreakdown hours24={hours24} />
+        {/* HourBreakdown 24h — 시각별 점수가 실제로 있을 때만(없으면 24칸 전부 '·'
+            로 떠서 무의미하므로 숨김). */}
+        {(hours24?.length ?? 0) > 0 && <HourBreakdown hours24={hours24} />}
       </details>
 
       <div className={styles.riseCenter}>

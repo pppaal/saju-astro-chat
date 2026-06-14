@@ -722,7 +722,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
                 <div className={`${styles.mcrossRow} ${tone}`} key={`${c.saju}-${c.astroEn}-${i}`}>
                   <span className={styles.mcrossPair}>
                     {ko
-                      ? `${sibsinArea(c.saju)}(${c.saju}) ↔ ${c.astro}`
+                      ? `${sibsinArea(c.saju) === c.saju ? c.saju : `${sibsinArea(c.saju)}(${c.saju})`} ↔ ${c.astro}`
                       : `${sibsinAreaEn(c.saju)} ↔ ${c.astroEn}`}
                   </span>
                   <span className={styles.mcrossMeaning}>{ko ? c.meaning : c.meaningEn}</span>
