@@ -40,6 +40,7 @@ import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
+import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 
 const MONTH_EN = [
   'January',
@@ -720,7 +721,9 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
               return (
                 <div className={`${styles.mcrossRow} ${tone}`} key={`${c.saju}-${c.astroEn}-${i}`}>
                   <span className={styles.mcrossPair}>
-                    {ko ? `${c.saju} ↔ ${c.astro}` : `${c.sajuEn} ↔ ${c.astroEn}`}
+                    {ko
+                      ? `${sibsinArea(c.saju)}(${c.saju}) ↔ ${c.astro}`
+                      : `${sibsinAreaEn(c.saju)} ↔ ${c.astroEn}`}
                   </span>
                   <span className={styles.mcrossMeaning}>{ko ? c.meaning : c.meaningEn}</span>
                 </div>

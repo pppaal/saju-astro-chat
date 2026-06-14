@@ -31,14 +31,13 @@ import type {
   DestinySignal,
   Polarity,
 } from '@/types/calendar'
-import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 import styles from './DayTier.module.css'
 import { TierSummary } from '@/components/calendar/atoms/TierSummary'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 
 // ============================================================================
@@ -679,7 +678,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
     const branch = label.match(/\((.*?)\)/)?.[1] ?? ''
     const timeShort = label.replace(/\s*\(.*\)/, '').trim()
     const tone = h.tone === 'good' ? (ko ? '길' : 'good') : ko ? '주의' : 'caution'
-    const sib = ko ? h.sibsin : (SIBSIN_EN[h.sibsin] ?? h.sibsin)
+    const sib = ko ? `${sibsinArea(h.sibsin)}(${h.sibsin})` : sibsinAreaEn(h.sibsin)
     const rise = ko ? '상승' : 'rising'
     const sign = ko ? h.risingSignKo : h.risingSignEn
     const ruler = ko ? h.ruler : h.rulerEn
@@ -886,10 +885,16 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
             <div className="meta">
               <div className="kr">{day.iljin.kr}</div>
               <div className="ss">
-                {ko ? '일진 · 일간 기준' : 'daily pillar · vs day master'} {String(day.iljinSibsin)}
-                {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
-                  ? ` (${sibsinArea(String(day.iljinSibsin))})`
-                  : ''}
+                {ko ? (
+                  <>
+                    {'일진 · 일간 기준'} {String(day.iljinSibsin)}
+                    {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
+                      ? ` (${sibsinArea(String(day.iljinSibsin))})`
+                      : ''}
+                  </>
+                ) : (
+                  `daily pillar · vs day master ${sibsinAreaEn(String(day.iljinSibsin))}`
+                )}
               </div>
             </div>
           </div>
