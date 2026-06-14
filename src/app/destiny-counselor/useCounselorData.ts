@@ -6,6 +6,7 @@ import { normalizeGender } from '@/lib/utils/gender'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
 import { logger } from '@/lib/logger'
+import { withSpan } from '@/lib/telemetry'
 import { apiFetch } from '@/lib/api'
 import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 
@@ -86,8 +87,11 @@ export function useCounselorData(sp: SearchParams) {
   useEffect(() => {
     if (hasUrlBirthInfo) return
     let cancelled = false
-    fetch('/api/me/profile')
-      .then((r) => (r.ok ? r.json() : null))
+    // Span: profile fetch gates chart compute for users without URL birth
+    // info — surfaces how much of the counselor entry waits on it.
+    withSpan('counselor.profile', 'http.client', () =>
+      fetch('/api/me/profile').then((r) => (r.ok ? r.json() : null))
+    )
       .then((data) => {
         if (cancelled) return
         const u = data?.user
@@ -276,7 +280,7 @@ export function useCounselorData(sp: SearchParams) {
           logger.warn('[CounselorPage] rich saju fetch failed:', err)
         }
       }
-      void fetchRichSaju()
+      void withSpan('counselor.saju', 'http.client', fetchRichSaju)
     }
 
     // Base natal chart fetch — `astro`가 캐시에 없으면 NatalChart 위젯이
@@ -334,7 +338,7 @@ export function useCounselorData(sp: SearchParams) {
           logger.warn('[CounselorPage] base natal fetch failed:', err)
         }
       }
-      void fetchBaseNatal()
+      void withSpan('counselor.astrology', 'http.client', fetchBaseNatal)
     }
 
     logger.warn('[CounselorPage] Cache check:', {
@@ -560,7 +564,9 @@ export function useCounselorData(sp: SearchParams) {
           // Ignore localStorage errors
         }
 
-        const res = await apiFetch(`/api/counselor/chat-history?limit=3`)
+        const res = await withSpan('counselor.chatHistory', 'http.client', () =>
+          apiFetch(`/api/counselor/chat-history?limit=3`)
+        )
         if (res.ok) {
           const data = (await res.json()) as CounselorContextResponse
           if (data.success) {

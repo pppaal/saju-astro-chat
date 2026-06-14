@@ -21,6 +21,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
+import { runWithConcurrency } from '@/lib/utils/concurrency'
 
 export const dynamic = 'force-dynamic'
 
@@ -125,15 +126,20 @@ export const GET = withApiMiddleware(
           hourlyRows,
           countryRows,
           activeRows,
-        ] = await Promise.all([
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+          // 한 요청에서 9개 집계를 전부 동시에 던지면 그만큼 커넥션을 한꺼번에
+          // 빌려 풀을 압박한다(ECHECKOUTTIMEOUT 원인). 동시 실행을 4개로 제한.
+        ] = await runWithConcurrency(
+          [
+            () =>
+              prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             COUNT(*) AS pageviews,
             COUNT(DISTINCT "visitorId") AS visits,
             COUNT(DISTINCT "visitorId") FILTER (WHERE "isLoggedIn") AS logged_in_visits
           FROM "PageView" WHERE "createdAt" >= ${since}
         `),
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            () =>
+              prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             to_char(date_trunc('day', "createdAt"), 'YYYY-MM-DD') AS day,
             COUNT(*) AS pageviews,
@@ -142,22 +148,26 @@ export const GET = withApiMiddleware(
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY 1
         `),
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            () =>
+              prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT "path", COUNT(*) AS pageviews, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY "path" ORDER BY pageviews DESC LIMIT 15
         `),
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            () =>
+              prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT "referrerHost" AS host, COUNT(*) AS pageviews, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since} AND "referrerHost" IS NOT NULL
           GROUP BY "referrerHost" ORDER BY visits DESC LIMIT 10
         `),
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            () =>
+              prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT COALESCE("device", 'unknown') AS device, COUNT(DISTINCT "visitorId") AS visits
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY visits DESC
         `),
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            () =>
+              prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             COUNT(DISTINCT "visitorId") FILTER (WHERE "createdAt" >= ${todayStart}) AS today_visits,
             COUNT(*) FILTER (WHERE "createdAt" >= ${todayStart}) AS today_pageviews,
@@ -165,8 +175,9 @@ export const GET = withApiMiddleware(
             COUNT(DISTINCT "visitorId") FILTER (WHERE "createdAt" >= ${yesterdayStart} AND "createdAt" < ${todayStart}) AS yesterday_visits
           FROM "PageView" WHERE "createdAt" >= ${yesterdayStart}
         `),
-          // 시간대별(KST 0~23시) 분포
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            // 시간대별(KST 0~23시) 분포
+            () =>
+              prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT
             EXTRACT(HOUR FROM ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul'))::int AS hour,
             COUNT(*) AS pageviews,
@@ -174,19 +185,23 @@ export const GET = withApiMiddleware(
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY 1
         `),
-          // 국가/지역별
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            // 국가/지역별
+            () =>
+              prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT COALESCE(NULLIF("country", ''), '??') AS country,
             COUNT(DISTINCT "visitorId") AS visits, COUNT(*) AS pageviews
           FROM "PageView" WHERE "createdAt" >= ${since}
           GROUP BY 1 ORDER BY visits DESC LIMIT 12
         `),
-          // 실시간(최근 30분) 활성 방문자
-          prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+            // 실시간(최근 30분) 활성 방문자
+            () =>
+              prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
           SELECT COUNT(DISTINCT "visitorId") AS active, COUNT(*) AS pageviews
           FROM "PageView" WHERE "createdAt" >= ${thirtyMinAgo}
         `),
-        ])
+          ],
+          4
+        )
       } catch (err) {
         // 배포 직후 / phantom-apply 로 PageView 테이블이 아직 없을 수 있다.
         // 그땐 ISE 대신 빈 데이터(notReady)로 응답해 탭이 안전하게 뜨게 한다.
