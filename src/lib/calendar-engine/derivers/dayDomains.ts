@@ -440,18 +440,52 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
     for (const d of doms) out[d].push({ text, polarity: mn.polarity, kind: 'moon' })
   }
   // 분야별 중복 제거 + |polarity| 높은 순 4개(시각 달 칩 자리 확보).
+  // astro 칩은 *행성* 기준으로 묶는다 — 같은 행성이 여러 각(수성 사각·육각·삼각)
+  // 으로 동시에 잡히면 한 행성당 가장 센 한 칩만 남겨 중복·기하 모순을 없앤다.
+  const dedupKey = (e: DomainEvidence) =>
+    e.kind === 'astro' ? `astro:${e.text.split(' ')[0]}` : `${e.kind}:${e.text}`
   for (const d of Object.keys(out)) {
     const seen = new Set<string>()
     out[d] = out[d]
+      .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
       .filter((e) => {
-        if (seen.has(e.text)) return false
-        seen.add(e.text)
+        const k = dedupKey(e)
+        if (seen.has(k)) return false
+        seen.add(k)
         return true
       })
-      .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
       .slice(0, 4)
   }
   return out
+}
+
+// 분야별 '주의' 본문 — 그날 그 분야의 근거가 뚜렷이 부정적일 때(합 ≤ -2) 긍정
+// 십신 조언을 대신한다. 칩(긴장 신호)과 톤을 맞춰 모순을 없애는 용도.
+const CAUTION_BODY: Record<string, { ko: string; en: string }> = {
+  love: {
+    ko: '연애·관계에 거스르는 기운이 도는 날 — 서운한 말이나 즉흥 고백은 미루세요.',
+    en: 'Relationships hit friction today — hold off on touchy talks or impulsive confessions.',
+  },
+  money: {
+    ko: '돈 흐름이 거슬리는 날 — 큰 지출·투자·보증은 미루고 지키기에 집중하세요.',
+    en: 'Money runs rough today — postpone big spends, investments and guarantees; play defense.',
+  },
+  career: {
+    ko: '일에 마찰이 끼는 날 — 새로 벌이거나 부딪치기보다 마무리·점검 위주로.',
+    en: 'Work hits friction today — wrap up and review rather than start new or clash.',
+  },
+  people: {
+    ko: '사람 사이가 삐걱대는 날 — 예민한 자리·논쟁은 피하고 한 걸음 물러서세요.',
+    en: 'Ties feel scratchy today — avoid charged settings and step back a little.',
+  },
+  study: {
+    ko: '집중이 흐트러지는 날 — 새 분량보다 복습·정리 위주로 가볍게 가세요.',
+    en: 'Focus scatters today — review and tidy rather than take on new material.',
+  },
+  health: {
+    ko: '몸에 무리가 오기 쉬운 날 — 과로·과격한 운동·사고를 조심하고 쉬어가세요.',
+    en: 'The body strains easily today — avoid overwork, hard workouts and accidents; rest.',
+  },
 }
 
 export function deriveDayDomains(args: {
@@ -468,15 +502,20 @@ export function deriveDayDomains(args: {
   const activeDomainSet = activeDomains(cat, args.sex)
   const evidenceByDomain = args.evidence ? classifyEvidence(args.evidence, args.ko !== false) : null
   const domains: DayDomainAdvice[] = DOMAIN_META.map((d) => {
-    let body = d.key === 'love' ? loveLine(cat, args.sex, true) : ADVICE[cat][d.key].ko
-    let bodyEn = d.key === 'love' ? loveLine(cat, args.sex, false) : ADVICE[cat][d.key].en
     const ev = evidenceByDomain?.[d.key] ?? []
-    // 근거 극성 합 — 톤 모순/오배치 방지에 쓴다.
+    // 근거 극성 합 — 톤·배지를 그날 *그 분야의 실제 신호*에 맞춘다. 같은 일진이라도
+    // 본명이 다르면 분야별 신호(트랜짓)가 달라 결과가 사람마다 갈린다(개인화).
     const polaritySum = ev.reduce((s, e) => s + e.polarity, 0)
-    // 근거가 뚜렷이 부정적(합 ≤ -2)이면 긍정 조언이 칩과 모순되므로 주의 머리말을 붙인다.
+    // 본문: 근거가 뚜렷이 부정적(합 ≤ -2)이면 긍정 십신 조언 대신 '주의' 본문으로
+    // 바꿔, 칩(긴장 신호)과 글의 톤이 어긋나지 않게 한다(모순 제거).
+    let body: string
+    let bodyEn: string
     if (polaritySum <= -2) {
-      body = `오늘은 무리 금물 — ${body}`
-      bodyEn = `Take it easy today — ${bodyEn}`
+      body = CAUTION_BODY[d.key].ko
+      bodyEn = CAUTION_BODY[d.key].en
+    } else {
+      body = d.key === 'love' ? loveLine(cat, args.sex, true) : ADVICE[cat][d.key].ko
+      bodyEn = d.key === 'love' ? loveLine(cat, args.sex, false) : ADVICE[cat][d.key].en
     }
     // '주목' 배지 = 그날 *십신이 관장하는* 분야(=오늘의 테마) 1~2개만 — 단,
     // 근거가 net-negative 면(긴장 분야) 배지를 달지 않는다(긍정 강조와 모순 방지).
