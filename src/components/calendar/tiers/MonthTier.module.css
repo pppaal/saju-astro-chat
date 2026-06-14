@@ -973,3 +973,44 @@
   border-color: var(--dp-accent-glow);
   color: var(--dp-accent-2);
 }
+/* ---------- 이 달의 사주×점성 교차 ---------- */
+.mcrossList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.mcrossRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 13px;
+  border: 1px solid var(--dp-line);
+  border-radius: 10px;
+  background: var(--dp-panel-2);
+  flex-wrap: wrap;
+}
+.mcrossPos {
+  border-left: 3px solid var(--dp-pos);
+}
+.mcrossNeg {
+  border-left: 3px solid var(--dp-neg);
+}
+.mcrossNeu {
+  border-left: 3px solid var(--dp-line);
+}
+.mcrossPair {
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--dp-ink);
+  flex: 0 0 auto;
+}
+.mcrossMeaning {
+  font-family: var(--dp-serif-ko);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--dp-ink-mute);
+  flex: 1 1 auto;
+  min-width: 0;
+}

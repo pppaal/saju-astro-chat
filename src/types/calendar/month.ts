@@ -198,4 +198,14 @@ export interface DestinyMonth {
   woolunPatternLabel?: string
   /** ZR L2 progress — narrative 위 1줄. */
   zrL2Progress?: DestinyMonthZRProgress
+  /** 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어 (월운 십신 ↔ 그 달 점성). */
+  crossActivations?: Array<{
+    saju: string
+    sajuEn: string
+    astro: string
+    astroEn: string
+    meaning: string
+    meaningEn: string
+    polarity: number
+  }>
 }

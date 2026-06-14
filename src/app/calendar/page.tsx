@@ -33,6 +33,7 @@ import {
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
 import { assembleTiers } from './assembleTiers'
+import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 
 // 서버 컴포넌트 — Swiss Ephemeris 비용 서버에서 한 번에 치름.
 // 세션 기반이므로 force-dynamic 필수 (정적 캐시 금지).
@@ -108,14 +109,17 @@ export default async function DestinypalPage() {
   }
   const BIRTH_YEAR = Number(profile.birthDate!.split('-')[0])
 
-  // 현재 연·월·일 — 전부 UTC 기준으로 통일. 엔진 셀 버킷팅이 UTC 이고
-  // targetDayIso 도 toISOString(UTC)이라, TARGET_YEAR/MONTH 만 서버 로컬이면
-  // 비-UTC 서버의 월·연 경계에서 month grid 와 focus 일이 어긋난다. 셋 다 UTC.
-  const now = new Date()
-  const TARGET_YEAR = now.getUTCFullYear()
-  const TARGET_MONTH = now.getUTCMonth() + 1
-  const TARGET_DAY = now.getUTCDate()
-  const targetDayIso = now.toISOString().slice(0, 10)
+  // 현재 연·월·일 — *사용자 출생 타임존(tzId)* 기준의 '오늘'. year/month/day/ISO
+  // 를 같은 호출(getNowInTimezone)에서 한 번에 뽑아 한 시간대로 통일한다.
+  // (과거: 전부 UTC 로 통일 → 프로덕션 UTC 서버에서 getUTC* 가 KST 00~09시 동안
+  //  '어제'를 돌려줘 한국 새벽 사용자에게 하루 전 날짜가 펼쳐졌다. 사용자 시간대로
+  //  통일하면 month grid·focus 일이 어긋나지 않고, 셀 datetime 은 YYYY-MM-DD
+  //  라벨 매칭이라 그대로 호환.)
+  const today = getNowInTimezone(BIRTH.timeZone)
+  const TARGET_YEAR = today.year
+  const TARGET_MONTH = today.month
+  const TARGET_DAY = today.day
+  const targetDayIso = formatDateString(today.year, today.month, today.day)
 
   // ─── 4) NatalContext + 올해 cells (DB 캐시 우선) ──────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)
@@ -127,7 +131,7 @@ export default async function DestinypalPage() {
   const birthDisplay = formatBirthLine(profile.birthDate!, profile.birthTime!)
   const place = profile.birthCity || '미입력'
 
-  const { topbar, user, lifetime, decade, year, month, day } = assembleTiers({
+  const { topbar, user, lifetime, decade, year, month, day } = await assembleTiers({
     natal,
     cells,
     lang,

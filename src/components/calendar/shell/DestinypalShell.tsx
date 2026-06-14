@@ -17,14 +17,22 @@ import styles from '../styles/shell.module.css'
 import { DestinypalRail, type RailTier } from './DestinypalRail'
 import { DestinypalTopbar } from './DestinypalTopbar'
 import { Starfield, type StarfieldHandle } from './Starfield'
+import { SHOW_FULL_TIERS } from '../tierConfig'
 
-const TIERS: ReadonlyArray<RailTier> = [
+const ALL_TIERS: ReadonlyArray<RailTier> = [
   { id: 'life', ko: '인생', en: 'LIFETIME', scale: '84년' },
   { id: 'decade', ko: '10년', en: 'DECADE', scale: '甲戌 대운' },
   { id: 'year', ko: '1년', en: 'YEARLY', scale: '12달' },
   { id: 'month', ko: '1달', en: 'MONTHLY', scale: '30일' },
   { id: 'day', ko: '1일', en: 'DAILY', scale: '24시' },
 ] as const
+
+// 숨기는 티어 — tierConfig.SHOW_FULL_TIERS 단일 스위치로 제어.
+// false: 인생·10년·1년 숨김 → 월·일만. true: 5티어 전부. (코드는 모두 보존)
+const HIDDEN_TIERS = SHOW_FULL_TIERS
+  ? new Set<string>()
+  : new Set<string>(['life', 'decade', 'year'])
+const TIERS: ReadonlyArray<RailTier> = ALL_TIERS.filter((t) => !HIDDEN_TIERS.has(t.id))
 
 const MAX_TIER = TIERS.length - 1
 const BASE = 5
@@ -43,13 +51,18 @@ export interface DestinypalTierRenderArgs {
   onRise: () => void
   onDive: () => void
   goTo: (i: number) => void
+  /** 위로 줌아웃 가능(최상단 아님). 티어가 줌아웃 버튼 표시 여부에 쓴다. */
+  canRise: boolean
+  /** 아래로 줌인 가능(최하단 아님). */
+  canDive: boolean
 }
 
 export interface DestinypalShellProps {
   topbar: DestinypalShellTopbar
-  renderLife: (args: DestinypalTierRenderArgs) => ReactNode
-  renderDecade: (args: DestinypalTierRenderArgs) => ReactNode
-  renderYear: (args: DestinypalTierRenderArgs) => ReactNode
+  // 숨김 티어(인생·10년·1년)는 렌더러를 안 줄 수 있다 → 해당 레이어는 안 그림.
+  renderLife?: (args: DestinypalTierRenderArgs) => ReactNode
+  renderDecade?: (args: DestinypalTierRenderArgs) => ReactNode
+  renderYear?: (args: DestinypalTierRenderArgs) => ReactNode
   renderMonth: (args: DestinypalTierRenderArgs & { onFocusDay: () => void }) => ReactNode
   renderDay: (args: DestinypalTierRenderArgs) => ReactNode
   initialTier?: number
@@ -280,7 +293,30 @@ export function DestinypalShell({
     onRise: () => goTo(idx - 1),
     onDive: () => goTo(idx + 1),
     goTo,
+    canRise: idx > 0,
+    canDive: idx < MAX_TIER,
   })
+
+  // 티어 id → 렌더러. TIERS 순서(=레이어 인덱스)에 맞춰 dispatch 하므로
+  // 숨김 티어가 빠져도 줌·레일·스테이지 인덱스가 일관된다.
+  const dayIndex = TIERS.findIndex((t) => t.id === 'day')
+  const renderTier = (id: string, idx: number): ReactNode => {
+    const args = renderArgs(idx)
+    switch (id) {
+      case 'life':
+        return renderLife ? renderLife(args) : null
+      case 'decade':
+        return renderDecade ? renderDecade(args) : null
+      case 'year':
+        return renderYear ? renderYear(args) : null
+      case 'month':
+        return renderMonth({ ...args, onFocusDay: () => goTo(dayIndex >= 0 ? dayIndex : idx) })
+      case 'day':
+        return renderDay(args)
+      default:
+        return null
+    }
+  }
 
   return (
     <div className={[variables.dpRoot, styles.root, className].filter(Boolean).join(' ')}>
@@ -299,34 +335,13 @@ export function DestinypalShell({
       <DestinypalRail tiers={TIERS} activeIndex={camRounded} onSelect={(i) => goTo(i)} />
 
       <div className={styles.stage}>
-        <div className={styles.tierLayer} style={layerStyle(0)}>
-          <div className={styles.tierScroll} ref={scrollRefs[0]}>
-            {renderLife(renderArgs(0))}
+        {TIERS.map((t, i) => (
+          <div className={styles.tierLayer} style={layerStyle(i)} key={t.id}>
+            <div className={styles.tierScroll} ref={scrollRefs[i]}>
+              {renderTier(t.id, i)}
+            </div>
           </div>
-        </div>
-        <div className={styles.tierLayer} style={layerStyle(1)}>
-          <div className={styles.tierScroll} ref={scrollRefs[1]}>
-            {renderDecade(renderArgs(1))}
-          </div>
-        </div>
-        <div className={styles.tierLayer} style={layerStyle(2)}>
-          <div className={styles.tierScroll} ref={scrollRefs[2]}>
-            {renderYear(renderArgs(2))}
-          </div>
-        </div>
-        <div className={styles.tierLayer} style={layerStyle(3)}>
-          <div className={styles.tierScroll} ref={scrollRefs[3]}>
-            {renderMonth({
-              ...renderArgs(3),
-              onFocusDay: () => goTo(4),
-            })}
-          </div>
-        </div>
-        <div className={styles.tierLayer} style={layerStyle(4)}>
-          <div className={styles.tierScroll} ref={scrollRefs[4]}>
-            {renderDay(renderArgs(4))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   )

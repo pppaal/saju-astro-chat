@@ -32,6 +32,7 @@ import type {
   Polarity,
 } from '@/types/calendar'
 import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 import styles from './DayTier.module.css'
 import { TierSummary } from '@/components/calendar/atoms/TierSummary'
@@ -62,6 +63,8 @@ export interface DayTierProps {
   hours24?: HourSlot[]
   voc?: DayVoc
   onRise: () => void
+  /** 분야별 연애 조언 성별 분기용 (남=재성, 여=관성이 배우자성). 기본 '남'. */
+  sex?: string
 }
 
 // ============================================================================
@@ -600,7 +603,7 @@ function HourRhythm({
   )
 }
 
-export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
+export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
   // ── transit 분리: 일반 (Sun~Mars) + 외행성 (Saturn/Uranus/Neptune/Pluto). ──
@@ -714,6 +717,37 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
       ? '오늘 가장 센 시간'
       : 'Strongest hours'
 
+  // 분야별 오늘 조언 — 그날 일진 십신 → 6분야 (성별·점수 반영). evidence 로 그날
+  // 실제 신호(트랜짓·신살·교차·달)를 넘겨 분야별 근거까지 붙인다 (1인 1결과).
+  const dayDomains = deriveDayDomains({
+    iljinSibsin: String(day.iljinSibsin),
+    sex,
+    scoreBand: dayBand,
+    ko,
+    evidence: {
+      transits: day.transits.map((t) => ({
+        body: (t as { body?: string }).body,
+        aspect: (t as { aspect?: string }).aspect,
+        polarity: t.polarity,
+      })),
+      shinsal: day.shinsalActive ?? [],
+      crossActivations: (day.crossActivations ?? []).map((c) => ({
+        sajuSide: c.sajuSide,
+        astroSide: c.astroSide,
+        meaning: c.meaning,
+        polarity: c.polarity,
+      })),
+      moon: (day.hourMoon ?? []).map((m) => ({
+        body: m.body,
+        aspectKo: m.aspectKo,
+        aspectEn: m.aspectEn,
+        when: m.when,
+        whenEn: m.whenEn,
+        polarity: m.polarity,
+      })),
+    },
+  })
+
   return (
     <div className={styles.tierInner} data-screen-label={`1일 ${day.date}`}>
       <button className={styles.rise} onClick={onRise}>
@@ -728,11 +762,100 @@ export function DayTier({ day, hours24, voc, onRise }: DayTierProps) {
       {/* ── 쉬운 요약 (오늘 어때 한눈에). 일진·12운성·신호는 아래 자세히로. ── */}
       <TierSummary headline={dayHeadline} sub={daySub} cards={dayCards} />
 
+      {/* ── 분야별 오늘 조언 — 연애·돈·직업·관계·공부·건강 (그날 십신 기반). ── */}
+      {dayDomains && (
+        <div className={styles.domainBlock}>
+          <div className={styles.secHead}>
+            <h2 className={styles.secTitle}>{ko ? '분야별 오늘 조언' : 'Today by area'}</h2>
+            <span className={styles.tiny}>{ko ? dayDomains.bandNote : dayDomains.bandNoteEn}</span>
+          </div>
+          <div className={styles.domainGrid}>
+            {dayDomains.domains.map((d) => (
+              <div
+                className={`${styles.domainRow} ${d.active ? styles.domainActive : ''}`}
+                key={d.key}
+              >
+                <span className={styles.domainIcon}>{d.icon}</span>
+                <div className={styles.domainText}>
+                  <span className={styles.domainLabel}>
+                    {ko ? d.label : d.labelEn}
+                    {d.active && (
+                      <span className={styles.domainOn}>{ko ? '오늘 켜짐' : 'active'}</span>
+                    )}
+                  </span>
+                  <span className={styles.domainBody}>{ko ? d.body : d.bodyEn}</span>
+                  {d.evidence.length > 0 && (
+                    <span className={styles.domainEvidence}>
+                      <span className={styles.domainEvLabel}>{ko ? '근거' : 'why'}</span>
+                      {d.evidence.map((e, i) => {
+                        const tone =
+                          e.polarity > 0
+                            ? styles.evPos
+                            : e.polarity < 0
+                              ? styles.evNeg
+                              : styles.evNeu
+                        const mark =
+                          e.kind === 'astro'
+                            ? '✦'
+                            : e.kind === 'cross'
+                              ? '⇄'
+                              : e.kind === 'moon'
+                                ? '🌙'
+                                : '◆'
+                        return (
+                          <span className={`${styles.evChip} ${tone}`} key={`${e.text}-${i}`}>
+                            <span className={styles.evMark}>{mark}</span>
+                            {e.text}
+                          </span>
+                        )
+                      })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── 시간별 사주 × 점성 교차 — 가장 센 시진 3개만 메인에. ── */}
       {hourCrossItems.length > 0 && <CrossingList heading={hourHeading} items={hourCrossItems} />}
 
       {hourAll.length > 0 && (
         <HourRhythm hours={hourAll} ko={ko} label={ko ? '하루 시간 리듬' : 'The day’s rhythm'} />
+      )}
+
+      {/* ── 시(時)별 달 정밀 — 12 시진 달 재계산으로 뽑은 달×본명 절정 시각. ── */}
+      {(day.hourMoon ?? []).length > 0 && (
+        <div className={styles.moonBlock}>
+          <div className={styles.secHead}>
+            <h2 className={styles.secTitle}>{ko ? '시(時)별 달 흐름' : 'Moon by hour'}</h2>
+            <span className={styles.tiny}>
+              {ko ? '달 시각별 정밀 재계산 · 절정 시각' : 'Moon recomputed per hour · peak times'}
+            </span>
+          </div>
+          <div className={styles.moonList}>
+            {(day.hourMoon ?? []).map((m, i) => {
+              const tone = m.tone === 'good' ? styles.moonGood : styles.moonCaution
+              return (
+                <div className={`${styles.moonRow} ${tone}`} key={`${m.hour}-${i}`}>
+                  <div className={styles.moonHead}>
+                    <span className={styles.moonWhen}>{ko ? m.when : m.whenEn}</span>
+                    <span className={styles.moonBody}>
+                      {ko
+                        ? `달 ${m.aspectKo} → ${m.natalPointKo} · ${m.moonSignKo}`
+                        : `Moon ${m.aspectEn} → ${m.natalPointEn} · ${m.moonSignEn}`}
+                    </span>
+                    <span className={styles.moonTone}>
+                      {m.tone === 'good' ? (ko ? '좋은 시각' : 'good') : ko ? '주의 시각' : 'watch'}
+                    </span>
+                  </div>
+                  <span className={styles.moonMeaning}>{ko ? m.meaning : m.meaningEn}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       )}
 
       {/* ── 전문가용 상세 — 일진·격국·공망·신호·12운성·시진 일체 접어 둠 ── */}

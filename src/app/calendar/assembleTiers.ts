@@ -28,6 +28,10 @@ import {
   toDay,
 } from '@/components/calendar/adapters'
 import { buildHourCrossings } from '@/components/calendar/adapters/toHourCrossings'
+import { buildHourMoon } from '@/components/calendar/adapters/toHourMoon'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
+import { PLANET_KO } from '@/components/calendar/adapters/shared'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -166,7 +170,7 @@ function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
   return out
 }
 
-export function assembleTiers(args: AssembleTiersInput): AssembledTiers {
+export async function assembleTiers(args: AssembleTiersInput): Promise<AssembledTiers> {
   const {
     natal,
     cells,
@@ -485,6 +489,35 @@ export function assembleTiers(args: AssembleTiersInput): AssembledTiers {
     calendar,
   }
 
+  // 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어를 모아 카드 원료로.
+  // 같은 페어가 그 달 여러 윈도우로 잡혀 id 는 달라도 의미는 같으므로 *페어* 기준
+  // 중복 제거(가장 센 |polarity| 보존), |polarity| 상위 6개.
+  type MCross = NonNullable<DestinyMonth['crossActivations']>[number]
+  const monthCrossByPair = new Map<string, MCross>()
+  for (const c of monthCells) {
+    for (const s of c.signals) {
+      if (s.kind !== 'cross-activation' || s.layer !== 'monthly') continue
+      const detail = (s.evidence?.detail ?? {}) as { sajuKey?: string; astroKey?: string }
+      const sajuKo = detail.sajuKey ?? ''
+      const astroEn = detail.astroKey ?? ''
+      const pairKey = `${sajuKo}|${astroEn}`
+      const prev = monthCrossByPair.get(pairKey)
+      if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
+      monthCrossByPair.set(pairKey, {
+        saju: sajuKo,
+        sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
+        astro: PLANET_KO[astroEn] ?? astroEn,
+        astroEn,
+        meaning: s.korean ?? '',
+        meaningEn: s.english ?? '',
+        polarity: s.polarity,
+      })
+    }
+  }
+  month.crossActivations = [...monthCrossByPair.values()]
+    .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
+    .slice(0, 6)
+
   const dayAdapter = toDay({
     cell: dayCell,
     natal,
@@ -598,6 +631,8 @@ export function assembleTiers(args: AssembleTiersInput): AssembledTiers {
     cautions: dayAdapter.cautions,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
+    // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
+    hourMoon: await buildHourMoon(targetDayIso, natal),
   }
 
   const ilganHanja = user.ilgan.hanja || '辛'
