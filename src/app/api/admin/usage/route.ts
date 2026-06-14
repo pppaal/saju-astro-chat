@@ -23,6 +23,7 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { isAdminUser } from '@/lib/auth/admin'
 import { adminDaysQuerySchema, formatZodErrors } from '@/lib/api/zodValidation'
+import { runWithConcurrency } from '@/lib/utils/concurrency'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,18 +52,23 @@ export const GET = withApiMiddleware(
       const { days } = parsedQuery.data
       const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
+      // 6개 집계를 한꺼번에 던지면 그만큼 커넥션을 동시에 빌려 풀을 압박한다
+      // (ECHECKOUTTIMEOUT 원인). 동시 실행을 3개로 제한.
       const [counselorByType, tarotTotal, hourlyRows, topTopics, topTarotQuestions, dailyRows] =
-        await Promise.all([
-          // 서비스별(상담 type) 세션 수
-          prisma.counselorChatSession.groupBy({
-            by: ['type'],
-            where: { createdAt: { gte: since } },
-            _count: { id: true },
-          }),
-          // 타로 총 건수
-          prisma.tarotReading.count({ where: { createdAt: { gte: since } } }),
-          // 시간대별(KST) 분포 — 상담 + 타로 합산
-          prisma.$queryRaw<Array<{ hour: number; source: string; count: bigint }>>`
+        await runWithConcurrency(
+          [
+            // 서비스별(상담 type) 세션 수
+            () =>
+              prisma.counselorChatSession.groupBy({
+                by: ['type'],
+                where: { createdAt: { gte: since } },
+                _count: { id: true },
+              }),
+            // 타로 총 건수
+            () => prisma.tarotReading.count({ where: { createdAt: { gte: since } } }),
+            // 시간대별(KST) 분포 — 상담 + 타로 합산
+            () =>
+              prisma.$queryRaw<Array<{ hour: number; source: string; count: bigint }>>`
           SELECT EXTRACT(HOUR FROM "createdAt" AT TIME ZONE 'Asia/Seoul')::int AS hour,
                  'counselor' AS source, COUNT(*)::bigint AS count
           FROM "CounselorChatSession" WHERE "createdAt" >= ${since}
@@ -73,8 +79,9 @@ export const GET = withApiMiddleware(
           FROM "TarotReading" WHERE "createdAt" >= ${since}
           GROUP BY 1
         `,
-          // 인기 주제 — keyTopics(jsonb 배열) 펼쳐서 카운트
-          prisma.$queryRaw<Array<{ topic: string; count: bigint }>>`
+            // 인기 주제 — keyTopics(jsonb 배열) 펼쳐서 카운트
+            () =>
+              prisma.$queryRaw<Array<{ topic: string; count: bigint }>>`
           SELECT topic, COUNT(*)::bigint AS count
           FROM "CounselorChatSession",
                LATERAL jsonb_array_elements_text(
@@ -86,8 +93,9 @@ export const GET = withApiMiddleware(
           ORDER BY count DESC
           LIMIT 30
         `,
-          // 인기 타로 질문 — 동일 질문 묶어 카운트
-          prisma.$queryRaw<Array<{ question: string; count: bigint }>>`
+            // 인기 타로 질문 — 동일 질문 묶어 카운트
+            () =>
+              prisma.$queryRaw<Array<{ question: string; count: bigint }>>`
           SELECT trim("question") AS question, COUNT(*)::bigint AS count
           FROM "TarotReading"
           WHERE "createdAt" >= ${since}
@@ -96,8 +104,9 @@ export const GET = withApiMiddleware(
           ORDER BY count DESC
           LIMIT 30
         `,
-          // 일별 추이 — 상담 + 타로 합산 (KST 일자)
-          prisma.$queryRaw<Array<{ day: string; source: string; count: bigint }>>`
+            // 일별 추이 — 상담 + 타로 합산 (KST 일자)
+            () =>
+              prisma.$queryRaw<Array<{ day: string; source: string; count: bigint }>>`
           SELECT to_char("createdAt" AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS day,
                  'counselor' AS source, COUNT(*)::bigint AS count
           FROM "CounselorChatSession" WHERE "createdAt" >= ${since}
@@ -108,7 +117,9 @@ export const GET = withApiMiddleware(
           FROM "TarotReading" WHERE "createdAt" >= ${since}
           GROUP BY 1
         `,
-        ])
+          ],
+          3
+        )
 
       // 시간대 0-23 정규화 (상담+타로 합산)
       const hourly = Array.from({ length: 24 }, (_, h) => ({
