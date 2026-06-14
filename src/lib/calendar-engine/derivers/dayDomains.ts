@@ -253,8 +253,8 @@ const BAND_NOTE: Record<DayScoreBand, { ko: string; en: string }> = {
     en: 'Tailwind today — push hard on the domains that are switched on.',
   },
   mid: {
-    ko: '오늘은 평이한 흐름 — 무리만 안 하면 어느 분야든 무난해요.',
-    en: 'A steady day — any domain is fine as long as you don’t overreach.',
+    ko: '큰 기복 없이 무던한 하루 — 평소 페이스로.',
+    en: 'An even-keeled day — keep your usual pace.',
   },
   low: {
     ko: '오늘은 역풍 — 큰 결정은 미루고 켜진 분야도 한 박자 천천히.',
@@ -465,15 +465,24 @@ export function deriveDayDomains(args: {
 }): DayDomainsResult | null {
   const cat = SIBSIN_CATEGORY[args.iljinSibsin]
   if (!cat) return null
-  const active = activeDomains(cat, args.sex)
+  const activeDomainSet = activeDomains(cat, args.sex)
   const evidenceByDomain = args.evidence ? classifyEvidence(args.evidence, args.ko !== false) : null
   const domains: DayDomainAdvice[] = DOMAIN_META.map((d) => {
-    const body = d.key === 'love' ? loveLine(cat, args.sex, true) : ADVICE[cat][d.key].ko
-    const bodyEn = d.key === 'love' ? loveLine(cat, args.sex, false) : ADVICE[cat][d.key].en
+    let body = d.key === 'love' ? loveLine(cat, args.sex, true) : ADVICE[cat][d.key].ko
+    let bodyEn = d.key === 'love' ? loveLine(cat, args.sex, false) : ADVICE[cat][d.key].en
     const ev = evidenceByDomain?.[d.key] ?? []
-    // '켜짐' 배지 = 그날 *십신이 관장하는* 분야(=오늘의 테마) 1~2개만.
+    // 근거 극성 합 — 톤 모순/오배치 방지에 쓴다.
+    const polaritySum = ev.reduce((s, e) => s + e.polarity, 0)
+    // 근거가 뚜렷이 부정적(합 ≤ -2)이면 긍정 조언이 칩과 모순되므로 주의 머리말을 붙인다.
+    if (polaritySum <= -2) {
+      body = `오늘은 무리 금물 — ${body}`
+      bodyEn = `Take it easy today — ${bodyEn}`
+    }
+    // '주목' 배지 = 그날 *십신이 관장하는* 분야(=오늘의 테마) 1~2개만 — 단,
+    // 근거가 net-negative 면(긴장 분야) 배지를 달지 않는다(긍정 강조와 모순 방지).
     // 트랜짓은 매일 거의 모든 분야에 깔려 배지로 쓰면 다 켜져버리므로, 실제
     // 신호는 배지 대신 분야별 '근거' 칩으로 보여준다(분리).
+    const active = activeDomainSet.has(d.key) && (ev.length === 0 || polaritySum >= 0)
     return {
       key: d.key,
       icon: d.icon,
@@ -481,7 +490,7 @@ export function deriveDayDomains(args: {
       labelEn: d.en,
       body,
       bodyEn,
-      active: active.has(d.key),
+      active,
       evidence: ev,
     }
   })

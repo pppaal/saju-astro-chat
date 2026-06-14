@@ -658,6 +658,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
       .replace(/^[↑↓·\s]+/, '')
       .replace(/^\[[^\]]*\]\s*/, '')
       .replace(/^(이달|오늘)\s·\s/, '')
+      .replace(/^(month|day|year|decade|hour|peak)\s·\s/i, '')
       .split('—')[0] // "A — B(설명)" 이면 핵심 A 만
       .trim()
     return c.length > 48 ? c.slice(0, 47).trim() + '…' : c
@@ -686,7 +687,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
     const meaning = ko ? h.crossMeaning : h.crossMeaningEn
     const skyLine = sign
       ? ko
-        ? `이 시각 하늘: ${sign} 상승${ruler ? ` (룰러 ${ruler})` : ''}`
+        ? `이 시각 하늘: ${sign} 상승${ruler ? ` (지배성 ${ruler})` : ''}`
         : `Sky now: ${sign} rising${ruler ? ` (ruler ${ruler})` : ''}`
       : ''
     return h.matched
@@ -780,13 +781,13 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
                   <span className={styles.domainLabel}>
                     {ko ? d.label : d.labelEn}
                     {d.active && (
-                      <span className={styles.domainOn}>{ko ? '오늘 켜짐' : 'active'}</span>
+                      <span className={styles.domainOn}>{ko ? '오늘 주목' : 'in focus'}</span>
                     )}
                   </span>
                   <span className={styles.domainBody}>{ko ? d.body : d.bodyEn}</span>
                   {d.evidence.length > 0 && (
                     <span className={styles.domainEvidence}>
-                      <span className={styles.domainEvLabel}>{ko ? '근거' : 'why'}</span>
+                      <span className={styles.domainEvLabel}>{ko ? '근거' : 'Why'}</span>
                       {d.evidence.map((e, i) => {
                         const tone =
                           e.polarity > 0
@@ -796,7 +797,9 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
                               : styles.evNeu
                         const mark =
                           e.kind === 'astro'
-                            ? '✦'
+                            ? e.polarity < 0
+                              ? '△'
+                              : '✦'
                             : e.kind === 'cross'
                               ? '⇄'
                               : e.kind === 'moon'
@@ -882,7 +885,6 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
             <span className="han">{day.iljin.hanja}</span>
             <div className="meta">
               <div className="kr">{day.iljin.kr}</div>
-              <div className="en">{day.iljin.en}</div>
               <div className="ss">
                 {ko ? '일진 · 일간 기준' : 'daily pillar · vs day master'} {String(day.iljinSibsin)}
                 {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)

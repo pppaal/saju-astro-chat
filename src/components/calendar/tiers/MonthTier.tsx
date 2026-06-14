@@ -629,14 +629,19 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     const vp = verdictPrefix(mark)
     const title =
       vp && meaning ? `${vp} · ${meaning}` : meaning || vp || (ko ? '주목할 날' : 'Notable day')
+    // 제목이 이미 그날 고유의 의미(셀 판정 톤 또는 엔진 의미)를 담고 있으면 generic
+    // "두 체계 겹침" 줄을 덧붙이지 않는다 — 매일 같은 줄 반복 + 톤 모순(피할 날인데
+    // "강한 날") 제거. 고유 의미가 없을 때만 중립 generic 한 줄.
+    const detail =
+      k.bothSystems && !meaning
+        ? ko
+          ? '사주·점성 신호가 겹치는 날'
+          : 'Saju & Astrology signals overlap'
+        : undefined
     return {
       when: k.date,
       title,
-      detail: k.bothSystems
-        ? ko
-          ? '사주·점성이 함께 강한 날'
-          : 'Saju & Astrology both strong'
-        : undefined,
+      detail,
     }
   })
   // best(✦) 날은 수렴(keyDays)과 다른 기준이라 빠질 수 있다 — 달력이 최고날로
@@ -674,7 +679,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
             <span className="pip" /> {ko ? '사주 · SAJU' : 'Saju · 四柱'}
           </span>
           <div style={{ textAlign: 'center' }}>
-            <Ganji data={month.woolun} size={30} />
+            <Ganji data={month.woolun} size={30} en={false} />
           </div>
           <div className={styles.woolunMeta}>
             <span className={styles.tiny}>{woolunCap}</span>
@@ -811,14 +816,16 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         </span>
         <span className={styles.leg}>
           <span className="sw" style={{ background: 'rgba(176,58,34,0.8)' }} />
-          {ko ? '지킴' : 'Avoid'}
+          {ko ? '피함' : 'Avoid'}
         </span>
         {month.bestDay && (
-          <span className={[styles.leg, styles.legPos].join(' ')}>✦ best {month.bestDay.date}</span>
+          <span className={[styles.leg, styles.legPos].join(' ')}>
+            ✦ {ko ? '최고' : 'best'} {month.bestDay.date}
+          </span>
         )}
         {month.avoidDays.length > 0 && (
           <span className={[styles.leg, styles.legNeg].join(' ')}>
-            ✕ avoid {month.avoidDays.join(' · ')}
+            ✕ {ko ? '피함' : 'avoid'} {month.avoidDays.join(' · ')}
           </span>
         )}
         {month.converge?.date && (
