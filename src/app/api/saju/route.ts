@@ -20,6 +20,7 @@ import {
 } from '@/lib/saju/shinsal'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { logger } from '@/lib/logger'
+import { withSpan } from '@/lib/telemetry'
 
 // Middleware imports
 import {
@@ -139,15 +140,19 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
       : ''
   const sajuResult = await cacheOrCalculate(
     `${CacheKeys.saju(birthDateString, adjustedBirthTime, sajuGender, calendarType, timezone, lunarLeap)}${lonKey}`,
+    // Span: Swiss-Ephemeris/사주 핵심 계산. cacheOrCalculate 콜백이라 캐시
+    // 미스(=실제 계산)일 때만 실행되어 compute 비용만 정확히 잡힌다.
     async () =>
-      calculateSajuData(
-        birthDateString,
-        adjustedBirthTime,
-        sajuGender,
-        calendarType,
-        timezone,
-        lunarLeap,
-        longitude
+      withSpan('saju.calculate', 'function', async () =>
+        calculateSajuData(
+          birthDateString,
+          adjustedBirthTime,
+          sajuGender,
+          calendarType,
+          timezone,
+          lunarLeap,
+          longitude
+        )
       ),
     CACHE_TTL.NATAL_CHART
   )

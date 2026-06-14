@@ -34,6 +34,7 @@ import { logger } from '@/lib/logger'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { validateRequestBody, astrologyRequestSchema } from '@/lib/api/zodValidation'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
+import { withSpan } from '@/lib/telemetry'
 
 // Middleware imports
 import {
@@ -94,17 +95,20 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     const birthTimeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
     natal = await cacheOrCalculate(
       CacheKeys.natalChart(birthDateStr, birthTimeStr, latitude, longitude, String(timeZone)),
+      // Span: Swiss-Ephemeris 천체 계산. 캐시 미스(=실제 계산) 때만 실행.
       async () =>
-        calculateNatalChart({
-          year,
-          month,
-          date: day,
-          hour: h,
-          minute: m,
-          latitude,
-          longitude,
-          timeZone: String(timeZone),
-        }),
+        withSpan('astrology.calculateNatal', 'function', async () =>
+          calculateNatalChart({
+            year,
+            month,
+            date: day,
+            hour: h,
+            minute: m,
+            latitude,
+            longitude,
+            timeZone: String(timeZone),
+          })
+        ),
       CACHE_TTL.NATAL_CHART
     )
   } catch (chartError) {
@@ -181,25 +185,27 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // Arabic Lots·Almuten Figuris 가 누락돼 있었다. NatalContext 와 동일 함수로
   // 산출해 같은 본명에서 calendar-engine 과 일관된 값. 실패는 부분 graceful
   // — sect/lots 가 살아있으면 ZR/Almuten 도 계산, dignity 는 행성 단위 try.
-  let natalAdvanced: {
-    sect: 'day' | 'night'
-    lots: ReturnType<typeof calculateArabicLots>
-    zr: {
-      spirit: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
-      fortune: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
-      currentAge: number | null
-      currentSpirit: ReturnType<typeof getActiveZRSub> | null
-      currentFortune: ReturnType<typeof getActiveZRSub> | null
-    }
-    dignities: Array<{
-      planet: string
-      sign: string
-      degree: number
-      tiers: ReturnType<typeof dignityTiers>
-      score: number
-    }>
-    almutenFiguris: ReturnType<typeof calculateAlmutenFiguris> | null
-  } | undefined
+  let natalAdvanced:
+    | {
+        sect: 'day' | 'night'
+        lots: ReturnType<typeof calculateArabicLots>
+        zr: {
+          spirit: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
+          fortune: { startSign: ZodiacKo; periods: ZRPeriod[] } | null
+          currentAge: number | null
+          currentSpirit: ReturnType<typeof getActiveZRSub> | null
+          currentFortune: ReturnType<typeof getActiveZRSub> | null
+        }
+        dignities: Array<{
+          planet: string
+          sign: string
+          degree: number
+          tiers: ReturnType<typeof dignityTiers>
+          score: number
+        }>
+        almutenFiguris: ReturnType<typeof calculateAlmutenFiguris> | null
+      }
+    | undefined
   try {
     const chartFull = chart as Chart
     const sun = chartFull.planets.find((p) => p.name === 'Sun')
@@ -271,9 +277,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
       almutenFiguris = calculateAlmutenFiguris({
         chart: chartFull,
         sect,
-        fortune: fortuneLot
-          ? { longitude: fortuneLot.longitude }
-          : undefined,
+        fortune: fortuneLot ? { longitude: fortuneLot.longitude } : undefined,
       })
     } catch (err) {
       logger.warn('[astrology] Almuten Figuris failed', {

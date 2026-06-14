@@ -1,39 +1,64 @@
 // Minimal telemetry helper with basic PII/token scrubbing
 
-import { logger } from "@/lib/logger";
+import * as Sentry from '@sentry/nextjs'
+import { logger } from '@/lib/logger'
 
-const REDACTED = "[redacted]";
+/**
+ * Wrap an async unit of work in a Sentry span so it shows up as a named
+ * child in the surrounding transaction's waterfall.
+ *
+ * Used to break down where time goes on hot user paths (e.g. the
+ * /destiny-counselor entry: profile fetch -> saju/astrology compute ->
+ * chat-history). When tracing is disabled or no transaction is active,
+ * `Sentry.startSpan` simply runs the callback, so this is safe to call
+ * unconditionally on both client and server.
+ *
+ * @param name Span name shown in Sentry (e.g. "counselor.saju").
+ * @param op   Span operation/category (e.g. "http.client", "function").
+ * @param fn   The async work to time.
+ */
+export function withSpan<T>(name: string, op: string, fn: () => Promise<T>): Promise<T> {
+  return Sentry.startSpan({ name, op }, fn)
+}
+
+const REDACTED = '[redacted]'
 const SENSITIVE_KEYS = [
-  "authorization",
-  "cookie",
-  "set-cookie",
-  "x-api-key",
-  "x-api-token",
-  "token",
-  "secret",
-  "password",
-  "apikey",
-  "access_key",
-  "refresh_token",
-];
+  'authorization',
+  'cookie',
+  'set-cookie',
+  'x-api-key',
+  'x-api-token',
+  'token',
+  'secret',
+  'password',
+  'apikey',
+  'access_key',
+  'refresh_token',
+]
 
 function scrubValue(key: string, value: unknown): unknown {
-  const lowerKey = key.toLowerCase();
-  if (SENSITIVE_KEYS.some((k) => lowerKey.includes(k))) {return REDACTED;}
-  return value;
+  const lowerKey = key.toLowerCase()
+  if (SENSITIVE_KEYS.some((k) => lowerKey.includes(k))) {
+    return REDACTED
+  }
+  return value
 }
 
 function scrubObject(obj: unknown, depth = 0): unknown {
-  if (depth > 2) {return "[truncated]";}
-  if (obj && typeof obj === "object") {
-    if (Array.isArray(obj)) {return obj.map((v) => scrubObject(v, depth + 1));}
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-      out[k] = scrubValue(k, scrubObject(v, depth + 1));
-    }
-    return out;
+  if (depth > 2) {
+    return '[truncated]'
   }
-  return obj;
+  if (obj && typeof obj === 'object') {
+    if (Array.isArray(obj)) {
+      return obj.map((v) => scrubObject(v, depth + 1))
+    }
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      out[k] = scrubValue(k, scrubObject(v, depth + 1))
+    }
+    return out
+  }
+  return obj
 }
 
 export function captureServerError(error: unknown, context?: Record<string, unknown>) {
@@ -41,20 +66,25 @@ export function captureServerError(error: unknown, context?: Record<string, unkn
     message: error instanceof Error ? error.message : String(error),
     stack: error instanceof Error ? error.stack : undefined,
     ...(context ? (scrubObject(context) as Record<string, unknown>) : {}),
-  };
+  }
 
-  logger.error("Server error:", payload);
+  logger.error('Server error:', payload)
 
   // Send to Sentry for real-time alerts
   if (typeof window === 'undefined') {
     // Server-side
-    import('@sentry/nextjs').then(Sentry => {
-      if (error instanceof Error) {
-        Sentry.captureException(error, { extra: scrubObject(context) as Record<string, unknown> });
-      } else {
-        Sentry.captureMessage(String(error), { extra: scrubObject(context) as Record<string, unknown>, level: 'error' });
-      }
-    }).catch(() => {});
+    import('@sentry/nextjs')
+      .then((Sentry) => {
+        if (error instanceof Error) {
+          Sentry.captureException(error, { extra: scrubObject(context) as Record<string, unknown> })
+        } else {
+          Sentry.captureMessage(String(error), {
+            extra: scrubObject(context) as Record<string, unknown>,
+            level: 'error',
+          })
+        }
+      })
+      .catch(() => {})
   }
 }
 
@@ -63,32 +93,36 @@ export function captureServerError(error: unknown, context?: Record<string, unkn
  * Used for catching errors and sending them to Sentry for monitoring
  */
 export function captureException(error: unknown, context?: Record<string, unknown>) {
-  const scrubbedContext = context ? scrubObject(context) as Record<string, unknown> : undefined;
+  const scrubbedContext = context ? (scrubObject(context) as Record<string, unknown>) : undefined
 
-  logger.error("Exception captured:", {
+  logger.error('Exception captured:', {
     message: error instanceof Error ? error.message : String(error),
-    ...(scrubbedContext || {})
-  });
+    ...(scrubbedContext || {}),
+  })
 
   // Send to Sentry
   if (typeof window !== 'undefined') {
     // Client-side
-    import('@sentry/nextjs').then(Sentry => {
-      if (error instanceof Error) {
-        Sentry.captureException(error, { extra: scrubbedContext });
-      } else {
-        Sentry.captureMessage(String(error), { extra: scrubbedContext, level: 'error' });
-      }
-    }).catch(() => {});
+    import('@sentry/nextjs')
+      .then((Sentry) => {
+        if (error instanceof Error) {
+          Sentry.captureException(error, { extra: scrubbedContext })
+        } else {
+          Sentry.captureMessage(String(error), { extra: scrubbedContext, level: 'error' })
+        }
+      })
+      .catch(() => {})
   } else {
     // Server-side
-    import('@sentry/nextjs').then(Sentry => {
-      if (error instanceof Error) {
-        Sentry.captureException(error, { extra: scrubbedContext });
-      } else {
-        Sentry.captureMessage(String(error), { extra: scrubbedContext, level: 'error' });
-      }
-    }).catch(() => {});
+    import('@sentry/nextjs')
+      .then((Sentry) => {
+        if (error instanceof Error) {
+          Sentry.captureException(error, { extra: scrubbedContext })
+        } else {
+          Sentry.captureMessage(String(error), { extra: scrubbedContext, level: 'error' })
+        }
+      })
+      .catch(() => {})
   }
 }
 
@@ -97,10 +131,12 @@ export function captureException(error: unknown, context?: Record<string, unknow
  */
 export function trackMetric(name: string, value: number, tags?: Record<string, string>) {
   // Log locally
-  logger.debug(`[Metric] ${name}: ${value}`, tags || '');
+  logger.debug(`[Metric] ${name}: ${value}`, tags || '')
 
   // Send to Sentry as a custom metric (requires Sentry performance monitoring)
-  import('@sentry/nextjs').then(Sentry => {
-    Sentry.setMeasurement(name, value, 'none');
-  }).catch(() => {});
+  import('@sentry/nextjs')
+    .then((Sentry) => {
+      Sentry.setMeasurement(name, value, 'none')
+    })
+    .catch(() => {})
 }
