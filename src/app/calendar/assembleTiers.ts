@@ -503,13 +503,17 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       const pairKey = `${sajuKo}|${astroEn}`
       const prev = monthCrossByPair.get(pairKey)
       if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
+      // 매핑 의미문은 "편관 × 화성 — …" 처럼 페어명으로 시작한다. 카드가 이미
+      // 글로스된 페어를 따로 보여주므로, 의미문 앞의 "<…> × <…> — " 머리를 떼
+      // 중복(과 raw 술어 'Seven Killings' 노출)을 없앤다.
+      const stripPair = (t: string) => t.replace(/^[^—]*×[^—]*—\s*/, '')
       monthCrossByPair.set(pairKey, {
         saju: sajuKo,
         sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
         astro: PLANET_KO[astroEn] ?? astroEn,
         astroEn,
-        meaning: s.korean ?? '',
-        meaningEn: s.english ?? '',
+        meaning: stripPair(s.korean ?? ''),
+        meaningEn: stripPair(s.english ?? ''),
         polarity: s.polarity,
       })
     }

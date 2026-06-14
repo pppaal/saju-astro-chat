@@ -7,24 +7,24 @@
  * 순수 데이터 + 작은 헬퍼. LLM 0번.
  */
 
-/** 십신 → 생활영역(한 단어) + 한 줄 뜻. */
-export const SIBSIN_DOMAIN: Record<string, { area: string; gloss: string }> = {
-  비견: { area: '사람·자립', gloss: '내 편·동료, 홀로서기' },
-  겁재: { area: '경쟁·사람', gloss: '경쟁과 협력이 같이 오는 인간관계' },
-  식신: { area: '표현·재능', gloss: '꾸준히 만들고 표현하는 힘' },
-  상관: { area: '재능·자유', gloss: '톡톡 튀는 표현·재능' },
-  편재: { area: '돈·현실', gloss: '활동적인 돈·사업 감각' },
-  정재: { area: '돈·안정', gloss: '꾸준히 모으는 안정 재물' },
-  편관: { area: '일·도전', gloss: '강하게 밀어붙이는 책임·압박' },
-  정관: { area: '일·책임', gloss: '원칙·자리·사회적 책임' },
-  편인: { area: '공부·사유', gloss: '독자적 배움·생각' },
-  정인: { area: '공부·지원', gloss: '배움과 받쳐주는 도움' },
+/** 십신 → 생활영역(한 단어) + 영문 생활영역 + 한 줄 뜻. */
+export const SIBSIN_DOMAIN: Record<string, { area: string; areaEn: string; gloss: string }> = {
+  비견: { area: '사람·자립', areaEn: 'self & peers', gloss: '내 편·동료, 홀로서기' },
+  겁재: { area: '경쟁·사람', areaEn: 'rivalry & drive', gloss: '경쟁과 협력이 같이 오는 인간관계' },
+  식신: { area: '표현·재능', areaEn: 'expression', gloss: '꾸준히 만들고 표현하는 힘' },
+  상관: { area: '재능·자유', areaEn: 'talent & edge', gloss: '톡톡 튀는 표현·재능' },
+  편재: { area: '돈·현실', areaEn: 'opportunity & money', gloss: '활동적인 돈·사업 감각' },
+  정재: { area: '돈·안정', areaEn: 'steady wealth', gloss: '꾸준히 모으는 안정 재물' },
+  편관: { area: '일·도전', areaEn: 'challenge & pressure', gloss: '강하게 밀어붙이는 책임·압박' },
+  정관: { area: '일·책임', areaEn: 'duty & standing', gloss: '원칙·자리·사회적 책임' },
+  편인: { area: '공부·사유', areaEn: 'study & depth', gloss: '독자적 배움·생각' },
+  정인: { area: '공부·지원', areaEn: 'learning & support', gloss: '배움과 받쳐주는 도움' },
   // 묶음 별
-  비겁: { area: '사람·경쟁', gloss: '내 편·경쟁' },
-  식상: { area: '표현·재능', gloss: '표현·재능' },
-  재성: { area: '돈·현실', gloss: '돈·현실 성취' },
-  관성: { area: '일·책임', gloss: '일·책임·자리' },
-  인성: { area: '공부·지원', gloss: '배움·지원' },
+  비겁: { area: '사람·경쟁', areaEn: 'self & peers', gloss: '내 편·경쟁' },
+  식상: { area: '표현·재능', areaEn: 'expression', gloss: '표현·재능' },
+  재성: { area: '돈·현실', areaEn: 'money & results', gloss: '돈·현실 성취' },
+  관성: { area: '일·책임', areaEn: 'duty & work', gloss: '일·책임·자리' },
+  인성: { area: '공부·지원', areaEn: 'learning', gloss: '배움·지원' },
 }
 
 /** 12운성 → 기세 단계 쉬운 한 줄. */
@@ -75,6 +75,11 @@ export const SCALE_TERM_PLAIN: Record<string, string> = {
 export function sibsinArea(name: string | undefined): string {
   if (!name) return ''
   return SIBSIN_DOMAIN[name]?.area ?? name
+}
+
+/** 십신명 → 영문 생활영역 단어. 못 찾으면 원어. */
+export function sibsinAreaEn(name?: string): string {
+  return SIBSIN_DOMAIN[name ?? '']?.areaEn ?? name ?? ''
 }
 
 /** 12운성명 → 쉬운 한 줄. 못 찾으면 원어. */

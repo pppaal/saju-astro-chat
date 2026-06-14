@@ -45,9 +45,9 @@ const ASPECT_KO: Record<string, string> = {
 }
 
 function natalPointKo(name: string): string {
-  if (name === 'Ascendant') return '본명 상승점'
-  if (name === 'MC') return '본명 중천'
-  return `본명 ${PLANET_KO[name] ?? name}`
+  if (name === 'Ascendant') return '내 사주의 상승점'
+  if (name === 'MC') return '내 사주의 중천'
+  return `내 사주의 ${PLANET_KO[name] ?? name}`
 }
 function natalPointEn(name: string): string {
   if (name === 'Ascendant') return 'natal ASC'

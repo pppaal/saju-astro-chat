@@ -85,6 +85,27 @@ function pointKo(name: string): string {
   return POINT_KO[name.trim()] ?? name.trim()
 }
 
+/**
+ * EN 라벨 평어화 — 영문 콘텐츠는 한글화하지 않고, dignity 전문용어만
+ * 일상어 먼저 + 용어 괄호로 부드럽게(엑잘테이션 등 음역 노출 방지).
+ */
+function humanizeLabelEn(label: string): string {
+  return (
+    label
+      .replace(/\bin Exaltation\b/g, 'at its best (exaltation)')
+      .replace(/\bin Detriment\b/g, 'weakened (detriment)')
+      .replace(/\bin Fall\b/g, 'at its weakest (fall)')
+      .replace(/\bin Domicile\b/g, 'on home ground (domicile)')
+      // bare forms (no "in" prefix) as a fallback
+      .replace(/\bExaltation\b/g, 'at its best (exaltation)')
+      .replace(/\bDetriment\b/g, 'weakened (detriment)')
+      .replace(/\bFall\b/g, 'at its weakest (fall)')
+      .replace(/\bDomicile\b/g, 'on home ground (domicile)')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  )
+}
+
 /** 라벨(태그 제외) 평어화. */
 function humanizeLabel(label: string): string {
   // 1) 트랜짓 패턴은 통째로 재구성 — "천왕성 ↔ 타고난 명왕성 · 대립각".
@@ -94,12 +115,12 @@ function humanizeLabel(label: string): string {
     return `${pointKo(a)} ↔ 타고난 ${pointKo(b)} · ${ASPECT_PLAIN[asp.toLowerCase()] ?? ASPECT_PLAIN[asp] ?? asp}`
   }
   let t = label
-  // 2) dignity 군더더기 괄호 정리.
+  // 2) dignity 군더더기 괄호 정리 — 일상어 먼저, 전문용어는 괄호로.
   t = t
-    .replace(/엑잘테이션\s*\(고양\)/g, '고양')
-    .replace(/디트리먼트\s*\([^)]*\)/g, '기운 약화')
-    .replace(/폴\s*\(추락\)/g, '추락')
-    .replace(/룰러십\s*\([^)]*\)/g, '제자리 힘')
+    .replace(/엑잘테이션\s*\(고양\)/g, '가장 좋은 자리(고양)')
+    .replace(/디트리먼트\s*\([^)]*\)/g, '힘이 약해지는 자리(반대 자리)')
+    .replace(/폴\s*\(추락\)/g, '가장 약한 자리(추락)')
+    .replace(/룰러십\s*\([^)]*\)/g, '제자리 힘(지배)')
   // 3) 영어 포인트 → 한국어 (긴 키 먼저: 'True Node' 가 'Node' 보다 우선).
   for (const en of Object.keys(POINT_KO).sort((a, b) => b.length - a.length)) {
     t = t.replace(new RegExp(`\\b${escapeReg(en)}\\b`, 'g'), POINT_KO[en])
@@ -131,7 +152,8 @@ export function humanizeReason(raw: string, lang: 'ko' | 'en' = 'ko'): string {
   if (!m) return lang === 'en' ? raw : humanizeLabel(raw)
   const [, tone, layer, label] = m
   if (lang === 'en') {
-    return label ? `${tone} ${layer} · ${label}` : `${tone} ${layer}`
+    const enLabel = humanizeLabelEn(label)
+    return enLabel ? `${tone} ${layer} · ${enLabel}` : `${tone} ${layer}`
   }
   const lp = LAYER_PLAIN[layer] ?? layer
   const body = humanizeLabel(label)

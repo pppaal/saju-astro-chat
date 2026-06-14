@@ -31,14 +31,13 @@ import type {
   DestinySignal,
   Polarity,
 } from '@/types/calendar'
-import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 import styles from './DayTier.module.css'
 import { TierSummary } from '@/components/calendar/atoms/TierSummary'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 
 // ============================================================================
@@ -658,6 +657,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
       .replace(/^[↑↓·\s]+/, '')
       .replace(/^\[[^\]]*\]\s*/, '')
       .replace(/^(이달|오늘)\s·\s/, '')
+      .replace(/^(month|day|year|decade|hour|peak)\s·\s/i, '')
       .split('—')[0] // "A — B(설명)" 이면 핵심 A 만
       .trim()
     return c.length > 48 ? c.slice(0, 47).trim() + '…' : c
@@ -678,7 +678,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
     const branch = label.match(/\((.*?)\)/)?.[1] ?? ''
     const timeShort = label.replace(/\s*\(.*\)/, '').trim()
     const tone = h.tone === 'good' ? (ko ? '길' : 'good') : ko ? '주의' : 'caution'
-    const sib = ko ? h.sibsin : (SIBSIN_EN[h.sibsin] ?? h.sibsin)
+    const sib = ko ? `${sibsinArea(h.sibsin)}(${h.sibsin})` : sibsinAreaEn(h.sibsin)
     const rise = ko ? '상승' : 'rising'
     const sign = ko ? h.risingSignKo : h.risingSignEn
     const ruler = ko ? h.ruler : h.rulerEn
@@ -686,7 +686,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
     const meaning = ko ? h.crossMeaning : h.crossMeaningEn
     const skyLine = sign
       ? ko
-        ? `이 시각 하늘: ${sign} 상승${ruler ? ` (룰러 ${ruler})` : ''}`
+        ? `이 시각 하늘: ${sign} 상승${ruler ? ` (지배성 ${ruler})` : ''}`
         : `Sky now: ${sign} rising${ruler ? ` (ruler ${ruler})` : ''}`
       : ''
     return h.matched
@@ -780,13 +780,13 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
                   <span className={styles.domainLabel}>
                     {ko ? d.label : d.labelEn}
                     {d.active && (
-                      <span className={styles.domainOn}>{ko ? '오늘 켜짐' : 'active'}</span>
+                      <span className={styles.domainOn}>{ko ? '오늘 주목' : 'in focus'}</span>
                     )}
                   </span>
                   <span className={styles.domainBody}>{ko ? d.body : d.bodyEn}</span>
                   {d.evidence.length > 0 && (
                     <span className={styles.domainEvidence}>
-                      <span className={styles.domainEvLabel}>{ko ? '근거' : 'why'}</span>
+                      <span className={styles.domainEvLabel}>{ko ? '근거' : 'Why'}</span>
                       {d.evidence.map((e, i) => {
                         const tone =
                           e.polarity > 0
@@ -796,7 +796,9 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
                               : styles.evNeu
                         const mark =
                           e.kind === 'astro'
-                            ? '✦'
+                            ? e.polarity < 0
+                              ? '△'
+                              : '✦'
                             : e.kind === 'cross'
                               ? '⇄'
                               : e.kind === 'moon'
@@ -882,12 +884,17 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
             <span className="han">{day.iljin.hanja}</span>
             <div className="meta">
               <div className="kr">{day.iljin.kr}</div>
-              <div className="en">{day.iljin.en}</div>
               <div className="ss">
-                {ko ? '일진 · 일간 기준' : 'daily pillar · vs day master'} {String(day.iljinSibsin)}
-                {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
-                  ? ` (${sibsinArea(String(day.iljinSibsin))})`
-                  : ''}
+                {ko ? (
+                  <>
+                    {'일진 · 일간 기준'} {String(day.iljinSibsin)}
+                    {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
+                      ? ` (${sibsinArea(String(day.iljinSibsin))})`
+                      : ''}
+                  </>
+                ) : (
+                  `daily pillar · vs day master ${sibsinAreaEn(String(day.iljinSibsin))}`
+                )}
               </div>
             </div>
           </div>

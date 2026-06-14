@@ -253,8 +253,8 @@ const BAND_NOTE: Record<DayScoreBand, { ko: string; en: string }> = {
     en: 'Tailwind today — push hard on the domains that are switched on.',
   },
   mid: {
-    ko: '오늘은 평이한 흐름 — 무리만 안 하면 어느 분야든 무난해요.',
-    en: 'A steady day — any domain is fine as long as you don’t overreach.',
+    ko: '큰 기복 없이 무던한 하루 — 평소 페이스로.',
+    en: 'An even-keeled day — keep your usual pace.',
   },
   low: {
     ko: '오늘은 역풍 — 큰 결정은 미루고 켜진 분야도 한 박자 천천히.',
@@ -440,18 +440,52 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
     for (const d of doms) out[d].push({ text, polarity: mn.polarity, kind: 'moon' })
   }
   // 분야별 중복 제거 + |polarity| 높은 순 4개(시각 달 칩 자리 확보).
+  // astro 칩은 *행성* 기준으로 묶는다 — 같은 행성이 여러 각(수성 사각·육각·삼각)
+  // 으로 동시에 잡히면 한 행성당 가장 센 한 칩만 남겨 중복·기하 모순을 없앤다.
+  const dedupKey = (e: DomainEvidence) =>
+    e.kind === 'astro' ? `astro:${e.text.split(' ')[0]}` : `${e.kind}:${e.text}`
   for (const d of Object.keys(out)) {
     const seen = new Set<string>()
     out[d] = out[d]
+      .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
       .filter((e) => {
-        if (seen.has(e.text)) return false
-        seen.add(e.text)
+        const k = dedupKey(e)
+        if (seen.has(k)) return false
+        seen.add(k)
         return true
       })
-      .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
       .slice(0, 4)
   }
   return out
+}
+
+// 분야별 '주의' 본문 — 그날 그 분야의 근거가 뚜렷이 부정적일 때(합 ≤ -2) 긍정
+// 십신 조언을 대신한다. 칩(긴장 신호)과 톤을 맞춰 모순을 없애는 용도.
+const CAUTION_BODY: Record<string, { ko: string; en: string }> = {
+  love: {
+    ko: '연애·관계에 거스르는 기운이 도는 날 — 서운한 말이나 즉흥 고백은 미루세요.',
+    en: 'Relationships hit friction today — hold off on touchy talks or impulsive confessions.',
+  },
+  money: {
+    ko: '돈 흐름이 거슬리는 날 — 큰 지출·투자·보증은 미루고 지키기에 집중하세요.',
+    en: 'Money runs rough today — postpone big spends, investments and guarantees; play defense.',
+  },
+  career: {
+    ko: '일에 마찰이 끼는 날 — 새로 벌이거나 부딪치기보다 마무리·점검 위주로.',
+    en: 'Work hits friction today — wrap up and review rather than start new or clash.',
+  },
+  people: {
+    ko: '사람 사이가 삐걱대는 날 — 예민한 자리·논쟁은 피하고 한 걸음 물러서세요.',
+    en: 'Ties feel scratchy today — avoid charged settings and step back a little.',
+  },
+  study: {
+    ko: '집중이 흐트러지는 날 — 새 분량보다 복습·정리 위주로 가볍게 가세요.',
+    en: 'Focus scatters today — review and tidy rather than take on new material.',
+  },
+  health: {
+    ko: '몸에 무리가 오기 쉬운 날 — 과로·과격한 운동·사고를 조심하고 쉬어가세요.',
+    en: 'The body strains easily today — avoid overwork, hard workouts and accidents; rest.',
+  },
 }
 
 export function deriveDayDomains(args: {
@@ -465,15 +499,29 @@ export function deriveDayDomains(args: {
 }): DayDomainsResult | null {
   const cat = SIBSIN_CATEGORY[args.iljinSibsin]
   if (!cat) return null
-  const active = activeDomains(cat, args.sex)
+  const activeDomainSet = activeDomains(cat, args.sex)
   const evidenceByDomain = args.evidence ? classifyEvidence(args.evidence, args.ko !== false) : null
   const domains: DayDomainAdvice[] = DOMAIN_META.map((d) => {
-    const body = d.key === 'love' ? loveLine(cat, args.sex, true) : ADVICE[cat][d.key].ko
-    const bodyEn = d.key === 'love' ? loveLine(cat, args.sex, false) : ADVICE[cat][d.key].en
     const ev = evidenceByDomain?.[d.key] ?? []
-    // '켜짐' 배지 = 그날 *십신이 관장하는* 분야(=오늘의 테마) 1~2개만.
+    // 근거 극성 합 — 톤·배지를 그날 *그 분야의 실제 신호*에 맞춘다. 같은 일진이라도
+    // 본명이 다르면 분야별 신호(트랜짓)가 달라 결과가 사람마다 갈린다(개인화).
+    const polaritySum = ev.reduce((s, e) => s + e.polarity, 0)
+    // 본문: 근거가 뚜렷이 부정적(합 ≤ -2)이면 긍정 십신 조언 대신 '주의' 본문으로
+    // 바꿔, 칩(긴장 신호)과 글의 톤이 어긋나지 않게 한다(모순 제거).
+    let body: string
+    let bodyEn: string
+    if (polaritySum <= -2) {
+      body = CAUTION_BODY[d.key].ko
+      bodyEn = CAUTION_BODY[d.key].en
+    } else {
+      body = d.key === 'love' ? loveLine(cat, args.sex, true) : ADVICE[cat][d.key].ko
+      bodyEn = d.key === 'love' ? loveLine(cat, args.sex, false) : ADVICE[cat][d.key].en
+    }
+    // '주목' 배지 = 그날 *십신이 관장하는* 분야(=오늘의 테마) 1~2개만 — 단,
+    // 근거가 net-negative 면(긴장 분야) 배지를 달지 않는다(긍정 강조와 모순 방지).
     // 트랜짓은 매일 거의 모든 분야에 깔려 배지로 쓰면 다 켜져버리므로, 실제
     // 신호는 배지 대신 분야별 '근거' 칩으로 보여준다(분리).
+    const active = activeDomainSet.has(d.key) && (ev.length === 0 || polaritySum >= 0)
     return {
       key: d.key,
       icon: d.icon,
@@ -481,7 +529,7 @@ export function deriveDayDomains(args: {
       labelEn: d.en,
       body,
       bodyEn,
-      active: active.has(d.key),
+      active,
       evidence: ev,
     }
   })

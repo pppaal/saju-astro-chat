@@ -1,4 +1,5 @@
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
+import { iga } from '@/lib/i18n/koParticle'
 import { STEMS } from '@/lib/saju/constants'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
@@ -65,7 +66,7 @@ const sajuJohuYongsinExtractor: SignalExtractor = {
             source: 'saju',
             kind: 'pillar-sibsin',
             name: `조후용신 ${info.primaryYongsin} 활성`,
-            korean: `${monthPillar.branch}月 조후 — ${info.primaryYongsin}이(가) ${info.climate} 균형에 필요`,
+            korean: `${monthPillar.branch}月 조후 — ${info.primaryYongsin}${iga(info.primaryYongsin)} ${info.climate} 균형에 필요`,
             english: `${monthPillar.branch}-month climate balance — ${ELEMENT_EN_JOHU[info.primaryYongsin] ?? info.primaryYongsin} is needed to temper the season`,
             polarity,
             layer: 'monthly',
