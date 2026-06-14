@@ -215,4 +215,21 @@ export interface DestinyDay extends DestinyIljinHeader {
     crossMeaning?: string
     crossMeaningEn?: string
   }>
+  /** 시(時)별 달 정밀 — 12 시진 달 재계산으로 뽑은 달×본명 어스펙트 절정 시각. */
+  hourMoon?: Array<{
+    when: string
+    whenEn: string
+    hour: number
+    moonSignKo: string
+    moonSignEn: string
+    aspectKo: string
+    aspectEn: string
+    natalPointKo: string
+    natalPointEn: string
+    body: string
+    polarity: number
+    tone: 'good' | 'caution'
+    meaning: string
+    meaningEn: string
+  }>
 }

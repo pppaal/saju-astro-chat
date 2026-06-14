@@ -1166,3 +1166,167 @@
   color: var(--ink-dim);
   white-space: nowrap;
 }
+/* ---------- 분야별 오늘 조언 (연애·돈·직업·관계·공부·건강) ---------- */
+.domainBlock {
+  margin-top: 24px;
+}
+.domainGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+.domainRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--dp-line);
+  border-radius: 12px;
+  background: var(--dp-panel-2);
+}
+.domainActive {
+  border-color: var(--dp-ember);
+  background: color-mix(in srgb, var(--dp-ember) 8%, var(--dp-panel-2));
+}
+.domainIcon {
+  font-size: 18px;
+  line-height: 1.5;
+  flex: 0 0 auto;
+}
+.domainText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.domainLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--dp-serif-ko);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dp-ink);
+}
+.domainOn {
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dp-ember);
+  border: 1px solid var(--dp-ember);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+.domainBody {
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  line-height: 1.62;
+  color: var(--dp-ink-mute);
+}
+
+/* 분야 근거 칩 — 그날 실제 신호(트랜짓 ✦ · 신살 ◆ · 교차 ⇄) */
+.domainEvidence {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+.domainEvLabel {
+  font-family: var(--dp-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dp-ink-faint);
+  margin-right: 2px;
+}
+.evChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--dp-mono);
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--dp-line);
+  background: var(--dp-bg);
+  color: var(--dp-ink-mute);
+  white-space: nowrap;
+}
+.evMark {
+  font-size: 9px;
+  opacity: 0.85;
+}
+.evPos {
+  border-color: color-mix(in srgb, var(--dp-pos) 45%, var(--dp-line));
+  color: var(--dp-pos);
+}
+.evNeg {
+  border-color: color-mix(in srgb, var(--dp-neg) 45%, var(--dp-line));
+  color: var(--dp-neg);
+}
+.evNeu {
+  color: var(--dp-ink-mute);
+}
+
+/* ---------- 시(時)별 달 정밀 ---------- */
+.moonBlock {
+  margin-top: 24px;
+}
+.moonList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.moonRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 13px;
+  border: 1px solid var(--dp-line);
+  border-radius: 10px;
+  background: var(--dp-panel-2);
+}
+.moonHead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.moonMeaning {
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--dp-ink-faint);
+}
+.moonGood {
+  border-left: 3px solid var(--dp-pos);
+}
+.moonCaution {
+  border-left: 3px solid var(--dp-neg);
+}
+.moonWhen {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--dp-ink);
+  flex: 0 0 auto;
+}
+.moonBody {
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  color: var(--dp-ink-mute);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.moonTone {
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dp-ink-faint);
+  flex: 0 0 auto;
+}

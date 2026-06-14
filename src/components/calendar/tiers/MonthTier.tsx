@@ -64,6 +64,8 @@ export interface MonthTierProps {
   month: DestinyMonth
   onDive: (focusDay: number) => void
   onRise: () => void
+  /** 위 티어가 있을 때만 줌아웃 버튼 노출 (월이 최상단이면 숨김). 기본 true. */
+  showRise?: boolean
 }
 
 // ============================================================================
@@ -556,7 +558,7 @@ function lunarReturnDow(month: DestinyMonth): string | null {
 // 컴포넌트
 // ============================================================================
 
-export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
+export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
   const firstDow = firstDowOfMonth(month.ym)
@@ -653,9 +655,11 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
 
   return (
     <div className={styles.tier} data-screen-label={`1달 ${month.ym}`}>
-      <button className={styles.rise} onClick={onRise} type="button">
-        ↑ {ko ? '올해로 줌아웃' : 'Zoom out to year'}
-      </button>
+      {showRise && (
+        <button className={styles.rise} onClick={onRise} type="button">
+          ↑ {ko ? '올해로 줌아웃' : 'Zoom out to year'}
+        </button>
+      )}
 
       {/* ===== cal head ===== */}
       <div className={styles.calHead}>
@@ -688,6 +692,38 @@ export function MonthTier({ month, onDive, onRise }: MonthTierProps) {
         heading={ko ? '이달의 큰 날 · 사주 × 점성' : 'Key days this month · Saju × Astrology'}
         items={monthCrossItems}
       />
+
+      {/* ===== 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어 ===== */}
+      {(month.crossActivations ?? []).length > 0 && (
+        <div className={styles.block}>
+          <div className={styles.secHead}>
+            <h2 className={styles.secTitle}>
+              {ko ? '이 달의 사주 × 점성 교차' : 'Saju × Astrology crossings this month'}
+            </h2>
+            <span className={styles.tiny}>
+              {ko ? '월운 십신 ↔ 그 달 점성' : 'monthly sibsin ↔ this month’s sky'}
+            </span>
+          </div>
+          <div className={styles.mcrossList}>
+            {(month.crossActivations ?? []).map((c, i) => {
+              const tone =
+                c.polarity > 0
+                  ? styles.mcrossPos
+                  : c.polarity < 0
+                    ? styles.mcrossNeg
+                    : styles.mcrossNeu
+              return (
+                <div className={`${styles.mcrossRow} ${tone}`} key={`${c.saju}-${c.astroEn}-${i}`}>
+                  <span className={styles.mcrossPair}>
+                    {ko ? `${c.saju} ↔ ${c.astro}` : `${c.sajuEn} ↔ ${c.astroEn}`}
+                  </span>
+                  <span className={styles.mcrossMeaning}>{ko ? c.meaning : c.meaningEn}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ===== calendar heatmap — 메인. 한눈에 좋은 날/주의 날 색으로. ===== */}
       <div className={styles.calGrid}>

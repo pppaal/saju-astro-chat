@@ -66,10 +66,10 @@ export default function PreviewClient({
       renderYear={({ onRise, onDive }) => (
         <YearTier user={user} year={year} onRise={onRise} onDive={onDive} />
       )}
-      renderMonth={({ onRise, onFocusDay }) => (
-        <MonthTier month={month} onRise={onRise} onDive={() => onFocusDay()} />
+      renderMonth={({ onRise, onFocusDay, canRise }) => (
+        <MonthTier month={month} onRise={onRise} onDive={() => onFocusDay()} showRise={canRise} />
       )}
-      renderDay={({ onRise }) => <DayTier day={day} onRise={onRise} />}
+      renderDay={({ onRise }) => <DayTier day={day} onRise={onRise} sex={user.sex} />}
     />
   )
 }
