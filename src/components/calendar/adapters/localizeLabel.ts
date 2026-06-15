@@ -43,7 +43,16 @@ const LABEL_PLANET_KO: Array<[string, string]> = [
 ]
 
 export function localizeLabel(label: string, ko: boolean): string {
-  if (!ko || !label) return label
+  if (!label) return label
+  if (!ko) {
+    // EN: KO 음역 위계·태그 잔재만 영문화(엔진이 일부 라벨에 KO '엑잘테이션' 등을
+    // 박아 EN 화면에 새는 경우). 그 외 문자열은 그대로.
+    return label
+      .replace(/\[월운\]/g, '[monthly]')
+      .replace(/엑잘테이션\s*\(고양\)/g, 'at its best (exaltation)')
+      .replace(/디트리먼트\s*\(반대\s*자리\)/g, 'weakened (detriment)')
+      .replace(/폴\s*\(추락\)/g, 'weak (fall)')
+  }
   let out = label
 
   // ZR(Zodiacal Releasing) 코드 → 평이한 KO. "운명 ZR L2 결 풀림" / "ZR Fortune L3 Peak" 등.

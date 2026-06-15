@@ -787,6 +787,8 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
       crossActivations: (day.crossActivations ?? []).map((c) => ({
         sajuSide: c.sajuSide,
         astroSide: c.astroSide,
+        // 라우팅은 raw KO 로 — EN 로케일에서도 분야 분류가 동일하게(톤 역전 방지).
+        route: `${c.sajuKo ?? c.sajuSide} ${c.astroKo ?? c.astroSide}`,
         meaning: c.meaning,
         polarity: c.polarity,
       })),

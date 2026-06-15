@@ -987,7 +987,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
           <div className={styles.secHead}>
             <h2 className={styles.secTitle}>{ko ? '이 달의 이야기' : "This month's story"}</h2>
             <span className={styles.tiny}>
-              {ko ? '사주 + 점성 narrative' : 'Saju + Astrology narrative'}
+              {ko ? '사주 + 점성 이야기' : 'Saju + Astrology story'}
             </span>
           </div>
           <div className={styles.narr}>

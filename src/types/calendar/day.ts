@@ -125,10 +125,14 @@ export interface DestinyAppliedPattern {
 
 export interface DestinyCrossActivation {
   id: string
-  /** 사주측 신호 라벨. */
+  /** 사주측 신호 라벨(표시·로케일). */
   sajuSide: string
-  /** 점성측 신호 라벨. */
+  /** 점성측 신호 라벨(표시·로케일). */
   astroSide: string
+  /** 사주측 십신 raw(KO) — 분야 라우팅용(로케일 무관). */
+  sajuKo?: string
+  /** 점성측 행성 raw(KO) — 분야 라우팅용. */
+  astroKo?: string
   /** A등급 매핑 의미 — '정관 ↔ Saturn (책임·구조)'. */
   meaning: string
   /** 합성 polarity. */
