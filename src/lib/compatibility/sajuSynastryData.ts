@@ -1,0 +1,356 @@
+/**
+ * 사주 시너스트리(궁합) 공유 데이터 — 합/충/형/해/파, 삼합·방합, 오행 생극,
+ * 십성/십신, 천을귀인 등 정통 명리 cross 룰 표와 leaf 헬퍼(공망·12신살·세운·
+ * 한글화). 텍스트 포맷(sajuSynastryFormatter)과 구조화 facts(sajuSynastryFacts)가
+ * 같은 canon 표를 공유하도록 단일 소스로 둔다.
+ */
+
+import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
+import { pickTwelveSingle } from '@/lib/saju/shinsal'
+import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
+
+export const STEM_HAP: Record<string, { other: string; element: string }> = {
+  甲: { other: '己', element: '토' },
+  己: { other: '甲', element: '토' },
+  乙: { other: '庚', element: '금' },
+  庚: { other: '乙', element: '금' },
+  丙: { other: '辛', element: '수' },
+  辛: { other: '丙', element: '수' },
+  丁: { other: '壬', element: '목' },
+  壬: { other: '丁', element: '목' },
+  戊: { other: '癸', element: '화' },
+  癸: { other: '戊', element: '화' },
+}
+
+export const STEM_CHUNG: Record<string, string> = {
+  甲: '庚',
+  庚: '甲',
+  乙: '辛',
+  辛: '乙',
+  丙: '壬',
+  壬: '丙',
+  丁: '癸',
+  癸: '丁',
+}
+
+export const BRANCH_HAP: Record<string, { other: string; element: string }> = {
+  子: { other: '丑', element: '토' },
+  丑: { other: '子', element: '토' },
+  寅: { other: '亥', element: '목' },
+  亥: { other: '寅', element: '목' },
+  卯: { other: '戌', element: '화' },
+  戌: { other: '卯', element: '화' },
+  辰: { other: '酉', element: '금' },
+  酉: { other: '辰', element: '금' },
+  巳: { other: '申', element: '수' },
+  申: { other: '巳', element: '수' },
+  午: { other: '未', element: '화' },
+  未: { other: '午', element: '화' },
+}
+
+export const BRANCH_CHUNG: Record<string, string> = {
+  子: '午',
+  午: '子',
+  丑: '未',
+  未: '丑',
+  寅: '申',
+  申: '寅',
+  卯: '酉',
+  酉: '卯',
+  辰: '戌',
+  戌: '辰',
+  巳: '亥',
+  亥: '巳',
+}
+
+export const BRANCH_HAE: Record<string, string> = {
+  子: '未',
+  未: '子',
+  丑: '午',
+  午: '丑',
+  寅: '巳',
+  巳: '寅',
+  卯: '辰',
+  辰: '卯',
+  申: '亥',
+  亥: '申',
+  酉: '戌',
+  戌: '酉',
+}
+
+export const BRANCH_PA: Record<string, string> = {
+  子: '酉',
+  酉: '子',
+  丑: '辰',
+  辰: '丑',
+  寅: '亥',
+  亥: '寅',
+  卯: '午',
+  午: '卯',
+  巳: '申',
+  申: '巳',
+  戌: '未',
+  未: '戌',
+}
+
+// 형(刑) 교리는 @/lib/saju/hyeong 단일 소스(상단 import). destiny counselor 와
+// 동일 교리를 공유 — 이전엔 여기에 복붙돼 있어 한쪽만 고치면 드리프트했음.
+
+export const TRI_HAP = [
+  { branches: ['申', '子', '辰'], element: '수' },
+  { branches: ['亥', '卯', '未'], element: '목' },
+  { branches: ['寅', '午', '戌'], element: '화' },
+  { branches: ['巳', '酉', '丑'], element: '금' },
+]
+
+export const BANG_HAP = [
+  { branches: ['寅', '卯', '辰'], element: '목' },
+  { branches: ['巳', '午', '未'], element: '화' },
+  { branches: ['申', '酉', '戌'], element: '금' },
+  { branches: ['亥', '子', '丑'], element: '수' },
+]
+
+export const STEM_EL: Record<string, string> = {
+  甲: '목',
+  乙: '목',
+  丙: '화',
+  丁: '화',
+  戊: '토',
+  己: '토',
+  庚: '금',
+  辛: '금',
+  壬: '수',
+  癸: '수',
+}
+
+// 천간 음양 — 십성(sibsin) cross 계산용. 같은 음양이면 비견/식신/편재/편관/편인,
+// 다른 음양이면 겁재/상관/정재/정관/정인.
+const STEM_YIN_YANG: Record<string, '양' | '음'> = {
+  甲: '양',
+  丙: '양',
+  戊: '양',
+  庚: '양',
+  壬: '양',
+  乙: '음',
+  丁: '음',
+  己: '음',
+  辛: '음',
+  癸: '음',
+}
+
+// 지지 본기 천간 (지지를 천간 시각으로 보는 매핑) — 지지 십성 계산용.
+export const BRANCH_MAIN_STEM: Record<string, string> = {
+  子: '癸',
+  丑: '己',
+  寅: '甲',
+  卯: '乙',
+  辰: '戊',
+  巳: '丙',
+  午: '丁',
+  未: '己',
+  申: '庚',
+  酉: '辛',
+  戌: '戊',
+  亥: '壬',
+}
+
+// 오행 관계 — 상생/상극 방향. 목→화→토→금→수→목 (생). 木克土, 火克金, 土克水, 金克木, 水克火 (극).
+const EL_GEN: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
+const EL_KE: Record<string, string> = { 목: '토', 화: '금', 토: '수', 금: '목', 수: '화' }
+
+/**
+ * 일간(dayStem) 기준 대상(targetStem) 의 십성(sibsin) 반환. 정재/편재 → 배우자성
+ * (남자 기준 처), 정관/편관 → 배우자성 (여자 기준 부). 궁합 cross 의 핵심 신호.
+ */
+export function sibseongFor(dayStem: string, targetStem: string): string {
+  const dayEl = STEM_EL[dayStem]
+  const tgtEl = STEM_EL[targetStem]
+  if (!dayEl || !tgtEl) return ''
+  const sameYY = STEM_YIN_YANG[dayStem] === STEM_YIN_YANG[targetStem]
+  if (dayEl === tgtEl) return sameYY ? '비견' : '겁재'
+  if (EL_GEN[dayEl] === tgtEl) return sameYY ? '식신' : '상관'
+  if (EL_KE[dayEl] === tgtEl) return sameYY ? '편재' : '정재'
+  if (EL_KE[tgtEl] === dayEl) return sameYY ? '편관' : '정관'
+  if (EL_GEN[tgtEl] === dayEl) return sameYY ? '편인' : '정인'
+  return ''
+}
+
+export const BRANCH_EL: Record<string, string> = {
+  寅: '목',
+  卯: '목',
+  巳: '화',
+  午: '화',
+  辰: '토',
+  戌: '토',
+  丑: '토',
+  未: '토',
+  申: '금',
+  酉: '금',
+  子: '수',
+  亥: '수',
+}
+
+export const EL_CONTROLS: Record<string, string> = {
+  목: '토',
+  토: '수',
+  수: '화',
+  화: '금',
+  금: '목',
+}
+
+const EL_GENERATES: Record<string, string> = {
+  목: '화',
+  화: '토',
+  토: '금',
+  금: '수',
+  수: '목',
+}
+
+// 십성 짧은 글로싱 — 관계의 질감을 LLM이 곧장 읽게.
+export const SIBSIN_GLOSS: Record<string, string> = {
+  비견: '대등·동지',
+  겁재: '경쟁·협력',
+  식신: '표현·여유',
+  상관: '재능·자유분방',
+  편재: '활동·욕망',
+  정재: '안정·성실',
+  편관: '압박·도전',
+  정관: '책임·규범',
+  편인: '보호·배움',
+  정인: '후원·안정',
+}
+
+export const CHEONULGWIIN: Record<string, string[]> = {
+  甲: ['丑', '未'],
+  戊: ['丑', '未'],
+  庚: ['丑', '未'],
+  乙: ['子', '申'],
+  己: ['子', '申'],
+  丙: ['亥', '酉'],
+  丁: ['亥', '酉'],
+  辛: ['寅', '午'],
+  壬: ['巳', '卯'],
+  癸: ['巳', '卯'],
+}
+
+const BRANCH_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+const STEM_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+
+// 현재 연도의 세운 간지 (입춘 근사: 2/4 이전은 전년). 두 사람 공통 시기축.
+export function currentSeun(now: Date): { stem: string; branch: string; year: number } {
+  let y = now.getFullYear()
+  const m = now.getMonth() + 1
+  if (m < 2 || (m === 2 && now.getDate() < 4)) y -= 1
+  return {
+    stem: STEM_ORDER[(((y - 4) % 10) + 10) % 10],
+    branch: BRANCH_ORDER[(((y - 4) % 12) + 12) % 12],
+    year: y,
+  }
+}
+
+// 십성(十星) — 일간(day) 입장에서 상대 천간(other)이 무슨 십성인가.
+// 같은 오행 비견/겁재 · 일간生상대 식신/상관 · 상대生일간 편인/정인 ·
+// 일간克상대 편재/정재 · 상대克일간 편관/정관. 음양 같으면 편(식신 포함),
+// 다르면 정(겁재·상관 포함).
+export function sibsinOf(dayStem: string, otherStem: string): string | null {
+  const dayEl = STEM_EL[dayStem],
+    otherEl = STEM_EL[otherStem]
+  if (!dayEl || !otherEl) return null
+  const dayPol = STEM_ORDER.indexOf(dayStem) % 2
+  const otherPol = STEM_ORDER.indexOf(otherStem) % 2
+  if (dayPol < 0 || otherPol < 0) return null
+  const samePol = dayPol === otherPol
+  if (dayEl === otherEl) return samePol ? '비견' : '겁재'
+  if (EL_GENERATES[dayEl] === otherEl) return samePol ? '식신' : '상관'
+  if (EL_GENERATES[otherEl] === dayEl) return samePol ? '편인' : '정인'
+  if (EL_CONTROLS[dayEl] === otherEl) return samePol ? '편재' : '정재'
+  if (EL_CONTROLS[otherEl] === dayEl) return samePol ? '편관' : '정관'
+  return null
+}
+
+// 공망(空亡) — 일주 기준 비어 있는 2지지. pillarLookup.getGongmang(SSOT) 위임.
+export function gongmangOf(stem: string, branch: string): string[] {
+  return getGongmangByPillar(`${stem}${branch}`) ?? []
+}
+
+// 12신살 — 일지 기준, 상대 지지에 라벨. shinsal.pickTwelveSingle(SSOT) 위임.
+export function twelveShinsalLabel(baseBranch: string, targetBranch: string): string | null {
+  return pickTwelveSingle(baseBranch, targetBranch)
+}
+
+export const PILLAR_LABELS = ['년', '월', '일', '시'] as const
+
+// 한자 천간·지지(+合化)를 한글 발음으로 — 辛→신, 乙庚合化금→을경합화금.
+// 출력만 읽기 쉽게 바꾸는 후처리(계산·로직 불변). 일간의 (금)/(목) 오행
+// 글로싱은 그대로 남아 앵커 역할.
+// 천간·지지 한자→한글 음은 정본(saju/ganjiKo) 재사용. 合/化 는 이 포매터 고유 키라
+// spread 후 추가.
+const HANJA_KO: Record<string, string> = {
+  ...STEM_KO,
+  ...BRANCH_KO,
+  合: '합',
+  化: '화',
+}
+export const koreanize = (s: string) =>
+  s.replace(/[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥合化]/g, (c) => HANJA_KO[c] ?? c)
+
+// 부가설명 제거 — 순수 구조 데이터만 남긴다(출력 후처리; 계산·로직 불변).
+// 섹션 헤더([CRITICAL...])는 보존, 본문 라인에서만:
+//   - 괄호(...) 전부 (중첩 안전) — 글로싱·뉘앙스 설명
+//   - "· 통제 방향 ..." 절, "※..." 주석
+//   - "활성/→ 길성 보호" 류 수식
+//   - 알려진 서술형 꼬리말(자석 끌림·국 형성 설명 등)
+const stripParens = (s: string): string => {
+  let prev = ''
+  while (prev !== s) {
+    prev = s
+    s = s.replace(/\s*\([^()]*\)/g, '')
+  }
+  return s
+}
+export function stripAux(text: string): string {
+  return text
+    .split('\n')
+    .map((ln) => {
+      if (/^\[(CRITICAL|IMPORTANT|참고)/.test(ln)) return ln // 섹션 헤더 보존
+      let s = ln
+      s = s.replace(/\s*※.*$/, '')
+      s = s.replace(/\s*·\s*통제 방향.*$/, '')
+      s = stripParens(s)
+      s = s.replace(/\s*활성(?=\s*→|\s|$)/g, '').replace(/\s*→\s*길성 보호/g, '')
+      // 알려진 서술형 꼬리말
+      s = s
+        .replace(/\s*—\s*자석 끌림·매력 자극.*$/, '')
+        .replace(/\s*—\s*두 사람 지지가[^—]*$/, '')
+        .replace(/\s*—\s*3지 중 2지[^—]*$/, '')
+        .replace(/\s+적중 영역은[^—]*$/, '')
+        .replace(/\s*→\s*[가-힣]+ 강\s*\/\s*[가-힣]+ 약\s*$/, '')
+      s = s.replace(/\s*—\s*$/, '') // 설명 제거 후 남은 꼬리 대시
+      s = s.replace(/\s{2,}/g, ' ').replace(/\s+$/, '')
+      return s
+    })
+    .join('\n')
+}
+
+export interface SajuPillarInput {
+  stem: string
+  branch: string
+}
+
+export interface SajuSynastryInput {
+  /** 년/월/일/시 순서 4 pillars */
+  pillarsA: SajuPillarInput[]
+  pillarsB: SajuPillarInput[]
+  currentDaeunA?: { stem: string; branch: string; age?: number } | null
+  currentDaeunB?: { stem: string; branch: string; age?: number } | null
+  /** 세운 계산 기준 시각 (기본 now). 올해 세운↔두 사람 본명·대운 cross에 씀. */
+  now?: Date
+  /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
+  nameA?: string | null
+  nameB?: string | null
+}
+
+/**
+ * 사주 synastry 라인 list를 한 string으로 반환.
+ * pillars 빠지면 빈 string.
+ */
