@@ -1,11 +1,11 @@
 /* ============================================================
-   /calendar 5-tier 어셈블러 (page.tsx · preview/page.tsx 공유)
-   ───────────────────────────────────────────────────────────
+   /calendar 5-tier 어셉블러 (page.tsx · preview/page.tsx 공유)
+   ───────────────────────────────────────────────────
    직전까지 page.tsx(656줄)와 preview/page.tsx(612줄)가 *입력 소스만* 다른 채
-   (세션/현재날짜 vs 고정 1995 본명) tier 어셈블 로직을 통째로 복붙하고 있었다.
+   (세션/현재날짜 vs 고정 1995 본명) tier 어셉블 로직을 통째로 복붙하고 있었다.
    주석에 "preview 와 동일"이 10번 넘게 박혀 있었고 실제로 한쪽만 고쳐진
    버그(gender 매핑·signals 투영 누락 등) 흔적이 있었다. 단일 함수로 모아
-   drift 를 끝낸다.
+   drift 를 끝난다.
 
    NatalContext + 그 해 cells + 표시용 입력을 받아 PreviewClient 가 받는
    { topbar, user, lifetime, decade, year, month, day } 를 만든다.
@@ -66,7 +66,7 @@ export interface AssembleTiersInput {
   /**
    * 포커스된 하루의 evidence 포함 셀(getFocusDayCell). 연 cells 는 evidence 를
    * 빼고 캐시하므로(블롭 경량화), day tier 의 근거카드·교차·시진은 이 셀에서 읽는다.
-   * 없으면 연 cells 의 해당 일 셀로 폴백(evidence 없음 — 근거 일부 비어 보일 수 있음).
+   * 없으면 연 cells 의 해당 일 셀로 폴백(evidence 없음 — 근거 일부 비어 보일 수 있다).
    */
   focusDayCell?: CalendarCell | null
 }
@@ -202,11 +202,11 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     focusDayCell,
   } = args
 
-  // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
+  // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────
   const lifetimeFlow = deriveLifetimeFlow(natal, lang)
   const lifetimePivots = deriveLifetimePivots(natal, lang)
 
-  // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
+  // ─── yearly / month / day 슬라이스 ────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
   // 연 cells 는 evidence 없이 캐시되므로, evidence 가 필요한 day tier 는
@@ -218,7 +218,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // 층별 점수 — 일/시는 일진, 월은 월운, 년은 세운, 10년은 대운 신호로만.
   const layered = deriveLayeredScores(cells)
 
-  // ─── iljin(일진) / woolun(월운) 60갑자 (KASI 절기 룩업) ───────────────────
+  // ─── iljin(일진) / woolun(월운) 60갑자 (KASI 절기 룩업) ───────────────
   const [focusY, focusM, focusD] = targetDayIso.split('-').map(Number)
   const dayIdx = computeDayPillarIndices(focusY, focusM, focusD)
   const iljinStem = STEM_NAMES[dayIdx.stemIndex]
@@ -229,7 +229,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const woolunStem = woolunRef.stem
   const woolunBranch = woolunRef.branch
 
-  // ─── adapter 호출 (5 tier prop 자동 어셈블) ──────────────────────────────
+  // ─── adapter 호출 (5 tier prop 자동 어셉블) ─────────────────────────
   const userBase = toUser(natal, {
     birthDisplay,
     place,
@@ -598,7 +598,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
         typeof s.evidence?.detail?.rule === 'string' ? (s.evidence!.detail!.rule as string) : '',
     }))
   // name("편관 × 화성")에서 파싱 — detail.sajuName/astroName 은 존재하지 않는 필드라
-  // 양쪽이 늘 빈 ↔ 로 떴다. name 파싱 + korean/english 로 교정. 같은 페어가 여러
+  // 양쪽이 늘 빈 ↔ 로 떠서 발생. name 파싱 + korean/english 로 교정. 같은 페어가 여러
   // 층(daily/monthly…)에서 잡혀 중복되므로 페어 기준 1개(가장 센 것)만 남긴다.
   const dayCrossByPair = new Map<string, DestinyDay['crossActivations'][number]>()
   for (const s of dayCell.signals) {
@@ -654,6 +654,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
     cautions: dayAdapter.cautions,
+    // 출력 화해 verdict — toDay 가 산출한 단일 권위. 빠뜨리면 DayTier 가 중립
+    // fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다(반드시 전달).
+    dayTone: dayAdapter.dayTone,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
