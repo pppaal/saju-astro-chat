@@ -6,6 +6,8 @@
  * 그대로 통과 → EN 로케일·미상 라벨엔 영향 없음.
  */
 
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+
 // 12별자리 EN → KO.
 export const SIGN_KO: Record<string, string> = {
   Aries: '양자리',
@@ -47,11 +49,19 @@ export function localizeLabel(label: string, ko: boolean): string {
   if (!ko) {
     // EN: KO 음역 위계·태그 잔재만 영문화(엔진이 일부 라벨에 KO '엑잘테이션' 등을
     // 박아 EN 화면에 새는 경우). 그 외 문자열은 그대로.
-    return label
+    let en = label
       .replace(/\[월운\]/g, '[monthly]')
       .replace(/엑잘테이션\s*\(고양\)/g, 'at its best (exaltation)')
       .replace(/디트리먼트\s*\(반대\s*자리\)/g, 'weakened (detriment)')
       .replace(/폴\s*\(추락\)/g, 'weak (fall)')
+    // 십신·격국 KO 잔재(예: "정관 시진", "식신격") → EN.
+    if (/시진|격/.test(en)) {
+      for (const [koSib, enSib] of Object.entries(SIBSIN_EN)) {
+        en = en.replace(new RegExp(koSib, 'g'), enSib)
+      }
+      en = en.replace(/\s*시진/g, ' hour').replace(/격(?![가-힣])/g, ' frame')
+    }
+    return en
   }
   let out = label
 
