@@ -33,6 +33,7 @@ import type {
 } from '@/types/calendar'
 import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
+import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
 import { TierSummary } from '@/components/calendar/atoms/TierSummary'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
@@ -718,20 +719,33 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
   // signal stream 에서 fixed-star / arabic-part 는 별도 row 로 빼므로 stream 에서 제외.
   const streamSignals = sortedSignals.filter((s) => !isFixedStar(s) && !isArabicLot(s))
 
-  // ── 쉬운 요약 — 점수 구간으로 "오늘 어때" 한 줄 + 좋은것/조심 카드 ──
-  const dayBand = day.score >= 60 ? 'good' : day.score >= 35 ? 'mid' : 'low'
-  // 강한 흉신 카운트 — 이미 day 에 있는 신호(allSignals/transits)에서 polarity ≤ −2
-  // 인 항목 수. 점수는 중(中)인데 강한 −신호가 여럿이면 '무난'은 거짓이 되므로,
-  // mid 밴드를 '기복 큰 날'로 정직하게 바꾼다(데이터로만, 차트별 일반화).
-  const strongNegSignals = (day.allSignals ?? []).filter((s) => s.polarity <= -2).length
-  const strongNegTransits = day.transits.filter((t) => t.polarity <= -2).length
-  const strongNegCount = Math.max(strongNegSignals, strongNegTransits)
-  const midButTense = dayBand === 'mid' && strongNegCount >= 2
+  // ── 쉬운 요약 — 화해된 verdict 로 "오늘 어때" 한 줄 + 좋은것/조심 카드 ──
+  // adapter(toDay)가 점수 밴드 ↔ 신호/사유 톤을 묶은 단일 권위 verdict 를 준다.
+  // 옛 코드는 mid 밴드만 '기복 큰 날'로 보정했는데, 화해 단계가 모든 밴드로 일반화
+  // — 좋은날인데 강한 흉신이 끼면(tense) 헤드라인을 정직하게, 조심날인데 살릴
+  // 구석이 있으면(bright) 한 단계 올린다. 점수는 그대로(서술 톤만 화해).
+  const verdict: DayVerdict =
+    day.dayTone ??
+    reconcileDayTone({
+      score: day.score,
+      strongPos: (day.allSignals ?? []).filter((s) => s.polarity >= 2).length,
+      strongNeg: (day.allSignals ?? []).filter((s) => s.polarity <= -2).length,
+      hasGoodReason: (day.topReasons ?? []).length > 0,
+      hasCautionReason: (day.cautions ?? []).length > 0,
+    })
+  const dayBand = verdict.band
+  const goodButTense = verdict.band === 'good' && verdict.tense
+  const midButTense = verdict.band === 'mid' && verdict.tense
+  const lowButBright = verdict.band === 'low' && verdict.bright
   const dayHeadline =
     dayBand === 'good'
-      ? ko
-        ? '오늘은 순풍 — 흐름이 우호적인 날'
-        : 'Tailwind today — the flow favors you'
+      ? goodButTense
+        ? ko
+          ? '대체로 순풍이지만 한 곳은 주의'
+          : 'Mostly a tailwind — but one spot needs care'
+        : ko
+          ? '오늘은 순풍 — 흐름이 우호적인 날'
+          : 'Tailwind today — the flow favors you'
       : dayBand === 'mid'
         ? midButTense
           ? ko
@@ -740,14 +754,22 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
           : ko
             ? '오늘은 무난한 흐름이에요'
             : 'A steady, easygoing day'
-        : ko
-          ? '오늘은 조심하는 게 좋은 날'
-          : 'A day to tread carefully'
+        : lowButBright
+          ? ko
+            ? '대체로 조심이지만 살릴 구석은 있어요'
+            : 'Mostly careful — but one spot worth using'
+          : ko
+            ? '오늘은 조심하는 게 좋은 날'
+            : 'A day to tread carefully'
   const daySub =
     dayBand === 'good'
-      ? ko
-        ? '하고 싶던 일을 밀어붙이기 좋아요. 연락·제안·중요한 결정에 우호적인 날.'
-        : 'Good day to push what you want forward — outreach, proposals, big calls.'
+      ? goodButTense
+        ? ko
+          ? '잘 풀리는 흐름은 살리되, 조심 신호가 있는 한 곳은 무리하지 마세요.'
+          : 'Ride the flow that works, but don’t force the one spot flagged for care.'
+        : ko
+          ? '하고 싶던 일을 밀어붙이기 좋아요. 연락·제안·중요한 결정에 우호적인 날.'
+          : 'Good day to push what you want forward — outreach, proposals, big calls.'
       : dayBand === 'mid'
         ? midButTense
           ? ko
@@ -756,9 +778,13 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
           : ko
             ? '큰일을 새로 벌이기보다 정리·마무리에 좋은 날. 무리만 안 하면 무난해요.'
             : 'Better for wrapping up than starting big. Fine as long as you don’t overreach.'
-        : ko
-          ? '새 일을 벌이기보다 점검·휴식에 좋은 날. 중요한 결정은 가능하면 미루세요.'
-          : 'Better for review and rest than new ventures. Postpone big decisions if you can.'
+        : lowButBright
+          ? ko
+            ? '전반적으로 무리는 피하되, 잘 맞는 한 곳은 활용해도 좋아요.'
+            : 'Avoid overreaching overall, but the one spot that fits is worth using.'
+          : ko
+            ? '새 일을 벌이기보다 점검·휴식에 좋은 날. 중요한 결정은 가능하면 미루세요.'
+            : 'Better for review and rest than new ventures. Postpone big decisions if you can.'
   const cleanReason = (s: string) => {
     const c = s
       .replace(/^[↑↓·\s]+/, '')
