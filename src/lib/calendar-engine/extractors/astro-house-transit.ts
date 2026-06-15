@@ -2,6 +2,7 @@ import { getCachedTransitChart } from '../ephe-cache'
 import type { Chart, House } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, SignalLayer } from '../types'
 import { PLANET_KO } from '../data/planetNames'
+import { ordinalEn } from '../ordinal'
 
 /**
  * 하우스 오버레이 + ASC/MC 컨택 추출기.
@@ -173,7 +174,7 @@ const astroHouseTransitExtractor: SignalExtractor = {
       const areaKo = HOUSE_AREA_KO[seg.house] ?? ''
       const areaEn = HOUSE_AREA_EN[seg.house] ?? ''
       const lineKo = `${PLANET_KO[seg.planet]}이 본명 ${seg.house}번째 집(${areaKo})을 지나는 시기 — 이 영역에 자연스레 관심·일이 몰려요.`
-      const lineEn = `${PLANET_EN[seg.planet]} is transiting your natal ${seg.house}th house (${areaEn}) — attention and events naturally cluster here.`
+      const lineEn = `${PLANET_EN[seg.planet]} is transiting your natal ${ordinalEn(seg.house)} house (${areaEn}) — attention and events naturally cluster here.`
       signals.push({
         id: `astro.house-transit.${seg.planet}.${seg.house}.${seg.startIso.slice(0, 10)}`,
         source: 'astro',

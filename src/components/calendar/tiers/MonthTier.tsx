@@ -37,6 +37,14 @@ import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
 import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { shinsalEn } from '@/components/calendar/adapters/dayTierEnMaps'
+
+// 월 교차 saju 라벨 EN — 십신은 생활영역어로, 십신이 아닌 신살(양인 등)은
+// 신살 EN 표로 폴백. (예전엔 sibsinAreaEn 만 써 양인이 EN 화면에 한글로 샜다.)
+function sajuLabelEn(saju: string): string {
+  const area = sibsinAreaEn(saju)
+  return area === saju ? shinsalEn(saju) : area
+}
 
 const MONTH_EN = [
   'January',
@@ -408,7 +416,7 @@ interface PatternChip {
   count: number
 }
 
-function extractPatternChips(month: DestinyMonth): PatternChip[] {
+function extractPatternChips(month: DestinyMonth, ko = true): PatternChip[] {
   // 1) narrative body 에서 "<라벨> <숫자>일" 패턴 추출
   const chips: PatternChip[] = []
   const re = /([가-힣A-Za-z]{2,8})\s*(\d{1,2})\s*일/g
@@ -437,13 +445,9 @@ function extractPatternChips(month: DestinyMonth): PatternChip[] {
     if (!c.mark || c.mark === 'focus') continue
     dist[c.mark] = (dist[c.mark] ?? 0) + 1
   }
-  const FALLBACK_LABELS: Record<string, string> = {
-    best: '최고일',
-    good: '길일',
-    avoid: '피하기',
-    caution: '주의',
-    converge: '수렴',
-  }
+  const FALLBACK_LABELS: Record<string, string> = ko
+    ? { best: '최고일', good: '길일', avoid: '피하기', caution: '주의', converge: '수렴' }
+    : { best: 'Best', good: 'Good', avoid: 'Avoid', caution: 'Caution', converge: 'Converge' }
   return Object.entries(dist)
     .map(([k, v]) => ({ label: FALLBACK_LABELS[k] ?? k, count: v }))
     .sort((a, b) => b.count - a.count)
@@ -484,9 +488,12 @@ function pickZrProgress(month: DestinyMonth, ko = true): ZrProgress | null {
       meta,
     }
   }
+  // EN 은 month.label(="2026년 6월")이 한글이라 새므로 ym 으로 영문 라벨 생성.
+  const [zrY, zrM] = month.ym.split('-').map(Number)
+  const enMonthLabel = `${MONTH_EN[(zrM ?? 1) - 1] ?? ''} ${zrY ?? ''}`.trim()
   return {
     label: ko ? '절기 진행' : 'Solar-term progress',
-    chapter: ko ? `${month.label} 내 흐름` : `flow within ${month.label}`,
+    chapter: ko ? `${month.label} 내 흐름` : `flow within ${enMonthLabel}`,
     pct,
     meta,
   }
@@ -541,7 +548,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const calendar = month.calendar ?? []
   const narrative = month.narrative ?? []
   const focusDay = month.focusDay
-  const pattern = extractPatternChips(month)
+  const pattern = extractPatternChips(month, ko)
   const joho = pickJohoHint(month)
   const zr = pickZrProgress(month, ko)
   const crossMap = convergeCrossMap(month, ko)
@@ -633,6 +640,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const monthCrossItems = keyDayItems.sort((a, b) => a.when.localeCompare(b.when))
   const goodN = month.goodDays?.length ?? 0
   const cautionN = month.cautionDays?.length ?? 0
+  const avoidN = month.avoidDays?.length ?? 0
 
   return (
     <div className={styles.tier} data-screen-label={`1달 ${month.ym}`}>
@@ -666,8 +674,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
 
       <p className={styles.tiny} style={{ margin: '2px 2px 0' }}>
         {ko
-          ? `좋은 날 ${goodN}개 · 주의 ${cautionN}개`
-          : `${goodN} good ${goodN === 1 ? 'day' : 'days'} · ${cautionN} to watch`}
+          ? `좋은 날 ${goodN}개 · 주의 ${cautionN}개 · 피하기 ${avoidN}개`
+          : `${goodN} good ${goodN === 1 ? 'day' : 'days'} · ${cautionN} caution · ${avoidN} avoid`}
       </p>
       <CrossingList
         heading={ko ? '이달의 큰 날 · 사주 × 점성' : 'Key days this month · Saju × Astrology'}
@@ -698,7 +706,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
                   <span className={styles.mcrossPair}>
                     {ko
                       ? `${sibsinArea(c.saju) === c.saju ? c.saju : `${sibsinArea(c.saju)}(${c.saju})`} ↔ ${c.astro}`
-                      : `${sibsinAreaEn(c.saju)} ↔ ${c.astroEn}`}
+                      : `${sajuLabelEn(c.saju)} ↔ ${c.astroEn}`}
                   </span>
                   <span className={styles.mcrossMeaning}>{ko ? c.meaning : c.meaningEn}</span>
                 </div>
