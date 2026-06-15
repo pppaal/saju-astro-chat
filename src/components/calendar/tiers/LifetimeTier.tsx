@@ -720,6 +720,18 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 key={s.id}
                 className={`${styles.stageCard} ${s.now ? styles.now : ''}`}
                 onClick={s.now ? onDive : undefined}
+                role={s.now ? 'button' : undefined}
+                tabIndex={s.now ? 0 : undefined}
+                onKeyDown={
+                  s.now
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          onDive()
+                        }
+                      }
+                    : undefined
+                }
               >
                 {s.now && <span className={styles.nowtag}>{ko ? '지금 · NOW' : 'now · NOW'}</span>}
                 <div className={styles.nm}>{s.name}</div>

@@ -113,10 +113,33 @@ const TarotCard = memo(function TarotCard({
     large: styles.sizeLarge,
   }
 
+  // The whole card acts as a control when a click does something: either an
+  // onClick callback or expand-on-click. Expose it to keyboard/AT users the
+  // same way the calendar tiers do (role="button" + Enter/Space).
+  const clickable = !!onClick || (expandable && interactive)
+
   return (
     <div
       className={`${styles.cardContainer} ${sizeClasses[size]} ${isExpanded ? styles.expanded : ''} ${interactive ? styles.interactive : ''}`}
       onClick={handleClick}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={
+        clickable
+          ? `${name}${isReversed ? (language === 'en' ? ', reversed' : ' 역방향') : ''}`
+          : undefined
+      }
+      aria-expanded={clickable && expandable && interactive ? isExpanded : undefined}
+      onKeyDown={
+        clickable
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleClick()
+              }
+            }
+          : undefined
+      }
     >
       {/* Position Badge */}
       {position && <div className={styles.positionBadge}>{position}</div>}
