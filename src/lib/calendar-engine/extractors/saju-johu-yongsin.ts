@@ -42,7 +42,10 @@ const sajuJohuYongsinExtractor: SignalExtractor = {
     // 매달 月支별로 조후용신 계산
     const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
     while (cursor <= end) {
-      const monthPillar = getMonthPillarForDate(cursor)
+      // 월주는 *그 달 중순(15일)* 기준으로 — 1일은 절기 경계 직전이라 전월 월지(예:
+      // 6/1 은 망종 전이라 巳)가 잡혀, 헤더/월운(15일=午)과 엇갈렸다. 중순 기준 통일.
+      const midMonth = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15))
+      const monthPillar = getMonthPillarForDate(midMonth)
       const monthBranch = monthPillar.branch
       const info = getJohuYongsin(daymaster, monthBranch)
 
