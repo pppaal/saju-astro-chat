@@ -94,6 +94,8 @@ export interface SignalBase {
   cat: string
   /** 사용자에게 보이는 표시명 — '겁살 (劫煞)' / 'Saturn □ Sun'. */
   label: string
+  /** 엔진이 EN 라벨을 별도 방출한 경우(있을 때만). 사주 다수 신호는 EN 없음. */
+  english?: string
   /** 한국어 로마자 (사주) 또는 한국어 번역 (점성). data.js signals[].romaji. */
   romaji?: string
   /** -3..+3 톤. */

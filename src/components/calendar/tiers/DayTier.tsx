@@ -39,6 +39,11 @@ import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
+import {
+  geokgukStatusEn,
+  shinsalEn,
+  twelveStageEn,
+} from '@/components/calendar/adapters/dayTierEnMaps'
 
 // ============================================================================
 // HourSlot — 24시진 (子=0,1 / 丑=2,3 / ... / 亥=22,23 식의 시간 매핑).
@@ -269,6 +274,8 @@ function ScoreDial({ score, label }: { score: number; label?: string }) {
 // ============================================================================
 
 function GeokgukStatusFrame({ status }: { status: DestinyDay['geokgukStatus'] | undefined }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   if (!status) return null
   const klass =
     status.status === '성격'
@@ -276,11 +283,14 @@ function GeokgukStatusFrame({ status }: { status: DestinyDay['geokgukStatus'] | 
       : status.status === '파격'
         ? styles.kStatusBad
         : styles.kStatusMid
+  const nameTxt = ko ? status.name : (status.nameEn ?? status.name)
+  const statusTxt = ko ? status.status : geokgukStatusEn(status.status)
   return (
     <span className={styles.statusChip}>
-      <span className="kHan">{status.name}</span>
-      <span className={`${styles.kStatus} ${klass}`}>{status.status}</span>
-      <span style={{ color: 'var(--dp-ink-dim)' }}>{status.description}</span>
+      <span className="kHan">{nameTxt}</span>
+      <span className={`${styles.kStatus} ${klass}`}>{statusTxt}</span>
+      {/* description 은 KO 산문이라 KO 로케일에서만 노출. */}
+      {ko && <span style={{ color: 'var(--dp-ink-dim)' }}>{status.description}</span>}
     </span>
   )
 }
@@ -481,7 +491,7 @@ function TwelveStageMatrix({ day }: { day: DestinyDay }) {
         {cells.map((c) => (
           <div className={styles.tsCell} key={c.pillar}>
             <span className={styles.tsPillar}>{c.pillar}</span>
-            <span className={styles.tsStage}>{c.stage}</span>
+            <span className={styles.tsStage}>{ko ? c.stage : twelveStageEn(c.stage)}</span>
             <span className={styles.tsBranch}>{c.stem}</span>
           </div>
         ))}
@@ -1010,7 +1020,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
               <div className={styles.shinsalRow}>
                 {day.shinsalActive.map((s, i) => (
                   <span className={styles.ssPill} key={i}>
-                    {s}
+                    {ko ? s : shinsalEn(s)}
                   </span>
                 ))}
               </div>
@@ -1062,7 +1072,13 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
                   {catLabel(s.cat)}
                 </span>
                 <div className="body">
-                  <span className="lb">{localizeLabel(s.label, ko)}</span>
+                  {/* EN: 엔진이 방출한 s.english 우선, 없으면 localizeLabel(false). 사주
+                      다수 신호(시진·충·통근·암합·일주 문구)는 EN 없어 KO 유지 — 엔진 한계. */}
+                  <span className="lb">
+                    {ko
+                      ? localizeLabel(s.label, true)
+                      : (s.english ?? localizeLabel(s.label, false))}
+                  </span>
                   {s.romaji && <span className="rm"> · {s.romaji}</span>}
                 </div>
                 <PolChip v={s.polarity} />
