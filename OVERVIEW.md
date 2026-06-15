@@ -115,8 +115,8 @@ npm test            # vitest run (full suite)
 The destiny release gate is `npm run ops:destiny:release`
 (`typecheck` + `test:destiny:release`). See `docs/TESTING_AND_GUARDRAILS.md`
 for the full set of CI gates and determinism goldens. (Note: some older
-`scripts/ops/qa-*.ts` scripts still import the removed destiny-matrix engine and
-do not run — they are not part of any gate.)
+`scripts/ops/qa-*.ts` scripts that imported the removed destiny-matrix engine
+were removed in this cleanup — they were never part of any gate.)
 
 ## Key Runtime Flags
 

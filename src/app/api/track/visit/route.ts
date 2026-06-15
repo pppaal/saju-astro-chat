@@ -12,6 +12,7 @@
 
 import { NextRequest } from 'next/server'
 import { createHash } from 'crypto'
+import { z } from 'zod'
 import {
   withApiMiddleware,
   createSimpleGuard,
@@ -24,6 +25,16 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
+
+// 비콘 바디 — { path?, referrer? } 둘 다 선택. 핸들러가 sanitizePath /
+// referrerHost 로 한 번 더 정제하므로 여기선 타입만 검증하고, 형식이 어긋나면
+// 조용히 skip(200) 으로 흡수한다(기존 best-effort 동작 유지).
+const visitBeaconSchema = z
+  .object({
+    path: z.string().optional(),
+    referrer: z.string().optional(),
+  })
+  .partial()
 
 const SALT = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || 'destinypal-pageview-salt'
 
@@ -67,7 +78,12 @@ function referrerHost(raw: unknown, selfHost: string | null): string | null {
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     try {
-      const body = (await req.json().catch(() => ({}))) as { path?: string; referrer?: string }
+      const rawBody = await req.json().catch(() => ({}))
+      const parsed = visitBeaconSchema.safeParse(rawBody)
+      // 형식 불일치(예: path 가 숫자)도 사용자 페이지에 영향 주면 안 되므로
+      // 422 대신 skip(200) 으로 흡수 — 기존 best-effort 비콘 동작 유지.
+      if (!parsed.success) return apiSuccess({ skipped: true } as Record<string, unknown>)
+      const body = parsed.data
       const path = sanitizePath(body.path)
       if (!path) return apiSuccess({ skipped: true } as Record<string, unknown>)
 

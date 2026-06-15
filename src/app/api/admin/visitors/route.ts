@@ -10,6 +10,7 @@
 
 import { NextRequest } from 'next/server'
 import { Prisma } from '@prisma/client'
+import { z } from 'zod'
 import {
   withApiMiddleware,
   createAuthenticatedGuard,
@@ -24,6 +25,18 @@ import { isAdminUser } from '@/lib/auth/admin'
 import { runWithConcurrency } from '@/lib/utils/concurrency'
 
 export const dynamic = 'force-dynamic'
+
+// days 쿼리 — 'all'(전체 기간) 또는 1~365 정수(기본 30). 이 라우트는 기존부터
+// 잘못된 값을 조용히 기본(30)으로 흡수해 왔으므로(다른 어드민 라우트의 422
+// 정책과 달리) 동작을 그대로 유지하려고 .catch() 로 폴백한다 — 검증 신호만 추가.
+const visitorsDaysQuerySchema = z
+  .object({
+    days: z
+      .union([z.literal('all'), z.coerce.number().int().min(1).max(365)])
+      .catch(30)
+      .default(30),
+  })
+  .catch({ days: 30 })
 
 const num = (v: unknown): number => (typeof v === 'bigint' ? Number(v) : Number(v ?? 0))
 
@@ -88,12 +101,11 @@ export const GET = withApiMiddleware(
       }
 
       // days=all → 전체 기간. 그 외엔 1~365 숫자(기본 30).
-      const param = new URL(req.url).searchParams.get('days') || '30'
-      const allTime = param === 'all'
-      const daysNum = (() => {
-        const n = parseInt(param, 10)
-        return Number.isFinite(n) && n > 0 && n <= 365 ? n : 30
-      })()
+      const { days: parsedDays } = visitorsDaysQuerySchema.parse(
+        Object.fromEntries(new URL(req.url).searchParams)
+      )
+      const allTime = parsedDays === 'all'
+      const daysNum = allTime ? 30 : parsedDays
       const rangeDays: number | 'all' = allTime ? 'all' : daysNum
       const since = allTime ? new Date(0) : new Date(Date.now() - daysNum * 24 * 60 * 60 * 1000)
 

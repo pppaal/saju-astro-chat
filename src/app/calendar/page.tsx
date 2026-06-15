@@ -1,7 +1,7 @@
 /* ============================================================
-   /destinypal — Phase D 정식 라우트 (실 사용자 본명)
+   /calendar — Phase D 정식 라우트 (실 사용자 본명)
    ───────────────────────────────────────────────────────────
-   /destinypal/preview (1995 고정 본명) 와 동일한 흐름이지만, BIRTH 상수
+   /calendar/preview (1995 고정 본명) 와 동일한 흐름이지만, BIRTH 상수
    를 next-auth getServerSession + prisma UserProfile 로 동적으로 대체.
 
    tier 어셈블은 두 라우트가 assembleTiers() 를 공유 (assembleTiers.ts).

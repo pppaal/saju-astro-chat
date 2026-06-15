@@ -13,7 +13,7 @@ status: auto-generated
 
 - Total Next.js API routes: 76
 - Uses middleware/guards: 69 (90.8%)
-- Has validation signals: 57 (75.0%)
+- Has validation signals: 59 (77.6%)
 - Rate limited (guard or option): 68 (89.5%)
 - Credit consumption configured: 9 (11.8%)
 - Requires auth: 47 (61.8%)
@@ -38,10 +38,8 @@ status: auto-generated
 - src/app/api/tarot/couple-reading/route.ts [GET,POST,DELETE]
 - src/app/api/tarot/interpret-stream/result/route.ts [GET]
 
-## Missing Validation (3)
+## Missing Validation (1)
 
-- src/app/api/admin/visitors/route.ts [GET]
-- src/app/api/track/visit/route.ts [POST]
 - src/app/api/webhook/stripe/route.ts [POST]
 
 ## Public Mutations (No Auth/Token) (9)

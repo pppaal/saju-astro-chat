@@ -1,7 +1,7 @@
 'use client'
 
 /* ============================================================
-   destinypal/preview — client wrapper.
+   /calendar/preview — client wrapper.
    서버에서 빌드한 4 tier 데이터를 받아 Shell + Tiers render-prop 와
    결합. Shell 자체가 'use client' 라 render-prop 도 같이 클라이언트
    에서 만들어야 한다 (RSC 가 함수 prop 직렬화 불가).

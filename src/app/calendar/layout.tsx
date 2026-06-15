@@ -1,5 +1,5 @@
 /* ============================================================
-   /destinypal/* — 라우트 전용 layout.
+   /calendar/* — 라우트 전용 layout.
    destinypal 5-tier UI 는 hanji + 먹 톤이라 root layout 의 다크
    cosmic 폰트(Montserrat / Noto Sans KR) 와 별개로 4 종 필요:
      - Newsreader   (serif headline / 영문 lead)
