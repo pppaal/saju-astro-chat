@@ -120,14 +120,63 @@ function composeMeaning(
   netPol: number,
   sumImp: number,
   lang: 'ko' | 'en',
-  dateStr?: string
+  dateStr: string | undefined,
+  astroPolNet: number,
+  sajuPolNet: number
 ): string | undefined {
   if (sumImp <= 0) return undefined
+  // 두 체계가 *방향이 어긋나면*(점성+ / 사주− 등) 순극성이 한쪽으로 쏠려도
+  // '기회/주의'로 단정하지 않고 중립(혼재) 톤으로 — 라벨이 한쪽 근거만 대변해
+  // 표시되는 다른 쪽 토큰(예: 충/형/파)과 어긋나는 모순을 막는다.
+  const disagree =
+    astroPolNet !== 0 && sajuPolNet !== 0 && Math.sign(astroPolNet) !== Math.sign(sajuPolNet)
   const ratio = netPol / sumImp
-  const toneKey: MeaningTone = ratio > 0.15 ? 'positive' : ratio < -0.15 ? 'negative' : 'neutral'
+  const toneKey: MeaningTone = disagree
+    ? 'neutral'
+    : ratio > 0.15
+      ? 'positive'
+      : ratio < -0.15
+        ? 'negative'
+        : 'neutral'
   // 날짜로 톤 문구를 회전 선택 — 큰 날 목록이 같은 문장으로 도배되지 않게.
   const dayNum = dateStr ? Math.abs(parseInt(dateStr.slice(-2), 10)) : 0
   return toneMeaningFor(toneKey, dayNum, lang)
+}
+
+const CHIP_SPAN_LIMIT_MS = 45 * 86_400_000
+// 월~년 스케일 장기 신호(lifecycle·return 등)는 한 달 내내 같은 칩을 채워 큰 날
+// 변별을 죽인다 — 무거움 합산엔 반영하되 *표시 칩*에서는 숨긴다. (외곽 배경은
+// isSlowBackgroundAstro 가 따로 처리.)
+function isLongSpan(s: ActiveSignal): boolean {
+  const st = s.active?.start ? Date.parse(s.active.start) : NaN
+  const en = s.active?.end ? Date.parse(s.active.end) : NaN
+  if (Number.isNaN(st) || Number.isNaN(en)) return false
+  return en - st > CHIP_SPAN_LIMIT_MS
+}
+
+interface ChipCand {
+  name: string
+  pol: number
+  imp: number
+}
+// 표시 칩 선택 — 순톤(netPol)과 *같은 방향* 토큰을 먼저(라벨↔토큰 일치), 그다음
+// impact 큰 순. 이름 중복은 가장 강한 것만. 최대 3개.
+function pickToneChips(cands: ChipCand[], netPol: number): string[] {
+  const sign = Math.sign(netPol)
+  const byName = new Map<string, ChipCand>()
+  for (const c of cands) {
+    const prev = byName.get(c.name)
+    if (!prev || c.imp > prev.imp) byName.set(c.name, c)
+  }
+  return [...byName.values()]
+    .sort((a, b) => {
+      const am = sign !== 0 && Math.sign(a.pol) === sign ? 0 : 1
+      const bm = sign !== 0 && Math.sign(b.pol) === sign ? 0 : 1
+      if (am !== bm) return am - bm
+      return b.imp - a.imp
+    })
+    .slice(0, 3)
+    .map((c) => c.name)
 }
 
 export interface ConvergenceDay {
@@ -165,8 +214,8 @@ export function deriveConvergence(
   for (const c of cells) {
     let astroHeavy = 0
     let sajuHeavy = 0
-    const astro: string[] = []
-    const saju: string[] = []
+    const astroCand: ChipCand[] = []
+    const sajuCand: ChipCand[] = []
     let netPol = 0
     let sumImp = 0
     // 윈도우 집계·confidence 용: 그날 무거운 신호와 source 별 방향(polarity×imp) 합.
@@ -183,15 +232,16 @@ export function deriveConvergence(
       if (heavyAstro) {
         astroHeavy += imp * exactnessFactor(c.datetime, s)
         astroPolNet += s.polarity * imp
-        // 늘 켜진 최외곽 배경(천왕·해왕·명왕)은 칩에서 숨긴다 — 무거움 합산엔
-        // 반영하되 표시는 그날 *구별되는* 점성 신호(달·수성·금성·화성·각 접촉)만.
+        // 늘 켜진 최외곽 배경(천왕·해왕·명왕)과 월~년 스케일 장기 신호(lifecycle 등)는
+        // 칩에서 숨긴다 — 무거움 합산엔 반영하되 표시는 그날 *구별되는* 점성 신호만.
         const n = cleanName(s, lang)
-        if (n && astro.length < 3 && !astro.includes(n) && !isSlowBackgroundAstro(s)) astro.push(n)
+        if (n && !isSlowBackgroundAstro(s) && !isLongSpan(s))
+          astroCand.push({ name: n, pol: s.polarity, imp })
       } else {
         sajuHeavy += imp
         sajuPolNet += s.polarity * imp
         const n = cleanName(s, lang)
-        if (n && saju.length < 3 && !saju.includes(n)) saju.push(n)
+        if (n) sajuCand.push({ name: n, pol: s.polarity, imp })
       }
       // 의미 한 줄용 — 무거운 신호의 polarity 누적 (톤 판정용)
       netPol += s.polarity * imp
@@ -200,13 +250,16 @@ export function deriveConvergence(
     if (astroHeavy === 0 && sajuHeavy === 0) continue
     const bothSystems = astroHeavy > 0 && sajuHeavy > 0
     const score = astroHeavy + sajuHeavy + (bothSystems ? Math.min(astroHeavy, sajuHeavy) * 1.5 : 0)
+    // 칩은 순톤과 같은 방향 토큰을 우선해 라벨(meaning)과 어긋나지 않게 정렬.
+    const astro = pickToneChips(astroCand, netPol)
+    const saju = pickToneChips(sajuCand, netPol)
     scored.push({
       date: c.datetime.slice(0, 10),
       score: Math.round(score * 10) / 10,
       astro,
       saju,
       bothSystems,
-      meaning: composeMeaning(netPol, sumImp, lang, c.datetime.slice(0, 10)),
+      meaning: composeMeaning(netPol, sumImp, lang, c.datetime.slice(0, 10), astroPolNet, sajuPolNet),
       window: aggregateWindow(heavySignals, c.datetime),
       confidence: convergenceConfidence(heavySignals, bothSystems, astroPolNet, sajuPolNet),
     })
