@@ -35,11 +35,13 @@ import {
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
-import {
-  countStrong,
-  reconcileDayTone,
-  type DayVerdict,
-} from '@/lib/calendar-engine/derivers/reconcile'
+import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
+import { LAYER_WEIGHT } from '@/lib/calendar-engine/derivers/constants'
+
+// topReasons/cautions 를 만드는 층(summary.ts REASON_LAYERS 와 동일) — 화해 net 산출용.
+const REASON_LAYERS = new Set(['monthly', 'daily', 'hourly', 'instant'])
+// 점수·사유에서 제외하는 정적 본명 표지(index.ts STATIC_NATAL_KINDS 와 동일).
+const STATIC_NATAL_KINDS = new Set(['saju-pattern', 'geokguk-status'])
 
 // 천간(한자) → 5원소 룩업. destinypal Day 의 jijanggan layer element 산출.
 const STEM_TO_ELEMENT: Record<string, '목' | '화' | '토' | '금' | '수'> = {
@@ -291,12 +293,14 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   const crossActivations: DestinypalDayCrossActivation[] = []
   // cell.signals 의 jijanggan signal 활성 layer 표시용 (보조). primary 는 natal.dayJijanggan.
   let gongmangActiveFromSignal: { branches: string[]; reason?: string } | null = null
-  // 화해용 — 보여주는 모든 신호(트랜짓 포함)의 표시 polarity 수집해 강한 길/흉 카운트.
-  const shownPolarities: number[] = []
+  // 화해용 — 큐레이션 사유 층(월·일·시·정점)의 impact net. 부호로 톤 화해.
+  let reasonNet = 0
 
   for (const s of cell.signals) {
     const polarity = clampPolarity(maybeCap(s, applyCap))
-    shownPolarities.push(polarity)
+    if (!STATIC_NATAL_KINDS.has(s.kind) && REASON_LAYERS.has(s.layer)) {
+      reasonNet += s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5)
+    }
     const cat = KIND_TO_CAT[s.kind] ?? s.source + '/' + s.kind
 
     // transit → DayTransit 평탄화
@@ -421,12 +425,10 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     humanizeReason(r, opts.lang)
   )
 
-  // ── 출력 화해 — 점수 밴드 ↔ 신호/사유 톤을 한 verdict 로 묶는다(단일 권위). ──
-  const { strongPos, strongNeg } = countStrong(shownPolarities)
+  // ── 출력 화해 — 점수 밴드 ↔ 사유 net 톤을 한 verdict 로 묶는다(단일 권위). ──
   const dayTone = reconcileDayTone({
     score: shownScore,
-    strongPos,
-    strongNeg,
+    reasonNet,
     hasGoodReason: topReasons.length > 0,
     hasCautionReason: cautions.length > 0,
   })
