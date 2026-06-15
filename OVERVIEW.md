@@ -1,127 +1,146 @@
 # System Overview
 
-Last audited: 2026-05-17 (Asia/Hong_Kong)
+Last audited: 2026-06-15 (Asia/Hong_Kong)
 
 ## Current Stack
 
 - Web and API: Next.js App Router + TypeScript (`src/app`, `src/lib`)
 - Database: Prisma + PostgreSQL (`prisma/schema.prisma`)
-- AI: `@anthropic-ai/sdk` called directly from Next.js API routes (no separate Python backend)
+- AI: Claude via the Anthropic Messages API, called over raw HTTP (`fetch`) from
+  Next.js API routes and streamed over SSE — no `@anthropic-ai/sdk`, no separate
+  Python backend
 
 ## Runtime Topology
 
 ```text
 Browser
-  -> Next.js UI
+  -> Next.js UI (App Router, server + client components)
   -> Next.js API routes
-      -> Prisma/PostgreSQL
-      -> @anthropic-ai/sdk (Claude)
+      -> Prisma / PostgreSQL
+      -> Upstash Redis (cache + rate limit, with in-memory fallback)
+      -> Claude (Anthropic Messages API over HTTP)
       -> Product outputs
-          - SSE chat and counselor responses
-          - deterministic destiny-core outputs
-          - calendar guidance payloads
-          - premium reports and PDF assets
+          - deterministic Saju + astrology facts
+          - calendar guidance (server-rendered)
+          - SSE counselor / compatibility / tarot responses
 ```
 
 ## Destiny Stack In The Current System
 
-The destiny stack is now a core-first system, not just a matrix calculator.
+There is no monolithic "destiny core". The system is built from two deterministic
+calculation cores, a fact layer, a cross/fusion layer, and per-surface presenters.
 
-Runtime order:
+Computation order for a request:
 
-- `Raw Input -> Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation`
+- `Birth data -> Saju core + Astrology core -> Facts -> Cross/fusion -> Surface presenter -> (optional) Claude prose`
 
-Main entrypoints:
+Main entry points:
 
-- Core judgment: `src/lib/destiny-matrix/core/runDestinyCore.ts`
-- Evidence and audit sidecar: `src/lib/destiny-matrix/core/nextGenPipeline.ts`
-- GraphRAG evidence builder: `src/lib/destiny-matrix/ai-report/graphRagEvidence.ts`
-- Service adapters:
-  - `adaptCoreToCalendar(...)`
-  - `adaptCoreToCounselor(...)`
-  - `adaptCoreToReport(...)`
+- Saju core: `src/lib/saju/saju.ts` (`calculateSajuData`)
+- Astrology core: `src/lib/astrology/foundation/astrologyService.ts` (`calculateNatalChart`)
+- Deterministic facts: `src/lib/destiny/sajuFacts.ts` (`collectSajuFacts`), `src/lib/destiny/astroFacts.ts` (`collectAstroFacts`)
+- Saju ↔ astrology fusion: `src/lib/cross/crossInterpret.ts` (`lookupCross`, `crossMeaning`, `rankActiveCrosses`)
+- Calendar engine: `src/lib/calendar-engine/index.ts` (`buildCalendar`) over `src/lib/calendar-engine/context/build.ts` (`buildNatalContext`)
+- Destiny counselor context: `src/lib/destiny/counselorContext.ts` (`buildDestinyContext`), cached by `src/lib/destiny/counselorContextCache.ts` (`ensureCounselorContext`)
+- Compatibility report: `src/lib/compatibility/compatReport.ts` (`buildCompatReport`)
+- Report summary: `src/lib/report/local-report-generator.ts` (`generateChartSummary`)
+- LLM streaming: `src/lib/llm/claude.ts` (`callClaude`, `callClaudeStream`) and `src/lib/llm/claudeSSE.ts` (`streamClaudeAsSSE`)
 
 ## Role Split
 
-Current production rule:
+- Saju core: structural flow, element balance, long-cycle (대운/세운/월운/일진) pressure.
+- Astrology core: natal chart, transits, returns, progressions, timing windows.
+- Facts + cross layer: turn both cores into structured, deterministic facts and
+  fuse them into shared meanings (`SAJU_ASTRO_MAPPINGS`).
+- Calendar / counselor / compatibility / report: presentation only. They format,
+  shape tone, and (for conversational surfaces) hand the facts to Claude for prose.
 
-- Core: judgment
-- GraphRAG: evidence alignment and support
-- Calendar / Counselor / Report: presentation
+This split keeps surfaces from re-judging the same input differently: the same
+birth data yields the same deterministic facts everywhere.
 
-This split is important because it prevents service routes from re-judging the same input in different ways.
-
-## Honest Assessment
-
-- The system is technically strong for a solo-built product: deterministic core, shared adapters, GraphRAG support, and multiple user-facing surfaces all exist in one stack.
-- The strongest part is the common judgment model across calendar, counselor, and premium report flows.
-- The weakest part is still the final output layer: prose consistency, fallback shaping, and release discipline are not yet at the same level as the core logic.
-- Conclusion: this is a serious, high-complexity builder system. It is not "unicorn-grade" in operational maturity yet, but it is well above ordinary side-project quality.
-
-## Product Surfaces Using The Destiny Core
+## Product Surfaces
 
 ### Calendar
 
-- `src/app/api/calendar/route.ts`
-- `src/app/api/calendar/action-plan/route.ts`
+- Server page: `src/app/calendar/page.tsx`
+- Tier assembly: `src/app/calendar/assembleTiers.ts`
+- Engine: `src/lib/calendar-engine/index.ts` (`buildCalendar`)
 
-Calendar uses canonical core output for summary, cautions, recommended actions, and action-plan views.
+The calendar is rendered server-side from `buildCalendar` output (day/month/hour
+tiers). There is no dedicated `/api/calendar` route.
 
-### Counselor
+### Destiny counselor
 
-- `src/app/api/destiny-map/chat-stream/route.ts`
-- `src/lib/destiny-matrix/counselorEvidence.ts`
+- API route: `src/app/api/counselor/realtime/route.ts` (POST, SSE)
+- Context preload: `src/app/api/counselor/warm/route.ts`
+- Session persistence: `src/app/api/counselor/session/{save,load,list}/route.ts`
+- Prompt: `src/lib/prompts/destinyCounselorPrompt.ts` (`buildDestinyCounselorPrompt`)
 
-Counselor builds a canonical evidence packet first, then uses GraphRAG and other context as support.
+The counselor builds (and caches) a stable + daily context via
+`ensureCounselorContext`, assembles the system prompt, then streams Claude over
+SSE. Billed per message; failed/empty streams auto-refund the charged credit.
 
-### Report
+### Compatibility counselor
 
-- `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-- `src/app/api/destiny-matrix/ai-report/route.ts`
+- API route: `src/app/api/compatibility/counselor/route.ts` (POST, SSE)
+- Result recovery: `src/app/api/compatibility/counselor/result/route.ts` (GET)
+- Builders: `compatSajuFacts.ts`, `compatAstroFacts.ts`, `compatReport.ts`
+- Prompt: `src/lib/prompts/compatibilityCounselorPrompt.ts`
 
-Premium report generation now uses `reportCore` first and GraphRAG as evidence support.
+### Tarot
 
-## Diagnostics And QA
+- API route: `src/app/api/tarot/interpret-stream/route.ts` (POST, SSE)
+- Result recovery: `src/app/api/tarot/interpret-stream/result/route.ts` (GET)
 
-Canonical diagnostics:
+Long-form surfaces (compatibility, tarot) use
+`src/lib/llm/claudeWithContinuation.ts` (`streamClaudeWithContinuation`) to
+auto-continue when the model hits `max_tokens`.
 
-- `npx tsx scripts/ops/trace-destinypal-pipeline.ts`
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
-- `npx tsx scripts/ops/qa-destiny-three-services.ts` — **currently broken** (imports `aiReportService.ts` entry points removed by PR #245); listed for traceability, see `README.md` follow-ups
+## LLM Models
 
-Current verification snapshot on 2026-05-18:
+- Default: `claude-haiku-4-5-20251001` (fast, cheap path)
+- Premium / long-form: `claude-sonnet-4-5-20250929`
+- Prompt caching: system prompt + stable user context are cached (ephemeral, ~1h TTL)
 
-- `npx tsc -p tsconfig.json --noEmit`: passed (0 errors)
-- `npm run lint`: passed (0 errors) — recovered from 88 errors via PR #271
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=ko`: `PASS=21 WARN=0 FAIL=0`
-- `npx tsx scripts/ops/qa-destiny-three-services.ts`: **script broken** (does not run; see above)
-- `npm run test:destiny:release`: **16 of 88 tests fail** (7 of 8 files) — tracked as follow-up
+## Verifying The Current State
 
-Scope note:
+Run against the same revision rather than trusting any cached snapshot:
 
-- The current verification claim is honest about what is and isn't green.
-- The destiny-three-services QA script needs to be repaired or rewritten before its old `PASS=10` baseline can be re-established.
-- Treat full-suite status separately from this snapshot unless the entire Vitest matrix has been rerun for the same revision.
+```bash
+npm run typecheck   # tsc --noEmit (strict)
+npm run lint        # eslint
+npm test            # vitest run (full suite)
+```
+
+The destiny release gate is `npm run ops:destiny:release`
+(`typecheck` + `test:destiny:release`). See `docs/TESTING_AND_GUARDRAILS.md`
+for the full set of CI gates and determinism goldens. (Note: some older
+`scripts/ops/qa-*.ts` scripts still import the removed destiny-matrix engine and
+do not run — they are not part of any gate.)
 
 ## Key Runtime Flags
 
 - `ANTHROPIC_API_KEY`
-- `DEMO_TOKEN`
-- `SUPPORT_EMAIL`
-- `NEXT_PUBLIC_SUPPORT_EMAIL`
+- `DATABASE_URL`
+- `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
+- `RATE_LIMIT_FAIL_CLOSED` (deny when Redis is down; recommended for multi-instance)
 
-## Demo And SEO Guardrails
+See `.env.example` for the full list.
 
-- Demo pages and APIs are token-gated (`src/lib/demo/requireDemoToken.ts`)
-- Invalid or missing demo token returns `404`
-- Robots disallow `/demo/` (`src/app/robots.ts`)
+## Removed / Superseded
+
+The following were part of an older "destiny-matrix" engine and have been removed.
+Docs that referenced them have been rewritten or archived:
+
+- `src/lib/destiny-matrix/*` (`runDestinyCore`, `buildCoreEnvelope`, `canonical`,
+  `adapters`, `nextGenPipeline`, `counselorEvidence`, etc.)
+- GraphRAG evidence (`graphRagEvidence`)
+- Premium/themed AI report service (`ai-report/aiReportService`) and PDF report generation
+- Routes `/api/calendar`, `/api/destiny-map`, `/api/destiny-matrix`
 
 ## Reading Order For Engineers
 
-If you need the current truth for the destiny stack, read in this order:
-
 1. `README.md`
-2. `docs/DESTINY_MATRIX.md`
-3. `docs/RAG_AND_GRAPHRAG.md`
+2. `docs/DESTINY_ENGINE_ARCHITECTURE.md`
+3. `docs/CALCULATION_SPEC.md`
 4. `docs/TESTING_AND_GUARDRAILS.md`
-5. `docs/CALCULATION_SPEC.md`

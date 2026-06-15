@@ -11,11 +11,12 @@ Operational runbook for the Next.js production stack. The previous Python `backe
 ```bash
 npm run lint
 npm run typecheck
-npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both
-npx tsx scripts/ops/qa-counselor-questions.ts --lang=both
+npm test
 ```
 
-Target state: lint/typecheck 0 errors; both QA scripts at zero `FAIL`.
+Target state: lint/typecheck 0 errors; test suite green. (The older
+`scripts/ops/qa-destiny-three-services.ts` and `qa-counselor-questions.ts` scripts
+import the removed destiny-matrix engine and no longer run.)
 
 ## Release Gate
 
@@ -23,14 +24,8 @@ Target state: lint/typecheck 0 errors; both QA scripts at zero `FAIL`.
 npm run ops:destiny:release
 ```
 
-Runs typecheck + targeted destiny regression bundle + Korean three-service QA.
-
-## PDF Generation Issues
-
-PDFs are now rendered inside Next.js (see `docs/PDF_REPORTING.md`). Common failure modes:
-
-- Korean glyphs blank: jsDelivr font fetch failed at runtime — retry, or mirror Noto CJK to `public/fonts/`.
-- Empty payload: upstream `aiReportService` returned partial data — inspect Next.js server logs.
+Runs `typecheck` + `test:destiny:release` (the integrated-report real/render
+regression bundle). See `docs/TESTING_AND_GUARDRAILS.md` for the full gate list.
 
 ## Database
 

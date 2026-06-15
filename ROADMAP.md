@@ -1,29 +1,31 @@
 # Development Roadmap
 
-Last audited: 2026-05-17 (Asia/Hong_Kong)
+Last audited: 2026-06-15 (Asia/Hong_Kong)
 
 This roadmap is a planning document. It is not a source of truth for current implementation status.
 
-## Current Baseline (verified 2026-05-18)
+## Current Baseline (measured 2026-06-15)
 
-- Core app stack: Next.js + Prisma + `@anthropic-ai/sdk` (Python backend retired 2026-05-06)
-- Deterministic matrix engine: `src/lib/destiny-matrix`
-- Cross-rules engine: `src/lib/fortune/cross-rules` (205 rules + 10 meta)
-- API routes (current): 140 (`npm run audit:api`)
-- Docs links: `npm run docs:check-links` -> pass
-- Typecheck: `tsc --noEmit` -> 0 errors
-- Lint: `npm run lint` -> 0 errors (recovered from 88 via PR #271)
-- `qa-counselor-questions --lang=ko`: `PASS=21 WARN=0 FAIL=0`
-- `qa-destiny-three-services`: **broken** since PR #245 removed `aiReportService.ts`. Old `PASS=10` baseline unreproducible.
-- `test:destiny:release`: **16 of 88 fail** — tracked as follow-up.
+- Core app stack: Next.js + Prisma + Claude via the Anthropic Messages API over
+  raw HTTP (no `@anthropic-ai/sdk`; Python backend retired 2026-05-06)
+- Deterministic engine: Saju core (`src/lib/saju`) + astrology core
+  (`src/lib/astrology`) + fact/cross layers (`src/lib/destiny`, `src/lib/cross`) +
+  calendar engine (`src/lib/calendar-engine`). The old `src/lib/destiny-matrix`
+  and `src/lib/fortune/cross-rules` engines were removed in the 2026-06 restructure.
+- API routes (current): 76 (`npm run audit:api`); 41 app pages, 24 Prisma models,
+  548 test files (`npm run docs:stats`)
+- Verify locally with `npm run typecheck`, `npm run lint`, `npm test`,
+  `npm run docs:check-links`, and `npm run ops:destiny:release`. See
+  `docs/TESTING_AND_GUARDRAILS.md` for the authoritative gate list.
 
 ## 2026 Priorities
 
 1. Reliability and quality gates
 
 - Keep `lint`, `typecheck`, `build`, and public smoke tests green
-- Hold `qa-destiny-three-services` and `qa-counselor-questions` at zero-fail
-- Enforce file-size caps on orchestration files (see `docs/CROSS_RULES_ROADMAP.md` release hygiene section)
+- Hold the determinism goldens and `test:destiny:release` at zero-fail
+- Enforce file-size caps on the largest orchestration files (see the biggest
+  files under `src/lib/saju` and `src/components/report`)
 
 2. Security standardization
 

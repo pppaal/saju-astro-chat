@@ -2,6 +2,14 @@
 
 Last audited: 2026-02-15 (Asia/Seoul)
 
+> **Historical snapshot.** This report predates the 2026-06 restructure, which
+> removed many routes (subscriptions → one-time credit packs; `content-access`,
+> `calendar/save`, and `admin/refund-subscription` no longer exist) and reduced
+> the route count from 145 to 76. The route paths cited below are point-in-time
+> evidence and may no longer exist. For the current security posture, use the
+> auto-generated `docs/API_AUDIT_REPORT.md` (`npm run audit:api`, 2026-06-15:
+> 76 routes, 90.8% guarded, 75.0% validated, 89.5% rate-limited).
+
 ## Audit Inputs
 
 Commands run:

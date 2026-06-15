@@ -1,32 +1,24 @@
 # PDF Reporting
 
-Last audited: 2026-05-06 (Asia/Hong_Kong)
+> **Removed.** This feature was removed in the 2026-06 restructure
+> (`src/lib/destiny-matrix` -> `src/lib/destiny` / `calendar-engine`).
+> This document is retained only as a historical pointer.
 
-## Overview
+Last audited: 2026-06-15 (Asia/Hong_Kong)
 
-Premium reports are rendered to PDF directly inside Next.js using `pdf-lib` + `@pdf-lib/fontkit`. There is no separate Python rendering service.
+## What this used to be
 
-## Code
+Premium AI reports were once rendered to PDF inside Next.js using `pdf-lib` +
+`@pdf-lib/fontkit`. A generator (`src/lib/destiny-matrix/ai-report/pdfGenerator.ts`)
+turned the AI report payload produced by `aiReportService` into an A4 document,
+served from a route that set `Content-Type: application/pdf`. All of it has been
+removed — there is no `pdfGenerator`, no `generatePdf`, no `aiReportService`, and
+no `application/pdf` report route anywhere under `src/`.
 
-- Generator: `src/lib/destiny-matrix/ai-report/pdfGenerator.ts`
-  - `generateFivePagePDF(report, options?)`
-  - `generatePremiumPDF(report, options?)`
-- Route handler: `src/app/api/destiny-matrix/ai-report/route.ts` (sets `Content-Type: application/pdf`)
-- Persistence: `src/app/api/destiny-matrix/ai-report/routeExecutionPersistence.ts` (lazy-imports the PDF generator on demand)
+## Where to look now
 
-## Inputs
+For how the current system is structured, see:
 
-The generator accepts the AI report payload object (`AIPremiumReport | ThemedAIPremiumReport | TimingAIPremiumReport`) produced upstream by `aiReportService`.
-
-## Fonts
-
-Korean glyph support uses Noto CJK pulled from jsDelivr at runtime — see `FONT_URLS` in `pdfGenerator.ts`. Network access is required at first generation.
-
-## Page Format
-
-A4 portrait (595 x 842 pt). Page count is variable per report type — `generateFivePagePDF` enforces a 5-page contract; `generatePremiumPDF` is variable.
-
-## Troubleshooting
-
-- Font fetch failures: jsDelivr unreachable in the runtime environment. Mirror the fonts to local `public/fonts/` if needed.
-- Korean glyphs render as empty boxes: confirm `fontkit` is registered (`pdfDoc.registerFontkit(fontkit)` at the top of `generatePremiumPDF`).
+- `README.md`
+- `OVERVIEW.md`
+- `docs/DESTINY_ENGINE_ARCHITECTURE.md`

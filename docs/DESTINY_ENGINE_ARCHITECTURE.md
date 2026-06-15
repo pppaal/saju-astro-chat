@@ -1,610 +1,226 @@
 # Destiny Engine Architecture
 
-This document explains how the current Destiny engine works from input to final output across counselor, calendar, and report services.
+Last audited: 2026-06-15 (Asia/Hong_Kong)
+
+> Historical note: an earlier `src/lib/destiny-matrix` engine (the
+> "Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation" matrix
+> core, `runDestinyCore`, canonical/adapter layers, typed snapshots, the
+> GraphRAG sidecar, and the premium themed AI report) was removed around
+> 2026-06-05. None of that code exists anymore. The routes `/api/destiny-map`,
+> `/api/destiny-matrix`, and `/api/calendar` were removed with it. This
+> document describes the architecture that actually ships today.
 
 ## 1. System overview
 
-The engine is a layered pipeline:
+There is no monolithic "core" engine. The destiny stack is a set of small,
+separately testable deterministic modules that feed streaming LLM surfaces:
 
-1. Input collection
-2. Saju computation
-3. Astrology computation
-4. Snapshot normalization
-5. Destiny Matrix core computation
-6. Human semantics translation
-7. Service-specific formatting
-8. Optional GraphRAG and premium AI polish
+1. Deterministic calculation — Saju core and Astrology core produce raw
+   structured facts.
+2. Cross fusion — Saju <-> Astrology correspondences are looked up and ranked.
+3. Calendar engine — facts become time-windowed signals, cells, and patterns.
+4. Context builders — facts/signals are assembled into prompt text.
+5. LLM layer — Claude narrates the structured context (counselor, compatibility,
+   tarot) and produces the streamed answer.
 
-The core idea is:
+The deterministic layers own all meaning. The LLM only narrates the structured
+context it is handed; it does not compute astrology or saju.
 
-- Saju explains structural flow, energy balance, and long-cycle pressure.
-- Astrology explains timing, variable shifts, and activation windows.
-- The Destiny Matrix core merges both into one canonical decision layer.
-- Services do not invent their own meaning.
-- Services mainly change format, depth, and tone.
+## 2. Deterministic calculation
 
-## 2. Main entry points
+### Saju core
 
-### Counselor
+- Entry: `src/lib/saju/saju.ts` -> `calculateSajuData(birthDate, birthTime,
+gender, calendarType, timezone, lunarLeap?, longitude?)`. Returns
+  `CalculateSajuDataResult` (four pillars, `daeWoon`, `unse`, `fiveElements`,
+  etc.). Internally LRU-cached.
+- Barrel `src/lib/saju/index.ts` re-exports the analysis helpers:
+  `analyzeStrength` (`tonggeun.ts`), `determineGeokguk` (`geokguk.ts`),
+  `determineYongsin` (`yongsin.ts`), `getTwelveStagesForPillars` and
+  `annotateShinsal` (`shinsal.ts`), `analyzeRelations` (`relations.ts`), and
+  the cycle helpers `getDaeunCycles` / `getAnnualCycles` / `getMonthlyCycles` /
+  `getIljinCalendar` (`unse.ts`).
+- Supporting data/util: `constants.ts`, `tonggeun.ts`, `dayPillar.ts`,
+  `cycles.ts`, `johuYongsin.ts`.
 
-- API route: `src/app/api/destiny-map/chat-stream/route.ts`
-- Focus analysis: `src/app/api/destiny-map/chat-stream/lib/focusDomain.ts`
-- Context assembly: `src/app/api/destiny-map/chat-stream/lib/context-builder.ts`
-- Counselor evidence packet: `src/lib/destiny-matrix/counselorEvidence.ts`
+### Astrology core
+
+- Entry: `src/lib/astrology/foundation/astrologyService.ts` ->
+  `calculateNatalChart(input): Promise<NatalChartData>` and
+  `toChart(natal): Chart`.
+- Aspects: `aspects.ts` (`findNatalAspects`, etc.). Houses: `houses.ts`.
+  Extra points: `extraPoints.ts`. Dignities: `dignities.ts`.
+- Advanced techniques live in sibling files:
+  `calculateSecondaryProgressions` (`progressions.ts`),
+  `calculateSolarReturn` / `calculateLunarReturn` (`returns.ts`),
+  `calculateComposite` (`composite.ts`), `calculateSynastry` (`synastry.ts`),
+  plus profections, zodiacal releasing, eclipses, fixed stars, midpoints,
+  arabic parts, almuten figuris.
+
+## 3. Deterministic facts (the SSOT)
+
+The fact collectors are the single source of truth that downstream surfaces
+read from. They return raw structured JSON with no text formatting.
+
+- `src/lib/destiny/sajuFacts.ts` -> `collectSajuFacts(input): SajuFacts`.
+  Runs `calculateSajuData()` and flattens it into `SajuFacts`: `pillars`,
+  `dayMaster` (with `rooted`/통근), `fiveElements`, `strength` (신강/신약 label),
+  `geokguk`, `yongsin`, `relations`, `gwansalHonjap`, `daeun`, `johuYongsin`,
+  `gongmang`, plus a `_raw` escape hatch carrying the original
+  `calculateSajuData` result.
+- `src/lib/destiny/astroFacts.ts` -> `collectAstroFacts(input, now?):
+Promise<AstroFacts | null>`. Runs `calculateNatalChart()` and returns
+  `natal` (planets, ascendant, mc, `placeUnreliable`), `aspects` split into
+  `strong` (orb 0-2 deg) / `mid` (orb 2-5 deg), `profection`, and (when
+  `includeHellenistic` is set) the richer Hellenistic dataset. Returns `null`
+  on failure.
+
+`placeUnreliable` (driven by `birthTimeUnknown` / `birthCityUnknown`) is the
+defense-in-depth flag that stops downstream surfaces citing house/ASC/MC when
+the chart cannot be trusted.
+
+## 4. Cross fusion
+
+- `src/lib/cross/crossInterpret.ts` -> `lookupCross(saju, astro)`,
+  `crossMeaning(saju, astro, lang)`, `rankActiveCrosses(...)`. Looks up
+  Saju <-> Astrology correspondences and ranks the active ones.
+- The correspondence dictionary used by the calendar engine lives at
+  `src/lib/calendar-engine/data/saju-astro-mapping.ts` (`SAJU_ASTRO_MAPPINGS`,
+  `CrossMapping` with A/B/C grade and ko/en meanings). It maps a saju side key
+  (ten-god or shinsal name) to a single planet name.
+- Natal cross synthesis for the report lives at
+  `src/lib/report/natalCross.ts`.
+
+## 5. Calendar engine
+
+- Entry: `src/lib/calendar-engine/index.ts` -> `buildCalendar(natal, range,
+options): Promise<CalendarCell[]>`.
+- `src/lib/calendar-engine/context/build.ts` -> `buildNatalContext(input,
+preComputed?)` builds the `NatalContext` the engine consumes. It reuses
+  `collectSajuFacts()` (via the `_raw` escape hatch) so all raw saju goes
+  through the same fact processor.
+- Around 25 extractors live in `src/lib/calendar-engine/extractors/`
+  (`saju-*`, `astro-*`). `buildCalendar` runs them in parallel, flattens
+  signals, then runs the `cross-activation` post-pass that synthesizes
+  Saju x Astrology co-active pairs from `SAJU_ASTRO_MAPPINGS`.
+- Signal model (`src/lib/calendar-engine/types.ts`):
+  - `ActiveSignal` — `id`, `source`, `kind`, `name`, ko/en meaning,
+    `polarity` (-3..+3), `layer` (time scale), `active` window, `weight`
+    (0..1), and `evidence`.
+  - `CalendarCell` — a `(datetime)` bucket holding all active signals plus
+    derived values: `derivedScore` (0..100 favorability), `salience`
+    (how notable the day is, orthogonal to favorability), `matchedPatterns`,
+    and `topReasons` / `cautions` (+ `*En`).
+- Rendered server-side: `src/app/calendar/page.tsx` ->
+  `src/app/calendar/assembleTiers.ts` (`assembleTiers`) consumes
+  `CalendarCell[]` and assembles lifetime/decade/year/month/day tiers using
+  the calendar-engine derivers. There is **no** `/api/calendar` route.
+
+## 6. Context builders
+
+### Counselor context
+
+- `src/lib/destiny/counselorContext.ts` -> `buildDestinyContext(birth, now,
+locale, displayTz?): Promise<DestinyContextSplit>` (`{ stable, daily }`).
+  `stable` = birth header + natal saju + natal astrology (cache once per birth
+  fingerprint). `daily` = timing (daeun/saeun/transits/profection) + iljin
+  window anchored to "today" in the user's timezone (rotates daily).
+- `src/lib/destiny/counselorContextCache.ts` -> `ensureCounselorContext(body,
+userId, lang): Promise<{ stableContext, dailyContext }>`. Caches both halves
+  in Redis — stable keyed by birth fingerprint, daily keyed additionally by
+  local date.
+
+### Compatibility facts and report
+
+- `src/lib/compatibility/compatSajuFacts.ts` -> `collectCompatSajuFacts()`.
+- `src/lib/compatibility/compatAstroFacts.ts` -> `collectCompatAstroFacts()`.
+- `src/lib/compatibility/compatReport.ts` -> `buildCompatReport()` (uses the
+  synastry view + saju synastry facts; `calculateSynastry` underneath).
+- `src/lib/compatibility/sajuSynastryFormatter.ts` formats the saju synastry
+  block for prompts/UI.
+
+### Report context
+
+- `src/lib/report/local-report-generator.ts` -> `generateChartSummary(saju,
+astro, lang)` builds the deterministic chart summary text.
+- Integrated report page: `src/app/(main)/integrated-report/page.tsx` +
+  `buildReportContext.ts`.
+
+## 7. LLM layer
+
+- `src/lib/llm/claude.ts` -> `callClaude()`, `callClaudeStream()`,
+  `isClaudeAvailable()`.
+- `src/lib/llm/claudeSSE.ts` -> `streamClaudeAsSSE()` (counselor/compatibility
+  SSE responses).
+- `src/lib/llm/claudeWithContinuation.ts` -> `streamClaudeWithContinuation()`
+  (auto-continues when `maxTokens` is hit).
+- Models: default `claude-haiku-4-5-20251001`; premium/long-form
+  `claude-sonnet-4-5-20250929`. Prompt caching uses ephemeral (~1h) blocks.
+
+### Prompts
+
+- `src/lib/prompts/destinyCounselorPrompt.ts` ->
+  `buildDestinyCounselorPrompt(lang)`.
+- `src/lib/prompts/compatibilityCounselorPrompt.ts` ->
+  `buildCompatibilityCounselorPrompt(lang)`.
+
+## 8. Service wiring (real routes)
+
+### Destiny counselor
+
+- `src/app/api/counselor/realtime/route.ts` (POST, SSE). Billed 1 credit per
+  message. Flow: auth + rate-limit + credit pre-check ->
+  `ensureCounselorContext()` -> `buildDestinyCounselorPrompt()` ->
+  `streamClaudeAsSSE()`. The credit is consumed just before the stream starts
+  and refunded once on failure.
+- `src/app/api/counselor/warm/route.ts` pre-warms the context cache under the
+  same key when the user enters the chat.
+- `src/app/api/counselor/realtime/result/route.ts` recovers the answer if the
+  SSE stream drops.
+- Session persistence: `src/app/api/counselor/session/{save,load,list}/route.ts`.
+
+### Compatibility counselor
+
+- `src/app/api/compatibility/counselor/route.ts` (POST, SSE). Builds compat
+  saju/astro facts, then `buildCompatibilityCounselorPrompt()` ->
+  `streamClaudeAsSSE()`; credit consume + refund-once like the destiny
+  counselor.
+- `src/app/api/compatibility/counselor/result/route.ts` (GET) recovers the
+  result.
+
+### Tarot
+
+- `src/app/api/tarot/interpret-stream/route.ts` (POST, SSE) +
+  `result/route.ts`. Streams Claude token deltas straight through as SSE.
 
 ### Calendar
 
-- API route: `src/app/api/calendar/route.ts`
-- Presentation layer: `src/app/api/calendar/lib/presentationAdapter.ts`
-- Output helpers: `src/app/api/calendar/lib/helpers.ts`
+- Server-rendered only via `src/app/calendar/page.tsx` -> `assembleTiers()`.
+  No API route.
 
 ### Report
 
-- API route: `src/app/api/destiny-matrix/ai-report/route.ts`
-- Report generation: `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-
-### Shared core
-
-- Core envelope: `src/lib/destiny-matrix/core/buildCoreEnvelope.ts`
-- Core execution: `src/lib/destiny-matrix/core/runDestinyCore.ts`
-- Canonical output: `src/lib/destiny-matrix/core/canonical.ts`
-- Core types: `src/lib/destiny-matrix/core/types.ts`
-- Shared human translation layer: `src/lib/destiny-matrix/interpretation/humanSemantics.ts`
-
-## 3. Input layer
-
-The engine starts from a `MatrixCalculationInput`.
-
-Main type:
-
-- `src/lib/destiny-matrix/types.ts`
-
-Important input fields:
-
-- `birthDate`
-- `birthTime`
-- `timezone`
-- `latitude`
-- `longitude`
-- `houseSystem`
-- `analysisAt`
-- `dayMasterElement`
-- `pillarElements`
-- `sibsinDistribution`
-- `twelveStages`
-- `relations`
-- `geokguk`
-- `yongsin`
-- `currentDaeunElement`
-- `currentSaeunElement`
-- `currentWolunElement`
-- `currentIljinElement`
-- `planetHouses`
-- `planetSigns`
-- `aspects`
-- `activeTransits`
-- `astroTimingIndex`
-- `advancedAstroSignals`
-- `profileContext`
-
-The input now also carries typed snapshots:
-
-- `sajuSnapshot`
-- `astrologySnapshot`
-- `crossSnapshot`
-
-These are no longer loose `Record<string, unknown>` bags only. They now have explicit known fields plus catch-all support.
-
-## 4. Saju layer
-
-Saju data is computed first from birth profile.
-
-Main upstream functions:
-
-- `src/lib/Saju/saju.ts`
-- `src/lib/Saju/relations.ts`
-- `src/lib/Saju/shinsal.ts`
-- `src/lib/Saju/astrologyengine.ts`
-
-Typical Saju fields used by the Destiny engine:
-
-- day master
-- four pillars
-- five elements
-- sibsin distribution
-- twelve stages
-- branch relations
-- geokguk
-- yongsin
-- kisin
-- daeun
-- saeun
-- wolun
-- iljin
-- shinsal
-
-These are used both directly in `MatrixCalculationInput` and inside `sajuSnapshot`.
-
-## 5. Astrology layer
-
-Astrology data is computed from birth profile and current analysis time.
-
-Main upstream functions:
-
-- `src/lib/astrology/foundation/astrologyService.ts`
-- `src/lib/astrology/foundation/aspects.ts`
-- `src/lib/astrology/index.ts`
-
-Typical astrology fields used:
-
-- natal chart
-- natal aspects
-- planet signs
-- planet houses
-- active transits
-- asteroid houses
-- extra point signs
-- secondary progressions
-- solar return
-- lunar return
-- draconic comparison
-- harmonics
-- fixed stars
-- eclipses
-- midpoints
-
-These are stored both in normalized input fields and in `astrologySnapshot`.
-
-## 6. Snapshot layer
-
-The snapshot layer exists so downstream reasoning can keep raw grounding.
-
-Types:
-
-- `SajuSnapshot`
-- `AstrologySnapshot`
-- `CrossSnapshot`
-
-Defined in:
-
-- `src/lib/destiny-matrix/types.ts`
-
-Validated in:
-
-- `src/lib/destiny-matrix/validation.ts`
-
-Current snapshot design:
-
-- keep important known fields strongly typed
-- still allow extra keys for compatibility
-- preserve raw context for deterministic grounding and audit
-
-### SajuSnapshot
-
-Known fields include:
-
-- `source`
-- `birthDate`
-- `birthTime`
-- `timezone`
-- `dayMaster`
-- `pillars`
-- `fiveElements`
-- `daeWoon`
-- `unse`
-- `sinsal`
-- `advancedAnalysis`
-- `facts`
-- `derivedAt`
-
-### AstrologySnapshot
-
-Known fields include:
-
-- `natalChart`
-- `natalAspects`
-- `currentTransits`
-- `progressions`
-- `returns`
-- `advanced`
-- `advancedCoverage`
-
-### CrossSnapshot
-
-Known fields include:
-
-- `source`
-- `theme`
-- `category`
-- `currentDateIso`
-- `crossAgreement`
-- `astroTimingIndex`
-- `anchors`
-- `coverage`
-- `derivedAt`
-
-## 7. Input normalization
-
-Before core reasoning, the system normalizes availability and optional fields.
-
-Main file:
-
-- `src/lib/destiny-matrix/core/runDestinyCore.ts`
-
-Normalization adds:
-
-- `availability.shinsal`
-- `availability.activeTransits`
-- `availability.advancedAstroSignals`
-
-Availability states:
-
-- `present`
-- `empty-computed`
-- `missing-upstream`
-
-This matters because the engine should distinguish:
-
-- truly missing data
-- present but empty data
-- derived or partial support
-
-## 8. Core pipeline
-
-The shared core runs in this order:
-
-1. `compileFeatureTokens`
-2. `buildActivationEngine`
-3. `buildRuleEngine`
-4. `buildStateEngine`
-5. `synthesizeMatrixSignals`
-6. `buildPhaseStrategyEngine`
-7. `buildPatternEngine`
-8. `buildScenarioEngine`
-9. `buildDecisionEngine`
-10. `buildCoreCanonicalOutput`
-11. `buildDestinyCoreQuality`
-
-Main orchestration:
-
-- `src/lib/destiny-matrix/core/runDestinyCore.ts`
-
-## 9. What the core actually produces
-
-The canonical output is the system's main semantic contract.
-
-Type:
-
-- `DestinyCoreCanonicalOutput`
-
-Defined in:
-
-- `src/lib/destiny-matrix/core/types.ts`
-
-Key fields:
-
-- `claimIds`
-- `evidenceRefs`
-- `confidence`
-- `crossAgreement`
-- `gradeLabel`
-- `gradeReason`
-- `focusDomain`
-- `phase`
-- `phaseLabel`
-- `attackPercent`
-- `defensePercent`
-- `thesis`
-- `riskControl`
-- `primaryAction`
-- `primaryCaution`
-- `topSignalIds`
-- `domainLeads`
-- `advisories`
-- `domainTimingWindows`
-- `manifestations`
-- `coherenceAudit`
-- `judgmentPolicy`
-- `domainVerdicts`
-- `topPatterns`
-- `topScenarios`
-- `topDecision`
-
-## 10. Timing model
-
-The timing layer is much richer than a simple "good / bad time" label.
-
-For each domain, the engine now carries:
-
-- `window`
-- `confidence`
-- `timingRelevance`
-- `whyNow`
-- `entryConditions`
-- `abortConditions`
-- `evidenceIds`
-- `provenance`
-
-This is built in:
-
-- `src/lib/destiny-matrix/core/canonical.ts`
-
-The purpose:
-
-- explain why timing is opening
-- explain what has to be true to move
-- explain what signs should delay or stop the move
-
-## 11. Provenance
-
-Provenance was added so each domain-level decision can be traced.
-
-Shared type:
-
-- `CoreProvenance`
-
-Fields:
-
-- `sourceFields`
-- `sourceSignalIds`
-- `sourceRuleIds`
-- `sourceSetIds`
-
-Now attached to:
-
-- `CoreDomainVerdict`
-- `CoreDomainAdvisory`
-- `CoreDomainTimingWindow`
-- `CoreDomainManifestation`
-
-This means the engine can now say not just:
-
-- what it thinks
-
-but also:
-
-- which input fields supported it
-- which signal ids supported it
-- which rule/pattern/scenario ids supported it
-- which graph or evidence sets were involved
-
-## 12. Data quality metadata
-
-The core quality layer now also carries data-quality reasoning.
-
-Location:
-
-- `src/lib/destiny-matrix/core/runDestinyCore.ts`
-
-Added fields:
-
-- `missingFields`
-- `derivedFields`
-- `conflictingFields`
-- `qualityPenalties`
-- `confidenceReason`
-
-This is attached under:
-
-- `core.quality.dataQuality`
-
-Meaning:
-
-- `missingFields`: upstream support missing
-- `derivedFields`: support was auto-derived rather than explicitly provided
-- `conflictingFields`: signals or focus alignment are not clean
-- `qualityPenalties`: machine-readable summary of penalties
-- `confidenceReason`: human-readable reason why confidence is limited or acceptable
-
-This is critical because "perfect data" in practice means:
-
-- known source
-- known gaps
-- known derivations
-- known conflicts
-- known confidence limits
-
-## 13. Human semantics layer
-
-The core does not send raw engine language directly to every service anymore.
-
-Shared translation layer:
-
-- `src/lib/destiny-matrix/interpretation/humanSemantics.ts`
-
-This layer translates concepts like:
-
-- phase
-- attack/defense balance
-- confidence
-- cross agreement
-- timing windows
-- why stack
-
-into human language.
-
-This is intentionally shared so that:
-
-- counselor
-- calendar
-- report
-
-all start from the same meaning layer, then only differ in:
-
-- length
-- tone
-- format
-
-## 14. Why stack
-
-The engine now explicitly supports `why`.
-
-It is not just:
-
-- what
-- when
-
-but also:
-
-- why the Saju layer points that way
-- why the Astrology layer points that way
-- why the cross layer reinforces or weakens it
-- why GraphRAG evidence was selected
-
-Main files:
-
-- `src/lib/destiny-matrix/interpretation/humanSemantics.ts`
-- `src/lib/destiny-matrix/counselorEvidence.ts`
-- `src/lib/destiny-matrix/ai-report/graphRagEvidence.ts`
-
-## 15. GraphRAG role
-
-GraphRAG is not the core engine. It is a supporting evidence layer.
-
-Role:
-
-- strengthen grounding
-- surface anchor sets
-- explain clustered evidence
-- help with "why this matters"
-
-Main file:
-
-- `src/lib/destiny-matrix/ai-report/graphRagEvidence.ts`
-
-GraphRAG currently contributes:
-
-- evidence summaries
-- top anchors
-- top claims
-- focus reason
-- graph reason
-
-It should not replace deterministic reasoning. It should support it.
-
-## 16. Service-specific output
-
-### Counselor
-
-Flow:
-
-1. question analysis
-2. build matrix snapshot
-3. build counselor evidence packet
-4. build prompt sections
-5. stream final answer
-
-Counselor-specific strengths:
-
-- question-aware framing
-- evidence packet
-- why stack
-- timing explanation
-- streaming UI
-
-### Calendar
-
-Flow:
-
-1. compute yearly date structure
-2. compute matrix core
-3. adapt core to calendar
-4. translate via human semantics
-5. emit day/week/month summaries
-
-Calendar-specific strengths:
-
-- short action-oriented summaries
-- domain-prioritized timing framing
-- category-sensitive top-domain ordering
-
-### Report
-
-Flow:
-
-1. build core envelope
-2. adapt core to report
-3. generate deterministic report sections
-4. optional premium selective AI polish
-5. report quality gates
-
-Report-specific strengths:
-
-- longest structured explanation
-- strongest post-processing
-- premium hybrid path
-- quality gates and repair
-
-## 17. Premium report execution model
-
-The report engine is not "AI first".
-
-Actual architecture:
-
-- deterministic core first
-- deterministic section draft second
-- selective AI polish only for premium
-- validator + repair after rewrite
-
-This keeps:
-
-- structure stable
-- evidence grounded
-- premium text quality higher
-
-## 18. Current strengths
-
-### Strong
-
-- shared deterministic core
-- shared human semantics layer
-- typed snapshots
-- provenance on domain outputs
-- data quality metadata
-- richer timing reasoning
-- stronger why reasoning
-- shared service meaning model
-
-### Still not final
-
-- provenance can still go deeper into more exact rule ids
-- some services do not expose all provenance yet
-- data quality can still be surfaced more explicitly in report/calendar payloads
-- user-log eval loops should be expanded for counselor and destiny services
-
-## 19. What to tell GPT Pro
-
-If you want GPT Pro to critique or improve the system, the most useful framing is:
-
-1. This is a deterministic Saju + Astrology + cross-fusion engine.
-2. The deterministic core produces canonical domain judgments.
-3. Human semantics is a shared interpretation layer above the core.
-4. Counselor, Calendar, and Report are service formatters, not separate meaning engines.
-5. GraphRAG is supporting evidence, not the source of truth.
-6. The system now tracks typed snapshots, provenance, and data quality.
-7. The next frontier is deeper provenance, stronger conflict modeling, and better data-quality surfacing.
-
-## 20. Current implementation status
-
-As of this document:
-
-- typed snapshot contract: implemented
-- core provenance: implemented
-- core data quality metadata: implemented
-- shared human semantics: implemented
-- domain why stack: implemented
-- richer timing explanation: implemented
-- premium report selective AI polish: implemented
-
-## 21. Recommended next upgrades
-
-1. Expand provenance to exact scenario/rule families and graph-set lineage everywhere.
-2. Expose `dataQuality` in calendar/report payloads, not only counselor snapshot/debug paths.
-3. Add service-level regression tests for provenance and data-quality fields.
-4. Export real user question eval sets for counselor and destiny services.
-5. Add conflict narratives:
-   - Saju agrees
-   - Astrology disagrees
-   - Cross layer downgrades execution
-
-That is the current architecture from start to finish.
+- Server-rendered via `src/app/(main)/integrated-report/page.tsx` ->
+  `buildReportContext()` -> `generateChartSummary()`. No premium themed AI
+  report, no PDF generation.
+
+## 9. Design principles
+
+- Deterministic facts are the single source of truth; the LLM never invents
+  saju/astrology values.
+- `collectSajuFacts` / `collectAstroFacts` are the funnel — counselor,
+  compatibility, calendar, and report all read from the same fact shape rather
+  than recomputing.
+- Unreliable birth data (`placeUnreliable`) is propagated so surfaces suppress
+  house/timing claims they cannot support.
+
+## 10. Verification
+
+There is no destiny-specific QA script in this stack anymore. Verify changes
+with:
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm test`
+- `npm run ops:destiny:release` (typecheck + the integrated-report release
+  tests)
