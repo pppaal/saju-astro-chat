@@ -33,7 +33,6 @@ import type {
 } from '@/types/calendar'
 import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
-import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 import styles from './DayTier.module.css'
 import { TierSummary } from '@/components/calendar/atoms/TierSummary'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
@@ -121,6 +120,134 @@ const ASPECT_EN: Record<string, string> = {
   섹스타일: 'sextile',
   퀸컹스: 'quincunx',
   반섹스타일: 'semisextile',
+}
+
+// 점성 어스펙트 EN → KO (트랜짓 행 표시용).
+const ASPECT_KO: Record<string, string> = {
+  conjunction: '합',
+  sextile: '육각',
+  square: '사각',
+  trine: '삼각',
+  opposition: '대립',
+}
+
+// 12별자리 EN → KO.
+const SIGN_KO: Record<string, string> = {
+  Aries: '양자리',
+  Taurus: '황소자리',
+  Gemini: '쌍둥이자리',
+  Cancer: '게자리',
+  Leo: '사자자리',
+  Virgo: '처녀자리',
+  Libra: '천칭자리',
+  Scorpio: '전갈자리',
+  Sagittarius: '사수자리',
+  Capricorn: '염소자리',
+  Aquarius: '물병자리',
+  Pisces: '물고기자리',
+}
+
+// 신호 라벨 EN 행성명 → KO (긴 키 먼저 치환되도록 순서 주의).
+const LABEL_PLANET_KO: Array<[string, string]> = [
+  ['True Node', '북교점'],
+  ['Ascendant', '상승점'],
+  ['Sun', '태양'],
+  ['Moon', '달'],
+  ['Mercury', '수성'],
+  ['Venus', '금성'],
+  ['Mars', '화성'],
+  ['Jupiter', '목성'],
+  ['Saturn', '토성'],
+  ['Uranus', '천왕성'],
+  ['Neptune', '해왕성'],
+  ['Pluto', '명왕성'],
+  ['Chiron', '카이런'],
+  ['Lilith', '릴리스'],
+  ['MC', '중천'],
+  ['Node', '교점'],
+]
+
+/**
+ * 신호 라벨을 KO 로 best-effort 치환. 인식 못 한 부분은 그대로 통과.
+ * - 영문 행성명 → 한글
+ * - ' in <Sign>' → '(<한글별자리>)'
+ * - 내부 코드(엑잘테이션·디트리먼트·폴·ZR·Loosing-of-the-Bond) 완화
+ */
+function localizeLabel(label: string, ko: boolean): string {
+  if (!ko || !label) return label
+  let out = label
+
+  // ZR / Loosing-of-the-Bond 류 코드 → 평이한 KO.
+  out = out.replace(/ZR\s+\S+\s+L\d+\s+Loosing-of-the-Bond\s*:?/gi, '운명 흐름 전환 —')
+  out = out.replace(/Loosing-of-the-Bond/gi, '운명 흐름 전환')
+  out = out.replace(/ZR\s+\S+\s+L\d+(?:\s+\S+)?\s*:?/gi, '운명 흐름 —')
+  out = out.replace(/\bZR\b/gi, '운명 흐름')
+
+  // ' in <Sign>' → '(<한글별자리>)'
+  out = out.replace(
+    /\s+in\s+(Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces)\b/g,
+    (_m, sign: string) => `(${SIGN_KO[sign] ?? sign})`
+  )
+
+  // 남은 별자리 영문 (괄호·콜론 뒤 등) → 한글.
+  for (const [en, koName] of Object.entries(SIGN_KO)) {
+    out = out.replace(new RegExp(`\\b${en}\\b`, 'g'), koName)
+  }
+
+  // 내부 위계 코드 완화.
+  out = out
+    .replace(/엑잘테이션\s*\(고양\)/g, '가장 좋은 자리(고양)')
+    .replace(/디트리먼트\s*\(반대\s*자리\)/g, '불리한 자리(디트리먼트)')
+    .replace(/폴\s*\(추락\)/g, '약한 자리(추락)')
+
+  // 영문 행성명 → 한글 (긴 키 먼저).
+  for (const [en, koName] of LABEL_PLANET_KO) {
+    out = out.replace(new RegExp(`\\b${en}\\b`, 'g'), koName)
+  }
+
+  return out
+}
+
+/**
+ * 트랜짓 1행 렌더 — KO 는 행성/대상/어스펙트를 한글로, EN 은 영문 유지.
+ * 어스펙트나 대상이 없는(디그니티 전용) 행은 건너뛴다 → null.
+ */
+function renderTransit(
+  t: AstroSignal | DestinyDay['transits'][number],
+  key: string,
+  ko: boolean,
+  outer: boolean
+): React.ReactElement | null {
+  const body = (t as { body?: string }).body ?? ''
+  const aspect = (t as { aspect?: string }).aspect ?? ''
+  const target = (t as { target?: string }).target ?? ''
+  const glyph = (t as { glyph?: string }).glyph ?? '✦'
+  // 어스펙트·대상 둘 다 있어야 본명 파트너가 있는 진짜 행 — 아니면 스킵.
+  if (!aspect || !target) return null
+  // target 은 "본명 Mars" 처럼 접두가 이미 붙어 옴 → 접두 떼고 행성만 KO 치환 후
+  // 접두를 한 번만 다시 붙인다(예전엔 "본명 본명 Mars" 중복 + 영문 잔존).
+  const rawTarget = target.replace(/^(본명|natal)\s+/i, '')
+  // localizeLabel 의 풀 행성맵(카이런·릴리스·북교점 포함) 사용 — PLANET_KO 엔 일부 없음.
+  const bodyTxt = localizeLabel(body, ko)
+  const targetTxt = localizeLabel(rawTarget, ko)
+  const aspectTxt = ko ? (ASPECT_KO[aspect] ?? aspect) : aspect
+  const natalPrefix = ko ? '본명 ' : 'natal '
+  return (
+    <div className={`${styles.transit} ${outer ? styles.outer : ''}`.trim()} key={key}>
+      <span className="g">{glyph}</span>
+      <div className="tt">
+        <div className="a">
+          {bodyTxt} {aspectTxt}{' '}
+          <span className="aTarget">
+            → {natalPrefix}
+            {targetTxt}
+          </span>
+        </div>
+        <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
+      </div>
+      <PolChip v={t.polarity} />
+    </div>
+  )
 }
 
 // 12지지 순환 (子 → 亥). 시진/공망/12운성 모두 동일 순서.
@@ -467,7 +594,7 @@ function FixedStarRow({ signals }: { signals: DestinySignal[] }) {
         {stars.map((s) => (
           <span className={`${styles.starChip} ${styles.fixed}`} key={s.id}>
             <span className={styles.starGlyph}>★</span>
-            <span>{s.label}</span>
+            <span>{localizeLabel(s.label, ko)}</span>
             <PolChip v={s.polarity} />
           </span>
         ))}
@@ -494,7 +621,7 @@ function ArabicLotRow({ signals }: { signals: DestinySignal[] }) {
         {lots.map((s) => (
           <span className={`${styles.starChip} ${styles.lot}`} key={s.id}>
             <span className={styles.starGlyph}>◈</span>
-            <span>{s.label}</span>
+            <span>{localizeLabel(s.label, ko)}</span>
             <PolChip v={s.polarity} />
           </span>
         ))}
@@ -900,7 +1027,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
           </div>
           <div className={styles.dayScore}>
             <ScoreDial score={day.score} label={ko ? '종합' : 'Overall'} />
-            <p className={styles.oneline}>{day.oneLine}</p>
+            <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
           </div>
         </div>
 
@@ -923,12 +1050,14 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
               <ul className={styles.whyList}>
                 {(day.topReasons ?? []).map((r, i) => (
                   <li className={styles.whyPos} key={`wp-${i}`}>
-                    <span className={styles.whyArrow}>↑</span> {r.replace(/^[↑↓·]\s*/, '')}
+                    <span className={styles.whyArrow}>↑</span>{' '}
+                    {localizeLabel(r.replace(/^[↑↓·]\s*/, ''), ko)}
                   </li>
                 ))}
                 {(day.cautions ?? []).map((c, i) => (
                   <li className={styles.whyNeg} key={`wn-${i}`}>
-                    <span className={styles.whyArrow}>↓</span> {c.replace(/^[↑↓·]\s*/, '')}
+                    <span className={styles.whyArrow}>↓</span>{' '}
+                    {localizeLabel(c.replace(/^[↑↓·]\s*/, ''), ko)}
                   </li>
                 ))}
               </ul>
@@ -950,43 +1079,8 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
                 {ko ? '근거 신호 보기 · 점성 트랜짓' : 'View evidence signals · astro transits'}
               </summary>
               <div className={styles.transitRow}>
-                {innerTransits.map((t, i) => {
-                  const body = (t as { body?: string }).body ?? ''
-                  const aspect = (t as { aspect?: string }).aspect ?? ''
-                  const target = (t as { target?: string }).target ?? ''
-                  const glyph = (t as { glyph?: string }).glyph ?? '✦'
-                  return (
-                    <div className={styles.transit} key={`it-${i}`}>
-                      <span className="g">{glyph}</span>
-                      <div className="tt">
-                        <div className="a">
-                          {body} {aspect} <span className="aTarget">→ {target}</span>
-                        </div>
-                        <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
-                      </div>
-                      <PolChip v={t.polarity} />
-                    </div>
-                  )
-                })}
-                {outerTransits.map((t, i) => {
-                  const body = (t as { body?: string }).body ?? ''
-                  const aspect = (t as { aspect?: string }).aspect ?? ''
-                  const target = (t as { target?: string }).target ?? ''
-                  const glyph = (t as { glyph?: string }).glyph ?? '✦'
-                  return (
-                    <div className={`${styles.transit} ${styles.outer}`} key={`ot-${i}`}>
-                      <span className="g">{glyph}</span>
-                      <div className="tt">
-                        <div className="a">
-                          {body}({PLANET_KO[body] ?? ''}) {aspect}{' '}
-                          <span className="aTarget">→ {target}</span>
-                        </div>
-                        <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
-                      </div>
-                      <PolChip v={t.polarity} />
-                    </div>
-                  )
-                })}
+                {innerTransits.map((t, i) => renderTransit(t, `it-${i}`, ko, false))}
+                {outerTransits.map((t, i) => renderTransit(t, `ot-${i}`, ko, true))}
               </div>
             </details>
           </div>
@@ -1025,7 +1119,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
                   {catLabel(s.cat)}
                 </span>
                 <div className="body">
-                  <span className="lb">{s.label}</span>
+                  <span className="lb">{localizeLabel(s.label, ko)}</span>
                   {s.romaji && <span className="rm"> · {s.romaji}</span>}
                 </div>
                 <PolChip v={s.polarity} />
