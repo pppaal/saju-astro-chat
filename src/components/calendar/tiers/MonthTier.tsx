@@ -27,18 +27,14 @@
    ============================================================ */
 
 import type { CSSProperties, ReactNode } from 'react'
-import type {
-  DestinyMonth,
-  DestinyCalendarCell,
-  DestinyDayMark,
-  TaggedNarrative,
-} from '@/types/calendar'
+import type { DestinyMonth, DestinyCalendarCell, DestinyDayMark } from '@/types/calendar'
 import { Ganji } from '../atoms/Ganji'
 import styles from './MonthTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
 import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 
@@ -453,28 +449,7 @@ function extractPatternChips(month: DestinyMonth): PatternChip[] {
     .sort((a, b) => b.count - a.count)
 }
 
-// ============================================================================
-// 보강 #4 — narrative source 메타 (어느 deriver 가 만든 글인가)
-// tag 를 키로 매핑.
-// ============================================================================
-
-const NARR_SOURCE_HINT: Record<string, string> = {
-  '올해의 운': 'deriveYearlyInterpretation',
-  '이번 달': 'deriveMonthlyInterpretation',
-  '타고난 결': 'deriveNatalGrade',
-  '주요 흐름': 'deriveZodiacalReleasing',
-  '하우스 흐름': 'deriveProfectionalHouse',
-  '주요 패턴': 'deriveCalendarPatterns',
-  '타이밍 팁': 'deriveVoidOfCourse',
-  '몸·내면': 'deriveHealthSignals',
-  '용신 흐름': 'deriveYongsinSupport',
-  '주의할 결': 'deriveCautionWindows',
-  '정점의 해': 'derivePeakWindows',
-}
-
-function narrativeSource(item: TaggedNarrative): string | null {
-  return NARR_SOURCE_HINT[item.tag] ?? null
-}
+// (narrative source 메타 '· source: deriveXxx' 는 디버그용이라 소비자 화면에서 제거.)
 
 // ============================================================================
 // 보강 #8 — ZR L2 progress bar
@@ -1010,16 +985,13 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
             </span>
           </div>
           <div className={styles.narr}>
-            {narrative.map((n, i) => {
-              const src = narrativeSource(n)
-              return (
-                <div className={styles.narrCard} key={`${n.tag}-${i}`}>
-                  <span className={styles.narrTag}>{n.tag}</span>
-                  <div className={styles.narrBody}>{n.body}</div>
-                  {src && <span className={styles.narrSource}>· source: {src}</span>}
-                </div>
-              )
-            })}
+            {narrative.map((n, i) => (
+              <div className={styles.narrCard} key={`${n.tag}-${i}`}>
+                <span className={styles.narrTag}>{n.tag}</span>
+                {/* '[월운] Jupiter 엑잘테이션' 같은 영문·내부코드 잔재를 KO 평어화. */}
+                <div className={styles.narrBody}>{localizeLabel(n.body, ko)}</div>
+              </div>
+            ))}
           </div>
         </div>
 

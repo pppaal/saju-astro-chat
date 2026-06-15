@@ -56,10 +56,19 @@ export function isHeavySaju(s: HeavySignalInput): boolean {
 }
 
 export function cleanSignalName(s: HeavySignalInput): string {
-  return (s.korean || s.name || '')
-    .replace(/\s*\([^)]*\)/g, '')
-    .trim()
-    .slice(0, 28)
+  const raw = (s.korean || s.name || '').replace(/\s*\([^)]*\)/g, '').trim()
+  // 라벨은 "<핵심> — <설명>" 형식이 많다(예: "돼지와 돼지의 자형 — 깊은 생각…").
+  // 칩엔 핵심만 — 설명까지 넣고 28자 하드컷 하면 단어 중간이 잘려 깨져 보인다.
+  const head = raw.split('—')[0].trim()
+  const base = head.length >= 4 ? head : raw
+  if (base.length <= 24) return base
+  // 그래도 길면 단어 경계에서 자르고 말줄임.
+  return (
+    base
+      .slice(0, 24)
+      .replace(/\s+\S*$/, '')
+      .trim() + '…'
+  )
 }
 
 // 두 축이 둘 다 중립서 충분히 벗어남 = 양쪽 다 실제 신호 (방향 무관).
