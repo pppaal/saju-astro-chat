@@ -38,6 +38,7 @@ import { TierSummary } from '@/components/calendar/atoms/TierSummary'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
+import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 
 // ============================================================================
 // HourSlot — 24시진 (子=0,1 / 丑=2,3 / ... / 亥=22,23 식의 시간 매핑).
@@ -131,82 +132,7 @@ const ASPECT_KO: Record<string, string> = {
   opposition: '대립',
 }
 
-// 12별자리 EN → KO.
-const SIGN_KO: Record<string, string> = {
-  Aries: '양자리',
-  Taurus: '황소자리',
-  Gemini: '쌍둥이자리',
-  Cancer: '게자리',
-  Leo: '사자자리',
-  Virgo: '처녀자리',
-  Libra: '천칭자리',
-  Scorpio: '전갈자리',
-  Sagittarius: '사수자리',
-  Capricorn: '염소자리',
-  Aquarius: '물병자리',
-  Pisces: '물고기자리',
-}
-
-// 신호 라벨 EN 행성명 → KO (긴 키 먼저 치환되도록 순서 주의).
-const LABEL_PLANET_KO: Array<[string, string]> = [
-  ['True Node', '북교점'],
-  ['Ascendant', '상승점'],
-  ['Sun', '태양'],
-  ['Moon', '달'],
-  ['Mercury', '수성'],
-  ['Venus', '금성'],
-  ['Mars', '화성'],
-  ['Jupiter', '목성'],
-  ['Saturn', '토성'],
-  ['Uranus', '천왕성'],
-  ['Neptune', '해왕성'],
-  ['Pluto', '명왕성'],
-  ['Chiron', '카이런'],
-  ['Lilith', '릴리스'],
-  ['MC', '중천'],
-  ['Node', '교점'],
-]
-
-/**
- * 신호 라벨을 KO 로 best-effort 치환. 인식 못 한 부분은 그대로 통과.
- * - 영문 행성명 → 한글
- * - ' in <Sign>' → '(<한글별자리>)'
- * - 내부 코드(엑잘테이션·디트리먼트·폴·ZR·Loosing-of-the-Bond) 완화
- */
-function localizeLabel(label: string, ko: boolean): string {
-  if (!ko || !label) return label
-  let out = label
-
-  // ZR / Loosing-of-the-Bond 류 코드 → 평이한 KO.
-  out = out.replace(/ZR\s+\S+\s+L\d+\s+Loosing-of-the-Bond\s*:?/gi, '운명 흐름 전환 —')
-  out = out.replace(/Loosing-of-the-Bond/gi, '운명 흐름 전환')
-  out = out.replace(/ZR\s+\S+\s+L\d+(?:\s+\S+)?\s*:?/gi, '운명 흐름 —')
-  out = out.replace(/\bZR\b/gi, '운명 흐름')
-
-  // ' in <Sign>' → '(<한글별자리>)'
-  out = out.replace(
-    /\s+in\s+(Aries|Taurus|Gemini|Cancer|Leo|Virgo|Libra|Scorpio|Sagittarius|Capricorn|Aquarius|Pisces)\b/g,
-    (_m, sign: string) => `(${SIGN_KO[sign] ?? sign})`
-  )
-
-  // 남은 별자리 영문 (괄호·콜론 뒤 등) → 한글.
-  for (const [en, koName] of Object.entries(SIGN_KO)) {
-    out = out.replace(new RegExp(`\\b${en}\\b`, 'g'), koName)
-  }
-
-  // 내부 위계 코드 완화.
-  out = out
-    .replace(/엑잘테이션\s*\(고양\)/g, '가장 좋은 자리(고양)')
-    .replace(/디트리먼트\s*\(반대\s*자리\)/g, '불리한 자리(디트리먼트)')
-    .replace(/폴\s*\(추락\)/g, '약한 자리(추락)')
-
-  // 영문 행성명 → 한글 (긴 키 먼저).
-  for (const [en, koName] of LABEL_PLANET_KO) {
-    out = out.replace(new RegExp(`\\b${en}\\b`, 'g'), koName)
-  }
-
-  return out
-}
+// localizeLabel(+SIGN_KO/행성맵)은 MonthTier 와 공유 — adapters/localizeLabel 로 분리.
 
 /**
  * 트랜짓 1행 렌더 — KO 는 행성/대상/어스펙트를 한글로, EN 은 영문 유지.
@@ -243,7 +169,7 @@ function renderTransit(
             {targetTxt}
           </span>
         </div>
-        <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>
+        {!ko && <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>}
       </div>
       <PolChip v={t.polarity} />
     </div>
