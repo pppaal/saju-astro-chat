@@ -139,7 +139,8 @@ function resolveLocale(request: NextRequest): { locale: string; fromCookie: bool
   }
 }
 
-export function middleware(request: NextRequest) {
+// Next 16 renamed the `middleware` file convention to `proxy` (same runtime).
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (isBlockedServicePath(pathname)) {
@@ -206,7 +207,7 @@ export function middleware(request: NextRequest) {
   return response
 }
 
-// Only run middleware on API routes
+// Matcher for the proxy (runs on all paths; logic gates per request).
 export const config = {
   matcher: '/:path*',
 }
