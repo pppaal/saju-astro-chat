@@ -59,7 +59,7 @@ export interface DestinypalDaySignal {
   cat: string // 'saju/shinsal' | 'saju/pillar-sibsin' | 'astro/transit' | …
   label: string
   romaji?: string
-  polarity: number // -3..+3 (칡 적용)
+  polarity: number // -3..+3 (캡 적용)
   kind?: string // raw signal kind (디버그/필터용)
 }
 
@@ -447,7 +447,7 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     gongmang,
     jijanggan,
     geokgukStatus,
-    // optional 빈 컴렉션 — DayTier 가 .map() / .length 로 무조건 읽음.
+    // optional 빈 컬렉션 — DayTier 가 .map() / .length 로 무조건 읽음.
     crossSignals: [],
     allSignals: signals,
     narrative: [],
@@ -551,7 +551,7 @@ function stringDetail(s: ActiveSignal, key: string): string | undefined {
 
 /**
  * 한 줄 요약 — 화해된 톤에 맞춰 만든다.
- * 옇 버전은 topReasons[0](우호 사유)을 *밴드 무관* 무조건 반환해, '조심하는 날'
+ * 옛 버전은 topReasons[0](우호 사유)을 *밴드 무관* 무조건 반환해, '조심하는 날'
  * 인데도 한 줄이 긍정 사유를 외치는 모순이 났다. 이제 verdict.tone 에 맞는 쪽
  * 사유만 노출하고, 보여줄 사유가 없으면 톤별 고정 문장으로 폴백한다.
  */
@@ -570,8 +570,8 @@ function deriveOneLine(
     if (cautions[0]) return cautions[0]
     return ko ? '추진보다 정비가 어울리는 하루.' : 'A day better for upkeep than pushing.'
   }
-  // mixed — 좋고 나쁜이 갈리는 날.
+  // mixed — 좋고 나쁨이 갈리는 날.
   return ko
-    ? '좋고 나쁜이 함께 있는 하루 — 잘 풀리는 쪽에 집중하세요.'
+    ? '좋고 나쁨이 함께 있는 하루 — 잘 풀리는 쪽에 집중하세요.'
     : 'Highs and lows are mixed — lean on what flows.'
 }
