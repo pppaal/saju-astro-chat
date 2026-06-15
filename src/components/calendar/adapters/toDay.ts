@@ -42,6 +42,10 @@ import { LAYER_WEIGHT } from '@/lib/calendar-engine/derivers/constants'
 const REASON_LAYERS = new Set(['monthly', 'daily', 'hourly', 'instant'])
 // 점수·사유에서 제외하는 정적 본명 표지(index.ts STATIC_NATAL_KINDS 와 동일).
 const STATIC_NATAL_KINDS = new Set(['saju-pattern', 'geokguk-status'])
+// 12운성 단계 — saju-shinsal 이 'rok-ma' 신살로도 emit 하지만(점수 신호로는 유지),
+// 12운성은 twelveStageMatrix 에서 따로 보여주므로 '활성 신살' 칩에는 중복 노출하지
+// 않는다(예: 제왕·건록이 신살 목록에 잘못 끼던 문제).
+const TWELVE_STAGE_NAMES = new Set(['건록', '제왕'])
 
 // 천간(한자) → 5원소 룩업. destinypal Day 의 jijanggan layer element 산출.
 const STEM_TO_ELEMENT: Record<string, '목' | '화' | '토' | '금' | '수'> = {
@@ -320,8 +324,12 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
       continue
     }
 
-    // 신살 active 라벨
-    if (s.kind === 'shinsal' && s.evidence?.shinsalName) {
+    // 신살 active 라벨 — 12운성(건록·제왕)은 신살이 아니므로 칩에서 제외(12운성 매트릭스 노출).
+    if (
+      s.kind === 'shinsal' &&
+      s.evidence?.shinsalName &&
+      !TWELVE_STAGE_NAMES.has(s.evidence.shinsalName)
+    ) {
       shinsalActiveSet.add(s.evidence.shinsalName)
     }
 
@@ -511,17 +519,20 @@ function buildGongmang(
   const natalRaw = dayStem && dayBranch ? getGongmang(dayStem, dayBranch) : []
   const natalBranches: [string, string] = [natalRaw[0] ?? '—', natalRaw[1] ?? '—']
   const activeBranches = active?.branches ?? []
-  const activeAxes: Array<'대운' | '세운' | '월운' | '일진'> =
-    activeBranches.length > 0 ? ['일진'] : []
+  const isActive = activeBranches.length > 0
+  const activeAxes: Array<'대운' | '세운' | '월운' | '일진'> = isActive ? ['일진'] : []
+  // note 는 실제 활성(닿은 지지가 있을 때)만 — 비활성인데 "공망에 닿음" 문구가
+  // 남아 칩(활성 없음)과 모순되던 문제 방지.
+  const note = isActive ? active?.reason : undefined
   return {
     natalBranches,
     activeBranches,
     activeAxes,
-    note: active?.reason,
+    note,
     // legacy aliases
-    active: activeBranches.length > 0,
+    active: isActive,
     branches: natalBranches,
-    reason: active?.reason,
+    reason: note,
   }
 }
 
