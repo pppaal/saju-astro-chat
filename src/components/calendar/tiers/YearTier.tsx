@@ -22,6 +22,7 @@ import type {
 import { Ganji } from '../atoms/Ganji'
 import { LayerTag } from '../atoms/LayerTag'
 import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 import styles from './YearTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
@@ -539,7 +540,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 {p
                   ? ko
                     ? `${p.house}번째 영역이 무대`
-                    : `${p.house}th house on stage`
+                    : `${ordinalEn(p.house)} house on stage`
                   : ko
                     ? '활성 영역 미정'
                     : 'house TBD'}

@@ -17,6 +17,7 @@ import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 import { toGanji, type Ganji, SIGN_KO, PLANET_KO, computeSewoonGanji } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { AstroPlanetName } from '@/lib/astrology/interpretations'
 import type { DestinyProfectionWheelSlice, DestinyDecadeZRChapter } from '@/types/calendar'
@@ -539,7 +540,9 @@ function extractProfection(
   const rulerNatal = rulerPlanet
     ? `${rulerPlanet.house}궁 (${SIGN_KO[rulerPlanet.sign] ?? rulerPlanet.sign})`
     : ''
-  const rulerNatalEn = rulerPlanet ? `${rulerPlanet.house}th house · ${rulerPlanet.sign}` : ''
+  const rulerNatalEn = rulerPlanet
+    ? `${ordinalEn(rulerPlanet.house)} house · ${rulerPlanet.sign}`
+    : ''
 
   return {
     house,

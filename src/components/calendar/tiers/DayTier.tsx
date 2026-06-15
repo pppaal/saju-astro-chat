@@ -529,6 +529,18 @@ function isArabicLot(s: DestinySignal): boolean {
   return s.cat === 'astro/arabic-part' || s.kind === 'arabic-part'
 }
 
+// 붙박이별 칩 라벨 — KO 는 한글 별명(name_ko), EN 은 한글이 새지 않게
+// english 문장에서 "<행성> conjunct the fixed star <별> — …" 의 핵심만 뽑아
+// "<행성> ☌ <별>" 컴팩트 형으로. (예전엔 EN 도 name_ko 를 그대로 출력 → 별
+// 이름·괄호 글로스가 전부 한글로 샜다.)
+function fixedStarChipLabel(s: DestinySignal, ko: boolean): string {
+  if (ko) return localizeLabel(s.label, true)
+  const en = s.english ?? ''
+  const m = en.match(/^(.+?)\s+conjunct the fixed star\s+(.+?)\s+—/)
+  if (m) return `${m[1]} ☌ ${m[2]}`
+  return localizeLabel(s.label, false)
+}
+
 function FixedStarRow({ signals }: { signals: DestinySignal[] }) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
@@ -547,7 +559,7 @@ function FixedStarRow({ signals }: { signals: DestinySignal[] }) {
         {stars.map((s) => (
           <span className={`${styles.starChip} ${styles.fixed}`} key={s.id}>
             <span className={styles.starGlyph}>★</span>
-            <span>{localizeLabel(s.label, ko)}</span>
+            <span>{fixedStarChipLabel(s, ko)}</span>
             <PolChip v={s.polarity} />
           </span>
         ))}
