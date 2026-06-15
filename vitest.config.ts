@@ -240,33 +240,34 @@ export default defineConfig({
       ...(isCoverageRun
         ? {
             thresholds: {
-              // 2026-06-11 ratchet: 검증 갭 PR 에서 실측 62.5/79.1/88.0 으로
-              // 상승 → floor 를 62/77/85 로 당김 (각각 0.5~3pt 여유).
-              // 같은 날 main 의 admin 툴링 3건(#1418~#1420)이 미커버 코드로
-              // 들어와 실측 61.83 → lines/statements floor 61 로 재조정.
-              // admin 내부 라우트가 반복 원인 — 누적되면 floor 조정 대신
-              // api/admin/** 제외(기존 admin/metrics 제외와 같은 근거)를 검토.
+              // 2026-06-15 vitest 3→4 재보정: @vitest/coverage-v8 4 는 AST-aware
+              // remapping 이 기본이라 branch/function 을 훨씬 정밀하게 센다(끄는
+              // 옵션 없음). 테스트가 줄어든 게 아니라 *측정 정의*가 바뀐 것 —
+              // 같은 16,482 통과 기준으로 functions/branches 실측이 크게 내려가
+              // (global 85→56.8 / 77→43.8 등) v3 floor 가 전부 깨졌다. CI 실측치
+              // 대비 ~3-4pt 여유로 floor 재기준. lines/statements 는 remapping
+              // 영향이 작아 소폭만 조정. 커버리지 자체를 다시 끌어올리면 ratchet.
               lines: 61,
-              functions: 85,
-              branches: 77,
-              statements: 61,
+              functions: 53,
+              branches: 40,
+              statements: 57,
               'src/lib/auth/**': {
-                lines: 79,
+                lines: 75,
                 functions: 66,
-                branches: 75,
-                statements: 79,
+                branches: 70,
+                statements: 72,
               },
               'src/lib/credits/**': {
-                lines: 84,
+                lines: 81,
                 functions: 85,
                 branches: 75,
-                statements: 84,
+                statements: 81,
               },
               'src/lib/payments/**': {
                 lines: 80,
-                functions: 80,
+                functions: 54,
                 branches: 60,
-                statements: 80,
+                statements: 67,
               },
               'src/lib/security/**': {
                 lines: 85,
