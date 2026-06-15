@@ -140,7 +140,6 @@
     "date-fns-tz": "^3.2.0",
     "dayjs": "^1.11.19",
     "dotenv": "^17.2.4",
-    "firebase": "^12.9.0",
     "framer-motion": "^12.33.0",
     "html-to-image": "^1.11.13",
     "korean-lunar-calendar": "^0.3.6",
