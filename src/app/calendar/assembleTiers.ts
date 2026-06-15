@@ -553,6 +553,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       id: s.id,
       cat: SIG_KIND_TO_CAT[s.kind] ?? `${s.source}/${s.kind}`,
       label: s.name,
+      // 엔진이 EN 라벨을 별도 방출했으면(있을 때만) 보존 — DayTier 신호 스트림이
+      // EN 로케일에서 s.english 우선 사용(없으면 localizeLabel 폴백, KO 유지).
+      english: s.english,
       polarity: s.polarity,
       weight: s.weight,
       kind: s.kind,
