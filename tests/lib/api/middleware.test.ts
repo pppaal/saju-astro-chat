@@ -35,6 +35,10 @@ vi.mock('@/lib/auth/publicToken', () => ({
   requirePublicToken: vi.fn(),
 }))
 
+vi.mock('@/lib/auth/admin', () => ({
+  isAdminUser: vi.fn(),
+}))
+
 vi.mock('@/lib/logger', () => ({
   logger: {
     error: vi.fn(),
@@ -51,6 +55,7 @@ vi.mock('@/lib/api/errorHandler', () => ({
   ErrorCodes: {
     RATE_LIMITED: 'RATE_LIMITED',
     UNAUTHORIZED: 'UNAUTHORIZED',
+    FORBIDDEN: 'FORBIDDEN',
     NOT_FOUND: 'NOT_FOUND',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
     INTERNAL_ERROR: 'INTERNAL_ERROR',
@@ -61,6 +66,7 @@ import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { requirePublicToken } from '@/lib/auth/publicToken'
+import { isAdminUser } from '@/lib/auth/admin'
 
 describe('API Middleware', () => {
   beforeEach(() => {
@@ -144,6 +150,47 @@ describe('API Middleware', () => {
 
       expect(context.userId).toBe('123')
       expect(context.isPremium).toBe(true)
+    })
+
+    describe('requireAdmin', () => {
+      it('rejects unauthenticated requests without calling isAdminUser', async () => {
+        vi.mocked(getServerSession).mockResolvedValue(null)
+
+        const req = new NextRequest('http://localhost/api/admin/test')
+        const { error } = await initializeApiContext(req, { requireAdmin: true })
+
+        expect(error).toBeDefined()
+        expect(isAdminUser).not.toHaveBeenCalled()
+      })
+
+      it('rejects authenticated non-admin users', async () => {
+        vi.mocked(getServerSession).mockResolvedValue({
+          user: { id: 'user-1', email: 'user@example.com' },
+          expires: '2099-12-31',
+        })
+        vi.mocked(isAdminUser).mockResolvedValue(false)
+
+        const req = new NextRequest('http://localhost/api/admin/test')
+        const { error } = await initializeApiContext(req, { requireAdmin: true })
+
+        expect(error).toBeDefined()
+        expect(isAdminUser).toHaveBeenCalledWith('user-1', 'user@example.com')
+      })
+
+      it('allows admin users through', async () => {
+        vi.mocked(getServerSession).mockResolvedValue({
+          user: { id: 'admin-1', email: 'admin@example.com' },
+          expires: '2099-12-31',
+        })
+        vi.mocked(isAdminUser).mockResolvedValue(true)
+
+        const req = new NextRequest('http://localhost/api/admin/test')
+        const { context, error } = await initializeApiContext(req, { requireAdmin: true })
+
+        expect(error).toBeUndefined()
+        expect(context.userId).toBe('admin-1')
+        expect(isAdminUser).toHaveBeenCalledWith('admin-1', 'admin@example.com')
+      })
     })
   })
 

@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createAdminGuard,
   apiError,
   ErrorCodes,
   type ApiContext,
@@ -23,25 +23,10 @@ import {
   type DashboardTimeRange,
 } from '@/lib/metrics/index'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 
 export const GET = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, _context: ApiContext) => {
     try {
-      const userEmail = context.session?.user?.email
-      if (!userEmail || !context.userId) {
-        return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
-      }
-
-      const adminCheck = await isAdminUser(context.userId, context.session?.user?.email)
-      if (!adminCheck) {
-        logger.warn('[Metrics] Unauthorized access attempt', {
-          email: userEmail,
-          userId: context.userId,
-        })
-        return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
-      }
-
       const { searchParams } = new URL(req.url)
       const format = searchParams.get('format') || 'json'
       const timeRange = (searchParams.get('timeRange') || '24h') as DashboardTimeRange
@@ -91,7 +76,7 @@ export const GET = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
   },
-  createAuthenticatedGuard({
+  createAdminGuard({
     route: '/api/admin/metrics',
     limit: 30,
     windowSeconds: 60,

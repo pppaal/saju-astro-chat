@@ -13,12 +13,11 @@ import {
   apiSuccess,
   apiError,
   ErrorCodes,
-  createAuthenticatedGuard,
+  createAdminGuard,
   type ApiContext,
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,15 +27,8 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
   const { id } = await routeContext.params
 
   const handler = withApiMiddleware(
-    async (_req: NextRequest, context: ApiContext) => {
+    async (_req: NextRequest, _context: ApiContext) => {
       try {
-        if (!context.userId || !context.session?.user?.email) {
-          return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
-        }
-        if (!(await isAdminUser(context.userId, context.session?.user?.email))) {
-          logger.warn('[admin/users/:id] unauthorized', { userId: context.userId })
-          return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
-        }
         if (!id) {
           return apiError(ErrorCodes.VALIDATION_ERROR, 'id is required')
         }
@@ -185,7 +177,7 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
         return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
       }
     },
-    createAuthenticatedGuard({
+    createAdminGuard({
       route: '/api/admin/users/[id]',
       limit: 60,
       windowSeconds: 60,

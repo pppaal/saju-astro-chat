@@ -70,6 +70,29 @@ export function createAuthenticatedGuard(options: {
 }
 
 /**
+ * Preset for admin-only APIs (e.g., /api/admin/*)
+ * - Requires an authenticated session AND admin privileges (isAdminUser)
+ * - The middleware returns 401/403 before the handler runs, so routes don't
+ *   repeat the auth+admin check inline
+ * - Rate limited (default: 30/60s — admin dashboards are low-volume)
+ */
+export function createAdminGuard(options: {
+  route: string
+  limit?: number
+  windowSeconds?: number
+}): MiddlewareOptions {
+  return {
+    route: options.route,
+    requireAuth: true,
+    requireAdmin: true,
+    rateLimit: {
+      limit: options.limit ?? 30,
+      windowSeconds: options.windowSeconds ?? 60,
+    },
+  }
+}
+
+/**
  * Preset for simple rate-limited APIs
  * - No auth required
  * - Rate limited only

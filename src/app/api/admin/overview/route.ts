@@ -12,7 +12,7 @@
 import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createAdminGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -20,22 +20,13 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 import { realUserWhere } from '@/lib/admin/realUser'
 
 export const dynamic = 'force-dynamic'
 
 export const GET = withApiMiddleware(
-  async (_req: NextRequest, context: ApiContext) => {
+  async (_req: NextRequest, _context: ApiContext) => {
     try {
-      if (!context.userId || !context.session?.user?.email) {
-        return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
-      }
-      if (!(await isAdminUser(context.userId, context.session?.user?.email))) {
-        logger.warn('[admin/overview] unauthorized', { userId: context.userId })
-        return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
-      }
-
       const now = new Date()
       const startOfToday = new Date(now)
       startOfToday.setHours(0, 0, 0, 0)
@@ -182,7 +173,7 @@ export const GET = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
   },
-  createAuthenticatedGuard({
+  createAdminGuard({
     route: '/api/admin/overview',
     limit: 30,
     windowSeconds: 60,

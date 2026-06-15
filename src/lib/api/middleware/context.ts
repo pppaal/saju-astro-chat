@@ -8,6 +8,7 @@ import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { requirePublicToken } from '@/lib/auth/publicToken'
+import { isAdminUser } from '@/lib/auth/admin'
 import { csrfGuard } from '@/lib/security/csrf'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '../errorHandler'
@@ -294,8 +295,8 @@ export async function initializeApiContext(
     // Session fetch failed, continue without it
   }
 
-  // 5. Auth requirement check
-  if (options.requireAuth && !session?.user) {
+  // 5. Auth requirement check (requireAdmin implies authentication)
+  if ((options.requireAuth || options.requireAdmin) && !session?.user) {
     return {
       context: createEmptyContext(ip, locale),
       error: createErrorResponse({
@@ -304,6 +305,45 @@ export async function initializeApiContext(
         route,
         headers: rateLimitHeaders,
       }),
+    }
+  }
+
+  // 5b. Admin requirement check — centralizes the auth+admin gate that every
+  // /api/admin route used to repeat inline. A malformed session without a user
+  // id is treated as unauthenticated (401); an authenticated non-admin is
+  // forbidden (403).
+  if (options.requireAdmin) {
+    if (!userId) {
+      return {
+        context: createEmptyContext(ip, locale),
+        error: createErrorResponse({
+          code: ErrorCodes.UNAUTHORIZED,
+          locale,
+          route,
+          headers: rateLimitHeaders,
+        }),
+      }
+    }
+    const isAdmin = await isAdminUser(userId, session?.user?.email)
+    if (!isAdmin) {
+      logger.warn('[Middleware] admin check failed', { route, userId })
+      return {
+        context: {
+          ip,
+          locale,
+          session,
+          userId,
+          isAuthenticated: true,
+          isPremium,
+          rateLimitHeaders,
+        },
+        error: createErrorResponse({
+          code: ErrorCodes.FORBIDDEN,
+          locale,
+          route,
+          headers: rateLimitHeaders,
+        }),
+      }
     }
   }
 

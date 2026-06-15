@@ -240,17 +240,21 @@ describe('GET /api/admin/metrics/funnel', () => {
       expect(data.error.code).toBe('UNAUTHORIZED')
     })
 
-    it('should reject requests without email in session', async () => {
+    it('forbids an authenticated session without an admin identity', async () => {
+      // Auth+admin gating now lives in the shared middleware (createAdminGuard).
+      // A session with a user id but no admin role/email is authenticated yet
+      // not an admin, so it is forbidden (403) rather than unauthorized.
       vi.mocked(getServerSession).mockResolvedValue({
         user: { id: 'user-123' },
         expires: '2099-12-31',
       } as any)
+      vi.mocked(isAdminUser).mockResolvedValue(false)
 
       const response = await GET(createRequest())
       const data = await response.json()
 
-      expect(response.status).toBe(401)
-      expect(data.error.code).toBe('UNAUTHORIZED')
+      expect(response.status).toBe(403)
+      expect(data.error.code).toBe('FORBIDDEN')
     })
 
     it('should reject non-admin users', async () => {
@@ -263,11 +267,8 @@ describe('GET /api/admin/metrics/funnel', () => {
       expect(response.status).toBe(403)
       expect(data.error.code).toBe('FORBIDDEN')
       expect(logger.warn).toHaveBeenCalledWith(
-        '[Funnel] Unauthorized access attempt',
-        expect.objectContaining({
-          email: 'user@example.com',
-          userId: 'regular-user-456',
-        })
+        '[Middleware] admin check failed',
+        expect.objectContaining({ userId: 'regular-user-456' })
       )
     })
 

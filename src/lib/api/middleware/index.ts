@@ -240,6 +240,7 @@ export { initializeApiContext, extractLocale } from './context'
 export {
   createPublicStreamGuard,
   createAuthenticatedGuard,
+  createAdminGuard,
   createSimpleGuard,
   createSajuGuard,
   createAstrologyGuard,

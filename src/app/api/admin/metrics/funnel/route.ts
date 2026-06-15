@@ -7,7 +7,7 @@
 import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createAdminGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -15,7 +15,6 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 import { realUserWhere } from '@/lib/admin/realUser'
 import { DashboardTimeRangeSchema, type DashboardTimeRange } from '@/lib/metrics/schema'
 
@@ -45,26 +44,8 @@ function getDateRange(timeRange: DashboardTimeRange): { start: Date; end: Date }
 }
 
 export const GET = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, _context: ApiContext) => {
     try {
-      if (!context.userId || !context.session?.user?.email) {
-        logger.warn('[Funnel] No session or userId', {
-          hasSession: !!context.session,
-          hasUserId: !!context.userId,
-          hasEmail: !!context.session?.user?.email,
-        })
-        return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
-      }
-
-      const isAdmin = await isAdminUser(context.userId, context.session?.user?.email)
-      if (!isAdmin) {
-        logger.warn('[Funnel] Unauthorized access attempt', {
-          email: context.session.user.email,
-          userId: context.userId,
-        })
-        return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
-      }
-
       const { searchParams } = new URL(req.url)
       const timeRangeParam = searchParams.get('timeRange') || '24h'
 
@@ -166,7 +147,7 @@ export const GET = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
   },
-  createAuthenticatedGuard({
+  createAdminGuard({
     route: '/api/admin/metrics/funnel',
     limit: 30,
     windowSeconds: 60,
