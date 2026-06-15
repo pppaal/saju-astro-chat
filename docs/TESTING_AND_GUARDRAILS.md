@@ -10,12 +10,10 @@ paths that no longer exist. This doc describes the checks and CI gates that are
 verified against the current `package.json`, `.github/workflows/`, and
 `vitest.config.ts`.
 
-Important: `scripts/ops/qa-destiny-three-services.ts` and
-`scripts/ops/qa-counselor-questions.ts` are **broken** — both still import
-deleted modules (`src/lib/destiny-matrix/core/runDestinyCore`,
-`.../core/adapters`, `.../counselorEvidence`, `.../ai-report/aiReportService`).
-That entire directory is gone, so the scripts cannot load or run. Do not use
-them as a release gate. They are not wired into any npm script or CI workflow.
+Note: `scripts/ops/qa-destiny-three-services.ts` and
+`scripts/ops/qa-counselor-questions.ts` were **removed** in this cleanup. They
+imported the deleted `src/lib/destiny-matrix` engine, so they could no longer
+load or run, and they were not wired into any npm script or CI workflow.
 
 ## Required Local Checks
 
@@ -52,8 +50,8 @@ vitest run tests/lib/report/integratedReport.real.test.ts \
 ```
 
 Both test files exist and are the surviving guard for the report stack. The gate
-does **not** run the old `qa-destiny-three-services.ts` script (it is broken, see
-Status). This gate is enforced in CI on every non-draft PR (the
+does **not** run the old `qa-destiny-three-services.ts` script (it was removed,
+see Status). This gate is enforced in CI on every non-draft PR (the
 `destiny-release-gate` job in `pr-checks.yml` and the `Destiny release gate` step
 in `ci.yml`).
 
@@ -160,8 +158,8 @@ These exist and run:
 - `npm run test:ephemeris-golden`
 - `npm run qa:tarot:engine`, `qa:tarot:full`, `qa:counselor-calendar:report`
 - `npm run eval:strategy:batch`, `eval:deterministic:batch`, `eval:tarot:export`
-- `scripts/ops/qa-counselor-questions.ts` — **broken** (imports removed engine);
-  not wired to any npm script.
+- `scripts/ops/qa-counselor-questions.ts` — **removed** (imported the removed
+  destiny-matrix engine); was not wired to any npm script.
 
 ## Failure Triage Order
 

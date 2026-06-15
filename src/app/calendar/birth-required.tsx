@@ -1,5 +1,5 @@
 /* ============================================================
-   /destinypal — BirthRequiredFallback
+   /calendar — BirthRequiredFallback
    ───────────────────────────────────────────────────────────
    본명(생년월일·시·좌표) 정보가 부족할 때 보여주는 안내 카드.
 
@@ -19,7 +19,7 @@ export type BirthRequiredReason = 'login' | 'no-birth'
 
 export interface BirthRequiredFallbackProps {
   reason: BirthRequiredReason
-  /** 비로그인 시 signIn 후 돌아올 경로. 기본 /destinypal */
+  /** 비로그인 시 signIn 후 돌아올 경로. 기본 /calendar */
   callbackUrl?: string
 }
 

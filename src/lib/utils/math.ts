@@ -1,7 +1,7 @@
 /**
  * Tiny math helpers that keep getting copy-pasted into scoring modules.
  *
- * The clamp/round primitives the destiny-matrix engine works in were
+ * The clamp/round primitives the scoring engines work in were
  * defined ten times (clamp01) and nine times (round2) with subtly
  * different behavior — four of the clamp01 copies forgot to handle
  * NaN, so a single Math.max(0, Math.min(1, NaN)) would propagate
@@ -49,7 +49,7 @@ export function clampScore0to100(value: number | undefined): number {
 }
 
 /**
- * Same idea on the 1-10 scale the destiny-matrix engine uses for its
+ * Same idea on the 1-10 scale the scoring engines use for their
  * layer scores. Fallback midpoint is 5.
  */
 export function clampScore1to10(value: number | undefined): number {

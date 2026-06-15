@@ -16,7 +16,8 @@ npm test
 
 Target state: lint/typecheck 0 errors; test suite green. (The older
 `scripts/ops/qa-destiny-three-services.ts` and `qa-counselor-questions.ts` scripts
-import the removed destiny-matrix engine and no longer run.)
+were removed in this cleanup; they imported the removed destiny-matrix engine and
+could no longer run.)
 
 ## Release Gate
 

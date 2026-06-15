@@ -74,7 +74,7 @@ Last audited: 2026-06-15 (Asia/Hong_Kong)
 
 ## Current Operating Notes
 
-- Current destiny release gate (in package.json `ops:destiny:release`) is `typecheck` + `test:destiny:release`. It does **not** invoke `qa-destiny-three-services` (that script is broken — it imports the removed destiny-matrix engine, as does `qa-counselor-questions`; neither is wired to any npm script or workflow).
+- Current destiny release gate (in package.json `ops:destiny:release`) is `typecheck` + `test:destiny:release`. It does **not** invoke `qa-destiny-three-services` (that script was removed in this cleanup — it imported the removed destiny-matrix engine, as did `qa-counselor-questions`; neither was wired to any npm script or workflow).
 - 2026-05-18 verification snapshot:
   - `npm run docs:check-links` -> **PASS** (8 markdown files)
   - `npx tsc -p tsconfig.json --noEmit` -> **PASS** (0 errors, after `prisma generate` with any dummy `DATABASE_URL`)

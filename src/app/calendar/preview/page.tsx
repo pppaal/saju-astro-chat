@@ -1,5 +1,5 @@
 /* ============================================================
-   /destinypal/preview — Phase F (adapters 완전 wire-up) 실데이터 검증 페이지
+   /calendar/preview — Phase F (adapters 완전 wire-up) 실데이터 검증 페이지
    ───────────────────────────────────────────────────────────
    본명 1995-02-09 06:40 Asia/Seoul Male — 진짜 NatalContext +
    2026년 CalendarCell 으로 5 tier UI 를 자동으로 채운다.
