@@ -56,6 +56,12 @@ export interface MiddlewareOptions {
   requireToken?: boolean
   /** Require authenticated session */
   requireAuth?: boolean
+  /**
+   * Require an admin session (implies requireAuth). When set, the middleware
+   * verifies the session user via isAdminUser() and returns 401/403 before the
+   * handler runs, so routes no longer repeat the auth+admin check inline.
+   */
+  requireAdmin?: boolean
   /** Rate limiting configuration */
   rateLimit?: RateLimitOptions
   /** Credit consumption configuration */

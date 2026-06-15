@@ -13,7 +13,7 @@ import { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createAdminGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -21,7 +21,6 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 import { runWithConcurrency } from '@/lib/utils/concurrency'
 
 export const dynamic = 'force-dynamic'
@@ -90,16 +89,8 @@ const emptyResult = (days: number | 'all', notReady: boolean): Record<string, un
 })
 
 export const GET = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, _context: ApiContext) => {
     try {
-      if (!context.userId || !context.session?.user?.email) {
-        return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
-      }
-      if (!(await isAdminUser(context.userId, context.session?.user?.email))) {
-        logger.warn('[admin/visitors] unauthorized', { userId: context.userId })
-        return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
-      }
-
       // days=all → 전체 기간. 그 외엔 1~365 숫자(기본 30).
       const { days: parsedDays } = visitorsDaysQuerySchema.parse(
         Object.fromEntries(new URL(req.url).searchParams)
@@ -309,5 +300,5 @@ export const GET = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
   },
-  createAuthenticatedGuard({ route: '/api/admin/visitors', limit: 30, windowSeconds: 60 })
+  createAdminGuard({ route: '/api/admin/visitors', limit: 30, windowSeconds: 60 })
 )

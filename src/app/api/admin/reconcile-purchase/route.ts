@@ -20,7 +20,7 @@ import { NextRequest } from 'next/server'
 import type Stripe from 'stripe'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createAdminGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -28,7 +28,6 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 import { logAdminAction } from '@/lib/auth/adminAudit'
 import { getStripeOrNull } from '@/lib/stripe/client'
 import { CREDIT_PACKS, type CreditPackType } from '@/lib/config/pricing'
@@ -178,14 +177,6 @@ async function reconcileSession(
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     try {
-      if (!context.userId || !context.session?.user?.email) {
-        return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
-      }
-      if (!(await isAdminUser(context.userId, context.session?.user?.email))) {
-        logger.warn('[admin/reconcile-purchase] unauthorized', { userId: context.userId })
-        return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
-      }
-
       const body = (await req.json().catch(() => ({}))) as { query?: string; apply?: boolean }
       const query = (body.query || '').trim()
       const apply = body.apply === true
@@ -206,7 +197,11 @@ export const POST = withApiMiddleware(
         return apiError(ErrorCodes.INTERNAL_ERROR, 'stripe_lookup_failed')
       }
 
-      const admin = { email: context.session.user.email, userId: context.userId, ip: context.ip }
+      const admin = {
+        email: context.session?.user?.email ?? '',
+        userId: context.userId!,
+        ip: context.ip,
+      }
       const results: RowResult[] = []
       for (const s of sessions) {
         results.push(await reconcileSession(s, apply, admin))
@@ -229,7 +224,7 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
   },
-  createAuthenticatedGuard({
+  createAdminGuard({
     route: '/api/admin/reconcile-purchase',
     limit: 20,
     windowSeconds: 60,

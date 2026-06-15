@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createAdminGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -9,7 +9,6 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 import { logAdminAction } from '@/lib/auth/adminAudit'
 import { addBonusCredits, getUserCredits } from '@/lib/credits/creditService'
 
@@ -59,14 +58,6 @@ interface GrantResult {
 // 만료일은 기존 addBonusCredits 정책(3개월) 따른다.
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    if (!context.userId) {
-      return apiError(ErrorCodes.UNAUTHORIZED, 'unauthorized')
-    }
-    const isAdmin = await isAdminUser(context.userId, context.session?.user?.email)
-    if (!isAdmin) {
-      return apiError(ErrorCodes.FORBIDDEN, 'forbidden')
-    }
-
     const body = await req.json().catch(() => ({}))
     const userIdOrEmail: string | undefined = body?.userIdOrEmail?.trim()
     const rawAmount = body?.amount
@@ -93,23 +84,24 @@ export const POST = withApiMiddleware(
     }
 
     const adminEmail = context.session?.user?.email || ''
+    const adminUserId = context.userId!
     const userAgent = req.headers.get('user-agent') || undefined
 
     // Per-admin daily cap. The per-request limit (10000) + the route's
     // rate limit (10/60s after this change) still leaves 6M credits/hour
     // headroom theoretically; the cap closes that to a per-day ceiling
     // that survives across rate-limit windows.
-    const grantedToday = await sumGrantedToday(context.userId)
+    const grantedToday = await sumGrantedToday(adminUserId)
     if (grantedToday + amount > PER_ADMIN_DAILY_CAP) {
       logger.warn('[admin/grant-credits] daily cap exceeded', {
-        adminUserId: context.userId,
+        adminUserId,
         grantedToday,
         attemptedAmount: amount,
         cap: PER_ADMIN_DAILY_CAP,
       })
       await logAdminAction({
         adminEmail,
-        adminUserId: context.userId,
+        adminUserId,
         action: 'grant_credits',
         targetType: 'user',
         targetId: targetUser.id,
@@ -135,7 +127,7 @@ export const POST = withApiMiddleware(
       const credits = await getUserCredits(targetUser.id)
 
       logger.info('[admin/grant-credits] success', {
-        adminUserId: context.userId,
+        adminUserId,
         targetUserId: targetUser.id,
         targetEmail: targetUser.email,
         amount,
@@ -148,7 +140,7 @@ export const POST = withApiMiddleware(
       // so a failure here can't undo the credit grant or block the response.
       await logAdminAction({
         adminEmail,
-        adminUserId: context.userId,
+        adminUserId,
         action: 'grant_credits',
         targetType: 'user',
         targetId: targetUser.id,
@@ -177,14 +169,14 @@ export const POST = withApiMiddleware(
       return apiSuccess(result as unknown as Record<string, unknown>)
     } catch (err) {
       logger.error('[admin/grant-credits] failed', {
-        adminUserId: context.userId,
+        adminUserId,
         targetUserId: targetUser.id,
         amount,
         err,
       })
       await logAdminAction({
         adminEmail,
-        adminUserId: context.userId,
+        adminUserId,
         action: 'grant_credits',
         targetType: 'user',
         targetId: targetUser.id,
@@ -197,7 +189,7 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'grant_failed')
     }
   },
-  createAuthenticatedGuard({
+  createAdminGuard({
     route: '/api/admin/grant-credits',
     // Tighter than the default 30/60s. 10 grants/min × 10000 per request
     // is still 100k/min in burst, but the per-admin daily cap above puts

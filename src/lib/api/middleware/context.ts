@@ -294,8 +294,8 @@ export async function initializeApiContext(
     // Session fetch failed, continue without it
   }
 
-  // 5. Auth requirement check
-  if (options.requireAuth && !session?.user) {
+  // 5. Auth requirement check (requireAdmin implies authentication)
+  if ((options.requireAuth || options.requireAdmin) && !session?.user) {
     return {
       context: createEmptyContext(ip, locale),
       error: createErrorResponse({
@@ -304,6 +304,48 @@ export async function initializeApiContext(
         route,
         headers: rateLimitHeaders,
       }),
+    }
+  }
+
+  // 5b. Admin requirement check — centralizes the auth+admin gate that every
+  // /api/admin route used to repeat inline. A malformed session without a user
+  // id is treated as unauthenticated (401); an authenticated non-admin is
+  // forbidden (403).
+  if (options.requireAdmin) {
+    if (!userId) {
+      return {
+        context: createEmptyContext(ip, locale),
+        error: createErrorResponse({
+          code: ErrorCodes.UNAUTHORIZED,
+          locale,
+          route,
+          headers: rateLimitHeaders,
+        }),
+      }
+    }
+    // Lazily import so admin.ts (and its prisma dependency) stays out of the
+    // static module graph of every non-admin route that uses this middleware.
+    const { isAdminUser } = await import('@/lib/auth/admin')
+    const isAdmin = await isAdminUser(userId, session?.user?.email)
+    if (!isAdmin) {
+      logger.warn('[Middleware] admin check failed', { route, userId })
+      return {
+        context: {
+          ip,
+          locale,
+          session,
+          userId,
+          isAuthenticated: true,
+          isPremium,
+          rateLimitHeaders,
+        },
+        error: createErrorResponse({
+          code: ErrorCodes.FORBIDDEN,
+          locale,
+          route,
+          headers: rateLimitHeaders,
+        }),
+      }
     }
   }
 

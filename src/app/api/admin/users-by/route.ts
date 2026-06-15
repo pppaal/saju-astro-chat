@@ -12,7 +12,7 @@
 import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createAdminGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -20,7 +20,6 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 import { realUserWhere } from '@/lib/admin/realUser'
 import type { Prisma } from '@prisma/client'
 
@@ -34,16 +33,8 @@ type Segment = (typeof SEGMENTS)[number]
 const PAYING_LIST_CAP = 1000
 
 export const GET = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, _context: ApiContext) => {
     try {
-      if (!context.userId || !context.session?.user?.email) {
-        return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
-      }
-      if (!(await isAdminUser(context.userId, context.session?.user?.email))) {
-        logger.warn('[admin/users-by] unauthorized', { userId: context.userId })
-        return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
-      }
-
       const segment = new URL(req.url).searchParams.get('segment') as Segment | null
       if (!segment || !SEGMENTS.includes(segment)) {
         return apiError(
@@ -136,7 +127,7 @@ export const GET = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
   },
-  createAuthenticatedGuard({
+  createAdminGuard({
     route: '/api/admin/users-by',
     limit: 60,
     windowSeconds: 60,

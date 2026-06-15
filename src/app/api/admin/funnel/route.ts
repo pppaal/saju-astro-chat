@@ -10,7 +10,7 @@
 import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createAdminGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -18,7 +18,6 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 import { adminDaysQuerySchema, formatZodErrors } from '@/lib/api/zodValidation'
 import type { Prisma } from '@prisma/client'
 
@@ -29,16 +28,8 @@ const realUserWhere: Prisma.UserWhereInput = {
 }
 
 export const GET = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, _context: ApiContext) => {
     try {
-      if (!context.userId || !context.session?.user?.email) {
-        return apiError(ErrorCodes.UNAUTHORIZED, 'Unauthorized')
-      }
-      if (!(await isAdminUser(context.userId, context.session?.user?.email))) {
-        logger.warn('[admin/funnel] unauthorized', { userId: context.userId })
-        return apiError(ErrorCodes.FORBIDDEN, 'Forbidden')
-      }
-
       // 잘못된 days 는 silent clamp 대신 422 — 오타를 기본값으로 흡수하면
       // 운영자가 의도와 다른 기간을 보고 있는 걸 알아챌 수 없다.
       const parsedQuery = adminDaysQuerySchema.safeParse(
@@ -131,5 +122,5 @@ export const GET = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')
     }
   },
-  createAuthenticatedGuard({ route: '/api/admin/funnel', limit: 30, windowSeconds: 60 })
+  createAdminGuard({ route: '/api/admin/funnel', limit: 30, windowSeconds: 60 })
 )

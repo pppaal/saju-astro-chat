@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import Stripe from 'stripe'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createAdminGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -10,7 +10,6 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { isAdminUser } from '@/lib/auth/admin'
 import { logAdminAction } from '@/lib/auth/adminAudit'
 import { revokeBonusCreditPurchase } from '@/lib/credits/creditService'
 import { getStripeOrNull } from '@/lib/stripe/client'
@@ -41,14 +40,7 @@ interface RefundResult {
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    if (!context.userId) {
-      return apiError(ErrorCodes.UNAUTHORIZED, 'unauthorized')
-    }
-    const isAdmin = await isAdminUser(context.userId, context.session?.user?.email)
-    if (!isAdmin) {
-      return apiError(ErrorCodes.FORBIDDEN, 'forbidden')
-    }
-
+    const adminUserId = context.userId!
     const body = await req.json().catch(() => ({}))
     const stripePaymentId: string | undefined = body?.stripePaymentId?.trim()
     const force: boolean = body?.force === true
@@ -167,7 +159,7 @@ export const POST = withApiMiddleware(
             purchaseId: purchase.id,
             feeWithheldKrw: String(feeWithheld),
             feeSource,
-            adminUserId: context.userId,
+            adminUserId,
           },
         },
         {
@@ -188,7 +180,7 @@ export const POST = withApiMiddleware(
 
     logger.info('[admin/refund-credit-pack] success', {
       stripePaymentId,
-      adminUserId: context.userId,
+      adminUserId,
       originalAmount,
       refundAmount,
       feeWithheld,
@@ -201,7 +193,7 @@ export const POST = withApiMiddleware(
     // logAdminAction; the refund itself has already happened on Stripe.
     await logAdminAction({
       adminEmail: context.session?.user?.email || '',
-      adminUserId: context.userId,
+      adminUserId,
       action: 'refund_credit_pack',
       targetType: 'bonus_credit_purchase',
       targetId: stripePaymentId,
@@ -231,7 +223,7 @@ export const POST = withApiMiddleware(
     }
     return apiSuccess(result as unknown as Record<string, unknown>)
   },
-  createAuthenticatedGuard({
+  createAdminGuard({
     route: '/api/admin/refund-credit-pack',
     limit: 20,
     windowSeconds: 60,
