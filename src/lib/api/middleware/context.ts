@@ -8,7 +8,6 @@ import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { requirePublicToken } from '@/lib/auth/publicToken'
-import { isAdminUser } from '@/lib/auth/admin'
 import { csrfGuard } from '@/lib/security/csrf'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '../errorHandler'
@@ -324,6 +323,9 @@ export async function initializeApiContext(
         }),
       }
     }
+    // Lazily import so admin.ts (and its prisma dependency) stays out of the
+    // static module graph of every non-admin route that uses this middleware.
+    const { isAdminUser } = await import('@/lib/auth/admin')
     const isAdmin = await isAdminUser(userId, session?.user?.email)
     if (!isAdmin) {
       logger.warn('[Middleware] admin check failed', { route, userId })
