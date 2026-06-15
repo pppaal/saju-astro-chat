@@ -1035,7 +1035,10 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
             </div>
           </div>
           <div className={styles.dayScore}>
-            <ScoreDial score={day.score} label={ko ? '종합' : 'Overall'} />
+            {/* 일 점수는 일진층 signed-surprise 를 *그 해 분포로 정규화*한 상대 백분위
+                (절대값 아님). 월 최고일 점수 등 다른 tier 점수축과 직접 비교 불가라
+                '올해 기준' 으로 명시해 절대 평가로 오해되지 않게 한다. */}
+            <ScoreDial score={day.score} label={ko ? '올해 기준' : 'vs year'} />
             <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
           </div>
         </div>
