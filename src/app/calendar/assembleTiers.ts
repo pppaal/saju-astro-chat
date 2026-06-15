@@ -610,6 +610,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       id: s.id,
       sajuSide: ko ? sajuKo : (SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en')),
       astroSide: ko ? astroKo : (PLANET_EN_FROM_KO[astroKo] ?? astroKo),
+      sajuKo, // raw — 분야 라우팅이 로케일에 흔들리지 않게(EN 에선 영문이라 키워드 매칭 실패).
+      astroKo,
       meaning: stripCrossPair((ko ? s.korean : s.english) ?? ''),
       polarity: s.polarity,
       weight: s.weight,

@@ -253,8 +253,9 @@ const BAND_NOTE: Record<DayScoreBand, { ko: string; en: string }> = {
     en: 'Tailwind today — push hard on the domains that are switched on.',
   },
   mid: {
-    ko: '큰 기복 없이 무던한 하루 — 평소 페이스로.',
-    en: 'An even-keeled day — keep your usual pace.',
+    // '큰 기복 없이' 같은 단정은 강한 흉신(−3)이 깔린 날과 모순될 수 있어 피한다.
+    ko: '무리한 확장만 피하면 무난한 하루 — 아래 켜진 분야 위주로.',
+    en: 'Steady if you avoid overreaching — lean on the active areas below.',
   },
   low: {
     ko: '오늘은 역풍 — 큰 결정은 미루고 켜진 분야도 한 박자 천천히.',
@@ -364,6 +365,8 @@ export interface DayEvidenceInput {
   crossActivations: Array<{
     sajuSide: string
     astroSide: string
+    /** 분야 라우팅용 KO 텍스트(로케일 무관). 없으면 sajuSide/astroSide 로 폴백. */
+    route?: string
     meaning?: string
     polarity: number
   }>
@@ -427,7 +430,9 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
   }
   // 사주 × 점성 교차
   for (const c of input.crossActivations) {
-    const doms = crossDomains(`${c.sajuSide} ${c.astroSide} ${c.meaning ?? ''}`)
+    // 라우팅은 KO route 로(로케일 무관) — EN 표시일 때도 분야 분류가 동일해야
+    // 같은 차트가 KO/EN 에서 정반대 톤이 되는 버그가 안 난다.
+    const doms = crossDomains(c.route ?? `${c.sajuSide} ${c.astroSide} ${c.meaning ?? ''}`)
     const text = `${c.sajuSide} ↔ ${c.astroSide}`
     for (const d of doms) out[d].push({ text, polarity: c.polarity, kind: 'cross' })
   }
