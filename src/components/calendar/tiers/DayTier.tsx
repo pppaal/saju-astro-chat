@@ -681,15 +681,26 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
 
   // ── 쉬운 요약 — 점수 구간으로 "오늘 어때" 한 줄 + 좋은것/조심 카드 ──
   const dayBand = day.score >= 60 ? 'good' : day.score >= 35 ? 'mid' : 'low'
+  // 강한 흉신 카운트 — 이미 day 에 있는 신호(allSignals/transits)에서 polarity ≤ −2
+  // 인 항목 수. 점수는 중(中)인데 강한 −신호가 여럿이면 '무난'은 거짓이 되므로,
+  // mid 밴드를 '기복 큰 날'로 정직하게 바꾼다(데이터로만, 차트별 일반화).
+  const strongNegSignals = (day.allSignals ?? []).filter((s) => s.polarity <= -2).length
+  const strongNegTransits = day.transits.filter((t) => t.polarity <= -2).length
+  const strongNegCount = Math.max(strongNegSignals, strongNegTransits)
+  const midButTense = dayBand === 'mid' && strongNegCount >= 2
   const dayHeadline =
     dayBand === 'good'
       ? ko
         ? '오늘은 순풍 — 흐름이 우호적인 날'
         : 'Tailwind today — the flow favors you'
       : dayBand === 'mid'
-        ? ko
-          ? '오늘은 무난한 흐름이에요'
-          : 'A steady, easygoing day'
+        ? midButTense
+          ? ko
+            ? '기복이 큰 날 — 좋고 나쁨이 갈려요'
+            : 'A day of swings — highs and lows split'
+          : ko
+            ? '오늘은 무난한 흐름이에요'
+            : 'A steady, easygoing day'
         : ko
           ? '오늘은 조심하는 게 좋은 날'
           : 'A day to tread carefully'
@@ -699,9 +710,13 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
         ? '하고 싶던 일을 밀어붙이기 좋아요. 연락·제안·중요한 결정에 우호적인 날.'
         : 'Good day to push what you want forward — outreach, proposals, big calls.'
       : dayBand === 'mid'
-        ? ko
-          ? '큰일을 새로 벌이기보다 정리·마무리에 좋은 날. 무리만 안 하면 무난해요.'
-          : 'Better for wrapping up than starting big. Fine as long as you don’t overreach.'
+        ? midButTense
+          ? ko
+            ? '큰 결정·충돌·이동은 한 박자 늦추고, 잘 풀리는 분야 위주로 가세요.'
+            : 'Postpone big calls, clashes and travel; lean on the areas that flow.'
+          : ko
+            ? '큰일을 새로 벌이기보다 정리·마무리에 좋은 날. 무리만 안 하면 무난해요.'
+            : 'Better for wrapping up than starting big. Fine as long as you don’t overreach.'
         : ko
           ? '새 일을 벌이기보다 점검·휴식에 좋은 날. 중요한 결정은 가능하면 미루세요.'
           : 'Better for review and rest than new ventures. Postpone big decisions if you can.'

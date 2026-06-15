@@ -185,12 +185,12 @@ export function deriveConvergence(
         astroPolNet += s.polarity * imp
         // 늘 켜진 최외곽 배경(천왕·해왕·명왕)은 칩에서 숨긴다 — 무거움 합산엔
         // 반영하되 표시는 그날 *구별되는* 점성 신호(달·수성·금성·화성·각 접촉)만.
-        const n = cleanName(s)
+        const n = cleanName(s, lang)
         if (n && astro.length < 3 && !astro.includes(n) && !isSlowBackgroundAstro(s)) astro.push(n)
       } else {
         sajuHeavy += imp
         sajuPolNet += s.polarity * imp
-        const n = cleanName(s)
+        const n = cleanName(s, lang)
         if (n && saju.length < 3 && !saju.includes(n)) saju.push(n)
       }
       // 의미 한 줄용 — 무거운 신호의 polarity 누적 (톤 판정용)

@@ -7,6 +7,7 @@ export interface HeavySignalInput {
   kind: string
   name?: string | null
   korean?: string | null
+  english?: string | null
 }
 
 // 무거운 점성 = 느린 행성 transit + lifecycle/eclipse/angle-contact.
@@ -55,8 +56,11 @@ export function isHeavySaju(s: HeavySignalInput): boolean {
   return /용신 활성/.test(s.korean || s.name || '')
 }
 
-export function cleanSignalName(s: HeavySignalInput): string {
-  const raw = (s.korean || s.name || '').replace(/\s*\([^)]*\)/g, '').trim()
+export function cleanSignalName(s: HeavySignalInput, lang: 'ko' | 'en' = 'ko'): string {
+  // EN 페이지에선 사주 메타포(돼지와 돼지의 자형…)가 한글로 새지 않게 english 우선.
+  // english 가 없으면(astro 라벨 등 영문 name) korean/name 폴백.
+  const source = lang === 'en' ? s.english || s.name || s.korean : s.korean || s.name
+  const raw = (source || '').replace(/\s*\([^)]*\)/g, '').trim()
   // 라벨은 "<핵심> — <설명>" 형식이 많다(예: "돼지와 돼지의 자형 — 깊은 생각…").
   // 칩엔 핵심만 — 설명까지 넣고 28자 하드컷 하면 단어 중간이 잘려 깨져 보인다.
   const head = raw.split('—')[0].trim()
