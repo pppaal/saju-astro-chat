@@ -709,6 +709,12 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
       )}
 
       {/* ===== calendar heatmap — 메인. 한눈에 좋은 날/주의 날 색으로. ===== */}
+      <div className={styles.secHead} style={{ marginTop: 28 }}>
+        <h2 className={styles.secTitle}>{ko ? '시간 흐름 보기' : 'Time flow'}</h2>
+        <span className={styles.tiny}>
+          {ko ? '흐름표 달력 · 날짜별 길흉' : 'flow calendar · day by day'}
+        </span>
+      </div>
       <div className={styles.calGrid}>
         {(ko ? DOWS : DOWS_EN).map((d, i) => (
           <div className={styles.calDow} key={`dow-${i}`}>
