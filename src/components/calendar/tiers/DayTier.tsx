@@ -724,12 +724,13 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
   // 옛 코드는 mid 밴드만 '기복 큰 날'로 보정했는데, 화해 단계가 모든 밴드로 일반화
   // — 좋은날인데 강한 흉신이 끼면(tense) 헤드라인을 정직하게, 조심날인데 살릴
   // 구석이 있으면(bright) 한 단계 올린다. 점수는 그대로(서술 톤만 화해).
+  // adapter(toDay)가 항상 day.dayTone 을 채운다. fallback 은 타입 안전용 — reasonNet
+  // 은 adapter 만 정확히 계산하므로 0(중립)으로 두고 밴드 톤을 그대로 따른다.
   const verdict: DayVerdict =
     day.dayTone ??
     reconcileDayTone({
       score: day.score,
-      strongPos: (day.allSignals ?? []).filter((s) => s.polarity >= 2).length,
-      strongNeg: (day.allSignals ?? []).filter((s) => s.polarity <= -2).length,
+      reasonNet: 0,
       hasGoodReason: (day.topReasons ?? []).length > 0,
       hasCautionReason: (day.cautions ?? []).length > 0,
     })
