@@ -15,26 +15,26 @@
  * verdict 로 묶어, 헤드라인·한줄·칩이 같은 톤을 말하도록 조정한다(단일 권위).
  * 점수 값 자체는 건드리지 않는다 — 등급 분포·golden 불변, **서술 톤만 화해**한다.
  *
- * 기존 DayTier 의 `midButStrongNeg → 기복 큰 날` ad-hoc 보정(중 밴드 한정)을
- * 모든 밴드로 일반화한 정본이다.
+ * 발동 신호 = `reasonNet`: topReasons/cautions 를 만드는 바로 그 층(월·일·시·정점)의
+ * impact(polarity×weight×layerWeight) 합. *부호*만 본다 — 차트마다 절대 크기가
+ * 달라도 "점수 밴드의 낙관 방향과 큐레이션된 사유의 net 방향이 어긋나는가"는
+ * 차트 독립적이다. (옛 구현은 |polarity|≥2 신호의 *절대 개수*로 판단했는데, 하루
+ * 신호가 100~190개라 길·흉 강신호가 항상 수십 개씩 있어 매일 발동 → 모든 날이
+ * 'mixed' 로 뭉개지는 버그였다. 부호 기반으로 교정.)
  */
 
 export type DayBand = 'good' | 'mid' | 'low'
 export type DayTone = 'positive' | 'mixed' | 'caution'
 
-/** 강한 신호로 치는 polarity 임계 — |polarity| ≥ STRONG_POLARITY. */
-export const STRONG_POLARITY = 2
-
-/** 톤을 한 단계 갉아먹/끌어올리는 강한 신호 최소 개수. */
-const STRONG_SIGNAL_FLIP = 2
-
 export interface DayToneInput {
   /** 사용자에게 실제 보여주는 점수(day.score = favorScore ?? derivedScore). */
   score: number
-  /** 강한 길신호 수 (polarity ≥ +STRONG_POLARITY). */
-  strongPos: number
-  /** 강한 흉신호 수 (polarity ≤ −STRONG_POLARITY). */
-  strongNeg: number
+  /**
+   * 큐레이션 사유 층(월·일·시·정점)의 impact 합(polarity×weight×layerWeight).
+   * 부호만 사용: >0 우호 우세, <0 주의 우세. summary.ts 의 topReasons/cautions 와
+   * 같은 모집단·같은 가중이라 "칩이 실제로 어느 쪽으로 기우는가"를 대표한다.
+   */
+  reasonNet: number
   /** 보여줄 '좋은 것' 사유가 있는지 (topReasons 비어있지 않음). */
   hasGoodReason: boolean
   /** 보여줄 '조심할 것' 사유가 있는지 (cautions 비어있지 않음). */
@@ -46,9 +46,9 @@ export interface DayVerdict {
   band: DayBand
   /** 헤드라인·한줄·칩이 함께 따라야 할 화해된 톤. */
   tone: DayTone
-  /** 낙관 밴드(good/mid)인데 강한 흉신호·주의 사유가 이를 갉아먹음. */
+  /** 낙관 밴드(good/mid)인데 큐레이션 사유가 net 주의로 기욺 → 한 단계 낮춤. */
   tense: boolean
-  /** 주의 밴드(low)인데 강한 길신호·우호 사유로 살릴 구석이 있음. */
+  /** 주의 밴드(low)인데 큐레이션 사유가 net 우호로 기욺 → 한 단계 올림. */
   bright: boolean
 }
 
@@ -59,38 +59,27 @@ export function scoreToBand(score: number): DayBand {
   return 'low'
 }
 
-/** polarity 배열에서 강한 길/흉 신호 수 카운트(보여주는 신호 전체 기준). */
-export function countStrong(polarities: readonly number[]): {
-  strongPos: number
-  strongNeg: number
-} {
-  let strongPos = 0
-  let strongNeg = 0
-  for (const p of polarities) {
-    if (p >= STRONG_POLARITY) strongPos++
-    else if (p <= -STRONG_POLARITY) strongNeg++
-  }
-  return { strongPos, strongNeg }
-}
-
 /**
- * 점수 밴드 + 실제 신호/사유 → 화해된 verdict.
+ * 점수 밴드 + 큐레이션 사유 net → 화해된 verdict.
  *
- * tense: 낙관 밴드인데 (강한 흉신호 ≥2) 또는 (보여줄 게 '조심할 것'뿐) → 한 단계
- *        낮춰 헤드라인이 "밀어붙여" 같은 거짓 확신을 주지 않게 한다.
- * bright: 주의 밴드인데 (강한 길신호 ≥2) 또는 (보여줄 게 '좋은 것'뿐) → 한 단계
- *         올려 "전부 나쁘다"는 거짓 인상을 막는다.
+ * tense: 낙관 밴드(good/mid)인데 사유 net 이 음(주의 우세)이거나, 보여줄 게
+ *        '조심할 것'뿐 → 한 단계 낮춰 헤드라인이 거짓 확신을 주지 않게.
+ * bright: 주의 밴드(low)인데 사유 net 이 양(우호 우세)이거나, 보여줄 게
+ *         '좋은 것'뿐 → 한 단계 올려 "전부 나쁘다"는 거짓 인상을 막음.
+ *
+ * 정상 차트에선 좋은날 net>0 / 나쁜날 net<0 라 대개 발동하지 않고 밴드 톤을 그대로
+ * 유지한다 — 화해는 *밴드와 사유가 실제로 어긋날 때만* 개입하는 안전망이다.
  */
 export function reconcileDayTone(input: DayToneInput): DayVerdict {
   const band = scoreToBand(input.score)
 
   const tense =
     (band === 'good' || band === 'mid') &&
-    (input.strongNeg >= STRONG_SIGNAL_FLIP || (input.hasCautionReason && !input.hasGoodReason))
+    (input.reasonNet < 0 || (input.hasCautionReason && !input.hasGoodReason))
 
   const bright =
     band === 'low' &&
-    (input.strongPos >= STRONG_SIGNAL_FLIP || (input.hasGoodReason && !input.hasCautionReason))
+    (input.reasonNet > 0 || (input.hasGoodReason && !input.hasCautionReason))
 
   let tone: DayTone = band === 'good' ? 'positive' : band === 'mid' ? 'mixed' : 'caution'
   if (tense && tone === 'positive') tone = 'mixed'
