@@ -24,9 +24,11 @@ describe('humanizeReason — 표시 평어화', () => {
 
   it('별자리·dignity 정리', () => {
     expect(humanizeReason('↑ [월운] Jupiter 엑잘테이션 (고양) (Cancer)')).toBe(
-      '↑ 이달 · 목성 고양 (게자리)'
+      '↑ 이달 · 목성 가장 좋은 자리(고양) (게자리)'
     )
-    expect(humanizeReason('↓ [세운] Saturn 폴 (추락) (Aries)')).toBe('↓ 올해 · 토성 추락 (양자리)')
+    expect(humanizeReason('↓ [세운] Saturn 폴 (추락) (Aries)')).toBe(
+      '↓ 올해 · 토성 가장 약한 자리(추락) (양자리)'
+    )
   })
 
   it('ZR 챕터의 별자리·행성만 한국어화', () => {
