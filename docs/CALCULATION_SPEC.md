@@ -1,219 +1,221 @@
-# Calculation Spec: Modern Destiny Core And Service Pipeline
+# Calculation Spec: Deterministic Saju + Astrology Pipeline
 
-Last audited: 2026-04-01 (Asia/Hong_Kong)
+Last audited: 2026-06-15 (Asia/Hong_Kong)
 
-This spec is code-derived for the active destiny stack. It replaces the older report-only view with the current core-first pipeline used by calendar, counselor, and report surfaces.
+> Historical note: the `src/lib/destiny-matrix`
+> "Raw Input -> Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation"
+> matrix core and its GraphRAG sidecar were removed around 2026-06-05. The
+> `tokenCompiler` / `ontology` / `activationEngine` / `ruleEngine` /
+> `scenarioEngine` / `decisionEngine` / `evaluationSuite` / `inputVerdictAudit`
+> layers, the snapshot input contract, and the `/api/calendar`,
+> `/api/destiny-map`, `/api/destiny-matrix` routes no longer exist. This spec
+> is code-derived from the calculation pipeline that actually ships.
 
-## Scope And Primary Entrypoints
+This document describes the deterministic calculation layers only: the Saju
+core, the Astrology core, the fact collectors, cross fusion, and the calendar
+engine signal model. Everything here is computed without an LLM. The LLM
+surfaces (counselor, compatibility, tarot) are documented in
+`DESTINY_ENGINE_ARCHITECTURE.md`.
 
-### Core judgment
+## 1. Saju core
 
-- `src/lib/destiny-matrix/core/runDestinyCore.ts`
-- `src/lib/destiny-matrix/core/canonical.ts`
-- `src/lib/destiny-matrix/core/adapters.ts`
+### Entry point
 
-### Evidence and audit sidecar
+`src/lib/saju/saju.ts`
 
-- `src/lib/destiny-matrix/core/nextGenPipeline.ts`
-- `src/lib/destiny-matrix/core/evaluationSuite.ts`
-- `src/lib/destiny-matrix/core/inputVerdictAudit.ts`
+```
+calculateSajuData(
+  birthDate: string,           // 'YYYY-MM-DD'
+  birthTime: string,           // 'HH:MM' (AM/PM and bare-hour forms normalized)
+  gender: 'male' | 'female',
+  calendarType: 'solar' | 'lunar',
+  timezone: string,
+  lunarLeap?: boolean,         // only meaningful when calendarType === 'lunar'
+  longitude?: number,          // true-solar-time (LMT) correction
+): CalculateSajuDataResult
+```
 
-### Presentation surfaces
+Lunar input is converted to solar first; the result is LRU-cached on the full
+argument tuple.
 
-- Calendar:
-  - `src/app/api/calendar/route.ts`
-  - `src/app/api/calendar/action-plan/route.ts`
-- Counselor:
-  - `src/app/api/destiny-map/chat-stream/route.ts`
-  - `src/lib/destiny-matrix/counselorEvidence.ts`
-- Report:
-  - `src/lib/destiny-matrix/ai-report/aiReportService.ts`
+### Output: `CalculateSajuDataResult` (`src/lib/saju/types.ts`)
 
-### GraphRAG evidence
+- `yearPillar` / `monthPillar` / `dayPillar` / `timePillar` (legacy flat) and
+  `pillars: { year, month, day, time }` (nested) — each a `PillarData`.
+- `daeWoon: { startAge, isForward, current, list }`.
+- `unse: { daeun[], annual[], monthly[] }`.
+- `fiveElements: { wood, fire, earth, metal, water }`.
 
-- `src/lib/destiny-matrix/ai-report/graphRagEvidence.ts`
+### Analysis helpers (re-exported from `src/lib/saju/index.ts`)
 
-## Runtime Shape
+- `analyzeStrength` (`tonggeun.ts`) — body strength / 통근 rooting.
+- `determineGeokguk` (`geokguk.ts`) — structure (격국).
+- `determineYongsin` (`yongsin.ts`) — useful god (용신).
+- `getTwelveStagesForPillars` and `annotateShinsal` (`shinsal.ts`) — 12 stages
+  and shinsal annotation.
+- `analyzeRelations` (`relations.ts`) — branch relations (형충회합).
+- `getDaeunCycles` / `getAnnualCycles` / `getMonthlyCycles` /
+  `getIljinCalendar` (`unse.ts`) — luck cycles.
 
-Current deterministic runtime:
+Supporting data/util: `constants.ts`, `tonggeun.ts`, `dayPillar.ts`,
+`cycles.ts`, `johuYongsin.ts`.
 
-- `Raw Input -> Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation`
+## 2. Astrology core
 
-### Feature
+### Entry point
 
-- raw saju, astrology, advanced astrology, snapshots, cross inputs
-- `tokenCompiler`
-- `ontology`
-- 10-layer matrix as evidence
+`src/lib/astrology/foundation/astrologyService.ts`
 
-### Rule
+```
+calculateNatalChart(input): Promise<NatalChartData>
+toChart(natal): Chart
+```
 
-- `activationEngine`
-- `ruleEngine`
-- `stateEngine`
+`NatalChartData` carries `planets` (name, sign, house, longitude, retrograde),
+ascendant/MC, and houses.
 
-### Pattern
+### Supporting modules
 
-- `signalSynthesizer`
-- `patternEngine`
+- Aspects: `aspects.ts` (`findNatalAspects`, etc.).
+- Houses: `houses.ts`. Extra points: `extraPoints.ts`. Dignities: `dignities.ts`.
 
-### Scenario
+### Advanced techniques (sibling files)
 
-- `scenarioEngine`
-- `manifestationEngine`
+- `calculateSecondaryProgressions` (`progressions.ts`)
+- `calculateSolarReturn` / `calculateLunarReturn` (`returns.ts`)
+- `calculateComposite` (`composite.ts`)
+- `calculateSynastry` (`synastry.ts`)
+- Plus profections, zodiacal releasing, eclipses, fixed stars, midpoints,
+  arabic parts, almuten figuris.
 
-### Verdict
+## 3. Fact collectors (the SSOT)
 
-- `decisionEngine`
-- `canonical`
-- adapters for calendar, counselor, report
+The fact collectors are the single processing point that all surfaces read
+from. They return raw structured JSON; no text formatting, no LLM.
 
-### Evaluation
+### `collectSajuFacts` (`src/lib/destiny/sajuFacts.ts`)
 
-- `evaluationSuite`
-- `inputVerdictAudit`
-- `nextGenPipeline`
+Input `SajuFactsInput`: `birthDate`, `birthTime`, `gender`, `timezone?`,
+`longitude?`, `calendarType?`, `lunarLeap?`.
 
-## Inputs Actually Used
+Output `SajuFacts`:
 
-The modern stack consumes and audits these major input families:
+- `pillars` — `year`/`month`/`day`/`time` facts.
+- `dayMaster` — `{ name, element, yinYang, rooted }` (`rooted` = 통근).
+- `fiveElements` — `{ wood, fire, earth, metal, water }`.
+- `strength` — simplified `신강` / `신약` label (empty if it cannot be computed).
+- `geokguk` — structure label or `null`.
+- `yongsin` — `YongsinResult` or `null`.
+- `relations` — branch relations (형충회합).
+- `gwansalHonjap` — 관살혼잡 flag (정관 + 편관 together).
+- `daeun` — `{ current, list }`.
+- `johuYongsin` — seasonal-balance auxiliary yongsin or `null`.
+- `gongmang` — void branches (空亡).
+- `_raw` — original `calculateSajuData` result (escape hatch for callers, e.g.
+  the calendar context builder, that need the raw shape).
 
-- saju structure
-  - `dayMasterElement`
-  - `pillarElements`
-  - `sibsinDistribution`
-  - `twelveStages`
-  - `relations`
-  - `geokguk`
-  - `yongsin`
-- cycles and timing
-  - `currentDaeunElement`
-  - `currentSaeunElement`
-  - `currentWolunElement`
-  - `currentIljinElement`
-  - `currentIljinDate`
-  - `currentDateIso`
-  - `startYearMonth`
-- astrology
-  - `planetSigns`
-  - `planetHouses`
-  - `aspects`
-  - `activeTransits`
-  - `dominantWesternElement`
-- advanced astrology and extras
-  - `advancedAstroSignals`
-  - `asteroidHouses`
-  - `extraPointSigns`
-  - `astroTimingIndex`
-- snapshots
-  - `sajuSnapshot`
-  - `astrologySnapshot`
-  - `crossSnapshot`
-  - `profileContext`
+### `collectAstroFacts` (`src/lib/destiny/astroFacts.ts`)
 
-These are not just accepted by schema. They are tokenized and audited through `inputVerdictAudit`.
+Input `AstroFactsInput`: `birthDate`, `birthTime`, `latitude`, `longitude`,
+`timezone`, `birthTimeUnknown?`, `birthCityUnknown?`, `includeHellenistic?`.
 
-## Decision And Action Model
+Output `AstroFacts | null` (async; `null` on calculation failure):
 
-The current decision layer is more granular than the older commit/prepare model.
+- `natal` — `{ planets, ascendant, mc, placeUnreliable }`. Each planet carries
+  sign, house, longitude, retrograde, dignity.
+- `aspects` — `{ strong, mid }` split by orb (0-2 deg / 2-5 deg), major types only.
+- `profection` — `{ age, activatedHouse, activatedSign, lordOfYear,
+lordPlacement }` or `null`.
+- When `includeHellenistic` is set: the richer Hellenistic dataset
+  (Chiron/Lilith, arabic lots, zodiacal releasing, 5-tier dignities, almuten
+  figuris, minor aspects).
 
-Current action families include:
+`placeUnreliable` is set when birth time or birth city is unknown. Downstream
+surfaces must not cite house / ASC / MC / timing when it is true.
 
-- `commit_now`
-- `staged_commit`
-- `prepare_only`
-- `review_first`
-- `negotiate_first`
-- `boundary_first`
-- `pilot_first`
-- `route_recheck_first`
-- `lease_review_first`
-- `basecamp_reset_first`
+## 4. Cross fusion
 
-These actions are converted into locale-aware user labels by:
+`src/lib/cross/crossInterpret.ts`:
 
-- `src/lib/destiny-matrix/core/actionCopy.ts`
+- `lookupCross(saju, astro)` — find a `CrossMapping` for a saju key + astro key.
+- `crossMeaning(saju, astro, lang)` — the ko/en meaning string.
+- `rankActiveCrosses(...)` — rank the active correspondences.
 
-## Scenario Model
+The correspondence dictionary used by the calendar engine is
+`src/lib/calendar-engine/data/saju-astro-mapping.ts`:
 
-The scenario layer is now event-oriented and domain-specific.
+- `SAJU_ASTRO_MAPPINGS: CrossMapping[]`.
+- A saju side key is a ten-god or shinsal name (`정관`, `도화`, `역마`, ...);
+  the astro side key is a single planet (`Sun`..`Pluto`).
+- Each mapping has a grade `A | B | C` and ko/en meanings. Only A-grade pairs
+  are emitted as `cross-activation` signals.
+- Pair model in the extractor:
+  `pair.polarity = sign(saju.polarity x astro.polarity) x |mapping.polarity|`,
+  `pair.weight = saju.weight x astro.weight x 0.6`.
 
-Representative branches include:
+Natal cross synthesis for the report: `src/lib/report/natalCross.ts`.
 
-- relationship
-  - `distance_tuning_window`
-  - `boundary_reset_window`
-  - `commitment_preparation_window`
-  - `clarify_expectations_window`
-- career
-  - `promotion_review_window`
-  - `contract_negotiation_window`
-  - `manager_track_window`
-  - `specialist_track_window`
-- wealth
-  - `capital_allocation_window`
-  - `debt_restructure_window`
-  - `asset_exit_window`
-- move
-  - `route_recheck_window`
-  - `commute_restructure_window`
-  - `lease_decision_window`
-  - `basecamp_reset_window`
+## 5. Calendar engine signal model
 
-Timing pressure and branch tie-breaks now materially affect these rankings.
+### Pipeline
 
-## GraphRAG Role In The Current Pipeline
+`src/lib/calendar-engine/index.ts` -> `buildCalendar(natal, range, options):
+Promise<CalendarCell[]>`:
 
-GraphRAG is evidence support, not verdict generation.
+1. `buildNatalContext()` (`context/build.ts`) builds the `NatalContext`,
+   reusing `collectSajuFacts()` via the `_raw` escape hatch.
+2. ~25 extractors in `extractors/` (`saju-*`, `astro-*`) run in parallel and
+   produce `ActiveSignal[]`.
+3. The `cross-activation` post-pass synthesizes Saju x Astrology co-active
+   pairs from the A-grade `SAJU_ASTRO_MAPPINGS`.
+4. Signals are grouped into cells; derivers compute scores, salience, and
+   patterns.
 
-Current role split:
+### Inputs
 
-- Core decides `focusDomain`, `phase`, `topDecision`, `riskControl`
-- GraphRAG aligns evidence and cross-source support around that decision
-- Services present the same decision in different formats
+- `natal: NatalContext` (from `buildNatalContext`).
+- `range: CalendarRange` — `{ start, end, granularity: 'day' | 'hour' }`
+  (`'hour'` is the expensive mode).
+- `options: CalendarBuildOptions` — `enabledExtractors?`, `enablePatterns?`,
+  `includeEvidence?`.
 
-`move` is now a first-class GraphRAG domain.
+### `ActiveSignal` (`src/lib/calendar-engine/types.ts`)
 
-## Evaluation And Audit
+- `id` — unique key (e.g. `saju.shinsal.도화.2026-05-15`).
+- `source`, `kind`, `name`, `korean?`, `english?`.
+- `polarity` — -3..+3 fortune intensity.
+- `layer` — time scale; `active` — `ActiveWindow`.
+- `weight` — 0..1 (layer weight x intrinsic strength).
+- `evidence` — `SignalEvidence` (module name + raw detail for debugging).
 
-The sidecar pipeline exposes:
+### `CalendarCell`
 
-- replay alignment
-- contradiction audit
-- influence audit
-- timing sharpness
-- top scenario gap
-- top decision gap
-- scenario cluster compression
-- input coverage vs verdict pressure
+- `datetime` (ISO), `signals` (all active signals at that point).
+- `derivedScore` — 0..100 favorability (polarity-weighted sum).
+- `salience` — how notable the day is (rare x strong), orthogonal to
+  favorability; computed relative to the build chunk population.
+- `matchedPatterns` — `SignalPattern[]` (named signal combinations).
+- `topReasons` / `cautions` (KO) and `topReasonsEn` / `cautionsEn` (EN).
 
-Main files:
+### Rendering
 
-- `src/lib/destiny-matrix/core/evaluationSuite.ts`
-- `src/lib/destiny-matrix/core/inputVerdictAudit.ts`
-- `src/lib/destiny-matrix/core/nextGenPipeline.ts`
+Server-rendered only: `src/app/calendar/page.tsx` ->
+`src/app/calendar/assembleTiers.ts` (`assembleTiers`) consumes
+`CalendarCell[]` and assembles lifetime/decade/year/month/day tiers. There is
+no `/api/calendar` route.
 
-## Current QA Snapshot
+## 6. Data-reliability rule
 
-Verified in the current workspace on 2026-04-01:
+When birth time or birth city is unknown, `collectAstroFacts` / the natal
+context set `placeUnreliable = true`. Every downstream surface (counselor
+context, calendar, report) must suppress house / ASC / MC / hour-pillar /
+iljin-window claims in that case, because the engine would otherwise fall back
+to a midnight/Seoul default and produce plausible-but-wrong houses.
 
-- `python scripts/self_check.py`
-  - overall `PASS`
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
-  - blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
-  - overall `PASS=21 WARN=13 FAIL=8`
-  - `ko`: `PASS=5 WARN=8 FAIL=8`
-  - `en`: `PASS=16 WARN=5 FAIL=0`
+## 7. Verification
 
-## Practical Reading Rule
-
-When reading current code, do not treat the 10-layer matrix or GraphRAG as the whole product logic.
-
-The current order of trust is:
-
-1. `runDestinyCore(...)`
-2. `canonical`
-3. adapters
-4. GraphRAG evidence
-5. service presentation code
+- `npm run typecheck`
+- `npm run lint`
+- `npm test`
+- `npm run ops:destiny:release` (typecheck + the integrated-report release
+  tests)

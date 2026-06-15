@@ -1,128 +1,153 @@
-# AI 비용 모니터링 & 최적화 가이드
+# AI 비용 모니터링 가이드
 
-Last updated: 2026-05-26 (Asia/Hong_Kong)
+Last audited: 2026-06-15 (Asia/Hong_Kong)
 
-## 1. 현재 스택
+이 문서는 코드에서 **실제로 확인된** 것만 기술한다. 구현되지 않은 것은
+"미구현"으로 명시한다.
 
-- 단일 프로바이더: **Anthropic Claude** (`@anthropic-ai/sdk`)
-- 호출 경로: Next.js API 라우트 → Anthropic API 직접
-- Python backend `backend_ai`는 2026-05-06 폐기 (별도 LLM 비용 없음)
+## 1. 스택
 
-## 2. 모델별 단가 (USD / 1M tokens)
+- 단일 LLM 프로바이더: **Anthropic Claude** (raw HTTP, `@anthropic-ai/sdk` 미사용)
+- 호출 경로: Next.js API 라우트/lib → `https://api.anthropic.com/v1/messages` 직접 fetch
+- 모든 호출은 공유 wrapper `src/lib/llm/claude.ts` 의 `callClaude` / `callClaudeStream`
+  를 통과한다. 두 함수가 토큰/비용 메트릭을 자동 기록한다.
 
-| 모델 ID | Input | Output | Cache Read | 용도 |
-| --- | ---: | ---: | ---: | --- |
-| `claude-haiku-4-5-20251001` | $1 | $5 | $0.10 | 기본 — 캘린더, 상담사, 사주, 점성, 타로 후속, summarize |
-| `claude-sonnet-4-5-20250929` | $3 | $15 | $0.30 | 프리미엄(최상급) — 타로 메인 해석, 궁합 narrative, AI 리포트(품질 모드), cross-rules LLM |
+## 2. 사용 모델 (코드 확인)
 
-단가 표는 `src/lib/llm/claude.ts` `CLAUDE_PRICING` 상수가 source of truth. 가격 변경 시 그곳도 갱신.
+`src/lib/llm/claude.ts` 기준 — 두 모델만 정의/사용된다.
 
-## 3. 호출처별 모델 + 토큰 한도
+| 상수                   | 모델 ID                      | 용도                                     |
+| ---------------------- | ---------------------------- | ---------------------------------------- |
+| `DEFAULT_CLAUDE_MODEL` | `claude-haiku-4-5-20251001`  | 기본 — 대부분의 호출                     |
+| `PREMIUM_CLAUDE_MODEL` | `claude-sonnet-4-5-20250929` | 프리미엄 — 명시적으로 격상한 일부 라우트 |
 
-| 라우트 / 모듈 | 모델 | maxTokens | 비고 |
-| --- | --- | ---: | --- |
-| `api/destiny-map/chat-stream` (상담사) | Haiku | 2500 | 스트리밍 |
-| `api/calendar/ai-monthly`, `ai-narrative` | Haiku | 800 | 짧은 풀이 |
-| `lib/llm/calendarNarrativePolish` | Haiku | 2000 | 텍스트 윤문 |
-| `api/saju/route` | Haiku | 3500 | 사주 풀이 |
-| `api/astrology/route` | Haiku | 2500 | 점성 풀이 |
-| `api/tarot/interpret` | Haiku | 900~2400 | 5단계 호출 (개선 여지) |
-| `api/tarot/interpret-stream` | **Sonnet** | 4000~6000 | 스트리밍 (메인 리딩) |
-| `lib/Tarot/questionEngineV2` | Haiku | 420 | 질문 분류 (작음) |
-| `lib/ai/summarize` | Haiku | 500 | 요약 |
-| `api/compatibility/chat` | Haiku | 2000 | |
-| `api/compatibility/counselor` | Haiku | 3500 | |
-| `api/compatibility/narrative-stream` | **Sonnet** | 16000 | 프리미엄 궁합 |
-| `lib/destiny-matrix/ai-report/aiBackend` | Sonnet (quality) / Haiku (fast) | 5k~32k | 플랜별 |
-| `lib/fortune/cross-rules/llmRenderer`, `chat` | Sonnet | 1200~4000 | |
+`ClaudeModel` 타입이 이 두 ID 로 제한되어 있어, 그 외 모델은 타입 레벨에서 막힌다.
+모델을 지정하지 않으면 `DEFAULT_CLAUDE_MODEL` (Haiku) 이 쓰인다.
 
-## 4. 비용 절감 메커니즘 (적용된 것)
+Sonnet (premium) 을 명시적으로 쓰는 라우트 (코드 확인):
 
-### 4-1. 시스템 프롬프트 캐싱
-모든 `callClaude*` 경로의 system 블록은 `cache_control: { type: 'ephemeral' }` 자동 적용.
-- 첫 호출: cache_creation 단가 (input × 1.25)
-- 이후 5분 내 동일 시스템 프롬프트: **cache_read 단가 (input × 0.1)** — **90% 할인**
+- `src/app/api/tarot/interpret-stream/route.ts`
+- `src/app/api/counselor/realtime/route.ts`
+- `src/app/api/compatibility/counselor/route.ts`
 
-코드: `src/lib/llm/claude.ts` `callClaude` / `callClaudeStream`.
+> 참고: 위 ID 는 코드에 하드코딩된 현재 값이다. 모델을 올리거나 바꾸려면
+> `claude.ts` 의 `CLAUDE_PRICING`, `ClaudeModel`, `DEFAULT/PREMIUM_CLAUDE_MODEL`,
+> `MIN_CACHE_PREFIX_TOKENS` 네 곳을 함께 갱신해야 한다.
 
-### 4-2. User 컨텍스트 캐싱 (선택적)
-`CallClaudeOptions.cachedUserContext`로 큰 + 거의 정적인 user 블록 (차트 데이터, signals JSON 등)을 별도 캐시 블록으로 분리 가능.
+## 3. 단가 (source of truth)
 
-```ts
-await callClaude({
-  systemPrompt: SYSTEM,
-  cachedUserContext: bigChartFacts,  // 같은 유저의 여러 호출에 걸쳐 재사용
-  userPrompt: dynamicQuestion,
-  // ...
-})
+`src/lib/llm/claude.ts` 의 `CLAUDE_PRICING` 상수가 단가의 single source of truth.
+가격이 바뀌면 그곳을 갱신해야 한다.
+
+| 모델 ID                      | Input ($/1M) | Output ($/1M) | Cache Read ($/1M) |
+| ---------------------------- | -----------: | ------------: | ----------------: |
+| `claude-haiku-4-5-20251001`  |           $1 |            $5 |             $0.10 |
+| `claude-sonnet-4-5-20250929` |           $3 |           $15 |             $0.30 |
+
+USD 비용은 `calculateUsdCost(model, input, output, cacheRead)` 가 위 표로 계산한다.
+알 수 없는 모델 ID 가 들어오면 Haiku 단가로 fallback 한다. (cache **creation**
+토큰은 비용 계산식에 포함되지 않는다 — input/output/cache_read 만 합산한다.)
+
+## 4. 토큰 측정
+
+`callClaude` 와 `callClaudeStream` 모두 Anthropic 응답의 `usage` 를 읽어 토큰을 반환/기록한다.
+
+- 비스트리밍 (`callClaude`): `CallClaudeResult` 로 `inputTokens`, `outputTokens`,
+  `cacheReadTokens`, `cacheCreateTokens` 반환.
+- 스트리밍 (`callClaudeStream`): `message_start` 이벤트에서 input/cache_read/cache_create,
+  `message_delta` 이벤트에서 output 토큰을 누적. (반환 스트림은 텍스트만 흘리고,
+  토큰은 내부에서 메트릭으로만 기록한다.)
+
+읽는 `usage` 필드: `input_tokens`, `output_tokens`, `cache_read_input_tokens`,
+`cache_creation_input_tokens`.
+
+## 5. 프롬프트 캐싱
+
+- 모든 호출의 system 블록에 `cache_control: { type: 'ephemeral', ttl: '1h' }` 자동 적용.
+- TTL 1시간 확장은 베타 헤더 `extended-cache-ttl-2025-04-11` 로 활성화 (기본 ephemeral 은 5분).
+- `cachedUserContext` 옵션으로 큰 + 거의 정적인 user-side 컨텍스트(차트 데이터 등)를
+  별도 cached block 으로 분리 가능 (별도 cache_control breakpoint).
+- `priorTurns` (멀티턴) 사용 시 마지막 prior turn 에도 breakpoint 를 찍어 대화 히스토리를
+  cache read 로 재사용. breakpoint 는 최대 3개(system + cachedUserContext + 마지막 턴)
+  로 Anthropic 한도(4) 이내.
+- 모델별 최소 캐시 prefix: Haiku 4096 토큰, Sonnet 1024 토큰 (`MIN_CACHE_PREFIX_TOKENS`).
+  이보다 짧으면 cache_control 을 달아도 조용히 캐시되지 않는다.
+
+## 6. 비용 로깅 / 메트릭 (어디까지 구현되어 있나)
+
+**중요: LLM 비용/토큰을 영구 저장하는 DB 테이블은 없다.** `prisma/schema.prisma`
+에는 토큰·비용·LLM usage 원장이 없다. 크레딧 원장(`CreditTransaction`,
+`UserCredits`, `BonusCreditPurchase`)은 있지만 이는 결제·크레딧 추적용이며
+LLM 토큰 비용과는 무관하다.
+
+LLM 비용 가시성은 **프로세스 메모리 내 메트릭 카운터**로만 존재한다
+(`src/lib/metrics.ts` — in-memory `counters`/`timings`/`gauges` 객체). 프로세스
+재시작 시 초기화된다. 매 Claude 호출 후 emit 되는 카운터:
+
+```
+claude.tokens.input          { model, label }
+claude.tokens.output         { model, label }
+claude.tokens.cache_read     { model, label }
+claude.cache.hit_ratio_x1000 { model, label }
+claude.cost.usd_micro        { model, label }   # 비스트리밍만 — USD * 1,000,000 정수
 ```
 
-적용처:
-- 궁합 상담사(`compatibility/counselor`)·상담사(`counselor/realtime`) — 차트/signals를 cached block으로 분리해 동일 유저의 반복·멀티턴 호출에서 cache_read 단가 적용 (≈ 80% 입력 토큰 비용 절감)
-
-미적용 (잠재 절감 후보):
-- 상담사 multi-turn (`destiny-map/chat-stream`) — 차트 facts + 대화 히스토리를 cached로 분리하면 여러 턴 호출 절감
-- 궁합 narrative-stream — 두 사람 차트 데이터가 큼
-
-### 4-3. 모델 티어 분리
-- 기본 Haiku 4.5 ($1/$5) — 사용량 큰 일상 호출
-- 프리미엄 라우트만 Sonnet 격상 (paywall 가드 필수)
-
-### 4-4. maxTokens 작업별 튜닝
-`tarot/questionEngineV2` 420, `calendar/ai-monthly` 800 같이 짧은 출력은 짧게 잡음.
-
-### 4-5. Paywall + Rate limit
-- `ai-report` (플랜별 토큰) → 크레딧 차감 + `withApiMiddleware + createAuthenticatedGuard`
-- 그 외 비용 큰 라우트는 인증 + rate limit 필수
-
-## 5. 메트릭 + 알람
-
-### 자동 기록 (`src/lib/llm/claude.ts`)
-
-매 Claude 호출 후 다음 카운터 emit:
+추가로 매 호출마다 `recordExternalCall('anthropic', model, status, 0, {input, output})`
+가 호출되어 다음을 emit 한다:
 
 ```
-claude.tokens.input      { model, label }
-claude.tokens.output     { model, label }
-claude.tokens.cache_read { model, label }
-claude.cost.usd_micro    { model, label }   # USD * 1,000,000 (정수)
+external.anthropic.request   { model, status }
+external.anthropic.duration  { model }
+external.anthropic.tokens    { model, type: 'input' | 'output' }
 ```
 
-또 `recordExternalCall(provider='anthropic', model, status, durationMs, tokens)` 호출.
+> 차이 주의: `claude.cost.usd_micro` 는 **비스트리밍 (`callClaude`) 경로에서만**
+> emit 된다. 스트리밍 경로(`callClaudeStream`)는 토큰·cache 카운터와
+> `recordExternalCall` 은 기록하지만 `usd_micro` 카운터는 기록하지 않는다.
 
-### 대시보드 접근
+로그(logger) 기록도 매 호출 발생:
 
-- 관리자 대시보드: `/admin/dashboard` (`src/app/admin/dashboard/page.tsx`)
-- 환경변수: `ADMIN_EMAILS=email1@example.com,email2@example.com`
+- `[label] Claude usage` / `Claude stream usage` — input/output/cacheRead/cacheCreate/cacheHitRatio/model
+- 큰 prefix 인데 cache hit ratio < 5% 이고 cacheCreate=0 이면
+  `Claude cache miss on large prefix` 경고 (silent invalidator 신호)
+- 1회 호출 비용 > $0.10 이면 `Claude high-cost call` 경고 (비스트리밍 경로만)
 
-대시보드는 60초마다 자동 갱신, 서비스별 P95 latency / 에러율 / 외부 호출 통계 표시.
+메트릭은 `getMetricsSnapshot()`, `toPrometheus()`, `toOtlp()` 로 노출 가능
+(`src/lib/metrics/index.ts` re-export). 외부 모니터링은 이 스냅샷을 scrape 해야 한다.
 
-### 비용 알람 임계 (제안)
+### 대시보드
 
-- 일일 USD 합계 > $50 → Slack/이메일 경고
-- 시간당 cache_read 비율 < 30% → 시스템 프롬프트가 자주 바뀌고 있다는 신호 (캐싱 무효화)
-- Sonnet 호출 수 급증 → 프리미엄 라우트 가드 우회 시도 가능성
+- 관리자 대시보드: `/admin/dashboard` (`src/app/admin/dashboard/page.tsx`).
+  서비스별 외부 호출/latency/에러 통계를 표시한다.
 
-(현재 알람 자동화는 미설정 — `src/lib/metrics/index.ts`의 카운터 polling 또는 외부 모니터링 도구 wiring 필요)
+## 7. 크레딧과 LLM 비용의 관계
 
-## 6. 비용 점검 체크리스트 (월 1회)
+크레딧 시스템은 LLM 토큰 비용과 **분리되어** 있다 (`src/lib/credits/`,
+`src/lib/config/pricing.ts`).
 
-- [ ] `claude.cost.usd_micro` 월 합계 vs Anthropic 콘솔 청구액 일치 확인
-- [ ] 라벨별 비용 분포 — 한 라벨이 70% 넘으면 그 경로 점검
-- [ ] cache_read 비율 — 50% 미만이면 시스템 프롬프트 재검토
-- [ ] Sonnet 호출 추이 — premium 사용자 증가 vs 우회 호출 구분
-- [ ] 신규 라우트 추가 시 본 문서 표 갱신
+- 과금 단위: **질문 1개 = 크레딧 1개**. reading / compatibility / followUp 구분 없이
+  모두 일반 크레딧 1개씩 소비 (`consumeCredits`). 구독 플랜·기능 게이트는 폐지됨.
+- 크레딧 가격은 `CREDIT_PACKS` (`src/lib/config/pricing.ts`) 에 고정 — 팩별 KRW/USD.
+- 즉, 한 질문이 내부적으로 Claude 를 몇 번 호출하든(예: 멀티 스텝), 또 input/output
+  토큰이 얼마든, 사용자에게는 크레딧 1개로 일정하게 청구된다. 크레딧 차감 로직은
+  실제 토큰 비용(`claude.cost.usd_micro`)을 참조하지 않는다.
+- 따라서 "크레딧 매출"과 "Claude 비용"은 별개의 두 수치이며, 마진은 위 두 가지를
+  각각 집계해 비교해야 한다 (자동 대조 기능은 미구현).
 
-## 7. 추가 개선 여지 (P1/P2)
+## 8. 미구현 / 주의
 
-| 항목 | 절감 잠재 | 작업량 |
-| --- | --- | --- |
-| 상담사 chat-stream에 cachedUserContext 적용 | 차트 facts 5~10k 토큰을 multi-turn 캐시 → 큰 절감 | 1~2시간 |
-| 궁합 narrative-stream 캐싱 | 두 사람 차트 데이터 캐시 | 1시간 |
-| Anthropic Batch API (스케줄 작업) | 50% 추가 할인 | 2~3시간 |
-| Tarot interpret 5회 호출 통합 | 호출 횟수 감소 | 2시간 |
+- LLM 토큰·비용의 **영구 저장 없음** — 메트릭은 in-memory, 프로세스 재시작 시 소실.
+  월 누적 비용을 보려면 외부 모니터링(Prometheus/OTLP scrape)으로 메트릭을
+  지속화해야 한다.
+- **비용 알람 자동화 없음** — 임계 초과 시 로그 경고만 남고, Slack/이메일 등
+  알림 연동은 없다.
+- **크레딧↔실비용 자동 대조 없음** — 마진 점검은 수동.
 
-## 8. 재발 방지 가드
+## 9. 가드 (재발 방지)
 
-- 새 LLM 호출은 **반드시** `callClaude*` 공유 wrapper 통과 (raw fetch 금지) — 캐싱·메트릭이 자동 적용됨
-- 모델 ID는 하드코딩하지 말고 `CLAUDE_PRICING` 키 또는 `DEFAULT_CLAUDE_MODEL` / `PREMIUM_CLAUDE_MODEL` 상수 사용 — 오타 방지 (`claude-sonnet-4-6` 같은 존재 안 하는 ID 사고 재발 방지)
+- 새 LLM 호출은 반드시 `callClaude*` 공유 wrapper 를 통과시킬 것 (raw fetch 직접 금지)
+  — 캐싱·토큰 메트릭·비용 로깅이 자동 적용되는 유일한 경로다.
+- 모델 ID 는 하드코딩하지 말고 `DEFAULT_CLAUDE_MODEL` / `PREMIUM_CLAUDE_MODEL` 상수
+  또는 `CLAUDE_PRICING` 키를 사용할 것 (타입 `ClaudeModel` 로 강제됨).
+- 단가/모델 변경 시 `claude.ts` 의 `CLAUDE_PRICING` · `ClaudeModel` ·
+  `DEFAULT/PREMIUM_CLAUDE_MODEL` · `MIN_CACHE_PREFIX_TOKENS` 를 함께 갱신할 것.

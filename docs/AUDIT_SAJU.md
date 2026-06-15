@@ -2,14 +2,14 @@
 
 ## Scope
 
-- Engine: `src/lib/Saju/saju.ts`
-- Constants/solar terms: `src/lib/Saju/constants.ts`
+- Engine: `src/lib/saju/saju.ts`
+- Constants/solar terms: `src/lib/saju/constants.ts`
 - API entry: `src/app/api/saju/route.ts`
 - Determinism tests: `tests/lib/Saju/determinism-golden.test.ts`
 
 ## Entrypoints and Schema
 
-- Main compute entry: `calculateSajuData()` in `src/lib/Saju/saju.ts:162`.
+- Main compute entry: `calculateSajuData()` in `src/lib/saju/saju.ts:162`.
 - API entry validates input and delegates to engine in `src/app/api/saju/route.ts`.
 - Output includes:
   - Pillars (year/month/day/time)
@@ -27,13 +27,13 @@
 
 ## Correctness Checks (Code Evidence)
 
-- Timezone conversion uses `toDate(..., { timeZone })` in `src/lib/Saju/saju.ts:205-206`.
-- Supported solar-term year range enforced at `src/lib/Saju/constants.ts:119` and called at `src/lib/Saju/saju.ts:219`.
-- Solar terms resolved from KST table via `getSolarTermKST()` in `src/lib/Saju/constants.ts:242`.
-- Day pillar uses explicit JDN formula in `src/lib/Saju/saju.ts:275-284`.
-- Daeun start-age quantization is deterministic in `src/lib/Saju/saju.ts:127`.
-- Daeun direction and list generation handled in `src/lib/Saju/saju.ts:360+` and `src/lib/Saju/saju.ts:511+`.
-- Sibsin mapping is explicit in `src/lib/Saju/saju.ts:37`.
+- Timezone conversion uses `toDate(..., { timeZone })` in `src/lib/saju/saju.ts:205-206`.
+- Supported solar-term year range enforced at `src/lib/saju/constants.ts:119` and called at `src/lib/saju/saju.ts:219`.
+- Solar terms resolved from KST table via `getSolarTermKST()` in `src/lib/saju/constants.ts:242`.
+- Day pillar uses explicit JDN formula in `src/lib/saju/saju.ts:275-284`.
+- Daeun start-age quantization is deterministic in `src/lib/saju/saju.ts:127`.
+- Daeun direction and list generation handled in `src/lib/saju/saju.ts:360+` and `src/lib/saju/saju.ts:511+`.
+- Sibsin mapping is explicit in `src/lib/saju/saju.ts:37`.
 
 ## Strengths
 
@@ -43,7 +43,7 @@
 
 ## Risks / Edge Cases (Top 10)
 
-1. Year support is hard-limited to 1940-2050 (`src/lib/Saju/constants.ts:119`), causing hard failures for older/future dates.
+1. Year support is hard-limited to 1940-2050 (`src/lib/saju/constants.ts:119`), causing hard failures for older/future dates.
 2. Quality outside Asia/KST-centric assumptions is less proven (solar-term table is KST-based).
 3. Missing birth time fallback quality is not strongly validated in dedicated deterministic tests.
 4. DST edge behavior outside Korea needs explicit regression set.

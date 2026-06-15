@@ -1,183 +1,109 @@
 # Destiny Logging
 
-Last audited: 2026-04-01 (Asia/Hong_Kong)
+Last audited: 2026-06-15 (Asia/Hong_Kong)
 
-## Goal
+## Status
 
-Destiny logging should answer two questions without re-running the engine:
+The `src/lib/destiny-matrix` engine was removed during the early-June 2026
+restructure. The old version of this doc described a _plan_ to log a "canonical
+destiny envelope" into the `UserInteraction` table via
+`src/lib/destiny-matrix/core/logging.ts` and a `buildDestinyInteractionMetadata(...)`
+builder. None of that was implemented, and the module it referenced no longer
+exists. This doc now describes the logging that the codebase actually has.
 
-1. What did the core decide?
-2. How did the user react to that decision?
+There is no destiny-specific product-event log. Runtime logging is generic
+(structured logger + in-process metrics), and the only persisted per-request
+analytics is the anonymous `PageView` beacon.
 
-The current recommendation is to reuse the existing `UserInteraction` table and store a normalized destiny envelope in `metadata`.
+## Structured Logger
 
-## Current Storage Surfaces
+The single logging entry point is `src/lib/logger/index.ts`. It exports a
+`logger` singleton plus pre-bound domain loggers
+(`authLogger`, `paymentLogger`, `apiLogger`, `dbLogger`, `sajuLogger`,
+`astroLogger`, `tarotLogger`). It is imported by ~140 files across `src/`,
+including every real service route.
 
-### Existing tables
+API:
 
-- `UserInteraction`
-  - lightweight event log
-  - good fit for runtime destiny events
-- `CounselorChatSession`
-  - session transcript and message history
-  - not a substitute for analytics or regression logging
-- `ConsultationHistory`
-  - saved long-form content
-  - not a substitute for runtime event traces
+- `logger.debug(message, context?)`
+- `logger.info(message, context?)`
+- `logger.warn(message, contextOrError?)`
+- `logger.error(message, contextOrError?)`
+- `logger.domain(name)` → a `DomainLogger` that prefixes `[name]`
 
-## Recommended Write Path
+Behavior:
 
-Use `UserInteraction` with:
+- Test env (`NODE_ENV=test`): only `error` is emitted.
+- Development: human-readable lines with emoji + pretty-printed context.
+- Production: single-line JSON (`level`, `message`, `timestamp`, `context`, `error`)
+  for log collectors.
+- `warn` and `error` in production are additionally forwarded to Sentry via
+  `@/lib/telemetry` (`captureServerError`). Forwarding failures are swallowed to
+  avoid a logging loop.
 
-- `service`
-  - `calendar`
-  - `counselor`
-  - `report`
-- `type`
-  - event name such as `destiny_answer_rendered`
-- `theme`
-  - requested theme if available
-- `metadata`
-  - canonical destiny envelope
+The logger writes to the console / Sentry only. It does **not** write to the
+database, and there is no `UserInteraction` (or destiny-envelope) write path.
 
-This avoids a new migration while giving enough structure for replay, QA, and product analytics.
+## What The Real Routes Log
 
-## Canonical Metadata Shape
+The verified current service routes use the structured logger for diagnostics
+only — not for product analytics:
 
-Shared type:
+- `src/app/api/counselor/realtime/route.ts` — `logger.warn`/`logger.info`/`logger.error`
+  for validation failures, idempotent credit-skip, context-compute failure, and
+  refund failures.
+- `src/app/api/compatibility/counselor/route.ts` — same logger.
+- `src/app/api/tarot/interpret-stream/route.ts` — same logger.
 
-- `src/lib/destiny-matrix/core/logging.ts`
+These are transport/diagnostic logs (who failed, why), not a per-answer
+decision trace.
 
-Main builder:
+## In-Process Metrics
 
-- `buildDestinyInteractionMetadata(...)`
+`src/lib/metrics.ts` is an in-memory counter/timer/gauge registry
+(`recordCounter`, `recordTiming`, `recordGauge`, `getMetricsSnapshot`,
+`resetMetrics`, `toPrometheus`, `toOtlp`). `src/lib/metrics/index.ts` re-exports
+it and adds standardized helpers (`recordApiRequest`, `recordServiceOperation`,
+`recordAuthEvent`, `recordRateLimitHit`, `recordCreditUsage`, `recordExternalCall`,
+`recordCacheOperation`). `src/lib/metrics/schema.ts` defines the metric registry,
+standard labels, and SLA thresholds (p95 < 700ms, error rate < 0.5%).
 
-Important fields:
+Metrics live in process memory (not persisted) and are exposed through
+`src/app/api/admin/metrics/route.ts` (admin-only):
 
-- `eventType`
-- `service`
-- `lang`
-- `theme`
-- `sessionId`
-- `questionId`
-- `questionText`
-- `focusDomain`
-- `phase`
-- `phaseLabel`
-- `topDecisionId`
-- `topDecisionAction`
-- `topDecisionLabel`
-- `topScenarioIds`
-- `topPatternIds`
-- `policyMode`
-- `allowedActions`
-- `blockedActions`
-- `softChecks`
-- `hardStops`
-- `riskControl`
-- `confidence`
-- `crossAgreement`
-- `graphRagAnchorCount`
-- `graphRagTopAnchorId`
-- `graphRagTopAnchorSection`
-- `userRating`
-- `userFollowupCount`
-- `metadataVersion`
+- default JSON dashboard summary
+- `?format=prometheus`
+- `?format=otlp`
 
-## Event Set
+`destiny.report.*`, `tarot.reading.*`, and `astrology.chart.*` metric names are
+defined in the registry, but emission is sparse — only a few routes record
+metrics today (e.g. `src/app/api/tarot/route.ts`). Treat the metrics surface as
+operational monitoring, not a complete per-feature event stream.
 
-Current recommended event names:
+## Persisted Analytics: PageView
 
-- `destiny_question_opened`
-- `destiny_answer_rendered`
-- `destiny_followup_sent`
-- `destiny_feedback_submitted`
-- `destiny_report_viewed`
-- `destiny_calendar_action_viewed`
+The only persisted per-request log is the anonymous visit beacon:
 
-These should be treated as product events, not low-level transport logs.
+- Route: `src/app/api/track/visit/route.ts`
+- Model: `PageView` (`prisma/schema.prisma`)
 
-## Minimum Logging By Surface
+It stores a daily-rotating salted visitor hash (no raw IP/UA), pathname,
+referrer host, login flag, optional `userId`, coarse country, and device class.
+Writes are best-effort (DB failure is swallowed and returns `200`). Admin funnel
+and visitor dashboards read from this table
+(`src/app/api/admin/metrics/funnel/route.ts`, `src/app/api/admin/visitors/route.ts`).
 
-### Counselor
+## UserInteraction Model
 
-Log at least:
+`model UserInteraction` still exists in `prisma/schema.prisma` (id, userId,
+createdAt, type, service, rating, metadata, with two indexes). It has **zero
+callers in `src/`** — nothing reads or writes it. It is a dormant table, not the
+destiny logging mechanism the old doc proposed. Do not document it as active.
 
-- when the answer is rendered
-- when the user sends a follow-up
-- when the user gives a rating
+## Summary
 
-Must include:
-
-- question text
-- canonical focus domain
-- top decision label
-- top scenarios
-- policy mode
-- guardrails
-
-### Calendar
-
-Log at least:
-
-- when a user opens the action plan
-- when a user saves or acts on a recommended date
-
-Must include:
-
-- focus domain
-- top decision label
-- allowed and blocked actions
-- phase
-- risk control
-
-### Report
-
-Log at least:
-
-- when the report is rendered
-- when a user reaches the action-plan section
-- when a user downloads or saves the report
-
-Must include:
-
-- focus domain
-- top decision label
-- top scenario ids
-- confidence
-- cross agreement
-- GraphRAG anchor summary
-
-## What Not To Log
-
-Do not log:
-
-- full raw birth data in analytics events
-- full matrix payloads
-- full chat transcripts in `UserInteraction`
-- PII beyond what is already needed for the existing authenticated session model
-
-For analytics and QA, log the engine decision, not the whole private input.
-
-## Use In Regression And Calibration
-
-The point of this schema is not just analytics dashboards.
-
-It enables:
-
-- real user question regression review
-- domain hit analysis
-- follow-up and dissatisfaction clustering
-- comparison between `focusDomain` and asked theme
-- later calibration against outcome labels
-
-## Next Step To Wire It In
-
-Recommended order:
-
-1. counselor answer rendered event
-2. counselor follow-up event
-3. calendar action-plan opened event
-4. report viewed event
-
-That is enough to start collecting real product feedback without a schema migration.
+- Diagnostics: `src/lib/logger` → console + Sentry (warn/error in prod).
+- Monitoring: `src/lib/metrics` → in-memory, exposed at `/api/admin/metrics`.
+- Persisted analytics: `PageView` via `/api/track/visit`.
+- Not implemented: the destiny-envelope / `UserInteraction` event schema and the
+  per-answer decision trace described in the pre-restructure plan.

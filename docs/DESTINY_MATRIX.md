@@ -1,134 +1,139 @@
-# Destiny Matrix
+# Destiny Stack
 
-Last audited: 2026-04-01 (Asia/Hong_Kong)
+Last audited: 2026-06-15 (Asia/Hong_Kong)
+
+> Historical note: an earlier `src/lib/destiny-matrix` "10-layer matrix /
+> rule / scenario / verdict" engine and its GraphRAG sidecar were removed
+> around 2026-06-05. None of that code exists anymore. This document
+> describes the current stack as it actually ships.
 
 ## What It Is
 
-The destiny engine in `src/lib/destiny-matrix` is no longer just a 10-layer matrix scorer. The current runtime is a deterministic judgment engine with explicit evidence, rule, scenario, verdict, and evaluation zones.
+The destiny stack is a deterministic fact + fusion pipeline that feeds a
+streaming LLM counselor. There is no monolithic "core" engine. Instead the
+work is split into small, separately testable modules:
 
-Current runtime shape:
+1. Deterministic Saju + Astrology calculation (raw structured facts).
+2. Cross fusion (Saju ↔ Astrology correspondence lookup).
+3. A calendar engine that turns facts into time-windowed signals.
+4. Context builders that assemble the facts into a prompt.
+5. An LLM layer (`callClaude` / SSE streaming) that produces the answer.
 
-- `Raw Input -> Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation`
+Nothing in the stack invents meaning outside the deterministic layers; the
+LLM only narrates the structured context it is handed.
 
-Current role split:
+## Module Map
 
-- Core: judgment
-- GraphRAG: evidence alignment and grounding
-- Calendar / Counselor / Report: presentation
+### Deterministic facts
 
-## Core Pipeline
+- `src/lib/destiny/sajuFacts.ts` -> `collectSajuFacts()` — runs
+  `calculateSajuData()` and returns raw structured Saju facts (pillars,
+  strength label, geokguk, yongsin, etc.). No text formatting.
+- `src/lib/destiny/astroFacts.ts` -> `collectAstroFacts()` — runs
+  `calculateNatalChart()` and returns raw structured natal/timing facts.
+  Async, returns `null` on failure.
 
-Primary entrypoint:
+### Cross fusion
 
-- `src/lib/destiny-matrix/core/runDestinyCore.ts`
+- `src/lib/cross/crossInterpret.ts` -> `lookupCross()`, `crossMeaning()`,
+  `rankActiveCrosses()`. Looks up Saju↔Astrology correspondences in the
+  mapping table and ranks the active ones.
 
-Major zones:
+### Compatibility
 
-### Feature
+- `src/lib/compatibility/compatSajuFacts.ts` -> `collectCompatSajuFacts()` and
+  `src/lib/compatibility/compatAstroFacts.ts` -> `collectCompatAstroFacts()`
+  collect the two-person facts.
+- `src/lib/compatibility/compatReport.ts` -> `buildCompatReport()` fuses the
+  synastry view with the saju synastry facts (`calculateSynastry` underneath).
+- `src/lib/compatibility/sajuSynastryFormatter.ts` formats the saju synastry
+  block.
 
-- `src/lib/destiny-matrix/core/tokenCompiler.ts`
-- `src/lib/destiny-matrix/core/ontology.ts`
-- 10-layer matrix inputs and summary from `src/lib/destiny-matrix/types.ts`
+### Calendar engine
 
-Feature compiles raw saju/astrology/cross inputs into shared semantic tokens and preserves the 10-layer matrix as evidence.
+- `src/lib/calendar-engine/index.ts` -> `buildCalendar(natal, range,
+options): Promise<CalendarCell[]>`.
+- `src/lib/calendar-engine/context/build.ts` -> `buildNatalContext()` builds
+  the `NatalContext` the engine consumes.
+- Around 25 extractors live in `src/lib/calendar-engine/extractors/`
+  (`saju-*`, `astro-*`, and a `cross-activation` post-pass).
+- Saju↔Astrology correspondence data: `src/lib/calendar-engine/data/saju-astro-mapping.ts`
+  (`SAJU_ASTRO_MAPPINGS`, A/B/C grades, ko/en meanings).
+- The calendar is rendered server-side at `src/app/calendar/page.tsx` via
+  `src/app/calendar/assembleTiers.ts`. There is no `/api/calendar` route.
 
-### Rule
+### Counselor context
 
-- `src/lib/destiny-matrix/core/activationEngine.ts`
-- `src/lib/destiny-matrix/core/ruleEngine.ts`
-- `src/lib/destiny-matrix/core/stateEngine.ts`
+- `src/lib/destiny/counselorContext.ts` -> `buildDestinyContext(birth, now,
+locale, displayTz?): Promise<{ stable, daily }>` assembles the natal
+  ("stable") and timing ("daily") prompt sections.
+- `src/lib/destiny/counselorContextCache.ts` -> `ensureCounselorContext()`
+  caches both halves in Redis (stable keyed by birth fingerprint, daily
+  keyed additionally by local date).
 
-Rule resolves natal structure, daeun/saeun/wolun/iljin, transits, advanced astrology, and domain state into activation pressure, gates, delays, and domain state.
+### LLM
 
-### Pattern
+- `src/lib/llm/claude.ts` -> `callClaude()`, `callClaudeStream()`,
+  `isClaudeAvailable()`.
+- `src/lib/llm/claudeSSE.ts` -> `streamClaudeAsSSE()`.
+- `src/lib/llm/claudeWithContinuation.ts` -> `streamClaudeWithContinuation()`
+  (auto-continues when `maxTokens` is hit).
+- Default model `claude-haiku-4-5-20251001`; premium/long-form
+  `claude-sonnet-4-5-20250929`. Prompt caching uses ephemeral (~1h) blocks.
 
-- `src/lib/destiny-matrix/core/signalSynthesizer.ts`
-- `src/lib/destiny-matrix/core/patternEngine.ts`
+### Prompts
 
-Pattern no longer reads raw matrix alone. It now reflects activation, resolved rule mode, state, and cross-agreement.
+- `src/lib/prompts/destinyCounselorPrompt.ts` -> `buildDestinyCounselorPrompt(lang)`.
+- `src/lib/prompts/compatibilityCounselorPrompt.ts` -> `buildCompatibilityCounselorPrompt(lang)`.
 
-### Scenario
-
-- `src/lib/destiny-matrix/core/scenarioEngine.ts`
-- `src/lib/destiny-matrix/core/manifestationEngine.ts`
-
-Scenario is event-oriented. It now handles detailed branches across:
-
-- relationship
-- career
-- wealth
-- health
-- move
-- timing
-
-It produces `whyNow`, `whyNotYet`, entry conditions, abort conditions, manifestation hints, and branch-specific timing pressure.
-
-### Verdict
-
-- `src/lib/destiny-matrix/core/decisionEngine.ts`
-- `src/lib/destiny-matrix/core/canonical.ts`
-- `src/lib/destiny-matrix/core/adapters.ts`
-
-Decision now supports more than simple commit/prepare. Current action space includes review-first, boundary-first, pilot-first, and move-specific actions such as route recheck and lease review.
-
-Canonical output is the contract that services should trust.
-
-### Evaluation
-
-- `src/lib/destiny-matrix/core/evaluationSuite.ts`
-- `src/lib/destiny-matrix/core/inputVerdictAudit.ts`
-- `src/lib/destiny-matrix/core/nextGenPipeline.ts`
-
-Evaluation provides:
-
-- architecture replay and contradiction checks
-- influence audit
-- input coverage vs verdict-pressure audit
-- timing sharpness and scenario compression metrics
-
-## Current Service Wiring
-
-### Calendar
-
-- Core adapter: `adaptCoreToCalendar(...)`
-- Main route: `src/app/api/calendar/route.ts`
-- Action plan route: `src/app/api/calendar/action-plan/route.ts`
-
-Calendar now prefers canonical labels and judgment policy fields over legacy score-first summaries.
+## Service Wiring
 
 ### Counselor
 
-- Core adapter: `adaptCoreToCounselor(...)`
-- Evidence packet: `src/lib/destiny-matrix/counselorEvidence.ts`
-- Route: `src/app/api/destiny-map/chat-stream/route.ts`
+- Route: `src/app/api/counselor/realtime/route.ts` (POST, SSE). Billed
+  1 credit per message. Flow: auth + rate-limit + credit pre-check ->
+  `ensureCounselorContext()` -> `buildDestinyCounselorPrompt()` ->
+  `streamClaudeAsSSE()`. Credit is consumed just before the stream starts and
+  refunded once on failure.
+- `src/app/api/counselor/warm/route.ts` pre-warms the context cache under the
+  same key when the user enters the chat.
+- Session persistence: `src/app/api/counselor/session/{save,load,list}/route.ts`.
+- Recovery (in case the SSE stream drops): `src/app/api/counselor/realtime/result/route.ts`.
 
-Counselor prompt assembly is now core-first. Canonical brief, advisory, timing window, manifestation, and GraphRAG evidence are aligned around the same focus domain.
+### Compatibility counselor
+
+- Route: `src/app/api/compatibility/counselor/route.ts` (POST, SSE). Collects
+  compat saju/astro facts -> `buildCompatibilityCounselorPrompt()` ->
+  `streamClaudeAsSSE()`, with credit consume + refund-once like the destiny
+  counselor. Recovery: `src/app/api/compatibility/counselor/result/route.ts` (GET).
+
+### Tarot
+
+- Route: `src/app/api/tarot/interpret-stream/route.ts` (POST, SSE), with
+  recovery at `src/app/api/tarot/interpret-stream/result/route.ts`.
+
+### Calendar
+
+- Rendered server-side via `src/app/calendar/page.tsx` ->
+  `assembleTiers()`. `assembleTiers` consumes `CalendarCell[]` produced by
+  `buildCalendar()` and assembles lifetime/decade/year/month/day tiers using
+  the calendar-engine derivers.
 
 ### Report
 
-- Core adapter: `adaptCoreToReport(...)`
-- Main generator: `src/lib/destiny-matrix/ai-report/aiReportService.ts`
+- `src/lib/report/local-report-generator.ts` -> `generateChartSummary()`.
+- `src/lib/report/natalCross.ts` provides natal Saju↔Astrology cross
+  synthesis helpers.
+- Integrated report page: `src/app/(main)/integrated-report/page.tsx` ->
+  `buildReportContext()`.
 
-Report now uses `reportCore` first for fact packs, fallback sections, and action-plan wording. GraphRAG remains evidence support, not the decision source.
+## Verification
 
-## Current QA Snapshot
+There are no destiny-specific QA scripts referenced by this stack anymore.
+Verify changes with:
 
-Verified in the current workspace on 2026-04-01:
-
-- `python scripts/self_check.py`
-  - overall `PASS`
-- `npx tsx scripts/ops/qa-destiny-three-services.ts --lang=both`
-  - blocked by a parse error in `src/lib/destiny-matrix/ai-report/aiReportService.ts`
-- `npx tsx scripts/ops/qa-counselor-questions.ts --lang=both`
-  - overall `PASS=21 WARN=13 FAIL=8`
-  - `ko`: `PASS=5 WARN=8 FAIL=8`
-  - `en`: `PASS=16 WARN=5 FAIL=0`
-
-## Operational Notes
-
-- The old 10-layer matrix still matters, but it is now the evidence layer, not the whole engine.
-- The current debugging path is:
-  - `runDestinyCore(...)` for judgment
-  - `buildNextGenCorePipeline(...)` for audit and explanation
-  - `scripts/ops/trace-destinypal-pipeline.ts` for end-to-end tracing
-- Service regressions should be checked with the dedicated destiny QA scripts before release.
+- `npm run typecheck`
+- `npm run lint`
+- `npm test`
+- `npm run ops:destiny:release` (typecheck + the integrated-report release
+  tests)

@@ -517,7 +517,7 @@ export function useCounselorData(sp: SearchParams) {
     }
 
     // Python AI backend was removed — counselor RAG prefetch is now a no-op.
-    // The chat itself runs through @anthropic-ai/sdk directly, no init step needed.
+    // The chat itself streams from the Anthropic Messages API (raw HTTP), no init step needed.
 
     // Cancel stale async writes AND abort in-flight requests on re-run / unmount.
     return () => {

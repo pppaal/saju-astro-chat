@@ -30,7 +30,7 @@ Most "AI fortune" apps are a thin wrapper around a single prompt: they paste a b
 That split is the whole point:
 
 - **Reproducible.** The same input yields the same verdict — it's code, not vibes.
-- **One core, many surfaces.** A single destiny core powers the calendar, the counselors, and the reports, so they never disagree with each other.
+- **One source of truth, many surfaces.** The same deterministic Saju + astrology facts power the calendar, the counselors, and the reports, so they never disagree with each other.
 - **Honest money model.** Credits are charged once per result, failed AI streams refund automatically, and pack sizes have a single source of truth.
 
 ## Screenshots
@@ -54,34 +54,55 @@ That split is the whole point:
 | Layer              | Choice                                                       |
 | ------------------ | ------------------------------------------------------------ |
 | Framework          | Next.js 16 (App Router) · React 19 · TypeScript              |
-| AI                 | Claude via `@anthropic-ai/sdk`, streamed over SSE            |
+| AI                 | Claude (Anthropic Messages API over HTTP), streamed over SSE |
 | Auth               | Auth.js v5 (NextAuth) — Google OAuth only (JWT sessions)     |
 | Payments           | Stripe one‑time **credit packs** (no subscriptions)          |
-| Data               | Prisma 7 (22 models)                                         |
+| Data               | Prisma 7 (24 models)                                         |
 | Cache / rate limit | Upstash Redis + in‑memory fallback                           |
-| Tests              | Vitest (≈16,000 unit tests) · Playwright E2E · k6 load tests |
+| Tests              | Vitest (~11,700 test cases) · Playwright E2E · k6 load tests |
 
 ## Architecture
 
-The deterministic core produces a verdict; thin adapters render it per surface.
+There is no single "god" engine. Two deterministic calculation cores (Saju and
+Western astrology) produce structured **facts**; a cross layer fuses them; and
+thin per-surface presenters render those facts for the calendar, counselors, and
+reports. Only the conversational surfaces call Claude — and only to turn
+already-decided facts into prose.
 
 ```mermaid
 flowchart LR
-    IN[Birth data / question] --> CORE
-    subgraph CORE["Destiny core — runDestinyCore.ts"]
+    IN[Birth data / question] --> SAJU[Saju core<br/>calculateSajuData]
+    IN --> ASTRO[Astro core<br/>calculateNatalChart]
+    SAJU --> FACTS
+    ASTRO --> FACTS
+    subgraph FACTS["Deterministic facts + fusion"]
       direction LR
-      F[Feature] --> R[Rule] --> P[Pattern] --> S[Scenario] --> V[Verdict]
+      SF[sajuFacts / astroFacts] --> CR[cross / crossInterpret]
     end
-    CORE --> CAL[Calendar adapter]
-    CORE --> CNS[Counselor adapter]
-    CORE --> REP[Report adapter]
+    FACTS --> CAL[Calendar · buildCalendar]
+    FACTS --> CNS[Destiny counselor · buildDestinyContext]
+    FACTS --> CMP[Compatibility · buildCompatReport]
+    FACTS --> REP[Report · generateChartSummary]
     CNS --> LLM[Claude · SSE]
-    REP --> LLM
+    CMP --> LLM
 ```
 
-- Core judgment entry: `src/lib/destiny-matrix/core/runDestinyCore.ts`
-- Presentation adapters live under `src/lib/destiny-matrix/core/`
-- The core decides timing/judgment; calendar, counselor, and report layers are **presentation only**.
+| Layer                     | Entry point                                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Saju core                 | `src/lib/saju/saju.ts` — `calculateSajuData()`                                                         |
+| Western astrology core    | `src/lib/astrology/foundation/astrologyService.ts` — `calculateNatalChart()`                           |
+| Deterministic facts       | `src/lib/destiny/sajuFacts.ts`, `src/lib/destiny/astroFacts.ts`                                        |
+| Saju ↔ astrology fusion   | `src/lib/cross/crossInterpret.ts`                                                                      |
+| Calendar engine           | `src/lib/calendar-engine/index.ts` — `buildCalendar()` over `buildNatalContext()`                      |
+| Destiny counselor context | `src/lib/destiny/counselorContext.ts` — `buildDestinyContext()` (cached by `counselorContextCache.ts`) |
+| Compatibility             | `src/lib/compatibility/compatReport.ts` — `buildCompatReport()`                                        |
+| Report summary            | `src/lib/report/local-report-generator.ts` — `generateChartSummary()`                                  |
+| Claude streaming          | `src/lib/llm/claude.ts` + `src/lib/llm/claudeSSE.ts` — `streamClaudeAsSSE()`                           |
+
+The cores decide the judgment deterministically; calendar, counselor,
+compatibility, and report layers are presentation only. The calendar is rendered
+server-side (`src/app/calendar/page.tsx`); the counselor, compatibility, and
+tarot surfaces stream Claude output over SSE.
 
 ## Quick start
 
@@ -122,24 +143,24 @@ Production additionally needs Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRE
 
 ## Repository snapshot
 
-Measured with `npm run docs:stats` on 2026-06-11:
+Measured with `npm run docs:stats` on 2026-06-15:
 
 | Metric          | Count |
 | --------------- | ----: |
-| API routes      |    70 |
-| App pages       |    39 |
-| Component files |   123 |
-| Prisma models   |    22 |
-| Test files      |   511 |
+| API routes      |    76 |
+| App pages       |    41 |
+| Component files |   128 |
+| Prisma models   |    24 |
+| Test files      |   548 |
 | Markdown docs   |   161 |
 
-API route audit (`npm run audit:api`, 2026-06-11): **63 / 70** use middleware guards (90.0%), **62** are rate‑limited (88.6%), **43** have validation signals (61.4%). Full per‑route table: [`docs/API_AUDIT_REPORT.md`](docs/API_AUDIT_REPORT.md).
+API route audit (`npm run audit:api`, 2026-06-15): **69 / 76** use middleware guards (90.8%), **68** are rate‑limited (89.5%), **57** have validation signals (75.0%). Full per‑route table: [`docs/API_AUDIT_REPORT.md`](docs/API_AUDIT_REPORT.md).
 
 ## Quality engineering
 
 The deterministic-engine claim is enforced, not aspirational:
 
-- **≈16,000 unit tests** across 440+ files run on every PR — including **determinism goldens** that lock the Saju/astrology verdicts (same birth data ⇒ byte-identical judgment).
+- **~11,700+ test cases** across 540+ files run on every PR — including **determinism goldens** that lock the Saju/astrology verdicts (same birth data ⇒ byte-identical judgment).
 - **27 CI checks per PR**: unit + integration + Playwright E2E (desktop/mobile), coverage gates with per-domain floors (auth/credits/payments/security), OWASP ZAP baseline, SAST, secret scan, dependency audit, Lighthouse accessibility, k6 performance smoke.
 - **Money paths are locked**: Stripe webhook idempotency & replay-attack tests, refund eligibility matrix, stream-failure auto-refund, race-condition suites for credit consumption.
 - **Docs drift gate**: generated reference docs (routes, costs, calculation standards) fail CI when they diverge from code.
