@@ -1,6 +1,6 @@
 # Tarot Subsystem Overview
 
-Last audited: 2026-05-17 (Asia/Hong_Kong)
+Last audited: 2026-06-15 (Asia/Hong_Kong)
 
 ## Intent
 
@@ -91,15 +91,13 @@ largest size; acceptable trade-off for the ~8× asset shrink.
 
 Tracked but not yet shipped:
 
-1. **Schema unification** between `interpret` and `interpret-stream`
-   return shapes
-2. **Card detail modal** — clicking a card to drill into upright/reversed
+1. **Card detail modal** — clicking a card to drill into upright/reversed
    meanings, archetype, element. Card data exists in
    `src/lib/tarot/data/`; no UI surface
-3. **Same-question redraw** — `handleReset` currently routes to
+2. **Same-question redraw** — `handleReset` currently routes to
    `/tarot` (full restart); a "redraw with same question" button is
    debated philosophically (tarot purists argue against re-drawing)
-4. **Zod schemas for LLM JSON parsing** — current `as unknown[]` casts
+3. **Zod schemas for LLM JSON parsing** — current `as unknown[]` casts
    in chunk-merging logic can drop tail cards silently on partial
    parse failure
 
@@ -108,5 +106,5 @@ Tracked but not yet shipped:
 - `src/lib/tarot/promptShared.ts` — the only source of truth for the rules
 - `src/lib/tarot/tarot.types.ts` — `DECK_STYLES`, `DECK_STYLE_INFO`, `getCardImagePath`
 - `src/lib/tarot/data/` — per-suit card meaning data
-- `src/app/api/tarot/{interpret,interpret-stream,followup}/route.ts` — three LLM endpoints
+- `src/app/api/tarot/{interpret-stream,followup}/route.ts` — LLM endpoints (plus `src/app/api/tarot/route.ts` for the draw)
 - `docs/EVAL_TAROT_PROMPTS.jsonl` — routing/safety evaluation cases

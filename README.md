@@ -30,7 +30,7 @@ Most "AI fortune" apps are a thin wrapper around a single prompt: they paste a b
 That split is the whole point:
 
 - **Reproducible.** The same input yields the same verdict — it's code, not vibes.
-- **One core, many surfaces.** A single destiny core powers the calendar, the counselors, and the reports, so they never disagree with each other.
+- **One source of truth, many surfaces.** The same deterministic Saju + astrology facts power the calendar, the counselors, and the reports, so they never disagree with each other.
 - **Honest money model.** Credits are charged once per result, failed AI streams refund automatically, and pack sizes have a single source of truth.
 
 ## Screenshots
