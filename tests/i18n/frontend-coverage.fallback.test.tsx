@@ -83,27 +83,29 @@ vi.mock('@/lib/i18n/extensions', () => ({ allExtensions: {} }))
 // cookie-seeded initial locale rather than imported directly. See the
 // "seeds the provider initial locale from the cookie" test below. Adding a
 // direct export was deemed an unnecessary source change for this coverage pass.
-import { I18nProvider, useI18n } from '@/i18n/I18nProvider'
 
 // --- Test harness component -------------------------------------------------
 
-function Probe({ path, fallback }: { path: string; fallback?: string }) {
-  const { t, locale } = useI18n()
-  return (
-    <div>
-      <span data-testid="locale">{locale}</span>
-      <span data-testid="value">{t(path, fallback)}</span>
-    </div>
-  )
-}
-
-function renderProbe(
+// The provider keeps a module-level dict cache, so each test calls
+// vi.resetModules() (see beforeEach) and imports a FRESH provider here. That
+// gives every test its own clean cache + no cross-test async load races.
+async function renderProbe(
   path: string,
   opts: { initialLocale?: 'en' | 'ko'; fallback?: string } = {}
 ) {
+  const { I18nProvider, useI18n } = await import('@/i18n/I18nProvider')
+  function Probe() {
+    const { t, locale } = useI18n()
+    return (
+      <div>
+        <span data-testid="locale">{locale}</span>
+        <span data-testid="value">{t(path, opts.fallback)}</span>
+      </div>
+    )
+  }
   return render(
     <I18nProvider initialLocale={opts.initialLocale}>
-      <Probe path={path} fallback={opts.fallback} />
+      <Probe />
     </I18nProvider>
   )
 }
@@ -111,6 +113,9 @@ function renderProbe(
 beforeEach(() => {
   // Reset cookie between tests.
   document.cookie = 'locale=; max-age=0; path=/'
+  // Clear the provider's module-level dict cache so each test loads its own
+  // mocked dicts fresh (the cache leaks across `it` blocks otherwise).
+  vi.resetModules()
 })
 
 // --- Cookie-seeded initial locale (exercises private readCookieLocale) -------
@@ -118,20 +123,20 @@ beforeEach(() => {
 describe('cookie-seeded initial locale', () => {
   it('seeds the provider locale from a supported `locale=` cookie', async () => {
     document.cookie = 'locale=ko; path=/'
-    renderProbe('greeting')
+    await renderProbe('greeting')
     // No initialLocale prop → provider reads the cookie. KO dict loads async.
     await waitFor(() => expect(screen.getByTestId('locale').textContent).toBe('ko'))
   })
 
   it('falls back to English when no locale cookie is present', async () => {
     // beforeEach clears the cookie; no initialLocale prop → defaults to 'en'.
-    renderProbe('greeting')
+    await renderProbe('greeting')
     await waitFor(() => expect(screen.getByTestId('locale').textContent).toBe('en'))
   })
 
   it('ignores an unsupported cookie value and defaults to English', async () => {
     document.cookie = 'locale=zz; path=/'
-    renderProbe('greeting')
+    await renderProbe('greeting')
     await waitFor(() => expect(screen.getByTestId('locale').textContent).toBe('en'))
   })
 })
@@ -140,43 +145,33 @@ describe('cookie-seeded initial locale', () => {
 
 describe('I18nProvider t() fallback chain', () => {
   it('returns the locale string on a direct hit (ko)', async () => {
-    renderProbe('greeting', { initialLocale: 'ko' })
-    await waitFor(() =>
-      expect(screen.getByTestId('value').textContent).toBe('안녕하세요')
-    )
+    await renderProbe('greeting', { initialLocale: 'ko' })
+    await waitFor(() => expect(screen.getByTestId('value').textContent).toBe('안녕하세요'))
   })
 
   it('falls back to English when the key is missing in the active locale', async () => {
-    renderProbe('onlyInEnglish', { initialLocale: 'ko' })
-    await waitFor(() =>
-      expect(screen.getByTestId('value').textContent).toBe('Only English')
-    )
+    await renderProbe('onlyInEnglish', { initialLocale: 'ko' })
+    await waitFor(() => expect(screen.getByTestId('value').textContent).toBe('Only English'))
   })
 
   it('falls back to English when the KO value is a raw key leak', async () => {
     // KO leaky.key === 'leaky.key' (value === path) → EN used.
-    renderProbe('leaky.key', { initialLocale: 'ko' })
-    await waitFor(() =>
-      expect(screen.getByTestId('value').textContent).toBe('Proper English')
-    )
+    await renderProbe('leaky.key', { initialLocale: 'ko' })
+    await waitFor(() => expect(screen.getByTestId('value').textContent).toBe('Proper English'))
   })
 
   it('humanizes the key when missing in both locales and no fallback given', async () => {
-    renderProbe('some.totally.missingKey', { initialLocale: 'en' })
+    await renderProbe('some.totally.missingKey', { initialLocale: 'en' })
     // toSafeFallbackText: leaf "missingKey" → "Missing Key"
-    await waitFor(() =>
-      expect(screen.getByTestId('value').textContent).toBe('Missing Key')
-    )
+    await waitFor(() => expect(screen.getByTestId('value').textContent).toBe('Missing Key'))
   })
 
   it('uses the provided fallback when the key is missing in both locales', async () => {
-    renderProbe('another.missing.key', {
+    await renderProbe('another.missing.key', {
       initialLocale: 'en',
       fallback: 'Explicit fallback',
     })
-    await waitFor(() =>
-      expect(screen.getByTestId('value').textContent).toBe('Explicit fallback')
-    )
+    await waitFor(() => expect(screen.getByTestId('value').textContent).toBe('Explicit fallback'))
   })
 })
 
@@ -187,11 +182,9 @@ describe('I18nProvider isLikelyCorrupted heuristic (ko only)', () => {
   // merely contains a Cyrillic-range char is flagged corrupted and dropped to
   // the English fallback. A prior review flagged this as wrong.
   it('CURRENT (buggy): Korean containing a Cyrillic char is dropped to English', async () => {
-    renderProbe('cyrillicKorean', { initialLocale: 'ko' })
+    await renderProbe('cyrillicKorean', { initialLocale: 'ko' })
     await waitFor(() =>
-      expect(screen.getByTestId('value').textContent).toBe(
-        'English fallback for cyrillicKorean'
-      )
+      expect(screen.getByTestId('value').textContent).toBe('English fallback for cyrillicKorean')
     )
   })
 
@@ -199,7 +192,7 @@ describe('I18nProvider isLikelyCorrupted heuristic (ko only)', () => {
   // should be returned as-is, NOT dropped. Un-skip once isLikelyCorrupted stops
   // treating any Cyrillic/extended char as automatic corruption. Bug to fix.
   it.skip('DESIRED: Korean containing a Cyrillic char should NOT be dropped', async () => {
-    renderProbe('cyrillicKorean', { initialLocale: 'ko' })
+    await renderProbe('cyrillicKorean', { initialLocale: 'ko' })
     await waitFor(() =>
       expect(screen.getByTestId('value').textContent).toBe('한국어 텍스트 к 포함')
     )
@@ -208,7 +201,7 @@ describe('I18nProvider isLikelyCorrupted heuristic (ko only)', () => {
   // Guardrail: clean, pure Korean must always pass through untouched. If this
   // ever fails, the heuristic has become too aggressive for normal Korean.
   it('does NOT drop clean, pure Korean text', async () => {
-    renderProbe('pureKorean', { initialLocale: 'ko' })
+    await renderProbe('pureKorean', { initialLocale: 'ko' })
     await waitFor(() =>
       expect(screen.getByTestId('value').textContent).toBe('완전히 정상적인 한국어')
     )
@@ -217,11 +210,9 @@ describe('I18nProvider isLikelyCorrupted heuristic (ko only)', () => {
   it('does NOT apply the corruption heuristic to the English locale', async () => {
     // Same key, but in EN locale the heuristic branch (locale === 'ko') is
     // skipped, so even a Cyrillic-bearing EN value would be returned verbatim.
-    renderProbe('cyrillicKorean', { initialLocale: 'en' })
+    await renderProbe('cyrillicKorean', { initialLocale: 'en' })
     await waitFor(() =>
-      expect(screen.getByTestId('value').textContent).toBe(
-        'English fallback for cyrillicKorean'
-      )
+      expect(screen.getByTestId('value').textContent).toBe('English fallback for cyrillicKorean')
     )
   })
 })

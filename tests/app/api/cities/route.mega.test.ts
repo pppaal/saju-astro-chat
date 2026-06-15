@@ -7,8 +7,16 @@ vi.setConfig({ testTimeout: 60000 })
 import { NextRequest } from 'next/server'
 import fs from 'fs/promises'
 
-// Mock dependencies BEFORE importing the route
-vi.mock('fs/promises')
+// Mock dependencies BEFORE importing the route.
+// fs/promises is mocked explicitly (not auto-mock): vitest 4 no longer
+// surfaces a usable mock on the default import of an auto-mocked builtin.
+// A hoisted, shared readFile keeps the same mock instance across
+// vi.resetModules() so the route's import and this test see one spy.
+const fsMock = vi.hoisted(() => ({ readFile: vi.fn() }))
+vi.mock('fs/promises', () => ({
+  default: { readFile: fsMock.readFile },
+  readFile: fsMock.readFile,
+}))
 vi.mock('@/lib/logger', () => ({
   logger: {
     info: vi.fn(),

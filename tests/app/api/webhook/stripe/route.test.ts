@@ -80,20 +80,22 @@ const mockPaymentIntentsRetrieve = vi.fn()
 const mockPaymentMethodsRetrieve = vi.fn()
 
 vi.mock('stripe', () => {
-  const StripeMock = vi.fn().mockImplementation(() => ({
-    webhooks: {
-      constructEvent: mockConstructEvent,
-    },
-    customers: {
-      retrieve: mockCustomerRetrieve,
-    },
-    paymentIntents: {
-      retrieve: mockPaymentIntentsRetrieve,
-    },
-    paymentMethods: {
-      retrieve: mockPaymentMethodsRetrieve,
-    },
-  }))
+  const StripeMock = vi.fn().mockImplementation(function () {
+    return {
+      webhooks: {
+        constructEvent: mockConstructEvent,
+      },
+      customers: {
+        retrieve: mockCustomerRetrieve,
+      },
+      paymentIntents: {
+        retrieve: mockPaymentIntentsRetrieve,
+      },
+      paymentMethods: {
+        retrieve: mockPaymentMethodsRetrieve,
+      },
+    }
+  })
   return { default: StripeMock }
 })
 

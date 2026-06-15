@@ -65,13 +65,15 @@ vi.mock('@/lib/auth/publicToken', () => ({
 // Mock Stripe
 vi.mock('stripe', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
-      checkout: {
-        sessions: {
-          create: mockStripeCheckoutCreate,
+    default: vi.fn().mockImplementation(function () {
+      return {
+        checkout: {
+          sessions: {
+            create: mockStripeCheckoutCreate,
+          },
         },
-      },
-    })),
+      }
+    }),
   }
 })
 

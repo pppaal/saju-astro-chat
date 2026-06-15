@@ -17,7 +17,9 @@ const mockRedisInstance = {
 }
 
 vi.mock('@upstash/redis', () => ({
-  Redis: vi.fn(() => mockRedisInstance),
+  Redis: vi.fn(function () {
+    return mockRedisInstance
+  }),
 }))
 
 vi.mock('@/lib/logger', () => ({

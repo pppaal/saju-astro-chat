@@ -87,20 +87,22 @@ vi.mock('@/lib/referral', () => ({
 
 vi.mock('stripe', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
-      webhooks: {
-        constructEvent: mockStripeWebhooksConstructEvent,
-      },
-      customers: {
-        retrieve: mockStripeCustomersRetrieve,
-      },
-      paymentIntents: {
-        retrieve: mockStripePaymentIntentsRetrieve,
-      },
-      paymentMethods: {
-        retrieve: mockStripePaymentMethodsRetrieve,
-      },
-    })),
+    default: vi.fn().mockImplementation(function () {
+      return {
+        webhooks: {
+          constructEvent: mockStripeWebhooksConstructEvent,
+        },
+        customers: {
+          retrieve: mockStripeCustomersRetrieve,
+        },
+        paymentIntents: {
+          retrieve: mockStripePaymentIntentsRetrieve,
+        },
+        paymentMethods: {
+          retrieve: mockStripePaymentMethodsRetrieve,
+        },
+      }
+    }),
   }
 })
 
@@ -364,12 +366,7 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       expect(response.status).toBe(200)
       // standard pack = 40 credits (per CREDIT_PACKS config)
-      expect(addBonusCredits).toHaveBeenCalledWith(
-        'user-123',
-        40,
-        'purchase',
-        'pi_test_123'
-      )
+      expect(addBonusCredits).toHaveBeenCalledWith('user-123', 40, 'purchase', 'pi_test_123')
     })
 
     it('should handle unrecognized event types gracefully', async () => {

@@ -63,7 +63,9 @@ describe('GET /api/db-ping', () => {
       end: vi.fn().mockResolvedValue(undefined),
     }
 
-    vi.mocked(Client).mockImplementation(() => mockClient as never)
+    vi.mocked(Client).mockImplementation(function () {
+      return mockClient as never
+    })
   })
 
   afterEach(() => {
