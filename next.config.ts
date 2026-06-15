@@ -196,7 +196,7 @@ const nextConfig = {
   // Security and cache headers
   async headers() {
     // Security headers for all routes
-    // NOTE: CSP is handled exclusively by middleware.ts (nonce-based).
+    // NOTE: CSP is handled exclusively by proxy.ts (nonce-based).
     // Do NOT add CSP headers here to avoid duplication and conflicts.
     const isProd = process.env.NODE_ENV === 'production'
 
