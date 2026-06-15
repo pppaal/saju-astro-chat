@@ -10,26 +10,32 @@ vi.unmock('@/lib/db/prisma')
 
 // Mock dependencies before imports
 vi.mock('pg', () => {
-  const mockPool = vi.fn().mockImplementation(() => ({
-    connect: vi.fn().mockResolvedValue({}),
-    query: vi.fn().mockResolvedValue({ rows: [] }),
-    end: vi.fn().mockResolvedValue(undefined),
-  }))
+  const mockPool = vi.fn().mockImplementation(function () {
+    return {
+      connect: vi.fn().mockResolvedValue({}),
+      query: vi.fn().mockResolvedValue({ rows: [] }),
+      end: vi.fn().mockResolvedValue(undefined),
+    }
+  })
   return { Pool: mockPool }
 })
 
 vi.mock('@prisma/adapter-pg', () => {
   return {
-    PrismaPg: vi.fn().mockImplementation(() => ({})),
+    PrismaPg: vi.fn().mockImplementation(function () {
+      return {}
+    }),
   }
 })
 
 vi.mock('@prisma/client', () => {
-  const mockPrismaClient = vi.fn().mockImplementation(() => ({
-    $connect: vi.fn().mockResolvedValue(undefined),
-    $disconnect: vi.fn().mockResolvedValue(undefined),
-    $queryRaw: vi.fn().mockResolvedValue([{ '?column?': 1 }]),
-  }))
+  const mockPrismaClient = vi.fn().mockImplementation(function () {
+    return {
+      $connect: vi.fn().mockResolvedValue(undefined),
+      $disconnect: vi.fn().mockResolvedValue(undefined),
+      $queryRaw: vi.fn().mockResolvedValue([{ '?column?': 1 }]),
+    }
+  })
 
   return {
     PrismaClient: mockPrismaClient,

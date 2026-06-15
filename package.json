@@ -199,7 +199,7 @@
     "@types/web-push": "^3.6.4",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^4.1.9",
     "autoprefixer": "^10.4.24",
     "chalk": "^5.6.2",
     "cross-env": "^10.1.0",
@@ -219,7 +219,7 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.22.4",
     "typescript": "^5.9.3",
-    "vitest": "^3.0.0",
+    "vitest": "^4.1.9",
     "web-vitals": "^5.1.0",
     "webpack": "^5.105.0"
   }

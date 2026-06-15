@@ -9,10 +9,32 @@ type DictValue = Record<string, unknown>
 
 // Cache for loaded dictionaries
 const dictsCache: Partial<Record<Locale, DictValue>> = {}
+// In-flight loads, deduped per locale (see loadLocaleDict).
+const dictsLoading: Partial<Record<Locale, Promise<DictValue>>> = {}
 let dictsInitialized = false
 
-// Async function to load dictionaries for a specific locale
+// Dedupe concurrent loads of the same locale. initializeDicts() and the
+// active-locale effect can both request 'en' at the same time; without sharing
+// one in-flight promise a second concurrent dynamic import of the same JSON
+// module can resolve empty and overwrite the cache. One promise per locale.
 async function loadLocaleDict(locale: Locale): Promise<DictValue> {
+  if (dictsCache[locale]) {
+    return dictsCache[locale]!
+  }
+  if (dictsLoading[locale]) {
+    return dictsLoading[locale]!
+  }
+  const promise = loadLocaleDictUncached(locale)
+  dictsLoading[locale] = promise
+  try {
+    return await promise
+  } finally {
+    delete dictsLoading[locale]
+  }
+}
+
+// Async function to load dictionaries for a specific locale
+async function loadLocaleDictUncached(locale: Locale): Promise<DictValue> {
   // Return cached if available
   if (dictsCache[locale]) {
     return dictsCache[locale]!
