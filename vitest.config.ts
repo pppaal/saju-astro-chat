@@ -13,6 +13,11 @@ const isIntegration =
 const isPerformance =
   process.env.npm_lifecycle_event === 'test:performance' || process.env.VITEST_PERFORMANCE === '1'
 
+// Destiny release gate runs the heavy real/render report tests in a single
+// forked process. vitest 4 dropped the `--poolOptions.forks.singleFork` CLI
+// flag, so the pool config lives here (gated on the lifecycle event) instead.
+const isDestinyRelease = process.env.npm_lifecycle_event === 'test:destiny:release'
+
 // Coverage thresholds only enforced on full suite (test:coverage) to avoid
 // failures when running subset commands (test:a11y, test:tarot, etc.)
 const isCoverageRun = process.env.npm_lifecycle_event === 'test:coverage'
@@ -28,6 +33,10 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    // Single forked process for the destiny release gate (see isDestinyRelease).
+    ...(isDestinyRelease
+      ? { pool: 'forks' as const, poolOptions: { forks: { singleFork: true } } }
+      : {}),
     // E2E suite hits a real running server over HTTP — needs Node's real fetch,
     // not happy-dom + the global fetch mock from tests/setup.ts.
     environment: isE2E ? 'node' : 'happy-dom',
@@ -276,7 +285,7 @@ export default defineConfig({
         : {}),
     },
     // Test timeouts
-    testTimeout: isPerformance ? 120000 : isE2E ? 60000 : 30000, // 2min for performance, 1min for E2E, 30s for regular
-    hookTimeout: isPerformance ? 120000 : isE2E ? 60000 : 10000, // 2min for performance, 1min for E2E setup
+    testTimeout: isPerformance || isDestinyRelease ? 120000 : isE2E ? 60000 : 30000, // 2min for perf/destiny, 1min E2E, 30s default
+    hookTimeout: isPerformance || isDestinyRelease ? 120000 : isE2E ? 60000 : 10000, // 2min for perf/destiny, 1min E2E setup
   },
 })

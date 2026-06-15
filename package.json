@@ -50,7 +50,7 @@
     "test:tarot:fallback-quality": "vitest run tests/lib/Tarot/fallbackQualityGoldenSet.test.ts",
     "test:tarot:interpret-quality": "vitest run tests/lib/Tarot/interpretationQualityBenchmark.test.ts",
     "test:ephemeris-golden": "tsx scripts/ephemeris-golden.mts",
-    "test:destiny:release": "vitest run tests/lib/report/integratedReport.real.test.ts tests/lib/report/integratedReport.render.test.ts --pool forks --poolOptions.forks.singleFork --testTimeout 120000",
+    "test:destiny:release": "vitest run tests/lib/report/integratedReport.real.test.ts tests/lib/report/integratedReport.render.test.ts",
     "test:nightly:shard": "node scripts/ops/run-vitest-shard.mjs",
     "qa:tarot:engine": "tsx scripts/tarot-question-engine-report.ts --out reports/quality/tarot_question_engine_latest.json",
     "qa:tarot:full": "npm run qa:tarot:engine && npx tsx scripts/eval-tarot-question-sample.ts --count 80 --seed 20260324 --concurrency 12",
