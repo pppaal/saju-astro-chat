@@ -123,6 +123,7 @@
     "diff": "^4.0.4",
     "tar": "^7.5.7",
     "protobufjs": "^7.5.6",
+    "serialize-javascript": "^7.0.5",
     "swisseph": {
       "node-gyp": "^10.0.1"
     }
@@ -216,7 +217,7 @@
     "tailwindcss": "^3.4.19",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.21.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.9.3",
     "vitest": "^3.0.0",
     "web-vitals": "^5.1.0",
