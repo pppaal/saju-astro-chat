@@ -35,6 +35,9 @@ export interface DomainEvidence {
   polarity: number
   /** 'astro'=트랜짓 · 'saju'=신살 · 'cross'=사주×점성 교차 · 'moon'=시별 달 절정. */
   kind: 'astro' | 'saju' | 'cross' | 'moon'
+  /** moon 근거일 때만 — 시각 창(괄호 제거 전 원본). 본문에 시각을 엮을 때 읽는다. */
+  when?: string
+  whenEn?: string
 }
 
 export interface DayDomainAdvice {
@@ -442,7 +445,8 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
     if (!doms) continue
     const short = (ko ? mn.when : mn.whenEn).replace(/\s*\(.*\)/, '').trim()
     const text = ko ? `${short} 달${mn.aspectKo}` : `${short} Moon ${mn.aspectEn}`
-    for (const d of doms) out[d].push({ text, polarity: mn.polarity, kind: 'moon' })
+    for (const d of doms)
+      out[d].push({ text, polarity: mn.polarity, kind: 'moon', when: mn.when, whenEn: mn.whenEn })
   }
   // 분야별 중복 제거 + |polarity| 높은 순 4개(시각 달 칩 자리 확보).
   // astro 칩은 *행성* 기준으로 묶는다 — 같은 행성이 여러 각(수성 사각·육각·삼각)
@@ -451,7 +455,7 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
     e.kind === 'astro' ? `astro:${e.text.split(' ')[0]}` : `${e.kind}:${e.text}`
   for (const d of Object.keys(out)) {
     const seen = new Set<string>()
-    out[d] = out[d]
+    const sorted = out[d]
       .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
       .filter((e) => {
         const k = dedupKey(e)
@@ -459,7 +463,17 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
         seen.add(k)
         return true
       })
-      .slice(0, 4)
+    const capped = sorted.slice(0, 4)
+    // 시별 달(moon) 칩은 |polarity| 가 낮아 4개 컷에 잘 밀려난다. 본문 시각 클로즈
+    // + 🌙 칩이 사라지지 않게, 4개 안에 moon 이 없으면 가장 센 moon 한 개를 보장.
+    if (!capped.some((e) => e.kind === 'moon')) {
+      const moon = sorted.find((e) => e.kind === 'moon')
+      if (moon) {
+        if (capped.length >= 4) capped[3] = moon
+        else capped.push(moon)
+      }
+    }
+    out[d] = capped
   }
   return out
 }
@@ -493,6 +507,27 @@ const CAUTION_BODY: Record<string, { ko: string; en: string }> = {
   },
 }
 
+/**
+ * 분야 근거 중 시별 달(moon) 신호가 있으면, 가장 센(|polarity| 최대) 달의 시각을
+ * 본문에 한 줄로 엮는다. 시각 창만 남기고 "달…" 꼬리는 떼어 시간만 보이게 한다.
+ * (예: "21-23시 달삼각" → "21-23시"). 차트별 신호가 달라 1인 1결과로 일반화된다.
+ */
+function moonTimeClause(ev: DomainEvidence[], ko: boolean): string {
+  let best: DomainEvidence | null = null
+  for (const e of ev) {
+    if (e.kind !== 'moon') continue
+    if (!best || Math.abs(e.polarity) > Math.abs(best.polarity)) best = e
+  }
+  if (!best) return ''
+  const raw = (ko ? best.when : best.whenEn) ?? best.text
+  const time = raw.replace(/\s*\(.*\)/, '').trim()
+  if (!time) return ''
+  if (best.polarity >= 0) {
+    return ko ? ` 특히 ${time}에 흐름이 살아나요.` : ` Especially ${time} the flow picks up.`
+  }
+  return ko ? ` ${time}엔 한 박자 늦추세요.` : ` Around ${time}, ease off a beat.`
+}
+
 export function deriveDayDomains(args: {
   iljinSibsin: string
   sex: string
@@ -522,6 +557,11 @@ export function deriveDayDomains(args: {
       body = d.key === 'love' ? loveLine(cat, args.sex, true) : ADVICE[cat][d.key].ko
       bodyEn = d.key === 'love' ? loveLine(cat, args.sex, false) : ADVICE[cat][d.key].en
     }
+    // 시별 달 근거가 있으면 실제 절정 시각을 본문에 엮어 더 구체적으로(KO/EN).
+    const koClause = moonTimeClause(ev, true)
+    const enClause = moonTimeClause(ev, false)
+    if (koClause) body += koClause
+    if (enClause) bodyEn += enClause
     // '주목' 배지 = 그날 *십신이 관장하는* 분야(=오늘의 테마) 1~2개만 — 단,
     // 근거가 net-negative 면(긴장 분야) 배지를 달지 않는다(긍정 강조와 모순 방지).
     // 트랜짓은 매일 거의 모든 분야에 깔려 배지로 쓰면 다 켜져버리므로, 실제
