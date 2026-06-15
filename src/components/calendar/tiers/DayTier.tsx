@@ -139,6 +139,16 @@ const ASPECT_KO: Record<string, string> = {
 
 // localizeLabel(+SIGN_KO/행성맵)은 MonthTier 와 공유 — adapters/localizeLabel 로 분리.
 
+// 지장간 EN — 위계(정/중/여기)·오행 KO 칩이 EN 화면에 새지 않게.
+const JJ_LAYER_EN: Record<string, string> = { 정기: 'primary', 중기: 'mid', 여기: 'residual' }
+const JJ_ELEMENT_EN: Record<string, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+
 /**
  * 트랜짓 1행 렌더 — KO 는 행성/대상/어스펙트를 한글로, EN 은 영문 유지.
  * 어스펙트나 대상이 없는(디그니티 전용) 행은 건너뛴다 → null.
@@ -283,7 +293,7 @@ function GeokgukStatusFrame({ status }: { status: DestinyDay['geokgukStatus'] | 
       : status.status === '파격'
         ? styles.kStatusBad
         : styles.kStatusMid
-  const nameTxt = ko ? status.name : (status.nameEn ?? status.name)
+  const nameTxt = ko ? status.name : (status.nameEn ?? localizeLabel(status.name, false))
   const statusTxt = ko ? status.status : geokgukStatusEn(status.status)
   return (
     <span className={styles.statusChip}>
@@ -409,8 +419,9 @@ function AppliedPatternBadge({ items }: { items: DestinyAppliedPattern[] }) {
             <div className={`${styles.appliedBadge} ${tone}`} key={p.id}>
               <span className={styles.appliedHan}>{p.name}</span>
               <div className={styles.appliedBody}>
-                <span className={styles.appliedKo}>{p.korean}</span>
-                <span className={styles.tiny}>{p.rule}</span>
+                {/* korean·rule 은 KO 산문/내부코드라 KO 로케일에서만 노출. */}
+                {ko && <span className={styles.appliedKo}>{p.korean}</span>}
+                {ko && <span className={styles.tiny}>{p.rule}</span>}
               </div>
               <PolChip v={p.polarity} />
             </div>
@@ -449,11 +460,17 @@ function JijangganChips({ jijanggan }: { jijanggan: DestinyDay['jijanggan'] | un
       <div className={styles.jijangganRow}>
         {layers.map(({ key, layer, main }) => (
           <div className={`${styles.jjChip} ${main ? styles.jjMain : ''}`} key={key}>
-            <span className={styles.jjLayer}>{layer.layer}</span>
+            <span className={styles.jjLayer}>
+              {ko ? layer.layer : (JJ_LAYER_EN[layer.layer] ?? layer.layer)}
+            </span>
             <span className={styles.jjStem}>{layer.stem}</span>
             <span className={styles.jjMeta}>
-              <span className={styles.jjSibsin}>{String(layer.sibsin)}</span>
-              <span className={styles.jjEl}>{layer.element}</span>
+              <span className={styles.jjSibsin}>
+                {ko ? String(layer.sibsin) : sibsinAreaEn(String(layer.sibsin))}
+              </span>
+              <span className={styles.jjEl}>
+                {ko ? layer.element : (JJ_ELEMENT_EN[layer.element] ?? layer.element)}
+              </span>
             </span>
           </div>
         ))}
