@@ -14,6 +14,8 @@
  */
 
 import { HYEONG_PAIR_TRIO, BRANCH_HYEONG_PAIR, SELF_HYEONG, isHyeong } from '@/lib/saju/hyeong'
+import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import {
   type SajuPillarInput,
   type SajuSynastryInput,
@@ -44,6 +46,37 @@ import {
 export * from './sajuSynastryData'
 export * from './sajuSynastryFacts'
 
+// ── EN render maps — 한국어 라벨이 영어 응답에 새지 않게 (lang==='en' 일 때만 사용) ──
+const PILLAR_LABELS_EN = ['Y', 'M', 'D', 'H'] as const
+const SIBSIN_GLOSS_EN: Record<string, string> = {
+  비견: 'peer, ally',
+  겁재: 'rivalry, cooperation',
+  식신: 'expression, ease',
+  상관: 'talent, free-spirited',
+  편재: 'drive, desire',
+  정재: 'stability, diligence',
+  편관: 'pressure, challenge',
+  정관: 'responsibility, norms',
+  편인: 'protection, learning',
+  정인: 'support, stability',
+}
+// 12신살 — pickTwelveSingle 의 한국어 반환값 → 영어.
+const TWELVE_SINSAL_EN: Record<string, string> = {
+  겁살: 'robbery-star',
+  재살: 'calamity-star',
+  천살: 'heaven-star',
+  지살: 'travel-star',
+  도화: 'peach-blossom',
+  월살: 'moon-star',
+  망신: 'disgrace-star',
+  장성: 'general-star',
+  반안: 'saddle-star',
+  역마: 'wanderer-star',
+  육해: 'harm-star',
+  화개: 'canopy-star',
+}
+// 신살 일주 페어 라벨 (백호/괴강 등) 한자 그대로 유지 — 한자는 영어 응답에 안 샌다.
+
 export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (input.pillarsA.length < 4 || input.pillarsB.length < 4) return ''
   const A = input.pillarsA
@@ -51,6 +84,17 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const aDay = A[2]
   const bDay = B[2]
   if (!aDay.stem || !bDay.stem) return ''
+
+  // EN 렌더 헬퍼 — lang==='en' 이면 한국어 라벨을 영어로. KO 출력은 byte 동일.
+  const en = input.lang === 'en'
+  const L = (ko: string, e: string) => (en ? e : ko)
+  const PL = en ? PILLAR_LABELS_EN : PILLAR_LABELS
+  const elD = (c: string) => (en ? (ELEMENT_KO_TO_EN[c] ?? c) : c)
+  // stem+element 표기: KO 는 `甲목`(붙임), EN 은 `甲(Wood)`.
+  const se = (stem: string, el: string) => (en ? `${stem}(${elD(el)})` : `${stem}${el}`)
+  const sibD = (s: string) => (en ? (SIBSIN_EN[s] ?? s) : s)
+  const glossD = (s: string) => (en ? (SIBSIN_GLOSS_EN[s] ?? '') : (SIBSIN_GLOSS[s] ?? ''))
+  const twD = (lbl: string) => (en ? (TWELVE_SINSAL_EN[lbl] ?? lbl) : lbl)
 
   // 라벨에 실명을 고정한다. "A", "B"만 주면 모델이 어느 쪽이 누구인지,
   // 辛→금 같은 오행 매핑까지 머릿속으로 다시 풀다가 통째로 뒤집는 사고가
@@ -69,25 +113,30 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
 
   // 1. 일간 cross — 항상 CRITICAL
   if (elA && elB) {
+    const dm = `${labelA} ${L('일간', 'day-master')} ${se(aDay.stem, elA)} ↔ ${labelB} ${L('일간', 'day-master')} ${se(bDay.stem, elB)}`
     if (elA === elB) {
-      critical.push(
-        `${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — 같은 오행 (비견)`
-      )
+      critical.push(L(`${dm} — 같은 오행 (비견)`, `${dm} — same element (peer)`))
     } else if (EL_CONTROLS[elA] === elB) {
       const a = nmA || 'A',
         b = nmB || 'B'
       critical.push(
-        `${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`
+        L(
+          `${dm} — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`,
+          `${dm} — ${elD(elA)} controls ${elD(elB)} · control direction ${a}(${elD(elA)}) → ${b}(${elD(elB)}) (${a} files down / refines ${b}; ${b} may feel it as a sting / constraint) ※never reverse the element or direction`
+        )
       )
     } else if (EL_CONTROLS[elB] === elA) {
       const a = nmA || 'A',
         b = nmB || 'B'
       critical.push(
-        `${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`
+        L(
+          `${dm} — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`,
+          `${dm} — ${elD(elB)} controls ${elD(elA)} · control direction ${b}(${elD(elB)}) → ${a}(${elD(elA)}) (${b} files down / refines ${a}; ${a} may feel it as a sting / constraint) ※never reverse the element or direction`
+        )
       )
     } else {
       important.push(
-        `${labelA} 일간 ${aDay.stem}${elA} ↔ ${labelB} 일간 ${bDay.stem}${elB} — 상생 (서로 보완)`
+        L(`${dm} — 상생 (서로 보완)`, `${dm} — generating cycle (mutually complementary)`)
       )
     }
   }
@@ -99,7 +148,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const bSeesA = sibsinOf(bDay.stem, aDay.stem) // B 일간 입장에서 A 일간은
     if (aSeesB && bSeesA) {
       critical.push(
-        `십성 cross — ${labelA} 입장에서 ${labelB}는 ${aSeesB}(${SIBSIN_GLOSS[aSeesB] ?? ''}), ${labelB} 입장에서 ${labelA}는 ${bSeesA}(${SIBSIN_GLOSS[bSeesA] ?? ''})`
+        L(
+          `십성 cross — ${labelA} 입장에서 ${labelB}는 ${aSeesB}(${SIBSIN_GLOSS[aSeesB] ?? ''}), ${labelB} 입장에서 ${labelA}는 ${bSeesA}(${SIBSIN_GLOSS[bSeesA] ?? ''})`,
+          `ten-gods cross — from ${labelA}'s view ${labelB} is ${sibD(aSeesB)}(${glossD(aSeesB)}), from ${labelB}'s view ${labelA} is ${sibD(bSeesA)}(${glossD(bSeesA)})`
+        )
       )
     }
   }
@@ -113,12 +165,18 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       const hap = STEM_HAP[aS]
       if (hap && hap.other === bS) {
         critical.push(
-          `A ${PILLAR_LABELS[i]}천간 ${aS} + B ${PILLAR_LABELS[j]}천간 ${bS} — ${aS}${bS}合化${hap.element} (천간합 — 화학적 끌림)`
+          L(
+            `A ${PILLAR_LABELS[i]}천간 ${aS} + B ${PILLAR_LABELS[j]}천간 ${bS} — ${aS}${bS}合化${hap.element} (천간합 — 화학적 끌림)`,
+            `A ${PL[i]}-stem ${aS} + B ${PL[j]}-stem ${bS} — ${aS}${bS} combine→${elD(hap.element)} (stem-combine — chemical attraction)`
+          )
         )
       }
       if (STEM_CHUNG[aS] === bS) {
         important.push(
-          `A ${PILLAR_LABELS[i]}천간 ${aS} ↔ B ${PILLAR_LABELS[j]}천간 ${bS} — 천간충 (대립)`
+          L(
+            `A ${PILLAR_LABELS[i]}천간 ${aS} ↔ B ${PILLAR_LABELS[j]}천간 ${bS} — 천간충 (대립)`,
+            `A ${PL[i]}-stem ${aS} ↔ B ${PL[j]}-stem ${bS} — stem-clash (opposition)`
+          )
         )
       }
     }
@@ -147,18 +205,31 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       if (BRANCH_PA[aBr] === bBr) addTag(i, j, aBr, bBr, '파')
     }
   }
+  const TAG_EN: Record<string, string> = {
+    합: 'union',
+    충: 'clash',
+    형: 'punishment',
+    '3형': 'triple-punishment',
+    자형: 'self-punishment',
+    해: 'harm',
+    파: 'break',
+  }
   for (const { i, j, aBr, bBr, tags } of pairMap.values()) {
     const hasClash = tags.some((t) => t === '충' || t === '형' || t === '3형' || t === '자형')
     const hasHap = tags.includes('합')
     const note = hasClash
-      ? '이별·갈등 핵심 신호'
+      ? L('이별·갈등 핵심 신호', 'core breakup/conflict signal')
       : hasHap
-        ? '결속'
+        ? L('결속', 'bonding')
         : tags.includes('해')
-          ? '미묘한 거리감'
-          : '사소한 파열'
-    const combo = tags.length > 1 ? `${tags.join('+')} 복합` : tags[0]
-    const line = `A ${PILLAR_LABELS[i]}지 ${aBr} ↔ B ${PILLAR_LABELS[j]}지 ${bBr} — ${aBr}${bBr} ${combo} (${note})`
+          ? L('미묘한 거리감', 'subtle distance')
+          : L('사소한 파열', 'minor rupture')
+    const tagsD = en ? tags.map((t) => TAG_EN[t] ?? t) : tags
+    const combo = tagsD.length > 1 ? `${tagsD.join('+')} ${L('복합', 'combined')}` : tagsD[0]
+    const line = L(
+      `A ${PILLAR_LABELS[i]}지 ${aBr} ↔ B ${PILLAR_LABELS[j]}지 ${bBr} — ${aBr}${bBr} ${combo} (${note})`,
+      `A ${PL[i]}-branch ${aBr} ↔ B ${PL[j]}-branch ${bBr} — ${aBr}${bBr} ${combo} (${note})`
+    )
     // 충/형이 일지(2)를 물면 가장 강한 신호 → CRITICAL, 그 외는 IMPORTANT
     if (hasClash && (i === 2 || j === 2)) critical.push(line)
     else important.push(line)
@@ -175,19 +246,27 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const setB = new Set(B.map((p) => p.branch).filter((b) => trio.branches.includes(b)))
     const union = new Set([...setA, ...setB])
     if (union.size >= 2 && union.size > setA.size && union.size > setB.size) {
-      const tag = TRI_HAP.includes(trio) ? '삼합' : '방합'
-      const label = `${trio.branches.join('')}${tag}(→${trio.element})`
+      const tag = TRI_HAP.includes(trio)
+        ? L('삼합', 'trine-combine')
+        : L('방합', 'directional-combine')
+      const label = `${trio.branches.join('')}${tag}(→${elD(trio.element)})`
       ;(union.size === 3 ? sbComplete : sbPartial).push(label)
     }
   }
   if (sbComplete.length > 0) {
     important.push(
-      `삼합/방합 교차 완성 ${sbComplete.length}건: ${sbComplete.join(' · ')} — 두 사람 지지가 3지 모두 채워 국(局) 형성 (강한 결속 잠재)`
+      L(
+        `삼합/방합 교차 완성 ${sbComplete.length}건: ${sbComplete.join(' · ')} — 두 사람 지지가 3지 모두 채워 국(局) 형성 (강한 결속 잠재)`,
+        `trine/directional combine completed ${sbComplete.length}: ${sbComplete.join(' · ')} — the two charts' branches fill all 3 to form a frame (strong bonding potential)`
+      )
     )
   }
   if (sbPartial.length > 0) {
     chamgo.push(
-      `삼합/방합 부분 ${sbPartial.length}건: ${sbPartial.join(' · ')} — 3지 중 2지 교차 성립 (결속 잠재, 비중 낮음)`
+      L(
+        `삼합/방합 부분 ${sbPartial.length}건: ${sbPartial.join(' · ')} — 3지 중 2지 교차 성립 (결속 잠재, 비중 낮음)`,
+        `trine/directional partial ${sbPartial.length}: ${sbPartial.join(' · ')} — 2 of 3 branches cross (bonding potential, low weight)`
+      )
     )
   }
 
@@ -197,14 +276,20 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   for (let j = 0; j < 4; j++) {
     if (aCheonul.includes(B[j].branch)) {
       important.push(
-        `${labelA}'s 천을귀인(${aCheonul.join('·')}, 일간 ${aDay.stem}) → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch} 활성 → 길성 보호`
+        L(
+          `${labelA}'s 천을귀인(${aCheonul.join('·')}, 일간 ${aDay.stem}) → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch} 활성 → 길성 보호`,
+          `${labelA}'s Cheoneul-nobleman(${aCheonul.join('·')}, day-master ${aDay.stem}) → ${labelB} ${PL[j]}-branch ${B[j].branch} activated → benefic protection`
+        )
       )
     }
   }
   for (let i = 0; i < 4; i++) {
     if (bCheonul.includes(A[i].branch)) {
       important.push(
-        `${labelB}'s 천을귀인(${bCheonul.join('·')}, 일간 ${bDay.stem}) → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch} 활성 → 길성 보호`
+        L(
+          `${labelB}'s 천을귀인(${bCheonul.join('·')}, 일간 ${bDay.stem}) → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch} 활성 → 길성 보호`,
+          `${labelB}'s Cheoneul-nobleman(${bCheonul.join('·')}, day-master ${bDay.stem}) → ${labelA} ${PL[i]}-branch ${A[i].branch} activated → benefic protection`
+        )
       )
     }
   }
@@ -218,20 +303,30 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     for (let j = 0; j < 4; j++) {
       if (!B[j].branch) continue
       const lbl = twelveShinsalLabel(aDay.branch, B[j].branch)
-      if (lbl) items.push(`${PILLAR_LABELS[j]}지 ${B[j].branch}=${lbl}`)
+      if (lbl) items.push(`${PL[j]}${L('지', '-branch')} ${B[j].branch}=${twD(lbl)}`)
     }
     if (items.length)
-      important.push(`12신살 ${labelA} 일지 ${aDay.branch} 기준 → ${labelB}: ${items.join(' · ')}`)
+      important.push(
+        L(
+          `12신살 ${labelA} 일지 ${aDay.branch} 기준 → ${labelB}: ${items.join(' · ')}`,
+          `12-sinsal relative to ${labelA} day-branch ${aDay.branch} → ${labelB}: ${items.join(' · ')}`
+        )
+      )
   }
   if (bDay.branch) {
     const items: string[] = []
     for (let i = 0; i < 4; i++) {
       if (!A[i].branch) continue
       const lbl = twelveShinsalLabel(bDay.branch, A[i].branch)
-      if (lbl) items.push(`${PILLAR_LABELS[i]}지 ${A[i].branch}=${lbl}`)
+      if (lbl) items.push(`${PL[i]}${L('지', '-branch')} ${A[i].branch}=${twD(lbl)}`)
     }
     if (items.length)
-      important.push(`12신살 ${labelB} 일지 ${bDay.branch} 기준 → ${labelA}: ${items.join(' · ')}`)
+      important.push(
+        L(
+          `12신살 ${labelB} 일지 ${bDay.branch} 기준 → ${labelA}: ${items.join(' · ')}`,
+          `12-sinsal relative to ${labelB} day-branch ${bDay.branch} → ${labelA}: ${items.join(' · ')}`
+        )
+      )
   }
 
   // 6. 현재 대운 cross → IMPORTANT
@@ -240,17 +335,40 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (input.currentDaeunA && input.currentDaeunB) {
     const dA = input.currentDaeunA,
       dB = input.currentDaeunB
-    const ageRange = (age?: number) => (typeof age === 'number' ? `${age}~${age + 9}세` : '?세')
+    const ys = L('세', '')
+    const ageRange = (age?: number) =>
+      typeof age === 'number' ? `${age}~${age + 9}${ys}` : `?${ys}`
     important.push(
-      `현재 대운: ${labelA} ${ageRange(dA.age)} ${dA.stem}${dA.branch} · ${labelB} ${ageRange(dB.age)} ${dB.stem}${dB.branch}`
+      L(
+        `현재 대운: ${labelA} ${ageRange(dA.age)} ${dA.stem}${dA.branch} · ${labelB} ${ageRange(dB.age)} ${dB.stem}${dB.branch}`,
+        `current daeun: ${labelA} ${ageRange(dA.age)} ${dA.stem}${dA.branch} · ${labelB} ${ageRange(dB.age)} ${dB.stem}${dB.branch}`
+      )
     )
     if (STEM_HAP[dA.stem]?.other === dB.stem)
-      important.push(`대운 천간 ${dA.stem}${dB.stem}合化${STEM_HAP[dA.stem]!.element} (흐름 결속)`)
-    if (STEM_CHUNG[dA.stem] === dB.stem) important.push(`대운 천간충 (시기 흐름 충돌)`)
+      important.push(
+        L(
+          `대운 천간 ${dA.stem}${dB.stem}合化${STEM_HAP[dA.stem]!.element} (흐름 결속)`,
+          `daeun stems ${dA.stem}${dB.stem} combine→${elD(STEM_HAP[dA.stem]!.element)} (flow bonding)`
+        )
+      )
+    if (STEM_CHUNG[dA.stem] === dB.stem)
+      important.push(L(`대운 천간충 (시기 흐름 충돌)`, `daeun stem-clash (period-flow conflict)`))
     if (BRANCH_HAP[dA.branch]?.other === dB.branch)
-      important.push(`대운 지지 ${dA.branch}${dB.branch}합 (결속)`)
-    if (BRANCH_CHUNG[dA.branch] === dB.branch) important.push(`대운 지지충 (큰 흐름 충돌)`)
-    if (dA.branch === dB.branch) important.push(`대운 지지 ${dA.branch} 일치 (강한 시기 공명)`)
+      important.push(
+        L(
+          `대운 지지 ${dA.branch}${dB.branch}합 (결속)`,
+          `daeun branches ${dA.branch}${dB.branch} union (bonding)`
+        )
+      )
+    if (BRANCH_CHUNG[dA.branch] === dB.branch)
+      important.push(L(`대운 지지충 (큰 흐름 충돌)`, `daeun branch-clash (major flow conflict)`))
+    if (dA.branch === dB.branch)
+      important.push(
+        L(
+          `대운 지지 ${dA.branch} 일치 (강한 시기 공명)`,
+          `daeun branch ${dA.branch} match (strong period resonance)`
+        )
+      )
   }
 
   // 6-2. 세운(올해) cross — 올해 세운 간지가 두 사람 일주·대운을 합/충/형으로
@@ -263,32 +381,73 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const crossNatal = (lbl: string, day: SajuPillarInput) => {
       if (STEM_HAP[ss]?.other === day.stem)
         seunLines.push(
-          `세운천간 ${ss} + ${lbl} 일간 ${day.stem} — ${ss}${day.stem}合化${STEM_HAP[ss]!.element} (올해 끌림·기회)`
+          L(
+            `세운천간 ${ss} + ${lbl} 일간 ${day.stem} — ${ss}${day.stem}合化${STEM_HAP[ss]!.element} (올해 끌림·기회)`,
+            `annual stem ${ss} + ${lbl} day-master ${day.stem} — ${ss}${day.stem} combine→${elD(STEM_HAP[ss]!.element)} (this year: attraction/opportunity)`
+          )
         )
       if (STEM_CHUNG[ss] === day.stem)
-        seunLines.push(`세운천간 ${ss} ↔ ${lbl} 일간 ${day.stem} — 충 (올해 압박·결정)`)
+        seunLines.push(
+          L(
+            `세운천간 ${ss} ↔ ${lbl} 일간 ${day.stem} — 충 (올해 압박·결정)`,
+            `annual stem ${ss} ↔ ${lbl} day-master ${day.stem} — clash (this year: pressure/decision)`
+          )
+        )
       if (BRANCH_HAP[sb]?.other === day.branch)
-        seunLines.push(`세운지지 ${sb} + ${lbl} 일지 ${day.branch} — 합 (올해 결속·안정)`)
+        seunLines.push(
+          L(
+            `세운지지 ${sb} + ${lbl} 일지 ${day.branch} — 합 (올해 결속·안정)`,
+            `annual branch ${sb} + ${lbl} day-branch ${day.branch} — union (this year: bonding/stability)`
+          )
+        )
       if (BRANCH_CHUNG[sb] === day.branch)
-        seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 충 (올해 이동·변동)`)
+        seunLines.push(
+          L(
+            `세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 충 (올해 이동·변동)`,
+            `annual branch ${sb} ↔ ${lbl} day-branch ${day.branch} — clash (this year: movement/change)`
+          )
+        )
       else if (isHyeong(sb, day.branch))
-        seunLines.push(`세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 형 (올해 갈등·구설)`)
+        seunLines.push(
+          L(
+            `세운지지 ${sb} ↔ ${lbl} 일지 ${day.branch} — 형 (올해 갈등·구설)`,
+            `annual branch ${sb} ↔ ${lbl} day-branch ${day.branch} — punishment (this year: conflict/gossip)`
+          )
+        )
     }
     crossNatal(labelA, aDay)
     crossNatal(labelB, bDay)
     const crossDaeun = (lbl: string, dae?: { stem: string; branch: string } | null) => {
       if (!dae) return
       if (STEM_CHUNG[ss] === dae.stem)
-        seunLines.push(`세운 ↔ ${lbl} 대운천간 ${dae.stem} — 충 (올해와 대운 흐름 충돌)`)
+        seunLines.push(
+          L(
+            `세운 ↔ ${lbl} 대운천간 ${dae.stem} — 충 (올해와 대운 흐름 충돌)`,
+            `annual ↔ ${lbl} daeun-stem ${dae.stem} — clash (this year vs daeun-flow conflict)`
+          )
+        )
       if (BRANCH_CHUNG[sb] === dae.branch)
-        seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 충 (올해와 대운 흐름 충돌)`)
+        seunLines.push(
+          L(
+            `세운 ↔ ${lbl} 대운지지 ${dae.branch} — 충 (올해와 대운 흐름 충돌)`,
+            `annual ↔ ${lbl} daeun-branch ${dae.branch} — clash (this year vs daeun-flow conflict)`
+          )
+        )
       if (BRANCH_HAP[sb]?.other === dae.branch)
-        seunLines.push(`세운 ↔ ${lbl} 대운지지 ${dae.branch} — 합 (올해 대운과 결속)`)
+        seunLines.push(
+          L(
+            `세운 ↔ ${lbl} 대운지지 ${dae.branch} — 합 (올해 대운과 결속)`,
+            `annual ↔ ${lbl} daeun-branch ${dae.branch} — union (this year bonds with daeun)`
+          )
+        )
     }
     crossDaeun(labelA, input.currentDaeunA)
     crossDaeun(labelB, input.currentDaeunB)
     important.push(
-      `올해 세운 ${seun.year}년 ${ss}${sb} cross${seunLines.length ? ':' : ' — 두 사람 본명·대운과 직접 합·충 없음 (올해 큰 변동 신호 약함)'}`
+      L(
+        `올해 세운 ${seun.year}년 ${ss}${sb} cross${seunLines.length ? ':' : ' — 두 사람 본명·대운과 직접 합·충 없음 (올해 큰 변동 신호 약함)'}`,
+        `this year's annual ${seun.year} ${ss}${sb} cross${seunLines.length ? ':' : ' — no direct union/clash with either chart or daeun (weak signal for big change this year)'}`
+      )
     )
     for (const l of seunLines) important.push(`  ${l}`)
   }
@@ -310,10 +469,21 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const sorted = [...els].sort((a, b) => merged[b] - merged[a])
   const balNote =
     merged[sorted[0]] - merged[sorted[4]] >= 4
-      ? `${sorted[0]} 강 / ${sorted[4]} 약 (보완 필요)`
-      : `${sorted[0]}~${sorted[4]} 폭 좁음 (비교적 균형)`
+      ? L(
+          `${sorted[0]} 강 / ${sorted[4]} 약 (보완 필요)`,
+          `${elD(sorted[0])} strong / ${elD(sorted[4])} weak (needs balancing)`
+        )
+      : L(
+          `${sorted[0]}~${sorted[4]} 폭 좁음 (비교적 균형)`,
+          `${elD(sorted[0])}~${elD(sorted[4])} narrow spread (fairly balanced)`
+        )
+  const elTally = (cnt: Record<string, number>, sp: string) =>
+    els.map((e) => `${en ? `${elD(e)}${sp}` : e}${cnt[e]}`).join(en ? ' ' : '')
   important.push(
-    `오행 합산 ${els.map((e) => `${e}${merged[e]}`).join(' ')} (A ${els.map((e) => `${e}${countsA[e]}`).join('')} / B ${els.map((e) => `${e}${countsB[e]}`).join('')}) → ${balNote}`
+    L(
+      `오행 합산 ${els.map((e) => `${e}${merged[e]}`).join(' ')} (A ${els.map((e) => `${e}${countsA[e]}`).join('')} / B ${els.map((e) => `${e}${countsB[e]}`).join('')}) → ${balNote}`,
+      `element totals ${els.map((e) => `${elD(e)} ${merged[e]}`).join(' / ')} (A: ${elTally(countsA, ' ')} / B: ${elTally(countsB, ' ')}) → ${balNote}`
+    )
   )
 
   // 8. 공망 cross — 한 쪽 공망이 상대 지지에 걸리면 그 영역이 공허·초연.
@@ -322,27 +492,40 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const aGong = gongmangOf(aDay.stem, aDay.branch)
     const bGong = gongmangOf(bDay.stem, bDay.branch)
     const hits: string[] = []
+    const dayStrong = (k: number) => (k === 2 ? L('(일지·강)', '(day-branch·strong)') : '')
     for (let j = 0; j < 4; j++) {
       if (B[j].branch && aGong.includes(B[j].branch)) {
         hits.push(
-          `${labelA}공망 → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch}${j === 2 ? '(일지·강)' : ''}`
+          L(
+            `${labelA}공망 → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch}${j === 2 ? '(일지·강)' : ''}`,
+            `${labelA} void → ${labelB} ${PL[j]}-branch ${B[j].branch}${dayStrong(j)}`
+          )
         )
       }
     }
     for (let i = 0; i < 4; i++) {
       if (A[i].branch && bGong.includes(A[i].branch)) {
         hits.push(
-          `${labelB}공망 → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch}${i === 2 ? '(일지·강)' : ''}`
+          L(
+            `${labelB}공망 → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch}${i === 2 ? '(일지·강)' : ''}`,
+            `${labelB} void → ${labelA} ${PL[i]}-branch ${A[i].branch}${dayStrong(i)}`
+          )
         )
       }
     }
     if (hits.length) {
       important.push(
-        `공망 cross (${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')}): ${hits.join(' · ')} — 적중 영역은 서로 공허·초연·집착 약함`
+        L(
+          `공망 cross (${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')}): ${hits.join(' · ')} — 적중 영역은 서로 공허·초연·집착 약함`,
+          `void cross (${labelA} void ${aGong.join('')} / ${labelB} void ${bGong.join('')}): ${hits.join(' · ')} — hit areas feel mutually empty/detached, low attachment`
+        )
       )
     } else {
       chamgo.push(
-        `공망 cross: ${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')} — 서로 적중 없음 (공허 신호 약함)`
+        L(
+          `공망 cross: ${labelA}공망 ${aGong.join('')} / ${labelB}공망 ${bGong.join('')} — 서로 적중 없음 (공허 신호 약함)`,
+          `void cross: ${labelA} void ${aGong.join('')} / ${labelB} void ${bGong.join('')} — no mutual hit (weak void signal)`
+        )
       )
     }
   }
@@ -358,6 +541,13 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     정관: '부성(책임·안정)',
     편관: '부성(긴장·격정)',
   }
+  const spouseRoleLabelEn: Record<string, string> = {
+    정재: 'wife-star (stable·home)',
+    편재: 'wife-star (lively·fluid)',
+    정관: 'husband-star (responsible·stable)',
+    편관: 'husband-star (tense·intense)',
+  }
+  const roleD = (s: string) => (en ? (spouseRoleLabelEn[s] ?? '') : spouseRoleLabel[s])
   const sibsinCrossLines: string[] = []
   const findSpouseSignals = (
     fromLabel: string,
@@ -370,26 +560,33 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       if (!p.stem) return
       const s = sibseongFor(fromDay.stem, p.stem)
       if (spouseStars.has(s)) {
-        const where = PILLAR_LABELS[idx] // 년/월/일/시
-        const at = idx === 2 ? '일주(배우자궁)' : `${where}주`
-        hits.push(`${s}(${spouseRoleLabel[s]}) at ${otherLabel} ${at} ${p.stem}`)
+        const at =
+          idx === 2
+            ? L('일주(배우자궁)', 'D-pillar(spouse-palace)')
+            : `${PL[idx]}${L('주', '-pillar')}`
+        hits.push(`${sibD(s)}(${roleD(s)}) at ${otherLabel} ${at} ${p.stem}`)
       }
       // 지지 본기 천간으로도 체크 — 지지 십성 보완.
       const branchStem = BRANCH_MAIN_STEM[p.branch]
       if (branchStem) {
         const sBr = sibseongFor(fromDay.stem, branchStem)
         if (spouseStars.has(sBr)) {
-          const where = PILLAR_LABELS[idx]
-          const at = idx === 2 ? '일지(배우자궁)' : `${where}지`
+          const at =
+            idx === 2
+              ? L('일지(배우자궁)', 'D-branch(spouse-palace)')
+              : `${PL[idx]}${L('지', '-branch')}`
           hits.push(
-            `${sBr}(${spouseRoleLabel[sBr]}) at ${otherLabel} ${at} ${p.branch}(본기 ${branchStem})`
+            `${sibD(sBr)}(${roleD(sBr)}) at ${otherLabel} ${at} ${p.branch}${L(`(본기 ${branchStem})`, `(main-qi ${branchStem})`)}`
           )
         }
       }
     })
     if (hits.length) {
       sibsinCrossLines.push(
-        `${fromLabel} 일간(${fromDay.stem}) 기준 ${otherLabel} 차트의 배우자성: ${hits.join(' · ')}`
+        L(
+          `${fromLabel} 일간(${fromDay.stem}) 기준 ${otherLabel} 차트의 배우자성: ${hits.join(' · ')}`,
+          `spouse-stars in ${otherLabel}'s chart, relative to ${fromLabel} day-master(${fromDay.stem}): ${hits.join(' · ')}`
+        )
       )
     }
   }
@@ -445,7 +642,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       for (const { idx, br } of otherBranches(B)) {
         if (br === aDohwa) {
           shinsalCrossLines.push(
-            `${labelA} 일지(${aDayBr}) 기준 도화 자리(${aDohwa}) 가 ${labelB} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 자석 끌림·매력 자극`
+            L(
+              `${labelA} 일지(${aDayBr}) 기준 도화 자리(${aDohwa}) 가 ${labelB} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 자석 끌림·매력 자극`,
+              `${labelA} day-branch(${aDayBr}) → peach-blossom seat(${aDohwa}) hits ${labelB} ${PL[idx]}-branch(${br}) — magnetic pull, charm trigger`
+            )
           )
         }
       }
@@ -457,7 +657,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       for (const { idx, br } of otherBranches(A)) {
         if (br === bDohwa) {
           shinsalCrossLines.push(
-            `${labelB} 일지(${bDayBr}) 기준 도화 자리(${bDohwa}) 가 ${labelA} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 자석 끌림·매력 자극`
+            L(
+              `${labelB} 일지(${bDayBr}) 기준 도화 자리(${bDohwa}) 가 ${labelA} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 자석 끌림·매력 자극`,
+              `${labelB} day-branch(${bDayBr}) → peach-blossom seat(${bDohwa}) hits ${labelA} ${PL[idx]}-branch(${br}) — magnetic pull, charm trigger`
+            )
           )
         }
       }
@@ -470,7 +673,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       for (const { idx, br } of otherBranches(B)) {
         if (br === aHy) {
           shinsalCrossLines.push(
-            `${labelA} 일간(${aDay.stem}) 기준 홍염살(${aHy}) 이 ${labelB} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 색기·연애 강도 +`
+            L(
+              `${labelA} 일간(${aDay.stem}) 기준 홍염살(${aHy}) 이 ${labelB} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 색기·연애 강도 +`,
+              `${labelA} day-master(${aDay.stem}) → Hongyeom star(${aHy}) hits ${labelB} ${PL[idx]}-branch(${br}) — sensuality / romance intensity +`
+            )
           )
         }
       }
@@ -482,7 +688,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       for (const { idx, br } of otherBranches(A)) {
         if (br === bHy) {
           shinsalCrossLines.push(
-            `${labelB} 일간(${bDay.stem}) 기준 홍염살(${bHy}) 이 ${labelA} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 색기·연애 강도 +`
+            L(
+              `${labelB} 일간(${bDay.stem}) 기준 홍염살(${bHy}) 이 ${labelA} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 색기·연애 강도 +`,
+              `${labelB} day-master(${bDay.stem}) → Hongyeom star(${bHy}) hits ${labelA} ${PL[idx]}-branch(${br}) — sensuality / romance intensity +`
+            )
           )
         }
       }
@@ -495,7 +704,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const bIsBaekho = BAEKHO.has(bDayPair)
   if (aIsBaekho && bIsBaekho) {
     shinsalCrossLines.push(
-      `${labelA}·${labelB} 둘 다 백호 일주(${aDayPair} / ${bDayPair}) — 격정·강한 의지 충돌 가능, 한쪽이 누그러져야 안정`
+      L(
+        `${labelA}·${labelB} 둘 다 백호 일주(${aDayPair} / ${bDayPair}) — 격정·강한 의지 충돌 가능, 한쪽이 누그러져야 안정`,
+        `${labelA}·${labelB} both Baekho day-pillar(${aDayPair} / ${bDayPair}) — possible intense clash of strong wills; one must soften for stability`
+      )
     )
   } else if (aIsBaekho || bIsBaekho) {
     const baekhoSide = aIsBaekho ? labelA : labelB
@@ -504,7 +716,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const otherDayBr = aIsBaekho ? bDayBr : aDayBr
     if (baekhoBr && otherDayBr && BRANCH_CHUNG[baekhoBr] === otherDayBr) {
       shinsalCrossLines.push(
-        `${baekhoSide} 백호 일주(${aIsBaekho ? aDayPair : bDayPair}) + ${otherSide} 일지가 그 백호 지지와 충(${baekhoBr}↔${otherDayBr}) — 격정 충돌 가능`
+        L(
+          `${baekhoSide} 백호 일주(${aIsBaekho ? aDayPair : bDayPair}) + ${otherSide} 일지가 그 백호 지지와 충(${baekhoBr}↔${otherDayBr}) — 격정 충돌 가능`,
+          `${baekhoSide} Baekho day-pillar(${aIsBaekho ? aDayPair : bDayPair}) + ${otherSide} day-branch clashes that Baekho branch(${baekhoBr}↔${otherDayBr}) — possible intense clash`
+        )
       )
     }
   }
@@ -513,7 +728,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const bIsGoegang = GOEGANG.has(bDayPair)
   if (aIsGoegang && bIsGoegang) {
     shinsalCrossLines.push(
-      `${labelA}·${labelB} 둘 다 괴강 일주(${aDayPair} / ${bDayPair}) — 카리스마 강 vs 강, 서로 안 꺾이면 부딪힘`
+      L(
+        `${labelA}·${labelB} 둘 다 괴강 일주(${aDayPair} / ${bDayPair}) — 카리스마 강 vs 강, 서로 안 꺾이면 부딪힘`,
+        `${labelA}·${labelB} both Goegang day-pillar(${aDayPair} / ${bDayPair}) — charisma vs charisma; if neither yields, they collide`
+      )
     )
   }
 
@@ -544,7 +762,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const bDayHidden = JIJANGGAN_TABLE[bDayBr] ?? []
     if (bDayHidden.includes(aDay.stem)) {
       jijangganCrossLines.push(
-        `${labelA} 일간(${aDay.stem}) 이 ${labelB} 일지(${bDayBr}) 지장간 [${bDayHidden.join('·')}] 안에 숨어 있음 — 표면엔 안 보여도 ${labelB} 안에 ${labelA} 가 깊이 자리 잡은 관계`
+        L(
+          `${labelA} 일간(${aDay.stem}) 이 ${labelB} 일지(${bDayBr}) 지장간 [${bDayHidden.join('·')}] 안에 숨어 있음 — 표면엔 안 보여도 ${labelB} 안에 ${labelA} 가 깊이 자리 잡은 관계`,
+          `${labelA} day-master(${aDay.stem}) is hidden inside ${labelB} day-branch(${bDayBr}) hidden-stems [${bDayHidden.join('·')}] — not visible on the surface, yet ${labelA} sits deep within ${labelB}`
+        )
       )
     }
   }
@@ -552,7 +773,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const aDayHidden = JIJANGGAN_TABLE[aDayBr] ?? []
     if (aDayHidden.includes(bDay.stem)) {
       jijangganCrossLines.push(
-        `${labelB} 일간(${bDay.stem}) 이 ${labelA} 일지(${aDayBr}) 지장간 [${aDayHidden.join('·')}] 안에 숨어 있음 — 표면엔 안 보여도 ${labelA} 안에 ${labelB} 가 깊이 자리 잡은 관계`
+        L(
+          `${labelB} 일간(${bDay.stem}) 이 ${labelA} 일지(${aDayBr}) 지장간 [${aDayHidden.join('·')}] 안에 숨어 있음 — 표면엔 안 보여도 ${labelA} 안에 ${labelB} 가 깊이 자리 잡은 관계`,
+          `${labelB} day-master(${bDay.stem}) is hidden inside ${labelA} day-branch(${aDayBr}) hidden-stems [${aDayHidden.join('·')}] — not visible on the surface, yet ${labelB} sits deep within ${labelA}`
+        )
       )
     }
   }
@@ -565,46 +789,71 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     if (aJeongi && bJeongi && aJeongi !== aDay.stem && bJeongi !== bDay.stem) {
       if (STEM_HAP[aJeongi]?.other === bJeongi) {
         jijangganCrossLines.push(
-          `${labelA} 일지 본기(${aJeongi}) + ${labelB} 일지 본기(${bJeongi}) 합화${STEM_HAP[aJeongi]!.element} — 표면 외에 *지지 깊이* 에서 결속`
+          L(
+            `${labelA} 일지 본기(${aJeongi}) + ${labelB} 일지 본기(${bJeongi}) 합화${STEM_HAP[aJeongi]!.element} — 표면 외에 *지지 깊이* 에서 결속`,
+            `${labelA} day-branch main-qi(${aJeongi}) + ${labelB} day-branch main-qi(${bJeongi}) combine→${elD(STEM_HAP[aJeongi]!.element)} — bonding at *branch depth* beyond the surface`
+          )
         )
       } else if (STEM_CHUNG[aJeongi] === bJeongi) {
         jijangganCrossLines.push(
-          `${labelA} 일지 본기(${aJeongi}) ↔ ${labelB} 일지 본기(${bJeongi}) 충 — 표면은 잠잠해도 *지지 깊이* 에서 부딪힘`
+          L(
+            `${labelA} 일지 본기(${aJeongi}) ↔ ${labelB} 일지 본기(${bJeongi}) 충 — 표면은 잠잠해도 *지지 깊이* 에서 부딪힘`,
+            `${labelA} day-branch main-qi(${aJeongi}) ↔ ${labelB} day-branch main-qi(${bJeongi}) clash — calm on the surface, yet colliding at *branch depth*`
+          )
         )
       }
     }
   }
 
   // ── 조립: 우선순위 티어 ── (헤더 짧게, 빈자료 블록 생략, 빈 라인 제거)
-  const out: string[] = ['== 시너스트리 (사주 cross) ==']
+  const out: string[] = [L('== 시너스트리 (사주 cross) ==', '== Synastry (Saju cross) ==')]
   if (elA && elB) {
     out.push(
-      `[고정] ${labelA} 일간 ${aDay.stem}${elA} · ${labelB} 일간 ${bDay.stem}${elB} — 오행·방향 절대 뒤집지 말 것`
+      L(
+        `[고정] ${labelA} 일간 ${aDay.stem}${elA} · ${labelB} 일간 ${bDay.stem}${elB} — 오행·방향 절대 뒤집지 말 것`,
+        `[FIXED] ${labelA} day-master ${se(aDay.stem, elA)} · ${labelB} day-master ${se(bDay.stem, elB)} — never reverse the element or direction`
+      )
     )
   }
   if (critical.length) {
-    out.push('[CRITICAL · 일간 극/천간합/일지 충형]')
+    out.push(
+      L(
+        '[CRITICAL · 일간 극/천간합/일지 충형]',
+        '[CRITICAL · day-master control / stem-combine / day-branch clash·punishment]'
+      )
+    )
     out.push(critical.join('\n'))
   }
   if (sibsinCrossLines.length) {
-    out.push('[CRITICAL · 배우자성 (십성)]')
+    out.push(L('[CRITICAL · 배우자성 (십성)]', '[CRITICAL · spouse-stars (ten-gods)]'))
     out.push(...sibsinCrossLines)
   }
   if (shinsalCrossLines.length) {
-    out.push('[CRITICAL · 신살 (도화·홍염·백호·괴강)]')
+    out.push(
+      L(
+        '[CRITICAL · 신살 (도화·홍염·백호·괴강)]',
+        '[CRITICAL · sinsal (peach-blossom·Hongyeom·Baekho·Goegang)]'
+      )
+    )
     out.push(...shinsalCrossLines)
   }
   if (jijangganCrossLines.length) {
-    out.push('[CRITICAL · 지장간 (지지 깊이의 숨은 관계)]')
+    out.push(
+      L(
+        '[CRITICAL · 지장간 (지지 깊이의 숨은 관계)]',
+        '[CRITICAL · hidden-stems (deep hidden relations in branches)]'
+      )
+    )
     out.push(...jijangganCrossLines)
   }
   if (important.length) {
-    out.push('[IMPORTANT]')
+    out.push('[IMPORTANT]') // tier label kept (language-neutral)
     out.push(important.join('\n'))
   }
   if (chamgo.length) {
-    out.push('[참고]')
+    out.push(L('[참고]', '[NOTE]'))
     out.push(...chamgo)
   }
-  return koreanize(stripAux(out.join('\n')))
+  const joined = stripAux(out.join('\n'))
+  return en ? joined : koreanize(joined)
 }

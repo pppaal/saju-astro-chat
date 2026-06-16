@@ -33,6 +33,14 @@ const ASP_SYM: Record<string, string> = {
   Square: '[긴장]',
   Sextile: '[협력]',
 }
+// EN locale — 한국어 관계어가 영어 응답에 새지 않게.
+const ASP_EN: Record<string, string> = {
+  Conjunction: '[conjunction]',
+  Opposition: '[opposition]',
+  Trine: '[trine]',
+  Square: '[square]',
+  Sextile: '[sextile]',
+}
 
 // ZodiacKo 타입은 영어 12 zodiac (Aries..Pisces). 한글 노출용 별도 매핑.
 const ZODIAC_EN: ZodiacKo[] = [
@@ -69,6 +77,8 @@ interface CompositeInput {
   chartB: Chart
   nameA?: string | null
   nameB?: string | null
+  /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
+  lang?: 'ko' | 'en'
 }
 
 /**
@@ -172,13 +182,20 @@ export function formatCompositeChart(input: CompositeInput): string {
   const nmB = (input.nameB || '').trim()
   const pairLabel = nmA && nmB ? `${nmA}·${nmB}` : nmA || nmB || 'A·B'
 
+  // EN 렌더 헬퍼 — lang==='en' 이면 한국어 라벨을 영어로. KO 출력은 byte 동일.
+  const en = input.lang === 'en'
+  const L = (ko: string, e: string) => (en ? e : ko)
+  const pk = (n: string) => (en ? n : (PLANET_KO[n] ?? n))
+  const zk = (sg: ZodiacKo) => (en ? sg : ZODIAC_KO_LABEL[sg])
+  const aspD = (t: string) => (en ? (ASP_EN[t] ?? t) : (ASP_SYM[t] ?? t))
+
   const critical: string[] = []
   const important: string[] = []
   // 각 줄을 [C] prefix 로 시작 — composite 은 entity 의 내부 aspect 라
   // synastry (A·B cross) 와 *완전히 다른 종류* 의 신호. 줄만 떼어보면
   // "달 ☍ 수성" 이 A·B synastry 처럼 보여 LLM 이 잘못 인용할 위험.
   const lineOf = (h: (typeof hits)[number]): string =>
-    `[C] ${PLANET_KO[h.from.name] ?? h.from.name} ${ASP_SYM[h.type] ?? h.type} ${PLANET_KO[h.to.name] ?? h.to.name} ${h.orb.toFixed(1)}°`
+    `[C] ${pk(h.from.name)} ${aspD(h.type)} ${pk(h.to.name)} ${h.orb.toFixed(1)}°`
 
   for (const h of hits) {
     if (h.orb <= 3) critical.push(lineOf(h))
@@ -189,7 +206,7 @@ export function formatCompositeChart(input: CompositeInput): string {
   // composite 행성 위치 한 줄 (sign 위주 — entity 의 "성격" 노출).
   const placementLine = compPlanets
     .filter((p) => p.name !== 'Ascendant' && p.name !== 'MC')
-    .map((p) => `${PLANET_KO[p.name] ?? p.name} ${ZODIAC_KO_LABEL[p.sign]}`)
+    .map((p) => `${pk(p.name)} ${zk(p.sign)}`)
     .join(' · ')
 
   // Sun-Moon midpoint (정통 점성의 "결혼점·관계 핵점") — 단순 강조용.
@@ -199,12 +216,20 @@ export function formatCompositeChart(input: CompositeInput): string {
   if (compSun && compMoon) {
     const mp = cyclicMidpoint(compSun.longitude, compMoon.longitude)
     const { sign, degree } = signFromLongitude(mp)
-    marriagePointLine = `[Sun-Moon midpoint = 결혼점·관계 핵점] ${ZODIAC_KO_LABEL[sign]} ${degree}° — 관계의 가장 단단한 정서 축`
+    marriagePointLine = L(
+      `[Sun-Moon midpoint = 결혼점·관계 핵점] ${ZODIAC_KO_LABEL[sign]} ${degree}° — 관계의 가장 단단한 정서 축`,
+      `[Sun-Moon midpoint = marriage-point / relational core] ${sign} ${degree}° — the relationship's firmest emotional axis`
+    )
   }
 
   const out: string[] = []
-  out.push(`== Composite (관계 entity) — ${pairLabel} ==`)
-  out.push(`[배치] ${placementLine}`)
+  out.push(
+    L(
+      `== Composite (관계 entity) — ${pairLabel} ==`,
+      `== Composite (relationship entity) — ${pairLabel} ==`
+    )
+  )
+  out.push(`${L('[배치]', '[placement]')} ${placementLine}`)
   if (marriagePointLine) out.push(marriagePointLine)
   if (critical.length) {
     out.push('[CRITICAL · orb≤3°]')

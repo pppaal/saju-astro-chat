@@ -38,6 +38,14 @@ const ASP_SYM: Record<string, string> = {
   square: '[긴장]',
   sextile: '[협력]',
 }
+// EN locale 은 영어 관계어로 — 한국어 라벨이 영어 응답에 새지 않게.
+const ASP_EN: Record<string, string> = {
+  conjunction: '[conjunction]',
+  opposition: '[opposition]',
+  trine: '[trine]',
+  square: '[square]',
+  sextile: '[sextile]',
+}
 
 const MAJOR = /(?<![A-Za-z])(?:Conjunction|Opposition|Trine|Square|Sextile)(?![a-z])/
 const ORB = /Orb:\s*(\d+)°(\d+)'/
@@ -53,7 +61,7 @@ const TRANSIT_TOP = 10
 const pko = (p: string, l: SlimLocale) =>
   l === 'ko' ? (PLANET_KO[p] ?? p) : p === 'Ascendant' ? 'ASC' : p
 const sko = (s: string, l: SlimLocale) => (l === 'ko' ? (SIGN_KO[s] ?? s) : s)
-const sym = (a: string) => ASP_SYM[a.toLowerCase()] ?? a
+const sym = (a: string, l: SlimLocale) => (l === 'ko' ? ASP_SYM : ASP_EN)[a.toLowerCase()] ?? a
 
 function orbDeg(line: string): number | null {
   const m = ORB.exec(line)
@@ -96,7 +104,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
         )
         .sort((a, b) => a.o - b.o)
         .slice(0, TRANSIT_TOP)
-        .map(({ m, b }) => `  ${pko(m[1], l)}(t) ${sym(m[2])} ${pko(m[3], l)} ${orbStr(b)}`)
+        .map(({ m, b }) => `  ${pko(m[1], l)}(t) ${sym(m[2], l)} ${pko(m[3], l)} ${orbStr(b)}`)
       if (kept.length) out.push(l === 'ko' ? '강한 트랜짓:' : 'strong transits:', ...kept)
       i = j
       continue
@@ -143,7 +151,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
             // 하우스 (예: 본명 달 H4) 와 다를 수 있어 라벨로 구분.
             const houseTag = l === 'ko' ? `식점 H${it.house}` : `eclipse@H${it.house}`
             const tail = idx === 0 ? ` ${it.orb}° (${houseTag})` : ` ${it.orb}°`
-            out.push(`  ${head}→ ${tgtL} ${sym(it.asp)}${tail}`)
+            out.push(`  ${head}→ ${tgtL} ${sym(it.asp, l)}${tail}`)
           })
         }
       }

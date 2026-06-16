@@ -250,6 +250,14 @@ const ASP_SYM: Record<string, string> = {
   trine: '[조화]',
   opposition: '[대립]',
 }
+// EN locale 은 영어 관계어로 — 한국어 라벨이 영어 응답에 새지 않게.
+const ASP_EN: Record<string, string> = {
+  conjunction: '[conjunction]',
+  sextile: '[sextile]',
+  square: '[square]',
+  trine: '[trine]',
+  opposition: '[opposition]',
+}
 // 형(刑) 판정은 @/lib/saju/hyeong 의 isHyeong 단일 소스를 쓴다 — 본명 합충
 // 블록(아래 shown 필터)과 타이밍 교차 블록이 같은 보정 교리를 공유한다.
 // (이전엔 이 파일에 HYEONG_PAIR_TRIO/SELF_HYEONG/hyeongPair 가 복붙돼 있어
@@ -313,8 +321,8 @@ function buildInstructions(locale: Locale, dayMasterName?: string): string {
     return [
       '## LEGEND',
       '- astro symbols: ☌conjunction ⚹sextile □square △trine ☍opposition / R retrograde / (t)current transit / P-Sun, P-Moon = secondary progression / [detriment]=weak [domicile]=strong',
-      "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '31~40세 갑술' are the *start~end range* of that 10-yr cycle, NOT the current age. All ages (daeun, profection, current) are *international age* (만 나이) — the saju/astro stack uses one convention everywhere.",
-      `- ★ Ten-gods anchor: every (X/Y) parens in [Timing] (daeun \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운/iljin trailing (X/Y), each row of the daily block) are *ten-gods relative to user's day master ${dayMasterName ?? '?'}* (stem/branch).`,
+      "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '31~40 甲戌' are the *start~end range* of that 10-yr cycle, NOT the current age. All ages (daeun, profection, current) are *international age* — the saju/astro stack uses one convention everywhere.",
+      `- ★ Ten-gods anchor: every (X/Y) parens in [Timing] (daeun \`32~41 甲戌(now Direct Wealth/Direct Resource)\`, year/month-luck & iljin trailing (X/Y), each row of the daily block) are *ten-gods relative to user's day master ${dayMasterName ?? '?'}* (stem/branch).`,
     ].join('\n')
   }
   return [
@@ -426,8 +434,9 @@ export async function buildDestinyContext(
       )
     }
 
+    const aspMap = locale === 'en' ? ASP_EN : ASP_SYM
     const fmtAsp = (a: { from: string; to: string; type: string; orb: number }) =>
-      `  ${pl(a.from)} ${ASP_SYM[a.type] ?? a.type} ${pl(a.to)} ${a.orb.toFixed(1)}°`
+      `  ${pl(a.from)} ${aspMap[a.type] ?? a.type} ${pl(a.to)} ${a.orb.toFixed(1)}°`
     const strong = aFacts.aspects.strong.map(fmtAsp)
     const mid = aFacts.aspects.mid.map(fmtAsp)
 
@@ -772,15 +781,55 @@ export function buildSajuSection(
       천라지망: '걸림·답답',
       // 공망은 [합충] 에 이미 출력 → 여기선 skip
     }
+    // EN locale: 한국어 신살명은 영어 사용자에게 의미가 없으니 이름은 음역,
+    // 라벨은 영어 뜻으로 — 한국어가 영어 응답에 새지 않게.
+    const SHINSAL_EN: Record<string, { name: string; mean: string }> = {
+      도화: { name: 'Dohwa', mean: 'charm, allure' },
+      홍염살: { name: 'Hongyeom', mean: 'sensual magnetism' },
+      백호: { name: 'Baekho', mean: 'intense, fierce' },
+      괴강: { name: 'Goegang', mean: 'charisma, force' },
+      양인: { name: 'Yangin', mean: 'sharp, aggressive' },
+      귀문관: { name: 'Gwimun', mean: 'obsessive, sensitive' },
+      원진: { name: 'Wonjin', mean: 'subtle aversion' },
+      고신: { name: 'Gosin', mean: 'solitary streak' },
+      과숙: { name: 'Gwasuk', mean: 'solitary streak (female)' },
+      금여성: { name: 'Geumyeo', mean: 'spouse fortune, grace' },
+      천덕귀인: { name: 'Cheondeok', mean: 'protection, virtue' },
+      월덕귀인: { name: 'Woldeok', mean: 'protection, virtue' },
+      천을귀인: { name: 'Cheoneul', mean: 'noble protection' },
+      태극귀인: { name: 'Taegeuk', mean: 'hidden fortune' },
+      암록: { name: 'Amrok', mean: 'hidden support' },
+      문창귀인: { name: 'Munchang', mean: 'study, creativity' },
+      학당귀인: { name: 'Hakdang', mean: 'scholarship' },
+      문곡: { name: 'Mungok', mean: 'writing talent' },
+      천주귀인: { name: 'Cheonju', mean: 'material stability' },
+      건록: { name: 'Geollok', mean: 'self-foundation' },
+      제왕: { name: 'Jewang', mean: 'peak, stubborn' },
+      화개: { name: 'Hwagae', mean: 'art, spirituality, solitude' },
+      역마: { name: 'Yeokma', mean: 'movement, change' },
+      장성: { name: 'Jangseong', mean: 'authority, leadership' },
+      지살: { name: 'Jisal', mean: 'relocation' },
+      망신: { name: 'Mangsin', mean: 'legal/gossip trouble' },
+      천라지망: { name: 'Cheollajimang', mean: 'entanglement, stuck' },
+    }
+    const POS_EN: Record<string, string> = { year: 'Y', month: 'M', day: 'D', time: 'H' }
+    const isEn = locale === 'en'
     const SKIP = new Set(['공망', '삼재']) // 삼재 는 시기성 신살, 본명 컨텍스트 약함
     const hits: string[] = []
     for (const h of allHits) {
       const kind = h?.kind
       if (!kind || SKIP.has(kind) || !(kind in SHINSAL_LABEL)) continue
       const loc = (h.pillars ?? [])
-        .map((p) => ({ year: '년', month: '월', day: '일', time: '시' })[p] ?? p)
+        .map((p) =>
+          isEn ? (POS_EN[p] ?? p) : ({ year: '년', month: '월', day: '일', time: '시' }[p] ?? p)
+        )
         .join('·')
-      hits.push(`${kind}(${loc}, ${SHINSAL_LABEL[kind]})`)
+      if (isEn) {
+        const en = SHINSAL_EN[kind]
+        hits.push(en ? `${en.name}(${loc}, ${en.mean})` : `${kind}(${loc})`)
+      } else {
+        hits.push(`${kind}(${loc}, ${SHINSAL_LABEL[kind]})`)
+      }
     }
     if (hits.length) out.push(`${L('신살', 'sinsal')}: ${hits.join(' / ')}`)
   } catch {
@@ -829,8 +878,13 @@ export function buildSajuSection(
     }
     if (Object.keys(tally).length) {
       const order = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인']
-      const parts = order.filter((o) => tally[o]).map((o) => `${o}${tally[o]}`)
-      out.push(`${L('십성 분포', 'ten-gods dist')}: ${parts.join(' ')}`)
+      const present = order.filter((o) => tally[o])
+      // EN: 영어 십신명은 띄어쓰기가 있어 ' / ' 로 구분 (KO 는 기존 압축 포맷 유지).
+      const body =
+        locale === 'en'
+          ? present.map((o) => `${SIBSIN_EN[o] ?? o} ${tally[o]}`).join(' / ')
+          : present.map((o) => `${o}${tally[o]}`).join(' ')
+      out.push(`${L('십성 분포', 'ten-gods dist')}: ${body}`)
     }
   } catch {
     /* */
@@ -846,15 +900,16 @@ export function buildSajuSection(
   // 나이 표기는 시작~끝 범위로. 단순 `32甲戌` 이면 LLM 이 "현재 32세 갑술
   // 대운 중" 으로 오인용 (compat 의 동일 버그와 같은 클래스). 10년 cycle
   // 임을 데이터 자체로 명시.
+  const ys = locale === 'en' ? '' : '세' // age suffix — EN 은 만나이 숫자만(한국어 '세' 누수 방지)
   if (dlist.length) {
     const tl = dlist.map((d, i) => {
       const nextAge = dlist[i + 1]?.age
       const ageLabel =
         typeof d.age === 'number'
           ? typeof nextAge === 'number'
-            ? `${d.age}~${nextAge - 1}세`
-            : `${d.age}세~`
-          : '?세'
+            ? `${d.age}~${nextAge - 1}${ys}`
+            : `${d.age}${ys}~`
+          : `?${ys}`
       const gz = `${ageLabel} ${d.heavenlyStem}${d.earthlyBranch}`
       return cur && d.age === cur.age
         ? `${gz}(${L('현재 ', 'now ')}${sib1(d.sibsin?.cheon)}/${sib1(d.sibsin?.ji)})`
@@ -862,7 +917,7 @@ export function buildSajuSection(
     })
     timing.push(`${L('대운', 'daeun')}: ${tl.join(' / ')}`)
   } else if (cur) {
-    const endAge = typeof cur.age === 'number' ? `${cur.age}~${cur.age + 9}세` : '?세'
+    const endAge = typeof cur.age === 'number' ? `${cur.age}~${cur.age + 9}${ys}` : `?${ys}`
     timing.push(
       `${L('대운', 'daeun')} ${endAge}: ${cur.heavenlyStem}${cur.earthlyBranch} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`
     )
