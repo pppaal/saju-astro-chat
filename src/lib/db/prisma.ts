@@ -53,34 +53,22 @@ function createPrismaClient(): PrismaClient {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
   }
 
-  // 풀 크기 우선순위: DATABASE_POOL_MAX(env) > URL 의 connection_limit > 기본 5.
+  // 풀 크기: DATABASE_POOL_MAX(env) > 기본 5.
   //
-  // 중요: @prisma/adapter-pg + pg.Pool 로 바꾸면서, connection string 의
-  // `connection_limit=1`(Prisma 네이티브 파라미터)이 *무시*된다 — pg.Pool 은
-  // 그 파라미터를 모르고 자체 max 만 본다. 그 결과 "인스턴스당 1 커넥션" 의도로
-  // 박아둔 프로덕션 URL 이 실제로는 max(5~15)개를 열어 Supabase/PgBouncer
-  // 트랜잭션 풀러를 고갈시키고 ECHECKOUTTIMEOUT 을 유발했다. URL 이 명시한
-  // connection_limit 을 풀 max 로 존중해 그 의도를 복원한다.
-  const urlConnectionLimit = (() => {
-    try {
-      const v = new URL(connectionString).searchParams.get('connection_limit')
-      const n = Number(v)
-      return Number.isFinite(n) && n > 0 ? n : undefined
-    } catch {
-      return undefined
-    }
-  })()
-
+  // 주의: URL 의 `connection_limit=1` 을 pg.Pool max 로 그대로 쓰지 않는다.
+  // connection_limit=1 은 Prisma 자체 풀(요청 1개 = 커넥션 1개)에서나 맞는
+  // 값이고, 우리처럼 pg.Pool 이 *한 인스턴스 안에서 동시 요청 여러 개*를
+  // 처리하는 구조에선 max=1 이면 동시 요청·로그인 다단계 쿼리가 서로 막혀
+  // ECHECKOUTTIMEOUT 으로 터진다(로그인 장애 유발). 인스턴스당 적당한 동시성을
+  // 주되(5) 풀러 고갈은 env 나 Supabase 풀 설정으로 조절한다.
   const pool =
     globalForPrisma.pool ??
     new Pool({
       connectionString,
-      // 인스턴스당 최대 커넥션 수. PgBouncer 트랜잭션 풀러(Supabase :6543 /
-      // Neon pooler) + Vercel 서버리스에서는 *총* 커넥션 = max × 살아있는
-      // 인스턴스 수다. 풀러가 멀티플렉싱하므로 인스턴스당 풀은 작아야 한다 —
-      // URL 의 connection_limit(보통 1)을 존중하고, 없으면 5로 둔다.
-      // env DATABASE_POOL_MAX 로 강제 오버라이드 가능.
-      max: toInt(process.env.DATABASE_POOL_MAX, urlConnectionLimit ?? 5),
+      // 인스턴스당 최대 커넥션 수. 한 인스턴스가 동시 요청을 처리하므로 1 은
+      // 너무 작다(서로 막혀 로그인 장애). 5 면 동시성 확보 + 풀러 부담도 적정.
+      // env DATABASE_POOL_MAX 로 오버라이드 가능.
+      max: toInt(process.env.DATABASE_POOL_MAX, 5),
       // 유휴 커넥션 회수 시간 — 서버리스에서 죽은 인스턴스가 풀러 슬롯을
       // 오래 쥐고 있지 않도록 짧게.
       idleTimeoutMillis: toInt(process.env.DATABASE_POOL_IDLE_TIMEOUT_MS, 10_000),
