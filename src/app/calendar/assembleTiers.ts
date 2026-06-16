@@ -14,6 +14,7 @@
 import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
+import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
@@ -502,6 +503,28 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
         },
     focusDay: monthAdapter.focusDay,
     calendar,
+  }
+
+  // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
+  // 기존 narrative(인트로+토막)가 안 녹이던 best/caution/converge 날짜·분포를 글로.
+  // narrative 맨 앞에 '이달 총평' 태그로 넣어 카드 선두에 노출.
+  const monthSummaryText = deriveMonthSummary({
+    woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
+    goodDays: month.goodDays.length,
+    cautionDays: month.cautionDays.length,
+    totalDays: monthCells.length,
+    topReasons: monthTopReasons.map((r) => r.body),
+    bestDay: month.bestDay?.date || undefined,
+    bestDayReason: monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning,
+    cautionDay: month.cautionDays[0],
+    convergeDate: month.converge?.date || undefined,
+    lang,
+  })
+  if (monthSummaryText) {
+    month.narrative = [
+      { tag: lang === 'ko' ? '이달 총평' : 'This month', body: monthSummaryText },
+      ...month.narrative,
+    ]
   }
 
   // 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어를 모아 카드 원료로.
