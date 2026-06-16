@@ -46,8 +46,10 @@ export default async function DestinypalPreview() {
 
   // ─── NatalContext + 그 해 cells (DB 캐시 우선) ────────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)
-  const cells = await getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
-  const focusDayCell = await getFocusDayCell(natal, TARGET_DAY_ISO)
+  const [cells, focusDayCell] = await Promise.all([
+    getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false }),
+    getFocusDayCell(BIRTH, natal, TARGET_DAY_ISO),
+  ])
 
   // ─── 5 tier 어셈블 (정식 라우트와 공유) ───────────────────────────────
   const TARGET_DAY = Number(TARGET_DAY_ISO.split('-')[2])
