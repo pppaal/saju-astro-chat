@@ -210,6 +210,12 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
     yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
+    // 네이버 웹마스터도구 인증 — 한국 검색 노출의 핵심 채널. 네이버는 Next 의
+    // 표준 verification 필드가 없어 커스텀 meta(naver-site-verification)로 넣는다.
+    // 값이 없을 땐 빈 meta 태그가 나가지 않도록 환경변수가 있을 때만 추가.
+    ...(process.env.NEXT_PUBLIC_NAVER_VERIFICATION
+      ? { other: { 'naver-site-verification': process.env.NEXT_PUBLIC_NAVER_VERIFICATION } }
+      : {}),
   },
 }
 
