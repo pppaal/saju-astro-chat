@@ -5,7 +5,6 @@
     "src/instrumentation.ts",
     "src/instrumentation-client.ts",
     "tests/**/*.{ts,tsx}",
-    "src/**/*.test.{ts,tsx}",
     "e2e/**/*.{ts,tsx}",
     "scripts/**/*.{ts,mts,mjs,js}"
   ],
