@@ -20,8 +20,12 @@ CREATE TABLE IF NOT EXISTS "UserDecision" (
 CREATE INDEX IF NOT EXISTS "UserDecision_userId_createdAt_idx" ON "UserDecision"("userId", "createdAt");
 CREATE INDEX IF NOT EXISTS "UserDecision_userId_outcome_idx" ON "UserDecision"("userId", "outcome");
 
-ALTER TABLE "UserDecision"
-  ADD CONSTRAINT "UserDecision_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id")
-  ON DELETE CASCADE
-  ON UPDATE CASCADE;
+-- FK 는 이미 있으면 skip (Postgres ADD CONSTRAINT IF NOT EXISTS 미지원 → DO 블록)
+DO $$ BEGIN
+  ALTER TABLE "UserDecision"
+    ADD CONSTRAINT "UserDecision_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id")
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;

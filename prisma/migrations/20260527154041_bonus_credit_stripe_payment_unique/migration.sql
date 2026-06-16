@@ -6,5 +6,5 @@
 --
 -- 만약 과거 데이터에 stripePaymentId 중복이 있으면 이 migration 이
 -- 실패한다. 그 경우 NULL 처리 또는 중복 row 정리 후 재시도.
-CREATE UNIQUE INDEX "BonusCreditPurchase_stripePaymentId_key"
+CREATE UNIQUE INDEX IF NOT EXISTS "BonusCreditPurchase_stripePaymentId_key"
   ON "BonusCreditPurchase"("stripePaymentId");

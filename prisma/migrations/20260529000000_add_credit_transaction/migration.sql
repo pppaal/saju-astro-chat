@@ -5,27 +5,22 @@
 --
 -- 완전 additive — 기존 테이블에 ALTER 하지 않으며, FK 는 새 테이블에서
 -- User 로 가는 ON DELETE CASCADE 한 줄뿐. 운영 적용 시 락 없음.
+-- (스키마 드리프트 재실행 안전: CREATE TYPE/CONSTRAINT 는 DO 블록, 나머지는 IF NOT EXISTS)
 
--- 1) 트랜잭션 타입 enum
-CREATE TYPE "CreditTxnType" AS ENUM (
-  'GRANT',
-  'CONSUME',
-  'REFUND',
-  'EXPIRE',
-  'REVOKE',
-  'SIGNUP_BONUS'
-);
+-- 1) 트랜잭션 타입 enum (Postgres 는 CREATE TYPE IF NOT EXISTS 미지원 → DO 블록)
+DO $$ BEGIN
+  CREATE TYPE "CreditTxnType" AS ENUM ('GRANT', 'CONSUME', 'REFUND', 'EXPIRE', 'REVOKE', 'SIGNUP_BONUS');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- 2) 영향받는 잔액 풀 enum
-CREATE TYPE "CreditPool" AS ENUM (
-  'BONUS',
-  'MONTHLY',
-  'COMPATIBILITY',
-  'FOLLOWUP'
-);
+DO $$ BEGIN
+  CREATE TYPE "CreditPool" AS ENUM ('BONUS', 'MONTHLY', 'COMPATIBILITY', 'FOLLOWUP');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- 3) CreditTransaction 테이블
-CREATE TABLE "CreditTransaction" (
+CREATE TABLE IF NOT EXISTS "CreditTransaction" (
   "id"        TEXT NOT NULL,
   "userId"    TEXT NOT NULL,
   "type"      "CreditTxnType" NOT NULL,
@@ -40,18 +35,18 @@ CREATE TABLE "CreditTransaction" (
 );
 
 -- 4) FK → User (ON DELETE CASCADE: 계정 삭제 시 감사 행도 함께 제거)
-ALTER TABLE "CreditTransaction"
-  ADD CONSTRAINT "CreditTransaction_userId_fkey"
-  FOREIGN KEY ("userId") REFERENCES "User"("id")
-  ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "CreditTransaction"
+    ADD CONSTRAINT "CreditTransaction_userId_fkey"
+    FOREIGN KEY ("userId") REFERENCES "User"("id")
+    ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- 5) 인덱스
--- (userId, createdAt DESC) — 사용자 history 페이지 / 잔액 재현 쿼리.
-CREATE INDEX "CreditTransaction_userId_createdAt_idx"
+CREATE INDEX IF NOT EXISTS "CreditTransaction_userId_createdAt_idx"
   ON "CreditTransaction" ("userId", "createdAt" DESC);
--- sourceRef — Stripe paymentId / purchaseId 로 역추적 (환불 분쟁 / 백필 idempotency).
-CREATE INDEX "CreditTransaction_sourceRef_idx"
+CREATE INDEX IF NOT EXISTS "CreditTransaction_sourceRef_idx"
   ON "CreditTransaction" ("sourceRef");
--- (type, createdAt) — 타입별 운영 모니터링 (예: 일별 EXPIRE 총량).
-CREATE INDEX "CreditTransaction_type_createdAt_idx"
+CREATE INDEX IF NOT EXISTS "CreditTransaction_type_createdAt_idx"
   ON "CreditTransaction" ("type", "createdAt");
