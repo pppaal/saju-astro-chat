@@ -231,17 +231,35 @@ function PolChip({ v }: { v: Polarity | number }) {
 }
 
 // ============================================================================
-// ScoreDial (util.jsx 포팅).
+// ToneDial — 단일 verdict 톤만 반영하는 다이얼. (옇 ScoreDial: raw 점수 60/35로
+// 색·글자를 *따로* 계산해 헤드라인/톤과 어긋났다. 점수 숫자는 노출하지 않으며,
+// 호(arc)는 톤별 고정 비율의 장식일 뿐 — 점수 누출 없음. 단일 출처 = verdict.tone.)
 // ============================================================================
 
-function ScoreDial({ score, label }: { score: number; label?: string }) {
+function ToneDial({ tone, label }: { tone: DayVerdict['tone']; label?: string }) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
   const dialLabel = label ?? (ko ? '오늘' : 'Today')
   const r = 40
   const c = 2 * Math.PI * r
-  const frac = Math.max(0, Math.min(1, score / 100))
-  const col = score >= 60 ? 'var(--dp-pos)' : score >= 35 ? 'var(--dp-ember)' : 'var(--dp-neg)'
+  const frac = tone === 'positive' ? 1 : tone === 'mixed' ? 0.6 : 0.3
+  const col =
+    tone === 'positive'
+      ? 'var(--dp-pos)'
+      : tone === 'caution'
+        ? 'var(--dp-neg)'
+        : 'var(--dp-ember)'
+  const word = ko
+    ? tone === 'positive'
+      ? '순풍'
+      : tone === 'caution'
+        ? '역풍'
+        : '평이'
+    : tone === 'positive'
+      ? 'Tailwind'
+      : tone === 'caution'
+        ? 'Headwind'
+        : 'Steady'
   return (
     <div className={styles.scoreDial}>
       <svg width={96} height={96} viewBox="0 0 96 96">
@@ -261,19 +279,7 @@ function ScoreDial({ score, label }: { score: number; label?: string }) {
         />
       </svg>
       <div className={styles.sdNum}>
-        <b>
-          {score >= 60
-            ? ko
-              ? '순풍'
-              : 'Tailwind'
-            : score >= 35
-              ? ko
-                ? '평이'
-                : 'Steady'
-              : ko
-                ? '역풍'
-                : 'Headwind'}
-        </b>
+        <b>{word}</b>
         <span>{dialLabel}</span>
       </div>
     </div>
@@ -1014,7 +1020,7 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
         <GongmangBanner gongmang={day.gongmang} />
         <VocBanner voc={voc} />
 
-        {/* head: 일진 + score + one line (day.jsx 원본) */}
+        {/* head: 일진 + 톤 다이얼 + one line (day.jsx 원본) */}
         <div className={styles.dayHead}>
           <div className={styles.iljinBig}>
             <span className="han">{day.iljin.hanja}</span>
@@ -1035,10 +1041,8 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
             </div>
           </div>
           <div className={styles.dayScore}>
-            {/* 일 점수는 일진층 signed-surprise 를 *그 해 분포로 정규화*한 상대 백분위
-                (절대값 아님). 월 최고일 점수 등 다른 tier 점수축과 직접 비교 불가라
-                '올해 기준' 으로 명시해 절대 평가로 오해되지 않게 한다. */}
-            <ScoreDial score={day.score} label={ko ? '올해 기준' : 'vs year'} />
+            {/* 점수 숫자 비노출 — 다이얼은 헤드라인·칩과 같은 단일 verdict 톤만 보여준다. */}
+            <ToneDial tone={verdict.tone} label={ko ? '오늘' : 'Today'} />
             <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
           </div>
         </div>
