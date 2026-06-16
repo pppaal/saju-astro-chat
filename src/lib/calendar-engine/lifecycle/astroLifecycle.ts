@@ -254,9 +254,15 @@ export function buildLifecycleTiming(
    * Optional — kind 별 실제 transit 결과로 startYear/age 를 덮어쓰기. 미지정
    * 시 옛 동작(평균 나이대 테이블) 그대로 유지(backward compat).
    */
-  overrides?: readonly LifecycleMilestoneOverride[]
+  overrides?: readonly LifecycleMilestoneOverride[],
+  /**
+   * "지금" 주입점 — isPast/isCurrent/isUpcoming 플래그의 기준 연도. 기본값은
+   * 호출 시점이라 프로덕션 동작은 그대로, 테스트는 고정해 결정론적으로 검증한다.
+   * (엔진 규약: clock 을 계산 깊숙이 읽지 말고 주입 가능한 now 로 받는다.)
+   */
+  now: Date = new Date()
 ): LifecycleTimingResult {
-  const currentYear = new Date().getUTCFullYear()
+  const currentYear = now.getUTCFullYear()
   const overrideByKind = new Map<AstroLifecycleEventKind, LifecycleMilestoneOverride>()
   if (overrides) {
     for (const o of overrides) overrideByKind.set(o.kind, o)

@@ -69,6 +69,11 @@ export interface AssembleTiersInput {
    * 없으면 연 cells 의 해당 일 셀로 폴백(evidence 없음 — 근거 일부 비어 보일 수 있음).
    */
   focusDayCell?: CalendarCell | null
+  /**
+   * "지금" 주입점 — lifetime pivot 의 현재 나이/phase(past·current·upcoming)
+   * 기준. 미지정 시 호출 시점(new Date()). 프로덕션은 그대로, 테스트는 고정.
+   */
+  now?: Date
 }
 
 export interface AssembledTiers {
@@ -200,11 +205,12 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     whoBirthLine,
     place,
     focusDayCell,
+    now,
   } = args
 
   // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
   const lifetimeFlow = deriveLifetimeFlow(natal, lang)
-  const lifetimePivots = deriveLifetimePivots(natal, lang)
+  const lifetimePivots = deriveLifetimePivots(natal, lang, undefined, now)
 
   // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
