@@ -11,7 +11,8 @@ const { mockPrisma } = vi.hoisted(() => {
       findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
-      updateMany: vi.fn(),
+      // 월간 풀 차감은 이제 조건부 updateMany — 기본은 1행 갱신(가드 통과).
+      updateMany: vi.fn(async () => ({ count: 1 })),
       findMany: vi.fn(() => []),
     },
     bonusCreditPurchase: {
@@ -367,7 +368,8 @@ describe('Credit Service Functions with Mocked Prisma', () => {
 
       expect(result.success).toBe(true)
       expect(result.chargedAs).toBe('reading')
-      expect(mockPrisma.userCredits.update).toHaveBeenCalled()
+      // 월간 풀 차감은 이제 조건부 updateMany 경로(보너스 없음 → update 미사용).
+      expect(mockPrisma.userCredits.updateMany).toHaveBeenCalled()
     })
 
     it('charges compatibility against general credit', async () => {

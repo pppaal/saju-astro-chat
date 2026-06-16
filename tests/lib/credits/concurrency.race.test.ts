@@ -135,6 +135,10 @@ function matchUser(row: UserCreditsRow, where: Record<string, unknown>): boolean
         if (!((val as number) > (cond.gt as number))) return false
       } else if ('gte' in cond) {
         if (!((val as number) >= (cond.gte as number))) return false
+      } else if ('lte' in cond) {
+        if (!((val as number) <= (cond.lte as number))) return false
+      } else if ('lt' in cond) {
+        if (!((val as number) < (cond.lt as number))) return false
       } else {
         return false
       }
@@ -488,20 +492,15 @@ describe('consumeCredits — concurrent spend on the same user never overspends'
     expect(poolBonusRemaining(userId)).toBe(0)
   })
 
-  // CHARACTERIZATION TEST — documents a real concurrency gap, not a desired
-  // invariant. The MONTHLY pool in consumeCredits has NO atomic guard: the
-  // balance is checked against an in-transaction snapshot read
-  // (creditService.ts ~L228-241) and then committed with an UNCONDITIONAL
-  // `usedCredits: { increment }` (~L289). Under READ COMMITTED (Neon/Postgres
-  // default) concurrent callers all pass the stale-read check and all increment,
-  // so usedCredits can be driven PAST monthlyCredits → effective negative
-  // monthly balance / overspend. Contrast the bonus path, which guards with
-  // `updateMany({ where: { remaining: { gte } } })` and is race-safe above.
-  //
-  // This test pins the CURRENT (buggy) behavior so a future fix flips it. If
-  // someone adds a conditional guard to the monthly decrement, this assertion
-  // should be updated to `expect(succeeded).toBe(monthlyBalance)`.
-  it('[characterization] MONTHLY-only pool can be overspent under concurrency (no atomic guard) — see report', async () => {
+  // REGRESSION TEST — the MONTHLY pool is now guarded by an atomic conditional
+  // update mirroring the bonus pool: the monthly decrement only commits when
+  // `usedCredits <= monthlyCredits - fromMonthly` (creditService.ts), and
+  // count===0 is treated as insufficient. Under READ COMMITTED, concurrent
+  // callers each re-check the now-committed usedCredits, so the increment chain
+  // stops exactly at the monthly balance — no overspend, no negative balance.
+  // (Previously this was a [characterization] test asserting the buggy
+  // overspend; flipped after the conditional guard + DB CHECK landed.)
+  it('MONTHLY-only pool cannot be overspent under concurrency (atomic conditional guard)', async () => {
     const userId = 'race_monthly_gap'
     const MONTHLY = 4
     seedUser(userId, { monthly: MONTHLY, used: 0, bonus: 0 })
@@ -514,11 +513,11 @@ describe('consumeCredits — concurrent spend on the same user never overspends'
     const succeeded = results.filter((r) => r.success).length
     const row = state.userCredits.get(userId)!
 
-    // CURRENT behavior: more callers succeed than there is monthly balance, and
-    // usedCredits exceeds monthlyCredits (the monthly balance has gone negative).
-    // We assert the gap explicitly so the regression is visible and tracked.
-    expect(succeeded).toBeGreaterThan(MONTHLY)
-    expect(row.usedCredits).toBeGreaterThan(row.monthlyCredits)
+    // Exactly the monthly balance is spent; the rest are refused as insufficient.
+    expect(succeeded).toBe(MONTHLY)
+    // Invariant the new DB CHECK also enforces: usedCredits never exceeds monthly.
+    expect(row.usedCredits).toBe(MONTHLY)
+    expect(row.usedCredits).toBeLessThanOrEqual(row.monthlyCredits)
   })
 })
 

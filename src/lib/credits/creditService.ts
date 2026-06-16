@@ -277,19 +277,34 @@ export async function consumeCredits(
       }
 
       // 4. 크레딧 차감 (트랜잭션 내에서 원자적으로)
-      const updateData: Record<string, { increment?: number; decrement?: number }> = {}
+      // 보너스 풀 집계(bonusCredits)는 purchase 행 단위 가드
+      // (consumeBonusCreditsFromPurchasesInTx) 가 이미 막으므로 여기선 캐시
+      // 집계만 동기화한다.
       if (fromBonus > 0) {
-        updateData.bonusCredits = { decrement: fromBonus }
-      }
-      if (fromMonthly > 0) {
-        updateData.usedCredits = { increment: fromMonthly }
-      }
-
-      if (Object.keys(updateData).length > 0) {
         await tx.userCredits.update({
           where: { userId },
-          data: updateData,
+          data: { bonusCredits: { decrement: fromBonus } },
         })
+      }
+
+      // 월간 풀: 조건부 원자 가드. 옛 코드는 stale 스냅샷 검사(line 239) 후
+      // 무조건 increment 라, READ COMMITTED 동시 요청이 모두 같은 잔액을 읽고
+      // 통과해 usedCredits 가 monthlyCredits 를 넘겨 차감(무료 사용)될 수 있었다.
+      // 보너스 풀과 동일하게 `usedCredits <= monthlyCredits - fromMonthly` 일
+      // 때만 increment 하고, count===0 이면 그 사이 다른 차감이 잔액을 가져간
+      // 것이므로 부족 처리(트랜잭션 롤백). monthlyCredits 는 consume 중 불변이라
+      // 스냅샷 임계값이 안전하며, DB CHECK 제약이 최종 백스톱이다.
+      if (fromMonthly > 0) {
+        const monthlyUpdate = await tx.userCredits.updateMany({
+          where: {
+            userId,
+            usedCredits: { lte: credits.monthlyCredits - fromMonthly },
+          },
+          data: { usedCredits: { increment: fromMonthly } },
+        })
+        if (monthlyUpdate.count === 0) {
+          throw new CreditBusinessError('크레딧이 부족합니다')
+        }
       }
 
       // 5. 감사 로그 — monthly 차감분에 대해 한 줄 (보너스 풀 차감은

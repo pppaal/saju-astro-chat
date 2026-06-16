@@ -24,7 +24,8 @@ vi.mock('@/lib/db/prisma', () => ({
       create: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
-      updateMany: vi.fn(),
+      // 월간 풀 차감은 이제 조건부 updateMany — 기본은 1행 갱신(가드 통과).
+      updateMany: vi.fn(async () => ({ count: 1 })),
       findMany: vi.fn(),
     },
     bonusCreditPurchase: {
@@ -327,6 +328,7 @@ describe('Credit Service', () => {
           userCredits: {
             findUnique: vi.fn().mockResolvedValue(mockCredits),
             update: vi.fn().mockResolvedValue({}),
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
           },
           creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         })
@@ -406,6 +408,7 @@ describe('Credit Service', () => {
           userCredits: {
             findUnique: vi.fn().mockResolvedValue(mockCredits),
             update: vi.fn().mockResolvedValue({}),
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
           },
           creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         })
@@ -430,6 +433,7 @@ describe('Credit Service', () => {
           userCredits: {
             findUnique: vi.fn().mockResolvedValue(mockCredits),
             update: vi.fn().mockResolvedValue({}),
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
           },
           creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         }
