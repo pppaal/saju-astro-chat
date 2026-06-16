@@ -278,7 +278,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     if (aCheonul.includes(B[j].branch)) {
       important.push(
         L(
-          `${labelA}'s 천을귀인(${aCheonul.join('·')}, 일간 ${aDay.stem}) → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch} 활성 → 길성 보호`,
+          `${labelA}의 천을귀인(${aCheonul.join('·')}, 일간 ${aDay.stem}) → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch} 활성 → 길성 보호`,
           `${labelA}'s Cheoneul-nobleman(${aCheonul.join('·')}, day-master ${aDay.stem}) → ${labelB} ${PL[j]}-branch ${B[j].branch} activated → benefic protection`
         )
       )
@@ -288,7 +288,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     if (bCheonul.includes(A[i].branch)) {
       important.push(
         L(
-          `${labelB}'s 천을귀인(${bCheonul.join('·')}, 일간 ${bDay.stem}) → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch} 활성 → 길성 보호`,
+          `${labelB}의 천을귀인(${bCheonul.join('·')}, 일간 ${bDay.stem}) → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch} 활성 → 길성 보호`,
           `${labelB}'s Cheoneul-nobleman(${bCheonul.join('·')}, day-master ${bDay.stem}) → ${labelA} ${PL[i]}-branch ${A[i].branch} activated → benefic protection`
         )
       )
@@ -565,7 +565,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
           idx === 2
             ? L('일주(배우자궁)', 'D-pillar(spouse-palace)')
             : `${PL[idx]}${L('주', '-pillar')}`
-        hits.push(`${sibD(s)}(${roleD(s)}) at ${otherLabel} ${at} ${p.stem}`)
+        hits.push(`${sibD(s)}(${roleD(s)}) ${L('→', 'at')} ${otherLabel} ${at} ${p.stem}`)
       }
       // 지지 본기 천간으로도 체크 — 지지 십성 보완.
       const branchStem = BRANCH_MAIN_STEM[p.branch]
@@ -577,7 +577,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
               ? L('일지(배우자궁)', 'D-branch(spouse-palace)')
               : `${PL[idx]}${L('지', '-branch')}`
           hits.push(
-            `${sibD(sBr)}(${roleD(sBr)}) at ${otherLabel} ${at} ${p.branch}${L(`(본기 ${branchStem})`, `(main-qi ${branchStem})`)}`
+            `${sibD(sBr)}(${roleD(sBr)}) ${L('→', 'at')} ${otherLabel} ${at} ${p.branch}${L(`(본기 ${branchStem})`, `(main-qi ${branchStem})`)}`
           )
         }
       }
@@ -730,7 +730,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (aIsGoegang && bIsGoegang) {
     shinsalCrossLines.push(
       L(
-        `${labelA}·${labelB} 둘 다 괴강 일주(${aDayPair} / ${bDayPair}) — 카리스마 강 vs 강, 서로 안 꺾이면 부딪힘`,
+        `${labelA}·${labelB} 둘 다 괴강 일주(${aDayPair} / ${bDayPair}) — 카리스마 강 대 강, 서로 안 꺾이면 부딪힘`,
         `${labelA}·${labelB} both Goegang day-pillar(${aDayPair} / ${bDayPair}) — charisma vs charisma; if neither yields, they collide`
       )
     )
