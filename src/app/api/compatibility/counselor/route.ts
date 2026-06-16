@@ -556,8 +556,16 @@ export async function POST(req: NextRequest) {
       return raw ? sanitizeForXmlTagBoundary(raw).slice(0, 120) : ''
     }
     const personalShinsalLines = [
-      formatPersonalShinsal(safeNameOf(0) ? `A(${safeNameOf(0)})` : 'A', compatSaju?.a.shinsal, lang),
-      formatPersonalShinsal(safeNameOf(1) ? `B(${safeNameOf(1)})` : 'B', compatSaju?.b.shinsal, lang),
+      formatPersonalShinsal(
+        safeNameOf(0) ? `A(${safeNameOf(0)})` : 'A',
+        compatSaju?.a.shinsal,
+        lang
+      ),
+      formatPersonalShinsal(
+        safeNameOf(1) ? `B(${safeNameOf(1)})` : 'B',
+        compatSaju?.b.shinsal,
+        lang
+      ),
     ].filter(Boolean)
     const personalShinsalBlock = personalShinsalLines.length
       ? `${lang === 'en' ? '[Personal sinsal (self)]' : '[개별 신살 (self)]'}\n${personalShinsalLines.join('\n')}`
