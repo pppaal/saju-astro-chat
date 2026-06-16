@@ -18,6 +18,7 @@ import { getNowInTimezone } from '@/lib/datetime'
 import type { DayMaster } from '@/lib/saju/types'
 import { SIBSIN_EN as SIBSIN_EN_BASE } from '@/lib/saju/sibsinLabels'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 
 const HOUSE_THEME_KO: Record<number, string> = {
@@ -549,6 +550,11 @@ export async function buildDestinyContext(
   const dailyAnchor = L(`# 오늘: ${today}`, `# Today: ${today}`)
   const daily = [dailyAnchor, timing, saju.iljinWindow].filter(Boolean).join('\n\n').trim() + '\n'
 
+  // KO: 남은 영어 구조 태그/전문용어(cross/[CRITICAL]/SR/Lord/orb 등)를 한글로.
+  // 한국어 사용자에겐 한국어 데이터만 — EN 경로는 손대지 않아 영어 유지.
+  if (locale === 'ko') {
+    return { stable: koStructuralLabels(stable), daily: koStructuralLabels(daily) }
+  }
   return { stable, daily }
 }
 

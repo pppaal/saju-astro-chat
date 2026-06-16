@@ -57,4 +57,43 @@ describe('destiny counselor context language purity', () => {
     expect(ctx.stable.length).toBeGreaterThan(0)
     expect(HANGUL.test(ctx.stable + ctx.daily)).toBe(true)
   }, 60000)
+
+  // KO data must carry no English structure tags/jargon (they're Koreanized via
+  // koStructuralLabels). Kept structural codes (A/B/Y/M/D/H) and hanja are fine.
+  it('KO context has no English structure tags across varied charts', async () => {
+    const banned = [
+      'CRITICAL',
+      'IMPORTANT',
+      'NOTE',
+      'cross',
+      'Composite',
+      'entity',
+      'overlay',
+      'midpoint',
+      'Lord',
+      'SR',
+      'detriment',
+      'domicile',
+      'orb',
+      'cycle',
+      'anchor',
+      'Sun',
+      'Moon',
+      'square',
+      'trine',
+      'opposition',
+      'conjunction',
+      'Meta',
+      'self',
+    ]
+    const hits: string[] = []
+    for (const birth of BIRTHS) {
+      const ctx = await buildDestinyContext(birth, NOW, 'ko')
+      const text = ctx.stable + '\n' + ctx.daily
+      for (const w of banned) {
+        if (new RegExp(`\\b${w}\\b`).test(text)) hits.push(`[${birth.birthDate}] ${w}`)
+      }
+    }
+    expect(hits, `English structure tags leaked into KO context:\n${hits.join('\n')}`).toEqual([])
+  }, 60000)
 })
