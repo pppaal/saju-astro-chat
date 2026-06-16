@@ -6,6 +6,8 @@ Last audited: 2026-06-15 (Asia/Hong_Kong)
 
 | Document                                                             | Covers                                                          | Audience                    | Last audited |
 | -------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------- | ------------ |
+| `CLAUDE.md`                                                          | Orientation entry point for contributors & AI agents            | All engineers, AI agents    | 2026-06-16   |
+| `CONTRIBUTING.md`                                                    | Setup, branch/PR workflow, pre-commit hooks, required checks    | All engineers               | 2026-06-16   |
 | `README.md`                                                          | Repo overview, architecture, quality engineering                | All engineers               | 2026-06-15   |
 | `BUILD_INSTRUCTIONS.md`                                              | Prereqs, env setup, DB, build/test, deployment, troubleshooting | Developers, DevOps          | 2026-04-01   |
 | `OVERVIEW.md`                                                        | Architecture and runtime topology                               | Engineers, architects       | 2026-06-15   |

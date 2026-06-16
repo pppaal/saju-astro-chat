@@ -345,6 +345,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     })
     if (pending) {
       const revokeResult = await revokeBonusCreditPurchase(paymentIntentId)
+      if (revokeResult.error) {
+        // 회수가 transient DB 오류로 실패 — pending 을 *지우지 않고* throw 해서
+        // 이벤트를 재시도시킨다. 지워버리면 큐가 사라져 환불 회수가 영영 누락된다.
+        throw new Error(
+          `[Stripe Webhook] queued revocation failed (DB error), will retry: payment=${paymentIntentId}`
+        )
+      }
       await prisma.pendingCreditRevocation.delete({ where: { id: pending.id } })
       logger.warn(
         `[Stripe Webhook] Applied queued refund after late purchase webhook: payment=${paymentIntentId} reclaimed=${revokeResult.reclaimed} (duplicateRetry=${creditGrantWasDuplicate})`
@@ -355,6 +362,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
   } catch (err) {
     logger.error('[Stripe Webhook] Failed to apply queued refund revocation:', err)
+    // 회수 실패는 이벤트 실패로 전파 → Stripe 재시도(멱등 보장됨). 옛 코드는
+    // 여기서 삼켜 success 로 처리 → 환불 회수 누락. grant 자체는 멱등이라 안전.
+    throw err
   }
 
   // B2 fix: duplicate retry 인 경우 receipt 이메일과 referral 보상은
@@ -425,6 +435,15 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
       `[Stripe Webhook] Revoked refunded purchase: payment=${paymentIntentId} reclaimed=${result.reclaimed} alreadyUsed=${result.alreadyUsed}`
     )
     return
+  }
+
+  // 진짜 DB 오류로 회수 실패 → throw 해서 이벤트를 실패(retryable)로 기록하고
+  // Stripe 가 재시도하게 한다. 아래 "already-revoked 멱등" 분기로 떨어지면
+  // 환불됐는데 크레딧이 남는다. (not-found/already-revoked 는 error 없음)
+  if (result.error) {
+    throw new Error(
+      `[Stripe Webhook] revoke failed (DB error), will retry: payment=${paymentIntentId}`
+    )
   }
 
   // revoked:false 케이스 — 두 가지:

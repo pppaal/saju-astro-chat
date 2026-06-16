@@ -208,7 +208,9 @@ function getSajuCacheKey(
   timezone: string,
   lunarLeap?: boolean,
   // longitude 가 들어오면 진경도(진태양시) 보정이 켜져 시지/시간이 달라진다 — 캐시 키에 반영.
-  longitude?: number
+  longitude?: number,
+  // 출생지-로컬 "오늘" (YYYY-MM-DD). 대운/세운/월운이 날짜 의존이라 키에 반영.
+  nowLocalDate?: string
 ): string {
   const sep = CACHE_KEY.SEPARATOR
   const params = [
@@ -219,6 +221,7 @@ function getSajuCacheKey(
     timezone,
     lunarLeap ?? '',
     typeof longitude === 'number' && Number.isFinite(longitude) ? longitude.toFixed(4) : '',
+    nowLocalDate ?? '',
   ]
   return `${CACHE_KEY.PREFIX.SAJU}${sep}${params.map((p) => JSON.stringify(p)).join(sep)}`
 }
@@ -234,8 +237,22 @@ export function calculateSajuData(
   // 진경도(진태양시) 보정용. 도시의 lon 을 넘기면 timezone 표준 자오선과의 차이만큼
   // 분 단위로 시지 룩업을 보정한다. 전세계 사용자에게 일관된 정통 사주학.
   // 없으면 한국 평균 LMT(+30분) 기존 동작 유지 — 옛 결과와 호환.
-  longitude?: number
+  longitude?: number,
+  // 현재 시각 주입점. 원국(네 기둥)은 birthDate/Time 만으로 결정되지만 대운/세운/
+  // 월운·만나이는 "지금"에 의존한다. 예전엔 그 경로가 new Date() 를 직접 읽어
+  // 같은 입력도 날짜마다 결과가 달라지고(=결정론 누수) 골든 테스트도 불가능했다.
+  // 기본값은 호출 시점이라 프로덕션 동작은 그대로, 테스트는 now 를 고정해 검증한다.
+  now: Date = new Date()
 ): CalculateSajuDataResult {
+  // 캐시 키에 now 의 출생지-로컬 날짜를 섞는다 — 날짜에 따라 달라지는 대운/세운/
+  // 월운이 어제 캐시로 오늘 stale 하게 나오지 않게, 그리고 테스트가 now 를 바꾸면
+  // 키도 바뀌어 캐시 간섭 없이 결정론적이게 한다.
+  const nowLocalDate = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now)
   // Check cache first
   const cacheKey = getSajuCacheKey(
     birthDate,
@@ -244,7 +261,8 @@ export function calculateSajuData(
     calendarType,
     timezone,
     lunarLeap,
-    longitude
+    longitude,
+    nowLocalDate
   )
   const cached = sajuCache.get(cacheKey)
   if (cached && Date.now() - cached.timestamp < SAJU_CACHE.TTL_MS) {
@@ -572,10 +590,10 @@ export function calculateSajuData(
     })
 
     const yNowLocal = Number(
-      new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric' }).format(new Date())
+      new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric' }).format(now)
     )
     const mNowLocal = Number(
-      new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'numeric' }).format(new Date())
+      new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'numeric' }).format(now)
     )
     // 만 나이 — 출생지 시간대 기준 (자정 경계 사용자에서 ±1 회귀 방지).
     // currentManAge 가 SSOT — 사주/점성 전체가 만 나이 한 컨벤션이라 화면
@@ -585,6 +603,7 @@ export function calculateSajuData(
       birthMonth: M,
       birthDate: D,
       birthTimeZone: timezone,
+      now,
     })
     const currentLuckPillar =
       daeWoonList

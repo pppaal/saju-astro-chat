@@ -284,8 +284,8 @@ export interface CounselorStreamRequestOptions {
 
 /**
  * 상담 스트림 요청 공용 골격 — 헤더 타임아웃 / 5xx·타임아웃 backoff 재시도.
- * 같은 idempotency 키를 재전송하므로 서버 idemStore.isReplay 분기로 credit
- * 중복 차감은 없다. 에러 매핑/로깅 등 화면별 차이는 콜백으로 주입.
+ * 같은 idempotency 키를 재전송하므로 서버 idemStore.claim 의 원자적 선점으로
+ * credit 중복 차감은 없다. 에러 매핑/로깅 등 화면별 차이는 콜백으로 주입.
  */
 export async function requestCounselorStream(
   opts: CounselorStreamRequestOptions

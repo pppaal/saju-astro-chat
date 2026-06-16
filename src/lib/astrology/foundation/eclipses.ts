@@ -357,11 +357,16 @@ export function getAllEclipses(startDate?: Date, endDate?: Date): Eclipse[] {
  * 본명 차트 평생 + 미래 100년 이클립스 — 캘린더 추출기용.
  * @param birthDate 본명 출생일.
  * @param horizonYearsAhead 미래 윈도우 (기본 100년).
+ * @param reference "지금" 주입점 — 미래 horizon 의 기준. 기본값은 호출 시점이라
+ *   프로덕션 동작은 그대로, 테스트는 고정해 결정론적으로 검증한다.
  */
-export function getLifetimeEclipses(birthDate: Date, horizonYearsAhead: number = 100): Eclipse[] {
-  const now = new Date()
-  const horizon = new Date(now)
-  horizon.setUTCFullYear(now.getUTCFullYear() + horizonYearsAhead)
+export function getLifetimeEclipses(
+  birthDate: Date,
+  horizonYearsAhead: number = 100,
+  reference: Date = new Date()
+): Eclipse[] {
+  const horizon = new Date(reference)
+  horizon.setUTCFullYear(reference.getUTCFullYear() + horizonYearsAhead)
   return getEclipsesBetween(birthDate, horizon)
 }
 

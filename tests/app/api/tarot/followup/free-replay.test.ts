@@ -23,7 +23,8 @@ vi.mock('@/lib/logger', () => ({
 const mockCheckAndConsumeCredits = vi.fn()
 vi.mock('@/lib/credits/withCredits', () => ({
   checkAndConsumeCredits: (...a: unknown[]) => mockCheckAndConsumeCredits(...a),
-  creditErrorResponse: () => new Response(JSON.stringify({ error: 'insufficient' }), { status: 402 }),
+  creditErrorResponse: () =>
+    new Response(JSON.stringify({ error: 'insufficient' }), { status: 402 }),
 }))
 vi.mock('@/lib/credits/creditRefund', () => ({ refundCredits: vi.fn().mockResolvedValue(true) }))
 
@@ -46,12 +47,23 @@ const rows = new Map<string, { scopedKey: string; expiresAt: Date }>()
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     requestIdempotencyLog: {
-      findUnique: vi.fn(async ({ where }: { where: { scopedKey: string } }) =>
-        rows.get(where.scopedKey) ?? null
+      findUnique: vi.fn(
+        async ({ where }: { where: { scopedKey: string } }) => rows.get(where.scopedKey) ?? null
       ),
-      upsert: vi.fn(async ({ create }: { create: { scopedKey: string; expiresAt: Date } }) => {
-        rows.set(create.scopedKey, create)
-        return create
+      // claim 의 create-as-lock 을 충실히 시뮬레이션 — 같은 scopedKey 두 번째
+      // 삽입은 unique 충돌(P2002)을 던져 replay 로 잡히게 한다.
+      create: vi.fn(async ({ data }: { data: { scopedKey: string; expiresAt: Date } }) => {
+        if (rows.has(data.scopedKey)) {
+          const err = new Error('Unique constraint failed') as Error & { code?: string }
+          err.code = 'P2002'
+          throw err
+        }
+        rows.set(data.scopedKey, data)
+        return data
+      }),
+      delete: vi.fn(async ({ where }: { where: { scopedKey: string } }) => {
+        rows.delete(where.scopedKey)
+        return { scopedKey: where.scopedKey }
       }),
     },
   },
@@ -105,13 +117,21 @@ describe('followup — free-replay hardening (Fix B)', () => {
     // 카드 구성이 달라 content tag 가 달라지므로 매 호출 과금.
     await POST(
       makeReq(
-        { ...BASE, question: 'clarify', cards: [{ position: 'x', name: 'The Sun', isReversed: false }] },
+        {
+          ...BASE,
+          question: 'clarify',
+          cards: [{ position: 'x', name: 'The Sun', isReversed: false }],
+        },
         'clar-key'
       )
     )
     await POST(
       makeReq(
-        { ...BASE, question: 'clarify', cards: [{ position: 'x', name: 'The Moon', isReversed: true }] },
+        {
+          ...BASE,
+          question: 'clarify',
+          cards: [{ position: 'x', name: 'The Moon', isReversed: true }],
+        },
         'clar-key'
       )
     )
