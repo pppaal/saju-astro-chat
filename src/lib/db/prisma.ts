@@ -53,27 +53,19 @@ function createPrismaClient(): PrismaClient {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
   }
 
-  // 풀 크기: DATABASE_POOL_MAX(env) > 기본 5.
-  //
-  // 주의: URL 의 `connection_limit=1` 을 pg.Pool max 로 그대로 쓰지 않는다.
-  // connection_limit=1 은 Prisma 자체 풀(요청 1개 = 커넥션 1개)에서나 맞는
-  // 값이고, 우리처럼 pg.Pool 이 *한 인스턴스 안에서 동시 요청 여러 개*를
-  // 처리하는 구조에선 max=1 이면 동시 요청·로그인 다단계 쿼리가 서로 막혀
-  // ECHECKOUTTIMEOUT 으로 터진다(로그인 장애 유발). 인스턴스당 적당한 동시성을
-  // 주되(5) 풀러 고갈은 env 나 Supabase 풀 설정으로 조절한다.
   const pool =
     globalForPrisma.pool ??
     new Pool({
       connectionString,
-      // 인스턴스당 최대 커넥션 수. 1 은 로그인 다단계 쿼리가 막혀 위험, 큰 값은
-      // 작은(무료) 풀러를 고갈시킨다. 3 = 로그인/일반 라우트엔 충분 + 풀러 부담 최소.
-      max: toInt(process.env.DATABASE_POOL_MAX, 3),
-      // 유휴 커넥션을 거의 즉시 반납 — 서버리스 인스턴스가 작은 풀러 슬롯을
-      // 요청 사이에 오래 쥐고 있지 않게 한다(무료 풀 고갈 방지의 핵심 레버).
-      idleTimeoutMillis: toInt(process.env.DATABASE_POOL_IDLE_TIMEOUT_MS, 1_000),
+      // 인스턴스당 최대 커넥션 수. 관리자 대시보드 등 한 요청에서 여러 쿼리를
+      // 병렬로 던지는 경로가 있어 기본 10보다 여유를 둔다.
+      max: toInt(process.env.DATABASE_POOL_MAX, 15),
+      // 유휴 커넥션 회수 시간 — 서버리스에서 죽은 인스턴스가 Neon 슬롯을
+      // 오래 쥐고 있지 않도록 짧게.
+      idleTimeoutMillis: toInt(process.env.DATABASE_POOL_IDLE_TIMEOUT_MS, 10_000),
       // 커넥션 획득이 막히면 무한 대기 대신 빠르게 실패시켜 원인을 드러낸다.
       connectionTimeoutMillis: toInt(process.env.DATABASE_CONNECTION_TIMEOUT_MS, 10_000),
-      // PgBouncer 풀러와 함께 쓸 때 커넥션을 주기적으로 재생성.
+      // PgBouncer(Neon 풀러)와 함께 쓸 때 커넥션을 주기적으로 재생성.
       maxUses: toInt(process.env.DATABASE_POOL_MAX_USES, 7_500),
       // 모든 커넥션이 유휴가 되면 풀이 이벤트 루프를 막지 않도록 — 서버리스 친화.
       allowExitOnIdle: true,
