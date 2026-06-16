@@ -105,67 +105,48 @@ const trackEvent = (eventName: string, params?: Record<string, unknown>) => {
   }
 }
 
-// Pre-defined event trackers
+/**
+ * 실제 사용자 대면 리딩 surface 는 세 개뿐이다 (src/config/enabledServices.ts):
+ * 운명 상담사 · 타로 · 궁합. saju/astrology/destiny-map/destiny-matrix 는
+ * 공개 경로에서 제거됐으므로 관련 이벤트도 들고 있지 않는다(죽은 이벤트는
+ * GA 리포트만 어지럽힌다). 구독도 없다 — 수익은 1회성 크레딧 팩뿐이라
+ * subscribe/cancel 류 대신 begin_checkout + purchase 만 둔다.
+ */
+export type ReadingSurface = 'counsel' | 'tarot' | 'compatibility'
+
+// Pre-defined event trackers — keep this catalog in sync with live features.
 export const analytics = {
-  // User interactions
+  // Auth
   login: () => trackEvent('login'),
   signup: () => trackEvent('sign_up'),
   logout: () => trackEvent('logout'),
 
-  // Content engagement
+  // Blog engagement
   likePost: (postId: string) => trackEvent('like_post', { post_id: postId }),
   unlikePost: (postId: string) => trackEvent('unlike_post', { post_id: postId }),
   commentPost: (postId: string) => trackEvent('comment', { post_id: postId }),
   sharePost: (postId: string) => trackEvent('share', { post_id: postId }),
   bookmarkPost: (postId: string) => trackEvent('bookmark', { post_id: postId }),
 
-  // Reading/Fortune features
-  generateDestinyMap: () => trackEvent('generate_destiny_map'),
-  matrixView: (source: string = 'unknown') => trackEvent('matrix_view', { source }),
-  matrixGenerate: (source: string = 'unknown') => trackEvent('matrix_generate', { source }),
-  matrixPdfDownload: () => trackEvent('matrix_pdf_download'),
-  viewAstrology: () => trackEvent('view_astrology'),
+  // Reading funnel — north-star is "completed readings". start → complete per surface.
+  startReading: (service: ReadingSurface) => trackEvent('start_reading', { service }),
+  completeReading: (service: ReadingSurface) => trackEvent('complete_reading', { service }),
+  freeResultView: (source: ReadingSurface | string) => trackEvent('free_result_view', { source }),
   drawTarot: (category: string) => trackEvent('draw_tarot', { category }),
-  checkSaju: () => trackEvent('check_saju'),
 
   // Search and discovery
   search: (query: string) => trackEvent('search', { search_term: query }),
   filterCategory: (category: string) => trackEvent('filter_category', { category }),
 
-  // Conversion funnel
+  // Credit-pack conversion funnel (one-time packs — no subscriptions)
   viewPricing: () => trackEvent('view_pricing'),
-  startTrial: () => trackEvent('begin_checkout'),
-
-  // Free → Premium conversion funnel
-  freeResultView: (source: string = 'destiny-map') =>
-    trackEvent('free_result_view', { source }),
-  premiumCtaClick: (
-    location: string,
-    target: 'comprehensive' | 'themed' | 'pricing' | 'monthly' | 'yearly'
-  ) => trackEvent('premium_cta_click', { location, target }),
-  premiumThemeSelect: (theme: string, period?: string) =>
-    trackEvent('premium_theme_select', { theme, period: period || 'none' }),
-  premiumReportStart: (
-    type: 'comprehensive' | 'themed' | 'monthly' | 'yearly',
-    theme?: string
-  ) => trackEvent('premium_report_start', { type, theme: theme || 'none' }),
-
-  // Purchase events (for GA4 conversion tracking)
-  purchase: (params: { transaction_id: string; value: number; currency: string; plan: string }) =>
+  premiumCtaClick: (location: string) => trackEvent('premium_cta_click', { location }),
+  beginCheckout: (pack: string) => trackEvent('begin_checkout', { pack }),
+  purchase: (params: { transaction_id: string; value: number; currency: string; pack: string }) =>
     trackEvent('purchase', {
       transaction_id: params.transaction_id,
       value: params.value,
       currency: params.currency,
-      items: [{ item_name: params.plan, price: params.value }],
+      items: [{ item_name: params.pack, price: params.value }],
     }),
-
-  subscribe: (plan: string, value: number, currency: string = 'KRW') =>
-    trackEvent('subscribe', { plan, value, currency }),
-
-  cancelSubscription: (plan: string) => trackEvent('cancel_subscription', { plan }),
-
-  // Key conversion points
-  completeReading: (service: string) => trackEvent('complete_reading', { service }),
-
-  signupComplete: () => trackEvent('sign_up_complete'),
 }

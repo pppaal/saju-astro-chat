@@ -7,6 +7,8 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import { SUPPORT_EMAIL } from '@/lib/config/contact'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
+import { CREDIT_PACKS, type CreditPackType } from '@/lib/config/pricing'
 import styles from './success.module.css'
 
 // 크레딧 팩별 충전 크레딧 수 — Stripe metadata 의 creditPack 값으로 lookup.
@@ -99,6 +101,18 @@ function SuccessContent() {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('credit-update'))
       }
+      // GA4 구매 전환 — 크레딧이 실제로 도착(webhook 처리 확인)한 시점에만 1회.
+      // poll 은 pollStartedRef 로 lifecycle 당 한 번만 돌고 finish 직후 return 하므로
+      // 중복 발화 없음. 가격은 pricing SSOT 에서 lookup, 통화는 locale 로 선택.
+      const packPricing = pack ? CREDIT_PACKS[pack as CreditPackType] : undefined
+      if (packPricing) {
+        analytics.purchase({
+          transaction_id: sessionId ?? `pack-${pack}-${Date.now()}`,
+          value: isKo ? packPricing.pricing.krw : packPricing.pricing.usd,
+          currency: isKo ? 'KRW' : 'USD',
+          pack: packPricing.id,
+        })
+      }
     }
 
     const poll = async () => {
@@ -148,7 +162,7 @@ function SuccessContent() {
       cancelled = true
       if (timer) clearTimeout(timer)
     }
-  }, [status, sessionId, expectedCredits])
+  }, [status, sessionId, expectedCredits, pack, isKo])
 
   // 크레딧 부족 모달에서 결제로 넘어온 경우만 "리딩으로 돌아가기" 버튼을
   // 띄운다. 홈/요금제에서 그냥 결제한 경우는 돌아갈 곳이 없어 버튼이 노이즈.

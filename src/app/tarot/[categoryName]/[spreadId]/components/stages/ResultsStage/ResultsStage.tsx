@@ -56,6 +56,7 @@ import { FollowupChat } from './FollowupChat'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
 import { buildShareDataFromReading } from '@/components/tarot/shareCardData'
 import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -127,6 +128,17 @@ export function ResultsStage(props: ResultsStageProps) {
       ? insight.guidance.length > 0
       : insight.guidance.trim().length > 0)
 
+  // North-star 이벤트: 타로 리딩 완료 = AI 전체 해석이 스트리밍을 마치고 도착한 시점.
+  // aiPending(스트리밍 중)이 false 가 되고 overall_message 가 차면 1회만 발화.
+  const readingComplete = !!insight?.overall_message && !aiPending && !interpretationFailed
+  const completeFiredRef = React.useRef(false)
+  React.useEffect(() => {
+    if (readingComplete && !completeFiredRef.current) {
+      completeFiredRef.current = true
+      analytics.completeReading('tarot')
+    }
+  }, [readingComplete])
+
   return (
     <div
       className="relative min-h-screen text-slate-100 font-sans"
@@ -179,8 +191,7 @@ export function ResultsStage(props: ResultsStageProps) {
                       ? '기록에 저장'
                       : 'Save to history'}
                 </button>
-                {(saveMessage.startsWith('저장 실패') ||
-                  saveMessage.startsWith('Save failed')) && (
+                {(saveMessage.startsWith('저장 실패') || saveMessage.startsWith('Save failed')) && (
                   <span className="text-[11px] text-rose-300/80 text-center max-w-xs">
                     {saveMessage}
                   </span>

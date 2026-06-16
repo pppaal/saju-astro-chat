@@ -9,6 +9,7 @@ import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
 import { useToast } from '@/components/ui/Toast'
 import { logger } from '@/lib/logger'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import styles from './pricing.module.css'
 import {
   CREDIT_PACKS,
@@ -131,6 +132,12 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   // 로 진행.
   const [emailPendingPack, setEmailPendingPack] = useState<CreditPackType | null>(null)
   const baseCreditPriceUsd = CREDIT_PACKS.mini.perCreditUsd
+
+  // 요금제 페이지 진입 = 전환 퍼널 상단. 마운트 시 1회 기록(consent 없으면
+  // analytics 가 알아서 no-op).
+  useEffect(() => {
+    analytics.viewPricing()
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
