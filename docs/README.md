@@ -35,7 +35,7 @@ SSOT 기반 신규 구조. ⚙️ 표시는 코드에서 자동 생성(`npm run 
 - `../OVERVIEW.md`: architecture and runtime topology
 - `REPO_STRUCTURE.md`: repo boundaries for source, tests, reports, and generated artifacts
 - `SECURITY_AUDIT_REPORT.md`: current API security posture and open items
-- `UNICORN_STRATEGY.md`: non-normative long-range product strategy
+- `MARKETING_STRATEGY.md`: non-normative go-to-market & competitiveness plan
 
 ## Destiny Engine And AI
 

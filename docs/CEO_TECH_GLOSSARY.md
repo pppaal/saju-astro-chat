@@ -737,7 +737,7 @@
 
 - [프로젝트 전체 개요](../OVERVIEW.md)
 - [기술 로드맵](../ROADMAP.md)
-- [유니콘 전략](UNICORN_STRATEGY.md)
+- [마케팅 전략](MARKETING_STRATEGY.md)
 - [문서 허브](README.md)
 
 ---

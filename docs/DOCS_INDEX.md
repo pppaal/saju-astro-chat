@@ -13,7 +13,7 @@ Last audited: 2026-06-15 (Asia/Hong_Kong)
 | `OVERVIEW.md`                                                        | Architecture and runtime topology                               | Engineers, architects       | 2026-06-15   |
 | `docs/SECURITY_AUDIT_REPORT.md`                                      | Current API security posture (76-route review) and open items   | Security, backend engineers | 2026-06-15   |
 | `ROADMAP.md`                                                         | Technical planning priorities                                   | Engineering leadership      | 2026-06-15   |
-| `docs/UNICORN_STRATEGY.md`                                           | Long-range product strategy (non-normative)                     | Product leadership          | 2026-02-15   |
+| `docs/MARKETING_STRATEGY.md`                                         | Go-to-market & competitiveness plan (non-normative)             | Product leadership          | 2026-06-16   |
 | `docs/archive/root-history/PROJECT_IMPROVEMENT_STATUS_2026-02-03.md` | Historical checkpoint, de-authorized                            | Maintainers                 | 2026-02-15   |
 
 ## Canonical Destiny Docs

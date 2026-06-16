@@ -5,13 +5,13 @@ Last updated: 2026-06-16
 > **Scope of this doc.** A practical go-to-market plan for the product **as it
 > actually exists in code today**, written for a **solo operator with a ~$0
 > paid-marketing budget**, targeting **Korea + English markets in parallel**.
-> This is non-normative for runtime behavior (same rule as `UNICORN_STRATEGY.md`):
-> strategy claims must never override code truth.
+> This is non-normative for runtime behavior: strategy claims must never override
+> code truth — always verify current behavior in code and canonical docs.
 
-For the broader (and partly aspirational) market sizing, see
-`docs/archive/unicorn-analysis/`. **Read the "Honest claims" section below before
-reusing any copy from those archived docs** — several of their claims do not
-match the current codebase.
+This supersedes the earlier `UNICORN_STRATEGY.md` and the
+`docs/archive/unicorn-analysis/` set, which were removed because several of their
+claims (a dating feature, GPT-4o, 10 languages, subscriptions) did not match the
+current codebase. Hold all copy to the claim-hygiene table in §1.
 
 ---
 
@@ -187,4 +187,3 @@ retention is the only honest proof of product–market fit.
 
 - `CLAUDE.md`, `OVERVIEW.md` — what the product actually is (claim source of truth)
 - `src/lib/config/pricing.ts` — credit-pack pricing (do not hardcode elsewhere)
-- `docs/archive/unicorn-analysis/` — broader market sizing (treat claims with care)
