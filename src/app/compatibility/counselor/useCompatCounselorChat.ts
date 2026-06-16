@@ -145,7 +145,7 @@ export function useCompatCounselorChat(
         registerController,
         onNotOk: async (res, _attempt, canRetry): Promise<'retry'> => {
           // 5xx 는 같은 idempotencyKey 로 자동 재시도(exponential backoff) —
-          // credit 중복 차감 없음(서버 idemStore.isReplay).
+          // credit 중복 차감 없음(서버 idemStore.claim 원자적 선점).
           if (canRetry) return 'retry'
           if (res.status === 401) {
             // 비로그인 — apiFetch 가 전역 로그인 모달도 띄운다.

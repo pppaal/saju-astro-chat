@@ -41,8 +41,8 @@ vi.mock('@/lib/credits/creditRefund', () => ({
 vi.mock('@/lib/api/idempotency', () => ({
   createIdempotencyStore: vi.fn(() => ({
     keyFor: vi.fn(() => 'test-idem-key'),
-    isReplay: vi.fn().mockResolvedValue(false),
-    mark: vi.fn().mockResolvedValue(undefined),
+    claim: vi.fn().mockResolvedValue(true),
+    release: vi.fn().mockResolvedValue(undefined),
   })),
 }))
 

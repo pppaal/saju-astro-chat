@@ -53,11 +53,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 90
 
-import {
-  clampMessages,
-  buildPersonSeed,
-  getAgeFromBirthDate,
-} from './routeSupport'
+import { clampMessages, buildPersonSeed, getAgeFromBirthDate } from './routeSupport'
 
 // 개별(self) 신살 — 각자 타고난 신살은 extras.shinsal에 이미 계산돼 있으나
 // self 블록이 voided라 궁합 프롬프트엔 안 들어가던 신호. 단, 전부 쏟으면
@@ -201,14 +197,17 @@ export async function POST(req: NextRequest) {
     // chargedUserId 는 함수 스코프에 hoist 됨 (외부 catch 환불용).
     if (context.userId) {
       const scopedIdemKey = idemStore.keyFor(req, `user:${context.userId}`)
-      const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
-      if (idempotentReplay) {
+      // 원자적 선점 — 동시 요청 중 하나만 첫 진입으로 차감(이중 차감 방지).
+      const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
+      if (scopedIdemKey && !claimed) {
         logger.info('[compat/counselor] idempotent replay, skip credit consume', {
           userId: context.userId,
         })
       } else {
         const res = await consumeCredits(context.userId, 'compatibility', 1)
         if (!res.success) {
+          // 차감 실패 → 선점 해제 후 결제 요구 응답(재시도가 다시 차감 가능).
+          if (scopedIdemKey) await idemStore.release(scopedIdemKey)
           return createErrorResponse({
             code: ErrorCodes.PAYMENT_REQUIRED,
             message:
@@ -221,7 +220,6 @@ export async function POST(req: NextRequest) {
         }
         chargedUserId = context.userId
         refundKey = turnId ? `compat:${chargedUserId}:${turnId}` : null
-        if (scopedIdemKey) await idemStore.mark(scopedIdemKey)
       }
     }
 
@@ -418,24 +416,25 @@ export async function POST(req: NextRequest) {
     // Phase A (2026-06-06): collectCompatSajuFacts 가 두 사람치 정제 facts
     // 한 번에 만들어, 라우트는 facts 의 평탄 필드만 읽음. raw shape 변경에
     // formatter 두 개가 더 이상 묶이지 않음.
-    const compatSaju = person1Seed && person2Seed
-      ? collectCompatSajuFacts(
-          {
-            birthDate: person1Seed.date,
-            birthTime: person1Seed.time,
-            gender: person1Seed.gender,
-            timezone: person1Seed.timeZone,
-            longitude: person1Seed.longitude,
-          },
-          {
-            birthDate: person2Seed.date,
-            birthTime: person2Seed.time,
-            gender: person2Seed.gender,
-            timezone: person2Seed.timeZone,
-            longitude: person2Seed.longitude,
-          },
-        )
-      : null
+    const compatSaju =
+      person1Seed && person2Seed
+        ? collectCompatSajuFacts(
+            {
+              birthDate: person1Seed.date,
+              birthTime: person1Seed.time,
+              gender: person1Seed.gender,
+              timezone: person1Seed.timeZone,
+              longitude: person1Seed.longitude,
+            },
+            {
+              birthDate: person2Seed.date,
+              birthTime: person2Seed.time,
+              gender: person2Seed.gender,
+              timezone: person2Seed.timeZone,
+              longitude: person2Seed.longitude,
+            }
+          )
+        : null
     try {
       if (compatSaju) {
         sajuSynastryBlock = formatSajuSynastry({
@@ -472,7 +471,7 @@ export async function POST(req: NextRequest) {
               latitude: person2Seed.latitude,
               longitude: person2Seed.longitude,
               timezone: person2Seed.timeZone,
-            },
+            }
           )
         : null
     if (compatAstro) {
@@ -530,14 +529,8 @@ export async function POST(req: NextRequest) {
       return raw ? sanitizeForXmlTagBoundary(raw).slice(0, 120) : ''
     }
     const personalShinsalLines = [
-      formatPersonalShinsal(
-        safeNameOf(0) ? `A(${safeNameOf(0)})` : 'A',
-        compatSaju?.a.shinsal,
-      ),
-      formatPersonalShinsal(
-        safeNameOf(1) ? `B(${safeNameOf(1)})` : 'B',
-        compatSaju?.b.shinsal,
-      ),
+      formatPersonalShinsal(safeNameOf(0) ? `A(${safeNameOf(0)})` : 'A', compatSaju?.a.shinsal),
+      formatPersonalShinsal(safeNameOf(1) ? `B(${safeNameOf(1)})` : 'B', compatSaju?.b.shinsal),
     ].filter(Boolean)
     const personalShinsalBlock = personalShinsalLines.length
       ? `[개별 신살 (self)]\n${personalShinsalLines.join('\n')}`

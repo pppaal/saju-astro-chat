@@ -42,8 +42,8 @@ vi.mock('@/lib/credits/refundOnce', () => ({
 vi.mock('@/lib/api/idempotency', () => ({
   createIdempotencyStore: vi.fn(() => ({
     keyFor: vi.fn(() => null),
-    isReplay: vi.fn().mockResolvedValue(false),
-    mark: vi.fn().mockResolvedValue(undefined),
+    claim: vi.fn().mockResolvedValue(true),
+    release: vi.fn().mockResolvedValue(undefined),
   })),
 }))
 vi.mock('@/lib/cache/redis-cache', () => ({

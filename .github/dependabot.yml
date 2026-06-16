@@ -1,0 +1,51 @@
+# Dependency update automation. Closes the "only the author knows what's safe
+# to bump" gap for a largely single-maintainer repo: CVEs and routine bumps now
+# surface as grouped PRs that the existing CI gates (lint/typecheck/test/security)
+# validate automatically, instead of being hand-cleared.
+version: 2
+updates:
+  # npm — application dependencies.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    labels:
+      - dependencies
+    # Group routine bumps so reviewers see a handful of PRs, not dozens.
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      production-minor-patch:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Major framework bumps land via deliberate, hand-tested PRs (Next 16 /
+      # React 19 / Prisma 7 migrations have build + migration implications).
+      - dependency-name: next
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-dom
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: prisma
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions used across the 12 workflows.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - ci

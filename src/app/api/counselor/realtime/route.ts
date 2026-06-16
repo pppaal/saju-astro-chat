@@ -252,16 +252,20 @@ export async function POST(req: NextRequest) {
   let chargedThisTurn = false
   {
     const scopedIdemKey = idemStore.keyFor(req, `user:${userId}`)
-    const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
-    if (idempotentReplay) {
+    // 원자적 선점 — 동시 요청(더블클릭/탭 복제) 중 하나만 첫 진입으로 차감.
+    // 선점 실패(replay)면 차감 스킵, 스트림은 정상 진행. 키 없으면 차감 진행.
+    const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
+    if (scopedIdemKey && !claimed) {
       logger.info('[counselor/realtime] idempotent replay, skip credit consume', { userId })
     } else {
       try {
         const res = await consumeCredits(userId, 'reading', 1)
         chargedThisTurn = res.success
-        if (chargedThisTurn && scopedIdemKey) await idemStore.mark(scopedIdemKey)
+        // 차감 실패 시 선점 해제 → 재시도가 다시 차감할 수 있게.
+        if (!chargedThisTurn && scopedIdemKey) await idemStore.release(scopedIdemKey)
       } catch (err) {
         logger.warn('[counselor/realtime] credit deduction failed', { err })
+        if (scopedIdemKey) await idemStore.release(scopedIdemKey)
       }
     }
   }
