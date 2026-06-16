@@ -12,6 +12,9 @@ import type { SynastryTone } from '@/lib/compatibility/synastryView'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { ShareImageButton } from '@/components/share/ShareImageButton'
+import { CompatShareCard } from '@/components/compatibility/CompatShareCard'
+import { buildCompatShareData } from '@/components/compatibility/buildCompatShareData'
 
 /**
  * 궁합 차트 모달 — 두 사람 차트를 따로 쌓지 않고 하나로 합쳐 보여준다.
@@ -472,6 +475,27 @@ export function CompatChartModal({
                 ? '이 막대는 두 사람의 사주와 별자리에서 끌어당기는 기운과 부딪히는 기운을 함께 본 거예요. 더 깊은 이야기는 상담사가 풀어드려요.'
                 : 'These bars weigh what pulls you together and what rubs — across both your Saju and stars. For the deeper read, ask the counselor.'}
             </p>
+            {/* 공유 — 채팅이 아니라 엔진이 뽑은 결과(종합 한 줄 + 밴드 점수)만
+                정사각 카드 이미지로 만들어 인스타/카톡에 공유. 리포트가 로드돼
+                보여줄 게 있을 때만 노출. */}
+            {report && !reportLoading && (report.crossVerdict || ssotBand) && (
+              <div className="mt-4 flex justify-center">
+                <ShareImageButton
+                  language={lang}
+                  variant="onLight"
+                  filenamePrefix="destinypal-compat"
+                  shareTitle={isKo ? 'DestinyPal 궁합 결과' : 'My DestinyPal Compatibility'}
+                  shareText={report.crossVerdict?.text}
+                  size={1080}
+                  renderCard={(ref) => (
+                    <CompatShareCard
+                      ref={ref}
+                      data={buildCompatShareData(report, labelA, labelB, isKo)}
+                    />
+                  )}
+                />
+              </div>
+            )}
           </div>
 
           {/* 한 줄 해석 — 두 사람 나란히 */}

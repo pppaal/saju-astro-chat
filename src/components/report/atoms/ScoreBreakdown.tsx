@@ -42,7 +42,7 @@ export interface ScoreBreakdownProps {
 
 // ─── verdict ─────────────────────────────────────────────────────────
 
-function verdictText(total: number, lang: 'ko' | 'en'): string {
+export function verdictText(total: number, lang: 'ko' | 'en'): string {
   if (lang === 'en') {
     if (total >= 90) return 'Profound bond — naturally aligned'
     if (total >= 75) return 'Complementary differences — deep harmony with gentle spark'
