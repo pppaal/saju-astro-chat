@@ -1,10 +1,11 @@
 'use client'
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import styles from './main-page.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import type { I18nMessages } from '@/i18n/utils'
@@ -48,6 +49,65 @@ function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
   return `${datePart}${timePart} (${g})`
 }
 
+// 무료 통합 리포트 딥링크 — /integrated-report 는 date/time/lat/lng/tz/gender
+// 쿼리를 읽는다(상담사의 birthDate/birthTime 키와 다름). 저장된 생일이 있으면
+// 그 사람 리포트로, 없으면 파라미터 없이 보내 페이지가 샘플 출생정보로 폴백한다.
+function buildReportHref(info: StoredBirthInfo | null, locale: Locale): string {
+  const p = new URLSearchParams()
+  p.set('lang', locale)
+  if (info) {
+    p.set('date', info.birthDate)
+    if (!info.birthTimeUnknown && info.birthTime) p.set('time', info.birthTime)
+    if (typeof info.latitude === 'number') p.set('lat', String(info.latitude))
+    if (typeof info.longitude === 'number') p.set('lng', String(info.longitude))
+    if (info.timeZone) p.set('tz', info.timeZone)
+    p.set('gender', info.gender)
+  }
+  return `/integrated-report?${p.toString()}`
+}
+
+// "다른 서비스 보기"로 펼치는 항목들 — 입력창(=운명 상담사)에 없는 나머지.
+// 캘린더 포함 4개. href '__report__' 는 렌더 시 buildReportHref 로 치환.
+type MoreService = {
+  href: string
+  icon: string
+  tint: string // 서비스별 강조 색 — 아이콘 타일 배경 + 호버 테두리/글로우
+  title: { ko: string; en: string }
+  desc: { ko: string; en: string }
+  free?: boolean
+}
+const MORE_SERVICES: readonly MoreService[] = [
+  {
+    href: '/tarot',
+    icon: '🔮',
+    tint: '#a855f7',
+    title: { ko: '타로 상담사', en: 'Tarot Counselor' },
+    desc: { ko: '타로 카드 리딩', en: 'Tarot card reading' },
+  },
+  {
+    href: '/compatibility',
+    icon: '💕',
+    tint: '#ec4899',
+    title: { ko: '궁합 상담사', en: 'Compatibility Counselor' },
+    desc: { ko: '관계 궁합 분석', en: 'Relationship analysis' },
+  },
+  {
+    href: '/calendar',
+    icon: '🗓️',
+    tint: '#38bdf8',
+    title: { ko: '운세 캘린더', en: 'Fortune Calendar' },
+    desc: { ko: '일·월·년 운세 타이밍', en: 'Daily · monthly · yearly' },
+  },
+  {
+    href: '__report__',
+    icon: '📜',
+    tint: '#e8cc8a',
+    title: { ko: '무료 리포트', en: 'Free Report' },
+    desc: { ko: '사주·점성 통합 분석', en: 'Saju + astrology' },
+    free: true,
+  },
+]
+
 export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const { locale: activeLocale, setLocale } = useI18n()
   const locale = (activeLocale || initialLocale) as Locale
@@ -62,6 +122,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const localeAriaLabel = locale === 'ko' ? 'Switch to English' : '한국어로 전환'
 
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [servicesOpen, setServicesOpen] = useState(false)
   const [birthModalOpen, setBirthModalOpen] = useState(false)
   const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
   // 생일 없이 운명상담사 질문을 던졌으면 그 질문을 여기 담아두고, 생일 저장
@@ -342,6 +403,73 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
                 : 'Start by entering your birth details'}
             </button>
           )}
+        </div>
+
+        {/* 다른 서비스 — 생년월일 바로 아래. 평소엔 버튼 하나로 접어두고, 누르면
+            타로·궁합·캘린더·무료 리포트 4개가 주르륵(stagger) 펼쳐진다. 입력창
+            (운명 상담사)이 메인이라 기본은 접힌 상태로 시선을 안 뺏는다. */}
+        <div className={styles.homeMoreWrap}>
+          <button
+            type="button"
+            className={styles.homeServiceMore}
+            onClick={() => setServicesOpen((o) => !o)}
+            aria-expanded={servicesOpen}
+          >
+            {locale === 'ko' ? '다른 서비스 보기' : 'See other readings'}
+            <span
+              className={`${styles.homeServiceMoreChevron} ${
+                servicesOpen ? styles.homeServiceMoreChevronOpen : ''
+              }`}
+              aria-hidden="true"
+            >
+              ›
+            </span>
+          </button>
+
+          <AnimatePresence initial={false}>
+            {servicesOpen && (
+              <motion.ul
+                className={styles.homeServiceDropList}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+              >
+                {MORE_SERVICES.map((s, i) => {
+                  const href = s.href === '__report__' ? buildReportHref(birthInfo, locale) : s.href
+                  return (
+                    <motion.li
+                      key={s.href}
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0, transition: { delay: 0.04 + i * 0.05 } }}
+                    >
+                      <Link
+                        href={href}
+                        className={styles.homeServiceDropItem}
+                        style={{ '--svc-tint': s.tint } as CSSProperties}
+                        prefetch={false}
+                        onClick={() => setServicesOpen(false)}
+                      >
+                        <span className={styles.homeServiceDropIcon} aria-hidden="true">
+                          {s.icon}
+                        </span>
+                        <span className={styles.homeServiceDropText}>
+                          <span className={styles.homeServiceDropTitle}>
+                            {s.title[locale]}
+                            {s.free && <span className={styles.homeServiceFreeBadge}>FREE</span>}
+                          </span>
+                          <span className={styles.homeServiceDropDesc}>{s.desc[locale]}</span>
+                        </span>
+                        <span className={styles.homeServiceDropArrow} aria-hidden="true">
+                          →
+                        </span>
+                      </Link>
+                    </motion.li>
+                  )
+                })}
+              </motion.ul>
+            )}
+          </AnimatePresence>
         </div>
 
         <HomeChatInput
