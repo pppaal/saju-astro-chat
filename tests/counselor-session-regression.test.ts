@@ -91,11 +91,13 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
 })
 
 describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () => {
-  // 시스템 프롬프트는 buildCompatibilityCounselorPrompt(프롬프트 모듈)로 분리됨.
-  // route + 프롬프트 모듈 합집합을 grep 대상으로 둔다.
+  // 시스템 프롬프트는 buildCompatibilityCounselorPrompt(프롬프트 모듈)로,
+  // cachedUserContext/[Meta] 조립은 buildCounselorContext(컨텍스트 빌더)로
+  // 분리됨. route + 프롬프트 모듈 + 컨텍스트 빌더 합집합을 grep 대상으로 둔다.
   const route =
     read('app/api/compatibility/counselor/route.ts') +
-    read('lib/prompts/compatibilityCounselorPrompt.ts')
+    read('lib/prompts/compatibilityCounselorPrompt.ts') +
+    read('lib/compatibility/counselor/buildCounselorContext.ts')
 
   it('system prompt 에 "다정한 멘토" 톤 한 줄 (#306)', () => {
     expect(route).toMatch(/다정.*공감.*따뜻한 멘토/)
