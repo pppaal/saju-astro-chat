@@ -1,5 +1,13 @@
 import next from 'eslint-config-next'
 import prettier from 'eslint-config-prettier'
+import apiRouteProtection from './eslint-rules/api-route-protection.mjs'
+
+// Local custom rules, exposed under the `local` plugin namespace.
+const localPlugin = {
+  rules: {
+    'api-route-protection': apiRouteProtection,
+  },
+}
 
 const config = [
   ...next,
@@ -137,6 +145,7 @@ const config = [
   {
     // API routes - allow unused context and flexible patterns
     files: ['src/app/api/**/*.{ts,tsx}'],
+    plugins: { local: localPlugin },
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -147,6 +156,10 @@ const config = [
           ignoreRestSiblings: true,
         },
       ],
+      // Every API route handler must be protected by the shared API middleware
+      // (withApiMiddleware / initializeApiContext). Intentional exceptions are
+      // allowlisted inside the rule. See eslint-rules/api-route-protection.mjs.
+      'local/api-route-protection': 'error',
     },
   },
   {
