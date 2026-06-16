@@ -348,6 +348,8 @@ export interface SajuSynastryInput {
   /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
   nameA?: string | null
   nameB?: string | null
+  /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
+  lang?: 'ko' | 'en'
 }
 
 /**

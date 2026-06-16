@@ -53,11 +53,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 90
 
-import {
-  clampMessages,
-  buildPersonSeed,
-  getAgeFromBirthDate,
-} from './routeSupport'
+import { clampMessages, buildPersonSeed, getAgeFromBirthDate } from './routeSupport'
 
 // 개별(self) 신살 — 각자 타고난 신살은 extras.shinsal에 이미 계산돼 있으나
 // self 블록이 voided라 궁합 프롬프트엔 안 들어가던 신호. 단, 전부 쏟으면
@@ -76,20 +72,42 @@ const PERSONAL_SHINSAL_KEEP: Record<string, string> = {
   천덕귀인: '보호·덕',
   월덕귀인: '보호·덕',
 }
+// EN: 한국어 신살명은 영어 사용자에게 의미 없으니 음역 + 영어 뜻 (영어 응답 누수 방지).
+const PILLAR_EN: Record<string, string> = { year: 'Y', month: 'M', day: 'D', time: 'H' }
+const PERSONAL_SHINSAL_KEEP_EN: Record<string, { name: string; mean: string }> = {
+  양인: { name: 'Yangin', mean: 'sharp, aggressive' },
+  귀문관: { name: 'Gwimun', mean: 'obsessive, sensitive' },
+  원진: { name: 'Wonjin', mean: 'subtle aversion' },
+  고신: { name: 'Gosin', mean: 'solitary streak' },
+  금여성: { name: 'Geumyeo', mean: 'spouse fortune, grace' },
+  천덕귀인: { name: 'Cheondeok', mean: 'protection, virtue' },
+  월덕귀인: { name: 'Woldeok', mean: 'protection, virtue' },
+}
 
-function formatPersonalShinsal(label: string, shinsal: unknown): string | null {
+function formatPersonalShinsal(
+  label: string,
+  shinsal: unknown,
+  lang: 'ko' | 'en' = 'ko'
+): string | null {
   if (!Array.isArray(shinsal) || shinsal.length === 0) return null
+  const en = lang === 'en'
   const byKind = new Map<string, Set<string>>()
   for (const raw of shinsal) {
     const h = raw as { kind?: string; pillars?: string[] }
     if (!h?.kind || !(h.kind in PERSONAL_SHINSAL_KEEP)) continue
     const set = byKind.get(h.kind) ?? new Set<string>()
-    for (const p of h.pillars ?? []) set.add(PILLAR_KO[p] ?? p)
+    for (const p of h.pillars ?? []) set.add((en ? PILLAR_EN[p] : PILLAR_KO[p]) ?? p)
     byKind.set(h.kind, set)
   }
   if (byKind.size === 0) return null
   const parts = [...byKind.entries()].map(([kind, ps]) => {
     const loc = [...ps].join('·')
+    if (en) {
+      const e = PERSONAL_SHINSAL_KEEP_EN[kind]
+      const nm = e ? e.name : kind
+      const mn = e ? e.mean : ''
+      return `${nm}(${loc ? `${loc}, ` : ''}${mn})`
+    }
     return `${kind}(${loc ? `${loc}, ` : ''}${PERSONAL_SHINSAL_KEEP[kind]})`
   })
   return `${label}: ${parts.join(' · ')}`
@@ -272,8 +290,10 @@ export async function POST(req: NextRequest) {
     const personA = persons[0] as { timeUnknown?: boolean } | undefined
     const personB = persons[1] as { timeUnknown?: boolean } | undefined
     const unknownNotices: string[] = []
-    if (personA?.timeUnknown) unknownNotices.push('# A 시간 미상.')
-    if (personB?.timeUnknown) unknownNotices.push('# B 시간 미상.')
+    if (personA?.timeUnknown)
+      unknownNotices.push(lang === 'en' ? '# A birth time unknown.' : '# A 시간 미상.')
+    if (personB?.timeUnknown)
+      unknownNotices.push(lang === 'en' ? '# B birth time unknown.' : '# B 시간 미상.')
     const timeUnknownNotices = unknownNotices.join('\n')
 
     // 진짜 multi-turn — assistant 답변을 LLM이 자기 발화로 정확히
@@ -418,24 +438,25 @@ export async function POST(req: NextRequest) {
     // Phase A (2026-06-06): collectCompatSajuFacts 가 두 사람치 정제 facts
     // 한 번에 만들어, 라우트는 facts 의 평탄 필드만 읽음. raw shape 변경에
     // formatter 두 개가 더 이상 묶이지 않음.
-    const compatSaju = person1Seed && person2Seed
-      ? collectCompatSajuFacts(
-          {
-            birthDate: person1Seed.date,
-            birthTime: person1Seed.time,
-            gender: person1Seed.gender,
-            timezone: person1Seed.timeZone,
-            longitude: person1Seed.longitude,
-          },
-          {
-            birthDate: person2Seed.date,
-            birthTime: person2Seed.time,
-            gender: person2Seed.gender,
-            timezone: person2Seed.timeZone,
-            longitude: person2Seed.longitude,
-          },
-        )
-      : null
+    const compatSaju =
+      person1Seed && person2Seed
+        ? collectCompatSajuFacts(
+            {
+              birthDate: person1Seed.date,
+              birthTime: person1Seed.time,
+              gender: person1Seed.gender,
+              timezone: person1Seed.timeZone,
+              longitude: person1Seed.longitude,
+            },
+            {
+              birthDate: person2Seed.date,
+              birthTime: person2Seed.time,
+              gender: person2Seed.gender,
+              timezone: person2Seed.timeZone,
+              longitude: person2Seed.longitude,
+            }
+          )
+        : null
     try {
       if (compatSaju) {
         sajuSynastryBlock = formatSajuSynastry({
@@ -445,6 +466,7 @@ export async function POST(req: NextRequest) {
           currentDaeunB: compatSaju.b.currentDaeun,
           nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
           nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
+          lang,
         })
       }
     } catch (err) {
@@ -472,7 +494,7 @@ export async function POST(req: NextRequest) {
               latitude: person2Seed.latitude,
               longitude: person2Seed.longitude,
               timezone: person2Seed.timeZone,
-            },
+            }
           )
         : null
     if (compatAstro) {
@@ -488,10 +510,12 @@ export async function POST(req: NextRequest) {
           lonB: compatAstro.b.longitude,
           nameA: nA,
           nameB: nB,
+          lang,
         })
         // Composite chart — 두 차트의 entity 톤 (관계 자체). synastry 가
         // "서로에게 어떻게 반응하나" 면 composite 은 "둘이 같이 만드는 분위기".
         compositeChartBlock = formatCompositeChart({
+          lang,
           chartA: compatAstro.a.chart,
           chartB: compatAstro.b.chart,
           nameA: nA,
@@ -533,20 +557,22 @@ export async function POST(req: NextRequest) {
       formatPersonalShinsal(
         safeNameOf(0) ? `A(${safeNameOf(0)})` : 'A',
         compatSaju?.a.shinsal,
+        lang
       ),
       formatPersonalShinsal(
         safeNameOf(1) ? `B(${safeNameOf(1)})` : 'B',
         compatSaju?.b.shinsal,
+        lang
       ),
     ].filter(Boolean)
     const personalShinsalBlock = personalShinsalLines.length
-      ? `[개별 신살 (self)]\n${personalShinsalLines.join('\n')}`
+      ? `${lang === 'en' ? '[Personal sinsal (self)]' : '[개별 신살 (self)]'}\n${personalShinsalLines.join('\n')}`
       : ''
 
     // 각 블록은 빈 string 일 수 있어 filter(Boolean) 으로 거름. join('\n')
     // 만으로 블록 사이 한 줄 띄움 (이전엔 prefix \n 추가해 빈 라인 중복).
     const cachedUserContext = [
-      `== 참여자 정보 ==`,
+      lang === 'en' ? `== Participants ==` : `== 참여자 정보 ==`,
       personsInfo,
       metaBlock,
       personalShinsalBlock,

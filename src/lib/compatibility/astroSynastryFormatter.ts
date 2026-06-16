@@ -78,6 +78,29 @@ const ASP_SYM: Partial<Record<AspectType, string>> = {
   sextile: '[협력]',
   quincunx: '[미세조정]',
 }
+// EN locale — 한국어 관계어가 영어 응답에 새지 않게.
+const ASP_EN: Partial<Record<AspectType, string>> = {
+  conjunction: '[conjunction]',
+  opposition: '[opposition]',
+  trine: '[trine]',
+  square: '[square]',
+  sextile: '[sextile]',
+  quincunx: '[quincunx]',
+}
+const HOUSE_MEANING_EN: Record<number, string> = {
+  1: 'self·image',
+  2: 'wealth·values',
+  3: 'communication·daily',
+  4: 'home·roots',
+  5: 'romance·pleasure',
+  6: 'work·habits',
+  7: 'partner·marriage',
+  8: 'deep merge·transformation',
+  9: 'belief·expansion',
+  10: 'career·status',
+  11: 'friends·future',
+  12: 'inner·secrets',
+}
 const IMPORTANT_TOP = 12 // cap the orb≤5 tier so it doesn't sprawl to 30+ lines
 const CRITICAL_TOP = 10 // keep CRITICAL tight; overflow(여전히 orb≤3)은 IMPORTANT로 강등
 
@@ -94,6 +117,21 @@ const SIGNS_KO = [
   '염소자리',
   '물병자리',
   '물고기자리',
+] as const
+
+const SIGNS_EN = [
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
 ] as const
 
 // chart.ascendant.sign이 영어로 올 때 한글로. KO-facing 블록에 영어 별자리
@@ -176,6 +214,8 @@ export interface AstroSynastryInput {
   /** A/B 실명. 있으면 행성 소유(누구의 달·화성인지)를 이름에 고정한다. */
   nameA?: string | null
   nameB?: string | null
+  /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
+  lang?: 'ko' | 'en'
 }
 
 /**
@@ -197,9 +237,24 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const labelA = nmA ? `A(${nmA})` : 'A'
   const labelB = nmB ? `B(${nmB})` : 'B'
 
+  // EN 렌더 헬퍼 — lang==='en' 이면 한국어 라벨을 영어로. KO 출력은 byte 동일.
+  const en = input.lang === 'en'
+  const L = (ko: string, e: string) => (en ? e : ko)
+  const pk = (name: string) => (en ? (PLANET_LABEL[name] ?? PLANET_KO[name] ?? name) : pko(name))
+  const aspD = (t: AspectType) =>
+    en ? (ASP_EN[t] ?? ASPECT_TITLE[t] ?? t) : (ASP_SYM[t] ?? ASPECT_TITLE[t] ?? t)
+  const houseD = (h: number) => (en ? (HOUSE_MEANING_EN[h] ?? '') : (HOUSE_MEANING_KO[h] ?? ''))
+  // EN 별자리 — 한글 별자리(물병자리)면 영어로, 영어면 그대로.
+  const signD = (s: string | null | undefined) => {
+    if (!en) return signKo(s)
+    if (!s) return '?'
+    const idx = SIGNS_KO.indexOf(s as (typeof SIGNS_KO)[number])
+    return idx >= 0 ? SIGNS_EN[idx] : s
+  }
+
   // v2 compact: "A 금성 △ B 명왕성 0.5°" (owner-tagged, symbol, decimal orb)
   const aspLine = (asp: (typeof synastry.aspects)[number]): string =>
-    `${labelA} ${pko(asp.from.name)} ${ASP_SYM[asp.type] ?? ASPECT_TITLE[asp.type] ?? asp.type} ${labelB} ${pko(asp.to.name)} ${asp.orb.toFixed(1)}°`
+    `${labelA} ${pk(asp.from.name)} ${aspD(asp.type)} ${labelB} ${pk(asp.to.name)} ${asp.orb.toFixed(1)}°`
 
   // aspect를 티어로 분류 + generational 컨정션 묶음 + orb>5° 노이즈 drop
   const critical: { line: string; orb: number }[] = []
@@ -212,8 +267,8 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
     // 외행성↔외행성 컨정션 = 동세대 노이즈 → 묶어서 요약 1줄
     if (asp.type === 'conjunction' && !fromP && !toP) {
       generationalCount++
-      generationalNames.add(pko(asp.from.name))
-      generationalNames.add(pko(asp.to.name))
+      generationalNames.add(pk(asp.from.name))
+      generationalNames.add(pk(asp.to.name))
       continue
     }
     // strict orb≤5 cap (the old luminary exception let 6-7° lines through)
@@ -259,25 +314,28 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
       continue
     }
     overlayLinesAtoB.push(
-      `${labelA} ${pko(o.planet)} → ${labelB} ${o.inHouse}H (${HOUSE_MEANING_KO[o.inHouse]})`
+      `${labelA} ${pk(o.planet)} → ${labelB} ${o.inHouse}H (${houseD(o.inHouse)})`
     )
   }
   for (const o of synastry.houseOverlaysBtoA) {
     if (!PERSONAL_FOR_OVERLAY.has(o.planet)) continue
     overlayLinesBtoA.push(
-      `${labelB} ${pko(o.planet)} → ${labelA} ${o.inHouse}H (${HOUSE_MEANING_KO[o.inHouse]})`
+      `${labelB} ${pk(o.planet)} → ${labelA} ${o.inHouse}H (${houseD(o.inHouse)})`
     )
   }
-  const ascA = signKo(chartA.ascendant?.sign)
-  const ascB = signKo(chartB.ascendant?.sign)
-  const ascLine = `상승점 ${labelA} ${ascA} / ${labelB} ${ascB}`
+  const ascA = signD(chartA.ascendant?.sign)
+  const ascB = signD(chartB.ascendant?.sign)
+  const ascLine = `${L('상승점', 'ASC')} ${labelA} ${ascA} / ${labelB} ${ascB}`
 
-  const out: string[] = ['== 시너스트리 (점성 cross) ==']
+  const out: string[] = [L('== 시너스트리 (점성 cross) ==', '== Synastry (astrology cross) ==')]
   out.push(
-    `[고정] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄: A행성 [관계어] B행성 오차° — [결합]끌어당김 [대립]팽팽 [조화]자연스러움 [긴장]마찰 [협력]보완 [미세조정]계속 맞춰가야)`
+    L(
+      `[고정] A = ${nmA || 'A'} · B = ${nmB || 'B'} (각 줄: A행성 [관계어] B행성 오차° — [결합]끌어당김 [대립]팽팽 [조화]자연스러움 [긴장]마찰 [협력]보완 [미세조정]계속 맞춰가야)`,
+      `[FIXED] A = ${nmA || 'A'} · B = ${nmB || 'B'} (each line: A-planet [aspect] B-planet orb° — [conjunction]pull [opposition]taut [trine]natural [square]friction [sextile]support [quincunx]keep adjusting)`
+    )
   )
   if (criticalShown.length) {
-    out.push('[CRITICAL · 개인행성 cross orb≤3°]')
+    out.push(L('[CRITICAL · 개인행성 cross orb≤3°]', '[CRITICAL · personal-planet cross orb≤3°]'))
     out.push(criticalShown.map((c) => c.line).join('\n'))
   }
   if (importantShown.length) {
@@ -286,7 +344,10 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   }
   if (generationalCount > 0) {
     out.push(
-      `[참고] 외행성 동세대 ${generationalCount}건 (${[...generationalNames].join('·')}) — 비중 낮음`
+      L(
+        `[참고] 외행성 동세대 ${generationalCount}건 (${[...generationalNames].join('·')}) — 비중 낮음`,
+        `[NOTE] outer-planet generational ${generationalCount} (${[...generationalNames].join('·')}) — low weight`
+      )
     )
   }
   // House overlay — 정통 점성 궁합 핵심: A 의 Venus → B 7H = 결혼 매력.
@@ -294,7 +355,13 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
     out.push(`[CRITICAL · House overlay] ${ascLine}`)
     out.push(...overlayLinesAtoB)
     out.push(...overlayLinesBtoA)
-    if (outerDiffCount > 0) out.push(`외행성 ${outerDiffCount}건 동세대 공통 생략`)
+    if (outerDiffCount > 0)
+      out.push(
+        L(
+          `외행성 ${outerDiffCount}건 동세대 공통 생략`,
+          `omitted ${outerDiffCount} generational outer-planet overlays`
+        )
+      )
   }
 
   return out.join('\n')
