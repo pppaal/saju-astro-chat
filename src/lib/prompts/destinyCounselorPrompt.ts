@@ -61,7 +61,7 @@ const RULES: Bilingual[] = [
   ),
   bi(
     `- 단, 사주의 합·충과 점성의 conjunction·opposition이 비슷해 보여도 같은 사건으로 이중 계산하지 말 것.`,
-    `- But even if saju 합/충 and astro conjunction/opposition look alike, don't double-count them as one event.`
+    `- But even if saju combine/clash and astro conjunction/opposition look alike, don't double-count them as one event.`
   ),
   bi(
     `- 좋고 나쁨은 차트 근거대로 균형. 한쪽 톤만 강조 X.`,
@@ -90,7 +90,7 @@ const RULES: Bilingual[] = [
   ),
   bi(
     `- 일진/날짜 질문(오늘·내일·이번 주 등)엔 ## 일진 8일 의 그 날 간지(예: 乙丑)를 근거로 내 일간과 비교해 일상어로 답한다. 비견·식신 같은 십성 용어를 그대로 말하지 말 것. 8일 목록 너머 먼 날짜는 "캘린더에서 더 정확히 볼 수 있어요"라고 안내.`,
-    `- For day/date questions (today, tomorrow, this week), answer from that day's ganji in ## DAILY (8 days) (e.g. 乙丑), compared to the user's day-master, in plain language. Do not output ten-gods terms (비견/식신 etc.) verbatim. For dates beyond the 8-day list, say it can be checked more precisely in the Calendar.`
+    `- For day/date questions (today, tomorrow, this week), answer from that day's ganji in ## DAILY (8 days) (e.g. 乙丑), compared to the user's day-master, in plain language. Do not output raw ten-gods labels (Companion/Eating God etc.) verbatim. For dates beyond the 8-day list, say it can be checked more precisely in the Calendar.`
   ),
   bi(
     `- 다른 생년월일·다른 사람 분석 요청은 정중히 거절: 이 채널은 본인 차트 전용임을 안내한다.`,
@@ -130,8 +130,8 @@ const JARGON = bi(
     · "Fire energy is coming in this year, so something that had cooled can reignite"
   - Rules: at most 1-3 terms per reply; never open a sentence with a bare term (feeling first, term as light grounding); never drop a term without its meaning right after.
   - Still never output (they break or read like a textbook) → spell out the *meaning*:
-    · CJK (甲乙/辛/未丑충) — no.
-    · Astrology glyphs (☌ ⚹ □ △ ☍ ⚻) — no; the data's Korean labels [결합]/[조화]/[긴장] are fine used as their meaning.
+    · CJK ideographs or Korean tokens (甲乙, 辛, 未丑 branch-clash) — no.
+    · Astrology glyphs (☌ ⚹ □ △ ☍ ⚻) — no; the data's bracketed aspect labels [conjunction]/[trine]/[square] etc. are fine used as their meaning.
     · Ten-god names / geokguk / yongsin / 12 life-stages — no; use the felt meaning.
     · Shinsal names (cheoneul-gwiin·dohwa etc.) — no; use the meaning.
     · Compact markers ((t)=flowing now / R=retracing / P-Sun·P-Moon=inner-maturing / [domicile]=strong [detriment]=weak) — no; use the meaning.`
