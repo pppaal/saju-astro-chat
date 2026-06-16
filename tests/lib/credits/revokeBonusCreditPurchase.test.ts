@@ -100,9 +100,12 @@ describe('revokeBonusCreditPurchase', () => {
     expect(mockTransaction).toHaveBeenCalledTimes(1)
   })
 
-  it('swallows DB errors and returns safe no-op (webhook safety)', async () => {
+  it('flags DB errors with error:true so the webhook retries (no silent revenue loss)', async () => {
+    // not-found/already-revoked 의 정상 {revoked:false} 와 달리, 진짜 DB 오류는
+    // error:true 를 달아 webhook 이 "이미 회수됨(멱등)" 으로 오인하지 않고
+    // 이벤트를 재시도하게 한다.
     mockFindFirst.mockRejectedValue(new Error('db down'))
     const result = await revokeBonusCreditPurchase('pi_error')
-    expect(result).toEqual({ revoked: false, reclaimed: 0, alreadyUsed: 0 })
+    expect(result).toEqual({ revoked: false, reclaimed: 0, alreadyUsed: 0, error: true })
   })
 })

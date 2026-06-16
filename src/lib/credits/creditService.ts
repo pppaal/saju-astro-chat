@@ -766,7 +766,7 @@ export async function resetAllExpiredCredits() {
 // 수 없으므로 차감액 0 + 로그만 남긴다(loss).
 export async function revokeBonusCreditPurchase(
   stripePaymentId: string
-): Promise<{ revoked: boolean; reclaimed: number; alreadyUsed: number }> {
+): Promise<{ revoked: boolean; reclaimed: number; alreadyUsed: number; error?: boolean }> {
   if (!stripePaymentId) return { revoked: false, reclaimed: 0, alreadyUsed: 0 }
 
   try {
@@ -839,7 +839,12 @@ export async function revokeBonusCreditPurchase(
 
     return { revoked: true, reclaimed: reclaim, alreadyUsed }
   } catch (error) {
+    // 진짜 DB 오류 — not-found/already-revoked 의 정상 false 와 구분되게 error:true
+    // 를 단다. 옛 코드는 그냥 {revoked:false} 를 돌려줬고, webhook 이 그걸
+    // "이미 회수됨(멱등)" 으로 오인해 success 처리 → Stripe 재시도 안 함 →
+    // *환불받은 사용자가 크레딧을 유지*했다. 호출자(webhook)는 error:true 를
+    // 재시도 신호로 쓴다.
     logger.error('[revokeBonusCreditPurchase] error', { stripePaymentId, error })
-    return { revoked: false, reclaimed: 0, alreadyUsed: 0 }
+    return { revoked: false, reclaimed: 0, alreadyUsed: 0, error: true }
   }
 }

@@ -270,137 +270,150 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 7) Build prompt and stream — 진짜 multi-turn 구조.
-  // 직전 답변을 assistant role로 정확히 LLM에 전달해야 모델이 "내가 한
-  // 말"로 인식하고 새 질문에 깔끔히 답한다. 예전엔 history를 통째로
-  // string으로 박아서 직전 답 톤이 다음 답에 묻어 나왔음.
-  // role 필터: Anthropic Messages API는 user/assistant만 받음. 클라가
-  // 'system'을 messages 배열에 넣어 보내면 400 invalid_request_error.
-  const systemPrompt = buildDestinyCounselorPrompt(lang === 'en' ? 'en' : 'ko')
-  const cachedUserContext = stableContext
-  const dialogTurns = body.messages.filter(
-    (m): m is ChatMessage => m.role === 'user' || m.role === 'assistant'
-  )
-  // Sanitize + validate prior turns from the client. Drops any forged
-  // role: 'system' turn, caps each content at 8KB, and replaces `<`/`>`
-  // with full-width chars so a replayed turn can't smuggle a tag-close
-  // (e.g. fake </birth_data>) into the prompt window. See promptSafety.ts.
-  const priorTurns = sanitizePriorTurns(dialogTurns.slice(0, -1))
-  const rawUserPromptRaw = dialogTurns[dialogTurns.length - 1]?.content ?? ''
-  if (!rawUserPromptRaw.trim()) {
-    return NextResponse.json({ error: 'empty_message' }, { status: 400 })
-  }
-  // Sanitize the latest user message before it gets concatenated next to
-  // server-injected XML tags (<daily_context>, <attached_file>) — without
-  // this, an attacker can paste `</birth_data>` or `<system>...</system>`
-  // and try to break out of the wrapping block. sanitizeForXmlTagBoundary
-  // replaces `<`/`>` with full-width equivalents that render identically
-  // but don't trigger the model's tag-close lexer.
-  const rawUserPrompt = sanitizeForXmlTagBoundary(rawUserPromptRaw)
-  // Prepend the user's attached file (if any) as XML-tagged context on the
-  // current turn. Kept out of the cached birth context so a different file
-  // (or none) on the next turn doesn't get a stale cache hit.
-  const attachmentTextRaw =
-    typeof body.cvText === 'string' ? body.cvText.trim().slice(0, MAX_ATTACHMENT_CHARS) : ''
-  // Strip tag-boundary chars from cvText before wrapping in <attached_file>
-  // — a malicious upload could otherwise close the tag early and inject
-  // adversarial instructions into the rest of the turn.
-  const attachmentText = sanitizeForXmlTagBoundary(attachmentTextRaw)
-  // 호출자 이름 + 만 나이는 cachedUserContext 밖에서 주입 — 둘 다 휘발성
-  // 메타라 cache prefix 에 들어가면 prompt-cache 무효화 (이름 변경 / 생일
-  // 통과 시). 매 턴 userPrompt prefix 로 붙여 chart 데이터만으로 prefix
-  // 안정.
-  const userName = await getUserDisplayName(userId)
-  const ageYearsFromBirth = computeAgeYears(body.birthDate)
-  const metaParts: string[] = []
-  if (userName) {
-    // 호명은 인사/강조 시에만 자연스럽게. 매 답변마다 "○○님" 박는 인공
-    // 적인 톤을 회피한다 (Sonnet 4.5 승격 후 톤 자연화).
-    metaParts.push(
-      lang === 'en'
-        ? `[Caller] ${userName} — address by name only when it feels natural (greetings, emphasis). Avoid repeating the name in every reply.`
-        : `[호출자] ${userName} — 인사·강조 시에만 '${userName}님'으로 자연스럽게 호명한다. 매 답변마다 이름 박는 인공적인 톤 금지.`
-    )
-  }
-  if (typeof ageYearsFromBirth === 'number') {
-    metaParts.push(
-      lang === 'en'
-        ? `[Age today] ${ageYearsFromBirth} (use as the 'current age' anchor; do not confuse with daeun start ages).`
-        : `[오늘 기준 만나이] ${ageYearsFromBirth}세 (한국 ${ageYearsFromBirth + 1}세) — 현재 나이 앵커로 사용, 대운 시작 나이와 혼동 금지.`
-    )
-  }
-  const metaLine = metaParts.length ? `${metaParts.join('\n')}\n\n` : ''
-  // 일별 회전 컨텐츠(타이밍/일진/today)는 cached prefix 밖에서 매 턴 새로
-  // 주입. <daily_context> 태그로 감싸 LLM 이 background data 로 인식.
-  const dailyBlock = dailyContext?.trim()
-    ? `<daily_context>\n${dailyContext.trim()}\n</daily_context>\n\n`
-    : ''
-  const userPromptBody = attachmentText
-    ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserPrompt}`
-    : rawUserPrompt
-  const userPrompt = `${dailyBlock}${metaLine}${userPromptBody}`
-
-  // If we charged for a new session but the stream delivers nothing (backend
-  // error or empty completion), refund the credit and drop the session marker
-  // so the user isn't billed for an empty response or left inside a paid
-  // window they never got to use. Continuing turns weren't charged → no-op.
+  // 차감 후~스트림 시작 사이(프롬프트 빌드, getUserDisplayName 등 DB 호출)에서
+  // throw 하면 onFailure(스트림 실패 콜백)는 안 불린다 — 차감만 되고 결과는 없다.
+  // compat/counselor 처럼 outer-catch 로 잡아 환불한다. refundKey 는 스트림
+  // onFailure 와 공유해 이중 환불 없음(refundCreditsOnce 가 dedupe).
   const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
-
   const refundKey = turnId ? `counselor-realtime:${userId}:${turnId}` : null
-  const onFailure = chargedThisTurn
-    ? async () => {
-        try {
-          await refundCreditsOnce(refundKey, {
-            userId,
-            creditType: 'reading',
-            amount: 1,
-            reason: 'counselor_stream_empty',
-            apiRoute: '/api/counselor/realtime',
-          })
-        } catch (err) {
-          logger.warn('[counselor/realtime] stream-failure refund failed', { err })
-        }
-      }
-    : undefined
+  const refundChargedTurn = async (reason: string) => {
+    if (!chargedThisTurn) return
+    try {
+      await refundCreditsOnce(refundKey, {
+        userId,
+        creditType: 'reading',
+        amount: 1,
+        reason,
+        apiRoute: '/api/counselor/realtime',
+      })
+    } catch (err) {
+      logger.warn('[counselor/realtime] refund failed', { err, reason })
+    }
+  }
 
-  return streamClaudeAsSSE({
-    // req.signal 은 여전히 넘기지만, keepGeneratingOnDisconnect 가 true 라
-    // 클라가 끊겨도 업스트림을 중단하지 않고 끝까지 생성한다 (아래 onComplete
-    // 로 캐시 저장 → 사용자가 돌아오면 result 엔드포인트로 복원).
-    abortSignal: req.signal,
-    keepGeneratingOnDisconnect: true,
-    // 생성이 끝나면(클라 연결 여부 무관) 완성 답안을 캐시에 저장. 끊겼다가
-    // 돌아온 사용자가 /api/counselor/realtime/result?turnId=… 로 받아간다.
-    onComplete: turnId
-      ? async (full) => {
-          try {
-            await cacheSet(counselorTurnResultKey(userId, turnId), full, TURN_RESULT_TTL_SEC)
-          } catch {
-            /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
+  try {
+    // 7) Build prompt and stream — 진짜 multi-turn 구조.
+    // 직전 답변을 assistant role로 정확히 LLM에 전달해야 모델이 "내가 한
+    // 말"로 인식하고 새 질문에 깔끔히 답한다. 예전엔 history를 통째로
+    // string으로 박아서 직전 답 톤이 다음 답에 묻어 나왔음.
+    // role 필터: Anthropic Messages API는 user/assistant만 받음. 클라가
+    // 'system'을 messages 배열에 넣어 보내면 400 invalid_request_error.
+    const systemPrompt = buildDestinyCounselorPrompt(lang === 'en' ? 'en' : 'ko')
+    const cachedUserContext = stableContext
+    const dialogTurns = body.messages.filter(
+      (m): m is ChatMessage => m.role === 'user' || m.role === 'assistant'
+    )
+    // Sanitize + validate prior turns from the client. Drops any forged
+    // role: 'system' turn, caps each content at 8KB, and replaces `<`/`>`
+    // with full-width chars so a replayed turn can't smuggle a tag-close
+    // (e.g. fake </birth_data>) into the prompt window. See promptSafety.ts.
+    const priorTurns = sanitizePriorTurns(dialogTurns.slice(0, -1))
+    const rawUserPromptRaw = dialogTurns[dialogTurns.length - 1]?.content ?? ''
+    if (!rawUserPromptRaw.trim()) {
+      return NextResponse.json({ error: 'empty_message' }, { status: 400 })
+    }
+    // Sanitize the latest user message before it gets concatenated next to
+    // server-injected XML tags (<daily_context>, <attached_file>) — without
+    // this, an attacker can paste `</birth_data>` or `<system>...</system>`
+    // and try to break out of the wrapping block. sanitizeForXmlTagBoundary
+    // replaces `<`/`>` with full-width equivalents that render identically
+    // but don't trigger the model's tag-close lexer.
+    const rawUserPrompt = sanitizeForXmlTagBoundary(rawUserPromptRaw)
+    // Prepend the user's attached file (if any) as XML-tagged context on the
+    // current turn. Kept out of the cached birth context so a different file
+    // (or none) on the next turn doesn't get a stale cache hit.
+    const attachmentTextRaw =
+      typeof body.cvText === 'string' ? body.cvText.trim().slice(0, MAX_ATTACHMENT_CHARS) : ''
+    // Strip tag-boundary chars from cvText before wrapping in <attached_file>
+    // — a malicious upload could otherwise close the tag early and inject
+    // adversarial instructions into the rest of the turn.
+    const attachmentText = sanitizeForXmlTagBoundary(attachmentTextRaw)
+    // 호출자 이름 + 만 나이는 cachedUserContext 밖에서 주입 — 둘 다 휘발성
+    // 메타라 cache prefix 에 들어가면 prompt-cache 무효화 (이름 변경 / 생일
+    // 통과 시). 매 턴 userPrompt prefix 로 붙여 chart 데이터만으로 prefix
+    // 안정.
+    const userName = await getUserDisplayName(userId)
+    const ageYearsFromBirth = computeAgeYears(body.birthDate)
+    const metaParts: string[] = []
+    if (userName) {
+      // 호명은 인사/강조 시에만 자연스럽게. 매 답변마다 "○○님" 박는 인공
+      // 적인 톤을 회피한다 (Sonnet 4.5 승격 후 톤 자연화).
+      metaParts.push(
+        lang === 'en'
+          ? `[Caller] ${userName} — address by name only when it feels natural (greetings, emphasis). Avoid repeating the name in every reply.`
+          : `[호출자] ${userName} — 인사·강조 시에만 '${userName}님'으로 자연스럽게 호명한다. 매 답변마다 이름 박는 인공적인 톤 금지.`
+      )
+    }
+    if (typeof ageYearsFromBirth === 'number') {
+      metaParts.push(
+        lang === 'en'
+          ? `[Age today] ${ageYearsFromBirth} (use as the 'current age' anchor; do not confuse with daeun start ages).`
+          : `[오늘 기준 만나이] ${ageYearsFromBirth}세 (한국 ${ageYearsFromBirth + 1}세) — 현재 나이 앵커로 사용, 대운 시작 나이와 혼동 금지.`
+      )
+    }
+    const metaLine = metaParts.length ? `${metaParts.join('\n')}\n\n` : ''
+    // 일별 회전 컨텐츠(타이밍/일진/today)는 cached prefix 밖에서 매 턴 새로
+    // 주입. <daily_context> 태그로 감싸 LLM 이 background data 로 인식.
+    const dailyBlock = dailyContext?.trim()
+      ? `<daily_context>\n${dailyContext.trim()}\n</daily_context>\n\n`
+      : ''
+    const userPromptBody = attachmentText
+      ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserPrompt}`
+      : rawUserPrompt
+    const userPrompt = `${dailyBlock}${metaLine}${userPromptBody}`
+
+    // If we charged for a new session but the stream delivers nothing (backend
+    // error or empty completion), refund the credit so the user isn't billed for
+    // an empty response. Shares refundChargedTurn/refundKey with the outer catch
+    // so a pre-stream throw and a stream failure can never double-refund.
+    const onFailure = chargedThisTurn
+      ? () => refundChargedTurn('counselor_stream_empty')
+      : undefined
+
+    return streamClaudeAsSSE({
+      // req.signal 은 여전히 넘기지만, keepGeneratingOnDisconnect 가 true 라
+      // 클라가 끊겨도 업스트림을 중단하지 않고 끝까지 생성한다 (아래 onComplete
+      // 로 캐시 저장 → 사용자가 돌아오면 result 엔드포인트로 복원).
+      abortSignal: req.signal,
+      keepGeneratingOnDisconnect: true,
+      // 생성이 끝나면(클라 연결 여부 무관) 완성 답안을 캐시에 저장. 끊겼다가
+      // 돌아온 사용자가 /api/counselor/realtime/result?turnId=… 로 받아간다.
+      onComplete: turnId
+        ? async (full) => {
+            try {
+              await cacheSet(counselorTurnResultKey(userId, turnId), full, TURN_RESULT_TTL_SEC)
+            } catch {
+              /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
+            }
           }
-        }
-      : undefined,
-    systemPrompt,
-    userPrompt,
-    cachedUserContext,
-    priorTurns,
-    // 운명상담사는 사주+점성 통합 reasoning 과 자연스러운 한국어 톤이
-    // 핵심이라 Haiku 4.5 → Sonnet 4.5 승격. 다른 라우트(타로 interpret-
-    // stream 등)는 Haiku 그대로. maxTokens 2500 이면 Sonnet 30~40s 안에
-    // 완료 — 기존 120s timeout 안에 여유.
-    model: PREMIUM_CLAUDE_MODEL,
-    maxTokens: 2500,
-    // maxTokens 도달해도 자동 이어쓰기 — 답이 중간에 안 잘림.
-    // 운명상담사도 본문 깊게 답할 때 가끔 2500 cap 도달.
-    enableContinuation: true,
-    // 0.5 → 0.7 — 비유·스토리텔링이 핵심인 채널이라 약간 풀어준다.
-    // (타로 interpret-stream 도 0.7 사용 중)
-    temperature: 0.7,
-    label: 'counselor.realtime',
-    onFailure,
-    additionalHeaders: {
-      'X-RateLimit-Limit': rl.headers.get('X-RateLimit-Limit') ?? '',
-      'X-RateLimit-Remaining': rl.headers.get('X-RateLimit-Remaining') ?? '',
-    },
-  })
+        : undefined,
+      systemPrompt,
+      userPrompt,
+      cachedUserContext,
+      priorTurns,
+      // 운명상담사는 사주+점성 통합 reasoning 과 자연스러운 한국어 톤이
+      // 핵심이라 Haiku 4.5 → Sonnet 4.5 승격. 다른 라우트(타로 interpret-
+      // stream 등)는 Haiku 그대로. maxTokens 2500 이면 Sonnet 30~40s 안에
+      // 완료 — 기존 120s timeout 안에 여유.
+      model: PREMIUM_CLAUDE_MODEL,
+      maxTokens: 2500,
+      // maxTokens 도달해도 자동 이어쓰기 — 답이 중간에 안 잘림.
+      // 운명상담사도 본문 깊게 답할 때 가끔 2500 cap 도달.
+      enableContinuation: true,
+      // 0.5 → 0.7 — 비유·스토리텔링이 핵심인 채널이라 약간 풀어준다.
+      // (타로 interpret-stream 도 0.7 사용 중)
+      temperature: 0.7,
+      label: 'counselor.realtime',
+      onFailure,
+      additionalHeaders: {
+        'X-RateLimit-Limit': rl.headers.get('X-RateLimit-Limit') ?? '',
+        'X-RateLimit-Remaining': rl.headers.get('X-RateLimit-Remaining') ?? '',
+      },
+    })
+  } catch (err) {
+    // 차감 후 스트림 시작 전 throw → 환불하고 500. (스트림 시작 후 실패는 onFailure 담당)
+    logger.error('[counselor/realtime] pre-stream failure after charge', { err })
+    await refundChargedTurn('counselor_prestream_error')
+    return NextResponse.json({ error: 'counselor_failed' }, { status: 500 })
+  }
 }
