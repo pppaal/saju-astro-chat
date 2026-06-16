@@ -8,6 +8,7 @@ import type {
 } from './types'
 import type { NatalContext } from './context/types'
 import { createCache } from './cache'
+import { STATIC_NATAL_KINDS } from './signalTaxonomy'
 
 // 등록된 extractor — 새 추출기 추가 시 여기 import + getRegisteredExtractors에 push
 import sajuShinsalExtractor from './extractors/saju-shinsal'
@@ -228,9 +229,7 @@ function groupIntoCells(
   // 줄로 도배한다(예: 'geokguk-status' 가 daily·±1 로 매일 같은 칩). 본명 표지는
   // 일 tier 의 전체 signal stream(cell.signals 그대로)에 남아 카드에서 확인 가능.
   // 흐름/리포트 분리는 docs/운흐름.md §0.5.8 / RAW_DISTRIBUTION.md §2.5(🔴) 참조.
-  //  - 'saju-pattern'   : 본명 격국명·일주 archetype (decadal 배경)
-  //  - 'geokguk-status' : 본명 격국 성패(±1, daily emit) — v4 추가
-  const STATIC_NATAL_KINDS = new Set(['saju-pattern', 'geokguk-status'])
+  // STATIC_NATAL_KINDS 정의: signalTaxonomy.ts (SSOT).
   for (const cell of cells.values()) {
     const scoreSignals = cell.signals.filter((s) => !STATIC_NATAL_KINDS.has(s.kind))
     cell.matchedPatterns = options.enablePatterns === false ? [] : derivePatterns(scoreSignals)

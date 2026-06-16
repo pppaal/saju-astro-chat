@@ -1,6 +1,7 @@
 import type { ActiveSignal, SignalLayer } from '../types'
 import { translateSignalLabel } from './signalI18n'
 import { LAYER_WEIGHT } from './constants'
+import { REASON_LAYERS } from '../signalTaxonomy'
 import { PLANET_KO } from '../data/planetNames'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 
@@ -26,11 +27,6 @@ function koTokensToEn(str: string): string {
  */
 
 type Lang = 'ko' | 'en'
-
-// 일별 사유(추천·주의)는 "그날/그달 고유" 신호만 — 일진·월운 + 그날 일/월
-// 점성 트랜짓. 1년 내내 켜진 대운·세운(점성: 외행성=yearly) 배경은 매일 같은
-// 줄을 도배해 날짜 변별을 죽이므로 사유 목록에서 제외(점수에는 그대로 반영됨).
-const REASON_LAYERS = new Set<SignalLayer>(['monthly', 'daily', 'hourly', 'instant'])
 
 export function deriveTopReasons(signals: ActiveSignal[], limit = 5, lang: Lang = 'ko'): string[] {
   // 우호 신호(polarity > 0)만 — 가중치·강도 큰 순. 그날/그달 층만.

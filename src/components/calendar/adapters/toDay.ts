@@ -37,11 +37,7 @@ import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import { LAYER_WEIGHT } from '@/lib/calendar-engine/derivers/constants'
-
-// topReasons/cautions 를 만드는 층(summary.ts REASON_LAYERS 와 동일) — 화해 net 산출용.
-const REASON_LAYERS = new Set(['monthly', 'daily', 'hourly', 'instant'])
-// 점수·사유에서 제외하는 정적 본명 표지(index.ts STATIC_NATAL_KINDS 와 동일).
-const STATIC_NATAL_KINDS = new Set(['saju-pattern', 'geokguk-status'])
+import { REASON_LAYERS, STATIC_NATAL_KINDS } from '@/lib/calendar-engine/signalTaxonomy'
 // 12운성 단계 — saju-shinsal 이 'rok-ma' 신살로도 emit 하지만(점수 신호로는 유지),
 // 12운성은 twelveStageMatrix 에서 따로 보여주므로 '활성 신살' 칩에는 중복 노출하지
 // 않는다(예: 제왕·건록이 신살 목록에 잘못 끼던 문제).
