@@ -113,12 +113,12 @@ so production keeps working but tests can pin a date. See `src/lib/saju/saju.ts`
   and any handler that hits a transient DB error must **throw** so Stripe retries
   (never swallow into a success). See `docs/architecture/credits.md`.
 
-**Security.** API routes go through `withApiMiddleware` (CSRF + auth + rate limit
-
-- credit gating). Admin auth is centralized in `createAdminGuard`/`isAdminUser`
-  (fail-closed). OAuth tokens are AES-256-GCM encrypted; `encryptToken` **throws in
-  production** if `TOKEN_ENCRYPTION_KEY` is missing — don't reintroduce a plaintext
-  fallback. See `docs/SECURITY_AUDIT_REPORT.md`.
+**Security.** API routes go through `withApiMiddleware`, which composes CSRF,
+auth, rate limiting, and credit gating. Admin auth is centralized in
+`createAdminGuard`/`isAdminUser` (fail-closed). OAuth tokens are AES-256-GCM
+encrypted; `encryptToken` **throws in production** if `TOKEN_ENCRYPTION_KEY` is
+missing — don't reintroduce a plaintext fallback. See
+`docs/SECURITY_AUDIT_REPORT.md`.
 
 **i18n.** Korean + English. User-facing strings come in ko/en pairs; prompts live
 in `src/lib/prompts` as co-located ko/en so they can't drift.
