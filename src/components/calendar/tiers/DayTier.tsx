@@ -244,11 +244,7 @@ function ToneDial({ tone, label }: { tone: DayVerdict['tone']; label?: string })
   const c = 2 * Math.PI * r
   const frac = tone === 'positive' ? 1 : tone === 'mixed' ? 0.6 : 0.3
   const col =
-    tone === 'positive'
-      ? 'var(--dp-pos)'
-      : tone === 'caution'
-        ? 'var(--dp-neg)'
-        : 'var(--dp-ember)'
+    tone === 'positive' ? 'var(--dp-pos)' : tone === 'caution' ? 'var(--dp-neg)' : 'var(--dp-ember)'
   const word = ko
     ? tone === 'positive'
       ? '순풍'
@@ -901,206 +897,211 @@ export function DayTier({ day, hours24, voc, onRise, sex = '남' }: DayTierProps
         {ko && day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
       </div>
 
-      {/* ── 쉬운 요약 (오늘 어때 한눈에). 일진·12운성·신호는 아래 자세히로. ── */}
-      <TierSummary headline={dayHeadline} sub={daySub} cards={dayCards} />
-
-      {/* ── 분야별 오늘 조언 — 연애·돈·직업·관계·공부·건강 (그날 십신 기반). ── */}
-      {dayDomains && (
-        <div className={styles.domainBlock}>
-          <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>{ko ? '분야별 오늘 조언' : 'Today by area'}</h2>
-            <span className={styles.tiny}>{ko ? dayDomains.bandNote : dayDomains.bandNoteEn}</span>
-          </div>
-          <div className={styles.domainGrid}>
-            {dayDomains.domains.map((d) => (
-              <div
-                className={`${styles.domainRow} ${d.active ? styles.domainActive : ''}`}
-                key={d.key}
-              >
-                <span className={styles.domainIcon}>{d.icon}</span>
-                <div className={styles.domainText}>
-                  <span className={styles.domainLabel}>
-                    {ko ? d.label : d.labelEn}
-                    {d.active && (
-                      <span className={styles.domainOn}>{ko ? '오늘 주목' : 'in focus'}</span>
-                    )}
-                  </span>
-                  <span className={styles.domainBody}>{ko ? d.body : d.bodyEn}</span>
-                  {d.evidence.length > 0 && (
-                    <span className={styles.domainEvidence}>
-                      <span className={styles.domainEvLabel}>{ko ? '근거' : 'Why'}</span>
-                      {d.evidence.map((e, i) => {
-                        const tone =
-                          e.polarity > 0
-                            ? styles.evPos
-                            : e.polarity < 0
-                              ? styles.evNeg
-                              : styles.evNeu
-                        const mark =
-                          e.kind === 'astro'
-                            ? e.polarity < 0
-                              ? '△'
-                              : '✦'
-                            : e.kind === 'cross'
-                              ? '⇄'
-                              : e.kind === 'moon'
-                                ? '🌙'
-                                : '◆'
-                        return (
-                          <span className={`${styles.evChip} ${tone}`} key={`${e.text}-${i}`}>
-                            <span className={styles.evMark}>{mark}</span>
-                            {e.text}
-                          </span>
-                        )
-                      })}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+      {/* ── 핵심 hero: 일진 + 톤 다이얼 + 한 줄 결론. 분야별·시간·신호는 아래 자세히로. ── */}
+      <div className={styles.dayHead}>
+        <div className={styles.iljinBig}>
+          <span className="han">{day.iljin.hanja}</span>
+          <div className="meta">
+            <div className="kr">{day.iljin.kr}</div>
+            <div className="ss">
+              {ko ? (
+                <>
+                  {'일진 · 일간 기준'} {String(day.iljinSibsin)}
+                  {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
+                    ? ` (${sibsinArea(String(day.iljinSibsin))})`
+                    : ''}
+                </>
+              ) : (
+                `daily pillar · vs day master ${sibsinAreaEn(String(day.iljinSibsin))}`
+              )}
+            </div>
           </div>
         </div>
-      )}
-
-      {/* ── 시간별 사주 × 점성 교차 — 가장 센 시진 3개만 메인에. ── */}
-      {hourCrossItems.length > 0 && <CrossingList heading={hourHeading} items={hourCrossItems} />}
-
-      {hourAll.length > 0 && (
-        <HourRhythm hours={hourAll} ko={ko} label={ko ? '하루 시간 리듬' : 'The day’s rhythm'} />
-      )}
-
-      {/* ── 시(時)별 달 정밀 — 12 시진 달 재계산으로 뽑은 달×본명 절정 시각. ── */}
-      {(day.hourMoon ?? []).length > 0 && (
-        <div className={styles.moonBlock}>
-          <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>{ko ? '시(時)별 달 흐름' : 'Moon by hour'}</h2>
-            <span className={styles.tiny}>
-              {ko ? '달 시각별 정밀 재계산 · 절정 시각' : 'Moon recomputed per hour · peak times'}
-            </span>
-          </div>
-          <div className={styles.moonList}>
-            {(day.hourMoon ?? []).map((m, i) => {
-              const tone = m.tone === 'good' ? styles.moonGood : styles.moonCaution
-              return (
-                <div className={`${styles.moonRow} ${tone}`} key={`${m.hour}-${i}`}>
-                  <div className={styles.moonHead}>
-                    <span className={styles.moonWhen}>{ko ? m.when : m.whenEn}</span>
-                    <span className={styles.moonBody}>
-                      {ko
-                        ? `달 ${m.aspectKo} → ${m.natalPointKo} · ${m.moonSignKo}`
-                        : `Moon ${m.aspectEn} → ${m.natalPointEn} · ${m.moonSignEn}`}
-                    </span>
-                    <span className={styles.moonTone}>
-                      {m.tone === 'good' ? (ko ? '좋은 시각' : 'good') : ko ? '주의 시각' : 'watch'}
-                    </span>
-                  </div>
-                  <span className={styles.moonMeaning}>{ko ? m.meaning : m.meaningEn}</span>
-                </div>
-              )
-            })}
-          </div>
+        <div className={styles.dayScore}>
+          {/* 점수 숫자 비노출 — 다이얼은 헤드라인·칩과 같은 단일 verdict 톤만 보여준다. */}
+          <ToneDial tone={verdict.tone} label={ko ? '오늘' : 'Today'} />
+          <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
         </div>
-      )}
+      </div>
 
-      {/* ── 전문가용 상세 — 일진·격국·공망·신호·12운성·시진 일체 접어 둠 ── */}
+      {/* 본명 상태 — 격국 / 공망 / VOC */}
+      <div className={styles.headChips}>
+        <GeokgukStatusFrame status={day.geokgukStatus} />
+      </div>
+      <GongmangBanner gongmang={day.gongmang} />
+      <VocBanner voc={voc} />
+
+      {/* ── 오늘의 핵심 — 왜 이런 하루 (topReasons/cautions) + 신살. 근거 트랜짓은 접힘. ── */}
+      <div>
+        <div className={`${styles.panel} ${styles.astro}`}>
+          <div className={styles.eyebrow}>
+            {ko ? '오늘의 핵심 · 왜 이런 하루?' : "Today's core · why this day?"}
+          </div>
+          {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
+            <p className={styles.whyMuted}>
+              {ko
+                ? '오늘은 두드러진 신호 없이 무난한 흐름이에요.'
+                : 'A steady day with no standout signals.'}
+            </p>
+          ) : (
+            <ul className={styles.whyList}>
+              {(day.topReasons ?? []).map((r, i) => (
+                <li className={styles.whyPos} key={`wp-${i}`}>
+                  <span className={styles.whyArrow}>↑</span>{' '}
+                  {localizeLabel(r.replace(/^[↑↓·]\s*/, ''), ko)}
+                </li>
+              ))}
+              {(day.cautions ?? []).map((c, i) => (
+                <li className={styles.whyNeg} key={`wn-${i}`}>
+                  <span className={styles.whyArrow}>↓</span>{' '}
+                  {localizeLabel(c.replace(/^[↑↓·]\s*/, ''), ko)}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {day.shinsalActive.length > 0 && (
+            <div className={styles.shinsalRow}>
+              {day.shinsalActive.map((s, i) => (
+                <span className={styles.ssPill} key={i}>
+                  {ko ? s : shinsalEn(s)}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* 근거 신호 (점성 트랜짓 원자료) — 기본 접힘. 원하는 사람만 펼침. */}
+          <details className={styles.evidence}>
+            <summary className={styles.evidenceSummary}>
+              {ko ? '근거 신호 보기 · 점성 트랜짓' : 'View evidence signals · astro transits'}
+            </summary>
+            <div className={styles.transitRow}>
+              {innerTransits.map((t, i) => renderTransit(t, `it-${i}`, ko, false))}
+              {outerTransits.map((t, i) => renderTransit(t, `ot-${i}`, ko, true))}
+            </div>
+          </details>
+        </div>
+      </div>
+
+      {/* ── 자세히 보기 — 요약·분야별·시간·격국·신호·12운성 일체 접어 둠 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>
-          {ko ? '자세히 보기 · 일진과 근거' : 'Details · day pillar & evidence'}
+          {ko ? '자세히 보기 · 흐름과 근거 전체' : 'Details · full flow & evidence'}
         </summary>
+
+        {/* ── 쉬운 요약 (오늘 어때 한눈에). ── */}
+        <TierSummary headline={dayHeadline} sub={daySub} cards={dayCards} />
+
+        {/* ── 분야별 오늘 조언 — 연애·돈·직업·관계·공부·건강 (그날 십신 기반). ── */}
+        {dayDomains && (
+          <div className={styles.domainBlock}>
+            <div className={styles.secHead}>
+              <h2 className={styles.secTitle}>{ko ? '분야별 오늘 조언' : 'Today by area'}</h2>
+              <span className={styles.tiny}>
+                {ko ? dayDomains.bandNote : dayDomains.bandNoteEn}
+              </span>
+            </div>
+            <div className={styles.domainGrid}>
+              {dayDomains.domains.map((d) => (
+                <div
+                  className={`${styles.domainRow} ${d.active ? styles.domainActive : ''}`}
+                  key={d.key}
+                >
+                  <span className={styles.domainIcon}>{d.icon}</span>
+                  <div className={styles.domainText}>
+                    <span className={styles.domainLabel}>
+                      {ko ? d.label : d.labelEn}
+                      {d.active && (
+                        <span className={styles.domainOn}>{ko ? '오늘 주목' : 'in focus'}</span>
+                      )}
+                    </span>
+                    <span className={styles.domainBody}>{ko ? d.body : d.bodyEn}</span>
+                    {d.evidence.length > 0 && (
+                      <span className={styles.domainEvidence}>
+                        <span className={styles.domainEvLabel}>{ko ? '근거' : 'Why'}</span>
+                        {d.evidence.map((e, i) => {
+                          const tone =
+                            e.polarity > 0
+                              ? styles.evPos
+                              : e.polarity < 0
+                                ? styles.evNeg
+                                : styles.evNeu
+                          const mark =
+                            e.kind === 'astro'
+                              ? e.polarity < 0
+                                ? '△'
+                                : '✦'
+                              : e.kind === 'cross'
+                                ? '⇄'
+                                : e.kind === 'moon'
+                                  ? '🌙'
+                                  : '◆'
+                          return (
+                            <span className={`${styles.evChip} ${tone}`} key={`${e.text}-${i}`}>
+                              <span className={styles.evMark}>{mark}</span>
+                              {e.text}
+                            </span>
+                          )
+                        })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── 시간별 사주 × 점성 교차 — 가장 센 시진 3개만 메인에. ── */}
+        {hourCrossItems.length > 0 && <CrossingList heading={hourHeading} items={hourCrossItems} />}
+
+        {hourAll.length > 0 && (
+          <HourRhythm hours={hourAll} ko={ko} label={ko ? '하루 시간 리듬' : 'The day’s rhythm'} />
+        )}
+
+        {/* ── 시(時)별 달 정밀 — 12 시진 달 재계산으로 뽑은 달×본명 절정 시각. ── */}
+        {(day.hourMoon ?? []).length > 0 && (
+          <div className={styles.moonBlock}>
+            <div className={styles.secHead}>
+              <h2 className={styles.secTitle}>{ko ? '시(時)별 달 흐름' : 'Moon by hour'}</h2>
+              <span className={styles.tiny}>
+                {ko ? '달 시각별 정밀 재계산 · 절정 시각' : 'Moon recomputed per hour · peak times'}
+              </span>
+            </div>
+            <div className={styles.moonList}>
+              {(day.hourMoon ?? []).map((m, i) => {
+                const tone = m.tone === 'good' ? styles.moonGood : styles.moonCaution
+                return (
+                  <div className={`${styles.moonRow} ${tone}`} key={`${m.hour}-${i}`}>
+                    <div className={styles.moonHead}>
+                      <span className={styles.moonWhen}>{ko ? m.when : m.whenEn}</span>
+                      <span className={styles.moonBody}>
+                        {ko
+                          ? `달 ${m.aspectKo} → ${m.natalPointKo} · ${m.moonSignKo}`
+                          : `Moon ${m.aspectEn} → ${m.natalPointEn} · ${m.moonSignEn}`}
+                      </span>
+                      <span className={styles.moonTone}>
+                        {m.tone === 'good'
+                          ? ko
+                            ? '좋은 시각'
+                            : 'good'
+                          : ko
+                            ? '주의 시각'
+                            : 'watch'}
+                      </span>
+                    </div>
+                    <span className={styles.moonMeaning}>{ko ? m.meaning : m.meaningEn}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* 나머지 시진 전체 — 메인엔 안 띄운 시간들. */}
         {hourRestItems.length > 0 && (
           <CrossingList heading={ko ? '그 밖의 시간대' : 'Other hours'} items={hourRestItems} />
         )}
-
-        {/* head 보강 — 격국 status / 공망 / VOC */}
-        <div className={styles.headChips}>
-          <GeokgukStatusFrame status={day.geokgukStatus} />
-        </div>
-        <GongmangBanner gongmang={day.gongmang} />
-        <VocBanner voc={voc} />
-
-        {/* head: 일진 + 톤 다이얼 + one line (day.jsx 원본) */}
-        <div className={styles.dayHead}>
-          <div className={styles.iljinBig}>
-            <span className="han">{day.iljin.hanja}</span>
-            <div className="meta">
-              <div className="kr">{day.iljin.kr}</div>
-              <div className="ss">
-                {ko ? (
-                  <>
-                    {'일진 · 일간 기준'} {String(day.iljinSibsin)}
-                    {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
-                      ? ` (${sibsinArea(String(day.iljinSibsin))})`
-                      : ''}
-                  </>
-                ) : (
-                  `daily pillar · vs day master ${sibsinAreaEn(String(day.iljinSibsin))}`
-                )}
-              </div>
-            </div>
-          </div>
-          <div className={styles.dayScore}>
-            {/* 점수 숫자 비노출 — 다이얼은 헤드라인·칩과 같은 단일 verdict 톤만 보여준다. */}
-            <ToneDial tone={verdict.tone} label={ko ? '오늘' : 'Today'} />
-            <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
-          </div>
-        </div>
-
-        {/* 이렇게 읽은 이유 (흐름·교차 신호) — 풀폭 */}
-        <div>
-          <div className={`${styles.panel} ${styles.astro}`}>
-            {/* 합치기: 날것 트랜짓 덤프 → "이렇게 읽은 이유"(사람 말). 엔진이 만든
-              topReasons/cautions 를 우선 노출하고, 원자료(점성 트랜짓)는 접어둔다.
-              (premium DayWhyCard 패턴 + destinypal 만세력 스킨) */}
-            <div className={styles.eyebrow}>
-              {ko ? '왜 이런 하루? · 근거' : 'Why this day? · evidence'}
-            </div>
-            {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
-              <p className={styles.whyMuted}>
-                {ko
-                  ? '오늘은 두드러진 신호 없이 무난한 흐름이에요.'
-                  : 'A steady day with no standout signals.'}
-              </p>
-            ) : (
-              <ul className={styles.whyList}>
-                {(day.topReasons ?? []).map((r, i) => (
-                  <li className={styles.whyPos} key={`wp-${i}`}>
-                    <span className={styles.whyArrow}>↑</span>{' '}
-                    {localizeLabel(r.replace(/^[↑↓·]\s*/, ''), ko)}
-                  </li>
-                ))}
-                {(day.cautions ?? []).map((c, i) => (
-                  <li className={styles.whyNeg} key={`wn-${i}`}>
-                    <span className={styles.whyArrow}>↓</span>{' '}
-                    {localizeLabel(c.replace(/^[↑↓·]\s*/, ''), ko)}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {day.shinsalActive.length > 0 && (
-              <div className={styles.shinsalRow}>
-                {day.shinsalActive.map((s, i) => (
-                  <span className={styles.ssPill} key={i}>
-                    {ko ? s : shinsalEn(s)}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* 근거 신호 (점성 트랜짓 원자료) — 기본 접힘. 원하는 사람만 펼침. */}
-            <details className={styles.evidence}>
-              <summary className={styles.evidenceSummary}>
-                {ko ? '근거 신호 보기 · 점성 트랜짓' : 'View evidence signals · astro transits'}
-              </summary>
-              <div className={styles.transitRow}>
-                {innerTransits.map((t, i) => renderTransit(t, `it-${i}`, ko, false))}
-                {outerTransits.map((t, i) => renderTransit(t, `ot-${i}`, ko, true))}
-              </div>
-            </details>
-          </div>
-        </div>
 
         {/* Phase 3 — Cross Activation */}
         <CrossActivationCard items={day.crossActivations} />
