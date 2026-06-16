@@ -190,6 +190,20 @@ async function upstashIncrement(key: string, windowSeconds: number): Promise<num
       return null
     }
 
+    // incr 와 expire 는 한 파이프라인이지만 원자적 트랜잭션은 아니다 — incr 만
+    // 적용되고 expire 가 누락되면 키가 TTL 없이 남아 rate window 가 영영 안
+    // 닫힌다. expire 결과(키 존재 시 1)가 명시적으로 1 이 아니면 TTL 을 한 번
+    // 더 보장한다. (매 incr 마다 expire 를 재적용하므로 보통 자가 치유되지만,
+    // 막 생성된 키에서 즉시 보장.) 결과 shape 를 모르면(undefined) skip.
+    const expireResult = results[1]
+    if (expireResult !== undefined && expireResult !== 1) {
+      try {
+        await client.expire(key, windowSeconds)
+      } catch {
+        /* best-effort — 다음 incr 가 expire 를 재적용한다 */
+      }
+    }
+
     return count
   } catch (error) {
     if (isUpstashQuotaExceededError(error)) {

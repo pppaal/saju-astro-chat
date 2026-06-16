@@ -173,6 +173,8 @@ npm test            # vitest run (~2.5 min for the full suite)
 
 ## Documentation
 
+- [`CLAUDE.md`](CLAUDE.md) — start here: orientation for contributors and AI agents
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — setup, branch/PR workflow, required checks
 - [`docs/README.md`](docs/README.md) — documentation hub
 - [`docs/DESTINY_MATRIX.md`](docs/DESTINY_MATRIX.md) — destiny engine architecture
 - [`docs/CALCULATION_SPEC.md`](docs/CALCULATION_SPEC.md) — calculation spec

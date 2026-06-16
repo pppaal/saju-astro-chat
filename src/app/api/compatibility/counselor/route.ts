@@ -219,14 +219,17 @@ export async function POST(req: NextRequest) {
     // chargedUserId 는 함수 스코프에 hoist 됨 (외부 catch 환불용).
     if (context.userId) {
       const scopedIdemKey = idemStore.keyFor(req, `user:${context.userId}`)
-      const idempotentReplay = scopedIdemKey ? await idemStore.isReplay(scopedIdemKey) : false
-      if (idempotentReplay) {
+      // 원자적 선점 — 동시 요청 중 하나만 첫 진입으로 차감(이중 차감 방지).
+      const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
+      if (scopedIdemKey && !claimed) {
         logger.info('[compat/counselor] idempotent replay, skip credit consume', {
           userId: context.userId,
         })
       } else {
         const res = await consumeCredits(context.userId, 'compatibility', 1)
         if (!res.success) {
+          // 차감 실패 → 선점 해제 후 결제 요구 응답(재시도가 다시 차감 가능).
+          if (scopedIdemKey) await idemStore.release(scopedIdemKey)
           return createErrorResponse({
             code: ErrorCodes.PAYMENT_REQUIRED,
             message:
@@ -239,7 +242,6 @@ export async function POST(req: NextRequest) {
         }
         chargedUserId = context.userId
         refundKey = turnId ? `compat:${chargedUserId}:${turnId}` : null
-        if (scopedIdemKey) await idemStore.mark(scopedIdemKey)
       }
     }
 
@@ -554,16 +556,8 @@ export async function POST(req: NextRequest) {
       return raw ? sanitizeForXmlTagBoundary(raw).slice(0, 120) : ''
     }
     const personalShinsalLines = [
-      formatPersonalShinsal(
-        safeNameOf(0) ? `A(${safeNameOf(0)})` : 'A',
-        compatSaju?.a.shinsal,
-        lang
-      ),
-      formatPersonalShinsal(
-        safeNameOf(1) ? `B(${safeNameOf(1)})` : 'B',
-        compatSaju?.b.shinsal,
-        lang
-      ),
+      formatPersonalShinsal(safeNameOf(0) ? `A(${safeNameOf(0)})` : 'A', compatSaju?.a.shinsal, lang),
+      formatPersonalShinsal(safeNameOf(1) ? `B(${safeNameOf(1)})` : 'B', compatSaju?.b.shinsal, lang),
     ].filter(Boolean)
     const personalShinsalBlock = personalShinsalLines.length
       ? `${lang === 'en' ? '[Personal sinsal (self)]' : '[개별 신살 (self)]'}\n${personalShinsalLines.join('\n')}`

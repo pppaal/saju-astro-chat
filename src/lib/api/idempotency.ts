@@ -6,14 +6,20 @@
 //      'x-idempotency-key' 헤더로 보냄.
 //   2) 라우트 핸들러는 (route|userId|ip):key 로 scope 해서 in-memory Map +
 //      DB (RequestIdempotencyLog) 두 곳에 6 시간 TTL 로 기억.
-//   3) 같은 키가 재진입하면 isReplay 가 true — 크레딧 차감만 건너뛰고
+//   3) 같은 키가 재진입하면 claim 이 false — 크레딧 차감만 건너뛰고
 //      (LLM 호출은 정상 진행 가능, 결과는 다시 받음).
+//
+// 원자성: 예전엔 isReplay(읽기) → consumeCredits → mark(쓰기) 3단계였는데
+// 그 사이에 잠금이 없어 동시 요청(더블클릭/탭 복제)이 둘 다 isReplay=false 를
+// 통과해 *이중 차감* 됐다. claim 은 unique create 한 번으로 read-then-write
+// race 를 닫는다 — drawNonce.consume / refundOnce 와 동일한 create-as-lock.
 //
 // In-memory + DB hybrid:
 //   - Memory 는 fast path. 같은 instance 안에서 반복 진입 시 < 1ms.
-//   - DB 는 persistent. Vercel cold start / horizontal scaling 으로 memory
-//     가 비어도 DB 가 살아있으면 보호 유지. 매 호출 DB findUnique ~5ms.
-//   - mark 는 두 곳 다 기록 (fire-and-forget DB write 로 latency 영향 적게).
+//   - DB 는 persistent + 원자적 잠금. Vercel cold start / horizontal scaling
+//     으로 memory 가 비어도 DB unique 제약이 교차-인스턴스 race 까지 막는다.
+//   - claim 은 응답 전에 DB 에 마커를 박는다(await). 차감이 실패하면 release
+//     로 마커를 지워 재시도가 다시 차감할 수 있게 한다.
 //
 // 만료된 DB 행은 별도 cron 으로 정리 (또는 store 가 가끔 자체 cleanup).
 
@@ -50,63 +56,55 @@ export function createIdempotencyStore(routeName: string) {
     return `${routeName}:${ownerKey}:${raw}${tag}`
   }
 
-  async function isReplay(scopedKey: string): Promise<boolean> {
-    // Fast path: memory
+  /**
+   * 원자적 선점. unique create 로 동시 요청 중 정확히 하나만 true 를 받는다.
+   *   true  → 이 요청이 첫 진입(선점 성공) → 호출자가 크레딧을 차감한다.
+   *   false → 이미 선점됨(replay) → 차감 스킵.
+   *
+   * 차감이 실패하면 호출자는 release(scopedKey) 로 마커를 지워야 한다 —
+   * 안 그러면 "선점했지만 차감 안 됨" 상태가 남아 다음 재시도가 영영 무료가 된다.
+   */
+  async function claim(scopedKey: string): Promise<boolean> {
+    // Fast path: 같은 인스턴스에서 살아있는 마커면 즉시 replay.
     const memExpiry = memory.get(scopedKey)
     if (memExpiry) {
-      if (Date.now() <= memExpiry) return true
+      if (Date.now() <= memExpiry) return false
       memory.delete(scopedKey)
     }
-    // Slow path: DB. cold start 후엔 memory 가 비어있어 여기로 떨어짐.
+
+    const expiresAt = new Date(Date.now() + IDEMPOTENCY_TTL_MS)
     try {
-      const row = await prisma.requestIdempotencyLog.findUnique({
-        where: { scopedKey },
-        select: { expiresAt: true },
-      })
-      if (!row) return false
-      if (row.expiresAt < new Date()) {
-        // 만료 — silent skip (cleanup 은 cron 담당).
-        return false
-      }
-      // DB 에 살아있는 항목 발견 → memory 캐시도 채워서 다음 호출 fast.
-      memory.set(scopedKey, row.expiresAt.getTime())
+      // create-as-lock: 응답 전에 DB 에 마커를 박는다(await). unique 충돌이면
+      // 다른 요청/인스턴스가 이미 선점한 것 → replay. 교차-인스턴스 race 까지
+      // DB unique 제약이 닫아준다.
+      await prisma.requestIdempotencyLog.create({ data: { scopedKey, expiresAt } })
+      memory.set(scopedKey, expiresAt.getTime())
+      pruneMemoryIfNeeded()
       return true
     } catch (err) {
+      const code = (err as { code?: string } | undefined)?.code
+      if (code === 'P2002') {
+        // 이미 선점됨 → replay. memory 도 채워 다음 호출 fast path.
+        memory.set(scopedKey, expiresAt.getTime())
+        return false
+      }
       // DB 장애 시 fail-open — 차감 막는 게 우선순위는 아님 (사용자 정상
-      // 흐름 보호가 더 중요). 로그만.
-      logger.warn('[idempotency] DB lookup failed, treat as not-replay', {
+      // 흐름 보호가 더 중요). 첫 진입으로 처리(차감 진행). 로그만.
+      logger.warn('[idempotency] claim failed, treat as first (charge)', {
         scopedKey,
         err: err instanceof Error ? err.message : String(err),
       })
-      return false
+      return true
     }
   }
 
-  async function mark(scopedKey: string): Promise<void> {
-    const expiresAt = new Date(Date.now() + IDEMPOTENCY_TTL_MS)
-
-    // Memory write — 즉시.
-    memory.set(scopedKey, expiresAt.getTime())
-    pruneMemoryIfNeeded()
-
-    // DB write 를 *await* 한다(응답 전에 영속화). 직전엔 fire-and-forget 이라,
-    // 첫 호출이 차감 후 응답까지 보냈는데 DB upsert 가 아직 안 끝난 사이 다른
-    // 서버 인스턴스(Vercel 수평 확장)로 재시도가 들어오면 memory(인스턴스 로컬)
-    // 에도 DB 에도 마커가 없어 replay 로 못 보고 *이중 차감* 됐다. 응답 전에
-    // 마커를 DB 에 박아 교차-인스턴스 재시도가 replay 로 잡히게 한다. upsert
-    // 실패는 비치명적(로그만) — 같은 인스턴스 재진입은 memory 가 계속 보호.
-    try {
-      await prisma.requestIdempotencyLog.upsert({
-        where: { scopedKey },
-        create: { scopedKey, expiresAt },
-        update: { expiresAt },
-      })
-    } catch (err) {
-      logger.warn('[idempotency] DB upsert failed (memory still set)', {
-        scopedKey,
-        err: err instanceof Error ? err.message : String(err),
-      })
-    }
+  /**
+   * 선점 해제. 차감이 실패했을 때만 호출 — 마커를 지워 재시도가 다시
+   * 차감(첫 진입)할 수 있게 한다. memory + DB 둘 다 정리.
+   */
+  async function release(scopedKey: string): Promise<void> {
+    memory.delete(scopedKey)
+    await prisma.requestIdempotencyLog.delete({ where: { scopedKey } }).catch(() => {})
   }
 
   function pruneMemoryIfNeeded() {
@@ -125,7 +123,7 @@ export function createIdempotencyStore(routeName: string) {
     }
   }
 
-  return { keyFor, isReplay, mark }
+  return { keyFor, claim, release }
 }
 
 export type IdempotencyStore = ReturnType<typeof createIdempotencyStore>

@@ -582,19 +582,20 @@ export async function POST(req: NextRequest) {
             receivedAny,
             bytesEmitted,
           })
-          // 받은 가치 기준 환불 판단:
-          //   - 0 byte: 사용자가 본 게 없음 → 전액 환불 + 정적 fallback emit
-          //   - <600 byte (대략 한국어 overall 도 못 끝낸 수준): "사용자가 받은
-          //     게 너무 적다" 판단 → 환불 (악용 우려보다 사용자 신뢰가 우선)
-          //   - ≥600 byte: 부분이지만 의미있는 텍스트가 갔다 — error 알림만,
-          //     클라가 partial JSON 으로 복원 시도. 환불 X.
-          const PARTIAL_REFUND_THRESHOLD = 600
-          if (!receivedAny || bytesEmitted < PARTIAL_REFUND_THRESHOLD) {
+          // 환불 판단을 raw byte 임계치(임의의 600 — JSON scaffold 바이트라
+          // 실제 읽을 거리와 무관)가 아니라 success 경로와 *동일한*
+          // isUsableReading 으로 한다: "사용자가 실제로 쓸 수 있는 리딩이
+          // 전달됐는가". 끊긴 partial JSON 은 보통 파싱 불가 → 미사용 → 환불.
+          // 이로써 옛 코드의 "유용한 부분 리딩을 받고도 환불받는(공짜)" 창이
+          // 닫힌다 — 쓸 수 있으면 과금 유지, 못 쓰면 환불(그 partial 은 어차피
+          // 클라가 렌더 못 함).
+          const deliveredUsable = receivedAny && isUsableReading(fullText, rawCards.length)
+          if (!deliveredUsable) {
             await refundOnFailure(
               creditResult,
               receivedAny ? 'tarot_claude_stream_partial' : 'tarot_claude_stream_no_content',
               creditCost,
-              `${streamErr instanceof Error ? streamErr.message : String(streamErr)} (bytes=${bytesEmitted})`,
+              `${streamErr instanceof Error ? streamErr.message : String(streamErr)} (bytes=${bytesEmitted}, len=${fullText.length})`,
               refundKey
             )
             if (!receivedAny) {
@@ -603,8 +604,8 @@ export async function POST(req: NextRequest) {
                 encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) }))
               )
             } else {
-              // 부분이지만 환불 처리 — error 이벤트로 알리고 클라가 partial
-              // 텍스트로 복원 + 사용자에겐 "이번 리딩은 환불됐어요" UX 가능.
+              // 부분이지만 쓸 수 없어 환불 — error 이벤트로 알리고 클라가
+              // 사용자에겐 "이번 리딩은 환불됐어요" UX 표시.
               try {
                 controller.enqueue(
                   encoder.encode(createSSEEvent({ error: 'Stream interrupted (refunded)' }))
@@ -614,9 +615,8 @@ export async function POST(req: NextRequest) {
               }
             }
           } else {
-            // 부분 텍스트가 이미 클라이언트에 전달됨 (≥ threshold) — error
-            // 이벤트로 끊김 알림. 클라이언트는 누적 텍스트로 partial JSON
-            // 복구 시도. 의미 있는 양의 텍스트가 갔으므로 환불 X.
+            // 쓸 수 있는 리딩이 실제로 전달됨 — 끊김만 알리고(클라가 누적
+            // 텍스트로 복원) 과금 유지.
             try {
               controller.enqueue(encoder.encode(createSSEEvent({ error: 'Stream interrupted' })))
             } catch {
