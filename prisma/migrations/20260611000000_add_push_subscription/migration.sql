@@ -1,5 +1,5 @@
--- CreateTable
-CREATE TABLE "PushSubscription" (
+-- CreateTable (스키마 드리프트 재실행 안전)
+CREATE TABLE IF NOT EXISTS "PushSubscription" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "endpoint" TEXT NOT NULL,
@@ -14,11 +14,13 @@ CREATE TABLE "PushSubscription" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PushSubscription_endpoint_key" ON "PushSubscription"("endpoint");
+CREATE UNIQUE INDEX IF NOT EXISTS "PushSubscription_endpoint_key" ON "PushSubscription"("endpoint");
 
 -- CreateIndex
-CREATE INDEX "PushSubscription_userId_idx" ON "PushSubscription"("userId");
+CREATE INDEX IF NOT EXISTS "PushSubscription_userId_idx" ON "PushSubscription"("userId");
 
--- AddForeignKey
-ALTER TABLE "PushSubscription" ADD CONSTRAINT "PushSubscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
+-- AddForeignKey (이미 있으면 skip)
+DO $$ BEGIN
+  ALTER TABLE "PushSubscription" ADD CONSTRAINT "PushSubscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
