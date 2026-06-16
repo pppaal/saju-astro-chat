@@ -199,38 +199,12 @@ describe('/api/cron/reset-credits', () => {
       expect(data.bonusExpiration).toEqual(bonusResult)
     })
 
-    it('should reset monthly credits', async () => {
-      const monthlyResult = {
-        resetCount: 25,
-        totalUsers: 150,
-        creditsReset: 2500,
-      }
+    // (옛 "should reset monthly credits" 제거 — 월간 충전 모델 폐지로
+    //  resetAllExpiredCredits 가 삭제되고 cron 은 보너스 만료만 수행한다.)
 
-      vi.mocked(expireBonusCredits).mockResolvedValue({
-        expired: 0,
-      })
-      vi.mocked(resetAllExpiredCredits).mockResolvedValue(monthlyResult)
-
-      const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
-        method: 'GET',
-        headers: {
-          authorization: 'Bearer test-secret',
-        },
-      })
-
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(resetAllExpiredCredits).toHaveBeenCalled()
-      expect(data.monthlyReset).toEqual(monthlyResult)
-    })
-
-    it('should run both operations in sequence', async () => {
+    it('runs only the bonus-expiration operation', async () => {
       vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 5,
-      })
-      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
-        resetCount: 10,
       })
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
@@ -242,22 +216,13 @@ describe('/api/cron/reset-credits', () => {
 
       await GET(req)
 
-      // Verify both were called
       expect(expireBonusCredits).toHaveBeenCalled()
-      expect(resetAllExpiredCredits).toHaveBeenCalled()
-
-      // Verify order using toHaveBeenCalledBefore (from vitest-mock-extended or manual check)
-      expect(expireBonusCredits).toHaveBeenCalledBefore(resetAllExpiredCredits as any)
     })
 
     it('should handle zero results', async () => {
       vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 0,
         totalAmount: 0,
-      })
-      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
-        resetCount: 0,
-        totalUsers: 0,
       })
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
@@ -273,17 +238,12 @@ describe('/api/cron/reset-credits', () => {
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(data.bonusExpiration.expired).toBe(0)
-      expect(data.monthlyReset.resetCount).toBe(0)
     })
 
     it('should handle large batch results', async () => {
       vi.mocked(expireBonusCredits).mockResolvedValue({
         expired: 1000,
         totalAmount: 100000,
-      })
-      vi.mocked(resetAllExpiredCredits).mockResolvedValue({
-        resetCount: 5000,
-        totalUsers: 10000,
       })
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
@@ -298,7 +258,6 @@ describe('/api/cron/reset-credits', () => {
 
       expect(response.status).toBe(200)
       expect(data.bonusExpiration.expired).toBe(1000)
-      expect(data.monthlyReset.resetCount).toBe(5000)
     })
   })
 
@@ -324,25 +283,7 @@ describe('/api/cron/reset-credits', () => {
       expect(data.error.code).toBe('INTERNAL_ERROR')
     })
 
-    it('should handle resetAllExpiredCredits errors', async () => {
-      vi.mocked(expireBonusCredits).mockResolvedValue({
-        expired: 5,
-      })
-      vi.mocked(resetAllExpiredCredits).mockRejectedValue(new Error('Transaction failed'))
-
-      const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
-        method: 'GET',
-        headers: {
-          authorization: 'Bearer test-secret',
-        },
-      })
-
-      const response = await GET(req)
-      const data = await response.json()
-
-      expect(response.status).toBe(500)
-      expect(data.error.code).toBe('INTERNAL_ERROR')
-    })
+    // (옛 "should handle resetAllExpiredCredits errors" 제거 — 함수 삭제됨.)
 
     it('should handle non-Error exceptions', async () => {
       vi.mocked(expireBonusCredits).mockRejectedValue('String error')
@@ -398,13 +339,8 @@ describe('/api/cron/reset-credits', () => {
         expired: 10,
         totalAmount: 1000,
       }
-      const monthlyResult = {
-        resetCount: 20,
-        totalUsers: 100,
-      }
 
       vi.mocked(expireBonusCredits).mockResolvedValue(bonusResult)
-      vi.mocked(resetAllExpiredCredits).mockResolvedValue(monthlyResult)
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -419,9 +355,9 @@ describe('/api/cron/reset-credits', () => {
       expect(data).toHaveProperty('success', true)
       expect(data).toHaveProperty('message', 'Credit maintenance completed')
       expect(data).toHaveProperty('bonusExpiration')
-      expect(data).toHaveProperty('monthlyReset')
       expect(data.bonusExpiration).toEqual(bonusResult)
-      expect(data.monthlyReset).toEqual(monthlyResult)
+      // 월간 충전 모델 폐지 → monthlyReset 필드 없음.
+      expect(data).not.toHaveProperty('monthlyReset')
     })
 
     it('should include detailed statistics in response', async () => {
@@ -431,18 +367,8 @@ describe('/api/cron/reset-credits', () => {
         affectedUsers: 8,
         oldestExpiry: '2023-01-01',
       }
-      const monthlyResult = {
-        resetCount: 25,
-        totalUsers: 150,
-        creditsReset: 2500,
-        planBreakdown: {
-          basic: 10,
-          premium: 15,
-        },
-      }
 
       vi.mocked(expireBonusCredits).mockResolvedValue(bonusResult)
-      vi.mocked(resetAllExpiredCredits).mockResolvedValue(monthlyResult)
 
       const req = new NextRequest('http://localhost:3000/api/cron/reset-credits', {
         method: 'GET',
@@ -455,7 +381,6 @@ describe('/api/cron/reset-credits', () => {
       const data = await response.json()
 
       expect(data.bonusExpiration).toEqual(bonusResult)
-      expect(data.monthlyReset).toEqual(monthlyResult)
     })
   })
 

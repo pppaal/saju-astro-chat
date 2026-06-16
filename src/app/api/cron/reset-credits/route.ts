@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { resetAllExpiredCredits, expireBonusCredits } from '@/lib/credits/creditService'
+import { expireBonusCredits } from '@/lib/credits/creditService'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { extractLocale } from '@/lib/api/middleware'
@@ -49,21 +49,16 @@ export async function GET(request: Request) {
       })
     }
 
-    // 1. 만료된 보너스 크레딧 정리 (구매일로부터 3개월)
+    // 만료된 보너스 크레딧 정리 (구매일로부터 3개월). 월간 충전 모델이 없으므로
+    // 옛 "월간 크레딧 리셋" 단계는 제거됨 (크레딧 = 구매/보너스 풀 단일).
     logger.warn('[Cron] Starting bonus credit expiration...')
     const bonusResult = await expireBonusCredits()
     logger.warn('[Cron] Bonus credit expiration completed:', bonusResult)
-
-    // 2. 월간 크레딧 리셋 (periodEnd 지난 유저)
-    logger.warn('[Cron] Starting monthly credit reset...')
-    const monthlyResult = await resetAllExpiredCredits()
-    logger.warn('[Cron] Credit reset completed:', monthlyResult)
 
     return NextResponse.json({
       success: true,
       message: 'Credit maintenance completed',
       bonusExpiration: bonusResult,
-      monthlyReset: monthlyResult,
     })
   } catch (err: unknown) {
     logger.error('[Cron Reset error]', err)

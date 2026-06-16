@@ -343,15 +343,16 @@ describe('Credit Service Functions with Mocked Prisma', () => {
   })
 
   describe('consumeCredits', () => {
-    it('successfully consumes reading credits', async () => {
+    it('successfully consumes reading credits (bonus pool)', async () => {
       const { consumeCredits } = await import('@/lib/credits/creditService')
 
+      // 보너스 전용 모델: bonusCredits 잔액 + BonusCreditPurchase lot 에서 차감.
       const mockCredits = {
         userId: 'consume-user',
         plan: 'free',
-        monthlyCredits: 80,
-        usedCredits: 10,
-        bonusCredits: 0,
+        monthlyCredits: 0,
+        usedCredits: 0,
+        bonusCredits: 5,
         compatibilityUsed: 0,
         followUpUsed: 0,
         compatibilityLimit: 0,
@@ -362,14 +363,18 @@ describe('Credit Service Functions with Mocked Prisma', () => {
       }
 
       mockPrisma.userCredits.findUnique.mockResolvedValue(mockCredits as never)
-      mockPrisma.userCredits.update.mockResolvedValue({ ...mockCredits, usedCredits: 11 } as never)
+      mockPrisma.userCredits.update.mockResolvedValue({ ...mockCredits, bonusCredits: 4 } as never)
+      mockPrisma.bonusCreditPurchase.findMany.mockResolvedValue([
+        { id: 'p1', amount: 5, remaining: 5, expiresAt: new Date(Date.now() + 86400000 * 30) },
+      ] as never)
+      mockPrisma.bonusCreditPurchase.updateMany.mockResolvedValue({ count: 1 } as never)
 
       const result = await consumeCredits('consume-user', 'reading', 1)
 
       expect(result.success).toBe(true)
       expect(result.chargedAs).toBe('reading')
-      // 월간 풀 차감은 이제 조건부 updateMany 경로(보너스 없음 → update 미사용).
-      expect(mockPrisma.userCredits.updateMany).toHaveBeenCalled()
+      // 보너스 집계 캐시(bonusCredits) 동기화 update 가 호출된다.
+      expect(mockPrisma.userCredits.update).toHaveBeenCalled()
     })
 
     it('charges compatibility against general credit', async () => {

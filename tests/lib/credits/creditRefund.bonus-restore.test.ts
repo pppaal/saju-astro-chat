@@ -63,9 +63,7 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
     // 핵심 시나리오: amount=10, remaining=9 (1 사용된 상태).
     // reading 1 단위 환불 → BonusCreditPurchase.remaining 이 10 으로 복원,
     // UserCredits.bonusCredits 도 1 증가. usedCredits 는 변경 없음.
-    mockBonusFindMany.mockResolvedValue([
-      { id: 'purchase_1', amount: 10, remaining: 9 },
-    ])
+    mockBonusFindMany.mockResolvedValue([{ id: 'purchase_1', amount: 10, remaining: 9 }])
 
     await refundCredits({
       userId: 'user_1',
@@ -112,11 +110,9 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
     )
   })
 
-  it('falls through to usedCredits decrement when no bonus purchase has spare capacity', async () => {
+  it('does not restore (and never touches usedCredits) when no bonus purchase has spare capacity', async () => {
     // 모든 purchase 가 remaining == amount (사용된 적 없음) → capacity 0 → skip.
-    mockBonusFindMany.mockResolvedValue([
-      { id: 'purchase_full', amount: 5, remaining: 5 },
-    ])
+    mockBonusFindMany.mockResolvedValue([{ id: 'purchase_full', amount: 5, remaining: 5 }])
 
     await refundCredits({
       userId: 'user_1',
@@ -127,10 +123,11 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
 
     expect(mockBonusUpdateMany).not.toHaveBeenCalled()
     expect(mockUpdate).not.toHaveBeenCalled()
-    expect(mockExecuteRaw).toHaveBeenCalled()
+    // 월간 충전 모델 폐지 → 되돌릴 월간 풀이 없으므로 usedCredits fallback SQL 없음.
+    expect(mockExecuteRaw).not.toHaveBeenCalled()
   })
 
-  it('falls through to usedCredits when no bonus purchase rows exist', async () => {
+  it('does not touch usedCredits when no bonus purchase rows exist', async () => {
     mockBonusFindMany.mockResolvedValue([])
 
     await refundCredits({
@@ -141,11 +138,12 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
     })
 
     expect(mockBonusUpdateMany).not.toHaveBeenCalled()
-    expect(mockExecuteRaw).toHaveBeenCalled()
+    expect(mockExecuteRaw).not.toHaveBeenCalled()
   })
 
-  it('splits across bonus restore + usedCredits when bonus capacity is partial', async () => {
-    // amount=5 환불, 보너스 capacity 는 2 만 있음. 2 는 보너스, 3 은 usedCredits.
+  it('restores only the available bonus capacity; leftover is not credited (no monthly fallback)', async () => {
+    // amount=5 환불, 보너스 capacity 는 2 만 있음. 2 만 보너스로 복원, 나머지
+    // 3 은 되돌릴 월간 풀이 없으므로 복원하지 않는다(로그만).
     mockBonusFindMany.mockResolvedValue([
       { id: 'purchase_a', amount: 10, remaining: 8 }, // capacity 2
     ])
@@ -167,16 +165,14 @@ describe('creditRefund — bonus pool restoration (B2)', () => {
       where: { userId: 'user_1' },
       data: { bonusCredits: { increment: 2 } },
     })
-    // 나머지 3 은 usedCredits 로
-    expect(mockExecuteRaw).toHaveBeenCalled()
+    // 나머지 3 은 usedCredits SQL 로 흘리지 않는다.
+    expect(mockExecuteRaw).not.toHaveBeenCalled()
   })
 
   it('writes the REFUND audit row (pool=BONUS) when fully restored to bonus pool', async () => {
     // CreditRefundLog 제거(2026-06-06) — 감사는 CreditTransaction(type=REFUND).
     // 보너스 풀 복원 시 pool=BONUS, sourceRef=purchase.id.
-    mockBonusFindMany.mockResolvedValue([
-      { id: 'p1', amount: 5, remaining: 4 },
-    ])
+    mockBonusFindMany.mockResolvedValue([{ id: 'p1', amount: 5, remaining: 4 }])
 
     await refundCredits({
       userId: 'user_1',

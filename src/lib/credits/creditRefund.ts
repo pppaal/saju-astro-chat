@@ -1,16 +1,16 @@
 // 🔄 Credit Refund Service - API 실패 시 크레딧 자동 환불
-import { prisma } from "@/lib/db/prisma";
-import { logger } from "@/lib/logger";
+import { prisma } from '@/lib/db/prisma'
+import { logger } from '@/lib/logger'
 
 export interface CreditRefundParams {
-  userId: string;
-  creditType: "reading" | "compatibility" | "followUp";
-  amount: number;
-  reason: string;
-  apiRoute?: string;
-  errorMessage?: string;
-  transactionId?: string;
-  metadata?: Record<string, unknown>;
+  userId: string
+  creditType: 'reading' | 'compatibility' | 'followUp'
+  amount: number
+  reason: string
+  apiRoute?: string
+  errorMessage?: string
+  transactionId?: string
+  metadata?: Record<string, unknown>
 }
 
 /**
@@ -31,7 +31,8 @@ export interface CreditRefundParams {
  */
 export async function refundCredits(params: CreditRefundParams): Promise<boolean> {
   try {
-    const { userId, creditType, amount, reason, apiRoute, errorMessage, transactionId, metadata } = params;
+    const { userId, creditType, amount, reason, apiRoute, errorMessage, transactionId, metadata } =
+      params
 
     // 트랜잭션으로 원자적 처리
     await prisma.$transaction(async (tx) => {
@@ -39,10 +40,10 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
       const userCredits = await tx.userCredits.findUnique({
         where: { userId },
         select: { userId: true },
-      });
+      })
 
       if (!userCredits) {
-        throw new Error(`UserCredits not found for user: ${userId}`);
+        throw new Error(`UserCredits not found for user: ${userId}`)
       }
 
       // 2. 크레딧 타입별 환불 처리
@@ -57,9 +58,9 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
       // 가장 최근 차감과 일치할 확률이 높다). 정확한 추적은 consume 시점에
       // 풀-별 차감 내역을 별도 테이블에 저장해야 하지만, 그 변경은 별도 PR
       // 의 큰 작업 — 본 PR 은 "silent drift" 보다 나은 휴리스틱으로 마감.
-      if (creditType === "reading") {
-        let remaining = amount;
-        const now = new Date();
+      if (creditType === 'reading') {
+        let remaining = amount
+        const now = new Date()
 
         if (remaining > 0) {
           // reverse-FIFO: 가장 늦게 만료되는 (== 가장 최근에 추가된) 구매부터.
@@ -76,14 +77,14 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
             },
             orderBy: { expiresAt: 'desc' },
             select: { id: true, amount: true, remaining: true },
-          });
+          })
 
           for (const purchase of candidates) {
-            if (remaining <= 0) break;
-            const capacity = purchase.amount - purchase.remaining;
-            if (capacity <= 0) continue;
+            if (remaining <= 0) break
+            const capacity = purchase.amount - purchase.remaining
+            if (capacity <= 0) continue
 
-            const restore = Math.min(capacity, remaining);
+            const restore = Math.min(capacity, remaining)
             // 조건부 update — 동시 환불 race 에서 amount 를 초과해 복원하지
             // 못하도록 (현재 remaining + restore <= amount) guard.
             // remaining 이 그 사이 누가 더 줄였어도 OK (capacity 증가).
@@ -97,15 +98,15 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
                 expired: false,
               },
               data: { remaining: { increment: restore } },
-            });
+            })
 
             if (upd.count > 0) {
-              remaining -= restore;
+              remaining -= restore
               // UserCredits.bonusCredits 도 동기 증가 — invariant 유지.
               await tx.userCredits.update({
                 where: { userId },
                 data: { bonusCredits: { increment: restore } },
-              });
+              })
 
               // 감사 로그 — REFUND / BONUS (sourceRef = purchase.id).
               await tx.creditTransaction.create({
@@ -123,43 +124,31 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
                     transactionId: transactionId ?? null,
                   },
                 },
-              });
+              })
             }
           }
         }
 
-        // 남은 분은 usedCredits 감소로 fallback — GREATEST 패턴은 raw SQL 로.
+        // 보너스 lot 에 다 복원하지 못한 잔여분. 월간 충전 모델이 없으므로
+        // (크레딧 = 구매/보너스 풀 단일) 되돌릴 풀이 없다 — 보통 모든 소스 lot
+        // 이 만료된 드문 경우. 옛 코드는 usedCredits 를 깎는 fallback 이었는데
+        // usedCredits 는 항상 0 이라 실제 복원 없이 잘못된 MONTHLY 환불 audit 만
+        // 남겼다. 이제 그 사문화 경로를 제거하고 관측 가능하게 경고만 남긴다.
         if (remaining > 0) {
-          await tx.$executeRaw`
-            UPDATE "UserCredits"
-            SET "usedCredits" = GREATEST(0, "usedCredits" - ${remaining})
-            WHERE "userId" = ${userId}
-          `;
-          // 감사 로그 — REFUND / MONTHLY (usedCredits 는 행 단위 추적이
-          // 안 되므로 sourceRef 는 호출자가 넘긴 transactionId 사용).
-          await tx.creditTransaction.create({
-            data: {
-              userId,
-              type: 'REFUND',
-              pool: 'MONTHLY',
-              amount: remaining,
-              reason,
-              sourceRef: transactionId ?? null,
-              metadata: {
-                restored: remaining,
-                apiRoute: apiRoute ?? null,
-                transactionId: transactionId ?? null,
-              },
-            },
-          });
+          logger.warn('[CreditRefund] leftover not restorable (no monthly pool)', {
+            userId,
+            leftover: remaining,
+            transactionId: transactionId ?? null,
+            apiRoute: apiRoute ?? null,
+          })
         }
-      } else if (creditType === "compatibility") {
+      } else if (creditType === 'compatibility') {
         // compatibility 사용량 감소 (atomic floor 0)
         await tx.$executeRaw`
           UPDATE "UserCredits"
           SET "compatibilityUsed" = GREATEST(0, "compatibilityUsed" - ${amount})
           WHERE "userId" = ${userId}
-        `;
+        `
         await tx.creditTransaction.create({
           data: {
             userId,
@@ -170,14 +159,14 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
             sourceRef: transactionId ?? null,
             metadata: { restored: amount, apiRoute: apiRoute ?? null },
           },
-        });
-      } else if (creditType === "followUp") {
+        })
+      } else if (creditType === 'followUp') {
         // followUp 사용량 감소 (atomic floor 0)
         await tx.$executeRaw`
           UPDATE "UserCredits"
           SET "followUpUsed" = GREATEST(0, "followUpUsed" - ${amount})
           WHERE "userId" = ${userId}
-        `;
+        `
         await tx.creditTransaction.create({
           data: {
             userId,
@@ -188,12 +177,12 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
             sourceRef: transactionId ?? null,
             metadata: { restored: amount, apiRoute: apiRoute ?? null },
           },
-        });
+        })
       }
 
       // CreditRefundLog 모델 제거 (2026-06-06) — CreditTransaction 이
       // 모든 grant/consume/refund event 의 SSOT 라 별도 로그 중복.
-    });
+    })
 
     logger.info('[CreditRefund] Success', {
       userId,
@@ -201,13 +190,13 @@ export async function refundCredits(params: CreditRefundParams): Promise<boolean
       amount,
       reason,
       apiRoute,
-    });
+    })
 
-    return true;
+    return true
   } catch (error) {
-    logger.error('[CreditRefund] Failed', { error });
+    logger.error('[CreditRefund] Failed', { error })
     // 환불 실패는 치명적이므로 에러를 다시 던짐
-    throw error;
+    throw error
   }
 }
 

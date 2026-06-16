@@ -1,3 +1,9 @@
+---
+title: 크레딧 원장(Ledger) SSOT 재설계
+tags: [architecture, credits, proposal]
+status: proposal
+---
+
 # Credit System Redesign: Mutable Counter → Ledger SSOT
 
 > **Status**: Planning / design proposal — not yet implemented.

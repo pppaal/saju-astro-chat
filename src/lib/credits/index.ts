@@ -6,10 +6,8 @@ export {
   getCreditBalance,
   canUseCredits,
   consumeCredits,
-  resetMonthlyCredits,
   addBonusCredits,
   canUseFeature,
-  resetAllExpiredCredits,
 } from './creditService'
 
 export {

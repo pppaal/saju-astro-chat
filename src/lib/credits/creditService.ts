@@ -136,11 +136,7 @@ export async function getUserCredits(userId: string) {
     }
   }
 
-  // 기간 만료 시 리셋
-  if (credits.periodEnd && new Date() > credits.periodEnd) {
-    credits = await resetMonthlyCredits(userId)
-  }
-
+  // 월간 충전 모델이 없으므로 기간 만료 리셋도 없음 (legacy resetMonthlyCredits 제거).
   return credits
 }
 
@@ -233,95 +229,35 @@ export async function consumeCredits(
         throw new CreditBusinessError('사용자 크레딧 정보를 찾을 수 없습니다')
       }
 
-      // 2. 사용 가능 여부 체크 (트랜잭션 내에서)
-      // 크레딧 전용: reading·compatibility·followUp 구분 없이 일반 크레딧 1개씩 소비.
+      // 2. 사용 가능 여부 — 이 제품은 "크레딧 사서 쓴 만큼 차감" (구매/보너스
+      //    풀 단일). 월간 충전 모델은 없다(legacy monthlyCredits/usedCredits 는
+      //    schema 에 deprecated 로만 남음). reading·compatibility·followUp 구분
+      //    없이 크레딧 1개씩 소비.
       void type
-      const available = credits.monthlyCredits - credits.usedCredits + credits.bonusCredits
-
-      if (available < amount) {
+      if (credits.bonusCredits < amount) {
         throw new CreditBusinessError('크레딧이 부족합니다')
       }
 
-      // 3. 보너스 크레딧 먼저 사용 (만료 임박한 것부터)
-      let fromBonus = 0
-      let fromMonthly = amount
+      // 3. BonusCreditPurchase 에서 FIFO(만료 임박순)로 원자 차감.
+      //    helper 가 purchase 마다 CONSUME(pool=BONUS) audit row 를 emit 하고,
+      //    `remaining >= toConsume` 조건부 updateMany 로 동시 차감 초과지출을 막는다.
+      const actualConsumed = await consumeBonusCreditsFromPurchasesInTx(tx, userId, amount, {
+        reason: 'consume_reading',
+        emitAudit: true,
+      })
 
-      if (credits.bonusCredits > 0) {
-        fromBonus = Math.min(credits.bonusCredits, amount)
-        fromMonthly = amount - fromBonus
-
-        // BonusCreditPurchase 테이블에서 FIFO로 차감 (트랜잭션 내에서)
-        // helper 가 차감한 purchase 마다 CONSUME(pool=BONUS) audit row 를 emit.
-        const actualBonusConsumed = await consumeBonusCreditsFromPurchasesInTx(
-          tx,
-          userId,
-          fromBonus,
-          { reason: 'consume_reading', emitAudit: true }
-        )
-        // 실제 차감된 양이 의도한 양보다 적은 경우 — purchase 가 만료됐거나
-        // 동시 차감으로 race 났음. 옛 코드는 부족분을 그냥 fromMonthly 로
-        // 넘겨 usedCredits 증가 → monthly 가 음수로 침범 가능 (사용자에게
-        // 무료 사용 허용). 부족분을 monthly 로 넘기되 실제 monthly 잔액으로
-        // 검증해 부족하면 throw. monthly 잔액 = monthlyCredits - usedCredits.
-        // (그 시점 트랜잭션 안에선 아직 usedCredits 증가 전이라 fresh value.)
-        if (actualBonusConsumed < fromBonus) {
-          const shortfall = fromBonus - actualBonusConsumed
-          const monthlyAvailable = credits.monthlyCredits - credits.usedCredits
-          const newMonthly = fromMonthly + shortfall
-          if (monthlyAvailable < newMonthly) {
-            throw new CreditBusinessError('크레딧이 부족합니다')
-          }
-          fromMonthly = newMonthly
-          fromBonus = actualBonusConsumed
-        }
+      // 실제 차감량이 모자라면 purchase 가 만료됐거나 동시 차감 race —
+      //    잔액 부족으로 처리(트랜잭션 롤백).
+      if (actualConsumed < amount) {
+        throw new CreditBusinessError('크레딧이 부족합니다')
       }
 
-      // 4. 크레딧 차감 (트랜잭션 내에서 원자적으로)
-      // 보너스 풀 집계(bonusCredits)는 purchase 행 단위 가드
-      // (consumeBonusCreditsFromPurchasesInTx) 가 이미 막으므로 여기선 캐시
-      // 집계만 동기화한다.
-      if (fromBonus > 0) {
-        await tx.userCredits.update({
-          where: { userId },
-          data: { bonusCredits: { decrement: fromBonus } },
-        })
-      }
-
-      // 월간 풀: 조건부 원자 가드. 옛 코드는 stale 스냅샷 검사(line 239) 후
-      // 무조건 increment 라, READ COMMITTED 동시 요청이 모두 같은 잔액을 읽고
-      // 통과해 usedCredits 가 monthlyCredits 를 넘겨 차감(무료 사용)될 수 있었다.
-      // 보너스 풀과 동일하게 `usedCredits <= monthlyCredits - fromMonthly` 일
-      // 때만 increment 하고, count===0 이면 그 사이 다른 차감이 잔액을 가져간
-      // 것이므로 부족 처리(트랜잭션 롤백). monthlyCredits 는 consume 중 불변이라
-      // 스냅샷 임계값이 안전하며, DB CHECK 제약이 최종 백스톱이다.
-      if (fromMonthly > 0) {
-        const monthlyUpdate = await tx.userCredits.updateMany({
-          where: {
-            userId,
-            usedCredits: { lte: credits.monthlyCredits - fromMonthly },
-          },
-          data: { usedCredits: { increment: fromMonthly } },
-        })
-        if (monthlyUpdate.count === 0) {
-          throw new CreditBusinessError('크레딧이 부족합니다')
-        }
-      }
-
-      // 5. 감사 로그 — monthly 차감분에 대해 한 줄 (보너스 풀 차감은
-      // consumeBonusCreditsFromPurchasesInTx 가 emit 한다).
-      if (fromMonthly > 0) {
-        await tx.creditTransaction.create({
-          data: {
-            userId,
-            type: 'CONSUME',
-            pool: 'MONTHLY',
-            amount: -fromMonthly,
-            reason: `consume_${type}`,
-            sourceRef: null,
-            metadata: { requested: amount, fromBonus, fromMonthly, type },
-          },
-        })
-      }
+      // 4. 보너스 집계 캐시(UserCredits.bonusCredits) 동기화. 실제 차감 가드는
+      //    위 purchase 행 단위 조건부 update 가 담당한다.
+      await tx.userCredits.update({
+        where: { userId },
+        data: { bonusCredits: { decrement: amount } },
+      })
 
       // refund 경로 호환을 위해 chargedAs 유지 (이제 항상 'reading').
       return { success: true, chargedAs: 'reading' as const }
@@ -498,25 +434,6 @@ export async function consumeBonusCreditOnceInTx(
 // 기간 갱신 (cron / 만료 진입 시) — 크레딧 전용이라 월간 충전은 없다.
 // 구매 크레딧(bonusCredits)은 자체 3개월 만료로 별도 관리되므로 여기서는
 // 기간만 다음 달로 넘겨 getUserCredits 의 리셋 루프만 방지한다(잔액 보존).
-export async function resetMonthlyCredits(userId: string) {
-  const credits = await prisma.userCredits.findUnique({
-    where: { userId },
-  })
-
-  if (!credits) {
-    return initializeUserCredits(userId)
-  }
-
-  const now = new Date()
-  return prisma.userCredits.update({
-    where: { userId },
-    data: {
-      periodStart: now,
-      periodEnd: getNextPeriodEnd(),
-    },
-  })
-}
-
 // 보너스 크레딧 추가 (크레딧팩 구매 등)
 export async function addBonusCredits(
   userId: string,
@@ -755,26 +672,6 @@ export async function canUseFeature(_userId: string, _feature: FeatureType): Pro
 }
 
 // 전체 유저 기간 갱신 (cron job용)
-export async function resetAllExpiredCredits() {
-  const now = new Date()
-
-  const expiredUsers = await prisma.userCredits.findMany({
-    where: {
-      periodEnd: { lte: now },
-    },
-    select: { userId: true },
-  })
-
-  const results = await Promise.allSettled(
-    expiredUsers.map((user) => resetMonthlyCredits(user.userId))
-  )
-
-  const succeeded = results.filter((r) => r.status === 'fulfilled').length
-  const failed = results.filter((r) => r.status === 'rejected').length
-
-  return { total: expiredUsers.length, succeeded, failed }
-}
-
 // Stripe 환불(charge.refunded) 처리 — 결제 ID 로 BonusCreditPurchase 를
 // 찾아 잔여 크레딧을 회수하고 해당 구매를 만료시킨다. 환불된 사용자가
 // 남은 크레딧을 계속 쓰지 못하도록 막는 방어. 이미 다 쓴 크레딧은 회수할

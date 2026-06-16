@@ -251,10 +251,13 @@ model UserCredits {
   // 현재 플랜
   plan String @default("free") // free, starter, pro, premium
 
-  // 월간 크레딧 (리딩 횟수)
-  monthlyCredits     Int @default(1) // 플랜별 월간 한도
-  usedCredits        Int @default(0) // 이번 달 사용량
-  bonusCredits       Int @default(0) // 보너스/구매 크레딧 (리셋 안됨)
+  // @deprecated 월간 충전 모델 폐지 — 제품은 "크레딧 구매 후 쓴 만큼 차감"
+  // (bonusCredits 단일 풀). monthlyCredits/usedCredits 는 쓰기 로직이 모두
+  // 제거되어 동결(frozen) 상태이며 잔액 계산 호환을 위해 컬럼만 남겨둠.
+  // 물리 컬럼 드롭은 API/프론트 계약 변경을 동반하는 별도 마이그레이션으로.
+  monthlyCredits     Int @default(1) // @deprecated (frozen) — 월간 충전 없음
+  usedCredits        Int @default(0) // @deprecated (frozen) — 월간 소비량
+  bonusCredits       Int @default(0) // 실제 잔액의 단일 진실원천 (구매/보너스)
   totalBonusReceived Int @default(0) // 총 받은 보너스 (total 계산용)
 
   // 기능별 사용량 (월간)

@@ -492,33 +492,9 @@ describe('consumeCredits — concurrent spend on the same user never overspends'
     expect(poolBonusRemaining(userId)).toBe(0)
   })
 
-  // REGRESSION TEST — the MONTHLY pool is now guarded by an atomic conditional
-  // update mirroring the bonus pool: the monthly decrement only commits when
-  // `usedCredits <= monthlyCredits - fromMonthly` (creditService.ts), and
-  // count===0 is treated as insufficient. Under READ COMMITTED, concurrent
-  // callers each re-check the now-committed usedCredits, so the increment chain
-  // stops exactly at the monthly balance — no overspend, no negative balance.
-  // (Previously this was a [characterization] test asserting the buggy
-  // overspend; flipped after the conditional guard + DB CHECK landed.)
-  it('MONTHLY-only pool cannot be overspent under concurrency (atomic conditional guard)', async () => {
-    const userId = 'race_monthly_gap'
-    const MONTHLY = 4
-    seedUser(userId, { monthly: MONTHLY, used: 0, bonus: 0 })
-
-    const { consumeCredits } = await import('@/lib/credits/creditService')
-
-    const results = await Promise.all(
-      Array.from({ length: 10 }, () => consumeCredits(userId, 'reading', 1))
-    )
-    const succeeded = results.filter((r) => r.success).length
-    const row = state.userCredits.get(userId)!
-
-    // Exactly the monthly balance is spent; the rest are refused as insufficient.
-    expect(succeeded).toBe(MONTHLY)
-    // Invariant the new DB CHECK also enforces: usedCredits never exceeds monthly.
-    expect(row.usedCredits).toBe(MONTHLY)
-    expect(row.usedCredits).toBeLessThanOrEqual(row.monthlyCredits)
-  })
+  // (옛 MONTHLY-only 초과지출 테스트 제거 — 월간 충전 모델이 폐지되어
+  //  consumeCredits 는 보너스 전용. 보너스 풀의 동시 초과지출 방지는 위
+  //  "consumeCredits — concurrent spend ... never overspends" 들이 커버한다.)
 })
 
 describe('consumeBonusCreditOnceInTx — concurrent single-unit consumes are race-safe', () => {
