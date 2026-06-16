@@ -57,9 +57,14 @@ function createPrismaClient(): PrismaClient {
     globalForPrisma.pool ??
     new Pool({
       connectionString,
-      // 인스턴스당 최대 커넥션 수. 관리자 대시보드 등 한 요청에서 여러 쿼리를
-      // 병렬로 던지는 경로가 있어 기본 10보다 여유를 둔다.
-      max: toInt(process.env.DATABASE_POOL_MAX, 15),
+      // 인스턴스당 최대 커넥션 수. Neon 풀러(PgBouncer transaction mode) +
+      // Vercel 서버리스에서는 *총* 커넥션 = max × 살아있는 인스턴스 수 다.
+      // 옛 기본값 15 는 배포 컷오버(구·신 인스턴스 동시 생존)나 트래픽 스파이크
+      // 때 풀러 상한을 넘겨 ECHECKOUTTIMEOUT 을 유발했다. 풀러가 이미
+      // 멀티플렉싱하므로 인스턴스당 풀은 작아야 한다(5 = 일반 라우트엔 충분,
+      // 관리자 Promise.all 병렬 쿼리는 잠깐 큐잉되지만 connectionTimeout 안에
+      // 해소). 더 필요하면 DATABASE_POOL_MAX 로 올린다.
+      max: toInt(process.env.DATABASE_POOL_MAX, 5),
       // 유휴 커넥션 회수 시간 — 서버리스에서 죽은 인스턴스가 Neon 슬롯을
       // 오래 쥐고 있지 않도록 짧게.
       idleTimeoutMillis: toInt(process.env.DATABASE_POOL_IDLE_TIMEOUT_MS, 10_000),
