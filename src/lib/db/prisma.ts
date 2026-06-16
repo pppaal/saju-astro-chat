@@ -53,24 +53,40 @@ function createPrismaClient(): PrismaClient {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
   }
 
+  // 풀 크기 우선순위: DATABASE_POOL_MAX(env) > URL 의 connection_limit > 기본 5.
+  //
+  // 중요: @prisma/adapter-pg + pg.Pool 로 바꾸면서, connection string 의
+  // `connection_limit=1`(Prisma 네이티브 파라미터)이 *무시*된다 — pg.Pool 은
+  // 그 파라미터를 모르고 자체 max 만 본다. 그 결과 "인스턴스당 1 커넥션" 의도로
+  // 박아둔 프로덕션 URL 이 실제로는 max(5~15)개를 열어 Supabase/PgBouncer
+  // 트랜잭션 풀러를 고갈시키고 ECHECKOUTTIMEOUT 을 유발했다. URL 이 명시한
+  // connection_limit 을 풀 max 로 존중해 그 의도를 복원한다.
+  const urlConnectionLimit = (() => {
+    try {
+      const v = new URL(connectionString).searchParams.get('connection_limit')
+      const n = Number(v)
+      return Number.isFinite(n) && n > 0 ? n : undefined
+    } catch {
+      return undefined
+    }
+  })()
+
   const pool =
     globalForPrisma.pool ??
     new Pool({
       connectionString,
-      // 인스턴스당 최대 커넥션 수. Neon 풀러(PgBouncer transaction mode) +
-      // Vercel 서버리스에서는 *총* 커넥션 = max × 살아있는 인스턴스 수 다.
-      // 옛 기본값 15 는 배포 컷오버(구·신 인스턴스 동시 생존)나 트래픽 스파이크
-      // 때 풀러 상한을 넘겨 ECHECKOUTTIMEOUT 을 유발했다. 풀러가 이미
-      // 멀티플렉싱하므로 인스턴스당 풀은 작아야 한다(5 = 일반 라우트엔 충분,
-      // 관리자 Promise.all 병렬 쿼리는 잠깐 큐잉되지만 connectionTimeout 안에
-      // 해소). 더 필요하면 DATABASE_POOL_MAX 로 올린다.
-      max: toInt(process.env.DATABASE_POOL_MAX, 5),
-      // 유휴 커넥션 회수 시간 — 서버리스에서 죽은 인스턴스가 Neon 슬롯을
+      // 인스턴스당 최대 커넥션 수. PgBouncer 트랜잭션 풀러(Supabase :6543 /
+      // Neon pooler) + Vercel 서버리스에서는 *총* 커넥션 = max × 살아있는
+      // 인스턴스 수다. 풀러가 멀티플렉싱하므로 인스턴스당 풀은 작아야 한다 —
+      // URL 의 connection_limit(보통 1)을 존중하고, 없으면 5로 둔다.
+      // env DATABASE_POOL_MAX 로 강제 오버라이드 가능.
+      max: toInt(process.env.DATABASE_POOL_MAX, urlConnectionLimit ?? 5),
+      // 유휴 커넥션 회수 시간 — 서버리스에서 죽은 인스턴스가 풀러 슬롯을
       // 오래 쥐고 있지 않도록 짧게.
       idleTimeoutMillis: toInt(process.env.DATABASE_POOL_IDLE_TIMEOUT_MS, 10_000),
       // 커넥션 획득이 막히면 무한 대기 대신 빠르게 실패시켜 원인을 드러낸다.
       connectionTimeoutMillis: toInt(process.env.DATABASE_CONNECTION_TIMEOUT_MS, 10_000),
-      // PgBouncer(Neon 풀러)와 함께 쓸 때 커넥션을 주기적으로 재생성.
+      // PgBouncer 풀러와 함께 쓸 때 커넥션을 주기적으로 재생성.
       maxUses: toInt(process.env.DATABASE_POOL_MAX_USES, 7_500),
       // 모든 커넥션이 유휴가 되면 풀이 이벤트 루프를 막지 않도록 — 서버리스 친화.
       allowExitOnIdle: true,
