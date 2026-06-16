@@ -66,7 +66,8 @@ const TWELVE_SINSAL_EN: Record<string, string> = {
   재살: 'calamity-star',
   천살: 'heaven-star',
   지살: 'travel-star',
-  도화: 'peach-blossom',
+  년살: 'peach-blossom', // pickTwelveSingle 정본 반환값 (= 도화)
+  도화: 'peach-blossom', // 별칭 — 일부 경로는 도화 라벨로 반환
   월살: 'moon-star',
   망신: 'disgrace-star',
   장성: 'general-star',
