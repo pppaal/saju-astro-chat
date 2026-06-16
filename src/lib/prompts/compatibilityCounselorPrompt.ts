@@ -13,6 +13,8 @@
  * backfilling the EN glyph map) prevents that class of drift.
  */
 
+import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
+
 export type PromptLang = 'ko' | 'en'
 
 /** A chunk of prompt text in both languages. Edit `ko` → its `en` sits right beside it. */
@@ -215,5 +217,9 @@ if (process.env.NODE_ENV !== 'production') {
 
 /** Build the compatibility counselor system prompt for the given language. */
 export function buildCompatibilityCounselorPrompt(lang: PromptLang): string {
-  return BLOCKS.map((b) => b[lang]).join('\n\n')
+  const out = BLOCKS.map((b) => b[lang]).join('\n\n')
+  // KO: 데이터 블록과 동일하게 구조 태그(cross/[CRITICAL]/Composite 등)를 한글로
+  // — 프롬프트가 참조하는 라벨과 데이터의 라벨이 한 쌍으로 일치해야 LLM 이 섹션을
+  // 찾는다. (koStructuralLabels 가 데이터·프롬프트 양쪽 단일 매핑.)
+  return lang === 'ko' ? koStructuralLabels(out) : out
 }

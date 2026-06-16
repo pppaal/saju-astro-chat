@@ -13,6 +13,8 @@
  * boxes. Co-locating the pairs prevents that class of drift.
  */
 
+import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
+
 export type PromptLang = 'ko' | 'en'
 
 /** A chunk of prompt text in both languages. Edit `ko` → its `en` sits right beside it. */
@@ -189,5 +191,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 /** Build the destiny counselor system prompt for the given language. */
 export function buildDestinyCounselorPrompt(lang: PromptLang): string {
-  return BLOCKS.map((b) => b[lang]).join('\n\n')
+  const out = BLOCKS.map((b) => b[lang]).join('\n\n')
+  // KO: 데이터 블록과 동일 매핑으로 구조 태그를 한글로 (프롬프트↔데이터 라벨 sync).
+  return lang === 'ko' ? koStructuralLabels(out) : out
 }

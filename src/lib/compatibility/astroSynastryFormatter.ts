@@ -45,6 +45,7 @@ const PLANET_LABEL: Record<string, string> = {
   Neptune: 'Neptune',
   Pluto: 'Pluto',
   'True Node': 'Node',
+  'South Node': 'S.Node',
   Ascendant: 'Ascendant',
   MC: 'MC',
   Chiron: 'Chiron',
