@@ -17,9 +17,11 @@ import PreviewClient from './PreviewClient'
 import {
   getOrBuildNatalContext,
   getOrBuildYearCells,
+  getOrBuildMonthCells,
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
 import { assembleTiers } from '../assembleTiers'
+import { SHOW_FULL_TIERS } from '@/components/calendar/tierConfig'
 
 // Server component: 빌드 비용(Swiss Ephemeris) 을 서버에서 한 번만 치름.
 export const dynamic = 'force-dynamic'
@@ -45,8 +47,12 @@ export default async function DestinypalPreview() {
 
   // ─── NatalContext + 그 해 cells (DB 캐시 우선) ────────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)
+  // SHOW_FULL_TIERS=false(월/일만)면 1년 대신 그 달만 빌드 — 안 보이는 연 티어용
+  // 1년 빌드(7.8s) 낭비 제거.
   const [cells, focusDayCell] = await Promise.all([
-    getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false }),
+    SHOW_FULL_TIERS
+      ? getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
+      : getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
     getFocusDayCell(BIRTH, natal, TARGET_DAY_ISO),
   ])
 
