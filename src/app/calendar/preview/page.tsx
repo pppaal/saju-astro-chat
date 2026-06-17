@@ -11,7 +11,7 @@
    destinypal tier props 까지 100% 책임.
    ============================================================ */
 
-import { headers } from 'next/headers'
+import { detectServerLocale } from '@/i18n/server'
 import PreviewClient from './PreviewClient'
 
 import {
@@ -40,9 +40,8 @@ const TARGET_MONTH = 6 // 6월 — preview default focus month
 const TARGET_DAY_ISO = '2026-06-15' // preview default focus day
 
 export default async function DestinypalPreview() {
-  // 서버 로케일 — 미들웨어가 심은 x-locale 헤더(쿠키/Accept-Language 기반).
-  const hdrs = await headers()
-  const lang: 'ko' | 'en' = hdrs.get('x-locale') === 'ko' ? 'ko' : 'en'
+  // 서버 로케일 — 헤더 → 쿠키 → Accept-Language 정식 해석(클라이언트 로케일과 일치).
+  const lang = await detectServerLocale()
 
   // ─── NatalContext + 그 해 cells (DB 캐시 우선) ────────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)

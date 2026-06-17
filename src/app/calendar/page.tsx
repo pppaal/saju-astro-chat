@@ -19,7 +19,7 @@
        강제 매핑되므로 buildNatalContext 가 받아낼 수 있음.)
    ============================================================ */
 
-import { headers } from 'next/headers'
+import { detectServerLocale } from '@/i18n/server'
 import { getServerSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/db/prisma'
 
@@ -59,9 +59,10 @@ function formatBirthLine(birthDate: string, birthTime: string): string {
 }
 
 export default async function DestinypalPage() {
-  // 서버 로케일 — 미들웨어 x-locale 헤더.
-  const hdrs = await headers()
-  const lang: 'ko' | 'en' = hdrs.get('x-locale') === 'ko' ? 'ko' : 'en'
+  // 서버 로케일 — 헤더 → 쿠키 → Accept-Language 정식 해석(클라이언트 로케일과 일치).
+  // (직전엔 x-locale 헤더만 보고 없으면 'en' 으로 떨어져, KO 유저인데 서버가 만든
+  //  영어 문구(큰 날 의미·이달 총평 등)가 KO 화면에 새던 버그.)
+  const lang = await detectServerLocale()
 
   // ─── 1) 세션 검사 ─────────────────────────────────────────────────────
   const session = await getServerSession()

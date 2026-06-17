@@ -67,7 +67,7 @@ const pickLocale = (raw?: string | null): ServerLocale | null => {
   return null
 }
 
-async function detectServerLocale(): Promise<ServerLocale> {
+export async function detectServerLocale(): Promise<ServerLocale> {
   // Prefer the middleware-set `x-locale` header first. Middleware resolves the
   // locale (cookie → accept-language) once per request and stamps it on both the
   // request headers and the layout's `<html lang>` / initialLocale. Reading it
