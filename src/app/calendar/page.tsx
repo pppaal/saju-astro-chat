@@ -30,8 +30,10 @@ import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
 import {
   getOrBuildNatalContext,
   getOrBuildYearCells,
+  getOrBuildMonthCells,
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
+import { SHOW_FULL_TIERS } from '@/components/calendar/tierConfig'
 import { assembleTiers } from './assembleTiers'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 
@@ -126,8 +128,12 @@ export default async function DestinypalPage() {
   const natal = await getOrBuildNatalContext(BIRTH)
   // 연 cells 는 evidence 없이(경량 캐시) — 점수·라벨만. evidence 가 필요한 그 하루는 따로.
   // 둘 다 natal 만 의존하므로 병렬로 — 직렬 await 로 합산되던 대기시간 제거.
+  // SHOW_FULL_TIERS=false(월/일만 표시)면 1년을 굽지 않고 그 달만 — 연 티어가 안
+  // 보이는데 1년(7.8s)을 굽던 낭비 제거. 연 티어를 켜면 다시 1년 빌드.
   const [cells, focusDayCell] = await Promise.all([
-    getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false }),
+    SHOW_FULL_TIERS
+      ? getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
+      : getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
     getFocusDayCell(BIRTH, natal, targetDayIso),
   ])
 
