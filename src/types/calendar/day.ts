@@ -20,6 +20,7 @@ import type {
   Polarity,
 } from './shared'
 import type { GeokgukStatus, GeokgukStatusResult } from '@/lib/saju/geokguk'
+import type { DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 
 // ============================================================================
 // 지장간 (Jijanggan) — 본명 일주(=일지) 의 정기·중기·여기 분해.
@@ -200,6 +201,12 @@ export interface DestinyDay extends DestinyIljinHeader {
   topReasons?: string[]
   /** 상위 주의 사유 3..5 (백엔드 CalendarCell.cautions). */
   cautions?: string[]
+  /**
+   * 출력 화해 verdict — 점수 밴드 ↔ 신호/사유 톤을 묶은 단일 권위.
+   * 헤드라인·한줄·칩이 같은 톤(positive/mixed/caution)을 말하도록 adapter 가
+   * 산출. 점수는 그대로 두고 *서술 톤만* 조정한다. (reconcile.ts)
+   */
+  dayTone?: DayVerdict
   /** 시간별 사주 × 점성 교차 — 시진(십신) × 그 시각 상승궁. */
   hourCrossings?: Array<{
     when: string // '5-7시 (묘시)'

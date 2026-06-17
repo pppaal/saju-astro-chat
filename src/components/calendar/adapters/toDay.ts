@@ -35,6 +35,13 @@ import {
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
+import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
+import { LAYER_WEIGHT } from '@/lib/calendar-engine/derivers/constants'
+import { REASON_LAYERS, STATIC_NATAL_KINDS } from '@/lib/calendar-engine/signalTaxonomy'
+// 12운성 단계 — saju-shinsal 이 'rok-ma' 신살로도 emit 하지만(점수 신호로는 유지),
+// 12운성은 twelveStageMatrix 에서 따로 보여주므로 '활성 신살' 칩에는 중복 노출하지
+// 않는다(예: 제왕·건록이 신살 목록에 잘못 끼던 문제).
+const TWELVE_STAGE_NAMES = new Set(['건록', '제왕'])
 
 // 천간(한자) → 5원소 룩업. destinypal Day 의 jijanggan layer element 산출.
 const STEM_TO_ELEMENT: Record<string, '목' | '화' | '토' | '금' | '수'> = {
@@ -163,6 +170,8 @@ export interface DestinypalDay {
   cautions: string[]
   /** 본명 4기둥(천간) × 일진 지지 12운성 — getTwelveStage 정통 계산(기둥별 실제값). */
   twelveStageMatrix: TwelveStageCell[]
+  /** 출력 화해 verdict — 헤드라인·한줄·칩 톤 단일 권위 (reconcile.ts). */
+  dayTone: DayVerdict
 }
 
 /** 본명 한 기둥의 천간이 일진 지지에 대해 갖는 12운성. */
@@ -284,9 +293,14 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   const crossActivations: DestinypalDayCrossActivation[] = []
   // cell.signals 의 jijanggan signal 활성 layer 표시용 (보조). primary 는 natal.dayJijanggan.
   let gongmangActiveFromSignal: { branches: string[]; reason?: string } | null = null
+  // 화해용 — 큐레이션 사유 층(월·일·시·정점)의 impact net. 부호로 톤 화해.
+  let reasonNet = 0
 
   for (const s of cell.signals) {
     const polarity = clampPolarity(maybeCap(s, applyCap))
+    if (!STATIC_NATAL_KINDS.has(s.kind) && REASON_LAYERS.has(s.layer)) {
+      reasonNet += s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5)
+    }
     const cat = KIND_TO_CAT[s.kind] ?? s.source + '/' + s.kind
 
     // transit → DayTransit 평탄화
@@ -306,8 +320,12 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
       continue
     }
 
-    // 신살 active 라벨
-    if (s.kind === 'shinsal' && s.evidence?.shinsalName) {
+    // 신살 active 라벨 — 12운성(건록·제왕)은 신살이 아니므로 칩에서 제외(12운성 매트릭스 노출).
+    if (
+      s.kind === 'shinsal' &&
+      s.evidence?.shinsalName &&
+      !TWELVE_STAGE_NAMES.has(s.evidence.shinsalName)
+    ) {
       shinsalActiveSet.add(s.evidence.shinsalName)
     }
 
@@ -402,15 +420,31 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
       })
     : []
 
+  // 상대 우호도 우선(그 사람 분포 백분위) — 없으면 절대 derivedScore 폴백.
+  const shownScore = Math.round(opts.favorScore ?? cell.derivedScore)
+  const topReasons = ((opts.lang === 'en' ? cell.topReasonsEn : cell.topReasons) ?? []).map((r) =>
+    humanizeReason(r, opts.lang)
+  )
+  const cautions = ((opts.lang === 'en' ? cell.cautionsEn : cell.cautions) ?? []).map((r) =>
+    humanizeReason(r, opts.lang)
+  )
+
+  // ── 출력 화해 — 점수 밴드 ↔ 사유 net 톤을 한 verdict 로 묶는다(단일 권위). ──
+  const dayTone = reconcileDayTone({
+    score: shownScore,
+    reasonNet,
+    hasGoodReason: topReasons.length > 0,
+    hasCautionReason: cautions.length > 0,
+  })
+
   return {
     date: dateIso,
     dateKo,
     iljin,
     iljinSibsin,
-    // 상대 우호도 우선(그 사람 분포 백분위) — 없으면 절대 derivedScore 폴백.
-    score: Math.round(opts.favorScore ?? cell.derivedScore),
+    score: shownScore,
     totalSignals: cell.signals.length,
-    oneLine: opts.oneLine ?? deriveOneLine(cell),
+    oneLine: opts.oneLine ?? deriveOneLine(dayTone, topReasons, cautions, opts.lang),
     signals,
     transits,
     shinsalActive: Array.from(shinsalActiveSet),
@@ -423,13 +457,10 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     crossSignals: [],
     allSignals: signals,
     narrative: [],
-    topReasons: ((opts.lang === 'en' ? cell.topReasonsEn : cell.topReasons) ?? []).map((r) =>
-      humanizeReason(r, opts.lang)
-    ),
-    cautions: ((opts.lang === 'en' ? cell.cautionsEn : cell.cautions) ?? []).map((r) =>
-      humanizeReason(r, opts.lang)
-    ),
+    topReasons,
+    cautions,
     twelveStageMatrix,
+    dayTone,
   }
 }
 
@@ -484,17 +515,20 @@ function buildGongmang(
   const natalRaw = dayStem && dayBranch ? getGongmang(dayStem, dayBranch) : []
   const natalBranches: [string, string] = [natalRaw[0] ?? '—', natalRaw[1] ?? '—']
   const activeBranches = active?.branches ?? []
-  const activeAxes: Array<'대운' | '세운' | '월운' | '일진'> =
-    activeBranches.length > 0 ? ['일진'] : []
+  const isActive = activeBranches.length > 0
+  const activeAxes: Array<'대운' | '세운' | '월운' | '일진'> = isActive ? ['일진'] : []
+  // note 는 실제 활성(닿은 지지가 있을 때)만 — 비활성인데 "공망에 닿음" 문구가
+  // 남아 칩(활성 없음)과 모순되던 문제 방지.
+  const note = isActive ? active?.reason : undefined
   return {
     natalBranches,
     activeBranches,
     activeAxes,
-    note: active?.reason,
+    note,
     // legacy aliases
-    active: activeBranches.length > 0,
+    active: isActive,
     branches: natalBranches,
-    reason: active?.reason,
+    reason: note,
   }
 }
 
@@ -524,12 +558,29 @@ function stringDetail(s: ActiveSignal, key: string): string | undefined {
   return typeof v === 'string' ? v : undefined
 }
 
-function deriveOneLine(cell: CalendarCell): string {
-  const top = cell.topReasons?.[0]
-  if (top) return top
-  return cell.derivedScore >= 60
-    ? '흐름이 우호적인 하루.'
-    : cell.derivedScore <= 35
-      ? '추진보다 정비가 어울리는 하루.'
-      : '큰 굴곡 없이 흘러가는 하루.'
+/**
+ * 한 줄 요약 — 화해된 톤에 맞춰 만든다.
+ * 옛 버전은 topReasons[0](우호 사유)을 *밴드 무관* 무조건 반환해, '조심하는 날'
+ * 인데도 한 줄이 긍정 사유를 외치는 모순이 났다. 이제 verdict.tone 에 맞는 쪽
+ * 사유만 노출하고, 보여줄 사유가 없으면 톤별 고정 문장으로 폴백한다.
+ */
+function deriveOneLine(
+  verdict: DayVerdict,
+  topReasons: string[],
+  cautions: string[],
+  lang: 'ko' | 'en' = 'ko'
+): string {
+  const ko = lang !== 'en'
+  if (verdict.tone === 'positive') {
+    if (topReasons[0]) return topReasons[0]
+    return ko ? '흐름이 우호적인 하루.' : 'A day the flow favors you.'
+  }
+  if (verdict.tone === 'caution') {
+    if (cautions[0]) return cautions[0]
+    return ko ? '추진보다 정비가 어울리는 하루.' : 'A day better for upkeep than pushing.'
+  }
+  // mixed — 좋고 나쁨이 갈리는 날.
+  return ko
+    ? '좋고 나쁨이 함께 있는 하루 — 잘 풀리는 쪽에 집중하세요.'
+    : 'Highs and lows are mixed — lean on what flows.'
 }

@@ -16,9 +16,7 @@
  */
 
 import type { ActiveSignal, CalendarCell, SignalLayer } from '../types'
-
-/** 정적 본명(명사) — 흐름 점수 제외 (index.ts STATIC_NATAL_KINDS 와 동일). */
-export const STATIC_NATAL_KINDS = new Set(['saju-pattern', 'geokguk-status'])
+import { STATIC_NATAL_KINDS } from '../signalTaxonomy'
 
 /**
  * 신호 *타입* 키 — base-rate 묶음 단위. 이름의 (괄호 보조)·말미 메타를 떼어 같은

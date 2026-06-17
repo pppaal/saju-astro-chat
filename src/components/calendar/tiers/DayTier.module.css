@@ -1086,6 +1086,14 @@
   line-height: 1.5;
   margin: 2px 0 0;
 }
+/* 히어로 한 줄 결론 아래 행동 조언(daySub) — 차분한 본문 톤. */
+.heroSub {
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  color: var(--dp-ink-dim);
+  line-height: 1.55;
+  margin: 8px 0 0;
+}
 .evidence {
   margin-top: 14px;
   border-top: 1px solid var(--dp-line-soft);

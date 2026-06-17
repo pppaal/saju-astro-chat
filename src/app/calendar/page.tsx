@@ -124,8 +124,11 @@ export default async function DestinypalPage() {
   // ─── 4) NatalContext + 올해 cells (DB 캐시 우선) ──────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)
   // 연 cells 는 evidence 없이(경량 캐시) — 점수·라벨만. evidence 가 필요한 그 하루는 따로.
-  const cells = await getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
-  const focusDayCell = await getFocusDayCell(natal, targetDayIso)
+  // 둘 다 natal 만 의존하므로 병렬로 — 직렬 await 로 합산되던 대기시간 제거.
+  const [cells, focusDayCell] = await Promise.all([
+    getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false }),
+    getFocusDayCell(BIRTH, natal, targetDayIso),
+  ])
 
   // ─── 5) 5 tier 어셈블 (preview 와 공유) ───────────────────────────────
   const birthDisplay = formatBirthLine(profile.birthDate!, profile.birthTime!)
