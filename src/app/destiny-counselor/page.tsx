@@ -27,11 +27,7 @@ import { useCounselorData } from './useCounselorData'
 import Chat from '@/components/destiny-map/Chat'
 import CounselorLoading from '@/components/branding/CounselorLoading'
 import BirthInfoModal from '@/app/(main)/components/BirthInfoModal'
-import {
-  buildCounselorHref,
-  getStoredBirthInfo,
-  type StoredBirthInfo,
-} from '@/app/(main)/birthInfoStorage'
+import { buildCounselorHref, type StoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
 import { useCounselorNewChat } from '@/lib/counselor/useCounselorNewChat'
 import { loadPendingChat, savePendingChat } from '@/lib/chat/pendingChat'
@@ -82,13 +78,8 @@ export default function CounselorPage() {
   // the floor, hence "눌러도 안 불러와져").
   const initialSessionId = (Array.isArray(sp.session) ? sp.session[0] : sp.session) ?? undefined
 
-  const {
-    chartData,
-    sessionId,
-    userContext,
-    parsedParams,
-    profileLoading,
-  } = useCounselorData(counselorSearchParams)
+  const { chartData, sessionId, userContext, parsedParams, profileLoading } =
+    useCounselorData(counselorSearchParams)
 
   const {
     name,
@@ -101,27 +92,7 @@ export default function CounselorPage() {
     initialQuestion,
     latitude,
     longitude,
-    timeZone,
   } = parsedParams
-
-  // '내 정보 수정' 모달을 현재 상담 중인 인물 정보로 채운다 — 상담사 데이터는
-  // URL/프로필에서 오므로 localStorage(getStoredBirthInfo) 가 비어 있어도
-  // 폼이 비지 않게. birth 정보가 없으면(맨몸 진입) localStorage 폴백.
-  const currentSubjectInfo: StoredBirthInfo | null =
-    birthDate && (gender === 'male' || gender === 'female')
-      ? {
-          name: name || undefined,
-          birthDate,
-          birthTime: birthTime || '',
-          birthTimeUnknown,
-          gender,
-          city: city || undefined,
-          latitude: typeof latitude === 'number' ? latitude : undefined,
-          longitude: typeof longitude === 'number' ? longitude : undefined,
-          timeZone: timeZone || undefined,
-          savedAt: new Date().toISOString(),
-        }
-      : getStoredBirthInfo()
 
   // handleLogin removed alongside the guest banner. If we reintroduce
   // an inline sign-in CTA, restore via:
@@ -188,17 +159,47 @@ export default function CounselorPage() {
     startNewChat(() => setChatResetKey((k) => k + 1))
   }, [startNewChat])
 
-  // 대상 인물 변경 — '내 정보 수정'(프로필 저장) / '다른 사람 보기'(임시, 저장 X).
-  // 대상 인물 — '내 정보 수정' 하나만. 공용 BirthInfoModal 재사용, 저장되면
-  // 갱신된 사주로 새 대화 시작.
+  // 대상 인물 — 이름 칩 드롭다운으로 두 갈래.
+  //  · '내 정보 수정'  → persist=true. 내 프로필/localStorage 를 저장한다.
+  //                      (모달이 getStoredBirthInfo 로 내 정보를 시드.)
+  //  · '다른 사람으로 보기' → persist=false. 내 정보를 절대 건드리지 않고 입력값
+  //                      으로 그 사람 사주만 임시 조회한다(빈 폼 + 지인 불러오기).
+  // 둘 다 저장/조회되면 그 사주로 URL 을 바꿔 새 대화를 띄운다. 어느 쪽도
+  // 재로그인을 요구하지 않는다(클라 내 SPA 네비게이션 — 세션 쿠키 유지).
   const [birthModalOpen, setBirthModalOpen] = useState(false)
+  const [birthModalMode, setBirthModalMode] = useState<'edit' | 'other'>('edit')
+  const [subjectMenuOpen, setSubjectMenuOpen] = useState(false)
+  const subjectMenuRef = useRef<HTMLDivElement | null>(null)
+
   const openEditMine = useCallback(() => {
+    setBirthModalMode('edit')
+    setSubjectMenuOpen(false)
     setBirthModalOpen(true)
   }, [])
+  const openViewOther = useCallback(() => {
+    setBirthModalMode('other')
+    setSubjectMenuOpen(false)
+    setBirthModalOpen(true)
+  }, [])
+
+  // 칩 바깥을 누르면 드롭다운 닫기 — 궁합 상담사 ProfileStickyBar 와 동일 패턴.
+  useEffect(() => {
+    if (!subjectMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (subjectMenuRef.current && !subjectMenuRef.current.contains(e.target as Node)) {
+        setSubjectMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [subjectMenuOpen])
+
   const handleBirthSaved = useCallback(
     (info: StoredBirthInfo) => {
       setBirthModalOpen(false)
       setChatResetKey((k) => k + 1) // 정보 바뀜 → 새 대화로 시작
+      // SPA 네비게이션 — 세션 유지. '다른 사람으로 보기'(persist=false)면 모달이
+      // 내 프로필을 저장하지 않았으므로 이 인물은 URL 에만 실려 임시 조회된다.
       router.push(buildCounselorHref(info, '', lang))
     },
     [router, lang]
@@ -307,18 +308,48 @@ export default function CounselorPage() {
         menuLabel={t('destinyMap.counselor.menu', 'Menu')}
         title={activeSession.title?.trim() || t('destinyMap.counselor.title', 'Destiny Counselor')}
         titleChip={
-          <button
-            type="button"
-            className={styles.profileStickyBar}
-            onClick={openEditMine}
-            aria-label={lang === 'ko' ? '\ub0b4 \uc815\ubcf4 \uc218\uc815' : 'Edit my info'}
-          >
-            <span className={styles.profileStickyDot} aria-hidden="true">{'\u25cf'}</span>
-            <span className={styles.profileStickyName}>
-              {name?.trim() || (lang === 'ko' ? '\ub098' : 'Me')}
-            </span>
-            <span className={styles.subjectChevron} aria-hidden="true">{'\u270e'}</span>
-          </button>
+          <div ref={subjectMenuRef} className={styles.subjectChipWrap}>
+            <button
+              type="button"
+              className={styles.profileStickyBar}
+              onClick={() => setSubjectMenuOpen((o) => !o)}
+              aria-label={lang === 'ko' ? '\ub300\uc0c1 \uc778\ubb3c' : 'Subject'}
+              aria-haspopup="menu"
+              aria-expanded={subjectMenuOpen}
+            >
+              <span className={styles.profileStickyDot} aria-hidden="true">
+                {'\u25cf'}
+              </span>
+              <span className={styles.profileStickyName}>
+                {name?.trim() || (lang === 'ko' ? '\ub098' : 'Me')}
+              </span>
+              <span className={styles.subjectChevron} aria-hidden="true">
+                {'\u25be'}
+              </span>
+            </button>
+            {subjectMenuOpen && (
+              <div role="menu" className={styles.subjectMenu}>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={styles.subjectMenuItem}
+                  onClick={openEditMine}
+                >
+                  {lang === 'ko' ? '\ub0b4 \uc815\ubcf4 \uc218\uc815' : 'Edit my info'}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={styles.subjectMenuItem}
+                  onClick={openViewOther}
+                >
+                  {lang === 'ko'
+                    ? '\ub2e4\ub978 \uc0ac\ub78c\uc73c\ub85c \ubcf4\uae30'
+                    : 'View another person'}
+                </button>
+              </div>
+            )}
+          </div>
         }
         rightSlot={
           <>
@@ -341,7 +372,9 @@ export default function CounselorPage() {
                       onClick={chatActions.openRenameModal}
                     >
                       <span>{lang === 'ko' ? '\uc774\ub984 \ubcc0\uacbd' : 'Rename'}</span>
-                      <span aria-hidden="true" className={styles.chatMenuIcon}>{'\u270e'}</span>
+                      <span aria-hidden="true" className={styles.chatMenuIcon}>
+                        {'\u270e'}
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -350,7 +383,9 @@ export default function CounselorPage() {
                       onClick={chatActions.openDeleteModal}
                     >
                       <span>{lang === 'ko' ? '\uc0ad\uc81c' : 'Delete'}</span>
-                      <span aria-hidden="true" className={styles.chatMenuIcon}>{'\ud83d\uddd1'}</span>
+                      <span aria-hidden="true" className={styles.chatMenuIcon}>
+                        {'\ud83d\uddd1'}
+                      </span>
                     </button>
                   </div>
                 )}
@@ -442,10 +477,30 @@ export default function CounselorPage() {
 
       {initialQuestion && <InitialQuestionSender question={initialQuestion} />}
 
-      {/* 내 정보 수정 — 공용 BirthInfoModal 재사용. 현재 상담 인물 정보로 채워 연다. */}
+      {/* 대상 인물 모달 — 공용 BirthInfoModal 재사용.
+          · edit: 내 정보 수정 — initial 없이 열어 모달이 getStoredBirthInfo 로
+            내 저장 정보를 시드. persist=true 라 저장하면 내 프로필이 갱신된다.
+          · other: 다른 사람으로 보기 — 빈 폼(startBlank) + persist=false. 내
+            정보를 건드리지 않고 입력값으로 그 사람 사주만 임시 조회한다. */}
       <BirthInfoModal
         open={birthModalOpen}
-        initial={currentSubjectInfo}
+        initial={null}
+        persist={birthModalMode === 'edit'}
+        startBlank={birthModalMode === 'other'}
+        title={
+          birthModalMode === 'other'
+            ? lang === 'ko'
+              ? '다른 사람으로 보기'
+              : 'View another person'
+            : undefined
+        }
+        submitLabel={
+          birthModalMode === 'other'
+            ? lang === 'ko'
+              ? '이 사람으로 보기'
+              : 'View this person'
+            : undefined
+        }
         onClose={() => setBirthModalOpen(false)}
         onSaved={handleBirthSaved}
         locale={lang}
