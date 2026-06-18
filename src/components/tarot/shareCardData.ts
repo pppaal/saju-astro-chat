@@ -86,7 +86,11 @@ export function buildShareDataFromReading(
       name: isKo ? dc.card.nameKo || dc.card.name : dc.card.name,
       isReversed: dc.isReversed,
     })),
-    keyMessage: pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
+    // LLM 이 직접 뽑은 펀치라인(정곡+여운)이 있으면 그대로(짧고 강함). 없으면
+    // overall 첫 문장으로 폴백. 둘 다 마크다운은 stripMarkdown 으로 제거됨.
+    keyMessage:
+      stripMarkdown(interpretation?.hook) ||
+      pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
     isKo,
   }
 }
