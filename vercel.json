@@ -40,6 +40,14 @@
     {
       "path": "/api/cron/daily-fortune",
       "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/cron/ops-report?period=daily",
+      "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/ops-report?period=weekly",
+      "schedule": "30 23 * * 1"
     }
   ],
   "headers": [
