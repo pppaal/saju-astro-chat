@@ -45,6 +45,7 @@ vi.mock('@/lib/api/idempotency', () => ({
     claim: vi.fn().mockResolvedValue(true),
     release: vi.fn().mockResolvedValue(undefined),
   })),
+  idemContentTag: (t: string) => `tag:${t.length}`,
 }))
 vi.mock('@/lib/cache/redis-cache', () => ({
   cacheGet: vi.fn().mockResolvedValue(null),

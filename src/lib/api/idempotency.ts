@@ -128,6 +128,22 @@ export function createIdempotencyStore(routeName: string) {
 
 export type IdempotencyStore = ReturnType<typeof createIdempotencyStore>
 
+/**
+ * 멱등 키에 섞을 짧은 content discriminator(keyFor 의 contentTag 인자용).
+ * 같은 x-idempotency-key 를 서로 *다른* 내용으로 재사용해 첫 차감 이후 공짜로
+ * 받는 free-replay 누수를 막는다 — 같은 키 + 같은 내용(진짜 새로고침/재전송)만
+ * replay 로 인정. 충돌 안전성보다 "내용이 바뀌면 태그도 바뀐다"가 목적이라
+ * 빠른 비암호 해시(FNV-1a)로 충분하다. 운명/궁합 상담 라우트가 공유.
+ */
+export function idemContentTag(text: string): string {
+  let h = 0x811c9dc5
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return (h >>> 0).toString(36)
+}
+
 // ---------------------------------------------------------------------------
 // Draw-nonce store — server-issued, single-use token.
 //
