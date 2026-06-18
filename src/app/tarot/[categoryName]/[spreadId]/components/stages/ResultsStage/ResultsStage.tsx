@@ -54,6 +54,7 @@ import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { FollowupChat } from './FollowupChat'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
+import { CreatePublicLinkButton } from '@/components/tarot/CreatePublicLinkButton'
 import { buildShareDataFromReading } from '@/components/tarot/shareCardData'
 import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
 
@@ -179,8 +180,7 @@ export function ResultsStage(props: ResultsStageProps) {
                       ? '기록에 저장'
                       : 'Save to history'}
                 </button>
-                {(saveMessage.startsWith('저장 실패') ||
-                  saveMessage.startsWith('Save failed')) && (
+                {(saveMessage.startsWith('저장 실패') || saveMessage.startsWith('Save failed')) && (
                   <span className="text-[11px] text-rose-300/80 text-center max-w-xs">
                     {saveMessage}
                   </span>
@@ -298,15 +298,22 @@ export function ResultsStage(props: ResultsStageProps) {
         {/* ⑥ SNS 공유 — 결과를 1:1 이미지로 만들어 인스타/카톡에 공유·저장.
             AI 응답이 도착한 후에만 노출(질문+카드+한줄 메시지 카드). */}
         {!aiPending && insight?.overall_message && (
-          <ShareTarotButton
-            data={buildShareDataFromReading(
-              readingResult,
-              interpretation,
-              userTopic,
-              language === 'ko'
-            )}
-            language={language}
-          />
+          <div className="flex flex-col items-center gap-3">
+            <ShareTarotButton
+              data={buildShareDataFromReading(
+                readingResult,
+                interpretation,
+                userTopic,
+                language === 'ko'
+              )}
+              language={language}
+            />
+            {/* 공개 링크 공유 — 저장된 리딩(로그인)만. 카톡/엑스에서 OG
+                미리보기와 함께 퍼져 클릭 유입을 만든다. */}
+            {props.readingId ? (
+              <CreatePublicLinkButton readingId={props.readingId} language={language} />
+            ) : null}
+          </div>
         )}
 
         {/* ⑦ Follow-up 채팅 — AI 응답이 도착한 후에만 노출 */}

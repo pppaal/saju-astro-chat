@@ -74,7 +74,11 @@ export function buildShareDataFromReading(
       name: isKo ? dc.card.nameKo || dc.card.name : dc.card.name,
       isReversed: dc.isReversed,
     })),
-    keyMessage: pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
+    // LLM 이 직접 뽑은 공유용 후크가 있으면 그대로(짧고 강렬). 없으면 overall
+    // 첫 문장을 잘라 쓰는 기존 폴백.
+    keyMessage:
+      (interpretation?.hook || '').trim() ||
+      pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
     isKo,
   }
 }

@@ -41,6 +41,30 @@ const DEFAULT_DECK: DeckStyle = DECK_STYLES[0]
 const DEFAULT_SPREAD =
   ALL_SPREADS.find((s) => s.spread.id === 'past-present-future') ?? ALL_SPREADS[0]
 
+// 유도 질문(추천 질문) — 빈 입력창 앞에서 멈칫하는 사용자를 바로 첫 리딩으로
+// 데려가는 활성화 장치. 호기심 자극형 실제 질문(연애·재회·이직·금전·선택 등).
+// 매 방문 살짝 섞어 신선하게 — 칩 클릭 = 그 질문으로 즉시 리딩 시작.
+const SEED_QUESTIONS: Array<{ ko: string; en: string }> = [
+  { ko: '헤어진 그 사람, 다시 연락 올까요?', en: 'Will my ex reach out again?' },
+  { ko: '지금 이 사람과 잘 될 수 있을까요?', en: 'Will things work out with this person?' },
+  { ko: '썸 타는 그 사람 속마음이 궁금해요', en: "What's really on their mind about me?" },
+  { ko: '이직, 지금이 타이밍일까요?', en: 'Is now the right time to change jobs?' },
+  { ko: '이번 달 금전운은 어떤가요?', en: "How's my money luck this month?" },
+  { ko: '고민 중인 이 선택, 어디로 가야 할까요?', en: 'Which way should I go on this choice?' },
+  { ko: '올해 나에게 올 가장 큰 변화는?', en: 'My biggest change coming this year?' },
+  { ko: '지금 내 연애운 흐름은?', en: "Where's my love life headed right now?" },
+]
+
+// Fisher-Yates 부분 셔플로 n개 추출.
+function sampleQuestions(n: number): Array<{ ko: string; en: string }> {
+  const arr = [...SEED_QUESTIONS]
+  for (let i = 0; i < Math.min(n, arr.length); i++) {
+    const j = i + Math.floor(Math.random() * (arr.length - i))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr.slice(0, n)
+}
+
 // 타로 페이지의 골드 후광 — AppShell 의 accentLayer 슬롯으로 주입. 부모
 // 컨테이너가 absolute inset-0/overflow-hidden/pointer-events-none 을 이미
 // 잡아주므로 안쪽은 flex 가운데 정렬만 신경쓰면 된다.
@@ -69,6 +93,12 @@ export default function TarotChatScreen() {
   const optionsRef = useRef<HTMLDivElement>(null)
   const [expandedSpreadId, setExpandedSpreadId] = useState<string | null>(null)
   const [isChecking, setIsChecking] = useState(false)
+  // 추천 질문 칩 — SSR/CSR 하이드레이션 불일치를 피하려 서버+첫 렌더는 고정
+  // 순서, 마운트 후 클라이언트에서만 랜덤 샘플로 교체.
+  const [seedQuestions, setSeedQuestions] = useState(() => SEED_QUESTIONS.slice(0, 5))
+  useEffect(() => {
+    setSeedQuestions(sampleQuestions(5))
+  }, [])
 
   // 덱·스프레드 칩 팝오버 — 바깥 클릭/Esc 로 닫기.
   useEffect(() => {
@@ -117,8 +147,11 @@ export default function TarotChatScreen() {
     return () => window.clearTimeout(t)
   }, [selectedDeck])
 
-  const handleSend = async () => {
-    if (!question.trim() || isChecking) return
+  const handleSend = async (overrideQuestion?: string) => {
+    const q0 = (overrideQuestion ?? question).trim()
+    if (!q0 || isChecking) return
+    // 칩 클릭으로 시작한 경우 입력창에도 반영(401 후 복원/사용자 인지용).
+    if (overrideQuestion !== undefined) setQuestion(q0)
     setIsChecking(true)
     try {
       const res = await apiFetch('/api/tarot/prefetch', {
@@ -136,7 +169,7 @@ export default function TarotChatScreen() {
         // 리로드 때 날아가 사용자가 처음부터 다시 골라야 한다.
         if (res.status === 401) {
           savePendingChat('tarot', {
-            question: question.trim(),
+            question: q0,
             deck: selectedDeck,
             categoryId: selectedSpread.categoryId,
             spreadId: selectedSpread.spread.id,
@@ -149,7 +182,7 @@ export default function TarotChatScreen() {
       // prefetch 실패는 차단 사유 아님 — reading 단계에서 재게이팅.
     }
 
-    const q = encodeURIComponent(question.trim())
+    const q = encodeURIComponent(q0)
     const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?question=${q}&deck=${selectedDeck}`
     router.push(path)
     // isChecking 은 라우트 전환 후 페이지 언마운트되며 자연 해제.
@@ -178,12 +211,7 @@ export default function TarotChatScreen() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter → submit. Shift+Enter → newline. IME 한글 조합 중 skip.
-    if (
-      e.key === 'Enter' &&
-      !e.shiftKey &&
-      !e.nativeEvent.isComposing &&
-      e.keyCode !== 229
-    ) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
       e.preventDefault()
       if (question.trim()) void handleSend()
     }
@@ -217,6 +245,16 @@ export default function TarotChatScreen() {
                 ? '아래에서 덱과 스프레드를 골라 질문을 입력하세요'
                 : 'Pick a deck and spread below, then type your question'}
             </p>
+
+            {/* 오늘의 타로 — 하루 1장 무료 데일리(재방문 습관 루프) 진입 */}
+            <button
+              type="button"
+              onClick={() => router.push('/tarot/daily')}
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium text-[#e8cc8a] bg-[rgba(212,181,114,0.12)] border border-[rgba(212,181,114,0.3)] hover:bg-[rgba(212,181,114,0.2)] transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              {isKo ? '오늘의 타로 · 하루 1장 무료' : "Today's Tarot · 1 free card daily"}
+            </button>
 
             <div className="pt-6 flex flex-col items-center gap-2.5">
               {/* z-0: 카드 인라인 zIndex(8~10)를 이 컨테이너 stacking context 안에
@@ -258,6 +296,25 @@ export default function TarotChatScreen() {
               </p>
             </div>
           </motion.div>
+        </div>
+
+        {/* 유도 질문 칩 — 입력창 바로 위. 클릭 = 그 질문으로 즉시 리딩 시작
+            (빈 입력창 멈칫 방지 → 첫 리딩 활성화). */}
+        <div className="w-full max-w-xl mx-auto mb-2.5 flex flex-wrap justify-center gap-2 px-2">
+          {seedQuestions.map((seed) => {
+            const label = isKo ? seed.ko : seed.en
+            return (
+              <button
+                key={seed.en}
+                type="button"
+                disabled={isChecking}
+                onClick={() => void handleSend(isKo ? seed.ko : seed.en)}
+                className="text-xs px-3 py-1.5 rounded-full text-[#e8cc8a] bg-[rgba(212,181,114,0.1)] border border-[rgba(212,181,114,0.28)] hover:bg-[rgba(212,181,114,0.2)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {label}
+              </button>
+            )
+          })}
         </div>
 
         {/* 공용 ChatInputArea — 메인/운명/궁합과 동일한 컴포넌트. 덱·스프레드

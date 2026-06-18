@@ -13,6 +13,7 @@ import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X } from 'lucide-react'
 import { tarotLogger } from '@/lib/logger'
 import { TarotShareCard, SHARE_CARD_SIZE, type ShareCardData } from './TarotShareCard'
+import { buildReferralShareTarget } from './referralShare'
 
 interface ShareTarotButtonProps {
   /** 공유 카드에 그릴 데이터 — buildShareDataFrom* 로 미리 만든다. */
@@ -38,11 +39,17 @@ async function preloadImages(srcs: string[]): Promise<void> {
 export function ShareTarotButton({ data: shareData, language }: ShareTarotButtonProps) {
   const isKo = language === 'ko'
   const cardRef = useRef<HTMLDivElement>(null)
-  // 'idle' | 'rendering'(캡처 중) | 'preview'(모달)
+  // 'idle' | 'rendering'(추천 QR 해석 + 캡처) | 'preview'(모달)
   const [phase, setPhase] = useState<'idle' | 'rendering' | 'preview'>('idle')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // 추천 QR 을 머지한 실제 렌더 데이터. onClickShare 에서 추천 링크를 받아
+  // 채운 뒤 화면 밖 카드를 마운트 → 캡처한다.
+  const [cardData, setCardData] = useState<ShareCardData>(shareData)
+  // 추천 QR 해석(fetch + qrcode 동적 import) 단계. 이게 끝난 *뒤에야*
+  // 'rendering' 으로 넘어가 카드를 마운트/캡처한다 — QR 누락 캡처 방지.
+  const [preparing, setPreparing] = useState(false)
 
   // object URL 누수 방지.
   useEffect(() => {
@@ -55,7 +62,11 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
     const node = cardRef.current
     if (!node) return
     try {
-      await preloadImages([...shareData.cards.map((c) => c.image), '/logo/logo.png'])
+      await preloadImages([
+        ...cardData.cards.map((c) => c.image),
+        '/logo/logo.png',
+        ...(cardData.qrDataUrl ? [cardData.qrDataUrl] : []),
+      ])
       // 폰트/레이아웃 안정화를 위해 한 프레임 양보.
       await new Promise((r) => requestAnimationFrame(() => r(null)))
       const out = await htmlToImage.toBlob(node, {
@@ -72,10 +83,14 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
       setPhase('preview')
     } catch (err) {
       tarotLogger.error('[ShareTarot] capture failed', err instanceof Error ? err : undefined)
-      setError(isKo ? '이미지를 만들지 못했어요. 다시 시도해 주세요.' : 'Could not create the image. Please try again.')
+      setError(
+        isKo
+          ? '이미지를 만들지 못했어요. 다시 시도해 주세요.'
+          : 'Could not create the image. Please try again.'
+      )
       setPhase('idle')
     }
-  }, [shareData.cards, isKo])
+  }, [cardData, isKo])
 
   // 'rendering' 단계에서 카드가 DOM 에 마운트된 뒤 캡처.
   useEffect(() => {
@@ -91,10 +106,23 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
     }
   }, [phase, capture])
 
-  const onClickShare = () => {
+  const onClickShare = useCallback(async () => {
     setError(null)
+    setPreparing(true)
+    // 추천 링크 QR 을 먼저 해석해 카드 데이터에 머지한다. 실패해도 throw 하지
+    // 않으므로(폴백 링크/QR 생략) 캡처는 항상 진행된다.
+    let next = shareData
+    try {
+      const target = await buildReferralShareTarget()
+      next = { ...shareData, qrDataUrl: target.qrDataUrl, shareUrl: target.shareUrl }
+    } catch {
+      next = shareData
+    }
+    setCardData(next)
+    setPreparing(false)
+    // QR 머지가 끝난 뒤에야 카드 마운트/캡처 단계로 진입.
     setPhase('rendering')
-  }
+  }, [shareData])
 
   const closeModal = () => {
     setPhase('idle')
@@ -145,8 +173,8 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
       <div className="flex flex-col items-center gap-2">
         <button
           type="button"
-          onClick={onClickShare}
-          disabled={phase === 'rendering'}
+          onClick={() => void onClickShare()}
+          disabled={preparing || phase === 'rendering'}
           className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           style={{
             background: 'rgba(212,181,114,0.14)',
@@ -154,12 +182,12 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
             color: '#e8cc8a',
           }}
         >
-          {phase === 'rendering' ? (
+          {preparing || phase === 'rendering' ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <Share2 className="w-4 h-4" />
           )}
-          {phase === 'rendering'
+          {preparing || phase === 'rendering'
             ? isKo
               ? '이미지 만드는 중…'
               : 'Creating image…'
@@ -167,7 +195,9 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
               ? '결과 이미지로 공유'
               : 'Share as image'}
         </button>
-        {error && <span className="text-[11px] text-rose-300/80 text-center max-w-xs">{error}</span>}
+        {error && (
+          <span className="text-[11px] text-rose-300/80 text-center max-w-xs">{error}</span>
+        )}
       </div>
 
       {/* 캡처용 화면 밖 카드 — rendering/preview 동안만 마운트. */}
@@ -185,7 +215,7 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
             zIndex: -1,
           }}
         >
-          <TarotShareCard ref={cardRef} data={shareData} />
+          <TarotShareCard ref={cardRef} data={cardData} />
         </div>
       )}
 

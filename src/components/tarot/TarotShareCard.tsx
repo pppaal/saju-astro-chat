@@ -23,6 +23,14 @@ export interface ShareCardData {
   /** 한 줄 핵심 메시지(따옴표로 강조). */
   keyMessage: string
   isKo: boolean
+  /**
+   * 추천 링크(?ref=코드)를 인코딩한 QR 의 data URL. 공유 이미지를 본
+   * 친구가 스캔→가입하면 양쪽 다 크레딧을 받는 바이럴 루프의 진입점.
+   * 게스트이거나 QR 생성 실패 시 undefined — 그때는 텍스트 핸들로 폴백.
+   */
+  qrDataUrl?: string
+  /** QR 아래/옆에 적는 사람이 읽을 짧은 링크 (예: destinypal.com). */
+  shareUrl?: string
 }
 
 const GOLD = '#e8cc8a'
@@ -42,8 +50,11 @@ function cardWidthFor(n: number): number {
 
 export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCardData }>(
   function TarotShareCard({ data }, ref) {
-    const { question, spreadTitle, cards, keyMessage, isKo } = data
+    const { question, spreadTitle, cards, keyMessage, isKo, qrDataUrl, shareUrl } = data
     const shown = cards.slice(0, 5)
+    const readableUrl = (shareUrl || 'destinypal.com')
+      .replace(/^https?:\/\//, '')
+      .replace(/\/$/, '')
     const cardW = cardWidthFor(shown.length)
     const cardH = Math.round(cardW * 1.6)
 
@@ -66,8 +77,7 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
             'radial-gradient(820px 700px at 85% 100%, rgba(212,181,114,0.16), transparent 60%),' +
             'linear-gradient(160deg, #0b1022 0%, #070a1a 58%, #0a0e1f 100%)',
           color: TEXT,
-          fontFamily:
-            "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
       >
         {/* 골드 내부 프레임 */}
@@ -214,21 +224,68 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
           ) : null}
         </div>
 
-        {/* 푸터 */}
+        {/* 푸터 — 추천 QR + 초대 CTA (바이럴 루프 진입점) */}
         <div
           style={{
             zIndex: 1,
             display: 'flex',
             alignItems: 'center',
-            gap: 14,
-            fontSize: 20,
-            color: MUTED,
+            justifyContent: qrDataUrl ? 'space-between' : 'center',
+            gap: 22,
+            width: '100%',
+            maxWidth: 880,
           }}
         >
-          <span style={{ color: GOLD_SOFT }}>✦</span>
-          <span>{spreadTitle}</span>
-          <span style={{ color: 'rgba(154,163,184,0.5)' }}>·</span>
-          <span>destinypal.com</span>
+          {/* 왼쪽: 브랜드 + 초대 카피 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'left' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 20, color: MUTED }}
+            >
+              <span style={{ color: GOLD_SOFT }}>✦</span>
+              <span>{spreadTitle}</span>
+            </div>
+            {qrDataUrl ? (
+              <>
+                <div style={{ fontSize: 26, fontWeight: 600, color: GOLD, lineHeight: 1.35 }}>
+                  {isKo ? '나도 카드 뽑아보기' : 'Pull your own cards'}
+                </div>
+                <div style={{ fontSize: 19, color: MUTED, lineHeight: 1.4 }}>
+                  {isKo
+                    ? 'QR 스캔하면 친구·나 둘 다 무료 크레딧'
+                    : 'Scan the QR — you both get free credits'}
+                </div>
+                <div style={{ fontSize: 19, color: GOLD_SOFT, letterSpacing: '0.02em' }}>
+                  {readableUrl}
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 20, color: MUTED }}>{readableUrl}</div>
+            )}
+          </div>
+
+          {/* 오른쪽: 추천 링크 QR */}
+          {qrDataUrl ? (
+            <div
+              style={{
+                width: 168,
+                height: 168,
+                borderRadius: 18,
+                padding: 12,
+                background: '#ffffff',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                flexShrink: 0,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={qrDataUrl}
+                alt={isKo ? '추천 링크 QR' : 'Referral link QR'}
+                width={144}
+                height={144}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     )

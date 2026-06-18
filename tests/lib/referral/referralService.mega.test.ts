@@ -388,13 +388,15 @@ describe('Referral Service', () => {
           id: 'ref1',
           name: 'User 1',
           createdAt: new Date('2024-01-01'),
-          tarotReadings: [{ id: 'reading1' }], counselorChatSessions: [],
+          tarotReadings: [{ id: 'reading1' }],
+          counselorChatSessions: [],
         },
         {
           id: 'ref2',
           name: 'User 2',
           createdAt: new Date('2024-01-02'),
-          tarotReadings: [], counselorChatSessions: [],
+          tarotReadings: [],
+          counselorChatSessions: [],
         },
       ]
       const mockRewards = [
@@ -448,7 +450,8 @@ describe('Referral Service', () => {
           id: 'ref1',
           name: null,
           createdAt: new Date(),
-          tarotReadings: [], counselorChatSessions: [],
+          tarotReadings: [],
+          counselorChatSessions: [],
         },
       ]
 
@@ -465,9 +468,27 @@ describe('Referral Service', () => {
 
     it('should calculate completed referrals correctly', async () => {
       const mockReferrals = [
-        { id: 'ref1', name: 'User 1', createdAt: new Date(), tarotReadings: [{ id: 'r1' }], counselorChatSessions: [] },
-        { id: 'ref2', name: 'User 2', createdAt: new Date(), tarotReadings: [{ id: 'r2' }], counselorChatSessions: [] },
-        { id: 'ref3', name: 'User 3', createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
+        {
+          id: 'ref1',
+          name: 'User 1',
+          createdAt: new Date(),
+          tarotReadings: [{ id: 'r1' }],
+          counselorChatSessions: [],
+        },
+        {
+          id: 'ref2',
+          name: 'User 2',
+          createdAt: new Date(),
+          tarotReadings: [{ id: 'r2' }],
+          counselorChatSessions: [],
+        },
+        {
+          id: 'ref3',
+          name: 'User 3',
+          createdAt: new Date(),
+          tarotReadings: [],
+          counselorChatSessions: [],
+        },
       ]
 
       ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -525,7 +546,7 @@ describe('Referral Service', () => {
 
       const url = getReferralUrl('TEST1234')
 
-      expect(url).toBe('https://destinypal.me/?ref=TEST1234')
+      expect(url).toBe('https://destinypal.com/?ref=TEST1234')
 
       process.env.NEXT_PUBLIC_BASE_URL = originalEnv
     })
@@ -676,7 +697,13 @@ describe('Referral Service', () => {
 
       // 4. Check stats
       ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
-        { id: 'new_user_123', name: 'New User', createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
+        {
+          id: 'new_user_123',
+          name: 'New User',
+          createdAt: new Date(),
+          tarotReadings: [],
+          counselorChatSessions: [],
+        },
       ])
       ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
         {

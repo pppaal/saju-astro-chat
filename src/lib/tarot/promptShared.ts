@@ -145,6 +145,14 @@ const FOLLOWUP_RULES: Bilingual[] = [
     `- One-card question → stay on it; flow question → address card relationships.`
   ),
   bi(
+    `- 이미 깔린 판을 *시스템으로* 본 채 답하라 — 후속 질문을 판 전체 패턴(메이저 밀도·수트 쏠림·코트=인물)과 카드 간 인과 사슬 위에서 풀어, 단발 답이 아니라 *같은 리딩의 연장*이 되게. 첫 리딩과 모순되지 않게.`,
+    `- Answer while still seeing the spread as *one system* — resolve the follow-up on the whole-table pattern (Major density, suit skew, courts = people) and the cards' cause-and-effect chain, so it reads as a *continuation of the same reading*, not a one-off. Stay consistent with the first reading.`
+  ),
+  bi(
+    `- 가능하면 질문 뒤의 *진짜 속내*(두려움·바람)를 한 번 부드럽게 짚어 적중감을 줘라. 매번은 X.`,
+    `- Where it fits, name the *real concern behind the question* (fear / hope) once, gently, for that "how did you know" hit. Not every time.`
+  ),
+  bi(
     `- 추상적 분위기("따뜻한 흐름") 금지 — 손에 잡히는 구체 디테일(누가·무엇·어떻게·언제)로, 추측이라도 자신있게. 사람 질문이면 상대 인상·성격·태도·전개 순서까지 짚어라.`,
     `- No vague mood ("a warm flow") — use tangible specifics (who / what / how / when), stated with confidence even on a read. For people questions, pin the other person's impression, personality, demeanor, and how it unfolds.`
   ),
@@ -163,12 +171,7 @@ const FOLLOWUP_RULES: Bilingual[] = [
   ),
 ]
 
-const FOLLOWUP_PARTS: Array<Bilingual | ''> = [
-  FOLLOWUP_INTRO,
-  '',
-  RULES_HEADER,
-  ...FOLLOWUP_RULES,
-]
+const FOLLOWUP_PARTS: Array<Bilingual | ''> = [FOLLOWUP_INTRO, '', RULES_HEADER, ...FOLLOWUP_RULES]
 
 const TAROT_FOLLOWUP_RULES_KO = block('ko', FOLLOWUP_PARTS)
 const TAROT_FOLLOWUP_RULES_EN = block('en', FOLLOWUP_PARTS)
