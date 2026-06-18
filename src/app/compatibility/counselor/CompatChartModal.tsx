@@ -139,6 +139,20 @@ function topOverlay<T extends { house: number }>(rows: T[]): T | null {
   return rows[0] ?? null
 }
 
+// 오행(한글) → "무슨 기운" 평이한 말. 천간(甲·丙) 옆에 붙여 비전공자도 읽히게.
+const ELEMENT_NATURE: Record<string, { ko: string; en: string }> = {
+  목: { ko: '나무 기운(성장)', en: 'Wood (growth)' },
+  화: { ko: '불 기운(열정)', en: 'Fire (passion)' },
+  토: { ko: '흙 기운(안정)', en: 'Earth (ground)' },
+  금: { ko: '쇠 기운(결단)', en: 'Metal (resolve)' },
+  수: { ko: '물 기운(지혜)', en: 'Water (wisdom)' },
+}
+function natureOf(el: string | undefined, isKo: boolean): string {
+  if (!el) return ''
+  const m = ELEMENT_NATURE[el]
+  return m ? (isKo ? m.ko : m.en) : el
+}
+
 // 사주 관계 유형별 의미 — "끌어당기는 결/부딪히는 결" 2종 반복 대신 합/충/형…마다 다른 한 줄.
 const REL_MEANING: Record<string, { ko: string; en: string }> = {
   천간합: { ko: '천간이 손잡아 뜻·명분이 통하는 결', en: 'stems clasp — aims and ideals align' },
@@ -658,13 +672,14 @@ export function CompatChartModal({
                 일간 관계 + 배우자성(가장 강한 정통 신호). */}
             {dayMaster && (
               <DataCard>
-                <SubLabel>{isKo ? '두 사람의 본질(일간)' : 'Your core natures'}</SubLabel>
+                <SubLabel>{isKo ? '두 사람의 타고난 본질' : 'Your core natures'}</SubLabel>
                 <p
                   className="px-1 text-[13px] leading-relaxed"
                   style={{ color: 'var(--ds-light-text)' }}
                 >
-                  {labelA} <b>{dayMaster.aStem}</b>({dayMaster.aEl}) ↔ {labelB}{' '}
-                  <b>{dayMaster.bStem}</b>({dayMaster.bEl}) — {dayMaster.relationLabel}
+                  {labelA} <b>{dayMaster.aStem}</b> · {natureOf(dayMaster.aEl, isKo)} ↔ {labelB}{' '}
+                  <b>{dayMaster.bStem}</b> · {natureOf(dayMaster.bEl, isKo)} —{' '}
+                  {dayMaster.relationLabel}
                 </p>
                 {spouseTop.length > 0 && (
                   <ul className="mt-2 space-y-1.5">
@@ -751,7 +766,9 @@ export function CompatChartModal({
 
             <div>
               <SubLabel>
-                {isKo ? '오행 — 서로 채워주는 결' : 'Five elements — who fills whom'}
+                {isKo
+                  ? '오행(타고난 기운의 균형) — 서로 채워주는 결'
+                  : 'Five elements — who fills whom'}
               </SubLabel>
               <CompatRadarOverlay
                 sajuA={sajuA}
