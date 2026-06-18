@@ -693,4 +693,3 @@ function UnseongMatrix({ ilganHanja, decadeBranch }: { ilganHanja: string; decad
   )
 }
 
-export default DecadeTier

@@ -333,4 +333,3 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
   )
 }
 
-export default SajuChart

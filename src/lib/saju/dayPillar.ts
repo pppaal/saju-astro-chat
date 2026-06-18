@@ -11,7 +11,7 @@
  * 그레고리력 (year, month, day) → 율리우스적일(Julian Day Number).
  * month 는 1–12, day 는 1–31 (UTC/로컬 구분 없이 호출부가 넘긴 달력 값 그대로).
  */
-export function computeJulianDayNumber(year: number, month: number, day: number): number {
+function computeJulianDayNumber(year: number, month: number, day: number): number {
   const a = Math.floor((14 - month) / 12)
   const y = year + 4800 - a
   const m = month + 12 * a - 3
@@ -27,10 +27,10 @@ export function computeJulianDayNumber(year: number, month: number, day: number)
 }
 
 // JDN 을 60갑자에 정렬하는 (+49) 오프셋 — 천간 10주기 / 지지 12주기.
-export function dayStemIndexFromJDN(jdn: number): number {
+function dayStemIndexFromJDN(jdn: number): number {
   return (jdn + 49) % 10
 }
-export function dayBranchIndexFromJDN(jdn: number): number {
+function dayBranchIndexFromJDN(jdn: number): number {
   return (jdn + 49) % 12
 }
 

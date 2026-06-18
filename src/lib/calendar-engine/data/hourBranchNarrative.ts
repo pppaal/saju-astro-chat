@@ -157,7 +157,7 @@ export const HOUR_BRANCH_NARRATIVE: Record<Branch, HourBranchNarrative> = {
 }
 
 /** Get full narrative for an hour branch. */
-export function getHourNarrative(branch: Branch): HourBranchNarrative {
+function getHourNarrative(branch: Branch): HourBranchNarrative {
   return HOUR_BRANCH_NARRATIVE[branch]
 }
 
@@ -189,7 +189,7 @@ const HOUR_TO_BRANCH: Record<number, Branch> = {
   22: '해',
 }
 
-export function branchFromHour(hour: number): Branch {
+function branchFromHour(hour: number): Branch {
   return HOUR_TO_BRANCH[hour] ?? '자'
 }
 

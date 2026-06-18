@@ -8,7 +8,7 @@
  */
 
 /** 십신 → 생활영역(한 단어) + 영문 생활영역 + 한 줄 뜻. */
-export const SIBSIN_DOMAIN: Record<string, { area: string; areaEn: string; gloss: string }> = {
+const SIBSIN_DOMAIN: Record<string, { area: string; areaEn: string; gloss: string }> = {
   비견: { area: '사람·자립', areaEn: 'self & peers', gloss: '내 편·동료, 홀로서기' },
   겁재: { area: '경쟁·사람', areaEn: 'rivalry & drive', gloss: '경쟁과 협력이 같이 오는 인간관계' },
   식신: { area: '표현·재능', areaEn: 'expression', gloss: '꾸준히 만들고 표현하는 힘' },
@@ -28,7 +28,7 @@ export const SIBSIN_DOMAIN: Record<string, { area: string; areaEn: string; gloss
 }
 
 /** 12운성 → 기세 단계 쉬운 한 줄. */
-export const TWELVE_STAGE_PLAIN: Record<string, string> = {
+const TWELVE_STAGE_PLAIN: Record<string, string> = {
   장생: '새싹처럼 막 시작하는 기세',
   목욕: '다듬어지며 흔들리는 기세',
   관대: '막 자리를 잡아가는 기세',
@@ -46,7 +46,7 @@ export const TWELVE_STAGE_PLAIN: Record<string, string> = {
 }
 
 /** 관계(합충형파) → 쉬운 한 줄. */
-export const RELATION_PLAIN: Record<string, string> = {
+const RELATION_PLAIN: Record<string, string> = {
   육합: '서로 잘 맞물려요',
   삼합: '여럿이 한 방향으로 뭉쳐요',
   방합: '같은 계절끼리 모여요',

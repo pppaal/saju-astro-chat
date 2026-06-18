@@ -2,15 +2,8 @@
 // Unified cities module - consolidates cities.js functionality
 
 export * from './types'
-export {
-  formatCityName,
-  formatCityForDropdown,
-  localizeStoredCity,
-  getCityNameInKorean,
-  getCountryNameInKorean,
-  getCityNameFromKorean,
-} from './formatter'
-export { CITY_NAME_KR, COUNTRY_NAME_KR, COUNTRY_FULL_NAME } from './lookups'
+
+
 
 // --- API Search functions (from cities.js) ---
 
@@ -39,7 +32,7 @@ function norm(s: string | null | undefined): string {
     .toLowerCase()
 }
 
-export function parseCountryHint(q: string | null | undefined): string | null {
+function parseCountryHint(q: string | null | undefined): string | null {
   const m = String(q || '').match(/,\s*([A-Za-z]{2})$/)
   return m ? m[1].toUpperCase() : null
 }

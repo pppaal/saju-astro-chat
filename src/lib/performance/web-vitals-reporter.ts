@@ -99,7 +99,7 @@ export function reportWebVitals(metric: Metric) {
 /**
  * Initialize Web Vitals tracking
  */
-export function initWebVitals() {
+function initWebVitals() {
   if (typeof window === 'undefined') {
     return
   }
@@ -220,4 +220,3 @@ export class PerformanceMonitor {
 }
 
 // Export for use in _app.tsx
-export default reportWebVitals

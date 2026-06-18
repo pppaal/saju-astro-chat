@@ -250,4 +250,3 @@ export function TierSummary({
   )
 }
 
-export default TierSummary

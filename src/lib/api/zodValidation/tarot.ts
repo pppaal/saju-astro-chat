@@ -119,7 +119,7 @@ export type TarotSaveRequestValidated = z.infer<typeof tarotSaveRequestSchema>
 
 // 보충 카드 (클래리파이어) — 결과 후 "한 장 더 뽑기" 한 장. 저장 후
 // 늦게 채워질 수 있어 PATCH 에서도 동일 schema 사용.
-export const tarotClarifierCardSchemaExport = tarotClarifierCardSchema
+const tarotClarifierCardSchemaExport = tarotClarifierCardSchema
 
 // PATCH /api/tarot/save/[id] — 저장된 리딩의 보충 카드 / followup 채팅
 // 만 부분 업데이트. 두 필드 둘 다 optional 이지만 최소 하나는 있어야 의미
@@ -143,7 +143,7 @@ export const tarotQuerySchema = z.object({
 export type TarotQueryValidated = z.infer<typeof tarotQuerySchema>
 
 // 분석 단계에서 추출된 메타데이터 — interpret 단계에 직접 전달해 재추론 비용 절감
-export const tarotQuestionMetaSchema = z.object({
+const tarotQuestionMetaSchema = z.object({
   intent: z.string().max(60).optional(),
   subject: z.string().max(60).optional(),
   focus: z.string().max(120).optional(),

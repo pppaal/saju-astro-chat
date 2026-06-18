@@ -32,7 +32,7 @@ export const SIGN_KO_TO_EN: Record<string, string> = Object.fromEntries(
  * Label a sign for display. Unknown signs pass through unchanged; an empty
  * sign falls back to "하늘"/"the sky" (matches the prior fusion behavior).
  */
-export function signLabel(sign: string | undefined, lang: SignLang): string {
+function signLabel(sign: string | undefined, lang: SignLang): string {
   if (!sign) return lang === 'ko' ? '하늘' : 'the sky'
   return lang === 'ko' ? (SIGN_KO[sign] ?? sign) : sign
 }

@@ -791,7 +791,7 @@ export function evalVoid(
 }
 
 /** 오행 카운트에서 가장 부족한(결핍) 원소 — 이번 생에 키워야 할 결. */
-export function weakestSajuElement(
+function weakestSajuElement(
   counts: Record<string, number> | undefined
 ): SajuElement | undefined {
   if (!counts) return undefined

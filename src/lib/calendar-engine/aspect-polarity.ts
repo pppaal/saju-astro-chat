@@ -9,7 +9,7 @@
  * 행성별 기본 길흉 (전통 분류).
  * conjunction 등 중립 어스펙트에서 polarity 결정에 사용.
  */
-export const PLANET_BENEFIC_MALEFIC: Record<string, 'benefic' | 'malefic' | 'neutral'> = {
+const PLANET_BENEFIC_MALEFIC: Record<string, 'benefic' | 'malefic' | 'neutral'> = {
   Jupiter: 'benefic',
   Venus: 'benefic',
   Sun: 'neutral',

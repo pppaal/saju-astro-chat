@@ -836,4 +836,3 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   )
 }
 
-export default YearTier

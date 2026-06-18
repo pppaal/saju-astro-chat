@@ -8,11 +8,11 @@ export type {
   DestinypalTierRenderArgs,
 } from './DestinypalShell'
 
-export { DestinypalTopbar } from './DestinypalTopbar'
+
 export type { DestinypalTopbarProps } from './DestinypalTopbar'
 
-export { DestinypalRail } from './DestinypalRail'
+
 export type { DestinypalRailProps, RailTier } from './DestinypalRail'
 
-export { Starfield } from './Starfield'
+
 export type { StarfieldHandle } from './Starfield'

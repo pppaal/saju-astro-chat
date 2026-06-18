@@ -16,4 +16,4 @@ export async function getServerSession(): Promise<Session | null> {
   return auth()
 }
 
-export { auth }
+

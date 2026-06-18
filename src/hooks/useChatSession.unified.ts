@@ -289,4 +289,3 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
   }
 }
 
-export default useChatSession

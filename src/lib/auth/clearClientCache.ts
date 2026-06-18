@@ -76,7 +76,7 @@ const LOCAL_USER_DATA_KEYS = ['destinypal:birthInfo:v1', 'destinypal_user_profil
  * Remove per-user birth/profile data from localStorage. Safe in
  * non-browser environments and never throws.
  */
-export function clearLocalUserData(): void {
+function clearLocalUserData(): void {
   if (typeof window === 'undefined' || !('localStorage' in window)) return
   for (const key of LOCAL_USER_DATA_KEYS) {
     try {

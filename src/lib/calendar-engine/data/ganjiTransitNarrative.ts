@@ -44,7 +44,7 @@ const PERIOD_LABEL: Record<GanjiTransitLayer, Record<Lang, string>> = {
  * treat the result as additive (appended to the sibsin-based rule
  * narrative) rather than load-bearing.
  */
-export function getGanjiTransitNarrative(
+function getGanjiTransitNarrative(
   ganji: string,
   layer: GanjiTransitLayer,
   lang: Lang = 'ko'
@@ -140,7 +140,7 @@ const DAY_SIBSIN_LINE: Record<string, { ko: string; en: string }> = {
  * 일진 천간 × 본명 일간 = 십신 한 줄 (개인화). sibsin 이 없거나 미지면 "".
  * 호출 측에서 getGanjiTransitNarrative('daily') 뒤에 이어붙여 사용.
  */
-export function dailyIljinSibsinLine(sibsin: string | undefined, lang: Lang = 'ko'): string {
+function dailyIljinSibsinLine(sibsin: string | undefined, lang: Lang = 'ko'): string {
   if (!sibsin) return ''
   const entry = DAY_SIBSIN_LINE[sibsin]
   if (!entry) return ''

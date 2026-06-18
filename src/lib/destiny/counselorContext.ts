@@ -558,7 +558,7 @@ export async function buildDestinyContext(
   return { stable, daily }
 }
 
-export function buildSajuSection(
+function buildSajuSection(
   birth: DestinyBirth,
   locale: Locale = 'ko',
   year?: number,

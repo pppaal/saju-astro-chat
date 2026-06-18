@@ -128,7 +128,9 @@ describe('궁합상담사 (route.ts) — system prompt + cachedUserContext', () 
 
   it('cachedUserContext 에 metaBlock 포함 (#306)', () => {
     // personsInfo 다음에 metaBlock 가 cachedUserContext 에 합쳐져야.
-    expect(route).toMatch(/cachedUserContext\s*=\s*\[[\s\S]*personsInfo[\s\S]*metaBlock/)
+    // (라우트 리팩터로 배열이 cachedUserContextRaw 에 담겨 ko 라벨링을 거친다 —
+    //  Raw 접미사를 옵셔널로 허용해 기존 의도만 검증.)
+    expect(route).toMatch(/cachedUserContext(?:Raw)?\s*=\s*\[[\s\S]*personsInfo[\s\S]*metaBlock/)
   })
 
   it('self(개인) 블록 없음 — synastry-only 보장 (#449)', () => {

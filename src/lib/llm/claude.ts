@@ -34,7 +34,7 @@ function calculateUsdCost(
 
 export type ClaudeModel = 'claude-haiku-4-5-20251001' | 'claude-sonnet-4-5-20250929'
 
-export const DEFAULT_CLAUDE_MODEL: ClaudeModel = 'claude-haiku-4-5-20251001'
+const DEFAULT_CLAUDE_MODEL: ClaudeModel = 'claude-haiku-4-5-20251001'
 export const PREMIUM_CLAUDE_MODEL: ClaudeModel = 'claude-sonnet-4-5-20250929'
 
 export interface CallClaudeOptions {

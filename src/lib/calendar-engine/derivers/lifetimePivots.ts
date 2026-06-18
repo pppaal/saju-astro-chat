@@ -43,7 +43,13 @@ export function deriveLifetimePivots(
    * 천왕성 등 외행성 마일스톤 연도가 실제 transit 기반으로 교체된다. 미지정
    * 시 옛 평균 나이대 테이블 그대로(backward compat).
    */
-  astroMilestoneOverrides?: readonly LifecycleMilestoneOverride[]
+  astroMilestoneOverrides?: readonly LifecycleMilestoneOverride[],
+  /**
+   * "지금" 주입점 — currentAge(phase past/current/upcoming 기준)와
+   * buildLifecycleTiming 의 기준 연도를 결정한다. 기본값은 호출 시점이라
+   * 프로덕션 동작은 그대로, 테스트는 고정해 결정론적으로 검증한다.
+   */
+  now: Date = new Date()
 ): LifetimePivots {
   const birthYear = natal.input?.year
   if (!birthYear) return { pivots: [] }
@@ -54,6 +60,7 @@ export function deriveLifetimePivots(
     birthMonth: natal.input.month,
     birthDate: natal.input.date,
     birthTimeZone: natal.input.timeZone,
+    now,
   })
   const isKo = lang === 'ko'
 
@@ -69,7 +76,8 @@ export function deriveLifetimePivots(
     birthYear,
     birthYear + 90,
     isKo,
-    astroMilestoneOverrides
+    astroMilestoneOverrides,
+    now
   ).events.map((e) => ({
     age: e.startYear - birthYear,
     year: e.startYear,

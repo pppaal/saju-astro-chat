@@ -128,7 +128,7 @@ function isInKoreanDst(birthUtcMs: number): boolean {
  * (b) KMT 시대(1954-03-21 ~ 1961-08-10)가 아니며
  * (c) 한국 DST 윈도우가 아닐 때만 true.
  */
-export function applyKoreanLmtCorrection(birthUtcMs: number, timezone: string): boolean {
+function applyKoreanLmtCorrection(birthUtcMs: number, timezone: string): boolean {
   if (timezone !== SEOUL_TZ) {
     return false
   }

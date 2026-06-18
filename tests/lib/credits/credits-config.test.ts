@@ -26,11 +26,6 @@ describe('Credits Module Exports', () => {
     expect(typeof consumeCredits).toBe('function')
   })
 
-  it('should export resetMonthlyCredits function', async () => {
-    const { resetMonthlyCredits } = await import('@/lib/credits')
-    expect(typeof resetMonthlyCredits).toBe('function')
-  })
-
   it('should export addBonusCredits function', async () => {
     const { addBonusCredits } = await import('@/lib/credits')
     expect(typeof addBonusCredits).toBe('function')
@@ -39,11 +34,6 @@ describe('Credits Module Exports', () => {
   it('should export canUseFeature function', async () => {
     const { canUseFeature } = await import('@/lib/credits')
     expect(typeof canUseFeature).toBe('function')
-  })
-
-  it('should export resetAllExpiredCredits function', async () => {
-    const { resetAllExpiredCredits } = await import('@/lib/credits')
-    expect(typeof resetAllExpiredCredits).toBe('function')
   })
 })
 

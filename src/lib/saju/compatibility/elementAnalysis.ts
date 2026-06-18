@@ -11,7 +11,7 @@ const ALL_ELEMENTS: FiveElement[] = ['목', '화', '토', '금', '수']
 /**
  * 사주에서 오행 개수 계산
  */
-export function countElements(pillars: SajuPillars): Record<FiveElement, number> {
+function countElements(pillars: SajuPillars): Record<FiveElement, number> {
   const counts: Record<FiveElement, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
   const allPillars = [pillars.year, pillars.month, pillars.day, pillars.time]
 

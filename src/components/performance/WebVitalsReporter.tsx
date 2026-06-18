@@ -23,4 +23,3 @@ export function WebVitalsReporter() {
   return null
 }
 
-export default WebVitalsReporter

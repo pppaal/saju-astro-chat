@@ -240,7 +240,7 @@ export const MetricRegistry: Record<string, MetricDefinition> = {
 // Zod Schemas for Validation
 // ============================================================
 
-export const MetricLabelSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]));
+const MetricLabelSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]));
 
 export const CounterMetricSchema = z.object({
   name: z.string(),

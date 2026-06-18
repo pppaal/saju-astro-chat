@@ -16,7 +16,7 @@ export type {
   ToUserOptions,
 } from './toUser'
 
-export { toLifeStages } from './toLifeStages'
+
 export type {
   DestinypalLifeStage,
   DestinypalLifeStageDetail,
@@ -26,10 +26,10 @@ export type {
 export { toLifetime } from './toLifetime'
 export type { ToLifetimeOptions } from './toLifetime'
 
-export { toDaewoon } from './toDaewoon'
+
 export type { DestinypalDaewoonEntry, ToDaewoonOptions } from './toDaewoon'
 
-export { toMilestones } from './toMilestones'
+
 export type { DestinypalMilestone } from './toMilestones'
 
 export { toDecade } from './toDecade'

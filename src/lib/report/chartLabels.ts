@@ -6,7 +6,7 @@
 import type { SajuElement } from '@/lib/saju/elementBridge'
 
 // 별자리 EN↔KO — 정본(astrology/signLabels) 재export. 복사본 두지 않음(드리프트 차단).
-export { SIGN_KO as SIGN_EN_TO_KO, SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
+export {  SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
 
 /** 행성 영문 → {한국어, 영문}. */
 export const PLANET_LABEL: Record<string, { ko: string; en: string }> = {

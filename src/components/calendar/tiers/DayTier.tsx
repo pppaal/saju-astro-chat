@@ -625,4 +625,3 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
   )
 }
 
-export default DayTier

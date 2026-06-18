@@ -3,7 +3,7 @@
 
 import { CITY_NAME_KR, COUNTRY_NAME_KR, COUNTRY_FULL_NAME } from './lookups';
 
-export { CITY_NAME_KR, COUNTRY_NAME_KR, COUNTRY_FULL_NAME };
+export {   COUNTRY_FULL_NAME };
 
 export interface CityFormatOptions {
   locale?: 'ko' | 'en';

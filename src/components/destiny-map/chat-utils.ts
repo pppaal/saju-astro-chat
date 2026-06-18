@@ -7,7 +7,7 @@ import type { LangKey, Copy } from './chat-i18n'
 import { getErrorMessage as getErrorMessageShared } from '@/lib/counselor/errorMessage'
 
 // Re-export streamProcessor for stream handling
-export { streamProcessor } from '@/lib/streaming'
+
 export type { StreamResult, StreamProcessorOptions } from '@/lib/streaming'
 
 /**

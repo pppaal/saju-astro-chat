@@ -11,7 +11,6 @@ import {
   getCreditBalance,
   canUseCredits,
   consumeCredits,
-  resetMonthlyCredits,
   addBonusCredits,
   expireBonusCredits,
   canUseFeature,
@@ -24,7 +23,8 @@ vi.mock('@/lib/db/prisma', () => ({
       create: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
-      updateMany: vi.fn(),
+      // 월간 풀 차감은 이제 조건부 updateMany — 기본은 1행 갱신(가드 통과).
+      updateMany: vi.fn(async () => ({ count: 1 })),
       findMany: vi.fn(),
     },
     bonusCreditPurchase: {
@@ -134,20 +134,8 @@ describe('Credit Service', () => {
       expect(prisma.userCredits.create).toHaveBeenCalled()
     })
 
-    it('should reset period if expired', async () => {
-      const expiredCredits = {
-        userId: mockUserId,
-        plan: 'free',
-        periodEnd: new Date('2024-01-10'), // Expired
-      }
-
-      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(expiredCredits)
-      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({ plan: 'free' })
-
-      await getUserCredits(mockUserId)
-
-      expect(prisma.userCredits.update).toHaveBeenCalled()
-    })
+    // (옛 "should reset period if expired" 제거 — 월간 충전 모델 폐지로
+    //  getUserCredits 의 기간 만료 리셋 로직이 제거됨.)
   })
 
   describe('getCreditBalance', () => {
@@ -314,12 +302,12 @@ describe('Credit Service', () => {
   })
 
   describe('consumeCredits', () => {
-    it('should consume reading credits from monthly balance', async () => {
+    it('should consume reading credits from purchased balance', async () => {
       const mockCredits = {
         userId: mockUserId,
-        monthlyCredits: 10,
-        usedCredits: 5,
-        bonusCredits: 0,
+        monthlyCredits: 0,
+        usedCredits: 0,
+        bonusCredits: 5,
       }
 
       ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
@@ -327,6 +315,13 @@ describe('Credit Service', () => {
           userCredits: {
             findUnique: vi.fn().mockResolvedValue(mockCredits),
             update: vi.fn().mockResolvedValue({}),
+          },
+          bonusCreditPurchase: {
+            findMany: vi
+              .fn()
+              .mockResolvedValue([{ id: 'p1', remaining: 5, expiresAt: new Date('2099-01-01') }]),
+            update: vi.fn().mockResolvedValue({}),
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
           },
           creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         })
@@ -396,9 +391,9 @@ describe('Credit Service', () => {
     it('should charge compatibility against general credit', async () => {
       const mockCredits = {
         userId: mockUserId,
-        monthlyCredits: 10,
+        monthlyCredits: 0,
         usedCredits: 0,
-        bonusCredits: 0,
+        bonusCredits: 10,
       }
 
       ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) =>
@@ -406,6 +401,13 @@ describe('Credit Service', () => {
           userCredits: {
             findUnique: vi.fn().mockResolvedValue(mockCredits),
             update: vi.fn().mockResolvedValue({}),
+          },
+          bonusCreditPurchase: {
+            findMany: vi
+              .fn()
+              .mockResolvedValue([{ id: 'p1', remaining: 10, expiresAt: new Date('2099-01-01') }]),
+            update: vi.fn().mockResolvedValue({}),
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
           },
           creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         })
@@ -420,9 +422,9 @@ describe('Credit Service', () => {
     it('should handle race condition with transaction', async () => {
       const mockCredits = {
         userId: mockUserId,
-        monthlyCredits: 10,
-        usedCredits: 9,
-        bonusCredits: 0,
+        monthlyCredits: 0,
+        usedCredits: 0,
+        bonusCredits: 1,
       }
 
       ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (callback) => {
@@ -430,6 +432,13 @@ describe('Credit Service', () => {
           userCredits: {
             findUnique: vi.fn().mockResolvedValue(mockCredits),
             update: vi.fn().mockResolvedValue({}),
+          },
+          bonusCreditPurchase: {
+            findMany: vi
+              .fn()
+              .mockResolvedValue([{ id: 'p1', remaining: 1, expiresAt: new Date('2099-01-01') }]),
+            update: vi.fn().mockResolvedValue({}),
+            updateMany: vi.fn().mockResolvedValue({ count: 1 }),
           },
           creditTransaction: { create: vi.fn().mockResolvedValue({}) },
         }
@@ -540,36 +549,7 @@ describe('Credit Service', () => {
     })
   })
 
-  describe('resetMonthlyCredits', () => {
-    it('should advance the period without refilling credits', async () => {
-      const mockCredits = {
-        userId: mockUserId,
-        plan: 'free',
-        usedCredits: 20,
-      }
-
-      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
-      ;(prisma.userCredits.update as ReturnType<typeof vi.fn>).mockResolvedValue({})
-
-      await resetMonthlyCredits(mockUserId)
-
-      const callArgs = (prisma.userCredits.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
-      // Only the period is advanced; credit counters are left untouched.
-      expect(callArgs.data).toHaveProperty('periodStart')
-      expect(callArgs.data).toHaveProperty('periodEnd')
-      expect(callArgs.data).not.toHaveProperty('monthlyCredits')
-      expect(callArgs.data).not.toHaveProperty('usedCredits')
-    })
-
-    it('should initialize credits if none exist', async () => {
-      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null)
-      ;(prisma.userCredits.create as ReturnType<typeof vi.fn>).mockResolvedValue({})
-
-      await resetMonthlyCredits(mockUserId)
-
-      expect(prisma.userCredits.create).toHaveBeenCalled()
-    })
-  })
+  // (옛 resetMonthlyCredits describe 블록 제거 — 월간 충전 모델 폐지로 함수 삭제됨.)
 
   describe('canUseFeature', () => {
     it('should always allow features in the credit-only model', async () => {

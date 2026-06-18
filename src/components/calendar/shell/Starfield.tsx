@@ -133,4 +133,3 @@ export const Starfield = forwardRef<StarfieldHandle, { className?: string }>(fun
   )
 })
 
-export default Starfield

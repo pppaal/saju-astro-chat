@@ -347,4 +347,3 @@ export function DestinypalShell({
   )
 }
 
-export default DestinypalShell

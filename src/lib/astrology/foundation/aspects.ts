@@ -106,7 +106,7 @@ function desiredAngle(a: AspectType) {
 // 이전엔 Robert Hand modern 8° 단일 정책 + 행성별 5-8° 분리 운영. 그 잔재는
 // getOrbLimitByName 에 fallback 으로 남겨둔다 (callers 가 명시 rules.orbs 를
 // 넘기는 경로용). 기본 path 는 PLANET_MOIETY → pairMoietyOrb 로 흐른다.
-export const PLANET_MOIETY: Record<string, number> = {
+const PLANET_MOIETY: Record<string, number> = {
   Sun: 15,
   Moon: 12,
   Mercury: 7,
@@ -133,7 +133,7 @@ export const PLANET_MOIETY: Record<string, number> = {
  * = (moietyA + moietyB) / 2.
  * rules.orbs 가 명시되면 그쪽이 우선 (legacy 경로 호환).
  */
-export function pairMoietyOrb(aName: string, bName: string, rules: AspectRules = {}): number {
+function pairMoietyOrb(aName: string, bName: string, rules: AspectRules = {}): number {
   if (rules.orbs && Object.keys(rules.orbs).length > 0) {
     // legacy 경로 — 둘 중 더 큰 per-name limit 사용 (기존 동작).
     return Math.max(getOrbLimitByName(aName, rules), getOrbLimitByName(bName, rules))

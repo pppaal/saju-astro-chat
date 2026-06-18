@@ -23,7 +23,7 @@ import Stripe from 'stripe'
  * every route at once instead of three places that always have to
  * move together.
  */
-export const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover'
+const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover'
 
 let cachedInstance: Stripe | null = null
 
