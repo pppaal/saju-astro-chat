@@ -1,16 +1,13 @@
 'use client'
 
 /**
- * CompatShareCard (v5, 한지/먹 ink-on-hanji) — 궁합 결과를 SNS 공유용 1080×1080
- * 카드로. 운세차트(IntegratedReport / 궁합 차트 모달)와 같은 종이 톤으로 통일.
+ * CompatShareCard (v6, 한지 리포트 카드) — 궁합 결과를 SNS 공유용 1080×1080 으로.
+ * 운세차트와 같은 종이 톤. 두루뭉술한 한 줄 대신 엔진이 콕 집은 구체 내용을
+ * 라벨 행으로 — 핵심(배우자성/시너스트리) · 강점/조심 · 별자리.
  *
- * 채팅(상담) 자체가 아니라 결정론 엔진이 뽑은 "결과"만 그린다 — 대화의 사적인
- * 내용은 공유되지 않는다. 구성: ① 커플 유형 이름 ② 등급(tier) 링 ③ 두 사람
- * 일간을 명식 셀(천간+오행, 오행 색)로 ④ 종합 한 줄 ⑤ CTA.
- *
- * 캡처 안정성(html-to-image): 가짜 정밀 숫자·이모지·웹폰트 의존 회피. 명시 hex,
- * 평범한 <img>, 시스템/serif 폴백. 부모(ShareImageButton)가 화면 밖에 1080×1080
- * 으로 렌더해 두고 ref 로 캡처한다.
+ * 채팅(상담) 자체가 아니라 결정론 엔진의 "결과"만 그린다 — 사적 대화는 공유 안 됨.
+ * 캡처 안정성(html-to-image): 가짜 정밀 숫자·이모지·웹폰트 의존 회피, 명시 hex,
+ * 평범한 <img>, serif 폴백.
  */
 
 import React from 'react'
@@ -18,31 +15,29 @@ import React from 'react'
 export type CompatCoupleTone = 'aligned' | 'mixed' | 'tension' | 'neutral'
 
 export interface CompatShareElement {
-  /** 천간 한자 (예: 乙) */
   stem: string
-  /** 오행 한자 (예: 木) */
   el: string
   textColor: string
   bgColor: string
 }
 
 export interface CompatShareCardData {
-  /** "민지 ♥ 준영" 또는 "우리 궁합". */
   title: string
-  /** 커플 유형 이름 — 정체성 훅(히어로). */
   coupleType: string
-  /** 등급 단어(링 중앙) — 정밀 숫자 대신. */
   tier: string
-  /** 0-100 링 채움 비율(숫자는 표시 안 함). */
   fillPct: number
-  /** 동·서 교차 종합 한 줄(또는 verdict 폴백). */
-  keyMessage: string
-  /** 두 사람 일간(명식 셀) + 오행 관계(상생/상극/비화) — 없으면 생략. */
+  /** 핵심 한 줄 — 배우자성 또는 결정적 시너스트리. */
+  headline: string
+  /** 별자리 신호 — 핵심이 배우자성일 때만. */
+  signal?: string
+  /** 강점(밴드 최고). */
+  strength?: string
+  /** 조심(밴드 최저). */
+  caution?: string
   elements: { a: CompatShareElement; b: CompatShareElement; relation?: string } | null
   isKo: boolean
 }
 
-// 한지/먹 팔레트 (globals.css 라이트 토큰과 동일).
 const PAPER = '#f4f1ea'
 const INK = '#1c1917'
 const INK_MUTED = '#57534e'
@@ -53,81 +48,28 @@ const SERIF = "var(--font-cinzel), 'Noto Serif KR', 'Nanum Myeongjo', Georgia, s
 
 export const COMPAT_SHARE_CARD_SIZE = 1080
 
-// 등급 링 — 종이 위 골드 아크. 중앙은 등급 단어(숫자 아님).
-function TierRing({ tier, fillPct }: { tier: string; fillPct: number }) {
-  const size = 300
-  const stroke = 22
-  const r = (size - stroke) / 2
-  const c = 2 * Math.PI * r
-  const pct = Math.max(0, Math.min(100, fillPct)) / 100
-  const center = size / 2
-  const tierFont = tier.length > 7 ? 38 : tier.length > 5 ? 46 : 56
-  return (
-    <div style={{ position: 'relative', width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={center} cy={center} r={r} fill="none" stroke="#e7e5e4" strokeWidth={stroke} />
-        <circle
-          cx={center}
-          cy={center}
-          r={r}
-          fill="none"
-          stroke={GOLD}
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - pct)}
-          transform={`rotate(-90 ${center} ${center})`}
-        />
-      </svg>
-      <div
-        style={{
-          position: 'absolute',
-          inset: stroke + 12,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: SERIF,
-            fontSize: tierFont,
-            fontWeight: 700,
-            lineHeight: 1.15,
-            color: GOLD,
-            wordBreak: 'keep-all',
-          }}
-        >
-          {tier}
-        </span>
-      </div>
-    </div>
-  )
-}
-
 // 일간 셀 — 명식처럼 천간(큰 한자) + 오행(작은 한자), 오행 색 타일.
 function PillarCell({ el }: { el: CompatShareElement }) {
   return (
     <div
       style={{
-        width: 150,
-        height: 168,
-        borderRadius: 18,
+        width: 132,
+        height: 150,
+        borderRadius: 16,
         background: el.bgColor,
         border: `1.5px solid ${el.textColor}33`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 6,
-        boxShadow: '0 6px 18px rgba(60,50,30,0.10)',
+        gap: 4,
+        boxShadow: '0 6px 16px rgba(60,50,30,0.10)',
       }}
     >
       <span
         style={{
           fontFamily: SERIF,
-          fontSize: 84,
+          fontSize: 74,
           fontWeight: 700,
           lineHeight: 1,
           color: el.textColor,
@@ -135,8 +77,32 @@ function PillarCell({ el }: { el: CompatShareElement }) {
       >
         {el.stem}
       </span>
-      <span style={{ fontFamily: SERIF, fontSize: 30, color: el.textColor, opacity: 0.85 }}>
+      <span style={{ fontFamily: SERIF, fontSize: 26, color: el.textColor, opacity: 0.85 }}>
         {el.el}
+      </span>
+    </div>
+  )
+}
+
+// 리포트 행 — 골드 태그 + 먹 텍스트.
+function Row({ tag, children, big }: { tag: string; children: React.ReactNode; big?: boolean }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, width: '100%' }}>
+      <span
+        style={{
+          flexShrink: 0,
+          width: 92,
+          fontFamily: SERIF,
+          fontSize: 24,
+          fontWeight: 700,
+          color: GOLD,
+          letterSpacing: '0.02em',
+        }}
+      >
+        {tag}
+      </span>
+      <span style={{ fontSize: big ? 31 : 27, lineHeight: 1.4, color: INK, wordBreak: 'keep-all' }}>
+        {children}
       </span>
     </div>
   )
@@ -144,9 +110,19 @@ function PillarCell({ el }: { el: CompatShareElement }) {
 
 export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatShareCardData }>(
   function CompatShareCard({ data }, ref) {
-    const { title, coupleType, tier, fillPct, keyMessage, elements, isKo } = data
-    const typeFont = coupleType.length > 12 ? 38 : 44
-    const msgFont = keyMessage.length > 56 ? 27 : 31
+    const {
+      title,
+      coupleType,
+      tier,
+      fillPct,
+      headline,
+      signal,
+      strength,
+      caution,
+      elements,
+      isKo,
+    } = data
+    const typeFont = coupleType.length > 12 ? 34 : 40
 
     return (
       <div
@@ -155,14 +131,13 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           width: COMPAT_SHARE_CARD_SIZE,
           height: COMPAT_SHARE_CARD_SIZE,
           boxSizing: 'border-box',
-          padding: 70,
+          padding: 64,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'space-between',
           position: 'relative',
           overflow: 'hidden',
-          // 한지 — 따뜻한 종이 + 미세 dot 텍스처(궁합 차트 셸과 동일 결).
           background: PAPER,
           backgroundImage:
             'radial-gradient(circle at 1px 1px, rgba(120,110,90,0.06) 1px, transparent 0)',
@@ -171,51 +146,51 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
       >
-        {/* 골드 이중 프레임 — 전통 차트 느낌 */}
+        {/* 골드 이중 프레임 */}
         <div
           style={{
             position: 'absolute',
-            inset: 26,
+            inset: 24,
             border: `2px solid ${GOLD}`,
-            borderRadius: 26,
-            pointerEvents: 'none',
+            borderRadius: 24,
             opacity: 0.5,
+            pointerEvents: 'none',
           }}
         />
         <div
           style={{
             position: 'absolute',
-            inset: 34,
+            inset: 32,
             border: `1px solid ${GOLD_SOFT}`,
-            borderRadius: 20,
-            pointerEvents: 'none',
+            borderRadius: 18,
             opacity: 0.5,
+            pointerEvents: 'none',
           }}
         />
 
-        {/* 헤더 — 브랜드 + 제목(두 사람) */}
+        {/* 헤더 — 브랜드 + 제목 + 커플 유형 */}
         <div
           style={{
             zIndex: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 14,
+            gap: 12,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo/logo.png"
               alt="DestinyPal"
-              width={34}
-              height={34}
-              style={{ width: 34, height: 34, objectFit: 'contain', borderRadius: 8 }}
+              width={30}
+              height={30}
+              style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: 7 }}
             />
             <span
               style={{
                 fontFamily: SERIF,
-                fontSize: 26,
+                fontSize: 24,
                 fontWeight: 600,
                 letterSpacing: '0.05em',
                 color: GOLD,
@@ -227,9 +202,9 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           <div
             style={{
               fontFamily: SERIF,
-              fontSize: title.length > 18 ? 42 : 54,
+              fontSize: title.length > 18 ? 40 : 50,
               fontWeight: 700,
-              lineHeight: 1.2,
+              lineHeight: 1.15,
               color: INK,
               textAlign: 'center',
               wordBreak: 'keep-all',
@@ -237,22 +212,9 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           >
             {title}
           </div>
-        </div>
-
-        {/* 커플 유형(히어로) + 등급 링 + 두 사람 명식 셀 */}
-        <div
-          style={{
-            zIndex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 24,
-          }}
-        >
           <div
             style={{
-              maxWidth: 860,
-              padding: '10px 30px',
+              padding: '8px 26px',
               borderRadius: 999,
               background: 'rgba(160,122,60,0.10)',
               border: `1px solid ${GOLD}`,
@@ -260,81 +222,134 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
               fontSize: typeFont,
               fontWeight: 700,
               color: GOLD,
-              textAlign: 'center',
-              lineHeight: 1.25,
               wordBreak: 'keep-all',
+              textAlign: 'center',
             }}
           >
             {coupleType}
           </div>
+        </div>
 
-          <TierRing tier={tier} fillPct={fillPct} />
-
+        {/* 명식 셀 + 등급 + 채움 바 */}
+        <div
+          style={{
+            zIndex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 16,
+          }}
+        >
           {elements ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
               <PillarCell el={elements.a} />
               {elements.relation ? (
                 <span
                   style={{
-                    padding: '6px 18px',
+                    padding: '6px 16px',
                     borderRadius: 999,
                     border: `1px solid ${GOLD}`,
                     background: PAPER,
                     color: GOLD,
                     fontFamily: SERIF,
-                    fontSize: 26,
+                    fontSize: 24,
                     fontWeight: 700,
                   }}
                 >
                   {elements.relation}
                 </span>
               ) : (
-                <span style={{ width: 40, height: 2, borderRadius: 2, background: GOLD_SOFT }} />
+                <span style={{ width: 36, height: 2, background: GOLD_SOFT }} />
               )}
               <PillarCell el={elements.b} />
             </div>
           ) : null}
-        </div>
-
-        {/* 종합 한 줄 + CTA */}
-        <div style={{ zIndex: 1, textAlign: 'center', maxWidth: 880 }}>
-          {keyMessage ? (
+          {/* 등급 + 채움 바 (큰 숫자 대신) */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontFamily: SERIF, fontSize: 30, fontWeight: 700, color: GOLD }}>
+              {tier}
+            </span>
             <div
               style={{
-                fontSize: msgFont,
-                lineHeight: 1.55,
-                color: INK,
-                wordBreak: 'keep-all',
-                whiteSpace: 'pre-wrap',
-                marginBottom: 22,
+                width: 300,
+                height: 10,
+                borderRadius: 999,
+                background: '#e7e5e4',
+                overflow: 'hidden',
               }}
             >
-              “{keyMessage}”
+              <div
+                style={{
+                  width: `${Math.max(0, Math.min(100, fillPct))}%`,
+                  height: '100%',
+                  borderRadius: 999,
+                  background: GOLD,
+                }}
+              />
             </div>
-          ) : null}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 12,
-              fontSize: 22,
-              color: INK_MUTED,
-            }}
-          >
-            <span
-              style={{
-                width: 9,
-                height: 9,
-                background: GOLD,
-                transform: 'rotate(45deg)',
-                display: 'inline-block',
-              }}
-            />
-            <span>{isKo ? '너희 궁합은 몇 점?' : "What's your match?"}</span>
-            <span style={{ color: LINE }}>·</span>
-            <span>destinypal.com</span>
           </div>
+        </div>
+
+        {/* 리포트 행 — 구체 내용 */}
+        <div
+          style={{ zIndex: 1, width: '100%', display: 'flex', flexDirection: 'column', gap: 14 }}
+        >
+          <div style={{ height: 1, background: LINE, width: '100%' }} />
+          {headline ? (
+            <Row tag={isKo ? '핵심' : 'KEY'} big>
+              {headline}
+            </Row>
+          ) : null}
+          {(strength || caution) && (
+            <div style={{ display: 'flex', gap: 44, width: '100%' }}>
+              {strength ? (
+                <span style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                  <span style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: GOLD }}>
+                    {isKo ? '강점' : 'STRONG'}
+                  </span>
+                  <span style={{ fontSize: 27, color: INK }}>{strength}</span>
+                </span>
+              ) : null}
+              {caution ? (
+                <span style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                  <span
+                    style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 700, color: '#b45309' }}
+                  >
+                    {isKo ? '조심' : 'WATCH'}
+                  </span>
+                  <span style={{ fontSize: 27, color: INK }}>{caution}</span>
+                </span>
+              ) : null}
+            </div>
+          )}
+          {signal ? <Row tag={isKo ? '별자리' : 'STARS'}>{signal}</Row> : null}
+          <div style={{ height: 1, background: LINE, width: '100%' }} />
+        </div>
+
+        {/* CTA */}
+        <div
+          style={{
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 12,
+            fontSize: 22,
+            color: INK_MUTED,
+          }}
+        >
+          <span
+            style={{
+              width: 9,
+              height: 9,
+              background: GOLD,
+              transform: 'rotate(45deg)',
+              display: 'inline-block',
+            }}
+          />
+          <span>{isKo ? '너희 궁합은 몇 점?' : "What's your match?"}</span>
+          <span style={{ color: LINE }}>·</span>
+          <span>destinypal.com</span>
         </div>
       </div>
     )
