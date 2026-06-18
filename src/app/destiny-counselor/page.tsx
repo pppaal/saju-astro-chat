@@ -78,7 +78,7 @@ export default function CounselorPage() {
   // the floor, hence "눌러도 안 불러와져").
   const initialSessionId = (Array.isArray(sp.session) ? sp.session[0] : sp.session) ?? undefined
 
-  const { chartData, sessionId, userContext, parsedParams, profileLoading } =
+  const { chartData, userContext, parsedParams, profileLoading } =
     useCounselorData(counselorSearchParams)
 
   const {
@@ -438,7 +438,6 @@ export default function CounselorPage() {
             advancedAstro={chartData?.advancedAstro}
             userContext={userContext}
             autoScroll={false}
-            ragSessionId={sessionId || undefined}
             autoSendSeed
             autoFocus
             initialSessionId={initialSessionId}

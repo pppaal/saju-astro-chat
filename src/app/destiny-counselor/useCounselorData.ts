@@ -31,7 +31,6 @@ export function useCounselorData(sp: SearchParams) {
   const { locale: i18nLocale, setLocale } = useI18n()
 
   const [chartData, setChartData] = useState<ChartData | null>(null)
-  const [sessionId] = useState<string | null>(null)
 
   // Premium: User context and chat session for returning users
   const [userContext, setUserContext] = useState<UserContext | undefined>(undefined)
@@ -660,7 +659,6 @@ export function useCounselorData(sp: SearchParams) {
 
   return {
     chartData,
-    sessionId,
     userContext,
     chatSessionId,
     handleSaveMessage,
