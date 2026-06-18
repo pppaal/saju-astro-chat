@@ -6,7 +6,6 @@
 import React from 'react'
 import { logger } from '@/lib/logger'
 import { emitSessionDeleted } from '@/lib/counselor/sessionEvents'
-import { CHAT_TIMINGS } from '../chat-constants'
 import type { Message } from '../chat-constants'
 import type { SessionItem } from '../modals/HistoryModal'
 
@@ -42,7 +41,9 @@ function generateSessionId(): string {
  * Hook for managing chat session state and persistence
  */
 export function useChatSession(options: UseChatSessionOptions): UseChatSessionReturn {
-  const { lang, initialContext } = options
+  // lang 은 더 이상 이 hook 에서 안 쓴다(서버 저장이 useChatAutoSave 로 이관됨).
+  // 호출부 호환을 위해 options 시그니처엔 남겨 두되 여기선 initialContext 만 사용.
+  const { initialContext } = options
 
   const sessionIdRef = React.useRef<string>(generateSessionId())
   const [messages, setMessages] = React.useState<Message[]>(
@@ -59,66 +60,11 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
     logger.debug('[Chat] Session ready (fresh start - history available via button)')
   }, [])
 
-  // Auto-save messages to database
-  React.useEffect(() => {
-    if (!sessionLoaded) {
-      return
-    }
-    if (messages.length === 0) {
-      return
-    }
-
-    const saveTimer = setTimeout(async () => {
-      try {
-        await fetch('/api/counselor/session/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionIdRef.current,
-            locale: lang || 'ko',
-            messages: messages.filter((m) => m.role !== 'system'),
-          }),
-        })
-        logger.debug('[Chat] Session auto-saved:', { messageCount: messages.length })
-      } catch (e) {
-        logger.warn('[Chat] Failed to save session:', e)
-      }
-    }, CHAT_TIMINGS.DEBOUNCE_SAVE)
-
-    return () => clearTimeout(saveTimer)
-  }, [messages, sessionLoaded, lang])
-
-  // 언마운트(생년월일 변경으로 chatResetKey 가 바뀌어 Chat 이 remount 되거나
-  // 페이지를 떠날 때) 직전 미저장분을 flush. 위 auto-save 는 2초 디바운스라,
-  // 마지막 메시지 직후 곧바로 생일을 바꾸면 cleanup 의 clearTimeout 으로 저장이
-  // 취소돼 "직전 대화가 과거 목록에 안 뜨던" 빈틈이 있었다. keepalive 로 remount/
-  // 이탈 중에도 끝까지 전송한다. 최신 스냅샷을 ref 로 들고 마운트당 1회만 등록.
-  const lastSnapshotRef = React.useRef<{ messages: Message[]; lang: string }>({ messages, lang })
-  React.useEffect(() => {
-    lastSnapshotRef.current = { messages, lang }
-  }, [messages, lang])
-  React.useEffect(() => {
-    return () => {
-      const snap = lastSnapshotRef.current
-      const convo = snap.messages.filter((m) => m.role !== 'system')
-      if (convo.length === 0) return
-      try {
-        void fetch('/api/counselor/session/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionIdRef.current,
-            locale: snap.lang || 'ko',
-            messages: convo,
-          }),
-          keepalive: true,
-        })
-      } catch {
-        /* best-effort flush — 실패해도 다음 진입의 auto-save 가 메운다 */
-      }
-    }
-    // 마운트당 1회만 — sessionIdRef/스냅샷은 ref 로 읽어 stale 걱정 없음.
-  }, [])
+  // 서버 자동 저장(debounce + 언마운트/이탈 flush)은 Chat.tsx 가 마운트하는
+  // 공용 useChatAutoSave 단일 출처로 이관했다. 예전엔 이 deprecated hook 도
+  // 자체 debounce save + 언마운트 keepalive 를 들고 있어, 같은 /session/save
+  // 엔드포인트로 메시지마다 POST 가 두 번씩 나가던 이중 저장 문제가 있었다.
+  // 여기서는 아래 낙관적 목록 갱신(클라 상태)만 담당한다.
 
   // 사이드바 "과거 채팅" 목록 즉시 갱신 (ChatGPT 식) — 기존엔 목록을 마운트 때
   // 1번만 불러와, 새 채팅을 시작하거나 생년월일을 바꿔 새 대화로 넘어가도 직전
@@ -171,23 +117,20 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
   }, [])
 
   // Load a specific session
-  const loadSession = React.useCallback(
-    async (sessionId: string) => {
-      try {
-        const res = await fetch(`/api/counselor/session/load?sessionId=${sessionId}`)
-        if (res.ok) {
-          const data = await res.json()
-          if (data.messages && Array.isArray(data.messages)) {
-            setMessages(data.messages)
-            sessionIdRef.current = data.sessionId || sessionId
-          }
+  const loadSession = React.useCallback(async (sessionId: string) => {
+    try {
+      const res = await fetch(`/api/counselor/session/load?sessionId=${sessionId}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.messages && Array.isArray(data.messages)) {
+          setMessages(data.messages)
+          sessionIdRef.current = data.sessionId || sessionId
         }
-      } catch (e) {
-        logger.warn('[Chat] Failed to load session:', e)
       }
-    },
-    []
-  )
+    } catch (e) {
+      logger.warn('[Chat] Failed to load session:', e)
+    }
+  }, [])
 
   // Delete a session
   const deleteSession = React.useCallback(async (sessionId: string) => {
@@ -217,7 +160,9 @@ export function useChatSession(options: UseChatSessionOptions): UseChatSessionRe
         body: JSON.stringify({ sessionId, title: next }),
       })
       if (res.ok) {
-        setSessionHistory((prev) => prev.map((s) => (s.id === sessionId ? { ...s, title: next } : s)))
+        setSessionHistory((prev) =>
+          prev.map((s) => (s.id === sessionId ? { ...s, title: next } : s))
+        )
       }
     } catch (e) {
       logger.warn('[Chat] Failed to rename session:', e)

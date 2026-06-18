@@ -6,42 +6,42 @@
  * - 레거시 호환
  */
 
-import { vi, beforeEach, afterEach } from "vitest";
+import { vi, beforeEach, afterEach } from 'vitest'
 
 // SessionStorage mock
-let storageData: Record<string, string> = {};
+let storageData: Record<string, string> = {}
 
 const sessionStorageMock = {
   getItem: vi.fn((key: string) => storageData[key] || null),
   setItem: vi.fn((key: string, value: string) => {
-    storageData[key] = value;
+    storageData[key] = value
   }),
   removeItem: vi.fn((key: string) => {
-    delete storageData[key];
+    delete storageData[key]
   }),
   clear: vi.fn(() => {
-    storageData = {};
+    storageData = {}
   }),
   get length() {
-    return Object.keys(storageData).length;
+    return Object.keys(storageData).length
   },
   key: vi.fn((index: number) => Object.keys(storageData)[index] || null),
-};
+}
 
 // Mock sessionStorage globally
-Object.defineProperty(global, "sessionStorage", {
+Object.defineProperty(global, 'sessionStorage', {
   value: sessionStorageMock,
   writable: true,
-});
+})
 
-vi.mock("@/lib/logger", () => ({
+vi.mock('@/lib/logger', () => ({
   logger: {
     warn: vi.fn(),
     error: vi.fn(),
     info: vi.fn(),
     debug: vi.fn(),
   },
-}));
+}))
 
 // Import after mocking
 import {
@@ -49,587 +49,590 @@ import {
   loadChartData,
   clearChartCache,
   hasCachedData,
-} from "@/lib/cache/chartDataCache";
+} from '@/lib/cache/chartDataCache'
 
-describe("chartDataCache", () => {
+describe('chartDataCache', () => {
   beforeEach(() => {
-    sessionStorageMock.clear();
-    vi.clearAllMocks();
-    vi.useFakeTimers();
-  });
+    sessionStorageMock.clear()
+    vi.clearAllMocks()
+    vi.useFakeTimers()
+  })
 
   afterEach(() => {
-    vi.useRealTimers();
-  });
+    vi.useRealTimers()
+  })
 
-  describe("saveChartData", () => {
-    it("saves data to sessionStorage", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+  describe('saveChartData', () => {
+    it('saves data to sessionStorage', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { pillars: {} },
-      });
+      })
 
-      expect(sessionStorageMock.setItem).toHaveBeenCalled();
-    });
+      expect(sessionStorageMock.setItem).toHaveBeenCalled()
+    })
 
-    it("saves with correct key format", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('saves with correct key format', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { pillars: {} },
-      });
+      })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const cacheKey = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      expect(cacheKey).toBeTruthy();
-      expect(cacheKey?.[0]).toContain("1990-01-15");
-      expect(cacheKey?.[0]).toContain("14:30");
-    });
+      const calls = sessionStorageMock.setItem.mock.calls
+      const cacheKey = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      expect(cacheKey).toBeTruthy()
+      expect(cacheKey?.[0]).toContain('1990-01-15')
+      expect(cacheKey?.[0]).toContain('14:30')
+    })
 
-    it("includes timestamp in saved data", () => {
-      const now = new Date("2024-01-15T12:00:00Z").getTime();
-      vi.setSystemTime(now);
+    it('includes timestamp in saved data', () => {
+      const now = new Date('2024-01-15T12:00:00Z').getTime()
+      vi.setSystemTime(now)
 
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(savedData.timestamp).toBe(now);
-    });
+      expect(savedData.timestamp).toBe(now)
+    })
 
-    it("includes birthKey in saved data", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('includes birthKey in saved data', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(savedData.birthKey).toContain("1990-01-15");
-      expect(savedData.birthKey).toContain("14:30");
-      expect(savedData.birthKey).toContain("37.5665");
-      expect(savedData.birthKey).toContain("126.9780");
-    });
+      expect(savedData.birthKey).toContain('1990-01-15')
+      expect(savedData.birthKey).toContain('14:30')
+      expect(savedData.birthKey).toContain('37.5665')
+      expect(savedData.birthKey).toContain('126.9780')
+    })
 
-    it("saves saju data", () => {
-      const sajuData = { pillars: { year: "甲子" } };
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('saves saju data', () => {
+      const sajuData = { pillars: { year: '甲子' } }
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: sajuData,
-      });
+      })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(savedData.saju).toEqual(sajuData);
-    });
+      expect(savedData.saju).toEqual(sajuData)
+    })
 
-    it("saves astro data", () => {
-      const astroData = { planets: { sun: 280 } };
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('saves astro data', () => {
+      const astroData = { planets: { sun: 280 } }
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         astro: astroData,
-      });
+      })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(savedData.astro).toEqual(astroData);
-    });
+      expect(savedData.astro).toEqual(astroData)
+    })
 
-    it("saves advancedAstro data", () => {
-      const advancedData = { aspects: [] };
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('saves advancedAstro data', () => {
+      const advancedData = { aspects: [] }
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         advancedAstro: advancedData,
-      });
+      })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(savedData.advancedAstro).toEqual(advancedData);
-    });
+      expect(savedData.advancedAstro).toEqual(advancedData)
+    })
 
-    it("updates cache key index", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('updates cache key index', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
       const indexCall = sessionStorageMock.setItem.mock.calls.find(
-        (c: string[]) => c[0] === "destinyChartDataKey"
-      );
-      expect(indexCall).toBeTruthy();
-    });
-  });
+        (c: string[]) => c[0] === 'destinyChartDataKey'
+      )
+      expect(indexCall).toBeTruthy()
+    })
+  })
 
-  describe("loadChartData", () => {
-    it("returns null when no cache exists", () => {
-      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
-      expect(result).toBeNull();
-    });
+  describe('loadChartData', () => {
+    it('returns null when no cache exists', () => {
+      const result = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
+      expect(result).toBeNull()
+    })
 
-    it("returns cached data when valid", () => {
+    it('returns cached data when valid', () => {
       // Save first
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { pillars: {} },
         astro: { planets: {} },
-      });
+      })
 
-      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      const result = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
 
-      expect(result).not.toBeNull();
-      expect(result?.saju).toBeDefined();
-      expect(result?.astro).toBeDefined();
-    });
+      expect(result).not.toBeNull()
+      expect(result?.saju).toBeDefined()
+      expect(result?.astro).toBeDefined()
+    })
 
-    it("returns null for expired cache", () => {
-      const now = new Date("2024-01-15T12:00:00Z").getTime();
-      vi.setSystemTime(now);
+    it('returns null for expired cache', () => {
+      const now = new Date('2024-01-15T12:00:00Z').getTime()
+      vi.setSystemTime(now)
 
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
       // Advance time by more than 1 hour (cache duration)
-      vi.advanceTimersByTime(3600001); // 1 hour + 1ms
+      vi.advanceTimersByTime(3600001) // 1 hour + 1ms
 
-      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      const result = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
 
-      expect(result).toBeNull();
-    });
+      expect(result).toBeNull()
+    })
 
-    it("returns null when birthKey does not match", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('returns null when birthKey does not match', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
       // Try to load with different coordinates
-      const result = loadChartData("1990-01-15", "14:30", 35.0, 127.0);
+      const result = loadChartData('1990-01-15', '14:30', 35.0, 127.0)
 
-      expect(result).toBeNull();
-    });
+      expect(result).toBeNull()
+    })
 
-    it("returns null when birthDate does not match", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('returns null when birthDate does not match', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
-      const result = loadChartData("1990-01-16", "14:30", 37.5665, 126.978);
+      const result = loadChartData('1990-01-16', '14:30', 37.5665, 126.978)
 
-      expect(result).toBeNull();
-    });
+      expect(result).toBeNull()
+    })
 
-    it("returns null when birthTime does not match", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('returns null when birthTime does not match', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
-      const result = loadChartData("1990-01-15", "15:00", 37.5665, 126.978);
+      const result = loadChartData('1990-01-15', '15:00', 37.5665, 126.978)
 
-      expect(result).toBeNull();
-    });
+      expect(result).toBeNull()
+    })
 
-    it("returns null when neither saju nor astro data exists", () => {
+    it('returns null when neither saju nor astro data exists', () => {
       // Manually set invalid cache
-      const cacheKey = "destinyChartData_1990-01-15_14:30";
+      const cacheKey = 'destinyChartData_1990-01-15_14:30'
       sessionStorageMock.setItem(
         cacheKey,
         JSON.stringify({
           timestamp: Date.now(),
-          birthKey: "1990-01-15_14:30_37.5665_126.9780",
+          birthKey: '1990-01-15_14:30_37.5665_126.9780',
         })
-      );
+      )
 
-      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      const result = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
 
-      expect(result).toBeNull();
-    });
-  });
+      expect(result).toBeNull()
+    })
+  })
 
-  describe("clearChartCache", () => {
-    it("removes cache data", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+  describe('clearChartCache', () => {
+    it('removes cache data', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
-      clearChartCache();
+      clearChartCache()
 
-      expect(sessionStorageMock.removeItem).toHaveBeenCalled();
-    });
+      expect(sessionStorageMock.removeItem).toHaveBeenCalled()
+    })
 
-    it("removes cache key index", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('removes cache key index', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
-      clearChartCache();
+      clearChartCache()
 
       const indexRemoveCall = sessionStorageMock.removeItem.mock.calls.find(
-        (c: string[]) => c[0] === "destinyChartDataKey"
-      );
-      expect(indexRemoveCall).toBeTruthy();
-    });
+        (c: string[]) => c[0] === 'destinyChartDataKey'
+      )
+      expect(indexRemoveCall).toBeTruthy()
+    })
 
-    it("removes legacy cache key", () => {
-      sessionStorageMock.setItem("destinyChartData", JSON.stringify({ test: true }));
+    it('removes legacy cache key', () => {
+      sessionStorageMock.setItem('destinyChartData', JSON.stringify({ test: true }))
 
-      clearChartCache();
+      clearChartCache()
 
       const legacyRemoveCall = sessionStorageMock.removeItem.mock.calls.find(
-        (c: string[]) => c[0] === "destinyChartData"
-      );
-      expect(legacyRemoveCall).toBeTruthy();
-    });
-  });
+        (c: string[]) => c[0] === 'destinyChartData'
+      )
+      expect(legacyRemoveCall).toBeTruthy()
+    })
+  })
 
-  describe("hasCachedData", () => {
-    it("returns false when no cache exists", () => {
-      const result = hasCachedData("1990-01-15", "14:30", 37.5665, 126.978);
-      expect(result).toBe(false);
-    });
+  describe('hasCachedData', () => {
+    it('returns false when no cache exists', () => {
+      const result = hasCachedData('1990-01-15', '14:30', 37.5665, 126.978)
+      expect(result).toBe(false)
+    })
 
-    it("returns true when valid saju cache exists", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('returns true when valid saju cache exists', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { pillars: {} },
-      });
+      })
 
-      const result = hasCachedData("1990-01-15", "14:30", 37.5665, 126.978);
+      const result = hasCachedData('1990-01-15', '14:30', 37.5665, 126.978)
 
-      expect(result).toBe(true);
-    });
+      expect(result).toBe(true)
+    })
 
-    it("returns true when valid astro cache exists", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('returns true when valid astro cache exists', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         astro: { planets: {} },
-      });
+      })
 
-      const result = hasCachedData("1990-01-15", "14:30", 37.5665, 126.978);
+      const result = hasCachedData('1990-01-15', '14:30', 37.5665, 126.978)
 
-      expect(result).toBe(true);
-    });
+      expect(result).toBe(true)
+    })
 
-    it("returns false when cache is expired", () => {
-      const now = new Date("2024-01-15T12:00:00Z").getTime();
-      vi.setSystemTime(now);
+    it('returns false when cache is expired', () => {
+      const now = new Date('2024-01-15T12:00:00Z').getTime()
+      vi.setSystemTime(now)
 
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
-      vi.advanceTimersByTime(3600001);
+      vi.advanceTimersByTime(3600001)
 
-      const result = hasCachedData("1990-01-15", "14:30", 37.5665, 126.978);
+      const result = hasCachedData('1990-01-15', '14:30', 37.5665, 126.978)
 
-      expect(result).toBe(false);
-    });
+      expect(result).toBe(false)
+    })
 
-    it("returns false when birthKey does not match", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('returns false when birthKey does not match', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
-      const result = hasCachedData("1990-01-15", "14:30", 35.0, 127.0);
+      const result = hasCachedData('1990-01-15', '14:30', 35.0, 127.0)
 
-      expect(result).toBe(false);
-    });
-  });
+      expect(result).toBe(false)
+    })
+  })
 
-  describe("birthKey generation", () => {
-    it("generates consistent birthKey for same input", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+  describe('birthKey generation', () => {
+    it('generates consistent birthKey for same input', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
       // Load with same coordinates
-      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      const result = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
 
-      expect(result).not.toBeNull();
-    });
+      expect(result).not.toBeNull()
+    })
 
-    it("truncates coordinates to 4 decimal places", () => {
+    it('truncates coordinates to 4 decimal places', () => {
       // Save with high precision
-      saveChartData("1990-01-15", "14:30", 37.56654321, 126.97876543, {
+      saveChartData('1990-01-15', '14:30', 37.56654321, 126.97876543, {
         saju: { test: true },
-      });
+      })
 
       // Load with same truncated precision
-      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.9788);
+      const result = loadChartData('1990-01-15', '14:30', 37.5665, 126.9788)
 
-      expect(result).not.toBeNull();
-    });
-  });
+      expect(result).not.toBeNull()
+    })
+  })
 
-  describe("legacy cache compatibility", () => {
-    it("falls back to legacy cache key when new key not found", () => {
+  describe('legacy cache compatibility', () => {
+    it('falls back to legacy cache key when new key not found', () => {
       // Set legacy cache
       const legacyData = {
         saju: { pillars: {} },
         timestamp: Date.now(),
-        birthKey: "1990-01-15_14:30_37.5665_126.9780",
-      };
-      sessionStorageMock.setItem("destinyChartData", JSON.stringify(legacyData));
+        birthKey: '1990-01-15_14:30_37.5665_126.9780',
+      }
+      sessionStorageMock.setItem('destinyChartData', JSON.stringify(legacyData))
 
-      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      const result = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
 
-      expect(result).not.toBeNull();
-      expect(result?.saju).toBeDefined();
-    });
-  });
+      expect(result).not.toBeNull()
+      expect(result?.saju).toBeDefined()
+    })
+  })
 
-  describe("cache performance and edge cases", () => {
+  describe('cache performance and edge cases', () => {
     beforeEach(() => {
-      storageData = {};
-      vi.clearAllMocks();
-      vi.useFakeTimers();
-    });
+      storageData = {}
+      vi.clearAllMocks()
+      vi.useFakeTimers()
+    })
 
     afterEach(() => {
-      vi.useRealTimers();
-    });
+      vi.useRealTimers()
+    })
 
-    it("handles rapid save/load cycles", () => {
+    it('handles rapid save/load cycles', () => {
       // Rapidly save and load
       for (let i = 0; i < 10; i++) {
-        saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+        saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
           saju: { iteration: i },
-        });
+        })
 
-        const loaded = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
-        expect(loaded).not.toBeNull();
+        const loaded = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
+        expect(loaded).not.toBeNull()
       }
-    });
+    })
 
-    it("handles large data objects", () => {
+    it('handles large data objects', () => {
       const largeData = {
-        saju: { data: "x".repeat(10000) },
-        astro: { data: "y".repeat(10000) },
-      };
+        saju: { data: 'x'.repeat(10000) },
+        astro: { data: 'y'.repeat(10000) },
+      }
 
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, largeData);
-      const loaded = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, largeData)
+      const loaded = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
 
-      expect(loaded?.saju).toEqual(largeData.saju);
-      expect(loaded?.astro).toEqual(largeData.astro);
-    });
+      expect(loaded?.saju).toEqual(largeData.saju)
+      expect(loaded?.astro).toEqual(largeData.astro)
+    })
 
-    it("handles cache at exact expiry time", () => {
-      const now = Date.now();
-      vi.setSystemTime(now);
+    it('handles cache at exact expiry time', () => {
+      const now = Date.now()
+      vi.setSystemTime(now)
 
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
       // Exactly 1 hour later
-      vi.setSystemTime(now + 3600000);
-      const atExpiry = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
-      expect(atExpiry).not.toBeNull();
+      vi.setSystemTime(now + 3600000)
+      const atExpiry = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
+      expect(atExpiry).not.toBeNull()
 
       // 1ms after expiry
-      vi.setSystemTime(now + 3600001);
-      const afterExpiry = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
-      expect(afterExpiry).toBeNull();
-    });
+      vi.setSystemTime(now + 3600001)
+      const afterExpiry = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
+      expect(afterExpiry).toBeNull()
+    })
 
-    it("handles missing advancedAstro gracefully", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+    it('handles missing advancedAstro gracefully', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: { test: true },
-      });
+      })
 
-      const loaded = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
-      expect(loaded?.saju).toBeDefined();
-      expect(loaded?.advancedAstro).toBeUndefined();
-    });
+      const loaded = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
+      expect(loaded?.saju).toBeDefined()
+      expect(loaded?.advancedAstro).toBeUndefined()
+    })
 
-    it("handles coordinate precision differences", () => {
+    it('handles coordinate precision differences', () => {
       // Save with high precision
-      saveChartData("1990-01-15", "14:30", 37.566543210, 126.978987654, {
+      saveChartData('1990-01-15', '14:30', 37.56654321, 126.978987654, {
         saju: { test: true },
-      });
+      })
 
       // Load with lower precision (should match after truncation)
-      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.9790);
-      expect(result).not.toBeNull();
-    });
+      const result = loadChartData('1990-01-15', '14:30', 37.5665, 126.979)
+      expect(result).not.toBeNull()
+    })
 
-    it("handles different time formats", () => {
-      saveChartData("1990-01-15", "09:00", 37.5665, 126.978, {
+    it('handles different time formats', () => {
+      saveChartData('1990-01-15', '09:00', 37.5665, 126.978, {
         saju: { morning: true },
-      });
+      })
 
-      const result = loadChartData("1990-01-15", "09:00", 37.5665, 126.978);
-      expect(result?.saju).toBeDefined();
-    });
+      const result = loadChartData('1990-01-15', '09:00', 37.5665, 126.978)
+      expect(result?.saju).toBeDefined()
+    })
 
-    it("returns null for corrupted cache data", () => {
-      const cacheKey = "destinyChartData_1990-01-15_14:30";
-      sessionStorageMock.setItem(cacheKey, "not valid json{");
+    it('returns null for corrupted cache data', () => {
+      const cacheKey = 'destinyChartData_1990-01-15_14:30'
+      sessionStorageMock.setItem(cacheKey, 'not valid json{')
 
-      const result = loadChartData("1990-01-15", "14:30", 37.5665, 126.978);
-      expect(result).toBeNull();
-    });
+      const result = loadChartData('1990-01-15', '14:30', 37.5665, 126.978)
+      expect(result).toBeNull()
+    })
 
-    it("handles sessionStorage quota exceeded", () => {
-      const originalSetItem = sessionStorageMock.setItem;
+    it('handles sessionStorage quota exceeded', () => {
+      const originalSetItem = sessionStorageMock.setItem
       sessionStorageMock.setItem = vi.fn(() => {
-        throw new Error("QuotaExceededError");
-      });
+        throw new Error('QuotaExceededError')
+      })
 
       try {
         // Should not throw
         expect(() =>
-          saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+          saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
             saju: { test: true },
           })
-        ).not.toThrow();
+        ).not.toThrow()
       } finally {
-        sessionStorageMock.setItem = originalSetItem;
+        sessionStorageMock.setItem = originalSetItem
       }
-    });
+    })
 
-    it("handles multiple cached charts", () => {
+    it('handles multiple cached charts', () => {
       // Cache different birth data
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
-        saju: { person: "A" },
-      });
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
+        saju: { person: 'A' },
+      })
 
-      saveChartData("1995-06-20", "09:00", 35.0, 127.0, {
-        saju: { person: "B" },
-      });
+      saveChartData('1995-06-20', '09:00', 35.0, 127.0, {
+        saju: { person: 'B' },
+      })
 
       // Verify both were saved with different keys
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const keys = calls.filter((c: string[]) => c[0].startsWith("destinyChartData_")).map((c: string[]) => c[0]);
+      const calls = sessionStorageMock.setItem.mock.calls
+      const keys = calls
+        .filter((c: string[]) => c[0].startsWith('destinyChartData_'))
+        .map((c: string[]) => c[0])
 
       // Should have saved with different cache keys
-      expect(keys.length).toBeGreaterThanOrEqual(2);
-      expect(keys).toContain("destinyChartData_1990-01-15_14:30");
-      expect(keys).toContain("destinyChartData_1995-06-20_09:00");
-    });
-  });
+      expect(keys.length).toBeGreaterThanOrEqual(2)
+      // 캐시 키는 좌표까지 포함(= birthKey) — 같은 시각·다른 도시 인물 분리.
+      expect(keys).toContain('destinyChartData_1990-01-15_14:30_37.5665_126.9780')
+      expect(keys).toContain('destinyChartData_1995-06-20_09:00_35.0000_127.0000')
+    })
+  })
 
-  describe("birthKey generation edge cases", () => {
+  describe('birthKey generation edge cases', () => {
     beforeEach(() => {
-      storageData = {};
-      vi.clearAllMocks();
-    });
+      storageData = {}
+      vi.clearAllMocks()
+    })
 
-    it("generates unique birthKeys based on all parameters", () => {
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, { saju: { test: 1 } });
+    it('generates unique birthKeys based on all parameters', () => {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, { saju: { test: 1 } })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
       // BirthKey should include date, time, and coordinates
-      expect(savedData.birthKey).toContain("1990-01-15");
-      expect(savedData.birthKey).toContain("14:30");
-      expect(savedData.birthKey).toContain("37.5665");
-      expect(savedData.birthKey).toContain("126.9780");
-    });
+      expect(savedData.birthKey).toContain('1990-01-15')
+      expect(savedData.birthKey).toContain('14:30')
+      expect(savedData.birthKey).toContain('37.5665')
+      expect(savedData.birthKey).toContain('126.9780')
+    })
 
-    it("uses 4 decimal places for coordinates in birthKey", () => {
-      saveChartData("1990-01-15", "14:30", 37.566543210, 126.978987654, { saju: { test: true } });
+    it('uses 4 decimal places for coordinates in birthKey', () => {
+      saveChartData('1990-01-15', '14:30', 37.56654321, 126.978987654, { saju: { test: true } })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
       // Should be truncated to 4 decimal places
-      expect(savedData.birthKey).toContain("37.5665");
-      expect(savedData.birthKey).toContain("126.9790");
-    });
+      expect(savedData.birthKey).toContain('37.5665')
+      expect(savedData.birthKey).toContain('126.9790')
+    })
 
-    it("handles zero coordinates in birthKey", () => {
-      saveChartData("1990-01-15", "14:30", 0, 0, { saju: { equator: true } });
+    it('handles zero coordinates in birthKey', () => {
+      saveChartData('1990-01-15', '14:30', 0, 0, { saju: { equator: true } })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(savedData.birthKey).toContain("0.0000");
-    });
+      expect(savedData.birthKey).toContain('0.0000')
+    })
 
-    it("handles extreme coordinates in birthKey", () => {
-      saveChartData("1990-01-15", "14:30", 89.9999, -179.9999, { saju: { extreme: true } });
+    it('handles extreme coordinates in birthKey', () => {
+      saveChartData('1990-01-15', '14:30', 89.9999, -179.9999, { saju: { extreme: true } })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(savedData.birthKey).toBeDefined();
-      expect(typeof savedData.birthKey).toBe("string");
-    });
-  });
+      expect(savedData.birthKey).toBeDefined()
+      expect(typeof savedData.birthKey).toBe('string')
+    })
+  })
 
-  describe("data integrity checks", () => {
+  describe('data integrity checks', () => {
     beforeEach(() => {
-      storageData = {};
-      vi.clearAllMocks();
-    });
+      storageData = {}
+      vi.clearAllMocks()
+    })
 
-    it("saves complex nested structures correctly", () => {
+    it('saves complex nested structures correctly', () => {
       const complexData = {
         pillars: {
-          year: { stem: "甲", branch: "子" },
-          month: { stem: "乙", branch: "丑" },
+          year: { stem: '甲', branch: '子' },
+          month: { stem: '乙', branch: '丑' },
         },
-        elements: ["木", "土"],
-      };
+        elements: ['木', '土'],
+      }
 
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: complexData,
-      });
+      })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(savedData.saju).toEqual(complexData);
-    });
+      expect(savedData.saju).toEqual(complexData)
+    })
 
-    it("saves array data correctly", () => {
+    it('saves array data correctly', () => {
       const arrayData = {
-        elements: ["Metal", "Water", "Wood"],
+        elements: ['Metal', 'Water', 'Wood'],
         scores: [10, 20, 30, 40, 50],
-      };
+      }
 
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: arrayData,
-      });
+      })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(Array.isArray(savedData.saju.elements)).toBe(true);
-      expect(savedData.saju.elements).toEqual(["Metal", "Water", "Wood"]);
-    });
+      expect(Array.isArray(savedData.saju.elements)).toBe(true)
+      expect(savedData.saju.elements).toEqual(['Metal', 'Water', 'Wood'])
+    })
 
-    it("handles various data types", () => {
+    it('handles various data types', () => {
       const mixedData = {
-        string: "test",
+        string: 'test',
         number: 42,
         float: 3.14159,
         negative: -100,
         boolean: true,
         nullValue: null,
-      };
+      }
 
-      saveChartData("1990-01-15", "14:30", 37.5665, 126.978, {
+      saveChartData('1990-01-15', '14:30', 37.5665, 126.978, {
         saju: mixedData,
-      });
+      })
 
-      const calls = sessionStorageMock.setItem.mock.calls;
-      const dataCall = calls.find((c: string[]) => c[0].startsWith("destinyChartData_"));
-      const savedData = JSON.parse(dataCall?.[1] || "{}");
+      const calls = sessionStorageMock.setItem.mock.calls
+      const dataCall = calls.find((c: string[]) => c[0].startsWith('destinyChartData_'))
+      const savedData = JSON.parse(dataCall?.[1] || '{}')
 
-      expect(savedData.saju.number).toBe(42);
-      expect(savedData.saju.float).toBe(3.14159);
-      expect(savedData.saju.boolean).toBe(true);
-      expect(savedData.saju.nullValue).toBeNull();
-    });
-  });
-});
+      expect(savedData.saju.number).toBe(42)
+      expect(savedData.saju.float).toBe(3.14159)
+      expect(savedData.saju.boolean).toBe(true)
+      expect(savedData.saju.nullValue).toBeNull()
+    })
+  })
+})

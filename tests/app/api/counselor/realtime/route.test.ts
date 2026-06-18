@@ -181,4 +181,24 @@ describe('/api/counselor/realtime POST — 검증', () => {
     expect(res.status).toBe(200)
     expect(mockStreamClaudeAsSSE).toHaveBeenCalledTimes(1)
   })
+
+  it('consumeCredits 실패(잔액 부족/race) → 402, 스트림 안 함 (무료 답변 누수 차단)', async () => {
+    // canUseCredits 는 통과해도(동시 탭) consumeCredits 가 원자적으로 실패할 수
+    // 있다. 예전엔 이때 그대로 스트림 → 프리미엄 답변이 무료로 나갔다.
+    mockConsumeCredits.mockResolvedValue({ success: false })
+    const { POST } = await importRoute()
+    const res = await POST(makeReq(realClientPayload))
+    expect(res.status).toBe(402)
+    expect((await res.json()).error).toBe('insufficient_credits')
+    expect(mockStreamClaudeAsSSE).not.toHaveBeenCalled()
+  })
+
+  it('consumeCredits 예외(DB 등) → 503, 스트림 안 함', async () => {
+    mockConsumeCredits.mockRejectedValue(new Error('db down'))
+    const { POST } = await importRoute()
+    const res = await POST(makeReq(realClientPayload))
+    expect(res.status).toBe(503)
+    expect((await res.json()).error).toBe('charge_failed')
+    expect(mockStreamClaudeAsSSE).not.toHaveBeenCalled()
+  })
 })

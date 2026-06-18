@@ -24,7 +24,15 @@ export function generateSessionId(): string {
  * Generate a unique message ID
  */
 export function generateMessageId(prefix: 'user' | 'assistant' | 'error'): string {
-  return `${prefix}-${Date.now()}`
+  // Date.now() 만으로는 같은 ms 안에 만들어진 같은 role 메시지(예: 빠른 연속
+  // 전송, 타로 결과 + 후속 assistant 메시지)가 동일 id 로 충돌해 React key
+  // 중복 + 복구 로직(useChatApi 가 id 로 assistant 버블을 patch)이 엉뚱한
+  // 버블을 건드린다. generateSessionId 처럼 랜덤 suffix 를 붙여 유일성 보장.
+  const rand =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : Math.random().toString(16).slice(2)
+  return `${prefix}-${Date.now()}-${rand}`
 }
 
 /**

@@ -31,7 +31,6 @@ export function useCounselorData(sp: SearchParams) {
   const { locale: i18nLocale, setLocale } = useI18n()
 
   const [chartData, setChartData] = useState<ChartData | null>(null)
-  const [sessionId] = useState<string | null>(null)
 
   // Premium: User context and chat session for returning users
   const [userContext, setUserContext] = useState<UserContext | undefined>(undefined)
@@ -564,8 +563,12 @@ export function useCounselorData(sp: SearchParams) {
           // Ignore localStorage errors
         }
 
+        // suppressAuthModal: 진입 시 조용한 컨텍스트 prefetch — 비로그인이면 401
+        // 이 떨어지는데, 이걸 막지 않으면 apiFetch 가 전역 로그인 모달을 띄워
+        // "들어오자마자 로그인하라"는 회귀가 난다. 로그인 유도는 첫 전송 시
+        // onSendBlocked 한 곳에서만(page.tsx) 일어나야 한다.
         const res = await withSpan('counselor.chatHistory', 'http.client', () =>
-          apiFetch(`/api/counselor/chat-history?limit=3`)
+          apiFetch(`/api/counselor/chat-history?limit=3`, { suppressAuthModal: true })
         )
         if (res.ok) {
           const data = (await res.json()) as CounselorContextResponse
@@ -656,7 +659,6 @@ export function useCounselorData(sp: SearchParams) {
 
   return {
     chartData,
-    sessionId,
     userContext,
     chatSessionId,
     handleSaveMessage,

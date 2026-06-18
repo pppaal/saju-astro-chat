@@ -108,7 +108,10 @@ const RATE_LIMIT_PER_MIN = 12
 // birthDate (YYYY-MM-DD) 기준 만 나이를 직접 계산 — saju 빌더를 거치지
 // 않고도 가능. cache 밖에서 매 턴 휘발성 userPrompt prefix 로 주입하기
 // 위한 헬퍼.
-function computeAgeYears(birthDate: string | undefined | null): number | null {
+function computeAgeYears(
+  birthDate: string | undefined | null,
+  now: Date = new Date()
+): number | null {
   if (!birthDate || typeof birthDate !== 'string') return null
   const m = birthDate.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (!m) return null
@@ -116,11 +119,23 @@ function computeAgeYears(birthDate: string | undefined | null): number | null {
   const bm = Number(m[2])
   const bd = Number(m[3])
   if (!Number.isFinite(by) || !Number.isFinite(bm) || !Number.isFinite(bd)) return null
-  const now = new Date()
   let age = now.getFullYear() - by
   const passed = now.getMonth() + 1 > bm || (now.getMonth() + 1 === bm && now.getDate() >= bd)
   if (!passed) age -= 1
   return age >= 0 && age < 150 ? age : null
+}
+
+// 멱등 키에 섞을 짧은 content discriminator. 같은 x-idempotency-key 를 서로 다른
+// 질문으로 재사용해 첫 차감 이후 무료로 받는 free-replay 누수를 막는다
+// (idempotency.ts keyFor 의 contentTag 참조). 충돌 안전성보다 "내용이 바뀌면
+// 태그도 바뀐다"가 목적이라 빠른 비암호 해시(FNV-1a)로 충분하다.
+function idemContentTag(text: string): string {
+  let h = 0x811c9dc5
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return (h >>> 0).toString(36)
 }
 
 export async function POST(req: NextRequest) {
@@ -250,22 +265,42 @@ export async function POST(req: NextRequest) {
   // race(다른 탭) 등으로 실패해도 block 보다 observability 우선.
   // 새로고침/탭 복제 등 idempotent replay 면 차감 스킵 (스트림은 정상 진행).
   let chargedThisTurn = false
+  // contentTag 로 "같은 키 + 같은 질문"만 replay 로 인정 → 키를 재사용한
+  // free-replay 차단. 진짜 새로고침/탭 복제는 같은 마지막 질문이라 그대로 dedupe.
+  // 블록 밖에 선언 — 아래 refundKey 가 차감 멱등키와 정렬되도록 재사용한다.
+  const scopedIdemKey = idemStore.keyFor(req, `user:${userId}`, idemContentTag(userMessage))
   {
-    const scopedIdemKey = idemStore.keyFor(req, `user:${userId}`)
     // 원자적 선점 — 동시 요청(더블클릭/탭 복제) 중 하나만 첫 진입으로 차감.
     // 선점 실패(replay)면 차감 스킵, 스트림은 정상 진행. 키 없으면 차감 진행.
     const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
     if (scopedIdemKey && !claimed) {
+      // 같은 질문의 정당한 재진입 — 원턴에서 이미 차감됨. 스트림만 다시 진행.
       logger.info('[counselor/realtime] idempotent replay, skip credit consume', { userId })
     } else {
+      let consumed: { success: boolean }
       try {
-        const res = await consumeCredits(userId, 'reading', 1)
-        chargedThisTurn = res.success
-        // 차감 실패 시 선점 해제 → 재시도가 다시 차감할 수 있게.
-        if (!chargedThisTurn && scopedIdemKey) await idemStore.release(scopedIdemKey)
+        consumed = await consumeCredits(userId, 'reading', 1)
       } catch (err) {
-        logger.warn('[counselor/realtime] credit deduction failed', { err })
+        // 차감 중 예외(DB 등) — 선점 해제 후 503 으로 막는다. 예전엔 여기서 그대로
+        // 스트림으로 떨어져 프리미엄 답변이 무료로 나갔다. 절대 무료 스트림 금지.
+        logger.warn('[counselor/realtime] credit deduction error', { err })
         if (scopedIdemKey) await idemStore.release(scopedIdemKey)
+        return NextResponse.json(
+          { error: 'charge_failed', message: 'Could not process credits. Please try again.' },
+          { status: 503 }
+        )
+      }
+      chargedThisTurn = consumed.success
+      if (!chargedThisTurn) {
+        // 잔액 부족/동시 탭 race 로 차감 실패. canUseCredits 를 통과했어도
+        // consumeCredits 가 원자적으로 실패할 수 있다(같은 잔액을 두 탭이 경합).
+        // 예전엔 이 경우 그대로 스트림 → 잔액 1로 동시요청을 쏘면 프리미엄
+        // 답변이 무제한 무료로 나가던 수익 누수. compat 라우트처럼 402 로 막는다.
+        if (scopedIdemKey) await idemStore.release(scopedIdemKey)
+        return NextResponse.json(
+          { error: 'insufficient_credits', message: 'Not enough credits.' },
+          { status: 402 }
+        )
       }
     }
   }
@@ -275,7 +310,14 @@ export async function POST(req: NextRequest) {
   // compat/counselor 처럼 outer-catch 로 잡아 환불한다. refundKey 는 스트림
   // onFailure 와 공유해 이중 환불 없음(refundCreditsOnce 가 dedupe).
   const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
-  const refundKey = turnId ? `counselor-realtime:${userId}:${turnId}` : null
+  // 환불 dedup 키를 차감 멱등키(scopedIdemKey)와 정렬 — 차감 1회당 환불 1회.
+  // 예전엔 환불키가 body.turnId 에서만 파생돼, turnId 가 비면 refundCreditsOnce
+  // 가 시간버킷 합성키로 떨어졌고, 같은 시각 두 실패 턴이 같은 키로 dedupe 돼
+  // 이중차감·단일환불이 날 수 있었다. scopedIdemKey 는 클라의 per-turn UUID +
+  // contentTag 라 턴마다 유일하고, refundCreditsOnce 가 'refund:' prefix 를
+  // 붙이므로 차감 claim 레코드와 충돌하지 않는다. 멱등 헤더가 없을 때만 turnId
+  // 기반으로 폴백한다.
+  const refundKey = scopedIdemKey ?? (turnId ? `counselor-realtime:${userId}:${turnId}` : null)
   const refundChargedTurn = async (reason: string) => {
     if (!chargedThisTurn) return
     try {

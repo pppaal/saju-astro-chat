@@ -29,6 +29,10 @@ interface BirthInfoModalProps {
   // 헤더/버튼 카피 커스터마이즈 (예: '이 사람으로 보기').
   title?: string
   submitLabel?: string
+  // true 면 initial 이 없을 때 내 저장 정보(getStoredBirthInfo)로 prefill 하지
+  // 않고 빈 폼으로 연다. "다른 사람으로 보기"(임시 조회)에서 내 생년월일이 미리
+  // 채워져 있으면 안 되므로 — 빈 폼 + '저장된 정보 불러오기'로 지인을 고른다.
+  startBlank?: boolean
 }
 
 interface LoadOption {
@@ -58,12 +62,14 @@ export default function BirthInfoModal({
   persist = true,
   title,
   submitLabel,
+  startBlank = false,
 }: BirthInfoModalProps) {
   const isKo = locale === 'ko'
   const trapRef = useFocusTrap(open)
   // initial 이 안 넘어와도(메인 '생년월일 입력하세요' CTA 처럼) 저장된 내
   // 생년월일이 있으면 그걸로 폼을 채운다 — "매번 비어 보임" 회귀 fix.
-  const seed = initial ?? getStoredBirthInfo()
+  // 단 startBlank("다른 사람으로 보기")면 내 정보로 채우지 않고 빈 폼으로 둔다.
+  const seed = initial ?? (startBlank ? null : getStoredBirthInfo())
   const [name, setName] = useState(seed?.name || '')
   const [birthDate, setBirthDate] = useState(seed?.birthDate || '')
   const [birthTime, setBirthTime] = useState(

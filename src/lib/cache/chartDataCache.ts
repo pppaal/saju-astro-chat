@@ -3,21 +3,21 @@
  * Manages caching of Saju and Astrology calculation results
  */
 
-import { logger } from "@/lib/logger";
+import { logger } from '@/lib/logger'
 
-const CACHE_KEY_PREFIX = "destinyChartData_";
-const CACHE_KEY_INDEX = "destinyChartDataKey";
-const CACHE_KEYS_LIST = "destinyChartDataKeys"; // 모든 캐시 키 추적용
-const LEGACY_CACHE_KEY = "destinyChartData"; // 레거시 호환
-const CACHE_DURATION = 3600000; // 1 hour in milliseconds
-const MAX_CACHE_ENTRIES = 10; // 최대 캐시 항목 수
+const CACHE_KEY_PREFIX = 'destinyChartData_'
+const CACHE_KEY_INDEX = 'destinyChartDataKey'
+const CACHE_KEYS_LIST = 'destinyChartDataKeys' // 모든 캐시 키 추적용
+const LEGACY_CACHE_KEY = 'destinyChartData' // 레거시 호환
+const CACHE_DURATION = 3600000 // 1 hour in milliseconds
+const MAX_CACHE_ENTRIES = 10 // 최대 캐시 항목 수
 
 export interface ChartCacheData {
-  saju?: Record<string, unknown>;
-  astro?: Record<string, unknown>;
-  advancedAstro?: Record<string, unknown>;
-  timestamp: number;
-  birthKey: string; // Unique key for birth data
+  saju?: Record<string, unknown>
+  astro?: Record<string, unknown>
+  advancedAstro?: Record<string, unknown>
+  timestamp: number
+  birthKey: string // Unique key for birth data
 }
 
 /**
@@ -29,7 +29,7 @@ function generateBirthKey(
   latitude: number,
   longitude: number
 ): string {
-  return `${birthDate}_${birthTime}_${latitude.toFixed(4)}_${longitude.toFixed(4)}`;
+  return `${birthDate}_${birthTime}_${latitude.toFixed(4)}_${longitude.toFixed(4)}`
 }
 
 /**
@@ -37,27 +37,27 @@ function generateBirthKey(
  */
 function manageCacheKeys(newKey: string): void {
   try {
-    const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST);
-    const keys: string[] = keysJson ? JSON.parse(keysJson) : [];
+    const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST)
+    const keys: string[] = keysJson ? JSON.parse(keysJson) : []
 
     // 이미 있는 키면 맨 뒤로 이동 (LRU)
-    const existingIndex = keys.indexOf(newKey);
+    const existingIndex = keys.indexOf(newKey)
     if (existingIndex !== -1) {
-      keys.splice(existingIndex, 1);
+      keys.splice(existingIndex, 1)
     }
-    keys.push(newKey);
+    keys.push(newKey)
 
     // 최대 개수 초과 시 가장 오래된 항목 제거
     while (keys.length > MAX_CACHE_ENTRIES) {
-      const oldestKey = keys.shift();
+      const oldestKey = keys.shift()
       if (oldestKey) {
-        sessionStorage.removeItem(oldestKey);
+        sessionStorage.removeItem(oldestKey)
       }
     }
 
-    sessionStorage.setItem(CACHE_KEYS_LIST, JSON.stringify(keys));
+    sessionStorage.setItem(CACHE_KEYS_LIST, JSON.stringify(keys))
   } catch (error) {
-    logger.warn("[ChartCache] Failed to manage cache keys:", error);
+    logger.warn('[ChartCache] Failed to manage cache keys:', error)
   }
 }
 
@@ -65,38 +65,40 @@ function manageCacheKeys(newKey: string): void {
  * 만료된 캐시 항목 정리
  */
 export function cleanupExpiredCache(): number {
-  let removedCount = 0;
+  let removedCount = 0
   try {
-    const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST);
-    if (!keysJson) {return 0;}
+    const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST)
+    if (!keysJson) {
+      return 0
+    }
 
-    const keys: string[] = JSON.parse(keysJson);
-    const now = Date.now();
-    const validKeys: string[] = [];
+    const keys: string[] = JSON.parse(keysJson)
+    const now = Date.now()
+    const validKeys: string[] = []
 
     for (const key of keys) {
-      const stored = sessionStorage.getItem(key);
+      const stored = sessionStorage.getItem(key)
       if (stored) {
         try {
-          const cached = JSON.parse(stored);
+          const cached = JSON.parse(stored)
           if (now - cached.timestamp > CACHE_DURATION) {
-            sessionStorage.removeItem(key);
-            removedCount++;
+            sessionStorage.removeItem(key)
+            removedCount++
           } else {
-            validKeys.push(key);
+            validKeys.push(key)
           }
         } catch {
-          sessionStorage.removeItem(key);
-          removedCount++;
+          sessionStorage.removeItem(key)
+          removedCount++
         }
       }
     }
 
-    sessionStorage.setItem(CACHE_KEYS_LIST, JSON.stringify(validKeys));
+    sessionStorage.setItem(CACHE_KEYS_LIST, JSON.stringify(validKeys))
   } catch (error) {
-    logger.warn("[ChartCache] Failed to cleanup expired cache:", error);
+    logger.warn('[ChartCache] Failed to cleanup expired cache:', error)
   }
-  return removedCount;
+  return removedCount
 }
 
 /**
@@ -108,28 +110,31 @@ export function saveChartData(
   latitude: number,
   longitude: number,
   data: {
-    saju?: Record<string, unknown>;
-    astro?: Record<string, unknown>;
-    advancedAstro?: Record<string, unknown>;
+    saju?: Record<string, unknown>
+    astro?: Record<string, unknown>
+    advancedAstro?: Record<string, unknown>
   }
 ): void {
   try {
-    const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude);
-    const cacheKey = `${CACHE_KEY_PREFIX}${birthDate}_${birthTime}`;
+    const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude)
+    // 캐시 키에도 좌표를 포함(= birthKey) — 예전엔 birthDate_birthTime 만이라
+    // 같은 시각·다른 도시 인물('다른 사람으로 보기')이 같은 키를 덮어써 캐시가
+    // 서로를 밀어내고 매번 재계산되던 thrash 가 있었다. 좌표까지 키에 넣어 분리.
+    const cacheKey = `${CACHE_KEY_PREFIX}${birthKey}`
     const cacheData: ChartCacheData = {
       ...data,
       timestamp: Date.now(),
       birthKey,
-    };
+    }
 
     // 캐시 키 관리 (크기 제한 및 정리)
-    manageCacheKeys(cacheKey);
+    manageCacheKeys(cacheKey)
 
-    sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
+    sessionStorage.setItem(cacheKey, JSON.stringify(cacheData))
     // 현재 활성 캐시 키 저장
-    sessionStorage.setItem(CACHE_KEY_INDEX, cacheKey);
+    sessionStorage.setItem(CACHE_KEY_INDEX, cacheKey)
   } catch (error) {
-    logger.warn("[ChartCache] Failed to save cache:", error);
+    logger.warn('[ChartCache] Failed to save cache:', error)
   }
 }
 
@@ -143,51 +148,54 @@ export function loadChartData(
   latitude: number,
   longitude: number
 ): {
-  saju?: Record<string, unknown>;
-  astro?: Record<string, unknown>;
-  advancedAstro?: Record<string, unknown>;
+  saju?: Record<string, unknown>
+  astro?: Record<string, unknown>
+  advancedAstro?: Record<string, unknown>
 } | null {
   try {
-    // 새로운 키 형식 시도
-    const cacheKey = `${CACHE_KEY_PREFIX}${birthDate}_${birthTime}`;
-    let stored = sessionStorage.getItem(cacheKey);
+    // 새로운 키 형식 시도 — 저장과 동일하게 좌표 포함 birthKey 로 키 생성.
+    const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude)
+    const cacheKey = `${CACHE_KEY_PREFIX}${birthKey}`
+    let stored = sessionStorage.getItem(cacheKey)
 
     // 레거시 키로 폴백
     if (!stored) {
-      stored = sessionStorage.getItem(LEGACY_CACHE_KEY);
+      stored = sessionStorage.getItem(LEGACY_CACHE_KEY)
     }
 
-    if (!stored) {return null;}
+    if (!stored) {
+      return null
+    }
 
-    const cached: ChartCacheData = JSON.parse(stored);
+    const cached: ChartCacheData = JSON.parse(stored)
 
     // Check if cache is expired
     if (Date.now() - cached.timestamp > CACHE_DURATION) {
-      sessionStorage.removeItem(cacheKey);
-      sessionStorage.removeItem(LEGACY_CACHE_KEY);
-      return null;
+      sessionStorage.removeItem(cacheKey)
+      sessionStorage.removeItem(LEGACY_CACHE_KEY)
+      return null
     }
 
-    // Check if birth data matches
-    const birthKey = generateBirthKey(birthDate, birthTime, latitude, longitude);
+    // Check if birth data matches — birthKey 는 위에서 이미 계산(키에도 사용).
+    // 레거시 키로 폴백해 들어온 경우에도 데이터 정합성을 한 번 더 검증한다.
     if (cached.birthKey !== birthKey) {
       // Different birth data - don't use this cache
-      return null;
+      return null
     }
 
     // Validate data integrity
     if (!cached.saju && !cached.astro) {
-      return null;
+      return null
     }
 
     return {
       saju: cached.saju,
       astro: cached.astro,
       advancedAstro: cached.advancedAstro,
-    };
+    }
   } catch (error) {
-    logger.warn("[ChartCache] Failed to load cache:", error);
-    return null;
+    logger.warn('[ChartCache] Failed to load cache:', error)
+    return null
   }
 }
 
@@ -197,18 +205,18 @@ export function loadChartData(
 export function clearChartCache(): void {
   try {
     // 모든 추적된 캐시 키 삭제
-    const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST);
+    const keysJson = sessionStorage.getItem(CACHE_KEYS_LIST)
     if (keysJson) {
-      const keys: string[] = JSON.parse(keysJson);
+      const keys: string[] = JSON.parse(keysJson)
       for (const key of keys) {
-        sessionStorage.removeItem(key);
+        sessionStorage.removeItem(key)
       }
     }
-    sessionStorage.removeItem(CACHE_KEYS_LIST);
-    sessionStorage.removeItem(CACHE_KEY_INDEX);
-    sessionStorage.removeItem(LEGACY_CACHE_KEY);
+    sessionStorage.removeItem(CACHE_KEYS_LIST)
+    sessionStorage.removeItem(CACHE_KEY_INDEX)
+    sessionStorage.removeItem(LEGACY_CACHE_KEY)
   } catch (error) {
-    logger.warn("[ChartCache] Failed to clear cache:", error);
+    logger.warn('[ChartCache] Failed to clear cache:', error)
   }
 }
 
@@ -221,6 +229,6 @@ export function hasCachedData(
   latitude: number,
   longitude: number
 ): boolean {
-  const cached = loadChartData(birthDate, birthTime, latitude, longitude);
-  return cached !== null && (!!cached.saju || !!cached.astro);
+  const cached = loadChartData(birthDate, birthTime, latitude, longitude)
+  return cached !== null && (!!cached.saju || !!cached.astro)
 }

@@ -66,12 +66,28 @@ export function useChatAutoSave(options: UseChatAutoSaveOptions): void {
   const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const latestPayloadRef = useRef<string | null>(null)
 
+  // endpoint 를 ref 로도 들고 있어 언마운트 flush(deps []) 가 최신 endpoint 를
+  // 읽으면서도 매 변경마다 재등록되지 않게 한다. ref 갱신은 effect 안에서만
+  // (렌더 중 ref 쓰기 금지 규칙 준수).
+  const endpointRef = useRef(endpoint)
+  useEffect(() => {
+    endpointRef.current = endpoint
+  }, [endpoint])
+
   // debounce 저장
   useEffect(() => {
-    if (!enabled || messages.length === 0) return
+    if (!enabled || messages.length === 0) {
+      // 새 채팅 시작 등으로 메시지가 비면 직전 세션의 stale payload 를 비운다 —
+      // 안 그러면 언마운트 flush/ beforeunload 가 옛 세션 내용을 다시 보낸다.
+      latestPayloadRef.current = null
+      return
+    }
 
     const visibleMessages = messages.filter((m) => m.role !== 'system')
-    if (visibleMessages.length === 0) return
+    if (visibleMessages.length === 0) {
+      latestPayloadRef.current = null
+      return
+    }
 
     const payload = JSON.stringify({
       sessionId: resolveSessionId(sessionId),
@@ -102,6 +118,28 @@ export function useChatAutoSave(options: UseChatAutoSaveOptions): void {
       if (pendingTimerRef.current) clearTimeout(pendingTimerRef.current)
     }
   }, [enabled, messages, sessionId, locale, endpoint, debounceMs, extra])
+
+  // 언마운트 flush — SPA 네비게이션이나 chatResetKey remount 로 컴포넌트가
+  // 사라질 때 아직 debounce 안 끝난 마지막 payload 를 keepalive 로 보낸다.
+  // beforeunload 는 하드 종료(탭 닫기/새로고침)만 잡고 in-app 이탈엔 안 뜨므로
+  // 이 effect 가 그 빈틈을 메운다. (예전엔 deprecated useChatSession 의 언마운트
+  // keepalive 가 이 역할을 했는데, 저장 경로를 이 hook 하나로 통일하며 이관.)
+  useEffect(() => {
+    return () => {
+      const payload = latestPayloadRef.current
+      if (!payload) return
+      try {
+        void fetch(endpointRef.current, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true,
+        })
+      } catch {
+        /* best-effort flush — 실패해도 다음 진입의 auto-save 가 메운다 */
+      }
+    }
+  }, [])
 
   // beforeunload: 마지막 미저장 payload 를 sendBeacon 으로 flush — 사용자가
   // 답변 직후 탭 닫아도 마지막 메시지 보존.
