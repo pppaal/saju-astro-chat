@@ -116,17 +116,6 @@ export function extractPartialOverall(buffer: string): string | null {
 }
 
 /**
- * 누적 버퍼에서 "hook" (공유 카드용 한 줄 후크)을 뽑는다. overall 과 동일하게
- * 키 위치 anchor 로 false-match 를 막고, 종료 따옴표 전이면 부분 문자열 반환.
- * 보통 schema 의 마지막 키라 완성 직전에 도착한다.
- */
-export function extractPartialHook(buffer: string): string | null {
-  const openQuote = findValueOpenQuote(buffer, 'hook')
-  if (openQuote === null) return null
-  return extractStringFrom(buffer, openQuote).value
-}
-
-/**
  * 부분 JSON 안의 cards[].interpretation 값들을 progressive 하게 뽑아낸다.
  * 카드별 streaming UX 용 — 청크마다 호출되어, 지금까지 도착한 카드 해석들을 배열로 반환.
  *

@@ -274,20 +274,8 @@ describe('Referral Service', () => {
         referralCode: 'CODE1234',
       } as never)
       mockedPrisma.user.findMany.mockResolvedValue([
-        {
-          id: 'ref-1',
-          name: 'User 1',
-          createdAt: new Date(),
-          tarotReadings: [{ id: 'r1' }],
-          counselorChatSessions: [],
-        },
-        {
-          id: 'ref-2',
-          name: 'User 2',
-          createdAt: new Date(),
-          tarotReadings: [],
-          counselorChatSessions: [],
-        },
+        { id: 'ref-1', name: 'User 1', createdAt: new Date(), tarotReadings: [{ id: 'r1' }], counselorChatSessions: [] },
+        { id: 'ref-2', name: 'User 2', createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
       ] as never)
       mockedPrisma.referralReward.findMany.mockResolvedValue([
         { id: 'rw-1', creditsAwarded: 3, status: 'completed', createdAt: new Date() },
@@ -350,7 +338,7 @@ describe('Referral Service', () => {
     it('should use default URL when no base or env', () => {
       delete process.env.NEXT_PUBLIC_BASE_URL
       const url = getReferralUrl('CODE1234')
-      expect(url).toBe('https://destinypal.com/?ref=CODE1234')
+      expect(url).toBe('https://destinypal.me/?ref=CODE1234')
     })
 
     it('should handle special characters in code', () => {
