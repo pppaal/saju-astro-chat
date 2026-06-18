@@ -41,6 +41,19 @@ const DEFAULT_DECK: DeckStyle = DECK_STYLES[0]
 const DEFAULT_SPREAD =
   ALL_SPREADS.find((s) => s.spread.id === 'past-present-future') ?? ALL_SPREADS[0]
 
+// 유도 질문(추천 질문) — 입력창 위 가로 스크롤 칩. 클릭 = 그 질문으로 바로
+// 리딩 시작. 빈 입력창 앞에서 멈칫하는 사용자를 첫 리딩까지 한 번에 데려간다.
+const SEED_QUESTIONS: Array<{ ko: string; en: string }> = [
+  { ko: '헤어진 그 사람, 다시 연락 올까요?', en: 'Will my ex reach out again?' },
+  { ko: '지금 이 사람과 잘 될 수 있을까요?', en: 'Will it work out with this person?' },
+  { ko: '썸 타는 그 사람 속마음이 궁금해요', en: 'What are they really feeling about me?' },
+  { ko: '이직, 지금이 타이밍일까요?', en: 'Is now the time to change jobs?' },
+  { ko: '이번 달 금전운은 어떤가요?', en: "How's my money luck this month?" },
+  { ko: '고민 중인 이 선택, 어디로 가야 할까요?', en: 'Which way on this choice?' },
+  { ko: '올해 나에게 올 가장 큰 변화는?', en: 'My biggest change this year?' },
+  { ko: '지금 내 연애운 흐름은?', en: "Where's my love life headed?" },
+]
+
 // 타로 페이지의 골드 후광 — AppShell 의 accentLayer 슬롯으로 주입. 부모
 // 컨테이너가 absolute inset-0/overflow-hidden/pointer-events-none 을 이미
 // 잡아주므로 안쪽은 flex 가운데 정렬만 신경쓰면 된다.
@@ -117,8 +130,14 @@ export default function TarotChatScreen() {
     return () => window.clearTimeout(t)
   }, [selectedDeck])
 
-  const handleSend = async () => {
-    if (!question.trim() || isChecking) return
+  // 실제 리딩 시작 로직 — 질문을 *명시 인자* 로 받는다. 입력창 전송과 추천
+  // 칩이 같은 경로를 타되, handleSend 는 인자 없이(이벤트 무시) 호출되고 칩은
+  // startReading(질문) 으로 호출한다. (이전 회귀: handleSend 가 질문을 첫 인자로
+  // 받게 바꿨더니 ChatInputArea 의 onClick={onSend} 가 넘기는 이벤트가 질문 자리에
+  // 들어가 .trim() 에서 터졌음 → 그 구멍을 닫기 위해 분리.)
+  const startReading = async (rawQuestion: string) => {
+    const q0 = rawQuestion.trim()
+    if (!q0 || isChecking) return
     setIsChecking(true)
     try {
       const res = await apiFetch('/api/tarot/prefetch', {
@@ -136,7 +155,7 @@ export default function TarotChatScreen() {
         // 리로드 때 날아가 사용자가 처음부터 다시 골라야 한다.
         if (res.status === 401) {
           savePendingChat('tarot', {
-            question: question.trim(),
+            question: q0,
             deck: selectedDeck,
             categoryId: selectedSpread.categoryId,
             spreadId: selectedSpread.spread.id,
@@ -149,10 +168,15 @@ export default function TarotChatScreen() {
       // prefetch 실패는 차단 사유 아님 — reading 단계에서 재게이팅.
     }
 
-    const q = encodeURIComponent(question.trim())
+    const q = encodeURIComponent(q0)
     const path = `/tarot/${selectedSpread.categoryId}/${selectedSpread.spread.id}?question=${q}&deck=${selectedDeck}`
     router.push(path)
     // isChecking 은 라우트 전환 후 페이지 언마운트되며 자연 해제.
+  }
+
+  // 입력창 전송 — 인자 없음(onSend/onClick 이벤트는 무시). 현재 입력값으로 시작.
+  const handleSend = () => {
+    void startReading(question)
   }
 
   // 로그인 후 복귀 — 401 로 막히기 직전 저장해둔 질문/덱/스프레드가 있으면,
@@ -178,12 +202,7 @@ export default function TarotChatScreen() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter → submit. Shift+Enter → newline. IME 한글 조합 중 skip.
-    if (
-      e.key === 'Enter' &&
-      !e.shiftKey &&
-      !e.nativeEvent.isComposing &&
-      e.keyCode !== 229
-    ) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
       e.preventDefault()
       if (question.trim()) void handleSend()
     }
@@ -258,6 +277,24 @@ export default function TarotChatScreen() {
               </p>
             </div>
           </motion.div>
+        </div>
+
+        {/* 유도 질문 칩 — 입력창 바로 위. 한 줄 가로 스크롤이라 카드 일러스트와
+            겹치지 않고, 클릭 = 그 질문으로 바로 리딩 시작(startReading). */}
+        <div className="w-full max-w-xl mx-auto px-3 mb-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {SEED_QUESTIONS.map((seed) => (
+              <button
+                key={seed.en}
+                type="button"
+                disabled={isChecking}
+                onClick={() => void startReading(isKo ? seed.ko : seed.en)}
+                className="shrink-0 whitespace-nowrap text-xs px-3.5 py-2 rounded-full text-[#e8cc8a] bg-[rgba(212,181,114,0.1)] border border-[rgba(212,181,114,0.28)] hover:bg-[rgba(212,181,114,0.2)] active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isKo ? seed.ko : seed.en}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* 공용 ChatInputArea — 메인/운명/궁합과 동일한 컴포넌트. 덱·스프레드
