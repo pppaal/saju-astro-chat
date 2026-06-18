@@ -14,11 +14,7 @@ import { buildTarotSaveRequest, flattenTarotGuidance } from '@/lib/tarot/tarot-s
 import { saveReading, formatReadingForSave } from '@/lib/tarot/tarot-storage'
 import { apiFetch, type ApiFetchOptions } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
-import {
-  extractPartialOverall,
-  extractPartialCardTexts,
-  extractPartialHook,
-} from '@/lib/tarot/partialJsonParse'
+import { extractPartialOverall, extractPartialCardTexts } from '@/lib/tarot/partialJsonParse'
 import type { InterpretationResult, ReadingResponse } from '../types'
 import type { TarotPersonalizationOptions } from './useTarotGame'
 
@@ -311,7 +307,6 @@ function parseStreamedInterpretation(
   type ParsedShape = {
     overall?: string
     advice?: string
-    hook?: string
     cards?: Array<{ position?: string; interpretation?: string }>
     // 서버 정적 폴백 마커 — true 면 진짜 LLM 리딩이 아니라 서비스 실패 폴백.
     degraded?: boolean
@@ -320,12 +315,11 @@ function parseStreamedInterpretation(
   try {
     parsed = JSON.parse(jsonMatch[0]) as ParsedShape
   } catch {
-    // 부분 파서가 누적한 텍스트로 최소 overall(+ 가능하면 hook)은 살린다.
+    // 부분 파서가 누적한 텍스트로 최소 overall 은 살린다.
     const salvagedOverall = extractPartialOverall(jsonText) || ''
     const salvagedCardTexts = extractPartialCardTexts(jsonText)
     parsed = {
       overall: salvagedOverall,
-      hook: extractPartialHook(jsonText) || undefined,
       cards: salvagedCardTexts.map((t) => ({ interpretation: t })),
     }
   }
@@ -339,7 +333,6 @@ function parseStreamedInterpretation(
 
   return {
     overall_message: parsed.overall || '',
-    hook: (parsed.hook || '').trim() || undefined,
     card_insights: cards.map((dc, i) => {
       const cardData = parsedCards[i]
       const fallbackMeaning = dc.isReversed
@@ -720,7 +713,6 @@ export function useTarotInterpretation({
 
             return {
               overall_message: data.overall_message || data.overall || '',
-              hook: (data.hook || '').trim() || undefined,
               card_insights: normalizedInsights,
               guidance:
                 data.guidance ||
@@ -863,7 +855,8 @@ export function useTarotInterpretation({
             const issues = Array.isArray(rawDetails) ? rawDetails : rawDetails?.details
             const first = Array.isArray(issues) ? issues[0] : undefined
             const detailMsg = first ? `${first.path ?? ''} ${first.message ?? ''}`.trim() : ''
-            const reason = detailMsg || errorPayload?.error?.message || errorPayload?.message || ''
+            const reason =
+              detailMsg || errorPayload?.error?.message || errorPayload?.message || ''
             // HTTP 상태를 항상 앞에 — 401(로그인)/402(크레딧)/400(데이터)/500(서버)
             // 을 한눈에 구분. 무음 실패 끝.
             throw new Error(`${status}${reason ? ` ${reason}` : ''}`)

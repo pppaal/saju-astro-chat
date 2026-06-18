@@ -73,9 +73,9 @@ describe('Referral Service', () => {
       expect(url).toContain('ref=TESTCODE')
     })
 
-    it('defaults to destinypal.com when no baseUrl or env', () => {
+    it('defaults to destinypal.me when no baseUrl or env', () => {
       const url = getReferralUrl('XYZ99999')
-      expect(url).toBe('https://destinypal.com/?ref=XYZ99999')
+      expect(url).toBe('https://destinypal.me/?ref=XYZ99999')
     })
 
     it('formats URL correctly with ref parameter', () => {
@@ -717,13 +717,7 @@ describe('Referral Service with mocked Prisma', () => {
           tarotReadings: [{ id: 'rd1' }],
           counselorChatSessions: [],
         },
-        {
-          id: 'r2',
-          name: null,
-          createdAt: new Date(),
-          tarotReadings: [],
-          counselorChatSessions: [],
-        },
+        { id: 'r2', name: null, createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
       ] as never)
       vi.mocked(prisma.referralReward.findMany).mockResolvedValue([
         {

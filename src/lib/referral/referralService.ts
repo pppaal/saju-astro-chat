@@ -342,6 +342,6 @@ export async function getReferralStats(userId: string) {
 
 // 추천 링크 URL 생성
 export function getReferralUrl(code: string, baseUrl?: string): string {
-  const base = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
+  const base = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.me'
   return `${base}/?ref=${code}`
 }

@@ -417,12 +417,6 @@ model TarotReading {
 
   locale String @default("ko")
 
-  // 공개 공유 — 사용자가 "공개 링크 만들기"를 누르면 발급되는 단일 토큰.
-  // null 이면 비공개(기본). /r/[shareToken] 공개 페이지가 이 토큰으로 조회한다.
-  // 토큰을 모르면 접근 불가하고, 사용자가 revoke 하면 null 로 되돌린다.
-  shareToken String?   @unique
-  sharedAt   DateTime?
-
   // 보충 카드 (클래리파이어) — 사용자가 결과 화면에서 "한 장 더 뽑기"
   // 누르면 한 장 추가 추첨된 카드. 한 리딩당 한 장 한정. PATCH 로
   // 늦게 채워질 수 있음(저장 시점엔 null).
