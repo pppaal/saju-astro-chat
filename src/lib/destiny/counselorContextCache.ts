@@ -8,6 +8,7 @@
  * critical path 에서 돈다 → 진입 시 미리 워밍해 첫 답변을 빠르게.
  */
 import { buildDestinyContext } from './counselorContext'
+import { resolveUserTz } from './counselorRequest'
 import { getNowInTimezone } from '@/lib/datetime'
 import { normalizeGender } from '@/lib/utils/gender'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
@@ -49,7 +50,7 @@ export async function ensureCounselorContext(
   const cityUnknown =
     !!body.birthCityUnknown ||
     (body.latitude === undefined && body.longitude === undefined && !body.timezone)
-  const userTz = body.userTimezone || body.timezone || 'Asia/Seoul'
+  const userTz = resolveUserTz(body)
   const localNow = getNowInTimezone(userTz)
   const localDateKey = `${localNow.year}-${localNow.month}-${localNow.day}`
   // lang 을 키에 포함 — 빌드된 컨텍스트는 언어별로 다르다(한/영 라벨). 예전엔

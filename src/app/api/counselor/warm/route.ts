@@ -18,6 +18,7 @@ import {
   ensureCounselorContext,
   type CounselorBirthInput,
 } from '@/lib/destiny/counselorContextCache'
+import { resolveCounselorLang } from '@/lib/destiny/counselorRequest'
 import { counselorWarmRequestSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
@@ -51,12 +52,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'validation_failed' }, { status: 422 })
   }
 
-  // lang 도출은 realtime 라우트와 동일해야 한다 — body.lang 우선, 없으면 locale
-  // 쿠키 폴백. 안 그러면 쿠키-EN 사용자는 warm 이 ko 로 빌드/키잉해 realtime(en)
-  // 과 키가 어긋나 워밍이 통째로 빗나간다.
-  const cookieLocale = req.cookies.get('locale')?.value
-  const lang: 'ko' | 'en' =
-    body.lang === 'en' || body.lang === 'ko' ? body.lang : cookieLocale === 'en' ? 'en' : 'ko'
+  // lang 도출은 realtime 과 *반드시* 같은 단일 출처를 거쳐야 캐시 키가 일치한다.
+  const lang: 'ko' | 'en' = resolveCounselorLang(body, req)
   try {
     await ensureCounselorContext(body, userId, lang)
     return NextResponse.json({ ok: true })
