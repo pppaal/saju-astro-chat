@@ -237,6 +237,18 @@ export default function TarotChatScreen() {
                 : 'Pick a deck and spread below, then type your question'}
             </p>
 
+            {/* 오늘의 타로 진입 — 하루 1장 무료 맛보기. 습관 루프 + 공유거리. */}
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => router.push('/tarot/daily')}
+                className="inline-flex items-center gap-1.5 text-xs px-4 py-2 rounded-full text-[#e8cc8a] bg-[rgba(212,181,114,0.1)] border border-[rgba(212,181,114,0.28)] hover:bg-[rgba(212,181,114,0.2)] active:scale-95 transition"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                {isKo ? '오늘의 타로 · 하루 1장 무료' : "Today's Tarot · 1 free card daily"}
+              </button>
+            </div>
+
             <div className="pt-6 flex flex-col items-center gap-2.5">
               {/* z-0: 카드 인라인 zIndex(8~10)를 이 컨테이너 stacking context 안에
                   가둬, 위로 열리는 덱·스프레드 메뉴(입력창 z-index:6 안)가 카드에

@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 76개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 77개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
@@ -87,6 +87,7 @@ status: auto-generated
 | `/api/tarot`                            | POST               |
 | `/api/tarot/couple-reading`             | GET, POST, DELETE  |
 | `/api/tarot/couple-reading/[readingId]` | GET                |
+| `/api/tarot/daily`                      | GET, POST          |
 | `/api/tarot/followup`                   | POST               |
 | `/api/tarot/interpret-stream`           | POST               |
 | `/api/tarot/interpret-stream/result`    | GET                |

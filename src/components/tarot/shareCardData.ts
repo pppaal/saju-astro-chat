@@ -26,10 +26,51 @@ function truncate(text: string, max: number): string {
   return t.length > max ? `${t.slice(0, max - 1).trim()}…` : t
 }
 
+// 공유 이미지엔 순수 텍스트만 박는다. 해석 프롬프트가 강조에 쓰는 `*별표*`,
+// `_밑줄_`, `` `코드` ``, `#헤더`, `~취소선` 마커가 이미지에 그대로 찍히지
+// 않게 출력단에서 제거한다. (프롬프트에 "마크다운 쓰지 마"를 박아도 모델이
+// 또 까먹으므로, 렌더 직전 strip 이 가장 확실하다.)
+export function stripMarkdown(text: string | undefined | null): string {
+  return (text || '')
+    .replace(/[*_`~]/g, '') // 강조/코드/취소선 마커 제거
+    .replace(/^#{1,6}\s+/gm, '') // 줄머리 헤더(#) 제거
+    .replace(/\s{2,}/g, ' ') // 마커 삭제로 생긴 이중 공백 정리
+    .trim()
+}
+
+/**
+ * 공유 카드 한 줄(hook/펀치라인) 방탄 정리 — *모델이 무엇을 뱉든* 카드에 깔끔한
+ * 한 줄로 박히게 한다. 프롬프트에 "따옴표·해시태그·마침표 쓰지 마"를 박아도
+ * 모델은 또 까먹으므로, 출력단에서 전부 정리한다:
+ *  - 마크다운 마커 제거(stripMarkdown)
+ *  - 해시태그(#viral / ＃떡밥) 제거
+ *  - 개행/중복 공백 → 한 칸
+ *  - 통째로 감싼 따옴표(" ' “ ” ‘ ’ 「」 『』) 벗기기
+ *  - 끝에 붙은 마침표·느낌표·물결·하이픈 제거(여운은 살리되 군더더기만)
+ *  - 너무 길면(모델이 글자수 무시) max 로 잘라 … 붙임
+ * 빈 값이면 '' → 호출자는 overall 첫 문장으로 폴백.
+ */
+export function cleanShareHook(text: string | undefined | null, max = 42): string {
+  let s = stripMarkdown(text)
+  if (!s) return ''
+  s = s.replace(/[#＃][^\s#＃]+/g, '') // 해시태그
+  s = s
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim() // 개행/중복공백
+  s = s
+    .replace(/^["'“”‘’「『(]+/, '')
+    .replace(/["'”’」』)]+$/, '')
+    .trim() // 감싼 따옴표
+  s = s.replace(/[.!?。！？~\-—…\s]+$/, '').trim() // 끝 군더더기 구두점
+  if (s.length > max) s = `${s.slice(0, max - 1).trim()}…`
+  return s
+}
+
 // 해석 본문의 첫 문장(또는 폴백)을 한 줄 메시지로. 공유 이미지에 실명이
 // 박히지 않게 앞머리 'OOO님,' 호명을 떼고, 너무 길지 않게 자른다.
 export function pickKeyMessage(source: string | undefined | null, max = 58): string {
-  let s = (source || '').trim()
+  let s = stripMarkdown(source)
   if (!s) return ''
   // 앞머리 호명 제거: "이준영님, " / "이준영 님께서" 등 → 실명 노출 방지.
   s = s.replace(/^[가-힣A-Za-z·\s]{1,12}님(께서|은|이|,|，|!|\s)+/, '').trim()
@@ -58,7 +99,7 @@ export function buildShareDataFromReading(
   isKo: boolean
 ): ShareCardData {
   const question = truncate(
-    (userTopic || '').trim() ||
+    stripMarkdown(userTopic) ||
       (isKo
         ? readingResult.spread.titleKo || readingResult.spread.title
         : readingResult.spread.title),
@@ -74,7 +115,11 @@ export function buildShareDataFromReading(
       name: isKo ? dc.card.nameKo || dc.card.name : dc.card.name,
       isReversed: dc.isReversed,
     })),
-    keyMessage: pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
+    // LLM 펀치라인(정곡+여운)을 방탄 정리해 우선 사용 — 모델이 뭘 뱉든 한 줄
+    // 깔끔하게. 비면 overall 첫 문장으로 폴백.
+    keyMessage:
+      cleanShareHook(interpretation?.hook) ||
+      pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
     isKo,
   }
 }
@@ -86,7 +131,7 @@ export function buildShareDataFromSavedReading(
 ): ShareCardData {
   return {
     question: truncate(
-      (reading.question || '').trim() ||
+      stripMarkdown(reading.question) ||
         (isKo ? reading.spread.titleKo || reading.spread.title : reading.spread.title),
       90
     ),

@@ -7,7 +7,55 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { pickKeyMessage } from '@/components/tarot/shareCardData'
+import { pickKeyMessage, stripMarkdown, cleanShareHook } from '@/components/tarot/shareCardData'
+
+describe('cleanShareHook — 모델이 뭘 뱉든 한 줄 깔끔하게', () => {
+  it('감싼 따옴표를 벗긴다', () => {
+    expect(cleanShareHook('"먼저 연락 오는 쪽은 상대"')).toBe('먼저 연락 오는 쪽은 상대')
+    expect(cleanShareHook('“좋아하는 건 맞는데 정착할 자신은 아직”')).toBe(
+      '좋아하는 건 맞는데 정착할 자신은 아직'
+    )
+  })
+  it('해시태그·끝 마침표·마크다운을 제거한다', () => {
+    expect(cleanShareHook('지금이 *바로* 그 타이밍. #타로 #연애운')).toBe('지금이 바로 그 타이밍')
+  })
+  it('개행을 한 칸으로 정리한다', () => {
+    expect(cleanShareHook('먼저 연락 오는 쪽은\n상대예요')).toBe('먼저 연락 오는 쪽은 상대예요')
+  })
+  it('너무 길면 잘라서 … 를 붙인다', () => {
+    const long = '가'.repeat(60)
+    const out = cleanShareHook(long, 42)
+    expect(out.length).toBeLessThanOrEqual(42)
+    expect(out.endsWith('…')).toBe(true)
+  })
+  it('빈 값이면 빈 문자열(호출자가 폴백)', () => {
+    expect(cleanShareHook('')).toBe('')
+    expect(cleanShareHook(undefined)).toBe('')
+    expect(cleanShareHook('   "  "  ')).toBe('')
+  })
+})
+
+describe('stripMarkdown — 공유 이미지엔 순수 텍스트만', () => {
+  it('강조/코드/취소선 마커(*, _, `, ~)를 제거한다', () => {
+    expect(stripMarkdown('이건 *강한* 신호고 _확실_ 합니다')).toBe('이건 강한 신호고 확실 합니다')
+    expect(stripMarkdown('`코드` 와 ~취소~ 도 제거')).toBe('코드 와 취소 도 제거')
+  })
+  it('줄머리 헤더(#)를 제거한다', () => {
+    expect(stripMarkdown('## 오늘의 핵심')).toBe('오늘의 핵심')
+  })
+  it('null/undefined 안전', () => {
+    expect(stripMarkdown(undefined)).toBe('')
+    expect(stripMarkdown(null)).toBe('')
+  })
+})
+
+describe('pickKeyMessage — 마크다운 마커 제거', () => {
+  it('첫 문장의 *별표* 강조가 이미지에 그대로 박히지 않는다', () => {
+    const out = pickKeyMessage('먼저 연락 오는 쪽은 *상대* 예요. 2-3주 안에 움직임이 옵니다.')
+    expect(out).toBe('먼저 연락 오는 쪽은 상대 예요.')
+    expect(out).not.toContain('*')
+  })
+})
 
 describe('pickKeyMessage — 공유 이미지 한 줄 메시지', () => {
   it('앞머리 호명("OOO님,")을 제거해 실명이 새지 않게 한다', () => {

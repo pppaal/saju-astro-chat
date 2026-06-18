@@ -22,6 +22,8 @@ export interface InterpretationResult {
   card_insights: CardInsight[]
   guidance: string | AdviceItem[]
   affirmation: string
+  /** LLM 이 직접 뽑은 공유 카드용 한 줄 펀치라인(정곡+여운). 없으면 overall 첫 문장 폴백. */
+  hook?: string
   fallback?: boolean
   interpretation_source?:
     | 'backend_rag'
