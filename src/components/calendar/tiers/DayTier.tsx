@@ -31,6 +31,8 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 import { geokgukStatusEn, shinsalEn } from '@/components/calendar/adapters/dayTierEnMaps'
+import { ShareDayButton } from '@/components/calendar/share/ShareDayButton'
+import type { DayShareData } from '@/components/calendar/share/DayShareCard'
 
 // ============================================================================
 // HourSlot — 24시진 (子=0,1 / 丑=2,3 / ... / 亥=22,23 식의 시간 매핑).
@@ -452,6 +454,41 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     },
   })
 
+  // ── 공유 카드 데이터 — 이미 로케일 반영된 hero 값들로 구성(1080×1080 PNG). ──
+  // 헤더의 십신 라벨과 동일 규칙: 분야 별칭이 십신명과 다르면 괄호로 덧붙인다.
+  const shareSibsinRaw = String(day.iljinSibsin)
+  const shareSibsinArea = sibsinArea(shareSibsinRaw)
+  const shareSibsinLabel = ko
+    ? `${shareSibsinRaw}${shareSibsinArea !== shareSibsinRaw ? ` (${shareSibsinArea})` : ''}`
+    : sibsinAreaEn(shareSibsinRaw)
+  const shareToneWord = ko
+    ? verdict.tone === 'positive'
+      ? '순풍'
+      : verdict.tone === 'caution'
+        ? '역풍'
+        : '평이'
+    : verdict.tone === 'positive'
+      ? 'Tailwind'
+      : verdict.tone === 'caution'
+        ? 'Headwind'
+        : 'Steady'
+  const shareData: DayShareData = {
+    isKo: ko,
+    dateLabel: ko ? day.dateKo || day.date : day.date,
+    iljinHanja: day.iljin.hanja,
+    iljinKr: day.iljin.kr,
+    sibsinLabel: shareSibsinLabel,
+    toneWord: shareToneWord,
+    tone: verdict.tone,
+    oneLine: localizeLabel(day.oneLine, ko),
+    goods: (day.topReasons ?? [])
+      .slice(0, 3)
+      .map((r) => localizeLabel(r.replace(/^[↑↓·]\s*/, ''), ko)),
+    cautions: (day.cautions ?? [])
+      .slice(0, 3)
+      .map((c) => localizeLabel(c.replace(/^[↑↓·]\s*/, ''), ko)),
+  }
+
   return (
     <div className={styles.tierInner} data-screen-label={`1일 ${day.date}`}>
       <button className={styles.rise} onClick={onRise}>
@@ -497,6 +534,11 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
       </div>
       <GongmangBanner gongmang={day.gongmang} />
       <VocBanner voc={voc} />
+
+      {/* ── 오늘의 운세 카드 공유 (1080×1080 PNG · Web Share / 저장) ── */}
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 2px' }}>
+        <ShareDayButton data={shareData} />
+      </div>
 
       {/* ── 오늘의 핵심 — 왜 이런 하루 (topReasons/cautions) + 신살. 근거 트랜짓은 접힘. ── */}
       <div>
@@ -624,4 +666,3 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     </div>
   )
 }
-
