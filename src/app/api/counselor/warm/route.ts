@@ -18,6 +18,7 @@ import {
   ensureCounselorContext,
   type CounselorBirthInput,
 } from '@/lib/destiny/counselorContextCache'
+import { resolveCounselorLang } from '@/lib/destiny/counselorRequest'
 import { counselorWarmRequestSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
@@ -51,7 +52,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'validation_failed' }, { status: 422 })
   }
 
-  const lang: 'ko' | 'en' = body.lang === 'en' ? 'en' : 'ko'
+  // lang 도출은 realtime 과 *반드시* 같은 단일 출처를 거쳐야 캐시 키가 일치한다.
+  const lang: 'ko' | 'en' = resolveCounselorLang(body, req)
   try {
     await ensureCounselorContext(body, userId, lang)
     return NextResponse.json({ ok: true })

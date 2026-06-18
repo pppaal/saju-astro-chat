@@ -8,6 +8,7 @@
  * critical path 에서 돈다 → 진입 시 미리 워밍해 첫 답변을 빠르게.
  */
 import { buildDestinyContext } from './counselorContext'
+import { resolveUserTz } from './counselorRequest'
 import { getNowInTimezone } from '@/lib/datetime'
 import { normalizeGender } from '@/lib/utils/gender'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
@@ -49,11 +50,14 @@ export async function ensureCounselorContext(
   const cityUnknown =
     !!body.birthCityUnknown ||
     (body.latitude === undefined && body.longitude === undefined && !body.timezone)
-  const userTz = body.userTimezone || body.timezone || 'Asia/Seoul'
+  const userTz = resolveUserTz(body)
   const localNow = getNowInTimezone(userTz)
   const localDateKey = `${localNow.year}-${localNow.month}-${localNow.day}`
-  const stableCtxKey = `counselor:ctx:stable:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
-  const dailyCtxKey = `counselor:ctx:daily:v12:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
+  // lang 을 키에 포함 — 빌드된 컨텍스트는 언어별로 다르다(한/영 라벨). 예전엔
+  // 키에 lang 이 없어, ko 로 워밍/빌드한 캐시가 en 요청(쿠키/토글 전환)에 그대로
+  // 서빙돼 "영문 시스템 프롬프트 + 한글 데이터" 혼용이 났다. v12→v13 으로 무효화.
+  const stableCtxKey = `counselor:ctx:stable:v13:${lang}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
+  const dailyCtxKey = `counselor:ctx:daily:v13:${lang}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
 
   // 두 키는 독립 — Redis 왕복을 병렬로 (직렬 대비 ~5ms, 매 상담 메시지 hot path).
   const [cachedStable, cachedDaily] = await Promise.all([

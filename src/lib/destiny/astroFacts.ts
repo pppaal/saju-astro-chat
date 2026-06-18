@@ -220,13 +220,16 @@ export async function collectAstroFacts(
   // 군주 행성 placement 는 ASC 의존 → placeUnreliable 면 null.
   let profection: AstroFacts['profection'] = null
   try {
+    // 주입된 now 를 그대로 넘긴다 — 예전엔 void now 로 버려 currentManAge 가
+    // 자기 new Date() 를 읽어 profection 나이가 비결정적이고, [Age today] 앵커와
+    // 생일 경계에서 1년 어긋날 수 있었다.
     const manAge = currentManAge({
       birthYear: Y,
       birthMonth: M,
       birthDate: D,
       birthTimeZone: input.timezone,
+      now,
     })
-    void now // currentManAge 가 자기 now 사용. 시그너처 안정성용.
     const prof = calculateProfection(chart, manAge)
     const lordPlanet = placeUnreliable
       ? null

@@ -32,6 +32,8 @@ const idemStore = createIdempotencyStore('counselor-realtime')
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { cacheSet } from '@/lib/cache/redis-cache'
 import { getUserDisplayName } from '@/lib/user/displayName'
+import { currentManAge } from '@/lib/datetime/currentAge'
+import { resolveCounselorLang } from '@/lib/destiny/counselorRequest'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -104,26 +106,6 @@ const RATE_LIMIT_PER_MIN = 12
 // The prompt itself now lives in @/lib/prompts/destinyCounselorPrompt as
 // co-located ko/en pairs — edit Korean there and the English sits right
 // beside it, so the two languages can't silently drift apart.
-
-// birthDate (YYYY-MM-DD) 기준 만 나이를 직접 계산 — saju 빌더를 거치지
-// 않고도 가능. cache 밖에서 매 턴 휘발성 userPrompt prefix 로 주입하기
-// 위한 헬퍼.
-function computeAgeYears(
-  birthDate: string | undefined | null,
-  now: Date = new Date()
-): number | null {
-  if (!birthDate || typeof birthDate !== 'string') return null
-  const m = birthDate.match(/^(\d{4})-(\d{2})-(\d{2})/)
-  if (!m) return null
-  const by = Number(m[1])
-  const bm = Number(m[2])
-  const bd = Number(m[3])
-  if (!Number.isFinite(by) || !Number.isFinite(bm) || !Number.isFinite(bd)) return null
-  let age = now.getFullYear() - by
-  const passed = now.getMonth() + 1 > bm || (now.getMonth() + 1 === bm && now.getDate() >= bd)
-  if (!passed) age -= 1
-  return age >= 0 && age < 150 ? age : null
-}
 
 // 멱등 키에 섞을 짧은 content discriminator. 같은 x-idempotency-key 를 서로 다른
 // 질문으로 재사용해 첫 차감 이후 무료로 받는 free-replay 누수를 막는다
@@ -204,13 +186,9 @@ export async function POST(req: NextRequest) {
   }
 
   const userMessage = body.messages[body.messages.length - 1]?.content ?? ''
-  // Answer language follows the app i18n setting: the client sends it as
-  // body.lang, and the I18nProvider also mirrors it into the `locale` cookie
-  // (auto-sent with every request), so we still honor the toggle even if the
-  // body flag is ever missing.
-  const cookieLocale = req.cookies.get('locale')?.value
-  const lang: 'ko' | 'en' =
-    body.lang === 'en' || body.lang === 'ko' ? body.lang : cookieLocale === 'en' ? 'en' : 'ko'
+  // 답변 언어 — 단일 출처(resolveCounselorLang)로 도출. realtime · warm 이 같은
+  // 규칙(body.lang → locale 쿠키 → ko)을 공유해야 캐시 키가 일치한다.
+  const lang: 'ko' | 'en' = resolveCounselorLang(body, req)
   if (!userMessage.trim()) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
   }
@@ -375,7 +353,19 @@ export async function POST(req: NextRequest) {
     // 통과 시). 매 턴 userPrompt prefix 로 붙여 chart 데이터만으로 prefix
     // 안정.
     const userName = await getUserDisplayName(userId)
-    const ageYearsFromBirth = computeAgeYears(body.birthDate)
+    // 만나이 앵커 — 출생 시간대 기준(currentManAge)으로 도출해 profection 나이와
+    // 동일 기준을 쓴다. 예전 computeAgeYears 는 서버 로컬 시계로 계산해, 생일
+    // 경계에서 이 앵커와 대운/프로펙션 나이가 1년 어긋날 수 있었다.
+    const [aby, abm, abd] = (body.birthDate ?? '').split('-').map(Number)
+    const ageYearsFromBirth =
+      Number.isFinite(aby) && Number.isFinite(abm) && Number.isFinite(abd)
+        ? currentManAge({
+            birthYear: aby,
+            birthMonth: abm,
+            birthDate: abd,
+            birthTimeZone: body.timezone ?? 'Asia/Seoul',
+          })
+        : null
     const metaParts: string[] = []
     if (userName) {
       // 호명은 인사/강조 시에만 자연스럽게. 매 답변마다 "○○님" 박는 인공

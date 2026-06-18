@@ -14,7 +14,7 @@ import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
 import { isHyeong } from '@/lib/saju/hyeong'
-import { getNowInTimezone } from '@/lib/datetime'
+import { logger } from '@/lib/logger'
 import type { DayMaster } from '@/lib/saju/types'
 import { SIBSIN_EN as SIBSIN_EN_BASE } from '@/lib/saju/sibsinLabels'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
@@ -391,14 +391,19 @@ export async function buildDestinyContext(
   birth: DestinyBirth,
   now: Date,
   locale: Locale = 'ko',
-  displayTz?: string
+  // displayTz 는 더 이상 사용 안 함 — "오늘"은 주입된 now 에서 직접 뽑는다(아래
+  // localNow). 호출부 호환을 위해 시그니처에는 남겨 둔다.
+  _displayTz?: string
 ): Promise<DestinyContextSplit> {
   const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
-  // "오늘"은 서버(UTC)가 아니라 사용자 기기 시간대 기준으로 잡아야 한국 새벽에
-  // 날짜가 하루 어긋나지 않는다. displayTz 가 없으면 출생 시간대로 폴백.
-  const localNow = getNowInTimezone(displayTz || birth.timezone || 'Asia/Seoul')
+  // "오늘"은 주입된 now 에서 직접 뽑는다. now 는 ensureCounselorContext 가 사용자
+  // tz 기준으로 만든 그날 정오 Date 라, 로컬 필드(getFullYear/Month/Date)가 곧
+  // 사용자-tz 날짜다. 예전엔 여기서 getNowInTimezone(wall clock)을 다시 읽어
+  // astro(now 사용)와 saju/"오늘"이 서로 다른 시계를 보던 tz·날짜경계 불일치 +
+  // 결정론 누수(테스트로 now 고정 불가)가 있었다. now 단일 기준으로 통일.
+  const localNow = { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }
   const year = localNow.year
-  const saju = buildSajuSection(birth, locale, year, localNow)
+  const saju = buildSajuSection(birth, locale, year, localNow, now)
 
   // birth identity header 는 [Meta] 와 중복이라 제거 (route.ts 에서 [Meta]
   // 가 birthDate/birthTime/gender/location/tz/flags 단일 source 로 출력).
@@ -524,10 +529,10 @@ export async function buildDestinyContext(
   } catch (err) {
     // 점성 실패 시 silent fallback 이면 운영에서 사용자가 "사주만" 답변을
     // 받아도 아무도 모름. 최소한 warn 으로 남겨 모니터링 가능하게.
-    console.warn(
-      '[buildDestinyContext] astro section build failed:',
-      err instanceof Error ? err.message : err
-    )
+    // (console.* 금지 — CLAUDE.md 컨벤션에 맞춰 @/lib/logger 사용.)
+    logger.warn('[buildDestinyContext] astro section build failed', {
+      err: err instanceof Error ? err.message : String(err),
+    })
   }
 
   // === STABLE (cached prefix) ===
@@ -562,7 +567,11 @@ function buildSajuSection(
   birth: DestinyBirth,
   locale: Locale = 'ko',
   year?: number,
-  localNow?: { year: number; month: number; day: number }
+  localNow?: { year: number; month: number; day: number },
+  // 주입된 "지금" — 대운/세운/월운·만나이 계산의 기준. collectSajuFacts →
+  // calculateSajuData 로 끝까지 전달돼야 원국을 제외한 시간 의존 값이 now 와
+  // 일치하고 테스트로 고정 가능하다. 없으면 호출 시점(new Date()).
+  now: Date = new Date()
 ): { natal: string; timing: string; iljinWindow: string; dayMasterName: string } {
   const tz = birth.timezone ?? 'Asia/Seoul'
   // ── 재료 준비실 ──
@@ -577,6 +586,7 @@ function buildSajuSection(
     gender: birth.gender,
     timezone: tz,
     longitude: birth.longitude,
+    now,
   })
   // 현재 운(세운/월운/일진 + 본명 대비 충/합) — fusion 우회 없이 facts._raw 에서
   // 직접 계산. _raw 는 longitude 진경도 보정이 적용된 결과라, 현재 운도 본명과
