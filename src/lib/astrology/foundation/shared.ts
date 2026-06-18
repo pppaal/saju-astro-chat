@@ -62,7 +62,7 @@ export function getPlanetList(): Record<string, number> {
  * Reset cached config-derived singletons (planet list, flags). Intended for
  * tests that mutate CALCULATION_STANDARDS between cases.
  */
-export function resetSharedCaches(): void {
+function resetSharedCaches(): void {
   planetListCache = null
   swFlagsCache = null
 }

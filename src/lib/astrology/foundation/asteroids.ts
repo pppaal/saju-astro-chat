@@ -656,7 +656,7 @@ export function getAsteroidInfo(name: AsteroidName): {
  * 소행성 시나스트리 분석
  * 두 차트의 소행성 간 애스펙트 분석
  */
-export function analyzeAsteroidSynastry(
+function analyzeAsteroidSynastry(
   asteroidsA: Record<AsteroidName, Asteroid>,
   asteroidsB: Record<AsteroidName, Asteroid>,
   planetsA: PlanetBase[],
@@ -702,7 +702,7 @@ export function analyzeAsteroidSynastry(
 /**
  * 소행성 트랜짓 분석
  */
-export function analyzeAsteroidTransit(
+function analyzeAsteroidTransit(
   natalAsteroids: Record<AsteroidName, Asteroid>,
   transitPlanets: PlanetBase[]
 ): {

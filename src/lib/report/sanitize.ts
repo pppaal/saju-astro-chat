@@ -2,7 +2,7 @@
 // Locale-specific text sanitization
 
 // Re-export from centralized security module for backward compatibility
-export { maskDisplayName, maskTextWithName } from '@/lib/security'
+export {  maskTextWithName } from '@/lib/security'
 
 /**
  * Sanitize text based on locale - removes invalid characters

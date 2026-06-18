@@ -94,7 +94,7 @@ const POINT_EN: Record<string, string> = {
   SouthNode: 'South Node',
 }
 
-export function pointEn(name: string): string {
+function pointEn(name: string): string {
   return POINT_EN[name] ?? name
 }
 

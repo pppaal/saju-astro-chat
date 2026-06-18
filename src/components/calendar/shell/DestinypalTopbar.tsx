@@ -68,4 +68,3 @@ export function DestinypalTopbar({
   )
 }
 
-export default DestinypalTopbar

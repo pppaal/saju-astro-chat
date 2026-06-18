@@ -19,13 +19,13 @@ function getUA(): string {
   return navigator.userAgent || ''
 }
 
-export function getMobilePlatform(ua = getUA()): 'android' | 'ios' | 'other' {
+function getMobilePlatform(ua = getUA()): 'android' | 'ios' | 'other' {
   if (/Android/i.test(ua)) return 'android'
   if (/iPhone|iPad|iPod/i.test(ua)) return 'ios'
   return 'other'
 }
 
-export function isKakaoTalkInApp(ua = getUA()): boolean {
+function isKakaoTalkInApp(ua = getUA()): boolean {
   return /kakaotalk/i.test(ua)
 }
 

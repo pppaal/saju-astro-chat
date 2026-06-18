@@ -37,4 +37,3 @@ export function Ganji({ data, size = 30, en = true, accent = 'ember', className 
   )
 }
 
-export default Ganji

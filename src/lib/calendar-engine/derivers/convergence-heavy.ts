@@ -12,10 +12,10 @@ export interface HeavySignalInput {
 
 // 무거운 점성 = 느린 행성 transit + lifecycle/eclipse/angle-contact.
 // 빠른 행성(달·수성·금성·화성·태양)은 큰날 판정에서 제외(시간 줌 전용 노이즈).
-export const SLOW_PLANETS = new Set(['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Chiron'])
-export const HEAVY_ASTRO_KINDS = new Set(['lifecycle', 'eclipse', 'angle-contact'])
+const SLOW_PLANETS = new Set(['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Chiron'])
+const HEAVY_ASTRO_KINDS = new Set(['lifecycle', 'eclipse', 'angle-contact'])
 // 무거운 사주 = 일진 충/합/삼합 + 용신 활성 (대운/세운 상시 배경은 제외).
-export const HEAVY_SAJU_KINDS = new Set(['hyeongchung'])
+const HEAVY_SAJU_KINDS = new Set(['hyeongchung'])
 
 export const MIN_IMPACT = 0.4
 
@@ -23,7 +23,7 @@ export const MIN_IMPACT = 0.4
 // 벗어나면 양쪽 시스템 모두 그날 실제 신호가 있다고 본다. 전 신호 기반 정밀
 // 판정(bothSystems)이 불가능한 구간/뷰의 프록시 (연간 뷰, 분기 밖 데일리).
 // NOTE: 분포 보정값이 아니라 고정 휴리스틱 — 정밀 보정은 후속 과제.
-export const CONVERGENCE_AXIS_MIN = 15
+const CONVERGENCE_AXIS_MIN = 15
 
 function leadToken(name: string | null | undefined): string {
   return (name || '').split(/[ ·]/)[0]

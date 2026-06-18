@@ -47,7 +47,7 @@ export interface SajuMonthRef {
  * matching saju month branch + saju year. Mirrors the logic the main
  * engine uses in saju.ts (`ipchunUTC` boundary + `sajuMonth` adjust).
  */
-export function getMonthRefForDate(date: Date): SajuMonthRef {
+function getMonthRefForDate(date: Date): SajuMonthRef {
   const y = date.getFullYear()
   for (const candidateYear of [y, y - 1]) {
     for (let term = 12; term >= 1; term--) {
@@ -125,6 +125,6 @@ const BRANCH_TO_ELEMENT: Record<string, 'wood' | 'fire' | 'earth' | 'metal' | 'w
   丑: 'earth',
 }
 
-export function elementOfBranch(branch: string): 'wood' | 'fire' | 'earth' | 'metal' | 'water' {
+function elementOfBranch(branch: string): 'wood' | 'fire' | 'earth' | 'metal' | 'water' {
   return BRANCH_TO_ELEMENT[branch] || 'earth'
 }

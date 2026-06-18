@@ -174,17 +174,17 @@ const TABLE: AstroLifecycleEvent[] = [
   },
 ]
 
-export function lifecycleEvents(): AstroLifecycleEvent[] {
+function lifecycleEvents(): AstroLifecycleEvent[] {
   return TABLE
 }
 
 /** Events whose age window overlaps [ageLow, ageHigh]. */
-export function eventsInAgeRange(ageLow: number, ageHigh: number): AstroLifecycleEvent[] {
+function eventsInAgeRange(ageLow: number, ageHigh: number): AstroLifecycleEvent[] {
   return TABLE.filter((e) => e.ageEnd >= ageLow && e.ageStart <= ageHigh)
 }
 
 /** Parse birth year from MainSajuOutput.input.birthDate (YYYY-MM-DD). */
-export function birthYearFromBirthDate(birthDate: string): number | undefined {
+function birthYearFromBirthDate(birthDate: string): number | undefined {
   if (!birthDate) return undefined
   const m = birthDate.match(/^(\d{4})/)
   if (!m) return undefined

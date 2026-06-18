@@ -70,7 +70,7 @@ function dedupe(lines: string[]): string[] {
 }
 
 /** 신호 → 표시 라벨. KO: korean 우선. EN: english 우선, 없으면 name 용어 치환. */
-export function signalDisplayLabel(s: ActiveSignal, lang: Lang): string {
+function signalDisplayLabel(s: ActiveSignal, lang: Lang): string {
   if (lang === 'ko') return s.korean ?? s.name
   return koTokensToEn(s.english ?? translateSignalLabel(s.name, 'en'))
 }

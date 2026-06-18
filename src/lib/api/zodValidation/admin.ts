@@ -10,7 +10,7 @@
 import { z } from 'zod'
 
 /** days 쿼리 스키마 팩토리 — 라우트마다 상한/기본값이 달라 파라미터화. */
-export function createAdminDaysQuerySchema(options: { maxDays: number; defaultDays: number }) {
+function createAdminDaysQuerySchema(options: { maxDays: number; defaultDays: number }) {
   return z.object({
     days: z.coerce.number().int().min(1).max(options.maxDays).default(options.defaultDays),
   })

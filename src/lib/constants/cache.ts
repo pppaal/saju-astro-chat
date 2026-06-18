@@ -28,7 +28,7 @@ export const SAJU_CACHE = {
  * 대운 계산 캐시 설정
  * - 대운은 사주 기반으로 계산되어 안정적
  */
-export const DAEUN_CACHE = {
+const DAEUN_CACHE = {
   /** 최대 캐시 항목 수 */
   MAX_SIZE: 200,
   /** 캐시 유효 시간 (24시간) */
@@ -39,7 +39,7 @@ export const DAEUN_CACHE = {
  * 궁합 계산 캐시 설정
  * - 두 사람의 조합이므로 키 공간이 큼, 적당한 크기 유지
  */
-export const COMPATIBILITY_CACHE = {
+const COMPATIBILITY_CACHE = {
   /** 최대 캐시 항목 수 */
   MAX_SIZE: 300,
   /** 캐시 유효 시간 (1시간) */
@@ -52,7 +52,7 @@ export const COMPATIBILITY_CACHE = {
  * 운명 지도(Destiny Map) 캐시 설정
  * - 점성술 계산 결과 캐싱
  */
-export const DESTINY_MAP_CACHE = {
+const DESTINY_MAP_CACHE = {
   /** 최대 캐시 항목 수 */
   MAX_SIZE: 50,
   /** 캐시 유효 시간 (5분) */
@@ -62,7 +62,7 @@ export const DESTINY_MAP_CACHE = {
 /**
  * 일반 캐시 기본값
  */
-export const DEFAULT_CACHE = {
+const DEFAULT_CACHE = {
   /** 기본 최대 캐시 항목 수 */
   MAX_SIZE: 100,
   /** 기본 캐시 유효 시간 (10분) */
@@ -84,7 +84,7 @@ export const CALCULATION_CACHE = {
  * Destiny Matrix 캐시 설정
  * - 매트릭스 계산 결과 캐싱
  */
-export const MATRIX_CACHE = {
+const MATRIX_CACHE = {
   /** 매트릭스 캐시 최대 항목 수 */
   MAX_SIZE: 50,
   /** 캐시 유효 시간 (5분) */

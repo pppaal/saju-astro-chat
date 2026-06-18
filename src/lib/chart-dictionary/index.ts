@@ -265,7 +265,7 @@ export function getSibsinCategoryMeaning(category: SibsinCategory, lang: Lang): 
   return sibsin[category]?.[lang]?.category_meaning ?? null;
 }
 
-export function getSajuStrengthMeaning(
+function getSajuStrengthMeaning(
   category: SajuStrengthCategory,
   key: string,
   lang: Lang
@@ -294,7 +294,7 @@ export function getAstroDignity(
 }
 
 /** 외행성 dignity 비대칭 설명 note — Uranus/Neptune/Pluto 만 존재. */
-export function getDignityNote(planet: 'Uranus' | 'Neptune' | 'Pluto', lang: Lang): string | null {
+function getDignityNote(planet: 'Uranus' | 'Neptune' | 'Pluto', lang: Lang): string | null {
   const value = astroDignity[planet]?.note;
   if (!value || !('ko' in value)) return null;
   return value[lang];

@@ -237,7 +237,7 @@ export function analyzeUnseInteraction(
   return []
 }
 
-export function checkHapHwa(branch1: string, branch2: string): MergedElement {
+function checkHapHwa(branch1: string, branch2: string): MergedElement {
   const yukap = YUKAP[branch1]
   if (yukap && yukap.partner === branch2) {
     return yukap.element

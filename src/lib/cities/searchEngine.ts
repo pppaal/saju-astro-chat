@@ -82,7 +82,7 @@ export const norm = (value: unknown) =>
     .trim()
     .toLowerCase()
 
-export const compact = (value: unknown) => norm(value).replace(/[\s,./_-]+/g, '')
+const compact = (value: unknown) => norm(value).replace(/[\s,./_-]+/g, '')
 export const hasHangul = (value: string) => /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(value)
 
 function buildIndexedCity(c: City): IndexedCity {

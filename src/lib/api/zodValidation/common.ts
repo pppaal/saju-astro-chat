@@ -153,7 +153,7 @@ export const idParamSchema = z.object({
   id: z.string().min(1).max(100),
 })
 
-export const readingIdParamSchema = z.object({
+const readingIdParamSchema = z.object({
   readingId: z.string().min(1).max(100),
 })
 
@@ -197,7 +197,7 @@ export async function validateRequestBody<T extends z.ZodTypeAny>(
   }
 }
 
-export function validateQueryParams<T extends z.ZodTypeAny>(
+function validateQueryParams<T extends z.ZodTypeAny>(
   request: Request,
   schema: T
 ):
@@ -281,7 +281,7 @@ export function formatZodErrors(zodError: z.ZodError): ValidationErrorDetail[] {
  * Zod 에러를 ErrorCode로 매핑
  * 첫 번째 이슈 기반으로 적절한 ErrorCode 반환
  */
-export function mapZodErrorToCode(zodError: z.ZodError): ErrorCode {
+function mapZodErrorToCode(zodError: z.ZodError): ErrorCode {
   const firstIssue = zodError.issues[0]
   if (!firstIssue) return ErrorCodes.VALIDATION_ERROR
 
@@ -340,7 +340,7 @@ export function createValidationErrorResponse(
  * Zod safeParse 결과를 처리하는 헬퍼
  * 성공 시 데이터 반환, 실패 시 표준화된 에러 응답 반환
  */
-export function handleZodValidation<T>(
+function handleZodValidation<T>(
   result: { success: true; data: T } | { success: false; error: z.ZodError },
   options: {
     locale?: string

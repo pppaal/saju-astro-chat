@@ -9,7 +9,7 @@
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 
 // 12별자리 EN → KO.
-export const SIGN_KO: Record<string, string> = {
+const SIGN_KO: Record<string, string> = {
   Aries: '양자리',
   Taurus: '황소자리',
   Gemini: '쌍둥이자리',

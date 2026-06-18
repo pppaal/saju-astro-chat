@@ -125,6 +125,6 @@ const SIGN_TONE: Record<ZodiacKo, string> = {
   Pisces:      '용해·연민·경계 흐려지는 느낌',
 }
 
-export function getLotInterpretation(lot: ArabicLot): string {
+function getLotInterpretation(lot: ArabicLot): string {
   return `Lot of ${lot.name}: ${LOT_CORE[lot.name]} ${lot.sign} 위치 (${SIGN_TONE[lot.sign]}) — 이 영역의 면은 ${SIGN_TONE[lot.sign]}로 작동.`
 }

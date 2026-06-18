@@ -107,7 +107,7 @@ export const SIBSIN_INTERPRETATIONS = interpretationsData.sibsin as Record<
   SibsinKind,
   SibsinInterpretation
 >
-export const SHINSAL_INTERPRETATIONS = interpretationsData.shinsal as Record<
+const SHINSAL_INTERPRETATIONS = interpretationsData.shinsal as Record<
   string,
   ShinsalInterpretation
 >

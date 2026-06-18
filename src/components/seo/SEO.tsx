@@ -75,7 +75,7 @@ export function generateLocalizedMetadata(
   })
 }
 
-export function generateMetadata({
+function generateMetadata({
   title,
   description,
   keywords = [],

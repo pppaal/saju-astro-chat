@@ -56,7 +56,7 @@ export function computeBaseRates(cells: CalendarCell[]): BaseRateTable {
 }
 
 /** 희소도 −log P. 정적 본명=0, P 미측정=극희소 하한, P≥1=0. */
-export function signalRarity(s: ActiveSignal, rates: BaseRateTable): number {
+function signalRarity(s: ActiveSignal, rates: BaseRateTable): number {
   if (STATIC_NATAL_KINDS.has(s.kind)) return 0
   const p = rates.p.get(signalTypeKey(s))
   if (p === undefined || p <= 0) return -Math.log(1 / (rates.totalCells + 1))

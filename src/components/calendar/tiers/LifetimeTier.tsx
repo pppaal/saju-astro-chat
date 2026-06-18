@@ -1179,4 +1179,3 @@ function ZRLane({
   )
 }
 
-export default LifetimeTier

@@ -49,4 +49,3 @@ export function CrossingList({ heading, items }: { heading?: string; items: Cros
   )
 }
 
-export default CrossingList

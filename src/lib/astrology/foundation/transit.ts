@@ -292,7 +292,7 @@ export interface TransitEvent {
 /**
  * 현재 활성화된 트랜짓 해석 키워드 반환
  */
-export function getTransitKeywords(aspect: TransitAspect): {
+function getTransitKeywords(aspect: TransitAspect): {
   theme: string
   keywords: string[]
   duration: string

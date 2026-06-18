@@ -32,7 +32,7 @@ const HOUSE_PROFECTION_THEMES: Record<number, { theme: string; description: stri
   12: { theme: '내면·고립·잠재·종결',      description: '은둔·잠재·뒷마무리·자선·정신적 정화의 해.' },
 }
 
-export function getProfectionInterpretation(result: ProfectionResult): string {
+function getProfectionInterpretation(result: ProfectionResult): string {
   const theme = HOUSE_PROFECTION_THEMES[result.activatedHouse]
   return `Age ${result.age}: ${result.activatedHouse}궁 (${theme.theme}) 활성. Lord of the Year: ${result.lordOfYear} in ${result.activatedSign}. ${theme.description}`
 }

@@ -16,12 +16,12 @@
 // 사용처 (예정): 통합 명식 리포트 "명궁 × ASC" 교차 (natalCross 추가),
 //                DestinyPal 본명 시그널 #6 후보.
 
-export const BRANCH_INDEX_MAP: Record<string, number> = {
+const BRANCH_INDEX_MAP: Record<string, number> = {
   '子': 1, '丑': 2, '寅': 3, '卯': 4, '辰': 5, '巳': 6,
   '午': 7, '未': 8, '申': 9, '酉': 10, '戌': 11, '亥': 12,
 }
 
-export const INDEX_BRANCH_MAP: Record<number, string> = {
+const INDEX_BRANCH_MAP: Record<number, string> = {
   1: '子', 2: '丑', 3: '寅', 4: '卯', 5: '辰', 6: '巳',
   7: '午', 8: '未', 9: '申', 10: '酉', 11: '戌', 12: '亥',
 }

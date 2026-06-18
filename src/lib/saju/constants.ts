@@ -67,7 +67,7 @@ export const JIJANGGAN: { [branchName: string]: { [key: string]: string } } = {
 // 타이밍/초정밀 레이어가 hiddenStems[0]=정기(본기, 100) · [1]=중기(70) · [2]=여기(40)
 // 로 강도를 매기는 데 쓴다. JIJANGGAN(dict) 에서 파생하므로 글자·구성은 단일 소스이고,
 // 순서도 강도 규약과 항상 일치한다(예전 일부 지지의 여기↔중기 자리 뒤바뀜 교정).
-export const JIJANGGAN_ORDERED: Record<string, string[]> = Object.fromEntries(
+const JIJANGGAN_ORDERED: Record<string, string[]> = Object.fromEntries(
   Object.entries(JIJANGGAN).map(([branch, j]) => [
     branch,
     [j['정기'], j['중기'], j['여기']].filter((s): s is string => Boolean(s)),
@@ -1927,7 +1927,7 @@ export function getElementFromStem(stem: string): FiveElement | null {
 }
 
 /** 지지에서 오행 추출 (한자/한글 모두 지원) */
-export function getElementFromBranch(branch: string): FiveElement | null {
+function getElementFromBranch(branch: string): FiveElement | null {
   return BRANCH_TO_ELEMENT[branch] || null
 }
 
@@ -2008,6 +2008,6 @@ export function getElementEnFromStem(stem: string): string | null {
 }
 
 /** 지지에서 영어 오행 추출 */
-export function getElementEnFromBranch(branch: string): string | null {
+function getElementEnFromBranch(branch: string): string | null {
   return BRANCH_TO_ELEMENT_EN[branch] || null
 }

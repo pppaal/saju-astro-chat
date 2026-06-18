@@ -65,7 +65,7 @@ interface BirthInfoFieldsProps {
   showCity?: boolean
 }
 
-export const birthFieldClasses: Required<BirthFieldsClasses> = {
+const birthFieldClasses: Required<BirthFieldsClasses> = {
   field: 'flex flex-col gap-1.5',
   label: 'text-[12.5px] font-semibold tracking-[0.02em] text-[rgba(229,231,240,0.78)]',
   // iOS Safari 는 font-size < 16px input/select 를 탭하면 자동 줌인 처리하는데,
@@ -404,4 +404,3 @@ function daysInMonth(y: number, m: number): number {
   return new Date(y, m, 0).getDate()
 }
 
-export default BirthInfoFields

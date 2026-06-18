@@ -49,4 +49,3 @@ export function DestinypalRail({ tiers, activeIndex, onSelect }: DestinypalRailP
   )
 }
 
-export default DestinypalRail

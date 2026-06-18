@@ -61,7 +61,7 @@ export function toAstroPlanetId(value: string | null | undefined): string | null
   return matchBySet(value, PLANET_SET)
 }
 
-export function toAstroSignId(value: string | null | undefined): string | null {
+function toAstroSignId(value: string | null | undefined): string | null {
   return matchBySet(value, SIGN_SET)
 }
 

@@ -29,10 +29,10 @@ export type { SixtyPillarInfo, IljuInfo } from './pillar-lookup'
 export {
   STEM_KOREAN,
   BRANCH_KOREAN,
-  STEM_ORDER,
-  BRANCH_ORDER,
+  
+  
   SIXTY_PILLARS,
-  NAEUM_DATA,
+  
 } from './pillar-lookup'
 
 // Import for internal use

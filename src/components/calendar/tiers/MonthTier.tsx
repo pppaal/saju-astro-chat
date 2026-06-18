@@ -1094,4 +1094,3 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   )
 }
 
-export default MonthTier

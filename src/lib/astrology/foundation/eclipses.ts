@@ -275,7 +275,7 @@ function eclipsesInJDRange(startJD: number, endJD: number): Eclipse[] {
 }
 
 /** Test/diagnostic helper: clear the in-memory eclipse cache. */
-export function _clearEclipseCache(): void {
+function _clearEclipseCache(): void {
   eclipseRangeCache.clear()
 }
 
@@ -360,7 +360,7 @@ export function getAllEclipses(startDate?: Date, endDate?: Date): Eclipse[] {
  * @param reference "지금" 주입점 — 미래 horizon 의 기준. 기본값은 호출 시점이라
  *   프로덕션 동작은 그대로, 테스트는 고정해 결정론적으로 검증한다.
  */
-export function getLifetimeEclipses(
+function getLifetimeEclipses(
   birthDate: Date,
   horizonYearsAhead: number = 100,
   reference: Date = new Date()

@@ -110,4 +110,3 @@ export function useFocusTrap(isOpen: boolean, options?: { autoFocus?: boolean })
   return containerRef;
 }
 
-export default useFocusTrap;

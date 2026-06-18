@@ -29,35 +29,35 @@ export {
 // Zod-based validation (recommended)
 export {
   // Core validators
-  validate,
-  safeValidate,
-  parseAndValidate,
-  parseQueryParams,
-  formatValidationErrors,
-  validationError,
+  
+  
+  
+  
+  
+  
   // Common schemas
-  DateSchema,
-  TimeSchema,
-  TimezoneSchema,
-  LocaleSchema,
-  LatitudeSchema,
-  LongitudeSchema,
-  SafeTextSchema,
-  EmailSchema,
-  UuidSchema,
+  
+  
+  
+  
+  
+  
+  
+  
+  
   // Composite schemas
-  BirthDataSchema,
-  PaginationSchema,
-  QueryParamsSchema,
+  
+  
+  
   // Service-specific schemas
-  DestinyMapRequestSchema,
-  TarotRequestSchema,
-  TarotInterpretSchema,
-  DreamRequestSchema,
-  IChingRequestSchema,
-  CalendarQuerySchema,
-  CompatibilityRequestSchema,
-  FeedbackRequestSchema,
+  
+  
+  
+  
+  
+  
+  
+  
   // Types
   type ValidationError,
   type ValidationResult,
@@ -73,5 +73,5 @@ export {
   type CompatibilityRequest,
   type FeedbackRequest,
   // Zod re-export
-  z,
+  
 } from "@/lib/api/validator";

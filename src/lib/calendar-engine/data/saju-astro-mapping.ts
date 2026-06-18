@@ -327,7 +327,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
  * cross-activation 이 합성 신호의 layer 가 이 밴드에 없으면 emit 하지 않는다.
  * → "전부 켜기/끄기"가 아니라 *층마다 맞는 행성만* 교차.
  */
-export const CROSS_LAYER_BAND: Record<AstroMatchKey, readonly SignalLayer[]> = {
+const CROSS_LAYER_BAND: Record<AstroMatchKey, readonly SignalLayer[]> = {
   Moon: ['daily'],
   Sun: ['daily', 'monthly'],
   Mercury: ['daily', 'monthly'],
@@ -364,4 +364,4 @@ export function lookupCrossMapping(
 }
 
 /** 매핑 통계 — 디버그·테스트용. */
-export const MAPPING_COUNT = SAJU_ASTRO_MAPPINGS.length
+const MAPPING_COUNT = SAJU_ASTRO_MAPPINGS.length

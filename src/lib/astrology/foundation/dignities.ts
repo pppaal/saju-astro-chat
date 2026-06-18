@@ -67,7 +67,7 @@ export const EXALTATION: Record<string, string[]> = {
   Saturn: ['Libra', '천칭자리'],
 }
 
-export const DETRIMENT: Record<string, string[]> = {
+const DETRIMENT: Record<string, string[]> = {
   Sun: ['Aquarius', '물병자리'],
   Moon: ['Capricorn', '염소자리'],
   Mercury: ['Sagittarius', '사수자리', 'Pisces', '물고기자리'],
@@ -77,7 +77,7 @@ export const DETRIMENT: Record<string, string[]> = {
   Saturn: ['Cancer', '게자리', 'Leo', '사자자리'],
 }
 
-export const FALL: Record<string, string[]> = {
+const FALL: Record<string, string[]> = {
   Sun: ['Libra', '천칭자리'],
   Moon: ['Scorpio', '전갈자리'],
   Mercury: ['Pisces', '물고기자리'],

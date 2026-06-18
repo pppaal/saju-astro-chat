@@ -30,13 +30,13 @@ import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
  * 사주/점성 엔진 버전 시그니처. extractor·deriver 산식이 출력에 영향 주게
  * 바뀌면 bump → birthKey 가 달라져 모든 캐시가 무효화된다.
  */
-export const CALENDAR_ENGINE_VERSION = 'v2'
+const CALENDAR_ENGINE_VERSION = 'v2'
 
 /**
  * 본명 입력 → 안정적 캐시 키. 위치는 4자리(≈11m)로 라운딩해 부동소수 잡음으로
  * 키가 흔들리지 않게 한다. 엔진 버전을 포함해 산식 변경 시 자동 무효화.
  */
-export function birthKeyFor(input: BuildContextInput): string {
+function birthKeyFor(input: BuildContextInput): string {
   const canonical = [
     input.birthDate,
     input.birthTime,

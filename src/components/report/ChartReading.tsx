@@ -102,4 +102,3 @@ export function ChartReading({
   )
 }
 
-export default ChartReading

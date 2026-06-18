@@ -33,14 +33,14 @@ export interface SignalForScore {
  * TODO(calibration): bias/scale 은 96차트×1년 시뮬 기반 경험값. 룰을 대량
  *   추가/삭제하면 scripts/score-distribution 류로 재측정해 조정할 것.
  */
-export function normalizeAvgToScore(avg: number, bias: number, scale: number): number {
+function normalizeAvgToScore(avg: number, bias: number, scale: number): number {
   return 50 + (avg - bias) * scale
 }
 
 /** derivedScore recenter 상수 (전체 신호 polarity 양 편향 보정) */
-export const DERIVED_SCORE_BIAS = 1.75
+const DERIVED_SCORE_BIAS = 1.75
 /** derivedScore 분포 스케일 */
-export const DERIVED_SCORE_SCALE = 16
+const DERIVED_SCORE_SCALE = 16
 
 export function deriveScore(signals: SignalForScore[], patterns: SignalPattern[] = []): number {
   if (signals.length === 0) return 50

@@ -17,9 +17,9 @@ export type {
 // ======================================================
 export {
   calculateTransitChart,
-  findTransitAspects,
+  
   findMajorTransits,
-  getTransitKeywords,
+  
 } from "./foundation/transit";
 
 export type {
@@ -28,7 +28,7 @@ export type {
 } from "./foundation/transit";
 
 export { findAspects, findNatalAspects } from "./foundation/aspects";
-export { calcHouses } from "./foundation/houses";
+;
 
 // ======================================================
 // 📘 공통 타입 (기초 구조)
@@ -49,7 +49,7 @@ export type {
 // ======================================================
 // 🧠 Advanced (테마 / 옵션 / 강화 위상 / 엔진 메타)
 // ======================================================
-export { resolveOptions, defaultOptions, presets } from "./advanced/options";
+export { resolveOptions,   } from "./advanced/options";
 export type { AstroOptions, AstroTheme } from "./advanced/options";
 
 export { findAspectsPlus, findNatalAspectsPlus } from "./advanced/aspectsPlus";
@@ -61,13 +61,13 @@ export type { ExtendedMeta } from "./advanced/meta";
 // ⭐ Extra Points (Chiron, Lilith, Part of Fortune, Vertex)
 // ======================================================
 export {
-  calculateChiron,
-  calculateLilith,
-  calculatePartOfFortune,
-  calculateVertex,
-  extendChartWithExtraPoints,
+  
+  
+  
+  
+  
   calculateExtraPoints,
-  isNightChart,
+  
 } from "./foundation/extraPoints";
 
 export type {
@@ -83,10 +83,10 @@ export {
   calculateSolarArcDirections,
   getProgressedMoonPhase,
   getProgressionSummary,
-  findProgressedToNatalAspects,
-  findProgressedInternalAspects,
-  findProgressedMoonAspects,
-  findProgressedAspectKeywords,
+  
+  
+  
+  
 } from "./foundation/progressions";
 
 // Note: ProgressedAspect type removed - not exported from progressions module
@@ -115,10 +115,7 @@ export type {
 // ======================================================
 // 💕 Synastry (두 차트 비교)
 // ======================================================
-export {
-  calculateSynastry,
-  findSynastryAspects,
-} from "./foundation/synastry";
+;
 
 export type {
   SynastryInput,
@@ -129,10 +126,7 @@ export type {
 // ======================================================
 // 🔗 Composite (합성 차트)
 // ======================================================
-export {
-  calculateComposite,
-  getCompositeSummary,
-} from "./foundation/composite";
+;
 
 export type {
   CompositeInput,
@@ -145,8 +139,8 @@ export type {
 export {
   calculateMidpoints,
   findMidpointActivations,
-  getMidpoint,
-  findCrossMidpointActivations,
+  
+  
 } from "./foundation/midpoints";
 
 export type {
@@ -159,9 +153,9 @@ export type {
 // ======================================================
 export {
   findFixedStarConjunctions,
-  getFixedStar,
+  
   getAllFixedStars,
-  correctForPrecession,
+  
 } from "./foundation/fixedStars";
 
 export type {
@@ -175,11 +169,11 @@ export type {
 export {
   findEclipseImpact,
   getUpcomingEclipses,
-  getEclipsesBetween,
-  getEclipsesInSign,
-  getEclipseAxis,
+  
+  
+  
   checkEclipseSensitivity,
-  getAllEclipses,
+  
 } from "./foundation/eclipses";
 
 export type {
@@ -200,9 +194,9 @@ export type { AstrologyChartFacts } from "./foundation/types";
 export {
   calculateDraconicChart,
   compareDraconicToNatal,
-  findDraconicAspects,
-  calculateDraconicSynastry,
-  findDraconicTransits,
+  
+  
+  
   getDraconicPlanetMeaning,
 } from "./foundation/draconic";
 
@@ -217,17 +211,7 @@ export type {
 // ======================================================
 // 📅 Electional Astrology (택일 점성학)
 // ======================================================
-export {
-  getMoonPhase,
-  getMoonPhaseName,
-  checkVoidOfCourse,
-  calculatePlanetaryHour,
-  getRetrogradePlanets,
-  classifyAspects,
-  analyzeElection,
-  findBestDates,
-  getElectionalGuidelines,
-} from "./foundation/electional";
+;
 
 export type {
   MoonPhase,
@@ -243,12 +227,12 @@ export type {
 // ======================================================
 export {
   calculateHarmonicChart,
-  findHarmonicConjunctions,
-  findHarmonicPatterns,
+  
+  
   analyzeHarmonic,
-  analyzeAgeHarmonic,
+  
   generateHarmonicProfile,
-  analyzeAspectSeriesHarmonic,
+  
   getHarmonicMeaning,
 } from "./foundation/harmonics";
 
@@ -264,15 +248,15 @@ export type {
 // ☄️ Major Asteroids (4대 소행성)
 // ======================================================
 export {
-  calculateAsteroid,
+  
   calculateAllAsteroids,
-  extendChartWithAsteroids,
+  
   interpretAsteroid,
-  findAsteroidAspects,
+  
   findAllAsteroidAspects,
   getAsteroidInfo,
-  analyzeAsteroidSynastry,
-  analyzeAsteroidTransit,
+  
+  
 } from "./foundation/asteroids";
 
 export type {

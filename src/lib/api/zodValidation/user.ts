@@ -151,7 +151,7 @@ export const contentAccessSchema = z.object({
 
 export type ContentAccessValidated = z.infer<typeof contentAccessSchema>
 
-export const contentAccessGetQuerySchema = paginationQuerySchema.extend({
+const contentAccessGetQuerySchema = paginationQuerySchema.extend({
   service: z.string().max(50).optional(),
 })
 

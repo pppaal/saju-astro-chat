@@ -245,7 +245,7 @@ export function extractCrossActivations(signals: readonly ActiveSignal[]): Activ
 /**
  * Cross-activation 의 부수 정보 — 디버그·테스트용.
  */
-export function debugCrossActivations(signals: readonly ActiveSignal[]): {
+function debugCrossActivations(signals: readonly ActiveSignal[]): {
   totalPairsConsidered: number
   emitted: number
   byMapping: Record<string, number>
@@ -266,4 +266,4 @@ export function debugCrossActivations(signals: readonly ActiveSignal[]): {
   }
 }
 
-export { lookupCrossMapping }
+

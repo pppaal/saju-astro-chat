@@ -23,7 +23,7 @@ export interface RelationOption {
   romantic: boolean
 }
 
-export const RELATION_OPTIONS: readonly RelationOption[] = [
+const RELATION_OPTIONS: readonly RelationOption[] = [
   {
     key: 'lover',
     labelKo: '연인',

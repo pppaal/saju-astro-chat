@@ -2,7 +2,7 @@
 // Helper functions extracted from reportService.ts
 
 // Re-export from centralized security module for backward compatibility
-export { hashName, maskDisplayName, maskTextWithName } from '@/lib/security'
+
 
 // Re-export the canonical 'YYYY-MM-DD in this timezone' helper so the
 // existing `import { getDateInTimezone } from './report-helpers'` keeps

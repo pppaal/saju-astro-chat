@@ -15,7 +15,7 @@
  * 상담사가 사주+점성을 통합 해석하므로, 블로그 CTA 는 /destiny-counselor 로
  * 보낸다. (이전엔 404 로 떨어지던 죽은 링크였음.)
  */
-export const CATEGORY_ROUTES: Record<string, string> = {
+const CATEGORY_ROUTES: Record<string, string> = {
   Saju: '/destiny-counselor',
   Astrology: '/destiny-counselor',
   Tarot: '/tarot',
@@ -26,7 +26,7 @@ export const CATEGORY_ROUTES: Record<string, string> = {
 /**
  * Main app routes
  */
-export const ROUTES = {
+const ROUTES = {
   HOME: '/',
   BLOG: '/blog',
   SAJU: '/saju',

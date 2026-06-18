@@ -63,7 +63,7 @@ export const stemBranchInfoSchema = z.object({
 })
 export type StemBranchInfoValidated = z.infer<typeof stemBranchInfoSchema>
 
-export const dayMasterSchema = stemBranchInfoSchema
+const dayMasterSchema = stemBranchInfoSchema
 export type DayMasterValidated = z.infer<typeof dayMasterSchema>
 
 export const ganjiSchema = z.object({

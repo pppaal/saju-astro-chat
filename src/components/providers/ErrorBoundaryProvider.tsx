@@ -13,4 +13,3 @@ export function ErrorBoundaryProvider({ children }: { children: ReactNode }) {
   return <ErrorBoundary>{children}</ErrorBoundary>;
 }
 
-export default ErrorBoundaryProvider;

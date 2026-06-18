@@ -15,7 +15,7 @@
  * 핵심 단어만 넘기세요.
  */
 
-export function hasJongsung(word: string): boolean {
+function hasJongsung(word: string): boolean {
   if (!word) return false
   const last = word.charCodeAt(word.length - 1)
   if (last < 0xac00 || last > 0xd7a3) return false
@@ -41,7 +41,7 @@ export function waGwa(word: string): '와' | '과' {
 /**
  * '으로' / '로' — ㄹ 받침은 예외로 '로'를 반환.
  */
-export function euroRo(word: string): '으로' | '로' {
+function euroRo(word: string): '으로' | '로' {
   if (!word) return '로'
   const last = word.charCodeAt(word.length - 1)
   if (last < 0xac00 || last > 0xd7a3) return '로'

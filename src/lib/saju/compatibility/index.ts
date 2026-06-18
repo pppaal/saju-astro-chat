@@ -3,7 +3,7 @@
 
 export * from './types'
 export * from './constants'
-export { analyzeElementCompatibility, countElements } from './elementAnalysis'
+export { analyzeElementCompatibility,  } from './elementAnalysis'
 export { analyzeStemCompatibility, analyzeBranchCompatibility } from './stemBranchAnalysis'
 export { analyzeDayMasterRelation } from './dayMasterAnalysis'
 export { analyzeByCategory } from './categoryAnalysis'

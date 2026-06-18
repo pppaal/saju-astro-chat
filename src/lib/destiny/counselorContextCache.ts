@@ -25,7 +25,7 @@ export interface CounselorBirthInput {
   birthCityUnknown?: boolean
 }
 
-export function birthFingerprint(b: CounselorBirthInput): string {
+function birthFingerprint(b: CounselorBirthInput): string {
   return [
     b.birthDate ?? '',
     b.birthTime ?? '00:00',

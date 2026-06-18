@@ -12,7 +12,7 @@
 
 export type MeaningTone = 'positive' | 'negative' | 'neutral'
 
-export const TONE_POOL_KO: Record<MeaningTone, string[]> = {
+const TONE_POOL_KO: Record<MeaningTone, string[]> = {
   positive: [
     '일이 풀리는 날',
     '밀어붙이기 좋은 날',
@@ -42,7 +42,7 @@ export const TONE_POOL_KO: Record<MeaningTone, string[]> = {
   ],
 }
 
-export const TONE_POOL_EN: Record<MeaningTone, string[]> = {
+const TONE_POOL_EN: Record<MeaningTone, string[]> = {
   positive: [
     'things fall into place',
     'a good day to push',

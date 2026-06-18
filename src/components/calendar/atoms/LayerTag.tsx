@@ -24,4 +24,3 @@ export function LayerTag({ kind, className }: LayerTagProps) {
   )
 }
 
-export default LayerTag
