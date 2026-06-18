@@ -102,13 +102,15 @@ const ROWS: RowConfig[] = [
     emptyEn: 'no union',
   },
   {
+    // 충은 "낮을수록 충돌 많음"으로 반전된 값 → 라벨을 긍정(높을수록 좋음)으로 통일.
+    // 막대 길이 = 항상 좋음(헷갈림 제거). 낮을 때만 빈상태 텍스트로 충돌을 알림.
     key: 'eastern_chung',
-    emoji: '⚠️',
-    labelKo: '사주 충',
-    labelEn: 'Saju Clash',
-    tone: 'tension',
-    emptyKo: '충돌 강함',
-    emptyEn: 'high clash',
+    emoji: '🕊️',
+    labelKo: '충 없이 안정',
+    labelEn: 'Stable, no clash',
+    tone: 'harmony',
+    emptyKo: '충돌 있음',
+    emptyEn: 'has clash',
   },
   {
     key: 'elements_match',
@@ -121,21 +123,22 @@ const ROWS: RowConfig[] = [
   },
   {
     key: 'synastry_harmonic',
-    emoji: '♀♂',
-    labelKo: '시너 조화',
-    labelEn: 'Synastry Harmony',
+    emoji: '✨',
+    labelKo: '별자리 조화',
+    labelEn: 'Star harmony',
     tone: 'harmony',
     emptyKo: '조화 적음',
     emptyEn: 'low harmony',
   },
   {
+    // 긴장도 반전 값(낮을수록 긴장 많음) → 긍정 라벨로 통일.
     key: 'synastry_tension',
-    emoji: '♂♄',
-    labelKo: '시너 긴장',
-    labelEn: 'Synastry Tension',
-    tone: 'tension',
-    emptyKo: '긴장 강함',
-    emptyEn: 'high tension',
+    emoji: '🌙',
+    labelKo: '긴장 없이 편안',
+    labelEn: 'Calm, no tension',
+    tone: 'harmony',
+    emptyKo: '긴장 있음',
+    emptyEn: 'has tension',
   },
 ]
 
@@ -240,19 +243,25 @@ export function ScoreBreakdown({
           {lang === 'en' ? headerEn : headerKo}
         </div>
         {variant === 'band' ? (
-          // 밴드 모드 — 큰 숫자 대신 verdict 라벨을 크게. 근거는 아래 분해 바.
-          <div
-            className="px-2 text-center font-semibold"
-            style={{
-              fontSize: 24,
-              lineHeight: 1.25,
-              fontFamily: 'var(--font-cinzel), Georgia, serif',
-              color: pal.gold,
-              textShadow: `0 1px 12px ${pal.glow}`,
-            }}
-          >
-            {verdict}
-          </div>
+          // 밴드 모드 — 큰 숫자(가짜 정밀) 대신: 3초 안에 읽히는 등급 단어를 제일
+          // 크게(직관), 그 아래 결을 설명하는 verdict 문장. 근거는 분해 바.
+          <>
+            <div
+              className="text-center font-bold"
+              style={{
+                fontSize: 34,
+                lineHeight: 1.1,
+                fontFamily: 'var(--font-cinzel), Georgia, serif',
+                color: pal.gold,
+                textShadow: `0 1px 12px ${pal.glow}`,
+              }}
+            >
+              {compatTier(totalScore, lang)}
+            </div>
+            <div className="px-2 text-center text-[13px]" style={{ color: pal.text }}>
+              {verdict}
+            </div>
+          </>
         ) : (
           <>
             <div

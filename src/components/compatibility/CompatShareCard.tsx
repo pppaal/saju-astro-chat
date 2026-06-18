@@ -17,6 +17,8 @@ export type CompatCoupleTone = 'aligned' | 'mixed' | 'tension' | 'neutral'
 export interface CompatShareElement {
   stem: string
   el: string
+  /** 오행 평이한 한 단어 (성장/열정/안정/결단/지혜) — 비전공자용. */
+  vibe?: string
   textColor: string
   bgColor: string
 }
@@ -69,7 +71,7 @@ function PillarCell({ el }: { el: CompatShareElement }) {
       <span
         style={{
           fontFamily: SERIF,
-          fontSize: 74,
+          fontSize: 64,
           fontWeight: 700,
           lineHeight: 1,
           color: el.textColor,
@@ -77,8 +79,9 @@ function PillarCell({ el }: { el: CompatShareElement }) {
       >
         {el.stem}
       </span>
-      <span style={{ fontFamily: SERIF, fontSize: 26, color: el.textColor, opacity: 0.85 }}>
+      <span style={{ fontFamily: SERIF, fontSize: 23, color: el.textColor, opacity: 0.85 }}>
         {el.el}
+        {el.vibe ? ` · ${el.vibe}` : ''}
       </span>
     </div>
   )
@@ -224,6 +227,8 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
               color: GOLD,
               wordBreak: 'keep-all',
               textAlign: 'center',
+              maxWidth: 760,
+              lineHeight: 1.2,
             }}
           >
             {coupleType}
@@ -347,7 +352,7 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
               display: 'inline-block',
             }}
           />
-          <span>{isKo ? '너희 궁합은 몇 점?' : "What's your match?"}</span>
+          <span>{isKo ? '너희는 무슨 커플?' : 'What couple are you?'}</span>
           <span style={{ color: LINE }}>·</span>
           <span>destinypal.com</span>
         </div>
