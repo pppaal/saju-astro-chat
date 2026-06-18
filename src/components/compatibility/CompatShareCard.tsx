@@ -36,8 +36,8 @@ export interface CompatShareCardData {
   fillPct: number
   /** 동·서 교차 종합 한 줄(또는 verdict 폴백). */
   keyMessage: string
-  /** 두 사람 일간 오행 — 없으면 생략. */
-  elements: { a: CompatShareElement; b: CompatShareElement } | null
+  /** 두 사람 일간 천간+오행(한자) + 오행 관계(상생/상극/비화) — 없으면 생략. */
+  elements: { a: CompatShareElement; b: CompatShareElement; relation?: string } | null
   isKo: boolean
 }
 
@@ -243,17 +243,32 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           <TierRing tier={tier} fillPct={fillPct} />
 
           {elements ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
               <ElementDot el={elements.a} />
-              {/* 그린 구분선(이모지 회피) */}
-              <span
-                style={{
-                  width: 44,
-                  height: 2,
-                  borderRadius: 2,
-                  background: 'rgba(212,181,114,0.55)',
-                }}
-              />
+              {elements.relation ? (
+                // 오행 관계(상생/상극/비화) — 두 사람 사이에.
+                <span
+                  style={{
+                    padding: '4px 16px',
+                    borderRadius: 999,
+                    border: '1px solid rgba(212,181,114,0.4)',
+                    color: GOLD_SOFT,
+                    fontSize: 24,
+                    fontWeight: 600,
+                  }}
+                >
+                  {elements.relation}
+                </span>
+              ) : (
+                <span
+                  style={{
+                    width: 44,
+                    height: 2,
+                    borderRadius: 2,
+                    background: 'rgba(212,181,114,0.55)',
+                  }}
+                />
+              )}
               <ElementDot el={elements.b} />
             </div>
           ) : null}

@@ -23,14 +23,30 @@ const COUPLE_TYPE: Record<CompatCoupleTone, { ko: string; en: string }> = {
   neutral: { ko: '은은하게 오래가는 사이', en: 'Quiet & Lasting' },
 }
 
-// 일간 오행(한글 한 글자) → 색 + 영문 라벨. (이모지는 캡처 불안정 → 카드에서
-// 이 색으로 점을 그린다.)
-const ELEMENT_META: Record<string, { ko: string; en: string; color: string }> = {
-  목: { ko: '목', en: 'Wood', color: '#6fbf8a' },
-  화: { ko: '화', en: 'Fire', color: '#ec7b70' },
-  토: { ko: '토', en: 'Earth', color: '#d2ad62' },
-  금: { ko: '금', en: 'Metal', color: '#cdd3dd' },
-  수: { ko: '수', en: 'Water', color: '#69a8e0' },
+// 일간 오행(한글 한 글자) → 한자 + 색. (사주 카드라 오행은 한자로 — 火水木金土.
+// 이모지는 캡처 불안정 → 카드에서 이 색으로 점을 그린다.)
+const ELEMENT_META: Record<string, { hanja: string; en: string; color: string }> = {
+  목: { hanja: '木', en: 'Wood', color: '#6fbf8a' },
+  화: { hanja: '火', en: 'Fire', color: '#ec7b70' },
+  토: { hanja: '土', en: 'Earth', color: '#d2ad62' },
+  금: { hanja: '金', en: 'Metal', color: '#cdd3dd' },
+  수: { hanja: '水', en: 'Water', color: '#69a8e0' },
+}
+
+// 일간 오행 관계(상생/상극/비화) — 한 단어로.
+function relationWord(
+  relation: 'same' | 'aControlsB' | 'bControlsA' | 'generate' | undefined,
+  isKo: boolean
+): string | undefined {
+  if (!relation) return undefined
+  if (isKo) {
+    if (relation === 'same') return '비화'
+    if (relation === 'generate') return '상생'
+    return '상극'
+  }
+  if (relation === 'same') return 'same'
+  if (relation === 'generate') return 'generates'
+  return 'tempers'
 }
 
 // 공유 카드 한 줄/제목 넘침 방지용 — 1080px 고정 카드라 긴 한글은 잘라준다.
@@ -39,11 +55,18 @@ function truncate(text: string, max: number): string {
   return t.length > max ? `${t.slice(0, max - 1).trim()}…` : t
 }
 
-function toElement(el: string | undefined, isKo: boolean): CompatShareElement | null {
+// 천간(한자) + 오행 한자. 예: 丙 + 火 → "丙火". 영어는 stem 한자 + 영문 오행.
+function toElement(
+  stem: string | undefined,
+  el: string | undefined,
+  isKo: boolean
+): CompatShareElement | null {
   if (!el) return null
   const meta = ELEMENT_META[el]
   if (!meta) return null
-  return { label: isKo ? meta.ko : meta.en, color: meta.color }
+  const s = stem ?? ''
+  const label = isKo ? `${s}${meta.hanja}` : `${s} ${meta.en}`
+  return { label, color: meta.color }
 }
 
 export function buildCompatShareData(
@@ -65,11 +88,11 @@ export function buildCompatShareData(
   // 없으면 verdict 문장으로 폴백. 1080 카드 넘침 방지로 길이 제한.
   const keyMessage = truncate(report.crossVerdict?.text || verdictText(total, lang), 78)
 
-  // 두 사람 일간 오행 — 시각적 정체성. dayMaster 없으면 생략.
+  // 두 사람 일간 천간+오행(한자) + 오행 관계. dayMaster 없으면 생략.
   const dm = report.dayMaster
-  const a = toElement(dm?.aEl, isKo)
-  const b = toElement(dm?.bEl, isKo)
-  const elements = a && b ? { a, b } : null
+  const a = toElement(dm?.aStem, dm?.aEl, isKo)
+  const b = toElement(dm?.bStem, dm?.bEl, isKo)
+  const elements = a && b ? { a, b, relation: relationWord(dm?.relation, isKo) } : null
 
   // 사용자가 이름을 안 넣어 A/B 기본값이면 중립 제목으로. (이름은 길면 자른다.)
   const bothDefault = labelA === 'A' && labelB === 'B'
