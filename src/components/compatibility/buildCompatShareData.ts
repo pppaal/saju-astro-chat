@@ -147,11 +147,11 @@ function spouseLine(
   return `${who}에게 ${other}, ‘${feeling}’의 짝${seat}`
 }
 
-// 결정적 시너스트리 한 줄 — 가장 강한 어스펙트(라벨은 이미 평이하게 글로스됨).
+// 결정적 시너스트리 한 줄 — 행성명(금성/화성) 대신 "뜻"으로: "사랑 ↔ 끌림 · 조화".
 function signalLine(report: CompatReport): string | undefined {
   const a0 = report.synView?.aspects?.[0]
   if (!a0) return undefined
-  return `${a0.a} ↔ ${a0.b} · ${a0.label}`
+  return `${a0.aRole} ↔ ${a0.bRole} · ${a0.label}`
 }
 
 export function buildCompatShareData(

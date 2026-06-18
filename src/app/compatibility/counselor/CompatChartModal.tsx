@@ -813,14 +813,26 @@ export function CompatChartModal({
                       <div className="flex items-center gap-2.5">
                         <span className="flex-1" style={{ color: 'var(--ds-light-text)' }}>
                           <b style={{ color: '#be123c' }}>
-                            {labelA} {asp.a}
+                            {labelA} {asp.aRole}
                           </b>
+                          <span
+                            className="text-[10px]"
+                            style={{ color: 'var(--ds-light-text-subtle)' }}
+                          >
+                            ({asp.a})
+                          </span>
                           <span className="mx-1.5" style={{ color: toneColor(asp.tone) }}>
                             {asp.label}
                           </span>
                           <b style={{ color: '#0369a1' }}>
-                            {labelB} {asp.b}
+                            {labelB} {asp.bRole}
                           </b>
+                          <span
+                            className="text-[10px]"
+                            style={{ color: 'var(--ds-light-text-subtle)' }}
+                          >
+                            ({asp.b})
+                          </span>
                         </span>
                         <span
                           className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px]"

@@ -198,6 +198,10 @@ export interface SynAspectView {
   a: string
   /** B 행성 (KO/EN) */
   b: string
+  /** A 행성의 "관계에서의 뜻" 한 단어 (사랑/끌림/감정…) — 비전공자용. */
+  aRole: string
+  /** B 행성의 "관계에서의 뜻" 한 단어. */
+  bRole: string
   /** 관계어 라벨 */
   label: string
   tone: SynastryTone
@@ -249,6 +253,28 @@ function toneOf(type: string): SynastryTone {
 }
 const pko = (name: string, isKo: boolean) => (isKo ? (PLANET_KO[name] ?? name) : name)
 
+// 행성 = 무슨 영역인지 "한 단어" — 금성/화성을 모르는 사람도 바로 읽히게.
+// (PLANET_ROLE 의 축약판. 비전공자가 첫눈에 이해하는 게 목적.)
+const PLANET_SHORT: Record<string, { ko: string; en: string }> = {
+  Sun: { ko: '자아', en: 'self' },
+  Moon: { ko: '감정', en: 'emotion' },
+  Mercury: { ko: '대화', en: 'talk' },
+  Venus: { ko: '사랑', en: 'love' },
+  Mars: { ko: '끌림', en: 'desire' },
+  Jupiter: { ko: '행운', en: 'luck' },
+  Saturn: { ko: '책임', en: 'duty' },
+  Uranus: { ko: '변화', en: 'change' },
+  Neptune: { ko: '환상', en: 'dreams' },
+  Pluto: { ko: '강렬함', en: 'intensity' },
+  Node: { ko: '운명', en: 'fate' },
+  'True Node': { ko: '운명', en: 'fate' },
+  Ascendant: { ko: '첫인상', en: 'first impression' },
+  MC: { ko: '사회적 모습', en: 'public self' },
+}
+const proleOf = (name: string, isKo: boolean) =>
+  (isKo ? PLANET_SHORT[name]?.ko : PLANET_SHORT[name]?.en) ??
+  (isKo ? (PLANET_KO[name] ?? name) : name)
+
 /**
  * 차트 렌더용 시너스트리 뷰. astroA/astroB 는 이미 unwrap 된 natal(chartData).
  * 데이터가 부족하면 null (차트는 이 섹션을 숨김).
@@ -284,6 +310,8 @@ export function computeSynastryView(
     .map((asp) => ({
       a: pko(asp.from.name, isKo),
       b: pko(asp.to.name, isKo),
+      aRole: proleOf(asp.from.name, isKo),
+      bRole: proleOf(asp.to.name, isKo),
       label: (isKo ? ASPECT_LABEL[asp.type]?.ko : ASPECT_LABEL[asp.type]?.en) ?? asp.type,
       tone: toneOf(asp.type),
       meaning: aspectMeaning(asp.from.name, asp.to.name, toneOf(asp.type), isKo),
