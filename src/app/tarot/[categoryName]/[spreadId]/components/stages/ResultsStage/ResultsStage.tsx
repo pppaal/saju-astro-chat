@@ -57,6 +57,7 @@ import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
 import { buildShareDataFromReading } from '@/components/tarot/shareCardData'
 import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
 import { analytics } from '@/components/analytics/GoogleAnalytics'
+import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
 
 export interface ResultsStageProps {
   readingResult: ReadingResponse
@@ -318,6 +319,12 @@ export function ResultsStage(props: ResultsStageProps) {
             )}
             language={language}
           />
+        )}
+
+        {/* 리딩 직후 = 알림 켤 확률 최고 순간 — "매일 아침 오늘의 운세" 옵트인.
+            푸시 미설정·미지원·dismiss 시 자동 미노출(저위험). */}
+        {!aiPending && insight?.overall_message && (
+          <DailyFortunePushBanner locale={language === 'ko' ? 'ko' : 'en'} />
         )}
 
         {/* ⑦ Follow-up 채팅 — AI 응답이 도착한 후에만 노출 */}
