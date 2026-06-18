@@ -178,12 +178,7 @@ export default function TarotChatScreen() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter → submit. Shift+Enter → newline. IME 한글 조합 중 skip.
-    if (
-      e.key === 'Enter' &&
-      !e.shiftKey &&
-      !e.nativeEvent.isComposing &&
-      e.keyCode !== 229
-    ) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && e.keyCode !== 229) {
       e.preventDefault()
       if (question.trim()) void handleSend()
     }
@@ -217,6 +212,16 @@ export default function TarotChatScreen() {
                 ? '아래에서 덱과 스프레드를 골라 질문을 입력하세요'
                 : 'Pick a deck and spread below, then type your question'}
             </p>
+
+            {/* 오늘의 타로 — 하루 1장 무료 데일리(재방문 습관 루프) 진입 */}
+            <button
+              type="button"
+              onClick={() => router.push('/tarot/daily')}
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium text-[#e8cc8a] bg-[rgba(212,181,114,0.12)] border border-[rgba(212,181,114,0.3)] hover:bg-[rgba(212,181,114,0.2)] transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              {isKo ? '오늘의 타로 · 하루 1장 무료' : "Today's Tarot · 1 free card daily"}
+            </button>
 
             <div className="pt-6 flex flex-col items-center gap-2.5">
               {/* z-0: 카드 인라인 zIndex(8~10)를 이 컨테이너 stacking context 안에
