@@ -767,7 +767,11 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           }}
           tarotDisabled={persons.length < 2}
           chartDisabled={
-            persons.length < 2 || (!person1Saju && !person1Astro && !person2Saju && !person2Astro)
+            persons.length < 2 ||
+            // 차트는 두 사람 모두의 데이터가 있어야 의미가 있다 — 한쪽만 있으면
+            // 점수·관계 섹션이 빈 채로 열린다. 각 사람이 사주 또는 점성 중
+            // 최소 하나씩은 있어야 활성화.
+            !((person1Saju || person1Astro) && (person2Saju || person2Astro))
           }
           focusToken={focusToken}
         />

@@ -57,6 +57,26 @@ export function verdictText(total: number, lang: 'ko' | 'en'): string {
   return '결이 많이 달라 — 천천히 다가가기'
 }
 
+/**
+ * 짧은 등급 라벨 — 공유 카드 링 중앙처럼 한 단어가 필요한 곳에서 verdictText 의
+ * 긴 문장 대신 쓴다. 같은 score 임계값을 공유하므로 카드와 차트가 어긋나지 않는다.
+ * (정밀 "N/100" 숫자는 안 박는 휴리스틱 정책과 동일 — 등급 단어만.)
+ */
+export function compatTier(total: number, lang: 'ko' | 'en'): string {
+  if (lang === 'en') {
+    if (total >= 90) return 'Top Match'
+    if (total >= 75) return 'Great Match'
+    if (total >= 60) return 'Good Match'
+    if (total >= 45) return 'Takes Effort'
+    return 'Handle with Care'
+  }
+  if (total >= 90) return '최고의 합'
+  if (total >= 75) return '아주 잘 맞아요'
+  if (total >= 60) return '잘 맞아요'
+  if (total >= 45) return '노력하면'
+  return '조심스러운'
+}
+
 // ─── 표시 ────────────────────────────────────────────────────────────
 
 interface RowConfig {

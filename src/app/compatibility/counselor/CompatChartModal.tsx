@@ -280,10 +280,14 @@ export function CompatChartModal({
   // 로직을 클라 번들에서 빼 엣지(IP)를 보호한다. 차트는 결과만 받아 그린다.
   const [report, setReport] = React.useState<CompatReport | null>(null)
   const [reportLoading, setReportLoading] = React.useState(false)
+  const [reportError, setReportError] = React.useState(false)
+  // 재시도 — 증가하면 fetch effect 가 다시 돈다.
+  const [retryKey, setRetryKey] = React.useState(0)
   React.useEffect(() => {
     if (!open) return
     let cancelled = false
     setReport(null)
+    setReportError(false)
     setReportLoading(true)
     const body = {
       astroA: unwrapAstro(person1Astro) ?? null,
@@ -300,12 +304,18 @@ export function CompatChartModal({
       },
       body: JSON.stringify(body),
     })
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => {
+        if (!r.ok) throw new Error(`compat report ${r.status}`)
+        return r.json()
+      })
       .then((d: { data?: CompatReport } | null) => {
         if (!cancelled) setReport(d?.data ?? null)
       })
       .catch(() => {
-        if (!cancelled) setReport(null)
+        if (!cancelled) {
+          setReport(null)
+          setReportError(true)
+        }
       })
       .finally(() => {
         if (!cancelled) setReportLoading(false)
@@ -313,7 +323,7 @@ export function CompatChartModal({
     return () => {
       cancelled = true
     }
-  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, lang])
+  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, lang, retryKey])
 
   if (!open) return null
 
@@ -437,6 +447,36 @@ export function CompatChartModal({
                 />
                 {isKo ? '두 사람의 궁합을 분석하고 있어요…' : 'Analyzing your compatibility…'}
               </div>
+            ) : reportError ? (
+              <div
+                className="flex flex-col items-center gap-3 rounded-xl py-6 text-[13px]"
+                style={{
+                  background: 'var(--ds-gold-soft-bg, rgba(160,122,60,0.08))',
+                  border: '1px solid var(--ds-light-border)',
+                  color: 'var(--ds-light-text-muted)',
+                }}
+                role="alert"
+              >
+                <span>
+                  {isKo
+                    ? '궁합 결과를 불러오지 못했어요.'
+                    : "Couldn't load the compatibility result."}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReportError(false)
+                    setRetryKey((k) => k + 1)
+                  }}
+                  className="rounded-full px-5 py-2 text-sm font-medium transition-colors"
+                  style={{
+                    background: 'var(--ds-gold)',
+                    color: '#1a1305',
+                  }}
+                >
+                  {isKo ? '다시 시도' : 'Try again'}
+                </button>
+              </div>
             ) : (
               <ScoreBreakdown breakdown={ssotBand} lang={lang} variant="band" theme="light" />
             )}
@@ -467,22 +507,14 @@ export function CompatChartModal({
                 {headlineReason}
               </p>
             )}
-            <p
-              className="mt-1.5 px-1 text-center text-[11px] leading-relaxed"
-              style={{ color: 'var(--ds-light-text-muted)' }}
-            >
-              {isKo
-                ? '이 막대는 두 사람의 사주와 별자리에서 끌어당기는 기운과 부딪히는 기운을 함께 본 거예요. 더 깊은 이야기는 상담사가 풀어드려요.'
-                : 'These bars weigh what pulls you together and what rubs — across both your Saju and stars. For the deeper read, ask the counselor.'}
-            </p>
-            {/* 공유 — 채팅이 아니라 엔진이 뽑은 결과(종합 한 줄 + 밴드 점수)만
-                정사각 카드 이미지로 만들어 인스타/카톡에 공유. 리포트가 로드돼
-                보여줄 게 있을 때만 노출. */}
+            {/* 공유 — 채팅이 아니라 엔진이 뽑은 결과(커플 유형·등급·종합 한 줄)만
+                정사각 카드 이미지로 만들어 인스타/카톡에 공유. 결과 바로 아래(안내문
+                위)에 눈에 띄게 — 바이럴 핵심 동선이라 묻히지 않게 한다. */}
             {report && !reportLoading && (report.crossVerdict || ssotBand) && (
               <div className="mt-4 flex justify-center">
                 <ShareImageButton
                   language={lang}
-                  variant="onLight"
+                  variant="onLightSolid"
                   filenamePrefix="destinypal-compat"
                   shareTitle={isKo ? 'DestinyPal 궁합 결과' : 'My DestinyPal Compatibility'}
                   shareText={report.crossVerdict?.text}
@@ -496,6 +528,14 @@ export function CompatChartModal({
                 />
               </div>
             )}
+            <p
+              className="mt-3 px-1 text-center text-[11px] leading-relaxed"
+              style={{ color: 'var(--ds-light-text-muted)' }}
+            >
+              {isKo
+                ? '이 막대는 두 사람의 사주와 별자리에서 끌어당기는 기운과 부딪히는 기운을 함께 본 거예요. 더 깊은 이야기는 상담사가 풀어드려요.'
+                : 'These bars weigh what pulls you together and what rubs — across both your Saju and stars. For the deeper read, ask the counselor.'}
+            </p>
           </div>
 
           {/* 한 줄 해석 — 두 사람 나란히 */}

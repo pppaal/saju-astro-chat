@@ -29,8 +29,11 @@ interface ShareImageButtonProps {
   shareTitle: string
   shareText?: string
   filenamePrefix?: string
-  /** 트리거 버튼 색감 — 밝은 배경 위(onLight) / 어두운 배경 위(onDark, 기본). */
-  variant?: 'onDark' | 'onLight'
+  /**
+   * 트리거 버튼 색감 — 어두운 배경 위(onDark, 기본) / 밝은 배경 위 아웃라인
+   * (onLight) / 밝은 배경 위 채운 골드(onLightSolid, 눈에 띄게).
+   */
+  variant?: 'onDark' | 'onLight' | 'onLightSolid'
 }
 
 async function preloadImages(srcs: string[]): Promise<void> {
@@ -161,17 +164,24 @@ export function ShareImageButton({
   const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
   const triggerStyle =
-    variant === 'onLight'
+    variant === 'onLightSolid'
       ? {
-          background: 'rgba(160,122,60,0.12)',
-          border: '1px solid rgba(160,122,60,0.45)',
-          color: '#8a6a2f',
+          background: 'linear-gradient(135deg, #d4af6a 0%, #c19350 100%)',
+          border: '1px solid rgba(160,122,60,0.6)',
+          color: '#1a1305',
+          boxShadow: '0 6px 18px rgba(160,122,60,0.35)',
         }
-      : {
-          background: 'rgba(212,181,114,0.14)',
-          border: '1px solid rgba(212,181,114,0.4)',
-          color: '#e8cc8a',
-        }
+      : variant === 'onLight'
+        ? {
+            background: 'rgba(160,122,60,0.12)',
+            border: '1px solid rgba(160,122,60,0.45)',
+            color: '#8a6a2f',
+          }
+        : {
+            background: 'rgba(212,181,114,0.14)',
+            border: '1px solid rgba(212,181,114,0.4)',
+            color: '#e8cc8a',
+          }
 
   return (
     <>

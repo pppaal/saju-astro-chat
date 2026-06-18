@@ -1,16 +1,19 @@
 'use client'
 
 /**
- * CompatShareCard (v2, 점수 중심) — 궁합 결과를 SNS 공유용 1080×1080 카드로.
+ * CompatShareCard (v3) — 궁합 결과를 SNS 공유용 1080×1080 카드로.
  *
  * 채팅(상담) 자체가 아니라 결정론 엔진이 뽑은 "결과"만 그린다 — 대화의 사적인
- * 내용은 공유되지 않는다. 바이럴 최적화: ① 큰 궁합 점수(도넛) ② 커플 유형
- * 이름(정체성 훅) ③ 두 사람 일간 오행 ④ 종합 한 줄 ⑤ "너희도 몇 점?" CTA.
+ * 내용은 공유되지 않는다. 바이럴 훅: ① 커플 유형 이름 ② 등급(tier) 링
+ * ③ 두 사람 일간 오행 ④ 종합 한 줄 ⑤ "너희도?" CTA.
  *
- * 캡처 호환성(TarotShareCard 규칙): CSS 변수 대신 명시 hex, next/image 대신
- * 평범한 <img>, 시스템 serif 폴백. 숫자는 SVG text 대신 HTML 오버레이로 그려
- * html-to-image 가 확실히 캡처하게 한다. 부모(ShareImageButton)가 화면 밖에
- * 1080×1080 으로 렌더해 두고 ref 로 캡처한다.
+ * 캡처 안정성(html-to-image):
+ *  - 가짜 정밀 "N/100" 숫자는 안 박는다(앱 정책) — 링 중앙은 등급 단어.
+ *  - 이모지는 플랫폼에 따라 빈 칸/흑백으로 깨질 수 있어 쓰지 않는다 — 오행은
+ *    색 점, 구분선은 그린 도형으로 대체(검증된 TarotShareCard 와 동일 결).
+ *  - 폰트는 next/font 의 CSS 변수(--font-cinzel)로 참조. 리터럴 'Cinzel' 은
+ *    해시된 내부 이름과 안 맞아 Georgia 로 폴백된다(한글은 어차피 serif 폴백).
+ *  - CSS 변수 대신 명시 hex, next/image 대신 <img>.
  */
 
 import React from 'react'
@@ -19,17 +22,18 @@ export type CompatCoupleTone = 'aligned' | 'mixed' | 'tension' | 'neutral'
 
 export interface CompatShareElement {
   label: string
-  emoji: string
   color: string
 }
 
 export interface CompatShareCardData {
   /** "민지 ♥ 준영" 또는 "우리 궁합". */
   title: string
-  /** 0-100 궁합 점수. */
-  score: number
-  /** 커플 유형 — 정체성 훅. */
-  coupleType: { name: string; emoji: string }
+  /** 커플 유형 이름 — 정체성 훅(히어로). */
+  coupleType: string
+  /** 등급 단어(링 중앙) — 정밀 숫자 대신. */
+  tier: string
+  /** 0-100 링 채움 비율(숫자는 표시 안 함). */
+  fillPct: number
   /** 동·서 교차 종합 한 줄(또는 verdict 폴백). */
   keyMessage: string
   /** 두 사람 일간 오행 — 없으면 생략. */
@@ -37,6 +41,7 @@ export interface CompatShareCardData {
   isKo: boolean
 }
 
+const SERIF = 'var(--font-cinzel), Georgia, serif'
 const GOLD = '#e8cc8a'
 const GOLD_SOFT = '#d4b572'
 const TEXT = '#f1f3f9'
@@ -44,14 +49,15 @@ const MUTED = '#9aa3b8'
 
 export const COMPAT_SHARE_CARD_SIZE = 1080
 
-// 도넛 링 — 배경 트랙 + 점수 비율만큼 골드 아크. 가운데 숫자는 HTML 오버레이.
-function ScoreRing({ score }: { score: number }) {
+// 등급 링 — 배경 트랙 + 채움 비율만큼 골드 아크. 중앙은 등급 단어(숫자 아님).
+function TierRing({ tier, fillPct }: { tier: string; fillPct: number }) {
   const size = 320
-  const stroke = 26
+  const stroke = 24
   const r = (size - stroke) / 2
   const c = 2 * Math.PI * r
-  const pct = Math.max(0, Math.min(100, score)) / 100
+  const pct = Math.max(0, Math.min(100, fillPct)) / 100
   const center = size / 2
+  const tierFont = tier.length > 7 ? 40 : tier.length > 5 ? 50 : 60
   return (
     <div style={{ position: 'relative', width: size, height: size }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -79,35 +85,52 @@ function ScoreRing({ score }: { score: number }) {
       <div
         style={{
           position: 'absolute',
-          inset: 0,
+          inset: stroke + 12,
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
+          textAlign: 'center',
         }}
       >
         <span
           style={{
-            fontFamily: "'Cinzel', Georgia, serif",
-            fontSize: 130,
+            fontFamily: SERIF,
+            fontSize: tierFont,
             fontWeight: 700,
-            lineHeight: 1,
+            lineHeight: 1.15,
             color: GOLD,
+            wordBreak: 'keep-all',
           }}
         >
-          {Math.round(score)}
-        </span>
-        <span style={{ fontSize: 26, letterSpacing: '0.16em', color: GOLD_SOFT, marginTop: 6 }}>
-          / 100
+          {tier}
         </span>
       </div>
     </div>
   )
 }
 
+function ElementDot({ el }: { el: CompatShareElement }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+      <span
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: 999,
+          background: el.color,
+          boxShadow: `0 0 16px ${el.color}66`,
+        }}
+      />
+      <span style={{ color: el.color, fontWeight: 600, fontSize: 34 }}>{el.label}</span>
+    </span>
+  )
+}
+
 export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatShareCardData }>(
   function CompatShareCard({ data }, ref) {
-    const { title, score, coupleType, keyMessage, elements, isKo } = data
+    const { title, coupleType, tier, fillPct, keyMessage, elements, isKo } = data
+    const typeFont = coupleType.length > 12 ? 38 : 44
+    const msgFont = keyMessage.length > 56 ? 28 : 32
 
     return (
       <div
@@ -142,14 +165,14 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           }}
         />
 
-        {/* 헤더 — 브랜드 + 제목(두 사람) */}
+        {/* 헤더 — 브랜드 + 제목 */}
         <div
           style={{
             zIndex: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 18,
+            gap: 16,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -157,14 +180,14 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
             <img
               src="/logo/logo.png"
               alt="DestinyPal"
-              width={38}
-              height={38}
-              style={{ width: 38, height: 38, objectFit: 'contain', borderRadius: 8 }}
+              width={36}
+              height={36}
+              style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 8 }}
             />
             <span
               style={{
-                fontFamily: "'Cinzel', Georgia, serif",
-                fontSize: 28,
+                fontFamily: SERIF,
+                fontSize: 26,
                 fontWeight: 600,
                 letterSpacing: '0.04em',
                 color: GOLD,
@@ -175,8 +198,8 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           </div>
           <div
             style={{
-              fontFamily: "'Cinzel', Georgia, serif",
-              fontSize: title.length > 22 ? 40 : 52,
+              fontFamily: SERIF,
+              fontSize: title.length > 18 ? 40 : 50,
               fontWeight: 600,
               lineHeight: 1.2,
               color: TEXT,
@@ -188,53 +211,50 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           </div>
         </div>
 
-        {/* 커플 유형(히어로) + 점수 도넛 */}
+        {/* 커플 유형(히어로) + 등급 링 + 두 사람 오행 */}
         <div
           style={{
             zIndex: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 28,
+            gap: 26,
           }}
         >
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              padding: '12px 30px',
+              maxWidth: 860,
+              padding: '12px 32px',
               borderRadius: 999,
               background: 'rgba(212,181,114,0.12)',
               border: '1px solid rgba(212,181,114,0.32)',
+              fontFamily: SERIF,
+              fontSize: typeFont,
+              fontWeight: 600,
+              color: GOLD,
+              textAlign: 'center',
+              lineHeight: 1.25,
+              wordBreak: 'keep-all',
             }}
           >
-            <span style={{ fontSize: 40 }}>{coupleType.emoji}</span>
-            <span
-              style={{
-                fontFamily: "'Cinzel', Georgia, serif",
-                fontSize: coupleType.name.length > 14 ? 38 : 44,
-                fontWeight: 600,
-                color: GOLD,
-                wordBreak: 'keep-all',
-              }}
-            >
-              {coupleType.name}
-            </span>
+            {coupleType}
           </div>
 
-          <ScoreRing score={score} />
+          <TierRing tier={tier} fillPct={fillPct} />
 
-          {/* 두 사람 일간 오행 */}
           {elements ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 26, fontSize: 34 }}>
-              <span style={{ color: elements.a.color, fontWeight: 600 }}>
-                {elements.a.emoji} {elements.a.label}
-              </span>
-              <span style={{ color: MUTED, fontSize: 30 }}>↔</span>
-              <span style={{ color: elements.b.color, fontWeight: 600 }}>
-                {elements.b.emoji} {elements.b.label}
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
+              <ElementDot el={elements.a} />
+              {/* 그린 구분선(이모지 회피) */}
+              <span
+                style={{
+                  width: 44,
+                  height: 2,
+                  borderRadius: 2,
+                  background: 'rgba(212,181,114,0.55)',
+                }}
+              />
+              <ElementDot el={elements.b} />
             </div>
           ) : null}
         </div>
@@ -244,12 +264,12 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           {keyMessage ? (
             <div
               style={{
-                fontSize: keyMessage.length > 64 ? 28 : 32,
+                fontSize: msgFont,
                 lineHeight: 1.5,
                 color: TEXT,
                 wordBreak: 'keep-all',
                 whiteSpace: 'pre-wrap',
-                marginBottom: 26,
+                marginBottom: 24,
               }}
             >
               “{keyMessage}”
@@ -265,8 +285,17 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
               color: MUTED,
             }}
           >
-            <span style={{ color: GOLD_SOFT }}>✦</span>
-            <span>{isKo ? '너희 커플은 몇 점?' : "What's your score?"}</span>
+            {/* 그린 다이아(✦ 이모지 회피) */}
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                background: GOLD_SOFT,
+                transform: 'rotate(45deg)',
+                display: 'inline-block',
+              }}
+            />
+            <span>{isKo ? '너희 커플은 몇 점?' : "What's your match?"}</span>
             <span style={{ color: 'rgba(154,163,184,0.5)' }}>·</span>
             <span>destinypal.com</span>
           </div>

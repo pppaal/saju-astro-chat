@@ -36,45 +36,43 @@ export interface CompatReport {
   crossVerdict?: { tone: 'aligned' | 'mixed' | 'tension' | 'neutral'; text: string }
 }
 
-// 사주(합/충)와 별자리(조화/긴장)의 net 을 교차해 "둘이 같은 말 하는지" 한 줄.
-// raw 행 나열 대신 관계 전체의 결을 먼저 짚어줌(자연 리포트의 종합과 같은 결).
-function buildCrossVerdict(
-  pillarRels: SajuCompatPillarRel[],
-  syn: SynastryView | null,
-  isKo: boolean
-): CompatReport['crossVerdict'] {
-  if (pillarRels.length === 0 && (!syn || syn.aspects.length === 0)) return undefined
-  let sajuNet = 0
-  for (const r of pillarRels) {
-    if (r.tone === 'bond') sajuNet++
-    else if (r.tone === 'clash') sajuNet--
-  }
-  let astroNet = 0
-  if (syn) {
-    for (const a of syn.aspects) {
-      if (a.tone === 'harmony') astroNet++
-      else if (a.tone === 'tension') astroNet--
-    }
-  }
-  const sp = sajuNet > 0
-  const sn = sajuNet < 0
-  const ap = astroNet > 0
-  const an = astroNet < 0
-  if (sp && ap)
+// 사주(합/충)와 별자리(조화/긴장)를 교차해 "둘이 같은 말 하는지" 한 줄.
+// 화면의 밴드 바와 한목소리가 되도록, 바와 "동일한 밴드 값"에서 결을 도출한다
+// (예전엔 raw 카운트로 따로 계산해 바와 verdict 가 엇갈릴 수 있었다).
+//   sajuSide  = 합 - 충   = eastern_hap + eastern_chung - 100   (양수=합 우세)
+//   astroSide = 조화 - 긴장 = synastry_harmonic + synastry_tension - 100
+function buildCrossVerdict(band: CompatBandScores, isKo: boolean): CompatReport['crossVerdict'] {
+  const hasSaju = band.eastern_hap !== undefined || band.eastern_chung !== undefined
+  const hasAstro = band.synastry_harmonic !== undefined || band.synastry_tension !== undefined
+  if (!hasSaju && !hasAstro) return undefined
+
+  const TH = 10
+  const sides: number[] = []
+  if (hasSaju) sides.push((band.eastern_hap ?? 0) + (band.eastern_chung ?? 100) - 100)
+  if (hasAstro) sides.push((band.synastry_harmonic ?? 0) + (band.synastry_tension ?? 100) - 100)
+
+  // 한쪽만 있으면 그 한쪽으로, 둘 다 있으면 둘의 일치/엇갈림으로 판정 →
+  // 바와 항상 같은 방향을 가리킨다.
+  const allPos = sides.every((s) => s > TH)
+  const allNeg = sides.every((s) => s < -TH)
+  const anyPos = sides.some((s) => s > TH)
+  const anyNeg = sides.some((s) => s < -TH)
+  const mixed = anyPos && anyNeg
+  if (allPos)
     return {
       tone: 'aligned',
       text: isKo
         ? '사주도 별자리도 한목소리로 끌려요 — 동·서가 같은 방향을 가리키는, 자연스럽게 통하는 궁합이에요.'
         : 'Saju and the stars speak with one voice — both point the same way, a naturally flowing match.',
     }
-  if (sn && an)
+  if (allNeg)
     return {
       tone: 'tension',
       text: isKo
         ? '사주도 별자리도 부딪힘을 짚어요 — 안 맞아서가 아니라, 마찰을 거치며 서로를 깎아 빛내는 단련형 관계예요.'
         : 'Both Saju and the stars flag friction — not a mismatch but a forging bond that sharpens you through the rub.',
     }
-  if ((sp && an) || (sn && ap))
+  if (mixed)
     return {
       tone: 'mixed',
       text: isKo
@@ -129,13 +127,20 @@ export function buildCompatReport(input: CompatReportInput): CompatReport {
     if (sajuFacts.elementBalance) {
       const { a, b } = sajuFacts.elementBalance
       let comp = 0
+      let coverage = 0
       for (const e of ELEMENTS) {
         const av = a[e] ?? 0
         const bv = b[e] ?? 0
+        // 보완 — 한쪽이 부족한 오행을 다른 쪽이 채워줌.
         if (av <= 1 && bv >= 2) comp += 20
         if (bv <= 1 && av >= 2) comp += 20
+        // 합쳤을 때 이 오행이 존재하는가(둘이 합쳐 오행을 고루 갖췄는지).
+        if (av + bv >= 1) coverage += 1
       }
-      band.elements_match = Math.min(100, comp)
+      // 두 사람을 합쳤을 때 오행을 고루 갖추면(서로의 결핍을 메워주면) 그 자체가
+      // 좋은 궁합 — 둘 다 이미 균형이라 "보완(comp)"이 0이어도 0점이 되지 않게,
+      // 보완 점수와 "합산 오행 커버리지" 중 큰 값을 쓴다. (5오행 전부 = 100)
+      band.elements_match = Math.min(100, Math.max(comp, coverage * 20))
     }
   }
   if (synView && synView.aspects.length > 0) {
@@ -156,6 +161,6 @@ export function buildCompatReport(input: CompatReportInput): CompatReport {
     spouseStars,
     pillarRelations,
     band: Object.keys(band).length > 0 ? band : undefined,
-    crossVerdict: buildCrossVerdict(pillarRelations, synView, lang === 'ko'),
+    crossVerdict: buildCrossVerdict(band, lang === 'ko'),
   }
 }
