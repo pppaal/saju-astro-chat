@@ -29,6 +29,19 @@ const pt = (r: number, i: number) => {
   return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) }
 }
 
+// 한글 조사 자동 선택 — 라벨이 "창의력(목)"처럼 괄호로 끝나므로 괄호를 떼고
+// 마지막 한글 음절의 받침으로 판단. 받침 있으면 은/이, 없으면 는/가.
+function lastHangulHasBatchim(s: string): boolean {
+  const t = s.replace(/\([^)]*\)\s*$/, '')
+  for (let i = t.length - 1; i >= 0; i--) {
+    const c = t.charCodeAt(i)
+    if (c >= 0xac00 && c <= 0xd7a3) return (c - 0xac00) % 28 !== 0
+  }
+  return false
+}
+const josaTopic = (s: string) => (lastHangulHasBatchim(s) ? '은' : '는') // 은/는
+const josaSubj = (s: string) => (lastHangulHasBatchim(s) ? '이' : '가') // 이/가
+
 export function CompatRadarOverlay({
   sajuA,
   sajuB,
@@ -163,11 +176,12 @@ export function CompatRadarOverlay({
             <span className="font-bold" style={{ color: rose }}>
               {nameA}
             </span>
-            는 <span className="font-bold text-[#a07a3c]">{domA.ko}</span>,{' '}
+            {josaTopic(nameA)} <span className="font-bold text-[#a07a3c]">{domA.ko}</span>,{' '}
             <span className="font-bold" style={{ color: sky }}>
               {nameB}
             </span>
-            는 <span className="font-bold text-[#a07a3c]">{domB.ko}</span>이(가) 가장 두드러져요.
+            {josaTopic(nameB)} <span className="font-bold text-[#a07a3c]">{domB.ko}</span>
+            {josaSubj(domB.ko)} 가장 두드러져요.
           </>
         ) : (
           <>
