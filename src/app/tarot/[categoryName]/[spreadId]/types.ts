@@ -22,6 +22,11 @@ export interface InterpretationResult {
   card_insights: CardInsight[]
   guidance: string | AdviceItem[]
   affirmation: string
+  /**
+   * LLM 이 직접 뽑은 SNS 공유 카드용 한 줄 후크(18자/8단어 이내). 공유
+   * 이미지의 핵심 메시지로 쓰인다 — 없으면 overall 첫 문장으로 폴백.
+   */
+  hook?: string
   fallback?: boolean
   interpretation_source?:
     | 'backend_rag'
