@@ -153,15 +153,40 @@ function natureOf(el: string | undefined, isKo: boolean): string {
   return m ? (isKo ? m.ko : m.en) : el
 }
 
+// 기둥(년·월·일·시) → 삶의 영역 평이한 말. "일주/월주" 같은 용어 대신.
+const PILLAR_AREA: Record<string, { ko: string; en: string }> = {
+  년: { ko: '뿌리', en: 'roots' },
+  월: { ko: '사회', en: 'social' },
+  일: { ko: '자기', en: 'self' },
+  시: { ko: '미래', en: 'future' },
+}
+function pillarArea(p: string | undefined, isKo: boolean): string {
+  if (!p) return ''
+  const m = PILLAR_AREA[p]
+  return m ? (isKo ? m.ko : m.en) : p
+}
+
+// 두 일간의 오행 관계 → 평이한 한 줄(상생/비화/克 같은 용어 대신).
+function relationPlain(
+  relation: 'same' | 'aControlsB' | 'bControlsA' | 'generate' | undefined,
+  isKo: boolean
+): string {
+  if (relation === 'generate') return isKo ? '서로 북돋우는 사이' : 'lifting each other'
+  if (relation === 'aControlsB' || relation === 'bControlsA')
+    return isKo ? '다듬어주며 끌리는 사이' : 'tempering, drawn together'
+  if (relation === 'same') return isKo ? '닮은 기운의 사이' : 'alike in nature'
+  return isKo ? '서로 다른 기운의 사이' : 'different in nature'
+}
+
 // 사주 관계 유형별 의미 — "끌어당기는 결/부딪히는 결" 2종 반복 대신 합/충/형…마다 다른 한 줄.
 const REL_MEANING: Record<string, { ko: string; en: string }> = {
-  천간합: { ko: '천간이 손잡아 뜻·명분이 통하는 결', en: 'stems clasp — aims and ideals align' },
-  천간충: { ko: '천간이 정면으로 부딪혀 자극하는 결', en: 'stems collide head-on — stimulating' },
-  육합: { ko: '속궁합이 부드럽게 맞물리는 결', en: 'inner fit clicks gently' },
+  천간합: { ko: '겉으로 뜻·명분이 잘 통하는 결', en: 'aims and ideals align openly' },
+  천간충: { ko: '겉에서 정면으로 부딪혀 자극하는 결', en: 'a head-on, stimulating clash' },
+  육합: { ko: '속이 부드럽게 맞물리는 결', en: 'inner fit clicks gently' },
   삼합: { ko: '같은 목표로 뭉치는 결', en: 'rallying toward a shared goal' },
   방합: { ko: '계절처럼 한 방향으로 모이는 결', en: 'gathering one way like a season' },
   충: { ko: '삶의 기반이 흔들리는 충돌', en: 'a clash that shakes your footing' },
-  형: { ko: '가까울수록 거슬리는 형', en: 'the closer you get, the more it grates' },
+  형: { ko: '가까울수록 거슬리는 마찰', en: 'the closer you get, the more it grates' },
   자형: { ko: '스스로 안고 가는 내적 마찰', en: 'an inner friction you carry yourself' },
   해: { ko: '은근히 갉아먹는 결', en: 'a quiet wearing-away' },
   파: { ko: '깨고 흩어놓는 결', en: 'a breaking, scattering edge' },
@@ -613,21 +638,23 @@ export function CompatChartModal({
                           </span>
                           <span className="flex-1 leading-snug">
                             {same ? (
-                              <>{isKo ? `둘의 ${r.aPillar}주` : `both ${r.aPillar}`}</>
+                              <>
+                                {isKo
+                                  ? `둘 다 ${pillarArea(r.aPillar, isKo)} 자리`
+                                  : `both ${pillarArea(r.aPillar, isKo)}`}
+                              </>
                             ) : (
                               <>
                                 <b style={{ color: '#be123c' }}>
-                                  {labelA} {r.aPillar}
+                                  {labelA} · {pillarArea(r.aPillar, isKo)}
                                 </b>{' '}
                                 ↔{' '}
                                 <b style={{ color: '#0369a1' }}>
-                                  {labelB} {r.bPillar}
+                                  {labelB} · {pillarArea(r.bPillar, isKo)}
                                 </b>
                               </>
                             )}{' '}
-                            <span style={{ color: meta.color, fontWeight: 600 }}>
-                              {r.tags.join('·')}
-                            </span>
+                            <span style={{ color: meta.color, fontWeight: 600 }}>{meta.gloss}</span>
                           </span>
                         </div>
                         {/* 관계 유형별 의미 — "끌어당기는/부딪히는 결" 2종 반복 제거 */}
@@ -679,7 +706,7 @@ export function CompatChartModal({
                 >
                   {labelA} <b>{dayMaster.aStem}</b> · {natureOf(dayMaster.aEl, isKo)} ↔ {labelB}{' '}
                   <b>{dayMaster.bStem}</b> · {natureOf(dayMaster.bEl, isKo)} —{' '}
-                  {dayMaster.relationLabel}
+                  {relationPlain(dayMaster.relation, isKo)}
                 </p>
                 {spouseTop.length > 0 && (
                   <ul className="mt-2 space-y-1.5">

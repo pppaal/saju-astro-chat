@@ -231,7 +231,7 @@ export function CompatNatalOverlay({
             textAnchor="middle"
             dominantBaseline="middle"
           >
-            ASC
+            {lang === 'ko' ? '첫인상' : 'ASC'}
           </text>
 
           {/* B ASC tick (sky) at its position relative to A's wheel */}
