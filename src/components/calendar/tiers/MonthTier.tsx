@@ -26,25 +26,15 @@
    ──   8. ZR L2 progress 바 (narrative 위)
    ============================================================ */
 
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import type { DestinyMonth, DestinyCalendarCell, DestinyDayMark } from '@/types/calendar'
 import { Ganji } from '../atoms/Ganji'
 import styles from './MonthTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
-import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
-import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
-import { shinsalEn } from '@/components/calendar/adapters/dayTierEnMaps'
-
-// 월 교차 saju 라벨 EN — 십신은 생활영역어로, 십신이 아닌 신살(양인 등)은
-// 신살 EN 표로 폴백. (예전엔 sibsinAreaEn 만 써 양인이 EN 화면에 한글로 샜다.)
-function sajuLabelEn(saju: string): string {
-  const area = sibsinAreaEn(saju)
-  return area === saju ? shinsalEn(saju) : area
-}
 
 const MONTH_EN = [
   'January',
@@ -202,323 +192,6 @@ function woolunSibsinTag(month: DestinyMonth): string | null {
 }
 
 // ============================================================================
-// 보강 #5 — 조후(調候) 강조 박스
-// 월지(月支) 한자에서 절기 시즌 추정 → 필요 오행 안내.
-// ============================================================================
-
-interface JohoHint {
-  branchLabel: string
-  branchLabelEn: string
-  body: ReactNode
-  bodyEn: ReactNode
-}
-
-const JOHO_MAP: Record<string, JohoHint> = {
-  // 봄
-  寅: {
-    branchLabel: '寅월 (초봄)',
-    branchLabelEn: '寅 month (early spring)',
-    body: (
-      <>
-        한기가 채 가시지 않은 결 — <b>화(火)</b> 와 <b>토(土)</b> 의 온기가 절실해요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where the chill has not yet lifted — the warmth of <b>Fire (火)</b> and{' '}
-        <b>Earth (土)</b> is sorely needed.
-      </>
-    ),
-  },
-  卯: {
-    branchLabel: '卯월 (중춘)',
-    branchLabelEn: '卯 month (mid-spring)',
-    body: (
-      <>
-        목 기운이 가장 무성한 시기 — <b>금(金)</b> 의 절제가 균형을 잡아줘요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        The season when Wood energy is most lush — the restraint of <b>Metal (金)</b> brings
-        balance.
-      </>
-    ),
-  },
-  辰: {
-    branchLabel: '辰월 (늦봄)',
-    branchLabelEn: '辰 month (late spring)',
-    body: (
-      <>
-        토 기운이 자라며 목이 잠기는 결 — <b>수(水)</b> 와 <b>화(火)</b> 의 흐름을 챙겨야 해요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where Earth energy grows and Wood is submerged — tend to the flow of{' '}
-        <b>Water (水)</b> and <b>Fire (火)</b>.
-      </>
-    ),
-  },
-  // 여름
-  巳: {
-    branchLabel: '巳월 (초여름)',
-    branchLabelEn: '巳 month (early summer)',
-    body: (
-      <>
-        화 기운이 본격적으로 살아나는 결 — <b>수(水)</b> 가 절실해요. 따뜻한 물·하체 보온으로
-        균형을.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where Fire energy truly comes alive — <b>Water (水)</b> is sorely needed. Find
-        balance with warm water and keeping the lower body warm.
-      </>
-    ),
-  },
-  午: {
-    branchLabel: '午월 (한여름)',
-    branchLabelEn: '午 month (midsummer)',
-    body: (
-      <>
-        화 기운이 정점을 찍는 결 — <b>수(水)</b> 와 <b>금(金)</b> 의 견제가 살길이에요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where Fire energy reaches its peak — the check of <b>Water (水)</b> and{' '}
-        <b>Metal (金)</b> is the way through.
-      </>
-    ),
-  },
-  未: {
-    branchLabel: '未월 (늦여름)',
-    branchLabelEn: '未 month (late summer)',
-    body: (
-      <>
-        건조한 토 기운이 강한 결 — <b>수(水)</b> 와 <b>목(木)</b> 의 윤기가 균형을 잡아줘요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where dry Earth energy is strong — the moisture of <b>Water (水)</b> and{' '}
-        <b>Wood (木)</b> brings balance.
-      </>
-    ),
-  },
-  // 가을
-  申: {
-    branchLabel: '申월 (초가을)',
-    branchLabelEn: '申 month (early autumn)',
-    body: (
-      <>
-        금 기운이 본격적으로 켜지는 결 — <b>화(火)</b> 의 다스림이 필요해요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where Metal energy truly switches on — the governing of <b>Fire (火)</b> is needed.
-      </>
-    ),
-  },
-  酉: {
-    branchLabel: '酉월 (중추)',
-    branchLabelEn: '酉 month (mid-autumn)',
-    body: (
-      <>
-        금 기운이 가장 날카로운 결 — <b>화(火)</b> 와 <b>목(木)</b> 의 부드러움이 결을 살려요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where Metal energy is at its sharpest — the softness of <b>Fire (火)</b> and{' '}
-        <b>Wood (木)</b> brings the grain to life.
-      </>
-    ),
-  },
-  戌: {
-    branchLabel: '戌월 (늦가을)',
-    branchLabelEn: '戌 month (late autumn)',
-    body: (
-      <>
-        건조한 토 기운이 강한 결 — <b>수(水)</b> 의 윤기가 절실해요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where dry Earth energy is strong — the moisture of <b>Water (水)</b> is sorely
-        needed.
-      </>
-    ),
-  },
-  // 겨울
-  亥: {
-    branchLabel: '亥월 (초겨울)',
-    branchLabelEn: '亥 month (early winter)',
-    body: (
-      <>
-        수 기운이 본격적으로 켜지는 결 — <b>화(火)</b> 의 온기가 절실해요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where Water energy truly switches on — the warmth of <b>Fire (火)</b> is sorely
-        needed.
-      </>
-    ),
-  },
-  子: {
-    branchLabel: '子월 (한겨울)',
-    branchLabelEn: '子 month (midwinter)',
-    body: (
-      <>
-        수 기운이 정점을 찍는 결 — <b>화(火)</b> 와 <b>토(土)</b> 가 결을 데워야 해요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where Water energy reaches its peak — <b>Fire (火)</b> and <b>Earth (土)</b> must
-        warm the grain.
-      </>
-    ),
-  },
-  丑: {
-    branchLabel: '丑월 (늦겨울)',
-    branchLabelEn: '丑 month (late winter)',
-    body: (
-      <>
-        차고 습한 토 기운이 강한 결 — <b>화(火)</b> 와 <b>목(木)</b> 의 봄 기운이 살길이에요.
-      </>
-    ),
-    bodyEn: (
-      <>
-        A grain where cold, damp Earth energy is strong — the spring energy of <b>Fire (火)</b> and{' '}
-        <b>Wood (木)</b> is the way through.
-      </>
-    ),
-  },
-}
-
-function pickJohoHint(month: DestinyMonth): JohoHint | null {
-  const branch = month.woolun?.hanja?.charAt(1) ?? ''
-  return JOHO_MAP[branch] ?? null
-}
-
-// ============================================================================
-// 보강 #3 — 응용패턴 daily count (재생관 / 식상생재 등의 일수 집계)
-// narrative 안에 "재생관 18일" 같은 표현이 있으면 chip 으로 추출.
-// 패턴이 없으면 calendar 의 mark 분포를 chip 으로 노출 (fallback).
-// ============================================================================
-
-interface PatternChip {
-  label: string
-  count: number
-}
-
-function extractPatternChips(month: DestinyMonth, ko = true): PatternChip[] {
-  // 1) narrative body 에서 "<라벨> <숫자>일" 패턴 추출
-  const chips: PatternChip[] = []
-  const re = /([가-힣A-Za-z]{2,8})\s*(\d{1,2})\s*일/g
-  for (const n of month.narrative ?? []) {
-    let m: RegExpExecArray | null
-    const body = n.body ?? ''
-    while ((m = re.exec(body)) !== null) {
-      const label = m[1]
-      const count = parseInt(m[2], 10)
-      // 자주 등장하는 generic 단어 필터.
-      if (
-        Number.isFinite(count) &&
-        count >= 1 &&
-        count <= 31 &&
-        !/^(이번|올해|오늘|내일|어제|올해의|하루|매일|한)$/.test(label)
-      ) {
-        chips.push({ label, count })
-      }
-    }
-  }
-  if (chips.length > 0) return chips.slice(0, 6)
-
-  // 2) fallback — calendar mark 분포로 chip 구성
-  const dist: Record<string, number> = {}
-  for (const c of month.calendar ?? []) {
-    if (!c.mark || c.mark === 'focus') continue
-    dist[c.mark] = (dist[c.mark] ?? 0) + 1
-  }
-  const FALLBACK_LABELS: Record<string, string> = ko
-    ? { best: '최고일', good: '길일', avoid: '피하기', caution: '주의', converge: '수렴' }
-    : { best: 'Best', good: 'Good', avoid: 'Avoid', caution: 'Caution', converge: 'Converge' }
-  return Object.entries(dist)
-    .map(([k, v]) => ({ label: FALLBACK_LABELS[k] ?? k, count: v }))
-    .sort((a, b) => b.count - a.count)
-}
-
-// (narrative source 메타 '· source: deriveXxx' 는 디버그용이라 소비자 화면에서 제거.)
-
-// ============================================================================
-// 보강 #8 — ZR L2 progress bar
-// month 객체에 ZR 정보가 없으면, narrative 안에서 "ZR" 언급을 찾고
-// 없으면 그냥 fallback 으로 "이 달의 절기 진행" 게이지를 보여준다.
-// ============================================================================
-
-interface ZrProgress {
-  label: string
-  chapter: string
-  pct: number
-  meta: string
-}
-
-function pickZrProgress(month: DestinyMonth, ko = true): ZrProgress | null {
-  // narrative 에서 ZR 관련 카드를 찾기
-  const zrCard = (month.narrative ?? []).find(
-    (n) => /ZR|Zodiacal|챕터|chapter/i.test(n.body) || /주요\s*흐름/.test(n.tag)
-  )
-  // 이 달이 ym 으로 주어졌으니 절기 진행도(0..1) 를 일자 기준으로 계산.
-  // (백엔드 ZR 노출이 없을 때의 합리적 fallback)
-  const dd = month.focusDay ?? 1
-  const totalDays = (month.calendar ?? []).length || 30
-  const pct = Math.round((dd / totalDays) * 100)
-  const meta = ko ? `${dd} / ${totalDays} 일` : `${dd} / ${totalDays} days`
-
-  if (zrCard) {
-    return {
-      label: ko ? 'ZR · L2 진행' : 'ZR · L2 progress',
-      chapter: zrCard.body.split(/[.。]/)[0].trim() || zrCard.tag,
-      pct,
-      meta,
-    }
-  }
-  // EN 은 month.label(="2026년 6월")이 한글이라 새므로 ym 으로 영문 라벨 생성.
-  const [zrY, zrM] = month.ym.split('-').map(Number)
-  const enMonthLabel = `${MONTH_EN[(zrM ?? 1) - 1] ?? ''} ${zrY ?? ''}`.trim()
-  return {
-    label: ko ? '절기 진행' : 'Solar-term progress',
-    chapter: ko ? `${month.label} 내 흐름` : `flow within ${enMonthLabel}`,
-    pct,
-    meta,
-  }
-}
-
-// ============================================================================
-// 보강 #6 — converge cross-activation 매핑 의미
-// astro/saju 첫 글자만 추출해 "정관 ↔ Saturn (책임·구조)" 형식 cross-map 한 줄.
-// ============================================================================
-
-function convergeCrossMap(month: DestinyMonth, ko = true): string | null {
-  const conv = month.converge
-  if (!conv || !conv.bothSystems) return null
-  const sajuHead = conv.saju?.[0]
-  const astroHead = conv.astro?.[0]
-  if (!sajuHead || !astroHead) return null
-  // 짧게 다듬기
-  const sajuShort = sajuHead.split(/\s|—|–|·/)[0] || sajuHead
-  const astroShort = astroHead.split(/\s|—|–|·/)[0] || astroHead
-  return ko
-    ? `${sajuShort} ↔ ${astroShort} — A등급 cross-activation`
-    : `${sajuShort} ↔ ${astroShort} — grade-A cross-activation`
-}
-
-// ============================================================================
 // voc dates → set of "MM-DD" (day 셀에 띠 표시)
 // ============================================================================
 
@@ -546,12 +219,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const ko = locale === 'ko'
   const firstDow = firstDowOfMonth(month.ym)
   const calendar = month.calendar ?? []
-  const narrative = month.narrative ?? []
   const focusDay = month.focusDay
-  const pattern = extractPatternChips(month, ko)
-  const joho = pickJohoHint(month)
-  const zr = pickZrProgress(month, ko)
-  const crossMap = convergeCrossMap(month, ko)
   const voc = vocSet(month)
   const lunarDs = lunarReturnDow(month)
   const woolunCap = woolunCaption(month, ko)
@@ -642,6 +310,11 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const cautionN = month.cautionDays?.length ?? 0
   const avoidN = month.avoidDays?.length ?? 0
 
+  // 큰 날(keyDays) 날짜 집합 — 달력 셀에 '주목' 링(자초)을 그릴 때 쓴다.
+  // score(우호도)와 직교: 점수 좋은 날이 곧 큰 날은 아니고, 일식 같은 전환점은
+  // 점수 중립이어도 큰 날이다.
+  const keyDates = new Set(monthCrossItems.map((i) => i.when))
+
   return (
     <div className={styles.tier} data-screen-label={`1달 ${month.ym}`}>
       {showRise && (
@@ -677,13 +350,9 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
           ? `좋은 날 ${goodN}개 · 주의 ${cautionN}개 · 피하기 ${avoidN}개`
           : `${goodN} good ${goodN === 1 ? 'day' : 'days'} · ${cautionN} caution · ${avoidN} avoid`}
       </p>
-      <CrossingList
-        heading={ko ? '이달의 큰 날 · 사주 × 점성' : 'Key days this month · Saju × Astrology'}
-        items={monthCrossItems}
-      />
 
-      {/* ===== calendar heatmap — 메인. 한눈에 좋은 날/주의 날 색으로. ===== */}
-      <div className={styles.secHead} style={{ marginTop: 28 }}>
+      {/* ===== calendar heatmap — 메인. 맨 위. 한눈에 좋은 날/주의 날 색으로. ===== */}
+      <div className={styles.secHead} style={{ marginTop: 18 }}>
         <h2 className={styles.secTitle}>{ko ? '시간 흐름 보기' : 'Time flow'}</h2>
         <span className={styles.tiny}>
           {ko ? '흐름표 달력 · 날짜별 길흉' : 'flow calendar · day by day'}
@@ -704,11 +373,14 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
           const mark = c.mark as ExtendedMark | null
           const isVoc = voc.has(c.ds)
           const isLunar = lunarDs === c.ds
+          // 큰 날(주목) — 사주×점성 수렴일. 셀에 보라 링으로 표시(점수 색과 직교).
+          const isKeyDay = keyDates.has(c.ds)
           // mark resolution: 백엔드 mark 우선, 없으면 보강 mark 추론
           const renderedMark: ExtendedMark | null = mark ?? (isLunar ? 'return' : null)
           const cellCls = [
             styles.cell,
             c.focus && styles.cellFocus,
+            isKeyDay && styles.cellKeyDay,
             renderedMark === 'best' && styles.cellBest,
             renderedMark === 'good' && styles.cellGood,
             renderedMark === 'avoid' && styles.cellAvoid,
@@ -748,7 +420,11 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
               }
             >
               <div className={styles.cellGlow} style={{ background: g.glow }} />
+              {isKeyDay && <span className={styles.cellKeyRing} aria-hidden />}
               <span className={styles.cellDnum}>{c.d}</span>
+              {typeof c.score === 'number' && (
+                <span className={styles.cellScore}>{Math.round(c.score)}</span>
+              )}
               {c.focus && <span className={styles.cellFtag}>{ko ? '오늘' : 'Today'}</span>}
               {renderedMark && renderedMark !== 'focus' && STAR_GLYPH[renderedMark] && (
                 <span className={styles.cellStar}>{STAR_GLYPH[renderedMark]}</span>
@@ -805,6 +481,14 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         )}
       </div>
 
+      {/* ── 달력 아래: 이달의 큰 날(주목) — 사주·점성이 수렴한 날. ── */}
+      <CrossingList
+        heading={
+          ko ? '이달의 큰 날 · 주목 (사주 × 점성 수렴)' : 'Key days · notable (Saju × Astrology)'
+        }
+        items={monthCrossItems}
+      />
+
       {/* ── 이달 총평 — 한 문단(자세히 보기 밖에 노출). ── */}
       {(() => {
         const summaryTag = ko ? '이달 총평' : 'This month'
@@ -818,268 +502,6 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
           </div>
         ) : null
       })()}
-
-      {/* ── 전문가용 상세 — 테마·신호·근거 전부 접어 둠 ── */}
-      <details className={summaryStyles.details}>
-        <summary className={summaryStyles.detailsSummary}>
-          {ko ? '자세히 보기 · 근거와 신호' : 'Details · evidence & signals'}
-        </summary>
-
-        {/* ===== 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어 ===== */}
-        {(month.crossActivations ?? []).length > 0 && (
-          <div className={styles.block}>
-            <div className={styles.secHead}>
-              <h2 className={styles.secTitle}>
-                {ko ? '이 달의 사주 × 점성 교차' : 'Saju × Astrology crossings this month'}
-              </h2>
-              <span className={styles.tiny}>
-                {ko ? '월운 십신 ↔ 그 달 점성' : 'monthly sibsin ↔ this month’s sky'}
-              </span>
-            </div>
-            <div className={styles.mcrossList}>
-              {(month.crossActivations ?? []).map((c, i) => {
-                const tone =
-                  c.polarity > 0
-                    ? styles.mcrossPos
-                    : c.polarity < 0
-                      ? styles.mcrossNeg
-                      : styles.mcrossNeu
-                return (
-                  <div
-                    className={`${styles.mcrossRow} ${tone}`}
-                    key={`${c.saju}-${c.astroEn}-${i}`}
-                  >
-                    <span className={styles.mcrossPair}>
-                      {ko
-                        ? `${sibsinArea(c.saju) === c.saju ? c.saju : `${sibsinArea(c.saju)}(${c.saju})`} ↔ ${c.astro}`
-                        : `${sajuLabelEn(c.saju)} ↔ ${c.astroEn}`}
-                    </span>
-                    <span className={styles.mcrossMeaning}>{ko ? c.meaning : c.meaningEn}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ===== 이달의 큰 날 (convergence keyDays) ===== */}
-        {month.keyDays &&
-          month.keyDays.length > 0 &&
-          (() => {
-            // 느린 점성 배경(토성회귀·식 등 lifecycle)은 큰 날마다 동일해 비차별적 —
-            // 한 줄 backdrop 으로 한 번만 보여주고, 날별 칩은 *날마다 변하는* 사주만.
-            const astroBackdrop = Array.from(new Set(month.keyDays!.flatMap((k) => k.astro))).slice(
-              0,
-              2
-            )
-            return (
-              <div className={styles.bigDays}>
-                <div className={styles.eyebrow}>
-                  {ko
-                    ? '이달의 큰 날 · 사주×점성 수렴'
-                    : 'Key days this month · Saju × Astrology convergence'}
-                  {(() => {
-                    const both = month.keyDays!.filter((k) => k.bothSystems).length
-                    if (both <= 0) return ''
-                    return ko ? ` · 동·서 합치 ${both}일` : ` · ${both} days both systems`
-                  })()}
-                </div>
-                {astroBackdrop.length > 0 && (
-                  <div className={styles.bigDayBackdrop}>
-                    {ko ? '이달 점성 배경 · ' : "This month's astro backdrop · "}
-                    {astroBackdrop.join(' · ')}
-                  </div>
-                )}
-                {month.keyDays!.map((k, i) => (
-                  <div className={styles.bigDay} key={`kd-${i}`}>
-                    <div className={styles.bigDayHead}>
-                      <span className={styles.bigDayDate}>{k.date}</span>
-                      {k.window && k.window.start.slice(0, 10) !== k.window.end.slice(0, 10) && (
-                        <span className={styles.bigDayWindow}>
-                          {k.window.start.slice(5, 10)} ~ {k.window.end.slice(5, 10)}
-                          {ko ? ' · 정점 ' : ' · peak '}
-                          {k.window.peak.slice(5, 10)}
-                        </span>
-                      )}
-                      {k.bothSystems && (
-                        <span className={styles.bigDayBoth}>
-                          {ko ? '사주×점성' : 'Saju × Astro'}
-                        </span>
-                      )}
-                    </div>
-                    {k.meaning && <div className={styles.bigDayMeaning}>{k.meaning}</div>}
-                    {k.saju.length > 0 && (
-                      <div className={styles.bigDayChips}>
-                        {k.saju.map((s, j) => (
-                          <span className={[styles.chip, styles.chipSaju].join(' ')} key={`s-${j}`}>
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )
-          })()}
-
-        {/* ===== theme scores + key events 50:50 row ===== */}
-        <div className={styles.split} style={{ marginTop: 30 }}>
-          <div className={[styles.panel, styles.panelSaju].join(' ')}>
-            {/* 보강 #3 — 응용패턴 daily count chip strip */}
-            {pattern.length > 0 && (
-              <div className={styles.patternStrip}>
-                {pattern.map((p) => (
-                  <span className={styles.patternChip} key={`${p.label}-${p.count}`}>
-                    {p.label} <b>{ko ? `${p.count}일` : `${p.count}d`}</b>
-                  </span>
-                ))}
-              </div>
-            )}
-            {/* 보강 #5 — 조후 강조 박스 */}
-            {joho && (
-              <div className={styles.johoBox}>
-                <span className={styles.johoLabel}>
-                  {ko ? `조후 · ${joho.branchLabel}` : `Johu · ${joho.branchLabelEn}`}
-                </span>
-                <span className={styles.johoBody}>{ko ? joho.body : joho.bodyEn}</span>
-              </div>
-            )}
-          </div>
-
-          <div
-            className={[styles.panel, styles.panelAstro].join(' ')}
-            style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
-          >
-            <div className={styles.eyebrow} style={{ marginBottom: 2 }}>
-              {ko ? '핵심 이벤트' : 'Key events'}
-            </div>
-            <div className={styles.eventsCol}>
-              {month.bestDay && (
-                <div className={styles.eventRow}>
-                  <span className={[styles.pol, styles.polP].join(' ')} style={{ fontSize: 11 }}>
-                    BEST
-                  </span>
-                  <span className={styles.eventDate}>{month.bestDay.date}</span>
-                </div>
-              )}
-              {month.avoidDays.length > 0 && (
-                <div className={styles.eventRow}>
-                  <span className={[styles.pol, styles.polN].join(' ')} style={{ fontSize: 11 }}>
-                    AVOID
-                  </span>
-                  <span className={styles.eventDate}>{month.avoidDays.join(' · ')}</span>
-                </div>
-              )}
-              {month.cautionDays.length > 0 && (
-                <div className={styles.eventRow}>
-                  <span className={[styles.pol, styles.polZ].join(' ')} style={{ fontSize: 11 }}>
-                    {ko ? '주의' : 'Caution'}
-                  </span>
-                  <span className={styles.eventDateDim}>{month.cautionDays.join(' · ')}</span>
-                </div>
-              )}
-              {month.goodDays.length > 0 && (
-                <div className={styles.eventRow}>
-                  <span className={[styles.pol, styles.polGood].join(' ')} style={{ fontSize: 11 }}>
-                    {ko ? '길일' : 'Good day'}
-                  </span>
-                  <span className={styles.eventDateDim}>{month.goodDays.join(' · ')}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ===== ZR L2 progress bar (보강 #8) ===== */}
-        {zr && (
-          <div className={styles.zrProgress}>
-            <div className={styles.zrLabelRow}>
-              <span className={styles.zrLabel}>{zr.label}</span>
-              <span className={styles.zrChapter}>{zr.chapter}</span>
-            </div>
-            <div className={styles.zrTrack}>
-              <div className={styles.zrFill} style={{ width: `${zr.pct}%` }} />
-            </div>
-            <span className={styles.zrMeta}>
-              {zr.meta} · {zr.pct}%
-            </span>
-          </div>
-        )}
-
-        {/* ===== narrative grid ===== */}
-        <div className={styles.blockSm}>
-          <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>{ko ? '이 달의 이야기' : "This month's story"}</h2>
-            <span className={styles.tiny}>
-              {ko ? '사주 + 점성 이야기' : 'Saju + Astrology story'}
-            </span>
-          </div>
-          <div className={styles.narr}>
-            {narrative
-              .filter((n) => n.tag !== (ko ? '이달 총평' : 'This month'))
-              .map((n, i) => (
-                <div className={styles.narrCard} key={`${n.tag}-${i}`}>
-                  <span className={styles.narrTag}>{n.tag}</span>
-                  {/* '[월운] Jupiter 엑잘테이션' 같은 영문·내부코드 잔재를 KO 평어화. */}
-                  <div className={styles.narrBody}>{localizeLabel(n.body, ko)}</div>
-                </div>
-              ))}
-          </div>
-        </div>
-
-        {/* ===== converge day ===== */}
-        {/* converge.date 가드 필수 — assembleTiers 는 converge 를 항상 채워
-            보내되(미산출 시 date:'' 빈 객체) 현재 월 어셈블 경로는 이 단일
-            converge 를 산출하지 않는다. `.date` 없이 truthy 만 보면 빈 객체가
-            늘 통과해 날짜·의미·신호가 전부 빈 "수렴 일" 카드가 노상 떴다.
-            진짜 수렴 목록은 위의 keyDays(이달의 큰 날)가 보여준다. */}
-        {month.converge?.date && (
-          <div className={styles.converge}>
-            <div className={styles.convergeHead}>
-              <div className={[styles.eyebrow, styles.eyebrowEmber].join(' ')}>
-                {ko
-                  ? '수렴 일 · 두 시스템이 함께 강한 날'
-                  : 'Convergence day · both systems strong'}
-              </div>
-            </div>
-            <div className={styles.convergeDateRow}>
-              <span className={styles.convergeDate}>
-                {month.converge.date.slice(5).replace('-', '·')}
-              </span>
-              <span className={styles.convergeMeaning}>{month.converge.meaning}</span>
-            </div>
-            {/* 보강 #6 — cross-activation 매핑 한 줄 */}
-            {crossMap && (
-              <div className={styles.convergeCrossMap}>
-                <b>↔</b> {crossMap}
-              </div>
-            )}
-            <div className={styles.convSys}>
-              <div>
-                <span className={[styles.layerTag, styles.layerTagAstro].join(' ')}>
-                  <span className="pip" /> {ko ? '점성 · ASTRO' : 'Astrology · ASTRO'}
-                </span>
-                <ul>
-                  {month.converge.astro.map((a, i) => (
-                    <li key={`a-${i}`}>{a}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <span className={[styles.layerTag, styles.layerTagSaju].join(' ')}>
-                  <span className="pip" /> {ko ? '사주 · SAJU' : 'Saju · 四柱'}
-                </span>
-                <ul>
-                  {month.converge.saju.map((s, i) => (
-                    <li key={`s-${i}`}>{s}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-      </details>
 
       {/* ===== dive ===== */}
       <div className={styles.diveWrap} style={{ marginTop: 40 }}>

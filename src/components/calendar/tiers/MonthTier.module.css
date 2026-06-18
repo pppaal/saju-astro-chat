@@ -404,12 +404,40 @@
   position: relative;
   z-index: 2;
 }
+.cellScore {
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1;
+  color: var(--ink-mute);
+  margin-top: 2px;
+  position: relative;
+  z-index: 2;
+}
+.cellGood .cellScore {
+  color: #4f5d96;
+}
+.cellCaution .cellScore,
+.cellAvoid .cellScore {
+  color: #c0741f;
+}
 .cellStar {
   position: absolute;
   right: 7px;
   bottom: 6px;
   font-size: 11px;
   z-index: 2;
+}
+/* 큰 날(주목) — 사주×점성 수렴. 점수 색(우호도)과 직교하는 자초(plum) 링. */
+.cellKeyDay {
+  border-color: var(--dp-violet-2);
+}
+.cellKeyRing {
+  position: absolute;
+  inset: -1px;
+  border: 2px solid var(--dp-violet-2);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1;
 }
 .cellFtag {
   position: absolute;
