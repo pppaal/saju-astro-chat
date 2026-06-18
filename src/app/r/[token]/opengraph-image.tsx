@@ -32,6 +32,10 @@ export default async function Image({ params }: { params: Promise<{ token: strin
       ? '타로 리딩'
       : 'Tarot Reading'
   const message = reading ? firstSentence(reading.affirmation || reading.overallMessage, 96) : ''
+  // 표시용 도메인은 운영 env 를 따르고, 없으면 사이트 표준(.com)로 폴백.
+  const displayDomain = (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com')
+    .replace(/^https?:\/\//, '')
+    .replace(/\/$/, '')
 
   return new ImageResponse(
     <div
@@ -78,7 +82,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
       </div>
 
       <div style={{ fontSize: 28, color: '#9aa3b8' }}>
-        {isKo ? '나도 카드 뽑아보기 · destinypal.me' : 'Pull your own cards · destinypal.me'}
+        {isKo ? `나도 카드 뽑아보기 · ${displayDomain}` : `Pull your own cards · ${displayDomain}`}
       </div>
     </div>,
     { ...size }

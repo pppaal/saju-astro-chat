@@ -29,7 +29,7 @@ export interface ShareCardData {
    * 게스트이거나 QR 생성 실패 시 undefined — 그때는 텍스트 핸들로 폴백.
    */
   qrDataUrl?: string
-  /** QR 아래/옆에 적는 사람이 읽을 짧은 링크 (예: destinypal.me). */
+  /** QR 아래/옆에 적는 사람이 읽을 짧은 링크 (예: destinypal.com). */
   shareUrl?: string
 }
 
@@ -52,7 +52,9 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
   function TarotShareCard({ data }, ref) {
     const { question, spreadTitle, cards, keyMessage, isKo, qrDataUrl, shareUrl } = data
     const shown = cards.slice(0, 5)
-    const readableUrl = (shareUrl || 'destinypal.me').replace(/^https?:\/\//, '').replace(/\/$/, '')
+    const readableUrl = (shareUrl || 'destinypal.com')
+      .replace(/^https?:\/\//, '')
+      .replace(/\/$/, '')
     const cardW = cardWidthFor(shown.length)
     const cardH = Math.round(cardW * 1.6)
 

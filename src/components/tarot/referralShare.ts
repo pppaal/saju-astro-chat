@@ -14,7 +14,7 @@
 import { tarotLogger } from '@/lib/logger'
 
 const FALLBACK_BASE =
-  (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_BASE_URL) || 'https://destinypal.me'
+  (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_BASE_URL) || 'https://destinypal.com'
 
 export interface ReferralShareTarget {
   /** QR 이 가리키는 전체 URL (추천 코드 포함 가능). */

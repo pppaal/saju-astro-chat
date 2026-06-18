@@ -23,7 +23,7 @@ import { logger } from '@/lib/logger'
 export const dynamic = 'force-dynamic'
 
 function baseUrl(): string {
-  return (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.me').replace(/\/$/, '')
+  return (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com').replace(/\/$/, '')
 }
 
 // URL-safe 토큰 — 추측 불가하도록 충분한 엔트로피(96bit). base64url 이라
