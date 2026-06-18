@@ -23,7 +23,7 @@
 
 import * as React from 'react'
 import type { DestinyDay, AstroSignal, Polarity } from '@/types/calendar'
-import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
@@ -316,6 +316,108 @@ function HourRhythm({
   )
 }
 
+// ============================================================================
+// CrossActivationCard — 사주 × 별자리 교차. 우리 핵심 신호인데 직전엔 분야 근거로만
+// 쓰고 화면엔 안 보였다. 양쪽(십신·행성)을 *쉬운말*로 풀어 카드로 노출.
+// 사주측 朱(ember) · 별측 藍(accent) 색으로 구분, polarity 로 ⇄ 색(길/주의).
+// ============================================================================
+function CrossActivationCard({
+  items,
+  ko,
+}: {
+  items: DestinyDay['crossActivations']
+  ko: boolean
+}) {
+  // |polarity| 큰 순으로 최대 4개 — 카드가 길어지지 않게.
+  const rows = [...items].sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)).slice(0, 4)
+  if (rows.length === 0) return null
+  return (
+    <div
+      style={{
+        marginTop: 14,
+        padding: 15,
+        border: '1.5px solid var(--dp-accent)',
+        borderRadius: 10,
+        background: 'var(--dp-panel)',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: 'var(--dp-mono)',
+          fontSize: 12,
+          fontWeight: 700,
+          letterSpacing: '0.04em',
+          color: 'var(--dp-accent)',
+          marginBottom: 3,
+        }}
+      >
+        {ko ? '사주 × 별자리 교차' : 'Saju × Astrology'}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--dp-ink-mute)', marginBottom: 6 }}>
+        {ko ? '둘 다 가리키는 신호만' : 'only where both point the same way'}
+      </div>
+      {rows.map((c, i) => {
+        const sajuPlain = ko
+          ? sibsinArea(c.sajuKo ?? c.sajuSide)
+          : sibsinAreaEn(c.sajuKo ?? c.sajuSide)
+        const astroPlain = planetPlain(c.astroKo ?? c.astroSide, ko)
+        const good = c.polarity >= 0
+        const arrowCol = good ? 'var(--dp-pos)' : 'var(--dp-ember)'
+        return (
+          <div
+            key={c.id ?? i}
+            style={{ borderTop: '1px solid var(--dp-line)', paddingTop: 10, marginTop: 10 }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 5,
+                flexWrap: 'wrap',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 12,
+                  color: 'var(--dp-ember-2)',
+                  background: 'rgba(176,58,34,0.09)',
+                  borderRadius: 5,
+                  padding: '3px 9px',
+                }}
+              >
+                {ko ? '내 사주 · ' : 'me · '}
+                {sajuPlain}
+              </span>
+              <span style={{ color: arrowCol, fontWeight: 700 }}>⇄</span>
+              <span
+                style={{
+                  fontSize: 12,
+                  color: 'var(--dp-accent)',
+                  background: 'rgba(52,64,111,0.09)',
+                  borderRadius: 5,
+                  padding: '3px 9px',
+                }}
+              >
+                {ko ? '하늘 · ' : 'sky · '}
+                {astroPlain}
+              </span>
+            </div>
+            {c.meaning && (
+              <div style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--dp-ink-dim)' }}>
+                {c.meaning}
+              </div>
+            )}
+          </div>
+        )
+      })}
+      <div style={{ fontSize: 11, color: 'var(--dp-ink-faint)', marginTop: 11 }}>
+        {ko ? '내 사주와 그날 별이 실제로 겹칠 때만 떠요' : 'shown only when both actually overlap'}
+      </div>
+    </div>
+  )
+}
+
 export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
@@ -591,6 +693,11 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           </details>
         </div>
       </div>
+
+      {/* ── 사주 × 별자리 교차 — 핵심 신호. 쉬운말로 풀어 카드 노출. ── */}
+      {day.crossActivations.length > 0 && (
+        <CrossActivationCard items={day.crossActivations} ko={ko} />
+      )}
 
       {/* ── 시 그래프 — 그날 시간대별 좋음/주의 리듬. 핵심 근거 다음으로 항상 노출. ── */}
       {hourAll.length > 0 && (
