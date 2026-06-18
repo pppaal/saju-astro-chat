@@ -58,8 +58,10 @@ const _cspStaticPrefix = [
   `frame-ancestors 'none'`,
   `form-action 'self'`,
   `img-src 'self' data: blob: https:`,
-  `font-src 'self' data:`,
-  `style-src 'self' 'unsafe-inline'`,
+  // Google Fonts: stylesheet from fonts.googleapis.com, font files from fonts.gstatic.com.
+  // (proxy 가 src/ 로 와 CSP 가 다시 활성화되며 드러난 차단 — --dp-serif/Newsreader 등.)
+  `font-src 'self' data: https://fonts.gstatic.com`,
+  `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
 ].join('; ')
 
 const _cspStaticSuffix = [
