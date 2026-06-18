@@ -691,7 +691,7 @@ export function CompatChartModal({
               style={{ color: 'var(--ds-light-text)' }}
             >
               {isKo
-                ? '두 사람의 여덟 글자가 만났을 때, 어디서 끌어당기고(합), 어디서 부딪히고(충·형), 한쪽에 부족한 기운을 상대가 채워주는지를 봐요.'
+                ? '두 사람의 여덟 글자가 만났을 때, 어디서 끌어당기고, 어디서 부딪히고, 한쪽에 부족한 기운을 상대가 채워주는지를 봐요.'
                 : "Where your eight characters meet — where they pull together, where they clash, and whether one's missing energy is what the other brings."}
             </p>
 
@@ -738,12 +738,6 @@ export function CompatChartModal({
                             {isKo
                               ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝 — ${SPOUSE_VERB[s.sibsin]?.ko ?? '으로 다가와요'}`
                               : `To ${who}, ${other} ${SPOUSE_VERB[s.sibsin]?.en ?? 'reads as a partner'} — a “${feeling}” match`}
-                            <span
-                              className="ml-1 text-[11px]"
-                              style={{ color: 'var(--ds-light-text-muted)' }}
-                            >
-                              ({s.sibsin})
-                            </span>
                           </span>
                         </li>
                       )
@@ -767,7 +761,7 @@ export function CompatChartModal({
                 >
                   ▸
                 </span>
-                {isKo ? '각자의 사주 원국 펼쳐 보기' : 'Show each chart (four pillars)'}
+                {isKo ? '각자의 사주 여덟 글자 펼쳐 보기' : 'Show each chart (four pillars)'}
               </summary>
               <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
