@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { NextRequest } from 'next/server'
-import { proxy } from '../../proxy'
+import { proxy } from '../../src/proxy'
 
 describe('proxy removed service route blocking', () => {
   it('redirects removed public service routes to home', () => {

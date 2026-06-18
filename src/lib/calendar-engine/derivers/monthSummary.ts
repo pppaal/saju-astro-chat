@@ -46,69 +46,105 @@ function coreReason(s: string): string {
     .trim()
 }
 
+/**
+ * 산문(총평)에 박을 테마 문구 정리 — 기술적 괄호 주석을 떼어 읽기 쉽게.
+ * 신호 라벨이 "목성 가장 좋은 자리(고양) (게자리)"처럼 (글로스)·(별자리) 괄호를
+ * 달고 오는데, 한 문단 산문에선 거슬린다. 괄호 그룹을 모두 제거하고 공백 정리.
+ */
+function themePhrase(s: string): string {
+  return coreReason(s)
+    .replace(/\s*[(（][^)）]*[)）]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
 export function deriveMonthSummary(i: MonthSummaryInput): string {
   const ko = i.lang === 'ko'
   const parts: string[] = []
   const good = i.goodDays
   const caution = i.cautionDays
+  const total = i.totalDays
 
-  // 1) 전반 톤 — 좋은 날 vs 주의 날 분포.
+  // 1) 전반 톤 — 좋은 날 vs 주의 날 분포. 한 문장 안에 톤 + 날수까지 녹여 길게.
   const tone: 'bright' | 'mixed' | 'careful' =
     good >= caution * 2 ? 'bright' : caution > good ? 'careful' : 'mixed'
   const wool = i.woolunKr ? (ko ? `${i.woolunKr}월은 ` : '') : ''
+  const countKo =
+    total > 0
+      ? ` 전체 ${total}일 가운데 흐름이 트이는 날이 ${good}일, 한 박자 늦추면 좋은 날이 ${caution}일쯤 돼요.`
+      : ''
+  const countEn =
+    total > 0
+      ? ` Of its ${total} days, about ${good} run with the current and ${caution} ask for a steadier hand.`
+      : ''
   if (ko) {
     parts.push(
-      tone === 'bright'
-        ? `${wool}전반적으로 흐름이 우호적인 달이에요.`
+      (tone === 'bright'
+        ? `${wool}전반적으로 바람을 등진 듯 흐름이 순하게 풀리는 달이에요.`
         : tone === 'careful'
-          ? `${wool}조심이 필요한 구간이 적지 않은 달이에요.`
-          : `${wool}좋은 날과 주의가 갈리는, 굴곡이 있는 달이에요.`
+          ? `${wool}크게 벌이기보다 한 박자 늦춰 가는 게 좋은, 조심스러운 결의 달이에요.`
+          : `${wool}좋은 날과 조심할 날이 번갈아 드는, 굴곡이 또렷한 달이에요.`) + countKo
     )
   } else {
     parts.push(
-      tone === 'bright'
+      (tone === 'bright'
         ? 'Overall a favorable month — the flow is on your side.'
         : tone === 'careful'
-          ? 'A month with more than a few stretches to handle carefully.'
-          : 'A month of swings — good days and cautious ones split fairly evenly.'
+          ? 'A month that rewards a steadier hand over bold moves.'
+          : 'A month of swings — good days and cautious ones alternate.') + countEn
     )
   }
 
-  // 2) 지배 테마 — 그 달 가장 센 신호 1~2개.
-  const themes = i.topReasons.map(coreReason).filter(Boolean).slice(0, 2)
+  // 2) 지배 테마 — 그 달 가장 센 신호 1~2개. 톤에 맞춰 자연스럽게 이어 붙임.
+  const themes = i.topReasons.map(themePhrase).filter(Boolean).slice(0, 2)
   if (themes.length) {
     parts.push(
       ko
-        ? `특히 ${themes.join(' · ')} 흐름이 두드러져요.`
-        : `In particular, ${themes.join(' and ')} stand out.`
+        ? `무엇보다 ${themes.join(' · ')} 흐름이 이 달의 결을 이끌어요.`
+        : `Above all, ${themes.join(' and ')} set the grain of the month.`
     )
   }
 
-  // 3) 가장 좋은 날 — 날짜 + 이유.
+  // 3) 가장 좋은 날 — 날짜 + 이유. 앞 문장과 '그중'으로 연결.
   if (i.bestDay) {
     const why = i.bestDayReason ? coreReason(i.bestDayReason) : ''
     parts.push(
       ko
-        ? `가장 좋은 날은 ${fmtDate(i.bestDay, true)} 무렵${why ? ` — ${why}` : ''}.`
-        : `The strongest day falls around ${fmtDate(i.bestDay, false)}${why ? ` — ${why}` : ''}.`
+        ? `그중 ${fmtDate(i.bestDay, true)} 무렵이 가장 무게가 실리는 날이에요${why ? ` — ${why}` : ''}. 미뤄둔 일이 있다면 이때 앞당겨 잡아보세요.`
+        : `Among them, ${fmtDate(i.bestDay, false)} carries the most weight${why ? ` — ${why}` : ''}. If something's been on hold, this is the window to bring it forward.`
     )
   }
 
-  // 4) 조심할 날 — 주의일 / 수렴일.
+  // 4) 조심할 날 — '다만'으로 전환, 수렴일은 '또'로 덧붙임.
   if (i.cautionDay) {
     parts.push(
       ko
-        ? `반대로 ${fmtDate(i.cautionDay, true)} 전후는 무리한 결정·이동을 한 박자 늦추는 게 좋아요.`
-        : `On the other hand, around ${fmtDate(i.cautionDay, false)} it's wiser to hold off on big moves.`
+        ? `다만 ${fmtDate(i.cautionDay, true)} 전후로는 무리한 결정이나 이동을 한 박자 늦추는 편이 안전해요.`
+        : `That said, around ${fmtDate(i.cautionDay, false)} it's wiser to hold off on big moves and travel.`
     )
   }
   if (i.convergeDate && i.convergeDate !== i.bestDay) {
     parts.push(
       ko
-        ? `${fmtDate(i.convergeDate, true)}은 사주와 점성이 함께 겹치는 분기점이라 특히 주목할 만해요.`
-        : `${fmtDate(i.convergeDate, false)} is a pivot where Saju and astrology converge — worth special attention.`
+        ? `또 ${fmtDate(i.convergeDate, true)}은 사주와 점성의 신호가 한꺼번에 겹치는 분기점이라, 큰 흐름이 바뀔 수 있으니 특히 눈여겨보세요.`
+        : `And ${fmtDate(i.convergeDate, false)} is a pivot where Saju and astrology converge at once — a turn worth watching closely.`
     )
   }
+
+  // 5) 마무리 한 줄 — 톤별 행동 제안으로 문단을 자연스럽게 닫는다(길이·완결감).
+  parts.push(
+    ko
+      ? tone === 'bright'
+        ? '전반적으로는 벌여도 좋은 달이니, 망설이던 일이 있다면 이때 밀어붙여 보세요.'
+        : tone === 'careful'
+          ? '큰 욕심보다 마무리와 점검에 무게를 두면 한결 무난하게 지나갈 거예요.'
+          : '좋은 날엔 밀고 조심할 날엔 쉬어 가는 리듬만 지키면 충분한 달이에요.'
+      : tone === 'bright'
+        ? "Overall a month to act on — if something's been on hold, this is the time to push."
+        : tone === 'careful'
+          ? 'Lean into wrapping up and review rather than big ambitions, and it passes smoothly.'
+          : 'Push on the good days, rest on the cautious ones, and the rhythm carries you through.'
+  )
 
   return parts.join(' ')
 }
