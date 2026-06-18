@@ -38,6 +38,35 @@ export function stripMarkdown(text: string | undefined | null): string {
     .trim()
 }
 
+/**
+ * 공유 카드 한 줄(hook/펀치라인) 방탄 정리 — *모델이 무엇을 뱉든* 카드에 깔끔한
+ * 한 줄로 박히게 한다. 프롬프트에 "따옴표·해시태그·마침표 쓰지 마"를 박아도
+ * 모델은 또 까먹으므로, 출력단에서 전부 정리한다:
+ *  - 마크다운 마커 제거(stripMarkdown)
+ *  - 해시태그(#viral / ＃떡밥) 제거
+ *  - 개행/중복 공백 → 한 칸
+ *  - 통째로 감싼 따옴표(" ' “ ” ‘ ’ 「」 『』) 벗기기
+ *  - 끝에 붙은 마침표·느낌표·물결·하이픈 제거(여운은 살리되 군더더기만)
+ *  - 너무 길면(모델이 글자수 무시) max 로 잘라 … 붙임
+ * 빈 값이면 '' → 호출자는 overall 첫 문장으로 폴백.
+ */
+export function cleanShareHook(text: string | undefined | null, max = 42): string {
+  let s = stripMarkdown(text)
+  if (!s) return ''
+  s = s.replace(/[#＃][^\s#＃]+/g, '') // 해시태그
+  s = s
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim() // 개행/중복공백
+  s = s
+    .replace(/^["'“”‘’「『(]+/, '')
+    .replace(/["'”’」』)]+$/, '')
+    .trim() // 감싼 따옴표
+  s = s.replace(/[.!?。！？~\-—…\s]+$/, '').trim() // 끝 군더더기 구두점
+  if (s.length > max) s = `${s.slice(0, max - 1).trim()}…`
+  return s
+}
+
 // 해석 본문의 첫 문장(또는 폴백)을 한 줄 메시지로. 공유 이미지에 실명이
 // 박히지 않게 앞머리 'OOO님,' 호명을 떼고, 너무 길지 않게 자른다.
 export function pickKeyMessage(source: string | undefined | null, max = 58): string {
@@ -86,10 +115,10 @@ export function buildShareDataFromReading(
       name: isKo ? dc.card.nameKo || dc.card.name : dc.card.name,
       isReversed: dc.isReversed,
     })),
-    // LLM 이 직접 뽑은 펀치라인(정곡+여운)이 있으면 그대로(짧고 강함). 없으면
-    // overall 첫 문장으로 폴백. 둘 다 마크다운은 stripMarkdown 으로 제거됨.
+    // LLM 펀치라인(정곡+여운)을 방탄 정리해 우선 사용 — 모델이 뭘 뱉든 한 줄
+    // 깔끔하게. 비면 overall 첫 문장으로 폴백.
     keyMessage:
-      stripMarkdown(interpretation?.hook) ||
+      cleanShareHook(interpretation?.hook) ||
       pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
     isKo,
   }
