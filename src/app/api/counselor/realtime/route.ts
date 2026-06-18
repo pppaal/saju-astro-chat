@@ -123,6 +123,19 @@ function computeAgeYears(birthDate: string | undefined | null): number | null {
   return age >= 0 && age < 150 ? age : null
 }
 
+// 멱등 키에 섞을 짧은 content discriminator. 같은 x-idempotency-key 를 서로 다른
+// 질문으로 재사용해 첫 차감 이후 무료로 받는 free-replay 누수를 막는다
+// (idempotency.ts keyFor 의 contentTag 참조). 충돌 안전성보다 "내용이 바뀌면
+// 태그도 바뀐다"가 목적이라 빠른 비암호 해시(FNV-1a)로 충분하다.
+function idemContentTag(text: string): string {
+  let h = 0x811c9dc5
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  return (h >>> 0).toString(36)
+}
+
 export async function POST(req: NextRequest) {
   // 0) CSRF — this route bypasses withApiMiddleware, so guard the origin
   // explicitly. Without it, any third-party page could POST in a logged-in
@@ -251,21 +264,40 @@ export async function POST(req: NextRequest) {
   // 새로고침/탭 복제 등 idempotent replay 면 차감 스킵 (스트림은 정상 진행).
   let chargedThisTurn = false
   {
-    const scopedIdemKey = idemStore.keyFor(req, `user:${userId}`)
+    // contentTag 로 "같은 키 + 같은 질문"만 replay 로 인정 → 키를 재사용한
+    // free-replay 차단. 진짜 새로고침/탭 복제는 같은 마지막 질문이라 그대로 dedupe.
+    const scopedIdemKey = idemStore.keyFor(req, `user:${userId}`, idemContentTag(userMessage))
     // 원자적 선점 — 동시 요청(더블클릭/탭 복제) 중 하나만 첫 진입으로 차감.
     // 선점 실패(replay)면 차감 스킵, 스트림은 정상 진행. 키 없으면 차감 진행.
     const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
     if (scopedIdemKey && !claimed) {
+      // 같은 질문의 정당한 재진입 — 원턴에서 이미 차감됨. 스트림만 다시 진행.
       logger.info('[counselor/realtime] idempotent replay, skip credit consume', { userId })
     } else {
+      let consumed: { success: boolean }
       try {
-        const res = await consumeCredits(userId, 'reading', 1)
-        chargedThisTurn = res.success
-        // 차감 실패 시 선점 해제 → 재시도가 다시 차감할 수 있게.
-        if (!chargedThisTurn && scopedIdemKey) await idemStore.release(scopedIdemKey)
+        consumed = await consumeCredits(userId, 'reading', 1)
       } catch (err) {
-        logger.warn('[counselor/realtime] credit deduction failed', { err })
+        // 차감 중 예외(DB 등) — 선점 해제 후 503 으로 막는다. 예전엔 여기서 그대로
+        // 스트림으로 떨어져 프리미엄 답변이 무료로 나갔다. 절대 무료 스트림 금지.
+        logger.warn('[counselor/realtime] credit deduction error', { err })
         if (scopedIdemKey) await idemStore.release(scopedIdemKey)
+        return NextResponse.json(
+          { error: 'charge_failed', message: 'Could not process credits. Please try again.' },
+          { status: 503 }
+        )
+      }
+      chargedThisTurn = consumed.success
+      if (!chargedThisTurn) {
+        // 잔액 부족/동시 탭 race 로 차감 실패. canUseCredits 를 통과했어도
+        // consumeCredits 가 원자적으로 실패할 수 있다(같은 잔액을 두 탭이 경합).
+        // 예전엔 이 경우 그대로 스트림 → 잔액 1로 동시요청을 쏘면 프리미엄
+        // 답변이 무제한 무료로 나가던 수익 누수. compat 라우트처럼 402 로 막는다.
+        if (scopedIdemKey) await idemStore.release(scopedIdemKey)
+        return NextResponse.json(
+          { error: 'insufficient_credits', message: 'Not enough credits.' },
+          { status: 402 }
+        )
       }
     }
   }
