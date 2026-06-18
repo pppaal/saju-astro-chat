@@ -29,6 +29,12 @@ export interface SajuFactsInput {
   calendarType?: 'solar' | 'lunar'
   /** 음력 윤달 여부 — calendarType === 'lunar' 일 때만 의미 있음. */
   lunarLeap?: boolean
+  /**
+   * 주입된 "지금" — 원국(네 기둥)은 birthDate/Time 만으로 결정되지만 대운/세운/
+   * 월운·만나이는 "지금"에 의존한다. calculateSajuData 로 그대로 넘겨 결정론을
+   * 지킨다(미지정 시 calculateSajuData 가 new Date() 로 폴백 → 기존 동작).
+   */
+  now?: Date
 }
 
 /** 사주 4기둥 raw 항목 (천간/지지/십신/지장간 평면). */
@@ -97,12 +103,30 @@ export interface DaeunEntry {
 }
 
 const STEM_ELEMENT: Record<string, string> = {
-  '甲': '목', '乙': '목', '丙': '화', '丁': '화', '戊': '토', '己': '토',
-  '庚': '금', '辛': '금', '壬': '수', '癸': '수',
+  甲: '목',
+  乙: '목',
+  丙: '화',
+  丁: '화',
+  戊: '토',
+  己: '토',
+  庚: '금',
+  辛: '금',
+  壬: '수',
+  癸: '수',
 }
 const BRANCH_ELEMENT: Record<string, string> = {
-  '子': '수', '丑': '토', '寅': '목', '卯': '목', '辰': '토', '巳': '화',
-  '午': '화', '未': '토', '申': '금', '酉': '금', '戌': '토', '亥': '수',
+  子: '수',
+  丑: '토',
+  寅: '목',
+  卯: '목',
+  辰: '토',
+  巳: '화',
+  午: '화',
+  未: '토',
+  申: '금',
+  酉: '금',
+  戌: '토',
+  亥: '수',
 }
 
 /**
@@ -122,6 +146,7 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
     tz,
     input.lunarLeap,
     input.longitude,
+    input.now // 주입된 "지금" — 대운/세운/월운·만나이 결정론. 미지정 시 new Date().
   ) as unknown as RawSajuShape
 
   const P = raw.pillars
@@ -182,7 +207,7 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
     ? (['year', 'month', 'day', 'time'] as const).some((k) => {
         const jg = P[k].jijanggan
         return [jg?.chogi?.name, jg?.junggi?.name, jg?.jeonggi?.name].some(
-          (s) => !!s && STEM_ELEMENT[s] === dayEl,
+          (s) => !!s && STEM_ELEMENT[s] === dayEl
         )
       })
     : false
@@ -230,9 +255,7 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
         age: d.age ?? 0,
         heavenlyStem: d.heavenlyStem ?? '',
         earthlyBranch: d.earthlyBranch ?? '',
-        sibsin: d.sibsin
-          ? { cheon: d.sibsin.cheon ?? null, ji: d.sibsin.ji ?? null }
-          : null,
+        sibsin: d.sibsin ? { cheon: d.sibsin.cheon ?? null, ji: d.sibsin.ji ?? null } : null,
       })),
     },
     // 조후용신 — JOHU_YONGSIN_DB 정적 룩업. 비용 거의 0.

@@ -41,8 +41,11 @@ describe('collectSajuFacts — 순수 facts 계산', () => {
   it('fiveElements 합산이 사주 천간 4 + 지지 4 + 지장간 = 양수', () => {
     const f = collectSajuFacts(BIRTH)
     const sum =
-      f.fiveElements.wood + f.fiveElements.fire +
-      f.fiveElements.earth + f.fiveElements.metal + f.fiveElements.water
+      f.fiveElements.wood +
+      f.fiveElements.fire +
+      f.fiveElements.earth +
+      f.fiveElements.metal +
+      f.fiveElements.water
     expect(sum).toBeGreaterThan(0)
   })
 
@@ -56,6 +59,25 @@ describe('collectSajuFacts — 순수 facts 계산', () => {
     if (f.geokguk !== null) {
       expect(f.geokguk).toMatch(/격$/)
     }
+  })
+
+  it('determinism — 주입한 now 가 대운에 반영되되 원국 4기둥은 불변', () => {
+    // 원국은 birthDate/Time 만으로 결정 → now 무관하게 동일.
+    // 대운(10년 단위)은 "지금"에 의존 → 주입한 now 를 따라가야(결정론 + 시계 누수 방지).
+    const now2012 = new Date(2012, 5, 15, 12, 0, 0)
+    const now2042 = new Date(2042, 5, 15, 12, 0, 0)
+    const a = collectSajuFacts({ ...BIRTH, now: now2012 })
+    const b = collectSajuFacts({ ...BIRTH, now: now2042 })
+
+    for (const k of ['year', 'month', 'day', 'time'] as const) {
+      expect(a.pillars[k]).toEqual(b.pillars[k])
+    }
+    // 같은 now → 같은 결과(반복 호출 결정론).
+    expect(collectSajuFacts({ ...BIRTH, now: now2012 }).daeun.current).toEqual(a.daeun.current)
+    // 30년 차이면 현재 대운이 달라야 — now 가 실제로 대운 선택에 흐른다는 증거.
+    expect(a.daeun.current).not.toBeNull()
+    expect(b.daeun.current).not.toBeNull()
+    expect(a.daeun.current?.age).not.toBe(b.daeun.current?.age)
   })
 
   it('yongsin — null 또는 primaryYongsin 있는 객체', () => {
@@ -98,6 +120,8 @@ describe('collectSajuFacts — 순수 facts 계산', () => {
   it('다른 출생 → 다른 결과', () => {
     const a = collectSajuFacts(BIRTH)
     const b = collectSajuFacts({ ...BIRTH, birthDate: '1980-01-01' })
-    expect(a.pillars.year.stem !== b.pillars.year.stem || a.pillars.year.branch !== b.pillars.year.branch).toBe(true)
+    expect(
+      a.pillars.year.stem !== b.pillars.year.stem || a.pillars.year.branch !== b.pillars.year.branch
+    ).toBe(true)
   })
 })
