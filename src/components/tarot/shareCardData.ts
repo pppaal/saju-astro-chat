@@ -26,10 +26,22 @@ function truncate(text: string, max: number): string {
   return t.length > max ? `${t.slice(0, max - 1).trim()}…` : t
 }
 
+// 공유 이미지엔 순수 텍스트만 박는다. 해석 프롬프트가 강조에 쓰는 `*별표*`,
+// `_밑줄_`, `` `코드` ``, `#헤더`, `~취소선` 마커가 이미지에 그대로 찍히지
+// 않게 출력단에서 제거한다. (프롬프트에 "마크다운 쓰지 마"를 박아도 모델이
+// 또 까먹으므로, 렌더 직전 strip 이 가장 확실하다.)
+export function stripMarkdown(text: string | undefined | null): string {
+  return (text || '')
+    .replace(/[*_`~]/g, '') // 강조/코드/취소선 마커 제거
+    .replace(/^#{1,6}\s+/gm, '') // 줄머리 헤더(#) 제거
+    .replace(/\s{2,}/g, ' ') // 마커 삭제로 생긴 이중 공백 정리
+    .trim()
+}
+
 // 해석 본문의 첫 문장(또는 폴백)을 한 줄 메시지로. 공유 이미지에 실명이
 // 박히지 않게 앞머리 'OOO님,' 호명을 떼고, 너무 길지 않게 자른다.
 export function pickKeyMessage(source: string | undefined | null, max = 58): string {
-  let s = (source || '').trim()
+  let s = stripMarkdown(source)
   if (!s) return ''
   // 앞머리 호명 제거: "이준영님, " / "이준영 님께서" 등 → 실명 노출 방지.
   s = s.replace(/^[가-힣A-Za-z·\s]{1,12}님(께서|은|이|,|，|!|\s)+/, '').trim()
@@ -58,7 +70,7 @@ export function buildShareDataFromReading(
   isKo: boolean
 ): ShareCardData {
   const question = truncate(
-    (userTopic || '').trim() ||
+    stripMarkdown(userTopic) ||
       (isKo
         ? readingResult.spread.titleKo || readingResult.spread.title
         : readingResult.spread.title),
@@ -86,7 +98,7 @@ export function buildShareDataFromSavedReading(
 ): ShareCardData {
   return {
     question: truncate(
-      (reading.question || '').trim() ||
+      stripMarkdown(reading.question) ||
         (isKo ? reading.spread.titleKo || reading.spread.title : reading.spread.title),
       90
     ),
