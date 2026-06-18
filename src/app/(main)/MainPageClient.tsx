@@ -12,6 +12,7 @@ import { ParticleCanvas } from './components'
 import PrefetchLinks from '@/components/PrefetchLinks'
 import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt'
+import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
 import HomeChatInput from './components/HomeChatInput'
 import BirthInfoModal from './components/BirthInfoModal'
 import {
@@ -373,6 +374,10 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           Chrome 계열: 네이티브 다이얼로그. iOS Safari: "공유 → 홈 화면 추가"
           가이드. Firefox / in-app webview / 이미 설치된 PWA 는 자동으로 미노출. */}
       <PWAInstallPrompt locale={locale} />
+
+      {/* 매일 아침 "오늘의 운세" 알림 옵트인 — 재방문(리텐션) 핵심 훅. 캘린더
+          구석에만 있던 걸 홈에도 노출(푸시 미설정·미지원·dismiss 시 자동 미노출). */}
+      <DailyFortunePushBanner locale={locale} />
 
       <PrefetchLinks />
       <SpeedInsights />
