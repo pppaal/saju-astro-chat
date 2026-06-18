@@ -76,7 +76,7 @@ export interface ToMonthOptions {
   thresholds?: { caution?: number; avoid?: number; good?: number; best?: number }
   /**
    * 날짜별 점수·등급 — 일진+시진 층 신호로 산출(deriveLayeredScores.daily).
-   * 주어지면 마크(good/caution/avoid)는 등급으로, intensity·bestDay 는 그 점수로.
+   * 주어지면 점수·intensity·bestDay 는 그 점수로. 마크는 일 카드와 같은 band(60/35).
    * key: YYYY-MM-DD.
    */
   dayScores?: Map<string, { score: number; grade: CalendarGrade }>
@@ -86,8 +86,9 @@ export interface ToMonthOptions {
  * CalendarCell[] → destinypal month + calendar[30].
  *
  * scoring:
- *   - cell.derivedScore 가 0..100 — 그대로 intensity (÷100) + mark 결정에 사용.
- *   - caution: 30 미만 / avoid: 20 미만 / good: 70 이상 / best: month 최고점 1일.
+ *   - dayScores(일진층 favorScore) 우선, 없으면 cell.derivedScore.
+ *   - 마크는 일 카드 다이얼과 *같은 band(60/35)*: good ≥60 / low <35
+ *     안에서만 avoid <22 / caution 22~35 / best — month 최고점 1일.
  */
 export function toMonth(opts: ToMonthOptions): {
   month: DestinypalMonth
@@ -96,7 +97,7 @@ export function toMonth(opts: ToMonthOptions): {
   const th = {
     caution: opts.thresholds?.caution ?? 35,
     avoid: opts.thresholds?.avoid ?? 22,
-    good: opts.thresholds?.good ?? 65,
+    good: opts.thresholds?.good ?? 60,
     best: opts.thresholds?.best ?? 75,
   }
 
@@ -121,20 +122,11 @@ export function toMonth(opts: ToMonthOptions): {
     const score = layered ? layered.score : cell.derivedScore
     const intensity = Math.max(0, Math.min(1, score / 100))
 
+    // 마크는 일 카드 다이얼과 *같은 band(60/35)* 로 — tier 간 길/주의 표시가
+    // 어긋나지 않게(예: favorScore 62 → 일 카드 '순풍'인데 월 grade2 라 무표시이던
+    // 불일치 제거). low 밴드(<35) 안에서만 지키미(<22)/주의(22~35)로 깊이 구분.
     let mark: DestinypalCalendarDay['mark'] = null
-    if (layered) {
-      // 등급 기준 (일진 층): 0최고/1좋음=good, 3조심=caution, 4지킴=avoid.
-      if (layered.grade === 4) {
-        mark = 'avoid'
-        avoidDays.push(ds)
-      } else if (layered.grade === 3) {
-        mark = 'caution'
-        cautionDays.push(ds)
-      } else if (layered.grade <= 1) {
-        mark = 'good'
-        goodDays.push(ds)
-      }
-    } else if (score < th.avoid) {
+    if (score < th.avoid) {
       mark = 'avoid'
       avoidDays.push(ds)
     } else if (score < th.caution) {

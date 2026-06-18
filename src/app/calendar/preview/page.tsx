@@ -11,15 +11,17 @@
    destinypal tier props 까지 100% 책임.
    ============================================================ */
 
-import { headers } from 'next/headers'
+import { detectServerLocale } from '@/i18n/server'
 import PreviewClient from './PreviewClient'
 
 import {
   getOrBuildNatalContext,
   getOrBuildYearCells,
+  getOrBuildMonthCells,
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
 import { assembleTiers } from '../assembleTiers'
+import { SHOW_FULL_TIERS } from '@/components/calendar/tierConfig'
 
 // Server component: 빌드 비용(Swiss Ephemeris) 을 서버에서 한 번만 치름.
 export const dynamic = 'force-dynamic'
@@ -40,14 +42,19 @@ const TARGET_MONTH = 6 // 6월 — preview default focus month
 const TARGET_DAY_ISO = '2026-06-15' // preview default focus day
 
 export default async function DestinypalPreview() {
-  // 서버 로케일 — 미들웨어가 심은 x-locale 헤더(쿠키/Accept-Language 기반).
-  const hdrs = await headers()
-  const lang: 'ko' | 'en' = hdrs.get('x-locale') === 'ko' ? 'ko' : 'en'
+  // 서버 로케일 — 헤더 → 쿠키 → Accept-Language 정식 해석(클라이언트 로케일과 일치).
+  const lang = await detectServerLocale()
 
   // ─── NatalContext + 그 해 cells (DB 캐시 우선) ────────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)
-  const cells = await getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
-  const focusDayCell = await getFocusDayCell(natal, TARGET_DAY_ISO)
+  // SHOW_FULL_TIERS=false(월/일만)면 1년 대신 그 달만 빌드 — 안 보이는 연 티어용
+  // 1년 빌드(7.8s) 낭비 제거.
+  const [cells, focusDayCell] = await Promise.all([
+    SHOW_FULL_TIERS
+      ? getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
+      : getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
+    getFocusDayCell(BIRTH, natal, TARGET_DAY_ISO),
+  ])
 
   // ─── 5 tier 어셈블 (정식 라우트와 공유) ───────────────────────────────
   const TARGET_DAY = Number(TARGET_DAY_ISO.split('-')[2])

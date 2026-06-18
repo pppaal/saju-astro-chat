@@ -18,6 +18,7 @@ import { getNowInTimezone } from '@/lib/datetime'
 import type { DayMaster } from '@/lib/saju/types'
 import { SIBSIN_EN as SIBSIN_EN_BASE } from '@/lib/saju/sibsinLabels'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 
 const HOUSE_THEME_KO: Record<number, string> = {
@@ -108,12 +109,16 @@ const PERIOD_EN: Record<string, string> = {
   일진: 'Daily',
 }
 // 12운성(十二運星) 단계 — EN 로케일에서 한국어가 새지 않도록 영어 라벨 맵.
+// getTwelveStagesForPillars(SSOT)는 표준 라벨 임관/왕지를 반환한다 — 별칭
+// 건록/제왕 만 키로 두면 임관·왕지가 영어 컨텍스트에 한글로 샜다(둘 다 키로 둠).
 const STAGE_EN: Record<string, string> = {
   장생: 'birth',
   목욕: 'bath',
   관대: 'coming-of-age',
-  건록: 'prosperity',
-  제왕: 'peak',
+  임관: 'prosperity',
+  건록: 'prosperity', // 별칭(=임관)
+  왕지: 'peak',
+  제왕: 'peak', // 별칭(=왕지)
   쇠: 'decline',
   병: 'illness',
   사: 'death',
@@ -122,6 +127,34 @@ const STAGE_EN: Record<string, string> = {
   태: 'conception',
   양: 'nurture',
 }
+// 격국(格局) 영어 라벨 — EN 로케일에서 한글이 새지 않게. 정격 8종은
+// SIBSIN_EN strip(식신격→Eating God)으로 충분하지만, 종격/비격/화기격/특수격
+// (GeokgukType 의 나머지 19종 + 미정)은 십성이 아니라 strip 으로 못 잡아
+// 한글 그대로 샜다(예: "양인격" → "양인 structure"). 특수격만 명시 매핑.
+// 라벨은 lifetimeFlow.GEOKGUK_EN 의 표기와 일치시킨다.
+const GEOKGUK_SPECIAL_EN: Record<string, string> = {
+  종왕격: 'Following-prosperity (Jongwang)',
+  종강격: 'Following-strength (Jonggang)',
+  종아격: 'Following-output (Jong-a)',
+  종재격: 'Following-wealth (Jongjae)',
+  종살격: 'Following-officer (Jongsal)',
+  건록격: 'Established-rank (Geollok)',
+  양인격: 'Yang-blade (Yangin)',
+  월겁격: 'Month-rob (Wolgeop)',
+  잡기격: 'Mixed (Japgi)',
+  갑기화토격: 'Gap-gi Earth-transformation',
+  을경화금격: 'Eul-gyeong Metal-transformation',
+  병신화수격: 'Byeong-sin Water-transformation',
+  정임화목격: 'Jeong-im Wood-transformation',
+  무계화화격: 'Mu-gye Fire-transformation',
+  곡직격: 'Curving-straight (Gokjik)',
+  염상격: 'Blazing-up (Yeomsang)',
+  가색격: 'Sowing-reaping (Gasaek)',
+  종혁격: 'Following-reform (Jonghyeok)',
+  윤하격: 'Flowing-down (Yunha)',
+  미정: 'undetermined',
+}
+
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -517,6 +550,11 @@ export async function buildDestinyContext(
   const dailyAnchor = L(`# 오늘: ${today}`, `# Today: ${today}`)
   const daily = [dailyAnchor, timing, saju.iljinWindow].filter(Boolean).join('\n\n').trim() + '\n'
 
+  // KO: 남은 영어 구조 태그/전문용어(cross/[CRITICAL]/SR/Lord/orb 등)를 한글로.
+  // 한국어 사용자에겐 한국어 데이터만 — EN 경로는 손대지 않아 영어 유지.
+  if (locale === 'ko') {
+    return { stable: koStructuralLabels(stable), daily: koStructuralLabels(daily) }
+  }
   return { stable, daily }
 }
 
@@ -625,7 +663,9 @@ export function buildSajuSection(
     )
   }
   if (geok) {
-    const geokEn = `${SIBSIN_EN[geok.replace(/격$/, '')] ?? geok.replace(/격$/, '')} structure`
+    // 특수격(GEOKGUK_SPECIAL_EN) 우선, 없으면 정격(십성)으로 strip.
+    const bare = geok.replace(/격$/, '')
+    const geokEn = `${GEOKGUK_SPECIAL_EN[geok] ?? SIBSIN_EN[bare] ?? bare} structure`
     out.push(`${L('격국', 'geokguk')}: ${locale === 'en' ? geokEn : geok}`)
   }
   if (gwansalHonjap)

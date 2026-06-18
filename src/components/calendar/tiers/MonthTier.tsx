@@ -682,40 +682,6 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         items={monthCrossItems}
       />
 
-      {/* ===== 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어 ===== */}
-      {(month.crossActivations ?? []).length > 0 && (
-        <div className={styles.block}>
-          <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>
-              {ko ? '이 달의 사주 × 점성 교차' : 'Saju × Astrology crossings this month'}
-            </h2>
-            <span className={styles.tiny}>
-              {ko ? '월운 십신 ↔ 그 달 점성' : 'monthly sibsin ↔ this month’s sky'}
-            </span>
-          </div>
-          <div className={styles.mcrossList}>
-            {(month.crossActivations ?? []).map((c, i) => {
-              const tone =
-                c.polarity > 0
-                  ? styles.mcrossPos
-                  : c.polarity < 0
-                    ? styles.mcrossNeg
-                    : styles.mcrossNeu
-              return (
-                <div className={`${styles.mcrossRow} ${tone}`} key={`${c.saju}-${c.astroEn}-${i}`}>
-                  <span className={styles.mcrossPair}>
-                    {ko
-                      ? `${sibsinArea(c.saju) === c.saju ? c.saju : `${sibsinArea(c.saju)}(${c.saju})`} ↔ ${c.astro}`
-                      : `${sajuLabelEn(c.saju)} ↔ ${c.astroEn}`}
-                  </span>
-                  <span className={styles.mcrossMeaning}>{ko ? c.meaning : c.meaningEn}</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {/* ===== calendar heatmap — 메인. 한눈에 좋은 날/주의 날 색으로. ===== */}
       <div className={styles.secHead} style={{ marginTop: 28 }}>
         <h2 className={styles.secTitle}>{ko ? '시간 흐름 보기' : 'Time flow'}</h2>
@@ -839,11 +805,62 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         )}
       </div>
 
+      {/* ── 이달 총평 — 한 문단(자세히 보기 밖에 노출). ── */}
+      {(() => {
+        const summaryTag = ko ? '이달 총평' : 'This month'
+        const s = (month.narrative ?? []).find((n) => n.tag === summaryTag)
+        return s ? (
+          <div className={styles.blockSm} style={{ marginTop: 22 }}>
+            <div className={styles.narrCard}>
+              <span className={styles.narrTag}>{s.tag}</span>
+              <div className={styles.narrBody}>{localizeLabel(s.body, ko)}</div>
+            </div>
+          </div>
+        ) : null
+      })()}
+
       {/* ── 전문가용 상세 — 테마·신호·근거 전부 접어 둠 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>
           {ko ? '자세히 보기 · 근거와 신호' : 'Details · evidence & signals'}
         </summary>
+
+        {/* ===== 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어 ===== */}
+        {(month.crossActivations ?? []).length > 0 && (
+          <div className={styles.block}>
+            <div className={styles.secHead}>
+              <h2 className={styles.secTitle}>
+                {ko ? '이 달의 사주 × 점성 교차' : 'Saju × Astrology crossings this month'}
+              </h2>
+              <span className={styles.tiny}>
+                {ko ? '월운 십신 ↔ 그 달 점성' : 'monthly sibsin ↔ this month’s sky'}
+              </span>
+            </div>
+            <div className={styles.mcrossList}>
+              {(month.crossActivations ?? []).map((c, i) => {
+                const tone =
+                  c.polarity > 0
+                    ? styles.mcrossPos
+                    : c.polarity < 0
+                      ? styles.mcrossNeg
+                      : styles.mcrossNeu
+                return (
+                  <div
+                    className={`${styles.mcrossRow} ${tone}`}
+                    key={`${c.saju}-${c.astroEn}-${i}`}
+                  >
+                    <span className={styles.mcrossPair}>
+                      {ko
+                        ? `${sibsinArea(c.saju) === c.saju ? c.saju : `${sibsinArea(c.saju)}(${c.saju})`} ↔ ${c.astro}`
+                        : `${sajuLabelEn(c.saju)} ↔ ${c.astroEn}`}
+                    </span>
+                    <span className={styles.mcrossMeaning}>{ko ? c.meaning : c.meaningEn}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ===== 이달의 큰 날 (convergence keyDays) ===== */}
         {month.keyDays &&
@@ -999,13 +1016,15 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
             </span>
           </div>
           <div className={styles.narr}>
-            {narrative.map((n, i) => (
-              <div className={styles.narrCard} key={`${n.tag}-${i}`}>
-                <span className={styles.narrTag}>{n.tag}</span>
-                {/* '[월운] Jupiter 엑잘테이션' 같은 영문·내부코드 잔재를 KO 평어화. */}
-                <div className={styles.narrBody}>{localizeLabel(n.body, ko)}</div>
-              </div>
-            ))}
+            {narrative
+              .filter((n) => n.tag !== (ko ? '이달 총평' : 'This month'))
+              .map((n, i) => (
+                <div className={styles.narrCard} key={`${n.tag}-${i}`}>
+                  <span className={styles.narrTag}>{n.tag}</span>
+                  {/* '[월운] Jupiter 엑잘테이션' 같은 영문·내부코드 잔재를 KO 평어화. */}
+                  <div className={styles.narrBody}>{localizeLabel(n.body, ko)}</div>
+                </div>
+              ))}
           </div>
         </div>
 

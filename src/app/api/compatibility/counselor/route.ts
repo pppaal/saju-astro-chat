@@ -45,6 +45,7 @@ import { getRelation, buildRelationToneBlock } from '@/lib/compatibility/counsel
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
 import { formatCompositeChart } from '@/lib/compatibility/compositeChartFormatter'
+import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { collectCompatSajuFacts } from '@/lib/compatibility/compatSajuFacts'
 import { collectCompatAstroFacts } from '@/lib/compatibility/compatAstroFacts'
 import { getUserDisplayName } from '@/lib/user/displayName'
@@ -573,7 +574,7 @@ export async function POST(req: NextRequest) {
 
     // 각 블록은 빈 string 일 수 있어 filter(Boolean) 으로 거름. join('\n')
     // 만으로 블록 사이 한 줄 띄움 (이전엔 prefix \n 추가해 빈 라인 중복).
-    const cachedUserContext = [
+    const cachedUserContextRaw = [
       lang === 'en' ? `== Participants ==` : `== 참여자 정보 ==`,
       personsInfo,
       metaBlock,
@@ -585,6 +586,10 @@ export async function POST(req: NextRequest) {
     ]
       .filter(Boolean)
       .join('\n')
+    // KO: 데이터 블록에 남은 영어 구조 태그(cross/[CRITICAL]/Composite 등)를
+    // 한글로 — 한국어 사용자에겐 한국어 데이터만. EN 은 그대로 영어 유지.
+    const cachedUserContext =
+      lang === 'ko' ? koStructuralLabels(cachedUserContextRaw) : cachedUserContextRaw
 
     // 궁합은 오로지 교차(synastry + 세운 cross). 1인 개별 타이밍 (세운/
     // 월운/일진·트랜짓·리턴) 은 "두 사람이 어떻게 얽히나"가 아니라 개인 운세라

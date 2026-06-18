@@ -19,7 +19,7 @@
        강제 매핑되므로 buildNatalContext 가 받아낼 수 있음.)
    ============================================================ */
 
-import { headers } from 'next/headers'
+import { detectServerLocale } from '@/i18n/server'
 import { getServerSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/db/prisma'
 
@@ -30,8 +30,10 @@ import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
 import {
   getOrBuildNatalContext,
   getOrBuildYearCells,
+  getOrBuildMonthCells,
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
+import { SHOW_FULL_TIERS } from '@/components/calendar/tierConfig'
 import { assembleTiers } from './assembleTiers'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 
@@ -59,9 +61,10 @@ function formatBirthLine(birthDate: string, birthTime: string): string {
 }
 
 export default async function DestinypalPage() {
-  // 서버 로케일 — 미들웨어 x-locale 헤더.
-  const hdrs = await headers()
-  const lang: 'ko' | 'en' = hdrs.get('x-locale') === 'ko' ? 'ko' : 'en'
+  // 서버 로케일 — 헤더 → 쿠키 → Accept-Language 정식 해석(클라이언트 로케일과 일치).
+  // (직전엔 x-locale 헤더만 보고 없으면 'en' 으로 떨어져, KO 유저인데 서버가 만든
+  //  영어 문구(큰 날 의미·이달 총평 등)가 KO 화면에 새던 버그.)
+  const lang = await detectServerLocale()
 
   // ─── 1) 세션 검사 ─────────────────────────────────────────────────────
   const session = await getServerSession()
@@ -124,8 +127,15 @@ export default async function DestinypalPage() {
   // ─── 4) NatalContext + 올해 cells (DB 캐시 우선) ──────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)
   // 연 cells 는 evidence 없이(경량 캐시) — 점수·라벨만. evidence 가 필요한 그 하루는 따로.
-  const cells = await getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
-  const focusDayCell = await getFocusDayCell(natal, targetDayIso)
+  // 둘 다 natal 만 의존하므로 병렬로 — 직렬 await 로 합산되던 대기시간 제거.
+  // SHOW_FULL_TIERS=false(월/일만 표시)면 1년을 굽지 않고 그 달만 — 연 티어가 안
+  // 보이는데 1년(7.8s)을 굽던 낭비 제거. 연 티어를 켜면 다시 1년 빌드.
+  const [cells, focusDayCell] = await Promise.all([
+    SHOW_FULL_TIERS
+      ? getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
+      : getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
+    getFocusDayCell(BIRTH, natal, targetDayIso),
+  ])
 
   // ─── 5) 5 tier 어셈블 (preview 와 공유) ───────────────────────────────
   const birthDisplay = formatBirthLine(profile.birthDate!, profile.birthTime!)

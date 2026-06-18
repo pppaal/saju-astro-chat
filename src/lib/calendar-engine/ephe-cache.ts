@@ -30,15 +30,19 @@ export async function getCachedTransitChart(args: {
   const { iso, latitude, longitude, timeZone, inMemoryCache } = args
   const localKey = `transit-chart:${iso}:${latitude}:${longitude}`
 
-  // 1) InMemoryCache (요청 단위)
-  const memHit = inMemoryCache.get<Chart>(localKey)
+  // 1) InMemoryCache (요청 단위) — resolved Chart 또는 *in-flight* Promise<Chart>.
+  //    buildCalendar 는 모든 추출기를 Promise.all 로 동시 실행한다. 값만 캐시하면
+  //    (옛 동작) 동시 요청들이 await 완료 *전*엔 전부 미스라, 점성 추출기 8개가
+  //    같은 30개 차트를 각자 계산했다(실측 240회 = 8.0× 중복). 프로미스를 즉시
+  //    캐시해 동시 요청이 한 계산을 공유하게 한다.
+  const memHit = inMemoryCache.get<Chart | Promise<Chart>>(localKey)
   if (memHit) return memHit
 
   // 2) Redis (전역·영구)
   // 같은 위치의 같은 시각 차트는 영원히 결정적.
   // TRANSIT_CHART TTL은 1시간(짧음) — 우리는 결정적 데이터라 NATAL_CHART TTL(30일) 사용.
   const redisKey = `ephe:transit:${iso}:${latitude.toFixed(4)}:${longitude.toFixed(4)}`
-  const chart = await cacheOrCalculate(
+  const chartPromise = cacheOrCalculate(
     redisKey,
     async () => {
       return calculateTransitChart({
@@ -48,9 +52,18 @@ export async function getCachedTransitChart(args: {
         timeZone,
       })
     },
-    CACHE_TTL.NATAL_CHART,
+    CACHE_TTL.NATAL_CHART
   )
-
-  inMemoryCache.set(localKey, chart)
-  return chart
+  // in-flight 프로미스를 즉시 저장 — 동시 요청이 같은 프로미스를 공유(중복 계산 제거).
+  inMemoryCache.set(localKey, chartPromise)
+  try {
+    const chart = await chartPromise
+    inMemoryCache.set(localKey, chart) // resolved 값으로 교체 — 이후 요청은 동기 hit.
+    return chart
+  } catch (err) {
+    // 실패한 프로미스를 캐시에 남기면 이후 요청까지 같은 거부로 오염된다.
+    // delete 가 없는 인터페이스라 undefined 로 무효화(get → undefined → 미스 → 재계산).
+    inMemoryCache.set(localKey, undefined)
+    throw err
+  }
 }

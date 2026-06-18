@@ -90,6 +90,17 @@ export default function HomeChatInput({
       transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className={styles.homeChatBarInner}>
+        {/* 입력창이 곧 "운명 상담사"라는 걸 명시 — 라벨이 없으면 사용자가 이
+            입력창이 어떤 서비스인지 모른다(타로/궁합/리포트는 아래 버튼으로
+            보이지만 운명 상담사는 입력창 자체라 라벨 필요). 입력창은 하단 고정
+            이라 라벨을 컴포넌트 안에 둬서 함께 붙어 따라다닌다. */}
+        <p className={styles.homeCounselorLabel}>
+          <span aria-hidden="true">🗺️</span> {isKo ? 'AI 운명 상담사' : 'AI Destiny Counselor'}
+          <span className={styles.homeCounselorNow}>
+            <span className={styles.homeCounselorNowDot} aria-hidden="true" />
+            {isKo ? '현재 서비스' : 'Current'}
+          </span>
+        </p>
         {/* 운명/궁합 상담사와 동일한 공용 입력창. 메인은 첨부/타로/차트 도구가
             없어 ⋮ 메뉴는 자동으로 숨겨지고, 보내기=상담사로 네비게이트.
             생년월일은 입력창 밖 상단 바(MainPageClient)로 분리됨. */}

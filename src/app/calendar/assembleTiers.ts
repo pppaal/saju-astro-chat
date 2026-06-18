@@ -14,6 +14,7 @@
 import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
+import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
@@ -66,7 +67,7 @@ export interface AssembleTiersInput {
   /**
    * 포커스된 하루의 evidence 포함 셀(getFocusDayCell). 연 cells 는 evidence 를
    * 빼고 캐시하므로(블롭 경량화), day tier 의 근거카드·교차·시진은 이 셀에서 읽는다.
-   * 없으면 연 cells 의 해당 일 셀로 폴백(evidence 없음 — 근거 일부 비어 보일 수 있음).
+   * 없으면 연 cells 의 해당 일 셀로 폴백(evidence 없음 — 근거 일부 비어 보일 수 있다).
    */
   focusDayCell?: CalendarCell | null
   /**
@@ -510,6 +511,28 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     calendar,
   }
 
+  // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
+  // 기존 narrative(인트로+토막)가 안 녹이던 best/caution/converge 날짜·분포를 글로.
+  // narrative 맨 앞에 '이달 총평' 태그로 넣어 카드 선두에 노출.
+  const monthSummaryText = deriveMonthSummary({
+    woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
+    goodDays: month.goodDays.length,
+    cautionDays: month.cautionDays.length,
+    totalDays: monthCells.length,
+    topReasons: monthTopReasons.map((r) => r.body),
+    bestDay: month.bestDay?.date || undefined,
+    bestDayReason: monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning,
+    cautionDay: month.cautionDays[0],
+    convergeDate: month.converge?.date || undefined,
+    lang,
+  })
+  if (monthSummaryText) {
+    month.narrative = [
+      { tag: lang === 'ko' ? '이달 총평' : 'This month', body: monthSummaryText },
+      ...month.narrative,
+    ]
+  }
+
   // 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어를 모아 카드 원료로.
   // 같은 페어가 그 달 여러 윈도우로 잡혀 id 는 달라도 의미는 같으므로 *페어* 기준
   // 중복 제거(가장 센 |polarity| 보존), |polarity| 상위 6개.
@@ -660,6 +683,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
     cautions: dayAdapter.cautions,
+    // 출력 화해 verdict — toDay 가 산출한 단일 권위. 빠뜨리면 DayTier 가 중립
+    // fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다(반드시 전달).
+    dayTone: dayAdapter.dayTone,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.

@@ -134,18 +134,87 @@ export async function getOrBuildYearCells(
 }
 
 /**
- * 포커스된 하루만 evidence 포함으로 빌드.
+ * 그 달만 cells — DB 캐시 우선, miss 면 빌드 후 저장.
+ *
+ * SHOW_FULL_TIERS=false(월/일만 표시) 경로용. 연 티어가 안 보이므로 1년을 굽지
+ * 않고 *보고 있는 그 달*(~30일)만 계산한다 (연 7.8s → 월 ~0.3s). 점수·salience 는
+ * 그 달 모집단 대비로 정규화된다("그 달 기준") — 연 빌드를 안 하므로 의도된 동작.
+ * monthKey 는 `${year}-MM:${optionsHash}` (스키마 주석의 YYYY-MM 의미 그대로).
+ */
+export async function getOrBuildMonthCells(
+  input: BuildContextInput,
+  natal: NatalContext,
+  year: number,
+  month: number,
+  options: CalendarBuildOptions = { includeEvidence: false }
+): Promise<CalendarCell[]> {
+  const birthKey = birthKeyFor(input)
+  const mm = String(month).padStart(2, '0')
+  const monthKey = `${year}-${mm}:${makeOptionsKey(options)}`
+
+  try {
+    const row = await prisma.calendarBuildCache.findUnique({
+      where: { birthKey_monthKey: { birthKey, monthKey } },
+    })
+    if (row) return row.data as unknown as CalendarCell[]
+  } catch (err) {
+    logger.warn('[calendar-cache] month cells read failed — building fresh', err)
+  }
+
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  const range: CalendarRange = {
+    start: `${year}-${mm}-01T00:00:00.000Z`,
+    end: `${year}-${mm}-${String(lastDay).padStart(2, '0')}T23:59:59.999Z`,
+    granularity: 'day',
+  }
+  const cells = await buildCalendar(natal, range, options)
+
+  try {
+    const data = cells as unknown as Prisma.InputJsonValue
+    await prisma.calendarBuildCache.upsert({
+      where: { birthKey_monthKey: { birthKey, monthKey } },
+      create: { birthKey, monthKey, data },
+      update: { data, builtAt: new Date() },
+    })
+  } catch (err) {
+    logger.warn('[calendar-cache] month cells write failed — continuing uncached', err)
+  }
+
+  return cells
+}
+
+/**
+ * 포커스된 하루만 evidence 포함으로 빌드 — DB 캐시 우선.
  *
  * 연 캐시(getOrBuildYearCells)는 evidence 를 빼고 저장한다 — 365일 × 셀당 수백
  * 신호 × 원시 evidence 는 수 MB 블롭이라 캐시 읽기/쓰기·직렬화가 느려지는데,
  * 정작 evidence 를 쓰는 건 *포커스된 그 하루*(근거카드·교차·시진)뿐이다. 그래서
- * 그 하루만 1일 범위로 evidence 포함 빌드한다(1/365 비용, 캐시 불필요).
- * 점수는 연 layered map(연 정규화)에서 오므로 이 1일 빌드의 점수는 쓰지 않는다.
+ * 그 하루만 1일 범위로 evidence 포함 빌드한다. (점수는 연 layered map 에서 오므로
+ * 이 1일 빌드의 점수는 쓰지 않는다.)
+ *
+ * 이 하루(보통 '오늘')는 같은 유저가 반복 방문하므로, 1일치 evidence(작은 블롭)는
+ * `day:${dateIso}` 키로 따로 캐싱한다 — 매 방문 Swiss Ephemeris 재계산 방지.
  */
 export async function getFocusDayCell(
+  input: BuildContextInput,
   natal: NatalContext,
   dateIso: string
 ): Promise<CalendarCell | null> {
+  const birthKey = birthKeyFor(input)
+  const monthKey = `day:${dateIso}:${makeOptionsKey({ includeEvidence: true })}`
+
+  try {
+    const row = await prisma.calendarBuildCache.findUnique({
+      where: { birthKey_monthKey: { birthKey, monthKey } },
+    })
+    if (row) {
+      const cached = row.data as unknown as CalendarCell[]
+      return cached.find((c) => c.datetime.slice(0, 10) === dateIso) ?? cached[0] ?? null
+    }
+  } catch (err) {
+    logger.warn('[calendar-cache] focus-day read failed — building fresh', err)
+  }
+
   const range: CalendarRange = {
     start: `${dateIso}T00:00:00.000Z`,
     end: `${dateIso}T23:59:59.999Z`,
@@ -153,6 +222,16 @@ export async function getFocusDayCell(
   }
   try {
     const cells = await buildCalendar(natal, range, { includeEvidence: true })
+    try {
+      const data = cells as unknown as Prisma.InputJsonValue
+      await prisma.calendarBuildCache.upsert({
+        where: { birthKey_monthKey: { birthKey, monthKey } },
+        create: { birthKey, monthKey, data },
+        update: { data, builtAt: new Date() },
+      })
+    } catch (err) {
+      logger.warn('[calendar-cache] focus-day write failed — continuing uncached', err)
+    }
     return cells.find((c) => c.datetime.slice(0, 10) === dateIso) ?? cells[0] ?? null
   } catch (err) {
     logger.warn('[calendar] focus-day build failed — evidence card may be sparse', err)

@@ -728,7 +728,10 @@
         viewport_width) 폭을 가진다. 추가로 homeChatBar 자체의 가로 padding 도
         0 으로 — chatMain 은 그게 없으니까. */
   width: calc(100% + 40px);
-  margin: auto -20px 0;
+  /* margin-top 은 0 — 입력창을 바닥으로 미는 일은 위의 .homeMoreWrap(flex:1)이
+     맡는다. (예전엔 여기 margin-top:auto 였는데, 그게 .homeMoreWrap 의 flex 보다
+     우선해 남는 공간을 다 먹어서 펼친 리스트가 입력창을 밀어내는 버그가 있었다.) */
+  margin: 0 -20px 0;
   padding: 0 0 0.35rem;
   flex: 0 0 auto;
 }
@@ -1145,6 +1148,231 @@
   border-left-color: rgba(22, 163, 74, 0.45);
 }
 
+/* 타로·궁합·무료 리포트 — 메인이 운명상담사 단일 깔때기라 다른 서비스가
+   메뉴(≡)에만 묻혀 신규 방문자가 모르고 지나가던 문제. 텍스트 링크는 클릭
+   욕구가 약해서 "눌러지는" 알약(pill) 버튼으로 둔다. 타로·궁합은 보조(아웃라인),
+   무료 리포트는 골드 채움 메인 버튼으로 클릭 유도. */
+/* "다른 서비스 보기" — 생년월일 바로 아래. 평소엔 버튼 하나로 접어두고 누르면
+   아래 리스트가 주르륵 펼쳐진다. 입력창(운명 상담사)이 메인이라 기본은 접힘. */
+/* 입력창 위 남는 공간을 이 영역이 차지한다(flex:1). 그래야 입력창은 바닥에
+   고정된 채 절대 안 밀리고, 펼친 리스트는 이 영역 안에서 자체 스크롤하며
+   입력창과의 간격(homeBody gap)을 유지한다. */
+.homeMoreWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.homeServiceMore {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid rgba(229, 231, 240, 0.22);
+  color: rgba(229, 231, 240, 0.78);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.homeServiceMore:hover,
+.homeServiceMore:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(232, 204, 138, 0.5);
+  color: rgba(245, 240, 226, 0.98);
+  outline: none;
+}
+
+/* › 화살표 — 펼치면 90도 돌아 아래(⌄)를 가리킨다. */
+.homeServiceMoreChevron {
+  display: inline-block;
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.22s ease;
+}
+
+.homeServiceMoreChevronOpen {
+  transform: rotate(90deg);
+}
+
+.homeServiceDropList {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0 0.15rem 0.25rem;
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* 영역보다 항목이 많으면 입력창을 밀지 않고 여기서 스크롤. */
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.homeServiceDropItem {
+  --svc-tint: var(--ds-gold-on-dark-soft);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.72rem 0.85rem;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  color: #f5f0e2;
+  text-decoration: none;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.14s ease,
+    box-shadow 0.18s ease;
+}
+
+.homeServiceDropItem:hover,
+.homeServiceDropItem:focus-visible {
+  transform: translateY(-2px);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--svc-tint) 18%, transparent),
+    color-mix(in srgb, var(--svc-tint) 7%, transparent)
+  );
+  border-color: color-mix(in srgb, var(--svc-tint) 55%, transparent);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--svc-tint) 26%, transparent);
+  outline: none;
+}
+
+.homeServiceDropItem:active {
+  transform: translateY(0);
+}
+
+/* 아이콘 — 서비스별 색(tint) 둥근 타일. 은은한 색 링 + 광택으로 입체감. */
+.homeServiceDropIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--svc-tint) 32%, transparent),
+    color-mix(in srgb, var(--svc-tint) 14%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--svc-tint) 38%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.homeServiceDropText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.homeServiceDropTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.89rem;
+  font-weight: 700;
+}
+
+.homeServiceDropDesc {
+  font-size: 0.7rem;
+  line-height: 1.3;
+  color: rgba(229, 231, 240, 0.55);
+  word-break: keep-all;
+}
+
+.homeServiceDropArrow {
+  font-size: 1rem;
+  opacity: 0.45;
+  flex: 0 0 auto;
+  transition:
+    transform 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.homeServiceDropItem:hover .homeServiceDropArrow,
+.homeServiceDropItem:focus-visible .homeServiceDropArrow {
+  opacity: 0.9;
+  transform: translateX(3px);
+}
+
+.homeServiceFreeBadge {
+  padding: 0.04rem 0.34rem;
+  border-radius: 999px;
+  background: rgba(232, 204, 138, 0.95);
+  color: var(--ds-light-text);
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+}
+
+/* Premium-white surface */
+.lightMode .homeServiceMore {
+  border-color: rgba(120, 113, 108, 0.32);
+  color: var(--ds-light-text-muted);
+}
+
+.lightMode .homeServiceMore:hover,
+.lightMode .homeServiceMore:focus-visible {
+  background: rgba(124, 58, 237, 0.06);
+  border-color: rgba(124, 58, 237, 0.4);
+  color: #6d28d9;
+}
+
+.lightMode .homeServiceDropItem {
+  background: #ffffff;
+  border-color: rgba(120, 113, 108, 0.2);
+  color: #292524;
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.05);
+}
+
+.lightMode .homeServiceDropItem:hover,
+.lightMode .homeServiceDropItem:focus-visible {
+  background: color-mix(in srgb, var(--svc-tint) 8%, #ffffff);
+  border-color: color-mix(in srgb, var(--svc-tint) 50%, transparent);
+  box-shadow: 0 12px 26px color-mix(in srgb, var(--svc-tint) 22%, transparent);
+}
+
+.lightMode .homeServiceDropIcon {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--svc-tint) 28%, #ffffff),
+    color-mix(in srgb, var(--svc-tint) 14%, #ffffff)
+  );
+  border-color: color-mix(in srgb, var(--svc-tint) 40%, transparent);
+}
+
+.lightMode .homeServiceDropDesc {
+  color: var(--ds-ring-neutral);
+}
+
+.lightMode .homeServiceFreeBadge {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
 /* Eyebrow — chat bar 위에 "이 박스는 입력하는 곳 + 아래 생일로 분석" 신호.
    처음 본 사용자가 input 박스를 그냥 정보 표시판으로 오해하지 않게 한다. */
 .homeChatEyebrow {
@@ -1154,6 +1382,68 @@
   margin-bottom: 0.5rem;
   padding: 0 0.25rem;
   letter-spacing: 0.01em;
+}
+
+/* 입력창 = 운명 상담사 라벨. 입력창 바로 위 가운데, 아래 서비스 버튼들과
+   같은 골드 톤이라 "운명·타로·궁합·리포트"가 한 묶음처럼 읽힌다. */
+.homeCounselorLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0 0 0.45rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: rgba(232, 204, 138, 0.92);
+}
+
+.lightMode .homeCounselorLabel {
+  color: #a16207;
+}
+
+/* "현재 서비스" 뱃지 — 이 입력창이 지금 쓰는 서비스(운명 상담사)임을 표시.
+   초록 라이브 점으로 활성 느낌. */
+.homeCounselorNow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.08rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: rgba(187, 247, 208, 0.98);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.homeCounselorNowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: homeNowPulse 2s ease-out infinite;
+}
+
+@keyframes homeNowPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.lightMode .homeCounselorNow {
+  background: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.42);
+  color: #15803d;
 }
 
 .lightMode .homeChatEyebrow {

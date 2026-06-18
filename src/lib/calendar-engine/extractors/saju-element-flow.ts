@@ -1,5 +1,7 @@
 import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
+// 일진 천간의 그날 십신(정관/정인/식신…) — cross-activation 매칭 키로 evidence.sibsin 에 태깅.
+import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
 
@@ -36,6 +38,7 @@ const sajuElementFlowExtractor: SignalExtractor = {
   extract(ctx: ExtractorContext): ActiveSignal[] {
     const { natal, range } = ctx
     const pillars = natal.saju.pillars
+    const dayMaster = pillars.day.heavenlyStem
     const dayMasterElement = pillars.day.heavenlyStem.element as FiveElement
 
     const signals: ActiveSignal[] = []
@@ -74,6 +77,8 @@ const sajuElementFlowExtractor: SignalExtractor = {
           evidence: {
             module: 'saju-element-flow',
             element: dayStem.element as FiveElement,
+            // 그날 일진 천간의 십신 — cross-activation extractor 가 이 키로 점성 행성과 페어링.
+            sibsin: getSibsin(dayMaster, dayStem) ?? undefined,
             detail: {
               source: 'stem',
               dayStem: dayStemName,

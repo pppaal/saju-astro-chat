@@ -69,35 +69,28 @@ function isoDay(iso: string): string {
   return iso.slice(0, 10)
 }
 
-/** 두 ISO 시각의 중간점 — peak 합성. */
-function midpointIso(aIso: string, bIso: string): string {
-  const a = Date.parse(aIso)
-  const b = Date.parse(bIso)
-  if (Number.isNaN(a) || Number.isNaN(b)) return aIso
-  return new Date((a + b) / 2).toISOString()
+/**
+ * 파싱된 윈도우 경계(ms) — start/end/peak. 페어 루프가 같은 신호를 수만 번
+ * 마주치므로 신호당 1회만 Date.parse 하고 캐시한다. (직전엔 intersectWindow 가
+ * 매 쌍마다 4회 parse → 19k 신호 페어링에서 수백만 회 parse 로 5.5s 소모.)
+ */
+interface Bounds {
+  s: number
+  e: number
+  p: number
 }
 
-/** 두 윈도우의 겹친 구간 — 없으면 null. */
-function intersectWindow(a: ActiveWindow, b: ActiveWindow): ActiveWindow | null {
-  const aStart = Date.parse(a.start)
-  const aEnd = Date.parse(a.end)
-  const bStart = Date.parse(b.start)
-  const bEnd = Date.parse(b.end)
-  if ([aStart, aEnd, bStart, bEnd].some((n) => Number.isNaN(n))) return null
-  const start = Math.max(aStart, bStart)
-  const end = Math.min(aEnd, bEnd)
-  if (start > end) return null
-  const peak = midpointIso(a.peak, b.peak)
-  // peak 가 [start, end] 밖이면 윈도우 중심으로 폴백.
-  const peakMs = Date.parse(peak)
+/**
+ * ms 경계로 겹친 윈도우 합성. peak 는 두 peak 의 중간, [start,end] 밖이면 윈도우
+ * 중심으로 폴백 — 옛 intersectWindow 와 동일한 결과. (겹치는 쌍에서만 호출.)
+ */
+function makeWindow(startMs: number, endMs: number, peakMs: number): ActiveWindow {
   const safePeak =
-    !Number.isNaN(peakMs) && peakMs >= start && peakMs <= end
-      ? peak
-      : new Date((start + end) / 2).toISOString()
+    !Number.isNaN(peakMs) && peakMs >= startMs && peakMs <= endMs ? peakMs : (startMs + endMs) / 2
   return {
-    start: new Date(start).toISOString(),
-    peak: safePeak,
-    end: new Date(end).toISOString(),
+    start: new Date(startMs).toISOString(),
+    peak: new Date(safePeak).toISOString(),
+    end: new Date(endMs).toISOString(),
   }
 }
 
@@ -203,15 +196,35 @@ export function extractCrossActivations(signals: readonly ActiveSignal[]): Activ
   // dedup: (mapping key + day) 가 동일하면 가장 강한 (weight desc) 한 쌍만.
   const bestByDay = new Map<string, { sig: ActiveSignal; strength: number }>()
 
+  // 신호당 경계 1회 파싱 캐시 — 페어 루프의 Date.parse 폭증 제거.
+  const boundsCache = new Map<ActiveSignal, Bounds>()
+  const boundsOf = (sig: ActiveSignal): Bounds => {
+    let b = boundsCache.get(sig)
+    if (!b) {
+      b = {
+        s: Date.parse(sig.active.start),
+        e: Date.parse(sig.active.end),
+        p: Date.parse(sig.active.peak),
+      }
+      boundsCache.set(sig, b)
+    }
+    return b
+  }
+
   for (const mapping of SAJU_ASTRO_MAPPINGS) {
     const sajuSignals = sajuByKey.get(mapping.saju)
     const astroSignals = astroByKey.get(mapping.astro)
     if (!sajuSignals?.length || !astroSignals?.length) continue
 
     for (const sajuSig of sajuSignals) {
+      const sb = boundsOf(sajuSig)
       for (const astroSig of astroSignals) {
-        const window = intersectWindow(sajuSig.active, astroSig.active)
-        if (!window) continue
+        const ab = boundsOf(astroSig)
+        // 숫자 경계로 겹침 빠른 판정 — 대부분의 쌍은 겹치지 않아 여기서 싸게 탈락.
+        const start = Math.max(sb.s, ab.s)
+        const end = Math.min(sb.e, ab.e)
+        if (Number.isNaN(start) || Number.isNaN(end) || start > end) continue
+        const window = makeWindow(start, end, (sb.p + ab.p) / 2)
         const crossSig = buildCrossSignal(sajuSig, astroSig, mapping, window)
         // 층별 교차 밴드 — 합성 신호의 layer 가 그 행성 밴드 밖이면 버린다.
         // (외행성은 대운에서만, 빠른 행성은 일/월에서만 — 스케일 불일치 교차 차단.)
