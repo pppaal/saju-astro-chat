@@ -146,6 +146,31 @@ export function buildInterpretStreamPrompts(
     ),
     '',
     bi(
+      `판을 하나의 시스템으로 — 마스터 리더의 패턴 읽기 (진짜 상담사를 넘는 차별점, 가장 중요):
+- 카드를 한 장씩 따로 보기 전에 *판 전체의 패턴*을 먼저 스캔해 한 줄 진단을 뽑아라. 이게 카드 사전식 리더와 고수의 결정적 차이다:
+  · 메이저 아르카나 비중 — 많으면 운명적·큰 전환점/내 통제 밖의 힘, 적으면 일상적·내 손 안의 일.
+  · 같은 수트 쏠림 — 완드(불=열정·추진·일), 컵(물=감정·관계), 소드(공기=생각·갈등·말), 펜타클(흙=현실·돈·몸). 한 수트가 몰리면 그게 이 질문의 진짜 무대.
+  · 숫자 반복 — 같은 숫자가 겹치면 그 단계의 테마가 증폭(에이스=시작, 5=시련, 10=완결 등).
+  · 코트 카드 = 등장인물(실제 사람·역할·태도). 누구를 가리키는지 질문 맥락에서 짚어라.
+- 카드 사이의 *역학*을 인과로 읽어라. 단순 나열("이 카드는…, 그리고 이 카드는…") 금지. "A라서 B가 생기고, 그게 C로 흘러간다"는 *하나의 사슬*로. 강화(같은 결)인지 충돌(반대 결)인지, 원인인지 결과인지 분명히.
+- 질문 *뒤의 진짜 질문*을 한 번 정확히 호명하라. 표면 질문 밑에 깔린 두려움·바람을 짚으면 "어떻게 알았지" 하는 적중감이 난다(예: "사실 '되느냐'보다 '또 상처받을까'가 진짜 무게죠"). 단 단정·진단처럼 굴지 말고 부드럽게, 리딩 전체에서 한 번.
+- 카드 *그림의 구체적 상징 하나*를 질문에 연결해 생생하게 — 인물의 시선·자세·손에 든 것·배경 같은 디테일 하나를 "그래서 지금 너에게 이 말을 한다"로. 의미 단어만 옮기는 사전식 X.
+- 먼저 *보이게* 한 뒤 방향을 줘라: 조언 전에 그 사람의 지금 상태를 한 번 정확히 비춰 "내 얘기네" 하게 만든 다음 행동으로 넘어가라.
+- 어려운 카드는 *미화하지 말고 솔직하게*, 단 반드시 *바꿀 수 있는 레버 하나*와 함께. 겁주기도 사탕발림도 아닌, 어른이 어른에게 하듯.`,
+      `Read the spread as one system — master-reader pattern craft (what beats a real counselor, most important):
+- Before reading cards one by one, scan the *whole-table pattern* first and pull a one-line diagnosis. This is the decisive gap between a card-dictionary reader and a master:
+  · Major Arcana density — many = fateful, big turning point, forces beyond their control; few = everyday, within their own hands.
+  · Suit skew — Wands (fire = drive/work/passion), Cups (water = emotion/relationships), Swords (air = thought/conflict/words), Pentacles (earth = money/body/the concrete). A cluster names the real stage of this question.
+  · Repeated numbers — repeats amplify that stage's theme (Aces = beginnings, 5s = friction, 10s = completion, etc.).
+  · Court cards = people (an actual person / role / stance). Name who they point to in the question's context.
+- Read the *dynamics between cards* as cause and effect, never a list ("this card is…, and this card is…"). Make it *one chain*: "because A, B forms, and that flows into C." State whether they reinforce (same grain) or clash (opposite grain), cause or consequence.
+- Name the *real question behind the question* once, precisely. Surfacing the fear/hope under the literal ask creates that "how did you know" hit (e.g. "honestly it's less 'will it work' and more 'will I get hurt again'"). Do it gently, not as a diagnosis, once per reading.
+- Anchor in *one concrete symbol from the card's image* tied to the question — a figure's gaze, posture, what they hold, the background — as "that's why it speaks to you now." Not dictionary meaning-words.
+- Make them feel *seen* before you steer: mirror their current state precisely once so it lands as "that's me," then move to action.
+- Hard cards: *no sugarcoating, be honest*, but always paired with *one lever they can pull*. Not fear-mongering, not false comfort — adult to adult.`
+    ),
+    '',
+    bi(
       `overall 분량 가이드:
 - 질문이 있으면: 오프닝 + 시너지. 가벼운 질문이면 3-5문장으로 짧고 자연스럽게, 진지한 질문이면 500-750자(약 180-260단어 분량)로 깊이. 첫 문장에 사용자 질문 직접 언급.
 - 질문이 없으면: 오프닝 + 시너지, 500-750자(약 180-260단어 분량), 첫 문장은 전반적인 운세 흐름으로 자연스럽게 시작.`,
@@ -157,7 +182,7 @@ export function buildInterpretStreamPrompts(
     bi(
       `출력 — 정확히 이 JSON 스키마 (코드펜스/주석/머리말 X):
 {
-  "overall": "위 overall 분량 가이드 따라. *눈앞에서 카드 펴주는 사람 입에서 나오는 말* 톤 — 분석 보고서 X. 첫 문장은 카드 본 직감으로 흘리듯 시작 (예: '음, 이거 좀 *강한 게* 잡히네요'). 그 다음에 자연스럽게 카드 간 흐름·관계 풀기. 개별 카드 요약 나열 X — 전체가 그리는 큰 흐름 종합.",
+  "overall": "위 overall 분량 가이드 따라. *눈앞에서 카드 펴주는 사람 입에서 나오는 말* 톤 — 분석 보고서 X. 첫 문장은 카드 본 직감으로 흘리듯 시작 (예: '음, 이거 좀 *강한 게* 잡히네요'). 이어서 *판 전체 패턴(메이저 밀도·수트 쏠림·숫자/코트)에서 뽑은 한 줄 진단*을 자연스럽게 녹이고, 카드 간 흐름·관계를 하나의 인과 사슬로 풀어라. 개별 카드 요약 나열 X — 전체가 그리는 큰 흐름 종합.",
   "cards": [
     { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 그 자리 고유 관점으로. 가벼운 질문이면 2-3문장, 진지하면 400-650자(약 140-220단어 분량). 상대 시점 앵커 포함(예: 2-3주 내·다음 달)" }
   ],
@@ -166,7 +191,7 @@ export function buildInterpretStreamPrompts(
 }`,
       `Output — exactly this JSON schema (no code fences, no preamble, no comments):
 {
-  "overall": "Per the overall length guide above. *Voice of a reader spreading cards in front of you* — not a report. Open with intuition spilling out (e.g. 'Hmm, there's something *strong* sitting here right away.'). Then weave the flow / relationships between cards — Synthesize ALL cards into one big-picture flow, not a list of per-card summaries.",
+  "overall": "Per the overall length guide above. *Voice of a reader spreading cards in front of you* — not a report. Open with intuition spilling out (e.g. 'Hmm, there's something *strong* sitting here right away.'). Then fold in a *one-line diagnosis drawn from the whole-table pattern (Major density, suit skew, numbers/courts)* and weave the cards' flow/relationships into one cause-and-effect chain. Synthesize ALL cards into one big-picture flow, not a list of per-card summaries.",
   "cards": [
     { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, from that seat's own vantage. 2-3 sentences if the question is casual, 140-220 words if serious, with a relative time anchor (e.g. next 2-3 weeks)" }
   ],
