@@ -20,7 +20,7 @@ import { isSelfHarm, crisisMessage } from '@/lib/safety/crisis'
 import { csrfGuard } from '@/lib/security/csrf'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
-import { createIdempotencyStore } from '@/lib/api/idempotency'
+import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
 import { counselorRealtimeRequestSchema } from '@/lib/api/zodValidation'
 import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPrompt'
 
@@ -106,19 +106,6 @@ const RATE_LIMIT_PER_MIN = 12
 // The prompt itself now lives in @/lib/prompts/destinyCounselorPrompt as
 // co-located ko/en pairs — edit Korean there and the English sits right
 // beside it, so the two languages can't silently drift apart.
-
-// 멱등 키에 섞을 짧은 content discriminator. 같은 x-idempotency-key 를 서로 다른
-// 질문으로 재사용해 첫 차감 이후 무료로 받는 free-replay 누수를 막는다
-// (idempotency.ts keyFor 의 contentTag 참조). 충돌 안전성보다 "내용이 바뀌면
-// 태그도 바뀐다"가 목적이라 빠른 비암호 해시(FNV-1a)로 충분하다.
-function idemContentTag(text: string): string {
-  let h = 0x811c9dc5
-  for (let i = 0; i < text.length; i += 1) {
-    h ^= text.charCodeAt(i)
-    h = Math.imul(h, 0x01000193)
-  }
-  return (h >>> 0).toString(36)
-}
 
 export async function POST(req: NextRequest) {
   // 0) CSRF — this route bypasses withApiMiddleware, so guard the origin

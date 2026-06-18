@@ -14,7 +14,7 @@ import { buildCompatibilityCounselorPrompt } from '@/lib/prompts/compatibilityCo
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { consumeCredits } from '@/lib/credits/creditService'
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
-import { createIdempotencyStore } from '@/lib/api/idempotency'
+import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
 import { cacheSet } from '@/lib/cache/redis-cache'
 import type { Relation } from '../types'
 
@@ -219,7 +219,15 @@ export async function POST(req: NextRequest) {
     // middleware 의 requireCredits 가 false 라서 여기서 명시 처리.
     // chargedUserId 는 함수 스코프에 hoist 됨 (외부 catch 환불용).
     if (context.userId) {
-      const scopedIdemKey = idemStore.keyFor(req, `user:${context.userId}`)
+      // contentTag(마지막 질문 해시)로 "같은 키 + 같은 질문"만 replay 로 인정 →
+      // 같은 x-idempotency-key 를 다른 질문에 재사용해 첫 차감 후 공짜로 받던
+      // free-replay 차단. 운명상담사 realtime 과 동일 보호(그쪽엔 있었고 여긴 빠져
+      // 있던 비대칭 해소).
+      const scopedIdemKey = idemStore.keyFor(
+        req,
+        `user:${context.userId}`,
+        idemContentTag(lastUser?.content ?? '')
+      )
       // 원자적 선점 — 동시 요청 중 하나만 첫 진입으로 차감(이중 차감 방지).
       const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
       if (scopedIdemKey && !claimed) {
